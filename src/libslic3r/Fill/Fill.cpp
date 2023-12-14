@@ -487,7 +487,7 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 		        params.bridge = is_bridge || Fill::use_bridge_flow(params.pattern);
 				params.flow   = params.bridge ?
 					//BBS: always enable thick bridge for internal bridge
-					layerm.bridging_flow(extrusion_role, (surface.is_bridge() && !surface.is_external()) || object_config.thick_bridges) :
+					layerm.bridging_flow(extrusion_role, (surface.is_bridge() && !surface.is_external()) || object_config.thick_bridges, params.extrusion_role == erInternalBridgeInfill) :
 					layerm.flow(extrusion_role, (surface.thickness == -1) ? layer.height : surface.thickness);
 
 				// Calculate flow spacing for infill pattern generation.
@@ -645,7 +645,7 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
     }
 
 	// BBS: detect narrow internal solid infill area and use ipConcentricInternal pattern instead
-	/*if (layer.object()->config().detect_narrow_internal_solid_infill)*/ {
+	if (layer.object()->config().detect_narrow_internal_solid_infill) {
 		size_t surface_fills_size = surface_fills.size();
 		for (size_t i = 0; i < surface_fills_size; i++) {
 			if (surface_fills[i].surface.surface_type != stInternalSolid)
@@ -1095,7 +1095,7 @@ void Layer::make_ironing()
 
         // Create the filler object.
         f->spacing = ironing_params.line_spacing;
-        f->angle = float(ironing_params.angle + 0.25 * M_PI);
+        f->angle = float(ironing_params.angle);
         f->link_max_length = (coord_t) scale_(3. * f->spacing);
 		double  extrusion_height = ironing_params.height * f->spacing / nozzle_dmr;
 		float  extrusion_width  = Flow::rounded_rectangle_extrusion_width_from_spacing(float(nozzle_dmr), float(extrusion_height));

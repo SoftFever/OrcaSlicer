@@ -294,7 +294,6 @@ private:
     const Calib_Params &m_params;
 
     GCodeWriter        m_writer;
-    bool               m_is_delta;
     Vec3d              m_starting_point;
     bool               m_is_start_point_fixed = false;
 

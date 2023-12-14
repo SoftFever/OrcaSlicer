@@ -511,9 +511,11 @@ find_package(glfw3 REQUIRED)
 
 # Find the Cereal serialization library
 find_package(cereal REQUIRED)
-set_target_properties(cereal PROPERTIES IMPORTED_GLOBAL TRUE)
 if (NOT TARGET cereal::cereal)
+    set_target_properties(cereal PROPERTIES IMPORTED_GLOBAL TRUE)
     add_library(cereal::cereal ALIAS cereal)
+else ()
+    set_target_properties(cereal::cereal PROPERTIES IMPORTED_GLOBAL TRUE)
 endif ()
 
 # l10n

@@ -1,0 +1,58 @@
+name: Build all
+
+on:
+  push:
+    branches:
+     - main
+     - release/*
+    paths:
+     - 'deps/**'
+     - 'src/**'
+     - '**/CMakeLists.txt'
+     - 'version.inc'
+     - 'localization/**'
+     - 'resources/**'
+     - ".github/workflows/build_*.yml"
+
+  pull_request:
+    branches:
+     - main
+     - release/*
+    paths:
+     - 'deps/**'
+     - 'src/**'
+     - '**/CMakeLists.txt'
+     - 'version.inc'
+     - ".github/workflows/build_*.yml"
+
+  workflow_dispatch: # allows for manual dispatch
+    inputs:
+      build-deps-only:
+        description: 'Only build dependencies (bypasses caching)'
+        type: boolean
+        default: false
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+  
+
+jobs:
+  build_all:
+    name: Build All
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-20.04
+          - os: windows-latest
+          - os: macos-12
+            arch: x86_64
+          - os: macos-12
+            arch: arm64
+    uses: ./.github/workflows/build_check_cache.yml
+    with:
+      os: ${{ matrix.os }}
+      arch: ${{ matrix.arch }}
+      build-deps-only: ${{ inputs.build-deps-only || false }}
+    secrets: inherit

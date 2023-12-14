@@ -90,6 +90,14 @@ enum class WallInfillOrder {
     InnerOuterInnerInfill,
     Count,
 };
+
+// BBS
+enum class WallSequence {
+    InnerOuter,
+    OuterInner,
+    InnerOuterInner,
+    Count,
+};
 //BBS
 enum class PrintSequence {
     ByLayer,
@@ -214,6 +222,12 @@ enum BedType {
     btPEI,
     btPTE,
     btCount
+};
+
+// BBS
+enum FirstLayerSeq {
+    flsAuto, 
+    flsCutomize
 };
 
 // BBS
@@ -348,7 +362,6 @@ CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(GCodeThumbnailsFormat)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(PrintHostType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(AuthorizationType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(PerimeterGeneratorType)
-
 #undef CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS
 
 // Defines each and every confiuration option of Slic3r, including the properties of the GUI dialogs.
@@ -687,6 +700,8 @@ PRINT_CONFIG_CLASS_DEFINE(
     // Force the generation of solid shells between adjacent materials/volumes.
     ((ConfigOptionBool,                interface_shells))
     ((ConfigOptionFloat,               layer_height))
+    ((ConfigOptionFloat,               mmu_segmented_region_max_width))
+    ((ConfigOptionFloat,               mmu_segmented_region_interlocking_depth))
     ((ConfigOptionFloat,               raft_contact_distance))
     ((ConfigOptionFloat,               raft_expansion))
     ((ConfigOptionPercent,             raft_first_layer_density))
@@ -709,6 +724,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionInt,                 enforce_support_layers))
     ((ConfigOptionInt,                 support_filament))
     ((ConfigOptionFloatOrPercent,      support_line_width))
+    ((ConfigOptionBool,                support_interface_not_for_body))
     ((ConfigOptionBool,                support_interface_loop_pattern))
     ((ConfigOptionInt,                 support_interface_filament))
     ((ConfigOptionInt,                 support_interface_top_layers))
@@ -735,6 +751,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     // BBS
     ((ConfigOptionBool,                flush_into_infill))
     ((ConfigOptionBool,                flush_into_support))
+    ((ConfigOptionEnum<WallSequence>,  wall_sequence))
     // BBS
     ((ConfigOptionFloat,              tree_support_branch_distance))
     ((ConfigOptionFloat,              tree_support_tip_diameter))
@@ -747,6 +764,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,               tree_support_adaptive_layer_height))
     ((ConfigOptionBool,               tree_support_auto_brim))
     ((ConfigOptionFloat,              tree_support_brim_width))
+    ((ConfigOptionBool,               detect_narrow_internal_solid_infill))
     // ((ConfigOptionBool,               adaptive_layer_height))
     ((ConfigOptionFloat,              support_bottom_interface_spacing))
     ((ConfigOptionEnum<PerimeterGeneratorType>, wall_generator))
@@ -795,8 +813,10 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,                bottom_shell_thickness))
     ((ConfigOptionFloat,                bridge_angle))
     ((ConfigOptionFloat,                bridge_flow))
+    ((ConfigOptionFloat,                internal_bridge_flow))
     ((ConfigOptionFloat,                bridge_speed))
     ((ConfigOptionFloatOrPercent,       internal_bridge_speed))
+    ((ConfigOptionBool,                 ensure_vertical_shell_thickness))
     ((ConfigOptionEnum<InfillPattern>,  top_surface_pattern))
     ((ConfigOptionEnum<InfillPattern>,  bottom_surface_pattern))
     ((ConfigOptionEnum<InfillPattern>, internal_solid_infill_pattern))
@@ -808,6 +828,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionEnum<FuzzySkinType>,  fuzzy_skin))
     ((ConfigOptionFloat,                fuzzy_skin_thickness))
     ((ConfigOptionFloat,                fuzzy_skin_point_distance))
+    ((ConfigOptionBool,                 fuzzy_skin_first_layer))
     ((ConfigOptionFloat,                gap_infill_speed))
     ((ConfigOptionInt,                  sparse_infill_filament))
     ((ConfigOptionFloatOrPercent,       sparse_infill_line_width))
@@ -820,6 +841,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionEnum<InfillPattern>, ironing_pattern))
     ((ConfigOptionPercent, ironing_flow))
     ((ConfigOptionFloat, ironing_spacing))
+    ((ConfigOptionFloat, ironing_direction))
     ((ConfigOptionFloat, ironing_speed))
     ((ConfigOptionFloat, ironing_angle))
     // Detect bridging perimeters
@@ -875,6 +897,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloatOrPercent,       hole_to_polyhole_threshold))
     ((ConfigOptionBool,                 hole_to_polyhole_twisted))
     ((ConfigOptionBool,                 overhang_reverse))
+    ((ConfigOptionBool,                 overhang_reverse_internal_only))
     ((ConfigOptionFloatOrPercent,       overhang_reverse_threshold))
 )
 
@@ -912,7 +935,8 @@ PRINT_CONFIG_CLASS_DEFINE(
 PRINT_CONFIG_CLASS_DEFINE(
     GCodeConfig,
 
-    ((ConfigOptionString,              before_layer_change_gcode))
+    ((ConfigOptionString,              before_layer_change_gcode)) 
+    ((ConfigOptionString,              printing_by_object_gcode)) 
     ((ConfigOptionFloats,              deretraction_speed))
     //BBS
     ((ConfigOptionBool,                enable_arc_fitting))
@@ -936,6 +960,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionInts,                required_nozzle_HRC))
     // BBS
     ((ConfigOptionBool,                scan_first_layer))
+    ((ConfigOptionPoints,              thumbnail_size))
     // ((ConfigOptionBool,                spaghetti_detector))
     ((ConfigOptionBool,                gcode_add_line_number))
     ((ConfigOptionBool,                bbl_bed_temperature_gcode))
@@ -967,6 +992,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                single_extruder_multi_material_priming))
     ((ConfigOptionBool,                wipe_tower_no_sparse_layers))
     ((ConfigOptionString,              change_filament_gcode))
+    ((ConfigOptionString,              change_extrusion_role_gcode))
     ((ConfigOptionFloat,               travel_speed))
     ((ConfigOptionFloat,               travel_speed_z))
     ((ConfigOptionBool,                silent_mode))
@@ -1031,6 +1057,8 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     //BBS: add bed_exclude_area
     ((ConfigOptionPoints,             bed_exclude_area))
     // BBS
+    ((ConfigOptionString,             bed_custom_texture))
+    ((ConfigOptionString,             bed_custom_model))
     ((ConfigOptionEnum<BedType>,      curr_bed_type))
     ((ConfigOptionInts,               cool_plate_temp))
     ((ConfigOptionInts,               eng_plate_temp))
@@ -1121,7 +1149,6 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     // BBS: project filaments
     ((ConfigOptionFloats,             filament_colour_new))
     // BBS: not in any preset, calculated before slicing
-    ((ConfigOptionBool,               has_prime_tower))
     ((ConfigOptionFloat,              nozzle_volume))
     ((ConfigOptionPoints,             start_end_points))
     ((ConfigOptionEnum<TimelapseType>,    timelapse_type))
@@ -1136,12 +1163,13 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionInt,                 slow_down_layers))
     ((ConfigOptionInts,                support_material_interface_fan_speed))
     // Orca: notes for profiles from PrusaSlicer
-    ((ConfigOptionStrings,            filament_notes))
-    ((ConfigOptionString,             notes))
-    ((ConfigOptionString,             printer_notes))
+    ((ConfigOptionStrings,             filament_notes))
+    ((ConfigOptionString,              notes))
+    ((ConfigOptionString,              printer_notes))
 
     ((ConfigOptionBools,               activate_chamber_temp_control))
     ((ConfigOptionInts ,               chamber_temperature))
+    ((ConfigOptionBool,                is_infill_first))
 
 
 

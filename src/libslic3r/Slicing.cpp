@@ -119,8 +119,6 @@ SlicingParameters SlicingParameters::create_from_config(
         //BBS
         params.gap_object_support = object_config.support_bottom_z_distance.value; 
         params.gap_support_object = object_config.support_top_z_distance.value;
-        if (params.gap_object_support <= 0)
-            params.gap_object_support = params.gap_support_object;
 
         if (!print_config.independent_support_layer_height) {
             params.gap_raft_object = std::round(params.gap_raft_object / object_config.layer_height + EPSILON) * object_config.layer_height;
@@ -432,16 +430,16 @@ std::vector<double> smooth_height_profile(const std::vector<double>& profile, co
     //    return false;
     //};
 
-    //int count = 0;
-    //std::vector<double> ret = profile;
-    //bool has_steep_change = has_steep_height_change(ret, LAYER_HEIGHT_CHANGE_STEP);
-    //while (has_steep_change && count < 6) {
-    //    ret = gauss_blur(ret, smoothing_params);
-    //    has_steep_change = has_steep_height_change(ret, LAYER_HEIGHT_CHANGE_STEP);
-    //    count++;
-    //}
-    //return ret;
-    return gauss_blur(profile, smoothing_params);
+    int count = 0;
+    std::vector<double> ret = profile;
+    // bool has_steep_change = has_steep_height_change(ret, LAYER_HEIGHT_CHANGE_STEP);
+    while (/*has_steep_change &&*/ count < 6) {
+       ret = gauss_blur(ret, smoothing_params);
+       //has_steep_change = has_steep_height_change(ret, LAYER_HEIGHT_CHANGE_STEP);
+       count++;
+    }
+    return ret;
+    // return gauss_blur(profile, smoothing_params);
 }
 
 void adjust_layer_height_profile(

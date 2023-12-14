@@ -10,6 +10,7 @@
 #include <wx/sizer.h>
 #include <wx/toolbar.h>
 #include <wx/textdlg.h>
+#include <wx/url.h>
 
 #include <slic3r/GUI/Widgets/WebView.hpp>
 
@@ -90,12 +91,14 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
     topsizer->Add(m_browser, wxSizerFlags().Expand().Proportion(1));
 
     // Log backend information
+    /* m_browser->GetUserAgent() may lead crash
     if (wxGetApp().get_mode() == comDevelop) {
         wxLogMessage(wxWebView::GetBackendVersionInfo().ToString());
         wxLogMessage("Backend: %s Version: %s", m_browser->GetClassInfo()->GetClassName(),
             wxWebView::GetBackendVersionInfo().ToString());
         wxLogMessage("User Agent: %s", m_browser->GetUserAgent());
     }
+    */
 
     // Create the Tools menu
     m_tools_menu = new wxMenu();
@@ -430,30 +433,39 @@ void WebViewPanel::SendRecentList(int images)
 
 void WebViewPanel::SendDesignStaffpick(bool on)
 {
-    if (on) {
-        get_design_staffpick(0, 60, [this](std::string body) {
-            if (body.empty() || body.front() != '{') {
-                BOOST_LOG_TRIVIAL(warning) << "get_design_staffpick failed " + body;
-                return;
-            }
-            CallAfter([this, body] {
-                auto body2 = from_u8(body);
-                body2.insert(1, "\"command\": \"modelmall_model_advise_get\", ");
-                RunScript(wxString::Format("window.postMessage(%s)", body2));
-            });
-        });
-    } else {
-        std::string body2 = "{\"total\":0, \"hits\":[]}";
-        body2.insert(1, "\"command\": \"modelmall_model_advise_get\", ");
-        RunScript(wxString::Format("window.postMessage(%s)", body2));
-    }
+    // if (on) {
+    //     get_design_staffpick(0, 60, [this](std::string body) {
+    //         if (body.empty() || body.front() != '{') {
+    //             BOOST_LOG_TRIVIAL(warning) << "get_design_staffpick failed " + body;
+    //             return;
+    //         }
+    //         CallAfter([this, body] {
+    //             auto body2 = from_u8(body);
+    //             body2.insert(1, "\"command\": \"modelmall_model_advise_get\", ");
+    //             RunScript(wxString::Format("window.postMessage(%s)", body2));
+    //         });
+    //     });
+    // } else {
+    //     std::string body2 = "{\"total\":0, \"hits\":[]}";
+    //     body2.insert(1, "\"command\": \"modelmall_model_advise_get\", ");
+    //     RunScript(wxString::Format("window.postMessage(%s)", body2));
+    // }
 }
 
 void WebViewPanel::OpenModelDetail(std::string id, NetworkAgent *agent)
 {
     std::string url;
-    if ((agent ? agent->get_model_mall_detail_url(&url, id) : get_model_mall_detail_url(&url, id)) == 0)
-        wxLaunchDefaultBrowser(url);
+    if ((agent ? agent->get_model_mall_detail_url(&url, id) : get_model_mall_detail_url(&url, id)) == 0) 
+    {
+        if (url.find("?") != std::string::npos) 
+        { 
+            url += "&from=bambustudio";
+        } else {
+            url += "?from=bambustudio";
+        }
+        
+        wxLaunchDefaultBrowser(url); 
+    }
 }
 
 void WebViewPanel::SendLoginInfo()
@@ -488,17 +500,17 @@ void WebViewPanel::ShowNetpluginTip()
 
 void WebViewPanel::get_design_staffpick(int offset, int limit, std::function<void(std::string)> callback)
 {
-    auto host = wxGetApp().get_http_url(wxGetApp().app_config->get_country_code(), "v1/design-service/design/staffpick");
-    std::string url = (boost::format("%1%/?offset=%2%&limit=%3%") % host % offset % limit).str();
+    // auto host = wxGetApp().get_http_url(wxGetApp().app_config->get_country_code(), "v1/design-service/design/staffpick");
+    // std::string url = (boost::format("%1%/?offset=%2%&limit=%3%") % host % offset % limit).str();
 
-    Http http = Http::get(url);
-    http.header("accept", "application/json")
-        .header("Content-Type", "application/json")
-        .on_complete([this, callback](std::string body, unsigned status) { callback(body); })
-        .on_error([this, callback](std::string body, std::string error, unsigned status) {
-            callback(body);
-        })
-        .perform();
+    // Http http = Http::get(url);
+    // http.header("accept", "application/json")
+    //     .header("Content-Type", "application/json")
+    //     .on_complete([this, callback](std::string body, unsigned status) { callback(body); })
+    //     .on_error([this, callback](std::string body, std::string error, unsigned status) {
+    //         callback(body);
+    //     })
+    //     .perform();
 }
 
 int WebViewPanel::get_model_mall_detail_url(std::string *url, std::string id)
@@ -528,6 +540,12 @@ void WebViewPanel::OnNavigationRequest(wxWebViewEvent& evt)
     const wxString &url = evt.GetURL();
     if (url.StartsWith("File://") || url.StartsWith("file://")) {
         if (!url.Contains("/web/homepage/index.html")) {
+            auto file = wxURL::Unescape(wxURL(url).GetPath());
+#ifdef _WIN32
+            if (file.StartsWith('/'))
+                file = file.Mid(1);
+#endif
+            wxGetApp().plater()->load_files(wxArrayString{1, &file});
             evt.Veto();
             return;
         }

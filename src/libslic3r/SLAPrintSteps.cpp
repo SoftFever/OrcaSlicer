@@ -398,14 +398,14 @@ void SLAPrint::Steps::drill_holes(SLAPrintObject &po)
         auto bb = bounding_box(m);
         Eigen::AlignedBox<float, 3> ebb{bb.min.cast<float>(),
                                         bb.max.cast<float>()};
-
-        AABBTreeIndirect::traverse(
-                    tree,
-                    AABBTreeIndirect::intersecting(ebb),
-                    [&part_to_drill, &hollowed_mesh](size_t faceid)
-        {
-            part_to_drill.indices.emplace_back(hollowed_mesh.its.indices[faceid]);
-        });
+        //BBS
+        //AABBTreeIndirect::traverse(
+        //            tree,
+        //            AABBTreeIndirect::intersecting(ebb),
+        //            [&part_to_drill, &hollowed_mesh](size_t faceid)
+        //{
+        //    part_to_drill.indices.emplace_back(hollowed_mesh.its.indices[faceid]);
+        //});
 
         auto cgal_meshpart = MeshBoolean::cgal::triangle_mesh_to_cgal(
             remove_unconnected_vertices(part_to_drill));

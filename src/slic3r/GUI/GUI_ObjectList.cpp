@@ -1,3 +1,9 @@
+///|/ Copyright (c) Prusa Research 2018 - 2023 Oleksandra Iushchenko @YuSanka, Enrico Turri @enricoturri1966, Lukáš Matěna @lukasmatena, Lukáš Hejl @hejllukas, Tomáš Mészáros @tamasmeszaros, Vojtěch Bubník @bubnikv, Pavel Mikuš @Godrak, David Kocík @kocikdav, Filip Sykala @Jony01, Vojtěch Král @vojtechkral
+///|/ Copyright (c) 2021 Mathias Rasmussen
+///|/ Copyright (c) 2020 rongith
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/PresetBundle.hpp"
 #include "GUI_ObjectList.hpp"
@@ -54,8 +60,11 @@ static PrinterTechnology printer_technology()
 
 static const Selection& scene_selection()
 {
-    //BBS return current canvas3D return wxGetApp().plater()->get_view3D_canvas3D()->get_selection();
-    return wxGetApp().plater()->get_current_canvas3D()->get_selection();
+    //BBS AssembleView canvas has its own selection
+    if (wxGetApp().plater()->get_current_canvas3D()->get_canvas_type() == GLCanvas3D::ECanvasType::CanvasAssembleView)
+        return wxGetApp().plater()->get_assmeble_canvas3D()->get_selection();
+    
+    return wxGetApp().plater()->get_view3D_canvas3D()->get_selection();
 }
 
 // Config from current edited printer preset
@@ -270,6 +279,7 @@ ObjectList::ObjectList(wxWindow* parent) :
     Bind(wxEVT_DATAVIEW_ITEM_DROP_POSSIBLE, &ObjectList::OnDropPossible,    this);
     Bind(wxEVT_DATAVIEW_ITEM_DROP,          &ObjectList::OnDrop,            this);
 
+    Bind(wxEVT_DATAVIEW_ITEM_START_EDITING, &ObjectList::OnStartEditing, this);
     Bind(wxEVT_DATAVIEW_ITEM_EDITING_STARTED, &ObjectList::OnEditingStarted,  this);
     Bind(wxEVT_DATAVIEW_ITEM_EDITING_DONE,    &ObjectList::OnEditingDone,     this);
 
@@ -304,6 +314,8 @@ ObjectList::ObjectList(wxWindow* parent) :
 
 ObjectList::~ObjectList()
 {
+    if (m_objects_model)
+            m_objects_model->DecRef();
 }
 
 void ObjectList::set_min_height()
@@ -373,7 +385,8 @@ void ObjectList::create_objects_ctrl()
     // And Icon can be consisting of several bitmaps
     BitmapTextRenderer* bmp_text_renderer = new BitmapTextRenderer();
     bmp_text_renderer->set_can_create_editor_ctrl_function([this]() {
-        return m_objects_model->GetItemType(GetSelection()) & (itVolume | itObject);
+        auto type = m_objects_model->GetItemType(GetSelection());
+        return type & (itVolume | itObject | itPlate);
     });
 
     // BBS
@@ -784,6 +797,22 @@ void ObjectList::printable_state_changed(const std::vector<ObjectVolumeID>& ov_i
     wxGetApp().plater()->update();
 }
 
+void ObjectList::assembly_plate_object_name()
+{
+    m_objects_model->assembly_name();
+}
+
+void ObjectList::selected_object(ObjectDataViewModelNode* item)
+{
+    if (!item) {
+        return;
+    }
+    this->SetFocus();
+    select_item(wxDataViewItem(item));
+    ensure_current_item_visible();
+    selection_changed();
+}
+
 void ObjectList::update_objects_list_filament_column(size_t filaments_count)
 {
     assert(filaments_count >= 1);
@@ -904,6 +933,20 @@ void ObjectList::update_filament_in_config(const wxDataViewItem& item)
 
 void ObjectList::update_name_in_model(const wxDataViewItem& item) const
 {
+    if (m_objects_model->GetItemType(item) & itPlate) {
+        std::string name = m_objects_model->GetName(item).ToUTF8().data();
+        int plate_idx = -1;
+        const ItemType type0 = m_objects_model->GetItemType(item, plate_idx);
+        if (plate_idx >= 0) {
+            auto plate = wxGetApp().plater()->get_partplate_list().get_plate(plate_idx);
+            if (plate->get_plate_name() != name) {
+                plate->set_plate_name(name);
+            }
+            m_objects_model->SetCurSelectedPlateFullName(plate_idx, name);
+        }
+        return;
+    }
+
     const int obj_idx = m_objects_model->GetObjectIdByItem(item);
     if (obj_idx < 0) return;
     const int volume_id = m_objects_model->GetVolumeIdByItem(item);
@@ -1240,7 +1283,9 @@ void ObjectList::list_manipulation(const wxPoint& mouse_pos, bool evt_context_me
 
             get_selected_item_indexes(obj_idx, vol_idx, item);
             //wxGetApp().plater()->PopupObjectTable(obj_idx, vol_idx, mouse_pos);
-            if (m_objects_model->GetItemType(item) & itLayer)
+            if (m_objects_model->GetItemType(item) & itPlate)
+                dynamic_cast<TabPrintPlate*>(wxGetApp().get_plate_tab())->reset_model_config();
+            else if (m_objects_model->GetItemType(item) & itLayer)
                 dynamic_cast<TabPrintLayer*>(wxGetApp().get_layer_tab())->reset_model_config();
             else
                 dynamic_cast<TabPrintModel*>(wxGetApp().get_model_tab(vol_idx >= 0))->reset_model_config();
@@ -1265,6 +1310,10 @@ void ObjectList::list_manipulation(const wxPoint& mouse_pos, bool evt_context_me
 
 void ObjectList::show_context_menu(const bool evt_context_menu)
 {
+    // BBS Disable menu popup if current canvas is Preview
+    if (wxGetApp().plater()->get_current_canvas3D()->get_canvas_type() == GLCanvas3D::ECanvasType::CanvasPreview)
+        return;
+
     wxMenu* menu {nullptr};
     Plater* plater = wxGetApp().plater();
 
@@ -1446,7 +1495,7 @@ void ObjectList::key_event(wxKeyEvent& event)
         undo();
     else if (wxGetKeyState(wxKeyCode('X')) && wxGetKeyState(WXK_CONTROL))
         cut();
-    else if (wxGetKeyState(wxKeyCode('M')) && wxGetKeyState(WXK_CONTROL))
+    else if (wxGetKeyState(wxKeyCode('K')) && wxGetKeyState(WXK_CONTROL))
         clone();
     //else if (event.GetUnicodeKey() == '+')
     //    increase_instances();
@@ -1949,7 +1998,7 @@ void ObjectList::load_modifier(const wxArrayString& input_files, ModelObject& mo
     const BoundingBoxf3 instance_bb = model_object.instance_bounding_box(instance_idx);
 
     // First (any) GLVolume of the selected instance. They all share the same instance matrix.
-    const GLVolume* v = selection.get_volume(*selection.get_volume_idxs().begin());
+    const GLVolume* v = selection.get_first_volume();
     const Geometry::Transformation inst_transform = v->get_instance_transformation();
     const Transform3d inv_inst_transform = inst_transform.get_matrix(true).inverse();
     const Vec3d instance_offset = v->get_instance_offset();
@@ -2085,7 +2134,7 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const Mode
     ModelVolume *new_volume = model_object.add_volume(std::move(mesh), type);
 
     // First (any) GLVolume of the selected instance. They all share the same instance matrix.
-    const GLVolume* v = selection.get_volume(*selection.get_volume_idxs().begin());
+    const GLVolume* v = selection.get_first_volume();
     // Transform the new modifier to be aligned with the print bed.
 	const BoundingBoxf3 mesh_bb = new_volume->mesh().bounding_box();
     new_volume->set_transformation(Geometry::Transformation::volume_to_bed_transformation(v->get_instance_transformation(), mesh_bb));
@@ -2810,7 +2859,7 @@ void ObjectList::merge(bool to_multipart_object)
     }
 }
 
-void ObjectList::merge_volumes()
+/*void ObjectList::merge_volumes()
 {
     std::vector<int> obj_idxs, vol_idxs;
     get_selection_indexes(obj_idxs, vol_idxs);
@@ -2838,11 +2887,11 @@ void ObjectList::merge_volumes()
     else {
         for (int vol_idx : vol_idxs)
             selection.add_volume(last_obj_idx, vol_idx, 0, false);
-    }*/
+    }#1#
 #else
     wxGetApp().plater()->merge(obj_idxs[0], vol_idxs);
 #endif
-}
+}*/
 
 void ObjectList::layers_editing()
 {
@@ -3029,6 +3078,93 @@ bool ObjectList::can_split_instances()
     return selection.is_multiple_full_instance() || selection.is_single_full_instance();
 }
 
+bool ObjectList::has_selected_cut_object() const
+{
+    wxDataViewItemArray sels;
+    GetSelections(sels);
+    if (sels.IsEmpty())
+        return false;
+
+    for (wxDataViewItem item : sels) {
+        const int obj_idx = m_objects_model->GetObjectIdByItem(item);
+        // ys_FIXME: The obj_idx<size condition is a workaround for https://github.com/prusa3d/PrusaSlicer/issues/11186,
+        // but not the correct fix. The deleted item probably should not be in sels in the first place.
+        if (obj_idx >= 0 && obj_idx < int(m_objects->size()) && object(obj_idx)->is_cut())
+            return true;
+    }
+
+    return false;
+}
+
+void ObjectList::invalidate_cut_info_for_selection()
+{
+    const wxDataViewItem item = GetSelection();
+    if (item) {
+        const int obj_idx = m_objects_model->GetObjectIdByItem(item);
+        if (obj_idx >= 0)
+            invalidate_cut_info_for_object(size_t(obj_idx));
+    }
+}
+
+void ObjectList::invalidate_cut_info_for_object(int obj_idx)
+{
+    ModelObject* init_obj = object(obj_idx);
+    if (!init_obj->is_cut())
+        return;
+
+    take_snapshot(_u8L("Invalidate cut info"));
+
+    const CutObjectBase cut_id = init_obj->cut_id;
+    // invalidate cut for related objects (which have the same cut_id)
+    for (size_t idx = 0; idx < m_objects->size(); idx++)
+        if (ModelObject* obj = object(int(idx)); obj->cut_id.is_equal(cut_id)) {
+            obj->invalidate_cut();
+            update_info_items(idx);
+            add_volumes_to_object_in_list(idx);
+        }
+
+    update_lock_icons_for_model();
+}
+
+void ObjectList::delete_all_connectors_for_selection()
+{
+    const wxDataViewItem item = GetSelection();
+    if (item) {
+        const int obj_idx = m_objects_model->GetObjectIdByItem(item);
+        if (obj_idx >= 0)
+            delete_all_connectors_for_object(size_t(obj_idx));
+    }
+}
+
+void ObjectList::delete_all_connectors_for_object(int obj_idx)
+{
+    ModelObject* init_obj = object(obj_idx);
+    if (!init_obj->is_cut())
+        return;
+
+    take_snapshot(_u8L("Delete all connectors"));
+
+    const CutObjectBase cut_id = init_obj->cut_id;
+    // Delete all connectors for related objects (which have the same cut_id)
+    Model& model = wxGetApp().plater()->model();
+    for (int idx = int(m_objects->size())-1; idx >= 0; idx--)
+        if (ModelObject* obj = object(idx); obj->cut_id.is_equal(cut_id)) {
+            obj->delete_connectors();
+
+            if (obj->volumes.empty() || !obj->has_solid_mesh()) {
+                model.delete_object(idx);
+                m_objects_model->Delete(m_objects_model->GetItemById(idx));
+                continue;
+            }
+
+            update_info_items(idx);
+            add_volumes_to_object_in_list(idx);
+            changed_object(int(idx));
+        }
+
+    update_lock_icons_for_model();
+}
+
 bool ObjectList::can_merge_to_multipart_object() const
 {
     if (has_selected_cut_object())
@@ -3043,10 +3179,9 @@ bool ObjectList::can_merge_to_multipart_object() const
         return false;
 
     // should be selected just objects
-    for (wxDataViewItem item : sels) {
+    for (wxDataViewItem item : sels)
         if (!(m_objects_model->GetItemType(item) & (itObject | itInstance)))
             return false;
-    }
 
     return true;
 }
@@ -3070,97 +3205,6 @@ bool ObjectList::can_mesh_boolean() const
     // selected object should be multi mesh
     return (*m_objects)[obj_idx]->volumes.size() > 1 || ((*m_objects)[obj_idx]->volumes.size() == 1 && (*m_objects)[obj_idx]->volumes[0]->is_splittable());
 }
-
-bool ObjectList::has_selected_cut_object() const
-{
-    wxDataViewItemArray sels;
-    GetSelections(sels);
-    if (sels.IsEmpty())
-        return false;
-
-    for (wxDataViewItem item : sels) {
-        const int obj_idx = m_objects_model->GetObjectIdByItem(item);
-        if (obj_idx >= 0 && object(obj_idx)->is_cut())
-            return true;
-    }
-
-    return false;
-}
-
-void ObjectList::invalidate_cut_info_for_selection()
-{
-    const wxDataViewItem item = GetSelection();
-    if (item) {
-        const int obj_idx = m_objects_model->GetObjectIdByItem(item);
-        if (obj_idx >= 0)
-            invalidate_cut_info_for_object(size_t(obj_idx));
-    }
-}
-
-void ObjectList::invalidate_cut_info_for_object(int obj_idx)
-{
-    ModelObject *init_obj = object(obj_idx);
-    if (!init_obj->is_cut()) return;
-
-    take_snapshot("Invalidate cut info");
-
-    const CutObjectBase cut_id = init_obj->cut_id;
-    // invalidate cut for related objects (which have the same cut_id)
-    for (size_t idx = 0; idx < m_objects->size(); idx++)
-        if (ModelObject *obj = object(int(idx)); obj->cut_id.is_equal(cut_id)) {
-            obj->invalidate_cut();
-            update_info_items(idx);
-            add_volumes_to_object_in_list(idx);
-        }
-
-    update_lock_icons_for_model();
-}
-
-void ObjectList::delete_all_connectors_for_selection()
-{
-    const wxDataViewItem item = GetSelection();
-    if (item) {
-        const int obj_idx = m_objects_model->GetObjectIdByItem(item);
-        if (obj_idx >= 0)
-            delete_all_connectors_for_object(size_t(obj_idx));
-    }
-}
-
-void ObjectList::delete_all_connectors_for_object(int obj_idx)
-{
-    ModelObject *init_obj = object(obj_idx);
-    if (!init_obj->is_cut())
-        return;
-
-    take_snapshot("Delete all connectors");
-
-    auto has_solid_mesh = [](ModelObject* obj) {
-        for (const ModelVolume *volume : obj->volumes)
-            if (volume->is_model_part()) return true;
-        return false;
-    };
-
-    const CutObjectBase cut_id = init_obj->cut_id;
-    // Delete all connectors for related objects (which have the same cut_id)
-    Model &model = wxGetApp().plater()->model();
-    for (int idx = int(m_objects->size()) - 1; idx >= 0; idx--)
-        if (ModelObject *obj = object(idx); obj->cut_id.is_equal(cut_id)) {
-            obj->delete_connectors();
-
-            if (obj->volumes.empty() || !has_solid_mesh(obj)) {
-                model.delete_object(idx);
-                m_objects_model->Delete(m_objects_model->GetItemById(idx));
-                continue;
-            }
-
-            update_info_items(idx);
-            add_volumes_to_object_in_list(idx);
-            changed_object(int(idx));
-        }
-
-    update_lock_icons_for_model();
-}
-
 
 // NO_PARAMETERS function call means that changed object index will be determine from Selection()
 void ObjectList::changed_object(const int obj_idx/* = -1*/) const
@@ -3367,6 +3411,8 @@ void ObjectList::part_selection_changed()
         wxGetApp().obj_settings()->get_og()->set_name(" " + og_name + " ");
 #endif
 
+    if (!this->IsShown())
+        update_and_show_layers = false;
     if (printer_technology() == ptSLA)
         update_and_show_layers = false;
     else if (update_and_show_layers) {
@@ -4349,7 +4395,7 @@ void ObjectList::update_selections()
             sels.Add(m_objects_model->GetItemById(selection.get_object_idx()));
         }
         else if (selection.is_single_volume() || selection.is_any_modifier()) {
-            const auto gl_vol = selection.get_volume(*selection.get_volume_idxs().begin());
+            const auto gl_vol = selection.get_first_volume();
             if (m_objects_model->GetVolumeIdByItem(m_objects_model->GetParent(item)) == gl_vol->volume_idx())
                 return;
         }
@@ -4425,8 +4471,7 @@ void ObjectList::update_selections()
     {
         if (m_selection_mode & smSettings)
         {
-            const auto idx = *selection.get_volume_idxs().begin();
-            const auto gl_vol = selection.get_volume(idx);
+            const auto gl_vol = selection.get_first_volume();
             if (gl_vol->volume_idx() >= 0) {
                 // Only add GLVolumes with non-negative volume_ids. GLVolumes with negative volume ids
                 // are not associated with ModelVolumes, but they are temporarily generated by the backend
@@ -4531,12 +4576,15 @@ void ObjectList::update_selections()
 
 void ObjectList::update_selections_on_canvas()
 {
-    Selection& selection = wxGetApp().plater()->get_current_canvas3D()->get_selection();
+    auto canvas_type = wxGetApp().plater()->get_current_canvas3D()->get_canvas_type();
+    GLCanvas3D* canvas = canvas_type == GLCanvas3D::ECanvasType::CanvasAssembleView ? wxGetApp().plater()->get_current_canvas3D() : wxGetApp().plater()->get_view3D_canvas3D();
+    Selection& selection = canvas->get_selection();
 
     const int sel_cnt = GetSelectedItemsCount();
     if (sel_cnt == 0) {
         selection.remove_all();
-        wxGetApp().plater()->get_current_canvas3D()->update_gizmos_on_off_state();
+        if (canvas_type != GLCanvas3D::ECanvasType::CanvasPreview)
+            wxGetApp().plater()->get_current_canvas3D()->update_gizmos_on_off_state();
         return;
     }
 
@@ -4640,7 +4688,8 @@ void ObjectList::update_selections_on_canvas()
         selection.add_volumes(mode, volume_idxs, single_selection);
     }
 
-    wxGetApp().plater()->get_current_canvas3D()->update_gizmos_on_off_state();
+    if (canvas_type != GLCanvas3D::ECanvasType::CanvasPreview)
+        wxGetApp().plater()->get_current_canvas3D()->update_gizmos_on_off_state();
     wxGetApp().plater()->canvas3D()->render();
 }
 
@@ -5465,8 +5514,10 @@ void ObjectList::msw_rescale()
 void ObjectList::sys_color_changed()
 {
     wxGetApp().UpdateDVCDarkUI(this, true);
-
+    
     msw_rescale();
+
+    if (m_objects_model) { m_objects_model->sys_color_changed(); }
 }
 
 void ObjectList::ItemValueChanged(wxDataViewEvent &event)
@@ -5478,6 +5529,22 @@ void ObjectList::ItemValueChanged(wxDataViewEvent &event)
         if (m_objects_model->GetItemType(item) == itObject)
             m_objects_model->UpdateVolumesExtruderBitmap(item, true);
         update_filament_in_config(item);
+    }
+}
+
+void GUI::ObjectList::OnStartEditing(wxDataViewEvent &event)
+{
+    auto col  = event.GetColumn();
+    auto item = event.GetItem();
+    if (col == colName) {
+        ObjectDataViewModelNode* node = (ObjectDataViewModelNode*)item.GetID();
+        if (node->GetType() & itPlate) {
+            int plate_idx = node->GetPlateIdx();
+            if (plate_idx >= 0) {
+                auto plate = wxGetApp().plater()->get_partplate_list().get_plate(plate_idx);
+                m_objects_model->SetName(from_u8(plate->get_plate_name()), GetSelection());
+            }
+        }
     }
 }
 
@@ -5555,6 +5622,17 @@ void ObjectList::OnEditingDone(wxDataViewEvent &event)
 {
     if (event.GetColumn() != colName)
         return;
+
+    if (event.IsEditCancelled()) {
+        if (m_objects_model->GetItemType(event.GetItem()) & itPlate) {
+            int plate_idx = -1;
+            m_objects_model->GetItemType(event.GetItem(), plate_idx);
+            if (plate_idx >= 0) {
+                auto plate = wxGetApp().plater()->get_partplate_list().get_plate(plate_idx);
+                m_objects_model->SetCurSelectedPlateFullName(plate_idx, plate->get_plate_name());
+            }
+        }
+    }
 
     const auto renderer = dynamic_cast<BitmapTextRenderer*>(GetColumn(colName)->GetRenderer());
 #if __WXOSX__

@@ -1,3 +1,8 @@
+///|/ Copyright (c) Prusa Research 2018 - 2023 Oleksandra Iushchenko @YuSanka, David Kocík @kocikdav, Enrico Turri @enricoturri1966, Lukáš Matěna @lukasmatena, Lukáš Hejl @hejllukas, Filip Sykala @Jony01, Vojtěch Bubník @bubnikv, Tomáš Mészáros @tamasmeszaros
+///|/ Copyright (c) 2020 Henner Zeller
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #include "../libslic3r.h"
 #include "../Exception.hpp"
 #include "../Model.hpp"
@@ -271,6 +276,7 @@ static constexpr const char* LOCK_ATTR = "locked";
 static constexpr const char* BED_TYPE_ATTR = "bed_type";
 static constexpr const char* PRINT_SEQUENCE_ATTR = "print_sequence";
 static constexpr const char* FIRST_LAYER_PRINT_SEQUENCE_ATTR = "first_layer_print_sequence";
+static constexpr const char* SPIRAL_VASE_MODE = "spiral_mode";
 static constexpr const char* GCODE_FILE_ATTR = "gcode_file";
 static constexpr const char* THUMBNAIL_FILE_ATTR = "thumbnail_file";
 static constexpr const char* TOP_FILE_ATTR = "top_file";
@@ -283,6 +289,8 @@ static constexpr const char* IDENTIFYID_ATTR = "identify_id";
 static constexpr const char* PLATERID_ATTR = "plater_id";
 static constexpr const char* PLATER_NAME_ATTR = "plater_name";
 static constexpr const char* PLATE_IDX_ATTR = "index";
+static constexpr const char* PRINTER_MODEL_ID_ATTR = "printer_model_id";
+static constexpr const char* NOZZLE_DIAMETERS_ATTR = "nozzle_diameters";
 static constexpr const char* SLICE_PREDICTION_ATTR = "prediction";
 static constexpr const char* SLICE_WEIGHT_ATTR = "weight";
 static constexpr const char* TIMELAPSE_TYPE_ATTR = "timelapse_type";
@@ -741,8 +749,6 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             {
                 int   volume_id;
                 int   type;
-                float radius;
-                float height;
                 float r_tolerance;
                 float h_tolerance;
             };
@@ -758,10 +764,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         //typedef std::map<Id, ComponentsList> IdToAliasesMap;
         typedef std::vector<Instance> InstancesList;
         typedef std::map<int, ObjectMetadata> IdToMetadataMap;
-        typedef std::map<int, CutObjectInfo>  IdToCutObjectInfoMap;
         //typedef std::map<Id, Geometry> IdToGeometryMap;
         typedef std::map<int, std::vector<coordf_t>> IdToLayerHeightsProfileMap;
         typedef std::map<int, t_layer_config_ranges> IdToLayerConfigRangesMap;
+        typedef std::map<int, CutObjectInfo>         IdToCutObjectInfoMap;
         /*typedef std::map<int, std::vector<sla::SupportPoint>> IdToSlaSupportPointsMap;
         typedef std::map<int, std::vector<sla::DrainHole>> IdToSlaDrainHolesMap;*/
 
@@ -951,7 +957,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         //IdToGeometryMap m_orig_geometries; // backup & restore
         CurrentConfig m_curr_config;
         IdToMetadataMap m_objects_metadata;
-        IdToCutObjectInfoMap       m_cut_object_infos;
+        IdToCutObjectInfoMap m_cut_object_infos;
         IdToLayerHeightsProfileMap m_layer_heights_profiles;
         IdToLayerConfigRangesMap m_layer_config_ranges;
         /*IdToSlaSupportPointsMap m_sla_support_points;
@@ -1013,7 +1019,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         bool _extract_xml_from_archive(mz_zip_archive& archive, std::string const & path, XML_StartElementHandler start_handler, XML_EndElementHandler end_handler);
         bool _extract_xml_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, XML_StartElementHandler start_handler, XML_EndElementHandler end_handler);
         bool _extract_model_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat);
-        void _extract_cut_information_from_archive(mz_zip_archive &archive, const mz_zip_archive_file_stat &stat, ConfigSubstitutionContext &config_substitutions);
+        void _extract_cut_information_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, ConfigSubstitutionContext& config_substitutions);
         void _extract_layer_heights_profile_config_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat);
         void _extract_layer_config_ranges_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, ConfigSubstitutionContext& config_substitutions);
         void _extract_sla_support_points_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat);
@@ -1279,9 +1285,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         // BBS: load relationships
         if (!_extract_xml_from_archive(archive, RELATIONSHIPS_FILE, _handle_start_relationships_element, _handle_end_relationships_element))
             return false;
-        if (m_thumbnail_small.empty()) m_thumbnail_small = m_thumbnail_path;
-        if (!m_thumbnail_small.empty()) {
-            return _extract_from_archive(archive, m_thumbnail_small, [&data](auto &archive, auto const &stat) -> bool {
+        if (m_thumbnail_middle.empty()) m_thumbnail_middle = m_thumbnail_path;
+        if (!m_thumbnail_middle.empty()) {
+            return _extract_from_archive(archive, m_thumbnail_middle, [&data](auto &archive, auto const &stat) -> bool {
                 data.resize(stat.m_uncomp_size);
                 return mz_zip_reader_extract_to_mem(&archive, stat.m_file_index, data.data(), data.size(), 0);
             });
@@ -1365,7 +1371,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             m_thumbnail_small.erase(m_thumbnail_small.begin());
         if (!m_thumbnail_middle.empty() && m_thumbnail_middle.front() == '/')
             m_thumbnail_middle.erase(m_thumbnail_middle.begin());
-        m_model->model_info->metadata_items.emplace("Thumbnail", m_thumbnail_small);
+        m_model->model_info->metadata_items.emplace("Thumbnail", m_thumbnail_middle);
         m_model->model_info->metadata_items.emplace("Poster", m_thumbnail_middle);
 
         // we then loop again the entries to read other files stored in the archive
@@ -1955,11 +1961,14 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             IdToCutObjectInfoMap::iterator cut_object_info = m_cut_object_infos.find(object.second + 1);
             if (cut_object_info != m_cut_object_infos.end()) {
                 model_object->cut_id = cut_object_info->second.id;
-
+                int vol_cnt = int(model_object->volumes.size());
                 for (auto connector : cut_object_info->second.connectors) {
-                    assert(0 <= connector.volume_id && connector.volume_id <= int(model_object->volumes.size()));
-                    model_object->volumes[connector.volume_id]->cut_info =
-                        ModelVolume::CutInfo(CutConnectorType(connector.type), connector.radius, connector.height, connector.r_tolerance, connector.h_tolerance, true);
+                    if (connector.volume_id < 0 || connector.volume_id >= vol_cnt) {
+                        add_error("Invalid connector is found");
+                        continue;
+                    }
+                    model_object->volumes[connector.volume_id]->cut_info = 
+                        ModelVolume::CutInfo(CutConnectorType(connector.type), connector.r_tolerance, connector.h_tolerance, true);
                 }
             }
         }
@@ -2324,7 +2333,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
     void _BBS_3MF_Importer::_extract_cut_information_from_archive(mz_zip_archive &archive, const mz_zip_archive_file_stat &stat, ConfigSubstitutionContext &config_substitutions)
     {
         if (stat.m_uncomp_size > 0) {
-            std::string buffer((size_t) stat.m_uncomp_size, 0);
+            std::string buffer((size_t)stat.m_uncomp_size, 0);
             mz_bool res = mz_zip_reader_extract_file_to_mem(&archive, stat.m_filename, (void *) buffer.data(), (size_t) stat.m_uncomp_size, 0);
             if (res == 0) {
                 add_error("Error while reading cut information data to buffer");
@@ -2332,12 +2341,12 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             }
 
             std::istringstream iss(buffer); // wrap returned xml to istringstream
-            pt::ptree          objects_tree;
+            pt::ptree objects_tree;
             pt::read_xml(iss, objects_tree);
 
-            for (const auto &object : objects_tree.get_child("objects")) {
+            for (const auto& object : objects_tree.get_child("objects")) {
                 pt::ptree object_tree = object.second;
-                int       obj_idx     = object_tree.get<int>("<xmlattr>.id", -1);
+                int obj_idx = object_tree.get<int>("<xmlattr>.id", -1);
                 if (obj_idx <= 0) {
                     add_error("Found invalid object id");
                     continue;
@@ -2349,30 +2358,33 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                     continue;
                 }
 
-                CutObjectBase                         cut_id;
-                std::vector<CutObjectInfo::Connector> connectors;
+                CutObjectBase cut_id;
+                std::vector<CutObjectInfo::Connector>  connectors;
 
-                for (const auto &obj_cut_info : object_tree) {
+                for (const auto& obj_cut_info : object_tree) {
                     if (obj_cut_info.first == "cut_id") {
                         pt::ptree cut_id_tree = obj_cut_info.second;
-                        cut_id                = CutObjectBase(ObjectID(cut_id_tree.get<size_t>("<xmlattr>.id")), cut_id_tree.get<size_t>("<xmlattr>.check_sum"),
-                                               cut_id_tree.get<size_t>("<xmlattr>.connectors_cnt"));
+                        cut_id = CutObjectBase(ObjectID( cut_id_tree.get<size_t>("<xmlattr>.id")),
+                                                         cut_id_tree.get<size_t>("<xmlattr>.check_sum"),
+                                                         cut_id_tree.get<size_t>("<xmlattr>.connectors_cnt"));
                     }
                     if (obj_cut_info.first == "connectors") {
                         pt::ptree cut_connectors_tree = obj_cut_info.second;
-                        for (const auto &cut_connector : cut_connectors_tree) {
-                            if (cut_connector.first != "connector") continue;
-                            pt::ptree                connector_tree = cut_connector.second;
-                            CutObjectInfo::Connector connector      = {connector_tree.get<int>("<xmlattr>.volume_id"), connector_tree.get<int>("<xmlattr>.type"),
-                                                                  connector_tree.get<float>("<xmlattr>.radius", 0.f), connector_tree.get<float>("<xmlattr>.height", 0.f),
-                                                                  connector_tree.get<float>("<xmlattr>.r_tolerance"), connector_tree.get<float>("<xmlattr>.h_tolerance")};
+                        for (const auto& cut_connector : cut_connectors_tree) {
+                            if (cut_connector.first != "connector")
+                                continue;
+                            pt::ptree connector_tree = cut_connector.second;
+                            CutObjectInfo::Connector connector = {connector_tree.get<int>("<xmlattr>.volume_id"),
+                                                                  connector_tree.get<int>("<xmlattr>.type"),
+                                                                  connector_tree.get<float>("<xmlattr>.r_tolerance"),
+                                                                  connector_tree.get<float>("<xmlattr>.h_tolerance")};
                             connectors.emplace_back(connector);
                         }
                     }
                 }
 
-                CutObjectInfo cut_info{cut_id, connectors};
-                m_cut_object_infos.insert({obj_idx, cut_info});
+                CutObjectInfo cut_info {cut_id, connectors};
+                m_cut_object_infos.insert({ obj_idx, cut_info });
             }
         }
     }
@@ -3891,6 +3903,11 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 };
                 m_curr_plater->config.set_key_value("first_layer_print_sequence", new ConfigOptionInts(get_vector_from_string(value)));
             }
+            else if (key == SPIRAL_VASE_MODE) {
+                bool spiral_mode = false;
+                std::istringstream(value) >> std::boolalpha >> spiral_mode;
+                m_curr_plater->config.set_key_value("spiral_mode", new ConfigOptionBool(spiral_mode));
+            }
             else if (key == GCODE_FILE_ATTR)
             {
                 m_curr_plater->gcode_file = value;
@@ -5260,6 +5277,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         //BBS: change volume to seperate objects
         bool _add_mesh_to_object_stream(std::function<bool(std::string &, bool)> const &flush, ObjectData const &object_data) const;
         bool _add_build_to_model_stream(std::stringstream& stream, const BuildItemsList& build_items) const;
+        bool _add_cut_information_file_to_archive(mz_zip_archive& archive, Model& model);
         bool _add_layer_height_profile_file_to_archive(mz_zip_archive& archive, Model& model);
         bool _add_layer_config_ranges_file_to_archive(mz_zip_archive& archive, Model& model);
         bool _add_sla_support_points_file_to_archive(mz_zip_archive& archive, Model& model);
@@ -5270,7 +5288,6 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         //BBS: add project embedded preset files
         bool _add_project_embedded_presets_to_archive(mz_zip_archive& archive, Model& model, std::vector<Preset*> project_presets);
         bool _add_model_config_file_to_archive(mz_zip_archive& archive, const Model& model, PlateDataPtrs& plate_data_list, const ObjectToObjectDataMap &objects_data, int export_plate_idx = -1, bool save_gcode = true, bool use_loaded_id = false);
-        bool _add_cut_information_file_to_archive(mz_zip_archive &archive, Model &model);
         bool _add_slice_info_config_file_to_archive(mz_zip_archive &archive, const Model &model, PlateDataPtrs &plate_data_list, const ObjectToObjectDataMap &objects_data, const DynamicPrintConfig& config);
         bool _add_gcode_file_to_archive(mz_zip_archive& archive, const Model& model, PlateDataPtrs& plate_data_list, Export3mfProgressFn proFn = nullptr);
         bool _add_custom_gcode_per_print_z_file_to_archive(mz_zip_archive& archive, Model& model, const DynamicPrintConfig* config);
@@ -5366,7 +5383,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             ~close_lock() {
                 if (filename) {
                     close_zip_writer(&archive);
-                    boost::filesystem::remove(*filename);
+                    boost::system::error_code ec;
+                    boost::filesystem::remove(*filename, ec);
                 }
             }
         } lock{archive, &filepath_tmp};
@@ -5430,8 +5448,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             std::string const * filename;
             ~close_lock() {
                 close_zip_writer(&archive);
-                if (filename)
-                boost::filesystem::remove(*filename);
+                if (filename) {
+                    boost::system::error_code ec;
+                    boost::filesystem::remove(*filename, ec);
+                }
             }
         } lock{ archive, &filename};
 
@@ -5579,7 +5599,6 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 {
                     if (!_add_calibration_file_to_archive(archive, *calibration_data[index], index)) {
                         close_zip_writer(&archive);
-                        boost::filesystem::remove(filename);
                         return false;
                     }
                 }
@@ -5595,7 +5614,6 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 if (id_bboxes[index]->is_valid()) {
                     if (!_add_bbox_file_to_archive(archive, *id_bboxes[index], index)) {
                         close_zip_writer(&archive);
-                        boost::filesystem::remove(filename);
                         return false;
                     }
                 }
@@ -5622,7 +5640,6 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             // The index differes from the index of an object ID of an object instance of a 3MF file!
             if (!_add_layer_height_profile_file_to_archive(archive, model)) {
                 close_zip_writer(&archive);
-                boost::filesystem::remove(filename);
                 return false;
             }
 
@@ -5639,7 +5656,6 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             // The index differes from the index of an object ID of an object instance of a 3MF file!
             if (!_add_layer_config_ranges_file_to_archive(archive, model)) {
                 close_zip_writer(&archive);
-                boost::filesystem::remove(filename);
                 return false;
             }
 
@@ -6233,7 +6249,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                             continue;
                         volume_count++;
                         if (m_share_mesh) {
-                            auto iter = m_shared_meshes.find(volume->mesh_ptr());
+                            auto iter = m_shared_meshes.find(volume->mesh_ptr().get());
                             if (iter != m_shared_meshes.end())
                             {
                                 const ModelVolume* shared_volume = iter->second.second;
@@ -6248,7 +6264,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                                     continue;
                                 }
                             }
-                            const_cast<_BBS_3MF_Exporter *>(this)->m_shared_meshes.insert({volume->mesh_ptr(), {&object_data, volume}});
+                            const_cast<_BBS_3MF_Exporter *>(this)->m_shared_meshes.insert({volume->mesh_ptr().get(), {&object_data, volume}});
                         }
                         if (m_from_backup_save)
                             volume_id = (volume_count << 16 | backup_id);
@@ -6408,7 +6424,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 stream << "    <" << COMPONENT_TAG << " objectid=\"" << volume_id;
             else
                 stream << "    <" << COMPONENT_TAG << " p:path=\"" << xml_escape(*ppath) << "\" objectid=\"" << volume_id; // << "\"/>\n";
-            stream << "\" " << PUUID_ATTR << "=\"" << hex_wrap<boost::uint32_t>{(boost::uint32_t) object_data.backup_id} << COMPONENT_UUID_SUFFIX;
+            if (m_production_ext)
+                stream << "\" " << PUUID_ATTR << "=\"" << hex_wrap<boost::uint32_t>{(boost::uint32_t) (index + (object_data.backup_id << 16))} << COMPONENT_UUID_SUFFIX;
             const Transform3d &transf = volume->get_matrix();
             stream << "\" " << TRANSFORM_ATTR << "=\"";
             for (unsigned c = 0; c < 4; ++c) {
@@ -6506,7 +6523,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         char buf[256];
         unsigned int vertices_count = 0;
         //unsigned int triangles_count = 0;
-        for (ModelVolume* volume : object.volumes) {
+        for (unsigned int index = 0; index < object.volumes.size(); index++) {
+            ModelVolume *volume = object.volumes[index];
             if (volume == nullptr)
                 continue;
 
@@ -6533,7 +6551,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             if (m_production_ext) {
                 std::stringstream stream;
                 reset_stream(stream);
-                stream << "\" " << PUUID_ATTR << "=\"" << hex_wrap<boost::uint32_t>{(boost::uint32_t) object_data.backup_id} << SUB_OBJECT_UUID_SUFFIX;
+                stream << "\" " << PUUID_ATTR << "=\"" << hex_wrap<boost::uint32_t>{(boost::uint32_t) (index + (object_data.backup_id << 16))} << SUB_OBJECT_UUID_SUFFIX;
                 //output_buffer += "\" ";
                 //output_buffer += PUUID_ATTR;
                 //output_buffer += "=\"";
@@ -6700,6 +6718,69 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         }
 
         stream << " </" << BUILD_TAG << ">\n";
+
+        return true;
+    }
+
+    bool _BBS_3MF_Exporter::_add_cut_information_file_to_archive(mz_zip_archive &archive, Model &model)
+    {
+        std::string out = "";
+        pt::ptree tree;
+
+        unsigned int object_cnt = 0;
+        for (const ModelObject* object : model.objects) {
+            object_cnt++;
+            if (!object->is_cut())
+                continue;
+            pt::ptree& obj_tree = tree.add("objects.object", "");
+
+            obj_tree.put("<xmlattr>.id", object_cnt);
+
+            // Store info for cut_id
+            pt::ptree& cut_id_tree = obj_tree.add("cut_id", "");
+
+            // store cut_id atributes
+            cut_id_tree.put("<xmlattr>.id",             object->cut_id.id().id);
+            cut_id_tree.put("<xmlattr>.check_sum",      object->cut_id.check_sum());
+            cut_id_tree.put("<xmlattr>.connectors_cnt", object->cut_id.connectors_cnt());
+
+            int volume_idx = -1;
+            for (const ModelVolume* volume : object->volumes) {
+                ++volume_idx;
+                if (volume->is_cut_connector()) {
+                    pt::ptree& connectors_tree = obj_tree.add("connectors.connector", "");
+                    connectors_tree.put("<xmlattr>.volume_id",   volume_idx);
+                    connectors_tree.put("<xmlattr>.type",        int(volume->cut_info.connector_type));
+                    connectors_tree.put("<xmlattr>.r_tolerance", volume->cut_info.radius_tolerance);
+                    connectors_tree.put("<xmlattr>.h_tolerance", volume->cut_info.height_tolerance);
+                }
+            }
+        }
+
+        if (!tree.empty()) {
+            std::ostringstream oss;
+            pt::write_xml(oss, tree);
+            out = oss.str();
+
+            // Post processing("beautification") of the output string for a better preview
+            boost::replace_all(out, "><object", ">\n <object");
+            boost::replace_all(out, "><cut_id", ">\n  <cut_id");
+            boost::replace_all(out, "></cut_id>", ">\n  </cut_id>");
+            boost::replace_all(out, "><connectors", ">\n  <connectors");
+            boost::replace_all(out, "></connectors>", ">\n  </connectors>");
+            boost::replace_all(out, "><connector", ">\n   <connector");
+            boost::replace_all(out, "></connector>", ">\n   </connector>");
+            boost::replace_all(out, "></object>", ">\n </object>");
+            // OR just 
+            boost::replace_all(out, "><", ">\n<");
+        }
+
+        if (!out.empty()) {
+            if (!mz_zip_writer_add_mem(&archive, CUT_INFORMATION_FILE.c_str(), (const void*)out.data(), out.length(), MZ_DEFAULT_COMPRESSION)) {
+                add_error("Unable to add cut information file to archive");
+                return false;
+            }
+        }
 
         return true;
     }
@@ -7146,6 +7227,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                     stream << "\"/>\n";
                 }
 
+                ConfigOption* spiral_mode_opt = plate_data->config.option("spiral_mode");
+                if (spiral_mode_opt)
+                    stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << SPIRAL_VASE_MODE << "\" " << VALUE_ATTR << "=\"" << spiral_mode_opt->getBool() << "\"/>\n";
+
                 if (save_gcode)
                     stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << GCODE_FILE_ATTR << "\" " << VALUE_ATTR << "=\"" << std::boolalpha << xml_escape(plate_data->gcode_file) << "\"/>\n";
                 if (!plate_data->gcode_file.empty()) {
@@ -7266,69 +7351,6 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         return true;
     }
 
-    bool _BBS_3MF_Exporter::_add_cut_information_file_to_archive(mz_zip_archive &archive, Model &model)
-    {
-        std::string out = "";
-        pt::ptree   tree;
-
-        unsigned int object_cnt = 0;
-        for (const ModelObject *object : model.objects) {
-            object_cnt++;
-            pt::ptree &obj_tree = tree.add("objects.object", "");
-
-            obj_tree.put("<xmlattr>.id", object_cnt);
-
-            // Store info for cut_id
-            pt::ptree &cut_id_tree = obj_tree.add("cut_id", "");
-
-            // store cut_id atributes
-            cut_id_tree.put("<xmlattr>.id", object->cut_id.id().id);
-            cut_id_tree.put("<xmlattr>.check_sum", object->cut_id.check_sum());
-            cut_id_tree.put("<xmlattr>.connectors_cnt", object->cut_id.connectors_cnt());
-
-            int volume_idx = -1;
-            for (const ModelVolume *volume : object->volumes) {
-                ++volume_idx;
-                if (volume->is_cut_connector()) {
-                    pt::ptree &connectors_tree = obj_tree.add("connectors.connector", "");
-                    connectors_tree.put("<xmlattr>.volume_id", volume_idx);
-                    connectors_tree.put("<xmlattr>.type", int(volume->cut_info.connector_type));
-                    connectors_tree.put("<xmlattr>.radius", volume->cut_info.radius);
-                    connectors_tree.put("<xmlattr>.height", volume->cut_info.height);
-                    connectors_tree.put("<xmlattr>.r_tolerance", volume->cut_info.radius_tolerance);
-                    connectors_tree.put("<xmlattr>.h_tolerance", volume->cut_info.height_tolerance);
-                }
-            }
-        }
-
-        if (!tree.empty()) {
-            std::ostringstream oss;
-            pt::write_xml(oss, tree);
-            out = oss.str();
-
-            // Post processing("beautification") of the output string for a better preview
-            boost::replace_all(out, "><object", ">\n <object");
-            boost::replace_all(out, "><cut_id", ">\n  <cut_id");
-            boost::replace_all(out, "></cut_id>", ">\n  </cut_id>");
-            boost::replace_all(out, "><connectors", ">\n  <connectors");
-            boost::replace_all(out, "></connectors>", ">\n  </connectors>");
-            boost::replace_all(out, "><connector", ">\n   <connector");
-            boost::replace_all(out, "></connector>", ">\n   </connector>");
-            boost::replace_all(out, "></object>", ">\n </object>");
-            // OR just
-            boost::replace_all(out, "><", ">\n<");
-        }
-
-        if (!out.empty()) {
-            if (!mz_zip_writer_add_mem(&archive, CUT_INFORMATION_FILE.c_str(), (const void *) out.data(), out.length(), MZ_DEFAULT_COMPRESSION)) {
-                add_error("Unable to add cut information file to archive");
-                return false;
-            }
-        }
-
-        return true;
-    }
-
     bool _BBS_3MF_Exporter::_add_slice_info_config_file_to_archive(mz_zip_archive& archive, const Model& model, PlateDataPtrs& plate_data_list, const ObjectToObjectDataMap &objects_data, const DynamicPrintConfig& config)
     {
         std::stringstream stream;
@@ -7362,6 +7384,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                         break;
                     }
                 }
+                stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << PRINTER_MODEL_ID_ATTR       << "\" " << VALUE_ATTR << "=\"" << plate_data->printer_model_id << "\"/>\n";
+                stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << NOZZLE_DIAMETERS_ATTR       << "\" " << VALUE_ATTR << "=\"" << plate_data->nozzle_diameters << "\"/>\n";
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << TIMELAPSE_TYPE_ATTR << "\" " << VALUE_ATTR << "=\"" << timelapse_type << "\"/>\n";
                 //stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << TIMELAPSE_ERROR_CODE_ATTR << "\" " << VALUE_ATTR << "=\"" << plate_data->timelapse_warning_code << "\"/>\n";
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << SLICE_PREDICTION_ATTR << "\" " << VALUE_ATTR << "=\"" << plate_data->get_gcode_prediction_str() << "\"/>\n";
@@ -7705,10 +7729,12 @@ public:
 
     void set_interval(long n) {
         boost::lock_guard lock(m_mutex);
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " entry, and last interval is: " << m_interval;
         m_next_backup -= boost::posix_time::seconds(m_interval);
         m_interval = n;
         m_next_backup += boost::posix_time::seconds(m_interval);
         m_cond.notify_all();
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " exit, and new interval is: " << m_interval;
     }
 
     void put_other_changes()
@@ -7786,6 +7812,7 @@ private:
     };
 private:
     _BBS_Backup_Manager() {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " inital and interval = " << m_interval;
         m_next_backup = boost::get_system_time() + boost::posix_time::seconds(m_interval);
         boost::unique_lock lock(m_mutex);
         m_thread = std::move(boost::thread(boost::ref(*this)));
@@ -7814,7 +7841,7 @@ private:
     }
 
     void process_ui_task(Task& t, bool canceled = false) {
-        BOOST_LOG_TRIVIAL(info) << "process_ui_task" << t.to_string();
+        BOOST_LOG_TRIVIAL(info) << "process_ui_task" << t.to_string() << " and interval = " << m_interval;
         switch (t.type) {
             case Backup: {
                 if (canceled)
@@ -7858,7 +7885,7 @@ private:
     }
 
     void process_task(Task& t) {
-        BOOST_LOG_TRIVIAL(info) << "process_task" << t.to_string();
+        BOOST_LOG_TRIVIAL(info) << "process_task" << t.to_string() << " and interval = " << m_interval;
         switch (t.type) {
             case Backup:
                 // do it in response
@@ -7873,13 +7900,15 @@ private:
                 break;
             }
             case RemoveObject: {
-                boost::filesystem::remove(t.path + "/mesh_" + boost::lexical_cast<std::string>(t.id) + ".xml");
+                boost::system::error_code ec;
+                boost::filesystem::remove(t.path + "/mesh_" + boost::lexical_cast<std::string>(t.id) + ".xml", ec);
                 t.type = None;
                 break;
             }
             case RemoveBackup: {
                 try {
-                    boost::filesystem::remove(t.path + "/.3mf");
+                    boost::system::error_code ec;
+                    boost::filesystem::remove(t.path + "/.3mf", ec);
                     // We Saved with SplitModel now, so we can safe delete these sub models.
                     boost::filesystem::remove_all(t.path + "/3D/Objects");
                     boost::filesystem::create_directory(t.path + "/3D/Objects");

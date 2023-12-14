@@ -1,3 +1,7 @@
+///|/ Copyright (c) Prusa Research 2019 - 2022 Enrico Turri @enricoturri1966, Lukáš Matěna @lukasmatena, Oleksandra Iushchenko @YuSanka, Filip Sykala @Jony01, David Kocík @kocikdav, Lukáš Hejl @hejllukas, Vojtěch Bubník @bubnikv
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #ifndef slic3r_GUI_GLGizmosManager_hpp_
 #define slic3r_GUI_GLGizmosManager_hpp_
 
@@ -31,15 +35,23 @@ class CommonGizmosDataPool;
 class GizmoObjectManipulation;
 class Rect
 {
-    float m_left;
-    float m_top;
-    float m_right;
-    float m_bottom;
+    float m_left{ 0.0f };
+    float m_top{ 0.0f };
+    float m_right{ 0.0f };
+    float m_bottom{ 0.0f };
 
 public:
-    Rect() : m_left(0.0f) , m_top(0.0f) , m_right(0.0f) , m_bottom(0.0f) {}
-
+    Rect() = default;
     Rect(float left, float top, float right, float bottom) : m_left(left) , m_top(top) , m_right(right) , m_bottom(bottom) {}
+
+    bool operator == (const Rect& other) const {
+        if (std::abs(m_left - other.m_left) > EPSILON) return false;
+        if (std::abs(m_top - other.m_top) > EPSILON) return false;
+        if (std::abs(m_right - other.m_right) > EPSILON) return false;
+        if (std::abs(m_bottom - other.m_bottom) > EPSILON) return false;
+        return true;
+    }
+    bool operator != (const Rect& other) const { return !operator==(other); }
 
     float get_left() const { return m_left; }
     void set_left(float left) { m_left = left; }
@@ -76,11 +88,12 @@ public:
         // BBS
         Text,
         MmuSegmentation,
+        Measure,
         Simplify,
-        SlaSupports,
+        //SlaSupports,
         // BBS
         //FaceRecognition,
-        Hollow,
+        //Hollow,
         Undefined,
     };
 
@@ -108,10 +121,10 @@ private:
     GLCanvas3D& m_parent;
     bool m_enabled;
     std::vector<std::unique_ptr<GLGizmoBase>> m_gizmos;
-    mutable GLTexture m_icons_texture;
-    mutable bool m_icons_texture_dirty;
+    GLTexture m_icons_texture;
+    bool m_icons_texture_dirty;
     BackgroundTexture m_background_texture;
-    BackgroundTexture m_arrow_texture;
+    GLTexture m_arrow_texture;
     Layout m_layout;
     EType m_current;
     EType m_hover;
@@ -121,24 +134,10 @@ private:
     GizmoObjectManipulation m_object_manipulation;
 
     std::vector<size_t> get_selectable_idxs() const;
-    size_t get_gizmo_idx_from_mouse(const Vec2d& mouse_pos) const;
+    EType get_gizmo_from_mouse(const Vec2d &mouse_pos) const;
 
     bool activate_gizmo(EType type);
 
-    struct MouseCapture
-    {
-        bool left;
-        bool middle;
-        bool right;
-        GLCanvas3D* parent;
-
-        MouseCapture() { reset(); }
-
-        bool any() const { return left || middle || right; }
-        void reset() { left = middle = right = false; parent = nullptr; }
-    };
-
-    MouseCapture m_mouse_capture;
     std::string m_tooltip;
     bool m_serializing;
     std::unique_ptr<CommonGizmosDataPool> m_common_gizmos_data;
@@ -147,6 +146,15 @@ private:
     std::map<int, void*> icon_list;
 
     bool m_is_dark = false;
+
+    /// <summary>
+    /// Process mouse event on gizmo toolbar
+    /// </summary>
+    /// <param name="mouse_event">Event descriptor</param>
+    /// <returns>TRUE when take responsibility for event otherwise FALSE.
+    /// On true, event should not be process by others.
+    /// On false, event should be process by others.</returns>
+    bool gizmos_toolbar_on_mouse(const wxMouseEvent &mouse_event);
 public:
 
     std::unique_ptr<AssembleViewDataPool> m_assemble_view_data;
@@ -172,7 +180,7 @@ public:
 
     float get_layout_scale();
 
-    bool init_arrow(const BackgroundTexture::Metadata& arrow_texture);
+    bool init_arrow(const std::string& filename);
 
     template<class Archive>
     void load(Archive& ar)
@@ -218,14 +226,15 @@ public:
 
     void refresh_on_off_state();
     void reset_all_states();
-    bool is_serializing() const { return m_serializing; }
     bool open_gizmo(EType type);
     bool check_gizmos_closed_except(EType) const;
 
     void set_hover_id(int id);
-    void enable_grabber(EType type, unsigned int id, bool enable);
 
-    void update(const Linef3& mouse_ray, const Point& mouse_pos);
+    /// <summary>
+    /// Distribute information about different data into active gizmo
+    /// Should be called when selection changed
+    /// </summary>
     void update_data();
     void update_assemble_view_data();
 
@@ -238,21 +247,6 @@ public:
     bool handle_shortcut(int key);
 
     bool is_dragging() const;
-    void start_dragging();
-    void stop_dragging();
-
-    Vec3d get_displacement() const;
-
-    Vec3d get_scale() const;
-    void set_scale(const Vec3d& scale);
-
-    Vec3d get_scale_offset() const;
-
-    Vec3d get_rotation() const;
-    void set_rotation(const Vec3d& rotation);
-
-    // BBS
-    void finish_cut_rotation();
 
     //BBS
     void* get_icon_texture_id(MENU_ICON_NAME icon) {
@@ -268,15 +262,6 @@ public:
             return nullptr;
     }
 
-    Vec3d get_flattening_normal() const;
-
-    void set_flattening_data(const ModelObject* model_object);
-
-    void set_sla_support_data(ModelObject* model_object);
-
-    void set_painter_gizmo_data();
-
-    bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position = Vec2d::Zero(), bool shift_down = false, bool alt_down = false, bool control_down = false);
     ClippingPlane get_clipping_plane() const;
     ClippingPlane get_assemble_view_clipping_plane() const;
     bool wants_reslice_supports_on_undo() const;
@@ -286,8 +271,7 @@ public:
 
     void on_change_color_mode(bool is_dark);
     void render_current_gizmo() const;
-    void render_current_gizmo_for_picking_pass() const;
-    void render_painter_gizmo() const;
+    void render_painter_gizmo();
     void render_painter_assemble_view() const;
 
     void render_overlay();
@@ -296,15 +280,14 @@ public:
 
     std::string get_tooltip() const;
 
-    bool on_mouse(wxMouseEvent& evt);
-    bool on_mouse_wheel(wxMouseEvent& evt);
+    bool on_mouse(const wxMouseEvent &mouse_event);
+    bool on_mouse_wheel(const wxMouseEvent &evt);
     bool on_char(wxKeyEvent& evt);
     bool on_key(wxKeyEvent& evt);
 
     void update_after_undo_redo(const UndoRedo::Snapshot& snapshot);
 
     int get_selectable_icons_cnt() const { return get_selectable_idxs().size(); }
-    int get_shortcut_key(GLGizmosManager::EType) const;
 
     // To end highlight set gizmo = undefined
     void set_highlight(EType gizmo, bool highlight_shown) { m_highlight = std::pair<EType, bool>(gizmo, highlight_shown); }
@@ -317,14 +300,19 @@ public:
     bool get_uniform_scaling() const { return m_object_manipulation.get_uniform_scaling();}
 
 private:
-    void render_background(float left, float top, float right, float bottom, float border) const;
+    bool gizmo_event(SLAGizmoEventType action,
+                     const Vec2d &     mouse_position = Vec2d::Zero(),
+                     bool              shift_down     = false,
+                     bool              alt_down       = false,
+                     bool              control_down   = false);
+    
+    void render_background(float left, float top, float right, float bottom, float border_w, float border_h) const;
     
     void do_render_overlay() const;
 
-    bool generate_icons_texture() const;
+    bool generate_icons_texture();
 
-    void update_on_off_state(const Vec2d& mouse_pos);
-    std::string update_hover_state(const Vec2d& mouse_pos);
+    void update_hover_state(const EType &type);
     bool grabber_contains_mouse() const;
 };
 

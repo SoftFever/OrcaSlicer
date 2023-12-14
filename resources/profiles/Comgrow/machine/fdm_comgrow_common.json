@@ -18,16 +18,16 @@
     "5000"
   ],
   "machine_max_acceleration_travel": [
-    "20000",
-    "20000"
+    "3000",
+    "3000"
   ],
   "machine_max_acceleration_x": [
-    "8000",
-    "8000"
+    "3000",
+    "3000"
   ],
   "machine_max_acceleration_y": [
-    "8000",
-    "8000"
+    "3000",
+    "3000"
   ],
   "machine_max_acceleration_z": [
     "500",
@@ -38,12 +38,12 @@
     "25"
   ],
   "machine_max_speed_x": [
-    "500",
-    "200"
+    "300",
+    "300"
   ],
   "machine_max_speed_y": [
-    "500",
-    "200"
+    "300",
+    "300"
   ],
   "machine_max_speed_z": [
     "12",
@@ -79,7 +79,7 @@
   "min_layer_height": [
     "0.08"
   ],
-  "printable_height": "250",
+  "printable_height": "500",
   "extruder_clearance_radius": "65",
   "extruder_clearance_height_to_rod": "36",
   "extruder_clearance_height_to_lid": "140",
@@ -124,6 +124,12 @@
   "wipe": [
     "1"
   ],
+  "thumbnails": [
+    "32x32",
+    "300x300"
+  ],
+  "thumbnails_format": "PNG",
+  "nozzle_type": "hardened_steel",
   "default_filament_profile": [
     "Comgrow Generic PETG"
   ],
@@ -136,6 +142,5 @@
   "layer_change_gcode": ";AFTER_LAYER_CHANGE\n;[layer_z]",
   "before_layer_change_gcode": ";BEFORE_LAYER_CHANGE\n;[layer_z]\nG92 E0\n",
   "scan_first_layer": "0",
-  "nozzle_type": "undefine",
   "auxiliary_fan": "0"
 }

@@ -1,3 +1,12 @@
+#/|/ Copyright (c) Prusa Research 2018 - 2023 Tomáš Mészáros @tamasmeszaros, David Kocík @kocikdav, Lukáš Matěna @lukasmatena, Enrico Turri @enricoturri1966, Vojtěch Bubník @bubnikv, Pavel Mikuš @Godrak, Filip Sykala @Jony01, Oleksandra Iushchenko @YuSanka, Lukáš Hejl @hejllukas, Vojtěch Král @vojtechkral
+#/|/ Copyright (c) 2023 Pedro Lamas @PedroLamas
+#/|/ Copyright (c) 2020 Sergey Kovalev @RandoMan70
+#/|/ Copyright (c) 2021 Boleslaw Ciesielski
+#/|/ Copyright (c) 2019 Spencer Owen @spuder
+#/|/ Copyright (c) 2019 Stephan Reichhelm @stephanr
+#/|/
+#/|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+#/|/
 cmake_minimum_required(VERSION 3.13)
 project(libslic3r_gui)
 
@@ -82,6 +91,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/AuxiliaryDialog.hpp
     GUI/Auxiliary.cpp
     GUI/Auxiliary.hpp
+    GUI/DailyTips.cpp
+    GUI/DailyTips.hpp
     GUI/Project.cpp
     GUI/Project.hpp
     GUI/BackgroundSlicingProcess.cpp
@@ -99,10 +110,14 @@ set(SLIC3R_GUI_SOURCES
     GUI/GLShader.hpp
     GUI/GLCanvas3D.hpp
     GUI/GLCanvas3D.cpp
+    GUI/SceneRaycaster.hpp
+    GUI/SceneRaycaster.cpp	
     GUI/OpenGLManager.hpp
     GUI/OpenGLManager.cpp
     GUI/Selection.hpp
     GUI/Selection.cpp
+    GUI/SlicingProgressNotification.cpp
+    GUI/SlicingProgressNotification.hpp
     GUI/Gizmos/GLGizmosManager.cpp
     GUI/Gizmos/GLGizmosManager.hpp
     GUI/Gizmos/GLGizmosCommon.cpp
@@ -115,24 +130,26 @@ set(SLIC3R_GUI_SOURCES
     GUI/Gizmos/GLGizmoRotate.hpp
     GUI/Gizmos/GLGizmoScale.cpp
     GUI/Gizmos/GLGizmoScale.hpp
-    GUI/Gizmos/GLGizmoSlaSupports.cpp
-    GUI/Gizmos/GLGizmoSlaSupports.hpp
+    #GUI/Gizmos/GLGizmoSlaSupports.cpp
+    #GUI/Gizmos/GLGizmoSlaSupports.hpp
     GUI/Gizmos/GLGizmoFdmSupports.cpp
     GUI/Gizmos/GLGizmoFdmSupports.hpp
     GUI/Gizmos/GLGizmoFlatten.cpp
     GUI/Gizmos/GLGizmoFlatten.hpp
-    GUI/Gizmos/GLGizmoAdvancedCut.cpp
-    GUI/Gizmos/GLGizmoAdvancedCut.hpp
-    GUI/Gizmos/GLGizmoHollow.cpp
-    GUI/Gizmos/GLGizmoHollow.hpp
+    GUI/Gizmos/GLGizmoCut.cpp
+    GUI/Gizmos/GLGizmoCut.hpp
+    #GUI/Gizmos/GLGizmoHollow.cpp
+    #GUI/Gizmos/GLGizmoHollow.hpp
     GUI/Gizmos/GLGizmoPainterBase.cpp
     GUI/Gizmos/GLGizmoPainterBase.hpp
     GUI/Gizmos/GLGizmoSimplify.cpp
     GUI/Gizmos/GLGizmoSimplify.hpp
     GUI/Gizmos/GLGizmoMmuSegmentation.cpp
     GUI/Gizmos/GLGizmoMmuSegmentation.hpp
-    GUI/Gizmos/GLGizmoFaceDetector.cpp
-    GUI/Gizmos/GLGizmoFaceDetector.hpp
+    #GUI/Gizmos/GLGizmoFaceDetector.cpp
+    #GUI/Gizmos/GLGizmoFaceDetector.hpp
+    GUI/Gizmos/GLGizmoMeasure.cpp
+    GUI/Gizmos/GLGizmoMeasure.hpp
     GUI/Gizmos/GLGizmoSeam.cpp
     GUI/Gizmos/GLGizmoSeam.hpp
     GUI/Gizmos/GLGizmoText.cpp
@@ -173,6 +190,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/GUI_App.hpp
     GUI/GUI_Utils.cpp
     GUI/GUI_Utils.hpp
+    GUI/GUI_Geometry.cpp
+    GUI/GUI_Geometry.hpp
     GUI/I18N.cpp
     GUI/I18N.hpp
     GUI/MainFrame.cpp
@@ -273,7 +292,7 @@ set(SLIC3R_GUI_SOURCES
     GUI/3DBed.hpp
     GUI/Camera.cpp
     GUI/Camera.hpp
-	GUI/CameraUtils.cpp
+    GUI/CameraUtils.cpp
     GUI/CameraUtils.hpp
     GUI/wxExtensions.cpp
     GUI/wxExtensions.hpp
@@ -348,7 +367,6 @@ set(SLIC3R_GUI_SOURCES
     GUI/Mouse3DController.hpp
     GUI/IMSlider.cpp
     GUI/IMSlider.hpp
-    GUI/IMSlider_Utils.hpp
     GUI/Notebook.cpp
     GUI/Notebook.hpp
     GUI/TabButton.cpp
@@ -377,7 +395,7 @@ set(SLIC3R_GUI_SOURCES
     GUI/DragCanvas.hpp
     GUI/PublishDialog.cpp
     GUI/PublishDialog.hpp
-	GUI/RecenterDialog.cpp
+    GUI/RecenterDialog.cpp
     GUI/RecenterDialog.hpp
     GUI/PrivacyUpdateDialog.cpp
     GUI/PrivacyUpdateDialog.hpp
@@ -405,13 +423,13 @@ set(SLIC3R_GUI_SOURCES
     GUI/CalibrationWizard.cpp
     GUI/CalibrationWizardPage.cpp
     GUI/CalibrationWizardPage.hpp
-	GUI/CalibrationWizardStartPage.cpp
+    GUI/CalibrationWizardStartPage.cpp
     GUI/CalibrationWizardStartPage.hpp
-	GUI/CalibrationWizardPresetPage.cpp
+    GUI/CalibrationWizardPresetPage.cpp
     GUI/CalibrationWizardPresetPage.hpp
-	GUI/CalibrationWizardCaliPage.cpp
+    GUI/CalibrationWizardCaliPage.cpp
     GUI/CalibrationWizardCaliPage.hpp
-	GUI/CalibrationWizardSavePage.cpp
+    GUI/CalibrationWizardSavePage.cpp
     GUI/CalibrationWizardSavePage.hpp
     GUI/Calibration.hpp
     GUI/Calibration.cpp
@@ -421,6 +439,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/BonjourDialog.cpp
     GUI/BedShapeDialog.hpp
     GUI/BedShapeDialog.cpp
+    GUI/CreatePresetsDialog.hpp
+    GUI/CreatePresetsDialog.cpp
     Utils/json_diff.hpp
     Utils/json_diff.cpp
     GUI/KBShortcutsDialog.hpp
@@ -431,6 +451,8 @@ set(SLIC3R_GUI_SOURCES
     Utils/FixModelByWin10.hpp
     Utils/Bonjour.cpp
     Utils/Bonjour.hpp
+    Utils/FileHelp.cpp
+    Utils/FileHelp.hpp
     Utils/PresetUpdater.cpp
     Utils/PresetUpdater.hpp
     Utils/Process.cpp

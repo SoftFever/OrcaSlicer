@@ -402,8 +402,6 @@ bool OctoPrint::upload_inner_with_resolved_ip(PrintHostUpload upload_data, Progr
         .on_complete([&](std::string body, unsigned status) {
             BOOST_LOG_TRIVIAL(debug) << boost::format("%1%: File uploaded: HTTP %2%: %3%") % name % status % body;
         })
-        .timeout_connect(3600)
-        .timeout_max(7200)
         .on_error([&](std::string body, std::string error, unsigned status) {
             BOOST_LOG_TRIVIAL(error) << boost::format("%1%: Error uploading file to %2%: %3%, HTTP %4%, body: `%5%`") % name % url % error % status % body;
             error_fn(format_error(body, error, status));
@@ -411,7 +409,7 @@ bool OctoPrint::upload_inner_with_resolved_ip(PrintHostUpload upload_data, Progr
         })
         .on_progress([&](Http::Progress progress, bool& cancel) {
             prorgess_fn(std::move(progress), cancel);
-                        if (cancel) {
+            if (cancel) {
                 // Upload was canceled
                 BOOST_LOG_TRIVIAL(info) << name << ": Upload canceled";
                 result = false;
@@ -486,8 +484,6 @@ bool OctoPrint::upload_inner_with_host(PrintHostUpload upload_data, ProgressFn p
 #endif // _WIN32
     set_auth(http);
     http.form_add("print", upload_data.post_action == PrintHostPostUploadAction::StartPrint ? "true" : "false")
-        .timeout_connect(3600)
-        .timeout_max(7200)
         .form_add("path", upload_parent_path.string())      // XXX: slashes on windows ???
         .form_add_file("file", upload_data.source_path.string(), upload_filename.string())
         .on_complete([&](std::string body, unsigned status) {

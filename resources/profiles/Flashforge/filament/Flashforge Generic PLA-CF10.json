@@ -190,10 +190,10 @@
   "full_fan_speed_layer": [
     "0"
   ],
-  "hot_plate_temp": [
-    "50"
-  ],
   "hot_plate_temp_initial_layer": [
+    "55"
+  ],
+  "hot_plate_temp": [
     "50"
   ],
   "nozzle_temperature": [

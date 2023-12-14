@@ -22,9 +22,8 @@ public:
         } else {
             m_E             = 0;
             m_retracted     = 0;
-            m_restart_extra = 0;
         }
-
+        m_restart_extra = 0;
         m_absolute_E    = 0;
     }
 

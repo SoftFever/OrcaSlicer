@@ -8,6 +8,7 @@
 #include "libslic3r/BlacklistedLibraryCheck.hpp"
 #include "libslic3r/Platform.hpp"
 #include "libslic3r/Utils.hpp"
+#include "libslic3r/Color.hpp"
 
 #include "slic3r/GUI/format.hpp"
 #include "slic3r/Utils/Http.hpp"
@@ -437,7 +438,7 @@ static std::string generate_system_info_json()
     );
 #endif // __WXGTK__
     data_node.put("SystemLanguage", sys_language);
-    data_node.put("TranslationLanguage: ", wxGetApp().app_config->get("language"));
+    data_node.put("TranslationLanguage: ", wxGetApp().current_language_code_safe());
 
 
     pt::ptree hw_node;
@@ -591,9 +592,8 @@ SendSystemInfoDialog::SendSystemInfoDialog(wxWindow* parent)
     wxColour bgr_clr = wxGetApp().get_window_default_clr();
     SetBackgroundColour(bgr_clr);
     const auto text_clr = wxGetApp().get_label_clr_default();
-    auto text_clr_str = wxString::Format(wxT("#%02X%02X%02X"), text_clr.Red(), text_clr.Green(), text_clr.Blue());
-    auto bgr_clr_str = wxString::Format(wxT("#%02X%02X%02X"), bgr_clr.Red(), bgr_clr.Green(), bgr_clr.Blue());
-
+    auto text_clr_str = encode_color(ColorRGB(text_clr.Red(), text_clr.Green(), text_clr.Blue()));
+    auto bgr_clr_str = encode_color(ColorRGB(bgr_clr.Red(), bgr_clr.Green(), bgr_clr.Blue()));
 
     auto *topSizer = new wxBoxSizer(wxVERTICAL);
     auto *vsizer = new wxBoxSizer(wxVERTICAL);

@@ -57,24 +57,32 @@ static const int PARTPLATE_ICON_GAP_Y = 5;
 static const int PARTPLATE_TEXT_OFFSET_X1 = 3;
 static const int PARTPLATE_TEXT_OFFSET_X2 = 1;
 static const int PARTPLATE_TEXT_OFFSET_Y = 1;
+static const int PARTPLATE_PLATENAME_OFFSET_Y  = 10;
 
+const float WIPE_TOWER_DEFAULT_X_POS = 165.;
+const float WIPE_TOWER_DEFAULT_Y_POS = 250.;  // Max y
+
+const float I3_WIPE_TOWER_DEFAULT_X_POS = 0.;
+const float I3_WIPE_TOWER_DEFAULT_Y_POS = 250.; // Max y
+
+std::array<unsigned char, 4>  PlateTextureForeground = {0x0, 0xae, 0x42, 0xff};
 
 namespace Slic3r {
 namespace GUI {
 
 class Bed3D;
 
-std::array<float, 4> PartPlate::SELECT_COLOR		= { 0.2666f, 0.2784f, 0.2784f, 1.0f }; //{ 0.4196f, 0.4235f, 0.4235f, 1.0f };
-std::array<float, 4> PartPlate::UNSELECT_COLOR		= { 0.82f, 0.82f, 0.82f, 1.0f };
-std::array<float, 4> PartPlate::UNSELECT_DARK_COLOR		= { 0.384f, 0.384f, 0.412f, 1.0f };
-std::array<float, 4> PartPlate::DEFAULT_COLOR		= { 0.5f, 0.5f, 0.5f, 1.0f };
-std::array<float, 4> PartPlate::LINE_TOP_COLOR		= { 0.89f, 0.89f, 0.89f, 1.0f };
-std::array<float, 4> PartPlate::LINE_TOP_DARK_COLOR		= { 0.431f, 0.431f, 0.463f, 1.0f };
-std::array<float, 4> PartPlate::LINE_TOP_SEL_COLOR  = { 0.5294f, 0.5451, 0.5333f, 1.0f};
-std::array<float, 4> PartPlate::LINE_TOP_SEL_DARK_COLOR = { 0.298f, 0.298f, 0.3333f, 1.0f};
-std::array<float, 4> PartPlate::LINE_BOTTOM_COLOR	= { 0.8f, 0.8f, 0.8f, 0.4f };
-std::array<float, 4> PartPlate::HEIGHT_LIMIT_TOP_COLOR		= { 0.6f, 0.6f, 1.0f, 1.0f };
-std::array<float, 4> PartPlate::HEIGHT_LIMIT_BOTTOM_COLOR	= { 0.4f, 0.4f, 1.0f, 1.0f };
+ColorRGBA PartPlate::SELECT_COLOR		= { 0.2666f, 0.2784f, 0.2784f, 1.0f }; //{ 0.4196f, 0.4235f, 0.4235f, 1.0f };
+ColorRGBA PartPlate::UNSELECT_COLOR		= { 0.82f, 0.82f, 0.82f, 1.0f };
+ColorRGBA PartPlate::UNSELECT_DARK_COLOR		= { 0.384f, 0.384f, 0.412f, 1.0f };
+ColorRGBA PartPlate::DEFAULT_COLOR		= { 0.5f, 0.5f, 0.5f, 1.0f };
+ColorRGBA PartPlate::LINE_TOP_COLOR		= { 0.89f, 0.89f, 0.89f, 1.0f };
+ColorRGBA PartPlate::LINE_TOP_DARK_COLOR		= { 0.431f, 0.431f, 0.463f, 1.0f };
+ColorRGBA PartPlate::LINE_TOP_SEL_COLOR  = { 0.5294f, 0.5451, 0.5333f, 1.0f};
+ColorRGBA PartPlate::LINE_TOP_SEL_DARK_COLOR = { 0.298f, 0.298f, 0.3333f, 1.0f};
+ColorRGBA PartPlate::LINE_BOTTOM_COLOR	= { 0.8f, 0.8f, 0.8f, 0.4f };
+ColorRGBA PartPlate::HEIGHT_LIMIT_TOP_COLOR		= { 0.6f, 0.6f, 1.0f, 1.0f };
+ColorRGBA PartPlate::HEIGHT_LIMIT_BOTTOM_COLOR	= { 0.4f, 0.4f, 1.0f, 1.0f };
 
 // get text extent with wxMemoryDC
 void get_text_extent(const wxString &msg, wxCoord &w, wxCoord &h, wxFont *font)
@@ -116,20 +124,20 @@ wxFont* find_font(const std::string& text_str, int max_size = 32)
 }
 void PartPlate::update_render_colors()
 {
-	PartPlate::SELECT_COLOR			= GLColor(RenderColor::colors[RenderCol_Plate_Selected]);
-	PartPlate::UNSELECT_COLOR		= GLColor(RenderColor::colors[RenderCol_Plate_Unselected]);
-	PartPlate::DEFAULT_COLOR		= GLColor(RenderColor::colors[RenderCol_Plate_Default]);
-	PartPlate::LINE_TOP_COLOR		= GLColor(RenderColor::colors[RenderCol_Plate_Line_Top]);
-	PartPlate::LINE_BOTTOM_COLOR	= GLColor(RenderColor::colors[RenderCol_Plate_Line_Bottom]);
+	PartPlate::SELECT_COLOR			= ImGuiWrapper::from_ImVec4(RenderColor::colors[RenderCol_Plate_Selected]);
+    PartPlate::UNSELECT_COLOR		= ImGuiWrapper::from_ImVec4(RenderColor::colors[RenderCol_Plate_Unselected]);
+    PartPlate::DEFAULT_COLOR        = ImGuiWrapper::from_ImVec4(RenderColor::colors[RenderCol_Plate_Default]);
+    PartPlate::LINE_TOP_COLOR       = ImGuiWrapper::from_ImVec4(RenderColor::colors[RenderCol_Plate_Line_Top]);
+    PartPlate::LINE_BOTTOM_COLOR    = ImGuiWrapper::from_ImVec4(RenderColor::colors[RenderCol_Plate_Line_Bottom]);
 }
 
 void PartPlate::load_render_colors()
 {
-	RenderColor::colors[RenderCol_Plate_Selected] = IMColor(SELECT_COLOR);
-	RenderColor::colors[RenderCol_Plate_Unselected] = IMColor(UNSELECT_COLOR);
-	RenderColor::colors[RenderCol_Plate_Default] = IMColor(DEFAULT_COLOR);
-	RenderColor::colors[RenderCol_Plate_Line_Top] = IMColor(LINE_TOP_COLOR);
-	RenderColor::colors[RenderCol_Plate_Line_Bottom] = IMColor(LINE_BOTTOM_COLOR);
+    RenderColor::colors[RenderCol_Plate_Selected]    = ImGuiWrapper::to_ImVec4(SELECT_COLOR);
+    RenderColor::colors[RenderCol_Plate_Unselected]  = ImGuiWrapper::to_ImVec4(UNSELECT_COLOR);
+    RenderColor::colors[RenderCol_Plate_Default]     = ImGuiWrapper::to_ImVec4(DEFAULT_COLOR);
+    RenderColor::colors[RenderCol_Plate_Line_Top]    = ImGuiWrapper::to_ImVec4(LINE_TOP_COLOR);
+    RenderColor::colors[RenderCol_Plate_Line_Bottom] = ImGuiWrapper::to_ImVec4(LINE_BOTTOM_COLOR);
 }
 
 
@@ -151,7 +159,6 @@ PartPlate::~PartPlate()
 	clear();
 	//if (m_quadric != nullptr)
 	//	::gluDeleteQuadric(m_quadric);
-	release_opengl_resource();
 
 	//boost::nowide::remove(m_tmp_gcode_path.c_str());
 }
@@ -170,7 +177,6 @@ void PartPlate::init()
 
 	m_print_index = -1;
 	m_print = nullptr;
-	m_plate_name_vbo_id = 0;
 }
 
 BedType PartPlate::get_bed_type(bool load_from_project) const
@@ -272,14 +278,51 @@ PrintSequence PartPlate::get_print_seq() const
     return PrintSequence::ByDefault;
 }
 
-PrintSequence PartPlate::get_real_print_seq() const
+PrintSequence PartPlate::get_real_print_seq(bool* plate_same_as_global) const
 {
+	PrintSequence global_print_seq = PrintSequence::ByDefault;
+	auto curr_preset_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+	if (curr_preset_config.has("print_sequence"))
+		global_print_seq = curr_preset_config.option<ConfigOptionEnum<PrintSequence>>("print_sequence")->value;
+
     PrintSequence curr_plate_seq = get_print_seq();
     if (curr_plate_seq == PrintSequence::ByDefault) {
-        auto curr_preset_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
-        if (curr_preset_config.has("print_sequence")) curr_plate_seq = curr_preset_config.option<ConfigOptionEnum<PrintSequence>>("print_sequence")->value;
+		curr_plate_seq = global_print_seq;
     }
+	
+	if(plate_same_as_global)
+		*plate_same_as_global = (curr_plate_seq == global_print_seq);
+
     return curr_plate_seq;
+}
+
+bool PartPlate::has_spiral_mode_config() const
+{
+	std::string key = "spiral_mode";
+	return m_config.has(key);
+}
+
+bool PartPlate::get_spiral_vase_mode() const
+{
+	std::string key = "spiral_mode";
+	if (m_config.has(key)) {
+		return m_config.opt_bool(key);
+	}
+	else {
+		DynamicPrintConfig* global_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
+		if (global_config->has(key))
+			return global_config->opt_bool(key);
+	}
+	return false;
+}
+
+void PartPlate::set_spiral_vase_mode(bool spiral_mode, bool as_global)
+{
+	std::string key = "spiral_mode";
+	if (as_global)
+		m_config.erase(key);
+	else
+		m_config.set_key_value(key, new ConfigOptionBool(spiral_mode));
 }
 
 bool PartPlate::valid_instance(int obj_id, int instance_id)
@@ -333,17 +376,86 @@ void PartPlate::calc_bounding_boxes() const {
 	}
 }
 
-void PartPlate::calc_triangles(const ExPolygon& poly) {
-	if (!m_triangles.set_from_triangles(triangulate_expolygon_2f(poly, NORMALS_UP), GROUND_Z))
+void PartPlate::calc_triangles(const ExPolygon &poly)
+{
+    m_triangles.reset();
+
+    if (!init_model_from_poly(m_triangles.model, poly, GROUND_Z))
 		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":Unable to create plate triangles\n";
 }
 
-void PartPlate::calc_exclude_triangles(const ExPolygon& poly) {
-	if (!m_exclude_triangles.set_from_triangles(triangulate_expolygon_2f(poly, NORMALS_UP), GROUND_Z))
+void PartPlate::calc_exclude_triangles(const ExPolygon &poly)
+{
+    m_exclude_triangles.reset();
+
+    if (!init_model_from_poly(m_exclude_triangles, poly, GROUND_Z))
 		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":Unable to create exclude triangles\n";
 }
 
+static bool init_model_from_lines(GLModel &model, const Lines &lines, float z)
+{
+
+    GLModel::Geometry init_data;
+    init_data.format = { GLModel::Geometry::EPrimitiveType::Lines, GLModel::Geometry::EVertexLayout::P3 };
+    init_data.reserve_vertices(2 * lines.size());
+    init_data.reserve_indices(2 * lines.size());
+
+    for (const auto &l : lines) {
+        init_data.add_vertex(Vec3f(unscale<float>(l.a.x()), unscale<float>(l.a.y()), z));
+        init_data.add_vertex(Vec3f(unscale<float>(l.b.x()), unscale<float>(l.b.y()), z));
+        const unsigned int vertices_counter = (unsigned int)init_data.vertices_count();
+        init_data.add_line(vertices_counter - 2, vertices_counter - 1);
+    }
+
+    model.init_from(std::move(init_data));
+
+    return true;
+}
+
+static bool init_model_from_lines(GLModel &model, const Lines3 &lines)
+{
+
+    GLModel::Geometry init_data;
+    init_data.format = { GLModel::Geometry::EPrimitiveType::Lines, GLModel::Geometry::EVertexLayout::P3 };
+    init_data.reserve_vertices(2 * lines.size());
+    init_data.reserve_indices(2 * lines.size());
+
+    for (const auto &l : lines) {
+        init_data.add_vertex(Vec3f(unscale<float>(l.a.x()), unscale<float>(l.a.y()), unscale<float>(l.a.z())));
+        init_data.add_vertex(Vec3f(unscale<float>(l.b.x()), unscale<float>(l.b.y()), unscale<float>(l.b.z())));
+        const unsigned int vertices_counter = (unsigned int) init_data.vertices_count();
+        init_data.add_line(vertices_counter - 2, vertices_counter - 1);
+    }
+
+    model.init_from(std::move(init_data));
+
+    return true;
+}
+
+static void init_raycaster_from_model(PickingModel& model)
+{
+    assert(model.mesh_raycaster == nullptr);
+
+	const GLModel::Geometry &geometry = model.model.get_geometry();
+
+    indexed_triangle_set its;
+    its.vertices.reserve(geometry.vertices_count());
+    for (size_t i = 0; i < geometry.vertices_count(); ++i) {
+        its.vertices.emplace_back(geometry.extract_position_3(i));
+    }
+    its.indices.reserve(geometry.indices_count() / 3);
+    for (size_t i = 0; i < geometry.indices_count() / 3; ++i) {
+        const size_t tri_id = i * 3;
+        its.indices.emplace_back(geometry.extract_index(tri_id), geometry.extract_index(tri_id + 1), geometry.extract_index(tri_id + 2));
+    }
+
+    model.mesh_raycaster = std::make_unique<MeshRaycaster>(std::make_shared<const TriangleMesh>(std::move(its)));
+}
+
 void PartPlate::calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox) {
+    m_gridlines.reset();
+    m_gridlines_bolder.reset();
+
 	Polylines axes_lines, axes_lines_bolder;
 	int count = 0;
 	for (coord_t x = pp_bbox.min(0); x <= pp_bbox.max(0); x += scale_(10.0)) {
@@ -379,14 +491,18 @@ void PartPlate::calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox
 	Lines contour_lines = to_lines(poly);
 	std::copy(contour_lines.begin(), contour_lines.end(), std::back_inserter(gridlines));
 
-	if (!m_gridlines.set_from_lines(gridlines, GROUND_Z_GRIDLINE))
+	if (!init_model_from_lines(m_gridlines, gridlines, GROUND_Z_GRIDLINE))
 		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to create bed grid lines\n";
 
-	if (!m_gridlines_bolder.set_from_lines(gridlines_bolder, GROUND_Z_GRIDLINE))
+	if (!init_model_from_lines(m_gridlines_bolder, gridlines_bolder, GROUND_Z_GRIDLINE))
 		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to create bed grid lines\n";
 }
 
 void PartPlate::calc_height_limit() {
+    m_height_limit_common.reset();
+    m_height_limit_bottom.reset();
+    m_height_limit_top.reset();
+
 	Lines3 bottom_h_lines, top_lines, top_h_lines, common_lines;
 	int shape_count = m_shape.size();
 	float first_z = 0.02f;
@@ -418,18 +534,20 @@ void PartPlate::calc_height_limit() {
 	//std::copy(bottom_lines.begin(), bottom_lines.end(), std::back_inserter(bottom_h_lines));
 	std::copy(top_lines.begin(), top_lines.end(), std::back_inserter(top_h_lines));
 
-	if (!m_height_limit_common.set_from_3d_Lines(common_lines))
+	if (!init_model_from_lines(m_height_limit_common, common_lines))
 		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to create height limit bottom lines\n";
 
-	if (!m_height_limit_bottom.set_from_3d_Lines(bottom_h_lines))
+	if (!init_model_from_lines(m_height_limit_bottom, bottom_h_lines))
 		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to create height limit bottom lines\n";
 
-	if (!m_height_limit_top.set_from_3d_Lines(top_h_lines))
+	if (!init_model_from_lines(m_height_limit_top, top_h_lines))
 		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to create height limit top lines\n";
 }
 
-void PartPlate::calc_vertex_for_number(int index, bool one_number, GeometryBuffer &buffer)
+void PartPlate::calc_vertex_for_number(int index, bool one_number, GLModel &buffer)
 {
+    buffer.reset();
+
 	ExPolygon poly;
 #if 0 //in the up area
 	Vec2d& p = m_shape[2];
@@ -449,17 +567,18 @@ void PartPlate::calc_vertex_for_number(int index, bool one_number, GeometryBuffe
 	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + PARTPLATE_ICON_SIZE - offset_x), scale_(p(1) + PARTPLATE_ICON_SIZE - PARTPLATE_TEXT_OFFSET_Y)});
 	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + offset_x), scale_(p(1) + PARTPLATE_ICON_SIZE - PARTPLATE_TEXT_OFFSET_Y) });
 #endif
-	auto triangles = triangulate_expolygon_2f(poly, NORMALS_UP);
-	if (!buffer.set_from_triangles(triangles, GROUND_Z))
+    if (!init_model_from_poly(buffer, poly, GROUND_Z))
 		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to generate geometry buffers for icons\n";
 }
 
-void PartPlate::calc_vertex_for_icons(int index, GeometryBuffer &buffer)
+void PartPlate::calc_vertex_for_icons(int index, PickingModel &model)
 {
+    model.reset();
+
 	ExPolygon poly;
 	auto bed_ext = get_extents(m_shape);
     Vec2d p = bed_ext[2];
-    if (m_plater->get_build_volume_type() == BuildVolume_Type::Circle)
+    if (m_plater && m_plater->get_build_volume_type() == BuildVolume_Type::Circle)
         p[1] -= std::max(
             0.0, (bed_ext.size()(1) - 5 * PARTPLATE_ICON_SIZE - 4 * PARTPLATE_ICON_GAP_Y - PARTPLATE_ICON_GAP_TOP) / 2);
 
@@ -468,13 +587,17 @@ void PartPlate::calc_vertex_for_icons(int index, GeometryBuffer &buffer)
 	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + PARTPLATE_ICON_SIZE), scale_(p(1) - index * (PARTPLATE_ICON_SIZE + PARTPLATE_ICON_GAP_Y)- PARTPLATE_ICON_GAP_TOP)});
 	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP_LEFT), scale_(p(1) - index * (PARTPLATE_ICON_SIZE + PARTPLATE_ICON_GAP_Y)- PARTPLATE_ICON_GAP_TOP) });
 
-	auto triangles = triangulate_expolygon_2f(poly, NORMALS_UP);
-	if (!buffer.set_from_triangles(triangles, GROUND_Z))
+	if (!init_model_from_poly(model.model, poly, GROUND_Z))
 		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to generate geometry buffers for icons\n";
+
+	init_raycaster_from_model(model);
 }
 
-void PartPlate::calc_vertex_for_icons_background(int icon_count, GeometryBuffer &buffer)
+/*
+void PartPlate::calc_vertex_for_icons_background(int icon_count, GLModel &buffer)
 {
+    buffer.reset();
+
 	ExPolygon poly;
 	auto bed_ext = get_extents(m_shape);
     Vec2d p = bed_ext[2];
@@ -484,38 +607,37 @@ void PartPlate::calc_vertex_for_icons_background(int icon_count, GeometryBuffer 
 	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + PARTPLATE_ICON_SIZE), scale_(p(1) - PARTPLATE_ICON_GAP_TOP)});
 	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP_LEFT), scale_(p(1) - PARTPLATE_ICON_GAP_TOP) });
 
-	auto triangles = triangulate_expolygon_2f(poly, NORMALS_UP);
-	if (!buffer.set_from_triangles(triangles, GROUND_Z))
+	if (!init_model_from_poly(buffer, poly, GROUND_Z))
 		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to generate geometry buffers for icons\n";
 }
+*/
 
-void PartPlate::render_background(bool force_default_color) const {
-	unsigned int triangles_vcount = m_triangles.get_vertices_count();
-
+void PartPlate::render_background(bool force_default_color)
+{
 	//return directly for current plate
 	if (m_selected && !force_default_color) return;
 
 	// draw background
 	glsafe(::glDepthMask(GL_FALSE));
 
+	ColorRGBA color;
 	if (!force_default_color) {
 		if (m_selected) {
-			glsafe(::glColor4fv(PartPlate::SELECT_COLOR.data()));
+            color = PartPlate::SELECT_COLOR;
 		}
 		else {
-			glsafe(m_partplate_list->m_is_dark ? ::glColor4fv(PartPlate::UNSELECT_DARK_COLOR.data()) : ::glColor4fv(PartPlate::UNSELECT_COLOR.data()));
+            color = m_partplate_list->m_is_dark ? PartPlate::UNSELECT_DARK_COLOR : PartPlate::UNSELECT_COLOR;
 		}
 	}
 	else {
-		glsafe(::glColor4fv(PartPlate::DEFAULT_COLOR.data()));
+        color = PartPlate::DEFAULT_COLOR;
 	}
-	glsafe(::glNormal3d(0.0f, 0.0f, 1.0f));
-	glsafe(::glVertexPointer(3, GL_FLOAT, m_triangles.get_vertex_data_size(), (GLvoid*)m_triangles.get_vertices_data()));
-	glsafe(::glDrawArrays(GL_TRIANGLES, 0, (GLsizei)triangles_vcount));
+    m_triangles.model.set_color(color);
+    m_triangles.model.render();
 	glsafe(::glDepthMask(GL_TRUE));
 }
 
-void PartPlate::render_logo_texture(GLTexture &logo_texture, const GeometryBuffer& logo_buffer, bool bottom, unsigned int vbo_id) const
+void PartPlate::render_logo_texture(GLTexture &logo_texture, GLModel& logo_buffer, bool bottom)
 {
 	//check valid
 	if (logo_texture.unsent_compressed_data_available()) {
@@ -523,52 +645,36 @@ void PartPlate::render_logo_texture(GLTexture &logo_texture, const GeometryBuffe
 		logo_texture.send_compressed_data_to_gpu();
 	}
 
-	if (logo_buffer.get_vertices_count() > 0) {
+	if (logo_buffer.is_initialized()) {
 		GLShaderProgram* shader = wxGetApp().get_shader("printbed");
 		if (shader != nullptr) {
 			shader->start_using();
+            const Camera &camera = wxGetApp().plater()->get_camera();
+            shader->set_uniform("view_model_matrix", camera.get_view_matrix());
+            shader->set_uniform("projection_matrix", camera.get_projection_matrix());
 			shader->set_uniform("transparent_background", 0);
 			shader->set_uniform("svg_source", 0);
 
 			//glsafe(::glEnable(GL_DEPTH_TEST));
 			glsafe(::glDepthMask(GL_FALSE));
+
+			glsafe(::glEnable(GL_BLEND));
+            glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+
 			if (bottom)
 				glsafe(::glFrontFace(GL_CW));
-
-			unsigned int stride = logo_buffer.get_vertex_data_size();
-
-			GLint position_id = shader->get_attrib_location("v_position");
-			GLint tex_coords_id = shader->get_attrib_location("v_tex_coords");
-			if (position_id != -1) {
-				glsafe(::glEnableVertexAttribArray(position_id));
-			}
-			if (tex_coords_id != -1) {
-				glsafe(::glEnableVertexAttribArray(tex_coords_id));
-			}
 
 			// show the temporary texture while no compressed data is available
 			GLuint tex_id = (GLuint)logo_texture.get_id();
 
 			glsafe(::glBindTexture(GL_TEXTURE_2D, tex_id));
-			glsafe(::glBindBuffer(GL_ARRAY_BUFFER, vbo_id));
-
-			if (position_id != -1)
-				glsafe(::glVertexAttribPointer(position_id, 3, GL_FLOAT, GL_FALSE, stride, (GLvoid*)(intptr_t)logo_buffer.get_position_offset()));
-			if (tex_coords_id != -1)
-				glsafe(::glVertexAttribPointer(tex_coords_id, 2, GL_FLOAT, GL_FALSE, stride, (GLvoid*)(intptr_t)logo_buffer.get_tex_coords_offset()));
-			glsafe(::glDrawArrays(GL_TRIANGLES, 0, (GLsizei)logo_buffer.get_vertices_count()));
-
-			if (tex_coords_id != -1)
-				glsafe(::glDisableVertexAttribArray(tex_coords_id));
-
-			if (position_id != -1)
-				glsafe(::glDisableVertexAttribArray(position_id));
-
-			glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+            logo_buffer.render();
 			glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
 
 			if (bottom)
 				glsafe(::glFrontFace(GL_CCW));
+
+            glsafe(::glDisable(GL_BLEND));
 
 			glsafe(::glDepthMask(GL_TRUE));
 
@@ -577,7 +683,7 @@ void PartPlate::render_logo_texture(GLTexture &logo_texture, const GeometryBuffe
 	}
 }
 
-void PartPlate::render_logo(bool bottom, bool render_cali) const
+void PartPlate::render_logo(bool bottom, bool render_cali)
 {
 	if (!m_partplate_list->render_bedtype_logo) {
 		// render third-party printer texture logo
@@ -643,15 +749,8 @@ void PartPlate::render_logo(bool bottom, bool render_cali) const
 			//canvas.request_extra_frame();
 		}
 
-		if (m_vbo_id == 0) {
-			unsigned int* vbo_id_ptr = const_cast<unsigned int*>(&m_vbo_id);
-			glsafe(::glGenBuffers(1, vbo_id_ptr));
-			glsafe(::glBindBuffer(GL_ARRAY_BUFFER, *vbo_id_ptr));
-			glsafe(::glBufferData(GL_ARRAY_BUFFER, (GLsizeiptr)m_logo_triangles.get_vertices_data_size(), (const GLvoid*)m_logo_triangles.get_vertices_data(), GL_STATIC_DRAW));
-			glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
-		}
-		if (m_vbo_id != 0 && m_logo_triangles.get_vertices_count() > 0)
-			render_logo_texture(m_partplate_list->m_logo_texture, m_logo_triangles, bottom, m_vbo_id);
+		if (m_logo_triangles.is_initialized())
+			render_logo_texture(m_partplate_list->m_logo_texture, m_logo_triangles, bottom);
 		return;
 	}
 
@@ -669,7 +768,7 @@ void PartPlate::render_logo(bool bottom, bool render_cali) const
 	// render bed textures
 	for (auto &part : m_partplate_list->bed_texture_info[bed_type_idx].parts) {
 		if (part.texture) {
-			if (part.buffer && part.buffer->get_vertices_count() > 0
+			if (part.buffer && part.buffer->is_initialized()
 				//&& part.vbo_id != 0
 				) {
 				if (part.offset.x() != m_origin.x() || part.offset.y() != m_origin.y()) {
@@ -678,8 +777,7 @@ void PartPlate::render_logo(bool bottom, bool render_cali) const
 				}
 				render_logo_texture(*(part.texture),
 									*(part.buffer),
-									bottom,
-									part.vbo_id);
+									bottom);
 			}
 		}
 	}
@@ -688,29 +786,27 @@ void PartPlate::render_logo(bool bottom, bool render_cali) const
 	if (render_cali) {
 		for (auto& part : m_partplate_list->cali_texture_info.parts) {
 			if (part.texture) {
-				if (part.buffer && part.buffer->get_vertices_count() > 0) {
+                if (part.buffer && part.buffer->is_initialized()) {
 					if (part.offset.x() != m_origin.x() || part.offset.y() != m_origin.y()) {
 						part.offset = Vec2d(m_origin.x(), m_origin.y());
 						part.update_buffer();
 					}
 					render_logo_texture(*(part.texture),
 						*(part.buffer),
-						bottom,
-						part.vbo_id);
+						bottom);
 				}
 			}
 		}
 	}
 }
 
-void PartPlate::render_exclude_area(bool force_default_color) const {
+void PartPlate::render_exclude_area(bool force_default_color) {
 	if (force_default_color) //for thumbnail case
 		return;
 
-	unsigned int triangles_vcount = m_exclude_triangles.get_vertices_count();
-	std::array<float, 4> select_color{ 0.765f, 0.7686f, 0.7686f, 1.0f };
-	std::array<float, 4> unselect_color{ 0.9f, 0.9f, 0.9f, 1.0f };
-	std::array<float, 4> default_color{ 0.9f, 0.9f, 0.9f, 1.0f };
+	ColorRGBA select_color{ 0.765f, 0.7686f, 0.7686f, 1.0f };
+	ColorRGBA unselect_color{ 0.9f, 0.9f, 0.9f, 1.0f };
+	//ColorRGBA default_color{ 0.9f, 0.9f, 0.9f, 1.0f };
 
 	// draw exclude area
 	glsafe(::glDepthMask(GL_FALSE));
@@ -722,14 +818,13 @@ void PartPlate::render_exclude_area(bool force_default_color) const {
 		glsafe(::glColor4fv(unselect_color.data()));
 	}
 
-	glsafe(::glNormal3d(0.0f, 0.0f, 1.0f));
-	glsafe(::glVertexPointer(3, GL_FLOAT, m_exclude_triangles.get_vertex_data_size(), (GLvoid*)m_exclude_triangles.get_vertices_data()));
-	glsafe(::glDrawArrays(GL_TRIANGLES, 0, (GLsizei)triangles_vcount));
+	m_exclude_triangles.set_color(m_selected ? select_color : unselect_color);
+    m_exclude_triangles.render();
 	glsafe(::glDepthMask(GL_TRUE));
 }
 
 
-/*void PartPlate::render_background_for_picking(const float* render_color) const
+/*void PartPlate::render_background_for_picking(const ColorRGBA render_color) const
 {
 	unsigned int triangles_vcount = m_triangles.get_vertices_count();
 
@@ -741,99 +836,68 @@ void PartPlate::render_exclude_area(bool force_default_color) const {
 	glsafe(::glDepthMask(GL_TRUE));
 }*/
 
-void PartPlate::render_grid(bool bottom) const {
+void PartPlate::render_grid(bool bottom) {
 	//glsafe(::glEnable(GL_MULTISAMPLE));
 	// draw grid
 	glsafe(::glLineWidth(1.0f * m_scale_factor));
+
+    ColorRGBA color;
 	if (bottom)
-		glsafe(::glColor4fv(LINE_BOTTOM_COLOR.data()));
+        color = LINE_BOTTOM_COLOR;
 	else {
 		if (m_selected)
-			glsafe(m_partplate_list->m_is_dark ? ::glColor4fv(LINE_TOP_SEL_DARK_COLOR.data()) : ::glColor4fv(LINE_TOP_SEL_COLOR.data()));
+            color = m_partplate_list->m_is_dark ? LINE_TOP_SEL_DARK_COLOR : LINE_TOP_SEL_COLOR;
 		else
-			glsafe(m_partplate_list->m_is_dark ? ::glColor4fv(LINE_TOP_DARK_COLOR.data()) : ::glColor4fv(LINE_TOP_COLOR.data()));
+            color = m_partplate_list->m_is_dark ? LINE_TOP_DARK_COLOR : LINE_TOP_COLOR;
 	}
-	glsafe(::glVertexPointer(3, GL_FLOAT, m_gridlines.get_vertex_data_size(), (GLvoid*)m_gridlines.get_vertices_data()));
-	glsafe(::glDrawArrays(GL_LINES, 0, (GLsizei)m_gridlines.get_vertices_count()));
+    m_gridlines.set_color(color);
+    m_gridlines.render();
 
 	glsafe(::glLineWidth(2.0f * m_scale_factor));
-	glsafe(::glVertexPointer(3, GL_FLOAT, m_gridlines_bolder.get_vertex_data_size(), (GLvoid*)m_gridlines_bolder.get_vertices_data()));
-	glsafe(::glDrawArrays(GL_LINES, 0, (GLsizei)m_gridlines_bolder.get_vertices_count()));
+    m_gridlines_bolder.set_color(color);
+    m_gridlines_bolder.render();
 }
 
-void PartPlate::render_height_limit(PartPlate::HeightLimitMode mode) const
+void PartPlate::render_height_limit(PartPlate::HeightLimitMode mode)
 {
 	if (m_print && m_print->config().print_sequence == PrintSequence::ByObject && mode != HEIGHT_LIMIT_NONE)
 	{
 		// draw lower limit
 		glsafe(::glLineWidth(3.0f * m_scale_factor));
-		glsafe(::glColor4fv(HEIGHT_LIMIT_BOTTOM_COLOR.data()));
-		glsafe(::glVertexPointer(3, GL_FLOAT, m_height_limit_common.get_vertex_data_size(), (GLvoid*)m_height_limit_common.get_vertices_data()));
-		glsafe(::glDrawArrays(GL_LINES, 0, (GLsizei)m_height_limit_common.get_vertices_count()));
+        m_height_limit_common.set_color(HEIGHT_LIMIT_BOTTOM_COLOR);
+        m_height_limit_common.render();
 
 		if ((mode == HEIGHT_LIMIT_BOTTOM) || (mode == HEIGHT_LIMIT_BOTH)) {
 			glsafe(::glLineWidth(3.0f * m_scale_factor));
-			glsafe(::glColor4fv(HEIGHT_LIMIT_BOTTOM_COLOR.data()));
-			glsafe(::glVertexPointer(3, GL_FLOAT, m_height_limit_bottom.get_vertex_data_size(), (GLvoid*)m_height_limit_bottom.get_vertices_data()));
-			glsafe(::glDrawArrays(GL_LINES, 0, (GLsizei)m_height_limit_bottom.get_vertices_count()));
+            m_height_limit_bottom.set_color(HEIGHT_LIMIT_BOTTOM_COLOR);
+            m_height_limit_bottom.render();
 		}
 
 		// draw upper limit
 		if ((mode == HEIGHT_LIMIT_TOP) || (mode == HEIGHT_LIMIT_BOTH)){
-			glsafe(::glLineWidth(3.0f * m_scale_factor));
-			glsafe(::glColor4fv(HEIGHT_LIMIT_TOP_COLOR.data()));
-			glsafe(::glVertexPointer(3, GL_FLOAT, m_height_limit_top.get_vertex_data_size(), (GLvoid*)m_height_limit_top.get_vertices_data()));
-			glsafe(::glDrawArrays(GL_LINES, 0, (GLsizei)m_height_limit_top.get_vertices_count()));
+            glsafe(::glLineWidth(3.0f * m_scale_factor));
+            m_height_limit_top.set_color(HEIGHT_LIMIT_TOP_COLOR);
+            m_height_limit_top.render();
 		}
 	}
 }
 
-
-void PartPlate::render_icon_texture(int position_id, int tex_coords_id, const GeometryBuffer &buffer, GLTexture &texture, unsigned int &vbo_id) const
+void PartPlate::render_icon_texture(GLModel &buffer, GLTexture &texture)
 {
-	if (vbo_id == 0) {
-		glsafe(::glGenBuffers(1, &vbo_id));
-		glsafe(::glBindBuffer(GL_ARRAY_BUFFER, vbo_id));
-		glsafe(::glBufferData(GL_ARRAY_BUFFER, (GLsizeiptr)buffer.get_vertices_data_size(), (const GLvoid*)buffer.get_vertices_data(), GL_STATIC_DRAW));
-		glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
-	}
-
-	unsigned int stride = buffer.get_vertex_data_size();
 	GLuint tex_id = (GLuint)texture.get_id();
 	glsafe(::glBindTexture(GL_TEXTURE_2D, tex_id));
-	glsafe(::glBindBuffer(GL_ARRAY_BUFFER, vbo_id));
-	if (position_id != -1)
-		glsafe(::glVertexAttribPointer(position_id, 3, GL_FLOAT, GL_FALSE, stride, (GLvoid*)(intptr_t)buffer.get_position_offset()));
-	if (tex_coords_id != -1)
-		glsafe(::glVertexAttribPointer(tex_coords_id, 2, GL_FLOAT, GL_FALSE, stride, (GLvoid*)(intptr_t)buffer.get_tex_coords_offset()));
-	glsafe(::glDrawArrays(GL_TRIANGLES, 0, (GLsizei)buffer.get_vertices_count()));
-
-	glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+    buffer.render();
 	glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
 }
-void PartPlate::render_plate_name_texture(int position_id, int tex_coords_id)
+
+void PartPlate::render_plate_name_texture()
 {
 	if (m_name_texture.get_id() == 0)
 		generate_plate_name_texture();
 
-	if (m_plate_name_vbo_id == 0 && m_plate_name_icon.get_vertices_data_size() > 0) {
-		glsafe(::glGenBuffers(1, &m_plate_name_vbo_id));
-		glsafe(::glBindBuffer(GL_ARRAY_BUFFER, m_plate_name_vbo_id));
-		glsafe(::glBufferData(GL_ARRAY_BUFFER, (GLsizeiptr)m_plate_name_icon.get_vertices_data_size(), (const GLvoid*)m_plate_name_icon.get_vertices_data(), GL_STATIC_DRAW));
-		glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
-	}
-
-	unsigned int stride = m_plate_name_icon.get_vertex_data_size();
 	GLuint tex_id = (GLuint)m_name_texture.get_id();
 	glsafe(::glBindTexture(GL_TEXTURE_2D, tex_id));
-	glsafe(::glBindBuffer(GL_ARRAY_BUFFER, m_plate_name_vbo_id));
-	if (position_id != -1)
-		glsafe(::glVertexAttribPointer(position_id, 3, GL_FLOAT, GL_FALSE, stride, (GLvoid*)(intptr_t)m_plate_name_icon.get_position_offset()));
-	if (tex_coords_id != -1)
-		glsafe(::glVertexAttribPointer(tex_coords_id, 2, GL_FLOAT, GL_FALSE, stride, (GLvoid*)(intptr_t)m_plate_name_icon.get_tex_coords_offset()));
-	glsafe(::glDrawArrays(GL_TRIANGLES, 0, (GLsizei)m_plate_name_icon.get_vertices_count()));
-
-	glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+    m_plate_name_icon.render();
 	glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
 }
 
@@ -857,6 +921,9 @@ void PartPlate::render_icons(bool bottom, bool only_name, int hover_id)
 	GLShaderProgram* shader = wxGetApp().get_shader("printbed");
 	if (shader != nullptr) {
 		shader->start_using();
+        const Camera &camera = wxGetApp().plater()->get_camera();
+        shader->set_uniform("view_model_matrix", camera.get_view_matrix());
+        shader->set_uniform("projection_matrix", camera.get_projection_matrix());
 		shader->set_uniform("transparent_background", bottom);
 		//shader->set_uniform("svg_source", boost::algorithm::iends_with(m_partplate_list->m_del_texture.get_source(), ".svg"));
 		shader->set_uniform("svg_source", 0);
@@ -865,92 +932,72 @@ void PartPlate::render_icons(bool bottom, bool only_name, int hover_id)
         //    glsafe(::glFrontFace(GL_CW));
         glsafe(::glDepthMask(GL_FALSE));
 
-        GLint position_id = shader->get_attrib_location("v_position");
-        GLint tex_coords_id = shader->get_attrib_location("v_tex_coords");
-        if (position_id != -1) {
-            glsafe(::glEnableVertexAttribArray(position_id));
-        }
-        if (tex_coords_id != -1) {
-            glsafe(::glEnableVertexAttribArray(tex_coords_id));
-        }
+        glsafe(::glEnable(GL_BLEND));
+        glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+
         if (!only_name) {
             if (hover_id == 1) {
-                render_icon_texture(position_id, tex_coords_id, m_del_icon, m_partplate_list->m_del_hovered_texture,
-                                    m_del_vbo_id);
+                render_icon_texture(m_del_icon.model, m_partplate_list->m_del_hovered_texture);
                 show_tooltip(_u8L("Remove current plate (if not last one)"));
             }
             else
-                render_icon_texture(position_id, tex_coords_id, m_del_icon, m_partplate_list->m_del_texture,
-                                    m_del_vbo_id);
+                render_icon_texture(m_del_icon.model, m_partplate_list->m_del_texture);
 
             if (hover_id == 2) {
-                render_icon_texture(position_id, tex_coords_id, m_orient_icon,
-                                    m_partplate_list->m_orient_hovered_texture, m_orient_vbo_id);
+                render_icon_texture(m_orient_icon.model, m_partplate_list->m_orient_hovered_texture);
                 show_tooltip(_u8L("Auto orient objects on current plate"));
             }
             else
-                render_icon_texture(position_id, tex_coords_id, m_orient_icon, m_partplate_list->m_orient_texture,
-                                    m_orient_vbo_id);
+                render_icon_texture(m_orient_icon.model, m_partplate_list->m_orient_texture);
 
             if (hover_id == 3) {
-                render_icon_texture(position_id, tex_coords_id, m_arrange_icon,
-                                    m_partplate_list->m_arrange_hovered_texture, m_arrange_vbo_id);
+                render_icon_texture(m_arrange_icon.model, m_partplate_list->m_arrange_hovered_texture);
                 show_tooltip(_u8L("Arrange objects on current plate"));
             }
             else
-                render_icon_texture(position_id, tex_coords_id, m_arrange_icon, m_partplate_list->m_arrange_texture,
-                                    m_arrange_vbo_id);
+                render_icon_texture(m_arrange_icon.model, m_partplate_list->m_arrange_texture);
 
             if (hover_id == 4) {
                 if (this->is_locked()) {
-                    render_icon_texture(position_id, tex_coords_id, m_lock_icon,
-                                        m_partplate_list->m_locked_hovered_texture, m_lock_vbo_id);
+                    render_icon_texture(m_lock_icon.model,
+                                        m_partplate_list->m_locked_hovered_texture);
                     show_tooltip(_u8L("Unlock current plate"));
                 }
                 else {
-                    render_icon_texture(position_id, tex_coords_id, m_lock_icon,
-                                        m_partplate_list->m_lockopen_hovered_texture, m_lock_vbo_id);
+                    render_icon_texture(m_lock_icon.model,
+                                        m_partplate_list->m_lockopen_hovered_texture);
                     show_tooltip(_u8L("Lock current plate"));
                 }
             } else {
                 if (this->is_locked())
-                    render_icon_texture(position_id, tex_coords_id, m_lock_icon, m_partplate_list->m_locked_texture,
-                                        m_lock_vbo_id);
+                    render_icon_texture(m_lock_icon.model, m_partplate_list->m_locked_texture);
                 else
-                    render_icon_texture(position_id, tex_coords_id, m_lock_icon, m_partplate_list->m_lockopen_texture,
-                                        m_lock_vbo_id);
+                    render_icon_texture(m_lock_icon.model, m_partplate_list->m_lockopen_texture);
             }
 
             if (m_partplate_list->render_plate_settings) {
                 if (hover_id == 5) {
                     if (get_bed_type() == BedType::btDefault && get_print_seq() == PrintSequence::ByDefault && get_first_layer_print_sequence().empty())
-                        render_icon_texture(position_id, tex_coords_id, m_plate_settings_icon, m_partplate_list->m_plate_settings_hovered_texture, m_plate_settings_vbo_id);
+                        render_icon_texture(m_plate_settings_icon.model, m_partplate_list->m_plate_settings_hovered_texture);
                     else
-                      render_icon_texture(position_id, tex_coords_id, m_plate_settings_icon,
-                                          m_partplate_list->m_plate_settings_changed_hovered_texture,
-                                          m_plate_settings_vbo_id);
+                        render_icon_texture(m_plate_settings_icon.model, m_partplate_list->m_plate_settings_changed_hovered_texture);
 
                     show_tooltip(_u8L("Customize current plate"));
                 } else {
                     if (get_bed_type() == BedType::btDefault && get_print_seq() == PrintSequence::ByDefault && get_first_layer_print_sequence().empty())
-                        render_icon_texture(position_id, tex_coords_id, m_plate_settings_icon, m_partplate_list->m_plate_settings_texture, m_plate_settings_vbo_id);
+                        render_icon_texture(m_plate_settings_icon.model, m_partplate_list->m_plate_settings_texture);
                     else
-                      render_icon_texture(position_id, tex_coords_id, m_plate_settings_icon,
-                                          m_partplate_list->m_plate_settings_changed_texture, m_plate_settings_vbo_id);
+                        render_icon_texture(m_plate_settings_icon.model, m_partplate_list->m_plate_settings_changed_texture);
                 }
             }
 
             if (m_plate_index >= 0 && m_plate_index < MAX_PLATE_COUNT) {
-                render_icon_texture(position_id, tex_coords_id, m_plate_idx_icon,
-                                    m_partplate_list->m_idx_textures[m_plate_index], m_plate_idx_vbo_id);
+                render_icon_texture(m_plate_idx_icon, m_partplate_list->m_idx_textures[m_plate_index]);
             }
         }
-		render_plate_name_texture(position_id, tex_coords_id);
-        if (tex_coords_id != -1)
-            glsafe(::glDisableVertexAttribArray(tex_coords_id));
+		render_plate_name_texture();
 
-        if (position_id != -1)
-            glsafe(::glDisableVertexAttribArray(position_id));
+        glsafe(::glDisable(GL_BLEND));
 
         //if (bottom)
         //    glsafe(::glFrontFace(GL_CCW));
@@ -960,11 +1007,14 @@ void PartPlate::render_icons(bool bottom, bool only_name, int hover_id)
     }
 }
 
-void PartPlate::render_only_numbers(bool bottom) const
+void PartPlate::render_only_numbers(bool bottom)
 {
 	GLShaderProgram* shader = wxGetApp().get_shader("printbed");
 	if (shader != nullptr) {
 		shader->start_using();
+        const Camera &camera = wxGetApp().plater()->get_camera();
+        shader->set_uniform("view_model_matrix", camera.get_view_matrix());
+        shader->set_uniform("projection_matrix", camera.get_projection_matrix());
 		shader->set_uniform("transparent_background", bottom);
 		//shader->set_uniform("svg_source", boost::algorithm::iends_with(m_partplate_list->m_del_texture.get_source(), ".svg"));
 		shader->set_uniform("svg_source", 0);
@@ -973,24 +1023,14 @@ void PartPlate::render_only_numbers(bool bottom) const
         //    glsafe(::glFrontFace(GL_CW));
         glsafe(::glDepthMask(GL_FALSE));
 
-        GLint position_id = shader->get_attrib_location("v_position");
-        GLint tex_coords_id = shader->get_attrib_location("v_tex_coords");
-        if (position_id != -1) {
-            glsafe(::glEnableVertexAttribArray(position_id));
-        }
-        if (tex_coords_id != -1) {
-            glsafe(::glEnableVertexAttribArray(tex_coords_id));
-        }
+        glsafe(::glEnable(GL_BLEND));
+        glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
         if (m_plate_index >=0 && m_plate_index < MAX_PLATE_COUNT) {
-            render_icon_texture(position_id, tex_coords_id, m_plate_idx_icon, m_partplate_list->m_idx_textures[m_plate_index], m_plate_idx_vbo_id);
+            render_icon_texture(m_plate_idx_icon, m_partplate_list->m_idx_textures[m_plate_index]);
         }
 
-        if (tex_coords_id != -1)
-            glsafe(::glDisableVertexAttribArray(tex_coords_id));
-
-        if (position_id != -1)
-            glsafe(::glDisableVertexAttribArray(position_id));
+        glsafe(::glDisable(GL_BLEND));
 
         //if (bottom)
         //    glsafe(::glFrontFace(GL_CCW));
@@ -1000,20 +1040,7 @@ void PartPlate::render_only_numbers(bool bottom) const
     }
 }
 
-void PartPlate::render_rectangle_for_picking(const GeometryBuffer &buffer, const float* render_color) const
-{
-	unsigned int triangles_vcount = buffer.get_vertices_count();
-
-	//glsafe(::glDepthMask(GL_FALSE));
-	glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
-	glsafe(::glColor4fv(render_color));
-	glsafe(::glNormal3d(0.0f, 0.0f, 1.0f));
-	glsafe(::glVertexPointer(3, GL_FLOAT, buffer.get_vertex_data_size(), (GLvoid*)buffer.get_vertices_data()));
-	glsafe(::glDrawArrays(GL_TRIANGLES, 0, (GLsizei)triangles_vcount));
-	glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
-	//glsafe(::glDepthMask(GL_TRUE));
-}
-
+/*
 void PartPlate::render_label(GLCanvas3D& canvas) const {
 	std::string label = (boost::format("Plate %1%") % (m_plate_index + 1)).str();
 	const Camera& camera = wxGetApp().plater()->get_camera();
@@ -1058,14 +1085,14 @@ void PartPlate::render_label(GLCanvas3D& canvas) const {
 
 }
 
-void PartPlate::render_grabber(const float* render_color, bool use_lighting) const
+void PartPlate::render_grabber(const ColorRGBA render_color, bool use_lighting) const
 {
 	BoundingBoxf3* bounding_box = const_cast<BoundingBoxf3*>(&m_bounding_box);
 	const Vec3d& center = m_grabber_box.center();
 
 	if (use_lighting)
 		glsafe(::glEnable(GL_LIGHTING));
-	glsafe(::glColor4fv(render_color));
+	glsafe(::glColor4fv(render_color.data()));
 	glsafe(::glPushMatrix());
 
 	glsafe(::glTranslated(center(0), center(1), center(2)));
@@ -1138,7 +1165,7 @@ void PartPlate::render_face(float x_size, float y_size) const
 	glsafe(::glEnd());
 }
 
-void PartPlate::render_arrows(const float* render_color, bool use_lighting) const
+void PartPlate::render_arrows(const ColorRGBA render_color, bool use_lighting) const
 {
 #if 0
 	if (m_quadric == nullptr)
@@ -1176,7 +1203,7 @@ void PartPlate::render_arrows(const float* render_color, bool use_lighting) cons
 #endif
 }
 
-void PartPlate::render_left_arrow(const float* render_color, bool use_lighting) const
+void PartPlate::render_left_arrow(const ColorRGBA render_color, bool use_lighting) const
 {
 #if 0
 	if (m_quadric == nullptr)
@@ -1203,7 +1230,7 @@ void PartPlate::render_left_arrow(const float* render_color, bool use_lighting) 
 		glsafe(::glDisable(GL_LIGHTING));
 #endif
 }
-void PartPlate::render_right_arrow(const float* render_color, bool use_lighting) const
+void PartPlate::render_right_arrow(const ColorRGBA render_color, bool use_lighting) const
 {
 #if 0
 	if (m_quadric == nullptr)
@@ -1229,103 +1256,28 @@ void PartPlate::render_right_arrow(const float* render_color, bool use_lighting)
 		glsafe(::glDisable(GL_LIGHTING));
 #endif
 }
+*/
 
-void PartPlate::on_render_for_picking() const {
-	//glsafe(::glDisable(GL_DEPTH_TEST));
-	int hover_id = 0;
-	std::array<float, 4> color = picking_color_component(hover_id);
-	m_grabber_color[0] = color[0];
-	m_grabber_color[1] = color[1];
-	m_grabber_color[2] = color[2];
-	m_grabber_color[3] = color[3];
-	//render_grabber(m_grabber_color, false);
-	render_rectangle_for_picking(m_triangles, m_grabber_color);
-	hover_id = 1;
-	color = picking_color_component(hover_id);
-	m_grabber_color[0] = color[0];
-	m_grabber_color[1] = color[1];
-	m_grabber_color[2] = color[2];
-	m_grabber_color[3] = color[3];
-	//render_left_arrow(m_grabber_color, false);
-	render_rectangle_for_picking(m_del_icon, m_grabber_color);
-	hover_id = 2;
-	color = picking_color_component(hover_id);
-	m_grabber_color[0] = color[0];
-	m_grabber_color[1] = color[1];
-	m_grabber_color[2] = color[2];
-	m_grabber_color[3] = color[3];
-	render_rectangle_for_picking(m_orient_icon, m_grabber_color);
-    hover_id = 3;
-	color = picking_color_component(hover_id);
-	m_grabber_color[0] = color[0];
-	m_grabber_color[1] = color[1];
-	m_grabber_color[2] = color[2];
-	m_grabber_color[3] = color[3];
-	render_rectangle_for_picking(m_arrange_icon, m_grabber_color);
-	hover_id = 4;
-	color = picking_color_component(hover_id);
-	m_grabber_color[0] = color[0];
-	m_grabber_color[1] = color[1];
-	m_grabber_color[2] = color[2];
-	m_grabber_color[3] = color[3];
-	//render_right_arrow(m_grabber_color, false);
-	render_rectangle_for_picking(m_lock_icon, m_grabber_color);
-	hover_id = 5;
-	color = picking_color_component(hover_id);
-	m_grabber_color[0] = color[0];
-	m_grabber_color[1] = color[1];
-	m_grabber_color[2] = color[2];
-	m_grabber_color[3] = color[3];
+static void register_model_for_picking(GLCanvas3D &canvas, PickingModel &model, int id)
+{
+    canvas.add_raycaster_for_picking(SceneRaycaster::EType::Bed, id, *model.mesh_raycaster, Transform3d::Identity());
+}
+
+void PartPlate::register_raycasters_for_picking(GLCanvas3D &canvas)
+{
+    register_model_for_picking(canvas, m_triangles, picking_id_component(0));
+    register_model_for_picking(canvas, m_del_icon, picking_id_component(1));
+    register_model_for_picking(canvas, m_orient_icon, picking_id_component(2));
+    register_model_for_picking(canvas, m_arrange_icon, picking_id_component(3));
+    register_model_for_picking(canvas, m_lock_icon, picking_id_component(4));
     if (m_partplate_list->render_plate_settings)
-        render_rectangle_for_picking(m_plate_settings_icon, m_grabber_color);
+        register_model_for_picking(canvas, m_plate_settings_icon, picking_id_component(5));
 }
 
-std::array<float, 4> PartPlate::picking_color_component(int idx) const
+int PartPlate::picking_id_component(int idx) const
 {
-	static const float INV_255 = 1.0f / 255.0f;
 	unsigned int id = PLATE_BASE_ID - this->m_plate_index * GRABBER_COUNT - idx;
-	return std::array<float, 4> {
-		float((id >> 0) & 0xff)* INV_255, // red
-			float((id >> 8) & 0xff)* INV_255, // greeen
-			float((id >> 16) & 0xff)* INV_255, // blue
-			float(picking_checksum_alpha_channel(id & 0xff, (id >> 8) & 0xff, (id >> 16) & 0xff))* INV_255
-	};
-}
-
-void PartPlate::release_opengl_resource()
-{
-	if (m_vbo_id > 0) {
-		glsafe(::glDeleteBuffers(1, &m_vbo_id));
-		m_vbo_id = 0;
-	}
-	if (m_del_vbo_id > 0) {
-		glsafe(::glDeleteBuffers(1, &m_del_vbo_id));
-		m_del_vbo_id = 0;
-	}
-    if (m_orient_vbo_id > 0) {
-		glsafe(::glDeleteBuffers(1, &m_orient_vbo_id));
-		m_orient_vbo_id = 0;
-	}
-	if (m_arrange_vbo_id > 0) {
-		glsafe(::glDeleteBuffers(1, &m_arrange_vbo_id));
-		m_arrange_vbo_id = 0;
-	}
-	if (m_lock_vbo_id > 0) {
-		glsafe(::glDeleteBuffers(1, &m_lock_vbo_id));
-		m_lock_vbo_id = 0;
-	}
-	if (m_plate_settings_vbo_id > 0) {
-		glsafe(::glDeleteBuffers(1, &m_plate_settings_vbo_id));
-		m_plate_settings_vbo_id = 0;
-	}
-	if (m_plate_idx_vbo_id > 0) {
-		glsafe(::glDeleteBuffers(1, &m_plate_idx_vbo_id));
-		m_plate_idx_vbo_id = 0;
-	}
-	if (m_plate_name_vbo_id > 0) {
-		glsafe(::glDeleteBuffers(1, &m_plate_name_vbo_id));
-		m_plate_name_vbo_id = 0;
-	}
+	return id;
 }
 
 std::vector<int> PartPlate::get_extruders(bool conside_custom_gcode) const
@@ -1576,7 +1528,7 @@ std::vector<int> PartPlate::get_used_extruders()
 	return used_extruders;
 }
 
-Vec3d PartPlate::estimate_wipe_tower_size(const DynamicPrintConfig & config, const double w, const double d, int plate_extruder_size) const
+Vec3d PartPlate::estimate_wipe_tower_size(const DynamicPrintConfig & config, const double w, const double d, int plate_extruder_size, bool use_global_objects) const
 {
 	Vec3d wipe_tower_size;
 
@@ -1599,7 +1551,7 @@ Vec3d PartPlate::estimate_wipe_tower_size(const DynamicPrintConfig & config, con
 		return wipe_tower_size;
 
 	for (int obj_idx = 0; obj_idx < m_model->objects.size(); obj_idx++) {
-		if (!contain_instance_totally(obj_idx, 0))
+		if (!use_global_objects && !contain_instance_totally(obj_idx, 0))
 			continue;
 
 		BoundingBoxf3 bbox = m_model->objects[obj_idx]->bounding_box();
@@ -1650,6 +1602,46 @@ Vec3d PartPlate::estimate_wipe_tower_size(const DynamicPrintConfig & config, con
 	return wipe_tower_size;
 }
 
+arrangement::ArrangePolygon PartPlate::estimate_wipe_tower_polygon(const DynamicPrintConfig& config, int plate_index, int plate_extruder_size, bool use_global_objects) const
+{
+	float x = dynamic_cast<const ConfigOptionFloats*>(config.option("wipe_tower_x"))->get_at(plate_index);
+	float y = dynamic_cast<const ConfigOptionFloats*>(config.option("wipe_tower_y"))->get_at(plate_index);
+	float w = dynamic_cast<const ConfigOptionFloat*>(config.option("prime_tower_width"))->value;
+	//float a = dynamic_cast<const ConfigOptionFloat*>(config.option("wipe_tower_rotation_angle"))->value;
+	float v = dynamic_cast<const ConfigOptionFloat*>(config.option("prime_volume"))->value;
+	Vec3d wipe_tower_size = estimate_wipe_tower_size(config, w, v, plate_extruder_size, use_global_objects);
+	int plate_width=m_width, plate_depth=m_depth;
+	float depth = wipe_tower_size(1);
+	float margin = WIPE_TOWER_MARGIN, wp_brim_width = 0.f;
+	const ConfigOption* wipe_tower_brim_width_opt = config.option("prime_tower_brim_width");
+	if (wipe_tower_brim_width_opt) {
+		wp_brim_width = wipe_tower_brim_width_opt->getFloat();
+		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("arrange wipe_tower: wp_brim_width %1%") % wp_brim_width;
+	}
+
+	x = std::clamp(x, margin, (float)plate_width - w - margin - wp_brim_width);
+	y = std::clamp(y, margin, (float)plate_depth - depth - margin - wp_brim_width);
+
+	arrangement::ArrangePolygon wipe_tower_ap;
+	Polygon ap({
+		{scaled(x - wp_brim_width), scaled(y - wp_brim_width)},
+		{scaled(x + w + wp_brim_width), scaled(y - wp_brim_width)},
+		{scaled(x + w + wp_brim_width), scaled(y + depth + wp_brim_width)},
+		{scaled(x - wp_brim_width), scaled(y + depth + wp_brim_width)}
+		});
+	wipe_tower_ap.bed_idx = plate_index;
+	wipe_tower_ap.setter = NULL; // do not move wipe tower
+
+	wipe_tower_ap.poly.contour = std::move(ap);
+	wipe_tower_ap.translation = { scaled(0.f), scaled(0.f) };
+	//wipe_tower_ap.rotation = a;
+	wipe_tower_ap.name = "WipeTower";
+	wipe_tower_ap.is_virt_object = true;
+	wipe_tower_ap.is_wipe_tower = true;
+
+	return wipe_tower_ap;
+}
+
 bool PartPlate::operator<(PartPlate& plate) const
 {
 	int index = plate.get_index();
@@ -1680,7 +1672,7 @@ void PartPlate::clear(bool clear_sliced_result)
 
 /* size and position related functions*/
 //set position and size
-void PartPlate::set_pos_and_size(Vec3d& origin, int width, int depth, int height, bool with_instance_move)
+void PartPlate::set_pos_and_size(Vec3d& origin, int width, int depth, int height, bool with_instance_move, bool do_clear)
 {
 	bool size_changed = false; //size changed means the machine changed
 	bool pos_changed = false;
@@ -1698,7 +1690,7 @@ void PartPlate::set_pos_and_size(Vec3d& origin, int width, int depth, int height
 		return;
 	}
 
-	if (with_instance_move)
+	if (with_instance_move && m_model)
 	{
 		for (std::set<std::pair<int, int>>::iterator it = obj_to_instance_set.begin(); it != obj_to_instance_set.end(); ++it) {
 			int obj_id = it->first;
@@ -1734,7 +1726,7 @@ void PartPlate::set_pos_and_size(Vec3d& origin, int width, int depth, int height
 			object->invalidate_bounding_box();
 		}
 	}
-	else
+	else if (do_clear)
 	{
 		clear();
 	}
@@ -1764,6 +1756,8 @@ Vec3d PartPlate::get_center_origin()
 
 void PartPlate::generate_plate_name_texture()
 {
+    m_plate_name_icon.reset();
+
 	// generate m_name_texture texture from m_name with generate_from_text_string
 	m_name_texture.reset();
 	auto text = m_name.empty()? _L("Untitled") : from_u8(m_name);
@@ -1786,14 +1780,8 @@ void PartPlate::generate_plate_name_texture()
 	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + w - offset_x), scale_(p(1) - PARTPLATE_TEXT_OFFSET_Y)});
 	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + offset_x), scale_(p(1) - PARTPLATE_TEXT_OFFSET_Y) });
 
-	auto triangles = triangulate_expolygon_2f(poly, NORMALS_UP);
-	if (!m_plate_name_icon.set_from_triangles(triangles, GROUND_Z))
+    if (!init_model_from_poly(m_plate_name_icon, poly, GROUND_Z))
 		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to generate geometry buffers for icons\n";
-
-	if (m_plate_name_vbo_id > 0) {
-		glsafe(::glDeleteBuffers(1, &m_plate_name_vbo_id));
-		m_plate_name_vbo_id = 0;
-	}
 }
 void PartPlate::set_plate_name(const std::string& name) 
 { 
@@ -2499,11 +2487,9 @@ bool PartPlate::set_shape(const Pointfs& shape, const Pointfs& exclude_areas, Ve
 
 		ExPolygon logo_poly;
 		generate_logo_polygon(logo_poly);
-		if (!m_logo_triangles.set_from_triangles(triangulate_expolygon_2f(logo_poly, NORMALS_UP), GROUND_Z+0.02f))
+        m_logo_triangles.reset();
+        if (!init_model_from_poly(m_logo_triangles, logo_poly, GROUND_Z + 0.02f))
 			BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":Unable to create logo triangles\n";
-		else {
-			;
-		}
 
 		ExPolygon poly;
 		/*for (const Vec2d& p : m_shape) {
@@ -2511,6 +2497,7 @@ bool PartPlate::set_shape(const Pointfs& shape, const Pointfs& exclude_areas, Ve
 		}*/
 		generate_print_polygon(poly);
 		calc_triangles(poly);
+        init_raycaster_from_model(m_triangles);
 
 		ExPolygon exclude_poly;
 		/*for (const Vec2d& p : m_exclude_area) {
@@ -2525,10 +2512,10 @@ bool PartPlate::set_shape(const Pointfs& shape, const Pointfs& exclude_areas, Ve
 		//calc_vertex_for_icons_background(5, m_del_and_background_icon);
 		//calc_vertex_for_icons(4, m_del_icon);
 		calc_vertex_for_icons(0, m_del_icon);
-		calc_vertex_for_icons(1, m_orient_icon);
-		calc_vertex_for_icons(2, m_arrange_icon);
-		calc_vertex_for_icons(3, m_lock_icon);
-		calc_vertex_for_icons(4, m_plate_settings_icon);
+        calc_vertex_for_icons(1, m_orient_icon);
+        calc_vertex_for_icons(2, m_arrange_icon);
+        calc_vertex_for_icons(3, m_lock_icon);
+        calc_vertex_for_icons(4, m_plate_settings_icon);
 		//calc_vertex_for_number(0, (m_plate_index < 9), m_plate_idx_icon);
 		calc_vertex_for_number(0, false, m_plate_idx_icon);
 		// calc vertex for plate name
@@ -2536,8 +2523,6 @@ bool PartPlate::set_shape(const Pointfs& shape, const Pointfs& exclude_areas, Ve
 	}
 
 	calc_height_limit();
-
-	release_opengl_resource();
 
 	return true;
 }
@@ -2583,42 +2568,52 @@ bool PartPlate::intersects(const BoundingBoxf3& bb) const
 	return print_volume.intersects(bb);
 }
 
-void PartPlate::render(bool bottom, bool only_body, bool force_background_color, HeightLimitMode mode, int hover_id, bool render_cali)
+void PartPlate::render(const Transform3d& view_matrix, const Transform3d& projection_matrix, bool bottom, bool only_body, bool force_background_color, HeightLimitMode mode, int hover_id, bool render_cali)
 {
-	glsafe(::glEnable(GL_DEPTH_TEST));
-	glsafe(::glEnable(GL_BLEND));
-	glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
-	glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
+    glsafe(::glEnable(GL_DEPTH_TEST));
 
-	if (!bottom) {
-		// draw background
-		render_background(force_background_color);
+    GLShaderProgram *shader = wxGetApp().get_shader("flat");
+    if (shader != nullptr) {
+        shader->start_using();
+        glsafe(::glEnable(GL_BLEND));
+        glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
-		render_exclude_area(force_background_color);
-	}
+        shader->set_uniform("view_model_matrix", view_matrix);
+        shader->set_uniform("projection_matrix", projection_matrix);
 
-	render_grid(bottom);
+        if (!bottom) {
+            // draw background
+            render_background(force_background_color);
 
-	if (!bottom && m_selected && !force_background_color) {
-		if (m_partplate_list)
-           render_logo(bottom, m_partplate_list->render_cali_logo && render_cali);
-		else
-		   render_logo(bottom);
-	}
+            render_exclude_area(force_background_color);
+        }
 
-	render_height_limit(mode);
+        render_grid(bottom);
 
-	render_icons(bottom, only_body, hover_id);
-	if (!force_background_color){
-		render_only_numbers(bottom);
-	}
-	glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
-	glsafe(::glDisable(GL_BLEND));
+        render_height_limit(mode);
 
-	//if (with_label) {
-	//	render_label(canvas);
-	//}
-	glsafe(::glDisable(GL_DEPTH_TEST));
+        glsafe(::glDisable(GL_BLEND));
+
+        // if (with_label) {
+        //	render_label(canvas);
+        // }
+
+        shader->stop_using();
+    }
+
+    if (!bottom && m_selected && !force_background_color) {
+        if (m_partplate_list)
+            render_logo(bottom, m_partplate_list->render_cali_logo && render_cali);
+        else
+            render_logo(bottom);
+    }
+
+    render_icons(bottom, only_body, hover_id);
+    if (!force_background_color) {
+        render_only_numbers(bottom);
+    }
+
+    glsafe(::glDisable(GL_DEPTH_TEST));
 }
 
 void PartPlate::set_selected() {
@@ -2944,6 +2939,11 @@ void PartPlateList::init()
 	m_plate_cols = 1;
 	m_current_plate = 0;
 
+	if (m_plater) {
+        // In GUI mode
+        set_default_wipe_tower_pos_for_plate(0);
+    }
+
 	select_plate(0);
 	unprintable_plate.set_index(1);
 
@@ -2954,14 +2954,8 @@ void PartPlateList::init()
 Vec3d PartPlateList::compute_origin(int i, int cols)
 {
 	Vec3d origin;
-	int row, col;
-
-	row = i / cols;
-	col = i % cols;
-
-	origin(0) = col * (m_plate_width * (1. + LOGICAL_PART_PLATE_GAP));
-	origin(1) = -row * (m_plate_depth * (1. + LOGICAL_PART_PLATE_GAP));
-	origin(2) = 0;
+	Vec2d pos = compute_shape_position(i, cols);
+	origin    = Vec3d(pos.x(), pos.y(), 0);
 
 	return origin;
 }
@@ -3180,15 +3174,31 @@ void PartPlateList::release_icon_textures()
 				part.texture->reset();
 				delete part.texture;
 			}
-			if (part.vbo_id != 0) {
-				glsafe(::glDeleteBuffers(1, &part.vbo_id));
-				part.vbo_id = 0;
-			}
 			if (part.buffer) {
 				delete part.buffer;
 			}
 		}
 	}
+}
+
+void PartPlateList::set_default_wipe_tower_pos_for_plate(int plate_idx)
+{
+    DynamicConfig &     proj_cfg     = wxGetApp().preset_bundle->project_config;
+    ConfigOptionFloats *wipe_tower_x = proj_cfg.opt<ConfigOptionFloats>("wipe_tower_x");
+    ConfigOptionFloats *wipe_tower_y = proj_cfg.opt<ConfigOptionFloats>("wipe_tower_y");
+    wipe_tower_x->values.resize(m_plate_list.size(), wipe_tower_x->values.front());
+    wipe_tower_y->values.resize(m_plate_list.size(), wipe_tower_y->values.front());
+
+    auto printer_structure_opt = wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionEnum<PrinterStructure>>("printer_structure");
+    // set the default position, the same with print config(left top)
+    ConfigOptionFloat wt_x_opt(WIPE_TOWER_DEFAULT_X_POS);
+    ConfigOptionFloat wt_y_opt(WIPE_TOWER_DEFAULT_Y_POS);
+    if (printer_structure_opt && printer_structure_opt->value == PrinterStructure::psI3) {
+        wt_x_opt = ConfigOptionFloat(I3_WIPE_TOWER_DEFAULT_X_POS);
+        wt_y_opt = ConfigOptionFloat(I3_WIPE_TOWER_DEFAULT_Y_POS);
+    }
+    dynamic_cast<ConfigOptionFloats *>(proj_cfg.option("wipe_tower_x"))->set_at(&wt_x_opt, plate_idx, 0);
+    dynamic_cast<ConfigOptionFloats *>(proj_cfg.option("wipe_tower_y"))->set_at(&wt_y_opt, plate_idx, 0);
 }
 
 //this may be happened after machine changed
@@ -3203,7 +3213,7 @@ void PartPlateList::reset_size(int width, int depth, int height, bool reload_obj
 		m_plate_width = width;
 		m_plate_depth = depth;
 		m_plate_height = height;
-		update_all_plates_pos_and_size(false, false);
+		update_all_plates_pos_and_size(false, false, true);
 		if (update_shapes) {
 			set_shapes(m_shape, m_exclude_areas, m_logo_texture_filename, m_height_to_lid, m_height_to_rod);
 		}
@@ -3355,11 +3365,7 @@ int PartPlateList::create_plate(bool adjust_position)
 	// update wipe tower config
 	if (m_plater) {
 		// In GUI mode
-		DynamicConfig& proj_cfg = wxGetApp().preset_bundle->project_config;
-		ConfigOptionFloats* wipe_tower_x = proj_cfg.opt<ConfigOptionFloats>("wipe_tower_x");
-		ConfigOptionFloats* wipe_tower_y = proj_cfg.opt<ConfigOptionFloats>("wipe_tower_y");
-		wipe_tower_x->values.resize(m_plate_list.size(), wipe_tower_x->values.front());
-		wipe_tower_y->values.resize(m_plate_list.size(), wipe_tower_y->values.front());
+        set_default_wipe_tower_pos_for_plate(new_index);
 	}
 
 	unprintable_plate.set_index(new_index+1);
@@ -3581,6 +3587,20 @@ std::vector<const GCodeProcessorResult*> PartPlateList::get_nonempty_plates_slic
 	return nonempty_plates_slice_result;
 }
 
+std::set<int> PartPlateList::get_extruders(bool conside_custom_gcode) const
+{
+    int plate_count = get_plate_count();
+    std::set<int> extruder_ids;
+
+    for (size_t i = 0; i < plate_count; i++) {
+        auto plate_extruders = m_plate_list[i]->get_extruders(conside_custom_gcode);
+        extruder_ids.insert(plate_extruders.begin(), plate_extruders.end());
+    }
+
+    return extruder_ids;
+}
+
+
 //select plate
 int PartPlateList::select_plate(int index)
 {
@@ -3693,7 +3713,7 @@ void PartPlateList::update_plate_cols()
 	return;
 }
 
-void PartPlateList::update_all_plates_pos_and_size(bool adjust_position, bool with_unprintable_move)
+void PartPlateList::update_all_plates_pos_and_size(bool adjust_position, bool with_unprintable_move, bool switch_plate_type, bool do_clear)
 {
 	Vec3d origin1, origin2;
 	for (unsigned int i = 0; i < (unsigned int)m_plate_list.size(); ++i)
@@ -3703,7 +3723,12 @@ void PartPlateList::update_all_plates_pos_and_size(bool adjust_position, bool wi
 
 		//compute origin1 for PartPlate
 		origin1 = compute_origin(i, m_plate_cols);
-		plate->set_pos_and_size(origin1, m_plate_width, m_plate_depth, m_plate_height, adjust_position);
+		plate->set_pos_and_size(origin1, m_plate_width, m_plate_depth, m_plate_height, adjust_position, do_clear);
+
+		// set default wipe pos when switch plate
+        if (switch_plate_type && m_plater && plate->get_used_extruders().size() <= 0) {
+			set_default_wipe_tower_pos_for_plate(i);
+		}
 	}
 
 	origin2 = compute_origin_for_unprintable();
@@ -4227,7 +4252,7 @@ bool PartPlateList::preprocess_arrange_polygon_other_locked(int obj_index, int i
 				arrange_polygon.col = i % m_plate_cols;
 				arrange_polygon.translation(X) -= scaled<double>(plate_stride_x() * arrange_polygon.col);
 				arrange_polygon.translation(Y) += scaled<double>(plate_stride_y() * arrange_polygon.row);
-				BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": obj_id %1% instance_id %2% in plate %3%, locked %4%, row %5%, col %6%\n") % obj_index % instance_index % i % locked % arrange_polygon.row % arrange_polygon.col;
+				//BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": obj_id %1% instance_id %2% in plate %3%, locked %4%, row %5%, col %6%\n") % obj_index % instance_index % i % locked % arrange_polygon.row % arrange_polygon.col;
 				return locked;
 			}
 		}
@@ -4417,11 +4442,9 @@ void PartPlateList::postprocess_arrange_polygon(arrangement::ArrangePolygon& arr
 		{
 			// outarea for large object
 			arrange_polygon.bed_idx = m_plate_list.size();
-			BoundingBox apbox = get_extents(arrange_polygon.poly);
+			BoundingBox apbox = get_extents(arrange_polygon.transformed_poly());  // the item may have been rotated
 			auto        apbox_size = apbox.size();
 
-			//arrange_polygon.translation(X) = scaled<double>(0.5 * plate_stride_x());
-			//arrange_polygon.translation(Y) = scaled<double>(0.5 * plate_stride_y());
 			arrange_polygon.translation(X) = 0.5 * apbox_size[0];
 			arrange_polygon.translation(Y) = scaled<double>(static_cast<double>(m_plate_depth)) - 0.5 * apbox_size[1];
 		}
@@ -4437,7 +4460,7 @@ void PartPlateList::postprocess_arrange_polygon(arrangement::ArrangePolygon& arr
 
 /*rendering related functions*/
 //render
-void PartPlateList::render(bool bottom, bool only_current, bool only_body, int hover_id, bool render_cali)
+void PartPlateList::render(const Transform3d& view_matrix, const Transform3d& projection_matrix, bool bottom, bool only_current, bool only_body, int hover_id, bool render_cali)
 {
 	const std::lock_guard<std::mutex> local_lock(m_plates_mutex);
 	std::vector<PartPlate*>::iterator it = m_plate_list.begin();
@@ -4462,25 +4485,16 @@ void PartPlateList::render(bool bottom, bool only_current, bool only_body, int h
 		if (current_index == m_current_plate) {
 			PartPlate::HeightLimitMode height_mode = (only_current)?PartPlate::HEIGHT_LIMIT_NONE:m_height_limit_mode;
 			if (plate_hover_index == current_index)
-				(*it)->render(bottom, only_body, false, height_mode, plate_hover_action, render_cali);
+                (*it)->render(view_matrix, projection_matrix, bottom, only_body, false, height_mode, plate_hover_action, render_cali);
 			else
-				(*it)->render(bottom, only_body, false, height_mode, -1, render_cali);
+                (*it)->render(view_matrix, projection_matrix, bottom, only_body, false, height_mode, -1, render_cali);
 		}
 		else {
 			if (plate_hover_index == current_index)
-				(*it)->render(bottom, only_body, false, PartPlate::HEIGHT_LIMIT_NONE, plate_hover_action, render_cali);
+				(*it)->render(view_matrix, projection_matrix, bottom, only_body, false, PartPlate::HEIGHT_LIMIT_NONE, plate_hover_action, render_cali);
 			else
-				(*it)->render(bottom, only_body, false, PartPlate::HEIGHT_LIMIT_NONE, -1, render_cali);
+                (*it)->render(view_matrix, projection_matrix, bottom, only_body, false, PartPlate::HEIGHT_LIMIT_NONE, -1, render_cali);
 		}
-	}
-}
-
-void PartPlateList::render_for_picking_pass()
-{
-	const std::lock_guard<std::mutex> local_lock(m_plates_mutex);
-	std::vector<PartPlate*>::iterator it = m_plate_list.begin();
-	for (it = m_plate_list.begin(); it != m_plate_list.end(); it++) {
-		(*it)->render_for_picking();
 	}
 }
 
@@ -4578,17 +4592,21 @@ bool PartPlateList::set_shapes(const Pointfs& shape, const Pointfs& exclude_area
 	is_load_bedtype_textures = false;//reload textures
 	calc_bounding_boxes();
 
-	auto check_texture = [](const std::string& texture) {
-		boost::system::error_code ec; // so the exists call does not throw (e.g. after a permission problem)
-		return !texture.empty() && (boost::algorithm::iends_with(texture, ".png") || boost::algorithm::iends_with(texture, ".svg")) && boost::filesystem::exists(texture, ec);
-	};
-	if (! texture_filename.empty() && ! check_texture(texture_filename)) {
-		BOOST_LOG_TRIVIAL(error) << "Unable to load bed texture: " << texture_filename;
-	}
-	else
-		m_logo_texture_filename = texture_filename;
+	update_logo_texture_filename(texture_filename);
 
 	return true;
+}
+
+void PartPlateList::update_logo_texture_filename(const std::string &texture_filename)
+{
+    auto check_texture = [](const std::string &texture) {
+        boost::system::error_code ec; // so the exists call does not throw (e.g. after a permission problem)
+        return !texture.empty() && (boost::algorithm::iends_with(texture, ".png") || boost::algorithm::iends_with(texture, ".svg")) && boost::filesystem::exists(texture, ec);
+    };
+    if (!texture_filename.empty() && !check_texture(texture_filename)) {
+        BOOST_LOG_TRIVIAL(error) << "Unable to load bed texture: " << texture_filename;
+    } else
+        m_logo_texture_filename = texture_filename;
 }
 
 /*slice related functions*/
@@ -4677,6 +4695,30 @@ bool PartPlateList::is_all_slice_results_ready_for_print() const
     return res;
 }
 
+//check whether all plates' slice result valid for export to file
+bool PartPlateList::is_all_slice_result_ready_for_export() const
+{
+	bool res = false;
+
+    for (unsigned int i = 0; i < (unsigned int) m_plate_list.size(); ++i) {
+        if (!m_plate_list[i]->empty()) {
+            if (m_plate_list[i]->is_all_instances_unprintable()) {
+				continue;
+			}
+            if (!m_plate_list[i]->is_slice_result_ready_for_print()) {
+				return false;
+			}
+        }
+        if (m_plate_list[i]->is_slice_result_ready_for_print()) {
+			if (!m_plate_list[i]->has_printable_instances()) {
+				return false;
+			}
+			res = true;
+		}
+    }
+
+    return res;
+}
 
 //check whether all plates ready for slice
 bool PartPlateList::is_all_plates_ready_for_slice() const
@@ -4722,6 +4764,7 @@ int PartPlateList::rebuild_plates_after_deserialize(std::vector<bool>& previous_
         partplate->printer_technology = this->printer_technology;
     }
 	update_plate_cols();
+	update_all_plates_pos_and_size(false, false, false, false);
 	set_shapes(m_shape, m_exclude_areas, m_logo_texture_filename, m_height_to_lid, m_height_to_rod);
 	for (unsigned int i = 0; i < (unsigned int)m_plate_list.size(); ++i)
 	{
@@ -5096,19 +5139,11 @@ void PartPlateList::BedTextureInfo::TexturePart::update_buffer()
 	}
 
 	if (!buffer)
-		buffer = new GeometryBuffer();
+        buffer = new GLModel();
 
-	if (buffer->set_from_triangles(triangulate_expolygon_2f(poly, NORMALS_UP), GROUND_Z + 0.02f)) {
-		if (vbo_id != 0) {
-			glsafe(::glDeleteBuffers(1, &vbo_id));
-			vbo_id = 0;
-		}
-		unsigned int* vbo_id_ptr = const_cast<unsigned int*>(&vbo_id);
-		glsafe(::glGenBuffers(1, vbo_id_ptr));
-		glsafe(::glBindBuffer(GL_ARRAY_BUFFER, *vbo_id_ptr));
-		glsafe(::glBufferData(GL_ARRAY_BUFFER, (GLsizeiptr)buffer->get_vertices_data_size(), (const GLvoid*)buffer->get_vertices_data(), GL_STATIC_DRAW));
-		glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
-	} else {
+	buffer->reset();
+
+	if (!init_model_from_poly(*buffer, poly, GROUND_Z + 0.02f)) {
 		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":Unable to create buffer triangles\n";
 	}
 }

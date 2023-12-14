@@ -4,28 +4,39 @@ namespace Slic3r {
 namespace GUI {
 std::string TickCodeInfo::get_color_for_tick(TickCode tick, Type type, const int extruder)
 {
+    auto opposite_one_color = [](const std::string& color) {
+        ColorRGB rgb;
+        decode_color(color, rgb);
+        return encode_color(opposite(rgb));
+    };
+    auto opposite_two_colors = [](const std::string& a, const std::string& b) {
+        ColorRGB rgb1; decode_color(a, rgb1);
+        ColorRGB rgb2; decode_color(b, rgb2);
+        return encode_color(opposite(rgb1, rgb2));
+    };
+
     if (mode == SingleExtruder && type == ColorChange && m_use_default_colors) {
 #if 1
-        if (ticks.empty()) return color_generator.get_opposite_color((*m_colors)[0]);
+        if (ticks.empty()) return opposite_one_color((*m_colors)[0]);
 
         auto before_tick_it = std::lower_bound(ticks.begin(), ticks.end(), tick);
         if (before_tick_it == ticks.end()) {
             while (before_tick_it != ticks.begin())
                 if (--before_tick_it; before_tick_it->type == ColorChange) break;
-            if (before_tick_it->type == ColorChange) return color_generator.get_opposite_color(before_tick_it->color);
-            return color_generator.get_opposite_color((*m_colors)[0]);
+            if (before_tick_it->type == ColorChange) return opposite_one_color(before_tick_it->color);
+            return opposite_one_color((*m_colors)[0]);
         }
 
         if (before_tick_it == ticks.begin()) {
             const std::string &frst_color = (*m_colors)[0];
-            if (before_tick_it->type == ColorChange) return color_generator.get_opposite_color(frst_color, before_tick_it->color);
+            if (before_tick_it->type == ColorChange) return opposite_two_colors(frst_color, before_tick_it->color);
 
             auto next_tick_it = before_tick_it;
             while (next_tick_it != ticks.end())
                 if (++next_tick_it; next_tick_it->type == ColorChange) break;
-            if (next_tick_it->type == ColorChange) return color_generator.get_opposite_color(frst_color, next_tick_it->color);
+            if (next_tick_it->type == ColorChange) return opposite_two_colors(frst_color, next_tick_it->color);
 
-            return color_generator.get_opposite_color(frst_color);
+            return opposite_one_color(frst_color);
         }
 
         std::string frst_color = "";
@@ -44,12 +55,12 @@ std::string TickCodeInfo::get_color_for_tick(TickCode tick, Type type, const int
             if (--before_tick_it; before_tick_it->type == ColorChange) break;
 
         if (before_tick_it->type == ColorChange) {
-            if (frst_color.empty()) return color_generator.get_opposite_color(before_tick_it->color);
-            return color_generator.get_opposite_color(before_tick_it->color, frst_color);
+            if (frst_color.empty()) return opposite_one_color(before_tick_it->color);
+            return opposite_two_colors(before_tick_it->color, frst_color);
         }
 
-        if (frst_color.empty()) return color_generator.get_opposite_color((*m_colors)[0]);
-        return color_generator.get_opposite_color((*m_colors)[0], frst_color);
+        if (frst_color.empty()) return opposite_one_color((*m_colors)[0]);
+        return opposite_two_colors((*m_colors)[0], frst_color);
 #else
         const std::vector<std::string> &colors = ColorPrintColors::get();
         if (ticks.empty()) return colors[0];

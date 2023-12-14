@@ -29,6 +29,9 @@ static wxString desc_upload_ftp_failed      = _L("Failed to upload print file to
 static wxString sending_over_lan_str        = _L("Sending print job over LAN");
 static wxString sending_over_cloud_str      = _L("Sending print job through cloud service");
 
+static wxString wait_sending_finish         = _L("Print task sending times out.");
+static wxString desc_wait_sending_finish    = _L("The printer timed out while receiving a print job. Please check if the network is functioning properly and send the print again.");
+
 PrintJob::PrintJob(std::shared_ptr<ProgressIndicator> pri, Plater* plater, std::string dev_id)
 : PlaterJob{ std::move(pri), plater },
     m_dev_id(dev_id),
@@ -242,7 +245,6 @@ void PrintJob::process()
         params.dst_file = m_dst_path;
     }
 
-
     if (wxGetApp().model().model_info && wxGetApp().model().model_info.get()) {
         ModelInfo* model_info = wxGetApp().model().model_info.get();
         auto origin_profile_id = model_info->metadata_items.find(BBL_DESIGNER_PROFILE_ID_TAG);
@@ -276,7 +278,17 @@ void PrintJob::process()
             catch (...) {}
         }
     }
-    
+
+    if (!wxGetApp().model().stl_design_id.empty()) {
+       int stl_design_id = 0;
+        try {
+            stl_design_id = std::stoi(wxGetApp().model().stl_design_id);
+        }
+        catch (const std::exception& e) {
+            stl_design_id = 0;
+        }
+        params.stl_design_id = stl_design_id;
+    }
 
     if (params.preset_name.empty() && m_print_type == "from_normal") { params.preset_name = wxString::Format("%s_plate_%d", m_project_name, curr_plate_idx).ToStdString(); }
     if (params.project_name.empty()) {params.project_name = m_project_name;}
@@ -296,6 +308,7 @@ void PrintJob::process()
         70,     // PrintingStageWaiting
         75,     // PrintingStageRecord
         97,     // PrintingStageSending
+        100,    // PrintingStageFinished
         100     // PrintingStageFinished
     };
 
@@ -391,8 +404,53 @@ void PrintJob::process()
             return was_canceled();
         };
 
-    auto wait_fn = [this](int state, std::string job_info) {
-            // TODO
+    
+    DeviceManager* dev = wxGetApp().getDeviceManager();
+    MachineObject* obj = dev->get_selected_machine();
+
+    auto wait_fn = [this, curr_percent, &obj](int state, std::string job_info) {
+            BOOST_LOG_TRIVIAL(info) << "print_job: get_job_info = " << job_info;
+
+            if (!obj->is_support_wait_sending_finish) {
+                return true;
+            }
+
+            std::string curr_job_id;
+            json job_info_j;
+            try {
+                job_info_j.parse(job_info);
+                if (job_info_j.contains("job_id")) {
+                    curr_job_id = job_info_j["job_id"].get<std::string>();
+                }
+                BOOST_LOG_TRIVIAL(trace) << "print_job: curr_obj_id=" << curr_job_id;
+
+            } catch(...) {
+                ;
+            }
+
+            if (obj) {
+                int time_out = 0;
+                while (time_out < PRINT_JOB_SENDING_TIMEOUT) {
+                    BOOST_LOG_TRIVIAL(trace) << "print_job: obj job_id = " << obj->job_id_;
+                    if (!obj->job_id_.empty() && obj->job_id_.compare(curr_job_id) == 0) {
+                        BOOST_LOG_TRIVIAL(info) << "print_job: got job_id = " << obj->job_id_ << ", time_out=" << time_out;
+                        return true;
+                    }
+                    if (obj->is_in_printing_status(obj->print_status)) {
+                        BOOST_LOG_TRIVIAL(info) << "print_job: printer has enter printing status, s = " << obj->print_status;
+                        return true;
+                    }
+                    time_out++;
+                    boost::this_thread::sleep_for(boost::chrono::milliseconds(1000));
+                }
+                //this->update_status(curr_percent, _L("Print task sending times out."));
+                m_plater->update_print_error_info(BAMBU_NETWORK_ERR_TIMEOUT, wait_sending_finish.ToStdString(), desc_wait_sending_finish.ToStdString());
+                BOOST_LOG_TRIVIAL(info) << "print_job: timeout, cancel the job" << obj->job_id_;
+                /* handle tiemout */
+                obj->command_task_cancel(curr_job_id);
+                return false;
+            }
+            BOOST_LOG_TRIVIAL(info) << "print_job: obj is null";
             return true;
     };
 
