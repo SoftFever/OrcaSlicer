@@ -1821,6 +1821,7 @@ void PresetBundle::set_num_filaments(unsigned int n, std::string new_color)
 
     ConfigOptionStrings* filament_color = project_config.option<ConfigOptionStrings>("filament_colour");
     filament_color->resize(n);
+    ams_multi_color_filment.resize(n);
 
     //BBS set new filament color to new_color
     if (old_filament_count < n) {
@@ -1838,15 +1839,18 @@ unsigned int PresetBundle::sync_ams_list(unsigned int &unknowns)
 {
     std::vector<std::string> filament_presets;
     std::vector<std::string> filament_colors;
+    ams_multi_color_filment.clear();
     for (auto &entry : filament_ams_list) {
         auto & ams = entry.second;
         auto filament_id = ams.opt_string("filament_id", 0u);
         auto filament_color = ams.opt_string("filament_colour", 0u);
         auto filament_changed = !ams.has("filament_changed") || ams.opt_bool("filament_changed");
+        auto filament_multi_color = ams.opt<ConfigOptionStrings>("filament_multi_colors")->values;
         if (filament_id.empty()) continue;
         if (!filament_changed && this->filament_presets.size() > filament_presets.size()) {
             filament_presets.push_back(this->filament_presets[filament_presets.size()]);
             filament_colors.push_back(filament_color);
+            ams_multi_color_filment.push_back(filament_multi_color);
             continue;
         }
         auto iter = std::find_if(filaments.begin(), filaments.end(), [this, &filament_id](auto &f) {
@@ -1866,6 +1870,7 @@ unsigned int PresetBundle::sync_ams_list(unsigned int &unknowns)
                 if (filament_presets.size() < this->filament_presets.size()) {
                     filament_presets.push_back(this->filament_presets[filament_presets.size()]);
                     filament_colors.push_back(filament_color);
+                    ams_multi_color_filment.push_back(filament_multi_color);
                     ++unknowns;
                     continue;
                 }
@@ -1880,6 +1885,7 @@ unsigned int PresetBundle::sync_ams_list(unsigned int &unknowns)
         }
         filament_presets.push_back(iter->name);
         filament_colors.push_back(filament_color);
+        ams_multi_color_filment.push_back(filament_multi_color);
     }
     if (filament_presets.empty())
         return 0;

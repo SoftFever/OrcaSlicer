@@ -1541,6 +1541,10 @@ std::map<int, DynamicPrintConfig> Sidebar::build_filament_ams_list(MachineObject
         vt_tray_config.set_key_value("filament_colour", new ConfigOptionStrings{ into_u8(wxColour("#" + vt_tray.color).GetAsString(wxC2S_HTML_SYNTAX)) });
         vt_tray_config.set_key_value("filament_exist", new ConfigOptionBools{ true });
 
+        vt_tray_config.set_key_value("filament_multi_colors", new ConfigOptionStrings{});
+        for (int i = 0; i < vt_tray.cols.size(); ++i) {
+            vt_tray_config.opt<ConfigOptionStrings>("filament_multi_colors")->values.push_back(into_u8(wxColour("#" + vt_tray.cols[i]).GetAsString(wxC2S_HTML_SYNTAX)));
+        }
         filament_ams_list.emplace(VIRTUAL_TRAY_ID, std::move(vt_tray_config));
     }
 
@@ -1559,6 +1563,10 @@ std::map<int, DynamicPrintConfig> Sidebar::build_filament_ams_list(MachineObject
             tray_config.set_key_value("filament_colour", new ConfigOptionStrings{ into_u8(wxColour("#" + tray.second->color).GetAsString(wxC2S_HTML_SYNTAX)) });
             tray_config.set_key_value("filament_exist", new ConfigOptionBools{ tray.second->is_exists });
 
+            tray_config.set_key_value("filament_multi_colors", new ConfigOptionStrings{});
+            for (int i = 0; i < tray.second->cols.size(); ++i) {
+                tray_config.opt<ConfigOptionStrings>("filament_multi_colors")->values.push_back(into_u8(wxColour("#" + tray.second->cols[i]).GetAsString(wxC2S_HTML_SYNTAX)));
+            }
             filament_ams_list.emplace(((n - 'A') * 4 + t - '1'), std::move(tray_config));
         }
     }
@@ -1619,6 +1627,17 @@ void Sidebar::sync_ams_list()
         ams.set_key_value("filament_changed", new ConfigOptionBool{res == wxID_YES || list2[i] != filament_id});
         list2[i] = filament_id;
     }
+
+    // BBS:Record consumables information before synchronization
+    std::vector<string> color_before_sync;
+    std::vector<int> is_support_before;
+    DynamicPrintConfig& project_config = wxGetApp().preset_bundle->project_config;
+    ConfigOptionStrings* color_opt = project_config.option<ConfigOptionStrings>("filament_colour");
+    for (int i = 0; i < p->combos_filament.size(); ++i) {
+        is_support_before.push_back(is_support_filament(i));
+        color_before_sync.push_back(color_opt->values[i]);
+    }
+
     unsigned int unknowns = 0;
     auto n = wxGetApp().preset_bundle->sync_ams_list(unknowns);
     if (n == 0) {
@@ -1637,13 +1656,32 @@ void Sidebar::sync_ams_list()
         dlg.ShowModal();
     }
     wxGetApp().plater()->on_filaments_change(n);
-    for (auto &c : p->combos_filament)
+    for (auto& c : p->combos_filament)
         c->update();
     wxGetApp().get_tab(Preset::TYPE_FILAMENT)->select_preset(wxGetApp().preset_bundle->filament_presets[0]);
     wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
     dynamic_filament_list.update();
     // Expand filament list
     p->m_panel_filament_content->SetMaxSize({-1, -1});
+    // BBS:Synchronized consumables information
+    // auto calculation of flushing volumes
+    for (int i = 0; i < p->combos_filament.size(); ++i) {
+        if (i >= color_before_sync.size()) {
+            auto_calc_flushing_volumes(i);
+        }
+        else {
+            // if color changed
+            if (color_before_sync[i] != color_opt->values[i]) {
+                auto_calc_flushing_volumes(i);
+            }
+            // color don't change, but changes between supporting filament and non supporting filament
+            else {
+                bool flag = is_support_filament(i);
+                if (flag != is_support_before[i])
+                    auto_calc_flushing_volumes(i);
+            }
+        }
+    }
     Layout();
 }
 
@@ -1810,70 +1848,102 @@ std::string& Sidebar::get_search_line()
     return p->searcher.search_string();
 }
 
-void Sidebar::auto_calc_flushing_volumes(const int modify_id) {
-    auto& project_config = wxGetApp().preset_bundle->project_config;
-    auto& printer_config = wxGetApp().preset_bundle->printers.get_edited_preset().config;
+void Sidebar::auto_calc_flushing_volumes(const int modify_id)
+{
+    auto& preset_bundle = wxGetApp().preset_bundle;
+    auto& project_config = preset_bundle->project_config;
+    auto& printer_config = preset_bundle->printers.get_edited_preset().config;
+    auto& ams_multi_color_filament = preset_bundle->ams_multi_color_filment;
+    auto& ams_filament_list = preset_bundle->filament_ams_list;
+
     const std::vector<double>& init_matrix = (project_config.option<ConfigOptionFloats>("flush_volumes_matrix"))->values;
     const std::vector<double>& init_extruders = (project_config.option<ConfigOptionFloats>("flush_volumes_vector"))->values;
     ConfigOption* extra_flush_volume_opt = printer_config.option("nozzle_volume");
     int extra_flush_volume = extra_flush_volume_opt ? (int)extra_flush_volume_opt->getFloat() : 0;
     ConfigOptionFloat* flush_multi_opt = project_config.option<ConfigOptionFloat>("flush_multiplier");
     float flush_multiplier = flush_multi_opt ? flush_multi_opt->getFloat() : 1.f;
-    vector<double> matrix = init_matrix;
+    std::vector<double> matrix = init_matrix;
     int m_min_flush_volume = extra_flush_volume;
     int m_max_flush_volume = Slic3r::g_max_flush_volume;
     unsigned int m_number_of_extruders = (int)(sqrt(init_matrix.size()) + 0.001);
+
     const std::vector<std::string> extruder_colours = wxGetApp().plater()->get_extruder_colors_from_plater_config();
-    vector<wxColour> m_colours;
-    for (const std::string& color : extruder_colours) {
-        m_colours.push_back(wxColor(color));
+    std::vector<std::vector<wxColour>> multi_colours;
+
+    // Support for multi-color filament
+    for (int i = 0; i < extruder_colours.size(); ++i) {
+        std::vector<wxColour> single_filament;
+        if (i < ams_multi_color_filament.size()) {
+            if (!ams_multi_color_filament[i].empty()) {
+                std::vector<std::string> colors = ams_multi_color_filament[i];
+                for (int j = 0; j < colors.size(); ++j) {
+                    single_filament.push_back(wxColour(colors[j]));
+                }
+                multi_colours.push_back(single_filament);
+                continue;
+            }
+        }
+
+        single_filament.push_back(wxColour(extruder_colours[i]));
+        multi_colours.push_back(single_filament);
     }
-    if (modify_id >= 0 && modify_id < m_colours.size()) {
-        for (int i = 0; i < m_colours.size(); ++i) {
+
+    if (modify_id >= 0 && modify_id < multi_colours.size()) {
+        for (int i = 0; i < multi_colours.size(); ++i) {
+
+            Slic3r::FlushVolCalculator calculator(m_min_flush_volume, m_max_flush_volume);
+
+            // from to modify
             int from_idx = i;
             if (from_idx != modify_id) {
-                const wxColour& from = m_colours[from_idx];
-                bool is_from_support = is_support_filament(from_idx);
-                const wxColour& to = m_colours[modify_id];
-                bool is_to_support = is_support_filament(modify_id);
                 int flushing_volume = 0;
+                bool is_from_support = is_support_filament(from_idx);
+                bool is_to_support = is_support_filament(modify_id);
                 if (is_to_support) {
                     flushing_volume = Slic3r::g_flush_volume_to_support;
                 }
                 else {
-                    const wxColour& to = m_colours[modify_id];
-                    Slic3r::FlushVolCalculator calculator(m_min_flush_volume, m_max_flush_volume);
-                    flushing_volume = calculator.calc_flush_vol(from.Alpha(), from.Red(), from.Green(), from.Blue(), to.Alpha(), to.Red(), to.Green(), to.Blue());
-                    if (is_from_support) {
-                        flushing_volume = std::max(Slic3r::g_min_flush_volume_from_support, flushing_volume);
+                    for (int j = 0; j < multi_colours[from_idx].size(); ++j) {
+                        const wxColour& from = multi_colours[from_idx][j];
+                        for (int k = 0; k < multi_colours[modify_id].size(); ++k) {
+                            const wxColour& to = multi_colours[modify_id][k];
+                            int volume = calculator.calc_flush_vol(from.Alpha(), from.Red(), from.Green(), from.Blue(), to.Alpha(), to.Red(), to.Green(), to.Blue());
+                            flushing_volume = std::max(flushing_volume, volume);
+                        }
                     }
+                    if (is_from_support)
+                        flushing_volume = std::max(flushing_volume, Slic3r::g_min_flush_volume_from_support);
                 }
                 matrix[m_number_of_extruders * from_idx + modify_id] = flushing_volume;
             }
+
+            // modify to to
             int to_idx = i;
             if (to_idx != modify_id) {
-                const wxColour& from = m_colours[modify_id];
                 bool is_from_support = is_support_filament(modify_id);
-                const wxColour& to = m_colours[to_idx];
                 bool is_to_support = is_support_filament(to_idx);
                 int flushing_volume = 0;
                 if (is_to_support) {
                     flushing_volume = Slic3r::g_flush_volume_to_support;
                 }
                 else {
-                    const wxColour& to = m_colours[to_idx];
-                    Slic3r::FlushVolCalculator calculator(m_min_flush_volume, m_max_flush_volume);
-                    flushing_volume = calculator.calc_flush_vol(from.Alpha(), from.Red(), from.Green(), from.Blue(), to.Alpha(), to.Red(), to.Green(), to.Blue());
-                    if (is_from_support) {
-                        flushing_volume = std::max(Slic3r::g_min_flush_volume_from_support, flushing_volume);
+                    for (int j = 0; j < multi_colours[modify_id].size(); ++j) {
+                        const wxColour& from = multi_colours[modify_id][j];
+                        for (int k = 0; k < multi_colours[to_idx].size(); ++k) {
+                            const wxColour& to = multi_colours[to_idx][k];
+                            int volume = calculator.calc_flush_vol(from.Alpha(), from.Red(), from.Green(), from.Blue(), to.Alpha(), to.Red(), to.Green(), to.Blue());
+                            flushing_volume = std::max(flushing_volume, volume);
+                        }
                     }
+                    if (is_from_support)
+                        flushing_volume = std::max(flushing_volume, Slic3r::g_min_flush_volume_from_support);
+
+                    matrix[m_number_of_extruders * modify_id + to_idx] = flushing_volume;
                 }
-                matrix[m_number_of_extruders * modify_id + to_idx] = flushing_volume;
             }
         }
     }
     (project_config.option<ConfigOptionFloats>("flush_volumes_matrix"))->values = std::vector<double>(matrix.begin(), matrix.end());
-
 
     wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
 
@@ -6909,10 +6979,14 @@ void Plater::priv::on_filament_color_changed(wxCommandEvent &event)
 {
     //q->update_all_plate_thumbnails(true);
     //q->get_preview_canvas3D()->update_plate_thumbnails();
+    int modify_id = event.GetInt();
     if (wxGetApp().app_config->get("auto_calculate") == "true") {
-        int modify_id = event.GetInt();
         sidebar->auto_calc_flushing_volumes(modify_id);
     }
+
+    auto& ams_multi_color_filment = wxGetApp().preset_bundle->ams_multi_color_filment;
+    if (modify_id >= 0 && modify_id < ams_multi_color_filment.size())
+        ams_multi_color_filment[modify_id].clear();
 }
 
 void Plater::priv::install_network_plugin(wxCommandEvent &event)
