@@ -1142,11 +1142,8 @@ void Sidebar::update_all_preset_comboboxes()
                 if (!user_bed_type_flag) { //bed_type not follow machine
                     set_bed_by_curr_bed_type(config);
                 } else {//bed_type follow machine
-                    if (m_soft_first_start  || m_is_gcode_file) {
-                        if (m_is_gcode_file) {
-                            m_is_gcode_file = false;
-                        }
-                        // should include soft close then open ,.gcode.3mf case
+                    if (m_is_gcode_file) {//.gcode.3mf case
+                        m_is_gcode_file = false;
                         set_bed_by_curr_bed_type(config);
                     }
                     else if (user_bed_type_flag) {
