@@ -34,12 +34,12 @@
     "10000"
   ],
   "machine_max_jerk_x": [
-    "12",
-    "12"
+    "9",
+    "9"
   ],
   "machine_max_jerk_y": [
-    "12",
-    "12"
+    "9",
+    "9"
   ],
   "machine_max_acceleration_z": [
     "500",

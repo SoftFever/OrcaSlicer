@@ -47,6 +47,14 @@
 	"min_layer_height": [
 		"0.20"
 	],
+	"machine_max_speed_x": [
+		"300",
+		"300"
+	],
+	"machine_max_speed_y": [
+		"300",
+		"300"
+	],
 	"printer_settings_id": "Elegoo",
 	"retract_before_wipe": ["85%"],
 	"retract_length_toolchange": ["2"],
