@@ -102,7 +102,7 @@ msgid "Support Generated"
 msgstr "Soportes Generados"
 
 msgid "Gizmo-Place on Face"
-msgstr ""
+msgstr "Situación-Gizmo enfrente"
 
 msgid "Lay on face"
 msgstr "Tumbar boca abajo"
@@ -153,7 +153,7 @@ msgid "Height range"
 msgstr "Rango de altura"
 
 msgid "Alt + Shift + Enter"
-msgstr ""
+msgstr "Alt + Shift + Intro"
 
 msgid "Toggle Wireframe"
 msgstr "Alternar Malla Alámbrica"
@@ -184,13 +184,13 @@ msgid "Move"
 msgstr "Mover"
 
 msgid "Gizmo-Move"
-msgstr ""
+msgstr "Movimiento-Gizmo"
 
 msgid "Rotate"
 msgstr "Rotar"
 
 msgid "Gizmo-Rotate"
-msgstr ""
+msgstr "Rotación-Gizmo"
 
 msgid "Optimize orientation"
 msgstr "Optimizar  orientación"
@@ -202,7 +202,7 @@ msgid "Scale"
 msgstr "Escalar"
 
 msgid "Gizmo-Scale"
-msgstr ""
+msgstr "Reescalar-Gizmo"
 
 msgid "Error: Please close all toolbar menus first"
 msgstr ""
@@ -745,9 +745,12 @@ msgid ""
 "The number of user presets cached in the cloud has exceeded the upper limit, "
 "newly created user presets can only be used locally."
 msgstr ""
+"El número de preajustes de usuario almacenados en caché en la nube ha "
+"superado el límite superior, los preajustes de usuario recién creados sólo "
+"pueden utilizarse localmente."
 
 msgid "Sync user presets"
-msgstr ""
+msgstr "Sincronizar preajustes de usuario"
 
 msgid "Loading"
 msgstr "Cargando"
@@ -943,7 +946,7 @@ msgid "Fix model"
 msgstr "Reparar el modelo"
 
 msgid "Export as one STL"
-msgstr ""
+msgstr "Exportar como STL único"
 
 msgid "Export as STLs"
 msgstr ""
@@ -1210,7 +1213,7 @@ msgid "Click the icon to shift this object to the bed"
 msgstr "Presionar el icono para desplazar este objeto a la cama"
 
 msgid " search results"
-msgstr ""
+msgstr "Buscar resultados"
 
 msgid "Loading file"
 msgstr "Cargando archivo"
@@ -1479,7 +1482,7 @@ msgid "Pause"
 msgstr "Pausa"
 
 msgid "Template"
-msgstr ""
+msgstr "Plantilla"
 
 msgid "Custom"
 msgstr "Personalizado"
@@ -1828,12 +1831,14 @@ msgid "Sending print job through cloud service"
 msgstr "Enviando trabajo de impresión a través del servicio en la nube"
 
 msgid "Print task sending times out."
-msgstr ""
+msgstr "Tarea de envío de impresión fallida."
 
 msgid ""
 "The printer timed out while receiving a print job. Please check if the "
 "network is functioning properly and send the print again."
 msgstr ""
+"La impresora falló al recibir un trabajo de impresión. Por favor, compruebe "
+"si la red está funcionando adecuadamente y mande la impresión de nuevo."
 
 msgid "Service Unavailable"
 msgstr "Servicio No Disponible"
@@ -2066,10 +2071,10 @@ msgid "You need to select the material type and color first."
 msgstr "Necesitas seleccionar el tipo y el color del material primero."
 
 msgid "Please input a valid value (K in 0~0.3)"
-msgstr ""
+msgstr "Por favor, introduzca un valor válido (K en 0~0.3)"
 
 msgid "Please input a valid value (K in 0~0.3, N in 0.6~2.0)"
-msgstr ""
+msgstr "Por favor, introduzca un valor válido (K en 0~0.3, N en 0.6~2.0))"
 
 msgid "Other Color"
 msgstr "Otro color"
@@ -2985,7 +2990,7 @@ msgid "Total"
 msgstr "Total"
 
 msgid "Tower"
-msgstr ""
+msgstr "Torre"
 
 msgid "Total Estimation"
 msgstr "Estimación total"
@@ -3081,10 +3086,10 @@ msgid "Print settings"
 msgstr "Configuración de impresión"
 
 msgid "Custom g-code"
-msgstr ""
+msgstr "G-Code personalizado"
 
 msgid "ToolChange"
-msgstr ""
+msgstr "Cambio de Herramienta"
 
 msgid "Time Estimation"
 msgstr "Estimación de Tiempo"
@@ -3213,7 +3218,7 @@ msgid "Arrange objects on selected plates"
 msgstr "Colocar los objetos en las bandejas seleccionadas"
 
 msgid "Split to objects"
-msgstr "Partir en varias piezas"
+msgstr "Separar en objetos"
 
 msgid "Split to parts"
 msgstr "Separar en piezas"
@@ -3541,10 +3546,10 @@ msgid "Import"
 msgstr "Importar"
 
 msgid "Export all objects as one STL"
-msgstr ""
+msgstr "Exportar todos los objetos como un único STL"
 
 msgid "Export all objects as STLs"
-msgstr ""
+msgstr "Exportar todos los objetos como varios STL"
 
 msgid "Export Generic 3MF"
 msgstr "Exportar 3MF genérico"
@@ -4013,13 +4018,13 @@ msgid "Downloading %d%%..."
 msgstr "Descargando %d%%..."
 
 msgid "Connection lost. Please retry."
-msgstr ""
+msgstr "Conexión perdida. Por favor, reinténtelo."
 
 msgid "File not exists."
-msgstr ""
+msgstr "El archivo no existe."
 
 msgid "File checksum error. Please retry."
-msgstr ""
+msgstr "Checksum de archivo erróneo. Por favor, reinténtelo."
 
 msgid "Not supported on the current printer version."
 msgstr "No soportado en la actual versión de la impresora."
@@ -4029,7 +4034,7 @@ msgstr "Almacenamiento no disponible, inserte la tarjeta SD."
 
 #, c-format, boost-format
 msgid "Error code: %d"
-msgstr ""
+msgstr "Código de error: %d"
 
 msgid "Speed:"
 msgstr "Velocidad:"
@@ -4234,7 +4239,7 @@ msgid "Please click on the star first."
 msgstr "Por favor presione en las estrellas primero."
 
 msgid "InFo"
-msgstr ""
+msgstr "Información"
 
 msgid "Get oss config failed."
 msgstr "Falló la obtención de la configuración de oss."
@@ -4384,7 +4389,7 @@ msgid "Details"
 msgstr "Detalles"
 
 msgid "New printer config available."
-msgstr ""
+msgstr "Nueva configuración de impresora disponible."
 
 msgid "Wiki"
 msgstr "Wiki"
@@ -4543,7 +4548,7 @@ msgid "Allow Prompt Sound"
 msgstr "Permitir Sonido de Aviso"
 
 msgid "Fliament Tangle Detect"
-msgstr ""
+msgstr "Detectado Enredo de Filamento"
 
 msgid "Global"
 msgstr "Global"
@@ -4640,7 +4645,7 @@ msgid "Set filaments to use"
 msgstr "Elegir filamentos para usar"
 
 msgid "Search plate, object and part."
-msgstr ""
+msgstr "Buscar placa, objeto y parte."
 
 msgid ""
 "No AMS filaments. Please select a printer in 'Device' page to load AMS info."
@@ -4752,12 +4757,14 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "This slicer file version %s is newer than %s's version:"
-msgstr ""
+msgstr "Esta versión de archivo %s es más nueva que la versión %s:"
 
 msgid ""
 "Would you like to update your Bambu Studio software to enable all "
 "functionality in this slicer file?\n"
 msgstr ""
+"¿Le gustaría actualizar su versión de Bambú Studio para activar todas las "
+"funcionalidades en este archivo de laminador?\n"
 
 msgid "Newer 3mf version"
 msgstr "Nueva versión 3mf"
@@ -4766,6 +4773,8 @@ msgid ""
 "you can always update Bambu Studio at your convenience. The slicer file will "
 "now be loaded without full functionality."
 msgstr ""
+"Siempre puede actualizar Bambú Studio si le interesa. El archivo del "
+"laminador estará cargado sin todas las funcionalidades."
 
 #, c-format, boost-format
 msgid ""
@@ -4774,6 +4783,9 @@ msgid ""
 "Would you like to update your Bambu Studio software to enable all "
 "functionality in this slicer file?"
 msgstr ""
+"Esta versión de archivo %s es más nueva que la versión %s:\n"
+"¿Le gustaría actualizar su versión de Bambú Studio para activar todas las "
+"funcionalidades en este archivo de laminador?"
 
 msgid "Invalid values found in the 3mf:"
 msgstr "Valores inválidos encontrados en el 3mf:"
@@ -4783,25 +4795,33 @@ msgstr "Por favor, corrijalos en las pestañas de parámetros"
 
 msgid "The 3mf has following modified G-codes in filament or printer presets:"
 msgstr ""
+"El archivo 3mf ha realizado las siguientes modificaciones en el G-Code de "
+"filamento o impresora:"
 
 msgid ""
 "Please confirm that these modified G-codes are safe to prevent any damage to "
 "the machine!"
 msgstr ""
+"¡Por favor, confirme que esas modificaciones de G-Code son seguras para "
+"evitar cualquier daño a la máquina!"
 
 msgid "Modified G-codes"
-msgstr ""
+msgstr "G-Code modificado"
 
 msgid "The 3mf has following customized filament or printer presets:"
 msgstr ""
+"El archivo 3mf tiene los siguientes preajustes personalizados de filamento o "
+"impresora:"
 
 msgid ""
 "Please confirm that the G-codes within these presets are safe to prevent any "
 "damage to the machine!"
 msgstr ""
+"¡Por favor, confirme que el G-Code dentro de los preajustes son seguros para "
+"evitar cualquier daño a la máquina!"
 
 msgid "Customized Preset"
-msgstr ""
+msgstr "Preajuste Personalizado"
 
 msgid "Name of components inside step file is not UTF8 format!"
 msgstr ""
@@ -4883,12 +4903,14 @@ msgid ""
 "The file %s already exists\n"
 "Do you want to replace it?"
 msgstr ""
+"El archivo %s ya existe\n"
+"¿Desea reemplazarlo?"
 
 msgid "Comfirm Save As"
-msgstr ""
+msgstr "Salvar Como"
 
 msgid "Delete object which is a part of cut object"
-msgstr "Borrar objetos los cuales son piezas del objeto cortado"
+msgstr "Borrar objeto el cual es una pieza del objeto cortado"
 
 msgid ""
 "You try to delete an object which is a part of a cut object.\n"
@@ -5299,10 +5321,10 @@ msgid "If enabled, g-code window will be displayed."
 msgstr "Si está activado, se mostrará la ventana de G-Code."
 
 msgid "Flushing volumes: Auto-calculate everytime the color changed."
-msgstr ""
+msgstr "Volumenes de descarga: Auto calcular en cada cambio de color."
 
 msgid "If enabled, auto-calculate everytime the color changed."
-msgstr ""
+msgstr "Si está activado, auto calcula en cada cambio de color."
 
 msgid "Presets"
 msgstr "Preajustes"
@@ -5361,7 +5383,7 @@ msgid "Clear my choice on the unsaved projects."
 msgstr "Limpiar mi elección de proyectos no guardados."
 
 msgid "No warnings when loading 3MF with modified G-codes"
-msgstr ""
+msgstr "No avisar cuando cargue archivos 3MF con G-Codes modificados"
 
 msgid "Auto-Backup"
 msgstr "Copia de seguridad automática"
@@ -5517,10 +5539,10 @@ msgid "Add/Remove materials"
 msgstr "Añadir/Borrar materiales"
 
 msgid "Select/Remove printers(system presets)"
-msgstr ""
+msgstr "Seleccionar/Borrar impresoras (preajustes del sistema)"
 
 msgid "Create printer"
-msgstr ""
+msgstr "Crear impresora"
 
 msgid "Incompatible"
 msgstr "Incompatible"
@@ -5711,13 +5733,13 @@ msgid "Bamabu Engineering Plate"
 msgstr "Bandeja de Ingeniería Bambú"
 
 msgid "Bamabu Smooth PEI Plate"
-msgstr ""
+msgstr "Bandeja Lisa PEI Bambú"
 
 msgid "High temperature Plate"
 msgstr "Bandeja de Alta Temperatura"
 
 msgid "Bamabu Textured PEI Plate"
-msgstr ""
+msgstr "Bandeja Texturizada PEI Bambú"
 
 msgid "Send print job to"
 msgstr "Enviar el trabajo de impresión a"
@@ -5855,6 +5877,8 @@ msgstr ""
 msgid ""
 "Timelapse is not supported because Print sequence is set to \"By object\"."
 msgstr ""
+"El timelapse no está soportado porque la secuencia de impresión está "
+"configurada \"Por objeto\"."
 
 msgid "Errors"
 msgstr "Errores"
@@ -5882,20 +5906,22 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "nozzle in preset: %s %s"
-msgstr ""
+msgstr "Boquilla en preajuste: %s %s"
 
 #, c-format, boost-format
 msgid "nozzle memorized: %.1f %s"
-msgstr ""
+msgstr "Boquilla memorizada: %1f %s"
 
 msgid ""
 "Your nozzle diameter in preset is not consistent with memorized nozzle "
 "diameter. Did you change your nozzle lately?"
 msgstr ""
+"¿El diámetro de la boquilla en su configuración no corresponde con el "
+"diámetro memorizado? ¿Hizo un cambio de boquilla?"
 
 #, c-format, boost-format
 msgid "*Printing %s material with %s may cause nozzle damage"
-msgstr ""
+msgstr "*El material de impresión %s con %s podría causar daños en la boquilla"
 
 msgid ""
 "Please click the confirm button if you still want to proceed with printing."
@@ -5904,10 +5930,10 @@ msgstr ""
 "impresión."
 
 msgid "Hardened Steel"
-msgstr ""
+msgstr "Acero endurecido"
 
 msgid "Stainless Steel"
-msgstr ""
+msgstr "Acero Inoxidable"
 
 msgid ""
 "Connecting to the printer. Unable to cancel during the connection process."
@@ -6102,7 +6128,7 @@ msgstr ""
 "defectos en el modelo sin torre de purga. ¿Desea activar la torre de purga?"
 
 msgid "Still print by object?"
-msgstr ""
+msgstr "¿Seguir imprimiendo por objeto?"
 
 msgid ""
 "We have added an experimental style \"Tree Slim\" that features smaller "
@@ -6425,7 +6451,7 @@ msgid "Machine end G-code"
 msgstr "G-Code final"
 
 msgid "Printing by object G-code"
-msgstr ""
+msgstr "G-Code de impresión por objeto"
 
 msgid "Before layer change G-code"
 msgstr "G-Code para antes del cambio de capa"
@@ -6502,14 +6528,16 @@ msgid ""
 "%d Filament Preset and %d Process Preset is attached to this printer. Those "
 "presets would be deleted if the printer is deleted."
 msgstr ""
+"El preajuste de Filamento %d y el preajuste de Proceso %d están adjuntos a "
+"esta impresora."
 
 msgid "Presets inherited by other presets can not be deleted!"
-msgstr ""
+msgstr "¡Los preajustes heredados de otros preajustes no pueden borrarse!"
 
 msgid "The following presets inherit this preset."
 msgid_plural "The following preset inherits this preset."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "El siguiente preajuste hereda de este otro."
+msgstr[1] "Los siguientes preajustes heredan de este otro."
 
 #. TRN  Remove/Delete
 #, boost-format
@@ -6771,7 +6799,7 @@ msgid "Auto-Calc"
 msgstr "Auto-Calc"
 
 msgid "Re-calculate"
-msgstr ""
+msgstr "Recalcular"
 
 msgid "Flushing volumes for filament change"
 msgstr "Volúmenes de limpieza para el cambio de filamentos"
@@ -6781,6 +6809,9 @@ msgid ""
 "color changed. You could disable the auto-calculate in Bambu Studio > "
 "Preferences"
 msgstr ""
+"Orcaslicer podría recalcular su volumen de descarga todas las veces que el "
+"color cambie. Podría deshabilitar el auto calculo en Orcaslicer > "
+"Preferencias"
 
 msgid "Flushing volume (mm³) for each filament pair."
 msgstr "Volumen de limpieza (mm³) para cada par de filamentos."
@@ -6812,10 +6843,10 @@ msgid "To"
 msgstr "A"
 
 msgid "Bambu Network plug-in not detected."
-msgstr ""
+msgstr "Plugin Red Bambú no detectado"
 
 msgid "Click here to download it."
-msgstr ""
+msgstr "Presione aquí para descargarlo."
 
 msgid "Login"
 msgstr "Inicio de sesión"
@@ -6852,7 +6883,7 @@ msgid "Show/Hide 3Dconnexion devices settings dialog"
 msgstr "Mostrar/Ocultar el diálogo de ajustes de los dispositivos 3Dconnexion"
 
 msgid "Switch table page"
-msgstr ""
+msgstr "Cambiar de página de tabla"
 
 msgid "Show keyboard shortcuts list"
 msgstr "Muestra lista de atajos de teclado"
@@ -7111,13 +7142,13 @@ msgid "New version of Orca Slicer"
 msgstr "Nueva versión de Orca Slicer"
 
 msgid "Skip this Version"
-msgstr ""
+msgstr "Saltar esta Versión"
 
 msgid "Done"
 msgstr "Hecho"
 
 msgid "Confirm and Update Nozzle"
-msgstr ""
+msgstr "Confirmar y Actualizar la Boquilla"
 
 msgid "LAN Connection Failed (Sending print file)"
 msgstr "Conexión de red fallida (Mandando archivo de impresión)"
@@ -7146,20 +7177,25 @@ msgstr "¿Dónde encontrar la IP de su impresora y el Código de Acceso?"
 
 msgid "Step 3: Ping the IP address to check for packet loss and latency."
 msgstr ""
+"Paso 3: Haga ping a la dirección IP para comprobar la perdida de paquetes y "
+"la latencia."
 
 msgid "Test"
 msgstr "Test"
 
 msgid "IP and Access Code Verified! You may close the window"
-msgstr ""
+msgstr "¡Ip y Código de Acceso Verificadas! ¡Debería cerrar esta ventana"
 
 msgid "Connection failed, please double check IP and Access Code"
 msgstr ""
+"Conexión fallida, por favor, compruebe la dirección IP y el Código de Acceso"
 
 msgid ""
 "Connection failed! If your IP and Access Code is correct, \n"
 "please move to step 3 for troubleshooting network issues"
 msgstr ""
+"¡Conexión fallida!, si su dirección IP y el Código de Acceso son correctos.\n"
+"por favor, pase al paso 3 para corregir problemas de red."
 
 msgid "Model:"
 msgstr "Modelo:"
@@ -7645,6 +7681,8 @@ msgid ""
 "Layer height cannot exceed the limit in Printer Settings -> Extruder -> "
 "Layer height limits"
 msgstr ""
+"La altura de capa no puede exceder del limite en Configuración de Impresora -"
+"> Extrusor -> Limites de altura de capa"
 
 msgid ""
 "Relative extruder addressing requires resetting the extruder position at "
@@ -8138,9 +8176,15 @@ msgid ""
 "This setting can also help reduce part warping due to the reduction of "
 "stresses in the part walls."
 msgstr ""
+"Extruya los perímetros que tienen una parte sobre un voladizo en sentido "
+"inverso en las capas impares. Este patrón alterno puede mejorar "
+"drásticamente los voladizos pronunciados.\n"
+"\n"
+"Este ajuste también puede ayudar a reducir el alabeo de la pieza debido a la "
+"reducción de tensiones en las paredes de la pieza."
 
 msgid "Reverse only internal perimeters"
-msgstr ""
+msgstr "Invertir solo los perímetros internos"
 
 msgid ""
 "Apply the reverse perimeters logic only on internal perimeters. \n"
@@ -8156,6 +8200,19 @@ msgid ""
 "Reverse Threshold to 0 so that all internal walls print in alternating "
 "directions on odd layers irrespective of their overhang degree."
 msgstr ""
+"Aplique la lógica de perímetros inversos sólo en los perímetros internos. \n"
+"\n"
+"Esta configuración reduce en gran medida las tensiones de la pieza, ya que "
+"ahora se distribuyen en direcciones alternas. Esto debería reducir "
+"deformaciones de la pieza mientras se mantiene la calidad de la pared "
+"externa. Esta característica puede ser muy útil para materiales propensos al "
+"alabeo, como ABS/ASA, y también para filamentos elásticos, como TPU y Silk "
+"PLA. También puede ayudar a reducir deformaciones en regiones flotantes "
+"sobre soportes.\n"
+"\n"
+"Para que este ajuste sea más eficaz, se recomienda establecer el Umbral "
+"inverso en 0 para que todas las paredes internas se impriman en direcciones "
+"alternas en las capas impares, independientemente de su grado de voladizo.\\"
 
 msgid "Reverse threshold"
 msgstr "Umbral inverso"
