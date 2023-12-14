@@ -18,6 +18,14 @@
 		"420x420",
 		"0x420"
 	],
+	"machine_max_speed_x": [
+		"300",
+		"300"
+	],
+	"machine_max_speed_y": [
+		"300",
+		"300"
+	],
 	"printable_height": "480",
 	"nozzle_hrc": "0",
 	"nozzle_type": "brass",
