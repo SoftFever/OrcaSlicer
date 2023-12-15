@@ -394,13 +394,11 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
                     //BBS: avoid to divide 0
                     wipe_dist = wipe_dist < EPSILON ? EPSILON : wipe_dist;
                 }
-                
-                scale_(gcodegen.config().retraction_speed.get_at(gcodegen.writer().extruder()->id()));
 
                 // add tag for processor
                 gcode += ";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Wipe_Start) + "\n";
                 //BBS: don't need to enable cooling makers when this is the last wipe. Because no more cooling layer will clean this "_WIPE"
-                //Softfever: 
+                //Softfever:
                 std::string cooling_mark = "";
                 if (gcodegen.enable_cooling_markers() && !is_last)
                     cooling_mark = /*gcodegen.config().role_based_wipe_speed ? ";_EXTERNAL_PERIMETER" : */";_WIPE";
