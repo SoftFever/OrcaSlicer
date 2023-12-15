@@ -11557,6 +11557,12 @@ msgstr ""
 msgid "Note: Repetier version at least 0.90.0 is required."
 msgstr ""
 
+msgid "Preferred orientation"
+msgstr ""
+
+msgid "Automatically orient stls on the Z-axis upon initial import"
+msgstr ""
+
 #, possible-boost-format
 msgid ""
 "HTTP status: %1%\n"
