@@ -1173,7 +1173,8 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionBools,               activate_chamber_temp_control))
     ((ConfigOptionInts ,               chamber_temperature))
     ((ConfigOptionBool,                is_infill_first))
-
+    
+    ((ConfigOptionFloat,               preferred_orientation))
 
 
 )

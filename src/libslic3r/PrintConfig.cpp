@@ -468,6 +468,15 @@ void PrintConfigDef::init_common_params()
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionFloat(100.0));
 
+    def = this->add("preferred_orientation", coFloat);
+    def->label = L("Preferred orientation");
+    def->tooltip = L("Automatically orient stls on the Z-axis upon initial import");
+    def->sidetext = L("°");
+    def->max = 360;
+    def->min = -360;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0.0));
+
     // Options used by physical printers
 
     def = this->add("preset_names", coStrings);
