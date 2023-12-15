@@ -390,10 +390,8 @@ void CaliPresetTipsPanel::set_params(int nozzle_temp, int bed_temp, float max_vo
     wxString text_nozzle_temp = wxString::Format("%d", nozzle_temp);
     m_nozzle_temp->GetTextCtrl()->SetValue(text_nozzle_temp);
 
-    wxString bed_temp_text = wxString::Format("%d", bed_temp);
-    if (bed_temp == 0)
-        bed_temp_text = "-";
-    m_bed_temp->SetLabel(bed_temp_text + _L(" \u2103"));
+    std::string bed_temp_text = bed_temp==0 ? "-": std::to_string(bed_temp);
+    m_bed_temp->SetLabel(wxString::FromUTF8(bed_temp_text + "°C"));
 
     wxString flow_val_text = wxString::Format("%0.2f", max_volumetric);
     m_max_volumetric_speed->GetTextCtrl()->SetValue(flow_val_text);
