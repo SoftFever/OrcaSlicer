@@ -299,7 +299,6 @@ void CaliPresetCustomRangePanel::create_panel(wxWindow* parent)
 {
     wxBoxSizer* horiz_sizer;
     horiz_sizer = new wxBoxSizer(wxHORIZONTAL);
-
     for (size_t i = 0; i < m_input_value_nums; ++i) {
         if (i > 0) {
             horiz_sizer->Add(FromDIP(10), 0, 0, wxEXPAND, 0);
@@ -313,6 +312,38 @@ void CaliPresetCustomRangePanel::create_panel(wxWindow* parent)
         item_sizer->Add(m_title_texts[i], 0, wxALL, 0);
         m_value_inputs[i] = new TextInput(parent, wxEmptyString, _L("\u2103"), "", wxDefaultPosition, CALIBRATION_FROM_TO_INPUT_SIZE, 0);
         m_value_inputs[i]->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
+        m_value_inputs[i]->GetTextCtrl()->Bind(wxEVT_TEXT, [this, i](wxCommandEvent& event) {
+            std::string number = m_value_inputs[i]->GetTextCtrl()->GetValue().ToStdString();
+            std::string decimal_point;
+            std::string expression = "^[-+]?[0-9]+([,.][0-9]+)?$";
+            std::regex decimalRegex(expression);
+            int decimal_number;
+            if (std::regex_match(number, decimalRegex)) {
+                std::smatch match;
+                if (std::regex_search(number, match, decimalRegex)) {
+                    std::string decimalPart = match[1].str();
+                    if (decimalPart != "")
+                        decimal_number = decimalPart.length() - 1;
+                    else
+                        decimal_number = 0;
+                }
+                int max_decimal_length;
+                if (i <= 1)
+                    max_decimal_length = 3;
+                else if (i >= 2)
+                    max_decimal_length = 4;
+                if (decimal_number > max_decimal_length) {
+                    int allowed_length = number.length() - decimal_number + max_decimal_length;
+                    number = number.substr(0, allowed_length);
+                    m_value_inputs[i]->GetTextCtrl()->SetValue(number);
+                    m_value_inputs[i]->GetTextCtrl()->SetInsertionPointEnd();
+                }
+            }
+            // input is not a number, invalid.
+            else
+                BOOST_LOG_TRIVIAL(trace) << "The K input string is not a valid number when calibrating. ";
+
+            });
         item_sizer->Add(m_value_inputs[i], 0, wxALL, 0);
         horiz_sizer->Add(item_sizer, 0, wxEXPAND, 0);
     }
