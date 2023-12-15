@@ -67,8 +67,12 @@
 			"sub_path": "process/fdm_process_elegoo_common.json"
 		},
 		{
-			"name": "Generic @Elegoo Neptune4 Plus",
-			"sub_path": "process/Generic @Elegoo Neptune4 Plus.json"
+			"name": "fdm_process_neptune4_common",
+			"sub_path": "process/fdm_process_neptune4_common.json"
+		},
+		{
+			"name": "fdm_process_neptune4max_common",
+			"sub_path": "process/fdm_process_neptune4max_common.json"
 		},
 		{
 			"name": "0.08mm Extra Fine @Elegoo Neptune",
@@ -709,6 +713,10 @@
 		{
 			"name": "fdm_elegoo_common",
 			"sub_path": "machine/fdm_elegoo_common.json"
+		},
+		{
+			"name": "fdm_neptune_4_common",
+			"sub_path": "machine/fdm_neptune_4_common.json"
 		},
 		{
 			"name": "Elegoo Neptune 0.4 nozzle",

@@ -3390,6 +3390,7 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line("nozzle_volume");
         optgroup->append_single_option_line("best_object_pos");
         optgroup->append_single_option_line("z_offset");
+        optgroup->append_single_option_line("preferred_orientation");
 
         // ConfigOptionDef def;
         //    def.type =  coInt,

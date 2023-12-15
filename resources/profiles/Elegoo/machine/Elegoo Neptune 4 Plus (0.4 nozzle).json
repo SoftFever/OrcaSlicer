@@ -4,7 +4,7 @@
 	"name": "Elegoo Neptune 4 Plus (0.4 nozzle)",
 	"from": "system",
 	"instantiation": "true",
-	"inherits": "fdm_elegoo_common",
+	"inherits": "fdm_neptune_4_common",
 	"printer_model": "Elegoo Neptune 4 Plus",
 	"printer_notes": "",
 	"default_print_profile": "0.20mm Standard @Elegoo Neptune4 Plus (0.4 nozzle)",
@@ -52,20 +52,16 @@
 	"machine_max_speed_x": ["500", "500"],
 	"machine_max_speed_y": ["500", "500"],
 	"machine_max_speed_z": ["20", "20"],
-	"machine_max_jerk_e": ["2.5", "5"],
-	"machine_max_jerk_x": ["8", "12"],
-	"machine_max_jerk_y": ["8", "12"],
-	"machine_max_jerk_z": ["0.2", "0.4"],
 	"machine_min_extruding_rate": ["0", "0"],
 	"machine_min_travel_rate": ["0","0"],
 	"max_layer_height": [
 		"0.32"
 	],
 	"min_layer_height": [
-		"0.10"
+		"0.08"
 	],
 	"printer_settings_id": "Elegoo",
-	"retract_before_wipe": ["0%"],
+	"retract_before_wipe": ["85%"],
 	"retract_length_toolchange": ["2"],
 	"deretraction_speed": ["45"],
 	"retract_lift_above": ["0"],

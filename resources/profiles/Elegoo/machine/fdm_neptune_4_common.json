@@ -1,34 +1,45 @@
 {
   "type": "machine",
-  "name": "fdm_klipper_common",
+  "name": "fdm_neptune_4_common",
   "from": "system",
   "instantiation": "false",
-  "inherits": "fdm_machine_common",
+  "inherits": "fdm_elegoo_common",
   "gcode_flavor": "klipper",
-  "use_firmware_retraction": "0",
+  "machine_max_acceleration_extruding": [
+    "10000",
+    "10000"
+  ],
+  "machine_max_acceleration_retracting": [
+      "10000",
+      "10000"
+  ],
+  "machine_max_acceleration_x": [
+      "10000",
+      "10000"
+  ],
+  "machine_max_acceleration_y": [
+      "10000",
+      "10000"
+  ],
+  "machine_max_speed_z": [
+      "12",
+      "12"
+  ],
   "machine_max_acceleration_e": [
     "5000",
     "5000"
   ],
-  "machine_max_acceleration_extruding": [
-    "500",
-    "500"
-  ],
-  "machine_max_acceleration_retracting": [
-    "1000",
-    "1000"
-  ],
   "machine_max_acceleration_travel": [
-    "1500",
-    "1250"
+    "10000",
+    "10000"
   ],
-  "machine_max_acceleration_x": [
-    "500",
-    "500"
+  "machine_max_jerk_x": [
+    "9",
+    "9"
   ],
-  "machine_max_acceleration_y": [
-    "500",
-    "500"
+  "machine_max_jerk_y": [
+    "9",
+    "9"
   ],
   "machine_max_acceleration_z": [
     "500",
@@ -46,21 +57,9 @@
     "500",
     "500"
   ],
-  "machine_max_speed_z": [
-    "10",
-    "10"
-  ],
   "machine_max_jerk_e": [
     "5",
     "5"
-  ],
-  "machine_max_jerk_x": [
-    "8",
-    "8"
-  ],
-  "machine_max_jerk_y": [
-    "8",
-    "8"
   ],
   "machine_max_jerk_z": [
     "0.4",
@@ -80,14 +79,15 @@
   "min_layer_height": [
     "0.08"
   ],
-  "extruder_clearance_radius": "50",
-  "extruder_clearance_height_to_rod": "60",
-  "extruder_clearance_height_to_lid": "350",
+  "printable_height": "280",
+  "extruder_clearance_radius": "47",
+  "extruder_clearance_height_to_rod": "34",
+  "extruder_clearance_height_to_lid": "34",
   "printer_settings_id": "",
   "printer_technology": "FFF",
   "printer_variant": "0.4",
   "retraction_minimum_travel": [
-    "1"
+    "2"
   ],
   "retract_before_wipe": [
     "70%"
@@ -99,10 +99,10 @@
     "5"
   ],
   "retract_length_toolchange": [
-    "1"
+    "2"
   ],
   "z_hop": [
-    "0"
+    "0.4"
   ],
   "retract_restart_extra": [
     "0"
@@ -116,25 +116,31 @@
   "deretraction_speed": [
     "40"
   ],
-  "z_hop_types": "Normal Lift",
+  "bridge_speed": "25",
+  "internal_bridge_speed" : "70",
   "silent_mode": "0",
   "single_extruder_multi_material": "1",
   "change_filament_gcode": "",
-  "machine_pause_gcode": "PAUSE\n",
+  "machine_pause_gcode": "M25 ;pause print",
   "wipe": [
     "1"
   ],
   "default_filament_profile": [
-    "BIQU Generic PLA"
+    "Elegoo Generic PLA"
   ],
+  "default_print_profile": "",
   "bed_exclude_area": [
     "0x0"
   ],
-  "machine_start_gcode": "START_PRINT EXTRUDER_TEMP=[nozzle_temperature_initial_layer] BED_TEMP=[bed_temperature_initial_layer_single]\n",
-  "machine_end_gcode": "END_PRINT",
-  "layer_change_gcode": ";AFTER_LAYER_CHANGE\n;[layer_z]",
-  "before_layer_change_gcode": ";BEFORE_LAYER_CHANGE\n;[layer_z]\nG92 E0\n",
+  "machine_start_gcode": "",
+  "machine_end_gcode": "",
+  "layer_change_gcode": "",
   "scan_first_layer": "0",
   "nozzle_type": "undefine",
-  "auxiliary_fan": "0"
+  "auxiliary_fan": "0",
+  "thumbnails": [
+    "320x320",
+    "160x160"
+  ],
+  "thumbnails_format": "ColPic"
 }
