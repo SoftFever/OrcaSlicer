@@ -101,7 +101,8 @@ void SwitchButton::Rescale()
 		for (int i = 0; i < 2; ++i) {
 			wxMemoryDC memdc(&dc);
 #ifdef __WXMSW__
-			wxBitmap bmp(trackSize.x, trackSize.y);
+            wxBitmap bmp;
+            bmp.CreateWithDIPSize(ToDIP(trackSize), GetDPIScaleFactor());
 			memdc.SelectObject(bmp);
 			memdc.SetBackground(wxBrush(GetBackgroundColour()));
 			memdc.Clear();
