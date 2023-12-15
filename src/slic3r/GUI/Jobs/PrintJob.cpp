@@ -494,7 +494,7 @@ void PrintJob::process()
         }
         if (wxGetApp().mainframe->m_printago != nullptr && !wxGetApp().mainframe->m_printago->CanProcessJob()) {
             wxCommandEvent *event = new wxCommandEvent(PRINTAGO_PRINT_SENT_EVENT);
-            event->SetString("ERRORs");
+            event->SetString("ERROR");
             wxQueueEvent(wxGetApp().mainframe->m_printago, event);
         }
         BOOST_LOG_TRIVIAL(error) << "print_job: failed, result = " << result;

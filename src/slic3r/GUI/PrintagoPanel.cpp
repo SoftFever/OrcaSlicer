@@ -159,8 +159,8 @@ json PrintagoPanel::GetMachineStatus(MachineObject *machine)
         statusObject["process"]["job_state"]      = jobServerState.ToStdString();
         statusObject["process"]["job_machine"]    = jobPrinterId.ToStdString();
         statusObject["process"]["job_local_file"] = jobLocalFilePath.ToStdString();
-        statusObject["process"]["job_progress"]   = jobProgress;    
-    }     
+        statusObject["process"]["job_progress"]   = jobProgress;
+    }
 
     machineList.push_back(MachineObjectToJson(machine));
     statusObject["machines"] = machineList;
@@ -762,7 +762,9 @@ void PrintagoPanel::SendWebViewMessage(PrintagoMessageEvent &evt)
     message["data"]        = evt.GetData();
 
     const wxString messageStr = wxString(message.dump().c_str(), wxConvUTF8);
-    CallAfter([=]() { m_browser->RunScript(wxString::Format("window.postMessage(%s, '*');", messageStr)); });
+    CallAfter([=]() {
+        m_browser->RunScript(wxString::Format("window.postMessage(%s, '*');", messageStr));
+    });
 }
 
 void PrintagoPanel::OnNavigationRequest(wxWebViewEvent &evt)
@@ -770,7 +772,7 @@ void PrintagoPanel::OnNavigationRequest(wxWebViewEvent &evt)
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": " << evt.GetTarget().ToUTF8().data();
 
     const wxString &url = evt.GetURL();
-
+    // wxGetApp().Yield();
     if (url.StartsWith("printago://")) {
         evt.Veto(); // Prevent the web view from navigating to this URL
 
@@ -780,15 +782,35 @@ void PrintagoPanel::OnNavigationRequest(wxWebViewEvent &evt)
         wxString      commandType, action;
 
         // Extract commandType and action from the path
+        
+        if (pathComponents.GetCount() < 2) {
+            SendErrorAndUnblock("error", "error", "error", "Invalid Printago Command Structure");
+            return;
+        } else if (!CanProcessJob()) {
+            wxDateTime now = wxDateTime::Now();
+            now.MakeUTC();
+            const wxString timestamp = now.FormatISOCombined() + "Z";
 
-        if (pathComponents.GetCount() >= 2) {
-            commandType = pathComponents.Item(1); // The first actual component after the leading empty one
-            action      = pathComponents.Item(2); // The second actual component
-            // TODO else if can_process_job() is false, then we need to send an error message.
-        } else {
-            // TODO send error message
+            json statusObject                          = json::object();
+            statusObject["process"]["can_process_job"] = CanProcessJob();
+
+            statusObject["process"]["job_id"]         = ""; // add later from command.
+            statusObject["process"]["job_state"]      = jobServerState.ToStdString();
+            statusObject["process"]["job_machine"]    = jobPrinterId.ToStdString();
+            statusObject["process"]["job_local_file"] = jobLocalFilePath.ToStdString();
+            statusObject["process"]["job_progress"]   = jobProgress;
+
+            const wxString messageStr = wxString(statusObject.dump().c_str(), wxConvUTF8);
+            CallAfter([=]() {
+                m_browser->RunScript(wxString::Format("window.postMessage(%s, '*');", messageStr));
+                return;
+            });
+            // SendErrorMessage(jobPrinterId, "start_print_bbl", jobCommand, statusObject);
             return;
         }
+
+        commandType = pathComponents.Item(1); // The first actual component after the leading empty one
+        action      = pathComponents.Item(2); // The second actual component
 
         wxString                query      = uri.GetQuery();          // Get the query part of the URI
         wxStringToStringHashMap parameters = ParseQueryString(query); // Use ParseQueryString to get parameters
