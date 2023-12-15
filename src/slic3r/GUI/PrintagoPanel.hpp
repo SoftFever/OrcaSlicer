@@ -32,7 +32,7 @@ class PrintagoMessageEvent; // forward declaration
 
 wxDECLARE_EVENT(PRINTAGO_SEND_WEBVIEW_MESSAGE_EVENT, PrintagoMessageEvent);
 wxDECLARE_EVENT(PRINTAGO_SLICING_PROCESS_COMPLETED_EVENT, SlicingProcessCompletedEvent);
-wxDECLARE_EVENT(PRINTAGO_SEND_PROGRESS_EVENT, wxThreadEvent);
+wxDECLARE_EVENT(PRINTAGO_PRINT_SENT_EVENT, wxCommandEvent);
 
 class PrintagoCommand
 {
@@ -106,13 +106,13 @@ public:
     PrintagoPanel(wxWindow *parent, wxString *url);
     virtual ~PrintagoPanel();
 
-    void OnSlicingProcessCompleted(SlicingProcessCompletedEvent &event);
-    void OnJobSendProgress(wxThreadEvent &event);
-    void SendWebViewMessage(PrintagoMessageEvent &event);
+    void OnSlicingProcessCompleted(SlicingProcessCompletedEvent &evt);
+    void OnPrintJobSent(wxCommandEvent &evt);
+    void SendWebViewMessage(PrintagoMessageEvent &evt);
 
     void load_url(wxString &url);
-    void set_can_process_job(bool can_process_job);
-    bool can_process_job() { return m_can_process_job; }
+    void SetCanProcessJob(bool can_process_job);
+    bool CanProcessJob() { return m_can_process_job; }
 
     void OnNavigationRequest(wxWebViewEvent &evt);
     void OnNavigationComplete(wxWebViewEvent &evt);
@@ -136,24 +136,26 @@ private:
     wxString             jobCommand;
     wxString             jobLocalFilePath;
     wxString             jobServerState       = "idle"; // TODO : use enum
+    int                  jobProgress          = 0;
+
     SelectMachineDialog *m_select_machine_dlg = nullptr;
     inline static bool   m_can_process_job    = true; // let's us know if we can clear/add files/slice/send.
 
     void HandlePrintagoCommand(const PrintagoCommand &event);
 
-    void SendStatusMessage(const wxString &printer_id, const json &statusData, const wxString &command = "");
-    void SendResponseMessage(const wxString &printer_id, const json &responseData, const wxString &command = "");
-    void SendErrorMessage(const wxString &printer_id,
-                          const wxString &localCommand,
-                          const wxString &command     = "",
-                          const wxString &errorDetail = "");
-    void SendSuccessMessage(const wxString &printer_id,
-                            const wxString &localCommand,
-                            const wxString &command            = "",
-                            const wxString &localCommandDetail = "");
+    void SendStatusMessage(const wxString printer_id, const json statusData, const wxString command = "");
+    void SendResponseMessage(const wxString printer_id, const json responseData, const wxString command = "");
+    void SendErrorMessage(const wxString printer_id,
+                          const wxString localCommand,
+                          const wxString command     = "",
+                          const wxString errorDetail = "");
+    void SendSuccessMessage(const wxString printer_id,
+                            const wxString localCommand,
+                            const wxString command            = "",
+                            const wxString localCommandDetail = "");
 
     // wraps sending and error response, and unblocks the server for job processing.
-    void SendErrorAndUnblock(const wxString &printer_id, const wxString &localCommand, const wxString &command, const wxString &errorDetail);
+    void SendErrorAndUnblock(const wxString printer_id, const wxString localCommand, const wxString command, const wxString errorDetail);
 
     wxStringToStringHashMap      ParseQueryString(const wxString &queryString);
     std::map<wxString, wxString> ExtractPrefixedParams(const wxStringToStringHashMap &params, const wxString &prefix);

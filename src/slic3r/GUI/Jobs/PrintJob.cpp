@@ -492,7 +492,11 @@ void PrintJob::process()
         if (result != BAMBU_NETWORK_ERR_CANCELED) {
             this->show_error_info(msg_text, 0, "", "");
         }
-        
+        if (wxGetApp().mainframe->m_printago != nullptr && !wxGetApp().mainframe->m_printago->CanProcessJob()) {
+            wxCommandEvent *event = new wxCommandEvent(PRINTAGO_PRINT_SENT_EVENT);
+            event->SetString("ERRORs");
+            wxQueueEvent(wxGetApp().mainframe->m_printago, event);
+        }
         BOOST_LOG_TRIVIAL(error) << "print_job: failed, result = " << result;
     } else {
         // wait for printer mqtt ready the same job id
@@ -512,13 +516,23 @@ void PrintJob::process()
             }
         }
         wxQueueEvent(m_plater, evt);
+
+        if (wxGetApp().mainframe->m_printago != nullptr && !wxGetApp().mainframe->m_printago->CanProcessJob()) {
+            wxCommandEvent *event = new wxCommandEvent(PRINTAGO_PRINT_SENT_EVENT);
+            if (!m_completed_evt_data.empty())
+                event->SetString(m_completed_evt_data);
+            else
+                event->SetString(m_dev_id);
+            wxQueueEvent(wxGetApp().mainframe->m_printago, event);
+        }
+
         m_job_finished = true;
     }
 }
 
 void PrintJob::finalize() {
     if (was_canceled()) return;
-    //PRINTAGO HERE!
+
     Job::finalize();
 }
 
