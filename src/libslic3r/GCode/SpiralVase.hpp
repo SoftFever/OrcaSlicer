@@ -32,10 +32,13 @@ public:
     }
 
     std::string process_layer(const std::string &gcode, bool last_layer);
-    
+    void set_max_xy_smoothing(float max) {
+        m_max_xy_smoothing = max;
+    }
 private:
     const PrintConfig  &m_config;
     GCodeReader 		m_reader;
+    float               m_max_xy_smoothing;
 
     bool 				m_enabled = false;
     // First spiral vase layer. Layer height has to be ramped up from zero to the target layer height.

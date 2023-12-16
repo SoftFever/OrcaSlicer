@@ -115,8 +115,7 @@ std::string SpiralVase::process_layer(const std::string &gcode, bool last_layer)
     bool smooth_spiral = m_smooth_spiral;
     std::string new_gcode;
     std::string transition_gcode;
-    // TODO: This should be proportional to line_width. Something like 2*line_width should be pretty good.
-    float max_xy_dist_for_smoothing = 0.8; // Made up threshold to prevent snapping to points too far away, Cura uses (2*line_width)^2
+    float max_xy_dist_for_smoothing = m_max_xy_smoothing;
     //FIXME Tapering of the transition layer only works reliably with relative extruder distances.
     // For absolute extruder distances it will be switched off.
     // Tapering the absolute extruder distances requires to process every extrusion value after the first transition
@@ -136,8 +135,7 @@ std::string SpiralVase::process_layer(const std::string &gcode, bool last_layer)
                 return;
             } else {
                 float dist_XY = line.dist_XY(reader);
-                // horizontal move
-                if (dist_XY > 0) {
+                if (line.has_x() || line.has_y()) { // Sometimes lines have X/Y but the move is to the last position
                     if (line.extruding(reader)) { // Exclude wipe and retract
                         len += dist_XY;
                         float factor = len / total_layer_length;
