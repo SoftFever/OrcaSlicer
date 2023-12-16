@@ -6,63 +6,62 @@
 
 namespace Slic3r {
 
+namespace SpiralVaseHelpers {
 /** == Smooth Spiral Helpers == */
 /** Distance between a and b */
-float distance(SpiralPoint a, SpiralPoint b) {
-    return sqrt(pow(a.x-b.x,2)+pow(a.y-b.y, 2));
+float distance(SpiralVase::SpiralPoint a, SpiralVase::SpiralPoint b) { return sqrt(pow(a.x - b.x, 2) + pow(a.y - b.y, 2)); }
+
+SpiralVase::SpiralPoint subtract(SpiralVase::SpiralPoint a, SpiralVase::SpiralPoint b)
+{
+    return SpiralVase::SpiralPoint(a.x - b.x, a.y - b.y);
 }
 
-SpiralPoint subtract(SpiralPoint a, SpiralPoint b) {
-    return SpiralPoint(a.x-b.x, a.y-b.y);
-}
+SpiralVase::SpiralPoint add(SpiralVase::SpiralPoint a, SpiralVase::SpiralPoint b) { return SpiralVase::SpiralPoint(a.x + b.x, a.y + b.y); }
 
-SpiralPoint add(SpiralPoint a, SpiralPoint b) {
-    return SpiralPoint(a.x+b.x, a.y+b.y);
-}
-
-SpiralPoint scale(SpiralPoint a, float factor){
-    return SpiralPoint(a.x*factor, a.y*factor);
-}
+SpiralVase::SpiralPoint scale(SpiralVase::SpiralPoint a, float factor) { return SpiralVase::SpiralPoint(a.x * factor, a.y * factor); }
 
 /** dot product */
-float dot(SpiralPoint a, SpiralPoint b) {
-    return a.x*b.x+a.y*b.y;
-}
+float dot(SpiralVase::SpiralPoint a, SpiralVase::SpiralPoint b) { return a.x * b.x + a.y * b.y; }
 
 /** Find the point on line ab closes to point c */
-SpiralPoint nearest_point_on_line(SpiralPoint c, SpiralPoint a, SpiralPoint b, float& dist) {
-    SpiralPoint ab = subtract(b, a);
-    SpiralPoint ca = subtract(c, a);
-    float t = dot(ca, ab)/dot(ab,ab);
-    t=t>1?1:t;
-    t=t<0?0:t;
-    SpiralPoint closest= SpiralPoint(add(a, scale(ab, t)));
-    dist = distance(c, closest);
+SpiralVase::SpiralPoint nearest_point_on_line(SpiralVase::SpiralPoint c, SpiralVase::SpiralPoint a, SpiralVase::SpiralPoint b, float& dist)
+{
+    SpiralVase::SpiralPoint ab      = subtract(b, a);
+    SpiralVase::SpiralPoint ca      = subtract(c, a);
+    float                   t       = dot(ca, ab) / dot(ab, ab);
+    t                               = t > 1 ? 1 : t;
+    t                               = t < 0 ? 0 : t;
+    SpiralVase::SpiralPoint closest = SpiralVase::SpiralPoint(add(a, scale(ab, t)));
+    dist                            = distance(c, closest);
     return closest;
 }
 
 /** Given a set of lines defined by points such as line[n] is the line from points[n] to points[n+1],
  *  find the closest point to p that falls on any of the lines */
-SpiralPoint nearest_point_on_lines(SpiralPoint p, std::vector<SpiralPoint>* points, bool& found, float& dist) {
-    if(points->size()<2) {
-        found=false;
-        return SpiralPoint(0,0);
+SpiralVase::SpiralPoint nearest_point_on_lines(SpiralVase::SpiralPoint               p,
+                                               std::vector<SpiralVase::SpiralPoint>* points,
+                                               bool&                                 found,
+                                               float&                                dist)
+{
+    if (points->size() < 2) {
+        found = false;
+        return SpiralVase::SpiralPoint(0, 0);
     }
-    float min     = std::numeric_limits<float>::max();
-    SpiralPoint closest(0,0);
-    for(unsigned long i=0; i<points->size()-1; i++) {
-        float currentDist=0;
-        SpiralPoint current = nearest_point_on_line(p, points->at(i), points->at(i+1), currentDist);
-        if(currentDist<min) {
-            min=currentDist;
-            closest=current;
-            found=true;
+    float                   min = std::numeric_limits<float>::max();
+    SpiralVase::SpiralPoint closest(0, 0);
+    for (unsigned long i = 0; i < points->size() - 1; i++) {
+        float                   currentDist = 0;
+        SpiralVase::SpiralPoint current     = nearest_point_on_line(p, points->at(i), points->at(i + 1), currentDist);
+        if (currentDist < min) {
+            min     = currentDist;
+            closest = current;
+            found   = true;
         }
     }
-    dist=min;
+    dist = min;
     return closest;
-
 }
+} // namespace SpiralVase
 
 std::string SpiralVase::process_layer(const std::string &gcode, bool last_layer)
 {
@@ -109,8 +108,8 @@ std::string SpiralVase::process_layer(const std::string &gcode, bool last_layer)
     // Remove layer height from initial Z.
     z -= layer_height;
 
-    std::vector<SpiralPoint>* current_layer = new std::vector<SpiralPoint>();
-    std::vector<SpiralPoint>* previous_layer = m_previous_layer;
+    std::vector<SpiralVase::SpiralPoint>* current_layer = new std::vector<SpiralVase::SpiralPoint>();
+    std::vector<SpiralVase::SpiralPoint>* previous_layer = m_previous_layer;
 
     bool smooth_spiral = m_smooth_spiral;
     std::string new_gcode;
@@ -123,7 +122,7 @@ std::string SpiralVase::process_layer(const std::string &gcode, bool last_layer)
     bool  transition_in = m_transition_layer && m_config.use_relative_e_distances.value;
     bool  transition_out = last_layer && m_config.use_relative_e_distances.value;
     float len = 0.f;
-    SpiralPoint last_point = previous_layer != NULL && previous_layer->size() >0? previous_layer->at(previous_layer->size()-1): SpiralPoint(0,0);
+    SpiralVase::SpiralPoint last_point = previous_layer != NULL && previous_layer->size() >0? previous_layer->at(previous_layer->size()-1): SpiralVase::SpiralPoint(0,0);
     m_reader.parse_buffer(gcode, [&new_gcode, &z, total_layer_length, layer_height, transition_in, &len, &current_layer, &previous_layer, &transition_gcode, transition_out, smooth_spiral, &max_xy_dist_for_smoothing, &last_point]
         (GCodeReader &reader, GCodeReader::GCodeLine line) {
         if (line.cmd_is("G1")) {
@@ -136,7 +135,7 @@ std::string SpiralVase::process_layer(const std::string &gcode, bool last_layer)
             } else {
                 float dist_XY = line.dist_XY(reader);
                 if (line.has_x() || line.has_y()) { // Sometimes lines have X/Y but the move is to the last position
-                    if (line.extruding(reader)) { // Exclude wipe and retract
+                    if (dist_XY > 0 && line.extruding(reader)) { // Exclude wipe and retract
                         len += dist_XY;
                         float factor = len / total_layer_length;
                         if (transition_in)
@@ -154,19 +153,19 @@ std::string SpiralVase::process_layer(const std::string &gcode, bool last_layer)
                         line.set(reader, Z, z + factor * layer_height);
                         if (smooth_spiral) {
                             // Now we also need to try to interpolate X and Y
-                            SpiralPoint p(line.x(), line.y()); // Get current x/y coordinates
+                            SpiralVase::SpiralPoint p(line.x(), line.y()); // Get current x/y coordinates
                             current_layer->push_back(p);       // Store that point for later use on the next layer
                             if (previous_layer != NULL) {
                                 bool        found    = false;
                                 float       dist     = 0;
-                                SpiralPoint nearestp = nearest_point_on_lines(p, previous_layer, found, dist);
+                                SpiralVase::SpiralPoint nearestp = SpiralVaseHelpers::nearest_point_on_lines(p, previous_layer, found, dist);
                                 if (found && dist < max_xy_dist_for_smoothing) {
                                     // Interpolate between the point on this layer and the point on the previous layer
-                                    SpiralPoint target = add(scale(nearestp, 1 - factor), scale(p, factor));
+                                    SpiralVase::SpiralPoint target = SpiralVaseHelpers::add(SpiralVaseHelpers::scale(nearestp, 1 - factor), SpiralVaseHelpers::scale(p, factor));
                                     line.set(reader, X, target.x);
                                     line.set(reader, Y, target.y);
                                     // We need to figure out the distance of this new line!
-                                    float modified_dist_XY = distance(last_point, target);
+                                    float modified_dist_XY = SpiralVaseHelpers::distance(last_point, target);
                                     // Scale the extrusion amount according to change in length
                                     line.set(reader, E, line.e() * modified_dist_XY / dist_XY, 5 /*decimal_digits*/);
                                     last_point = target;

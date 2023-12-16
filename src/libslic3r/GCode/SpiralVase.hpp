@@ -6,18 +6,17 @@
 
 namespace Slic3r {
 
-class SpiralPoint
+class SpiralVase
 {
+public:
+    class SpiralPoint
+    {
     public:
         SpiralPoint(float paramx, float paramy) : x(paramx), y(paramy) {}
+
     public:
         float x, y;
-    
-};
-
-class SpiralVase {
-    
-public:
+    };
     SpiralVase(const PrintConfig &config) : m_config(config)
     {
         m_reader.z() = (float)m_config.z_offset;
@@ -47,9 +46,6 @@ private:
     bool                m_smooth_spiral = false;
     std::vector<SpiralPoint> * m_previous_layer;
 };
-
-
-
 }
 
 #endif // slic3r_SpiralVase_hpp_
