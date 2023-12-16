@@ -395,6 +395,20 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     update_layout();
     sizer->SetSizeHints(this);
 
+#ifdef WIN32
+    // SetMaximize already position window at left/top corner, even if Windows Task Bar is at left side.
+    // Not known why, but fix it here
+    this->Bind(wxEVT_MAXIMIZE, [this](auto &e) {
+        wxDisplay display(this);
+        auto pos = display.GetClientArea().GetPosition();
+        HWND      hWnd = GetHandle();
+        RECT      borderThickness;
+        SetRectEmpty(&borderThickness);
+        AdjustWindowRectEx(&borderThickness, GetWindowLongPtr(hWnd, GWL_STYLE), FALSE, 0);
+        Move(pos + wxPoint{borderThickness.left, borderThickness.top});
+        e.Skip();
+    });
+#endif // WIN32
     // BBS
     Fit();
 
