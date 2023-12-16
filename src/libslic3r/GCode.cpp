@@ -335,7 +335,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         double wipe_path_length = std::min(wipe_path.length(), wipe_dist);
 
         // Calculate the maximum retraction amount during wipe
-        retractionDuringWipe = config.retraction_speed.get_at(extruder_id) * (wipe_path_length / 1000000) / wipe_speed;
+        retractionDuringWipe = config.retraction_speed.get_at(extruder_id) * unscale_(wipe_path_length) / wipe_speed;
         // If the maximum retraction amount during wipe is too small, return 0 and retract everything prior to the wipe.
         if(retractionDuringWipe <= EPSILON) return {retractionBeforeWipe,0.f};
         
