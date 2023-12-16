@@ -218,7 +218,7 @@ bool GLGizmoSVG::create_volume(std::string_view svg_file, const Vec2d &mouse_pos
 }
 
 bool GLGizmoSVG::is_svg(const ModelVolume &volume) {
-    return volume.emboss_shape.has_value();
+    return volume.emboss_shape.has_value() && volume.emboss_shape->svg_file.has_value();
 }
 
 bool GLGizmoSVG::is_svg_object(const ModelVolume &volume) {
@@ -1172,6 +1172,7 @@ void GLGizmoSVG::set_volume_by_selection()
     // calculate scale for height and depth inside of scaled object instance
     calculate_scale(); // must be before calculation of tesselation
 
+    // checking that exist is inside of function "is_svg"
     EmbossShape &es = *volume->emboss_shape;
     EmbossShape::SvgFile &svg_file = *es.svg_file;
     if (svg_file.image == nullptr) {
