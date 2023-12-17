@@ -3436,6 +3436,25 @@ def = this->add("filament_loading_speed", coFloats);
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionBool(false));
 
+    def = this->add("spiral_mode_smooth", coBool);
+    def->label = L("Smooth Spiral");
+    def->tooltip = L("Smooth Spiral smoothes out X and Y moves as well"
+                     "resulting in no visible seam at all, even in the XY directions on walls that are not vertical");
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("spiral_mode_max_xy_smoothing", coFloatOrPercent);
+    def->label = L("Max XY Smoothing");
+    def->tooltip = L("Maximum distance to move points in XY to try to achieve a smooth spiral"
+                     "If expressed as a %, it will be computed over nozzle diameter");
+    def->sidetext = L("mm or %");
+    def->ratio_over = "nozzle_diameter";
+    def->min = 0;
+    def->max = 1000;
+    def->max_literal = 10;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloatOrPercent(200, true));
+
     def = this->add("timelapse_type", coEnum);
     def->label = L("Timelapse");
     def->tooltip = L("If smooth or traditional mode is selected, a timelapse video will be generated for each print. "

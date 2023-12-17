@@ -2323,7 +2323,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         this->placeholder_parser().set("first_layer_bed_temperature", new ConfigOptionInts(*first_bed_temp_opt));
         this->placeholder_parser().set("first_layer_temperature", new ConfigOptionInts(m_config.nozzle_temperature_initial_layer));
         this->placeholder_parser().set("max_print_height",new ConfigOptionInt(m_config.printable_height));
-this->placeholder_parser().set("z_offset", new ConfigOptionFloat(m_config.z_offset));
+        this->placeholder_parser().set("z_offset", new ConfigOptionFloat(m_config.z_offset));
         this->placeholder_parser().set("plate_name", new ConfigOptionString(print.get_plate_name()));
         this->placeholder_parser().set("first_layer_height", new ConfigOptionFloat(m_config.initial_layer_print_height.value));
 
@@ -2334,7 +2334,7 @@ this->placeholder_parser().set("z_offset", new ConfigOptionFloat(m_config.z_offs
             during_print_exhaust_fan_speed_num.emplace_back((int)(item / 100.0 * 255));
         this->placeholder_parser().set("during_print_exhaust_fan_speed_num",new ConfigOptionInts(during_print_exhaust_fan_speed_num));
 
-        // calculate the volumetric speed of outer wall. Ignore pre-object setting and multi-filament, and just use the default setting
+        // calculate the volumetric speed of outer wall. Ignore per-object setting and multi-filament, and just use the default setting
         {
 
             float filament_max_volumetric_speed = m_config.option<ConfigOptionFloats>("filament_max_volumetric_speed")->get_at(initial_non_support_extruder_id);
@@ -2779,14 +2779,17 @@ void GCode::process_layers(
                 return this->process_layer(print, layer.second, layer_tools, &layer == &layers_to_print.back(), &print_object_instances_ordering, size_t(-1));
             }
         });
-   
+    float nozzle_diameter = EXTRUDER_CONFIG(nozzle_diameter);
+    float max_xy_smoothing = m_config.get_abs_value("spiral_mode_max_xy_smoothing", nozzle_diameter);
+    this->m_spiral_vase.get()->set_max_xy_smoothing(max_xy_smoothing);
     const auto spiral_mode = tbb::make_filter<LayerResult, LayerResult>(slic3r_tbb_filtermode::serial_in_order,
-        [&spiral_mode = *this->m_spiral_vase.get()](LayerResult in) -> LayerResult {
+        [&spiral_mode = *this->m_spiral_vase.get(), &layers_to_print](LayerResult in) -> LayerResult {
         	if (in.nop_layer_result)
                 return in;
                 
             spiral_mode.enable(in.spiral_vase_enable);
-            return { spiral_mode.process_layer(std::move(in.gcode)), in.layer_id, in.spiral_vase_enable, in.cooling_buffer_flush };
+            bool last_layer = in.layer_id == layers_to_print.size() - 1;
+            return { spiral_mode.process_layer(std::move(in.gcode), last_layer), in.layer_id, in.spiral_vase_enable, in.cooling_buffer_flush};
         });
     const auto pressure_equalizer = tbb::make_filter<LayerResult, LayerResult>(slic3r_tbb_filtermode::serial_in_order,
         [pressure_equalizer = this->m_pressure_equalizer.get()](LayerResult in) -> LayerResult {
@@ -2861,10 +2864,14 @@ void GCode::process_layers(
                 return this->process_layer(print, { std::move(layer) }, tool_ordering.tools_for_layer(layer.print_z()), &layer == &layers_to_print.back(), nullptr, single_object_idx, prime_extruder);
             }
         });
+    float nozzle_diameter = EXTRUDER_CONFIG(nozzle_diameter);
+    float max_xy_smoothing = m_config.get_abs_value("spiral_mode_max_xy_smoothing", nozzle_diameter);
+    this->m_spiral_vase.get()->set_max_xy_smoothing(max_xy_smoothing);
     const auto spiral_mode = tbb::make_filter<LayerResult, LayerResult>(slic3r_tbb_filtermode::serial_in_order,
-        [&spiral_mode = *this->m_spiral_vase.get()](LayerResult in)->LayerResult {
+        [&spiral_mode = *this->m_spiral_vase.get(), &layers_to_print](LayerResult in)->LayerResult {
             spiral_mode.enable(in.spiral_vase_enable);
-            return { spiral_mode.process_layer(std::move(in.gcode)), in.layer_id, in.spiral_vase_enable, in.cooling_buffer_flush };
+            bool last_layer = in.layer_id == layers_to_print.size() - 1;
+            return { spiral_mode.process_layer(std::move(in.gcode), last_layer), in.layer_id, in.spiral_vase_enable, in.cooling_buffer_flush };
         });
     const auto cooling = tbb::make_filter<LayerResult, std::string>(slic3r_tbb_filtermode::serial_in_order,
         [&cooling_buffer = *this->m_cooling_buffer.get()](LayerResult in)->std::string {
