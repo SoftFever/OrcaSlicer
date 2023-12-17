@@ -4812,7 +4812,7 @@ msgid "Expand sidebar"
 msgstr "Seitenleiste erweitern"
 
 msgid "Collapse sidebar"
-msgstr ""
+msgstr "Seitenleiste reduzieren"
 
 #, c-format, boost-format
 msgid "Loading file: %s"
@@ -13529,6 +13529,9 @@ msgid ""
 "Did you know that turning on precise wall can improve precision and layer "
 "consistency?"
 msgstr ""
+"Präzise Wand\n"
+"Wussten Sie, dass Sie durch das Einschalten der präzisen Wand die Präzision "
+"und die Schichtkonsistenz verbessern können?"
 
 #: resources/data/hints.ini: [hint:Sandwich mode]
 msgid ""
@@ -13537,12 +13540,18 @@ msgid ""
 "precision and layer consistency if your model doesn't have very steep "
 "overhangs?"
 msgstr ""
+"Sandwich-Modus\n"
+"Wussten Sie, dass Sie den Sandwich-Modus (innen-außen-innen) verwenden "
+"können, um die Präzision und die Schichtkonsistenz zu verbessern, wenn Ihr "
+"Modell keine sehr steilen Überhänge hat?"
 
 #: resources/data/hints.ini: [hint:Chamber temperature]
 msgid ""
 "Chamber temperature\n"
 "Did you know that OrcaSlicer supports chamber temperature?"
 msgstr ""
+"Kammertemperatur\n"
+"Wussten Sie, dass OrcaSlicer die Kammertemperatur unterstützt?"
 
 #: resources/data/hints.ini: [hint:Calibration]
 msgid ""
@@ -13550,18 +13559,26 @@ msgid ""
 "Did you know that calibrating your printer can do wonders? Check out our "
 "beloved calibration solution in OrcaSlicer."
 msgstr ""
+"Kalibrierung\n"
+"Wussten Sie, dass die Kalibrierung Ihres Druckers Wunder bewirken kann? "
+"Schauen Sie sich unsere beliebte Kalibrierungslösung in OrcaSlicer an."
 
 #: resources/data/hints.ini: [hint:Auxiliary fan]
 msgid ""
 "Auxiliary fan\n"
 "Did you know that OrcaSlicer supports Auxiliary part cooling fan?"
 msgstr ""
+"Hilfsventilator\n"
+"Wussten Sie, dass OrcaSlicer einen Hilfskühlventilator unterstützt?"
 
 #: resources/data/hints.ini: [hint:Air filtration]
 msgid ""
 "Air filtration/Exhuast Fan\n"
 "Did you know that OrcaSlicer can support Air filtration/Exhuast Fan?"
 msgstr ""
+"Luftfiltration/Abluftventilator\n"
+"Wussten Sie, dass OrcaSlicer eine Luftfiltration/Abluftventilator "
+"unterstützen kann?"
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
@@ -13658,6 +13675,10 @@ msgid ""
 "Did you know that you can reduce the number of triangles in a mesh using the "
 "Simplify mesh feature? Right-click the model and select Simplify model."
 msgstr ""
+"Modell vereinfachen\n"
+"Wussten Sie, dass Sie die Anzahl der Dreiecke in einem Netz mithilfe der "
+"Funktion \"Netz vereinfachen\" reduzieren können? Klicken Sie mit der "
+"rechten Maustaste auf das Modell und wählen Sie \"Modell vereinfachen\"."
 
 #: resources/data/hints.ini: [hint:Slicing Parameter Table]
 msgid ""
@@ -13686,6 +13707,10 @@ msgid ""
 "part modifier? That way you can, for example, create easily resizable holes "
 "directly in Orca Slicer."
 msgstr ""
+"Teile entfernen\n"
+"Wussten Sie, dass Sie ein Netz von einem anderen abziehen können, indem Sie "
+"den negativen Teilmodifikator verwenden? Auf diese Weise können Sie "
+"beispielsweise direkt in Orca Slicer leicht skalierbare Löcher erstellen."
 
 #: resources/data/hints.ini: [hint:STEP]
 msgid ""
