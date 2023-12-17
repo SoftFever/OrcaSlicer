@@ -69,6 +69,8 @@ public:
     void        process_classic();
     void        process_arachne();
 
+    void process_no_bridge(Surfaces& all_surfaces);
+
     void        add_infill_contour_for_arachne( ExPolygons infill_contour, int loops, coord_t ext_perimeter_spacing, coord_t perimeter_spacing, coord_t min_perimeter_infill_spacing, coord_t spacing, bool is_inner_part );
 
     double      ext_mm3_per_mm()        const { return m_ext_mm3_per_mm; }
@@ -92,6 +94,11 @@ private:
     //BBS
     double      m_ext_mm3_per_mm_smaller_width;
     Polygons    m_lower_slices_polygons;
+    coord_t     perimeter_spacing;
+    coord_t     ext_perimeter_width;
+
+
+    coord_t get_perimeter_spacing() { return perimeter_spacing; }
 };
 
 }

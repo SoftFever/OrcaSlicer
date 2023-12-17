@@ -373,6 +373,15 @@ static const t_config_enum_values  s_keys_map_GCodeThumbnailsFormat = {
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(GCodeThumbnailsFormat)
 
+static const t_config_enum_values s_keys_map_NoPerimeterUnsupportedAlgo{
+    { "none", npuaNone },
+    { "noperi", npuaNoPeri },
+    { "bridges", npuaBridges },
+    { "bridgesoverhangs", npuaBridgesOverhangs },
+    { "filled", npuaFilled },
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(NoPerimeterUnsupportedAlgo)
+
 static void assign_printer_technology_to_unknown(t_optiondef_map &options, PrinterTechnology printer_technology)
 {
     for (std::pair<const t_config_option_key, ConfigOptionDef> &kvp : options)
@@ -890,6 +899,24 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Apply the reverse perimeters logic only on internal perimeters. \n\nThis setting greatly reduces part stresses as they are now distributed in alternating directions. This should reduce part warping while also maintaining external wall quality. This feature can be very useful for warp prone material, like ABS/ASA, and also for elastic filaments, like TPU and Silk PLA. It can also help reduce warping on floating regions over supports.\n\nFor this setting to be the most effective, it is recomended to set the Reverse Threshold to 0 so that all internal walls print in alternating directions on odd layers irrespective of their overhang degree.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("no_perimeter_unsupported_algo", coEnum);
+    def->label = L("No Unsupported Perimeter Algorithm");
+    def->category = L("Quality");
+    def->tooltip  = L("TODO");
+    def->mode = comAdvanced;
+    def->enum_keys_map = &ConfigOptionEnum<NoPerimeterUnsupportedAlgo>::get_enum_values();
+    def->enum_values.emplace_back("none");
+    def->enum_values.emplace_back("noperi");
+    def->enum_values.emplace_back("bridges");
+    def->enum_values.emplace_back("bridgesoverhangs");
+    def->enum_values.emplace_back("filled");
+    def->enum_labels.emplace_back(L("None"));
+    def->enum_labels.emplace_back(L("No Perimeter"));
+    def->enum_labels.emplace_back(L("Bridges"));
+    def->enum_labels.emplace_back(L("Bridges and Overhangs"));
+    def->enum_labels.emplace_back(L("Filled"));
+    def->set_default_value(new ConfigOptionEnum<NoPerimeterUnsupportedAlgo>(npuaNone));
 
     def = this->add("overhang_reverse_threshold", coFloatOrPercent);
     def->label = L("Reverse threshold");

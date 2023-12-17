@@ -275,6 +275,10 @@ enum class GCodeThumbnailsFormat {
     PNG, JPG, QOI, BTT_TFT, ColPic
 };
 
+enum NoPerimeterUnsupportedAlgo {
+    npuaNone, npuaNoPeri, npuaBridges, npuaBridgesOverhangs, npuaFilled
+};
+
 static std::string bed_type_to_gcode_string(const BedType type)
 {
     std::string type_str;
@@ -358,7 +362,7 @@ CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(BedType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(DraftShield)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(ForwardCompatibilitySubstitutionRule)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(GCodeThumbnailsFormat)
-
+CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(NoPerimeterUnsupportedAlgo)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(PrintHostType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(AuthorizationType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(PerimeterGeneratorType)
@@ -901,6 +905,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                 overhang_reverse))
     ((ConfigOptionBool,                 overhang_reverse_internal_only))
     ((ConfigOptionFloatOrPercent,       overhang_reverse_threshold))
+    ((ConfigOptionEnum<NoPerimeterUnsupportedAlgo>, no_perimeter_unsupported_algo))
 )
 
 PRINT_CONFIG_CLASS_DEFINE(
