@@ -531,15 +531,6 @@ void BBLTopbar::OnFullScreen(wxAuiToolBarEvent& event)
         m_frame->Restore();
     }
     else {
-        wxDisplay display(this);
-        auto      size = display.GetClientArea().GetSize();
-#ifdef __WXMSW__
-        HWND hWnd = m_frame->GetHandle();
-        RECT      borderThickness;
-        SetRectEmpty(&borderThickness);
-        AdjustWindowRectEx(&borderThickness, GetWindowLongPtr(hWnd, GWL_STYLE), FALSE, 0);
-        m_frame->SetMaxSize(size + wxSize{-borderThickness.left + borderThickness.right, -borderThickness.top + borderThickness.bottom});
-#endif //  __WXMSW__
         m_normalRect = m_frame->GetRect();
         m_frame->Maximize();
     }
