@@ -13326,15 +13326,6 @@ msgstr ""
 #~ msgid "Add/Remove printers"
 #~ msgstr "Přidat/Odebrat tiskárny"
 
-#~ msgid "Bambu Engineering Plate"
-#~ msgstr "Bambu Engineering Podložka"
-
-#~ msgid "Bambu Smooth PEI Plate"
-#~ msgstr "Bambu Smooth PEI Podložka"
-
-#~ msgid "Bambu Textured PEI Plate"
-#~ msgstr "Bambu Textured PEI Podložka"
-
 #~ msgid ""
 #~ "When print by object, machines with I3 structure will not generate "
 #~ "timelapse videos."

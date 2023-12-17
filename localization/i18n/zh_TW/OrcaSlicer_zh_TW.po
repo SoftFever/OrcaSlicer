@@ -13202,17 +13202,6 @@ msgstr ""
 #~ msgstr "新增/刪除列印設備"
 
 #, fuzzy
-#~ msgid "Bambu Engineering Plate"
-#~ msgstr "Bambu 高溫工程列印板"
-
-#, fuzzy
-#~ msgid "Bambu Smooth PEI Plate"
-#~ msgstr "Bambu 光滑面列印板"
-
-#~ msgid "Bambu Textured PEI Plate"
-#~ msgstr "Bambu 金屬紋理列印板"
-
-#, fuzzy
 #~ msgid ""
 #~ "When print by object, machines with I3 structure will not generate "
 #~ "timelapse videos."

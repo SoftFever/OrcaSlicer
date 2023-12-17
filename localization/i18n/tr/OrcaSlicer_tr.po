@@ -13642,15 +13642,6 @@ msgstr ""
 #~ msgid "Add/Remove printers"
 #~ msgstr "Yazıcı Ekle/Kaldır"
 
-#~ msgid "Bambu Engineering Plate"
-#~ msgstr "Bambu Mühendislik Plakası"
-
-#~ msgid "Bambu Smooth PEI Plate"
-#~ msgstr "Bambu Pürüzsüz PEI Plaka"
-
-#~ msgid "Bambu Textured PEI Plate"
-#~ msgstr "Bambu Dokulu PEI Plaka"
-
 #~ msgid ""
 #~ "When print by object, machines with I3 structure will not generate "
 #~ "timelapse videos."

@@ -14324,15 +14324,6 @@ msgstr ""
 #~ "количество точек, в которых древовидная поддержка касается модели. Это "
 #~ "улучшит печать нависаний, но при этом усложнит удаление поддержки."
 
-#~ msgid "Bambu Engineering Plate"
-#~ msgstr "Инженерная пластина Bambu"
-
-#~ msgid "Bambu Smooth PEI Plate"
-#~ msgstr "Гладкая PEI пластина Bambu"
-
-#~ msgid "Bambu Textured PEI Plate"
-#~ msgstr "Текстурированная PEI пластина Bambu"
-
 #~ msgid ""
 #~ "When print by object, machines with I3 structure will not generate "
 #~ "timelapse videos."

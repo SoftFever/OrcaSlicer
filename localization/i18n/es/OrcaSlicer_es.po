@@ -13610,15 +13610,6 @@ msgstr ""
 #~ msgid "Add/Remove printers"
 #~ msgstr "Añadir/Borrar impresoras"
 
-#~ msgid "Bambu Engineering Plate"
-#~ msgstr "Bandeja de Ingeniería Bambu"
-
-#~ msgid "Bambu Smooth PEI Plate"
-#~ msgstr "Bandeja PEI lisa Bambu"
-
-#~ msgid "Bambu Textured PEI Plate"
-#~ msgstr "Bandeja Texturizada PEI"
-
 #~ msgid ""
 #~ "When print by object, machines with I3 structure will not generate "
 #~ "timelapse videos."

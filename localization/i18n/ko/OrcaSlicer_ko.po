@@ -13281,15 +13281,6 @@ msgstr ""
 #~ msgid "Add/Remove printers"
 #~ msgstr "프린터 추가/제거"
 
-#~ msgid "Bambu Engineering Plate"
-#~ msgstr "밤부 엔지니어링 플레이트"
-
-#~ msgid "Bambu Smooth PEI Plate"
-#~ msgstr "밤부 스무스 PEI 플레이트"
-
-#~ msgid "Bambu Textured PEI Plate"
-#~ msgstr "밤부 텍스처 PEI 플레이트"
-
 #~ msgid ""
 #~ "When print by object, machines with I3 structure will not generate "
 #~ "timelapse videos."
