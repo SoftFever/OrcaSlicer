@@ -682,23 +682,23 @@ std::string GCodeWriter::extrude_to_xyz(const Vec3d &point, double dE, const std
     return w.string();
 }
 
-std::string GCodeWriter::retract(bool before_wipe)
+std::string GCodeWriter::retract(bool before_wipe, double retract_length)
 {
     double factor = before_wipe ? m_extruder->retract_before_wipe() : 1.;
     assert(factor >= 0. && factor <= 1. + EPSILON);
     return this->_retract(
-        factor * m_extruder->retraction_length(),
+        retract_length > EPSILON ? retract_length : factor * m_extruder->retraction_length(),
         factor * m_extruder->retract_restart_extra(),
         "retract"
     );
 }
 
-std::string GCodeWriter::retract_for_toolchange(bool before_wipe)
+std::string GCodeWriter::retract_for_toolchange(bool before_wipe, double retract_length)
 {
     double factor = before_wipe ? m_extruder->retract_before_wipe() : 1.;
     assert(factor >= 0. && factor <= 1. + EPSILON);
     return this->_retract(
-        factor * m_extruder->retract_length_toolchange(),
+        retract_length > EPSILON ? retract_length : factor * m_extruder->retract_length_toolchange(),
         factor * m_extruder->retract_restart_extra_toolchange(),
         "retract for toolchange"
     );

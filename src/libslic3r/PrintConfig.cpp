@@ -368,7 +368,8 @@ static const t_config_enum_values  s_keys_map_GCodeThumbnailsFormat = {
     { "PNG", int(GCodeThumbnailsFormat::PNG) },
     { "JPG", int(GCodeThumbnailsFormat::JPG) },
     { "QOI", int(GCodeThumbnailsFormat::QOI) },
-    { "BTT_TFT", int(GCodeThumbnailsFormat::BTT_TFT) }
+    { "BTT_TFT", int(GCodeThumbnailsFormat::BTT_TFT) },
+    { "ColPic", int(GCodeThumbnailsFormat::ColPic) }
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(GCodeThumbnailsFormat)
 
@@ -466,6 +467,15 @@ void PrintConfigDef::init_common_params()
     def->max = 2000;
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionFloat(100.0));
+
+    def = this->add("preferred_orientation", coFloat);
+    def->label = L("Preferred orientation");
+    def->tooltip = L("Automatically orient stls on the Z-axis upon initial import");
+    def->sidetext = L("°");
+    def->max = 360;
+    def->min = -360;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0.0));
 
     // Options used by physical printers
 
@@ -2701,7 +2711,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats{ 0., 0. });
 
-    def = this->add("fan_max_speed", coInts);
+    def = this->add("fan_max_speed", coFloats);
     def->label = L("Fan speed");
     def->tooltip = L("Part cooling fan speed may be increased when auto cooling is enabled. "
                      "This is the maximum speed limitation of part cooling fan");
@@ -2709,7 +2719,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->min = 0;
     def->max = 100;
     def->mode = comSimple;
-    def->set_default_value(new ConfigOptionInts { 100 });
+    def->set_default_value(new ConfigOptionFloats { 100 });
 
     def = this->add("max_layer_height", coFloats);
     def->label = L("Max");
@@ -2752,14 +2762,14 @@ def = this->add("filament_loading_speed", coFloats);
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInt(3));
 
-    def = this->add("fan_min_speed", coInts);
+    def = this->add("fan_min_speed", coFloats);
     def->label = L("Fan speed");
     def->tooltip = L("Minimum speed for part cooling fan");
     def->sidetext = L("%");
     def->min = 0;
     def->max = 100;
     def->mode = comSimple;
-    def->set_default_value(new ConfigOptionInts { 20 });
+    def->set_default_value(new ConfigOptionFloats { 20 });
 
     def = this->add("additional_cooling_fan_speed", coInts);
     def->label = L("Fan speed");
@@ -3425,6 +3435,25 @@ def = this->add("filament_loading_speed", coFloats);
                      "The final generated model has no seam");
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("spiral_mode_smooth", coBool);
+    def->label = L("Smooth Spiral");
+    def->tooltip = L("Smooth Spiral smoothes out X and Y moves as well"
+                     "resulting in no visible seam at all, even in the XY directions on walls that are not vertical");
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("spiral_mode_max_xy_smoothing", coFloatOrPercent);
+    def->label = L("Max XY Smoothing");
+    def->tooltip = L("Maximum distance to move points in XY to try to achieve a smooth spiral"
+                     "If expressed as a %, it will be computed over nozzle diameter");
+    def->sidetext = L("mm or %");
+    def->ratio_over = "nozzle_diameter";
+    def->min = 0;
+    def->max = 1000;
+    def->max_literal = 10;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloatOrPercent(200, true));
 
     def = this->add("timelapse_type", coEnum);
     def->label = L("Timelapse");
@@ -4173,7 +4202,7 @@ def = this->add("filament_loading_speed", coFloats);
 
     def = this->add("wipe_distance", coFloats);
     def->label = L("Wipe Distance");
-    def->tooltip = L("Discribe how long the nozzle will move along the last path when retracting");
+    def->tooltip = L("Discribe how long the nozzle will move along the last path when retracting. \n\nDepending on how long the wipe operation lasts, how fast and long the extruder/filament retraction settings are, a retraction move may be needed to retract the remaining filament. \n\nSetting a value in the retract amount before wipe setting below will perform any excess retraction before the wipe, else it will be performed after.");
     def->sidetext = L("mm");
     def->min = 0;
     def->mode = comAdvanced;
@@ -4390,7 +4419,13 @@ def = this->add("filament_loading_speed", coFloats);
     def->enum_values.push_back("PNG");
     def->enum_values.push_back("JPG");
     def->enum_values.push_back("QOI");
-    def->enum_values.push_back("BTT TFT");
+    def->enum_values.push_back("BTT_TFT");
+    def->enum_values.push_back("ColPic");
+    def->enum_labels.push_back("PNG");
+    def->enum_labels.push_back("JPG");
+    def->enum_labels.push_back("QOI");
+    def->enum_labels.push_back("BTT TT");
+    def->enum_labels.push_back("ColPic");
     def->set_default_value(new ConfigOptionEnum<GCodeThumbnailsFormat>(GCodeThumbnailsFormat::PNG));
 
     def = this->add("use_relative_e_distances", coBool);

@@ -2159,6 +2159,8 @@ void TabPrint::build()
         optgroup->append_single_option_line("slicing_mode");
         optgroup->append_single_option_line("print_sequence", "sequent-print");
         optgroup->append_single_option_line("spiral_mode", "spiral-vase");
+        optgroup->append_single_option_line("spiral_mode_smooth", "spiral-vase#smooth");
+        optgroup->append_single_option_line("spiral_mode_max_xy_smoothing", "spiral-vase#max-xy-smoothing");
         optgroup->append_single_option_line("timelapse_type", "Timelapse");
 
         optgroup->append_single_option_line("fuzzy_skin");
@@ -3389,6 +3391,7 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line("nozzle_volume");
         optgroup->append_single_option_line("best_object_pos");
         optgroup->append_single_option_line("z_offset");
+        optgroup->append_single_option_line("preferred_orientation");
 
         // ConfigOptionDef def;
         //    def.type =  coInt,
@@ -3408,8 +3411,8 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line("disable_m73");
         option = optgroup->get_option("thumbnails");
         option.opt.full_width = true;
-        optgroup->append_single_option_line(option);
-        optgroup->append_single_option_line("thumbnails_format");
+        optgroup->append_single_option_line(option, "thumbnails");
+        optgroup->append_single_option_line("thumbnails_format", "thumbnails");
         optgroup->append_single_option_line("use_relative_e_distances");
         optgroup->append_single_option_line("use_firmware_retraction");
         // optgroup->append_single_option_line("spaghetti_detector");

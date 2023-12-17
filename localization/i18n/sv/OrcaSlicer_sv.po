@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-02 13:02+0800\n"
+"POT-Creation-Date: 2023-12-16 22:39+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -841,6 +841,24 @@ msgstr "Lägg till support blockerare"
 msgid "Add support enforcer"
 msgstr "Lägg till support förstärkning"
 
+msgid "Add text"
+msgstr ""
+
+msgid "Add negative text"
+msgstr ""
+
+msgid "Add text modifier"
+msgstr ""
+
+msgid "Add SVG part"
+msgstr ""
+
+msgid "Add negative SVG"
+msgstr ""
+
+msgid "Add SVG modifier"
+msgstr ""
+
 msgid "Select settings"
 msgstr "Välj inställningar"
 
@@ -855,9 +873,6 @@ msgstr "Del"
 
 msgid "Delete the selected object"
 msgstr "Radera det valda objektet"
-
-msgid "Edit Text"
-msgstr "Redigera text"
 
 msgid "Load..."
 msgstr "Ladda..."
@@ -882,6 +897,12 @@ msgstr "Cylinder"
 
 msgid "Cone"
 msgstr "Kon"
+
+msgid "Text"
+msgstr ""
+
+msgid "SVG"
+msgstr ""
 
 msgid "Height range Modifier"
 msgstr "Modifierare av höjd intervall"
@@ -1016,6 +1037,18 @@ msgstr "Spegelvänd"
 
 msgid "Mirror object"
 msgstr "Spegelvänd objektet"
+
+msgid "Edit text"
+msgstr ""
+
+msgid "Ability to change text, font, size, ..."
+msgstr ""
+
+msgid "Edit SVG"
+msgstr ""
+
+msgid "Change SVG source file, projection, size, ..."
+msgstr ""
 
 msgid "Invalidate cut info"
 msgstr "Ogiltig förklara delnings info"
@@ -1653,12 +1686,6 @@ msgstr ""
 msgid "Arranging..."
 msgstr "Placerar..."
 
-msgid ""
-"Arrange failed. Found some exceptions when processing object geometries."
-msgstr ""
-"Placering misslyckades. Avvikelser hittades när objektets geometri "
-"bearbetades."
-
 msgid "Arranging"
 msgstr "Placerar"
 
@@ -1673,6 +1700,12 @@ msgstr ""
 
 msgid "Arranging done."
 msgstr "Placering klar."
+
+msgid ""
+"Arrange failed. Found some exceptions when processing object geometries."
+msgstr ""
+"Placering misslyckades. Avvikelser hittades när objektets geometri "
+"bearbetades."
 
 #, c-format, boost-format
 msgid ""
@@ -1703,6 +1736,9 @@ msgstr "Placerar..."
 msgid "Orienting"
 msgstr "Placerar"
 
+msgid "Orienting canceled."
+msgstr ""
+
 msgid "Filling"
 msgstr ""
 
@@ -1712,11 +1748,14 @@ msgstr "Byggplattans fyllning avbruten."
 msgid "Bed filling done."
 msgstr "Byggplattans fyllning utförd."
 
-msgid "Error! Unable to create thread!"
-msgstr "Fel! Det går inte att skapa tråden!"
+msgid "Searching for optimal orientation"
+msgstr ""
 
-msgid "Exception"
-msgstr "Undantag"
+msgid "Orientation search canceled."
+msgstr ""
+
+msgid "Orientation found."
+msgstr ""
 
 msgid "Logging in"
 msgstr "Loggar in"
@@ -1827,30 +1866,6 @@ msgstr "Framgångsrikt skickat. Stäng den aktuella sidan i %s s"
 
 msgid "An SD card needs to be inserted before sending to printer."
 msgstr "Ett Micro SD-kort måste sättas i innan det skickas till skrivaren."
-
-msgid "Choose SLA archive:"
-msgstr "Välj SLA arkiv:"
-
-msgid "Import file"
-msgstr "Importera fil"
-
-msgid "Import model and profile"
-msgstr "Importera modell och profil"
-
-msgid "Import profile only"
-msgstr "Importera endast profil"
-
-msgid "Import model only"
-msgstr "Importera endast modell"
-
-msgid "Accurate"
-msgstr "Exakt"
-
-msgid "Balanced"
-msgstr "Balanserad"
-
-msgid "Quick"
-msgstr "Snabb"
 
 msgid "Importing SLA archive"
 msgstr "Importera SLA arkiv"
@@ -3160,7 +3175,7 @@ msgstr "Volym:"
 msgid "Size:"
 msgstr "Storlek:"
 
-#, c-format, boost-format
+#, boost-format
 msgid ""
 "Conflicts of gcode paths have been found at layer %d, z = %.2lf mm. Please "
 "separate the conflicted objects farther (%s <-> %s)."
@@ -3540,6 +3555,12 @@ msgid "Show &G-code Window"
 msgstr ""
 
 msgid "Show g-code window in Previce scene"
+msgstr ""
+
+msgid "Reset Window Layout"
+msgstr ""
+
+msgid "Reset to default window layout"
 msgstr ""
 
 msgid "Show &Labels"
@@ -4602,6 +4623,12 @@ msgid ""
 "It is recommended to change to smooth mode."
 msgstr ""
 
+msgid "Expand sidebar"
+msgstr ""
+
+msgid "Collapse sidebar"
+msgstr ""
+
 #, c-format, boost-format
 msgid "Loading file: %s"
 msgstr "Laddar fil: %s"
@@ -4853,6 +4880,9 @@ msgid ""
 "import it."
 msgstr ""
 
+msgid "Import SLA archive"
+msgstr ""
+
 msgid "The selected file"
 msgstr "Den valda filen"
 
@@ -4934,6 +4964,15 @@ msgstr ""
 "Det går inte att utföra booleska operationer på modell mesh. Endast positiva "
 "delar kommer att exporteras."
 
+msgid ""
+"Are you sure you want to store original SVGs with their local paths into the "
+"3MF file?\n"
+"If you hit 'NO', all SVGs in the project will not be editable any more."
+msgstr ""
+
+msgid "Private protection"
+msgstr ""
+
 msgid "Is the printer ready? Is the print sheet in place, empty and clean?"
 msgstr ""
 
@@ -4955,6 +4994,9 @@ msgstr "Skicka till skrivare"
 
 msgid "Custom supports and color painting were removed before repairing."
 msgstr "Custom support och färgläggning raderades innan reparation."
+
+msgid "Optimize Rotation"
+msgstr ""
 
 msgid "Invalid number"
 msgstr "Ogiltligt nummer"
@@ -5966,8 +6008,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "När du spelar in timelapse utan verktygshuvud rekommenderas att du lägger "
 "till ett \"Timelapse Wipe Tower\".\n"
@@ -5985,6 +6027,15 @@ msgstr "Precision"
 
 msgid "Wall generator"
 msgstr "Vägg generator"
+
+msgid "Walls and surfaces"
+msgstr ""
+
+msgid "Bridging"
+msgstr ""
+
+msgid "Overhangs"
+msgstr ""
 
 msgid "Walls"
 msgstr "Väggar"
@@ -6579,19 +6630,15 @@ msgstr ""
 msgid "Ramming line spacing"
 msgstr ""
 
-msgid "Auto-Calc"
-msgstr "Autoberäkna"
-
-msgid "Re-calculate"
+msgid "Recalculate"
 msgstr ""
 
 msgid "Flushing volumes for filament change"
 msgstr "Rensnings volym för filament byte"
 
 msgid ""
-"Studio would re-calculate your flushing volumes everytime the filaments "
-"color changed. You could disable the auto-calculate in Bambu Studio > "
-"Preferences"
+"Orca recalculates your flushing volumes everytime the filament colors "
+"change. You can change this behavior in Preferences."
 msgstr ""
 
 msgid "Flushing volume (mm³) for each filament pair."
@@ -6607,15 +6654,6 @@ msgstr "Multiplikatorn ska ligga inom intervallet [%.2f, %.2f]."
 
 msgid "Multiplier"
 msgstr "Multiplikator"
-
-msgid "unloaded"
-msgstr "utmatad"
-
-msgid "loaded"
-msgstr "laddad"
-
-msgid "Filament #"
-msgstr "Filament #"
 
 msgid "From"
 msgstr "Från"
@@ -7518,6 +7556,12 @@ msgstr "Utskriftsbar höjd"
 msgid "Maximum printable height which is limited by mechanism of printer"
 msgstr "Maximala utskriftshöjd begränsas av skrivarens mekanism"
 
+msgid "Preferred orientation"
+msgstr ""
+
+msgid "Automatically orient stls on the Z-axis upon initial import"
+msgstr ""
+
 msgid "Printer preset names"
 msgstr "Namn på förinställda skrivare"
 
@@ -8041,9 +8085,9 @@ msgid ""
 "quality for needle and small details"
 msgstr ""
 "Aktivera detta val för att sänka utskifts hastigheten för att göra den sista "
-"lager tiden inte kortare än lager tidströskeln \"Max fläkthastighets tröskel"
-"\", detta så att lager kan kylas under en längre tid. Detta kan förbättra "
-"kylnings kvaliteten för små detaljer"
+"lager tiden inte kortare än lager tidströskeln \"Max fläkthastighets "
+"tröskel\", detta så att lager kan kylas under en längre tid. Detta kan "
+"förbättra kylnings kvaliteten för små detaljer"
 
 msgid "Normal printing"
 msgstr "Normal utskrift"
@@ -8244,7 +8288,29 @@ msgstr ""
 msgid "Walls printing order"
 msgstr ""
 
-msgid "Print sequence of inner wall and outer wall. "
+msgid ""
+"Print sequence of the internal (inner) and external (outer) walls. \n"
+"\n"
+"Use Inner/Outer for best overhangs. This is because the overhanging walls "
+"can adhere to a neighouring perimeter while printing. However, this option "
+"results in slightly reduced surface quality as the external perimeter is "
+"deformed by being squashed to the internal perimeter.\n"
+"\n"
+"Use Inner/Outer/Inner for the best external surface finish and dimensional "
+"accuracy as the external wall is printed undisturbed from an internal "
+"perimeter. However, overhang performance will reduce as there is no internal "
+"perimeter to print the external wall against. This option requires a minimum "
+"of 3 walls to be effective as it prints the internal walls from the 3rd "
+"perimeter onwards first, then the external perimeter and, finally, the first "
+"internal perimeter. This option is recomended against the Outer/Inner option "
+"in most cases. \n"
+"\n"
+"Use Outer/Inner for the same external wall quality and dimensional accuracy "
+"benefits of Inner/Outer/Inner option. However, the z seams will appear less "
+"consistent as the first extrusion of a new layer starts on a visible "
+"surface.\n"
+"\n"
+" "
 msgstr ""
 
 msgid "Inner/Outer"
@@ -8259,7 +8325,15 @@ msgstr ""
 msgid "Print infill first"
 msgstr ""
 
-msgid "Order of wall/infill. false means print wall first. "
+msgid ""
+"Order of wall/infill. When the tickbox is unchecked the walls are printed "
+"first, which works best in most cases.\n"
+"\n"
+"Printing walls first may help with extreme overhangs as the walls have the "
+"neighbouring infill to adhere to. However, the infill will slighly push out "
+"the printed walls where it is attached to them, resulting in a worse "
+"external surface finish. It can also cause the infill to shine through the "
+"external surfaces of the part."
 msgstr ""
 
 msgid "Height to rod"
@@ -8808,10 +8882,10 @@ msgstr "Full fläkthastighet vid lager"
 
 msgid ""
 "Fan speed will be ramped up linearly from zero at layer "
-"\"close_fan_the_first_x_layers\" to maximum at layer \"full_fan_speed_layer"
-"\". \"full_fan_speed_layer\" will be ignored if lower than "
-"\"close_fan_the_first_x_layers\", in which case the fan will be running at "
-"maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
+"\"close_fan_the_first_x_layers\" to maximum at layer "
+"\"full_fan_speed_layer\". \"full_fan_speed_layer\" will be ignored if lower "
+"than \"close_fan_the_first_x_layers\", in which case the fan will be running "
+"at maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
 msgstr ""
 
 msgid "Support interface fan speed"
@@ -9762,6 +9836,9 @@ msgstr ""
 msgid "Show auto-calibration marks"
 msgstr ""
 
+msgid "Disable set remaining print time"
+msgstr ""
+
 msgid "Seam position"
 msgstr "Söm position"
 
@@ -10459,10 +10536,16 @@ msgid "Wipe Distance"
 msgstr "Avskrapnings avstånd"
 
 msgid ""
-"Discribe how long the nozzle will move along the last path when retracting"
+"Discribe how long the nozzle will move along the last path when "
+"retracting. \n"
+"\n"
+"Depending on how long the wipe operation lasts, how fast and long the "
+"extruder/filament retraction settings are, a retraction move may be needed "
+"to retract the remaining filament. \n"
+"\n"
+"Setting a value in the retract amount before wipe setting below will perform "
+"any excess retraction before the wipe, else it will be performed after."
 msgstr ""
-"Detta beskriver hur länge nozzeln kommer att röra sig längs den sista banan "
-"medan den retrakterar"
 
 msgid ""
 "The wiping tower can be used to clean up the residue on the nozzle and "
@@ -11789,8 +11872,8 @@ msgid ""
 msgstr ""
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 
@@ -12306,6 +12389,46 @@ msgid ""
 "Error: \"%2%\""
 msgstr ""
 
+#: resources/data/hints.ini: [hint:Precise wall]
+msgid ""
+"Precise wall\n"
+"Did you know that turning on precise wall can improve precision and layer "
+"consistency?"
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Sandwich mode]
+msgid ""
+"Sandwich mode\n"
+"Did you know that you can use sandwich mode (inner-outer-inner) to improve "
+"precision and layer consistency if your model doesn't have very steep "
+"overhangs?"
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Chamber temperature]
+msgid ""
+"Chamber temperature\n"
+"Did you know that OrcaSlicer supports chamber temperature?"
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Calibration]
+msgid ""
+"Calibration\n"
+"Did you know that calibrating your printer can do wonders? Check out our "
+"beloved calibration solution in OrcaSlicer."
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Auxiliary fan]
+msgid ""
+"Auxiliary fan\n"
+"Did you know that OrcaSlicer supports Auxiliary part cooling fan?"
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Air filtration]
+msgid ""
+"Air filtration/Exhuast Fan\n"
+"Did you know that OrcaSlicer can support Air filtration/Exhuast Fan?"
+msgstr ""
+
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
 "How to use keyboard shortcuts\n"
@@ -12389,13 +12512,8 @@ msgstr ""
 msgid ""
 "Simplify Model\n"
 "Did you know that you can reduce the number of triangles in a mesh using the "
-"Simplify mesh feature? Right-click the model and select Simplify model. Read "
-"more in the documentation."
+"Simplify mesh feature? Right-click the model and select Simplify model."
 msgstr ""
-"Förenkla modellen\n"
-"Visste du att du kan minska antalet trianglar i ett mesh med hjälp av "
-"funktionen Förenkla mesh? Högerklicka på modellen och välj Förenkla "
-"modellen. Läs mer i dokumentationen."
 
 #: resources/data/hints.ini: [hint:Slicing Parameter Table]
 msgid ""
@@ -12422,7 +12540,7 @@ msgid ""
 "Subtract a Part\n"
 "Did you know that you can subtract one mesh from another using the Negative "
 "part modifier? That way you can, for example, create easily resizable holes "
-"directly in Orca Slicer. Read more in the documentation."
+"directly in Orca Slicer."
 msgstr ""
 
 #: resources/data/hints.ini: [hint:STEP]
@@ -12581,6 +12699,68 @@ msgid ""
 "ABS, appropriately increasing the heatbed temperature can reduce the "
 "probability of warping."
 msgstr ""
+
+#~ msgid "Edit Text"
+#~ msgstr "Redigera text"
+
+#~ msgid "Error! Unable to create thread!"
+#~ msgstr "Fel! Det går inte att skapa tråden!"
+
+#~ msgid "Exception"
+#~ msgstr "Undantag"
+
+#~ msgid "Choose SLA archive:"
+#~ msgstr "Välj SLA arkiv:"
+
+#~ msgid "Import file"
+#~ msgstr "Importera fil"
+
+#~ msgid "Import model and profile"
+#~ msgstr "Importera modell och profil"
+
+#~ msgid "Import profile only"
+#~ msgstr "Importera endast profil"
+
+#~ msgid "Import model only"
+#~ msgstr "Importera endast modell"
+
+#~ msgid "Accurate"
+#~ msgstr "Exakt"
+
+#~ msgid "Balanced"
+#~ msgstr "Balanserad"
+
+#~ msgid "Quick"
+#~ msgstr "Snabb"
+
+#~ msgid "Auto-Calc"
+#~ msgstr "Autoberäkna"
+
+#~ msgid "unloaded"
+#~ msgstr "utmatad"
+
+#~ msgid "loaded"
+#~ msgstr "laddad"
+
+#~ msgid "Filament #"
+#~ msgstr "Filament #"
+
+#~ msgid ""
+#~ "Discribe how long the nozzle will move along the last path when retracting"
+#~ msgstr ""
+#~ "Detta beskriver hur länge nozzeln kommer att röra sig längs den sista "
+#~ "banan medan den retrakterar"
+
+#~ msgid ""
+#~ "Simplify Model\n"
+#~ "Did you know that you can reduce the number of triangles in a mesh using "
+#~ "the Simplify mesh feature? Right-click the model and select Simplify "
+#~ "model. Read more in the documentation."
+#~ msgstr ""
+#~ "Förenkla modellen\n"
+#~ "Visste du att du kan minska antalet trianglar i ett mesh med hjälp av "
+#~ "funktionen Förenkla mesh? Högerklicka på modellen och välj Förenkla "
+#~ "modellen. Läs mer i dokumentationen."
 
 #~ msgid "Filling bed "
 #~ msgstr "Fyllning av byggytan"

@@ -23,6 +23,9 @@
 #include <stdexcept>
 #include <iomanip>
 
+#include <boost/assign.hpp>
+#include <boost/bimap.hpp>
+
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/predicate.hpp>
@@ -48,6 +51,13 @@ namespace pt = boost::property_tree;
 #include <Eigen/Dense>
 #include "miniz_extension.hpp"
 #include "nlohmann/json.hpp"
+
+#include "TextConfiguration.hpp"
+#include "EmbossShape.hpp"
+#include "ExPolygonSerialize.hpp" 
+
+#include "NSVGUtils.hpp"
+
 #include <fast_float/fast_float.h>
 
 // Slightly faster than sprintf("%.9g"), but there is an issue with the karma floating point formatter,
@@ -211,7 +221,7 @@ static constexpr const char* ASSEMBLE_ITEM_TAG = "assemble_item";
 static constexpr const char* SLICE_HEADER_TAG = "header";
 static constexpr const char* SLICE_HEADER_ITEM_TAG = "header_item";
 
-// text_info
+// Deprecated: text_info
 static constexpr const char* TEXT_INFO_TAG        = "text_info";
 static constexpr const char* TEXT_ATTR            = "text";
 static constexpr const char* FONT_NAME_ATTR       = "font_name";
@@ -324,6 +334,42 @@ static constexpr const char* MESH_STAT_DEGENERATED_FACETS   = "degenerate_facets
 static constexpr const char* MESH_STAT_FACETS_REMOVED       = "facets_removed";
 static constexpr const char* MESH_STAT_FACETS_RESERVED      = "facets_reversed";
 static constexpr const char* MESH_STAT_BACKWARDS_EDGES      = "backwards_edges";
+
+// Store / load of TextConfiguration
+static constexpr const char *TEXT_TAG = "slic3rpe:text";
+static constexpr const char *TEXT_DATA_ATTR = "text";
+// TextConfiguration::EmbossStyle
+static constexpr const char *STYLE_NAME_ATTR      = "style_name";
+static constexpr const char *FONT_DESCRIPTOR_ATTR = "font_descriptor";
+static constexpr const char *FONT_DESCRIPTOR_TYPE_ATTR = "font_descriptor_type";
+
+// TextConfiguration::FontProperty
+static constexpr const char *CHAR_GAP_ATTR    = "char_gap";
+static constexpr const char *LINE_GAP_ATTR    = "line_gap";
+static constexpr const char *LINE_HEIGHT_ATTR = "line_height";
+static constexpr const char *BOLDNESS_ATTR    = "boldness";
+static constexpr const char *SKEW_ATTR        = "skew";
+static constexpr const char *PER_GLYPH_ATTR   = "per_glyph";
+static constexpr const char *HORIZONTAL_ALIGN_ATTR  = "horizontal";
+static constexpr const char *VERTICAL_ALIGN_ATTR    = "vertical";
+static constexpr const char *COLLECTION_NUMBER_ATTR = "collection";
+
+static constexpr const char *FONT_FAMILY_ATTR    = "family";
+static constexpr const char *FONT_FACE_NAME_ATTR = "face_name";
+static constexpr const char *FONT_STYLE_ATTR     = "style";
+static constexpr const char *FONT_WEIGHT_ATTR    = "weight";
+
+// Store / load of EmbossShape
+static constexpr const char *SHAPE_TAG = "slic3rpe:shape";
+static constexpr const char *SHAPE_SCALE_ATTR   = "scale";
+static constexpr const char *UNHEALED_ATTR = "unhealed";
+static constexpr const char *SVG_FILE_PATH_ATTR = "filepath";
+static constexpr const char *SVG_FILE_PATH_IN_3MF_ATTR = "filepath3mf";
+
+// EmbossProjection
+static constexpr const char *DEPTH_ATTR       = "depth";
+static constexpr const char *USE_SURFACE_ATTR = "use_surface";
+// static constexpr const char *FIX_TRANSFORMATION_ATTR = "transform";
 
 
 const unsigned int BBS_VALID_OBJECT_TYPES_COUNT = 2;
@@ -718,8 +764,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 MetadataList metadata;
                 RepairedMeshErrors mesh_stats;
                 ModelVolumeType part_type;
-                TextInfo text_info;
-
+                std::optional<TextConfiguration> text_configuration;
+                std::optional<EmbossShape> shape_configuration;
                 VolumeMetadata(unsigned int first_triangle_id, unsigned int last_triangle_id, ModelVolumeType type = ModelVolumeType::MODEL_PART)
                     : first_triangle_id(first_triangle_id)
                     , last_triangle_id(last_triangle_id)
@@ -770,6 +816,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         typedef std::map<int, CutObjectInfo>         IdToCutObjectInfoMap;
         /*typedef std::map<int, std::vector<sla::SupportPoint>> IdToSlaSupportPointsMap;
         typedef std::map<int, std::vector<sla::DrainHole>> IdToSlaDrainHolesMap;*/
+        using PathToEmbossShapeFileMap = std::map<std::string, std::shared_ptr<std::string>>;
 
         struct ObjectImporter
         {
@@ -962,6 +1009,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         IdToLayerConfigRangesMap m_layer_config_ranges;
         /*IdToSlaSupportPointsMap m_sla_support_points;
         IdToSlaDrainHolesMap    m_sla_drain_holes;*/
+        PathToEmbossShapeFileMap m_path_to_emboss_shape_files;
         std::string m_curr_metadata_name;
         std::string m_curr_characters;
         std::string m_name;
@@ -1015,6 +1063,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         // add backup & restore logic
         bool _load_model_from_file(std::string filename, Model& model, PlateDataPtrs& plate_data_list, std::vector<Preset*>& project_presets, DynamicPrintConfig& config, ConfigSubstitutionContext& config_substitutions, Import3mfProgressFn proFn = nullptr,
             BBLProject* project = nullptr, int plate_id = 0);
+        bool _is_svg_shape_file(const std::string &filename) const;
         bool _extract_from_archive(mz_zip_archive& archive, std::string const & path, std::function<bool (mz_zip_archive& archive, const mz_zip_archive_file_stat& stat)>, bool restore = false);
         bool _extract_xml_from_archive(mz_zip_archive& archive, std::string const & path, XML_StartElementHandler start_handler, XML_EndElementHandler end_handler);
         bool _extract_xml_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, XML_StartElementHandler start_handler, XML_EndElementHandler end_handler);
@@ -1035,6 +1084,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
         void _extract_auxiliary_file_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, Model& model);
         void _extract_file_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat);
+        void _extract_embossed_svg_shape_file(const std::string &filename, mz_zip_archive &archive, const mz_zip_archive_file_stat &stat);
 
         // handlers to parse the .model file
         void _handle_start_model_xml_element(const char* name, const char** attributes);
@@ -1090,6 +1140,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         bool _handle_start_metadata(const char** attributes, unsigned int num_attributes);
         bool _handle_end_metadata();
 
+        bool _handle_start_text_configuration(const char** attributes, unsigned int num_attributes);
+        bool _handle_start_shape_configuration(const char **attributes, unsigned int num_attributes);
+
         bool _create_object_instance(std::string const & path, int object_id, const Transform3d& transform, const bool printable, unsigned int recur_counter);
 
         void _apply_transform(ModelInstance& instance, const Transform3d& transform);
@@ -1141,7 +1194,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
         void _generate_current_object_list(std::vector<Component> &sub_objects, Id object_id, IdToCurrentObjectMap& current_objects);
         bool _generate_volumes_new(ModelObject& object, const std::vector<Component> &sub_objects, const ObjectMetadata::VolumeMetadataList& volumes, ConfigSubstitutionContext& config_substitutions);
-        bool _generate_volumes(ModelObject& object, const Geometry& geometry, const ObjectMetadata::VolumeMetadataList& volumes, ConfigSubstitutionContext& config_substitutions);
+        //bool _generate_volumes(ModelObject& object, const Geometry& geometry, const ObjectMetadata::VolumeMetadataList& volumes, ConfigSubstitutionContext& config_substitutions);
 
         // callbacks to parse the .model file
         static void XMLCALL _handle_start_model_xml_element(void* userData, const char* name, const char** attributes);
@@ -1757,6 +1810,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                         return false;
                     }
                 }
+                else if (_is_svg_shape_file(name)) {
+                    _extract_embossed_svg_shape_file(name, archive, stat);
+                }
                 else if (!dont_load_config && boost::algorithm::iequals(name, SLICE_INFO_CONFIG_FILE)) {
                     m_parsing_slice_info = true;
                     //extract slice info from archive
@@ -2154,6 +2210,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         }
 
         return true;
+    }
+
+    bool _BBS_3MF_Importer::_is_svg_shape_file(const std::string &name) const { 
+        return boost::starts_with(name, MODEL_FOLDER) && boost::ends_with(name, ".svg");
     }
 
     bool _BBS_3MF_Importer::_extract_from_archive(mz_zip_archive& archive, std::string const & path, std::function<bool (mz_zip_archive& archive, const mz_zip_archive_file_stat& stat)> extract, bool restore)
@@ -2870,6 +2930,32 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         }
     }*/
 
+    void _BBS_3MF_Importer::_extract_embossed_svg_shape_file(const std::string &filename, mz_zip_archive &archive, const mz_zip_archive_file_stat &stat){
+        assert(m_path_to_emboss_shape_files.find(filename) == m_path_to_emboss_shape_files.end());
+        auto file = std::make_unique<std::string>(stat.m_uncomp_size, '\0');
+        mz_bool res  = mz_zip_reader_extract_to_mem(&archive, stat.m_file_index, (void *) file->data(), stat.m_uncomp_size, 0);
+        if (res == 0) {
+            add_error("Error while reading svg shape for emboss");
+            return;
+        }
+        
+        // store for case svg is loaded before volume
+        m_path_to_emboss_shape_files[filename] = std::move(file);
+        
+        // find embossed volume, for case svg is loaded after volume
+        for (const ModelObject* object : m_model->objects)
+        for (ModelVolume *volume : object->volumes) {
+            std::optional<EmbossShape> &es = volume->emboss_shape;
+            if (!es.has_value())
+                continue;
+            std::optional<EmbossShape::SvgFile> &svg = es->svg_file;
+            if (!svg.has_value())
+                continue;
+            if (filename.compare(svg->path_in_3mf) == 0)
+                svg->file_data = m_path_to_emboss_shape_files[filename];
+        }
+    }
+
     void _BBS_3MF_Importer::_extract_custom_gcode_per_print_z_from_archive(::mz_zip_archive &archive, const mz_zip_archive_file_stat &stat)
     {
         //BBS: add plate tree related logic
@@ -3066,6 +3152,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             res = _handle_start_config_volume_mesh(attributes, num_attributes);
         else if (::strcmp(METADATA_TAG, name) == 0)
             res = _handle_start_config_metadata(attributes, num_attributes);
+        else if (::strcmp(SHAPE_TAG, name) == 0)
+            res = _handle_start_shape_configuration(attributes, num_attributes);
+        else if (::strcmp(TEXT_TAG, name) == 0)
+            res = _handle_start_text_configuration(attributes, num_attributes);
         else if (::strcmp(PLATE_TAG, name) == 0)
             res = _handle_start_config_plater(attributes, num_attributes);
         else if (::strcmp(INSTANCE_TAG, name) == 0)
@@ -3632,6 +3722,104 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         return true;
     }
 
+    struct TextConfigurationSerialization
+    {
+    public:
+        TextConfigurationSerialization() = delete;
+                
+        using TypeToName = boost::bimap<EmbossStyle::Type, std::string_view>;
+        static const TypeToName type_to_name;
+
+        using HorizontalAlignToName = boost::bimap<FontProp::HorizontalAlign, std::string_view>;
+        static const HorizontalAlignToName horizontal_align_to_name;
+
+        using VerticalAlignToName = boost::bimap<FontProp::VerticalAlign, std::string_view>;
+        static const VerticalAlignToName vertical_align_to_name;
+        
+        static EmbossStyle::Type get_type(std::string_view type) {
+            const auto& to_type = TextConfigurationSerialization::type_to_name.right;
+            auto type_item = to_type.find(type);
+            assert(type_item != to_type.end());
+            if (type_item == to_type.end()) return EmbossStyle::Type::undefined;
+            return type_item->second;        
+        }
+
+        static std::string_view get_name(EmbossStyle::Type type) {
+            const auto& to_name = TextConfigurationSerialization::type_to_name.left;
+            auto type_name = to_name.find(type);
+            assert(type_name != to_name.end());
+            if (type_name == to_name.end()) return "unknown type";
+            return type_name->second;
+        }
+
+        static void to_xml(std::stringstream &stream, const TextConfiguration &tc);
+        static std::optional<TextConfiguration> read(const char **attributes, unsigned int num_attributes);
+        static EmbossShape read_old(const char **attributes, unsigned int num_attributes);
+    };
+
+    bool _BBS_3MF_Importer::_handle_start_text_configuration(const char **attributes, unsigned int num_attributes)
+    {
+        IdToMetadataMap::iterator object = m_objects_metadata.find(m_curr_config.object_id);
+        if (object == m_objects_metadata.end()) {
+            add_error("Can not assign volume mesh to a valid object");
+            return false;
+        }
+        if (object->second.volumes.empty()) {
+            add_error("Can not assign mesh to a valid volume");
+            return false;
+        }
+        ObjectMetadata::VolumeMetadata& volume = object->second.volumes.back();
+        volume.text_configuration = TextConfigurationSerialization::read(attributes, num_attributes);
+        if (!volume.text_configuration.has_value())
+            return false;
+
+        // Is 3mf version with shapes?
+        if (volume.shape_configuration.has_value())
+            return true;
+
+        // Back compatibility for 3mf version without shapes
+        volume.shape_configuration = TextConfigurationSerialization::read_old(attributes, num_attributes);
+        return true;
+    }
+
+    // Definition of read/write method for EmbossShape
+    static void to_xml(std::stringstream &stream, const EmbossShape &es, const ModelVolume &volume, mz_zip_archive &archive);
+    static std::optional<EmbossShape> read_emboss_shape(const char **attributes, unsigned int num_attributes);
+
+    bool _BBS_3MF_Importer::_handle_start_shape_configuration(const char **attributes, unsigned int num_attributes)
+    {
+        IdToMetadataMap::iterator object = m_objects_metadata.find(m_curr_config.object_id);
+        if (object == m_objects_metadata.end()) {
+            add_error("Can not assign volume mesh to a valid object");
+            return false;
+        }
+        auto &volumes = object->second.volumes;
+        if (volumes.empty()) {
+            add_error("Can not assign mesh to a valid volume");
+            return false;
+        }
+        ObjectMetadata::VolumeMetadata &volume = volumes.back();
+        volume.shape_configuration = read_emboss_shape(attributes, num_attributes);
+        if (!volume.shape_configuration.has_value())
+            return false;
+
+        // Fill svg file content into shape_configuration
+        std::optional<EmbossShape::SvgFile> &svg = volume.shape_configuration->svg_file;
+        if (!svg.has_value())
+            return true; // do not contain svg file
+
+        const std::string &path = svg->path_in_3mf;
+        if (path.empty()) 
+            return true; // do not contain svg file
+
+        auto it = m_path_to_emboss_shape_files.find(path);
+        if (it == m_path_to_emboss_shape_files.end())
+            return true; // svg file is not loaded yet
+
+        svg->file_data = it->second;
+        return true;
+    }
+
     bool _BBS_3MF_Importer::_create_object_instance(std::string const & path, int object_id, const Transform3d& transform, const bool printable, unsigned int recur_counter)
     {
         static const unsigned int MAX_RECURSIONS = 10;
@@ -4169,6 +4357,13 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
         ObjectMetadata::VolumeMetadata &volume = object->second.volumes[m_curr_config.volume_id];
 
+        if (volume.text_configuration.has_value()) {
+            add_error("Both text_info and text_configuration found, ignore legacy text_info");
+            return true;
+        }
+
+        // TODO: Orca: support legacy text info
+        /*
         TextInfo text_info;
         text_info.m_text      = xml_unescape(bbs_get_attribute_value_string(attributes, num_attributes, TEXT_ATTR));
         text_info.m_font_name = bbs_get_attribute_value_string(attributes, num_attributes, FONT_NAME_ATTR);
@@ -4196,7 +4391,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         if (!hit_normal.empty())
             text_info.m_rr.normal = get_vec3_from_string(hit_normal);
 
-        volume.text_info = text_info;
+        volume.text_info = text_info;*/
         return true;
     }
 
@@ -4473,9 +4668,11 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             }
 
             volume->set_type(volume_data->part_type);
-
-            if (!volume_data->text_info.m_text.empty())
-                volume->set_text_info(volume_data->text_info);
+            
+            if (auto &es = volume_data->shape_configuration; es.has_value())
+                volume->emboss_shape = std::move(es);            
+            if (auto &tc = volume_data->text_configuration; tc.has_value())
+                volume->text_configuration = std::move(tc);
 
             // apply the remaining volume's metadata
             for (const Metadata& metadata : volume_data->metadata) {
@@ -4519,7 +4716,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
         return true;
     }
-
+    /*
     bool _BBS_3MF_Importer::_generate_volumes(ModelObject& object, const Geometry& geometry, const ObjectMetadata::VolumeMetadataList& volumes, ConfigSubstitutionContext& config_substitutions)
     {
         if (!object.volumes.empty()) {
@@ -4667,7 +4864,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
         return true;
     }
-
+    */
     void XMLCALL _BBS_3MF_Importer::_handle_start_model_xml_element(void* userData, const char* name, const char** attributes)
     {
         _BBS_3MF_Importer* importer = (_BBS_3MF_Importer*)userData;
@@ -5242,6 +5439,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         bool save_model_to_file(StoreParams& store_params);
         // add backup logic
         bool save_object_mesh(const std::string& temp_path, ModelObject const & object, int obj_id);
+        static void add_transformation(std::stringstream &stream, const Transform3d &tr);
 
     private:
         //BBS: add plate data related logic
@@ -6687,6 +6885,16 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         return flush(output_buffer, true);
     }
 
+    void _BBS_3MF_Exporter::add_transformation(std::stringstream &stream, const Transform3d &tr)
+    {
+        for (unsigned c = 0; c < 4; ++c) {
+            for (unsigned r = 0; r < 3; ++r) {
+                stream << tr(r, c);
+                if (r != 2 || c != 3) stream << " ";
+            }
+        }
+    }
+
     bool _BBS_3MF_Exporter::_add_build_to_model_stream(std::stringstream& stream, const BuildItemsList& build_items) const
     {
         // This happens for empty projects
@@ -6707,13 +6915,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             if (!item.path.empty())
                 stream << "\" " << PPATH_ATTR << "=\"" << xml_escape(item.path);
             stream << "\" " << TRANSFORM_ATTR << "=\"";
-            for (unsigned c = 0; c < 4; ++c) {
-                for (unsigned r = 0; r < 3; ++r) {
-                    stream << item.transform(r, c);
-                    if (r != 2 || c != 3)
-                        stream << " ";
-                }
-            }
+            add_transformation(stream, item.transform);
             stream << "\" " << PRINTABLE_ATTR << "=\"" << item.printable << "\"/>\n";
         }
 
@@ -7041,38 +7243,6 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         return true;
     }
 
-    void _add_text_info_to_archive(std::stringstream& stream, const TextInfo& text_info) {
-        stream << "      <" << TEXT_INFO_TAG << " ";
-
-        stream << TEXT_ATTR << "=\"" << xml_escape(text_info.m_text) << "\" ";
-        stream << FONT_NAME_ATTR << "=\"" << text_info.m_font_name << "\" ";
-
-        stream << FONT_INDEX_ATTR << "=\"" << text_info.m_curr_font_idx << "\" ";
-
-        stream << FONT_SIZE_ATTR << "=\"" << text_info.m_font_size << "\" ";
-        stream << THICKNESS_ATTR << "=\"" << text_info.m_thickness << "\" ";
-        stream << EMBEDED_DEPTH_ATTR << "=\"" << text_info.m_embeded_depth << "\" ";
-        stream << ROTATE_ANGLE_ATTR << "=\"" << text_info.m_rotate_angle << "\" ";
-        stream << TEXT_GAP_ATTR << "=\"" << text_info.m_text_gap << "\" ";
-
-        stream << BOLD_ATTR << "=\"" << (text_info.m_bold ? 1 : 0) << "\" ";
-        stream << ITALIC_ATTR << "=\"" << (text_info.m_italic ? 1 : 0) << "\" ";
-        stream << SURFACE_TEXT_ATTR << "=\"" << (text_info.m_is_surface_text ? 1 : 0) << "\" ";
-        stream << KEEP_HORIZONTAL_ATTR << "=\"" << (text_info.m_keep_horizontal ? 1 : 0) << "\" ";
-
-        stream << HIT_MESH_ATTR << "=\"" << text_info.m_rr.mesh_id << "\" ";
-
-        stream << HIT_POSITION_ATTR << "=\"";
-        add_vec3(stream, text_info.m_rr.hit);
-        stream << "\" ";
-
-        stream << HIT_NORMAL_ATTR << "=\"";
-        add_vec3(stream, text_info.m_rr.normal);
-        stream << "\" ";
-
-        stream << "/>\n";
-    }
-
     bool _BBS_3MF_Exporter::_add_model_config_file_to_archive(mz_zip_archive& archive, const Model& model, PlateDataPtrs& plate_data_list, const ObjectToObjectDataMap &objects_data, int export_plate_idx, bool save_gcode, bool use_loaded_id)
     {
         std::stringstream stream;
@@ -7170,9 +7340,13 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                                 stream << "      <" << METADATA_TAG << " "<< KEY_ATTR << "=\"" << key << "\" " << VALUE_ATTR << "=\"" << volume->config.opt_serialize(key) << "\"/>\n";
                             }
 
-                            const TextInfo &text_info = volume->get_text_info();
-                            if (!text_info.m_text.empty())
-                                _add_text_info_to_archive(stream, text_info);
+                            if (const std::optional<EmbossShape> &es = volume->emboss_shape;
+                                es.has_value())
+                                to_xml(stream, *es, *volume, archive);
+                    
+                            if (const std::optional<TextConfiguration> &tc = volume->text_configuration;
+                                tc.has_value())
+                                TextConfigurationSerialization::to_xml(stream, *tc);
 
                             // stores mesh's statistics
                             const RepairedMeshErrors& stats = volume->mesh().stats().repaired_errors;
@@ -8162,5 +8336,336 @@ SaveObjectGaurd::~SaveObjectGaurd()
 {
     _BBS_Backup_Manager::get().pop_object_gaurd();
 }
+
+namespace{
+
+// Conversion with bidirectional map
+// F .. first, S .. second
+template<typename F, typename S>
+F bimap_cvt(const boost::bimap<F, S> &bmap, S s, const F & def_value) {
+    const auto &map = bmap.right;
+    auto found_item = map.find(s);
+
+    // only for back and forward compatibility
+    assert(found_item != map.end()); 
+    if (found_item == map.end())
+        return def_value;
+
+    return found_item->second;
+}
+
+template<typename F, typename S> 
+S bimap_cvt(const boost::bimap<F, S> &bmap, F f, const S &def_value)
+{
+    const auto &map = bmap.left;
+    auto found_item = map.find(f);
+
+    // only for back and forward compatibility
+    assert(found_item != map.end());
+    if (found_item == map.end())
+        return def_value;
+
+    return found_item->second;
+}
+
+} // namespace
+
+/// <summary>
+/// TextConfiguration serialization
+/// </summary>
+const TextConfigurationSerialization::TypeToName TextConfigurationSerialization::type_to_name =
+    boost::assign::list_of<TypeToName::relation>
+    (EmbossStyle::Type::file_path, "file_name")
+    (EmbossStyle::Type::wx_win_font_descr, "wxFontDescriptor_Windows")
+    (EmbossStyle::Type::wx_lin_font_descr, "wxFontDescriptor_Linux")
+    (EmbossStyle::Type::wx_mac_font_descr, "wxFontDescriptor_MacOsX");
+
+const TextConfigurationSerialization::HorizontalAlignToName TextConfigurationSerialization::horizontal_align_to_name =
+    boost::assign::list_of<HorizontalAlignToName::relation>
+    (FontProp::HorizontalAlign::left, "left")
+    (FontProp::HorizontalAlign::center, "center")
+    (FontProp::HorizontalAlign::right, "right");
+
+const TextConfigurationSerialization::VerticalAlignToName TextConfigurationSerialization::vertical_align_to_name =
+    boost::assign::list_of<VerticalAlignToName::relation>
+    (FontProp::VerticalAlign::top, "top")
+    (FontProp::VerticalAlign::center, "middle")
+    (FontProp::VerticalAlign::bottom, "bottom");
+
+
+void TextConfigurationSerialization::to_xml(std::stringstream &stream, const TextConfiguration &tc)
+{
+    stream << "   <" << TEXT_TAG << " ";
+
+    stream << TEXT_DATA_ATTR << "=\"" << xml_escape_double_quotes_attribute_value(tc.text) << "\" ";
+    // font item
+    const EmbossStyle &style = tc.style;
+    stream << STYLE_NAME_ATTR <<  "=\"" << xml_escape_double_quotes_attribute_value(style.name) << "\" ";
+    stream << FONT_DESCRIPTOR_ATTR << "=\"" << xml_escape_double_quotes_attribute_value(style.path) << "\" ";
+    constexpr std::string_view dafault_type{"undefined"};
+    std::string_view style_type = bimap_cvt(type_to_name, style.type, dafault_type);
+    stream << FONT_DESCRIPTOR_TYPE_ATTR << "=\"" << style_type << "\" ";
+
+    // font property
+    const FontProp &fp = tc.style.prop;
+    if (fp.char_gap.has_value())
+        stream << CHAR_GAP_ATTR << "=\"" << *fp.char_gap << "\" ";
+    if (fp.line_gap.has_value())
+        stream << LINE_GAP_ATTR << "=\"" << *fp.line_gap << "\" ";
+
+    stream << LINE_HEIGHT_ATTR << "=\"" << fp.size_in_mm << "\" ";
+    if (fp.boldness.has_value())
+        stream << BOLDNESS_ATTR << "=\"" << *fp.boldness << "\" ";
+    if (fp.skew.has_value())
+        stream << SKEW_ATTR << "=\"" << *fp.skew << "\" ";
+    if (fp.per_glyph)
+        stream << PER_GLYPH_ATTR << "=\"" << 1 << "\" ";
+    stream << HORIZONTAL_ALIGN_ATTR << "=\"" << bimap_cvt(horizontal_align_to_name, fp.align.first, dafault_type) << "\" ";
+    stream << VERTICAL_ALIGN_ATTR   << "=\"" << bimap_cvt(vertical_align_to_name,  fp.align.second, dafault_type) << "\" ";
+    if (fp.collection_number.has_value())
+        stream << COLLECTION_NUMBER_ATTR << "=\"" << *fp.collection_number << "\" ";
+    // font descriptor
+    if (fp.family.has_value())
+        stream << FONT_FAMILY_ATTR << "=\"" << *fp.family << "\" ";
+    if (fp.face_name.has_value())
+        stream << FONT_FACE_NAME_ATTR << "=\"" << *fp.face_name << "\" ";
+    if (fp.style.has_value())
+        stream << FONT_STYLE_ATTR << "=\"" << *fp.style << "\" ";
+    if (fp.weight.has_value())
+        stream << FONT_WEIGHT_ATTR << "=\"" << *fp.weight << "\" ";
+
+    stream << "/>\n"; // end TEXT_TAG
+}
+namespace {
+
+FontProp::HorizontalAlign read_horizontal_align(const char **attributes, unsigned int num_attributes, const TextConfigurationSerialization::HorizontalAlignToName& horizontal_align_to_name){
+    std::string horizontal_align_str = bbs_get_attribute_value_string(attributes, num_attributes, HORIZONTAL_ALIGN_ATTR);
+
+    // Back compatibility
+    // PS 2.6.0 do not have align
+    if (horizontal_align_str.empty())
+        return FontProp::HorizontalAlign::center;
+
+    // Back compatibility
+    // PS 2.6.1 store indices(0|1|2) instead of text for align
+    if (horizontal_align_str.length() == 1) {
+        int horizontal_align_int = 0;
+        if(boost::spirit::qi::parse(horizontal_align_str.c_str(), horizontal_align_str.c_str() + 1, boost::spirit::qi::int_, horizontal_align_int))
+            return static_cast<FontProp::HorizontalAlign>(horizontal_align_int);
+    }
+
+    return bimap_cvt(horizontal_align_to_name, std::string_view(horizontal_align_str), FontProp::HorizontalAlign::center);    
+}
+
+
+FontProp::VerticalAlign read_vertical_align(const char **attributes, unsigned int num_attributes, const TextConfigurationSerialization::VerticalAlignToName& vertical_align_to_name){
+    std::string vertical_align_str = bbs_get_attribute_value_string(attributes, num_attributes, VERTICAL_ALIGN_ATTR);
+
+    // Back compatibility
+    // PS 2.6.0 do not have align
+    if (vertical_align_str.empty())
+        return FontProp::VerticalAlign::center;
+
+    // Back compatibility
+    // PS 2.6.1 store indices(0|1|2) instead of text for align
+    if (vertical_align_str.length() == 1) {
+        int vertical_align_int = 0;
+        if(boost::spirit::qi::parse(vertical_align_str.c_str(), vertical_align_str.c_str() + 1, boost::spirit::qi::int_, vertical_align_int))
+            return static_cast<FontProp::VerticalAlign>(vertical_align_int);
+    }
+
+    return bimap_cvt(vertical_align_to_name, std::string_view(vertical_align_str), FontProp::VerticalAlign::center);
+}
+
+} // namespace
+
+std::optional<TextConfiguration> TextConfigurationSerialization::read(const char **attributes, unsigned int num_attributes)
+{
+    FontProp fp;
+    int char_gap = bbs_get_attribute_value_int(attributes, num_attributes, CHAR_GAP_ATTR);
+    if (char_gap != 0) fp.char_gap = char_gap;
+    int line_gap = bbs_get_attribute_value_int(attributes, num_attributes, LINE_GAP_ATTR); 
+    if (line_gap != 0) fp.line_gap = line_gap;
+    float boldness = bbs_get_attribute_value_float(attributes, num_attributes, BOLDNESS_ATTR);
+    if (std::fabs(boldness) > std::numeric_limits<float>::epsilon())
+        fp.boldness = boldness;
+    float skew = bbs_get_attribute_value_float(attributes, num_attributes, SKEW_ATTR);
+    if (std::fabs(skew) > std::numeric_limits<float>::epsilon())
+        fp.skew = skew;
+    int per_glyph = bbs_get_attribute_value_int(attributes, num_attributes, PER_GLYPH_ATTR);
+    if (per_glyph == 1) fp.per_glyph = true;
+
+    fp.align = FontProp::Align(
+        read_horizontal_align(attributes, num_attributes, horizontal_align_to_name),
+        read_vertical_align(attributes, num_attributes, vertical_align_to_name));
+
+    int collection_number = bbs_get_attribute_value_int(attributes, num_attributes, COLLECTION_NUMBER_ATTR);
+    if (collection_number > 0) fp.collection_number = static_cast<unsigned int>(collection_number);
+
+    fp.size_in_mm = bbs_get_attribute_value_float(attributes, num_attributes, LINE_HEIGHT_ATTR);
+
+    std::string family = bbs_get_attribute_value_string(attributes, num_attributes, FONT_FAMILY_ATTR);
+    if (!family.empty()) fp.family = family;
+    std::string face_name = bbs_get_attribute_value_string(attributes, num_attributes, FONT_FACE_NAME_ATTR);
+    if (!face_name.empty()) fp.face_name = face_name;
+    std::string style = bbs_get_attribute_value_string(attributes, num_attributes, FONT_STYLE_ATTR);
+    if (!style.empty()) fp.style = style;
+    std::string weight = bbs_get_attribute_value_string(attributes, num_attributes, FONT_WEIGHT_ATTR);
+    if (!weight.empty()) fp.weight = weight;
+
+    std::string style_name = bbs_get_attribute_value_string(attributes, num_attributes, STYLE_NAME_ATTR);
+    std::string font_descriptor = bbs_get_attribute_value_string(attributes, num_attributes, FONT_DESCRIPTOR_ATTR);
+    std::string type_str = bbs_get_attribute_value_string(attributes, num_attributes, FONT_DESCRIPTOR_TYPE_ATTR);
+    EmbossStyle::Type type = bimap_cvt(type_to_name, std::string_view{type_str}, EmbossStyle::Type::undefined);
+
+    std::string text = bbs_get_attribute_value_string(attributes, num_attributes, TEXT_DATA_ATTR);
+    EmbossStyle es{style_name, std::move(font_descriptor), type, std::move(fp)};
+    return TextConfiguration{std::move(es), std::move(text)};
+}
+
+EmbossShape TextConfigurationSerialization::read_old(const char **attributes, unsigned int num_attributes)
+{
+    EmbossShape es;
+    std::string fix_tr_mat_str = bbs_get_attribute_value_string(attributes, num_attributes, TRANSFORM_ATTR);
+    if (!fix_tr_mat_str.empty())
+        es.fix_3mf_tr = bbs_get_transform_from_3mf_specs_string(fix_tr_mat_str);
+
+
+    if (bbs_get_attribute_value_int(attributes, num_attributes, USE_SURFACE_ATTR) == 1)
+        es.projection.use_surface = true;
+
+    es.projection.depth = bbs_get_attribute_value_float(attributes, num_attributes, DEPTH_ATTR);
+
+    int use_surface = bbs_get_attribute_value_int(attributes, num_attributes, USE_SURFACE_ATTR);
+    if (use_surface == 1)
+        es.projection.use_surface = true;
+
+    return es;
+}
+
+namespace {
+Transform3d create_fix(const std::optional<Transform3d> &prev, const ModelVolume &volume)
+{
+    // IMPROVE: check if volume was modified (translated, rotated OR scaled)
+    // when no change do not calculate transformation only store original fix matrix
+
+    // Create transformation used after load actual stored volume
+    // Orca: do not bake volume transformation into meshes
+    // const Transform3d &actual_trmat = volume.get_matrix();
+    const Transform3d& actual_trmat = Transform3d::Identity();
+
+    const auto &vertices = volume.mesh().its.vertices;
+    Vec3d       min      = actual_trmat * vertices.front().cast<double>();
+    Vec3d       max      = min;
+    for (const Vec3f &v : vertices) {
+        Vec3d vd = actual_trmat * v.cast<double>();
+        for (size_t i = 0; i < 3; ++i) {
+            if (min[i] > vd[i])
+                min[i] = vd[i];
+            if (max[i] < vd[i])
+                max[i] = vd[i];
+        }
+    }
+    Vec3d       center     = (max + min) / 2;
+    Transform3d post_trmat = Transform3d::Identity();
+    post_trmat.translate(center);
+
+    Transform3d fix_trmat = actual_trmat.inverse() * post_trmat;
+    if (!prev.has_value())
+        return fix_trmat;
+
+    // check whether fix somehow differ previous
+    if (fix_trmat.isApprox(Transform3d::Identity(), 1e-5))
+        return *prev;
+
+    return *prev * fix_trmat;
+}
+
+bool to_xml(std::stringstream &stream, const EmbossShape::SvgFile &svg, const ModelVolume &volume, mz_zip_archive &archive){
+    if (svg.path_in_3mf.empty())
+        return true; // EmbossedText OR unwanted store .svg file into .3mf (protection of copyRight)
+
+    if (!svg.path.empty())
+        stream << SVG_FILE_PATH_ATTR << "=\"" << xml_escape_double_quotes_attribute_value(svg.path) << "\" ";
+    stream << SVG_FILE_PATH_IN_3MF_ATTR << "=\"" << xml_escape_double_quotes_attribute_value(svg.path_in_3mf) << "\" ";
+
+    std::shared_ptr<std::string> file_data = svg.file_data;
+    assert(file_data != nullptr); 
+    if (file_data == nullptr && !svg.path.empty())
+        file_data = read_from_disk(svg.path);
+    if (file_data == nullptr) {
+        BOOST_LOG_TRIVIAL(warning) << "Can't write svg file no filedata";
+        return false;
+    }
+    const std::string &file_data_str = *file_data; 
+
+    return mz_zip_writer_add_mem(&archive, svg.path_in_3mf.c_str(), 
+        (const void *) file_data_str.c_str(), file_data_str.size(), MZ_DEFAULT_COMPRESSION);
+}
+
+} // namespace
+
+void to_xml(std::stringstream &stream, const EmbossShape &es, const ModelVolume &volume, mz_zip_archive &archive)
+{
+    stream << "   <" << SHAPE_TAG << " ";
+    if (es.svg_file.has_value())
+        if(!to_xml(stream, *es.svg_file, volume, archive))
+            BOOST_LOG_TRIVIAL(warning) << "Can't write svg file defiden embossed shape into 3mf";
+    
+    stream << SHAPE_SCALE_ATTR << "=\"" << es.scale << "\" ";
+
+    if (!es.final_shape.is_healed)
+        stream << UNHEALED_ATTR << "=\"" << 1 << "\" ";
+
+    // projection
+    const EmbossProjection &p = es.projection;
+    stream << DEPTH_ATTR << "=\"" << p.depth << "\" ";
+    if (p.use_surface)
+        stream << USE_SURFACE_ATTR << "=\"" << 1 << "\" ";
+    
+    // FIX of baked transformation
+    Transform3d fix = create_fix(es.fix_3mf_tr, volume);
+    stream << TRANSFORM_ATTR << "=\"";
+    _BBS_3MF_Exporter::add_transformation(stream, fix);
+    stream << "\" ";
+
+    stream << "/>\n"; // end SHAPE_TAG    
+}
+
+std::optional<EmbossShape> read_emboss_shape(const char **attributes, unsigned int num_attributes) {    
+    double scale = bbs_get_attribute_value_float(attributes, num_attributes, SHAPE_SCALE_ATTR);
+    int unhealed = bbs_get_attribute_value_int(attributes, num_attributes, UNHEALED_ATTR);
+    bool is_healed = unhealed != 1;
+
+    EmbossProjection projection;
+    projection.depth = bbs_get_attribute_value_float(attributes, num_attributes, DEPTH_ATTR);
+    if (is_approx(projection.depth, 0.))
+        projection.depth = 10.;
+
+    int use_surface  = bbs_get_attribute_value_int(attributes, num_attributes, USE_SURFACE_ATTR);
+    if (use_surface == 1)
+        projection.use_surface = true;     
+
+    std::optional<Transform3d> fix_tr_mat;
+    std::string fix_tr_mat_str = bbs_get_attribute_value_string(attributes, num_attributes, TRANSFORM_ATTR);
+    if (!fix_tr_mat_str.empty()) { 
+        fix_tr_mat = bbs_get_transform_from_3mf_specs_string(fix_tr_mat_str);
+    }
+
+    std::string file_path = bbs_get_attribute_value_string(attributes, num_attributes, SVG_FILE_PATH_ATTR);
+    std::string file_path_3mf = bbs_get_attribute_value_string(attributes, num_attributes, SVG_FILE_PATH_IN_3MF_ATTR);
+
+    // MayBe: store also shapes to not store svg
+    // But be carefull curve will be lost -> scale will not change sampling
+    // shapes could be loaded from SVG
+    ExPolygonsWithIds shapes; 
+    // final shape could be calculated from shapes
+    HealedExPolygons final_shape;
+    final_shape.is_healed = is_healed;
+
+    EmbossShape::SvgFile svg{file_path, file_path_3mf};
+    return EmbossShape{std::move(shapes), std::move(final_shape), scale, std::move(projection), std::move(fix_tr_mat), std::move(svg)};
+}
+
 
 } // namespace Slic3r
