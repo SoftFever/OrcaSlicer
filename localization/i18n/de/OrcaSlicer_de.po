@@ -5784,16 +5784,16 @@ msgstr "Bambu kalte Druckplatte"
 msgid "PLA Plate"
 msgstr "PLA-Platte"
 
-msgid "Bamabu Engineering Plate"
+msgid "Bambu Engineering Plate"
 msgstr "Bambu technische Druckplatte"
 
-msgid "Bamabu Smooth PEI Plate"
+msgid "Bambu Smooth PEI Plate"
 msgstr "Bambu glatte PEI-Platte"
 
 msgid "High temperature Plate"
 msgstr "Hochtemperaturplatte"
 
-msgid "Bamabu Textured PEI Plate"
+msgid "Bambu Textured PEI Plate"
 msgstr "Bambu strukturierte PEI-Platte"
 
 msgid "Send print job to"
@@ -14517,7 +14517,7 @@ msgstr ""
 #~ msgid "Score"
 #~ msgstr "Punktzahl"
 
-#~ msgid "Bamabu High Temperature Plate"
+#~ msgid "Bambu High Temperature Plate"
 #~ msgstr "Bambu Hochtemperaturdruckplatte"
 
 #~ msgid "Can't connect to the printer"

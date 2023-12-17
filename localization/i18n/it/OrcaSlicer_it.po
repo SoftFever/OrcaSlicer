@@ -5729,17 +5729,17 @@ msgstr "Bambu Cool Plate"
 msgid "PLA Plate"
 msgstr "Piastra PLA"
 
-msgid "Bamabu Engineering Plate"
+msgid "Bambu Engineering Plate"
 msgstr "Bambu Engineering Plate"
 
-msgid "Bamabu Smooth PEI Plate"
-msgstr "Piastra Bamabu Smooth PEI"
+msgid "Bambu Smooth PEI Plate"
+msgstr "Piastra Bambu Smooth PEI"
 
 msgid "High temperature Plate"
 msgstr "High Temperature Plate"
 
-msgid "Bamabu Textured PEI Plate"
-msgstr "Piastra PEI testurizzata Bamabu"
+msgid "Bambu Textured PEI Plate"
+msgstr "Piastra PEI testurizzata Bambu"
 
 msgid "Send print job to"
 msgstr "Invia stampa a"
@@ -14219,7 +14219,7 @@ msgstr ""
 #~ msgid "Score"
 #~ msgstr "Punteggio"
 
-#~ msgid "Bamabu High Temperature Plate"
+#~ msgid "Bambu High Temperature Plate"
 #~ msgstr "Bambu High Temperature Plate"
 
 #~ msgid "Can't connect to the printer"

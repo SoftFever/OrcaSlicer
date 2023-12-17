@@ -5562,16 +5562,16 @@ msgstr "Bambu Cool Plate"
 msgid "PLA Plate"
 msgstr "PLA platta"
 
-msgid "Bamabu Engineering Plate"
+msgid "Bambu Engineering Plate"
 msgstr "Bambu Engineering Plate"
 
-msgid "Bamabu Smooth PEI Plate"
+msgid "Bambu Smooth PEI Plate"
 msgstr ""
 
 msgid "High temperature Plate"
 msgstr ""
 
-msgid "Bamabu Textured PEI Plate"
+msgid "Bambu Textured PEI Plate"
 msgstr ""
 
 msgid "Send print job to"
@@ -13005,7 +13005,7 @@ msgstr ""
 #~ msgid "Score"
 #~ msgstr "Resultat"
 
-#~ msgid "Bamabu High Temperature Plate"
+#~ msgid "Bambu High Temperature Plate"
 #~ msgstr "Bambu High Temperature Plate"
 
 #~ msgid "Can't connect to the printer"

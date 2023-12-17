@@ -5581,16 +5581,16 @@ msgstr "뱀부 쿨 플레이트"
 msgid "PLA Plate"
 msgstr "PLA 플레이트"
 
-msgid "Bamabu Engineering Plate"
+msgid "Bambu Engineering Plate"
 msgstr "뱀부 엔지니어링 플레이트"
 
-msgid "Bamabu Smooth PEI Plate"
+msgid "Bambu Smooth PEI Plate"
 msgstr "뱀부 부드러운 PEI 플레이트"
 
 msgid "High temperature Plate"
 msgstr "고온 플레이트"
 
-msgid "Bamabu Textured PEI Plate"
+msgid "Bambu Textured PEI Plate"
 msgstr "뱀부 텍스처 PEI 플레이트"
 
 msgid "Send print job to"
@@ -13653,7 +13653,7 @@ msgstr ""
 #~ msgid "Score"
 #~ msgstr "점수"
 
-#~ msgid "Bamabu High Temperature Plate"
+#~ msgid "Bambu High Temperature Plate"
 #~ msgstr "뱀부 고온 플레이트"
 
 #~ msgid "Can't connect to the printer"

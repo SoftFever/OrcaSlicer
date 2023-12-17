@@ -5431,16 +5431,16 @@ msgstr "低温打印热床"
 msgid "PLA Plate"
 msgstr "PLA打印板"
 
-msgid "Bamabu Engineering Plate"
+msgid "Bambu Engineering Plate"
 msgstr "工程打印热床"
 
-msgid "Bamabu Smooth PEI Plate"
+msgid "Bambu Smooth PEI Plate"
 msgstr ""
 
 msgid "High temperature Plate"
 msgstr "高温打印热床"
 
-msgid "Bamabu Textured PEI Plate"
+msgid "Bambu Textured PEI Plate"
 msgstr ""
 
 msgid "Send print job to"
@@ -12826,7 +12826,7 @@ msgstr ""
 #~ msgid "Score"
 #~ msgstr "打分"
 
-#~ msgid "Bamabu High Temperature Plate"
+#~ msgid "Bambu High Temperature Plate"
 #~ msgstr "高温打印热床"
 
 #~ msgid "Can't connect to the printer"
