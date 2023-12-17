@@ -2779,9 +2779,11 @@ void GCode::process_layers(
                 return this->process_layer(print, layer.second, layer_tools, &layer == &layers_to_print.back(), &print_object_instances_ordering, size_t(-1));
             }
         });
-    float nozzle_diameter = EXTRUDER_CONFIG(nozzle_diameter);
-    float max_xy_smoothing = m_config.get_abs_value("spiral_mode_max_xy_smoothing", nozzle_diameter);
-    this->m_spiral_vase.get()->set_max_xy_smoothing(max_xy_smoothing);
+    if (m_spiral_vase) {
+        float nozzle_diameter  = EXTRUDER_CONFIG(nozzle_diameter);
+        float max_xy_smoothing = m_config.get_abs_value("spiral_mode_max_xy_smoothing", nozzle_diameter);
+        this->m_spiral_vase->set_max_xy_smoothing(max_xy_smoothing);
+    }
     const auto spiral_mode = tbb::make_filter<LayerResult, LayerResult>(slic3r_tbb_filtermode::serial_in_order,
         [&spiral_mode = *this->m_spiral_vase.get(), &layers_to_print](LayerResult in) -> LayerResult {
         	if (in.nop_layer_result)
@@ -2864,9 +2866,11 @@ void GCode::process_layers(
                 return this->process_layer(print, { std::move(layer) }, tool_ordering.tools_for_layer(layer.print_z()), &layer == &layers_to_print.back(), nullptr, single_object_idx, prime_extruder);
             }
         });
-    float nozzle_diameter = EXTRUDER_CONFIG(nozzle_diameter);
-    float max_xy_smoothing = m_config.get_abs_value("spiral_mode_max_xy_smoothing", nozzle_diameter);
-    this->m_spiral_vase.get()->set_max_xy_smoothing(max_xy_smoothing);
+    if (m_spiral_vase) {
+        float nozzle_diameter  = EXTRUDER_CONFIG(nozzle_diameter);
+        float max_xy_smoothing = m_config.get_abs_value("spiral_mode_max_xy_smoothing", nozzle_diameter);
+        this->m_spiral_vase->set_max_xy_smoothing(max_xy_smoothing);
+    }
     const auto spiral_mode = tbb::make_filter<LayerResult, LayerResult>(slic3r_tbb_filtermode::serial_in_order,
         [&spiral_mode = *this->m_spiral_vase.get(), &layers_to_print](LayerResult in)->LayerResult {
             spiral_mode.enable(in.spiral_vase_enable);
