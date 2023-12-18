@@ -5617,12 +5617,12 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
     double width = volumes_box.max.x() - volumes_box.min.x();
     double depth = volumes_box.max.y() - volumes_box.min.y();
     double height = volumes_box.max.z() - volumes_box.min.z();
-    volumes_box.max.x() = volumes_box.max.x() + width * 0.1f;
-    volumes_box.min.x() = volumes_box.min.x() - width * 0.1f;
-    volumes_box.max.y() = volumes_box.max.y() + depth * 0.1f;
-    volumes_box.min.y() = volumes_box.min.y() - depth * 0.1f;
-    volumes_box.max.z() = volumes_box.max.z() + height * 0.1f;
-    volumes_box.min.z() = volumes_box.min.z() - height * 0.1f;
+    volumes_box.max.x() = volumes_box.max.x() + width * 0.01f;
+    volumes_box.min.x() = volumes_box.min.x() - width * 0.01f;
+    volumes_box.max.y() = volumes_box.max.y() + depth * 0.01f;
+    volumes_box.min.y() = volumes_box.min.y() - depth * 0.01f;
+    volumes_box.max.z() = volumes_box.max.z() + height * 0.01f;
+    volumes_box.min.z() = volumes_box.min.z() - height * 0.01f;
 
     Camera camera;
     camera.set_type(camera_type);
@@ -5651,8 +5651,8 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
         //camera.select_view("top");
     }
     else {
-        camera.zoom_to_box(volumes_box);
         camera.select_view("iso");
+        camera.zoom_to_box(volumes_box);
     }
 
     const Transform3d &view_matrix = camera.get_view_matrix();

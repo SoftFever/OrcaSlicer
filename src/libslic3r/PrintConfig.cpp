@@ -477,6 +477,15 @@ void PrintConfigDef::init_common_params()
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionFloat(100.0));
 
+    def = this->add("preferred_orientation", coFloat);
+    def->label = L("Preferred orientation");
+    def->tooltip = L("Automatically orient stls on the Z-axis upon initial import");
+    def->sidetext = L("°");
+    def->max = 360;
+    def->min = -360;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0.0));
+
     // Options used by physical printers
 
     def = this->add("preset_names", coStrings);
@@ -3454,6 +3463,25 @@ def = this->add("filament_loading_speed", coFloats);
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionBool(false));
 
+    def = this->add("spiral_mode_smooth", coBool);
+    def->label = L("Smooth Spiral");
+    def->tooltip = L("Smooth Spiral smoothes out X and Y moves as well"
+                     "resulting in no visible seam at all, even in the XY directions on walls that are not vertical");
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("spiral_mode_max_xy_smoothing", coFloatOrPercent);
+    def->label = L("Max XY Smoothing");
+    def->tooltip = L("Maximum distance to move points in XY to try to achieve a smooth spiral"
+                     "If expressed as a %, it will be computed over nozzle diameter");
+    def->sidetext = L("mm or %");
+    def->ratio_over = "nozzle_diameter";
+    def->min = 0;
+    def->max = 1000;
+    def->max_literal = 10;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloatOrPercent(200, true));
+
     def = this->add("timelapse_type", coEnum);
     def->label = L("Timelapse");
     def->tooltip = L("If smooth or traditional mode is selected, a timelapse video will be generated for each print. "
@@ -4201,7 +4229,7 @@ def = this->add("filament_loading_speed", coFloats);
 
     def = this->add("wipe_distance", coFloats);
     def->label = L("Wipe Distance");
-    def->tooltip = L("Discribe how long the nozzle will move along the last path when retracting");
+    def->tooltip = L("Discribe how long the nozzle will move along the last path when retracting. \n\nDepending on how long the wipe operation lasts, how fast and long the extruder/filament retraction settings are, a retraction move may be needed to retract the remaining filament. \n\nSetting a value in the retract amount before wipe setting below will perform any excess retraction before the wipe, else it will be performed after.");
     def->sidetext = L("mm");
     def->min = 0;
     def->mode = comAdvanced;

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-02 13:02+0800\n"
+"POT-Creation-Date: 2023-12-17 09:16+0100\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -843,6 +843,24 @@ msgstr "Add Support Blocker"
 msgid "Add support enforcer"
 msgstr "Add Support Enforcer"
 
+msgid "Add text"
+msgstr ""
+
+msgid "Add negative text"
+msgstr ""
+
+msgid "Add text modifier"
+msgstr ""
+
+msgid "Add SVG part"
+msgstr ""
+
+msgid "Add negative SVG"
+msgstr ""
+
+msgid "Add SVG modifier"
+msgstr ""
+
 msgid "Select settings"
 msgstr "Select settings"
 
@@ -857,9 +875,6 @@ msgstr "Del"
 
 msgid "Delete the selected object"
 msgstr "Delete the selected object"
-
-msgid "Edit Text"
-msgstr "Edit Text"
 
 msgid "Load..."
 msgstr "Load..."
@@ -884,6 +899,12 @@ msgstr "Cylinder"
 
 msgid "Cone"
 msgstr "Cone"
+
+msgid "Text"
+msgstr ""
+
+msgid "SVG"
+msgstr ""
 
 msgid "Height range Modifier"
 msgstr "Height Range Modifier"
@@ -1017,6 +1038,18 @@ msgstr "Mirror"
 
 msgid "Mirror object"
 msgstr "Mirror object"
+
+msgid "Edit text"
+msgstr ""
+
+msgid "Ability to change text, font, size, ..."
+msgstr ""
+
+msgid "Edit SVG"
+msgstr ""
+
+msgid "Change SVG source file, projection, size, ..."
+msgstr ""
 
 msgid "Invalidate cut info"
 msgstr "Invalidate cut info"
@@ -1647,11 +1680,6 @@ msgstr ""
 msgid "Arranging..."
 msgstr "Arranging..."
 
-msgid ""
-"Arrange failed. Found some exceptions when processing object geometries."
-msgstr ""
-"Arrange failed. Found some exceptions when processing object geometries."
-
 msgid "Arranging"
 msgstr "Arranging"
 
@@ -1666,6 +1694,11 @@ msgstr ""
 
 msgid "Arranging done."
 msgstr "Arranging done."
+
+msgid ""
+"Arrange failed. Found some exceptions when processing object geometries."
+msgstr ""
+"Arrange failed. Found some exceptions when processing object geometries."
 
 #, c-format, boost-format
 msgid ""
@@ -1697,6 +1730,9 @@ msgstr "Orienting..."
 msgid "Orienting"
 msgstr "Orienting"
 
+msgid "Orienting canceled."
+msgstr ""
+
 msgid "Filling"
 msgstr ""
 
@@ -1706,11 +1742,14 @@ msgstr "Bed filling canceled."
 msgid "Bed filling done."
 msgstr "Bed filling done."
 
-msgid "Error! Unable to create thread!"
-msgstr "Error. Unable to create thread."
+msgid "Searching for optimal orientation"
+msgstr ""
 
-msgid "Exception"
-msgstr "Exception"
+msgid "Orientation search canceled."
+msgstr ""
+
+msgid "Orientation found."
+msgstr ""
 
 msgid "Logging in"
 msgstr "Logging in"
@@ -1818,30 +1857,6 @@ msgstr "Successfully sent. Close current page in %s s"
 
 msgid "An SD card needs to be inserted before sending to printer."
 msgstr "A MicroSD card needs to be inserted before sending to printer."
-
-msgid "Choose SLA archive:"
-msgstr "Choose SLA archive:"
-
-msgid "Import file"
-msgstr "Import file"
-
-msgid "Import model and profile"
-msgstr "Import model and profile"
-
-msgid "Import profile only"
-msgstr "Import profile only"
-
-msgid "Import model only"
-msgstr "Import model only"
-
-msgid "Accurate"
-msgstr "Accurate"
-
-msgid "Balanced"
-msgstr "Balanced"
-
-msgid "Quick"
-msgstr "Quick"
 
 msgid "Importing SLA archive"
 msgstr "Importing SLA archive"
@@ -3147,7 +3162,7 @@ msgstr "Volume:"
 msgid "Size:"
 msgstr "Size:"
 
-#, c-format, boost-format
+#, boost-format
 msgid ""
 "Conflicts of gcode paths have been found at layer %d, z = %.2lf mm. Please "
 "separate the conflicted objects farther (%s <-> %s)."
@@ -3528,6 +3543,12 @@ msgid "Show &G-code Window"
 msgstr ""
 
 msgid "Show g-code window in Previce scene"
+msgstr ""
+
+msgid "Reset Window Layout"
+msgstr ""
+
+msgid "Reset to default window layout"
 msgstr ""
 
 msgid "Show &Labels"
@@ -4590,6 +4611,12 @@ msgid ""
 "It is recommended to change to smooth mode."
 msgstr ""
 
+msgid "Expand sidebar"
+msgstr ""
+
+msgid "Collapse sidebar"
+msgstr ""
+
 #, c-format, boost-format
 msgid "Loading file: %s"
 msgstr "Loading file: %s"
@@ -4837,6 +4864,9 @@ msgid ""
 "import it."
 msgstr ""
 
+msgid "Import SLA archive"
+msgstr ""
+
 msgid "The selected file"
 msgstr "The selected file"
 
@@ -4920,6 +4950,15 @@ msgstr ""
 "Unable to perform boolean operation on model meshes. Only positive parts "
 "will be exported."
 
+msgid ""
+"Are you sure you want to store original SVGs with their local paths into the "
+"3MF file?\n"
+"If you hit 'NO', all SVGs in the project will not be editable any more."
+msgstr ""
+
+msgid "Private protection"
+msgstr ""
+
 msgid "Is the printer ready? Is the print sheet in place, empty and clean?"
 msgstr ""
 
@@ -4941,6 +4980,9 @@ msgstr "Send to printer"
 
 msgid "Custom supports and color painting were removed before repairing."
 msgstr "Custom supports and color painting were removed before repairing."
+
+msgid "Optimize Rotation"
+msgstr ""
 
 msgid "Invalid number"
 msgstr "Invalid number"
@@ -5946,13 +5988,13 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 
 msgid "Line width"
 msgstr "Line width"
@@ -5965,6 +6007,15 @@ msgstr "Precision"
 
 msgid "Wall generator"
 msgstr "Wall generator"
+
+msgid "Walls and surfaces"
+msgstr ""
+
+msgid "Bridging"
+msgstr ""
+
+msgid "Overhangs"
+msgstr ""
 
 msgid "Walls"
 msgstr "Walls"
@@ -6552,19 +6603,15 @@ msgstr ""
 msgid "Ramming line spacing"
 msgstr ""
 
-msgid "Auto-Calc"
-msgstr "Auto-Calc"
-
-msgid "Re-calculate"
+msgid "Recalculate"
 msgstr ""
 
 msgid "Flushing volumes for filament change"
 msgstr "Flushing volumes for filament change"
 
 msgid ""
-"Studio would re-calculate your flushing volumes everytime the filaments "
-"color changed. You could disable the auto-calculate in Bambu Studio > "
-"Preferences"
+"Orca recalculates your flushing volumes everytime the filament colors "
+"change. You can change this behavior in Preferences."
 msgstr ""
 
 msgid "Flushing volume (mm³) for each filament pair."
@@ -6580,15 +6627,6 @@ msgstr "The multiplier should be in range [%.2f, %.2f]."
 
 msgid "Multiplier"
 msgstr "Multiplier"
-
-msgid "unloaded"
-msgstr "unloaded"
-
-msgid "loaded"
-msgstr "loaded"
-
-msgid "Filament #"
-msgstr "Filament #"
 
 msgid "From"
 msgstr "From"
@@ -7500,6 +7538,12 @@ msgstr ""
 "This is the maximum printable height which is limited by the height of the "
 "build area."
 
+msgid "Preferred orientation"
+msgstr ""
+
+msgid "Automatically orient stls on the Z-axis upon initial import"
+msgstr ""
+
 msgid "Printer preset names"
 msgstr "Printer preset names"
 
@@ -8233,7 +8277,29 @@ msgstr ""
 msgid "Walls printing order"
 msgstr ""
 
-msgid "Print sequence of inner wall and outer wall. "
+msgid ""
+"Print sequence of the internal (inner) and external (outer) walls. \n"
+"\n"
+"Use Inner/Outer for best overhangs. This is because the overhanging walls "
+"can adhere to a neighouring perimeter while printing. However, this option "
+"results in slightly reduced surface quality as the external perimeter is "
+"deformed by being squashed to the internal perimeter.\n"
+"\n"
+"Use Inner/Outer/Inner for the best external surface finish and dimensional "
+"accuracy as the external wall is printed undisturbed from an internal "
+"perimeter. However, overhang performance will reduce as there is no internal "
+"perimeter to print the external wall against. This option requires a minimum "
+"of 3 walls to be effective as it prints the internal walls from the 3rd "
+"perimeter onwards first, then the external perimeter and, finally, the first "
+"internal perimeter. This option is recomended against the Outer/Inner option "
+"in most cases. \n"
+"\n"
+"Use Outer/Inner for the same external wall quality and dimensional accuracy "
+"benefits of Inner/Outer/Inner option. However, the z seams will appear less "
+"consistent as the first extrusion of a new layer starts on a visible "
+"surface.\n"
+"\n"
+" "
 msgstr ""
 
 msgid "Inner/Outer"
@@ -8248,7 +8314,15 @@ msgstr ""
 msgid "Print infill first"
 msgstr ""
 
-msgid "Order of wall/infill. false means print wall first. "
+msgid ""
+"Order of wall/infill. When the tickbox is unchecked the walls are printed "
+"first, which works best in most cases.\n"
+"\n"
+"Printing walls first may help with extreme overhangs as the walls have the "
+"neighbouring infill to adhere to. However, the infill will slighly push out "
+"the printed walls where it is attached to them, resulting in a worse "
+"external surface finish. It can also cause the infill to shine through the "
+"external surfaces of the part."
 msgstr ""
 
 msgid "Height to rod"
@@ -8797,10 +8871,10 @@ msgstr "Full fan speed at layer"
 
 msgid ""
 "Fan speed will be ramped up linearly from zero at layer "
-"\"close_fan_the_first_x_layers\" to maximum at layer \"full_fan_speed_layer"
-"\". \"full_fan_speed_layer\" will be ignored if lower than "
-"\"close_fan_the_first_x_layers\", in which case the fan will be running at "
-"maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
+"\"close_fan_the_first_x_layers\" to maximum at layer "
+"\"full_fan_speed_layer\". \"full_fan_speed_layer\" will be ignored if lower "
+"than \"close_fan_the_first_x_layers\", in which case the fan will be running "
+"at maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
 msgstr ""
 
 msgid "Support interface fan speed"
@@ -9746,6 +9820,9 @@ msgstr ""
 msgid "Show auto-calibration marks"
 msgstr ""
 
+msgid "Disable set remaining print time"
+msgstr ""
+
 msgid "Seam position"
 msgstr "Seam position"
 
@@ -9873,6 +9950,22 @@ msgstr ""
 "This enables spiraling, which smooths out the Z moves of the outer contour "
 "and turns a solid model into a single walled print with solid bottom layers. "
 "The final generated model has no seam."
+
+msgid "Smooth Spiral"
+msgstr ""
+
+msgid ""
+"Smooth Spiral smoothes out X and Y moves as wellresulting in no visible seam "
+"at all, even in the XY directions on walls that are not vertical"
+msgstr ""
+
+msgid "Max XY Smoothing"
+msgstr ""
+
+msgid ""
+"Maximum distance to move points in XY to try to achieve a smooth spiralIf "
+"expressed as a %, it will be computed over nozzle diameter"
+msgstr ""
 
 msgid ""
 "If smooth or traditional mode is selected, a timelapse video will be "
@@ -10444,10 +10537,16 @@ msgid "Wipe Distance"
 msgstr "Wipe distance"
 
 msgid ""
-"Discribe how long the nozzle will move along the last path when retracting"
+"Discribe how long the nozzle will move along the last path when "
+"retracting. \n"
+"\n"
+"Depending on how long the wipe operation lasts, how fast and long the "
+"extruder/filament retraction settings are, a retraction move may be needed "
+"to retract the remaining filament. \n"
+"\n"
+"Setting a value in the retract amount before wipe setting below will perform "
+"any excess retraction before the wipe, else it will be performed after."
 msgstr ""
-"This describes how long the nozzle will move along the last path while "
-"retracting."
 
 msgid ""
 "The wiping tower can be used to clean up the residue on the nozzle and "
@@ -11770,8 +11869,8 @@ msgid ""
 msgstr ""
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 
@@ -12288,213 +12387,56 @@ msgid ""
 "Error: \"%2%\""
 msgstr ""
 
-#: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
-msgid ""
-"How to use keyboard shortcuts\n"
-"Did you know that Orca Slicer offers a wide range of keyboard shortcuts and "
-"3D scene operations."
-msgstr ""
+#~ msgid "Edit Text"
+#~ msgstr "Edit Text"
 
-#: resources/data/hints.ini: [hint:Cut Tool]
-msgid ""
-"Cut Tool\n"
-"Did you know that you can cut a model at any angle and position with the "
-"cutting tool?"
-msgstr ""
+#~ msgid "Error! Unable to create thread!"
+#~ msgstr "Error. Unable to create thread."
 
-#: resources/data/hints.ini: [hint:Fix Model]
-msgid ""
-"Fix Model\n"
-"Did you know that you can fix a corrupted 3D model to avoid a lot of slicing "
-"problems on the Windows system?"
-msgstr ""
+#~ msgid "Exception"
+#~ msgstr "Exception"
 
-#: resources/data/hints.ini: [hint:Timelapse]
-msgid ""
-"Timelapse\n"
-"Did you know that you can generate a timelapse video during each print?"
-msgstr ""
+#~ msgid "Choose SLA archive:"
+#~ msgstr "Choose SLA archive:"
 
-#: resources/data/hints.ini: [hint:Auto-Arrange]
-msgid ""
-"Auto-Arrange\n"
-"Did you know that you can auto-arrange all objects in your project?"
-msgstr ""
+#~ msgid "Import file"
+#~ msgstr "Import file"
 
-#: resources/data/hints.ini: [hint:Auto-Orient]
-msgid ""
-"Auto-Orient\n"
-"Did you know that you can rotate objects to an optimal orientation for "
-"printing by a simple click?"
-msgstr ""
+#~ msgid "Import model and profile"
+#~ msgstr "Import model and profile"
 
-#: resources/data/hints.ini: [hint:Lay on Face]
-msgid ""
-"Lay on Face\n"
-"Did you know that you can quickly orient a model so that one of its faces "
-"sits on the print bed? Select the \"Place on face\" function or press the "
-"<b>F</b> key."
-msgstr ""
+#~ msgid "Import profile only"
+#~ msgstr "Import profile only"
 
-#: resources/data/hints.ini: [hint:Object List]
-msgid ""
-"Object List\n"
-"Did you know that you can view all objects/parts in a list and change "
-"settings for each object/part?"
-msgstr ""
+#~ msgid "Import model only"
+#~ msgstr "Import model only"
 
-#: resources/data/hints.ini: [hint:Search Functionality]
-msgid ""
-"Search Functionality\n"
-"Did you know that you use the Search tool to quickly find a specific Orca "
-"Slicer setting?"
-msgstr ""
+#~ msgid "Accurate"
+#~ msgstr "Accurate"
 
-#: resources/data/hints.ini: [hint:Simplify Model]
-msgid ""
-"Simplify Model\n"
-"Did you know that you can reduce the number of triangles in a mesh using the "
-"Simplify mesh feature? Right-click the model and select Simplify model. Read "
-"more in the documentation."
-msgstr ""
+#~ msgid "Balanced"
+#~ msgstr "Balanced"
 
-#: resources/data/hints.ini: [hint:Slicing Parameter Table]
-msgid ""
-"Slicing Parameter Table\n"
-"Did you know that you can view all objects/parts on a table and change "
-"settings for each object/part?"
-msgstr ""
+#~ msgid "Quick"
+#~ msgstr "Quick"
 
-#: resources/data/hints.ini: [hint:Split to Objects/Parts]
-msgid ""
-"Split to Objects/Parts\n"
-"Did you know that you can split a big object into small ones for easy "
-"colorizing or printing?"
-msgstr ""
+#~ msgid "Auto-Calc"
+#~ msgstr "Auto-Calc"
 
-#: resources/data/hints.ini: [hint:Subtract a Part]
-msgid ""
-"Subtract a Part\n"
-"Did you know that you can subtract one mesh from another using the Negative "
-"part modifier? That way you can, for example, create easily resizable holes "
-"directly in Orca Slicer. Read more in the documentation."
-msgstr ""
+#~ msgid "unloaded"
+#~ msgstr "unloaded"
 
-#: resources/data/hints.ini: [hint:STEP]
-msgid ""
-"STEP\n"
-"Did you know that you can improve your print quality by slicing a STEP file "
-"instead of an STL?\n"
-"Orca Slicer supports slicing STEP files, providing smoother results than a "
-"lower resolution STL. Give it a try!"
-msgstr ""
+#~ msgid "loaded"
+#~ msgstr "loaded"
 
-#: resources/data/hints.ini: [hint:Z seam location]
-msgid ""
-"Z seam location\n"
-"Did you know that you can customize the location of the Z seam, and even "
-"paint it on your print, to have it in a less visible location? This improves "
-"the overall look of your model. Check it out!"
-msgstr ""
+#~ msgid "Filament #"
+#~ msgstr "Filament #"
 
-#: resources/data/hints.ini: [hint:Fine-tuning for flow rate]
-msgid ""
-"Fine-tuning for flow rate\n"
-"Did you know that flow rate can be fine-tuned for even better-looking "
-"prints? Depending on the material, you can improve the overall finish of the "
-"printed model by doing some fine-tuning."
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Split your prints into plates]
-msgid ""
-"Split your prints into plates\n"
-"Did you know that you can split a model that has a lot of parts into "
-"individual plates ready to print? This will simplify the process of keeping "
-"track of all the parts."
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Speed up your print with Adaptive Layer
-#: Height]
-msgid ""
-"Speed up your print with Adaptive Layer Height\n"
-"Did you know that you can print a model even faster, by using the Adaptive "
-"Layer Height option? Check it out!"
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Support painting]
-msgid ""
-"Support painting\n"
-"Did you know that you can paint the location of your supports? This feature "
-"makes it easy to place the support material only on the sections of the "
-"model that actually need it."
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Different types of supports]
-msgid ""
-"Different types of supports\n"
-"Did you know that you can choose from multiple types of supports? Tree "
-"supports work great for organic models, while saving filament and improving "
-"print speed. Check them out!"
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Printing Silk Filament]
-msgid ""
-"Printing Silk Filament\n"
-"Did you know that Silk filament needs special consideration to print it "
-"successfully? Higher temperature and lower speed are always recommended for "
-"the best results."
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Brim for better adhesion]
-msgid ""
-"Brim for better adhesion\n"
-"Did you know that when printing models have a small contact interface with "
-"the printing surface, it's recommended to use a brim?"
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Set parameters for multiple objects]
-msgid ""
-"Set parameters for multiple objects\n"
-"Did you know that you can set slicing parameters for all selected objects at "
-"one time?"
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Stack objects]
-msgid ""
-"Stack objects\n"
-"Did you know that you can stack objects as a whole one?"
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Flush into support/objects/infill]
-msgid ""
-"Flush into support/objects/infill\n"
-"Did you know that you can save the wasted filament by flushing them into "
-"support/objects/infill during filament change?"
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Improve strength]
-msgid ""
-"Improve strength\n"
-"Did you know that you can use more wall loops and higher sparse infill "
-"density to improve the strength of the model?"
-msgstr ""
-
-#: resources/data/hints.ini: [hint:When need to print with the printer door
-#: opened]
-msgid ""
-"When need to print with the printer door opened\n"
-"Did you know that opening the printer door can reduce the probability of "
-"extruder/hotend clogging when printing lower temperature filament with a "
-"higher enclosure temperature. More info about this in the Wiki."
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Avoid warping]
-msgid ""
-"Avoid warping\n"
-"Did you know that when printing materials that are prone to warping such as "
-"ABS, appropriately increasing the heatbed temperature can reduce the "
-"probability of warping."
-msgstr ""
+#~ msgid ""
+#~ "Discribe how long the nozzle will move along the last path when retracting"
+#~ msgstr ""
+#~ "This describes how long the nozzle will move along the last path while "
+#~ "retracting."
 
 #~ msgid "Filling bed "
 #~ msgstr "Filling bed"

@@ -2524,7 +2524,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     , config(Slic3r::DynamicPrintConfig::new_from_defaults_keys({
         "printable_area", "bed_exclude_area", "bed_custom_texture", "bed_custom_model", "print_sequence",
         "extruder_clearance_radius", "extruder_clearance_height_to_lid", "extruder_clearance_height_to_rod", "skirt_loops", "skirt_speed", "skirt_distance",
-        "brim_width", "brim_object_gap", "brim_type", "nozzle_diameter", "single_extruder_multi_material",
+        "brim_width", "brim_object_gap", "brim_type", "nozzle_diameter", "single_extruder_multi_material", "preferred_orientation",
         "enable_prime_tower", "wipe_tower_x", "wipe_tower_y", "prime_tower_width", "prime_tower_brim_width", "prime_volume",
         "extruder_colour", "filament_colour", "material_colour", "printable_height", "printer_model", "printer_technology",
         // These values are necessary to construct SlicingParameters by the Canvas3D variable layer height editor.
@@ -3825,8 +3825,12 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
                 if (type_any_amf && is_xxx) imperial_units = true;
 
-                for (auto obj : model.objects)
-                    if (obj->name.empty()) obj->name = fs::path(obj->input_file).filename().string();
+                for (auto obj : model.objects) {
+                    if (obj->name.empty()) {
+                        obj->name = fs::path(obj->input_file).filename().string();
+                    }
+                    obj->rotate(Geometry::deg2rad(config->opt_float("preferred_orientation")), Axis::Z);
+                }
 
                 if (plate_data.size() > 0) {
                     partplate_list.load_from_3mf_structure(plate_data);

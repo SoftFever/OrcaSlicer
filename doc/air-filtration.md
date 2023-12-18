@@ -29,7 +29,7 @@ hardware_pwm: false
 [gcode_macro M106]
 gcode:
     {% set fan = 'fan' + (params.P|int if params.P is defined else 0)|string %}
-    {% set speed = (params.S|int if params.S is defined else 255) %}
+    {% set speed = (params.S|float / 255 if params.S is defined else 1.0) %}
     SET_FAN_SPEED FAN={fan} SPEED={speed}
 
 ```
