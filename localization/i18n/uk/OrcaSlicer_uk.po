@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-16 22:39+0800\n"
+"POT-Creation-Date: 2023-12-18 12:20+0800\n"
 "PO-Revision-Date: 2023-08-10 20:25-0400\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -5618,16 +5618,16 @@ msgstr "Холодний стіл"
 msgid "PLA Plate"
 msgstr ""
 
-msgid "Bamabu Engineering Plate"
+msgid "Bambu Engineering Plate"
 msgstr "Інженерний стіл"
 
-msgid "Bamabu Smooth PEI Plate"
+msgid "Bambu Smooth PEI Plate"
 msgstr ""
 
 msgid "High temperature Plate"
 msgstr ""
 
-msgid "Bamabu Textured PEI Plate"
+msgid "Bambu Textured PEI Plate"
 msgstr ""
 
 msgid "Send print job to"
@@ -10140,6 +10140,22 @@ msgstr ""
 "твердотільна модель в одностінний друк із суцільними нижніми шарами.Кінічна "
 "згенерована модель не має шва"
 
+msgid "Smooth Spiral"
+msgstr ""
+
+msgid ""
+"Smooth Spiral smoothes out X and Y moves as wellresulting in no visible seam "
+"at all, even in the XY directions on walls that are not vertical"
+msgstr ""
+
+msgid "Max XY Smoothing"
+msgstr ""
+
+msgid ""
+"Maximum distance to move points in XY to try to achieve a smooth spiralIf "
+"expressed as a %, it will be computed over nozzle diameter"
+msgstr ""
+
 msgid ""
 "If smooth or traditional mode is selected, a timelapse video will be "
 "generated for each print. After each layer is printed, a snapshot is taken "
@@ -13297,7 +13313,7 @@ msgstr ""
 #~ msgid "Resonance frequency identification"
 #~ msgstr "Ідентифікація резонансної частоти"
 
-#~ msgid "Bamabu High Temperature Plate"
+#~ msgid "Bambu High Temperature Plate"
 #~ msgstr "Високотемпературна пластина"
 
 #~ msgid "Recommended temperature range"

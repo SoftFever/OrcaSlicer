@@ -37,7 +37,7 @@ public:
 private:
     const PrintConfig  &m_config;
     GCodeReader 		m_reader;
-    float               m_max_xy_smoothing;
+    float               m_max_xy_smoothing = 0.f;
 
     bool 				m_enabled = false;
     // First spiral vase layer. Layer height has to be ramped up from zero to the target layer height.

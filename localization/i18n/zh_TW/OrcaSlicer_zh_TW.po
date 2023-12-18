@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-16 22:39+0800\n"
+"POT-Creation-Date: 2023-12-18 12:20+0800\n"
 "PO-Revision-Date: 2023-11-06 14:37+0800\n"
 "Last-Translator: ablegods <ablegods@gmail.com>\n"
 "Language-Team: \n"
@@ -5731,17 +5731,17 @@ msgstr "低溫列印版"
 msgid "PLA Plate"
 msgstr "PLA 列印板"
 
-msgid "Bamabu Engineering Plate"
+msgid "Bambu Engineering Plate"
 msgstr "工程列印熱床"
 
-msgid "Bamabu Smooth PEI Plate"
+msgid "Bambu Smooth PEI Plate"
 msgstr ""
 
 #, fuzzy
 msgid "High temperature Plate"
 msgstr "高溫列印板"
 
-msgid "Bamabu Textured PEI Plate"
+msgid "Bambu Textured PEI Plate"
 msgstr ""
 
 msgid "Send print job to"
@@ -10288,6 +10288,22 @@ msgstr ""
 "沿著物件的外輪廓螺旋上升，將實體模型轉變為只有底面實心層和側面單層牆壁的列"
 "印。最後產生的列印物件沒有接縫。"
 
+msgid "Smooth Spiral"
+msgstr ""
+
+msgid ""
+"Smooth Spiral smoothes out X and Y moves as wellresulting in no visible seam "
+"at all, even in the XY directions on walls that are not vertical"
+msgstr ""
+
+msgid "Max XY Smoothing"
+msgstr ""
+
+msgid ""
+"Maximum distance to move points in XY to try to achieve a smooth spiralIf "
+"expressed as a %, it will be computed over nozzle diameter"
+msgstr ""
+
 msgid ""
 "If smooth or traditional mode is selected, a timelapse video will be "
 "generated for each print. After each layer is printed, a snapshot is taken "
@@ -13301,17 +13317,6 @@ msgstr ""
 #~ msgstr "新增/刪除列印設備"
 
 #, fuzzy
-#~ msgid "Bambu Engineering Plate"
-#~ msgstr "Bambu 高溫工程列印板"
-
-#, fuzzy
-#~ msgid "Bambu Smooth PEI Plate"
-#~ msgstr "Bambu 光滑面列印板"
-
-#~ msgid "Bambu Textured PEI Plate"
-#~ msgstr "Bambu 金屬紋理列印板"
-
-#, fuzzy
 #~ msgid ""
 #~ "When print by object, machines with I3 structure will not generate "
 #~ "timelapse videos."
@@ -13675,7 +13680,7 @@ msgstr ""
 #~ msgid "Score"
 #~ msgstr "打分"
 
-#~ msgid "Bamabu High Temperature Plate"
+#~ msgid "Bambu High Temperature Plate"
 #~ msgstr "高溫列印熱床"
 
 #~ msgid "Can't connect to the printer"

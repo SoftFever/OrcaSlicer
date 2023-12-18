@@ -5672,16 +5672,16 @@ msgstr "Bambu Soğuk Plaka"
 msgid "PLA Plate"
 msgstr "PLA Plaka"
 
-msgid "Bamabu Engineering Plate"
-msgstr "Bamabu Mühendislik Plakası"
+msgid "Bambu Engineering Plate"
+msgstr "Bambu Mühendislik Plakası"
 
-msgid "Bamabu Smooth PEI Plate"
+msgid "Bambu Smooth PEI Plate"
 msgstr "Bambu Pürüzsüz PEI Plaka"
 
 msgid "High temperature Plate"
 msgstr "Yüksek Sıcaklık Plakası"
 
-msgid "Bamabu Textured PEI Plate"
+msgid "Bambu Textured PEI Plate"
 msgstr "Bambu Dokulu PEI Plaka"
 
 msgid "Send print job to"
@@ -10473,6 +10473,22 @@ msgstr ""
 "katı alt katmanlara sahip tek duvarlı bir baskıya dönüştürür. Oluşturulan "
 "son modelde dikiş yok"
 
+msgid "Smooth Spiral"
+msgstr ""
+
+msgid ""
+"Smooth Spiral smoothes out X and Y moves as wellresulting in no visible seam "
+"at all, even in the XY directions on walls that are not vertical"
+msgstr ""
+
+msgid "Max XY Smoothing"
+msgstr ""
+
+msgid ""
+"Maximum distance to move points in XY to try to achieve a smooth spiralIf "
+"expressed as a %, it will be computed over nozzle diameter"
+msgstr ""
+
 msgid ""
 "If smooth or traditional mode is selected, a timelapse video will be "
 "generated for each print. After each layer is printed, a snapshot is taken "
@@ -13246,9 +13262,6 @@ msgid ""
 "Did you know that Orca Slicer offers a wide range of keyboard shortcuts and "
 "3D scene operations."
 msgstr ""
-"Klavye kısayolları nasıl kullanılır\n"
-"Orca Slicer'ın çok çeşitli klavye kısayolları ve 3B sahne işlemleri "
-"sunduğunu biliyor muydunuz?"
 
 #: resources/data/hints.ini: [hint:Cut Tool]
 msgid ""
@@ -13256,9 +13269,6 @@ msgid ""
 "Did you know that you can cut a model at any angle and position with the "
 "cutting tool?"
 msgstr ""
-"Kesme Aleti\n"
-"Kesici aletle bir modeli istediğiniz açıda ve konumda kesebileceğinizi "
-"biliyor muydunuz?"
 
 #: resources/data/hints.ini: [hint:Fix Model]
 msgid ""
@@ -13266,26 +13276,18 @@ msgid ""
 "Did you know that you can fix a corrupted 3D model to avoid a lot of slicing "
 "problems on the Windows system?"
 msgstr ""
-"Modeli Düzelt\n"
-"Windows sisteminde birçok dilimleme sorununu önlemek için bozuk bir 3D "
-"modeli düzeltebileceğinizi biliyor muydunuz?"
 
 #: resources/data/hints.ini: [hint:Timelapse]
 msgid ""
 "Timelapse\n"
 "Did you know that you can generate a timelapse video during each print?"
 msgstr ""
-"Hızlandırılmış\n"
-"Her baskı sırasında timelapse video oluşturabileceğinizi biliyor muydunuz?"
 
 #: resources/data/hints.ini: [hint:Auto-Arrange]
 msgid ""
 "Auto-Arrange\n"
 "Did you know that you can auto-arrange all objects in your project?"
 msgstr ""
-"Otomatik düzenleme\n"
-"Projenizdeki tüm nesneleri otomatik olarak düzenleyebileceğinizi biliyor "
-"muydunuz?"
 
 #: resources/data/hints.ini: [hint:Auto-Orient]
 msgid ""
@@ -13293,9 +13295,6 @@ msgid ""
 "Did you know that you can rotate objects to an optimal orientation for "
 "printing by a simple click?"
 msgstr ""
-"Otomatik Yönlendirme\n"
-"Basit bir tıklamayla nesneleri yazdırma için en uygun yöne "
-"döndürebileceğinizi biliyor muydunuz?"
 
 #: resources/data/hints.ini: [hint:Lay on Face]
 msgid ""
@@ -13429,9 +13428,6 @@ msgid ""
 "Did you know that you can print a model even faster, by using the Adaptive "
 "Layer Height option? Check it out!"
 msgstr ""
-"Uyarlanabilir Katman Yüksekliği ile baskınızı hızlandırın\n"
-"Uyarlanabilir Katman Yüksekliği seçeneğini kullanarak bir modeli daha da "
-"hızlı yazdırabileceğinizi biliyor muydunuz? Buna bir bak!"
 
 #: resources/data/hints.ini: [hint:Support painting]
 msgid ""
@@ -13464,10 +13460,6 @@ msgid ""
 "successfully? Higher temperature and lower speed are always recommended for "
 "the best results."
 msgstr ""
-"İpek Filament Baskı\n"
-"İpek filamentin başarılı bir şekilde basılabilmesi için özel dikkat "
-"gösterilmesi gerektiğini biliyor muydunuz? En iyi sonuçlar için her zaman "
-"daha yüksek sıcaklık ve daha düşük hız önerilir."
 
 #: resources/data/hints.ini: [hint:Brim for better adhesion]
 msgid ""
@@ -13727,15 +13719,6 @@ msgstr ""
 
 #~ msgid "Add/Remove printers"
 #~ msgstr "Yazıcı Ekle/Kaldır"
-
-#~ msgid "Bambu Engineering Plate"
-#~ msgstr "Bambu Mühendislik Plakası"
-
-#~ msgid "Bambu Smooth PEI Plate"
-#~ msgstr "Bambu Pürüzsüz PEI Plaka"
-
-#~ msgid "Bambu Textured PEI Plate"
-#~ msgstr "Bambu Dokulu PEI Plaka"
 
 #~ msgid ""
 #~ "When print by object, machines with I3 structure will not generate "
