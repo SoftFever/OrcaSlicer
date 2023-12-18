@@ -4,7 +4,7 @@
 # 5axes <5axes@free.fr>, 2023.
 msgid ""
 msgstr ""
-"Project-Id-Version: Bambu Studio\n"
+"Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-12-18 12:20+0800\n"
 "PO-Revision-Date: \n"
