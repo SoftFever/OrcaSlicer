@@ -5828,8 +5828,10 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
         };
 
     //BBS: add the collapse logic
+    if (panel == preview) {
+        this->enable_sidebar(!q->only_gcode_mode());
+    }
     if (panel == preview && q->only_gcode_mode()) {
-        this->enable_sidebar(false);
         preview->get_canvas3d()->enable_select_plate_toolbar(false);
     }
     else if (panel == preview && q->using_exported_file() && (q->m_valid_plates_count <= 1)) {
