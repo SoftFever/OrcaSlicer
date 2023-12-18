@@ -5728,16 +5728,16 @@ msgstr "Bandeja frío Bambu"
 msgid "PLA Plate"
 msgstr "PLA Plate"
 
-msgid "Bamabu Engineering Plate"
+msgid "Bambu Engineering Plate"
 msgstr "Bandeja de Ingeniería Bambú"
 
-msgid "Bamabu Smooth PEI Plate"
+msgid "Bambu Smooth PEI Plate"
 msgstr ""
 
 msgid "High temperature Plate"
 msgstr "Bandeja de Alta Temperatura"
 
-msgid "Bamabu Textured PEI Plate"
+msgid "Bambu Textured PEI Plate"
 msgstr ""
 
 msgid "Send print job to"
@@ -13610,15 +13610,6 @@ msgstr ""
 #~ msgid "Add/Remove printers"
 #~ msgstr "Añadir/Borrar impresoras"
 
-#~ msgid "Bambu Engineering Plate"
-#~ msgstr "Bandeja de Ingeniería Bambu"
-
-#~ msgid "Bambu Smooth PEI Plate"
-#~ msgstr "Bandeja PEI lisa Bambu"
-
-#~ msgid "Bambu Textured PEI Plate"
-#~ msgstr "Bandeja Texturizada PEI"
-
 #~ msgid ""
 #~ "When print by object, machines with I3 structure will not generate "
 #~ "timelapse videos."
@@ -14009,7 +14000,7 @@ msgstr ""
 #~ msgid "Score"
 #~ msgstr "Score"
 
-#~ msgid "Bamabu High Temperature Plate"
+#~ msgid "Bambu High Temperature Plate"
 #~ msgstr "Bandeja de Alta Temperatura Bambú"
 
 #~ msgid "Can't connect to the printer"

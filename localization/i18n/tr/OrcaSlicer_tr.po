@@ -5672,16 +5672,16 @@ msgstr "Bambu Soğuk Plaka"
 msgid "PLA Plate"
 msgstr "PLA Plaka"
 
-msgid "Bamabu Engineering Plate"
-msgstr "Bamabu Mühendislik Plakası"
+msgid "Bambu Engineering Plate"
+msgstr "Bambu Mühendislik Plakası"
 
-msgid "Bamabu Smooth PEI Plate"
+msgid "Bambu Smooth PEI Plate"
 msgstr "Bambu Pürüzsüz PEI Plaka"
 
 msgid "High temperature Plate"
 msgstr "Yüksek Sıcaklık Plakası"
 
-msgid "Bamabu Textured PEI Plate"
+msgid "Bambu Textured PEI Plate"
 msgstr "Bambu Dokulu PEI Plaka"
 
 msgid "Send print job to"
@@ -13641,15 +13641,6 @@ msgstr ""
 
 #~ msgid "Add/Remove printers"
 #~ msgstr "Yazıcı Ekle/Kaldır"
-
-#~ msgid "Bambu Engineering Plate"
-#~ msgstr "Bambu Mühendislik Plakası"
-
-#~ msgid "Bambu Smooth PEI Plate"
-#~ msgstr "Bambu Pürüzsüz PEI Plaka"
-
-#~ msgid "Bambu Textured PEI Plate"
-#~ msgstr "Bambu Dokulu PEI Plaka"
 
 #~ msgid ""
 #~ "When print by object, machines with I3 structure will not generate "

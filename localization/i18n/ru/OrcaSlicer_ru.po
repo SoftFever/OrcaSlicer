@@ -5735,16 +5735,16 @@ msgstr "Не нагреваемая пластина Bambu"
 msgid "PLA Plate"
 msgstr "PLA пластина"
 
-msgid "Bamabu Engineering Plate"
+msgid "Bambu Engineering Plate"
 msgstr ""
 
-msgid "Bamabu Smooth PEI Plate"
+msgid "Bambu Smooth PEI Plate"
 msgstr ""
 
 msgid "High temperature Plate"
 msgstr "Высокотемпературная пластина"
 
-msgid "Bamabu Textured PEI Plate"
+msgid "Bambu Textured PEI Plate"
 msgstr ""
 
 msgid "Send print job to"
@@ -14323,15 +14323,6 @@ msgstr ""
 #~ "касании модели. Если задать небольшое расстояние, то увеличится "
 #~ "количество точек, в которых древовидная поддержка касается модели. Это "
 #~ "улучшит печать нависаний, но при этом усложнит удаление поддержки."
-
-#~ msgid "Bambu Engineering Plate"
-#~ msgstr "Инженерная пластина Bambu"
-
-#~ msgid "Bambu Smooth PEI Plate"
-#~ msgstr "Гладкая PEI пластина Bambu"
-
-#~ msgid "Bambu Textured PEI Plate"
-#~ msgstr "Текстурированная PEI пластина Bambu"
 
 #~ msgid ""
 #~ "When print by object, machines with I3 structure will not generate "

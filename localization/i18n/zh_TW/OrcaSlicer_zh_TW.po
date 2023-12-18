@@ -5731,17 +5731,17 @@ msgstr "低溫列印版"
 msgid "PLA Plate"
 msgstr "PLA 列印板"
 
-msgid "Bamabu Engineering Plate"
+msgid "Bambu Engineering Plate"
 msgstr "工程列印熱床"
 
-msgid "Bamabu Smooth PEI Plate"
+msgid "Bambu Smooth PEI Plate"
 msgstr ""
 
 #, fuzzy
 msgid "High temperature Plate"
 msgstr "高溫列印板"
 
-msgid "Bamabu Textured PEI Plate"
+msgid "Bambu Textured PEI Plate"
 msgstr ""
 
 msgid "Send print job to"
@@ -13202,17 +13202,6 @@ msgstr ""
 #~ msgstr "新增/刪除列印設備"
 
 #, fuzzy
-#~ msgid "Bambu Engineering Plate"
-#~ msgstr "Bambu 高溫工程列印板"
-
-#, fuzzy
-#~ msgid "Bambu Smooth PEI Plate"
-#~ msgstr "Bambu 光滑面列印板"
-
-#~ msgid "Bambu Textured PEI Plate"
-#~ msgstr "Bambu 金屬紋理列印板"
-
-#, fuzzy
 #~ msgid ""
 #~ "When print by object, machines with I3 structure will not generate "
 #~ "timelapse videos."
@@ -13576,7 +13565,7 @@ msgstr ""
 #~ msgid "Score"
 #~ msgstr "打分"
 
-#~ msgid "Bamabu High Temperature Plate"
+#~ msgid "Bambu High Temperature Plate"
 #~ msgstr "高溫列印熱床"
 
 #~ msgid "Can't connect to the printer"
