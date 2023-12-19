@@ -762,17 +762,20 @@ void PrintagoPanel::SendWebViewMessage(PrintagoMessageEvent &evt)
     message["data"]        = evt.GetData();
 
     const wxString messageStr = wxString(message.dump().c_str(), wxConvUTF8);
-    CallAfter([=]() {
+    CallAfter([this, messageStr]() {
         m_browser->RunScript(wxString::Format("window.postMessage(%s, '*');", messageStr));
     });
 }
 
 void PrintagoPanel::OnNavigationRequest(wxWebViewEvent &evt)
 {
+    if (m_info->IsShown()) {
+        m_info->Dismiss();
+    }
+
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": " << evt.GetTarget().ToUTF8().data();
 
     const wxString &url = evt.GetURL();
-    // wxGetApp().Yield();
     if (url.StartsWith("printago://")) {
         evt.Veto(); // Prevent the web view from navigating to this URL
 
@@ -821,11 +824,7 @@ void PrintagoPanel::OnNavigationRequest(wxWebViewEvent &evt)
         event.SetParameters(parameters);
         event.SetOriginalCommandStr(url.ToStdString());
 
-        HandlePrintagoCommand(event);
-    }
-
-    if (m_info->IsShown()) {
-        m_info->Dismiss();
+        CallAfter([=]() { HandlePrintagoCommand(event); });
     }
 }
 
