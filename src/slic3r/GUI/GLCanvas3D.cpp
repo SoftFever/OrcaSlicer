@@ -7167,6 +7167,10 @@ void GLCanvas3D::_render_selection_center()
 
 void GLCanvas3D::_check_and_update_toolbar_icon_scale()
 {
+    // Update collapse toolbar
+    GLToolbar& collapse_toolbar = wxGetApp().plater()->get_collapse_toolbar();
+    collapse_toolbar.set_enabled(wxGetApp().plater()->get_sidebar_docking_state() != Sidebar::None);
+
     // Don't update a toolbar scale, when we are on a Preview
     if (wxGetApp().plater()->is_preview_shown()) {
         IMSlider   *m_layers_slider = get_gcode_viewer().get_layers_slider();
@@ -7194,7 +7198,6 @@ void GLCanvas3D::_check_and_update_toolbar_icon_scale()
     //float main_size = GLGizmosManager::Default_Icons_Size * scale;
 
     // Set current size for all top toolbars. It will be used for next calculations
-    GLToolbar& collapse_toolbar = wxGetApp().plater()->get_collapse_toolbar();
 #if ENABLE_RETINA_GL
     const float sc = m_retina_helper->get_scale_factor() * scale;
     //BBS: GUI refactor: GLToolbar
@@ -7215,9 +7218,6 @@ void GLCanvas3D::_check_and_update_toolbar_icon_scale()
     collapse_toolbar.set_icons_size(size / 2.0);
     m_gizmos.set_overlay_icon_size(size);
 #endif // ENABLE_RETINA_GL
-
-    // Update collapse toolbar
-    collapse_toolbar.set_enabled(wxGetApp().plater()->get_sidebar_docking_state() != Sidebar::None);
 
     //BBS: GUI refactor: GLToolbar
 #if BBS_TOOLBAR_ON_TOP

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-17 15:25+0100\n"
+"POT-Creation-Date: 2023-12-18 12:20+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Heiko Liebscher <hliebschergmail.com>\n"
 "Language-Team: \n"
@@ -5784,16 +5784,16 @@ msgstr "Bambu kalte Druckplatte"
 msgid "PLA Plate"
 msgstr "PLA-Platte"
 
-msgid "Bamabu Engineering Plate"
+msgid "Bambu Engineering Plate"
 msgstr "Bambu technische Druckplatte"
 
-msgid "Bamabu Smooth PEI Plate"
+msgid "Bambu Smooth PEI Plate"
 msgstr "Bambu glatte PEI-Platte"
 
 msgid "High temperature Plate"
 msgstr "Hochtemperaturplatte"
 
-msgid "Bamabu Textured PEI Plate"
+msgid "Bambu Textured PEI Plate"
 msgstr "Bambu strukturierte PEI-Platte"
 
 msgid "Send print job to"
@@ -14118,15 +14118,6 @@ msgstr ""
 #~ msgid "Add/Remove printers"
 #~ msgstr "Drucker hinzufügen/entfernen"
 
-#~ msgid "Bambu Engineering Plate"
-#~ msgstr "Bambu Engineering-Platte"
-
-#~ msgid "Bambu Smooth PEI Plate"
-#~ msgstr "Bambu glatte PEI-Platte"
-
-#~ msgid "Bambu Textured PEI Plate"
-#~ msgstr "Bambu strukturierte PEI-Platte"
-
 #~ msgid ""
 #~ "When print by object, machines with I3 structure will not generate "
 #~ "timelapse videos."
@@ -14517,7 +14508,7 @@ msgstr ""
 #~ msgid "Score"
 #~ msgstr "Punktzahl"
 
-#~ msgid "Bamabu High Temperature Plate"
+#~ msgid "Bambu High Temperature Plate"
 #~ msgstr "Bambu Hochtemperaturdruckplatte"
 
 #~ msgid "Can't connect to the printer"

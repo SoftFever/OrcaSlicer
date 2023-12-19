@@ -1162,13 +1162,14 @@ void GLVolumeCollection::update_colors_by_extruder(const DynamicPrintConfig *con
 
         const ColorItem& color = colors[extruder_id];
         if (!color.first.empty()) {
-			if (!is_update_alpha) {
-                float old_a   = color.second.a();
+            if (!is_update_alpha) {
+                float old_a   = volume->color.a();
                 volume->color = color.second;
                 volume->color.a(old_a);
-			}
-            volume->color = color.second;
-		}
+            } else {
+                volume->color = color.second;
+            }
+        }
     }
 }
 
