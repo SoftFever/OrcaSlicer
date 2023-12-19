@@ -34,7 +34,7 @@ jobs:
           elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
             ver="PR${{ github.event.number }}"
           else
-            ver=$(grep 'set(SoftFever_VERSION' version.inc | cut -d '"' -f2)
+            ver=$(grep 'set(SLIC3R_VERSION' version.inc | cut -d '"' -f2)
             ver=V$ver
           fi
           echo "ver=$ver" >> $GITHUB_ENV
@@ -55,7 +55,7 @@ jobs:
               $ver = "PR" + $prNumber
           } else {
               $versionContent = Get-Content version.inc -Raw
-              if ($versionContent -match 'set\(SoftFever_VERSION "(.*?)"\)') {
+              if ($versionContent -match 'set\(SLIC3R_VERSION "(.*?)"\)') {
                   $ver = $matches[1]
               }
               $ver = "V$ver"

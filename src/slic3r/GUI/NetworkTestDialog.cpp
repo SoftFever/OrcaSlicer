@@ -433,7 +433,7 @@ void NetworkTestDialog::start_test_bambulab()
 	platform = "linux";
 #endif
 	std::string query_params = (boost::format("?name=slicer&version=%1%&guide_version=%2%")
-		% VersionInfo::convert_full_version(SLIC3R_VERSION)
+		% VersionInfo::convert_full_version(BBL_PLUGIN_VERSION)
 		% VersionInfo::convert_full_version("0.0.0.1")
 		).str();
 
@@ -674,7 +674,7 @@ void NetworkTestDialog::start_test_oss_download()
 	}
 
 	if (download_url.empty()) {
-		BOOST_LOG_TRIVIAL(info) << "[test_oss_download]: no availaible plugin found for this app version: " << SLIC3R_VERSION;
+		BOOST_LOG_TRIVIAL(info) << "[test_oss_download]: no availaible plugin found for this app version: " << BBL_PLUGIN_VERSION;
 		this->update_status(TEST_OSS_DOWNLOAD_JOB, "test storage download failed");
 		m_in_testing[TEST_OSS_DOWNLOAD_JOB] = false;
 		return;
@@ -818,7 +818,7 @@ void NetworkTestDialog:: start_test_plugin_download(){
     }
 
     if (download_url.empty()) {
-        BOOST_LOG_TRIVIAL(info) << "[test_plugin_download]: no availaible plugin found for this app version: " << SLIC3R_VERSION;
+        BOOST_LOG_TRIVIAL(info) << "[test_plugin_download]: no availaible plugin found for this app version: " << BBL_PLUGIN_VERSION;
         this->update_status(TEST_PLUGIN_JOB, "test plugin download failed");
         m_in_testing[TEST_PLUGIN_JOB] = false;
         return;
@@ -958,7 +958,7 @@ void NetworkTestDialog::on_close(wxCloseEvent& event)
 
 wxString NetworkTestDialog::get_studio_version()
 {
-	return wxString(SLIC3R_VERSION);
+	return wxString(BBL_PLUGIN_VERSION);
 }
 
 void NetworkTestDialog::set_default()

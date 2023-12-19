@@ -7,15 +7,13 @@ set(SLIC3R_APP_KEY "OrcaSlicer")
 if(NOT DEFINED BBL_RELEASE_TO_PUBLIC)
 set(BBL_RELEASE_TO_PUBLIC "1")
 endif()
-if(NOT DEFINED BBL_INTERNAL_TESTING)
-set(BBL_INTERNAL_TESTING "1")
-endif()
-set(SoftFever_VERSION "1.9.0-dev")
+
+set(SLIC3R_VERSION "1.9.0-dev")
 string(REGEX MATCH "^([0-9]+)\\.([0-9]+)\\.([0-9]+)"
-       SoftFever_VERSION_MATCH ${SoftFever_VERSION})
+       SLIC3R_VERSION_MATCH ${SLIC3R_VERSION})
 set(ORCA_VERSION_MAJOR ${CMAKE_MATCH_1})
 set(ORCA_VERSION_MINOR ${CMAKE_MATCH_2})
 set(ORCA_VERSION_PATCH ${CMAKE_MATCH_3})
 
 # The build_version should start from 50 in master branch
-set(SLIC3R_VERSION "01.08.02.56")
+set(BBL_PLUGIN_VERSION "01.08.02.56")
