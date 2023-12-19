@@ -2235,6 +2235,7 @@ static void triangulate_slice(
                     [&v](const std::pair<Vec2f, int> &l) {
                     return l.first.x() < v.x() || (is_equal_for_sort(l.first.x(), v.x()) && l.first.y() < v.y());
                     });
+                auto  back_it = it;
                 int   idx = -1;
                 bool exist = false;
                 for (auto iter = section_vertices_map.begin(); iter != section_vertices_map.end(); iter++) {
@@ -2256,6 +2257,7 @@ static void triangulate_slice(
                 }
                 // go on finding
                 if (!exist) {
+                    it = back_it;
                     for (; it != map_vertex_to_index.begin(); it--) {
                         if (is_equal(it->first.x(), v.x()) && is_equal(it->first.y(), v.y())) {
                             idx   = it->second;

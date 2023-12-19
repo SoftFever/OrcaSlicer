@@ -295,7 +295,65 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
             : gcodegen.config().nozzle_temperature.get_at(gcodegen.writer().extruder()->id());
     }
 
-    std::string Wipe::wipe(GCode& gcodegen, bool toolchange, bool is_last)
+    // Ioannis Giannakas:
+    // Function to calculate the excess retraction length that should be retracted either before or after wiping
+    // in order for the wipe operation to respect the filament retraction speed
+    Wipe::RetractionValues Wipe::calculateWipeRetractionLengths(GCode& gcodegen, bool toolchange) {
+        auto& writer = gcodegen.writer();
+        auto& config = gcodegen.config();
+        auto extruder = writer.extruder();
+        auto extruder_id = extruder->id();
+        auto last_pos = gcodegen.last_pos();
+        
+        // Declare & initialize retraction lengths
+        double retraction_length_remaining = 0,
+                retractionBeforeWipe = 0,
+                retractionDuringWipe = 0;
+        
+        // initialise the remaining retraction amount with the full retraction amount.
+        retraction_length_remaining = toolchange ? extruder->retract_length_toolchange() : extruder->retraction_length();
+        
+        // nothing to retract - return early
+        if(retraction_length_remaining <=EPSILON) return {0.f,0.f};
+        
+        // calculate retraction before wipe distance from the user setting. Keep adding to this variable any excess retraction needed
+        // to be performed before the wipe.
+        retractionBeforeWipe = retraction_length_remaining * extruder->retract_before_wipe();
+        retraction_length_remaining -= retractionBeforeWipe; // subtract it from the remaining retraction length
+        
+        // all of the retraction is to be done before the wipe
+        if(retraction_length_remaining <=EPSILON) return {retractionBeforeWipe,0.f};
+        
+        // Calculate wipe speed
+        double wipe_speed = config.role_based_wipe_speed ? writer.get_current_speed() / 60.0 : config.get_abs_value("wipe_speed");
+        wipe_speed = std::max(wipe_speed, 10.0);
+
+        // Process wipe path & calculate wipe path length
+        double wipe_dist = scale_(config.wipe_distance.get_at(extruder_id));
+        Polyline wipe_path = {last_pos};
+        wipe_path.append(this->path.points.begin() + 1, this->path.points.end());
+        double wipe_path_length = std::min(wipe_path.length(), wipe_dist);
+
+        // Calculate the maximum retraction amount during wipe
+        retractionDuringWipe = config.retraction_speed.get_at(extruder_id) * unscale_(wipe_path_length) / wipe_speed;
+        // If the maximum retraction amount during wipe is too small, return 0 and retract everything prior to the wipe.
+        if(retractionDuringWipe <= EPSILON) return {retractionBeforeWipe,0.f};
+        
+        // If the maximum retraction amount during wipe is greater than any remaining retraction length
+        // return the remaining retraction length to be retracted during the wipe
+        if (retractionDuringWipe - retraction_length_remaining > EPSILON) return {retractionBeforeWipe,retraction_length_remaining};
+        
+        // If the user has requested any retract before wipe, proceed with incrementing the retraction amount before wiping with the difference
+        // and return the maximum allowed wipe amount to be retracted during the wipe move
+        // If the user has not requested any retract before wipe, the retraction amount before wiping should not be incremented and left to the parent
+        // function to retract after wipe is done.
+        if(gcodegen.config().retract_before_wipe.get_at(gcodegen.writer().extruder()->id()) > EPSILON){
+            retractionBeforeWipe += retraction_length_remaining - retractionDuringWipe;
+        }
+        return {retractionBeforeWipe, retractionDuringWipe};
+    }
+
+    std::string Wipe::wipe(GCode& gcodegen,double length, bool toolchange, bool is_last)
     {
         std::string gcode;
 
@@ -307,12 +365,6 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         if(_wipe_speed < 10)
             _wipe_speed = 10;
 
-        // get the retraction length
-        double length = toolchange
-            ? gcodegen.writer().extruder()->retract_length_toolchange()
-            : gcodegen.writer().extruder()->retraction_length();
-        // Shorten the retraction length by the amount already retracted before wipe.
-        length *= (1. - gcodegen.writer().extruder()->retract_before_wipe());
 
         //SoftFever: allow 100% retract before wipe
         if (length >= 0)
@@ -322,7 +374,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
                 for the time needed to consume retraction_length at retraction_speed?  */
             // BBS
             double wipe_dist = scale_(gcodegen.config().wipe_distance.get_at(gcodegen.writer().extruder()->id()));
-
+            
             /*  Take the stored wipe path and replace first point with the current actual position
                 (they might be different, for example, in case of loop clipping).  */
             Polyline wipe_path;
@@ -346,7 +398,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
                 // add tag for processor
                 gcode += ";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Wipe_Start) + "\n";
                 //BBS: don't need to enable cooling makers when this is the last wipe. Because no more cooling layer will clean this "_WIPE"
-                //Softfever: 
+                //Softfever:
                 std::string cooling_mark = "";
                 if (gcodegen.enable_cooling_markers() && !is_last)
                     cooling_mark = /*gcodegen.config().role_based_wipe_speed ? ";_EXTERNAL_PERIMETER" : */";_WIPE";
@@ -2032,7 +2084,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     file.write_format("; EXECUTABLE_BLOCK_START\n");
 
     // SoftFever
-    if( m_config.gcode_flavor.value == gcfKlipper && m_enable_exclude_object)
+    if( m_enable_exclude_object)
         file.write(set_object_info(&print));
 
     // adds tags for time estimators
@@ -2231,12 +2283,12 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                 pts->values.emplace_back(print.translate_to_print_space(pt));
             bbox = BoundingBoxf((pts->values));
         }
-
+        BoundingBoxf bbox_head_wrap_zone (print.config().head_wrap_detect_zone.values);
         this->placeholder_parser().set("first_layer_print_convex_hull", pts.release());
         this->placeholder_parser().set("first_layer_print_min", new ConfigOptionFloats({bbox.min.x(), bbox.min.y()}));
         this->placeholder_parser().set("first_layer_print_max", new ConfigOptionFloats({bbox.max.x(), bbox.max.y()}));
         this->placeholder_parser().set("first_layer_print_size", new ConfigOptionFloats({ bbox.size().x(), bbox.size().y() }));
-
+        this->placeholder_parser().set("in_head_wrap_detect_zone",bbox_head_wrap_zone.overlap(bbox));
         // get center without wipe tower
         BoundingBoxf bbox_wo_wt; // bounding box without wipe tower
         for (auto &objPtr : print.objects()) {
@@ -2244,7 +2296,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             bbox_wo_wt.merge(unscaled(objPtr->get_first_layer_bbox(data.area, data.layer_height, data.name)));
         }
         auto center = bbox_wo_wt.center();
-        this->placeholder_parser().set("first_layer_center_no_wipe_tower", new ConfigOptionFloats({center.x(), center.y()}));
+        this->placeholder_parser().set("first_layer_center_no_wipe_tower", new ConfigOptionFloats{ {center.x(),center.y()}});
     }
     bool activate_chamber_temp_control = false;
     auto max_chamber_temp              = 0;
@@ -2271,7 +2323,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         this->placeholder_parser().set("first_layer_bed_temperature", new ConfigOptionInts(*first_bed_temp_opt));
         this->placeholder_parser().set("first_layer_temperature", new ConfigOptionInts(m_config.nozzle_temperature_initial_layer));
         this->placeholder_parser().set("max_print_height",new ConfigOptionInt(m_config.printable_height));
-this->placeholder_parser().set("z_offset", new ConfigOptionFloat(m_config.z_offset));
+        this->placeholder_parser().set("z_offset", new ConfigOptionFloat(m_config.z_offset));
         this->placeholder_parser().set("plate_name", new ConfigOptionString(print.get_plate_name()));
         this->placeholder_parser().set("first_layer_height", new ConfigOptionFloat(m_config.initial_layer_print_height.value));
 
@@ -2282,7 +2334,7 @@ this->placeholder_parser().set("z_offset", new ConfigOptionFloat(m_config.z_offs
             during_print_exhaust_fan_speed_num.emplace_back((int)(item / 100.0 * 255));
         this->placeholder_parser().set("during_print_exhaust_fan_speed_num",new ConfigOptionInts(during_print_exhaust_fan_speed_num));
 
-        // calculate the volumetric speed of outer wall. Ignore pre-object setting and multi-filament, and just use the default setting
+        // calculate the volumetric speed of outer wall. Ignore per-object setting and multi-filament, and just use the default setting
         {
 
             float filament_max_volumetric_speed = m_config.option<ConfigOptionFloats>("filament_max_volumetric_speed")->get_at(initial_non_support_extruder_id);
@@ -2300,6 +2352,9 @@ this->placeholder_parser().set("z_offset", new ConfigOptionFloat(m_config.z_offs
             this->placeholder_parser().set("outer_wall_volumetric_speed", new ConfigOptionFloat(outer_wall_volumetric_speed));
         }
 
+        if (print.calib_params().mode == CalibMode::Calib_PA_Line) {
+            this->placeholder_parser().set("scan_first_layer", new ConfigOptionBool(false));
+        }
     }
     std::string machine_start_gcode = this->placeholder_parser_process("machine_start_gcode", print.config().machine_start_gcode.value, initial_extruder_id);
     if (print.config().gcode_flavor != gcfKlipper) {
@@ -2727,14 +2782,19 @@ void GCode::process_layers(
                 return this->process_layer(print, layer.second, layer_tools, &layer == &layers_to_print.back(), &print_object_instances_ordering, size_t(-1));
             }
         });
-   
+    if (m_spiral_vase) {
+        float nozzle_diameter  = EXTRUDER_CONFIG(nozzle_diameter);
+        float max_xy_smoothing = m_config.get_abs_value("spiral_mode_max_xy_smoothing", nozzle_diameter);
+        this->m_spiral_vase->set_max_xy_smoothing(max_xy_smoothing);
+    }
     const auto spiral_mode = tbb::make_filter<LayerResult, LayerResult>(slic3r_tbb_filtermode::serial_in_order,
-        [&spiral_mode = *this->m_spiral_vase.get()](LayerResult in) -> LayerResult {
+        [&spiral_mode = *this->m_spiral_vase.get(), &layers_to_print](LayerResult in) -> LayerResult {
         	if (in.nop_layer_result)
                 return in;
                 
             spiral_mode.enable(in.spiral_vase_enable);
-            return { spiral_mode.process_layer(std::move(in.gcode)), in.layer_id, in.spiral_vase_enable, in.cooling_buffer_flush };
+            bool last_layer = in.layer_id == layers_to_print.size() - 1;
+            return { spiral_mode.process_layer(std::move(in.gcode), last_layer), in.layer_id, in.spiral_vase_enable, in.cooling_buffer_flush};
         });
     const auto pressure_equalizer = tbb::make_filter<LayerResult, LayerResult>(slic3r_tbb_filtermode::serial_in_order,
         [pressure_equalizer = this->m_pressure_equalizer.get()](LayerResult in) -> LayerResult {
@@ -2809,10 +2869,16 @@ void GCode::process_layers(
                 return this->process_layer(print, { std::move(layer) }, tool_ordering.tools_for_layer(layer.print_z()), &layer == &layers_to_print.back(), nullptr, single_object_idx, prime_extruder);
             }
         });
+    if (m_spiral_vase) {
+        float nozzle_diameter  = EXTRUDER_CONFIG(nozzle_diameter);
+        float max_xy_smoothing = m_config.get_abs_value("spiral_mode_max_xy_smoothing", nozzle_diameter);
+        this->m_spiral_vase->set_max_xy_smoothing(max_xy_smoothing);
+    }
     const auto spiral_mode = tbb::make_filter<LayerResult, LayerResult>(slic3r_tbb_filtermode::serial_in_order,
-        [&spiral_mode = *this->m_spiral_vase.get()](LayerResult in)->LayerResult {
+        [&spiral_mode = *this->m_spiral_vase.get(), &layers_to_print](LayerResult in)->LayerResult {
             spiral_mode.enable(in.spiral_vase_enable);
-            return { spiral_mode.process_layer(std::move(in.gcode)), in.layer_id, in.spiral_vase_enable, in.cooling_buffer_flush };
+            bool last_layer = in.layer_id == layers_to_print.size() - 1;
+            return { spiral_mode.process_layer(std::move(in.gcode), last_layer), in.layer_id, in.spiral_vase_enable, in.cooling_buffer_flush };
         });
     const auto cooling = tbb::make_filter<LayerResult, std::string>(slic3r_tbb_filtermode::serial_in_order,
         [&cooling_buffer = *this->m_cooling_buffer.get()](LayerResult in)->std::string {
@@ -3973,10 +4039,16 @@ LayerResult GCode::process_layer(
                             std::string("; start printing object, unique label id: ") +
                             std::to_string(instance_to_print.label_object_id) + "\n" + "M624 " +
                             _encode_label_ids_to_base64({instance_to_print.label_object_id}) + "\n");
-                    } else if (print.config().gcode_flavor.value == gcfKlipper) {
-                        m_writer.set_object_start_str(std::string("EXCLUDE_OBJECT_START NAME=") +
-                                                      get_instance_name(&instance_to_print.print_object, inst.id) +
-                                                      "\n");
+                    } else {
+                        const auto gflavor = print.config().gcode_flavor.value;
+                        if (gflavor == gcfKlipper) {
+                            m_writer.set_object_start_str(std::string("EXCLUDE_OBJECT_START NAME=") +
+                                                          get_instance_name(&instance_to_print.print_object, inst.id) + "\n");
+                        }
+                        else if (gflavor == gcfMarlinLegacy || gflavor == gcfMarlinFirmware || gflavor == gcfRepRapFirmware) {
+                            std::string str = std::string("M486 S") + std::to_string(inst.unique_id) + "\n";
+                            m_writer.set_object_start_str(str);
+                        }
                     }
                 }
 
@@ -4124,9 +4196,14 @@ LayerResult GCode::process_layer(
                         m_writer.set_object_end_str(std::string("; stop printing object, unique label id: ") +
                                                     std::to_string(instance_to_print.label_object_id) + "\n" +
                                                     "M625\n");
-                    } else if (print.config().gcode_flavor.value == gcfKlipper) {
-                        m_writer.set_object_end_str(std::string("EXCLUDE_OBJECT_END NAME=") +
-                                                    get_instance_name(&instance_to_print.print_object, inst.id) + "\n");
+                    } else {
+                        const auto gflavor = print.config().gcode_flavor.value;
+                        if (gflavor == gcfKlipper) {
+                            m_writer.set_object_end_str(std::string("EXCLUDE_OBJECT_END NAME=") +
+                                                        get_instance_name(&instance_to_print.print_object, inst.id) + "\n");
+                        } else if (gflavor == gcfMarlinLegacy || gflavor == gcfMarlinFirmware || gflavor == gcfRepRapFirmware) {
+                            m_writer.set_object_end_str(std::string("M486 S-1\n"));
+                        }
                     }
                 }
             }
@@ -5463,8 +5540,9 @@ std::string GCode::retract(bool toolchange, bool is_last_retraction, LiftType li
 
     // wipe (if it's enabled for this extruder and we have a stored wipe path and no-zero wipe distance)
     if (EXTRUDER_CONFIG(wipe) && m_wipe.has_path() && scale_(EXTRUDER_CONFIG(wipe_distance)) > SCALED_EPSILON) {
-        gcode += toolchange ? m_writer.retract_for_toolchange(true) : m_writer.retract(true);
-        gcode += m_wipe.wipe(*this, toolchange, is_last_retraction);
+        Wipe::RetractionValues wipeRetractions = m_wipe.calculateWipeRetractionLengths(*this, toolchange);
+        gcode += toolchange ? m_writer.retract_for_toolchange(true,wipeRetractions.retractLengthBeforeWipe) : m_writer.retract(true, wipeRetractions.retractLengthBeforeWipe);
+        gcode += m_wipe.wipe(*this,wipeRetractions.retractLengthDuringWipe, toolchange, is_last_retraction);
     }
 
     /*  The parent class will decide whether we need to perform an actual retraction
@@ -5739,6 +5817,9 @@ inline std::string polygon_to_string(const Polygon &polygon, Print *print, bool 
 // this function iterator PrintObject and assign a seqential id to each object.
 // this id is used to generate unique object id for each object.
 std::string GCode::set_object_info(Print *print) {
+    const auto gflavor = print->config().gcode_flavor.value;
+    if (gflavor != gcfKlipper && gflavor != gcfMarlinLegacy && gflavor != gcfMarlinFirmware && gflavor != gcfRepRapFirmware)
+        return "";
     std::ostringstream gcode;
     size_t object_id = 0;
     // Orca: check if we are in pa calib mode
@@ -5754,18 +5835,27 @@ std::string GCode::set_object_info(Print *print) {
               << "Orca-PA-Calibration-Test"
               << " CENTER=" << 0 << "," << 0 << " POLYGON=" << polygon_to_string(polygon_bed, print, true) << "\n";
     } else {
-        for (PrintObject *object : print->objects()) {
+        size_t unique_id = 0;
+        for (PrintObject* object : print->objects()) {
             object->set_id(object_id++);
             size_t inst_id = 0;
-            for (PrintInstance &inst : object->instances()) {
-                inst.id = inst_id++;
-                if (this->config().exclude_object && print->config().gcode_flavor.value == gcfKlipper) {
-                    auto bbox = inst.get_bounding_box();
-                    auto center = print->translate_to_print_space(Vec2d(bbox.center().x(), bbox.center().y()));
-
-                    gcode << "EXCLUDE_OBJECT_DEFINE NAME=" << get_instance_name(object, inst)
-                          << " CENTER=" << center.x() << "," << center.y()
+            for (PrintInstance& inst : object->instances()) {
+                inst.unique_id = unique_id++;
+                inst.id        = inst_id++;
+                auto bbox      = inst.get_bounding_box();
+                auto center    = print->translate_to_print_space(Vec2d(bbox.center().x(), bbox.center().y()));
+                auto inst_name = get_instance_name(object, inst);
+                if (gflavor == gcfKlipper) {
+                    gcode << "EXCLUDE_OBJECT_DEFINE NAME=" << inst_name << " CENTER=" << center.x() << "," << center.y()
                           << " POLYGON=" << polygon_to_string(inst.get_convex_hull_2d(), print) << "\n";
+                } else if (gflavor == gcfMarlinLegacy || gflavor == gcfMarlinFirmware || gflavor == gcfRepRapFirmware) {
+                    gcode << "M486 S" << std::to_string(inst.unique_id);
+                    if (gflavor == gcfRepRapFirmware)
+                        gcode << " A"
+                              << "\"" << inst_name << "\"";
+                    else
+                        gcode << "\nM486 A" << inst_name;
+                    gcode << "\nM486 S-1\n";
                 }
             }
         }

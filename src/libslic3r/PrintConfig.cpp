@@ -3436,6 +3436,25 @@ def = this->add("filament_loading_speed", coFloats);
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionBool(false));
 
+    def = this->add("spiral_mode_smooth", coBool);
+    def->label = L("Smooth Spiral");
+    def->tooltip = L("Smooth Spiral smoothes out X and Y moves as well"
+                     "resulting in no visible seam at all, even in the XY directions on walls that are not vertical");
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("spiral_mode_max_xy_smoothing", coFloatOrPercent);
+    def->label = L("Max XY Smoothing");
+    def->tooltip = L("Maximum distance to move points in XY to try to achieve a smooth spiral"
+                     "If expressed as a %, it will be computed over nozzle diameter");
+    def->sidetext = L("mm or %");
+    def->ratio_over = "nozzle_diameter";
+    def->min = 0;
+    def->max = 1000;
+    def->max_literal = 10;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloatOrPercent(200, true));
+
     def = this->add("timelapse_type", coEnum);
     def->label = L("Timelapse");
     def->tooltip = L("If smooth or traditional mode is selected, a timelapse video will be generated for each print. "
@@ -3679,9 +3698,9 @@ def = this->add("filament_loading_speed", coFloats);
     def->set_default_value(new ConfigOptionInt(0));
 
     def = this->add("support_interface_not_for_body",coBool);
-    def->label    = L("Reduce interface filament for base");
+    def->label    = L("Avoid interface filament for base");
     def->category = L("Support");
-    def->tooltip = L("Avoid using support interface filament to print support base");
+    def->tooltip = L("Avoid using support interface filament to print support base if possible.");
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionBool(true));
 
@@ -4087,6 +4106,10 @@ def = this->add("filament_loading_speed", coFloats);
     def->max = max_temp;
     def->set_default_value(new ConfigOptionInts { 240 });
 
+    def = this->add("head_wrap_detect_zone", coPoints);
+    def->label ="Head wrap detect zone"; //do not need translation
+    def->mode = comDevelop;
+    def->set_default_value(new ConfigOptionPoints{});
 
     def = this->add("detect_thin_wall", coBool);
     def->label = L("Detect thin wall");
@@ -4183,7 +4206,7 @@ def = this->add("filament_loading_speed", coFloats);
 
     def = this->add("wipe_distance", coFloats);
     def->label = L("Wipe Distance");
-    def->tooltip = L("Discribe how long the nozzle will move along the last path when retracting");
+    def->tooltip = L("Discribe how long the nozzle will move along the last path when retracting. \n\nDepending on how long the wipe operation lasts, how fast and long the extruder/filament retraction settings are, a retraction move may be needed to retract the remaining filament. \n\nSetting a value in the retract amount before wipe setting below will perform any excess retraction before the wipe, else it will be performed after.");
     def->sidetext = L("mm");
     def->min = 0;
     def->mode = comAdvanced;

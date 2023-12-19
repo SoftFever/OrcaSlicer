@@ -882,9 +882,9 @@ void SelectMachinePopup::OnLeftUp(wxMouseEvent &event)
 static wxString MACHINE_BED_TYPE_STRING[BED_TYPE_COUNT] = {
     //_L("Auto"),
     _L("Bambu Cool Plate") + " / " + _L("PLA Plate"),
-    _L("Bamabu Engineering Plate"),
-    _L("Bamabu Smooth PEI Plate") + "/" + _L("High temperature Plate"),
-    _L("Bamabu Textured PEI Plate")};
+    _L("Bambu Engineering Plate"),
+    _L("Bambu Smooth PEI Plate") + "/" + _L("High temperature Plate"),
+    _L("Bambu Textured PEI Plate")};
 
 static std::string MachineBedTypeString[BED_TYPE_COUNT] = {
     //"auto",
@@ -2347,12 +2347,17 @@ bool SelectMachineDialog::is_same_printer_model()
     const auto source_model = preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle);
     const auto target_model = obj_->printer_type;
     // Orca: ignore P1P -> P1S
-    if (source_model != target_model && !(target_model == "C11" && source_model == "C12")) {
+    if (source_model != target_model && !(preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle) == "C12") && !(target_model == "C11" && source_model == "C12")) {
         BOOST_LOG_TRIVIAL(info) << "printer_model: source = " << source_model;
         BOOST_LOG_TRIVIAL(info) << "printer_model: target = " << target_model;
         return false;
     }
 
+    if (obj_->is_support_p1s_plus) {
+        BOOST_LOG_TRIVIAL(info) << "printer_model: source = " << preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle);
+        BOOST_LOG_TRIVIAL(info) << "printer_model: target = " << obj_->printer_type << " (plus)";
+        return false;
+    }
     return true;
 }
 

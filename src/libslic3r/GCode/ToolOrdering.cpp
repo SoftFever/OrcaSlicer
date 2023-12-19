@@ -123,6 +123,7 @@ static double calc_max_layer_height(const PrintConfig &config, double max_object
 // (print->config().print_sequence == PrintSequence::ByObject is true).
 ToolOrdering::ToolOrdering(const PrintObject &object, unsigned int first_extruder, bool prime_multi_material)
 {
+    m_print_object_ptr = &object;
     if (object.layers().empty())
         return;
 
@@ -743,11 +744,16 @@ void ToolOrdering::collect_extruder_statistics(bool prime_multi_material)
 
 void ToolOrdering::reorder_extruders_for_minimum_flush_volume()
 {
-    if (!m_print_config_ptr || m_layer_tools.empty())
+    const PrintConfig *print_config = m_print_config_ptr;
+    if (!print_config && m_print_object_ptr) {
+        print_config = &(m_print_object_ptr->print()->config());
+    }
+
+    if (!print_config || m_layer_tools.empty())
         return;
 
     // Get wiping matrix to get number of extruders and convert vector<double> to vector<float>:
-    std::vector<float> flush_matrix(cast<float>(m_print_config_ptr->flush_volumes_matrix.values));
+    std::vector<float> flush_matrix(cast<float>(print_config->flush_volumes_matrix.values));
     const unsigned int number_of_extruders = (unsigned int) (sqrt(flush_matrix.size()) + EPSILON);
     // Extract purging volumes for each extruder pair:
     std::vector<std::vector<float>> wipe_volumes;
