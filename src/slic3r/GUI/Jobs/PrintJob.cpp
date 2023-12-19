@@ -25,13 +25,15 @@ static auto upload_ftp_failed_str = _u8L("Failed to upload file to ftp. Please t
 static auto     desc_network_error          = _u8L("Check the current status of the bambu server by clicking on the link above.");
 static auto     desc_file_too_large         = _u8L("The size of the print file is too large. Please adjust the file size and try again.");
 static auto     desc_fail_not_exist         = _u8L("Print file not found, Please slice it again and send it for printing.");
-static auto     desc_upload_ftp_failed      = _u8L("Failed to upload print file to FTP. Please check the network status and try again.");
 
-static auto sending_over_lan_str   = _u8L("Sending print job over LAN");
-static auto sending_over_cloud_str = _u8L("Sending print job through cloud service");
+static auto desc_upload_ftp_failed      = _u8L("Failed to upload print file to FTP. Please check the network status and try again.");
 
-static auto wait_sending_finish         = _u8L("Print task sending times out.");
-static auto desc_wait_sending_finish    = _u8L("The printer timed out while receiving a print job. Please check if the network is functioning properly and send the print again.");
+static auto sending_over_lan_str        = _u8L("Sending print job over LAN");
+static auto sending_over_cloud_str      = _u8L("Sending print job through cloud service");
+
+static wxString wait_sending_finish         = _L("Print task sending times out.");
+//static wxString desc_wait_sending_finish    = _L("The printer timed out while receiving a print job. Please check if the network is functioning properly and send the print again.");
+//static wxString desc_wait_sending_finish    = _L("The printer timed out while receiving a print job. Please check if the network is functioning properly.");
 
 PrintJob::PrintJob(std::string dev_id)
 : m_plater{wxGetApp().plater()},
@@ -438,11 +440,12 @@ void PrintJob::process(Ctl &ctl)
                     boost::this_thread::sleep_for(boost::chrono::milliseconds(1000));
                 }
                 //this->update_status(curr_percent, _L("Print task sending times out."));
-                m_plater->update_print_error_info(BAMBU_NETWORK_ERR_TIMEOUT, wait_sending_finish, desc_wait_sending_finish);
+                //m_plater->update_print_error_info(BAMBU_NETWORK_ERR_TIMEOUT, wait_sending_finish.ToStdString(), desc_wait_sending_finish.ToStdString());
                 BOOST_LOG_TRIVIAL(info) << "print_job: timeout, cancel the job" << obj->job_id_;
                 /* handle tiemout */
-                obj->command_task_cancel(curr_job_id);
-                return false;
+                //obj->command_task_cancel(curr_job_id);
+                //return false;
+                return true;
             }
             BOOST_LOG_TRIVIAL(info) << "print_job: obj is null";
             return true;

@@ -1,0 +1,21 @@
+{
+	"printer": {
+		"Bambu Lab A1": {
+			"cli_safe_acceleration_e": "0,0",
+			"cli_safe_acceleration_extruding": "0,0",
+			"cli_safe_acceleration_retracting": "0,0",
+			"cli_safe_acceleration_travel":"6000,6000",
+			"cli_safe_acceleration_x": "6000,6000",
+			"cli_safe_acceleration_y": "6000,6000",
+			"cli_safe_acceleration_z": "0,0",
+			"cli_safe_jerk_e": "0,0",
+			"cli_safe_jerk_x": "0,0",
+			"cli_safe_jerk_y": "0,0",
+			"cli_safe_jerk_z": "0,0",
+			"cli_safe_speed_e": "0,0",
+			"cli_safe_speed_x": "0,0",
+			"cli_safe_speed_y": "0,0",
+			"cli_safe_speed_z": "0,0"
+		}
+	}
+}
