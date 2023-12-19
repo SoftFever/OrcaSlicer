@@ -1258,6 +1258,8 @@ void PrinterFileSystem::Reconnect(boost::unique_lock<boost::mutex> &l, int resul
         if (url.size() < 2) {
             wxLogMessage("PrinterFileSystem::Reconnect Initialize failed: %s", wxString::FromUTF8(url));
             m_last_error = atoi(url.c_str());
+            if (m_last_error == 0)
+                m_stopped = true;
         } else {
             wxLogMessage("PrinterFileSystem::Reconnect Initialized: %s", Slic3r::GUI::hide_passwd(wxString::FromUTF8(url), {"authkey=", "passwd="}));
             l.unlock();

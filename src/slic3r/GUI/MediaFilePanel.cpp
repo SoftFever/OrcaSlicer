@@ -27,6 +27,7 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
     , m_bmp_loading(this, "media_loading", 0)
     , m_bmp_failed(this, "media_failed", 0)
     , m_bmp_empty(this, "media_empty", 0)
+    , m_machine("<null>")
 {
     SetBackgroundColour(0xEEEEEE);
     Hide();
@@ -221,14 +222,14 @@ wxString hide_id_middle_string(wxString const &str, size_t offset = 0, size_t le
         m_model_download_support = false;
     }
     Enable(obj && obj->is_connected() && obj->m_push_count > 0);
-    if (machine == m_machine && (m_image_grid->GetFileSystem() || (!m_local_support && !m_remote_support))) {
-        if (m_waiting_enable && IsEnabled()) {
+    if (machine == m_machine) {
+        if ((m_waiting_enable && IsEnabled()) || (m_waiting_support && (m_local_support || m_remote_support))) {
             auto fs = m_image_grid->GetFileSystem();
             if (fs) fs->Retry();
         }
         return;
     }
-    m_machine = machine;
+    m_machine.swap(machine);
     m_last_errors.clear();
     auto fs = m_image_grid->GetFileSystem();
     if (fs) {
@@ -240,10 +241,6 @@ wxString hide_id_middle_string(wxString const &str, size_t offset = 0, size_t le
     SetSelecting(false);
     if (m_machine.empty()) {
         m_image_grid->SetStatus(m_bmp_failed, _L("No printers."));
-    } else if (!IsEnabled()) {
-        m_image_grid->SetStatus(m_bmp_failed, _L("Initialize failed (Device connection not ready)!"));
-    } else if (!m_local_support && !m_remote_support) {
-        m_image_grid->SetStatus(m_bmp_failed, _L("Initialize failed (Not supported on the current printer version)!"));
     } else {
         boost::shared_ptr<PrinterFileSystem> fs(new PrinterFileSystem);
         fs->Attached();
@@ -423,10 +420,12 @@ void MediaFilePanel::fetchUrl(boost::weak_ptr<PrinterFileSystem> wfs)
     }
     m_waiting_enable = false;
     if (!m_local_support && !m_remote_support) {
+        m_waiting_support = true;
         m_image_grid->SetStatus(m_bmp_failed, _L("Initialize failed (Not supported on the current printer version)!"));
         fs->SetUrl("0");
         return;
     }
+    m_waiting_support = false;
     if ((m_lan_mode || !m_remote_support) && m_local_support && !m_lan_ip.empty()) {
         std::string url = "bambu:///local/" + m_lan_ip + ".?port=6000&user=" + m_lan_user + "&passwd=" + m_lan_passwd + 
                 "&device=" + m_machine + "&dev_ver=" + m_dev_ver;

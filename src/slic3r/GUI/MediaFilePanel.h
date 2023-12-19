@@ -85,6 +85,7 @@ private:
     bool        m_remote_support = false;
     bool        m_model_download_support = false;
     bool        m_waiting_enable = false;
+    bool        m_waiting_support = false;
 
     int m_last_mode = 0;
     int m_last_type = 0;
