@@ -8728,6 +8728,7 @@ msgstr ""
 "Interno/Esterno/Interno. Tuttavia, le giunzioni z appariranno meno coerenti "
 "quando la prima estrusione di un nuovo livello inizia su una superficie "
 "visibile.\n"
+" "
 
 msgid "Inner/Outer"
 msgstr "Interno/Esterno"
@@ -9152,7 +9153,6 @@ msgstr ""
 msgid "Sparse infill density"
 msgstr "Densità riempimento"
 
-#, c-format, boost-format
 msgid ""
 "Density of internal sparse infill, 100% turns all sparse infill into solid "
 "infill and internal solid infill pattern will be used"
