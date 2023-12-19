@@ -102,6 +102,9 @@
 	"retract_length_toolchange": [
 		"1"
 	],
+	"retraction_speed": [
+		"30"
+	],
 	"deretraction_speed": [
 		"30"
 	],
