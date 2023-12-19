@@ -831,7 +831,7 @@ msgid "Ironing"
 msgstr "Ütüleme"
 
 msgid "Fuzzy Skin"
-msgstr "Bulanık Kaplama"
+msgstr "Bulanık kaplama"
 
 msgid "Extruders"
 msgstr "Ekstruderler"
@@ -1417,7 +1417,7 @@ msgid " "
 msgstr " "
 
 msgid "Layer height"
-msgstr "Katman yüksekliği"
+msgstr "Katman Yüksekliği"
 
 msgid "Wall loops"
 msgstr "Duvar döngüleri"
@@ -4543,10 +4543,10 @@ msgid "View all object's settings"
 msgstr "Nesnenin tüm ayarları"
 
 msgid "Filament settings"
-msgstr "Filament ayarları"
+msgstr "Filament Ayarları"
 
 msgid "Printer settings"
-msgstr "Yazıcı ayarları"
+msgstr "Yazıcı Ayarları"
 
 msgid "Remove current plate (if not last one)"
 msgstr "Mevcut tablayı kaldırın (eğer sonuncusu değilse)"
@@ -6140,13 +6140,13 @@ msgid "Line width"
 msgstr "Katman Genişliği"
 
 msgid "Seam"
-msgstr "Dikiş (Seam)"
+msgstr "Dikiş"
 
 msgid "Precision"
 msgstr "Hassasiyet"
 
 msgid "Wall generator"
-msgstr "Duvarlar"
+msgstr "Duvar Türü"
 
 msgid "Walls and surfaces"
 msgstr "Duvarlar ve yüzeyler"
@@ -6188,7 +6188,7 @@ msgid "Set speed for external and internal bridges"
 msgstr "Harici ve dahili köprüler için hızı ayarlayın"
 
 msgid "Travel speed"
-msgstr "Seyahat hızı"
+msgstr "Seyahat Hızı"
 
 msgid "Acceleration"
 msgstr "Hızlanma"
@@ -6206,13 +6206,13 @@ msgid "Tree supports"
 msgstr "Ağaç destekler"
 
 msgid "Prime tower"
-msgstr "Prime kulesi"
+msgstr "Prime Kulesi"
 
 msgid "Special mode"
-msgstr "Özel mod"
+msgstr "Özel Mod"
 
 msgid "G-code output"
-msgstr "G kodu çıktısı"
+msgstr "G Kodu Çıktısı"
 
 msgid "Post-processing Scripts"
 msgstr "İşlem Sonrası Komut Dosyaları"
@@ -6251,7 +6251,7 @@ msgid "Retraction"
 msgstr "Geri çekme"
 
 msgid "Basic information"
-msgstr "Temel bilgiler"
+msgstr "Temel Bilgiler"
 
 msgid "Recommended nozzle temperature"
 msgstr "Önerilen Nozul sıcaklığı"
@@ -6261,10 +6261,10 @@ msgstr ""
 "Bu filamentin önerilen Nozul sıcaklığı aralığı. 0 ayar yok anlamına gelir"
 
 msgid "Print chamber temperature"
-msgstr "Baskı odası sıcaklığı"
+msgstr "Baskı Odası Sıcaklığı"
 
 msgid "Print temperature"
-msgstr "Yazdırma sıcaklığı"
+msgstr "Yazdırma Sıcaklığı"
 
 msgid "Nozzle"
 msgstr "Nozul"
@@ -6315,16 +6315,16 @@ msgstr ""
 "PEI Plaka üzerine yazdırmayı desteklemediği anlamına gelir"
 
 msgid "Volumetric speed limitation"
-msgstr "Hacimsel hız sınırlaması"
+msgstr "Hacimsel Hız Sınırlaması"
 
 msgid "Cooling"
 msgstr "Soğutma"
 
 msgid "Cooling for specific layer"
-msgstr "Belirli katman için soğutma"
+msgstr "Belirli Katman İçin Soğutma"
 
 msgid "Part cooling fan"
-msgstr "Parça soğutma fanı"
+msgstr "Parça Soğutma Fanı"
 
 msgid "Min fan speed threshold"
 msgstr "Minimum fan hızı"
@@ -6351,10 +6351,10 @@ msgstr ""
 "maksimum olacaktır"
 
 msgid "Auxiliary part cooling fan"
-msgstr "Yardımcı parça soğutma fanı"
+msgstr "Yardımcı Parça Soğutma Fanı"
 
 msgid "Exhaust fan"
-msgstr "Egzos fanı"
+msgstr "Egzos Fanı"
 
 msgid "During print"
 msgstr "Baskı boyunca"
@@ -6363,31 +6363,31 @@ msgid "Complete print"
 msgstr "Tam baskı"
 
 msgid "Filament start G-code"
-msgstr "Filament başlangıç G kodu"
+msgstr "Filament Başlangıç G Kodu"
 
 msgid "Filament end G-code"
-msgstr "Filament bitiş G kodu"
+msgstr "Filament Bitiş G Kodu"
 
 msgid "Multimaterial"
 msgstr "Çoklu Malzeme"
 
 msgid "Wipe tower parameters"
-msgstr "Silme kulesi parametreleri"
+msgstr "Silme Kulesi Parametreleri"
 
 msgid "Toolchange parameters with single extruder MM printers"
-msgstr "Tek ekstruderli MM yazıcılarda araç değiştirme parametreleri"
+msgstr "Tek Ekstruderli MM Yazıcılarda Araç Değiştirme Parametreleri"
 
 msgid "Ramming settings"
 msgstr "Sıkıştırma ayarları"
 
 msgid "Toolchange parameters with multi extruder MM printers"
-msgstr "Çoklu ekstruder MM yazıcılarda araç değiştirme parametreleri"
+msgstr "Çoklu Ekstruder MM Yazıcılarda Araç Değiştirme Parametreleri"
 
 msgid "Printable space"
 msgstr "Tabla Ayarı"
 
 msgid "Cooling Fan"
-msgstr "Soğutucu fan"
+msgstr "Soğutucu Fan"
 
 msgid "Fan speed-up time"
 msgstr "Fan hızlanma süresi"
@@ -6399,31 +6399,31 @@ msgid "Accessory"
 msgstr "Aksesuar"
 
 msgid "Machine gcode"
-msgstr "YazıcıG-kod"
+msgstr "Yazıcı G-kod"
 
 msgid "Machine start G-code"
-msgstr "Yazıcı başlangıç G-kod"
+msgstr "Yazıcı Başlangıç G-kod"
 
 msgid "Machine end G-code"
-msgstr "Yazıcı bitiş G-kod"
+msgstr "Yazıcı Bitiş G-kod"
 
 msgid "Printing by object G-code"
-msgstr "Nesneye göre yazdırma G-kod"
+msgstr "Nesneye Göre Yazdırma G-kod"
 
 msgid "Before layer change G-code"
-msgstr "Katman değişimi öncesi G-kod"
+msgstr "Katman Değişimi Öncesi G-kod"
 
 msgid "Layer change G-code"
-msgstr "Katman değişimi G-kod"
+msgstr "Katman Değişimi G-kod"
 
 msgid "Time lapse G-code"
-msgstr "Time lapse G-code"
+msgstr "Time Lapse G-code"
 
 msgid "Change filament G-code"
-msgstr "Filament değişimi G-kod"
+msgstr "Filament Değişimi G-kod"
 
 msgid "Change extrusion role G-code"
-msgstr "Ekstrüzyon rolü G-kodu değiştirme"
+msgstr "Ekstrüzyon Rolü G-kodu Değiştirme"
 
 msgid "Pause G-code"
 msgstr "Duraklatma G-Kod"
@@ -6438,31 +6438,31 @@ msgid "Normal"
 msgstr "Normal"
 
 msgid "Speed limitation"
-msgstr "Hız sınırlaması"
+msgstr "Hız Sınırlaması"
 
 msgid "Acceleration limitation"
-msgstr "Hızlanma sınırlaması"
+msgstr "Hızlanma Sınırlaması"
 
 msgid "Jerk limitation"
-msgstr "Jerk sınırlaması"
+msgstr "Jerk Sınırlaması"
 
 msgid "Single extruder multimaterial setup"
-msgstr "Tek ekstruder çoklu malzeme kurulumu"
+msgstr "Tek Ekstruder Çoklu Malzeme Kurulumu"
 
 msgid "Wipe tower"
-msgstr "Silme kulesi"
+msgstr "Silme Kulesi"
 
 msgid "Single extruder multimaterial parameters"
-msgstr "Tek ekstruder çoklu malzeme parametreleri"
+msgstr "Tek Ekstruder Çoklu Malzeme Parametreleri"
 
 msgid "Layer height limits"
-msgstr "Katman yüksekliği sınırları"
+msgstr "Katman Yüksekliği Sınırları"
 
 msgid "Lift Z Enforcement"
 msgstr "Z Kaldırma Uygulaması"
 
 msgid "Retraction when switching material"
-msgstr "Malzemeyi değiştirirken geri çekme"
+msgstr "Malzemeyi Değiştirirken Geri Çekme"
 
 msgid ""
 "The Wipe option is not available when using the Firmware Retraction mode.\n"
@@ -7321,7 +7321,7 @@ msgid "Internal solid infill"
 msgstr "İç katı dolgu"
 
 msgid "Top surface"
-msgstr "Üst Katman"
+msgstr "Üst yüzey"
 
 msgid "Bottom surface"
 msgstr "Alt yüzey"
@@ -8329,7 +8329,7 @@ msgstr ""
 "iğne ve küçük detaylar için soğutma kalitesini artırabilir"
 
 msgid "Normal printing"
-msgstr "Normal Baskı"
+msgstr "Normal baskı"
 
 msgid ""
 "The default acceleration of both normal printing and travel except initial "
@@ -8460,7 +8460,7 @@ msgstr ""
 "dolgu ekleyin (üst + alt katı katmanlar)"
 
 msgid "Top surface pattern"
-msgstr "Üst katman deseni"
+msgstr "Üst yüzey deseni"
 
 msgid "Line pattern of top surface infill"
 msgstr "Üst yüzey dolgusunun çizgi deseni"
@@ -8478,19 +8478,19 @@ msgid "Monotonic line"
 msgstr "Monotonik çizgi"
 
 msgid "Aligned Rectilinear"
-msgstr "Hizalanmış Doğrusal"
+msgstr "Hizalanmış doğrusal"
 
 msgid "Hilbert Curve"
-msgstr "Hilbert Eğrisi"
+msgstr "Hilbert eğrisi"
 
 msgid "Archimedean Chords"
-msgstr "Arşimet Akorları"
+msgstr "Arşimet akorları"
 
 msgid "Octagram Spiral"
-msgstr "Sekizgen Spiral"
+msgstr "Sekizgen spiral"
 
 msgid "Bottom surface pattern"
-msgstr "Alt katman deseni"
+msgstr "Alt yüzey deseni"
 
 msgid "Line pattern of bottom surface infill, not bridge infill"
 msgstr "Köprü dolgusu değil, alt yüzey dolgusunun çizgi deseni"
@@ -8987,7 +8987,7 @@ msgid "(Undefined)"
 msgstr "(Tanımsız)"
 
 msgid "Infill direction"
-msgstr "Dolgu Açısı"
+msgstr "Dolgu açısı"
 
 msgid ""
 "Angle for sparse infill pattern, which controls the start or main direction "
@@ -8996,7 +8996,7 @@ msgstr ""
 "Hattın başlangıcını veya ana yönünü kontrol eden seyrek dolgu deseni açısı"
 
 msgid "Sparse infill density"
-msgstr "Dolgu Yoğunluğu"
+msgstr "Dolgu yoğunluğu"
 
 #, fuzzy, c-format, boost-format
 msgid ""
@@ -9007,7 +9007,7 @@ msgstr ""
 "dönüştürür ve iç katı dolgu modeli kullanılacaktır"
 
 msgid "Sparse infill pattern"
-msgstr "Dolgu Deseni"
+msgstr "Dolgu deseni"
 
 msgid "Line pattern for internal sparse infill"
 msgstr "İç dolgu deseni"
@@ -9031,19 +9031,19 @@ msgid "Honeycomb"
 msgstr "Bal peteği"
 
 msgid "Adaptive Cubic"
-msgstr "Uyarlanabilir Kübik"
+msgstr "Uyarlanabilir kübik"
 
 msgid "3D Honeycomb"
-msgstr "3D Petek"
+msgstr "3D petek"
 
 msgid "Support Cubic"
-msgstr "Destek Kübik"
+msgstr "Destek kübik"
 
 msgid "Lightning"
 msgstr "Yıldırım"
 
 msgid "Sparse infill anchor length"
-msgstr "Dolgu Uzunluğu"
+msgstr "Dolgu uzunluğu"
 
 msgid ""
 "Connect an infill line to an internal perimeter with a short segment of an "
@@ -9158,7 +9158,7 @@ msgid "Klipper's max_accel_to_decel will be adjusted automatically"
 msgstr "Klipper'ın max_accel_to_decel'i otomatik olarak ayarlanacak"
 
 msgid "accel_to_decel"
-msgstr "accel_to_decel"
+msgstr "Accel_to_decel"
 
 #, c-format, boost-format
 msgid ""
@@ -10296,7 +10296,7 @@ msgstr ""
 "ilave filament miktarını itecektir."
 
 msgid "Retraction Speed"
-msgstr "Geri Çekme Hızı"
+msgstr "Geri çekme hızı"
 
 msgid "Speed of retractions"
 msgstr "Geri çekme hızları"
@@ -10419,7 +10419,7 @@ msgid "How many layers of skirt. Usually only one layer"
 msgstr "Etek katman sayısı. Genellikle tek katman"
 
 msgid "Skirt loops"
-msgstr "Etek Sayısı"
+msgstr "Etek sayısı"
 
 msgid "Number of loops for the skirt. Zero means disabling skirt"
 msgstr ""
@@ -10591,7 +10591,7 @@ msgstr ""
 "düşürebilir, bu nedenle değerin oldukça düşük tutulması tavsiye edilir."
 
 msgid "Slicing Mode"
-msgstr "Dilimleme Modu"
+msgstr "Dilimleme modu"
 
 msgid ""
 "Use \"Even-odd\" for 3DLabPrint airplane models. Use \"Close holes\" to "
@@ -10773,7 +10773,7 @@ msgid "Speed of support interface"
 msgstr "Destek arayüzünün hızı"
 
 msgid "Base pattern"
-msgstr "Destek Deseni"
+msgstr "Destek deseni"
 
 msgid "Line pattern of support"
 msgstr "Desteğin çizgi deseni"
@@ -10806,7 +10806,7 @@ msgid "Spacing between support lines"
 msgstr "Destek hatları arasındaki boşluk"
 
 msgid "Normal Support expansion"
-msgstr "Normal Destek genişletmesi"
+msgstr "Normal destek genişletmesi"
 
 msgid "Expand (+) or shrink (-) the horizontal span of normal support"
 msgstr "Normal desteğin yatay açıklığını genişletin (+) veya daraltın (-)"
@@ -12530,7 +12530,7 @@ msgid "Copy Current Filament Preset "
 msgstr "Geçerli Filament Ön Ayarını Kopyala "
 
 msgid "Basic Information"
-msgstr "Temel bilgiler"
+msgstr "Temel Bilgiler"
 
 msgid "Add Filament Preset under this filament"
 msgstr "Bu filamanın altına Filament Ön Ayarını ekleyin"
