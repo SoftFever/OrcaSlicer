@@ -3195,7 +3195,9 @@ void Plater::priv::update_sidebar(bool force_update) {
             needs_update = true;
         }
     } else {
-        bool should_show = sidebar_layout.show && !sidebar_layout.is_collapsed;
+        // Only hide if collapsed or is floating and is not 3d view
+        const bool should_hide = sidebar_layout.is_collapsed || (sidebar.IsFloating() && !sidebar_layout.show);
+        const bool should_show = !should_hide;
         if (should_show != sidebar.IsShown()) {
             sidebar.Show(should_show);
             needs_update = true;
