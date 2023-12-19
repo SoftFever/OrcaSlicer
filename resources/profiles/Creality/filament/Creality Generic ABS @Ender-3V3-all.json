@@ -1,12 +1,10 @@
 {
 	"type": "filament",
-	"filament_id": "GFB99",
 	"setting_id": "GFSA04_CREALITY_00",
 	"name": "Creality Generic ABS @Ender-3V3-all",
 	"from": "system",
 	"instantiation": "true",
-	"inherits": "fdm_filament_abs",
-	"filament_flow_ratio": ["0.926"],
+	"inherits": "Creality Generic ABS",
 	"filament_max_volumetric_speed": ["9"],
 	"slow_down_layer_time": ["5"],
 	"compatible_printers": [
