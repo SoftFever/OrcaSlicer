@@ -41,6 +41,10 @@
 			"sub_path": "machine/Creality Ender-3 V3 SE.json"
 		},
 		{
+			"name": "Creality Ender-3 V3 KE",
+			"sub_path": "machine/Creality Ender-3 V3 KE.json"
+		},
+		{
 			"name": "Creality Ender-5",
 			"sub_path": "machine/Creality Ender-5.json"
 		},
@@ -677,6 +681,10 @@
 		{
 			"name": "Creality Ender-3 V3 SE 0.4 nozzle",
 			"sub_path": "machine/Creality Ender-3 V3 SE 0.4 nozzle.json"
+		},
+		{
+			"name": "Creality Ender-3 V3 KE 0.4 nozzle",
+			"sub_path": "machine/Creality Ender-3 V3 KE 0.4 nozzle.json"
 		},
 		{
 			"name": "Creality Ender-5 0.4 nozzle",
