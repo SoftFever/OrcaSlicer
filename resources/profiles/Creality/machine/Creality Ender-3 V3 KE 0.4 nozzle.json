@@ -97,13 +97,16 @@
 		"70%"
 	],
 	"retraction_length": [
-		"0.8"
+		"0.5"
 	],
 	"retract_length_toolchange": [
 		"1"
 	],
+	"retraction_speed": [
+		"40"
+	],
 	"deretraction_speed": [
-		"30"
+		"40"
 	],
     "z_hop": [
         "0.1"
