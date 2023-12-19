@@ -3698,9 +3698,9 @@ def = this->add("filament_loading_speed", coFloats);
     def->set_default_value(new ConfigOptionInt(0));
 
     def = this->add("support_interface_not_for_body",coBool);
-    def->label    = L("Reduce interface filament for base");
+    def->label    = L("Avoid interface filament for base");
     def->category = L("Support");
-    def->tooltip = L("Avoid using support interface filament to print support base");
+    def->tooltip = L("Avoid using support interface filament to print support base if possible.");
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionBool(true));
 
@@ -4106,6 +4106,10 @@ def = this->add("filament_loading_speed", coFloats);
     def->max = max_temp;
     def->set_default_value(new ConfigOptionInts { 240 });
 
+    def = this->add("head_wrap_detect_zone", coPoints);
+    def->label ="Head wrap detect zone"; //do not need translation
+    def->mode = comDevelop;
+    def->set_default_value(new ConfigOptionPoints{});
 
     def = this->add("detect_thin_wall", coBool);
     def->label = L("Detect thin wall");

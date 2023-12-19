@@ -14,6 +14,7 @@
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/Plater.hpp"
 #include "libslic3r/AppConfig.hpp"
+#include "../GUI/MsgDialog.hpp"
 
 #include <imgui/imgui_internal.h>
 
@@ -636,20 +637,78 @@ void GLGizmoAdvancedCut::perform_cut(const Selection& selection)
         // update connectors pos as offset of its center before cut performing
         apply_connectors_in_model(mo, create_dowels_as_separate_object);
 
-        // BBS: do segment
-        if (m_do_segment) {
-            wxGetApp().plater()->segment(object_idx, instance_idx, m_segment_smoothing_alpha, m_segment_number);
-        } else {
-            wxGetApp().plater()->cut(object_idx, instance_idx, get_plane_points_world_coord(),
-                                     only_if(m_keep_upper, ModelObjectCutAttribute::KeepUpper) |
-                                     only_if(m_keep_lower, ModelObjectCutAttribute::KeepLower) |
-                                     only_if(m_cut_to_parts, ModelObjectCutAttribute::CutToParts) |
-                                     only_if(m_place_on_cut_upper, ModelObjectCutAttribute::PlaceOnCutUpper) |
-                                     only_if(m_place_on_cut_lower, ModelObjectCutAttribute::PlaceOnCutLower) |
-                                     only_if(m_rotate_upper, ModelObjectCutAttribute::FlipUpper) |
-                                     only_if(m_rotate_lower, ModelObjectCutAttribute::FlipLower) |
-                                     only_if(create_dowels_as_separate_object, ModelObjectCutAttribute::CreateDowels) |
-                                     only_if(!has_connectors, ModelObjectCutAttribute::InvalidateCutInfo));
+        apply_connectors_in_model(cut_mo, dowels_count);
+
+        wxBusyCursor wait;
+
+        ModelObjectCutAttributes attributes = only_if(has_connectors ? true : m_keep_upper, ModelObjectCutAttribute::KeepUpper) |
+                                              only_if(has_connectors ? true : m_keep_lower, ModelObjectCutAttribute::KeepLower) |
+                                              only_if(has_connectors ? false : m_cut_to_parts, ModelObjectCutAttribute::CutToParts) |
+                                              only_if(m_place_on_cut_upper, ModelObjectCutAttribute::PlaceOnCutUpper) |
+                                              only_if(m_place_on_cut_lower, ModelObjectCutAttribute::PlaceOnCutLower) |
+                                              only_if(m_rotate_upper, ModelObjectCutAttribute::FlipUpper) | only_if(m_rotate_lower, ModelObjectCutAttribute::FlipLower) |
+                                              only_if(dowels_count > 0, ModelObjectCutAttribute::CreateDowels) |
+                                              only_if(!has_connectors && !cut_with_groove && cut_mo->cut_id.id().invalid(), ModelObjectCutAttribute::InvalidateCutInfo);
+
+        // update cut_id for the cut object in respect to the attributes
+        update_object_cut_id(cut_mo->cut_id, attributes, dowels_count);
+
+        Cut cut(cut_mo, instance_idx, get_cut_matrix(selection), attributes);
+        cut.set_offset_for_two_part        = true;
+        const ModelObjectPtrs &new_objects = cut_by_contour  ? cut.perform_by_contour(m_part_selection->get_cut_parts(), dowels_count) :
+                                             cut_with_groove ? cut.perform_with_groove(m_groove, m_rotate_matrix) :
+                                                               cut.perform_with_plane();
+        // fix_non_manifold_edges
+#ifdef HAS_WIN10SDK
+        if (is_windows10()) {
+            bool is_showed_dialog = false;
+            bool user_fix_model   = false;
+            for (size_t i = 0; i < new_objects.size(); i++) {
+                for (size_t j = 0; j < new_objects[i]->volumes.size(); j++) {
+                    if (its_num_open_edges(new_objects[i]->volumes[j]->mesh().its) > 0) {
+                        if (!is_showed_dialog) {
+                            is_showed_dialog = true;
+                            MessageDialog dlg(nullptr, _L("non-mainifold edges be caused by cut tool, do you want to fix it now?"), "", wxYES | wxCANCEL);
+                            int           ret = dlg.ShowModal();
+                            if (ret == wxID_YES) {
+                                user_fix_model = true;
+                            }
+                        }
+                        if (!user_fix_model) {
+                            break;
+                        }
+                        // model_name
+                        std::vector<std::string> succes_models;
+                        // model_name     failing reason
+                        std::vector<std::pair<std::string, std::string>> failed_models;
+                        auto                                             plater = wxGetApp().plater();
+                        auto fix_and_update_progress = [this, plater](ModelObject *model_object, const int vol_idx, const string &model_name, ProgressDialog &progress_dlg,
+                                                                      std::vector<std::string> &succes_models, std::vector<std::pair<std::string, std::string>> &failed_models) {
+                            wxString msg = _L("Repairing model object");
+                            msg += ": " + from_u8(model_name) + "\n";
+                            std::string res;
+                            if (!fix_model_by_win10_sdk_gui(*model_object, vol_idx, progress_dlg, msg, res)) return false;
+                            return true;
+                        };
+                        ProgressDialog progress_dlg(_L("Repairing model object"), "", 100, find_toplevel_parent(plater), wxPD_AUTO_HIDE | wxPD_APP_MODAL | wxPD_CAN_ABORT, true);
+
+                        auto model_name = new_objects[i]->name;
+                        if (!fix_and_update_progress(new_objects[i], j, model_name, progress_dlg, succes_models, failed_models)) {
+                            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "run fix_and_update_progress error";
+                        };
+                    };
+                }
+            }
+        }
+ #endif
+        // set offset for new_objects
+
+        // save cut_id to post update synchronization
+        const CutObjectBase cut_id = cut_mo->cut_id;
+
+        // update cut results on plater and in the model
+        plater->apply_cut_object_to_model(object_idx, new_objects);
+
         }
     }
 }
