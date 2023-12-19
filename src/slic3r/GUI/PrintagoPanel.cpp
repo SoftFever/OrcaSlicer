@@ -30,9 +30,6 @@ PrintagoPanel::PrintagoPanel(wxWindow *parent, wxString *url) : wxPanel(parent, 
     devManager           = Slic3r::GUI::wxGetApp().getDeviceManager();
     wxBoxSizer *topsizer = new wxBoxSizer(wxVERTICAL);
 
-    // Create the info panel
-    m_info = new wxInfoBar(this);
-    topsizer->Add(m_info, wxSizerFlags().Expand());
     // Create the webview
     m_browser = WebView::CreateWebView(this, *url);
     if (m_browser == nullptr) {
@@ -772,10 +769,6 @@ void PrintagoPanel::OnNavigationRequest(wxWebViewEvent &evt)
     if (!jobServerState.compare("configure")) 
          return;
 
-    if (m_info->IsShown()) {
-        m_info->Dismiss();
-    }
-
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": " << evt.GetTarget().ToUTF8().data();
 
     const wxString &url = evt.GetURL();
@@ -880,9 +873,6 @@ void PrintagoPanel::OnError(wxWebViewEvent &evt)
 
     if (wxGetApp().get_mode() == comDevelop)
         wxLogMessage("%s", "Error; url='" + evt.GetURL() + "', error='" + category + " (" + evt.GetString() + ")'");
-
-    // Show the info bar with an error
-    m_info->ShowMessage(_L("An error occurred loading ") + evt.GetURL() + "\n" + "'" + category + "'", wxICON_ERROR);
 }
 
 }} // namespace Slic3r::GUI
