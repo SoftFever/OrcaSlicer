@@ -125,6 +125,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "extruder_clearance_height_to_rod",
         "extruder_clearance_height_to_lid",
         "extruder_clearance_radius",
+        "nozzle_height",
         "extruder_colour",
         "extruder_offset",
         "filament_flow_ratio",
@@ -578,10 +579,10 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
             polygons->clear();
         std::vector<size_t> intersecting_idxs;
 
-        bool all_objects_are_short = print.is_all_objects_are_short();
+        bool all_objects_are_short = std::all_of(print.objects().begin(), print.objects().end(), [&](PrintObject* obj) { return obj->height() < scale_(print.config().nozzle_height.value - MARGIN_HEIGHT); });
         // Shrink the extruder_clearance_radius a tiny bit, so that if the object arrangement algorithm placed the objects
         // exactly by satisfying the extruder_clearance_radius, this test will not trigger collision.
-        float obj_distance = all_objects_are_short ? scale_(0.5*MAX_OUTER_NOZZLE_RADIUS-0.1) : scale_(0.5*print.config().extruder_clearance_radius.value-0.1);
+        float obj_distance = all_objects_are_short ? scale_(0.5*MAX_OUTER_NOZZLE_DIAMETER-0.1) : scale_(0.5*print.config().extruder_clearance_radius.value-0.1);
 
         for (const PrintObject *print_object : print.objects()) {
             assert(! print_object->model_object()->instances.empty());
@@ -608,11 +609,7 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
             // Now we check that no instance of convex_hull intersects any of the previously checked object instances.
             for (const PrintInstance &instance : print_object->instances()) {
                 Polygon convex_hull_no_offset = convex_hull0, convex_hull;
-                auto tmp = offset(convex_hull_no_offset,
-                        // Shrink the extruder_clearance_radius a tiny bit, so that if the object arrangement algorithm placed the objects
-                        // exactly by satisfying the extruder_clearance_radius, this test will not trigger collision.
-                        float(scale_(0.5 * print.config().extruder_clearance_radius.value - 0.1)),
-                        jtRound, scale_(0.1));
+                auto tmp = offset(convex_hull_no_offset, obj_distance, jtRound, scale_(0.1));
                 if (!tmp.empty()) { // tmp may be empty due to clipper's bug, see STUDIO-2452
                     convex_hull = tmp.front();
                     // instance.shift is a position of a centered object, while model object may not be centered.

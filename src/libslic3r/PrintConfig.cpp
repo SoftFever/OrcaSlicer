@@ -1601,6 +1601,14 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(40));
 
+    def = this->add("nozzle_height", coFloat);
+    def->label = L("Nozzle height");
+    def->tooltip = L("The height of nozzle tip.");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->mode = comDevelop;
+    def->set_default_value(new ConfigOptionFloat(4));
+
     def          = this->add("bed_mesh_min", coPoint);
     def->label   = L("Bed mesh min");
     def->tooltip = L(
@@ -6308,6 +6316,8 @@ std::map<std::string, std::string> validate(const FullPrintConfig &cfg, bool und
     if (cfg.extruder_clearance_height_to_lid <= 0) {
         error_message.emplace("extruder_clearance_height_to_lid", L("invalid value ") + std::to_string(cfg.extruder_clearance_height_to_lid));
     }
+    if (cfg.nozzle_height <= 0)
+        error_message.emplace("nozzle_height", L("invalid value ") + std::to_string(cfg.nozzle_height));
 
     // --extrusion-multiplier
     for (double em : cfg.filament_flow_ratio.values)
