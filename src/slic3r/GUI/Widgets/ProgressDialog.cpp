@@ -620,7 +620,7 @@ bool ProgressDialog::DoBeforeUpdate(bool *skip)
     // also to process the clicks on the cancel and skip buttons
     // NOTE: using YieldFor() this call shouldn't give re-entrancy problems
     //       for event handlers not interested to UI/user-input events.
-    wxEventLoopBase::GetActive()->YieldFor(wxEVT_CATEGORY_UI | wxEVT_CATEGORY_USER_INPUT);
+    wxEventLoopBase::GetActive()->Yield(); //YieldFor(wxEVT_CATEGORY_UI | wxEVT_CATEGORY_USER_INPUT);
 
     Update();
 
@@ -638,7 +638,7 @@ void ProgressDialog::DoAfterUpdate()
     // allow the window to repaint:
     // NOTE: since we yield only for UI events with this call, there
     //       should be no side-effects
-    wxEventLoopBase::GetActive()->YieldFor(wxEVT_CATEGORY_UI | wxEVT_CATEGORY_USER_INPUT);
+    wxEventLoopBase::GetActive()->Yield();//YieldFor(wxEVT_CATEGORY_UI | wxEVT_CATEGORY_USER_INPUT);
 }
 
 void ProgressDialog::Resume()

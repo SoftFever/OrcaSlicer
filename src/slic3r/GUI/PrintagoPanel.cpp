@@ -769,6 +769,9 @@ void PrintagoPanel::SendWebViewMessage(PrintagoMessageEvent &evt)
 
 void PrintagoPanel::OnNavigationRequest(wxWebViewEvent &evt)
 {
+    if (!jobServerState.compare("configure")) 
+         return;
+
     if (m_info->IsShown()) {
         m_info->Dismiss();
     }
@@ -808,7 +811,6 @@ void PrintagoPanel::OnNavigationRequest(wxWebViewEvent &evt)
                 m_browser->RunScript(wxString::Format("window.postMessage(%s, '*');", messageStr));
                 return;
             });
-            // SendErrorMessage(jobPrinterId, "start_print_bbl", jobCommand, statusObject);
             return;
         }
 
