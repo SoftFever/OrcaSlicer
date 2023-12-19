@@ -503,7 +503,7 @@ void ArrangeJob::prepare()
 void ArrangeJob::check_unprintable()
 {
     for (auto it = m_selected.begin(); it != m_selected.end();) {
-        if (it->poly.area() < 0.001)
+        if (it->poly.area() < 0.001 || it->height>params.printable_height)
         {
 #if SAVE_ARRANGE_POLY
             SVG svg("SVG/arrange_unprintable_"+it->name+".svg", get_extents(it->poly));
@@ -512,12 +512,14 @@ void ArrangeJob::check_unprintable()
 #endif
 
             m_unprintable.push_back(*it);
-            auto msg = (boost::format(
-                _utf8("Object %s has zero size and can't be arranged."))
-                % _utf8(it->name)).str();
-            m_plater->get_notification_manager()->push_notification(NotificationType::BBLPlateInfo,
-                                NotificationManager::NotificationLevel::WarningNotificationLevel, msg);
             it = m_selected.erase(it);
+            if (it->poly.area() < 0.001) {
+                auto msg = (boost::format(
+                    _utf8("Object %s has zero size and can't be arranged."))
+                    % _utf8(it->name)).str();
+                m_plater->get_notification_manager()->push_notification(NotificationType::BBLPlateInfo,
+                    NotificationManager::NotificationLevel::WarningNotificationLevel, msg);
+            }
         }
         else
             it++;
