@@ -3001,6 +3001,13 @@ def = this->add("filament_loading_speed", coFloats);
     def->max = 1000;
     def->set_default_value(new ConfigOptionInt(2));
     
+    def = this->add("alternate_extra_wall", coBool);
+    def->label = L("Alternate extra wall");
+    def->category = L("Strength");
+    def->tooltip = L("This setting adds an extra wall every other layer. This way the infill gets wedged vertically between the walls, resulting in stronger prints. When this option is enabled, the ensure vertical shell thickness option is ignored.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+    
     def = this->add("post_process", coStrings);
     def->label = L("Post-processing Scripts");
     def->tooltip = L("If you want to process the output G-code through custom scripts, "
@@ -5494,6 +5501,7 @@ void DynamicPrintConfig::normalize_fdm(int used_filaments)
         }
         {
             this->opt<ConfigOptionInt>("wall_loops", true)->value       = 1;
+            this->opt<ConfigOptionBool>("alternate_extra_wall", true)->value = false;
             this->opt<ConfigOptionInt>("top_shell_layers", true)->value = 0;
             this->opt<ConfigOptionPercent>("sparse_infill_density", true)->value = 0;
         }
@@ -5566,6 +5574,7 @@ void DynamicPrintConfig::normalize_fdm_1()
         }
         {
             this->opt<ConfigOptionInt>("wall_loops", true)->value       = 1;
+            this->opt<ConfigOptionBool>("alternate_extra_wall", true)->value = false;
             this->opt<ConfigOptionInt>("top_shell_layers", true)->value = 0;
             this->opt<ConfigOptionPercent>("sparse_infill_density", true)->value = 0;
         }
@@ -5907,6 +5916,12 @@ std::map<std::string, std::string> validate(const FullPrintConfig &cfg, bool und
         // solid layers.
         if (cfg.wall_loops != 1) {
             error_message.emplace("wall_loops", L("Invalid value when spiral vase mode is enabled: ") + std::to_string(cfg.wall_loops));
+            //return "Can't make more than one perimeter when spiral vase mode is enabled";
+            //return "Can't make less than one perimeter when spiral vase mode is enabled";
+        }
+        
+        if (cfg.alternate_extra_wall) {
+            error_message.emplace("alternate_extra_wall", L("Invalid value when spiral vase mode is enabled: ") + std::to_string(cfg.alternate_extra_wall));
             //return "Can't make more than one perimeter when spiral vase mode is enabled";
             //return "Can't make less than one perimeter when spiral vase mode is enabled";
         }
