@@ -1376,6 +1376,10 @@ void MachineObject::parse_status(int flag)
     if(!is_support_motor_noise_cali){
         is_support_motor_noise_cali = ((flag >> 21) & 0x1) != 0;
     }
+    
+    if (!is_support_p1s_plus) {
+        is_support_p1s_plus = ((flag >> 27) & 0x1) != 0;
+    }
 
 
     sdcard_state = MachineObject::SdcardState((flag >> 8) & 0x11);
@@ -2732,6 +2736,8 @@ int MachineObject::parse_json(std::string payload)
                             ver_info.sn = (*it)["sn"].get<std::string>();
                         if ((*it).contains("hw_ver"))
                             ver_info.hw_ver = (*it)["hw_ver"].get<std::string>();
+                        if((*it).contains("flag"))
+                            ver_info.firmware_status= (*it)["flag"].get<int>();
                         module_vers.emplace(ver_info.name, ver_info);
                         if (ver_info.name == "ota") {
                             NetworkAgent* agent = GUI::wxGetApp().getAgent();
