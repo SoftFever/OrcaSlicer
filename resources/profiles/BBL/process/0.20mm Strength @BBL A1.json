@@ -1,0 +1,16 @@
+{
+    "type": "process",
+    "name": "0.20mm Strength @BBL A1",
+    "inherits": "fdm_process_bbl_0.20",
+    "from": "system",
+    "setting_id": "GP080",
+    "instantiation": "true",
+    "default_acceleration": "6000",
+    "outer_wall_speed": "60",
+    "sparse_infill_density": "25%",
+    "travel_speed": "700",
+    "wall_loops": "6",
+    "compatible_printers": [
+        "Bambu Lab A1 0.4 nozzle"
+    ]
+}

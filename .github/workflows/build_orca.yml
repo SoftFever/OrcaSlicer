@@ -58,7 +58,7 @@ jobs:
               if ($versionContent -match 'set\(SoftFever_VERSION "(.*?)"\)') {
                   $ver = $matches[1]
               }
-              ver = "V$ver"
+              $ver = "V$ver"
           }
       
           echo "ver=$ver" | Out-File -Append -FilePath $env:GITHUB_ENV -Encoding utf8
