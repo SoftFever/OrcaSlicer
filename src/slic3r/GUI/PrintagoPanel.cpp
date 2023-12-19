@@ -735,6 +735,25 @@ void PrintagoPanel::SendErrorMessage(const wxString printer_id,
     wxQueueEvent(this, event);
 }
 
+void PrintagoPanel::SendErrorMessage(const wxString printer_id,
+                                     const wxString localCommand,
+                                     const wxString command,
+                                     const json errorDetail)
+{
+    json errorResponse;
+    errorResponse["local_command"] = localCommand.ToStdString();
+    errorResponse["error_detail"]  = errorDetail;
+    errorResponse["success"]       = false;
+
+    auto *event = new PrintagoMessageEvent(PRINTAGO_SEND_WEBVIEW_MESSAGE_EVENT);
+    event->SetMessageType("error");
+    event->SetPrinterId(printer_id);
+    event->SetCommand(command);
+    event->SetData(errorResponse);
+
+    wxQueueEvent(this, event);
+}
+
 void PrintagoPanel::SendErrorAndUnblock(const wxString printer_id,
                                         const wxString localCommand,
                                         const wxString command,
@@ -781,16 +800,16 @@ void PrintagoPanel::OnNavigationRequest(wxWebViewEvent &evt)
         wxString      commandType, action;
 
         // Extract commandType and action from the path
-        
-        if (pathComponents.GetCount() < 2) {
-            SendErrorAndUnblock("error", "error", "error", "Invalid Printago Command Structure");
+
+        if (pathComponents.GetCount() != 3) {
+            SendErrorMessage("", "", "", "invalid printago command");
             return;
         } else if (!CanProcessJob()) {
             wxDateTime now = wxDateTime::Now();
             now.MakeUTC();
             const wxString timestamp = now.FormatISOCombined() + "Z";
 
-            json statusObject                          = json::object();
+            json statusObject;
             statusObject["process"]["can_process_job"] = CanProcessJob();
 
             statusObject["process"]["job_id"]         = ""; // add later from command.
@@ -798,12 +817,12 @@ void PrintagoPanel::OnNavigationRequest(wxWebViewEvent &evt)
             statusObject["process"]["job_machine"]    = jobPrinterId.ToStdString();
             statusObject["process"]["job_local_file"] = jobLocalFilePath.ToStdString();
             statusObject["process"]["job_progress"]   = jobProgress;
-
             const wxString messageStr = wxString(statusObject.dump().c_str(), wxConvUTF8);
-            CallAfter([=]() {
-                m_browser->RunScript(wxString::Format("window.postMessage(%s, '*');", messageStr));
-                return;
-            });
+            // CallAfter([=]() {
+            //     m_browser->RunScript(wxString::Format("window.postMessage(%s, '*');", messageStr));
+            //     return;
+            // });
+            SendErrorMessage("", "", "", messageStr);
             return;
         }
 

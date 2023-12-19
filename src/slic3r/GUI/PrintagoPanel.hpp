@@ -132,11 +132,11 @@ private:
     // we set this to true when we need to issue a
     // command that must block (e.g slicing/sending a print to a printer)
     // no need to send this for commands like home/jog.
-    wxString             jobPrinterId;
-    wxString             jobCommand;
-    wxString             jobLocalFilePath;
-    wxString             jobServerState       = "idle"; // TODO : use enum
-    int                  jobProgress          = 0;
+    wxString jobPrinterId;
+    wxString jobCommand;
+    wxString jobLocalFilePath;
+    wxString jobServerState = "idle"; // TODO : use enum
+    int      jobProgress    = 0;
 
     SelectMachineDialog *m_select_machine_dlg = nullptr;
     inline static bool   m_can_process_job    = true; // let's us know if we can clear/add files/slice/send.
@@ -149,6 +149,7 @@ private:
                           const wxString localCommand,
                           const wxString command     = "",
                           const wxString errorDetail = "");
+    void SendErrorMessage(const wxString printer_id, const wxString localCommand, const wxString command = "", const json errorDetail = "");
     void SendSuccessMessage(const wxString printer_id,
                             const wxString localCommand,
                             const wxString command            = "",
