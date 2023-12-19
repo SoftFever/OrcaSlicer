@@ -106,28 +106,13 @@ public:
     PrintagoPanel(wxWindow *parent, wxString *url);
     virtual ~PrintagoPanel();
 
-    void OnSlicingProcessCompleted(SlicingProcessCompletedEvent &evt);
-    void OnPrintJobSent(wxCommandEvent &evt);
-    void SendWebViewMessage(PrintagoMessageEvent &evt);
-
     void load_url(wxString &url);
-    void SetCanProcessJob(bool can_process_job);
     bool CanProcessJob() { return m_can_process_job; }
-
-    void OnNavigationRequest(wxWebViewEvent &evt);
-    void OnNavigationComplete(wxWebViewEvent &evt);
-    void OnDocumentLoaded(wxWebViewEvent &evt);
-    void OnNewWindow(wxWebViewEvent &evt);
-    void OnError(wxWebViewEvent &evt);
-    void RunScript(const wxString &javascript);
 
 private:
     Slic3r::DeviceManager *devManager;
     wxWebView             *m_browser;
     wxBoxSizer            *bSizer_toolbar;
-
-    wxInfoBar    *m_info;
-    wxStaticText *m_info_text;
 
     // we set this to true when we need to issue a
     // command that must block (e.g slicing/sending a print to a printer)
@@ -143,23 +128,19 @@ private:
 
     void HandlePrintagoCommand(const PrintagoCommand &event);
 
-    void SendStatusMessage(const wxString printer_id, const json statusData, const wxString command = "");
-    void SendResponseMessage(const wxString printer_id, const json responseData, const wxString command = "");
-    void SendErrorMessage(const wxString printer_id,
-                          const wxString localCommand,
-                          const wxString command     = "",
-                          const wxString errorDetail = "");
-    void SendErrorMessage(const wxString printer_id, const wxString localCommand, const wxString command = "", const json errorDetail = "");
-    void SendSuccessMessage(const wxString printer_id,
-                            const wxString localCommand,
-                            const wxString command            = "",
-                            const wxString localCommandDetail = "");
+    void SendStatusMessage   (const wxString printer_id, const json     statusData,   const wxString command = "");
+    void SendResponseMessage (const wxString printer_id, const json     responseData, const wxString command = "");
+    void SendSuccessMessage  (const wxString printer_id, const wxString localCommand, const wxString command = "", const wxString localCommandDetail = "");
+    void SendErrorMessage    (const wxString printer_id, const wxString localCommand, const wxString command = "", const wxString errorDetail = "");
+    void SendJsonErrorMessage(const wxString printer_id, const wxString localCommand, const wxString command = "", const json     errorDetail = "");
 
-    // wraps sending and error response, and unblocks the server for job processing.
+    // wraps SendErrorMessage and SetCanProcessJob(true)
     void SendErrorAndUnblock(const wxString printer_id, const wxString localCommand, const wxString command, const wxString errorDetail);
 
     wxStringToStringHashMap      ParseQueryString(const wxString &queryString);
     std::map<wxString, wxString> ExtractPrefixedParams(const wxStringToStringHashMap &params, const wxString &prefix);
+
+    bool ValidatePrintagoCommand(const PrintagoCommand &event);
 
     json GetAllStatus();
     json GetMachineStatus(const wxString &printerId);
@@ -170,6 +151,18 @@ private:
 
     static wxString wxURLErrorToString(wxURLError error);
     static json     MachineObjectToJson(MachineObject *machine);
+
+    void OnNavigationRequest(wxWebViewEvent &evt);
+    void OnNavigationComplete(wxWebViewEvent &evt);
+    void OnNewWindow(wxWebViewEvent &evt);
+    void OnError(wxWebViewEvent &evt);
+    void RunScript(const wxString &javascript);
+
+    void OnSlicingProcessCompleted(SlicingProcessCompletedEvent &evt);
+    void OnPrintJobSent(wxCommandEvent &evt);
+    void SendWebViewMessage(PrintagoMessageEvent &evt);
+
+    void SetCanProcessJob(bool can_process_job);
 };
 
 } // namespace GUI
