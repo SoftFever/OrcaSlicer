@@ -136,6 +136,9 @@ const std::string BBL_REGION_TAG                    = "Region";
 const std::string BBL_MODIFICATION_TAG              = "ModificationDate";
 const std::string BBL_CREATION_DATE_TAG             = "CreationDate";
 const std::string BBL_APPLICATION_TAG               = "Application";
+const std::string BBL_MAKERLAB_TAG                  = "MakerLab";
+const std::string BBL_MAKERLAB_VERSION_TAG          = "MakerLabVersion";
+
 
 const std::string BBL_PROFILE_TITLE_TAG             = "ProfileTitle";
 const std::string BBL_PROFILE_COVER_TAG             = "ProfileCover";
@@ -6382,6 +6385,15 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 metadata_item_map[BBL_APPLICATION_TAG] = (boost::format("%1%-%2%") % "BambuStudio" % SoftFever_VERSION).str();
             }
             metadata_item_map[BBS_3MF_VERSION] = std::to_string(VERSION_BBS_3MF);
+
+            if (!model.mk_name.empty()) {
+                metadata_item_map[BBL_MAKERLAB_TAG] = xml_escape(model.mk_name);
+                BOOST_LOG_TRIVIAL(info) << "saved mk_name " << model.mk_name;
+            }
+            if (!model.mk_version.empty()) {
+                metadata_item_map[BBL_MAKERLAB_VERSION_TAG] = xml_escape(model.mk_version);
+                BOOST_LOG_TRIVIAL(info) << "saved mk_version " << model.mk_version;
+            }
 
             // store metadata info
             for (auto item : metadata_item_map) {
