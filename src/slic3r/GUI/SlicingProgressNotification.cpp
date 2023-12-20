@@ -226,7 +226,7 @@ void NotificationManager::SlicingProgressNotification::render(GLCanvas3D& canvas
 	const float  dailytips_panel_width = (m_window_width - 2 * dailytips_child_window_padding.x);
 	const float  gcodeviewer_height = wxGetApp().plater()->get_preview_canvas3D()->get_gcode_viewer().get_legend_height();
 	//const float  dailytips_panel_height = std::min(380.0f * scale, std::max(90.0f, (cnv_size.get_height() - gcodeviewer_height - progress_panel_height - dailytips_child_window_padding.y - initial_y - m_line_height * 4)));
-	const float  dailytips_panel_height = 380.0f * scale;
+	const float  dailytips_panel_height = 125.0f * scale;
 
 	float right_gap = right_margin + (move_from_overlay ? overlay_width + m_line_height * 5 : 0);
 	m_window_pos = ImVec2((float)cnv_size.get_width() - right_gap - m_window_width, (float)cnv_size.get_height() - m_top_y);

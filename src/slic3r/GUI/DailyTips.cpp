@@ -98,16 +98,24 @@ void DailyTipsDataRenderer::render(const ImVec2& pos, const ImVec2& size) const
     ImGui::SetNextWindowPos(pos);
     if (ImGui::BeginChild(name.c_str(), size, false, window_flags)) {
         if (m_layout == DailyTipsLayout::Vertical) {
-            ImVec2 img_size = ImVec2(size.x, 9.0f / 16.0f * size.x);
-            render_img({ 0, 0 }, img_size);
-            float img_text_gap = ImGui::CalcTextSize("A").y;
+            ImVec2 img_size(0, 0);
+            float img_text_gap = 0.0f;
+            if (has_image()) {
+                img_size = ImVec2(size.x, 9.0f / 16.0f * size.x);
+                render_img({0, 0}, img_size);
+                img_text_gap = ImGui::CalcTextSize("A").y;
+            }
             render_text({ 0, img_size.y + img_text_gap }, size);
         }
         if (m_layout == DailyTipsLayout::Horizontal) {
-            ImVec2 img_size = ImVec2(16.0f / 9.0f * size.y, size.y);
-            render_img({ 0, 0 }, img_size);
-            float img_text_gap = ImGui::CalcTextSize("A").y;
-            render_text({ img_size.x + img_text_gap, 0 }, { size.x - img_size.x - img_text_gap, size.y });
+            ImVec2 img_size(0, 0);
+            float  img_text_gap = 0.0f;
+            if (has_image()) {
+                img_size = ImVec2(16.0f / 9.0f * size.y, size.y);
+                render_img({0, 0}, img_size);
+                img_text_gap = ImGui::CalcTextSize("A").y;
+            }
+            render_text({img_size.x + img_text_gap, 0}, {size.x - img_size.x - img_text_gap, size.y});
         }
     }
     ImGui::EndChild();
@@ -132,9 +140,9 @@ void DailyTipsDataRenderer::render_img(const ImVec2& start_pos, const ImVec2& si
 {
     if (has_image())
         ImGui::Image((ImTextureID)(intptr_t)m_texture->get_id(), size, ImVec2(0, 0), ImVec2(1, 1), m_is_dark ? ImVec4(0.8, 0.8, 0.8, m_fade_opacity) : ImVec4(1, 1, 1, m_fade_opacity));
-    else {
-        ImGui::Image((ImTextureID)(intptr_t)m_placeholder_texture->get_id(), size, ImVec2(0, 0), ImVec2(1, 1), m_is_dark ? ImVec4(0.8, 0.8, 0.8, m_fade_opacity) : ImVec4(1, 1, 1, m_fade_opacity));
-    }
+    // else {
+    //     ImGui::Image((ImTextureID)(intptr_t)m_placeholder_texture->get_id(), size, ImVec2(0, 0), ImVec2(1, 1), m_is_dark ? ImVec4(0.8, 0.8, 0.8, m_fade_opacity) : ImVec4(1, 1, 1, m_fade_opacity));
+    // }
 }
 
 void DailyTipsDataRenderer::render_text(const ImVec2& start_pos, const ImVec2& size) const
@@ -228,7 +236,7 @@ DailyTipsPanel::DailyTipsPanel(bool can_expand, DailyTipsLayout layout)
 {
     ImGuiWrapper& imgui = *wxGetApp().imgui();
     float scale = imgui.get_font_size() / 15.0f;
-    m_footer_height = 58.0f * scale;
+    m_footer_height = 30.0f * scale;
     m_is_expanded = wxGetApp().app_config->get("show_hints") == "true";
 }
 

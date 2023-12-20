@@ -1,3 +1,9 @@
+///|/ Copyright (c) Prusa Research 2018 - 2023 Enrico Turri @enricoturri1966, Oleksandra Iushchenko @YuSanka, Vojtěch Bubník @bubnikv, Lukáš Matěna @lukasmatena, Filip Sykala @Jony01, David Kocík @kocikdav, Tomáš Mészáros @tamasmeszaros, Vojtěch Král @vojtechkral
+///|/ Copyright (c) 2022 André Althaus
+///|/ Copyright (c) 2019 John Drake @foxox
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 //#include "stdlib.h"
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Layer.hpp"
@@ -65,6 +71,7 @@ bool View3D::init(wxWindow* parent, Bed3D& bed, Model* model, DynamicPrintConfig
     m_canvas->allow_multisample(OpenGLManager::can_multisample());
     // XXX: If have OpenGL
     m_canvas->enable_picking(true);
+    m_canvas->get_selection().set_mode(Selection::Instance);
     m_canvas->enable_moving(true);
     // XXX: more config from 3D.pm
     m_canvas->set_model(model);

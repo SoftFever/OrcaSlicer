@@ -448,7 +448,7 @@ CalibrationPresetPage::CalibrationPresetPage(
 void CalibrationPresetPage::msw_rescale()
 {
     CalibrationWizardPage::msw_rescale();
-    m_ams_sync_button->msw_rescale();
+    m_ams_sync_button->sys_color_changed();
     m_virtual_tray_comboBox->msw_rescale();
     for (auto& comboBox : m_filament_comboBox_list) {
         comboBox->msw_rescale();
@@ -458,7 +458,7 @@ void CalibrationPresetPage::msw_rescale()
 void CalibrationPresetPage::on_sys_color_changed()
 {
     CalibrationWizardPage::on_sys_color_changed();
-    m_ams_sync_button->msw_rescale();
+    m_ams_sync_button->sys_color_changed();
 }
 
 void CalibrationPresetPage::create_selection_panel(wxWindow* parent)
@@ -1437,12 +1437,10 @@ void CalibrationPresetPage::on_cali_finished_job()
 void CalibrationPresetPage::on_cali_cancel_job()
 {
     BOOST_LOG_TRIVIAL(info) << "CalibrationWizard::print_job: enter canceled";
-    if (CalibUtils::print_job) {
-        if (CalibUtils::print_job->is_running()) {
-            BOOST_LOG_TRIVIAL(info) << "calibration_print_job: canceled";
-            CalibUtils::print_job->cancel();
-        }
-        CalibUtils::print_job->join();
+    if (CalibUtils::print_worker) {
+        BOOST_LOG_TRIVIAL(info) << "calibration_print_job: canceled";
+        CalibUtils::print_worker->cancel_all();
+        CalibUtils::print_worker->wait_for_idle();
     }
 
     m_sending_panel->reset();

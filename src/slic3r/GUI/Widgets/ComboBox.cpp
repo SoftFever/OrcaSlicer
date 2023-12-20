@@ -100,7 +100,7 @@ void ComboBox::Rescale()
 
 bool ComboBox::Enable(bool enable) {
     bool ret = TextInput::Enable(enable);
-    if (ret && icons[drop.selection].IsOk())
+    if (ret && drop.selection >= 0 && drop.iconSize.y > 0)
         SetIcon(icons[drop.selection]);
     return ret;
 }

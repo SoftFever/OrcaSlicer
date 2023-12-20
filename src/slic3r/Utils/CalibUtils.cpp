@@ -7,11 +7,13 @@
 #include "libslic3r/CutUtils.hpp"
 
 #include "libslic3r/Model.hpp"
+#include "slic3r/GUI/Jobs/BoostThreadWorker.hpp"
+#include "slic3r/GUI/Jobs/PlaterWorker.hpp"
 
 
 namespace Slic3r {
 namespace GUI {
-std::shared_ptr<PrintJob> CalibUtils::print_job;
+std::unique_ptr<Worker> CalibUtils::print_worker;
 wxString wxstr_temp_dir = fs::path(fs::temp_directory_path() / "calib").wstring();
 static const std::string temp_dir = wxstr_temp_dir.utf8_string();
 static const std::string temp_gcode_path = temp_dir + "/temp.gcode";
@@ -924,7 +926,7 @@ void CalibUtils::process_and_store_3mf(Model *model, const DynamicPrintConfig &f
     if (params.mode == CalibMode::Calib_PA_Line) {
         double space_y       = 3.5;
         int    max_line_nums = int(plate_size[1] - 10) / space_y;
-        int    count         = std::llround(std::ceil((params.end - params.start) / params.step));
+        int    count         = std::llround(std::ceil((params.end - params.start) / params.step)) + 1;
         if (count > max_line_nums) {
             error_message = _L("Unable to calibrate: maybe because the set calibration value range is too large, or the step is too small");
             return;
@@ -1134,7 +1136,9 @@ void CalibUtils::send_to_print(const CalibInfo &calib_info, wxString &error_mess
         }
     }
 
-    print_job                   = std::make_shared<PrintJob>(std::move(process_bar), wxGetApp().plater(), dev_id);
+    print_worker = std::make_unique<PlaterWorker<BoostThreadWorker>>(wxGetApp().plater(), std::move(process_bar), "calib_worker");
+
+    auto print_job              = std::make_unique<PrintJob>(dev_id);
     print_job->m_dev_ip         = obj_->dev_ip;
     print_job->m_ftp_folder     = obj_->get_ftp_folder();
     print_job->m_access_code    = obj_->get_access_code();
@@ -1187,7 +1191,7 @@ void CalibUtils::send_to_print(const CalibInfo &calib_info, wxString &error_mess
         BOOST_LOG_TRIVIAL(info) << "send_cali_job - after send: " << j.dump();
     }
 
-    print_job->start();
+    replace_job(*print_worker, std::move(print_job));
 }
 
 }

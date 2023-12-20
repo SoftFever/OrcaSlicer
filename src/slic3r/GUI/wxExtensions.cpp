@@ -106,10 +106,10 @@ wxMenuItem* append_submenu(wxMenu* menu, wxMenu* sub_menu, int id, const wxStrin
     wxMenuItem* item = new wxMenuItem(menu, id, string, description, wxITEM_NORMAL, sub_menu);
     if (!icon.empty()) {
         item->SetBitmap(*get_bmp_bundle(icon));
-//#ifdef __WXMSW__
-#ifndef __WXGTK__
+
+#ifndef __linux__
         msw_menuitem_bitmaps[id] = icon;
-#endif /* __WXMSW__ */
+#endif // no __linux__
     }
 
     menu->Append(item);
@@ -406,6 +406,13 @@ int mode_icon_px_size()
 #endif
 }
 
+#ifdef __WXGTK2__
+static int scale()
+{
+    return int(em_unit(nullptr) * 0.1f + 0.5f);
+}
+#endif // __WXGTK2__
+
 wxBitmapBundle* get_bmp_bundle(const std::string& bmp_name_in, int px_cnt/* = 16*/)
 {
     static Slic3r::GUI::BitmapCache cache;
@@ -427,13 +434,21 @@ wxBitmapBundle* get_bmp_bundle(const std::string& bmp_name_in, int px_cnt/* = 16
 wxBitmapBundle* get_empty_bmp_bundle(int width, int height)
 {
     static Slic3r::GUI::BitmapCache cache;
+#ifdef __WXGTK2__
+    return cache.mkclear_bndl(width * scale(), height * scale());
+#else
     return cache.mkclear_bndl(width, height);
+#endif // __WXGTK2__
 }
 
 wxBitmapBundle* get_solid_bmp_bundle(int width, int height, const std::string& color )
 {
     static Slic3r::GUI::BitmapCache cache;
+#ifdef __WXGTK2__
+    return cache.mksolid_bndl(width * scale(), height * scale(), color, 1, Slic3r::GUI::wxGetApp().dark_mode());
+#else
     return cache.mksolid_bndl(width, height, color, 1, Slic3r::GUI::wxGetApp().dark_mode());
+#endif // __WXGTK2__
 }
 
 // win is used to get a correct em_unit value
@@ -447,6 +462,10 @@ wxBitmap create_scaled_bitmap(  const std::string& bmp_name_in,
                                 const bool menu_bitmap/* = false*/,
                                 const bool resize/* = false*/)
 {
+#ifdef __WXGTK2__
+    px_cnt *= scale();
+#endif // __WXGTK2__
+
     static Slic3r::GUI::BitmapCache cache;
 
     unsigned int width = 0;
@@ -828,7 +847,7 @@ void ModeSizer::set_items_border(int border)
 void ModeSizer::sys_color_changed()
 {
     for (size_t m = 0; m < m_mode_btns.size(); m++)
-        m_mode_btns[m]->msw_rescale();
+        m_mode_btns[m]->sys_color_changed();
 }
 
 // ----------------------------------------------------------------------------
@@ -984,7 +1003,7 @@ int ScalableButton::GetBitmapHeight()
 #endif
 }
 
-void ScalableButton::msw_rescale()
+void ScalableButton::sys_color_changed()
 {
     Slic3r::GUI::wxGetApp().UpdateDarkUI(this, m_has_border);
 

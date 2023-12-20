@@ -39,7 +39,9 @@ BeadingStrategyPtr BeadingStrategyFactory::makeStrategy(
         BOOST_LOG_TRIVIAL(debug) << "Applying the Widening Beading meta-strategy with minimum input width " << min_feature_size << " and minimum output width " << min_bead_width << ".";
         ret = std::make_unique<WideningBeadingStrategy>(std::move(ret), min_feature_size, min_bead_width);
     }
-    if (outer_wall_offset > 0) {
+    // Orca: we allow negative outer_wall_offset here
+    if (outer_wall_offset != 0) 
+    {
         BOOST_LOG_TRIVIAL(debug) << "Applying the OuterWallOffset meta-strategy with offset = " << outer_wall_offset << ".";
         ret = std::make_unique<OuterWallInsetBeadingStrategy>(outer_wall_offset, std::move(ret));
     }

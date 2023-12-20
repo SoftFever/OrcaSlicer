@@ -361,7 +361,7 @@ void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_he
     std::string layer_time = ImGui::ColorMarkerStart + _u8L("Layer Time: ") + ImGui::ColorMarkerEnd;
     std::string fanspeed = ImGui::ColorMarkerStart + _u8L("Fan: ") + ImGui::ColorMarkerEnd;
     std::string temperature = ImGui::ColorMarkerStart + _u8L("Temperature: ") + ImGui::ColorMarkerEnd;
-    const float item_size = imgui.calc_text_size("X: 000.000  ").x;
+    const float item_size = imgui.calc_text_size(std::string_view{"X: 000.000  "}).x;
     const float item_spacing = imgui.get_item_spacing().x;
     const float window_padding = ImGui::GetStyle().WindowPadding.x;
 
@@ -1242,11 +1242,12 @@ void GCodeViewer::render(int canvas_width, int canvas_height, int right_margin)
     m_statistics.total_instances_gpu_size = 0;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
+    glsafe(::glEnable(GL_DEPTH_TEST));
+    render_shells();
+
     if (m_roles.empty())
         return;
 
-    glsafe(::glEnable(GL_DEPTH_TEST));
-    render_shells();
     render_toolpaths();
     float legend_height = 0.0f;
     render_legend(legend_height, canvas_width, canvas_height, right_margin);

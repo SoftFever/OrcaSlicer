@@ -1,0 +1,11 @@
+{
+    "type": "process",
+    "setting_id": "GP004",
+    "name": "0.20mm Standard @Creality Ender5Pro (2019) 0.25",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "fdm_process_creality_common_0_25",
+    "bottom_shell_layers": "4",
+    "top_shell_layers": "5",
+    "layer_height": "0.20"
+}

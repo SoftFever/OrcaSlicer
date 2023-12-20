@@ -252,12 +252,17 @@ void GLGizmoBase::GizmoImguiEnd()
 
 void GLGizmoBase::GizmoImguiSetNextWIndowPos(float &x, float y, int flag, float pivot_x, float pivot_y)
 {
-    if (abs(last_input_window_width) > 0.01f) {
-        if (x + last_input_window_width > m_parent.get_canvas_size().get_width()) {
-            if (last_input_window_width > m_parent.get_canvas_size().get_width()) {
+    GizmoImguiSetNextWIndowPos(x, y, last_input_window_width, 0, flag, pivot_x, pivot_y);
+}
+
+void GLGizmoBase::GizmoImguiSetNextWIndowPos(float &x, float y, float w, float h, int flag, float pivot_x, float pivot_y)
+{
+    if (abs(w) > 0.01f) {
+        if (x + w > m_parent.get_canvas_size().get_width()) {
+            if (w > m_parent.get_canvas_size().get_width()) {
                 x = 0;
             } else {
-                x = m_parent.get_canvas_size().get_width() - last_input_window_width;
+                x = m_parent.get_canvas_size().get_width() - w;
             }
         }
     }

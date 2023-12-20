@@ -95,8 +95,8 @@ SysInfoDialog::SysInfoDialog()
 	main_sizer->Add(hsizer, 1, wxEXPAND | wxALL, 10);
 
     // logo
-    m_logo_bmp = ScalableBitmap(this, wxGetApp().logo_name(), 192);
-    m_logo = new wxStaticBitmap(this, wxID_ANY, m_logo_bmp.bmp());
+    m_logo = new wxStaticBitmap(this, wxID_ANY, *get_bmp_bundle(wxGetApp().logo_name(), 192));
+
 	hsizer->Add(m_logo, 0, wxALIGN_CENTER_VERTICAL);
 
     wxBoxSizer* vsizer = new wxBoxSizer(wxVERTICAL);

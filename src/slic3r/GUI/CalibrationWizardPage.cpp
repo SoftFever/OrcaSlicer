@@ -472,12 +472,12 @@ void CaliPageCaption::show_help_icon(bool show)
 
 void CaliPageCaption::on_sys_color_changed()
 {
-    m_prev_btn->msw_rescale();
+    m_prev_btn->sys_color_changed();
 }
 
 void CaliPageCaption::msw_rescale()
 {
-    m_prev_btn->msw_rescale();
+    m_prev_btn->sys_color_changed();
 }
 
 CaliPageStepGuide::CaliPageStepGuide(wxWindow* parent, wxArrayString steps,
@@ -611,8 +611,8 @@ PAPageHelpPanel::PAPageHelpPanel(wxWindow* parent, bool ground_panel, wxWindowID
 
 void PAPageHelpPanel::msw_rescale()
 {
-    m_help_btn->msw_rescale();
-    m_bmp.msw_rescale();
+    m_help_btn->sys_color_changed();
+    m_bmp.sys_color_changed();
     m_img->SetBitmap(m_bmp.bmp());
 }
 

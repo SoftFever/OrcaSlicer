@@ -1368,7 +1368,7 @@ indexed_triangle_set ModelObject::raw_indexed_triangle_set() const
             size_t j = out.indices.size();
             append(out.vertices, v->mesh().its.vertices);
             append(out.indices,  v->mesh().its.indices);
-            auto m = v->get_matrix();
+            const Transform3d& m = v->get_matrix();
             for (; i < out.vertices.size(); ++ i)
                 out.vertices[i] = (m * out.vertices[i].cast<double>()).cast<float>().eval();
             if (v->is_left_handed()) {
@@ -1410,7 +1410,7 @@ const BoundingBoxf3& ModelObject::raw_bounding_box() const
         if (this->instances.empty())
             throw Slic3r::InvalidArgument("Can't call raw_bounding_box() with no instances");
 
-        const Transform3d& inst_matrix = this->instances.front()->get_transformation().get_matrix(true);
+        const Transform3d inst_matrix = this->instances.front()->get_transformation().get_matrix_no_offset();
         for (const ModelVolume *v : this->volumes)
             if (v->is_model_part())
                 m_raw_bounding_box.merge(v->mesh().transformed_bounding_box(inst_matrix * v->get_matrix()));
@@ -1423,14 +1423,18 @@ BoundingBoxf3 ModelObject::instance_bounding_box(size_t instance_idx, bool dont_
     return instance_bounding_box(*this->instances[instance_idx], dont_translate);
 }
 
-BoundingBoxf3 ModelObject::instance_bounding_box(const ModelInstance &instance, bool dont_translate) const {
-    BoundingBoxf3 bbox;
-    const auto& inst_mat = instance.get_transformation().get_matrix(dont_translate);
-    for (auto vol : this->volumes) {
-        if (vol->is_model_part())
-            bbox.merge(vol->mesh().transformed_bounding_box(inst_mat * vol->get_matrix()));
+BoundingBoxf3 ModelObject::instance_bounding_box(const ModelInstance &instance, bool dont_translate) const
+{
+    BoundingBoxf3 bb;
+    const Transform3d inst_matrix = dont_translate ?
+        instance.get_transformation().get_matrix_no_offset() :
+        instance.get_transformation().get_matrix();
+
+    for (ModelVolume *v : this->volumes) {
+        if (v->is_model_part())
+            bb.merge(v->mesh().transformed_bounding_box(inst_matrix * v->get_matrix()));
     }
-    return bbox;
+    return bb;
 }
 
 
@@ -1438,7 +1442,9 @@ BoundingBoxf3 ModelObject::instance_bounding_box(const ModelInstance &instance, 
 BoundingBoxf3 ModelObject::instance_convex_hull_bounding_box(size_t instance_idx, bool dont_translate) const
 {
     BoundingBoxf3 bb;
-    const Transform3d& inst_matrix = this->instances[instance_idx]->get_transformation().get_matrix(dont_translate);
+    const Transform3d& inst_matrix = dont_translate ?
+        this->instances[instance_idx]->get_transformation().get_matrix_no_offset() :
+        this->instances[instance_idx]->get_transformation().get_matrix();
     for (ModelVolume *v : this->volumes)
     {
         if (v->is_model_part())
@@ -1739,6 +1745,25 @@ void ModelObject::clone_for_cut(ModelObject **obj)
     (*obj)->input_file.clear();
 }
 
+bool ModelVolume::is_the_only_one_part() const 
+{
+    if (m_type != ModelVolumeType::MODEL_PART)
+        return false;
+    if (object == nullptr)
+        return false;
+    for (const ModelVolume *v : object->volumes) {
+        if (v == nullptr)
+            continue;
+        // is this volume?
+        if (v->id() == this->id())
+            continue;
+        // exist another model part in object?
+        if (v->type() == ModelVolumeType::MODEL_PART)
+            return false;
+    }
+    return true;
+}
+
 void ModelVolume::reset_extra_facets()
 {
     this->supported_facets.reset();
@@ -1759,67 +1784,6 @@ static void invalidate_translations(ModelObject* object, const ModelInstance* sr
     }
 }
 
-static void reset_instance_transformation(ModelObject* object, size_t src_instance_idx, const Transform3d& cut_matrix,
-                                          bool place_on_cut = false, bool flip = false, Vec3d local_displace = Vec3d::Zero())
-{
-    using namespace Geometry;
-
-    // Reset instance transformation except offset and Z-rotation
-
-    for (size_t i = 0; i < object->instances.size(); ++i) {
-        auto& obj_instance = object->instances[i];
-
-        Geometry::Transformation instance_transformation_copy = obj_instance->get_transformation();
-        instance_transformation_copy.set_offset(Vec3d(0, 0, 0));
-        if (object->volumes.size() == 1) {
-            instance_transformation_copy.set_offset(-object->volumes[0]->get_offset());
-        }
-
-        if (i == src_instance_idx && object->volumes.size() == 1)
-            invalidate_translations(object, obj_instance);
-
-        const Vec3d offset = obj_instance->get_offset();
-        const double rot_z = obj_instance->get_rotation().z();
-
-        obj_instance->set_transformation(Transformation());
-
-        const Vec3d displace = local_displace.isApprox(Vec3d::Zero()) ? Vec3d::Zero() :
-                               rotation_transform(obj_instance->get_rotation()) * local_displace;
-        obj_instance->set_offset(offset + displace);
-
-        Vec3d rotation = Vec3d::Zero();
-        if (!flip && !place_on_cut) {
-            if ( i != src_instance_idx)
-            rotation[Z] = rot_z;
-        }
-        else {
-            Transform3d rotation_matrix = Transform3d::Identity();
-            if (flip)
-                rotation_matrix = rotation_transform(PI * Vec3d::UnitX());
-
-            if (place_on_cut)
-                rotation_matrix = rotation_matrix * Transformation(cut_matrix).get_matrix(true, false, true, true).inverse();
-
-            if (i != src_instance_idx)
-                rotation_matrix = rotation_transform(rot_z * Vec3d::UnitZ()) * rotation_matrix;
-
-            rotation = Transformation(rotation_matrix).get_rotation();
-        }
-
-        obj_instance->set_rotation(rotation);
-
-        // update the assemble matrix
-        const Transform3d &assemble_matrix = obj_instance->get_assemble_transformation().get_matrix();
-        const Transform3d &instance_inverse_matrix = instance_transformation_copy.get_matrix().inverse();
-        Transform3d new_instance_inverse_matrix = instance_inverse_matrix * obj_instance->get_transformation().get_matrix(true).inverse();
-        if (place_on_cut) { // reset the rotation of cut plane
-            new_instance_inverse_matrix = new_instance_inverse_matrix * Transformation(cut_matrix).get_matrix(true, false, true, true).inverse();
-        }
-        Transform3d new_assemble_transform = assemble_matrix * new_instance_inverse_matrix;
-        obj_instance->set_assemble_from_transform(new_assemble_transform);
-    }
-}
-
 void ModelObject::split(ModelObjectPtrs* new_objects)
 {
     std::vector<TriangleMesh> all_meshes;
@@ -1832,6 +1796,10 @@ void ModelObject::split(ModelObjectPtrs* new_objects)
         ModelVolume* volume = this->volumes[volume_idx];
         if (volume->type() != ModelVolumeType::MODEL_PART)
             continue;
+
+        // splited volume should not be text object 
+        if (volume->text_configuration.has_value())
+            volume->text_configuration.reset();
 
         if (!is_multi_volume_object) {
             //BBS: not multi volume object, then split mesh.
@@ -1912,7 +1880,7 @@ void ModelObject::split(ModelObjectPtrs* new_objects)
 
             for (ModelInstance* model_instance : new_object->instances)
             {
-                Vec3d shift = model_instance->get_transformation().get_matrix(true) * new_vol->get_offset();
+                const Vec3d shift = model_instance->get_transformation().get_matrix_no_offset() * new_vol->get_offset();
                 model_instance->set_offset(model_instance->get_offset() + shift);
 
                 //BBS: add assemble_view related logic
@@ -1920,7 +1888,7 @@ void ModelObject::split(ModelObjectPtrs* new_objects)
                 instance_transformation_copy.set_offset(-new_vol->get_offset());
                 const Transform3d &assemble_matrix = model_instance->get_assemble_transformation().get_matrix();
                 const Transform3d &instance_inverse_matrix = instance_transformation_copy.get_matrix().inverse();
-                Transform3d new_instance_inverse_matrix = instance_inverse_matrix * model_instance->get_transformation().get_matrix(true).inverse();
+                Transform3d new_instance_inverse_matrix = instance_inverse_matrix * model_instance->get_transformation().get_matrix_no_offset().inverse();
                 Transform3d new_assemble_transform      = assemble_matrix * new_instance_inverse_matrix;
                 model_instance->set_assemble_from_transform(new_assemble_transform);
                 model_instance->set_offset_to_assembly(new_vol->get_offset());
@@ -2037,8 +2005,14 @@ void ModelObject::bake_xy_rotation_into_meshes(size_t instance_idx)
 
     // Adjust the meshes.
     // Transformation to be applied to the meshes.
-    Eigen::Matrix3d mesh_trafo_3x3           = reference_trafo.get_matrix(true, false, uniform_scaling, ! has_mirrorring).matrix().block<3, 3>(0, 0);
-	Transform3d     volume_offset_correction = this->instances[instance_idx]->get_transformation().get_matrix().inverse() * reference_trafo.get_matrix();
+    Geometry::Transformation reference_trafo_mod = reference_trafo;
+    reference_trafo_mod.reset_offset();
+    if (uniform_scaling)
+        reference_trafo_mod.reset_scaling_factor();
+    if (!has_mirrorring)
+        reference_trafo_mod.reset_mirror();
+    Eigen::Matrix3d mesh_trafo_3x3 = reference_trafo_mod.get_matrix().matrix().block<3, 3>(0, 0);
+    Transform3d     volume_offset_correction = this->instances[instance_idx]->get_transformation().get_matrix().inverse() * reference_trafo.get_matrix();
     for (ModelVolume *model_volume : this->volumes) {
         const Geometry::Transformation volume_trafo = model_volume->get_transformation();
         bool   volume_left_handed        = volume_trafo.is_left_handed();
@@ -2047,9 +2021,15 @@ void ModelObject::bake_xy_rotation_into_meshes(size_t instance_idx)
                                            std::abs(volume_trafo.get_scaling_factor().x() - volume_trafo.get_scaling_factor().z()) < EPSILON;
         double volume_new_scaling_factor = volume_uniform_scaling ? volume_trafo.get_scaling_factor().x() : 1.;
         // Transform the mesh.
-		Matrix3d volume_trafo_3x3 = volume_trafo.get_matrix(true, false, volume_uniform_scaling, !volume_has_mirrorring).matrix().block<3, 3>(0, 0);
+        Geometry::Transformation volume_trafo_mod = volume_trafo;
+        volume_trafo_mod.reset_offset();
+        if (volume_uniform_scaling)
+            volume_trafo_mod.reset_scaling_factor();
+        if (!volume_has_mirrorring)
+            volume_trafo_mod.reset_mirror();
+        Eigen::Matrix3d volume_trafo_3x3 = volume_trafo_mod.get_matrix().matrix().block<3, 3>(0, 0);
         // Following method creates a new shared_ptr<TriangleMesh>
-		model_volume->transform_this_mesh(mesh_trafo_3x3 * volume_trafo_3x3, left_handed != volume_left_handed);
+        model_volume->transform_this_mesh(mesh_trafo_3x3 * volume_trafo_3x3, left_handed != volume_left_handed);
         // Reset the rotation, scaling and mirroring.
         model_volume->set_rotation(Vec3d(0., 0., 0.));
         model_volume->set_scaling_factor(Vec3d(volume_new_scaling_factor, volume_new_scaling_factor, volume_new_scaling_factor));
@@ -2094,7 +2074,7 @@ double ModelObject::get_instance_min_z(size_t instance_idx) const
     double min_z = DBL_MAX;
 
     const ModelInstance* inst = instances[instance_idx];
-    const Transform3d& mi = inst->get_matrix(true);
+    const Transform3d mi = inst->get_matrix_no_offset();
 
     for (const ModelVolume* v : volumes) {
         if (!v->is_model_part())
@@ -2130,7 +2110,7 @@ double ModelObject::get_instance_max_z(size_t instance_idx) const
     double max_z = -DBL_MAX;
 
     const ModelInstance* inst = instances[instance_idx];
-    const Transform3d& mi = inst->get_matrix(true);
+    const Transform3d mi = inst->get_matrix_no_offset();
 
     for (const ModelVolume* v : volumes) {
         if (!v->is_model_part())
@@ -2553,6 +2533,10 @@ size_t ModelVolume::split(unsigned int max_extruders)
     if (meshes.size() <= 1)
         return 1;
 
+    // splited volume should not be text object
+    if (text_configuration.has_value())
+        text_configuration.reset();
+
     size_t idx = 0;
     size_t ivolume = std::find(this->object->volumes.begin(), this->object->volumes.end(), this) - this->object->volumes.begin();
     const std::string name = this->name;
@@ -2723,44 +2707,17 @@ void ModelVolume::convert_from_meters()
 
 void ModelInstance::transform_mesh(TriangleMesh* mesh, bool dont_translate) const
 {
-    mesh->transform(get_matrix(dont_translate));
-}
-
-BoundingBoxf3 ModelInstance::transform_mesh_bounding_box(const TriangleMesh& mesh, bool dont_translate) const
-{
-    // Rotate around mesh origin.
-    TriangleMesh copy(mesh);
-    copy.transform(get_matrix(true, false, true, true));
-    BoundingBoxf3 bbox = copy.bounding_box();
-
-    if (!empty(bbox)) {
-        // Scale the bounding box along the three axes.
-        for (unsigned int i = 0; i < 3; ++i)
-        {
-            if (std::abs(get_scaling_factor((Axis)i)-1.0) > EPSILON)
-            {
-                bbox.min(i) *= get_scaling_factor((Axis)i);
-                bbox.max(i) *= get_scaling_factor((Axis)i);
-            }
-        }
-
-        // Translate the bounding box.
-        if (! dont_translate) {
-            bbox.min += get_offset();
-            bbox.max += get_offset();
-        }
-    }
-    return bbox;
+    mesh->transform(dont_translate ? get_matrix_no_offset() : get_matrix());
 }
 
 BoundingBoxf3 ModelInstance::transform_bounding_box(const BoundingBoxf3 &bbox, bool dont_translate) const
 {
-    return bbox.transformed(get_matrix(dont_translate));
+    return bbox.transformed(dont_translate ? get_matrix_no_offset() : get_matrix());
 }
 
 Vec3d ModelInstance::transform_vector(const Vec3d& v, bool dont_translate) const
 {
-    return get_matrix(dont_translate) * v;
+    return dont_translate ? get_matrix_no_offset() * v : get_matrix() * v;
 }
 
 void ModelInstance::transform_polygon(Polygon* polygon) const
@@ -2952,7 +2909,7 @@ Polygon ModelInstance::convex_hull_2d()
     //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": name %1%, is_valid %2%")% this->object->name.c_str()% convex_hull.is_valid();
     //if (!convex_hull.is_valid())
     { // this logic is not working right now, as moving instance doesn't update convex_hull
-        const Transform3d& trafo_instance = get_matrix(false);
+        const Transform3d& trafo_instance = get_matrix();
         convex_hull = get_object()->convex_hull_2d(trafo_instance);
     }
     //int size = convex_hull.size();

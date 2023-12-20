@@ -609,7 +609,7 @@ void Bed3D::render_system(GLCanvas3D& canvas, const Transform3d& view_matrix, co
 }*/
 
 //BBS: add part plate related logic
-void Bed3D::update_model_offset() const
+void Bed3D::update_model_offset()
 {
     // move the model so that its origin (0.0, 0.0, 0.0) goes into the bed shape center and a bit down to avoid z-fighting with the texture quad
     Vec3d shift = m_extended_bounding_box.center();
@@ -626,11 +626,14 @@ void Bed3D::update_model_offset() const
 
     // update extended bounding box
     const_cast<BoundingBoxf3&>(m_extended_bounding_box) = calc_extended_bounding_box();
+    m_triangles.reset();
 }
 
 void Bed3D::update_bed_triangles()
 {
-    m_triangles.reset();
+    if (m_triangles.is_initialized()) {
+        return;
+    }
 
     Vec3d shift = m_extended_bounding_box.center();
     shift(2) = -0.03;
@@ -708,7 +711,7 @@ void Bed3D::render_custom(GLCanvas3D& canvas, const Transform3d& view_matrix, co
 
 void Bed3D::render_default(bool bottom, const Transform3d& view_matrix, const Transform3d& projection_matrix)
 {
-    m_texture.reset();
+    // m_texture.reset();
 
     update_bed_triangles();
 
