@@ -14,6 +14,6 @@ string(REGEX MATCH "^([0-9]+)\\.([0-9]+)\\.([0-9]+)"
 set(ORCA_VERSION_MAJOR ${CMAKE_MATCH_1})
 set(ORCA_VERSION_MINOR ${CMAKE_MATCH_2})
 set(ORCA_VERSION_PATCH ${CMAKE_MATCH_3})
+set(SLIC3R_BUILD_ID ${SLIC3R_VERSION})
 
-# The build_version should start from 50 in master branch
 set(BBL_PLUGIN_VERSION "01.08.02.56")

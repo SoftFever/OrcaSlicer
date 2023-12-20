@@ -1,6 +1,4 @@
 1 VERSIONINFO
-FILEVERSION @SLIC3R_VERSION@
-PRODUCTVERSION @SLIC3R_VERSION@
 {
  BLOCK "StringFileInfo"
  {
@@ -8,9 +6,9 @@ PRODUCTVERSION @SLIC3R_VERSION@
   {
    VALUE "CompanyName", "SoftFever"
    VALUE "FileDescription", "@SLIC3R_APP_NAME@"
-   VALUE "FileVersion", "@SLIC3R_BUILD_ID@"
+   VALUE "FileVersion", "@SLIC3R_VERSION@"
    VALUE "ProductName", "@SLIC3R_APP_NAME@"
-   VALUE "ProductVersion", "@SLIC3R_BUILD_ID@"
+   VALUE "ProductVersion", "@SLIC3R_VERSION@"
    VALUE "InternalName", "@SLIC3R_APP_NAME@"
    VALUE "LegalCopyright", ""
    VALUE "OriginalFilename", "orca-slicer.exe"
