@@ -516,7 +516,7 @@ wxMenu* MenuFactory::append_submenu_add_handy_model(wxMenu* menu, ModelVolumeTyp
     auto sub_menu = new wxMenu;
 
     for (auto &item : {L("Orca Cube"), L("3DBenchy"), L("Autodesk FDM Test"),
-                       L("Voron Cube"), L("Bunny")}) {
+                       L("Voron Cube"), L("Stanford Bunny")}) {
         append_menu_item(
             sub_menu, wxID_ANY, _(item), "",
             [type, item](wxCommandEvent &) {
@@ -530,8 +530,8 @@ wxMenu* MenuFactory::append_submenu_add_handy_model(wxMenu* menu, ModelVolumeTyp
                 file_name = "ksr_fdmtest_v4.stl";
               else if (file_name == L("Voron Cube"))
                 file_name = "Voron_Design_Cube_v7.stl";
-              else if (file_name == L("Bunny"))
-                file_name = "bunny.stl";
+              else if (file_name == L("Stanford Bunny"))
+                file_name = "Stanford_Bunny.stl";
               else
                 return;
               input_files.push_back(
