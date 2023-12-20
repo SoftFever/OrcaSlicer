@@ -206,7 +206,7 @@ wxString Field::get_tooltip_text(const wxString &default_string)
 	wxString tooltip_text("");
 #ifdef NDEBUG
 	wxString tooltip = _(m_opt.tooltip);
-    edit_tooltip(tooltip);
+    ::edit_tooltip(tooltip);
 
     std::string opt_id = m_opt_id;
     auto hash_pos = opt_id.find("#");

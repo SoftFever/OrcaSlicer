@@ -48,7 +48,8 @@ struct Option {
 using t_option = std::unique_ptr<Option>;	//!
 
 /// Represents option lines
-class Line {
+class Line : public UndoValueUIManager
+{
 	bool		m_is_separator{ false };
 public:
     wxString	label;
@@ -58,8 +59,6 @@ public:
     bool        toggle_visible{true}; // BBS: hide some line
 
     size_t		full_width {0}; 
-	wxColour*	full_Label_color {nullptr};
-	bool		blink	{false};
     widget_t	widget {nullptr};
     std::function<wxWindow*(wxWindow*)>	near_label_widget{ nullptr };
 	wxWindow*	near_label_widget_win {nullptr};
@@ -83,10 +82,10 @@ public:
 	Line() : m_is_separator(true) {}
 
 	bool is_separator() const { return m_is_separator; }
+	bool has_only_option(const std::string& opt_key) const { return m_options.size() == 1 && m_options[0].opt_id == opt_key; }
 
     const std::vector<widget_t>&	get_extra_widgets() const {return m_extra_widgets;}
     const std::vector<Option>&		get_options() const { return m_options; }
-	bool*							get_blink_ptr() { return &blink; }
 
 private:
 	std::vector<Option>		m_options;//! {std::vector<Option>()};
@@ -139,7 +138,7 @@ public:
 	// create controls for the option group
 	void		activate_line(Line& line);
 	//BBS: get line for opt_key
-	Line* get_line(const std::string& opt_key);
+//	Line* get_line(const std::string& opt_key);
 
 	// create all controls for the option group from the m_lines
 	bool		activate(std::function<void()> throw_if_canceled = [](){}, int horiz_alignment = wxALIGN_LEFT);
@@ -155,6 +154,14 @@ public:
 							if (m_fields.find(id) == m_fields.end()) return nullptr;
 							return m_fields.at(id).get();
     }
+
+    inline Line*	get_line(const t_config_option_key& id) {
+		for (Line& line : m_lines)
+			if (line.has_only_option(id))
+				return &line;
+		return nullptr;
+    }
+
 	bool			set_value(const t_config_option_key& id, const boost::any& value, bool change_event = false) {
 							if (m_fields.find(id) == m_fields.end()) return false;
 							m_fields.at(id)->set_value(value, change_event);
