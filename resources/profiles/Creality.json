@@ -37,6 +37,10 @@
 			"sub_path": "machine/Creality Ender-3 S1 Pro.json"
 		},
 		{
+			"name": "Creality Ender-3 V3 SE",
+			"sub_path": "machine/Creality Ender-3 V3 SE.json"
+		},
+		{
 			"name": "Creality Ender-5",
 			"sub_path": "machine/Creality Ender-5.json"
 		},
@@ -159,6 +163,10 @@
 			"sub_path": "process/0.12mm Fine @Creality Ender3V2.json"
 		},
 		{
+			"name": "0.12mm Fine @Creality Ender3V3SE",
+			"sub_path": "process/0.12mm Fine @Creality Ender3V3SE.json"
+		},
+		{
 			"name": "0.12mm Detail @Creality Ender5Pro (2019) 0.2",
 			"sub_path": "process/0.12mm Detail @Creality Ender5Pro (2019) 0.2.json"
 		},
@@ -197,6 +205,10 @@
 		{
 			"name": "0.16mm Optimal @Creality Ender3S1Pro",
 			"sub_path": "process/0.16mm Optimal @Creality Ender3S1Pro.json"
+		},
+		{
+			"name": "0.16mm Optimal @Creality Ender3V3SE",
+			"sub_path": "process/0.16mm Optimal @Creality Ender3V3SE.json"
 		},
 		{
 			"name": "0.16mm Optimal @Creality Ender5",
@@ -281,6 +293,10 @@
 		{
 			"name": "0.20mm Standard @Creality Ender3S1Pro",
 			"sub_path": "process/0.20mm Standard @Creality Ender3S1Pro.json"
+		},
+		{
+			"name": "0.20mm Standard @Creality Ender3V3SE",
+			"sub_path": "process/0.20mm Standard @Creality Ender3V3SE.json"
 		},
 		{
 			"name": "0.20mm Standard @Creality Ender5",
@@ -509,24 +525,36 @@
 			"sub_path": "filament/fdm_filament_common.json"
 		},
 		{
-			"name": "fdm_filament_pla",
-			"sub_path": "filament/fdm_filament_pla.json"
-		},
-		{
-			"name": "fdm_filament_pet",
-			"sub_path": "filament/fdm_filament_pet.json"
-		},
-		{
-			"name": "fdm_filament_tpu",
-			"sub_path": "filament/fdm_filament_tpu.json"
-		},
-		{
 			"name": "fdm_filament_abs",
 			"sub_path": "filament/fdm_filament_abs.json"
 		},
 		{
 			"name": "fdm_filament_asa",
 			"sub_path": "filament/fdm_filament_asa.json"
+		},
+		{
+			"name": "fdm_filament_pet",
+			"sub_path": "filament/fdm_filament_pet.json"
+		},
+		{
+			"name": "fdm_filament_pla",
+			"sub_path": "filament/fdm_filament_pla.json"
+		},
+		{
+			"name": "fdm_filament_tpu",
+			"sub_path": "filament/fdm_filament_tpu.json"
+		},
+		{
+			"name": "Creality Generic ABS",
+			"sub_path": "filament/Creality Generic ABS.json"
+		},
+		{
+			"name": "Creality Generic ASA",
+			"sub_path": "filament/Creality Generic ASA.json"
+		},
+		{
+			"name": "Creality Generic PETG",
+			"sub_path": "filament/Creality Generic PETG.json"
 		},
 		{
 			"name": "Creality Generic PLA",
@@ -541,20 +569,40 @@
 			"sub_path": "filament/Creality HF Generic Speed PLA.json"
 		},
 		{
-			"name": "Creality Generic PETG",
-			"sub_path": "filament/Creality Generic PETG.json"
-		},
-		{
 			"name": "Creality Generic TPU",
 			"sub_path": "filament/Creality Generic TPU.json"
 		},
 		{
-			"name": "Creality Generic ABS",
-			"sub_path": "filament/Creality Generic ABS.json"
+			"name": "Creality Generic ABS @Ender-3V3-all",
+			"sub_path": "filament/Creality Generic ABS @Ender-3V3-all.json"
 		},
 		{
-			"name": "Creality Generic ASA",
-			"sub_path": "filament/Creality Generic ASA.json"
+			"name": "Creality Generic ASA @Ender-3V3-all",
+			"sub_path": "filament/Creality Generic ASA @Ender-3V3-all.json"
+		},
+		{
+			"name": "Creality Generic PETG @Ender-3V3-all",
+			"sub_path": "filament/Creality Generic PETG @Ender-3V3-all.json"
+		},
+		{
+			"name": "Creality Generic PLA @Ender-3V3-all",
+			"sub_path": "filament/Creality Generic PLA @Ender-3V3-all.json"
+		},
+		{
+			"name": "Creality Generic PLA High Speed @Ender-3V3-all",
+			"sub_path": "filament/Creality Generic PLA High Speed @Ender-3V3-all.json"
+		},
+		{
+			"name": "Creality Generic PLA Matte @Ender-3V3-all",
+			"sub_path": "filament/Creality Generic PLA Matte @Ender-3V3-all.json"
+		},
+		{
+			"name": "Creality Generic PLA Silk @Ender-3V3-all",
+			"sub_path": "filament/Creality Generic PLA Silk @Ender-3V3-all.json"
+		},
+		{
+			"name": "Creality Generic TPU @Ender-3V3-all",
+			"sub_path": "filament/Creality Generic TPU @Ender-3V3-all.json"
 		}
 	],
 	"machine_list": [
@@ -625,6 +673,10 @@
 		{
 			"name": "Creality Ender-3 S1 Pro 0.4 nozzle",
 			"sub_path": "machine/Creality Ender-3 S1 Pro 0.4 nozzle.json"
+		},
+		{
+			"name": "Creality Ender-3 V3 SE 0.4 nozzle",
+			"sub_path": "machine/Creality Ender-3 V3 SE 0.4 nozzle.json"
 		},
 		{
 			"name": "Creality Ender-5 0.4 nozzle",

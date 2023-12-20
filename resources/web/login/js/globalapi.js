@@ -260,7 +260,7 @@ function clearCookie(name) {
 /*--------Studio WX Message-------*/
 function IsInSlicer()
 {
-	let bMatch=navigator.userAgent.match(  RegExp('OrcaSlicer','i') );
+	let bMatch=navigator.userAgent.match(  RegExp('BBL-Slicer','i') );
 	
 	return bMatch;
 }
