@@ -2642,15 +2642,20 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 
     m_default_window_layout = m_aui_mgr.SavePerspective();
 
-    // Load previous window layout
     {
+        auto& sidebar = m_aui_mgr.GetPane(this->sidebar);
+
+        // Load previous window layout
         const auto cfg    = wxGetApp().app_config;
         wxString   layout = wxString::FromUTF8(cfg->get("window_layout"));
         if (!layout.empty()) {
             m_aui_mgr.LoadPerspective(layout, false);
-            auto& sidebar = m_aui_mgr.GetPane(this->sidebar);
             sidebar_layout.is_collapsed = !sidebar.IsShown();
         }
+
+        // Hide sidebar initially, will re-show it after initialization when we got proper window size
+        sidebar.Hide();
+        m_aui_mgr.Update();
     }
 
     menus.init(q);
@@ -3179,6 +3184,9 @@ void Plater::priv::collapse_sidebar(bool collapse)
 
 void Plater::priv::update_sidebar(bool force_update) {
     auto& sidebar = m_aui_mgr.GetPane(this->sidebar);
+    if (!sidebar.IsOk() || this->current_panel == nullptr) {
+        return;
+    }
     bool  needs_update = force_update;
 
     if (!sidebar_layout.is_enabled) {
@@ -3187,7 +3195,9 @@ void Plater::priv::update_sidebar(bool force_update) {
             needs_update = true;
         }
     } else {
-        bool should_show = sidebar_layout.show && !sidebar_layout.is_collapsed;
+        // Only hide if collapsed or is floating and is not 3d view
+        const bool should_hide = sidebar_layout.is_collapsed || (sidebar.IsFloating() && !sidebar_layout.show);
+        const bool should_show = !should_hide;
         if (should_show != sidebar.IsShown()) {
             sidebar.Show(should_show);
             needs_update = true;
@@ -5828,7 +5838,7 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
         };
 
     //BBS: add the collapse logic
-    if (panel == preview) {
+    if (panel == view3D || panel == preview) {
         this->enable_sidebar(!q->only_gcode_mode());
     }
     if (panel == preview && q->only_gcode_mode()) {
@@ -5888,7 +5898,7 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
             p->Hide();
     }
 
-    m_aui_mgr.Update();
+    update_sidebar(true);
 
     if (wxGetApp().plater()) {
         Camera& cam = wxGetApp().plater()->get_camera();
@@ -6970,7 +6980,6 @@ void Plater::priv::apply_color_mode()
     m_aui_mgr.GetArtProvider()->SetColour(wxAUI_DOCKART_INACTIVE_CAPTION_TEXT_COLOUR, *wxWHITE);
     m_aui_mgr.GetArtProvider()->SetColour(wxAUI_DOCKART_SASH_COLOUR, sash_color);
     m_aui_mgr.GetArtProvider()->SetColour(wxAUI_DOCKART_BORDER_COLOUR, is_dark ? *wxBLACK : wxColour(165, 165, 165));
-    m_aui_mgr.Update();
 }
 
 static void get_position(wxWindowBase* child, wxWindowBase* until_parent, int& x, int& y) {
