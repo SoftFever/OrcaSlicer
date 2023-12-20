@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: OrcaSlicer\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-12-19 22:09+0800\n"
-"PO-Revision-Date: 2023-12-17 14:35+0300\n"
+"PO-Revision-Date: 2023-12-19 22:15+0300\n"
 "Last-Translator: Olcay ÖREN\n"
 "Language-Team: Türkçe\n"
 "Language: tr_TR\n"
@@ -6144,7 +6144,7 @@ msgid "Wall generator"
 msgstr "Duvar Türü"
 
 msgid "Walls and surfaces"
-msgstr "Duvarlar ve yüzeyler"
+msgstr "Duvarlar ve Yüzeyler"
 
 msgid "Bridging"
 msgstr "Köprüleme"
@@ -6165,7 +6165,7 @@ msgid "Other layers speed"
 msgstr "Diğer Katmanlar"
 
 msgid "Overhang speed"
-msgstr "Çıkıntı hızı"
+msgstr "Çıkıntı Hızı"
 
 msgid ""
 "This is the speed for various overhang degrees. Overhang degrees are "
@@ -6195,7 +6195,7 @@ msgid "Raft"
 msgstr "Raft"
 
 msgid "Support filament"
-msgstr "Destek filamenti"
+msgstr "Destek Filamenti"
 
 msgid "Tree supports"
 msgstr "Ağaç destekler"
@@ -9591,7 +9591,7 @@ msgstr ""
 "özelliği devre dışı bırakır."
 
 msgid "Ironing Type"
-msgstr "Ütüleme Tipi"
+msgstr "Ütüleme tipi"
 
 msgid ""
 "Ironing is using small flow to print on same height of surface again to make "
@@ -10023,7 +10023,7 @@ msgstr ""
 "ve G kodu oluşturmayı yavaşlatır"
 
 msgid "Enable"
-msgstr "Aktifle"
+msgstr "Aktif et"
 
 msgid "Filename format"
 msgstr "Dosya adı formatı"
@@ -10380,7 +10380,7 @@ msgstr ""
 "eylemi için dış duvar ekstrüzyonunun hızı kullanılacaktır."
 
 msgid "Wipe on loops"
-msgstr "Döngülerde Temizleme"
+msgstr "Döngülerde temizleme"
 
 msgid ""
 "To minimize the visibility of the seam in a closed loop extrusion, a small "
