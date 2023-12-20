@@ -13,6 +13,8 @@
 #include "Widgets/RoundedRectangle.hpp"
 #include "Widgets/StaticBox.hpp"
 #include "ConnectPrinter.hpp"
+#include "Jobs/BoostThreadWorker.hpp"
+#include "Jobs/PlaterWorker.hpp"
 
 
 #include <wx/progdlg.h>
@@ -210,9 +212,9 @@ void MachineObjectPanel::doRender(wxDC &dc)
     if (m_state == PrinterState::IN_LAN) { dwbitmap = m_printer_in_lan; }
 
     // dc.DrawCircle(left, size.y / 2, 3);
-    dc.DrawBitmap(dwbitmap.bmp(), wxPoint(left, (size.y - dwbitmap.GetBmpSize().y) / 2));
+    dc.DrawBitmap(dwbitmap.get_bitmap(), wxPoint(left, (size.y - dwbitmap.GetSize().y) / 2));
 
-    left += dwbitmap.GetBmpSize().x + 8;
+    left += dwbitmap.GetSize().x + 8;
     dc.SetFont(Label::Body_13);
     dc.SetBackgroundMode(wxTRANSPARENT);
     dc.SetTextForeground(StateColor::darkModeColorFor(SELECT_MACHINE_GREY900));
@@ -228,10 +230,10 @@ void MachineObjectPanel::doRender(wxDC &dc)
     auto        text_end     = 0;
 
     if (m_show_edit) {
-        text_end = size.x - m_unbind_img.GetBmpSize().x - 30;
+        text_end = size.x - m_unbind_img.GetSize().x - 30;
     }
     else {
-        text_end = size.x - m_unbind_img.GetBmpSize().x;
+        text_end = size.x - m_unbind_img.GetSize().x;
     }
 
     wxString finally_name =  dev_name;
@@ -259,14 +261,14 @@ void MachineObjectPanel::doRender(wxDC &dc)
 
         if (m_show_bind) {
             if (m_bind_state == ALLOW_UNBIND) {
-                left = size.x - m_unbind_img.GetBmpSize().x - 6;
-                dc.DrawBitmap(m_unbind_img.bmp(), left, (size.y - m_unbind_img.GetBmpSize().y) / 2);
+                left = size.x - m_unbind_img.GetSize().x - 6;
+                dc.DrawBitmap(m_unbind_img.get_bitmap(), left, (size.y - m_unbind_img.GetSize().y) / 2);
             }
         }
 
         if (m_show_edit) {
-            left = size.x - m_unbind_img.GetBmpSize().x - 6 - m_edit_name_img.GetBmpSize().x - 6;
-            dc.DrawBitmap(m_edit_name_img.bmp(), left, (size.y - m_edit_name_img.GetBmpSize().y) / 2);
+            left = size.x - m_unbind_img.GetSize().x - 6 - m_edit_name_img.GetSize().x - 6;
+            dc.DrawBitmap(m_edit_name_img.get_bitmap(), left, (size.y - m_edit_name_img.GetSize().y) / 2);
         }
     }
 
@@ -296,10 +298,10 @@ void MachineObjectPanel::on_mouse_left_up(wxMouseEvent &evt)
     if (m_is_my_devices) {
         // show edit
         if (m_show_edit) {
-            auto edit_left   = GetSize().x - m_unbind_img.GetBmpSize().x - 6 - m_edit_name_img.GetBmpSize().x - 6;
-            auto edit_right  = edit_left + m_edit_name_img.GetBmpSize().x;
-            auto edit_top    = (GetSize().y - m_edit_name_img.GetBmpSize().y) / 2;
-            auto edit_bottom = (GetSize().y - m_edit_name_img.GetBmpSize().y) / 2 + m_edit_name_img.GetBmpSize().y;
+            auto edit_left   = GetSize().x - m_unbind_img.GetSize().x - 6 - m_edit_name_img.GetSize().x - 6;
+            auto edit_right  = edit_left + m_edit_name_img.GetSize().x;
+            auto edit_top    = (GetSize().y - m_edit_name_img.GetSize().y) / 2;
+            auto edit_bottom = (GetSize().y - m_edit_name_img.GetSize().y) / 2 + m_edit_name_img.GetSize().y;
             if ((evt.GetPosition().x >= edit_left && evt.GetPosition().x <= edit_right) && evt.GetPosition().y >= edit_top && evt.GetPosition().y <= edit_bottom) {
                 wxCommandEvent event(EVT_EDIT_PRINT_NAME);
                 event.SetEventObject(this);
@@ -308,10 +310,10 @@ void MachineObjectPanel::on_mouse_left_up(wxMouseEvent &evt)
             }
         }
         if (m_show_bind) {
-            auto left   = GetSize().x - m_unbind_img.GetBmpSize().x - 6;
-            auto right  = left + m_unbind_img.GetBmpSize().x;
-            auto top    = (GetSize().y - m_unbind_img.GetBmpSize().y) / 2;
-            auto bottom = (GetSize().y - m_unbind_img.GetBmpSize().y) / 2 + m_unbind_img.GetBmpSize().y;
+            auto left   = GetSize().x - m_unbind_img.GetSize().x - 6;
+            auto right  = left + m_unbind_img.GetSize().x;
+            auto top    = (GetSize().y - m_unbind_img.GetSize().y) / 2;
+            auto bottom = (GetSize().y - m_unbind_img.GetSize().y) / 2 + m_unbind_img.GetSize().y;
 
             if ((evt.GetPosition().x >= left && evt.GetPosition().x <= right) && evt.GetPosition().y >= top && evt.GetPosition().y <= bottom) {
                 wxCommandEvent event(EVT_UNBIND_MACHINE, GetId());
@@ -880,9 +882,9 @@ void SelectMachinePopup::OnLeftUp(wxMouseEvent &event)
 static wxString MACHINE_BED_TYPE_STRING[BED_TYPE_COUNT] = {
     //_L("Auto"),
     _L("Bambu Cool Plate") + " / " + _L("PLA Plate"),
-    _L("Bamabu Engineering Plate"),
-    _L("Bamabu Smooth PEI Plate") + "/" + _L("High temperature Plate"),
-    _L("Bamabu Textured PEI Plate")};
+    _L("Bambu Engineering Plate"),
+    _L("Bambu Smooth PEI Plate") + "/" + _L("High temperature Plate"),
+    _L("Bambu Textured PEI Plate")};
 
 static std::string MachineBedTypeString[BED_TYPE_COUNT] = {
     //"auto",
@@ -1247,6 +1249,8 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_status_bar    = std::make_shared<BBLStatusBarSend>(m_simplebook);
     m_panel_sending = m_status_bar->get_panel();
     m_simplebook->AddPage(m_panel_sending, wxEmptyString, false);
+    
+    m_worker = std::make_unique<PlaterWorker<BoostThreadWorker>>(this, m_status_bar, "send_worker");
 
     // finish mode
     m_panel_finish = new wxPanel(m_simplebook, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
@@ -1701,9 +1705,7 @@ void SelectMachineDialog::prepare_mode(bool refresh_button)
     show_print_failed_info(false);
 
     m_is_in_sending_mode = false;
-    if (m_print_job) {
-        m_print_job->join();
-    }
+    m_worker->wait_for_idle();
 
     if (wxIsBusy())
         wxEndBusyCursor();
@@ -2206,12 +2208,7 @@ void SelectMachineDialog::on_cancel(wxCloseEvent &event)
     if (m_mapping_popup.IsShown())
         m_mapping_popup.Dismiss();
 
-    if (m_print_job) {
-        if (m_print_job->is_running()) {
-            m_print_job->cancel();
-            m_print_job->join();
-        }
-    }
+    m_worker->cancel_all();
     this->EndModal(wxID_CANCEL);
 }
 
@@ -2350,12 +2347,17 @@ bool SelectMachineDialog::is_same_printer_model()
     const auto source_model = preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle);
     const auto target_model = obj_->printer_type;
     // Orca: ignore P1P -> P1S
-    if (source_model != target_model && !(target_model == "C11" && source_model == "C12")) {
+    if (source_model != target_model && !(preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle) == "C12") && !(target_model == "C11" && source_model == "C12")) {
         BOOST_LOG_TRIVIAL(info) << "printer_model: source = " << source_model;
         BOOST_LOG_TRIVIAL(info) << "printer_model: target = " << target_model;
         return false;
     }
 
+    if (obj_->is_support_p1s_plus) {
+        BOOST_LOG_TRIVIAL(info) << "printer_model: source = " << preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle);
+        BOOST_LOG_TRIVIAL(info) << "printer_model: target = " << obj_->printer_type << " (plus)";
+        return false;
+    }
     return true;
 }
 
@@ -2475,7 +2477,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
         std::string info;
 
         DeviceManager::check_filaments_in_blacklist(filament_brand, filament_type, in_blacklist, action, info);
-        
+
         if (in_blacklist && action == "prohibition") {
             has_prohibited_filament = true;
             prohibited_error = wxString::FromUTF8(info);
@@ -2511,12 +2513,12 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
         if (!is_same_nozzle_diameters(tag_nozzle_type, nozzle_diameter)) {
             has_slice_warnings = true;
             has_update_nozzle  = true;
-            
+
             wxString nozzle_in_preset = wxString::Format(_L("nozzle in preset: %s %s"),nozzle_diameter, "");
             wxString nozzle_in_printer = wxString::Format(_L("nozzle memorized: %.1f %s"), obj_->nozzle_diameter, "");
 
-            confirm_text.push_back(_L("Your nozzle diameter in preset is not consistent with memorized nozzle diameter. Did you change your nozzle lately?") 
-                + "\n    " + nozzle_in_preset 
+            confirm_text.push_back(_L("Your nozzle diameter in preset is not consistent with memorized nozzle diameter. Did you change your nozzle lately?")
+                + "\n    " + nozzle_in_preset
                 + "\n    " + nozzle_in_printer
                 + "\n");
         }
@@ -2529,7 +2531,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
             confirm_text.push_back(nozzle_in_preset + "\n");
         }
     }
-    
+
 
     if (has_slice_warnings) {
         wxString confirm_title = _L("Warning");
@@ -2551,11 +2553,11 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
             if (obj_ && !tag_nozzle_type.empty() && !nozzle_diameter.empty()) {
                 try
                 {
-                    float diameter = std::stof(nozzle_diameter); 
+                    float diameter = std::stof(nozzle_diameter);
                     diameter = round(diameter * 10) / 10;
                     obj_->command_set_printer_nozzle(tag_nozzle_type, diameter);
                 }
-                catch (...) {} 
+                catch (...) {}
             }
         });
 
@@ -2664,13 +2666,7 @@ void SelectMachineDialog::on_send_print()
     m_status_bar->set_prog_block();
     m_status_bar->set_cancel_callback_fina([this]() {
         BOOST_LOG_TRIVIAL(info) << "print_job: enter canceled";
-        if (m_print_job) {
-            if (m_print_job->is_running()) {
-                BOOST_LOG_TRIVIAL(info) << "print_job: canceled";
-                m_print_job->cancel();
-            }
-            m_print_job->join();
-        }
+        m_worker->cancel_all();
         m_is_canceled = true;
         wxCommandEvent* event = new wxCommandEvent(EVT_PRINT_JOB_CANCEL);
         wxQueueEvent(this, event);
@@ -2738,7 +2734,7 @@ void SelectMachineDialog::on_send_print()
         }
     }
 
-    m_print_job = std::make_shared<PrintJob>(m_status_bar, m_plater, m_printer_last_select);
+    auto m_print_job = std::make_unique<PrintJob>(m_printer_last_select);
     m_print_job->m_dev_ip = obj_->dev_ip;
     m_print_job->m_ftp_folder = obj_->get_ftp_folder();
     m_print_job->m_access_code = obj_->get_access_code();
@@ -2824,7 +2820,7 @@ void SelectMachineDialog::on_send_print()
     if (agent)
         agent->track_update_property("dev_ota_version", obj_->get_ota_version());
 
-    m_print_job->start();
+    replace_job(*m_worker, std::move(m_print_job));
     BOOST_LOG_TRIVIAL(info) << "print_job: start print job";
 }
 
@@ -3635,16 +3631,16 @@ void SelectMachineDialog::Enable_Send_Button(bool en)
 
 void SelectMachineDialog::on_dpi_changed(const wxRect &suggested_rect)
 {
-    print_time->msw_rescale();
+    print_time->sys_color_changed();
     timeimg->SetBitmap(print_time->bmp());
-    print_weight->msw_rescale();
+    print_weight->sys_color_changed();
     weightimg->SetBitmap(print_weight->bmp());
-    m_rename_button->msw_rescale();
-    ams_editable->msw_rescale();
-    ams_editable_light->msw_rescale();
-    enable_ams_mapping->msw_rescale();
+    m_rename_button->sys_color_changed();
+    ams_editable->sys_color_changed();
+    ams_editable_light->sys_color_changed();
+    enable_ams_mapping->sys_color_changed();
     img_amsmapping_tip->SetBitmap(enable_ams_mapping->bmp());
-    enable_ams->msw_rescale();
+    enable_ams->sys_color_changed();
     img_use_ams_tip->SetBitmap(enable_ams->bmp());
 
     m_button_refresh->SetMinSize(SELECT_MACHINE_DIALOG_BUTTON_SIZE);
@@ -3810,7 +3806,7 @@ void SelectMachineDialog::set_default()
     else if (m_print_type == PrintFromType::FROM_SDCARD_VIEW) {
         set_default_from_sdcard();
     }
-    
+
     Layout();
     Fit();
 }
@@ -3840,14 +3836,14 @@ void SelectMachineDialog::set_default_normal()
     std::vector<std::string> display_materials;
     std::vector<std::string> m_filaments_id;
 
-    
+
     auto preset_bundle = wxGetApp().preset_bundle;
 
     for (auto filament_name : preset_bundle->filament_presets) {
         for (int f_index = 0; f_index < preset_bundle->filaments.size(); f_index++) {
             PresetCollection* filament_presets = &wxGetApp().preset_bundle->filaments;
             Preset* preset = &filament_presets->preset(f_index);
- 
+
             if (preset && filament_name.compare(preset->name) == 0) {
                 std::string display_filament_type;
                 std::string filament_type = preset->config.get_filament_type(display_filament_type);
@@ -3869,7 +3865,7 @@ void SelectMachineDialog::set_default_normal()
 
     //init MaterialItem
     auto        extruders = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_used_extruders();
-    
+
     MaterialHash::iterator iter = m_materialList.begin();
     while (iter != m_materialList.end()) {
         int       id = iter->first;
@@ -3918,7 +3914,7 @@ void SelectMachineDialog::set_default_normal()
             DeviceManager* dev_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
             if (!dev_manager) return;
             MachineObject* obj_ = dev_manager->get_selected_machine();
-           
+
             if (obj_ && obj_->is_support_ams_mapping()) {
                 if (m_mapping_popup.IsShown()) return;
                 wxPoint pos = item->ClientToScreen(wxPoint(0, 0));
@@ -4441,12 +4437,12 @@ void EditDevNameDialog::on_edit_name(wxCommandEvent &e)
 
  void ThumbnailPanel::set_thumbnail(wxImage img)
  {
-     m_bitmap = img;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+     m_bitmap = img;
      //Paint the background bitmap to the thumbnail bitmap with wxMemoryDC
      wxMemoryDC dc;
      bitmap_with_background.Create(wxSize(m_bitmap.GetWidth(), m_bitmap.GetHeight()));
      dc.SelectObject(bitmap_with_background);
-     dc.DrawBitmap(m_background_bitmap.bmp(), 0, 0);
+     dc.DrawBitmap(m_background_bitmap.get_bitmap(), 0, 0);
      dc.DrawBitmap(m_bitmap, 0, 0);
      dc.SelectObject(wxNullBitmap);
 
@@ -4459,7 +4455,7 @@ void EditDevNameDialog::on_edit_name(wxCommandEvent &e)
  }
 
  void ThumbnailPanel::render(wxDC& dc) {
-     
+
      if (wxGetApp().dark_mode()) {
          #ifdef __WXMSW__
              wxMemoryDC memdc;
@@ -4473,7 +4469,7 @@ void EditDevNameDialog::on_edit_name(wxCommandEvent &e)
      }
      else
          dc.DrawBitmap(m_bitmap, 0, 0);
-     
+
  }
 
  ThumbnailPanel::~ThumbnailPanel() {}

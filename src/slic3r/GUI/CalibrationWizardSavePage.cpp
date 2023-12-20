@@ -1396,12 +1396,10 @@ void CalibrationFlowCoarseSavePage::on_cali_finished_job()
 void CalibrationFlowCoarseSavePage::on_cali_cancel_job()
 {
     BOOST_LOG_TRIVIAL(info) << "CalibrationWizard::print_job: enter canceled";
-    if (CalibUtils::print_job) {
-        if (CalibUtils::print_job->is_running()) {
-            BOOST_LOG_TRIVIAL(info) << "calibration_print_job: canceled";
-            CalibUtils::print_job->cancel();
-        }
-        CalibUtils::print_job->join();
+    if (CalibUtils::print_worker) {
+        BOOST_LOG_TRIVIAL(info) << "calibration_print_job: canceled";
+        CalibUtils::print_worker->cancel_all();
+        CalibUtils::print_worker->wait_for_idle();
     }
 
     m_sending_panel->reset();

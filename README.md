@@ -7,7 +7,7 @@ You can download Orca Slicer here: [github releases page](https://github.com/Sof
 # Main features
 - Auto calibrations for all printers
 - Sandwich(inner-outer-inner) mode - an improved version of the `External perimeters first` mode
-- Precise wall
+- [Precise wall](https://github.com/SoftFever/OrcaSlicer/wiki/Precise-wall)
 - Polyholes conversion support [SuperSlicer Wiki: Polyholes](https://github.com/supermerill/SuperSlicer/wiki/Polyholes)
 - Klipper support
 - More granular controls
@@ -57,7 +57,7 @@ Orca Slicer's logo is designed by community member Justin Levine(@freejstnalxndr
   - Run `build_release.bat` in `x64 Native Tools Command Prompt for VS 2019`
 
 - Mac 64-bit  
-  - Tools needed: Xcode, Cmake, git, gettext
+  - Tools needed: Xcode, Cmake, git, gettext, libtool, automake, autoconf
   - run `build_release_macos.sh`
 
 - Ubuntu  

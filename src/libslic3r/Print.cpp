@@ -206,8 +206,8 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "during_print_exhaust_fan_speed",
         "complete_print_exhaust_fan_speed",
         "activate_chamber_temp_control",
-        "manual_filament_change"
-
+        "manual_filament_change",
+        "disable_m73",
     };
 
     static std::unordered_set<std::string> steps_ignore;

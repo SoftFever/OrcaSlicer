@@ -58,7 +58,7 @@ jobs:
               if ($versionContent -match 'set\(SoftFever_VERSION "(.*?)"\)') {
                   $ver = $matches[1]
               }
-              ver = "V$ver"
+              $ver = "V$ver"
           }
       
           echo "ver=$ver" | Out-File -Append -FilePath $env:GITHUB_ENV -Encoding utf8
@@ -88,7 +88,7 @@ jobs:
 
  # Thanks to RaySajuuk, it's working now
       - name: Sign app and notary
-        if: github.ref == 'refs/heads/main' && inputs.os == 'macos-12'
+        if: (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/')) && inputs.os == 'macos-12'
         working-directory: ${{ github.workspace }}
         env:
           BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}

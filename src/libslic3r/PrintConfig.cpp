@@ -368,7 +368,8 @@ static const t_config_enum_values  s_keys_map_GCodeThumbnailsFormat = {
     { "PNG", int(GCodeThumbnailsFormat::PNG) },
     { "JPG", int(GCodeThumbnailsFormat::JPG) },
     { "QOI", int(GCodeThumbnailsFormat::QOI) },
-    { "BTT_TFT", int(GCodeThumbnailsFormat::BTT_TFT) }
+    { "BTT_TFT", int(GCodeThumbnailsFormat::BTT_TFT) },
+    { "ColPic", int(GCodeThumbnailsFormat::ColPic) }
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(GCodeThumbnailsFormat)
 
@@ -466,6 +467,15 @@ void PrintConfigDef::init_common_params()
     def->max = 2000;
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionFloat(100.0));
+
+    def = this->add("preferred_orientation", coFloat);
+    def->label = L("Preferred orientation");
+    def->tooltip = L("Automatically orient stls on the Z-axis upon initial import");
+    def->sidetext = L("°");
+    def->max = 360;
+    def->min = -360;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0.0));
 
     // Options used by physical printers
 
@@ -796,7 +806,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionPercent(100));
 
     def = this->add("bridge_flow", coFloat);
-    def->label = L("Bridge flow");
+    def->label = L("Bridge flow ratio");
     def->category = L("Quality");
     def->tooltip = L("Decrease this value slightly(for example 0.9) to reduce the amount of material for bridge, "
                      "to improve sag");
@@ -806,7 +816,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloat(1));
 
     def = this->add("internal_bridge_flow", coFloat);
-    def->label = L("Internal bridge flow");
+    def->label = L("Internal bridge flow ratio");
     def->category = L("Quality");
     def->tooltip = L("This value governs the thickness of the internal bridge layer. This is the first layer over sparse infill. Decrease this value slightly (for example 0.9) to improve surface quality over sparse infill.");
     def->min = 0;
@@ -1202,6 +1212,15 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
+    def = this->add("thick_internal_bridges", coBool);
+    def->label = L("Thick internal bridges");
+    def->category = L("Quality");
+    def->tooltip  = L("If enabled, thick internal bridges will be used. It's usually recommended to have this feature turned on. However, "
+                       "consider turning it off if you are using large nozzles.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(true));
+
+
     def = this->add("max_bridge_length", coFloat);
     def->label = L("Max bridge length");
     def->category = L("Support");
@@ -1281,7 +1300,7 @@ void PrintConfigDef::init_fff_params()
 	def                = this->add("internal_solid_infill_pattern", coEnum);
     def->label         = L("Internal solid infill pattern");
     def->category      = L("Strength");
-    def->tooltip       = L("Line pattern of internal solid infill. if the detect nattow internal solid infill be enabled, the concentric pattern will be used for the small area.");
+    def->tooltip       = L("Line pattern of internal solid infill. if the detect narrow internal solid infill be enabled, the concentric pattern will be used for the small area.");
     def->enum_keys_map = &ConfigOptionEnum<InfillPattern>::get_enum_values();
     def->enum_values   = def_top_fill_pattern->enum_values;
     def->enum_labels   = def_top_fill_pattern->enum_labels;
@@ -1331,22 +1350,22 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloat(0));
 
     def = this->add("wall_sequence", coEnum);
-    def->label = L("Order of walls");
+    def->label = L("Walls printing order");
     def->category = L("Quality");
-    def->tooltip = L("Print sequence of inner wall and outer wall. ");
+    def->tooltip = L("Print sequence of the internal (inner) and external (outer) walls. \n\nUse Inner/Outer for best overhangs. This is because the overhanging walls can adhere to a neighouring perimeter while printing. However, this option results in slightly reduced surface quality as the external perimeter is deformed by being squashed to the internal perimeter.\n\nUse Inner/Outer/Inner for the best external surface finish and dimensional accuracy as the external wall is printed undisturbed from an internal perimeter. However, overhang performance will reduce as there is no internal perimeter to print the external wall against. This option requires a minimum of 3 walls to be effective as it prints the internal walls from the 3rd perimeter onwards first, then the external perimeter and, finally, the first internal perimeter. This option is recomended against the Outer/Inner option in most cases. \n\nUse Outer/Inner for the same external wall quality and dimensional accuracy benefits of Inner/Outer/Inner option. However, the z seams will appear less consistent as the first extrusion of a new layer starts on a visible surface.\n\n ");
     def->enum_keys_map = &ConfigOptionEnum<WallSequence>::get_enum_values();
     def->enum_values.push_back("inner wall/outer wall");
     def->enum_values.push_back("outer wall/inner wall");
     def->enum_values.push_back("inner-outer-inner wall");
-    def->enum_labels.push_back(L("inner/outer"));
-    def->enum_labels.push_back(L("outer/inner"));
-    def->enum_labels.push_back(L("inner wall/outer wall/inner wall"));
+    def->enum_labels.push_back(L("Inner/Outer"));
+    def->enum_labels.push_back(L("Outer/Inner"));
+    def->enum_labels.push_back(L("Inner/Outer/Inner"));
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<WallSequence>(WallSequence::InnerOuter));
 
     def = this->add("is_infill_first",coBool);
     def->label    = L("Print infill first");
-    def->tooltip  = L("Order of wall/infill. false means print wall first. ");
+    def->tooltip  = L("Order of wall/infill. When the tickbox is unchecked the walls are printed first, which works best in most cases.\n\nPrinting walls first may help with extreme overhangs as the walls have the neighbouring infill to adhere to. However, the infill will slighly push out the printed walls where it is attached to them, resulting in a worse external surface finish. It can also cause the infill to shine through the external surfaces of the part.");
     def->category = L("Quality");
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionBool{false});
@@ -2692,7 +2711,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats{ 0., 0. });
 
-    def = this->add("fan_max_speed", coInts);
+    def = this->add("fan_max_speed", coFloats);
     def->label = L("Fan speed");
     def->tooltip = L("Part cooling fan speed may be increased when auto cooling is enabled. "
                      "This is the maximum speed limitation of part cooling fan");
@@ -2700,7 +2719,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->min = 0;
     def->max = 100;
     def->mode = comSimple;
-    def->set_default_value(new ConfigOptionInts { 100 });
+    def->set_default_value(new ConfigOptionFloats { 100 });
 
     def = this->add("max_layer_height", coFloats);
     def->label = L("Max");
@@ -2743,14 +2762,14 @@ def = this->add("filament_loading_speed", coFloats);
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInt(3));
 
-    def = this->add("fan_min_speed", coInts);
+    def = this->add("fan_min_speed", coFloats);
     def->label = L("Fan speed");
     def->tooltip = L("Minimum speed for part cooling fan");
     def->sidetext = L("%");
     def->min = 0;
     def->max = 100;
     def->mode = comSimple;
-    def->set_default_value(new ConfigOptionInts { 20 });
+    def->set_default_value(new ConfigOptionFloats { 20 });
 
     def = this->add("additional_cooling_fan_speed", coInts);
     def->label = L("Fan speed");
@@ -2905,14 +2924,14 @@ def = this->add("filament_loading_speed", coFloats);
     def->set_default_value(new ConfigOptionString("{input_filename_base}_{filament_type[initial_tool]}_{print_time}.gcode"));
 
     def = this->add("make_overhang_printable", coBool);
-    def->label = L("Make overhang printable");
+    def->label = L("Make overhangs printable");
     def->category = L("Quality");
     def->tooltip = L("Modify the geometry to print overhangs without support material.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("make_overhang_printable_angle", coFloat);
-    def->label = L("Make overhang printable maximum angle");
+    def->label = L("Make overhangs printable - Maximum angle");
     def->category = L("Quality");
     def->tooltip = L("Maximum angle of overhangs to allow after making more steep overhangs printable."
                      "90° will not change the model at all and allow any overhang, while 0 will "
@@ -2924,7 +2943,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->set_default_value(new ConfigOptionFloat(55.));
 
     def = this->add("make_overhang_printable_hole_size", coFloat);
-    def->label = L("Make overhang printable hole area");
+    def->label = L("Make overhangs printable - Hole area");
     def->category = L("Quality");
     def->tooltip = L("Maximum area of a hole in the base of the model before it's filled by conical material."
                      "A value of 0 will fill all the holes in the model base.");
@@ -3244,6 +3263,12 @@ def = this->add("filament_loading_speed", coFloats);
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(true));
 
+    def = this->add("disable_m73", coBool);
+    def->label = L("Disable set remaining print time");
+    def->tooltip = "Disable generating of the M73: Set remaining print time in the final gcode";
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
     def = this->add("seam_position", coEnum);
     def->label = L("Seam position");
     def->category = L("Quality");
@@ -3410,6 +3435,25 @@ def = this->add("filament_loading_speed", coFloats);
                      "The final generated model has no seam");
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("spiral_mode_smooth", coBool);
+    def->label = L("Smooth Spiral");
+    def->tooltip = L("Smooth Spiral smoothes out X and Y moves as well"
+                     "resulting in no visible seam at all, even in the XY directions on walls that are not vertical");
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("spiral_mode_max_xy_smoothing", coFloatOrPercent);
+    def->label = L("Max XY Smoothing");
+    def->tooltip = L("Maximum distance to move points in XY to try to achieve a smooth spiral"
+                     "If expressed as a %, it will be computed over nozzle diameter");
+    def->sidetext = L("mm or %");
+    def->ratio_over = "nozzle_diameter";
+    def->min = 0;
+    def->max = 1000;
+    def->max_literal = 10;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloatOrPercent(200, true));
 
     def = this->add("timelapse_type", coEnum);
     def->label = L("Timelapse");
@@ -3654,9 +3698,9 @@ def = this->add("filament_loading_speed", coFloats);
     def->set_default_value(new ConfigOptionInt(0));
 
     def = this->add("support_interface_not_for_body",coBool);
-    def->label    = L("Reduce interface filament for base");
+    def->label    = L("Avoid interface filament for base");
     def->category = L("Support");
-    def->tooltip = L("Avoid using support interface filament to print support base");
+    def->tooltip = L("Avoid using support interface filament to print support base if possible.");
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionBool(true));
 
@@ -4062,6 +4106,10 @@ def = this->add("filament_loading_speed", coFloats);
     def->max = max_temp;
     def->set_default_value(new ConfigOptionInts { 240 });
 
+    def = this->add("head_wrap_detect_zone", coPoints);
+    def->label ="Head wrap detect zone"; //do not need translation
+    def->mode = comDevelop;
+    def->set_default_value(new ConfigOptionPoints{});
 
     def = this->add("detect_thin_wall", coBool);
     def->label = L("Detect thin wall");
@@ -4158,7 +4206,7 @@ def = this->add("filament_loading_speed", coFloats);
 
     def = this->add("wipe_distance", coFloats);
     def->label = L("Wipe Distance");
-    def->tooltip = L("Discribe how long the nozzle will move along the last path when retracting");
+    def->tooltip = L("Discribe how long the nozzle will move along the last path when retracting. \n\nDepending on how long the wipe operation lasts, how fast and long the extruder/filament retraction settings are, a retraction move may be needed to retract the remaining filament. \n\nSetting a value in the retract amount before wipe setting below will perform any excess retraction before the wipe, else it will be performed after.");
     def->sidetext = L("mm");
     def->min = 0;
     def->mode = comAdvanced;
@@ -4375,7 +4423,13 @@ def = this->add("filament_loading_speed", coFloats);
     def->enum_values.push_back("PNG");
     def->enum_values.push_back("JPG");
     def->enum_values.push_back("QOI");
-    def->enum_values.push_back("BTT TFT");
+    def->enum_values.push_back("BTT_TFT");
+    def->enum_values.push_back("ColPic");
+    def->enum_labels.push_back("PNG");
+    def->enum_labels.push_back("JPG");
+    def->enum_labels.push_back("QOI");
+    def->enum_labels.push_back("BTT TT");
+    def->enum_labels.push_back("ColPic");
     def->set_default_value(new ConfigOptionEnum<GCodeThumbnailsFormat>(GCodeThumbnailsFormat::PNG));
 
     def = this->add("use_relative_e_distances", coBool);

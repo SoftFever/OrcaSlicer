@@ -250,6 +250,7 @@ protected:
     bool GizmoImguiBegin(const std::string& name, int flags);
     void GizmoImguiEnd();
     void GizmoImguiSetNextWIndowPos(float &x, float y, int flag, float pivot_x = 0.0f, float pivot_y = 0.0f);
+    void GizmoImguiSetNextWIndowPos(float &x, float y, float w, float h, int flag, float pivot_x = 0.0f, float pivot_y = 0.0f);
 
     void register_grabbers_for_picking();
     void unregister_grabbers_for_picking();

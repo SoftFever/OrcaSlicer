@@ -403,6 +403,8 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
     if (in.f == nullptr)
         throw Slic3r::RuntimeError(std::string("Time estimator post process export failed.\nCannot open file for reading.\n"));
 
+    const bool disable_m73 = this->disable_m73;
+
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ <<  boost::format(":  before process %1%")%filename.c_str();
     // temporary file to contain modified gcode
     std::string out_path = filename + ".postprocess";
@@ -473,7 +475,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
     // replace placeholder lines with the proper final value
     // gcode_line is in/out parameter, to reduce expensive memory allocation
     auto process_placeholders = [&](std::string& gcode_line) {
-        unsigned int extra_lines_count = 0;
+        int extra_lines_count = 0;
 
         // remove trailing '\n'
         auto line = std::string_view(gcode_line).substr(0, gcode_line.length() - 1);
@@ -482,6 +484,12 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
         if (line.length() > 1) {
             line = line.substr(1);
             if (line == reserved_tag(ETags::First_Line_M73_Placeholder) || line == reserved_tag(ETags::Last_Line_M73_Placeholder)) {
+                if (disable_m73) {
+                    // Remove current line
+                    gcode_line = "";
+                    return std::tuple(true, -1);
+                }
+
                 for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count); ++i) {
                     const TimeMachine& machine = machines[i];
                     if (machine.enabled) {
@@ -679,9 +687,10 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
                         gcode_line += '\n';
                     // replace placeholder lines
                     auto [processed, lines_added_count] = process_placeholders(gcode_line);
-                    if (processed && lines_added_count > 0)
+                    if (processed && lines_added_count != 0)
                         offsets.push_back({ line_id, lines_added_count });
-                    if (! processed && ! is_temporary_decoration(gcode_line) &&
+
+                    if (!disable_m73 && !processed &&!is_temporary_decoration(gcode_line) &&
                         (GCodeReader::GCodeLine::cmd_is(gcode_line, "G1") || 
                             GCodeReader::GCodeLine::cmd_is(gcode_line, "G2") ||
                             GCodeReader::GCodeLine::cmd_is(gcode_line, "G3"))) {
@@ -689,6 +698,12 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
                         unsigned int extra_lines_count = process_line_move(g1_lines_counter ++);
                         if (extra_lines_count > 0)
                             offsets.push_back({ line_id, extra_lines_count });
+                    }
+
+                    if (disable_m73 && !processed && GCodeReader::GCodeLine::cmd_is(gcode_line, "M73")) {
+                        // Remove any existing M73 command
+                        gcode_line = "";
+                        offsets.push_back({line_id, -1});
                     }
 
                     export_line += gcode_line;
@@ -1040,6 +1055,8 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
         m_time_processor.machines[i].travel_acceleration     = (max_travel_acceleration > 0.0f) ? max_travel_acceleration :
                                                                                                   DEFAULT_TRAVEL_ACCELERATION;
     }
+
+    m_time_processor.disable_m73 = config.disable_m73;
 
     const ConfigOptionFloat* initial_layer_print_height = config.option<ConfigOptionFloat>("initial_layer_print_height");
     if (initial_layer_print_height != nullptr)

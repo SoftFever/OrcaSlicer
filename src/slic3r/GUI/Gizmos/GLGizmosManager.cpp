@@ -26,8 +26,9 @@
 #include "slic3r/GUI/Gizmos/GLGizmoSeam.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoMmuSegmentation.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoSimplify.hpp"
+#include "slic3r/GUI/Gizmos/GLGizmoEmboss.hpp"
+#include "slic3r/GUI/Gizmos/GLGizmoSVG.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoMeasure.hpp"
-#include "slic3r/GUI/Gizmos/GLGizmoText.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoMeshBoolean.hpp"
 
 #include "libslic3r/format.hpp"
@@ -81,20 +82,22 @@ GLGizmosManager::EType GLGizmosManager::get_gizmo_from_mouse(const Vec2d &mouse_
     if (! m_enabled)
         return Undefined;
 
-    float cnv_h      = (float) m_parent.get_canvas_size().get_height();
-    float height     = get_scaled_total_height();
     float icons_size = m_layout.scaled_icons_size();
     float border     = m_layout.scaled_border();
 
     //BBS: GUI refactor: GLToolbar&&Gizmo adjust
-    float cnv_w = (float)m_parent.get_canvas_size().get_width();
-    float width = get_scaled_total_width();
     //float space_width = GLGizmosManager::Default_Icons_Size * wxGetApp().toolbar_icon_scale();;
-    const float separator_width = m_parent.get_separator_toolbar_width();
-    float top_x = std::max(0.0f, 0.5f * (cnv_w - (width + separator_width + m_parent.get_main_toolbar_width() - m_parent.get_collapse_toolbar_width() + m_parent.get_assemble_view_toolbar_width())));
-    top_x += m_parent.get_main_toolbar_width() + separator_width / 2 + border;
-    if (m_parent.get_canvas_type() == GLCanvas3D::CanvasAssembleView)
+    float top_x;
+    if (m_parent.get_canvas_type() == GLCanvas3D::CanvasAssembleView) {
+        const float cnv_w = (float)m_parent.get_canvas_size().get_width();
+
         top_x = 0.5f * cnv_w + 0.5f * (m_parent.get_assembly_paint_toolbar_width());
+    } else {
+        const float separator_width = m_parent.get_separator_toolbar_width();
+
+        top_x = m_parent.get_main_toolbar_offset();
+        top_x += m_parent.get_main_toolbar_width() + separator_width / 2 + border;
+    }
     float top_y = 0;
     float stride_x = m_layout.scaled_stride_x();
 
@@ -150,7 +153,7 @@ void GLGizmosManager::switch_gizmos_icon_filename()
         case(EType::Seam):
             gizmo->set_icon_filename(m_is_dark ? "toolbar_seam_dark.svg" : "toolbar_seam.svg");
             break;
-        case(EType::Text):
+        case(EType::Emboss):
             gizmo->set_icon_filename(m_is_dark ? "toolbar_text_dark.svg" : "toolbar_text.svg");
             break;
         case(EType::MmuSegmentation):
@@ -196,7 +199,8 @@ bool GLGizmosManager::init()
     m_gizmos.emplace_back(new GLGizmoMeshBoolean(m_parent, m_is_dark ? "toolbar_meshboolean_dark.svg" : "toolbar_meshboolean.svg", EType::MeshBoolean));
     m_gizmos.emplace_back(new GLGizmoFdmSupports(m_parent, m_is_dark ? "toolbar_support_dark.svg" : "toolbar_support.svg", EType::FdmSupports));
     m_gizmos.emplace_back(new GLGizmoSeam(m_parent, m_is_dark ? "toolbar_seam_dark.svg" : "toolbar_seam.svg", EType::Seam));
-    m_gizmos.emplace_back(new GLGizmoText(m_parent, m_is_dark ? "toolbar_text_dark.svg" : "toolbar_text.svg", EType::Text));
+    m_gizmos.emplace_back(new GLGizmoEmboss(m_parent, m_is_dark ? "toolbar_text_dark.svg" : "toolbar_text.svg", EType::Emboss));
+    m_gizmos.emplace_back(new GLGizmoSVG(m_parent));
     m_gizmos.emplace_back(new GLGizmoMmuSegmentation(m_parent, m_is_dark ? "mmu_segmentation_dark.svg" : "mmu_segmentation.svg", EType::MmuSegmentation));
     m_gizmos.emplace_back(new GLGizmoMeasure(m_parent, m_is_dark ? "toolbar_measure_dark.svg" : "toolbar_measure.svg", EType::Measure));
     m_gizmos.emplace_back(new GLGizmoSimplify(m_parent, "reduce_triangles.svg", EType::Simplify));
@@ -248,27 +252,6 @@ bool GLGizmosManager::init_icon_textures()
         icon_list.insert(std::make_pair((int)IC_TOOLBAR_TOOLTIP_HOVER, texture_id));
     else
         return false;
-
-
-     if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/text_B.svg", 20, 20, texture_id))
-        icon_list.insert(std::make_pair((int)IC_TEXT_B, texture_id));
-    else
-        return false;
-
-     if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/text_B_dark.svg", 20, 20, texture_id))
-         icon_list.insert(std::make_pair((int)IC_TEXT_B_DARK, texture_id));
-     else
-         return false;
-
-     if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/text_T.svg", 20, 20, texture_id))
-        icon_list.insert(std::make_pair((int)IC_TEXT_T, texture_id));
-    else
-        return false;
-
-     if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/text_T_dark.svg", 20, 20, texture_id))
-         icon_list.insert(std::make_pair((int)IC_TEXT_T_DARK, texture_id));
-     else
-         return false;
 
     return true;
 }
@@ -326,7 +309,8 @@ void GLGizmosManager::reset_all_states()
         open_gizmo(current);
 
     activate_gizmo(Undefined);
-    m_hover = Undefined;
+    // Orca: do not clear hover state, as Emboss gizmo can be used without selection
+    //m_hover = Undefined;
 }
 
 bool GLGizmosManager::open_gizmo(EType type)
@@ -445,8 +429,6 @@ bool GLGizmosManager::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_p
         return dynamic_cast<GLGizmoSeam*>(m_gizmos[Seam].get())->gizmo_event(action, mouse_position, shift_down, alt_down, control_down);
     else if (m_current == MmuSegmentation)
         return dynamic_cast<GLGizmoMmuSegmentation*>(m_gizmos[MmuSegmentation].get())->gizmo_event(action, mouse_position, shift_down, alt_down, control_down);
-    else if (m_current == Text)
-        return dynamic_cast<GLGizmoText*>(m_gizmos[Text].get())->gizmo_event(action, mouse_position, shift_down, alt_down, control_down);
     else if (m_current == Measure)
         return dynamic_cast<GLGizmoMeasure*>(m_gizmos[Measure].get())->gizmo_event(action, mouse_position, shift_down, alt_down, control_down);
     else if (m_current == Cut)
@@ -607,7 +589,12 @@ bool GLGizmosManager::gizmos_toolbar_on_mouse(const wxMouseEvent &mouse_event) {
         // mouse is above toolbar
         if (mouse_event.LeftDown() || mouse_event.LeftDClick()) {
             mc.left = true;
-            open_gizmo(gizmo);
+            if (gizmo == Emboss) {
+                GLGizmoBase *gizmo_emboss = m_gizmos[Emboss].get();
+                dynamic_cast<GLGizmoEmboss *>(gizmo_emboss)->on_shortcut_key();
+            } else {
+                open_gizmo(gizmo);
+            }
             return true;
         }
         else if (mouse_event.RightDown()) {
@@ -1078,13 +1065,11 @@ void GLGizmosManager::do_render_overlay() const
     else {
         //BBS: GUI refactor: GLToolbar&&Gizmo adjust
         float main_toolbar_width = (float)m_parent.get_main_toolbar_width();
-        float assemble_view_width = (float)m_parent.get_assemble_view_toolbar_width();
-        float collapse_width = (float)m_parent.get_collapse_toolbar_width();
         float separator_width = (float)m_parent.get_separator_toolbar_width();
         //float space_width = GLGizmosManager::Default_Icons_Size * wxGetApp().toolbar_icon_scale();
         //float zoomed_top_x = 0.5f *(cnv_w + main_toolbar_width - 2 * space_width - width) * inv_zoom;
 
-        float main_toolbar_left = std::max(-0.5f * cnv_w, -0.5f * (main_toolbar_width + get_scaled_total_width() + assemble_view_width + separator_width - collapse_width));
+        float main_toolbar_left = -0.5f * cnv_w + m_parent.get_main_toolbar_offset();
         //float zoomed_top_x = 0.5f *(main_toolbar_width + collapse_width - width - assemble_view_width) * inv_zoom;
         top_x = main_toolbar_left + main_toolbar_width + separator_width / 2;
         top_x = top_x * inv_cnv_w * 2;
@@ -1129,12 +1114,14 @@ void GLGizmosManager::do_render_overlay() const
         const float v_bottom = v_top + dv - v_offset;
 
         GLTexture::render_sub_texture(icons_texture_id, top_x, top_x + icons_size_x, top_y - icons_size_y, top_y, { { u_left, v_bottom }, { u_right, v_bottom }, { u_right, v_top }, { u_left, v_top } });
-        if (idx == m_current) {
+        if (idx == m_current
+            // Orca: Show Svg dialog at the same place as emboss gizmo
+            || (m_current == Svg && idx == Emboss)) {
             //BBS: GUI refactor: GLToolbar&&Gizmo adjust
             //render_input_window uses a different coordination(imgui)
             //1. no need to scale by camera zoom, set {0,0} at left-up corner for imgui
             //gizmo->render_input_window(width, 0.5f * cnv_h - zoomed_top_y * zoom, toolbar_top);
-            gizmo->render_input_window(0.5 * cnv_w + 0.5f * top_x * cnv_w, get_scaled_total_height(), cnv_h);
+            m_gizmos[m_current]->render_input_window(0.5 * cnv_w + 0.5f * top_x * cnv_w, get_scaled_total_height(), cnv_h);
 
             is_render_current = true;
         }
@@ -1337,7 +1324,7 @@ std::string get_name_from_gizmo_etype(GLGizmosManager::EType type)
         return "FdmSupports";
     case GLGizmosManager::EType::Seam:
         return "Seam";
-    case GLGizmosManager::EType::Text:
+    case GLGizmosManager::EType::Emboss:
         return "Text";
     case GLGizmosManager::EType::MmuSegmentation:
         return "Color Painting";

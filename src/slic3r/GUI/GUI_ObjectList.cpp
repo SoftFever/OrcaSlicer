@@ -1331,11 +1331,20 @@ void ObjectList::show_context_menu(const bool evt_context_menu)
             const ItemType type = m_objects_model->GetItemType(item);
             if (!(type & (itPlate | itObject | itVolume | itInstance)))
                 return;
+            if (type & itVolume) {
+                int obj_idx, vol_idx;
+                get_selected_item_indexes(obj_idx, vol_idx, item);
+                if (obj_idx < 0 || vol_idx < 0)
+                    return;
+                const ModelVolume *volume = object(obj_idx)->volumes[vol_idx];
 
-            menu =  type & itPlate                                              ? plater->plate_menu() :
-                    type & itInstance                                           ? plater->instance_menu() :
-                    type & itVolume                                             ? plater->part_menu() :
-                    printer_technology() == ptFFF                               ? plater->object_menu() : plater->sla_object_menu();
+                menu = volume->is_text() ? plater->text_part_menu() :
+                    plater->part_menu();
+            }
+            else
+                menu =  type & itPlate                                              ? plater->plate_menu() :
+                        type & itInstance                                           ? plater->instance_menu() :
+                        printer_technology() == ptFFF                               ? plater->object_menu() : plater->sla_object_menu();
             plater->SetPlateIndexByRightMenuInLeftUI(-1);
             if (type & itPlate) {
                 int            plate_idx = -1;
@@ -1359,12 +1368,11 @@ void ObjectList::extruder_editing()
     if (!item || !(m_objects_model->GetItemType(item) & (itVolume | itObject)))
         return;
 
-    const int column_width = GetColumn(colFilament)->GetWidth() + wxSystemSettings::GetMetric(wxSYS_VSCROLL_X) + 5;
-
-    wxPoint pos = this->get_mouse_position_in_control();
-    wxSize size = wxSize(column_width, -1);
-    pos.x = GetColumn(colName)->GetWidth() + GetColumn(colPrint)->GetWidth() + 5;
-    pos.y -= GetTextExtent("m").y;
+    wxRect rect = this->GetItemRect(item, GetColumn(colFilament));
+    wxPoint pos = rect.GetPosition();
+    pos.y -= 4;
+    wxSize size = rect.GetSize();
+    size.SetWidth(size.GetWidth() + 8);
 
     apply_extruder_selector(&m_extruder_editor, this, "1", pos, size);
 
@@ -2000,7 +2008,7 @@ void ObjectList::load_modifier(const wxArrayString& input_files, ModelObject& mo
     // First (any) GLVolume of the selected instance. They all share the same instance matrix.
     const GLVolume* v = selection.get_first_volume();
     const Geometry::Transformation inst_transform = v->get_instance_transformation();
-    const Transform3d inv_inst_transform = inst_transform.get_matrix(true).inverse();
+    const Transform3d inv_inst_transform = inst_transform.get_matrix_no_offset().inverse();
     const Vec3d instance_offset = v->get_instance_offset();
 
     for (size_t i = 0; i < input_files.size(); ++i) {
@@ -2076,23 +2084,27 @@ static TriangleMesh create_mesh(const std::string& type_name, const BoundingBoxf
 {
     const double side = wxGetApp().plater()->canvas3D()->get_size_proportional_to_max_bed_size(0.1);
 
-    indexed_triangle_set mesh;
+    TriangleMesh mesh;
     if (type_name == "Cube")
         // Sitting on the print bed, left front front corner at (0, 0).
-        mesh = its_make_cube(side, side, side);
+        mesh = TriangleMesh(its_make_cube(side, side, side));
     else if (type_name == "Cylinder")
         // Centered around 0, sitting on the print bed.
         // The cylinder has the same volume as the box above.
-        mesh = its_make_cylinder(0.5 * side, side);
+        mesh = TriangleMesh(its_make_cylinder(0.5 * side, side));
     else if (type_name == "Sphere")
         // Centered around 0, half the sphere below the print bed, half above.
         // The sphere has the same volume as the box above.
-        mesh = its_make_sphere(0.5 * side, PI / 18);
+        mesh = TriangleMesh(its_make_sphere(0.5 * side, PI / 18));
     else if (type_name == "Slab")
         // Sitting on the print bed, left front front corner at (0, 0).
-        mesh = its_make_cube(bb.size().x() * 1.5, bb.size().y() * 1.5, bb.size().z() * 0.5);
+        mesh = TriangleMesh(its_make_cube(bb.size().x() * 1.5, bb.size().y() * 1.5, bb.size().z() * 0.5));
     else if (type_name == "Cone")
-        mesh = its_make_cone(0.5 * side, side);
+        mesh = TriangleMesh(its_make_cone(0.5 * side, side));
+    else if (type_name == "Disc")
+        mesh.ReadSTLFile((Slic3r::resources_dir() + "/handy_models/helper_disk.stl").c_str(), true, nullptr);
+    else if (type_name == "Torus")
+        mesh.ReadSTLFile((Slic3r::resources_dir() + "/handy_models/torus.stl").c_str(), true, nullptr);
     return TriangleMesh(mesh);
 }
 
@@ -2144,7 +2156,7 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const Mode
 		Vec3d(0., 0., 0.5 * mesh_bb.size().z() + instance_bb.min.z() - v->get_instance_offset().z()) :
         // Translate the new modifier to be pickable: move to the left front corner of the instance's bounding box, lift to print bed.
         Vec3d(instance_bb.max.x(), instance_bb.min.y(), instance_bb.min.z()) + 0.5 * mesh_bb.size() - v->get_instance_offset();
-    new_volume->set_offset(v->get_instance_transformation().get_matrix(true).inverse() * offset);
+    new_volume->set_offset(v->get_instance_transformation().get_matrix_no_offset().inverse() * offset);
 
     // BBS: backup
     Slic3r::save_object_mesh(model_object);
@@ -2272,56 +2284,6 @@ void ObjectList::load_mesh_object(const TriangleMesh &mesh, const wxString &name
 #ifdef _DEBUG
     check_model_ids_validity(model);
 #endif /* _DEBUG */
-}
-
-int ObjectList::load_mesh_part(const TriangleMesh &mesh, const wxString &name, const TextInfo &text_info, bool is_temp)
-{
-    wxDataViewItem item = GetSelection();
-    // we can add volumes for Object or Instance
-    if (!item || !(m_objects_model->GetItemType(item) & (itObject | itInstance)))
-        return -1;
-    const int obj_idx = m_objects_model->GetObjectIdByItem(item);
-
-    if (obj_idx < 0)
-        return -1;
-
-    // Get object item, if Instance is selected
-    if (m_objects_model->GetItemType(item) & itInstance)
-        item = m_objects_model->GetItemById(obj_idx);
-
-    ModelObject* mo = (*m_objects)[obj_idx];
-
-    Geometry::Transformation instance_transformation = mo->instances[0]->get_transformation();
-
-    // apply the instance transform to all volumes and reset instance transform except the offset
-    apply_object_instance_transfrom_to_all_volumes(mo, !is_temp);
-
-    ModelVolume *mv     = mo->add_volume(mesh);
-    mv->name = name.ToStdString();
-    if (!text_info.m_text.empty())
-        mv->set_text_info(text_info);
-
-    if (!is_temp) {
-        std::vector<ModelVolume *> volumes;
-        volumes.push_back(mv);
-        wxDataViewItemArray items = reorder_volumes_and_get_selection(obj_idx, [volumes](const ModelVolume *volume) {
-            return std::find(volumes.begin(), volumes.end(), volume) != volumes.end();
-        });
-
-        wxGetApp().plater()->get_view3D_canvas3D()->update_instance_printable_state_for_object((size_t) obj_idx);
-
-        if (items.size() > 1) {
-            m_selection_mode     = smVolume;
-            m_last_selected_item = wxDataViewItem(nullptr);
-        }
-        select_items(items);
-
-        selection_changed();
-    }
-
-    //BBS: notify partplate the modify
-    notify_instance_updated(obj_idx);
-    return mo->volumes.size() - 1;
 }
 
 //BBS
@@ -2615,7 +2577,9 @@ void ObjectList::split()
     for (const ModelVolume* volume : model_object->volumes) {
         const wxDataViewItem& vol_item = m_objects_model->AddVolumeChild(parent, from_u8(volume->name),
             volume->type(),// is_modifier() ? ModelVolumeType::PARAMETER_MODIFIER : ModelVolumeType::MODEL_PART,
-            get_warning_icon_name(volume->mesh().stats()),
+            volume->is_text(),
+            volume->is_svg(),
+			get_warning_icon_name(volume->mesh().stats()),
             volume->config.has("extruder") ? volume->config.extruder() : 0,
             false);
         // add settings to the part, if it has those
@@ -3196,6 +3160,21 @@ bool ObjectList::can_merge_to_single_object() const
     return (*m_objects)[obj_idx]->volumes.size() > 1;
 }
 
+wxPoint ObjectList::get_mouse_position_in_control() const
+{
+    wxPoint pt = wxGetMousePosition() - this->GetScreenPosition();
+
+#ifdef __APPLE__
+    // Workaround for OSX. From wxWidgets 3.1.6 Hittest doesn't respect to the header of wxDataViewCtrl
+    if (wxDataViewItem top_item = this->GetTopItem(); top_item.IsOk()) {
+        auto rect = this->GetItemRect(top_item, this->GetColumn(0));
+        pt.y -= rect.y;
+    }
+#endif // __APPLE__
+
+    return pt;
+}
+
 bool ObjectList::can_mesh_boolean() const
 {
     int obj_idx = get_selected_obj_idx();
@@ -3773,6 +3752,8 @@ wxDataViewItemArray ObjectList::add_volumes_to_object_in_list(size_t obj_idx, st
                 object_item,
                 from_u8(volume->name),
                 volume->type(),
+                volume->is_text(),
+                volume->is_svg(),
                 get_warning_icon_name(volume->mesh().stats()),
                 volume->config.has("extruder") ? volume->config.extruder() : 0,
                 false);
@@ -5505,17 +5486,17 @@ void ObjectList::msw_rescale()
     GetColumn(colSinking)->SetWidth(3 * em);
     GetColumn(colEditing )->SetWidth( 3 * em);
 
-    // rescale/update existing items with bitmaps
-    m_objects_model->Rescale();
-
     Layout();
 }
 
 void ObjectList::sys_color_changed()
 {
     wxGetApp().UpdateDVCDarkUI(this, true);
-    
-    msw_rescale();
+
+    // rescale/update existing items with bitmaps
+    m_objects_model->UpdateBitmaps();
+
+    Layout();
 
     if (m_objects_model) { m_objects_model->sys_color_changed(); }
 }
@@ -5552,6 +5533,12 @@ void GUI::ObjectList::OnStartEditing(wxDataViewEvent &event)
 // Here the last active column is forgotten, so when leaving the editing mode, the next mouse click will not enter the editing mode of the newly selected column.
 void ObjectList::OnEditingStarted(wxDataViewEvent &event)
 {
+    // Orca: Automatically show drop down on editing start and finish editing when the combobox is closed
+    if (event.GetColumn() == colFilament) {
+        ::ComboBox*c         = static_cast<::ComboBox *>(event.GetDataViewColumn()->GetRenderer()->GetEditorCtrl());
+        c->ToggleDropDown();
+        c->Bind(wxEVT_COMBOBOX_CLOSEUP, [event](wxCommandEvent& evt){ event.GetDataViewColumn()->GetRenderer()->FinishEditing(); });
+    }
 #ifdef __WXMSW__
 	m_last_selected_column = -1;
 #else
@@ -5818,6 +5805,8 @@ wxDataViewItemArray ObjectList::reorder_volumes_and_get_selection(int obj_idx, s
     for (const ModelVolume* volume : object->volumes) {
         wxDataViewItem vol_item = m_objects_model->AddVolumeChild(object_item, from_u8(volume->name),
             volume->type(),
+            volume->is_text(),
+            volume->is_svg(),
             get_warning_icon_name(volume->mesh().stats()),
             volume->config.has("extruder") ? volume->config.extruder() : 0,
             false);

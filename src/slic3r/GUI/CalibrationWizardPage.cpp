@@ -371,7 +371,7 @@ CaliPageCaption::CaliPageCaption(wxWindow* parent, CalibMode cali_mode,
     auto top_sizer = new wxBoxSizer(wxVERTICAL);
     auto caption_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_prev_btn = new ScalableButton(this, wxID_ANY, "cali_page_caption_prev",
-        wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true, 30);
+        wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, 30);
     m_prev_btn->SetBackgroundColour(*wxWHITE);
     caption_sizer->Add(m_prev_btn, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(10));
 
@@ -382,7 +382,7 @@ CaliPageCaption::CaliPageCaption(wxWindow* parent, CalibMode cali_mode,
     caption_sizer->Add(title_text, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(10));
 
     m_help_btn = new ScalableButton(this, wxID_ANY, "cali_page_caption_help",
-        wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true, 30);
+        wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, 30);
     m_help_btn->Hide();
     m_help_btn->SetBackgroundColour(*wxWHITE);
     caption_sizer->Add(m_help_btn, 0, wxALIGN_CENTER);
@@ -472,12 +472,12 @@ void CaliPageCaption::show_help_icon(bool show)
 
 void CaliPageCaption::on_sys_color_changed()
 {
-    m_prev_btn->msw_rescale();
+    m_prev_btn->sys_color_changed();
 }
 
 void CaliPageCaption::msw_rescale()
 {
-    m_prev_btn->msw_rescale();
+    m_prev_btn->sys_color_changed();
 }
 
 CaliPageStepGuide::CaliPageStepGuide(wxWindow* parent, wxArrayString steps,
@@ -593,7 +593,7 @@ PAPageHelpPanel::PAPageHelpPanel(wxWindow* parent, bool ground_panel, wxWindowID
     wxBoxSizer* help_text_sizer = new wxBoxSizer(wxHORIZONTAL);
     auto help_text = new Label(this, _L("You could change the Flow Dynamics Calibration Factor in material editing"));
     help_text->SetFont(Label::Body_14);
-    m_help_btn = new ScalableButton(this, wxID_ANY, "cali_page_caption_help", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, false, 24);
+    m_help_btn = new ScalableButton(this, wxID_ANY, "cali_page_caption_help", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, 24);
     m_help_btn->SetBackgroundColour(m_help_btn->GetParent()->GetBackgroundColour());
     help_text_sizer->Add(help_text, 0, wxALIGN_CENTER | wxLEFT, left_align_padding);
     help_text_sizer->Add(m_help_btn, 0, wxALIGN_CENTER | wxLEFT, FromDIP(8));
@@ -611,8 +611,8 @@ PAPageHelpPanel::PAPageHelpPanel(wxWindow* parent, bool ground_panel, wxWindowID
 
 void PAPageHelpPanel::msw_rescale()
 {
-    m_help_btn->msw_rescale();
-    m_bmp.msw_rescale();
+    m_help_btn->sys_color_changed();
+    m_bmp.sys_color_changed();
     m_img->SetBitmap(m_bmp.bmp());
 }
 

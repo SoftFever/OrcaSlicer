@@ -73,7 +73,8 @@
                 "file": {
                     "remote": "enabled"
                 }
-            }
+            },
+            "support_user_preset":true
         }
     }
 }
