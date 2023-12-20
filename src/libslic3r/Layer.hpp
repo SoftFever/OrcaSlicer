@@ -311,6 +311,7 @@ protected:
     {
         ExPolygon *area;
         int        type;
+        int interface_id = 0;
         coordf_t   dist_to_top; // mm dist to top
         bool need_infill = false;
         bool need_extra_wall = false;

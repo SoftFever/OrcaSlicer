@@ -1523,8 +1523,9 @@ static inline ExPolygons detect_overhangs(
                 // spanning just the projection between the two slices.
                 // Subtracting them as they are may leave unwanted narrow
                 // residues of diff_polygons that would then be supported.
-                diff_polygons = diff(diff_polygons,
-                    expand(union_(annotations.blockers_layers[layer_id]), float(1000. * SCALED_EPSILON)));
+                auto blocker = expand(union_(annotations.blockers_layers[layer_id]), float(1000. * SCALED_EPSILON));
+                diff_polygons = diff(diff_polygons, blocker);
+                layer.sharp_tails = diff_ex(layer.sharp_tails, blocker);
             }
 
             if (bridge_no_support) {
@@ -1729,9 +1730,11 @@ Layer* sync_gap_with_object_layer(const Layer& layer, const coordf_t gap_support
             gap_synced -= last_valid_gap_layer->height;
             last_valid_gap_layer = last_valid_gap_layer->lower_layer;
         }
-        upper_layer = last_valid_gap_layer;  // layer just above the last valid gap layer
-        if (last_valid_gap_layer->upper_layer)
-            upper_layer = last_valid_gap_layer->upper_layer;
+        if (gap_support_object > 0) {
+            upper_layer = last_valid_gap_layer;  // layer just above the last valid gap layer
+            if (last_valid_gap_layer->upper_layer)
+                upper_layer = last_valid_gap_layer->upper_layer;
+        }
         return upper_layer;
     }
 }
@@ -2433,21 +2436,21 @@ static inline SupportGeneratorLayer* detect_bottom_contacts(
     // Grow top surfaces so that interface and support generation are generated
     // with some spacing from object - it looks we don't need the actual
     // top shapes so this can be done here
+    Layer* upper_layer = layer.upper_layer;
     if (object.print()->config().independent_support_layer_height) {
         // If the layer is extruded with no bridging flow, support just the normal extrusions.
-        layer_new.height = slicing_params.soluble_interface?
+        layer_new.height = slicing_params.soluble_interface ?
             // Align the interface layer with the object's layer height.
-            layer.upper_layer->height :
+            upper_layer->height :
             // Place a bridge flow interface layer or the normal flow interface layer over the top surface.
             support_params.support_material_bottom_interface_flow.height();
-        layer_new.print_z = slicing_params.soluble_interface ? layer.upper_layer->print_z :
+        layer_new.print_z = slicing_params.soluble_interface ? upper_layer->print_z :
             layer.print_z + layer_new.height + slicing_params.gap_object_support;
     }
     else {
-        Layer* synced_layer = sync_gap_with_object_layer(layer, slicing_params.gap_object_support, false);
-        // If the layer is extruded with no bridging flow, support just the normal extrusions.
-        layer_new.height = synced_layer->height;
-        layer_new.print_z = synced_layer->print_z;
+        upper_layer = sync_gap_with_object_layer(layer, slicing_params.gap_object_support, false);
+        layer_new.height = upper_layer->height;
+        layer_new.print_z = upper_layer->print_z;
     }
     layer_new.bottom_z = layer.print_z;
     layer_new.idx_object_layer_below = layer_id;

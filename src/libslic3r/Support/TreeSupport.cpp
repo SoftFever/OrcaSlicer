@@ -1290,7 +1290,7 @@ static void make_perimeter_and_infill(ExtrusionEntitiesPtr& dst, const Print& pr
     FillParams fill_params;
     fill_params.density = support_density;
     fill_params.dont_adjust = true;
-    ExPolygons to_infill = support_area_new;
+    ExPolygons to_infill = offset_ex(support_area, -float(wall_count) * float(flow.scaled_spacing()), jtSquare);
     std::vector<BoundingBox> fill_boxes = fill_expolygons_generate_paths(dst, to_infill, filler_support, fill_params, role, flow);
 
     // allow wall_count to be zero, which means only draw infill
@@ -1524,7 +1524,8 @@ void TreeSupport::generate_toolpaths()
                             fill_params.dont_sort = true;
                         }
                         if (m_object_config->support_interface_pattern == smipRectilinearInterlaced)
-                            filler_interface->layer_id = round(area_group.dist_to_top / ts_layer->height);
+                            filler_interface->layer_id = area_group.interface_id;
+
                         fill_expolygons_generate_paths(ts_layer->support_fills.entities, polys, filler_interface.get(), fill_params, erSupportMaterialInterface,
                                                        m_support_material_interface_flow);
                     }
@@ -1969,6 +1970,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<SupportNode*>>& con
                 coordf_t         max_layers_above_base = 0;
                 coordf_t         max_layers_above_roof = 0;
                 coordf_t         max_layers_above_roof1 = 0;
+                int interface_id = 0;
                 bool has_polygon_node = false;
                 bool has_circle_node = false;
 
@@ -2051,6 +2053,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<SupportNode*>>& con
                     {
                         append(roof_areas, area);
                         max_layers_above_roof = std::max(max_layers_above_roof, node.dist_mm_to_top);
+                        interface_id = node.obj_layer_nr % top_interface_layers;
                     }
                     else
                     {
@@ -2140,7 +2143,10 @@ void TreeSupport::draw_circles(const std::vector<std::vector<SupportNode*>>& con
                     area_groups.emplace_back(&area, SupportLayer::BaseType, max_layers_above_base);
                     area_groups.back().need_infill = has_polygon_node;
                 }
-                for (auto &area : ts_layer->roof_areas) area_groups.emplace_back(&area, SupportLayer::RoofType, max_layers_above_roof);
+                for (auto& area : ts_layer->roof_areas) {
+                    area_groups.emplace_back(&area, SupportLayer::RoofType, max_layers_above_roof);
+                    area_groups.back().interface_id = interface_id;
+                }
                 for (auto &area : ts_layer->floor_areas) area_groups.emplace_back(&area, SupportLayer::FloorType, 10000);
                 for (auto &area : ts_layer->roof_1st_layer) area_groups.emplace_back(&area, SupportLayer::Roof1stLayer, max_layers_above_roof1);
 
