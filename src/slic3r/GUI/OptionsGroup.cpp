@@ -210,7 +210,7 @@ void OptionsGroup::append_line(const Line& line)
         m_options_mode.push_back(option_set[0].opt.mode);
 }
 
-//BBS: get line for opt_key
+/*//BBS: get line for opt_key
 Line* OptionsGroup::get_line(const std::string& opt_key)
 {
     for (auto& l : m_lines)
@@ -222,7 +222,7 @@ Line* OptionsGroup::get_line(const std::string& opt_key)
     }
 
     return nullptr;
-}
+}*/
 
 void OptionsGroup::append_separator()
 {
@@ -678,6 +678,7 @@ void ConfigOptionsGroup::back_to_config_value(const DynamicPrintConfig& config, 
                  opt_key == "thumbnails" || opt_key == "bed_custom_texture" || opt_key == "bed_custom_model") {
         value = get_config_value(config, opt_key);
         this->change_opt_value(opt_key, value);
+        OptionsGroup::on_change_OG(opt_key, value);
         return;
         } else {
         auto opt_id = m_opt_map.find(opt_key)->first;
