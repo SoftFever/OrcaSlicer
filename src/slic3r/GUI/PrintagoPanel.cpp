@@ -114,7 +114,7 @@ json PrintagoPanel::MachineObjectToJson(MachineObject *machine)
 
         // Current Job/Print Info
         j["current"]["print_status"]    = machine->print_status;
-        j["current"]["m_gcode_file"]    = machine->m_gcode_file;
+        // j["current"]["m_gcode_file"]    = machine->m_gcode_file;
         j["current"]["print_time_left"] = machine->mc_left_time;
         j["current"]["print_percent"]   = machine->mc_print_percent;
         j["current"]["print_stage"]     = machine->mc_print_stage;
@@ -350,10 +350,13 @@ void PrintagoPanel::HandlePrintagoCommand(const PrintagoCommand &event)
         return;
     }
 
-    // TODO check right here what the printer is doing and if it is busy, return an error.
     if (!commandType.compare("printer_control")) {
         if (!action.compare("pause_print")) {
             try {
+                 if (!printer->can_pause()) {
+                    SendErrorMessage(printerId, action, originalCommandStr, "cannot pause printer");
+                    return;
+                 }
                 printer->command_task_pause();
             } catch (...) {
                 SendErrorMessage(printerId, action, originalCommandStr, "an error occurred issuing pause_print");
@@ -362,12 +365,11 @@ void PrintagoPanel::HandlePrintagoCommand(const PrintagoCommand &event)
         }
         else if (!action.compare("resume_print")) {
             try {
-                if (printer->can_resume()) {
-                    printer->command_task_resume();
-                } else {
-                    SendErrorMessage(printerId, action, originalCommandStr, "cannot resume print");
+                if (!printer->can_resume()) {
+                    SendErrorMessage(printerId, action, originalCommandStr, "cannot resume printer");
                     return;
                 }
+                printer->command_task_resume();
             } catch (...) {
                 SendErrorMessage(printerId, action, originalCommandStr, "an error occurred issuing resume_print");
                 return;
@@ -375,6 +377,10 @@ void PrintagoPanel::HandlePrintagoCommand(const PrintagoCommand &event)
         }
         else if (!action.compare("stop_print")) {
             try {
+                if (!printer->can_abort()) {
+                    SendErrorMessage(printerId, action, originalCommandStr, "cannot abort printer");
+                    return;
+                }
                 printer->command_task_abort();
             } catch (...) {
                 SendErrorMessage(printerId, action, originalCommandStr, "an error occurred issuing stop_print");
@@ -387,6 +393,11 @@ void PrintagoPanel::HandlePrintagoCommand(const PrintagoCommand &event)
             return;
         }
         else if (!action.compare("start_print_bbl")) {
+            if (!printer->can_print() && jobPrinterId.compare(printerId)) { //printer can print, and we're not already prepping for it.
+                SendErrorMessage(printerId, action, originalCommandStr, "cannot start print");
+                return;
+            }
+
             wxString printagoFileUrl = parameters["url"];
             wxString decodedUrl      = {""};
             jobPrinterId             = printerId;
@@ -451,6 +462,10 @@ void PrintagoPanel::HandlePrintagoCommand(const PrintagoCommand &event)
         }
     }
     else if (!commandType.compare("temperature_control")) {
+        if (!printer->can_print() && jobPrinterId.compare(printerId)) {
+            SendErrorMessage(printerId, action, originalCommandStr, "cannot control temperature; printer busy");
+            return;
+        }
         wxString tempStr = parameters["temperature"];
         long     targetTemp;
         if (!tempStr.ToLong(&targetTemp)) {
@@ -482,6 +497,10 @@ void PrintagoPanel::HandlePrintagoCommand(const PrintagoCommand &event)
         } 
     }
     else if (!commandType.compare("movement_control")) {
+        if (!printer->can_print() && jobPrinterId.compare(printerId)) {
+            SendErrorMessage(printerId, action, originalCommandStr, "cannot control movement; printer busy");
+            return;
+        }
         if (!action.compare("jog")) {
             auto axes = ExtractPrefixedParams(parameters, "axes");
             if (axes.empty()) {
@@ -788,23 +807,24 @@ void PrintagoPanel::OnNavigationRequest(wxWebViewEvent &evt)
         if (pathComponents.GetCount() != 3) {
             SendErrorMessage("", "", "", "invalid printago command");
             return;
-        } else if (!CanProcessJob()) {
-            wxDateTime now = wxDateTime::Now();
-            now.MakeUTC();
-            const wxString timestamp = now.FormatISOCombined() + "Z";
-
-            json statusObject;
-            statusObject["process"]["can_process_job"] = CanProcessJob();
-
-            statusObject["process"]["job_id"]         = ""; // add later from command.
-            statusObject["process"]["job_state"]      = jobServerState.ToStdString();
-            statusObject["process"]["job_machine"]    = jobPrinterId.ToStdString();
-            statusObject["process"]["job_local_file"] = jobLocalFilePath.ToStdString();
-            statusObject["process"]["job_progress"]   = jobProgress;
-
-            SendJsonErrorMessage("", "", "", statusObject);
-            return;
         }
+        // else if (!CanProcessJob()) {
+        //     wxDateTime now = wxDateTime::Now();
+        //     now.MakeUTC();
+        //     const wxString timestamp = now.FormatISOCombined() + "Z";
+        //
+        //     json statusObject;
+        //     statusObject["process"]["can_process_job"] = CanProcessJob();
+        //
+        //     statusObject["process"]["job_id"]         = ""; // add later from command.
+        //     statusObject["process"]["job_state"]      = jobServerState.ToStdString();
+        //     statusObject["process"]["job_machine"]    = jobPrinterId.ToStdString();
+        //     statusObject["process"]["job_local_file"] = jobLocalFilePath.ToStdString();
+        //     statusObject["process"]["job_progress"]   = jobProgress;
+        //
+        //     SendJsonErrorMessage("", "", "", statusObject);
+        //     return;
+        // }
 
         commandType = pathComponents.Item(1); // The first actual component after the leading empty one
         action      = pathComponents.Item(2); // The second actual component
