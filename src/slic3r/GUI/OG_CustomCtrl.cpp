@@ -195,7 +195,7 @@ wxPoint OG_CustomCtrl::get_pos(const Line& line, Field* field_in/* = nullptr*/)
 
             if (line.widget) {
 #ifndef DISABLE_BLINKING
-                h_pos += blinking_button_width;
+                h_pos += (line.has_undo_ui() ? 3 : 1) * blinking_button_width;
 #endif
 
                 for (auto child : line.widget_sizer->GetChildren())
@@ -761,7 +761,7 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord h_pos, wxCoord v_pos)
     wxColour blink_color = StateColor::darkModeColorFor("#009688");
     bool is_url_string = false;
     if (ctrl->opt_group->label_width != 0 && !label.IsEmpty()) {
-        const wxColour* text_clr = field ? field->label_color() : og_line.full_Label_color;
+        const wxColour* text_clr = field ? field->label_color() : og_line.label_color();
         for (const Option& opt : option_set) {
             Field* field = ctrl->opt_group->get_field(opt.opt_id);
             if (field && field->blink()) {
