@@ -878,8 +878,6 @@ public:
     int command_start_flow_ratio_calibration(const X1CCalibInfos& calib_data);
     int command_get_flow_ratio_calibration_result(float nozzle_diameter);
 
-    int command_unload_filament();
-
     // camera control
     int command_ipcam_record(bool on_off);
     int command_ipcam_timelapse(bool on_off);

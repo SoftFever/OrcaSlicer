@@ -3228,7 +3228,7 @@ void StatusPanel::on_axis_ctrl_e_down_10(wxCommandEvent &event)
 
 void StatusPanel::on_start_unload(wxCommandEvent &event)
 {
-    if (obj) obj->command_unload_filament();
+    if (obj) obj->command_ams_switch(255);
 }
 
 void StatusPanel::on_set_bed_temp()

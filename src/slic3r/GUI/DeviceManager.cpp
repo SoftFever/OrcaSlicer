@@ -2229,41 +2229,6 @@ int MachineObject::command_get_flow_ratio_calibration_result(float nozzle_diamet
     return -1;
 }
 
-int MachineObject::command_unload_filament()
-{
-    if (get_printer_series() == PrinterSeries::SERIES_X1 && !ams_support_virtual_tray) {
-        // fixed gcode file
-        json j;
-        j["print"]["command"] = "gcode_file";
-        j["print"]["param"] = "/usr/etc/print/filament_unload.gcode";
-        j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
-        return this->publish_json(j.dump());
-    }
-    else if (get_printer_series() == PrinterSeries::SERIES_P1P || (get_printer_series() == PrinterSeries::SERIES_X1 && ams_support_virtual_tray) ) {
-        std::string gcode = DeviceManager::load_gcode(printer_type, "ams_unload.gcode");
-        if (gcode.empty()) {
-            return -1;
-        }
-
-        json j;
-        j["print"]["command"] = "gcode_line";
-        j["print"]["param"] = gcode;
-        j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
-
-        if (m_agent)
-            j["print"]["user_id"] = m_agent->get_user_id();
-
-        return this->publish_json(j.dump());
-    }
-    else {
-        json j;
-        j["print"]["command"] = "unload_filament";
-        j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
-        return this->publish_json(j.dump());
-    }
-}
-
-
 int MachineObject::command_ipcam_record(bool on_off)
 {
     BOOST_LOG_TRIVIAL(info) << "command_ipcam_record = " << on_off;
