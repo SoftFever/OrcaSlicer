@@ -2283,12 +2283,12 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                 pts->values.emplace_back(print.translate_to_print_space(pt));
             bbox = BoundingBoxf((pts->values));
         }
-
+        BoundingBoxf bbox_head_wrap_zone (print.config().head_wrap_detect_zone.values);
         this->placeholder_parser().set("first_layer_print_convex_hull", pts.release());
         this->placeholder_parser().set("first_layer_print_min", new ConfigOptionFloats({bbox.min.x(), bbox.min.y()}));
         this->placeholder_parser().set("first_layer_print_max", new ConfigOptionFloats({bbox.max.x(), bbox.max.y()}));
         this->placeholder_parser().set("first_layer_print_size", new ConfigOptionFloats({ bbox.size().x(), bbox.size().y() }));
-
+        this->placeholder_parser().set("in_head_wrap_detect_zone",bbox_head_wrap_zone.overlap(bbox));
         // get center without wipe tower
         BoundingBoxf bbox_wo_wt; // bounding box without wipe tower
         for (auto &objPtr : print.objects()) {
@@ -2296,7 +2296,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             bbox_wo_wt.merge(unscaled(objPtr->get_first_layer_bbox(data.area, data.layer_height, data.name)));
         }
         auto center = bbox_wo_wt.center();
-        this->placeholder_parser().set("first_layer_center_no_wipe_tower", new ConfigOptionFloats({center.x(), center.y()}));
+        this->placeholder_parser().set("first_layer_center_no_wipe_tower", new ConfigOptionFloats{ {center.x(),center.y()}});
     }
     bool activate_chamber_temp_control = false;
     auto max_chamber_temp              = 0;
@@ -2352,6 +2352,9 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             this->placeholder_parser().set("outer_wall_volumetric_speed", new ConfigOptionFloat(outer_wall_volumetric_speed));
         }
 
+        if (print.calib_params().mode == CalibMode::Calib_PA_Line) {
+            this->placeholder_parser().set("scan_first_layer", new ConfigOptionBool(false));
+        }
     }
     std::string machine_start_gcode = this->placeholder_parser_process("machine_start_gcode", print.config().machine_start_gcode.value, initial_extruder_id);
     if (print.config().gcode_flavor != gcfKlipper) {

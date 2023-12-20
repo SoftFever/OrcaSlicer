@@ -1254,7 +1254,7 @@ Updates PresetUpdater::priv::get_config_updates(const Semver &old_slic3r_version
                         version.config_version = cache_ver;
                         version.comment = description;
 
-                        updates.updates.emplace_back(std::move(file_path), std::move(path_in_vendor.string()), std::move(version), vendor_name, changelog, description, force_update, false);
+                        updates.updates.emplace_back(std::move(file_path), std::move(path_in_vendor.string()), std::move(version), vendor_name, changelog, "", force_update, false);
 
                         //BBS: add directory support
                         auto print_in_vendors = (vendor_path / vendor_name / PRESET_PRINT_NAME);

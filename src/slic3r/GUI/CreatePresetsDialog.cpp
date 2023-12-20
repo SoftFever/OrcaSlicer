@@ -121,6 +121,13 @@ static std::string remove_special_key(const std::string &str)
     return res_str;
 }
 
+static bool str_is_all_digit(const std::string &str) {
+    for (const char &c : str) {
+        if (!std::isdigit(c)) return false;
+    }
+    return true; 
+}
+
 static bool delete_filament_preset_by_name(std::string delete_preset_name, std::string &selected_preset_name)
 {
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("select preset, name %1%") % delete_preset_name;
@@ -980,8 +987,8 @@ wxBoxSizer *CreateFilamentPresetDialog::create_button_item()
             dlg.ShowModal();
             return;
         }
-        if (m_can_not_find_vendor_checkbox->GetValue() && vendor_name[0] >= '0' && vendor_name[0] <= '9') {
-            MessageDialog dlg(this, _L("The beginning of the vendor can not be a number. Please re-enter."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"),
+        if (m_can_not_find_vendor_checkbox->GetValue() && str_is_all_digit(vendor_name)) {
+            MessageDialog dlg(this, _L("The vendor can not be a number. Please re-enter."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"),
                               wxYES | wxYES_DEFAULT | wxCENTRE);
             dlg.ShowModal();
             return;
