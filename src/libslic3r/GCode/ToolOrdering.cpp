@@ -774,7 +774,7 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume()
         LayerTools& lt = m_layer_tools[i];
         if (lt.extruders.empty())
             continue;
-        // todo: The algorithm complexity is too high(o(n2)), currently only 8 colors are supported
+        // todo: The algorithm complexity is too high(o(n2)), currently only 12 colors are supported
         if (i != 0 && lt.extruders.size() <= 12) {
             lt.extruders = get_extruders_order(wipe_volumes, lt.extruders, current_extruder_id);
         }
