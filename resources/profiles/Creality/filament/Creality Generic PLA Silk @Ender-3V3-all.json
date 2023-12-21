@@ -5,5 +5,9 @@
 	"from": "system",
 	"instantiation": "true",
 	"inherits": "Creality Generic PLA @Ender-3V3-all",
-	"filament_max_volumetric_speed": ["7.5"]
+	"filament_max_volumetric_speed": ["7.5"],
+	"compatible_printers": [
+		"Creality Ender-3 V3 SE 0.4 nozzle",
+		"Creality Ender-3 V3 KE 0.4 nozzle"
+	]
 }
