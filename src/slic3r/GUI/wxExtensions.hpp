@@ -169,8 +169,8 @@ public:
                     const std::string& icon_name = "",
                     const int px_cnt = 16,
                     const bool grayscale = false,
-                    const bool resize = false, // BBS: support resize by fill border
-                    const bool use_legacy_bmp = false);
+                    const bool resize = false, 
+                    const bool use_legacy_bmp = true);
     ScalableBitmap( wxWindow *parent,
                     const std::string& icon_name,
                     const wxSize size,
