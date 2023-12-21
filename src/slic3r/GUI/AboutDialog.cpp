@@ -232,7 +232,7 @@ AboutDialog::AboutDialog()
     main_sizer->Add(ver_sizer, 0, wxEXPAND | wxALL, 0);
 
     // logo
-    m_logo_bitmap = ScalableBitmap(this, "OrcaSlicer_about", 250);
+    m_logo_bitmap = ScalableBitmap(this, "OrcaSlicer_about", {562,250});
     m_logo = new wxStaticBitmap(this, wxID_ANY, m_logo_bitmap.bmp(), wxDefaultPosition,wxDefaultSize, 0);
     m_logo->SetSizer(vesizer);
 

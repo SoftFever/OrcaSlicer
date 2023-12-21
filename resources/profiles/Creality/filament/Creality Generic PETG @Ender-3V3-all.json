@@ -18,6 +18,7 @@
     "nozzle_temperature_initial_layer": ["250"],
     "nozzle_temperature": ["250"],
 	"compatible_printers": [
-		"Creality Ender-3 V3 SE 0.4 nozzle"
+		"Creality Ender-3 V3 SE 0.4 nozzle",
+		"Creality Ender-3 V3 KE 0.4 nozzle"
 	]
 }

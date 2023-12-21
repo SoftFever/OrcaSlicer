@@ -913,15 +913,15 @@ void StatusBasePanel::init_bitmaps()
     m_bitmap_extruder_empty_unload    = *cache.load_png("monitor_extruder_empty_unload", FromDIP(28), FromDIP(70), false, false);
     m_bitmap_extruder_filled_unload   = *cache.load_png("monitor_extruder_filled_unload", FromDIP(28), FromDIP(70), false, false);
 
-    m_bitmap_sdcard_state_abnormal = ScalableBitmap(this, wxGetApp().dark_mode() ? "sdcard_state_abnormal_dark" : "sdcard_state_abnormal", 20);
-    m_bitmap_sdcard_state_normal = ScalableBitmap(this, wxGetApp().dark_mode() ? "sdcard_state_normal_dark" : "sdcard_state_normal", 20);
-    m_bitmap_sdcard_state_no = ScalableBitmap(this, wxGetApp().dark_mode() ? "sdcard_state_no_dark" : "sdcard_state_no", 20);
-    m_bitmap_recording_on = ScalableBitmap(this, wxGetApp().dark_mode() ? "monitor_recording_on_dark" : "monitor_recording_on", 20);
-    m_bitmap_recording_off = ScalableBitmap(this, wxGetApp().dark_mode() ? "monitor_recording_off_dark" : "monitor_recording_off", 20);
-    m_bitmap_timelapse_on = ScalableBitmap(this, wxGetApp().dark_mode() ? "monitor_timelapse_on_dark" : "monitor_timelapse_on", 20);
-    m_bitmap_timelapse_off = ScalableBitmap(this, wxGetApp().dark_mode() ? "monitor_timelapse_off_dark" : "monitor_timelapse_off", 20);
-    m_bitmap_vcamera_on = ScalableBitmap(this, wxGetApp().dark_mode() ? "monitor_vcamera_on_dark" : "monitor_vcamera_on", 20);
-    m_bitmap_vcamera_off = ScalableBitmap(this, wxGetApp().dark_mode() ? "monitor_vcamera_off_dark" : "monitor_vcamera_off", 20);
+    m_bitmap_sdcard_state_abnormal = ScalableBitmap(this, wxGetApp().dark_mode() ? "sdcard_state_abnormal_dark" : "sdcard_state_abnormal",{38, 20});
+    m_bitmap_sdcard_state_normal = ScalableBitmap(this, wxGetApp().dark_mode() ? "sdcard_state_normal_dark" : "sdcard_state_normal", {38, 20});
+    m_bitmap_sdcard_state_no = ScalableBitmap(this, wxGetApp().dark_mode() ? "sdcard_state_no_dark" : "sdcard_state_no", {38, 20});
+    m_bitmap_recording_on = ScalableBitmap(this, wxGetApp().dark_mode() ? "monitor_recording_on_dark" : "monitor_recording_on", {38, 20});
+    m_bitmap_recording_off = ScalableBitmap(this, wxGetApp().dark_mode() ? "monitor_recording_off_dark" : "monitor_recording_off", {38, 20});
+    m_bitmap_timelapse_on = ScalableBitmap(this, wxGetApp().dark_mode() ? "monitor_timelapse_on_dark" : "monitor_timelapse_on", {38, 20});
+    m_bitmap_timelapse_off = ScalableBitmap(this, wxGetApp().dark_mode() ? "monitor_timelapse_off_dark" : "monitor_timelapse_off", {38, 20});
+    m_bitmap_vcamera_on = ScalableBitmap(this, wxGetApp().dark_mode() ? "monitor_vcamera_on_dark" : "monitor_vcamera_on", {38, 20});
+    m_bitmap_vcamera_off = ScalableBitmap(this, wxGetApp().dark_mode() ? "monitor_vcamera_off_dark" : "monitor_vcamera_off", {38, 20});
 
 }
 
@@ -4001,15 +4001,15 @@ void StatusPanel::rescale_camera_icons()
     m_setting_button->msw_rescale();
 
 
-    m_bitmap_sdcard_state_abnormal = ScalableBitmap(this, wxGetApp().dark_mode()?"sdcard_state_abnormal_dark":"sdcard_state_abnormal", 20);
-    m_bitmap_sdcard_state_normal = ScalableBitmap(this, wxGetApp().dark_mode()?"sdcard_state_normal_dark":"sdcard_state_normal", 20);
-    m_bitmap_sdcard_state_no = ScalableBitmap(this, wxGetApp().dark_mode()?"sdcard_state_no_dark":"sdcard_state_no", 20);
-    m_bitmap_recording_on = ScalableBitmap(this, wxGetApp().dark_mode()?"monitor_recording_on_dark":"monitor_recording_on", 20);
-    m_bitmap_recording_off = ScalableBitmap(this, wxGetApp().dark_mode()?"monitor_recording_off_dark":"monitor_recording_off", 20);
-    m_bitmap_timelapse_on = ScalableBitmap(this, wxGetApp().dark_mode()?"monitor_timelapse_on_dark":"monitor_timelapse_on", 20);
-    m_bitmap_timelapse_off = ScalableBitmap(this, wxGetApp().dark_mode()?"monitor_timelapse_off_dark":"monitor_timelapse_off", 20);
-    m_bitmap_vcamera_on = ScalableBitmap(this, wxGetApp().dark_mode()?"monitor_vcamera_on_dark":"monitor_vcamera_on", 20);
-    m_bitmap_vcamera_off = ScalableBitmap(this, wxGetApp().dark_mode()?"monitor_vcamera_off_dark":"monitor_vcamera_off", 20);
+    m_bitmap_sdcard_state_abnormal = ScalableBitmap(this, wxGetApp().dark_mode()?"sdcard_state_abnormal_dark":"sdcard_state_abnormal", {38, 20});
+    m_bitmap_sdcard_state_normal = ScalableBitmap(this, wxGetApp().dark_mode()?"sdcard_state_normal_dark":"sdcard_state_normal", {38, 20});
+    m_bitmap_sdcard_state_no = ScalableBitmap(this, wxGetApp().dark_mode()?"sdcard_state_no_dark":"sdcard_state_no", {38, 20});
+    m_bitmap_recording_on = ScalableBitmap(this, wxGetApp().dark_mode()?"monitor_recording_on_dark":"monitor_recording_on", {38, 20});
+    m_bitmap_recording_off = ScalableBitmap(this, wxGetApp().dark_mode()?"monitor_recording_off_dark":"monitor_recording_off", {38, 20});
+    m_bitmap_timelapse_on = ScalableBitmap(this, wxGetApp().dark_mode()?"monitor_timelapse_on_dark":"monitor_timelapse_on", {38, 20});
+    m_bitmap_timelapse_off = ScalableBitmap(this, wxGetApp().dark_mode()?"monitor_timelapse_off_dark":"monitor_timelapse_off", {38, 20});
+    m_bitmap_vcamera_on = ScalableBitmap(this, wxGetApp().dark_mode()?"monitor_vcamera_on_dark":"monitor_vcamera_on", {38, 20});
+    m_bitmap_vcamera_off = ScalableBitmap(this, wxGetApp().dark_mode()?"monitor_vcamera_off_dark":"monitor_vcamera_off", {38, 20});
 
     if (m_media_play_ctrl->IsStreaming()) {
         m_bitmap_vcamera_img->SetBitmap(m_bitmap_vcamera_on.bmp());

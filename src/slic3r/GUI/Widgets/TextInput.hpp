@@ -8,10 +8,11 @@ class TextInput : public wxNavigationEnabled<StaticBox>
 {
 
     wxSize labelSize;
-    ScalableBitmap icon;
+    wxBitmapBundle icon;
+    ScalableBitmap drop_down_icon;
     StateColor     label_color;
     StateColor     text_color;
-    wxTextCtrl * text_ctrl;
+    wxTextCtrl*    text_ctrl{nullptr};
 
     static const int TextInputWidth = 200;
     static const int TextInputHeight = 50;
