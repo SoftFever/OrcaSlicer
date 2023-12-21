@@ -699,6 +699,9 @@ void ObjectList::update_filament_values_for_items(const size_t filaments_count)
 
 void ObjectList::update_plate_values_for_items()
 {
+#ifdef __WXOSX__
+    AssociateModel(nullptr);
+#endif
     PartPlateList& list = wxGetApp().plater()->get_partplate_list();
     for (size_t i = 0; i < m_objects->size(); ++i)
     {
@@ -724,6 +727,9 @@ void ObjectList::update_plate_values_for_items()
         Expand(item);
         Select(item);
     }
+#ifdef __WXOSX__
+    AssociateModel(m_objects_model);
+#endif
 }
 
 // BBS
@@ -3869,16 +3875,10 @@ void ObjectList::update_lock_icons_for_model()
 
 void ObjectList::delete_all_objects_from_list()
 {
-#ifdef __WXOSX__
-    AssociateModel(nullptr);
-#endif
     m_prevent_list_events = true;
     reload_all_plates();
     m_prevent_list_events = false;
     part_selection_changed();
-#ifdef __WXOSX__
-    AssociateModel(m_objects_model);
-#endif
 }
 
 void ObjectList::increase_object_instances(const size_t obj_idx, const size_t num)
@@ -5697,6 +5697,9 @@ void ObjectList::on_plate_deleted(int plate_idx)
 void ObjectList::reload_all_plates(bool notify_partplate)
 {
     m_prevent_canvas_selection_update = true;
+#ifdef __WXOSX__
+    AssociateModel(nullptr);
+#endif
 
     // Unselect all objects before deleting them, so that no change of selection is emitted during deletion.
 
@@ -5726,6 +5729,9 @@ void ObjectList::reload_all_plates(bool notify_partplate)
 
     update_selections();
 
+#ifdef __WXOSX__
+    AssociateModel(m_objects_model);
+#endif
     m_prevent_canvas_selection_update = false;
 
     // update scene
