@@ -5919,12 +5919,6 @@ std::map<std::string, std::string> validate(const FullPrintConfig &cfg, bool und
             //return "Can't make more than one perimeter when spiral vase mode is enabled";
             //return "Can't make less than one perimeter when spiral vase mode is enabled";
         }
-        
-        if (cfg.alternate_extra_wall) {
-            error_message.emplace("alternate_extra_wall", L("Invalid value when spiral vase mode is enabled: ") + std::to_string(cfg.alternate_extra_wall));
-            //return "Can't make more than one perimeter when spiral vase mode is enabled";
-            //return "Can't make less than one perimeter when spiral vase mode is enabled";
-        }
 
         if (cfg.sparse_infill_density > 0) {
             error_message.emplace("sparse_infill_density", L("Invalid value when spiral vase mode is enabled: ") + std::to_string(cfg.sparse_infill_density));
