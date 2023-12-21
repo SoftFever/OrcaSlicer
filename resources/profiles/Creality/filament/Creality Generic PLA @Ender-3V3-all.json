@@ -16,6 +16,7 @@
     "hot_plate_temp_initial_layer" : ["45"],
     "textured_plate_temp_initial_layer" : ["45"],
 	"compatible_printers": [
-		"Creality Ender-3 V3 SE 0.4 nozzle"
+		"Creality Ender-3 V3 SE 0.4 nozzle",
+		"Creality Ender-3 V3 KE 0.4 nozzle"
 	]
 }

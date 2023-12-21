@@ -8,7 +8,8 @@
     "filament_max_volumetric_speed": [
         "23"
     ],
-    "compatible_printers": [
-        "Creality Ender-3 V3 SE 0.4 nozzle"
-    ]
+	"compatible_printers": [
+		"Creality Ender-3 V3 SE 0.4 nozzle",
+		"Creality Ender-3 V3 KE 0.4 nozzle"
+	]
 }
