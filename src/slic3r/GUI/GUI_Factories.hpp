@@ -124,6 +124,8 @@ private:
     void        create_bbl_assemble_part_menu();
 
     wxMenu*     append_submenu_add_generic(wxMenu* menu, ModelVolumeType type);
+    // Orca: add submenu for adding handy models
+    wxMenu*     append_submenu_add_handy_model(wxMenu* menu, ModelVolumeType type);
     void        append_menu_item_add_text(wxMenu* menu, ModelVolumeType type, bool is_submenu_item = true);
     void        append_menu_item_add_svg(wxMenu *menu, ModelVolumeType type, bool is_submenu_item = true);    
     void        append_menu_items_add_volume(wxMenu* menu);

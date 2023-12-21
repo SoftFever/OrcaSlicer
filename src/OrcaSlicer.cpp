@@ -1032,7 +1032,7 @@ int CLI::run(int argc, char **argv)
     Semver file_version;
     std::map<size_t, bool> orients_requirement;
     std::vector<Preset*> project_presets;
-    std::string new_printer_name, current_printer_name, new_process_name, current_process_name, current_printer_system_name, current_process_system_name, new_process_system_name, new_printer_system_name, printer_model_id;//, printer_inherits, print_inherits;
+    std::string new_printer_name, current_printer_name, new_process_name, current_process_name, current_printer_system_name, current_process_system_name, new_process_system_name, new_printer_system_name, printer_model_id, printer_model;//, printer_inherits, print_inherits;
     std::vector<std::string> upward_compatible_printers, new_print_compatible_printers, current_print_compatible_printers, current_different_settings;
     std::vector<std::string> current_filaments_name, current_filaments_system_name, current_inherits_group;
     DynamicPrintConfig load_process_config, load_machine_config;
@@ -1563,7 +1563,7 @@ int CLI::run(int argc, char **argv)
             config.set("printer_settings_id", new_printer_name, true);
 
             //get printer_model_id
-            std::string printer_model = config.option<ConfigOptionString>("printer_model", true)->value;
+            printer_model = config.option<ConfigOptionString>("printer_model", true)->value;
             if (!printer_model.empty()) {
                 std::string printer_model_path = resources_dir() + "/profiles/BBL/machine_full/"+printer_model+".json";
                 if (boost::filesystem::exists(printer_model_path))
@@ -1728,7 +1728,7 @@ int CLI::run(int argc, char **argv)
     if (is_bbl_3mf && (load_filament_count > 0) && (load_filaments_set.size() == 1))
     {
         disable_wipe_tower_after_mapping = true;
-        BOOST_LOG_TRIVIAL(warning) << boost::format("map all the filaments to the same one, load_filament_count %1%")%load_filament_count;
+        BOOST_LOG_TRIVIAL(info) << boost::format("map all the filaments to the same one, load_filament_count %1%")%load_filament_count;
     }
 
     //load system config if needed
@@ -1758,7 +1758,7 @@ int CLI::run(int argc, char **argv)
                         config.set("printer_settings_id", config_name, true);
 
                         //get printer_model_id
-                        std::string printer_model = config.option<ConfigOptionString>("printer_model", true)->value;
+                        printer_model = config.option<ConfigOptionString>("printer_model", true)->value;
                         if (!printer_model.empty()) {
                             std::string printer_model_path = resources_dir() + "/profiles/BBL/machine_full/"+printer_model+".json";
                             if (boost::filesystem::exists(printer_model_path))
@@ -1839,7 +1839,7 @@ int CLI::run(int argc, char **argv)
                     config.set("printer_settings_id", config_name, true);
 
                     //get printer_model_id
-                    std::string printer_model = config.option<ConfigOptionString>("printer_model", true)->value;
+                    printer_model = config.option<ConfigOptionString>("printer_model", true)->value;
                     if (!printer_model.empty()) {
                         std::string printer_model_path = resources_dir() + "/profiles/BBL/machine_full/"+printer_model+".json";
                         if (boost::filesystem::exists(printer_model_path))
@@ -2238,6 +2238,70 @@ int CLI::run(int argc, char **argv)
         else {
             ret = update_full_config(m_print_config, load_machine_config, different_keys_set, true);
             BOOST_LOG_TRIVIAL(info) << boost::format("load a new printer, update all the keys, different_settings: %1%")%different_settings[filament_count+1];
+            if (new_printer_name != current_printer_name)
+            {
+                //printer safe check
+                BOOST_LOG_TRIVIAL(info) << boost::format("check printer cli safe params, current_printer_name %1%, new_printer_name %2%, printer_model %3%")%current_printer_name %new_printer_name %printer_model;
+                std::map<std::string, std::string> printer_params;
+                std::string cli_config_file = resources_dir() + "/profiles/BBL/cli_config.json";
+                boost::filesystem::path directory_path(cli_config_file);
+
+                BOOST_LOG_TRIVIAL(info) << boost::format("line %1% , will parse file %2%")%__LINE__ % cli_config_file;
+                if (!fs::exists(directory_path)) {
+                    BOOST_LOG_TRIVIAL(warning) << boost::format("file %1% not exist.")%cli_config_file;
+                }
+                else {
+                    try {
+                        json root_json;
+                        boost::nowide::ifstream ifs(cli_config_file);
+                        ifs >> root_json;
+                        ifs.close();
+
+                        if (root_json.contains("printer")) {
+                            json printer_json = root_json["printer"];
+                            if (!printer_model.empty() && printer_json.contains(printer_model)) {
+                                json new_printer_json = printer_json[printer_model];
+                                printer_params = new_printer_json.get<std::map<std::string, std::string>>();
+
+                                for (auto param_iter = printer_params.begin(); param_iter != printer_params.end(); param_iter++)
+                                {
+                                    std::string key = param_iter->first;
+                                    //replace "cli_safe" with "machine_max"
+                                    key.replace(0, 8, "machine_max");
+
+                                    ConfigOptionFloats* option = m_print_config.option<ConfigOptionFloats>(key);
+                                    if (option) {
+                                        //de-serialize the values from param_iter->second, and do the compare here
+                                        unsigned int array_count = option->size();
+                                        ConfigOptionFloats new_option;
+                                        new_option.deserialize(param_iter->second);
+                                        unsigned int new_array_count = new_option.size();
+                                        for (unsigned int index = 0; index < array_count; index++)
+                                        {
+                                            if ((index < new_array_count) && new_option.values[index] != 0.f && (new_option.values[index] < option->values[index]))
+                                            {
+                                                BOOST_LOG_TRIVIAL(info) << boost::format("set key %1%  index %2%, from %3%  to %4%") % key %index %option->values[index] % new_option.values[index];
+                                                option->values[index] = new_option.values[index];
+                                            }
+                                        }
+                                    }
+                                    else
+                                        BOOST_LOG_TRIVIAL(warning) << boost::format("can not find key %1% in config") %key;
+                                }
+                            }
+                            else {
+                                BOOST_LOG_TRIVIAL(info) << boost::format("can not find key %1% in the file")%printer_model;
+                            }
+                        }
+                        else {
+                            BOOST_LOG_TRIVIAL(warning) << boost::format("can not find key printer in the file");
+                        }
+                    }
+                    catch (std::exception &err) {
+                        BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": parse file "<<cli_config_file<<" got a generic exception, reason = " << err.what();
+                    }
+                }
+            }
         }
 
         if (ret) {
@@ -2474,6 +2538,28 @@ int CLI::run(int argc, char **argv)
             selected_filament_colors = selected_filament_colors_option->values;
             //erase here
             m_extra_config.erase("filament_colour");
+
+            if (disable_wipe_tower_after_mapping) {
+                std::set<std::string> filament_color_set;
+                for (unsigned int color_index = 0; color_index <selected_filament_colors.size(); color_index++)
+                {
+                    if (!selected_filament_colors[color_index].empty()) {
+                        filament_color_set.emplace(selected_filament_colors[color_index]);
+                        BOOST_LOG_TRIVIAL(info) << boost::format("add color, index %1%, value %2% to set")%color_index %selected_filament_colors[color_index];
+                    }
+                    else
+                        BOOST_LOG_TRIVIAL(info) << boost::format("skip empty color %1%")%color_index;
+                }
+
+                if (filament_color_set.size() > 1) {
+                    disable_wipe_tower_after_mapping = false;
+                    BOOST_LOG_TRIVIAL(info) << boost::format("different filament colours,  switch disable_wipe_tower_after_mapping back to false");
+                }
+                else {
+                    BOOST_LOG_TRIVIAL(warning) << boost::format("only %1% filament colour,  finally set disable_wipe_tower_after_mapping to true")%filament_color_set.size();
+                }
+
+            }
         }
 
         std::vector<std::string>  &project_filament_colors = project_filament_colors_option->values;
@@ -2696,7 +2782,8 @@ int CLI::run(int argc, char **argv)
     if ((old_printable_width > 0)&&(old_printable_depth > 0)&&(old_printable_height > 0))
     {
         //check the printable size logic
-        if ((old_printable_width > current_printable_width) || (old_printable_depth > current_printable_depth) || (old_printable_height > current_printable_height))
+        //if ((old_printable_width > current_printable_width) || (old_printable_depth > current_printable_depth) || (old_printable_height > current_printable_height))
+        if ((old_printable_width > current_printable_width) || (old_printable_depth > current_printable_depth))
         {
             BOOST_LOG_TRIVIAL(error) << boost::format("old printable size {%1%, %2%, %3%} is larger than new printable size {%4%, %5%, %6%}, can not print")
                 %old_printable_width %old_printable_depth %old_printable_height %current_printable_width %current_printable_depth %current_printable_height;
@@ -3307,6 +3394,13 @@ int CLI::run(int argc, char **argv)
                         x = I3_WIPE_TOWER_DEFAULT_X_POS;
                         y = I3_WIPE_TOWER_DEFAULT_Y_POS;
                     }
+                    if (x < WIPE_TOWER_MARGIN) {
+                        x = WIPE_TOWER_MARGIN;
+                    }
+                    if (y < WIPE_TOWER_MARGIN) {
+                        y = WIPE_TOWER_MARGIN;
+                    }
+
                     ConfigOptionFloat wt_x_opt(x);
                     ConfigOptionFloat wt_y_opt(y);
 
@@ -3534,6 +3628,13 @@ int CLI::run(int argc, char **argv)
                             x = I3_WIPE_TOWER_DEFAULT_X_POS;
                             y = I3_WIPE_TOWER_DEFAULT_Y_POS;
                         }
+
+                        if (x < WIPE_TOWER_MARGIN) {
+                            x = WIPE_TOWER_MARGIN;
+                        }
+                        if (y < WIPE_TOWER_MARGIN) {
+                            y = WIPE_TOWER_MARGIN;
+                        }
                         ConfigOptionFloat wt_x_opt(x);
                         ConfigOptionFloat wt_y_opt(y);
 
@@ -3604,8 +3705,22 @@ int CLI::run(int argc, char **argv)
                     }
 
                     if (m_print_config.has("wipe_tower_x") && (is_smooth_timelapse || !arrange_cfg.is_seq_print || (selected.size() <= 1))) {
-                        float x = dynamic_cast<const ConfigOptionFloats *>(m_print_config.option("wipe_tower_x"))->get_at(plate_to_slice-1);
-                        float y = dynamic_cast<const ConfigOptionFloats *>(m_print_config.option("wipe_tower_y"))->get_at(plate_to_slice-1);
+                        float x;
+                        float y;
+                        if (duplicate_count > 0) {
+                            auto printer_structure_opt = m_print_config.option<ConfigOptionEnum<PrinterStructure>>("printer_structure");
+                            x = WIPE_TOWER_DEFAULT_X_POS;
+                            y = WIPE_TOWER_DEFAULT_Y_POS;
+                            if (printer_structure_opt && printer_structure_opt->value == PrinterStructure::psI3) {
+                                x = I3_WIPE_TOWER_DEFAULT_X_POS;
+                                y = I3_WIPE_TOWER_DEFAULT_Y_POS;
+                            }
+                        }
+                        else {
+                            //keep the original
+                            x = dynamic_cast<const ConfigOptionFloats *>(m_print_config.option("wipe_tower_x"))->get_at(plate_to_slice-1);
+                            y = dynamic_cast<const ConfigOptionFloats *>(m_print_config.option("wipe_tower_y"))->get_at(plate_to_slice-1);
+                        }
                         float w = dynamic_cast<const ConfigOptionFloat *>(m_print_config.option("prime_tower_width"))->value;
                         float a = dynamic_cast<const ConfigOptionFloat *>(m_print_config.option("wipe_tower_rotation_angle"))->value;
                         float v = dynamic_cast<const ConfigOptionFloat *>(m_print_config.option("prime_volume"))->value;
@@ -3654,6 +3769,20 @@ int CLI::run(int argc, char **argv)
                                 x = (float)plate_width - w - margin - wp_brim_width;
                                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("arrange wipe_tower: exceeds the border, change x to %1%, plate_width=%2%")%y %plate_width;
                             }
+                            if (x < margin) {
+                                x = margin;
+                            }
+                            if (y < margin) {
+                                y = margin;
+                            }
+                            //update wipe_tower_x and wipe_tower_y
+                            ConfigOptionFloat wt_x_opt(x);
+                            ConfigOptionFloat wt_y_opt(y);
+                            ConfigOptionFloats* wipe_x_option = m_print_config.option<ConfigOptionFloats>("wipe_tower_x", true);
+                            ConfigOptionFloats* wipe_y_option = m_print_config.option<ConfigOptionFloats>("wipe_tower_y", true);
+
+                            wipe_x_option->set_at(&wt_x_opt, plate_to_slice-1, 0);
+                            wipe_y_option->set_at(&wt_y_opt, plate_to_slice-1, 0);
 
                             ArrangePolygon wipe_tower_ap;
 
@@ -5489,15 +5618,8 @@ extern "C" {
         SET_DEFULTER_HANDLER();
 #endif
         std::set_new_handler([]() {
-            int  smallSize = 10 * 1024 * 1024;
-            int *test_apply = (int *) malloc(smallSize);
-            if (test_apply == NULL) {
-                throw std::bad_alloc();
-            } else {
-                free(test_apply);
-                int *a = nullptr;
-                *a     = 0;
-            }
+            int *a = nullptr;
+            *a     = 0;
             });
         // Call the UTF8 main.
         return CLI().run(argc, argv_ptrs.data());

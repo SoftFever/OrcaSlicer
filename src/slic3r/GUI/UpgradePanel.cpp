@@ -12,6 +12,14 @@ namespace GUI {
 static const wxColour TEXT_NORMAL_CLR = wxColour(0, 150, 136);
 static const wxColour TEXT_FAILED_CLR = wxColour(255, 111, 0);
 
+enum FIRMWARE_STASUS
+{
+    UNKOWN,
+    TESTING,
+    BETA,
+    RELEASE,
+};
+
 MachineInfoPanel::MachineInfoPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style, const wxString& name)
     :wxPanel(parent, id, pos, size, style)
 {
@@ -78,11 +86,22 @@ MachineInfoPanel::MachineInfoPanel(wxWindow* parent, wxWindowID id, const wxPoin
     m_staticText_ver->SetFont(Label::Head_14);
     m_ota_ver_sizer->Add(m_staticText_ver, 0, wxALL, FromDIP(5));
 
-    m_ota_info_sizer->Add(m_ota_ver_sizer, 0, wxEXPAND, 0);
+    wxBoxSizer* m_ota_content_sizer2 = new wxBoxSizer(wxHORIZONTAL);
 
     m_staticText_ver_val = new wxStaticText(this, wxID_ANY, "-", wxDefaultPosition, wxDefaultSize, 0);
     m_staticText_ver_val->Wrap(-1);
-    m_ota_info_sizer->Add(m_staticText_ver_val, 0, wxALL | wxEXPAND, FromDIP(5));
+    
+
+    m_staticText_beta_version = new wxStaticText(this, wxID_ANY, "Beta", wxDefaultPosition, wxDefaultSize, 0);
+    m_staticText_beta_version->SetForegroundColour("#778899");
+    m_staticText_beta_version->Wrap(-1);
+    m_staticText_beta_version->Hide();
+
+    m_ota_content_sizer2->Add(m_staticText_ver_val, 0, wxALL|wxEXPAND, FromDIP(5));
+    m_ota_content_sizer2->Add(m_staticText_beta_version, 0, wxALL | wxEXPAND, FromDIP(5));
+
+    m_ota_info_sizer->Add(m_ota_ver_sizer, 0, wxEXPAND, 0);
+    m_ota_info_sizer->Add(m_ota_content_sizer2, 0,  wxEXPAND, 0);
 
     m_ota_content_sizer->Add(m_ota_info_sizer, 0, wxEXPAND, 0);
 
@@ -427,6 +446,7 @@ void MachineInfoPanel::update(MachineObject* obj)
 
 void MachineInfoPanel::update_version_text(MachineObject* obj)
 {
+    
     if (obj->upgrade_display_state == (int)MachineObject::UpgradingDisplayState::UpgradingInProgress) {
         m_staticText_ver_val->SetLabelText("-");
         //m_staticText_ams_ver_val->SetLabelText("-");
@@ -440,7 +460,15 @@ void MachineInfoPanel::update_version_text(MachineObject* obj)
             if (obj->upgrade_new_version
                 && !obj->ota_new_version_number.empty()) {
                 if (it != obj->module_vers.end()) {
-                    wxString ver_text = wxString::Format("%s->%s", it->second.sw_ver, obj->ota_new_version_number);
+                    wxString ver_text= it->second.sw_ver;
+                    if ((it->second.firmware_status & 0x3) == FIRMWARE_STASUS::BETA) {
+                        ver_text+= wxString::Format("(%s)", _L("Beta version"));
+                    }
+                    ver_text += wxString::Format("->%s", obj->ota_new_version_number);
+                    if (((it->second.firmware_status >> 2) & 0x3) == FIRMWARE_STASUS::BETA) {
+                        ver_text += wxString::Format("(%s)", _L("Beta version"));
+                    }
+                    //wxString ver_text = wxString::Format("%s->%s", it->second.sw_ver, obj->ota_new_version_number);
                     m_staticText_ver_val->SetLabelText(ver_text);
                 }
                 else {
@@ -451,6 +479,12 @@ void MachineInfoPanel::update_version_text(MachineObject* obj)
             else {
                 if (it != obj->module_vers.end()) {
                     wxString ver_text = wxString::Format("%s(%s)", it->second.sw_ver, _L("Latest version"));
+                    if ((it->second.firmware_status & 0x3) == FIRMWARE_STASUS::BETA) {
+                        m_staticText_beta_version->Show();
+                    }
+                    else {
+                        m_staticText_beta_version->Hide();
+                    }
                     m_staticText_ver_val->SetLabelText(ver_text);
                 }
                 else {
@@ -463,6 +497,12 @@ void MachineInfoPanel::update_version_text(MachineObject* obj)
             if (ota_it == obj->new_ver_list.end()) {
                 if (it != obj->module_vers.end()) {
                     wxString ver_text = wxString::Format("%s(%s)", it->second.sw_ver, _L("Latest version"));
+                    if ((it->second.firmware_status & 0x3) == FIRMWARE_STASUS::BETA) {
+                        m_staticText_beta_version->Show();
+                    }
+                    else {
+                        m_staticText_beta_version->Hide();
+                    }
                     m_staticText_ver_val->SetLabelText(ver_text);
                     m_ota_new_version_img->Hide();
                 }
@@ -470,11 +510,27 @@ void MachineInfoPanel::update_version_text(MachineObject* obj)
                 if (ota_it->second.sw_new_ver != ota_it->second.sw_ver) {
                     m_ota_new_version_img->Show();
                     wxString ver_text = wxString::Format("%s->%s", ota_it->second.sw_ver, ota_it->second.sw_new_ver);
+                    if (it != obj->module_vers.end()) {
+                        ver_text = ota_it->second.sw_ver;
+                        if ((it->second.firmware_status & 0x3) == FIRMWARE_STASUS::BETA) {
+                            ver_text += wxString::Format("(%s)", _L("Beta version"));
+                        }
+                        ver_text += wxString::Format("->%s", ota_it->second.sw_new_ver);
+                        if (((it->second.firmware_status >> 2) & 0x3) == FIRMWARE_STASUS::BETA) {
+                            ver_text += wxString::Format("(%s)", _L("Beta version"));
+                        }
+                    }
                     m_staticText_ver_val->SetLabelText(ver_text);
                 } else {
                     if (it != obj->module_vers.end()) {
                         m_ota_new_version_img->Hide();
                         wxString ver_text = wxString::Format("%s(%s)", it->second.sw_ver, _L("Latest version"));
+                        if ((it->second.firmware_status & 0x3) == FIRMWARE_STASUS::BETA) {
+                            m_staticText_beta_version->Show();
+                        }
+                        else {
+                            m_staticText_beta_version->Hide();
+                        }
                         m_staticText_ver_val->SetLabelText(ver_text);
                     }
                 }
@@ -568,6 +624,7 @@ void MachineInfoPanel::update_ams_ext(MachineObject *obj)
 
     //ams
     if (obj->ams_exist_bits != 0) {
+
         std::string extra_ams_str = (boost::format("ams_f1/%1%") % 0).str();
         auto extra_ams_it = obj->module_vers.find(extra_ams_str);
         if (extra_ams_it != obj->module_vers.end()) {
@@ -584,11 +641,24 @@ void MachineInfoPanel::update_ams_ext(MachineObject *obj)
             extra_ams_it->second.sw_new_ver;
             if (has_new_version) {
                 m_extra_ams_panel->m_ams_new_version_img->Show();
-                ver_text = wxString::Format("%s->%s", new_extra_ams_ver->second.sw_ver, new_extra_ams_ver->second.sw_new_ver);
+                ver_text = new_extra_ams_ver->second.sw_ver;
+                if ((extra_ams_it->second.firmware_status & 0x3) == FIRMWARE_STASUS::BETA) {
+                    ver_text += wxString::Format("(%s)", _L("Beta version"));
+                }
+                ver_text += wxString::Format("->%s", new_extra_ams_ver->second.sw_new_ver);
+                if (((extra_ams_it->second.firmware_status >> 2) & 0x3) == FIRMWARE_STASUS::BETA) {
+                    ver_text += wxString::Format("(%s)", _L("Beta version"));
+                }
             }
             else {
                 m_extra_ams_panel->m_ams_new_version_img->Hide();
                 ver_text = wxString::Format("%s(%s)", extra_ams_it->second.sw_ver, _L("Latest version"));
+                if ((extra_ams_it->second.firmware_status & 0x3) == FIRMWARE_STASUS::BETA) {
+                    m_extra_ams_panel->m_staticText_beta_version->Show();
+                }
+                else {
+                    m_extra_ams_panel->m_staticText_beta_version->Hide();
+                }
             }
             m_extra_ams_panel->m_staticText_ams_sn_val->SetLabelText(sn_text);
             m_extra_ams_panel->m_staticText_ams_ver_val->SetLabelText(ver_text);
@@ -642,19 +712,44 @@ void MachineInfoPanel::update_ams_ext(MachineObject *obj)
 
                                 if (obj->ams_new_version_number.empty()) {
                                     ams_ver = wxString::Format("%s", it->second.sw_ver);
+                                    if ((it->second.firmware_status & 0x3) == FIRMWARE_STASUS::BETA) {
+                                        amspanel->m_staticText_beta_version->Show();
+                                    }
+                                    else {
+                                        amspanel->m_staticText_beta_version->Hide();
+                                    }
+
                                 }
                                 else {
-                                    ams_ver = wxString::Format("%s->%s", it->second.sw_ver, obj->ams_new_version_number);
+                                    //ams_ver = wxString::Format("%s->%s", it->second.sw_ver, obj->ams_new_version_number);
+                                    ams_ver = it->second.sw_ver;
+                                    if ((it->second.firmware_status & 0x3) == FIRMWARE_STASUS::BETA) {
+                                        ams_ver += wxString::Format("(%s)", _L("Beta version"));
+                                    }
+                                    ams_ver += wxString::Format("->%s", obj->ams_new_version_number);
+                                    
                                 }
                             }
                             else {
                                 amspanel->m_ams_new_version_img->Hide();
                                 if (obj->ams_new_version_number.empty()) {
                                     wxString ver_text = wxString::Format("%s", it->second.sw_ver);
+                                    if ((it->second.firmware_status & 0x3) == FIRMWARE_STASUS::BETA) {
+                                        amspanel->m_staticText_beta_version->Show();
+                                    }
+                                    else {
+                                        amspanel->m_staticText_beta_version->Hide();
+                                    }
                                     ams_ver = ver_text;
                                 }
                                 else {
-                                    wxString ver_text = wxString::Format("%s(%s)", it->second.sw_ver, _L("Latest version"));
+                                    wxString ver_text = wxString::Format("%s", it->second.sw_ver, _L("Latest version"));
+                                    if ((it->second.firmware_status & 0x3) == FIRMWARE_STASUS::BETA) {
+                                        amspanel->m_staticText_beta_version->Show();
+                                    }
+                                    else {
+                                        amspanel->m_staticText_beta_version->Hide();
+                                    }
                                     ams_ver = ver_text;
                                 }
                             }
@@ -666,17 +761,40 @@ void MachineInfoPanel::update_ams_ext(MachineObject *obj)
                             if (ver_item == obj->new_ver_list.end()) {
                                 amspanel->m_ams_new_version_img->Hide();
                                 wxString ver_text = wxString::Format("%s(%s)", it->second.sw_ver, _L("Latest version"));
+                                if ((it->second.firmware_status & 0x3) == FIRMWARE_STASUS::BETA) {
+                                    amspanel->m_staticText_beta_version->Show();
+                                }
+                                else {
+                                    amspanel->m_staticText_beta_version->Hide();
+                                }
                                 ams_ver = ver_text;
                             }
                             else {
                                 if (ver_item->second.sw_new_ver != ver_item->second.sw_ver) {
                                     amspanel->m_ams_new_version_img->Show();
-                                    wxString ver_text = wxString::Format("%s->%s", ver_item->second.sw_ver, ver_item->second.sw_new_ver);
+                                    //wxString ver_text = wxString::Format("%s->%s", ver_item->second.sw_ver, ver_item->second.sw_new_ver);
+                                    wxString ver_text = ver_item->second.sw_ver;
+                                    if ((it->second.firmware_status & 0x3) == FIRMWARE_STASUS::BETA) {
+                                        ver_text += wxString::Format("(%s)", _L("Beta version"));
+                                    }
+                                    ver_text += wxString::Format("->%s", ver_item->second.sw_new_ver);
+                                    if (((it->second.firmware_status >> 2) & 0x3) == FIRMWARE_STASUS::BETA) {
+                                        amspanel->m_staticText_beta_version->Show();
+                                    }
+                                    else {
+                                        amspanel->m_staticText_beta_version->Hide();
+                                    }
                                     ams_ver = ver_text;
                                 }
                                 else {
                                     amspanel->m_ams_new_version_img->Hide();
                                     wxString ver_text = wxString::Format("%s(%s)", ver_item->second.sw_ver, _L("Latest version"));
+                                    if ((it->second.firmware_status & 0x3) == FIRMWARE_STASUS::BETA) {
+                                        amspanel->m_staticText_beta_version->Show();
+                                    }
+                                    else {
+                                        amspanel->m_staticText_beta_version->Hide();
+                                    }
                                     ams_ver = ver_text;
                                 }
                             }
@@ -1142,13 +1260,22 @@ bool UpgradePanel::Show(bool show)
      m_staticText_ams_ver_val = new wxStaticText(this, wxID_ANY, "-", wxDefaultPosition, wxDefaultSize, 0);
      m_staticText_ams_ver_val->SetForegroundColour("#262E30");
      m_staticText_ams_ver_val->Wrap(-1);
+     
+     m_staticText_beta_version = new wxStaticText(this, wxID_ANY, "Beta", wxDefaultPosition, wxDefaultSize, 0);
+     m_staticText_beta_version->SetForegroundColour("#778899");
+     m_staticText_beta_version->Wrap(-1);
+     m_staticText_beta_version->Hide();
+
+     wxBoxSizer* content_info = new wxBoxSizer(wxHORIZONTAL);
+     content_info->Add(m_staticText_ams_ver_val, 0, wxALL | wxEXPAND, FromDIP(5));
+     content_info->Add(m_staticText_beta_version, 0, wxALL | wxEXPAND, FromDIP(5));
 
      ams_sizer->Add(m_staticText_ams, 0, wxALIGN_RIGHT | wxALL, FromDIP(5));
      ams_sizer->Add(0, 0, 1, wxEXPAND, 5);
      ams_sizer->Add(m_staticText_ams_sn, 0, wxALIGN_RIGHT | wxALL, FromDIP(5));
      ams_sizer->Add(m_staticText_ams_sn_val, 0, wxALL | wxEXPAND, FromDIP(5));
-     ams_sizer->Add(m_ams_ver_sizer, 1, wxEXPAND, 5);
-     ams_sizer->Add(m_staticText_ams_ver_val, 0, wxALL | wxEXPAND, FromDIP(5));
+     ams_sizer->Add(m_ams_ver_sizer, 1, wxEXPAND, FromDIP(5));
+     ams_sizer->Add(content_info, 0,  wxEXPAND, FromDIP(5));
      ams_sizer->Add(0, 0, 1, wxEXPAND, 0);
 
      SetSizer(ams_sizer);
