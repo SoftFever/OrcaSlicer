@@ -1531,7 +1531,7 @@ void PrintObject::discover_vertical_shells()
         bool has_extra_layers = false;
         for (size_t region_id = 0; region_id < this->num_printing_regions(); ++region_id) {
             const PrintRegionConfig &config = this->printing_region(region_id).config();
-            if (config.ensure_vertical_shell_thickness.value && !config.alternate_extra_wall) {
+            if (config.ensure_vertical_shell_thickness.value) {
                 has_extra_layers = true;
                 break;
             }
@@ -1609,7 +1609,7 @@ void PrintObject::discover_vertical_shells()
 
     for (size_t region_id = 0; region_id < this->num_printing_regions(); ++ region_id) {
         const PrintRegion &region = this->printing_region(region_id);
-        if (! region.config().ensure_vertical_shell_thickness.value || region.config().alternate_extra_wall.value)
+        if (! region.config().ensure_vertical_shell_thickness.value)
             // This region will be handled by discover_horizontal_shells().
             continue;
 
@@ -3135,7 +3135,7 @@ void PrintObject::discover_horizontal_shells()
 #endif
 
             // If ensure_vertical_shell_thickness, then the rest has already been performed by discover_vertical_shells().
-            if (region_config.ensure_vertical_shell_thickness.value && !region_config.alternate_extra_wall.value)
+            if (region_config.ensure_vertical_shell_thickness.value)
                 continue;
 
             coordf_t print_z  = layer->print_z;

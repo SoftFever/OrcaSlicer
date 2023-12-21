@@ -328,6 +328,30 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         }
         is_msg_dlg_already_exist = false;
     }
+    
+    if (config->opt_bool("alternate_extra_wall") && config->opt_bool("ensure_vertical_shell_thickness"))
+    {
+        wxString msg_text = _(L("Alternate extra wall only works with ensure vertical shell thickness disabled. "));
+
+        if (is_global_config)
+            msg_text += "\n\n" + _(L("Change these settings automatically? \n"
+                                     "Yes - Disable ensure vertical shell thickness and enable alternate extra wall\n"
+                                     "No  - Dont use alternate extra wall"));
+        
+        MessageDialog dialog(m_msg_dlg_parent, msg_text, "",
+                               wxICON_WARNING | (is_global_config ? wxYES | wxNO : wxOK));
+        DynamicPrintConfig new_conf = *config;
+        auto answer = dialog.ShowModal();
+        if (!is_global_config || answer == wxID_YES) {
+            new_conf.set_key_value("ensure_vertical_shell_thickness", new ConfigOptionBool(false));
+            new_conf.set_key_value("alternate_extra_wall", new ConfigOptionBool(true));
+        }
+        else {
+            new_conf.set_key_value("ensure_vertical_shell_thickness", new ConfigOptionBool(true));
+            new_conf.set_key_value("alternate_extra_wall", new ConfigOptionBool(false));
+        }
+        apply(config, &new_conf);
+    }
 
     // BBS
     int filament_cnt = wxGetApp().preset_bundle->filament_presets.size();
