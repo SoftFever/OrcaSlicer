@@ -767,7 +767,7 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume()
         if (lt.extruders.empty())
             continue;
         // todo: The algorithm complexity is too high(o(n2)), currently only 8 colors are supported
-        if (i != 0 && lt.extruders.size() <= 8) {
+        if (i != 0 && lt.extruders.size() <= 12) {
             lt.extruders = get_extruders_order(wipe_volumes, lt.extruders, current_extruder_id);
         }
         current_extruder_id = lt.extruders.back();
