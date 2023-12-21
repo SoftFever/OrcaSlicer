@@ -55,7 +55,7 @@ void    msw_buttons_rescale(wxDialog* dlg, const int em_unit, const std::vector<
 int     em_unit(wxWindow* win);
 int     mode_icon_px_size();
 
-wxBitmapBundle* get_bmp_bundle(const std::string& bmp_name, int px_cnt = 16);
+wxBitmapBundle* get_bmp_bundle(const std::string& bmp_name, int width = 16, int height = -1);
 wxBitmapBundle* get_empty_bmp_bundle(int width, int height);
 wxBitmapBundle* get_solid_bmp_bundle(int width, int height, const std::string& color);
 
@@ -169,8 +169,13 @@ public:
                     const std::string& icon_name = "",
                     const int px_cnt = 16,
                     const bool grayscale = false,
-                    const bool resize = false, // BBS: support resize by fill border
-                    const bool use_legacy_bmp = false);
+                    const bool resize = false, 
+                    const bool use_legacy_bmp = true);
+    ScalableBitmap( wxWindow *parent,
+                    const std::string& icon_name,
+                    const wxSize size,
+                    const bool grayscale = false,
+                    const bool resize = false);
 
     ~ScalableBitmap() {}
 
@@ -183,7 +188,7 @@ public:
     wxBitmap                  get_bitmap() const { return m_bmp.GetBitmapFor(m_parent); }
     wxWindow*                 parent() const { return m_parent;}
     const std::string&        name() const{ return m_icon_name; }
-    int                       px_cnt() const { return m_px_cnt; }
+    int                       px_cnt() const { return m_size.x; }
 
     wxSize              GetSize()   const {
 #ifdef __WIN32__
@@ -199,7 +204,7 @@ private:
     wxWindow*       m_parent{ nullptr };
     wxBitmapBundle  m_bmp = wxBitmapBundle();
     std::string     m_icon_name = "";
-    int             m_px_cnt {16};
+    wxSize          m_size {16, 16};
     bool            m_grayscale{ false };
     bool            m_resize{ false };
     bool            m_legacy_bmp{ false };
