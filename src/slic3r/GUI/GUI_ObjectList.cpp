@@ -5533,12 +5533,6 @@ void GUI::ObjectList::OnStartEditing(wxDataViewEvent &event)
 // Here the last active column is forgotten, so when leaving the editing mode, the next mouse click will not enter the editing mode of the newly selected column.
 void ObjectList::OnEditingStarted(wxDataViewEvent &event)
 {
-    // Orca: Automatically show drop down on editing start and finish editing when the combobox is closed
-    if (event.GetColumn() == colFilament) {
-        ::ComboBox*c         = static_cast<::ComboBox *>(event.GetDataViewColumn()->GetRenderer()->GetEditorCtrl());
-        c->ToggleDropDown();
-        c->Bind(wxEVT_COMBOBOX_CLOSEUP, [event](wxCommandEvent& evt){ event.GetDataViewColumn()->GetRenderer()->FinishEditing(); });
-    }
 #ifdef __WXMSW__
 	m_last_selected_column = -1;
 #else
@@ -5603,6 +5597,15 @@ void ObjectList::OnEditingStarted(wxDataViewEvent &event)
     SetCustomRendererPtr(dynamic_cast<wxDataViewCustomRenderer*>(renderer));
 #endif
 #endif //__WXMSW__
+
+    // Orca: Automatically show drop down on editing start and finish editing when the combobox is closed
+    // Note: this must placed AFTER the above `renderer->StartEditing` call, otherwise `c` will be nullptr on MacOS,
+    //       due to the code in MacDarkMode.mm
+    if (event.GetColumn() == colFilament) {
+        ::ComboBox*c         = static_cast<::ComboBox *>(event.GetDataViewColumn()->GetRenderer()->GetEditorCtrl());
+        c->ToggleDropDown();
+        c->Bind(wxEVT_COMBOBOX_CLOSEUP, [event](wxCommandEvent& evt){ event.GetDataViewColumn()->GetRenderer()->FinishEditing(); });
+    }
 }
 
 void ObjectList::OnEditingDone(wxDataViewEvent &event)
