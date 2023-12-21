@@ -1863,7 +1863,7 @@ void Print::process(long long *time_cost_with_cache, bool use_cache)
             this->_make_wipe_tower();
         } else if (this->config().print_sequence != PrintSequence::ByObject) {
         	// Initialize the tool ordering, so it could be used by the G-code preview slider for planning tool changes and filament switches.
-        	m_tool_ordering = ToolOrdering(*this, -1, false);
+        	m_tool_ordering = ToolOrdering(*this, -1, m_isBBLPrinter, false);
             if (m_tool_ordering.empty() || m_tool_ordering.last_extruder() == unsigned(-1))
                 throw Slic3r::SlicingError("The print is empty. The model is not printable with current print settings.");
         }
@@ -1901,7 +1901,7 @@ void Print::process(long long *time_cost_with_cache, bool use_cache)
             //        print_object_instances_ordering = sort_object_instances_by_max_z(print);
             print_object_instance_sequential_active = print_object_instances_ordering.begin();
             for (; print_object_instance_sequential_active != print_object_instances_ordering.end(); ++print_object_instance_sequential_active) {
-                tool_ordering = ToolOrdering(*(*print_object_instance_sequential_active)->print_object, initial_extruder_id);
+                tool_ordering = ToolOrdering(*(*print_object_instance_sequential_active)->print_object, initial_extruder_id, m_isBBLPrinter);
                 if ((initial_extruder_id = tool_ordering.first_extruder()) != static_cast<unsigned int>(-1)) {
                     append(printExtruders, tool_ordering.tools_for_layer(layers_to_print.front().first).extruders);
                 }
@@ -2431,7 +2431,7 @@ void Print::_make_wipe_tower()
 
     // Let the ToolOrdering class know there will be initial priming extrusions at the start of the print.
     // BBS: priming logic is removed, so don't consider it in tool ordering
-    m_wipe_tower_data.tool_ordering = ToolOrdering(*this, (unsigned int)-1, false);
+    m_wipe_tower_data.tool_ordering = ToolOrdering(*this, (unsigned int)-1, m_isBBLPrinter, false);
 
     if (!m_wipe_tower_data.tool_ordering.has_wipe_tower())
         // Don't generate any wipe tower.
