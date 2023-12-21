@@ -2892,15 +2892,16 @@ void ObjectList::boolean()
 
     Plater::TakeSnapshot snapshot(wxGetApp().plater(), "boolean");
 
-    Model* model = (*m_objects)[0]->get_model();
-    ModelObject* new_object = model->add_object();
-    new_object->name = (*m_objects)[0]->name;
-    new_object->config.assign_config((*m_objects)[0]->config);
-    if (new_object->instances.empty())
-        new_object->add_instance();
-
     ModelObject* object = (*m_objects)[obj_idxs.front()];
     TriangleMesh mesh = Plater::combine_mesh_fff(*object, -1, [this](const std::string& msg) {return wxGetApp().notification_manager()->push_plater_error_notification(msg); });
+
+    // add mesh to model as a new object, keep the original object's name and config
+    Model* model = object->get_model();
+    ModelObject* new_object = model->add_object();
+    new_object->name = object->name;
+    new_object->config.assign_config(object->config);
+    if (new_object->instances.empty())
+        new_object->add_instance();
     ModelVolume* new_volume = new_object->add_volume(mesh);
 
     // BBS: ensure on bed but no need to ensure locate in the center around origin

@@ -8315,6 +8315,11 @@ int Plater::new_project(bool skip_confirm, bool silent, const wxString& project_
     get_notification_manager()->bbl_close_plateinfo_notification();
     get_notification_manager()->bbl_close_preview_only_notification();
     get_notification_manager()->bbl_close_3mf_warn_notification();
+    get_notification_manager()->close_notification_of_type(NotificationType::PlaterError);
+    get_notification_manager()->close_notification_of_type(NotificationType::PlaterWarning);
+    get_notification_manager()->close_notification_of_type(NotificationType::SlicingError);
+    get_notification_manager()->close_notification_of_type(NotificationType::SlicingSeriousWarning);
+    get_notification_manager()->close_notification_of_type(NotificationType::SlicingWarning);
 
     if (!silent)
         wxGetApp().mainframe->select_tab(MainFrame::tp3DEditor);
@@ -8400,6 +8405,11 @@ void Plater::load_project(wxString const& filename2,
     get_notification_manager()->bbl_close_plateinfo_notification();
     get_notification_manager()->bbl_close_preview_only_notification();
     get_notification_manager()->bbl_close_3mf_warn_notification();
+    get_notification_manager()->close_notification_of_type(NotificationType::PlaterError);
+    get_notification_manager()->close_notification_of_type(NotificationType::PlaterWarning);
+    get_notification_manager()->close_notification_of_type(NotificationType::SlicingError);
+    get_notification_manager()->close_notification_of_type(NotificationType::SlicingSeriousWarning);
+    get_notification_manager()->close_notification_of_type(NotificationType::SlicingWarning);
 
     auto path     = into_path(filename);
 
