@@ -8968,6 +8968,7 @@ void Plater::_calib_pa_tower(const Calib_Params& params) {
     const double nozzle_diameter = printer_config->option<ConfigOptionFloats>("nozzle_diameter")->get_at(0);
 
     filament_config->set_key_value("slow_down_layer_time", new ConfigOptionFloats{ 1.0f });
+    print_config->set_key_value("alternate_extra_wall", new ConfigOptionBool(false));
     print_config->set_key_value("default_jerk", new ConfigOptionFloat(1.0f));
     print_config->set_key_value("outer_wall_jerk", new ConfigOptionFloat(1.0f));
     print_config->set_key_value("inner_wall_jerk", new ConfigOptionFloat(1.0f));
@@ -9096,6 +9097,7 @@ void Plater::calib_flowrate(int pass) {
     }
 
     print_config->set_key_value("layer_height", new ConfigOptionFloat(layer_height));
+    print_config->set_key_value("alternate_extra_wall", new ConfigOptionBool(false));
     print_config->set_key_value("initial_layer_print_height", new ConfigOptionFloat(first_layer_height));
     print_config->set_key_value("reduce_crossing_wall", new ConfigOptionBool(true));
     //filament_config->set_key_value("filament_max_volumetric_speed", new ConfigOptionFloats{ 9. });
@@ -9123,6 +9125,7 @@ void Plater::calib_temp(const Calib_Params& params) {
     model().objects[0]->config.set_key_value("brim_type", new ConfigOptionEnum<BrimType>(btOuterOnly));
     model().objects[0]->config.set_key_value("brim_width", new ConfigOptionFloat(5.0));
     model().objects[0]->config.set_key_value("brim_object_gap", new ConfigOptionFloat(0.0));
+    model().objects[0]->config.set_key_value("alternate_extra_wall", new ConfigOptionBool(false));
 
     changed_objects({ 0 });
     wxGetApp().get_tab(Preset::TYPE_PRINT)->update_dirty();
@@ -9191,6 +9194,7 @@ void Plater::calib_max_vol_speed(const Calib_Params& params)
     print_config->set_key_value("enable_overhang_speed", new ConfigOptionBool { false });
     print_config->set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(tlTraditional));
     print_config->set_key_value("wall_loops", new ConfigOptionInt(1));
+    print_config->set_key_value("alternate_extra_wall", new ConfigOptionBool(false));
     print_config->set_key_value("top_shell_layers", new ConfigOptionInt(0));
     print_config->set_key_value("bottom_shell_layers", new ConfigOptionInt(0));
     print_config->set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
@@ -9256,6 +9260,7 @@ void Plater::calib_retraction(const Calib_Params& params)
     obj->config.set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
     obj->config.set_key_value("initial_layer_print_height", new ConfigOptionFloat(layer_height));
     obj->config.set_key_value("layer_height", new ConfigOptionFloat(layer_height));
+    obj->config.set_key_value("alternate_extra_wall", new ConfigOptionBool(false));
 
     changed_objects({ 0 });
 
@@ -9285,6 +9290,7 @@ void Plater::calib_VFA(const Calib_Params& params)
     print_config->set_key_value("enable_overhang_speed", new ConfigOptionBool { false });
     print_config->set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(tlTraditional));
     print_config->set_key_value("wall_loops", new ConfigOptionInt(1));
+    print_config->set_key_value("alternate_extra_wall", new ConfigOptionBool(false));
     print_config->set_key_value("top_shell_layers", new ConfigOptionInt(0));
     print_config->set_key_value("bottom_shell_layers", new ConfigOptionInt(1));
     print_config->set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
