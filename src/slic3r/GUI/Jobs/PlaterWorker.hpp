@@ -118,26 +118,20 @@ class PlaterWorker: public Worker {
         }
     };
 
-    void on_idle(wxIdleEvent &evt)
-    {
-        process_events();
-        evt.Skip();
-    }
+    EventGuard on_idle_evt;
+    EventGuard on_paint_evt;
 
 public:
 
     template<class... WorkerArgs>
     PlaterWorker(wxWindow *plater, WorkerArgs &&...args)
-        : m_w{std::forward<WorkerArgs>(args)...}, m_plater{plater}
-    {
+        : m_w{std::forward<WorkerArgs>(args)...}
+        , m_plater{plater}
         // Ensure that messages from the worker thread to the UI thread are
         // processed continuously.
-        plater->Bind(wxEVT_IDLE, &PlaterWorker::on_idle, this);
-    }
-
-    ~PlaterWorker()
+        , on_idle_evt(plater, wxEVT_IDLE, [this](wxIdleEvent&) { process_events(); })
+        , on_paint_evt(plater, wxEVT_PAINT, [this](wxPaintEvent&) { process_events(); })
     {
-        m_plater->Unbind(wxEVT_IDLE, &PlaterWorker::on_idle, this);
     }
 
     // Always package the job argument into a PlaterJob
