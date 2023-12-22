@@ -121,9 +121,9 @@ static double calc_max_layer_height(const PrintConfig &config, double max_object
 
 // For the use case when each object is printed separately
 // (print->config().print_sequence == PrintSequence::ByObject is true).
-ToolOrdering::ToolOrdering(const PrintObject &object, unsigned int first_extruder, bool is_BBL_printer, bool prime_multi_material)
+ToolOrdering::ToolOrdering(const PrintObject &object, unsigned int first_extruder, bool prime_multi_material)
 {
-    m_is_BBL_printer = is_BBL_printer;
+    m_is_BBL_printer = object.print()->is_BBL_printer();
     m_print_object_ptr = &object;
     if (object.layers().empty())
         return;
@@ -161,9 +161,9 @@ ToolOrdering::ToolOrdering(const PrintObject &object, unsigned int first_extrude
 
 // For the use case when all objects are printed at once.
 // (print->config().print_sequence == PrintSequence::ByObject is false).
-ToolOrdering::ToolOrdering(const Print &print, unsigned int first_extruder, bool is_BBL_printer, bool prime_multi_material)
+ToolOrdering::ToolOrdering(const Print &print, unsigned int first_extruder, bool prime_multi_material)
 {
-    m_is_BBL_printer = is_BBL_printer;
+    m_is_BBL_printer = print.is_BBL_printer();
     m_print_config_ptr = &print.config();
 
     // Initialize the print layers for all objects and all layers.
