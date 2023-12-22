@@ -123,13 +123,13 @@ json PrintagoPanel::MachineObjectToJson(MachineObject *machine)
         j["current"]["total_layers"]    = machine->total_layers;
 
         // Temperatures
-        j["current"]["temperatures"]["nozzle_temp"]         = machine->nozzle_temp;
-        j["current"]["temperatures"]["nozzle_temp_target"]  = machine->nozzle_temp_target;
-        j["current"]["temperatures"]["bed_temp"]            = machine->bed_temp;
-        j["current"]["temperatures"]["bed_temp_target"]     = machine->bed_temp_target;
-        j["current"]["temperatures"]["chamber_temp"]        = machine->chamber_temp;
-        j["current"]["temperatures"]["chamber_temp_target"] = machine->chamber_temp_target;
-        j["current"]["temperatures"]["frame_temp"]          = machine->frame_temp;
+        j["current"]["temperatures"]["nozzle_temp"]         = static_cast<int>(std::round(machine->nozzle_temp));
+        j["current"]["temperatures"]["nozzle_temp_target"]  = static_cast<int>(std::round(machine->nozzle_temp_target));
+        j["current"]["temperatures"]["bed_temp"]            = static_cast<int>(std::round(machine->bed_temp));
+        j["current"]["temperatures"]["bed_temp_target"]     = static_cast<int>(std::round(machine->bed_temp_target));
+        j["current"]["temperatures"]["chamber_temp"]        = static_cast<int>(std::round(machine->chamber_temp));
+        j["current"]["temperatures"]["chamber_temp_target"] = static_cast<int>(std::round(machine->chamber_temp_target));
+        j["current"]["temperatures"]["frame_temp"]          = static_cast<int>(std::round(machine->frame_temp));
 
         // Cooling
         j["current"]["cooling"]["heatbreak_fan_speed"] = machine->heatbreak_fan_speed;
@@ -808,23 +808,6 @@ void PrintagoPanel::OnNavigationRequest(wxWebViewEvent &evt)
             SendErrorMessage("", "", "", "invalid printago command");
             return;
         }
-        // else if (!CanProcessJob()) {
-        //     wxDateTime now = wxDateTime::Now();
-        //     now.MakeUTC();
-        //     const wxString timestamp = now.FormatISOCombined() + "Z";
-        //
-        //     json statusObject;
-        //     statusObject["process"]["can_process_job"] = CanProcessJob();
-        //
-        //     statusObject["process"]["job_id"]         = ""; // add later from command.
-        //     statusObject["process"]["job_state"]      = jobServerState.ToStdString();
-        //     statusObject["process"]["job_machine"]    = jobPrinterId.ToStdString();
-        //     statusObject["process"]["job_local_file"] = jobLocalFilePath.ToStdString();
-        //     statusObject["process"]["job_progress"]   = jobProgress;
-        //
-        //     SendJsonErrorMessage("", "", "", statusObject);
-        //     return;
-        // }
 
         commandType = pathComponents.Item(1); // The first actual component after the leading empty one
         action      = pathComponents.Item(2); // The second actual component
@@ -839,7 +822,7 @@ void PrintagoPanel::OnNavigationRequest(wxWebViewEvent &evt)
         event.SetOriginalCommandStr(url.ToStdString());
 
         if (!ValidatePrintagoCommand(event)) {
-            SendErrorMessage("", "", "url.ToStdString()", "invalid printago command");
+            SendErrorMessage("", "", url, "invalid printago command");
             return;
         } else {
             CallAfter([=]() { HandlePrintagoCommand(event); });
