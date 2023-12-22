@@ -632,10 +632,14 @@ bool MediaPlayCtrl::start_stream_service(bool *need_install)
         boost::filesystem::path start_dir(boost::filesystem::path(data_dir()) / "plugins");
 #ifdef __WXMSW__
         start_dir = boost::filesystem::path(data_dir()) / "cameratools";
-        std::string file_dll = data_dir() + "/cameratools/BambuSource.dll";
+        std::string file_dll  = data_dir() + "/cameratools/BambuSource.dll";
         std::string file_dll2 = data_dir() + "/plugins/BambuSource.dll";
+        std::string live555_dll  = data_dir() + "/cameratools/live555.dll";
+        std::string live555_dll2 = data_dir() + "/plugins/live555.dll";
         if (!boost::filesystem::exists(file_dll) || boost::filesystem::last_write_time(file_dll) != boost::filesystem::last_write_time(file_dll2))
             boost::filesystem::copy_file(file_dll2, file_dll, boost::filesystem::copy_option::overwrite_if_exists);
+        if (!boost::filesystem::exists(live555_dll) || boost::filesystem::last_write_time(live555_dll) != boost::filesystem::last_write_time(live555_dll2))
+            boost::filesystem::copy_file(live555_dll2, live555_dll, boost::filesystem::copy_option::overwrite_if_exists);
         static std::locale tmp = std::locale(std::locale(), new boost::nowide::utf8_codecvt<wchar_t>());
         boost::process::imbue(tmp);
         boost::process::child process_source(file_source, into_u8(file_url2), boost::process::start_dir(start_dir), boost::process::windows::create_no_window, 

@@ -2690,6 +2690,8 @@ int MachineObject::parse_json(std::string payload)
         uint64_t t_utc = j.value("t_utc", 0ULL);
         if (t_utc > 0) 
             last_utc_time = std::chrono::system_clock::time_point(t_utc * 1ms);
+        else
+            last_utc_time = last_update_time;
 
         BOOST_LOG_TRIVIAL(trace) << "parse_json: dev_id=" << dev_id << ", playload=" << j.dump(4);
 
