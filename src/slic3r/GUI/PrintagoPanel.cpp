@@ -114,7 +114,6 @@ json PrintagoPanel::MachineObjectToJson(MachineObject *machine)
 
         // Current Job/Print Info
         j["current"]["print_status"]    = machine->print_status;
-        // j["current"]["m_gcode_file"]    = machine->m_gcode_file;
         j["current"]["print_time_left"] = machine->mc_left_time;
         j["current"]["print_percent"]   = machine->mc_print_percent;
         j["current"]["print_stage"]     = machine->mc_print_stage;
@@ -149,15 +148,8 @@ json PrintagoPanel::GetMachineStatus(MachineObject *machine)
     if (!machine)
         return json::object();
 
-    statusObject["process"]["can_process_job"] = CanProcessJob();
-    if (!CanProcessJob()) {
-        statusObject["process"]["job_id"]         = ""; // add later from command.
-        statusObject["process"]["job_state"]      = jobServerState.ToStdString();
-        statusObject["process"]["job_machine"]    = jobPrinterId.ToStdString();
-        statusObject["process"]["job_local_file"] = jobLocalFilePath.ToStdString();
-        statusObject["process"]["job_progress"]   = jobProgress;
-    }
-
+    AddCurrentProcessJsonTo(statusObject);
+    
     machineList.push_back(MachineObjectToJson(machine));
     statusObject["machines"] = machineList;
     return statusObject;
@@ -172,28 +164,31 @@ json PrintagoPanel::GetMachineStatus(const wxString &printerId)
 
 json PrintagoPanel::GetAllStatus()
 {
-    std::map<std::string, MachineObject *> machineMap;
-    json                                   statusObject = json::object();
-    json                                   machineList  = json::array();
+    json statusObject = json::object();
+    json machineList  = json::array();
 
     if (!devManager)
         return json::object();
 
-    statusObject["process"]["can_process_job"] = CanProcessJob();
-    if (!CanProcessJob()) {
-        statusObject["process"]["job_id"]         = ""; // add later from command.
-        statusObject["process"]["job_state"]      = jobServerState.ToStdString();
-        statusObject["process"]["job_machine"]    = jobPrinterId.ToStdString();
-        statusObject["process"]["job_local_file"] = jobLocalFilePath.ToStdString();
-        statusObject["process"]["job_progress"]   = jobProgress;
-    }
+    AddCurrentProcessJsonTo(statusObject);
 
-    machineMap = devManager->get_my_machine_list();
+    const std::map<std::string, MachineObject *> machineMap = devManager->get_my_machine_list();
+
     for (auto &pair : machineMap) {
         machineList.push_back(MachineObjectToJson(pair.second));
     }
     statusObject["machines"] = machineList;
     return statusObject;
+}
+
+void PrintagoPanel::AddCurrentProcessJsonTo(json &statusObject)
+{
+    statusObject["process"]["can_process_job"] = CanProcessJob();
+    statusObject["process"]["job_id"]         = ""; // add later from command.
+    statusObject["process"]["job_state"]      = jobServerState.ToStdString();
+    statusObject["process"]["job_machine"]    = jobPrinterId.ToStdString();
+    statusObject["process"]["job_local_file"] = jobLocalFilePath.ToStdString();
+    statusObject["process"]["job_progress"]   = jobProgress;
 }
 
 bool PrintagoPanel::DownloadFileFromURL(const wxString url, const wxFileName &localFilename)
@@ -265,14 +260,13 @@ bool PrintagoPanel::DownloadFileFromURL(const wxString url, const wxFileName &lo
     return download_ok;
 }
 
-bool PrintagoPanel::SavePrintagoFile(const wxString url, wxString &localPath)
+bool PrintagoPanel::SavePrintagoPrintFile(const wxString url, wxString &localPath)
 {
     wxURI    uri(url);
     wxString path = uri.GetPath();
 
     wxArrayString pathComponents = wxStringTokenize(path, "/");
     wxString      uriFileName;
-
     if (!pathComponents.IsEmpty()) {
         uriFileName = pathComponents.Last();
     } else {
@@ -295,6 +289,22 @@ bool PrintagoPanel::SavePrintagoFile(const wxString url, wxString &localPath)
         localPath = "";
         return false;
     }
+}
+
+json PrintagoPanel::export_all_configs_to_json()
+{
+    std::vector<const PresetCollection *> collections = {&wxGetApp().preset_bundle->prints, &wxGetApp().preset_bundle->filaments,
+                                                         &wxGetApp().preset_bundle->printers};
+    json result;
+
+    for (const auto &collection : collections) {
+        for (const auto &preset : collection->get_presets()) {
+            json configJson;
+            preset.config.save_to_json(configJson, preset.name, "", preset.version.to_string());
+            result[preset.name] = configJson;
+        }
+    }
+    return result;
 }
 
 wxString PrintagoPanel::wxURLErrorToString(wxURLError error)
@@ -324,9 +334,12 @@ void PrintagoPanel::HandlePrintagoCommand(const PrintagoCommand &event)
     auto           machineList = devManager->get_my_machine_list();
 
     if (!commandType.compare("status")) {
+        std::string username = wxGetApp().getAgent()->is_user_login() ? wxGetApp().getAgent()->get_user_name() : "[TODO:printago_lan_slicer_id]";
         if (!action.compare("get_machine_list")) {
-            std::string username = wxGetApp().getAgent()->is_user_login() ? wxGetApp().getAgent()->get_user_name() : "[printago_slicer_id?]";
             SendResponseMessage(username, GetAllStatus(), originalCommandStr);
+        }
+        else if (!action.compare("get_configs")) {
+            SendResponseMessage(username, export_all_configs_to_json(), originalCommandStr);
         }
         return;
     }
@@ -424,7 +437,7 @@ void PrintagoPanel::HandlePrintagoCommand(const PrintagoCommand &event)
             jobServerState = "download";
             jobProgress    = 10;
 
-            if (SavePrintagoFile(decodedUrl, jobLocalFilePath)) {
+            if (SavePrintagoPrintFile(decodedUrl, jobLocalFilePath)) {
                 wxLogMessage("Downloaded file to: " + jobLocalFilePath);
             } else {
                 SendErrorAndUnblock(printerId, wxString::Format("%s:%s", action, jobServerState), originalCommandStr, "download failed");
@@ -587,7 +600,10 @@ void PrintagoPanel::HandlePrintagoCommand(const PrintagoCommand &event)
 
         } 
     }
-    SendSuccessMessage(printerId, action, originalCommandStr, actionDetail);
+
+    if (action.compare("start_print_bbl")) {
+        SendSuccessMessage(printerId, action, originalCommandStr, actionDetail);
+    }
     return;
 }
 
@@ -624,7 +640,6 @@ void PrintagoPanel::OnSlicingProcessCompleted(SlicingProcessCompletedEvent &evt)
 
     wxCommandEvent btnEvt(GetId());
     m_select_machine_dlg->on_ok_btn(btnEvt);
-    SendSuccessMessage(jobPrinterId, "start_print_bbl", jobCommand, actionDetail);
 }
 
 void PrintagoPanel::OnPrintJobSent(wxCommandEvent &evt)
@@ -640,8 +655,12 @@ void PrintagoPanel::OnPrintJobSent(wxCommandEvent &evt)
         return;
     }
 
+    //Hack so SendSuccessMessage is the last thing we do before unblocking.
+    const wxString pid(jobPrinterId);
+    const wxString cmd (jobCommand);
+
     SetCanProcessJob(true);
-    SendSuccessMessage(jobPrinterId, "start_print_bbl", jobCommand, wxString::Format("print sent to: %s", printSentTo));
+    SendSuccessMessage(pid, "start_print_bbl", cmd, wxString::Format("print sent to: %s", printSentTo));
 }
 
 wxStringToStringHashMap PrintagoPanel::ParseQueryString(const wxString &queryString)
@@ -683,7 +702,8 @@ void PrintagoPanel::SendStatusMessage(const wxString printer_id, const json stat
     auto *event = new PrintagoMessageEvent(PRINTAGO_SEND_WEBVIEW_MESSAGE_EVENT);
     event->SetMessageType("status");
     event->SetPrinterId(printer_id);
-    event->SetCommand(command);
+    const wxURL url(command);
+    event->SetCommand(url.GetPath().ToStdString());
     event->SetData(statusData);
 
     wxQueueEvent(this, event);
@@ -694,7 +714,8 @@ void PrintagoPanel::SendResponseMessage(const wxString printer_id, const json re
     auto *event = new PrintagoMessageEvent(PRINTAGO_SEND_WEBVIEW_MESSAGE_EVENT);
     event->SetMessageType("status");
     event->SetPrinterId(printer_id);
-    event->SetCommand(command);
+    const wxURL url(command);
+    event->SetCommand(url.GetPath().ToStdString());
     event->SetData(responseData);
 
     wxQueueEvent(this, event);
@@ -713,7 +734,8 @@ void PrintagoPanel::SendSuccessMessage(const wxString printer_id,
     auto *event = new PrintagoMessageEvent(PRINTAGO_SEND_WEBVIEW_MESSAGE_EVENT);
     event->SetMessageType("success");
     event->SetPrinterId(printer_id);
-    event->SetCommand(command);
+    const wxURL url(command);
+    event->SetCommand(url.GetPath().ToStdString());
     event->SetData(responseData);
 
     wxQueueEvent(this, event);
@@ -732,7 +754,8 @@ void PrintagoPanel::SendErrorMessage(const wxString printer_id,
     auto *event = new PrintagoMessageEvent(PRINTAGO_SEND_WEBVIEW_MESSAGE_EVENT);
     event->SetMessageType("error");
     event->SetPrinterId(printer_id);
-    event->SetCommand(command);
+    const wxURL url(command);
+    event->SetCommand(url.GetPath().ToStdString());
     event->SetData(errorResponse);
 
     wxQueueEvent(this, event);
@@ -751,7 +774,8 @@ void PrintagoPanel::SendJsonErrorMessage(const wxString printer_id,
     auto *event = new PrintagoMessageEvent(PRINTAGO_SEND_WEBVIEW_MESSAGE_EVENT);
     event->SetMessageType("error");
     event->SetPrinterId(printer_id);
-    event->SetCommand(command);
+    const wxURL url(command);
+    event->SetCommand(url.GetPath().ToStdString());
     event->SetData(errorResponse);
 
     wxQueueEvent(this, event);
@@ -837,7 +861,7 @@ bool PrintagoPanel::ValidatePrintagoCommand(const PrintagoCommand &event)
 
     // Map of valid command types to their corresponding valid actions
     std::map<std::string, std::set<std::string>> validCommands = {
-        {"status", {"get_machine_list"}},
+        {"status", {"get_machine_list", "get_configs"}},
         {"printer_control", {"pause_print", "resume_print", "stop_print", "get_status","start_print_bbl"}},
         {"temperature_control", {"set_hotend", "set_bed"}},
         {"movement_control", {"jog", "home", "extrude"}}

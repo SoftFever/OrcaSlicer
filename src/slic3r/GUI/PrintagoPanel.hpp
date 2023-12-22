@@ -143,10 +143,12 @@ private:
     bool ValidatePrintagoCommand(const PrintagoCommand &event);
 
     json GetAllStatus();
+    void AddCurrentProcessJsonTo(json &statusObject);
     json GetMachineStatus(const wxString &printerId);
     json GetMachineStatus(MachineObject *machine);
 
-    bool SavePrintagoFile(const wxString url, wxString &localPath);
+    bool SavePrintagoPrintFile(const wxString url, wxString &localPath);
+    json export_all_configs_to_json();
     bool DownloadFileFromURL(const wxString url, const wxFileName &localPath);
 
     static wxString wxURLErrorToString(wxURLError error);
