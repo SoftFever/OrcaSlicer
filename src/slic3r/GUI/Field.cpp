@@ -1127,7 +1127,7 @@ void Choice::BUILD()
                 auto icon_name = "param_" + m_opt.enum_values[i];
                 if (boost::filesystem::exists(image_path / (icon_name + ".svg"))) {
                     ScalableBitmap bm(temp, icon_name, 24);
-				    temp->Append(_(el), bm.get_bitmap());
+				    temp->Append(_(el), bm.bmp());
                 } else {
                     temp->Append(_(el));
                 }
@@ -1529,7 +1529,7 @@ void Choice::msw_rescale()
             auto icon_name = "param_" + m_opt.enum_values[i];
             if (boost::filesystem::exists(image_path / (icon_name + ".svg"))) {
                 ScalableBitmap bm(window, icon_name, 24);
-                temp->SetItemBitmap(i, bm.get_bitmap());
+                temp->SetItemBitmap(i, bm.bmp());
             }
             ++i;
         }

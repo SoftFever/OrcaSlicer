@@ -354,9 +354,9 @@ void MediaFilePanel::SwitchStorage(bool external)
 
 void MediaFilePanel::Rescale()
 {
-    m_bmp_loading.sys_color_changed();
-    m_bmp_failed.sys_color_changed();
-    m_bmp_empty.sys_color_changed();
+    m_bmp_loading.msw_rescale();
+    m_bmp_failed.msw_rescale();
+    m_bmp_empty.msw_rescale();
 
     auto top_sizer = GetSizer()->GetItem((size_t) 0)->GetSizer();
     top_sizer->SetMinSize({-1, 75 * em_unit(this) / 10});

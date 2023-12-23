@@ -1084,7 +1084,7 @@ void AMSMaterialsSetting::on_dpi_changed(const wxRect &suggested_rect)
     m_input_nozzle_max->GetTextCtrl()->SetSize(wxSize(-1, FromDIP(20)));
     m_input_nozzle_min->GetTextCtrl()->SetSize(wxSize(-1, FromDIP(20)));
     //m_clr_picker->msw_rescale();
-    degree->sys_color_changed();
+    degree->msw_rescale();
     bitmap_max_degree->SetBitmap(degree->bmp());
     bitmap_min_degree->SetBitmap(degree->bmp());
     m_button_reset->SetMinSize(AMS_MATERIALS_SETTING_BUTTON_SIZE);

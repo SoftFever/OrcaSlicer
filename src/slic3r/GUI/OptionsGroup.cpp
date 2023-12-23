@@ -836,6 +836,7 @@ void ConfigOptionsGroup::msw_rescale()
                 // check if window is ScalableButton
                 ScalableButton* sc_btn = dynamic_cast<ScalableButton*>(win);
                 if (sc_btn) {
+                    sc_btn->msw_rescale();
                     sc_btn->SetSize(sc_btn->GetBestSize());
                     return;
                 }
@@ -883,7 +884,7 @@ void ConfigOptionsGroup::sys_color_changed()
                 wxWindow* win = item->GetWindow();
                 // check if window is ScalableButton
                 if (ScalableButton* sc_btn = dynamic_cast<ScalableButton*>(win)) {
-                    sc_btn->sys_color_changed();
+                    sc_btn->msw_rescale();
                     return;
                 }
                 wxGetApp().UpdateDarkUI(win, dynamic_cast<wxButton*>(win) != nullptr);

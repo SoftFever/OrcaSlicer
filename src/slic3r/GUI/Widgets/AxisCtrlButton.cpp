@@ -212,8 +212,7 @@ void AxisCtrlButton::render(wxDC& dc)
     gc->DrawPath(home_path);
 
     if (m_icon.bmp().IsOk()) {
-        gc->DrawBitmap(m_icon.get_bitmap(), -1 * m_icon.GetWidth() / 2, -1 * m_icon.GetHeight() / 2, m_icon.GetWidth(),
-                       m_icon.GetHeight());
+        gc->DrawBitmap(m_icon.bmp(), -1 * m_icon.GetBmpWidth() / 2, -1 * m_icon.GetBmpHeight() / 2, m_icon.GetBmpWidth(), m_icon.GetBmpHeight());
     }
     gc->PopState();
 
