@@ -1020,10 +1020,20 @@ wxBoxSizer *CreateFilamentPresetDialog::create_button_item()
         }
 
         std::string filament_preset_name = vendor_name + " " + type_name + " " + serial_name;
+        PresetBundle *preset_bundle        = wxGetApp().preset_bundle;
+        if (preset_bundle->filaments.is_alias_exist(filament_preset_name)) {
+            MessageDialog dlg(this,
+                              wxString::Format(_L("The Filament name %s you created already exists. \nIf you continue creating, the preset created will be displayed with its "
+                                                  "full name. Do you want to continue?"),
+                                               from_u8(filament_preset_name)),
+                              wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES_NO | wxYES_DEFAULT | wxCENTRE);
+            if (wxID_YES != dlg.ShowModal()) { return; }
+        }
+
         std::string user_filament_id     = get_filament_id(filament_preset_name);
 
         const wxString &curr_create_type = curr_create_filament_type();
-        PresetBundle *  preset_bundle    = wxGetApp().preset_bundle;
+        
         if (curr_create_type == m_create_type.base_filament) {
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":clone filament  create type  filament ";
             for (const std::pair<::CheckBox *, std::pair<std::string, Preset *>> &checkbox_preset : m_filament_preset) {

@@ -1184,6 +1184,8 @@ void PresetCollection::load_presets(
                         preset.setting_id.clear();
                     //BBS: add config related logs
                     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(", preset type %1%, name %2%, path %3%, is_system %4%, is_default %5% is_visible %6%")%Preset::get_type_string(m_type) %preset.name %preset.file %preset.is_system %preset.is_default %preset.is_visible;
+                    // add alias for custom filament preset
+                    set_custom_preset_alias(preset);
                 } catch (const std::ifstream::failure &err) {
                     ++m_errors;
                     BOOST_LOG_TRIVIAL(error) << boost::format("The user-config cannot be loaded: %1%. Reason: %2%")%preset.file %err.what();
@@ -2139,6 +2141,7 @@ bool PresetCollection::clone_presets(std::vector<Preset const *> const &presets,
     auto old_name = this->get_edited_preset().name;
     for (auto preset : new_presets) {
         preset.alias.clear();
+        set_custom_preset_alias(preset);
         preset.base_id.clear();
         auto it = this->find_preset_internal(preset.name);
         assert((it == m_presets.end() || it->name != preset.name) || force_rewritten);
@@ -2456,10 +2459,13 @@ const std::string& PresetCollection::get_preset_name_by_alias(const std::string&
 		auto it = Slic3r::lower_bound_by_predicate(m_map_alias_to_profile_name.begin(), m_map_alias_to_profile_name.end(), [&alias](auto &l){ return l.first < alias; });
 		// Continue over all profile names with the same alias.
 		it != m_map_alias_to_profile_name.end() && it->first == alias; ++ it)
-		if (auto it_preset = this->find_preset_internal(it->second);
-			it_preset != m_presets.end() && it_preset->name == it->second &&
+        for (const std::string &preset_name : it->second) {
+            if (auto it_preset = this->find_preset_internal(preset_name);
+			it_preset != m_presets.end() && it_preset->name == preset_name &&
             it_preset->is_visible && (it_preset->is_compatible || size_t(it_preset - m_presets.begin()) == m_idx_selected))
 	        return it_preset->name;
+        }
+		
     return alias;
 }
 
@@ -2469,6 +2475,12 @@ const std::string* PresetCollection::get_preset_name_renamed(const std::string &
 	if (it_renamed != m_map_system_profile_renamed.end())
 		return &it_renamed->second;
 	return nullptr;
+}
+
+bool PresetCollection::is_alias_exist(const std::string &alias)
+{
+    if (m_map_alias_to_profile_name.end() == m_map_alias_to_profile_name.find(alias)) return false;
+    return true;
 }
 
 const std::string& PresetCollection::get_suffix_modified() {
@@ -2803,9 +2815,11 @@ void PresetCollection::update_vendor_ptrs_after_copy(const VendorMap &new_vendor
 void PresetCollection::update_map_alias_to_profile_name()
 {
 	m_map_alias_to_profile_name.clear();
-	for (const Preset &preset : m_presets)
-		m_map_alias_to_profile_name.emplace_back(preset.alias, preset.name);
-	std::sort(m_map_alias_to_profile_name.begin(), m_map_alias_to_profile_name.end(), [](auto &l, auto &r) { return l.first < r.first; });
+    for (const Preset &preset : m_presets) {
+        m_map_alias_to_profile_name[preset.alias].push_back(preset.name);
+    }
+	// now m_map_alias_to_profile_name is map, not need sort
+	//std::sort(m_map_alias_to_profile_name.begin(), m_map_alias_to_profile_name.end(), [](auto &l, auto &r) { return l.first < r.first; });
 }
 
 void PresetCollection::update_map_system_profile_renamed()
@@ -2821,6 +2835,27 @@ void PresetCollection::update_map_system_profile_renamed()
                                                 preset.name % renamed_from % it->second;
             }
         }
+}
+
+void PresetCollection::set_custom_preset_alias(Preset &preset)
+{
+    if (m_type == Preset::Type::TYPE_FILAMENT && preset.config.has(BBL_JSON_KEY_INHERITS) && preset.config.option<ConfigOptionString>(BBL_JSON_KEY_INHERITS)->value.empty()) {
+        std::string alias_name;
+        std::string preset_name = preset.name;
+        if (alias_name.empty()) {
+            size_t end_pos = preset_name.find_first_of("@");
+            if (end_pos != std::string::npos) {
+                alias_name = preset_name.substr(0, end_pos);
+                boost::trim_right(alias_name);
+            }
+        }
+        if (alias_name.empty() || is_alias_exist(alias_name))
+            preset.alias = "";
+        else {
+            preset.alias = std::move(alias_name);
+            m_map_alias_to_profile_name[preset.alias].push_back(preset.name);
+        }
+    }
 }
 
 std::string PresetCollection::name() const

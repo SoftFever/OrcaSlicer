@@ -554,6 +554,7 @@ public:
 
     const std::string& 		get_preset_name_by_alias(const std::string& alias) const;
 	const std::string*		get_preset_name_renamed(const std::string &old_name) const;
+    bool                    is_alias_exist(const std::string &alias);
 
 	// used to update preset_choice from Tab
 	const std::deque<Preset>&	get_presets() const	{ return m_presets; }
@@ -705,6 +706,8 @@ protected:
     // Update m_map_system_profile_renamed from loaded system profiles.
     void 			update_map_system_profile_renamed();
 
+    void            set_custom_preset_alias(Preset &preset);
+
 private:
     // Find a preset position in the sorted list of presets.
     // The "-- default -- " preset is always the first, so it needs
@@ -748,7 +751,7 @@ private:
     // so that the addresses of the presets don't change during resizing of the container.
     std::deque<Preset>      m_presets;
     // System profiles may have aliases. Map to the full profile name.
-    std::vector<std::pair<std::string, std::string>> m_map_alias_to_profile_name;
+    std::map<std::string, std::vector<std::string>> m_map_alias_to_profile_name;
     // Map from old system profile name to a current system profile name.
     std::map<std::string, std::string> m_map_system_profile_renamed;
     // Initially this preset contains a copy of the selected preset. Later on, this copy may be modified by the user.
