@@ -9,6 +9,7 @@ wxDECLARE_EVENT( wxEVT_TAB_SEL_CHANGED, wxCommandEvent );
 class TabCtrl : public StaticBox
 {
     std::vector<Button*> btns;
+    wxImageList* images = nullptr;
     wxBoxSizer * sizer = nullptr;
 
     int sel = -1;
@@ -51,6 +52,8 @@ public:
 
     void*    GetItemData(unsigned int item) const;
     void     SetItemData(unsigned int item, void *clientData);
+    
+    void AssignImageList(wxImageList *imageList);
 
     void SetItemTextColour(unsigned int item, const StateColor& col);
 

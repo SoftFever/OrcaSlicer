@@ -36,7 +36,7 @@ namespace GUI {
 
         wxBoxSizer* m_sizer_web_control = new wxBoxSizer(wxHORIZONTAL);
 
-        auto m_control_back = new ScalableButton(m_web_control_panel, wxID_ANY, "mall_control_back", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER);
+        auto m_control_back = new ScalableButton(m_web_control_panel, wxID_ANY, "mall_control_back", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true);
         m_control_back->SetBackgroundColour(*wxWHITE);
         m_control_back->SetSize(wxSize(FromDIP(25), FromDIP(30)));
         m_control_back->SetMinSize(wxSize(FromDIP(25), FromDIP(30)));
@@ -47,7 +47,7 @@ namespace GUI {
         m_control_back->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {SetCursor(wxCursor(wxCURSOR_ARROW));});
 
 
-        auto m_control_forward = new ScalableButton(m_web_control_panel, wxID_ANY, "mall_control_forward", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER);
+        auto m_control_forward = new ScalableButton(m_web_control_panel, wxID_ANY, "mall_control_forward", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true);
         m_control_forward->SetBackgroundColour(*wxWHITE);
         m_control_forward->SetSize(wxSize(FromDIP(25), FromDIP(30)));
         m_control_forward->SetMinSize(wxSize(FromDIP(25), FromDIP(30)));
@@ -57,7 +57,7 @@ namespace GUI {
         m_control_forward->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {SetCursor(wxCursor(wxCURSOR_HAND)); });
         m_control_forward->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {SetCursor(wxCursor(wxCURSOR_ARROW)); });
 
-        auto m_control_refresh = new ScalableButton(m_web_control_panel, wxID_ANY, "mall_control_refresh", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER);
+        auto m_control_refresh = new ScalableButton(m_web_control_panel, wxID_ANY, "mall_control_refresh", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true);
         m_control_refresh->SetBackgroundColour(*wxWHITE);
         m_control_refresh->SetSize(wxSize(FromDIP(25), FromDIP(30)));
         m_control_refresh->SetMinSize(wxSize(FromDIP(25), FromDIP(30)));

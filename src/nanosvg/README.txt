@@ -1,0 +1,1 @@
+Upstream source: https://github.com/fltk/nanosvg/archive/abcd277ea45e9098bed752cf9c6875b533c0892f.zip

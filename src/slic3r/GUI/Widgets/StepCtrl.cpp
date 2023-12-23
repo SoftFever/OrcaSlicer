@@ -122,15 +122,15 @@ StepCtrl::StepCtrl(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wx
     , bmp_thumb(this, "step_thumb", 36)
 {
     StaticBox::border_width = 3;
-    radius = radius * bmp_thumb.GetHeight() / 36;
-    bar_width = bar_width * bmp_thumb.GetHeight() / 36;
+    radius = radius * bmp_thumb.GetBmpHeight() / 36;
+    bar_width = bar_width * bmp_thumb.GetBmpHeight() / 36;
 }
 
 void StepCtrl::Rescale()
 {
-    bmp_thumb.sys_color_changed();
-    radius    = radius * bmp_thumb.GetHeight() / 36;
-    bar_width = bar_width * bmp_thumb.GetHeight() / 36;
+    bmp_thumb.msw_rescale();
+    radius    = radius * bmp_thumb.GetBmpHeight() / 36;
+    bar_width = bar_width * bmp_thumb.GetBmpHeight() / 36;
 }
 
 void StepCtrl::mouseDown(wxMouseEvent &event)
@@ -141,7 +141,7 @@ void StepCtrl::mouseDown(wxMouseEvent &event)
     int    itemWidth = size.x / steps.size();
     wxRect rcBar     = {0, (size.y - 60) / 2, size.x, 60};
     int    circleX   = itemWidth / 2 + itemWidth * step;
-    wxRect rcThumb   = {{circleX, size.y / 2}, bmp_thumb.GetSize()};
+    wxRect rcThumb   = {{circleX, size.y / 2}, bmp_thumb.GetBmpSize()};
     rcThumb.x -= rcThumb.width / 2;
     rcThumb.y -= rcThumb.height / 2;
     if (rcThumb.Contains(pt)) {
@@ -235,8 +235,8 @@ void StepCtrl::doRender(wxDC &dc)
             dc.SetTextForeground(clr_tip.colorForStates(states));
             wxSize sz = dc.GetTextExtent(tips[i]);
             dc.DrawText(tips[i], circleX - sz.x / 2, circleY - 20 - sz.y);
-            sz = bmp_thumb.GetSize();
-            dc.DrawBitmap(bmp_thumb.get_bitmap(), circleX - sz.x / 2, circleY - sz.y / 2);
+            sz = bmp_thumb.GetBmpSize();
+            dc.DrawBitmap(bmp_thumb.bmp(), circleX - sz.x / 2, circleY - sz.y / 2);
         }
         circleX += itemWidth;
     }
@@ -260,16 +260,16 @@ StepIndicator::StepIndicator(wxWindow *parent, wxWindowID id, const wxPoint &pos
             std::make_pair(0x6B6B6B, 0));
     clr_tip = *wxWHITE;
     StaticBox::border_width = 0;
-    radius    = bmp_ok.GetHeight() / 2;
-    bar_width = bmp_ok.GetHeight() / 20;
+    radius    = bmp_ok.GetBmpHeight() / 2;
+    bar_width = bmp_ok.GetBmpHeight() / 20;
     if (bar_width < 2) bar_width = 2;
 }
 
 void StepIndicator::Rescale()
 {
-    bmp_ok.sys_color_changed();
-    radius    = bmp_ok.GetHeight() / 2;
-    bar_width = bmp_ok.GetHeight() / 20;
+    bmp_ok.msw_rescale();
+    radius    = bmp_ok.GetBmpHeight() / 2;
+    bar_width = bmp_ok.GetBmpHeight() / 20;
     if (bar_width < 2) bar_width = 2;
 }
 
@@ -319,8 +319,8 @@ void StepIndicator::doRender(wxDC &dc)
         dc.DrawEllipse(circleX - radius, circleY - radius, radius * 2, radius * 2);
         // Draw content ( icon or text ) in circle
         if (disabled) {
-            wxSize sz = bmp_ok.GetSize();
-            dc.DrawBitmap(bmp_ok.get_bitmap(), circleX - radius, circleY - radius);
+            wxSize sz = bmp_ok.GetBmpSize();
+            dc.DrawBitmap(bmp_ok.bmp(), circleX - radius, circleY - radius);
         } else {
             dc.SetFont(font_tip);
             dc.SetTextForeground(clr_tip.colorForStates(states));

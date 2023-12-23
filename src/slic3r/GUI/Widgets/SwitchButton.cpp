@@ -9,8 +9,8 @@
 
 SwitchButton::SwitchButton(wxWindow* parent, wxWindowID id)
 	: wxBitmapToggleButton(parent, id, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE | wxBU_EXACTFIT)
-	, m_on(this, "toggle_on", {28, 16})
-	, m_off(this, "toggle_off", {28, 16})
+	, m_on(this, "toggle_on", 16)
+	, m_off(this, "toggle_off", 16)
     , text_color(std::pair{0xfffffe, (int) StateColor::Checked}, std::pair{0x6B6B6B, (int) StateColor::Normal})
 	, track_color(0xD9D9D9)
     , thumb_color(std::pair{0x009688, (int) StateColor::Checked}, std::pair{0xD9D9D9, (int) StateColor::Normal})
@@ -58,8 +58,8 @@ void SwitchButton::SetValue(bool value)
 void SwitchButton::Rescale()
 {
 	if (labels[0].IsEmpty()) {
-        m_on.sys_color_changed();
-        m_off.sys_color_changed();
+		m_on.msw_rescale();
+		m_off.msw_rescale();
 	}
 	else {
         SetBackgroundColour(StaticBox::GetParentBackgroundColor(GetParent()));
@@ -101,8 +101,7 @@ void SwitchButton::Rescale()
 		for (int i = 0; i < 2; ++i) {
 			wxMemoryDC memdc(&dc);
 #ifdef __WXMSW__
-            wxBitmap bmp;
-            bmp.CreateWithDIPSize(ToDIP(trackSize), GetDPIScaleFactor());
+			wxBitmap bmp(trackSize.x, trackSize.y);
 			memdc.SelectObject(bmp);
 			memdc.SetBackground(wxBrush(GetBackgroundColour()));
 			memdc.Clear();
@@ -139,12 +138,11 @@ void SwitchButton::Rescale()
 			(i == 0 ? m_off : m_on).bmp() = bmp;
 		}
 	}
-	SetSize(m_on.GetSize());
+	SetSize(m_on.GetBmpSize());
 	update();
 }
 
 void SwitchButton::update()
 {
 	SetBitmap((GetValue() ? m_on : m_off).bmp());
-
 }
