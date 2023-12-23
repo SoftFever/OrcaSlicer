@@ -1499,7 +1499,7 @@ ConfigWizardIndex::ConfigWizardIndex(wxWindow *parent)
 #ifndef __WXOSX__ 
     SetDoubleBuffered(true);// SetDoubleBuffered exists on Win and Linux/GTK, but is missing on OSX
 #endif //__WXOSX__
-    SetMinSize(bg.GetSize());
+    SetMinSize(bg.bmp().GetSize());
 
     const wxSize size = GetTextExtent("m");
     em_w = size.x;
@@ -1626,8 +1626,8 @@ void ConfigWizardIndex::on_paint(wxPaintEvent & evt)
    
     wxPaintDC dc(this);
     
-    const auto bullet_w = bullet_black.GetWidth();
-    const auto bullet_h = bullet_black.GetHeight();
+    const auto bullet_w = bullet_black.bmp().GetSize().GetWidth();
+    const auto bullet_h = bullet_black.bmp().GetSize().GetHeight();
     const int yoff_icon = bullet_h < em_h ? (em_h - bullet_h) / 2 : 0;
     const int yoff_text = bullet_h > em_h ? (bullet_h - em_h) / 2 : 0;
     const int yinc = item_height();
@@ -1640,10 +1640,10 @@ void ConfigWizardIndex::on_paint(wxPaintEvent & evt)
         unsigned x = em_w/2 + item.indent * em_w;
 
         if (i == item_active || (item_hover >= 0 && i == (size_t)item_hover)) {
-            dc.DrawBitmap(bullet_blue.get_bitmap(), x, y + yoff_icon, false);
+            dc.DrawBitmap(bullet_blue.bmp(), x, y + yoff_icon, false);
         }
-        else if (i < item_active)  { dc.DrawBitmap(bullet_black.get_bitmap(), x, y + yoff_icon, false); }
-        else if (i > item_active)  { dc.DrawBitmap(bullet_white.get_bitmap(), x, y + yoff_icon, false); }
+        else if (i < item_active)  { dc.DrawBitmap(bullet_black.bmp(), x, y + yoff_icon, false); }
+        else if (i > item_active)  { dc.DrawBitmap(bullet_white.bmp(), x, y + yoff_icon, false); }
 
         x += + bullet_w + em_w/2;
         const auto text_size = dc.GetTextExtent(item.label);
@@ -1655,9 +1655,9 @@ void ConfigWizardIndex::on_paint(wxPaintEvent & evt)
     }
     
     //draw logo
-    if (int y = size.y - bg.GetHeight(); y>=0) {
-        dc.DrawBitmap(bg.get_bitmap(), 0, y, false);
-        index_width = std::max(index_width, bg.GetWidth() + em_w / 2);
+    if (int y = size.y - bg.GetBmpHeight(); y>=0) {
+        dc.DrawBitmap(bg.bmp(), 0, y, false);
+        index_width = std::max(index_width, bg.GetBmpWidth() + em_w / 2);
     }
 
     if (GetMinSize().x < index_width) {
@@ -1689,12 +1689,12 @@ void ConfigWizardIndex::msw_rescale()
     em_w = size.x;
     em_h = size.y;
 
-    bg.sys_color_changed();
-    SetMinSize(bg.GetSize());
+    bg.msw_rescale();
+    SetMinSize(bg.bmp().GetSize());
 
-    bullet_black.sys_color_changed();
-    bullet_blue.sys_color_changed();
-    bullet_white.sys_color_changed();
+    bullet_black.msw_rescale();
+    bullet_blue.msw_rescale();
+    bullet_white.msw_rescale();
     Refresh();
 }
 

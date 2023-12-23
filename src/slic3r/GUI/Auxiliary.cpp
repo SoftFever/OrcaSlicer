@@ -226,7 +226,7 @@ void AuFile::PaintBackground(wxDC &dc)
         dc.SetPen(AUFILE_GREY200);
         dc.SetBrush(AUFILE_GREY200);
         dc.DrawRoundedRectangle(0, 0, size.x, size.y, AUFILE_ROUNDING);
-        dc.DrawBitmap(m_file_bitmap.get_bitmap(), (size.x - m_file_bitmap.GetWidth()) / 2, (size.y - m_file_bitmap.GetHeight()) / 2);
+        dc.DrawBitmap(m_file_bitmap.bmp(), (size.x - m_file_bitmap.GetBmpWidth()) / 2, (size.y - m_file_bitmap.GetBmpHeight()) / 2);
     }
 }
 
@@ -257,7 +257,7 @@ void AuFile::PaintForeground(wxDC &dc)
         }
 
         if (m_type == MODEL_PICTURE) {
-            dc.DrawBitmap(m_file_edit_mask.get_bitmap(), 0, size.y - m_file_edit_mask.GetSize().y);
+            dc.DrawBitmap(m_file_edit_mask.bmp(), 0, size.y - m_file_edit_mask.GetBmpSize().y); 
         }
 
 
@@ -268,14 +268,14 @@ void AuFile::PaintForeground(wxDC &dc)
             auto sizet = dc.GetTextExtent(cover_text_left);
             auto pos   = wxPoint(0, 0);
             pos.x      = (size.x / 2 - sizet.x) / 2;
-            pos.y      = (size.y - (m_file_edit_mask.GetSize().y + sizet.y) / 2);
+            pos.y      = (size.y - (m_file_edit_mask.GetBmpSize().y + sizet.y) / 2);
             dc.DrawText(cover_text_left, pos);
 
             // right text
             sizet = dc.GetTextExtent(cover_text_right);
             pos   = wxPoint(0, 0);
             pos.x = size.x / 2 + (size.x / 2 - sizet.x) / 2;
-            pos.y = (size.y - (m_file_edit_mask.GetSize().y + sizet.y) / 2);
+            pos.y = (size.y - (m_file_edit_mask.GetBmpSize().y + sizet.y) / 2);
             dc.DrawText(cover_text_right, pos);
 
             // Split
@@ -283,7 +283,7 @@ void AuFile::PaintForeground(wxDC &dc)
             dc.SetBrush(*wxWHITE);
             pos   = wxPoint(0, 0);
             pos.x = size.x / 2 - 1;
-            pos.y = size.y - FromDIP(24) - (m_file_edit_mask.GetSize().y - FromDIP(24)) / 2;
+            pos.y = size.y - FromDIP(24) - (m_file_edit_mask.GetBmpSize().y - FromDIP(24)) / 2;
             dc.DrawRectangle(pos.x, pos.y, 2, FromDIP(24));
         } else {
             // right text
@@ -297,7 +297,7 @@ void AuFile::PaintForeground(wxDC &dc)
 
     if (m_cover) {
         dc.SetTextForeground(*wxWHITE);
-        dc.DrawBitmap(m_file_cover.get_bitmap(), size.x - m_file_cover.GetSize().x, 0);
+        dc.DrawBitmap(m_file_cover.bmp(), size.x - m_file_cover.GetBmpSize().x, 0);
         dc.SetFont(Label::Body_12);
         auto sizet = dc.GetTextExtent(cover_text_cover);
         auto pos   = wxPoint(0, 0);
@@ -306,7 +306,7 @@ void AuFile::PaintForeground(wxDC &dc)
         dc.DrawText(cover_text_cover, pos);
     }
 
-    if (m_hover) { dc.DrawBitmap(m_file_delete.get_bitmap(), size.x - m_file_delete.GetSize().x - FromDIP(10), FromDIP(10)); }
+    if (m_hover) { dc.DrawBitmap(m_file_delete.bmp(), size.x - m_file_delete.GetBmpSize().x - FromDIP(10), FromDIP(10)); }
 }
 
 void AuFile::on_mouse_enter(wxMouseEvent &evt)
@@ -421,7 +421,7 @@ void AuFile::on_mouse_left_up(wxMouseEvent &evt)
 
     auto pos = evt.GetPosition();
     // set cover
-    auto mask_size    = wxSize(GetSize().x, m_file_edit_mask.GetSize().y);
+    auto mask_size    = wxSize(GetSize().x, m_file_edit_mask.GetBmpSize().y);
     auto cover_left   = 0;
     auto cover_top    = size.y - mask_size.y;
     auto cover_right  = mask_size.x / 2;
@@ -443,10 +443,10 @@ void AuFile::on_mouse_left_up(wxMouseEvent &evt)
     if (pos.x > rename_left && pos.x < rename_right && pos.y > rename_top && pos.y < rename_bottom) { on_set_rename(); return; }
 
     // close
-    auto close_left   = size.x - m_file_delete.GetSize().x - FromDIP(10);
+    auto close_left   = size.x - m_file_delete.GetBmpSize().x - FromDIP(10);
     auto close_top    = FromDIP(10);
     auto close_right  = size.x - FromDIP(10);
-    auto close_bottom = m_file_delete.GetSize().y + FromDIP(10);
+    auto close_bottom = m_file_delete.GetBmpSize().y + FromDIP(10);
     if (pos.x > close_left && pos.x < close_right && pos.y > close_top && pos.y < close_bottom) { on_set_delete(); return; }
 
     exit_rename_mode();

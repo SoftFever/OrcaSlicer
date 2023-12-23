@@ -515,6 +515,11 @@ void PhysicalPrinterDialog::on_dpi_changed(const wxRect& suggested_rect)
 {
     const int& em = em_unit();
 
+    m_printhost_browse_btn->msw_rescale();
+    m_printhost_test_btn->msw_rescale();
+    if (m_printhost_cafile_browse_btn)
+        m_printhost_cafile_browse_btn->msw_rescale();
+
     m_optgroup->msw_rescale();
 
     msw_buttons_rescale(this, em, { wxID_OK, wxID_CANCEL });
@@ -525,15 +530,6 @@ void PhysicalPrinterDialog::on_dpi_changed(const wxRect& suggested_rect)
     Fit();
     Refresh();
 }
-
-void PhysicalPrinterDialog::on_sys_color_changed()
-{
-    m_printhost_browse_btn->sys_color_changed();
-    m_printhost_test_btn->sys_color_changed();
-    if (m_printhost_cafile_browse_btn)
-        m_printhost_cafile_browse_btn->sys_color_changed();
-}
-
 
 void PhysicalPrinterDialog::OnOK(wxEvent& event)
 {

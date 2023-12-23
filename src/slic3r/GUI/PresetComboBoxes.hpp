@@ -1,7 +1,7 @@
 #ifndef slic3r_PresetComboBoxes_hpp_
 #define slic3r_PresetComboBoxes_hpp_
 
-#include <wx/bmpbndl.h>
+//#include <wx/bmpcbox.h>
 #include <wx/gdicmn.h>
 #include <wx/clrpicker.h>
 
@@ -37,7 +37,7 @@ public:
     PresetComboBox(wxWindow* parent, Preset::Type preset_type, const wxSize& size = wxDefaultSize, PresetBundle* preset_bundle = nullptr);
     ~PresetComboBox();
 
-	enum LabelItemType : size_t {
+	enum LabelItemType {
 		LABEL_ITEM_PHYSICAL_PRINTER = 0xffffff01,
 		LABEL_ITEM_DISABLED,
 		LABEL_ITEM_MARKER,
@@ -99,9 +99,9 @@ protected:
     static BitmapCache& bitmap_cache();
 
     // Indicator, that the preset is compatible with the selected printer.
-    wxBitmapBundle*      m_bitmapCompatible;
+    ScalableBitmap      m_bitmapCompatible;
     // Indicator, that the preset is NOT compatible with the selected printer.
-    wxBitmapBundle*      m_bitmapIncompatible;
+    ScalableBitmap      m_bitmapIncompatible;
 
     int m_last_selected;
     int m_em_unit;
@@ -115,7 +115,6 @@ protected:
     // parameters for an icon's drawing
     int icon_height;
     int norm_icon_width;
-    int null_icon_width;
     int thin_icon_width;
     int wide_icon_width;
     int space_icon_width;
@@ -140,16 +139,14 @@ protected:
 #endif // __linux__
     static wxString    separator(const std::string& label);
 
-    wxBitmapBundle* get_bmp(  std::string bitmap_key, bool wide_icons, const std::string& main_icon_name,
+    wxBitmap* get_bmp(  std::string bitmap_key, bool wide_icons, const std::string& main_icon_name, 
                         bool is_compatible = true, bool is_system = false, bool is_single_bar = false,
                         const std::string& filament_rgb = "", const std::string& extruder_rgb = "", const std::string& material_rgb = "");
 
-    wxBitmapBundle* get_bmp(  std::string bitmap_key, const std::string& main_icon_name, const std::string& next_icon_name,
+    wxBitmap* get_bmp(  std::string bitmap_key, const std::string& main_icon_name, const std::string& next_icon_name,
                         bool is_enabled = true, bool is_compatible = true, bool is_system = false);
 
-    wxBitmapBundle* get_bmp(Preset const &preset);
-
-    wxBitmapBundle NullBitmapBndl();
+    wxBitmap *get_bmp(Preset const &preset);
 
 private:
     void fill_width_height();
@@ -182,7 +179,6 @@ public:
     wxString get_preset_name(const Preset& preset) override;
     void update() override;
     void msw_rescale() override;
-    void sys_color_changed() override;
     void OnSelect(wxCommandEvent& evt) override;
 
 private:
@@ -249,8 +245,8 @@ private:
     bool m_filament_exist{false};
     bool m_is_compatible{true};
     const Preset* m_selected_preset = nullptr;
-    std::map<wxString, std::pair<std::string, wxBitmapBundle*>> m_nonsys_presets;
-    std::map<wxString, std::pair<std::string, wxBitmapBundle*>> m_system_presets;
+    std::map<wxString, std::pair<std::string, wxBitmap*>> m_nonsys_presets;
+    std::map<wxString, std::pair<std::string, wxBitmap*>> m_system_presets;
 };
 
 } // namespace GUI
