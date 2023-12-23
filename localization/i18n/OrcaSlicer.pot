@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-19 22:09+0800\n"
+"POT-Creation-Date: 2023-12-23 22:15+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -875,6 +875,21 @@ msgstr ""
 msgid "Load..."
 msgstr ""
 
+msgid "Cube"
+msgstr ""
+
+msgid "Cylinder"
+msgstr ""
+
+msgid "Cone"
+msgstr ""
+
+msgid "Disc"
+msgstr ""
+
+msgid "Torus"
+msgstr ""
+
 msgid "Orca Cube"
 msgstr ""
 
@@ -887,13 +902,7 @@ msgstr ""
 msgid "Voron Cube"
 msgstr ""
 
-msgid "Cube"
-msgstr ""
-
-msgid "Cylinder"
-msgstr ""
-
-msgid "Cone"
+msgid "Stanford Bunny"
 msgstr ""
 
 msgid "Text"
@@ -1051,6 +1060,9 @@ msgid "Invalidate cut info"
 msgstr ""
 
 msgid "Add Primitive"
+msgstr ""
+
+msgid "Add Handy models"
 msgstr ""
 
 msgid "Show Labels"
@@ -2413,6 +2425,18 @@ msgid ""
 "Change these settings automatically? \n"
 "Yes - Change these settings and enable spiral mode automatically\n"
 "No  - Give up using spiral mode this time"
+msgstr ""
+
+msgid ""
+"Alternate extra wall only works with ensure vertical shell thickness "
+"disabled. "
+msgstr ""
+
+msgid ""
+"Change these settings automatically? \n"
+"Yes - Disable ensure vertical shell thickness and enable alternate extra "
+"wall\n"
+"No  - Dont use alternate extra wall"
 msgstr ""
 
 msgid ""
@@ -6270,15 +6294,19 @@ msgstr ""
 msgid "Ramming line spacing"
 msgstr ""
 
-msgid "Recalculate"
+msgid "Auto-Calc"
+msgstr ""
+
+msgid "Re-calculate"
 msgstr ""
 
 msgid "Flushing volumes for filament change"
 msgstr ""
 
 msgid ""
-"Orca recalculates your flushing volumes everytime the filament colors "
-"change. You can change this behavior in Preferences."
+"Studio would re-calculate your flushing volumes everytime the filaments "
+"color changed. You could disable the auto-calculate in Bambu Studio > "
+"Preferences"
 msgstr ""
 
 msgid "Flushing volume (mm³) for each filament pair."
@@ -6293,6 +6321,15 @@ msgid "The multiplier should be in range [%.2f, %.2f]."
 msgstr ""
 
 msgid "Multiplier"
+msgstr ""
+
+msgid "unloaded"
+msgstr ""
+
+msgid "loaded"
+msgstr ""
+
+msgid "Filament #"
 msgstr ""
 
 msgid "From"
@@ -8711,6 +8748,17 @@ msgid ""
 "acceleration to print"
 msgstr ""
 
+msgid "Emit limits to G-code"
+msgstr ""
+
+msgid "Machine limits"
+msgstr ""
+
+msgid ""
+"If enabled, the machine limits will be emitted to G-code file.\n"
+"This option will be ignored if the g-code flavor is set to Klipper."
+msgstr ""
+
 msgid ""
 "This G-code will be used as a code for the pause print. User can insert "
 "pause G-code in gcode viewer"
@@ -8729,9 +8777,6 @@ msgid "Maximum speed Z"
 msgstr ""
 
 msgid "Maximum speed E"
-msgstr ""
-
-msgid "Machine limits"
 msgstr ""
 
 msgid "Maximum X speed"
@@ -9049,6 +9094,20 @@ msgid "Speed of inner wall"
 msgstr ""
 
 msgid "Number of walls of every layer"
+msgstr ""
+
+msgid "Alternate extra wall"
+msgstr ""
+
+msgid ""
+"This setting adds an extra wall to every other layer. This way the infill "
+"gets wedged vertically between the walls, resulting in stronger prints. \n"
+"\n"
+"When this option is enabled, the ensure vertical shell thickness option "
+"needs to be disabled. \n"
+"\n"
+"Using lightning infill together with this option is not recommended as there "
+"is limited infill to anchor the extra perimeters to."
 msgstr ""
 
 msgid ""

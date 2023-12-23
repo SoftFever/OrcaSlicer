@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-19 22:09+0800\n"
+"POT-Creation-Date: 2023-12-23 22:15+0800\n"
 "PO-Revision-Date: 2023-04-01 13:21+0800\n"
 "Last-Translator: SoftFever <softfeverever@gmail.com>\n"
 "Language-Team: \n"
@@ -881,6 +881,21 @@ msgstr "删除所选对象"
 msgid "Load..."
 msgstr "加载..."
 
+msgid "Cube"
+msgstr "立方体"
+
+msgid "Cylinder"
+msgstr "圆柱体"
+
+msgid "Cone"
+msgstr "锥体"
+
+msgid "Disc"
+msgstr "圆盘"
+
+msgid "Torus"
+msgstr "环面"
+
 msgid "Orca Cube"
 msgstr "Orca逆方块"
 
@@ -893,14 +908,8 @@ msgstr "欧特克FDM测试"
 msgid "Voron Cube"
 msgstr "Voron方块"
 
-msgid "Cube"
-msgstr "立方体"
-
-msgid "Cylinder"
-msgstr "圆柱体"
-
-msgid "Cone"
-msgstr "锥体"
+msgid "Stanford Bunny"
+msgstr "斯坦福兔子"
 
 msgid "Text"
 msgstr ""
@@ -1058,6 +1067,9 @@ msgstr "解除切割关系"
 
 msgid "Add Primitive"
 msgstr "添加标准模型"
+
+msgid "Add Handy models"
+msgstr "添加实用模型"
 
 msgid "Show Labels"
 msgstr "显示标签"
@@ -2469,6 +2481,18 @@ msgstr ""
 "自动调整这些设置？\n"
 "是 - 自动调整这些设置并开启旋转模式\n"
 "否 - 暂不使用旋转模式"
+
+msgid ""
+"Alternate extra wall only works with ensure vertical shell thickness "
+"disabled. "
+msgstr ""
+
+msgid ""
+"Change these settings automatically? \n"
+"Yes - Disable ensure vertical shell thickness and enable alternate extra "
+"wall\n"
+"No  - Dont use alternate extra wall"
+msgstr ""
 
 msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support "
@@ -6434,15 +6458,19 @@ msgstr "尖端成型线宽"
 msgid "Ramming line spacing"
 msgstr "尖端成型线间距"
 
-msgid "Recalculate"
-msgstr ""
+msgid "Auto-Calc"
+msgstr "自动计算"
+
+msgid "Re-calculate"
+msgstr "重新计算"
 
 msgid "Flushing volumes for filament change"
 msgstr "耗材丝更换时的冲刷体积"
 
 msgid ""
-"Orca recalculates your flushing volumes everytime the filament colors "
-"change. You can change this behavior in Preferences."
+"Studio would re-calculate your flushing volumes everytime the filaments "
+"color changed. You could disable the auto-calculate in Bambu Studio > "
+"Preferences"
 msgstr ""
 
 msgid "Flushing volume (mm³) for each filament pair."
@@ -6458,6 +6486,15 @@ msgstr "乘数的取值范围是[%.2f, %.2f]"
 
 msgid "Multiplier"
 msgstr "乘数"
+
+msgid "unloaded"
+msgstr "卸载"
+
+msgid "loaded"
+msgstr "装载"
+
+msgid "Filament #"
+msgstr "耗材丝#"
 
 msgid "From"
 msgstr "从"
@@ -8989,6 +9026,17 @@ msgid ""
 "acceleration to print"
 msgstr "机器是否支持使用低加速度打印的静音模式。"
 
+msgid "Emit limits to G-code"
+msgstr "写入限制到G-code"
+
+msgid "Machine limits"
+msgstr "机器限制"
+
+msgid ""
+"If enabled, the machine limits will be emitted to G-code file.\n"
+"This option will be ignored if the g-code flavor is set to Klipper."
+msgstr ""
+
 msgid ""
 "This G-code will be used as a code for the pause print. User can insert "
 "pause G-code in gcode viewer"
@@ -9008,9 +9056,6 @@ msgstr "Z最大速度"
 
 msgid "Maximum speed E"
 msgstr "E最大速度"
-
-msgid "Machine limits"
-msgstr "机器限制"
 
 msgid "Maximum X speed"
 msgstr "X最大速度"
@@ -9362,6 +9407,20 @@ msgstr "内圈墙打印速度"
 
 msgid "Number of walls of every layer"
 msgstr "每一层的外墙"
+
+msgid "Alternate extra wall"
+msgstr "交替额外内墙"
+
+msgid ""
+"This setting adds an extra wall to every other layer. This way the infill "
+"gets wedged vertically between the walls, resulting in stronger prints. \n"
+"\n"
+"When this option is enabled, the ensure vertical shell thickness option "
+"needs to be disabled. \n"
+"\n"
+"Using lightning infill together with this option is not recommended as there "
+"is limited infill to anchor the extra perimeters to."
+msgstr ""
 
 msgid ""
 "If you want to process the output G-code through custom scripts, just list "
@@ -12489,18 +12548,6 @@ msgstr ""
 
 #~ msgid "Quick"
 #~ msgstr "快速的"
-
-#~ msgid "Auto-Calc"
-#~ msgstr "自动计算"
-
-#~ msgid "unloaded"
-#~ msgstr "卸载"
-
-#~ msgid "loaded"
-#~ msgstr "装载"
-
-#~ msgid "Filament #"
-#~ msgstr "耗材丝#"
 
 #~ msgid ""
 #~ "Discribe how long the nozzle will move along the last path when retracting"

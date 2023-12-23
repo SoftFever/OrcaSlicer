@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OrcaSlicer V1.8.0 Official Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-19 22:09+0800\n"
+"POT-Creation-Date: 2023-12-23 22:15+0800\n"
 "PO-Revision-Date: 2023-11-20 01:07+0700\n"
 "Last-Translator: Andylg <andylg@yandex.ru>\n"
 "Language-Team: \n"
@@ -911,6 +911,21 @@ msgstr "Удаление выбранных моделей"
 msgid "Load..."
 msgstr "Загрузить…"
 
+msgid "Cube"
+msgstr "Куб"
+
+msgid "Cylinder"
+msgstr "Цилиндр"
+
+msgid "Cone"
+msgstr "Конус"
+
+msgid "Disc"
+msgstr ""
+
+msgid "Torus"
+msgstr ""
+
 msgid "Orca Cube"
 msgstr "Куб Orca Design"
 
@@ -923,14 +938,8 @@ msgstr "FDM тест от Autodesk"
 msgid "Voron Cube"
 msgstr "Куб Voron Design"
 
-msgid "Cube"
-msgstr "Куб"
-
-msgid "Cylinder"
-msgstr "Цилиндр"
-
-msgid "Cone"
-msgstr "Конус"
+msgid "Stanford Bunny"
+msgstr ""
 
 msgid "Text"
 msgstr ""
@@ -1089,6 +1098,9 @@ msgstr "Удалить информацию о разрезе"
 
 msgid "Add Primitive"
 msgstr "Добавить примитив"
+
+msgid "Add Handy models"
+msgstr ""
 
 msgid "Show Labels"
 msgstr "Показать имена файлов"
@@ -2641,6 +2653,18 @@ msgstr ""
 "Изменить эти настройки автоматически? \n"
 "Да - Изменить эти настройки и включить режим «Спиральная ваза»\n"
 "Нет - Отказаться от использования режима «Спиральная ваза»"
+
+msgid ""
+"Alternate extra wall only works with ensure vertical shell thickness "
+"disabled. "
+msgstr ""
+
+msgid ""
+"Change these settings automatically? \n"
+"Yes - Disable ensure vertical shell thickness and enable alternate extra "
+"wall\n"
+"No  - Dont use alternate extra wall"
+msgstr ""
 
 msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support "
@@ -6837,15 +6861,19 @@ msgstr "Ширина линии при рэмминге"
 msgid "Ramming line spacing"
 msgstr "Расстояние между линиями при рэмминге"
 
-msgid "Recalculate"
+msgid "Auto-Calc"
+msgstr "Авторасчёт"
+
+msgid "Re-calculate"
 msgstr ""
 
 msgid "Flushing volumes for filament change"
 msgstr "Объёмы очистки при смене пластиковой нити"
 
 msgid ""
-"Orca recalculates your flushing volumes everytime the filament colors "
-"change. You can change this behavior in Preferences."
+"Studio would re-calculate your flushing volumes everytime the filaments "
+"color changed. You could disable the auto-calculate in Bambu Studio > "
+"Preferences"
 msgstr ""
 
 msgid "Flushing volume (mm³) for each filament pair."
@@ -6863,6 +6891,15 @@ msgstr "Множитель должен находиться в диапазон
 
 msgid "Multiplier"
 msgstr "Множитель"
+
+msgid "unloaded"
+msgstr "выгрузку"
+
+msgid "loaded"
+msgstr "загрузку"
+
+msgid "Filament #"
+msgstr "Пруток #"
 
 msgid "From"
 msgstr "С"
@@ -9732,6 +9769,17 @@ msgstr ""
 "Поддержка тихого режима, в котором принтер использует меньшее ускорение "
 "печати для уменьшения уровня шума."
 
+msgid "Emit limits to G-code"
+msgstr ""
+
+msgid "Machine limits"
+msgstr "Ограничения принтера"
+
+msgid ""
+"If enabled, the machine limits will be emitted to G-code file.\n"
+"This option will be ignored if the g-code flavor is set to Klipper."
+msgstr ""
+
 msgid ""
 "This G-code will be used as a code for the pause print. User can insert "
 "pause G-code in gcode viewer"
@@ -9753,9 +9801,6 @@ msgstr "Максимальная скорость перемещения по Z"
 
 msgid "Maximum speed E"
 msgstr "Максимальная скорость подачи у экструдера (E)"
-
-msgid "Machine limits"
-msgstr "Ограничения принтера"
 
 msgid "Maximum X speed"
 msgstr "Максимальная скорость перемещения по X"
@@ -10161,6 +10206,20 @@ msgstr "Скорость печати внутренних периметров.
 
 msgid "Number of walls of every layer"
 msgstr "Количество периметров на каждом слое модели."
+
+msgid "Alternate extra wall"
+msgstr ""
+
+msgid ""
+"This setting adds an extra wall to every other layer. This way the infill "
+"gets wedged vertically between the walls, resulting in stronger prints. \n"
+"\n"
+"When this option is enabled, the ensure vertical shell thickness option "
+"needs to be disabled. \n"
+"\n"
+"Using lightning infill together with this option is not recommended as there "
+"is limited infill to anchor the extra perimeters to."
+msgstr ""
 
 msgid ""
 "If you want to process the output G-code through custom scripts, just list "
@@ -13599,18 +13658,6 @@ msgstr ""
 
 #~ msgid "Quick"
 #~ msgstr "Скорость"
-
-#~ msgid "Auto-Calc"
-#~ msgstr "Авторасчёт"
-
-#~ msgid "unloaded"
-#~ msgstr "выгрузку"
-
-#~ msgid "loaded"
-#~ msgstr "загрузку"
-
-#~ msgid "Filament #"
-#~ msgstr "Пруток #"
 
 #~ msgid ""
 #~ "Discribe how long the nozzle will move along the last path when retracting"
