@@ -1,3 +1,33 @@
+From 5e82980ed1762338794d06b3f9f22fa10e050622 Mon Sep 17 00:00:00 2001
+From: SoftFever <softfeverever@gmail.com>
+Date: Sat, 23 Dec 2023 20:08:41 +0800
+Subject: [PATCH] wx 3.1.5 patch for Orca
+
+---
+ build/cmake/init.cmake                 |  4 ++
+ build/cmake/lib/webview/CMakeLists.txt |  4 +-
+ include/wx/fontutil.h                  | 15 +++++++-
+ include/wx/gdicmn.h                    |  3 ++
+ include/wx/generic/grid.h              |  4 +-
+ include/wx/msw/font.h                  |  2 +-
+ include/wx/msw/tooltip.h               |  4 +-
+ include/wx/osx/app.h                   |  2 +-
+ src/common/combocmn.cpp                | 13 +++++--
+ src/common/datavcmn.cpp                |  6 ++-
+ src/common/dcbufcmn.cpp                |  8 +++-
+ src/common/gdicmn.cpp                  | 14 +++++++
+ src/common/image.cpp                   |  6 +--
+ src/common/intl.cpp                    |  7 ++++
+ src/generic/grid.cpp                   | 53 +++++++++++++++++++++-----
+ src/msw/bmpcbox.cpp                    |  9 ++++-
+ src/msw/font.cpp                       | 14 +++----
+ src/msw/menuitem.cpp                   |  2 +
+ src/msw/window.cpp                     | 52 ++++++++++++++++---------
+ src/osx/cocoa/dataview.mm              | 26 +++++++++++--
+ src/osx/cocoa/settings.mm              |  6 +--
+ src/osx/cocoa/window.mm                |  4 ++
+ 22 files changed, 199 insertions(+), 59 deletions(-)
+
 diff --git a/build/cmake/init.cmake b/build/cmake/init.cmake
 index 0bc4f934b9..479431a69c 100644
 --- a/build/cmake/init.cmake
@@ -15,10 +45,10 @@ index 0bc4f934b9..479431a69c 100644
                  if(WAYLANDEGL_FOUND AND wxHAVE_GDK_WAYLAND)
                      list(APPEND OPENGL_LIBRARIES ${WAYLANDEGL_LIBRARIES})
 diff --git a/build/cmake/lib/webview/CMakeLists.txt b/build/cmake/lib/webview/CMakeLists.txt
-index cc3298ff33..8adbeaea4f 100644
+index cc3298ff33..aa103ae474 100644
 --- a/build/cmake/lib/webview/CMakeLists.txt
 +++ b/build/cmake/lib/webview/CMakeLists.txt
-@@ -56,7 +56,7 @@ if(APPLE)
+@@ -56,9 +56,9 @@ if(APPLE)
  elseif(WXMSW)
      if(wxUSE_WEBVIEW_EDGE)
          # Update the following variables if updating WebView2 SDK
@@ -28,8 +58,10 @@ index cc3298ff33..8adbeaea4f 100644
 -        set(WEBVIEW2_SHA256 "6a34bb553e18cfac7297b4031f3eac2558e439f8d16a45945c22945ac404105d")
 +        set(WEBVIEW2_SHA256 "51d2ef56196e2a9d768a6843385bcb9c6baf9ed34b2603ddb074fb4995543a99")
  
+         set(WEBVIEW2_DEFAULT_PACKAGE_DIR "${CMAKE_BINARY_DIR}/packages/Microsoft.Web.WebView2.${WEBVIEW2_VERSION}")
+ 
 diff --git a/include/wx/fontutil.h b/include/wx/fontutil.h
-index 09ad8c8ef3..3c0c2d8f7e 100644
+index 09ad8c8ef3..c228e167d7 100644
 --- a/include/wx/fontutil.h
 +++ b/include/wx/fontutil.h
 @@ -294,7 +294,11 @@ public:
@@ -39,9 +71,9 @@ index 09ad8c8ef3..3c0c2d8f7e 100644
 -    void SetFractionalPointSize(double pointsize);
 +    void SetFractionalPointSize(double pointsize
 +#if defined(__WXMSW__)
-+    	, const wxWindow *window = nullptr
++	, const wxWindow *window = nullptr
 +#endif
-+    	);
++	);
      void SetPixelSize(const wxSize& pixelSize);
      void SetStyle(wxFontStyle style);
      void SetNumericWeight(int weight);
@@ -52,9 +84,9 @@ index 09ad8c8ef3..3c0c2d8f7e 100644
 -    void SetSizeOrDefault(double size)
 +    void SetSizeOrDefault(double size
 +#if defined(__WXMSW__)
-+    	, const wxWindow *window = nullptr
++	, const wxWindow *window = nullptr
 +#endif
-+    	)
++	)
      {
          SetFractionalPointSize
          (
@@ -149,7 +181,7 @@ index 317a0ca96f..58014ec1d4 100644
      void                OSXStoreOpenURL(const wxString &url ) { m_getURL = url ; }
  #endif
 diff --git a/src/common/combocmn.cpp b/src/common/combocmn.cpp
-index b61aac35bf..d12b745e8c 100644
+index b61aac35bf..7cfc97d2f8 100644
 --- a/src/common/combocmn.cpp
 +++ b/src/common/combocmn.cpp
 @@ -2141,7 +2141,7 @@ void wxComboCtrlBase::CreatePopup()
@@ -178,7 +210,7 @@ index b61aac35bf..d12b745e8c 100644
 -    if ( spaceBelow < szp.y )
 +    int anchorSideVertical = m_anchorSide & (wxUP | wxDOWN);
 +    if (// Pop up as asked for by the library user.
-+        (anchorSideVertical & wxUP) || 
++        (anchorSideVertical & wxUP) ||
 +        // Automatic: Pop up if it does not fit down.
 +        (anchorSideVertical == 0 && spaceBelow < szp.y ))
      {
@@ -226,7 +258,7 @@ index 74958fce10..59844f4526 100644
          return buffer;
      }
 diff --git a/src/common/gdicmn.cpp b/src/common/gdicmn.cpp
-index 20442bbc73..9a24951ec7 100644
+index 20442bbc73..bc2c35bee6 100644
 --- a/src/common/gdicmn.cpp
 +++ b/src/common/gdicmn.cpp
 @@ -863,11 +863,25 @@ void wxDisplaySize(int *width, int *height)
@@ -239,7 +271,7 @@ index 20442bbc73..9a24951ec7 100644
 +    if ( width )
 +        *width = size.x;
 +    if ( height )
-+        *height = size.y;    
++        *height = size.y;
 +}
 +
  wxSize wxGetDisplaySize()
@@ -255,8 +287,27 @@ index 20442bbc73..9a24951ec7 100644
  void wxClientDisplayRect(int *x, int *y, int *width, int *height)
  {
      const wxRect rect = wxGetClientDisplayRect();
+diff --git a/src/common/image.cpp b/src/common/image.cpp
+index 78fe5b82a3..46db8722ce 100644
+--- a/src/common/image.cpp
++++ b/src/common/image.cpp
+@@ -383,11 +383,11 @@ wxImage wxImage::ShrinkBy( int xFactor , int yFactor ) const
+                     unsigned char red = pixel[0] ;
+                     unsigned char green = pixel[1] ;
+                     unsigned char blue = pixel[2] ;
+-                    unsigned char alpha = 255  ;
+-                    if ( source_alpha )
+-                        alpha = *(source_alpha + y_offset + x * xFactor + x1) ;
+                     if ( !hasMask || red != maskRed || green != maskGreen || blue != maskBlue )
+                     {
++                        unsigned char alpha = 255  ;
++                        if ( source_alpha )
++                            alpha = *(source_alpha + y_offset + x * xFactor + x1) ;
+                         if ( alpha > 0 )
+                         {
+                             avgRed += red ;
 diff --git a/src/common/intl.cpp b/src/common/intl.cpp
-index 0b0d8798f4..7072fab18a 100644
+index 0b0d8798f4..294f542b1f 100644
 --- a/src/common/intl.cpp
 +++ b/src/common/intl.cpp
 @@ -1628,6 +1628,12 @@ GetInfoFromLCID(LCID lcid,
@@ -264,7 +315,7 @@ index 0b0d8798f4..7072fab18a 100644
                  str = buf;
  
 +//FIXME Vojtech: We forcefully set the locales for a decimal point to "C", but this
-+// is not possible for the Win32 locales, therefore there is a discrepancy. 
++// is not possible for the Win32 locales, therefore there is a discrepancy.
 +// It looks like we live with the discrepancy for at least half a year, so we will
 +// suppress the assert until we fix Slic3r to properly switch to "C" locales just
 +// for file import / export.
@@ -665,3 +716,28 @@ index de5f52860c..a9581174a4 100644
              return value;
  
          // TODO case wxSYS_FRAMESIZE_X:
+diff --git a/src/osx/cocoa/window.mm b/src/osx/cocoa/window.mm
+index b322e582c5..79de567333 100644
+--- a/src/osx/cocoa/window.mm
++++ b/src/osx/cocoa/window.mm
+@@ -190,6 +190,9 @@ NSRect wxOSXGetFrameForControl( wxWindowMac* window , const wxPoint& pos , const
+ - (BOOL)isEnabled;
+ - (void)setEnabled:(BOOL)flag;
+ 
++- (BOOL)clipsToBounds;
++- (void)setClipsToBounds:(BOOL)clipsToBounds;
++
+ - (void)setImage:(NSImage *)image;
+ - (void)setControlSize:(NSControlSize)size;
+ 
+@@ -2505,6 +2508,7 @@ wxWidgetImpl( peer, flags )
+     if ( m_osxView )
+         CFRetain(m_osxView);
+     [m_osxView release];
++    m_osxView.clipsToBounds = YES;
+ }
+ 
+ 
+-- 
+2.41.0.windows.2
+
