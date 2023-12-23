@@ -255,6 +255,8 @@ void Tab::create_preset_tab()
     // Bitmaps to be shown on the "Undo user changes" button next to each input field.
     add_scaled_bitmap(this, m_bmp_value_revert, "undo");
     add_scaled_bitmap(this, m_bmp_white_bullet, "dot");
+    // Bitmap to be shown on the "edit" button before to each editable input field.
+    add_scaled_bitmap(this, m_bmp_edit_value, "edit");
 
     set_tooltips_text();
 
@@ -808,6 +810,10 @@ void Tab::decorate()
         field->set_undo_tooltip(tt);
         field->set_undo_to_sys_tooltip(sys_tt);
         field->set_label_colour(color);
+
+        if (field->has_edit_ui())
+            field->set_edit_bitmap(&m_bmp_edit_value);
+
     }
 
     if (m_active_page)
@@ -2891,6 +2897,11 @@ static void validate_custom_gcode_cb(Tab* tab, ConfigOptionsGroupShp opt_group, 
     tab->on_value_change(opt_key, value);
 }
 
+void Tab::edit_custom_gcode(const t_config_option_key& opt_key)
+{
+    MessageDialog(this, format_wxstr("Edit gcode for %1%", opt_key), this->title()).ShowModal();
+}
+
 void TabFilament::add_filament_overrides_page()
 {
     //BBS
@@ -3166,11 +3177,14 @@ void TabFilament::build()
         const int gcode_field_height = 15; // 150
         const int notes_field_height = 25; // 250
 
+        auto edit_custom_gcode_fn = [this](const t_config_option_key& opt_key) { edit_custom_gcode(opt_key); };
+
     page = add_options_page(L("Advanced"), "advanced");
         optgroup = page->new_optgroup(L("Filament start G-code"), L"param_gcode", 0);
         optgroup->m_on_change = [this, &optgroup_title = optgroup->title](const t_config_option_key& opt_key, const boost::any& value) {
             validate_custom_gcode_cb(this, optgroup_title, opt_key, value);
         };
+        optgroup->edit_custom_gcode = edit_custom_gcode_fn;
         option = optgroup->get_option("filament_start_gcode");
         option.opt.full_width = true;
         option.opt.is_code = true;
@@ -3181,6 +3195,7 @@ void TabFilament::build()
         optgroup->m_on_change = [this, &optgroup_title = optgroup->title](const t_config_option_key& opt_key, const boost::any& value) {
             validate_custom_gcode_cb(this, optgroup_title, opt_key, value);
         };
+        optgroup->edit_custom_gcode = edit_custom_gcode_fn;
         option = optgroup->get_option("filament_end_gcode");
         option.opt.full_width = true;
         option.opt.is_code = true;
@@ -3482,6 +3497,8 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line("support_chamber_temp_control", "chamber-temperature");
         optgroup->append_single_option_line("support_air_filtration", "air-filtration");
 
+        auto edit_custom_gcode_fn = [this](const t_config_option_key& opt_key) { edit_custom_gcode(opt_key); };
+
     const int gcode_field_height = 15; // 150
     const int notes_field_height = 25; // 250
     page = add_options_page(L("Machine gcode"), "cog");
@@ -3489,6 +3506,7 @@ void TabPrinter::build_fff()
         optgroup->m_on_change = [this, &optgroup_title = optgroup->title](const t_config_option_key& opt_key, const boost::any& value) {
             validate_custom_gcode_cb(this, optgroup_title, opt_key, value);
         };
+        optgroup->edit_custom_gcode = edit_custom_gcode_fn;
         option = optgroup->get_option("machine_start_gcode");
         option.opt.full_width = true;
         option.opt.is_code = true;
@@ -3499,6 +3517,7 @@ void TabPrinter::build_fff()
         optgroup->m_on_change = [this, &optgroup_title = optgroup->title](const t_config_option_key& opt_key, const boost::any& value) {
             validate_custom_gcode_cb(this, optgroup_title, opt_key, value);
         };
+        optgroup->edit_custom_gcode = edit_custom_gcode_fn;
         option = optgroup->get_option("machine_end_gcode");
         option.opt.full_width = true;
         option.opt.is_code = true;
@@ -3509,6 +3528,7 @@ void TabPrinter::build_fff()
         optgroup->m_on_change = [this, optgroup](const t_config_option_key &opt_key, const boost::any &value) {
             validate_custom_gcode_cb(this, optgroup, opt_key, value);
         };
+        optgroup->edit_custom_gcode = edit_custom_gcode_fn;
         option                = optgroup->get_option("printing_by_object_gcode");
         option.opt.full_width = true;
         option.opt.is_code    = true;
@@ -3520,6 +3540,7 @@ void TabPrinter::build_fff()
         optgroup->m_on_change = [this, &optgroup_title = optgroup->title](const t_config_option_key& opt_key, const boost::any& value) {
             validate_custom_gcode_cb(this, optgroup_title, opt_key, value);
         };
+        optgroup->edit_custom_gcode = edit_custom_gcode_fn;
         option = optgroup->get_option("before_layer_change_gcode");
         option.opt.full_width = true;
         option.opt.is_code = true;
@@ -3530,6 +3551,7 @@ void TabPrinter::build_fff()
         optgroup->m_on_change = [this, &optgroup_title = optgroup->title](const t_config_option_key& opt_key, const boost::any& value) {
             validate_custom_gcode_cb(this, optgroup_title, opt_key, value);
         };
+        optgroup->edit_custom_gcode = edit_custom_gcode_fn;
         option = optgroup->get_option("layer_change_gcode");
         option.opt.full_width = true;
         option.opt.is_code = true;
@@ -3540,6 +3562,7 @@ void TabPrinter::build_fff()
         optgroup->m_on_change = [this, &optgroup_title = optgroup->title](const t_config_option_key& opt_key, const boost::any& value) {
             validate_custom_gcode_cb(this, optgroup_title, opt_key, value);
         };
+        optgroup->edit_custom_gcode = edit_custom_gcode_fn;
         option = optgroup->get_option("time_lapse_gcode");
         option.opt.full_width = true;
         option.opt.is_code = true;
@@ -3550,6 +3573,7 @@ void TabPrinter::build_fff()
         optgroup->m_on_change = [this, &optgroup_title = optgroup->title](const t_config_option_key& opt_key, const boost::any& value) {
             validate_custom_gcode_cb(this, optgroup_title, opt_key, value);
         };
+        optgroup->edit_custom_gcode = edit_custom_gcode_fn;
         option = optgroup->get_option("change_filament_gcode");
         option.opt.full_width = true;
         option.opt.is_code = true;
@@ -3560,7 +3584,7 @@ void TabPrinter::build_fff()
         optgroup->m_on_change = [this, &optgroup_title = optgroup->title](const t_config_option_key &opt_key, const boost::any &value) {
             validate_custom_gcode_cb(this, optgroup_title, opt_key, value);
         };
-
+        optgroup->edit_custom_gcode = edit_custom_gcode_fn;
         option = optgroup->get_option("change_extrusion_role_gcode");
         option.opt.full_width = true;
         option.opt.is_code = true;
@@ -3571,6 +3595,7 @@ void TabPrinter::build_fff()
         optgroup->m_on_change = [this, &optgroup_title = optgroup->title](const t_config_option_key& opt_key, const boost::any& value) {
             validate_custom_gcode_cb(this, optgroup_title, opt_key, value);
         };
+        optgroup->edit_custom_gcode = edit_custom_gcode_fn;
         option = optgroup->get_option("machine_pause_gcode");
         option.opt.is_code = true;
         option.opt.height = gcode_field_height;//150;
@@ -3580,6 +3605,7 @@ void TabPrinter::build_fff()
         optgroup->m_on_change = [this, &optgroup_title = optgroup->title](const t_config_option_key& opt_key, const boost::any& value) {
             validate_custom_gcode_cb(this, optgroup_title, opt_key, value);
         };
+        optgroup->edit_custom_gcode = edit_custom_gcode_fn;
         option = optgroup->get_option("template_custom_gcode");
         option.opt.is_code = true;
         option.opt.height = gcode_field_height;//150;

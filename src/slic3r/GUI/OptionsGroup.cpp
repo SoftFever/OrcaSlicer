@@ -102,6 +102,14 @@ const t_field& OptionsGroup::build_field(const t_config_option_key& id, const Co
 	};
     field->m_parent = parent();
 
+    if (edit_custom_gcode && opt.is_code) {
+        field->m_fn_edit_value = [this](std::string opt_id) {
+            if (!m_disabled)
+                this->edit_custom_gcode(opt_id);
+        };
+        field->set_edit_tooltip(_L("Edit CustomG-code"));
+    }
+
 	field->m_back_to_initial_value = [this](std::string opt_id) {
 		if (!m_disabled)
 			this->back_to_initial_value(opt_id);
