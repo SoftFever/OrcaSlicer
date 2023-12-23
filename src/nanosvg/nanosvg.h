@@ -3026,6 +3026,11 @@ NSVGimage* nsvgParse(char* input, const char* units, float dpi)
 	return ret;
 }
 
+#if WIN32
+#define WIN32_LEAN_AND_MEAN 
+#include "windows.h"
+#endif
+
 NSVGimage* nsvgParseFromFile(const char* filename, const char* units, float dpi)
 {
 	FILE* fp = NULL;
@@ -3033,7 +3038,16 @@ NSVGimage* nsvgParseFromFile(const char* filename, const char* units, float dpi)
 	char* data = NULL;
 	NSVGimage* image = NULL;
 
+#if WIN32
+    int name_len = MultiByteToWideChar(CP_UTF8, NULL, filename, strlen(filename), NULL, 0);
+    wchar_t w_fname[512];
+    memset(w_fname, 0, sizeof(w_fname));
+    MultiByteToWideChar(CP_UTF8, NULL, filename, strlen(filename), w_fname, name_len);
+    w_fname[name_len] = '\0';
+	fp = _wfopen(w_fname, L"rb");
+#else
 	fp = fopen(filename, "rb");
+#endif
 	if (!fp) goto error;
 	fseek(fp, 0, SEEK_END);
 	size = ftell(fp);
