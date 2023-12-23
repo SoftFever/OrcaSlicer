@@ -149,6 +149,7 @@ private:
 
     bool SavePrintagoPrintFile(const wxString url, wxString &localPath);
     json export_all_configs_to_json();
+    json Config2Json(const std::string &name, const std::string &from, const std::string &version, std::string is_custom = "");
     bool DownloadFileFromURL(const wxString url, const wxFileName &localPath);
 
     static wxString wxURLErrorToString(wxURLError error);

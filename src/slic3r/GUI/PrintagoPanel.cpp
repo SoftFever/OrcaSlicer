@@ -300,11 +300,53 @@ json PrintagoPanel::export_all_configs_to_json()
     for (const auto &collection : collections) {
         for (const auto &preset : collection->get_presets()) {
             json configJson;
-            preset.config.save_to_json(configJson, preset.name, "", preset.version.to_string());
+            configJson = Config2Json(configJson, preset.name, "", preset.version.to_string());
             result[preset.name] = configJson;
         }
     }
     return result;
+}
+//void ConfigBase::save_to_json(const std::string &file, const std::string &name, const std::string &from, const std::string &version, const std::string is_custom) const
+
+json PrintagoPanel::Config2Json(const std::string &name,
+                              const std::string &from,
+                              const std::string &version,
+                              const std::string  is_custom) 
+{
+    json j;
+    // record the headers
+    j[BBL_JSON_KEY_VERSION] = version;
+    j[BBL_JSON_KEY_NAME]    = name;
+    j[BBL_JSON_KEY_FROM]    = from;
+    if (!is_custom.empty())
+        j[BBL_JSON_KEY_IS_CUSTOM] = is_custom;
+
+    // record all the key-values
+    for (const std::string &opt_key : wxGetApp()->keys()) {
+        const ConfigOption *opt = this->option(opt_key);
+        if (opt->is_scalar()) {
+            if (opt->type() == coString && (opt_key != "bed_custom_texture" && opt_key != "bed_custom_model"))
+                // keep \n, \r, \t
+                j[opt_key] = (dynamic_cast<const ConfigOptionString *>(opt))->value;
+            else
+                j[opt_key] = opt->serialize();
+        } else {
+            const ConfigOptionVectorBase *vec = static_cast<const ConfigOptionVectorBase *>(opt);
+            // if (!vec->empty())
+            std::vector<std::string> string_values = vec->vserialize();
+
+            /*for (int i = 0; i < string_values.size(); i++)
+            {
+                std::string string_value = escape_string_cstyle(string_values[i]);
+                j[opt_key][i] = string_value;
+            }*/
+
+            json j_array(string_values);
+            j[opt_key] = j_array;
+        }
+    }
+
+    return j;
 }
 
 wxString PrintagoPanel::wxURLErrorToString(wxURLError error)
