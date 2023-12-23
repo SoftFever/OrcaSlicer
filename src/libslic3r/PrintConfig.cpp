@@ -2564,6 +2564,14 @@ def = this->add("filament_loading_speed", coFloats);
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionBool(false));
 
+    def = this->add("emit_machine_limits_to_gcode", coBool);
+    def->label = L("Emit limits to G-code");
+    def->category = L("Machine limits");
+    def->tooltip  = L("If enabled, the machine limits will be emitted to G-code file.\nThis option will be ignored if the g-code flavor is "
+                       "set to Klipper.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(true));
+
     def = this->add("machine_pause_gcode", coString);
     def->label = L("Pause G-code");
     def->tooltip = L("This G-code will be used as a code for the pause print. User can insert pause G-code in gcode viewer");

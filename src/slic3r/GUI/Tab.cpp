@@ -3684,6 +3684,8 @@ PageShp TabPrinter::build_kinematics_page()
 
         optgroup->append_line(line);
     }
+    auto optgroup = page->new_optgroup(L("Advanced"), "param_advanced");
+    optgroup->append_single_option_line("emit_machine_limits_to_gcode");
 
     const std::vector<std::string> speed_axes{
         "machine_max_speed_x",
@@ -3691,7 +3693,7 @@ PageShp TabPrinter::build_kinematics_page()
         "machine_max_speed_z",
         "machine_max_speed_e"
     };
-    auto optgroup = page->new_optgroup(L("Speed limitation"), "param_speed");
+    optgroup = page->new_optgroup(L("Speed limitation"), "param_speed");
         for (const std::string &speed_axis : speed_axes)	{
             append_option_line(optgroup, speed_axis);
         }
