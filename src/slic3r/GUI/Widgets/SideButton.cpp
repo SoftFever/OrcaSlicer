@@ -157,7 +157,7 @@ bool SideButton::Enable(bool enable)
 void SideButton::Rescale()
 {
     if (this->icon.bmp().IsOk())
-        this->icon.sys_color_changed();
+        this->icon.msw_rescale();
     messureSize();
 }
 
@@ -246,7 +246,7 @@ void SideButton::dorender(wxDC& dc, wxDC& text_dc)
             //BBS norrow size between text and icon
             szContent.x += 5;
         }
-        szIcon = icon.GetSize();
+        szIcon = icon.GetBmpSize();
         szContent.x += szIcon.x;
         if (szIcon.y > szContent.y)
             szContent.y = szIcon.y;
@@ -270,7 +270,7 @@ void SideButton::dorender(wxDC& dc, wxDC& text_dc)
         //BBS extra pixels for icon
         pt.x += icon_offset;
         pt.y += (rcContent.height - szIcon.y) / 2;
-        dc.DrawBitmap(icon.get_bitmap(), pt);
+        dc.DrawBitmap(icon.bmp(), pt);
         //BBS norrow size between text and icon
         pt.x += szIcon.x + 5;
         pt.y = rcContent.y;
@@ -299,7 +299,7 @@ void SideButton::messureSize()
         if (szContent.y > 0) {
             szContent.x += 5;
         }
-        wxSize szIcon = this->icon.GetSize();
+        wxSize szIcon = this->icon.GetBmpSize();
         szContent.x += szIcon.x;
         if (szIcon.y > szContent.y)
             szContent.y = szIcon.y;

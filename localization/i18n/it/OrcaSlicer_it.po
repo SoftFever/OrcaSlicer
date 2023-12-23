@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-19 22:09+0800\n"
+"POT-Creation-Date: 2023-12-23 22:15+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -905,6 +905,21 @@ msgstr "Elimina l'oggetto selezionato"
 msgid "Load..."
 msgstr "Caricamento..."
 
+msgid "Cube"
+msgstr "Cubo"
+
+msgid "Cylinder"
+msgstr "Cilindro"
+
+msgid "Cone"
+msgstr "Cono"
+
+msgid "Disc"
+msgstr ""
+
+msgid "Torus"
+msgstr ""
+
 msgid "Orca Cube"
 msgstr "Orca Cube"
 
@@ -917,14 +932,8 @@ msgstr "Autodesk FDM Test"
 msgid "Voron Cube"
 msgstr "Voron Cube"
 
-msgid "Cube"
-msgstr "Cubo"
-
-msgid "Cylinder"
-msgstr "Cilindro"
-
-msgid "Cone"
-msgstr "Cono"
+msgid "Stanford Bunny"
+msgstr ""
 
 msgid "Text"
 msgstr "Testo"
@@ -1082,6 +1091,9 @@ msgstr "Annulla informazioni di taglio"
 
 msgid "Add Primitive"
 msgstr "Aggiungi primitiva"
+
+msgid "Add Handy models"
+msgstr ""
 
 msgid "Show Labels"
 msgstr "Mostra Etichette"
@@ -2625,6 +2637,18 @@ msgstr ""
 "Modificare queste impostazioni automaticamente? \n"
 "Si - Modifica queste impostazioni ed abilita la modalità spirale/vaso\n"
 "No - Annulla l'attivazione della modalità a spirale"
+
+msgid ""
+"Alternate extra wall only works with ensure vertical shell thickness "
+"disabled. "
+msgstr ""
+
+msgid ""
+"Change these settings automatically? \n"
+"Yes - Disable ensure vertical shell thickness and enable alternate extra "
+"wall\n"
+"No  - Dont use alternate extra wall"
+msgstr ""
 
 msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support "
@@ -6840,18 +6864,23 @@ msgstr "Larghezza della linea di Ramming"
 msgid "Ramming line spacing"
 msgstr "Spaziatura tra linee di ramming"
 
-msgid "Recalculate"
-msgstr "Ricalcola"
+msgid "Auto-Calc"
+msgstr "Calcolo automatico"
+
+msgid "Re-calculate"
+msgstr "Ricalcolo"
 
 msgid "Flushing volumes for filament change"
 msgstr "Volumi di spurgo per il cambio filamento"
 
 msgid ""
-"Orca recalculates your flushing volumes everytime the filament colors "
-"change. You can change this behavior in Preferences."
+"Studio would re-calculate your flushing volumes everytime the filaments "
+"color changed. You could disable the auto-calculate in Bambu Studio > "
+"Preferences"
 msgstr ""
-"Orca ricalcola i volumi di risciacquo ogni volta che i colori del filamento "
-"cambiano. È possibile modificare questo comportamento in Preferenze."
+"Studio ricalcolava i volumi di spurgo ogni volta che il colore dei filamenti "
+"cambiava. È possibile disabilitare il calcolo automatico nelle preferenze > "
+"di Bambu Studio"
 
 msgid "Flushing volume (mm³) for each filament pair."
 msgstr "Volume di spurgo (mm³) per ogni coppia di filamento."
@@ -6866,6 +6895,15 @@ msgstr "Il moltiplicatore deve essere compreso nell'intervallo [%.2f, %.2f]."
 
 msgid "Multiplier"
 msgstr "Moltiplicatore"
+
+msgid "unloaded"
+msgstr "scaricato"
+
+msgid "loaded"
+msgstr "caricato"
+
+msgid "Filament #"
+msgstr "Filamento #"
 
 msgid "From"
 msgstr "Da"
@@ -9153,6 +9191,7 @@ msgstr ""
 msgid "Sparse infill density"
 msgstr "Densità riempimento"
 
+#, fuzzy, c-format, boost-format
 msgid ""
 "Density of internal sparse infill, 100% turns all sparse infill into solid "
 "infill and internal solid infill pattern will be used"
@@ -9840,6 +9879,17 @@ msgstr ""
 "Se la macchina supporta la modalità silenziosa, in cui la macchina utilizza "
 "un'accelerazione inferiore per stampare in modo più silenzioso"
 
+msgid "Emit limits to G-code"
+msgstr ""
+
+msgid "Machine limits"
+msgstr "Limiti macchina"
+
+msgid ""
+"If enabled, the machine limits will be emitted to G-code file.\n"
+"This option will be ignored if the g-code flavor is set to Klipper."
+msgstr ""
+
 msgid ""
 "This G-code will be used as a code for the pause print. User can insert "
 "pause G-code in gcode viewer"
@@ -9861,9 +9911,6 @@ msgstr "Velocità massima Z"
 
 msgid "Maximum speed E"
 msgstr "Velocità massima E"
-
-msgid "Machine limits"
-msgstr "Limiti macchina"
 
 msgid "Maximum X speed"
 msgstr "Velocità massima X"
@@ -10276,6 +10323,20 @@ msgstr "E' la velocità per le pareti interne."
 
 msgid "Number of walls of every layer"
 msgstr "Questo è il numero di pareti per layer."
+
+msgid "Alternate extra wall"
+msgstr ""
+
+msgid ""
+"This setting adds an extra wall to every other layer. This way the infill "
+"gets wedged vertically between the walls, resulting in stronger prints. \n"
+"\n"
+"When this option is enabled, the ensure vertical shell thickness option "
+"needs to be disabled. \n"
+"\n"
+"Using lightning infill together with this option is not recommended as there "
+"is limited infill to anchor the extra perimeters to."
+msgstr ""
 
 msgid ""
 "If you want to process the output G-code through custom scripts, just list "
@@ -13838,6 +13899,17 @@ msgstr ""
 "aumentare in modo appropriato la temperatura del piano riscaldato può "
 "ridurre la probabilità di deformazione."
 
+#~ msgid "Recalculate"
+#~ msgstr "Ricalcola"
+
+#~ msgid ""
+#~ "Orca recalculates your flushing volumes everytime the filament colors "
+#~ "change. You can change this behavior in Preferences."
+#~ msgstr ""
+#~ "Orca ricalcola i volumi di risciacquo ogni volta che i colori del "
+#~ "filamento cambiano. È possibile modificare questo comportamento in "
+#~ "Preferenze."
+
 #~ msgid ""
 #~ "The printer timed out while receiving a print job. Please check if the "
 #~ "network is functioning properly and send the print again."
@@ -13883,30 +13955,6 @@ msgstr ""
 
 #~ msgid "Quick"
 #~ msgstr "Rapido"
-
-#~ msgid "Auto-Calc"
-#~ msgstr "Calcolo automatico"
-
-#~ msgid "Re-calculate"
-#~ msgstr "Ricalcolo"
-
-#~ msgid ""
-#~ "Studio would re-calculate your flushing volumes everytime the filaments "
-#~ "color changed. You could disable the auto-calculate in Bambu Studio > "
-#~ "Preferences"
-#~ msgstr ""
-#~ "Studio ricalcolava i volumi di spurgo ogni volta che il colore dei "
-#~ "filamenti cambiava. È possibile disabilitare il calcolo automatico nelle "
-#~ "preferenze > di Bambu Studio"
-
-#~ msgid "unloaded"
-#~ msgstr "scaricato"
-
-#~ msgid "loaded"
-#~ msgstr "caricato"
-
-#~ msgid "Filament #"
-#~ msgstr "Filamento #"
 
 #~ msgid "Print sequence of inner wall and outer wall. "
 #~ msgstr "Stampa la sequenza della parete interna e della parete esterna. "

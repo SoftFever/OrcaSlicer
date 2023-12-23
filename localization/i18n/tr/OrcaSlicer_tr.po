@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OrcaSlicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-19 22:09+0800\n"
+"POT-Creation-Date: 2023-12-23 22:15+0800\n"
 "PO-Revision-Date: 2023-12-19 22:15+0300\n"
 "Last-Translator: Olcay ÖREN\n"
 "Language-Team: Türkçe\n"
@@ -905,6 +905,21 @@ msgstr "Seçilen nesneyi sil"
 msgid "Load..."
 msgstr "Yükle..."
 
+msgid "Cube"
+msgstr "Küp"
+
+msgid "Cylinder"
+msgstr "Silindir"
+
+msgid "Cone"
+msgstr "Koni"
+
+msgid "Disc"
+msgstr ""
+
+msgid "Torus"
+msgstr ""
+
 msgid "Orca Cube"
 msgstr "Orca Küpü"
 
@@ -917,14 +932,8 @@ msgstr "Autodesk FDM Testi"
 msgid "Voron Cube"
 msgstr "Voron Küpü"
 
-msgid "Cube"
-msgstr "Küp"
-
-msgid "Cylinder"
-msgstr "Silindir"
-
-msgid "Cone"
-msgstr "Koni"
+msgid "Stanford Bunny"
+msgstr ""
 
 msgid "Text"
 msgstr "Metin"
@@ -1082,6 +1091,9 @@ msgstr "Kesim bilgisini geçersiz kıl"
 
 msgid "Add Primitive"
 msgstr "Primitif Ekle"
+
+msgid "Add Handy models"
+msgstr ""
 
 msgid "Show Labels"
 msgstr "Etiketleri Göster"
@@ -2591,6 +2603,18 @@ msgstr ""
 "Evet - Bu ayarları değiştirin ve spiral modunu otomatik olarak "
 "etkinleştirin\n"
 "Hayır - Bu sefer spiral modunu kullanmaktan vazgeçin"
+
+msgid ""
+"Alternate extra wall only works with ensure vertical shell thickness "
+"disabled. "
+msgstr ""
+
+msgid ""
+"Change these settings automatically? \n"
+"Yes - Disable ensure vertical shell thickness and enable alternate extra "
+"wall\n"
+"No  - Dont use alternate extra wall"
+msgstr ""
 
 msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support "
@@ -6758,18 +6782,23 @@ msgstr "Sıkıştırma hattı genişliği"
 msgid "Ramming line spacing"
 msgstr "Sıkıştırma hattı aralığı"
 
-msgid "Recalculate"
-msgstr "Yeniden hesapla"
+msgid "Auto-Calc"
+msgstr "Otomatik Hesaplama"
+
+msgid "Re-calculate"
+msgstr "Tekrar Hesaplama"
 
 msgid "Flushing volumes for filament change"
 msgstr "Filament değişimi için temizleme hacmi"
 
 msgid ""
-"Orca recalculates your flushing volumes everytime the filament colors "
-"change. You can change this behavior in Preferences."
+"Studio would re-calculate your flushing volumes everytime the filaments "
+"color changed. You could disable the auto-calculate in Bambu Studio > "
+"Preferences"
 msgstr ""
-"Orca, filament renkleri her değiştiğinde yıkama hacimlerinizi yeniden "
-"hesaplar. Bu davranışı Tercihler'de değiştirebilirsiniz."
+"Studio, filamentlerin rengi her değiştiğinde yıkama hacimlerinizi yeniden "
+"hesaplar. Otomatik hesaplamayı Bambu Studio > Tercihler bölümünden devre "
+"dışı bırakabilirsiniz."
 
 msgid "Flushing volume (mm³) for each filament pair."
 msgstr "Her filament çifti için yıkama hacmi (mm³)."
@@ -6784,6 +6813,15 @@ msgstr "Çarpan [%.2f, %.2f] aralığında olmalıdır."
 
 msgid "Multiplier"
 msgstr "Çarpan"
+
+msgid "unloaded"
+msgstr "boşaltılmış"
+
+msgid "loaded"
+msgstr "yüklenmiş"
+
+msgid "Filament #"
+msgstr "Filament #"
 
 msgid "From"
 msgstr "İtibaren"
@@ -9665,6 +9703,17 @@ msgstr ""
 "Makinenin yazdırmak için daha düşük hızlanma kullandığı sessiz modu "
 "destekleyip desteklemediği"
 
+msgid "Emit limits to G-code"
+msgstr ""
+
+msgid "Machine limits"
+msgstr "Yazıcısınırları"
+
+msgid ""
+"If enabled, the machine limits will be emitted to G-code file.\n"
+"This option will be ignored if the g-code flavor is set to Klipper."
+msgstr ""
+
 msgid ""
 "This G-code will be used as a code for the pause print. User can insert "
 "pause G-code in gcode viewer"
@@ -9686,9 +9735,6 @@ msgstr "Maksimum hız Z"
 
 msgid "Maximum speed E"
 msgstr "Maksimum hız E"
-
-msgid "Machine limits"
-msgstr "Yazıcısınırları"
 
 msgid "Maximum X speed"
 msgstr "Maksimum X hızı"
@@ -10087,6 +10133,20 @@ msgstr "İç duvarın hızı"
 
 msgid "Number of walls of every layer"
 msgstr "Her katmanın duvar sayısı"
+
+msgid "Alternate extra wall"
+msgstr ""
+
+msgid ""
+"This setting adds an extra wall to every other layer. This way the infill "
+"gets wedged vertically between the walls, resulting in stronger prints. \n"
+"\n"
+"When this option is enabled, the ensure vertical shell thickness option "
+"needs to be disabled. \n"
+"\n"
+"Using lightning infill together with this option is not recommended as there "
+"is limited infill to anchor the extra perimeters to."
+msgstr ""
 
 msgid ""
 "If you want to process the output G-code through custom scripts, just list "
@@ -13533,6 +13593,16 @@ msgstr ""
 "sıcaklığının uygun şekilde arttırılmasının bükülme olasılığını "
 "azaltabileceğini biliyor muydunuz?"
 
+#~ msgid "Recalculate"
+#~ msgstr "Yeniden hesapla"
+
+#~ msgid ""
+#~ "Orca recalculates your flushing volumes everytime the filament colors "
+#~ "change. You can change this behavior in Preferences."
+#~ msgstr ""
+#~ "Orca, filament renkleri her değiştiğinde yıkama hacimlerinizi yeniden "
+#~ "hesaplar. Bu davranışı Tercihler'de değiştirebilirsiniz."
+
 #~ msgid ""
 #~ "The printer timed out while receiving a print job. Please check if the "
 #~ "network is functioning properly and send the print again."
@@ -13576,30 +13646,6 @@ msgstr ""
 
 #~ msgid "Quick"
 #~ msgstr "Hızlı"
-
-#~ msgid "Auto-Calc"
-#~ msgstr "Otomatik Hesaplama"
-
-#~ msgid "Re-calculate"
-#~ msgstr "Tekrar Hesaplama"
-
-#~ msgid ""
-#~ "Studio would re-calculate your flushing volumes everytime the filaments "
-#~ "color changed. You could disable the auto-calculate in Bambu Studio > "
-#~ "Preferences"
-#~ msgstr ""
-#~ "Studio, filamentlerin rengi her değiştiğinde yıkama hacimlerinizi yeniden "
-#~ "hesaplar. Otomatik hesaplamayı Bambu Studio > Tercihler bölümünden devre "
-#~ "dışı bırakabilirsiniz."
-
-#~ msgid "unloaded"
-#~ msgstr "boşaltılmış"
-
-#~ msgid "loaded"
-#~ msgstr "yüklenmiş"
-
-#~ msgid "Filament #"
-#~ msgstr "Filament #"
 
 #~ msgid "Print sequence of inner wall and outer wall. "
 #~ msgstr "İç duvar ve dış duvarın yazdırma sırası."

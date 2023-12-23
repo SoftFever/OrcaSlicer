@@ -267,12 +267,13 @@ std::map<std::string, std::string> SettingsFactory::CATEGORY_ICON =
     // BBS: remove SLA categories
 };
 
-wxBitmapBundle* SettingsFactory::get_category_bitmap(const std::string& category_name)
+wxBitmap SettingsFactory::get_category_bitmap(const std::string& category_name, bool menu_bmp)
 {
     if (CATEGORY_ICON.find(category_name) == CATEGORY_ICON.end())
-        return get_bmp_bundle("empty");
-    return get_bmp_bundle(CATEGORY_ICON.at(category_name));
+        return wxNullBitmap;
+    return create_scaled_bitmap(CATEGORY_ICON.at(category_name));
 }
+
 
 //-------------------------------------
 //            MenuFactory
@@ -434,30 +435,31 @@ static void create_freq_settings_popupmenu(wxMenu* menu, const bool is_object_se
     }
 }
 
-std::vector<wxBitmapBundle*> MenuFactory::get_volume_bitmaps()
+std::vector<wxBitmap> MenuFactory::get_volume_bitmaps()
 {
-    std::vector<wxBitmapBundle*> volume_bmps;
+    std::vector<wxBitmap> volume_bmps;
     volume_bmps.reserve(ADD_VOLUME_MENU_ITEMS.size());
-    for (const auto& item : ADD_VOLUME_MENU_ITEMS)
-        volume_bmps.push_back(get_bmp_bundle(item.second));
+    for (const auto& item : ADD_VOLUME_MENU_ITEMS) {
+        volume_bmps.push_back(create_scaled_bitmap(item.second));
+    }
     return volume_bmps;
 }
 
-std::vector<wxBitmapBundle*> MenuFactory::get_text_volume_bitmaps()
+std::vector<wxBitmap> MenuFactory::get_text_volume_bitmaps()
 {
-    std::vector<wxBitmapBundle*> volume_bmps;
+    std::vector<wxBitmap> volume_bmps;
     volume_bmps.reserve(TEXT_VOLUME_ICONS.size());
     for (const auto& item : TEXT_VOLUME_ICONS)
-        volume_bmps.push_back(get_bmp_bundle(item.second));
+        volume_bmps.push_back(create_scaled_bitmap(item.second));
     return volume_bmps;
 }
 
-std::vector<wxBitmapBundle*> MenuFactory::get_svg_volume_bitmaps()
+std::vector<wxBitmap> MenuFactory::get_svg_volume_bitmaps()
 {
-    std::vector<wxBitmapBundle *> volume_bmps;
+    std::vector<wxBitmap> volume_bmps;
     volume_bmps.reserve(SVG_VOLUME_ICONS.size());
     for (const auto &item : SVG_VOLUME_ICONS)
-        volume_bmps.push_back(get_bmp_bundle(item.second));
+        volume_bmps.push_back(create_scaled_bitmap(item.second));
     return volume_bmps;
 }
 
@@ -698,7 +700,7 @@ wxMenuItem* MenuFactory::append_menu_item_settings(wxMenu* menu_)
 
     // Add full settings list
     auto  menu_item = new wxMenuItem(menu, wxID_ANY, menu_name);
-    menu_item->SetBitmap(*get_bmp_bundle("cog"));
+    menu_item->SetBitmap(create_scaled_bitmap("cog"));
     menu_item->SetSubMenu(create_settings_popupmenu(menu, is_object_settings, item));
 
     return menu->Append(menu_item);
@@ -847,7 +849,7 @@ void MenuFactory::append_menu_item_change_extruder(wxMenu* menu)
     if (sels.IsEmpty())
         return;
 
-    std::vector<wxBitmapBundle*> icons = get_extruder_color_icons(true);
+    std::vector<wxBitmap*> icons = get_extruder_color_icons(true);
     wxMenu* extruder_selection_menu = new wxMenu();
     const wxString& name = sels.Count() == 1 ? names[0] : names[1];
 
@@ -868,7 +870,7 @@ void MenuFactory::append_menu_item_change_extruder(wxMenu* menu)
 
         if (icon_idx >= 0 && icon_idx < icons.size()) {
             append_menu_item(
-                extruder_selection_menu, wxID_ANY, item_name, "", [i](wxCommandEvent &) { obj_list()->set_extruder_for_selected_items(i); }, icons[icon_idx], menu,
+                extruder_selection_menu, wxID_ANY, item_name, "", [i](wxCommandEvent &) { obj_list()->set_extruder_for_selected_items(i); }, *icons[icon_idx], menu,
                 [is_active_extruder]() { return !is_active_extruder; }, m_parent);
         } else {
             append_menu_item(
@@ -1806,7 +1808,7 @@ void MenuFactory::append_menu_item_change_filament(wxMenu* menu)
             return;
     }
 
-    std::vector<wxBitmapBundle*> icons = get_extruder_color_icons(true);
+    std::vector<wxBitmap*> icons = get_extruder_color_icons(true);
     if (icons.size() < filaments_cnt) {
         BOOST_LOG_TRIVIAL(warning) << boost::format("Warning: icons size %1%, filaments_cnt=%2%")%icons.size()%filaments_cnt;
         if (icons.size() <= 1)
@@ -1846,9 +1848,8 @@ void MenuFactory::append_menu_item_change_filament(wxMenu* menu)
         const wxString& item_name = (i == 0 ? _L("Default") : wxString::Format(_L("Filament %d"), i)) +
             (is_active_extruder ? " (" + _L("current") + ")" : "");
 
-        //OcraftyoneTODO: determine if nullptr in place of icon causes issues
         append_menu_item(extruder_selection_menu, wxID_ANY, item_name, "",
-            [i](wxCommandEvent&) { obj_list()->set_extruder_for_selected_items(i); }, i == 0 ? nullptr : icons[i - 1], menu,
+            [i](wxCommandEvent&) { obj_list()->set_extruder_for_selected_items(i); }, i == 0 ? wxNullBitmap : *icons[i - 1], menu,
             [is_active_extruder]() { return !is_active_extruder; }, m_parent);
     }
     menu->Append(wxID_ANY, name, extruder_selection_menu, _L("Change Filament"));
@@ -1966,6 +1967,12 @@ void MenuFactory::update_default_menu()
     create_default_menu();
 }
 
+void MenuFactory::msw_rescale()
+{
+    for (MenuWithSeparators* menu : { &m_object_menu, &m_sla_object_menu, &m_part_menu, &m_default_menu })
+        msw_rescale_menu(dynamic_cast<wxMenu*>(menu));
+}
+
 #ifdef _WIN32
 // For this class is used code from stackoverflow:
 // https://stackoverflow.com/questions/257288/is-it-possible-to-write-a-template-to-check-for-a-functions-existence
@@ -1995,7 +2002,7 @@ static void update_menu_item_def_colors(T* item)
 void MenuFactory::sys_color_changed()
 {
     for (MenuWithSeparators* menu : { &m_object_menu, &m_sla_object_menu, &m_part_menu, &m_default_menu }) {
-        sys_color_changed_menu(dynamic_cast<wxMenu *>(menu));// msw_rescale_menu updates just icons, so use it
+        msw_rescale_menu(dynamic_cast<wxMenu*>(menu));// msw_rescale_menu updates just icons, so use it
 #ifdef _WIN32
         // but under MSW we have to update item's bachground color
         for (wxMenuItem* item : menu->GetMenuItems())
@@ -2010,17 +2017,14 @@ void MenuFactory::sys_color_changed(wxMenuBar* menubar)
 #if 0
     for (size_t id = 0; id < menubar->GetMenuCount(); id++) {
         wxMenu* menu = menubar->GetMenu(id);
-        sys_color_changed_menu(menu);
-#ifndef __linux__
-        menu->SetupBitmaps();
+        msw_rescale_menu(menu);
 #ifdef _WIN32
         // but under MSW we have to update item's bachground color
         for (wxMenuItem* item : menu->GetMenuItems())
             update_menu_item_def_colors(item);
 #endif
     }
-//    menubar->Refresh();
-#endif
+    menubar->Refresh();
 #endif
 }
 

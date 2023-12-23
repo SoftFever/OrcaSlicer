@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-19 22:09+0800\n"
+"POT-Creation-Date: 2023-12-23 22:15+0800\n"
 "PO-Revision-Date: 2023-12-20 09:20+0900\n"
 "Last-Translator: Hotsolidinfill <138652683+Hotsolidinfill@users.noreply."
 "github.com>, crwusiz <crwusiz@naver.com>\n"
@@ -906,6 +906,21 @@ msgstr "선택된 개체 삭제"
 msgid "Load..."
 msgstr "불러오기..."
 
+msgid "Cube"
+msgstr "정육면체"
+
+msgid "Cylinder"
+msgstr "원기둥"
+
+msgid "Cone"
+msgstr "원뿔"
+
+msgid "Disc"
+msgstr ""
+
+msgid "Torus"
+msgstr ""
+
 msgid "Orca Cube"
 msgstr "Orca 큐브"
 
@@ -918,14 +933,8 @@ msgstr "Autodesk FDM 테스트"
 msgid "Voron Cube"
 msgstr "보론 큐브"
 
-msgid "Cube"
-msgstr "정육면체"
-
-msgid "Cylinder"
-msgstr "원기둥"
-
-msgid "Cone"
-msgstr "원뿔"
+msgid "Stanford Bunny"
+msgstr ""
 
 msgid "Text"
 msgstr "텍스트"
@@ -1083,6 +1092,9 @@ msgstr "잘못된 잘라내기 정보"
 
 msgid "Add Primitive"
 msgstr "기본 모델 추가"
+
+msgid "Add Handy models"
+msgstr ""
 
 msgid "Show Labels"
 msgstr "이름표 보기"
@@ -2549,6 +2561,18 @@ msgstr ""
 "이 설정을 자동으로 변경하시겠습니까?\n"
 "예 - 이 설정을 변경하고 나선 모드를 자동으로 활성화합니다\n"
 "아니오 - 이번에는 나선 모드 사용을 포기합니다"
+
+msgid ""
+"Alternate extra wall only works with ensure vertical shell thickness "
+"disabled. "
+msgstr ""
+
+msgid ""
+"Change these settings automatically? \n"
+"Yes - Disable ensure vertical shell thickness and enable alternate extra "
+"wall\n"
+"No  - Dont use alternate extra wall"
+msgstr ""
 
 msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support "
@@ -6013,8 +6037,8 @@ msgstr "무시"
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "툴헤드 없이 시간 경과를 기록할 경우 \"타임랩스 닦기 타워\"를 추가하는 것이 좋"
 "습니다\n"
@@ -6632,18 +6656,22 @@ msgstr "래밍 선 너비"
 msgid "Ramming line spacing"
 msgstr "래밍 선 간격"
 
-msgid "Recalculate"
-msgstr "다시계산"
+msgid "Auto-Calc"
+msgstr "자동 계산"
+
+msgid "Re-calculate"
+msgstr "다시 계산"
 
 msgid "Flushing volumes for filament change"
 msgstr "필라멘트 교체를 위한 버리기 부피"
 
 msgid ""
-"Orca recalculates your flushing volumes everytime the filament colors "
-"change. You can change this behavior in Preferences."
+"Studio would re-calculate your flushing volumes everytime the filaments "
+"color changed. You could disable the auto-calculate in Bambu Studio > "
+"Preferences"
 msgstr ""
-"Orca Slicer는 필라멘트 색상이 바뀔 때마다 플러싱 볼륨을 다시 계산합니다. 환"
-"경 설정에서 이 동작을 변경할 수 있습니다."
+"Studio는 필라멘트를 교체할 때마다 플러싱 볼륨을 다시 계산합니다.색상이 변경되"
+"었습니다. Bambu Studio > 에서 자동 계산을 비활성화할 수 있습니다.환경설정"
 
 msgid "Flushing volume (mm³) for each filament pair."
 msgstr "각 필라멘트 쌍에 대한 버리기 부피(mm³)."
@@ -6658,6 +6686,15 @@ msgstr "승수는 [%.2f, %.2f] 범위에 있어야 합니다."
 
 msgid "Multiplier"
 msgstr "승수"
+
+msgid "unloaded"
+msgstr "언로드됨"
+
+msgid "loaded"
+msgstr "로드됨"
+
+msgid "Filament #"
+msgstr "필라멘트 #"
 
 msgid "From"
 msgstr "에서"
@@ -8008,6 +8045,7 @@ msgstr "반전 임계값"
 msgid "Overhang reversal threshold"
 msgstr "돌출부 반전 임계값"
 
+#, fuzzy, c-format, boost-format
 msgid ""
 "Number of mm the overhang need to be for the reversal to be considered "
 "useful. Can be a % of the perimeter width.\n"
@@ -8787,6 +8825,7 @@ msgstr "선의 시작 또는 주 방향을 제어하는 드문 내부 채움 패
 msgid "Sparse infill density"
 msgstr "드문 내부 채움 밀도"
 
+#, fuzzy, c-format, boost-format
 msgid ""
 "Density of internal sparse infill, 100% turns all sparse infill into solid "
 "infill and internal solid infill pattern will be used"
@@ -9018,10 +9057,10 @@ msgstr "팬 최대 속도 레이어"
 
 msgid ""
 "Fan speed will be ramped up linearly from zero at layer "
-"\"close_fan_the_first_x_layers\" to maximum at layer "
-"\"full_fan_speed_layer\". \"full_fan_speed_layer\" will be ignored if lower "
-"than \"close_fan_the_first_x_layers\", in which case the fan will be running "
-"at maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
+"\"close_fan_the_first_x_layers\" to maximum at layer \"full_fan_speed_layer"
+"\". \"full_fan_speed_layer\" will be ignored if lower than "
+"\"close_fan_the_first_x_layers\", in which case the fan will be running at "
+"maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
 msgstr ""
 "팬 속도는 \"close_fan_the_first_x_layers\" 의 0에서 \"full_fan_speed_layer\" "
 "의 최고 속도까지 선형적으로 증가합니다. \"full_fan_speed_layer\"가 "
@@ -9429,6 +9468,17 @@ msgid ""
 "acceleration to print"
 msgstr "기기가 낮은 가속도를 사용하여 출력하는 무음 모드 지원 여부"
 
+msgid "Emit limits to G-code"
+msgstr ""
+
+msgid "Machine limits"
+msgstr "장치 한계"
+
+msgid ""
+"If enabled, the machine limits will be emitted to G-code file.\n"
+"This option will be ignored if the g-code flavor is set to Klipper."
+msgstr ""
+
 msgid ""
 "This G-code will be used as a code for the pause print. User can insert "
 "pause G-code in gcode viewer"
@@ -9450,9 +9500,6 @@ msgstr "Z축 최대 속도"
 
 msgid "Maximum speed E"
 msgstr "E축 최대 속도"
-
-msgid "Machine limits"
-msgstr "장치 한계"
 
 msgid "Maximum X speed"
 msgstr "X축 최대 속도"
@@ -9837,6 +9884,20 @@ msgstr "내벽 속도"
 
 msgid "Number of walls of every layer"
 msgstr "모든 레이어의 벽 수"
+
+msgid "Alternate extra wall"
+msgstr ""
+
+msgid ""
+"This setting adds an extra wall to every other layer. This way the infill "
+"gets wedged vertically between the walls, resulting in stronger prints. \n"
+"\n"
+"When this option is enabled, the ensure vertical shell thickness option "
+"needs to be disabled. \n"
+"\n"
+"Using lightning infill together with this option is not recommended as there "
+"is limited infill to anchor the extra perimeters to."
+msgstr ""
 
 msgid ""
 "If you want to process the output G-code through custom scripts, just list "
@@ -12274,8 +12335,8 @@ msgstr ""
 "다시 작성하시겠습니까?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you "
-"selected\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 "사전 설정의 이름을 \"선택한 공급업체 유형 직렬 @프린터\"로 변경합니다.\n"
@@ -13199,6 +13260,16 @@ msgstr ""
 "다음과 같이 휘어지기 쉬운 소재를 인쇄할 때 알고 계셨나요?ABS, 히팅베드 온도"
 "를 적절히 높이면 온도를 낮출 수 있습니다.뒤틀림 확률."
 
+#~ msgid "Recalculate"
+#~ msgstr "다시계산"
+
+#~ msgid ""
+#~ "Orca recalculates your flushing volumes everytime the filament colors "
+#~ "change. You can change this behavior in Preferences."
+#~ msgstr ""
+#~ "Orca Slicer는 필라멘트 색상이 바뀔 때마다 플러싱 볼륨을 다시 계산합니다. "
+#~ "환경 설정에서 이 동작을 변경할 수 있습니다."
+
 #~ msgid ""
 #~ "The printer timed out while receiving a print job. Please check if the "
 #~ "network is functioning properly and send the print again."
@@ -13241,30 +13312,6 @@ msgstr ""
 
 #~ msgid "Quick"
 #~ msgstr "빠른"
-
-#~ msgid "Auto-Calc"
-#~ msgstr "자동 계산"
-
-#~ msgid "Re-calculate"
-#~ msgstr "다시 계산"
-
-#~ msgid ""
-#~ "Studio would re-calculate your flushing volumes everytime the filaments "
-#~ "color changed. You could disable the auto-calculate in Bambu Studio > "
-#~ "Preferences"
-#~ msgstr ""
-#~ "Studio는 필라멘트를 교체할 때마다 플러싱 볼륨을 다시 계산합니다.색상이 변"
-#~ "경되었습니다. Bambu Studio > 에서 자동 계산을 비활성화할 수 있습니다.환경"
-#~ "설정"
-
-#~ msgid "unloaded"
-#~ msgstr "언로드됨"
-
-#~ msgid "loaded"
-#~ msgstr "로드됨"
-
-#~ msgid "Filament #"
-#~ msgstr "필라멘트 #"
 
 #~ msgid "Print sequence of inner wall and outer wall. "
 #~ msgstr "내벽과 외벽의 순서를 인쇄합니다."
