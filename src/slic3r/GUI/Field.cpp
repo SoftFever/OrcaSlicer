@@ -196,6 +196,11 @@ void Field::on_back_to_sys_value()
 		m_back_to_sys_value(m_opt_id);
 }
 
+void Field::on_edit_value()
+{
+    if (m_fn_edit_value)
+        m_fn_edit_value(m_opt_id);
+}
 
 /// Fires the enable or disable function, based on the input.
 
