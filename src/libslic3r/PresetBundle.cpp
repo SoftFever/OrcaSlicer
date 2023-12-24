@@ -462,7 +462,7 @@ std::string PresetBundle::get_texture_for_printer_model(std::string model_name)
     {
         for (auto vendor_model: vendor_profile.second.models)
         {
-            if (vendor_model.name == model_name)
+            if (vendor_model.name == model_name || vendor_model.id == model_name)
             {
                 texture_name = vendor_model.bed_texture;
                 vendor_name = vendor_profile.first;
