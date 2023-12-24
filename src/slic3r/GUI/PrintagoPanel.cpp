@@ -214,6 +214,9 @@ bool PrintagoPanel::DownloadFileFromURL(const wxString url, const wxFileName &lo
             fs::path tmp_path = target_path;
             tmp_path.replace_extension(tmp_path.extension().string() + ".download");
 
+            if (fs::exists(target_path)) fs::remove(target_path);
+            if (fs::exists(tmp_path)) fs::remove(tmp_path);
+            
             auto http = Http::get(url.ToStdString());
 
             while (cont && retry_count < max_retries) {
@@ -278,7 +281,9 @@ bool PrintagoPanel::SavePrintagoPrintFile(const wxString url, wxString &localPat
         uriFileName = uriFileName.substr(0, queryPos);
     }
     // Construct the full path for the temporary file
-    wxString   tempDir = wxGetApp().app_config->get("download_path");
+    // wxString   tempDir = wxGetApp().app_config->get("download_path");
+    auto tempDir = wxStandardPaths::Get().GetTempDir().utf8_str().data();
+        
     wxFileName filename(tempDir, uriFileName);
 
     if (DownloadFileFromURL(url, filename)) {
