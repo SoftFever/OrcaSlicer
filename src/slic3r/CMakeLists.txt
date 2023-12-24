@@ -212,6 +212,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/PresetComboBoxes.cpp
     GUI/BitmapComboBox.hpp
     GUI/BitmapComboBox.cpp
+    GUI/EditGCodeDialog.hpp
+    GUI/EditGCodeDialog.cpp
     GUI/SavePresetDialog.hpp
     GUI/SavePresetDialog.cpp
     GUI/GUI_Colors.hpp

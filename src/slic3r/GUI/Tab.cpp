@@ -38,6 +38,7 @@
 #include "format.hpp"
 #include "UnsavedChangesDialog.hpp"
 #include "SavePresetDialog.hpp"
+#include "EditGCodeDialog.hpp"
 #include "MsgDialog.hpp"
 #include "Notebook.hpp"
 
@@ -2899,7 +2900,12 @@ static void validate_custom_gcode_cb(Tab* tab, ConfigOptionsGroupShp opt_group, 
 
 void Tab::edit_custom_gcode(const t_config_option_key& opt_key)
 {
-    MessageDialog(this, format_wxstr("Edit gcode for %1%", opt_key), this->title()).ShowModal();
+    EditGCodeDialog(this, opt_key, m_config->opt_string(opt_key)).ShowModal();
+}
+
+void TabFilament::edit_custom_gcode(const t_config_option_key& opt_key)
+{
+    EditGCodeDialog(this, opt_key, m_config->opt_string(opt_key, unsigned(m_presets_choice->GetSelection()))).ShowModal();
 }
 
 void TabFilament::add_filament_overrides_page()
