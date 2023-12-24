@@ -122,6 +122,12 @@ void Slic3r::GUI::ImageGrid::SetSelecting(bool selecting)
 
 void Slic3r::GUI::ImageGrid::DoActionOnSelection(int action) { DoAction(-1, action); }
 
+void Slic3r::GUI::ImageGrid::ShowDownload(bool show)
+{
+    m_show_download = show;
+    Refresh();
+}
+
 void Slic3r::GUI::ImageGrid::Rescale()
 {
     m_title_mask = wxBitmap();
@@ -266,10 +272,13 @@ std::pair<int, size_t> Slic3r::GUI::ImageGrid::HitTest(wxPoint const &pt)
         auto & file = m_file_sys->GetFile(index);
         int    btn  = file.IsDownload() && file.DownloadProgress() >= 0 ? 3 : 2;
         if (m_file_sys->GetFileType() == PrinterFileSystem::F_MODEL) {
-            btn = 3;
+            if (m_show_download)
+                btn = 3;
             hover_rect.y -= m_content_rect.GetHeight() * 64 / 264;
         }
-        if (hover_rect.Contains(off.x, off.y)) { return {HIT_ACTION, index * 4 + off.x * btn / hover_rect.GetWidth()}; } // Two buttons
+        if (hover_rect.Contains(off.x, off.y)) {
+            return {HIT_ACTION, index * 4 + off.x * btn / hover_rect.GetWidth()};
+        } // Two buttons
     }
     return {HIT_ITEM, index};
 }
@@ -593,12 +602,12 @@ void Slic3r::GUI::ImageGrid::renderContent1(wxDC &dc, wxPoint const &pt, int ind
     bool show_download_state_always = true;
     // Draw checked icon
     if (m_selecting && !show_download_state_always)
-        dc.DrawBitmap(selected ? m_checked_icon.bmp() : m_unchecked_icon.bmp(), pt + wxPoint{10, m_content_rect.GetHeight() - m_checked_icon.GetBmpHeight() - 10});
+        dc.DrawBitmap(selected ? m_checked_icon.bmp() : m_unchecked_icon.bmp(), pt + wxPoint{10, 10});
     // can't handle alpha
     // dc.GradientFillLinear({pt.x, pt.y, m_border_size.GetWidth(), 60}, wxColour(0x6F, 0x6F, 0x6F, 0x99), wxColour(0x6F, 0x6F, 0x6F, 0), wxBOTTOM);
     else if (m_file_sys->GetGroupMode() == PrinterFileSystem::G_NONE) {
         wxString nonHoverText;
-        wxString secondAction = _L("Download");
+        wxString secondAction = m_show_download ? _L("Download") : "";
         wxString thirdAction;
         int      states = 0;
         // Draw download progress
@@ -644,7 +653,7 @@ void Slic3r::GUI::ImageGrid::renderContent1(wxDC &dc, wxPoint const &pt, int ind
         dc.DrawText(date, pt + wxPoint{24, 16});
     }
     if (m_selecting && show_download_state_always)
-        dc.DrawBitmap(selected ? m_checked_icon.bmp() : m_unchecked_icon.bmp(), pt + wxPoint{10, m_content_rect.GetHeight() - m_checked_icon.GetBmpHeight() - 10});
+        dc.DrawBitmap(selected ? m_checked_icon.bmp() : m_unchecked_icon.bmp(), pt + wxPoint{10, 10});
 }
 
 void Slic3r::GUI::ImageGrid::renderContent2(wxDC &dc, wxPoint const &pt, int index, bool hit)

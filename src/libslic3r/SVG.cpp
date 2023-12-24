@@ -5,8 +5,25 @@
 
 namespace Slic3r {
 
+void create_dir(const std::string& filePath)
+{
+    boost::filesystem::path path(filePath);
+    boost::filesystem::path dir = path.parent_path();
+
+    if (!dir.empty()) {
+        if (!boost::filesystem::exists(dir)) {
+            try {
+                boost::filesystem::create_directories(dir);
+            } catch (const boost::filesystem::filesystem_error& e) {
+                std::cerr << e.what() << std::endl;
+            }
+        }
+    }
+}
+
 bool SVG::open(const char* afilename)
 {
+    create_dir(afilename);
     this->filename = afilename;
     this->f = boost::nowide::fopen(afilename, "w");
     if (this->f == NULL)
@@ -25,6 +42,7 @@ bool SVG::open(const char* afilename)
 
 bool SVG::open(const char* afilename, const BoundingBox &bbox, const coord_t bbox_offset, bool aflipY)
 {
+    create_dir(afilename);
     this->filename = afilename;
     this->origin   = bbox.min - Point(bbox_offset, bbox_offset);
     this->flipY    = aflipY;

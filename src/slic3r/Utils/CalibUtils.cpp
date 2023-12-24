@@ -4,13 +4,16 @@
 #include "../GUI/DeviceManager.hpp"
 #include "../GUI/Jobs/ProgressIndicator.hpp"
 #include "../GUI/PartPlate.hpp"
+#include "libslic3r/CutUtils.hpp"
 
 #include "libslic3r/Model.hpp"
+#include "slic3r/GUI/Jobs/BoostThreadWorker.hpp"
+#include "slic3r/GUI/Jobs/PlaterWorker.hpp"
 
 
 namespace Slic3r {
 namespace GUI {
-std::shared_ptr<PrintJob> CalibUtils::print_job;
+std::unique_ptr<Worker> CalibUtils::print_worker;
 wxString wxstr_temp_dir = fs::path(fs::temp_directory_path() / "calib").wstring();
 static const std::string temp_dir = wxstr_temp_dir.utf8_string();
 static const std::string temp_gcode_path = temp_dir + "/temp.gcode";
@@ -54,6 +57,104 @@ std::string get_calib_mode_name(CalibMode cali_mode, int stage)
     }
 }
 
+static wxString to_wstring_name(std::string name)
+{
+    if (name == "hardened_steel") {
+        return _L("Hardened Steel");
+    } else if (name == "stainless_steel") {
+        return _L("Stainless Steel");
+    }
+
+    return wxEmptyString;
+}
+
+static bool is_same_nozzle_diameters(const DynamicPrintConfig &full_config, const MachineObject *obj, wxString& error_msg)
+{
+    if (obj == nullptr)
+        return true;
+
+    try {
+        std::string nozzle_type;
+        const ConfigOptionEnum<NozzleType> * config_nozzle_type = full_config.option<ConfigOptionEnum<NozzleType>>("nozzle_type");
+        if (config_nozzle_type->value == NozzleType::ntHardenedSteel) {
+            nozzle_type = "hardened_steel";
+        } else if (config_nozzle_type->value == NozzleType::ntStainlessSteel) {
+            nozzle_type = "stainless_steel";
+        }
+
+        auto opt_nozzle_diameters = full_config.option<ConfigOptionFloats>("nozzle_diameter");
+        if (opt_nozzle_diameters != nullptr) {
+            float preset_nozzle_diameter = opt_nozzle_diameters->get_at(0);
+            if (preset_nozzle_diameter != obj->nozzle_diameter) {
+                wxString nozzle_in_preset  = wxString::Format(_L("nozzle in preset: %s %s"), wxString::Format("%.1f", preset_nozzle_diameter).ToStdString(), to_wstring_name(nozzle_type));
+                wxString nozzle_in_printer = wxString::Format(_L("nozzle memorized: %.1f %s"), obj->nozzle_diameter, to_wstring_name(obj->nozzle_type));
+
+                error_msg = _L("Your nozzle diameter in preset is not consistent with memorized nozzle diameter. Did you change your nozzle lately?") + "\n    " + nozzle_in_preset +
+                            "\n    " + nozzle_in_printer + "\n";
+                return false;
+            } 
+        }
+
+    } catch (...) {}
+
+    return true;
+}
+
+static bool is_same_nozzle_type(const DynamicPrintConfig &full_config, const MachineObject *obj, wxString& error_msg)
+{
+    if (obj == nullptr)
+        return true;
+
+    NozzleType nozzle_type = NozzleType::ntUndefine;
+
+    if (obj->nozzle_type == "stainless_steel") {
+        nozzle_type = NozzleType::ntStainlessSteel;
+    } else if (obj->nozzle_type == "hardened_steel") {
+        nozzle_type = NozzleType::ntHardenedSteel;
+    }
+
+    int printer_nozzle_hrc = Print::get_hrc_by_nozzle_type(nozzle_type);
+    if (full_config.has("required_nozzle_HRC")) {
+        int filament_nozzle_hrc = full_config.opt_int("required_nozzle_HRC", 0);
+        if (abs(filament_nozzle_hrc) > abs(printer_nozzle_hrc)) {
+            BOOST_LOG_TRIVIAL(info) << "filaments hardness mismatch:  printer_nozzle_hrc = " << printer_nozzle_hrc << ", filament_nozzle_hrc = " << filament_nozzle_hrc;
+            std::string filament_type = full_config.opt_string("filament_type", 0);
+            error_msg = wxString::Format(_L("*Printing %s material with %s may cause nozzle damage"), filament_type, to_wstring_name(obj->nozzle_type));
+            error_msg += "\n";
+            return false;
+        }
+    }
+
+    return true;
+}
+
+static bool check_nozzle_diameter_and_type(const DynamicPrintConfig &full_config, wxString& error_msg)
+{
+    DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev) {
+        error_msg = _L("Need select printer");
+        return false;
+    }
+
+    MachineObject *obj = dev->get_selected_machine();
+    if (obj == nullptr) {
+        error_msg = _L("Need select printer");
+        return false;
+    }
+
+    // P1P/S
+    if (obj->nozzle_type.empty())
+        return true;
+
+    if (!is_same_nozzle_diameters(full_config, obj, error_msg))
+        return false;
+
+    if (!is_same_nozzle_type(full_config, obj, error_msg))
+        return false;
+
+    return true;
+}
+
 CalibMode CalibUtils::get_calib_mode_by_name(const std::string name, int& cali_stage)
 {
     if (name == "pa_line_calib_mode") {
@@ -93,13 +194,14 @@ bool CalibUtils::validate_input_k_value(wxString k_text, float* output_value)
 
     double k_value = 0.0;
     try {
-        k_text.ToDouble(&k_value);
+        if(!k_text.ToDouble(&k_value))
+            return false;
     }
     catch (...) {
         ;
     }
 
-    if (k_value < 0 || k_value > 0.5) {
+    if (k_value < 0 || k_value > 0.3) {
         *output_value = default_k;
         return false;
     }
@@ -133,7 +235,7 @@ bool CalibUtils::validate_input_flow_ratio(wxString flow_ratio, float* output_va
     return true;
 }
 
-static void cut_model(Model &model, std::array<Vec3d, 4> plane_points, ModelObjectCutAttributes attributes)
+static void cut_model(Model &model, double z, ModelObjectCutAttributes attributes)
 {
     size_t obj_idx = 0;
     size_t instance_idx = 0;
@@ -142,7 +244,9 @@ static void cut_model(Model &model, std::array<Vec3d, 4> plane_points, ModelObje
 
     auto* object = model.objects[0];
 
-    const auto new_objects = object->cut(instance_idx, plane_points, attributes);
+    const Vec3d instance_offset = object->instances[instance_idx]->get_offset();
+    Cut         cut(object, instance_idx, Geometry::translation_transform(z * Vec3d::UnitZ() - instance_offset), attributes);
+    const auto  new_objects = cut.perform_with_plane();
     model.delete_object(obj_idx);
 
     for (ModelObject *model_object : new_objects) {
@@ -411,7 +515,7 @@ void CalibUtils::calib_flowrate(int pass, const CalibInfo &calib_info, wxString 
     for (auto _obj : model.objects) {
         _obj->ensure_on_bed();
         _obj->config.set_key_value("wall_loops", new ConfigOptionInt(3));
-        // _obj->config.set_key_value("top_one_wall_type", new ConfigOptionEnum<TopOneWallType>(TopOneWallType::Topmost));
+        _obj->config.set_key_value("only_one_wall_top", new ConfigOptionBool(true));
         _obj->config.set_key_value("sparse_infill_density", new ConfigOptionPercent(35));
         _obj->config.set_key_value("bottom_shell_layers", new ConfigOptionInt(1));
         _obj->config.set_key_value("top_shell_layers", new ConfigOptionInt(5));
@@ -435,7 +539,7 @@ void CalibUtils::calib_flowrate(int pass, const CalibInfo &calib_info, wxString 
         auto modifier = stof(obj_name);
         _obj->config.set_key_value("print_flow_ratio", new ConfigOptionFloat(1.0f + modifier / 100.f));
     }
-
+    print_config.set_key_value("alternate_extra_wall", new ConfigOptionBool(false));
     print_config.set_key_value("layer_height", new ConfigOptionFloat(layer_height));
     print_config.set_key_value("initial_layer_print_height", new ConfigOptionFloat(first_layer_height));
     print_config.set_key_value("reduce_crossing_wall", new ConfigOptionBool(true));
@@ -564,12 +668,7 @@ void CalibUtils::calib_temptue(const CalibInfo &calib_info, wxString &error_mess
         // add EPSILON offset to avoid cutting at the exact location where the flat surface is
         auto new_height = block_count * 10.0 + EPSILON;
         if (new_height < obj_bb.size().z()) {
-            std::array<Vec3d, 4> plane_pts;
-            plane_pts[0] = Vec3d(obj_bb.min(0), obj_bb.min(1), new_height);
-            plane_pts[1] = Vec3d(obj_bb.max(0), obj_bb.min(1), new_height);
-            plane_pts[2] = Vec3d(obj_bb.max(0), obj_bb.max(1), new_height);
-            plane_pts[3] = Vec3d(obj_bb.min(0), obj_bb.max(1), new_height);
-            cut_model(model, plane_pts, ModelObjectCutAttribute::KeepLower);
+            cut_model(model, new_height, ModelObjectCutAttribute::KeepLower);
         }
     }
 
@@ -579,12 +678,7 @@ void CalibUtils::calib_temptue(const CalibInfo &calib_info, wxString &error_mess
     if (block_count > 0) {
         auto new_height = block_count * 10.0 + EPSILON;
         if (new_height < obj_bb.size().z()) {
-            std::array<Vec3d, 4> plane_pts;
-            plane_pts[0] = Vec3d(obj_bb.min(0), obj_bb.min(1), new_height);
-            plane_pts[1] = Vec3d(obj_bb.max(0), obj_bb.min(1), new_height);
-            plane_pts[2] = Vec3d(obj_bb.max(0), obj_bb.max(1), new_height);
-            plane_pts[3] = Vec3d(obj_bb.min(0), obj_bb.max(1), new_height);
-            cut_model(model, plane_pts, ModelObjectCutAttribute::KeepUpper);
+            cut_model(model, new_height, ModelObjectCutAttribute::KeepUpper);
         }
     }
 
@@ -654,6 +748,7 @@ void CalibUtils::calib_max_vol_speed(const CalibInfo &calib_info, wxString &erro
     print_config.set_key_value("enable_overhang_speed", new ConfigOptionBool{false});
     print_config.set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(tlTraditional));
     print_config.set_key_value("wall_loops", new ConfigOptionInt(1));
+    print_config.set_key_value("alternate_extra_wall", new ConfigOptionBool(false));
     print_config.set_key_value("top_shell_layers", new ConfigOptionInt(0));
     print_config.set_key_value("bottom_shell_layers", new ConfigOptionInt(1));
     print_config.set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
@@ -670,12 +765,7 @@ void CalibUtils::calib_max_vol_speed(const CalibInfo &calib_info, wxString &erro
     auto obj_bb = obj->bounding_box();
     double height = (params.end - params.start + 1) / params.step;
     if (height < obj_bb.size().z()) {
-        std::array<Vec3d, 4> plane_pts;
-        plane_pts[0] = Vec3d(obj_bb.min(0), obj_bb.min(1), height);
-        plane_pts[1] = Vec3d(obj_bb.max(0), obj_bb.min(1), height);
-        plane_pts[2] = Vec3d(obj_bb.max(0), obj_bb.max(1), height);
-        plane_pts[3] = Vec3d(obj_bb.min(0), obj_bb.max(1), height);
-        cut_model(model, plane_pts, ModelObjectCutAttribute::KeepLower);
+        cut_model(model, height, ModelObjectCutAttribute::KeepLower);
     }
 
     auto new_params  = params;
@@ -718,6 +808,8 @@ void CalibUtils::calib_VFA(const CalibInfo &calib_info, wxString &error_message)
     print_config.set_key_value("enable_overhang_speed", new ConfigOptionBool{false});
     print_config.set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(tlTraditional));
     print_config.set_key_value("wall_loops", new ConfigOptionInt(1));
+    print_config.set_key_value("detect_thin_wall", new ConfigOptionBool(false));
+    print_config.set_key_value("alternate_extra_wall", new ConfigOptionBool(false));
     print_config.set_key_value("top_shell_layers", new ConfigOptionInt(0));
     print_config.set_key_value("bottom_shell_layers", new ConfigOptionInt(1));
     print_config.set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
@@ -731,12 +823,7 @@ void CalibUtils::calib_VFA(const CalibInfo &calib_info, wxString &error_message)
     auto obj_bb = model.objects[0]->bounding_box();
     auto height = 5 * ((params.end - params.start) / params.step + 1);
     if (height < obj_bb.size().z()) {
-        std::array<Vec3d, 4> plane_pts;
-        plane_pts[0] = Vec3d(obj_bb.min(0), obj_bb.min(1), height);
-        plane_pts[1] = Vec3d(obj_bb.max(0), obj_bb.min(1), height);
-        plane_pts[2] = Vec3d(obj_bb.max(0), obj_bb.max(1), height);
-        plane_pts[3] = Vec3d(obj_bb.min(0), obj_bb.max(1), height);
-        cut_model(model, plane_pts, ModelObjectCutAttribute::KeepLower);
+        cut_model(model, height, ModelObjectCutAttribute::KeepLower);
     }
     else {
         error_message = _L("The start, end or step is not valid value.");
@@ -780,6 +867,7 @@ void CalibUtils::calib_retraction(const CalibInfo &calib_info, wxString &error_m
     filament_config.set_key_value("curr_bed_type", new ConfigOptionEnum<BedType>(calib_info.bed_type));
 
     obj->config.set_key_value("wall_loops", new ConfigOptionInt(2));
+    obj->config.set_key_value("alternate_extra_wall", new ConfigOptionBool(false));
     obj->config.set_key_value("top_shell_layers", new ConfigOptionInt(0));
     obj->config.set_key_value("bottom_shell_layers", new ConfigOptionInt(3));
     obj->config.set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
@@ -790,8 +878,7 @@ void CalibUtils::calib_retraction(const CalibInfo &calib_info, wxString &error_m
     auto obj_bb = obj->bounding_box();
     auto height = 1.0 + 0.4 + ((params.end - params.start)) / params.step;
     if (height < obj_bb.size().z()) {
-        std::array<Vec3d, 4> plane_pts = get_cut_plane_points(obj_bb, height);
-        cut_model(model, plane_pts, ModelObjectCutAttribute::KeepLower);
+        cut_model(model, height, ModelObjectCutAttribute::KeepLower);
     }
 
     DynamicPrintConfig full_config;
@@ -839,6 +926,16 @@ void CalibUtils::process_and_store_3mf(Model *model, const DynamicPrintConfig &f
     plate_size[0] = bedfs[2].x() - bedfs[0].x();
     plate_size[1] = bedfs[2].y() - bedfs[0].y();
     plate_size[2] = print_height;
+
+    if (params.mode == CalibMode::Calib_PA_Line) {
+        double space_y       = 3.5;
+        int    max_line_nums = int(plate_size[1] - 10) / space_y;
+        int    count         = std::llround(std::ceil((params.end - params.start) / params.step)) + 1;
+        if (count > max_line_nums) {
+            error_message = _L("Unable to calibrate: maybe because the set calibration value range is too large, or the step is too small");
+            return;
+        }
+    }
 
     if (params.mode == CalibMode::Calib_PA_Pattern) {
         ModelInstance *instance = model->objects[0]->instances[0];
@@ -889,6 +986,9 @@ void CalibUtils::process_and_store_3mf(Model *model, const DynamicPrintConfig &f
     //    return;
     //}
 
+    if (!check_nozzle_diameter_and_type(full_config, error_message))
+        return;
+
     fff_print->process();
     part_plate->update_slice_result_valid_state(true);
 
@@ -909,9 +1009,9 @@ void CalibUtils::process_and_store_3mf(Model *model, const DynamicPrintConfig &f
     //draw thumbnails
     {
         GLVolumeCollection glvolume_collection;
-        std::vector<std::array<float, 4>> colors_out(1);
+        std::vector<ColorRGBA> colors_out(1);
         unsigned char  rgb_color[4] = {255, 255, 255, 255};
-        std::array<float, 4> new_color {1.0f, 1.0f, 1.0f, 1.0f};
+        ColorRGBA new_color {1.0f, 1.0f, 1.0f, 1.0f};
         colors_out.push_back(new_color);
 
         ThumbnailData* thumbnail_data = &plate_data_list[0]->plate_thumbnail;
@@ -926,8 +1026,8 @@ void CalibUtils::process_and_store_3mf(Model *model, const DynamicPrintConfig &f
                 const ModelVolume &model_volume = *model_object.volumes[volume_idx];
                 for (int instance_idx = 0; instance_idx < (int)model_object.instances.size(); ++ instance_idx) {
                     const ModelInstance &model_instance = *model_object.instances[instance_idx];
-                    glvolume_collection.load_object_volume(&model_object, obj_idx, volume_idx, instance_idx, "volume", true, false, true);
-                    glvolume_collection.volumes.back()->set_render_color( new_color[0], new_color[1], new_color[2], new_color[3]);
+                    glvolume_collection.load_object_volume(&model_object, obj_idx, volume_idx, instance_idx, "volume", false, true);
+                    glvolume_collection.volumes.back()->set_render_color(new_color);
                     glvolume_collection.volumes.back()->set_color(new_color);
                     //glvolume_collection.volumes.back()->printable = model_instance.printable;
                 }
@@ -1028,7 +1128,8 @@ void CalibUtils::send_to_print(const CalibInfo &calib_info, wxString &error_mess
         error_message = _L("The printer is busy on other print job");
         return;
     }
-    else if (!obj_->is_function_supported(PrinterFunction::FUNC_PRINT_WITHOUT_SD) && (obj_->get_sdcard_state() == MachineObject::SdcardState::NO_SDCARD)) {
+
+    else if (!obj_->is_support_print_without_sd && (obj_->get_sdcard_state() == MachineObject::SdcardState::NO_SDCARD)) {
         error_message = _L("An SD card needs to be inserted before printing.");
         return;
     }
@@ -1039,7 +1140,9 @@ void CalibUtils::send_to_print(const CalibInfo &calib_info, wxString &error_mess
         }
     }
 
-    print_job                   = std::make_shared<PrintJob>(std::move(process_bar), wxGetApp().plater(), dev_id);
+    print_worker = std::make_unique<PlaterWorker<BoostThreadWorker>>(wxGetApp().plater(), std::move(process_bar), "calib_worker");
+
+    auto print_job              = std::make_unique<PrintJob>(dev_id);
     print_job->m_dev_ip         = obj_->dev_ip;
     print_job->m_ftp_folder     = obj_->get_ftp_folder();
     print_job->m_access_code    = obj_->get_access_code();
@@ -1054,7 +1157,7 @@ void CalibUtils::send_to_print(const CalibInfo &calib_info, wxString &error_mess
 #endif
 
     print_job->connection_type  = obj_->connection_type();
-    print_job->cloud_print_only = obj_->is_cloud_print_only;
+    print_job->cloud_print_only = obj_->is_support_cloud_print_only;
 
     PrintPrepareData job_data;
     job_data.is_from_plater = false;
@@ -1092,7 +1195,7 @@ void CalibUtils::send_to_print(const CalibInfo &calib_info, wxString &error_mess
         BOOST_LOG_TRIVIAL(info) << "send_cali_job - after send: " << j.dump();
     }
 
-    print_job->start();
+    replace_job(*print_worker, std::move(print_job));
 }
 
 }

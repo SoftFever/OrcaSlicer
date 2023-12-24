@@ -332,6 +332,16 @@ if(CMAKE_CXX_FLAGS_RELWITHDEBINFO MATCHES "/O2")
     string(REGEX REPLACE "/O2" "/Od" CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
 endif()
 
+if("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+    if(CMAKE_C_FLAGS_RELWITHDEBINFO MATCHES "-O2")
+        string(REGEX REPLACE "-O2" "-O0" CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO}")
+    endif()
+
+    if(CMAKE_CXX_FLAGS_RELWITHDEBINFO MATCHES "-O2")
+        string(REGEX REPLACE "-O2" "-O0" CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
+    endif()
+endif()
+
 if(MSVC)
     if(CMAKE_C_FLAGS_RELWITHDEBINFO MATCHES "/Ob1")
         string(REGEX REPLACE "/Ob1" "/Ob0" CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO}")
@@ -511,9 +521,11 @@ find_package(glfw3 REQUIRED)
 
 # Find the Cereal serialization library
 find_package(cereal REQUIRED)
-set_target_properties(cereal PROPERTIES IMPORTED_GLOBAL TRUE)
 if (NOT TARGET cereal::cereal)
+    set_target_properties(cereal PROPERTIES IMPORTED_GLOBAL TRUE)
     add_library(cereal::cereal ALIAS cereal)
+else ()
+    set_target_properties(cereal::cereal PROPERTIES IMPORTED_GLOBAL TRUE)
 endif ()
 
 # l10n

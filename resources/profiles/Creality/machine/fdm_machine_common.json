@@ -31,7 +31,7 @@
         "10000"
     ],
     "machine_max_acceleration_z": [
-        "100"
+        "500"
     ],
     "machine_max_speed_e": [
         "60"

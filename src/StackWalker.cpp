@@ -491,7 +491,7 @@ LPSTACKINFO CStackWalker::StackWalker(HANDLE hThread, const CONTEXT* context)
 			}else
 			{
 				//调用错误一般是487(地址无效或者没有访问的权限、在符号表中未找到指定地址的相关信息)
-				this->OutputString(_T("Call SymGetSymFromAddr64 ,Address %08x Error:%08x\r\n"), sf.AddrPC.Offset, GetLastError());
+				//this->OutputString(_T("Call SymGetSymFromAddr64 ,Address %08x Error:%08x\n"), sf.AddrPC.Offset, GetLastError());
 
                 StringCchCopy(pCallStack->undFullName, STACKWALK_MAX_NAMELEN, textconv_helper::A2T_("Unknown"));
 			}
@@ -502,14 +502,14 @@ LPSTACKINFO CStackWalker::StackWalker(HANDLE hThread, const CONTEXT* context)
 				pCallStack->uFileNum = pLine->LineNumber;
 			}else
 			{
-				this->OutputString(_T("Call SymGetLineFromAddr64 ,Address %08x Error:%08x\r\n"), sf.AddrPC.Offset, GetLastError());
+				//this->OutputString(_T("Call SymGetLineFromAddr64 ,Address %08x Error:%08x\n"), sf.AddrPC.Offset, GetLastError());
 
                 StringCchCopy(pCallStack->szFileName, MAX_PATH, textconv_helper::A2T_("Unknown file"));
                 pCallStack->uFileNum = -1;
 			}
 			
 			//这里为了将获取函数信息失败的情况与正常的情况一起输出，防止用户在查看时出现误解
-			this->OutputString(_T("%08llx:%s [%s][%ld]\r\n"), pCallStack->szFncAddr, pCallStack->undFullName, pCallStack->szFileName, pCallStack->uFileNum);
+			this->OutputString(_T("%08llx:%s [%s][%ld]\n"), pCallStack->szFncAddr, pCallStack->undFullName, pCallStack->szFileName, pCallStack->uFileNum);
 			if (NULL == pHead)
 			{
 				pHead = pCallStack;

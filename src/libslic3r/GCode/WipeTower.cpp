@@ -770,6 +770,7 @@ WipeTower::ToolChangeResult WipeTower::tool_change(size_t tool, bool extrude_per
 				"; CP TOOLCHANGE START\n")
 		.comment_with_value(" toolchange #", m_num_tool_changes + 1); // the number is zero-based
 
+
     if (tool != (unsigned)(-1))
         writer.append(std::string("; material : " + (m_current_tool < m_filpar.size() ? m_filpar[m_current_tool].material : "(NONE)") + " -> " + m_filpar[tool].material + "\n").c_str())
               .append(";--------------------\n");
@@ -787,6 +788,7 @@ WipeTower::ToolChangeResult WipeTower::tool_change(size_t tool, bool extrude_per
 
     // Ram the hot material out of the melt zone, retract the filament into the cooling tubes and let it cool.
     if (tool != (unsigned int)-1){ 			// This is not the last change.
+        writer.append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Wipe_Tower_Start) + "\n");
         toolchange_Unload(writer, cleaning_box, m_filpar[m_current_tool].material,
                           is_first_layer() ? m_filpar[tool].nozzle_temperature_initial_layer : m_filpar[tool].nozzle_temperature);
         toolchange_Change(writer, tool, m_filpar[tool].material); // Change the tool, set a speed override for soluble and flex materials.
@@ -806,8 +808,8 @@ WipeTower::ToolChangeResult WipeTower::tool_change(size_t tool, bool extrude_per
             writer.travel(Vec2f(0, 0));
             writer.travel(initial_position);
         }
-
         toolchange_Wipe(writer, cleaning_box, wipe_length);     // Wipe the newly loaded filament until the end of the assigned wipe area.
+        writer.append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Wipe_Tower_End) + "\n");
         ++ m_num_tool_changes;
     } else
         toolchange_Unload(writer, cleaning_box, m_filpar[m_current_tool].material, m_filpar[m_current_tool].nozzle_temperature);
@@ -1185,6 +1187,7 @@ WipeTower::ToolChangeResult WipeTower::finish_layer(bool extrude_perimeter, bool
 		.set_initial_tool(m_current_tool)
         .set_y_shift(m_y_shift - (m_current_shape == SHAPE_REVERSED ? m_layer_info->toolchanges_depth() : 0.f));
 
+    writer.append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Wipe_Tower_Start) + "\n");
 
 	// Slow down on the 1st layer.
     bool first_layer = is_first_layer();
@@ -1324,6 +1327,7 @@ WipeTower::ToolChangeResult WipeTower::finish_layer(bool extrude_perimeter, bool
     writer.add_wipe_point(writer.pos())
           .add_wipe_point(target);
 
+    writer.append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Wipe_Tower_End) + "\n");
 
     // Ask our writer about how much material was consumed.
     // Skip this in case the layer is sparse and config option to not print sparse layers is enabled.
@@ -1601,6 +1605,9 @@ void WipeTower::generate(std::vector<std::vector<WipeTower::ToolChangeResult>> &
         // BBS
         //m_internal_rotation += 180.f;
 
+        if (m_layer_info->depth < m_perimeter_width)
+            continue;
+
         if (m_layer_info->depth < m_wipe_tower_depth - m_perimeter_width) {
             // align y shift to perimeter width
             float dy = m_extra_spacing * m_perimeter_width;
@@ -1687,7 +1694,7 @@ WipeTower::ToolChangeResult WipeTower::only_generate_out_wall()
     // BBS: Delete some unnecessary travel
     //if (writer.x() > fill_box.ld.x() + EPSILON) writer.travel(fill_box.ld.x(), writer.y());
     //if (writer.y() > fill_box.ld.y() + EPSILON) writer.travel(writer.x(), fill_box.ld.y());
-
+    writer.append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Wipe_Tower_Start) + "\n");
     // outer perimeter (always):
     // BBS
     box_coordinates wt_box(Vec2f(0.f, (m_current_shape == SHAPE_REVERSED ? m_layer_info->toolchanges_depth() : 0.f)), m_wipe_tower_width, m_layer_info->depth + m_perimeter_width);
@@ -1697,6 +1704,8 @@ WipeTower::ToolChangeResult WipeTower::only_generate_out_wall()
     // Now prepare future wipe. box contains rectangle that was extruded last (ccw).
     Vec2f target = (writer.pos() == wt_box.ld ? wt_box.rd : (writer.pos() == wt_box.rd ? wt_box.ru : (writer.pos() == wt_box.ru ? wt_box.lu : wt_box.ld)));
     writer.add_wipe_point(writer.pos()).add_wipe_point(target);
+
+    writer.append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Wipe_Tower_End) + "\n");
 
     // Ask our writer about how much material was consumed.
     // Skip this in case the layer is sparse and config option to not print sparse layers is enabled.

@@ -1,3 +1,18 @@
+///|/ Copyright (c) Prusa Research 2016 - 2023 Vojtěch Bubník @bubnikv, Enrico Turri @enricoturri1966, Tomáš Mészáros @tamasmeszaros, Lukáš Matěna @lukasmatena, Filip Sykala @Jony01, Lukáš Hejl @hejllukas
+///|/ Copyright (c) 2017 Eyal Soha @eyal0
+///|/ Copyright (c) Slic3r 2013 - 2016 Alessandro Ranellucci @alranel
+///|/
+///|/ ported from lib/Slic3r/Geometry.pm:
+///|/ Copyright (c) Prusa Research 2017 - 2022 Vojtěch Bubník @bubnikv
+///|/ Copyright (c) Slic3r 2011 - 2015 Alessandro Ranellucci @alranel
+///|/ Copyright (c) 2013 Jose Luis Perez Diez
+///|/ Copyright (c) 2013 Anders Sundman
+///|/ Copyright (c) 2013 Jesse Vincent
+///|/ Copyright (c) 2012 Mike Sheldrake @mesheldrake
+///|/ Copyright (c) 2012 Mark Hindess
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #ifndef slic3r_Geometry_hpp_
 #define slic3r_Geometry_hpp_
 
@@ -36,9 +51,9 @@ enum Orientation
 static inline Orientation orient(const Point &a, const Point &b, const Point &c)
 {
     static_assert(sizeof(coord_t) * 2 == sizeof(int64_t), "orient works with 32 bit coordinates");
-    int64_t u = int64_t(b(0)) * int64_t(c(1)) - int64_t(b(1)) * int64_t(c(0));
-    int64_t v = int64_t(a(0)) * int64_t(c(1)) - int64_t(a(1)) * int64_t(c(0));
-    int64_t w = int64_t(a(0)) * int64_t(b(1)) - int64_t(a(1)) * int64_t(b(0));
+    int64_t u = int64_t(b.x()) * int64_t(c.y()) - int64_t(b.y()) * int64_t(c.x());
+    int64_t v = int64_t(a.x()) * int64_t(c.y()) - int64_t(a.y()) * int64_t(c.x());
+    int64_t w = int64_t(a.x()) * int64_t(b.y()) - int64_t(a.y()) * int64_t(b.x());
     int64_t d = u - v + w;
     return (d > 0) ? ORIENTATION_CCW : ((d == 0) ? ORIENTATION_COLINEAR : ORIENTATION_CW);
 }
@@ -307,6 +322,13 @@ template<typename T> T angle_to_0_2PI(T angle)
 
     return angle;
 }
+template<typename T> void to_range_pi_pi(T &angle){
+    if (angle > T(PI) || angle <= -T(PI)) {
+        int count = static_cast<int>(std::round(angle / (2 * PI)));
+        angle -= static_cast<T>(count * 2 * PI);
+        assert(angle <= T(PI) && angle > -T(PI));
+    }
+}
 
 void simplify_polygons(const Polygons &polygons, double tolerance, Polygons* retval);
 
@@ -324,7 +346,8 @@ bool arrange(
 // 4) rotate Y
 // 5) rotate Z
 // 6) translate
-void assemble_transform(Transform3d& transform, const Vec3d& translation = Vec3d::Zero(), const Vec3d& rotation = Vec3d::Zero(), const Vec3d& scale = Vec3d::Ones(), const Vec3d& mirror = Vec3d::Ones());
+void assemble_transform(Transform3d& transform, const Vec3d& translation = Vec3d::Zero(), const Vec3d& rotation = Vec3d::Zero(),
+    const Vec3d& scale = Vec3d::Ones(), const Vec3d& mirror = Vec3d::Ones());
 
 // Returns the transform obtained by assembling the given transformations in the following order:
 // 1) mirror
@@ -333,7 +356,45 @@ void assemble_transform(Transform3d& transform, const Vec3d& translation = Vec3d
 // 4) rotate Y
 // 5) rotate Z
 // 6) translate
-Transform3d assemble_transform(const Vec3d& translation = Vec3d::Zero(), const Vec3d& rotation = Vec3d::Zero(), const Vec3d& scale = Vec3d::Ones(), const Vec3d& mirror = Vec3d::Ones());
+Transform3d assemble_transform(const Vec3d& translation = Vec3d::Zero(), const Vec3d& rotation = Vec3d::Zero(),
+    const Vec3d& scale = Vec3d::Ones(), const Vec3d& mirror = Vec3d::Ones());
+
+// Sets the given transform by multiplying the given transformations in the following order:
+// T = translation * rotation * scale * mirror
+void assemble_transform(Transform3d& transform, const Transform3d& translation = Transform3d::Identity(),
+    const Transform3d& rotation = Transform3d::Identity(), const Transform3d& scale = Transform3d::Identity(),
+    const Transform3d& mirror = Transform3d::Identity());
+
+// Returns the transform obtained by multiplying the given transformations in the following order:
+// T = translation * rotation * scale * mirror
+Transform3d assemble_transform(const Transform3d& translation = Transform3d::Identity(), const Transform3d& rotation = Transform3d::Identity(),
+    const Transform3d& scale = Transform3d::Identity(), const Transform3d& mirror = Transform3d::Identity());
+
+// Sets the given transform by assembling the given translation
+void translation_transform(Transform3d& transform, const Vec3d& translation);
+
+// Returns the transform obtained by assembling the given translation
+Transform3d translation_transform(const Vec3d& translation);
+
+// Sets the given transform by assembling the given rotations in the following order:
+// 1) rotate X
+// 2) rotate Y
+// 3) rotate Z
+void rotation_transform(Transform3d& transform, const Vec3d& rotation);
+
+// Returns the transform obtained by assembling the given rotations in the following order:
+// 1) rotate X
+// 2) rotate Y
+// 3) rotate Z
+Transform3d rotation_transform(const Vec3d& rotation);
+
+// Sets the given transform by assembling the given scale factors
+void scale_transform(Transform3d& transform, double scale);
+void scale_transform(Transform3d& transform, const Vec3d& scale);
+
+// Returns the transform obtained by assembling the given scale factors
+Transform3d scale_transform(double scale);
+Transform3d scale_transform(const Vec3d& scale);
 
 // Returns the euler angles extracted from the given rotation matrix
 // Warning -> The matrix should not contain any scale or shear !!!
@@ -346,79 +407,71 @@ Vec3d extract_euler_angles(const Transform3d& transform);
 // get rotation from two vectors.
 // Default output is axis-angle. If rotation_matrix pointer is provided, also output rotation matrix
 // Euler angles can be obtained by extract_euler_angles()
-void rotation_from_two_vectors(Vec3d from, Vec3d to, Vec3d& rotation_axis, double& phi, Matrix3d* rotation_matrix = nullptr);
-
-// Returns the transform obtained by assembling the given translation
-Transform3d translation_transform(const Vec3d &translation);
-
-// Returns the transform obtained by assembling the given rotations in the following order:
-// 1) rotate X
-// 2) rotate Y
-// 3) rotate Z
-Transform3d rotation_transform(const Vec3d &rotation);
+void rotation_from_two_vectors(Vec3d from, Vec3d to, Vec3d &rotation_axis, double &phi, Matrix3d *rotation_matrix = nullptr);
 
 class Transformation
 {
-    struct Flags
-    {
-        bool dont_translate;
-        bool dont_rotate;
-        bool dont_scale;
-        bool dont_mirror;
-
-        Flags();
-
-        bool needs_update(bool dont_translate, bool dont_rotate, bool dont_scale, bool dont_mirror) const;
-        void set(bool dont_translate, bool dont_rotate, bool dont_scale, bool dont_mirror);
-    };
-
-    Vec3d m_offset;              // In unscaled coordinates
-    Vec3d m_rotation;            // Rotation around the three axes, in radians around mesh center point
-    Vec3d m_scaling_factor;      // Scaling factors along the three axes
-    Vec3d m_mirror;              // Mirroring along the three axes
-
-    mutable Transform3d m_matrix;
-    mutable Flags m_flags;
-    mutable bool m_dirty;
+    Transform3d m_matrix{ Transform3d::Identity() };
 
 public:
-    Transformation();
-    explicit Transformation(const Transform3d& transform);
+    Transformation() = default;
+    explicit Transformation(const Transform3d& transform) : m_matrix(transform) {}
 
-    //BBS: add get dirty function
-    bool is_dirty() { return m_dirty; }
+    Vec3d get_offset() const { return m_matrix.translation(); }
+    double get_offset(Axis axis) const { return get_offset()[axis]; }
 
-    const Vec3d& get_offset() const { return m_offset; }
-    double get_offset(Axis axis) const { return m_offset(axis); }
+    Transform3d get_offset_matrix() const;
 
-    void set_offset(const Vec3d& offset);
-    void set_offset(Axis axis, double offset);
+    void set_offset(const Vec3d& offset) { m_matrix.translation() = offset; }
+    void set_offset(Axis axis, double offset) { m_matrix.translation()[axis] = offset; }
 
-    const Vec3d& get_rotation() const { return m_rotation; }
-    double get_rotation(Axis axis) const { return m_rotation(axis); }
+    Vec3d get_rotation() const;
+    double get_rotation(Axis axis) const { return get_rotation()[axis]; }
+
+    Transform3d get_rotation_matrix() const;
 
     void set_rotation(const Vec3d& rotation);
     void set_rotation(Axis axis, double rotation);
 
-    const Vec3d& get_scaling_factor() const { return m_scaling_factor; }
-    double get_scaling_factor(Axis axis) const { return m_scaling_factor(axis); }
+    Vec3d get_scaling_factor() const;
+    double get_scaling_factor(Axis axis) const { return get_scaling_factor()[axis]; }
+
+    Transform3d get_scaling_factor_matrix() const;
+
+    bool is_scaling_uniform() const {
+        const Vec3d scale = get_scaling_factor();
+        return std::abs(scale.x() - scale.y()) < 1e-8 && std::abs(scale.x() - scale.z()) < 1e-8;
+    }
 
     void set_scaling_factor(const Vec3d& scaling_factor);
     void set_scaling_factor(Axis axis, double scaling_factor);
-    bool is_scaling_uniform() const { return std::abs(m_scaling_factor.x() - m_scaling_factor.y()) < 1e-8 && std::abs(m_scaling_factor.x() - m_scaling_factor.z()) < 1e-8; }
 
-    const Vec3d& get_mirror() const { return m_mirror; }
-    double get_mirror(Axis axis) const { return m_mirror(axis); }
-    bool is_left_handed() const { return m_mirror.x() * m_mirror.y() * m_mirror.z() < 0.; }
+    Vec3d get_mirror() const;
+    double get_mirror(Axis axis) const { return get_mirror()[axis]; }
+
+    Transform3d get_mirror_matrix() const;
+
+    bool is_left_handed() const {
+        return m_matrix.linear().determinant() < 0;
+    }
 
     void set_mirror(const Vec3d& mirror);
     void set_mirror(Axis axis, double mirror);
 
-    void set_from_transform(const Transform3d& transform);
+    bool has_skew() const;
 
     void reset();
+    void reset_offset() { set_offset(Vec3d::Zero()); }
+    void reset_rotation();
+    void reset_scaling_factor();
+    void reset_mirror() { set_mirror(Vec3d::Ones()); }
+    void reset_skew();
 
-    const Transform3d& get_matrix(bool dont_translate = false, bool dont_rotate = false, bool dont_scale = false, bool dont_mirror = false) const;
+    const Transform3d& get_matrix() const { return m_matrix; }
+    Transform3d get_matrix_no_offset() const;
+    Transform3d get_matrix_no_scaling_factor() const;
+
+    void set_matrix(const Transform3d& transform) { m_matrix = transform; }
 
     Transformation operator * (const Transformation& other) const;
 
@@ -429,19 +482,43 @@ public:
 
     // BBS: backup use this compare
     friend bool operator==(Transformation const& l, Transformation const& r) {
-        return l.m_offset == r.m_offset && l.m_rotation == r.m_rotation && l.m_scaling_factor == r.m_scaling_factor && l.m_mirror == r.m_mirror;
+        return l.m_matrix.isApprox(r.m_matrix);
+    }
+
+    friend bool operator!=(Transformation const &l, Transformation const &r)
+    {
+        return !(l == r);
     }
 
 private:
 	friend class cereal::access;
-	template<class Archive> void serialize(Archive & ar) { ar(m_offset, m_rotation, m_scaling_factor, m_mirror); }
-	explicit Transformation(int) : m_dirty(true) {}
-	template <class Archive> static void load_and_construct(Archive &ar, cereal::construct<Transformation> &construct)
-	{
-		// Calling a private constructor with special "int" parameter to indicate that no construction is necessary.
-		construct(1);
-		ar(construct.ptr()->m_offset, construct.ptr()->m_rotation, construct.ptr()->m_scaling_factor, construct.ptr()->m_mirror);
-	}
+    template<class Archive> void serialize(Archive& ar) { ar(m_matrix); }
+    explicit Transformation(int) {}
+    template <class Archive> static void load_and_construct(Archive& ar, cereal::construct<Transformation>& construct)
+    {
+        // Calling a private constructor with special "int" parameter to indicate that no construction is necessary.
+        construct(1);
+        ar(construct.ptr()->m_matrix);
+    }
+};
+
+struct TransformationSVD
+{
+    Matrix3d u{ Matrix3d::Identity() };
+    Matrix3d s{ Matrix3d::Identity() };
+    Matrix3d v{ Matrix3d::Identity() };
+
+    bool mirror{ false };
+    bool scale{ false };
+    bool anisotropic_scale{ false };
+    bool rotation{ false };
+    bool rotation_90_degrees{ false };
+    bool skew{ false };
+
+    explicit TransformationSVD(const Transformation& trafo) : TransformationSVD(trafo.get_matrix()) {}
+    explicit TransformationSVD(const Transform3d& trafo);
+
+    Eigen::DiagonalMatrix<double, 3, 3> mirror_matrix() const { return Eigen::DiagonalMatrix<double, 3, 3>(this->mirror ? -1. : 1., 1., 1.); }
 };
 
 // For parsing a transformation matrix from 3MF / AMF.
@@ -457,7 +534,7 @@ extern double rotation_diff_z(const Vec3d &rot_xyz_from, const Vec3d &rot_xyz_to
 // Is the angle close to a multiple of 90 degrees?
 inline bool is_rotation_ninety_degrees(double a)
 {
-    a = fmod(std::abs(a), 0.5 * M_PI);
+    a = fmod(std::abs(a), 0.5 * PI);
     if (a > 0.25 * PI)
         a = 0.5 * PI - a;
     return a < 0.001;

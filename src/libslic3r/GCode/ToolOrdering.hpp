@@ -209,6 +209,8 @@ private:
     std::vector<unsigned int>  m_all_printing_extruders;
 
     const PrintConfig*         m_print_config_ptr = nullptr;
+    const PrintObject*         m_print_object_ptr = nullptr;
+    bool                       m_is_BBL_printer = false;
 };
 
 } // namespace SLic3r

@@ -11,6 +11,7 @@
 
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/PresetBundle.hpp"
+#include "libslic3r/Color.hpp"
 #include "format.hpp"
 #include "GUI_App.hpp"
 #include "Plater.hpp"
@@ -60,8 +61,7 @@ static std::string get_icon_name(Preset::Type type, PrinterTechnology pt) {
 static std::string def_text_color()
 {
     wxColour def_colour = wxGetApp().get_label_clr_default();//wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
-    auto clr_str = wxString::Format(wxT("#%02X%02X%02X"), def_colour.Red(), def_colour.Green(), def_colour.Blue());
-    return clr_str.ToStdString();
+    return encode_color(ColorRGB(def_colour.Red(), def_colour.Green(), def_colour.Blue()));
 }
 static std::string grey     = "#808080";
 static std::string orange   = "#ed6b21";
@@ -126,8 +126,8 @@ wxBitmap ModelNode::get_bitmap(const wxString& color)
     const int icon_height   = lround(1.6 * em);
 
     BitmapCache bmp_cache;
-    unsigned char rgb[3];
-    BitmapCache::parse_color(into_u8(color), rgb);
+    ColorRGB rgb;
+    decode_color(into_u8(color), rgb);
     // there is no need to scale created solid bitmap
 #ifndef __linux__
     return bmp_cache.mksolid(icon_width, icon_height, rgb, true);
@@ -806,7 +806,7 @@ UnsavedChangesDialog::UnsavedChangesDialog(Preset::Type type, PresetCollection *
     : m_new_selected_preset_name(new_selected_preset)
     , DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe),
                 wxID_ANY,
-                _L("Discard or Keep changes"),
+                _L("Transfer or discard changes"),
                 wxDefaultPosition,
                 wxDefaultSize,
                 wxCAPTION | wxCLOSE_BOX)
@@ -1501,15 +1501,33 @@ void UnsavedChangesDialog::update_list()
             for (auto g = 0; g < class_g_list[gname].size(); g++) {
 
                  //first group
-                // if (g == 0) {
-                //    auto citem_title = new wxStaticText(citem, wxID_ANY, gname, wxDefaultPosition, wxDefaultSize, 0);
-                //    //citem_title->SetForegroundColour(GREY900);
-                //    auto block_title = new wxWindow(citem, wxID_ANY, wxDefaultPosition, wxSize(0, 0));
+                if (g == 0) {
+                     auto panel_item = new wxWindow(m_scrolledWindow, -1, wxDefaultPosition, wxSize(-1, UNSAVE_CHANGE_DIALOG_ITEM_HEIGHT));
+                     panel_item->SetBackgroundColour(GREY200);
 
-                //
-                //    sizer_citem->Add(block_title, 0, wxEXPAND | wxLEFT, 20);
-                //    sizer_citem->Add(citem_title, 0, wxALL, (list_item_height - citem_title->GetSize().GetHeight()) / 2);
-                //}
+                     wxBoxSizer *sizer_item = new wxBoxSizer(wxHORIZONTAL);
+
+                     auto panel_left = new wxPanel(panel_item, wxID_ANY, wxDefaultPosition, wxSize(UNSAVE_CHANGE_DIALOG_FIRST_VALUE_WIDTH, -1), wxTAB_TRAVERSAL);
+                     panel_left->SetBackgroundColour(GREY200);
+
+                     wxBoxSizer *sizer_left_v = new wxBoxSizer(wxVERTICAL);
+
+                     auto text_left = new wxStaticText(panel_left, wxID_ANY, gname, wxDefaultPosition, wxSize(-1, -1), 0);
+                     text_left->SetFont(::Label::Head_13);
+                     text_left->Wrap(-1);
+                     text_left->SetForegroundColour(GREY700);
+                     text_left->SetForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_INFOTEXT));
+
+                     sizer_left_v->Add(text_left, 0, wxLEFT, 37);
+
+                     panel_left->SetSizer(sizer_left_v);
+                     panel_left->Layout();
+                     sizer_item->Add(panel_left, 0, wxALIGN_CENTER, 0);
+
+                     panel_item->SetSizer(sizer_item);
+                     panel_item->Layout();
+                     m_listsizer->Add(panel_item, 0, wxEXPAND, 0);
+                }
 
                 auto data = class_g_list[gname][g];
 
@@ -1529,7 +1547,7 @@ void UnsavedChangesDialog::update_list()
                 text_left->SetForegroundColour(GREY700);
                 text_left->SetForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_INFOTEXT));
 
-                sizer_left_v->Add(text_left, 0, wxLEFT, 37 );
+                sizer_left_v->Add(text_left, 0, wxLEFT, 51 );
 
                 panel_left->SetSizer(sizer_left_v);
                 panel_left->Layout();

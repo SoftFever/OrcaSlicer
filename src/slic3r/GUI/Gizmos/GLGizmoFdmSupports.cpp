@@ -105,7 +105,7 @@ bool GLGizmoFdmSupports::on_init()
     return true;
 }
 
-void GLGizmoFdmSupports::render_painter_gizmo() const
+void GLGizmoFdmSupports::render_painter_gizmo()
 {
     const Selection& selection = m_parent.get_selection();
 
@@ -116,8 +116,8 @@ void GLGizmoFdmSupports::render_painter_gizmo() const
     //BBS: draw support volumes
     if (m_volume_ready && m_support_volume && (m_edit_state != state_generating))
     {
-        //m_support_volume->set_render_color();
-        ::glColor4f(0.f, 0.7f, 0.f, 0.7f);
+        // TODO: FIXME
+        m_support_volume->set_render_color({0.f, 0.7f, 0.f, 0.7f});
         m_support_volume->render();
     }
 
@@ -177,8 +177,12 @@ void GLGizmoFdmSupports::render_triangles(const Selection& selection) const
         if (is_left_handed)
             glsafe(::glFrontFace(GL_CW));
 
-        glsafe(::glPushMatrix());
-        glsafe(::glMultMatrixd(trafo_matrix.data()));
+        const Camera& camera = wxGetApp().plater()->get_camera();
+        const Transform3d& view_matrix = camera.get_view_matrix();
+        shader->set_uniform("view_model_matrix", view_matrix * trafo_matrix);
+        shader->set_uniform("projection_matrix", camera.get_projection_matrix());
+        const Matrix3d view_normal_matrix = view_matrix.matrix().block(0, 0, 3, 3) * trafo_matrix.matrix().block(0, 0, 3, 3).inverse().transpose();
+        shader->set_uniform("view_normal_matrix", view_normal_matrix);
 
         float normal_z = -::cos(Geometry::deg2rad(m_highlight_by_angle_threshold_deg));
         Matrix3f normal_matrix = static_cast<Matrix3f>(trafo_matrix.matrix().block(0, 0, 3, 3).inverse().transpose().cast<float>());
@@ -188,9 +192,8 @@ void GLGizmoFdmSupports::render_triangles(const Selection& selection) const
         shader->set_uniform("slope.actived", m_parent.is_using_slope());
         shader->set_uniform("slope.volume_world_normal_matrix", normal_matrix);
         shader->set_uniform("slope.normal_z", normal_z);
-        m_triangle_selectors[mesh_id]->render(m_imgui);
+        m_triangle_selectors[mesh_id]->render(m_imgui, trafo_matrix);
 
-        glsafe(::glPopMatrix());
         if (is_left_handed)
             glsafe(::glFrontFace(GL_CCW));
     }
@@ -427,7 +430,7 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
         else {
             if (m_imgui->button(m_desc.at("reset_direction"))) {
                 wxGetApp().CallAfter([this]() {
-                    m_c->object_clipper()->set_position(-1., false);
+                        m_c->object_clipper()->set_position_by_ratio(-1., false);
                     });
             }
         }
@@ -441,7 +444,7 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
         ImGui::PushItemWidth(1.5 * slider_icon_width);
         bool b_drag_input = ImGui::BBLDragFloat("##clp_dist_input", &clp_dist, 0.05f, 0.0f, 0.0f, "%.2f");
 
-        if (b_bbl_slider_float || b_drag_input) m_c->object_clipper()->set_position(clp_dist, true);
+        if (b_bbl_slider_float || b_drag_input) m_c->object_clipper()->set_position_by_ratio(clp_dist, true);
     }
 
     ImGui::Separator();
@@ -510,7 +513,7 @@ void GLGizmoFdmSupports::show_tooltip_information(float caption_max, float x, fl
     ImTextureID normal_id = m_parent.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_TOOLBAR_TOOLTIP);
     ImTextureID hover_id  = m_parent.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_TOOLBAR_TOOLTIP_HOVER);
 
-    caption_max += m_imgui->calc_text_size(": ").x + 15.f;
+    caption_max += m_imgui->calc_text_size(std::string_view{": "}).x + 15.f;
 
     float font_size = ImGui::GetFontSize();
     ImVec2 button_size = ImVec2(font_size * 1.8, font_size * 1.3);
@@ -581,7 +584,7 @@ void GLGizmoFdmSupports::select_facets_by_angle(float threshold_deg, bool block)
 
         ++mesh_id;
 
-        const Transform3d trafo_matrix = mi->get_matrix(true) * mv->get_matrix(true);
+        const Transform3d trafo_matrix = mi->get_matrix_no_offset() * mv->get_matrix_no_offset();
         Vec3f down  = (trafo_matrix.inverse() * (-Vec3d::UnitZ())).cast<float>().normalized();
         Vec3f limit = (trafo_matrix.inverse() * Vec3d(std::sin(threshold), 0, -std::cos(threshold))).cast<float>().normalized();
 
@@ -640,7 +643,7 @@ void GLGizmoFdmSupports::update_from_model_object(bool first_update)
     m_volume_timestamps.clear();
 
     int volume_id = -1;
-    std::vector<std::array<float, 4>> ebt_colors;
+    std::vector<ColorRGBA> ebt_colors;
     ebt_colors.push_back(GLVolume::NEUTRAL_COLOR);
     ebt_colors.push_back(TriangleSelectorGUI::enforcers_color);
     ebt_colors.push_back(TriangleSelectorGUI::blockers_color);
@@ -894,13 +897,16 @@ void GLGizmoFdmSupports::run_thread()
             print->set_status(100, L("Support Generated"));
             goto _finished;
         }
+        GLModel::Geometry init_data;
+        init_data.format = { GLModel::Geometry::EPrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3N3 };
         for (const SupportLayer *support_layer : m_print_instance.print_object->support_layers())
         {
             for (const ExtrusionEntity *extrusion_entity : support_layer->support_fills.entities)
             {
-                _3DScene::extrusionentity_to_verts(extrusion_entity, float(support_layer->print_z), m_print_instance.shift, *m_support_volume);
+                _3DScene::extrusionentity_to_verts(extrusion_entity, float(support_layer->print_z), m_print_instance.shift, init_data);
             }
         }
+        m_support_volume->model.init_from(std::move(init_data));
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", finished extrusionentity_to_verts, update status to 100%";
         print->set_status(100, L("Support Generated"));
         
@@ -926,7 +932,6 @@ _finished:
 void GLGizmoFdmSupports::generate_support_volume()
 {
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ",before finalize_geometry";
-    m_support_volume->indexed_vertex_array.finalize_geometry(m_parent.is_initialized());
 
     std::unique_lock<std::mutex> lck(m_mutex);
     m_volume_ready = true;

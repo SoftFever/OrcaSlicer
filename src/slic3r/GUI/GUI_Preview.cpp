@@ -1,8 +1,13 @@
+///|/ Copyright (c) Prusa Research 2018 - 2023 Enrico Turri @enricoturri1966, Oleksandra Iushchenko @YuSanka, Vojtěch Bubník @bubnikv, Lukáš Matěna @lukasmatena, Filip Sykala @Jony01, David Kocík @kocikdav, Tomáš Mészáros @tamasmeszaros, Vojtěch Král @vojtechkral
+///|/ Copyright (c) 2022 André Althaus
+///|/ Copyright (c) 2019 John Drake @foxox
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 //#include "stdlib.h"
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Layer.hpp"
 #include "IMSlider.hpp"
-#include "IMSlider_Utils.hpp"
 #include "GUI_Preview.hpp"
 #include "GUI_App.hpp"
 #include "GUI.hpp"
@@ -66,6 +71,7 @@ bool View3D::init(wxWindow* parent, Bed3D& bed, Model* model, DynamicPrintConfig
     m_canvas->allow_multisample(OpenGLManager::can_multisample());
     // XXX: If have OpenGL
     m_canvas->enable_picking(true);
+    m_canvas->get_selection().set_mode(Selection::Instance);
     m_canvas->enable_moving(true);
     // XXX: more config from 3D.pm
     m_canvas->set_model(model);
@@ -124,6 +130,11 @@ void View3D::select_curr_plate_all()
         m_canvas->select_curr_plate_all();
 }
 
+void View3D::select_object_from_idx(std::vector<int>& object_idxs) {
+    if (m_canvas != nullptr)
+        m_canvas->select_object_from_idx(object_idxs);
+}
+
 //BBS
 void View3D::remove_curr_plate_all()
 {
@@ -153,6 +164,11 @@ void View3D::center_selected()
 {
     if (m_canvas != nullptr)
         m_canvas->do_center();
+}
+
+void View3D::center_selected_plate(const int plate_idx) {
+    if (m_canvas != nullptr)
+        m_canvas->do_center_plate(plate_idx);
 }
 
 void View3D::mirror_selection(Axis axis)

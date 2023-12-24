@@ -22,6 +22,7 @@ class DropDown : public PopupWindow
 
     double radius = 0;
     bool   use_content_width = false;
+    bool   limit_max_content_width = false;
     bool   align_icon        = false;
     bool   text_off          = false;
 
@@ -74,7 +75,7 @@ public:
 
     void SetSelectorBackgroundColor(StateColor const &color);
 
-    void SetUseContentWidth(bool use);
+    void SetUseContentWidth(bool use, bool limit_max_content_width = false);
 
     void SetAlignIcon(bool align);
     

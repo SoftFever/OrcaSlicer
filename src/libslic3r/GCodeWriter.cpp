@@ -320,7 +320,7 @@ std::string GCodeWriter::reset_e(bool force)
         return "";
     
     if (m_extruder != nullptr) {
-        if (m_extruder->E() == 0. && ! force)
+        if (is_zero(m_extruder->E()) && ! force)
             return "";
         m_extruder->reset_E();
     }
@@ -341,6 +341,10 @@ std::string GCodeWriter::update_progress(unsigned int num, unsigned int tot, boo
 {
     if (FLAVOR_IS_NOT(gcfMakerWare) && FLAVOR_IS_NOT(gcfSailfish))
         return "";
+
+    if (config.disable_m73) {
+        return "";
+    }
     
     unsigned int percent = (unsigned int)floor(100.0 * num / tot + 0.5);
     if (!allow_100) percent = std::min(percent, (unsigned int)99);
@@ -678,23 +682,23 @@ std::string GCodeWriter::extrude_to_xyz(const Vec3d &point, double dE, const std
     return w.string();
 }
 
-std::string GCodeWriter::retract(bool before_wipe)
+std::string GCodeWriter::retract(bool before_wipe, double retract_length)
 {
     double factor = before_wipe ? m_extruder->retract_before_wipe() : 1.;
     assert(factor >= 0. && factor <= 1. + EPSILON);
     return this->_retract(
-        factor * m_extruder->retraction_length(),
+        retract_length > EPSILON ? retract_length : factor * m_extruder->retraction_length(),
         factor * m_extruder->retract_restart_extra(),
         "retract"
     );
 }
 
-std::string GCodeWriter::retract_for_toolchange(bool before_wipe)
+std::string GCodeWriter::retract_for_toolchange(bool before_wipe, double retract_length)
 {
     double factor = before_wipe ? m_extruder->retract_before_wipe() : 1.;
     assert(factor >= 0. && factor <= 1. + EPSILON);
     return this->_retract(
-        factor * m_extruder->retract_length_toolchange(),
+        retract_length > EPSILON ? retract_length : factor * m_extruder->retract_length_toolchange(),
         factor * m_extruder->retract_restart_extra_toolchange(),
         "retract for toolchange"
     );
@@ -709,7 +713,7 @@ std::string GCodeWriter::_retract(double length, double restart_extra, const std
         length = 1;
 
     std::string gcode;
-    if (double dE = m_extruder->retract(length, restart_extra);  dE != 0) {
+    if (double dE = m_extruder->retract(length, restart_extra);  !is_zero(dE)) {
         if (this->config.use_firmware_retraction) {
             gcode = FLAVOR_IS(gcfMachinekit) ? "G22 ; retract\n" : "G10 ; retract\n";
         }
@@ -737,7 +741,7 @@ std::string GCodeWriter::unretract()
     if (FLAVOR_IS(gcfMakerWare))
         gcode = "M101 ; extruder on\n";
     
-    if (double dE = m_extruder->unretract(); dE != 0) {
+    if (double dE = m_extruder->unretract(); !is_zero(dE)) {
         if (this->config.use_firmware_retraction) {
             gcode += FLAVOR_IS(gcfMachinekit) ? "G23 ; unretract\n" : "G11 ; unretract\n";
             gcode += this->reset_e();

@@ -66,3 +66,9 @@ body
 	background-color:#009688;
 	color: #fff;	
 }
+
+/*----Menu----*/
+#Title div.TitleUnselected
+{
+	color: #BEBEC0;
+}

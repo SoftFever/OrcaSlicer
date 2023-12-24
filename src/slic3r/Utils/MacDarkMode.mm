@@ -97,6 +97,7 @@ void WKWebView_setTransparentBackground(void * web)
 {
     WKWebView * webView = (WKWebView*)web;
     [webView layer].backgroundColor = [NSColor clearColor].CGColor;
+    [webView registerForDraggedTypes: @[NSFilenamesPboardType]];
 }
 
 void openFolderForFile(wxString const & file)
@@ -106,6 +107,54 @@ void openFolderForFile(wxString const & file)
 }
     
 }
+}
+
+@end
+
+/* WKWebView */
+@implementation WKWebView (DragDrop)
+
++ (void) load
+{
+    Method draggingEntered = class_getInstanceMethod([WKWebView class], @selector(draggingEntered:));
+    Method draggingEntered2 = class_getInstanceMethod([WKWebView class], @selector(draggingEntered2:));
+    method_exchangeImplementations(draggingEntered, draggingEntered2);
+
+    Method draggingUpdated = class_getInstanceMethod([WKWebView class], @selector(draggingUpdated:));
+    Method draggingUpdated2 = class_getInstanceMethod([WKWebView class], @selector(draggingUpdated2:));
+    method_exchangeImplementations(draggingUpdated, draggingUpdated2);
+
+    Method prepareForDragOperation = class_getInstanceMethod([WKWebView class], @selector(prepareForDragOperation:));
+    Method prepareForDragOperation2 = class_getInstanceMethod([WKWebView class], @selector(prepareForDragOperation2:));
+    method_exchangeImplementations(prepareForDragOperation, prepareForDragOperation2);
+
+    Method performDragOperation = class_getInstanceMethod([WKWebView class], @selector(performDragOperation:));
+    Method performDragOperation2 = class_getInstanceMethod([WKWebView class], @selector(performDragOperation2:));
+    method_exchangeImplementations(performDragOperation, performDragOperation2);
+}
+
+- (NSDragOperation)draggingEntered2:(id<NSDraggingInfo>)sender
+{
+    return NSDragOperationCopy;
+}
+
+- (NSDragOperation)draggingUpdated2:(id<NSDraggingInfo>)sender
+{
+    return NSDragOperationCopy;
+}
+
+- (BOOL)prepareForDragOperation2:(id<NSDraggingInfo>)info
+{
+    return TRUE;
+}
+
+- (BOOL)performDragOperation2:(id<NSDraggingInfo>)info
+{
+    NSURL* url = [NSURL URLFromPasteboard:[info draggingPasteboard]];
+    NSString * path = [url path];
+    url = [NSURL fileURLWithPath: path];
+    [self loadFileURL:url allowingReadAccessToURL:url];
+    return TRUE;
 }
 
 @end

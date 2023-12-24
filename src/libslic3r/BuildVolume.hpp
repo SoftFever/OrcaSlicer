@@ -52,6 +52,7 @@ public:
     // Bounding volume of printable_area(), printable_height(), unscaled.
     const BoundingBoxf3&        bounding_volume()   const { return m_bboxf; }
     BoundingBoxf                bounding_volume2d() const { return { to_2d(m_bboxf.min), to_2d(m_bboxf.max) }; }
+    indexed_triangle_set        bounding_mesh(bool scale=true) const;
 
     // Center of the print bed, unscaled.
     Vec2d                       bed_center()        const { return to_2d(m_bboxf.center()); }
@@ -92,6 +93,9 @@ public:
     bool         all_paths_inside(const GCodeProcessorResult& paths, const BoundingBoxf3& paths_bbox, bool ignore_bottom = true) const;
     // Called on initial G-code preview on OpenGL vertex buffer interleaved normals and vertices.
     bool         all_paths_inside_vertices_and_normals_interleaved(const std::vector<float>& paths, const Eigen::AlignedBox<float, 3>& bbox, bool ignore_bottom = true) const;
+
+    const std::pair<std::vector<Vec2d>, std::vector<Vec2d>>& top_bottom_convex_hull_decomposition_scene() const { return m_top_bottom_convex_hull_decomposition_scene; }
+    const std::pair<std::vector<Vec2d>, std::vector<Vec2d>>& top_bottom_convex_hull_decomposition_bed() const { return m_top_bottom_convex_hull_decomposition_bed; }
 
 private:
     // Source definition of the print bed geometry (PrintConfig::printable_area)

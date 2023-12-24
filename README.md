@@ -1,5 +1,4 @@
-[![Build OrcaSlicer](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_orca.yml/badge.svg?branch=main)](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_orca.yml)  
-
+[![Build all](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_all.yml/badge.svg?branch=main)](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_all.yml)
 # Orca Slicer     
 Orca Slicer is an open source slicer for FDM printers.   
 You can download Orca Slicer here: [github releases page](https://github.com/SoftFever/OrcaSlicer/releases/).  
@@ -8,7 +7,7 @@ You can download Orca Slicer here: [github releases page](https://github.com/Sof
 # Main features
 - Auto calibrations for all printers
 - Sandwich(inner-outer-inner) mode - an improved version of the `External perimeters first` mode
-- Precise wall
+- [Precise wall](https://github.com/SoftFever/OrcaSlicer/wiki/Precise-wall)
 - Polyholes conversion support [SuperSlicer Wiki: Polyholes](https://github.com/supermerill/SuperSlicer/wiki/Polyholes)
 - Klipper support
 - More granular controls
@@ -33,7 +32,7 @@ Orca Slicer's logo is designed by community member Justin Levine(@freejstnalxndr
 2. Drag OrcaSlicer.app to Application folder. 
 3. *If you want to run a build from a PR, you also need following instructions bellow*  
     <details quarantine>
-    - Option 1 (You only need to do this once. After that the app can be oppened normally.):
+    - Option 1 (You only need to do this once. After that the app can be opened normally.):
       - Step 1: Hold _cmd_ and right click the app, from the context menu choose **Open**.
       - Step 2: A warning window will pop up, click _Open_  
       
@@ -58,7 +57,7 @@ Orca Slicer's logo is designed by community member Justin Levine(@freejstnalxndr
   - Run `build_release.bat` in `x64 Native Tools Command Prompt for VS 2019`
 
 - Mac 64-bit  
-  - Tools needed: Xcode, Cmake, git, gettext
+  - Tools needed: Xcode, Cmake, git, gettext, libtool, automake, autoconf
   - run `build_release_macos.sh`
 
 - Ubuntu  

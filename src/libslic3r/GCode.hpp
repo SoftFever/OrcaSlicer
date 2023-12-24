@@ -55,11 +55,16 @@ class Wipe {
 public:
     bool enable;
     Polyline path;
+    struct RetractionValues{
+        double retractLengthBeforeWipe;
+        double retractLengthDuringWipe;
+    };
 
     Wipe() : enable(false) {}
     bool has_path() const { return !this->path.points.empty(); }
     void reset_path() { this->path = Polyline(); }
-    std::string wipe(GCode &gcodegen, bool toolchange = false, bool is_last = false);
+    std::string wipe(GCode &gcodegen, double length, bool toolchange = false, bool is_last = false);
+    RetractionValues calculateWipeRetractionLengths(GCode& gcodegen, bool toolchange);
 };
 
 class WipeTowerIntegration {
@@ -205,6 +210,7 @@ public:
     // inside the generated string and after the G-code export finishes.
     std::string     placeholder_parser_process(const std::string &name, const std::string &templ, unsigned int current_extruder_id, const DynamicConfig *config_override = nullptr);
     bool            enable_cooling_markers() const { return m_enable_cooling_markers; }
+    std::string     extrusion_role_to_string_for_parser(const ExtrusionRole &);
 
     // For Perl bindings, to be used exclusively by unit tests.
     unsigned int    layer_count() const { return m_layer_count; }
@@ -213,9 +219,9 @@ public:
 
     std::string     travel_to(const Point& point, ExtrusionRole role, std::string comment);
     bool            needs_retraction(const Polyline& travel, ExtrusionRole role, LiftType& lift_type);
-    std::string     retract(bool toolchange = false, bool is_last_retraction = false, LiftType lift_type = LiftType::SpiralLift);
+    std::string     retract(bool toolchange = false, bool is_last_retraction = false, LiftType lift_type = LiftType::NormalLift);
     std::string     unretract() { return m_writer.unlift() + m_writer.unretract(); }
-    std::string     set_extruder(unsigned int extruder_id, double print_z);
+    std::string     set_extruder(unsigned int extruder_id, double print_z, bool by_object=false);
     bool is_BBL_Printer();
 
     // SoftFever
@@ -548,6 +554,7 @@ private:
     bool m_need_change_layer_lift_z = false;
     int m_start_gcode_filament = -1;
 
+    std::set<unsigned int>                  m_initial_layer_extruders;
     // BBS
     int get_bed_temperature(const int extruder_id, const bool is_first_layer, const BedType bed_type) const;
 

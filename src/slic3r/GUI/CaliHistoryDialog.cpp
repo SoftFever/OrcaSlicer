@@ -15,6 +15,7 @@ namespace GUI {
 #define HISTORY_WINDOW_SIZE                wxSize(FromDIP(700), FromDIP(600))
 #define EDIT_HISTORY_DIALOG_INPUT_SIZE     wxSize(FromDIP(160), FromDIP(24))
 #define HISTORY_WINDOW_ITEMS_COUNT         5
+static const wxString k_tips = "Please input a valid value (K in 0~0.3)";
 
 static wxString get_preset_name_by_filament_id(std::string filament_id)
 {
@@ -25,16 +26,28 @@ static wxString get_preset_name_by_filament_id(std::string filament_id)
         if (filament_id.compare(it->filament_id) == 0) {
             auto preset_parent = collection->get_preset_parent(*it);
             if (preset_parent) {
-                if (!preset_parent->alias.empty())
-                    preset_name = from_u8(preset_parent->alias);
-                else
-                    preset_name = from_u8(preset_parent->name);
+                if (preset_parent->is_system) {
+                    if (!preset_parent->alias.empty())
+                        preset_name = from_u8(preset_parent->alias);
+                    else
+                        preset_name = from_u8(preset_parent->name);
+                }
+                else { // is custom created filament
+                    std::string name_str = preset_parent->name;
+                    preset_name = from_u8(name_str.substr(0, name_str.find(" @")));
+                }
             }
             else {
-                if (!it->alias.empty())
-                    preset_name = from_u8(it->alias);
-                else
-                    preset_name = from_u8(it->name);
+                if (it->is_system) {
+                    if (!it->alias.empty())
+                        preset_name = from_u8(it->alias);
+                    else
+                        preset_name = from_u8(it->name);
+                }
+                else { // is custom created filament
+                    std::string name_str = it->name;
+                    preset_name = from_u8(name_str.substr(0, name_str.find(" @")));
+                }
             }
         }
     }
@@ -351,18 +364,10 @@ EditCalibrationHistoryDialog::EditCalibrationHistoryDialog(wxWindow* parent, con
     flex_sizer->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);
 
     Label* name_title = new Label(top_panel, _L("Name"));
-    TextInput* name_value = new TextInput(top_panel, from_u8(m_new_result.name), "", "", wxDefaultPosition, EDIT_HISTORY_DIALOG_INPUT_SIZE, wxTE_PROCESS_ENTER);
-    name_value->GetTextCtrl()->Bind(wxEVT_TEXT_ENTER, [this, name_value](auto& e) {
-        if (!name_value->GetTextCtrl()->GetValue().IsEmpty())
-            m_new_result.name = name_value->GetTextCtrl()->GetValue().ToUTF8().data();
-        });
-    name_value->GetTextCtrl()->Bind(wxEVT_KILL_FOCUS, [this, name_value](auto& e) {
-        if (!name_value->GetTextCtrl()->GetValue().IsEmpty())
-            m_new_result.name = name_value->GetTextCtrl()->GetValue().ToUTF8().data();
-        e.Skip();
-        });
+    m_name_value = new TextInput(top_panel, from_u8(m_new_result.name), "", "", wxDefaultPosition, EDIT_HISTORY_DIALOG_INPUT_SIZE, wxTE_PROCESS_ENTER);
+
     flex_sizer->Add(name_title);
-    flex_sizer->Add(name_value);
+    flex_sizer->Add(m_name_value);
 
     Label* preset_name_title = new Label(top_panel, _L("Filament"));
     wxString preset_name = get_preset_name_by_filament_id(result.filament_id);
@@ -372,30 +377,9 @@ EditCalibrationHistoryDialog::EditCalibrationHistoryDialog(wxWindow* parent, con
 
     Label* k_title = new Label(top_panel, _L("Factor K"));
     auto k_str = wxString::Format("%.3f", m_new_result.k_value);
-    TextInput* k_value = new TextInput(top_panel, k_str, "", "", wxDefaultPosition, EDIT_HISTORY_DIALOG_INPUT_SIZE, wxTE_PROCESS_ENTER);
-    k_value->GetTextCtrl()->Bind(wxEVT_TEXT_ENTER, [this, k_value](auto& e) {
-        float k = 0.0f;
-        if (!CalibUtils::validate_input_k_value(k_value->GetTextCtrl()->GetValue(), &k)) {
-            MessageDialog msg_dlg(nullptr, _L("Please input a valid value (K in 0~0.5)"), wxEmptyString, wxICON_WARNING | wxOK);
-            msg_dlg.ShowModal();
-        }
-        wxString k_str = wxString::Format("%.3f", k);
-        k_value->GetTextCtrl()->SetValue(k_str);
-        m_new_result.k_value = k;
-        });
-    k_value->GetTextCtrl()->Bind(wxEVT_KILL_FOCUS, [this, k_value](auto& e) {
-        float k = 0.0f;
-        if (!CalibUtils::validate_input_k_value(k_value->GetTextCtrl()->GetValue(), &k)) {
-            MessageDialog msg_dlg(nullptr, _L("Please input a valid value (K in 0~0.5)"), wxEmptyString, wxICON_WARNING | wxOK);
-            msg_dlg.ShowModal();
-        }
-        wxString k_str = wxString::Format("%.3f", k);
-        k_value->GetTextCtrl()->SetValue(k_str);
-        m_new_result.k_value = k;
-        e.Skip();
-        });
+    m_k_value = new TextInput(top_panel, k_str, "", "", wxDefaultPosition, EDIT_HISTORY_DIALOG_INPUT_SIZE, wxTE_PROCESS_ENTER);
     flex_sizer->Add(k_title);
-    flex_sizer->Add(k_value);
+    flex_sizer->Add(m_k_value);
 
     // Hide:
     //Label* n_title = new Label(top_panel, _L("Factor N"));
@@ -449,6 +433,27 @@ PACalibResult EditCalibrationHistoryDialog::get_result() {
 }
 
 void EditCalibrationHistoryDialog::on_save(wxCommandEvent& event) {
+    wxString name = m_name_value->GetTextCtrl()->GetValue();
+    if (name.IsEmpty())
+        return;
+    if (name.Length() > 40) {
+        MessageDialog msg_dlg(nullptr, _L("The name cannot exceed 40 characters."), wxEmptyString, wxICON_WARNING | wxOK);
+        msg_dlg.ShowModal();
+        return;
+    }
+    m_new_result.name = m_name_value->GetTextCtrl()->GetValue().ToUTF8().data();
+    
+    float k = 0.0f;
+    if (!CalibUtils::validate_input_k_value(m_k_value->GetTextCtrl()->GetValue(), &k)) {
+        MessageDialog msg_dlg(nullptr, _L(k_tips), wxEmptyString, wxICON_WARNING | wxOK);
+        msg_dlg.ShowModal();
+        return;
+    }
+    wxString k_str = wxString::Format("%.3f", k);
+    m_k_value->GetTextCtrl()->SetValue(k_str);
+    m_new_result.k_value = k;
+
+
     EndModal(wxID_OK);
 }
 
