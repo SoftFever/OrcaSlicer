@@ -74,6 +74,7 @@ void PrintagoPanel::SetCanProcessJob(const bool can_process_job)
         jobCommand.Clear();
         jobLocalFilePath.Clear();
         jobServerState = "idle";
+        jobProgress    = 0;
         // jobId = ""; // TODO: add this here when we have it.
         m_select_machine_dlg = nullptr;
     }
