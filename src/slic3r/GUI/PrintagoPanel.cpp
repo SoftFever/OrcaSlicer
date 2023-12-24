@@ -803,7 +803,8 @@ void PrintagoPanel::SendStatusMessage(const wxString printer_id, const json stat
     event->SetMessageType("status");
     event->SetPrinterId(printer_id);
     const wxURL url(command);
-    event->SetCommand(url.GetPath().ToStdString());
+    wxString path = url.GetPath();
+    event->SetCommand((!path.empty() && path[0] == '/') ? path.Remove(0, 1).ToStdString() : path.ToStdString());
     event->SetData(statusData);
 
     wxQueueEvent(this, event);
@@ -835,8 +836,8 @@ void PrintagoPanel::SendSuccessMessage(const wxString printer_id,
     event->SetMessageType("success");
     event->SetPrinterId(printer_id);
     const wxURL url(command);
-    wxString::Trim()url.GetPath()
-    event->SetCommand(url.GetPath().ToStdString());
+    wxString path = url.GetPath();
+    event->SetCommand((!path.empty() && path[0] == '/') ? path.Remove(0, 1).ToStdString() : path.ToStdString());
     event->SetData(responseData);
 
     wxQueueEvent(this, event);
@@ -856,7 +857,8 @@ void PrintagoPanel::SendErrorMessage(const wxString printer_id,
     event->SetMessageType("error");
     event->SetPrinterId(printer_id);
     const wxURL url(command);
-    event->SetCommand(url.GetPath().ToStdString());
+    wxString    path = url.GetPath();
+    event->SetCommand((!path.empty() && path[0] == '/') ? path.Remove(0, 1).ToStdString() : path.ToStdString());
     event->SetData(errorResponse);
 
     wxQueueEvent(this, event);
@@ -876,7 +878,8 @@ void PrintagoPanel::SendJsonErrorMessage(const wxString printer_id,
     event->SetMessageType("error");
     event->SetPrinterId(printer_id);
     const wxURL url(command);
-    event->SetCommand(url.GetPath().ToStdString());
+    wxString    path = url.GetPath();
+    event->SetCommand((!path.empty() && path[0] == '/') ? path.Remove(0, 1).ToStdString() : path.ToStdString());
     event->SetData(errorResponse);
 
     wxQueueEvent(this, event);
