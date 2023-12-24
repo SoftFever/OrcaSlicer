@@ -155,7 +155,7 @@ wxWindow *KBShortcutsDialog::create_button(int id, wxString text)
 
 void KBShortcutsDialog::on_dpi_changed(const wxRect& suggested_rect)
 {
-    m_logo_bmp.sys_color_changed();
+    m_logo_bmp.msw_rescale();
     m_header_bitmap->SetBitmap(m_logo_bmp.bmp());
     msw_buttons_rescale(this, em_unit(), { wxID_OK });
 

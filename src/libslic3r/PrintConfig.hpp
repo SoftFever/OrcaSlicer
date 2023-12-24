@@ -907,6 +907,8 @@ PRINT_CONFIG_CLASS_DEFINE(
 PRINT_CONFIG_CLASS_DEFINE(
     MachineEnvelopeConfig,
 
+    // Orca: whether emit machine limits into the beginning of the G-code.
+    ((ConfigOptionBool,                 emit_machine_limits_to_gcode))
     // M201 X... Y... Z... E... [mm/sec^2]
     ((ConfigOptionFloats,               machine_max_acceleration_x))
     ((ConfigOptionFloats,               machine_max_acceleration_y))

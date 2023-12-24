@@ -229,6 +229,8 @@ void Tab::create_preset_tab()
     //    add_scaled_button(panel, &m_btn_edit_ph_printer, "cog");
 
     m_show_incompatible_presets = false;
+    add_scaled_bitmap(this, m_bmp_show_incompatible_presets, "flag_red");
+    add_scaled_bitmap(this, m_bmp_hide_incompatible_presets, "flag_green");
 
     //add_scaled_button(panel, &m_btn_hide_incompatible_presets, m_bmp_hide_incompatible_presets.name());
 
@@ -393,7 +395,7 @@ void Tab::create_preset_tab()
 #endif
         m_mode_sizer = new ModeSizer(panel, int (0.5*em_unit(this)));
 
-    const float scale_factor = em_unit(this)*0.1;// GetContentScaleFactor();
+    const float scale_factor = /*wxGetApp().*/em_unit(this)*0.1;// GetContentScaleFactor();
     m_hsizer = new wxBoxSizer(wxHORIZONTAL);
     sizer->Add(m_hsizer, 0, wxEXPAND | wxBOTTOM, 3);
     m_hsizer->Add(m_presets_choice, 0, wxLEFT | wxRIGHT | wxTOP | wxALIGN_CENTER_VERTICAL, 3);
@@ -442,8 +444,11 @@ void Tab::create_preset_tab()
     m_tabctrl->Bind(wxEVT_RIGHT_DOWN, [this](auto &e) {}); // disable right select
     m_tabctrl->SetFont(Label::Body_14);
     //m_left_sizer->Add(m_tabctrl, 1, wxEXPAND);
-    // Index of the last icon inserted into m_tabctrl.
+    const int img_sz = int(32 * scale_factor + 0.5f);
+    m_icons = new wxImageList(img_sz, img_sz, false, 1);
+    // Index of the last icon inserted into $self->{icons}.
     m_icon_count = -1;
+    m_tabctrl->AssignImageList(m_icons);
     wxGetApp().UpdateDarkUI(m_tabctrl);
 
     // Delay processing of the following handler until the message queue is flushed.
@@ -521,22 +526,6 @@ void Tab::create_preset_tab()
     // Initialize the DynamicPrintConfig by default keys/values.
     build();
 
-    // Orca: shouldn't be needed bc TabCtrl doesn't use images passed through
-    // If needed, updated code is below. SetImages will need to be implemented in TabCtrl
-    // which should be easiest by adding wxWithImages mixin.
-    // This instance was added by PS when updating wx
-/*    if (!m_scaled_icons_list.empty()) {
-            // update icons for tree_ctrl
-            wxVector <wxBitmapBundle> img_bundles;
-            for (ScalableBitmap& bmp : m_scaled_icons_list) {
-                bmp.sys_color_changed();
-                img_bundles.push_back(bmp.bmp());
-            }
-            m_tabctrl->SetImages(img_bundles);
-    }*/
-
-
-
     // ys_FIXME: Following should not be needed, the function will be called later
     // (update_mode->update_visibility->rebuild_page_tree). This does not work, during the
     // second call of rebuild_page_tree m_tabctrl->GetFirstVisibleItem(); returns zero
@@ -552,7 +541,7 @@ void Tab::add_scaled_button(wxWindow* parent,
                             const wxString& label/* = wxEmptyString*/,
                             long style /*= wxBU_EXACTFIT | wxNO_BORDER*/)
 {
-    *btn = new ScalableButton(parent, wxID_ANY, icon_name, label, wxDefaultSize, wxDefaultPosition, style);
+    *btn = new ScalableButton(parent, wxID_ANY, icon_name, label, wxDefaultSize, wxDefaultPosition, style, true);
     (*btn)->SetBackgroundColour(parent->GetBackgroundColour());
     m_scaled_buttons.push_back(*btn);
 }
@@ -583,6 +572,7 @@ Slic3r::GUI::PageShp Tab::add_options_page(const wxString& title, const std::str
         if (icon_idx == -1) {
             // Add a new icon to the icon list.
             m_scaled_icons_list.push_back(ScalableBitmap(this, icon, 32, false, true));
+            //m_icons->Add(m_scaled_icons_list.back().bmp());
             icon_idx = ++m_icon_count;
             m_icon_index[icon] = icon_idx;
         }
@@ -897,6 +887,18 @@ void TabPrinter::init_options_list()
         m_options_list.emplace("extruders_count", m_opt_status_value);
 }
 
+void TabPrinter::msw_rescale()
+{
+    Tab::msw_rescale();
+
+    if (m_reset_to_filament_color)
+        m_reset_to_filament_color->msw_rescale();
+
+    //BBS: GUI refactor
+    //Layout();
+    m_parent->Layout();
+}
+
 void TabSLAMaterial::init_options_list()
 {
     if (!m_options_list.empty())
@@ -1172,30 +1174,35 @@ void Tab::msw_rescale()
 
     m_top_sizer->SetMinSize(-1, 3 * m_em_unit);
 
+    //BBS: GUI refactor
+    //if (m_mode_sizer)
+    //    m_mode_sizer->msw_rescale();
     if (m_presets_choice)
         m_presets_choice->msw_rescale();
+
     m_tabctrl->SetMinSize(wxSize(20 * m_em_unit, -1));
 
     // rescale buttons and cached bitmaps
+    for (const auto btn : m_scaled_buttons)
+        btn->msw_rescale();
     for (const auto bmp : m_scaled_bitmaps)
-        bmp->sys_color_changed();
+        bmp->msw_rescale();
 
     if (m_mode_view)
         m_mode_view->Rescale();
 
     if (m_detach_preset_btn)
-        m_detach_preset_btn->sys_color_changed();
+        m_detach_preset_btn->msw_rescale();
 
-    // Orca: shouldn't be needed bc TabCtrl doesn't use images passed through
-    // If needed, updated code is below. SetImages will need to be implemented in TabCtrl
-    // which should be easiest by adding wxWithImages mixin.
-    /*    // update icons for m_tabctrl
-        wxVector <wxBitmapBundle> img_bundles;
-        for (ScalableBitmap& bmp : m_scaled_icons_list) {
-            bmp.sys_color_changed();
-            img_bundles.push_back(bmp.bmp());
-        }
-        m_tabctrl->SetImages(img_bundles);*/
+    // rescale icons for tree_ctrl
+    for (ScalableBitmap& bmp : m_scaled_icons_list)
+        bmp.msw_rescale();
+    // recreate and set new ImageList for tree_ctrl
+    m_icons->RemoveAll();
+    m_icons = new wxImageList(m_scaled_icons_list.front().bmp().GetWidth(), m_scaled_icons_list.front().bmp().GetHeight(), false);
+    for (ScalableBitmap& bmp : m_scaled_icons_list)
+        //m_icons->Add(bmp.bmp());
+    m_tabctrl->AssignImageList(m_icons);
 
     // rescale options_groups
     if (m_active_page)
@@ -1215,24 +1222,21 @@ void Tab::sys_color_changed()
 
     // update buttons and cached bitmaps
     for (const auto btn : m_scaled_buttons)
-        btn->sys_color_changed();
+        btn->msw_rescale();
     for (const auto bmp : m_scaled_bitmaps)
-        bmp->sys_color_changed();
+        bmp->msw_rescale();
     if (m_detach_preset_btn)
-        m_detach_preset_btn->sys_color_changed();
+        m_detach_preset_btn->msw_rescale();
 
-    update_show_hide_incompatible_button();
-
-    // Orca: shouldn't be needed bc TabCtrl doesn't use images passed through
-    // If needed, updated code is below. SetImages will need to be implemented in TabCtrl
-    // which should be easiest by adding wxWithImages mixin.
-/*    // update icons for m_tabctrl
-    wxVector <wxBitmapBundle> img_bundles;
-    for (ScalableBitmap& bmp : m_scaled_icons_list) {
-        bmp.sys_color_changed();
-        img_bundles.push_back(bmp.bmp());
-    }
-    m_tabctrl->SetImages(img_bundles);*/
+    // update icons for tree_ctrl
+    for (ScalableBitmap& bmp : m_scaled_icons_list)
+        bmp.msw_rescale();
+    // recreate and set new ImageList for tree_ctrl
+    m_icons->RemoveAll();
+    m_icons = new wxImageList(m_scaled_icons_list.front().bmp().GetWidth(), m_scaled_icons_list.front().bmp().GetHeight(), false);
+    for (ScalableBitmap& bmp : m_scaled_icons_list)
+        //m_icons->Add(bmp.bmp());
+    m_tabctrl->AssignImageList(m_icons);
 
     // Colors for ui "decoration"
     update_label_colours();
@@ -1240,7 +1244,7 @@ void Tab::sys_color_changed()
     wxWindowUpdateLocker noUpdates(this);
     //BBS: GUI refactor
     //if (m_mode_sizer)
-    //    m_mode_sizer->sys_color_changed();
+    //    m_mode_sizer->msw_rescale();
     wxGetApp().UpdateDarkUI(this);
     wxGetApp().UpdateDarkUI(m_tabctrl);
 #endif
@@ -1253,7 +1257,6 @@ void Tab::sys_color_changed()
     //BBS: GUI refactor
     //Layout();
     m_parent->Layout();
-    m_parent->Refresh();
 }
 
 Field* Tab::get_field(const t_config_option_key& opt_key, int opt_index/* = -1*/) const
@@ -1734,7 +1737,7 @@ void Tab::build_preset_description_line(ConfigOptionsGroup* optgroup)
 
     auto detach_preset_btn = [this](wxWindow* parent) {
         m_detach_preset_btn = new ScalableButton(parent, wxID_ANY, "lock_normal_sys", "",
-                                                 wxDefaultSize, wxDefaultPosition, wxBU_LEFT | wxBU_EXACTFIT);
+                                                 wxDefaultSize, wxDefaultPosition, wxBU_LEFT | wxBU_EXACTFIT, true);
         ScalableButton* btn = m_detach_preset_btn;
         btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 
@@ -2200,7 +2203,7 @@ void TabPrint::build()
         optgroup->append_single_option_line(option);
 
 #if 0
-    //page = add_options_page(L("Dependencies"), "advanced");
+    //page = add_options_page(L("Dependencies"), "advanced.png");
     //    optgroup = page->new_optgroup(L("Profile dependencies"));
 
     //    create_line_with_widget(optgroup.get(), "compatible_printers", "", [this](wxWindow* parent) {
@@ -3611,7 +3614,7 @@ void TabPrinter::build_sla()
     //optgroup->append_single_option_line("min_initial_exposure_time");
     //optgroup->append_single_option_line("max_initial_exposure_time");
 
-    //page = add_options_page(L("Dependencies"), "wrench");
+    //page = add_options_page(L("Dependencies"), "wrench.png");
     //optgroup = page->new_optgroup(L("Profile dependencies"));
 
     //build_preset_description_line(optgroup.get());
@@ -3684,6 +3687,8 @@ PageShp TabPrinter::build_kinematics_page()
 
         optgroup->append_line(line);
     }
+    auto optgroup = page->new_optgroup(L("Advanced"), "param_advanced");
+    optgroup->append_single_option_line("emit_machine_limits_to_gcode");
 
     const std::vector<std::string> speed_axes{
         "machine_max_speed_x",
@@ -3691,7 +3696,7 @@ PageShp TabPrinter::build_kinematics_page()
         "machine_max_speed_z",
         "machine_max_speed_e"
     };
-    auto optgroup = page->new_optgroup(L("Speed limitation"), "param_speed");
+    optgroup = page->new_optgroup(L("Speed limitation"), "param_speed");
         for (const std::string &speed_axis : speed_axes)	{
             append_option_line(optgroup, speed_axis);
         }
@@ -3883,7 +3888,7 @@ if (is_marlin_flavor)
 
             //auto reset_to_filament_color = [this, extruder_idx](wxWindow* parent) {
             //    m_reset_to_filament_color = new ScalableButton(parent, wxID_ANY, "undo", _L("Reset to Filament Color"),
-            //                                                   wxDefaultSize, wxDefaultPosition, wxBU_LEFT | wxBU_EXACTFIT);
+            //                                                   wxDefaultSize, wxDefaultPosition, wxBU_LEFT | wxBU_EXACTFIT, true);
             //    ScalableButton* btn = m_reset_to_filament_color;
             //    btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
             //    btn->SetSize(btn->GetBestSize());
@@ -5246,7 +5251,8 @@ void Tab::toggle_show_hide_incompatible()
 void Tab::update_show_hide_incompatible_button()
 {
     //BBS: GUI refactor
-    /*m_btn_hide_incompatible_presets->SetBitmap(*get_bmp_bundle(m_show_incompatible_presets ? "flag_red" : "flag_green"));
+    /*m_btn_hide_incompatible_presets->SetBitmap_(m_show_incompatible_presets ?
+        m_bmp_show_incompatible_presets : m_bmp_hide_incompatible_presets);
     m_btn_hide_incompatible_presets->SetToolTip(m_show_incompatible_presets ?
         "Both compatible an incompatible presets are shown. Click to hide presets not compatible with the current printer." :
         "Only compatible presets are shown. Click to show both the presets compatible and not compatible with the current printer.");*/
@@ -5293,7 +5299,7 @@ wxSizer* Tab::compatible_widget_create(wxWindow* parent, PresetDependencies &dep
     deps.checkbox->SetFont(Slic3r::GUI::wxGetApp().normal_font());
     wxGetApp().UpdateDarkUI(deps.checkbox, false, true);
     deps.btn = new ScalableButton(parent, wxID_ANY, "printer", from_u8((boost::format(" %s %s") % _utf8(L("Set")) % std::string(dots.ToUTF8())).str()),
-                                  wxDefaultSize, wxDefaultPosition, wxBU_LEFT | wxBU_EXACTFIT);
+                                  wxDefaultSize, wxDefaultPosition, wxBU_LEFT | wxBU_EXACTFIT, true);
     deps.btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
     deps.btn->SetSize(deps.btn->GetBestSize());
 
@@ -5368,7 +5374,7 @@ wxSizer* Tab::compatible_widget_create(wxWindow* parent, PresetDependencies &dep
 wxSizer* TabPrinter::create_bed_shape_widget(wxWindow* parent)
 {
     ScalableButton* btn = new ScalableButton(parent, wxID_ANY, "printer", " " + _(L("Set")) + " " + dots,
-        wxDefaultSize, wxDefaultPosition, wxBU_LEFT | wxBU_EXACTFIT);
+        wxDefaultSize, wxDefaultPosition, wxBU_LEFT | wxBU_EXACTFIT, true);
     btn->SetFont(wxGetApp().normal_font());
     btn->SetSize(btn->GetBestSize());
 
@@ -5786,7 +5792,7 @@ void TabSLAMaterial::build()
 
     //optgroup->append_line(line);
 
-    //page = add_options_page(L("Dependencies"), "wrench");
+    //page = add_options_page(L("Dependencies"), "wrench.png");
     //optgroup = page->new_optgroup(L("Profile dependencies"));
 
     //create_line_with_widget(optgroup.get(), "compatible_printers", "", [this](wxWindow* parent) {
@@ -5807,7 +5813,7 @@ void TabSLAMaterial::build()
 
     //build_preset_description_line(optgroup.get());
 
-    //page = add_options_page(L("Material printing profile"), "printer");
+    //page = add_options_page(L("Material printing profile"), "printer.png");
     //optgroup = page->new_optgroup(L("Material printing profile"));
     //option = optgroup->get_option("material_print_speed");
     //optgroup->append_single_option_line(option);

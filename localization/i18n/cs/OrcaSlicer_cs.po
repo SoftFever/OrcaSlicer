@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-19 22:09+0800\n"
+"POT-Creation-Date: 2023-12-23 22:15+0800\n"
 "PO-Revision-Date: 2023-09-30 15:15+0200\n"
 "Last-Translator: René Mošner <Renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -908,6 +908,21 @@ msgstr "Smazat vybraný objekt"
 msgid "Load..."
 msgstr "Načíst..."
 
+msgid "Cube"
+msgstr "Kostka"
+
+msgid "Cylinder"
+msgstr "Válec"
+
+msgid "Cone"
+msgstr "Kužel"
+
+msgid "Disc"
+msgstr ""
+
+msgid "Torus"
+msgstr ""
+
 msgid "Orca Cube"
 msgstr "Orca Kostka"
 
@@ -920,14 +935,8 @@ msgstr "Autodesk FDM Test"
 msgid "Voron Cube"
 msgstr "Voron Kostka"
 
-msgid "Cube"
-msgstr "Kostka"
-
-msgid "Cylinder"
-msgstr "Válec"
-
-msgid "Cone"
-msgstr "Kužel"
+msgid "Stanford Bunny"
+msgstr ""
 
 msgid "Text"
 msgstr ""
@@ -1085,6 +1094,9 @@ msgstr "Zneplatnění informací o řezu"
 
 msgid "Add Primitive"
 msgstr "Přidat Primitivní"
+
+msgid "Add Handy models"
+msgstr ""
 
 msgid "Show Labels"
 msgstr "Zobrazit štítky"
@@ -2595,6 +2607,18 @@ msgstr ""
 "Změnit tato nastavení automaticky? \n"
 "Ano - Změňte tato nastavení a povolte režim spirála/váza automaticky\n"
 "Ne - zrušit povolení spirálového režimu"
+
+msgid ""
+"Alternate extra wall only works with ensure vertical shell thickness "
+"disabled. "
+msgstr ""
+
+msgid ""
+"Change these settings automatically? \n"
+"Yes - Disable ensure vertical shell thickness and enable alternate extra "
+"wall\n"
+"No  - Dont use alternate extra wall"
+msgstr ""
 
 msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support "
@@ -6733,15 +6757,19 @@ msgstr "Šířka linky při rapidní extruzi"
 msgid "Ramming line spacing"
 msgstr "Rozestup linek při rapidní extruzi"
 
-msgid "Recalculate"
+msgid "Auto-Calc"
+msgstr "Automatický výpočet"
+
+msgid "Re-calculate"
 msgstr ""
 
 msgid "Flushing volumes for filament change"
 msgstr "Čistící objemy pro výměnu filamentu"
 
 msgid ""
-"Orca recalculates your flushing volumes everytime the filament colors "
-"change. You can change this behavior in Preferences."
+"Studio would re-calculate your flushing volumes everytime the filaments "
+"color changed. You could disable the auto-calculate in Bambu Studio > "
+"Preferences"
 msgstr ""
 
 msgid "Flushing volume (mm³) for each filament pair."
@@ -6757,6 +6785,15 @@ msgstr "Násobitel by měl být v rozsahu [%.2f, %.2f]."
 
 msgid "Multiplier"
 msgstr "Multiplikátor"
+
+msgid "unloaded"
+msgstr "vyjmuto"
+
+msgid "loaded"
+msgstr "zaváděn"
+
+msgid "Filament #"
+msgstr "Filament #"
 
 msgid "From"
 msgstr "Z"
@@ -9545,6 +9582,17 @@ msgstr ""
 "Zda stroj podporuje tichý režim, ve kterém stroj používá k tisku nižší "
 "zrychlení"
 
+msgid "Emit limits to G-code"
+msgstr ""
+
+msgid "Machine limits"
+msgstr "Limity stroje"
+
+msgid ""
+"If enabled, the machine limits will be emitted to G-code file.\n"
+"This option will be ignored if the g-code flavor is set to Klipper."
+msgstr ""
+
 msgid ""
 "This G-code will be used as a code for the pause print. User can insert "
 "pause G-code in gcode viewer"
@@ -9566,9 +9614,6 @@ msgstr "Maximální rychlost Z"
 
 msgid "Maximum speed E"
 msgstr "Maximální rychlost E"
-
-msgid "Machine limits"
-msgstr "Limity stroje"
 
 msgid "Maximum X speed"
 msgstr "Maximální rychlost X"
@@ -9960,6 +10005,20 @@ msgstr "Rychlost vnitřní stěny"
 
 msgid "Number of walls of every layer"
 msgstr "Počet perimetrů/stěn každé vrstvy"
+
+msgid "Alternate extra wall"
+msgstr ""
+
+msgid ""
+"This setting adds an extra wall to every other layer. This way the infill "
+"gets wedged vertically between the walls, resulting in stronger prints. \n"
+"\n"
+"When this option is enabled, the ensure vertical shell thickness option "
+"needs to be disabled. \n"
+"\n"
+"Using lightning infill together with this option is not recommended as there "
+"is limited infill to anchor the extra perimeters to."
+msgstr ""
 
 msgid ""
 "If you want to process the output G-code through custom scripts, just list "
@@ -13310,18 +13369,6 @@ msgstr ""
 
 #~ msgid "Quick"
 #~ msgstr "Rychlé"
-
-#~ msgid "Auto-Calc"
-#~ msgstr "Automatický výpočet"
-
-#~ msgid "unloaded"
-#~ msgstr "vyjmuto"
-
-#~ msgid "loaded"
-#~ msgstr "zaváděn"
-
-#~ msgid "Filament #"
-#~ msgstr "Filament #"
 
 #~ msgid ""
 #~ "Discribe how long the nozzle will move along the last path when retracting"

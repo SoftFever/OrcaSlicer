@@ -76,7 +76,7 @@ void TextInput::Create(wxWindow *     parent,
     });
     text_ctrl->Bind(wxEVT_RIGHT_DOWN, [this](auto &e) {}); // disable context menu
     if (!icon.IsEmpty()) {
-        this->drop_down_icon = ScalableBitmap(this, icon.ToStdString(), 16);
+        this->icon = ScalableBitmap(this, icon.ToStdString(), 16);
     }
     messureSize();
 }
@@ -94,9 +94,11 @@ void TextInput::SetLabel(const wxString& label)
     Refresh();
 }
 
-void TextInput::SetIcon(const wxBitmapBundle &icon_in)
+void TextInput::SetIcon(const wxBitmap &icon)
 {
-    icon = icon_in;
+    this->icon = ScalableBitmap();
+    this->icon.bmp() = icon;
+    Rescale();
 }
 
 void TextInput::SetLabelColor(StateColor const &color)
@@ -113,9 +115,8 @@ void TextInput::SetTextColor(StateColor const& color)
 
 void TextInput::Rescale()
 {
-    if (text_ctrl)
-        text_ctrl->SetInitialSize(text_ctrl->GetBestSize());
-
+    if (!this->icon.name().empty())
+        this->icon.msw_rescale();
     messureSize();
     Refresh();
 }
@@ -151,22 +152,16 @@ void TextInput::DoSetSize(int x, int y, int width, int height, int sizeFlags)
     if (sizeFlags & wxSIZE_USE_EXISTING) return;
     wxSize size = GetSize();
     wxPoint textPos = {5, 0};
-    if (this->icon.IsOk()) {
-        wxSize szIcon = get_preferred_size(icon, m_parent);
+    if (this->icon.bmp().IsOk()) {
+        wxSize szIcon = this->icon.GetBmpSize();
         textPos.x += szIcon.x;
     }
-    wxSize dd_icon_size = wxSize(0,0);
-    if (this->drop_down_icon.bmp().IsOk())
-        dd_icon_size = this->drop_down_icon.GetSize();
-
     bool align_right = GetWindowStyle() & wxRIGHT;
     if (align_right)
         textPos.x += labelSize.x;
     if (text_ctrl) {
         wxSize textSize = text_ctrl->GetSize();
-        wxClientDC dc(this);
-        const int r_shift = int((dd_icon_size.x == 0 ? 3. : 2.) * dc.GetContentScaleFactor());
-        textSize.x = size.x - textPos.x - labelSize.x - dd_icon_size.x - r_shift;
+        textSize.x = size.x - textPos.x - labelSize.x - 10;
         text_ctrl->SetSize(textSize);
         text_ctrl->SetPosition({textPos.x, (size.y - textSize.y) / 2});
     }
@@ -198,26 +193,12 @@ void TextInput::render(wxDC& dc)
     bool   align_right = GetWindowStyle() & wxRIGHT;
     // start draw
     wxPoint pt = {5, 0};
-    if (icon.IsOk()) {
-        wxSize szIcon = get_preferred_size(icon, m_parent);
+    if (icon.bmp().IsOk()) {
+        wxSize szIcon = icon.GetBmpSize();
         pt.y = (size.y - szIcon.y) / 2;
-#ifdef __WXGTK3__
-        dc.DrawBitmap(icon.GetBitmap(szIcon), pt);
-#else
-        dc.DrawBitmap(icon.GetBitmapFor(m_parent), pt);
-#endif
+        dc.DrawBitmap(icon.bmp(), pt);
         pt.x += szIcon.x + 0;
     }
-
-    // drop_down_icon draw
-    wxPoint pt_r = {size.x, 0};
-    if (drop_down_icon.bmp().IsOk()) {
-        wxSize szIcon = drop_down_icon.GetSize();
-        pt_r.x -= szIcon.x + 2;
-        pt_r.y = (size.y - szIcon.y) / 2;
-        dc.DrawBitmap(drop_down_icon.get_bitmap(), pt_r);
-    }
-
     auto text = wxWindow::GetLabel();
     if (!text.IsEmpty()) {
         wxSize textSize = text_ctrl->GetSize();

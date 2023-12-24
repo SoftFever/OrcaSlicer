@@ -46,8 +46,8 @@ void DragCanvas::set_shape_list(const std::vector<std::string>& colors, const st
     m_dragshape_list.clear();
 
     for (int i = 0; i < order.size(); i++) {
-        wxBitmap bmp = get_extruder_color_icon(colors[order[i] - 1], std::to_string(order[i]), SHAPE_SIZE, SHAPE_SIZE)->GetBitmapFor(m_parent);
-        DragShape* shape = new DragShape(bmp, order[i]);
+        wxBitmap* bmp = get_extruder_color_icon(colors[order[i] - 1], std::to_string(order[i]), SHAPE_SIZE, SHAPE_SIZE);
+        DragShape* shape = new DragShape(*bmp, order[i]);
         m_dragshape_list.push_back(shape);
     }
 

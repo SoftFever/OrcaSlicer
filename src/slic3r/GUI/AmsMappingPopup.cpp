@@ -187,7 +187,7 @@ void MaterialItem::doRender(wxDC &dc)
     auto acolor = m_ams_coloul;
 
     if (mcolor.Alpha() == 0 || acolor.Alpha() == 0) {
-        dc.DrawBitmap(m_transparent_mitem.get_bitmap(), FromDIP(1), FromDIP(1));
+        dc.DrawBitmap(m_transparent_mitem.bmp(), FromDIP(1), FromDIP(1));
     }
 
     if (!IsEnabled()) {
@@ -247,10 +247,10 @@ void MaterialItem::doRender(wxDC &dc)
     //arrow
     if ( (acolor.Red() > 160 && acolor.Green() > 160 && acolor.Blue() > 160) &&
         (acolor.Red() < 180 && acolor.Green() < 180 && acolor.Blue() < 180)) {
-        dc.DrawBitmap(m_arraw_bitmap_white.get_bitmap(), GetSize().x - m_arraw_bitmap_white.GetSize().x - FromDIP(7),  GetSize().y - m_arraw_bitmap_white.GetSize().y);
+        dc.DrawBitmap(m_arraw_bitmap_white.bmp(), GetSize().x - m_arraw_bitmap_white.GetBmpSize().x - FromDIP(7),  GetSize().y - m_arraw_bitmap_white.GetBmpSize().y);
     }
     else {
-        dc.DrawBitmap(m_arraw_bitmap_gray.get_bitmap(), GetSize().x - m_arraw_bitmap_gray.GetSize().x - FromDIP(7),  GetSize().y - m_arraw_bitmap_gray.GetSize().y);
+        dc.DrawBitmap(m_arraw_bitmap_gray.bmp(), GetSize().x - m_arraw_bitmap_gray.GetBmpSize().x - FromDIP(7),  GetSize().y - m_arraw_bitmap_gray.GetBmpSize().y);
     }
 
     
@@ -677,7 +677,7 @@ void MappingItem::doRender(wxDC &dc)
     dc.SetBrush(wxBrush(m_coloul));
 
     if (m_coloul.Alpha() == 0) {
-       dc.DrawBitmap( m_transparent_mapping_item.get_bitmap(), 0, (GetSize().y - MAPPING_ITEM_REAL_SIZE.y) / 2);
+       dc.DrawBitmap( m_transparent_mapping_item.bmp(), 0, (GetSize().y - MAPPING_ITEM_REAL_SIZE.y) / 2);
     }
     else {
         dc.DrawRectangle(0, (GetSize().y - MAPPING_ITEM_REAL_SIZE.y) / 2, MAPPING_ITEM_REAL_SIZE.x, MAPPING_ITEM_REAL_SIZE.y);
@@ -1340,7 +1340,7 @@ void AmsReplaceMaterialDialog::update_machine_obj(MachineObject* obj)
         }
         else {
             label_txt->SetLabelText(_L("If there are two identical filaments in AMS, AMS filament backup will be enabled. \n(Currently supporting automatic supply of consumables with the same brand, material type, and color)"));
-        }
+        } 
 
         label_txt->SetMinSize(wxSize(FromDIP(380), -1));
         label_txt->SetMaxSize(wxSize(FromDIP(380), -1));
@@ -1494,7 +1494,7 @@ void AmsRMGroup::doRender(wxDC& dc)
     float startAngle = 0.0;
     float endAngle = 0.0;
 
-    dc.DrawBitmap(bitmap_bg.get_bitmap(), wxPoint((size.x - bitmap_bg.GetSize().x) / 2, (size.y - bitmap_bg.GetSize().y) / 2));
+    dc.DrawBitmap(bitmap_bg.bmp(), wxPoint((size.x - bitmap_bg.GetBmpSize().x) / 2, (size.y - bitmap_bg.GetBmpSize().y) / 2));
 
     for (auto iter = m_group_info.rbegin(); iter != m_group_info.rend(); ++iter) {
         std::string tray_name = iter->first;
@@ -1575,7 +1575,7 @@ void AmsRMGroup::doRender(wxDC& dc)
     dc.DrawEllipticArc(x - center_mask_radius, y - center_mask_radius, center_mask_radius * 2, center_mask_radius * 2, 0, 360);
 
     //draw center icon
-    dc.DrawBitmap(bitmap_backup_tips_0.get_bitmap(), wxPoint((size.x - bitmap_backup_tips_0.GetSize().x) / 2, (size.y - bitmap_backup_tips_0.GetSize().y) / 2));
+    dc.DrawBitmap(bitmap_backup_tips_0.bmp(), wxPoint((size.x - bitmap_backup_tips_0.GetBmpSize().x) / 2, (size.y - bitmap_backup_tips_0.GetBmpSize().y) / 2));
     //dc.DrawBitmap(bitmap_backup_tips_1.bmp(), wxPoint((size.x - bitmap_backup_tips_1.GetBmpSize().x) / 2, (size.y - bitmap_backup_tips_1.GetBmpSize().y) / 2));
 
     //draw material

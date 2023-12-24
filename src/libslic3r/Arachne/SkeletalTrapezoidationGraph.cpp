@@ -2,7 +2,8 @@
 //CuraEngine is released under the terms of the AGPLv3 or higher.
 
 #include "SkeletalTrapezoidationGraph.hpp"
-#include <unordered_map>
+#include <ankerl/unordered_dense.h>
+
 
 #include <boost/log/trivial.hpp>
 
@@ -180,8 +181,8 @@ bool STHalfEdgeNode::isLocalMaximum(bool strict) const
 
 void SkeletalTrapezoidationGraph::collapseSmallEdges(coord_t snap_dist)
 {
-    std::unordered_map<edge_t*, std::list<edge_t>::iterator> edge_locator;
-    std::unordered_map<node_t*, std::list<node_t>::iterator> node_locator;
+    ankerl::unordered_dense::map<edge_t*, std::list<edge_t>::iterator> edge_locator;
+    ankerl::unordered_dense::map<node_t*, std::list<node_t>::iterator> node_locator;
     
     for (auto edge_it = edges.begin(); edge_it != edges.end(); ++edge_it)
     {

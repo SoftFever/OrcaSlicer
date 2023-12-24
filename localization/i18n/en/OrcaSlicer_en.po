@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-19 22:09+0800\n"
+"POT-Creation-Date: 2023-12-23 22:15+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -885,6 +885,21 @@ msgstr "Delete the selected object"
 msgid "Load..."
 msgstr "Load..."
 
+msgid "Cube"
+msgstr "Cube"
+
+msgid "Cylinder"
+msgstr "Cylinder"
+
+msgid "Cone"
+msgstr "Cone"
+
+msgid "Disc"
+msgstr ""
+
+msgid "Torus"
+msgstr ""
+
 msgid "Orca Cube"
 msgstr ""
 
@@ -897,14 +912,8 @@ msgstr ""
 msgid "Voron Cube"
 msgstr ""
 
-msgid "Cube"
-msgstr "Cube"
-
-msgid "Cylinder"
-msgstr "Cylinder"
-
-msgid "Cone"
-msgstr "Cone"
+msgid "Stanford Bunny"
+msgstr ""
 
 msgid "Text"
 msgstr ""
@@ -1062,6 +1071,9 @@ msgstr "Invalidate cut info"
 
 msgid "Add Primitive"
 msgstr "Add Primitive"
+
+msgid "Add Handy models"
+msgstr ""
 
 msgid "Show Labels"
 msgstr "Show Labels"
@@ -2550,6 +2562,18 @@ msgstr ""
 "Change these settings automatically? \n"
 "Yes - Change these settings and enable spiral/vase mode automatically\n"
 "No  - Cancel enabling spiral mode"
+
+msgid ""
+"Alternate extra wall only works with ensure vertical shell thickness "
+"disabled. "
+msgstr ""
+
+msgid ""
+"Change these settings automatically? \n"
+"Yes - Disable ensure vertical shell thickness and enable alternate extra "
+"wall\n"
+"No  - Dont use alternate extra wall"
+msgstr ""
 
 msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support "
@@ -6601,15 +6625,19 @@ msgstr ""
 msgid "Ramming line spacing"
 msgstr ""
 
-msgid "Recalculate"
+msgid "Auto-Calc"
+msgstr "Auto-Calc"
+
+msgid "Re-calculate"
 msgstr ""
 
 msgid "Flushing volumes for filament change"
 msgstr "Flushing volumes for filament change"
 
 msgid ""
-"Orca recalculates your flushing volumes everytime the filament colors "
-"change. You can change this behavior in Preferences."
+"Studio would re-calculate your flushing volumes everytime the filaments "
+"color changed. You could disable the auto-calculate in Bambu Studio > "
+"Preferences"
 msgstr ""
 
 msgid "Flushing volume (mm³) for each filament pair."
@@ -6625,6 +6653,15 @@ msgstr "The multiplier should be in range [%.2f, %.2f]."
 
 msgid "Multiplier"
 msgstr "Multiplier"
+
+msgid "unloaded"
+msgstr "unloaded"
+
+msgid "loaded"
+msgstr "loaded"
+
+msgid "Filament #"
+msgstr "Filament #"
 
 msgid "From"
 msgstr "From"
@@ -9254,6 +9291,17 @@ msgstr ""
 "Whether the machine supports silent mode in which machine uses lower "
 "acceleration to print more quietly"
 
+msgid "Emit limits to G-code"
+msgstr ""
+
+msgid "Machine limits"
+msgstr "Machine limits"
+
+msgid ""
+"If enabled, the machine limits will be emitted to G-code file.\n"
+"This option will be ignored if the g-code flavor is set to Klipper."
+msgstr ""
+
 msgid ""
 "This G-code will be used as a code for the pause print. User can insert "
 "pause G-code in gcode viewer"
@@ -9275,9 +9323,6 @@ msgstr "Maximum speed Z"
 
 msgid "Maximum speed E"
 msgstr "Maximum speed E"
-
-msgid "Machine limits"
-msgstr "Machine limits"
 
 msgid "Maximum X speed"
 msgstr "Maximum X speed"
@@ -9609,6 +9654,20 @@ msgstr "This is the speed for inner walls."
 
 msgid "Number of walls of every layer"
 msgstr "This is the number of walls per layer."
+
+msgid "Alternate extra wall"
+msgstr ""
+
+msgid ""
+"This setting adds an extra wall to every other layer. This way the infill "
+"gets wedged vertically between the walls, resulting in stronger prints. \n"
+"\n"
+"When this option is enabled, the ensure vertical shell thickness option "
+"needs to be disabled. \n"
+"\n"
+"Using lightning infill together with this option is not recommended as there "
+"is limited infill to anchor the extra perimeters to."
+msgstr ""
 
 msgid ""
 "If you want to process the output G-code through custom scripts, just list "
@@ -12668,18 +12727,6 @@ msgstr ""
 
 #~ msgid "Quick"
 #~ msgstr "Quick"
-
-#~ msgid "Auto-Calc"
-#~ msgstr "Auto-Calc"
-
-#~ msgid "unloaded"
-#~ msgstr "unloaded"
-
-#~ msgid "loaded"
-#~ msgstr "loaded"
-
-#~ msgid "Filament #"
-#~ msgstr "Filament #"
 
 #~ msgid ""
 #~ "Discribe how long the nozzle will move along the last path when retracting"

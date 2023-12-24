@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-19 22:09+0800\n"
+"POT-Creation-Date: 2023-12-23 22:15+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Heiko Liebscher <hliebschergmail.com>\n"
 "Language-Team: \n"
@@ -913,6 +913,21 @@ msgstr "Ausgewähltes Objekt löschen"
 msgid "Load..."
 msgstr "Laden..."
 
+msgid "Cube"
+msgstr "Würfel"
+
+msgid "Cylinder"
+msgstr "Zylinder"
+
+msgid "Cone"
+msgstr "Kegel"
+
+msgid "Disc"
+msgstr ""
+
+msgid "Torus"
+msgstr ""
+
 msgid "Orca Cube"
 msgstr "Orca Würfel"
 
@@ -925,14 +940,8 @@ msgstr "Autodesk FDM Test"
 msgid "Voron Cube"
 msgstr "Voron Würfel"
 
-msgid "Cube"
-msgstr "Würfel"
-
-msgid "Cylinder"
-msgstr "Zylinder"
-
-msgid "Cone"
-msgstr "Kegel"
+msgid "Stanford Bunny"
+msgstr ""
 
 msgid "Text"
 msgstr "T"
@@ -1092,6 +1101,9 @@ msgstr "Fehlerhafte Schnitt Info"
 
 msgid "Add Primitive"
 msgstr "Primitiv hinzufügen"
+
+msgid "Add Handy models"
+msgstr ""
 
 msgid "Show Labels"
 msgstr "Bezeichnung anzeigen"
@@ -2659,6 +2671,18 @@ msgstr ""
 "Diese Einstellungen automatisch ändern? \n"
 "Ja - Diese Einstellungen ändern und den Spiralmodus automatisch aktivieren\n"
 "Nein - Spiralmodus nicht aktivieren"
+
+msgid ""
+"Alternate extra wall only works with ensure vertical shell thickness "
+"disabled. "
+msgstr ""
+
+msgid ""
+"Change these settings automatically? \n"
+"Yes - Disable ensure vertical shell thickness and enable alternate extra "
+"wall\n"
+"No  - Dont use alternate extra wall"
+msgstr ""
 
 msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support "
@@ -6907,19 +6931,23 @@ msgstr "Ramming-Linienbreite"
 msgid "Ramming line spacing"
 msgstr "Ramming-Linienabstand"
 
-msgid "Recalculate"
+msgid "Auto-Calc"
+msgstr "Automatisch berechnen"
+
+msgid "Re-calculate"
 msgstr "Neu berechnen"
 
 msgid "Flushing volumes for filament change"
 msgstr "Reinigungsvolumen für Filamentwechsel"
 
 msgid ""
-"Orca recalculates your flushing volumes everytime the filament colors "
-"change. You can change this behavior in Preferences."
+"Studio would re-calculate your flushing volumes everytime the filaments "
+"color changed. You could disable the auto-calculate in Bambu Studio > "
+"Preferences"
 msgstr ""
-"Orca berechnet Ihre Reinigungsvolumen jedes Mal neu, wenn sich die "
-"Filamentfarben ändern. Sie können dieses Verhalten in den Einstellungen "
-"ändern."
+"Studio würde jedes Mal die Reinigungsvolumen neu berechnen, wenn sich die "
+"Farbe des Filaments ändert. Sie können die automatische Berechnung in Bambu "
+"Studio > Einstellungen deaktivieren"
 
 msgid "Flushing volume (mm³) for each filament pair."
 msgstr "Reinigungsvolumen (mm³) für jedes Filamentpaar."
@@ -6934,6 +6962,15 @@ msgstr "Der Multiplikator sollte im Bereich [%.2f, %.2f] liegen."
 
 msgid "Multiplier"
 msgstr "Multiplikator "
+
+msgid "unloaded"
+msgstr "entladen"
+
+msgid "loaded"
+msgstr "geladen"
+
+msgid "Filament #"
+msgstr "Filament #"
 
 msgid "From"
 msgstr "Von"
@@ -9902,6 +9939,17 @@ msgstr ""
 "Ob das Gerät den Leisen-Modus unterstützt, bei dem das Gerät eine geringere "
 "Beschleunigung zum Drucken verwendet"
 
+msgid "Emit limits to G-code"
+msgstr ""
+
+msgid "Machine limits"
+msgstr "Maschinengrenzen"
+
+msgid ""
+"If enabled, the machine limits will be emitted to G-code file.\n"
+"This option will be ignored if the g-code flavor is set to Klipper."
+msgstr ""
+
 msgid ""
 "This G-code will be used as a code for the pause print. User can insert "
 "pause G-code in gcode viewer"
@@ -9923,9 +9971,6 @@ msgstr "Maximale Geschwindigkeit Z"
 
 msgid "Maximum speed E"
 msgstr "Maximale Geschwindigkeit E"
-
-msgid "Machine limits"
-msgstr "Maschinengrenzen"
 
 msgid "Maximum X speed"
 msgstr "Maximale Geschwindigkeit X"
@@ -10321,6 +10366,20 @@ msgstr "Druckgeschwindigkeit der Innenwand"
 
 msgid "Number of walls of every layer"
 msgstr "Anzahl der Wände jeder Schicht"
+
+msgid "Alternate extra wall"
+msgstr ""
+
+msgid ""
+"This setting adds an extra wall to every other layer. This way the infill "
+"gets wedged vertically between the walls, resulting in stronger prints. \n"
+"\n"
+"When this option is enabled, the ensure vertical shell thickness option "
+"needs to be disabled. \n"
+"\n"
+"Using lightning infill together with this option is not recommended as there "
+"is limited infill to anchor the extra perimeters to."
+msgstr ""
 
 msgid ""
 "If you want to process the output G-code through custom scripts, just list "
@@ -13884,6 +13943,17 @@ msgstr ""
 "wie z.B. ABS, durch eine entsprechende Erhöhung der Heizbetttemperatur die "
 "Wahrscheinlichkeit von Verwerfungen verringert werden kann."
 
+#~ msgid "Recalculate"
+#~ msgstr "Neu berechnen"
+
+#~ msgid ""
+#~ "Orca recalculates your flushing volumes everytime the filament colors "
+#~ "change. You can change this behavior in Preferences."
+#~ msgstr ""
+#~ "Orca berechnet Ihre Reinigungsvolumen jedes Mal neu, wenn sich die "
+#~ "Filamentfarben ändern. Sie können dieses Verhalten in den Einstellungen "
+#~ "ändern."
+
 #~ msgid ""
 #~ "The printer timed out while receiving a print job. Please check if the "
 #~ "network is functioning properly and send the print again."
@@ -13928,30 +13998,6 @@ msgstr ""
 
 #~ msgid "Quick"
 #~ msgstr "Schnell"
-
-#~ msgid "Auto-Calc"
-#~ msgstr "Automatisch berechnen"
-
-#~ msgid "Re-calculate"
-#~ msgstr "Neu berechnen"
-
-#~ msgid ""
-#~ "Studio would re-calculate your flushing volumes everytime the filaments "
-#~ "color changed. You could disable the auto-calculate in Bambu Studio > "
-#~ "Preferences"
-#~ msgstr ""
-#~ "Studio würde jedes Mal die Reinigungsvolumen neu berechnen, wenn sich die "
-#~ "Farbe des Filaments ändert. Sie können die automatische Berechnung in "
-#~ "Bambu Studio > Einstellungen deaktivieren"
-
-#~ msgid "unloaded"
-#~ msgstr "entladen"
-
-#~ msgid "loaded"
-#~ msgstr "geladen"
-
-#~ msgid "Filament #"
-#~ msgstr "Filament #"
 
 #~ msgid "Print sequence of inner wall and outer wall. "
 #~ msgstr "Druckreihenfolge der Innen- und Außenwand."

@@ -146,10 +146,10 @@ bool Button::GetValue() const { return state_handler.states() & StateHandler::Ch
 void Button::Rescale()
 {
     if (this->active_icon.bmp().IsOk())
-        this->active_icon.sys_color_changed();
+        this->active_icon.msw_rescale();
 
     if (this->inactive_icon.bmp().IsOk())
-        this->inactive_icon.sys_color_changed();
+        this->inactive_icon.msw_rescale();
 
     messureSize();
 }
@@ -187,7 +187,7 @@ void Button::render(wxDC& dc)
             //BBS norrow size between text and icon
             szContent.x += padding;
         }
-        szIcon = icon.GetSize();
+        szIcon = icon.GetBmpSize();
         szContent.x += szIcon.x;
         if (szIcon.y > szContent.y)
             szContent.y = szIcon.y;
@@ -206,7 +206,7 @@ void Button::render(wxDC& dc)
     wxPoint pt = rcContent.GetLeftTop();
     if (icon.bmp().IsOk()) {
         pt.y += (rcContent.height - szIcon.y) / 2;
-        dc.DrawBitmap(icon.get_bitmap(), pt);
+        dc.DrawBitmap(icon.bmp(), pt);
         //BBS norrow size between text and icon
         pt.x += szIcon.x + padding;
         pt.y = rcContent.y;
@@ -239,7 +239,7 @@ void Button::messureSize()
             //BBS norrow size between text and icon
             szContent.x += 5;
         }
-        wxSize szIcon = this->active_icon.GetSize();
+        wxSize szIcon = this->active_icon.GetBmpSize();
         szContent.x += szIcon.x;
         if (szIcon.y > szContent.y)
             szContent.y = szIcon.y;
