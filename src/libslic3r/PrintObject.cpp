@@ -1532,7 +1532,9 @@ void PrintObject::discover_vertical_shells()
         bool has_extra_layers = false;
         for (size_t region_id = 0; region_id < this->num_printing_regions(); ++region_id) {
             const PrintRegionConfig &config = this->printing_region(region_id).config();
-            if (config.ensure_vertical_shell_thickness.value) {
+            // if ensure vertical shell thickness is enabled or if reduce wall solid infill option is enabled use this algorithm to
+            // combine shells
+            if (config.ensure_vertical_shell_thickness.value || config.reduce_wall_solid_infill.value) {
                 has_extra_layers = true;
                 break;
             }
@@ -1610,7 +1612,7 @@ void PrintObject::discover_vertical_shells()
 
     for (size_t region_id = 0; region_id < this->num_printing_regions(); ++ region_id) {
         const PrintRegion &region = this->printing_region(region_id);
-        if (! region.config().ensure_vertical_shell_thickness.value)
+        if (! region.config().ensure_vertical_shell_thickness.value && !region.config().reduce_wall_solid_infill.value)
             // This region will be handled by discover_horizontal_shells().
             continue;
 
@@ -1731,7 +1733,9 @@ void PrintObject::discover_vertical_shells()
 	                        ++ i) {
                             at_least_one_top_projected = true;
 	                        const DiscoverVerticalShellsCacheEntry &cache = cache_top_botom_regions[i];
-                            combine_holes(cache.holes);
+                            //vovodroid: Dont combine holes if reduce solid wall infill is selected
+                            if (!region_config.reduce_wall_solid_infill.value)
+                                combine_holes(cache.holes);
                             combine_shells(cache.top_surfaces);
 	                    }
                         if (!at_least_one_top_projected && i < int(cache_top_botom_regions.size())) {
@@ -1760,7 +1764,9 @@ void PrintObject::discover_vertical_shells()
 	                        -- i) {
                                 at_least_one_bottom_projected = true;
 	                        const DiscoverVerticalShellsCacheEntry &cache = cache_top_botom_regions[i];
-							combine_holes(cache.holes);
+                            //vovodroid: Dont combine holes if reduce solid wall infill is selected
+                            if (!region_config.reduce_wall_solid_infill.value)
+                                combine_holes(cache.holes);
                             combine_shells(cache.bottom_surfaces);
 	                    }
 
@@ -3136,7 +3142,9 @@ void PrintObject::discover_horizontal_shells()
 #endif
 
             // If ensure_vertical_shell_thickness, then the rest has already been performed by discover_vertical_shells().
-            if (region_config.ensure_vertical_shell_thickness.value)
+            // Ioannis Giannakas: Dont trigger this algorithm if reduce wall solid infill is selected as the work has been performed by
+            // discover_vertical_shells().
+            if (region_config.ensure_vertical_shell_thickness.value || region_config.reduce_wall_solid_infill.value)
                 continue;
 
             coordf_t print_z  = layer->print_z;
@@ -3207,9 +3215,7 @@ void PrintObject::discover_horizontal_shells()
                         // No internal solid needed on this layer. In order to decide whether to continue
                         // searching on the next neighbor (thus enforcing the configured number of solid
                         // layers, use different strategies according to configured infill density:
-                        // Ioannis Giannakas: Also use the same strategy if the user has selected to reduce
-                        // the amount of solid infill on walls.
-                        if (region_config.sparse_infill_density.value == 0 || region_config.reduce_wall_solid_infill) {
+                        if (region_config.sparse_infill_density.value == 0) {
                             // If user expects the object to be void (for example a hollow sloping vase),
                             // don't continue the search. In this case, we only generate the external solid
                             // shell if the object would otherwise show a hole (gap between perimeters of
@@ -3222,17 +3228,12 @@ void PrintObject::discover_horizontal_shells()
                         }
                     }
 
-                    if (region_config.sparse_infill_density.value == 0 || region_config.reduce_wall_solid_infill) {
+                    if (region_config.sparse_infill_density.value == 0) {
                         // if we're printing a hollow object we discard any solid shell thinner
                         // than a perimeter width, since it's probably just crossing a sloping wall
                         // and it's not wanted in a hollow print even if it would make sense when
                         // obeying the solid shell count option strictly (DWIM!)
-                        // Ioannis Giannakas: Also use the same strategy if the user has selected to reduce
-                        // the amount of solid infill on walls. However reduce the allowable perimeter width
-                        // that has no internal support to 30%. This is an arbitrary value to make this option somewhat safe
-                        // by ensuring that top surfaces especially slanted ones dont go **completely** unsupported
-                        // especially when using single perimeter top layers.
-                        float margin = region_config.reduce_wall_solid_infill? margin = float(neighbor_layerm->flow(frExternalPerimeter).scaled_width())*0.3f : float(neighbor_layerm->flow(frExternalPerimeter).scaled_width());
+                        float margin = float(neighbor_layerm->flow(frExternalPerimeter).scaled_width());
                         Polygons too_narrow = diff(
                             new_internal_solid,
                             opening(new_internal_solid, margin, margin + ClipperSafetyOffset, jtMiter, 5));
