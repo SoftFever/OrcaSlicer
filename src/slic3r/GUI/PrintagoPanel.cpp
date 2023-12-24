@@ -291,7 +291,47 @@ bool PrintagoPanel::SavePrintagoPrintFile(const wxString url, wxString &localPat
     }
 }
 
-json PrintagoPanel::export_all_configs_to_json()
+json PrintagoPanel::GetConfigByName(wxString configType, wxString configName) 
+{
+    json result;
+    PresetBundle     *presetBundle = wxGetApp().preset_bundle;
+    PresetCollection *collection   = nullptr;
+
+    if (configType == "print") {
+        collection = &presetBundle->prints;
+    } else if (configType == "filament") {
+        collection = &presetBundle->filaments;
+    } else if (configType == "printer") {
+        collection = &presetBundle->printers;
+    } else {
+        json noresult;
+        return noresult;
+    }
+
+    const auto preset = collection->find_preset(configName.ToStdString());
+
+    json configJson = "";
+    if (preset) {
+        configJson = Config2Json(preset->config, preset->name, "", preset->version.to_string());
+    } else {  //preset not found
+        json noresult;
+        return noresult;
+    }
+
+    wxString source = "default";
+    if (preset->is_system) {
+        source = "system";
+    } else if (preset->is_project_embedded) {
+        source = "project";
+    } else if (preset->is_user()) {
+        source = "user";
+    }
+
+    result[collection->name()][source.ToStdString()][preset->name] = configJson;
+    return result;
+}
+
+json PrintagoPanel::GetAllConfigJson(bool only_names)
 {
     std::vector<const PresetCollection *> collections = {&wxGetApp().preset_bundle->prints, &wxGetApp().preset_bundle->filaments,
                                                          &wxGetApp().preset_bundle->printers};
@@ -299,16 +339,27 @@ json PrintagoPanel::export_all_configs_to_json()
 
     for (const auto &collection : collections) {
         for (const auto &preset : collection->get_presets()) {
-            json configJson;
-            configJson = Config2Json(configJson, preset.name, "", preset.version.to_string());
-            result[preset.name] = configJson;
+            json configJson = "";
+            if (!only_names && preset.is_visible) { //is_visible means it's a realistic option for the user to print with, effectively.
+                configJson = Config2Json(preset.config, preset.name, "", preset.version.to_string());
+            }
+            //effectively follow the logic in Preset.cpp for determining the source of the preset.
+            wxString source = "default";
+            if (preset.is_system) {
+                source = "system";
+            } else if (preset.is_project_embedded) {
+                source = "project";
+            } else if (preset.is_user()) {
+                source = "user";
+            }
+            result[collection->name()][source.ToStdString()][preset.name] = configJson;
         }
     }
     return result;
 }
-//void ConfigBase::save_to_json(const std::string &file, const std::string &name, const std::string &from, const std::string &version, const std::string is_custom) const
 
-json PrintagoPanel::Config2Json(const std::string &name,
+json PrintagoPanel::Config2Json(const DynamicPrintConfig &config,
+                              const std::string &name,
                               const std::string &from,
                               const std::string &version,
                               const std::string  is_custom) 
@@ -320,10 +371,10 @@ json PrintagoPanel::Config2Json(const std::string &name,
     j[BBL_JSON_KEY_FROM]    = from;
     if (!is_custom.empty())
         j[BBL_JSON_KEY_IS_CUSTOM] = is_custom;
-
+    
     // record all the key-values
-    for (const std::string &opt_key : wxGetApp()->keys()) {
-        const ConfigOption *opt = this->option(opt_key);
+    for (const std::string &opt_key : config.keys()) {
+        const ConfigOption *opt = config.option(opt_key);
         if (opt->is_scalar()) {
             if (opt->type() == coString && (opt_key != "bed_custom_texture" && opt_key != "bed_custom_model"))
                 // keep \n, \r, \t
@@ -332,15 +383,7 @@ json PrintagoPanel::Config2Json(const std::string &name,
                 j[opt_key] = opt->serialize();
         } else {
             const ConfigOptionVectorBase *vec = static_cast<const ConfigOptionVectorBase *>(opt);
-            // if (!vec->empty())
             std::vector<std::string> string_values = vec->vserialize();
-
-            /*for (int i = 0; i < string_values.size(); i++)
-            {
-                std::string string_value = escape_string_cstyle(string_values[i]);
-                j[opt_key][i] = string_value;
-            }*/
-
             json j_array(string_values);
             j[opt_key] = j_array;
         }
@@ -380,13 +423,28 @@ void PrintagoPanel::HandlePrintagoCommand(const PrintagoCommand &event)
         if (!action.compare("get_machine_list")) {
             SendResponseMessage(username, GetAllStatus(), originalCommandStr);
         }
-        else if (!action.compare("get_configs")) {
-            SendResponseMessage(username, export_all_configs_to_json(), originalCommandStr);
+        else if (!action.compare("get_config_names")) {
+            SendResponseMessage(username, GetAllConfigJson(true), originalCommandStr);
         }
+        else if (!action.compare("get_config")) {
+            wxString config_type = parameters["config_type"]; // printer, filament, print
+            wxString config_name = Http::url_decode(parameters["config_name"].ToStdString()); // name of the config
+            json     configJson  = GetConfigByName(config_type, config_name);
+            if (!configJson.empty()) {
+                SendResponseMessage(username, configJson, originalCommandStr);   
+            } else {
+                SendErrorMessage(username, action, originalCommandStr, "config not found; valid types are: print, printer, or filament");
+                return;
+            }
+        }
+        else if (!action.compare("get_all_configs")) {
+            SendResponseMessage(username, GetAllConfigJson(false), originalCommandStr);
+        }
+
         return;
     }
 
-    wxString printerId = parameters.count("printer_id") ? parameters["printer_id"] : "Unspecified";
+    wxString printerId = parameters.count("printer_id") ? parameters["printer_id"] : "Unspecified"; 
     if (!printerId.compare("Unspecified")) {
         SendErrorMessage("", action, originalCommandStr, "no printer_id specified");
         wxLogMessage("PrintagoCommandError: No printer_id specified");
@@ -777,6 +835,7 @@ void PrintagoPanel::SendSuccessMessage(const wxString printer_id,
     event->SetMessageType("success");
     event->SetPrinterId(printer_id);
     const wxURL url(command);
+    wxString::Trim()url.GetPath()
     event->SetCommand(url.GetPath().ToStdString());
     event->SetData(responseData);
 
@@ -903,7 +962,7 @@ bool PrintagoPanel::ValidatePrintagoCommand(const PrintagoCommand &event)
 
     // Map of valid command types to their corresponding valid actions
     std::map<std::string, std::set<std::string>> validCommands = {
-        {"status", {"get_machine_list", "get_configs"}},
+        {"status", {"get_machine_list", "get_config_names", "get_config", "get_all_configs"}},
         {"printer_control", {"pause_print", "resume_print", "stop_print", "get_status","start_print_bbl"}},
         {"temperature_control", {"set_hotend", "set_bed"}},
         {"movement_control", {"jog", "home", "extrude"}}

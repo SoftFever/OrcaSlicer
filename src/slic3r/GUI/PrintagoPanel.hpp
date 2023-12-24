@@ -148,8 +148,10 @@ private:
     json GetMachineStatus(MachineObject *machine);
 
     bool SavePrintagoPrintFile(const wxString url, wxString &localPath);
-    json export_all_configs_to_json();
-    json Config2Json(const std::string &name, const std::string &from, const std::string &version, std::string is_custom = "");
+    json GetConfigByName(wxString configType, wxString configName);
+    json GetAllConfigJson(bool only_names = false);
+    json Config2Json(const DynamicPrintConfig &config, const std::string &name, const std::string &from, const std::string &version, const std::string is_custom
+                         = "");
     bool DownloadFileFromURL(const wxString url, const wxFileName &localPath);
 
     static wxString wxURLErrorToString(wxURLError error);
