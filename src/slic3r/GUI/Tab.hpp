@@ -404,10 +404,11 @@ public:
 	void restore_last_select_item();
 
 	static bool validate_custom_gcode(const wxString& title, const std::string& gcode);
-    void        edit_custom_gcode(const t_config_option_key &opt_key);
 	bool        validate_custom_gcodes();
     bool        validate_custom_gcodes_was_shown{ false };
     void        set_just_edit(bool just_edit);
+
+    virtual void edit_custom_gcode(const t_config_option_key &opt_key);
 
 protected:
 	void			create_line_with_widget(ConfigOptionsGroup* optgroup, const std::string& opt_key, const std::string& path, widget_t widget);
@@ -561,6 +562,7 @@ public:
 	void		update() override;
 	void		clear_pages() override;
 	bool 		supports_printer_technology(const PrinterTechnology tech) const override { return tech == ptFFF; }
+    void        edit_custom_gcode(const t_config_option_key& opt_key) override;
 };
 
 class TabPrinter : public Tab
