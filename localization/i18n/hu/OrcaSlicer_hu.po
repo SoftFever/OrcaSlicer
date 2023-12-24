@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-19 22:09+0800\n"
+"POT-Creation-Date: 2023-12-23 22:15+0800\n"
 "Language: hu\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -887,6 +887,21 @@ msgstr "Kiválasztott objektum törlése"
 msgid "Load..."
 msgstr "Betöltés..."
 
+msgid "Cube"
+msgstr "Kocka"
+
+msgid "Cylinder"
+msgstr "Henger"
+
+msgid "Cone"
+msgstr "Kúp"
+
+msgid "Disc"
+msgstr ""
+
+msgid "Torus"
+msgstr ""
+
 msgid "Orca Cube"
 msgstr ""
 
@@ -899,14 +914,8 @@ msgstr ""
 msgid "Voron Cube"
 msgstr ""
 
-msgid "Cube"
-msgstr "Kocka"
-
-msgid "Cylinder"
-msgstr "Henger"
-
-msgid "Cone"
-msgstr "Kúp"
+msgid "Stanford Bunny"
+msgstr ""
 
 msgid "Text"
 msgstr ""
@@ -1065,6 +1074,9 @@ msgstr "Invalidate cut info"
 
 msgid "Add Primitive"
 msgstr "Primitív hozzáadása"
+
+msgid "Add Handy models"
+msgstr ""
 
 msgid "Show Labels"
 msgstr "Címkék megjelenítése"
@@ -2573,6 +2585,18 @@ msgstr ""
 "Igen  - Módosítsa ezeket a beállításokat, és automatikusan engedélyezze a "
 "spirál mód használatát\n"
 "Nem - Ne használja a spirál módot ez alkalommal"
+
+msgid ""
+"Alternate extra wall only works with ensure vertical shell thickness "
+"disabled. "
+msgstr ""
+
+msgid ""
+"Change these settings automatically? \n"
+"Yes - Disable ensure vertical shell thickness and enable alternate extra "
+"wall\n"
+"No  - Dont use alternate extra wall"
+msgstr ""
 
 msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support "
@@ -6648,15 +6672,19 @@ msgstr ""
 msgid "Ramming line spacing"
 msgstr ""
 
-msgid "Recalculate"
+msgid "Auto-Calc"
+msgstr "Automatikus számítás"
+
+msgid "Re-calculate"
 msgstr ""
 
 msgid "Flushing volumes for filament change"
 msgstr "Filament csere tiszítási mennyisége"
 
 msgid ""
-"Orca recalculates your flushing volumes everytime the filament colors "
-"change. You can change this behavior in Preferences."
+"Studio would re-calculate your flushing volumes everytime the filaments "
+"color changed. You could disable the auto-calculate in Bambu Studio > "
+"Preferences"
 msgstr ""
 
 msgid "Flushing volume (mm³) for each filament pair."
@@ -6672,6 +6700,15 @@ msgstr "A szorzónak [%.2f, %.2f] tartományban kell lennie."
 
 msgid "Multiplier"
 msgstr "Szorzó"
+
+msgid "unloaded"
+msgstr "unloaded"
+
+msgid "loaded"
+msgstr "betöltve"
+
+msgid "Filament #"
+msgstr "Filament #"
 
 msgid "From"
 msgstr "Ettől:"
@@ -9328,6 +9365,17 @@ msgstr ""
 "Csendes üzemmód támogatása, amelyben a gép kisebb gyorsulást használ a "
 "csendesebb nyomtatáshoz"
 
+msgid "Emit limits to G-code"
+msgstr ""
+
+msgid "Machine limits"
+msgstr "Géplimitek"
+
+msgid ""
+"If enabled, the machine limits will be emitted to G-code file.\n"
+"This option will be ignored if the g-code flavor is set to Klipper."
+msgstr ""
+
 msgid ""
 "This G-code will be used as a code for the pause print. User can insert "
 "pause G-code in gcode viewer"
@@ -9349,9 +9397,6 @@ msgstr "Maximális sebesség Z"
 
 msgid "Maximum speed E"
 msgstr "Maximális sebesség E"
-
-msgid "Machine limits"
-msgstr "Géplimitek"
 
 msgid "Maximum X speed"
 msgstr "Maximális X sebesség"
@@ -9687,6 +9732,20 @@ msgstr "A belső fal nyomtatási sebessége"
 
 msgid "Number of walls of every layer"
 msgstr "Ez a falak száma rétegenként."
+
+msgid "Alternate extra wall"
+msgstr ""
+
+msgid ""
+"This setting adds an extra wall to every other layer. This way the infill "
+"gets wedged vertically between the walls, resulting in stronger prints. \n"
+"\n"
+"When this option is enabled, the ensure vertical shell thickness option "
+"needs to be disabled. \n"
+"\n"
+"Using lightning infill together with this option is not recommended as there "
+"is limited infill to anchor the extra perimeters to."
+msgstr ""
 
 msgid ""
 "If you want to process the output G-code through custom scripts, just list "
@@ -12824,18 +12883,6 @@ msgstr ""
 
 #~ msgid "Quick"
 #~ msgstr "Quick"
-
-#~ msgid "Auto-Calc"
-#~ msgstr "Automatikus számítás"
-
-#~ msgid "unloaded"
-#~ msgstr "unloaded"
-
-#~ msgid "loaded"
-#~ msgstr "betöltve"
-
-#~ msgid "Filament #"
-#~ msgstr "Filament #"
 
 #~ msgid ""
 #~ "Discribe how long the nozzle will move along the last path when retracting"

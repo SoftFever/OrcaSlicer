@@ -1505,6 +1505,8 @@ void PerimeterGenerator::process_classic()
         const Surface &surface = this->slices->surfaces[surface_order[order_idx]];
         // detect how many perimeters must be generated for this island
         int        loop_number = this->config->wall_loops + surface.extra_perimeters - 1;  // 0-indexed loops
+        if (this->config->alternate_extra_wall && this->layer_id % 2 == 1 && !m_spiral_vase) // add alternating extra wall
+            loop_number++;
         if (this->layer_id == 0 && this->config->only_one_wall_first_layer)
             loop_number = 0;
         // Set the topmost layer to be one wall
@@ -1937,6 +1939,8 @@ void PerimeterGenerator::process_arachne()
         coord_t bead_width_0 = ext_perimeter_spacing;
         // detect how many perimeters must be generated for this island
         int        loop_number = this->config->wall_loops + surface.extra_perimeters - 1; // 0-indexed loops
+        if (this->config->alternate_extra_wall && this->layer_id % 2 == 1 && !m_spiral_vase) // add alternating extra wall
+            loop_number++;
         if (this->layer_id == 0 && this->config->only_one_wall_first_layer)
             loop_number = 0;
         // Orca: set the topmost layer to be one wall according to the config

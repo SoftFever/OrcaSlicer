@@ -766,7 +766,7 @@ bool Preset::has_cali_lines(PresetBundle* preset_bundle)
 }
 
 static std::vector<std::string> s_Preset_print_options {
-    "layer_height", "initial_layer_print_height", "wall_loops", "slice_closing_radius", "spiral_mode", "spiral_mode_smooth", "spiral_mode_max_xy_smoothing", "slicing_mode",
+    "layer_height", "initial_layer_print_height", "wall_loops", "alternate_extra_wall", "slice_closing_radius", "spiral_mode", "spiral_mode_smooth", "spiral_mode_max_xy_smoothing", "slicing_mode",
     "top_shell_layers", "top_shell_thickness", "bottom_shell_layers", "bottom_shell_thickness",
     "extra_perimeters_on_overhangs", "ensure_vertical_shell_thickness", "reduce_crossing_wall", "detect_thin_wall", "detect_overhang_wall", "overhang_reverse", "overhang_reverse_threshold","overhang_reverse_internal_only",
     "seam_position", "staggered_inner_seams", "wall_sequence", "is_infill_first", "sparse_infill_density", "sparse_infill_pattern", "top_surface_pattern", "bottom_surface_pattern",
@@ -878,7 +878,7 @@ static std::vector<std::string> s_Preset_printer_options {
     "cooling_tube_retraction",
     "cooling_tube_length", "high_current_on_filament_swap", "parking_pos_retraction", "extra_loading_move", "purge_in_prime_tower", "enable_filament_ramming",
     "z_offset",
-    "disable_m73", "preferred_orientation"
+    "disable_m73", "preferred_orientation", "emit_machine_limits_to_gcode"
     };
 
 static std::vector<std::string> s_Preset_sla_print_options {

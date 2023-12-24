@@ -94,16 +94,16 @@ void RecenterDialog::render(wxDC& dc) {
 
     wxSize hint1_size = dc.GetTextExtent(hint1);
     wxPoint pos_hint1 = pos_start;
-    pos_hint1.y += (m_home_bmp.GetWidth() - hint1_size.y) / 2;
+    pos_hint1.y += (m_home_bmp.GetBmpWidth() - hint1_size.y) / 2;
     dc.DrawText(hint1, pos_hint1);
 
     wxPoint pos_bmp = pos_start;
     pos_bmp.x += hint1_size.x;
-    dc.DrawBitmap(m_home_bmp.get_bitmap(), pos_bmp);
+    dc.DrawBitmap(m_home_bmp.bmp(), pos_bmp);
 
     wxSize hint2_size = dc.GetTextExtent(hint2);
     wxPoint pos_hint2 = pos_hint1;
-    pos_hint2.x = pos_hint2.x + hint1_size.x + m_home_bmp.GetWidth();
+    pos_hint2.x = pos_hint2.x + hint1_size.x + m_home_bmp.GetBmpWidth();
 
     if (hint2_size.x + pos_hint2.x + BORDER > DRAW_PANEL_SIZE.x) {
         bool is_ch = false;
