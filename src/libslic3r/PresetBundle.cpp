@@ -462,7 +462,7 @@ std::string PresetBundle::get_texture_for_printer_model(std::string model_name)
     {
         for (auto vendor_model: vendor_profile.second.models)
         {
-            if (vendor_model.name == model_name)
+            if (vendor_model.name == model_name || vendor_model.id == model_name)
             {
                 texture_name = vendor_model.bed_texture;
                 vendor_name = vendor_profile.first;
@@ -1011,7 +1011,7 @@ int PresetBundle::validate_presets(const std::string &file_name, DynamicPrintCon
         return ret;
     }
 
-    for(unsigned int index = 1; index < filament_count+2; index ++)
+    for(unsigned int index = 1; index < filament_count; index ++)
     {
         std::string different_settingss = different_values[index];
 
@@ -1816,7 +1816,7 @@ void PresetBundle::set_num_filaments(unsigned int n, std::string new_color)
 {
     int old_filament_count = this->filament_presets.size();
     if (n > old_filament_count && old_filament_count != 0)
-        filament_presets.resize(n, filament_presets.front());
+        filament_presets.resize(n, filament_presets.back());
     else {
         filament_presets.resize(n);
     }

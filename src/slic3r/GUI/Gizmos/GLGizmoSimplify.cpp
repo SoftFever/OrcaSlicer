@@ -582,7 +582,7 @@ void GLGizmoSimplify::on_set_state()
 
 void GLGizmoSimplify::create_gui_cfg() {
     if (m_gui_cfg.has_value()) return;
-    int space_size = m_imgui->calc_text_size(":MM").x;
+    int space_size = m_imgui->calc_text_size(std::string_view{":MM"}).x;
     GuiCfg cfg;
     cfg.top_left_width = std::max(m_imgui->calc_text_size(tr_mesh_name).x,
                                   m_imgui->calc_text_size(tr_triangles).x)

@@ -1,3 +1,14 @@
+///|/ Copyright (c) Prusa Research 2018 - 2023 Oleksandra Iushchenko @YuSanka, Lukáš Matěna @lukasmatena, David Kocík @kocikdav, Vojtěch Bubník @bubnikv, Tomáš Mészáros @tamasmeszaros, Enrico Turri @enricoturri1966, Filip Sykala @Jony01, Lukáš Hejl @hejllukas, Vojtěch Král @vojtechkral
+///|/ Copyright (c) 2021 Jason Scurtu @xarbit
+///|/ Copyright (c) 2019 John Drake @foxox
+///|/
+///|/ ported from lib/Slic3r/GUI/MainFrame.pm:
+///|/ Copyright (c) Prusa Research 2016 - 2019 Vojtěch Bubník @bubnikv, Vojtěch Král @vojtechkral, Oleksandra Iushchenko @YuSanka, Tomáš Mészáros @tamasmeszaros, Enrico Turri @enricoturri1966
+///|/ Copyright (c) Slic3r 2014 - 2016 Alessandro Ranellucci @alranel
+///|/ Copyright (c) 2014 Mark Hindess
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #include "MainFrame.hpp"
 
 #include <wx/panel.h>
@@ -385,29 +396,20 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     sizer->SetSizeHints(this);
 
 #ifdef WIN32
-    auto setMaxSize = [this]() {
-        wxDisplay display(this);
-        auto size = display.GetClientArea().GetSize();
-        HWND      hWnd = GetHandle();
-        RECT      borderThickness;
-        SetRectEmpty(&borderThickness);
-        AdjustWindowRectEx(&borderThickness, GetWindowLongPtr(hWnd, GWL_STYLE), FALSE, 0);
-        SetMaxSize(size + wxSize{-borderThickness.left + borderThickness.right, -borderThickness.top + borderThickness.bottom});
-    };
-    this->Bind(wxEVT_DPI_CHANGED, [setMaxSize](auto & e) {
-        setMaxSize();
-        e.Skip();
-        });
-    setMaxSize();
-    // SetMaximize already position window at left/top corner, even if Windows Task Bar is at left side.
-    // Not known why, but fix it here
+    // SetMaximize causes the window to overlap the taskbar, due to the fact this window has wxMAXIMIZE_BOX off
+    // https://forums.wxwidgets.org/viewtopic.php?t=50634
+    // Fix it here
     this->Bind(wxEVT_MAXIMIZE, [this](auto &e) {
         wxDisplay display(this);
-        auto pos = display.GetClientArea().GetPosition();
+        auto      size = display.GetClientArea().GetSize();
+        auto      pos  = display.GetClientArea().GetPosition();
         HWND      hWnd = GetHandle();
         RECT      borderThickness;
         SetRectEmpty(&borderThickness);
         AdjustWindowRectEx(&borderThickness, GetWindowLongPtr(hWnd, GWL_STYLE), FALSE, 0);
+        const auto max_size = size + wxSize{-borderThickness.left + borderThickness.right, -borderThickness.top + borderThickness.bottom};
+        const auto current_size = GetSize();
+        SetSize({std::min(max_size.x, current_size.x), std::min(max_size.y, current_size.y)});
         Move(pos + wxPoint{borderThickness.left, borderThickness.top});
         e.Skip();
     });
@@ -811,7 +813,7 @@ void MainFrame::shutdown()
 #endif // _WIN32
 
     if (m_plater != nullptr) {
-        m_plater->stop_jobs();
+        m_plater->get_ui_job_worker().cancel_all();
 
         // Unbinding of wxWidgets event handling in canvases needs to be done here because on MAC,
         // when closing the application using Command+Q, a mouse event is triggered after this lambda is completed,
@@ -1968,6 +1970,11 @@ void MainFrame::on_dpi_changed(const wxRect& suggested_rect)
     m_monitor->msw_rescale();
     m_calibration->msw_rescale();
 
+    // BBS
+#if 0
+    for (size_t id = 0; id < m_menubar->GetMenuCount(); id++)
+        msw_rescale_menu(m_menubar->GetMenu(id));
+#endif
 
     // Workarounds for correct Window rendering after rescale
 
@@ -2009,7 +2016,7 @@ void MainFrame::on_sys_color_changed()
 #ifdef _MSW_DARK_MODE
     // update common mode sizer
     if (!wxGetApp().tabs_as_menu())
-        dynamic_cast<Notebook*>(m_tabpanel)->OnColorsChanged();
+        dynamic_cast<Notebook*>(m_tabpanel)->Rescale();
 #endif
 #endif
 

@@ -23,7 +23,6 @@ public:
     void SetSelection(int sel);
     void UpdateMode();
     void Rescale();
-    void OnColorsChanged();
     bool InsertPage(size_t n, const wxString &text, bool bSelect = false, const std::string &bmp_name = "", const std::string &inactive_bmp_name = "");
     void RemovePage(size_t n);
     bool SetPageImage(size_t n, const std::string& bmp_name) const;
@@ -260,11 +259,6 @@ public:
     void Rescale()
     {
         GetBtnsListCtrl()->Rescale();
-    }
-
-    void OnColorsChanged()
-    {
-        GetBtnsListCtrl()->OnColorsChanged();
     }
 
     void OnNavigationKey(wxNavigationKeyEvent& event)

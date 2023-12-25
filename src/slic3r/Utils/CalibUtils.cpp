@@ -7,11 +7,13 @@
 #include "libslic3r/CutUtils.hpp"
 
 #include "libslic3r/Model.hpp"
+#include "slic3r/GUI/Jobs/BoostThreadWorker.hpp"
+#include "slic3r/GUI/Jobs/PlaterWorker.hpp"
 
 
 namespace Slic3r {
 namespace GUI {
-std::shared_ptr<PrintJob> CalibUtils::print_job;
+std::unique_ptr<Worker> CalibUtils::print_worker;
 wxString wxstr_temp_dir = fs::path(fs::temp_directory_path() / "calib").wstring();
 static const std::string temp_dir = wxstr_temp_dir.utf8_string();
 static const std::string temp_gcode_path = temp_dir + "/temp.gcode";
@@ -537,7 +539,7 @@ void CalibUtils::calib_flowrate(int pass, const CalibInfo &calib_info, wxString 
         auto modifier = stof(obj_name);
         _obj->config.set_key_value("print_flow_ratio", new ConfigOptionFloat(1.0f + modifier / 100.f));
     }
-
+    print_config.set_key_value("alternate_extra_wall", new ConfigOptionBool(false));
     print_config.set_key_value("layer_height", new ConfigOptionFloat(layer_height));
     print_config.set_key_value("initial_layer_print_height", new ConfigOptionFloat(first_layer_height));
     print_config.set_key_value("reduce_crossing_wall", new ConfigOptionBool(true));
@@ -746,6 +748,7 @@ void CalibUtils::calib_max_vol_speed(const CalibInfo &calib_info, wxString &erro
     print_config.set_key_value("enable_overhang_speed", new ConfigOptionBool{false});
     print_config.set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(tlTraditional));
     print_config.set_key_value("wall_loops", new ConfigOptionInt(1));
+    print_config.set_key_value("alternate_extra_wall", new ConfigOptionBool(false));
     print_config.set_key_value("top_shell_layers", new ConfigOptionInt(0));
     print_config.set_key_value("bottom_shell_layers", new ConfigOptionInt(1));
     print_config.set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
@@ -805,6 +808,8 @@ void CalibUtils::calib_VFA(const CalibInfo &calib_info, wxString &error_message)
     print_config.set_key_value("enable_overhang_speed", new ConfigOptionBool{false});
     print_config.set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(tlTraditional));
     print_config.set_key_value("wall_loops", new ConfigOptionInt(1));
+    print_config.set_key_value("detect_thin_wall", new ConfigOptionBool(false));
+    print_config.set_key_value("alternate_extra_wall", new ConfigOptionBool(false));
     print_config.set_key_value("top_shell_layers", new ConfigOptionInt(0));
     print_config.set_key_value("bottom_shell_layers", new ConfigOptionInt(1));
     print_config.set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
@@ -862,6 +867,7 @@ void CalibUtils::calib_retraction(const CalibInfo &calib_info, wxString &error_m
     filament_config.set_key_value("curr_bed_type", new ConfigOptionEnum<BedType>(calib_info.bed_type));
 
     obj->config.set_key_value("wall_loops", new ConfigOptionInt(2));
+    obj->config.set_key_value("alternate_extra_wall", new ConfigOptionBool(false));
     obj->config.set_key_value("top_shell_layers", new ConfigOptionInt(0));
     obj->config.set_key_value("bottom_shell_layers", new ConfigOptionInt(3));
     obj->config.set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
@@ -1134,7 +1140,9 @@ void CalibUtils::send_to_print(const CalibInfo &calib_info, wxString &error_mess
         }
     }
 
-    print_job                   = std::make_shared<PrintJob>(std::move(process_bar), wxGetApp().plater(), dev_id);
+    print_worker = std::make_unique<PlaterWorker<BoostThreadWorker>>(wxGetApp().plater(), std::move(process_bar), "calib_worker");
+
+    auto print_job              = std::make_unique<PrintJob>(dev_id);
     print_job->m_dev_ip         = obj_->dev_ip;
     print_job->m_ftp_folder     = obj_->get_ftp_folder();
     print_job->m_access_code    = obj_->get_access_code();
@@ -1187,7 +1195,7 @@ void CalibUtils::send_to_print(const CalibInfo &calib_info, wxString &error_mess
         BOOST_LOG_TRIVIAL(info) << "send_cali_job - after send: " << j.dump();
     }
 
-    print_job->start();
+    replace_job(*print_worker, std::move(print_job));
 }
 
 }

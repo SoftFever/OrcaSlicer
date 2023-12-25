@@ -940,9 +940,9 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disab
         const Matrix3d view_normal_matrix = view_matrix.matrix().block(0, 0, 3, 3) * model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose();
         shader->set_uniform("view_normal_matrix", view_normal_matrix);
 		//BBS: add outline related logic
-        if (with_outline && volume.first->selected)
-            volume.first->render_with_outline(view_matrix * model_matrix);
-        else
+        //if (with_outline && volume.first->selected)
+        //    volume.first->render_with_outline(view_matrix * model_matrix);
+        //else
             volume.first->render();
 
 #if ENABLE_ENVIRONMENT_MAP
@@ -1162,13 +1162,14 @@ void GLVolumeCollection::update_colors_by_extruder(const DynamicPrintConfig *con
 
         const ColorItem& color = colors[extruder_id];
         if (!color.first.empty()) {
-			if (!is_update_alpha) {
-                float old_a   = color.second.a();
+            if (!is_update_alpha) {
+                float old_a   = volume->color.a();
                 volume->color = color.second;
                 volume->color.a(old_a);
-			}
-            volume->color = color.second;
-		}
+            } else {
+                volume->color = color.second;
+            }
+        }
     }
 }
 

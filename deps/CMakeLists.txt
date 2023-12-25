@@ -32,7 +32,7 @@ if (NPROC EQUAL 0)
 endif ()
 
 set(DESTDIR "${CMAKE_CURRENT_BINARY_DIR}/destdir" CACHE PATH "Destination directory")
-set(DEP_DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR} CACHE PATH "Path for downloaded source packages.")
+set(DEP_DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR}/DL_CACHE CACHE PATH "Path for downloaded source packages.")
 
 get_property(_is_multi GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
 
@@ -243,7 +243,6 @@ endif ()
 
 include(JPEG/JPEG.cmake)
 include(TIFF/TIFF.cmake)
-include(NanoSVG/NanoSVG.cmake)
 include(wxWidgets/wxWidgets.cmake)
 include(OCCT/OCCT.cmake)
 include(FREETYPE/FREETYPE.cmake)

@@ -1,3 +1,7 @@
+///|/ Copyright (c) Prusa Research 2020 - 2023 Tomáš Mészáros @tamasmeszaros, Oleksandra Iushchenko @YuSanka, Lukáš Matěna @lukasmatena, Vojtěch Bubník @bubnikv
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #include "SL1.hpp"
 #include "GCode/ThumbnailData.hpp"
 #include "libslic3r/Time.hpp"
@@ -442,8 +446,8 @@ void fill_slicerconf(ConfMap &m, const SLAPrint &print)
 
 std::unique_ptr<sla::RasterBase> SL1Archive::create_raster() const
 {
-    sla::RasterBase::Resolution res;
-    sla::RasterBase::PixelDim   pxdim;
+    sla::Resolution res;
+    sla::PixelDim   pxdim;
     std::array<bool, 2>         mirror;
 
     double w  = m_cfg.display_width.getFloat();
@@ -464,8 +468,8 @@ std::unique_ptr<sla::RasterBase> SL1Archive::create_raster() const
         std::swap(pw, ph);
     }
 
-    res   = sla::RasterBase::Resolution{pw, ph};
-    pxdim = sla::RasterBase::PixelDim{w / pw, h / ph};
+    res   = sla::Resolution{pw, ph};
+    pxdim = sla::PixelDim{w / pw, h / ph};
     sla::RasterBase::Trafo tr{orientation, mirror};
 
     double gamma = m_cfg.gamma_correction.getFloat();

@@ -6,6 +6,8 @@
     "setting_id": "GP039",
     "instantiation": "true",
     "default_acceleration": "6000",
+    "initial_layer_infill_speed": "28",
+    "initial_layer_speed": "16",
     "travel_speed": "700",
     "compatible_printers": [
         "Bambu Lab A1 mini 0.2 nozzle"
