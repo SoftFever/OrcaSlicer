@@ -2038,6 +2038,46 @@ std::string Print::export_gcode(const std::string& path_template, GCodeProcessor
     const Vec3d origin = this->get_plate_origin();
     gcode.set_gcode_offset(origin(0), origin(1));
     gcode.do_export(this, path.c_str(), result, thumbnail_cb);
+
+#if GET_CUSTOM_GCODE_PLACEHOLDERS
+
+    const std::string dir = custom_gcodes_dir() +
+#ifdef _WIN32
+                            "\\";
+#else
+                            "/";
+#endif
+
+    auto save_placeholders = [dir](const std::string& file_name, const DynamicConfig& config) {
+        try {
+            boost::nowide::ofstream c;
+            c.open(dir + file_name, std::ios::out | std::ios::trunc);
+            c << "# " << header_slic3r_generated() << std::endl;
+            auto keys = config.keys();
+            for (const std::string& opt_key : keys) {
+                const std::string type = std::to_string(int(config.optptr(opt_key)->type()));
+                c << opt_key << " = " << type << std::endl;
+            }
+            c.close();
+        }
+        catch (const std::ofstream::failure& err) {
+            throw RuntimeError(format("The %1% cannot be loaded:\n\tReason: %2%", file_name, err.what()));
+        }
+    };
+
+    // save specific placeholders
+    const auto& gcode_placeholders = gcode.get_g_code_placeholders_map();
+    for (const auto& [gcode_name, config] : gcode_placeholders)
+        save_placeholders(gcode_name, config);
+
+    // save universal placeholders
+    save_placeholders("universal", gcode.get_placeholder_parser_config());
+
+    // save placeholders for "rw_slicing_state" slicing state
+    save_placeholders("rw_slicing_state", gcode.get_placeholder_output_config());
+
+#endif
+
     //BBS
     result->conflict_result = m_conflict_result;
     return path.c_str();

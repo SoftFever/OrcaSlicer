@@ -157,6 +157,8 @@ struct LayerResult {
 };
 
 class GCode {
+#define GET_CUSTOM_GCODE_PLACEHOLDERS 1
+
 public:
     GCode() :
     	m_origin(Vec2d::Zero()),
@@ -184,6 +186,13 @@ public:
         m_nominal_z(0.)
         {}
     ~GCode() = default;
+
+#if GET_CUSTOM_GCODE_PLACEHOLDERS
+    std::map<std::string, DynamicConfig> g_code_placeholders_map;
+    const std::map<std::string, DynamicConfig>& get_g_code_placeholders_map() { return g_code_placeholders_map; }
+    const DynamicConfig& get_placeholder_parser_config() const { return m_placeholder_parser_integration.parser.config(); }
+    const DynamicConfig& get_placeholder_output_config() const { return m_placeholder_parser_integration.output_config; }
+#endif
 
     // throws std::runtime_exception on error,
     // throws CanceledException through print->throw_if_canceled().
