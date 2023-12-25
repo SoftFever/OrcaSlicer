@@ -2936,6 +2936,11 @@ void GCode::process_layers(
 
 std::string GCode::placeholder_parser_process(const std::string &name, const std::string &templ, unsigned int current_extruder_id, const DynamicConfig *config_override)
 {
+#if GET_CUSTOM_GCODE_PLACEHOLDERS
+    if (config_override &&
+        g_code_placeholders_map.find(name) == g_code_placeholders_map.end())
+        g_code_placeholders_map[name] = *config_override;
+#endif
 PlaceholderParserIntegration &ppi = m_placeholder_parser_integration;
     try {
         ppi.update_from_gcodewriter(m_writer);
