@@ -31,6 +31,11 @@ class EditGCodeDialog : public DPIDialog
     wxTextCtrl*         m_gcode_editor  {nullptr};
     wxStaticText*       m_param_label   {nullptr};
 
+    DynamicConfig       m_read_write_config;
+    DynamicConfig       m_universal_config;
+    DynamicConfig       m_specific_config;
+    DynamicConfig       m_print_statistics_config;
+
 public:
     EditGCodeDialog(wxWindow*parent, const std::string&key, const std::string&value);
     ~EditGCodeDialog() {}
@@ -38,6 +43,8 @@ public:
     std::string get_edited_gcode() const;
 
     void init_params_list(const std::string& custom_gcode_name);
+    void add_presets_placeholders();
+
     void add_selected_value_to_gcode();
     void bind_list_and_button();
 
