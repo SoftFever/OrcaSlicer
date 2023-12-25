@@ -28,20 +28,25 @@
 namespace Slic3r {
 namespace GUI {
 
-static wxArrayString get_patterns_list()
+static std::vector<std::string> get_specific_params(const std::string& custom_gcode)
 {
-    wxArrayString patterns;
-    for (const wxString& item : {
-          "printer_model"
-        , "nozzle_diameter"
-        , "first_layer_temperature"
-        , "first_layer_bed_temperature"
-        , "first_layer_bed_temperature"
-        , "first_layer_temperature"
-        , "initial_tool"
-    })
-        patterns.Add(item);
-    return patterns;
+    if (custom_gcode == "start_filament_gcode" || custom_gcode == "end_filament_gcode")
+        return{ "max_layer_z",
+                "layer_num",
+                "layer_z",
+                "filament_extruder_id" };
+    if (custom_gcode == "end_gcode" || custom_gcode == "before_layer_gcode" || custom_gcode == "layer_gcode")
+        return{ "max_layer_z",
+                "layer_num",
+                "layer_z" };
+    if (custom_gcode == "toolchange_gcode")
+        return{ "next_extruder",
+               "previous_extruder",
+               "toolchange_z",
+               "max_layer_z",
+               "layer_num",
+               "layer_z" };
+    return {};
 }
 
 //------------------------------------------
@@ -79,9 +84,9 @@ EditGCodeDialog::EditGCodeDialog(wxWindow* parent, const std::string& key, const
     m_gcode_editor->SetFont(wxGetApp().code_font());
     wxGetApp().UpdateDarkUI(m_gcode_editor);
 
-    grid_sizer->Add(m_params_list,    1, wxEXPAND);
-    grid_sizer->Add(m_add_btn,          0, wxALIGN_CENTER_VERTICAL);
-    grid_sizer->Add(m_gcode_editor,     2, wxEXPAND);
+    grid_sizer->Add(m_params_list,  1, wxEXPAND);
+    grid_sizer->Add(m_add_btn,      0, wxALIGN_CENTER_VERTICAL);
+    grid_sizer->Add(m_gcode_editor, 2, wxEXPAND);
 
     grid_sizer->AddGrowableRow(0, 1);
     grid_sizer->AddGrowableCol(0, 1);
@@ -110,7 +115,7 @@ EditGCodeDialog::EditGCodeDialog(wxWindow* parent, const std::string& key, const
 
     this->CenterOnScreen();
 
-    init_params_list();
+    init_params_list(key);
     bind_list_and_button();
 }
 
@@ -119,24 +124,71 @@ std::string EditGCodeDialog::get_edited_gcode() const
     return into_u8(m_gcode_editor->GetValue());
 }
 
-void EditGCodeDialog::init_params_list()
+void EditGCodeDialog::init_params_list(const std::string& custom_gcode_name)
 {
-    auto list = get_patterns_list();
+    wxDataViewItem group        = m_params_list->AppendGroup(_L("Slicing State"), "re_slice");
+    {
+        wxDataViewItem read_only    = m_params_list->AppendSubGroup(group, _L("Read Only"),  "lock_closed");
+        m_params_list->AppendParam(read_only, ParamType::Scalar, "zhop");
+    }
+    {
+        wxDataViewItem read_write   = m_params_list->AppendSubGroup(group, _L("Read Write"), "lock_open");
+        for (const auto& opt_name : { "position", "e_position"})
+            m_params_list->AppendParam(read_write, ParamType::Vector, opt_name);
+        for (const auto& opt_name : { "e_retracted", "e_restart_extra"})
+            m_params_list->AppendParam(read_write, ParamType::FilamentVector, opt_name);
+    }
 
-    m_params_list->AppendGroup(GroupParamsType::SlicingState);
-    for (const auto& sub_gr : { SubSlicingState::ReadOnly, SubSlicingState::ReadWrite }) {
-        int i = 0;
-        for (const wxString& name : list) {
-            const auto param_type = static_cast<ParamType>(1 + std::modulus<int>()(i, 3));
-            m_params_list->AppendParam(GroupParamsType::SlicingState, param_type, into_u8(name), sub_gr);
-            ++i;
-        }
+    group = m_params_list->AppendGroup(_L("Universal"), "equal");
+    {
+        wxDataViewItem time_stamp = m_params_list->AppendSubGroup(group, _L("Time Stamp"), "time");
+        for (const auto& opt_name : {   "day",
+                                        "hour",
+                                        "minute",
+                                        "month",
+                                        "second",
+                                        "year",
+                                        "timestamp" })
+            m_params_list->AppendParam(time_stamp, ParamType::Scalar, opt_name);
+
+        for (const auto& opt_name : {   "current_extruder",
+                                        "current_object_idx",
+                                        "filament_preset",
+                                        "first_layer_print_convex_hull",
+                                        "first_layer_print_max",
+                                        "first_layer_print_min",
+                                        "first_layer_print_size",
+                                        "has_single_extruder_multi_material_priming",
+                                        "has_wipe_tower",
+                                        "initial_extruder",
+                                        "initial_tool",
+                                        "input_filename",
+                                        "input_filename_base",
+                                        "is_extruder_used",
+                                        "num_instances",
+                                        "num_objects",
+                                        "physical_printer_preset",
+                                        "print_bed_max",
+                                        "print_bed_min",
+                                        "print_bed_size",
+                                        "print_preset",
+                                        "printer_preset",
+                                        "scale",
+                                        "total_layer_count",
+                                        "total_toolchanges" })
+            m_params_list->AppendParam(group, ParamType::Scalar, opt_name);
+    }
+
+    std::vector<std::string> specific_params = get_specific_params(custom_gcode_name);
+    if (!specific_params.empty()) {
+        group = m_params_list->AppendGroup(format_wxstr(_L("Specific for %1%"), custom_gcode_name), "not_equal");
+        for (const auto& opt_name : specific_params)
+            m_params_list->AppendParam(group, ParamType::Scalar, opt_name);
     }
 
     auto get_set_from_vec = [](const std::vector<std::string>& vec) {
         return std::set<std::string>(vec.begin(), vec.end());
     };
-
     const bool is_fff = wxGetApp().plater()->printer_technology() == ptFFF;
     const std::set<std::string> print_options    = get_set_from_vec(is_fff ? Preset::print_options()    : Preset::sla_print_options());
     const std::set<std::string> material_options = get_set_from_vec(is_fff ? Preset::filament_options() : Preset::sla_material_options());
@@ -146,20 +198,25 @@ void EditGCodeDialog::init_params_list()
 
     const auto& def = full_config.def()->get("")->label;
 
-    m_params_list->AppendGroup(GroupParamsType::PrintSettings);
-    for (const auto& opt : print_options)
-        if (const ConfigOption *optptr = full_config.optptr(opt))
-            m_params_list->AppendParam(GroupParamsType::PrintSettings,    optptr->is_scalar() ? ParamType::Scalar : ParamType::Vector, opt);
 
-    m_params_list->AppendGroup(GroupParamsType::MaterialSettings);
-    for (const auto& opt : material_options)
-        if (const ConfigOption *optptr = full_config.optptr(opt))
-            m_params_list->AppendParam(GroupParamsType::MaterialSettings, optptr->is_scalar() ? ParamType::Scalar : ParamType::FilamentVector, opt);
+    group = m_params_list->AppendGroup(_L("Presets"), "cog");
+    {
+        wxDataViewItem print = m_params_list->AppendSubGroup(group, _L("Print settings"), "cog");
+        for (const auto& opt : print_options)
+            if (const ConfigOption *optptr = full_config.optptr(opt))
+                m_params_list->AppendParam(print, optptr->is_scalar() ? ParamType::Scalar : ParamType::Vector, opt);
 
-    m_params_list->AppendGroup(GroupParamsType::PrinterSettings);
-    for (const auto& opt : printer_options)
-        if (const ConfigOption *optptr = full_config.optptr(opt))
-            m_params_list->AppendParam(GroupParamsType::PrinterSettings,  optptr->is_scalar() ? ParamType::Scalar : ParamType::Vector, opt);
+        wxDataViewItem material = m_params_list->AppendSubGroup(group, _(is_fff ? L("Filament settings") : L("SLA Materials settings")), is_fff ? "spool" : "resin");
+        for (const auto& opt : material_options)
+            if (const ConfigOption *optptr = full_config.optptr(opt))
+                m_params_list->AppendParam(material, optptr->is_scalar() ? ParamType::Scalar : ParamType::FilamentVector, opt);
+
+        wxDataViewItem printer = m_params_list->AppendSubGroup(group, _L("Printer settings"), is_fff ? "printer" : "sla_printer");
+        for (const auto& opt : printer_options)
+            if (const ConfigOption *optptr = full_config.optptr(opt))
+                m_params_list->AppendParam(printer, optptr->is_scalar() ? ParamType::Scalar : ParamType::Vector, opt);
+
+    }
 }
 
 void EditGCodeDialog::add_selected_value_to_gcode()
@@ -318,22 +375,9 @@ wxBoxSizer* EditGCodeDialog::create_btn_sizer(long flags)
     return btn_sizer;
 }
 
-const std::map<GroupParamsType, std::pair <wxString, std::string>> GroupParamsInfo {
-//      Type                                Name                    BitmapName
-    { GroupParamsType::SlicingState,    {L("Slicing State"),    "re_slice"  },  },
-    { GroupParamsType::PrintSettings,   {L("Print settings"),   "cog"       },  },
-    { GroupParamsType::MaterialSettings,{L("Material Settings"),"spool"     },  },
-    { GroupParamsType::PrinterSettings, {L("Printer Settings"), "printer"   },  },
-};
-
-const std::map<SubSlicingState, std::pair <wxString, std::string>> SubSlicingStateInfo {
-//      Type                             Name                 BitmapName
-    { SubSlicingState::ReadOnly,    {L("Read Only"),    "lock_closed"   },  },
-    { SubSlicingState::ReadWrite,   {L("Read Write"),   "lock_open"     },  },
-};
 
 const std::map<ParamType, std::string> ParamsInfo {
-//      Type                      BitmapName
+//    Type                      BitmapName
     { ParamType::Scalar,        "scalar_param"          },
     { ParamType::Vector,        "vector_param"          },
     { ParamType::FilamentVector,"vector_filament_param" },
@@ -350,31 +394,27 @@ static void make_bold(wxString& str)
 //                  ParamsModelNode: a node inside ParamsModel
 // ----------------------------------------------------------------------------
 
-ParamsNode::ParamsNode(GroupParamsType type)
-    : m_group_type (type)
+ParamsNode::ParamsNode(const wxString& group_name, const std::string& icon_name)
+: icon_name(icon_name)
+, text(group_name)
 {
-    const auto& [name, icon_n] = GroupParamsInfo.at(type);
-    text = _(name);
     make_bold(text);
-    icon_name = icon_n;
 }
 
-ParamsNode::ParamsNode(ParamsNode *parent, SubSlicingState sub_type)
+ParamsNode::ParamsNode( ParamsNode *        parent,
+                        const wxString&     sub_group_name,
+                        const std::string&  icon_name)
     : m_parent(parent)
-    , m_group_type(parent->m_group_type)
+    , icon_name(icon_name)
+    , text(sub_group_name)
 {
-    const auto& [name, icon_n] = SubSlicingStateInfo.at(sub_type);
-    text = _(name);
-    icon_name = icon_n;
+    make_bold(text);
 }
 
 ParamsNode::ParamsNode( ParamsNode*         parent,
                         ParamType           param_type,
-                        const std::string&  param_key,
-                        SubSlicingState     subgroup_type)
+                        const std::string&  param_key)
     : m_parent(parent)
-    , m_group_type(parent->m_group_type)
-    , m_sub_type(subgroup_type)
     , m_param_type(param_type)
     , m_container(false)
     , param_key(param_key)
@@ -397,52 +437,47 @@ ParamsModel::ParamsModel()
 {
 }
 
-
-wxDataViewItem ParamsModel::AppendGroup(GroupParamsType type)
+wxDataViewItem ParamsModel::AppendGroup(const wxString&    group_name,
+                                        const std::string& icon_name)
 {
-    m_group_nodes[type] = std::make_unique<ParamsNode>(type);
+    m_group_nodes.emplace_back(std::make_unique<ParamsNode>(group_name, icon_name));
 
     wxDataViewItem parent(nullptr);
-    wxDataViewItem child((void*)m_group_nodes[type].get());
+    wxDataViewItem child((void*)m_group_nodes.back().get());
 
     ItemAdded(parent, child);
     m_ctrl->Expand(parent);
     return child;
 }
 
-wxDataViewItem ParamsModel::AppendSubGroup(GroupParamsType type, SubSlicingState sub_type)
+wxDataViewItem ParamsModel::AppendSubGroup(wxDataViewItem       parent,
+                                           const wxString&      sub_group_name,
+                                           const std::string&   icon_name)
 {
-    m_sub_slicing_state_nodes[sub_type] = std::make_unique<ParamsNode>(m_group_nodes[type].get(), sub_type);
+    ParamsNode* parent_node = static_cast<ParamsNode*>(parent.GetID());
+    if (!parent_node)
+        return wxDataViewItem(0);
 
-    const wxDataViewItem  group_item    ((void*)m_group_nodes[type].get());
-    const wxDataViewItem  sub_group_item((void*)m_sub_slicing_state_nodes[sub_type].get());
+    parent_node->Append(std::make_unique<ParamsNode>(parent_node, sub_group_name, icon_name));
+    const wxDataViewItem  sub_group_item((void*)parent_node->GetChildren().back().get());
 
-    ItemAdded(group_item, sub_group_item);
-
-    m_ctrl->Expand(group_item);
+    ItemAdded(parent, sub_group_item);
     return sub_group_item;
 }
 
-wxDataViewItem ParamsModel::AppendParam(GroupParamsType     type,
+wxDataViewItem ParamsModel::AppendParam(wxDataViewItem      parent,
                                         ParamType           param_type,
-                                        const std::string&  param_key,
-                                        SubSlicingState     subgroup_type)
+                                        const std::string&  param_key)
 {
-    ParamsNode* parent_node{ nullptr };
-    if (subgroup_type == SubSlicingState::Undef)
-        parent_node = m_group_nodes[type].get();
-    else {
-        if (m_sub_slicing_state_nodes.find(subgroup_type) == m_sub_slicing_state_nodes.end())
-            AppendSubGroup(type, subgroup_type);
-        parent_node = m_sub_slicing_state_nodes[subgroup_type].get();
-    }
+    ParamsNode* parent_node = static_cast<ParamsNode*>(parent.GetID());
+    if (!parent_node)
+        return wxDataViewItem(0);
 
-    parent_node->Append(std::make_unique<ParamsNode>(m_group_nodes[type].get(), param_type, param_key, subgroup_type));
+    parent_node->Append(std::make_unique<ParamsNode>(parent_node, param_type, param_key));
 
-    const wxDataViewItem  parent_item((void*)parent_node);
     const wxDataViewItem  child_item((void*)parent_node->GetChildren().back().get());
 
-    ItemAdded(parent_item, child_item);
+    ItemAdded(parent, child_item);
     return child_item;
 }
 
@@ -465,14 +500,51 @@ std::string ParamsModel::GetParamKey(wxDataViewItem item)
     return std::string();
 }
 
-void ParamsModel::Rescale()
+wxDataViewItem ParamsModel::Delete(const wxDataViewItem& item)
 {
+    auto ret_item = wxDataViewItem(nullptr);
+    ParamsNode* node = static_cast<ParamsNode*>(item.GetID());
+    if (!node)      // happens if item.IsOk()==false
+        return ret_item;
 
+    // first remove the node from the parent's array of children;
+    // NOTE: m_group_nodes is only a vector of _pointers_
+    //       thus removing the node from it doesn't result in freeing it
+    ParamsNodePtrArray& children = node->GetChildren();
+    // Delete all children
+    while (!children.empty())
+        Delete(wxDataViewItem(children.back().get()));
+
+    auto node_parent = node->GetParent();
+
+    ParamsNodePtrArray& parents_children = node_parent ? node_parent->GetChildren() : m_group_nodes;
+    auto it = find_if(parents_children.begin(), parents_children.end(),
+                                                   [node](std::unique_ptr<ParamsNode>& child) { return child.get() == node; });
+    assert(it != parents_children.end());
+    it = parents_children.erase(it);
+
+    if (it != parents_children.end())
+        ret_item = wxDataViewItem(it->get());
+
+    wxDataViewItem parent(node_parent);
+    // set m_container to FALSE if parent has no child
+    if (node_parent) {
+#ifndef __WXGTK__
+        if (node_parent->GetChildren().empty())
+            node_parent->SetContainer(false);
+#endif //__WXGTK__
+        ret_item = parent;
+    }
+
+    // notify control
+    ItemDeleted(parent, item);
+    return ret_item;
 }
 
 void ParamsModel::Clear()
 {
-
+    while (!m_group_nodes.empty())
+        Delete(wxDataViewItem(m_group_nodes.back().get()));
 }
 
 void ParamsModel::GetValue(wxVariant& variant, const wxDataViewItem& item, unsigned int col) const
@@ -541,12 +613,8 @@ unsigned int ParamsModel::GetChildren(const wxDataViewItem& parent, wxDataViewIt
     ParamsNode* parent_node = (ParamsNode*)parent.GetID();
 
     if (parent_node == nullptr) {
-        for (const auto& [type, group] : m_group_nodes)
+        for (const auto& group : m_group_nodes)
             array.Add(wxDataViewItem((void*)group.get()));
-    }
-    else if (parent_node->IsGroupNode() && parent_node->GetChildren().empty()) {
-        for (const auto& [type, sub_group] : m_sub_slicing_state_nodes)
-            array.Add(wxDataViewItem((void*)sub_group.get()));
     }
     else  {
         const ParamsNodePtrArray& children = parent_node->GetChildren();
@@ -589,17 +657,23 @@ ParamsViewCtrl::ParamsViewCtrl(wxWindow *parent, wxSize size)
     this->SetExpanderColumn(column);
 }
 
-wxDataViewItem ParamsViewCtrl::AppendGroup(GroupParamsType type)
+wxDataViewItem ParamsViewCtrl::AppendGroup(const wxString& group_name, const std::string& icon_name)
 {
-    return model->AppendGroup(type);
+    return model->AppendGroup(group_name, icon_name);
 }
 
-wxDataViewItem ParamsViewCtrl::AppendParam( GroupParamsType     group_type,
-                                            ParamType           param_type,
-                                            const std::string&  param_key,
-                                            SubSlicingState     subgroup_type /*= SubSlicingState::Undef*/)
+wxDataViewItem ParamsViewCtrl::AppendSubGroup(  wxDataViewItem      parent,
+                                                const wxString&     sub_group_name,
+                                                const std::string&  icon_name)
 {
-    return model->AppendParam(group_type, param_type, param_key, subgroup_type);
+    return model->AppendSubGroup(parent, sub_group_name, icon_name);
+}
+
+wxDataViewItem ParamsViewCtrl::AppendParam( wxDataViewItem      parent,
+                                            ParamType           param_type,
+                                            const std::string&  param_key)
+{
+    return model->AppendParam(parent, param_type, param_key);
 }
 
 wxString ParamsViewCtrl::GetValue(wxDataViewItem item)
@@ -624,7 +698,7 @@ void ParamsViewCtrl::Clear()
 
 void ParamsViewCtrl::Rescale(int em/* = 0*/)
 {
-    model->Rescale();
+//    model->Rescale();
     Refresh();
 }
 }}    // namespace Slic3r::GUI
