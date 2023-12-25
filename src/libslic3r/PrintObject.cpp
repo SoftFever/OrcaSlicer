@@ -3232,7 +3232,7 @@ void PrintObject::discover_horizontal_shells()
                         // that has no internal support to 30%. This is an arbitrary value to make this option somewhat safe
                         // by ensuring that top surfaces especially slanted ones dont go **completely** unsupported
                         // especially when using single perimeter top layers.
-                        float margin = region_config.reduce_wall_solid_infill? margin = float(neighbor_layerm->flow(frExternalPerimeter).scaled_width())*0.3f : float(neighbor_layerm->flow(frExternalPerimeter).scaled_width());
+                        float margin = region_config.reduce_wall_solid_infill? float(neighbor_layerm->flow(frExternalPerimeter).scaled_width())*0.3f : float(neighbor_layerm->flow(frExternalPerimeter).scaled_width());
                         Polygons too_narrow = diff(
                             new_internal_solid,
                             opening(new_internal_solid, margin, margin + ClipperSafetyOffset, jtMiter, 5));
