@@ -712,8 +712,6 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     toggle_line("make_overhang_printable_angle", have_make_overhang_printable);
     toggle_line("make_overhang_printable_hole_size", have_make_overhang_printable);
     
-    toggle_line("exclude_object", gcflavor == gcfKlipper);
-    
     toggle_line("min_width_top_surface",config->opt_bool("only_one_wall_top"));
     
     for (auto el : { "hole_to_polyhole_threshold", "hole_to_polyhole_twisted" })
