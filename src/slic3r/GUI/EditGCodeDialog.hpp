@@ -37,7 +37,7 @@ public:
 
     std::string get_edited_gcode() const;
 
-    void init_params_list();
+    void init_params_list(const std::string& custom_gcode_name);
     void add_selected_value_to_gcode();
     void bind_list_and_button();
 
@@ -59,22 +59,6 @@ protected:
 class ParamsNode;
 using ParamsNodePtrArray = std::vector<std::unique_ptr<ParamsNode>>;
 
-// Discard and Cancel buttons are always but next buttons are optional
-enum class GroupParamsType {
-    SlicingState,
-    PrintSettings,
-    MaterialSettings,
-    PrinterSettings,
-};
-using GroupParamsNodePtrMap = std::map<GroupParamsType, std::unique_ptr<ParamsNode>>;
-
-enum class SubSlicingState {
-    Undef,
-    ReadOnly,
-    ReadWrite,
-};
-using SubSlicingStateNodePtrMap = std::map<SubSlicingState, std::unique_ptr<ParamsNode>>;
-
 enum class ParamType {
     Undef,
     Scalar,
@@ -93,8 +77,6 @@ class ParamsNode
     ParamsNode*         m_parent{ nullptr };
     ParamsNodePtrArray  m_children;
 
-    GroupParamsType     m_group_type{ GroupParamsType::SlicingState };
-    SubSlicingState     m_sub_type  { SubSlicingState::Undef };
     ParamType           m_param_type{ ParamType::Undef };
 
     // TODO/FIXME:
@@ -120,21 +102,22 @@ public:
     wxString    text;
 
     // Group params(root) node
-    ParamsNode(GroupParamsType type);
+    ParamsNode(const wxString& group_name, const std::string& icon_name);
 
     // sub SlicingState node
-    ParamsNode(ParamsNode* parent, SubSlicingState sub_type);
+    ParamsNode(ParamsNode*          parent,
+               const wxString&      sub_group_name,
+               const std::string&   icon_name);
 
     // parametre node
     ParamsNode( ParamsNode*         parent, 
                 ParamType           param_type,
-                const std::string&  param_key,
-                SubSlicingState     subgroup_type);
+                const std::string&  param_key);
 
     bool             IsContainer()      const { return m_container; }
     bool             IsGroupNode()      const { return m_parent == nullptr; }
-    bool             IsSubGroupNode()   const { return m_sub_type != SubSlicingState::Undef; }
     bool             IsParamNode()      const { return m_param_type != ParamType::Undef; }
+    void             SetContainer(bool is_container) { m_container = is_container; }
 
     ParamsNode* GetParent() { return m_parent; }
     ParamsNodePtrArray& GetChildren() { return m_children; }
@@ -149,10 +132,8 @@ public:
 
 class ParamsModel : public wxDataViewModel
 {
-    GroupParamsNodePtrMap       m_group_nodes;
-    SubSlicingStateNodePtrMap   m_sub_slicing_state_nodes;
-
-    wxDataViewCtrl*             m_ctrl{ nullptr };
+    ParamsNodePtrArray  m_group_nodes;
+    wxDataViewCtrl*     m_ctrl{ nullptr };
 
 public:
 
@@ -161,20 +142,21 @@ public:
 
     void            SetAssociatedControl(wxDataViewCtrl* ctrl) { m_ctrl = ctrl; }
 
-    wxDataViewItem  AppendGroup(GroupParamsType     type);
+    wxDataViewItem AppendGroup(const wxString&    group_name,
+                               const std::string& icon_name);
 
-    wxDataViewItem  AppendSubGroup( GroupParamsType type,
-                                    SubSlicingState sub_type);
+    wxDataViewItem AppendSubGroup(wxDataViewItem    parent,
+                                  const wxString&   sub_group_name,
+                                  const std::string&icon_name);
 
-    wxDataViewItem  AppendParam(GroupParamsType     type,
+    wxDataViewItem AppendParam( wxDataViewItem      parent,
                                 ParamType           param_type,
-                                const std::string&  param_key,
-                                SubSlicingState     subgroup_type = SubSlicingState::Undef);
+                                const std::string&  param_key);
+
+    wxDataViewItem Delete(const wxDataViewItem& item);
 
     wxString        GetParamName(wxDataViewItem item);
     std::string     GetParamKey(wxDataViewItem item);
-
-    void            Rescale();
 
     void            Clear();
 
@@ -199,20 +181,6 @@ class ParamsViewCtrl : public wxDataViewCtrl
 {
     int                     m_em_unit;
 
-    //struct ItemData
-    //{
-    //    std::string     opt_key;
-    //    wxString        opt_name;
-    //    wxString        old_val;
-    //    wxString        mod_val;
-    //    wxString        new_val;
-    //    Preset::Type    type;
-    //    bool            is_long{ false };
-    //};
-
-    //// tree items related to the options
-    //std::map<wxDataViewItem, ItemData> m_items_map;
-
 public:
     ParamsViewCtrl(wxWindow* parent, wxSize size);
     ~ParamsViewCtrl() override {
@@ -224,12 +192,16 @@ public:
 
     ParamsModel* model{ nullptr };
 
-    wxDataViewItem AppendGroup( GroupParamsType type);
+    wxDataViewItem AppendGroup(const wxString&    group_name,
+                               const std::string& icon_name);
 
-    wxDataViewItem AppendParam( GroupParamsType     group_type,
+    wxDataViewItem AppendSubGroup(wxDataViewItem    parent,
+                                  const wxString&   sub_group_name,
+                                  const std::string&icon_name);
+
+    wxDataViewItem AppendParam( wxDataViewItem      parent,
                                 ParamType           param_type,
-                                const std::string&  param_key,
-                                SubSlicingState     group_subgroup_type = SubSlicingState::Undef);
+                                const std::string&  param_key);
 
     wxString        GetValue(wxDataViewItem item);
     wxString        GetSelectedValue();
