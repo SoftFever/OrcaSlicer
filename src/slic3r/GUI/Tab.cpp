@@ -2900,12 +2900,39 @@ static void validate_custom_gcode_cb(Tab* tab, ConfigOptionsGroupShp opt_group, 
 
 void Tab::edit_custom_gcode(const t_config_option_key& opt_key)
 {
-    EditGCodeDialog(this, opt_key, m_config->opt_string(opt_key)).ShowModal();
+    EditGCodeDialog dlg = EditGCodeDialog(this, opt_key, get_custom_gcode(opt_key));
+    if (dlg.ShowModal() == wxID_OK) {
+        set_custom_gcode(opt_key, dlg.get_edited_gcode());
+        update_dirty();
+        update();
+    }
 }
 
-void TabFilament::edit_custom_gcode(const t_config_option_key& opt_key)
+const std::string& Tab::get_custom_gcode(const t_config_option_key& opt_key)
 {
-    EditGCodeDialog(this, opt_key, m_config->opt_string(opt_key, unsigned(m_presets_choice->GetSelection()))).ShowModal();
+    return m_config->opt_string(opt_key);
+}
+
+void Tab::set_custom_gcode(const t_config_option_key& opt_key, const std::string& value)
+{
+    DynamicPrintConfig new_conf = *m_config;
+    new_conf.set_key_value(opt_key, new ConfigOptionString(value));
+    load_config(new_conf);
+}
+
+const std::string& TabFilament::get_custom_gcode(const t_config_option_key& opt_key)
+{
+    return m_config->opt_string(opt_key, unsigned(0));
+}
+
+void TabFilament::set_custom_gcode(const t_config_option_key& opt_key, const std::string& value)
+{
+    std::vector<std::string> gcodes = static_cast<const ConfigOptionStrings*>(m_config->option(opt_key))->values;
+    gcodes[0] = value;
+
+    DynamicPrintConfig new_conf = *m_config;
+    new_conf.set_key_value(opt_key, new ConfigOptionStrings(gcodes));
+    load_config(new_conf);
 }
 
 void TabFilament::add_filament_overrides_page()
