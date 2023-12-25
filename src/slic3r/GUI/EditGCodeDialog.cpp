@@ -20,7 +20,9 @@
 #include "MsgDialog.hpp"
 #include "Plater.hpp"
 
+#include "libslic3r/PlaceholderParser.hpp"
 #include "libslic3r/Preset.hpp"
+#include "libslic3r/Print.hpp"
 
 #define BTN_GAP  FromDIP(20)
 #define BTN_SIZE wxSize(FromDIP(58), FromDIP(24))
@@ -28,25 +30,97 @@
 namespace Slic3r {
 namespace GUI {
 
-static std::vector<std::string> get_specific_params(const std::string& custom_gcode)
+ConfigOption* get_new_option(const ConfigOptionType type)
 {
-    if (custom_gcode == "start_filament_gcode" || custom_gcode == "end_filament_gcode")
-        return{ "max_layer_z",
-                "layer_num",
-                "layer_z",
-                "filament_extruder_id" };
-    if (custom_gcode == "end_gcode" || custom_gcode == "before_layer_gcode" || custom_gcode == "layer_gcode")
-        return{ "max_layer_z",
-                "layer_num",
-                "layer_z" };
-    if (custom_gcode == "toolchange_gcode")
-        return{ "next_extruder",
-               "previous_extruder",
-               "toolchange_z",
-               "max_layer_z",
-               "layer_num",
-               "layer_z" };
-    return {};
+    switch (type) {
+    case coFloat:
+        return new ConfigOptionFloat(0.);
+    case coFloats:
+        return new ConfigOptionFloats({ 0. });
+    case coInt:
+        return new ConfigOptionInt(0);
+    case coInts:
+        return new ConfigOptionInts({ 0 });
+    case coString:
+        return new ConfigOptionString("");
+    case coStrings:
+        return new ConfigOptionStrings({ ""});
+    case coPercent:
+        return new ConfigOptionPercent(0);
+    case coPercents:
+        return new ConfigOptionPercents({ 0});
+    case coFloatOrPercent:
+        return new ConfigOptionFloatOrPercent();
+    case coFloatsOrPercents:
+        return new ConfigOptionFloatsOrPercents();
+    case coPoint:
+        return new ConfigOptionPoint(Vec2d(100, 100));
+    case coPoints:
+        return new ConfigOptionPoints({ Vec2d(100,100) });
+    case coPoint3:
+        return new ConfigOptionPoint3();
+    case coBool:
+        return new ConfigOptionBool(true);
+    case coBools:
+        return new ConfigOptionBools({ true });
+    case coEnum:
+        return new ConfigOptionEnum<InfillPattern>();
+    default:
+        return nullptr;
+    }
+}
+
+namespace fs = boost::filesystem;
+namespace pt = boost::property_tree;
+static std::vector<std::string> get_params_from_file(const std::string& file_name, DynamicConfig& out_config)
+{
+    const fs::path file_path = fs::path(custom_gcodes_dir() +
+#ifdef _WIN32
+                                        "\\"
+#else
+                                        "/"
+#endif
+                                        + file_name);
+
+    if (!fs::exists(file_path))
+        return {};
+
+    const std::string file = file_path.string();
+
+    // Load the preset file, apply preset values on top of defaults.
+    try {
+        DynamicConfig config;
+
+        try {
+            pt::ptree tree;
+            boost::nowide::ifstream ifs(file);
+            pt::read_ini(ifs, tree);
+            for (const pt::ptree::value_type& v : tree) {
+                try {
+                    t_config_option_key opt_key = v.first;
+                    const std::string type_str = v.second.get_value<std::string>();
+                    const ConfigOptionType type = ConfigOptionType(std::atoi(type_str.c_str()));
+                    if (ConfigOption* opt = get_new_option(type))
+                        config.set_key_value(opt_key, std::move(opt));
+                }
+                catch (UnknownOptionException& err) {
+                    throw RuntimeError(format("Some option from %1% cannot be loaded:\n\tReason: %2%", file, err.what()));
+                }
+            }
+        }
+        catch (const ConfigurationError& e) {
+            throw ConfigurationError(format("Failed loading configuration file \"%1%\": \n\t%2%", file, e.what()));
+        }
+
+        out_config += config;
+        return config.keys();
+    }
+    catch (const std::ifstream::failure& err) {
+        throw RuntimeError(format("The %1% cannot be loaded:\n\tReason: %2%", file, err.what()));
+    }
+    catch (const std::runtime_error& err) {
+        throw RuntimeError(format("Failed loading the custom_gcode_placeholders file: \"%1%\"\n\tReason: %2%", file , err.what()));
+    }
 }
 
 //------------------------------------------
@@ -126,97 +200,106 @@ std::string EditGCodeDialog::get_edited_gcode() const
 
 void EditGCodeDialog::init_params_list(const std::string& custom_gcode_name)
 {
-    wxDataViewItem group        = m_params_list->AppendGroup(_L("Slicing State"), "re_slice");
-    {
-        wxDataViewItem read_only    = m_params_list->AppendSubGroup(group, _L("Read Only"),  "lock_closed");
-        m_params_list->AppendParam(read_only, ParamType::Scalar, "zhop");
-    }
-    {
-        wxDataViewItem read_write   = m_params_list->AppendSubGroup(group, _L("Read Write"), "lock_open");
-        for (const auto& opt_name : { "position", "e_position"})
-            m_params_list->AppendParam(read_write, ParamType::Vector, opt_name);
-        for (const auto& opt_name : { "e_retracted", "e_restart_extra"})
-            m_params_list->AppendParam(read_write, ParamType::FilamentVector, opt_name);
-    }
+    const std::vector<std::string> universal_params = get_params_from_file("universal", m_universal_config);
 
-    group = m_params_list->AppendGroup(_L("Universal"), "equal");
-    {
-        wxDataViewItem time_stamp = m_params_list->AppendSubGroup(group, _L("Time Stamp"), "time");
-        for (const auto& opt_name : {   "day",
-                                        "hour",
-                                        "minute",
-                                        "month",
-                                        "second",
-                                        "year",
-                                        "timestamp" })
-            m_params_list->AppendParam(time_stamp, ParamType::Scalar, opt_name);
+    auto get_type = [](const std::string& opt_key, const DynamicConfig& config) {
+        return config.optptr(opt_key)->is_scalar() ? ParamType::Scalar : ParamType::Vector;
+    };
 
-        for (const auto& opt_name : {   "current_extruder",
-                                        "current_object_idx",
-                                        "filament_preset",
-                                        "first_layer_print_convex_hull",
-                                        "first_layer_print_max",
-                                        "first_layer_print_min",
-                                        "first_layer_print_size",
-                                        "has_single_extruder_multi_material_priming",
-                                        "has_wipe_tower",
-                                        "initial_extruder",
-                                        "initial_tool",
-                                        "input_filename",
-                                        "input_filename_base",
-                                        "is_extruder_used",
-                                        "num_instances",
-                                        "num_objects",
-                                        "physical_printer_preset",
-                                        "print_bed_max",
-                                        "print_bed_min",
-                                        "print_bed_size",
-                                        "print_preset",
-                                        "printer_preset",
-                                        "scale",
-                                        "total_layer_count",
-                                        "total_toolchanges" })
-            m_params_list->AppendParam(group, ParamType::Scalar, opt_name);
+    // Add slicing states placeholders
+
+    std::vector<std::string> read_only_opts = { "zhop" };
+    wxDataViewItem group = m_params_list->AppendGroup(_L("Slicing State"), "re_slice");
+    {
+        wxDataViewItem read_only = m_params_list->AppendSubGroup(group, _L("Read Only"),  "lock_closed");
+        for (const auto& opt_key : read_only_opts)
+            m_params_list->AppendParam(read_only, get_type(opt_key, m_universal_config), opt_key);
     }
 
-    std::vector<std::string> specific_params = get_specific_params(custom_gcode_name);
+    const std::vector<std::string> read_write_params = get_params_from_file("rw_slicing_state", m_read_write_config);
+    if (!read_write_params.empty()) {
+        wxDataViewItem read_write = m_params_list->AppendSubGroup(group, _L("Read Write"), "lock_open");
+        for (const auto& opt_key : read_write_params)
+            m_params_list->AppendParam(read_write, get_type(opt_key, m_read_write_config), opt_key);
+    }
+
+    // Add universal placeholders
+
+    if (!universal_params.empty()) {
+        group = m_params_list->AppendGroup(_L("Universal"), "equal");
+
+        // Add print statistics subgroup
+
+        m_print_statistics_config = PrintStatistics::placeholders();
+        if (!m_print_statistics_config.empty()) {
+            wxDataViewItem statistics = m_params_list->AppendSubGroup(group, _L("Print Statistics"), "info");
+            const std::vector<std::string> statistics_params = m_print_statistics_config.keys();
+            for (const auto& opt_key : statistics_params)
+                m_params_list->AppendParam(statistics, get_type(opt_key, m_print_statistics_config), opt_key);
+        }
+
+        // Add timestamp subgroup
+
+        PlaceholderParser parser;
+        parser.update_timestamp();
+        const DynamicConfig& ts_config = parser.config();
+        wxDataViewItem time_stamp = ts_config.empty() ? group : m_params_list->AppendSubGroup(group, _L("Timestamps"), "time");
+
+        // Add un-grouped params
+
+        wxDataViewItem other = m_params_list->AppendSubGroup(group, _L("Other"), "add_gcode");
+        for (const auto& opt_key : universal_params) {
+            if (m_print_statistics_config.has(opt_key) || std::find(read_only_opts.begin(), read_only_opts.end(), opt_key) != read_only_opts.end())
+                continue;
+            m_params_list->AppendParam( ts_config.has(opt_key) ? time_stamp : other, get_type(opt_key, m_universal_config), opt_key);
+        }
+    }
+
+    // Add specific placeholders
+
+    const std::vector<std::string> specific_params = get_params_from_file(custom_gcode_name, m_specific_config);
     if (!specific_params.empty()) {
         group = m_params_list->AppendGroup(format_wxstr(_L("Specific for %1%"), custom_gcode_name), "not_equal");
-        for (const auto& opt_name : specific_params)
-            m_params_list->AppendParam(group, ParamType::Scalar, opt_name);
+        for (const auto& opt_key : specific_params)
+            m_params_list->AppendParam(group, get_type(opt_key, m_specific_config), opt_key);
+
+        m_params_list->Expand(group);
     }
 
-    auto get_set_from_vec = [](const std::vector<std::string>& vec) {
+    // Add placeholders from presets
+
+    add_presets_placeholders();
+}
+
+void EditGCodeDialog::add_presets_placeholders()
+{
+    auto get_set_from_vec = [](const std::vector<std::string>&vec) {
         return std::set<std::string>(vec.begin(), vec.end());
     };
-    const bool is_fff = wxGetApp().plater()->printer_technology() == ptFFF;
+
+    const bool                  is_fff           = wxGetApp().plater()->printer_technology() == ptFFF;
     const std::set<std::string> print_options    = get_set_from_vec(is_fff ? Preset::print_options()    : Preset::sla_print_options());
     const std::set<std::string> material_options = get_set_from_vec(is_fff ? Preset::filament_options() : Preset::sla_material_options());
     const std::set<std::string> printer_options  = get_set_from_vec(is_fff ? Preset::printer_options()  : Preset::sla_printer_options());
 
-    const auto& full_config = wxGetApp().preset_bundle->full_config();
+    const auto&full_config = wxGetApp().preset_bundle->full_config();
 
-    const auto& def = full_config.def()->get("")->label;
+    wxDataViewItem group = m_params_list->AppendGroup(_L("Presets"), "cog");
 
+    wxDataViewItem print = m_params_list->AppendSubGroup(group, _L("Print settings"), "cog");
+    for (const auto&opt : print_options)
+        if (const ConfigOption *optptr = full_config.optptr(opt))
+            m_params_list->AppendParam(print, optptr->is_scalar() ? ParamType::Scalar : ParamType::Vector, opt);
 
-    group = m_params_list->AppendGroup(_L("Presets"), "cog");
-    {
-        wxDataViewItem print = m_params_list->AppendSubGroup(group, _L("Print settings"), "cog");
-        for (const auto& opt : print_options)
-            if (const ConfigOption *optptr = full_config.optptr(opt))
-                m_params_list->AppendParam(print, optptr->is_scalar() ? ParamType::Scalar : ParamType::Vector, opt);
+    wxDataViewItem material = m_params_list->AppendSubGroup(group, _(is_fff ? L("Filament settings") : L("SLA Materials settings")), is_fff ? "spool" : "resin");
+    for (const auto&opt : material_options)
+        if (const ConfigOption *optptr = full_config.optptr(opt))
+            m_params_list->AppendParam(material, optptr->is_scalar() ? ParamType::Scalar : ParamType::FilamentVector, opt);
 
-        wxDataViewItem material = m_params_list->AppendSubGroup(group, _(is_fff ? L("Filament settings") : L("SLA Materials settings")), is_fff ? "spool" : "resin");
-        for (const auto& opt : material_options)
-            if (const ConfigOption *optptr = full_config.optptr(opt))
-                m_params_list->AppendParam(material, optptr->is_scalar() ? ParamType::Scalar : ParamType::FilamentVector, opt);
-
-        wxDataViewItem printer = m_params_list->AppendSubGroup(group, _L("Printer settings"), is_fff ? "printer" : "sla_printer");
-        for (const auto& opt : printer_options)
-            if (const ConfigOption *optptr = full_config.optptr(opt))
-                m_params_list->AppendParam(printer, optptr->is_scalar() ? ParamType::Scalar : ParamType::Vector, opt);
-
-    }
+    wxDataViewItem printer = m_params_list->AppendSubGroup(group, _L("Printer settings"), is_fff ? "printer" : "sla_printer");
+    for (const auto&opt : printer_options)
+        if (const ConfigOption *optptr = full_config.optptr(opt))
+            m_params_list->AppendParam(printer, optptr->is_scalar() ? ParamType::Scalar : ParamType::Vector, opt);
 }
 
 void EditGCodeDialog::add_selected_value_to_gcode()
@@ -233,28 +316,43 @@ void EditGCodeDialog::bind_list_and_button()
 
         const std::string opt_key = m_params_list->GetSelectedParamKey();
         if (!opt_key.empty()) {
+            const ConfigOptionDef*    cod     { nullptr };
+            const ConfigOption*       optptr  { nullptr };
+
             const auto& full_config = wxGetApp().preset_bundle->full_config();
-            if (const ConfigDef* def = full_config.def();
-                def && def->has(opt_key)) {
-                const ConfigOptionDef* cod    = def->get(opt_key);
-                const ConfigOption*    optptr = full_config.optptr(opt_key);
-                const ConfigOptionType type   = optptr->type();
+            if (const ConfigDef* def = full_config.def(); def && def->has(opt_key)) {
+                cod = def->get(opt_key);
+                optptr = full_config.optptr(opt_key);
+            }
+            else {
+                for (const DynamicConfig* config: { &m_read_write_config, &m_universal_config, &m_specific_config, &m_print_statistics_config }) {
+                    optptr = config->optptr(opt_key);
+                    if (optptr)
+                        break;
+                }
+            }
 
-                wxString type_str = type == coNone                                          ? "none" :
-                                    type == coFloat || type == coFloats                     ? "float" :
-                                    type == coInt || type == coInts                         ? "integer" :
-                                    type == coString || type == coStrings                   ? "string" :
-                                    type == coPercent || type == coPercents                 ? "percent" :
-                                    type == coFloatOrPercent || type == coFloatsOrPercents  ? "float ar percent" :
-                                    type == coPoint || type == coPoints || type == coPoint3 ? "point" :
-                                    type == coBool || type == coBools                       ? "bool" :
-                                    type == coEnum                                          ? "enum" : "undef";
+            if (optptr) {
+                const ConfigOptionType scalar_type = optptr->is_scalar() ? optptr->type() : static_cast<ConfigOptionType>(optptr->type() - coVectorType);
+                wxString type_str = scalar_type == coNone           ? "none" :
+                                                     scalar_type == coFloat          ? "float" :
+                                                     scalar_type == coInt            ? "integer" :
+                                                     scalar_type == coString         ? "string" :
+                                                     scalar_type == coPercent        ? "percent" :
+                                                     scalar_type == coFloatOrPercent ? "float or percent" :
+                                                     scalar_type == coPoint          ? "point" :
+                                                     scalar_type == coBool           ? "bool" :
+                                                     scalar_type == coEnum           ? "enum" : "undef";
+                if (!optptr->is_scalar())
+                    type_str += "[]";
 
-                label = ( cod->full_label.empty() &&  cod->label.empty() ) ? format_wxstr("Undef Label\n(%1%)", type_str) :
+                label = (!cod || (cod->full_label.empty() && cod->label.empty()) ) ? format_wxstr("%1%\n(%2%)", opt_key, type_str) :
                         (!cod->full_label.empty() && !cod->label.empty() ) ?
                         format_wxstr("%1% > %2%\n(%3%)", _(cod->full_label), _(cod->label), type_str) :
                         format_wxstr("%1%\n(%2%)", cod->label.empty() ? _(cod->full_label) : _(cod->label), type_str);
             }
+            else
+                label = "Undef optptr";
         }
 
         m_param_label->SetLabel(label);
@@ -552,7 +650,7 @@ void ParamsModel::GetValue(wxVariant& variant, const wxDataViewItem& item, unsig
     assert(item.IsOk());
 
     ParamsNode* node = static_cast<ParamsNode*>(item.GetID());
-    if (col == 0)
+    if (col == (unsigned int)0)
 #ifdef __linux__
         variant << wxDataViewIconText(node->text, get_bmp_bundle(node->icon_name)->GetIconFor(m_ctrl->GetParent()));
 #else
@@ -567,11 +665,11 @@ bool ParamsModel::SetValue(const wxVariant& variant, const wxDataViewItem& item,
     assert(item.IsOk());
 
     ParamsNode* node = static_cast<ParamsNode*>(item.GetID());
-    if (col == 0) {
+    if (col == (unsigned int)0) {
 #ifdef __linux__
         wxDataViewIconText data;
         data << variant;
-        node->m_icon = data.GetIcon();
+        node->icon = data.GetIcon();
 #else
         DataViewBitmapText data;
         data << variant;
@@ -649,7 +747,7 @@ ParamsViewCtrl::ParamsViewCtrl(wxWindow *parent, wxSize size)
 #ifdef SUPPORTS_MARKUP
     rd->EnableMarkup(true);
 #endif
-    wxDataViewColumn* column = new wxDataViewColumn("", rd, 0, width * m_em_unit, wxALIGN_TOP, wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_CELL_INERT);
+    wxDataViewColumn* column = new wxDataViewColumn("", rd, 0, 20 * m_em_unit, wxALIGN_TOP, wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_CELL_INERT);
 #else
     wxDataViewColumn* column = new wxDataViewColumn("", new BitmapTextRenderer(true, wxDATAVIEW_CELL_INERT), 0, 20 * m_em_unit, wxALIGN_TOP, wxDATAVIEW_COL_RESIZABLE);
 #endif //__linux__
