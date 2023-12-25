@@ -1,0 +1,4 @@
+{
+    "remoteHub.commitDirectlyWarning": "auto",
+    "remoteHub.gitProtocol": "ssh"
+}
