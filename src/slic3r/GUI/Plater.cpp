@@ -2660,7 +2660,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         m_aui_mgr.Update();
     }
 
-    menus.init(q);
+    menus.init(main_frame);
 
 
     // Events:
