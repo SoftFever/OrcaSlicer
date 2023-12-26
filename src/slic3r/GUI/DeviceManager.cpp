@@ -3840,6 +3840,10 @@ int MachineObject::parse_json(std::string payload)
                                             curr_tray->color = "";
                                         }
 
+                                        if (tray_it->contains("ctype"))
+                                            curr_tray->ctype = (*tray_it)["ctype"].get<int>();
+                                        else
+                                            curr_tray->ctype = 0;
                                         curr_tray->cols.clear();
                                         if (tray_it->contains("cols")) {
                                             if ((*tray_it)["cols"].is_array()) {

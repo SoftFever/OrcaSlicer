@@ -40,6 +40,7 @@ public:
     bool            m_selected{false};
     bool            m_show_full{false};
     bool            m_is_empty{false};
+    int             ctype;
 
     ColorPicker(wxWindow* parent, wxWindowID id, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
     ~ColorPicker();
@@ -108,6 +109,7 @@ public:
     void set_color(wxColour color);
     void set_empty_color(wxColour color);
     void set_colors(std::vector<wxColour> colors);
+    void set_ctype(int ctype);
 
     void on_picker_color(wxCommandEvent& color);
     MachineObject* obj{ nullptr };

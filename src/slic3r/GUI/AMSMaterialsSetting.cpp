@@ -671,6 +671,10 @@ void AMSMaterialsSetting::set_colors(std::vector<wxColour> colors)
     m_clr_picker->set_colors(colors);
 }
 
+void AMSMaterialsSetting::set_ctype(int ctype)
+{
+    m_clr_picker->ctype = ctype;
+}
 
 void AMSMaterialsSetting::on_picker_color(wxCommandEvent& event)
 {
@@ -1189,23 +1193,39 @@ void ColorPicker::doRender(wxDC& dc)
         if (alpha == 0) {
             dc.DrawBitmap(m_bitmap_transparent, 0, 0);
         }
-
         if (m_cols.size() > 1) {
-            int left = FromDIP(0);
-            float total_width = size.x;
-            int gwidth = std::round(total_width / (m_cols.size() - 1));
+            if (ctype == 0) {
+                int left = FromDIP(0);
+                float total_width = size.x;
+                int gwidth = std::round(total_width / (m_cols.size() - 1));
 
-            for (int i = 0; i < m_cols.size() - 1; i++) {
+                for (int i = 0; i < m_cols.size() - 1; i++) {
 
-                if ((left + gwidth) > (size.x)) {
-                    gwidth = size.x - left;
+                    if ((left + gwidth) > (size.x)) {
+                        gwidth = size.x - left;
+                    }
+
+                    auto rect = wxRect(left, 0, gwidth, size.y);
+                    dc.GradientFillLinear(rect, m_cols[i], m_cols[i + 1], wxEAST);
+                    left += gwidth;
                 }
-
-                auto rect = wxRect(left, 0, gwidth, size.y);
-                dc.GradientFillLinear(rect, m_cols[i], m_cols[i + 1], wxEAST);
-                left += gwidth;
+                dc.DrawBitmap(m_bitmap_border, wxPoint(0, 0));
             }
-            dc.DrawBitmap(m_bitmap_border, wxPoint(0, 0));
+            else {
+                float ev_angle = 360.0 / m_cols.size();
+                float startAngle = 270.0;
+                float endAngle = 270.0;
+                dc.SetPen(*wxTRANSPARENT_PEN);
+                for (int i = 0; i < m_cols.size(); i++) {
+                    dc.SetBrush(m_cols[i]);
+                    endAngle += ev_angle;
+                    endAngle = endAngle > 360.0 ? endAngle - 360.0 : endAngle;
+                    wxPoint center(size.x / 2, size.y / 2);
+                    dc.DrawEllipticArc(center.x - radius, center.y - radius, 2 * radius, 2 * radius, startAngle, endAngle);
+                    startAngle += ev_angle;
+                    startAngle = startAngle > 360.0 ? startAngle - 360.0 : startAngle;
+                }
+            }
         }
     }
 

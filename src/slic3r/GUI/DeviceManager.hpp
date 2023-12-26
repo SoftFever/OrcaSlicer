@@ -192,6 +192,7 @@ public:
     std::string     nozzle_temp_min;
     std::string     xcam_info;
     std::string     uuid;
+    int             ctype = 0;
     float           k = 0.0f;       // k range: 0 ~ 0.5
     float           n = 0.0f;       // k range: 0.6 ~ 2.0
     int             cali_idx = 0;

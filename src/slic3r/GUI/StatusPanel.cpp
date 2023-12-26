@@ -3504,7 +3504,7 @@ void StatusPanel::on_filament_edit(wxCommandEvent &event)
                         for (auto col : tray_it->second->cols) {
                             cols.push_back( AmsTray::decode_color(col));
                         }
-
+                        m_filament_setting_dlg->set_ctype(tray_it->second->ctype);
                         m_filament_setting_dlg->ams_filament_id = tray_it->second->setting_id;
 
                         if (m_filament_setting_dlg->ams_filament_id.empty()) {

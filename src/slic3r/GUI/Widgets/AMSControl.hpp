@@ -140,6 +140,7 @@ struct Caninfo
     wxString        material_name;
     wxColour        material_colour = {*wxWHITE};
     AMSCanType      material_state;
+    int             ctype=0;
     int             material_remain = 100;
     float           k = 0.0f;
     float           n = 0.0f;

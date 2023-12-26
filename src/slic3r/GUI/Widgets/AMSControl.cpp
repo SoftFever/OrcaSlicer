@@ -49,6 +49,7 @@ bool AMSinfo::parse_ams_info(MachineObject *obj, Ams *ams, bool remain_flag, boo
         if (it != ams->trayList.end() && it->second->is_exists) {
             if (it->second->is_tray_info_ready()) {
                 info.can_id        = it->second->id;
+                info.ctype         = it->second->ctype;
                 info.material_name = it->second->get_display_filament_type();
                 if (!it->second->color.empty()) {
                     info.material_colour = AmsTray::decode_color(it->second->color);
@@ -78,6 +79,7 @@ bool AMSinfo::parse_ams_info(MachineObject *obj, Ams *ams, bool remain_flag, boo
             } else {
                 info.can_id = it->second->id;
                 info.material_name = "";
+                info.ctype = 0;
                 info.material_colour = AMS_TRAY_DEFAULT_COL;
                 info.material_state = AMSCanType::AMS_CAN_TYPE_THIRDBRAND;
                 wxColour(255, 255, 255);
@@ -966,7 +968,7 @@ void AMSLib::render_extra_lib(wxDC& dc)
     ScalableBitmap tray_bitmap_selected = m_can_index <= 1 ? m_bitmap_extra_tray_left_selected : m_bitmap_extra_tray_right_selected;
 
 
-    auto   tmp_lib_colour = m_info.material_colour;
+    auto   tmp_lib_colour    = m_info.material_colour;
     auto   temp_bitmap_third = m_bitmap_editable_light;
     auto   temp_bitmap_brand = m_bitmap_readonly_light;
 
@@ -1013,10 +1015,33 @@ void AMSLib::render_extra_lib(wxDC& dc)
     }
 
     dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
+    if (m_info.material_cols.size() > 1) {
+        int left = FromDIP(10);
+        int gwidth = std::round(size.x / (m_info.material_cols.size() - 1));
+        //gradient
+        if (m_info.ctype == 0) {
+            for (int i = 0; i < m_info.material_cols.size() - 1; i++) {
+                auto rect = wxRect(left, FromDIP(10), size.x - FromDIP(20), size.y - FromDIP(20));
+                dc.GradientFillLinear(rect, m_info.material_cols[i], m_info.material_cols[i + 1], wxEAST);
+                left += gwidth;
+            }
+        }
+        else {
+            int cols_size = m_info.material_cols.size();
+            for (int i = 0; i < cols_size; i++) {
+                dc.SetBrush(wxBrush(m_info.material_cols[i]));
+                float x = FromDIP(10) + ((float)size.x - FromDIP(20)) * i / cols_size;
+                dc.DrawRoundedRectangle(x, FromDIP(10), ((float)size.x - FromDIP(20)) / cols_size, size.y - FromDIP(20), 0);
+            }
+            dc.SetBrush(wxBrush(tmp_lib_colour));
+        }
+    }
+    else  {
+        dc.SetBrush(wxBrush(tmp_lib_colour));
+        dc.DrawRoundedRectangle(FromDIP(10), FromDIP(10), size.x - FromDIP(20), size.y - FromDIP(20), 0);
+    }
+    dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
     dc.SetBrush(wxBrush(tmp_lib_colour));
-    dc.DrawRoundedRectangle(FromDIP(10), FromDIP(10), size.x - FromDIP(20), size.y - FromDIP(20), 0);
-
-
     if (!m_disable_mode) {
         // edit icon
         if (m_info.material_state != AMSCanType::AMS_CAN_TYPE_EMPTY && m_info.material_state != AMSCanType::AMS_CAN_TYPE_NONE)
@@ -1119,21 +1144,58 @@ void AMSLib::render_generic_lib(wxDC &dc)
             dc.DrawBitmap(m_bitmap_transparent.bmp(), FromDIP(4), FromDIP(4));
         }
 
-        //gradient
+
         if (m_info.material_cols.size() > 1) {
             int left = FromDIP(4);
             float total_width = size.x - FromDIP(8);
             int gwidth = std::round(total_width / (m_info.material_cols.size() - 1));
+            //gradient
+            if (m_info.ctype == 0) {
+                for (int i = 0; i < m_info.material_cols.size() - 1; i++) {
 
-            for (int i = 0; i < m_info.material_cols.size() - 1; i++) {
+                    if ((left + gwidth) > (size.x - FromDIP(8))) {
+                        gwidth = (size.x - FromDIP(4)) - left;
+                    }
 
-                if ((left + gwidth) > (size.x - FromDIP(8))) {
-                    gwidth = (size.x - FromDIP(4)) - left;
+                    auto rect = wxRect(left, height - curr_height + FromDIP(4), gwidth, curr_height);
+                    dc.GradientFillLinear(rect, m_info.material_cols[i], m_info.material_cols[i + 1], wxEAST);
+                    left += gwidth;
                 }
-
-                auto rect = wxRect(left, height - curr_height + FromDIP(4), gwidth, curr_height);
-                dc.GradientFillLinear(rect, m_info.material_cols[i], m_info.material_cols[i + 1], wxEAST);
-                left += gwidth;
+            }
+            else {
+                //multicolour
+                gwidth = std::round(total_width / m_info.material_cols.size());
+                for (int i = 0; i < m_info.material_cols.size(); i++) {
+                    dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
+                    dc.SetBrush(wxBrush(m_info.material_cols[i]));
+                    if (i == 0 || i == m_info.material_cols.size() - 1) {
+#ifdef __APPLE__
+                        dc.DrawRoundedRectangle(left + gwidth * i, height - curr_height + FromDIP(4), gwidth, curr_height, m_radius);
+#else
+                        dc.DrawRoundedRectangle(left + gwidth * i, height - curr_height + FromDIP(4), gwidth, curr_height, m_radius - 1);
+#endif
+                        //add rectangle
+                        int dr_gwidth = std::round(gwidth * 0.6);
+                        if (i == 0) {
+                            dc.DrawRectangle(left + gwidth - dr_gwidth, height - curr_height + FromDIP(4), dr_gwidth, curr_height);
+                        }
+                        else {
+                            dc.DrawRectangle(left + gwidth*i, height - curr_height + FromDIP(4), dr_gwidth, curr_height);
+                        }
+                    }
+                    else {
+                        dc.DrawRectangle(left + gwidth * i, height - curr_height + FromDIP(4), gwidth, curr_height);
+                    }
+                }
+                //reset pen and brush
+                if (m_selected || m_hover) {
+                    dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
+                    dc.SetBrush(wxBrush(tmp_lib_colour));
+                }
+                else {
+                    dc.SetPen(wxPen(tmp_lib_colour, 1, wxSOLID));
+                    dc.SetBrush(wxBrush(tmp_lib_colour));
+                }
             }
         }
         else {
