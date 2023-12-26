@@ -159,19 +159,16 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
             language_name = wxString::FromUTF8("\xED\x95\x9C\xEA\xB5\xAD\xEC\x96\xB4");
         }
         else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_RUSSIAN)) {
-            language_name = wxString::FromUTF8("\xD0\xA0\xD1\x83\xD1\x81\xD1\x81\xD0\xBA\xD0\xB8\xD0\xB9");
-        }
-        else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_CZECH)) {
-            language_name = wxString::FromUTF8("\xC4\x8D\x65\xC5\xA1\x74\x69\x6E\x61");
+            language_name = wxString::FromUTF8("\xd0\xa0\xd1\x83\xd1\x81\xd1\x81\xd0\xba\xd0\xb8\xd0\xb9");
         }
         else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_UKRAINIAN)) {
-            language_name = wxString::FromUTF8("\xC4\x8D\x65\xC5\xA1\x74\x69\x6E\x61");
+            language_name = wxString::FromUTF8("Ukrainian");
         }
         else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_TURKISH)) {
-            language_name = wxString::FromUTF8("\xD1\x83\xD0\xBA\xD1\x80\xD0\xB0\xD1\x97\xD1\x9D\xD1\x81\xD1\x8C\xD0\xBA\xD0\xB0");
+            language_name = wxString::FromUTF8("Turkish");
         }
 
-        if (language == vlist[i]->CanonicalName) {
+        if (app_config->get(param) == vlist[i]->CanonicalName) {
             m_current_language_selected = i;
         }
         combobox->Append(language_name);
