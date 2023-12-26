@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OrcaSlicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-18 12:20+0800\n"
-"PO-Revision-Date: 2023-12-17 14:35+0300\n"
+"POT-Creation-Date: 2023-12-23 22:15+0800\n"
+"PO-Revision-Date: 2023-12-25 01:15+0300\n"
 "Last-Translator: Olcay ÖREN\n"
 "Language-Team: Türkçe\n"
 "Language: tr_TR\n"
@@ -298,6 +298,12 @@ msgstr "Tüm bağlayıcıları seç"
 
 msgid "Cut"
 msgstr "Kes"
+
+msgid "non-mainifold edges be caused by cut tool, do you want to fix it now?"
+msgstr "Ana kat olmayan kenarlar kesme aletinden kaynaklanıyor, şimdi düzeltmek istiyor musunuz?"
+
+msgid "Repairing model object"
+msgstr "Model nesnesini onarma"
 
 msgid "Connector"
 msgstr "Bağlayıcı"
@@ -735,6 +741,8 @@ msgid ""
 "The number of user presets cached in the cloud has exceeded the upper limit, "
 "newly created user presets can only be used locally."
 msgstr ""
+"Bulutta önbelleğe alınan kullanıcı ön ayarlarının sayısı üst sınırı aştı; yeni "
+"oluşturulan kullanıcı ön ayarları yalnızca yerel olarak kullanılabilir."
 
 msgid "Sync user presets"
 msgstr "Kullanıcı ön ayarlarını senkronize edin"
@@ -899,6 +907,21 @@ msgstr "Seçilen nesneyi sil"
 msgid "Load..."
 msgstr "Yükle..."
 
+msgid "Cube"
+msgstr "Küp"
+
+msgid "Cylinder"
+msgstr "Silindir"
+
+msgid "Cone"
+msgstr "Koni"
+
+msgid "Disc"
+msgstr "Disk"
+
+msgid "Torus"
+msgstr "Simit"
+
 msgid "Orca Cube"
 msgstr "Orca Küpü"
 
@@ -911,14 +934,8 @@ msgstr "Autodesk FDM Testi"
 msgid "Voron Cube"
 msgstr "Voron Küpü"
 
-msgid "Cube"
-msgstr "Küp"
-
-msgid "Cylinder"
-msgstr "Silindir"
-
-msgid "Cone"
-msgstr "Koni"
+msgid "Stanford Bunny"
+msgstr "Stanford Tavşanı"
 
 msgid "Text"
 msgstr "Metin"
@@ -1076,6 +1093,9 @@ msgstr "Kesim bilgisini geçersiz kıl"
 
 msgid "Add Primitive"
 msgstr "Primitif Ekle"
+
+msgid "Add Handy models"
+msgstr "Pratik Modeller Ekle"
 
 msgid "Show Labels"
 msgstr "Etiketleri Göster"
@@ -1368,9 +1388,6 @@ msgstr "Yeni adı girin"
 
 msgid "Renaming"
 msgstr "Yeniden adlandırma"
-
-msgid "Repairing model object"
-msgstr "Model nesnesini onarma"
 
 msgid "Following model object has been repaired"
 msgid_plural "Following model objects have been repaired"
@@ -1842,14 +1859,6 @@ msgstr "Yazdırma işini bulut hizmeti aracılığıyla gönderme"
 
 msgid "Print task sending times out."
 msgstr "Yazdırma görevi gönderimi zaman aşımına uğradı."
-
-msgid ""
-"The printer timed out while receiving a print job. Please check if the "
-"network is functioning properly and send the print again."
-msgstr ""
-"Yazıcı bir yazdırma işi alırken zaman aşımına uğradı. Lütfen ağ "
-"bağlantısının düzgün çalışıp çalışmadığını kontrol edin ve baskıyı tekrar "
-"gönderin."
 
 msgid "Service Unavailable"
 msgstr "Hizmet kullanılamıyor"
@@ -2598,6 +2607,18 @@ msgstr ""
 "Hayır - Bu sefer spiral modunu kullanmaktan vazgeçin"
 
 msgid ""
+"Alternate extra wall only works with ensure vertical shell thickness "
+"disabled. "
+msgstr ""
+
+msgid ""
+"Change these settings automatically? \n"
+"Yes - Disable ensure vertical shell thickness and enable alternate extra "
+"wall\n"
+"No  - Dont use alternate extra wall"
+msgstr ""
+
+msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support "
 "Layer Height is on.\n"
 "Which do you want to keep?\n"
@@ -3220,7 +3241,7 @@ msgstr "Hacim:"
 msgid "Size:"
 msgstr "Boyut:"
 
-#, boost-format
+#, c-format, boost-format
 msgid ""
 "Conflicts of gcode paths have been found at layer %d, z = %.2lf mm. Please "
 "separate the conflicted objects farther (%s <-> %s)."
@@ -4524,7 +4545,7 @@ msgstr "Adım kaybından otomatik kurtarma"
 msgid "Allow Prompt Sound"
 msgstr "Uyarı Sesine İzin Ver"
 
-msgid "Fliament Tangle Detect"
+msgid "Filament Tangle Detect"
 msgstr "Filament Dolaşma Tespiti"
 
 msgid "Global"
@@ -5565,7 +5586,7 @@ msgstr "%s'yi farklı kaydet"
 msgid "User Preset"
 msgstr "Kullanıcı Ön Ayarı"
 
-msgid "Project Inside Preset"
+msgid "Preset Inside Project"
 msgstr "Ön ayar içerisinde proje"
 
 msgid "Name is invalid;"
@@ -6128,8 +6149,8 @@ msgstr "Atla"
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "Araç başlığı olmadan timelapse kaydederken, bir \"Timelapse Wipe Tower\" "
 "eklenmesi önerilir.\n"
@@ -6149,7 +6170,7 @@ msgid "Wall generator"
 msgstr "Duvar Türü"
 
 msgid "Walls and surfaces"
-msgstr "Duvarlar ve yüzeyler"
+msgstr "Duvarlar ve Yüzeyler"
 
 msgid "Bridging"
 msgstr "Köprüleme"
@@ -6170,7 +6191,7 @@ msgid "Other layers speed"
 msgstr "Diğer Katmanlar"
 
 msgid "Overhang speed"
-msgstr "Çıkıntı hızı"
+msgstr "Çıkıntı Hızı"
 
 msgid ""
 "This is the speed for various overhang degrees. Overhang degrees are "
@@ -6200,7 +6221,7 @@ msgid "Raft"
 msgstr "Raft"
 
 msgid "Support filament"
-msgstr "Destek filamenti"
+msgstr "Destek Filamenti"
 
 msgid "Tree supports"
 msgstr "Ağaç destekler"
@@ -6540,7 +6561,7 @@ msgstr "Tanımsız"
 msgid "Unsaved Changes"
 msgstr "Kaydedilmemiş Değişiklikler"
 
-msgid "Discard or Keep changes"
+msgid "Transfer or discard changes"
 msgstr "Değişiklikleri Çıkart veya Sakla"
 
 msgid "Old Value"
@@ -6763,18 +6784,23 @@ msgstr "Sıkıştırma hattı genişliği"
 msgid "Ramming line spacing"
 msgstr "Sıkıştırma hattı aralığı"
 
-msgid "Recalculate"
-msgstr "Yeniden hesapla"
+msgid "Auto-Calc"
+msgstr "Otomatik Hesaplama"
+
+msgid "Re-calculate"
+msgstr "Tekrar Hesaplama"
 
 msgid "Flushing volumes for filament change"
 msgstr "Filament değişimi için temizleme hacmi"
 
 msgid ""
-"Orca recalculates your flushing volumes everytime the filament colors "
-"change. You can change this behavior in Preferences."
+"Studio would re-calculate your flushing volumes everytime the filaments "
+"color changed. You could disable the auto-calculate in Bambu Studio > "
+"Preferences"
 msgstr ""
-"Orca, filament renkleri her değiştiğinde yıkama hacimlerinizi yeniden "
-"hesaplar. Bu davranışı Tercihler'de değiştirebilirsiniz."
+"Studio, filamentlerin rengi her değiştiğinde yıkama hacimlerinizi yeniden "
+"hesaplar. Otomatik hesaplamayı Bambu Studio > Tercihler bölümünden devre "
+"dışı bırakabilirsiniz."
 
 msgid "Flushing volume (mm³) for each filament pair."
 msgstr "Her filament çifti için yıkama hacmi (mm³)."
@@ -6789,6 +6815,15 @@ msgstr "Çarpan [%.2f, %.2f] aralığında olmalıdır."
 
 msgid "Multiplier"
 msgstr "Çarpan"
+
+msgid "unloaded"
+msgstr "boşaltılmış"
+
+msgid "loaded"
+msgstr "yüklenmiş"
+
+msgid "Filament #"
+msgstr "Filament #"
 
 msgid "From"
 msgstr "İtibaren"
@@ -7161,6 +7196,9 @@ msgstr "Baskı"
 msgid "Idle"
 msgstr "Boşta"
 
+msgid "Beta version"
+msgstr "Beta sürüm"
+
 msgid "Latest version"
 msgstr "Son sürüm"
 
@@ -7503,8 +7541,8 @@ msgid ""
 "Please select \"By object\" print sequence to print multiple objects in "
 "spiral vase mode."
 msgstr ""
-"Birden fazla nesneyi spiral vazo modunda yazdırmak için lütfen \"Nesneye "
-"göre\" yazdırma sırasını seçin."
+"Birden fazla nesneyi spiral vazo modunda yazdırmak için lütfen \"Nesneye göre"
+"\" yazdırma sırasını seçin."
 
 msgid ""
 "The spiral vase mode does not work when an object contains more than one "
@@ -9237,17 +9275,16 @@ msgstr "Maksimum fan hızı"
 
 msgid ""
 "Fan speed will be ramped up linearly from zero at layer "
-"\"close_fan_the_first_x_layers\" to maximum at layer "
-"\"full_fan_speed_layer\". \"full_fan_speed_layer\" will be ignored if lower "
-"than \"close_fan_the_first_x_layers\", in which case the fan will be running "
-"at maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
+"\"close_fan_the_first_x_layers\" to maximum at layer \"full_fan_speed_layer"
+"\". \"full_fan_speed_layer\" will be ignored if lower than "
+"\"close_fan_the_first_x_layers\", in which case the fan will be running at "
+"maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
 msgstr ""
 "Fan hızı, \"close_fan_the_first_x_layers\" katmanında sıfırdan "
 "\"ful_fan_speed_layer\" katmanında maksimuma doğrusal olarak artırılacaktır. "
 "\"full_fan_speed_layer\", \"close_fan_the_first_x_layers\" değerinden "
-"düşükse göz ardı edilecektir; bu durumda fan, "
-"\"close_fan_the_first_x_layers\" + 1 katmanında izin verilen maksimum hızda "
-"çalışacaktır."
+"düşükse göz ardı edilecektir; bu durumda fan, \"close_fan_the_first_x_layers"
+"\" + 1 katmanında izin verilen maksimum hızda çalışacaktır."
 
 msgid "Support interface fan speed"
 msgstr "Destekler için fan hızı"
@@ -9594,7 +9631,7 @@ msgstr ""
 "özelliği devre dışı bırakır."
 
 msgid "Ironing Type"
-msgstr "Ütüleme Tipi"
+msgstr "Ütüleme tipi"
 
 msgid ""
 "Ironing is using small flow to print on same height of surface again to make "
@@ -9668,6 +9705,19 @@ msgstr ""
 "Makinenin yazdırmak için daha düşük hızlanma kullandığı sessiz modu "
 "destekleyip desteklemediği"
 
+msgid "Emit limits to G-code"
+msgstr "G-code sınırları"
+
+msgid "Machine limits"
+msgstr "Yazıcı sınırları"
+
+msgid ""
+"If enabled, the machine limits will be emitted to G-code file.\n"
+"This option will be ignored if the g-code flavor is set to Klipper."
+msgstr ""
+"Etkinleştirilirse, makine sınırları G kodu dosyasına aktarılacaktır.\n"
+"G kodu tadı Klipper olarak ayarlandığında bu seçenek göz ardı edilecektir."
+
 msgid ""
 "This G-code will be used as a code for the pause print. User can insert "
 "pause G-code in gcode viewer"
@@ -9689,9 +9739,6 @@ msgstr "Maksimum hız Z"
 
 msgid "Maximum speed E"
 msgstr "Maksimum hız E"
-
-msgid "Machine limits"
-msgstr "Yazıcısınırları"
 
 msgid "Maximum X speed"
 msgstr "Maksimum X hızı"
@@ -10026,7 +10073,7 @@ msgstr ""
 "ve G kodu oluşturmayı yavaşlatır"
 
 msgid "Enable"
-msgstr "Aktifle"
+msgstr "Aktif et"
 
 msgid "Filename format"
 msgstr "Dosya adı formatı"
@@ -10090,6 +10137,28 @@ msgstr "İç duvarın hızı"
 
 msgid "Number of walls of every layer"
 msgstr "Her katmanın duvar sayısı"
+
+msgid "Alternate extra wall"
+msgstr "Alternatif ekstra duvar"
+
+msgid ""
+"This setting adds an extra wall to every other layer. This way the infill "
+"gets wedged vertically between the walls, resulting in stronger prints. \n"
+"\n"
+"When this option is enabled, the ensure vertical shell thickness option "
+"needs to be disabled. \n"
+"\n"
+"Using lightning infill together with this option is not recommended as there "
+"is limited infill to anchor the extra perimeters to."
+msgstr ""
+"Bu ayar her iki katmana ekstra bir duvar ekler. Bu şekilde dolgu "
+"duvarlar arasında dikey olarak sıkışır ve daha güçlü baskılar elde edilir.\n"
+"\n"
+"Bu seçenek etkinleştirildiğinde dikey kabuk kalınlığını sağla seçeneğinin "
+"devre dışı bırakılması gerekir. \n"
+"\n"
+"İlave çevrelerin sabitleneceği dolgu sınırlı olduğundan, bu seçenekle "
+"birlikte yıldırım dolgusunun kullanılması önerilmez."
 
 msgid ""
 "If you want to process the output G-code through custom scripts, just list "
@@ -10383,7 +10452,7 @@ msgstr ""
 "eylemi için dış duvar ekstrüzyonunun hızı kullanılacaktır."
 
 msgid "Wipe on loops"
-msgstr "Döngülerde Temizleme"
+msgstr "Döngülerde temizleme"
 
 msgid ""
 "To minimize the visibility of the seam in a closed loop extrusion, a small "
@@ -10471,23 +10540,27 @@ msgid ""
 msgstr ""
 "Spiralleştirme, dış konturun z hareketlerini yumuşatır. Ve katı bir modeli, "
 "katı alt katmanlara sahip tek duvarlı bir baskıya dönüştürür. Oluşturulan "
-"son modelde dikiş yok"
+"son modelde dikiş yok."
 
 msgid "Smooth Spiral"
-msgstr ""
+msgstr "Pürüzsüz Spiral"
 
 msgid ""
 "Smooth Spiral smoothes out X and Y moves as wellresulting in no visible seam "
 "at all, even in the XY directions on walls that are not vertical"
 msgstr ""
+"Pürüzsüz Spiral, X ve Y hareketlerini de yumuşatır ve dikey olmayan "
+"duvarlarda XY yönlerinde bile hiçbir görünür ek yeri oluşmamasını sağlar."
 
 msgid "Max XY Smoothing"
-msgstr ""
+msgstr "Maksimum XY Yumuşatma"
 
 msgid ""
 "Maximum distance to move points in XY to try to achieve a smooth spiralIf "
 "expressed as a %, it will be computed over nozzle diameter"
 msgstr ""
+"Düzgün bir spiral elde etmek için XY'deki noktaları hareket ettirmek için "
+"maksimum mesafe % olarak ifade edilirse nozül çapı üzerinden hesaplanacaktır."
 
 msgid ""
 "If smooth or traditional mode is selected, a timelapse video will be "
@@ -10708,10 +10781,11 @@ msgstr ""
 "belirli bir filamentin olmadığı ve mevcut filamentin kullanıldığı anlamına "
 "gelir"
 
-msgid "Reduce interface filament for base"
+msgid "Avoid interface filament for base"
 msgstr "Taban için arayüz filamentini azaltın"
 
-msgid "Avoid using support interface filament to print support base"
+msgid ""
+"Avoid using support interface filament to print support base if possible."
 msgstr ""
 "Destek tabanını yazdırmak için destek arayüzü filamentini kullanmaktan "
 "kaçının"
@@ -12594,8 +12668,8 @@ msgstr ""
 "Özel satıcı veya seri numarasındaki tüm girişler boşluklardan oluşuyor. "
 "Lütfen tekrar girin."
 
-msgid "The beginning of the vendor can not be a number. Please re-enter."
-msgstr "Satıcının başlangıcı sayı olamaz. Lütfen tekrar girin."
+msgid "The vendor can not be a number. Please re-enter."
+msgstr "Üretici bir sayı olamaz. Lütfen tekrar girin."
 
 msgid ""
 "You have not selected a printer or preset yet. Please select at least one."
@@ -12612,12 +12686,12 @@ msgstr ""
 "Yeniden yazmak ister misin?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you "
-"selected\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
-"We would rename the presets as \"Vendor Type Serial @printer you "
-"selected\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 
 msgid "Create Printer/Nozzle"
@@ -13262,6 +13336,9 @@ msgid ""
 "Did you know that Orca Slicer offers a wide range of keyboard shortcuts and "
 "3D scene operations."
 msgstr ""
+"Klavye kısayolları nasıl kullanılır?\n"
+"Orca Slicer'ın çok çeşitli klavye kısayolları ve 3B sahne işlemleri "
+"sunduğunu biliyor muydunuz?"
 
 #: resources/data/hints.ini: [hint:Cut Tool]
 msgid ""
@@ -13269,6 +13346,9 @@ msgid ""
 "Did you know that you can cut a model at any angle and position with the "
 "cutting tool?"
 msgstr ""
+"Kesme Aleti\n"
+"Kesici aletle bir modeli istediğiniz açıda ve konumda kesebileceğinizi "
+"biliyor muydunuz?"
 
 #: resources/data/hints.ini: [hint:Fix Model]
 msgid ""
@@ -13276,18 +13356,25 @@ msgid ""
 "Did you know that you can fix a corrupted 3D model to avoid a lot of slicing "
 "problems on the Windows system?"
 msgstr ""
+"Modeli Düzelt\n"
+"Windows sisteminde birçok dilimleme sorununu önlemek için bozuk bir 3D modeli "
+"düzeltebileceğinizi biliyor muydunuz?"
 
 #: resources/data/hints.ini: [hint:Timelapse]
 msgid ""
 "Timelapse\n"
 "Did you know that you can generate a timelapse video during each print?"
 msgstr ""
+"Timelapse\n"
+"Her baskı sırasında timelapse video oluşturabileceğinizi biliyor muydunuz?"
 
 #: resources/data/hints.ini: [hint:Auto-Arrange]
 msgid ""
 "Auto-Arrange\n"
 "Did you know that you can auto-arrange all objects in your project?"
 msgstr ""
+"Otomatik Düzenleme\n"
+"Projenizdeki tüm nesneleri otomatik olarak düzenleyebileceğinizi biliyor muydunuz?"
 
 #: resources/data/hints.ini: [hint:Auto-Orient]
 msgid ""
@@ -13295,6 +13382,9 @@ msgid ""
 "Did you know that you can rotate objects to an optimal orientation for "
 "printing by a simple click?"
 msgstr ""
+"Otomatik Yönlendirme\n"
+"Basit bir tıklamayla nesneleri yazdırma için en uygun yöne "
+"döndürebileceğinizi biliyor muydunuz?"
 
 #: resources/data/hints.ini: [hint:Lay on Face]
 msgid ""
@@ -13428,6 +13518,9 @@ msgid ""
 "Did you know that you can print a model even faster, by using the Adaptive "
 "Layer Height option? Check it out!"
 msgstr ""
+"Uyarlanabilir Katman Yüksekliği ile baskınızı hızlandırın\n"
+"Uyarlanabilir Katman Yüksekliği seçeneğini kullanarak bir modeli daha da "
+"hızlı yazdırabileceğinizi biliyor muydunuz? Buna bir bak!"
 
 #: resources/data/hints.ini: [hint:Support painting]
 msgid ""
@@ -13460,6 +13553,10 @@ msgid ""
 "successfully? Higher temperature and lower speed are always recommended for "
 "the best results."
 msgstr ""
+"İpek Filament Baskı\n"
+"İpek filamentin başarılı bir şekilde basılabilmesi için özel dikkat gösterilmesi "
+"gerektiğini biliyor muydunuz? En iyi sonuçlar için her zaman daha yüksek sıcaklık "
+"ve daha düşük hız önerilir."
 
 #: resources/data/hints.ini: [hint:Brim for better adhesion]
 msgid ""
@@ -13535,6 +13632,27 @@ msgstr ""
 "sıcaklığının uygun şekilde arttırılmasının bükülme olasılığını "
 "azaltabileceğini biliyor muydunuz?"
 
+#~ msgid "Recalculate"
+#~ msgstr "Yeniden hesapla"
+
+#~ msgid ""
+#~ "Orca recalculates your flushing volumes everytime the filament colors "
+#~ "change. You can change this behavior in Preferences."
+#~ msgstr ""
+#~ "Orca, filament renkleri her değiştiğinde yıkama hacimlerinizi yeniden "
+#~ "hesaplar. Bu davranışı Tercihler'de değiştirebilirsiniz."
+
+#~ msgid ""
+#~ "The printer timed out while receiving a print job. Please check if the "
+#~ "network is functioning properly and send the print again."
+#~ msgstr ""
+#~ "Yazıcı bir yazdırma işi alırken zaman aşımına uğradı. Lütfen ağ "
+#~ "bağlantısının düzgün çalışıp çalışmadığını kontrol edin ve baskıyı tekrar "
+#~ "gönderin."
+
+#~ msgid "The beginning of the vendor can not be a number. Please re-enter."
+#~ msgstr "Satıcının başlangıcı sayı olamaz. Lütfen tekrar girin."
+
 #~ msgid "Edit Text"
 #~ msgstr "Metni düzenle"
 
@@ -13567,30 +13685,6 @@ msgstr ""
 
 #~ msgid "Quick"
 #~ msgstr "Hızlı"
-
-#~ msgid "Auto-Calc"
-#~ msgstr "Otomatik Hesaplama"
-
-#~ msgid "Re-calculate"
-#~ msgstr "Tekrar Hesaplama"
-
-#~ msgid ""
-#~ "Studio would re-calculate your flushing volumes everytime the filaments "
-#~ "color changed. You could disable the auto-calculate in Bambu Studio > "
-#~ "Preferences"
-#~ msgstr ""
-#~ "Studio, filamentlerin rengi her değiştiğinde yıkama hacimlerinizi yeniden "
-#~ "hesaplar. Otomatik hesaplamayı Bambu Studio > Tercihler bölümünden devre "
-#~ "dışı bırakabilirsiniz."
-
-#~ msgid "unloaded"
-#~ msgstr "boşaltılmış"
-
-#~ msgid "loaded"
-#~ msgstr "yüklenmiş"
-
-#~ msgid "Filament #"
-#~ msgstr "Filament #"
 
 #~ msgid "Print sequence of inner wall and outer wall. "
 #~ msgstr "İç duvar ve dış duvarın yazdırma sırası."

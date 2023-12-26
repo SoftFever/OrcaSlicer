@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-18 12:20+0800\n"
+"POT-Creation-Date: 2023-12-23 22:15+0800\n"
 "PO-Revision-Date: 2023-04-01 13:21+0800\n"
 "Last-Translator: SoftFever <softfeverever@gmail.com>\n"
 "Language-Team: \n"
@@ -295,6 +295,12 @@ msgstr "选择所有连接件"
 
 msgid "Cut"
 msgstr "剪切"
+
+msgid "non-mainifold edges be caused by cut tool, do you want to fix it now?"
+msgstr ""
+
+msgid "Repairing model object"
+msgstr "修复模型对象"
 
 msgid "Connector"
 msgstr "连接件"
@@ -875,6 +881,21 @@ msgstr "删除所选对象"
 msgid "Load..."
 msgstr "加载..."
 
+msgid "Cube"
+msgstr "立方体"
+
+msgid "Cylinder"
+msgstr "圆柱体"
+
+msgid "Cone"
+msgstr "锥体"
+
+msgid "Disc"
+msgstr "圆盘"
+
+msgid "Torus"
+msgstr "环面"
+
 msgid "Orca Cube"
 msgstr "Orca逆方块"
 
@@ -887,14 +908,8 @@ msgstr "欧特克FDM测试"
 msgid "Voron Cube"
 msgstr "Voron方块"
 
-msgid "Cube"
-msgstr "立方体"
-
-msgid "Cylinder"
-msgstr "圆柱体"
-
-msgid "Cone"
-msgstr "锥体"
+msgid "Stanford Bunny"
+msgstr "斯坦福兔子"
 
 msgid "Text"
 msgstr ""
@@ -1052,6 +1067,9 @@ msgstr "解除切割关系"
 
 msgid "Add Primitive"
 msgstr "添加标准模型"
+
+msgid "Add Handy models"
+msgstr "添加实用模型"
 
 msgid "Show Labels"
 msgstr "显示标签"
@@ -1334,9 +1352,6 @@ msgstr "输入新名称"
 
 msgid "Renaming"
 msgstr "重命名"
-
-msgid "Repairing model object"
-msgstr "修复模型对象"
 
 msgid "Following model object has been repaired"
 msgid_plural "Following model objects have been repaired"
@@ -1783,11 +1798,6 @@ msgid "Sending print job through cloud service"
 msgstr "正在通过云端服务发送打印任务"
 
 msgid "Print task sending times out."
-msgstr ""
-
-msgid ""
-"The printer timed out while receiving a print job. Please check if the "
-"network is functioning properly and send the print again."
 msgstr ""
 
 msgid "Service Unavailable"
@@ -2473,6 +2483,18 @@ msgstr ""
 "否 - 暂不使用旋转模式"
 
 msgid ""
+"Alternate extra wall only works with ensure vertical shell thickness "
+"disabled. "
+msgstr ""
+
+msgid ""
+"Change these settings automatically? \n"
+"Yes - Disable ensure vertical shell thickness and enable alternate extra "
+"wall\n"
+"No  - Dont use alternate extra wall"
+msgstr ""
+
+msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support "
 "Layer Height is on.\n"
 "Which do you want to keep?\n"
@@ -3084,7 +3106,7 @@ msgstr "体积："
 msgid "Size:"
 msgstr "尺寸："
 
-#, boost-format
+#, c-format, boost-format
 msgid ""
 "Conflicts of gcode paths have been found at layer %d, z = %.2lf mm. Please "
 "separate the conflicted objects farther (%s <-> %s)."
@@ -4344,7 +4366,7 @@ msgstr "自动从丢步中恢复"
 msgid "Allow Prompt Sound"
 msgstr "允许提示音"
 
-msgid "Fliament Tangle Detect"
+msgid "Filament Tangle Detect"
 msgstr ""
 
 msgid "Global"
@@ -5324,7 +5346,7 @@ msgstr "另存%s为"
 msgid "User Preset"
 msgstr "用户预设"
 
-msgid "Project Inside Preset"
+msgid "Preset Inside Project"
 msgstr "项目预设"
 
 msgid "Name is invalid;"
@@ -5844,8 +5866,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "在录制无工具头延时摄影视频时，建议添加“延时摄影擦料塔”\n"
 "右键单击打印板的空白位置，选择“添加标准模型”->“延时摄影擦料塔”。"
@@ -6227,7 +6249,7 @@ msgstr "未定义"
 msgid "Unsaved Changes"
 msgstr "未保存的更改"
 
-msgid "Discard or Keep changes"
+msgid "Transfer or discard changes"
 msgstr "放弃或保留更改"
 
 msgid "Old Value"
@@ -6436,15 +6458,19 @@ msgstr "尖端成型线宽"
 msgid "Ramming line spacing"
 msgstr "尖端成型线间距"
 
-msgid "Recalculate"
-msgstr ""
+msgid "Auto-Calc"
+msgstr "自动计算"
+
+msgid "Re-calculate"
+msgstr "重新计算"
 
 msgid "Flushing volumes for filament change"
 msgstr "耗材丝更换时的冲刷体积"
 
 msgid ""
-"Orca recalculates your flushing volumes everytime the filament colors "
-"change. You can change this behavior in Preferences."
+"Studio would re-calculate your flushing volumes everytime the filaments "
+"color changed. You could disable the auto-calculate in Bambu Studio > "
+"Preferences"
 msgstr ""
 
 msgid "Flushing volume (mm³) for each filament pair."
@@ -6460,6 +6486,15 @@ msgstr "乘数的取值范围是[%.2f, %.2f]"
 
 msgid "Multiplier"
 msgstr "乘数"
+
+msgid "unloaded"
+msgstr "卸载"
+
+msgid "loaded"
+msgstr "装载"
+
+msgid "Filament #"
+msgstr "耗材丝#"
 
 msgid "From"
 msgstr "从"
@@ -6821,6 +6856,9 @@ msgstr "打印中"
 
 msgid "Idle"
 msgstr "空闲"
+
+msgid "Beta version"
+msgstr ""
 
 msgid "Latest version"
 msgstr "最新版本"
@@ -8619,10 +8657,10 @@ msgstr "满速风扇在"
 
 msgid ""
 "Fan speed will be ramped up linearly from zero at layer "
-"\"close_fan_the_first_x_layers\" to maximum at layer "
-"\"full_fan_speed_layer\". \"full_fan_speed_layer\" will be ignored if lower "
-"than \"close_fan_the_first_x_layers\", in which case the fan will be running "
-"at maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
+"\"close_fan_the_first_x_layers\" to maximum at layer \"full_fan_speed_layer"
+"\". \"full_fan_speed_layer\" will be ignored if lower than "
+"\"close_fan_the_first_x_layers\", in which case the fan will be running at "
+"maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
 msgstr ""
 "风扇速度将从“禁用第一层”的零线性上升到“全风扇速度层”的最大。如果低于“禁用风扇"
 "第一层”，则“全风扇速度第一层”将被忽略，在这种情况下，风扇将在“禁用风扇第一"
@@ -8988,6 +9026,17 @@ msgid ""
 "acceleration to print"
 msgstr "机器是否支持使用低加速度打印的静音模式。"
 
+msgid "Emit limits to G-code"
+msgstr "写入限制到G-code"
+
+msgid "Machine limits"
+msgstr "机器限制"
+
+msgid ""
+"If enabled, the machine limits will be emitted to G-code file.\n"
+"This option will be ignored if the g-code flavor is set to Klipper."
+msgstr ""
+
 msgid ""
 "This G-code will be used as a code for the pause print. User can insert "
 "pause G-code in gcode viewer"
@@ -9007,9 +9056,6 @@ msgstr "Z最大速度"
 
 msgid "Maximum speed E"
 msgstr "E最大速度"
-
-msgid "Machine limits"
-msgstr "机器限制"
 
 msgid "Maximum X speed"
 msgstr "X最大速度"
@@ -9361,6 +9407,20 @@ msgstr "内圈墙打印速度"
 
 msgid "Number of walls of every layer"
 msgstr "每一层的外墙"
+
+msgid "Alternate extra wall"
+msgstr "交替额外内墙"
+
+msgid ""
+"This setting adds an extra wall to every other layer. This way the infill "
+"gets wedged vertically between the walls, resulting in stronger prints. \n"
+"\n"
+"When this option is enabled, the ensure vertical shell thickness option "
+"needs to be disabled. \n"
+"\n"
+"Using lightning infill together with this option is not recommended as there "
+"is limited infill to anchor the extra perimeters to."
+msgstr ""
 
 msgid ""
 "If you want to process the output G-code through custom scripts, just list "
@@ -9901,10 +9961,11 @@ msgid ""
 msgstr ""
 "打印支撑主体和筏层的耗材丝。\"缺省\"代表不指定特定的耗材丝，并使用当前耗材"
 
-msgid "Reduce interface filament for base"
+msgid "Avoid interface filament for base"
 msgstr ""
 
-msgid "Avoid using support interface filament to print support base"
+msgid ""
+"Avoid using support interface filament to print support base if possible."
 msgstr ""
 
 msgid ""
@@ -11625,7 +11686,7 @@ msgstr ""
 msgid "All inputs in the custom vendor or serial are spaces. Please re-enter."
 msgstr ""
 
-msgid "The beginning of the vendor can not be a number. Please re-enter."
+msgid "The vendor can not be a number. Please re-enter."
 msgstr ""
 
 msgid ""
@@ -11641,8 +11702,8 @@ msgid ""
 msgstr ""
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you "
-"selected\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 
@@ -12487,18 +12548,6 @@ msgstr ""
 
 #~ msgid "Quick"
 #~ msgstr "快速的"
-
-#~ msgid "Auto-Calc"
-#~ msgstr "自动计算"
-
-#~ msgid "unloaded"
-#~ msgstr "卸载"
-
-#~ msgid "loaded"
-#~ msgstr "装载"
-
-#~ msgid "Filament #"
-#~ msgstr "耗材丝#"
 
 #~ msgid ""
 #~ "Discribe how long the nozzle will move along the last path when retracting"

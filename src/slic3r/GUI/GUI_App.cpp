@@ -369,7 +369,7 @@ public:
         // See https://github.com/wxWidgets/wxWidgets/blob/master/src/msw/font.cpp
         // void wxNativeFontInfo::SetFractionalPointSize(float pointSizeNew)
         wxNativeFontInfo nfi= *font.GetNativeFontInfo();
-        float pointSizeNew  = wxDisplay(this).GetScaleFactor() * scale * font.GetPointSize();
+        float pointSizeNew  = scale * font.GetPointSize();
         nfi.lf.lfHeight     = nfi.GetLogFontHeightAtPPI(pointSizeNew, get_dpi_for_window(this));
         nfi.pointSize       = pointSizeNew;
         font = wxFont(nfi);
@@ -2107,6 +2107,9 @@ void GUI_App::init_app_config()
         if (!boost::filesystem::exists(data_dir_path)){
             boost::filesystem::create_directory(data_dir_path);
         }
+
+        // Change current dirtory of application
+        chdir(encode_path((Slic3r::data_dir() + "/log").c_str()).c_str());
     } else {
         m_datadir_redefined = true;
     }

@@ -75,27 +75,27 @@ class ObjectDataViewModelNode
 {
     ObjectDataViewModelNode*	    m_parent;
     MyObjectTreeModelNodePtrArray   m_children;
-    wxBitmapBundle                  m_empty_bmp;
+    wxBitmap                        m_empty_bmp;
     size_t                          m_volumes_cnt = 0;
     std::vector< std::string >      m_opt_categories;
     t_layer_height_range            m_layer_range = { 0.0f, 0.0f };
 
     wxString				        m_name;
-    wxBitmapBundle&                 m_bmp = m_empty_bmp;
+    wxBitmap&                       m_bmp = m_empty_bmp;
     ItemType				        m_type;
     int                             m_idx = -1;
     int                             m_plate_idx = -1;
     bool					        m_container = false;
     // BBS
     wxString				        m_extruder = wxEmptyString;
-    wxBitmapBundle                  m_extruder_bmp;
-    wxBitmapBundle  		        m_action_icon;
+    wxBitmap                        m_extruder_bmp;
+    wxBitmap  		                m_action_icon;
     // BBS
-    wxBitmapBundle                        m_support_icon;
-    wxBitmapBundle                        m_color_icon;
-    wxBitmapBundle                        m_sinking_icon;
+    wxBitmap                        m_support_icon;
+    wxBitmap                        m_color_icon;
+    wxBitmap                        m_sinking_icon;
     PrintIndicator                  m_printable {piUndef};
-    wxBitmapBundle                  m_printable_icon;
+    wxBitmap                        m_printable_icon;
     std::string                     m_warning_icon_name{ "" };
     bool                            m_has_lock{false};  // for cut object icon
 
@@ -229,11 +229,11 @@ public:
     void            SetName(const wxString &);
     bool            SetValue(const wxVariant &variant, unsigned int col);
     void            SetVolumeType(ModelVolumeType type) { m_volume_type = type; }
-    void            SetBitmap(const wxBitmapBundle &icon) { m_bmp = icon; }
+    void            SetBitmap(const wxBitmap &icon) { m_bmp = icon; }
     void            SetExtruder(const wxString &extruder) { m_extruder = extruder; }
     void            SetWarningIconName(const std::string& warning_icon_name) { m_warning_icon_name = warning_icon_name; }
     void            SetLock(bool has_lock)                                   { m_has_lock = has_lock; }
-    const wxBitmapBundle& GetBitmap() const         { return m_bmp; }
+    const wxBitmap& GetBitmap() const         { return m_bmp; }
     const wxString& GetName() const                 { return m_name; }
     ItemType        GetType() const                 { return m_type; }
     InfoItemType    GetInfoItemType() const         { return m_info_item_type; }
@@ -302,6 +302,7 @@ public:
     bool        is_text_volume() const { return m_is_text_volume; }
     bool        is_svg_volume() const { return m_is_svg_volume; }
     void        sys_color_changed();
+    void        msw_rescale();
 
 #ifndef NDEBUG
     bool 		valid();
@@ -327,14 +328,14 @@ class ObjectDataViewModel :public wxDataViewModel
 {
     std::vector<ObjectDataViewModelNode*>       m_plates;
     std::vector<ObjectDataViewModelNode*>       m_objects;
-    std::vector<wxBitmapBundle*>                m_volume_bmps;
-    std::vector<wxBitmapBundle*>                m_text_volume_bmps;
-    std::vector<wxBitmapBundle*>                m_svg_volume_bmps;
-    std::map<InfoItemType, wxBitmapBundle*>     m_info_bmps;
-    wxBitmapBundle                              m_empty_bmp;
-    wxBitmapBundle                              m_warning_bmp;
-    wxBitmapBundle                              m_warning_manifold_bmp;
-    wxBitmapBundle                              m_lock_bmp;
+    std::vector<wxBitmap>                m_volume_bmps;
+    std::vector<wxBitmap>                m_text_volume_bmps;
+    std::vector<wxBitmap>                m_svg_volume_bmps;
+    std::map<InfoItemType, wxBitmap>     m_info_bmps;
+    wxBitmap                              m_empty_bmp;
+    wxBitmap                              m_warning_bmp;
+    wxBitmap                              m_warning_manifold_bmp;
+    wxBitmap                              m_lock_bmp;
 
     ObjectDataViewModelNode*                    m_plate_outside;
 
@@ -399,7 +400,7 @@ public:
     // helper method for wxLog
 
     wxString    GetName(const wxDataViewItem &item) const;
-    wxBitmapBundle&   GetBitmap(const wxDataViewItem &item) const;
+    wxBitmap&   GetBitmap(const wxDataViewItem &item) const;
     wxString    GetExtruder(const wxDataViewItem &item) const;
     int         GetExtruderNumber(const wxDataViewItem &item) const;
 
@@ -479,7 +480,7 @@ public:
 
     void    SetAssociatedControl(wxDataViewCtrl* ctrl) { m_ctrl = ctrl; }
     // Rescale bitmaps for existing Items
-    void    UpdateBitmaps();
+    void    Rescale();
 
     void        AddWarningIcon(const wxDataViewItem& item, const std::string& warning_name);
     void        DeleteWarningIcon(const wxDataViewItem& item, const bool unmark_object = false);

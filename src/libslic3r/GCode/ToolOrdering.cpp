@@ -123,6 +123,8 @@ static double calc_max_layer_height(const PrintConfig &config, double max_object
 // (print->config().print_sequence == PrintSequence::ByObject is true).
 ToolOrdering::ToolOrdering(const PrintObject &object, unsigned int first_extruder, bool prime_multi_material)
 {
+    m_is_BBL_printer = object.print()->is_BBL_printer();
+    m_print_object_ptr = &object;
     if (object.layers().empty())
         return;
 
@@ -161,6 +163,7 @@ ToolOrdering::ToolOrdering(const PrintObject &object, unsigned int first_extrude
 // (print->config().print_sequence == PrintSequence::ByObject is false).
 ToolOrdering::ToolOrdering(const Print &print, unsigned int first_extruder, bool prime_multi_material)
 {
+    m_is_BBL_printer = print.is_BBL_printer();
     m_print_config_ptr = &print.config();
 
     // Initialize the print layers for all objects and all layers.
@@ -743,32 +746,36 @@ void ToolOrdering::collect_extruder_statistics(bool prime_multi_material)
 
 void ToolOrdering::reorder_extruders_for_minimum_flush_volume()
 {
-    if (!m_print_config_ptr || m_layer_tools.empty())
+    const PrintConfig *print_config = m_print_config_ptr;
+    if (!print_config && m_print_object_ptr) {
+        print_config = &(m_print_object_ptr->print()->config());
+    }
+
+    if (!print_config || m_layer_tools.empty())
         return;
 
     // Get wiping matrix to get number of extruders and convert vector<double> to vector<float>:
-    std::vector<float> flush_matrix(cast<float>(m_print_config_ptr->flush_volumes_matrix.values));
+    std::vector<float> flush_matrix(cast<float>(print_config->flush_volumes_matrix.values));
     const unsigned int number_of_extruders = (unsigned int) (sqrt(flush_matrix.size()) + EPSILON);
     // Extract purging volumes for each extruder pair:
     std::vector<std::vector<float>> wipe_volumes;
-    if (m_print_config_ptr->purge_in_prime_tower) {
+    if (print_config->purge_in_prime_tower || m_is_BBL_printer) {
         for (unsigned int i = 0; i < number_of_extruders; ++i)
-            wipe_volumes.push_back(
-                std::vector<float>(flush_matrix.begin() + i * number_of_extruders, flush_matrix.begin() + (i + 1) * number_of_extruders));
+            wipe_volumes.push_back( std::vector<float>(flush_matrix.begin() + i * number_of_extruders,
+                                                       flush_matrix.begin() + (i + 1) * number_of_extruders));
     } else {
         // populate wipe_volumes with prime_volume
-        for (unsigned int i = 0; i < number_of_extruders; ++i) {
-            wipe_volumes.push_back(std::vector<float>(number_of_extruders, m_print_config_ptr->prime_volume));
-        }
+        for (unsigned int i = 0; i < number_of_extruders; ++i)
+            wipe_volumes.push_back(std::vector<float>(number_of_extruders, print_config->prime_volume));
     }
-
+    
     unsigned int current_extruder_id = -1;
     for (int i = 0; i < m_layer_tools.size(); ++i) {
         LayerTools& lt = m_layer_tools[i];
         if (lt.extruders.empty())
             continue;
-        // todo: The algorithm complexity is too high(o(n2)), currently only 8 colors are supported
-        if (i != 0 && lt.extruders.size() <= 8) {
+        // todo: The algorithm complexity is too high(o(n2)), currently only 12 colors are supported
+        if (i != 0 && lt.extruders.size() <= 12) {
             lt.extruders = get_extruders_order(wipe_volumes, lt.extruders, current_extruder_id);
         }
         current_extruder_id = lt.extruders.back();

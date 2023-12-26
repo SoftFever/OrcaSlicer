@@ -1,0 +1,18 @@
+{
+    "type": "filament",
+    "name": "Bambu ASA @BBL A1 0.6 nozzle",
+    "inherits": "Bambu ASA @base",
+    "from": "system",
+    "setting_id": "GFSB01_08",
+    "instantiation": "true",
+    "fan_max_speed": [
+        "90"
+    ],
+    "fan_min_speed": [
+        "25"
+    ],
+    "compatible_printers": [
+        "Bambu Lab A1 0.6 nozzle",
+        "Bambu Lab A1 0.8 nozzle"
+    ]
+}

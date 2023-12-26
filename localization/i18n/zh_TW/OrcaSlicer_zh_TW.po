@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-18 12:20+0800\n"
+"POT-Creation-Date: 2023-12-23 22:15+0800\n"
 "PO-Revision-Date: 2023-11-06 14:37+0800\n"
 "Last-Translator: ablegods <ablegods@gmail.com>\n"
 "Language-Team: \n"
@@ -314,6 +314,12 @@ msgstr "選擇所有連接件"
 #, fuzzy
 msgid "Cut"
 msgstr "切割"
+
+msgid "non-mainifold edges be caused by cut tool, do you want to fix it now?"
+msgstr ""
+
+msgid "Repairing model object"
+msgstr "修復模型物件"
 
 msgid "Connector"
 msgstr "連接件"
@@ -923,6 +929,21 @@ msgstr "刪除所選物件"
 msgid "Load..."
 msgstr "載入..."
 
+msgid "Cube"
+msgstr "立方體"
+
+msgid "Cylinder"
+msgstr "圓柱體"
+
+msgid "Cone"
+msgstr "錐體"
+
+msgid "Disc"
+msgstr ""
+
+msgid "Torus"
+msgstr ""
+
 msgid "Orca Cube"
 msgstr "Orca 立方體"
 
@@ -935,14 +956,8 @@ msgstr "Autodesk FDM 測試"
 msgid "Voron Cube"
 msgstr "Voron 立方體"
 
-msgid "Cube"
-msgstr "立方體"
-
-msgid "Cylinder"
-msgstr "圓柱體"
-
-msgid "Cone"
-msgstr "錐體"
+msgid "Stanford Bunny"
+msgstr ""
 
 msgid "Text"
 msgstr ""
@@ -1107,6 +1122,9 @@ msgstr "解除切割關係"
 
 msgid "Add Primitive"
 msgstr "新增標準模型"
+
+msgid "Add Handy models"
+msgstr ""
 
 msgid "Show Labels"
 msgstr "顯示標籤"
@@ -1409,9 +1427,6 @@ msgstr "輸入新名稱"
 
 msgid "Renaming"
 msgstr "重新命名"
-
-msgid "Repairing model object"
-msgstr "修復模型物件"
 
 msgid "Following model object has been repaired"
 msgid_plural "Following model objects have been repaired"
@@ -1877,11 +1892,6 @@ msgid "Sending print job through cloud service"
 msgstr "正在通過雲端服務傳送列印作業"
 
 msgid "Print task sending times out."
-msgstr ""
-
-msgid ""
-"The printer timed out while receiving a print job. Please check if the "
-"network is functioning properly and send the print again."
 msgstr ""
 
 msgid "Service Unavailable"
@@ -2618,6 +2628,18 @@ msgstr ""
 "否 - 不使用花瓶模式"
 
 msgid ""
+"Alternate extra wall only works with ensure vertical shell thickness "
+"disabled. "
+msgstr ""
+
+msgid ""
+"Change these settings automatically? \n"
+"Yes - Disable ensure vertical shell thickness and enable alternate extra "
+"wall\n"
+"No  - Dont use alternate extra wall"
+msgstr ""
+
+msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support "
 "Layer Height is on.\n"
 "Which do you want to keep?\n"
@@ -3260,7 +3282,7 @@ msgstr "體積："
 msgid "Size:"
 msgstr "尺寸："
 
-#, fuzzy, boost-format
+#, fuzzy, c-format, boost-format
 msgid ""
 "Conflicts of gcode paths have been found at layer %d, z = %.2lf mm. Please "
 "separate the conflicted objects farther (%s <-> %s)."
@@ -4574,7 +4596,7 @@ msgstr "自動從丟步中恢復"
 msgid "Allow Prompt Sound"
 msgstr "允許提示音效"
 
-msgid "Fliament Tangle Detect"
+msgid "Filament Tangle Detect"
 msgstr ""
 
 msgid "Global"
@@ -5623,7 +5645,7 @@ msgstr "另存 %s 為"
 msgid "User Preset"
 msgstr "使用者預設"
 
-msgid "Project Inside Preset"
+msgid "Preset Inside Project"
 msgstr "項目預設"
 
 msgid "Name is invalid;"
@@ -6188,8 +6210,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "在錄製無工具頭縮時錄影影片時，建議增加“縮時錄影擦拭塔”\n"
 "右鍵單擊列印板的空白位置，選擇“新增標準模型”->“縮時錄影擦拭塔”。"
@@ -6605,7 +6627,7 @@ msgstr "未定義"
 msgid "Unsaved Changes"
 msgstr "未儲存的更改"
 
-msgid "Discard or Keep changes"
+msgid "Transfer or discard changes"
 msgstr "放棄或保留更改"
 
 msgid "Old Value"
@@ -6832,15 +6854,19 @@ msgstr "尖端成型線寬"
 msgid "Ramming line spacing"
 msgstr "尖端成型線間距"
 
-msgid "Recalculate"
+msgid "Auto-Calc"
+msgstr "自動計算"
+
+msgid "Re-calculate"
 msgstr ""
 
 msgid "Flushing volumes for filament change"
 msgstr "線材更換時產生的廢料體積"
 
 msgid ""
-"Orca recalculates your flushing volumes everytime the filament colors "
-"change. You can change this behavior in Preferences."
+"Studio would re-calculate your flushing volumes everytime the filaments "
+"color changed. You could disable the auto-calculate in Bambu Studio > "
+"Preferences"
 msgstr ""
 
 msgid "Flushing volume (mm³) for each filament pair."
@@ -6857,6 +6883,15 @@ msgstr "倍數的數值範圍是[%.2f, %.2f]"
 #, fuzzy
 msgid "Multiplier"
 msgstr "倍數"
+
+msgid "unloaded"
+msgstr "退料"
+
+msgid "loaded"
+msgstr "進料"
+
+msgid "Filament #"
+msgstr "線材#"
 
 msgid "From"
 msgstr "從"
@@ -7243,6 +7278,9 @@ msgstr "列印中"
 
 msgid "Idle"
 msgstr "閒置"
+
+msgid "Beta version"
+msgstr ""
 
 msgid "Latest version"
 msgstr "最新版本"
@@ -9163,10 +9201,10 @@ msgstr "滿速風扇在"
 
 msgid ""
 "Fan speed will be ramped up linearly from zero at layer "
-"\"close_fan_the_first_x_layers\" to maximum at layer "
-"\"full_fan_speed_layer\". \"full_fan_speed_layer\" will be ignored if lower "
-"than \"close_fan_the_first_x_layers\", in which case the fan will be running "
-"at maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
+"\"close_fan_the_first_x_layers\" to maximum at layer \"full_fan_speed_layer"
+"\". \"full_fan_speed_layer\" will be ignored if lower than "
+"\"close_fan_the_first_x_layers\", in which case the fan will be running at "
+"maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
 msgstr ""
 "風扇速度將從“禁用第一層”的零線性上升到“全風扇速度層”的最大。如果低於“禁用風扇"
 "第一層”，則“全風扇速度第一層”將被忽略，在這種情況下，風扇將在“禁用風扇第一"
@@ -9565,6 +9603,18 @@ msgid ""
 "acceleration to print"
 msgstr "設備是否支援使用低加速度列印的靜音模式。"
 
+msgid "Emit limits to G-code"
+msgstr ""
+
+#, fuzzy
+msgid "Machine limits"
+msgstr "設備限制"
+
+msgid ""
+"If enabled, the machine limits will be emitted to G-code file.\n"
+"This option will be ignored if the g-code flavor is set to Klipper."
+msgstr ""
+
 msgid ""
 "This G-code will be used as a code for the pause print. User can insert "
 "pause G-code in gcode viewer"
@@ -9584,10 +9634,6 @@ msgstr "Z最大速度"
 
 msgid "Maximum speed E"
 msgstr "E最大速度"
-
-#, fuzzy
-msgid "Machine limits"
-msgstr "設備限制"
 
 msgid "Maximum X speed"
 msgstr "X最大速度"
@@ -9952,6 +9998,20 @@ msgstr "內圈牆列印速度"
 
 msgid "Number of walls of every layer"
 msgstr "每一層的外牆"
+
+msgid "Alternate extra wall"
+msgstr ""
+
+msgid ""
+"This setting adds an extra wall to every other layer. This way the infill "
+"gets wedged vertically between the walls, resulting in stronger prints. \n"
+"\n"
+"When this option is enabled, the ensure vertical shell thickness option "
+"needs to be disabled. \n"
+"\n"
+"Using lightning infill together with this option is not recommended as there "
+"is limited infill to anchor the extra perimeters to."
+msgstr ""
 
 msgid ""
 "If you want to process the output G-code through custom scripts, just list "
@@ -10507,10 +10567,11 @@ msgid ""
 "filament for support and current filament is used"
 msgstr "列印支撐主體和筏層的線材。\"預設\"代表不指定特定的線材，並使用目前線材"
 
-msgid "Reduce interface filament for base"
+msgid "Avoid interface filament for base"
 msgstr ""
 
-msgid "Avoid using support interface filament to print support base"
+msgid ""
+"Avoid using support interface filament to print support base if possible."
 msgstr ""
 
 msgid ""
@@ -12305,7 +12366,7 @@ msgstr ""
 msgid "All inputs in the custom vendor or serial are spaces. Please re-enter."
 msgstr ""
 
-msgid "The beginning of the vendor can not be a number. Please re-enter."
+msgid "The vendor can not be a number. Please re-enter."
 msgstr ""
 
 msgid ""
@@ -12321,8 +12382,8 @@ msgid ""
 msgstr ""
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you "
-"selected\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 
@@ -13185,18 +13246,6 @@ msgstr ""
 
 #~ msgid "Quick"
 #~ msgstr "快速的"
-
-#~ msgid "Auto-Calc"
-#~ msgstr "自動計算"
-
-#~ msgid "unloaded"
-#~ msgstr "退料"
-
-#~ msgid "loaded"
-#~ msgstr "進料"
-
-#~ msgid "Filament #"
-#~ msgstr "線材#"
 
 #~ msgid ""
 #~ "Discribe how long the nozzle will move along the last path when retracting"

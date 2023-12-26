@@ -494,7 +494,7 @@ void Sidebar::priv::hide_rich_tip(wxButton* btn)
 
 static struct DynamicFilamentList : DynamicList
 {
-    std::vector<std::pair<wxString, wxBitmapBundle *>> items;
+    std::vector<std::pair<wxString, wxBitmap *>> items;
 
     void apply_on(Choice *c) override
     {
@@ -533,8 +533,7 @@ static struct DynamicFilamentList : DynamicList
             std::string type;
             wxGetApp().preset_bundle->filaments.find_preset(presets[i])->get_filament_type(type);
             str << type;
-            wxBitmapBundle* bmp = icons[i];
-            items.push_back({str, bmp});
+            items.push_back({str, icons[i]});
         }
         DynamicList::update();
     }
@@ -818,7 +817,9 @@ Sidebar::Sidebar(Plater *parent)
 
             if (dlg.ShowModal() == wxID_OK) {
                 std::vector<float> matrix = dlg.get_matrix();
+                std::vector<float> extruders = dlg.get_extruders();
                 (project_config.option<ConfigOptionFloats>("flush_volumes_matrix"))->values = std::vector<double>(matrix.begin(), matrix.end());
+                (project_config.option<ConfigOptionFloats>("flush_volumes_vector"))->values = std::vector<double>(extruders.begin(), extruders.end());
                 (project_config.option<ConfigOptionFloat>("flush_multiplier"))->set(new ConfigOptionFloat(dlg.get_flush_multiplier()));
 
                 wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
@@ -879,7 +880,7 @@ Sidebar::Sidebar(Plater *parent)
     bSizer39->Add(FromDIP(20), 0, 0, 0, 0);
 
     ams_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "ams_fila_sync", wxEmptyString, wxDefaultSize, wxDefaultPosition,
-                                                 wxBU_EXACTFIT | wxNO_BORDER, 18);
+                                                 wxBU_EXACTFIT | wxNO_BORDER, false, 18);
     ams_btn->SetToolTip(_L("Synchronize filament list from AMS"));
     ams_btn->Bind(wxEVT_BUTTON, [this, scrolled_sizer](wxCommandEvent &e) {
         sync_ams_list();
@@ -1341,20 +1342,20 @@ void Sidebar::msw_rescale()
     p->m_panel_printer_title->GetSizer()->SetMinSize(-1, 3 * wxGetApp().em_unit());
     p->m_panel_filament_title->GetSizer()
         ->SetMinSize(-1, 3 * wxGetApp().em_unit());
-    p->m_printer_icon->sys_color_changed();
-    p->m_printer_setting->sys_color_changed();
-    p->m_filament_icon->sys_color_changed();
-    p->m_bpButton_add_filament->sys_color_changed();
-    p->m_bpButton_del_filament->sys_color_changed();
-    p->m_bpButton_ams_filament->sys_color_changed();
-    p->m_bpButton_set_filament->sys_color_changed();
+    p->m_printer_icon->msw_rescale();
+    p->m_printer_setting->msw_rescale();
+    p->m_filament_icon->msw_rescale();
+    p->m_bpButton_add_filament->msw_rescale();
+    p->m_bpButton_del_filament->msw_rescale();
+    p->m_bpButton_ams_filament->msw_rescale();
+    p->m_bpButton_set_filament->msw_rescale();
     p->m_flushing_volume_btn->Rescale();
     //BBS
     m_bed_type_list->Rescale();
     m_bed_type_list->SetMinSize({-1, 3 * wxGetApp().em_unit()});
 #if 0
     if (p->mode_sizer)
-        p->mode_sizer->sys_color_changed();
+        p->mode_sizer->msw_rescale();
 #endif
 
     //for (PlaterPresetComboBox* combo : std::vector<PlaterPresetComboBox*> { p->combo_print,
@@ -1373,14 +1374,15 @@ void Sidebar::msw_rescale()
     // BBS TODO: add msw_rescale for newly added windows
     // BBS
     //p->object_manipulation->msw_rescale();
+    p->object_settings->msw_rescale();
 
     // BBS
 #if 0
     p->object_info->msw_rescale();
 
-    p->btn_send_gcode->sys_color_changed();
+    p->btn_send_gcode->msw_rescale();
 //    p->btn_eject_device->msw_rescale();
-    p->btn_export_gcode_removable->sys_color_changed();
+    p->btn_export_gcode_removable->msw_rescale();
 #ifdef _WIN32
     const int scaled_height = p->btn_export_gcode_removable->GetBitmapHeight();
 #else
@@ -1401,26 +1403,26 @@ void Sidebar::sys_color_changed()
 #if 0
     for (wxWindow* win : std::vector<wxWindow*>{ this, p->sliced_info->GetStaticBox(), p->object_info->GetStaticBox(), p->btn_reslice, p->btn_export_gcode })
         wxGetApp().UpdateDarkUI(win);
-    p->object_info->sys_color_changed();
+    p->object_info->msw_rescale();
 
     for (wxWindow* win : std::vector<wxWindow*>{ p->scrolled, p->presets_panel })
         wxGetApp().UpdateAllStaticTextDarkUI(win);
 #endif
     //for (wxWindow* btn : std::vector<wxWindow*>{ p->btn_reslice, p->btn_export_gcode })
     //    wxGetApp().UpdateDarkUI(btn, true);
-    p->m_printer_icon->sys_color_changed();
-    p->m_printer_setting->sys_color_changed();
-    p->m_filament_icon->sys_color_changed();
-    p->m_bpButton_add_filament->sys_color_changed();
-    p->m_bpButton_del_filament->sys_color_changed();
-    p->m_bpButton_ams_filament->sys_color_changed();
-    p->m_bpButton_set_filament->sys_color_changed();
+    p->m_printer_icon->msw_rescale();
+    p->m_printer_setting->msw_rescale();
+    p->m_filament_icon->msw_rescale();
+    p->m_bpButton_add_filament->msw_rescale();
+    p->m_bpButton_del_filament->msw_rescale();
+    p->m_bpButton_ams_filament->msw_rescale();
+    p->m_bpButton_set_filament->msw_rescale();
     p->m_flushing_volume_btn->Rescale();
 
     // BBS
 #if 0
     if (p->mode_sizer)
-        p->mode_sizer->sys_color_changed();
+        p->mode_sizer->msw_rescale();
     p->frequently_changed_parameters->sys_color_changed();
 #endif
     p->object_settings->sys_color_changed();
@@ -1448,7 +1450,6 @@ void Sidebar::sys_color_changed()
     //p->btn_export_gcode_removable->msw_rescale();
 
     p->scrolled->Layout();
-    p->scrolled->Refresh();
 
     p->searcher.dlg_sys_color_changed();
 }
@@ -2642,15 +2643,20 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 
     m_default_window_layout = m_aui_mgr.SavePerspective();
 
-    // Load previous window layout
     {
+        auto& sidebar = m_aui_mgr.GetPane(this->sidebar);
+
+        // Load previous window layout
         const auto cfg    = wxGetApp().app_config;
         wxString   layout = wxString::FromUTF8(cfg->get("window_layout"));
         if (!layout.empty()) {
             m_aui_mgr.LoadPerspective(layout, false);
-            auto& sidebar = m_aui_mgr.GetPane(this->sidebar);
             sidebar_layout.is_collapsed = !sidebar.IsShown();
         }
+
+        // Hide sidebar initially, will re-show it after initialization when we got proper window size
+        sidebar.Hide();
+        m_aui_mgr.Update();
     }
 
     menus.init(q);
@@ -3179,6 +3185,9 @@ void Plater::priv::collapse_sidebar(bool collapse)
 
 void Plater::priv::update_sidebar(bool force_update) {
     auto& sidebar = m_aui_mgr.GetPane(this->sidebar);
+    if (!sidebar.IsOk() || this->current_panel == nullptr) {
+        return;
+    }
     bool  needs_update = force_update;
 
     if (!sidebar_layout.is_enabled) {
@@ -3187,7 +3196,9 @@ void Plater::priv::update_sidebar(bool force_update) {
             needs_update = true;
         }
     } else {
-        bool should_show = sidebar_layout.show && !sidebar_layout.is_collapsed;
+        // Only hide if collapsed or is floating and is not 3d view
+        const bool should_hide = sidebar_layout.is_collapsed || (sidebar.IsFloating() && !sidebar_layout.show);
+        const bool should_show = !should_hide;
         if (should_show != sidebar.IsShown()) {
             sidebar.Show(should_show);
             needs_update = true;
@@ -5828,7 +5839,7 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
         };
 
     //BBS: add the collapse logic
-    if (panel == preview) {
+    if (panel == view3D || panel == preview) {
         this->enable_sidebar(!q->only_gcode_mode());
     }
     if (panel == preview && q->only_gcode_mode()) {
@@ -5888,7 +5899,7 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
             p->Hide();
     }
 
-    m_aui_mgr.Update();
+    update_sidebar(true);
 
     if (wxGetApp().plater()) {
         Camera& cam = wxGetApp().plater()->get_camera();
@@ -6970,7 +6981,6 @@ void Plater::priv::apply_color_mode()
     m_aui_mgr.GetArtProvider()->SetColour(wxAUI_DOCKART_INACTIVE_CAPTION_TEXT_COLOUR, *wxWHITE);
     m_aui_mgr.GetArtProvider()->SetColour(wxAUI_DOCKART_SASH_COLOUR, sash_color);
     m_aui_mgr.GetArtProvider()->SetColour(wxAUI_DOCKART_BORDER_COLOUR, is_dark ? *wxBLACK : wxColour(165, 165, 165));
-    m_aui_mgr.Update();
 }
 
 static void get_position(wxWindowBase* child, wxWindowBase* until_parent, int& x, int& y) {
@@ -8959,6 +8969,7 @@ void Plater::_calib_pa_tower(const Calib_Params& params) {
     const double nozzle_diameter = printer_config->option<ConfigOptionFloats>("nozzle_diameter")->get_at(0);
 
     filament_config->set_key_value("slow_down_layer_time", new ConfigOptionFloats{ 1.0f });
+    print_config->set_key_value("alternate_extra_wall", new ConfigOptionBool(false));
     print_config->set_key_value("default_jerk", new ConfigOptionFloat(1.0f));
     print_config->set_key_value("outer_wall_jerk", new ConfigOptionFloat(1.0f));
     print_config->set_key_value("inner_wall_jerk", new ConfigOptionFloat(1.0f));
@@ -9087,6 +9098,7 @@ void Plater::calib_flowrate(int pass) {
     }
 
     print_config->set_key_value("layer_height", new ConfigOptionFloat(layer_height));
+    print_config->set_key_value("alternate_extra_wall", new ConfigOptionBool(false));
     print_config->set_key_value("initial_layer_print_height", new ConfigOptionFloat(first_layer_height));
     print_config->set_key_value("reduce_crossing_wall", new ConfigOptionBool(true));
     //filament_config->set_key_value("filament_max_volumetric_speed", new ConfigOptionFloats{ 9. });
@@ -9114,6 +9126,7 @@ void Plater::calib_temp(const Calib_Params& params) {
     model().objects[0]->config.set_key_value("brim_type", new ConfigOptionEnum<BrimType>(btOuterOnly));
     model().objects[0]->config.set_key_value("brim_width", new ConfigOptionFloat(5.0));
     model().objects[0]->config.set_key_value("brim_object_gap", new ConfigOptionFloat(0.0));
+    model().objects[0]->config.set_key_value("alternate_extra_wall", new ConfigOptionBool(false));
 
     changed_objects({ 0 });
     wxGetApp().get_tab(Preset::TYPE_PRINT)->update_dirty();
@@ -9182,6 +9195,7 @@ void Plater::calib_max_vol_speed(const Calib_Params& params)
     print_config->set_key_value("enable_overhang_speed", new ConfigOptionBool { false });
     print_config->set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(tlTraditional));
     print_config->set_key_value("wall_loops", new ConfigOptionInt(1));
+    print_config->set_key_value("alternate_extra_wall", new ConfigOptionBool(false));
     print_config->set_key_value("top_shell_layers", new ConfigOptionInt(0));
     print_config->set_key_value("bottom_shell_layers", new ConfigOptionInt(0));
     print_config->set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
@@ -9247,6 +9261,7 @@ void Plater::calib_retraction(const Calib_Params& params)
     obj->config.set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
     obj->config.set_key_value("initial_layer_print_height", new ConfigOptionFloat(layer_height));
     obj->config.set_key_value("layer_height", new ConfigOptionFloat(layer_height));
+    obj->config.set_key_value("alternate_extra_wall", new ConfigOptionBool(false));
 
     changed_objects({ 0 });
 
@@ -9276,10 +9291,12 @@ void Plater::calib_VFA(const Calib_Params& params)
     print_config->set_key_value("enable_overhang_speed", new ConfigOptionBool { false });
     print_config->set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(tlTraditional));
     print_config->set_key_value("wall_loops", new ConfigOptionInt(1));
+    print_config->set_key_value("alternate_extra_wall", new ConfigOptionBool(false));
     print_config->set_key_value("top_shell_layers", new ConfigOptionInt(0));
     print_config->set_key_value("bottom_shell_layers", new ConfigOptionInt(1));
     print_config->set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
     print_config->set_key_value("overhang_reverse", new ConfigOptionBool(false));
+    print_config->set_key_value("detect_thin_wall", new ConfigOptionBool(false));
     print_config->set_key_value("spiral_mode", new ConfigOptionBool(true));
     model().objects[0]->config.set_key_value("brim_type", new ConfigOptionEnum<BrimType>(btOuterOnly));
     model().objects[0]->config.set_key_value("brim_width", new ConfigOptionFloat(3.0));
@@ -12442,6 +12459,8 @@ void Plater::msw_rescale()
     p->view3D->get_canvas3d()->msw_rescale();
 
     p->sidebar->msw_rescale();
+
+    p->menus.msw_rescale();
 
     Layout();
     GetParent()->Layout();

@@ -470,8 +470,8 @@ CameraItem::CameraItem(wxWindow *parent, std::string normal, std::string hover)
 CameraItem::~CameraItem() {}
 
 void CameraItem::msw_rescale() {
-    m_bitmap_normal.sys_color_changed();
-    m_bitmap_hover.sys_color_changed();
+    m_bitmap_normal.msw_rescale();
+    m_bitmap_hover.msw_rescale();
 }
 
 void CameraItem::on_enter_win(wxMouseEvent &evt)
@@ -519,9 +519,9 @@ void CameraItem::render(wxDC &dc)
 void CameraItem::doRender(wxDC &dc)
 {
     if (m_hover) {
-        dc.DrawBitmap(m_bitmap_hover.get_bitmap(), wxPoint((GetSize().x - m_bitmap_hover.GetSize().x) / 2, (GetSize().y - m_bitmap_hover.GetSize().y) / 2));
+        dc.DrawBitmap(m_bitmap_hover.bmp(), wxPoint((GetSize().x - m_bitmap_hover.GetBmpSize().x) / 2, (GetSize().y - m_bitmap_hover.GetBmpSize().y) / 2));
     } else {
-        dc.DrawBitmap(m_bitmap_normal.get_bitmap(), wxPoint((GetSize().x - m_bitmap_normal.GetSize().x) / 2, (GetSize().y - m_bitmap_normal.GetSize().y) / 2));
+        dc.DrawBitmap(m_bitmap_normal.bmp(), wxPoint((GetSize().x - m_bitmap_normal.GetBmpSize().x) / 2, (GetSize().y - m_bitmap_normal.GetBmpSize().y) / 2));
     }
 }
 

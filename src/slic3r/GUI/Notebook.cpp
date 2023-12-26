@@ -122,8 +122,6 @@ void ButtonsListCtrl::Rescale()
 {
     //m_mode_sizer->msw_rescale();
     int em = em_unit(this);
-    // Orca: following is removed by PS in wx 3.16 refactor.
-    // doesn't seem to be doing anything rn so leaving it alone
     for (Button* btn : m_pageButtons) {
         //BBS
         btn->SetMinSize({(btn->GetLabel().empty() ? 40 : 132) * em / 10, 36 * em / 10});
@@ -135,14 +133,6 @@ void ButtonsListCtrl::Rescale()
     //m_line_margin = std::lround(0.1 * em);
     //m_buttons_sizer->SetVGap(m_btn_margin);
     //m_buttons_sizer->SetHGap(m_btn_margin);
-
-    m_sizer->Layout();
-}
-
-void ButtonsListCtrl::OnColorsChanged()
-{
-    for (Button* btn : m_pageButtons)
-        btn->Rescale();
 
     m_sizer->Layout();
 }

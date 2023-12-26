@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-18 12:20+0800\n"
+"POT-Creation-Date: 2023-12-23 22:15+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -291,6 +291,12 @@ msgstr "Select all connectors"
 
 msgid "Cut"
 msgstr "カット"
+
+msgid "non-mainifold edges be caused by cut tool, do you want to fix it now?"
+msgstr ""
+
+msgid "Repairing model object"
+msgstr "モデルオブジェクトを修復"
 
 msgid "Connector"
 msgstr "Connector"
@@ -873,6 +879,21 @@ msgstr "選択したオブジェクトを削除"
 msgid "Load..."
 msgstr "ファイルを読込む"
 
+msgid "Cube"
+msgstr "キューブ"
+
+msgid "Cylinder"
+msgstr "シリンダー"
+
+msgid "Cone"
+msgstr "コーン"
+
+msgid "Disc"
+msgstr ""
+
+msgid "Torus"
+msgstr ""
+
 msgid "Orca Cube"
 msgstr ""
 
@@ -885,14 +906,8 @@ msgstr ""
 msgid "Voron Cube"
 msgstr ""
 
-msgid "Cube"
-msgstr "キューブ"
-
-msgid "Cylinder"
-msgstr "シリンダー"
-
-msgid "Cone"
-msgstr "コーン"
+msgid "Stanford Bunny"
+msgstr ""
 
 msgid "Text"
 msgstr ""
@@ -1050,6 +1065,9 @@ msgstr "Invalidate cut info"
 
 msgid "Add Primitive"
 msgstr "プリミティブを追加"
+
+msgid "Add Handy models"
+msgstr ""
 
 msgid "Show Labels"
 msgstr "ラベルを表示"
@@ -1340,9 +1358,6 @@ msgstr "新しい名前を入力"
 
 msgid "Renaming"
 msgstr "名前を変更中"
-
-msgid "Repairing model object"
-msgstr "モデルオブジェクトを修復"
 
 msgid "Following model object has been repaired"
 msgid_plural "Following model objects have been repaired"
@@ -1803,11 +1818,6 @@ msgid "Sending print job through cloud service"
 msgstr "クラウド経由で造形タスクを送信"
 
 msgid "Print task sending times out."
-msgstr ""
-
-msgid ""
-"The printer timed out while receiving a print job. Please check if the "
-"network is functioning properly and send the print again."
 msgstr ""
 
 msgid "Service Unavailable"
@@ -2497,6 +2507,18 @@ msgstr ""
 "いいえ - 変更せず、スパイラルモードを有効しません"
 
 msgid ""
+"Alternate extra wall only works with ensure vertical shell thickness "
+"disabled. "
+msgstr ""
+
+msgid ""
+"Change these settings automatically? \n"
+"Yes - Disable ensure vertical shell thickness and enable alternate extra "
+"wall\n"
+"No  - Dont use alternate extra wall"
+msgstr ""
+
+msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support "
 "Layer Height is on.\n"
 "Which do you want to keep?\n"
@@ -3104,7 +3126,7 @@ msgstr "ボリューム"
 msgid "Size:"
 msgstr "サイズ:"
 
-#, boost-format
+#, c-format, boost-format
 msgid ""
 "Conflicts of gcode paths have been found at layer %d, z = %.2lf mm. Please "
 "separate the conflicted objects farther (%s <-> %s)."
@@ -4356,7 +4378,7 @@ msgstr "自動回復"
 msgid "Allow Prompt Sound"
 msgstr ""
 
-msgid "Fliament Tangle Detect"
+msgid "Filament Tangle Detect"
 msgstr ""
 
 msgid "Global"
@@ -5358,7 +5380,7 @@ msgstr "%sを名前つけて保存"
 msgid "User Preset"
 msgstr "ユーザープリセット"
 
-msgid "Project Inside Preset"
+msgid "Preset Inside Project"
 msgstr "プロジェクト プリセット"
 
 msgid "Name is invalid;"
@@ -5884,8 +5906,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "ヘッド無しのタイムラプスビデオを録画する時に、「タイムラプスプライムタワー」"
 "を追加してください。プレートで右クリックして、「プリミティブを追加」→「タイム"
@@ -6272,7 +6294,7 @@ msgstr "未定義"
 msgid "Unsaved Changes"
 msgstr "未保存の変更"
 
-msgid "Discard or Keep changes"
+msgid "Transfer or discard changes"
 msgstr "変更を破棄または保持"
 
 msgid "Old Value"
@@ -6477,15 +6499,19 @@ msgstr ""
 msgid "Ramming line spacing"
 msgstr ""
 
-msgid "Recalculate"
+msgid "Auto-Calc"
+msgstr "自動計算"
+
+msgid "Re-calculate"
 msgstr ""
 
 msgid "Flushing volumes for filament change"
 msgstr "フィラメントを入替える為のフラッシュ量"
 
 msgid ""
-"Orca recalculates your flushing volumes everytime the filament colors "
-"change. You can change this behavior in Preferences."
+"Studio would re-calculate your flushing volumes everytime the filaments "
+"color changed. You could disable the auto-calculate in Bambu Studio > "
+"Preferences"
 msgstr ""
 
 msgid "Flushing volume (mm³) for each filament pair."
@@ -6501,6 +6527,15 @@ msgstr "マルチプライヤーの有効範囲は [%.2f, %.2f] です。"
 
 msgid "Multiplier"
 msgstr "マルチプライヤ"
+
+msgid "unloaded"
+msgstr "アンロードしました"
+
+msgid "loaded"
+msgstr "ロード済み"
+
+msgid "Filament #"
+msgstr "フィラメント#"
 
 msgid "From"
 msgstr "From"
@@ -6862,6 +6897,9 @@ msgstr "造形中"
 
 msgid "Idle"
 msgstr "待機中"
+
+msgid "Beta version"
+msgstr ""
 
 msgid "Latest version"
 msgstr "最新バージョン"
@@ -8667,10 +8705,10 @@ msgstr "最大回転速度の積層"
 
 msgid ""
 "Fan speed will be ramped up linearly from zero at layer "
-"\"close_fan_the_first_x_layers\" to maximum at layer "
-"\"full_fan_speed_layer\". \"full_fan_speed_layer\" will be ignored if lower "
-"than \"close_fan_the_first_x_layers\", in which case the fan will be running "
-"at maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
+"\"close_fan_the_first_x_layers\" to maximum at layer \"full_fan_speed_layer"
+"\". \"full_fan_speed_layer\" will be ignored if lower than "
+"\"close_fan_the_first_x_layers\", in which case the fan will be running at "
+"maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
 msgstr ""
 
 msgid "Support interface fan speed"
@@ -9031,6 +9069,17 @@ msgid ""
 "acceleration to print"
 msgstr "サイレントモード有無"
 
+msgid "Emit limits to G-code"
+msgstr ""
+
+msgid "Machine limits"
+msgstr "プリンター制限"
+
+msgid ""
+"If enabled, the machine limits will be emitted to G-code file.\n"
+"This option will be ignored if the g-code flavor is set to Klipper."
+msgstr ""
+
 msgid ""
 "This G-code will be used as a code for the pause print. User can insert "
 "pause G-code in gcode viewer"
@@ -9052,9 +9101,6 @@ msgstr "最大速度 Z"
 
 msgid "Maximum speed E"
 msgstr "最大速度 E"
-
-msgid "Machine limits"
-msgstr "プリンター制限"
 
 msgid "Maximum X speed"
 msgstr "最大速度 X"
@@ -9379,6 +9425,20 @@ msgstr "内壁の造形速度です。"
 
 msgid "Number of walls of every layer"
 msgstr "壁面の層数です。"
+
+msgid "Alternate extra wall"
+msgstr ""
+
+msgid ""
+"This setting adds an extra wall to every other layer. This way the infill "
+"gets wedged vertically between the walls, resulting in stronger prints. \n"
+"\n"
+"When this option is enabled, the ensure vertical shell thickness option "
+"needs to be disabled. \n"
+"\n"
+"Using lightning infill together with this option is not recommended as there "
+"is limited infill to anchor the extra perimeters to."
+msgstr ""
 
 msgid ""
 "If you want to process the output G-code through custom scripts, just list "
@@ -9921,10 +9981,11 @@ msgstr ""
 "サポートとラフトを造形用のフィラメント。「デフォルト」では当時のフィラメント"
 "を使用する意味です。"
 
-msgid "Reduce interface filament for base"
+msgid "Avoid interface filament for base"
 msgstr ""
 
-msgid "Avoid using support interface filament to print support base"
+msgid ""
+"Avoid using support interface filament to print support base if possible."
 msgstr ""
 
 msgid ""
@@ -11575,7 +11636,7 @@ msgstr ""
 msgid "All inputs in the custom vendor or serial are spaces. Please re-enter."
 msgstr ""
 
-msgid "The beginning of the vendor can not be a number. Please re-enter."
+msgid "The vendor can not be a number. Please re-enter."
 msgstr ""
 
 msgid ""
@@ -11591,8 +11652,8 @@ msgid ""
 msgstr ""
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you "
-"selected\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 
@@ -12429,18 +12490,6 @@ msgstr ""
 
 #~ msgid "Quick"
 #~ msgstr "Quick"
-
-#~ msgid "Auto-Calc"
-#~ msgstr "自動計算"
-
-#~ msgid "unloaded"
-#~ msgstr "アンロードしました"
-
-#~ msgid "loaded"
-#~ msgstr "ロード済み"
-
-#~ msgid "Filament #"
-#~ msgstr "フィラメント#"
 
 #~ msgid ""
 #~ "Discribe how long the nozzle will move along the last path when retracting"
