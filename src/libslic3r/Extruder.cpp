@@ -94,6 +94,10 @@ double Extruder::unretract()
     }
 }
 
+double Extruder::need_unretract() {
+    return m_retracted + m_restart_extra != 0;
+}
+
 // Setting the retract state from the script.
 // Sets current retraction value & restart extra filament amount if retracted > 0.
 void Extruder::set_retracted(double retracted, double restart_extra)
