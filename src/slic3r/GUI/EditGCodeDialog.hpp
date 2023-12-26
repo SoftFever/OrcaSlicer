@@ -44,7 +44,7 @@ class EditGCodeDialog : public DPIDialog
 
 public:
     EditGCodeDialog(wxWindow*parent, const std::string&key, const std::string&value);
-    ~EditGCodeDialog() {}
+    ~EditGCodeDialog();
 
     std::string get_edited_gcode() const;
 
@@ -59,6 +59,9 @@ protected:
 
     void on_dpi_changed(const wxRect& suggested_rect) override;
     void on_sys_color_changed() override;
+
+    void selection_changed(wxDataViewEvent& evt);
+
     wxBoxSizer* EditGCodeDialog::create_btn_sizer(long flags);
 };
 
