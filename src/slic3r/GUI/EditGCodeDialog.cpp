@@ -291,7 +291,7 @@ void EditGCodeDialog::bind_list_and_button()
                         format_wxstr("%1%\n(%2%)", def->label.empty() ? _(def->full_label) : _(def->label), type_str);
 
                 if (def)
-                    description = _(def->tooltip);
+                    description = get_wraped_wxString(_(def->tooltip), 120);
             }
             else
                 label = "Undef optptr";
