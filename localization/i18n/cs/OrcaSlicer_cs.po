@@ -9,8 +9,8 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-12-23 22:15+0800\n"
 "PO-Revision-Date: 2023-09-30 15:15+0200\n"
-"Last-Translator: René Mošner <Renemosner@seznam.cz>\n"
-"Language-Team: \n"
+"Last-Translator: Eldenroot <eldenroot@gmail.com>\n"
+"Language-Team: Czech community\n"
 "Language: cs_CZ\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -158,19 +158,19 @@ msgid "Height range"
 msgstr "Rozsah výšky"
 
 msgid "Alt + Shift + Enter"
-msgstr ""
+msgstr "Alt + Shift + Enter"
 
 msgid "Toggle Wireframe"
-msgstr "Přepnout drátový model"
+msgstr "Přepnout na drátový model"
 
 msgid "Shortcut Key "
-msgstr "Klávesová Zkratka "
+msgstr "Klávesová zkratka "
 
 msgid "Triangle"
 msgstr "Trojúhelník"
 
 msgid "Height Range"
-msgstr "Rozsah výš"
+msgstr "Výškový rozsah"
 
 msgid "Vertical"
 msgstr "Verikální"
@@ -489,7 +489,7 @@ msgid "Operation already cancelling. Please wait few seconds."
 msgstr "Operace se ukončuje. Prosíme o chvíli strpení."
 
 msgid "Face recognition"
-msgstr "Rozpoznávání tváře"
+msgstr "Rozpoznávání plochy"
 
 msgid "Perform Recognition"
 msgstr "Provést rozpoznávání"
@@ -614,7 +614,7 @@ msgid ""
 "OrcaSlicer will terminate because of a localization error. It will be "
 "appreciated if you report the specific scenario this issue happened."
 msgstr ""
-"OrcaSlicer se ukončí kvůli chybě lokalizace. Bude to Oceňujeme, pokud "
+"OrcaSlicer se ukončí kvůli chybě lokalizace. Uvítáme, pokud "
 "nahlásíte konkrétní scénář, kdy k tomuto problému došlo."
 
 msgid "Critical error"
@@ -668,7 +668,7 @@ msgid "Click to download new version in default browser: %s"
 msgstr "Kliknutím stáhnete novou verzi ve výchozím prohlížeči: %s"
 
 msgid "The Orca Slicer needs an upgrade"
-msgstr "Orca Slicer potřebuje aktualizaci"
+msgstr "Orca Slicer vyžaduje aktualizaci"
 
 msgid "This is the newest version."
 msgstr "Toto je nejnovější verze."
@@ -717,7 +717,7 @@ msgid ""
 "You can keep the modifield presets to the new project, discard or save "
 "changes as new presets."
 msgstr ""
-"Předvolby modifield můžete ponechat pro nový projekt, zahodit nebo uložit "
+"Upravené předvolby můžete ponechat pro nový projekt, zahodit je nebo uložit "
 "změny jako nové předvolby."
 
 msgid "User logged out"
@@ -725,7 +725,7 @@ msgstr "Uživatel odhlášen"
 
 msgid "new or open project file is not allowed during the slicing process!"
 msgstr ""
-"během procesu Slicovaní není povolen nový nebo otevřený soubor projektu!"
+"během procesu slicovaní není povolen nový nebo otevřený soubor projektu!"
 
 msgid "Open Project"
 msgstr "Otevřít projekt"
@@ -746,7 +746,7 @@ msgid ""
 msgstr ""
 
 msgid "Sync user presets"
-msgstr ""
+msgstr "Synchronizovat uživatelské předvolby"
 
 msgid "Loading"
 msgstr "Načítání"
@@ -816,7 +816,7 @@ msgid "Support"
 msgstr "Podpěry"
 
 msgid "Flush options"
-msgstr "Možnosti Čištění"
+msgstr "Možnosti čištění"
 
 msgid "Speed"
 msgstr "Rychlost"
@@ -852,7 +852,7 @@ msgid "Wipe options"
 msgstr "Možnosti čištění"
 
 msgid "Bed adhension"
-msgstr "Přilnavost k Podložce"
+msgstr "Přilnavost k podložce"
 
 msgid "Advanced"
 msgstr "Pokročilé"
@@ -873,22 +873,22 @@ msgid "Add support enforcer"
 msgstr "Přidat vynucení podpěr"
 
 msgid "Add text"
-msgstr ""
+msgstr "Přidat text"
 
 msgid "Add negative text"
-msgstr ""
+msgstr "Přidat negativní text"
 
 msgid "Add text modifier"
-msgstr ""
+msgstr "Přidat modifikátor textu"
 
 msgid "Add SVG part"
-msgstr ""
+msgstr "Přidat SVG díl"
 
 msgid "Add negative SVG"
-msgstr ""
+msgstr "Přidat negativní SVG"
 
 msgid "Add SVG modifier"
-msgstr ""
+msgstr "Přidat modifikátor SVG"
 
 msgid "Select settings"
 msgstr "Vybrat nastavení"
@@ -918,31 +918,31 @@ msgid "Cone"
 msgstr "Kužel"
 
 msgid "Disc"
-msgstr ""
+msgstr "Disk"
 
 msgid "Torus"
 msgstr ""
 
 msgid "Orca Cube"
-msgstr "Orca Kostka"
+msgstr "Orca kostka"
 
 msgid "3DBenchy"
 msgstr "3DBenchy"
 
 msgid "Autodesk FDM Test"
-msgstr "Autodesk FDM Test"
+msgstr "Autodesk FDM test"
 
 msgid "Voron Cube"
-msgstr "Voron Kostka"
+msgstr "Voron kostka"
 
 msgid "Stanford Bunny"
-msgstr ""
+msgstr "Stanfordský králík"
 
 msgid "Text"
-msgstr ""
+msgstr "Text"
 
 msgid "SVG"
-msgstr ""
+msgstr "SVG"
 
 msgid "Height range Modifier"
 msgstr "Modifikátor výškového rozsahu"
@@ -966,16 +966,16 @@ msgid "Fill the remaining area of bed with copies of the selected object"
 msgstr "Vyplní zbývající tiskovou plochu kopiemi vybraného objektu"
 
 msgid "Printable"
-msgstr "Tisknout objekt"
+msgstr "Tisknutelný objekt"
 
 msgid "Fix model"
 msgstr "Opravit model"
 
 msgid "Export as one STL"
-msgstr ""
+msgstr "Exportovat jako jedno STL"
 
 msgid "Export as STLs"
-msgstr ""
+msgstr "Eportovat jako vícenásobné STL"
 
 msgid "Reload from disk"
 msgstr "Znovu načíst z disku"
@@ -1006,13 +1006,13 @@ msgid "active"
 msgstr "aktivní"
 
 msgid "Scale to build volume"
-msgstr "Škálovat na sestavení objemu"
+msgstr "Škálovat na budovaný objem"
 
 msgid "Scale an object to fit the build volume"
-msgstr "Přizpůsobte objekt tak, aby odpovídal objemu sestavy"
+msgstr "Přizpůsobte objekt tak, aby odpovídal objemu tiskové sestavy"
 
 msgid "Flush Options"
-msgstr "Možnosti Čištění"
+msgstr "Možnosti čištění"
 
 msgid "Flush into objects' infill"
 msgstr "Čištění do výplně objektů"
@@ -1024,13 +1024,13 @@ msgid "Flush into objects' support"
 msgstr "Čištění do podpěr objektů"
 
 msgid "Edit in Parameter Table"
-msgstr "Upravit v tabulce Parametrů"
+msgstr "Upravit v tabulce parametrů"
 
 msgid "Convert from inch"
-msgstr "Převést z palce"
+msgstr "Převést z palců"
 
 msgid "Restore to inch"
-msgstr "Obnovit na palec"
+msgstr "Obnovit na palce"
 
 msgid "Convert from meter"
 msgstr "Převést z mm"
@@ -1042,16 +1042,16 @@ msgid "Assemble"
 msgstr "Sestavit"
 
 msgid "Assemble the selected objects to an object with multiple parts"
-msgstr "Sestavte vybrané objekty do objektu s více částmi"
+msgstr "Sestavit vybrané objekty do jednoho objektu s více částmi"
 
 msgid "Assemble the selected objects to an object with single part"
-msgstr "Sestavte vybrané objekty do objektu s jednou částí"
+msgstr "Sestavit vybrané objekty do objektu s jednou částí"
 
 msgid "Mesh boolean"
-msgstr "Booleovská síť"
+msgstr "Síť boolean"
 
 msgid "Mesh boolean operations including union and subtraction"
-msgstr "Booleovské operace na mřížce včetně sjednocení a odečítání"
+msgstr "Operace se síťí boolean včetně sjednocení a odečítání"
 
 msgid "Along X axis"
 msgstr "Podél osy X"
@@ -1078,25 +1078,25 @@ msgid "Mirror object"
 msgstr "Zrcadlit objekt"
 
 msgid "Edit text"
-msgstr ""
+msgstr "Upravit text"
 
 msgid "Ability to change text, font, size, ..."
-msgstr ""
+msgstr "Možnost upravit text, font, velikost, ..."
 
 msgid "Edit SVG"
-msgstr ""
+msgstr "Upravit SVG"
 
 msgid "Change SVG source file, projection, size, ..."
-msgstr ""
+msgstr "Změnit zdrojový soubor SVG, projekce, velikost, ..."
 
 msgid "Invalidate cut info"
 msgstr "Zneplatnění informací o řezu"
 
 msgid "Add Primitive"
-msgstr "Přidat Primitivní"
+msgstr "Přidat primitivní"
 
 msgid "Add Handy models"
-msgstr ""
+msgstr "Přidat užitečné modely"
 
 msgid "Show Labels"
 msgstr "Zobrazit štítky"
@@ -1135,13 +1135,13 @@ msgid "Select All"
 msgstr "Vybrat vše"
 
 msgid "select all objects on current plate"
-msgstr "vybrat všechny objekty na aktuální desce"
+msgstr "vybrat všechny objekty na aktuální podložce"
 
 msgid "Delete All"
 msgstr "Smazat vše"
 
 msgid "delete all objects on current plate"
-msgstr "smazat všechny objekty na aktuální desce"
+msgstr "smazat všechny objekty na aktuální podložce"
 
 msgid "Arrange"
 msgstr "Uspořádat"
@@ -1156,7 +1156,7 @@ msgid "auto rotate current plate"
 msgstr "automatické otáčení aktuální podložky"
 
 msgid "Delete Plate"
-msgstr "Smazat Podložku"
+msgstr "Smazat podložku"
 
 msgid "Remove the selected plate"
 msgstr "Odstranit vybranou podložku"
@@ -1177,10 +1177,10 @@ msgid "Edit print parameters for a single object"
 msgstr "Upravit parametry tisku pro jeden objekt"
 
 msgid "Change Filament"
-msgstr "Změnit Filament"
+msgstr "Změnit filament"
 
 msgid "Set Filament for selected items"
-msgstr "Nastavit Filament pro vybrané položky"
+msgstr "Nastavit filament pro vybrané položky"
 
 msgid "current"
 msgstr "proud"
@@ -1273,7 +1273,7 @@ msgid ""
 "Switch to per-object setting mode to edit process settings of selected "
 "objects."
 msgstr ""
-"Přepněte do režimu nastavení pro jednotlivé objekty a upravte procesní "
+"Přepnout do režimu nastavení pro jednotlivé objekty a upravit procesní "
 "nastavení vybraných předmětů."
 
 msgid "Delete connector from object which is a part of cut"
@@ -1351,7 +1351,7 @@ msgid "Object"
 msgstr "Objekt"
 
 msgid "Part"
-msgstr "Dílů"
+msgstr "Díl"
 
 msgid "Layer"
 msgstr "Vrstva"
@@ -1367,8 +1367,8 @@ msgid ""
 "If first selected item is a part, the second one should be part in the same "
 "object."
 msgstr ""
-"Pokud je tato možnost povolena, zobrazí se při spuštění aplikace užitečné "
-"tipy."
+"Pokud je první vybraná položka díl, druhá by měla být taktéž součástí stejného"
+"objektu."
 
 msgid "The type of the last solid object part is not to be changed."
 msgstr "Typ poslední části pevného objektu nelze změnit."
@@ -1453,19 +1453,19 @@ msgid "Infill density(%)"
 msgstr "Hustota výplně (%)"
 
 msgid "Auto Brim"
-msgstr "Auto Límec"
+msgstr "Automatický límec"
 
 msgid "Auto"
 msgstr "Automaticky"
 
 msgid "Mouse ear"
-msgstr "Uši myši"
+msgstr "Myší uši"
 
 msgid "Outer brim only"
 msgstr "Pouze vnější"
 
 msgid "Inner brim only"
-msgstr "Pouze vnitřní Límec"
+msgstr "Pouze vnitřní límec"
 
 msgid "Outer and inner brim"
 msgstr "Vnější a vnitřní límec"
@@ -1483,7 +1483,7 @@ msgid "Brim"
 msgstr "Límec"
 
 msgid "Object/Part Setting"
-msgstr "Nastavení objektu/dílů"
+msgstr "Nastavení objektu/dílu"
 
 msgid "Reset parameter"
 msgstr "Resetovat parametr"
@@ -1492,13 +1492,13 @@ msgid "Multicolor Print"
 msgstr "Vícebarevný tisk"
 
 msgid "Line Type"
-msgstr "Typ Linky"
+msgstr "Typ linky"
 
 msgid "More"
 msgstr "Více"
 
 msgid "Open Preferences."
-msgstr "Otevřít Nastavení."
+msgstr "Otevřít nastavení."
 
 msgid "Open next tip."
 msgstr "Otevřít další tip."
@@ -1513,13 +1513,13 @@ msgid "Pause"
 msgstr "Pozastavení"
 
 msgid "Template"
-msgstr ""
+msgstr "Šablona"
 
 msgid "Custom"
 msgstr "Vlastní"
 
 msgid "Pause:"
-msgstr "Pauza:"
+msgstr "Pozastavení:"
 
 msgid "Custom Template:"
 msgstr "Vlastní šablona:"
@@ -1549,19 +1549,19 @@ msgid "Add Pause"
 msgstr "Přidat pauzu"
 
 msgid "Insert a pause command at the beginning of this layer."
-msgstr "Vložte příkaz pro pozastavení na začátek této vrstvy."
+msgstr "Vložit příkaz pro pozastavení na začátek této vrstvy."
 
 msgid "Add Custom G-code"
 msgstr "Přidat vlastní G-kód"
 
 msgid "Insert custom G-code at the beginning of this layer."
-msgstr "Vložte vlastní G-kód na začátek této vrstvy."
+msgstr "Vložit vlastní G-kód na začátek této vrstvy."
 
 msgid "Add Custom Template"
 msgstr "Přidat vlastní šablonu"
 
 msgid "Insert template custom G-code at the beginning of this layer."
-msgstr "Vložte vlastní G-kód šablony na začátek této vrstvy."
+msgstr "Vložit vlastní G-kód šablony na začátek této vrstvy."
 
 msgid "Filament "
 msgstr "Filament "
@@ -1630,19 +1630,19 @@ msgid "AMS"
 msgstr "AMS"
 
 msgid "Auto Refill"
-msgstr "Automatické Doplnění"
+msgstr "Automatické doplnění"
 
 msgid "AMS not connected"
 msgstr "AMS není připojen"
 
 msgid "Load Filament"
-msgstr "Zavézt Filament"
+msgstr "Zavést filament"
 
 msgid "Unload Filament"
 msgstr "Vysunout Filament"
 
 msgid "Ext Spool"
-msgstr "Ext Cívka"
+msgstr "Ext cívka"
 
 msgid "Tips"
 msgstr "Tipy"
@@ -1669,16 +1669,16 @@ msgid "Idling..."
 msgstr "Čekání..."
 
 msgid "Heat the nozzle"
-msgstr "Zahřejte trysku"
+msgstr "Zahřát trysku"
 
 msgid "Cut filament"
 msgstr "Vyjmout Filament"
 
 msgid "Pull back current filament"
-msgstr "Vytáhněte aktuální filament"
+msgstr "Vysunout aktuální filament"
 
 msgid "Push new filament into extruder"
-msgstr "Zatlačte nový filament do extruderu"
+msgstr "Zatlačit nový filament do extruderu"
 
 msgid "Purge old filament"
 msgstr "Vyčistit starý filament"
@@ -1693,14 +1693,14 @@ msgid "Check filament location"
 msgstr "Zkontrolovat polohu filamentu"
 
 msgid "Grab new filament"
-msgstr "Vezměte nový filament"
+msgstr "Vzít nový filament"
 
 msgid ""
 "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically "
 "load or unload filiament."
 msgstr ""
-"Vyberte slot AMS a poté stiskněte \" Načíst \" nebo \" Uvolnit \" pro "
-"automatické načtení nebo vyjměte vlákno."
+"Vyberte slot AMS a poté stiskněte tlačítko \"Zavést\" nebo \" Vysunout\" pro "
+"automatické načtení nebo vyjmutí filamentu."
 
 msgid "Edit"
 msgstr "Upravit"
@@ -1709,11 +1709,11 @@ msgid ""
 "All the selected objects are on the locked plate,\n"
 "We can not do auto-arrange on these objects."
 msgstr ""
-"Všechny vybrané objekty jsou na uzamčené desce,\n"
+"Všechny vybrané objekty jsou na uzamčené podložce,\n"
 "Tyto objekty nelze automaticky uspořádat."
 
 msgid "No arrangable objects are selected."
-msgstr "Nejsou vybrány žádné aranžovatelné objekty."
+msgstr "Nejsou vybrány žádné objekty k uspořádání."
 
 msgid ""
 "This plate is locked,\n"
@@ -1734,11 +1734,11 @@ msgstr "Uspořádávání zrušeno."
 msgid ""
 "Arranging is done but there are unpacked items. Reduce spacing and try again."
 msgstr ""
-"Zajištění je hotovo, ale jsou tam rozbalené položky. Zmenšete mezery a "
+"Uspořádání je hotovo, ale jsou zde nerozbalené položky. Zmenšete mezery a "
 "zkuste to znovu."
 
 msgid "Arranging done."
-msgstr "Uspořádávání dokončeno."
+msgstr "Uspořádání dokončeno."
 
 msgid ""
 "Arrange failed. Found some exceptions when processing object geometries."
@@ -1761,14 +1761,14 @@ msgid ""
 "We can not do auto-orient on these objects."
 msgstr ""
 "Všechny vybrané objekty jsou na uzamčené podložce,\n"
-"Nemůžeme automaticky orientovat tyto objekty."
+"Nelze automaticky orientovat tyto objekty."
 
 msgid ""
 "This plate is locked,\n"
 "We can not do auto-orient on this plate."
 msgstr ""
 "Tato podložka je zamčená.\n"
-"Nemůžeme automaticky orientovat tuto podložku."
+"Nelze automaticky orientovat tuto podložku."
 
 msgid "Orienting..."
 msgstr "Orientování..."
@@ -1777,25 +1777,25 @@ msgid "Orienting"
 msgstr "Orientování"
 
 msgid "Orienting canceled."
-msgstr ""
+msgstr "Orientování zrušeno."
 
 msgid "Filling"
-msgstr ""
+msgstr "Vyplňování"
 
 msgid "Bed filling canceled."
 msgstr "Vyplnění podložky zrušeno."
 
 msgid "Bed filling done."
-msgstr "Vyplnění podložky je dokončené."
+msgstr "Vyplnění podložky je dokončeno."
 
 msgid "Searching for optimal orientation"
-msgstr ""
+msgstr "Hledání optimální orientace"
 
 msgid "Orientation search canceled."
-msgstr ""
+msgstr "Hledání vhodné orientace zrušeno."
 
 msgid "Orientation found."
-msgstr ""
+msgstr "Orientace nalezena."
 
 msgid "Logging in"
 msgstr "Přihlášení"
@@ -1826,7 +1826,7 @@ msgid ""
 "The print file exceeds the maximum allowable size (1GB). Please simplify the "
 "model and slice again."
 msgstr ""
-"Tiskový soubor překračuje maximální povolenou velikost (1 GB). Zjednodušte "
+"Tiskový soubor překračuje maximální povolenou velikost (1GB). Zjednodušte "
 "prosím model a znovu slicujte."
 
 msgid "Failed to send the print job. Please try again."
@@ -1837,7 +1837,7 @@ msgstr "Selhalo nahrání souboru na FTP. Zkuste to prosím znovu."
 
 msgid ""
 "Check the current status of the bambu server by clicking on the link above."
-msgstr "Zkontrolujte aktuální stav serveru bambu kliknutím na odkaz výše."
+msgstr "Zkontrolujte aktuální stav serveru Bambu kliknutím na odkaz výše."
 
 msgid ""
 "The size of the print file is too large. Please adjust the file size and try "
@@ -1864,7 +1864,7 @@ msgid "Sending print job through cloud service"
 msgstr "Odesílání tiskové úlohy prostřednictvím cloudové služby"
 
 msgid "Print task sending times out."
-msgstr ""
+msgstr "Vypršel čas pro odeslání tiskové úlohy."
 
 msgid "Service Unavailable"
 msgstr "Služba není k dispozici"
@@ -1877,20 +1877,20 @@ msgstr "Odesílání konfigurace tisku"
 
 #, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the device page in %ss"
-msgstr "Úspěšně odesláno. Automaticky přejde na stránku zařízení v %ss"
+msgstr "Úspěšně odesláno. Automatické přesměrování na stránku zařízení v %ss"
 
 #, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the next page in %ss"
-msgstr "Úspěšně odesláno. Automaticky přejde na další stránku za %ss"
+msgstr "Úspěšně odesláno. Automatické přesměrování na další stránku za %ss"
 
 msgid "An SD card needs to be inserted before printing via LAN."
-msgstr "Před tiskem přes LAN je třeba vložit SD kartu."
+msgstr "Před tiskem přes LAN je třeba nejprve vložit SD kartu."
 
 msgid "Sending gcode file over LAN"
-msgstr "Odesílání souboru gkód přes LAN"
+msgstr "Odesílání souboru G-kód přes LAN"
 
 msgid "Sending gcode file to sdcard"
-msgstr "Odesílání souboru gkód na sd kartu"
+msgstr "Odesílání souboru G-kód na SD kartu"
 
 #, c-format, boost-format
 msgid "Successfully sent. Close current page in %s s"
@@ -1952,7 +1952,7 @@ msgid "Install failed"
 msgstr "Instalace se nezdařila"
 
 msgid "Portions copyright"
-msgstr "Autorská práva"
+msgstr "Části chráněné autorským právem"
 
 msgid "Copyright"
 msgstr "Autorská práva"
@@ -1971,9 +1971,9 @@ msgid ""
 "by Prusa Research.  PrusaSlicer is from Slic3r by Alessandro Ranellucci and "
 "the RepRap community"
 msgstr ""
-"Orca Slicer je založen na BambuStudio od Bambulab, které je od PrusaSlicer "
-"od Prusa Research. PrusaSlicer je od Slic3r od Alessandra Ranellucciho a "
-"komunita RepRap"
+"Orca Slicer je založen na BambuStudio od Bambulab, které používá části zdrojových kódů z PrusaSlicer "
+"od Prusa Research. PrusaSlicer je založen na Slic3r od Alessandra Ranellucciho a "
+"komunity RepRap"
 
 msgid "Libraries"
 msgstr "Knihovny"
@@ -2046,7 +2046,7 @@ msgid "Setting AMS slot information while printing is not supported"
 msgstr "Nastavení informací o slotu AMS při tisku není podporováno"
 
 msgid "Factors of Flow Dynamics Calibration"
-msgstr "Faktory Kalibrace Dynamiky Průtoku"
+msgstr "Faktory kalibrace dynamiky průtoku"
 
 msgid "PA Profile"
 msgstr "Profil PA"
@@ -2061,22 +2061,22 @@ msgid "Setting Virtual slot information while printing is not supported"
 msgstr "Nastavení informací o virtuálním slotu během tisku není podporováno"
 
 msgid "Are you sure you want to clear the filament information?"
-msgstr "Jste si jistý, že chcete vymazat informace o filamentu?"
+msgstr "Jste si jistí, že chcete vymazat informace o filamentu?"
 
 msgid "You need to select the material type and color first."
 msgstr "Nejprve musíte vybrat typ materiálu a barvu."
 
 msgid "Please input a valid value (K in 0~0.3)"
-msgstr ""
+msgstr "Prosím, vložte platnou hodnotu (K v rozsahu 0~0.3)"
 
 msgid "Please input a valid value (K in 0~0.3, N in 0.6~2.0)"
-msgstr ""
+msgstr "Prosím, vložte platnou hodnotu (K v rozsahu 0~0.3, N v rozsahu 0.6~2.0)"
 
 msgid "Other Color"
-msgstr "Jiná Barva"
+msgstr "Jiná barva"
 
 msgid "Custom Color"
-msgstr "Vlastní Barva"
+msgstr "Vlastní barva"
 
 msgid "Dynamic flow calibration"
 msgstr "Kalibrace dynamického průtoku"
@@ -2087,20 +2087,20 @@ msgid ""
 "auto-filled by selecting a filament preset."
 msgstr ""
 "Teplota trysky a maximální objemová rychlost ovlivní výsledky kalibrace. "
-"Vyplňte prosím stejné hodnoty jako při skutečném tisku. Mohou to být "
-"automaticky plněno výběrem předvolby filamentu."
+"Vyplňte prosím stejné hodnoty jako při skutečném tisku. Mohou být "
+"automaticky vyplněny výběrem předvolby filamentu."
 
 msgid "Nozzle Diameter"
 msgstr "Průměr trysky"
 
 msgid "Bed Type"
-msgstr "Typ Podložky"
+msgstr "Typ podložky"
 
 msgid "Nozzle temperature"
 msgstr "Teplota trysky"
 
 msgid "Bed Temperature"
-msgstr "Teplota Podložky"
+msgstr "Teplota podložky"
 
 msgid "Max volumetric speed"
 msgstr "Maximální objemová rychlost"
@@ -2125,9 +2125,9 @@ msgid ""
 "hot bed like the picture below, and fill the value on its left side into the "
 "factor K input box."
 msgstr ""
-"Kalibrace dokončena. Najděte nejjednotnější linii extruze na své horké "
-"podložce jako na obrázku níže a vyplňte hodnotu na její levé straně do "
-"vstupního pole faktoru K."
+"Kalibrace dokončena. Najděte nejjednotnější linii extruze na své zahřáté "
+"podložce jako na obrázku níže a vyplňte tuto hodnotu na její levé straně do "
+"vstupního pole pro faktor K."
 
 msgid "Save"
 msgstr "Uložit"
@@ -2172,17 +2172,17 @@ msgid "Disable AMS"
 msgstr "Zakázat AMS"
 
 msgid "Print with the filament mounted on the back of chassis"
-msgstr "Tisk s filamentem namontovaným na zadní straně podvozku"
+msgstr "Tisk s filamentem namontovaným na zadní straně boxu"
 
 msgid "Cabin humidity"
-msgstr "Vlhkost v kabině"
+msgstr "Vlhkost v komoře"
 
 msgid ""
 "Green means that AMS humidity is normal, orange represent humidity is high, "
 "red represent humidity is too high.(Hygrometer: lower the better.)"
 msgstr ""
 "Zelená znamená, že vlhkost AMS je normální, oranžová znamená vlhkost vysokou "
-"Červená znamená, že vlhkost je příliš vysoká. (Vlhkoměr: čím nižší, tím "
+"Červená znamená, že vlhkost je příliš vysoká. (Vlhkoměr: čím nižší hodnota, tím "
 "lepší.)"
 
 msgid "Desiccant status"
