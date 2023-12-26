@@ -4439,62 +4439,51 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
     std::string gcode;
     
     // Port of "wipe inside before extruding an external perimeter" feature from super slicer
-    ExtrusionLoop loop_to_seam = loop;
-    const bool is_full_loop_ccw = loop_to_seam.polygon().is_counter_clockwise();
-    bool is_hole_loop = (loop_to_seam.loop_role() & ExtrusionLoopRole::elrHole) != 0;// loop.make_counter_clockwise();
-    const double nozzle_diam = EXTRUDER_CONFIG(nozzle_diameter);
+    if (m_config.wipe_on_loops.value && !paths.empty() && paths.front().size() > 1 && paths.back().size() > 1 && paths.front().role() == erExternalPerimeter) {
+        const bool is_full_loop_ccw = loop.polygon().is_counter_clockwise();
+        bool is_hole_loop = (loop.loop_role() & ExtrusionLoopRole::elrHole) != 0; // loop.make_counter_clockwise();
+        const double nozzle_diam = EXTRUDER_CONFIG(nozzle_diameter);
 
-    if ( !paths.empty() && paths.front().size() > 1 && paths.back().size() > 1 && paths.front().role() == erExternalPerimeter) {
-        //note: previous & next are inverted to extrude "in the opposite direction, and we are "rewinding"
+        // note: previous & next are inverted to extrude "in the opposite direction, and we are "rewinding"
         Point previous_point = paths.front().polyline.points[1];
         Point current_point = paths.front().polyline.points.front();
         Point next_point = paths.back().polyline.points.back();
+
+        // can happen if seam_gap is null
         if (next_point == current_point) {
-            //can happen if seam_gap is null
-            next_point = paths.back().polyline.points[paths.back().polyline.points.size()-2];
+            next_point = paths.back().polyline.points[paths.back().polyline.points.size() - 2];
         }
+
         Point a = next_point;  // second point
         Point b = previous_point;  // second to last point
-        if (is_hole_loop ? (!is_full_loop_ccw) : (is_full_loop_ccw)) {
+        if ((is_hole_loop ? !is_full_loop_ccw : is_full_loop_ccw)) {
             // swap points
-            Point c = a; a = b; b = c;
+            std::swap(a, b);
         }
+
         double angle = current_point.ccw_angle(a, b) / 3;
 
         // turn left if contour, turn right if hole
-        if (is_hole_loop ? (!is_full_loop_ccw) : (is_full_loop_ccw)) angle *= -1;
+        if (is_hole_loop ? !is_full_loop_ccw : is_full_loop_ccw) angle *= -1;
 
-        // create the destination point along the first segment and rotate it
-        // we make sure we don't exceed the segment length because we don't know
-        // the rotation of the second segment so we might cross the object boundary
-        Vec2d  current_pos = current_point.cast<double>();
-        Vec2d  next_pos = next_point.cast<double>();
-        Vec2d  vec_dist = next_pos - current_pos;
+        Vec2d current_pos = current_point.cast<double>();
+        Vec2d next_pos = next_point.cast<double>();
+        Vec2d vec_dist = next_pos - current_pos;
         double vec_norm = vec_dist.norm();
-        const double setting_max_depth = EXTRUDER_CONFIG(nozzle_diameter);
         coordf_t dist = scaled(nozzle_diam) / 2;
-        Point  pt = (current_pos + vec_dist * (2 * dist / vec_norm)).cast<coord_t>();
+
+        // FIXME Hiding the seams will not work nicely for very densely discretized contours!
+        Point pt = (current_pos + vec_dist * (2 * dist / vec_norm)).cast<coord_t>();
         pt.rotate(angle, current_point);
-        //check if we can go to higher dist
-        /*if (nozzle_diam != 0 && setting_max_depth > nozzle_diam * 0.55) {
-            // call travel_to to trigger retract, so we can check it (but don't use the travel)
-            gcode+=travel_to(pt, paths.front().role(),"");
-            if (m_writer.extruder()->need_unretract())
-                dist = coordf_t(check_wipe::max_depth(paths, scale_t(setting_max_depth), scale_t(nozzle_diam), [current_pos, current_point, vec_dist, vec_norm, angle](coord_t dist)->Point {
-                    Point pt = (current_pos + vec_dist * (2 * dist / vec_norm)).cast<coord_t>();
-                    pt.rotate(angle, current_point);
-                    return pt;
-                    }));
-        }*/
-        // Shift by no more than a nozzle diameter.
-        //FIXME Hiding the seams will not work nicely for very densely discretized contours!
-        pt = (/*(nd >= vec_norm) ? next_pos : */(current_pos + vec_dist * ( 2 * dist / vec_norm))).cast<coord_t>();
+        pt = (current_pos + vec_dist * (2 * dist / vec_norm)).cast<coord_t>();
         pt.rotate(angle, current_point);
+
         // use extrude instead of travel_to_xy to trigger the unretract
-        ExtrusionPath fake_path_wipe(Polyline{ pt , current_point }, paths.front());
+        ExtrusionPath fake_path_wipe(Polyline{pt, current_point}, paths.front());
         fake_path_wipe.mm3_per_mm = 0;
         gcode += extrude_path(fake_path_wipe, "move inwards before retraction/seam", speed);
     }
+
     
     
     bool is_small_peri = false;

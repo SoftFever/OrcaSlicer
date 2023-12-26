@@ -3324,7 +3324,7 @@ def = this->add("filament_loading_speed", coFloats);
     
     def = this->add("wipe_on_loops", coBool);
     def->label = L("Wipe on loops");
-    def->tooltip = L("To minimize the visibility of the seam in a closed loop extrusion, a small inward movement is executed before the extruder leaves the loop.");
+    def->tooltip = L("To minimize the visibility of the seam in a closed loop extrusion, a small inward movement is executed before the extruder leaves the loop. Also the deretraction is performed slightly inside the loop so any potential over extrusion at the start of the external perimeter is hidden from the outside surface.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
