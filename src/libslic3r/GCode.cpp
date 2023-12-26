@@ -4438,7 +4438,7 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
     // extrude along the path
     std::string gcode;
     
-    // Port of "wipe inside before extruding an external perimeter" feature from super slicer
+    //  Port of "wipe inside before extruding an external perimeter" feature from super slicer
     if (m_config.wipe_on_loops.value && !paths.empty() && paths.front().size() > 1 && paths.back().size() > 1 && paths.front().role() == erExternalPerimeter) {
         const bool is_full_loop_ccw = loop.polygon().is_counter_clockwise();
         bool is_hole_loop = (loop.loop_role() & ExtrusionLoopRole::elrHole) != 0; // loop.make_counter_clockwise();
