@@ -1158,7 +1158,7 @@ msgid "delete all objects on current plate"
 msgstr "supprimer tous les objets sur la plaque actuelle"
 
 msgid "Arrange"
-msgstr "Agencer"
+msgstr "Organiser"
 
 msgid "arrange current plate"
 msgstr "organiser la plaque actuelle"
@@ -3252,10 +3252,10 @@ msgid "Auto orient"
 msgstr "Orientation automatique"
 
 msgid "Arrange all objects"
-msgstr "Agencer tous les objets"
+msgstr "Organiser tous les objets"
 
 msgid "Arrange objects on selected plates"
-msgstr "Agencer les objets sur les plaques sélectionnées"
+msgstr "Organiser les objets sur les plaques sélectionnées"
 
 msgid "Split to objects"
 msgstr "Diviser en objets individuels"
