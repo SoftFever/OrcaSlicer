@@ -143,14 +143,14 @@ EditGCodeDialog::EditGCodeDialog(wxWindow* parent, const std::string& key, const
     auto* grid_sizer = new wxFlexGridSizer(1, 3, 5, 15);
     grid_sizer->SetFlexibleDirection(wxBOTH);
 
-    m_params_list = new ParamsViewCtrl(this, wxSize(em * 20, em * 30));
+    m_params_list = new ParamsViewCtrl(this, wxSize(em * 30, em * 70));
     m_params_list->SetFont(wxGetApp().code_font());
     wxGetApp().UpdateDarkUI(m_params_list);
 
     m_add_btn = new ScalableButton(this, wxID_ANY, "add_copies");
     m_add_btn->SetToolTip(_L("Add selected placeholder to G-code"));
 
-    m_gcode_editor = new wxTextCtrl(this, wxID_ANY, value, wxDefaultPosition, wxSize(em * 45, em * 30), wxTE_MULTILINE
+    m_gcode_editor = new wxTextCtrl(this, wxID_ANY, value, wxDefaultPosition, wxSize(em * 75, em * 70), wxTE_MULTILINE
 #ifdef _WIN32
     | wxBORDER_SIMPLE
 #endif
@@ -200,7 +200,11 @@ std::string EditGCodeDialog::get_edited_gcode() const
 
 void EditGCodeDialog::init_params_list(const std::string& custom_gcode_name)
 {
-    const std::vector<std::string> universal_params = get_params_from_file("universal", m_universal_config);
+    const std::vector<std::string> read_write_params = get_params_from_file("rw_slicing_state", m_read_write_config);
+    const std::vector<std::string> universal_params  = get_params_from_file("universal", m_universal_config);
+    const std::vector<std::string> specific_params   = get_params_from_file(custom_gcode_name, m_specific_config);
+
+    m_print_statistics_config = PrintStatistics::placeholders();
 
     auto get_type = [](const std::string& opt_key, const DynamicConfig& config) {
         return config.optptr(opt_key)->is_scalar() ? ParamType::Scalar : ParamType::Vector;
@@ -208,34 +212,102 @@ void EditGCodeDialog::init_params_list(const std::string& custom_gcode_name)
 
     // Add slicing states placeholders
 
-    std::vector<std::string> read_only_opts = { "zhop" };
-    wxDataViewItem group = m_params_list->AppendGroup(_L("Slicing State"), "re_slice");
-    {
-        wxDataViewItem read_only = m_params_list->AppendSubGroup(group, _L("Read Only"),  "lock_closed");
-        for (const auto& opt_key : read_only_opts)
+    std::set<std::string> read_only_slicing_state_opts = { "zhop" };
+
+    wxDataViewItem slicing_state = m_params_list->AppendGroup(_L("[Global] Slicing State"), "re_slice");
+    if (!universal_params.empty()) {
+        wxDataViewItem read_only = m_params_list->AppendSubGroup(slicing_state, _L("Read Only"),  "lock_closed");
+        for (const auto& opt_key : read_only_slicing_state_opts)
             m_params_list->AppendParam(read_only, get_type(opt_key, m_universal_config), opt_key);
     }
 
-    const std::vector<std::string> read_write_params = get_params_from_file("rw_slicing_state", m_read_write_config);
     if (!read_write_params.empty()) {
-        wxDataViewItem read_write = m_params_list->AppendSubGroup(group, _L("Read Write"), "lock_open");
+        wxDataViewItem read_write = m_params_list->AppendSubGroup(slicing_state, _L("Read Write"), "lock_open");
         for (const auto& opt_key : read_write_params)
             m_params_list->AppendParam(read_write, get_type(opt_key, m_read_write_config), opt_key);
     }
 
+    //TODO: Orca: add other params which are related to slicing state that are specific to Orca
+
+    // add other universal params, which are related to slicing state
+    const std::set<std::string> other_slicing_state_opts    = { "initial_extruder"
+//                                                              , "initial_filament_type"
+                                                              , "initial_tool"
+                                                              , "current_extruder"
+                                                              , "is_extruder_used"
+                                                              , "current_object_idx"
+//                                                              , "has_single_extruder_multi_material_priming"
+                                                              , "has_wipe_tower" };
+
+    slicing_state = m_params_list->AppendGroup(_L("Slicing State"), "re_slice");
+    for (const auto& opt_key : other_slicing_state_opts) {
+        if (m_print_statistics_config.has(opt_key))
+            m_params_list->AppendParam(slicing_state, get_type(opt_key, m_print_statistics_config), opt_key);
+        else if(!universal_params.empty())
+            m_params_list->AppendParam(slicing_state, get_type(opt_key, m_universal_config), opt_key);
+    }
+
+    const std::set<std::string> other_print_statistics_opts = { "extruded_volume_total"
+                                                              , "extruded_weight"
+                                                              , "extruded_weight_total"
+                                                              , "total_layer_count"     };
+
+    const std::set<std::string> other_presets_opts          = { "filament_preset"
+//                                                              , "physical_printer_preset"
+                                                              , "printer_preset"
+                                                              , "print_preset"
+                                                              /*, "num_extruders"*/     };
+
+    const std::set<std::string> objects_info_opts           = { "num_instances"
+                                                              , "num_objects"
+                                                              , "scale"
+                                                              , "input_filename"
+                                                              , "input_filename_base"     };
+                                                       
+    const std::set<std::string> dimensions_opts             = { "first_layer_print_convex_hull"
+                                                              , "first_layer_print_max"
+                                                              , "first_layer_print_min"
+                                                              , "first_layer_print_size"
+                                                              , "print_bed_max"
+                                                              , "print_bed_min"
+                                                              , "print_bed_size"     };
+
     // Add universal placeholders
 
     if (!universal_params.empty()) {
-        group = m_params_list->AppendGroup(_L("Universal"), "equal");
+//        wxDataViewItem group = m_params_list->AppendGroup(_L("Universal"), "equal");
 
         // Add print statistics subgroup
 
-        m_print_statistics_config = PrintStatistics::placeholders();
         if (!m_print_statistics_config.empty()) {
-            wxDataViewItem statistics = m_params_list->AppendSubGroup(group, _L("Print Statistics"), "info");
+//            wxDataViewItem statistics = m_params_list->AppendSubGroup(group, _L("Print Statistics"), "info");
+            wxDataViewItem statistics = m_params_list->AppendGroup(_L("Print Statistics"), "info");
             const std::vector<std::string> statistics_params = m_print_statistics_config.keys();
             for (const auto& opt_key : statistics_params)
-                m_params_list->AppendParam(statistics, get_type(opt_key, m_print_statistics_config), opt_key);
+                if (std::find(other_slicing_state_opts.begin(), other_slicing_state_opts.end(), opt_key) == other_slicing_state_opts.end())
+                    m_params_list->AppendParam(statistics, get_type(opt_key, m_print_statistics_config), opt_key);
+                // add other universal params, which are related to print statistics
+            if (!universal_params.empty())
+                for (const auto& opt_key : other_print_statistics_opts)
+                    m_params_list->AppendParam(statistics, get_type(opt_key, m_universal_config), opt_key);
+        }
+
+        // Add objects info subgroup
+
+        if (!universal_params.empty()) {
+//            wxDataViewItem objects_info = m_params_list->AppendSubGroup(group, _L("Objects Info"), "advanced_plus");
+            wxDataViewItem objects_info = m_params_list->AppendGroup(_L("Objects Info"), "advanced_plus");
+            for (const auto& opt_key : objects_info_opts)
+                m_params_list->AppendParam(objects_info, get_type(opt_key, m_universal_config), opt_key);
+        }
+
+        // Add objects info subgroup
+
+        if (!universal_params.empty()) {
+//            wxDataViewItem dimensions = m_params_list->AppendSubGroup(group, _L("Dimensions"), "measure");
+            wxDataViewItem dimensions = m_params_list->AppendGroup(_L("Dimensions"), "measure");
+            for (const auto& opt_key : dimensions_opts)
+                m_params_list->AppendParam(dimensions, get_type(opt_key, m_universal_config), opt_key);
         }
 
         // Add timestamp subgroup
@@ -243,23 +315,30 @@ void EditGCodeDialog::init_params_list(const std::string& custom_gcode_name)
         PlaceholderParser parser;
         parser.update_timestamp();
         const DynamicConfig& ts_config = parser.config();
-        wxDataViewItem time_stamp = ts_config.empty() ? group : m_params_list->AppendSubGroup(group, _L("Timestamps"), "time");
+//        wxDataViewItem time_stamp = ts_config.empty() ? group : m_params_list->AppendSubGroup(group, _L("Timestamps"), "time");
+        wxDataViewItem time_stamp = m_params_list->AppendGroup(_L("Timestamps"), "time");
 
         // Add un-grouped params
 
-        wxDataViewItem other = m_params_list->AppendSubGroup(group, _L("Other"), "add_gcode");
-        for (const auto& opt_key : universal_params) {
-            if (m_print_statistics_config.has(opt_key) || std::find(read_only_opts.begin(), read_only_opts.end(), opt_key) != read_only_opts.end())
-                continue;
-            m_params_list->AppendParam( ts_config.has(opt_key) ? time_stamp : other, get_type(opt_key, m_universal_config), opt_key);
-        }
+//        wxDataViewItem other = m_params_list->AppendSubGroup(group, _L("Other"), "add_gcode");
+        wxDataViewItem other = m_params_list->AppendGroup(_L("Other"), "add_gcode");
+        for (const auto& opt_key : universal_params)
+            if (std::find(read_only_slicing_state_opts.begin(), read_only_slicing_state_opts.end(), opt_key)== read_only_slicing_state_opts.end() &&
+                std::find(other_slicing_state_opts.begin(),     other_slicing_state_opts.end(), opt_key)    == other_slicing_state_opts.end() &&
+                std::find(other_print_statistics_opts.begin(),  other_print_statistics_opts.end(), opt_key) == other_print_statistics_opts.end() &&
+                std::find(other_presets_opts.begin(),           other_presets_opts.end(), opt_key)          == other_presets_opts.end() &&
+                std::find(objects_info_opts.begin(),            objects_info_opts.end(), opt_key)           == objects_info_opts.end() &&
+                std::find(dimensions_opts.begin(),              dimensions_opts.end(), opt_key)             == dimensions_opts.end() &&
+                !m_print_statistics_config.has(opt_key)) {
+                m_params_list->AppendParam(ts_config.has(opt_key) ? time_stamp : other, get_type(opt_key, m_universal_config), opt_key);
+            }
+        m_params_list->CheckAndDeleteIfEmpty(other);
     }
 
     // Add specific placeholders
 
-    const std::vector<std::string> specific_params = get_params_from_file(custom_gcode_name, m_specific_config);
     if (!specific_params.empty()) {
-        group = m_params_list->AppendGroup(format_wxstr(_L("Specific for %1%"), custom_gcode_name), "not_equal");
+        wxDataViewItem group = m_params_list->AppendGroup(format_wxstr(_L("Specific for %1%"), custom_gcode_name), /*"not_equal"*/"add_gcode");
         for (const auto& opt_key : specific_params)
             m_params_list->AppendParam(group, get_type(opt_key, m_specific_config), opt_key);
 
@@ -268,10 +347,14 @@ void EditGCodeDialog::init_params_list(const std::string& custom_gcode_name)
 
     // Add placeholders from presets
 
-    add_presets_placeholders();
+    wxDataViewItem presets = add_presets_placeholders();
+    // add other params which are related to presets
+    if (!universal_params.empty())
+        for (const auto& opt_key : other_presets_opts)
+            m_params_list->AppendParam(presets, get_type(opt_key, m_universal_config), opt_key);
 }
 
-void EditGCodeDialog::add_presets_placeholders()
+wxDataViewItem EditGCodeDialog::add_presets_placeholders()
 {
     auto get_set_from_vec = [](const std::vector<std::string>&vec) {
         return std::set<std::string>(vec.begin(), vec.end());
@@ -300,6 +383,8 @@ void EditGCodeDialog::add_presets_placeholders()
     for (const auto&opt : printer_options)
         if (const ConfigOption *optptr = full_config.optptr(opt))
             m_params_list->AppendParam(printer, optptr->is_scalar() ? ParamType::Scalar : ParamType::Vector, opt);
+
+    return group;
 }
 
 void EditGCodeDialog::add_selected_value_to_gcode()
@@ -787,6 +872,14 @@ wxString ParamsViewCtrl::GetSelectedValue()
 std::string ParamsViewCtrl::GetSelectedParamKey()
 {
     return model->GetParamKey(this->GetSelection());
+}
+
+void ParamsViewCtrl::CheckAndDeleteIfEmpty(wxDataViewItem item)
+{
+    wxDataViewItemArray children;
+    model->GetChildren(item, children);
+    if (children.IsEmpty())
+        model->Delete(item);
 }
 
 void ParamsViewCtrl::Clear()
