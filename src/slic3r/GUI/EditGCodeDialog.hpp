@@ -9,6 +9,7 @@
 #include "GUI_Utils.hpp"
 #include "wxExtensions.hpp"
 #include "libslic3r/Preset.hpp"
+#include "libslic3r/PrintConfig.hpp"
 
 class wxListBox;
 class wxTextCtrl;
@@ -32,10 +33,14 @@ class EditGCodeDialog : public DPIDialog
     wxStaticText*       m_param_label   {nullptr};
     wxStaticText*       m_param_description {nullptr};
 
-    DynamicConfig       m_read_write_config;
-    DynamicConfig       m_universal_config;
-    DynamicConfig       m_specific_config;
-    DynamicConfig       m_print_statistics_config;
+    ReadOnlySlicingStatesConfigDef  cgp_ro_slicing_states_config_def;
+    ReadWriteSlicingStatesConfigDef cgp_rw_slicing_states_config_def;
+    OtherSlicingStatesConfigDef     cgp_other_slicing_states_config_def;
+    PrintStatisticsConfigDef        cgp_print_statistics_config_def;
+    ObjectsInfoConfigDef            cgp_objects_info_config_def;
+    DimensionsConfigDef             cgp_dimensions_config_def;
+    TimestampsConfigDef             cgp_timestamps_config_def;
+    OtherPresetsConfigDef           cgp_other_presets_config_def;
 
 public:
     EditGCodeDialog(wxWindow*parent, const std::string&key, const std::string&value);
