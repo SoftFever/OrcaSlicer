@@ -30,7 +30,7 @@ Orca Slicer's logo is designed by community member Justin Levine(@freejstnalxndr
 **Mac**:
 1. Download the DMG for your computer: `arm64` version for Apple Silicon and `x86_64` for Intel CPU.  
 2. Drag OrcaSlicer.app to Application folder. 
-3. *If you want to run a build from a PR, you also need following instructions bellow*  
+3. *If you want to run a build from a PR, you also need following instructions below*  
     <details quarantine>
     - Option 1 (You only need to do this once. After that the app can be opened normally.):
       - Step 1: Hold _cmd_ and right click the app, from the context menu choose **Open**.
