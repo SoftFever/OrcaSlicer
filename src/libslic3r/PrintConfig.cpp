@@ -6458,6 +6458,322 @@ void DynamicPrintAndCLIConfig::handle_legacy(t_config_option_key &opt_key, std::
     }
 }
 
+// SlicingStatesConfigDefs
+
+ReadOnlySlicingStatesConfigDef::ReadOnlySlicingStatesConfigDef()
+{
+    ConfigOptionDef* def;
+
+    def = this->add("zhop", coFloat);
+    def->label = L("");
+    def->tooltip = L("");
+}
+
+ReadWriteSlicingStatesConfigDef::ReadWriteSlicingStatesConfigDef()
+{
+    ConfigOptionDef* def;
+
+    def = this->add("position", coFloats);
+    def->label = L("Position");
+    def->tooltip = L("");
+
+    def = this->add("e_retracted", coFloats);
+    def->label = L("");
+    def->tooltip = L("");
+
+    def = this->add("e_restart_extra", coFloats);
+    def->label = L("");
+    def->tooltip = L("");
+
+    def = this->add("e_position", coFloats);
+    def->label = L("");
+    def->tooltip = L("");
+}
+
+OtherSlicingStatesConfigDef::OtherSlicingStatesConfigDef()
+{
+    ConfigOptionDef* def;
+
+    def = this->add("current_extruder", coInt);
+    def->label = L("Current extruder");
+    def->tooltip = L("");
+
+    def = this->add("current_object_idx", coInt);
+    def->label = L("Current object index");
+    def->tooltip = L("");
+
+    def = this->add("has_single_extruder_multi_material_priming", coBool);
+    def->label = L("Has single extruder MM priming");
+    def->tooltip = L("");
+
+    def = this->add("has_wipe_tower", coBool);
+    def->label = L("Has wipe tower");
+    def->tooltip = L("");
+
+    def = this->add("initial_extruder", coInt);
+    def->label = L("Initial extruder");
+    def->tooltip = L("");
+
+    def = this->add("initial_filament_type", coStrings);
+    def->label = L("");
+    def->tooltip = L("");
+
+    def = this->add("initial_tool", coInt);
+    def->label = L("Initial tool");
+    def->tooltip = L("");
+
+    def = this->add("is_extruder_used", coBools);
+    def->label = L("");
+    def->tooltip = L("");
+}
+
+PrintStatisticsConfigDef::PrintStatisticsConfigDef()
+{
+    ConfigOptionDef* def;
+
+    def = this->add("extruded_volume", coFloats);
+    def->label = L("");
+    def->tooltip = L("");
+
+    def = this->add("normal_print_time", coString);
+    def->label = L("");
+    def->tooltip = L("");
+
+    def = this->add("num_printing_extruders", coInt);
+    def->label = L("");
+    def->tooltip = L("");
+
+    def = this->add("print_time", coString);
+    def->label = L("");
+    def->tooltip = L("");
+
+    def = this->add("printing_filament_types", coString);
+    def->label = L("");
+    def->tooltip = L("");
+
+    def = this->add("silent_print_time", coString);
+    def->label = L("");
+    def->tooltip = L("");
+
+    def = this->add("total_cost", coFloat);
+    def->label = L("");
+    def->tooltip = L("");
+
+    def = this->add("total_weight", coFloat);
+    def->label = L("");
+    def->tooltip = L("");
+
+    def = this->add("total_wipe_tower_cost", coFloat);
+    def->label = L("");
+    def->tooltip = L("");
+
+    def = this->add("total_wipe_tower_filament", coFloat);
+    def->label = L("");
+    def->tooltip = L("");
+
+    def = this->add("used_filament", coFloat);
+    def->label = L("");
+    def->tooltip = L("");
+
+    def = this->add("total_toolchanges", coInt);
+    def->label = L("Total toolchanges");
+    def->tooltip = L("");
+
+    def = this->add("extruded_volume_total", coFloat);
+    def->label = L("");
+    def->tooltip = L("");
+
+    def = this->add("extruded_weight", coFloats);
+    def->label = L("");
+    def->tooltip = L("");
+
+    def = this->add("extruded_weight_total", coFloat);
+    def->label = L("");
+    def->tooltip = L("");
+
+    def = this->add("total_layer_count", coInt);
+    def->label = L("Total layer count");
+    def->tooltip = L("");
+}
+
+ObjectsInfoConfigDef::ObjectsInfoConfigDef()
+{
+    ConfigOptionDef* def;
+
+    def = this->add("num_objects", coInt);
+    def->label = L("");
+    def->tooltip = L("");
+
+    def = this->add("num_instances", coInt);
+    def->label = L("");
+    def->tooltip = L("");
+
+    def = this->add("scale", coStrings);
+    def->label = L("");
+    def->tooltip = L("");
+
+    def = this->add("input_filename", coString);
+    def->label = L("");
+    def->tooltip = L("");
+
+    def = this->add("input_filename_base", coString);
+    def->label = L("");
+    def->tooltip = L("");
+}
+
+DimensionsConfigDef::DimensionsConfigDef()
+{
+    ConfigOptionDef* def;
+
+    def = this->add("first_layer_print_convex_hull", coPoints);
+    def->label = L("");
+    def->tooltip = L("");
+
+    def = this->add("first_layer_print_min", coFloats);
+    def->label = L("");
+    def->tooltip = L("");
+
+    def = this->add("first_layer_print_max", coFloats);
+    def->label = L("");
+    def->tooltip = L("");
+
+    def = this->add("first_layer_print_size", coFloats);
+    def->label = L("");
+    def->tooltip = L("");
+
+    def = this->add("print_bed_min", coFloats);
+    def->label = L("");
+    def->tooltip = L("");
+
+    def = this->add("print_bed_max", coFloats);
+    def->label = L("");
+    def->tooltip = L("");
+
+    def = this->add("print_bed_size", coFloats);
+    def->label = L("");
+    def->tooltip = L("");
+}
+
+TimestampsConfigDef::TimestampsConfigDef()
+{
+    ConfigOptionDef* def;
+
+    def = this->add("timestamp", coString);
+    def->label = L("");
+    def->tooltip = L("");
+
+    def = this->add("year", coInt);
+    def->label = L("Year");
+    def->tooltip = L("");
+
+    def = this->add("month", coInt);
+    def->label = L("Month");
+    def->tooltip = L("");
+
+    def = this->add("day", coInt);
+    def->label = L("Day");
+    def->tooltip = L("");
+
+    def = this->add("hour", coInt);
+    def->label = L("Hour");
+    def->tooltip = L("");
+
+    def = this->add("minute", coInt);
+    def->label = L("Minute");
+    def->tooltip = L("");
+
+    def = this->add("second", coInt);
+    def->label = L("Second");
+    def->tooltip = L("");
+}
+
+OtherPresetsConfigDef::OtherPresetsConfigDef()
+{
+    ConfigOptionDef* def;
+
+    def = this->add("num_extruders", coInt);
+    def->label = L("");
+    def->tooltip = L("");
+
+    def = this->add("print_preset", coString);
+    def->label = L("");
+    def->tooltip = L("");
+
+    def = this->add("filament_preset", coString);
+    def->label = L("");
+    def->tooltip = L("");
+
+    def = this->add("printer_preset", coString);
+    def->label = L("");
+    def->tooltip = L("");
+
+    def = this->add("physical_printer_preset", coString);
+    def->label = L("");
+    def->tooltip = L("");
+}
+
+
+static std::map<t_custom_gcode_key, t_config_option_keys> s_CustomGcodeSpecificPlaceholders{
+    {"start_filament_gcode",    {"layer_num", "layer_z", "max_layer_z", "filament_extruder_id"}},
+    {"end_filament_gcode",      {"layer_num", "layer_z", "max_layer_z", "filament_extruder_id"}},
+    {"end_gcode",               {"layer_num", "layer_z", "max_layer_z", "filament_extruder_id"}},
+    {"before_layer_gcode",      {"layer_num", "layer_z", "max_layer_z"}},
+    {"layer_gcode",             {"layer_num", "layer_z", "max_layer_z"}},
+    {"toolchange_gcode",        {"layer_num", "layer_z", "max_layer_z", "previous_extruder", "next_extruder", "toolchange_z"}},
+    // some internal g_code ?
+    {"tcr_rotated_gcode",       {"toolchange_gcode", "deretraction_from_wipe_tower_generator"}},
+};
+
+const std::map<t_custom_gcode_key, t_config_option_keys>& custom_gcode_specific_placeholders()
+{
+    return s_CustomGcodeSpecificPlaceholders;
+}
+
+CustomGcodeSpecificConfigDef::CustomGcodeSpecificConfigDef()
+{
+    ConfigOptionDef* def;
+
+    def = this->add("layer_num", coInt);
+    def->label = L("");
+    def->tooltip = L("");
+
+    def = this->add("layer_z", coFloat);
+    def->label = L("");
+    def->tooltip = L("");
+
+    def = this->add("max_layer_z", coFloat);
+    def->label = L("");
+    def->tooltip = L("");
+
+    def = this->add("filament_extruder_id", coInt);
+    def->label = L("");
+    def->tooltip = L("");
+
+    def = this->add("previous_extruder", coInt);
+    def->label = L("");
+    def->tooltip = L("");
+
+    def = this->add("next_extruder", coInt);
+    def->label = L("");
+    def->tooltip = L("");
+
+    def = this->add("toolchange_z", coFloat);
+    def->label = L("");
+    def->tooltip = L("");
+
+    // I'm not sure if next options are really needed
+
+    def = this->add("toolchange_gcode", coString);
+    def->label = L("");
+    def->tooltip = L("");
+
+    def = this->add("deretraction_from_wipe_tower_generator", coString);
+    def->label = L("");
+    def->tooltip = L("");
+}
+
+const CustomGcodeSpecificConfigDef custom_gcode_specific_config_def;
+
 uint64_t ModelConfig::s_last_timestamp = 1;
 
 static Points to_points(const std::vector<Vec2d> &dpts)
