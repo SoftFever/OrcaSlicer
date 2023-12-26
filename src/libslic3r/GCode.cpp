@@ -2936,11 +2936,34 @@ void GCode::process_layers(
 
 std::string GCode::placeholder_parser_process(const std::string &name, const std::string &templ, unsigned int current_extruder_id, const DynamicConfig *config_override)
 {
-#if GET_CUSTOM_GCODE_PLACEHOLDERS
-    if (config_override &&
-        g_code_placeholders_map.find(name) == g_code_placeholders_map.end())
-        g_code_placeholders_map[name] = *config_override;
+    // Orca: Modified functionality from PS implementation since debug is rarely used in current workflow.
+    // Allows generation to be toggled via a CMake config option.
+#if !defined(NDEBUG) || defined(ORCA_CHECK_GCODE_PLACEHOLDERS) // CHECK_CUSTOM_GCODE_PLACEHOLDERS
+    if (config_override) {
+        const auto& custom_gcode_placeholders = custom_gcode_specific_placeholders();
+
+        // 1-st check: custom G-code "name" have to be present in s_CustomGcodeSpecificOptions;
+        //if (custom_gcode_placeholders.count(name) > 0) {
+        //    const auto& placeholders = custom_gcode_placeholders.at(name);
+        if (auto it = custom_gcode_placeholders.find(name); it != custom_gcode_placeholders.end()) {
+            const auto& placeholders = it->second;
+
+            for (const std::string& key : config_override->keys()) {
+                // 2-nd check: "key" have to be present in s_CustomGcodeSpecificOptions for "name" custom G-code ;
+                if (std::find(placeholders.begin(), placeholders.end(), key) == placeholders.end())
+                    throw Slic3r::PlaceholderParserError(format("\"%s\" placeholder for \"%s\" custom G-code \n"
+                                                                "needs to be added to s_CustomGcodeSpecificOptions", key.c_str(), name.c_str()));
+                // 3-rd check: "key" have to be present in CustomGcodeSpecificConfigDef for "key" placeholder;
+                if (!custom_gcode_specific_config_def.has(key))
+                    throw Slic3r::PlaceholderParserError(format("Definition of \"%s\" placeholder \n"
+                                                                "needs to be added to CustomGcodeSpecificConfigDef", key.c_str()));
+            }
+        }
+        else
+            throw Slic3r::PlaceholderParserError(format("\"%s\" custom G-code needs to be added to s_CustomGcodeSpecificOptions", name.c_str()));
+    }
 #endif
+
 PlaceholderParserIntegration &ppi = m_placeholder_parser_integration;
     try {
         ppi.update_from_gcodewriter(m_writer);
