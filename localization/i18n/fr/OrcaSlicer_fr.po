@@ -3252,10 +3252,10 @@ msgid "Auto orient"
 msgstr "Orientation automatique"
 
 msgid "Arrange all objects"
-msgstr "Disposer tous les objets"
+msgstr "Agencer tous les objets"
 
 msgid "Arrange objects on selected plates"
-msgstr "Disposer les objets sur les plaques sélectionnées"
+msgstr "Agencer les objets sur les plaques sélectionnées"
 
 msgid "Split to objects"
 msgstr "Diviser en objets individuels"
