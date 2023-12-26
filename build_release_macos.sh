@@ -35,18 +35,19 @@ fi
 echo "Arch: $ARCH"
 echo "BUILD_TARGET: $BUILD_TARGET"
 
-if which -s brew; then
-	brew --prefix libiconv
-	brew --prefix zstd
-	export LIBRARY_PATH=$LIBRARY_PATH:$(brew --prefix zstd)/lib/
-elif which -s port; then
-	port install libiconv
-	port install zstd
-	export LIBRARY_PATH=$LIBRARY_PATH:/opt/local/lib
-else
-	echo "Need either brew or macports to successfully build deps"
-	exit 1
-fi
+# if which -s brew; then
+# 	brew --prefix libiconv
+# 	brew --prefix zstd
+# 	export LIBRARY_PATH=$LIBRARY_PATH:$(brew --prefix zstd)/lib/
+# elif which -s port; then
+# 	port install libiconv
+# 	port install zstd
+# 	export LIBRARY_PATH=$LIBRARY_PATH:/opt/local/lib
+# else
+# 	echo "Need either brew or macports to successfully build deps"
+# 	exit 1
+# fi
+
 
 WD="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd $WD/deps
