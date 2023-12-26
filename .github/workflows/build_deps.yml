@@ -67,7 +67,7 @@ jobs:
             cd ${{ github.workspace }}/deps/build
 
       - name: Build on Mac ${{ inputs.arch }}
-        if: inputs.os == 'macos-13'
+        if: inputs.os == 'macos-12'
         working-directory: ${{ github.workspace }}
         run: |
             brew install cmake git gettext automake
@@ -98,7 +98,7 @@ jobs:
             
       # Upload Artifacts
       - name: Upload Mac ${{ inputs.arch }} artifacts
-        if: inputs.os == 'macos-13'
+        if: inputs.os == 'macos-12'
         uses: actions/upload-artifact@v3
         with:
           name: OrcaSlicer_dep_mac_${{ inputs.arch }}_${{ env.date }}
