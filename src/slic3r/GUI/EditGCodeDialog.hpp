@@ -30,6 +30,7 @@ class EditGCodeDialog : public DPIDialog
     ScalableButton*     m_add_btn       {nullptr};
     wxTextCtrl*         m_gcode_editor  {nullptr};
     wxStaticText*       m_param_label   {nullptr};
+    wxStaticText*       m_param_description {nullptr};
 
     DynamicConfig       m_read_write_config;
     DynamicConfig       m_universal_config;
