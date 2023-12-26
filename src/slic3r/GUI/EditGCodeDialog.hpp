@@ -43,7 +43,7 @@ public:
     std::string get_edited_gcode() const;
 
     void init_params_list(const std::string& custom_gcode_name);
-    void add_presets_placeholders();
+    wxDataViewItem add_presets_placeholders();
 
     void add_selected_value_to_gcode();
     void bind_list_and_button();
@@ -213,6 +213,8 @@ public:
     wxString        GetValue(wxDataViewItem item);
     wxString        GetSelectedValue();
     std::string     GetSelectedParamKey();
+
+    void    CheckAndDeleteIfEmpty(wxDataViewItem item);
 
     void    Clear();
     void    Rescale(int em = 0);
