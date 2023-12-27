@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-27 13:03+0800\n"
+"POT-Creation-Date: 2023-12-23 22:15+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: Guislain Cyril, Thomas Lété\n"
@@ -33,7 +33,7 @@ msgid "Ctrl + Mouse wheel"
 msgstr "Ctrl + Molette de la souris"
 
 msgid "Pen size"
-msgstr "Taille du stylo"
+msgstr "Taille du crayon"
 
 msgid "Left mouse button"
 msgstr "Bouton gauche de la souris"
@@ -54,7 +54,7 @@ msgid "Erase"
 msgstr "Effacer"
 
 msgid "Erase all painting"
-msgstr "Effacer toute peinture"
+msgstr "Effacer tout"
 
 msgid "Highlight overhang areas"
 msgstr "Mettre en surbrillance les zones en surplomb"
@@ -110,7 +110,7 @@ msgid "Gizmo-Place on Face"
 msgstr ""
 
 msgid "Lay on face"
-msgstr "Positionner sur une face"
+msgstr "Poser sur une face"
 
 #, boost-format
 msgid ""
@@ -125,7 +125,7 @@ msgid "Color Painting"
 msgstr "Mettre en couleur"
 
 msgid "Pen shape"
-msgstr "Forme de stylo"
+msgstr "Forme de crayon"
 
 msgid "Paint"
 msgstr "Peindre"
@@ -164,7 +164,7 @@ msgid "Toggle Wireframe"
 msgstr "Activer Maillage"
 
 msgid "Shortcut Key "
-msgstr "Touche de raccourci "
+msgstr "Raccourci "
 
 msgid "Triangle"
 msgstr "Triangle"
@@ -733,10 +733,10 @@ msgstr "Utilisateur déconnecté"
 msgid "new or open project file is not allowed during the slicing process!"
 msgstr ""
 "l’ouverture ou la création d'un fichier de projet n'est pas autorisée "
-"pendant le processus de tranchage !"
+"pendant le processus de découpe !"
 
 msgid "Open Project"
-msgstr "Ouvrir un Projet"
+msgstr "Ouvrir un projet"
 
 msgid ""
 "The version of Orca Slicer is too low and needs to be updated to the latest "
@@ -1827,7 +1827,7 @@ msgstr "Vérifiez la connexion réseau de l'imprimante."
 
 msgid "Abnormal print file data. Please slice again."
 msgstr ""
-"Données de fichier d'impression anormales, veuillez retrancher le fichier."
+"Données de fichier d'impression anormales, veuillez redécouvre le fichier."
 
 msgid "Task canceled."
 msgstr "Tâche annulée."
@@ -1841,14 +1841,14 @@ msgid "Cloud service connection failed. Please try again."
 msgstr "La connexion au service cloud a échoué. Veuillez réessayer."
 
 msgid "Print file not found. please slice again."
-msgstr "Fichier d'impression introuvable, veuillez le retrancher."
+msgstr "Fichier d'impression introuvable, veuillez le redécouvre."
 
 msgid ""
 "The print file exceeds the maximum allowable size (1GB). Please simplify the "
 "model and slice again."
 msgstr ""
 "Le fichier d'impression dépasse la taille maximale autorisée (1 Go). "
-"Veuillez simplifier le modèle puis le retrancher."
+"Veuillez simplifier le modèle puis le redécouvre."
 
 msgid "Failed to send the print job. Please try again."
 msgstr "L'envoi de la tâche d'impression a échoué. Veuillez réessayer."
@@ -1871,7 +1871,7 @@ msgstr ""
 
 msgid "Print file not found, Please slice it again and send it for printing."
 msgstr ""
-"Fichier d'impression introuvable, retranchez le et renvoyez le pour "
+"Fichier d'impression introuvable, redécoupez-le et renvoyez-le pour "
 "impression."
 
 msgid ""
@@ -2373,7 +2373,7 @@ msgstr ""
 "de filament lorsque la bobine actuelle est épuisé"
 
 msgid "File"
-msgstr "Dossier"
+msgstr "Fichier"
 
 msgid "Calibration"
 msgstr "Calibration"
@@ -3407,7 +3407,7 @@ msgid "Invalid input."
 msgstr "Saisie non valide."
 
 msgid "New Window"
-msgstr "Nouvelle Fenêtre"
+msgstr "Nouvelle fenêtre"
 
 msgid "Open a new window"
 msgstr "Ouvrir une nouvelle fenêtre"
@@ -3444,13 +3444,13 @@ msgid "will be closed before creating a new model. Do you want to continue?"
 msgstr "sera fermé avant de créer un nouveau modèle. Voulez-vous continuer ?"
 
 msgid "Slice plate"
-msgstr "Trancher le plateau"
+msgstr "Découper le plateau"
 
 msgid "Print plate"
 msgstr "Imprimer plateau"
 
 msgid "Slice all"
-msgstr "Tout trancher"
+msgstr "Tout découper"
 
 msgid "Export G-code file"
 msgstr "Exporter le fichier G-code"
@@ -3459,10 +3459,10 @@ msgid "Send"
 msgstr "Envoyer"
 
 msgid "Export plate sliced file"
-msgstr "Exporter fichier tranché du plateau"
+msgstr "Exporter fichier découpé du plateau"
 
 msgid "Export all sliced file"
-msgstr "Exporter tous les fichiers tranchés"
+msgstr "Exporter tous les fichiers découpés"
 
 msgid "Print all"
 msgstr "Tout imprimer"
@@ -3546,7 +3546,7 @@ msgid "Start a new window"
 msgstr "Démarrer une nouvelle fenêtre"
 
 msgid "New Project"
-msgstr "Nouveau Projet"
+msgstr "Nouveau projet"
 
 msgid "Start a new project"
 msgstr "Démarrer un nouveau projet"
@@ -3600,7 +3600,7 @@ msgid "Export 3mf file without using some 3mf-extensions"
 msgstr "Exportation de fichiers 3MF sans utiliser d'extensions"
 
 msgid "Export current sliced file"
-msgstr "Exporter le fichier tranché actuel"
+msgstr "Exporter le fichier découpé actuel"
 
 msgid "Export all plate sliced file"
 msgstr "Exportation de tous les fichiers slicés de la plaque"
@@ -3651,7 +3651,7 @@ msgid "Deletes the current selection"
 msgstr "Supprime la sélection en cours"
 
 msgid "Delete all"
-msgstr "Tout Supprimer"
+msgstr "Tout supprimer"
 
 msgid "Deletes all objects"
 msgstr "Supprimer tous les objets"
@@ -3693,13 +3693,13 @@ msgid "Reset to default window layout"
 msgstr "Rétablissement de la disposition par défaut des fenêtres"
 
 msgid "Show &Labels"
-msgstr "Afficher &Les Étiquettes"
+msgstr "Afficher &les étiquettes"
 
 msgid "Show object labels in 3D scene"
 msgstr "Afficher les étiquettes des objets dans la scène 3D"
 
 msgid "Show &Overhang"
-msgstr "Montrer Surplombs"
+msgstr "Montrer les &surplombs"
 
 msgid "Show object overhang highlight in 3D scene"
 msgstr "Afficher la surbrillance des surplombs d'un objet dans la scène 3D"
@@ -3708,7 +3708,7 @@ msgid "Preferences"
 msgstr "Préférences"
 
 msgid "View"
-msgstr "Vue"
+msgstr "Affichage"
 
 msgid "Help"
 msgstr "Aide"
@@ -3920,7 +3920,7 @@ msgstr "Arrêté."
 
 msgid "LAN Connection Failed (Failed to start liveview)"
 msgstr ""
-"Échec de la connexion au réseau local (échec du démarrage de la vue en "
+"Échec de la connexion au réseau local (échec du démarrage de l’affichage en "
 "direct)"
 
 msgid ""
@@ -4238,7 +4238,7 @@ msgstr "Tranchage Cloud..."
 
 #, c-format, boost-format
 msgid "In Cloud Slicing Queue, there are %s tasks ahead."
-msgstr "Dans la file d'attente des tranchage cloud %s tâches vous attendent."
+msgstr "Dans la file d’attente Cloud Slicing, il reste %s tâches en attente."
 
 #, c-format, boost-format
 msgid "Layer: %s"
@@ -4492,8 +4492,8 @@ msgstr[1] " %1$d objets ont des supports personnalisés."
 #, c-format, boost-format
 msgid "%1$d Object has color painting."
 msgid_plural "%1$d Objects have color painting."
-msgstr[0] "%1$d L'objet est peint en couleur."
-msgstr[1] "%1$d L'objets sont peints en couleur."
+msgstr[0] "%1$d L'objet est mis en couleur."
+msgstr[1] "%1$d L'objets sont mis en couleur."
 
 #, c-format, boost-format
 msgid "%1$d object was loaded as a part of cut object."
@@ -4548,10 +4548,10 @@ msgid "Gcode path overlap"
 msgstr "Chevauchement de chemin G-code"
 
 msgid "Support painting"
-msgstr "Soutenir la peinture"
+msgstr "Peindre les supports"
 
 msgid "Color painting"
-msgstr "Peinture couleur"
+msgstr "Mettre en couleur"
 
 msgid "Cut connectors"
 msgstr "Connecteurs de découpe"
@@ -5676,7 +5676,7 @@ msgid "Publish was cancelled"
 msgstr "La publication a été annulée"
 
 msgid "Slicing Plate 1"
-msgstr "Trancher Plaque 1"
+msgstr "Découper Plaque 1"
 
 msgid "Packing data to 3mf"
 msgstr "Collecte des  données  3mf"
@@ -5972,7 +5972,7 @@ msgid ""
 msgstr ""
 "Le type d'imprimante sélectionné lors de la génération du G-Code n'est pas "
 "cohérent avec l'imprimante actuellement sélectionnée. Il est recommandé "
-"d'utiliser le même type d'imprimante pour le tranchage."
+"d'utiliser le même type d'imprimante pour la découpe."
 
 msgid ""
 "There are some unknown filaments in the AMS mappings. Please check whether "
@@ -6024,7 +6024,7 @@ msgstr "Préparation du travail d'impression"
 
 msgid "Abnormal print file data. Please slice again"
 msgstr ""
-"Données de fichier d'impression anormales. Veuillez retrancher le fichier."
+"Données de fichier d'impression anormales. Veuillez redécouvre le fichier."
 
 msgid "The name length exceeds the limit."
 msgstr "La longueur du nom dépasse la limite."
@@ -7406,7 +7406,7 @@ msgstr ""
 "La version du firmware est erronée. La réparation et la mise à jour sont "
 "nécessaires avant l'impression. Voulez-vous effectuer la mise à jour "
 "maintenant ? Vous pouvez également effectuer une mise à jour ultérieurement "
-"depuis l'imprimante ou lors du prochain démarrage de Bambu Studio."
+"depuis l'imprimante ou lors du prochain démarrage d’Ocre Clicher."
 
 msgid "Extension Board"
 msgstr "Carte d'Extension"
@@ -7960,7 +7960,7 @@ msgid ""
 "Slicing height for each layer. Smaller layer height means more accurate and "
 "more printing time"
 msgstr ""
-"Hauteur de tranchage pour chaque couche. Une hauteur de couche plus petite "
+"Hauteur de découpe pour chaque couche. Une hauteur de couche plus petite "
 "signifie plus de précision et plus de temps d'impression"
 
 msgid "Printable height"
@@ -9684,7 +9684,7 @@ msgid ""
 "slicing."
 msgstr ""
 "La dureté de la buse. Zéro signifie qu'il n'est pas nécessaire de vérifier "
-"la dureté de la buse pendant le tranchage."
+"la dureté de la buse pendant la découpe."
 
 msgid "HRC"
 msgstr "HRC"
@@ -10362,7 +10362,7 @@ msgstr ""
 "Ne pas effectuer de rétraction lors de déplacement en zone de remplissage "
 "car même si l’extrudeur suinte, les coulures ne seraient pas visibles. Cela "
 "peut réduire les rétractions pour les modèles complexes et économiser du "
-"temps d’impression, mais ralentit le tranchage et la génération du G-code."
+"temps d’impression, mais ralentit la découpe et la génération du G-code."
 
 msgid "Enable"
 msgstr "Activer"
@@ -10520,7 +10520,7 @@ msgstr ""
 "Le chemin du G-code est généré après avoir simplifié le contour du modèle "
 "pour éviter trop de points et de lignes G-code dans le fichier G-code. Une "
 "valeur plus petite signifie une résolution plus élevée et plus de temps pour "
-"trancher"
+"découper"
 
 msgid "Travel distance threshold"
 msgstr "Seuil de distance parcourue"
@@ -10972,7 +10972,7 @@ msgstr ""
 "conseillé de maintenir la valeur à un niveau raisonnablement bas."
 
 msgid "Slicing Mode"
-msgstr "Mode de tranchage"
+msgstr "Mode de découpe"
 
 msgid ""
 "Use \"Even-odd\" for 3DLabPrint airplane models. Use \"Close holes\" to "
@@ -11995,7 +11995,7 @@ msgid "Optimizing toolpath"
 msgstr "Optimisation du parcours d'outil"
 
 msgid "Slicing mesh"
-msgstr "Maillage de tranchage"
+msgstr "Découpe du maillage"
 
 msgid ""
 "No layers were detected. You might want to repair your STL file(s) or check "
@@ -13796,10 +13796,10 @@ msgid ""
 "sits on the print bed? Select the \"Place on face\" function or press the "
 "<b>F</b> key."
 msgstr ""
-"Positionner sur une face\n"
+"Poser sur une face\n"
 "Saviez-vous qu'il est possible d'orienter rapidement un modèle de manière à "
 "ce que l'une de ses faces repose sur le plateau d'impression ? Sélectionnez "
-"la fonction « Positionner sur une face » ou appuyez sur la touche <b>F</b>."
+"la fonction « Poser sur une face » ou appuyez sur la touche <b>F</b>."
 
 #: resources/data/hints.ini: [hint:Object List]
 msgid ""
@@ -13838,7 +13838,7 @@ msgid ""
 "Did you know that you can view all objects/parts on a table and change "
 "settings for each object/part?"
 msgstr ""
-"Tableau des paramètres de tranchage\n"
+"Tableau des paramètres de découpe\n"
 "Saviez-vous que vous pouvez afficher tous les objets/pièces sur un tableau "
 "et modifier les paramètres de chaque objet/pièce ?"
 
@@ -13982,15 +13982,15 @@ msgid ""
 "one time?"
 msgstr ""
 "Définir les paramètres de plusieurs objets\n"
-"Saviez-vous que vous pouvez définir des paramètres de tranchage pour tous "
-"les objets sélectionnés en une seule fois ?"
+"Saviez-vous que vous pouvez définir des paramètres de découpe pour tous les "
+"objets sélectionnés en une seule fois ?"
 
 #: resources/data/hints.ini: [hint:Stack objects]
 msgid ""
 "Stack objects\n"
 "Did you know that you can stack objects as a whole one?"
 msgstr ""
-"Empilez des objets\n"
+"Empiler des objets\n"
 "Saviez-vous que vous pouvez empiler des objets pour n'en former qu'un?"
 
 #: resources/data/hints.ini: [hint:Flush into support/objects/infill]
@@ -13999,9 +13999,9 @@ msgid ""
 "Did you know that you can save the wasted filament by flushing them into "
 "support/objects/infill during filament change?"
 msgstr ""
-"Rincer dans support/objets/remplissage\n"
-"Saviez-vous que vous pouvez réduire le filament gaspillé en le rinçant dans "
-"le support/les objets/le remplissage lors des changements de filament ?"
+"Purger dans les supports/les objets/le remplissage\n"
+"Saviez-vous que vous pouvez réduire le filament gaspillé en le purgeant dans "
+"les supports/les objets/le remplissage lors des changements de filament ?"
 
 #: resources/data/hints.ini: [hint:Improve strength]
 msgid ""
