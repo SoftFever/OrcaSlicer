@@ -31,7 +31,6 @@ public:
 
     double extrude(double dE);
     double retract(double length, double restart_extra);
-    double need_unretract();
     double unretract();
     double E() const { return m_share_extruder ? m_share_E : m_E; }
     void   reset_E() { m_E = 0.; m_share_E = 0.; }
