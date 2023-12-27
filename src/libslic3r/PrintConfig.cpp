@@ -1219,6 +1219,13 @@ void PrintConfigDef::init_fff_params()
                        "consider turning it off if you are using large nozzles.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(true));
+    
+    def = this->add("dont_filter_internal_bridges", coBool);
+    def->label = L("Don't filter out small internal bridges");
+    def->category = L("Quality");
+    def->tooltip  = L("This option can help reducing pillowing on top surfaces in heavily slanted or curved models.\n\nBy default, small internal bridges are filtered out and the internal solid infill is printed directly over the sparse infill. This works well in most cases, speeding up printing without too much compromise in top surface quality. \n\nHowever, in heavily slanted or curved models or where too low sparse infill density is used this may result in curling of the unsupported solid infill, causing pillowing.\n\n Enabling this option will always print a bridge layer over sparse infill.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
 
 
     def = this->add("max_bridge_length", coFloat);

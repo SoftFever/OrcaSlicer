@@ -1967,7 +1967,6 @@ template<typename T> void debug_draw(std::string name, const T& a, const T& b, c
 void PrintObject::bridge_over_infill()
 {
     BOOST_LOG_TRIVIAL(info) << "Bridge over infill - Start" << log_memory_info();
-
     struct CandidateSurface
     {
         CandidateSurface(const Surface     *original_surface,
@@ -2017,14 +2016,27 @@ void PrintObject::bridge_over_infill()
                     }
                 }
                 unsupported_area = closing(unsupported_area, float(SCALED_EPSILON));
-                // By expanding the lower layer solids, we avoid making bridges from the tiny internal overhangs that are (very likely) supported by previous layer solids
-                // NOTE that we cannot filter out polygons worth bridging by their area, because sometimes there is a very small internal island that will grow into large hole
-                lower_layer_solids = shrink(lower_layer_solids, 1 * spacing); // first remove thin regions that will not support anything
-                lower_layer_solids = expand(lower_layer_solids, (1 + 3) * spacing); // then expand back (opening), and further for parts supported by internal solids
-                // By shrinking the unsupported area, we avoid making bridges from narrow ensuring region along perimeters.
-                unsupported_area   = shrink(unsupported_area, 3 * spacing);
-                unsupported_area   = diff(unsupported_area, lower_layer_solids);
-
+                
+                // Ioannis Giannakas:
+                // Detect use of lightning infill
+                bool has_lightning_infill = false;
+                for (size_t i = 0; i < po->num_printing_regions(); i++) {
+                    if (po->printing_region(i).config().sparse_infill_pattern == ipLightning) {
+                        has_lightning_infill = true;
+                        break;
+                    }
+                }
+                // Ioannis Giannakas:
+                // Lightning infill benefits from always having a bridge layer so don't filter out small unsupported areas. Also, don't filter small internal unsupported areas if the user has requested so.
+                if(!has_lightning_infill && !po->config().dont_filter_internal_bridges){
+                    // By expanding the lower layer solids, we avoid making bridges from the tiny internal overhangs that are (very likely) supported by previous layer solids
+                    // NOTE that we cannot filter out polygons worth bridging by their area, because sometimes there is a very small internal island that will grow into large hole
+                    lower_layer_solids = shrink(lower_layer_solids, 1 * spacing); // first remove thin regions that will not support anything
+                    lower_layer_solids = expand(lower_layer_solids, (1 + 3) * spacing); // then expand back (opening), and further for parts supported by internal solids
+                    // By shrinking the unsupported area, we avoid making bridges from narrow ensuring region along perimeters.
+                    unsupported_area   = shrink(unsupported_area, 3 * spacing);
+                    unsupported_area   = diff(unsupported_area, lower_layer_solids);
+                }
                 for (const LayerRegion *region : layer->regions()) {
                     SurfacesPtr region_internal_solids = region->fill_surfaces.filter_by_type(stInternalSolid);
                     for (const Surface *s : region_internal_solids) {

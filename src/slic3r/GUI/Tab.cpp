@@ -1976,6 +1976,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("bridge_density");
         optgroup->append_single_option_line("thick_bridges");
         optgroup->append_single_option_line("thick_internal_bridges");
+        optgroup->append_single_option_line("dont_filter_internal_bridges");
     
         optgroup = page->new_optgroup(L("Overhangs"), L"param_advanced");
         optgroup->append_single_option_line("detect_overhang_wall");
