@@ -2,7 +2,7 @@
     "type": "filament",
 	"filament_id": "GFG99",
     "setting_id": "GFSG99",
-    "name": "QIDI PETG Tough @Qidi XSmart3 0.6 nozzle",
+    "name": "QIDI PETG Tough 0.6 nozzle",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pet",
