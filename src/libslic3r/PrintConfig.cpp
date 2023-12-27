@@ -6879,8 +6879,6 @@ static std::map<t_custom_gcode_key, t_config_option_keys> s_CustomGcodeSpecificP
     {"before_layer_gcode",      {"layer_num", "layer_z", "max_layer_z"}},
     {"layer_gcode",             {"layer_num", "layer_z", "max_layer_z"}},
     {"toolchange_gcode",        {"layer_num", "layer_z", "max_layer_z", "previous_extruder", "next_extruder", "toolchange_z"}},
-    // some internal g_code ?
-    {"tcr_rotated_gcode",       {"toolchange_gcode", "deretraction_from_wipe_tower_generator"}},
 };
 
 const std::map<t_custom_gcode_key, t_config_option_keys>& custom_gcode_specific_placeholders()
@@ -6919,16 +6917,6 @@ CustomGcodeSpecificConfigDef::CustomGcodeSpecificConfigDef()
     def = this->add("toolchange_z", coFloat);
     def->label = L("Toolchange z");
     def->tooltip = L("Height above the print bed when the toolchange takes place. Usually the same as layer_z, but can be different.");
-
-    // I'm not sure if next options are really needed
-
-    def = this->add("toolchange_gcode", coString);
-    def->label = L("");
-    def->tooltip = L("");
-
-    def = this->add("deretraction_from_wipe_tower_generator", coString);
-    def->label = L("");
-    def->tooltip = L("");
 }
 
 const CustomGcodeSpecificConfigDef custom_gcode_specific_config_def;
