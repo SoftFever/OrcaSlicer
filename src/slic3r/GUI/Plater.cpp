@@ -7803,13 +7803,29 @@ void Plater::priv::on_modify_filament(SimpleEvent &evt)
 {
     FilamentInfomation *filament_info = static_cast<FilamentInfomation *>(evt.GetEventObject());
     int                 res;
+    std::shared_ptr<Preset> need_edit_preset;
     {
         EditFilamentPresetDialog dlg(wxGetApp().mainframe, filament_info);
         res = dlg.ShowModal();
+        need_edit_preset = dlg.get_need_edit_preset();
     }
     wxGetApp().mainframe->update_side_preset_ui();
     update_ui_from_settings();
     sidebar->update_all_preset_comboboxes();
+    if (wxID_EDIT == res) {
+        Tab *tab = wxGetApp().get_tab(Preset::Type::TYPE_FILAMENT);
+        //tab->restore_last_select_item();
+        if (tab == nullptr) { return; }
+        // Popup needs to be called before "restore_last_select_item", otherwise the page may not be updated
+        wxGetApp().params_dialog()->Popup();
+        tab->restore_last_select_item();
+        // Opening Studio and directly accessing the Filament settings interface through the edit preset button will not take effect and requires manual settings.
+        tab->set_just_edit(true);
+        tab->select_preset(need_edit_preset->name);
+        // when some preset have modified, if the printer is not need_edit_preset_name compatible printer, the preset will jump to other preset, need select again
+        if (!need_edit_preset->is_compatible) tab->select_preset(need_edit_preset->name);
+    }
+
 }
 
 void Plater::priv::enter_gizmos_stack()
