@@ -315,9 +315,6 @@ void EditGCodeDialog::selection_changed(wxDataViewEvent& evt)
             }
             else
                 label = "Undef optptr";
-        }
-        else
-            label = "Undef optptr";
     }
 
     m_param_label->SetLabel(label);
