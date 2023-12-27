@@ -1988,12 +1988,20 @@ void PrintObject::bridge_over_infill()
     };
 
     std::map<size_t, std::vector<CandidateSurface>> surfaces_by_layer;
+    // Ioannis Giannakas:
+    // Detect use of lightning infill. Moved earlier in the function to pass to the gather and filter surfaces threads.
+    bool has_lightning_infill = false;
+    for (size_t i = 0; i < this->num_printing_regions(); i++) {
+        if (this->printing_region(i).config().sparse_infill_pattern == ipLightning) {
+            has_lightning_infill = true;
+            break;
+        }
+    }
 
     // SECTION to gather and filter surfaces for expanding, and then cluster them by layer
     {
         tbb::concurrent_vector<CandidateSurface> candidate_surfaces;
-        tbb::parallel_for(tbb::blocked_range<size_t>(0, this->layers().size()), [po = static_cast<const PrintObject *>(this),
-                                                                                 &candidate_surfaces](tbb::blocked_range<size_t> r) {
+        tbb::parallel_for(tbb::blocked_range<size_t>(0, this->layers().size()), [po = static_cast<const PrintObject *>(this), &candidate_surfaces, has_lightning_infill](tbb::blocked_range<size_t> r) {
             PRINT_OBJECT_TIME_LIMIT_MILLIS(PRINT_OBJECT_TIME_LIMIT_DEFAULT);
             for (size_t lidx = r.begin(); lidx < r.end(); lidx++) {
                 const Layer *layer = po->get_layer(lidx);
@@ -2017,15 +2025,6 @@ void PrintObject::bridge_over_infill()
                 }
                 unsupported_area = closing(unsupported_area, float(SCALED_EPSILON));
                 
-                // Ioannis Giannakas:
-                // Detect use of lightning infill
-                bool has_lightning_infill = false;
-                for (size_t i = 0; i < po->num_printing_regions(); i++) {
-                    if (po->printing_region(i).config().sparse_infill_pattern == ipLightning) {
-                        has_lightning_infill = true;
-                        break;
-                    }
-                }
                 // Ioannis Giannakas:
                 // Lightning infill benefits from always having a bridge layer so don't filter out small unsupported areas. Also, don't filter small internal unsupported areas if the user has requested so.
                 if(!has_lightning_infill && !po->config().dont_filter_internal_bridges){
@@ -2081,13 +2080,6 @@ void PrintObject::bridge_over_infill()
     // LIGHTNING INFILL SECTION - If lightning infill is used somewhere, we check the areas that are going to be bridges, and those that rely on the 
     // lightning infill under them get expanded. This somewhat helps to ensure that most of the extrusions are anchored to the lightning infill at the ends.
     // It requires modifying this instance of print object in a specific way, so that we do not invalidate the pointers in our surfaces_by_layer structure.
-    bool has_lightning_infill = false;
-    for (size_t i = 0; i < this->num_printing_regions(); i++) {
-        if (this->printing_region(i).config().sparse_infill_pattern == ipLightning) {
-            has_lightning_infill = true;
-            break;
-        }
-    }
     if (has_lightning_infill) {
         // Prepare backup data for the Layer Region infills. Before modfiyng the layer region, we backup its fill surfaces by moving! them into this map.
         // then a copy is created, modifiyed and passed to lightning infill generator. After generator is created, we restore the original state of the fills
