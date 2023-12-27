@@ -64,16 +64,6 @@ This module defines the following variables:
 
 include(FindPackageHandleStandardArgs)
 
-find_package(GLEW CONFIG QUIET)
-
-if(GLEW_FOUND)
-  find_package_handle_standard_args(GLEW DEFAULT_MSG GLEW_CONFIG)
-  return()
-endif()
-
-if(GLEW_VERBOSE)
-  message(STATUS "FindGLEW: did not find GLEW CMake config file. Searching for libraries.")
-endif()
 
 if(APPLE)
   find_package(OpenGL QUIET)
