@@ -4146,12 +4146,15 @@ void GUI_App::on_user_login(wxCommandEvent &evt)
 
 bool GUI_App::is_studio_active()
 {
-    auto curr_time = std::chrono::system_clock::now();
-    auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(curr_time - last_active_point);
-    if (diff.count() < STUDIO_INACTIVE_TIMEOUT) {
-        return true;
-    }
-    return false;
+    //Printago: always return true; otherwise we stop processing stuff like whether or not the printer is connected.
+    return true;
+
+    // auto curr_time = std::chrono::system_clock::now();
+    // auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(curr_time - last_active_point);
+    // if (diff.count() < STUDIO_INACTIVE_TIMEOUT) {
+    //     return true;
+    // }
+    // return false;
 }
 
 void GUI_App::reset_to_active()

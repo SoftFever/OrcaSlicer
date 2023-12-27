@@ -152,6 +152,7 @@ private:
     json GetAllConfigJson(bool only_names = false);
     json Config2Json(const DynamicPrintConfig &config, const std::string &name, const std::string &from, const std::string &version, const std::string is_custom
                          = "");
+    void LoadConfigFiles(const wxArrayString &paths);
     bool DownloadFileFromURL(const wxString url, const wxFileName &localPath);
 
     static wxString wxURLErrorToString(wxURLError error);

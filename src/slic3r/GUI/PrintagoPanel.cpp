@@ -398,6 +398,24 @@ json PrintagoPanel::Config2Json(const DynamicPrintConfig &config,
     return j;
 }
 
+void PrintagoPanel::LoadConfigFiles(const wxArrayString &paths)
+{
+    std::vector<std::string> cfiles;
+    for (const auto &file : paths) {
+        cfiles.push_back(into_u8(file));
+    }
+    wxGetApp().preset_bundle->import_presets(
+        cfiles, [this](std::string const &) { return wxID_YESTOALL; },
+        ForwardCompatibilitySubstitutionRule::Enable);
+
+    if (!cfiles.empty()) {
+        wxGetApp().load_current_presets();
+    }
+
+    //after presets are loaded, update the selected fields via UI
+    // wxGetApp().//
+}
+
 wxString PrintagoPanel::wxURLErrorToString(wxURLError error)
 {
     switch (error) {
