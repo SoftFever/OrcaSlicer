@@ -1435,11 +1435,11 @@ void PerimeterGenerator::process_classic()
     // other perimeters
     m_mm3_per_mm               		= this->perimeter_flow.mm3_per_mm();
     coord_t perimeter_width         = this->perimeter_flow.scaled_width();
-    this->perimeter_spacing         = this->perimeter_flow.scaled_spacing();
+    coord_t perimeter_spacing       = this->perimeter_flow.scaled_spacing();
 
     // external perimeters
     m_ext_mm3_per_mm           		= this->ext_perimeter_flow.mm3_per_mm();
-    this->ext_perimeter_width       = this->ext_perimeter_flow.scaled_width();
+    coord_t ext_perimeter_width     = this->ext_perimeter_flow.scaled_width();
 
     coord_t ext_perimeter_spacing   = this->ext_perimeter_flow.scaled_spacing();
     coord_t ext_perimeter_spacing2;
@@ -1497,7 +1497,7 @@ void PerimeterGenerator::process_classic()
     // extra perimeters for each one
     Surfaces all_surfaces = this->slices->surfaces;
 
-    process_no_bridge(all_surfaces);
+    process_no_bridge(all_surfaces, perimeter_spacing, ext_perimeter_width);
     // BBS: don't simplify too much which influence arc fitting when export gcode if arc_fitting is enabled
     double surface_simplify_resolution = (print_config->enable_arc_fitting && this->config->fuzzy_skin == FuzzySkinType::None) ? 0.2 * m_scaled_resolution : m_scaled_resolution;
     //BBS: reorder the surface to reduce the travel time
@@ -1906,7 +1906,8 @@ void PerimeterGenerator::add_infill_contour_for_arachne( ExPolygons        infil
     append(*this->fill_no_overlap, offset2_ex(union_ex(inner_pp), float(-min_perimeter_infill_spacing / 2.), float(+min_perimeter_infill_spacing / 2.)));
 }
 
-void PerimeterGenerator::process_no_bridge(Surfaces& all_surfaces) {
+void PerimeterGenerator::process_no_bridge(Surfaces& all_surfaces, coord_t perimeter_spacing, coord_t ext_perimeter_width)
+{
     //store surface for bridge infill to avoid unsupported perimeters (but the first one, this one is always good)
     if (this->config->no_perimeter_unsupported_algo != npuaNone
         && this->lower_slices != NULL && !this->lower_slices->empty()) {
@@ -1919,7 +1920,7 @@ void PerimeterGenerator::process_no_bridge(Surfaces& all_surfaces) {
             ExPolygons unsupported = diff_ex(last, *this->lower_slices, ApplySafetyOffset::Yes);
             if (!unsupported.empty()) {
                 //remove small overhangs
-                ExPolygons unsupported_filtered = offset2_ex(unsupported, double(-this->get_perimeter_spacing()), double(this->get_perimeter_spacing()));
+                ExPolygons unsupported_filtered = offset2_ex(unsupported, double(-perimeter_spacing), double(perimeter_spacing));
                 if (!unsupported_filtered.empty()) {
                     //to_draw.insert(to_draw.end(), last.begin(), last.end());
                     //extract only the useful part of the lower layer. The safety offset is really needed here.
