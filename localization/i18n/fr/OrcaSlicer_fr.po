@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-27 13:03+0800\n"
+"POT-Creation-Date: 2023-12-28 00:20+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: Guislain Cyril, Thomas Lété\n"
@@ -221,6 +221,9 @@ msgstr "mm"
 msgid "Position"
 msgstr "Emplacement"
 
+#. TRN - Input label. Be short as possible
+#. Angle between Y axis and text line direction.
+#. TRN - Input label. Be short as possible
 msgid "Rotation"
 msgstr "Rotation"
 
@@ -260,6 +263,7 @@ msgstr "Coordonnées"
 msgid "°"
 msgstr "°"
 
+#. TRN - Input label. Be short as possible
 msgid "Size"
 msgstr "Taille"
 
@@ -268,6 +272,113 @@ msgstr "%"
 
 msgid "uniform scale"
 msgstr "échelle uniforme"
+
+msgid "Planar"
+msgstr ""
+
+msgid "Dovetail"
+msgstr ""
+
+msgid "Auto"
+msgstr "Auto"
+
+msgid "Manual"
+msgstr ""
+
+msgid "Plug"
+msgstr "Connecteur"
+
+msgid "Dowel"
+msgstr "Tourillon"
+
+msgid "Snap"
+msgstr ""
+
+msgid "Prism"
+msgstr ""
+
+msgid "Frustum"
+msgstr "Tronc"
+
+msgid "Square"
+msgstr "Carré"
+
+msgid "Hexagon"
+msgstr "Hexagone"
+
+msgid "Keep orientation"
+msgstr ""
+
+msgid "Place on cut"
+msgstr "Placer sur la coupe"
+
+msgid "Flip upside down"
+msgstr ""
+
+msgid "Connectors"
+msgstr "Connecteurs"
+
+msgid "Type"
+msgstr "Type"
+
+msgid "Style"
+msgstr "Style"
+
+msgid "Shape"
+msgstr "Forme"
+
+#. TRN - Input label. Be short as possible
+#. Size in emboss direction
+#. TRN - Input label. Be short as possible
+msgid "Depth"
+msgstr ""
+
+msgid "Groove"
+msgstr ""
+
+msgid "Width"
+msgstr "Largeur"
+
+msgid "Flap Angle"
+msgstr ""
+
+msgid "Groove Angle"
+msgstr ""
+
+msgid "Part"
+msgstr "Pièce"
+
+msgid "Object"
+msgstr "Objet"
+
+msgid ""
+"Click to flip the cut plane\n"
+"Drag to move the cut plane"
+msgstr ""
+
+msgid ""
+"Click to flip the cut plane\n"
+"Drag to move the cut plane\n"
+"Right-click a part to assign it to the other side"
+msgstr ""
+
+msgid "Move cut plane"
+msgstr ""
+
+msgid "Mode"
+msgstr ""
+
+msgid "Change cut mode"
+msgstr ""
+
+msgid "Tolerance"
+msgstr "Tolérance"
+
+msgid "Drag"
+msgstr "Glisser"
+
+msgid "Draw cut line"
+msgstr ""
 
 msgid "Left click"
 msgstr "Clic gauche"
@@ -280,9 +391,6 @@ msgstr "Clic droit"
 
 msgid "Remove connector"
 msgstr "Retirer le connecteur"
-
-msgid "Drag"
-msgstr "Glisser"
 
 msgid "Move connector"
 msgstr "Déplacer le connecteur"
@@ -299,31 +407,63 @@ msgstr "Sélectionner tous les connecteurs"
 msgid "Cut"
 msgstr "Couper"
 
-msgid "non-mainifold edges be caused by cut tool, do you want to fix it now?"
+msgid "Rotate cut plane"
 msgstr ""
-"les bords non pliables sont dus à l’outil de coupe, voulez-vous les corriger "
-"maintenant ?"
 
-msgid "Repairing model object"
-msgstr "Réparer l'objet modèle"
+msgid "Remove connectors"
+msgstr "Retirer les connecteurs"
 
-msgid "Connector"
-msgstr "Connecteur"
+msgid "Bulge"
+msgstr ""
 
-msgid "Movement:"
-msgstr "Mouvement:"
+msgid "Bulge proportion related to radius"
+msgstr ""
 
-msgid "Movement"
-msgstr "Mouvement"
+msgid "Space"
+msgstr "Espace"
 
-msgid "Height"
-msgstr "Hauteur"
+msgid "Space proportion related to radius"
+msgstr ""
+
+msgid "Confirm connectors"
+msgstr "Confirmer les connecteurs"
+
+msgid "Cancel"
+msgstr "Annuler"
+
+msgid "Build Volume"
+msgstr ""
+
+msgid "Flip cut plane"
+msgstr ""
+
+msgid "Groove change"
+msgstr ""
+
+msgid "Reset"
+msgstr "Réinitialiser"
+
+#. TRN: This is an entry in the Undo/Redo stack. The whole line will be 'Edited: (name of whatever was edited)'.
+msgid "Edited"
+msgstr ""
+
+msgid "Cut position"
+msgstr ""
+
+msgid "Reset cutting plane"
+msgstr ""
 
 msgid "Edit connectors"
 msgstr "Modifier les connecteurs"
 
 msgid "Add connectors"
 msgstr "Ajouter des connecteurs"
+
+msgid "Reset cut"
+msgstr ""
+
+msgid "Reset cutting plane and remove connectors"
+msgstr ""
 
 msgid "Upper part"
 msgstr "Partie supérieure"
@@ -334,9 +474,6 @@ msgstr "Partie inférieure"
 msgid "Keep"
 msgstr "Conserver"
 
-msgid "Place on cut"
-msgstr "Placer sur la coupe"
-
 msgid "Flip"
 msgstr "Retourner"
 
@@ -346,50 +483,8 @@ msgstr "Après la coupe"
 msgid "Cut to parts"
 msgstr "Couper la sélection dans le presse-papiers"
 
-msgid "Auto Segment"
-msgstr "Segmentation automatique"
-
 msgid "Perform cut"
 msgstr "Effectuer la coupe"
-
-msgid "Reset"
-msgstr "Réinitialiser"
-
-msgid "Connectors"
-msgstr "Connecteurs"
-
-msgid "Type"
-msgstr "Type"
-
-msgid "Style"
-msgstr "Style"
-
-msgid "Shape"
-msgstr "Forme"
-
-msgid "Depth ratio"
-msgstr "Rapport de profondeur"
-
-msgid "Remove connectors"
-msgstr "Retirer les connecteurs"
-
-msgid "Prizm"
-msgstr "Prisme"
-
-msgid "Frustum"
-msgstr "Tronc"
-
-msgid "Square"
-msgstr "Carré"
-
-msgid "Hexagon"
-msgstr "Hexagone"
-
-msgid "Confirm connectors"
-msgstr "Confirmer les connecteurs"
-
-msgid "Cancel"
-msgstr "Annuler"
 
 msgid "Warning"
 msgstr "Alerte"
@@ -397,36 +492,49 @@ msgstr "Alerte"
 msgid "Invalid connectors detected"
 msgstr "Connecteurs invalides détectés"
 
-msgid "connector is out of cut contour"
-msgstr "connecteur est hors du contour de la coupe"
+#, c-format, boost-format
+msgid "%1$d connector is out of cut contour"
+msgid_plural "%1$d connectors are out of cut contour"
+msgstr[0] ""
+msgstr[1] ""
 
-msgid "connectors are out of cut contour"
-msgstr "connecteurs sont hors du contour de la coupe"
-
-msgid "connector is out of object"
-msgstr "connecteur est hors de l'objet"
-
-msgid "connectors is out of object"
-msgstr "connecteurs sont hors de l'objet"
+#, c-format, boost-format
+msgid "%1$d connector is out of object"
+msgid_plural "%1$d connectors are out of object"
+msgstr[0] ""
+msgstr[1] ""
 
 msgid "Some connectors are overlapped"
 msgstr "Certains connecteurs se chevauchent"
 
-msgid ""
-"Invalid state. \n"
-"No one part is selected for keep after cut"
+msgid "Select at least one object to keep after cutting."
 msgstr ""
-"État non valide. \n"
-"Aucune pièce n'est sélectionnée pour être conservée après la découpe"
 
-msgid "Plug"
+msgid "Cut plane is placed out of object"
+msgstr ""
+
+msgid "Cut plane with groove is invalid"
+msgstr ""
+
+msgid "Connector"
 msgstr "Connecteur"
 
-msgid "Dowel"
-msgstr "Tourillon"
+msgid "Cut by Plane"
+msgstr ""
 
-msgid "Tolerance"
-msgstr "Tolérance"
+msgid "non-mainifold edges be caused by cut tool, do you want to fix it now?"
+msgstr ""
+"les bords non pliables sont dus à l’outil de coupe, voulez-vous les corriger "
+"maintenant ?"
+
+msgid "Repairing model object"
+msgstr "Réparer l'objet modèle"
+
+msgid "Cut by line"
+msgstr ""
+
+msgid "Delete connector"
+msgstr ""
 
 msgid "Mesh name"
 msgstr "Nom du maillage"
@@ -524,6 +632,8 @@ msgstr "Quitter Peinture de Couture"
 msgid "Paint-on seam editing"
 msgstr "Modification des coutures peintes"
 
+#. TRN - Input label. Be short as possible
+#. Select look of letter shape
 msgid "Font"
 msgstr "Police"
 
@@ -558,6 +668,655 @@ msgstr "Faire pivoter le texte"
 
 msgid "Text shape"
 msgstr "Forme du texte"
+
+msgid "Set Mirror"
+msgstr ""
+
+msgid "Embossed text"
+msgstr ""
+
+msgid "Enter emboss gizmo"
+msgstr ""
+
+msgid "Leave emboss gizmo"
+msgstr ""
+
+msgid "Embossing actions"
+msgstr ""
+
+msgid "Emboss"
+msgstr ""
+
+msgid "Text-Rotate"
+msgstr ""
+
+msgid "NORMAL"
+msgstr ""
+
+msgid "SMALL"
+msgstr ""
+
+msgid "ITALIC"
+msgstr ""
+
+msgid "SWISS"
+msgstr ""
+
+msgid "MODERN"
+msgstr ""
+
+msgid "First font"
+msgstr ""
+
+msgid "Default font"
+msgstr ""
+
+msgid "Advanced"
+msgstr "Avancé"
+
+msgid ""
+"The text cannot be written using the selected font. Please try choosing a "
+"different font."
+msgstr ""
+
+msgid "Embossed text cannot contain only white spaces."
+msgstr ""
+
+msgid "Text contains character glyph (represented by '?') unknown by font."
+msgstr ""
+
+msgid "Text input doesn't show font skew."
+msgstr ""
+
+msgid "Text input doesn't show font boldness."
+msgstr ""
+
+msgid "Text input doesn't show gap between lines."
+msgstr ""
+
+msgid "Too tall, diminished font height inside text input."
+msgstr ""
+
+msgid "Too small, enlarged font height inside text input."
+msgstr ""
+
+msgid "Text doesn't show current horizontal alignment."
+msgstr ""
+
+msgid "Revert font changes."
+msgstr ""
+
+#, boost-format
+msgid "Font \"%1%\" can't be selected."
+msgstr ""
+
+msgid "Operation"
+msgstr ""
+
+msgid "Join"
+msgstr ""
+
+msgid "Click to change text into object part."
+msgstr ""
+
+msgid "You can't change a type of the last solid part of the object."
+msgstr ""
+
+msgctxt "EmbossOperation"
+msgid "Cut"
+msgstr ""
+
+msgid "Click to change part type into negative volume."
+msgstr ""
+
+msgid "Modifier"
+msgstr "Modificateur"
+
+msgid "Click to change part type into modifier."
+msgstr ""
+
+msgid "Change Text Type"
+msgstr ""
+
+#, boost-format
+msgid "Rename style(%1%) for embossing text"
+msgstr ""
+
+msgid "Name can't be empty."
+msgstr ""
+
+msgid "Name has to be unique."
+msgstr ""
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Rename style"
+msgstr ""
+
+msgid "Rename current style."
+msgstr ""
+
+msgid "Can't rename temporary style."
+msgstr ""
+
+msgid "First Add style to list."
+msgstr ""
+
+#, boost-format
+msgid "Save %1% style"
+msgstr ""
+
+msgid "No changes to save."
+msgstr ""
+
+msgid "New name of style"
+msgstr ""
+
+msgid "Save as new style"
+msgstr ""
+
+msgid "Only valid font can be added to style."
+msgstr ""
+
+msgid "Add style to my list."
+msgstr ""
+
+msgid "Save as new style."
+msgstr ""
+
+msgid "Remove style"
+msgstr ""
+
+msgid "Can't remove the last existing style."
+msgstr ""
+
+#, boost-format
+msgid "Are you sure you want to permanently remove the \"%1%\" style?"
+msgstr ""
+
+#, boost-format
+msgid "Delete \"%1%\" style."
+msgstr ""
+
+#, boost-format
+msgid "Can't delete \"%1%\". It is last style."
+msgstr ""
+
+#, boost-format
+msgid "Can't delete temporary style \"%1%\"."
+msgstr ""
+
+#, boost-format
+msgid "Modified style \"%1%\""
+msgstr ""
+
+#, boost-format
+msgid "Current style is \"%1%\""
+msgstr ""
+
+#, boost-format
+msgid ""
+"Changing style to \"%1%\" will discard current style modification.\n"
+"\n"
+"Would you like to continue anyway?"
+msgstr ""
+
+msgid "Not valid style."
+msgstr ""
+
+#, boost-format
+msgid "Style \"%1%\" can't be used and will be removed from a list."
+msgstr ""
+
+msgid "Unset italic"
+msgstr ""
+
+msgid "Set italic"
+msgstr ""
+
+msgid "Unset bold"
+msgstr ""
+
+msgid "Set bold"
+msgstr ""
+
+msgid "Revert text size."
+msgstr ""
+
+msgid "Revert embossed depth."
+msgstr ""
+
+msgid ""
+"Advanced options cannot be changed for the selected font.\n"
+"Select another font."
+msgstr ""
+
+msgid "Revert using of model surface."
+msgstr ""
+
+msgid "Revert Transformation per glyph."
+msgstr ""
+
+msgid "Set global orientation for whole text."
+msgstr ""
+
+msgid "Set position and orientation per glyph."
+msgstr ""
+
+msgctxt "Alignment"
+msgid "Left"
+msgstr ""
+
+msgctxt "Alignment"
+msgid "Center"
+msgstr ""
+
+msgctxt "Alignment"
+msgid "Right"
+msgstr ""
+
+msgctxt "Alignment"
+msgid "Top"
+msgstr ""
+
+msgctxt "Alignment"
+msgid "Middle"
+msgstr ""
+
+msgctxt "Alignment"
+msgid "Bottom"
+msgstr ""
+
+msgid "Revert alignment."
+msgstr ""
+
+#. TRN EmbossGizmo: font units
+msgid "points"
+msgstr ""
+
+msgid "Revert gap between characters"
+msgstr ""
+
+msgid "Distance between characters"
+msgstr ""
+
+msgid "Revert gap between lines"
+msgstr ""
+
+msgid "Distance between lines"
+msgstr ""
+
+msgid "Undo boldness"
+msgstr ""
+
+msgid "Tiny / Wide glyphs"
+msgstr ""
+
+msgid "Undo letter's skew"
+msgstr ""
+
+msgid "Italic strength ratio"
+msgstr ""
+
+msgid "Undo translation"
+msgstr ""
+
+msgid "Distance of the center of the text to the model surface."
+msgstr ""
+
+msgid "Undo rotation"
+msgstr ""
+
+msgid "Rotate text Clock-wise."
+msgstr ""
+
+msgid "Unlock the text's rotation when moving text along the object's surface."
+msgstr ""
+
+msgid "Lock the text's rotation when moving text along the object's surface."
+msgstr ""
+
+msgid "Select from True Type Collection."
+msgstr ""
+
+msgid "Set text to face camera"
+msgstr ""
+
+msgid "Orient the text towards the camera."
+msgstr ""
+
+#, boost-format
+msgid ""
+"Can't load exactly same font(\"%1%\"). Aplication selected a similar "
+"one(\"%2%\"). You have to specify font for enable edit text."
+msgstr ""
+
+msgid "No symbol"
+msgstr ""
+
+msgid "Loading"
+msgstr "Chargement"
+
+msgid "In queue"
+msgstr ""
+
+#. TRN - Input label. Be short as possible
+#. Height of one text line - Font Ascent
+msgid "Height"
+msgstr "Hauteur"
+
+#. TRN - Input label. Be short as possible
+#. Copy surface of model on surface of the embossed text
+#. TRN - Input label. Be short as possible
+msgid "Use surface"
+msgstr ""
+
+#. TRN - Input label. Be short as possible
+#. Option to change projection on curved surface
+#. for each character(glyph) in text separately
+msgid "Per glyph"
+msgstr ""
+
+#. TRN - Input label. Be short as possible
+#. Align Top|Middle|Bottom and Left|Center|Right
+msgid "Alignment"
+msgstr ""
+
+#. TRN - Input label. Be short as possible
+msgid "Char gap"
+msgstr ""
+
+#. TRN - Input label. Be short as possible
+msgid "Line gap"
+msgstr ""
+
+#. TRN - Input label. Be short as possible
+msgid "Boldness"
+msgstr ""
+
+#. TRN - Input label. Be short as possible
+#. Like Font italic
+msgid "Skew ratio"
+msgstr ""
+
+#. TRN - Input label. Be short as possible
+#. Distance from model surface to be able
+#. move text as part fully into not flat surface
+#. move text as modifier fully out of not flat surface
+#. TRN - Input label. Be short as possible
+msgid "From surface"
+msgstr ""
+
+#. TRN - Input label. Be short as possible
+#. Keep vector from bottom to top of text aligned with printer Y axis
+msgid "Keep up"
+msgstr ""
+
+#. TRN - Input label. Be short as possible.
+#. Some Font file contain multiple fonts inside and
+#. this is numerical selector of font inside font collections
+msgid "Collection"
+msgstr ""
+
+msgid "Enter SVG gizmo"
+msgstr ""
+
+msgid "Leave SVG gizmo"
+msgstr ""
+
+msgid "SVG actions"
+msgstr ""
+
+msgid "SVG"
+msgstr ""
+
+#. TRN This is an item label in the undo-redo stack.
+msgid "SVG-Rotate"
+msgstr ""
+
+#, boost-format
+msgid "Opacity (%1%)"
+msgstr ""
+
+#, boost-format
+msgid "Color gradient (%1%)"
+msgstr ""
+
+msgid "Undefined fill type"
+msgstr ""
+
+msgid "Linear gradient"
+msgstr ""
+
+msgid "Radial gradient"
+msgstr ""
+
+msgid "Open filled path"
+msgstr ""
+
+msgid "Undefined stroke type"
+msgstr ""
+
+msgid "Path can't be healed from selfintersection and multiple points."
+msgstr ""
+
+msgid ""
+"Final shape constains selfintersection or multiple points with same "
+"coordinate."
+msgstr ""
+
+#, boost-format
+msgid "Shape is marked as invisible (%1%)."
+msgstr ""
+
+#. TRN: The first placeholder is shape identifier, the second one is text describing the problem.
+#, boost-format
+msgid "Fill of shape (%1%) contains unsupported: %2%."
+msgstr ""
+
+#, boost-format
+msgid "Stroke of shape (%1%) is too thin (minimal width is %2% mm)."
+msgstr ""
+
+#, boost-format
+msgid "Stroke of shape (%1%) contains unsupported: %2%."
+msgstr ""
+
+msgid "Face the camera"
+msgstr ""
+
+#. TRN - Preview of filename after clear local filepath.
+msgid "Unknown filename"
+msgstr ""
+
+#, boost-format
+msgid "SVG file path is \"%1%\""
+msgstr ""
+
+msgid "Reload SVG file from disk."
+msgstr ""
+
+msgid "Change file"
+msgstr ""
+
+msgid "Change to another .svg file"
+msgstr ""
+
+msgid "Forget the file path"
+msgstr ""
+
+msgid ""
+"Do NOT save local path to 3MF file.\n"
+"Also disables 'reload from disk' option."
+msgstr ""
+
+#. TRN: An menu option to convert the SVG into an unmodifiable model part.
+msgid "Bake"
+msgstr ""
+
+#. TRN: Tooltip for the menu item.
+msgid "Bake into model as uneditable part"
+msgstr ""
+
+msgid "Save as"
+msgstr ""
+
+msgid "Save SVG file"
+msgstr ""
+
+msgid "Save as '.svg' file"
+msgstr ""
+
+msgid "Size in emboss direction."
+msgstr ""
+
+#. TRN: The placeholder contains a number.
+#, boost-format
+msgid "Scale also changes amount of curve samples (%1%)"
+msgstr ""
+
+msgid "Width of SVG."
+msgstr ""
+
+msgid "Height of SVG."
+msgstr ""
+
+msgid "Lock/unlock the aspect ratio of the SVG."
+msgstr ""
+
+msgid "Reset scale"
+msgstr ""
+
+msgid "Resize"
+msgstr ""
+
+msgid "Distance of the center of the SVG to the model surface."
+msgstr ""
+
+msgid "Reset distance"
+msgstr ""
+
+msgid "Reset rotation"
+msgstr ""
+
+msgid "Lock/unlock rotation angle when dragging above the surface."
+msgstr ""
+
+msgid "Mirror vertically"
+msgstr ""
+
+msgid "Mirror horizontally"
+msgstr ""
+
+#. TRN: This is the name of the action that shows in undo/redo stack (changing part type from SVG to something else).
+msgid "Change SVG Type"
+msgstr ""
+
+#. TRN - Input label. Be short as possible
+msgid "Mirror"
+msgstr "Symétrie"
+
+msgid "Choose SVG file for emboss:"
+msgstr ""
+
+#, boost-format
+msgid "File does NOT exist (%1%)."
+msgstr ""
+
+#, boost-format
+msgid "Filename has to end with \".svg\" but you selected %1%"
+msgstr ""
+
+#, boost-format
+msgid "Nano SVG parser can't load from file (%1%)."
+msgstr ""
+
+#, boost-format
+msgid "SVG file does NOT contain a single path to be embossed (%1%)."
+msgstr ""
+
+msgid "Vertex"
+msgstr ""
+
+msgid "Edge"
+msgstr ""
+
+msgid "Plane"
+msgstr ""
+
+msgid "Point on edge"
+msgstr ""
+
+msgid "Point on circle"
+msgstr ""
+
+msgid "Point on plane"
+msgstr ""
+
+msgid "Center of edge"
+msgstr ""
+
+msgid "Center of circle"
+msgstr ""
+
+msgid "ShiftLeft mouse button"
+msgstr ""
+
+msgid "Select feature"
+msgstr ""
+
+msgid "Select point"
+msgstr ""
+
+msgid "Delete"
+msgstr "Supprimer"
+
+msgid "Restart selection"
+msgstr ""
+
+msgid "Esc"
+msgstr "Échap"
+
+msgid "Unselect"
+msgstr ""
+
+msgid "Measure"
+msgstr ""
+
+msgid "Edit to scale"
+msgstr ""
+
+msgctxt "Verb"
+msgid "Scale"
+msgstr ""
+
+msgid "None"
+msgstr "Aucun"
+
+msgid "Diameter"
+msgstr "Diamètre"
+
+msgid "Length"
+msgstr "Longueur"
+
+msgid "Selection"
+msgstr ""
+
+msgid "Copy to clipboard"
+msgstr "Copier dans le presse-papier"
+
+msgid "Perpendicular distance"
+msgstr ""
+
+msgid "Distance"
+msgstr ""
+
+msgid "Direct distance"
+msgstr ""
+
+msgid "Distance XYZ"
+msgstr ""
 
 msgid "Ctrl+"
 msgstr "Ctrl+"
@@ -759,9 +1518,6 @@ msgstr ""
 msgid "Sync user presets"
 msgstr "Synchronisation des préréglages de l'utilisateur"
 
-msgid "Loading"
-msgstr "Chargement"
-
 msgid "Loading user preset"
 msgstr "Chargement du préréglage utilisateur"
 
@@ -791,9 +1547,6 @@ msgstr "Sélectionnez un fichier G-code :"
 
 msgid "Import File"
 msgstr "Importer un Fichier"
-
-msgid "Delete"
-msgstr "Supprimer"
 
 msgid "Choose files"
 msgstr "Choisir des fichiers"
@@ -864,9 +1617,6 @@ msgstr "Options de nettoyage"
 
 msgid "Bed adhension"
 msgstr "Adhérence au plateau"
-
-msgid "Advanced"
-msgstr "Avancé"
 
 msgid "Add part"
 msgstr "Ajouter une pièce"
@@ -951,9 +1701,6 @@ msgstr "Lapin de Stanford"
 
 msgid "Text"
 msgstr "Texte"
-
-msgid "SVG"
-msgstr ""
 
 msgid "Height range Modifier"
 msgstr "Modificateur de plage de hauteur"
@@ -1083,9 +1830,6 @@ msgstr "Le long de l'axe Z"
 
 msgid "Mirror along the Z axis"
 msgstr "Miroir le long de l'axe Z"
-
-msgid "Mirror"
-msgstr "Symétrie"
 
 msgid "Mirror object"
 msgstr "Symétriser l'Objet"
@@ -1362,12 +2106,6 @@ msgstr "Plages de hauteur"
 msgid "Settings for height range"
 msgstr "Réglages de la plage de hauteur"
 
-msgid "Object"
-msgstr "Objet"
-
-msgid "Part"
-msgstr "Pièce"
-
 msgid "Layer"
 msgstr "Couche"
 
@@ -1393,9 +2131,6 @@ msgstr ""
 
 msgid "Negative Part"
 msgstr "Partie négative"
-
-msgid "Modifier"
-msgstr "Modificateur"
 
 msgid "Support Blocker"
 msgstr "Bloqueur de Support"
@@ -1472,9 +2207,6 @@ msgstr "Densité de remplissage(%)"
 msgid "Auto Brim"
 msgstr "Bord automatique"
 
-msgid "Auto"
-msgstr "Auto"
-
 msgid "Mouse ear"
 msgstr "Sur les angles uniquement"
 
@@ -1550,9 +2282,6 @@ msgstr "G-code personnalisé"
 msgid "Enter Custom G-code used on current layer:"
 msgstr "Entrez le G-code personnalisé a utiliser sur la couche actuelle :"
 
-msgid "OK"
-msgstr "OK"
-
 msgid "Jump to Layer"
 msgstr "Aller à la couche"
 
@@ -1607,14 +2336,14 @@ msgstr "Pas d'imprimante"
 msgid "..."
 msgstr "…"
 
-msgid "Failed to connect to the server"
-msgstr "Impossible de se connecter au serveur"
-
 msgid "Check the status of current system services"
 msgstr "Vérifiez l'état des services système actuels"
 
 msgid "code"
 msgstr "code"
+
+msgid "Failed to connect to the server"
+msgstr "Impossible de se connecter au serveur"
 
 msgid "Failed to connect to cloud service"
 msgstr "Impossible de se connecter au service cloud"
@@ -2476,9 +3205,6 @@ msgstr ""
 msgid "Origin"
 msgstr "Origine"
 
-msgid "Diameter"
-msgstr "Diamètre"
-
 msgid "Size in X and Y of the rectangular plate."
 msgstr "Taille en X et Y du plateau rectangulaire."
 
@@ -3059,6 +3785,9 @@ msgstr "Durée"
 msgid "Percent"
 msgstr "Pour cent"
 
+msgid "Used filament"
+msgstr "Filament utilisé"
+
 msgid "Layer Height (mm)"
 msgstr "Hauteur de couche (mm)"
 
@@ -3076,9 +3805,6 @@ msgstr "Température (°C)"
 
 msgid "Volumetric flow rate (mm³/s)"
 msgstr "Débit volumétrique (mm³/s)"
-
-msgid "Used filament"
-msgstr "Filament utilisé"
 
 msgid "Travel"
 msgstr "Déplacement"
@@ -6268,6 +6994,11 @@ msgstr ""
 "et désactivation de la hauteur indépendante de la couche de support"
 
 msgid ""
+"Layer height is too small.\n"
+"It will set to min_layer_height\n"
+msgstr ""
+
+msgid ""
 "Layer height exceeds the limit in Printer Settings -> Extruder -> Layer "
 "height limits ,this may cause printing quality issues."
 msgstr ""
@@ -6287,8 +7018,8 @@ msgstr "Ignorer"
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "Lorsque vous enregistrez un timelapse sans tête d’outil, il est recommandé "
 "d’ajouter une \"Tour de nettoyage timelapse\".\n"
@@ -6440,9 +7171,9 @@ msgid ""
 "Bed temperature when cool plate is installed. Value 0 means the filament "
 "does not support to print on the Cool Plate"
 msgstr ""
-"Il s'agit de la température du plateau lorsque le plateau froid (\"Cool "
-"plate\") est installé. Une valeur à 0 signifie que ce filament ne peut pas "
-"être imprimé sur le plateau froid."
+"Il s'agit de la température du plateau lorsque le plateau froid (\"Cool plate"
+"\") est installé. Une valeur à 0 signifie que ce filament ne peut pas être "
+"imprimé sur le plateau froid."
 
 msgid "Engineering plate"
 msgstr "Plaque Engineering"
@@ -6956,9 +7687,8 @@ msgid "Flushing volumes for filament change"
 msgstr "Volumes de rinçage pour le changement de filament"
 
 msgid ""
-"Studio would re-calculate your flushing volumes everytime the filaments "
-"color changed. You could disable the auto-calculate in Bambu Studio > "
-"Preferences"
+"Orca would re-calculate your flushing volumes everytime the filaments color "
+"changed. You could disable the auto-calculate in Orca Slicer > Preferences"
 msgstr ""
 
 msgid "Flushing volume (mm³) for each filament pair."
@@ -7022,9 +7752,6 @@ msgstr "⌘+Maj+G"
 
 msgid "Ctrl+Shift+G"
 msgstr "Ctrl+Maj+G"
-
-msgid "Copy to clipboard"
-msgstr "Copier dans le presse-papier"
 
 msgid "Paste from clipboard"
 msgstr "Coller depuis le presse-papier"
@@ -7139,9 +7866,6 @@ msgstr "Maj+n'importe quelle flèche"
 msgid "Movement step set to 1 mm"
 msgstr "Pas du mouvement réglé sur 1 mm"
 
-msgid "Esc"
-msgstr "Échap"
-
 msgid "keyboard 1-9: set filament for object/part"
 msgstr "clavier 1-9 : définir le filament pour l'objet/la pièce"
 
@@ -7225,9 +7949,6 @@ msgstr "Définir le numéro d'extrudeuse pour les objets et les pièces"
 
 msgid "Delete objects, parts, modifiers  "
 msgstr "Supprimer des objets, des pièces, des modificateurs "
-
-msgid "Space"
-msgstr "Espace"
 
 msgid "Select the object/part and press space to change the name"
 msgstr ""
@@ -7784,8 +8505,8 @@ msgstr ""
 
 msgid "The prime tower is not supported in \"By object\" print."
 msgstr ""
-"La tour de nettoyage n'est pas prise en charge dans l'impression \"Par "
-"objet\"."
+"La tour de nettoyage n'est pas prise en charge dans l'impression \"Par objet"
+"\"."
 
 msgid ""
 "The prime tower is not supported when adaptive layer height is on. It "
@@ -8718,8 +9439,8 @@ msgid ""
 "thickness (top+bottom solid layers)"
 msgstr ""
 "Ajoutez du remplissage solide à proximité des surfaces inclinées pour "
-"garantir l'épaisseur verticale de la coque (couches solides "
-"supérieure+inférieure)."
+"garantir l'épaisseur verticale de la coque (couches solides supérieure"
+"+inférieure)."
 
 msgid "Top surface pattern"
 msgstr "Motif de surface supérieure"
@@ -9538,10 +10259,10 @@ msgstr "Ventilateur à pleine vitesse à la couche"
 
 msgid ""
 "Fan speed will be ramped up linearly from zero at layer "
-"\"close_fan_the_first_x_layers\" to maximum at layer "
-"\"full_fan_speed_layer\". \"full_fan_speed_layer\" will be ignored if lower "
-"than \"close_fan_the_first_x_layers\", in which case the fan will be running "
-"at maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
+"\"close_fan_the_first_x_layers\" to maximum at layer \"full_fan_speed_layer"
+"\". \"full_fan_speed_layer\" will be ignored if lower than "
+"\"close_fan_the_first_x_layers\", in which case the fan will be running at "
+"maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
 msgstr ""
 "La vitesse du ventilateur augmentera de manière linéaire à partir de zéro à "
 "la couche \"close_fan_the_first_x_layers\" jusqu’au maximum à la couche "
@@ -9571,9 +10292,6 @@ msgid ""
 msgstr ""
 "Gigue aléatoire lors de l'impression de la paroi, de sorte que la surface "
 "ait un aspect rugueux. Ce réglage contrôle la position irrégulière"
-
-msgid "None"
-msgstr "Aucun"
 
 msgid "Contour"
 msgstr "Contour"
@@ -10547,9 +11265,6 @@ msgstr "Rétracter lors de changement de couche"
 msgid "Force a retraction when changes layer"
 msgstr "Cela force une rétraction sur les changements de couche."
 
-msgid "Length"
-msgstr "Longueur"
-
 msgid "Retraction Length"
 msgstr "Longueur de Rétraction"
 
@@ -10763,6 +11478,21 @@ msgstr ""
 "Pour minimiser la visibilité de la couture dans une extrusion en boucle "
 "fermée, un petit mouvement vers l’intérieur est exécuté avant que la buse ne "
 "quitte la boucle."
+
+msgid "Wipe before external loop"
+msgstr ""
+
+msgid ""
+"To minimise visibility of potential overextrusion at the start of an "
+"external perimeter when printing with Outer/Inner or Inner/Outer/Inner wall "
+"print order, the deretraction is performed slightly on the inside from the "
+"start of the external perimeter. That way any potential over extrusion is "
+"hidden from the outside surface. \n"
+"\n"
+"This is useful when printing with Outer/Inner or Inner/Outer/Inner wall "
+"print order as in these modes it is more likely an external perimeter is "
+"printed immediately after a deretraction move."
+msgstr ""
 
 msgid "Wipe speed"
 msgstr "Vitesse d’essuyage"
@@ -11564,9 +12294,6 @@ msgstr "Premier volume"
 msgid "The volume of material to prime extruder on tower."
 msgstr "Le volume de matériau à amorcer l'extrudeuse sur la tour."
 
-msgid "Width"
-msgstr "Largeur"
-
 msgid "Width of prime tower"
 msgstr "Largeur de la tour de nettoyage."
 
@@ -11744,14 +12471,9 @@ msgstr "Utiliser l’extrusion relative"
 msgid ""
 "Relative extrusion is recommended when using \"label_objects\" option.Some "
 "extruders work better with this option unckecked (absolute extrusion mode). "
-"Wipe tower is only compatible with relative mode. It is always enabled on "
-"BambuLab printers. Default is checked"
+"Wipe tower is only compatible with relative mode. It is recommended on most "
+"printers. Default is checked"
 msgstr ""
-"L’extrusion relative est recommandée lors de l’utilisation de l’option "
-"\"label_objects\". Certains extrudeurs fonctionnent mieux avec cette option "
-"décochée (mode d’extrusion absolu). La tour d’essuyage n’est compatible "
-"qu’avec le mode relatif. Il est toujours activé sur les imprimantes "
-"BambuLab. La valeur par défaut est cochée"
 
 msgid ""
 "Classic wall generator produces walls with constant extrusion width and for "
@@ -12278,9 +13000,9 @@ msgstr ""
 "Wiki.\n"
 "\n"
 "Habituellement, la calibration est inutile. Lorsque vous démarrez une "
-"impression d'une seule couleur/matériau, avec l'option \"Calibration du "
-"débit\" cochée dans le menu de démarrage de l'impression, l'imprimante "
-"suivra l'ancienne méthode de calibration du filament avant l'impression.\n"
+"impression d'une seule couleur/matériau, avec l'option \"Calibration du débit"
+"\" cochée dans le menu de démarrage de l'impression, l'imprimante suivra "
+"l'ancienne méthode de calibration du filament avant l'impression.\n"
 "Lorsque vous démarrez une impression multi-couleurs/matériaux, l'imprimante "
 "utilise le paramètre de compensation par défaut pour le filament lors de "
 "chaque changement de filament, ce qui donne un bon résultat dans la plupart "
@@ -13061,8 +13783,8 @@ msgstr ""
 "Voulez-vous le réécrire ?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you "
-"selected\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 "Nous renommerions les préréglages en « Fournisseur Type Série @imprimante "
@@ -13084,9 +13806,6 @@ msgstr "Créer depuis un modèle"
 
 msgid "Create Based on Current Printer"
 msgstr "Créer en fonction de l’imprimante actuelle"
-
-msgid "wiki"
-msgstr ""
 
 msgid "Import Preset"
 msgstr "Importer un préréglage"
@@ -13731,6 +14450,19 @@ msgstr ""
 "Saviez-vous qu’OrcaSlicer peut prendre en charge la filtration de l’air/le "
 "ventilateur d’extraction ?"
 
+#: resources/data/hints.ini: [hint:G-code window]
+msgid ""
+"G-code window\n"
+"You can turn on/off the G-code window by pressing the <b>C</b> key."
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Switch workspaces]
+msgid ""
+"Switch workspaces\n"
+"You can swtich between <b>Prepare</b> and <b>Preview</b> workspaces by "
+"pressing the <b>Tab</b> key."
+msgstr ""
+
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
 "How to use keyboard shortcuts\n"
@@ -13740,6 +14472,13 @@ msgstr ""
 "Comment utiliser les raccourcis clavier\n"
 "Saviez-vous qu’Orca Slicer offre une large gamme de raccourcis clavier et "
 "d’opérations sur les scènes 3D."
+
+#: resources/data/hints.ini: [hint:Reverse on odd]
+msgid ""
+"Reverse on odd\n"
+"Did you know that <b>Reverse on odd</b> feature can significantly improve "
+"the surface quality of your overhangs?"
+msgstr ""
 
 #: resources/data/hints.ini: [hint:Cut Tool]
 msgid ""
@@ -14038,6 +14777,52 @@ msgstr ""
 "Saviez-vous que lors de l’impression de matériaux susceptibles de se "
 "déformer, tels que l’ABS, une augmentation appropriée de la température du "
 "plateau chauffant peut réduire la probabilité de déformation."
+
+#~ msgid ""
+#~ "Relative extrusion is recommended when using \"label_objects\" option."
+#~ "Some extruders work better with this option unckecked (absolute extrusion "
+#~ "mode). Wipe tower is only compatible with relative mode. It is always "
+#~ "enabled on BambuLab printers. Default is checked"
+#~ msgstr ""
+#~ "L’extrusion relative est recommandée lors de l’utilisation de l’option "
+#~ "\"label_objects\". Certains extrudeurs fonctionnent mieux avec cette "
+#~ "option décochée (mode d’extrusion absolu). La tour d’essuyage n’est "
+#~ "compatible qu’avec le mode relatif. Il est toujours activé sur les "
+#~ "imprimantes BambuLab. La valeur par défaut est cochée"
+
+#~ msgid "Movement:"
+#~ msgstr "Mouvement:"
+
+#~ msgid "Movement"
+#~ msgstr "Mouvement"
+
+#~ msgid "Auto Segment"
+#~ msgstr "Segmentation automatique"
+
+#~ msgid "Depth ratio"
+#~ msgstr "Rapport de profondeur"
+
+#~ msgid "Prizm"
+#~ msgstr "Prisme"
+
+#~ msgid "connector is out of cut contour"
+#~ msgstr "connecteur est hors du contour de la coupe"
+
+#~ msgid "connectors are out of cut contour"
+#~ msgstr "connecteurs sont hors du contour de la coupe"
+
+#~ msgid "connector is out of object"
+#~ msgstr "connecteur est hors de l'objet"
+
+#~ msgid "connectors is out of object"
+#~ msgstr "connecteurs sont hors de l'objet"
+
+#~ msgid ""
+#~ "Invalid state. \n"
+#~ "No one part is selected for keep after cut"
+#~ msgstr ""
+#~ "État non valide. \n"
+#~ "Aucune pièce n'est sélectionnée pour être conservée après la découpe"
 
 #~ msgid "Recalculate"
 #~ msgstr "Recalculer"
