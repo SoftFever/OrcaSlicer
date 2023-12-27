@@ -572,6 +572,7 @@ void CalibPressureAdvancePattern::generate_custom_gcodes(const DynamicPrintConfi
             gcode << "; start pressure advance pattern for layer\n";
 
             gcode << m_writer.travel_to_z(layer_height, "Move to layer height");
+            gcode << m_writer.reset_e();
         }
 
         // line numbering
@@ -650,6 +651,7 @@ void CalibPressureAdvancePattern::generate_custom_gcodes(const DynamicPrintConfi
                     gcode << m_writer.travel_to_z(zhop_height, "z-hop before move");
                     gcode << move_to(Vec2d(to_x, to_y), m_writer, "Move back to start position");
                     gcode << m_writer.travel_to_z(layer_height, "undo z-hop");
+                    gcode << m_writer.reset_e(); // reset extruder before printing placeholder cube to avoid
                 } else {
                     // everything done
                 }
