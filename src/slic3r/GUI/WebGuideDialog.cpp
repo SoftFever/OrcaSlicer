@@ -910,6 +910,17 @@ bool GuideFrame::run()
     app.preset_bundle->export_selections(*app.app_config);
 
     BOOST_LOG_TRIVIAL(info) << "GuideFrame before ShowModal";
+    // display position
+    int main_frame_display_index = wxDisplay::GetFromWindow(wxGetApp().mainframe);
+    int guide_display_index = wxDisplay::GetFromWindow(this);
+    if (main_frame_display_index != guide_display_index) {
+        wxDisplay display    = wxDisplay(main_frame_display_index);
+        wxRect    screenRect = display.GetGeometry();
+        int       guide_x    = screenRect.x + (screenRect.width - this->GetSize().GetWidth()) / 2;
+        int       guide_y    = screenRect.y + (screenRect.height - this->GetSize().GetHeight()) / 2;
+        this->SetPosition(wxPoint(guide_x, guide_y));
+    }
+
     int result = this->ShowModal();
     if (result == wxID_OK) {
         bool apply_keeped_changes = false;
