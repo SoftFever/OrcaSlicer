@@ -3330,7 +3330,11 @@ def = this->add("filament_loading_speed", coFloats);
     
     def = this->add("wipe_before_external_loop", coBool);
     def->label = L("Wipe before external loop");
-    def->tooltip = L("To minimise visibility of potential overextrusion at the start of an external perimeter when printing with Outer/Inner or Inner/Outer/Inner wall print order, the deretraction is performed slightly on the inside from the start of the external perimeter. Thatway any potential over extrusion is hidden from the outside surface. \n\nThis is useful when printing with Outer/Inner or Inner/Outer/Inner wall print order as in these modes it is more likely an external perimeter is printed immediately after a deretraction move.");
+    def->tooltip = L("To minimise visibility of potential overextrusion at the start of an external perimeter when printing with "
+                     "Outer/Inner or Inner/Outer/Inner wall print order, the deretraction is performed slightly on the inside from the "
+                     "start of the external perimeter. That way any potential over extrusion is hidden from the outside surface. \n\nThis "
+                     "is useful when printing with Outer/Inner or Inner/Outer/Inner wall print order as in these modes it is more likely "
+                     "an external perimeter is printed immediately after a deretraction move.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
@@ -4457,8 +4461,8 @@ def = this->add("filament_loading_speed", coFloats);
     def->label = L("Use relative E distances");
     def->tooltip = L("Relative extrusion is recommended when using \"label_objects\" option."
                    "Some extruders work better with this option unckecked (absolute extrusion mode). "
-                   "Wipe tower is only compatible with relative mode. It is always enabled on "
-                   "BambuLab printers. Default is checked");
+                   "Wipe tower is only compatible with relative mode. It is recommended on "
+                   "most printers. Default is checked");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(true));
 
