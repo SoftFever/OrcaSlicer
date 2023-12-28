@@ -14,6 +14,7 @@
 	"printable_height": "300",
 	"nozzle_type": "hardened_steel",
 	"auxiliary_fan": "1",
+	"support_air_filtration": "1",
 	"machine_max_acceleration_e": ["5000", "5000"],
 	"machine_max_acceleration_extruding": ["20000", "20000"],
 	"machine_max_acceleration_retracting": ["5000", "5000"],
