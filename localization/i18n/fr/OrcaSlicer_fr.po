@@ -107,7 +107,7 @@ msgid "Support Generated"
 msgstr "Supports générés"
 
 msgid "Gizmo-Place on Face"
-msgstr "Gizmo-Placer la face"
+msgstr "Gizmo-Placer sur la face"
 
 msgid "Lay on face"
 msgstr "Poser sur une face"
@@ -14615,7 +14615,7 @@ msgstr ""
 "Poser sur une face\n"
 "Saviez-vous qu'il est possible d'orienter rapidement un modèle de manière à "
 "ce que l'une de ses faces repose sur le plateau d'impression ? Sélectionnez "
-"la fonction « Poser sur une face » ou appuyez sur la touche <b>F</b>."
+"la fonction « Placer sur la face » ou appuyez sur la touche <b>F</b>."
 
 #: resources/data/hints.ini: [hint:Object List]
 msgid ""
