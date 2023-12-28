@@ -597,7 +597,7 @@ Sidebar::Sidebar(Plater *parent)
             });
         combo_printer->edit_btn = edit_btn;
         p->combo_printer = combo_printer;
-
+        
         connection_btn = new ScalableButton(p->m_panel_printer_content, wxID_ANY, "monitor_signal_strong");
         connection_btn->SetBackgroundColour(wxColour(255, 255, 255));
         connection_btn->SetToolTip(_L("Connection"));
@@ -1708,6 +1708,11 @@ void Sidebar::finish_param_edit() { p->editing_filament = -1; }
 std::vector<PlaterPresetComboBox*>& Sidebar::combos_filament()
 {
     return p->combos_filament;
+}
+
+PlaterPresetComboBox* Sidebar::printer_combo()
+{
+    return p->combo_printer;
 }
 
 Search::OptionsSearcher& Sidebar::get_searcher()

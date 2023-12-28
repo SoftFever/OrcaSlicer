@@ -400,33 +400,38 @@ json PrintagoPanel::Config2Json(const DynamicPrintConfig &config,
 
 void PrintagoPanel::LoadConfigFiles(const wxArrayString &paths)
 {
-    std::vector<std::string> cfiles;
-    for (const auto &file : paths) {
-        cfiles.push_back(into_u8(file));
-    }
-    wxGetApp().preset_bundle->import_presets(
-        cfiles, [this](std::string const &) { return wxID_YESTOALL; },
-        ForwardCompatibilitySubstitutionRule::Enable);
-
-    if (!cfiles.empty()) {
-        wxGetApp().load_current_presets();
-    }
+    // std::vector<std::string> cfiles;
+    // for (const auto &file : paths) {
+    //     cfiles.push_back(into_u8(file));
+    // }
+    // wxGetApp().preset_bundle->import_presets(
+    //     cfiles, [this](std::string const &) { return wxID_YESTOALL; },
+    //     ForwardCompatibilitySubstitutionRule::Enable);
+    //
+    // if (!cfiles.empty()) {
+    //     wxGetApp().load_current_presets();
+    // }
 
     //after presets are loaded, update the selected fields via UI
-    // wxGetApp().//
+    wxGetApp().mainframe->select_tab(1);
+   // wxGetApp().plater()->sidebar().printer_combo()->SelectAndNotify(3);  //this works, but must update UI.
+    CallAfter([=] {wxGetApp().plater()->sidebar().combos_filament()[0]->SelectAndNotify(5); });
+    // if AMS, need to set the filament on the first filament combo in the vector array; hopefully always uses array[0].
+    
+
 }
 
 wxString PrintagoPanel::wxURLErrorToString(wxURLError error)
 {
     switch (error) {
-    case wxURL_NOERR: return wxString("No Error");
-    case wxURL_SNTXERR: return wxString("Syntax Error");
-    case wxURL_NOPROTO: return wxString("No Protocol");
-    case wxURL_NOHOST: return wxString("No Host");
-    case wxURL_NOPATH: return wxString("No Path");
-    case wxURL_CONNERR: return wxString("Connection Error");
-    case wxURL_PROTOERR: return wxString("Protocol Error");
-    default: return wxString("Unknown Error");
+        case wxURL_NOERR: return {"No Error"};
+        case wxURL_SNTXERR: return {"Syntax Error"};
+        case wxURL_NOPROTO: return {"No Protocol"};
+        case wxURL_NOHOST: return {"No Host"};
+        case wxURL_NOPATH: return {"No Path"};
+        case wxURL_CONNERR: return {"Connection Error"};
+        case wxURL_PROTOERR: return {"Protocol Error"};
+        default: return {"Unknown Error"};
     }
 }
 
@@ -530,6 +535,8 @@ void PrintagoPanel::HandlePrintagoCommand(const PrintagoCommand &event)
             return;
         }
         else if (!action.compare("start_print_bbl")) {
+            LoadConfigFiles(*(new wxArrayString()));
+            return;
             if (!printer->can_print() && jobPrinterId.compare(printerId)) { //printer can print, and we're not already prepping for it.
                 SendErrorMessage(printerId, action, originalCommandStr, "cannot start print");
                 return;
