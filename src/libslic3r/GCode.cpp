@@ -295,7 +295,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
             : gcodegen.config().nozzle_temperature.get_at(gcodegen.writer().extruder()->id());
     }
 
-    // Ioannis Giannakas:
+    // Orca:
     // Function to calculate the excess retraction length that should be retracted either before or after wiping
     // in order for the wipe operation to respect the filament retraction speed
     Wipe::RetractionValues Wipe::calculateWipeRetractionLengths(GCode& gcodegen, bool toolchange) {
