@@ -55,6 +55,7 @@ if (APPLE)
     set(CMAKE_OSX_DEPLOYMENT_TARGET "11.3" CACHE STRING "Minimum OS X deployment version" FORCE)
     SET(CMAKE_XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "com.softfever3d.orca-slicer")
 
+    message(STATUS "Orca: IS_CROSS_COMPILE: ${IS_CROSS_COMPILE}")
 endif ()
 
 # Proposal for C++ unit tests and sandboxes
@@ -332,6 +333,16 @@ if(CMAKE_CXX_FLAGS_RELWITHDEBINFO MATCHES "/O2")
     string(REGEX REPLACE "/O2" "/Od" CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
 endif()
 
+if("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+    if(CMAKE_C_FLAGS_RELWITHDEBINFO MATCHES "-O2")
+        string(REGEX REPLACE "-O2" "-O0" CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO}")
+    endif()
+
+    if(CMAKE_CXX_FLAGS_RELWITHDEBINFO MATCHES "-O2")
+        string(REGEX REPLACE "-O2" "-O0" CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
+    endif()
+endif()
+
 if(MSVC)
     if(CMAKE_C_FLAGS_RELWITHDEBINFO MATCHES "/Ob1")
         string(REGEX REPLACE "/Ob1" "/Ob0" CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO}")
@@ -426,11 +437,8 @@ find_package(TBB REQUIRED)
 # add_definitions(-DTBB_USE_CAPTURED_EXCEPTION=0)
 
 find_package(OpenSSL REQUIRED)
-if (APPLE)
-find_package(CURL CONFIG REQUIRED)
-else()
 find_package(CURL REQUIRED)
-endif()
+
 
 add_library(libcurl INTERFACE)
 target_link_libraries(libcurl INTERFACE CURL::libcurl)
@@ -499,6 +507,8 @@ find_package(PNG REQUIRED)
 set(OpenGL_GL_PREFERENCE "LEGACY")
 find_package(OpenGL REQUIRED)
 
+set(GLEW_ROOT "${CMAKE_PREFIX_PATH}")
+message("GLEW_ROOT: ${GLEW_ROOT}")
 # Find glew or use bundled version
 if (SLIC3R_STATIC AND NOT SLIC3R_STATIC_EXCLUDE_GLEW)
     set(GLEW_USE_STATIC_LIBS ON)
@@ -511,9 +521,11 @@ find_package(glfw3 REQUIRED)
 
 # Find the Cereal serialization library
 find_package(cereal REQUIRED)
-set_target_properties(cereal PROPERTIES IMPORTED_GLOBAL TRUE)
 if (NOT TARGET cereal::cereal)
+    set_target_properties(cereal PROPERTIES IMPORTED_GLOBAL TRUE)
     add_library(cereal::cereal ALIAS cereal)
+else ()
+    set_target_properties(cereal::cereal PROPERTIES IMPORTED_GLOBAL TRUE)
 endif ()
 
 # l10n

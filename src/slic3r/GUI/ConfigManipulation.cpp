@@ -277,7 +277,6 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
            sparse_infill_density == 0 &&
            ! config->opt_bool("enable_support") &&
            config->opt_int("enforce_support_layers") == 0 &&
-           config->opt_bool("ensure_vertical_shell_thickness") &&
            ! config->opt_bool("detect_thin_wall") &&
            ! config->opt_bool("overhang_reverse") &&
             config->opt_enum<TimelapseType>("timelapse_type") == TimelapseType::tlTraditional))
@@ -305,7 +304,6 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
             new_conf.set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
             new_conf.set_key_value("enable_support", new ConfigOptionBool(false));
             new_conf.set_key_value("enforce_support_layers", new ConfigOptionInt(0));
-            new_conf.set_key_value("ensure_vertical_shell_thickness", new ConfigOptionBool(true));
             new_conf.set_key_value("detect_thin_wall", new ConfigOptionBool(false));
             new_conf.set_key_value("overhang_reverse", new ConfigOptionBool(false));
             new_conf.set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(tlTraditional));
@@ -325,6 +323,30 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
                 cb_value_change("enable_support", false);
         }
         is_msg_dlg_already_exist = false;
+    }
+    
+    if (config->opt_bool("alternate_extra_wall") && config->opt_bool("ensure_vertical_shell_thickness"))
+    {
+        wxString msg_text = _(L("Alternate extra wall only works with ensure vertical shell thickness disabled. "));
+
+        if (is_global_config)
+            msg_text += "\n\n" + _(L("Change these settings automatically? \n"
+                                     "Yes - Disable ensure vertical shell thickness and enable alternate extra wall\n"
+                                     "No  - Dont use alternate extra wall"));
+        
+        MessageDialog dialog(m_msg_dlg_parent, msg_text, "",
+                               wxICON_WARNING | (is_global_config ? wxYES | wxNO : wxOK));
+        DynamicPrintConfig new_conf = *config;
+        auto answer = dialog.ShowModal();
+        if (!is_global_config || answer == wxID_YES) {
+            new_conf.set_key_value("ensure_vertical_shell_thickness", new ConfigOptionBool(false));
+            new_conf.set_key_value("alternate_extra_wall", new ConfigOptionBool(true));
+        }
+        else {
+            new_conf.set_key_value("ensure_vertical_shell_thickness", new ConfigOptionBool(true));
+            new_conf.set_key_value("alternate_extra_wall", new ConfigOptionBool(false));
+        }
+        apply(config, &new_conf);
     }
 
     // BBS
@@ -409,50 +431,13 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
     if (config->opt_bool("enable_support")) {
         auto   support_type = config->opt_enum<SupportType>("support_type");
         auto   support_style = config->opt_enum<SupportMaterialStyle>("support_style");
-        std::set<int> enum_set_normal = {0, 1, 2};
-        std::set<int> enum_set_tree   = {0, 3, 4, 5, 6};
+        std::set<int> enum_set_normal = { smsDefault, smsGrid, smsSnug };
+        std::set<int> enum_set_tree   = { smsDefault, smsTreeSlim, smsTreeStrong, smsTreeHybrid, smsOrganic };
         auto &           set             = is_tree(support_type) ? enum_set_tree : enum_set_normal;
         if (set.find(support_style) == set.end()) {
             DynamicPrintConfig new_conf = *config;
             new_conf.set_key_value("support_style", new ConfigOptionEnum<SupportMaterialStyle>(smsDefault));
             apply(config, &new_conf);
-        }
-    }
-
-    if (config->option<ConfigOptionPercent>("sparse_infill_density")->value == 100) {
-        std::string  sparse_infill_pattern            = config->option<ConfigOptionEnum<InfillPattern>>("sparse_infill_pattern")->serialize();
-        const auto  &top_fill_pattern_values = config->def()->get("top_surface_pattern")->enum_values;
-        bool correct_100p_fill = std::find(top_fill_pattern_values.begin(), top_fill_pattern_values.end(), sparse_infill_pattern) != top_fill_pattern_values.end();
-        if (!correct_100p_fill) {
-            // get sparse_infill_pattern name from enum_labels for using this one at dialog_msg
-            const ConfigOptionDef *fill_pattern_def = config->def()->get("sparse_infill_pattern");
-            assert(fill_pattern_def != nullptr);
-            auto it_pattern = std::find(fill_pattern_def->enum_values.begin(), fill_pattern_def->enum_values.end(), sparse_infill_pattern);
-            assert(it_pattern != fill_pattern_def->enum_values.end());
-            if (it_pattern != fill_pattern_def->enum_values.end()) {
-                wxString msg_text = GUI::format_wxstr(_L("%1% infill pattern doesn't support 100%% density."),
-                    _(fill_pattern_def->enum_labels[it_pattern - fill_pattern_def->enum_values.begin()]));
-                if (is_global_config)
-                    msg_text += "\n" + _L("Switch to rectilinear pattern?\n"
-                                          "Yes - switch to rectilinear pattern automaticlly\n"
-                                          "No  - reset density to default non 100% value automaticlly") + "\n";
-                MessageDialog dialog(m_msg_dlg_parent, msg_text, "",
-                                                  wxICON_WARNING | (is_global_config ? wxYES | wxNO : wxOK) );
-                DynamicPrintConfig new_conf = *config;
-                is_msg_dlg_already_exist = true;
-                auto answer = dialog.ShowModal();
-                if (!is_global_config || answer == wxID_YES) {
-                    new_conf.set_key_value("sparse_infill_pattern", new ConfigOptionEnum<InfillPattern>(ipRectilinear));
-                    sparse_infill_density = 100;
-                }
-                else
-                    sparse_infill_density = wxGetApp().preset_bundle->prints.get_selected_preset().config.option<ConfigOptionPercent>("sparse_infill_density")->value;
-                new_conf.set_key_value("sparse_infill_density", new ConfigOptionPercent(sparse_infill_density));
-                apply(config, &new_conf);
-                if (cb_value_change)
-                    cb_value_change("sparse_infill_density", sparse_infill_density);
-                is_msg_dlg_already_exist = false;
-            }
         }
     }
 
@@ -527,7 +512,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     
     bool have_perimeters = config->opt_int("wall_loops") > 0;
     for (auto el : { "extra_perimeters_on_overhangs", "ensure_vertical_shell_thickness", "detect_thin_wall", "detect_overhang_wall",
-        "seam_position", "staggered_inner_seams", "wall_infill_order", "outer_wall_line_width",
+        "seam_position", "staggered_inner_seams", "wall_sequence", "outer_wall_line_width",
         "inner_wall_speed", "outer_wall_speed", "small_perimeter_speed", "small_perimeter_threshold" })
         toggle_field(el, have_perimeters);
     
@@ -542,6 +527,8 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     toggle_field("infill_anchor", has_infill_anchors);
     
     bool has_spiral_vase         = config->opt_bool("spiral_mode");
+    toggle_line("spiral_mode_smooth", has_spiral_vase);
+    toggle_line("spiral_mode_max_xy_smoothing", has_spiral_vase && config->opt_bool("spiral_mode_smooth"));
     bool has_top_solid_infill 	 = config->opt_int("top_shell_layers") > 0;
     bool has_bottom_solid_infill = config->opt_int("bottom_shell_layers") > 0;
     bool has_solid_infill 		 = has_top_solid_infill || has_bottom_solid_infill;
@@ -608,8 +595,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
         "support_base_pattern_spacing", "support_expansion", "support_angle",
         "support_interface_pattern", "support_interface_top_layers", "support_interface_bottom_layers",
         "bridge_no_support", "max_bridge_length", "support_top_z_distance", "support_bottom_z_distance",
-        //BBS: add more support params to dependent of enable_support
-        "support_type", "support_on_build_plate_only", "support_critical_regions_only",
+        "support_type", "support_on_build_plate_only", "support_critical_regions_only","support_interface_not_for_body",
         "support_object_xy_distance"/*, "independent_support_layer_height"*/})
         toggle_field(el, have_support_material);
     toggle_field("support_threshold_angle", have_support_material && is_auto(support_type));
@@ -700,9 +686,11 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     toggle_line("slowdown_for_curled_perimeters",!has_overhang_speed_classic && has_overhang_speed);
     
     toggle_line("flush_into_objects", !is_global_config);
-    
+
+    toggle_line("support_interface_not_for_body",config->opt_int("support_interface_filament")&&!config->opt_int("support_filament"));
+
     bool has_fuzzy_skin = (config->opt_enum<FuzzySkinType>("fuzzy_skin") != FuzzySkinType::None);
-    for (auto el : { "fuzzy_skin_thickness", "fuzzy_skin_point_distance"})
+    for (auto el : { "fuzzy_skin_thickness", "fuzzy_skin_point_distance", "fuzzy_skin_first_layer"})
         toggle_line(el, has_fuzzy_skin);
     
     bool have_arachne = config->opt_enum<PerimeterGeneratorType>("wall_generator") == PerimeterGeneratorType::Arachne;
@@ -724,8 +712,6 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     toggle_line("make_overhang_printable_angle", have_make_overhang_printable);
     toggle_line("make_overhang_printable_hole_size", have_make_overhang_printable);
     
-    toggle_line("exclude_object", gcflavor == gcfKlipper);
-
     toggle_line("min_width_top_surface", config->opt_bool("only_one_wall_top") || ((config->opt_float("min_length_factor") > 0.5f) && have_arachne)); // 0.5 is default value
 
     for (auto el : { "hole_to_polyhole_threshold", "hole_to_polyhole_twisted" })

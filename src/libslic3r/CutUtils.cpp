@@ -217,7 +217,7 @@ static void reset_instance_transformation(ModelObject* object, size_t src_instan
         auto& obj_instance = object->instances[i];
         const double rot_z = obj_instance->get_rotation().z();
         
-        Transformation inst_trafo = Transformation(obj_instance->get_transformation().get_matrix(false, false, true));
+        Transformation inst_trafo = Transformation(obj_instance->get_transformation().get_matrix_no_scaling_factor());
         // add respect to mirroring
         if (obj_instance->is_left_handed())
             inst_trafo = inst_trafo * Transformation(scale_transform(Vec3d(-1, 1, 1)));
@@ -320,7 +320,7 @@ const ModelObjectPtrs& Cut::perform_with_plane()
     // except for translation and Z-rotation on instances, which are preserved
     // in the transformation matrix and not applied to the mesh transform.
 
-    const auto              instance_matrix = mo->instances[m_instance]->get_transformation().get_matrix(true);
+    const auto              instance_matrix = mo->instances[m_instance]->get_transformation().get_matrix_no_offset();
     const Transformation    cut_transformation = Transformation(m_cut_matrix);
     const Transform3d       inverse_cut_matrix = cut_transformation.get_rotation_matrix().inverse() * translation_transform(-1. * cut_transformation.get_offset());
 
@@ -445,6 +445,11 @@ const ModelObjectPtrs& Cut::perform_by_contour(std::vector<Part> parts, int dowe
     ModelObject* lower{ nullptr };
     if (m_attributes.has(ModelObjectCutAttribute::KeepLower)) cut_mo->clone_for_cut(&lower);
 
+    if (upper && lower) {
+        upper->name = upper->name + "_A";
+        lower->name = lower->name + "_B";
+    }
+
     const size_t cut_parts_cnt = parts.size();
     bool has_modifiers = false;
 
@@ -527,6 +532,10 @@ const ModelObjectPtrs& Cut::perform_with_groove(const Groove& groove, const Tran
     ModelObject* lower{ nullptr };
     cut_mo->clone_for_cut(&lower);
 
+    if (upper && lower) {
+        upper->name = upper->name + "_A";
+        lower->name = lower->name + "_B";
+    }
     const double groove_half_depth = 0.5 * double(groove.depth);
 
     Model tmp_model_for_cut = Model();

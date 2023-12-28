@@ -1,25 +1,13 @@
 {
-    "type": "filament",
-    "filament_id": "GFN98",
-    "setting_id": "GFSX04",
-    "name": "Snapmaker J1 PA-CF",
-    "from": "system",
-    "instantiation": "true",
-    "inherits": "fdm_filament_pa",
-    "filament_type": [
-        "PA-CF"
-    ],
-    "nozzle_temperature_initial_layer": [
-        "280"
-    ],
-    "nozzle_temperature": [
-        "280"
-    ],
-    "filament_max_volumetric_speed": [
-        "8"
-    ],
-    "compatible_printers": [
-        "Snapmaker J1 0.4 nozzle",
-        "Snapmaker J1 0.6 nozzle" 
-    ]
+  "type": "filament",
+  "from": "system",
+  "instantiation": "true",
+  "name": "Snapmaker J1 PA-CF",
+  "setting_id": "2221614608",
+  "inherits": "Snapmaker J1 PA-CF @base",
+  "compatible_printers": [
+    "Snapmaker J1 (0.4 nozzle)",
+    "Snapmaker J1 (0.6 nozzle)",
+    "Snapmaker J1 (0.8 nozzle)"
+  ]
 }

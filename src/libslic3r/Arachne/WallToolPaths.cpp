@@ -790,10 +790,9 @@ bool WallToolPaths::removeEmptyToolPaths(std::vector<VariableWidthLines> &toolpa
      *
      * \param outer_to_inner Whether the wall polygons with a lower inset_idx should go before those with a higher one.
  */
-std::unordered_set<std::pair<const ExtrusionLine *, const ExtrusionLine *>, boost::hash<std::pair<const ExtrusionLine *, const ExtrusionLine *>>> WallToolPaths::getRegionOrder(const std::vector<ExtrusionLine *> &input, const bool outer_to_inner)
+WallToolPaths::ExtrusionLineSet WallToolPaths::getRegionOrder(const std::vector<ExtrusionLine *> &input, const bool outer_to_inner)
 {
-    std::unordered_set<std::pair<const ExtrusionLine *, const ExtrusionLine *>, boost::hash<std::pair<const ExtrusionLine *, const ExtrusionLine *>>> order_requirements;
-
+    ExtrusionLineSet order_requirements;
     // We build a grid where we map toolpath vertex locations to toolpaths,
     // so that we can easily find which two toolpaths are next to each other,
     // which is the requirement for there to be an order constraint.

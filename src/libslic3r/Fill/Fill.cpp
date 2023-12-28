@@ -485,9 +485,10 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 		        
 		        // Calculate the actual flow we'll be using for this infill.
 		        params.bridge = is_bridge || Fill::use_bridge_flow(params.pattern);
+                const bool is_thick_bridge = surface.is_bridge() && (surface.is_internal_bridge() ? object_config.thick_internal_bridges : object_config.thick_bridges);
 				params.flow   = params.bridge ?
-					//BBS: always enable thick bridge for internal bridge
-					layerm.bridging_flow(extrusion_role, (surface.is_bridge() && !surface.is_external()) || object_config.thick_bridges) :
+					//Orca: enable thick bridge based on config
+					layerm.bridging_flow(extrusion_role, is_thick_bridge) :
 					layerm.flow(extrusion_role, (surface.thickness == -1) ? layer.height : surface.thickness);
 
 				// Calculate flow spacing for infill pattern generation.
@@ -1095,7 +1096,7 @@ void Layer::make_ironing()
 
         // Create the filler object.
         f->spacing = ironing_params.line_spacing;
-        f->angle = float(ironing_params.angle + 0.25 * M_PI);
+        f->angle = float(ironing_params.angle);
         f->link_max_length = (coord_t) scale_(3. * f->spacing);
 		double  extrusion_height = ironing_params.height * f->spacing / nozzle_dmr;
 		float  extrusion_width  = Flow::rounded_rectangle_extrusion_width_from_spacing(float(nozzle_dmr), float(extrusion_height));

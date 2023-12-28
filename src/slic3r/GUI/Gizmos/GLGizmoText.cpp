@@ -1507,9 +1507,7 @@ void GLGizmoText::generate_text_volume(bool is_temp)
         new_model_volume->set_text_info(text_info);
         new_model_volume->name = model_volume->name;
         new_model_volume->set_type(model_volume->type());
-        if (model_volume->config.option("extruder"))
-            new_model_volume->config.set("extruder", model_volume->config.extruder());
-
+        new_model_volume->config.apply(model_volume->config);
         std::swap(model_object->volumes[m_volume_idx], model_object->volumes.back());
         model_object->delete_volume(model_object->volumes.size() - 1);
         plater->update();

@@ -609,7 +609,7 @@ void Bed3D::render_system(GLCanvas3D& canvas, const Transform3d& view_matrix, co
 }*/
 
 //BBS: add part plate related logic
-void Bed3D::update_model_offset() const
+void Bed3D::update_model_offset()
 {
     // move the model so that its origin (0.0, 0.0, 0.0) goes into the bed shape center and a bit down to avoid z-fighting with the texture quad
     Vec3d shift = m_extended_bounding_box.center();
@@ -626,11 +626,14 @@ void Bed3D::update_model_offset() const
 
     // update extended bounding box
     const_cast<BoundingBoxf3&>(m_extended_bounding_box) = calc_extended_bounding_box();
+    m_triangles.reset();
 }
 
 void Bed3D::update_bed_triangles()
 {
-    m_triangles.reset();
+    if (m_triangles.is_initialized()) {
+        return;
+    }
 
     Vec3d shift = m_extended_bounding_box.center();
     shift(2) = -0.03;
@@ -645,8 +648,12 @@ void Bed3D::update_bed_triangles()
     (*model_offset_ptr)(1) = m_build_volume.bounding_volume2d().min.y() - bed_ext.min.y();
     (*model_offset_ptr)(2) = -0.41 + GROUND_Z;
 
-    std::vector<Vec2d> new_bed_shape;
-    for (auto point: m_bed_shape) {
+    std::vector<Vec2d> origin_bed_shape;
+    for (size_t i = 0; i < m_bed_shape.size(); i++) { 
+        origin_bed_shape.push_back(m_bed_shape[i] - m_bed_shape[0]);
+    }
+    std::vector<Vec2d> new_bed_shape; // offset to correct origin
+    for (auto point : origin_bed_shape) {
         Vec2d new_point(point.x() + model_offset_ptr->x(), point.y() + model_offset_ptr->y());
         new_bed_shape.push_back(new_point);
     }
@@ -704,7 +711,7 @@ void Bed3D::render_custom(GLCanvas3D& canvas, const Transform3d& view_matrix, co
 
 void Bed3D::render_default(bool bottom, const Transform3d& view_matrix, const Transform3d& projection_matrix)
 {
-    m_texture.reset();
+    // m_texture.reset();
 
     update_bed_triangles();
 

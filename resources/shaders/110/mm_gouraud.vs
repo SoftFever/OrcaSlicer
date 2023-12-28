@@ -12,10 +12,13 @@ uniform vec2 z_range;
 uniform vec4 clipping_plane;
 
 attribute vec3 v_position;
+attribute vec3 v_barycentric;
 
 varying vec3 clipping_planes_dots;
 varying vec4 model_pos;
 varying vec4 world_pos;
+varying vec3 barycentric_coordinates;
+
 struct SlopeDetection
 {
     bool actived;
@@ -32,4 +35,7 @@ void main()
     gl_Position = projection_matrix * view_model_matrix * model_pos;
     // Fill in the scalars for fragment shader clipping. Fragments with any of these components lower than zero are discarded.
     clipping_planes_dots = vec3(dot(world_pos, clipping_plane), world_pos.z - z_range.x, z_range.y - world_pos.z);
+
+    //compute the Barycentric Coordinates
+    barycentric_coordinates = v_barycentric;
 }

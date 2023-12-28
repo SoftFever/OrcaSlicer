@@ -165,7 +165,7 @@ void GLGizmoFlatten::update_planes()
     ch = ch.convex_hull_3d();
     m_planes.clear();
     on_unregister_raycasters_for_picking();
-    const Transform3d& inst_matrix = mo->instances.front()->get_matrix(true);
+    const Transform3d &inst_matrix = mo->instances.front()->get_matrix_no_offset();
 
     // Following constants are used for discarding too small polygons.
     const float minimal_area = 5.f; // in square mm (world coordinates)

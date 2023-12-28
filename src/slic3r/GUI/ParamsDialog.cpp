@@ -52,6 +52,12 @@ ParamsDialog::ParamsDialog(wxWindow * parent)
         }
 #else
         Hide();
+        if (!m_editing_filament_id.empty()) {
+            FilamentInfomation *filament_info = new FilamentInfomation();
+            filament_info->filament_id        = m_editing_filament_id;
+            wxQueueEvent(wxGetApp().plater(), new SimpleEvent(EVT_MODIFY_FILAMENT, filament_info));
+            m_editing_filament_id.clear();
+        }
 #endif
         wxGetApp().sidebar().finish_param_edit();
     });
@@ -66,6 +72,11 @@ void ParamsDialog::Popup()
     Reparent(wxGetApp().mainframe);
 #endif
     Center();
+    if (m_panel && m_panel->get_current_tab()) {
+        bool just_edit = false;
+        if (!m_editing_filament_id.empty()) just_edit = true;
+        dynamic_cast<Tab *>(m_panel->get_current_tab())->set_just_edit(just_edit);
+    }
     Show();
 }
 

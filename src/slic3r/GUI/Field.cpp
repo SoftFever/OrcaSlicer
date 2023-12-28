@@ -131,7 +131,9 @@ void Field::PostInitialize()
 	// For the mode, when settings are in non-modal dialog, neither dialog nor tabpanel doesn't receive wxEVT_KEY_UP event, when some field is selected.
 	// So, like a workaround check wxEVT_KEY_UP event for the Filed and switch between tabs if Ctrl+(1-4) was pressed
     if (getWindow()) {
-        if (m_opt.readonly) getWindow()->Disable();
+        if (m_opt.readonly) { 
+            this->disable();
+        }
 		getWindow()->Bind(wxEVT_KEY_UP, [](wxKeyEvent& evt) {
 		    if ((evt.GetModifiers() & wxMOD_CONTROL) != 0) {
 			    int tab_id = -1;
@@ -420,6 +422,12 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
                         if (y_str.ToDouble(&y) && !thumbnail.HasMoreTokens()) {
                             if (m_opt_id == "bed_exclude_area") {
                                 if (0 <= x &&  0 <= y) {
+                                    out_values.push_back(Vec2d(x, y));
+                                    continue;
+                                }
+                            }
+                            else if (m_opt_id == "printable_area") {
+                                if (0 <= x && x <= 1000 && 0 <= y && y <= 1000) {
                                     out_values.push_back(Vec2d(x, y));
                                     continue;
                                 }
@@ -1333,7 +1341,7 @@ void Choice::set_value(const boost::any& value, bool change_event)
         if (m_opt_id.compare("host_type") == 0 && val != 0 &&
 			m_opt.enum_values.size() > field->GetCount()) // for case, when PrusaLink isn't used as a HostType
 			val--;
-        if (m_opt_id == "top_surface_pattern" || m_opt_id == "bottom_surface_pattern" || m_opt_id == "internal_solid_infill_pattern" || m_opt_id == "sparse_infill_pattern" || m_opt_id == "support_style")
+        if (m_opt_id == "top_surface_pattern" || m_opt_id == "bottom_surface_pattern" || m_opt_id == "internal_solid_infill_pattern" || m_opt_id == "sparse_infill_pattern" || m_opt_id == "support_style" || m_opt_id == "curr_bed_type")
 		{
 			std::string key;
 			const t_config_enum_values& map_names = *m_opt.enum_keys_map;
@@ -1420,7 +1428,8 @@ boost::any& Choice::get_value()
 	{
         if (m_opt.nullable && field->GetSelection() == -1)
             m_value = ConfigOptionEnumsGenericNullable::nil_value();
-        else if (m_opt_id == "top_surface_pattern" || m_opt_id == "bottom_surface_pattern" || m_opt_id == "internal_solid_infill_pattern" || m_opt_id == "sparse_infill_pattern" || m_opt_id == "support_style") {
+        else if (m_opt_id == "top_surface_pattern" || m_opt_id == "bottom_surface_pattern" || m_opt_id == "internal_solid_infill_pattern" || m_opt_id == "sparse_infill_pattern" ||
+                 m_opt_id == "support_style" || m_opt_id == "curr_bed_type") {
 			const std::string& key = m_opt.enum_values[field->GetSelection()];
 			m_value = int(m_opt.enum_keys_map->at(key));
 		}

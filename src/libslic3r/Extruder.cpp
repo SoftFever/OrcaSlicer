@@ -54,11 +54,11 @@ double Extruder::retract(double length, double restart_extra)
         if (m_config->use_relative_e_distances)
             m_share_E = 0.;
         double to_retract = std::max(0., length - m_share_retracted);
+        m_restart_extra = restart_extra;
         if (to_retract > 0.) {
             m_share_E             -= to_retract;
             m_absolute_E          -= to_retract;
             m_share_retracted     += to_retract;
-            m_restart_extra = restart_extra;
         }
         return to_retract;
     } else {
@@ -66,11 +66,11 @@ double Extruder::retract(double length, double restart_extra)
         if (m_config->use_relative_e_distances)
             m_E = 0.;
         double to_retract = std::max(0., length - m_retracted);
+        m_restart_extra = restart_extra;
         if (to_retract > 0.) {
             m_E             -= to_retract;
             m_absolute_E    -= to_retract;
             m_retracted     += to_retract;
-            m_restart_extra = restart_extra;
         }
         return to_retract;
     }

@@ -7,7 +7,7 @@
 #include <boost/polygon/voronoi.hpp>
 
 #include <memory> // smart pointers
-#include <unordered_map>
+#include <ankerl/unordered_dense.h>
 #include <utility> // pair
 
 #include "utils/HalfEdgeGraph.hpp"
@@ -163,8 +163,8 @@ protected:
      * mapping each voronoi VD edge to the corresponding halfedge HE edge
      * In case the result segment is discretized, we map the VD edge to the *last* HE edge
      */
-    std::unordered_map<vd_t::edge_type*, edge_t*> vd_edge_to_he_edge;
-    std::unordered_map<vd_t::vertex_type*, node_t*> vd_node_to_he_node;
+    ankerl::unordered_dense::map<vd_t::edge_type*, edge_t*> vd_edge_to_he_edge;
+    ankerl::unordered_dense::map<vd_t::vertex_type*, node_t*> vd_node_to_he_node;
     node_t& makeNode(vd_t::vertex_type& vd_node, Point p); //!< Get the node which the VD node maps to, or create a new mapping if there wasn't any yet.
 
     /*!

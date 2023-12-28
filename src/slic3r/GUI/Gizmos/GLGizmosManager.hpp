@@ -85,8 +85,8 @@ public:
         MeshBoolean,
         FdmSupports,
         Seam,
-        // BBS
-        Text,
+        Emboss,
+        Svg,
         MmuSegmentation,
         Measure,
         Simplify,
@@ -163,10 +163,6 @@ public:
         IC_TOOLBAR_RESET_HOVER,
         IC_TOOLBAR_TOOLTIP,
         IC_TOOLBAR_TOOLTIP_HOVER,
-        IC_TEXT_B,
-        IC_TEXT_B_DARK,
-        IC_TEXT_T,
-        IC_TEXT_T_DARK,
         IC_NAME_COUNT,
     };
 

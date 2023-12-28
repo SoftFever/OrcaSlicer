@@ -14,6 +14,7 @@
 
 #include <wx/checkbox.h>
 #include <wx/dialog.h>
+#include <wx/srchctrl.h>
 
 #include "wxExtensions.hpp"
 #include "GUI_Utils.hpp"
@@ -21,12 +22,13 @@
 #include "Widgets/ScrolledWindow.hpp"
 #include "Widgets/TextInput.hpp"
 #include "Widgets/PopupWindow.hpp"
-
+#include "GUI_ObjectList.hpp"
 
 namespace Slic3r {
 
 wxDECLARE_EVENT(wxCUSTOMEVT_JUMP_TO_OPTION, wxCommandEvent);
 wxDECLARE_EVENT(wxCUSTOMEVT_EXIT_SEARCH, wxCommandEvent);
+wxDECLARE_EVENT(wxCUSTOMEVT_JUMP_TO_OBJECT, wxCommandEvent);
 
 namespace Search {
 
@@ -154,14 +156,17 @@ public:
 //          SearchDialog
 //------------------------------------------
 class SearchDialog;
+class SearchObjectDialog;
 class SearchItem : public wxWindow
 {
 public:
     wxString      m_text;
     int           m_index;
-    SearchDialog *m_sdialog;
+    SearchDialog* m_sdialog{ nullptr };
+    SearchObjectDialog* m_search_object_dialog{ nullptr };
+    GUI::ObjectDataViewModelNode* m_item{ nullptr };
 
-    SearchItem(wxWindow *parent, wxString text, int index, SearchDialog *sdialog);
+    SearchItem(wxWindow *parent, wxString text, int index, SearchDialog *sdialog = nullptr, SearchObjectDialog* search_dialog = nullptr);
     ~SearchItem(){};
 
     wxSize DrawTextString(wxDC &dc, const wxString &text, const wxPoint &pt, bool bold);
@@ -274,6 +279,40 @@ public:
     void         GetValueByRow(wxVariant &variant, unsigned int row, unsigned int col) const override;
     bool         GetAttrByRow(unsigned int row, unsigned int col, wxDataViewItemAttr &attr) const override { return true; }
     bool         SetValueByRow(const wxVariant &variant, unsigned int row, unsigned int col) override { return false; }
+};
+
+class SearchObjectDialog : public PopupWindow
+{
+public:
+    SearchObjectDialog(GUI::ObjectList* object_list, wxWindow* parent);
+    ~SearchObjectDialog();
+
+    void Popup(wxPoint position = wxDefaultPosition);
+    void Dismiss();
+
+    void update_list();
+
+public:
+    GUI::ObjectList* m_object_list{ nullptr };
+
+    int       em;
+    const int POPUP_WIDTH = 41;
+    const int POPUP_HEIGHT = 45;
+
+    ScrolledWindow* m_scrolledWindow{ nullptr };
+
+    wxColour m_text_color;
+    wxColour m_bg_color;
+    wxColour m_thumb_color;
+    wxColour m_bold_color;
+
+    wxBoxSizer* m_sizer_body{ nullptr };
+    wxBoxSizer* m_sizer_main{ nullptr };
+    wxBoxSizer* m_sizer_border{ nullptr };
+
+    wxWindow* m_border_panel{ nullptr };
+    wxWindow* m_client_panel{ nullptr };
+    wxWindow* m_listPanel{ nullptr };
 };
 
 } // namespace Search
