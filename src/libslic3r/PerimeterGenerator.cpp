@@ -1938,7 +1938,7 @@ void PerimeterGenerator::process_no_bridge(Surfaces& all_surfaces, coord_t perim
                                                     lower_island.expolygons,
                                                     perimeter_spacing };
                             if (detector.detect_angle(Geometry::deg2rad(this->config->bridge_angle.value)))
-                                expolygons_append(bridgeable, union_ex(detector.coverage(-1)));
+                                expolygons_append(bridgeable, union_ex(detector.coverage(-1, true)));
                         }
                         if (!bridgeable.empty()) {
                             //check if we get everything or just the bridgeable area
