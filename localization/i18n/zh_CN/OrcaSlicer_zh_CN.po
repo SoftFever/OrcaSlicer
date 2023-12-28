@@ -13100,7 +13100,7 @@ msgstr ""
 #: resources/data/hints.ini: [hint:Switch workspaces]
 msgid ""
 "Switch workspaces\n"
-"You can swtich between <b>Prepare</b> and <b>Preview</b> workspaces by "
+"You can switch between <b>Prepare</b> and <b>Preview</b> workspaces by "
 "pressing the <b>Tab</b> key."
 msgstr ""
 
