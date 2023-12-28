@@ -3142,7 +3142,7 @@ void PrintObject::discover_horizontal_shells()
 #endif
 
             // If ensure_vertical_shell_thickness, then the rest has already been performed by discover_vertical_shells().
-            // Ioannis Giannakas: Dont trigger this algorithm if reduce wall solid infill is selected as the work has been performed by
+            // Orca: Dont trigger this algorithm if reduce wall solid infill is selected as the work has been performed by
             // discover_vertical_shells().
             if (region_config.ensure_vertical_shell_thickness.value || region_config.reduce_wall_solid_infill.value)
                 continue;
