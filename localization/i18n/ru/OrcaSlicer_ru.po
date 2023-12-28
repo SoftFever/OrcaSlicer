@@ -528,7 +528,7 @@ msgstr "Соединение"
 msgid "Cut by Plane"
 msgstr ""
 
-msgid "non-mainifold edges be caused by cut tool, do you want to fix it now?"
+msgid "non-manifold edges be caused by cut tool, do you want to fix it now?"
 msgstr ""
 
 msgid "Repairing model object"
@@ -7831,7 +7831,7 @@ msgstr "Гизмо точки SLA поддержки"
 msgid "Gizmo FDM paint-on seam"
 msgstr "Гизмо рисования шва (FDM)"
 
-msgid "Swtich between Prepare/Prewview"
+msgid "Switch between Prepare/Preview"
 msgstr "Переключение между окном подготовки и окном предпросмотра нарезки"
 
 msgid "Plater"
@@ -14076,7 +14076,7 @@ msgstr ""
 #: resources/data/hints.ini: [hint:Switch workspaces]
 msgid ""
 "Switch workspaces\n"
-"You can swtich between <b>Prepare</b> and <b>Preview</b> workspaces by "
+"You can switch between <b>Prepare</b> and <b>Preview</b> workspaces by "
 "pressing the <b>Tab</b> key."
 msgstr ""
 

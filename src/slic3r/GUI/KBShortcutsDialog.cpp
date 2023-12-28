@@ -258,7 +258,7 @@ void KBShortcutsDialog::fill_shortcuts()
             { "F", L("Gizmo Place face on bed") },
             { "L", L("Gizmo SLA support points") },
             { "P", L("Gizmo FDM paint-on seam") },
-            { "Tab", L("Swtich between Prepare/Prewview") },
+            { "Tab", L("Switch between Prepare/Preview") },
 
         };
         m_full_shortcuts.push_back({ { _L("Plater"), "" }, plater_shortcuts });
@@ -300,7 +300,7 @@ void KBShortcutsDialog::fill_shortcuts()
         { L("Arrow Right"), L("Horizontal slider - Move active thumb Right")},
         { "L", L("On/Off one layer mode of the vertical slider")},
         { "C", L("On/Off g-code window")},
-        { "Tab", L("Swtich between Prepare/Prewview") },
+        { "Tab", L("Switch between Prepare/Preview") },
         {L("Shift+Any arrow"), L("Move slider 5x faster")},
         {L("Shift+Mouse wheel"), L("Move slider 5x faster")},
         #ifdef __APPLE__
