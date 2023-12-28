@@ -6646,9 +6646,10 @@ ReadWriteSlicingStatesConfigDef::ReadWriteSlicingStatesConfigDef()
     def->label = L("Extra deretraction");
     def->tooltip = L("Currently planned extra extruder priming after deretraction.");
 
-    def = this->add("e_position", coFloats);
-    def->label = L("Absolute E position");
-    def->tooltip = L("Current position of the extruder axis. Only used with absolute extruder addressing.");
+    // Options from PS not used in Orca
+//    def = this->add("e_position", coFloats);
+//    def->label = L("Absolute E position");
+//    def->tooltip = L("Current position of the extruder axis. Only used with absolute extruder addressing.");
 }
 
 OtherSlicingStatesConfigDef::OtherSlicingStatesConfigDef()
@@ -6663,10 +6664,6 @@ OtherSlicingStatesConfigDef::OtherSlicingStatesConfigDef()
     def->label = L("Current object index");
     def->tooltip = L("Specific for sequential printing. Zero-based index of currently printed object.");
 
-    def = this->add("has_single_extruder_multi_material_priming", coBool);
-    def->label = L("Has single extruder MM priming");
-    def->tooltip = L("Are the extra multi-material priming regions used in this print?");
-
     def = this->add("has_wipe_tower", coBool);
     def->label = L("Has wipe tower");
     def->tooltip = L("Whether or not wipe tower is being generated in the print.");
@@ -6675,10 +6672,6 @@ OtherSlicingStatesConfigDef::OtherSlicingStatesConfigDef()
     def->label = L("Initial extruder");
     def->tooltip = L("Zero-based index of the first extruder used in the print. Same as initial_tool.");
 
-    def = this->add("initial_filament_type", coString);
-    def->label = L("Initial filament type");
-    def->tooltip = L("String containing filament type of the first used extruder.");
-
     def = this->add("initial_tool", coInt);
     def->label = L("Initial tool");
     def->tooltip = L("Zero-based index of the first extruder used in the print. Same as initial_extruder.");
@@ -6686,6 +6679,15 @@ OtherSlicingStatesConfigDef::OtherSlicingStatesConfigDef()
     def = this->add("is_extruder_used", coBools);
     def->label = L("Is extruder used?");
     def->tooltip = L("Vector of bools stating whether a given extruder is used in the print.");
+
+    // Options from PS not used in Orca
+    //    def = this->add("initial_filament_type", coString);
+    //    def->label = L("Initial filament type");
+    //    def->tooltip = L("String containing filament type of the first used extruder.");
+
+    //    def = this->add("has_single_extruder_multi_material_priming", coBool);
+    //    def->label = L("Has single extruder MM priming");
+    //    def->tooltip = L("Are the extra multi-material priming regions used in this print?");
 }
 
 PrintStatisticsConfigDef::PrintStatisticsConfigDef()
@@ -6696,7 +6698,28 @@ PrintStatisticsConfigDef::PrintStatisticsConfigDef()
     def->label = L("Volume per extruder");
     def->tooltip = L("Total filament volume extruded per extruder during the entire print.");
 
-    def = this->add("normal_print_time", coString);
+    def = this->add("total_toolchanges", coInt);
+    def->label = L("Total toolchanges");
+    def->tooltip = L("Number of toolchanges during the print.");
+
+    def = this->add("extruded_volume_total", coFloat);
+    def->label = L("Total volume");
+    def->tooltip = L("Total volume of filament used during the entire print.");
+
+    def = this->add("extruded_weight", coFloats);
+    def->label = L("Weight per extruder");
+    def->tooltip = L("Weight per extruder extruded during the entire print. Calculated from filament_density value in Filament Settings.");
+
+    def = this->add("extruded_weight_total", coFloat);
+    def->label = L("Total weight");
+    def->tooltip = L("Total weight of the print. Calculated from filament_density value in Filament Settings.");
+
+    def = this->add("total_layer_count", coInt);
+    def->label = L("Total layer count");
+    def->tooltip = L("Number of layers in the entire print.");
+
+    // Options from PS not used in Orca
+    /*    def = this->add("normal_print_time", coString);
     def->label = L("Print time (normal mode)");
     def->tooltip = L("Estimated print time when printed in normal mode (i.e. not in silent mode). Same as print_time.");
 
@@ -6734,27 +6757,7 @@ PrintStatisticsConfigDef::PrintStatisticsConfigDef()
 
     def = this->add("used_filament", coFloat);
     def->label = L("Used filament");
-    def->tooltip = L("Total length of filament used in the print.");
-
-    def = this->add("total_toolchanges", coInt);
-    def->label = L("Total toolchanges");
-    def->tooltip = L("Number of toolchanges during the print.");
-
-    def = this->add("extruded_volume_total", coFloat);
-    def->label = L("Total volume");
-    def->tooltip = L("Total volume of filament used during the entire print.");
-
-    def = this->add("extruded_weight", coFloats);
-    def->label = L("Weight per extruder");
-    def->tooltip = L("Weight per extruder extruded during the entire print. Calculated from filament_density value in Filament Settings.");
-
-    def = this->add("extruded_weight_total", coFloat);
-    def->label = L("Total weight");
-    def->tooltip = L("Total weight of the print. Calculated from filament_density value in Filament Settings.");
-
-    def = this->add("total_layer_count", coInt);
-    def->label = L("Total layer count");
-    def->tooltip = L("Number of layers in the entire print.");
+    def->tooltip = L("Total length of filament used in the print.");*/
 }
 
 ObjectsInfoConfigDef::ObjectsInfoConfigDef()
@@ -6778,6 +6781,10 @@ ObjectsInfoConfigDef::ObjectsInfoConfigDef()
     def = this->add("input_filename_base", coString);
     def->label = L("Input filename without extension");
     def->tooltip = L("Source filename of the first object, without extension.");
+
+    def = this->add("input_filename", coString);
+    def->label = L("Full input filename");
+    def->tooltip = L("Source filename of the first object.");
 }
 
 DimensionsConfigDef::DimensionsConfigDef()
@@ -6849,10 +6856,6 @@ OtherPresetsConfigDef::OtherPresetsConfigDef()
 {
     ConfigOptionDef* def;
 
-    def = this->add("num_extruders", coInt);
-    def->label = L("Number of extruders");
-    def->tooltip = L("Total number of extruders, regardless of whether they are used in the current print.");
-
     def = this->add("print_preset", coString);
     def->label = L("Print preset name");
     def->tooltip = L("Name of the print preset used for slicing.");
@@ -6869,16 +6872,29 @@ OtherPresetsConfigDef::OtherPresetsConfigDef()
     def = this->add("physical_printer_preset", coString);
     def->label = L("Physical printer name");
     def->tooltip = L("Name of the physical printer used for slicing.");
+
+    // Options from PS not used in Orca
+    //    def = this->add("num_extruders", coInt);
+    //    def->label = L("Number of extruders");
+    //    def->tooltip = L("Total number of extruders, regardless of whether they are used in the current print.");
 }
 
 
 static std::map<t_custom_gcode_key, t_config_option_keys> s_CustomGcodeSpecificPlaceholders{
-    {"start_filament_gcode",    {"layer_num", "layer_z", "max_layer_z", "filament_extruder_id"}},
-    {"end_filament_gcode",      {"layer_num", "layer_z", "max_layer_z", "filament_extruder_id"}},
-    {"end_gcode",               {"layer_num", "layer_z", "max_layer_z", "filament_extruder_id"}},
-    {"before_layer_gcode",      {"layer_num", "layer_z", "max_layer_z"}},
-    {"layer_gcode",             {"layer_num", "layer_z", "max_layer_z"}},
-    {"toolchange_gcode",        {"layer_num", "layer_z", "max_layer_z", "previous_extruder", "next_extruder", "toolchange_z"}},
+    // Machine Gcode
+    {"machine_start_gcode",         {}},
+    {"machine_end_gcode",           {"layer_num", "layer_z", "max_layer_z", "filament_extruder_id"}},
+    {"before_layer_change_gcode",   {"layer_num", "layer_z", "max_layer_z"}},
+    {"layer_change_gcode",          {"layer_num", "layer_z", "max_layer_z"}},
+    {"time_lapse_gcode",            {}},
+    {"change_filament_gcode",       {}},
+    {"change_extrusion_role_gcode", {"layer_num", "layer_z", "extrusion_role", "last_extrusion_role"}},
+    {"printing_by_object_gcode",    {}},
+    {"machine_pause_gcode",         {}},
+    {"template_custom_gcode",       {}},
+    //Filament Gcode
+    {"filament_start_gcode",        {}},
+    {"filament_end_gcode",          {}},
 };
 
 const std::map<t_custom_gcode_key, t_config_option_keys>& custom_gcode_specific_placeholders()
