@@ -2027,15 +2027,18 @@ void PrintObject::bridge_over_infill()
                 
                 // Orca:
                 // Lightning infill benefits from always having a bridge layer so don't filter out small unsupported areas. Also, don't filter small internal unsupported areas if the user has requested so.
-                if(!has_lightning_infill && !po->config().dont_filter_internal_bridges){
-                    // By expanding the lower layer solids, we avoid making bridges from the tiny internal overhangs that are (very likely) supported by previous layer solids
-                    // NOTE that we cannot filter out polygons worth bridging by their area, because sometimes there is a very small internal island that will grow into large hole
-                    lower_layer_solids = shrink(lower_layer_solids, 1 * spacing); // first remove thin regions that will not support anything
-                    lower_layer_solids = expand(lower_layer_solids, (1 + 3) * spacing); // then expand back (opening), and further for parts supported by internal solids
-                    // By shrinking the unsupported area, we avoid making bridges from narrow ensuring region along perimeters.
-                    unsupported_area   = shrink(unsupported_area, 3 * spacing);
-                    unsupported_area   = diff(unsupported_area, lower_layer_solids);
+                double expansion_multiplier = 3;
+                if(has_lightning_infill || po->config().dont_filter_internal_bridges){
+                    expansion_multiplier = 1;
                 }
+                // By expanding the lower layer solids, we avoid making bridges from the tiny internal overhangs that are (very likely) supported by previous layer solids
+                // NOTE that we cannot filter out polygons worth bridging by their area, because sometimes there is a very small internal island that will grow into large hole
+                lower_layer_solids = shrink(lower_layer_solids, 1 * spacing); // first remove thin regions that will not support anything
+                lower_layer_solids = expand(lower_layer_solids, (1 + expansion_multiplier) * spacing); // then expand back (opening), and further for parts supported by internal solids
+                // By shrinking the unsupported area, we avoid making bridges from narrow ensuring region along perimeters.
+                unsupported_area   = shrink(unsupported_area, expansion_multiplier * spacing);
+                unsupported_area   = diff(unsupported_area, lower_layer_solids);
+                
                 for (const LayerRegion *region : layer->regions()) {
                     SurfacesPtr region_internal_solids = region->fill_surfaces.filter_by_type(stInternalSolid);
                     for (const Surface *s : region_internal_solids) {
