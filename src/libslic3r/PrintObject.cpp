@@ -1988,7 +1988,7 @@ void PrintObject::bridge_over_infill()
     };
 
     std::map<size_t, std::vector<CandidateSurface>> surfaces_by_layer;
-    // Ioannis Giannakas:
+    // Orca:
     // Detect use of lightning infill. Moved earlier in the function to pass to the gather and filter surfaces threads.
     bool has_lightning_infill = false;
     for (size_t i = 0; i < this->num_printing_regions(); i++) {
@@ -2025,7 +2025,7 @@ void PrintObject::bridge_over_infill()
                 }
                 unsupported_area = closing(unsupported_area, float(SCALED_EPSILON));
                 
-                // Ioannis Giannakas:
+                // Orca:
                 // Lightning infill benefits from always having a bridge layer so don't filter out small unsupported areas. Also, don't filter small internal unsupported areas if the user has requested so.
                 if(!has_lightning_infill && !po->config().dont_filter_internal_bridges){
                     // By expanding the lower layer solids, we avoid making bridges from the tiny internal overhangs that are (very likely) supported by previous layer solids
