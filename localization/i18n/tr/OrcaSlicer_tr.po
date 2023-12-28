@@ -522,7 +522,7 @@ msgstr "Bağlayıcı"
 msgid "Cut by Plane"
 msgstr ""
 
-msgid "non-mainifold edges be caused by cut tool, do you want to fix it now?"
+msgid "non-manifold edges be caused by cut tool, do you want to fix it now?"
 msgstr ""
 "Ana kat olmayan kenarlar kesme aletinden kaynaklanıyor, şimdi düzeltmek "
 "istiyor musunuz?"

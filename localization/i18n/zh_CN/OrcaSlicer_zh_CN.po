@@ -517,7 +517,7 @@ msgstr "连接件"
 msgid "Cut by Plane"
 msgstr ""
 
-msgid "non-mainifold edges be caused by cut tool, do you want to fix it now?"
+msgid "non-manifold edges be caused by cut tool, do you want to fix it now?"
 msgstr "因切割产生了非流形边，您是否想现在修复？"
 
 msgid "Repairing model object"
