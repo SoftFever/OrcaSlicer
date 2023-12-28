@@ -519,7 +519,7 @@ msgstr ""
 msgid "Cut by Plane"
 msgstr ""
 
-msgid "non-mainifold edges be caused by cut tool, do you want to fix it now?"
+msgid "non-manifold edges be caused by cut tool, do you want to fix it now?"
 msgstr ""
 
 msgid "Repairing model object"
@@ -7256,7 +7256,7 @@ msgstr ""
 msgid "Gizmo FDM paint-on seam"
 msgstr ""
 
-msgid "Swtich between Prepare/Prewview"
+msgid "Switch between Prepare/Preview"
 msgstr ""
 
 msgid "Plater"
@@ -12494,7 +12494,7 @@ msgid "G-code window\nYou can turn on/off the G-code window by pressing the <b>C
 msgstr ""
 
 #: resources/data/hints.ini: [hint:Switch workspaces]
-msgid "Switch workspaces\nYou can swtich between <b>Prepare</b> and <b>Preview</b> workspaces by pressing the <b>Tab</b> key."
+msgid "Switch workspaces\nYou can switch between <b>Prepare</b> and <b>Preview</b> workspaces by pressing the <b>Tab</b> key."
 msgstr ""
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
