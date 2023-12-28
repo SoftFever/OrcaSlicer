@@ -1911,7 +1911,7 @@ void PerimeterGenerator::process_no_bridge(Surfaces& all_surfaces, coord_t perim
     //store surface for bridge infill to avoid unsupported perimeters (but the first one, this one is always good)
     if (this->config->no_perimeter_unsupported_algo != npuaNone
         && this->lower_slices != NULL && !this->lower_slices->empty()) {
-        const coordf_t bridged_infill_margin = BRIDGE_INFILL_MARGIN;
+        const coordf_t bridged_infill_margin = scale_(BRIDGE_INFILL_MARGIN);
 
         for (size_t surface_idx = 0; surface_idx < all_surfaces.size(); surface_idx++) {
             Surface* surface = &all_surfaces[surface_idx];
