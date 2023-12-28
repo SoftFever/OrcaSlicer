@@ -7752,7 +7752,7 @@ msgstr "Gizmo SLA destek noktaları"
 msgid "Gizmo FDM paint-on seam"
 msgstr "Gizmo FDM boyalı dikiş"
 
-msgid "Swtich between Prepare/Prewview"
+msgid "Switch between Prepare/Preview"
 msgstr "Hazırlama/Önizleme arasında geçiş yap"
 
 msgid "Plater"

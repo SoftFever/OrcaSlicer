@@ -7457,7 +7457,7 @@ msgstr "SLAサポートポイント"
 msgid "Gizmo FDM paint-on seam"
 msgstr "継ぎ目ペイント"
 
-msgid "Swtich between Prepare/Prewview"
+msgid "Switch between Prepare/Preview"
 msgstr ""
 
 msgid "Plater"

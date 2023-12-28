@@ -7622,7 +7622,7 @@ msgstr "도구 상자 지지대 칠하기"
 msgid "Gizmo FDM paint-on seam"
 msgstr "도구 상자 솔기 칠하기"
 
-msgid "Swtich between Prepare/Prewview"
+msgid "Switch between Prepare/Preview"
 msgstr "준비 하기/미리 보기 전환"
 
 msgid "Plater"

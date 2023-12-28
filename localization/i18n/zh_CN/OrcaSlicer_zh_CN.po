@@ -7436,7 +7436,7 @@ msgstr "SLA支撑点"
 msgid "Gizmo FDM paint-on seam"
 msgstr "FDM涂装接缝"
 
-msgid "Swtich between Prepare/Prewview"
+msgid "Switch between Prepare/Preview"
 msgstr "准备/预览之间的切换"
 
 msgid "Plater"

@@ -7831,7 +7831,7 @@ msgstr "Гизмо точки SLA поддержки"
 msgid "Gizmo FDM paint-on seam"
 msgstr "Гизмо рисования шва (FDM)"
 
-msgid "Swtich between Prepare/Prewview"
+msgid "Switch between Prepare/Preview"
 msgstr "Переключение между окном подготовки и окном предпросмотра нарезки"
 
 msgid "Plater"

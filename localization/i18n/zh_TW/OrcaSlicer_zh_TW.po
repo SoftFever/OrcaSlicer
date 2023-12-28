@@ -7830,7 +7830,7 @@ msgstr "SLA 支撐點"
 msgid "Gizmo FDM paint-on seam"
 msgstr "FDM 塗裝接縫"
 
-msgid "Swtich between Prepare/Prewview"
+msgid "Switch between Prepare/Preview"
 msgstr "在準備/預覽模式之中切換"
 
 msgid "Plater"

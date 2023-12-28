@@ -7712,7 +7712,7 @@ msgstr "Gizmo SLA-ondersteuningspunten"
 msgid "Gizmo FDM paint-on seam"
 msgstr "Gizmo FDM seam schilderen"
 
-msgid "Swtich between Prepare/Prewview"
+msgid "Switch between Prepare/Preview"
 msgstr ""
 
 msgid "Plater"

@@ -7635,7 +7635,7 @@ msgstr "Gizmo SLA support points"
 msgid "Gizmo FDM paint-on seam"
 msgstr "Gizmo FDM paint-on seam"
 
-msgid "Swtich between Prepare/Prewview"
+msgid "Switch between Prepare/Preview"
 msgstr ""
 
 msgid "Plater"
