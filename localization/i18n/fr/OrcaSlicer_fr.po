@@ -917,7 +917,7 @@ msgid "Delete the selected object"
 msgstr "Supprimer l'objet sélectionné"
 
 msgid "Load..."
-msgstr "Charger..."
+msgstr "Charger…"
 
 msgid "Cube"
 msgstr "Cube"
@@ -1094,13 +1094,13 @@ msgid "Edit text"
 msgstr "Modifier le texte"
 
 msgid "Ability to change text, font, size, ..."
-msgstr "Possibilité de modifier le texte, la police, la taille, ..."
+msgstr "Possibilité de modifier le texte, la police, la taille, …"
 
 msgid "Edit SVG"
 msgstr "Modifier SVG"
 
 msgid "Change SVG source file, projection, size, ..."
-msgstr "Modifier le fichier source SVG, la projection, la taille, ..."
+msgstr "Modifier le fichier source SVG, la projection, la taille, …"
 
 msgid "Invalidate cut info"
 msgstr "Invalider les informations de découpe"
@@ -1200,10 +1200,10 @@ msgid "current"
 msgstr "courant"
 
 msgid "Unlock"
-msgstr "Ouvrir"
+msgstr "Déverrouiller"
 
 msgid "Lock"
-msgstr "Bloquer"
+msgstr "Verrouiller"
 
 msgid "Edit Plate Name"
 msgstr "Modifier le nom du plateau"
@@ -1671,7 +1671,7 @@ msgid "Retry"
 msgstr "Réessayer"
 
 msgid "Calibrating AMS..."
-msgstr "Étalonnage de l'AMS..."
+msgstr "Étalonnage de l'AMS…"
 
 msgid "A problem occured during calibration. Click to view the solution."
 msgstr ""
@@ -1742,7 +1742,7 @@ msgstr ""
 "nous ne pouvons pas faire d'auto-arrangement sur cette plaque."
 
 msgid "Arranging..."
-msgstr "Organiser..."
+msgstr "Organiser…"
 
 msgid "Arranging"
 msgstr "Agencement"
@@ -1790,7 +1790,7 @@ msgstr ""
 "cette plaque."
 
 msgid "Orienting..."
-msgstr "Orienter..."
+msgstr "Orienter…"
 
 msgid "Orienting"
 msgstr "Orienter"
@@ -2170,7 +2170,7 @@ msgstr "Exemple"
 
 #, c-format, boost-format
 msgid "Calibrating... %d%%"
-msgstr "Calibration...%d%%"
+msgstr "Calibration… %d%%"
 
 msgid "Calibration completed"
 msgstr "Calibration terminé"
@@ -2419,7 +2419,7 @@ msgid "Please save project and restart the program. "
 msgstr "Veuillez enregistrer le projet et redémarrer le programme. "
 
 msgid "Processing G-Code from Previous file..."
-msgstr "Traitement du G-Code du fichier précédent..."
+msgstr "Traitement du G-Code du fichier précédent…"
 
 msgid "Slicing complete"
 msgstr "Découpe terminée"
@@ -2503,7 +2503,7 @@ msgid "Circular"
 msgstr "Circulaire"
 
 msgid "Load shape from STL..."
-msgstr "Charger une forme depuis un STL..."
+msgstr "Charger une forme depuis un STL…"
 
 msgid "Settings"
 msgstr "Réglages"
@@ -3902,7 +3902,7 @@ msgstr ""
 "Échec de l'initialisation (adresse IP réseau manquante de l'imprimante) !"
 
 msgid "Initializing..."
-msgstr "Initialisation..."
+msgstr "Initialisation…"
 
 #, c-format, boost-format
 msgid "Initialize failed (%s)!"
@@ -3957,7 +3957,7 @@ msgid "Load failed [%d]!"
 msgstr "Le chargement a échoué [%d] !"
 
 msgid "Loading..."
-msgstr "Chargement..."
+msgstr "Chargement…"
 
 msgid "Year"
 msgstr "Année"
@@ -4015,7 +4015,7 @@ msgid "Connect failed [%d]!"
 msgstr "La connexion a échoué [%d] !"
 
 msgid "Loading file list..."
-msgstr "Chargement de la liste des fichiers..."
+msgstr "Chargement de la liste des fichiers…"
 
 #, c-format, boost-format
 msgid "No files [%d]"
@@ -4047,7 +4047,7 @@ msgid "Delete file"
 msgstr "Supprimer le fichier"
 
 msgid "Fetching model infomations ..."
-msgstr "Récupération des informations sur le modèle..."
+msgstr "Récupération des informations sur le modèle…"
 
 msgid "Failed to fetching model infomations from printer."
 msgstr ""
@@ -4068,7 +4068,7 @@ msgid "File '%s' was lost! Please download it again."
 msgstr "Le fichier « %s » a été perdu ! Veuillez le télécharger à nouveau."
 
 msgid "Download waiting..."
-msgstr "Téléchargement en attente..."
+msgstr "Téléchargement en attente…"
 
 msgid "Play"
 msgstr "Lecture"
@@ -4234,7 +4234,7 @@ msgid "Downloading..."
 msgstr "Téléchargement…"
 
 msgid "Cloud Slicing..."
-msgstr "Tranchage Cloud..."
+msgstr "Découpe par le Cloud..."
 
 #, c-format, boost-format
 msgid "In Cloud Slicing Queue, there are %s tasks ahead."
@@ -5018,11 +5018,11 @@ msgid "Invalid data"
 msgstr "Donnée non valide"
 
 msgid "Slicing Canceled"
-msgstr "Tranchage Annulé"
+msgstr "Découpe annulée"
 
 #, c-format, boost-format
 msgid "Slicing Plate %d"
-msgstr "Tranchage plateau %d"
+msgstr "Découpe du plateau %d"
 
 msgid "Please resolve the slicing errors and publish again."
 msgstr "Veuillez résoudre les erreurs de découpage et republier."
@@ -5653,7 +5653,7 @@ msgstr "Déconnexion"
 
 msgid "Slice all plate to obtain time and filament estimation"
 msgstr ""
-"Tranchez toutes les couches pour obtenir une estimation du temps et du "
+"Découpez toutes les couches pour obtenir une estimation du temps et du "
 "filament"
 
 msgid "Packing project data into 3mf file"
@@ -6043,7 +6043,7 @@ msgid "Modifying the device name"
 msgstr "Modification du nom de l'appareil"
 
 msgid "Send to Printer SD card"
-msgstr "Envoyer à la carte SD de l'imprimante"
+msgstr "Envoyer sur la carte SD de l'imprimante"
 
 msgid "Cannot send the print task when the upgrade is in progress"
 msgstr ""
@@ -6062,7 +6062,7 @@ msgid "The printer does not support sending to printer SD card."
 msgstr "L'imprimante ne prend pas en charge l'envoi vers la carte SD."
 
 msgid "Slice ok."
-msgstr "Tranchage terminé."
+msgstr "Découpe terminée."
 
 msgid "View all Daily tips"
 msgstr "Voir toutes les Astuces quotidiennes"
@@ -11721,7 +11721,7 @@ msgid ""
 "following format: \"XxY, XxY, ...\""
 msgstr ""
 "Tailles des images à stocker dans les fichiers .gcode et .sl1/.sl1s, au "
-"format suivant : \"XxY, XxY, …\""
+"format suivant : \"XxY, XxY, ...\""
 
 msgid "Format of G-code thumbnails"
 msgstr "Format des vignettes G-code"
@@ -12324,7 +12324,7 @@ msgid ""
 "PLA used in RC planes. These materials expand greatly when heated, and "
 "calibration provides a useful reference flow rate."
 msgstr ""
-"De plus, la calibration du débit est crucial pour les matériaux dotés de la "
+"De plus, la calibration du débit est cruciale pour les matériaux dotés de la "
 "technologie de mousse active comme le LW-PLA utilisés dans les avions RC. "
 "Ces matériaux se dilatent considérablement lorsqu'ils sont chauffés et la "
 "calibration fournit un débit de référence utile."
