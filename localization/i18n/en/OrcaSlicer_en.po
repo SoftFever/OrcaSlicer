@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-28 00:20+0800\n"
+"POT-Creation-Date: 2023-12-29 12:07+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -5844,6 +5844,9 @@ msgid "Login Region"
 msgstr "Login Region"
 
 msgid "Stealth Mode"
+msgstr ""
+
+msgid "Check for stable updates only"
 msgstr ""
 
 msgid "Metric"
