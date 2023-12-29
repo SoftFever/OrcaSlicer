@@ -370,9 +370,8 @@ msgstr ""
 msgid "Move cut plane"
 msgstr "Déplacer le plan de coupe"
 
-#, fuzzy
 msgid "Mode"
-msgstr "Changer le mode de coupe"
+msgstr ""
 
 msgid "Change cut mode"
 msgstr "Changer le mode de coupe"
@@ -696,12 +695,8 @@ msgstr "Embosser"
 msgid "Text-Rotate"
 msgstr "Rotation du texte"
 
-#, fuzzy
 msgid "NORMAL"
 msgstr ""
-"La quantité de matière à extruder lors du lissage. Relatif au débit de la "
-"hauteur de couche normale. Une valeur trop élevée entraîne une surextrusion "
-"en surface"
 
 msgid "SMALL"
 msgstr "PETIT"
@@ -6110,7 +6105,7 @@ msgid "Stealth Mode"
 msgstr "Mode privé"
 
 msgid "Check for stable updates only"
-msgstr ""
+msgstr "Vérifier les mises à jour stables uniquement"
 
 msgid "Metric"
 msgstr "Métrique"
@@ -13707,9 +13702,8 @@ msgstr "Test Bing.com"
 msgid "Test bing.com:"
 msgstr "Test bing.com :"
 
-#, fuzzy
 msgid "Test HTTP"
-msgstr "Test du service HTTP :"
+msgstr ""
 
 msgid "Test HTTP Service:"
 msgstr "Test du service HTTP :"
@@ -13902,13 +13896,11 @@ msgstr ""
 msgid "Printable Space"
 msgstr "Espace imprimable"
 
-#, fuzzy
 msgid "X"
-msgstr "Jerk maximum en X"
+msgstr ""
 
-#, fuzzy
 msgid "Y"
-msgstr "Jerk maximum en Y"
+msgstr ""
 
 msgid "Hot Bed STL"
 msgstr "STL du plateau"
