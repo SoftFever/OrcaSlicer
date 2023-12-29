@@ -2044,7 +2044,7 @@ void PrintObject::bridge_over_infill()
                     for (const Surface *s : region_internal_solids) {
                         Polygons unsupported         = intersection(to_polygons(s->expolygon), unsupported_area);
                         
-                        // Orca: If the user has selected to always support internal bridges, no matter how small
+                        // Orca: If the user has selected to always support internal overhanging regions, no matter how small
                         // skip the filtering
                         if (po->config().dont_filter_internal_bridges){
                             // expand the unsupported area by 4x spacing to trigger internal bridging
