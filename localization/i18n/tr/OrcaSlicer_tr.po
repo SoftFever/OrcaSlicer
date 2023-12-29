@@ -1149,7 +1149,7 @@ msgstr "Bilinmeyen dosya adı"
 
 #, boost-format
 msgid "SVG file path is \"%1%\""
-msgstr "SVG dosya yolu \"%1%\"
+msgstr "SVG dosya yolu \"%1%\""
 
 msgid "Reload SVG file from disk."
 msgstr "SVG dosyasını diskten yeniden yükleyin."
