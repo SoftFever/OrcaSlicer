@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OrcaSlicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-28 00:20+0800\n"
+"POT-Creation-Date: 2023-12-29 12:07+0800\n"
 "PO-Revision-Date: 2023-12-25 01:15+0300\n"
 "Last-Translator: Olcay ÖREN\n"
 "Language-Team: Türkçe\n"
@@ -5967,6 +5967,9 @@ msgstr "Giriş Bölgesi"
 
 msgid "Stealth Mode"
 msgstr "Gizli mod"
+
+msgid "Check for stable updates only"
+msgstr ""
 
 msgid "Metric"
 msgstr "Metrik"
