@@ -1,6 +1,6 @@
 #!/bin/sh
 
-while getopts ":a:sdp:t:hn" opt; do
+while getopts ":a:sdpt:hn" opt; do
   case ${opt} in
     d )
         export BUILD_TARGET="deps"
