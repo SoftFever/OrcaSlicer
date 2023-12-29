@@ -1226,8 +1226,8 @@ void PrintConfigDef::init_fff_params()
     def->tooltip  = L("This option can help reducing pillowing on top surfaces in heavily slanted or curved models.\n\n"
                       "By default, small internal bridges are filtered out and the internal solid infill is printed directly"
                       " over the sparse infill. This works well in most cases, speeding up printing without too much compromise"
-                      " on top surface quality. \n\nHowever, in heavily slanted or curved models or where too low sparse infill"
-                      " density is used this may result in curling of the unsupported solid infill, causing pillowing.\n\n "
+                      " on top surface quality. \n\nHowever, in heavily slanted or curved models especially where too low sparse infill"
+                      " density is used, this may result in curling of the unsupported solid infill, causing pillowing.\n\n "
                       "Enabling this option will always print an internal bridge layer over even slightly unsupported internal"
                       " solid infill even in areas where it may be unecessary, increasing print time.");
     def->mode = comAdvanced;
