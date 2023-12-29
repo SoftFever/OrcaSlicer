@@ -43,6 +43,7 @@
     "extruder_clearance_radius": "45",
 	"z_hop": ["0.4"],
 	"single_extruder_multi_material": "1",
+	"manual_filament_change": "1",
 	"change_filament_gcode": "PAUSE",
 	"machine_pause_gcode": "PAUSE",
 	"default_filament_profile": ["Creality Generic PLA"],

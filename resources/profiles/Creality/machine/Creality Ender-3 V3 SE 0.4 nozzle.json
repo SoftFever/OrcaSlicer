@@ -109,6 +109,7 @@
 		"30"
 	],
 	"single_extruder_multi_material": "1",
+	"manual_filament_change": "1",
 	"change_filament_gcode": "M600",
 	"machine_pause_gcode": "M25",
 	"default_filament_profile": [
