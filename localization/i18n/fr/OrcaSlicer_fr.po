@@ -9287,26 +9287,26 @@ msgstr ""
 "le retrait du bord"
 
 msgid "Brim ears"
-msgstr "Oreilles de bordure"
+msgstr "Bordures à oreilles"
 
 msgid "Only draw brim over the sharp edges of the model."
-msgstr "Bordure que sur les arêtes vives du modèle."
+msgstr "Ne tracer la bordure que sur les arêtes vives du modèle."
 
 msgid "Brim ear max angle"
-msgstr "Angle maximum de la bordure"
+msgstr "Angle maximum de la bordure à oreilles"
 
 msgid ""
 "Maximum angle to let a brim ear appear. \n"
 "If set to 0, no brim will be created. \n"
 "If set to ~180, brim will be created on everything but straight sections."
 msgstr ""
-"Angle maximum pour laisser apparaître la bordure.\n"
+"Angle maximum pour laisser apparaître la bordure à oreilles.\n"
 "S’il est défini sur 0, aucune bordure ne sera créée.\n"
 "S’il est réglé sur ~180, la bordure sera créée sur tout sauf les sections "
 "droites."
 
 msgid "Brim ear detection radius"
-msgstr "Rayon de détection de la bordure"
+msgstr "Rayon de détection de la bordure à oreilles"
 
 msgid ""
 "The geometry will be decimated before dectecting sharp angles. This "
