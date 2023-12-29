@@ -10,5 +10,7 @@
     "infill_jerk": "12",
     "travel_jerk": "12",
     "inner_wall_jerk": "7",
-    "top_surface_jerk": "7"
+    "top_surface_jerk": "7",
+    "exclude_object": "1"
+
 }

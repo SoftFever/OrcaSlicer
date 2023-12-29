@@ -106,5 +106,6 @@
   "compatible_printers": [
     "Troodon 2.0 Klipper 0.4 nozzle",
     "Troodon 2.0 RRF 0.4 nozzle"
-  ]
+  ],
+  "exclude_object": "1"
 }

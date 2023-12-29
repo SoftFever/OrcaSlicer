@@ -111,5 +111,6 @@
         "RatRig V-Minion 0.4 nozzle",
         "RatRig V-Cast 0.4 nozzle",
         "RatRig V-Cast 0.6 nozzle"
-    ]
+    ],
+    "exclude_object": "1"
 }
