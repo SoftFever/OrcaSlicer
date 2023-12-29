@@ -32,7 +32,7 @@ if (NPROC EQUAL 0)
 endif ()
 
 set(DESTDIR "${CMAKE_CURRENT_BINARY_DIR}/destdir" CACHE PATH "Destination directory")
-set(DEP_DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR}/DL_CACHE CACHE PATH "Path for downloaded source packages.")
+set(DEP_DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR}/../DL_CACHE CACHE PATH "Path for downloaded source packages.")
 
 option(DEP_DEBUG "Build debug variants (only applicable on Windows)" OFF)
 

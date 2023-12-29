@@ -4437,6 +4437,58 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
 
     // extrude along the path
     std::string gcode;
+    
+    // Port of "wipe inside before extruding an external perimeter" feature from super slicer
+    if (m_config.wipe_before_external_loop.value && !paths.empty() && paths.front().size() > 1 && paths.back().size() > 1 && paths.front().role() == erExternalPerimeter) {
+        const bool is_full_loop_ccw = loop.polygon().is_counter_clockwise();
+        bool is_hole_loop = (loop.loop_role() & ExtrusionLoopRole::elrHole) != 0; // loop.make_counter_clockwise();
+        const double nozzle_diam = EXTRUDER_CONFIG(nozzle_diameter);
+
+        // note: previous & next are inverted to extrude "in the opposite direction, and we are "rewinding"
+        Point previous_point = paths.front().polyline.points[1];
+        Point current_point = paths.front().polyline.points.front();
+        Point next_point = paths.back().polyline.points.back();
+
+        // can happen if seam_gap is null
+        if (next_point == current_point) {
+            next_point = paths.back().polyline.points[paths.back().polyline.points.size() - 2];
+        }
+
+        Point a = next_point;  // second point
+        Point b = previous_point;  // second to last point
+        if ((is_hole_loop ? !is_full_loop_ccw : is_full_loop_ccw)) {
+            // swap points
+            std::swap(a, b);
+        }
+
+        double angle = current_point.ccw_angle(a, b) / 3;
+
+        // turn outwards if contour, turn inwwards if hole
+        if (is_hole_loop ? !is_full_loop_ccw : is_full_loop_ccw) angle *= -1;
+
+        Vec2d current_pos = current_point.cast<double>();
+        Vec2d next_pos = next_point.cast<double>();
+        Vec2d vec_dist = next_pos - current_pos;
+        double vec_norm = vec_dist.norm();
+        // Offset distance is the minimum between half the nozzle diameter or half the line width for the upcomming perimeter
+        // This is to mimimize potential instances where the de-retraction is performed on top of a neighbouring
+        // thin perimeter due to arachne reducing line width.
+        coordf_t dist = std::min(scaled(nozzle_diam) * 0.5, scaled(paths.front().width) * 0.5);
+
+        // FIXME Hiding the seams will not work nicely for very densely discretized contours!
+        Point pt = (current_pos + vec_dist * (2 * dist / vec_norm)).cast<coord_t>();
+        pt.rotate(angle, current_point);
+        pt = (current_pos + vec_dist * (2 * dist / vec_norm)).cast<coord_t>();
+        pt.rotate(angle, current_point);
+
+        // use extrude instead of travel_to_xy to trigger the unretract
+        ExtrusionPath fake_path_wipe(Polyline{pt, current_point}, paths.front());
+        fake_path_wipe.mm3_per_mm = 0;
+        gcode += extrude_path(fake_path_wipe, "move inwards before retraction/seam", speed);
+    }
+
+    
+    
     bool is_small_peri = false;
     for (ExtrusionPaths::iterator path = paths.begin(); path != paths.end(); ++path) {
 //    description += ExtrusionLoop::role_to_string(loop.loop_role());

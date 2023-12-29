@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-23 22:15+0800\n"
+"POT-Creation-Date: 2023-12-29 12:07+0800\n"
 "PO-Revision-Date: 2023-12-25 12:35+0900\n"
 "Last-Translator: Hotsolidinfill <138652683+Hotsolidinfill@users.noreply."
 "github.com>, crwusiz <crwusiz@naver.com>\n"
@@ -62,7 +62,7 @@ msgid "Highlight overhang areas"
 msgstr "돌출부 영역 강조"
 
 msgid "Gap fill"
-msgstr "간격 채움"
+msgstr "간격 채우기"
 
 msgid "Perform"
 msgstr "수행"
@@ -74,7 +74,7 @@ msgid "Tool type"
 msgstr "도구 유형"
 
 msgid "Smart fill angle"
-msgstr "스마트 채움 각도"
+msgstr "스마트 채우기 각도"
 
 msgid "On overhangs only"
 msgstr "돌출부에만 칠하기"
@@ -89,10 +89,10 @@ msgid "Sphere"
 msgstr "구체"
 
 msgid "Fill"
-msgstr "채움"
+msgstr "채우기"
 
 msgid "Gap Fill"
-msgstr "간격 채움"
+msgstr "간격 채우기"
 
 #, boost-format
 msgid "Allows painting only on facets selected by: \"%1%\""
@@ -149,10 +149,10 @@ msgid "Brush"
 msgstr "붓"
 
 msgid "Smart fill"
-msgstr "스마트 채움"
+msgstr "스마트 채우기"
 
 msgid "Bucket fill"
-msgstr "버킷 채움"
+msgstr "버킷 채우기"
 
 msgid "Height range"
 msgstr "높이 범위"
@@ -221,6 +221,9 @@ msgstr "밀리미터"
 msgid "Position"
 msgstr "위치"
 
+#. TRN - Input label. Be short as possible
+#. Angle between Y axis and text line direction.
+#. TRN - Input label. Be short as possible
 msgid "Rotation"
 msgstr "회전"
 
@@ -260,6 +263,7 @@ msgstr "영역 좌표"
 msgid "°"
 msgstr "°"
 
+#. TRN - Input label. Be short as possible
 msgid "Size"
 msgstr "크기"
 
@@ -268,6 +272,113 @@ msgstr "%"
 
 msgid "uniform scale"
 msgstr "균일 배율"
+
+msgid "Planar"
+msgstr ""
+
+msgid "Dovetail"
+msgstr ""
+
+msgid "Auto"
+msgstr "자동"
+
+msgid "Manual"
+msgstr ""
+
+msgid "Plug"
+msgstr "플러그"
+
+msgid "Dowel"
+msgstr "맞춤핀"
+
+msgid "Snap"
+msgstr ""
+
+msgid "Prism"
+msgstr ""
+
+msgid "Frustum"
+msgstr "원뿔"
+
+msgid "Square"
+msgstr "사각형"
+
+msgid "Hexagon"
+msgstr "육각형"
+
+msgid "Keep orientation"
+msgstr ""
+
+msgid "Place on cut"
+msgstr "자른 위치에 놓기"
+
+msgid "Flip upside down"
+msgstr ""
+
+msgid "Connectors"
+msgstr "커넥터"
+
+msgid "Type"
+msgstr "유형"
+
+msgid "Style"
+msgstr "모양"
+
+msgid "Shape"
+msgstr "형태"
+
+#. TRN - Input label. Be short as possible
+#. Size in emboss direction
+#. TRN - Input label. Be short as possible
+msgid "Depth"
+msgstr ""
+
+msgid "Groove"
+msgstr ""
+
+msgid "Width"
+msgstr "너비"
+
+msgid "Flap Angle"
+msgstr ""
+
+msgid "Groove Angle"
+msgstr ""
+
+msgid "Part"
+msgstr "부품"
+
+msgid "Object"
+msgstr "개체"
+
+msgid ""
+"Click to flip the cut plane\n"
+"Drag to move the cut plane"
+msgstr ""
+
+msgid ""
+"Click to flip the cut plane\n"
+"Drag to move the cut plane\n"
+"Right-click a part to assign it to the other side"
+msgstr ""
+
+msgid "Move cut plane"
+msgstr ""
+
+msgid "Mode"
+msgstr ""
+
+msgid "Change cut mode"
+msgstr ""
+
+msgid "Tolerance"
+msgstr "공차"
+
+msgid "Drag"
+msgstr "드래그"
+
+msgid "Draw cut line"
+msgstr ""
 
 msgid "Left click"
 msgstr "좌 클릭"
@@ -280,9 +391,6 @@ msgstr "우 클릭"
 
 msgid "Remove connector"
 msgstr "커넥터 제거"
-
-msgid "Drag"
-msgstr "드래그"
 
 msgid "Move connector"
 msgstr "커넥터 이동"
@@ -299,30 +407,63 @@ msgstr "모든 커넥터 선택"
 msgid "Cut"
 msgstr "잘라내기"
 
-msgid "non-mainifold edges be caused by cut tool, do you want to fix it now?"
+msgid "Rotate cut plane"
 msgstr ""
-"절단 도구로 인해 메인폴드가 아닌 가장자리가 발생했는데 지금 수정하시겠습니까?"
 
-msgid "Repairing model object"
-msgstr "모델 개체 수리 중"
+msgid "Remove connectors"
+msgstr "커넥터 제거"
 
-msgid "Connector"
-msgstr "커넥터"
+msgid "Bulge"
+msgstr ""
 
-msgid "Movement:"
-msgstr "이동:"
+msgid "Bulge proportion related to radius"
+msgstr ""
 
-msgid "Movement"
-msgstr "이동"
+msgid "Space"
+msgstr "스페이스"
 
-msgid "Height"
-msgstr "높이"
+msgid "Space proportion related to radius"
+msgstr ""
+
+msgid "Confirm connectors"
+msgstr "커넥터 승인"
+
+msgid "Cancel"
+msgstr "취소"
+
+msgid "Build Volume"
+msgstr ""
+
+msgid "Flip cut plane"
+msgstr ""
+
+msgid "Groove change"
+msgstr ""
+
+msgid "Reset"
+msgstr "초기화"
+
+#. TRN: This is an entry in the Undo/Redo stack. The whole line will be 'Edited: (name of whatever was edited)'.
+msgid "Edited"
+msgstr ""
+
+msgid "Cut position"
+msgstr ""
+
+msgid "Reset cutting plane"
+msgstr ""
 
 msgid "Edit connectors"
 msgstr "커넥터 편집"
 
 msgid "Add connectors"
 msgstr "커넥터 추가"
+
+msgid "Reset cut"
+msgstr ""
+
+msgid "Reset cutting plane and remove connectors"
+msgstr ""
 
 msgid "Upper part"
 msgstr "상부 부품"
@@ -333,9 +474,6 @@ msgstr "하부 부품"
 msgid "Keep"
 msgstr "유지"
 
-msgid "Place on cut"
-msgstr "자른 위치에 놓기"
-
 msgid "Flip"
 msgstr "뒤집기"
 
@@ -345,50 +483,8 @@ msgstr "잘라내기 후"
 msgid "Cut to parts"
 msgstr "부품으로 자르기"
 
-msgid "Auto Segment"
-msgstr "자동 분할"
-
 msgid "Perform cut"
 msgstr "잘라내기 실행"
-
-msgid "Reset"
-msgstr "초기화"
-
-msgid "Connectors"
-msgstr "커넥터"
-
-msgid "Type"
-msgstr "유형"
-
-msgid "Style"
-msgstr "모양"
-
-msgid "Shape"
-msgstr "형태"
-
-msgid "Depth ratio"
-msgstr "깊이 비율"
-
-msgid "Remove connectors"
-msgstr "커넥터 제거"
-
-msgid "Prizm"
-msgstr "원기둥"
-
-msgid "Frustum"
-msgstr "원뿔"
-
-msgid "Square"
-msgstr "사각형"
-
-msgid "Hexagon"
-msgstr "육각형"
-
-msgid "Confirm connectors"
-msgstr "커넥터 승인"
-
-msgid "Cancel"
-msgstr "취소"
 
 msgid "Warning"
 msgstr "경고"
@@ -396,36 +492,46 @@ msgstr "경고"
 msgid "Invalid connectors detected"
 msgstr "잘못된 커넥터가 감지됨"
 
-msgid "connector is out of cut contour"
-msgstr "커넥터가 잘라내기 윤곽을 벗어났습니다"
+#, c-format, boost-format
+msgid "%1$d connector is out of cut contour"
+msgid_plural "%1$d connectors are out of cut contour"
+msgstr[0] ""
 
-msgid "connectors are out of cut contour"
-msgstr "커넥터가 잘라내기 윤곽을 벗어났습니다"
-
-msgid "connector is out of object"
-msgstr "커넥터가 개체에서 벗어났습니다"
-
-msgid "connectors is out of object"
-msgstr "커넥터가 개체에서 벗어났습니다"
+#, c-format, boost-format
+msgid "%1$d connector is out of object"
+msgid_plural "%1$d connectors are out of object"
+msgstr[0] ""
 
 msgid "Some connectors are overlapped"
 msgstr "일부 커넥터가 겹칩니다"
 
-msgid ""
-"Invalid state. \n"
-"No one part is selected for keep after cut"
+msgid "Select at least one object to keep after cutting."
 msgstr ""
-"잘못된 상태입니다.\n"
-"절단 후 유지를 위해 선택된 부품이 없습니다"
 
-msgid "Plug"
-msgstr "플러그"
+msgid "Cut plane is placed out of object"
+msgstr ""
 
-msgid "Dowel"
-msgstr "맞춤핀"
+msgid "Cut plane with groove is invalid"
+msgstr ""
 
-msgid "Tolerance"
-msgstr "공차"
+msgid "Connector"
+msgstr "커넥터"
+
+msgid "Cut by Plane"
+msgstr ""
+
+msgid "non-manifold edges be caused by cut tool, do you want to fix it now?"
+msgstr ""
+"절단 도구로 인해 메인폴드가 아닌 가장자리가 발생했는데 지금 수정하시겠습니까?"
+
+msgid "Repairing model object"
+msgstr "모델 개체 수리 중"
+
+msgid "Cut by line"
+msgstr ""
+
+msgid "Delete connector"
+msgstr ""
 
 msgid "Mesh name"
 msgstr "메쉬 이름"
@@ -521,6 +627,8 @@ msgstr "솔기 칠하기 떠나기"
 msgid "Paint-on seam editing"
 msgstr "페인트칠 솔기 편집"
 
+#. TRN - Input label. Be short as possible
+#. Select look of letter shape
 msgid "Font"
 msgstr "글꼴"
 
@@ -557,6 +665,655 @@ msgstr "텍스트 회전"
 
 msgid "Text shape"
 msgstr "텍스트 모양"
+
+msgid "Set Mirror"
+msgstr ""
+
+msgid "Embossed text"
+msgstr ""
+
+msgid "Enter emboss gizmo"
+msgstr ""
+
+msgid "Leave emboss gizmo"
+msgstr ""
+
+msgid "Embossing actions"
+msgstr ""
+
+msgid "Emboss"
+msgstr ""
+
+msgid "Text-Rotate"
+msgstr ""
+
+msgid "NORMAL"
+msgstr ""
+
+msgid "SMALL"
+msgstr ""
+
+msgid "ITALIC"
+msgstr ""
+
+msgid "SWISS"
+msgstr ""
+
+msgid "MODERN"
+msgstr ""
+
+msgid "First font"
+msgstr ""
+
+msgid "Default font"
+msgstr ""
+
+msgid "Advanced"
+msgstr "고급"
+
+msgid ""
+"The text cannot be written using the selected font. Please try choosing a "
+"different font."
+msgstr ""
+
+msgid "Embossed text cannot contain only white spaces."
+msgstr ""
+
+msgid "Text contains character glyph (represented by '?') unknown by font."
+msgstr ""
+
+msgid "Text input doesn't show font skew."
+msgstr ""
+
+msgid "Text input doesn't show font boldness."
+msgstr ""
+
+msgid "Text input doesn't show gap between lines."
+msgstr ""
+
+msgid "Too tall, diminished font height inside text input."
+msgstr ""
+
+msgid "Too small, enlarged font height inside text input."
+msgstr ""
+
+msgid "Text doesn't show current horizontal alignment."
+msgstr ""
+
+msgid "Revert font changes."
+msgstr ""
+
+#, boost-format
+msgid "Font \"%1%\" can't be selected."
+msgstr ""
+
+msgid "Operation"
+msgstr ""
+
+msgid "Join"
+msgstr ""
+
+msgid "Click to change text into object part."
+msgstr ""
+
+msgid "You can't change a type of the last solid part of the object."
+msgstr ""
+
+msgctxt "EmbossOperation"
+msgid "Cut"
+msgstr ""
+
+msgid "Click to change part type into negative volume."
+msgstr ""
+
+msgid "Modifier"
+msgstr "수정자"
+
+msgid "Click to change part type into modifier."
+msgstr ""
+
+msgid "Change Text Type"
+msgstr ""
+
+#, boost-format
+msgid "Rename style(%1%) for embossing text"
+msgstr ""
+
+msgid "Name can't be empty."
+msgstr ""
+
+msgid "Name has to be unique."
+msgstr ""
+
+msgid "OK"
+msgstr "확인"
+
+msgid "Rename style"
+msgstr ""
+
+msgid "Rename current style."
+msgstr ""
+
+msgid "Can't rename temporary style."
+msgstr ""
+
+msgid "First Add style to list."
+msgstr ""
+
+#, boost-format
+msgid "Save %1% style"
+msgstr ""
+
+msgid "No changes to save."
+msgstr ""
+
+msgid "New name of style"
+msgstr ""
+
+msgid "Save as new style"
+msgstr ""
+
+msgid "Only valid font can be added to style."
+msgstr ""
+
+msgid "Add style to my list."
+msgstr ""
+
+msgid "Save as new style."
+msgstr ""
+
+msgid "Remove style"
+msgstr ""
+
+msgid "Can't remove the last existing style."
+msgstr ""
+
+#, boost-format
+msgid "Are you sure you want to permanently remove the \"%1%\" style?"
+msgstr ""
+
+#, boost-format
+msgid "Delete \"%1%\" style."
+msgstr ""
+
+#, boost-format
+msgid "Can't delete \"%1%\". It is last style."
+msgstr ""
+
+#, boost-format
+msgid "Can't delete temporary style \"%1%\"."
+msgstr ""
+
+#, boost-format
+msgid "Modified style \"%1%\""
+msgstr ""
+
+#, boost-format
+msgid "Current style is \"%1%\""
+msgstr ""
+
+#, boost-format
+msgid ""
+"Changing style to \"%1%\" will discard current style modification.\n"
+"\n"
+"Would you like to continue anyway?"
+msgstr ""
+
+msgid "Not valid style."
+msgstr ""
+
+#, boost-format
+msgid "Style \"%1%\" can't be used and will be removed from a list."
+msgstr ""
+
+msgid "Unset italic"
+msgstr ""
+
+msgid "Set italic"
+msgstr ""
+
+msgid "Unset bold"
+msgstr ""
+
+msgid "Set bold"
+msgstr ""
+
+msgid "Revert text size."
+msgstr ""
+
+msgid "Revert embossed depth."
+msgstr ""
+
+msgid ""
+"Advanced options cannot be changed for the selected font.\n"
+"Select another font."
+msgstr ""
+
+msgid "Revert using of model surface."
+msgstr ""
+
+msgid "Revert Transformation per glyph."
+msgstr ""
+
+msgid "Set global orientation for whole text."
+msgstr ""
+
+msgid "Set position and orientation per glyph."
+msgstr ""
+
+msgctxt "Alignment"
+msgid "Left"
+msgstr ""
+
+msgctxt "Alignment"
+msgid "Center"
+msgstr ""
+
+msgctxt "Alignment"
+msgid "Right"
+msgstr ""
+
+msgctxt "Alignment"
+msgid "Top"
+msgstr ""
+
+msgctxt "Alignment"
+msgid "Middle"
+msgstr ""
+
+msgctxt "Alignment"
+msgid "Bottom"
+msgstr ""
+
+msgid "Revert alignment."
+msgstr ""
+
+#. TRN EmbossGizmo: font units
+msgid "points"
+msgstr ""
+
+msgid "Revert gap between characters"
+msgstr ""
+
+msgid "Distance between characters"
+msgstr ""
+
+msgid "Revert gap between lines"
+msgstr ""
+
+msgid "Distance between lines"
+msgstr ""
+
+msgid "Undo boldness"
+msgstr ""
+
+msgid "Tiny / Wide glyphs"
+msgstr ""
+
+msgid "Undo letter's skew"
+msgstr ""
+
+msgid "Italic strength ratio"
+msgstr ""
+
+msgid "Undo translation"
+msgstr ""
+
+msgid "Distance of the center of the text to the model surface."
+msgstr ""
+
+msgid "Undo rotation"
+msgstr ""
+
+msgid "Rotate text Clock-wise."
+msgstr ""
+
+msgid "Unlock the text's rotation when moving text along the object's surface."
+msgstr ""
+
+msgid "Lock the text's rotation when moving text along the object's surface."
+msgstr ""
+
+msgid "Select from True Type Collection."
+msgstr ""
+
+msgid "Set text to face camera"
+msgstr ""
+
+msgid "Orient the text towards the camera."
+msgstr ""
+
+#, boost-format
+msgid ""
+"Can't load exactly same font(\"%1%\"). Aplication selected a similar "
+"one(\"%2%\"). You have to specify font for enable edit text."
+msgstr ""
+
+msgid "No symbol"
+msgstr ""
+
+msgid "Loading"
+msgstr "로드 중"
+
+msgid "In queue"
+msgstr ""
+
+#. TRN - Input label. Be short as possible
+#. Height of one text line - Font Ascent
+msgid "Height"
+msgstr "높이"
+
+#. TRN - Input label. Be short as possible
+#. Copy surface of model on surface of the embossed text
+#. TRN - Input label. Be short as possible
+msgid "Use surface"
+msgstr ""
+
+#. TRN - Input label. Be short as possible
+#. Option to change projection on curved surface
+#. for each character(glyph) in text separately
+msgid "Per glyph"
+msgstr ""
+
+#. TRN - Input label. Be short as possible
+#. Align Top|Middle|Bottom and Left|Center|Right
+msgid "Alignment"
+msgstr ""
+
+#. TRN - Input label. Be short as possible
+msgid "Char gap"
+msgstr ""
+
+#. TRN - Input label. Be short as possible
+msgid "Line gap"
+msgstr ""
+
+#. TRN - Input label. Be short as possible
+msgid "Boldness"
+msgstr ""
+
+#. TRN - Input label. Be short as possible
+#. Like Font italic
+msgid "Skew ratio"
+msgstr ""
+
+#. TRN - Input label. Be short as possible
+#. Distance from model surface to be able
+#. move text as part fully into not flat surface
+#. move text as modifier fully out of not flat surface
+#. TRN - Input label. Be short as possible
+msgid "From surface"
+msgstr ""
+
+#. TRN - Input label. Be short as possible
+#. Keep vector from bottom to top of text aligned with printer Y axis
+msgid "Keep up"
+msgstr ""
+
+#. TRN - Input label. Be short as possible.
+#. Some Font file contain multiple fonts inside and
+#. this is numerical selector of font inside font collections
+msgid "Collection"
+msgstr ""
+
+msgid "Enter SVG gizmo"
+msgstr ""
+
+msgid "Leave SVG gizmo"
+msgstr ""
+
+msgid "SVG actions"
+msgstr ""
+
+msgid "SVG"
+msgstr "SVG"
+
+#. TRN This is an item label in the undo-redo stack.
+msgid "SVG-Rotate"
+msgstr ""
+
+#, boost-format
+msgid "Opacity (%1%)"
+msgstr ""
+
+#, boost-format
+msgid "Color gradient (%1%)"
+msgstr ""
+
+msgid "Undefined fill type"
+msgstr ""
+
+msgid "Linear gradient"
+msgstr ""
+
+msgid "Radial gradient"
+msgstr ""
+
+msgid "Open filled path"
+msgstr ""
+
+msgid "Undefined stroke type"
+msgstr ""
+
+msgid "Path can't be healed from selfintersection and multiple points."
+msgstr ""
+
+msgid ""
+"Final shape constains selfintersection or multiple points with same "
+"coordinate."
+msgstr ""
+
+#, boost-format
+msgid "Shape is marked as invisible (%1%)."
+msgstr ""
+
+#. TRN: The first placeholder is shape identifier, the second one is text describing the problem.
+#, boost-format
+msgid "Fill of shape (%1%) contains unsupported: %2%."
+msgstr ""
+
+#, boost-format
+msgid "Stroke of shape (%1%) is too thin (minimal width is %2% mm)."
+msgstr ""
+
+#, boost-format
+msgid "Stroke of shape (%1%) contains unsupported: %2%."
+msgstr ""
+
+msgid "Face the camera"
+msgstr ""
+
+#. TRN - Preview of filename after clear local filepath.
+msgid "Unknown filename"
+msgstr ""
+
+#, boost-format
+msgid "SVG file path is \"%1%\""
+msgstr ""
+
+msgid "Reload SVG file from disk."
+msgstr ""
+
+msgid "Change file"
+msgstr ""
+
+msgid "Change to another .svg file"
+msgstr ""
+
+msgid "Forget the file path"
+msgstr ""
+
+msgid ""
+"Do NOT save local path to 3MF file.\n"
+"Also disables 'reload from disk' option."
+msgstr ""
+
+#. TRN: An menu option to convert the SVG into an unmodifiable model part.
+msgid "Bake"
+msgstr ""
+
+#. TRN: Tooltip for the menu item.
+msgid "Bake into model as uneditable part"
+msgstr ""
+
+msgid "Save as"
+msgstr ""
+
+msgid "Save SVG file"
+msgstr ""
+
+msgid "Save as '.svg' file"
+msgstr ""
+
+msgid "Size in emboss direction."
+msgstr ""
+
+#. TRN: The placeholder contains a number.
+#, boost-format
+msgid "Scale also changes amount of curve samples (%1%)"
+msgstr ""
+
+msgid "Width of SVG."
+msgstr ""
+
+msgid "Height of SVG."
+msgstr ""
+
+msgid "Lock/unlock the aspect ratio of the SVG."
+msgstr ""
+
+msgid "Reset scale"
+msgstr ""
+
+msgid "Resize"
+msgstr ""
+
+msgid "Distance of the center of the SVG to the model surface."
+msgstr ""
+
+msgid "Reset distance"
+msgstr ""
+
+msgid "Reset rotation"
+msgstr ""
+
+msgid "Lock/unlock rotation angle when dragging above the surface."
+msgstr ""
+
+msgid "Mirror vertically"
+msgstr ""
+
+msgid "Mirror horizontally"
+msgstr ""
+
+#. TRN: This is the name of the action that shows in undo/redo stack (changing part type from SVG to something else).
+msgid "Change SVG Type"
+msgstr ""
+
+#. TRN - Input label. Be short as possible
+msgid "Mirror"
+msgstr "반전"
+
+msgid "Choose SVG file for emboss:"
+msgstr ""
+
+#, boost-format
+msgid "File does NOT exist (%1%)."
+msgstr ""
+
+#, boost-format
+msgid "Filename has to end with \".svg\" but you selected %1%"
+msgstr ""
+
+#, boost-format
+msgid "Nano SVG parser can't load from file (%1%)."
+msgstr ""
+
+#, boost-format
+msgid "SVG file does NOT contain a single path to be embossed (%1%)."
+msgstr ""
+
+msgid "Vertex"
+msgstr ""
+
+msgid "Edge"
+msgstr ""
+
+msgid "Plane"
+msgstr ""
+
+msgid "Point on edge"
+msgstr ""
+
+msgid "Point on circle"
+msgstr ""
+
+msgid "Point on plane"
+msgstr ""
+
+msgid "Center of edge"
+msgstr ""
+
+msgid "Center of circle"
+msgstr ""
+
+msgid "ShiftLeft mouse button"
+msgstr ""
+
+msgid "Select feature"
+msgstr ""
+
+msgid "Select point"
+msgstr ""
+
+msgid "Delete"
+msgstr "삭제"
+
+msgid "Restart selection"
+msgstr ""
+
+msgid "Esc"
+msgstr "Esc"
+
+msgid "Unselect"
+msgstr ""
+
+msgid "Measure"
+msgstr ""
+
+msgid "Edit to scale"
+msgstr ""
+
+msgctxt "Verb"
+msgid "Scale"
+msgstr ""
+
+msgid "None"
+msgstr "없음"
+
+msgid "Diameter"
+msgstr "직경"
+
+msgid "Length"
+msgstr "길이"
+
+msgid "Selection"
+msgstr ""
+
+msgid "Copy to clipboard"
+msgstr "클립보드로 복사"
+
+msgid "Perpendicular distance"
+msgstr ""
+
+msgid "Distance"
+msgstr ""
+
+msgid "Direct distance"
+msgstr ""
+
+msgid "Distance XYZ"
+msgstr ""
 
 msgid "Ctrl+"
 msgstr "Ctrl+"
@@ -745,9 +1502,6 @@ msgstr ""
 msgid "Sync user presets"
 msgstr "사용자 사전 설정 동기화"
 
-msgid "Loading"
-msgstr "로드 중"
-
 msgid "Loading user preset"
 msgstr "사용자 사전 설정 로드 중"
 
@@ -778,9 +1532,6 @@ msgstr "G코드 파일 선택:"
 msgid "Import File"
 msgstr "파일 가져오기"
 
-msgid "Delete"
-msgstr "삭제"
-
 msgid "Choose files"
 msgstr "파일 선택"
 
@@ -807,7 +1558,7 @@ msgid "Shell"
 msgstr "쉘"
 
 msgid "Infill"
-msgstr "채움"
+msgstr "채우기"
 
 msgid "Support"
 msgstr "지지대"
@@ -850,9 +1601,6 @@ msgstr "닦기 옵션"
 
 msgid "Bed adhension"
 msgstr "베드 안착"
-
-msgid "Advanced"
-msgstr "고급"
 
 msgid "Add part"
 msgstr "부품 추가"
@@ -939,9 +1687,6 @@ msgstr "스탠포드 버니"
 msgid "Text"
 msgstr "텍스트"
 
-msgid "SVG"
-msgstr "SVG"
-
 msgid "Height range Modifier"
 msgstr "높이 범위 수정자"
 
@@ -958,7 +1703,7 @@ msgid "Set as individual objects"
 msgstr "개별 개체로 설정"
 
 msgid "Fill bed with copies"
-msgstr "베드에 복사본으로 채움"
+msgstr "베드에 복사본으로 채우기"
 
 msgid "Fill the remaining area of bed with copies of the selected object"
 msgstr "베드의 나머지 영역을 선택한 개체의 복사본으로 채웁니다"
@@ -1013,7 +1758,7 @@ msgid "Flush Options"
 msgstr "버리기 옵션"
 
 msgid "Flush into objects' infill"
-msgstr "개체의 채움에서 버리기"
+msgstr "개체의 채우기에서 버리기"
 
 msgid "Flush into this object"
 msgstr "개체에서 버리기"
@@ -1068,9 +1813,6 @@ msgstr "Z축"
 
 msgid "Mirror along the Z axis"
 msgstr "Z축을 따라 반전"
-
-msgid "Mirror"
-msgstr "반전"
 
 msgid "Mirror object"
 msgstr "개체 반전"
@@ -1334,12 +2076,6 @@ msgstr "높이 범위"
 msgid "Settings for height range"
 msgstr "높이 범위 설정"
 
-msgid "Object"
-msgstr "개체"
-
-msgid "Part"
-msgstr "부품"
-
 msgid "Layer"
 msgstr "레이어"
 
@@ -1362,9 +2098,6 @@ msgstr "마지막 꽉찬 개체 부품의 유형은 변경되지 않습니다."
 
 msgid "Negative Part"
 msgstr "비우기 부품"
-
-msgid "Modifier"
-msgstr "수정자"
 
 msgid "Support Blocker"
 msgstr "지지대 차단기"
@@ -1432,13 +2165,10 @@ msgid "Wall loops"
 msgstr "벽 루프"
 
 msgid "Infill density(%)"
-msgstr "채움 밀도(%)"
+msgstr "채우기 밀도(%)"
 
 msgid "Auto Brim"
 msgstr "자동 브림"
-
-msgid "Auto"
-msgstr "자동"
 
 msgid "Mouse ear"
 msgstr "생쥐 귀"
@@ -1515,9 +2245,6 @@ msgstr "사용자 정의 G코드"
 msgid "Enter Custom G-code used on current layer:"
 msgstr "현재 레이어에 사용될 사용자 정의 G코드 입력:"
 
-msgid "OK"
-msgstr "확인"
-
 msgid "Jump to Layer"
 msgstr "다음 레이어로 이동"
 
@@ -1572,14 +2299,14 @@ msgstr "프린터 없음"
 msgid "..."
 msgstr "..."
 
-msgid "Failed to connect to the server"
-msgstr "서버 연결 실패"
-
 msgid "Check the status of current system services"
 msgstr "현재 시스템 서비스 상태 확인"
 
 msgid "code"
 msgstr "코드"
+
+msgid "Failed to connect to the server"
+msgstr "서버 연결 실패"
 
 msgid "Failed to connect to cloud service"
 msgstr "클라우드 서비스에 연결하지 못했습니다"
@@ -1759,13 +2486,13 @@ msgid "Orienting canceled."
 msgstr "방향지정이 취소되었습니다."
 
 msgid "Filling"
-msgstr "채움"
+msgstr "채우기"
 
 msgid "Bed filling canceled."
-msgstr "베드 채움 취소됨."
+msgstr "베드 채우기 취소됨."
 
 msgid "Bed filling done."
-msgstr "베드 채움 완료."
+msgstr "베드 채우기 완료."
 
 msgid "Searching for optimal orientation"
 msgstr "최적의 방향 검색"
@@ -2397,9 +3124,6 @@ msgstr "%1%로 업로드 예약 중. 윈도우 -> 호스트 업로드 출력 대
 msgid "Origin"
 msgstr "원점"
 
-msgid "Diameter"
-msgstr "직경"
-
 msgid "Size in X and Y of the rectangular plate."
 msgstr "직사각형 플레이트의 X 및 Y 크기."
 
@@ -2547,7 +3271,7 @@ msgid ""
 "Spiral mode only works when wall loops is 1, support is disabled, top shell "
 "layers is 0, sparse infill density is 0 and timelapse type is traditional."
 msgstr ""
-"나선형 모드는 벽 루프 1, 지지대 비활성화, 상단 셸 레이어 0, 드문 채움 밀도 "
+"나선형 모드는 벽 루프 1, 지지대 비활성화, 상단 셸 레이어 0, 드문 채우기 밀도 "
 "0, 타임랩스 유형이 기존인 경우에만 작동합니다."
 
 msgid " But machines with I3 structure will not generate timelapse videos."
@@ -2956,6 +3680,9 @@ msgstr "시간"
 msgid "Percent"
 msgstr "퍼센트"
 
+msgid "Used filament"
+msgstr "사용된 필라멘트"
+
 msgid "Layer Height (mm)"
 msgstr "레이어 높이(mm)"
 
@@ -2973,9 +3700,6 @@ msgstr "온도 (°C)"
 
 msgid "Volumetric flow rate (mm³/s)"
 msgstr "체적 유량 (mm³/s)"
-
-msgid "Used filament"
-msgstr "사용된 필라멘트"
 
 msgid "Travel"
 msgstr "이동"
@@ -4348,7 +5072,7 @@ msgstr "하드웨어를 안전하게 제거합니다."
 #, c-format, boost-format
 msgid "%1$d Object has custom supports."
 msgid_plural "%1$d Objects have custom supports."
-msgstr[0] "%1$d 개체에 사용자 설정 지지대가 있습니다."
+msgstr[0] "%1$d 개체에 사용자 정의 지지대가 있습니다."
 
 #, c-format, boost-format
 msgid "%1$d Object has color painting."
@@ -5157,6 +5881,9 @@ msgstr "로그인 지역"
 
 msgid "Stealth Mode"
 msgstr "스텔스 모드"
+
+msgid "Check for stable updates only"
+msgstr ""
 
 msgid "Metric"
 msgstr "미터법"
@@ -6022,6 +6749,11 @@ msgstr ""
 "상단 Z 거리 0, 접점 간격 0, 접점 패턴 동심원 및 독립적 지지대 높이 비활성화"
 
 msgid ""
+"Layer height is too small.\n"
+"It will set to min_layer_height\n"
+msgstr ""
+
+msgid ""
 "Layer height exceeds the limit in Printer Settings -> Extruder -> Layer "
 "height limits ,this may cause printing quality issues."
 msgstr ""
@@ -6040,8 +6772,8 @@ msgstr "무시"
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "툴헤드 없이 시간 경과를 기록할 경우 \"타임랩스 닦기 타워\"를 추가하는 것이 좋"
 "습니다\n"
@@ -6669,12 +7401,11 @@ msgid "Flushing volumes for filament change"
 msgstr "필라멘트 교체를 위한 버리기 부피"
 
 msgid ""
-"Studio would re-calculate your flushing volumes everytime the filaments "
-"color changed. You could disable the auto-calculate in Bambu Studio > "
-"Preferences"
+"Orca would re-calculate your flushing volumes everytime the filaments color "
+"changed. You could disable the auto-calculate in Orca Slicer > Preferences"
 msgstr ""
-"Studio는 필라멘트 색상이 변경될 때마다 플러싱 볼륨을 다시 계산합니다. Bambu "
-"Studio > 기본 설정에서 자동 계산을 비활성화할 수 있습니다"
+"Orca는 필라멘트 색상이 변경될 때마다 플러싱 볼륨을 다시 계산합니다. Orca "
+"Slicer > 기본 설정에서 자동 계산을 비활성화할 수 있습니다"
 
 msgid "Flushing volume (mm³) for each filament pair."
 msgstr "각 필라멘트 쌍에 대한 버리기 부피(mm³)."
@@ -6734,9 +7465,6 @@ msgstr "⌘+Shift+G"
 
 msgid "Ctrl+Shift+G"
 msgstr "Ctrl+Shift+G"
-
-msgid "Copy to clipboard"
-msgstr "클립보드로 복사"
 
 msgid "Paste from clipboard"
 msgstr "클립보드에서 붙여넣기"
@@ -6849,9 +7577,6 @@ msgstr "Shift+화살표"
 msgid "Movement step set to 1 mm"
 msgstr "1mm로 이동"
 
-msgid "Esc"
-msgstr "Esc"
-
 msgid "keyboard 1-9: set filament for object/part"
 msgstr "키보드 1-9: 개체/부품에 필라멘트 할당"
 
@@ -6900,7 +7625,7 @@ msgstr "도구 상자 지지대 칠하기"
 msgid "Gizmo FDM paint-on seam"
 msgstr "도구 상자 솔기 칠하기"
 
-msgid "Swtich between Prepare/Prewview"
+msgid "Switch between Prepare/Preview"
 msgstr "준비 하기/미리 보기 전환"
 
 msgid "Plater"
@@ -6935,9 +7660,6 @@ msgstr "개체 및 부품에 대한 압출기 번호 설정"
 
 msgid "Delete objects, parts, modifiers  "
 msgstr "개체, 부품, 수정자 삭제 "
-
-msgid "Space"
-msgstr "스페이스"
 
 msgid "Select the object/part and press space to change the name"
 msgstr "개체/부품을 선택하고 스페이스바를 눌러 이름을 변경합니다"
@@ -7217,13 +7939,13 @@ msgid "Outer wall"
 msgstr "외벽"
 
 msgid "Overhang wall"
-msgstr "돌출벽"
+msgstr "돌출부 벽"
 
 msgid "Sparse infill"
-msgstr "드문 채움"
+msgstr "드문 채우기"
 
 msgid "Internal solid infill"
-msgstr "꽉찬 내부 채움"
+msgstr "꽉찬 내부 채우기"
 
 msgid "Top surface"
 msgstr "상단 표면"
@@ -7235,7 +7957,7 @@ msgid "Internal Bridge"
 msgstr "내부 브릿지"
 
 msgid "Gap infill"
-msgstr "간격 채움"
+msgstr "간격 채우기"
 
 msgid "Skirt"
 msgstr "스커트"
@@ -7583,10 +8305,10 @@ msgstr ""
 "\"XxY, XxY...\" 형식의 점으로 다각형으로 표시됩니다"
 
 msgid "Bed custom texture"
-msgstr "베드 사용자 설정 텍스처"
+msgstr "사용자 정의 베드 텍스처"
 
 msgid "Bed custom model"
-msgstr "베드 사용자 설정 모델"
+msgstr "사용자 정의 베드 모델"
 
 msgid "Elephant foot compensation"
 msgstr "코끼리 발 보정"
@@ -7639,13 +8361,13 @@ msgid "Hostname, IP or URL"
 msgstr "호스트 이름, IP 또는 URL"
 
 msgid ""
-"Slic3r can upload G-code files to a printer host. This field should contain "
+"Orca Slicer can upload G-code files to a printer host. This field should contain "
 "the hostname, IP address or URL of the printer host instance. Print host "
 "behind HAProxy with basic auth enabled can be accessed by putting the user "
 "name and password into the URL in the following format: https://username:"
 "password@your-octopi-address/"
 msgstr ""
-"Slic3r은 G코드 파일을 프린터 호스트에 업로드할 수 있습니다. 이 필드에는 프린"
+"Orca Slicer은 G코드 파일을 프린터 호스트에 업로드할 수 있습니다. 이 필드에는 프린"
 "터 호스트 인스턴스의 호스트 이름, IP 주소 또는 URL이 포함되어야 합니다. 기본 "
 "인증이 활성화된 HAProxy 뒤의 출력 호스트는 https://username:password@your-"
 "octopi-address/ 형식의 URL에 사용자 이름과 암호를 입력하여 액세스할 수 있습니"
@@ -7663,10 +8385,10 @@ msgid "API Key / Password"
 msgstr "API 키 / 비밀번호"
 
 msgid ""
-"Slic3r can upload G-code files to a printer host. This field should contain "
+"Orca Slicer can upload G-code files to a printer host. This field should contain "
 "the API Key or the password required for authentication."
 msgstr ""
-"Slic3r은 G코드 파일을 프린터 호스트에 업로드할 수 있습니다. 이 필드에는 인증"
+"Orca Slicer은 G코드 파일을 프린터 호스트에 업로드할 수 있습니다. 이 필드에는 인증"
 "에 필요한 API 키 또는 비밀번호가 포함되어야 합니다."
 
 msgid "Name of the printer"
@@ -7861,9 +8583,9 @@ msgid ""
 "wall which has large overhang degree. Forcing cooling for overhang and "
 "bridge can get better quality for these part"
 msgstr ""
-"돌출부 정도가 큰 브릿지나 돌출벽을 출력할 때 출력물 냉각 팬을 이 속도로 강제"
-"합니다. 돌출부와 브릿지를 강제 냉각하면 이러한 부품의 품질이 향상될 수 있습니"
-"다"
+"돌출부 정도가 큰 브릿지나 돌출부 벽을 출력할 때 출력물 냉각 팬을 이 속도로 강"
+"제합니다. 돌출부와 브릿지를 강제 냉각하면 이러한 부품의 품질이 향상될 수 있습"
+"니다"
 
 msgid "Cooling overhang threshold"
 msgstr "돌출부 냉각 임계값"
@@ -7880,7 +8602,7 @@ msgstr ""
 "에 관계없이 모든 외벽을 강제 냉각한다는 의미입니다"
 
 msgid "Bridge infill direction"
-msgstr "브릿지 채움 방향"
+msgstr "브릿지 채우기 방향"
 
 msgid ""
 "Bridging angle override. If left to zero, the bridging angle will be "
@@ -7914,8 +8636,8 @@ msgid ""
 "first layer over sparse infill. Decrease this value slightly (for example "
 "0.9) to improve surface quality over sparse infill."
 msgstr ""
-"이 값은 내부 브릿지 레이어의 두께를 결정합니다. 이것은 드문 채움 위의 첫 번"
-"째 레이어입니다. 드문 채움보다 표면 품질을 향상시키려면 이 값을 약간(예: "
+"이 값은 내부 브릿지 레이어의 두께를 결정합니다. 이것은 드문 채우기 위의 첫 번"
+"째 레이어입니다. 드문 채우기보다 표면 품질을 향상시키려면 이 값을 약간(예: "
 "0.9) 줄입니다."
 
 msgid "Top surface flow ratio"
@@ -7925,14 +8647,14 @@ msgid ""
 "This factor affects the amount of material for top solid infill. You can "
 "decrease it slightly to have smooth surface finish"
 msgstr ""
-"이 값은 상단 꽉찬 내부 채움의 재료의 양에 영향을 미칩니다. 부드러운 표면 마감"
-"을 위해 약간 줄여도 됩니다"
+"이 값은 상단 꽉찬 내부 채우기의 재료의 양에 영향을 미칩니다. 부드러운 표면 마"
+"감을 위해 약간 줄여도 됩니다"
 
 msgid "Bottom surface flow ratio"
 msgstr "하단 표면 유량 비율"
 
 msgid "This factor affects the amount of material for bottom solid infill"
-msgstr "이 값은 하단 꽉찬 내부 채움의 재료의 양에 영향을 미칩니다"
+msgstr "이 값은 하단 꽉찬 내부 채우기의 재료의 양에 영향을 미칩니다"
 
 msgid "Precise wall(experimental)"
 msgstr "정밀한 벽(실험적)"
@@ -8088,7 +8810,7 @@ msgid "External"
 msgstr "외부"
 
 msgid "Speed of bridge and completely overhang wall"
-msgstr "브릿지와 돌출벽의 속도"
+msgstr "브릿지와 돌출부 벽의 속도"
 
 msgid "mm/s"
 msgstr "mm/s"
@@ -8249,14 +8971,14 @@ msgstr ""
 "팬을 정지합니다"
 
 msgid "Don't support bridges"
-msgstr "브릿지를 지원하지 않음"
+msgstr "브릿지에서 지지대 사용안함"
 
 msgid ""
 "Don't support the whole bridge area which make support very large. Bridge "
 "usually can be printing directly without support if not very long"
 msgstr ""
-"지지대를 크게 만드는 전체 브릿지 영역에 지지대 미생성. 브릿지는 일반적으로 매"
-"우 길지 않은 경우 지지대 없이 직접 출력할 수 있습니다"
+"지지대를 크게 만드는 전체 브릿지 영역에 지지대를 사용하지 않습니다. 브릿지는 "
+"일반적으로 매우 길지 않은 경우 지지대 없이 직접 출력할 수 있습니다"
 
 msgid "Thick bridges"
 msgstr "두꺼운 브릿지"
@@ -8319,14 +9041,14 @@ msgid ""
 "Add solid infill near sloping surfaces to guarantee the vertical shell "
 "thickness (top+bottom solid layers)"
 msgstr ""
-"경사진 표면 근처에 꽉찬 내부 채움을 추가하여 수직 쉘 두께를 보장합니다 (상단"
-"+하단 꽉찬 레이어)"
+"경사진 표면 근처에 꽉찬 내부 채우기를 추가하여 수직 쉘 두께를 보장합니다 (상"
+"단+하단 꽉찬 레이어)"
 
 msgid "Top surface pattern"
 msgstr "상단 표면 패턴"
 
 msgid "Line pattern of top surface infill"
-msgstr "상단 표면 채움의 선 패턴"
+msgstr "상단 표면 채우기의 선 패턴"
 
 msgid "Concentric"
 msgstr "동심"
@@ -8356,17 +9078,17 @@ msgid "Bottom surface pattern"
 msgstr "하단 표면 패턴"
 
 msgid "Line pattern of bottom surface infill, not bridge infill"
-msgstr "브릿지 채움이 아닌 바닥면 채움의 선 패턴"
+msgstr "브릿지 채우기가 아닌 바닥면 채우기의 선 패턴"
 
 msgid "Internal solid infill pattern"
-msgstr "꽉찬 내부 채움 패턴"
+msgstr "꽉찬 내부 채우기 패턴"
 
 msgid ""
 "Line pattern of internal solid infill. if the detect narrow internal solid "
 "infill be enabled, the concentric pattern will be used for the small area."
 msgstr ""
-"꽉찬 내부 채움의 선 패턴. 좁은 꽉찬 내부 채움 감지가 활성화된 경우 작은 영역"
-"에 동심원 패턴이 사용됩니다."
+"꽉찬 내부 채우기의 선 패턴. 좁은 꽉찬 내부 채우기 감지가 활성화된 경우 작은 "
+"영역에 동심원 패턴이 사용됩니다."
 
 msgid ""
 "Line width of outer wall. If expressed as a %, it will be computed over the "
@@ -8456,7 +9178,7 @@ msgid "Inner/Outer/Inner"
 msgstr "내벽/외벽/내벽"
 
 msgid "Print infill first"
-msgstr "채움 먼저 출력"
+msgstr "채우기 먼저 출력"
 
 msgid ""
 "Order of wall/infill. When the tickbox is unchecked the walls are printed "
@@ -8468,8 +9190,8 @@ msgid ""
 "external surface finish. It can also cause the infill to shine through the "
 "external surfaces of the part."
 msgstr ""
-"벽/채움 순서. 확인란을 선택 취소하면 벽이 먼저 출력되며 이는 대부분의 경우 가"
-"장 잘 작동합니다.\n"
+"벽/채우기 순서. 확인란을 선택 취소하면 벽이 먼저 출력되며 이는 대부분의 경우 "
+"가장 잘 작동합니다.\n"
 "\n"
 "벽에 접착할 이웃 충전재가 있으므로 벽을 먼저 출력하면 과도한 돌출부에 도움이 "
 "될 수 있습니다. 그러나 충전재는 출력된 벽이 부착된 부분을 약간 밀어내어 외부 "
@@ -8694,13 +9416,13 @@ msgid ""
 "After a tool change, the exact position of the newly loaded filament inside "
 "the nozzle may not be known, and the filament pressure is likely not yet "
 "stable. Before purging the print head into an infill or a sacrificial "
-"object, Slic3r will always prime this amount of material into the wipe tower "
+"object, Orca Slicer will always prime this amount of material into the wipe tower "
 "to produce successive infill or sacrificial object extrusions reliably."
 msgstr ""
 "툴 교환 후 노즐 내부에 새로 로드된 필라멘트의 정확한 위치를 알 수 없으며 필라"
-"멘트 압력이 아직 안정적이지 않을 수 있습니다. 프린트 헤드를 채움 또는 희생 개"
-"체로 청소하기 전에 Slic3r은 항상 이 양의 재료를 닦기 타워로 프라이밍하여 연속"
-"적인 채움 또는 희생 물체 압출을 안정적으로 생성합니다."
+"멘트 압력이 아직 안정적이지 않을 수 있습니다. 프린트 헤드를 채우기 또는 희생 "
+"개체로 청소하기 전에 Orca Slicer은 항상 이 양의 재료를 닦기 타워로 프라이밍하여 연"
+"속적인 채우기 또는 희생 물체 압출을 안정적으로 생성합니다."
 
 msgid "Speed of the last cooling move"
 msgstr "마지막 냉각 이동 속도"
@@ -8819,28 +9541,29 @@ msgid "(Undefined)"
 msgstr "(정의되지 않음)"
 
 msgid "Infill direction"
-msgstr "채움 방향"
+msgstr "채우기 방향"
 
 msgid ""
 "Angle for sparse infill pattern, which controls the start or main direction "
 "of line"
-msgstr "선의 시작 또는 주 방향을 제어하는 드문 채움 패턴에 대한 각도"
+msgstr "선의 시작 또는 주 방향을 제어하는 드문 채우기 패턴에 대한 각도"
 
 msgid "Sparse infill density"
-msgstr "드문 채움 밀도"
+msgstr "드문 채우기 밀도"
 
+#, fuzzy, c-format, boost-format
 msgid ""
 "Density of internal sparse infill, 100% turns all sparse infill into solid "
 "infill and internal solid infill pattern will be used"
 msgstr ""
-"내부 드문 채움의 밀도, 100%는 모든 드문 채움을 꽉찬 내부 채움으로 변경하고 채"
-"움에는 패턴이 사용됩니다"
+"내부 드문 채우기의 밀도, 100%는 모든 드문 채우기를 꽉찬 내부 채우기로 변경하"
+"고 채우기에는 패턴이 사용됩니다"
 
 msgid "Sparse infill pattern"
-msgstr "드문 채움 패턴"
+msgstr "드문 채우기 패턴"
 
 msgid "Line pattern for internal sparse infill"
-msgstr "드문 내부 채움의 선 패턴"
+msgstr "드문 내부 채우기의 선 패턴"
 
 msgid "Grid"
 msgstr "격자"
@@ -8873,12 +9596,12 @@ msgid "Lightning"
 msgstr "번개"
 
 msgid "Sparse infill anchor length"
-msgstr "드문 채움 고정점 길이"
+msgstr "드문 채우기 고정점 길이"
 
 msgid ""
 "Connect an infill line to an internal perimeter with a short segment of an "
 "additional perimeter. If expressed as percentage (example: 15%) it is "
-"calculated over infill extrusion width. Slic3r tries to connect two close "
+"calculated over infill extrusion width. Orca Slicer tries to connect two close "
 "infill lines to a short perimeter segment. If no such perimeter segment "
 "shorter than infill_anchor_max is found, the infill line is connected to a "
 "perimeter segment at just one side and the length of the perimeter segment "
@@ -8886,15 +9609,15 @@ msgid ""
 "Set this parameter to zero to disable anchoring perimeters connected to a "
 "single infill line."
 msgstr ""
-"사용하여 채움 선을 내부 둘레에 연결합니다. 백분율(예: 15%)로 표시되는 경우 채"
-"우기 돌출 너비에 대해 계산됩니다. Slic3r은 두 개의 가까운 채움 선을 짧은 주"
-"변 세그먼트에 연결하려고 합니다. 내부 채움 고정점 (infill_anchor_max) 최대 길"
-"이보다 짧은 경계 세그먼트가 발견되지 않으면 \n"
+"사용하여 채우기 선을 내부 둘레에 연결합니다. 백분율(예: 15%)로 표시되는 경우 "
+"채우기 돌출 너비에 대해 계산됩니다. Orca Slicer은 두 개의 가까운 채우기 선을 짧은 "
+"주변 세그먼트에 연결하려고 합니다. 내부 채우기 고정점 (infill_anchor_max) 최"
+"대 길이보다 짧은 경계 세그먼트가 발견되지 않으면 \n"
 "채우기 선은 한쪽에서 경계 세그먼트에 연결되고 취해진 경계 세그먼트의 길이는 "
 "이 매개변수로 제한되지만 최대 고정점 길이(anchor_length_max) 보다 길지 않습니"
 "다.\n"
-"단일 채움 선에 연결된 고정 둘레를 비활성화하려면 이 매개변수를 0으로 설정합니"
-"다."
+"단일 채우기 선에 연결된 고정 둘레를 비활성화하려면 이 매개변수를 0으로 설정합"
+"니다."
 
 msgid "0 (no open anchors)"
 msgstr "0 (개방형 고정점 없음)"
@@ -8903,12 +9626,12 @@ msgid "1000 (unlimited)"
 msgstr "1000 (무제한)"
 
 msgid "Maximum length of the infill anchor"
-msgstr "채움 고정점 최대 길이"
+msgstr "채우기 고정점 최대 길이"
 
 msgid ""
 "Connect an infill line to an internal perimeter with a short segment of an "
 "additional perimeter. If expressed as percentage (example: 15%) it is "
-"calculated over infill extrusion width. Slic3r tries to connect two close "
+"calculated over infill extrusion width. Orca Slicer tries to connect two close "
 "infill lines to a short perimeter segment. If no such perimeter segment "
 "shorter than this parameter is found, the infill line is connected to a "
 "perimeter segment at just one side and the length of the perimeter segment "
@@ -8916,12 +9639,12 @@ msgid ""
 "If set to 0, the old algorithm for infill connection will be used, it should "
 "create the same result as with 1000 & 0."
 msgstr ""
-"추가 둘레의 짧은 세그먼트를 사용하여 채움 선을 내부 둘레에 연결합니다. 백분율"
-"(예: 15%)로 표시되는 경우 채우기 돌출 너비에 대해 계산됩니다. Slic3r은 두 개"
-"의 가까운 채움 선을 짧은 주변 세그먼트에 연결하려고 합니다. 이 매개변수보다 "
-"짧은 주변 세그먼트가 발견되지 않으면 채움 선은 한쪽 측면의 주변 세그먼트에 연"
-"결되고 사용된 주변 세그먼트의 길이는 앵커 채움(infill_anchor)로 제한되지만 "
-"이 매개변수보다 길지 않습니다.\n"
+"추가 둘레의 짧은 세그먼트를 사용하여 채우기 선을 내부 둘레에 연결합니다. 백분"
+"율(예: 15%)로 표시되는 경우 채우기 돌출 너비에 대해 계산됩니다. Orca Slicer은 두 "
+"개의 가까운 채우기 선을 짧은 주변 세그먼트에 연결하려고 합니다. 이 매개변수보"
+"다 짧은 주변 세그먼트가 발견되지 않으면 채우기 선은 한쪽 측면의 주변 세그먼트"
+"에 연결되고 사용된 주변 세그먼트의 길이는 앵커 채우기(infill_anchor)로 제한되"
+"지만 이 매개변수보다 길지 않습니다.\n"
 "0으로 설정하면 채우기 연결에 대한 이전 알고리즘이 사용되며 1000 & 0과 동일한 "
 "결과를 생성해야 합니다."
 
@@ -8960,16 +9683,16 @@ msgid ""
 "Acceleration of sparse infill. If the value is expressed as a percentage (e."
 "g. 100%), it will be calculated based on the default acceleration."
 msgstr ""
-"드문 채움 가속도. 값이 백분율 (예. 100%)로 표시되면 기본 가속도를 기준으로 계"
-"산됩니다."
+"드문 채우기 가속도. 값이 백분율 (예. 100%)로 표시되면 기본 가속도를 기준으로 "
+"계산됩니다."
 
 msgid ""
 "Acceleration of internal solid infill. If the value is expressed as a "
 "percentage (e.g. 100%), it will be calculated based on the default "
 "acceleration."
 msgstr ""
-"꽉찬 내부 채움 가속도. 값이 백분율 (예. 100%)로 표시되면 기본 가속도를 기준으"
-"로 계산됩니다."
+"꽉찬 내부 채우기 가속도. 값이 백분율 (예. 100%)로 표시되면 기본 가속도를 기준"
+"으로 계산됩니다."
 
 msgid ""
 "Acceleration of initial layer. Using a lower value can improve build plate "
@@ -9002,7 +9725,7 @@ msgid "Jerk for top surface"
 msgstr "상단 표면 저크"
 
 msgid "Jerk for infill"
-msgstr "채움 저크"
+msgstr "채우기 저크"
 
 msgid "Jerk for initial layer"
 msgstr "초기 레이어 저크"
@@ -9026,13 +9749,13 @@ msgstr ""
 "접착력을 향상시킬 수 있습니다"
 
 msgid "Speed of initial layer except the solid infill part"
-msgstr "꽉찬 채움 부분을 제외한 초기 레이어 속도"
+msgstr "꽉찬 채우기 부분을 제외한 초기 레이어 속도"
 
 msgid "Initial layer infill"
-msgstr "초기 레이어 채움"
+msgstr "초기 레이어 채우기"
 
 msgid "Speed of solid infill part of initial layer"
-msgstr "초기 레이어의 꽉찬 채움 속도"
+msgstr "초기 레이어의 꽉찬 채우기 속도"
 
 msgid "Initial layer travel speed"
 msgstr "초기 레이어 이동 속도"
@@ -9061,10 +9784,10 @@ msgstr "팬 최대 속도 레이어"
 
 msgid ""
 "Fan speed will be ramped up linearly from zero at layer "
-"\"close_fan_the_first_x_layers\" to maximum at layer "
-"\"full_fan_speed_layer\". \"full_fan_speed_layer\" will be ignored if lower "
-"than \"close_fan_the_first_x_layers\", in which case the fan will be running "
-"at maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
+"\"close_fan_the_first_x_layers\" to maximum at layer \"full_fan_speed_layer"
+"\". \"full_fan_speed_layer\" will be ignored if lower than "
+"\"close_fan_the_first_x_layers\", in which case the fan will be running at "
+"maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
 msgstr ""
 "팬 속도는 \"close_fan_the_first_x_layers\" 의 0에서 \"full_fan_speed_layer\" "
 "의 최고 속도까지 선형적으로 증가합니다. \"full_fan_speed_layer\"가 "
@@ -9091,9 +9814,6 @@ msgid ""
 msgstr ""
 "벽을 출력하는 동안 무작위로 지터가 발생하여 표면이 거칠게 보입니다. 이 설정"
 "은 퍼지 위치를 제어합니다"
-
-msgid "None"
-msgstr "없음"
 
 msgid "Contour"
 msgstr "윤곽"
@@ -9139,8 +9859,8 @@ msgid ""
 "Speed of gap infill. Gap usually has irregular line width and should be "
 "printed more slowly"
 msgstr ""
-"간격 채움 속도. 간격은 일반적으로 선 너비가 불규칙하므로 더 천천히 출력해야 "
-"합니다"
+"간격 채우기 속도. 간격은 일반적으로 선 너비가 불규칙하므로 더 천천히 출력해"
+"야 합니다"
 
 msgid "Arc fitting"
 msgstr "원호 맞춤"
@@ -9325,8 +10045,8 @@ msgid ""
 msgstr ""
 "이 옵션을 선택하면 G코드 출력시 이동에 설명을 추가할 수 있습니다. 이는 "
 "Octoprint CancelObject 플러그인에 유용합니다. \n"
-"이 설정은 단일 압출기 다중 재료 설정 및 개체에서 닦기 / 채움에서 닦기와 호환"
-"되지 않습니다."
+"이 설정은 단일 압출기 다중 재료 설정 및 개체에서 닦기 / 채우기에서 닦기와 호"
+"환되지 않습니다."
 
 msgid "Exclude objects"
 msgstr "개체 제외"
@@ -9347,36 +10067,36 @@ msgstr ""
 "속도가 느려질 수 있습니다."
 
 msgid "Infill combination"
-msgstr "채움 결합"
+msgstr "채우기 결합"
 
 msgid ""
 "Automatically Combine sparse infill of several layers to print together to "
 "reduce time. Wall is still printed with original layer height."
 msgstr ""
-"여러 레이어의 드문 채움을 자동으로 결합 후 함께 출력하여 시간을 단축합니다. "
-"벽은 여전히 설정된 레이어 높이로 출력됩니다."
+"여러 레이어의 드문 채우기를 자동으로 결합 후 함께 출력하여 시간을 단축합니"
+"다. 벽은 여전히 설정된 레이어 높이로 출력됩니다."
 
 msgid "Filament to print internal sparse infill."
-msgstr "내부 드문 채움을 출력할 필라멘트."
+msgstr "내부 드문 채우기를 출력할 필라멘트."
 
 msgid ""
 "Line width of internal sparse infill. If expressed as a %, it will be "
 "computed over the nozzle diameter."
 msgstr ""
-"드문 내부 채움의 선 너비. %로 입력 시 노즐 직경에 대한 비율로 계산됩니다."
+"드문 내부 채우기의 선 너비. %로 입력 시 노즐 직경에 대한 비율로 계산됩니다."
 
 msgid "Infill/Wall overlap"
-msgstr "채움/벽 겹치기"
+msgstr "채우기/벽 겹치기"
 
 msgid ""
 "Infill area is enlarged slightly to overlap with wall for better bonding. "
 "The percentage value is relative to line width of sparse infill"
 msgstr ""
-"채움 영역이 벽과 겹치도록 약간 확장되어 접착력이 향상됩니다. 드문 채움 선 너"
-"비의 백분율 값입니다"
+"채우기 영역이 벽과 겹치도록 약간 확장되어 접착력이 향상됩니다. 드문 채우기 "
+"선 너비의 백분율 값입니다"
 
 msgid "Speed of internal sparse infill"
-msgstr "내부 드문 채움 속도"
+msgstr "내부 드문 채우기 속도"
 
 msgid "Interface shells"
 msgstr "접점 쉘"
@@ -9751,10 +10471,10 @@ msgid "Host Type"
 msgstr "호스트 유형"
 
 msgid ""
-"Slic3r can upload G-code files to a printer host. This field must contain "
+"Orca Slicer can upload G-code files to a printer host. This field must contain "
 "the kind of the host."
 msgstr ""
-"Slic3r은 G코드 파일을 프린터 호스트에 업로드할 수 있습니다. 이 필드는 호스트"
+"Orca Slicer은 G코드 파일을 프린터 호스트에 업로드할 수 있습니다. 이 필드는 호스트"
 "의 종류를 포함해야 합니다."
 
 msgid "Nozzle volume"
@@ -9817,16 +10537,16 @@ msgid "The start and end points which is from cutter area to garbage can."
 msgstr "절단 영역에서 버릴 영역까지의 시작점과 끝점."
 
 msgid "Reduce infill retraction"
-msgstr "채움 후퇴 감소"
+msgstr "채우기 후퇴 감소"
 
 msgid ""
 "Don't retract when the travel is in infill area absolutely. That means the "
 "oozing can't been seen. This can reduce times of retraction for complex "
 "model and save printing time, but make slicing and G-code generating slower"
 msgstr ""
-"이동 구간이 채움 영역에 있을 때 수축하지 마십시오. 즉, 스며드는 것을 볼 수 없"
-"습니다. 이는 복잡한 모델의 후퇴 시간을 줄이고 출력 시간을 절약할 수 있지만 슬"
-"라이싱 및 G 코드 생성 속도를 느리게 만듭니다"
+"이동 구간이 채우기 영역에 있을 때 수축하지 마십시오. 즉, 스며드는 것을 볼 수 "
+"없습니다. 이는 복잡한 모델의 후퇴 시간을 줄이고 출력 시간을 절약할 수 있지만 "
+"슬라이싱 및 G 코드 생성 속도를 느리게 만듭니다"
 
 msgid "Enable"
 msgstr "활성화"
@@ -9869,7 +10589,7 @@ msgid "mm²"
 msgstr "mm²"
 
 msgid "Detect overhang wall"
-msgstr "돌출벽 감지"
+msgstr "돌출부 벽 감지"
 
 #, c-format, boost-format
 msgid ""
@@ -9908,19 +10628,19 @@ msgstr ""
 "\n"
 "이 옵션이 활성화되면 수직 쉘 두께 확인 옵션을 비활성화해야 합니다.\n"
 "\n"
-"추가 경계를 고정할 채움이 제한되어 있으므로 이 옵션과 함께 번개 채움을 사용하"
-"는 것은 권장되지 않습니다."
+"추가 경계를 고정할 채우기가 제한되어 있으므로 이 옵션과 함께 번개 채우기를 사"
+"용하는 것은 권장되지 않습니다."
 
 msgid ""
 "If you want to process the output G-code through custom scripts, just list "
 "their absolute paths here. Separate multiple scripts with a semicolon. "
 "Scripts will be passed the absolute path to the G-code file as the first "
-"argument, and they can access the Slic3r config settings by reading "
+"argument, and they can access the Orca Slicer config settings by reading "
 "environment variables."
 msgstr ""
 "사용자 정의 스크립트를 통해 출력 G코드를 처리하려면 여기에 절대 경로를 나열하"
 "세요. 여러 스크립트는 세미콜론(;)으로 구분합니다. 스크립트는 G코드 파일의 절"
-"대 경로를 첫 번째 값으로 전달하며 환경 변수를 읽어 Slic3r 구성 설정에 접근할 "
+"대 경로를 첫 번째 값으로 전달하며 환경 변수를 읽어 Orca Slicer 구성 설정에 접근할 "
 "수 있습니다."
 
 msgid "Printer notes"
@@ -9995,9 +10715,6 @@ msgstr "레이어 변경 시 후퇴"
 
 msgid "Force a retraction when changes layer"
 msgstr "레이어 변경 시 강제로 후퇴를 실행합니다"
-
-msgid "Length"
-msgstr "길이"
 
 msgid "Retraction Length"
 msgstr "후퇴 길이"
@@ -10203,6 +10920,21 @@ msgstr ""
 "폐쇄 루프 압출에서 솔기의 가시성을 최소화하기 위해 압출기가 루프를 떠나기 전"
 "에 안쪽으로의 작은 이동이 실행됩니다."
 
+msgid "Wipe before external loop"
+msgstr ""
+
+msgid ""
+"To minimise visibility of potential overextrusion at the start of an "
+"external perimeter when printing with Outer/Inner or Inner/Outer/Inner wall "
+"print order, the deretraction is performed slightly on the inside from the "
+"start of the external perimeter. That way any potential over extrusion is "
+"hidden from the outside surface. \n"
+"\n"
+"This is useful when printing with Outer/Inner or Inner/Outer/Inner wall "
+"print order as in these modes it is more likely an external perimeter is "
+"printed immediately after a deretraction move."
+msgstr ""
+
 msgid "Wipe speed"
 msgstr "닦기 속도"
 
@@ -10250,21 +10982,21 @@ msgstr ""
 "선하기 위해 느려집니다"
 
 msgid "Minimum sparse infill threshold"
-msgstr "최소 드문 채움 임계값"
+msgstr "최소 드문 채우기 임계값"
 
 msgid ""
 "Sparse infill area which is smaller than threshold value is replaced by "
 "internal solid infill"
-msgstr "임계값보다 작은 드문 채움 영역은 꽉찬 내부 채움으로 대체됩니다"
+msgstr "임계값보다 작은 드문 채우기 영역은 꽉찬 내부 채우기로 대체됩니다"
 
 msgid ""
 "Line width of internal solid infill. If expressed as a %, it will be "
 "computed over the nozzle diameter."
 msgstr ""
-"꽉찬 내부 채움 선 너비. %로 입력 시 노즐 직경에 대한 비율로 계산됩니다."
+"꽉찬 내부 채우기 선 너비. %로 입력 시 노즐 직경에 대한 비율로 계산됩니다."
 
 msgid "Speed of internal solid infill, not the top and bottom surface"
-msgstr "상단 및 하단 표면을 제외한 꽉찬 내부 채움 속도"
+msgstr "상단 및 하단 표면을 제외한 꽉찬 내부 채우기 속도"
 
 msgid "Spiral vase"
 msgstr "나선형 꽃병 모드"
@@ -10391,8 +11123,8 @@ msgid ""
 "resolution, therefore it is advisable to keep the value reasonably low."
 msgstr ""
 "간격 폐쇄 반경의 2배보다 작은 균열은 삼각형 메쉬 슬라이싱 중에 채워집니다. 간"
-"격 채움 작업은 최종 출력 해상도를 감소시킬 수 있으므로 값을 합리적으로 낮게 "
-"유지하는 것이 좋습니다."
+"격 채우기 작업은 최종 출력 해상도를 감소시킬 수 있으므로 값을 합리적으로 낮"
+"게 유지하는 것이 좋습니다."
 
 msgid "Slicing Mode"
 msgstr "슬라이싱 모드"
@@ -10515,7 +11247,7 @@ msgstr "베이스용 인터페이스 필라멘트 줄이기"
 msgid ""
 "Avoid using support interface filament to print support base if possible."
 msgstr ""
-"서포트 베이스를 프린트하기 위해 서포트 인터페이스 필라멘트를 사용하지 마세요."
+"지지대 베이스를 프린트하기 위해 지지대 인터페이스 필라멘트를 사용하지 마세요."
 
 msgid ""
 "Line width of support. If expressed as a %, it will be computed over the "
@@ -10780,13 +11512,13 @@ msgid "This setting specify the count of walls around support"
 msgstr "이 설정은 지지대 주변의 벽 수를 지정합니다"
 
 msgid "Tree support with infill"
-msgstr "채움이 있는 나무 지지대"
+msgstr "채우기가 있는 나무 지지대"
 
 msgid ""
 "This setting specifies whether to add infill inside large hollows of tree "
 "support"
 msgstr ""
-"이 설정은 나무 지지대의 큰 공동 내부에 채움을 추가할지 여부를 지정합니다"
+"이 설정은 나무 지지대의 큰 공동 내부에 채우기를 추가할지 여부를 지정합니다"
 
 msgid "Activate temperature control"
 msgstr "온도 제어 활성화"
@@ -10847,7 +11579,7 @@ msgid ""
 msgstr "상단 표면의 선 너비. %로 입력 시 노즐 직경에 대한 비율로 계산됩니다."
 
 msgid "Speed of top surface infill which is solid"
-msgstr "꽉찬 상단 표면 채움 속도"
+msgstr "꽉찬 상단 표면 채우기 속도"
 
 msgid "Top shell layers"
 msgstr "상단 쉘 레이어"
@@ -10939,9 +11671,6 @@ msgstr "프라임 부피"
 msgid "The volume of material to prime extruder on tower."
 msgstr "탑에서 압출을 실행할 재료의 부피."
 
-msgid "Width"
-msgstr "너비"
-
 msgid "Width of prime tower"
 msgstr "프라임 타워의 너비"
 
@@ -10994,10 +11723,10 @@ msgid ""
 "printed with transparent filament, the mixed color infill will be seen "
 "outside. It will not take effect, unless the prime tower is enabled."
 msgstr ""
-"필라멘트 교체 후 버리기는 개체의 채움 내부에서 수행됩니다. 이렇게 하면 낭비되"
-"는 양이 줄어들고 출력 시간이 단축될 수 있습니다. 벽이 투명 필라멘트로 출력된 "
-"경우 혼합 색상 충전재가 외부에 보입니다. 프라임 타워가 활성화되지 않으면 적용"
-"되지 않습니다."
+"필라멘트 교체 후 버리기는 개체의 채우기 내부에서 수행됩니다. 이렇게 하면 낭비"
+"되는 양이 줄어들고 출력 시간이 단축될 수 있습니다. 벽이 투명 필라멘트로 출력"
+"된 경우 혼합 색상 충전재가 외부에 보입니다. 프라임 타워가 활성화되지 않으면 "
+"적용되지 않습니다."
 
 msgid ""
 "Purging after filament change will be done inside objects' support. This may "
@@ -11021,7 +11750,7 @@ msgid "Maximal bridging distance"
 msgstr "최대 브릿지 거리"
 
 msgid "Maximal distance between supports on sparse infill sections."
-msgstr "드문 채움 부분의 지지대 사이의 최대 거리."
+msgstr "드문 채우기 부분의 지지대 사이의 최대 거리."
 
 msgid "X-Y hole compensation"
 msgstr "X-Y 구멍 보정"
@@ -11111,12 +11840,9 @@ msgstr "상대적 E 거리 사용"
 msgid ""
 "Relative extrusion is recommended when using \"label_objects\" option.Some "
 "extruders work better with this option unckecked (absolute extrusion mode). "
-"Wipe tower is only compatible with relative mode. It is always enabled on "
-"BambuLab printers. Default is checked"
+"Wipe tower is only compatible with relative mode. It is recommended on most "
+"printers. Default is checked"
 msgstr ""
-"상대적 압출은 \"label_objects\" 옵션(기타; 개체 이름표)을 사용할 때 권장됩니"
-"다. 일부 압출기는 이 옵션을 해제하면 더 잘 작동합니다(절대 압출 모드). 닦기 "
-"타워는 상대 모드에서만 호환됩니다"
 
 msgid ""
 "Classic wall generator produces walls with constant extrusion width and for "
@@ -11173,9 +11899,9 @@ msgid ""
 "leave gaps or overextrude"
 msgstr ""
 "벽의 짝수와 홀수 사이에 변환을 만드는 시기. 이 설정보다 큰 각도의 쐐기 모양"
-"은 변환되지 않으며 나머지 공간 채움을 위해 중앙에 벽이 출력되지 않습니다. 이 "
-"설정을 줄이면 중앙 벽의 수와 길이가 줄어들지만 간격이 남거나 과도하게 돌출될 "
-"수 있습니다"
+"은 변환되지 않으며 나머지 공간 채우기를 위해 중앙에 벽이 출력되지 않습니다. "
+"이 설정을 줄이면 중앙 벽의 수와 길이가 줄어들지만 간격이 남거나 과도하게 돌출"
+"될 수 있습니다"
 
 msgid "Wall distribution count"
 msgstr "벽 분포 수"
@@ -11225,15 +11951,15 @@ msgstr ""
 "대한 백분율로 표시됩니다"
 
 msgid "Detect narrow internal solid infill"
-msgstr "좁은 꽉찬 내부 채움 감지"
+msgstr "좁은 꽉찬 내부 채우기 감지"
 
 msgid ""
 "This option will auto detect narrow internal solid infill area. If enabled, "
 "concentric pattern will be used for the area to speed printing up. "
 "Otherwise, rectilinear pattern is used defaultly."
 msgstr ""
-"이 옵션은 좁은 꽉찬 내부 채움 영역을 자동으로 감지합니다. 활성화하면 출력 속"
-"도를 높이기 위해 해당 영역에 동심 패턴이 사용됩니다. 그렇지 않으면 기본적으"
+"이 옵션은 좁은 꽉찬 내부 채우기 영역을 자동으로 감지합니다. 활성화하면 출력 "
+"속도를 높이기 위해 해당 영역에 동심 패턴이 사용됩니다. 그렇지 않으면 기본적으"
 "로 직선 패턴이 사용됩니다."
 
 msgid "invalid value "
@@ -11296,10 +12022,10 @@ msgstr ""
 "유지하거나 네트워크 스토리지의 구성을 포함하는 데 유용합니다."
 
 msgid "Load custom gcode"
-msgstr "사용자 설정 G코드 불러오기"
+msgstr "사용자 정의 G코드 불러오기"
 
 msgid "Load custom gcode from json"
-msgstr "사용자 설정 G코드를 json에서 불러오기"
+msgstr "사용자 정의 G코드를 json에서 불러오기"
 
 msgid "Error in zip archive"
 msgstr "zip 압축파일 오류"
@@ -11308,10 +12034,10 @@ msgid "Generating walls"
 msgstr "벽 생성 중"
 
 msgid "Generating infill regions"
-msgstr "채움 영역 생성 중"
+msgstr "채우기 영역 생성 중"
 
 msgid "Generating infill toolpath"
-msgstr "채움 툴 경로 생성 중"
+msgstr "채우기 툴 경로 생성 중"
 
 msgid "Detect overhangs for auto-lift"
 msgstr "Z 올리기를 위한 돌출부 감지"
@@ -12348,8 +13074,8 @@ msgstr ""
 "다시 작성하시겠습니까?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you "
-"selected\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 "사전 설정의 이름을 \"선택한 공급업체 유형 직렬 @프린터\"로 변경합니다.\n"
@@ -12369,9 +13095,6 @@ msgstr "템플릿에서 생성"
 
 msgid "Create Based on Current Printer"
 msgstr "현재 프린터를 기반으로 생성"
-
-msgid "wiki"
-msgstr "위키"
 
 msgid "Import Preset"
 msgstr "사전 설정 가져오기"
@@ -12618,7 +13341,7 @@ msgid ""
 "User's fillment preset set. \n"
 "Can be shared with others."
 msgstr ""
-"사용자 채움 사전 설정입니다.\n"
+"사용자 채우기 사전 설정입니다.\n"
 "다른 사람과 공유할 수 있습니다."
 
 msgid ""
@@ -12977,6 +13700,19 @@ msgstr ""
 "공기 여과/배기 팬\n"
 "오르카 슬라이서가 공기 여과/배기 팬을 지원할 수 있다는 사실을 알고 계셨나요?"
 
+#: resources/data/hints.ini: [hint:G-code window]
+msgid ""
+"G-code window\n"
+"You can turn on/off the G-code window by pressing the <b>C</b> key."
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Switch workspaces]
+msgid ""
+"Switch workspaces\n"
+"You can switch between <b>Prepare</b> and <b>Preview</b> workspaces by "
+"pressing the <b>Tab</b> key."
+msgstr ""
+
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
 "How to use keyboard shortcuts\n"
@@ -12985,6 +13721,13 @@ msgid ""
 msgstr ""
 "키보드 단축키를 사용하는 방법\n"
 "Orca Slicer가 다양한 키보드 단축키와 3D 장면 작업을 제공합니다."
+
+#: resources/data/hints.ini: [hint:Reverse on odd]
+msgid ""
+"Reverse on odd\n"
+"Did you know that <b>Reverse on odd</b> feature can significantly improve "
+"the surface quality of your overhangs?"
+msgstr ""
 
 #: resources/data/hints.ini: [hint:Cut Tool]
 msgid ""
@@ -13174,7 +13917,7 @@ msgid ""
 msgstr ""
 "지지대 칠하기\n"
 "지지대의 위치를 칠할 수 있다는 것을 알고 있습니까? 이 기능을 사용하면 실제로 "
-"필요한 모델 부위에만 서포트 재료를 쉽게 배치할 수 있습니다."
+"필요한 모델 부위에만 지지대 재료를 쉽게 배치할 수 있습니다."
 
 #: resources/data/hints.ini: [hint:Different types of supports]
 msgid ""
@@ -13234,9 +13977,9 @@ msgid ""
 "Did you know that you can save the wasted filament by flushing them into "
 "support/objects/infill during filament change?"
 msgstr ""
-"지지대/개체/채움에 버리기\n"
-"필라멘트를 교체하는 동안 낭비되는 필라멘트를 지지대/개체/채움에 버리기하여 절"
-"약할 수 있다는 사실을 알고 있습니까?"
+"지지대/개체/채우기에 버리기\n"
+"필라멘트를 교체하는 동안 낭비되는 필라멘트를 지지대/개체/채우기에 버리기하여 "
+"절약할 수 있다는 사실을 알고 있습니까?"
 
 #: resources/data/hints.ini: [hint:Improve strength]
 msgid ""
@@ -13245,7 +13988,7 @@ msgid ""
 "density to improve the strength of the model?"
 msgstr ""
 "강도 향상\n"
-"모델의 강도를 개선하기 위해 더 많은 벽 루프와 더 높은 드문 채움 밀도를 사용"
+"모델의 강도를 개선하기 위해 더 많은 벽 루프와 더 높은 드문 채우기 밀도를 사용"
 "할 수 있다는 것을 알고 있습니까?"
 
 #: resources/data/hints.ini: [hint:When need to print with the printer door
@@ -13271,6 +14014,53 @@ msgstr ""
 "뒤틀림 방지\n"
 "ABS 등 뒤틀림이 발생하기 쉬운 소재를 출력할 때, 히트베드 온도를 적절하게 높이"
 "면 뒤틀림 가능성을 줄일 수 있다는 사실을 알고 계셨나요?"
+
+#~ msgid "wiki"
+#~ msgstr "위키"
+
+#~ msgid ""
+#~ "Relative extrusion is recommended when using \"label_objects\" option."
+#~ "Some extruders work better with this option unckecked (absolute extrusion "
+#~ "mode). Wipe tower is only compatible with relative mode. It is always "
+#~ "enabled on BambuLab printers. Default is checked"
+#~ msgstr ""
+#~ "상대적 압출은 \"label_objects\" 옵션(기타; 개체 이름표)을 사용할 때 권장됩"
+#~ "니다. 일부 압출기는 이 옵션을 해제하면 더 잘 작동합니다(절대 압출 모드). "
+#~ "닦기 타워는 상대 모드에서만 호환됩니다"
+
+#~ msgid "Movement:"
+#~ msgstr "이동:"
+
+#~ msgid "Movement"
+#~ msgstr "이동"
+
+#~ msgid "Auto Segment"
+#~ msgstr "자동 분할"
+
+#~ msgid "Depth ratio"
+#~ msgstr "깊이 비율"
+
+#~ msgid "Prizm"
+#~ msgstr "원기둥"
+
+#~ msgid "connector is out of cut contour"
+#~ msgstr "커넥터가 잘라내기 윤곽을 벗어났습니다"
+
+#~ msgid "connectors are out of cut contour"
+#~ msgstr "커넥터가 잘라내기 윤곽을 벗어났습니다"
+
+#~ msgid "connector is out of object"
+#~ msgstr "커넥터가 개체에서 벗어났습니다"
+
+#~ msgid "connectors is out of object"
+#~ msgstr "커넥터가 개체에서 벗어났습니다"
+
+#~ msgid ""
+#~ "Invalid state. \n"
+#~ "No one part is selected for keep after cut"
+#~ msgstr ""
+#~ "잘못된 상태입니다.\n"
+#~ "절단 후 유지를 위해 선택된 부품이 없습니다"
 
 #~ msgid "Recalculate"
 #~ msgstr "다시계산"
@@ -13359,11 +14149,11 @@ msgstr ""
 #~ "세요."
 
 #~ msgid "Filling bed "
-#~ msgstr "베드 채움 "
+#~ msgstr "베드 채우기 "
 
 #, boost-format
 #~ msgid "%1% infill pattern doesn't support 100%% density."
-#~ msgstr "%1% 내부 채움 패턴은 100%% 밀도를 지원하지 않습니다."
+#~ msgstr "%1% 내부 채우기 패턴은 100%% 밀도를 지원하지 않습니다."
 
 #~ msgid ""
 #~ "Switch to rectilinear pattern?\n"
@@ -13389,7 +14179,7 @@ msgstr ""
 #, c-format
 #~ msgid "Density of internal sparse infill, 100% means solid throughout"
 #~ msgstr ""
-#~ "내부 드문 내부 채움 밀도, 100은 전체가 꽉찬 내부 채움임을 의미합니다"
+#~ "내부 드문 내부 채우기 밀도, 100은 전체가 꽉찬 내부 채우기임을 의미합니다"
 
 #~ msgid "Tree support wall loops"
 #~ msgstr "나무 지지대 벽 루프"
@@ -13475,25 +14265,25 @@ msgstr ""
 #~ "패턴은 가파른 돌출부를 대폭 개선할 수 있습니다."
 
 #~ msgid "Order of inner wall/outer wall/infil"
-#~ msgstr "내벽/외벽/내부 채움 순서"
+#~ msgstr "내벽/외벽/내부 채우기 순서"
 
 #~ msgid "Print sequence of inner wall, outer wall and infill. "
-#~ msgstr "내벽, 외벽 및 내부 채움 출력 순서 "
+#~ msgstr "내벽, 외벽 및 내부 채우기 출력 순서 "
 
 #~ msgid "inner/outer/infill"
-#~ msgstr "내벽/외벽/내부 채움"
+#~ msgstr "내벽/외벽/내부 채우기"
 
 #~ msgid "outer/inner/infill"
-#~ msgstr "외벽/내벽/내부 채움"
+#~ msgstr "외벽/내벽/내부 채우기"
 
 #~ msgid "infill/inner/outer"
-#~ msgstr "내부 채움/내벽/외벽"
+#~ msgstr "내부 채우기/내벽/외벽"
 
 #~ msgid "infill/outer/inner"
-#~ msgstr "내부 채움/외벽/내벽"
+#~ msgstr "내부 채우기/외벽/내벽"
 
 #~ msgid "inner-outer-inner/infill"
-#~ msgstr "내벽-외벽-내벽/내부 채움"
+#~ msgstr "내벽-외벽-내벽/내부 채우기"
 
 #, c-format, boost-format
 #~ msgid "%%"
