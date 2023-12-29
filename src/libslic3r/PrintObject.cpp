@@ -2043,32 +2043,41 @@ void PrintObject::bridge_over_infill()
                     SurfacesPtr region_internal_solids = region->fill_surfaces.filter_by_type(stInternalSolid);
                     for (const Surface *s : region_internal_solids) {
                         Polygons unsupported         = intersection(to_polygons(s->expolygon), unsupported_area);
-                        // The following flag marks those surfaces, which overlap with unuspported area, but at least part of them is supported. 
-                        // These regions can be filtered by area, because they for sure are touching solids on lower layers, and it does not make sense to bridge their tiny overhangs 
-                        bool     partially_supported = area(unsupported) < area(to_polygons(s->expolygon)) - EPSILON;
-                        if (!unsupported.empty() && (!partially_supported || area(unsupported) > 3 * 3 * spacing * spacing)) {
-                            Polygons worth_bridging = intersection(to_polygons(s->expolygon), expand(unsupported, 4 * spacing));
-                            // after we extracted the part worth briding, we go over the leftovers and merge the tiny ones back, to not brake the surface too much
-                            for (const Polygon& p : diff(to_polygons(s->expolygon), expand(worth_bridging, spacing))) {
-                                double area = p.area();
-                                if (area < spacing * scale_(12.0) && area > spacing * spacing) {
-                                    worth_bridging.push_back(p);
+                        
+                        // Orca: If the user has selected to always support internal bridges, no matter how small
+                        // skip the filtering
+                        if (po->config().dont_filter_internal_bridges){
+                            // expand the unsupported area by 4x spacing to trigger internal bridging
+                            unsupported = expand(unsupported, 4 * spacing);
+                            candidate_surfaces.push_back(CandidateSurface(s, lidx, unsupported, region, 0));
+                        }else{
+                            // The following flag marks those surfaces, which overlap with unuspported area, but at least part of them is supported.
+                            // These regions can be filtered by area, because they for sure are touching solids on lower layers, and it does not make sense to bridge their tiny overhangs
+                            bool     partially_supported = area(unsupported) < area(to_polygons(s->expolygon)) - EPSILON;
+                            if (!unsupported.empty() && (!partially_supported || area(unsupported) > 3 * 3 * spacing * spacing)) {
+                                Polygons worth_bridging = intersection(to_polygons(s->expolygon), expand(unsupported, 4 * spacing));
+                                // after we extracted the part worth briding, we go over the leftovers and merge the tiny ones back, to not brake the surface too much
+                                for (const Polygon& p : diff(to_polygons(s->expolygon), expand(worth_bridging, spacing))) {
+                                    double area = p.area();
+                                    if (area < spacing * scale_(12.0) && area > spacing * spacing) {
+                                        worth_bridging.push_back(p);
+                                    }
                                 }
+                                worth_bridging = intersection(closing(worth_bridging, float(SCALED_EPSILON)), s->expolygon);
+                                candidate_surfaces.push_back(CandidateSurface(s, lidx, worth_bridging, region, 0));
+                                
+#ifdef DEBUG_BRIDGE_OVER_INFILL
+                                debug_draw(std::to_string(lidx) + "_candidate_surface_" + std::to_string(area(s->expolygon)),
+                                           to_lines(region->layer()->lslices), to_lines(s->expolygon), to_lines(worth_bridging),
+                                           to_lines(unsupported_area));
+#endif
+#ifdef DEBUG_BRIDGE_OVER_INFILL
+                                debug_draw(std::to_string(lidx) + "_candidate_processing_" + std::to_string(area(unsupported)),
+                                           to_lines(unsupported), to_lines(intersection(to_polygons(s->expolygon), expand(unsupported, 5 * spacing))),
+                                           to_lines(diff(to_polygons(s->expolygon), expand(worth_bridging, spacing))),
+                                           to_lines(unsupported_area));
+#endif
                             }
-                            worth_bridging = intersection(closing(worth_bridging, float(SCALED_EPSILON)), s->expolygon);
-                            candidate_surfaces.push_back(CandidateSurface(s, lidx, worth_bridging, region, 0));
-
-#ifdef DEBUG_BRIDGE_OVER_INFILL
-                            debug_draw(std::to_string(lidx) + "_candidate_surface_" + std::to_string(area(s->expolygon)),
-                                       to_lines(region->layer()->lslices), to_lines(s->expolygon), to_lines(worth_bridging),
-                                       to_lines(unsupported_area));
-#endif
-#ifdef DEBUG_BRIDGE_OVER_INFILL
-                            debug_draw(std::to_string(lidx) + "_candidate_processing_" + std::to_string(area(unsupported)),
-                                       to_lines(unsupported), to_lines(intersection(to_polygons(s->expolygon), expand(unsupported, 5 * spacing))), 
-                                       to_lines(diff(to_polygons(s->expolygon), expand(worth_bridging, spacing))),
-                                       to_lines(unsupported_area));
-#endif
                         }
                     }
                 }
