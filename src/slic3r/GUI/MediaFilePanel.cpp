@@ -209,6 +209,7 @@ wxString hide_id_middle_string(wxString const &str, size_t offset = 0, size_t le
         m_lan_ip       = obj->dev_ip;
         m_lan_passwd   = obj->get_access_code();
         m_dev_ver      = obj->get_ota_version();
+        m_sdcard_exist = obj->has_sdcard();
         m_local_support  = obj->file_local;
         m_remote_support = obj->file_remote;
         m_model_download_support = obj->file_model_download;
@@ -217,6 +218,7 @@ wxString hide_id_middle_string(wxString const &str, size_t offset = 0, size_t le
         m_lan_ip.clear();
         m_lan_passwd.clear();
         m_dev_ver.clear();
+        m_sdcard_exist = false;
         m_local_support = false;
         m_remote_support = false;
         m_model_download_support = false;
@@ -422,6 +424,11 @@ void MediaFilePanel::fetchUrl(boost::weak_ptr<PrinterFileSystem> wfs)
     if (!m_local_support && !m_remote_support) {
         m_waiting_support = true;
         m_image_grid->SetStatus(m_bmp_failed, _L("Initialize failed (Not supported on the current printer version)!"));
+        fs->SetUrl("0");
+        return;
+    }
+    if (!m_sdcard_exist) {
+        m_image_grid->SetStatus(m_bmp_failed, _L("Initialize failed (Storage unavailable, insert SD card.)!"));
         fs->SetUrl("0");
         return;
     }

@@ -81,6 +81,7 @@ private:
     std::string m_lan_passwd;
     std::string m_dev_ver;
     bool        m_lan_mode      = false;
+    bool        m_sdcard_exist  = false;
     bool        m_local_support = false;
     bool        m_remote_support = false;
     bool        m_model_download_support = false;
