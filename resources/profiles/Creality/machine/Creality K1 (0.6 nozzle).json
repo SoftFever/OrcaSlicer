@@ -39,8 +39,8 @@
 	"retraction_speed": ["40"],
 	"deretraction_speed": ["40"],
 	"extruder_clearance_height_to_lid": "101",
-    "extruder_clearance_height_to_rod": "45",
-    "extruder_clearance_radius": "45",
+	"extruder_clearance_height_to_rod": "45",
+	"extruder_clearance_radius": "45",
 	"z_hop": ["0.4"],
 	"single_extruder_multi_material": "1",
 	"manual_filament_change": "1",
@@ -50,8 +50,8 @@
 	"machine_start_gcode": "M140 S0\nM104 S0 \nSTART_PRINT EXTRUDER_TEMP=[nozzle_temperature_initial_layer] BED_TEMP=[bed_temperature_initial_layer_single]",
 	"machine_end_gcode": "END_PRINT",
 	"scan_first_layer": "0",
-    "thumbnails": [
-        "100x100",
-        "320x320"
-    ]
+	"thumbnails": [
+		"100x100",
+		"320x320"
+	]
 }

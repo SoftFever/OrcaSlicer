@@ -11,9 +11,9 @@
 	"printer_structure": "i3",
 	"default_print_profile": "0.20mm Standard @Creality Ender3V3KE",
 	"extruder_clearance_height_to_rod": "47",
-    "extruder_clearance_max_radius": "90",
-    "extruder_clearance_radius": "90",
-    "machine_load_filament_time": "11",
+	"extruder_clearance_max_radius": "90",
+	"extruder_clearance_radius": "90",
+	"machine_load_filament_time": "11",
 	"nozzle_diameter": [
 		"0.4"
 	],
@@ -106,9 +106,9 @@
 	"deretraction_speed": [
 		"40"
 	],
-    "z_hop": [
-        "0.1"
-    ],
+	"z_hop": [
+		"0.1"
+	],
 	"single_extruder_multi_material": "1",
 	"manual_filament_change": "1",
 	"change_filament_gcode": "PAUSE",
