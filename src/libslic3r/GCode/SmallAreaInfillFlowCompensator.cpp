@@ -1,3 +1,11 @@
+// Modify the flow of extrusion lines inversely proportional to the length of
+// the extrusion line. When infill lines get shorter the flow rate will auto-
+// matically be reduced to mitigate the effect of small infill areas being
+// over-extruded.
+
+// Based on original work by Alexander Þór licensed under the GPLv3:
+// https://github.com/Alexander-T-Moss/Small-Area-Flow-Comp
+
 #include <math.h>
 #include <cstring>
 #include <cfloat>
@@ -11,15 +19,14 @@ namespace Slic3r {
 
 bool nearly_equal(double a, double b)
 {
-  return std::nextafter(a, std::numeric_limits<double>::lowest()) <= b
-    && std::nextafter(a, std::numeric_limits<double>::max()) >= b;
+    return std::nextafter(a, std::numeric_limits<double>::lowest()) <= b && std::nextafter(a, std::numeric_limits<double>::max()) >= b;
 }
 
-SmallAreaInfillFlowCompensator::SmallAreaInfillFlowCompensator(const Slic3r::GCodeConfig &config)
+SmallAreaInfillFlowCompensator::SmallAreaInfillFlowCompensator(const Slic3r::GCodeConfig& config)
 {
     auto curLength = 0.0;
 
-    if(nearly_equal(config.small_area_infill_flow_compensation_extrusion_length_0, 0.0)) {
+    if (nearly_equal(config.small_area_infill_flow_compensation_extrusion_length_0, 0.0)) {
         eLengths.push_back(config.small_area_infill_flow_compensation_extrusion_length_0);
         flowComps.push_back(config.small_area_infill_flow_compensation_compensation_factor_0);
     } else {
@@ -27,7 +34,7 @@ SmallAreaInfillFlowCompensator::SmallAreaInfillFlowCompensator(const Slic3r::GCo
     }
 
     curLength = config.small_area_infill_flow_compensation_extrusion_length_1;
-    if(curLength > 0.0 && curLength > eLengths.back()) {
+    if (curLength > 0.0 && curLength > eLengths.back()) {
         eLengths.push_back(config.small_area_infill_flow_compensation_extrusion_length_1);
         flowComps.push_back(config.small_area_infill_flow_compensation_compensation_factor_1);
     } else {
@@ -35,7 +42,7 @@ SmallAreaInfillFlowCompensator::SmallAreaInfillFlowCompensator(const Slic3r::GCo
     }
 
     curLength = config.small_area_infill_flow_compensation_extrusion_length_2;
-    if(curLength > 0.0 && curLength > eLengths.back()) {
+    if (curLength > 0.0 && curLength > eLengths.back()) {
         eLengths.push_back(config.small_area_infill_flow_compensation_extrusion_length_2);
         flowComps.push_back(config.small_area_infill_flow_compensation_compensation_factor_2);
     } else {
@@ -43,7 +50,7 @@ SmallAreaInfillFlowCompensator::SmallAreaInfillFlowCompensator(const Slic3r::GCo
     }
 
     curLength = config.small_area_infill_flow_compensation_extrusion_length_3;
-    if(curLength > 0.0 && curLength > eLengths.back()) {
+    if (curLength > 0.0 && curLength > eLengths.back()) {
         eLengths.push_back(config.small_area_infill_flow_compensation_extrusion_length_3);
         flowComps.push_back(config.small_area_infill_flow_compensation_compensation_factor_3);
     } else {
@@ -51,7 +58,7 @@ SmallAreaInfillFlowCompensator::SmallAreaInfillFlowCompensator(const Slic3r::GCo
     }
 
     curLength = config.small_area_infill_flow_compensation_extrusion_length_4;
-    if(curLength > 0.0 && curLength > eLengths.back()) {
+    if (curLength > 0.0 && curLength > eLengths.back()) {
         eLengths.push_back(config.small_area_infill_flow_compensation_extrusion_length_4);
         flowComps.push_back(config.small_area_infill_flow_compensation_compensation_factor_4);
     } else {
@@ -59,7 +66,7 @@ SmallAreaInfillFlowCompensator::SmallAreaInfillFlowCompensator(const Slic3r::GCo
     }
 
     curLength = config.small_area_infill_flow_compensation_extrusion_length_5;
-    if(curLength > 0.0 && curLength > eLengths.back()) {
+    if (curLength > 0.0 && curLength > eLengths.back()) {
         eLengths.push_back(config.small_area_infill_flow_compensation_extrusion_length_5);
         flowComps.push_back(config.small_area_infill_flow_compensation_compensation_factor_5);
     } else {
@@ -67,7 +74,7 @@ SmallAreaInfillFlowCompensator::SmallAreaInfillFlowCompensator(const Slic3r::GCo
     }
 
     curLength = config.small_area_infill_flow_compensation_extrusion_length_6;
-    if(curLength > 0.0 && curLength > eLengths.back()) {
+    if (curLength > 0.0 && curLength > eLengths.back()) {
         eLengths.push_back(config.small_area_infill_flow_compensation_extrusion_length_6);
         flowComps.push_back(config.small_area_infill_flow_compensation_compensation_factor_6);
     } else {
@@ -75,7 +82,7 @@ SmallAreaInfillFlowCompensator::SmallAreaInfillFlowCompensator(const Slic3r::GCo
     }
 
     curLength = config.small_area_infill_flow_compensation_extrusion_length_7;
-    if(curLength > 0.0 && curLength > eLengths.back()) {
+    if (curLength > 0.0 && curLength > eLengths.back()) {
         eLengths.push_back(config.small_area_infill_flow_compensation_extrusion_length_7);
         flowComps.push_back(config.small_area_infill_flow_compensation_compensation_factor_7);
     } else {
@@ -83,7 +90,7 @@ SmallAreaInfillFlowCompensator::SmallAreaInfillFlowCompensator(const Slic3r::GCo
     }
 
     curLength = config.small_area_infill_flow_compensation_extrusion_length_8;
-    if(curLength > 0.0 && curLength > eLengths.back()) {
+    if (curLength > 0.0 && curLength > eLengths.back()) {
         eLengths.push_back(config.small_area_infill_flow_compensation_extrusion_length_8);
         flowComps.push_back(config.small_area_infill_flow_compensation_compensation_factor_8);
     } else {
@@ -91,14 +98,14 @@ SmallAreaInfillFlowCompensator::SmallAreaInfillFlowCompensator(const Slic3r::GCo
     }
 
     curLength = config.small_area_infill_flow_compensation_extrusion_length_9;
-    if(curLength > 0.0 && curLength > eLengths.back()) {
+    if (curLength > 0.0 && curLength > eLengths.back()) {
         eLengths.push_back(config.small_area_infill_flow_compensation_extrusion_length_9);
         flowComps.push_back(config.small_area_infill_flow_compensation_compensation_factor_9);
     } else {
         throw Slic3r::InvalidArgument("Extrusion lengths for subsequent points must be increasing");
     }
 
-    if(!nearly_equal(flowComps.back(), 1.0)) {
+    if (!nearly_equal(flowComps.back(), 1.0)) {
         throw Slic3r::InvalidArgument("Final compensation factor for small area infill flow compensation must be 1.0");
     }
 

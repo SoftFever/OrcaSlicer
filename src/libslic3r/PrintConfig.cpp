@@ -2693,7 +2693,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->set_default_value(new ConfigOptionFloat(10));
 
     def = this->add("small_area_infill_flow_compensation_compensation_factor_0", coFloat);
-    def->label = L("1: Data point");
+    def->label = L("1: Flow Compensation");
     def->tooltip = L("Spline data point that defines the compensation curve");
     def->min = 0;
     def->max = 1;
@@ -2701,7 +2701,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->set_default_value(new ConfigOptionFloat(0));
 
     def = this->add("small_area_infill_flow_compensation_compensation_factor_1", coFloat);
-    def->label = L("2: Data point");
+    def->label = L("2: Flow Compensation");
     def->tooltip = L("Spline data point that defines the compensation curve");
     def->min = 0;
     def->max = 1;
@@ -2709,7 +2709,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->set_default_value(new ConfigOptionFloat(0.4444));
 
     def = this->add("small_area_infill_flow_compensation_compensation_factor_2", coFloat);
-    def->label = L("3: Data point");
+    def->label = L("3: Flow Compensation");
     def->tooltip = L("Spline data point that defines the compensation curve");
     def->min = 0;
     def->max = 1;
@@ -2717,7 +2717,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->set_default_value(new ConfigOptionFloat(0.6145));
 
     def = this->add("small_area_infill_flow_compensation_compensation_factor_3", coFloat);
-    def->label = L("4: Data point");
+    def->label = L("4: Flow Compensation");
     def->tooltip = L("Spline data point that defines the compensation curve");
     def->min = 0;
     def->max = 1;
@@ -2725,7 +2725,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->set_default_value(new ConfigOptionFloat(0.7059));
 
     def = this->add("small_area_infill_flow_compensation_compensation_factor_4", coFloat);
-    def->label = L("5: Data point");
+    def->label = L("5: Flow Compensation");
     def->tooltip = L("Spline data point that defines the compensation curve");
     def->min = 0;
     def->max = 1;
@@ -2733,7 +2733,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->set_default_value(new ConfigOptionFloat(0.7619));
 
     def = this->add("small_area_infill_flow_compensation_compensation_factor_5", coFloat);
-    def->label = L("6: Data point");
+    def->label = L("6: Flow Compensation");
     def->tooltip = L("Spline data point that defines the compensation curve");
     def->min = 0;
     def->max = 1;
@@ -2741,7 +2741,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->set_default_value(new ConfigOptionFloat(0.8571));
 
     def = this->add("small_area_infill_flow_compensation_compensation_factor_6", coFloat);
-    def->label = L("7: Data point");
+    def->label = L("7: Flow Compensation");
     def->tooltip = L("Spline data point that defines the compensation curve");
     def->min = 0;
     def->max = 1;
@@ -2749,7 +2749,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->set_default_value(new ConfigOptionFloat(0.8889));
 
     def = this->add("small_area_infill_flow_compensation_compensation_factor_7", coFloat);
-    def->label = L("8: Data point");
+    def->label = L("8: Flow Compensation");
     def->tooltip = L("Spline data point that defines the compensation curve");
     def->min = 0;
     def->max = 1;
@@ -2757,7 +2757,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->set_default_value(new ConfigOptionFloat(0.9231));
 
     def = this->add("small_area_infill_flow_compensation_compensation_factor_8", coFloat);
-    def->label = L("9: Data point");
+    def->label = L("9: Flow Compensation");
     def->tooltip = L("Spline data point that defines the compensation curve");
     def->min = 0;
     def->max = 1;
@@ -2765,7 +2765,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->set_default_value(new ConfigOptionFloat(0.9520));
 
     def = this->add("small_area_infill_flow_compensation_compensation_factor_9", coFloat);
-    def->label = L("10: Data point");
+    def->label = L("10: Flow Compensation");
     def->tooltip = L("Spline data point that defines the compensation curve");
     def->min = 0;
     def->max = 1;

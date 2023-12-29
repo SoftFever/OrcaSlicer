@@ -12,7 +12,7 @@ class SmallAreaInfillFlowCompensator
 {
 public:
     SmallAreaInfillFlowCompensator() = delete;
-    explicit SmallAreaInfillFlowCompensator(const Slic3r::GCodeConfig &config);
+    explicit SmallAreaInfillFlowCompensator(const Slic3r::GCodeConfig& config);
     ~SmallAreaInfillFlowCompensator() = default;
 
     double modify_flow(const double line_length, const double dE, const ExtrusionRole role);
@@ -27,9 +27,7 @@ private:
 
     double flow_comp_model(const double line_length);
 
-    double max_modified_length() {
-        return eLengths.back();
-    }
+    double max_modified_length() { return eLengths.back(); }
 };
 
 } // namespace Slic3r
