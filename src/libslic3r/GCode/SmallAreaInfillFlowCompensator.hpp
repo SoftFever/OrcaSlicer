@@ -1,4 +1,3 @@
-
 #ifndef slic3r_GCode_SmallAreaInfillFlowCompensator_hpp_
 #define slic3r_GCode_SmallAreaInfillFlowCompensator_hpp_
 
@@ -6,6 +5,7 @@
 #include "../PrintConfig.hpp"
 #include "../ExtrusionRole.hpp"
 #include "spline/spline.h"
+
 namespace Slic3r {
 
 class SmallAreaInfillFlowCompensator
