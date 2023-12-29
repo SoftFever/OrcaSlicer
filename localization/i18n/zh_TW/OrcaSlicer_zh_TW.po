@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-28 00:20+0800\n"
+"POT-Creation-Date: 2023-12-29 12:07+0800\n"
 "PO-Revision-Date: 2023-11-06 14:37+0800\n"
 "Last-Translator: ablegods <ablegods@gmail.com>\n"
 "Language-Team: \n"
@@ -538,7 +538,7 @@ msgstr "連接件"
 msgid "Cut by Plane"
 msgstr ""
 
-msgid "non-mainifold edges be caused by cut tool, do you want to fix it now?"
+msgid "non-manifold edges be caused by cut tool, do you want to fix it now?"
 msgstr ""
 
 msgid "Repairing model object"
@@ -6009,6 +6009,9 @@ msgstr "登入區域"
 msgid "Stealth Mode"
 msgstr "區域網路模式"
 
+msgid "Check for stable updates only"
+msgstr ""
+
 msgid "Metric"
 msgstr "公制"
 
@@ -7830,7 +7833,7 @@ msgstr "SLA 支撐點"
 msgid "Gizmo FDM paint-on seam"
 msgstr "FDM 塗裝接縫"
 
-msgid "Swtich between Prepare/Prewview"
+msgid "Switch between Prepare/Preview"
 msgstr "在準備/預覽模式之中切換"
 
 msgid "Plater"
@@ -13675,7 +13678,7 @@ msgstr ""
 #: resources/data/hints.ini: [hint:Switch workspaces]
 msgid ""
 "Switch workspaces\n"
-"You can swtich between <b>Prepare</b> and <b>Preview</b> workspaces by "
+"You can switch between <b>Prepare</b> and <b>Preview</b> workspaces by "
 "pressing the <b>Tab</b> key."
 msgstr ""
 

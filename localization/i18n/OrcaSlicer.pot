@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-28 00:20+0800\n"
+"POT-Creation-Date: 2023-12-29 12:07+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -519,7 +519,7 @@ msgstr ""
 msgid "Cut by Plane"
 msgstr ""
 
-msgid "non-mainifold edges be caused by cut tool, do you want to fix it now?"
+msgid "non-manifold edges be caused by cut tool, do you want to fix it now?"
 msgstr ""
 
 msgid "Repairing model object"
@@ -5629,6 +5629,9 @@ msgstr ""
 msgid "Stealth Mode"
 msgstr ""
 
+msgid "Check for stable updates only"
+msgstr ""
+
 msgid "Metric"
 msgstr ""
 
@@ -7256,7 +7259,7 @@ msgstr ""
 msgid "Gizmo FDM paint-on seam"
 msgstr ""
 
-msgid "Swtich between Prepare/Prewview"
+msgid "Switch between Prepare/Preview"
 msgstr ""
 
 msgid "Plater"
@@ -12494,7 +12497,7 @@ msgid "G-code window\nYou can turn on/off the G-code window by pressing the <b>C
 msgstr ""
 
 #: resources/data/hints.ini: [hint:Switch workspaces]
-msgid "Switch workspaces\nYou can swtich between <b>Prepare</b> and <b>Preview</b> workspaces by pressing the <b>Tab</b> key."
+msgid "Switch workspaces\nYou can switch between <b>Prepare</b> and <b>Preview</b> workspaces by pressing the <b>Tab</b> key."
 msgstr ""
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]

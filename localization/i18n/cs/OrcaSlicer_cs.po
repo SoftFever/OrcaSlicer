@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-28 00:20+0800\n"
+"POT-Creation-Date: 2023-12-29 12:07+0800\n"
 "PO-Revision-Date: 2023-09-30 15:15+0200\n"
 "Last-Translator: René Mošner <Renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -524,7 +524,7 @@ msgstr "Spojka"
 msgid "Cut by Plane"
 msgstr ""
 
-msgid "non-mainifold edges be caused by cut tool, do you want to fix it now?"
+msgid "non-manifold edges be caused by cut tool, do you want to fix it now?"
 msgstr ""
 
 msgid "Repairing model object"
@@ -5954,6 +5954,9 @@ msgstr "Región přihlášení"
 msgid "Stealth Mode"
 msgstr "Tajný Režim"
 
+msgid "Check for stable updates only"
+msgstr ""
+
 msgid "Metric"
 msgstr "Metrický"
 
@@ -7722,7 +7725,7 @@ msgstr "Gizmo SLA podpěrné body"
 msgid "Gizmo FDM paint-on seam"
 msgstr "Gizmo FDM malování pozice švu"
 
-msgid "Swtich between Prepare/Prewview"
+msgid "Switch between Prepare/Preview"
 msgstr "Přepnout mezi Přípravou/Náhledem"
 
 msgid "Plater"
@@ -13791,7 +13794,7 @@ msgstr ""
 #: resources/data/hints.ini: [hint:Switch workspaces]
 msgid ""
 "Switch workspaces\n"
-"You can swtich between <b>Prepare</b> and <b>Preview</b> workspaces by "
+"You can switch between <b>Prepare</b> and <b>Preview</b> workspaces by "
 "pressing the <b>Tab</b> key."
 msgstr ""
 

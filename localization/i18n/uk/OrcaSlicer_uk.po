@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-28 00:20+0800\n"
+"POT-Creation-Date: 2023-12-29 12:07+0800\n"
 "PO-Revision-Date: 2023-08-10 20:25-0400\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -524,7 +524,7 @@ msgstr "З'єднувач"
 msgid "Cut by Plane"
 msgstr ""
 
-msgid "non-mainifold edges be caused by cut tool, do you want to fix it now?"
+msgid "non-manifold edges be caused by cut tool, do you want to fix it now?"
 msgstr ""
 
 msgid "Repairing model object"
@@ -5917,6 +5917,9 @@ msgstr "Регіон входу"
 msgid "Stealth Mode"
 msgstr ""
 
+msgid "Check for stable updates only"
+msgstr ""
+
 msgid "Metric"
 msgstr "Метрика"
 
@@ -7657,7 +7660,7 @@ msgstr "Точки підтримки Gizmo SL"
 msgid "Gizmo FDM paint-on seam"
 msgstr "Швид, що фарбується Gizmo FDM"
 
-msgid "Swtich between Prepare/Prewview"
+msgid "Switch between Prepare/Preview"
 msgstr "Переключення між Підготовка/Попередній перегляд"
 
 msgid "Plater"
@@ -13417,7 +13420,7 @@ msgstr ""
 #: resources/data/hints.ini: [hint:Switch workspaces]
 msgid ""
 "Switch workspaces\n"
-"You can swtich between <b>Prepare</b> and <b>Preview</b> workspaces by "
+"You can switch between <b>Prepare</b> and <b>Preview</b> workspaces by "
 "pressing the <b>Tab</b> key."
 msgstr ""
 
