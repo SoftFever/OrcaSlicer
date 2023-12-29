@@ -1124,6 +1124,9 @@ void ColorPicker::msw_rescale()
 
 void ColorPicker::set_color(wxColour col)
 {
+    if (m_colour != col&&col.Alpha()!=0&&col.Alpha()!=255) {
+        transparent_changed = true;
+    }
     m_colour = col;
     Refresh();
 }
@@ -1165,11 +1168,27 @@ void ColorPicker::doRender(wxDC& dc)
 {
     wxSize     size = GetSize();
     auto alpha = m_colour.Alpha();
-
     auto radius = m_show_full ? size.x / 2 - FromDIP(1) : size.x / 2;
     if (m_selected) radius -= FromDIP(1);
 
     if (alpha == 0) {
+        dc.DrawBitmap(m_bitmap_transparent, 0, 0);
+    }
+    else if (alpha != 0 && alpha != 255) {
+        if (transparent_changed) {
+            std::string rgb = (m_colour.GetAsString(wxC2S_HTML_SYNTAX)).ToStdString();
+            if (rgb.size() == 8) {
+                //delete alpha value
+                rgb = rgb.substr(0, rgb.size() - 2);
+            }
+            float alpha_f = 0.3 * m_colour.Alpha() / 255.0;
+            std::vector<std::string> replace;
+            replace.push_back(rgb);
+            std::string fill_replace = "fill-opacity=\"" + std::to_string(alpha_f);
+            replace.push_back(fill_replace);
+            m_bitmap_transparent = ScalableBitmap(this, "transparent_color_picker", 25, false, false, true, replace).bmp();
+            transparent_changed = false;
+        }
         dc.DrawBitmap(m_bitmap_transparent, 0, 0);
     }
     else {
@@ -1225,6 +1244,7 @@ void ColorPicker::doRender(wxDC& dc)
                     startAngle += ev_angle;
                     startAngle = startAngle > 360.0 ? startAngle - 360.0 : startAngle;
                 }
+                dc.DrawBitmap(m_bitmap_border, wxPoint(0, 0));
             }
         }
     }

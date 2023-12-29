@@ -42,6 +42,8 @@ public:
     bool            m_is_empty{false};
     int             ctype;
 
+    bool            transparent_changed{false};
+
     ColorPicker(wxWindow* parent, wxWindowID id, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
     ~ColorPicker();
 

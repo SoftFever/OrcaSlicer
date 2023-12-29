@@ -859,6 +859,10 @@ void AMSLib::render_generic_text(wxDC &dc)
 
     dc.SetFont(::Label::Body_13);
     dc.SetTextForeground(temp_text_colour);
+    auto alpha = m_info.material_colour.Alpha();
+    if (alpha != 0 && alpha != 255) {
+        dc.SetTextForeground(*wxBLACK);
+    }
 
     auto libsize = GetSize();
     if (m_info.material_state == AMSCanType::AMS_CAN_TYPE_THIRDBRAND
@@ -904,6 +908,7 @@ void AMSLib::render_generic_text(wxDC &dc)
                 if (!m_show_kn) {
                     auto pot_top = wxPoint((libsize.x - line_top_tsize.x) / 2, (libsize.y - line_top_tsize.y) / 2 - line_top_tsize.y + FromDIP(6));
                     dc.DrawText(line_top, pot_top);
+
 
                     auto pot_bottom = wxPoint((libsize.x - line_bottom_tsize.x) / 2, (libsize.y - line_bottom_tsize.y) / 2 + FromDIP(4));
                     dc.DrawText(line_bottom, pot_bottom);
@@ -1132,7 +1137,7 @@ void AMSLib::render_generic_lib(wxDC &dc)
 
     //draw remain
     int height = size.y - FromDIP(8);
-    int curr_height = height * float(m_info.material_remain * 1.0 / 100.0);
+    int curr_height = height * float(m_info.material_remain * 1.0 / 100.0); dc.SetFont(::Label::Body_13);
 
     int top = height - curr_height;
 
@@ -1143,8 +1148,7 @@ void AMSLib::render_generic_lib(wxDC &dc)
         if (alpha == 0) {
             dc.DrawBitmap(m_bitmap_transparent.bmp(), FromDIP(4), FromDIP(4));
         }
-
-
+        //gradient
         if (m_info.material_cols.size() > 1) {
             int left = FromDIP(4);
             float total_width = size.x - FromDIP(8);
@@ -1203,6 +1207,23 @@ void AMSLib::render_generic_lib(wxDC &dc)
             dc.DrawRoundedRectangle(FromDIP(4), FromDIP(4) + top, size.x - FromDIP(8), curr_height, m_radius);
 #else
             dc.DrawRoundedRectangle(FromDIP(4), FromDIP(4) + top, size.x - FromDIP(8), curr_height, m_radius - 1);
+            if (alpha != 0 && alpha != 255) {
+                if (transparent_changed) {
+                    std::string rgb = (tmp_lib_colour.GetAsString(wxC2S_HTML_SYNTAX)).ToStdString();
+                    if (rgb.size() == 8) {
+                        //delete alpha value
+                        rgb= rgb.substr(0, rgb.size() - 2);
+                    }
+                    float alpha_f = 0.3 * tmp_lib_colour.Alpha() / 255.0;
+                    std::vector<std::string> replace;
+                    replace.push_back(rgb);
+                    std::string fill_replace = "fill-opacity=\"" + std::to_string(alpha_f);
+                    replace.push_back(fill_replace);
+                    m_bitmap_transparent = ScalableBitmap(this, "transparent_ams_lib", 68, false, false, true, replace);
+                    transparent_changed = false;
+                }
+                dc.DrawBitmap(m_bitmap_transparent.bmp(), FromDIP(4), FromDIP(4));
+            }
 #endif
         }
     }
@@ -1271,7 +1292,9 @@ void AMSLib::Update(Caninfo info, bool refresh)
     if (dev->get_selected_machine() && dev->get_selected_machine() != m_obj) {
         m_obj = dev->get_selected_machine();
     }
-
+    if (info.material_colour.Alpha() != 0 && info.material_colour.Alpha() != 255 && m_info.material_colour != info.material_colour) {
+        transparent_changed = true;
+    }
     m_info = info;
     Layout();
     if (refresh) Refresh();

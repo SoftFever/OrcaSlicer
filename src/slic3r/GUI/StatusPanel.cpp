@@ -3512,6 +3512,7 @@ void StatusPanel::on_filament_edit(wxCommandEvent &event)
                         }
                         else {
                             m_filament_setting_dlg->set_color(color);
+                            m_filament_setting_dlg->set_colors(cols);
                         }
 
                         m_filament_setting_dlg->m_is_third = !MachineObject::is_bbl_filament(tray_it->second->tag_uid);

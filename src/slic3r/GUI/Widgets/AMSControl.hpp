@@ -339,6 +339,7 @@ protected:
     bool            m_hover           = {false};
     bool            m_show_kn         = {false};
     bool            m_support_cali    = {false};
+    bool            transparent_changed     = {false};
 
     double   m_radius = {4};
     wxColour m_border_color;
