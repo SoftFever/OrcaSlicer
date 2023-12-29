@@ -1119,10 +1119,10 @@ wxArrayString CreateFilamentPresetDialog::get_filament_preset_choices()
         for (Preset* filament_preset : preset.second) { 
             std::string preset_name = filament_preset->name;
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " filament_id: " << filament_preset->filament_id << " preset name: " << filament_preset->name;
-            size_t      index_at    = preset_name.find("@");
+            size_t      index_at    = preset_name.find(" @");
             if (std::string::npos != index_at) {
-                std::string cur_preset_name = preset_name.substr(0, index_at - 1);
-                preset_name_set.insert(wxString::FromUTF8(cur_preset_name));
+                std::string cur_preset_name = preset_name.substr(0, index_at);
+                preset_name_set.insert(from_u8(cur_preset_name));
             }
         }
         assert(1 == preset_name_set.size());
