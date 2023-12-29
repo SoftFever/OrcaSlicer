@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-29 12:07+0800\n"
+"POT-Creation-Date: 2023-12-29 22:55+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Heiko Liebscher <hliebschergmail.com>\n"
 "Language-Team: \n"
@@ -714,142 +714,144 @@ msgid ""
 "The text cannot be written using the selected font. Please try choosing a "
 "different font."
 msgstr ""
+"Der Text kann nicht mit der ausgewählten Schriftart geschrieben werden. "
+"Versuchen Sie es mit einer anderen Schriftart."
 
 msgid "Embossed text cannot contain only white spaces."
-msgstr ""
+msgstr "Der geprägte Text darf nicht nur Leerzeichen enthalten."
 
 msgid "Text contains character glyph (represented by '?') unknown by font."
-msgstr ""
+msgstr "Text enthält ein Zeichen, das von der Schriftart nicht erkannt wird."
 
 msgid "Text input doesn't show font skew."
-msgstr ""
+msgstr "Texteingabe zeigt keine Schriftneigung an."
 
 msgid "Text input doesn't show font boldness."
-msgstr ""
+msgstr "Texteingabe zeigt keine Schriftstärke an."
 
 msgid "Text input doesn't show gap between lines."
-msgstr ""
+msgstr "Texteingabe zeigt keinen Abstand zwischen den Zeilen."
 
 msgid "Too tall, diminished font height inside text input."
-msgstr ""
+msgstr "Zu groß, verkleinerte Schriftgröße innerhalb der Texteingabe."
 
 msgid "Too small, enlarged font height inside text input."
-msgstr ""
+msgstr "Zu klein, vergrößerte Schriftgröße innerhalb der Texteingabe."
 
 msgid "Text doesn't show current horizontal alignment."
-msgstr ""
+msgstr "Text zeigt aktuelle horizontale Ausrichtung nicht an."
 
 msgid "Revert font changes."
-msgstr ""
+msgstr "Rückgängig machen der Schriftartänderungen."
 
 #, boost-format
 msgid "Font \"%1%\" can't be selected."
-msgstr ""
+msgstr "Schriftart \"%1%\" kann nicht ausgewählt werden."
 
 msgid "Operation"
-msgstr ""
+msgstr "Operation"
 
 msgid "Join"
-msgstr ""
+msgstr "Zusammenfügen"
 
 msgid "Click to change text into object part."
-msgstr ""
+msgstr "Klicken Sie hier, um den Text in ein Objektteil zu ändern."
 
 msgid "You can't change a type of the last solid part of the object."
-msgstr ""
+msgstr "Sie können den Typ des letzten festen Teils des Objekts nicht ändern."
 
 msgctxt "EmbossOperation"
 msgid "Cut"
-msgstr ""
+msgstr "Ausschneiden"
 
 msgid "Click to change part type into negative volume."
-msgstr ""
+msgstr "Klicken Sie hier, um den Teiltyp in ein negatives Volumen zu ändern."
 
 msgid "Modifier"
 msgstr "Modifizierer"
 
 msgid "Click to change part type into modifier."
-msgstr ""
+msgstr "Klicken Sie hier, um den Teiltyp in einen Modifizierer zu ändern."
 
 msgid "Change Text Type"
-msgstr ""
+msgstr "Ändere Texttyp"
 
 #, boost-format
 msgid "Rename style(%1%) for embossing text"
-msgstr ""
+msgstr "Umbenennen des Stils (%1%) für geprägten Text"
 
 msgid "Name can't be empty."
-msgstr ""
+msgstr "Name darf nicht leer sein."
 
 msgid "Name has to be unique."
-msgstr ""
+msgstr "Name muss eindeutig sein."
 
 msgid "OK"
 msgstr "OK"
 
 msgid "Rename style"
-msgstr ""
+msgstr "Benenne Stil um"
 
 msgid "Rename current style."
-msgstr ""
+msgstr "Benenne aktuellen Stil um."
 
 msgid "Can't rename temporary style."
-msgstr ""
+msgstr "Kann temporären Stil nicht umbenennen."
 
 msgid "First Add style to list."
-msgstr ""
+msgstr "Erst Stil zur Liste hinzufügen."
 
 #, boost-format
 msgid "Save %1% style"
-msgstr ""
+msgstr "Speichere %1% Stil"
 
 msgid "No changes to save."
-msgstr ""
+msgstr "Keine Änderungen zum Speichern."
 
 msgid "New name of style"
-msgstr ""
+msgstr "Neuer Name des Stils"
 
 msgid "Save as new style"
-msgstr ""
+msgstr "Speichern als neuen Stil"
 
 msgid "Only valid font can be added to style."
-msgstr ""
+msgstr "Nur gültige Schriftarten können dem Stil hinzugefügt werden."
 
 msgid "Add style to my list."
-msgstr ""
+msgstr "Addiere Stil zu meiner Liste."
 
 msgid "Save as new style."
-msgstr ""
+msgstr "Speichern als neuen Stil."
 
 msgid "Remove style"
-msgstr ""
+msgstr "Entferne Stil"
 
 msgid "Can't remove the last existing style."
-msgstr ""
+msgstr "Kann den letzten vorhandenen Stil nicht entfernen."
 
 #, boost-format
 msgid "Are you sure you want to permanently remove the \"%1%\" style?"
-msgstr ""
+msgstr "Sie möchten den Stil \"%1%\" wirklich dauerhaft entfernen?"
 
 #, boost-format
 msgid "Delete \"%1%\" style."
-msgstr ""
+msgstr "Lösche \"%1%\" Stil."
 
 #, boost-format
 msgid "Can't delete \"%1%\". It is last style."
-msgstr ""
+msgstr "Kann \"%1%\" nicht löschen. Es ist der letzte Stil."
 
 #, boost-format
 msgid "Can't delete temporary style \"%1%\"."
-msgstr ""
+msgstr "Kann temporären Stil \"%1%\" nicht löschen."
 
 #, boost-format
 msgid "Modified style \"%1%\""
-msgstr ""
+msgstr "Modifizierter Stil \"%1%\""
 
 #, boost-format
 msgid "Current style is \"%1%\""
-msgstr ""
+msgstr "Aktueller Stil ist \"%1%\""
 
 #, boost-format
 msgid ""
@@ -857,130 +859,141 @@ msgid ""
 "\n"
 "Would you like to continue anyway?"
 msgstr ""
+"Das Ändern des Stils zu \"%1%\" verwirft die aktuelle Stiländerung.\n"
+"\n"
+"Möchten Sie trotzdem fortfahren?"
 
 msgid "Not valid style."
-msgstr ""
+msgstr "Kein gültiger Stil."
 
 #, boost-format
 msgid "Style \"%1%\" can't be used and will be removed from a list."
 msgstr ""
+"Stil \"%1%\" kann nicht verwendet werden und wird aus der Liste entfernt."
 
 msgid "Unset italic"
-msgstr ""
+msgstr "Kursiven Text aufheben"
 
 msgid "Set italic"
-msgstr ""
+msgstr "Setze kursiven Text"
 
 msgid "Unset bold"
-msgstr ""
+msgstr "Schriftstärke aufheben"
 
 msgid "Set bold"
-msgstr ""
+msgstr "Setze fette Schrift"
 
 msgid "Revert text size."
-msgstr ""
+msgstr "Rückgängig machen der Textgröße."
 
 msgid "Revert embossed depth."
-msgstr ""
+msgstr "Rückgängig machen der geprägten Tiefe."
 
 msgid ""
 "Advanced options cannot be changed for the selected font.\n"
 "Select another font."
 msgstr ""
+"Erweiterte Optionen können für die ausgewählte Schriftart nicht geändert "
+"werden.\n"
+"Wählen Sie eine andere Schriftart."
 
 msgid "Revert using of model surface."
-msgstr ""
+msgstr "Benutzen der Oberfläche des Modells rückgängig machen."
 
 msgid "Revert Transformation per glyph."
-msgstr ""
+msgstr "Transformation pro Zeichen rückgängig machen."
 
 msgid "Set global orientation for whole text."
-msgstr ""
+msgstr "Setze globale Ausrichtung für den gesamten Text."
 
 msgid "Set position and orientation per glyph."
-msgstr ""
+msgstr "Setze Position und Ausrichtung pro Zeichen."
 
 msgctxt "Alignment"
 msgid "Left"
-msgstr ""
+msgstr "Links"
 
 msgctxt "Alignment"
 msgid "Center"
-msgstr ""
+msgstr "Zentriert"
 
 msgctxt "Alignment"
 msgid "Right"
-msgstr ""
+msgstr "Rechts"
 
 msgctxt "Alignment"
 msgid "Top"
-msgstr ""
+msgstr "Oben"
 
 msgctxt "Alignment"
 msgid "Middle"
-msgstr ""
+msgstr "Mitte"
 
 msgctxt "Alignment"
 msgid "Bottom"
-msgstr ""
+msgstr "Boden"
 
 msgid "Revert alignment."
-msgstr ""
+msgstr "Ausrichtung rückgängig machen."
 
 #. TRN EmbossGizmo: font units
 msgid "points"
-msgstr ""
+msgstr "Punkte"
 
 msgid "Revert gap between characters"
-msgstr ""
+msgstr "Abstand zwischen den Zeichen rückgängig machen"
 
 msgid "Distance between characters"
-msgstr ""
+msgstr "Abstand zwischen den Zeichen"
 
 msgid "Revert gap between lines"
-msgstr ""
+msgstr "Abstand zwischen den Zeilen rückgängig machen"
 
 msgid "Distance between lines"
-msgstr ""
+msgstr "Abstand zwischen den Zeilen"
 
 msgid "Undo boldness"
-msgstr ""
+msgstr "Dicke rückgängig machen"
 
 msgid "Tiny / Wide glyphs"
-msgstr ""
+msgstr "Tiny / Wide glyphs"
 
 msgid "Undo letter's skew"
-msgstr ""
+msgstr "Rückgängig machen der Schriftneigung"
 
 msgid "Italic strength ratio"
-msgstr ""
+msgstr "Neigungsverhältnis"
 
 msgid "Undo translation"
-msgstr ""
+msgstr "Übersetzung rückgängig machen"
 
 msgid "Distance of the center of the text to the model surface."
-msgstr ""
+msgstr "Abstand des Textmittelpunkts zur Modell-Oberfläche."
 
 msgid "Undo rotation"
-msgstr ""
+msgstr "Rotation rückgängig machen"
 
 msgid "Rotate text Clock-wise."
-msgstr ""
+msgstr "im Uhrzeigersinn drehen."
 
 msgid "Unlock the text's rotation when moving text along the object's surface."
 msgstr ""
+"Entsperren Sie die Rotation des Textes beim Verschieben des Textes entlang "
+"der Oberfläche des Objekts."
 
 msgid "Lock the text's rotation when moving text along the object's surface."
 msgstr ""
+"Verriegeln Sie die Rotation des Textes beim Verschieben des Textes entlang "
+"der Oberfläche des Objekts."
 
 msgid "Select from True Type Collection."
-msgstr ""
+msgstr "Sammlung von True Type auswählen."
 
 msgid "Set text to face camera"
-msgstr ""
+msgstr "Setze Text zur Kamera"
 
 msgid "Orient the text towards the camera."
-msgstr ""
+msgstr "Ortne den Text zur Kamera aus."
 
 #, boost-format
 msgid ""
@@ -995,7 +1008,7 @@ msgid "Loading"
 msgstr "Lade"
 
 msgid "In queue"
-msgstr ""
+msgstr "In Warteschlange"
 
 #. TRN - Input label. Be short as possible
 #. Height of one text line - Font Ascent
@@ -1006,35 +1019,35 @@ msgstr "Höhe"
 #. Copy surface of model on surface of the embossed text
 #. TRN - Input label. Be short as possible
 msgid "Use surface"
-msgstr ""
+msgstr "Benutze Oberfläche"
 
 #. TRN - Input label. Be short as possible
 #. Option to change projection on curved surface
 #. for each character(glyph) in text separately
 msgid "Per glyph"
-msgstr ""
+msgstr "pro Zeichen"
 
 #. TRN - Input label. Be short as possible
 #. Align Top|Middle|Bottom and Left|Center|Right
 msgid "Alignment"
-msgstr ""
+msgstr "Ausrichtung"
 
 #. TRN - Input label. Be short as possible
 msgid "Char gap"
-msgstr ""
+msgstr "Zeichenabstand"
 
 #. TRN - Input label. Be short as possible
 msgid "Line gap"
-msgstr ""
+msgstr "Linienabstand"
 
 #. TRN - Input label. Be short as possible
 msgid "Boldness"
-msgstr ""
+msgstr "Durchschlag"
 
 #. TRN - Input label. Be short as possible
 #. Like Font italic
 msgid "Skew ratio"
-msgstr ""
+msgstr "Winkelverhältnis"
 
 #. TRN - Input label. Be short as possible
 #. Distance from model surface to be able
@@ -1042,24 +1055,24 @@ msgstr ""
 #. move text as modifier fully out of not flat surface
 #. TRN - Input label. Be short as possible
 msgid "From surface"
-msgstr ""
+msgstr "Von Oberfläche"
 
 #. TRN - Input label. Be short as possible
 #. Keep vector from bottom to top of text aligned with printer Y axis
 msgid "Keep up"
-msgstr ""
+msgstr "Behalte oben"
 
 #. TRN - Input label. Be short as possible.
 #. Some Font file contain multiple fonts inside and
 #. this is numerical selector of font inside font collections
 msgid "Collection"
-msgstr ""
+msgstr "Sammlung"
 
 msgid "Enter SVG gizmo"
-msgstr ""
+msgstr "SVG-Gizmo eingeben"
 
 msgid "Leave SVG gizmo"
-msgstr ""
+msgstr "SVG-Gizmo verlassen"
 
 msgid "SVG actions"
 msgstr ""
@@ -1069,164 +1082,171 @@ msgstr "SVG"
 
 #. TRN This is an item label in the undo-redo stack.
 msgid "SVG-Rotate"
-msgstr ""
+msgstr "SVG-Drehen"
 
 #, boost-format
 msgid "Opacity (%1%)"
-msgstr ""
+msgstr "Deckkraft (%1%)"
 
 #, boost-format
 msgid "Color gradient (%1%)"
-msgstr ""
+msgstr "Farbverlauf (%1%)"
 
 msgid "Undefined fill type"
-msgstr ""
+msgstr "Unbestimmter Fülltyp"
 
 msgid "Linear gradient"
-msgstr ""
+msgstr "Linearer Farbverlauf"
 
 msgid "Radial gradient"
-msgstr ""
+msgstr "Radialer Farbverlauf"
 
 msgid "Open filled path"
-msgstr ""
+msgstr "ausgefüllten Pfad öffnen"
 
 msgid "Undefined stroke type"
-msgstr ""
+msgstr "Undefinierter Strich-Typ"
 
 msgid "Path can't be healed from selfintersection and multiple points."
 msgstr ""
+"Pfad kann nicht von Selbstüberschneidungen und mehreren Punkten geheilt "
+"werden."
 
 msgid ""
 "Final shape constains selfintersection or multiple points with same "
 "coordinate."
 msgstr ""
+"Die endgültige Form enthält Selbstüberschneidungen oder mehrere Punkte mit "
+"den gleichen Koordinaten."
 
 #, boost-format
 msgid "Shape is marked as invisible (%1%)."
-msgstr ""
+msgstr "Shape ist als unsichtbar markiert (%1%)."
 
 #. TRN: The first placeholder is shape identifier, the second one is text describing the problem.
 #, boost-format
 msgid "Fill of shape (%1%) contains unsupported: %2%."
-msgstr ""
+msgstr "Füllung der Form (%1%) enthält nicht unterstützte: %2%."
 
 #, boost-format
 msgid "Stroke of shape (%1%) is too thin (minimal width is %2% mm)."
-msgstr ""
+msgstr "Striche der Form (%1%) ist zu dünn (minimale Breite ist %2% mm)."
 
 #, boost-format
 msgid "Stroke of shape (%1%) contains unsupported: %2%."
-msgstr ""
+msgstr "Striche der Form (%1%) enthält nicht unterstützte: %2%."
 
 msgid "Face the camera"
-msgstr ""
+msgstr "Gesicht zur Kamera"
 
 #. TRN - Preview of filename after clear local filepath.
 msgid "Unknown filename"
-msgstr ""
+msgstr "Unbekannter Dateiname"
 
 #, boost-format
 msgid "SVG file path is \"%1%\""
-msgstr ""
+msgstr "SVG-Dateipfad ist \"%1%\""
 
 msgid "Reload SVG file from disk."
-msgstr ""
+msgstr "Neu laden der SVG-Datei von der Festplatte."
 
 msgid "Change file"
-msgstr ""
+msgstr "Datei wechseln"
 
 msgid "Change to another .svg file"
-msgstr ""
+msgstr "Wechsel zu einer anderen .svg-Datei"
 
 msgid "Forget the file path"
-msgstr ""
+msgstr "Dateipfad vergessen"
 
 msgid ""
 "Do NOT save local path to 3MF file.\n"
 "Also disables 'reload from disk' option."
 msgstr ""
+"Lokalen Pfad nicht in 3MF-Datei speichern.\n"
+"Deaktiviert auch die Option 'Von Festplatte neu laden'."
 
 #. TRN: An menu option to convert the SVG into an unmodifiable model part.
 msgid "Bake"
-msgstr ""
+msgstr "Einbrennen"
 
 #. TRN: Tooltip for the menu item.
 msgid "Bake into model as uneditable part"
-msgstr ""
+msgstr "Einbrennen in das Modell als nicht editierbares Teil"
 
 msgid "Save as"
-msgstr ""
+msgstr "Speichern als"
 
 msgid "Save SVG file"
-msgstr ""
+msgstr "SVG-Datei speichern"
 
 msgid "Save as '.svg' file"
-msgstr ""
+msgstr "Speichern als '.svg'-Datei"
 
 msgid "Size in emboss direction."
-msgstr ""
+msgstr "Größe in Prägerichtung."
 
 #. TRN: The placeholder contains a number.
 #, boost-format
 msgid "Scale also changes amount of curve samples (%1%)"
-msgstr ""
+msgstr "Skalierung ändert auch die Anzahl der Kurvensamples (%1%)"
 
 msgid "Width of SVG."
-msgstr ""
+msgstr "Weite des SVG."
 
 msgid "Height of SVG."
-msgstr ""
+msgstr "Höhe des SVG."
 
 msgid "Lock/unlock the aspect ratio of the SVG."
-msgstr ""
+msgstr "Verriegeln/Entriegeln des Seitenverhältnisses des SVG."
 
 msgid "Reset scale"
-msgstr ""
+msgstr "Skalierung zurücksetzen"
 
 msgid "Resize"
-msgstr ""
+msgstr "Größe zurücksetzen"
 
 msgid "Distance of the center of the SVG to the model surface."
-msgstr ""
+msgstr "Distanz des SVG-Mittelpunkts zur Modell-Oberfläche."
 
 msgid "Reset distance"
-msgstr ""
+msgstr "Distanz zurücksetzen"
 
 msgid "Reset rotation"
-msgstr ""
+msgstr "Rotation zurücksetzen"
 
 msgid "Lock/unlock rotation angle when dragging above the surface."
 msgstr ""
+"Verriegeln/Entriegeln des Rotationswinkels beim Ziehen über die Oberfläche."
 
 msgid "Mirror vertically"
-msgstr ""
+msgstr "Spiegeln vertikal"
 
 msgid "Mirror horizontally"
-msgstr ""
+msgstr "Spiegeln horizontal"
 
 #. TRN: This is the name of the action that shows in undo/redo stack (changing part type from SVG to something else).
 msgid "Change SVG Type"
-msgstr ""
+msgstr "Wechsel SVG-Typ"
 
 #. TRN - Input label. Be short as possible
 msgid "Mirror"
 msgstr "Spiegeln"
 
 msgid "Choose SVG file for emboss:"
-msgstr ""
+msgstr "Wählen sie eine SVG-Datei zum Prägen:"
 
 #, boost-format
 msgid "File does NOT exist (%1%)."
-msgstr ""
+msgstr "Datei existiert nicht (%1%)."
 
 #, boost-format
 msgid "Filename has to end with \".svg\" but you selected %1%"
-msgstr ""
+msgstr "Dateiname muss mit \".svg\" enden, aber Sie haben %1% ausgewählt"
 
 #, boost-format
 msgid "Nano SVG parser can't load from file (%1%)."
-msgstr ""
+msgstr "Nano SVG-Parser kann nicht aus Datei laden (%1%)."
 
 #, boost-format
 msgid "SVG file does NOT contain a single path to be embossed (%1%)."
@@ -8681,15 +8701,15 @@ msgid "Hostname, IP or URL"
 msgstr "Hostname, IP oder URL"
 
 msgid ""
-"Slic3r can upload G-code files to a printer host. This field should contain "
-"the hostname, IP address or URL of the printer host instance. Print host "
-"behind HAProxy with basic auth enabled can be accessed by putting the user "
-"name and password into the URL in the following format: https://username:"
-"password@your-octopi-address/"
+"Orca Slicer can upload G-code files to a printer host. This field should "
+"contain the hostname, IP address or URL of the printer host instance. Print "
+"host behind HAProxy with basic auth enabled can be accessed by putting the "
+"user name and password into the URL in the following format: https://"
+"username:password@your-octopi-address/"
 msgstr ""
-"Slic3r kann G-Code-Dateien auf einen Drucker-Host hochladen. Dieses Feld "
-"sollte den Hostnamen, die IP-Adresse oder die URL der Drucker-Host-Instanz "
-"enthalten. Auf einen Drucker-Host hinter HAProxy mit aktivierter "
+"Orca Slicer kann G-Code-Dateien auf einen Drucker-Host hochladen. Dieses "
+"Feld sollte den Hostnamen, die IP-Adresse oder die URL der Drucker-Host-"
+"Instanz enthalten. Auf einen Drucker-Host hinter HAProxy mit aktivierter "
 "Basisauthentifizierung kann zugegriffen werden, indem Benutzername und "
 "Passwort in die URL in folgendem Format eingegeben werden: https://username:"
 "password@Ihre-octopi-Adresse/"
@@ -8708,12 +8728,12 @@ msgid "API Key / Password"
 msgstr "API-Schlüssel / Passwort"
 
 msgid ""
-"Slic3r can upload G-code files to a printer host. This field should contain "
-"the API Key or the password required for authentication."
+"Orca Slicer can upload G-code files to a printer host. This field should "
+"contain the API Key or the password required for authentication."
 msgstr ""
-"Slic3r kann G-Code-Dateien auf einen Drucker-Host hochladen. Dieses Feld "
-"sollte den API-Schlüssel oder das für die Authentifizierung erforderliche "
-"Passwort enthalten."
+"Orca Slicer kann G-Code-Dateien auf einen Drucker-Host hochladen. Dieses "
+"Feld sollte den API-Schlüssel oder das für die Authentifizierung "
+"erforderliche Passwort enthalten."
 
 msgid "Name of the printer"
 msgstr "Name des Druckers"
@@ -9821,14 +9841,14 @@ msgid ""
 "After a tool change, the exact position of the newly loaded filament inside "
 "the nozzle may not be known, and the filament pressure is likely not yet "
 "stable. Before purging the print head into an infill or a sacrificial "
-"object, Slic3r will always prime this amount of material into the wipe tower "
-"to produce successive infill or sacrificial object extrusions reliably."
+"object, Orca Slicer will always prime this amount of material into the wipe "
+"tower to produce successive infill or sacrificial object extrusions reliably."
 msgstr ""
 "Nach einem Werkzeugwechsel ist die genaue Position des neu geladenen "
 "Filaments im Düsenkopf möglicherweise unbekannt und der Filamentdruck ist "
-"wahrscheinlich noch nicht stabil. Bevor Slic3r den Druckkopf in ein Infill "
-"oder ein opferbares Objekt spült, wird immer diese Menge Material in den "
-"Wipe-Turm gefüllt, um zuverlässige nachfolgende Infill- oder opferbare "
+"wahrscheinlich noch nicht stabil. Bevor Orca Slicer den Druckkopf in ein "
+"Infill oder ein opferbares Objekt spült, wird immer diese Menge Material in "
+"den Wipe-Turm gefüllt, um zuverlässige nachfolgende Infill- oder opferbare "
 "Objekt-Extrusionen zu erzeugen. So wird sichergestellt, dass das Drucken "
 "nicht gestört wird und die Qualität des Drucks erhalten bleibt."
 
@@ -10018,11 +10038,12 @@ msgstr "Länge des Infill-Ankers"
 msgid ""
 "Connect an infill line to an internal perimeter with a short segment of an "
 "additional perimeter. If expressed as percentage (example: 15%) it is "
-"calculated over infill extrusion width. Slic3r tries to connect two close "
-"infill lines to a short perimeter segment. If no such perimeter segment "
-"shorter than infill_anchor_max is found, the infill line is connected to a "
-"perimeter segment at just one side and the length of the perimeter segment "
-"taken is limited to this parameter, but no longer than anchor_length_max. \n"
+"calculated over infill extrusion width. Orca Slicer tries to connect two "
+"close infill lines to a short perimeter segment. If no such perimeter "
+"segment shorter than infill_anchor_max is found, the infill line is "
+"connected to a perimeter segment at just one side and the length of the "
+"perimeter segment taken is limited to this parameter, but no longer than "
+"anchor_length_max. \n"
 "Set this parameter to zero to disable anchoring perimeters connected to a "
 "single infill line."
 msgstr ""
@@ -10050,11 +10071,12 @@ msgstr "Maximale Länge des Infill-Ankers"
 msgid ""
 "Connect an infill line to an internal perimeter with a short segment of an "
 "additional perimeter. If expressed as percentage (example: 15%) it is "
-"calculated over infill extrusion width. Slic3r tries to connect two close "
-"infill lines to a short perimeter segment. If no such perimeter segment "
-"shorter than this parameter is found, the infill line is connected to a "
-"perimeter segment at just one side and the length of the perimeter segment "
-"taken is limited to infill_anchor, but no longer than this parameter. \n"
+"calculated over infill extrusion width. Orca Slicer tries to connect two "
+"close infill lines to a short perimeter segment. If no such perimeter "
+"segment shorter than this parameter is found, the infill line is connected "
+"to a perimeter segment at just one side and the length of the perimeter "
+"segment taken is limited to infill_anchor, but no longer than this "
+"parameter. \n"
 "If set to 0, the old algorithm for infill connection will be used, it should "
 "create the same result as with 1000 & 0."
 msgstr ""
@@ -10937,11 +10959,11 @@ msgid "Host Type"
 msgstr "Host-Typ"
 
 msgid ""
-"Slic3r can upload G-code files to a printer host. This field must contain "
-"the kind of the host."
+"Orca Slicer can upload G-code files to a printer host. This field must "
+"contain the kind of the host."
 msgstr ""
-"Slic3r kann G-Code-Dateien auf einen Drucker-Host hochladen. Dieses Feld "
-"muss die Art des Hosts enthalten."
+"Orca Slicer kann G-Code-Dateien auf einen Drucker-Host hochladen. Dieses "
+"Feld muss die Art des Hosts enthalten."
 
 msgid "Nozzle volume"
 msgstr "Volumen der Düse"
@@ -11106,13 +11128,13 @@ msgid ""
 "If you want to process the output G-code through custom scripts, just list "
 "their absolute paths here. Separate multiple scripts with a semicolon. "
 "Scripts will be passed the absolute path to the G-code file as the first "
-"argument, and they can access the Slic3r config settings by reading "
+"argument, and they can access the Orca Slicer config settings by reading "
 "environment variables."
 msgstr ""
 "Wenn Sie die Ausgabe-G-Code-Datei durch benutzerdefinierte Skripts "
 "verarbeiten möchten, geben Sie hier die absoluten Pfade auf. Trennen Sie "
 "mehrere Skripts durch ein Semikolon. Die Skripts erhalten den absoluten Pfad "
-"zur G-Code-Datei als erstes Argument und können die Slic3r-"
+"zur G-Code-Datei als erstes Argument und können die Orca Slicer-"
 "Konfigurationseinstellungen durch Lesen von Umgebungsvariablen abrufen."
 
 msgid "Printer notes"
@@ -13448,7 +13470,7 @@ msgstr ""
 
 #, fuzzy
 msgid "Upload"
-msgstr "Entladen"
+msgstr "Hochladen"
 
 msgid "Print host upload queue"
 msgstr "Druck-Host-Upload-Warteschlange"
@@ -13929,11 +13951,11 @@ msgstr "Druckereinstellung"
 msgid "Export Configs"
 msgstr "Konfigurationen exportieren"
 
-msgid "Printer config bundle(.bbscfg)"
-msgstr "Drucker-Konfigurationsbündel (.bbscfg)"
+msgid "Printer config bundle(.orca_printer)"
+msgstr "Drucker-Konfigurationsbündel (.orca_printer)"
 
-msgid "Filament bundle(.bbsflmt)"
-msgstr "Filament-Bündel (.bbsflmt)"
+msgid "Filament bundle(.orca_filament)"
+msgstr "Filament-Bündel (.orca_filament)"
 
 msgid "Printer presets(.zip)"
 msgstr "Druckervoreinstellungen (.zip)"
@@ -13975,7 +13997,7 @@ msgstr ""
 "der Erstellung ändern."
 
 msgid ""
-"Printer and all the filament&process presets that belongs to the printer. \n"
+"Printer and all the filament&&process presets that belongs to the printer. \n"
 "Can be shared with others."
 msgstr ""
 "Drucker und alle Filament- und Prozessvoreinstellungen, die zum Drucker "
@@ -14365,6 +14387,9 @@ msgid ""
 "G-code window\n"
 "You can turn on/off the G-code window by pressing the <b>C</b> key."
 msgstr ""
+"G-Code-Fenster\n"
+"Sie können das G-Code-Fenster ein- und ausschalten, indem Sie die Taste "
+"<b>C</b> drücken."
 
 #: resources/data/hints.ini: [hint:Switch workspaces]
 msgid ""
@@ -14372,6 +14397,9 @@ msgid ""
 "You can switch between <b>Prepare</b> and <b>Preview</b> workspaces by "
 "pressing the <b>Tab</b> key."
 msgstr ""
+"Arbeitsbereiche wechseln\n"
+"Sie können zwischen den Arbeitsbereichen <b>Vorbereiten</b> und <b>Preview</"
+"b> wechseln, indem Sie die Taste <b>Tab</b> drücken."
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
@@ -14389,6 +14417,9 @@ msgid ""
 "Did you know that <b>Reverse on odd</b> feature can significantly improve "
 "the surface quality of your overhangs?"
 msgstr ""
+"Umkehrung bei ungeraden\n"
+"Wussten Sie, dass die Funktion <b>Umkehrung bei ungeraden</b> die "
+"Oberflächenqualität Ihrer Überhänge erheblich verbessern kann?"
 
 #: resources/data/hints.ini: [hint:Cut Tool]
 msgid ""
@@ -14856,7 +14887,7 @@ msgstr ""
 #~ msgstr "Diese Slicer-Dateiversion %s ist neuer als die Version von %s:"
 
 #~ msgid ""
-#~ "Would you like to update your Bambu Studio software to enable all "
+#~ "Would you like to update your Orca Slicer software to enable all "
 #~ "functionality in this slicer file?\n"
 #~ msgstr ""
 #~ "Möchten Sie Ihre Software aktualisieren, um alle Funktionen in dieser "
@@ -14869,7 +14900,7 @@ msgstr ""
 #~ msgid ""
 #~ "This slicer file version %s is newer than %s's version.\n"
 #~ "\n"
-#~ "Would you like to update your Bambu Studio software to enable all "
+#~ "Would you like to update your Orca Slicer software to enable all "
 #~ "functionality in this slicer file?"
 #~ msgstr ""
 #~ "Diese Slicer-Dateiversion %s ist neuer als die Version von %s.\n"
