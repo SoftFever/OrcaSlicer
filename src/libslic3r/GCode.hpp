@@ -523,6 +523,10 @@ private:
     double                              m_last_mm3_per_mm;
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
 
+#if ORCA_CHECK_GCODE_PLACEHOLDERS
+    std::map<std::string, std::vector<std::string>> m_placeholder_error_messages;
+#endif
+
     Point                               m_last_pos;
     bool                                m_last_pos_defined;
 
