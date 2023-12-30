@@ -1368,11 +1368,12 @@ void ObjectList::extruder_editing()
     if (!item || !(m_objects_model->GetItemType(item) & (itVolume | itObject)))
         return;
 
-    wxRect rect = this->GetItemRect(item, GetColumn(colFilament));
-    wxPoint pos = rect.GetPosition();
-    pos.y -= 4;
-    wxSize size = rect.GetSize();
-    size.SetWidth(size.GetWidth() + 8);
+    const int column_width = GetColumn(colFilament)->GetWidth() + wxSystemSettings::GetMetric(wxSYS_VSCROLL_X) + 5;
+
+    wxPoint pos = this->get_mouse_position_in_control();
+    wxSize size = wxSize(column_width, -1);
+    pos.x = GetColumn(colName)->GetWidth() + GetColumn(colPrint)->GetWidth() + 5;
+    pos.y -= GetTextExtent("m").y;
 
     apply_extruder_selector(&m_extruder_editor, this, "1", pos, size);
 
@@ -2084,23 +2085,27 @@ static TriangleMesh create_mesh(const std::string& type_name, const BoundingBoxf
 {
     const double side = wxGetApp().plater()->canvas3D()->get_size_proportional_to_max_bed_size(0.1);
 
-    indexed_triangle_set mesh;
+    TriangleMesh mesh;
     if (type_name == "Cube")
         // Sitting on the print bed, left front front corner at (0, 0).
-        mesh = its_make_cube(side, side, side);
+        mesh = TriangleMesh(its_make_cube(side, side, side));
     else if (type_name == "Cylinder")
         // Centered around 0, sitting on the print bed.
         // The cylinder has the same volume as the box above.
-        mesh = its_make_cylinder(0.5 * side, side);
+        mesh = TriangleMesh(its_make_cylinder(0.5 * side, side));
     else if (type_name == "Sphere")
         // Centered around 0, half the sphere below the print bed, half above.
         // The sphere has the same volume as the box above.
-        mesh = its_make_sphere(0.5 * side, PI / 18);
+        mesh = TriangleMesh(its_make_sphere(0.5 * side, PI / 18));
     else if (type_name == "Slab")
         // Sitting on the print bed, left front front corner at (0, 0).
-        mesh = its_make_cube(bb.size().x() * 1.5, bb.size().y() * 1.5, bb.size().z() * 0.5);
+        mesh = TriangleMesh(its_make_cube(bb.size().x() * 1.5, bb.size().y() * 1.5, bb.size().z() * 0.5));
     else if (type_name == "Cone")
-        mesh = its_make_cone(0.5 * side, side);
+        mesh = TriangleMesh(its_make_cone(0.5 * side, side));
+    else if (type_name == "Disc")
+        mesh.ReadSTLFile((Slic3r::resources_dir() + "/handy_models/helper_disk.stl").c_str(), true, nullptr);
+    else if (type_name == "Torus")
+        mesh.ReadSTLFile((Slic3r::resources_dir() + "/handy_models/torus.stl").c_str(), true, nullptr);
     return TriangleMesh(mesh);
 }
 
@@ -3154,21 +3159,6 @@ bool ObjectList::can_merge_to_single_object() const
 
     // selected object should be multipart
     return (*m_objects)[obj_idx]->volumes.size() > 1;
-}
-
-wxPoint ObjectList::get_mouse_position_in_control() const
-{
-    wxPoint pt = wxGetMousePosition() - this->GetScreenPosition();
-
-#ifdef __APPLE__
-    // Workaround for OSX. From wxWidgets 3.1.6 Hittest doesn't respect to the header of wxDataViewCtrl
-    if (wxDataViewItem top_item = this->GetTopItem(); top_item.IsOk()) {
-        auto rect = this->GetItemRect(top_item, this->GetColumn(0));
-        pt.y -= rect.y;
-    }
-#endif // __APPLE__
-
-    return pt;
 }
 
 bool ObjectList::can_mesh_boolean() const
@@ -5482,17 +5472,17 @@ void ObjectList::msw_rescale()
     GetColumn(colSinking)->SetWidth(3 * em);
     GetColumn(colEditing )->SetWidth( 3 * em);
 
+    // rescale/update existing items with bitmaps
+    m_objects_model->Rescale();
+
     Layout();
 }
 
 void ObjectList::sys_color_changed()
 {
     wxGetApp().UpdateDVCDarkUI(this, true);
-
-    // rescale/update existing items with bitmaps
-    m_objects_model->UpdateBitmaps();
-
-    Layout();
+    
+    msw_rescale();
 
     if (m_objects_model) { m_objects_model->sys_color_changed(); }
 }
@@ -5529,12 +5519,6 @@ void GUI::ObjectList::OnStartEditing(wxDataViewEvent &event)
 // Here the last active column is forgotten, so when leaving the editing mode, the next mouse click will not enter the editing mode of the newly selected column.
 void ObjectList::OnEditingStarted(wxDataViewEvent &event)
 {
-    // Orca: Automatically show drop down on editing start and finish editing when the combobox is closed
-    if (event.GetColumn() == colFilament) {
-        ::ComboBox*c         = static_cast<::ComboBox *>(event.GetDataViewColumn()->GetRenderer()->GetEditorCtrl());
-        c->ToggleDropDown();
-        c->Bind(wxEVT_COMBOBOX_CLOSEUP, [event](wxCommandEvent& evt){ event.GetDataViewColumn()->GetRenderer()->FinishEditing(); });
-    }
 #ifdef __WXMSW__
 	m_last_selected_column = -1;
 #else

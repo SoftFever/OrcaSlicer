@@ -280,10 +280,8 @@ void TempInput::SetLabelColor(StateColor const &color)
 
 void TempInput::Rescale()
 {
-    if (this->normal_icon.bmp().IsOk())
-        this->normal_icon.sys_color_changed();
-    if (this->degree_icon.bmp().IsOk())
-        this->degree_icon.sys_color_changed();
+    if (this->normal_icon.bmp().IsOk()) this->normal_icon.msw_rescale();
+    if (this->degree_icon.bmp().IsOk()) this->degree_icon.msw_rescale();
     messureSize();
 }
 
@@ -319,7 +317,7 @@ void TempInput::DoSetSize(int x, int y, int width, int height, int sizeFlags)
     auto       left = padding_left;
     wxClientDC dc(this);
     if (normal_icon.bmp().IsOk()) {
-        wxSize szIcon = normal_icon.GetSize();
+        wxSize szIcon = normal_icon.GetBmpSize();
         left += szIcon.x;
     }
 
@@ -381,18 +379,18 @@ void TempInput::render(wxDC &dc)
     // start draw
     wxPoint pt = {padding_left, 0};
     if (actice_icon.bmp().IsOk() && actice) {
-        wxSize szIcon = actice_icon.GetSize();
+        wxSize szIcon = actice_icon.GetBmpSize();
         pt.y          = (size.y - szIcon.y) / 2;
-        dc.DrawBitmap(actice_icon.get_bitmap(), pt);
+        dc.DrawBitmap(actice_icon.bmp(), pt);
         pt.x += szIcon.x + 9;
     } else {
         actice = false;
     }
 
     if (normal_icon.bmp().IsOk() && !actice) {
-        wxSize szIcon = normal_icon.GetSize();
+        wxSize szIcon = normal_icon.GetBmpSize();
         pt.y          = (size.y - szIcon.y) / 2;
-        dc.DrawBitmap(normal_icon.get_bitmap(), pt);
+        dc.DrawBitmap(normal_icon.bmp(), pt);
         pt.x += szIcon.x + 9;
     }
 
@@ -437,10 +435,10 @@ void TempInput::render(wxDC &dc)
     // flag
     if (degree_icon.bmp().IsOk()) {
         auto   pos    = text_ctrl->GetPosition();
-        wxSize szIcon = degree_icon.GetSize();
+        wxSize szIcon = degree_icon.GetBmpSize();
         pt.y          = (size.y - szIcon.y) / 2;
         pt.x          = pos.x + text_ctrl->GetSize().x;
-        dc.DrawBitmap(degree_icon.get_bitmap(), pt);
+        dc.DrawBitmap(degree_icon.bmp(), pt);
     }
 }
 
@@ -454,7 +452,7 @@ void TempInput::messureMiniSize()
 
     wxClientDC dc(this);
     if (normal_icon.bmp().IsOk()) {
-        wxSize szIcon = normal_icon.GetSize();
+        wxSize szIcon = normal_icon.GetBmpSize();
         width += szIcon.x;
         height = szIcon.y;
     }
@@ -483,7 +481,7 @@ void TempInput::messureMiniSize()
     height = textSize.y > height ? textSize.y : height;
 
     // flag flag
-    auto flagSize = degree_icon.GetSize();
+    auto flagSize = degree_icon.GetBmpSize();
     width += flagSize.x;
     height = flagSize.y > height ? flagSize.y : height;
 
@@ -508,7 +506,7 @@ void TempInput::messureSize()
 
     wxClientDC dc(this);
     if (normal_icon.bmp().IsOk()) {
-        wxSize szIcon = normal_icon.GetSize();
+        wxSize szIcon = normal_icon.GetBmpSize();
         width += szIcon.x;
         height = szIcon.y;
     }
@@ -537,7 +535,7 @@ void TempInput::messureSize()
     height = textSize.y > height ? textSize.y : height;
 
     // flag flag
-    auto flagSize = degree_icon.GetSize();
+    auto flagSize = degree_icon.GetBmpSize();
     width += flagSize.x;
     height = flagSize.y > height ? flagSize.y : height;
 
