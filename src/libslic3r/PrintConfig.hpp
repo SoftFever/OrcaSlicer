@@ -853,6 +853,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat, inner_wall_speed))
     // Total number of perimeters.
     ((ConfigOptionInt, wall_loops))
+    ((ConfigOptionBool, alternate_extra_wall))
     ((ConfigOptionFloat, minimum_sparse_infill_area))
     ((ConfigOptionInt, solid_infill_filament))
     ((ConfigOptionFloatOrPercent, internal_solid_infill_line_width))
@@ -879,6 +880,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                 role_based_wipe_speed))
     ((ConfigOptionFloatOrPercent,       wipe_speed))
     ((ConfigOptionBool,                 wipe_on_loops))
+    ((ConfigOptionBool,                 wipe_before_external_loop))
     ((ConfigOptionEnum<WallInfillOrder>, wall_infill_order))
     ((ConfigOptionBool,                 precise_outer_wall))
     ((ConfigOptionBool,                 overhang_speed_classic))
@@ -906,6 +908,8 @@ PRINT_CONFIG_CLASS_DEFINE(
 PRINT_CONFIG_CLASS_DEFINE(
     MachineEnvelopeConfig,
 
+    // Orca: whether emit machine limits into the beginning of the G-code.
+    ((ConfigOptionBool,                 emit_machine_limits_to_gcode))
     // M201 X... Y... Z... E... [mm/sec^2]
     ((ConfigOptionFloats,               machine_max_acceleration_x))
     ((ConfigOptionFloats,               machine_max_acceleration_y))

@@ -40,7 +40,7 @@ struct SettingsFactory
     static std::map<std::string, std::vector<SimpleSettingData>>  OBJECT_CATEGORY_SETTINGS;
     static std::map<std::string, std::vector<SimpleSettingData>>  PART_CATEGORY_SETTINGS;
 
-    static wxBitmapBundle*                      get_category_bitmap(const std::string& category_name);
+    static wxBitmap                             get_category_bitmap(const std::string& category_name, bool menu_bmp = true);
     static Bundle                               get_bundle(const DynamicPrintConfig* config, bool is_object_settings, bool is_layer_settings = false);
     static std::vector<std::string>             get_options(bool is_part);
     //BBS: add api to get options for catogary
@@ -51,9 +51,9 @@ struct SettingsFactory
 class MenuFactory
 {
 public:
-	static std::vector<wxBitmapBundle*> get_volume_bitmaps();
-	static std::vector<wxBitmapBundle*> get_text_volume_bitmaps();
-	static std::vector<wxBitmapBundle*> get_svg_volume_bitmaps();
+	static std::vector<wxBitmap>    get_volume_bitmaps();
+	static std::vector<wxBitmap> get_text_volume_bitmaps();
+	static std::vector<wxBitmap> get_svg_volume_bitmaps();
 
     MenuFactory();
     ~MenuFactory() = default;
@@ -62,6 +62,7 @@ public:
     void    update();
     void    update_object_menu();
     void    update_default_menu();
+    void    msw_rescale();
     void    sys_color_changed();
 
     static void sys_color_changed(wxMenuBar* menu_bar);
@@ -124,6 +125,8 @@ private:
     void        create_bbl_assemble_part_menu();
 
     wxMenu*     append_submenu_add_generic(wxMenu* menu, ModelVolumeType type);
+    // Orca: add submenu for adding handy models
+    wxMenu*     append_submenu_add_handy_model(wxMenu* menu, ModelVolumeType type);
     void        append_menu_item_add_text(wxMenu* menu, ModelVolumeType type, bool is_submenu_item = true);
     void        append_menu_item_add_svg(wxMenu *menu, ModelVolumeType type, bool is_submenu_item = true);    
     void        append_menu_items_add_volume(wxMenu* menu);
