@@ -433,7 +433,7 @@ void SelectMachinePopup::Popup(wxWindow *WXUNUSED(focus))
 
     if (wxGetApp().is_user_login()) {
         if (!get_print_info_thread) {
-            get_print_info_thread = new boost::thread(Slic3r::create_thread([this, token = std::weak_ptr(m_token)] {
+            get_print_info_thread = new boost::thread(Slic3r::create_thread([this, token = std::weak_ptr<int>(m_token)] {
                 NetworkAgent* agent = wxGetApp().getAgent();
                 unsigned int http_code;
                 std::string body;
@@ -2347,14 +2347,19 @@ bool SelectMachineDialog::is_same_printer_model()
     const auto source_model = preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle);
     const auto target_model = obj_->printer_type;
     // Orca: ignore P1P -> P1S
-    if (source_model != target_model && !(preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle) == "C12") && !(target_model == "C11" && source_model == "C12")) {
+    if (source_model != target_model) {
+        if ((source_model == "C12" && target_model == "C11") || (source_model == "C11" && target_model == "C12") ||
+            (obj_->is_support_p1s_plus && (source_model == "C12"))) {
+            return true;
+        }
+
         BOOST_LOG_TRIVIAL(info) << "printer_model: source = " << source_model;
         BOOST_LOG_TRIVIAL(info) << "printer_model: target = " << target_model;
         return false;
     }
 
     if (obj_->is_support_p1s_plus) {
-        BOOST_LOG_TRIVIAL(info) << "printer_model: source = " << preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle);
+        BOOST_LOG_TRIVIAL(info) << "printer_model: source = " << source_model;
         BOOST_LOG_TRIVIAL(info) << "printer_model: target = " << obj_->printer_type << " (plus)";
         return false;
     }
@@ -2833,7 +2838,7 @@ void SelectMachineDialog::update_user_machine_list()
 {
     NetworkAgent* m_agent = wxGetApp().getAgent();
     if (m_agent && m_agent->is_user_login()) {
-        boost::thread get_print_info_thread = Slic3r::create_thread([this, token = std::weak_ptr(m_token)] {
+        boost::thread get_print_info_thread = Slic3r::create_thread([this, token = std::weak_ptr<int>(m_token)] {
             NetworkAgent* agent = wxGetApp().getAgent();
             unsigned int http_code;
             std::string body;
