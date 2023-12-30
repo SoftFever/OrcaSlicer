@@ -10396,7 +10396,7 @@ msgstr ""
 "ligne irrégulière et doit être imprimé plus lentement"
 
 msgid "Arc fitting"
-msgstr "Raccord en arc"
+msgstr "Tracer des arcs"
 
 msgid ""
 "Enable this to get a G-code file which has G2 and G3 moves. And the fitting "
