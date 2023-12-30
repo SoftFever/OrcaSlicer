@@ -4736,7 +4736,7 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
         cancelFn = [this, dlg]() {
             return m_is_closing || dlg->WasCanceled();
         };
-        finishFn = [this, userid = m_agent->get_user_id(), dlg, t = std::weak_ptr(m_user_sync_token)](bool ok) {
+        finishFn = [this, userid = m_agent->get_user_id(), dlg, t = std::weak_ptr<int>(m_user_sync_token)](bool ok) {
             CallAfter([=]{
                 dlg->Destroy();
                 if (ok && m_agent && t.lock() == m_user_sync_token && userid == m_agent->get_user_id()) reload_settings();
@@ -4744,7 +4744,7 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
         };
     }
     else {
-        finishFn = [this, userid = m_agent->get_user_id(), t = std::weak_ptr(m_user_sync_token)](bool ok) {
+        finishFn = [this, userid = m_agent->get_user_id(), t = std::weak_ptr<int>(m_user_sync_token)](bool ok) {
             CallAfter([=] {
                 if (ok && m_agent && t.lock() == m_user_sync_token && userid == m_agent->get_user_id()) reload_settings();
             });
@@ -4752,7 +4752,7 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
     }
 
     m_sync_update_thread = Slic3r::create_thread(
-        [this, progressFn, cancelFn, finishFn, t = std::weak_ptr(m_user_sync_token)] {
+        [this, progressFn, cancelFn, finishFn, t = std::weak_ptr<int>(m_user_sync_token)] {
             // get setting list, update setting list
             std::string version = preset_bundle->get_vendor_profile_version(PresetBundle::BBL_BUNDLE).to_string();
             int ret = m_agent->get_setting_list2(version, [this](auto info) {
