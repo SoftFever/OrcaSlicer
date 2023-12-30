@@ -8178,7 +8178,7 @@ msgstr ""
 "La version du firmware est erronée. La réparation et la mise à jour sont "
 "nécessaires avant l'impression. Voulez-vous effectuer la mise à jour "
 "maintenant ? Vous pouvez également effectuer une mise à jour ultérieurement "
-"depuis l'imprimante ou lors du prochain démarrage de Orca Slicer."
+"depuis l'imprimante ou lors du prochain démarrage d'Orca Slicer."
 
 msgid "Extension Board"
 msgstr "Carte d'Extension"
