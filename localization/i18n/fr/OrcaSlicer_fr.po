@@ -1813,7 +1813,7 @@ msgid "Scale an object to fit the build volume"
 msgstr "Redimensionner un objet pour l'adapter au volume d’impression"
 
 msgid "Flush Options"
-msgstr "Options de Rinçage"
+msgstr "Options de purge"
 
 msgid "Flush into objects' infill"
 msgstr "Purger dans le remplissage d'objet"
@@ -5468,7 +5468,7 @@ msgid "Bed type"
 msgstr "Type de plaque"
 
 msgid "Flushing volumes"
-msgstr "Volumes de rinçage"
+msgstr "Volumes de purge"
 
 msgid "Add one filament"
 msgstr "Ajouter un filament"
@@ -7732,7 +7732,7 @@ msgid "Re-calculate"
 msgstr "Re-calculer"
 
 msgid "Flushing volumes for filament change"
-msgstr "Volumes de rinçage pour le changement de filament"
+msgstr "Volumes de purge pour le changement de filament"
 
 msgid ""
 "Orca would re-calculate your flushing volumes everytime the filaments color "
@@ -7743,11 +7743,11 @@ msgstr ""
 "Slicer > Préférences"
 
 msgid "Flushing volume (mm³) for each filament pair."
-msgstr "Volume de rinçage (mm³) pour chaque paire de filaments."
+msgstr "Volume de purge (mm³) pour chaque paire de filaments."
 
 #, c-format, boost-format
 msgid "Suggestion: Flushing Volume in range [%d, %d]"
-msgstr "Suggestion : Volume de rinçage dans la plage [%d, %d]."
+msgstr "Suggestion : Volume de purge dans la plage [%d, %d]."
 
 #, c-format, boost-format
 msgid "The multiplier should be in range [%.2f, %.2f]."
@@ -12347,8 +12347,8 @@ msgid ""
 "The actual flushing volumes is equal to the flush multiplier multiplied by "
 "the flushing volumes in the table."
 msgstr ""
-"Les volumes de rinçage actuels sont égaux à la valeur du multiplicateur de "
-"rinçage multiplié par les volumes de rinçage dans le tableau."
+"Les volumes de purge actuels sont égaux à la valeur du multiplicateur de "
+"purge multiplié par les volumes de purge dans le tableau."
 
 msgid "Prime volume"
 msgstr "Premier volume"
