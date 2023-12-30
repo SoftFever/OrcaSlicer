@@ -15170,33 +15170,6 @@ msgstr ""
 #~ "Mostrar modelos en línea seleccionados por el personal en la página de "
 #~ "inicio"
 
-#~ msgid ""
-#~ "Another virtual camera is running.\n"
-#~ "Orca Slicer supports only a single virtual camera.\n"
-#~ "Do you want to stop this virtual camera?"
-#~ msgstr ""
-#~ "Hay otra cámara virtual en funcionamiento.\n"
-#~ "Orca Slicer solo admite una cámara virtual.\n"
-#~ "¿Quieres detener esta cámara virtual?"
-
-#~ msgid "The printer is required to be in the same LAN as Orca Slicer."
-#~ msgstr "La impresora debe estar en la misma LAN que Orca Slicer."
-
-#~ msgid ""
-#~ "Click OK to update the Network plug-in when Orca Slicer launches next "
-#~ "time."
-#~ msgstr ""
-#~ "Haga clic en Aceptar para actualizar el complemento de red la próxima vez "
-#~ "que se inicie Orca Slicer."
-
-#~ msgid "New version of Orca Slicer"
-#~ msgstr "Nueva versión de Orca Slicer"
-
-#~ msgid ""
-#~ "Step 1, please confirm Orca Slicer and your printer are in the same LAN."
-#~ msgstr ""
-#~ "Paso 1: confirme que Orca Slicer y su impresora estén en la misma LAN."
-
 #~ msgid "Empty layers around bottom are replaced by nearest normal layers."
 #~ msgstr ""
 #~ "Las capas vacías del fondo se sustituyen por las capas normales más "
