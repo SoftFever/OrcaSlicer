@@ -52,7 +52,7 @@
 	"machine_end_gcode": "END_PRINT",
 	"scan_first_layer": "0",
 	"thumbnails": [
-		"100x100",
-		"320x320"
+		"96x96",
+		"300x300"
 	]
 }
