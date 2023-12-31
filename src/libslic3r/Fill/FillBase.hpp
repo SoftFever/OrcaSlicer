@@ -19,6 +19,7 @@
 #include "../Flow.hpp"
 #include "../ExtrusionEntity.hpp"
 #include "../ExtrusionEntityCollection.hpp"
+#include "../ShortestPath.hpp"
 
 namespace Slic3r {
 
@@ -134,7 +135,7 @@ public:
     // Perform the fill.
     virtual Polylines fill_surface(const Surface *surface, const FillParams &params);
     virtual ThickPolylines fill_surface_arachne(const Surface* surface, const FillParams& params);
-
+    
     // BBS: this method is used to fill the ExtrusionEntityCollection.
     // It call fill_surface by default
     virtual void fill_surface_extrusion(const Surface* surface, const FillParams& params, ExtrusionEntitiesPtr& out);
