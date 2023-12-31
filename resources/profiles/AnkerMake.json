@@ -26,54 +26,14 @@
             "name": "fdm_process_ankermake_fast_common",
             "sub_path": "process/fdm_process_ankermake_fast_common.json"
         },
-        /*{
-            "name": "fdm_process_ankermake_common_0_2",
-            "sub_path": "process/fdm_process_ankermake_common_0_2.json"
-        },
-        {
-            "name": "fdm_process_ankermake_common_0_2_5",
-            "sub_path": "process/fdm_process_ankermake_common_0_2_5.json"
-        },
-        {
-            "name": "fdm_process_ankermake_common_0_6",
-            "sub_path": "process/fdm_process_ankermake_common_0_6.json"
-        },
-        {
-            "name": "fdm_process_ankermake_common_0_8",
-            "sub_path": "process/fdm_process_ankermake_common_0_8.json"
-        },
-        {
-            "name": "0.05mm Ultradetail 0.2 nozzle @AnkerMake",
-            "sub_path": "process/0.05mm Ultradetail 0.2 nozzle @AnkerMake.json"
-        },
-        {
-            "name": "0.05mm Ultradetail 0.25 nozzle @AnkerMake",
-            "sub_path": "process/0.05mm Ultradetail 0.25 nozzle @AnkerMake.json"
-        },*/
         {
             "name": "0.05mm Ultradetail @AnkerMake",
             "sub_path": "process/0.05mm Ultradetail @AnkerMake.json"
         },
-        /*{
-            "name": "0.10mm Detail 0.2 nozzle @AnkerMake",
-            "sub_path": "process/0.10mm Detail 0.2 nozzle @AnkerMake.json"
-        },
-        {
-            "name": "0.10mm Detail 0.25 nozzle @AnkerMake",
-            "sub_path": "process/0.10mm Detail 0.25 nozzle @AnkerMake.json"
-        },*/
         {
             "name": "0.10mm Detail @AnkerMake",
             "sub_path": "process/0.10mm Detail @AnkerMake.json"
         },
-        /*{
-            "name": "0.15mm Optimal 0.2 nozzle @AnkerMake",
-            "sub_path": "process/0.15mm Optimal 0.2 nozzle @AnkerMake.json"
-        },
-        {
-            "name": "0.15mm Optimal 0.25 nozzle @AnkerMake",
-            "sub_path": "process/0.15mm Optimal 0.25 nozzle @AnkerMake.json"
-        },*/
         {
             "name": "0.15mm Optimal @AnkerMake",
             "sub_path": "process/0.15mm Optimal @AnkerMake.json"
@@ -82,10 +42,6 @@
             "name": "0.15mm Fast @AnkerMake",
             "sub_path": "process/0.15mm Fast @AnkerMake.json"
         },
-        /*{
-            "name": "0.18mm Fine 0.6 nozzle @AnkerMake",
-            "sub_path": "process/0.18mm Fine 0.6 nozzle @AnkerMake.json"
-        },*/
         {
             "name": "0.20mm Standard @AnkerMake",
             "sub_path": "process/0.20mm Standard @AnkerMake.json"
@@ -102,46 +58,10 @@
             "name": "0.25mm Fast @AnkerMake",
             "sub_path": "process/0.25mm Fast @AnkerMake.json"
         },
-        /*{
-            "name": "0.24mm Optimal 0.6 nozzle @AnkerMake",
-            "sub_path": "process/0.24mm Optimal 0.6 nozzle @AnkerMake.json"
-        },
-        {
-            "name": "0.24mm Fine 0.8 nozzle @AnkerMake",
-            "sub_path": "process/0.24mm Fine 0.8 nozzle @AnkerMake.json"
-        },*/
         {
             "name": "0.30mm Extra Draft @AnkerMake",
             "sub_path": "process/0.30mm Extra Draft @AnkerMake.json"
         }
-        /*{
-            "name": "0.30mm Standard 0.6 nozzle @AnkerMake",
-            "sub_path": "process/0.30mm Standard 0.6 nozzle @AnkerMake.json"
-        },
-        {
-            "name": "0.32mm Optimal 0.6 nozzle @AnkerMake",
-            "sub_path": "process/0.32mm Optimal 0.6 nozzle @AnkerMake.json"
-        },
-        {
-            "name": "0.36mm Draft 0.6 nozzle @AnkerMake",
-            "sub_path": "process/0.36mm Draft 0.6 nozzle @AnkerMake.json"
-        },
-        {
-            "name": "0.40mm Standard 0.8 nozzle @AnkerMake",
-            "sub_path": "process/0.40mm Standard 0.8 nozzle @AnkerMake.json"
-        },
-        {
-            "name": "0.42mm Extra Draft 0.6 nozzle @AnkerMake",
-            "sub_path": "process/0.42mm Extra Draft 0.6 nozzle @AnkerMake.json"
-        },
-        {
-            "name": "0.48mm Draft 0.8 nozzle @AnkerMake",
-            "sub_path": "process/0.48mm Draft 0.8 nozzle @AnkerMake.json"
-        },
-        {
-            "name": "0.56mm Extra Draft 0.8 nozzle @AnkerMake",
-            "sub_path": "process/0.56mm Extra Draft 0.8 nozzle @AnkerMake.json"
-        }*/
     ],
     "filament_list": [
         {
@@ -362,97 +282,13 @@
             "name": "AnkerMake M5 PTFE 0.4 nozzle",
             "sub_path": "machine/AnkerMake M5 PTFE 0.4 nozzle.json"
         },
-        /*{
-            "name": "AnkerMake M5 PTFE 0.4 PCD nozzle",
-            "sub_path": "machine/AnkerMake M5 PTFE 0.4 PCD nozzle.json"
-        },
-        {
-            "name": "AnkerMake M5 PTFE 0.2 nozzle",
-            "sub_path": "machine/AnkerMake M5 PTFE 0.2 nozzle.json"
-        },
-        {
-            "name": "AnkerMake M5 PTFE 0.25 PCD nozzle",
-            "sub_path": "machine/AnkerMake M5 PTFE 0.25 PCD nozzle.json"
-        },
-        {
-            "name": "AnkerMake M5 PTFE 0.6 nozzle",
-            "sub_path": "machine/AnkerMake M5 PTFE 0.6 nozzle.json"
-        },
-        {
-            "name": "AnkerMake M5 PTFE 0.6 PCD nozzle",
-            "sub_path": "machine/AnkerMake M5 PTFE 0.6 PCD nozzle.json"
-        },
-        {
-            "name": "AnkerMake M5 PTFE 0.8 nozzle",
-            "sub_path": "machine/AnkerMake M5 PTFE 0.8 nozzle.json"
-        },
-        {
-            "name": "AnkerMake M5 PTFE 0.8 PCD nozzle",
-            "sub_path": "machine/AnkerMake M5 PTFE 0.8 PCD nozzle.json"
-        },*/
         {
             "name": "AnkerMake M5 All-Metal 0.4 nozzle",
             "sub_path": "machine/AnkerMake M5 All-Metal 0.4 nozzle.json"
         },
-        /*{
-            "name": "AnkerMake M5 All-Metal PCD 0.4 nozzle",
-            "sub_path": "machine/AnkerMake M5 All-Metal PCD 0.4 nozzle.json"
-        },
-        {
-            "name": "AnkerMake M5 All-Metal 0.2 nozzle",
-            "sub_path": "machine/AnkerMake M5 All-Metal 0.2 nozzle.json"
-        },
-        {
-            "name": "AnkerMake M5 All-Metal 0.25 PCD nozzle",
-            "sub_path": "machine/AnkerMake M5 All-Metal 0.25 PCD nozzle.json"
-        },
-        {
-            "name": "AnkerMake M5 All-Metal 0.6 nozzle",
-            "sub_path": "machine/AnkerMake M5 All-Metal 0.6 nozzle.json"
-        },
-        {
-            "name": "AnkerMake M5 All-Metal 0.6 PCD nozzle",
-            "sub_path": "machine/AnkerMake M5 All-Metal 0.6 PCD nozzle.json"
-        },
-        {
-            "name": "AnkerMake M5 All-Metal 0.8 nozzle",
-            "sub_path": "machine/AnkerMake M5 All-Metal 0.8 nozzle.json"
-        },
-        {
-            "name": "AnkerMake M5 All-Metal 0.8 PCD nozzle",
-            "sub_path": "machine/AnkerMake M5 All-Metal 0.8 PCD nozzle.json"
-        },*/
         {
             "name": "AnkerMake M5c 0.4 nozzle",
             "sub_path": "machine/AnkerMake M5c 0.4 nozzle.json"
         }
-        /*{
-            "name": "AnkerMake M5c 0.4 PCD nozzle",
-            "sub_path": "machine/AnkerMake M5c 0.4 PCD nozzle.json"
-        },
-        {
-            "name": "AnkerMake M5c 0.2 nozzle",
-            "sub_path": "machine/AnkerMake M5c 0.2 nozzle.json"
-        },
-        {
-            "name": "AnkerMake M5c 0.25 PCD nozzle",
-            "sub_path": "machine/AnkerMake M5c 0.25 PCD nozzle.json"
-        },
-        {
-            "name": "AnkerMake M5c 0.6 nozzle",
-            "sub_path": "machine/AnkerMake M5c 0.6 nozzle.json"
-        },
-        {
-            "name": "AnkerMake M5c 0.6 PCD nozzle",
-            "sub_path": "machine/AnkerMake M5c 0.6 PCD nozzle.json"
-        },
-        {
-            "name": "AnkerMake M5c 0.8 nozzle",
-            "sub_path": "machine/AnkerMake M5c 0.8 nozzle.json"
-        },
-        {
-            "name": "AnkerMake M5c 0.8 PCD nozzle",
-            "sub_path": "machine/AnkerMake M5c 0.8 PCD nozzle.json"
-        }*/
     ]
 }
