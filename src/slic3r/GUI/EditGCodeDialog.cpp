@@ -362,7 +362,7 @@ void EditGCodeDialog::on_dpi_changed(const wxRect&suggested_rect)
 
 void EditGCodeDialog::on_sys_color_changed()
 {
-    m_add_btn->sys_color_changed();
+    m_add_btn->msw_rescale();
 }
 
 //Orca
@@ -620,9 +620,11 @@ void ParamsModel::GetValue(wxVariant& variant, const wxDataViewItem& item, unsig
     ParamsNode* node = static_cast<ParamsNode*>(item.GetID());
     if (col == (unsigned int)0)
 #ifdef __linux__
-        variant << wxDataViewIconText(node->text, get_bmp_bundle(node->icon_name)->GetIconFor(m_ctrl->GetParent()));
+//        variant << wxDataViewIconText(node->text, get_bmp_bundle(node->icon_name)->GetIconFor(m_ctrl->GetParent())); //TODO: update to bundle with wx update
+wxDataViewIconText(node->text, create_scaled_bitmap(node->icon_name, m_ctrl->GetParent()));
 #else
-        variant << DataViewBitmapText(node->text, get_bmp_bundle(node->icon_name)->GetBitmapFor(m_ctrl->GetParent()));
+//        variant << DataViewBitmapText(node->text, get_bmp_bundle(node->icon_name)->GetBitmapFor(m_ctrl->GetParent())); //TODO: update to bundle with wx update
+        variant << DataViewBitmapText(node->text, create_scaled_bitmap(node->icon_name, m_ctrl->GetParent()));
 #endif //__linux__
     else
         wxLogError("DiffModel::GetValue: wrong column %d", col);
@@ -690,7 +692,14 @@ unsigned int ParamsModel::GetChildren(const wxDataViewItem& parent, wxDataViewIt
 
     return array.Count();
 }
-
+unsigned int ParamsModel::GetColumnCount() const { return 1; }
+wxString     ParamsModel::GetColumnType(unsigned int col) const {
+#ifdef __linux__
+    return wxT("wxDataViewIconText");
+#else
+    return wxT("DataViewBitmapText");
+#endif
+}
 
 // ----------------------------------------------------------------------------
 //                  ParamsViewCtrl
