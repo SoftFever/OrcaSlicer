@@ -491,44 +491,44 @@ msgstr "Fehlerhafte Verbinder gefunden"
 #, c-format, boost-format
 msgid "%1$d connector is out of cut contour"
 msgid_plural "%1$d connectors are out of cut contour"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%1$d Verbinder ist außerhalb des Schnittkontur"
+msgstr[1] "%1$d Verbinder sind außerhalb des Schnittkontur"
 
 #, c-format, boost-format
 msgid "%1$d connector is out of object"
 msgid_plural "%1$d connectors are out of object"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%1$d Verbinder ist außerhalb des Objekts"
+msgstr[1] "%1$d Verbinder sind außerhalb des Objekts"
 
 msgid "Some connectors are overlapped"
 msgstr "Einige Verbinder überlappen sich"
 
 msgid "Select at least one object to keep after cutting."
-msgstr ""
+msgstr "Wählen Sie mindestens ein Objekt aus, das nach dem Schneiden erhalten bleiben soll."
 
 msgid "Cut plane is placed out of object"
-msgstr ""
+msgstr "Schnittfläche ist außerhalb des Objekts platziert"
 
 msgid "Cut plane with groove is invalid"
-msgstr ""
+msgstr "Schnittfläche mit Nut ist ungültig"
 
 msgid "Connector"
 msgstr "Verbinder"
 
 msgid "Cut by Plane"
-msgstr ""
+msgstr "Schnitt durch Ebene"
 
 msgid "non-manifold edges be caused by cut tool, do you want to fix it now?"
-msgstr ""
+msgstr "Nicht-manifold Kanten durch Schneidwerkzeug verursacht, möchten Sie es jetzt beheben?"
 
 msgid "Repairing model object"
 msgstr "Modellobjekt reparieren"
 
 msgid "Cut by line"
-msgstr ""
+msgstr "Schnitt durch Linie"
 
 msgid "Delete connector"
-msgstr ""
+msgstr "Verbinder löschen"
 
 msgid "Mesh name"
 msgstr "Netzname"
@@ -4058,7 +4058,7 @@ msgstr "Volumen:"
 msgid "Size:"
 msgstr "Größe:"
 
-#, c-format, boost-format
+#, boost-format
 msgid ""
 "Conflicts of gcode paths have been found at layer %d, z = %.2lf mm. Please "
 "separate the conflicted objects farther (%s <-> %s)."
@@ -4494,7 +4494,6 @@ msgstr "Durchflussrate"
 msgid "Pressure advance"
 msgstr "Pressure advance"
 
-#, fuzzy
 msgid "Retraction test"
 msgstr "Rückzugslängen Test"
 
@@ -6704,8 +6703,8 @@ msgstr ""
 msgid ""
 "Timelapse is not supported because Print sequence is set to \"By object\"."
 msgstr ""
-"Zeitraffer wird nicht unterstützt, da die Druckreihenfolge auf \"Nach Objekt"
-"\" eingestellt ist."
+"Zeitraffer wird nicht unterstützt, da die Druckreihenfolge auf \"Nach "
+"Objekt\" eingestellt ist."
 
 msgid "Errors"
 msgstr "Fehler"
@@ -7038,13 +7037,13 @@ msgstr "Ignorieren"
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "Wenn Sie einen Zeitraffer ohne Werkzeugkopf aufnehmen, wird empfohlen, einen "
 "\"Timelapse Wischturm\" hinzuzufügen, indem Sie mit der rechten Maustaste "
-"auf die leere Position der Bauplatte klicken und \"Primitiv hinzufügen\"->"
-"\"Timelapse Wischturm\" wählen."
+"auf die leere Position der Bauplatte klicken und \"Primitiv hinzufügen\"-"
+">\"Timelapse Wischturm\" wählen."
 
 msgid "Line width"
 msgstr "Breite der Linie"
@@ -7301,11 +7300,9 @@ msgstr "Toolchange-Parameter bei Multi-Extruder-MM-Druckern"
 msgid "Printable space"
 msgstr "Druckbarer Raum"
 
-#, fuzzy
 msgid "Cooling Fan"
 msgstr "Kühlung"
 
-#, fuzzy
 msgid "Fan speed-up time"
 msgstr "Lüfter Beschleunigungszeit"
 
@@ -8714,7 +8711,6 @@ msgstr ""
 "Passwort in die URL in folgendem Format eingegeben werden: https://username:"
 "password@Ihre-octopi-Adresse/"
 
-#, fuzzy
 msgid "Device UI"
 msgstr "Gerät"
 
@@ -10218,7 +10214,6 @@ msgstr "Bewegung"
 msgid "Travel speed of initial layer"
 msgstr "Bewegungsgeschwindigkeit der ersten Schicht"
 
-#, fuzzy
 msgid "Number of slow layers"
 msgstr "Anzahl der lansamen Schichten"
 
@@ -10243,19 +10238,18 @@ msgstr "Volle Lüfterdrehzahl ab Schicht"
 
 msgid ""
 "Fan speed will be ramped up linearly from zero at layer "
-"\"close_fan_the_first_x_layers\" to maximum at layer \"full_fan_speed_layer"
-"\". \"full_fan_speed_layer\" will be ignored if lower than "
-"\"close_fan_the_first_x_layers\", in which case the fan will be running at "
-"maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
+"\"close_fan_the_first_x_layers\" to maximum at layer "
+"\"full_fan_speed_layer\". \"full_fan_speed_layer\" will be ignored if lower "
+"than \"close_fan_the_first_x_layers\", in which case the fan will be running "
+"at maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
 msgstr ""
-"Die Lüftergeschwindigkeit wird linear von Null bei der Schicht"
-"\"close_fan_the_first_x_layers\" auf das Maximum bei der Schicht "
+"Die Lüftergeschwindigkeit wird linear von Null bei der "
+"Schicht\"close_fan_the_first_x_layers\" auf das Maximum bei der Schicht "
 "\"full_fan_speed_layer\" erhöht. \"full_fan_speed_layer\" wird ignoriert, "
 "wenn es niedriger ist als \"close_fan_the_first_x_layers\",in diesem Fall "
 "läuft der Lüfter bei Schicht \"close_fan_the_first_x_layers\"+ 1 mit maximal "
 "zulässiger Geschwindigkeit."
 
-#, fuzzy
 msgid "Support interface fan speed"
 msgstr "Stützstruktur-Schnittstelle"
 
@@ -10442,7 +10436,6 @@ msgstr ""
 "den Start-G-Code verschoben, wenn nur benutzerdefinierterStart-G-Code "
 "aktiviert ist. Verwende 0, um den Lüfter zu deaktivieren."
 
-#, fuzzy
 msgid "Only overhangs"
 msgstr "Nur an Überhängen"
 
@@ -10505,7 +10498,6 @@ msgstr "Mit welcher Art von G-Code ist der Drucker kompatibel"
 msgid "Klipper"
 msgstr "Klipper"
 
-#, fuzzy
 msgid "Label objects"
 msgstr "Objekte beschriften"
 
@@ -11407,7 +11399,6 @@ msgstr ""
 msgid "Role base wipe speed"
 msgstr "Rollenbasierte Wipe Geschwindigkeit"
 
-#, fuzzy
 msgid ""
 "The wipe speed is determined by the speed of the current extrusion role.e.g. "
 "if a wipe action is executed immediately following an outer wall extrusion, "
@@ -12945,7 +12936,7 @@ msgid ""
 "cause the result not exactly the same in each calibration. We are still "
 "investigating the root cause to do improvements with new updates."
 msgstr ""
-"Bitte finden Sie die Details der Flussdynamik-Kalibrierung in unserem Wiki.\n"
+"Sie finden die Details der Dynamischen-Kalibrierung in unserem Wiki.\n"
 "\n"
 "Normalerweise ist die Kalibrierung nicht erforderlich. Wenn Sie einen Einzel-"
 "Farb-/Materialdruck mit der Option \"Flussdynamik-Kalibrierung\" im "
@@ -13438,11 +13429,9 @@ msgstr ""
 "Schritt >= 0\n"
 "Ende > Start + Schritt)"
 
-#, fuzzy
 msgid "Start retraction length: "
 msgstr "Start Rückzugslänge"
 
-#, fuzzy
 msgid "End retraction length: "
 msgstr "Ende Rückzugslänge"
 
@@ -13468,7 +13457,6 @@ msgstr ""
 "Der Dateiname für den Upload endet nicht mit \"%s\". Möchten Sie den Vorgang "
 "fortsetzen?"
 
-#, fuzzy
 msgid "Upload"
 msgstr "Hochladen"
 
@@ -13724,8 +13712,8 @@ msgstr ""
 "Möchten Sie es überschreiben?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 "Wir würden die Voreinstellungen als \"Hersteller Typ Seriennummer @Drucker "
@@ -14124,7 +14112,7 @@ msgid "For more information, please check out Wiki"
 msgstr "Für weitere Informationen besuchen Sie bitte Wiki"
 
 msgid "Collapse"
-msgstr "Zusammenbruch"
+msgstr "Zuklappen"
 
 msgid "Daily Tips"
 msgstr "Tägliche Tipps"
@@ -14142,7 +14130,6 @@ msgstr ""
 "Kalibrierung nicht möglich: Möglicherweise, weil der eingestellte "
 "Kalibrierungswertebereich zu groß ist oder der Schritt zu klein ist"
 
-#, fuzzy
 msgid "Physical Printer"
 msgstr "Drucker"
 
@@ -14407,7 +14394,7 @@ msgid ""
 "Did you know that Orca Slicer offers a wide range of keyboard shortcuts and "
 "3D scene operations."
 msgstr ""
-"Wie werden Tastenkombinationen verwendet\n"
+"Tastenkombinationen verwenden\n"
 "Wussten Sie, dass Orca Slicer eine Vielzahl von Tastenkombinationen und 3D-"
 "Szenenoperationen bietet."
 
@@ -14427,9 +14414,9 @@ msgid ""
 "Did you know that you can cut a model at any angle and position with the "
 "cutting tool?"
 msgstr ""
-"Schnittwerkzeug\n"
-"Wussten Sie, dass Sie mit dem Schnittwerkzeug ein Modell in jedem beliebigen "
-"Winkel und jeder beliebigen Position zerschneiden können?"
+"Schneidwerkzeug\n"
+"Wussten Sie, dass Sie ein Modell mit dem Schneidwerkzeug in jedem Winkel und "
+"an jeder Position schneiden können?"
 
 #: resources/data/hints.ini: [hint:Fix Model]
 msgid ""
@@ -14447,7 +14434,8 @@ msgid ""
 "Did you know that you can generate a timelapse video during each print?"
 msgstr ""
 "Zeitraffer\n"
-"Wussten Sie, dass Sie bei jedem Druck ein Zeitraffervideo erstellen können?"
+"Wussten Sie, dass Sie während jedes Drucks ein Zeitraffervideo erstellen "
+"können?"
 
 #: resources/data/hints.ini: [hint:Auto-Arrange]
 msgid ""
@@ -14464,9 +14452,9 @@ msgid ""
 "Did you know that you can rotate objects to an optimal orientation for "
 "printing by a simple click?"
 msgstr ""
-"Automatische Ausrichtung\n"
-"Wussten Sie schon, dass Sie Objekte mit einem einfachen Klick in eine für "
-"den Druck optimale Ausrichtung drehen können?"
+"Automatisch ausrichten\n"
+"Wussten Sie, dass Sie Objekte durch einen einfachen Klick in eine optimale "
+"Druckausrichtung drehen können?"
 
 #: resources/data/hints.ini: [hint:Lay on Face]
 msgid ""
@@ -14602,9 +14590,9 @@ msgid ""
 "Did you know that you can print a model even faster, by using the Adaptive "
 "Layer Height option? Check it out!"
 msgstr ""
-"Beschleunigen Sie Ihren Druck mit adaptiven Schichthöhe\n"
-"Wussten Sie, dass Sie ein Modell noch schneller drucken können, wenn Sie die "
-"Option \"Adaptive Schichthöhe\" verwenden? Probiere es aus!"
+"Beschleunigen Sie Ihren Druck mit adaptiver Schichthöhe\n"
+"Wussten Sie, dass Sie ein Modell noch schneller drucken können, indem Sie "
+"die Option Adaptive Schichthöhe verwenden? Probiere es aus!"
 
 #: resources/data/hints.ini: [hint:Support painting]
 msgid ""
@@ -14637,10 +14625,10 @@ msgid ""
 "successfully? Higher temperature and lower speed are always recommended for "
 "the best results."
 msgstr ""
-"Drucken von Silkfilamenten\n"
-"Wussten Sie, dass Silkfilamente besondere Bedingungen erfordern, um "
-"erfolgreich gedruckt zu werden? Eine höhere Temperatur und eine niedrigere "
-"Geschwindigkeit werden immer empfohlen, um die besten Ergebnisse zu erzielen."
+"Drucken von Seidenfilament\n"
+"Wussten Sie, dass Seidenfilament besondere Überlegungen erfordert, um es "
+"erfolgreich zu drucken? Höhere Temperaturen und niedrigere Geschwindigkeiten "
+"werden immer für die besten Ergebnisse empfohlen."
 
 #: resources/data/hints.ini: [hint:Brim for better adhesion]
 msgid ""
