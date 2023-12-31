@@ -776,7 +776,7 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord h_pos, wxCoord v_pos)
             const wxPoint pos = draw_act_bmps(dc, wxPoint(h_pos, v_pos), field->undo_to_sys_bitmap()->bmp(),
                                               field->undo_bitmap()->bmp(), field->blink());
             if (field->has_edit_ui())
-                draw_edit_bmp(dc, pos, field->edit_bitmap());
+                draw_edit_bmp(dc, pos, *field->edit_bitmap());
         }
         return;
     }
@@ -1011,14 +1011,14 @@ wxPoint OG_CustomCtrl::CtrlLine::draw_act_bmps(wxDC& dc, wxPoint pos, const wxBi
     return wxPoint(h_pos, v_pos);
 }
 
-wxCoord OG_CustomCtrl::CtrlLine::draw_edit_bmp(wxDC &dc, wxPoint pos, const wxBitmapBundle *bmp_edit)
+wxCoord OG_CustomCtrl::CtrlLine::draw_edit_bmp(wxDC &dc, wxPoint pos, const wxBitmap& bmp_edit)
 {
     const wxCoord h_pos = pos.x + ctrl->m_h_gap;
     const wxCoord v_pos = pos.y;
-    const int bmp_w = get_bitmap_size(bmp_edit, ctrl).GetWidth();
+    const int bmp_w = bmp_edit.GetWidth();
     rects_edit_icon.emplace_back(wxRect(h_pos, v_pos, bmp_w, bmp_w));
 
-    dc.DrawBitmap(bmp_edit->GetBitmapFor(ctrl), h_pos, v_pos);
+    dc.DrawBitmap(bmp_edit, h_pos, v_pos);
 
     return h_pos + bmp_w + ctrl->m_h_gap;
 }
