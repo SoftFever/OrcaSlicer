@@ -150,7 +150,7 @@ public:
 
     // Edit field button
     bool					has_edit_ui()			const { return !m_edit_ui.tooltip.IsEmpty(); }
-    const wxBitmapBundle*	edit_bitmap()			const { return &m_edit_ui.bitmap->bmp(); }
+    const wxBitmap*	        edit_bitmap()			const { return &m_edit_ui.bitmap->bmp(); }
     const wxString*			edit_tooltip()			const { return &m_edit_ui.tooltip; }
 };
 
