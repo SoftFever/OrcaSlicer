@@ -36,13 +36,22 @@
 	"retract_before_wipe": ["70%"],
 	"retraction_length": ["0.5"],
 	"retract_length_toolchange": ["1"],
+	"retraction_speed": ["40"],
 	"deretraction_speed": ["40"],
-	"z_hop": ["0.4"],
+	"extruder_clearance_height_to_lid": "101",
+	"extruder_clearance_height_to_rod": "45",
+	"extruder_clearance_radius": "45",
+	"z_hop": ["0.2"],
 	"single_extruder_multi_material": "1",
-	"change_filament_gcode": "",
+	"manual_filament_change": "1",
+	"change_filament_gcode": "PAUSE",
 	"machine_pause_gcode": "PAUSE",
 	"default_filament_profile": ["Creality Generic PLA"],
 	"machine_start_gcode": "M140 S0\nM104 S0 \nSTART_PRINT EXTRUDER_TEMP=[nozzle_temperature_initial_layer] BED_TEMP=[bed_temperature_initial_layer_single]",
 	"machine_end_gcode": "END_PRINT",
-	"scan_first_layer": "0"
+	"scan_first_layer": "0",
+	"thumbnails": [
+		"96x96",
+		"300x300"
+	]
 }
