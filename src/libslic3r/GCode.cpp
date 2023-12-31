@@ -3558,7 +3558,7 @@ LayerResult GCode::process_layer(
     m_last_height = height;
 
     // Set new layer - this will change Z and force a retraction if retract_when_changing_layer is enabled.
-    if (! print.config().before_layer_change_gcode.value.empty()) {
+    if (! m_config.before_layer_change_gcode.value.empty()) {
         DynamicConfig config;
         config.set_key_value("layer_num",   new ConfigOptionInt(m_layer_index + 1));
         config.set_key_value("layer_z",     new ConfigOptionFloat(print_z));
@@ -3581,7 +3581,7 @@ LayerResult GCode::process_layer(
 
     auto insert_timelapse_gcode = [this, print_z, &print]() -> std::string {
         std::string gcode_res;
-        if (!print.config().time_lapse_gcode.value.empty()) {
+        if (!m_config.time_lapse_gcode.value.empty()) {
             DynamicConfig config;
             config.set_key_value("layer_num", new ConfigOptionInt(m_layer_index));
             config.set_key_value("layer_z", new ConfigOptionFloat(print_z));
@@ -3609,7 +3609,7 @@ LayerResult GCode::process_layer(
             }
         }
     } else {
-        if (!print.config().time_lapse_gcode.value.empty()) {
+        if (!m_config.time_lapse_gcode.value.empty()) {
             DynamicConfig config;
             config.set_key_value("layer_num", new ConfigOptionInt(m_layer_index));
             config.set_key_value("layer_z", new ConfigOptionFloat(print_z));
@@ -3619,7 +3619,7 @@ LayerResult GCode::process_layer(
                      "\n";
         }
     }
-    if (! print.config().layer_change_gcode.value.empty()) {
+    if (! m_config.layer_change_gcode.value.empty()) {
         DynamicConfig config;
         config.set_key_value("layer_num", new ConfigOptionInt(m_layer_index));
         config.set_key_value("layer_z",   new ConfigOptionFloat(print_z));
