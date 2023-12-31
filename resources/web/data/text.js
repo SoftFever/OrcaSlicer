@@ -439,6 +439,9 @@ var LangText = {
     t92: "Cabane de Noël Bambu",
     t93: "Connexion à l'imprimante",
     t94: "Veuillez configurer la connexion de votre imprimante pour afficher l'interface.",
+    t109: "Filaments du système",
+    t110: "Filaments personnalisés",
+    t111: "Créer un nouveau filament",
     wk1: "Démarrage rapide",
     wk2: "Cet article présente l'utilisation la plus basique de Orca Slicer. Il guide les utilisateurs pour configurer le logiciel, créer des projets et effectuer la première tâche d'impression étape par étape.",
     wk3: "Workflow basé sur des projets",
@@ -454,7 +457,7 @@ var LangText = {
     wk13: "Format STEP",
     wk14: "Par rapport au format STL, le format STEP apporte des informations plus efficaces. Grâce à la grande précision de ce format, de nombreuses trajectoires d'extrusion peuvent être générées sous forme d'arcs. Il inclut également la relation d'assemblage de chaque pièce d'un modèle, qui peut être utilisée pour restaurer la vue d'assemblage après la coupe d'un modèle.",
     wk15: "Texte 3D",
-    wk16: "Avec l'outil Texte 3D, les utilisateurs peuvent facilement créer diverses formes de texte 3D dans le projet, ce qui rend le modèle plus personnalisé. Orca Slicer fournit des dizaines de polices et prend en charge les styles gras et italique pour donner au texte une plus grande flexibilité.",
+    wk16: "Avec l'outil Texte 3D, les utilisateurs peuvent facilement créer diverses formes de texte 3D dans le projet, ce qui rend le modèle plus personnalisé. Orca Slicer fournit des dizaines de polices et prend en charge les styles gras et italique pour donner au texte une plus grande flexibilité."  
   },
   zh_CN: {
     t1: "欢迎使用Orca Slicer",
