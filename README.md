@@ -22,10 +22,15 @@ Orca Slicer's logo is designed by community member Justin Levine(@freejstnalxndr
 
 # How to install
 **Windows**: 
-1.  Install and run  
+1.  Download the installer for your preferred version from the [releases page](https://github.com/SoftFever/OrcaSlicer/releases).
+    - *For convenience there is also a portable build available.*
     - *If you have troubles to run the build, you might need to install following runtimes:*
-      - [MicrosoftEdgeWebView2RuntimeInstallerX64](https://github.com/SoftFever/BambuStudio-SoftFever/releases/download/v1.0.10-sf2/MicrosoftEdgeWebView2RuntimeInstallerX64.exe)  
-      - [vcredist2019_x64](https://github.com/SoftFever/BambuStudio-SoftFever/releases/download/v1.0.10-sf2/vcredist2019_x64.exe)  
+      - [MicrosoftEdgeWebView2RuntimeInstallerX64](https://github.com/SoftFever/BambuStudio-SoftFever/releases/download/v1.0.10-sf2/MicrosoftEdgeWebView2RuntimeInstallerX64.exe)
+          - [Details of this runtime](https://aka.ms/webview2)
+          - [Alternative Download Link Hosted by Microsoft](https://go.microsoft.com/fwlink/p/?LinkId=2124703)
+      - [vcredist2019_x64](https://github.com/SoftFever/BambuStudio-SoftFever/releases/download/v1.0.10-sf2/vcredist2019_x64.exe)
+          -  [Alternative Download Link Hosted by Microsoft](https://aka.ms/vs/17/release/vc_redist.x64.exe)
+          -  This file may already be available on your computer if you've installed visual studio.  Check the following location: `%VCINSTALLDIR%Redist\MSVC\v142`
 
 **Mac**:
 1. Download the DMG for your computer: `arm64` version for Apple Silicon and `x86_64` for Intel CPU.  
@@ -51,16 +56,20 @@ Orca Slicer's logo is designed by community member Justin Levine(@freejstnalxndr
 **Linux(Ubuntu)**:
  1. If you run into trouble to execute it, try this command in terminal:  
     `chmod +x /path_to_appimage/OrcaSlicer_ubu64.AppImage`
+    
 # How to compile
 - Windows 64-bit  
   - Tools needed: Visual Studio 2019, Cmake, git, Strawberry Perl.
+      - You will require cmake version 3.14 or later, which is available [on their website](https://cmake.org/download/).
+      - Strawberry Perl is [available on their github repository](https://github.com/StrawberryPerl/Perl-Dist-Strawberry/releases/).
   - Run `build_release.bat` in `x64 Native Tools Command Prompt for VS 2019`
 
 - Mac 64-bit  
   - Tools needed: Xcode, Cmake, git, gettext, libtool, automake, autoconf
   - run `build_release_macos.sh`
 
-- Ubuntu  
+- Ubuntu 
+  - Dependencies **Will be auto installed with the shell script**: `libmspack-dev libgstreamerd-3-dev libsecret-1-dev libwebkit2gtk-4.0-dev libosmesa6-dev libssl-dev libcurl4-openssl-dev eglexternalplatform-dev libudev-dev libdbus-1-dev extra-cmake-modules libgtk2.0-dev libglew-dev libudev-dev libdbus-1-dev cmake git`
   - run 'sudo ./BuildLinux.sh -u'
   - run './BuildLinux.sh -dsir'
 
