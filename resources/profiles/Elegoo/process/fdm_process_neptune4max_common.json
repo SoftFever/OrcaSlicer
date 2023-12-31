@@ -30,5 +30,6 @@
     "top_surface_speed": "120",
     "gap_infill_speed": "120",
     "sparse_infill_speed": "200",
-    "travel_speed": "300"
+    "travel_speed": "300",
+    "exclude_object": "1"
 }

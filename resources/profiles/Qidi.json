@@ -579,6 +579,14 @@
         {
             "name": "QIDI ABS-GF10",
             "sub_path": "filament/QIDI ABS-GF10.json"
+        },
+        {
+            "name": "Qidi PC-ABS-FR",
+            "sub_path": "filament/Qidi PC-ABS-FR.json"
+        },
+        {
+            "name": "Qidi ASA-Aero",
+            "sub_path": "filament/Qidi ASA-Aero.json"
         }
     ],
     "machine_list": [

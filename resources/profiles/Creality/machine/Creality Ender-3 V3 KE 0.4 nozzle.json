@@ -14,8 +14,6 @@
     "extruder_clearance_max_radius": "90",
     "extruder_clearance_radius": "90",
     "machine_load_filament_time": "11",
-	"support_chamber_temp_control": "false",
-	"support_air_filtration": ["false"],
 	"nozzle_diameter": [
 		"0.4"
 	],
