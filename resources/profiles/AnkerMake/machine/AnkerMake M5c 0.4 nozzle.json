@@ -3,7 +3,7 @@
     "name": "AnkerMake M5c 0.4 nozzle",
     "inherits": "fdm_marlin_common",
     "from": "system",
-    "setting_id": "GM001",
+    "setting_id": "GM003",
     "instantiation": "true",
     "nozzle_diameter": [
         "0.4"
