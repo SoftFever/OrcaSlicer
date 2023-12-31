@@ -272,8 +272,8 @@ SideTools::SideTools(wxWindow *parent, wxWindowID id, const wxPoint &pos, const 
     wxBoxSizer* connection_sizer_V = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer* connection_sizer_H = new wxBoxSizer(wxHORIZONTAL);
 
-    // m_hyperlink = new wxHyperlinkCtrl(m_connection_info, wxID_ANY, _L("Failed to connect to the server"), wxT("https://wiki.bambulab.com/en/software/bambu-studio/failed-to-connect-printer"), wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE);
-    // m_hyperlink->SetBackgroundColour(wxColour(255, 111, 0));
+    m_hyperlink = new wxHyperlinkCtrl(m_connection_info, wxID_ANY, _L("Failed to connect to the server"), wxT("https://wiki.bambulab.com/en/software/bambu-studio/failed-to-connect-printer"), wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE);
+    m_hyperlink->SetBackgroundColour(wxColour(255, 111, 0));
 
     m_more_err_open = ScalableBitmap(this, "monitir_err_open", 16);
     m_more_err_close = ScalableBitmap(this, "monitir_err_close", 16);
@@ -302,7 +302,7 @@ SideTools::SideTools(wxWindow *parent, wxWindowID id, const wxPoint &pos, const 
 
         });
 
-    // connection_sizer_H->Add(m_hyperlink, 0, wxALIGN_CENTER | wxALL, 5);
+    connection_sizer_H->Add(m_hyperlink, 0, wxALIGN_CENTER | wxALL, 5);
     connection_sizer_H->Add(m_more_button, 0, wxALIGN_CENTER | wxALL, 3);
     connection_sizer_V->Add(connection_sizer_H, 0, wxALIGN_CENTER, 0);
 
