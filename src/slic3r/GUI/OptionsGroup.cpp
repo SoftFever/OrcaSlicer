@@ -107,7 +107,7 @@ const t_field& OptionsGroup::build_field(const t_config_option_key& id, const Co
             if (!m_disabled)
                 this->edit_custom_gcode(opt_id);
         };
-        field->set_edit_tooltip(_L("Edit CustomG-code"));
+        field->set_edit_tooltip(_L("Edit Custom G-code"));
     }
 
 	field->m_back_to_initial_value = [this](std::string opt_id) {
