@@ -745,6 +745,14 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm");
     def->min = 0;
     def->set_default_value(new ConfigOptionFloat(0.));
+    
+    def = this->add("enable_gap_fill_for_top_bottom_surfaces", coBool);
+    def->label = L("Enable gap fill");
+    def->category = L("Strength");
+    def->tooltip = L("Enables gap fill for top and bottom surfaces. The minimum gap length that will be filled can be controlled"
+                     "from the filter out tiny gaps option in the infill section below.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(true));
 
     def = this->add("enable_overhang_bridge_fan", coBools);
     def->label = L("Force cooling for overhang and bridge");
@@ -1305,6 +1313,14 @@ void PrintConfigDef::init_fff_params()
     def->enum_values   = def_top_fill_pattern->enum_values;
     def->enum_labels   = def_top_fill_pattern->enum_labels;
     def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipMonotonic));
+    
+    def = this->add("enable_gap_fill_for_solid_infill", coBool);
+    def->label = L("Enable gap fill");
+    def->category = L("Strength");
+    def->tooltip = L("Enables gap fill for internal solid infill. The minimum gap length that will be filled can be controlled"
+                     "from the filter out tiny gaps option");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
     
     def = this->add("outer_wall_line_width", coFloatOrPercent);
     def->label = L("Outer wall");
