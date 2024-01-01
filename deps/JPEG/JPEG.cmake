@@ -12,8 +12,8 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 endif()
 
 orcaslicer_add_cmake_project(JPEG
-    URL https://github.com/libjpeg-turbo/libjpeg-turbo/archive/refs/tags/2.0.6.zip
-    URL_HASH SHA256=017bdc33ff3a72e11301c0feb4657cb27719d7f97fa67a78ed506c594218bbf1
+    URL https://github.com/libjpeg-turbo/libjpeg-turbo/archive/refs/tags/3.0.1.zip
+    URL_HASH SHA256=d6d99e693366bc03897677650e8b2dfa76b5d6c54e2c9e70c03f0af821b0a52f
     DEPENDS ${ZLIB_PKG}
     CMAKE_ARGS
         -DENABLE_SHARED=OFF

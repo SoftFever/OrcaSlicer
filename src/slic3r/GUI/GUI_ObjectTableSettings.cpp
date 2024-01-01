@@ -173,7 +173,7 @@ bool ObjectTableSettings::update_settings_list(bool is_object, bool is_multiple_
 
             
             btn->SetBitmapFocus(m_bmp_reset_focus.bmp());
-            btn->SetBitmapHover(m_bmp_reset_focus.get_bitmap());
+            btn->SetBitmapHover(m_bmp_reset_focus.bmp());
 
             #ifdef __WINDOWS__
             btn->SetBitmapDisabled(m_bmp_reset_disable.bmp());
@@ -220,7 +220,7 @@ bool ObjectTableSettings::update_settings_list(bool is_object, bool is_multiple_
         optgroup->sidetext_width = 5;
         optgroup->set_config_category_and_type(GUI::from_u8(group_category), Preset::TYPE_PRINT);
 
-        std::weak_ptr weak_optgroup(optgroup);
+        std::weak_ptr<ConfigOptionsGroup> weak_optgroup(optgroup);
         optgroup->m_on_change = [this, is_object, object, config, group_category](const t_config_option_key &opt_id, const boost::any &value) {
                                     this->m_parent->Freeze();
                                     this->update_config_values(is_object, object, config, group_category);
@@ -236,7 +236,7 @@ bool ObjectTableSettings::update_settings_list(bool is_object, bool is_multiple_
                 return;
             ctrl->SetBitmap_(m_bmp_reset);
             ctrl->SetBitmapFocus(m_bmp_reset_focus.bmp()); 
-            ctrl->SetBitmapHover(m_bmp_reset_focus.get_bitmap());
+            ctrl->SetBitmapHover(m_bmp_reset_focus.bmp());
             #ifdef __WINDOWS__  
             ctrl->SetBitmapDisabled(m_bmp_reset_disable.bmp());
             #endif
