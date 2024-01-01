@@ -4126,7 +4126,7 @@ LayerResult GCode::process_layer(
                     m_last_obj_copy = this_object_copy;
                     this->set_origin(unscale(offset));
                     //FIXME the following code prints regions in the order they are defined, the path is not optimized in any way.
-                    bool is_infill_first =print.config().is_infill_first;
+                    bool is_infill_first =m_config.is_infill_first;
 
                     auto has_infill = [](const std::vector<ObjectByExtruder::Island::Region> &by_region) {
                         for (auto region : by_region) {
