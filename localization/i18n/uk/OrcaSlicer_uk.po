@@ -23,16 +23,16 @@ msgid "Supports Painting"
 msgstr "Малювання підтримки"
 
 msgid "Alt + Mouse wheel"
-msgstr "Alt + Коліщатко миші"
+msgstr "Alt + коліщатко миші"
 
 msgid "Section view"
 msgstr "Вигляд у розрізі"
 
 msgid "Reset direction"
-msgstr "Напрямок скидання"
+msgstr "Скинути напрямок"
 
 msgid "Ctrl + Mouse wheel"
-msgstr "Ctrl + Коліщатко миші"
+msgstr "Ctrl + коліщатко миші"
 
 msgid "Pen size"
 msgstr "Розмір пера"
@@ -53,7 +53,7 @@ msgid "Shift + Left mouse button"
 msgstr "Shift + Ліва кнопка миші"
 
 msgid "Erase"
-msgstr "Ластик"
+msgstr "Гумка"
 
 msgid "Erase all painting"
 msgstr "Стерти всі малюнки"
@@ -74,13 +74,13 @@ msgid "Tool type"
 msgstr "Тип інструменту"
 
 msgid "Smart fill angle"
-msgstr "Розумний кут заливки"
+msgstr "Розумний кут заповнення"
 
 msgid "On overhangs only"
-msgstr "Тільки на звисах"
+msgstr "Тільки на виступах"
 
 msgid "Auto support threshold angle: "
-msgstr "Кут порога автоматичної підтримки: "
+msgstr "Пороговий кут автоматичної підтримки: "
 
 msgid "Circle"
 msgstr "Коло"
@@ -118,8 +118,8 @@ msgid ""
 "Filament count exceeds the maximum number that painting tool supports. only "
 "the first %1% filaments will be available in painting tool."
 msgstr ""
-"Кількість філаменту перевищує максимальну кількість, яка підтримуєінструмент "
-"для фарбування. тільки перші %1% ниток будуть доступні у засобі забарвлення."
+"Кількість філаменту перевищує максимальну кількість, яку підтримує інструмент "
+"малювання. Лише перші %1% філаменту будуть доступні в інструменті малювання."
 
 msgid "Color Painting"
 msgstr "Кольорове малювання"
@@ -149,34 +149,34 @@ msgid "Brush"
 msgstr "Пензель"
 
 msgid "Smart fill"
-msgstr "Інтелектуальне заливання"
+msgstr "Інтелектуальне заповнення"
 
 msgid "Bucket fill"
-msgstr "Заливка відра"
+msgstr "Заповнення відром"
 
 msgid "Height range"
 msgstr "Діапазон висот"
 
 msgid "Alt + Shift + Enter"
-msgstr ""
+msgstr "Alt + Shift + Enter"
 
 msgid "Toggle Wireframe"
 msgstr "Переключення каркасу"
 
 msgid "Shortcut Key "
-msgstr "Поєднання клавіш "
+msgstr "Комбінація клавіш "
 
 msgid "Triangle"
 msgstr "Трикутник"
 
 msgid "Height Range"
-msgstr "Переключити каркас"
+msgstr "Діапазон висот"
 
 msgid "Vertical"
-msgstr ""
+msgstr "Вертикальний"
 
 msgid "Horizontal"
-msgstr ""
+msgstr "Горизонтальний"
 
 msgid "Remove painted color"
 msgstr "Видалити зафарбований колір"
@@ -201,7 +201,7 @@ msgid "Optimize orientation"
 msgstr "Оптимізувати орієнтацію"
 
 msgid "Apply"
-msgstr "Готово"
+msgstr "Застосувати"
 
 msgid "Scale"
 msgstr "Масштаб"
@@ -475,7 +475,7 @@ msgid "Keep"
 msgstr "Тримати"
 
 msgid "Flip"
-msgstr "Переверніть"
+msgstr "Перевернути"
 
 msgid "After cut"
 msgstr "Після вирізування"
@@ -790,7 +790,7 @@ msgid "OK"
 msgstr "ОК"
 
 msgid "Rename style"
-msgstr ""
+msgstr "Перейменувати стиль"
 
 msgid "Rename current style."
 msgstr ""
@@ -818,13 +818,13 @@ msgid "Only valid font can be added to style."
 msgstr ""
 
 msgid "Add style to my list."
-msgstr ""
+msgstr "Додати стиль до мого списку."
 
 msgid "Save as new style."
-msgstr ""
+msgstr "Зберегти як новий стиль."
 
 msgid "Remove style"
-msgstr ""
+msgstr "Видалити стиль"
 
 msgid "Can't remove the last existing style."
 msgstr ""
@@ -1241,7 +1241,7 @@ msgid "Edge"
 msgstr ""
 
 msgid "Plane"
-msgstr ""
+msgstr "Площина"
 
 msgid "Point on edge"
 msgstr ""
@@ -1809,13 +1809,13 @@ msgid "Mirror object"
 msgstr "Дзеркальний об'єкт"
 
 msgid "Edit text"
-msgstr ""
+msgstr "Редагувати текст"
 
 msgid "Ability to change text, font, size, ..."
 msgstr ""
 
 msgid "Edit SVG"
-msgstr ""
+msgstr "Редагувати SVG"
 
 msgid "Change SVG source file, projection, size, ..."
 msgstr ""
@@ -2995,7 +2995,7 @@ msgid ""
 "The AMS will automatically read the filament information when inserting a "
 "new Bambu Lab filament. This takes about 20 seconds."
 msgstr ""
-"AMS автоматично зчитує інформацію про філаментає при вставці новогоФіламент "
+"AMS автоматично зчитає інформацію про філамент при вставці нового філаменту "
 "Bambu Lab. Це займає близько 20 секунд."
 
 msgid ""
@@ -3003,17 +3003,17 @@ msgid ""
 "automatically read any information until printing is completed."
 msgstr ""
 "Примітка: якщо під час друку буде вставлено новий філамент, AMS не "
-"будеавтоматично читати будь-яку інформацію до завершення друку."
+"буде автоматично читати будь-яку інформацію до завершення друку."
 
 msgid ""
 "When inserting a new filament, the AMS will not automatically read its "
 "information, leaving it blank for you to enter manually."
 msgstr ""
-"При вставці нової нитки AMS не автоматично зчитуватиме її\n"
-"інформацію, залишивши поле порожнім для введення вручну."
+"При вставці новогр філаменту, AMS не ьуде автоматично зчитувати \n"
+"інформацію про нього, залишивши поле порожнім для введення вручну."
 
 msgid "Power on update"
-msgstr "Оновлення під час увімкнення"
+msgstr "Оновлення після ввімкнення"
 
 msgid ""
 "The AMS will automatically read the information of inserted filament on "
@@ -3028,9 +3028,9 @@ msgid ""
 "during startup and will continue to use the information recorded before the "
 "last shutdown."
 msgstr ""
-"AMS не буде автоматично зчитувати інформацію з вставленої нитки.\n"
+"AMS не буде автоматично зчитувати інформацію про вставлений філамент\n"
 "під час запуску і продовжуватиме використовувати інформацію, записану до\n"
-"останнє вимкнення."
+"останнтого вимкнення."
 
 msgid "Update remaining capacity"
 msgstr "Оновити ємність, що залишилася"
@@ -3683,7 +3683,7 @@ msgid "Total"
 msgstr "Загальний"
 
 msgid "Tower"
-msgstr ""
+msgstr "Вежа"
 
 msgid "Total Estimation"
 msgstr "Загальна оцінка"
@@ -3692,7 +3692,7 @@ msgid "Total time"
 msgstr "Загальний час"
 
 msgid "Total cost"
-msgstr ""
+msgstr "Загальна вартість"
 
 msgid "up to"
 msgstr "аж до"
@@ -4067,7 +4067,7 @@ msgid "Application is closing"
 msgstr "Додаток закривається"
 
 msgid "Closing Application while some presets are modified."
-msgstr "Закриття програми при зміні деяких пресетів."
+msgstr "Закриття програми під чвс зміни деяких налаштувань."
 
 msgid "Logging"
 msgstr "Ведення журналу"
@@ -4082,7 +4082,7 @@ msgid "Device"
 msgstr "Пристрій"
 
 msgid "Project"
-msgstr "Проект"
+msgstr "Проєкт"
 
 msgid "Yes"
 msgstr "Так"
@@ -4091,7 +4091,7 @@ msgid "No"
 msgstr "Ні"
 
 msgid "will be closed before creating a new model. Do you want to continue?"
-msgstr "буде закрито перед створенням нової моделі. Ви хочете продовжувати?"
+msgstr "буде закрито перед створенням нової моделі. Ви хочете продовжити?"
 
 msgid "Slice plate"
 msgstr "Нарізати моделі"
@@ -4929,7 +4929,7 @@ msgid "Rate the Print Profile"
 msgstr ""
 
 msgid "Comment"
-msgstr ""
+msgstr "Коментувати"
 
 msgid "Rate this print"
 msgstr ""
@@ -5213,10 +5213,10 @@ msgstr "Верх"
 
 msgctxt "Layers"
 msgid "Bottom"
-msgstr "Ніз"
+msgstr "Низ"
 
 msgid "Enable AI monitoring of printing"
-msgstr "Увімкнути ІІ-моніторинг друку"
+msgstr "Увімкнути ШІ-моніторинг друку"
 
 msgid "Sensitivity of pausing is"
 msgstr "Чутливість паузи"
@@ -5228,7 +5228,7 @@ msgid ""
 "The localization tag of build plate is detected, and printing is paused if "
 "the tag is not in predefined range."
 msgstr ""
-"Виявлено тег локалізації робочої пластини, і друк припиняється,якщо\n"
+"Виявлено тег локалізації робочої пластини, і друк припиняється, якщо\n"
 "тег не знаходиться в певному діапазоні."
 
 msgid "First Layer Inspection"
@@ -5771,21 +5771,21 @@ msgid ""
 msgstr ""
 
 msgid "Private protection"
-msgstr ""
+msgstr "Приватний захист"
 
 msgid "Is the printer ready? Is the print sheet in place, empty and clean?"
 msgstr ""
 
 msgid "Upload and Print"
-msgstr ""
+msgstr "Завантажити і друкувати"
 
 msgid ""
 "Print By Object: \n"
 "Suggest to use auto-arrange to avoid collisions when printing."
 msgstr ""
-"Друк об'єктом: \n"
-"Запропонуйте використовувати автоматичне розташування, щоб уникнути "
-"колізійпід час друку."
+"Друк за об'єктом: \n"
+"Рекомендовано використовувати автоматичне розташування, щоб уникнути "
+"колізій під час друку."
 
 msgid "Send G-code"
 msgstr "Надіслати G-код"
@@ -6468,7 +6468,7 @@ msgid ""
 "printer firmware to support AMS slot assignment."
 msgstr ""
 "Філамент %s не відповідає філаменту в слоті AMS %s. Будь ласка, оновіть "
-"Прошивка принтера для підтримки призначення слотів AMS."
+"прошивку принтера для підтримки перепризначення слотів AMS."
 
 msgid ""
 "Filament does not match the filament in AMS slot. Please update the printer "
@@ -6481,13 +6481,13 @@ msgid ""
 "The printer firmware only supports sequential mapping of filament => AMS "
 "slot."
 msgstr ""
-"Прошивка принтера підтримує лише послідовне зіставленняфіламенту => AMS слот."
+"Прошивка принтера підтримує лише послідовне зіставлення філаменту => AMS слот."
 
 msgid "An SD card needs to be inserted before printing."
-msgstr "Перед печаткою необхідно вставити картку SD."
+msgstr "Перед початком друку необхідно вставити картку SD."
 
 msgid "The selected printer is incompatible with the chosen printer presets."
-msgstr ""
+msgstr "Вибраний принтер несумісний зі встановленими налаштуваннями."
 
 msgid "An SD card needs to be inserted to record timelapse."
 msgstr "SD-карта повинна бути вставлена для запису таймлапсу."
@@ -6644,7 +6644,7 @@ msgid "Would you like to log in this printer with current account?"
 msgstr "Ви хочете увійти до цього принтера з поточним обліковим записом?"
 
 msgid "Check the reason"
-msgstr ""
+msgstr "Перевірте причину"
 
 msgid "Read and accept"
 msgstr ""
@@ -6893,7 +6893,7 @@ msgid "Post-processing Scripts"
 msgstr "Сценарії постобробки"
 
 msgid "Notes"
-msgstr ""
+msgstr "Примітки"
 
 msgid "Frequent"
 msgstr "Частий"
@@ -7039,10 +7039,10 @@ msgid "Complete print"
 msgstr ""
 
 msgid "Filament start G-code"
-msgstr "G-код початку Філаменту"
+msgstr "G-код початку філаменту"
 
 msgid "Filament end G-code"
-msgstr "G-код кінця Філаменту"
+msgstr "G-код кінця філаменту"
 
 msgid "Multimaterial"
 msgstr ""
@@ -10571,7 +10571,7 @@ msgstr ""
 "конфігурації шляхом читання змінних середовища."
 
 msgid "Printer notes"
-msgstr ""
+msgstr "Нотатки для принтера"
 
 msgid "You can put your notes regarding the printer here."
 msgstr ""
@@ -14097,7 +14097,7 @@ msgstr ""
 #~ "Material becomes soft at this temperature. Thus the heatbed cannot be "
 #~ "hotter than this tempature"
 #~ msgstr ""
-#~ "При цій температурі матеріал стає м'яким. Таким чином, нагріваєтьсяшар не "
+#~ "При цій температурі матеріал стає м'яким. Таким чином, нагрівається шар не "
 #~ "може бути гарячішим, ніж ця температура"
 
 #~ msgid "Enable this option if machine has auxiliary part cooling fan"
