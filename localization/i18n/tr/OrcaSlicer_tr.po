@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: OrcaSlicer\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-12-29 22:55+0800\n"
-"PO-Revision-Date: 2023-12-29 22:35+0300\n"
+"PO-Revision-Date: 2024-01-01 00:01+0300\n"
 "Last-Translator: Olcay ÖREN\n"
 "Language-Team: Türkçe\n"
 "Language: tr_TR\n"
@@ -884,13 +884,13 @@ msgid "Unset italic"
 msgstr "Yatık ayarı kaldır"
 
 msgid "Set italic"
-msgstr "Yatık olarak ayarla"
+msgstr "Yatık"
 
 msgid "Unset bold"
 msgstr "Kalın ayarı kaldır"
 
 msgid "Set bold"
-msgstr "Kalın olarak ayarla"
+msgstr "Kalın"
 
 msgid "Revert text size."
 msgstr "Metin boyutunu geri döndür."
@@ -946,7 +946,7 @@ msgstr "Hizalamayı geri al."
 
 #. TRN EmbossGizmo: font units
 msgid "points"
-msgstr "noktalar"
+msgstr "punto"
 
 msgid "Revert gap between characters"
 msgstr "Karakterler arasındaki boşluğu geri döndür"
@@ -994,7 +994,7 @@ msgid "Select from True Type Collection."
 msgstr "True Type Koleksiyonundan seçim yapın."
 
 msgid "Set text to face camera"
-msgstr "Metni yüz kamerasına ayarla"
+msgstr "Metni bana çevir"
 
 msgid "Orient the text towards the camera."
 msgstr "Metni kameraya doğru yönlendirin."
@@ -1048,7 +1048,7 @@ msgstr "Satır boşluğu"
 
 #. TRN - Input label. Be short as possible
 msgid "Boldness"
-msgstr "Boldness"
+msgstr "Kalınlık"
 
 #. TRN - Input label. Be short as possible
 #. Like Font italic
@@ -1269,7 +1269,7 @@ msgid "Center of circle"
 msgstr "Çemberin merkezi"
 
 msgid "ShiftLeft mouse button"
-msgstr "Shift Sol fare düğmesi"
+msgstr "Shift + Sol fare düğmesi"
 
 msgid "Select feature"
 msgstr "Özellik seçin"
@@ -1278,10 +1278,10 @@ msgid "Select point"
 msgstr "Nokta seç"
 
 msgid "Delete"
-msgstr "Sil"
+msgstr "Delete"
 
 msgid "Restart selection"
-msgstr "Seçimi yeniden başlat"
+msgstr "Seçimi sıfırla"
 
 msgid "Esc"
 msgstr "Esc"
@@ -13831,7 +13831,7 @@ msgid "For more information, please check out Wiki"
 msgstr "Daha fazla bilgi için lütfen Wiki'ye göz atın"
 
 msgid "Collapse"
-msgstr "Çökme"
+msgstr "Daralt"
 
 msgid "Daily Tips"
 msgstr "Günlük İpuçları"
