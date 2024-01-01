@@ -1731,7 +1731,7 @@ void PerimeterGenerator::process_classic()
             // if brim will be printed, reverse the order of perimeters so that
             // we continue inwards after having finished the brim
             // TODO: add test for perimeter order
-            bool is_outer_wall_first = this->object_config->wall_sequence == WallSequence::OuterInner;
+            bool is_outer_wall_first = this->config->wall_sequence == WallSequence::OuterInner;
             if (is_outer_wall_first ||
                 //BBS: always print outer wall first when there indeed has brim.
                 (this->layer_id == 0 &&
@@ -1739,7 +1739,7 @@ void PerimeterGenerator::process_classic()
                     this->object_config->brim_width.value > 0))
                 entities.reverse();
             // SoftFever: sandwich mode 
-            else if (this->object_config->wall_sequence == WallSequence::InnerOuterInner)
+            else if (this->config->wall_sequence == WallSequence::InnerOuterInner)
                 if (entities.entities.size() > 1){
                     int              last_outer=0;
                     int              outer = 0;
@@ -2036,12 +2036,12 @@ void PerimeterGenerator::process_arachne()
         int direction = -1;
 
 		bool is_outer_wall_first =
-            	this->object_config->wall_sequence == WallSequence::OuterInner ||
-            	this->object_config->wall_sequence == WallSequence::InnerOuterInner;
+            	this->config->wall_sequence == WallSequence::OuterInner ||
+            	this->config->wall_sequence == WallSequence::InnerOuterInner;
         
         if (layer_id == 0){ // disable inner outer inner algorithm after the first layer
         	is_outer_wall_first =
-            	this->object_config->wall_sequence == WallSequence::OuterInner;
+            	this->config->wall_sequence == WallSequence::OuterInner;
         }
         if (is_outer_wall_first) {
             start_perimeter = 0;
@@ -2169,7 +2169,7 @@ void PerimeterGenerator::process_arachne()
         }
 
        // printf("New Layer: Layer ID %d\n",layer_id); //debug - new layer
-        if (this->object_config->wall_sequence == WallSequence::InnerOuterInner && layer_id > 0) { // only enable inner outer inner algorithm after first layer
+        if (this->config->wall_sequence == WallSequence::InnerOuterInner && layer_id > 0) { // only enable inner outer inner algorithm after first layer
             if (ordered_extrusions.size() > 2) { // 3 walls minimum needed to do inner outer inner ordering
                 int position = 0; // index to run the re-ordering for multiple external perimeters in a single island.
                 int arr_i, arr_j = 0;    // indexes to run through the walls in the for loops
