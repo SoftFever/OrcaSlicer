@@ -1378,9 +1378,13 @@ void MachineObject::parse_status(int flag)
     }
     
     if (!is_support_p1s_plus) {
-        is_support_p1s_plus = ((flag >> 27) & 0x1) != 0;
-    }
+        auto supported_plus = ((flag >> 27) & 0x1) != 0;
+        auto installed_plus = ((flag >> 26) & 0x1) != 0;
 
+        if (installed_plus && supported_plus) {
+            is_support_p1s_plus = true;
+        }
+    }
 
     sdcard_state = MachineObject::SdcardState((flag >> 8) & 0x11);
 
@@ -4064,12 +4068,6 @@ int MachineObject::parse_json(std::string payload)
                 } else if (jj["command"].get<std::string>() == "gcode_line") {
                     //ack of gcode_line
                     BOOST_LOG_TRIVIAL(debug) << "parse_json, ack of gcode_line = " << j.dump(4);
-                    if (m_agent && is_studio_cmd(sequence_id)) {
-                        json t;
-                        t["dev_id"] = this->dev_id;
-                        t["signal"] = this->wifi_signal;
-                        m_agent->track_event("ack_cmd_gcode_line", t.dump());
-                    }
                 } else if (jj["command"].get<std::string>() == "project_prepare") {
                     //ack of project file
                     BOOST_LOG_TRIVIAL(info) << "parse_json, ack of project_prepare = " << j.dump(4);
@@ -4082,13 +4080,6 @@ int MachineObject::parse_json(std::string payload)
                 } else if (jj["command"].get<std::string>() == "project_file") {
                     //ack of project file
                     BOOST_LOG_TRIVIAL(debug) << "parse_json, ack of project_file = " << j.dump(4);
-
-                    if (m_agent && is_studio_cmd(sequence_id)) {
-                        json t;
-                        t["dev_id"] = this->dev_id;
-                        t["signal"] = this->wifi_signal;
-                        m_agent->track_event("ack_cmd_project_file", t.dump());
-                    }
                     std::string result;
                     if (jj.contains("result")) {
                         result = jj["result"].get<std::string>();

@@ -13,6 +13,7 @@
 #include "FileHelp.hpp"
 #include "Tab.hpp"
 #include "MainFrame.hpp"
+#include "libslic3r_version.h"
 
 #define NAME_OPTION_COMBOBOX_SIZE wxSize(FromDIP(200), FromDIP(24))
 #define FILAMENT_PRESET_COMBOBOX_SIZE wxSize(FromDIP(300), FromDIP(24))
@@ -179,7 +180,7 @@ static bool delete_filament_preset_by_name(std::string delete_preset_name, std::
     return true;
 }
 
-static std::string get_curr_time()
+static std::string get_curr_time(const char* format = "%Y_%m_%d_%H_%M_%S")
 {
     std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
 
@@ -187,7 +188,7 @@ static std::string get_curr_time()
 
     std::tm            local_time = *std::localtime(&time);
     std::ostringstream time_stream;
-    time_stream << std::put_time(&local_time, "%Y_%m_%d_%H_%M_%S");
+    time_stream << std::put_time(&local_time, format);
 
     std::string current_time = time_stream.str();
     return current_time;
@@ -195,11 +196,12 @@ static std::string get_curr_time()
 
 static std::string get_curr_timestmp()
 {
-    std::time_t currentTime = std::time(nullptr);
-    std::ostringstream oss;
-    oss << currentTime;
-    std::string timestampString = oss.str();
-    return timestampString;
+    return get_curr_time("%Y%m%d%H%M%S");
+    // std::time_t currentTime = std::time(nullptr);
+    // std::ostringstream oss;
+    // oss << currentTime;
+    // std::string timestampString = oss.str();
+    // return timestampString;
 }
 
 static void get_filament_compatible_printer(Preset* preset, vector<std::string>& printers)
@@ -3266,8 +3268,8 @@ void CreatePresetSuccessfulDialog::on_dpi_changed(const wxRect &suggested_rect) 
 ExportConfigsDialog::ExportConfigsDialog(wxWindow *parent)
     : DPIDialog(parent ? parent : nullptr, wxID_ANY, _L("Export Configs"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
 {
-    m_exprot_type.preset_bundle   = _L("Printer config bundle(.bbscfg)");
-    m_exprot_type.filament_bundle = _L("Filament bundle(.bbsflmt)");
+    m_exprot_type.preset_bundle   = _L("Printer config bundle(.orca_printer)");
+    m_exprot_type.filament_bundle = _L("Filament bundle(.orca_filament)");
     m_exprot_type.printer_preset  = _L("Printer presets(.zip)");
     m_exprot_type.filament_preset = _L("Filament presets(.zip)");
     m_exprot_type.process_preset  = _L("Process presets(.zip)");
@@ -3407,49 +3409,7 @@ std::string ExportConfigsDialog::initial_file_path(const wxString &path, const s
     std::string             export_path         = into_u8(path);
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "initial file path and path is:" << export_path << " and sub path is: " << sub_file_path;
     boost::filesystem::path printer_export_path = (boost::filesystem::path(export_path) / sub_file_path).make_preferred();
-    if (boost::filesystem::exists(printer_export_path)) {
-        MessageDialog dlg(this, wxString::Format(_L("The '%s' folder already exists in the current directory. Do you want to clear it and rebuild it.\nIf not, a time suffix will be "
-                             "added, and you can modify the name after creation."), sub_file_path), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES_NO | wxYES_DEFAULT | wxCENTRE);
-        int           res = dlg.ShowModal();
-        if (wxID_YES == res) {
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "Same path exists, delete and need to rebuild, and path is: " << printer_export_path.string();
-            try {
-                boost::filesystem::remove_all(printer_export_path);
-            } catch (...) {
-                MessageDialog dlg(this, _L(wxString::Format("The file: %s \nin the directory may have been opened by another program. \nPlease close it and try again.",
-                                                      encode_path(printer_export_path.string().c_str()))),
-                                  wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"),
-                                  wxYES | wxYES_DEFAULT | wxCENTRE);
-                dlg.ShowModal();
-                return "initial_failed";
-            }
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "delete path";
-            boost::filesystem::create_directories(printer_export_path);
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "create path";
-            export_path = printer_export_path.string();
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "Same path exists, delete and rebuild, and path is: " << export_path;
-        } else if (wxID_NO == res) {
-            export_path = printer_export_path.string();
-            std::string              export_path_with_time;
-            boost::filesystem::path *printer_export_path_with_time = nullptr;
-            do {
-                if (printer_export_path_with_time) {
-                    delete printer_export_path_with_time;
-                    printer_export_path_with_time = nullptr;
-                }
-                export_path_with_time         = export_path + " " + get_curr_time();
-                printer_export_path_with_time = new boost::filesystem::path(export_path_with_time);
-            } while (boost::filesystem::exists(*printer_export_path_with_time));
-            export_path = export_path_with_time;
-            boost::filesystem::create_directories(*printer_export_path_with_time);
-            if (printer_export_path_with_time) {
-                delete printer_export_path_with_time;
-                printer_export_path_with_time = nullptr;
-            }
-        } else {
-            return "";
-        }
-    } else {
+    if (!boost::filesystem::exists(printer_export_path)) {
         boost::filesystem::create_directories(printer_export_path);
         export_path = printer_export_path.string();
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "Same path exists, delete and rebuild, and path is: " << export_path;
@@ -3519,7 +3479,7 @@ wxBoxSizer *ExportConfigsDialog::create_export_config_item(wxWindow *parent)
 
     radioBoxSizer->Add(create_radio_item(m_exprot_type.preset_bundle, parent, wxEmptyString, m_export_type_btns), 0, wxEXPAND | wxALL, 0);
     radioBoxSizer->Add(0, 0, 0, wxTOP, FromDIP(6));
-    wxStaticText *static_export_printer_preset_bundle_text = new wxStaticText(parent, wxID_ANY, _L("Printer and all the filament&process presets that belongs to the printer. \nCan be shared with others."), wxDefaultPosition, wxDefaultSize);
+    wxStaticText *static_export_printer_preset_bundle_text = new wxStaticText(parent, wxID_ANY, _L("Printer and all the filament&&process presets that belongs to the printer. \nCan be shared with others."), wxDefaultPosition, wxDefaultSize);
     static_export_printer_preset_bundle_text->SetFont(Label::Body_12);
     static_export_printer_preset_bundle_text->SetForegroundColour(wxColour("#6B6B6B"));
     radioBoxSizer->Add(static_export_printer_preset_bundle_text, 0, wxEXPAND | wxLEFT, FromDIP(22));
@@ -3707,7 +3667,7 @@ void ExportConfigsDialog::select_curr_radiobox(std::vector<std::pair<RadioBox *,
 
 ExportConfigsDialog::ExportCase ExportConfigsDialog::archive_preset_bundle_to_file(const wxString &path)
 {
-    std::string export_path = initial_file_path(path, "Printer config bundle");
+    std::string export_path = initial_file_path(path, "");
     if (export_path.empty() || "initial_failed" == export_path) return ExportCase::EXPORT_CANCEL;
     BOOST_LOG_TRIVIAL(info) << "Export printer preset bundle";
     
@@ -3717,19 +3677,11 @@ ExportConfigsDialog::ExportCase ExportConfigsDialog::archive_preset_bundle_to_fi
             std::string printer_preset_name_ = printer_preset->name;
 
             json          bundle_structure;
-            NetworkAgent *agent = wxGetApp().getAgent();
             std::string   clock = get_curr_timestmp();
-            if (agent) {
-                bundle_structure["user_name"] = agent->get_user_name();
-                bundle_structure["user_id"]   = agent->get_user_id();
-                bundle_structure["version"]   = agent->get_version();
-                bundle_structure["bundle_id"] = agent->get_user_id() + "_" + printer_preset_name_ + "_" + clock;
-            } else {
-                bundle_structure["user_name"] = "";
-                bundle_structure["user_id"]   = "";
-                bundle_structure["version"]   = "";
-                bundle_structure["bundle_id"] = "offline_" + printer_preset_name_ + "_" + clock;
-            }
+            bundle_structure["user_name"]           = "";
+            bundle_structure["user_id"]             = "";
+            bundle_structure["version"]             = SoftFever_VERSION;
+            bundle_structure["bundle_id"]           = printer_preset_name_ + "_" + clock;
             bundle_structure["bundle_type"] = "printer config bundle";
             bundle_structure["printer_preset_name"] = printer_preset_name_;
             json printer_config   = json::array();
@@ -3737,21 +3689,21 @@ ExportConfigsDialog::ExportCase ExportConfigsDialog::archive_preset_bundle_to_fi
             json process_configs  = json::array();
 
             mz_zip_archive zip_archive;
-            mz_bool        status = initial_zip_archive(zip_archive, export_path + "/" + printer_preset->name + ".bbscfg");
+            mz_bool        status = initial_zip_archive(zip_archive, export_path + "/" + printer_preset->name + ".orca_printer");
             if (MZ_FALSE == status) {
                 BOOST_LOG_TRIVIAL(info) << "Failed to initialize ZIP archive";
                 return ExportCase::INITIALIZE_FAIL;
             }
             
-            boost::filesystem::path pronter_file_path      = boost::filesystem::path(printer_preset->file);
-            std::string             preset_path       = pronter_file_path.make_preferred().string();
+            boost::filesystem::path printer_file_path      = boost::filesystem::path(printer_preset->file);
+            std::string             preset_path       = printer_file_path.make_preferred().string();
             if (preset_path.empty()) {
                 BOOST_LOG_TRIVIAL(info) << "Export printer preset: " << printer_preset->name << " skip because of the preset file path is empty.";
                 continue;
             }
 
             // Add a file to the ZIP file
-            std::string printer_config_file_name = "printer/" + pronter_file_path.filename().string();
+            std::string printer_config_file_name = "printer/" + printer_file_path.filename().string();
             status = mz_zip_writer_add_file(&zip_archive, printer_config_file_name.c_str(), encode_path(preset_path.c_str()).c_str(), NULL, 0, MZ_DEFAULT_COMPRESSION);
             //status = mz_zip_writer_add_mem(&zip_archive, ("printer/" + printer_preset->name + ".json").c_str(), json_contents, strlen(json_contents), MZ_DEFAULT_COMPRESSION);
             if (MZ_FALSE == status) {
@@ -3831,7 +3783,7 @@ ExportConfigsDialog::ExportCase ExportConfigsDialog::archive_preset_bundle_to_fi
 
 ExportConfigsDialog::ExportCase ExportConfigsDialog::archive_filament_bundle_to_file(const wxString &path)
 {
-    std::string export_path = initial_file_path(path, "Filament bundle");
+    std::string export_path = initial_file_path(path, "");
     if (export_path.empty() || "initial_failed" == export_path) return ExportCase::EXPORT_CANCEL;
     BOOST_LOG_TRIVIAL(info) << "Export filament preset bundle";
 
@@ -3840,25 +3792,17 @@ ExportConfigsDialog::ExportCase ExportConfigsDialog::archive_filament_bundle_to_
             std::string filament_name = checkbox_filament_name.second;
 
             json          bundle_structure;
-            NetworkAgent *agent = wxGetApp().getAgent();
             std::string   clock = get_curr_timestmp();
-            if (agent) {
-                bundle_structure["user_name"] = agent->get_user_name();
-                bundle_structure["user_id"]   = agent->get_user_id();
-                bundle_structure["version"]   = agent->get_version();
-                bundle_structure["bundle_id"] = agent->get_user_id() + "_" + filament_name + "_" + clock;
-            } else {
-                bundle_structure["user_name"] = "";
-                bundle_structure["user_id"]   = "";
-                bundle_structure["version"]   = "";
-                bundle_structure["bundle_id"] = "offline_" + filament_name + "_" + clock;
-            }
+            bundle_structure["user_name"]     = "";
+            bundle_structure["user_id"]       = "";
+            bundle_structure["version"]       = SoftFever_VERSION;
+            bundle_structure["bundle_id"]     = filament_name + "_" + clock;
             bundle_structure["bundle_type"] = "filament config bundle";
             bundle_structure["filament_name"] = filament_name;
             std::unordered_map<std::string, json> vendor_structure;
 
             mz_zip_archive zip_archive;
-            mz_bool        status = initial_zip_archive(zip_archive, export_path + "/" + filament_name + ".bbsflmt");
+            mz_bool        status = initial_zip_archive(zip_archive, export_path + "/" + filament_name + ".orca_filament");
             if (MZ_FALSE == status) {
                 BOOST_LOG_TRIVIAL(info) << "Failed to initialize ZIP archive";
                 return ExportCase::INITIALIZE_FAIL;
@@ -4070,7 +4014,7 @@ wxBoxSizer *ExportConfigsDialog::create_button_item(wxWindow* parent)
             return;
         }
 
-        wxDirDialog dlg(this, _L("Choose a directory"), from_u8(wxGetApp().app_config->get_last_dir()), wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
+        wxDirDialog dlg(this, _L("Choose a directory"), "", wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
         wxString    path;
         if (dlg.ShowModal() == wxID_OK) path = dlg.GetPath();
         ExportCase export_case = ExportCase::EXPORT_CANCEL;
