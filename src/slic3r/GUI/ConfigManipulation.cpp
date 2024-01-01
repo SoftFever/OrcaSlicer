@@ -695,7 +695,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     
     bool have_arachne = config->opt_enum<PerimeterGeneratorType>("wall_generator") == PerimeterGeneratorType::Arachne;
     for (auto el : { "wall_transition_length", "wall_transition_filter_deviation", "wall_transition_angle",
-        "min_feature_size", "min_bead_width", "wall_distribution_count", "initial_layer_min_bead_width"})
+        "min_feature_size", "min_length_factor", "min_bead_width", "wall_distribution_count", "initial_layer_min_bead_width"})
         toggle_line(el, have_arachne);
     toggle_field("detect_thin_wall", !have_arachne);
     
@@ -712,8 +712,8 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     toggle_line("make_overhang_printable_angle", have_make_overhang_printable);
     toggle_line("make_overhang_printable_hole_size", have_make_overhang_printable);
     
-    toggle_line("min_width_top_surface",config->opt_bool("only_one_wall_top"));
-    
+    toggle_line("min_width_top_surface", config->opt_bool("only_one_wall_top") || ((config->opt_float("min_length_factor") > 0.5f) && have_arachne)); // 0.5 is default value
+
     for (auto el : { "hole_to_polyhole_threshold", "hole_to_polyhole_twisted" })
         toggle_line(el, config->opt_bool("hole_to_polyhole"));
     
