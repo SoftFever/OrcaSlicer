@@ -434,6 +434,7 @@ protected:
 
     ConfigManipulation m_config_manipulation;
     ConfigManipulation get_config_manipulation();
+    friend class EditGCodeDialog;
 };
 
 class TabPrint : public Tab
