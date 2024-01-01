@@ -180,7 +180,8 @@ void Fill::fill_surface_extrusion(const Surface* surface, const FillParams& para
     }
 }
 
-// Orca: Enable gap fill algorithm for all surface types based on user preference.
+// Orca: Dedicated function to calculate gap fill lines for the provided surface, according to the print object parameters
+// and append them to the out ExtrusionEntityCollection.
 void Fill::_create_gap_fill(const Surface* surface, const FillParams& params, ExtrusionEntityCollection* out){
     
     //Orca: just to be safe, check against null pointer for the print object config and if NULL return.

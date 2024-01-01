@@ -175,7 +175,8 @@ protected:
 
     virtual std::pair<float, Point> _infill_direction(const Surface *surface) const;
     
-    // Orca: Enable gap fill algorithm for all surface types
+    // Orca: Dedicated function to calculate gap fill lines for the provided surface, according to the print object parameters
+    // and append them to the out ExtrusionEntityCollection.
     void _create_gap_fill(const Surface* surface, const FillParams& params, ExtrusionEntityCollection* out);
 
 public:
