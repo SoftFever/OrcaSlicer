@@ -6487,6 +6487,13 @@ void DynamicPrintAndCLIConfig::handle_legacy(t_config_option_key &opt_key, std::
 
 // SlicingStatesConfigDefs
 
+// Create a new config definition with a label and tooltip
+// Note: the L() macro is already used for LABEL and TOOLTIP
+#define new_def(OPT_KEY, TYPE, LABEL, TOOLTIP) \
+        def = this->add(OPT_KEY, TYPE); \
+        def->label = L(LABEL); \
+        def->tooltip = L(TOOLTIP);
+
 ReadOnlySlicingStatesConfigDef::ReadOnlySlicingStatesConfigDef()
 {
     ConfigOptionDef* def;
@@ -6754,15 +6761,21 @@ static std::map<t_custom_gcode_key, t_config_option_keys> s_CustomGcodeSpecificP
     {"machine_end_gcode",           {"layer_num", "layer_z", "max_layer_z", "filament_extruder_id"}},
     {"before_layer_change_gcode",   {"layer_num", "layer_z", "max_layer_z"}},
     {"layer_change_gcode",          {"layer_num", "layer_z", "max_layer_z"}},
-    {"time_lapse_gcode",            {}},
-    {"change_filament_gcode",       {}},
+    {"timelapse_gcode",             {"layer_num", "layer_z", "max_layer_z"}},
+    {"change_filament_gcode",       {"layer_num", "layer_z", "max_layer_z", "next_extruder", "previous_extruder", "fan_speed",
+                               "first_flush_volume", "flush_length_1", "flush_length_2", "flush_length_3", "flush_length_4",
+                               "new_filament_e_feedrate", "new_filament_temp", "new_retract_length",
+                               "new_retract_length_toolchange", "old_filament_e_feedrate", "old_filament_temp", "old_retract_length",
+                               "old_retract_length_toolchange", "relative_e_axis", "second_flush_volume", "toolchange_count", "toolchange_z",
+                               "travel_point_1_x", "travel_point_1_y", "travel_point_2_x", "travel_point_2_y", "travel_point_3_x",
+                               "travel_point_3_y", "x_after_toolchange", "y_after_toolchange", "z_after_toolchange"}},
     {"change_extrusion_role_gcode", {"layer_num", "layer_z", "extrusion_role", "last_extrusion_role"}},
     {"printing_by_object_gcode",    {}},
     {"machine_pause_gcode",         {}},
     {"template_custom_gcode",       {}},
     //Filament Gcode
-    {"filament_start_gcode",        {}},
-    {"filament_end_gcode",          {}},
+    {"filament_start_gcode",        {"filament_extruder_id"}},
+    {"filament_end_gcode",          {"layer_num", "layer_z", "max_layer_z", "filament_extruder_id"}},
 };
 
 const std::map<t_custom_gcode_key, t_config_option_keys>& custom_gcode_specific_placeholders()
@@ -6774,6 +6787,7 @@ CustomGcodeSpecificConfigDef::CustomGcodeSpecificConfigDef()
 {
     ConfigOptionDef* def;
 
+// Common Defs
     def = this->add("layer_num", coInt);
     def->label = L("Layer number");
     def->tooltip = L("Index of the current layer. One-based (i.e. first layer is number 1).");
@@ -6787,23 +6801,51 @@ CustomGcodeSpecificConfigDef::CustomGcodeSpecificConfigDef()
     def->tooltip = L("Height of the last layer above the print bed.");
 
     def = this->add("filament_extruder_id", coInt);
-    def->label = L("");
-    def->tooltip = L("");
+    def->label = L("Filament extruder ID");
+    def->tooltip = L("The current extruder ID. The same as current_extruder.");
 
-    def = this->add("previous_extruder", coInt);
-    def->label = L("Previous extruder");
-    def->tooltip = L("Index of the extruder that is being unloaded. The index is zero based (first extruder has index 0).");
+// change_filament_gcode
+    new_def("previous_extruder", coInt, "Previous extruder", "Index of the extruder that is being unloaded. The index is zero based (first extruder has index 0).");
+    new_def("next_extruder", coInt, "Next extruder", "Index of the extruder that is being loaded. The index is zero based (first extruder has index 0).");
+    new_def("relative_e_axis", coBool, "Relative e-axis", "Indicates if relative positioning is being used");
+    new_def("toolchange_count", coInt, "Toolchange count", "The number of toolchanges throught the print");
+    new_def("fan_speed", coNone, "", ""); //Option is no longer used and is zeroed by placeholder parser for compatability
+    new_def("old_retract_length", coFloat, "Old retract length", "The retraction length of the previous filament");
+    new_def("new_retract_length", coFloat, "New retract length", "The retraction lenght of the new filament");
+    new_def("old_retract_length_toolchange", coFloat, "Old retract length toolchange", "The toolchange retraction length of the previous filament");
+    new_def("new_retract_length_toolchange", coFloat, "New retract length toolchange", "The toolchange retraction length of the new filament");
+    new_def("old_filament_temp", coInt, "Old filament temp", "The old filament temp");
+    new_def("new_filament_temp", coInt, "New filament temp", "The new filament temp");
+    new_def("x_after_toolchange", coFloat, "X after toolchange", "The x pos after toolchange");
+    new_def("y_after_toolchange", coFloat, "Y after toolchange", "The y pos after toolchange");
+    new_def("z_after_toolchange", coFloat, "Z after toolchange", "The z pos after toolchange");
+    new_def("first_flush_volume", coFloat, "First flush volume", "The first flush volume");
+    new_def("second_flush_volume", coFloat, "Second flush volume", "The second flush volume");
+    new_def("old_filament_e_feedrate", coInt, "Old filament e feedrate", "The old filament extruder feedrate");
+    new_def("new_filament_e_feedrate", coInt, "New filament e feedrate", "The new filament extruder feedrate");
+    new_def("travel_point_1_x", coFloat, "Travel point 1 x", "The travel point 1 x");
+    new_def("travel_point_1_y", coFloat, "Travel point 1 y", "The travel point 1 y");
+    new_def("travel_point_2_x", coFloat, "Travel point 2 x", "The travel point 2 x");
+    new_def("travel_point_2_y", coFloat, "Travel point 2 y", "The travel point 2 y");
+    new_def("travel_point_3_x", coFloat, "Travel point 3 x", "The travel point 3 x");
+    new_def("travel_point_3_y", coFloat, "Travel point 3 y", "The travel point 3 y");
+    new_def("flush_length_1", coFloat, "Flush Length 1", "The first flush length");
+    new_def("flush_length_2", coFloat, "Flush Length 2", "The second flush length");
+    new_def("flush_length_3", coFloat, "Flush Length 3", "The third flush length");
+    new_def("flush_length_4", coFloat, "Flush Length 4", "The fourth flush length");
 
-    def = this->add("next_extruder", coInt);
-    def->label = L("Next extruder");
-    def->tooltip = L("Index of the extruder that is being loaded. The index is zero based (first extruder has index 0).");
+// change_extrusion_role_gcode
+    std::string extrusion_role_types = "Possible Values:\n[\"Perimeter\", \"ExternalPerimeter\", "
+                                                     "\"OverhangPerimeter\", \"InternalInfill\", \"SolidInfill\", \"TopSolidInfill\", \"BottomSurface\", \"BridgeInfill\", \"GapFill\", \"Ironing\", "
+                                                     "\"Skirt\", \"Brim\", \"SupportMaterial\", \"SupportMaterialInterface\", \"SupportTransition\", \"WipeTower\", \"Mixed\"]";
 
-    def = this->add("toolchange_z", coFloat);
-    def->label = L("Toolchange z");
-    def->tooltip = L("Height above the print bed when the toolchange takes place. Usually the same as layer_z, but can be different.");
+    new_def("extrusion_role", coString, "Extrusion role", "The new extrusion role/type that is going to be used\n" + extrusion_role_types);
+    new_def("last_extrusion_role", coString, "Last extrusion role", "The previously used extrusion role/type\nPossible Values:\n" + extrusion_role_types);
 }
 
 const CustomGcodeSpecificConfigDef custom_gcode_specific_config_def;
+
+#undef new_def
 
 uint64_t ModelConfig::s_last_timestamp = 1;
 
