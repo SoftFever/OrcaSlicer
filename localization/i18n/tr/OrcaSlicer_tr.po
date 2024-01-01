@@ -8841,7 +8841,7 @@ msgstr ""
 "Üst dolgu desenine daha fazla yer açmak için düz üst yüzeyde yalnızca bir "
 "duvar kullanın"
 
-msgid "Top-surface threshold"
+msgid "One wall threshold"
 msgstr "Tek duvar eşiği"
 
 #, fuzzy, c-format, boost-format

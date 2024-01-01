@@ -9052,7 +9052,7 @@ msgstr ""
 "N'utilisez qu'une seule paroi sur les surfaces supérieures planes, afin de "
 "donner plus d'espace au motif de remplissage supérieur."
 
-msgid "Top-surface threshold"
+msgid "One wall threshold"
 msgstr "Seuil de paroi unique"
 
 #, fuzzy, c-format, boost-format

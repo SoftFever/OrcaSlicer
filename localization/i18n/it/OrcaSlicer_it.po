@@ -8959,7 +8959,7 @@ msgstr ""
 "Usa solo una parete su superfici piane, per dare più spazio alla trama "
 "riempimento superiore"
 
-msgid "Top-surface threshold"
+msgid "One wall threshold"
 msgstr "Soglia a una parete"
 
 #, c-format, boost-format

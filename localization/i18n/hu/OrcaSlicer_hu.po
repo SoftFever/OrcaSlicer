@@ -8700,7 +8700,7 @@ msgstr ""
 "Csak egy falat használ a sík felső felületeken, hogy több hely maradjon a "
 "felső kitöltési mintának"
 
-msgid "Top-surface threshold"
+msgid "One wall threshold"
 msgstr ""
 
 #, c-format, boost-format

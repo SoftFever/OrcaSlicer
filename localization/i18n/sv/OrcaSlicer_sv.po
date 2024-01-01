@@ -8645,7 +8645,7 @@ msgstr ""
 "Använd endast en vägg på topp ytan, för att ge mer utrymme till det övre "
 "ifyllningsmönstret"
 
-msgid "Top-surface threshold"
+msgid "One wall threshold"
 msgstr ""
 
 #, c-format, boost-format

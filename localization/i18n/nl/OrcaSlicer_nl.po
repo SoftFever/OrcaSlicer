@@ -8782,7 +8782,7 @@ msgstr ""
 "Gebruik slechts één wand op het vlakke bovenvlak, om meer ruimte te geven "
 "aan het bovenste invulpatroon"
 
-msgid "Top-surface threshold"
+msgid "One wall threshold"
 msgstr ""
 
 #, c-format, boost-format

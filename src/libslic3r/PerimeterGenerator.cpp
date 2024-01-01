@@ -1947,7 +1947,7 @@ void PerimeterGenerator::process_arachne()
         if (is_bottom_layer && this->config->only_one_wall_first_layer)
             loop_number = 0;
 
-        // BBS: set the topmost layer to be one wall
+        // Orca: set the topmost layer to be one wall according to the config
         const bool is_topmost_layer = (this->upper_slices == nullptr) ? true : false;
         if (is_topmost_layer && loop_number > 0 && config->only_one_wall_top)
             loop_number = 0;

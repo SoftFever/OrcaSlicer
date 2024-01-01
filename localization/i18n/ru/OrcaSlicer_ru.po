@@ -8935,7 +8935,7 @@ msgstr ""
 "Печатать только один периметр на верхней поверхности, чтобы оставить больше "
 "пространства для верхнего шаблона заполнения."
 
-msgid "Top-surface threshold"
+msgid "One wall threshold"
 msgstr "Порог одного периметра"
 
 #, fuzzy, c-format, boost-format

@@ -8712,7 +8712,7 @@ msgstr ""
 "Використовуйте лише один периметр на плоскій верхній поверхні, щоб надати "
 "більше місця для верхнього масиву заповнення"
 
-msgid "Top-surface threshold"
+msgid "One wall threshold"
 msgstr ""
 
 #, c-format, boost-format
