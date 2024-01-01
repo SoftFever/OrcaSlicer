@@ -190,8 +190,7 @@ void EditGCodeDialog::init_params_list(const std::string& custom_gcode_name)
     if (!specific_params.empty()) {
         wxDataViewItem group = m_params_list->AppendGroup(format_wxstr(_L("Specific for %1%"), custom_gcode_name), "custom-gcode_gcode");
         for (const auto& opt_key : specific_params)
-            if (custom_gcode_specific_config_def.has(opt_key)) {
-                auto def = custom_gcode_specific_config_def.get(opt_key);
+            if (auto def = custom_gcode_specific_config_def.get(opt_key); def && def->type != coNone) {
                 m_params_list->AppendParam(group, get_type(opt_key, *def), opt_key);
             }
         m_params_list->Expand(group);
