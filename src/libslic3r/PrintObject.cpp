@@ -916,6 +916,7 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "min_width_top_surface"
             || opt_key == "only_one_wall_first_layer"
             || opt_key == "extra_perimeters_on_overhangs"
+            || opt_key == "detect_overhang_wall"
             || opt_key == "initial_layer_line_width"
             || opt_key == "inner_wall_line_width"
             || opt_key == "infill_wall_overlap"
