@@ -1965,8 +1965,8 @@ void TabPrint::build()
         optgroup->append_single_option_line("print_flow_ratio");
         optgroup->append_single_option_line("top_solid_infill_flow_ratio");
         optgroup->append_single_option_line("bottom_solid_infill_flow_ratio");
-        optgroup->append_single_option_line("min_width_top_surface");
         optgroup->append_single_option_line("only_one_wall_top");
+        optgroup->append_single_option_line("min_width_top_surface");
         optgroup->append_single_option_line("only_one_wall_first_layer");
         optgroup->append_single_option_line("reduce_crossing_wall");
         optgroup->append_single_option_line("max_travel_detour_distance");
