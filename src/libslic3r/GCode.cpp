@@ -2954,7 +2954,7 @@ std::string GCode::placeholder_parser_process(const std::string &name, const std
     // Orca: Added CMake config option since debug is rarely used in current workflow.
     // Also changed from throwing error immediately to storing messages till slicing is completed
     // to raise all errors at the same time.
-#if !defined(NDEBUG) || defined(ORCA_CHECK_GCODE_PLACEHOLDERS) // CHECK_CUSTOM_GCODE_PLACEHOLDERS
+#if !defined(NDEBUG) || ORCA_CHECK_GCODE_PLACEHOLDERS // CHECK_CUSTOM_GCODE_PLACEHOLDERS
     if (config_override) {
         const auto& custom_gcode_placeholders = custom_gcode_specific_placeholders();
 
