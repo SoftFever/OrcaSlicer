@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-12-29 22:55+0800\n"
-"PO-Revision-Date: 2023-12-25 12:35+0900\n"
+"PO-Revision-Date: 2024-01-01 14:28+0900\n"
 "Last-Translator: Hotsolidinfill <138652683+Hotsolidinfill@users.noreply."
 "github.com>, crwusiz <crwusiz@naver.com>\n"
 "Language-Team: \n"
@@ -274,16 +274,16 @@ msgid "uniform scale"
 msgstr "균일 배율"
 
 msgid "Planar"
-msgstr ""
+msgstr "평면"
 
 msgid "Dovetail"
-msgstr ""
+msgstr "도브테이"
 
 msgid "Auto"
 msgstr "자동"
 
 msgid "Manual"
-msgstr ""
+msgstr "수동"
 
 msgid "Plug"
 msgstr "플러그"
@@ -292,10 +292,10 @@ msgid "Dowel"
 msgstr "맞춤핀"
 
 msgid "Snap"
-msgstr ""
+msgstr "스냅"
 
 msgid "Prism"
-msgstr ""
+msgstr "프리즘"
 
 msgid "Frustum"
 msgstr "원뿔"
@@ -307,13 +307,13 @@ msgid "Hexagon"
 msgstr "육각형"
 
 msgid "Keep orientation"
-msgstr ""
+msgstr "방향 유지"
 
 msgid "Place on cut"
 msgstr "자른 위치에 놓기"
 
 msgid "Flip upside down"
-msgstr ""
+msgstr "거꾸로 뒤집기"
 
 msgid "Connectors"
 msgstr "커넥터"
@@ -331,19 +331,19 @@ msgstr "형태"
 #. Size in emboss direction
 #. TRN - Input label. Be short as possible
 msgid "Depth"
-msgstr ""
+msgstr "깊이"
 
 msgid "Groove"
-msgstr ""
+msgstr "그루브"
 
 msgid "Width"
 msgstr "너비"
 
 msgid "Flap Angle"
-msgstr ""
+msgstr "플랩 각도"
 
 msgid "Groove Angle"
-msgstr ""
+msgstr "홈 각도"
 
 msgid "Part"
 msgstr "부품"
@@ -355,21 +355,26 @@ msgid ""
 "Click to flip the cut plane\n"
 "Drag to move the cut plane"
 msgstr ""
+"클릭하여 잘라낸 면을 뒤집습니다\n"
+"드래그하여 잘라낸 면을 이동합니다"
 
 msgid ""
 "Click to flip the cut plane\n"
 "Drag to move the cut plane\n"
 "Right-click a part to assign it to the other side"
 msgstr ""
+"클릭하여 잘라낸 면을 뒤집습니다\n"
+"드래그하여 절단 면을 이동합니다\n"
+"파트를 마우스 오른쪽 버튼으로 클릭하여 다른 쪽에 할당합니다"
 
 msgid "Move cut plane"
-msgstr ""
+msgstr "절단면 이동"
 
 msgid "Mode"
-msgstr ""
+msgstr "모드"
 
 msgid "Change cut mode"
-msgstr ""
+msgstr "자르기 모드 변경"
 
 msgid "Tolerance"
 msgstr "공차"
@@ -378,7 +383,7 @@ msgid "Drag"
 msgstr "드래그"
 
 msgid "Draw cut line"
-msgstr ""
+msgstr "절단선 그리기"
 
 msgid "Left click"
 msgstr "좌 클릭"
@@ -408,22 +413,22 @@ msgid "Cut"
 msgstr "잘라내기"
 
 msgid "Rotate cut plane"
-msgstr ""
+msgstr "절단면 회전"
 
 msgid "Remove connectors"
 msgstr "커넥터 제거"
 
 msgid "Bulge"
-msgstr ""
+msgstr "부풀림"
 
 msgid "Bulge proportion related to radius"
-msgstr ""
+msgstr "반경과 관련된 부품림 비율"
 
 msgid "Space"
 msgstr "스페이스"
 
 msgid "Space proportion related to radius"
-msgstr ""
+msgstr "반경과 관련된 공간 비율"
 
 msgid "Confirm connectors"
 msgstr "커넥터 승인"
@@ -432,26 +437,26 @@ msgid "Cancel"
 msgstr "취소"
 
 msgid "Build Volume"
-msgstr ""
+msgstr "빌드 볼륨"
 
 msgid "Flip cut plane"
-msgstr ""
+msgstr "플립 컷 평면"
 
 msgid "Groove change"
-msgstr ""
+msgstr "그루브 변경"
 
 msgid "Reset"
 msgstr "초기화"
 
 #. TRN: This is an entry in the Undo/Redo stack. The whole line will be 'Edited: (name of whatever was edited)'.
 msgid "Edited"
-msgstr ""
+msgstr "수정됨"
 
 msgid "Cut position"
-msgstr ""
+msgstr "자르기 위치"
 
 msgid "Reset cutting plane"
-msgstr ""
+msgstr "절단면 재설정"
 
 msgid "Edit connectors"
 msgstr "커넥터 편집"
@@ -460,10 +465,10 @@ msgid "Add connectors"
 msgstr "커넥터 추가"
 
 msgid "Reset cut"
-msgstr ""
+msgstr "컷 재설정"
 
 msgid "Reset cutting plane and remove connectors"
-msgstr ""
+msgstr "절단면 재설정 및 커넥터 제거"
 
 msgid "Upper part"
 msgstr "상부 부품"
@@ -495,30 +500,30 @@ msgstr "잘못된 커넥터가 감지됨"
 #, c-format, boost-format
 msgid "%1$d connector is out of cut contour"
 msgid_plural "%1$d connectors are out of cut contour"
-msgstr[0] ""
+msgstr[0] "%1$d 커넥터가 절단 윤곽에서 벗어남"
 
 #, c-format, boost-format
 msgid "%1$d connector is out of object"
 msgid_plural "%1$d connectors are out of object"
-msgstr[0] ""
+msgstr[0] "%1$d 커넥터가 물체에서 벗어남"
 
 msgid "Some connectors are overlapped"
 msgstr "일부 커넥터가 겹칩니다"
 
 msgid "Select at least one object to keep after cutting."
-msgstr ""
+msgstr "잘라낸 후 보관할 개체를 하나 이상 선택합니다."
 
 msgid "Cut plane is placed out of object"
-msgstr ""
+msgstr "절단면이 개체 밖으로 배치됨"
 
 msgid "Cut plane with groove is invalid"
-msgstr ""
+msgstr "홈이 있는 절단면은 유효하지 않습니다"
 
 msgid "Connector"
 msgstr "커넥터"
 
 msgid "Cut by Plane"
-msgstr ""
+msgstr "평면으로 자르기"
 
 msgid "non-manifold edges be caused by cut tool, do you want to fix it now?"
 msgstr ""
@@ -528,10 +533,10 @@ msgid "Repairing model object"
 msgstr "모델 개체 수리 중"
 
 msgid "Cut by line"
-msgstr ""
+msgstr "라인별로 자르기"
 
 msgid "Delete connector"
-msgstr ""
+msgstr "커넥터 삭제"
 
 msgid "Mesh name"
 msgstr "메쉬 이름"
@@ -667,46 +672,46 @@ msgid "Text shape"
 msgstr "텍스트 모양"
 
 msgid "Set Mirror"
-msgstr ""
+msgstr "반전 설정"
 
 msgid "Embossed text"
-msgstr ""
+msgstr "텍스트 양각"
 
 msgid "Enter emboss gizmo"
-msgstr ""
+msgstr "양각 기즈모 입력"
 
 msgid "Leave emboss gizmo"
-msgstr ""
+msgstr "양각 기즈모 남기기"
 
 msgid "Embossing actions"
-msgstr ""
+msgstr "양각 작업"
 
 msgid "Emboss"
-msgstr ""
+msgstr "양각"
 
 msgid "Text-Rotate"
-msgstr ""
+msgstr "텍스트 회전"
 
 msgid "NORMAL"
-msgstr ""
+msgstr "NORMAL"
 
 msgid "SMALL"
-msgstr ""
+msgstr "SMALL"
 
 msgid "ITALIC"
-msgstr ""
+msgstr "ITALIC"
 
 msgid "SWISS"
-msgstr ""
+msgstr "SWISS"
 
 msgid "MODERN"
-msgstr ""
+msgstr "MODERN"
 
 msgid "First font"
-msgstr ""
+msgstr "첫 번째 글꼴"
 
 msgid "Default font"
-msgstr ""
+msgstr "기본 글꼴"
 
 msgid "Advanced"
 msgstr "고급"
@@ -714,143 +719,144 @@ msgstr "고급"
 msgid ""
 "The text cannot be written using the selected font. Please try choosing a "
 "different font."
-msgstr ""
+msgstr "선택한 글꼴로는 텍스트를 쓸 수 없습니다. 다른 글꼴을 선택해 보세요."
 
 msgid "Embossed text cannot contain only white spaces."
-msgstr ""
+msgstr "양각 텍스트에는 공백만 포함될 수 없습니다."
 
 msgid "Text contains character glyph (represented by '?') unknown by font."
 msgstr ""
+"텍스트에 글꼴로 알 수 없는 문자 모양('?'으로 표시)이 포함되어 있습니다."
 
 msgid "Text input doesn't show font skew."
-msgstr ""
+msgstr "텍스트 입력에는 글꼴 기울어짐이 표시되지 않습니다."
 
 msgid "Text input doesn't show font boldness."
-msgstr ""
+msgstr "텍스트 입력에는 글꼴의 굵기가 표시되지 않습니다."
 
 msgid "Text input doesn't show gap between lines."
-msgstr ""
+msgstr "텍스트 입력 시 줄 사이의 간격이 표시되지 않습니다."
 
 msgid "Too tall, diminished font height inside text input."
-msgstr ""
+msgstr "텍스트 입력 내에서 너무 길고 글꼴 높이가 줄어듭니다."
 
 msgid "Too small, enlarged font height inside text input."
-msgstr ""
+msgstr "텍스트 입력 내 글꼴 높이가 너무 작아서 확대되었습니다."
 
 msgid "Text doesn't show current horizontal alignment."
-msgstr ""
+msgstr "텍스트에 현재 가로 정렬이 표시되지 않습니다."
 
 msgid "Revert font changes."
-msgstr ""
+msgstr "글꼴 변경 사항을 되돌립니다."
 
 #, boost-format
 msgid "Font \"%1%\" can't be selected."
-msgstr ""
+msgstr "글꼴 \"%1%\"을(를) 선택할 수 없습니다."
 
 msgid "Operation"
-msgstr ""
+msgstr "작업"
 
 msgid "Join"
-msgstr ""
+msgstr "접합부"
 
 msgid "Click to change text into object part."
-msgstr ""
+msgstr "텍스트를 개체 부분으로 변경하려면 클릭하세요."
 
 msgid "You can't change a type of the last solid part of the object."
-msgstr ""
+msgstr "개체의 마지막 솔리드 부분 유형은 변경할 수 없습니다."
 
 msgctxt "EmbossOperation"
 msgid "Cut"
-msgstr ""
+msgstr "자르기"
 
 msgid "Click to change part type into negative volume."
-msgstr ""
+msgstr "부품 유형을 음수 볼륨으로 변경하려면 클릭하세요."
 
 msgid "Modifier"
 msgstr "수정자"
 
 msgid "Click to change part type into modifier."
-msgstr ""
+msgstr "부품 유형을 수정자로 변경하려면 클릭하세요."
 
 msgid "Change Text Type"
-msgstr ""
+msgstr "텍스트 유형 변경"
 
 #, boost-format
 msgid "Rename style(%1%) for embossing text"
-msgstr ""
+msgstr "양각 텍스트의 스타일 이름 바꾸기(%1%)"
 
 msgid "Name can't be empty."
-msgstr ""
+msgstr "이름은 비워둘 수 없습니다."
 
 msgid "Name has to be unique."
-msgstr ""
+msgstr "이름은 고유해야 합니다."
 
 msgid "OK"
 msgstr "확인"
 
 msgid "Rename style"
-msgstr ""
+msgstr "스타일 이름 바꾸기"
 
 msgid "Rename current style."
-msgstr ""
+msgstr "현재 스타일의 이름을 바꿉니다."
 
 msgid "Can't rename temporary style."
-msgstr ""
+msgstr "임시 스타일의 이름을 바꿀 수 없습니다."
 
 msgid "First Add style to list."
-msgstr ""
+msgstr "먼저 목록에 스타일을 추가합니다."
 
 #, boost-format
 msgid "Save %1% style"
-msgstr ""
+msgstr "%1% 스타일 저장"
 
 msgid "No changes to save."
-msgstr ""
+msgstr "저장할 변경사항이 없습니다."
 
 msgid "New name of style"
-msgstr ""
+msgstr "스타일의 새 이름"
 
 msgid "Save as new style"
-msgstr ""
+msgstr "새 스타일로 저장"
 
 msgid "Only valid font can be added to style."
-msgstr ""
+msgstr "유효한 글꼴만 스타일에 추가할 수 있습니다."
 
 msgid "Add style to my list."
-msgstr ""
+msgstr "내 목록에 스타일을 추가하세요."
 
 msgid "Save as new style."
-msgstr ""
+msgstr "새 스타일로 저장합니다."
 
 msgid "Remove style"
-msgstr ""
+msgstr "스타일 제거"
 
 msgid "Can't remove the last existing style."
-msgstr ""
+msgstr "마지막 기존 스타일을 제거할 수 없습니다."
 
 #, boost-format
 msgid "Are you sure you want to permanently remove the \"%1%\" style?"
-msgstr ""
+msgstr "\"%1%\" 스타일을 영구적으로 제거하시겠습니까?"
 
 #, boost-format
 msgid "Delete \"%1%\" style."
-msgstr ""
+msgstr "\"%1%\" 스타일을 삭제합니다."
 
 #, boost-format
 msgid "Can't delete \"%1%\". It is last style."
-msgstr ""
+msgstr "\"%1%\"을(를) 삭제할 수 없습니다. 마지막 스타일입니다."
 
 #, boost-format
 msgid "Can't delete temporary style \"%1%\"."
-msgstr ""
+msgstr "임시 스타일 \"%1%\"을(를) 삭제할 수 없습니다."
 
 #, boost-format
 msgid "Modified style \"%1%\""
-msgstr ""
+msgstr "수정된 스타일 \"%1%\""
 
 #, boost-format
 msgid "Current style is \"%1%\""
-msgstr ""
+msgstr "현재 스타일은 \"%1%\"입니다."
 
 #, boost-format
 msgid ""
@@ -858,145 +864,152 @@ msgid ""
 "\n"
 "Would you like to continue anyway?"
 msgstr ""
+"스타일을 \"%1%\"(으)로 변경하면 현재 스타일 수정 사항이 삭제됩니다.\n"
+"\n"
+"그래도 계속하시겠습니까?"
 
 msgid "Not valid style."
-msgstr ""
+msgstr "유효한 스타일이 아닙니다."
 
 #, boost-format
 msgid "Style \"%1%\" can't be used and will be removed from a list."
-msgstr ""
+msgstr "스타일 \"%1%\"은(는) 사용할 수 없으며 목록에서 제거됩니다."
 
 msgid "Unset italic"
-msgstr ""
+msgstr "이탤릭체 설정해제"
 
 msgid "Set italic"
-msgstr ""
+msgstr "이탤릭체 설정"
 
 msgid "Unset bold"
-msgstr ""
+msgstr "굵게 설정해제"
 
 msgid "Set bold"
-msgstr ""
+msgstr "굵게 설정"
 
 msgid "Revert text size."
-msgstr ""
+msgstr "텍스트 크기를 되돌립니다."
 
 msgid "Revert embossed depth."
-msgstr ""
+msgstr "양각 깊이를 되돌립니다."
 
 msgid ""
 "Advanced options cannot be changed for the selected font.\n"
 "Select another font."
 msgstr ""
+"선택한 글꼴에 대해서는 고급 옵션을 변경할 수 없습니다.\n"
+"다른 글꼴을 선택하세요."
 
 msgid "Revert using of model surface."
-msgstr ""
+msgstr "모델 표면 사용을 되돌립니다."
 
 msgid "Revert Transformation per glyph."
-msgstr ""
+msgstr "문자 모양 변환을 되돌립니다."
 
 msgid "Set global orientation for whole text."
-msgstr ""
+msgstr "전체 텍스트에 대한 전역 방향을 설정합니다."
 
 msgid "Set position and orientation per glyph."
-msgstr ""
+msgstr "문자 모양별로 위치와 방향을 설정합니다."
 
 msgctxt "Alignment"
 msgid "Left"
-msgstr ""
+msgstr "왼쪽"
 
 msgctxt "Alignment"
 msgid "Center"
-msgstr ""
+msgstr "중앙"
 
 msgctxt "Alignment"
 msgid "Right"
-msgstr ""
+msgstr "오른쪽"
 
 msgctxt "Alignment"
 msgid "Top"
-msgstr ""
+msgstr "위"
 
 msgctxt "Alignment"
 msgid "Middle"
-msgstr ""
+msgstr "가운데"
 
 msgctxt "Alignment"
 msgid "Bottom"
-msgstr ""
+msgstr "아래"
 
 msgid "Revert alignment."
-msgstr ""
+msgstr "정렬을 되돌립니다."
 
 #. TRN EmbossGizmo: font units
 msgid "points"
-msgstr ""
+msgstr "위치"
 
 msgid "Revert gap between characters"
-msgstr ""
+msgstr "문자 사이의 간격 되돌리기"
 
 msgid "Distance between characters"
-msgstr ""
+msgstr "문자 사이의 거리"
 
 msgid "Revert gap between lines"
-msgstr ""
+msgstr "선 사이의 간격 되돌리기"
 
 msgid "Distance between lines"
-msgstr ""
+msgstr "선 사이의 거리"
 
 msgid "Undo boldness"
-msgstr ""
+msgstr "두드러짐 취소"
 
 msgid "Tiny / Wide glyphs"
-msgstr ""
+msgstr "작은/넓은 문자 모양"
 
 msgid "Undo letter's skew"
-msgstr ""
+msgstr "문자 기울어짐 실행 취소"
 
 msgid "Italic strength ratio"
-msgstr ""
+msgstr "이텔릭체 강도 비율"
 
 msgid "Undo translation"
-msgstr ""
+msgstr "번역 취소"
 
 msgid "Distance of the center of the text to the model surface."
-msgstr ""
+msgstr "텍스트 중심에서 모델 표면까지의 거리입니다."
 
 msgid "Undo rotation"
-msgstr ""
+msgstr "회전 실행 취소"
 
 msgid "Rotate text Clock-wise."
-msgstr ""
+msgstr "텍스트를 시계 방향으로 회전합니다."
 
 msgid "Unlock the text's rotation when moving text along the object's surface."
-msgstr ""
+msgstr "개체 표면을 따라 텍스트를 이동할 때 텍스트 회전을 잠금 해제합니다."
 
 msgid "Lock the text's rotation when moving text along the object's surface."
-msgstr ""
+msgstr "개체 표면을 따라 텍스트를 이동할 때 텍스트 회전을 잠급니다."
 
 msgid "Select from True Type Collection."
-msgstr ""
+msgstr "트루타입 컬렉션에서 선택하세요."
 
 msgid "Set text to face camera"
-msgstr ""
+msgstr "카메라를 향하도록 텍스트 설정"
 
 msgid "Orient the text towards the camera."
-msgstr ""
+msgstr "텍스트 방향을 카메라 쪽으로 향하게 합니다."
 
 #, boost-format
 msgid ""
 "Can't load exactly same font(\"%1%\"). Aplication selected a similar "
 "one(\"%2%\"). You have to specify font for enable edit text."
 msgstr ""
+"정확히 동일한 글꼴(\"%1%\")을 로드할 수 없습니다. 응용 프로그램이 유사한 항목"
+"(\"%2%\")을 선택했습니다. 텍스트 편집을 활성화하려면 글꼴을 지정해야 합니다."
 
 msgid "No symbol"
-msgstr ""
+msgstr "기호 없음"
 
 msgid "Loading"
 msgstr "로드 중"
 
 msgid "In queue"
-msgstr ""
+msgstr "대기열에 있음"
 
 #. TRN - Input label. Be short as possible
 #. Height of one text line - Font Ascent
@@ -1007,35 +1020,35 @@ msgstr "높이"
 #. Copy surface of model on surface of the embossed text
 #. TRN - Input label. Be short as possible
 msgid "Use surface"
-msgstr ""
+msgstr "표면 사용"
 
 #. TRN - Input label. Be short as possible
 #. Option to change projection on curved surface
 #. for each character(glyph) in text separately
 msgid "Per glyph"
-msgstr ""
+msgstr "문자모양 당"
 
 #. TRN - Input label. Be short as possible
 #. Align Top|Middle|Bottom and Left|Center|Right
 msgid "Alignment"
-msgstr ""
+msgstr "조정"
 
 #. TRN - Input label. Be short as possible
 msgid "Char gap"
-msgstr ""
+msgstr "문자 간격"
 
 #. TRN - Input label. Be short as possible
 msgid "Line gap"
-msgstr ""
+msgstr "줄 간격"
 
 #. TRN - Input label. Be short as possible
 msgid "Boldness"
-msgstr ""
+msgstr "두드러짐"
 
 #. TRN - Input label. Be short as possible
 #. Like Font italic
 msgid "Skew ratio"
-msgstr ""
+msgstr "기울어짐 비율"
 
 #. TRN - Input label. Be short as possible
 #. Distance from model surface to be able
@@ -1043,250 +1056,253 @@ msgstr ""
 #. move text as modifier fully out of not flat surface
 #. TRN - Input label. Be short as possible
 msgid "From surface"
-msgstr ""
+msgstr "표면에서"
 
 #. TRN - Input label. Be short as possible
 #. Keep vector from bottom to top of text aligned with printer Y axis
 msgid "Keep up"
-msgstr ""
+msgstr "유지하다"
 
 #. TRN - Input label. Be short as possible.
 #. Some Font file contain multiple fonts inside and
 #. this is numerical selector of font inside font collections
 msgid "Collection"
-msgstr ""
+msgstr "수집"
 
 msgid "Enter SVG gizmo"
-msgstr ""
+msgstr "SVG 기즈모 입력"
 
 msgid "Leave SVG gizmo"
-msgstr ""
+msgstr "SVG 기즈모 나가기"
 
 msgid "SVG actions"
-msgstr ""
+msgstr "SVG 작업"
 
 msgid "SVG"
 msgstr "SVG"
 
 #. TRN This is an item label in the undo-redo stack.
 msgid "SVG-Rotate"
-msgstr ""
+msgstr "SVG-회전"
 
 #, boost-format
 msgid "Opacity (%1%)"
-msgstr ""
+msgstr "불투명도(%1%)"
 
 #, boost-format
 msgid "Color gradient (%1%)"
-msgstr ""
+msgstr "색상 그라데이션(%1%)"
 
 msgid "Undefined fill type"
-msgstr ""
+msgstr "정의되지 않은 채우기 유형"
 
 msgid "Linear gradient"
-msgstr ""
+msgstr "선형 그래디언트"
 
 msgid "Radial gradient"
-msgstr ""
+msgstr "방사형 그래디언트"
 
 msgid "Open filled path"
-msgstr ""
+msgstr "채워진 경로 열기"
 
 msgid "Undefined stroke type"
-msgstr ""
+msgstr "정의되지 않은 스트로크 유형"
 
 msgid "Path can't be healed from selfintersection and multiple points."
-msgstr ""
+msgstr "자체 교차 및 여러 지점에서는 경로를 복구할 수 없습니다."
 
 msgid ""
 "Final shape constains selfintersection or multiple points with same "
 "coordinate."
 msgstr ""
+"최종 모양에는 자체 교차점이나 동일한 좌표를 가진 여러 점이 포함되어 있습니다."
 
 #, boost-format
 msgid "Shape is marked as invisible (%1%)."
-msgstr ""
+msgstr "모양이 보이지 않음(%1%)으로 표시되었습니다."
 
 #. TRN: The first placeholder is shape identifier, the second one is text describing the problem.
 #, boost-format
 msgid "Fill of shape (%1%) contains unsupported: %2%."
-msgstr ""
+msgstr "도형 채우기(%1%)에는 지원되지 않는 %2%가 포함되어 있습니다."
 
 #, boost-format
 msgid "Stroke of shape (%1%) is too thin (minimal width is %2% mm)."
-msgstr ""
+msgstr "모양의 획(%1%)이 너무 얇습니다(최소 너비는 %2%mm)."
 
 #, boost-format
 msgid "Stroke of shape (%1%) contains unsupported: %2%."
-msgstr ""
+msgstr "모양의 획(%1%)에는 지원되지 않는 %2%가 포함되어 있습니다."
 
 msgid "Face the camera"
-msgstr ""
+msgstr "카메라를 바라보세요"
 
 #. TRN - Preview of filename after clear local filepath.
 msgid "Unknown filename"
-msgstr ""
+msgstr "알 수 없는 파일 이름"
 
 #, boost-format
 msgid "SVG file path is \"%1%\""
-msgstr ""
+msgstr "SVG 파일 경로는 \"%1%\"입니다."
 
 msgid "Reload SVG file from disk."
-msgstr ""
+msgstr "디스크에서 SVG 파일을 다시 로드합니다."
 
 msgid "Change file"
-msgstr ""
+msgstr "파일 변경"
 
 msgid "Change to another .svg file"
-msgstr ""
+msgstr "다른 .svg 파일로 변경"
 
 msgid "Forget the file path"
-msgstr ""
+msgstr "파일 경로 기억하지않음"
 
 msgid ""
 "Do NOT save local path to 3MF file.\n"
 "Also disables 'reload from disk' option."
 msgstr ""
+"3MF 파일에 로컬 경로를 저장하지 마십시오.\n"
+"또한 '디스크에서 다시 로드' 옵션을 비활성화합니다."
 
 #. TRN: An menu option to convert the SVG into an unmodifiable model part.
 msgid "Bake"
-msgstr ""
+msgstr "굽기"
 
 #. TRN: Tooltip for the menu item.
 msgid "Bake into model as uneditable part"
-msgstr ""
+msgstr "편집할 수 없는 부분으로 모델에 굽기"
 
 msgid "Save as"
-msgstr ""
+msgstr "다른 이름으로 저장"
 
 msgid "Save SVG file"
-msgstr ""
+msgstr "SVG 파일 저장"
 
 msgid "Save as '.svg' file"
-msgstr ""
+msgstr "'.svg' 파일로 저장"
 
 msgid "Size in emboss direction."
-msgstr ""
+msgstr "양각 방향의 크기입니다."
 
 #. TRN: The placeholder contains a number.
 #, boost-format
 msgid "Scale also changes amount of curve samples (%1%)"
-msgstr ""
+msgstr "규모도 곡선 샘플의 양을 변경합니다(%1%)."
 
 msgid "Width of SVG."
-msgstr ""
+msgstr "SVG의 너비."
 
 msgid "Height of SVG."
-msgstr ""
+msgstr "SVG의 높이."
 
 msgid "Lock/unlock the aspect ratio of the SVG."
-msgstr ""
+msgstr "SVG의 종횡비를 잠금/잠금 해제합니다."
 
 msgid "Reset scale"
-msgstr ""
+msgstr "규모 재설정"
 
 msgid "Resize"
-msgstr ""
+msgstr "크기 조정"
 
 msgid "Distance of the center of the SVG to the model surface."
-msgstr ""
+msgstr "SVG 중심에서 모델 표면까지의 거리입니다."
 
 msgid "Reset distance"
-msgstr ""
+msgstr "거리 재설정"
 
 msgid "Reset rotation"
-msgstr ""
+msgstr "회전 재설정"
 
 msgid "Lock/unlock rotation angle when dragging above the surface."
-msgstr ""
+msgstr "표면 위로 드래그할 때 회전 각도를 잠금/잠금 해제합니다."
 
 msgid "Mirror vertically"
-msgstr ""
+msgstr "수직으로 반전"
 
 msgid "Mirror horizontally"
-msgstr ""
+msgstr "수평으로 반전"
 
 #. TRN: This is the name of the action that shows in undo/redo stack (changing part type from SVG to something else).
 msgid "Change SVG Type"
-msgstr ""
+msgstr "SVG 유형 변경"
 
 #. TRN - Input label. Be short as possible
 msgid "Mirror"
 msgstr "반전"
 
 msgid "Choose SVG file for emboss:"
-msgstr ""
+msgstr "양각을 위한 SVG 파일 선택:"
 
 #, boost-format
 msgid "File does NOT exist (%1%)."
-msgstr ""
+msgstr "파일이 존재하지 않습니다(%1%)."
 
 #, boost-format
 msgid "Filename has to end with \".svg\" but you selected %1%"
-msgstr ""
+msgstr "파일 이름은 \".svg\"로 끝나야 하지만 %1%을(를) 선택했습니다"
 
 #, boost-format
 msgid "Nano SVG parser can't load from file (%1%)."
-msgstr ""
+msgstr "나노 SVG 파서는 파일(%1%)에서 로드할 수 없습니다."
 
 #, boost-format
 msgid "SVG file does NOT contain a single path to be embossed (%1%)."
-msgstr ""
+msgstr "SVG 파일에는 양각할 단일 경로(%1%)가 포함되어 있지 않습니다."
 
 msgid "Vertex"
-msgstr ""
+msgstr "꼭지점"
 
 msgid "Edge"
-msgstr ""
+msgstr "가장자리"
 
 msgid "Plane"
-msgstr ""
+msgstr "평면"
 
 msgid "Point on edge"
-msgstr ""
+msgstr "가장자리의 점"
 
 msgid "Point on circle"
-msgstr ""
+msgstr "원 위의 점"
 
 msgid "Point on plane"
-msgstr ""
+msgstr "평면 위의 점"
 
 msgid "Center of edge"
-msgstr ""
+msgstr "가장자리 중심"
 
 msgid "Center of circle"
-msgstr ""
+msgstr "원의 중심"
 
 msgid "ShiftLeft mouse button"
-msgstr ""
+msgstr "Shift + 왼쪽 마우스 버튼"
 
 msgid "Select feature"
-msgstr ""
+msgstr "기능 선택"
 
 msgid "Select point"
-msgstr ""
+msgstr "위치 선택"
 
 msgid "Delete"
 msgstr "삭제"
 
 msgid "Restart selection"
-msgstr ""
+msgstr "다시 선택"
 
 msgid "Esc"
 msgstr "Esc"
 
 msgid "Unselect"
-msgstr ""
+msgstr "선택 취소"
 
 msgid "Measure"
-msgstr ""
+msgstr "측정"
 
 msgid "Edit to scale"
-msgstr ""
+msgstr "규모에 맞게 편집"
 
 msgctxt "Verb"
 msgid "Scale"
-msgstr ""
+msgstr "규모"
 
 msgid "None"
 msgstr "없음"
@@ -1298,22 +1314,22 @@ msgid "Length"
 msgstr "길이"
 
 msgid "Selection"
-msgstr ""
+msgstr "선택"
 
 msgid "Copy to clipboard"
 msgstr "클립보드로 복사"
 
 msgid "Perpendicular distance"
-msgstr ""
+msgstr "수직 거리"
 
 msgid "Distance"
-msgstr ""
+msgstr "거리"
 
 msgid "Direct distance"
-msgstr ""
+msgstr "직접적인 거리"
 
 msgid "Distance XYZ"
-msgstr ""
+msgstr "XYZ 거리"
 
 msgid "Ctrl+"
 msgstr "Ctrl+"
@@ -5883,7 +5899,7 @@ msgid "Stealth Mode"
 msgstr "스텔스 모드"
 
 msgid "Check for stable updates only"
-msgstr ""
+msgstr "안정적인 업데이트만 확인"
 
 msgid "Metric"
 msgstr "미터법"
@@ -6752,6 +6768,8 @@ msgid ""
 "Layer height is too small.\n"
 "It will set to min_layer_height\n"
 msgstr ""
+"레이어 높이가 너무 작습니다.\n"
+"min_layer_height로 설정됩니다.\n"
 
 msgid ""
 "Layer height exceeds the limit in Printer Settings -> Extruder -> Layer "
@@ -6772,8 +6790,8 @@ msgstr "무시"
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "툴헤드 없이 시간 경과를 기록할 경우 \"타임랩스 닦기 타워\"를 추가하는 것이 좋"
 "습니다\n"
@@ -8771,7 +8789,6 @@ msgstr "반전 임계값"
 msgid "Overhang reversal threshold"
 msgstr "돌출부 반전 임계값"
 
-#, fuzzy, c-format, boost-format
 msgid ""
 "Number of mm the overhang need to be for the reversal to be considered "
 "useful. Can be a % of the perimeter width.\n"
@@ -9551,7 +9568,6 @@ msgstr "선의 시작 또는 주 방향을 제어하는 드문 채우기 패턴�
 msgid "Sparse infill density"
 msgstr "드문 채우기 밀도"
 
-#, fuzzy, c-format, boost-format
 msgid ""
 "Density of internal sparse infill, 100% turns all sparse infill into solid "
 "infill and internal solid infill pattern will be used"
@@ -9786,10 +9802,10 @@ msgstr "팬 최대 속도 레이어"
 
 msgid ""
 "Fan speed will be ramped up linearly from zero at layer "
-"\"close_fan_the_first_x_layers\" to maximum at layer \"full_fan_speed_layer"
-"\". \"full_fan_speed_layer\" will be ignored if lower than "
-"\"close_fan_the_first_x_layers\", in which case the fan will be running at "
-"maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
+"\"close_fan_the_first_x_layers\" to maximum at layer "
+"\"full_fan_speed_layer\". \"full_fan_speed_layer\" will be ignored if lower "
+"than \"close_fan_the_first_x_layers\", in which case the fan will be running "
+"at maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
 msgstr ""
 "팬 속도는 \"close_fan_the_first_x_layers\" 의 0에서 \"full_fan_speed_layer\" "
 "의 최고 속도까지 선형적으로 증가합니다. \"full_fan_speed_layer\"가 "
@@ -10923,7 +10939,7 @@ msgstr ""
 "에 안쪽으로의 작은 이동이 실행됩니다."
 
 msgid "Wipe before external loop"
-msgstr ""
+msgstr "외부 루프 전 닦아내기"
 
 msgid ""
 "To minimise visibility of potential overextrusion at the start of an "
@@ -10936,6 +10952,13 @@ msgid ""
 "print order as in these modes it is more likely an external perimeter is "
 "printed immediately after a deretraction move."
 msgstr ""
+"외부/내부 또는 내부/외부/내부 벽 인쇄 순서로 인쇄할 때 외부 둘레 시작 부분에"
+"서 잠재적인 과잉 압출의 가시성을 최소화하기 위해 외부 둘레 시작 부분에서 내부"
+"에 후퇴가 약간 수행됩니다. 이렇게 하면 압출에 대한 모든 잠재력이 외부 표면에"
+"서 숨겨집니다.\n"
+"\n"
+"외부/내부 또는 내부/외부/내부 벽 인쇄 순서로 인쇄할 때 유용합니다. 이러한 모"
+"드에서는 후퇴 이동 직후 외부 둘레가 인쇄될 가능성이 더 높기 때문입니다."
 
 msgid "Wipe speed"
 msgstr "닦기 속도"
@@ -11845,6 +11868,10 @@ msgid ""
 "Wipe tower is only compatible with relative mode. It is recommended on most "
 "printers. Default is checked"
 msgstr ""
+"\"label_objects\" 옵션을 사용할 때는 상대 압출을 권장합니다. 일부 압출기는 "
+"이 옵션을 선택하지 않은 경우(절대 압출 모드) 더 잘 작동합니다. 와이프 타워는 "
+"상대 모드와만 호환됩니다. 대부분의 프린터에 권장됩니다. 기본값이 선택되어 있"
+"습니다"
 
 msgid ""
 "Classic wall generator produces walls with constant extrusion width and for "
@@ -13076,8 +13103,8 @@ msgstr ""
 "다시 작성하시겠습니까?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 "사전 설정의 이름을 \"선택한 공급업체 유형 직렬 @프린터\"로 변경합니다.\n"
@@ -13707,6 +13734,8 @@ msgid ""
 "G-code window\n"
 "You can turn on/off the G-code window by pressing the <b>C</b> key."
 msgstr ""
+"G코드 창\n"
+"<b>C</b> 키를 눌러 G코드 창을 켜거나 끌 수 있습니다."
 
 #: resources/data/hints.ini: [hint:Switch workspaces]
 msgid ""
@@ -13714,6 +13743,9 @@ msgid ""
 "You can switch between <b>Prepare</b> and <b>Preview</b> workspaces by "
 "pressing the <b>Tab</b> key."
 msgstr ""
+"작업 공간 전환\n"
+"<b>Tab</b> 키를 눌러 <b>준비</b> 작업 공간과 <b>미리 보기</b> 작업 공간 사이"
+"를 전환할 수 있습니다."
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
@@ -13730,6 +13762,9 @@ msgid ""
 "Did you know that <b>Reverse on odd</b> feature can significantly improve "
 "the surface quality of your overhangs?"
 msgstr ""
+"홀수에 반전\n"
+"<b>홀수면 반전</b> 기능이 오버행의 표면 품질을 크게 향상시킬 수 있다는 사실"
+"을 알고 계셨습니까?"
 
 #: resources/data/hints.ini: [hint:Cut Tool]
 msgid ""
