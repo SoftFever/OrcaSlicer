@@ -90,13 +90,18 @@ std::vector<Slic3r::ColorRGBA> get_extruders_colors()
 }
 float FullyTransparentMaterialThreshold  = 0.1f;
 float FullTransparentModdifiedToFixAlpha = 0.3f;
+float FULL_BLACK_THRESHOLD = 0.18f;
 
 Slic3r::ColorRGBA adjust_color_for_rendering(const Slic3r::ColorRGBA &colors)
 {
     if (colors.a() < FullyTransparentMaterialThreshold) { // completely transparent
         return {1, 1, 1, FullTransparentModdifiedToFixAlpha};
     }
-    return colors;
+    else if(colors.r() < FULL_BLACK_THRESHOLD && colors.g() < FULL_BLACK_THRESHOLD && colors.b() < FULL_BLACK_THRESHOLD) { // black
+        return {FULL_BLACK_THRESHOLD, FULL_BLACK_THRESHOLD, FULL_BLACK_THRESHOLD, colors.a()};
+    }
+    else
+        return colors;
 }
 
 namespace Slic3r {
