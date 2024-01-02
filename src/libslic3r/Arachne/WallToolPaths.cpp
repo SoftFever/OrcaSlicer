@@ -31,6 +31,11 @@ WallToolPathsParams make_paths_params(const int layer_id, const PrintObjectConfi
         if (const auto &min_feature_size_opt = print_object_config.min_feature_size)
             input_params.min_feature_size = min_feature_size_opt.value * 0.01 * min_nozzle_diameter;
 
+        if (const auto &min_wall_length_factor_opt = print_object_config.min_length_factor)
+            input_params.min_length_factor = min_wall_length_factor_opt.value;
+        else
+            input_params.min_length_factor = 0.5f;
+
         if (layer_id == 0) {
             if (const auto &initial_layer_min_bead_width_opt = print_object_config.initial_layer_min_bead_width)
                 input_params.min_bead_width = initial_layer_min_bead_width_opt.value * 0.01 * min_nozzle_diameter;
@@ -47,6 +52,8 @@ WallToolPathsParams make_paths_params(const int layer_id, const PrintObjectConfi
 
         input_params.wall_transition_angle   = print_object_config.wall_transition_angle.value;
         input_params.wall_distribution_count = print_object_config.wall_distribution_count.value;
+
+        input_params.is_top_or_bottom_layer = false; // Set to default value
     }
 
     return input_params;
@@ -671,7 +678,8 @@ void WallToolPaths::removeSmallLines(std::vector<VariableWidthLines> &toolpaths)
             coord_t        min_width = std::numeric_limits<coord_t>::max();
             for (const ExtrusionJunction &j : line)
                 min_width = std::min(min_width, j.w);
-            if (line.is_odd && !line.is_closed && shorterThan(line, min_width / 2)) { // remove line
+            // Only use min_length_factor for non-topmost, to prevent top gaps. Otherwise use default value.
+            if (line.is_odd && !line.is_closed && shorterThan(line, m_params.is_top_or_bottom_layer ? (min_width / 2) : (min_width * m_params.min_length_factor))) { // remove line
                 line = std::move(inset.back());
                 inset.erase(--inset.end());
                 line_idx--; // reconsider the current position
