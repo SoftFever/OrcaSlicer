@@ -1289,9 +1289,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             model.set_backup_path(m_backup_path);
             try {
                 if (boost::filesystem::exists(model.get_backup_path() + "/origin.txt"))
-                    boost::filesystem::load_string_file(model.get_backup_path() + "/origin.txt", m_origin_file);
+                    load_string_file(model.get_backup_path() + "/origin.txt", m_origin_file);
             } catch (...) {}
-            boost::filesystem::save_string_file(
+            save_string_file(
                 model.get_backup_path() + "/lock.txt",
                 boost::lexical_cast<std::string>(get_current_pid()));
         }
@@ -1304,7 +1304,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             file_version = *m_bambuslicer_generator_version;
         // save for restore
         if (result && m_load_aux && !m_load_restore) {
-            boost::filesystem::save_string_file(model.get_backup_path() + "/origin.txt", filename);
+            save_string_file(model.get_backup_path() + "/origin.txt", filename);
         }
         if (m_load_restore && !result) // not clear failed backup data for later analyze
             model.set_backup_path("detach");
@@ -5543,7 +5543,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 return false;
             }
             if (!(store_params.strategy & SaveStrategy::Silence))
-                boost::filesystem::save_string_file(store_params.model->get_backup_path() + "/origin.txt", filename);
+                save_string_file(store_params.model->get_backup_path() + "/origin.txt", filename);
         }
         return result;
     }
@@ -8286,7 +8286,7 @@ bool has_restore_data(std::string & path, std::string& origin)
     }
     if (boost::filesystem::exists(path + "/lock.txt")) {
         std::string pid;
-        boost::filesystem::load_string_file(path + "/lock.txt", pid);
+        load_string_file(path + "/lock.txt", pid);
         try {
             if (get_process_name(boost::lexical_cast<int>(pid)) ==
                 get_process_name(0)) {
@@ -8303,7 +8303,7 @@ bool has_restore_data(std::string & path, std::string& origin)
         return false;
     try {
         if (boost::filesystem::exists(path + "/origin.txt"))
-            boost::filesystem::load_string_file(path + "/origin.txt", origin);
+            load_string_file(path + "/origin.txt", origin);
     }
     catch (...) {
     }
