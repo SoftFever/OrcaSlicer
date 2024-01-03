@@ -1924,6 +1924,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("role_based_wipe_speed","seam");
         optgroup->append_single_option_line("wipe_speed", "seam");
         optgroup->append_single_option_line("wipe_on_loops","seam");
+        optgroup->append_single_option_line("wipe_before_external_loop","seam");
 
 
         optgroup = page->new_optgroup(L("Precision"), L"param_precision");
@@ -1956,6 +1957,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("initial_layer_min_bead_width");
         optgroup->append_single_option_line("min_bead_width");
         optgroup->append_single_option_line("min_feature_size");
+        optgroup->append_single_option_line("min_length_factor");
 
         optgroup = page->new_optgroup(L("Walls and surfaces"), L"param_advanced");
         optgroup->append_single_option_line("wall_sequence");
