@@ -5,6 +5,7 @@
 #include "libslic3r/format.hpp"
 #undef PI
 
+#include <boost/next_prior.hpp>
 // Include igl first. It defines "L" macro which then clashes with our localization
 #include <igl/copyleft/cgal/mesh_boolean.h>
 #undef L

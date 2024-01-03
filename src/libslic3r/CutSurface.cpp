@@ -28,7 +28,7 @@
 
 using namespace Slic3r;
 #include "ExPolygonsIndex.hpp"
-
+#include <boost/next_prior.hpp>
 #include <CGAL/Polygon_mesh_processing/corefinement.h>
 #include <CGAL/Exact_integer.h>
 #include <CGAL/Surface_mesh.h>
