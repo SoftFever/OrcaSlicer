@@ -32,6 +32,7 @@ public:
 	wxString query_hms_msg(std::string long_error_code);
 	wxString query_print_error_msg(int print_error);
 	static std::string hms_language_code();
+	static std::string build_query_params();
 };
 
 int get_hms_info_version(std::string &version);

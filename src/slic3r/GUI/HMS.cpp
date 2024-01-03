@@ -17,7 +17,8 @@ int get_hms_info_version(std::string& version)
     }
     int result = -1;
     version = "";
-    std::string url = (boost::format("https://%1%/GetVersion.php") % hms_host).str();
+    std::string query_params = HMSQuery::build_query_params();
+    std::string url = (boost::format("https://%1%/GetVersion.php?%2%") % hms_host % query_params).str();
     Slic3r::Http http = Slic3r::Http::get(url);
     http.timeout_max(10)
         .on_complete([&result, &version](std::string body, unsigned status){
@@ -44,8 +45,8 @@ int HMSQuery::download_hms_info()
     if (!config) return -1;
 
     std::string hms_host = wxGetApp().app_config->get_hms_host();
-    std::string lang_code = HMSQuery::hms_language_code();
-    std::string url = (boost::format("https://%1%/query.php?lang=%2%") % hms_host % lang_code).str();
+    std::string query_params = HMSQuery::build_query_params();
+    std::string url = (boost::format("https://%1%/query.php?%2%") % hms_host % query_params).str();
 
     BOOST_LOG_TRIVIAL(info) << "hms: download url = " << url;
 
@@ -150,6 +151,13 @@ std::string HMSQuery::hms_language_code()
         return "en";
     }
     return lang_code;
+}
+
+std::string HMSQuery::build_query_params()
+{
+    std::string lang_code = HMSQuery::hms_language_code();
+    std::string query_params = (boost::format("lang=%1%") % lang_code).str();
+    return query_params;
 }
 
 std::string HMSQuery::get_hms_file()
