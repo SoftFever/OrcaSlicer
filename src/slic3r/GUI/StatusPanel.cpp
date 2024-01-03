@@ -1001,6 +1001,12 @@ wxBoxSizer *StatusBasePanel::create_monitoring_page()
     m_camera_switch_button->SetBackgroundColour(STATUS_TITLE_BG);
     m_camera_switch_button->SetBitmap(m_bitmap_switch_camera.bmp());
     m_camera_switch_button->Bind(wxEVT_LEFT_DOWN, &StatusBasePanel::on_camera_switch_toggled, this);
+    m_camera_switch_button->Bind(wxEVT_RIGHT_DOWN, [this](auto& e) {
+        const std::string js_request_pip = R"(
+            document.querySelector('video').requestPictureInPicture();
+        )";
+        m_custom_camera_view->RunScript(js_request_pip);
+    });
     m_camera_switch_button->Hide();
 
     m_bitmap_sdcard_img->SetToolTip(_L("SD Card"));
@@ -1036,6 +1042,16 @@ wxBoxSizer *StatusBasePanel::create_monitoring_page()
 
     m_media_play_ctrl = new MediaPlayCtrl(this, m_media_ctrl, wxDefaultPosition, wxSize(-1, FromDIP(40)));
     m_custom_camera_view->Hide();
+    m_custom_camera_view->Bind(wxEVT_WEBVIEW_SCRIPT_MESSAGE_RECEIVED, [this](wxWebViewEvent& evt) {
+        if (evt.GetString() == "leavepictureinpicture") {
+            // When leaving PiP, video gets paused in some cases and toggling play
+            // programmatically does not work.
+            m_custom_camera_view->Reload();
+        }
+        else if (evt.GetString() == "enterpictureinpicture") {
+            toggle_builtin_camera();
+        }
+    });
 
     sizer->Add(m_media_ctrl, 1, wxEXPAND | wxALL, 0);
     sizer->Add(m_custom_camera_view, 1, wxEXPAND | wxALL, 0);
@@ -3960,8 +3976,15 @@ void StatusBasePanel::remove_controls()
 {
     const std::string js_cleanup_video_element = R"(
         document.body.style.overflow='hidden';
-        document.querySelector('video').setAttribute('style', 'width: 100% !important;');
-        document.querySelector('video').removeAttribute('controls');
+        const video = document.querySelector('video');
+        video.setAttribute('style', 'width: 100% !important;');
+        video.removeAttribute('controls');
+        video.addEventListener('leavepictureinpicture', () => {
+            window.wx.postMessage('leavepictureinpicture');
+        });
+        video.addEventListener('enterpictureinpicture', () => {
+            window.wx.postMessage('enterpictureinpicture');
+        });
     )";
     m_custom_camera_view->RunScript(js_cleanup_video_element);
 }
