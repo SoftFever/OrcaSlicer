@@ -2477,10 +2477,26 @@ const std::string* PresetCollection::get_preset_name_renamed(const std::string &
 	return nullptr;
 }
 
-bool PresetCollection::is_alias_exist(const std::string &alias)
+bool PresetCollection::is_alias_exist(const std::string &alias, Preset* preset)
 {
-    if (m_map_alias_to_profile_name.end() == m_map_alias_to_profile_name.find(alias)) return false;
-    return true;
+    auto it = m_map_alias_to_profile_name.find(alias);
+    if (m_map_alias_to_profile_name.end() == it) return false;
+    if (!preset) return true;
+
+    auto compatible_printers = dynamic_cast<ConfigOptionStrings *>(preset->config.option("compatible_printers"));
+    if (compatible_printers == nullptr) return true;
+
+    for (const std::string &printer_name : compatible_printers->values) {
+        auto printer_iter = m_printer_hold_alias.find(printer_name);
+        if (m_printer_hold_alias.end() != printer_iter) {
+            auto alias_iter = m_printer_hold_alias[printer_name].find(alias);
+            if (m_printer_hold_alias[printer_name].end() != alias_iter) {
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " " << " The alias already exists: " << alias << " and the preset name: " << preset->name;
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 const std::string& PresetCollection::get_suffix_modified() {
@@ -2849,11 +2865,31 @@ void PresetCollection::set_custom_preset_alias(Preset &preset)
                 boost::trim_right(alias_name);
             }
         }
-        if (alias_name.empty() || is_alias_exist(alias_name))
+        if (alias_name.empty() || is_alias_exist(alias_name, &preset))
             preset.alias = "";
         else {
             preset.alias = std::move(alias_name);
             m_map_alias_to_profile_name[preset.alias].push_back(preset.name);
+            set_printer_hold_alias(preset.alias, preset);
+        }
+    }
+}
+
+void PresetCollection::set_printer_hold_alias(const std::string &alias, Preset &preset)
+{
+    auto compatible_printers = dynamic_cast<ConfigOptionStrings *>(preset.config.option("compatible_printers"));
+    if (compatible_printers == nullptr) return;
+    for (const std::string &printer_name : compatible_printers->values) {
+        auto printer_iter = m_printer_hold_alias.find(printer_name);
+        if (m_printer_hold_alias.end() == printer_iter) {
+            m_printer_hold_alias[printer_name].insert(alias);
+        } else {
+            auto alias_iter = m_printer_hold_alias[printer_name].find(alias);
+            if (m_printer_hold_alias[printer_name].end() == alias_iter) {
+                m_printer_hold_alias[printer_name].insert(alias);
+            } else {
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " " << printer_name << "already has alias: " << alias << " and the preset name: " << preset.name;
+            }
         }
     }
 }
