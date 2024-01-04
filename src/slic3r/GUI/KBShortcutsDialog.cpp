@@ -258,6 +258,7 @@ void KBShortcutsDialog::fill_shortcuts()
             { "F", L("Gizmo Place face on bed") },
             { "L", L("Gizmo SLA support points") },
             { "P", L("Gizmo FDM paint-on seam") },
+            { "T", L("Gizmo Text emboss / engrave")},
             { "Tab", L("Switch between Prepare/Preview") },
 
         };
