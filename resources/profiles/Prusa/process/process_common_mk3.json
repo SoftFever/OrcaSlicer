@@ -40,7 +40,7 @@
   "ironing_flow": "15%",
   "ironing_spacing": "0.1",
   "ironing_speed": "15",
-  "ironing_type": "top",
+  "ironing_type": "no ironing",
   "is_custom_defined": "1",
   "max_travel_detour_distance": "0",
   "min_bead_width": "85%",
