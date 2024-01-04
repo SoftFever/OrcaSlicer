@@ -388,15 +388,24 @@ bool GLGizmosManager::is_running() const
 
 bool GLGizmosManager::handle_shortcut(int key)
 {
-    if (!m_enabled || m_parent.get_selection().is_empty())
+    if (!m_enabled)
         return false;
 
-    auto it = std::find_if(m_gizmos.begin(), m_gizmos.end(),
-            [key](const std::unique_ptr<GLGizmoBase>& gizmo) {
-                int gizmo_key = gizmo->get_shortcut_key();
-                return gizmo->is_activable()
-                       && ((gizmo_key == key - 64) || (gizmo_key == key - 96));
-    });
+    auto is_key = [pressed_key = key](int gizmo_key) { return (gizmo_key == pressed_key - 64) || (gizmo_key == pressed_key - 96); };
+    // allowe open shortcut even when selection is empty    
+    if (GLGizmoBase* gizmo_emboss = m_gizmos[Emboss].get();
+        is_key(gizmo_emboss->get_shortcut_key())) {
+        dynamic_cast<GLGizmoEmboss *>(gizmo_emboss)->on_shortcut_key();
+        return true;
+    }
+
+    if (m_parent.get_selection().is_empty())
+        return false;
+
+    auto is_gizmo = [is_key](const std::unique_ptr<GLGizmoBase> &gizmo) {
+        return gizmo->is_activable() && is_key(gizmo->get_shortcut_key());
+    };
+    auto it = std::find_if(m_gizmos.begin(), m_gizmos.end(), is_gizmo);
 
     if (it == m_gizmos.end())
         return false;
