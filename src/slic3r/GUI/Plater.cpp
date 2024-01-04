@@ -1132,6 +1132,7 @@ void Sidebar::update_all_preset_comboboxes()
     // Orca:: show device tab based on vendor type
     auto p_mainframe = wxGetApp().mainframe;
     p_mainframe->show_device(is_bbl_vendor);
+    auto cfg = preset_bundle.printers.get_edited_preset().config;
 
     if (is_bbl_vendor) {
         //only show connection button for not-BBL printer
@@ -1140,32 +1141,9 @@ void Sidebar::update_all_preset_comboboxes()
         ams_btn->Show();
         //update print button default value for bbl or third-party printer
         p_mainframe->set_print_button_to_default(MainFrame::PrintSelectType::ePrintPlate);
-        AppConfig* config = wxGetApp().app_config;
-        if (config && !config->get("curr_bed_type").empty()) {
-            int bed_type_idx = 0;
-            std::string str_bed_type = config->get("curr_bed_type");
-            int bed_type_value = (int)btPC;
-            try {
-                bed_type_value = atoi(str_bed_type.c_str());
-            } catch(...) {}
-            bed_type_idx = bed_type_value - 1;
-            m_bed_type_list->SelectAndNotify(bed_type_idx);
-        } else {
-            BedType bed_type = preset_bundle.printers.get_edited_preset().get_default_bed_type(&preset_bundle);
-            m_bed_type_list->SelectAndNotify((int)bed_type - 1);
-        }
-        m_bed_type_list->Enable();
-        auto str_bed_type = wxGetApp().app_config->get_printer_setting(wxGetApp().preset_bundle->printers.get_selected_preset_name(), "curr_bed_type");
-        if(!str_bed_type.empty()){
-            int bed_type_value = atoi(str_bed_type.c_str());
-            if(bed_type_value == 0)
-                bed_type_value = 1;
-            m_bed_type_list->SelectAndNotify(bed_type_value - 1);
-        }
     } else {
         connection_btn->Show();
         ams_btn->Hide();
-        auto cfg = preset_bundle.printers.get_edited_preset().config;
         auto print_btn_type = MainFrame::PrintSelectType::eExportGcode;
         wxString url = cfg.opt_string("print_host_webui").empty() ? cfg.opt_string("print_host") : cfg.opt_string("print_host_webui");
         if(!url.empty()) 
@@ -1182,7 +1160,23 @@ void Sidebar::update_all_preset_comboboxes()
         }
         p_mainframe->set_print_button_to_default(print_btn_type);
 
-        m_bed_type_list->SelectAndNotify(btPEI-1);
+    }
+
+    if (is_bbl_vendor || cfg.opt_bool("support_multi_bed_types")) {
+        m_bed_type_list->Enable();
+        auto str_bed_type = wxGetApp().app_config->get_printer_setting(wxGetApp().preset_bundle->printers.get_selected_preset_name(),
+                                                                       "curr_bed_type");
+        if (!str_bed_type.empty()) {
+            int bed_type_value = atoi(str_bed_type.c_str());
+            if (bed_type_value == 0)
+                bed_type_value = 1;
+            m_bed_type_list->SelectAndNotify(bed_type_value - 1);
+        } else {
+            BedType bed_type = preset_bundle.printers.get_edited_preset().get_default_bed_type(&preset_bundle);
+            m_bed_type_list->SelectAndNotify((int) bed_type - 1);
+        }
+    } else {
+        m_bed_type_list->SelectAndNotify(btPEI - 1);
         m_bed_type_list->Disable();
     }
 
