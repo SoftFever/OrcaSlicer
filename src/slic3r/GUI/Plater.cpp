@@ -1710,11 +1710,6 @@ std::vector<PlaterPresetComboBox*>& Sidebar::combos_filament()
     return p->combos_filament;
 }
 
-PlaterPresetComboBox* Sidebar::printer_combo()
-{
-    return p->combo_printer;
-}
-
 Search::OptionsSearcher& Sidebar::get_searcher()
 {
     return p->searcher;
@@ -5712,7 +5707,7 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
         wxWindowUpdateLocker noUpdates2(sidebar->filament_panel());
         wxGetApp().get_tab(preset_type)->select_preset(preset_name);
     }
-
+    
     // update plater with new config
     q->on_config_change(wxGetApp().preset_bundle->full_config());
     if (preset_type == Preset::TYPE_PRINTER) {
@@ -5737,6 +5732,15 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
     auto plate_list = partplate_list.get_plate_list();
     for (auto plate : plate_list) {
          plate->update_slice_result_valid_state(false);
+    }
+
+    if (wxGetApp().mainframe->m_printago != nullptr && !wxGetApp().mainframe->m_printago->CanProcessJob()) {
+        wxCommandEvent *event = new wxCommandEvent(PRINTAGO_COMBO_SWITCHED_EVENT);
+        if (preset_type == Preset::TYPE_PRINTER)
+            event->SetString("printer");
+        else if (preset_type == Preset::TYPE_FILAMENT)
+            event->SetString("filament");
+        wxQueueEvent(wxGetApp().mainframe->m_printago, event);
     }
 }
 

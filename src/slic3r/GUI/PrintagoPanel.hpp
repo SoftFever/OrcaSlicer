@@ -33,6 +33,7 @@ class PrintagoMessageEvent; // forward declaration
 wxDECLARE_EVENT(PRINTAGO_SEND_WEBVIEW_MESSAGE_EVENT, PrintagoMessageEvent);
 wxDECLARE_EVENT(PRINTAGO_SLICING_PROCESS_COMPLETED_EVENT, SlicingProcessCompletedEvent);
 wxDECLARE_EVENT(PRINTAGO_PRINT_SENT_EVENT, wxCommandEvent);
+wxDECLARE_EVENT(PRINTAGO_COMBO_SWITCHED_EVENT, wxCommandEvent);
 
 class PrintagoCommand
 {
@@ -117,11 +118,12 @@ private:
     // we set this to true when we need to issue a
     // command that must block (e.g slicing/sending a print to a printer)
     // no need to send this for commands like home/jog.
-    wxString jobPrinterId;
-    wxString jobCommand;
-    wxString jobLocalFilePath;
-    wxString jobServerState = "idle"; // TODO : use enum
-    int      jobProgress    = 0;
+    wxString                                     jobPrinterId;
+    wxString                                     jobCommand;
+    wxFileName                                   jobLocalModelFile;
+    wxString                                     jobServerState = "idle"; // TODO : use enum
+    std::unordered_map<std::string, wxFileName>  jobConfigFiles;
+    int                                          jobProgress = 0;
 
     SelectMachineDialog *m_select_machine_dlg = nullptr;
     inline static bool   m_can_process_job    = true; // let's us know if we can clear/add files/slice/send.
@@ -147,13 +149,17 @@ private:
     json GetMachineStatus(const wxString &printerId);
     json GetMachineStatus(MachineObject *machine);
 
-    bool SavePrintagoPrintFile(const wxString url, wxString &localPath);
+    bool SavePrintagoFile(const wxString url, wxFileName &localPath);
     json GetConfigByName(wxString configType, wxString configName);
     json GetAllConfigJson(bool only_names = false);
     json Config2Json(const DynamicPrintConfig &config, const std::string &name, const std::string &from, const std::string &version, const std::string is_custom
                          = "");
-    void LoadConfigFiles(const wxArrayString &paths);
-    bool DownloadFileFromURL(const wxString url, const wxFileName &localPath);
+
+    void        LoadPrintagoConfigs();
+    std::string get_config_name_from_json_file(const wxString &FilePath);
+    void        SetPrinterConfig();
+    void        OnPresetComboSwitched(wxCommandEvent &evt);
+    bool        DownloadFileFromURL(const wxString url, const wxFileName &localPath);
 
     static wxString wxURLErrorToString(wxURLError error);
     static json     MachineObjectToJson(MachineObject *machine);

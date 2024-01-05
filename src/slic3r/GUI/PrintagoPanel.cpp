@@ -13,6 +13,8 @@
 #include <wx/sizer.h>
 #include <wx/url.h>
 
+#include "Tab.hpp"
+
 using namespace nlohmann;
 
 namespace pt = boost::property_tree;
@@ -22,6 +24,7 @@ namespace Slic3r { namespace GUI {
 wxDEFINE_EVENT(PRINTAGO_SEND_WEBVIEW_MESSAGE_EVENT, PrintagoMessageEvent);
 wxDEFINE_EVENT(PRINTAGO_SLICING_PROCESS_COMPLETED_EVENT, SlicingProcessCompletedEvent);
 wxDEFINE_EVENT(PRINTAGO_PRINT_SENT_EVENT, wxCommandEvent);
+wxDEFINE_EVENT(PRINTAGO_COMBO_SWITCHED_EVENT, wxCommandEvent);
 
 #define PRINTAGO_TEMP_THRESHOLD_ALLOW_E_CTRL 170.0f // Minimum temperature to allow extrusion control (per StatusPanel.cpp)
 
@@ -49,6 +52,7 @@ PrintagoPanel::PrintagoPanel(wxWindow *parent, wxString *url) : wxPanel(parent, 
     Bind(PRINTAGO_SEND_WEBVIEW_MESSAGE_EVENT, &PrintagoPanel::SendWebViewMessage, this);
     Bind(EVT_PROCESS_COMPLETED, &PrintagoPanel::OnSlicingProcessCompleted, this);
     Bind(PRINTAGO_PRINT_SENT_EVENT, &PrintagoPanel::OnPrintJobSent, this);
+    Bind(PRINTAGO_COMBO_SWITCHED_EVENT, &PrintagoPanel::OnPresetComboSwitched, this);
 }
 
 PrintagoPanel::~PrintagoPanel()
@@ -72,8 +76,9 @@ void PrintagoPanel::SetCanProcessJob(const bool can_process_job)
     if (can_process_job) {
         jobPrinterId.Clear();
         jobCommand.Clear();
-        jobLocalFilePath.Clear();
+        jobLocalModelFile.Clear();
         jobServerState = "idle";
+        jobConfigFiles.clear();
         jobProgress    = 0;
         // jobId = ""; // TODO: add this here when we have it.
         m_select_machine_dlg = nullptr;
@@ -188,7 +193,7 @@ void PrintagoPanel::AddCurrentProcessJsonTo(json &statusObject)
     statusObject["process"]["job_id"]         = ""; // add later from command.
     statusObject["process"]["job_state"]      = jobServerState.ToStdString();
     statusObject["process"]["job_machine"]    = jobPrinterId.ToStdString();
-    statusObject["process"]["job_local_file"] = jobLocalFilePath.ToStdString();
+    statusObject["process"]["job_local_file"] = jobLocalModelFile.GetFullPath().ToStdString();
     statusObject["process"]["job_progress"]   = jobProgress;
 }
 
@@ -202,8 +207,6 @@ bool PrintagoPanel::DownloadFileFromURL(const wxString url, const wxFileName &lo
     int                     percent     = 1;
     const int               max_retries = 3;
     wxString                msg;
-
-    wxGetApp().plater()->reset();
 
     /* prepare project and profile */
     boost::thread download_thread = Slic3r::create_thread(
@@ -264,7 +267,7 @@ bool PrintagoPanel::DownloadFileFromURL(const wxString url, const wxFileName &lo
     return download_ok;
 }
 
-bool PrintagoPanel::SavePrintagoPrintFile(const wxString url, wxString &localPath)
+bool PrintagoPanel::SavePrintagoFile(const wxString url, wxFileName &localPath)
 {
     wxURI    uri(url);
     wxString path = uri.GetPath();
@@ -289,7 +292,7 @@ bool PrintagoPanel::SavePrintagoPrintFile(const wxString url, wxString &localPat
 
     if (DownloadFileFromURL(url, filename)) {
         wxLogMessage("File downloaded to: %s", filename.GetFullPath());
-        localPath = filename.GetFullPath();
+        localPath = filename;
         return true;
     } else {
         localPath = "";
@@ -398,27 +401,72 @@ json PrintagoPanel::Config2Json(const DynamicPrintConfig &config,
     return j;
 }
 
-void PrintagoPanel::LoadConfigFiles(const wxArrayString &paths)
+//TODO DELETE
+void PrintagoPanel::SetPrinterConfig()
 {
-    // std::vector<std::string> cfiles;
-    // for (const auto &file : paths) {
-    //     cfiles.push_back(into_u8(file));
-    // }
-    // wxGetApp().preset_bundle->import_presets(
-    //     cfiles, [this](std::string const &) { return wxID_YESTOALL; },
-    //     ForwardCompatibilitySubstitutionRule::Enable);
-    //
-    // if (!cfiles.empty()) {
-    //     wxGetApp().load_current_presets();
-    // }
+    if (CanProcessJob()) return;
 
     //after presets are loaded, update the selected fields via UI
-    wxGetApp().mainframe->select_tab(1);
-   // wxGetApp().plater()->sidebar().printer_combo()->SelectAndNotify(3);  //this works, but must update UI.
-    CallAfter([=] {wxGetApp().plater()->sidebar().combos_filament()[0]->SelectAndNotify(5); });
-    // if AMS, need to set the filament on the first filament combo in the vector array; hopefully always uses array[0].
+    // wxGetApp().mainframe->select_tab(1);
     
 
+    //to Update the UI since the event is protected, do these shenanigans.
+    // CallAfter([=] { wxGetApp().plater()->sidebar().printer_combo()->SelectAndNotify(wxGetApp().plater()->sidebar().printer_combo()->GetSelection()); });
+}
+
+void PrintagoPanel::OnPresetComboSwitched(wxCommandEvent &evt)
+{
+    if (CanProcessJob()) return;
+
+    wxString comboType = evt.GetString();
+
+    if (!comboType.compare("printer")) {
+        //we haven't yet loaded the model, so load the model.  this account for the 3MF needing to re-set the printer.
+        if (wxGetApp().plater()->model().objects.empty()) {
+            try {
+                if (!jobLocalModelFile.GetExt().MakeUpper().compare("3MF")) {
+                    // The last 'true' tells the function to not ask the user to confirm the load; save any existing work.
+                    wxGetApp().plater()->load_project(jobLocalModelFile.GetFullPath(), "-", true);
+                    //if it's a 3MF, we need to re-set the printer after the project loads (using existing load_project code)
+                    SetPrinterConfig();
+                    return;
+                } else {
+                    std::vector<std::string> filePathArray;
+                    filePathArray.push_back(jobLocalModelFile.GetFullPath().ToStdString());
+                    LoadStrategy strategy = LoadStrategy::LoadModel |
+                                            LoadStrategy::Silence; // LoadStrategy::LoadConfig | LoadStrategy::LoadAuxiliary
+                    wxGetApp().plater()->load_files(filePathArray, strategy, false);
+
+                    std::vector<std::string> configFilePaths;
+                    for (const auto &pair : jobConfigFiles) {
+                        configFilePaths.push_back(pair.second.GetFullPath().ToStdString());
+                    }
+                    wxGetApp().plater()->load_files(configFilePaths, LoadStrategy::LoadConfig | LoadStrategy::Silence, false);
+
+                    // wxGetApp().plater()->sidebar().combos_filament()[0]->SetStringSelection(jobConfigFiles["filament"].GetName());
+                }
+            } catch (...) {
+                SendErrorAndUnblock(jobPrinterId, wxString::Format("%s:%s", "start_print_bbl", jobServerState), jobCommand,
+                                    "and error occurred loading the model and config");
+                return;
+            }
+        } else { // load the filament config
+            CallAfter([=] { wxGetApp().plater()->sidebar().combos_filament()[0]->SetStringSelection(jobConfigFiles["filament"].GetName()); });
+        }
+        return;
+    } else if (!comboType.compare("filament")) {
+        //now, just set the process and slice.
+        wxGetApp().get_tab(Preset::TYPE_PRINT)->select_preset(jobConfigFiles["print"].GetName().ToStdString());
+
+        jobServerState = "slice";
+        jobProgress    = 45;
+        if (!CanProcessJob()) {
+            wxGetApp().plater()->select_plate(0, true);
+            wxGetApp().plater()->reslice();
+            wxString actionDetail = wxString::Format("slice_start: %s", jobLocalModelFile.GetFullPath());
+            SendSuccessMessage(jobPrinterId, "start_print_bbl", jobCommand, actionDetail);
+        }
+    } 
 }
 
 wxString PrintagoPanel::wxURLErrorToString(wxURLError error)
@@ -535,18 +583,19 @@ void PrintagoPanel::HandlePrintagoCommand(const PrintagoCommand &event)
             return;
         }
         else if (!action.compare("start_print_bbl")) {
-            LoadConfigFiles(*(new wxArrayString()));
-            return;
             if (!printer->can_print() && jobPrinterId.compare(printerId)) { //printer can print, and we're not already prepping for it.
                 SendErrorMessage(printerId, action, originalCommandStr, "cannot start print");
                 return;
             }
 
-            wxString printagoFileUrl = parameters["url"];
-            wxString decodedUrl      = {""};
+            wxString printagoModelUrl = parameters["model"];
+            wxString printerConfUrl  = parameters["printer_conf"];
+            wxString printConfUrl    = parameters["print_conf"];
+            wxString filamentConfUrl = parameters["filament_conf"];
+
             jobPrinterId             = printerId;
             jobCommand               = originalCommandStr;
-            jobLocalFilePath         = "";
+            jobLocalModelFile        = "";
 
             if (!m_select_machine_dlg)
                 m_select_machine_dlg = new SelectMachineDialog(wxGetApp().plater());
@@ -557,52 +606,56 @@ void PrintagoPanel::HandlePrintagoCommand(const PrintagoCommand &event)
             }
             SetCanProcessJob(false);
 
-            if (printagoFileUrl.empty()) {
+            if (printagoModelUrl.empty()) {
                 SendErrorAndUnblock(printerId, action, originalCommandStr, "no url specified");
                 return;
+            } else if (printConfUrl.empty() || printerConfUrl.empty() || filamentConfUrl.empty()) {
+                SendErrorAndUnblock(printerId, action, originalCommandStr, "must specify printer, filament, and print configurations");
+                return;
             } else {
-                decodedUrl = Http::url_decode(printagoFileUrl.ToStdString());
-                // TODO: validate that the URL is valid w/ regex.
+                printagoModelUrl = Http::url_decode(printagoModelUrl.ToStdString());
+                printerConfUrl = Http::url_decode(printerConfUrl.ToStdString());
+                printConfUrl = Http::url_decode(printConfUrl.ToStdString());
+                filamentConfUrl = Http::url_decode(filamentConfUrl.ToStdString());
             }
 
             jobServerState = "download";
             jobProgress    = 10;
 
-            if (SavePrintagoPrintFile(decodedUrl, jobLocalFilePath)) {
-                wxLogMessage("Downloaded file to: " + jobLocalFilePath);
+            // Second param is reference and modified inside SavePrintagoFile.
+            if (SavePrintagoFile(printagoModelUrl, jobLocalModelFile)) {
+                wxLogMessage("Downloaded file to: " + jobLocalModelFile.GetFullPath());
             } else {
-                SendErrorAndUnblock(printerId, wxString::Format("%s:%s", action, jobServerState), originalCommandStr, "download failed");
+                SendErrorAndUnblock(printerId, wxString::Format("%s:%s", action, jobServerState), originalCommandStr, "model download failed");
                 return;
             }
+
+            // Do the configuring here: this allows 3MF files to load, then we can configure the slicer and override the 3MF conf settings from what Printago sent.
+            wxFileName localPrinterConf, localFilamentConf, localPrintConf;
+            if (SavePrintagoFile(printerConfUrl, localPrinterConf) && SavePrintagoFile(filamentConfUrl, localFilamentConf) &&
+                SavePrintagoFile(printConfUrl, localPrintConf)) {
+                wxLogMessage("Downloaded config files");
+            } else {
+                SendErrorAndUnblock(printerId, wxString::Format("%s:%s", action, jobServerState), originalCommandStr,
+                                    "config download failed");
+                return;
+            }
+
+            jobConfigFiles["printer"] = localPrinterConf;
+            jobConfigFiles["filament"] = localFilamentConf;
+            jobConfigFiles["print"] = localPrintConf;
 
             jobServerState = "configure";
             jobProgress    = 30;
 
-            try {
-                wxFileName filename(jobLocalFilePath);
-                if (!filename.GetExt().MakeUpper().compare("3MF")) {
-                    // The last 'true' tells the function to not ask the user to confirm the load; save any existing work.
-                    wxGetApp().plater()->load_project(jobLocalFilePath, "-", true);
-                } else {
-                    std::vector<std::string> filePathArray;
-                    filePathArray.push_back(jobLocalFilePath.ToStdString());
-                    LoadStrategy strategy = LoadStrategy::LoadModel | LoadStrategy::LoadConfig | LoadStrategy::LoadAuxiliary |
-                                            LoadStrategy::Silence;
-                    wxGetApp().plater()->load_files(filePathArray, strategy, false);
-                }
-                wxGetApp().plater()->select_plate(0, true);
-            } catch (...) {
-                SendErrorAndUnblock(printerId, wxString::Format("%s:%s", action, jobServerState), originalCommandStr,
-                                    "and error occurred loading the model and config");
-                return;
-            }
+            wxGetApp().plater()->reset();
 
-            jobServerState = "slice";
-            jobProgress    = 45;
+            actionDetail = wxString::Format("slice_config: %s", jobLocalModelFile.GetFullPath());
 
-            wxGetApp().plater()->reslice();
-            actionDetail = wxString::Format("slice_start: %s", jobLocalFilePath);
-
+            LoadPrintagoConfigs();
+            // SetPrinterConfig();
+            SendErrorAndUnblock(printerId, wxString::Format("%s:%s", action, jobServerState), originalCommandStr, "configure complete");
+            return;
         }
     }
     else if (!commandType.compare("temperature_control")) {
@@ -738,6 +791,52 @@ void PrintagoPanel::HandlePrintagoCommand(const PrintagoCommand &event)
     return;
 }
 
+void PrintagoPanel::LoadPrintagoConfigs()
+{
+    std::vector<std::string> cfiles;
+    cfiles.push_back(into_u8(jobConfigFiles["printer"].GetFullPath()));
+    cfiles.push_back(into_u8(jobConfigFiles["filament"].GetFullPath()));
+    cfiles.push_back(into_u8(jobConfigFiles["print"].GetFullPath()));
+    
+    wxGetApp().preset_bundle->import_presets(
+        cfiles,
+        [this](std::string const &name) {
+            return wxID_YESTOALL;
+        },
+        ForwardCompatibilitySubstitutionRule::Enable);
+    if (!cfiles.empty()) {
+        //reloads the UI presets in the dropdowns.
+        wxGetApp().load_current_presets(true);
+    }
+
+    std::string printerProfileName  = get_config_name_from_json_file(jobConfigFiles["printer"].GetFullPath());
+    std::string filamentProfileName = get_config_name_from_json_file(jobConfigFiles["filament"].GetFullPath());
+    std::string printProfileName    = get_config_name_from_json_file(jobConfigFiles["print"].GetFullPath());
+
+    wxGetApp().get_tab(Preset::TYPE_PRINTER)->select_preset(printerProfileName);
+    wxGetApp().get_tab(Preset::TYPE_PRINT)->select_preset(printProfileName);
+
+    wxGetApp().get_tab(Preset::TYPE_FILAMENT)->select_preset(filamentProfileName);
+    int numFilaments = wxGetApp().filaments_cnt();
+    for (int i = 0; i < numFilaments; ++i) {
+        wxGetApp().plater()->sidebar().combos_filament()[i]->SetStringSelection(filamentProfileName);
+    }
+
+    wxGetApp().mainframe->select_tab(1);
+}
+
+std::string PrintagoPanel::get_config_name_from_json_file(const wxString &FilePath)
+{
+    std::ifstream file(FilePath);
+    if (!file.is_open()) {
+        return "";
+    }
+    json j;
+    file >> j;
+    file.close();
+    return j.at("name").get<std::string>();
+}
+
 void PrintagoPanel::OnSlicingProcessCompleted(SlicingProcessCompletedEvent &evt)
 {
     // in case we got here by mistake and there's nothing we're trying to process; return silently.
@@ -749,11 +848,11 @@ void PrintagoPanel::OnSlicingProcessCompleted(SlicingProcessCompletedEvent &evt)
     wxString       actionDetail;
 
     if (!evt.success()) {
-        actionDetail = "slicing Unknown Error: " + jobLocalFilePath;
+        actionDetail = "slicing Unknown Error: " + jobLocalModelFile.GetFullPath();
         if (evt.cancelled())
-            actionDetail = "slicing cancelled: " + jobLocalFilePath;
+            actionDetail = "slicing cancelled: " + jobLocalModelFile.GetFullPath();
         else if (evt.error())
-            actionDetail = "slicing error: " + jobLocalFilePath;
+            actionDetail = "slicing error: " + jobLocalModelFile.GetFullPath();
         SendErrorAndUnblock(jobPrinterId, action, jobCommand, actionDetail);
         return;
     }
@@ -762,7 +861,7 @@ void PrintagoPanel::OnSlicingProcessCompleted(SlicingProcessCompletedEvent &evt)
 
     jobServerState = "send";
     jobProgress    = 75;
-    actionDetail   = wxString::Format("send_to_printer: %s", jobLocalFilePath);
+    actionDetail   = wxString::Format("send_to_printer: %s", jobLocalModelFile);
 
     m_select_machine_dlg->set_print_type(PrintFromType::FROM_NORMAL);
     m_select_machine_dlg->prepare(0);

@@ -166,7 +166,6 @@ public:
 #endif
 
     std::vector<PlaterPresetComboBox*>&   combos_filament();
-    PlaterPresetComboBox* printer_combo();
 
     Search::OptionsSearcher&        get_searcher();
     std::string&                    get_search_line();
