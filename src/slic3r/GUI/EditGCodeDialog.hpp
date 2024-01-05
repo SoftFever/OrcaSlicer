@@ -63,7 +63,7 @@ protected:
 
     void selection_changed(wxDataViewEvent& evt);
 
-    wxBoxSizer* EditGCodeDialog::create_btn_sizer(long flags);
+    wxBoxSizer* create_btn_sizer(long flags);
 };
 
 

@@ -658,7 +658,11 @@ void ParamsModel::GetValue(wxVariant& variant, const wxDataViewItem& item, unsig
     if (col == (unsigned int)0)
 #ifdef __linux__
 //        variant << wxDataViewIconText(node->text, get_bmp_bundle(node->icon_name)->GetIconFor(m_ctrl->GetParent())); //TODO: update to bundle with wx update
-wxDataViewIconText(node->text, create_scaled_bitmap(node->icon_name, m_ctrl->GetParent()));
+    {
+        wxIcon icon;
+        icon.CopyFromBitmap(create_scaled_bitmap(node->icon_name, m_ctrl->GetParent()));
+        wxDataViewIconText(node->text, icon);
+    }
 #else
 //        variant << DataViewBitmapText(node->text, get_bmp_bundle(node->icon_name)->GetBitmapFor(m_ctrl->GetParent())); //TODO: update to bundle with wx update
         variant << DataViewBitmapText(node->text, create_scaled_bitmap(node->icon_name, m_ctrl->GetParent()));
