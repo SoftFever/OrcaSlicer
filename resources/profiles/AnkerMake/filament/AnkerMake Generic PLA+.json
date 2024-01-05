@@ -1,0 +1,13 @@
+{
+    "type": "filament",
+    "name": "AnkerMake Generic PLA+",
+    "inherits": "AnkerMake Generic PLA+ @base",
+    "from": "system",
+    "setting_id": "GFSL99",
+    "instantiation": "true",
+    "compatible_printers": [
+        "AnkerMake M5 PTFE 0.4 nozzle",
+        "AnkerMake M5 All-Metal 0.4 nozzle",
+        "AnkerMake M5c 0.4 nozzle"
+    ]
+}

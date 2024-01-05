@@ -1,0 +1,29 @@
+{
+    "type": "filament",
+    "name": "AnkerMake Generic PLA+ @base",
+    "inherits": "fdm_filament_pla",
+    "from": "system",
+    "filament_id": "GFL99",
+    "instantiation": "false",
+    "filament_cost": [
+        "25"
+    ],
+    "temperature_vitrification": [
+        "60"
+    ],
+    "nozzle_temperature_initial_layer": [
+        "225"
+    ],
+    "nozzle_temperature": [
+        "220"
+    ],
+    "hot_plate_temp_initial_layer": [
+        "65"
+    ],
+    "hot_plate_temp": [
+        "65"
+    ],
+    "filament_max_volumetric_speed": [
+        "15"
+    ]
+}
