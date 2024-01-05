@@ -3221,8 +3221,8 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         //    }
         //    break;
         //}
-        //case 'I':
-        //case 'i': { _update_camera_zoom(1.0); break; }
+        case 'I':
+        case 'i': { _update_camera_zoom(1.0); break; }
         //case 'K':
         //case 'k': { wxGetApp().plater()->get_camera().select_next_type(); m_dirty = true; break; }
         //case 'L':
@@ -3234,8 +3234,8 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
             //}
             //break;
         //}
-        //case 'O':
-        //case 'o': { _update_camera_zoom(-1.0); break; }
+        case 'O':
+        case 'o': { _update_camera_zoom(-1.0); break; }
         //case 'Z':
         //case 'z': {
         //    if (!m_selection.is_empty())
