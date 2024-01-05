@@ -1506,6 +1506,12 @@ public:
     DimensionsConfigDef();
 };
 
+class TemperaturesConfigDef : public ConfigDef
+{
+public:
+    TemperaturesConfigDef();
+};
+
 class TimestampsConfigDef : public ConfigDef
 {
 public:
