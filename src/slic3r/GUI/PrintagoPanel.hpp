@@ -33,7 +33,6 @@ class PrintagoMessageEvent; // forward declaration
 wxDECLARE_EVENT(PRINTAGO_SEND_WEBVIEW_MESSAGE_EVENT, PrintagoMessageEvent);
 wxDECLARE_EVENT(PRINTAGO_SLICING_PROCESS_COMPLETED_EVENT, SlicingProcessCompletedEvent);
 wxDECLARE_EVENT(PRINTAGO_PRINT_SENT_EVENT, wxCommandEvent);
-wxDECLARE_EVENT(PRINTAGO_COMBO_SWITCHED_EVENT, wxCommandEvent);
 
 class PrintagoCommand
 {
@@ -152,13 +151,11 @@ private:
     bool SavePrintagoFile(const wxString url, wxFileName &localPath);
     json GetConfigByName(wxString configType, wxString configName);
     json GetAllConfigJson(bool only_names = false);
-    json Config2Json(const DynamicPrintConfig &config, const std::string &name, const std::string &from, const std::string &version, const std::string is_custom
-                         = "");
+    json Config2Json(const DynamicPrintConfig &config, const std::string &name, const std::string &from, const std::string &version, const std::string is_custom = "");
 
-    void        LoadPrintagoConfigs();
-    std::string get_config_name_from_json_file(const wxString &FilePath);
-    void        SetPrinterConfig();
-    void        OnPresetComboSwitched(wxCommandEvent &evt);
+    void        ImportPrintagoConfigs();
+    void        SetPrintagoConfigs();
+    std::string GetConfigNameFromJsonFile(const wxString &FilePath);
     bool        DownloadFileFromURL(const wxString url, const wxFileName &localPath);
 
     static wxString wxURLErrorToString(wxURLError error);

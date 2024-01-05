@@ -5733,15 +5733,6 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
     for (auto plate : plate_list) {
          plate->update_slice_result_valid_state(false);
     }
-
-    if (wxGetApp().mainframe->m_printago != nullptr && !wxGetApp().mainframe->m_printago->CanProcessJob()) {
-        wxCommandEvent *event = new wxCommandEvent(PRINTAGO_COMBO_SWITCHED_EVENT);
-        if (preset_type == Preset::TYPE_PRINTER)
-            event->SetString("printer");
-        else if (preset_type == Preset::TYPE_FILAMENT)
-            event->SetString("filament");
-        wxQueueEvent(wxGetApp().mainframe->m_printago, event);
-    }
 }
 
 void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
