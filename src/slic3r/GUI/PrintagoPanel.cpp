@@ -816,10 +816,13 @@ void PrintagoPanel::LoadPrintagoConfigs()
     wxGetApp().get_tab(Preset::TYPE_PRINTER)->select_preset(printerProfileName);
     wxGetApp().get_tab(Preset::TYPE_PRINT)->select_preset(printProfileName);
 
-    wxGetApp().get_tab(Preset::TYPE_FILAMENT)->select_preset(filamentProfileName);
+    // wxGetApp().get_tab(Preset::TYPE_FILAMENT)->get_combo_box()->SetSelection(); // select_preset(filamentProfileName);
     int numFilaments = wxGetApp().filaments_cnt();
     for (int i = 0; i < numFilaments; ++i) {
-        wxGetApp().plater()->sidebar().combos_filament()[i]->SetStringSelection(filamentProfileName);
+        wxGetApp().preset_bundle->set_filament_preset(i, filamentProfileName);
+        wxGetApp().plater()->sidebar().combos_filament()[i]->update();
+        // wxGetApp().plater()->sidebar().combos_filament()[i]->SelectAndNotify()
+        // SetStringSelection(filamentProfileName);
     }
 
     wxGetApp().mainframe->select_tab(1);
