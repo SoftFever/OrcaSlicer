@@ -3696,7 +3696,7 @@ GuiCfg create_gui_configuration()
     int max_style_image_height = static_cast<int>(std::round(input_height));
     cfg.max_style_image_size = Vec2i32(max_style_image_width, line_height);
     cfg.face_name_size = Vec2i32(cfg.input_width, line_height_with_spacing);
-    cfg.face_name_texture_offset_x = cfg.face_name_size.x() + space;
+    cfg.face_name_texture_offset_x = cfg.face_name_size.x() + style.WindowPadding.x + space;
 
     cfg.max_tooltip_width = ImGui::GetFontSize() * 20.0f;
 
