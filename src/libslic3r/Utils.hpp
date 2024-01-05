@@ -650,6 +650,9 @@ inline std::string filter_characters(const std::string& str, const std::string& 
 
 void copy_directory_recursively(const boost::filesystem::path &source, const boost::filesystem::path &target);
 
+// Orca: Since 1.7.9 Boost deprecated save_string_file and load_string_file, copy and modified from boost 1.7.8
+void save_string_file(const boost::filesystem::path& p, const std::string& str);
+void load_string_file(const boost::filesystem::path& p, std::string& str);
 
 } // namespace Slic3r
 
