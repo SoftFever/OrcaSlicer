@@ -291,27 +291,30 @@ void EditGCodeDialog::selection_changed(wxDataViewEvent& evt)
     if (!opt_key.empty()) {
         const ConfigOptionDef*    def     { nullptr };
 
-        const auto& full_config = wxGetApp().preset_bundle->full_config();
-        if (const ConfigDef* config_def = full_config.def(); config_def && config_def->has(opt_key)) {
-            def = config_def->get(opt_key);
+        for (const ConfigDef* config: std::initializer_list<const ConfigDef*> {
+                 &custom_gcode_specific_config_def,
+                 &cgp_ro_slicing_states_config_def,
+                 &cgp_rw_slicing_states_config_def,
+                 &cgp_other_slicing_states_config_def,
+                 &cgp_print_statistics_config_def,
+                 &cgp_objects_info_config_def,
+                 &cgp_dimensions_config_def,
+                 &cgp_temperatures_config_def,
+                 &cgp_timestamps_config_def,
+                 &cgp_other_presets_config_def
+             }) {
+            if (config->has(opt_key)) {
+                def = config->get(opt_key);
+                break;
+            }
         }
-        else {
-            for (const ConfigDef* config: std::initializer_list<const ConfigDef*> {
-                    &custom_gcode_specific_config_def,
-                    &cgp_ro_slicing_states_config_def,
-                    &cgp_rw_slicing_states_config_def,
-                    &cgp_other_slicing_states_config_def,
-                    &cgp_print_statistics_config_def,
-                    &cgp_objects_info_config_def,
-                    &cgp_dimensions_config_def,
-                    &cgp_temperatures_config_def,
-                    &cgp_timestamps_config_def,
-                    &cgp_other_presets_config_def
-            }) {
-                if (config->has(opt_key)) {
-                    def = config->get(opt_key);
-                    break;
-                }
+        // Orca: move below checking for def in custom defined gcode placeholders
+        // This allows custom placeholders to override the default ones for this dialog
+        // Override custom def if selection is within the preset category
+        if (!def || unbold(m_params_list->GetSelectedTopLevelCategory()) == "Presets") {
+            const auto& full_config = wxGetApp().preset_bundle->full_config();
+            if (const ConfigDef* config_def = full_config.def(); config_def && config_def->has(opt_key)) {
+                def = config_def->get(opt_key);
             }
         }
 
@@ -590,6 +593,17 @@ std::string ParamsModel::GetParamKey(wxDataViewItem item)
     return std::string();
 }
 
+std::string ParamsModel::GetTopLevelCategory(wxDataViewItem item)
+{
+    if (item.IsOk()) {
+        ParamsNode* node = static_cast<ParamsNode*>(item.GetID());
+        while (!node->IsGroupNode())
+            node = node->GetParent();
+        return node->text.ToStdString();
+    }
+    return std::string();
+}
+
 wxDataViewItem ParamsModel::Delete(const wxDataViewItem& item)
 {
     auto ret_item = wxDataViewItem(nullptr);
@@ -788,6 +802,11 @@ wxString ParamsViewCtrl::GetSelectedValue()
 std::string ParamsViewCtrl::GetSelectedParamKey()
 {
     return model->GetParamKey(this->GetSelection());
+}
+
+std::string ParamsViewCtrl::GetSelectedTopLevelCategory()
+{
+    return model->GetTopLevelCategory(this->GetSelection());
 }
 
 void ParamsViewCtrl::CheckAndDeleteIfEmpty(wxDataViewItem item)
