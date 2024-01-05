@@ -2,7 +2,7 @@
     "type": "filament",
 	"filament_id": "GFG99",
     "setting_id": "GFSG99",
-    "name": "Qidi Generic PETG @Qidi XPlus3 0.2 nozzle",
+    "name": "Qidi Generic PETG @Qidi X-Plus 3 0.2 nozzle",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pet",
@@ -46,11 +46,6 @@
         "1"
     ],
 	"compatible_printers": [
-        "Qidi X-Plus 0.2 nozzle",
-        "Qidi X-Max 0.2 nozzle",
-        "Qidi X-CF Pro 0.2 nozzle",
-		"Qidi X-Smart 3 0.2 nozzle",
-		"Qidi X-Plus 3 0.2 nozzle",
-		"Qidi X-Max 3 0.2 nozzle"
+		"Qidi X-Plus 3 0.2 nozzle"
 	]
 }
