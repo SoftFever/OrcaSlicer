@@ -2024,7 +2024,9 @@ void AmsCans::SelectCan(std::string canid)
 {
     for (auto i = 0; i < m_can_lib_list.GetCount(); i++) {
         CanLibs *lib = m_can_lib_list[i];
-        if (lib->canLib->m_info.can_id == canid) { m_canlib_selection = lib->canLib->m_can_index; }
+        if (lib->canLib->m_info.can_id == canid) { 
+            m_canlib_selection = lib->canLib->m_can_index; 
+        }
     }
 
     m_canlib_id = canid;
@@ -2606,9 +2608,9 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
         });
 
     Bind(EVT_AMS_UNSELETED_VAMS, [this](wxCommandEvent& e) {
-        if (m_current_ams == e.GetString().ToStdString()) {
+        /*if (m_current_ams == e.GetString().ToStdString()) {
             return;
-        }
+        }*/
         m_current_ams = e.GetString().ToStdString();
         SwitchAms(m_current_ams);
         m_vams_lib->UnSelected();
@@ -3411,6 +3413,8 @@ void AMSControl::AddExtraAms(AMSinfo info)
 
 void AMSControl::SwitchAms(std::string ams_id)
 {
+    if(ams_id == m_current_show_ams){return;}
+
     if (ams_id != std::to_string(VIRTUAL_TRAY_ID)) {
         if (m_current_show_ams != ams_id) {
             m_current_show_ams = ams_id;
@@ -3424,12 +3428,37 @@ void AMSControl::SwitchAms(std::string ams_id)
             item->amsItem->OnSelected();
             m_current_senect = ams_id;
 
+            //bool ready_selected = false;
+            //for (auto i = 0; i < m_ams_cans_list.GetCount(); i++) {
+            //    AmsCansWindow* ams = m_ams_cans_list[i];
+            //    if (ams->amsCans->m_info.ams_id == ams_id) {
+            //        //ams->amsCans->SetDefSelectCan();
+            //        //m_vams_lib->OnSelected();
+            //        if () {
+
+            //        }
+            //    }
+            //}
+
+            bool ready_selected = false;
             for (auto i = 0; i < m_ams_cans_list.GetCount(); i++) {
                 AmsCansWindow* ams = m_ams_cans_list[i];
                 if (ams->amsCans->m_info.ams_id == ams_id) {
-                    ams->amsCans->SetDefSelectCan();
-                    m_vams_lib->UnSelected();
+                    for (auto lib : ams->amsCans->m_can_lib_list) {
+                        if (lib->canLib->is_selected()) {
+                            ready_selected = true;
+                        }
+                    }
                 }
+            }
+
+            if (!ready_selected) {
+                m_current_ams = std::to_string(VIRTUAL_TRAY_ID);
+                m_vams_lib->OnSelected();
+            }
+            else {
+                m_current_ams = ams_id;
+                m_vams_lib->UnSelected();
             }
 
         } else {
@@ -3452,8 +3481,6 @@ void AMSControl::SwitchAms(std::string ams_id)
             }
         }
     }
-
-    m_current_ams = ams_id;
 
 
      // update extruder
