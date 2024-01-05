@@ -39,6 +39,7 @@ class EditGCodeDialog : public DPIDialog
     PrintStatisticsConfigDef        cgp_print_statistics_config_def;
     ObjectsInfoConfigDef            cgp_objects_info_config_def;
     DimensionsConfigDef             cgp_dimensions_config_def;
+    TemperaturesConfigDef           cgp_temperatures_config_def;
     TimestampsConfigDef             cgp_timestamps_config_def;
     OtherPresetsConfigDef           cgp_other_presets_config_def;
 

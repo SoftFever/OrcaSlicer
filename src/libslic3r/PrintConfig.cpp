@@ -6577,6 +6577,9 @@ OtherSlicingStatesConfigDef::OtherSlicingStatesConfigDef()
     //    def = this->add("has_single_extruder_multi_material_priming", coBool);
     //    def->label = L("Has single extruder MM priming");
     //    def->tooltip = L("Are the extra multi-material priming regions used in this print?");
+
+    new_def("initial_no_support_extruder", coInt, "Initial no support extruder", "Zero-based index of the first extruder used for printing without support. Same as initial_no_support_tool.");
+    new_def("in_head_wrap_detect_zone", coBool, "In head wrap detect zone", "Indicates if the first layer overlaps with the head wrap zone.");
 }
 
 PrintStatisticsConfigDef::PrintStatisticsConfigDef()
@@ -6671,9 +6674,8 @@ ObjectsInfoConfigDef::ObjectsInfoConfigDef()
     def->label = L("Input filename without extension");
     def->tooltip = L("Source filename of the first object, without extension.");
 
-    def = this->add("input_filename", coString);
-    def->label = L("Full input filename");
-    def->tooltip = L("Source filename of the first object.");
+    new_def("input_filename", coString, "Full input filename", "Source filename of the first object.");
+    new_def("plate_name", coString, "Plate name", "Name of the plate sliced.");
 }
 
 DimensionsConfigDef::DimensionsConfigDef()
@@ -6711,6 +6713,22 @@ DimensionsConfigDef::DimensionsConfigDef()
     def = this->add("print_bed_size", coFloats);
     def->label = L("Size of the print bed bounding box");
     def->tooltip = bb_size_tooltip;
+
+    new_def("first_layer_center_no_wipe_tower", coFloats, "First layer center without wipe tower", point_tooltip);
+    new_def("first_layer_height", coFloat, "First layer height", "Height of the first layer.");
+}
+
+TemperaturesConfigDef::TemperaturesConfigDef()
+{
+    ConfigOptionDef* def;
+
+    new_def("bed_temperature", coInts, "Bed temperature", "Vector of bed temperatures for each extruder/filament.")
+    new_def("bed_temperature_initial_layer", coInts, "Initial layer bed temperature", "Vector of initial layer bed temperatures for each extruder/filament. Provides the same value as first_layer_bed_temperature.")
+    new_def("bed_temperature_initial_layer_single", coInt, "Initial layer bed temperature (initial extruder)", "Initial layer bed temperature for the initial extruder. Same as bed_temperature_initial_layer[initial_extruder]")
+    new_def("chamber_temperature", coInts, "Chamber temperature", "Vector of chamber temperatures for each extruder/filament.")
+    new_def("overall_chamber_temperature", coInt, "Overall chamber temperature", "Overall chamber temperature. This value is the maximum chamber temperature of any extruder/filament used.")
+    new_def("first_layer_bed_temperature", coInts, "First layer bed temperature", "Vector of first layer bed temperatures for each extruder/filament. Provides the same value as bed_temperature_initial_layer.")
+    new_def("first_layer_temperature", coInts, "First layer temperature", "Vector of first layer temperatures for each extruder/filament.")
 }
 
 

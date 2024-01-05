@@ -176,6 +176,14 @@ void EditGCodeDialog::init_params_list(const std::string& custom_gcode_name)
                 m_params_list->AppendParam(dimensions, get_type(opt_key, def), opt_key);
         }
 
+        // Add temperature subgroup
+
+        if (!cgp_temperatures_config_def.empty()) {
+            wxDataViewItem temperatures = m_params_list->AppendGroup(_L("Temperatures"), "custom-gcode_temperature");
+            for (const auto& [opt_key, def] : cgp_temperatures_config_def.options)
+                m_params_list->AppendParam(temperatures, get_type(opt_key, def), opt_key);
+        }
+
         // Add timestamp subgroup
 
         if (!cgp_timestamps_config_def.empty()) {
@@ -296,6 +304,7 @@ void EditGCodeDialog::selection_changed(wxDataViewEvent& evt)
                     &cgp_print_statistics_config_def,
                     &cgp_objects_info_config_def,
                     &cgp_dimensions_config_def,
+                    &cgp_temperatures_config_def,
                     &cgp_timestamps_config_def,
                     &cgp_other_presets_config_def
             }) {
