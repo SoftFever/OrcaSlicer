@@ -65,11 +65,12 @@ Orca Slicer's logo is designed by community member Justin Levine(@freejstnalxndr
   - Run `build_release.bat` in `x64 Native Tools Command Prompt for VS 2019`
 
 - Mac 64-bit  
-  - Tools needed: Xcode, Cmake, git, gettext, libtool, automake, autoconf
+  - Tools needed: Xcode, Cmake, git, gettext, libtool, automake, autoconf, texinfo
+      - You can install most of them by running `brew install cmake gettext libtool automake autoconf texinfo`
   - run `build_release_macos.sh`
 
 - Ubuntu 
-  - Dependencies **Will be auto installed with the shell script**: `libmspack-dev libgstreamerd-3-dev libsecret-1-dev libwebkit2gtk-4.0-dev libosmesa6-dev libssl-dev libcurl4-openssl-dev eglexternalplatform-dev libudev-dev libdbus-1-dev extra-cmake-modules libgtk2.0-dev libglew-dev libudev-dev libdbus-1-dev cmake git`
+  - Dependencies **Will be auto installed with the shell script**: `libmspack-dev libgstreamerd-3-dev libsecret-1-dev libwebkit2gtk-4.0-dev libosmesa6-dev libssl-dev libcurl4-openssl-dev eglexternalplatform-dev libudev-dev libdbus-1-dev extra-cmake-modules libgtk2.0-dev libglew-dev libudev-dev libdbus-1-dev cmake git texinfo`
   - run 'sudo ./BuildLinux.sh -u'
   - run './BuildLinux.sh -dsir'
 
