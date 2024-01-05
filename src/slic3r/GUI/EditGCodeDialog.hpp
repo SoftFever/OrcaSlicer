@@ -174,6 +174,7 @@ public:
 
     wxString        GetParamName(wxDataViewItem item);
     std::string     GetParamKey(wxDataViewItem item);
+    std::string     GetTopLevelCategory(wxDataViewItem item);
 
     void            Clear();
 
@@ -225,6 +226,7 @@ public:
     wxString        GetValue(wxDataViewItem item);
     wxString        GetSelectedValue();
     std::string     GetSelectedParamKey();
+    std::string     GetSelectedTopLevelCategory();
 
     void    CheckAndDeleteIfEmpty(wxDataViewItem item);
 
@@ -233,6 +235,10 @@ public:
 
     void    set_em_unit(int em) { m_em_unit = em; }
 };
+
+static std::string unbold(const std::string& text) {
+    return text.substr(text.find("<b>")+3, text.find("</b>")-3);
+}
 
 
 } // namespace GUI
