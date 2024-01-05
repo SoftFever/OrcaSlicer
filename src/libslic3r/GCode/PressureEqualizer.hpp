@@ -8,7 +8,6 @@
 
 #include "../libslic3r.h"
 #include "../PrintConfig.hpp"
-#include "../ExtrusionRole.hpp"
 
 #include <queue>
 
@@ -70,7 +69,7 @@ private:
         float positive;
         float negative;
     };
-    ExtrusionRateSlope              m_max_volumetric_extrusion_rate_slopes[size_t(GCodeExtrusionRole::Count)];
+    ExtrusionRateSlope              m_max_volumetric_extrusion_rate_slopes[size_t(ExtrusionRole::erCount)];
     float                           m_max_volumetric_extrusion_rate_slope_positive;
     float                           m_max_volumetric_extrusion_rate_slope_negative;
 
@@ -82,7 +81,7 @@ private:
     // X,Y,Z,E,F
     float                           m_current_pos[5];
     size_t                          m_current_extruder;
-    GCodeExtrusionRole     m_current_extrusion_role;
+    ExtrusionRole     m_current_extrusion_role;
     bool                            m_retracted;
     bool                            m_use_relative_e_distances;
 
@@ -158,7 +157,7 @@ private:
         // Index of the active extruder.
         size_t      extruder_id;
         // Extrusion role of this segment.
-        GCodeExtrusionRole extrusion_role;
+        ExtrusionRole extrusion_role;
 
         // Current volumetric extrusion rate.
         float       volumetric_extrusion_rate;
