@@ -150,28 +150,27 @@ private:
 
     bool SavePrintagoFile(const wxString url, wxFileName &localPath);
     json GetConfigByName(wxString configType, wxString configName);
-    json GetAllConfigJson(bool only_names = false);
+    json GetCompatiblePrinterConfigNames(std::string printer_type);
     json Config2Json(const DynamicPrintConfig &config, const std::string &name, const std::string &from, const std::string &version, const std::string is_custom = "");
+    json MachineObjectToJson(MachineObject *machine);
 
     void        ImportPrintagoConfigs();
     void        SetPrintagoConfigs();
     std::string GetConfigNameFromJsonFile(const wxString &FilePath);
     bool        DownloadFileFromURL(const wxString url, const wxFileName &localPath);
 
-    static wxString wxURLErrorToString(wxURLError error);
-    static json     MachineObjectToJson(MachineObject *machine);
-
+    
     void OnNavigationRequest(wxWebViewEvent &evt);
     void OnNavigationComplete(wxWebViewEvent &evt);
     void OnNewWindow(wxWebViewEvent &evt);
     void OnError(wxWebViewEvent &evt);
     void RunScript(const wxString &javascript);
 
-    void OnSlicingProcessCompleted(SlicingProcessCompletedEvent &evt);
-    void OnPrintJobSent(wxCommandEvent &evt);
-    void SendWebViewMessage(PrintagoMessageEvent &evt);
-
-    void SetCanProcessJob(bool can_process_job);
+    static wxString wxURLErrorToString(wxURLError error);
+    void            SendWebViewMessage(PrintagoMessageEvent &evt);
+    void            OnSlicingProcessCompleted(SlicingProcessCompletedEvent &evt);
+    void            OnPrintJobSent(wxCommandEvent &evt);
+    void            SetCanProcessJob(bool can_process_job);
 };
 
 } // namespace GUI

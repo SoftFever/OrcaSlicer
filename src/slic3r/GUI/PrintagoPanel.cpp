@@ -93,6 +93,9 @@ json PrintagoPanel::MachineObjectToJson(MachineObject *machine)
         j["hardware"]["dev_name"]         = machine->dev_name;
         j["hardware"]["nozzle_diameter"]  = machine->nozzle_diameter;
 
+        // get_preset_printer_model_name keys on the 'display_name'; will use the logic in case it changes
+        j["hardware"]["compat_printer_profiles"] = GetCompatiblePrinterConfigNames(machine->get_preset_printer_model_name(machine->printer_type));  
+
         j["connection_info"]["dev_ip"]              = machine->dev_ip;
         j["connection_info"]["dev_id"]              = machine->dev_id;
         j["connection_info"]["dev_name"]            = machine->dev_name;
@@ -338,30 +341,42 @@ json PrintagoPanel::GetConfigByName(wxString configType, wxString configName)
     return result;
 }
 
-json PrintagoPanel::GetAllConfigJson(bool only_names)
+json PrintagoPanel::GetCompatiblePrinterConfigNames(std::string printer_type)
 {
-    std::vector<const PresetCollection *> collections = {&wxGetApp().preset_bundle->prints, &wxGetApp().preset_bundle->filaments,
-                                                         &wxGetApp().preset_bundle->printers};
+    // Create a JSON object to hold arrays of config names for each source
     json result;
 
-    for (const auto &collection : collections) {
-        for (const auto &preset : collection->get_presets()) {
-            json configJson = "";
-            if (!only_names && preset.is_visible) { //is_visible means it's a realistic option for the user to print with, effectively.
-                configJson = Config2Json(preset.config, preset.name, "", preset.version.to_string());
+    // Iterate through each preset
+    for (Preset preset : wxGetApp().preset_bundle->printers.get_presets()) {
+        // Variable to hold the source of the preset
+        wxString source = "";
+
+        // Determine the source of the preset
+        if (preset.is_system) {
+            source = "system";
+        } else if (preset.is_project_embedded) {
+            source = "project";
+        } else if (preset.is_user()) {
+            source = "user";
+        } else {
+            continue; // Skip this preset
+        }
+
+        // Check for matching printer models in vendor profiles
+        for (const auto &vendor_profile : wxGetApp().preset_bundle->vendors) {
+            for (const auto &vendor_model : vendor_profile.second.models) {
+                if (vendor_model.name == preset.config.opt_string("printer_model") && vendor_model.name == printer_type) {
+                    // If the JSON object doesn't have this source key yet, create it
+                    if (result.find(source.ToStdString()) == result.end()) {
+                        result[source.ToStdString()] = json::array();
+                    }
+                    // Add the preset name to the array corresponding to this source
+                    result[source.ToStdString()].push_back(preset.name);
+                }
             }
-            //effectively follow the logic in Preset.cpp for determining the source of the preset.
-            wxString source = "default";
-            if (preset.is_system) {
-                source = "system";
-            } else if (preset.is_project_embedded) {
-                source = "project";
-            } else if (preset.is_user()) {
-                source = "user";
-            }
-            result[collection->name()][source.ToStdString()][preset.name] = configJson;
         }
     }
+
     return result;
 }
 
@@ -430,9 +445,6 @@ void PrintagoPanel::HandlePrintagoCommand(const PrintagoCommand &event)
         if (!action.compare("get_machine_list")) {
             SendResponseMessage(username, GetAllStatus(), originalCommandStr);
         }
-        else if (!action.compare("get_config_names")) {
-            SendResponseMessage(username, GetAllConfigJson(true), originalCommandStr);
-        }
         else if (!action.compare("get_config")) {
             wxString config_type = parameters["config_type"]; // printer, filament, print
             wxString config_name = Http::url_decode(parameters["config_name"].ToStdString()); // name of the config
@@ -444,10 +456,6 @@ void PrintagoPanel::HandlePrintagoCommand(const PrintagoCommand &event)
                 return;
             }
         }
-        else if (!action.compare("get_all_configs")) {
-            SendResponseMessage(username, GetAllConfigJson(false), originalCommandStr);
-        }
-
         return;
     }
 
@@ -509,7 +517,6 @@ void PrintagoPanel::HandlePrintagoCommand(const PrintagoCommand &event)
         }
         else if (!action.compare("get_status")) {
             SendStatusMessage(printerId, GetMachineStatus(printer), originalCommandStr);
-            //return here; no need to send a success message
             return;
         }
         else if (!action.compare("start_print_bbl")) {
@@ -1050,7 +1057,7 @@ bool PrintagoPanel::ValidatePrintagoCommand(const PrintagoCommand &event)
 
     // Map of valid command types to their corresponding valid actions
     std::map<std::string, std::set<std::string>> validCommands = {
-        {"status", {"get_machine_list", "get_config_names", "get_config", "get_all_configs"}},
+        {"status", {"get_machine_list", "get_config" }},
         {"printer_control", {"pause_print", "resume_print", "stop_print", "get_status","start_print_bbl"}},
         {"temperature_control", {"set_hotend", "set_bed"}},
         {"movement_control", {"jog", "home", "extrude"}}
