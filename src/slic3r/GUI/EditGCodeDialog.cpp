@@ -268,7 +268,6 @@ void EditGCodeDialog::add_selected_value_to_gcode()
     if (val.IsEmpty())
         return;
 
-    const long pos = m_gcode_editor->GetInsertionPoint();
     m_gcode_editor->WriteText(m_gcode_editor->GetInsertionPoint() == m_gcode_editor->GetLastPosition() ? "\n" + val : val);
 
     if (val.Last() == ']') {
