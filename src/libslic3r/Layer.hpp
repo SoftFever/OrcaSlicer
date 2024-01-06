@@ -317,7 +317,7 @@ protected:
         bool need_extra_wall = false;
         AreaGroup(ExPolygon *a, int t, coordf_t d) : area(a), type(t), dist_to_top(d) {}
     };
-    enum OverhangType { Detected = 0, Enforced };
+    enum OverhangType { Detected = 0, Enforced, SharpTail };
     std::vector<AreaGroup>                    area_groups;
     std::map<const ExPolygon *, OverhangType> overhang_types;
 };

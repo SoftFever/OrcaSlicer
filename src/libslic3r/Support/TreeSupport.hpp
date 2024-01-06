@@ -31,14 +31,8 @@ struct LayerHeightData
     size_t   next_layer_nr = 0;
     LayerHeightData()      = default;
     LayerHeightData(coordf_t z, coordf_t h, size_t next_layer) : print_z(z), height(h), next_layer_nr(next_layer) {}
-};
-
-struct TreeNode {
-    Vec3f pos;
-    std::vector<int> children;  // index of children in the storing vector
-    std::vector<int> parents;  // index of parents in the storing vector
-    TreeNode(Point pt, float z) {
-        pos = { float(unscale_(pt.x())),float(unscale_(pt.y())),z };
+    coordf_t bottom_z() {
+        return print_z - height;
     }
 };
 
@@ -57,40 +51,45 @@ struct SupportNode
     static constexpr SupportNode* NO_PARENT = nullptr;
 
     SupportNode()
-     : distance_to_top(0)
-     , position(Point(0, 0))
-     , obj_layer_nr(0)
-     , support_roof_layers_below(0)
-     , to_buildplate(true)
-     , parent(nullptr)
-     , print_z(0.0)
-     , height(0.0)
+        : distance_to_top(0)
+        , position(Point(0, 0))
+        , obj_layer_nr(0)
+        , support_roof_layers_below(0)
+        , to_buildplate(true)
+        , parent(nullptr)
+        , print_z(0.0)
+        , height(0.0)
     {}
 
     // when dist_mm_to_top_==0, new node's dist_mm_to_top=parent->dist_mm_to_top + parent->height;
     SupportNode(const Point position, const int distance_to_top, const int obj_layer_nr, const int support_roof_layers_below, const bool to_buildplate, SupportNode* parent,
-         coordf_t     print_z_, coordf_t height_, coordf_t dist_mm_to_top_=0)
-     : distance_to_top(distance_to_top)
-     , position(position)
-     , obj_layer_nr(obj_layer_nr)
-     , support_roof_layers_below(support_roof_layers_below)
-     , to_buildplate(to_buildplate)
-     , parent(parent)
-     , print_z(print_z_)
-     , height(height_)
-     , dist_mm_to_top(dist_mm_to_top_)
+        coordf_t     print_z_, coordf_t height_, coordf_t dist_mm_to_top_ = 0, coordf_t radius_ = 0)
+        : distance_to_top(distance_to_top)
+        , position(position)
+        , obj_layer_nr(obj_layer_nr)
+        , support_roof_layers_below(support_roof_layers_below)
+        , to_buildplate(to_buildplate)
+        , parent(parent)
+        , print_z(print_z_)
+        , height(height_)
+        , dist_mm_to_top(dist_mm_to_top_)
+        , radius(radius_)
     {
         if (parent) {
             parents.push_back(parent);
-            type     = parent->type;
+            type = parent->type;
             overhang = parent->overhang;
-            if (dist_mm_to_top==0)
+            if (dist_mm_to_top == 0)
                 dist_mm_to_top = parent->dist_mm_to_top + parent->height;
+            if (radius == 0)
+                radius = parent->radius + (dist_mm_to_top - parent->dist_mm_to_top) * diameter_angle_scale_factor;
             parent->child = this;
             for (auto& neighbor : parent->merged_neighbours) {
                 neighbor->child = this;
                 parents.push_back(neighbor);
             }
+            is_sharp_tail = parent->is_sharp_tail;
+            skin_direction = parent->skin_direction;
         }
     }
 
@@ -109,18 +108,23 @@ struct SupportNode
     int distance_to_top;
     coordf_t dist_mm_to_top = 0;  // dist to bottom contact in mm
 
+    // all nodes will have same diameter_angle_scale_factor because it's defined by user
+    static double diameter_angle_scale_factor;
+
     /*!
      * \brief The position of this node on the layer.
      */
-    Point           position;
-    Point           movement; // movement towards neighbor center or outline
-    mutable double  radius        = 0.0;
-    mutable double  max_move_dist = 0.0;
-    TreeNodeType    type          = eCircle;
-    bool            is_corner     = false;
-    bool            is_processed  = false;
-    bool            need_extra_wall = false;
-    ExPolygon       overhang; // when type==ePolygon, set this value to get original overhang area
+    Point          position;
+    Point          movement; // movement towards neighbor center or outline
+    mutable double radius          = 0.0;
+    mutable double max_move_dist   = 0.0;
+    TreeNodeType   type            = eCircle;
+    bool           is_corner       = false;
+    bool           is_processed    = false;
+    bool           need_extra_wall = false;
+    bool           is_sharp_tail   = false;
+    bool           valid = true;
+    ExPolygon      overhang; // when type==ePolygon, set this value to get original overhang area
 
     /*!
      * \brief The direction of the skin lines above the tip of the branch.
@@ -128,7 +132,7 @@ struct SupportNode
      * This determines in which direction we should reduce the width of the
      * branch.
      */
-    bool skin_direction;
+    Point skin_direction;
 
     /*!
      * \brief The number of support roof layers below this one.
@@ -199,6 +203,9 @@ public:
      * \param collision_resolution
      */
     TreeSupportData(const PrintObject& object, coordf_t max_move, coordf_t radius_sample_resolution, coordf_t collision_resolution);
+    ~TreeSupportData() {
+        clear_nodes();
+    }
 
     TreeSupportData(TreeSupportData&&) = default;
     TreeSupportData& operator=(TreeSupportData&&) = default;
@@ -237,9 +244,13 @@ public:
     Polygons get_contours(size_t layer_nr) const;
     Polygons get_contours_with_holes(size_t layer_nr) const;
 
+    SupportNode* create_node(const Point position, const int distance_to_top, const int obj_layer_nr, const int support_roof_layers_below, const bool to_buildplate, SupportNode* parent,
+        coordf_t     print_z_, coordf_t height_, coordf_t dist_mm_to_top_ = 0, coordf_t radius_ = 0);
+    void clear_nodes();
+    void remove_invalid_nodes();
     std::vector<LayerHeightData> layer_heights;
 
-    std::vector<TreeNode> tree_nodes;
+    std::vector<SupportNode*> contact_nodes;
 
 private:
     /*!
@@ -285,6 +296,7 @@ private:
      */
     const ExPolygons& calculate_avoidance(const RadiusLayerPair& key) const;
 
+    tbb::spin_mutex  m_mutex;
 
 public:
     bool is_slim = false;
