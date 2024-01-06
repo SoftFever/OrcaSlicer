@@ -101,7 +101,7 @@
 		"40"
 	],
 	"single_extruder_multi_material": "1",
-	"change_filament_gcode": "PAUSE",
+	"change_filament_gcode": "",
 	"machine_pause_gcode": "M0",
 	"default_filament_profile": [
 		"Elegoo Generic PLA"
