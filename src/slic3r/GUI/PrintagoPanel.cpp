@@ -38,9 +38,10 @@ PrintagoPanel::PrintagoPanel(wxWindow *parent, wxString *url) : wxPanel(parent, 
         wxLogError("Could not init m_browser");
         return;
     }
+    m_browser->EnableContextMenu(false);
     m_browser->Hide();
     SetSizer(topsizer);
-
+    
     topsizer->Add(m_browser, wxSizerFlags().Expand().Proportion(1));
 
     // Connect the webview events
