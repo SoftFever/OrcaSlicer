@@ -12,6 +12,7 @@
     "sparse_infill_line_width": "0.45",
     "internal_solid_infill_line_width": "0.4",
     "support_line_width": "0.4",
+    "bridge_flow": "0.95",
     "compatible_printers": [
       "AnkerMake M5 PTFE 0.4 nozzle",
       "AnkerMake M5 All-Metal 0.4 nozzle",
