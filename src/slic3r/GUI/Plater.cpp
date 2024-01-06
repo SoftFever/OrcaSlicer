@@ -19,6 +19,7 @@
 ///|/
 #include "Plater.hpp"
 #include "libslic3r/Config.hpp"
+#include "libslic3r_version.h"
 
 #include <cstddef>
 #include <algorithm>
@@ -3486,7 +3487,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         load_type  = static_cast<LoadType>(std::stoi(import_project_action));
 
                     // BBS: version check
-                    Semver app_version = *(Semver::parse(SLIC3R_VERSION));
+                    Semver app_version = *(Semver::parse(SoftFever_VERSION));
                     if (en_3mf_file_type == En3mfType::From_Prusa) {
                         // do not reset the model config
                         load_config = false;
