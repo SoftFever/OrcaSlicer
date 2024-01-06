@@ -19,6 +19,7 @@
 ///|/
 #include "Plater.hpp"
 #include "libslic3r/Config.hpp"
+#include "libslic3r_version.h"
 
 #include <cstddef>
 #include <algorithm>
@@ -1132,6 +1133,7 @@ void Sidebar::update_all_preset_comboboxes()
     // Orca:: show device tab based on vendor type
     auto p_mainframe = wxGetApp().mainframe;
     p_mainframe->show_device(is_bbl_vendor);
+    auto cfg = preset_bundle.printers.get_edited_preset().config;
 
     if (is_bbl_vendor) {
         //only show connection button for not-BBL printer
@@ -1140,32 +1142,9 @@ void Sidebar::update_all_preset_comboboxes()
         ams_btn->Show();
         //update print button default value for bbl or third-party printer
         p_mainframe->set_print_button_to_default(MainFrame::PrintSelectType::ePrintPlate);
-        AppConfig* config = wxGetApp().app_config;
-        if (config && !config->get("curr_bed_type").empty()) {
-            int bed_type_idx = 0;
-            std::string str_bed_type = config->get("curr_bed_type");
-            int bed_type_value = (int)btPC;
-            try {
-                bed_type_value = atoi(str_bed_type.c_str());
-            } catch(...) {}
-            bed_type_idx = bed_type_value - 1;
-            m_bed_type_list->SelectAndNotify(bed_type_idx);
-        } else {
-            BedType bed_type = preset_bundle.printers.get_edited_preset().get_default_bed_type(&preset_bundle);
-            m_bed_type_list->SelectAndNotify((int)bed_type - 1);
-        }
-        m_bed_type_list->Enable();
-        auto str_bed_type = wxGetApp().app_config->get_printer_setting(wxGetApp().preset_bundle->printers.get_selected_preset_name(), "curr_bed_type");
-        if(!str_bed_type.empty()){
-            int bed_type_value = atoi(str_bed_type.c_str());
-            if(bed_type_value == 0)
-                bed_type_value = 1;
-            m_bed_type_list->SelectAndNotify(bed_type_value - 1);
-        }
     } else {
         connection_btn->Show();
         ams_btn->Hide();
-        auto cfg = preset_bundle.printers.get_edited_preset().config;
         auto print_btn_type = MainFrame::PrintSelectType::eExportGcode;
         wxString url = cfg.opt_string("print_host_webui").empty() ? cfg.opt_string("print_host") : cfg.opt_string("print_host_webui");
         if(!url.empty()) 
@@ -1182,7 +1161,23 @@ void Sidebar::update_all_preset_comboboxes()
         }
         p_mainframe->set_print_button_to_default(print_btn_type);
 
-        m_bed_type_list->SelectAndNotify(btPEI-1);
+    }
+
+    if (is_bbl_vendor || cfg.opt_bool("support_multi_bed_types")) {
+        m_bed_type_list->Enable();
+        auto str_bed_type = wxGetApp().app_config->get_printer_setting(wxGetApp().preset_bundle->printers.get_selected_preset_name(),
+                                                                       "curr_bed_type");
+        if (!str_bed_type.empty()) {
+            int bed_type_value = atoi(str_bed_type.c_str());
+            if (bed_type_value == 0)
+                bed_type_value = 1;
+            m_bed_type_list->SelectAndNotify(bed_type_value - 1);
+        } else {
+            BedType bed_type = preset_bundle.printers.get_edited_preset().get_default_bed_type(&preset_bundle);
+            m_bed_type_list->SelectAndNotify((int) bed_type - 1);
+        }
+    } else {
+        m_bed_type_list->SelectAndNotify(btPEI - 1);
         m_bed_type_list->Disable();
     }
 
@@ -3492,69 +3487,71 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         load_type  = static_cast<LoadType>(std::stoi(import_project_action));
 
                     // BBS: version check
-                    Semver app_version = *(Semver::parse(SLIC3R_VERSION));
+                    Semver app_version = *(Semver::parse(SoftFever_VERSION));
                     if (en_3mf_file_type == En3mfType::From_Prusa) {
                         // do not reset the model config
                         load_config = false;
                         if(load_type != LoadType::LoadGeometry)
                             show_info(q, _L("The 3mf is not supported by OrcaSlicer, load geometry data only."), _L("Load 3mf"));
                     }
-                    else if (load_config && (file_version.maj() != app_version.maj())) {
-                        // version mismatch, only load geometries
-                        load_config = false;
-                        if (!load_model) {
-                            // only load config case, return directly
-                            show_info(q, _L("The Config can not be loaded."), _L("Load 3mf"));
-                            q->skip_thumbnail_invalid = false;
-                            return empty_result;
-                        }
-                        load_old_project = true;
-                        // select view to 3D
-                        q->select_view_3D("3D");
-                        // select plate 0 as default
-                        q->select_plate(0);
-                        if (load_type != LoadType::LoadGeometry) {
-                            if (en_3mf_file_type == En3mfType::From_BBS)
-                                show_info(q, _L("The 3mf is generated by old Orca Slicer, load geometry data only."), _L("Load 3mf"));
-                            else
-                                show_info(q, _L("The 3mf is not supported by OrcaSlicer, load geometry data only."), _L("Load 3mf"));
-                        }
-                        for (ModelObject *model_object : model.objects) {
-                            model_object->config.reset();
-                            // Is there any modifier or advanced config data?
-                            for (ModelVolume *model_volume : model_object->volumes) model_volume->config.reset();
-                        }
-                    } 
-                    // else if (load_config && (file_version > app_version)) {
-                    //     if (config_substitutions.unrecogized_keys.size() > 0) {
-                    //         wxString text  = wxString::Format(_L("The 3mf's version %s is newer than %s's version %s, Found following keys unrecognized:"),
-                    //                                          file_version.to_string(), std::string(SLIC3R_APP_FULL_NAME), app_version.to_string());
-                    //         text += "\n";
-                    //         bool     first = true;
-                    //         // std::string context = into_u8(text);
-                    //         wxString context = text;
-                    //         for (auto &key : config_substitutions.unrecogized_keys) {
-                    //             context += "  -";
-                    //             context += key;
-                    //             context += ";\n";
-                    //             first = false;
-                    //         }
-                    //         wxString append = _L("You'd better upgrade your software.\n");
-                    //         context += "\n\n";
-                    //         // context += into_u8(append);
-                    //         context += append;
-                    //         show_info(q, context, _L("Newer 3mf version"));
+                    // else if (load_config && (file_version.maj() != app_version.maj())) {
+                    //     // version mismatch, only load geometries
+                    //     load_config = false;
+                    //     if (!load_model) {
+                    //         // only load config case, return directly
+                    //         show_info(q, _L("The Config can not be loaded."), _L("Load 3mf"));
+                    //         q->skip_thumbnail_invalid = false;
+                    //         return empty_result;
                     //     }
-                    //     else {
-                    //         //if the minor version is not matched
-                    //         if (file_version.min() != app_version.min()) {
-                    //             wxString text  = wxString::Format(_L("The 3mf's version %s is newer than %s's version %s, Suggest to upgrade your software."),
-                    //                              file_version.to_string(), std::string(SLIC3R_APP_FULL_NAME), app_version.to_string());
-                    //             text += "\n";
-                    //             show_info(q, text, _L("Newer 3mf version"));
-                    //         }
+                    //     load_old_project = true;
+                    //     // select view to 3D
+                    //     q->select_view_3D("3D");
+                    //     // select plate 0 as default
+                    //     q->select_plate(0);
+                    //     if (load_type != LoadType::LoadGeometry) {
+                    //         if (en_3mf_file_type == En3mfType::From_BBS)
+                    //             show_info(q, _L("The 3mf is generated by old Orca Slicer, load geometry data only."), _L("Load 3mf"));
+                    //         else
+                    //             show_info(q, _L("The 3mf is not supported by OrcaSlicer, load geometry data only."), _L("Load 3mf"));
+                    //     }
+                    //     for (ModelObject *model_object : model.objects) {
+                    //         model_object->config.reset();
+                    //         // Is there any modifier or advanced config data?
+                    //         for (ModelVolume *model_volume : model_object->volumes) model_volume->config.reset();
                     //     }
                     // } 
+                    else if (load_config && (file_version > app_version)) {
+                        if (config_substitutions.unrecogized_keys.size() > 0) {
+                            wxString text  = wxString::Format(_L("The 3mf's version %s is newer than %s's version %s, Found following keys unrecognized:"),
+                                                             file_version.to_string(), std::string(SLIC3R_APP_FULL_NAME), app_version.to_string());
+                            text += "\n";
+                            bool     first = true;
+                            // std::string context = into_u8(text);
+                            wxString context = text;
+                            // if (wxGetApp().app_config->get("user_mode") == "develop") {
+                            //     for (auto &key : config_substitutions.unrecogized_keys) {
+                            //         context += "  -";
+                            //         context += key;
+                            //         context += ";\n";
+                            //         first = false;
+                            //     }
+                            // }
+                            wxString append = _L("You'd better upgrade your software.\n");
+                            context += "\n\n";
+                            // context += into_u8(append);
+                            context += append;
+                            show_info(q, context, _L("Newer 3mf version"));
+                        }
+                        else {
+                            //if the minor version is not matched
+                            if (file_version.min() != app_version.min()) {
+                                wxString text  = wxString::Format(_L("The 3mf's version %s is newer than %s's version %s, Suggest to upgrade your software."),
+                                                 file_version.to_string(), std::string(SLIC3R_APP_FULL_NAME), app_version.to_string());
+                                text += "\n";
+                                show_info(q, text, _L("Newer 3mf version"));
+                            }
+                        }
+                    } 
                     else if (!load_config) {
                         // reset config except color
                         for (ModelObject *model_object : model.objects) {
