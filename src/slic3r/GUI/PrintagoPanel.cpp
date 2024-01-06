@@ -32,7 +32,6 @@ PrintagoPanel::PrintagoPanel(wxWindow *parent, wxString *url) : wxPanel(parent, 
     devManager           = Slic3r::GUI::wxGetApp().getDeviceManager();
     wxBoxSizer *topsizer = new wxBoxSizer(wxVERTICAL);
 
-    // Create the webview
     m_browser = WebView::CreateWebView(this, *url);
     if (m_browser == nullptr) {
         wxLogError("Could not init m_browser");
@@ -44,7 +43,6 @@ PrintagoPanel::PrintagoPanel(wxWindow *parent, wxString *url) : wxPanel(parent, 
     
     topsizer->Add(m_browser, wxSizerFlags().Expand().Proportion(1));
 
-    // Connect the webview events
     Bind(wxEVT_WEBVIEW_NAVIGATING, &PrintagoPanel::OnNavigationRequest, this);
     Bind(wxEVT_WEBVIEW_NAVIGATED, &PrintagoPanel::OnNavigationComplete, this);
     Bind(wxEVT_WEBVIEW_ERROR, &PrintagoPanel::OnError, this);
@@ -94,7 +92,6 @@ json PrintagoPanel::MachineObjectToJson(MachineObject *machine)
         j["hardware"]["dev_name"]         = machine->dev_name;
         j["hardware"]["nozzle_diameter"]  = machine->nozzle_diameter;
 
-        // get_preset_printer_model_name keys on the 'display_name'; will use the logic in case it changes
         j["hardware"]["compat_printer_profiles"] = GetCompatPrinterConfigNames(machine->get_preset_printer_model_name(machine->printer_type));  
 
         j["connection_info"]["dev_ip"]              = machine->dev_ip;
@@ -218,7 +215,7 @@ bool PrintagoPanel::DownloadFileFromURL(const wxString url, const wxFileName &lo
             std::string  http_body;
 
             fs::path tmp_path = target_path;
-            tmp_path.replace_extension(tmp_path.extension().string() + ".download");
+            tmp_path += "." + std::to_string(get_current_pid()) + ".download";
 
             if (fs::exists(target_path)) fs::remove(target_path);
             if (fs::exists(tmp_path)) fs::remove(tmp_path);
@@ -287,14 +284,15 @@ bool PrintagoPanel::SavePrintagoFile(const wxString url, wxFileName &localPath)
         uriFileName = uriFileName.substr(0, queryPos);
     }
     // Construct the full path for the temporary file
-    // wxString   tempDir = wxGetApp().app_config->get("download_path");
-    auto tempDir = wxStandardPaths::Get().GetTempDir().utf8_str().data();
-        
-    wxFileName filename(tempDir, uriFileName);
+      
+    fs::path tempDir = (fs::temp_directory_path()); 
+    wxString wxTempDir(tempDir.string());
 
-    if (DownloadFileFromURL(url, filename)) {
-        wxLogMessage("File downloaded to: %s", filename.GetFullPath());
-        localPath = filename;
+    wxFileName fullFileName(wxTempDir, uriFileName);
+
+    if (DownloadFileFromURL(url, fullFileName)) {
+        wxLogMessage("File downloaded to: %s", fullFileName.GetFullPath());
+        localPath = fullFileName;
         return true;
     } else {
         localPath = "";
