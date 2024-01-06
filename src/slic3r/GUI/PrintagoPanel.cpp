@@ -936,7 +936,7 @@ void PrintagoPanel::OnSlicingProcessCompleted(SlicingProcessCompletedEvent &evt)
 
     jobServerState = "send";
     jobProgress    = 75;
-    actionDetail   = wxString::Format("send_to_printer: %s", jobLocalModelFile);
+    actionDetail   = wxString::Format("send_to_printer: %s", jobLocalModelFile.GetFullName());
 
     m_select_machine_dlg->set_print_type(PrintFromType::FROM_NORMAL);
     m_select_machine_dlg->prepare(0);
