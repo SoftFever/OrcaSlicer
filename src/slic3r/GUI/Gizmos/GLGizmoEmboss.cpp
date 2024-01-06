@@ -2484,7 +2484,7 @@ bool GLGizmoEmboss::rev_checkbox(const std::string &name,
     // draw offseted input
     auto draw_offseted_input = [this, &offset = m_gui_cfg->advanced_input_offset, &name, &value](){
         ImGui::SameLine(offset);
-        return m_imgui->bbl_checkbox(("##" + name).c_str(), value);
+        return m_imgui->bbl_checkbox(wxString::FromUTF8("##" + name), value);
     };
     float undo_offset  = ImGui::GetStyle().WindowPadding.x;
     return revertible(name, value, default_value, undo_tooltip,

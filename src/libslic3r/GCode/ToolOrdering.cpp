@@ -1047,7 +1047,7 @@ float WipingExtrusions::mark_wiping_extrusions(const Print& print, unsigned int 
                 if (!object->config().flush_into_infill && !object->config().flush_into_objects && !object->config().flush_into_support)
                     continue;
                 bool wipe_into_infill_only = !object->config().flush_into_objects && object->config().flush_into_infill;
-                bool is_infill_first = print.config().is_infill_first;
+                bool is_infill_first = region.config().is_infill_first;
                 if (is_infill_first != perimeters_done || wipe_into_infill_only) {
                     for (const ExtrusionEntity* ee : layerm->fills.entities) {                      // iterate through all infill Collections
                         auto* fill = dynamic_cast<const ExtrusionEntityCollection*>(ee);
@@ -1160,7 +1160,7 @@ void WipingExtrusions::ensure_perimeters_infills_order(const Print& print)
                 if (!object->config().flush_into_infill && !object->config().flush_into_objects)
                     continue;
 
-                bool is_infill_first = print.config().is_infill_first;
+                bool is_infill_first = region.config().is_infill_first;
                 for (const ExtrusionEntity* ee : layerm->fills.entities) {                      // iterate through all infill Collections
                     auto* fill = dynamic_cast<const ExtrusionEntityCollection*>(ee);
 

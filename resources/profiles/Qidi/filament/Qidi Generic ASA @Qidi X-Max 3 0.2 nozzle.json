@@ -1,0 +1,27 @@
+{
+    "type": "filament",
+    "filament_id": "GFB99",
+    "setting_id": "GFSA04",
+    "name": "Qidi Generic ASA @Qidi X-Max 3 0.2 nozzle",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "fdm_filament_abs",
+    "filament_flow_ratio": [
+        "0.926"
+    ],
+    "enable_pressure_advance": [
+        "1"
+    ],
+    "pressure_advance": [
+        "0.021"
+    ],
+    "filament_max_volumetric_speed": [
+        "2"
+    ],
+    "filament_start_gcode": [
+        "; filament start gcode\n{if  (bed_temperature[current_extruder] >90)||(bed_temperature_initial_layer[current_extruder] >90)}M106 P3 S0\n{elsif(bed_temperature[current_extruder] >70)||(bed_temperature_initial_layer[current_extruder] >70)}M106 P3 S153\n{elsif(bed_temperature[current_extruder] >35)||(bed_temperature_initial_layer[current_extruder] >35)}M106 P3 S255\n{endif}"
+    ],
+	"compatible_printers": [
+		"Qidi X-Max 3 0.2 nozzle"
+	]
+}

@@ -31,3 +31,4 @@ src/OrcaSlicer-doc/
 **/machine_full/
 **/filament_full/
 /deps/DL_CACHE/
+/deps/DL_CACHE

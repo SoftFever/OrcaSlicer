@@ -2013,7 +2013,11 @@ void GLCanvas3D::render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w,
 void GLCanvas3D::render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params,
     const GLVolumeCollection& volumes, Camera::EType camera_type, bool use_top_view, bool for_picking)
 {
-    GLShaderProgram* shader = wxGetApp().get_shader("thumbnail");
+    GLShaderProgram* shader = nullptr;
+    if (for_picking)
+        shader = wxGetApp().get_shader("flat");
+    else
+        shader = wxGetApp().get_shader("thumbnail");
     ModelObjectPtrs& model_objects = GUI::wxGetApp().model().objects;
     std::vector<ColorRGBA> colors = ::get_extruders_colors();
     switch (OpenGLManager::get_framebuffers_type())
@@ -3221,8 +3225,8 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         //    }
         //    break;
         //}
-        //case 'I':
-        //case 'i': { _update_camera_zoom(1.0); break; }
+        case 'I':
+        case 'i': { _update_camera_zoom(1.0); break; }
         //case 'K':
         //case 'k': { wxGetApp().plater()->get_camera().select_next_type(); m_dirty = true; break; }
         //case 'L':
@@ -3234,8 +3238,8 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
             //}
             //break;
         //}
-        //case 'O':
-        //case 'o': { _update_camera_zoom(-1.0); break; }
+        case 'O':
+        case 'o': { _update_camera_zoom(-1.0); break; }
         //case 'Z':
         //case 'z': {
         //    if (!m_selection.is_empty())
@@ -5678,6 +5682,7 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
         //if (OpenGLManager::can_multisample())
               // This flag is often ignored by NVIDIA drivers if rendering into a screen buffer.
         //    glsafe(::glDisable(GL_MULTISAMPLE));
+        shader->start_using();
 
         glsafe(::glDisable(GL_BLEND));
 
@@ -5709,8 +5714,6 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
             const Transform3d model_matrix = vol->world_matrix();
             shader->set_uniform("view_model_matrix", view_matrix * model_matrix);
             shader->set_uniform("projection_matrix", projection_matrix);
-            const Matrix3d view_normal_matrix = view_matrix.matrix().block(0, 0, 3, 3) * model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose();
-            shader->set_uniform("view_normal_matrix", view_normal_matrix); 
             vol->simple_render(shader, model_objects, extruder_colors);
             vol->is_active = is_active;
         }

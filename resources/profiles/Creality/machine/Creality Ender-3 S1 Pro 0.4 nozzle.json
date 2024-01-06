@@ -6,6 +6,7 @@
 	"instantiation": "true",
 	"inherits": "fdm_creality_common",
 	"printer_model": "Creality Ender-3 S1 Pro",
+	"printer_structure": "i3",
 	"default_print_profile": "0.20mm Standard @Creality Ender3S1Pro",
 	"nozzle_diameter": [
 		"0.4"
