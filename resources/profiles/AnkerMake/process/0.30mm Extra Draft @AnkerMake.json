@@ -8,8 +8,5 @@
     "layer_height": "0.30",
     "initial_layer_print_height": "0.30",
     "bottom_shell_layers": "2",
-    "top_shell_layers": "3",
-    "raft_contact_distance": "0.30",
-    "support_bottom_z_distance": "0.30",
-    "support_top_z_distance": "0.30"
+    "top_shell_layers": "3"
 }

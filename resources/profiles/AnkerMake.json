@@ -102,7 +102,7 @@
         },
         {
             "name": "fdm_filament_pa ",
-            "sub_path": "filament/fdm_filament_pa .json"
+            "sub_path": "filament/fdm_filament_pa.json"
         },
         {
             "name": "AnkerMake Generic PLA @base",
