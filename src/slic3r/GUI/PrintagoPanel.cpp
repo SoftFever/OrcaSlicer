@@ -903,7 +903,7 @@ void PrintagoPanel::SetPrintagoConfigs()
 
 std::string PrintagoPanel::GetConfigNameFromJsonFile(const wxString &FilePath)
 {
-    std::ifstream file(FilePath);
+    std::ifstream file(FilePath.ToStdString());
     if (!file.is_open()) {
         return "";
     }
