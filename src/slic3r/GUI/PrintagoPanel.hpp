@@ -149,8 +149,18 @@ private:
     json GetMachineStatus(MachineObject *machine);
 
     bool SavePrintagoFile(const wxString url, wxFileName &localPath);
+
     json GetConfigByName(wxString configType, wxString configName);
-    json GetCompatiblePrinterConfigNames(std::string printer_type);
+    json GetCompatPrinterConfigNames(std::string printer_type);
+
+    json GetCompatOtherConfigsNames(Preset::Type preset_type, const Preset &printerPreset);
+    json GetCompatFilamentConfigNames(const Preset &printerPreset) { return GetCompatOtherConfigsNames(Preset::TYPE_FILAMENT, printerPreset); }
+    json GetCompatPrintConfigNames(const Preset &printerPreset)    { return GetCompatOtherConfigsNames(Preset::TYPE_PRINT   , printerPreset); }
+
+
+    bool IsConfigCompatWithPrinter(const PresetWithVendorProfile &preset, const Preset &printerPreset);
+    bool IsConfigCompatWithParent(const PresetWithVendorProfile &preset, const PresetWithVendorProfile &active_printer);
+    
     json Config2Json(const DynamicPrintConfig &config, const std::string &name, const std::string &from, const std::string &version, const std::string is_custom = "");
     json MachineObjectToJson(MachineObject *machine);
 

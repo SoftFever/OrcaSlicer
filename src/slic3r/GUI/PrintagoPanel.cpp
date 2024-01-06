@@ -94,7 +94,7 @@ json PrintagoPanel::MachineObjectToJson(MachineObject *machine)
         j["hardware"]["nozzle_diameter"]  = machine->nozzle_diameter;
 
         // get_preset_printer_model_name keys on the 'display_name'; will use the logic in case it changes
-        j["hardware"]["compat_printer_profiles"] = GetCompatiblePrinterConfigNames(machine->get_preset_printer_model_name(machine->printer_type));  
+        j["hardware"]["compat_printer_profiles"] = GetCompatPrinterConfigNames(machine->get_preset_printer_model_name(machine->printer_type));  
 
         j["connection_info"]["dev_ip"]              = machine->dev_ip;
         j["connection_info"]["dev_id"]              = machine->dev_id;
@@ -337,17 +337,86 @@ json PrintagoPanel::GetConfigByName(wxString configType, wxString configName)
         source = "user";
     }
 
-    result[collection->name()][source.ToStdString()][preset->name] = configJson;
+
+    std::string collectionName = "none";
+    switch (collection->type()) {
+        case Preset::TYPE_PRINT:
+            collectionName = "print";
+            break;
+        case Preset::TYPE_PRINTER:
+            collectionName = "printer";
+            break;
+        case Preset::TYPE_FILAMENT:
+            collectionName = "filament";
+            break;
+        default:
+            break;
+
+    }
+    result["config_type"] = collectionName; 
+    result["config_source"] = source.ToStdString();
+    result["config_name"] = preset->name;
+    result["config_content"] = configJson;
+
+    if (collectionName == "printer") {
+        result["compat_filament_profiles"] = GetCompatFilamentConfigNames(*preset);
+        result["compat_print_profiles"] = GetCompatPrintConfigNames(*preset);
+    }
+
     return result;
 }
 
-json PrintagoPanel::GetCompatiblePrinterConfigNames(std::string printer_type)
+bool PrintagoPanel::IsConfigCompatWithPrinter(const PresetWithVendorProfile &preset, const Preset &printerPreset)
+{
+    auto active_printer = wxGetApp().preset_bundle->printers.get_preset_with_vendor_profile(printerPreset);
+
+    DynamicPrintConfig extra_config;
+    extra_config.set_key_value("printer_preset", new ConfigOptionString(printerPreset.name));
+    const ConfigOption *opt = printerPreset.config.option("nozzle_diameter");
+    if (opt)
+        extra_config.set_key_value("num_extruders", new ConfigOptionInt((int) static_cast<const ConfigOptionFloats *>(opt)->values.size()));
+
+    if (preset.vendor != nullptr && preset.vendor != active_printer.vendor)
+		// The current profile has a vendor assigned and it is different from the active print's vendor.
+		return false;
+    auto &condition               = preset.preset.compatible_printers_condition();
+    auto *compatible_printers     = dynamic_cast<const ConfigOptionStrings*>(preset.preset.config.option("compatible_printers"));
+    bool  has_compatible_printers = compatible_printers != nullptr && ! compatible_printers->values.empty();
+    if (! has_compatible_printers && ! condition.empty()) {
+        try {
+            return PlaceholderParser::evaluate_boolean_expression(condition, active_printer.preset.config, &extra_config);
+        } catch (const std::runtime_error &err) {
+            //FIXME in case of an error, return "compatible with everything".
+            printf("Preset::is_compatible_with_printer - parsing error of compatible_printers_condition %s:\n%s\n", active_printer.preset.name.c_str(), err.what());
+            return true;
+        }
+    }
+    return preset.preset.is_default || active_printer.preset.name.empty() || !has_compatible_printers ||
+        std::find(compatible_printers->values.begin(), compatible_printers->values.end(), active_printer.preset.name) !=
+        compatible_printers->values.end()
+        //BBS
+           || (!active_printer.preset.is_system && IsConfigCompatWithParent(preset, active_printer));
+}
+
+bool PrintagoPanel::IsConfigCompatWithParent(const PresetWithVendorProfile &preset, const PresetWithVendorProfile &active_printer)
+{
+    auto *compatible_printers     = dynamic_cast<const ConfigOptionStrings *>(preset.preset.config.option("compatible_printers"));
+    bool  has_compatible_printers = compatible_printers != nullptr && !compatible_printers->values.empty();
+    // BBS: FIXME only check the parent now, but should check grand-parent as well.
+    return has_compatible_printers && std::find(compatible_printers->values.begin(), compatible_printers->values.end(),
+                                                active_printer.preset.inherits()) != compatible_printers->values.end();
+}
+
+json PrintagoPanel::GetCompatPrinterConfigNames(std::string printer_type)
 {
     // Create a JSON object to hold arrays of config names for each source
     json result;
 
     // Iterate through each preset
     for (Preset preset : wxGetApp().preset_bundle->printers.get_presets()) {
+
+        if (!preset.is_visible) continue; // Skip hidden presets
+
         // Variable to hold the source of the preset
         wxString source = "";
 
@@ -374,6 +443,51 @@ json PrintagoPanel::GetCompatiblePrinterConfigNames(std::string printer_type)
                     result[source.ToStdString()].push_back(preset.name);
                 }
             }
+        }
+    }
+
+    return result;
+}
+
+json PrintagoPanel::GetCompatOtherConfigsNames(Preset::Type preset_type, const Preset &printerPreset)
+{
+    PresetCollection *collection = nullptr;
+    std::string       configType;
+
+    if (preset_type == Preset::TYPE_FILAMENT) {
+        collection = &wxGetApp().preset_bundle->filaments;
+        configType = "filament";
+    } else if (preset_type == Preset::TYPE_PRINT) {
+        collection = &wxGetApp().preset_bundle->prints;
+        configType = "print";
+    } else {
+        json noresult;
+        return noresult;
+    }
+
+    json result;
+    // Iterate through each preset
+    for (Preset preset : collection->get_presets()) {
+        if (!preset.is_visible)
+            continue; // Skip hidden presets
+
+        // Variable to hold the source of the preset
+        wxString source = "";
+
+        // Determine the source of the preset
+        if (preset.is_system) {
+            source = "system";
+        } else if (preset.is_project_embedded) {
+            source = "project";
+        } else if (preset.is_user()) {
+            source = "user";
+        } else {
+            continue; // Skip this preset
+        }
+
+        auto presetWithVendor = collection->get_preset_with_vendor_profile(preset);
+        if (IsConfigCompatWithPrinter(presetWithVendor, printerPreset)) {
+            result[configType][source.ToStdString()].push_back(preset.name);
         }
     }
 
