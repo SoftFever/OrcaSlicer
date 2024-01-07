@@ -71,7 +71,7 @@
     "support_interface_top_layers": "2",
     "support_interface_bottom_layers": "2",
     "support_interface_spacing": "0.5",
-    "support_object_xy_distance": "2.5",
+    "support_object_xy_distance": "0.5",
     "bridge_no_support": "0",
     "independent_support_layer_height": "1",
     "tree_support_branch_angle": "30",
