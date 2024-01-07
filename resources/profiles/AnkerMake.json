@@ -113,10 +113,6 @@
             "sub_path": "filament/AnkerMake Generic PLA+ @base.json"
         },
         {
-            "name": "AnkerMake Generic High Speed PLA+ @base",
-            "sub_path": "filament/AnkerMake Generic High Speed PLA+ @base.json"
-        },
-        {
             "name": "AnkerMake Generic PLA Silk @base",
             "sub_path": "filament/AnkerMake Generic PLA Silk @base.json"
         },
@@ -165,112 +161,52 @@
             "sub_path": "filament/AnkerMake Generic PLA.json"
         },
         {
-            "name": "AnkerMake Generic PLA @0.2 nozzle",
-            "sub_path": "filament/AnkerMake Generic PLA @0.2 nozzle.json"
-        },
-        {
             "name": "AnkerMake Generic PLA+",
             "sub_path": "filament/AnkerMake Generic PLA+.json"
-        },
-        {
-            "name": "AnkerMake Generic PLA+ @0.2 nozzle",
-            "sub_path": "filament/AnkerMake Generic PLA+ @0.2 nozzle.json"
-        },
-        {
-            "name": "AnkerMake Generic High Speed PLA+",
-            "sub_path": "filament/AnkerMake Generic High Speed PLA+.json"
-        },
-        {
-            "name": "AnkerMake Generic High Speed PLA+ @0.2 nozzle",
-            "sub_path": "filament/AnkerMake Generic High Speed PLA+ @0.2 nozzle.json"
         },
         {
             "name": "AnkerMake Generic PLA Silk",
             "sub_path": "filament/AnkerMake Generic PLA Silk.json"
         },
         {
-            "name": "AnkerMake Generic PLA Silk @0.2 nozzle",
-            "sub_path": "filament/AnkerMake Generic PLA Silk @0.2 nozzle.json"
-        },
-        {
             "name": "AnkerMake Generic PLA-CF",
             "sub_path": "filament/AnkerMake Generic PLA-CF.json"
-        },
-        {
-            "name": "AnkerMake Generic PLA-CF @0.2 nozzle",
-            "sub_path": "filament/AnkerMake Generic PLA-CF @0.2 nozzle.json"
         },
         {
             "name": "AnkerMake Generic TPU",
             "sub_path": "filament/AnkerMake Generic TPU.json"
         },
         {
-            "name": "AnkerMake Generic TPU @0.2 nozzle",
-            "sub_path": "filament/AnkerMake Generic TPU @0.2 nozzle.json"
-        },
-        {
             "name": "AnkerMake Generic PETG",
             "sub_path": "filament/AnkerMake Generic PETG.json"
-        },
-        {
-            "name": "AnkerMake Generic PETG @0.2 nozzle",
-            "sub_path": "filament/AnkerMake Generic PETG @0.2 nozzle.json"
         },
         {
             "name": "AnkerMake Generic PETG-CF",
             "sub_path": "filament/AnkerMake Generic PETG-CF.json"
         },
         {
-            "name": "AnkerMake Generic PETG-CF @0.2 nozzle",
-            "sub_path": "filament/AnkerMake Generic PETG-CF @0.2 nozzle.json"
-        },
-        {
             "name": "AnkerMake Generic ABS",
             "sub_path": "filament/AnkerMake Generic ABS.json"
-        },
-        {
-            "name": "AnkerMake Generic ABS @0.2 nozzle",
-            "sub_path": "filament/AnkerMake Generic ABS @0.2 nozzle.json"
         },
         {
             "name": "AnkerMake Generic ASA",
             "sub_path": "filament/AnkerMake Generic ASA.json"
         },
         {
-            "name": "AnkerMake Generic ASA @0.2 nozzle",
-            "sub_path": "filament/AnkerMake Generic ASA @0.2 nozzle.json"
-        },
-        {
             "name": "AnkerMake Generic PC",
             "sub_path": "filament/AnkerMake Generic PC.json"
-        },
-        {
-            "name": "AnkerMake Generic PC @0.2 nozzle",
-            "sub_path": "filament/AnkerMake Generic PC @0.2 nozzle.json"
         },
         {
             "name": "AnkerMake Generic PVA",
             "sub_path": "filament/AnkerMake Generic PVA.json"
         },
         {
-            "name": "AnkerMake Generic PVA @0.2 nozzle",
-            "sub_path": "filament/AnkerMake Generic PVA @0.2 nozzle.json"
-        },
-        {
             "name": "AnkerMake Generic PA",
             "sub_path": "filament/AnkerMake Generic PA.json"
         },
         {
-            "name": "AnkerMake Generic PA @0.2 nozzle",
-            "sub_path": "filament/AnkerMake Generic PA @0.2 nozzle.json"
-        },
-        {
             "name": "AnkerMake Generic PA-CF",
             "sub_path": "filament/AnkerMake Generic PA-CF.json"
-        },
-        {
-            "name": "AnkerMake Generic PA-CF @0.2 nozzle",
-            "sub_path": "filament/AnkerMake Generic PA-CF @0.2 nozzle.json"
         }
     ],
     "machine_list": [

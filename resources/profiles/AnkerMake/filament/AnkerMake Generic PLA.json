@@ -1,9 +1,9 @@
 {
     "type": "filament",
-    "name": "AnkerMake Generic PLA+",
-    "inherits": "AnkerMake Generic PLA+ @base",
+    "name": "AnkerMake Generic PLA",
+    "inherits": "AnkerMake Generic PLA @base",
     "from": "system",
-    "setting_id": "GFSL95",
+    "setting_id": "GFSL99",
     "instantiation": "true",
     "compatible_printers": [
         "AnkerMake M5 PTFE 0.4 nozzle",
