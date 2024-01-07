@@ -5452,7 +5452,7 @@ std::vector<std::string> DeviceManager::get_resolution_supported(std::string typ
     std::vector<std::string> resolution_supported;
 
     std::string config_file = Slic3r::resources_dir() + "/printers/" + type_str + ".json";
-    std::ifstream json_file(config_file.c_str());
+    boost::nowide::ifstream json_file(config_file.c_str());
     try {
         json jj;
         if (json_file.is_open()) {
@@ -5474,7 +5474,7 @@ std::vector<std::string> DeviceManager::get_compatible_machine(std::string type_
 {
     std::vector<std::string> compatible_machine;
     std::string config_file = Slic3r::resources_dir() + "/printers/" + type_str + ".json";
-    std::ifstream json_file(config_file.c_str());
+    boost::nowide::ifstream json_file(config_file.c_str());
     try {
         json jj;
         if (json_file.is_open()) {
@@ -5493,10 +5493,12 @@ std::vector<std::string> DeviceManager::get_compatible_machine(std::string type_
 }
 
 
-bool DeviceManager::load_filaments_blacklist_config(std::string config_file)
+bool DeviceManager::load_filaments_blacklist_config()
 {
     filaments_blacklist = json::object();
-    std::ifstream json_file(config_file.c_str());
+
+    std::string config_file = Slic3r::resources_dir() + "/printers/filaments_blacklist.json";
+    boost::nowide::ifstream json_file(config_file.c_str());
 
     try {
         if (json_file.is_open()) {

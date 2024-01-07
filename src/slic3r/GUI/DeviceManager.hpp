@@ -1028,7 +1028,7 @@ public:
     static bool        get_printer_is_enclosed(std::string type_str);
     static std::vector<std::string> get_resolution_supported(std::string type_str);
     static std::vector<std::string> get_compatible_machine(std::string type_str);
-    static bool load_filaments_blacklist_config(std::string config_file);
+    static bool load_filaments_blacklist_config();
     static void check_filaments_in_blacklist(std::string tag_vendor, std::string tag_type, bool& in_blacklist, std::string& ac, std::string& info);
     static std::string load_gcode(std::string type_str, std::string gcode_file);
 };

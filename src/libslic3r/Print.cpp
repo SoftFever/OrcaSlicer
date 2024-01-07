@@ -2472,7 +2472,8 @@ int Print::get_hrc_by_nozzle_type(const NozzleType&type)
     static std::map<std::string, int>nozzle_type_to_hrc;
     if (nozzle_type_to_hrc.empty()) {
         fs::path file_path = fs::path(resources_dir()) / "info" / "nozzle_info.json";
-        std::ifstream in(file_path.string());
+        boost::nowide::ifstream in(file_path.string());
+        //std::ifstream in(file_path.string());
         json j;
         try {
             j = json::parse(in);
