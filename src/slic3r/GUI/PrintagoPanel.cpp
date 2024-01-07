@@ -15,6 +15,8 @@
 
 #include "Tab.hpp"
 
+#include <thread>
+
 using namespace nlohmann;
 
 namespace pt = boost::property_tree;
@@ -30,6 +32,8 @@ wxDEFINE_EVENT(PRINTAGO_PRINT_SENT_EVENT, wxCommandEvent);
 PrintagoPanel::PrintagoPanel(wxWindow *parent, wxString *url) : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
 {
     devManager           = Slic3r::GUI::wxGetApp().getDeviceManager();
+    dmPool               = new DeviceManagerPool();
+
     wxBoxSizer *topsizer = new wxBoxSizer(wxVERTICAL);
 
     m_browser = WebView::CreateWebView(this, *url);
@@ -50,6 +54,10 @@ PrintagoPanel::PrintagoPanel(wxWindow *parent, wxString *url) : wxPanel(parent, 
     Bind(PRINTAGO_SEND_WEBVIEW_MESSAGE_EVENT, &PrintagoPanel::SendWebViewMessage, this);
     Bind(EVT_PROCESS_COMPLETED, &PrintagoPanel::OnSlicingProcessCompleted, this);
     Bind(PRINTAGO_PRINT_SENT_EVENT, &PrintagoPanel::OnPrintJobSent, this);
+
+    // wxGetApp().mainframe->m_plater->Disable();
+    // wxGetApp().mainframe->m_tabpanel->Disable();
+    
 }
 
 PrintagoPanel::~PrintagoPanel()
@@ -105,7 +113,7 @@ json PrintagoPanel::MachineObjectToJson(MachineObject *machine)
         j["connection_info"]["has_access_right"]    = machine->has_access_right();
         j["connection_info"]["ftp_folder"]          = machine->get_ftp_folder();
         j["connection_info"]["access_code"]         = machine->get_access_code();
-
+        
         // MachineObject State Info
         j["state"]["can_print"]                  = machine->can_print();
         j["state"]["can_resume"]                 = machine->can_resume();
@@ -142,6 +150,7 @@ json PrintagoPanel::MachineObjectToJson(MachineObject *machine)
         j["current"]["cooling"]["big_fan2_speed"]      = machine->big_fan2_speed;
         j["current"]["cooling"]["fan_gear"]            = machine->fan_gear;
     }
+
     return j;
 }
 
@@ -1222,5 +1231,98 @@ void PrintagoPanel::OnError(wxWebViewEvent &evt)
     if (wxGetApp().get_mode() == comDevelop)
         wxLogMessage("%s", "Error; url='" + evt.GetURL() + "', error='" + category + " (" + evt.GetString() + ")'");
 }
+
+//\
+//\\
+//\\\
+//\\\\
+//\\\\\ DeviceManagerPool!
+/////// DeviceManagerPool!
+//////
+/////
+////
+///
+DeviceManagerPool::DeviceManagerPool()
+{
+    updatePool();
+}
+
+DeviceManagerPool::~DeviceManagerPool()
+{
+    stop();
+    for (auto &threadEntry : threadMap) {
+        delete threadEntry.second;
+    }
+    threadMap.clear();
+}
+
+void DeviceManagerPool::updatePool()
+{
+    std::lock_guard<std::mutex> lock(mapMutex);
+
+    auto                     machineList = wxGetApp().getDeviceManager()->get_my_machine_list();
+    std::vector<std::string> threadsToRemove;
+
+    for (const auto &threadEntry : threadMap) {
+        if (machineList.find(threadEntry.first) == machineList.end()) {
+            if (threadEntry.second->joinable()) {
+                threadEntry.second->interrupt();
+                threadEntry.second->join();
+            }
+            threadsToRemove.push_back(threadEntry.first);
+        }
+    }
+
+    for (const auto &devId : threadsToRemove) {
+        delete threadMap[devId];
+        threadMap.erase(devId);
+    }
+
+    for (const auto &device : machineList) {
+        auto devId = device.second->dev_id;
+        if (threadMap.find(devId) != threadMap.end()) {
+            continue;
+        }
+        threadMap[devId] = new boost::thread(boost::bind(&DeviceManagerPool::dmThread, this, devId));
+    }
+}
+
+void DeviceManagerPool::dmThread(const std::string &devId)
+{
+    // Each thread should declare its own networking agent
+    DeviceManager d(new NetworkAgent());
+    d.set_selected_machine(devId, false);
+
+    try {
+        while (true) {
+            // TODO config the time interval
+            boost::this_thread::sleep_for(boost::chrono::seconds(5));
+            d.keep_alive();
+        }
+    } catch (boost::thread_interrupted &) {
+        // Cleanup if needed
+        // The destructor of DeviceManager will be called automatically here
+    } catch (const std::exception &e) {
+        // Handle other exceptions, log error message, etc.
+        // Cleanup if needed
+        // Rethrow or handle the exception as needed
+    }
+}
+
+void DeviceManagerPool::stop()
+{
+    for (auto &threadEntry : threadMap) {
+        if (threadEntry.second->joinable()) {
+            threadEntry.second->interrupt();
+        }
+    }
+
+    for (auto &threadEntry : threadMap) {
+        if (threadEntry.second->joinable()) {
+            threadEntry.second->join();
+        }
+    }
+}
+
 
 }} // namespace Slic3r::GUI
