@@ -5,12 +5,12 @@
     "description": "AnkerMake configurations",
     "machine_model_list": [
         {
-            "name": "AnkerMake M5 with PTFE Hot End",
-            "sub_path": "machine/AnkerMake M5 with PTFE Hot End.json"
+            "name": "AnkerMake M5 PTFE Hot End",
+            "sub_path": "machine/AnkerMake M5 PTFE Hot End.json"
         },
         {
-            "name": "AnkerMake M5 with All-Metal Hot End",
-            "sub_path": "machine/AnkerMake M5 with All-Metal Hot End.json"
+            "name": "AnkerMake M5 All-Metal Hot End",
+            "sub_path": "machine/AnkerMake M5 All-Metal Hot End.json"
         },
         {
             "name": "AnkerMake M5c",

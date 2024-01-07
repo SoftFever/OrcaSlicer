@@ -1,6 +1,6 @@
 {
     "type": "machine_model",
-    "name": "AnkerMake M5 with PTFE Hot End",
+    "name": "AnkerMake M5 PTFE Hot End",
     "nozzle_diameter": "0.4",
     "bed_model": "M5-CE-bed.stl",
     "bed_texture": "M5-CE-texture.svg",

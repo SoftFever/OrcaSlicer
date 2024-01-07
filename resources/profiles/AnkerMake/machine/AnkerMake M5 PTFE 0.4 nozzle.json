@@ -8,7 +8,7 @@
     "nozzle_diameter": [
         "0.4"
     ],
-    "printer_model": "AnkerMake M5 with PTFE Hot End",
+    "printer_model": "AnkerMake M5 PTFE Hot End",
     "printer_variant": "0.4",
     "auxiliary_fan": "0",
     "bed_exclude_area": [],
