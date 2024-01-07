@@ -1,11 +1,11 @@
 {
     "type": "machine_model",
     "name": "AnkerMake M5 with PTFE Hot End",
-    "nozzle_diameter": "0.4;0.2;0.25;0.6;0.8",
+    "nozzle_diameter": "0.4",
     "bed_model": "M5-CE-bed.stl",
     "bed_texture": "M5-CE-texture.svg",
     "family": "AnkerMake",
     "machine_tech": "FFF",
     "model_id": "V8111",
-    "default_materials": "AnkerMake Generic PLA;AnkerMake Generic PLA+;AnkerMake Generic High Speed PLA+;AnkerMake Generic PLA Silk;AnkerMake Generic PLA-CF;AnkerMake Generic TPU;AnkerMake Generic PETG;AnkerMake Generic PETG-CF"
+    "default_materials": "AnkerMake Generic PLA;AnkerMake Generic PLA+;AnkerMake Generic PLA Silk;AnkerMake Generic TPU;AnkerMake Generic PETG"
 }
