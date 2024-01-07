@@ -487,7 +487,7 @@ void PrintConfigDef::init_common_params()
 
     def = this->add("print_host", coString);
     def->label = L("Hostname, IP or URL");
-    def->tooltip = L("Slic3r can upload G-code files to a printer host. This field should contain "
+    def->tooltip = L("Orca Slicer can upload G-code files to a printer host. This field should contain "
         "the hostname, IP address or URL of the printer host instance. "
         "Print host behind HAProxy with basic auth enabled can be accessed by putting the user name and password into the URL "
         "in the following format: https://username:password@your-octopi-address/");
@@ -505,7 +505,7 @@ void PrintConfigDef::init_common_params()
 
     def = this->add("printhost_apikey", coString);
     def->label = L("API Key / Password");
-    def->tooltip = L("Slic3r can upload G-code files to a printer host. This field should contain "
+    def->tooltip = L("Orca Slicer can upload G-code files to a printer host. This field should contain "
         "the API Key or the password required for authentication.");
     def->mode = comAdvanced;
     def->cli = ConfigOptionDef::nocli;
@@ -1633,7 +1633,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->label = L("Minimal purge on wipe tower");
     def->tooltip = L("After a tool change, the exact position of the newly loaded filament inside "
                      "the nozzle may not be known, and the filament pressure is likely not yet stable. "
-                     "Before purging the print head into an infill or a sacrificial object, Slic3r will always prime "
+                     "Before purging the print head into an infill or a sacrificial object, Orca Slicer will always prime "
                      "this amount of material into the wipe tower to produce successive infill or sacrificial object extrusions reliably.");
     def->sidetext = L("mm³");
     def->min = 0;
@@ -1837,7 +1837,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->label = L("Sparse infill anchor length");
     def->category = L("Strength");
     def->tooltip = L("Connect an infill line to an internal perimeter with a short segment of an additional perimeter. "
-                     "If expressed as percentage (example: 15%) it is calculated over infill extrusion width. Slic3r tries to connect two close infill lines to a short perimeter segment. If no such perimeter segment "
+                     "If expressed as percentage (example: 15%) it is calculated over infill extrusion width. Orca Slicer tries to connect two close infill lines to a short perimeter segment. If no such perimeter segment "
                      "shorter than infill_anchor_max is found, the infill line is connected to a perimeter segment at just one side "
                      "and the length of the perimeter segment taken is limited to this parameter, but no longer than anchor_length_max. "
                      "\nSet this parameter to zero to disable anchoring perimeters connected to a single infill line.");
@@ -1864,7 +1864,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->label = L("Maximum length of the infill anchor");
     def->category = L("Strength");
     def->tooltip = L("Connect an infill line to an internal perimeter with a short segment of an additional perimeter. "
-                     "If expressed as percentage (example: 15%) it is calculated over infill extrusion width. Slic3r tries to connect two close infill lines to a short perimeter segment. If no such perimeter segment "
+                     "If expressed as percentage (example: 15%) it is calculated over infill extrusion width. Orca Slicer tries to connect two close infill lines to a short perimeter segment. If no such perimeter segment "
                      "shorter than this parameter is found, the infill line is connected to a perimeter segment at just one side "
                      "and the length of the perimeter segment taken is limited to infill_anchor, but no longer than this parameter. "
                      "\nIf set to 0, the old algorithm for infill connection will be used, it should create the same result as with 1000 & 0.");
@@ -2355,6 +2355,12 @@ def = this->add("filament_loading_speed", coFloats);
     def->readonly = false;
     def->set_default_value(new ConfigOptionEnum<GCodeFlavor>(gcfMarlinLegacy));
 
+    def = this->add("support_multi_bed_types", coBool);
+    def->label = L("Support multi bed types");
+    def->tooltip = L("Enable this option if you want to use multiple bed types");
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionBool(false));
+
     def = this->add("gcode_label_objects", coBool);
     def->label = L("Label objects");
     def->tooltip = L("Enable this to add comments into the G-Code labeling print moves with what object they belong to,"
@@ -2367,7 +2373,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->label = L("Exclude objects");
     def->tooltip = L("Enable this option to add EXCLUDE OBJECT command in g-code");
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionBool(1));
+    def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("gcode_comments", coBool);
     def->label = L("Verbose G-code");
@@ -2563,6 +2569,14 @@ def = this->add("filament_loading_speed", coFloats);
     def->tooltip = L("Whether the machine supports silent mode in which machine use lower acceleration to print");
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("emit_machine_limits_to_gcode", coBool);
+    def->label = L("Emit limits to G-code");
+    def->category = L("Machine limits");
+    def->tooltip  = L("If enabled, the machine limits will be emitted to G-code file.\nThis option will be ignored if the g-code flavor is "
+                       "set to Klipper.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(true));
 
     def = this->add("machine_pause_gcode", coString);
     def->label = L("Pause G-code");
@@ -2818,7 +2832,7 @@ def = this->add("filament_loading_speed", coFloats);
 
     def = this->add("host_type", coEnum);
     def->label = L("Host Type");
-    def->tooltip = L("Slic3r can upload G-code files to a printer host. This field must contain "
+    def->tooltip = L("Orca Slicer can upload G-code files to a printer host. This field must contain "
                    "the kind of the host.");
     def->enum_keys_map = &ConfigOptionEnum<PrintHostType>::get_enum_values();
     def->enum_values.push_back("prusalink");
@@ -3001,12 +3015,19 @@ def = this->add("filament_loading_speed", coFloats);
     def->max = 1000;
     def->set_default_value(new ConfigOptionInt(2));
     
+    def = this->add("alternate_extra_wall", coBool);
+    def->label = L("Alternate extra wall");
+    def->category = L("Strength");
+    def->tooltip = L("This setting adds an extra wall to every other layer. This way the infill gets wedged vertically between the walls, resulting in stronger prints. \n\nWhen this option is enabled, the ensure vertical shell thickness option needs to be disabled. \n\nUsing lightning infill together with this option is not recommended as there is limited infill to anchor the extra perimeters to.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+    
     def = this->add("post_process", coStrings);
     def->label = L("Post-processing Scripts");
     def->tooltip = L("If you want to process the output G-code through custom scripts, "
                    "just list their absolute paths here. Separate multiple scripts with a semicolon. "
                    "Scripts will be passed the absolute path to the G-code file as the first argument, "
-                   "and they can access the Slic3r config settings by reading environment variables.");
+                   "and they can access the Orca Slicer config settings by reading environment variables.");
     def->gui_flags = "serialized";
     def->multiline = true;
     def->full_width = true;
@@ -3310,6 +3331,16 @@ def = this->add("filament_loading_speed", coFloats);
     def = this->add("wipe_on_loops", coBool);
     def->label = L("Wipe on loops");
     def->tooltip = L("To minimize the visibility of the seam in a closed loop extrusion, a small inward movement is executed before the extruder leaves the loop.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+    
+    def = this->add("wipe_before_external_loop", coBool);
+    def->label = L("Wipe before external loop");
+    def->tooltip = L("To minimise visibility of potential overextrusion at the start of an external perimeter when printing with "
+                     "Outer/Inner or Inner/Outer/Inner wall print order, the deretraction is performed slightly on the inside from the "
+                     "start of the external perimeter. That way any potential over extrusion is hidden from the outside surface. \n\nThis "
+                     "is useful when printing with Outer/Inner or Inner/Outer/Inner wall print order as in these modes it is more likely "
+                     "an external perimeter is printed immediately after a deretraction move.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
@@ -4436,8 +4467,8 @@ def = this->add("filament_loading_speed", coFloats);
     def->label = L("Use relative E distances");
     def->tooltip = L("Relative extrusion is recommended when using \"label_objects\" option."
                    "Some extruders work better with this option unckecked (absolute extrusion mode). "
-                   "Wipe tower is only compatible with relative mode. It is always enabled on "
-                   "BambuLab printers. Default is checked");
+                   "Wipe tower is only compatible with relative mode. It is recommended on "
+                   "most printers. Default is checked");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(true));
 
@@ -4514,6 +4545,20 @@ def = this->add("filament_loading_speed", coFloats);
     def->mode = comAdvanced;
     def->min = 0;
     def->set_default_value(new ConfigOptionPercent(25));
+
+    def = this->add("min_length_factor", coFloat);
+    def->label = L("Minimum wall length");
+    def->category = L("Quality");
+    def->tooltip = L("Adjust this value to prevent short, unclosed walls from being printed, which could increase print time. "
+    "Higher values remove more and longer walls.\n\n"
+    "NOTE: Bottom and top surfaces will not be affected by this value to prevent visual gaps on the ouside of the model. "
+    "Adjust 'One wall threshold' in the Advanced settings below to adjust the sensitivity of what is considered a top-surface. "
+    "'One wall threshold' is only visibile if this setting is set above the default value of 0.5, or if single-wall top surfaces is enabled.");
+    def->sidetext = L("");
+    def->mode = comAdvanced;
+    def->min = 0.0;
+    def->max = 25.0;
+    def->set_default_value(new ConfigOptionFloat(0.5));
 
     def = this->add("initial_layer_min_bead_width", coPercent);
     def->label = L("First layer minimum wall width");
@@ -5494,6 +5539,7 @@ void DynamicPrintConfig::normalize_fdm(int used_filaments)
         }
         {
             this->opt<ConfigOptionInt>("wall_loops", true)->value       = 1;
+            this->opt<ConfigOptionBool>("alternate_extra_wall", true)->value = false;
             this->opt<ConfigOptionInt>("top_shell_layers", true)->value = 0;
             this->opt<ConfigOptionPercent>("sparse_infill_density", true)->value = 0;
         }
@@ -5566,6 +5612,7 @@ void DynamicPrintConfig::normalize_fdm_1()
         }
         {
             this->opt<ConfigOptionInt>("wall_loops", true)->value       = 1;
+            this->opt<ConfigOptionBool>("alternate_extra_wall", true)->value = false;
             this->opt<ConfigOptionInt>("top_shell_layers", true)->value = 0;
             this->opt<ConfigOptionPercent>("sparse_infill_density", true)->value = 0;
         }

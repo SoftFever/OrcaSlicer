@@ -75,11 +75,11 @@ private:
     wxAuiToolBarItem* m_calib_item;
     wxAuiToolBarItem* maximize_btn;
 
-    wxBitmapBundle m_publish_bitmap;
-    wxBitmapBundle m_publish_disable_bitmap;
+    wxBitmap m_publish_bitmap;
+    wxBitmap m_publish_disable_bitmap;
 
-    wxBitmapBundle maximize_bitmap;
-    wxBitmapBundle window_bitmap;
+    wxBitmap maximize_bitmap;
+    wxBitmap window_bitmap;
 
     int m_toolbar_h;
     bool m_skip_popup_file_menu;

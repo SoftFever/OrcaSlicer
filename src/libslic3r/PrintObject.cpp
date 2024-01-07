@@ -911,10 +911,12 @@ bool PrintObject::invalidate_state_by_config_options(
             }
         } else if (
                opt_key == "wall_loops"
+            || opt_key == "alternate_extra_wall"
             || opt_key == "top_one_wall_type"
             || opt_key == "min_width_top_surface"
             || opt_key == "only_one_wall_first_layer"
             || opt_key == "extra_perimeters_on_overhangs"
+            || opt_key == "detect_overhang_wall"
             || opt_key == "initial_layer_line_width"
             || opt_key == "inner_wall_line_width"
             || opt_key == "infill_wall_overlap"
@@ -1125,6 +1127,7 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "wall_transition_angle"
             || opt_key == "wall_distribution_count"
             || opt_key == "min_feature_size"
+            || opt_key == "min_length_factor"
             || opt_key == "min_bead_width") {
             steps.emplace_back(posSlice);
         } else if (

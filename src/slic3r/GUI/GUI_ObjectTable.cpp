@@ -77,7 +77,7 @@ void GridCellIconRenderer::Draw(wxGrid& grid,
             table->m_icon_row_height = grid.GetRowSize(row);
             table->m_icon_col_width = grid.GetColSize(col);
         //}
-        wxBitmap bitmap = table->get_undo_bitmap().GetBitmapFor(dc.GetWindow());
+        wxBitmap& bitmap = table->get_undo_bitmap();
         int bitmap_width = bitmap.GetWidth();
         int bitmap_height = bitmap.GetHeight();
         int offset_x = (table->m_icon_col_width - bitmap_width)/2;
@@ -125,7 +125,7 @@ GridCellIconRenderer *GridCellIconRenderer::Clone() const
 
 GridCellFilamentsEditor::GridCellFilamentsEditor(const wxArrayString& choices,
                                                bool allowOthers,
-                                               std::vector<wxBitmapBundle*>* bitmaps)
+                                               std::vector<wxBitmap*>* bitmaps)
     : wxGridCellChoiceEditor(choices, allowOthers), m_icons(bitmaps)
 {
 }
@@ -133,7 +133,7 @@ GridCellFilamentsEditor::GridCellFilamentsEditor(const wxArrayString& choices,
 GridCellFilamentsEditor::GridCellFilamentsEditor(size_t count,
                                                const wxString choices[],
                                                bool allowOthers,
-                                               std::vector<wxBitmapBundle*>* bitmaps)
+                                               std::vector<wxBitmap*>* bitmaps)
     : wxGridCellChoiceEditor(count, choices, allowOthers), m_icons(bitmaps)
 {
 }
@@ -159,14 +159,13 @@ void GridCellFilamentsEditor::Create(wxWindow* parent,
     if ( !m_allowOthers )
         style |= wxCB_READONLY;
     ::ComboBox *bitmap_combo = new ComboBox(parent, id, wxEmptyString,
-                               wxDefaultPosition, wxSize(get_preferred_size(*((*m_icons)[0]), wxGetApp().mainframe).GetWidth() + 10, -1),
-                                0, nullptr, CB_NO_DROP_ICON | CB_NO_TEXT | wxCB_READONLY); //Unsure
+                               wxDefaultPosition, wxSize(((*m_icons)[0])->GetWidth() + 10, -1), 0, nullptr, CB_NO_DROP_ICON | CB_NO_TEXT | wxCB_READONLY);
     if (m_icons) {
         int array_count = m_choices.GetCount();
         int icon_count = m_icons->size();
         for (int i = 0; i < array_count; i++)
         {
-            wxBitmapBundle* bitmap = (i < icon_count) ? (*m_icons)[i] : (*m_icons)[0];
+            wxBitmap* bitmap = (i < icon_count) ? (*m_icons)[i] : (*m_icons)[0];
             bitmap_combo->Append(m_choices[i], *bitmap);
         }
     }
@@ -239,9 +238,6 @@ void GridCellFilamentsEditor::BeginEdit(int row, int col, wxGrid* grid)
     Combo()->SetSelection(pos);
 
     Combo()->SetFocus();
-
-    // Orca: Show dropdown on editing start
-    Combo()->ToggleDropDown();
 
 #ifdef __WXOSX_COCOA__
     // This is a work around for the combobox being simply dismissed when a
@@ -339,9 +335,9 @@ void GridCellFilamentsRenderer::Draw(wxGrid &grid, wxGridCellAttr &attr, wxDC &d
         ObjectGridTable::ObjectGridRow *grid_row   = table->get_grid_row(row - 1);
         ConfigOptionInt &               cur_option = dynamic_cast<ConfigOptionInt &>((*grid_row)[(ObjectGridTable::GridColType) col]);
 
-        wxBitmapBundle *bitmap        = table->get_color_bitmap((cur_option.value >= 1) ? cur_option.value - 1 : cur_option.value);
-        int       bitmap_width  = bitmap->GetBitmapFor(dc.GetWindow()).GetWidth();
-        int       bitmap_height = bitmap->GetBitmapFor(dc.GetWindow()).GetHeight();
+        wxBitmap *bitmap        = table->get_color_bitmap((cur_option.value >= 1) ? cur_option.value - 1 : cur_option.value);
+        int       bitmap_width  = bitmap->GetWidth();
+        int       bitmap_height = bitmap->GetHeight();
         int       offset_x      = grid_cell_border_width;
         int       offset_y      = (rect.height > bitmap_height) ? (rect.height - bitmap_height) / 2 : grid_cell_border_height;
 
@@ -349,7 +345,7 @@ void GridCellFilamentsRenderer::Draw(wxGrid &grid, wxGridCellAttr &attr, wxDC &d
         dc.SetBrush(wxBrush(attr.GetBackgroundColour()));
         dc.DrawRectangle(rect);
         if ( grid_row->model_volume_type != ModelVolumeType::NEGATIVE_VOLUME) {
-            dc.DrawBitmap(bitmap->GetBitmapFor(dc.GetWindow()), wxPoint(rect.x + offset_x, rect.y + offset_y));//TODO: determine if this way of getting bitmap works well
+            dc.DrawBitmap(*bitmap, wxPoint(rect.x + offset_x, rect.y + offset_y));
         }
        
         text_rect.x += bitmap_width + grid_cell_border_width * 2;
@@ -434,9 +430,6 @@ void GridCellChoiceEditor::BeginEdit(int row, int col, wxGrid *grid)
     Combo()->SetSelection(pos);
 
     Combo()->SetFocus();
-
-    // Orca: Show dropdown on editing start
-    Combo()->ToggleDropDown();
 
 #ifdef __WXOSX_COCOA__
     // This is a work around for the combobox being simply dismissed when a
@@ -525,16 +518,16 @@ void GridCellComboBoxRenderer::Draw(wxGrid &grid, wxGridCellAttr &attr, wxDC &dc
         ObjectGridTable::ObjectGridRow *grid_row   = table->get_grid_row(row - 1);
         ConfigOptionInt &               cur_option = dynamic_cast<ConfigOptionInt &>((*grid_row)[(ObjectGridTable::GridColType) col]);
 
-        wxBitmapBundle *bitmap        = table->get_color_bitmap((cur_option.value >= 1) ? cur_option.value - 1 : cur_option.value);
-        int       bitmap_width  = bitmap->GetBitmapFor(dc.GetWindow()).GetWidth();
-        int       bitmap_height = bitmap->GetBitmapFor(dc.GetWindow()).GetHeight();
+        wxBitmap *bitmap        = table->get_color_bitmap((cur_option.value >= 1) ? cur_option.value - 1 : cur_option.value);
+        int       bitmap_width  = bitmap->GetWidth();
+        int       bitmap_height = bitmap->GetHeight();
         int       offset_x      = grid_cell_border_width;
         int       offset_y      = (rect.height > bitmap_height) ? (rect.height - bitmap_height) / 2 : grid_cell_border_height;
 
         dc.SetPen(*wxTRANSPARENT_PEN);
         dc.SetBrush(wxBrush(attr.GetBackgroundColour()));
         dc.DrawRectangle(rect);
-        dc.DrawBitmap(bitmap->GetBitmapFor(dc.GetWindow()), wxPoint(rect.x + offset_x, rect.y + offset_y));
+        dc.DrawBitmap(*bitmap, wxPoint(rect.x + offset_x, rect.y + offset_y));
         text_rect.x += bitmap_width + grid_cell_border_width * 2;
         text_rect.width -= (bitmap_width + grid_cell_border_width * 2);
     }
@@ -2648,12 +2641,12 @@ void ObjectGridTable::OnCellValueChanged(int row, int col)
     }
 }
 
-wxBitmapBundle& ObjectGridTable::get_undo_bitmap(bool selected)
+wxBitmap& ObjectGridTable::get_undo_bitmap(bool selected)
 {
     return m_panel->m_undo_bitmap;
 }
 
-wxBitmapBundle* ObjectGridTable::get_color_bitmap(int color_index)
+wxBitmap* ObjectGridTable::get_color_bitmap(int color_index)
 {
     if (color_index < m_panel->m_color_bitmaps.size())
         return m_panel->m_color_bitmaps[color_index];

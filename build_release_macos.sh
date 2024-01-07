@@ -1,6 +1,6 @@
 #!/bin/sh
 
-while getopts ":a:sdphn" opt; do
+while getopts ":a:sdpt:hn" opt; do
   case ${opt} in
     d )
         export BUILD_TARGET="deps"
@@ -17,11 +17,15 @@ while getopts ":a:sdphn" opt; do
     n )
         export NIGHTLY_BUILD="1"
         ;;
+    t )
+        export OSX_DEPLOYMENT_TARGET="$OPTARG"
+        ;;
     h ) echo "Usage: ./build_release_macos.sh [-d]"
         echo "   -d: Build deps only"
         echo "   -a: Set ARCHITECTURE (arm64 or x86_64)"
         echo "   -s: Build slicer only"
         echo "   -n: Nightly build"
+        echo "   -t: Specify minimum version of the target platform, default is 11.3"
         exit 0
         ;;
   esac
@@ -34,19 +38,20 @@ fi
 
 echo "Arch: $ARCH"
 echo "BUILD_TARGET: $BUILD_TARGET"
+echo "OSX_DEPLOYMENT_TARGET: $OSX_DEPLOYMENT_TARGET"
+# if which -s brew; then
+# 	brew --prefix libiconv
+# 	brew --prefix zstd
+# 	export LIBRARY_PATH=$LIBRARY_PATH:$(brew --prefix zstd)/lib/
+# elif which -s port; then
+# 	port install libiconv
+# 	port install zstd
+# 	export LIBRARY_PATH=$LIBRARY_PATH:/opt/local/lib
+# else
+# 	echo "Need either brew or macports to successfully build deps"
+# 	exit 1
+# fi
 
-if which -s brew; then
-	brew --prefix libiconv
-	brew --prefix zstd
-	export LIBRARY_PATH=$LIBRARY_PATH:$(brew --prefix zstd)/lib/
-elif which -s port; then
-	port install libiconv
-	port install zstd
-	export LIBRARY_PATH=$LIBRARY_PATH:/opt/local/lib
-else
-	echo "Need either brew or macports to successfully build deps"
-	exit 1
-fi
 
 WD="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd $WD/deps
@@ -57,8 +62,8 @@ mkdir -p $DEPS
 if [ "slicer." != $BUILD_TARGET. ]; 
 then
     echo "building deps..."
-    echo "cmake ../ -DDESTDIR=$DEPS -DOPENSSL_ARCH=darwin64-${ARCH}-cc -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES:STRING=${ARCH}"
-    cmake ../ -DDESTDIR="$DEPS" -DOPENSSL_ARCH="darwin64-${ARCH}-cc" -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES:STRING=${ARCH}
+    echo "cmake ../ -DDESTDIR=$DEPS -DOPENSSL_ARCH=darwin64-${ARCH}-cc -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES:STRING=${ARCH} -DCMAKE_OSX_DEPLOYMENT_TARGET=${OSX_DEPLOYMENT_TARGET}"
+    cmake ../ -DDESTDIR="$DEPS" -DOPENSSL_ARCH="darwin64-${ARCH}-cc" -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES:STRING=${ARCH} -DCMAKE_OSX_DEPLOYMENT_TARGET=${OSX_DEPLOYMENT_TARGET}
     cmake --build . --config Release --target deps 
     if [ "1." == "$PACK_DEPS". ];
     then
@@ -76,7 +81,7 @@ cd $WD
 mkdir -p build_$ARCH
 cd build_$ARCH
 echo "building slicer..."
-cmake .. -GXcode -DBBL_RELEASE_TO_PUBLIC=1 -DCMAKE_PREFIX_PATH="$DEPS/usr/local" -DCMAKE_INSTALL_PREFIX="$PWD/OrcaSlicer" -DCMAKE_BUILD_TYPE=Release -DCMAKE_MACOSX_RPATH=ON -DCMAKE_INSTALL_RPATH="$DEPS/usr/local" -DCMAKE_MACOSX_BUNDLE=ON -DCMAKE_OSX_ARCHITECTURES=${ARCH}
+cmake .. -GXcode -DBBL_RELEASE_TO_PUBLIC=1 -DCMAKE_PREFIX_PATH="$DEPS/usr/local" -DCMAKE_INSTALL_PREFIX="$PWD/OrcaSlicer" -DCMAKE_BUILD_TYPE=Release -DCMAKE_MACOSX_RPATH=ON -DCMAKE_INSTALL_RPATH="$DEPS/usr/local" -DCMAKE_MACOSX_BUNDLE=ON -DCMAKE_OSX_ARCHITECTURES=${ARCH} -DCMAKE_OSX_DEPLOYMENT_TARGET=${OSX_DEPLOYMENT_TARGET}
 cmake --build . --config Release --target ALL_BUILD 
 cd ..
 ./run_gettext.sh

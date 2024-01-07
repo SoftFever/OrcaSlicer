@@ -4604,6 +4604,7 @@ void PartPlateList::update_logo_texture_filename(const std::string &texture_file
         return !texture.empty() && (boost::algorithm::iends_with(texture, ".png") || boost::algorithm::iends_with(texture, ".svg")) && boost::filesystem::exists(texture, ec);
     };
     if (!texture_filename.empty() && !check_texture(texture_filename)) {
+		m_logo_texture_filename = "";
         BOOST_LOG_TRIVIAL(error) << "Unable to load bed texture: " << texture_filename;
     } else
         m_logo_texture_filename = texture_filename;

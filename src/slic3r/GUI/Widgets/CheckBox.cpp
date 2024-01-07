@@ -24,8 +24,8 @@ CheckBox::CheckBox(wxWindow *parent, int id)
     Bind(wxEVT_ENTER_WINDOW, &CheckBox::updateBitmap, this);
     Bind(wxEVT_LEAVE_WINDOW, &CheckBox::updateBitmap, this);
 #endif
-	SetSize(m_on.GetSize());
-	SetMinSize(m_on.GetSize());
+	SetSize(m_on.GetBmpSize());
+	SetMinSize(m_on.GetBmpSize());
 	update();
 }
 
@@ -43,16 +43,16 @@ void CheckBox::SetHalfChecked(bool value)
 
 void CheckBox::Rescale()
 {
-    m_on.sys_color_changed();
-    m_half.sys_color_changed();
-    m_off.sys_color_changed();
-    m_on_disabled.sys_color_changed();
-    m_half_disabled.sys_color_changed();
-    m_off_disabled.sys_color_changed();
-    m_on_focused.sys_color_changed();
-    m_half_focused.sys_color_changed();
-    m_off_focused.sys_color_changed();
-    SetSize(m_on.GetSize());
+    m_on.msw_rescale();
+    m_half.msw_rescale();
+    m_off.msw_rescale();
+    m_on_disabled.msw_rescale();
+    m_half_disabled.msw_rescale();
+    m_off_disabled.msw_rescale();
+    m_on_focused.msw_rescale();
+    m_half_focused.msw_rescale();
+    m_off_focused.msw_rescale();
+    SetSize(m_on.GetBmpSize());
 	update();
 }
 

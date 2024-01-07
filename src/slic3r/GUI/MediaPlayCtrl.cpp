@@ -8,7 +8,6 @@
 #include "MsgDialog.hpp"
 #include "DownloadProgressDialog.hpp"
 
-#include <boost/filesystem/string_file.hpp>
 #include <boost/nowide/utf8_codecvt.hpp>
 #undef pid_t
 #include <boost/process.hpp>
@@ -37,10 +36,10 @@ MediaPlayCtrl::MediaPlayCtrl(wxWindow *parent, wxMediaCtrl2 *media_ctrl, const w
 
     m_button_play->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](auto &e) { TogglePlay(); });
     m_button_play->Bind(wxEVT_RIGHT_UP, [this](auto & e) { m_media_ctrl->Play(); });
-    m_label_status->Bind(wxEVT_LEFT_UP, [this](auto &e) {
-        auto url = wxString::Format(L"https://wiki.bambulab.com/%s/software/bambu-studio/faq/live-view", L"en");
-        wxLaunchDefaultBrowser(url);
-    });
+    // m_label_status->Bind(wxEVT_LEFT_UP, [this](auto &e) {
+    //     auto url = wxString::Format(L"https://wiki.bambulab.com/%s/software/bambu-studio/faq/live-view", L"en");
+    //     wxLaunchDefaultBrowser(url);
+    // });
 
     Bind(wxEVT_RIGHT_UP, [this](auto & e) {
         wxClipboard & c = *wxTheClipboard;
@@ -596,7 +595,7 @@ bool MediaPlayCtrl::start_stream_service(bool *need_install)
     file_url2 = wxURI(file_url2).BuildURI();
     try {
         std::string configs;
-        boost::filesystem::load_string_file(file_ff_cfg, configs);
+        load_string_file(file_ff_cfg, configs);
         std::vector<std::string> configss;
         boost::algorithm::split(configss, configs, boost::algorithm::is_any_of("\r\n"));
         configss.erase(std::remove(configss.begin(), configss.end(), std::string()), configss.end());
