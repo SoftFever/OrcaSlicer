@@ -50,9 +50,28 @@ EditGCodeDialog::EditGCodeDialog(wxWindow* parent, const std::string& key, const
     auto* grid_sizer = new wxFlexGridSizer(1, 3, 5, 15);
     grid_sizer->SetFlexibleDirection(wxBOTH);
 
+    auto* param_sizer = new wxBoxSizer(wxVERTICAL);
+
+    m_search_bar = new wxSearchCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
+    m_search_bar->ShowSearchButton(true);
+    m_search_bar->ShowCancelButton(true);
+    m_search_bar->SetDescriptiveText(_L("Search gcode placeholders"));
+    m_search_bar->SetForegroundColour(*wxBLACK);
+    wxGetApp().UpdateDarkUI(m_search_bar);
+
+    m_search_bar->Bind(wxEVT_SET_FOCUS, [this](wxFocusEvent&) {
+//        this->on_search_update();
+    });
+    m_search_bar->Bind(wxEVT_COMMAND_TEXT_UPDATED, [this](wxCommandEvent&) {
+        this->on_search_update();
+    });
+
+    param_sizer->Add(m_search_bar, 0, wxEXPAND | wxALL, border);
+
     m_params_list = new ParamsViewCtrl(this, wxSize(em * 45, em * 70));
     m_params_list->SetFont(wxGetApp().code_font());
     wxGetApp().UpdateDarkUI(m_params_list);
+    param_sizer->Add(m_params_list, 0, wxEXPAND | wxALL, border);
 
     m_add_btn = new ScalableButton(this, wxID_ANY, "add_copies");
     m_add_btn->SetToolTip(_L("Add selected placeholder to G-code"));
@@ -66,7 +85,7 @@ EditGCodeDialog::EditGCodeDialog(wxWindow* parent, const std::string& key, const
     m_gcode_editor->SetInsertionPointEnd();
     wxGetApp().UpdateDarkUI(m_gcode_editor);
 
-    grid_sizer->Add(m_params_list,  1, wxEXPAND);
+    grid_sizer->Add(param_sizer,  1, wxEXPAND);
     grid_sizer->Add(m_add_btn,      0, wxALIGN_CENTER_VERTICAL);
     grid_sizer->Add(m_gcode_editor, 2, wxEXPAND);
 
@@ -114,6 +133,15 @@ EditGCodeDialog::~EditGCodeDialog()
 std::string EditGCodeDialog::get_edited_gcode() const
 {
     return into_u8(m_gcode_editor->GetValue());
+}
+
+void EditGCodeDialog::on_search_update()
+{
+    wxString   search_text = m_search_bar->GetValue().Lower();
+    if (search_text.empty())
+        m_params_list->model->FinishSearch();
+    else
+        m_params_list->model->RefreshSearch(search_text);
 }
 
 static ParamType get_type(const std::string& opt_key, const ConfigOptionDef& opt_def)
@@ -486,30 +514,35 @@ static void make_bold(wxString& str)
 //                  ParamsModelNode: a node inside ParamsModel
 // ----------------------------------------------------------------------------
 
-ParamsNode::ParamsNode(const wxString& group_name, const std::string& icon_name)
+ParamsNode::ParamsNode(const wxString& group_name, const std::string& icon_name, wxDataViewCtrl* ctrl)
 : icon_name(icon_name)
 , text(group_name)
+, m_ctrl(ctrl)
 {
     make_bold(text);
 }
 
 ParamsNode::ParamsNode( ParamsNode *        parent,
                         const wxString&     sub_group_name,
-                        const std::string&  icon_name)
+                        const std::string&  icon_name,
+                        wxDataViewCtrl* ctrl)
     : m_parent(parent)
     , icon_name(icon_name)
     , text(sub_group_name)
+    , m_ctrl(ctrl)
 {
     make_bold(text);
 }
 
 ParamsNode::ParamsNode( ParamsNode*         parent,
                         ParamType           param_type,
-                        const std::string&  param_key)
+                        const std::string&  param_key,
+                        wxDataViewCtrl* ctrl)
     : m_parent(parent)
     , m_param_type(param_type)
     , m_container(false)
     , param_key(param_key)
+    , m_ctrl(ctrl)
 {
     text = from_u8(param_key);
     if (param_type == ParamType::Vector)
@@ -518,6 +551,48 @@ ParamsNode::ParamsNode( ParamsNode*         parent,
         text += "[current_extruder]";
 
     icon_name = ParamsInfo.at(param_type);
+}
+
+void ParamsNode::StartSearch()
+{
+    const wxDataViewItem item(this);
+    m_expanded_before_search = m_ctrl->IsExpanded(item);
+    if (!GetChildren().empty())
+        for (const auto& child : GetChildren())
+            child->StartSearch();
+}
+
+void ParamsNode::RefreshSearch(const wxString& search_text)
+{
+    if (!GetChildren().empty())
+        for (auto& child : GetChildren())
+            child->RefreshSearch(search_text);
+
+    if (GetEnabledChildren().empty())
+        if (IsParamNode() && text.find(search_text) != wxString::npos)
+            Enable();
+        else
+            Disable();
+    else
+        Enable();
+}
+
+void ParamsNode::FinishSearch()
+{
+    Enable();
+    const wxDataViewItem item(this);
+    if (!GetChildren().empty())
+        for (const auto& child : GetChildren())
+            child->FinishSearch();
+    m_expanded_before_search ? m_ctrl->Expand(item) : m_ctrl->Collapse(item);
+}
+
+wxDataViewItemArray ParamsNode::GetEnabledChildren() {
+    wxDataViewItemArray array;
+    for (const std::unique_ptr<ParamsNode>& child : m_children)
+        if (child->IsEnabled())
+            array.Add(wxDataViewItem(child.get()));
+    return array;
 }
 
 
@@ -532,7 +607,7 @@ ParamsModel::ParamsModel()
 wxDataViewItem ParamsModel::AppendGroup(const wxString&    group_name,
                                         const std::string& icon_name)
 {
-    m_group_nodes.emplace_back(std::make_unique<ParamsNode>(group_name, icon_name));
+    m_group_nodes.emplace_back(std::make_unique<ParamsNode>(group_name, icon_name, m_ctrl));
 
     wxDataViewItem parent(nullptr);
     wxDataViewItem child((void*)m_group_nodes.back().get());
@@ -550,7 +625,7 @@ wxDataViewItem ParamsModel::AppendSubGroup(wxDataViewItem       parent,
     if (!parent_node)
         return wxDataViewItem(0);
 
-    parent_node->Append(std::make_unique<ParamsNode>(parent_node, sub_group_name, icon_name));
+    parent_node->Append(std::make_unique<ParamsNode>(parent_node, sub_group_name, icon_name, m_ctrl));
     const wxDataViewItem  sub_group_item((void*)parent_node->GetChildren().back().get());
 
     ItemAdded(parent, sub_group_item);
@@ -565,7 +640,7 @@ wxDataViewItem ParamsModel::AppendParam(wxDataViewItem      parent,
     if (!parent_node)
         return wxDataViewItem(0);
 
-    parent_node->Append(std::make_unique<ParamsNode>(parent_node, param_type, param_key));
+    parent_node->Append(std::make_unique<ParamsNode>(parent_node, param_type, param_key, m_ctrl));
 
     const wxDataViewItem  child_item((void*)parent_node->GetChildren().back().get());
 
@@ -601,6 +676,34 @@ std::string ParamsModel::GetTopLevelCategory(wxDataViewItem item)
         return node->text.ToStdString();
     }
     return std::string();
+}
+
+void ParamsModel::RefreshSearch(const wxString& search_text)
+{
+    if (!m_currently_searching) { // if not currently searching, save expansion state for all items
+        for (const auto& node : m_group_nodes)
+            node->StartSearch();
+        m_currently_searching = true;
+    }
+
+    for (const auto& node : m_group_nodes)
+        node->RefreshSearch(search_text); //Enable/Disable node based on search
+
+    Cleared(); //Reload the model into the control
+
+    for (const auto& node : m_group_nodes) // (re)expand all
+        m_ctrl->ExpandChildren(wxDataViewItem(node.get()));
+}
+
+void ParamsModel::FinishSearch()
+{
+    RefreshSearch("");
+    Cleared();
+    if (m_currently_searching) {
+        for (const auto& node : m_group_nodes)
+            node->FinishSearch();
+        m_currently_searching = false;
+    }
 }
 
 wxDataViewItem ParamsModel::Delete(const wxDataViewItem& item)
@@ -723,12 +826,14 @@ unsigned int ParamsModel::GetChildren(const wxDataViewItem& parent, wxDataViewIt
 
     if (parent_node == nullptr) {
         for (const auto& group : m_group_nodes)
-            array.Add(wxDataViewItem((void*)group.get()));
+            if (group->IsEnabled())
+                array.Add(wxDataViewItem((void*)group.get()));
     }
     else  {
         const ParamsNodePtrArray& children = parent_node->GetChildren();
         for (const std::unique_ptr<ParamsNode>& child : children)
-            array.Add(wxDataViewItem((void*)child.get()));
+            if (child->IsEnabled())
+                array.Add(wxDataViewItem((void*)child.get()));
     }
 
     return array.Count();
