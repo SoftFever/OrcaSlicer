@@ -2463,9 +2463,11 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
         CalibPressureAdvanceLine pa_test(this);
 
-        auto fast_speed = CalibPressureAdvance::find_optimal_PA_speed(print.full_print_config(), pa_test.line_width(), 0.2);
-        auto slow_speed = std::max(20.0, fast_speed / 10.0);
-        
+        auto fast_speed = CalibPressureAdvance::find_optimal_PA_speed(print.full_print_config(), pa_test.line_width(), pa_test.height_layer());
+        auto slow_speed = std::max(10.0, fast_speed / 10.0);
+        if (fast_speed < slow_speed + 5)
+            fast_speed = slow_speed + 5;
+
         pa_test.set_speed(fast_speed, slow_speed);
         pa_test.draw_numbers() = print.calib_params().print_numbers;
         gcode += pa_test.generate_test(params.start, params.step, std::llround(std::ceil((params.end - params.start) / params.step)) + 1);
