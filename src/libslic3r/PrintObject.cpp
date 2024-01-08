@@ -3234,7 +3234,7 @@ void PrintObject::discover_horizontal_shells()
                         // obeying the solid shell count option strictly (DWIM!)
                         
                         // Orca: Also use the same strategy if the user has selected to reduce
-                        // the amount of solid infill on walls. However reduce the margin to 5%
+                        // the amount of solid infill on walls. However reduce the margin to 20% overhang
                         // as we want to generate infill on sloped vertical surfaces but still keep a small amount of
                         // filtering. This is an arbitrary value to make this option safe
                         // by ensuring that top surfaces, especially slanted ones dont go **completely** unsupported
