@@ -8847,8 +8847,8 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
     DynamicPrintConfig& print_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
     auto filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
     double nozzle_diameter = printer_config.option<ConfigOptionFloats>("nozzle_diameter")->get_at(0);
-    filament_config->set_key_value("filament_retract_when_changing_layer", new ConfigOptionBools{false});
-    filament_config->set_key_value("filament_wipe", new ConfigOptionBools{false});
+    filament_config->set_key_value("filament_retract_when_changing_layer", new ConfigOptionBoolsNullable{false});
+    filament_config->set_key_value("filament_wipe", new ConfigOptionBoolsNullable{false});
     printer_config.set_key_value("wipe", new ConfigOptionBools{false});
     printer_config.set_key_value("retract_when_changing_layer", new ConfigOptionBools{false});
 
