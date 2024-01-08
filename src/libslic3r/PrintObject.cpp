@@ -467,6 +467,8 @@ void PrintObject::prepare_infill()
     // and to add a configurable number of solid layers above the BOTTOM / BOTTOMBRIDGE surfaces
     // to close these surfaces reliably.
     //FIXME Vojtech: Is this a good place to add supporting infills below sloping perimeters?
+    // Orca: Brought this function call before the process_external_surfaces, to allow bridges over holes to expand more than
+    // one perimeter. Example of this is the bridge over the benchy lettering.
     this->discover_horizontal_shells();
     m_print->throw_if_canceled();
 
@@ -3209,7 +3211,8 @@ void PrintObject::discover_horizontal_shells()
                         // No internal solid needed on this layer. In order to decide whether to continue
                         // searching on the next neighbor (thus enforcing the configured number of solid
                         // layers, use different strategies according to configured infill density:
-                        // Ioannis Giannakas: Also use the same strategy if the user has selected to reduce
+                        
+                        // Orca: Also use the same strategy if the user has selected to further reduce
                         // the amount of solid infill on walls.
                         if (region_config.sparse_infill_density.value == 0 || region_config.reduce_wall_solid_infill) {
                             // If user expects the object to be void (for example a hollow sloping vase),
@@ -3229,12 +3232,14 @@ void PrintObject::discover_horizontal_shells()
                         // than a perimeter width, since it's probably just crossing a sloping wall
                         // and it's not wanted in a hollow print even if it would make sense when
                         // obeying the solid shell count option strictly (DWIM!)
-                        // Ioannis Giannakas: Also use the same strategy if the user has selected to reduce
-                        // the amount of solid infill on walls. However reduce the allowable perimeter width
-                        // that has no internal support to 30%. This is an arbitrary value to make this option somewhat safe
-                        // by ensuring that top surfaces especially slanted ones dont go **completely** unsupported
+                        
+                        // Orca: Also use the same strategy if the user has selected to reduce
+                        // the amount of solid infill on walls. However reduce the margin to 5%
+                        // as we want to generate infill on sloped vertical surfaces but still keep a small amount of
+                        // filtering. This is an arbitrary value to make this option safe
+                        // by ensuring that top surfaces, especially slanted ones dont go **completely** unsupported
                         // especially when using single perimeter top layers.
-                        float margin = region_config.reduce_wall_solid_infill? float(neighbor_layerm->flow(frExternalPerimeter).scaled_width())*0.3f : float(neighbor_layerm->flow(frExternalPerimeter).scaled_width());
+                        float margin = region_config.reduce_wall_solid_infill? float(neighbor_layerm->flow(frExternalPerimeter).scaled_width()) * 0.05f : float(neighbor_layerm->flow(frExternalPerimeter).scaled_width());
                         Polygons too_narrow = diff(
                             new_internal_solid,
                             opening(new_internal_solid, margin, margin + ClipperSafetyOffset, jtMiter, 5));
