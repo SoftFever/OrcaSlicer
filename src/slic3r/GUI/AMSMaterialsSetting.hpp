@@ -34,6 +34,7 @@ class ColorPicker : public wxWindow
 public:
     wxBitmap        m_bitmap_border;
     wxBitmap        m_bitmap_transparent;
+    wxBitmap        m_bitmap_transparent_def; //default transparent material
 
     wxColour        m_colour;
     std::vector<wxColour>        m_cols;

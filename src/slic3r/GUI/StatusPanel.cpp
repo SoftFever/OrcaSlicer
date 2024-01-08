@@ -3560,12 +3560,19 @@ void StatusPanel::on_ext_spool_edit(wxCommandEvent &event)
             wxColor color = AmsTray::decode_color(obj->vt_tray.color);
             m_filament_setting_dlg->ams_filament_id = obj->vt_tray.setting_id;
 
+            std::vector<wxColour> cols;
+            for (auto col : obj->vt_tray.cols) {
+                cols.push_back(AmsTray::decode_color(col));
+            }
+            m_filament_setting_dlg->set_ctype(obj->vt_tray.ctype);
 
             if (m_filament_setting_dlg->ams_filament_id.empty()) {
                 m_filament_setting_dlg->set_empty_color(color);
             }
             else {
                 m_filament_setting_dlg->set_color(color);
+                m_filament_setting_dlg->set_colors(cols);
+
             }
             
             m_filament_setting_dlg->m_is_third = !MachineObject::is_bbl_filament(obj->vt_tray.tag_uid);

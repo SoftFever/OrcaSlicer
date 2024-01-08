@@ -1111,6 +1111,8 @@ ColorPicker::ColorPicker(wxWindow* parent, wxWindowID id, const wxPoint& pos /*=
     Bind(wxEVT_PAINT, &ColorPicker::paintEvent, this);
 
     m_bitmap_border = create_scaled_bitmap("color_picker_border", nullptr, 25);
+    m_bitmap_border_dark = create_scaled_bitmap("color_picker_border_dark", nullptr, 25);
+    m_bitmap_transparent_def = create_scaled_bitmap("transparent_color_picker", nullptr, 25);
     m_bitmap_transparent = create_scaled_bitmap("transparent_color_picker", nullptr, 25);
 }
 
@@ -1172,12 +1174,12 @@ void ColorPicker::doRender(wxDC& dc)
     if (m_selected) radius -= FromDIP(1);
 
     if (alpha == 0) {
-        dc.DrawBitmap(m_bitmap_transparent, 0, 0);
+        dc.DrawBitmap(m_bitmap_transparent_def, 0, 0);
     }
     else if (alpha != 0 && alpha != 255) {
         if (transparent_changed) {
             std::string rgb = (m_colour.GetAsString(wxC2S_HTML_SYNTAX)).ToStdString();
-            if (rgb.size() == 8) {
+            if (rgb.size() == 9) {
                 //delete alpha value
                 rgb = rgb.substr(0, rgb.size() - 2);
             }

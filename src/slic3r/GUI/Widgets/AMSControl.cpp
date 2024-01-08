@@ -646,6 +646,7 @@ void AMSLib::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const w
     m_bitmap_readonly       = ScalableBitmap(this, "ams_readonly", 14);
     m_bitmap_readonly_light = ScalableBitmap(this, "ams_readonly_light", 14);
     m_bitmap_transparent    = ScalableBitmap(this, "transparent_ams_lib", 68);
+    m_bitmap_transparent_def    = ScalableBitmap(this, "transparent_ams_lib", 68);
 
     m_bitmap_extra_tray_left    = ScalableBitmap(this, "extra_ams_tray_left", 80);
     m_bitmap_extra_tray_right    = ScalableBitmap(this, "extra_ams_tray_right", 80);
@@ -1146,7 +1147,7 @@ void AMSLib::render_generic_lib(wxDC &dc)
         //transparent
         auto alpha = m_info.material_colour.Alpha();
         if (alpha == 0) {
-            dc.DrawBitmap(m_bitmap_transparent.bmp(), FromDIP(4), FromDIP(4));
+            dc.DrawBitmap(m_bitmap_transparent_def.bmp(), FromDIP(4), FromDIP(4));
         }
         //gradient
         if (m_info.material_cols.size() > 1) {
@@ -1330,7 +1331,9 @@ bool AMSLib::Enable(bool enable) { return wxWindow::Enable(enable); }
 
 void AMSLib::msw_rescale()
 {
-    m_bitmap_transparent.msw_rescale();
+    //m_bitmap_transparent.msw_rescale();
+    m_bitmap_transparent_def.msw_rescale();
+
 }
 
 /*************************************************
@@ -3267,6 +3270,10 @@ void AMSControl::update_vams_kn_value(AmsTray tray, MachineObject* obj)
     m_vams_info.material_name = tray.get_display_filament_type();
     m_vams_info.material_colour = tray.get_color();
     m_vams_lib->m_info.material_name = tray.get_display_filament_type();
+    auto col= tray.get_color();
+    if (col.Alpha() != 0 && col.Alpha() != 255 && col.Alpha() != 254 && m_vams_lib->m_info.material_colour != col) {
+        m_vams_lib->transparent_changed = true;
+    }
     m_vams_lib->m_info.material_colour = tray.get_color();
     m_vams_lib->Refresh();
 }
