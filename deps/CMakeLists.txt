@@ -20,8 +20,17 @@
 # therefore, unfortunatelly, the installation cannot be copied/moved elsewhere without re-installing wxWidgets.
 #
 
-project(OrcaSlicer-deps)
 cmake_minimum_required(VERSION 3.2)
+if (APPLE)
+    # if CMAKE_OSX_DEPLOYMENT_TARGET is not set, set it to 11.3
+    if (NOT CMAKE_OSX_DEPLOYMENT_TARGET)
+        set(CMAKE_OSX_DEPLOYMENT_TARGET "11.3" CACHE STRING "Minimum OS X deployment version" FORCE)
+    endif ()
+    message(STATUS "CMAKE_OSX_DEPLOYMENT_TARGET: ${CMAKE_OSX_DEPLOYMENT_TARGET}")
+
+endif ()
+
+project(OrcaSlicer-deps)
 
 include(ExternalProject)
 include(ProcessorCount)
@@ -32,7 +41,7 @@ if (NPROC EQUAL 0)
 endif ()
 
 set(DESTDIR "${CMAKE_CURRENT_BINARY_DIR}/destdir" CACHE PATH "Destination directory")
-set(DEP_DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR}/DL_CACHE CACHE PATH "Path for downloaded source packages.")
+set(DEP_DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR}/../DL_CACHE CACHE PATH "Path for downloaded source packages.")
 
 option(DEP_DEBUG "Build debug variants (only applicable on Windows)" OFF)
 
@@ -163,7 +172,6 @@ if (MSVC)
     endif ()
 elseif (APPLE)
     message("OS X SDK Path: ${CMAKE_OSX_SYSROOT}")
-    set(CMAKE_OSX_DEPLOYMENT_TARGET "11.3" CACHE STRING "Minimum OS X deployment version" FORCE)
     if (CMAKE_OSX_DEPLOYMENT_TARGET)
         set(DEP_OSX_TARGET "${CMAKE_OSX_DEPLOYMENT_TARGET}")
         message("OS X Deployment Target: ${DEP_OSX_TARGET}")

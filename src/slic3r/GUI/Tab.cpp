@@ -26,6 +26,7 @@
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/replace.hpp>
+#include "libslic3r/libslic3r.h"
 #include "wxExtensions.hpp"
 #include "PresetComboBoxes.hpp"
 #include <wx/wupdlock.h>
@@ -1518,23 +1519,35 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         auto max_layer_height_from_nozzle=wxGetApp().preset_bundle->full_config().option<ConfigOptionFloats>("max_layer_height")->values;
         auto layer_height_floor = *std::min_element(min_layer_height_from_nozzle.begin(), min_layer_height_from_nozzle.end());
         auto layer_height_ceil  = *std::max_element(max_layer_height_from_nozzle.begin(), max_layer_height_from_nozzle.end());
-        bool exceed_minimum_flag = m_config->opt_float("layer_height") < layer_height_floor;
-        bool exceed_maximum_flag = m_config->opt_float("layer_height") > layer_height_ceil;
+        const auto lh = m_config->opt_float("layer_height");
+        bool exceed_minimum_flag = lh < layer_height_floor;
+        bool exceed_maximum_flag = lh > layer_height_ceil;
 
         if (exceed_maximum_flag || exceed_minimum_flag) {
-            wxString msg_text = _(L("Layer height exceeds the limit in Printer Settings -> Extruder -> Layer height limits ,this may cause printing quality issues."));
-            msg_text += "\n\n" + _(L("Adjust to the set range automatically? \n"));
-            MessageDialog dialog(wxGetApp().plater(), msg_text, "", wxICON_WARNING | wxYES | wxNO);
-            dialog.SetButtonLabel(wxID_YES, _L("Adjust"));
-            dialog.SetButtonLabel(wxID_NO, _L("Ignore"));
-            auto answer = dialog.ShowModal();
-            auto new_conf = *m_config;
-            if (answer == wxID_YES) {
-                if (exceed_maximum_flag)
-                    new_conf.set_key_value("layer_height", new ConfigOptionFloat(layer_height_ceil));
-                if (exceed_minimum_flag)
-                    new_conf.set_key_value("layer_height",new ConfigOptionFloat(layer_height_floor));
+            if (lh < EPSILON) {
+                auto          msg_text = _(L("Layer height is too small.\nIt will set to min_layer_height\n"));
+                MessageDialog dialog(wxGetApp().plater(), msg_text, "", wxICON_WARNING | wxOK);
+                dialog.SetButtonLabel(wxID_OK, _L("OK"));
+                dialog.ShowModal();
+                auto new_conf = *m_config;
+                new_conf.set_key_value("layer_height", new ConfigOptionFloat(layer_height_floor));
                 m_config_manipulation.apply(m_config, &new_conf);
+            } else {
+                wxString msg_text = _(L("Layer height exceeds the limit in Printer Settings -> Extruder -> Layer height limits ,this may "
+                                        "cause printing quality issues."));
+                msg_text += "\n\n" + _(L("Adjust to the set range automatically? \n"));
+                MessageDialog dialog(wxGetApp().plater(), msg_text, "", wxICON_WARNING | wxYES | wxNO);
+                dialog.SetButtonLabel(wxID_YES, _L("Adjust"));
+                dialog.SetButtonLabel(wxID_NO, _L("Ignore"));
+                auto answer   = dialog.ShowModal();
+                auto new_conf = *m_config;
+                if (answer == wxID_YES) {
+                    if (exceed_maximum_flag)
+                        new_conf.set_key_value("layer_height", new ConfigOptionFloat(layer_height_ceil));
+                    if (exceed_minimum_flag)
+                        new_conf.set_key_value("layer_height", new ConfigOptionFloat(layer_height_floor));
+                    m_config_manipulation.apply(m_config, &new_conf);
+                }
             }
             wxGetApp().plater()->update();
         }
@@ -1911,6 +1924,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("role_based_wipe_speed","seam");
         optgroup->append_single_option_line("wipe_speed", "seam");
         optgroup->append_single_option_line("wipe_on_loops","seam");
+        optgroup->append_single_option_line("wipe_before_external_loop","seam");
 
 
         optgroup = page->new_optgroup(L("Precision"), L"param_precision");
@@ -1943,6 +1957,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("initial_layer_min_bead_width");
         optgroup->append_single_option_line("min_bead_width");
         optgroup->append_single_option_line("min_feature_size");
+        optgroup->append_single_option_line("min_length_factor");
 
         optgroup = page->new_optgroup(L("Walls and surfaces"), L"param_advanced");
         optgroup->append_single_option_line("wall_sequence");
@@ -3015,6 +3030,7 @@ void TabFilament::build()
         line.append_option(optgroup->get_option("nozzle_temperature"));
         optgroup->append_line(line);
 
+        optgroup = page->new_optgroup(L("Bed temperature"), L"param_temperature");
         line = { L("Cool plate"), L("Bed temperature when cool plate is installed. Value 0 means the filament does not support to print on the Cool Plate") };
         line.append_option(optgroup->get_option("cool_plate_temp_initial_layer"));
         line.append_option(optgroup->get_option("cool_plate_temp"));
@@ -3264,23 +3280,22 @@ void TabFilament::toggle_options()
           wxGetApp().preset_bundle->is_bbl_vendor();
     }
 
+    auto cfg = m_preset_bundle->printers.get_edited_preset().config;
     if (m_active_page->title() == L("Cooling")) {
       bool has_enable_overhang_bridge_fan = m_config->opt_bool("enable_overhang_bridge_fan", 0);
       for (auto el : {"overhang_fan_speed", "overhang_fan_threshold"})
             toggle_option(el, has_enable_overhang_bridge_fan);
 
-      toggle_option(
-          "additional_cooling_fan_speed",
-          m_preset_bundle->printers.get_edited_preset().config.option<ConfigOptionBool>("auxiliary_fan")->value);
+      toggle_option("additional_cooling_fan_speed", cfg.opt_bool("auxiliary_fan"));
     }
     if (m_active_page->title() == L("Filament"))
     {
         bool pa = m_config->opt_bool("enable_pressure_advance", 0);
         toggle_option("pressure_advance", pa);
-
-        toggle_line("cool_plate_temp_initial_layer", is_BBL_printer);
-        toggle_line("eng_plate_temp_initial_layer", is_BBL_printer);
-        toggle_line("textured_plate_temp_initial_layer", is_BBL_printer);
+        auto support_multi_bed_types = is_BBL_printer || cfg.opt_bool("support_multi_bed_types");
+        toggle_line("cool_plate_temp_initial_layer", support_multi_bed_types );
+        toggle_line("eng_plate_temp_initial_layer", support_multi_bed_types);
+        toggle_line("textured_plate_temp_initial_layer", support_multi_bed_types);
 
     }
     if (m_active_page->title() == L("Setting Overrides"))
@@ -3393,6 +3408,7 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line(option);
         // optgroup->append_single_option_line("printable_area");
         optgroup->append_single_option_line("printable_height");
+        optgroup->append_single_option_line("support_multi_bed_types");
         optgroup->append_single_option_line("nozzle_volume");
         optgroup->append_single_option_line("best_object_pos");
         optgroup->append_single_option_line("z_offset");
@@ -4044,7 +4060,7 @@ void TabPrinter::toggle_options()
           toggle_line(el, is_BBL_printer);
 
         // SoftFever: hide non-BBL settings
-        for (auto el : {"use_firmware_retraction", "use_relative_e_distances"})
+        for (auto el : {"use_firmware_retraction", "use_relative_e_distances", "support_multi_bed_types"})
           toggle_line(el, !is_BBL_printer);
     }
 

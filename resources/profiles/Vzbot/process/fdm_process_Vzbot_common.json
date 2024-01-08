@@ -107,5 +107,6 @@
     "compatible_printers": [
       "Vzbot 235 AWD 0.4 nozzle",
       "Vzbot 330 AWD 0.4 nozzle"
-    ]
+    ],
+    "exclude_object": "1"
 }

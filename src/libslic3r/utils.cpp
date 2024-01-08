@@ -272,6 +272,9 @@ static std::string g_data_dir;
 void set_data_dir(const std::string &dir)
 {
     g_data_dir = dir;
+    if (!g_data_dir.empty() && !boost::filesystem::exists(g_data_dir)) {
+       boost::filesystem::create_directory(g_data_dir);
+    }
 }
 
 const std::string& data_dir()
@@ -1522,6 +1525,24 @@ void copy_directory_recursively(const boost::filesystem::path &source, const boo
         }
     }
     return;
+}
+
+void save_string_file(const boost::filesystem::path& p, const std::string& str)
+{
+    boost::nowide::ofstream file;
+    file.exceptions(std::ios_base::failbit | std::ios_base::badbit);
+    file.open(p.generic_string(), std::ios_base::binary);
+    file.write(str.c_str(), str.size());
+}
+
+void load_string_file(const boost::filesystem::path& p, std::string& str)
+{
+    boost::nowide::ifstream file;
+    file.exceptions(std::ios_base::failbit | std::ios_base::badbit);
+    file.open(p.generic_string(), std::ios_base::binary);
+    std::size_t sz = static_cast<std::size_t>(boost::filesystem::file_size(p));
+    str.resize(sz, '\0');
+    file.read(&str[0], sz);
 }
 
 }; // namespace Slic3r

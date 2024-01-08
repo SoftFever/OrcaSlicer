@@ -23,6 +23,7 @@
 #include <algorithm>
 #include "Plater.hpp"
 #include "BitmapCache.hpp"
+#include "slic3r/GUI/GUI_App.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -293,7 +294,8 @@ UpdateVersionDialog::UpdateVersionDialog(wxWindow *parent)
     m_vebview_release_note->Bind(wxEVT_WEBVIEW_NAVIGATING,[=](wxWebViewEvent& event){
         static bool load_url_first = false;
         if(load_url_first){
-            wxLaunchDefaultBrowser(url_line);
+            // Orca: not used in Orca Slicer
+            // wxLaunchDefaultBrowser(url_line);
             event.Veto();
         }else{
             load_url_first = true;
@@ -317,11 +319,6 @@ UpdateVersionDialog::UpdateVersionDialog(wxWindow *parent)
 
 
     
-    m_bitmap_open_in_browser = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("open_in_browser", this, 12), wxDefaultPosition, wxDefaultSize, 0 );
-    m_link_open_in_browser   = new wxHyperlinkCtrl(this, wxID_ANY, "Open in browser", "");
-    m_link_open_in_browser->SetFont(Label::Body_12);
-
-
     auto sizer_button = new wxBoxSizer(wxHORIZONTAL);
 
 
@@ -357,6 +354,17 @@ UpdateVersionDialog::UpdateVersionDialog(wxWindow *parent)
         EndModal(wxID_NO);
     });
 
+    m_cb_stable_only = new CheckBox(this);
+    m_cb_stable_only->SetValue(wxGetApp().app_config->get_bool("check_stable_update_only"));
+    m_cb_stable_only->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent& e) {
+        wxGetApp().app_config->set_bool("check_stable_update_only", m_cb_stable_only->GetValue());
+        e.Skip();
+    });
+
+    auto stable_only_label = new Label(this, _L("Check for stable updates only"));
+    stable_only_label->SetFont(Label::Body_13);
+    stable_only_label->SetForegroundColour(wxColour(38, 46, 48));
+    stable_only_label->SetFont(Label::Body_12);
 
     m_button_cancel = new Button(this, _L("Cancel"));
     m_button_cancel->SetBackgroundColor(btn_bg_white);
@@ -372,10 +380,10 @@ UpdateVersionDialog::UpdateVersionDialog(wxWindow *parent)
 
     m_sizer_main->Add(m_line_top, 0, wxEXPAND | wxBOTTOM, 0);
     
-    sizer_button->Add(m_bitmap_open_in_browser, 0, wxALIGN_CENTER | wxLEFT, FromDIP(7));
-    sizer_button->Add(m_link_open_in_browser, 0, wxALIGN_CENTER| wxLEFT, FromDIP(3));
     //sizer_button->Add(m_remind_choice, 0, wxALL | wxEXPAND, FromDIP(5));
     sizer_button->AddStretchSpacer();
+    sizer_button->Add(stable_only_label, 0, wxALIGN_CENTER | wxLEFT, FromDIP(7));
+    sizer_button->Add(m_cb_stable_only, 0, wxALIGN_CENTER | wxLEFT, FromDIP(5));
     sizer_button->Add(m_button_download, 0, wxALL, FromDIP(5));
     sizer_button->Add(m_button_skip_version, 0, wxALL, FromDIP(5));
     sizer_button->Add(m_button_cancel, 0, wxALL, FromDIP(5));
@@ -510,7 +518,6 @@ void UpdateVersionDialog::update_version_info(wxString release_note, wxString ve
         m_text_up_info->Hide();
         m_simplebook_release_note->SetSelection(1);
         m_vebview_release_note->LoadURL(from_u8(url_line));
-        m_link_open_in_browser->SetURL(url_line);
     }
     else {
         m_simplebook_release_note->SetMaxSize(wxSize(FromDIP(560), FromDIP(430)));
