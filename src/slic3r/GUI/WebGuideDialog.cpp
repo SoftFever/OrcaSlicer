@@ -53,15 +53,19 @@ static wxString update_custom_filaments()
             need_delete_some_filament = true;
         }
         bool filament_with_base_id = false;
-        bool vendor_is_generic = false;
+        bool not_need_show = false;
         std::string filament_name;
         for (const Preset *preset : filament_id_to_presets.second) {
-            if (preset->is_system || preset->inherits() != "") continue;
+            if (preset->is_system) {
+                not_need_show = true;
+                break;
+            }
+            if (preset->inherits() != "") continue;
             if (!preset->base_id.empty()) filament_with_base_id = true;
 
-            if (!vendor_is_generic) {
+            if (!not_need_show) {
                 auto filament_vendor = dynamic_cast<ConfigOptionStrings *>(const_cast<Preset *>(preset)->config.option("filament_vendor", false));
-                if (filament_vendor && filament_vendor->values.size() && filament_vendor->values[0] == "Generic") vendor_is_generic = true;
+                if (filament_vendor && filament_vendor->values.size() && filament_vendor->values[0] == "Generic") not_need_show = true;
             }
             
             if (filament_name.empty()) {
@@ -71,7 +75,7 @@ static wxString update_custom_filaments()
                 filament_name = preset_name;
             }
         }
-        if (vendor_is_generic) continue;
+        if (not_need_show) continue;
         if (!filament_name.empty()) {
             if (filament_with_base_id) {
                 need_sort.push_back(std::make_pair("[Action Required] " + filament_name, filament_id));
