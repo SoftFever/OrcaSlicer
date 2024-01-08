@@ -33,6 +33,9 @@
     "machine_max_acceleration_z": [
         "300"
     ],
+    "machine_max_acceleration_travel": [
+        "6000"
+    ],
     "machine_max_speed_e": [
         "50"
     ],

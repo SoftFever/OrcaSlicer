@@ -50,13 +50,13 @@
         "30"
     ],
     "fan_cooling_layer_time": [
-        "100"
+        "30"
     ],
     "fan_max_speed": [
         "50"
     ],
     "slow_down_layer_time": [
-        "4"
+        "8"
     ],
     "reduce_fan_stop_start_freq": [
         "1"
