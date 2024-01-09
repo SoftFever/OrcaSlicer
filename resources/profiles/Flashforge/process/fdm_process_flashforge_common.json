@@ -21,7 +21,7 @@
     "initial_layer_acceleration": "500",
     "travel_acceleration": "10000",
     "inner_wall_acceleration": "5000",
-    "initial_layer_line_width": "0.45",
+    "initial_layer_line_width": "0.5",
     "sparse_infill_speed": "100",
     "ironing_flow": "15%",
     "ironing_spacing": "0.1",
