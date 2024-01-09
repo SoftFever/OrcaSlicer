@@ -1,6 +1,6 @@
 {
     "name": "Qidi",
-    "version": "01.09.00.01",
+    "version": "01.09.00.02",
     "force_update": "0",
     "description": "Qidi configurations",
     "machine_model_list": [
@@ -465,8 +465,32 @@
             "sub_path": "filament/Qidi Generic ABS.json"
         },
         {
+            "name": "Qidi Generic ABS @Qidi X-Max 3 0.2 nozzle",
+            "sub_path": "filament/Qidi Generic ABS @Qidi X-Max 3 0.2 nozzle.json"
+        },
+        {
+            "name": "Qidi Generic ABS @Qidi X-Plus 3 0.2 nozzle",
+            "sub_path": "filament/Qidi Generic ABS @Qidi X-Plus 3 0.2 nozzle.json"
+        },
+        {
+            "name": "Qidi Generic ABS @Qidi X-Smart 3 0.2 nozzle",
+            "sub_path": "filament/Qidi Generic ABS @Qidi X-Smart 3 0.2 nozzle.json"
+        },
+        {
             "name": "Qidi Generic ASA",
             "sub_path": "filament/Qidi Generic ASA.json"
+        },
+        {
+            "name": "Qidi Generic ASA @Qidi X-Max 3 0.2 nozzle",
+            "sub_path": "filament/Qidi Generic ASA @Qidi X-Max 3 0.2 nozzle.json"
+        },
+        {
+            "name": "Qidi Generic ASA @Qidi X-Plus 3 0.2 nozzle",
+            "sub_path": "filament/Qidi Generic ASA @Qidi X-Plus 3 0.2 nozzle.json"
+        },
+        {
+            "name": "Qidi Generic ASA @Qidi X-Smart 3 0.2 nozzle",
+            "sub_path": "filament/Qidi Generic ASA @Qidi X-Smart 3 0.2 nozzle.json"
         },
         {
             "name": "Qidi Generic PA",
@@ -484,6 +508,18 @@
             "name": "Qidi Generic PETG",
             "sub_path": "filament/Qidi Generic PETG.json"
         },
+        {
+            "name": "Qidi Generic PETG @Qidi X-Smart 3 0.2 nozzle",
+            "sub_path": "filament/Qidi Generic PETG @Qidi X-Smart 3 0.2 nozzle.json"
+        },
+        {
+            "name": "Qidi Generic PETG @Qidi X-Plus 3 0.2 nozzle",
+            "sub_path": "filament/Qidi Generic PETG @Qidi X-Plus 3 0.2 nozzle.json"
+        },
+        {
+            "name": "Qidi Generic PETG @Qidi XMax3 0.2 nozzle",
+            "sub_path": "filament/Qidi Generic PETG @Qidi X-Max 3 0.2 nozzle.json"
+        },
 		{
             "name": "Qidi Generic PETG-CF",
             "sub_path": "filament/Qidi Generic PETG-CF.json"
@@ -495,6 +531,18 @@
         {
             "name": "Qidi Generic PLA",
             "sub_path": "filament/Qidi Generic PLA.json"
+        },
+        {
+            "name": "Qidi Generic PLA @Qidi X-Smart 3 0.2 nozzle",
+            "sub_path": "filament/Qidi Generic PLA @Qidi X-Smart 3 0.2 nozzle.json"
+        },
+        {
+            "name": "Qidi Generic PLA @Qidi X-Plus 3 0.2 nozzle",
+            "sub_path": "filament/Qidi Generic PLA @Qidi X-Plus 3 0.2 nozzle.json"
+        },
+        {
+            "name": "Qidi Generic PLA @Qidi X-Max 3 0.2 nozzle",
+            "sub_path": "filament/Qidi Generic PLA @Qidi X-Max 3 0.2 nozzle.json"
         },
 		{
             "name": "Qidi Generic PLA-CF",

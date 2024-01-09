@@ -1716,18 +1716,18 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             project->project_country_code = m_contry_code;
         }
 
-        //BBS: version check
+        // Orca: skip version check
         bool dont_load_config = !m_load_config;
-        if (m_bambuslicer_generator_version) {
-            Semver app_version = *(Semver::parse(SoftFever_VERSION));
-            Semver file_version = *m_bambuslicer_generator_version;
-            if (file_version.maj() != app_version.maj())
-                dont_load_config = true;
-        }
-        else {
-            m_bambuslicer_generator_version = Semver::parse("0.0.0.0");
-            dont_load_config = true;
-        }
+        // if (m_bambuslicer_generator_version) {
+        //     Semver app_version = *(Semver::parse(SoftFever_VERSION));
+        //     Semver file_version = *m_bambuslicer_generator_version;
+        //     if (file_version.maj() != app_version.maj())
+        //         dont_load_config = true;
+        // }
+        // else {
+        //     m_bambuslicer_generator_version = Semver::parse("0.0.0.0");
+        //     dont_load_config = true;
+        // }
 
         // we then loop again the entries to read other files stored in the archive
         for (mz_uint i = 0; i < num_entries; ++i) {

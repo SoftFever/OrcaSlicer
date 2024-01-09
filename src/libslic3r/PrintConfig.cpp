@@ -2355,6 +2355,12 @@ def = this->add("filament_loading_speed", coFloats);
     def->readonly = false;
     def->set_default_value(new ConfigOptionEnum<GCodeFlavor>(gcfMarlinLegacy));
 
+    def = this->add("support_multi_bed_types", coBool);
+    def->label = L("Support multi bed types");
+    def->tooltip = L("Enable this option if you want to use multiple bed types");
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionBool(false));
+
     def = this->add("gcode_label_objects", coBool);
     def->label = L("Label objects");
     def->tooltip = L("Enable this to add comments into the G-Code labeling print moves with what object they belong to,"
