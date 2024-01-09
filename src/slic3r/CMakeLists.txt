@@ -439,6 +439,8 @@ set(SLIC3R_GUI_SOURCES
     Utils/json_diff.cpp
     GUI/KBShortcutsDialog.hpp
     GUI/KBShortcutsDialog.cpp
+    Utils/SerialMessage.hpp
+    Utils/SerialMessageType.hpp
     Utils/Http.cpp
     Utils/Http.hpp
     Utils/FixModelByWin10.cpp
@@ -474,8 +476,9 @@ set(SLIC3R_GUI_SOURCES
     Utils/Serial.hpp
     Utils/MKS.hpp
     Utils/MKS.cpp
-    Utils/FlashForge.hpp
-    Utils/FlashForge.cpp
+    Utils/Flashforge.hpp
+    Utils/Flashforge.cpp
+    Utils/FlashforgeTcpClient.hpp
     Utils/Duet.cpp
     Utils/Duet.hpp
     Utils/FlashAir.cpp

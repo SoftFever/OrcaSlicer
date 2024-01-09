@@ -1,3 +1,7 @@
+Trying to add Flashforge Adventurer5M Pro wifi print functionality.
+
+You could buy me a coffee via paypal @HerbakIstvan to thank:  :)
+
 [![Build OrcaSlicer](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_orca.yml/badge.svg?branch=main)](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_orca.yml)  
 
 # Orca Slicer     
