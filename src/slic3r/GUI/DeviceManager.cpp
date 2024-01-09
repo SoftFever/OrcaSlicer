@@ -1366,7 +1366,7 @@ void MachineObject::parse_status(int flag)
     }
 
     is_support_filament_tangle_detect = ((flag >> 19) & 0x1) != 0;
-
+    is_support_user_preset = ((flag >> 22) & 0x1) != 0;
     if (xcam_filament_tangle_detect_count > 0)
         xcam_filament_tangle_detect_count--;
     else {
