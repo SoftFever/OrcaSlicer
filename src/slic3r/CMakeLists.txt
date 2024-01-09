@@ -478,7 +478,6 @@ set(SLIC3R_GUI_SOURCES
     Utils/MKS.cpp
     Utils/Flashforge.hpp
     Utils/Flashforge.cpp
-    Utils/FlashforgeTcpClient.hpp
     Utils/Duet.cpp
     Utils/Duet.hpp
     Utils/FlashAir.cpp

@@ -442,7 +442,6 @@ void PhysicalPrinterDialog::update(bool printer_change)
             if (opt->value == htFlashforge) {
                 m_optgroup->hide_field("printhost_apikey");
                 m_optgroup->hide_field("printhost_authorization_type");
-                m_optgroup->hide_field("print_host_webui");
             }
         }
 

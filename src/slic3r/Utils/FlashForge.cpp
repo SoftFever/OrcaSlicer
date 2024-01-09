@@ -1,5 +1,4 @@
 #include "Flashforge.hpp"
-#include "FlashforgeTcpClient.hpp"
 #include <algorithm>
 #include <ctime>
 #include <chrono>
@@ -103,7 +102,7 @@ bool Flashforge::upload(PrintHostUpload upload_data, ProgressFn progress_fn, Err
         }
 
         res = client.run_queue();
-        
+
         if (!res) {
             BOOST_LOG_TRIVIAL(info) << boost::format("[Flashforge] error %1%") % client.error_message().c_str();
             errormsg = wxString::FromUTF8(client.error_message().c_str());
@@ -113,55 +112,10 @@ bool Flashforge::upload(PrintHostUpload upload_data, ProgressFn progress_fn, Err
         }
     } catch (const std::exception &e) {
         BOOST_LOG_TRIVIAL(info) << boost::format("[Flashforge] error %1%") % e.what();
-            errormsg = wxString::FromUTF8(e.what());
+        errormsg = wxString::FromUTF8(e.what());
+        error_fn(std::move(errormsg));
     }
 
-    // try {
-    //     Utils::Flashforge::FlashforgeTcpClient client(m_host, stoi(m_console_port));
-    //     client.open();
-    //     client.send_command(controlCommand);
-    //     client.send_command(connectCommand);
-    //     client.send_command(statusCommand);
-    //     std::ifstream newfile;
-    //     newfile.open(upload_data.source_path.c_str(), std::ios::binary); // open a file to perform read operation using file object
-    //     if (newfile.is_open()) {                                         // checking whether the file is open
-    //         BOOST_LOG_TRIVIAL(info) << boost::format("[Flashforge] Reading file...");
-    //         newfile.seekg(0, std::ios::end);
-    //         std::ifstream::pos_type pos = newfile.tellg();
-
-    //         std::vector<char> result(pos);
-
-    //         newfile.seekg(0, std::ios::beg);
-    //         newfile.read(&result[0], pos);
-    //         BOOST_LOG_TRIVIAL(info) << boost::format("[Flashforge] Reading file...done size is %1%") % result.size();
-
-    //         std::string fileuploadCommand =
-    //             (boost::format("~M28 %1% 0:/user/%2%") % result.size() % upload_data.upload_path.generic_string()).str();
-    //         client.send_command(fileuploadCommand);
-
-    //         std::vector<char> content;
-    //         client.send_something(result);
-    //         newfile.close(); // close the file object.
-    //         BOOST_LOG_TRIVIAL(info) << boost::format("[Flashforge] Sent %1% ") % result.size();
-    //     }
-    //     BOOST_LOG_TRIVIAL(info) << boost::format("[Flashforge] Sending file save command ");
-    //     client.send_command(saveFileCommand);
-    //     if (upload_data.post_action == PrintHostPostUploadAction::StartPrint) {
-    //         wxString errormsg;
-    //         BOOST_LOG_TRIVIAL(info) << boost::format("[Flashforge] Starting print %1%") % upload_data.upload_path.string();
-    //         std::string startPrintCommand = (boost::format("~M23 0:/user/%1%") % upload_data.upload_path.string()).str();
-    //         bool        res               = client.send_command(startPrintCommand);
-    //         if (!res)
-    //             errormsg = wxString::FromUTF8(client.error_message().c_str());
-    //         if (!res) {
-    //             error_fn(std::move(errormsg));
-    //         }
-    //     }
-    //     client.close();
-    // } catch (boost::system::system_error err) {
-    //     std::cout << "Error: " << err.code() << std::endl;
-    //     res = false;
-    // }
     return res;
 }
 
