@@ -32,6 +32,7 @@
 #include "libslic3r/BoundingBox.hpp"
 #include "libslic3r/GCode/GCodeProcessor.hpp"
 #include "Jobs/Job.hpp"
+#include "Jobs/Worker.hpp"
 #include "Search.hpp"
 #include "PartPlate.hpp"
 #include "GUI_App.hpp"
@@ -42,6 +43,7 @@
 
 #include "libslic3r/calib.hpp"
 #include "libslic3r/CutUtils.hpp"
+#include "libslic3r/FlushVolCalc.hpp"
 
 #define FILAMENT_SYSTEM_COLORS_NUM      16
 
@@ -86,6 +88,7 @@ class ObjectList;
 class GLCanvas3D;
 class Mouse3DController;
 class NotificationManager;
+class DailyTipsWindow;
 struct Camera;
 class GLToolbar;
 class PlaterPresetComboBox;
@@ -102,6 +105,7 @@ enum class ActionButtonType : int;
 //BBS: add EVT_SLICING_UPDATE declare here
 wxDECLARE_EVENT(EVT_SLICING_UPDATE, Slic3r::SlicingStatusEvent);
 wxDECLARE_EVENT(EVT_PUBLISH,        wxCommandEvent);
+wxDECLARE_EVENT(EVT_OPEN_PLATESETTINGSDIALOG,        wxCommandEvent);
 wxDECLARE_EVENT(EVT_REPAIR_MODEL,        wxCommandEvent);
 wxDECLARE_EVENT(EVT_FILAMENT_COLOR_CHANGED,        wxCommandEvent);
 wxDECLARE_EVENT(EVT_INSTALL_PLUGIN_NETWORKING,        wxCommandEvent);
@@ -110,7 +114,8 @@ wxDECLARE_EVENT(EVT_UPDATE_PLUGINS_WHEN_LAUNCH,        wxCommandEvent);
 wxDECLARE_EVENT(EVT_PREVIEW_ONLY_MODE_HINT,        wxCommandEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_COLOR_MODE_CHANGED,   SimpleEvent);
 wxDECLARE_EVENT(EVT_PRINT_FROM_SDCARD_VIEW,   SimpleEvent);
-
+wxDECLARE_EVENT(EVT_CREATE_FILAMENT, SimpleEvent);
+wxDECLARE_EVENT(EVT_MODIFY_FILAMENT, SimpleEvent);
 
 const wxString DEFAULT_PROJECT_NAME = "Untitled";
 
@@ -118,6 +123,11 @@ class Sidebar : public wxPanel
 {
     ConfigOptionMode    m_mode;
 public:
+    enum DockingState
+    {
+        None, Left, Right
+    };
+
     Sidebar(Plater *parent);
     Sidebar(Sidebar &&) = delete;
     Sidebar(const Sidebar &) = delete;
@@ -125,6 +135,7 @@ public:
     Sidebar &operator=(const Sidebar &) = delete;
     ~Sidebar();
 
+    void create_printer_preset();
     void init_filament_combo(PlaterPresetComboBox **combo, const int filament_idx);
     void remove_unused_filament_combos(const size_t current_extruder_count);
     void update_all_preset_comboboxes();
@@ -174,7 +185,9 @@ public:
     void                    update_ui_from_settings();
 	bool                    show_object_list(bool show) const;
     void                    finish_param_edit();
-
+    void                    auto_calc_flushing_volumes(const int modify_id);
+    void                    jump_to_object(ObjectDataViewModelNode* item);
+    void                    can_search();
 #ifdef _MSW_DARK_MODE
     void                    show_mode_sizer(bool show);
 #endif
@@ -290,8 +303,41 @@ public:
     void update(bool conside_update_flag = false, bool force_background_processing_update = false);
     //BBS
     void object_list_changed();
-    void stop_jobs();
-    bool is_any_job_running() const;
+
+    // Get the worker handling the UI jobs (arrange, fill bed, etc...)
+    // Here is an example of starting up an ad-hoc job:
+    //    queue_job(
+    //        get_ui_job_worker(),
+    //        [](Job::Ctl &ctl) {
+    //            // Executed in the worker thread
+    //
+    //            CursorSetterRAII cursor_setter{ctl};
+    //            std::string msg = "Running";
+    //
+    //            ctl.update_status(0, msg);
+    //            for (int i = 0; i < 100; i++) {
+    //                usleep(100000);
+    //                if (ctl.was_canceled()) break;
+    //                ctl.update_status(i + 1, msg);
+    //            }
+    //            ctl.update_status(100, msg);
+    //        },
+    //        [](bool, std::exception_ptr &e) {
+    //            // Executed in UI thread after the work is done
+    //
+    //            try {
+    //                if (e) std::rethrow_exception(e);
+    //            } catch (std::exception &e) {
+    //                BOOST_LOG_TRIVIAL(error) << e.what();
+    //            }
+    //            e = nullptr;
+    //        });
+    // This would result in quick run of the progress indicator notification
+    // from 0 to 100. Use replace_job() instead of queue_job() to cancel all
+    // pending jobs.
+    Worker& get_ui_job_worker();
+    const Worker & get_ui_job_worker() const;
+
     void select_view(const std::string& direction);
     //BBS: add no_slice logic
     void select_view_3D(const std::string& name, bool no_slice = true);
@@ -306,8 +352,13 @@ public:
     bool is_view3D_overhang_shown() const;
     void show_view3D_overhang(bool show);
 
+    bool is_sidebar_enabled() const;
+    void enable_sidebar(bool enabled);
     bool is_sidebar_collapsed() const;
-    void collapse_sidebar(bool show);
+    void collapse_sidebar(bool collapse);
+    Sidebar::DockingState get_sidebar_docking_state() const;
+
+    void reset_window_layout();
 
     // Called after the Preferences dialog is closed and the program settings are saved.
     // Update the UI based on the current preferences.
@@ -337,8 +388,13 @@ public:
     bool is_selection_empty() const;
     void scale_selection_to_fit_print_volume();
     void convert_unit(ConversionType conv_type);
+    // BBS: replace z with plane_points
+    void cut(size_t obj_idx, size_t instance_idx, std::array<Vec3d, 4> plane_points, ModelObjectCutAttributes attributes);
 
+    // BBS: segment model with CGAL
+    void segment(size_t obj_idx, size_t instance_idx, double smoothing_alpha=0.5, int segment_number=5);
     void apply_cut_object_to_model(size_t init_obj_idx, const ModelObjectPtrs& cut_objects);
+    void merge(size_t obj_idx, std::vector<int> &vol_indeces);
 
     void send_to_printer(bool isall = false);
     void export_gcode(bool prefer_removable);
@@ -346,7 +402,7 @@ public:
     void send_gcode_finish(wxString name);
     void export_core_3mf();
     static TriangleMesh combine_mesh_fff(const ModelObject& mo, int instance_id, std::function<void(const std::string&)> notify_func = {});
-    void export_stl(bool extended = false, bool selection_only = false);
+    void export_stl(bool extended = false, bool selection_only = false, bool multi_stls = false);
     //BBS: remove amf
     //void export_amf();
     //BBS add extra param for exporting 3mf silence
@@ -370,6 +426,7 @@ public:
     void clear_before_change_mesh(int obj_idx);
     void changed_mesh(int obj_idx);
 
+    void changed_object(ModelObject &object);
     void changed_object(int obj_idx);
     void changed_objects(const std::vector<size_t>& object_idxs);
     void schedule_background_process(bool schedule = true);
@@ -385,6 +442,7 @@ public:
     void print_job_finished(wxCommandEvent &evt);
     void send_job_finished(wxCommandEvent& evt);
     void publish_job_finished(wxCommandEvent& evt);
+    void open_platesettings_dialog(wxCommandEvent& evt);
     void on_change_color_mode(SimpleEvent& evt);
 	void eject_drive();
 
@@ -482,10 +540,6 @@ public:
     //BBS:
     void fill_color(int extruder_id);
 
-    //BBS:
-    void edit_text();
-    bool can_edit_text() const;
-
     bool can_delete() const;
     bool can_delete_all() const;
     bool can_add_model() const;
@@ -528,7 +582,6 @@ public:
 #endif
 
     bool init_collapse_toolbar();
-    void enable_collapse_toolbar(bool enable);
 
     const Camera& get_camera() const;
     Camera& get_camera();
@@ -593,6 +646,7 @@ public:
 
 	const NotificationManager* get_notification_manager() const;
 	NotificationManager* get_notification_manager();
+    DailyTipsWindow* get_dailytips() const;
     //BBS: show message in status bar
     void show_status_message(std::string s);
 
@@ -701,6 +755,8 @@ public:
     wxMenu* plate_menu();
     wxMenu* object_menu();
     wxMenu* part_menu();
+    wxMenu* text_part_menu();
+    wxMenu* svg_part_menu();
     wxMenu* sla_object_menu();
     wxMenu* default_menu();
     wxMenu* instance_menu();
@@ -755,6 +811,7 @@ private:
     void cut_horizontal(size_t obj_idx, size_t instance_idx, double z, ModelObjectCutAttributes attributes);
 
     friend class SuppressBackgroundProcessingUpdate;
+    friend class PlaterDropTarget;
 };
 
 class SuppressBackgroundProcessingUpdate

@@ -90,13 +90,18 @@ std::vector<Slic3r::ColorRGBA> get_extruders_colors()
 }
 float FullyTransparentMaterialThreshold  = 0.1f;
 float FullTransparentModdifiedToFixAlpha = 0.3f;
+float FULL_BLACK_THRESHOLD = 0.18f;
 
 Slic3r::ColorRGBA adjust_color_for_rendering(const Slic3r::ColorRGBA &colors)
 {
     if (colors.a() < FullyTransparentMaterialThreshold) { // completely transparent
         return {1, 1, 1, FullTransparentModdifiedToFixAlpha};
     }
-    return colors;
+    else if(colors.r() < FULL_BLACK_THRESHOLD && colors.g() < FULL_BLACK_THRESHOLD && colors.b() < FULL_BLACK_THRESHOLD) { // black
+        return {FULL_BLACK_THRESHOLD, FULL_BLACK_THRESHOLD, FULL_BLACK_THRESHOLD, colors.a()};
+    }
+    else
+        return colors;
 }
 
 namespace Slic3r {
@@ -612,30 +617,38 @@ bool GLWipeTowerVolume::IsTransparent() {
 }
 
 std::vector<int> GLVolumeCollection::load_object(
-    const ModelObject*      model_object,
-    int                     obj_idx,
-    const std::vector<int>& instance_idxs)
+    const ModelObject       *model_object,
+    int                      obj_idx,
+    const std::vector<int>  &instance_idxs,
+    const std::string       &color_by,
+    bool 					 opengl_initialized)
 {
     std::vector<int> volumes_idx;
     for (int volume_idx = 0; volume_idx < int(model_object->volumes.size()); ++volume_idx)
         for (int instance_idx : instance_idxs)
-            volumes_idx.emplace_back(this->GLVolumeCollection::load_object_volume(model_object, obj_idx, volume_idx, instance_idx));
+            volumes_idx.emplace_back(this->GLVolumeCollection::load_object_volume(model_object, obj_idx, volume_idx, instance_idx, color_by, opengl_initialized));
     return volumes_idx;
 }
 
+
 int GLVolumeCollection::load_object_volume(
-    const ModelObject* model_object,
+    const ModelObject   *model_object,
     int                  obj_idx,
     int                  volume_idx,
     int                  instance_idx,
+    const std::string   &color_by,
+    bool 				 opengl_initialized,
     bool                 in_assemble_view,
     bool                 use_loaded_id)
 {
     const ModelVolume   *model_volume = model_object->volumes[volume_idx];
     const int            extruder_id  = model_volume->extruder_id();
     const ModelInstance *instance 	  = model_object->instances[instance_idx];
+    auto color = GLVolume::MODEL_COLOR[((color_by == "volume") ? volume_idx : obj_idx) % 4];
+    color.a(model_volume->is_model_part() ? 0.7f : 0.4f);
+
     std::shared_ptr<const TriangleMesh> mesh = model_volume->mesh_ptr();
-    this->volumes.emplace_back(new GLVolume());
+    this->volumes.emplace_back(new GLVolume(color));
     GLVolume& v = *this->volumes.back();
     v.set_color(color_from_model_volume(*model_volume));
     v.name = model_volume->name;
@@ -647,7 +660,9 @@ int GLVolumeCollection::load_object_volume(
     v.mesh_raycaster = std::make_unique<GUI::MeshRaycaster>(mesh);
 #endif // ENABLE_SMOOTH_NORMALS
     v.composite_id = GLVolume::CompositeID(obj_idx, volume_idx, instance_idx);
-    if (model_volume->is_model_part()) {
+
+    if (model_volume->is_model_part())
+    {
         // GLVolume will reference a convex hull from model_volume!
         v.set_convex_hull(model_volume->get_convex_hull_shared_ptr());
         if (extruder_id != -1)
@@ -930,9 +945,9 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disab
         const Matrix3d view_normal_matrix = view_matrix.matrix().block(0, 0, 3, 3) * model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose();
         shader->set_uniform("view_normal_matrix", view_normal_matrix);
 		//BBS: add outline related logic
-        if (with_outline && volume.first->selected)
-            volume.first->render_with_outline(view_matrix * model_matrix);
-        else
+        //if (with_outline && volume.first->selected)
+        //    volume.first->render_with_outline(view_matrix * model_matrix);
+        //else
             volume.first->render();
 
 #if ENABLE_ENVIRONMENT_MAP
@@ -1152,13 +1167,14 @@ void GLVolumeCollection::update_colors_by_extruder(const DynamicPrintConfig *con
 
         const ColorItem& color = colors[extruder_id];
         if (!color.first.empty()) {
-			if (!is_update_alpha) {
-                float old_a   = color.second.a();
+            if (!is_update_alpha) {
+                float old_a   = volume->color.a();
                 volume->color = color.second;
                 volume->color.a(old_a);
-			}
-            volume->color = color.second;
-		}
+            } else {
+                volume->color = color.second;
+            }
+        }
     }
 }
 

@@ -44,6 +44,7 @@ extern void stl_internal_reverse_quads(char *buf, size_t cnt);
 #endif /* BOOST_ENDIAN_BIG_BYTE */
 
 const int LOAD_STL_UNIT_NUM           = 5;
+static std::string model_id           = "";
 
 static FILE* stl_open_count_facets(stl_file *stl, const char *file) 
 {
@@ -150,31 +151,66 @@ static FILE* stl_open_count_facets(stl_file *stl, const char *file)
    time running this for the stl and therefore we should reset our max and min stats. */
 static bool stl_read(stl_file *stl, FILE *fp, int first_facet, bool first, ImportstlProgressFn stlFn)
 {
-	if (stl->stats.type == binary)
-    	fseek(fp, HEADER_SIZE, SEEK_SET);
-  	else
-    	rewind(fp);
+    if (stl->stats.type == binary) {
+        fseek(fp, HEADER_SIZE, SEEK_SET);
+    }
+	else {
+        rewind(fp);
+        try{
+            char solid_name[256];
+            int res_solid = fscanf(fp, " solid %[^\n]", solid_name);
+            if (res_solid == 1) {
+                char* mw_position = strstr(solid_name, "MW");
+                if (mw_position != NULL) {
+                    // Extract the value after "MW"
+                    char version_str[16];
+                    char model_id_str[128]; 
+                    int num_values = sscanf(mw_position + 3, "%s %s", version_str, model_id_str);
+                    if (num_values == 2) {
+                        if (strcmp(version_str, "1.0") == 0) {
+                            model_id = model_id_str;
+                        }
+                    }
+                    else {
+                        model_id = "";
+                    }
+                }
+                else {
+                    model_id = "";  // No MW format found
+                }
+            }
+        }
+        catch (...){
+        }
+        
+        rewind(fp);
+	}
+    	
 
   	char normal_buf[3][32];
 
 	uint32_t facets_num = stl->stats.number_of_facets;
 	uint32_t unit = facets_num / LOAD_STL_UNIT_NUM + 1;
     for (uint32_t i = first_facet; i < facets_num; ++ i) {
-		if ((i % unit) == 0) {
-				bool cb_cancel = false;
-				if (stlFn) {
-					stlFn(i, facets_num, cb_cancel);
-					if (cb_cancel)
-						return false;
-				}
-		}
+        if ((i % unit) == 0) {
+            bool cb_cancel = false;
+            if (stlFn) {
+                stlFn(i, facets_num, cb_cancel, model_id);
+                if (cb_cancel)
+                    return false;
+            }
+        }
 
   	  	stl_facet facet;
 
     	if (stl->stats.type == binary) {
+  
+
       		// Read a single facet from a binary .STL file. We assume little-endian architecture!
       		if (fread(&facet, 1, SIZEOF_STL_FACET, fp) != SIZEOF_STL_FACET)
       			return false;
+
+
 #if BOOST_ENDIAN_BIG_BYTE
       		// Convert the loaded little endian data to big endian.
       		stl_internal_reverse_quads((char*)&facet, 48);
@@ -237,11 +273,21 @@ static bool stl_read(stl_file *stl, FILE *fp, int first_facet, bool first, Impor
 		}
 #endif
 
-		// Write the facet into memory.
+		// Write the facet into memory if none of facet vertices is NAN.
+		bool someone_is_nan = false;
+		for (size_t j = 0; j < 3; ++j) {
+			if (isnan(facet.vertex[j](0)) || isnan(facet.vertex[j](1)) || isnan(facet.vertex[j](2))) { 
+				someone_is_nan = true;
+				break; 
+			}
+		}
+		if(someone_is_nan)
+            continue;
+
 		stl->facet_start[i] = facet;
 		stl_facet_stats(stl, facet, first);
   	}
-  
+
   	stl->stats.size = stl->stats.max - stl->stats.min;
   	stl->stats.bounding_diameter = stl->stats.size.norm();
   	return true;

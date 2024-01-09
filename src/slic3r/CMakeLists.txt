@@ -91,6 +91,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/AuxiliaryDialog.hpp
     GUI/Auxiliary.cpp
     GUI/Auxiliary.hpp
+    GUI/DailyTips.cpp
+    GUI/DailyTips.hpp
     GUI/Project.cpp
     GUI/Project.hpp
     GUI/BackgroundSlicingProcess.cpp
@@ -114,12 +116,16 @@ set(SLIC3R_GUI_SOURCES
     GUI/OpenGLManager.cpp
     GUI/Selection.hpp
     GUI/Selection.cpp
+    GUI/SlicingProgressNotification.cpp
+    GUI/SlicingProgressNotification.hpp
     GUI/Gizmos/GLGizmosManager.cpp
     GUI/Gizmos/GLGizmosManager.hpp
     GUI/Gizmos/GLGizmosCommon.cpp
     GUI/Gizmos/GLGizmosCommon.hpp
     GUI/Gizmos/GLGizmoBase.cpp
     GUI/Gizmos/GLGizmoBase.hpp
+    GUI/Gizmos/GLGizmoEmboss.cpp
+    GUI/Gizmos/GLGizmoEmboss.hpp
     GUI/Gizmos/GLGizmoMove.cpp
     GUI/Gizmos/GLGizmoMove.hpp
     GUI/Gizmos/GLGizmoRotate.cpp
@@ -140,6 +146,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Gizmos/GLGizmoPainterBase.hpp
     GUI/Gizmos/GLGizmoSimplify.cpp
     GUI/Gizmos/GLGizmoSimplify.hpp
+    GUI/Gizmos/GLGizmoSVG.cpp
+    GUI/Gizmos/GLGizmoSVG.hpp
     GUI/Gizmos/GLGizmoMmuSegmentation.cpp
     GUI/Gizmos/GLGizmoMmuSegmentation.hpp
     #GUI/Gizmos/GLGizmoFaceDetector.cpp
@@ -148,8 +156,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Gizmos/GLGizmoMeasure.hpp
     GUI/Gizmos/GLGizmoSeam.cpp
     GUI/Gizmos/GLGizmoSeam.hpp
-    GUI/Gizmos/GLGizmoText.cpp
-    GUI/Gizmos/GLGizmoText.hpp
+    #GUI/Gizmos/GLGizmoText.cpp
+    #GUI/Gizmos/GLGizmoText.hpp
     GUI/Gizmos/GLGizmoMeshBoolean.cpp
     GUI/Gizmos/GLGizmoMeshBoolean.hpp
     GUI/GLSelectionRectangle.cpp
@@ -190,6 +198,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/GUI_Geometry.hpp
     GUI/I18N.cpp
     GUI/I18N.hpp
+    GUI/IconManager.cpp
+    GUI/IconManager.hpp
     GUI/MainFrame.cpp
     GUI/MainFrame.hpp
     GUI/BBLTopbar.cpp
@@ -288,7 +298,7 @@ set(SLIC3R_GUI_SOURCES
     GUI/3DBed.hpp
     GUI/Camera.cpp
     GUI/Camera.hpp
-	GUI/CameraUtils.cpp
+    GUI/CameraUtils.cpp
     GUI/CameraUtils.hpp
     GUI/wxExtensions.cpp
     GUI/wxExtensions.hpp
@@ -299,6 +309,10 @@ set(SLIC3R_GUI_SOURCES
     GUI/RemovableDriveManager.hpp
     GUI/SendSystemInfoDialog.cpp
     GUI/SendSystemInfoDialog.hpp
+    GUI/SurfaceDrag.cpp
+    GUI/SurfaceDrag.hpp
+    GUI/TextLines.cpp
+    GUI/TextLines.hpp
     GUI/PlateSettingsDialog.cpp
     GUI/PlateSettingsDialog.hpp
     GUI/ImGuiWrapper.hpp
@@ -325,13 +339,21 @@ set(SLIC3R_GUI_SOURCES
     GUI/UpdateDialogs.cpp
     GUI/UpdateDialogs.hpp
     GUI/Jobs/Job.hpp
-    GUI/Jobs/Job.cpp
-    GUI/Jobs/PlaterJob.hpp
-    GUI/Jobs/PlaterJob.cpp
+    GUI/Jobs/Worker.hpp
+    GUI/Jobs/BoostThreadWorker.hpp
+    GUI/Jobs/BoostThreadWorker.cpp
+    GUI/Jobs/BusyCursorJob.hpp
+    GUI/Jobs/PlaterWorker.hpp
     GUI/Jobs/UpgradeNetworkJob.hpp
     GUI/Jobs/UpgradeNetworkJob.cpp
     GUI/Jobs/ArrangeJob.hpp
     GUI/Jobs/ArrangeJob.cpp
+    GUI/Jobs/CreateFontNameImageJob.cpp
+    GUI/Jobs/CreateFontNameImageJob.hpp
+    GUI/Jobs/CreateFontStyleImagesJob.cpp
+    GUI/Jobs/CreateFontStyleImagesJob.hpp
+    GUI/Jobs/EmbossJob.cpp
+    GUI/Jobs/EmbossJob.hpp
     GUI/Jobs/OrientJob.hpp
     GUI/Jobs/OrientJob.cpp
     GUI/Jobs/RotoptimizeJob.hpp
@@ -349,6 +371,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Jobs/BindJob.cpp
     GUI/Jobs/NotificationProgressIndicator.hpp
     GUI/Jobs/NotificationProgressIndicator.cpp
+    GUI/Jobs/ThreadSafeQueue.hpp
+    GUI/Jobs/SLAImportDialog.hpp
     GUI/PhysicalPrinterDialog.hpp
     GUI/PhysicalPrinterDialog.cpp
     GUI/ProgressStatusBar.hpp
@@ -391,7 +415,7 @@ set(SLIC3R_GUI_SOURCES
     GUI/DragCanvas.hpp
     GUI/PublishDialog.cpp
     GUI/PublishDialog.hpp
-	GUI/RecenterDialog.cpp
+    GUI/RecenterDialog.cpp
     GUI/RecenterDialog.hpp
     GUI/PrivacyUpdateDialog.cpp
     GUI/PrivacyUpdateDialog.hpp
@@ -419,13 +443,13 @@ set(SLIC3R_GUI_SOURCES
     GUI/CalibrationWizard.cpp
     GUI/CalibrationWizardPage.cpp
     GUI/CalibrationWizardPage.hpp
-	GUI/CalibrationWizardStartPage.cpp
+    GUI/CalibrationWizardStartPage.cpp
     GUI/CalibrationWizardStartPage.hpp
-	GUI/CalibrationWizardPresetPage.cpp
+    GUI/CalibrationWizardPresetPage.cpp
     GUI/CalibrationWizardPresetPage.hpp
-	GUI/CalibrationWizardCaliPage.cpp
+    GUI/CalibrationWizardCaliPage.cpp
     GUI/CalibrationWizardCaliPage.hpp
-	GUI/CalibrationWizardSavePage.cpp
+    GUI/CalibrationWizardSavePage.cpp
     GUI/CalibrationWizardSavePage.hpp
     GUI/Calibration.hpp
     GUI/Calibration.cpp
@@ -435,6 +459,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/BonjourDialog.cpp
     GUI/BedShapeDialog.hpp
     GUI/BedShapeDialog.cpp
+    GUI/CreatePresetsDialog.hpp
+    GUI/CreatePresetsDialog.cpp
     Utils/json_diff.hpp
     Utils/json_diff.cpp
     GUI/KBShortcutsDialog.hpp
@@ -443,12 +469,20 @@ set(SLIC3R_GUI_SOURCES
     Utils/Http.hpp
     Utils/FixModelByWin10.cpp
     Utils/FixModelByWin10.hpp
+    Utils/EmbossStyleManager.cpp
+    Utils/EmbossStyleManager.hpp
+    Utils/FontConfigHelp.cpp
+    Utils/FontConfigHelp.hpp
     Utils/Bonjour.cpp
     Utils/Bonjour.hpp
+    Utils/FileHelp.cpp
+    Utils/FileHelp.hpp
     Utils/PresetUpdater.cpp
     Utils/PresetUpdater.hpp
     Utils/Process.cpp
     Utils/Process.hpp
+    Utils/RaycastManager.cpp
+    Utils/RaycastManager.hpp
     Utils/Profile.hpp
     Utils/UndoRedo.cpp
     Utils/UndoRedo.hpp
@@ -472,8 +506,10 @@ set(SLIC3R_GUI_SOURCES
     Utils/PrintHost.hpp
     Utils/Serial.cpp
     Utils/Serial.hpp
-    Utils/MKS.hpp
     Utils/MKS.cpp
+    Utils/MKS.hpp
+    Utils/WxFontUtils.cpp
+    Utils/WxFontUtils.hpp
     Utils/Duet.cpp
     Utils/Duet.hpp
     Utils/FlashAir.cpp
@@ -581,7 +617,7 @@ endif ()
 if (UNIX AND NOT APPLE)
     find_package(GTK${SLIC3R_GTK} REQUIRED)
     target_include_directories(libslic3r_gui PRIVATE ${GTK${SLIC3R_GTK}_INCLUDE_DIRS})
-    target_link_libraries(libslic3r_gui ${GTK${SLIC3R_GTK}_LIBRARIES})
+    target_link_libraries(libslic3r_gui ${GTK${SLIC3R_GTK}_LIBRARIES} fontconfig)
 
     # We add GStreamer for bambu:/// support.
     pkg_check_modules(GSTREAMER REQUIRED gstreamer-1.0)

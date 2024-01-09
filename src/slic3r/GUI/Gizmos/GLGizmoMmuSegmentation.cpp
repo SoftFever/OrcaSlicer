@@ -59,7 +59,8 @@ bool GLGizmoMmuSegmentation::on_is_selectable() const
 
 bool GLGizmoMmuSegmentation::on_is_activable() const
 {
-    return GLGizmoPainterBase::on_is_activable() && wxGetApp().filaments_cnt() > 1;
+    const Selection& selection = m_parent.get_selection();
+    return !selection.is_empty() && (selection.is_single_full_instance() || selection.is_any_volume()) && wxGetApp().filaments_cnt() > 1;
 }
 
 //BBS: use the global one in 3DScene.cpp
@@ -340,7 +341,7 @@ void GLGizmoMmuSegmentation::show_tooltip_information(float caption_max, float x
     ImTextureID normal_id = m_parent.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_TOOLBAR_TOOLTIP);
     ImTextureID hover_id  = m_parent.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_TOOLBAR_TOOLTIP_HOVER);
 
-    caption_max += m_imgui->calc_text_size(": ").x + 15.f;
+    caption_max += m_imgui->calc_text_size(std::string_view{": "}).x + 15.f;
 
     float font_size = ImGui::GetFontSize();
     ImVec2 button_size = ImVec2(font_size * 1.8, font_size * 1.3);
@@ -407,7 +408,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
     const float filter_btn_width = m_imgui->calc_text_size(m_desc.at("perform")).x + m_imgui->scaled(1.f);
     const float buttons_width = remove_btn_width + filter_btn_width + m_imgui->scaled(1.f);
     const float minimal_slider_width = m_imgui->scaled(4.f);
-    const float color_button_width = m_imgui->calc_text_size("").x + m_imgui->scaled(1.75f);
+    const float color_button_width = m_imgui->calc_text_size(std::string_view{""}).x + m_imgui->scaled(1.75f);
 
     float caption_max = 0.f;
     float total_text_max = 0.f;

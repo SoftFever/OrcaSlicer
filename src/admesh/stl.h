@@ -45,7 +45,7 @@ typedef Eigen::Matrix<int,   3, 1, Eigen::DontAlign> stl_triangle_vertex_indices
 static_assert(sizeof(stl_vertex) == 12, "size of stl_vertex incorrect");
 static_assert(sizeof(stl_normal) == 12, "size of stl_normal incorrect");
 
-typedef std::function<void(int current, int total, bool& cancel)> ImportstlProgressFn;
+typedef std::function<void(int current, int total, bool& cancel, std::string& model_id)> ImportstlProgressFn;
 
 typedef enum {
     eNormal,  // normal face
@@ -157,6 +157,7 @@ struct stl_file {
 		return sizeof(*this) + sizeof(stl_facet) * facet_start.size() + sizeof(stl_neighbors) * neighbors_start.size();
 	}
 
+    char mw_data[256];
 	std::vector<stl_facet>     		facet_start;
 	std::vector<stl_neighbors> 		neighbors_start;
 	// Statistics
@@ -275,7 +276,6 @@ extern void stl_mirror_yz(stl_file *stl);
 extern void stl_mirror_xz(stl_file *stl);
 
 extern float get_area(stl_facet* facet);
-
 extern void stl_get_size(stl_file *stl);
 
 // the following function is not used

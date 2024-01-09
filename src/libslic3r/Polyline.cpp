@@ -497,6 +497,33 @@ BoundingBox get_extents(const Polylines &polylines)
     return bb;
 }
 
+// Return True when erase some otherwise False.
+bool remove_same_neighbor(Polyline &polyline) {
+    Points &points = polyline.points;
+    if (points.empty())
+        return false;
+    auto last = std::unique(points.begin(), points.end());
+
+    // no duplicits
+    if (last == points.end())
+        return false;
+
+    points.erase(last, points.end());
+    return true;
+}
+
+bool remove_same_neighbor(Polylines &polylines){
+    if (polylines.empty())
+        return false;
+    bool exist = false;
+    for (Polyline &polyline : polylines)
+        exist |= remove_same_neighbor(polyline);
+    // remove empty polylines
+    polylines.erase(std::remove_if(polylines.begin(), polylines.end(), [](const Polyline &p) { return p.points.size() <= 1; }), polylines.end());
+    return exist;
+}
+
+
 const Point& leftmost_point(const Polylines &polylines)
 {
     if (polylines.empty())

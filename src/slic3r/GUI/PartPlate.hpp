@@ -48,6 +48,15 @@ inline int compute_colum_count(int count)
     return cols;
 }
 
+
+extern const float WIPE_TOWER_DEFAULT_X_POS;
+extern const float WIPE_TOWER_DEFAULT_Y_POS;  // Max y
+
+extern const float I3_WIPE_TOWER_DEFAULT_X_POS;
+extern const float I3_WIPE_TOWER_DEFAULT_Y_POS; // Max y
+
+
+
 namespace Slic3r {
 
 class Model;
@@ -224,8 +233,11 @@ public:
     // Get the real effective print sequence of current plate.
     // If curr_plate's print_seq is ByDefault, use the global sequence
     // @return PrintSequence::{ByLayer,ByObject}
-    PrintSequence get_real_print_seq() const;
+    PrintSequence get_real_print_seq(bool* plate_same_as_global=nullptr) const;
 
+    bool has_spiral_mode_config() const;
+    bool get_spiral_vase_mode() const;
+    void set_spiral_vase_mode(bool spiral_mode, bool as_global);
 
     //static const int plate_x_offset = 20; //mm
     //static const double plate_x_gap = 0.2;
@@ -272,14 +284,16 @@ public:
     Vec3d get_center_origin();
     /* size and position related functions*/
     //set position and size
-    void set_pos_and_size(Vec3d& origin, int width, int depth, int height, bool with_instance_move);
+    void set_pos_and_size(Vec3d& origin, int width, int depth, int height, bool with_instance_move, bool do_clear = true);
 
     // BBS
+    Vec2d get_size() const { return Vec2d(m_width, m_depth); }
     ModelObjectPtrs get_objects() { return m_model->objects; }
     ModelInstance* get_instance(int obj_id, int instance_id);
 
     Vec3d get_origin() { return m_origin; }
-    Vec3d estimate_wipe_tower_size(const DynamicPrintConfig & config, const double w, const double d, int plate_extruder_size = 0) const;
+    Vec3d estimate_wipe_tower_size(const DynamicPrintConfig & config, const double w, const double d, int plate_extruder_size = 0, bool use_global_objects = false) const;
+    arrangement::ArrangePolygon estimate_wipe_tower_polygon(const DynamicPrintConfig & config, int plate_index, int plate_extruder_size = 0, bool use_global_objects = false) const;
     std::vector<int> get_extruders(bool conside_custom_gcode = false) const;
     std::vector<int> get_extruders_under_cli(bool conside_custom_gcode, DynamicPrintConfig& full_config) const;
     std::vector<int> get_extruders_without_support(bool conside_custom_gcode = false) const;
@@ -401,6 +415,12 @@ public:
         if (result)
             result = m_gcode_result ? (!m_gcode_result->toolpath_outside) : false;// && !m_gcode_result->conflict_result.has_value()  gcode conflict can also print
         return result;
+    }
+
+    // check whether plate's slice result valid for export to file
+    bool is_slice_result_ready_for_export()
+    {
+        return is_slice_result_ready_for_print() && has_printable_instances();
     }
 
     //invalid sliced result
@@ -544,6 +564,8 @@ class PartPlateList : public ObjectBase
     void generate_icon_textures();
     void release_icon_textures();
 
+    void set_default_wipe_tower_pos_for_plate(int plate_idx);
+
     friend class cereal::access;
     friend class UndoRedo::StackImpl;
     friend class PartPlate;
@@ -664,9 +686,12 @@ public:
 
     std::vector<const GCodeProcessorResult*> get_nonempty_plates_slice_results();
 
+    //compute the origin for printable plate with index i
     Vec3d get_current_plate_origin() { return compute_origin(m_current_plate, m_plate_cols); }
     Vec2d get_current_shape_position() { return compute_shape_position(m_current_plate, m_plate_cols); }
     Pointfs get_exclude_area() { return m_exclude_areas; }
+
+    std::set<int> get_extruders(bool conside_custom_gcode = false) const;
 
     //select plate
     int select_plate(int index);
@@ -677,7 +702,7 @@ public:
     //update the plate cols due to plate count change
     void update_plate_cols();
 
-    void update_all_plates_pos_and_size(bool adjust_position = true, bool with_unprintable_move = true);
+    void update_all_plates_pos_and_size(bool adjust_position = true, bool with_unprintable_move = true, bool switch_plate_type = false, bool do_clear = true);
 
     //get the plate cols
     int get_plate_cols() { return m_plate_cols; }
@@ -757,6 +782,8 @@ public:
     bool intersects(const BoundingBoxf3 &bb);
     bool contains(const BoundingBoxf3 &bb);
 
+    const std::string &get_logo_texture_filename() { return m_logo_texture_filename; }
+    void               update_logo_texture_filename(const std::string &texture_filename);
     /*slice related functions*/
     //update current slice context into backgroud slicing process
     void update_slice_context_to_current_plate(BackgroundSlicingProcess& process);
@@ -775,6 +802,7 @@ public:
     bool is_all_slice_results_valid() const;
     bool is_all_slice_results_ready_for_print() const;
     bool is_all_plates_ready_for_slice() const;
+    bool is_all_slice_result_ready_for_export() const;
     void print() const;
 
     //get the all the sliced result

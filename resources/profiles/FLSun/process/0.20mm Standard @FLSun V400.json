@@ -25,5 +25,6 @@
   "travel_speed": "400",
   "compatible_printers": [
     "FLSun V400 0.4 nozzle"
-  ]
+  ],
+	"exclude_object": "1"
 }

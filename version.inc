@@ -8,12 +8,14 @@ if(NOT DEFINED BBL_RELEASE_TO_PUBLIC)
 set(BBL_RELEASE_TO_PUBLIC "1")
 endif()
 if(NOT DEFINED BBL_INTERNAL_TESTING)
-set(BBL_INTERNAL_TESTING "1")
+set(BBL_INTERNAL_TESTING "0")
 endif()
-set(SoftFever_VERSION "1.8.0")
+set(SoftFever_VERSION "2.0.0-dev")
 string(REGEX MATCH "^([0-9]+)\\.([0-9]+)\\.([0-9]+)"
        SoftFever_VERSION_MATCH ${SoftFever_VERSION})
 set(ORCA_VERSION_MAJOR ${CMAKE_MATCH_1})
 set(ORCA_VERSION_MINOR ${CMAKE_MATCH_2})
 set(ORCA_VERSION_PATCH ${CMAKE_MATCH_3})
-set(SLIC3R_VERSION "01.07.07.89")
+
+# The build_version should start from 50 in master branch
+set(SLIC3R_VERSION "01.08.02.56")

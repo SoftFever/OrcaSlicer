@@ -5,6 +5,7 @@
 #include "libslic3r/format.hpp"
 #undef PI
 
+#include <boost/next_prior.hpp>
 // Include igl first. It defines "L" macro which then clashes with our localization
 #include <igl/copyleft/cgal/mesh_boolean.h>
 #undef L
@@ -200,12 +201,12 @@ indexed_triangle_set cgal_to_indexed_triangle_set(const _Mesh &cgalmesh)
     const auto &vertices = cgalmesh.vertices();
     int vsize = int(vertices.size());
 
-    for (auto &vi : vertices) {
+    for (const auto &vi : vertices) {
         auto &v = cgalmesh.point(vi); // Don't ask...
         its.vertices.emplace_back(to_vec3f(v));
     }
 
-    for (auto &face : faces) {
+    for (const auto &face : faces) {
         auto vtc = cgalmesh.vertices_around_face(cgalmesh.halfedge(face));
 
         int i = 0;
@@ -221,6 +222,12 @@ indexed_triangle_set cgal_to_indexed_triangle_set(const _Mesh &cgalmesh)
     }
 
     return its;
+}
+
+template<class _Mesh> TriangleMesh cgal_to_triangle_mesh(const _Mesh &cgalmesh)
+{
+    indexed_triangle_set its = cgal_to_indexed_triangle_set(cgalmesh);
+    return TriangleMesh(std::move(its));
 }
 
 std::unique_ptr<CGALMesh, CGALMeshDeleter>

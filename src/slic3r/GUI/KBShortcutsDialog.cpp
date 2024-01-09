@@ -197,6 +197,8 @@ void KBShortcutsDialog::fill_shortcuts()
             { ctrl + "P", L("Preferences") },
             //3D control
             { ctrl + "M", L("Show/Hide 3Dconnexion devices settings dialog") },
+            // Switch table page
+            { ctrl + "Tab", L("Switch table page")},
             //DEL
             #ifdef __APPLE__
                 {"fn+⌫", L("Delete selected")},
@@ -256,7 +258,10 @@ void KBShortcutsDialog::fill_shortcuts()
             { "F", L("Gizmo Place face on bed") },
             { "L", L("Gizmo SLA support points") },
             { "P", L("Gizmo FDM paint-on seam") },
-            { "Tab", L("Swtich between Prepare/Prewview") },
+            { "T", L("Gizmo Text emboss / engrave")},
+            { "I", L("Zoom in")},
+            { "O", L("Zoom out")},
+            { "Tab", L("Switch between Prepare/Preview") },
 
         };
         m_full_shortcuts.push_back({ { _L("Plater"), "" }, plater_shortcuts });
@@ -282,7 +287,7 @@ void KBShortcutsDialog::fill_shortcuts()
             {ctrl + "V", L("Paste from clipboard")},
             {ctrl + "X", L("Cut")},
             {ctrl + "A", L("Select all objects")},
-            {ctrl + "M", L("Clone selected")},
+            {ctrl + "K", L("Clone selected")},
             {ctrl + "Z", L("Undo")},
             {ctrl + "Y", L("Redo")},
             {L("Space"), L("Select the object/part and press space to change the name")},
@@ -298,7 +303,7 @@ void KBShortcutsDialog::fill_shortcuts()
         { L("Arrow Right"), L("Horizontal slider - Move active thumb Right")},
         { "L", L("On/Off one layer mode of the vertical slider")},
         { "C", L("On/Off g-code window")},
-        { "Tab", L("Swtich between Prepare/Prewview") },
+        { "Tab", L("Switch between Prepare/Preview") },
         {L("Shift+Any arrow"), L("Move slider 5x faster")},
         {L("Shift+Mouse wheel"), L("Move slider 5x faster")},
         #ifdef __APPLE__
