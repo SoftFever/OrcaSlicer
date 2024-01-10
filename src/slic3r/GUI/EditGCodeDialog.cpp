@@ -338,7 +338,7 @@ void EditGCodeDialog::selection_changed(wxDataViewEvent& evt)
         // Orca: move below checking for def in custom defined gcode placeholders
         // This allows custom placeholders to override the default ones for this dialog
         // Override custom def if selection is within the preset category
-        if (!def || unbold(m_params_list->GetSelectedTopLevelCategory()) == "Presets") {
+        if (!def || m_params_list->GetSelectedTopLevelCategory() == "Presets") {
             const auto& full_config = wxGetApp().preset_bundle->full_config();
             if (const ConfigDef* config_def = full_config.def(); config_def && config_def->has(opt_key)) {
                 def = config_def->get(opt_key);
@@ -510,6 +510,13 @@ static void make_bold(wxString& str)
 #endif
 }
 
+static void highlight(wxString& str)
+{
+#if defined(SUPPORTS_MARKUP) && !defined(__APPLE__)
+    str = format_wxstr("<span bgcolor=\"#009688\">%1%</span>", str);
+#endif
+}
+
 // ----------------------------------------------------------------------------
 //                  ParamsModelNode: a node inside ParamsModel
 // ----------------------------------------------------------------------------
@@ -518,8 +525,8 @@ ParamsNode::ParamsNode(const wxString& group_name, const std::string& icon_name,
 : icon_name(icon_name)
 , text(group_name)
 , m_ctrl(ctrl)
+, m_bold(true)
 {
-    make_bold(text);
 }
 
 ParamsNode::ParamsNode( ParamsNode *        parent,
@@ -530,8 +537,8 @@ ParamsNode::ParamsNode( ParamsNode *        parent,
     , icon_name(icon_name)
     , text(sub_group_name)
     , m_ctrl(ctrl)
+    , m_bold(true)
 {
-    make_bold(text);
 }
 
 ParamsNode::ParamsNode( ParamsNode*         parent,
@@ -553,6 +560,22 @@ ParamsNode::ParamsNode( ParamsNode*         parent,
     icon_name = ParamsInfo.at(param_type);
 }
 
+wxString ParamsNode::GetFormattedText()
+{
+    wxString formatted_text(text);
+    if (m_highlight_index) {
+        wxString substr = formatted_text.substr(m_highlight_index->first, m_highlight_index->second);
+        formatted_text  = formatted_text.Remove(m_highlight_index->first, m_highlight_index->second);
+        highlight(substr);
+        formatted_text.insert(m_highlight_index->first, substr);
+    }
+
+    if (m_bold)
+        make_bold(formatted_text);
+
+    return formatted_text;
+}
+
 void ParamsNode::StartSearch()
 {
     const wxDataViewItem item(this);
@@ -569,10 +592,12 @@ void ParamsNode::RefreshSearch(const wxString& search_text)
             child->RefreshSearch(search_text);
 
     if (GetEnabledChildren().empty())
-        if (IsParamNode() && text.find(search_text) != wxString::npos)
+        if (auto pos = text.find(search_text); IsParamNode() && pos != wxString::npos) {
+            m_highlight_index = make_unique<pair<int, int>>(pos, search_text.Len());
             Enable();
-        else
+        } else {
             Disable();
+        }
     else
         Enable();
 }
@@ -580,6 +605,7 @@ void ParamsNode::RefreshSearch(const wxString& search_text)
 void ParamsNode::FinishSearch()
 {
     Enable();
+    m_highlight_index.reset();
     const wxDataViewItem item(this);
     if (!GetChildren().empty())
         for (const auto& child : GetChildren())
@@ -760,15 +786,15 @@ void ParamsModel::GetValue(wxVariant& variant, const wxDataViewItem& item, unsig
     ParamsNode* node = static_cast<ParamsNode*>(item.GetID());
     if (col == (unsigned int)0)
 #ifdef __linux__
-//        variant << wxDataViewIconText(node->text, get_bmp_bundle(node->icon_name)->GetIconFor(m_ctrl->GetParent())); //TODO: update to bundle with wx update
+//        variant << wxDataViewIconText(node->GetFormattedText(), get_bmp_bundle(node->icon_name)->GetIconFor(m_ctrl->GetParent())); //TODO: update to bundle with wx update
     {
         wxIcon icon;
         icon.CopyFromBitmap(create_scaled_bitmap(node->icon_name, m_ctrl->GetParent()));
-        wxDataViewIconText(node->text, icon);
+        wxDataViewIconText(node->GetFormattedText(), icon);
     }
 #else
-//        variant << DataViewBitmapText(node->text, get_bmp_bundle(node->icon_name)->GetBitmapFor(m_ctrl->GetParent())); //TODO: update to bundle with wx update
-        variant << DataViewBitmapText(node->text, create_scaled_bitmap(node->icon_name, m_ctrl->GetParent()));
+//        variant << DataViewBitmapText(node->GetFormattedText(), get_bmp_bundle(node->icon_name)->GetBitmapFor(m_ctrl->GetParent())); //TODO: update to bundle with wx update
+        variant << DataViewBitmapText(node->GetFormattedText(), create_scaled_bitmap(node->icon_name, m_ctrl->GetParent()));
 #endif //__linux__
     else
         wxLogError("DiffModel::GetValue: wrong column %d", col);
