@@ -113,6 +113,10 @@ class ParamsNode
     bool                m_expanded_before_search{false};
     bool                m_enabled{true};
 
+    bool                 m_bold{false};
+    // first is pos, second is length
+    std::unique_ptr<std::pair<int, int>> m_highlight_index{nullptr};
+
 public:
 
 #ifdef __linux__
@@ -138,6 +142,8 @@ public:
                 ParamType           param_type,
                 const std::string&  param_key,
                 wxDataViewCtrl* ctrl);
+
+    wxString GetFormattedText();
 
     bool             IsContainer()      const { return m_container; }
     bool             IsGroupNode()      const { return m_parent == nullptr; }
@@ -256,11 +262,6 @@ public:
 
     void    set_em_unit(int em) { m_em_unit = em; }
 };
-
-static std::string unbold(const std::string& text) {
-    return text.substr(text.find("<b>")+3, text.find("</b>")-3);
-}
-
 
 } // namespace GUI
 } // namespace Slic3r
