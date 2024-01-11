@@ -26,6 +26,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - name: load cached deps
+        uses: actions/cache@v3
+        with:
+          path: ${{ inputs.cache-path }}
+          key: ${{ inputs.cache-key }}
+          fail-on-cache-miss: true
+
       - name: Get the version and date on Ubuntu and macOS
         if: inputs.os != 'windows-latest'
         run: |
@@ -65,12 +72,6 @@ jobs:
           echo "date=$date" | Out-File -Append -FilePath $env:GITHUB_ENV -Encoding utf8
           echo "date: ${{ env.date }} version: ${{ env.ver }}"
         shell: pwsh
-      
-      - name: load cached deps
-        uses: actions/cache@v3
-        with:
-          path: ${{ inputs.cache-path }}
-          key: ${{ inputs.cache-key }}
         
 #   Mac
       - name: Install tools mac
