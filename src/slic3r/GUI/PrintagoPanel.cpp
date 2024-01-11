@@ -32,8 +32,7 @@ wxDEFINE_EVENT(PRINTAGO_PRINT_SENT_EVENT, wxCommandEvent);
 PrintagoPanel::PrintagoPanel(wxWindow *parent, wxString *url) : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
 {
     devManager           = Slic3r::GUI::wxGetApp().getDeviceManager();
-    dmPool               = new DeviceManagerPool();
-
+    
     wxBoxSizer *topsizer = new wxBoxSizer(wxVERTICAL);
 
     m_browser = WebView::CreateWebView(this, *url);
@@ -550,6 +549,24 @@ wxString PrintagoPanel::wxURLErrorToString(wxURLError error)
     }
 }
 
+bool PrintagoPanel::SwitchSelectedPrinter(const wxString &printerId)
+{
+    //don't switch the UI if CanProcessJob() is false; we're slicing and stuff in the UI.
+    if (!devManager || !CanProcessJob()) return false;
+
+    auto machine = devManager->get_my_machine(printerId.ToStdString());
+    if (!machine) return false;
+
+    //set the selected printer in the monitor UI.
+    try {
+        wxGetApp().mainframe->m_monitor->select_machine(printerId.ToStdString());
+    } catch (...) {
+        return false;
+    }
+
+    return true;
+}
+
 void PrintagoPanel::HandlePrintagoCommand(const PrintagoCommand &event)
 {
     wxString                commandType        = event.GetCommandType();
@@ -561,6 +578,9 @@ void PrintagoPanel::HandlePrintagoCommand(const PrintagoCommand &event)
     wxLogMessage("HandlePrintagoCommand: {command: " + commandType + ", action: " + action + "}");
     MachineObject *printer     = {nullptr};
     auto           machineList = devManager->get_my_machine_list();
+
+    wxString printerId = parameters.count("printer_id") ? parameters["printer_id"] : "Unspecified"; 
+    bool     hasPrinterId = printerId.compare("Unspecified");
 
     if (!commandType.compare("status")) {
         std::string username = wxGetApp().getAgent()->is_user_login() ? wxGetApp().getAgent()->get_user_name() : "[TODO:printago_lan_slicer_id]";
@@ -577,12 +597,26 @@ void PrintagoPanel::HandlePrintagoCommand(const PrintagoCommand &event)
                 SendErrorMessage(username, action, originalCommandStr, "config not found; valid types are: print, printer, or filament");
                 return;
             }
+        } else if (!action.compare("switch_active")) {
+            if (!CanProcessJob()) {
+                SendErrorMessage("", action, originalCommandStr, "unable, UI blocked");
+            }
+            if (hasPrinterId) {
+                if (!SwitchSelectedPrinter(printerId)) {
+                    SendErrorMessage("", action, originalCommandStr, "unable, unknown");
+                } else {
+                    actionDetail = wxString::Format("connecting to %s", printerId);
+                    SendSuccessMessage(printerId, action, originalCommandStr, actionDetail);
+                }
+            } else {
+                SendErrorMessage("", action, originalCommandStr, "no printer_id specified");
+                
+            }
         }
         return;
     }
 
-    wxString printerId = parameters.count("printer_id") ? parameters["printer_id"] : "Unspecified"; 
-    if (!printerId.compare("Unspecified")) {
+    if (!hasPrinterId) {
         SendErrorMessage("", action, originalCommandStr, "no printer_id specified");
         wxLogMessage("PrintagoCommandError: No printer_id specified");
         return;
@@ -599,6 +633,9 @@ void PrintagoPanel::HandlePrintagoCommand(const PrintagoCommand &event)
         wxLogMessage("PrintagoCommandError: No printer found with ID: " + printerId);
         return;
     }
+
+    // select the printer for updates in the monitor for updates.
+    SwitchSelectedPrinter(printerId);
 
     if (!commandType.compare("printer_control")) {
         if (!action.compare("pause_print")) {
@@ -868,6 +905,7 @@ void PrintagoPanel::HandlePrintagoCommand(const PrintagoCommand &event)
         } 
     }
 
+    //only send this response if it's *not* a start_print_bbl command.
     if (action.compare("start_print_bbl")) {
         SendSuccessMessage(printerId, action, originalCommandStr, actionDetail);
     }
@@ -1179,7 +1217,7 @@ bool PrintagoPanel::ValidatePrintagoCommand(const PrintagoCommand &event)
 
     // Map of valid command types to their corresponding valid actions
     std::map<std::string, std::set<std::string>> validCommands = {
-        {"status", {"get_machine_list", "get_config" }},
+        {"status", {"get_machine_list", "get_config", "switch_active" }},
         {"printer_control", {"pause_print", "resume_print", "stop_print", "get_status","start_print_bbl"}},
         {"temperature_control", {"set_hotend", "set_bed"}},
         {"movement_control", {"jog", "home", "extrude"}}
@@ -1231,98 +1269,5 @@ void PrintagoPanel::OnError(wxWebViewEvent &evt)
     if (wxGetApp().get_mode() == comDevelop)
         wxLogMessage("%s", "Error; url='" + evt.GetURL() + "', error='" + category + " (" + evt.GetString() + ")'");
 }
-
-//\
-//\\
-//\\\
-//\\\\
-//\\\\\ DeviceManagerPool!
-/////// DeviceManagerPool!
-//////
-/////
-////
-///
-DeviceManagerPool::DeviceManagerPool()
-{
-    updatePool();
-}
-
-DeviceManagerPool::~DeviceManagerPool()
-{
-    stop();
-    for (auto &threadEntry : threadMap) {
-        delete threadEntry.second;
-    }
-    threadMap.clear();
-}
-
-void DeviceManagerPool::updatePool()
-{
-    std::lock_guard<std::mutex> lock(mapMutex);
-
-    auto                     machineList = wxGetApp().getDeviceManager()->get_my_machine_list();
-    std::vector<std::string> threadsToRemove;
-
-    for (const auto &threadEntry : threadMap) {
-        if (machineList.find(threadEntry.first) == machineList.end()) {
-            if (threadEntry.second->joinable()) {
-                threadEntry.second->interrupt();
-                threadEntry.second->join();
-            }
-            threadsToRemove.push_back(threadEntry.first);
-        }
-    }
-
-    for (const auto &devId : threadsToRemove) {
-        delete threadMap[devId];
-        threadMap.erase(devId);
-    }
-
-    for (const auto &device : machineList) {
-        auto devId = device.second->dev_id;
-        if (threadMap.find(devId) != threadMap.end()) {
-            continue;
-        }
-        threadMap[devId] = new boost::thread(boost::bind(&DeviceManagerPool::dmThread, this, devId));
-    }
-}
-
-void DeviceManagerPool::dmThread(const std::string &devId)
-{
-    // Each thread should declare its own networking agent
-    DeviceManager d(new NetworkAgent());
-    d.set_selected_machine(devId, false);
-
-    try {
-        while (true) {
-            // TODO config the time interval
-            boost::this_thread::sleep_for(boost::chrono::seconds(5));
-            d.keep_alive();
-        }
-    } catch (boost::thread_interrupted &) {
-        // Cleanup if needed
-        // The destructor of DeviceManager will be called automatically here
-    } catch (const std::exception &e) {
-        // Handle other exceptions, log error message, etc.
-        // Cleanup if needed
-        // Rethrow or handle the exception as needed
-    }
-}
-
-void DeviceManagerPool::stop()
-{
-    for (auto &threadEntry : threadMap) {
-        if (threadEntry.second->joinable()) {
-            threadEntry.second->interrupt();
-        }
-    }
-
-    for (auto &threadEntry : threadMap) {
-        if (threadEntry.second->joinable()) {
-            threadEntry.second->join();
-        }
-    }
-}
-
 
 }} // namespace Slic3r::GUI

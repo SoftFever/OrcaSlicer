@@ -100,20 +100,6 @@ private:
     json     m_data;
 };
 
-class DeviceManagerPool
-{
-private:
-    map<std::string, boost::thread *> threadMap;
-    std::mutex                        mapMutex;
-
-public:
-    DeviceManagerPool();
-    void    updatePool();
-    void    dmThread(const std::string &devId);
-    void    stop();
-    virtual ~DeviceManagerPool();
-};
-
 class PrintagoPanel : public wxPanel
 {
 public:
@@ -126,9 +112,6 @@ public:
 private:
     Slic3r::DeviceManager *devManager;
     wxWebView             *m_browser;
-    DeviceManagerPool     *dmPool;  
-
-
 
     // we set this to true when we need to issue a
     // command that must block (e.g slicing/sending a print to a printer)
@@ -193,6 +176,7 @@ private:
     void RunScript(const wxString &javascript);
 
     static wxString wxURLErrorToString(wxURLError error);
+    bool            SwitchSelectedPrinter(const wxString &printerId);
     void            SendWebViewMessage(PrintagoMessageEvent &evt);
     void            OnSlicingProcessCompleted(SlicingProcessCompletedEvent &evt);
     void            OnPrintJobSent(wxCommandEvent &evt);
