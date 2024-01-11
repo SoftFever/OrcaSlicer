@@ -86,7 +86,7 @@ EditGCodeDialog::EditGCodeDialog(wxWindow* parent, const std::string& key, const
     wxGetApp().UpdateDarkUI(m_gcode_editor);
 
     grid_sizer->Add(param_sizer,  1, wxEXPAND);
-    grid_sizer->Add(m_add_btn,      0, wxALIGN_CENTER_VERTICAL);
+    grid_sizer->Add(m_add_btn,      0, wxTOP, m_params_list->GetSize().y/2);
     grid_sizer->Add(m_gcode_editor, 2, wxEXPAND);
 
     grid_sizer->AddGrowableRow(0, 1);
