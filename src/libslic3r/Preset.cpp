@@ -2559,6 +2559,12 @@ void add_correct_opts_to_diff(const std::string &opt_key, t_config_option_keys& 
     const T* opt_init = static_cast<const T*>(other.option(opt_key));
     const T* opt_cur = static_cast<const T*>(this_c.option(opt_key));
     int opt_init_max_id = opt_init->values.size() - 1;
+    if (opt_init_max_id < 0) {
+        for (int i = 0; i < int(opt_cur->values.size()); i++)
+            vec.emplace_back(opt_key + "#" + std::to_string(i));
+        return;
+    }
+
     for (int i = 0; i < int(opt_cur->values.size()); i++)
     {
         int init_id = i <= opt_init_max_id ? i : 0;
