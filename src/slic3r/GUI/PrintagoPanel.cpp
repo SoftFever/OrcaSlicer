@@ -86,6 +86,11 @@ void PrintagoPanel::SetCanProcessJob(const bool can_process_job)
         jobProgress    = 0;
         // jobId = ""; // TODO: add this here when we have it.
         m_select_machine_dlg = nullptr;
+        wxGetApp().mainframe->m_tabpanel->Enable();
+        wxGetApp().mainframe->m_topbar->Enable();
+    } else {
+        wxGetApp().mainframe->m_tabpanel->Disable();
+        wxGetApp().mainframe->m_topbar->Disable();
     }
     m_can_process_job = can_process_job;
 }
@@ -610,7 +615,6 @@ void PrintagoPanel::HandlePrintagoCommand(const PrintagoCommand &event)
                 }
             } else {
                 SendErrorMessage("", action, originalCommandStr, "no printer_id specified");
-                
             }
         }
         return;
@@ -683,7 +687,7 @@ void PrintagoPanel::HandlePrintagoCommand(const PrintagoCommand &event)
                 SendErrorMessage(printerId, action, originalCommandStr, "cannot start print");
                 return;
             }
-
+            
             wxString printagoModelUrl = parameters["model"];
             wxString printerConfUrl  = parameters["printer_conf"];
             wxString printConfUrl    = parameters["print_conf"];
