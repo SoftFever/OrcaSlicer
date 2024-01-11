@@ -243,9 +243,16 @@ void EditGCodeDialog::init_params_list(const std::string& custom_gcode_name)
 
 wxDataViewItem EditGCodeDialog::add_presets_placeholders()
 {
-    const bool                  is_fff           = wxGetApp().plater()->printer_technology() == ptFFF;
-    const auto&full_config = wxGetApp().preset_bundle->full_config();
-    const auto& tab_list = wxGetApp().tabs_list;
+    auto get_set_from_vec = [](const std::vector<std::string>&vec) {
+        return std::set(vec.begin(), vec.end());
+    };
+
+    const bool  is_fff      = wxGetApp().plater()->printer_technology() == ptFFF;
+    const std::set<std::string> print_options    = get_set_from_vec(is_fff ? Preset::print_options()    : Preset::sla_print_options());
+    const std::set<std::string> material_options = get_set_from_vec(is_fff ? Preset::filament_options() : Preset::sla_material_options());
+    const std::set<std::string> printer_options  = get_set_from_vec(is_fff ? Preset::printer_options()  : Preset::sla_printer_options());
+    const auto& full_config = wxGetApp().preset_bundle->full_config();
+    const auto& tab_list    = wxGetApp().tabs_list;
 
     Tab* tab_print;
     Tab* tab_filament;
@@ -261,31 +268,36 @@ wxDataViewItem EditGCodeDialog::add_presets_placeholders()
 
 
     // Orca: create subgroups from the pages of the tabs
-    auto init_from_tab = [this, full_config](wxDataViewItem parent, Tab* tab){
+    auto init_from_tab = [this, full_config](wxDataViewItem parent, Tab* tab, const set<string>& preset_keys){
+        set extra_keys(preset_keys);
         for (const auto& page : tab->m_pages) {
             wxDataViewItem subgroup = m_params_list->AppendSubGroup(parent, page->title(), "empty");
-            std::vector<std::string> opt_keys;
+            std::set<std::string> opt_keys;
             for (const auto& optgroup : page->m_optgroups)
                 for (const auto& opt : optgroup->opt_map())
-                    opt_keys.push_back(opt.first);
+                    opt_keys.emplace(opt.first);
 
-            std::sort(opt_keys.begin(), opt_keys.end());
             for (const auto& opt_key : opt_keys)
-                if (const ConfigOption* optptr = full_config.optptr(opt_key))
+                if (const ConfigOption* optptr = full_config.optptr(opt_key)) {
+                    extra_keys.erase(opt_key);
                     m_params_list->AppendParam(subgroup, optptr->is_scalar() ? ParamType::Scalar : ParamType::Vector, opt_key);
+                }
         }
+        for (auto opt_key : extra_keys)
+            if (const ConfigOption* optptr = full_config.optptr(opt_key))
+                m_params_list->AppendParam(parent, optptr->is_scalar() ? ParamType::Scalar : ParamType::Vector, opt_key);
     };
 
     wxDataViewItem group = m_params_list->AppendGroup(_L("Presets"), "cog");
 
     wxDataViewItem print = m_params_list->AppendSubGroup(group, _L("Print settings"), "cog");
-    init_from_tab(print, tab_print);
+    init_from_tab(print, tab_print, print_options);
 
     wxDataViewItem material = m_params_list->AppendSubGroup(group, _(is_fff ? L("Filament settings") : L("SLA Materials settings")), is_fff ? "filament" : "resin");
-    init_from_tab(material, tab_filament);
+    init_from_tab(material, tab_filament, material_options);
 
     wxDataViewItem printer = m_params_list->AppendSubGroup(group, _L("Printer settings"), is_fff ? "printer" : "sla_printer");
-    init_from_tab(printer, tab_printer);
+    init_from_tab(printer, tab_printer, printer_options);
 
     return group;
 }
