@@ -1055,27 +1055,7 @@ PRINT_CONFIG_CLASS_DEFINE(
 
     // Small Area Infill Flow Compensation
     ((ConfigOptionBool,                 small_area_infill_flow_compensation))
-    ((ConfigOptionFloat,                small_area_infill_flow_compensation_extrusion_length_0))
-    ((ConfigOptionFloat,                small_area_infill_flow_compensation_extrusion_length_1))
-    ((ConfigOptionFloat,                small_area_infill_flow_compensation_extrusion_length_2))
-    ((ConfigOptionFloat,                small_area_infill_flow_compensation_extrusion_length_3))
-    ((ConfigOptionFloat,                small_area_infill_flow_compensation_extrusion_length_4))
-    ((ConfigOptionFloat,                small_area_infill_flow_compensation_extrusion_length_5))
-    ((ConfigOptionFloat,                small_area_infill_flow_compensation_extrusion_length_6))
-    ((ConfigOptionFloat,                small_area_infill_flow_compensation_extrusion_length_7))
-    ((ConfigOptionFloat,                small_area_infill_flow_compensation_extrusion_length_8))
-    ((ConfigOptionFloat,                small_area_infill_flow_compensation_extrusion_length_9))
-    ((ConfigOptionFloat,                small_area_infill_flow_compensation_compensation_factor_0))
-    ((ConfigOptionFloat,                small_area_infill_flow_compensation_compensation_factor_1))
-    ((ConfigOptionFloat,                small_area_infill_flow_compensation_compensation_factor_2))
-    ((ConfigOptionFloat,                small_area_infill_flow_compensation_compensation_factor_3))
-    ((ConfigOptionFloat,                small_area_infill_flow_compensation_compensation_factor_4))
-    ((ConfigOptionFloat,                small_area_infill_flow_compensation_compensation_factor_5))
-    ((ConfigOptionFloat,                small_area_infill_flow_compensation_compensation_factor_6))
-    ((ConfigOptionFloat,                small_area_infill_flow_compensation_compensation_factor_7))
-    ((ConfigOptionFloat,                small_area_infill_flow_compensation_compensation_factor_8))
-    ((ConfigOptionFloat,                small_area_infill_flow_compensation_compensation_factor_9))
-
+    ((ConfigOptionStrings,              small_area_infill_flow_compensation_model))
 )
 
 // This object is mapped to Perl as Slic3r::Config::Print.

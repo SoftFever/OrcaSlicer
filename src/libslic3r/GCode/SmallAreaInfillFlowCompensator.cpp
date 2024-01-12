@@ -24,89 +24,44 @@ bool nearly_equal(double a, double b)
 
 SmallAreaInfillFlowCompensator::SmallAreaInfillFlowCompensator(const Slic3r::GCodeConfig& config)
 {
-    auto curLength = 0.0;
+    for (auto& line : config.small_area_infill_flow_compensation_model.values) {
+        std::istringstream iss(line);
+        std::string        value_str;
+        double             eLength = 0.0;
 
-    if (nearly_equal(config.small_area_infill_flow_compensation_extrusion_length_0, 0.0)) {
-        eLengths.push_back(config.small_area_infill_flow_compensation_extrusion_length_0);
-        flowComps.push_back(config.small_area_infill_flow_compensation_compensation_factor_0);
-    } else {
-        throw Slic3r::InvalidArgument("First extrusion length for small area infill compensation length must be 0");
+        if (std::getline(iss, value_str, ',')) {
+            try {
+                eLength = std::stod(value_str);
+                if (std::getline(iss, value_str, ',')) {
+                    eLengths.push_back(eLength);
+                    flowComps.push_back(std::stod(value_str));
+    }
+            } catch (...) {
+                std::stringstream ss;
+                ss << "Error parsing data point in small area infill compensation model:" << line << std::endl;
+
+                throw Slic3r::InvalidArgument(ss.str());
+    }
+    }
     }
 
-    curLength = config.small_area_infill_flow_compensation_extrusion_length_1;
-    if (curLength > 0.0 && curLength > eLengths.back()) {
-        eLengths.push_back(config.small_area_infill_flow_compensation_extrusion_length_1);
-        flowComps.push_back(config.small_area_infill_flow_compensation_compensation_factor_1);
+    for (int i = 0; i < eLengths.size(); i++) {
+        if (i == 0) {
+            if (!nearly_equal(eLengths[i], 0.0)) {
+                throw Slic3r::InvalidArgument("First extrusion length for small area infill compensation model must be 0");
+    }
     } else {
+            if (nearly_equal(eLengths[i], 0.0)) {
+                throw Slic3r::InvalidArgument("Only the first extrusion length for small area infill compensation model can be 0");
+    }
+            if (eLengths[i] <= eLengths[i - 1]) {
         throw Slic3r::InvalidArgument("Extrusion lengths for subsequent points must be increasing");
     }
-
-    curLength = config.small_area_infill_flow_compensation_extrusion_length_2;
-    if (curLength > 0.0 && curLength > eLengths.back()) {
-        eLengths.push_back(config.small_area_infill_flow_compensation_extrusion_length_2);
-        flowComps.push_back(config.small_area_infill_flow_compensation_compensation_factor_2);
-    } else {
-        throw Slic3r::InvalidArgument("Extrusion lengths for subsequent points must be increasing");
+    }
     }
 
-    curLength = config.small_area_infill_flow_compensation_extrusion_length_3;
-    if (curLength > 0.0 && curLength > eLengths.back()) {
-        eLengths.push_back(config.small_area_infill_flow_compensation_extrusion_length_3);
-        flowComps.push_back(config.small_area_infill_flow_compensation_compensation_factor_3);
-    } else {
-        throw Slic3r::InvalidArgument("Extrusion lengths for subsequent points must be increasing");
-    }
-
-    curLength = config.small_area_infill_flow_compensation_extrusion_length_4;
-    if (curLength > 0.0 && curLength > eLengths.back()) {
-        eLengths.push_back(config.small_area_infill_flow_compensation_extrusion_length_4);
-        flowComps.push_back(config.small_area_infill_flow_compensation_compensation_factor_4);
-    } else {
-        throw Slic3r::InvalidArgument("Extrusion lengths for subsequent points must be increasing");
-    }
-
-    curLength = config.small_area_infill_flow_compensation_extrusion_length_5;
-    if (curLength > 0.0 && curLength > eLengths.back()) {
-        eLengths.push_back(config.small_area_infill_flow_compensation_extrusion_length_5);
-        flowComps.push_back(config.small_area_infill_flow_compensation_compensation_factor_5);
-    } else {
-        throw Slic3r::InvalidArgument("Extrusion lengths for subsequent points must be increasing");
-    }
-
-    curLength = config.small_area_infill_flow_compensation_extrusion_length_6;
-    if (curLength > 0.0 && curLength > eLengths.back()) {
-        eLengths.push_back(config.small_area_infill_flow_compensation_extrusion_length_6);
-        flowComps.push_back(config.small_area_infill_flow_compensation_compensation_factor_6);
-    } else {
-        throw Slic3r::InvalidArgument("Extrusion lengths for subsequent points must be increasing");
-    }
-
-    curLength = config.small_area_infill_flow_compensation_extrusion_length_7;
-    if (curLength > 0.0 && curLength > eLengths.back()) {
-        eLengths.push_back(config.small_area_infill_flow_compensation_extrusion_length_7);
-        flowComps.push_back(config.small_area_infill_flow_compensation_compensation_factor_7);
-    } else {
-        throw Slic3r::InvalidArgument("Extrusion lengths for subsequent points must be increasing");
-    }
-
-    curLength = config.small_area_infill_flow_compensation_extrusion_length_8;
-    if (curLength > 0.0 && curLength > eLengths.back()) {
-        eLengths.push_back(config.small_area_infill_flow_compensation_extrusion_length_8);
-        flowComps.push_back(config.small_area_infill_flow_compensation_compensation_factor_8);
-    } else {
-        throw Slic3r::InvalidArgument("Extrusion lengths for subsequent points must be increasing");
-    }
-
-    curLength = config.small_area_infill_flow_compensation_extrusion_length_9;
-    if (curLength > 0.0 && curLength > eLengths.back()) {
-        eLengths.push_back(config.small_area_infill_flow_compensation_extrusion_length_9);
-        flowComps.push_back(config.small_area_infill_flow_compensation_compensation_factor_9);
-    } else {
-        throw Slic3r::InvalidArgument("Extrusion lengths for subsequent points must be increasing");
-    }
-
-    if (!nearly_equal(flowComps.back(), 1.0)) {
-        throw Slic3r::InvalidArgument("Final compensation factor for small area infill flow compensation must be 1.0");
+    if (!flowComps.empty() && !nearly_equal(flowComps.back(), 1.0)) {
+        throw Slic3r::InvalidArgument("Final compensation factor for small area infill flow compensation model must be 1.0");
     }
 
     flowModel.set_points(eLengths, flowComps);

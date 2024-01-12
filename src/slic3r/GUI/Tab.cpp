@@ -1970,6 +1970,14 @@ void TabPrint::build()
         optgroup->append_single_option_line("only_one_wall_first_layer");
         optgroup->append_single_option_line("reduce_crossing_wall");
         optgroup->append_single_option_line("max_travel_detour_distance");
+        optgroup->append_single_option_line("small_area_infill_flow_compensation");
+
+        optgroup = page->new_optgroup(L("Small Area Infill Flow Compensation"), L"param_advanced");
+        Option option = optgroup->get_option("small_area_infill_flow_compensation_model");
+        option.opt.full_width = true;
+        option.opt.is_code = true;
+        option.opt.height = 15;
+        optgroup->append_single_option_line(option);
         
         optgroup = page->new_optgroup(L("Bridging"), L"param_advanced");
         optgroup->append_single_option_line("bridge_flow");
@@ -1987,30 +1995,6 @@ void TabPrint::build()
         optgroup->append_single_option_line("overhang_reverse");
         optgroup->append_single_option_line("overhang_reverse_internal_only");
         optgroup->append_single_option_line("overhang_reverse_threshold");
-
-        optgroup = page->new_optgroup(L("Small Area Infill Flow Compensation"), L"param_advanced");
-        optgroup->append_single_option_line("small_area_infill_flow_compensation");
-
-        optgroup->append_single_option_line("small_area_infill_flow_compensation_extrusion_length_0");
-        optgroup->append_single_option_line("small_area_infill_flow_compensation_compensation_factor_0");
-        optgroup->append_single_option_line("small_area_infill_flow_compensation_extrusion_length_1");
-        optgroup->append_single_option_line("small_area_infill_flow_compensation_compensation_factor_1");
-        optgroup->append_single_option_line("small_area_infill_flow_compensation_extrusion_length_2");
-        optgroup->append_single_option_line("small_area_infill_flow_compensation_compensation_factor_2");
-        optgroup->append_single_option_line("small_area_infill_flow_compensation_extrusion_length_3");
-        optgroup->append_single_option_line("small_area_infill_flow_compensation_compensation_factor_3");
-        optgroup->append_single_option_line("small_area_infill_flow_compensation_extrusion_length_4");
-        optgroup->append_single_option_line("small_area_infill_flow_compensation_compensation_factor_4");
-        optgroup->append_single_option_line("small_area_infill_flow_compensation_extrusion_length_5");
-        optgroup->append_single_option_line("small_area_infill_flow_compensation_compensation_factor_5");
-        optgroup->append_single_option_line("small_area_infill_flow_compensation_extrusion_length_6");
-        optgroup->append_single_option_line("small_area_infill_flow_compensation_compensation_factor_6");
-        optgroup->append_single_option_line("small_area_infill_flow_compensation_extrusion_length_7");
-        optgroup->append_single_option_line("small_area_infill_flow_compensation_compensation_factor_7");
-        optgroup->append_single_option_line("small_area_infill_flow_compensation_extrusion_length_8");
-        optgroup->append_single_option_line("small_area_infill_flow_compensation_compensation_factor_8");
-        optgroup->append_single_option_line("small_area_infill_flow_compensation_extrusion_length_9");
-        optgroup->append_single_option_line("small_area_infill_flow_compensation_compensation_factor_9");
 
     page = add_options_page(L("Strength"), "empty");
         optgroup = page->new_optgroup(L("Walls"), L"param_wall");
@@ -2221,7 +2205,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("gcode_comments");
         optgroup->append_single_option_line("gcode_label_objects");
         optgroup->append_single_option_line("exclude_object");
-        Option option = optgroup->get_option("filename_format");
+        option = optgroup->get_option("filename_format");
         // option.opt.full_width = true;
         option.opt.is_code = true;
         option.opt.multiline = true;

@@ -3,7 +3,7 @@
 
 #include "../libslic3r.h"
 #include "../PrintConfig.hpp"
-#include "../ExtrusionRole.hpp"
+#include "../ExtrusionEntity.hpp"
 #include "spline/spline.h"
 
 namespace Slic3r {

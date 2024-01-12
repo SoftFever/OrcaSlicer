@@ -927,26 +927,7 @@ bool PrintObject::invalidate_state_by_config_options(
             steps.emplace_back(posPerimeters);
         } else if (
                opt_key == "small_area_infill_flow_compensation"
-            || opt_key == "small_area_infill_flow_compensation_extrusion_length_0"
-            || opt_key == "small_area_infill_flow_compensation_extrusion_length_1"
-            || opt_key == "small_area_infill_flow_compensation_extrusion_length_2"
-            || opt_key == "small_area_infill_flow_compensation_extrusion_length_3"
-            || opt_key == "small_area_infill_flow_compensation_extrusion_length_4"
-            || opt_key == "small_area_infill_flow_compensation_extrusion_length_5"
-            || opt_key == "small_area_infill_flow_compensation_extrusion_length_6"
-            || opt_key == "small_area_infill_flow_compensation_extrusion_length_7"
-            || opt_key == "small_area_infill_flow_compensation_extrusion_length_8"
-            || opt_key == "small_area_infill_flow_compensation_extrusion_length_9"
-            || opt_key == "small_area_infill_flow_compensation_compensation_factor_0"
-            || opt_key == "small_area_infill_flow_compensation_compensation_factor_1"
-            || opt_key == "small_area_infill_flow_compensation_compensation_factor_2"
-            || opt_key == "small_area_infill_flow_compensation_compensation_factor_3"
-            || opt_key == "small_area_infill_flow_compensation_compensation_factor_4"
-            || opt_key == "small_area_infill_flow_compensation_compensation_factor_5"
-            || opt_key == "small_area_infill_flow_compensation_compensation_factor_6"
-            || opt_key == "small_area_infill_flow_compensation_compensation_factor_7"
-            || opt_key == "small_area_infill_flow_compensation_compensation_factor_8"
-            || opt_key == "small_area_infill_flow_compensation_compensation_factor_9") {
+            || opt_key == "small_area_infill_flow_compensation_model") {
             steps.emplace_back(posSlice);
         } else if (opt_key == "gap_infill_speed"
             || opt_key == "filter_out_gap_fill" ) {
