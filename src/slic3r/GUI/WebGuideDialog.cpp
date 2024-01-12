@@ -191,7 +191,7 @@ GuideFrame::~GuideFrame()
 
 void GuideFrame::load_url(wxString &url)
 {
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< " enter, url=" << url.ToStdString();
+    BOOST_LOG_TRIVIAL(trace) << __FUNCTION__<< " enter, url=" << url.ToStdString();
     WebView::LoadUrl(m_browser, url);
     m_browser->SetFocus();
     UpdateState();
@@ -552,7 +552,7 @@ void GuideFrame::OnError(wxWebViewEvent &evt)
     // Show the info bar with an error
     // m_info->ShowMessage(_L("An error occurred loading ") + evt.GetURL() +
     // "\n" + "'" + category + "'", wxICON_ERROR);
-    BOOST_LOG_TRIVIAL(info) << "GuideFrame::OnError: An error occurred loading " << evt.GetURL() << category;
+    BOOST_LOG_TRIVIAL(trace) << "GuideFrame::OnError: An error occurred loading " << evt.GetURL() << category;
 
     UpdateState();
 }
@@ -1610,7 +1610,7 @@ bool GuideFrame::LoadFile(std::string jPath, std::string &sContent)
         std::stringstream buffer;
         buffer << t.rdbuf();
         sContent=buffer.str();
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", load %1% into buffer")% jPath;
+        BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << boost::format(", load %1% into buffer")% jPath;
     }
     catch (std::exception &e)
     {
