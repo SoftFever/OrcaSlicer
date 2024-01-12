@@ -9151,7 +9151,6 @@ msgstr "Ilość ścian każdej warstwy"
 msgid "Alternate extra wall"
 msgstr "Alternatywna dodatkowa ściana"
 
-#, fuzzy
 msgid ""
 "This setting adds an extra wall to every other layer. This way the infill gets wedged vertically between the walls, resulting in stronger prints. \n"
 "\n"
@@ -9159,11 +9158,11 @@ msgid ""
 "\n"
 "Using lightning infill together with this option is not recommended as there is limited infill to anchor the extra perimeters to."
 msgstr ""
-"To ustawienie dodaje dodatkową ścianę do co drugiej warstwy. W ten sposób wypełnienie zostaje zaklinowane pionowo między ścianami, co skutkuje mocniejszymi wydrukami. \n"
+"Ustawienie to dodaje dodatkową ściankę do każdej drugiej warstwy. Dzięki temu wypełnienie jest zaciskane pionowo między ścianami, co prowadzi do uzyskania wydruków o większej wytrzymałości.\n"
 "\n"
-"Kiedy ta opcja jest włączona, opcja zapewnienia pionowej grubości powłoki musi być wyłączona. \n"
+"Kiedy ta opcja jest aktywna, należy wyłączyć opcję zapewniającą pionową grubość ścianek.\n"
 "\n"
-"Używanie wypełnienia błyskawicznego razem z tą opcją nie jest zalecane, ponieważ jest ograniczone wypełnienie do zakotwiczenia dodatkowych perymetrów."
+"Stosowanie wypełnienia typu 'lightning' w połączeniu z tą opcją nie jest rekomendowane, ponieważ dostępne jest ograniczone wypełnienie do przymocowania dodatkowych perymetrów."
 
 msgid "If you want to process the output G-code through custom scripts, just list their absolute paths here. Separate multiple scripts with a semicolon. Scripts will be passed the absolute path to the G-code file as the first argument, and they can access the Orca Slicer config settings by reading environment variables."
 msgstr "Jeśli chcesz przetworzyć wynikowy G-code za pomocą niestandardowych skryptów, wystarczy, że wpiszesz tutaj ich pełne ścieżki. Aby oddzielić kilka skryptów, użyj średnika. Skrypty otrzymają pełną ścieżkę do pliku G-code jako pierwszy argument, a także będą mogły uzyskać dostęp do ustawień konfiguracyjnych Orca Slicer, czytając zmienne środowiskowe."
@@ -9503,7 +9502,7 @@ msgid "Slicing Mode"
 msgstr "Tryb krojenia"
 
 msgid "Use \"Even-odd\" for 3DLabPrint airplane models. Use \"Close holes\" to close all holes in the model."
-msgstr "Użyj \"Even-odd\" dla modeli samolotów 3DLabPrint. Użyj \"Close holes\" do zamknięcia wszystkich otworów w modelu."
+msgstr "Użyj \"Parzysto-nieparzyszty\" dla modeli samolotów 3DLabPrint. Użyj \"Zamknij otwory\" do zamknięcia wszystkich otworów w modelu."
 
 msgid "Regular"
 msgstr "Regularny"
@@ -9892,7 +9891,7 @@ msgid "The volume of material to prime extruder on tower."
 msgstr "Objętość filamentu do załadowania extrudera na wieży."
 
 msgid "Width of prime tower"
-msgstr "Szerokość wieży załadowania"
+msgstr "Szerokość wieży czyszczącej"
 
 msgid "Wipe tower rotation angle"
 msgstr "Kąt obrotu wieży czyszczącej"
@@ -11735,8 +11734,7 @@ msgstr ""
 "Podziel swoje wydruki na płyty\n"
 "Czy wiesz, że możesz podzielić model, który ma wiele części, na indywidualne płyty gotowe do druku? Ułatwi to proces śledzenia wszystkich części."
 
-#: resources/data/hints.ini: [hint:Speed up your print with Adaptive Layer
-#: Height]
+#: resources/data/hints.ini: [hint:Speed up your print with Adaptive Layer Height]
 msgid ""
 "Speed up your print with Adaptive Layer Height\n"
 "Did you know that you can print a model even faster, by using the Adaptive Layer Height option? Check it out!"
@@ -11808,8 +11806,7 @@ msgstr ""
 "Zwiększanie wytrzymałości\n"
 "Czy wiesz, że możesz użyć więcej pętli ściennej i większej gęstości wypełnienia, aby zwiększyć wytrzymałość modelu?"
 
-#: resources/data/hints.ini: [hint:When need to print with the printer door
-#: opened]
+#: resources/data/hints.ini: [hint:When need to print with the printer door opened]
 msgid ""
 "When need to print with the printer door opened\n"
 "Did you know that opening the printer door can reduce the probability of extruder/hotend clogging when printing lower temperature filament with a higher enclosure temperature. More info about this in the Wiki."
