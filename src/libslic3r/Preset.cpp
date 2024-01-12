@@ -1472,7 +1472,7 @@ int PresetCollection::get_user_presets(PresetBundle *preset_bundle, std::vector<
     lock();
     for (Preset &preset : m_presets) {
         if (!preset.is_user()) continue;
-        if (get_preset_base(preset) != &preset && preset.base_id.empty()) continue;
+        if (preset.base_id.empty() && preset.inherits() != "") continue;
         if (!preset.setting_id.empty() && preset.sync_info.empty()) continue;
         //if (!preset.is_bbl_vendor_preset(preset_bundle)) continue;
         if (preset.sync_info == "hold") continue;
@@ -2255,11 +2255,8 @@ void PresetCollection::save_current_preset(const std::string &new_name, bool det
         	// Clear the link to the parent profile.
         	inherits.clear();
             BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": save preset %1% , with detach")%new_name;
-        } else {
-            // Inherited from a user preset. Just maintain the "inherited" flag,
-            // meaning it will inherit from either the system preset, or the inherited user preset.
-            auto base = get_preset_base(curr_preset);
-            inherits  = base ? base->name : "";
+        } else if (is_base_preset(preset)) {
+            inherits = old_name;
         }
         preset.is_default  = false;
         preset.is_system   = false;
@@ -2866,7 +2863,7 @@ std::string PresetCollection::path_from_name(const std::string &new_name, bool d
 
 std::string PresetCollection::path_for_preset(const Preset &preset) const
 {
-    return path_from_name(preset.name, get_preset_base(preset) == &preset);
+    return path_from_name(preset.name, is_base_preset(preset));
 }
 
 const Preset& PrinterPresetCollection::default_preset_for(const DynamicPrintConfig &config) const
