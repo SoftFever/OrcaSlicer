@@ -1969,7 +1969,6 @@ template<typename T> void debug_draw(std::string name, const T& a, const T& b, c
 void PrintObject::bridge_over_infill()
 {
     BOOST_LOG_TRIVIAL(info) << "Bridge over infill - Start" << log_memory_info();
-
     struct CandidateSurface
     {
         CandidateSurface(const Surface     *original_surface,
@@ -1991,12 +1990,20 @@ void PrintObject::bridge_over_infill()
     };
 
     std::map<size_t, std::vector<CandidateSurface>> surfaces_by_layer;
+    // Orca:
+    // Detect use of lightning infill. Moved earlier in the function to pass to the gather and filter surfaces threads.
+    bool has_lightning_infill = false;
+    for (size_t i = 0; i < this->num_printing_regions(); i++) {
+        if (this->printing_region(i).config().sparse_infill_pattern == ipLightning) {
+            has_lightning_infill = true;
+            break;
+        }
+    }
 
     // SECTION to gather and filter surfaces for expanding, and then cluster them by layer
     {
         tbb::concurrent_vector<CandidateSurface> candidate_surfaces;
-        tbb::parallel_for(tbb::blocked_range<size_t>(0, this->layers().size()), [po = static_cast<const PrintObject *>(this),
-                                                                                 &candidate_surfaces](tbb::blocked_range<size_t> r) {
+        tbb::parallel_for(tbb::blocked_range<size_t>(0, this->layers().size()), [po = static_cast<const PrintObject *>(this), &candidate_surfaces, has_lightning_infill](tbb::blocked_range<size_t> r) {
             PRINT_OBJECT_TIME_LIMIT_MILLIS(PRINT_OBJECT_TIME_LIMIT_DEFAULT);
             for (size_t lidx = r.begin(); lidx < r.end(); lidx++) {
                 const Layer *layer = po->get_layer(lidx);
@@ -2019,44 +2026,60 @@ void PrintObject::bridge_over_infill()
                     }
                 }
                 unsupported_area = closing(unsupported_area, float(SCALED_EPSILON));
+                
+                // Orca:
+                // Lightning infill benefits from always having a bridge layer so don't filter out small unsupported areas. Also, don't filter small internal unsupported areas if the user has requested so.
+                double expansion_multiplier = 3;
+                if(has_lightning_infill || po->config().dont_filter_internal_bridges.value !=ibfDisabled){
+                    expansion_multiplier = 1;
+                }
                 // By expanding the lower layer solids, we avoid making bridges from the tiny internal overhangs that are (very likely) supported by previous layer solids
                 // NOTE that we cannot filter out polygons worth bridging by their area, because sometimes there is a very small internal island that will grow into large hole
                 lower_layer_solids = shrink(lower_layer_solids, 1 * spacing); // first remove thin regions that will not support anything
-                lower_layer_solids = expand(lower_layer_solids, (1 + 3) * spacing); // then expand back (opening), and further for parts supported by internal solids
+                lower_layer_solids = expand(lower_layer_solids, (1 + expansion_multiplier) * spacing); // then expand back (opening), and further for parts supported by internal solids
                 // By shrinking the unsupported area, we avoid making bridges from narrow ensuring region along perimeters.
-                unsupported_area   = shrink(unsupported_area, 3 * spacing);
+                unsupported_area   = shrink(unsupported_area, expansion_multiplier * spacing);
                 unsupported_area   = diff(unsupported_area, lower_layer_solids);
-
+                
                 for (const LayerRegion *region : layer->regions()) {
                     SurfacesPtr region_internal_solids = region->fill_surfaces.filter_by_type(stInternalSolid);
                     for (const Surface *s : region_internal_solids) {
                         Polygons unsupported         = intersection(to_polygons(s->expolygon), unsupported_area);
-                        // The following flag marks those surfaces, which overlap with unuspported area, but at least part of them is supported. 
-                        // These regions can be filtered by area, because they for sure are touching solids on lower layers, and it does not make sense to bridge their tiny overhangs 
-                        bool     partially_supported = area(unsupported) < area(to_polygons(s->expolygon)) - EPSILON;
-                        if (!unsupported.empty() && (!partially_supported || area(unsupported) > 3 * 3 * spacing * spacing)) {
-                            Polygons worth_bridging = intersection(to_polygons(s->expolygon), expand(unsupported, 4 * spacing));
-                            // after we extracted the part worth briding, we go over the leftovers and merge the tiny ones back, to not brake the surface too much
-                            for (const Polygon& p : diff(to_polygons(s->expolygon), expand(worth_bridging, spacing))) {
-                                double area = p.area();
-                                if (area < spacing * scale_(12.0) && area > spacing * spacing) {
-                                    worth_bridging.push_back(p);
+                        
+                        // Orca: If the user has selected to always support internal overhanging regions, no matter how small
+                        // skip the filtering
+                        if (po->config().dont_filter_internal_bridges.value == ibfNofilter){
+                            // expand the unsupported area by 4x spacing to trigger internal bridging
+                            unsupported = expand(unsupported, 4 * spacing);
+                            candidate_surfaces.push_back(CandidateSurface(s, lidx, unsupported, region, 0));
+                        }else{
+                            // The following flag marks those surfaces, which overlap with unuspported area, but at least part of them is supported.
+                            // These regions can be filtered by area, because they for sure are touching solids on lower layers, and it does not make sense to bridge their tiny overhangs
+                            bool     partially_supported = area(unsupported) < area(to_polygons(s->expolygon)) - EPSILON;
+                            if (!unsupported.empty() && (!partially_supported || area(unsupported) > 3 * 3 * spacing * spacing)) {
+                                Polygons worth_bridging = intersection(to_polygons(s->expolygon), expand(unsupported, 4 * spacing));
+                                // after we extracted the part worth briding, we go over the leftovers and merge the tiny ones back, to not brake the surface too much
+                                for (const Polygon& p : diff(to_polygons(s->expolygon), expand(worth_bridging, spacing))) {
+                                    double area = p.area();
+                                    if (area < spacing * scale_(12.0) && area > spacing * spacing) {
+                                        worth_bridging.push_back(p);
+                                    }
                                 }
+                                worth_bridging = intersection(closing(worth_bridging, float(SCALED_EPSILON)), s->expolygon);
+                                candidate_surfaces.push_back(CandidateSurface(s, lidx, worth_bridging, region, 0));
+                                
+#ifdef DEBUG_BRIDGE_OVER_INFILL
+                                debug_draw(std::to_string(lidx) + "_candidate_surface_" + std::to_string(area(s->expolygon)),
+                                           to_lines(region->layer()->lslices), to_lines(s->expolygon), to_lines(worth_bridging),
+                                           to_lines(unsupported_area));
+#endif
+#ifdef DEBUG_BRIDGE_OVER_INFILL
+                                debug_draw(std::to_string(lidx) + "_candidate_processing_" + std::to_string(area(unsupported)),
+                                           to_lines(unsupported), to_lines(intersection(to_polygons(s->expolygon), expand(unsupported, 5 * spacing))),
+                                           to_lines(diff(to_polygons(s->expolygon), expand(worth_bridging, spacing))),
+                                           to_lines(unsupported_area));
+#endif
                             }
-                            worth_bridging = intersection(closing(worth_bridging, float(SCALED_EPSILON)), s->expolygon);
-                            candidate_surfaces.push_back(CandidateSurface(s, lidx, worth_bridging, region, 0));
-
-#ifdef DEBUG_BRIDGE_OVER_INFILL
-                            debug_draw(std::to_string(lidx) + "_candidate_surface_" + std::to_string(area(s->expolygon)),
-                                       to_lines(region->layer()->lslices), to_lines(s->expolygon), to_lines(worth_bridging),
-                                       to_lines(unsupported_area));
-#endif
-#ifdef DEBUG_BRIDGE_OVER_INFILL
-                            debug_draw(std::to_string(lidx) + "_candidate_processing_" + std::to_string(area(unsupported)),
-                                       to_lines(unsupported), to_lines(intersection(to_polygons(s->expolygon), expand(unsupported, 5 * spacing))), 
-                                       to_lines(diff(to_polygons(s->expolygon), expand(worth_bridging, spacing))),
-                                       to_lines(unsupported_area));
-#endif
                         }
                     }
                 }
@@ -2071,13 +2094,6 @@ void PrintObject::bridge_over_infill()
     // LIGHTNING INFILL SECTION - If lightning infill is used somewhere, we check the areas that are going to be bridges, and those that rely on the 
     // lightning infill under them get expanded. This somewhat helps to ensure that most of the extrusions are anchored to the lightning infill at the ends.
     // It requires modifying this instance of print object in a specific way, so that we do not invalidate the pointers in our surfaces_by_layer structure.
-    bool has_lightning_infill = false;
-    for (size_t i = 0; i < this->num_printing_regions(); i++) {
-        if (this->printing_region(i).config().sparse_infill_pattern == ipLightning) {
-            has_lightning_infill = true;
-            break;
-        }
-    }
     if (has_lightning_infill) {
         // Prepare backup data for the Layer Region infills. Before modfiyng the layer region, we backup its fill surfaces by moving! them into this map.
         // then a copy is created, modifiyed and passed to lightning infill generator. After generator is created, we restore the original state of the fills
