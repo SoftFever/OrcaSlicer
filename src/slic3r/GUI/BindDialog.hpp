@@ -17,6 +17,7 @@
 #include <wx/dialog.h>
 #include <curl/curl.h>
 #include <wx/webrequest.h>
+#include <wx/hyperlink.h>
 #include "wxExtensions.hpp"
 #include "Plater.hpp"
 #include "Widgets/StepCtrl.hpp"
@@ -27,6 +28,7 @@
 #include "Jobs/BindJob.hpp"
 #include "BBLStatusBar.hpp"
 #include "BBLStatusBarBind.hpp"
+#include "Jobs/Worker.hpp"
 
 #define BIND_DIALOG_GREY200 wxColour(248, 248, 248)
 #define BIND_DIALOG_GREY800 wxColour(50, 58, 61)
@@ -61,23 +63,23 @@ private:
     wxStaticBitmap *m_static_bitmap_show_error;
     wxBitmap      m_bitmap_show_error_close;
     wxBitmap      m_bitmap_show_error_open;
-    wxWebRequest  web_request;
     wxScrolledWindow* m_sw_bind_failed_info;
     Label*          m_bind_failed_info;
     Label*          m_st_txt_error_code{ nullptr };
     Label*          m_st_txt_error_desc{ nullptr };
     Label*          m_st_txt_extra_info{ nullptr };
-    Label*          m_link_network_state{ nullptr };
+    wxHyperlinkCtrl* m_link_network_state{ nullptr };
     wxString        m_result_info;
     wxString        m_result_extra;
     bool            m_show_error_info_state = true;
     bool            m_allow_privacy{false};
     bool            m_allow_notice{false};
     int             m_result_code;
+    std::shared_ptr<int>     m_tocken;
 
     MachineObject *                   m_machine_info{nullptr};
-    std::shared_ptr<BindJob>          m_bind_job;
     std::shared_ptr<BBLStatusBarBind> m_status_bar;
+    std::unique_ptr<Worker>           m_worker;
 
 public:
     BindMachineDialog(Plater *plater = nullptr);
@@ -108,7 +110,7 @@ protected:
     MachineObject *m_machine_info{nullptr};
     wxStaticBitmap *m_avatar;
     wxStaticBitmap *m_printer_img;
-    wxWebRequest    web_request;
+    std::shared_ptr<int>     m_tocken;
 
 public:
     UnBindMachineDialog(Plater *plater = nullptr);

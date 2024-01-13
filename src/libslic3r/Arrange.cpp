@@ -228,16 +228,23 @@ void update_selected_items_axis_align(ArrangePolygons& selected, const DynamicPr
                 double c = m02 / m00 - cy * cy;
 
                 //if a and c are close, there is no dominant axis, then do not rotate
-                if (std::abs(a) < 1.5*std::abs(c) && std::abs(c) < 1.5*std::abs(a)) {
+                // ratio is always no more than 1
+                double ratio = std::abs(a) > std::abs(c) ? std::abs(c / a) :
+                    std::abs(c) > 0 ? std::abs(a / c) : 0;
+                if (ratio>0.66) {
                     validResult = false;
                 }
                 else {
                     angle = std::atan2(2 * b, (a - c)) / 2;
+                    angle = PI / 2 - angle;
+                    // if the angle is close to PI or -PI, it means the object is vertical, then do not rotate
+                    if (std::abs(std::abs(angle) - PI) < 0.01)
+                        angle = 0;
                     validResult = true;
                 }
             }
         }
-        if (validResult) { ap.rotation += (PI / 2 - angle); }
+        if (validResult) { ap.rotation += angle; }
     }
 }
 
@@ -406,6 +413,18 @@ protected:
         return bindist;
     }
 
+    double dist_to_bin(const Box& ibb, const ClipperLib::IntPoint& origin_pack, typename Packer::PlacementConfig::Alignment starting_point_alignment)
+    {
+        double bindist = 0;
+        if (starting_point_alignment == PConfig::Alignment::BOTTOM_LEFT)
+            bindist = norm(pl::distance(ibb.minCorner(), origin_pack));
+        else if (starting_point_alignment == PConfig::Alignment::TOP_RIGHT)
+            bindist = norm(pl::distance(ibb.maxCorner(), origin_pack));
+        else
+            bindist = norm(pl::distance(ibb.center(), origin_pack));
+        return bindist;
+    }
+
     // This is "the" object function which is evaluated many times for each
     // vertex (decimated with the accuracy parameter) of each object.
     // Therefore it is upmost crucial for this function to be as efficient
@@ -488,7 +507,7 @@ protected:
                 score = 0.2 * dist + 0.8 * bindist;
             }
             else {
-                double bindist = norm(pl::distance(ibb.center(), origin_pack));
+                double bindist = dist_to_bin(ibb, origin_pack, m_pconf.starting_point);
                 dist = 0.8 * dist + 0.2 * bindist;
 
 
@@ -520,11 +539,13 @@ protected:
                         auto ascore = 1.0 - (item.area() + parea) / bbarea;
 
                         if (ascore < alignment_score) alignment_score = ascore;
-                        }
                     }
+                }
 
                 density = std::sqrt(norm(fullbb.width()) * norm(fullbb.height()));
                 double R = double(m_remaining.size()) / m_item_count;
+                // alighment score is more important for rectangle items
+                double alignment_weight = std::max(0.3, 0.6 * item.area() / ibb.area());
 
                 // The final mix of the score is the balance between the
                 // distance from the full pile center, the pack density and
@@ -533,8 +554,8 @@ protected:
                     score = 0.50 * dist + 0.50 * density;
                 else
                     // Let the density matter more when fewer objects remain
-                    score = 0.50 * dist + (1.0 - R) * 0.20 * density +
-                    0.30 * alignment_score;
+                    score = (1 - 0.2 - alignment_weight) * dist + (1.0 - R) * 0.20 * density +
+                    alignment_weight * alignment_score;
             }
             break;
         }
@@ -814,7 +835,8 @@ public:
 
 template<> std::function<double(const Item&, const ItemGroup&)> AutoArranger<Box>::get_objfn()
 {
-    auto origin_pack = m_pconf.starting_point == PConfig::Alignment::CENTER ? m_bin.center() : m_bin.minCorner();
+    auto origin_pack = m_pconf.starting_point == PConfig::Alignment::CENTER ? m_bin.center() :
+        m_pconf.starting_point == PConfig::Alignment::TOP_RIGHT ? m_bin.maxCorner() : m_bin.minCorner();
 
     return [this, origin_pack](const Item &itm, const ItemGroup&) {
         auto result = objfunc(itm, origin_pack);

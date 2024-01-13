@@ -1,3 +1,7 @@
+///|/ Copyright (c) Prusa Research 2017 - 2023 Oleksandra Iushchenko @YuSanka, Vojtěch Bubník @bubnikv, Pavel Mikuš @Godrak, David Kocík @kocikdav, Lukáš Matěna @lukasmatena, Enrico Turri @enricoturri1966, Lukáš Hejl @hejllukas, Filip Sykala @Jony01, Vojtěch Král @vojtechkral
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Utils.hpp"
 #include "AppConfig.hpp"
@@ -38,11 +42,13 @@ using namespace nlohmann;
 
 namespace Slic3r {
 
-static const std::string VERSION_CHECK_URL = "https://api.github.com/repos/softfever/OrcaSlicer/releases/latest";
+static const std::string VERSION_CHECK_URL_STABLE = "https://api.github.com/repos/softfever/OrcaSlicer/releases/latest";
+static const std::string VERSION_CHECK_URL = "https://api.github.com/repos/softfever/OrcaSlicer/releases";
 static const std::string MODELS_STR = "models";
 
 const std::string AppConfig::SECTION_FILAMENTS = "filaments";
 const std::string AppConfig::SECTION_MATERIALS = "sla_materials";
+const std::string AppConfig::SECTION_EMBOSS_STYLE = "font";
 
 std::string AppConfig::get_language_code()
 {
@@ -235,6 +241,10 @@ void AppConfig::set_defaults()
         set_bool("stealth_mode", false);
     }
 
+    if(get("check_stable_update_only").empty()) {
+        set_bool("check_stable_update_only", false);
+    }
+
     // Orca
     if(get("show_splash_screen").empty()) {
         set_bool("show_splash_screen", true);
@@ -254,6 +264,10 @@ void AppConfig::set_defaults()
 
     if (get("show_daily_tips").empty()) {
         set_bool("show_daily_tips", true);
+    }
+    //true is auto calculate
+    if (get("auto_calculate").empty()) {
+        set_bool("auto_calculate", true);
     }
 
     if (get("show_home_page").empty()) {
@@ -998,7 +1012,7 @@ void AppConfig::set_vendors(const AppConfig &from)
     m_dirty = true;
 }
 
-void AppConfig::save_printer_cali_infos(const PrinterCaliInfo &cali_info)
+void AppConfig::save_printer_cali_infos(const PrinterCaliInfo &cali_info, bool need_change_status)
 {
     auto iter = std::find_if(m_printer_cali_infos.begin(), m_printer_cali_infos.end(), [&cali_info](const PrinterCaliInfo &cali_info_item) {
         return cali_info_item.dev_id == cali_info.dev_id;
@@ -1007,7 +1021,9 @@ void AppConfig::save_printer_cali_infos(const PrinterCaliInfo &cali_info)
     if (iter == m_printer_cali_infos.end()) {
         m_printer_cali_infos.emplace_back(cali_info);
     } else {
-        (*iter).cali_finished = cali_info.cali_finished;
+        if (need_change_status) {
+            (*iter).cali_finished = cali_info.cali_finished;
+        }
         (*iter).cache_flow_ratio = cali_info.cache_flow_ratio;
         (*iter).selected_presets = cali_info.selected_presets;
     }
@@ -1242,10 +1258,10 @@ std::string AppConfig::config_path()
     return path;
 }
 
-std::string AppConfig::version_check_url() const
+std::string AppConfig::version_check_url(bool stable_only/* = false*/) const
 {
     auto from_settings = get("version_check_url");
-    return from_settings.empty() ? VERSION_CHECK_URL : from_settings;
+    return from_settings.empty() ? stable_only ? VERSION_CHECK_URL_STABLE : VERSION_CHECK_URL : from_settings;
 }
 
 bool AppConfig::exists()

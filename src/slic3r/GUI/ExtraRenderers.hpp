@@ -54,7 +54,7 @@ private:
 DECLARE_VARIANT_OBJECT(DataViewBitmapText)
 
 // ----------------------------------------------------------------------------
-// BitmapTextRenderer
+// BitmapTextRenderer - an editable text box within a DataView item
 // ----------------------------------------------------------------------------
 #if ENABLE_NONCUSTOM_DATA_VIEW_RENDERING
 class BitmapTextRenderer : public wxDataViewRenderer
@@ -126,7 +126,7 @@ private:
 
 
 // ----------------------------------------------------------------------------
-// BitmapChoiceRenderer
+// BitmapChoiceRenderer - Creates an editable ComboBox within a DataView item
 // ----------------------------------------------------------------------------
 
 class BitmapChoiceRenderer : public wxDataViewCustomRenderer

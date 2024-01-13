@@ -1,3 +1,7 @@
+///|/ Copyright (c) Prusa Research 2017 - 2023 Vojtěch Bubník @bubnikv, David Kocík @kocikdav, Lukáš Matěna @lukasmatena, Filip Sykala @Jony01, Enrico Turri @enricoturri1966, Oleksandra Iushchenko @YuSanka, Vojtěch Král @vojtechkral
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #ifndef slic3r_AppConfig_hpp_
 #define slic3r_AppConfig_hpp_
 
@@ -209,7 +213,7 @@ public:
     }
 
 	const std::vector<PrinterCaliInfo> &get_printer_cali_infos() const { return m_printer_cali_infos; }
-    void save_printer_cali_infos(const PrinterCaliInfo& cali_info);
+    void save_printer_cali_infos(const PrinterCaliInfo& cali_info, bool need_change_status = true);
 
 	// return recent/last_opened_folder or recent/settings_folder or empty string.
 	std::string 		get_last_dir() const;
@@ -243,7 +247,7 @@ public:
 
 	// Get the Slic3r version check url.
 	// This returns a hardcoded string unless it is overriden by "version_check_url" in the ini file.
-	std::string 		version_check_url() const;
+	std::string 		version_check_url(bool stable_only = false) const;
 
 	// Returns the original Slic3r version found in the ini file before it was overwritten
 	// by the current version
@@ -287,6 +291,7 @@ public:
 
 	static const std::string SECTION_FILAMENTS;
     static const std::string SECTION_MATERIALS;
+    static const std::string SECTION_EMBOSS_STYLE;
 
 private:
 	template<typename T>

@@ -208,6 +208,11 @@ const std::string& var_dir()
 
 std::string var(const std::string &file_name)
 {
+    boost::system::error_code ec;
+    if (boost::filesystem::exists(file_name, ec)) {
+       return file_name;
+    }
+
     auto file = (boost::filesystem::path(g_var_dir) / file_name).make_preferred();
     return file.string();
 }
@@ -267,6 +272,9 @@ static std::string g_data_dir;
 void set_data_dir(const std::string &dir)
 {
     g_data_dir = dir;
+    if (!g_data_dir.empty() && !boost::filesystem::exists(g_data_dir)) {
+       boost::filesystem::create_directory(g_data_dir);
+    }
 }
 
 const std::string& data_dir()
@@ -852,70 +860,20 @@ CopyFileResult copy_file(const std::string &from, const std::string &to, std::st
     ::MultiByteToWideChar(CP_UTF8, NULL, dest_str, strlen(dest_str), dst_wstr, dst_wlen);
     dst_wstr[dst_wlen] = '\0';
 
-    BOOL result;
-    char* buff = nullptr;
-    HANDLE handlesrc = nullptr;
-    HANDLE handledst = nullptr;
     CopyFileResult ret = SUCCESS;
-
-    handlesrc = CreateFile(src_wstr,
-        GENERIC_READ,
-        FILE_SHARE_READ,
-        NULL,
-        OPEN_EXISTING,
-        FILE_ATTRIBUTE_TEMPORARY,
-        0);
-    if(handlesrc==INVALID_HANDLE_VALUE){
-        error_message = "Error: open src file";
-        ret = FAIL_COPY_FILE;
-        goto __finished;
-    }
-
-    handledst=CreateFile(dst_wstr,
-        GENERIC_WRITE,
-        FILE_SHARE_READ,
-        NULL,
-        CREATE_ALWAYS,
-        FILE_ATTRIBUTE_TEMPORARY,
-        0);
-    if(handledst==INVALID_HANDLE_VALUE){
-        error_message = "Error: create dest file";
-        ret = FAIL_COPY_FILE;
-        goto __finished;
-    }
-
-    DWORD size=GetFileSize(handlesrc,NULL);
-    buff = new char[size+1];
-    DWORD dwRead=0,dwWrite;
-    result = ReadFile(handlesrc, buff, size, &dwRead, NULL);
+    BOOL result = CopyFileW(src_wstr, dst_wstr, FALSE);
     if (!result) {
         DWORD errCode = GetLastError();
         error_message = "Error: " + errCode;
         ret = FAIL_COPY_FILE;
         goto __finished;
     }
-    buff[size]=0;
-    result = WriteFile(handledst,buff,size,&dwWrite,NULL);
-    if (!result) {
-        DWORD errCode = GetLastError();
-        error_message = "Error: " + errCode;
-        ret = FAIL_COPY_FILE;
-        goto __finished;
-    }
-
-	FlushFileBuffers(handledst);
 
 __finished:
     if (src_wstr)
         delete[] src_wstr;
     if (dst_wstr)
         delete[] dst_wstr;
-    if (handlesrc)
-        CloseHandle(handlesrc);
-    if (handledst)
-        CloseHandle(handledst);
-    if (buff)
-        delete[] buff;
 
     return ret;
 #else
@@ -1270,6 +1228,34 @@ std::string xml_escape(std::string text, bool is_marked/* = false*/)
     return text;
 }
 
+// Definition of escape symbols https://www.w3.org/TR/REC-xml/#AVNormalize
+// During the read of xml attribute normalization of white spaces is applied
+// Soo for not lose white space character it is escaped before store
+std::string xml_escape_double_quotes_attribute_value(std::string text)
+{
+    std::string::size_type pos = 0;
+    for (;;) {
+        pos = text.find_first_of("\"&<\r\n\t", pos);
+        if (pos == std::string::npos) break;
+
+        std::string replacement;
+        switch (text[pos]) {
+        case '\"': replacement = "&quot;"; break;
+        case '&': replacement = "&amp;"; break;
+        case '<': replacement = "&lt;"; break;
+        case '\r': replacement = "&#xD;"; break;
+        case '\n': replacement = "&#xA;"; break;
+        case '\t': replacement = "&#x9;"; break;
+        default: break;
+        }
+
+        text.replace(pos, 1, replacement);
+        pos += replacement.size();
+    }
+
+    return text;
+}
+
 std::string xml_unescape(std::string s)
 {
 	std::string ret;
@@ -1539,6 +1525,24 @@ void copy_directory_recursively(const boost::filesystem::path &source, const boo
         }
     }
     return;
+}
+
+void save_string_file(const boost::filesystem::path& p, const std::string& str)
+{
+    boost::nowide::ofstream file;
+    file.exceptions(std::ios_base::failbit | std::ios_base::badbit);
+    file.open(p.generic_string(), std::ios_base::binary);
+    file.write(str.c_str(), str.size());
+}
+
+void load_string_file(const boost::filesystem::path& p, std::string& str)
+{
+    boost::nowide::ifstream file;
+    file.exceptions(std::ios_base::failbit | std::ios_base::badbit);
+    file.open(p.generic_string(), std::ios_base::binary);
+    std::size_t sz = static_cast<std::size_t>(boost::filesystem::file_size(p));
+    str.resize(sz, '\0');
+    file.read(&str[0], sz);
 }
 
 }; // namespace Slic3r

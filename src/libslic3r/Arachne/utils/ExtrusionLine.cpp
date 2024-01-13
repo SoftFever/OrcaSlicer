@@ -113,8 +113,7 @@ void ExtrusionLine::simplify(const int64_t smallest_line_segment_squared, const 
         //h^2 = (L / b)^2     [square it]
         //h^2 = L^2 / b^2     [factor the divisor]
         const auto    height_2 = int64_t(double(area_removed_so_far) * double(area_removed_so_far) / double(base_length_2));
-        coord_t       weighted_average_width;
-        const int64_t extrusion_area_error = calculateExtrusionAreaDeviationError(previous, current, next, weighted_average_width);
+        const int64_t extrusion_area_error = calculateExtrusionAreaDeviationError(previous, current, next);
         if ((height_2 <= scaled<coord_t>(0.001) //Almost exactly colinear (barring rounding errors).
              && Line::distance_to_infinite(current.p, previous.p, next.p) <= scaled<double>(0.001)) // Make sure that height_2 is not small because of cancellation of positive and negative areas
             // We shouldn't remove middle junctions of colinear segments if the area changed for the C-P segment is exceeding the maximum allowed
@@ -189,8 +188,7 @@ void ExtrusionLine::simplify(const int64_t smallest_line_segment_squared, const 
     junctions = new_junctions;
 }
 
-int64_t ExtrusionLine::calculateExtrusionAreaDeviationError(ExtrusionJunction A, ExtrusionJunction B, ExtrusionJunction C, coord_t& weighted_average_width)
-{
+int64_t ExtrusionLine::calculateExtrusionAreaDeviationError(ExtrusionJunction A, ExtrusionJunction B, ExtrusionJunction C) {
     /*
      * A             B                          C              A                                        C
      * ---------------                                         **************
@@ -208,27 +206,19 @@ int64_t ExtrusionLine::calculateExtrusionAreaDeviationError(ExtrusionJunction A,
      * weighted-average width for the entire extrusion line.
      *
      * */
-    const int64_t ab_length = (B - A).cast<int64_t>().norm();
-    const int64_t bc_length = (C - B).cast<int64_t>().norm();
-    const coord_t width_diff = std::max(std::abs(B.w - A.w), std::abs(C.w - B.w));
-    if (width_diff > 1)
-    {
+    const int64_t ab_length = (B.p - A.p).cast<int64_t>().norm();
+    const int64_t bc_length = (C.p - B.p).cast<int64_t>().norm();
+    if (const coord_t width_diff = std::max(std::abs(B.w - A.w), std::abs(C.w - B.w)); width_diff > 1) {
         // Adjust the width only if there is a difference, or else the rounding errors may produce the wrong
         // weighted average value.
-        const int64_t ab_weight = (A.w + B.w) / 2;
-        const int64_t bc_weight = (B.w + C.w) / 2;
-        assert(((ab_length * ab_weight + bc_length * bc_weight) / (C - A).cast<int64_t>().norm()) <= std::numeric_limits<coord_t>::max());
-        weighted_average_width = (ab_length * ab_weight + bc_length * bc_weight) / (C - A).cast<int64_t>().norm();
-        assert((int64_t(std::abs(ab_weight - weighted_average_width)) * ab_length + int64_t(std::abs(bc_weight - weighted_average_width)) * bc_length) <= double(std::numeric_limits<int64_t>::max()));
-        return std::abs(ab_weight - weighted_average_width) * ab_length + std::abs(bc_weight - weighted_average_width) * bc_length;
-    }
-    else
-    {
+        const int64_t ab_weight              = (A.w + B.w) / 2;
+        const int64_t bc_weight              = (B.w + C.w) / 2;
+        const int64_t weighted_average_width = (ab_length * ab_weight + bc_length * bc_weight) / (ab_length + bc_length);
+        const int64_t ac_length              = (C.p - A.p).cast<int64_t>().norm();
+        return std::abs((ab_weight * ab_length + bc_weight * bc_length) - (weighted_average_width * ac_length));
+    } else {
         // If the width difference is very small, then select the width of the segment that is longer
-        weighted_average_width = ab_length > bc_length ? A.w : B.w;
-        assert((int64_t(width_diff) * int64_t(bc_length)) <= std::numeric_limits<coord_t>::max());
-        assert((int64_t(width_diff) * int64_t(ab_length)) <= std::numeric_limits<coord_t>::max());
-        return ab_length > bc_length ? width_diff * bc_length : width_diff * ab_length;
+        return ab_length > bc_length ? int64_t(width_diff) * bc_length : int64_t(width_diff) * ab_length;
     }
 }
 

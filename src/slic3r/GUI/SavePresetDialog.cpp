@@ -135,7 +135,7 @@ SavePresetDialog::Item::Item(Preset::Type type, const std::string &suffix, wxBox
 
     m_sizer_right->Add(0, 0, 0, wxLEFT, 10);
 
-    auto m_right_text = new wxStaticText(parent, wxID_ANY, _L("Project Inside Preset"), wxDefaultPosition, wxDefaultSize, 0);
+    auto m_right_text = new wxStaticText(parent, wxID_ANY, _L("Preset Inside Project"), wxDefaultPosition, wxDefaultSize, 0);
     m_right_text->SetForegroundColour(wxColour(107,107,107));
     m_right_text->SetFont(::Label::Body_13);
     m_right_text->Wrap(-1);

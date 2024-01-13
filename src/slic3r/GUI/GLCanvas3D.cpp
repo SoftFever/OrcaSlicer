@@ -41,6 +41,7 @@
 #include "I18N.hpp"
 #include "NotificationManager.hpp"
 #include "format.hpp"
+#include "DailyTips.hpp"
 
 #include "slic3r/GUI/Gizmos/GLGizmoPainterBase.hpp"
 #include "slic3r/Utils/UndoRedo.hpp"
@@ -1134,6 +1135,7 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, Bed3D &bed)
     , m_moving(false)
     , m_tab_down(false)
     , m_cursor_type(Standard)
+    , m_color_by("volume")
     , m_reload_delayed(false)
     , m_render_sla_auxiliaries(true)
     , m_labels(*this)
@@ -1234,6 +1236,8 @@ void GLCanvas3D::on_change_color_mode(bool is_dark, bool reinit) {
     wxGetApp().imgui()->on_change_color_mode(is_dark);
     // Notification
     wxGetApp().plater()->get_notification_manager()->on_change_color_mode(is_dark);
+    // DailyTips Window
+    wxGetApp().plater()->get_dailytips()->on_change_color_mode(is_dark);
     // Preview Slider
     IMSlider* m_layers_slider = get_gcode_viewer().get_layers_slider();
     IMSlider* m_moves_slider = get_gcode_viewer().get_moves_slider();
@@ -1472,6 +1476,11 @@ Camera& GLCanvas3D::get_camera()
     return camera;
 }
 
+void GLCanvas3D::set_color_by(const std::string& value)
+{
+    m_color_by = value;
+}
+
 void GLCanvas3D::refresh_camera_scene_box()
 {
     wxGetApp().plater()->get_camera().set_scene_box(scene_bounding_box());
@@ -1579,7 +1588,6 @@ void GLCanvas3D::enable_legend_texture(bool enable)
 void GLCanvas3D::enable_picking(bool enable)
 {
     m_picking_enabled = enable;
-    m_selection.set_mode(Selection::Instance);
 }
 
 void GLCanvas3D::enable_moving(bool enable)
@@ -1708,63 +1716,30 @@ void GLCanvas3D::update_volumes_colors_by_extruder()
         m_volumes.update_colors_by_extruder(m_config);
 }
 
-float GLCanvas3D::get_collapse_toolbar_width()
+bool GLCanvas3D::is_collapse_toolbar_on_left() const
 {
-    GLToolbar& collapse_toolbar = wxGetApp().plater()->get_collapse_toolbar();
-
-    return collapse_toolbar.is_enabled() ? collapse_toolbar.get_width() : 0;
+    auto state = wxGetApp().plater()->get_sidebar_docking_state();
+    return state == Sidebar::Left;
 }
 
-float GLCanvas3D::get_collapse_toolbar_height()
+float GLCanvas3D::get_collapse_toolbar_width() const
 {
     GLToolbar& collapse_toolbar = wxGetApp().plater()->get_collapse_toolbar();
+    const auto state            = wxGetApp().plater()->get_sidebar_docking_state();
 
-    return collapse_toolbar.is_enabled() ? collapse_toolbar.get_height() : 0;
+    return state != Sidebar::None ? collapse_toolbar.get_width() : 0;
+}
+
+float GLCanvas3D::get_collapse_toolbar_height() const
+{
+    GLToolbar& collapse_toolbar = wxGetApp().plater()->get_collapse_toolbar();
+    const auto state            = wxGetApp().plater()->get_sidebar_docking_state();
+
+    return state != Sidebar::None ? collapse_toolbar.get_height() : 0;
 }
 
 bool GLCanvas3D::make_current_for_postinit() {
     return _set_current();
-}
-
-Points GLCanvas3D::estimate_wipe_tower_points(int plate_index, bool global) const
-{
-    PartPlateList &     ppl         = wxGetApp().plater()->get_partplate_list();
-    DynamicPrintConfig &proj_cfg    = wxGetApp().preset_bundle->project_config;
-    auto &              print       = wxGetApp().plater()->get_partplate_list().get_current_fff_print();
-    int                 plate_count = ppl.get_plate_count();
-    float               x           = dynamic_cast<const ConfigOptionFloats *>(proj_cfg.option("wipe_tower_x"))->get_at(plate_index);
-    float               y           = dynamic_cast<const ConfigOptionFloats *>(proj_cfg.option("wipe_tower_y"))->get_at(plate_index);
-    if (plate_index >= plate_count) { plate_index = 0; }
-    float w               = dynamic_cast<const ConfigOptionFloat *>(m_config->option("prime_tower_width"))->value;
-    auto part_plate = ppl.get_plate(plate_index);
-    const auto &wipe_tower_data = print.wipe_tower_data(part_plate->get_extruders(true).size());
-    // float v               = dynamic_cast<const ConfigOptionFloat *>(m_config->option("prime_volume"))->value;
-    const DynamicPrintConfig &print_cfg   = wxGetApp().preset_bundle->prints.get_edited_preset().config;
-    Vec3d         wipe_tower_size = part_plate->estimate_wipe_tower_size(print_cfg, w, wipe_tower_data.depth);
-
-    if (wipe_tower_size(1) == 0) {
-        // when depth is unavailable (no items on this plate), we have to estimate the depth using the extruder number of all plates
-        std::set<int> extruder_ids;
-        if (global) {
-            auto objs = wxGetApp().obj_list()->objects();
-            for (ModelObject *obj : *objs) {
-                for (ModelVolume *volume : obj->volumes) {
-                    std::vector<int> es = volume->get_extruders();
-                    extruder_ids.insert(es.begin(), es.end());
-                }
-            }
-        } else {
-            PartPlate* pl = ppl.get_plate(plate_index);
-            std::vector<int> es = pl->get_extruders();
-            extruder_ids.insert(es.begin(), es.end());
-        }
-        int extruder_size  = extruder_ids.size();
-        wipe_tower_size(1) = extruder_size * print.wipe_tower_data(extruder_size).depth + 2 * print.wipe_tower_data().brim_width;
-    }
-    Vec3d plate_origin = ppl.get_plate(plate_index)->get_origin();
-    Point wt_min_corner{scale_(x), scale_(y)};
-    Point wt_max_corner(scale_(x + wipe_tower_size(0)), scale_(y + wipe_tower_size(1)));
-    return {wt_min_corner, {wt_max_corner.x(), wt_min_corner.y()}, wt_max_corner, {wt_min_corner.x(), wt_max_corner.y()}};
 }
 
 void GLCanvas3D::render(bool only_init)
@@ -2021,6 +1996,7 @@ void GLCanvas3D::render(bool only_init)
             bottom_margin = SLIDER_BOTTOM_MARGIN * scale_factor * GCODE_VIEWER_SLIDER_SCALE;
         }
         wxGetApp().plater()->get_notification_manager()->render_notifications(*this, get_overlay_window_width(), bottom_margin, right_margin);
+        wxGetApp().plater()->get_dailytips()->render();
     }
 
     wxGetApp().imgui()->render();
@@ -2037,7 +2013,11 @@ void GLCanvas3D::render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w,
 void GLCanvas3D::render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params,
     const GLVolumeCollection& volumes, Camera::EType camera_type, bool use_top_view, bool for_picking)
 {
-    GLShaderProgram* shader = wxGetApp().get_shader("thumbnail");
+    GLShaderProgram* shader = nullptr;
+    if (for_picking)
+        shader = wxGetApp().get_shader("flat");
+    else
+        shader = wxGetApp().get_shader("thumbnail");
     ModelObjectPtrs& model_objects = GUI::wxGetApp().model().objects;
     std::vector<ColorRGBA> colors = ::get_extruders_colors();
     switch (OpenGLManager::get_framebuffers_type())
@@ -2065,6 +2045,11 @@ void GLCanvas3D::render_calibration_thumbnail(ThumbnailData& thumbnail_data, uns
 void GLCanvas3D::select_curr_plate_all()
 {
     m_selection.add_curr_plate();
+    m_dirty = true;
+}
+
+void GLCanvas3D::select_object_from_idx(std::vector<int>& object_idxs) {
+    m_selection.add_object_from_idx(object_idxs);
     m_dirty = true;
 }
 
@@ -2173,7 +2158,7 @@ std::vector<int> GLCanvas3D::load_object(const ModelObject& model_object, int ob
             instance_idxs.emplace_back(i);
         }
     }
-    return m_volumes.load_object(&model_object, obj_idx, instance_idxs);
+    return m_volumes.load_object(&model_object, obj_idx, instance_idxs, m_color_by, m_initialized);
 }
 
 std::vector<int> GLCanvas3D::load_object(const Model& model, int obj_idx)
@@ -2189,7 +2174,17 @@ std::vector<int> GLCanvas3D::load_object(const Model& model, int obj_idx)
 
 void GLCanvas3D::mirror_selection(Axis axis)
 {
-    m_selection.mirror(axis);
+    TransformationType transformation_type;
+    if (wxGetApp().obj_manipul()->is_local_coordinates())
+        transformation_type.set_local();
+    else if (wxGetApp().obj_manipul()->is_instance_coordinates())
+        transformation_type.set_instance();
+
+    transformation_type.set_relative();
+
+    m_selection.setup_cache();
+    m_selection.mirror(axis, transformation_type);
+
     do_mirror(L("Mirror Object"));
     // BBS
     //wxGetApp().obj_manipul()->set_dirty();
@@ -2484,7 +2479,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                     // Note the index of the loaded volume, so that we can reload the main model GLVolume with the hollowed mesh
                     // later in this function.
                     it->volume_idx = m_volumes.volumes.size();
-                    m_volumes.load_object_volume(&model_object, obj_idx, volume_idx, instance_idx, m_canvas_type == ECanvasType::CanvasAssembleView);
+                    m_volumes.load_object_volume(&model_object, obj_idx, volume_idx, instance_idx, m_color_by, m_initialized, m_canvas_type == ECanvasType::CanvasAssembleView);
                     m_volumes.volumes.back()->geometry_id = key.geometry_id;
                     update_object_list = true;
                 } else {
@@ -2638,19 +2633,36 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                 const DynamicPrintConfig &print_cfg   = wxGetApp().preset_bundle->prints.get_edited_preset().config;
                 Vec3d wipe_tower_size = ppl.get_plate(plate_id)->estimate_wipe_tower_size(print_cfg, w, wipe_tower_data.depth);
 
-                const float margin = 15.f;
+                const float margin = WIPE_TOWER_MARGIN;
                 BoundingBoxf3 plate_bbox = wxGetApp().plater()->get_partplate_list().get_plate(plate_id)->get_bounding_box();
                 coordf_t plate_bbox_x_max_local_coord = plate_bbox.max(0) - plate_origin(0);
                 coordf_t plate_bbox_y_max_local_coord = plate_bbox.max(1) - plate_origin(1);
+                bool need_update = false;
                 if (x + margin + wipe_tower_size(0) > plate_bbox_x_max_local_coord) {
                     x = plate_bbox_x_max_local_coord - wipe_tower_size(0) - margin;
+                    need_update = true;
+                }
+                else if (x < margin) {
+                    x = margin;
+                    need_update = true;
+                }
+                if (need_update) {
                     ConfigOptionFloat wt_x_opt(x);
                     dynamic_cast<ConfigOptionFloats *>(proj_cfg.option("wipe_tower_x"))->set_at(&wt_x_opt, plate_id, 0);
+                    need_update = false;
                 }
+
                 if (y + margin + wipe_tower_size(1) > plate_bbox_y_max_local_coord) {
                     y = plate_bbox_y_max_local_coord - wipe_tower_size(1) - margin;
+                    need_update = true;
+                }
+                else if (y < margin) {
+                    y = margin;
+                    need_update = true;
+                }
+                if (need_update) {
                     ConfigOptionFloat wt_y_opt(y);
-                    dynamic_cast<ConfigOptionFloats*>(proj_cfg.option("wipe_tower_y"))->set_at(&wt_y_opt, plate_id, 0);
+                    dynamic_cast<ConfigOptionFloats *>(proj_cfg.option("wipe_tower_y"))->set_at(&wt_y_opt, plate_id, 0);
                 }
 
                 int volume_idx_wipe_tower_new = m_volumes.load_wipe_tower_preview(
@@ -2756,7 +2768,7 @@ void GLCanvas3D::load_shells(const Print& print, bool force_previewing)
 {
     if (m_initialized)
     {
-        m_gcode_viewer.load_shells(print, force_previewing);
+        m_gcode_viewer.load_shells(print, m_initialized, force_previewing);
         m_gcode_viewer.update_shells_color_by_extruder(m_config);
     }
 }
@@ -3122,6 +3134,14 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
 #endif /* __APPLE__ */
             post_event(SimpleEvent(EVT_GLTOOLBAR_DELETE_ALL));
             break;
+#ifdef __APPLE__
+        case 'k':
+        case 'K':
+#else /* __APPLE__ */
+        case WXK_CONTROL_K:
+#endif /* __APPLE__ */
+            post_event(SimpleEvent(EVT_GLTOOLBAR_CLONE));
+            break;
         default:            evt.Skip();
         }
     } else {
@@ -3196,7 +3216,7 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         //case 'B':
         //case 'b': { zoom_to_bed(); break; }
         case 'C':
-        case 'c': { m_gcode_viewer.toggle_gcode_window_visibility(); m_dirty = true; request_extra_frame(); break; }
+        case 'c': { wxGetApp().toggle_show_gcode_window(); m_dirty = true; request_extra_frame(); break; }
         //case 'G':
         //case 'g': {
         //    if ((evt.GetModifiers() & shiftMask) != 0) {
@@ -3205,8 +3225,8 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         //    }
         //    break;
         //}
-        //case 'I':
-        //case 'i': { _update_camera_zoom(1.0); break; }
+        case 'I':
+        case 'i': { _update_camera_zoom(1.0); break; }
         //case 'K':
         //case 'k': { wxGetApp().plater()->get_camera().select_next_type(); m_dirty = true; break; }
         //case 'L':
@@ -3218,8 +3238,8 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
             //}
             //break;
         //}
-        //case 'O':
-        //case 'o': { _update_camera_zoom(-1.0); break; }
+        case 'O':
+        case 'o': { _update_camera_zoom(-1.0); break; }
         //case 'Z':
         //case 'z': {
         //    if (!m_selection.is_empty())
@@ -3357,7 +3377,9 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
             else
                 displacement = multiplier * direction;
 
-            m_selection.translate(displacement);
+            TransformationType trafo_type;
+            trafo_type.set_relative();
+            m_selection.translate(displacement, trafo_type);
             m_dirty = true;
         }
     );}
@@ -3493,10 +3515,7 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                 }
                 else if (keyCode == WXK_CONTROL)
                     m_dirty = true;
-                else if (keyCode == WXK_TAB && evt.ShiftDown() && !evt.ControlDown() && !wxGetApp().is_gcode_viewer()) {
-                    // Collapse side-panel with Shift+Tab
-                    post_event(SimpleEvent(EVT_GLCANVAS_COLLAPSE_SIDEBAR));
-                } else if (m_gizmos.is_enabled() && !m_selection.is_empty() && m_canvas_type != CanvasAssembleView) {
+                else if (m_gizmos.is_enabled() && !m_selection.is_empty() && m_canvas_type != CanvasAssembleView) {
                     auto _do_rotate = [this](double angle_z_rad) {
                         m_selection.setup_cache();
                         m_selection.rotate(Vec3d(0.0, 0.0, angle_z_rad), TransformationType(TransformationType::World_Relative_Joint));
@@ -4132,7 +4151,9 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                     }
                 }
 
-                m_selection.translate(cur_pos - m_mouse.drag.start_position_3D);
+                TransformationType trafo_type;
+                trafo_type.set_relative();
+                m_selection.translate(cur_pos - m_mouse.drag.start_position_3D, trafo_type);
                 if (current_printer_technology() == ptFFF && (fff_print()->config().print_sequence == PrintSequence::ByObject))
                     update_sequential_clearance();
                 // BBS
@@ -4360,6 +4381,40 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     else
         evt.Skip();
 
+    // Detection of doubleclick on text to open emboss edit window
+    auto type = m_gizmos.get_current_type();
+    if (evt.LeftDClick() && !m_hover_volume_idxs.empty() && 
+        (type == GLGizmosManager::EType::Undefined ||
+         type == GLGizmosManager::EType::Move ||
+         type == GLGizmosManager::EType::Rotate ||
+         type == GLGizmosManager::EType::Scale ||
+         type == GLGizmosManager::EType::Emboss ||
+         type == GLGizmosManager::EType::Svg) ) {
+        for (int hover_volume_id : m_hover_volume_idxs) { 
+            const GLVolume &hover_gl_volume = *m_volumes.volumes[hover_volume_id];
+            int object_idx = hover_gl_volume.object_idx();
+            if (object_idx < 0 || static_cast<size_t>(object_idx) >= m_model->objects.size()) continue;
+            const ModelObject* hover_object = m_model->objects[object_idx];
+            int hover_volume_idx = hover_gl_volume.volume_idx();
+            if (hover_volume_idx < 0 || static_cast<size_t>(hover_volume_idx) >= hover_object->volumes.size()) continue;
+            const ModelVolume* hover_volume = hover_object->volumes[hover_volume_idx];
+
+            if (hover_volume->text_configuration.has_value()) {
+                m_selection.add_volumes(Selection::EMode::Volume, {(unsigned) hover_volume_id});
+                if (type != GLGizmosManager::EType::Emboss)
+                    m_gizmos.open_gizmo(GLGizmosManager::EType::Emboss);            
+                wxGetApp().obj_list()->update_selections();
+                return;
+            } else if (hover_volume->emboss_shape.has_value()) {
+                m_selection.add_volumes(Selection::EMode::Volume, {(unsigned) hover_volume_id});
+                if (type != GLGizmosManager::EType::Svg)
+                    m_gizmos.open_gizmo(GLGizmosManager::EType::Svg);
+                wxGetApp().obj_list()->update_selections();
+                return;
+            }
+        }
+    }
+
     if (m_moving)
         show_sinking_contours();
 
@@ -4456,6 +4511,9 @@ void GLCanvas3D::do_move(const std::string& snapshot_type)
         int instance_idx = v->instance_idx();
         int volume_idx = v->volume_idx();
 
+        if (volume_idx < 0)
+            continue;
+
         std::pair<int, int> done_id(object_idx, instance_idx);
 
         if (0 <= object_idx && object_idx < (int)m_model->objects.size()) {
@@ -4465,10 +4523,10 @@ void GLCanvas3D::do_move(const std::string& snapshot_type)
             ModelObject* model_object = m_model->objects[object_idx];
             if (model_object != nullptr) {
                 if (selection_mode == Selection::Instance)
-                    model_object->instances[instance_idx]->set_offset(v->get_instance_offset());
+                    model_object->instances[instance_idx]->set_transformation(v->get_instance_transformation());
                 else if (selection_mode == Selection::Volume) {
-                    if (model_object->volumes[volume_idx]->get_offset() != v->get_volume_offset()) {
-                        model_object->volumes[volume_idx]->set_offset(v->get_volume_offset());
+                    if (model_object->volumes[volume_idx]->get_transformation() != v->get_volume_transformation()) {
+                        model_object->volumes[volume_idx]->set_transformation(v->get_volume_transformation());
                         // BBS: backup
                         Slic3r::save_object_mesh(*model_object);
                     }
@@ -4560,26 +4618,26 @@ void GLCanvas3D::do_rotate(const std::string& snapshot_type)
     Selection::EMode selection_mode = m_selection.get_mode();
 
     for (const GLVolume* v : m_volumes.volumes) {
-        int object_idx = v->object_idx();
+        const int object_idx = v->object_idx();
         if (object_idx < 0 || (int)m_model->objects.size() <= object_idx)
             continue;
 
-        int instance_idx = v->instance_idx();
-        int volume_idx = v->volume_idx();
+        const int instance_idx = v->instance_idx();
+        const int volume_idx = v->volume_idx();
+
+        if (volume_idx < 0)
+            continue;
 
         done.insert(std::pair<int, int>(object_idx, instance_idx));
 
         // Rotate instances/volumes.
         ModelObject* model_object = m_model->objects[object_idx];
         if (model_object != nullptr) {
-            if (selection_mode == Selection::Instance) {
-                model_object->instances[instance_idx]->set_rotation(v->get_instance_rotation());
-                model_object->instances[instance_idx]->set_offset(v->get_instance_offset());
-            }
+            if (selection_mode == Selection::Instance)
+                model_object->instances[instance_idx]->set_transformation(v->get_instance_transformation());
             else if (selection_mode == Selection::Volume) {
-                if (model_object->volumes[volume_idx]->get_rotation() != v->get_volume_rotation()) {
-                    model_object->volumes[volume_idx]->set_rotation(v->get_volume_rotation());
-                    model_object->volumes[volume_idx]->set_offset(v->get_volume_offset());
+                if (model_object->volumes[volume_idx]->get_transformation() != v->get_volume_transformation()) {
+                	model_object->volumes[volume_idx]->set_transformation(v->get_volume_transformation());
                     // BBS: backup
                     Slic3r::save_object_mesh(*model_object);
                 }
@@ -4641,27 +4699,27 @@ void GLCanvas3D::do_scale(const std::string& snapshot_type)
     Selection::EMode selection_mode = m_selection.get_mode();
 
     for (const GLVolume* v : m_volumes.volumes) {
-        int object_idx = v->object_idx();
+        const int object_idx = v->object_idx();
         if (object_idx < 0 || (int)m_model->objects.size() <= object_idx)
             continue;
 
-        int instance_idx = v->instance_idx();
-        int volume_idx = v->volume_idx();
+        const int instance_idx = v->instance_idx();
+        const int volume_idx = v->volume_idx();
+
+        if (volume_idx < 0)
+            continue;
 
         done.insert(std::pair<int, int>(object_idx, instance_idx));
 
         // Rotate instances/volumes
         ModelObject* model_object = m_model->objects[object_idx];
         if (model_object != nullptr) {
-            if (selection_mode == Selection::Instance) {
-                model_object->instances[instance_idx]->set_scaling_factor(v->get_instance_scaling_factor());
-                model_object->instances[instance_idx]->set_offset(v->get_instance_offset());
-            }
+            if (selection_mode == Selection::Instance)
+                model_object->instances[instance_idx]->set_transformation(v->get_instance_transformation());
             else if (selection_mode == Selection::Volume) {
-                if (model_object->volumes[volume_idx]->get_scaling_factor() != v->get_volume_scaling_factor()) {
-                    model_object->instances[instance_idx]->set_offset(v->get_instance_offset());
-                    model_object->volumes[volume_idx]->set_scaling_factor(v->get_volume_scaling_factor());
-                    model_object->volumes[volume_idx]->set_offset(v->get_volume_offset());
+                if (model_object->volumes[volume_idx]->get_transformation() != v->get_volume_transformation()) {
+                    model_object->instances[instance_idx]->set_transformation(v->get_instance_transformation());
+                    model_object->volumes[volume_idx]->set_transformation(v->get_volume_transformation());
                     // BBS: backup
                     Slic3r::save_object_mesh(*model_object);
                 }
@@ -4708,6 +4766,13 @@ void GLCanvas3D::do_center()
     m_selection.center();
 }
 
+void GLCanvas3D::do_center_plate(const int plate_idx) {
+    if (m_model == nullptr)
+        return;
+
+    m_selection.center_plate(plate_idx);
+}
+
 void GLCanvas3D::do_mirror(const std::string& snapshot_type)
 {
     if (m_model == nullptr)
@@ -4745,10 +4810,10 @@ void GLCanvas3D::do_mirror(const std::string& snapshot_type)
         ModelObject* model_object = m_model->objects[object_idx];
         if (model_object != nullptr) {
             if (selection_mode == Selection::Instance)
-                model_object->instances[instance_idx]->set_mirror(v->get_instance_mirror());
+                model_object->instances[instance_idx]->set_transformation(v->get_instance_transformation());
             else if (selection_mode == Selection::Volume) {
-                if (model_object->volumes[volume_idx]->get_mirror() != v->get_volume_mirror()) {
-                    model_object->volumes[volume_idx]->set_mirror(v->get_volume_mirror());
+                if (model_object->volumes[volume_idx]->get_transformation() != v->get_volume_transformation()) {
+                    model_object->volumes[volume_idx]->set_transformation(v->get_volume_transformation());
                     // BBS: backup
                     Slic3r::save_object_mesh(*model_object);
                 }
@@ -4838,11 +4903,6 @@ void GLCanvas3D::update_ui_from_settings()
         _refresh_if_shown_on_screen();
     }
 #endif // ENABLE_RETINA_GL
-
-#ifdef SUPPORT_COLLAPSE_BUTTON
-    if (wxGetApp().is_editor())
-        wxGetApp().plater()->enable_collapse_toolbar(wxGetApp().app_config->get("show_collapse_button") == "1");
-#endif
 }
 
 // BBS: add partplate logic
@@ -4867,6 +4927,12 @@ GLCanvas3D::WipeTowerInfo GLCanvas3D::get_wipe_tower_info(int plate_idx) const
 
             float brim_width = wxGetApp().preset_bundle->prints.get_edited_preset().config.opt_float("prime_tower_brim_width");
             wti.m_bb.offset((brim_width));
+
+            // BBS: the wipe tower pos might be outside bed
+            PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_plate(plate_idx);
+            Vec2d plate_size = plate->get_size();
+            wti.m_pos.x() = std::clamp(wti.m_pos.x(), 0.0, plate_size(0) - wti.m_bb.size().x());
+            wti.m_pos.y() = std::clamp(wti.m_pos.y(), 0.0, plate_size(1) - wti.m_bb.size().y());
 
             // BBS: add partplate logic
             wti.m_plate_idx = plate_idx;
@@ -4898,8 +4964,8 @@ std::vector<Vec2f> GLCanvas3D::get_empty_cells(const Vec2f start_point, const Ve
     Vec2d vmin(build_volume.min.x(), build_volume.min.y()), vmax(build_volume.max.x(), build_volume.max.y());
     BoundingBoxf bbox(vmin, vmax);
     std::vector<Vec2f> cells;
-    for (float x = bbox.min.x(); x < bbox.max.x(); x += step(0))
-        for (float y = bbox.min.y(); y < bbox.max.y(); y += step(1))
+    for (float x = bbox.min.x()+step(0)/2; x < bbox.max.x()-step(0)/2; x += step(0))
+        for (float y = bbox.min.y()+step(1)/2; y < bbox.max.y()-step(1)/2; y += step(1))
         {
             cells.emplace_back(x, y);
         }
@@ -5196,6 +5262,14 @@ bool GLCanvas3D::is_object_sinking(int object_idx) const
             return true;
     }
     return false;
+}
+
+void GLCanvas3D::apply_retina_scale(Vec2d &screen_coordinate) const 
+{
+#if ENABLE_RETINA_GL
+    double scale = static_cast<double>(m_retina_helper->get_scale_factor());
+    screen_coordinate *= scale;
+#endif // ENABLE_RETINA_GL
 }
 
 bool GLCanvas3D::_is_shown_on_screen() const
@@ -5547,12 +5621,12 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
     double width = volumes_box.max.x() - volumes_box.min.x();
     double depth = volumes_box.max.y() - volumes_box.min.y();
     double height = volumes_box.max.z() - volumes_box.min.z();
-    volumes_box.max.x() = volumes_box.max.x() + width * 0.1f;
-    volumes_box.min.x() = volumes_box.min.x() - width * 0.1f;
-    volumes_box.max.y() = volumes_box.max.y() + depth * 0.1f;
-    volumes_box.min.y() = volumes_box.min.y() - depth * 0.1f;
-    volumes_box.max.z() = volumes_box.max.z() + height * 0.1f;
-    volumes_box.min.z() = volumes_box.min.z() - height * 0.1f;
+    volumes_box.max.x() = volumes_box.max.x() + width * 0.01f;
+    volumes_box.min.x() = volumes_box.min.x() - width * 0.01f;
+    volumes_box.max.y() = volumes_box.max.y() + depth * 0.01f;
+    volumes_box.min.y() = volumes_box.min.y() - depth * 0.01f;
+    volumes_box.max.z() = volumes_box.max.z() + height * 0.01f;
+    volumes_box.min.z() = volumes_box.min.z() - height * 0.01f;
 
     Camera camera;
     camera.set_type(camera_type);
@@ -5581,8 +5655,8 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
         //camera.select_view("top");
     }
     else {
-        camera.zoom_to_box(volumes_box);
         camera.select_view("iso");
+        camera.zoom_to_box(volumes_box);
     }
 
     const Transform3d &view_matrix = camera.get_view_matrix();
@@ -5608,6 +5682,7 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
         //if (OpenGLManager::can_multisample())
               // This flag is often ignored by NVIDIA drivers if rendering into a screen buffer.
         //    glsafe(::glDisable(GL_MULTISAMPLE));
+        shader->start_using();
 
         glsafe(::glDisable(GL_BLEND));
 
@@ -5639,8 +5714,6 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
             const Transform3d model_matrix = vol->world_matrix();
             shader->set_uniform("view_model_matrix", view_matrix * model_matrix);
             shader->set_uniform("projection_matrix", projection_matrix);
-            const Matrix3d view_normal_matrix = view_matrix.matrix().block(0, 0, 3, 3) * model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose();
-            shader->set_uniform("view_normal_matrix", view_normal_matrix); 
             vol->simple_render(shader, model_objects, extruder_colors);
             vol->is_active = is_active;
         }
@@ -6123,6 +6196,7 @@ bool GLCanvas3D::_init_main_toolbar()
     item.left.render_callback = nullptr;
     item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_SPLIT_OBJECTS)); };
     item.visibility_callback = GLToolbarItem::Default_Visibility_Callback;
+    item.left.toggable = false;
     item.enabling_callback = []()->bool { return wxGetApp().plater()->can_split_to_objects(); };
     if (!m_main_toolbar.add_item(item))
         return false;
@@ -7096,6 +7170,10 @@ void GLCanvas3D::_render_selection_center()
 
 void GLCanvas3D::_check_and_update_toolbar_icon_scale()
 {
+    // Update collapse toolbar
+    GLToolbar& collapse_toolbar = wxGetApp().plater()->get_collapse_toolbar();
+    collapse_toolbar.set_enabled(wxGetApp().plater()->get_sidebar_docking_state() != Sidebar::None);
+
     // Don't update a toolbar scale, when we are on a Preview
     if (wxGetApp().plater()->is_preview_shown()) {
         IMSlider   *m_layers_slider = get_gcode_viewer().get_layers_slider();
@@ -7123,31 +7201,32 @@ void GLCanvas3D::_check_and_update_toolbar_icon_scale()
     //float main_size = GLGizmosManager::Default_Icons_Size * scale;
 
     // Set current size for all top toolbars. It will be used for next calculations
-    GLToolbar& collapse_toolbar = wxGetApp().plater()->get_collapse_toolbar();
 #if ENABLE_RETINA_GL
     const float sc = m_retina_helper->get_scale_factor() * scale;
     //BBS: GUI refactor: GLToolbar
     m_main_toolbar.set_scale(sc);
     m_assemble_view_toolbar.set_scale(sc);
     m_separator_toolbar.set_scale(sc);
-    collapse_toolbar.set_scale(sc);
+    collapse_toolbar.set_scale(sc / 2.0);
     size *= m_retina_helper->get_scale_factor();
 
     auto* m_notification = wxGetApp().plater()->get_notification_manager();
     m_notification->set_scale(sc);
+    m_gizmos.set_overlay_scale(sc);
 #else
     //BBS: GUI refactor: GLToolbar
     m_main_toolbar.set_icons_size(GLGizmosManager::Default_Icons_Size * scale);
     m_assemble_view_toolbar.set_icons_size(size);
     m_separator_toolbar.set_icons_size(size);
-    collapse_toolbar.set_icons_size(size);
+    collapse_toolbar.set_icons_size(size / 2.0);
+    m_gizmos.set_overlay_icon_size(size);
 #endif // ENABLE_RETINA_GL
 
     //BBS: GUI refactor: GLToolbar
 #if BBS_TOOLBAR_ON_TOP
-    float collapse_toolbar_width = collapse_toolbar.is_enabled() ? collapse_toolbar.get_width() : GLToolbar::Default_Icons_Size;
+    float collapse_toolbar_width = collapse_toolbar.is_enabled() ? collapse_toolbar.get_width() : 0;
 
-    float top_tb_width = m_main_toolbar.get_width() + m_gizmos.get_scaled_total_width() + m_assemble_view_toolbar.get_width() + m_separator_toolbar.get_width() + collapse_toolbar_width;
+    float top_tb_width = m_main_toolbar.get_width() + m_gizmos.get_scaled_total_width() + m_assemble_view_toolbar.get_width() + m_separator_toolbar.get_width() + collapse_toolbar_width * 2;
     int   items_cnt = m_main_toolbar.get_visible_items_cnt() + m_gizmos.get_selectable_icons_cnt() + m_assemble_view_toolbar.get_visible_items_cnt() + m_separator_toolbar.get_visible_items_cnt() + collapse_toolbar.get_visible_items_cnt();
     float noitems_width = top_tb_width - size * items_cnt; // width of separators and borders in top toolbars
 
@@ -7193,31 +7272,6 @@ void GLCanvas3D::_render_overlays()
 
     _render_assemble_control();
     _render_assemble_info();
-
-    // main toolbar and undoredo toolbar need to be both updated before rendering because both their sizes are needed
-    // to correctly place them
-#if ENABLE_RETINA_GL
-    const float scale = m_retina_helper->get_scale_factor() * wxGetApp().toolbar_icon_scale(/*true*/);
-    //BBS: GUI refactor: GLToolbar
-    m_main_toolbar.set_scale(scale);
-    m_assemble_view_toolbar.set_scale(scale);
-    m_separator_toolbar.set_scale(scale);
-    wxGetApp().plater()->get_collapse_toolbar().set_scale(scale);
-    m_gizmos.set_overlay_scale(scale);
-#else
-    // BBS adjust display scale
-    const float size = int(GLToolbar::Default_Icons_Size * wxGetApp().toolbar_icon_scale(/*true*/));
-    const float gizmo_size = int(GLGizmosManager::Default_Icons_Size * wxGetApp().toolbar_icon_scale());
-    //const float size = int(GLToolbar::Default_Icons_Size);
-    //const float gizmo_size = int(GLGizmosManager::Default_Icons_Size);
-
-    //BBS: GUI refactor: GLToolbar
-    m_main_toolbar.set_icons_size(gizmo_size);
-    m_assemble_view_toolbar.set_icons_size(gizmo_size);
-    m_separator_toolbar.set_icons_size(gizmo_size);
-    wxGetApp().plater()->get_collapse_toolbar().set_icons_size(size);
-    m_gizmos.set_overlay_icon_size(gizmo_size);
-#endif // ENABLE_RETINA_GL
 
     _render_separator_toolbar_right();
     _render_separator_toolbar_left();
@@ -7420,6 +7474,23 @@ void GLCanvas3D::_render_gizmos_overlay()
     }
 }
 
+float GLCanvas3D::get_main_toolbar_offset() const
+{
+    const float cnv_width              = get_canvas_size().get_width();
+    const float collapse_toolbar_width = get_collapse_toolbar_width() * 2;
+    const float gizmo_width            = m_gizmos.get_scaled_total_width();
+    const float assemble_width         = m_assemble_view_toolbar.get_width();
+    const float separator_width        = m_separator_toolbar.get_width();
+    const float toolbar_total_width    = m_main_toolbar.get_width() + separator_width + gizmo_width + assemble_width + collapse_toolbar_width;
+
+    if (cnv_width < toolbar_total_width) {
+        return is_collapse_toolbar_on_left() ? collapse_toolbar_width : 0;
+    } else {
+        const float offset = (cnv_width - toolbar_total_width) / 2;
+        return is_collapse_toolbar_on_left() ? offset + collapse_toolbar_width : offset;
+    }
+}
+
 //BBS: GUI refactor: GLToolbar adjust
 //when rendering, {0, 0} is at the center, left-up is -0.5, 0.5, right-up is 0.5, -0.5
 void GLCanvas3D::_render_main_toolbar()
@@ -7430,12 +7501,7 @@ void GLCanvas3D::_render_main_toolbar()
     const Size cnv_size = get_canvas_size();
     const float top = 0.5f * (float)cnv_size.get_height();
 
-    GLToolbar& collapse_toolbar = wxGetApp().plater()->get_collapse_toolbar();
-    const float collapse_toolbar_width = collapse_toolbar.is_enabled() ? collapse_toolbar.get_width() : 0.0f;
-    const float gizmo_width = m_gizmos.get_scaled_total_width();
-    const float assemble_width = m_assemble_view_toolbar.get_width();
-    const float separator_width = m_separator_toolbar.get_width();
-    const float left = std::max(-0.5f * cnv_size.get_width(), -0.5f * (m_main_toolbar.get_width() + separator_width + gizmo_width + assemble_width - collapse_toolbar_width));
+    const float left = -0.5f * cnv_size.get_width() + get_main_toolbar_offset();
     m_main_toolbar.set_position(top, left);
     m_main_toolbar.render(*this);
     if (m_toolbar_highlighter.m_render_arrow)
@@ -7566,7 +7632,8 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 4.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 3.0f);
 
-    imgui.set_next_window_pos(canvas_w * 0, canvas_h * 0, ImGuiCond_Always, 0, 0);
+    const float y_offset = is_collapse_toolbar_on_left() ? (get_collapse_toolbar_height() + 5) : 0;
+    imgui.set_next_window_pos(canvas_w * 0, canvas_h * 0 + y_offset, ImGuiCond_Always, 0, 0);
     imgui.set_next_window_size(window_width, window_height, ImGuiCond_Always);
 
     if (show_scroll)
@@ -7624,6 +7691,7 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
                         m_sel_plate_toolbar.m_items[i]->selected = false;
                     }
                     all_plates_stats_item->selected = true;
+                    wxGetApp().plater()->update(true, true);
                     wxCommandEvent evt = wxCommandEvent(EVT_GLTOOLBAR_SLICE_ALL);
                     wxPostEvent(wxGetApp().plater(), evt);
                 }
@@ -7708,6 +7776,8 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
                 all_plates_stats_item->selected = false;
                 item->selected = true;
                 // begin to slicing plate
+                if (item->slice_state != IMToolbarItem::SliceState::SLICED)
+                    wxGetApp().plater()->update(true, true);
                 wxCommandEvent* evt = new wxCommandEvent(EVT_GLTOOLBAR_SELECT_SLICED_PLATE);
                 evt->SetInt(i);
                 wxQueueEvent(wxGetApp().plater(), evt);
@@ -7765,13 +7835,10 @@ void GLCanvas3D::_render_assemble_view_toolbar() const
         return;
 
     const Size cnv_size = get_canvas_size();
-    GLToolbar& collapse_toolbar = wxGetApp().plater()->get_collapse_toolbar();
-    const float collapse_toolbar_width = collapse_toolbar.is_enabled() ? collapse_toolbar.get_width() : 0.0f;
     const float gizmo_width = m_gizmos.get_scaled_total_width();
-    const float assemble_width = m_assemble_view_toolbar.get_width();
     const float separator_width = m_separator_toolbar.get_width();
     const float top = 0.5f * (float)cnv_size.get_height();
-    const float main_toolbar_left = std::max(-0.5f * cnv_size.get_width(), -0.5f * (m_main_toolbar.get_width() + gizmo_width + assemble_width + separator_width - collapse_toolbar_width));
+    const float main_toolbar_left = -0.5f * cnv_size.get_width() + get_main_toolbar_offset();
     const float left = main_toolbar_left + (m_main_toolbar.get_width() + gizmo_width + separator_width);
 
     m_assemble_view_toolbar.set_position(top, left);
@@ -7793,7 +7860,7 @@ void GLCanvas3D::_render_return_toolbar() const
     auto canvas_h = float(cnv_size.get_height());
     float window_width = real_size.x + button_icon_size.x + imgui.scaled(2.0f);
     float window_height = button_icon_size.y + imgui.scaled(2.0f);
-    float window_pos_x = 30.0f;
+    float window_pos_x = 30.0f + (is_collapse_toolbar_on_left() ? (get_collapse_toolbar_width() + 5.f) : 0);
     float window_pos_y = 14.0f;
 
     imgui.set_next_window_pos(window_pos_x, window_pos_y, ImGuiCond_Always, 0, 0);
@@ -7839,13 +7906,10 @@ void GLCanvas3D::_render_separator_toolbar_right() const
         return;
 
     const Size cnv_size = get_canvas_size();
-    GLToolbar& collapse_toolbar = wxGetApp().plater()->get_collapse_toolbar();
-    const float collapse_toolbar_width = collapse_toolbar.is_enabled() ? collapse_toolbar.get_width() : 0.0f;
     const float gizmo_width = m_gizmos.get_scaled_total_width();
-    const float assemble_width = m_assemble_view_toolbar.get_width();
     const float separator_width = m_separator_toolbar.get_width();
     const float top = 0.5f * (float)cnv_size.get_height();
-    const float main_toolbar_left = std::max(-0.5f * cnv_size.get_width(), -0.5f * (m_main_toolbar.get_width() + gizmo_width + assemble_width + separator_width - collapse_toolbar_width));
+    const float main_toolbar_left = -0.5f * cnv_size.get_width() + get_main_toolbar_offset();
     const float left = main_toolbar_left + (m_main_toolbar.get_width() + gizmo_width + separator_width / 2);
 
     m_separator_toolbar.set_position(top, left);
@@ -7858,13 +7922,8 @@ void GLCanvas3D::_render_separator_toolbar_left() const
         return;
 
     const Size cnv_size = get_canvas_size();
-    GLToolbar& collapse_toolbar = wxGetApp().plater()->get_collapse_toolbar();
-    const float collapse_toolbar_width = collapse_toolbar.is_enabled() ? collapse_toolbar.get_width() : 0.0f;
-    const float gizmo_width = m_gizmos.get_scaled_total_width();
-    const float assemble_width = m_assemble_view_toolbar.get_width();
-    const float separator_width = m_separator_toolbar.get_width();
     const float top = 0.5f * (float)cnv_size.get_height();
-    const float main_toolbar_left = std::max(-0.5f * cnv_size.get_width(), -0.5f * (m_main_toolbar.get_width() + gizmo_width + assemble_width + separator_width - collapse_toolbar_width));
+    const float main_toolbar_left = -0.5f * cnv_size.get_width() + get_main_toolbar_offset();
     const float left = main_toolbar_left + (m_main_toolbar.get_width());
 
     m_separator_toolbar.set_position(top, left);
@@ -7873,12 +7932,18 @@ void GLCanvas3D::_render_separator_toolbar_left() const
 
 void GLCanvas3D::_render_collapse_toolbar() const
 {
-    GLToolbar& collapse_toolbar = wxGetApp().plater()->get_collapse_toolbar();
+    auto&      plater              = *wxGetApp().plater();
+    const auto sidebar_docking_dir = plater.get_sidebar_docking_state();
+    if (sidebar_docking_dir == Sidebar::None) {
+        return;
+    }
+
+    GLToolbar& collapse_toolbar = plater.get_collapse_toolbar();
 
     const Size cnv_size = get_canvas_size();
     const float top  = 0.5f * (float)cnv_size.get_height();
-    //const float left = (0.5f * (float)cnv_size.get_width() - (float)collapse_toolbar.get_width() - band);
-    const float left = -0.5f * (float)cnv_size.get_width();
+    const float left = sidebar_docking_dir == Sidebar::Right ? 0.5f * (float) cnv_size.get_width() - (float) collapse_toolbar.get_width() :
+                                                               -0.5f * (float) cnv_size.get_width();
 
     collapse_toolbar.set_position(top, left);
     collapse_toolbar.render(*this);
@@ -8050,7 +8115,7 @@ void GLCanvas3D::_render_assemble_control() const
     const float text_size_x = std::max(imgui->calc_text_size(_L("Reset direction")).x + 2 * ImGui::GetStyle().FramePadding.x,
         std::max(imgui->calc_text_size(_L("Explosion Ratio")).x, imgui->calc_text_size(_L("Section View")).x));
     const float slider_width = 75.0f;
-    const float value_size = imgui->calc_text_size("3.00").x + text_padding * 2;
+    const float value_size = imgui->calc_text_size(std::string_view{"3.00"}).x + text_padding * 2;
     const float item_spacing = imgui->get_item_spacing().x;
     ImVec2 window_padding = ImGui::GetStyle().WindowPadding;
 
@@ -9176,13 +9241,13 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
         break;
     case SLICING_SERIOUS_WARNING:
         if (state)
-            notification_manager.push_slicing_serious_warning_notification(text, {conflictObj});
+            notification_manager.push_slicing_serious_warning_notification(text, conflictObj ? std::vector<ModelObject const*>{conflictObj} : std::vector<ModelObject const*>{});
         else
             notification_manager.close_slicing_serious_warning_notification(text);
         break;
     case SLICING_ERROR:
         if (state)
-            notification_manager.push_slicing_error_notification(text, {conflictObj});
+            notification_manager.push_slicing_error_notification(text, conflictObj ? std::vector<ModelObject const*>{conflictObj} : std::vector<ModelObject const*>{});
         else
             notification_manager.close_slicing_error_notification(text);
         break;
@@ -9482,6 +9547,109 @@ void GLCanvas3D::GizmoHighlighter::blink()
 
     if ((++m_blink_counter) >= 11)
         invalidate();
+}
+
+const ModelVolume *get_model_volume(const GLVolume &v, const Model &model)
+{
+    const ModelVolume * ret = nullptr;
+
+    if (v.object_idx() < (int)model.objects.size()) {
+        const ModelObject *obj = model.objects[v.object_idx()];
+        if (v.volume_idx() < (int)obj->volumes.size())
+            ret = obj->volumes[v.volume_idx()];
+    }
+
+    return ret;
+}
+
+ModelVolume *get_model_volume(const ObjectID &volume_id, const ModelObjectPtrs &objects)
+{
+    for (const ModelObject *obj : objects)
+        for (ModelVolume *vol : obj->volumes)
+            if (vol->id() == volume_id)
+                return vol;
+    return nullptr;
+}
+
+ModelVolume *get_model_volume(const GLVolume &v, const ModelObject& object) {
+    if (v.volume_idx() < 0)
+        return nullptr;
+
+    size_t volume_idx = static_cast<size_t>(v.volume_idx());
+    if (volume_idx >= object.volumes.size())
+        return nullptr;
+
+    return object.volumes[volume_idx];
+}
+
+ModelVolume *get_model_volume(const GLVolume &v, const ModelObjectPtrs &objects)
+{
+    if (v.object_idx() < 0)
+        return nullptr;
+    size_t objext_idx = static_cast<size_t>(v.object_idx());
+    if (objext_idx >= objects.size())
+        return nullptr;
+    if (objects[objext_idx] == nullptr)
+        return nullptr;
+    return get_model_volume(v, *objects[objext_idx]);
+}
+
+GLVolume *get_first_hovered_gl_volume(const GLCanvas3D &canvas) {
+    int hovered_id_signed = canvas.get_first_hover_volume_idx();
+    if (hovered_id_signed < 0)
+        return nullptr;
+
+    size_t hovered_id = static_cast<size_t>(hovered_id_signed);
+    const GLVolumePtrs &volumes = canvas.get_volumes().volumes;
+    if (hovered_id >= volumes.size())
+        return nullptr;
+
+    return volumes[hovered_id];
+}
+
+GLVolume *get_selected_gl_volume(const GLCanvas3D &canvas) {
+    const GLVolume *gl_volume = get_selected_gl_volume(canvas.get_selection());
+    if (gl_volume == nullptr)
+        return nullptr;
+
+    const GLVolumePtrs &gl_volumes = canvas.get_volumes().volumes;
+    for (GLVolume *v : gl_volumes)
+        if (v->composite_id == gl_volume->composite_id)
+            return v;
+    return nullptr;
+}
+
+ModelObject *get_model_object(const GLVolume &gl_volume, const Model &model) {
+    return get_model_object(gl_volume, model.objects);
+}
+
+ModelObject *get_model_object(const GLVolume &gl_volume, const ModelObjectPtrs &objects) {
+    if (gl_volume.object_idx() < 0)
+        return nullptr;
+    size_t objext_idx = static_cast<size_t>(gl_volume.object_idx());
+    if (objext_idx >= objects.size())
+        return nullptr;
+    return objects[objext_idx];
+}
+
+ModelInstance *get_model_instance(const GLVolume &gl_volume, const Model& model) {
+    return get_model_instance(gl_volume, model.objects);
+}
+
+ModelInstance *get_model_instance(const GLVolume &gl_volume, const ModelObjectPtrs &objects) {
+    if (gl_volume.instance_idx() < 0)
+        return nullptr;
+    ModelObject *object = get_model_object(gl_volume, objects);
+    return get_model_instance(gl_volume, *object);
+}
+
+ModelInstance *get_model_instance(const GLVolume &gl_volume, const ModelObject &object) {
+    if (gl_volume.instance_idx() < 0)
+        return nullptr;
+    size_t instance_idx = static_cast<size_t>(gl_volume.instance_idx());
+    if (instance_idx >= object.instances.size())
+        return nullptr;
+    return object.instances[instance_idx];
 }
 
 } // namespace GUI

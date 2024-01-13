@@ -204,6 +204,8 @@ struct PrintInstance
     // 
     // instance id
     size_t               id;
+    // Orca: unique id used by marlin/rrf cancel object feature
+    size_t               unique_id;
 
     //BBS: instance_shift is too large because of multi-plate, apply without plate offset.
     Point shift_without_plate_offset() const;
@@ -437,6 +439,9 @@ public:
     // BBS: Boundingbox of the first layer
     BoundingBox                 firstLayerObjectBrimBoundingBox;
 
+    // BBS: returns 1-based indices of extruders used to print the first layer wall of objects
+    std::vector<int>            object_first_layer_wall_extruders;
+
     // SoftFever
     size_t get_id() const { return m_id; }
     void set_id(size_t id) { m_id = id; }
@@ -528,6 +533,7 @@ private:
 
     std::vector < VolumeSlices >            firstLayerObjSliceByVolume;
     std::vector<groupedVolumeSlices>        firstLayerObjSliceByGroups;
+
     // BBS: per object skirt
     ExtrusionEntityCollection               m_skirt;
 
@@ -590,8 +596,6 @@ struct FakeWipeTower
 
     std::vector<ExtrusionPaths> getFakeExtrusionPathsFromWipeTower() const
     {
-        float h         = height;
-        float lh        = layer_height;
         int   d         = scale_(depth);
         int   w         = scale_(width);
         int   bd        = scale_(brim_width);
@@ -599,13 +603,13 @@ struct FakeWipeTower
         Point maxCorner = {minCorner.x() + w, minCorner.y() + d};
 
         std::vector<ExtrusionPaths> paths;
-        for (float hh = 0.f; hh < h; hh += lh) {
-            ExtrusionPath path(ExtrusionRole::erWipeTower, 0.0, 0.0, lh);
+        for (float h = 0.f; h < height; h += layer_height) {
+            ExtrusionPath path(ExtrusionRole::erWipeTower, 0.0, 0.0, layer_height);
             path.polyline = {minCorner, {maxCorner.x(), minCorner.y()}, maxCorner, {minCorner.x(), maxCorner.y()}, minCorner};
             paths.push_back({path});
 
-            if (hh == 0.f) { // add brim
-                ExtrusionPath fakeBrim(ExtrusionRole::erBrim, 0.0, 0.0, lh);
+            if (h == 0.f) { // add brim
+                ExtrusionPath fakeBrim(ExtrusionRole::erBrim, 0.0, 0.0, layer_height);
                 Point         wtbminCorner = {minCorner - Point{bd, bd}};
                 Point         wtbmaxCorner = {maxCorner + Point{bd, bd}};
                 fakeBrim.polyline          = {wtbminCorner, {wtbmaxCorner.x(), wtbminCorner.y()}, wtbmaxCorner, {wtbminCorner.x(), wtbmaxCorner.y()}, wtbminCorner};

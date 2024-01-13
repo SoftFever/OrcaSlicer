@@ -26,8 +26,8 @@
 	"machine_max_speed_y": ["1000", "1000"],
 	"machine_max_speed_z": ["30", "30"],
 	"machine_max_jerk_e": ["2.5", "2.5"],
-	"machine_max_jerk_x": ["5", "5"],
-	"machine_max_jerk_y": ["5", "5"],
+	"machine_max_jerk_x": ["12", "12"],
+	"machine_max_jerk_y": ["12", "12"],
 	"machine_max_jerk_z": ["2", "2"],
 	"max_layer_height": ["0.4"],
 	"min_layer_height": ["0.08"],
@@ -38,12 +38,20 @@
 	"retract_length_toolchange": ["1"],
 	"retraction_speed": ["40"],
 	"deretraction_speed": ["40"],
-	"z_hop": ["0.4"],
+	"extruder_clearance_height_to_lid": "101",
+	"extruder_clearance_height_to_rod": "45",
+	"extruder_clearance_radius": "45",
+	"z_hop": ["0.2"],
 	"single_extruder_multi_material": "1",
-	"change_filament_gcode": "",
+	"manual_filament_change": "1",
+	"change_filament_gcode": "PAUSE",
 	"machine_pause_gcode": "PAUSE",
 	"default_filament_profile": ["Creality Generic PLA"],
 	"machine_start_gcode": "M140 S0\nM104 S0 \nSTART_PRINT EXTRUDER_TEMP=[nozzle_temperature_initial_layer] BED_TEMP=[bed_temperature_initial_layer_single]",
 	"machine_end_gcode": "END_PRINT",
-	"scan_first_layer": "0"
+	"scan_first_layer": "0",
+	"thumbnails": [
+		"96x96",
+		"300x300"
+	]
 }

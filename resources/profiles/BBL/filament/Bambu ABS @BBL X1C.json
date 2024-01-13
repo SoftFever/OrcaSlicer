@@ -6,7 +6,7 @@
     "setting_id": "GFSB00",
     "instantiation": "true",
     "filament_max_volumetric_speed": [
-        "22"
+        "16"
     ],
     "compatible_printers": [
         "Bambu Lab X1 Carbon 0.4 nozzle",

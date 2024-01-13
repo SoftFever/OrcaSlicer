@@ -1,10 +1,15 @@
+///|/ Copyright (c) Prusa Research 2020 - 2023 Tomáš Mészáros @tamasmeszaros, David Kocík @kocikdav
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #ifndef ARRANGEJOB_HPP
 #define ARRANGEJOB_HPP
 
-#include "PlaterJob.hpp"
-#include "slic3r/GUI/Plater.hpp"
+
+#include <optional>
+
+#include "Job.hpp"
 #include "libslic3r/Arrange.hpp"
-#include "libslic3r/Model.hpp"
 
 namespace Slic3r {
 
@@ -12,7 +17,9 @@ class ModelInstance;
 
 namespace GUI {
 
-class ArrangeJob : public PlaterJob
+class Plater;
+
+class ArrangeJob : public Job
 {
     using ArrangePolygon = arrangement::ArrangePolygon;
     using ArrangePolygons = arrangement::ArrangePolygons;
@@ -24,6 +31,10 @@ class ArrangeJob : public PlaterJob
     arrangement::ArrangeParams params;
     int current_plate_index = 0;
     Polygon bed_poly;
+    Plater *m_plater;
+
+    // BBS: add flag for whether on current part plate
+    bool only_on_partplate{false};
 
     // clear m_selected and m_unselected, reserve space for next usage
     void clear_input();
@@ -42,26 +53,23 @@ class ArrangeJob : public PlaterJob
 
 protected:
 
-    void prepare() override;
-
     void check_unprintable();
 
-    void on_exception(const std::exception_ptr &) override;
-
-    void process() override;
-
 public:
-    ArrangeJob(std::shared_ptr<ProgressIndicator> pri, Plater *plater)
-        : PlaterJob{std::move(pri), plater}
-    {}
 
-    int status_range() const override
+    void prepare();
+
+    void process(Ctl &ctl) override;
+
+    ArrangeJob();
+
+    int status_range() const
     {
         // ensure finalize() is called after all operations in process() is finished.
         return int(m_selected.size() + m_unprintable.size() + 1);
     }
 
-    void finalize() override;
+    void finalize(bool canceled, std::exception_ptr &e) override;
 };
 
 std::optional<arrangement::ArrangePolygon> get_wipe_tower_arrangepoly(const Plater &);
