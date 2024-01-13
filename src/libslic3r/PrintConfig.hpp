@@ -152,6 +152,10 @@ enum SeamPosition {
     spNearest, spAligned, spRear, spRandom
 };
 
+enum InternalBridgeFilter {
+    ibfDisabled, ibfLimited, ibfNofilter
+};
+
 enum LiftType {
     NormalLift,
     SpiralLift,
@@ -744,6 +748,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     // Orca internal thick bridge
     ((ConfigOptionBool,                thick_bridges))
     ((ConfigOptionBool,                thick_internal_bridges))
+    ((ConfigOptionEnum<InternalBridgeFilter>,  dont_filter_internal_bridges))
     // Overhang angle threshold.
     ((ConfigOptionInt,                 support_threshold_angle))
     ((ConfigOptionFloat,               support_object_xy_distance))
