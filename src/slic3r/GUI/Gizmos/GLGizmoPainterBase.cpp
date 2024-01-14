@@ -1298,7 +1298,7 @@ void TriangleSelectorPatch::update_triangles_per_type()
         patch.triangle_indices.reserve(m_triangles.size() / 3);
     }
 
-    bool using_wireframe = (wxGetApp().plater()->is_wireframe_enabled() && wxGetApp().plater()->is_show_wireframe()) ? true : false;
+    bool using_wireframe = (m_need_wireframe && wxGetApp().plater()->is_wireframe_enabled() && wxGetApp().plater()->is_show_wireframe()) ? true : false;
 
     for (auto& triangle : m_triangles) {
         if (!triangle.valid() || triangle.is_split())
@@ -1356,7 +1356,7 @@ void TriangleSelectorPatch::update_triangles_per_patch()
     auto [neighbors, neighbors_propagated] = this->precompute_all_neighbors();
     std::vector<bool>  visited(m_triangles.size(), false);
 
-    bool using_wireframe = (wxGetApp().plater()->is_wireframe_enabled() && wxGetApp().plater()->is_show_wireframe()) ? true : false; 
+    bool using_wireframe = (m_need_wireframe && wxGetApp().plater()->is_wireframe_enabled() && wxGetApp().plater()->is_show_wireframe()) ? true : false; 
 
     auto get_all_touching_triangles = [this](int facet_idx, const Vec3i& neighbors, const Vec3i& neighbors_propagated) -> std::vector<int> {
         assert(facet_idx != -1 && facet_idx < int(m_triangles.size()));
