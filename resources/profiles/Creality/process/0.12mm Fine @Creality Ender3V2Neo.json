@@ -1,7 +1,7 @@
 {
     "type": "process",
     "setting_id": "GP004",
-    "name": "0.20mm Standard @Creality Ender3V2",
+    "name": "0.12mm Fine @Creality Ender3V2Neo",
     "from": "system",
     "inherits": "fdm_process_creality_common",
     "instantiation": "true",
@@ -9,7 +9,7 @@
     "reduce_crossing_wall": "0",
     "max_travel_detour_distance": "0",
     "bottom_surface_pattern": "monotonic",
-    "bottom_shell_layers": "3",
+    "bottom_shell_layers": "5",
     "bottom_shell_thickness": "0",
     "bridge_flow": "0.95",
     "bridge_speed": "25",
@@ -42,7 +42,7 @@
     "ironing_spacing": "0.1",
     "ironing_speed": "15",
     "ironing_type": "no ironing",
-    "layer_height": "0.2",
+    "layer_height": "0.12",
     "reduce_infill_retraction": "1",
     "filename_format": "{input_filename_base}_{filament_type[initial_tool]}_{print_time}.gcode",
     "detect_overhang_wall": "1",
@@ -86,7 +86,7 @@
     "detect_thin_wall": "0",
     "top_surface_pattern": "monotonic",
     "top_surface_line_width": "0.4",
-    "top_shell_layers": "4",
+    "top_shell_layers": "6",
     "top_shell_thickness": "0.8",
     "initial_layer_speed": "15",
     "initial_layer_infill_speed": "20",
@@ -103,6 +103,6 @@
     "xy_hole_compensation": "0",
     "xy_contour_compensation": "0",
 	"compatible_printers": [
-		"Creality Ender-3 V2 0.4 nozzle"
+		"Creality Ender-3 V2 Neo 0.4 nozzle"
     ]
 }
