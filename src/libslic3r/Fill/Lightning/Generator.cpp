@@ -76,6 +76,16 @@ Generator::Generator(const PrintObject &print_object, const std::function<void()
     const double               layer_thickness      = scaled<double>(object_config.layer_height.value);
 
     m_infill_extrusion_width = scaled<float>(region_config.sparse_infill_line_width.get_abs_value(max_nozzle_diameter));
+    // Orca: fix lightning infill divide by zero when infill line width is set to 0.
+    // firstly attempt to set it to the default line width. If that is not provided either, set it to a sane default
+    // based on the nozzle diameter.
+    if (m_infill_extrusion_width < EPSILON)
+        m_infill_extrusion_width = scaled<float>(
+            object_config.line_width.get_abs_value(max_nozzle_diameter) < EPSILON ?
+            default_infill_extrusion_width :
+            object_config.line_width.get_abs_value(max_nozzle_diameter)
+        );
+    
     m_supporting_radius = coord_t(m_infill_extrusion_width) * 100 / region_config.sparse_infill_density;
 
     const double lightning_infill_overhang_angle      = M_PI / 4; // 45 degrees
@@ -102,6 +112,15 @@ Generator::Generator(PrintObject* m_object, std::vector<Polygons>& contours, std
     const double               layer_thickness      = scaled<double>(object_config.layer_height.value);
 
     m_infill_extrusion_width = scaled<float>(region_config.sparse_infill_line_width.get_abs_value(max_nozzle_diameter));
+    // Orca: fix lightning infill divide by zero when infill line width is set to 0.
+    // firstly attempt to set it to the default line width. If that is not provided either, set it to a sane default
+    // based on the nozzle diameter.
+    if (m_infill_extrusion_width < EPSILON)
+        m_infill_extrusion_width = scaled<float>(
+            object_config.line_width.get_abs_value(max_nozzle_diameter) < EPSILON ?
+            default_infill_extrusion_width :
+            object_config.line_width.get_abs_value(max_nozzle_diameter)
+        );
     //m_supporting_radius: against to the density of lightning, failures may happen if set to high density
     //higher density lightning makes support harder, more time-consuming on computing and printing, but more reliable on supporting overhangs
     //lower density lightning performs opposite
