@@ -2,7 +2,7 @@
     "type": "filament",
 	"filament_id": "GFG99",
     "setting_id": "GFSG99",
-    "name": "Qidi Generic PETG",
+    "name": "Qidi Generic PETG @Qidi X-Max 3 0.2 nozzle",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pet",
@@ -22,10 +22,10 @@
         "25%"
     ],
     "fan_max_speed": [
-        "90"
+        "40"
     ],
     "fan_min_speed": [
-        "40"
+        "10"
     ],
     "slow_down_min_speed": [
         "10"
@@ -36,32 +36,16 @@
     "filament_flow_ratio": [
         "0.95"
     ],
-    "filament_max_volumetric_speed": [
-        "9"
-    ],
     "enable_pressure_advance": [
         "1"
     ],
     "pressure_advance": [
-        "0.042"
+        "0.05"
+    ],
+    "filament_max_volumetric_speed": [
+        "1"
     ],
 	"compatible_printers": [
-        "Qidi X-Plus 0.4 nozzle",
-        "Qidi X-Max 0.4 nozzle",
-        "Qidi X-CF Pro 0.4 nozzle",
-		"Qidi X-Smart 3 0.4 nozzle",
-		"Qidi X-Plus 3 0.4 nozzle",
-		"Qidi X-Max 3 0.4 nozzle",
-        "Qidi X-Max 0.6 nozzle",
-        "Qidi X-CF Pro 0.6 nozzle",
-    "Qidi X-Smart 3 0.6 nozzle",
-    "Qidi X-Plus 3 0.6 nozzle",
-    "Qidi X-Max 3 0.6 nozzle",
-    "Qidi X-Plus 0.8 nozzle",
-    "Qidi X-Max 0.8 nozzle",
-    "Qidi X-CF Pro 0.8 nozzle",
-  "Qidi X-Smart 3 0.8 nozzle",
-  "Qidi X-Plus 3 0.8 nozzle",
-  "Qidi X-Max 3 0.8 nozzle"
+		"Qidi X-Max 3 0.2 nozzle"
 	]
 }

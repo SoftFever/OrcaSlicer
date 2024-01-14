@@ -3113,10 +3113,15 @@ void FillMonotonicLineWGapFill::fill_surface_extrusion(const Surface* surface, c
     params2.dont_adjust = true;
 
     //BBS: always use no overlap expolygons to avoid overflow in top surface
-    for (const ExPolygon &rectilinear_area : this->no_overlap_expolygons) {
-        rectilinear_surface.expolygon = rectilinear_area;
-        fill_surface_by_lines(&rectilinear_surface, params2, polylines_rectilinear);
-    }
+    //for (const ExPolygon &rectilinear_area : this->no_overlap_expolygons) {
+    //    rectilinear_surface.expolygon = rectilinear_area;
+    //    fill_surface_by_lines(&rectilinear_surface, params2, polylines_rectilinear);
+    //}
+    
+    // Orca: The above causes pockmarks in top layer surfaces with a properly calibrated printer with PA and EM tuned.
+    // Revert implementation to the prusa slicer approach that respects the infill/wall overlap setting
+    // while retaining the gap fill logic below. The user can adjust the overlap calue to reduce overflow if needed.
+    fill_surface_by_lines(surface, params2, polylines_rectilinear);
     ExPolygons unextruded_areas;
     Flow new_flow = params.flow;
     if (!polylines_rectilinear.empty()) {
