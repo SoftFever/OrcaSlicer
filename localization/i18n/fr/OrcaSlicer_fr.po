@@ -930,7 +930,7 @@ msgstr "Gauche"
 
 msgctxt "Alignment"
 msgid "Center"
-msgstr "Centre"
+msgstr "Centrer"
 
 msgctxt "Alignment"
 msgid "Right"
