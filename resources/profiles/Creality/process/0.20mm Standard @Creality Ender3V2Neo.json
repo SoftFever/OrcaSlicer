@@ -1,7 +1,7 @@
 {
     "type": "process",
     "setting_id": "GP004",
-    "name": "0.20mm Standard @Creality Ender3V2",
+    "name": "0.20mm Standard @Creality Ender3V2Neo",
     "from": "system",
     "inherits": "fdm_process_creality_common",
     "instantiation": "true",
@@ -57,7 +57,7 @@
     "seam_position": "aligned",
     "skirt_distance": "2",
     "skirt_height": "1",
-    "skirt_loops": "0",
+    "skirt_loops": "1",
     "minimum_sparse_infill_area": "15",
     "internal_solid_infill_line_width": "0.4",
     "spiral_mode": "0",
@@ -103,6 +103,6 @@
     "xy_hole_compensation": "0",
     "xy_contour_compensation": "0",
 	"compatible_printers": [
-		"Creality Ender-3 V2 0.4 nozzle"
+		"Creality Ender-3 V2 Neo 0.4 nozzle"
     ]
 }
