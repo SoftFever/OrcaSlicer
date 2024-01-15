@@ -652,7 +652,7 @@ Sidebar::Sidebar(Plater *parent)
             });
         combo_printer->edit_btn = edit_btn;
         p->combo_printer = combo_printer;
-
+        
         connection_btn = new ScalableButton(p->m_panel_printer_content, wxID_ANY, "monitor_signal_strong");
         connection_btn->SetBackgroundColour(wxColour(255, 255, 255));
         connection_btn->SetToolTip(_L("Connection"));
@@ -6146,7 +6146,7 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
         wxWindowUpdateLocker noUpdates2(sidebar->filament_panel());
         wxGetApp().get_tab(preset_type)->select_preset(preset_name);
     }
-
+    
     // update plater with new config
     q->on_config_change(wxGetApp().preset_bundle->full_config());
     if (preset_type == Preset::TYPE_PRINTER) {
@@ -6598,6 +6598,12 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
             }
         }
     }
+
+    if (wxGetApp().mainframe->m_printago != nullptr && !wxGetApp().mainframe->m_printago->CanProcessJob()) {
+        wxEvent *clonedEvent = evt.Clone();
+        wxQueueEvent(wxGetApp().mainframe->m_printago, clonedEvent);
+    }
+    
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(", exit.");
 }
 
@@ -8351,8 +8357,7 @@ int Plater::new_project(bool skip_confirm, bool silent, const wxString& project_
 
 
 // BBS: FIXME, missing resotre logic
-void Plater::load_project(wxString const& filename2,
-    wxString const& originfile)
+void Plater::load_project(wxString const& filename2, wxString const &originfile, bool noprompt)
 {
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "filename is: " << filename2 << "and originfile is: " << originfile; 
     auto filename = filename2;
@@ -8369,7 +8374,9 @@ void Plater::load_project(wxString const& filename2,
 
     // BSS: save project, force close
     int result;
-    if ((result = close_with_confirm(check)) == wxID_CANCEL) {
+    if (noprompt) {
+        result = wxID_NO;
+    } else if ((result = close_with_confirm(check)) == wxID_CANCEL) {
         return;
     }
 

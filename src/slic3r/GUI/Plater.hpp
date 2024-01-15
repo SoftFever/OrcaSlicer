@@ -66,6 +66,7 @@ class SLAPrint;
 //BBS: add partplatelist and SlicingStatusEvent
 class PartPlateList;
 class SlicingStatusEvent;
+class SlicingProcessCompletedEvent;
 enum SLAPrintObjectStep : unsigned int;
 enum class ConversionType : int;
 class Ams;
@@ -116,6 +117,7 @@ wxDECLARE_EVENT(EVT_GLCANVAS_COLOR_MODE_CHANGED,   SimpleEvent);
 wxDECLARE_EVENT(EVT_PRINT_FROM_SDCARD_VIEW,   SimpleEvent);
 wxDECLARE_EVENT(EVT_CREATE_FILAMENT, SimpleEvent);
 wxDECLARE_EVENT(EVT_MODIFY_FILAMENT, SimpleEvent);
+wxDECLARE_EVENT(EVT_PROCESS_COMPLETED, Slic3r::SlicingProcessCompletedEvent);
 
 const wxString DEFAULT_PROJECT_NAME = "Untitled";
 
@@ -193,6 +195,7 @@ public:
 #endif
 
     std::vector<PlaterPresetComboBox*>&   combos_filament();
+
     Search::OptionsSearcher&        get_searcher();
     std::string&                    get_search_line();
 
@@ -241,7 +244,7 @@ public:
 
     int new_project(bool skip_confirm = false, bool silent = false, const wxString& project_name = wxString());
     // BBS: save & backup
-    void load_project(wxString const & filename = "", wxString const & originfile = "-");
+    void load_project(wxString const & filename = "", wxString const & originfile = "-", bool noprompt = false);
     int save_project(bool saveAs = false);
     //BBS download project by project id
     void import_model_id(wxString download_info);

@@ -461,6 +461,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/BedShapeDialog.cpp
     GUI/CreatePresetsDialog.hpp
     GUI/CreatePresetsDialog.cpp
+    GUI/PrintagoPanel.hpp
+    GUI/PrintagoPanel.cpp
     Utils/json_diff.hpp
     Utils/json_diff.cpp
     GUI/KBShortcutsDialog.hpp

@@ -2509,52 +2509,54 @@ bool GUI_App::on_init_inner()
 #endif // __WXMSW__
 
         preset_updater = new PresetUpdater();
-        Bind(EVT_SLIC3R_VERSION_ONLINE, [this](const wxCommandEvent& evt) {
-            if (this->plater_ != nullptr) {
-                // this->plater_->get_notification_manager()->push_notification(NotificationType::NewAppAvailable);
-                //BBS show msg box to download new version
-               /* wxString tips = wxString::Format(_L("Click to download new version in default browser: %s"), version_info.version_str);
-                DownloadDialog dialog(this->mainframe,
-                    tips,
-                    _L("New version of Orca Slicer"),
-                    false,
-                    wxCENTER | wxICON_INFORMATION);
-
-
-                dialog.SetExtendedMessage(extmsg);*/
-                std::string skip_version_str = this->app_config->get("app", "skip_version");
-                bool skip_this_version = false;
-                if (!skip_version_str.empty()) {
-                    BOOST_LOG_TRIVIAL(info) << "new version = " << version_info.version_str << ", skip version = " << skip_version_str;
-                    if (version_info.version_str <= skip_version_str) {
-                        skip_this_version = true;
-                    } else {
-                        app_config->set("skip_version", "");
-                        skip_this_version = false;
-                    }
-                }
-                if (!skip_this_version
-                    || evt.GetInt() != 0) {
-                    UpdateVersionDialog dialog(this->mainframe);
-                    wxString            extmsg = wxString::FromUTF8(version_info.description);
-                    dialog.update_version_info(extmsg, version_info.version_str);
-                    //dialog.update_version_info(version_info.description);
-                    if (evt.GetInt() != 0) {
-                        dialog.m_button_skip_version->Hide();
-                    }
-                    switch (dialog.ShowModal())
-                    {
-                    case wxID_YES:
-                        wxLaunchDefaultBrowser(version_info.url);
-                        break;
-                    case wxID_NO:
-                        break;
-                    default:
-                        ;
-                    }
-                }
-            }
-            });
+        //PTGO
+        Bind(EVT_SLIC3R_VERSION_ONLINE, [this](const wxCommandEvent &evt) { return; });
+            //             if (this->plater_ != nullptr) {
+//                 // this->plater_->get_notification_manager()->push_notification(NotificationType::NewAppAvailable);
+//                 //BBS show msg box to download new version
+//                /* wxString tips = wxString::Format(_L("Click to download new version in default browser: %s"), version_info.version_str);
+//                 DownloadDialog dialog(this->mainframe,
+//                     tips,
+//                     _L("New version of Orca Slicer"),
+//                     false,
+//                     wxCENTER | wxICON_INFORMATION);
+//
+//
+//                 dialog.SetExtendedMessage(extmsg);*/
+//
+//                 std::string skip_version_str = this->app_config->get("app", "skip_version");
+//                 bool skip_this_version = false;
+//                 if (!skip_version_str.empty()) {
+//                     BOOST_LOG_TRIVIAL(info) << "new version = " << version_info.version_str << ", skip version = " << skip_version_str;
+//                     if (version_info.version_str <= skip_version_str) {
+//                         skip_this_version = true;
+//                     } else {
+//                         app_config->set("skip_version", "");
+//                         skip_this_version = false;
+//                     }
+//                 }
+//                 if (!skip_this_version
+//                     || evt.GetInt() != 0) {
+//                     UpdateVersionDialog dialog(this->mainframe);
+//                     wxString            extmsg = wxString::FromUTF8(version_info.description);
+//                     dialog.update_version_info(extmsg, version_info.version_str);
+//                     //dialog.update_version_info(version_info.description);
+//                     if (evt.GetInt() != 0) {
+//                         dialog.m_remind_choice->Hide();
+//                     }
+//                     switch (dialog.ShowModal())
+//                     {
+//                     case wxID_YES:
+//                         wxLaunchDefaultBrowser(version_info.url);
+//                         break;
+//                     case wxID_NO:
+//                         break;
+//                     default:
+//                         ;
+//                     }
+//                 }
+            // }
+            // });
 
         Bind(EVT_ENTER_FORCE_UPGRADE, [this](const wxCommandEvent& evt) {
                 wxString      version_str = wxString::FromUTF8(this->app_config->get("upgrade", "version"));
@@ -4174,12 +4176,15 @@ void GUI_App::on_user_login(wxCommandEvent &evt)
 
 bool GUI_App::is_studio_active()
 {
-    auto curr_time = std::chrono::system_clock::now();
-    auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(curr_time - last_active_point);
-    if (diff.count() < STUDIO_INACTIVE_TIMEOUT) {
-        return true;
-    }
-    return false;
+    //Printago: always return true; otherwise we stop processing stuff like whether or not the printer is connected.
+    return true;
+
+    // auto curr_time = std::chrono::system_clock::now();
+    // auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(curr_time - last_active_point);
+    // if (diff.count() < STUDIO_INACTIVE_TIMEOUT) {
+    //     return true;
+    // }
+    // return false;
 }
 
 void GUI_App::reset_to_active()

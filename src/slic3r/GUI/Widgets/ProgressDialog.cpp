@@ -620,7 +620,7 @@ bool ProgressDialog::DoBeforeUpdate(bool *skip)
     // also to process the clicks on the cancel and skip buttons
     // NOTE: using YieldFor() this call shouldn't give re-entrancy problems
     //       for event handlers not interested to UI/user-input events.
-    wxEventLoopBase::GetActive()->YieldFor(wxEVT_CATEGORY_UI | wxEVT_CATEGORY_USER_INPUT);
+    wxEventLoopBase::GetActive()->YieldFor(wxEVT_CATEGORY_UI | wxEVT_CATEGORY_USER_INPUT); 
 
     Update();
 

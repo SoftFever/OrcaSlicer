@@ -471,6 +471,8 @@ public:
     wxImage *   LoadImageFromBlob(const unsigned char *data, int size);
     PrintDialogStatus  get_status() { return m_print_status; }
     std::vector<std::string> sort_string(std::vector<std::string> strArray);
+
+    void setPrinterLastSelect(const std::string& printerLastSelect);
 };
 
 wxDECLARE_EVENT(EVT_FINISHED_UPDATE_MACHINE_LIST, wxCommandEvent);
