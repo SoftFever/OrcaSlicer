@@ -2663,6 +2663,15 @@ void ImGuiWrapper::init_font(bool compress)
         if (bold_font == nullptr) { throw Slic3r::RuntimeError("ImGui: Could not load deafult font"); }
     }
 
+#ifdef _WIN32
+    // Render the text a bit larger (see GLCanvas3D::_resize() and issue #3401), but only if the scale factor
+    // for the Display is greater than 300%.
+    if (wxGetApp().em_unit() > 30) {
+        default_font->Scale = 1.5f;
+        bold_font->Scale    = 1.5f;
+    }
+#endif
+
 #ifdef __APPLE__
     ImFontConfig config;
     config.MergeMode = true;
