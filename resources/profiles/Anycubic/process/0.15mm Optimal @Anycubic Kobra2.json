@@ -29,7 +29,7 @@
 	"line_width": "0.42",
 	"infill_direction": "45",
 	"sparse_infill_density": "10%",
-	"sparse_infill_pattern": "rectilinear",
+	"sparse_infill_pattern": "zig-zag",
 	"initial_layer_acceleration": "2000",
 	"travel_acceleration": "0",
 	"inner_wall_acceleration": "0",
