@@ -13400,7 +13400,7 @@ msgstr "Tipo filamento"
 msgid "Start temp: "
 msgstr "Temperatura di avvio: "
 
-msgid "End end: "
+msgid "End temp: "
 msgstr "Fine fine: "
 
 msgid "Temp step: "

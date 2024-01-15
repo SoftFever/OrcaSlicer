@@ -12785,7 +12785,7 @@ msgstr "線材類型"
 msgid "Start temp: "
 msgstr "起始溫度： "
 
-msgid "End end: "
+msgid "End temp: "
 msgstr "結束溫度"
 
 msgid "Temp step: "

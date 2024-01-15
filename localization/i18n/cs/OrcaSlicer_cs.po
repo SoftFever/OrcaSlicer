@@ -12901,7 +12901,7 @@ msgstr "Typ Filamentu"
 msgid "Start temp: "
 msgstr "Počáteční teplota: "
 
-msgid "End end: "
+msgid "End temp: "
 msgstr "Konec konce: "
 
 msgid "Temp step: "

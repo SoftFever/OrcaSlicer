@@ -13296,7 +13296,7 @@ msgstr "Tipo de filamento"
 msgid "Start temp: "
 msgstr "Temperatura inicial: "
 
-msgid "End end: "
+msgid "End temp: "
 msgstr "Temperatura final: "
 
 msgid "Temp step: "

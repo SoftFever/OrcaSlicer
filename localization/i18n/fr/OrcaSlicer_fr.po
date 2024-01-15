@@ -13505,7 +13505,7 @@ msgstr "Filament"
 msgid "Start temp: "
 msgstr "Début: "
 
-msgid "End end: "
+msgid "End temp: "
 msgstr "Fin: "
 
 msgid "Temp step: "

@@ -12353,7 +12353,7 @@ msgstr ""
 msgid "Start temp: "
 msgstr ""
 
-msgid "End end: "
+msgid "End temp: "
 msgstr ""
 
 msgid "Temp step: "

@@ -13188,7 +13188,7 @@ msgstr "Тип прутка"
 msgid "Start temp: "
 msgstr "Начальная температура: "
 
-msgid "End end: "
+msgid "End temp: "
 msgstr "Конечная температура: "
 
 msgid "Temp step: "
