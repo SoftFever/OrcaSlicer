@@ -4383,6 +4383,24 @@ std::string GUI_App::format_display_version()
     return version_display;
 }
 
+std::string GUI_App::format_IP(const std::string& ip)
+{
+    std::string format_ip = ip;
+    size_t pos_st = 0;
+    size_t pos_en = 0;
+
+    for (int i = 0; i < 2; i++) {
+        pos_en = format_ip.find('.', pos_st + 1);
+        if (pos_en == std::string::npos) {
+            return ip;
+        }
+        format_ip.replace(pos_st, pos_en - pos_st, "***");
+        pos_st = pos_en + 1;
+    }
+
+    return format_ip;
+}
+
 void GUI_App::show_dialog(wxString msg)
 {
     if (m_info_dialog_content.empty()) {

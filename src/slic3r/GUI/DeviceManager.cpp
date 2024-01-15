@@ -5071,12 +5071,12 @@ void DeviceManager::on_machine_alive(std::string json_str)
 
             if (obj->dev_ip.compare(dev_ip) != 0) {
                 if ( connection_name.empty() ) {
-                    BOOST_LOG_TRIVIAL(info) << "MachineObject IP changed from " << obj->dev_ip << " to " << dev_ip;
+                    BOOST_LOG_TRIVIAL(info) << "MachineObject IP changed from " << Slic3r::GUI::wxGetApp().format_IP(obj->dev_ip) << " to " << Slic3r::GUI::wxGetApp().format_IP(dev_ip);
                     obj->dev_ip = dev_ip;
                 }
                 else {
                     if ( obj->dev_connection_name.empty() || obj->dev_connection_name.compare(connection_name) == 0) {
-                        BOOST_LOG_TRIVIAL(info) << "MachineObject IP changed from " << obj->dev_ip << " to " << dev_ip << " connection_name is " << connection_name;
+                        BOOST_LOG_TRIVIAL(info) << "MachineObject IP changed from " << Slic3r::GUI::wxGetApp().format_IP(obj->dev_ip) << " to " << Slic3r::GUI::wxGetApp().format_IP(dev_ip) << " connection_name is " << connection_name;
                         if(obj->dev_connection_name.empty()){obj->dev_connection_name = connection_name;}
                         obj->dev_ip = dev_ip;
                     }
@@ -5132,7 +5132,7 @@ void DeviceManager::on_machine_alive(std::string json_str)
              }*/
 
 
-            BOOST_LOG_TRIVIAL(debug) << "SsdpDiscovery::New Machine, ip = " << dev_ip << ", printer_name= " << dev_name << ", printer_type = " << printer_type_str << ", signal = " << printer_signal;
+            BOOST_LOG_TRIVIAL(info) << "SsdpDiscovery::New Machine, ip = " << Slic3r::GUI::wxGetApp().format_IP(dev_ip) << ", printer_name= " << dev_name << ", printer_type = " << printer_type_str << ", signal = " << printer_signal;
         }
     }
     catch (...) {
