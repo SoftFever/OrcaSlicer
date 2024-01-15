@@ -13225,7 +13225,7 @@ msgstr "Filament türü"
 msgid "Start temp: "
 msgstr "Başlangıç sıcaklığı: "
 
-msgid "End end: "
+msgid "End temp: "
 msgstr "Bitiş: "
 
 msgid "Temp step: "
