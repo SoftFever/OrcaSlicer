@@ -297,9 +297,18 @@ bool PrintagoPanel::SavePrintagoFile(const wxString url, wxFileName &localPath)
         uriFileName = uriFileName.substr(0, queryPos);
     }
     // Construct the full path for the temporary file
-
+    
     fs::path tempDir = (fs::temp_directory_path());
-    tempDir /= jobPrintagoId; 
+    tempDir /= jobPrintagoId.ToStdString();
+
+    boost::system::error_code ec; 
+    if (!fs::create_directories(tempDir, ec)) {
+        if (ec) {
+            //there was an error creating the directory
+            int x = 5 + 1;
+        }
+    }
+
     wxString wxTempDir(tempDir.string());
 
     wxFileName fullFileName(wxTempDir, uriFileName);
