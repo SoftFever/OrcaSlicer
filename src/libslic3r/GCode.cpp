@@ -2215,8 +2215,11 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         // In non-sequential print, the printing extruders may have been modified by the extruder switches stored in Model::custom_gcode_per_print_z.
         // Therefore initialize the printing extruders from there.
         this->set_extruders(tool_ordering.all_extruders());
-        // Order object instances using a nearest neighbor search.
-        print_object_instances_ordering = chain_print_object_instances(print);
+        print_object_instances_ordering = 
+            // By default, order object instances using a nearest neighbor search.
+            print.config().print_order == PrintOrder::Default ? chain_print_object_instances(print)
+            // Otherwise same order as the object list
+            : sort_object_instances_by_model_order(print);
     }
     if (initial_extruder_id == (unsigned int)-1) {
         // Nothing to print!
@@ -3984,7 +3987,7 @@ LayerResult GCode::process_layer(
         std::vector<InstanceToPrint> instances_to_print;
         bool has_prime_tower = print.config().enable_prime_tower
             && print.extruders().size() > 1
-            && (print.config().print_sequence == PrintSequence::ByLayer
+            && ((print.config().print_sequence == PrintSequence::ByLayer && print.config().print_order == PrintOrder::Default)
                 || (print.config().print_sequence == PrintSequence::ByObject && print.objects().size() == 1));
         if (has_prime_tower) {
             int plate_idx = print.get_plate_index();
