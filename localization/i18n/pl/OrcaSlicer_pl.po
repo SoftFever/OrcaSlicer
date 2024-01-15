@@ -1253,7 +1253,7 @@ msgid "Select point"
 msgstr "Wybierz punkt"
 
 msgid "Delete"
-msgstr "Usuń"
+msgstr "Usuąć"
 
 msgid "Restart selection"
 msgstr "Restartuj wybór"
@@ -11202,7 +11202,7 @@ msgstr "Rodzaj filamentu"
 msgid "Start temp: "
 msgstr "Temp. początkowa: "
 
-msgid "End end: "
+msgid "End temp: "
 msgstr "Temp. końcowa: "
 
 msgid "Temp step: "
