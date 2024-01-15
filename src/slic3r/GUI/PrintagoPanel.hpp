@@ -116,9 +116,11 @@ private:
     // we set this to true when we need to issue a
     // command that must block (e.g slicing/sending a print to a printer)
     // no need to send this for commands like home/jog.
+    //TODO: refactor this to a struct or class that also encapsulates CanProcessJob
     wxString                                     jobPrinterId;
     wxString                                     jobCommand;
     wxFileName                                   jobLocalModelFile;
+    wxString                                     jobPrintagoId = "ptgo_default";
     wxString                                     jobServerState = "idle"; // TODO : use enum
     std::unordered_map<std::string, wxFileName>  jobConfigFiles;
     int                                          jobProgress = 0;

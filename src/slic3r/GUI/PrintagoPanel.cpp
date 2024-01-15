@@ -83,8 +83,8 @@ void PrintagoPanel::SetCanProcessJob(const bool can_process_job)
         jobLocalModelFile.Clear();
         jobServerState = "idle";
         jobConfigFiles.clear();
-        jobProgress    = 0;
-        // jobId = ""; // TODO: add this here when we have it.
+        jobProgress          = 0;
+        jobPrintagoId        = "ptgo_default";
         m_select_machine_dlg = nullptr;
         wxGetApp().mainframe->m_tabpanel->Enable();
         wxGetApp().mainframe->m_topbar->Enable();
@@ -297,8 +297,9 @@ bool PrintagoPanel::SavePrintagoFile(const wxString url, wxFileName &localPath)
         uriFileName = uriFileName.substr(0, queryPos);
     }
     // Construct the full path for the temporary file
-      
-    fs::path tempDir = (fs::temp_directory_path()); 
+
+    fs::path tempDir = (fs::temp_directory_path());
+    tempDir /= jobPrintagoId; 
     wxString wxTempDir(tempDir.string());
 
     wxFileName fullFileName(wxTempDir, uriFileName);
@@ -692,6 +693,11 @@ void PrintagoPanel::HandlePrintagoCommand(const PrintagoCommand &event)
             wxString printerConfUrl  = parameters["printer_conf"];
             wxString printConfUrl    = parameters["print_conf"];
             wxString filamentConfUrl = parameters["filament_conf"];
+
+            wxString printagoId      = parameters["printago_job"];
+            if (!printagoId.empty()) {
+                jobPrintagoId = printagoId;
+            }
 
             jobPrinterId             = printerId;
             jobCommand               = originalCommandStr;
