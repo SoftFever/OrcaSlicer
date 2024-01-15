@@ -2513,10 +2513,6 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         // Nothing to print!
         initial_extruder_id = 0;
         initial_non_support_extruder_id = 0;
-        final_extruder_id   = 0;
-    } else {
-        final_extruder_id = tool_ordering.last_extruder();
-        assert(final_extruder_id != (unsigned int)-1);
     }
 
     //could not find non support filmanet, use fisrt print filament
