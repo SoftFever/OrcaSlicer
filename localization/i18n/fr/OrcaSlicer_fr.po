@@ -13644,8 +13644,10 @@ msgstr "Filament"
 msgid "Start temp: "
 msgstr "Temp. de début: "
 
-msgid "End end: "
+
+msgid "End temp: "
 msgstr "Temp. de fin: "
+
 
 msgid "Temp step: "
 msgstr "Intervalle de temp. : "

@@ -12867,7 +12867,7 @@ msgstr "필라멘트 유형"
 msgid "Start temp: "
 msgstr "시작 온도: "
 
-msgid "End end: "
+msgid "End temp: "
 msgstr "종료 온도: "
 
 msgid "Temp step: "

@@ -12281,7 +12281,7 @@ msgstr "耗材类型"
 msgid "Start temp: "
 msgstr "起始温度: "
 
-msgid "End end: "
+msgid "End temp: "
 msgstr "结束温度"
 
 msgid "Temp step: "
