@@ -163,7 +163,7 @@ then
     fi
     if [[ -n "$BUILD_DEBUG" ]]
     then
-        # have to build deps with debug & release or the cmake won't find evrything it needs
+        # have to build deps with debug & release or the cmake won't find everything it needs
         mkdir deps/build/release
         pushd deps/build/release
             echo -e "cmake ../.. -DDESTDIR=\"../destdir\" $BUILD_ARGS"
