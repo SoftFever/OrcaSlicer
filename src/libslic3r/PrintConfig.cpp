@@ -1149,8 +1149,8 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionEnum<PrintSequence>(PrintSequence::ByLayer));
 
     def = this->add("print_order", coEnum);
-    def->label = L("Print order");
-    def->tooltip = L("Print order");
+    def->label = L("Layer order");
+    def->tooltip = L("Print order within a single layer");
     def->enum_keys_map = &ConfigOptionEnum<PrintOrder>::get_enum_values();
     def->enum_values.push_back("default");
     def->enum_values.push_back("as_obj_list");
