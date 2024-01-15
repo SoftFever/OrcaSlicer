@@ -1298,7 +1298,7 @@ void TriangleSelectorPatch::update_triangles_per_type()
         patch.triangle_indices.reserve(m_triangles.size() / 3);
     }
 
-    bool using_wireframe = (wxGetApp().plater()->is_wireframe_enabled() && wxGetApp().plater()->is_show_wireframe()) ? true : false;
+    bool using_wireframe = (m_need_wireframe && wxGetApp().plater()->is_wireframe_enabled() && wxGetApp().plater()->is_show_wireframe()) ? true : false;
 
     for (auto& triangle : m_triangles) {
         if (!triangle.valid() || triangle.is_split())
@@ -1356,7 +1356,7 @@ void TriangleSelectorPatch::update_triangles_per_patch()
     auto [neighbors, neighbors_propagated] = this->precompute_all_neighbors();
     std::vector<bool>  visited(m_triangles.size(), false);
 
-    bool using_wireframe = (wxGetApp().plater()->is_wireframe_enabled() && wxGetApp().plater()->is_show_wireframe()) ? true : false; 
+    bool using_wireframe = (m_need_wireframe && wxGetApp().plater()->is_wireframe_enabled() && wxGetApp().plater()->is_show_wireframe()) ? true : false; 
 
     auto get_all_touching_triangles = [this](int facet_idx, const Vec3i& neighbors, const Vec3i& neighbors_propagated) -> std::vector<int> {
         assert(facet_idx != -1 && facet_idx < int(m_triangles.size()));
@@ -1537,7 +1537,8 @@ void TriangleSelectorPatch::render(int triangle_indices_idx, bool show_wireframe
         glsafe(::glEnableVertexAttribArray((GLint)position_id));
     }
     GLint barycentric_id = -1;
-    if (show_wireframe) {
+    // Orca: This is required even if wireframe is not displayed, otherwise on AMD Vega GPUs the painter gizmo won't render properly
+    /*if (show_wireframe)*/ {
         barycentric_id = shader->get_attrib_location("v_barycentric");
         if (barycentric_id != -1) {
             glsafe(::glVertexAttribPointer((GLint) barycentric_id, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (const void *) (3 * sizeof(float))));
