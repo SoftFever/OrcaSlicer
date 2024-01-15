@@ -13642,13 +13642,13 @@ msgid "Filament type"
 msgstr "Filament"
 
 msgid "Start temp: "
-msgstr "Début: "
+msgstr "Temp. de début: "
 
 msgid "End end: "
-msgstr "Fin: "
+msgstr "Temp. de fin: "
 
 msgid "Temp step: "
-msgstr "Intervalle: "
+msgstr "Intervalle de temp. : "
 
 msgid ""
 "Please input valid values:\n"
