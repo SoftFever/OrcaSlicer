@@ -90,13 +90,18 @@ std::vector<Slic3r::ColorRGBA> get_extruders_colors()
 }
 float FullyTransparentMaterialThreshold  = 0.1f;
 float FullTransparentModdifiedToFixAlpha = 0.3f;
+float FULL_BLACK_THRESHOLD = 0.18f;
 
 Slic3r::ColorRGBA adjust_color_for_rendering(const Slic3r::ColorRGBA &colors)
 {
     if (colors.a() < FullyTransparentMaterialThreshold) { // completely transparent
         return {1, 1, 1, FullTransparentModdifiedToFixAlpha};
     }
-    return colors;
+    else if(colors.r() < FULL_BLACK_THRESHOLD && colors.g() < FULL_BLACK_THRESHOLD && colors.b() < FULL_BLACK_THRESHOLD) { // black
+        return {FULL_BLACK_THRESHOLD, FULL_BLACK_THRESHOLD, FULL_BLACK_THRESHOLD, colors.a()};
+    }
+    else
+        return colors;
 }
 
 namespace Slic3r {
@@ -940,9 +945,9 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disab
         const Matrix3d view_normal_matrix = view_matrix.matrix().block(0, 0, 3, 3) * model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose();
         shader->set_uniform("view_normal_matrix", view_normal_matrix);
 		//BBS: add outline related logic
-        if (with_outline && volume.first->selected)
-            volume.first->render_with_outline(view_matrix * model_matrix);
-        else
+        //if (with_outline && volume.first->selected)
+        //    volume.first->render_with_outline(view_matrix * model_matrix);
+        //else
             volume.first->render();
 
 #if ENABLE_ENVIRONMENT_MAP
@@ -1162,13 +1167,14 @@ void GLVolumeCollection::update_colors_by_extruder(const DynamicPrintConfig *con
 
         const ColorItem& color = colors[extruder_id];
         if (!color.first.empty()) {
-			if (!is_update_alpha) {
-                float old_a   = color.second.a();
+            if (!is_update_alpha) {
+                float old_a   = volume->color.a();
                 volume->color = color.second;
                 volume->color.a(old_a);
-			}
-            volume->color = color.second;
-		}
+            } else {
+                volume->color = color.second;
+            }
+        }
     }
 }
 

@@ -105,7 +105,6 @@ private:
 	wxStaticText*						m_file_name;
     PrintDialogStatus					m_print_status{ PrintStatusInit };
 
-    std::shared_ptr<SendJob>			m_send_job{nullptr};
     std::vector<wxString>               m_bedtype_list;
     std::map<std::string, ::CheckBox*>	m_checkbox_list;
     std::vector<MachineObject*>			m_list;
@@ -113,6 +112,7 @@ private:
     wxColour							m_colour_bold_color{ wxColour(38, 46, 48) };
 	wxTimer*							m_refresh_timer{ nullptr };
     std::shared_ptr<BBLStatusBarSend>   m_status_bar;
+    std::unique_ptr<Worker>             m_worker;
 	wxScrolledWindow*                   m_sw_print_failed_info{nullptr};
     std::shared_ptr<int>                m_token = std::make_shared<int>(0);
    
@@ -130,6 +130,7 @@ public:
     void reset_timeout();
     void update_user_printer();
     void update_show_status();
+    bool is_blocking_printing(MachineObject* obj_);
     void prepare(int print_plate_idx);
     void check_focus(wxWindow* window);
     void check_fcous_state(wxWindow* window);

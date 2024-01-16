@@ -20,6 +20,7 @@
 #include "imgui/imgui_internal.h"
 #include "slic3r/GUI/Field.hpp"
 #include "slic3r/GUI/MsgDialog.hpp"
+#include "FixModelByWin10.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -1769,7 +1770,7 @@ BoundingBoxf3 GLGizmoCut3D::transformed_bounding_box(const Vec3d& plane_center, 
         // respect just to the solid parts for FFF and ignore pad and supports for SLA
         if (!volume->is_modifier && !volume->is_sla_pad() && !volume->is_sla_support()) {
 
-            const auto instance_matrix = volume->get_instance_transformation().get_matrix(true);
+            const auto instance_matrix = volume->get_instance_transformation().get_matrix_no_offset();
             auto volume_trafo = instance_matrix * volume->get_volume_transformation().get_matrix();
             ret.merge(volume->transformed_convex_hull_bounding_box(cut_matrix * volume_trafo));
         }
@@ -2284,13 +2285,13 @@ void GLGizmoCut3D::render_connectors_input_window(CutConnectors &connectors, flo
     render_flip_plane_button(m_connectors_editing && connectors.empty());
 
     m_imgui->text(m_labels_map["Type"]);
-    ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(0.00f, 0.00f, 0.00f, 1.00f));
+    ImGuiWrapper::push_radio_style();
     bool type_changed = render_connect_type_radio_button(CutConnectorType::Plug);
     type_changed     |= render_connect_type_radio_button(CutConnectorType::Dowel);
     type_changed     |= render_connect_type_radio_button(CutConnectorType::Snap);
     if (type_changed)
         apply_selected_connectors([this, &connectors] (size_t idx) { connectors[idx].attribs.type = CutConnectorType(m_connector_type); });
-    ImGui::PopStyleColor(1);
+    ImGuiWrapper::pop_radio_style();
 
     m_imgui->disabled_begin(m_connector_type != CutConnectorType::Plug);
         if (type_changed && m_connector_type == CutConnectorType::Dowel) {
@@ -2948,7 +2949,7 @@ void GLGizmoCut3D::show_tooltip_information(float x, float y)
     ImTextureID normal_id = m_parent.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_TOOLBAR_TOOLTIP);
     ImTextureID hover_id  = m_parent.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_TOOLBAR_TOOLTIP_HOVER);
 
-    caption_max += m_imgui->calc_text_size(": ").x + 35.f;
+    caption_max += m_imgui->calc_text_size(std::string_view{": "}).x + 35.f;
 
     float  font_size   = ImGui::GetFontSize();
     ImVec2 button_size = ImVec2(font_size * 1.8, font_size * 1.3);
@@ -3381,6 +3382,49 @@ void GLGizmoCut3D::perform_cut(const Selection& selection)
                                              cut_with_groove   ? cut.perform_with_groove(m_groove, m_rotation_m) :
                                                                  cut.perform_with_plane();
 
+        // fix_non_manifold_edges
+#ifdef HAS_WIN10SDK
+        if (is_windows10()) {
+            bool is_showed_dialog = false;
+            bool user_fix_model   = false;
+            for (size_t i = 0; i < new_objects.size(); i++) {
+                for (size_t j = 0; j < new_objects[i]->volumes.size(); j++) {
+                    if (its_num_open_edges(new_objects[i]->volumes[j]->mesh().its) > 0) {
+                        if (!is_showed_dialog) {
+                            is_showed_dialog = true;
+                            MessageDialog dlg(nullptr, _L("non-manifold edges be caused by cut tool, do you want to fix it now?"), "", wxYES | wxCANCEL);
+                            int           ret = dlg.ShowModal();
+                            if (ret == wxID_YES) {
+                                user_fix_model = true;
+                            }
+                        }
+                        if (!user_fix_model) {
+                            break;
+                        }
+                        // model_name
+                        std::vector<std::string> succes_models;
+                        // model_name     failing reason
+                        std::vector<std::pair<std::string, std::string>> failed_models;
+                        auto                                             plater = wxGetApp().plater();
+                        auto fix_and_update_progress = [this, plater](ModelObject *model_object, const int vol_idx, const string &model_name, ProgressDialog &progress_dlg,
+                                                                      std::vector<std::string> &succes_models, std::vector<std::pair<std::string, std::string>> &failed_models) {
+                            wxString msg = _L("Repairing model object");
+                            msg += ": " + from_u8(model_name) + "\n";
+                            std::string res;
+                            if (!fix_model_by_win10_sdk_gui(*model_object, vol_idx, progress_dlg, msg, res)) return false;
+                            return true;
+                        };
+                        ProgressDialog progress_dlg(_L("Repairing model object"), "", 100, find_toplevel_parent(plater), wxPD_AUTO_HIDE | wxPD_APP_MODAL | wxPD_CAN_ABORT, true);
+
+                        auto model_name = new_objects[i]->name;
+                        if (!fix_and_update_progress(new_objects[i], j, model_name, progress_dlg, succes_models, failed_models)) {
+                            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "run fix_and_update_progress error";
+                        };
+                    };
+                }
+            }
+        }
+ #endif
         check_objects_after_cut(new_objects);
 
         // save cut_id to post update synchronization

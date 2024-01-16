@@ -26,6 +26,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - name: load cached deps
+        uses: actions/cache@v3
+        with:
+          path: ${{ inputs.cache-path }}
+          key: ${{ inputs.cache-key }}
+          fail-on-cache-miss: true
+
       - name: Get the version and date on Ubuntu and macOS
         if: inputs.os != 'windows-latest'
         run: |
@@ -58,37 +65,33 @@ jobs:
               if ($versionContent -match 'set\(SoftFever_VERSION "(.*?)"\)') {
                   $ver = $matches[1]
               }
-              ver = "V$ver"
+              $ver = "V$ver"
           }
       
           echo "ver=$ver" | Out-File -Append -FilePath $env:GITHUB_ENV -Encoding utf8
           echo "date=$date" | Out-File -Append -FilePath $env:GITHUB_ENV -Encoding utf8
           echo "date: ${{ env.date }} version: ${{ env.ver }}"
         shell: pwsh
-      
-      - name: load cached deps
-        uses: actions/cache@v3
-        with:
-          path: ${{ inputs.cache-path }}
-          key: ${{ inputs.cache-key }}
         
 #   Mac
       - name: Install tools mac
         if: inputs.os == 'macos-12'
         run: |
-          brew install cmake git gettext zstd tree
+          brew install cmake git gettext tree
+          brew list
           mkdir -p ${{ github.workspace }}/deps/build_${{inputs.arch}}
           mkdir -p ${{ github.workspace }}/deps/build_${{inputs.arch}}/OrcaSlicer_dep_${{inputs.arch}}
+          tree ${{ github.workspace }}/deps/build_${{inputs.arch}}/OrcaSlicer_dep_${{inputs.arch}}
 
       - name: Build slicer mac
         if: inputs.os == 'macos-12'
         working-directory: ${{ github.workspace }}
         run: |
-          ./build_release_macos.sh -s -n -a ${{inputs.arch}}
+          ./build_release_macos.sh -s -n -a ${{inputs.arch}} -t 10.15
 
  # Thanks to RaySajuuk, it's working now
       - name: Sign app and notary
-        if: (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/')) && matrix.os == 'macos-12'
+        if: (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/')) && inputs.os == 'macos-12'
         working-directory: ${{ github.workspace }}
         env:
           BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}

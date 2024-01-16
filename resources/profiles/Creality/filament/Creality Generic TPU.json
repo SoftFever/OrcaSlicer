@@ -10,6 +10,7 @@
         "3.2"
     ],
     "compatible_printers": [
+		"Creality Ender-3 V3 SE 0.4 nozzle",
         "Creality K1 (0.4 nozzle)",
         "Creality K1 (0.6 nozzle)",
         "Creality K1 (0.8 nozzle)",

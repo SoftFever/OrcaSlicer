@@ -1,3 +1,7 @@
+///|/ Copyright (c) Prusa Research 2018 - 2023 Enrico Turri @enricoturri1966, Oleksandra Iushchenko @YuSanka, Lukáš Matěna @lukasmatena, Pavel Mikuš @Godrak, Filip Sykala @Jony01, Vojtěch Bubník @bubnikv, Vojtěch Král @vojtechkral
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #include "slic3r/GUI/ImGuiWrapper.hpp"
 #include <imgui/imgui_internal.h>
 
@@ -19,7 +23,7 @@
 #include <boost/algorithm/string.hpp>
 
 #define MAX_NUM 9999.99
-#define MAX_SIZE "9999.99"
+#define MAX_SIZE std::string_view{"9999.99"}
 
 namespace Slic3r
 {
@@ -81,7 +85,7 @@ void GizmoObjectManipulation::update_settings_value(const Selection& selection)
     m_new_rotate_label_string = L("Rotation");
     m_new_scale_label_string  = L("Scale ratios");
 
-    m_world_coordinates = true;
+    m_coordinates_type = ECoordinatesType::World;
 
     ObjectList* obj_list = wxGetApp().obj_list();
     if (selection.is_single_full_instance()) {
@@ -89,7 +93,7 @@ void GizmoObjectManipulation::update_settings_value(const Selection& selection)
         const GLVolume* volume = selection.get_first_volume();
         m_new_position = volume->get_instance_offset();
 
-        if (m_world_coordinates) {
+        if (is_world_coordinates()) {
 			m_new_rotate_label_string = L("Rotate");
             m_new_rotation = volume->get_instance_rotation() * (180. / M_PI);
 			m_new_size     = selection.get_scaled_instance_bounding_box().size();
@@ -260,7 +264,15 @@ void GizmoObjectManipulation::change_position_value(int axis, double value)
 
     Selection& selection = m_glcanvas.get_selection();
     selection.setup_cache();
-    selection.translate(position - m_cache.position, selection.requires_local_axes());
+    TransformationType trafo_type;
+    trafo_type.set_relative();
+    switch (m_coordinates_type)
+    {
+    case ECoordinatesType::Instance: { trafo_type.set_instance(); break; }
+    case ECoordinatesType::Local:    { trafo_type.set_local(); break; }
+    default:                         { break; }
+    }
+    selection.translate(position - m_cache.position, trafo_type);
     m_glcanvas.do_move(L("Set Position"));
 
     m_cache.position = position;
@@ -278,14 +290,16 @@ void GizmoObjectManipulation::change_rotation_value(int axis, double value)
 
     Selection& selection = m_glcanvas.get_selection();
 
-    TransformationType transformation_type(TransformationType::World_Relative_Joint);
-    if (selection.is_single_full_instance() || selection.requires_local_axes())
-		transformation_type.set_independent();
-	if (selection.is_single_full_instance() && ! m_world_coordinates) {
-        //FIXME Selection::rotate() does not process absoulte rotations correctly: It does not recognize the axis index, which was changed.
-		// transformation_type.set_absolute();
-		transformation_type.set_local();
-	}
+    TransformationType transformation_type;
+    transformation_type.set_relative();
+    if (selection.is_single_full_instance())
+        transformation_type.set_independent();
+
+    if (is_local_coordinates())
+        transformation_type.set_local();
+
+    if (is_instance_coordinates())
+        transformation_type.set_instance();
 
     selection.setup_cache();
 	selection.rotate(
@@ -336,7 +350,7 @@ void GizmoObjectManipulation::change_size_value(int axis, double value)
         ref_size = Vec3d(instance_scale[0] * ref_size[0], instance_scale[1] * ref_size[1], instance_scale[2] * ref_size[2]);
     }
     else if (selection.is_single_full_instance())
-		ref_size = m_world_coordinates ? 
+        ref_size = is_world_coordinates() ? 
             selection.get_unscaled_instance_bounding_box().size() :
             wxGetApp().model().objects[selection.get_first_volume()->object_idx()]->raw_mesh_bounding_box().size();
 
@@ -355,7 +369,7 @@ void GizmoObjectManipulation::do_scale(int axis, const Vec3d &scale) const
     TransformationType transformation_type(TransformationType::World_Relative_Joint);
     if (selection.is_single_full_instance()) {
         transformation_type.set_absolute();
-        if (! m_world_coordinates)
+        if (! is_world_coordinates())
             transformation_type.set_local();
     }
 
@@ -364,7 +378,7 @@ void GizmoObjectManipulation::do_scale(int axis, const Vec3d &scale) const
         scaling_factor = scale(axis) * Vec3d::Ones();
 
     selection.setup_cache();
-    selection.scale(scaling_factor * 0.01, transformation_type);
+    selection.scale_legacy(scaling_factor * 0.01, transformation_type);
     m_glcanvas.do_scale(L("Set Scale"));
 }
 
@@ -384,6 +398,51 @@ void GizmoObjectManipulation::on_change(const std::string& opt_key, int axis, do
         change_scale_value(axis, new_value);
     else if (opt_key == "size")
         change_size_value(axis, new_value);
+}
+
+void GizmoObjectManipulation::set_uniform_scaling(const bool new_value)
+{ 
+    const Selection &selection = m_glcanvas.get_selection();
+    if (selection.is_single_full_instance() && is_world_coordinates() && !new_value) {
+        // Verify whether the instance rotation is multiples of 90 degrees, so that the scaling in world coordinates is possible.
+        // all volumes in the selection belongs to the same instance, any of them contains the needed instance data, so we take the first one
+        const GLVolume* volume = selection.get_first_volume();
+        // Is the angle close to a multiple of 90 degrees?
+
+		if (! Geometry::is_rotation_ninety_degrees(volume->get_instance_rotation())) {
+            // Cannot apply scaling in the world coordinate system.
+            // BBS: remove tilt prompt dialog
+
+            // Bake the rotation into the meshes of the object.
+            wxGetApp().model().objects[volume->composite_id.object_id]->bake_xy_rotation_into_meshes(volume->composite_id.instance_id);
+            // Update the 3D scene, selections etc.
+            wxGetApp().plater()->update();
+            // Recalculate cached values at this panel, refresh the screen.
+            this->UpdateAndShow(true);
+        }
+    }
+    m_uniform_scale = new_value;
+}
+
+void GizmoObjectManipulation::set_coordinates_type(ECoordinatesType type)
+{
+    if (wxGetApp().get_mode() == comSimple)
+        type = ECoordinatesType::World;
+
+    if (m_coordinates_type == type)
+        return;
+
+    m_coordinates_type = type;
+    this->UpdateAndShow(true);
+    GLCanvas3D* canvas = wxGetApp().plater()->canvas3D();
+    canvas->get_gizmos_manager().update_data();
+    canvas->set_as_dirty();
+    canvas->request_extra_frame();
+}
+
+ECoordinatesType GizmoObjectManipulation::get_coordinates_type() const
+{
+    return m_coordinates_type;
 }
 
 void GizmoObjectManipulation::reset_position_value()
@@ -427,7 +486,7 @@ void GizmoObjectManipulation::reset_rotation_value()
         return;
 
     // Update rotation at the GLVolumes.
-    selection.synchronize_unselected_instances(Selection::SYNC_ROTATION_GENERAL);
+    selection.synchronize_unselected_instances(Selection::SyncRotationType::GENERAL);
     selection.synchronize_unselected_volumes();
     // Copy rotation values from GLVolumes into Model (ModelInstance / ModelVolume), trigger background processing.
     m_glcanvas.do_rotate(L("Reset Rotation"));
@@ -442,30 +501,6 @@ void GizmoObjectManipulation::reset_scale_value()
     change_scale_value(0, 100.);
     change_scale_value(1, 100.);
     change_scale_value(2, 100.);
-}
-
-void GizmoObjectManipulation::set_uniform_scaling(const bool new_value)
-{ 
-    const Selection &selection = m_glcanvas.get_selection();
-	if (selection.is_single_full_instance() && m_world_coordinates && !new_value) {
-        // Verify whether the instance rotation is multiples of 90 degrees, so that the scaling in world coordinates is possible.
-        // all volumes in the selection belongs to the same instance, any of them contains the needed instance data, so we take the first one
-        const GLVolume* volume = selection.get_first_volume();
-        // Is the angle close to a multiple of 90 degrees?
-
-		if (! Geometry::is_rotation_ninety_degrees(volume->get_instance_rotation())) {
-            // Cannot apply scaling in the world coordinate system.
-            // BBS: remove tilt prompt dialog
-
-            // Bake the rotation into the meshes of the object.
-            wxGetApp().model().objects[volume->composite_id.object_id]->bake_xy_rotation_into_meshes(volume->composite_id.instance_id);
-            // Update the 3D scene, selections etc.
-            wxGetApp().plater()->update();
-            // Recalculate cached values at this panel, refresh the screen.
-            this->UpdateAndShow(true);
-        }
-    }
-    m_uniform_scale = new_value;
 }
 
 static const char* label_values[2][3] = {

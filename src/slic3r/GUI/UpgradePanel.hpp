@@ -38,6 +38,7 @@ public:
     wxStaticText *m_staticText_ams;
     wxStaticText *m_staticText_ams_sn_val;
     wxStaticText *m_staticText_ams_ver_val;
+    wxStaticText *m_staticText_beta_version;
     wxStaticBitmap *m_ams_new_version_img;
     ScalableBitmap upgrade_green_icon;
 
@@ -80,6 +81,7 @@ protected:
     wxStaticBitmap *m_ota_new_version_img;
     wxStaticText *  m_staticText_ver;
     wxStaticText *  m_staticText_ver_val;
+    wxStaticText *  m_staticText_beta_version;
     wxStaticLine *  m_staticline;
     wxStaticBitmap *m_ams_img;
     AmsPanel*       m_ahb_panel;

@@ -245,7 +245,7 @@ void GLGizmoPainterBase::render_cursor_sphere(const Transform3d& trafo) const
     if (shader == nullptr)
         return;
 
-    const Transform3d complete_scaling_matrix_inverse = Geometry::Transformation(trafo).get_matrix(true, true, false, true).inverse();
+    const Transform3d complete_scaling_matrix_inverse = Geometry::Transformation(trafo).get_matrix_no_scaling_factor().inverse();
 
     // BBS
     ColorRGBA render_color = this->get_cursor_hover_color();
@@ -536,8 +536,8 @@ std::vector<GLGizmoPainterBase::ProjectedHeightRange> GLGizmoPainterBase::get_pr
         mi->get_assemble_transformation().get_matrix() :
         mi->get_transformation().get_matrix();
     const Transform3d   instance_trafo_not_translate = m_parent.get_canvas_type() == GLCanvas3D::CanvasAssembleView ?
-        mi->get_assemble_transformation().get_matrix(true) :
-        mi->get_transformation().get_matrix(true);
+        mi->get_assemble_transformation().get_matrix_no_offset() :
+        mi->get_transformation().get_matrix_no_offset();
 
     for (int mesh_idx = 0; mesh_idx < part_volumes.size(); mesh_idx++) {
         if (mesh_idx == m_rr.mesh_id)
@@ -605,8 +605,8 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
                     const ModelObject   *mo                        = m_c->selection_info()->model_object();
                     const ModelInstance *mi                        = mo->instances[selection.get_instance_idx()];
                     const Transform3d   trafo_matrix_not_translate = m_parent.get_canvas_type() == GLCanvas3D::CanvasAssembleView ?
-                        mi->get_assemble_transformation().get_matrix(true) * mo->volumes[m_rr.mesh_id]->get_matrix(true) :
-                        mi->get_transformation().get_matrix(true) * mo->volumes[m_rr.mesh_id]->get_matrix(true);
+                        mi->get_assemble_transformation().get_matrix_no_offset() * mo->volumes[m_rr.mesh_id]->get_matrix_no_offset() :
+                        mi->get_transformation().get_matrix_no_offset() * mo->volumes[m_rr.mesh_id]->get_matrix_no_offset();
                     const Transform3d   trafo_matrix = m_parent.get_canvas_type() == GLCanvas3D::CanvasAssembleView ?
                         mi->get_assemble_transformation().get_matrix() * mo->volumes[m_rr.mesh_id]->get_matrix() :
                         mi->get_transformation().get_matrix() * mo->volumes[m_rr.mesh_id]->get_matrix();
@@ -675,8 +675,8 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
             mi->get_assemble_transformation().get_matrix() :
             mi->get_transformation().get_matrix();
         Transform3d   instance_trafo_not_translate = m_parent.get_canvas_type() == GLCanvas3D::CanvasAssembleView ?
-            mi->get_assemble_transformation().get_matrix(true) :
-            mi->get_transformation().get_matrix(true);
+            mi->get_assemble_transformation().get_matrix_no_offset() :
+            mi->get_transformation().get_matrix_no_offset();
         std::vector<const ModelVolume*> part_volumes;
 
         // Precalculate transformations of individual meshes.
@@ -692,7 +692,7 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
                 else {
                     trafo_matrices.emplace_back(instance_trafo* mv->get_matrix());
                 }
-                trafo_matrices_not_translate.emplace_back(instance_trafo_not_translate * mv->get_matrix(true));
+                trafo_matrices_not_translate.emplace_back(instance_trafo_not_translate * mv->get_matrix_no_offset());
                 part_volumes.push_back(mv);
             }
 
@@ -824,8 +824,8 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
             mi->get_assemble_transformation().get_matrix() :
             mi->get_transformation().get_matrix();
         const Transform3d    instance_trafo_not_translate = m_parent.get_canvas_type() == GLCanvas3D::CanvasAssembleView ?
-            mi->get_assemble_transformation().get_matrix(true) :
-            mi->get_transformation().get_matrix(true);
+            mi->get_assemble_transformation().get_matrix_no_offset() :
+            mi->get_transformation().get_matrix_no_offset();
 
         // Precalculate transformations of individual meshes.
         std::vector<Transform3d> trafo_matrices;
@@ -840,7 +840,7 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
                 else {
                     trafo_matrices.emplace_back(instance_trafo * mv->get_matrix());
                 }
-                trafo_matrices_not_translate.emplace_back(instance_trafo_not_translate * mv->get_matrix(true));
+                trafo_matrices_not_translate.emplace_back(instance_trafo_not_translate * mv->get_matrix_no_offset());
             }
 
         // Now "click" into all the prepared points and spill paint around them.
@@ -1298,7 +1298,7 @@ void TriangleSelectorPatch::update_triangles_per_type()
         patch.triangle_indices.reserve(m_triangles.size() / 3);
     }
 
-    bool using_wireframe = (wxGetApp().plater()->is_wireframe_enabled() && wxGetApp().plater()->is_show_wireframe()) ? true : false;
+    bool using_wireframe = (m_need_wireframe && wxGetApp().plater()->is_wireframe_enabled() && wxGetApp().plater()->is_show_wireframe()) ? true : false;
 
     for (auto& triangle : m_triangles) {
         if (!triangle.valid() || triangle.is_split())
@@ -1356,7 +1356,7 @@ void TriangleSelectorPatch::update_triangles_per_patch()
     auto [neighbors, neighbors_propagated] = this->precompute_all_neighbors();
     std::vector<bool>  visited(m_triangles.size(), false);
 
-    bool using_wireframe = (wxGetApp().plater()->is_wireframe_enabled() && wxGetApp().plater()->is_show_wireframe()) ? true : false; 
+    bool using_wireframe = (m_need_wireframe && wxGetApp().plater()->is_wireframe_enabled() && wxGetApp().plater()->is_show_wireframe()) ? true : false; 
 
     auto get_all_touching_triangles = [this](int facet_idx, const Vec3i& neighbors, const Vec3i& neighbors_propagated) -> std::vector<int> {
         assert(facet_idx != -1 && facet_idx < int(m_triangles.size()));
@@ -1537,7 +1537,8 @@ void TriangleSelectorPatch::render(int triangle_indices_idx, bool show_wireframe
         glsafe(::glEnableVertexAttribArray((GLint)position_id));
     }
     GLint barycentric_id = -1;
-    if (show_wireframe) {
+    // Orca: This is required even if wireframe is not displayed, otherwise on AMD Vega GPUs the painter gizmo won't render properly
+    /*if (show_wireframe)*/ {
         barycentric_id = shader->get_attrib_location("v_barycentric");
         if (barycentric_id != -1) {
             glsafe(::glVertexAttribPointer((GLint) barycentric_id, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (const void *) (3 * sizeof(float))));

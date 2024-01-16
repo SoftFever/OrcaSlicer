@@ -78,7 +78,7 @@ then
 fi
 
 # Addtional Dev packages for OrcaSlicer
-export REQUIRED_DEV_PACKAGES="libmspack-dev libgstreamerd-3-dev libsecret-1-dev libwebkit2gtk-4.0-dev libosmesa6-dev libssl-dev libcurl4-openssl-dev eglexternalplatform-dev libudev-dev libdbus-1-dev extra-cmake-modules"
+export REQUIRED_DEV_PACKAGES="libmspack-dev libgstreamerd-3-dev libsecret-1-dev libwebkit2gtk-4.0-dev libosmesa6-dev libssl-dev libcurl4-openssl-dev eglexternalplatform-dev libudev-dev libdbus-1-dev extra-cmake-modules texinfo"
 # libwebkit2gtk-4.1-dev ??
 export DEV_PACKAGES_COUNT=$(echo ${REQUIRED_DEV_PACKAGES} | wc -w)
 if [ $(dpkg --get-selections | grep -E "$(echo ${REQUIRED_DEV_PACKAGES} | tr ' ' '|')" | wc -l) -lt ${DEV_PACKAGES_COUNT} ]; then
@@ -163,9 +163,10 @@ then
     fi
     if [[ -n "$BUILD_DEBUG" ]]
     then
-        # have to build deps with debug & release or the cmake won't find evrything it needs
+        # have to build deps with debug & release or the cmake won't find everything it needs
         mkdir deps/build/release
         pushd deps/build/release
+            echo -e "cmake ../.. -DDESTDIR=\"../destdir\" $BUILD_ARGS"
             cmake ../.. -DDESTDIR="../destdir" $BUILD_ARGS
             make -j$NCORES
         popd
@@ -174,6 +175,7 @@ then
     
     # cmake deps
     pushd deps/build
+        echo "cmake .. $BUILD_ARGS"
         cmake .. $BUILD_ARGS
         echo "done"
         
@@ -225,6 +227,7 @@ then
     
     # cmake
     pushd build
+        echo -e "cmake .. -DCMAKE_PREFIX_PATH=\"$PWD/../deps/build/destdir/usr/local\" -DSLIC3R_STATIC=1 ${BUILD_ARGS}"
         cmake .. -DCMAKE_PREFIX_PATH="$PWD/../deps/build/destdir/usr/local" -DSLIC3R_STATIC=1 ${BUILD_ARGS}
         echo "done"
         

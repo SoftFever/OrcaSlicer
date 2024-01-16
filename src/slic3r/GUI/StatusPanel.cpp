@@ -5,6 +5,7 @@
 #include "Widgets/Button.hpp"
 #include "Widgets/StepCtrl.hpp"
 #include "Widgets/SideTools.hpp"
+#include "Widgets/WebView.hpp"
 
 #include "BitmapCache.hpp"
 #include "GUI_App.hpp"
@@ -271,7 +272,7 @@ void PrintingTaskPanel::create_panel(wxWindow* parent)
 
     bSizer_task_btn->Add(FromDIP(10), 0, 0);
 
-    m_button_pause_resume = new ScalableButton(m_panel_progress, wxID_ANY, "print_control_pause", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER);
+    m_button_pause_resume = new ScalableButton(m_panel_progress, wxID_ANY, "print_control_pause", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER,true);
 
     m_button_pause_resume->Bind(wxEVT_ENTER_WINDOW, [this](auto &e) {
         if (m_button_pause_resume->GetToolTipText() == _L("Pause")) {
@@ -294,7 +295,7 @@ void PrintingTaskPanel::create_panel(wxWindow* parent)
         }
     });
 
-    m_button_abort = new ScalableButton(m_panel_progress, wxID_ANY, "print_control_stop", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER);
+    m_button_abort = new ScalableButton(m_panel_progress, wxID_ANY, "print_control_stop", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true);
     m_button_abort->SetToolTip(_L("Stop"));
 
     m_button_abort->Bind(wxEVT_ENTER_WINDOW, [this](auto &e) {
@@ -498,7 +499,7 @@ void PrintingTaskPanel::create_panel(wxWindow* parent)
     m_score_star.resize(5);
     for (int i = 0; i < m_score_star.size(); ++i) {
         m_score_star[i] = new ScalableButton(m_score_subtask_info, wxID_ANY, "score_star_dark", wxEmptyString, wxSize(FromDIP(26), FromDIP(26)), wxDefaultPosition,
-                                             wxBU_EXACTFIT | wxNO_BORDER, 26);
+                                             wxBU_EXACTFIT | wxNO_BORDER, true, 26);
         m_score_star[i]->Bind(wxEVT_LEFT_DOWN, [this, i](auto &e) {
             for (int j = 0; j < m_score_star.size(); ++j) {
                 ScalableBitmap light_star = ScalableBitmap(nullptr, "score_star_light", 26);
@@ -555,7 +556,7 @@ void PrintingTaskPanel::paint(wxPaintEvent&)
 {
     wxPaintDC dc(m_bitmap_thumbnail);
     if (wxGetApp().dark_mode())
-        dc.DrawBitmap(m_bitmap_background.get_bitmap(), 0, 0);
+        dc.DrawBitmap(m_bitmap_background.bmp(), 0, 0);
     dc.DrawBitmap(m_thumbnail_bmp_display, wxPoint(0, 0));
     dc.SetTextForeground(*wxBLACK);
     dc.SetFont(Label::Body_12);
@@ -583,7 +584,7 @@ void PrintingTaskPanel::msw_rescale()
     //m_staticText_printing->SetMinSize(wxSize(PAGE_TITLE_TEXT_WIDTH, PAGE_TITLE_HEIGHT));
     m_gauge_progress->SetHeight(PROGRESSBAR_HEIGHT);
     m_gauge_progress->Rescale();
-    m_button_abort->sys_color_changed();
+    m_button_abort->msw_rescale();
     m_bitmap_thumbnail->SetSize(TASK_THUMBNAIL_SIZE);
 }
 
@@ -619,7 +620,7 @@ void PrintingTaskPanel::show_error_msg(wxString msg)
 
 void PrintingTaskPanel::reset_printing_value()
 {
-    this->set_thumbnail_img(m_thumbnail_placeholder.get_bitmap());
+    this->set_thumbnail_img(m_thumbnail_placeholder.bmp());
     this->set_plate_index(-1);
 }
 
@@ -889,6 +890,11 @@ StatusBasePanel::StatusBasePanel(wxWindow *parent, wxWindowID id, const wxPoint 
 StatusBasePanel::~StatusBasePanel()
 {
     delete m_media_play_ctrl;
+
+    if (m_custom_camera_view) {
+        delete m_custom_camera_view;
+        m_custom_camera_view = nullptr;
+    }
 }
 
 void StatusBasePanel::init_bitmaps()
@@ -922,6 +928,7 @@ void StatusBasePanel::init_bitmaps()
     m_bitmap_timelapse_off = ScalableBitmap(this, wxGetApp().dark_mode() ? "monitor_timelapse_off_dark" : "monitor_timelapse_off", 20);
     m_bitmap_vcamera_on = ScalableBitmap(this, wxGetApp().dark_mode() ? "monitor_vcamera_on_dark" : "monitor_vcamera_on", 20);
     m_bitmap_vcamera_off = ScalableBitmap(this, wxGetApp().dark_mode() ? "monitor_vcamera_off_dark" : "monitor_vcamera_off", 20);
+    m_bitmap_switch_camera = ScalableBitmap(this, wxGetApp().dark_mode() ? "camera_switch_dark" : "camera_switch", 20);
 
 }
 
@@ -989,12 +996,27 @@ wxBoxSizer *StatusBasePanel::create_monitoring_page()
     m_setting_button->SetMinSize(wxSize(FromDIP(38), FromDIP(24)));
     m_setting_button->SetBackgroundColour(STATUS_TITLE_BG);
 
+    m_camera_switch_button = new wxStaticBitmap(m_panel_monitoring_title, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(FromDIP(38), FromDIP(24)), 0);
+    m_camera_switch_button->SetMinSize(wxSize(FromDIP(38), FromDIP(24)));
+    m_camera_switch_button->SetBackgroundColour(STATUS_TITLE_BG);
+    m_camera_switch_button->SetBitmap(m_bitmap_switch_camera.bmp());
+    m_camera_switch_button->Bind(wxEVT_LEFT_DOWN, &StatusBasePanel::on_camera_switch_toggled, this);
+    m_camera_switch_button->Bind(wxEVT_RIGHT_DOWN, [this](auto& e) {
+        const std::string js_request_pip = R"(
+            document.querySelector('video').requestPictureInPicture();
+        )";
+        m_custom_camera_view->RunScript(js_request_pip);
+    });
+    m_camera_switch_button->Hide();
+
     m_bitmap_sdcard_img->SetToolTip(_L("SD Card"));
     m_bitmap_timelapse_img->SetToolTip(_L("Timelapse"));
     m_bitmap_recording_img->SetToolTip(_L("Video"));
     m_bitmap_vcamera_img->SetToolTip(_L("Go Live"));
     m_setting_button->SetToolTip(_L("Camera Setting"));
+    m_camera_switch_button->SetToolTip(_L("Switch Camera View"));
 
+    bSizer_monitoring_title->Add(m_camera_switch_button, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
     bSizer_monitoring_title->Add(m_bitmap_sdcard_img, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
     bSizer_monitoring_title->Add(m_bitmap_timelapse_img, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
     bSizer_monitoring_title->Add(m_bitmap_recording_img, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
@@ -1014,15 +1036,42 @@ wxBoxSizer *StatusBasePanel::create_monitoring_page()
     m_media_ctrl = new wxMediaCtrl2(this);
     m_media_ctrl->SetMinSize(wxSize(PAGE_MIN_WIDTH, FromDIP(288)));
 
+    m_custom_camera_view = WebView::CreateWebView(this, wxEmptyString);
+    m_custom_camera_view->EnableContextMenu(false);
+    Bind(wxEVT_WEBVIEW_NAVIGATING, &StatusBasePanel::on_webview_navigating, this, m_custom_camera_view->GetId());
+
     m_media_play_ctrl = new MediaPlayCtrl(this, m_media_ctrl, wxDefaultPosition, wxSize(-1, FromDIP(40)));
+    m_custom_camera_view->Hide();
+    m_custom_camera_view->Bind(wxEVT_WEBVIEW_SCRIPT_MESSAGE_RECEIVED, [this](wxWebViewEvent& evt) {
+        if (evt.GetString() == "leavepictureinpicture") {
+            // When leaving PiP, video gets paused in some cases and toggling play
+            // programmatically does not work.
+            m_custom_camera_view->Reload();
+        }
+        else if (evt.GetString() == "enterpictureinpicture") {
+            toggle_builtin_camera();
+        }
+    });
 
     sizer->Add(m_media_ctrl, 1, wxEXPAND | wxALL, 0);
+    sizer->Add(m_custom_camera_view, 1, wxEXPAND | wxALL, 0);
     sizer->Add(m_media_play_ctrl, 0, wxEXPAND | wxALL, 0);
 //    media_ctrl_panel->SetSizer(bSizer_monitoring);
 //    media_ctrl_panel->Layout();
 //
 //    sizer->Add(media_ctrl_panel, 1, wxEXPAND | wxALL, 1);
+
+    if (wxGetApp().app_config->get("camera", "enable_custom_source") == "true") {
+        handle_camera_source_change();
+    }
+
     return sizer;
+}
+
+void StatusBasePanel::on_webview_navigating(wxWebViewEvent& evt) {
+    wxGetApp().CallAfter([this] {
+        remove_controls();
+    });
 }
 
 wxBoxSizer *StatusBasePanel::create_machine_control_page(wxWindow *parent)
@@ -1920,7 +1969,7 @@ void StatusPanel::on_webrequest_state(wxWebRequestEvent &evt)
     case wxWebRequest::State_Failed:
     case wxWebRequest::State_Cancelled:
     case wxWebRequest::State_Unauthorized: {
-        m_project_task_panel->set_thumbnail_img(m_thumbnail_brokenimg.get_bitmap());
+        m_project_task_panel->set_thumbnail_img(m_thumbnail_brokenimg.bmp());
         m_project_task_panel->set_plate_index(-1);
         task_thumbnail_state = ThumbnailState::BROKEN_IMG;
         break;
@@ -3863,6 +3912,7 @@ void StatusPanel::on_camera_enter(wxMouseEvent& event)
             }
             sdcard_hint_dlg->on_show();
             });
+        m_camera_popup->Bind(EVT_CAM_SOURCE_CHANGE, &StatusPanel::on_camera_source_change, this);
         wxWindow* ctrl = (wxWindow*)event.GetEventObject();
         wxPoint   pos = ctrl->ClientToScreen(wxPoint(0, 0));
         wxSize    sz = ctrl->GetSize();
@@ -3872,6 +3922,71 @@ void StatusPanel::on_camera_enter(wxMouseEvent& event)
         m_camera_popup->update(m_media_play_ctrl->IsStreaming());
         m_camera_popup->Popup();
     }
+}
+
+void StatusBasePanel::on_camera_source_change(wxCommandEvent& event)
+{
+    handle_camera_source_change();
+}
+
+void StatusBasePanel::handle_camera_source_change()
+{
+    const auto new_cam_url = wxGetApp().app_config->get("camera", "custom_source");
+    const auto enabled = wxGetApp().app_config->get("camera", "enable_custom_source") == "true";
+
+    if (enabled && !new_cam_url.empty()) {
+        m_custom_camera_view->LoadURL(new_cam_url);
+        toggle_custom_camera();
+        m_camera_switch_button->Show();
+    } else {
+        toggle_builtin_camera();
+        m_camera_switch_button->Hide();
+    }
+}
+
+void StatusBasePanel::toggle_builtin_camera()
+{
+    m_custom_camera_view->Hide();
+    m_media_ctrl->Show();
+    m_media_play_ctrl->Show();
+}
+
+void StatusBasePanel::toggle_custom_camera()
+{
+    const auto enabled = wxGetApp().app_config->get("camera", "enable_custom_source") == "true";
+
+    if (enabled) {
+        m_custom_camera_view->Show();
+        m_media_ctrl->Hide();
+        m_media_play_ctrl->Hide();
+    }
+}
+
+void StatusBasePanel::on_camera_switch_toggled(wxMouseEvent& event)
+{
+    const auto enabled = wxGetApp().app_config->get("camera", "enable_custom_source") == "true";
+    if (enabled && m_media_ctrl->IsShown()) {
+        toggle_custom_camera();
+    } else {
+        toggle_builtin_camera();
+    }
+}
+
+void StatusBasePanel::remove_controls()
+{
+    const std::string js_cleanup_video_element = R"(
+        document.body.style.overflow='hidden';
+        const video = document.querySelector('video');
+        video.setAttribute('style', 'width: 100% !important;');
+        video.removeAttribute('controls');
+        video.addEventListener('leavepictureinpicture', () => {
+            window.wx.postMessage('leavepictureinpicture');
+        });
+        video.addEventListener('enterpictureinpicture', () => {
+            window.wx.postMessage('enterpictureinpicture');
+        });
+    )";
+    m_custom_camera_view->RunScript(js_cleanup_video_element);
 }
 
 void StatusPanel::on_camera_leave(wxMouseEvent& event)
@@ -4046,8 +4161,8 @@ void StatusPanel::rescale_camera_icons()
 void StatusPanel::on_sys_color_changed()
 {
     m_project_task_panel->msw_rescale();
-    m_bitmap_speed.sys_color_changed();
-    m_bitmap_speed_active.sys_color_changed();
+    m_bitmap_speed.msw_rescale();
+    m_bitmap_speed_active.msw_rescale();
     m_switch_speed->SetImages(m_bitmap_speed, m_bitmap_speed);
     m_ams_control->msw_rescale();
     if (m_print_error_dlg) { m_print_error_dlg->msw_rescale(); }
@@ -4086,8 +4201,8 @@ void StatusPanel::msw_rescale()
     m_tempCtrl_chamber->SetMinSize(TEMP_CTRL_MIN_SIZE);
     m_tempCtrl_chamber->Rescale();
 
-    m_bitmap_speed.sys_color_changed();
-    m_bitmap_speed_active.sys_color_changed();
+    m_bitmap_speed.msw_rescale();
+    m_bitmap_speed_active.msw_rescale();
 
     m_switch_speed->SetImages(m_bitmap_speed, m_bitmap_speed);
     m_switch_speed->SetMinSize(MISC_BUTTON_2FAN_SIZE);
@@ -4352,10 +4467,10 @@ wxBoxSizer *ScoreDialog::get_star_sizer()
         }
         if (i < m_star_count) {
             m_score_star[i] = new ScalableButton(this, wxID_ANY, "score_star_light", wxEmptyString, wxSize(FromDIP(26), FromDIP(26)), wxDefaultPosition,
-                                                 wxBU_EXACTFIT | wxNO_BORDER, 26);
+                                                 wxBU_EXACTFIT | wxNO_BORDER, true, 26);
         } else
             m_score_star[i] = new ScalableButton(this, wxID_ANY, "score_star_dark", wxEmptyString, wxSize(FromDIP(26), FromDIP(26)), wxDefaultPosition,
-                                                 wxBU_EXACTFIT | wxNO_BORDER, 26);
+                                                 wxBU_EXACTFIT | wxNO_BORDER, true, 26);
 
         m_score_star[i]->Bind(wxEVT_LEFT_DOWN, [this, i](auto &e) {
             if (!m_success_printed && i >= 3) {

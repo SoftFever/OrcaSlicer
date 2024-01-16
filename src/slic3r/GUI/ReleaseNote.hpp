@@ -38,6 +38,8 @@
 #include <wx/hashmap.h>
 #include <wx/webview.h>
 
+#include "Jobs/Worker.hpp"
+
 namespace Slic3r { namespace GUI {
 
 wxDECLARE_EVENT(EVT_SECONDARY_CHECK_CONFIRM, wxCommandEvent);
@@ -97,8 +99,8 @@ public:
     wxBoxSizer *      sizer_text_release_note{nullptr};
     Label *           m_staticText_release_note{nullptr};
     wxStaticBitmap*   m_bitmap_open_in_browser;
-    wxHyperlinkCtrl*  m_link_open_in_browser;
     Button*           m_button_skip_version;
+    CheckBox*         m_cb_stable_only;
     Button*           m_button_download;
     Button*           m_button_cancel;
     std::string       url_line;
@@ -223,8 +225,8 @@ public:
     wxHyperlinkCtrl* m_trouble_shoot{ nullptr };
     bool   m_show_access_code{ false };
     int    m_result;
-    std::shared_ptr<SendJob> m_send_job{nullptr};
-    std::shared_ptr<BBLStatusBarSend> m_status_bar;
+    std::shared_ptr<BBLStatusBarSend>  m_status_bar;
+    std::unique_ptr<Worker> m_worker;
 
     void on_cancel();
     void update_title(wxString title);

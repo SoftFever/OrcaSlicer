@@ -7,13 +7,16 @@ src/slic3r/GUI/Gizmos/GLGizmoScale.cpp
 src/slic3r/GUI/Gizmos/GLGizmosManager.cpp
 src/slic3r/GUI/Gizmos/GLGizmoPainterBase.cpp
 src/slic3r/GUI/Gizmos/GizmoObjectManipulation.cpp
-src/slic3r/GUI/Gizmos/GLGizmoAdvancedCut.cpp
+src/slic3r/GUI/Gizmos/GLGizmoCut.cpp
 src/slic3r/GUI/Gizmos/GLGizmoSimplify.cpp
 src/slic3r/GUI/Gizmos/GLGizmoFaceDetector.cpp
 src/slic3r/GUI/Gizmos/GLGizmoSeam.cpp
 src/slic3r/GUI/Gizmos/GLGizmoSeam.hpp
 src/slic3r/GUI/Gizmos/GLGizmoText.cpp
 src/slic3r/GUI/Gizmos/GLGizmoText.hpp
+src/slic3r/GUI/Gizmos/GLGizmoEmboss.cpp
+src/slic3r/GUI/Gizmos/GLGizmoSVG.cpp
+src/slic3r/GUI/Gizmos/GLGizmoMeasure.cpp
 src/slic3r/GUI/GUI.cpp
 src/slic3r/GUI/GUI_App.cpp
 src/slic3r/GUI/GUI_AuxiliaryList.cpp
@@ -35,8 +38,6 @@ src/slic3r/GUI/ImGuiWrapper.cpp
 src/slic3r/GUI/Jobs/ArrangeJob.cpp
 src/slic3r/GUI/Jobs/OrientJob.cpp
 src/slic3r/GUI/Jobs/FillBedJob.cpp
-src/slic3r/GUI/Jobs/Job.cpp
-src/slic3r/GUI/Jobs/PlaterJob.cpp
 src/slic3r/GUI/Jobs/RotoptimizeJob.cpp
 src/slic3r/GUI/Jobs/BindJob.cpp
 src/slic3r/GUI/Jobs/PrintJob.cpp

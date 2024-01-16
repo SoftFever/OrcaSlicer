@@ -5,7 +5,7 @@
 #define CURAENGINE_WALLTOOLPATHS_H
 
 #include <memory>
-#include <unordered_set>
+#include <ankerl/unordered_dense.h>
 
 #include "BeadingStrategy/BeadingStrategyFactory.hpp"
 #include "utils/ExtrusionLine.hpp"
@@ -25,10 +25,12 @@ class WallToolPathsParams
 public:
     float   min_bead_width;
     float   min_feature_size;
+    float   min_length_factor;
     float   wall_transition_length;
     float   wall_transition_angle;
     float   wall_transition_filter_deviation;
     int     wall_distribution_count;
+    bool    is_top_or_bottom_layer;
 };
 
 WallToolPathsParams make_paths_params(const int layer_id, const PrintObjectConfig &print_object_config, const PrintConfig &print_config);
@@ -86,6 +88,8 @@ public:
      */
     static bool removeEmptyToolPaths(std::vector<VariableWidthLines> &toolpaths);
 
+    using ExtrusionLineSet = ankerl::unordered_dense::set<std::pair<const ExtrusionLine *, const ExtrusionLine *>, boost::hash<std::pair<const ExtrusionLine *, const ExtrusionLine *>>>;
+
     /*!
      * Get the order constraints of the insets when printing walls per region / hole.
      * Each returned pair consists of adjacent wall lines where the left has an inset_idx one lower than the right.
@@ -94,7 +98,7 @@ public:
      *
      * \param outer_to_inner Whether the wall polygons with a lower inset_idx should go before those with a higher one.
      */
-    static std::unordered_set<std::pair<const ExtrusionLine *, const ExtrusionLine *>, boost::hash<std::pair<const ExtrusionLine *, const ExtrusionLine *>>> getRegionOrder(const std::vector<ExtrusionLine *> &input, bool outer_to_inner);
+    static ExtrusionLineSet getRegionOrder(const std::vector<ExtrusionLine *> &input, bool outer_to_inner);
 
 protected:
     /*!
@@ -107,7 +111,7 @@ protected:
     /*!
      * Remove polylines shorter than half the smallest line width along that polyline.
      */
-    static void removeSmallLines(std::vector<VariableWidthLines> &toolpaths);
+    void removeSmallLines(std::vector<VariableWidthLines> &toolpaths);
 
     /*!
      * Simplifies the variable-width toolpaths by calling the simplify on every line in the toolpath using the provided

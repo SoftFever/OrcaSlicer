@@ -5,6 +5,7 @@
 #include "Utils.hpp"
 #include "Model.hpp"
 #include "format.hpp"
+#include "libslic3r_version.h"
 
 #include <algorithm>
 #include <set>
@@ -462,7 +463,7 @@ std::string PresetBundle::get_texture_for_printer_model(std::string model_name)
     {
         for (auto vendor_model: vendor_profile.second.models)
         {
-            if (vendor_model.name == model_name)
+            if (vendor_model.name == model_name || vendor_model.id == model_name)
             {
                 texture_name = vendor_model.bed_texture;
                 vendor_name = vendor_profile.first;
@@ -675,7 +676,7 @@ PresetsConfigSubstitutions PresetBundle::import_presets(std::vector<std::string>
             import_json_presets(substitutions, file, override_confirm, rule, overwrite, result);
         }
         // Determine if it is a preset bundle
-        if (boost::iends_with(file, ".bbscfg") || boost::iends_with(file, ".bbsflmt") || boost::iends_with(file, ".zip")) {
+        if (boost::iends_with(file, ".orca_printer") || boost::iends_with(file, ".orca_filament") || boost::iends_with(file, ".zip")) {
             boost::system::error_code ec;
             // create user folder
             fs::path user_folder(data_dir() + "/" + PRESET_USER_DIR);
@@ -767,7 +768,7 @@ bool PresetBundle::import_json_presets(PresetsConfigSubstitutions &            s
         std::string                        version_str          = key_values[BBL_JSON_KEY_VERSION];
         boost::optional<Semver>            version              = Semver::parse(version_str);
         if (!version) return false;
-        Semver app_version = *(Semver::parse(SLIC3R_VERSION));
+        Semver app_version = *(Semver::parse(SoftFever_VERSION));
         if (version->maj() != app_version.maj()) {
             BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << " Preset incompatibla, not loading: " << name;
             return false;
@@ -1011,7 +1012,7 @@ int PresetBundle::validate_presets(const std::string &file_name, DynamicPrintCon
         return ret;
     }
 
-    for(unsigned int index = 1; index < filament_count+2; index ++)
+    for(unsigned int index = 1; index < filament_count; index ++)
     {
         std::string different_settingss = different_values[index];
 
@@ -1816,7 +1817,7 @@ void PresetBundle::set_num_filaments(unsigned int n, std::string new_color)
 {
     int old_filament_count = this->filament_presets.size();
     if (n > old_filament_count && old_filament_count != 0)
-        filament_presets.resize(n, filament_presets.front());
+        filament_presets.resize(n, filament_presets.back());
     else {
         filament_presets.resize(n);
     }

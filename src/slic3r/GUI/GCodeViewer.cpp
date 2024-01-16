@@ -361,7 +361,7 @@ void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_he
     std::string layer_time = ImGui::ColorMarkerStart + _u8L("Layer Time: ") + ImGui::ColorMarkerEnd;
     std::string fanspeed = ImGui::ColorMarkerStart + _u8L("Fan: ") + ImGui::ColorMarkerEnd;
     std::string temperature = ImGui::ColorMarkerStart + _u8L("Temperature: ") + ImGui::ColorMarkerEnd;
-    const float item_size = imgui.calc_text_size("X: 000.000  ").x;
+    const float item_size = imgui.calc_text_size(std::string_view{"X: 000.000  "}).x;
     const float item_spacing = imgui.get_item_spacing().x;
     const float window_padding = ImGui::GetStyle().WindowPadding.x;
 
@@ -1242,11 +1242,12 @@ void GCodeViewer::render(int canvas_width, int canvas_height, int right_margin)
     m_statistics.total_instances_gpu_size = 0;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
+    glsafe(::glEnable(GL_DEPTH_TEST));
+    render_shells();
+
     if (m_roles.empty())
         return;
 
-    glsafe(::glEnable(GL_DEPTH_TEST));
-    render_shells();
     render_toolpaths();
     float legend_height = 0.0f;
     render_legend(legend_height, canvas_width, canvas_height, right_margin);
@@ -4484,11 +4485,14 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         }
     };
 
-    auto append_headers = [&imgui](const std::vector<std::pair<std::string, float>>& title_offsets) {
+    auto append_headers = [&imgui, window_padding](const std::vector<std::pair<std::string, float>>& title_offsets) {
         for (size_t i = 0; i < title_offsets.size(); i++) {
             ImGui::SameLine(title_offsets[i].second);
             imgui.bold_text(title_offsets[i].first);
         }
+        // Ensure right padding
+        ImGui::SameLine();
+        ImGui::Dummy({window_padding, 1});
         ImGui::Separator();
     };
 
@@ -4500,14 +4504,19 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         return ret;
     };
 
-    auto calculate_offsets = [max_width, window_padding](const std::vector<std::pair<std::string, std::vector<::string>>>& title_columns, float extra_size = 0.0f) {
+    auto calculate_offsets = [&imgui, max_width, window_padding](const std::vector<std::pair<std::string, std::vector<::string>>>& title_columns, float extra_size = 0.0f) {
             const ImGuiStyle& style = ImGui::GetStyle();
             std::vector<float> offsets;
             offsets.push_back(max_width(title_columns[0].second, title_columns[0].first, extra_size) + 3.0f * style.ItemSpacing.x);
             for (size_t i = 1; i < title_columns.size() - 1; i++)
                 offsets.push_back(offsets.back() + max_width(title_columns[i].second, title_columns[i].first) + style.ItemSpacing.x);
-            if (title_columns.back().first == _u8L("Display"))
-                offsets.back() = ImGui::GetWindowWidth() - ImGui::CalcTextSize(_u8L("Display").c_str()).x - ImGui::GetFrameHeight() / 2 - 2 * window_padding;
+            if (title_columns.back().first == _u8L("Display")) {
+                const auto preferred_offset = ImGui::GetWindowWidth() - ImGui::CalcTextSize(_u8L("Display").c_str()).x - ImGui::GetFrameHeight() / 2 - 2 * window_padding - ImGui::GetStyle().ScrollbarSize;
+                if (preferred_offset > offsets.back()) {
+                    offsets.back() = preferred_offset;
+                    imgui.set_requires_extra_frame();
+                }
+            }
 
             float average_col_width = ImGui::GetWindowWidth() / static_cast<float>(title_columns.size());
             std::vector<float> ret;
@@ -4585,8 +4594,9 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         if (it == m_print_statistics.used_filaments_per_role.end())
             return std::make_pair(0.0, 0.0);
 
-        double koef = imperial_units ? 1000.0 / GizmoObjectManipulation::in_to_mm : 1.0;
-        return std::make_pair(it->second.first * koef, it->second.second);
+        double koef        = imperial_units ? GizmoObjectManipulation::in_to_mm / 1000.0 : 1.0;
+        double unit_conver = imperial_units ? GizmoObjectManipulation::oz_to_g : 1;
+        return std::make_pair(it->second.first / koef, it->second.second / unit_conver);
     };
 
     // get used filament (meters and grams) from used volume in respect to the active extruder
@@ -4663,6 +4673,8 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     std::vector<std::string> times;
     std::string travel_time;
     std::vector<std::string> percents;
+    std::vector<std::string> used_filaments_length;
+    std::vector<std::string> used_filaments_weight;
     std::string travel_percent;
     std::vector<double> model_used_filaments_m;
     std::vector<double> model_used_filaments_g;
@@ -4706,9 +4718,12 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
                 else
                     percent > 0.001 ? ::sprintf(buffer, "%.1f%%", percent * 100) : ::sprintf(buffer, "<0.1%%");
                 percents.push_back(buffer);
-                //auto [model_used_filament_m, model_used_filament_g] = used_filament_per_role(role);
-                //model_used_filaments_m.push_back(model_used_filament_m);
-                //model_used_filaments_g.push_back(model_used_filament_g);
+
+                auto [model_used_filament_m, model_used_filament_g] = used_filament_per_role(role);
+                ::sprintf(buffer, imperial_units ? "%.2f in" : "%.2f m", model_used_filament_m);
+                used_filaments_length.push_back(buffer);
+                ::sprintf(buffer, imperial_units ? "%.2f oz" : "%.2f g", model_used_filament_g);
+                used_filaments_weight.push_back(buffer);
             }
         }
 
@@ -4723,8 +4738,8 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             travel_percent = buffer;
         }
 
-        offsets = calculate_offsets({ {_u8L("Line Type"), labels}, {_u8L("Time"), times}, {_u8L("Percent"), percents}, {_u8L("Display"), {""}}}, icon_size);
-        append_headers({{_u8L("Line Type"), offsets[0]}, {_u8L("Time"), offsets[1]}, {_u8L("Percent"), offsets[2]}, {_u8L("Display"), offsets[3]}});
+        offsets = calculate_offsets({ {_u8L("Line Type"), labels}, {_u8L("Time"), times}, {_u8L("Percent"), percents}, {"", used_filaments_length}, {"", used_filaments_weight}, {_u8L("Display"), {""}}}, icon_size);
+        append_headers({{_u8L("Line Type"), offsets[0]}, {_u8L("Time"), offsets[1]}, {_u8L("Percent"), offsets[2]}, {_u8L("Used filament"), offsets[3]}, {_u8L("Display"), offsets[5]}});
         break;
     }
     case EViewType::Height:         { imgui.title(_u8L("Layer Height (mm)")); break; }
@@ -4876,7 +4891,9 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             std::vector<std::pair<std::string, float>> columns_offsets;
             columns_offsets.push_back({ labels[i], offsets[0] });
             columns_offsets.push_back({ times[i], offsets[1] });
-            columns_offsets.push_back({ percents[i], offsets[2] });
+            columns_offsets.push_back({percents[i], offsets[2]});
+            columns_offsets.push_back({used_filaments_length[i], offsets[3]});
+            columns_offsets.push_back({used_filaments_weight[i], offsets[4]});
             append_item(EItemType::Rect, Extrusion_Role_Colors[static_cast<unsigned int>(role)], columns_offsets,
                 true, visible, [this, role, visible]() {
                     m_extrusions.role_visibility_flags = visible ? m_extrusions.role_visibility_flags & ~(1 << role) : m_extrusions.role_visibility_flags | (1 << role);

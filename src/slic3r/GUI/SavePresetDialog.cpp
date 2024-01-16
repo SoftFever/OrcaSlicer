@@ -57,7 +57,7 @@ SavePresetDialog::Item::Item(Preset::Type type, const std::string &suffix, wxBox
     label_top->SetForegroundColour(wxColour(38,46,48));
 
 
-    //    m_valid_bmp = new wxStaticBitmap(m_parent, wxID_ANY, *get_bmp_bundle("blank_16"));
+    //    m_valid_bmp = new wxStaticBitmap(m_parent, wxID_ANY, create_scaled_bitmap("blank_16", m_parent));
     //
     //    m_combo = new wxComboBox(m_parent, wxID_ANY, from_u8(preset_name), wxDefaultPosition, wxSize(35 * wxGetApp().em_unit(), -1));
     //    for (const std::string& value : values)
@@ -135,7 +135,7 @@ SavePresetDialog::Item::Item(Preset::Type type, const std::string &suffix, wxBox
 
     m_sizer_right->Add(0, 0, 0, wxLEFT, 10);
 
-    auto m_right_text = new wxStaticText(parent, wxID_ANY, _L("Project Inside Preset"), wxDefaultPosition, wxDefaultSize, 0);
+    auto m_right_text = new wxStaticText(parent, wxID_ANY, _L("Preset Inside Project"), wxDefaultPosition, wxDefaultSize, 0);
     m_right_text->SetForegroundColour(wxColour(107,107,107));
     m_right_text->SetFont(::Label::Body_13);
     m_right_text->Wrap(-1);
@@ -268,7 +268,7 @@ void SavePresetDialog::Item::update()
 void SavePresetDialog::Item::update_valid_bmp()
 {
     std::string bmp_name = m_valid_type == Warning ? "obj_warning" : m_valid_type == NoValid ? "cross" : "blank_16";
-    m_valid_bmp->SetBitmap(*get_bmp_bundle(bmp_name));
+    m_valid_bmp->SetBitmap(create_scaled_bitmap(bmp_name, m_parent));
 }
 
 void SavePresetDialog::Item::accept()
