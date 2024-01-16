@@ -1258,11 +1258,11 @@ bool MachineObject::is_axis_at_home(std::string axis)
         return true;
 
     if (axis == "X") {
-        return home_flag & 1 == 1;
+        return (home_flag & 1) == 1;
     } else if (axis == "Y") {
-        return home_flag >> 1 & 1 == 1;
+        return (home_flag >> 1 & 1) == 1;
     } else if (axis == "Z") {
-        return home_flag >> 2 & 1 == 1;
+        return (home_flag >> 2 & 1) == 1;
     } else {
         return true;
     }
