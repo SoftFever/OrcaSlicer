@@ -27,6 +27,7 @@ wxDEFINE_EVENT(PRINTAGO_SEND_WEBVIEW_MESSAGE_EVENT, PrintagoMessageEvent);
 wxDEFINE_EVENT(PRINTAGO_SLICING_PROCESS_COMPLETED_EVENT, SlicingProcessCompletedEvent);
 wxDEFINE_EVENT(PRINTAGO_PRINT_SENT_EVENT, wxCommandEvent);
 
+
 #define PRINTAGO_TEMP_THRESHOLD_ALLOW_E_CTRL 170.0f // Minimum temperature to allow extrusion control (per StatusPanel.cpp)
 
 PrintagoPanel::PrintagoPanel(wxWindow *parent, wxString *url) : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
@@ -46,17 +47,18 @@ PrintagoPanel::PrintagoPanel(wxWindow *parent, wxString *url) : wxPanel(parent, 
     
     topsizer->Add(m_browser, wxSizerFlags().Expand().Proportion(1));
 
-    Bind(wxEVT_WEBVIEW_NAVIGATING, &PrintagoPanel::OnNavigationRequest, this);
-    Bind(wxEVT_WEBVIEW_NAVIGATED, &PrintagoPanel::OnNavigationComplete, this);
-    Bind(wxEVT_WEBVIEW_ERROR, &PrintagoPanel::OnError, this);
+    Bind(wxEVT_WEBVIEW_NAVIGATING, &PrintagoPanel::OnWebNavigationRequest, this);
+    Bind(wxEVT_WEBVIEW_NAVIGATED, &PrintagoPanel::OnWebNavigationComplete, this);
+    Bind(wxEVT_WEBVIEW_ERROR, &PrintagoPanel::OnWebError, this);
     Bind(wxEVT_WEBVIEW_NEWWINDOW, &PrintagoPanel::OnNewWindow, this);
     Bind(PRINTAGO_SEND_WEBVIEW_MESSAGE_EVENT, &PrintagoPanel::SendWebViewMessage, this);
     Bind(EVT_PROCESS_COMPLETED, &PrintagoPanel::OnSlicingProcessCompleted, this);
     Bind(PRINTAGO_PRINT_SENT_EVENT, &PrintagoPanel::OnPrintJobSent, this);
+    // Bind(wxEVT_WEBVIEW_ERROR, &PrintagoPanel::OnWebError, this);
+    // Bind(wxEVT_WEBVIEW_NAVIGATING, &PrintagoPanel::OnWebNavigating, this);
 
     // wxGetApp().mainframe->m_plater->Disable();
     // wxGetApp().mainframe->m_tabpanel->Disable();
-    
 }
 
 PrintagoPanel::~PrintagoPanel()
@@ -86,11 +88,11 @@ void PrintagoPanel::SetCanProcessJob(const bool can_process_job)
         jobProgress          = 0;
         jobPrintagoId        = "ptgo_default";
         m_select_machine_dlg = nullptr;
-        wxGetApp().mainframe->m_tabpanel->Enable();
-        wxGetApp().mainframe->m_topbar->Enable();
+        // wxGetApp().mainframe->m_tabpanel->Enable();
+        // wxGetApp().mainframe->m_topbar->Enable();
     } else {
-        wxGetApp().mainframe->m_tabpanel->Disable();
-        wxGetApp().mainframe->m_topbar->Disable();
+        // wxGetApp().mainframe->m_tabpanel->Disable();
+        // wxGetApp().mainframe->m_topbar->Disable();
     }
     m_can_process_job = can_process_job;
 }
@@ -207,6 +209,8 @@ void PrintagoPanel::AddCurrentProcessJsonTo(json &statusObject)
     statusObject["process"]["job_machine"]    = jobPrinterId.ToStdString();
     statusObject["process"]["job_local_file"] = jobLocalModelFile.GetFullPath().ToStdString();
     statusObject["process"]["job_progress"]   = jobProgress;
+
+    statusObject["software"]["is_dark_mode"] = wxGetApp().dark_mode();
 }
 
 bool PrintagoPanel::DownloadFileFromURL(const wxString url, const wxFileName &localFilename)
@@ -592,13 +596,12 @@ void PrintagoPanel::HandlePrintagoCommand(const PrintagoCommand &event)
 
     wxLogMessage("HandlePrintagoCommand: {command: " + commandType + ", action: " + action + "}");
     MachineObject *printer     = {nullptr};
-    auto           machineList = devManager->get_my_machine_list();
 
     wxString printerId = parameters.count("printer_id") ? parameters["printer_id"] : "Unspecified"; 
     bool     hasPrinterId = printerId.compare("Unspecified");
 
     if (!commandType.compare("status")) {
-        std::string username = wxGetApp().getAgent()->is_user_login() ? wxGetApp().getAgent()->get_user_name() : "[TODO:printago_lan_slicer_id]";
+        std::string username = wxGetApp().getAgent()->is_user_login() ? wxGetApp().getAgent()->get_user_name() : "nouser@bab";
         if (!action.compare("get_machine_list")) {
             SendResponseMessage(username, GetAllStatus(), originalCommandStr);
         }
@@ -636,6 +639,7 @@ void PrintagoPanel::HandlePrintagoCommand(const PrintagoCommand &event)
         return;
     }
     // Find the printer in the machine list
+    auto machineList = devManager->get_my_machine_list();
     auto it = std::find_if(machineList.begin(), machineList.end(),
                            [&printerId](const std::pair<std::string, MachineObject *> &pair) { return pair.second->dev_id == printerId; });
 
@@ -650,7 +654,7 @@ void PrintagoPanel::HandlePrintagoCommand(const PrintagoCommand &event)
 
     // select the printer for updates in the monitor for updates.
     SwitchSelectedPrinter(printerId);
-
+    
     if (!commandType.compare("printer_control")) {
         if (!action.compare("pause_print")) {
             try {
@@ -792,6 +796,7 @@ void PrintagoPanel::HandlePrintagoCommand(const PrintagoCommand &event)
 
             jobServerState = "slice";
             jobProgress    = 45;
+            devManager->get_my_machine_list();
             wxGetApp().plater()->select_plate(0, true);
             wxGetApp().plater()->reslice();
             actionDetail = wxString::Format("slice_start: %s", jobLocalModelFile.GetFullPath());
@@ -1006,8 +1011,12 @@ void PrintagoPanel::OnSlicingProcessCompleted(SlicingProcessCompletedEvent &evt)
 
     m_select_machine_dlg->set_print_type(PrintFromType::FROM_NORMAL);
     m_select_machine_dlg->prepare(0);
-    devManager->set_selected_machine(jobPrinterId.ToStdString(), false);
+
     m_select_machine_dlg->setPrinterLastSelect(jobPrinterId.ToStdString());
+    auto selectedPrinter = devManager->get_selected_machine();
+    if (selectedPrinter->dev_id != jobPrinterId.ToStdString() && !selectedPrinter->is_connected()) {
+        devManager->set_selected_machine(jobPrinterId.ToStdString(), false);
+    }
 
     wxCommandEvent btnEvt(GetId());
     m_select_machine_dlg->on_ok_btn(btnEvt);
@@ -1185,7 +1194,7 @@ void PrintagoPanel::SendWebViewMessage(PrintagoMessageEvent &evt)
     });
 }
 
-void PrintagoPanel::OnNavigationRequest(wxWebViewEvent &evt)
+void PrintagoPanel::OnWebNavigationRequest(wxWebViewEvent &evt)
 {
     if (!jobServerState.compare("configure")) 
          return;
@@ -1249,7 +1258,7 @@ bool PrintagoPanel::ValidatePrintagoCommand(const PrintagoCommand &event)
     return false; 
 }
 
-void PrintagoPanel::OnNavigationComplete(wxWebViewEvent &evt)
+void PrintagoPanel::OnWebNavigationComplete(wxWebViewEvent &evt)
 {
     m_browser->Show();
     Layout();
@@ -1266,7 +1275,7 @@ void PrintagoPanel::RunScript(const wxString &javascript)
     WebView::RunScript(m_browser, javascript);
 }
 
-void PrintagoPanel::OnError(wxWebViewEvent &evt)
+void PrintagoPanel::OnWebError(wxWebViewEvent &evt)
 {
 #define WX_ERROR_CASE(type) \
     case type: category = #type; break;
@@ -1287,6 +1296,11 @@ void PrintagoPanel::OnError(wxWebViewEvent &evt)
 
     if (wxGetApp().get_mode() == comDevelop)
         wxLogMessage("%s", "Error; url='" + evt.GetURL() + "', error='" + category + " (" + evt.GetString() + ")'");
+}
+
+void PrintagoPanel::OnWebNavigating(wxWebViewEvent& evt)
+{
+
 }
 
 }} // namespace Slic3r::GUI

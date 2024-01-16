@@ -171,10 +171,12 @@ private:
     bool        DownloadFileFromURL(const wxString url, const wxFileName &localPath);
 
     
-    void OnNavigationRequest(wxWebViewEvent &evt);
-    void OnNavigationComplete(wxWebViewEvent &evt);
+    void OnWebNavigationRequest(wxWebViewEvent &evt);
+    void OnWebNavigating(wxWebViewEvent &evt);
+    void OnWebNavigationComplete(wxWebViewEvent &evt);
+
     void OnNewWindow(wxWebViewEvent &evt);
-    void OnError(wxWebViewEvent &evt);
+    void OnWebError(wxWebViewEvent &evt);
     void RunScript(const wxString &javascript);
 
     static wxString wxURLErrorToString(wxURLError error);

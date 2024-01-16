@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Connecting to Printago</title>
+<script>
+  var retryInterval = 500;
+  var maxInterval = 60000;
+  var printagoUrl = 'http://localhost:3000/testInterface.html';
+
+  function increaseInterval() {
+    if (retryInterval < maxInterval) {
+      retryInterval += 5000;
+    }
+  }
+
+  function retryLoad() {
+    fetch(printagoUrl) // Replace with your content URL
+      .then(function (response) {
+        if (response.status === 200) {
+          console.log('Content loaded successfully.');
+          window.location.href = printagoUrl; // Change the URL after successful load
+        } else {
+          setTimeout(retryLoad, retryInterval); // Retry after the retryInterval
+        }
+      })
+      .catch(function (error) {
+        setTimeout(retryLoad, retryInterval); // Retry on network error or other fetch-related issues
+      });
+  }
+
+  function startRetryProcess() {
+    retryLoad();
+    increaseInterval();
+  }
+
+  startRetryProcess();
+</script>
+
+
+
+<style>
+  body, html {
+    height: 100%;
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    background-color: #f4f4f4;
+  }
+  .container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+  }
+  .logo {
+    margin-bottom: 20px;
+  }
+  .loader {
+    border: 6px solid #f3f3f3; /* Light grey */
+    border-top: 6px solid #3498db; /* Blue */
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 2s linear infinite;
+    margin: 0 auto;
+  }
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  .message {
+    font-size: 1.5em;
+    color: #333;
+    margin-top: 20px;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="logo">
+    <img src=" img/printago.png" alt="Printago Logo" width="200" />
+  </div>
+  <div class="loader"></div>
+  <div class="message">
+    Connecting to Printago
+  </div>
+</div>
+
+</body>
+</html>
