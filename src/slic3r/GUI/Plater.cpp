@@ -8206,6 +8206,7 @@ void Plater::priv::record_start_print_preset(std::string action) {
     // record start print preset
     try {
         json j;
+        j["user_mode"] = wxGetApp().get_mode_str();
         int  plate_count = partplate_list.get_plate_count();
         j["plate_count"] = plate_count;
         unsigned int obj_count = model.objects.size();

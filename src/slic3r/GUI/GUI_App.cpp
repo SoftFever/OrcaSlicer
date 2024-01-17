@@ -1030,6 +1030,7 @@ void GUI_App::post_init()
         if (m_agent) { start_sync_user_preset(); }
     }
 
+    m_open_method = "double_click";
     bool switch_to_3d = false;
     if (!this->init_params->input_files.empty()) {
 
@@ -1053,6 +1054,7 @@ void GUI_App::post_init()
             if (!download_file_url.empty() && ( boost::starts_with(download_file_url, "http://") ||  boost::starts_with(download_file_url, "https://")) ) {
                 request_model_download(download_origin_url);
             }
+            m_open_method = "makerworld";
         }
         else {
             switch_to_3d = true;
@@ -1060,22 +1062,27 @@ void GUI_App::post_init()
                 mainframe->select_tab(size_t(MainFrame::tp3DEditor));
                 plater_->select_view_3D("3D");
                 this->plater()->load_gcode(from_u8(this->init_params->input_files.front()));
+                m_open_method = "gcode";
             }
             else {
                 mainframe->select_tab(size_t(MainFrame::tp3DEditor));
                 plater_->select_view_3D("3D");
-                Plater::TakeSnapshot      snapshot(this->plater(), "Load Project", UndoRedo::SnapshotType::ProjectSeparator);
-                const std::vector<size_t> res = this->plater()->load_files(this->init_params->input_files);
-                if (!res.empty()) {
-                    if (this->init_params->input_files.size() == 1) {
-                        // Update application titlebar when opening a project file
-                        const std::string& filename = this->init_params->input_files.front();
-                        this->plater()->up_to_date(true, false);
-                        this->plater()->up_to_date(true, true);
-                        //BBS: remove amf logic as project
-                        if (boost::algorithm::iends_with(filename, ".3mf"))
-                            this->plater()->set_project_filename(from_u8(filename));
+                wxArrayString input_files;
+                for (auto & file : this->init_params->input_files) {
+                    input_files.push_back(wxString::FromUTF8(file));
+                }
+                this->plater()->set_project_filename(_L("Untitled"));
+                this->plater()->load_files(input_files);
+                try {
+                    if (!input_files.empty()) {
+                        std::string file_path = input_files.front().ToStdString();
+                        std::filesystem::path path(file_path);
+                        m_open_method = "file_" + path.extension().string();
                     }
+                }
+                catch (...) {
+                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ", file path exception!";
+                    m_open_method = "file";
                 }
             }
         }
@@ -4162,6 +4169,10 @@ void GUI_App::check_track_enable()
         /* record studio start event */
         json j;
         j["user_mode"] = this->get_mode_str();
+        j["open_method"] = m_open_method;
+        if (m_agent) {
+            m_agent->track_event("studio_launch", j.dump());
+        }
     }
 }
 
