@@ -22,6 +22,7 @@
 #endif
 
 #include <wx/clipbrd.h>
+#include "wx/evtloop.h"
 
 namespace Slic3r {
 namespace GUI {
@@ -102,7 +103,9 @@ MediaPlayCtrl::~MediaPlayCtrl()
         m_tasks.push_back("<exit>");
         m_cond.notify_all();
     }
-    m_thread.join();
+    while (!m_thread.try_join_for(boost::chrono::milliseconds(10))) {
+        wxEventLoopBase::GetActive()->Yield();
+    }
 }
 
 wxString hide_id_middle_string(wxString const &str, size_t offset = 0, size_t length = -1)
