@@ -1,7 +1,7 @@
 {
 	"type": "machine",
 	"setting_id": "GM001",
-	"name": "Creality K1C (0.8 nozzle)",
+	"name": "Creality K1C 0.8 nozzle",
 	"from": "system",
 	"instantiation": "true",
 	"inherits": "fdm_creality_common",
@@ -46,7 +46,7 @@
 	"manual_filament_change": "1",
 	"change_filament_gcode": "PAUSE",
 	"machine_pause_gcode": "PAUSE",
-	"default_filament_profile": ["Creality Generic PLA"],
+	"default_filament_profile": ["Creality Generic PLA @K1-all"],
 	"machine_start_gcode": "M140 S0\nM104 S0 \nSTART_PRINT EXTRUDER_TEMP=[nozzle_temperature_initial_layer] BED_TEMP=[bed_temperature_initial_layer_single]",
 	"machine_end_gcode": "END_PRINT",
 	"scan_first_layer": "0",
