@@ -160,9 +160,9 @@ std::unique_ptr<CompressedImageBuffer> compress_thumbnail_colpic(const Thumbnail
             b                 = int(pixels[pix_idx + 2]) >> 3;
             a                 = int(pixels[pix_idx + 3]);
             if (a == 0) {
-                r = 239 >> 3;
-                g = 243 >> 2;
-                b = 247 >> 3;
+                r = 46 >> 3;
+                g = 51 >> 2;
+                b = 72 >> 3;
             }
             rgb             = (r << 11) | (g << 5) | b;
             color16_buf[time--] = rgb;
