@@ -776,7 +776,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("topbottom");
     def->enum_values.push_back("nowhere");
     def->enum_labels.push_back(L("Everywhere"));
-    def->enum_labels.push_back(L("Top and Bottom surfaces"));
+    def->enum_labels.push_back(L("Top and bottom surfaces"));
     def->enum_labels.push_back(L("Nowhere"));
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<GapFillTarget>(gftEverywhere));
