@@ -36,5 +36,6 @@
     "205x205",
     "0x205"
 ],
-"printable_height": "200"
+"printable_height": "200",
+"nozzle_diameter": ["0.4"]
 }

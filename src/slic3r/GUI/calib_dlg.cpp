@@ -254,7 +254,7 @@ Temp_Calibration_Dlg::Temp_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plat
     // Settings
     //
     wxString start_temp_str = _L("Start temp: ");
-    wxString end_temp_str = _L("End end: ");
+    wxString end_temp_str = _L("End temp: ");
     wxString temp_step_str = _L("Temp step: ");
     auto text_size = wxWindow::GetTextExtent(start_temp_str);
     text_size.IncTo(wxWindow::GetTextExtent(end_temp_str));

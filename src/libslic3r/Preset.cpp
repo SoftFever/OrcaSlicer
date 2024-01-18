@@ -786,7 +786,7 @@ static std::vector<std::string> s_Preset_print_options {
     "independent_support_layer_height",
     "support_angle", "support_interface_top_layers", "support_interface_bottom_layers",
     "support_interface_pattern", "support_interface_spacing", "support_interface_loop_pattern",
-    "support_top_z_distance", "support_on_build_plate_only","support_critical_regions_only", "bridge_no_support", "thick_bridges", "thick_internal_bridges", "max_bridge_length", "print_sequence", "support_remove_small_overhang",
+    "support_top_z_distance", "support_on_build_plate_only","support_critical_regions_only", "bridge_no_support", "thick_bridges", "thick_internal_bridges","dont_filter_internal_bridges", "max_bridge_length", "print_sequence", "support_remove_small_overhang",
     "filename_format", "wall_filament", "support_bottom_z_distance",
     "sparse_infill_filament", "solid_infill_filament", "support_filament", "support_interface_filament","support_interface_not_for_body",
     "ooze_prevention", "standby_temperature_delta", "interface_shells", "line_width", "initial_layer_line_width",
@@ -1125,11 +1125,6 @@ void PresetCollection::load_presets(
                     std::string version_str = key_values[BBL_JSON_KEY_VERSION];
                     boost::optional<Semver> version = Semver::parse(version_str);
                     if (!version) continue;
-                    Semver app_version = *(Semver::parse(SLIC3R_VERSION));
-                    if ( version->maj() !=  app_version.maj()) {
-                        BOOST_LOG_TRIVIAL(warning) << "Preset incompatibla, not loading: " << name;
-                        continue;
-                    }
                     preset.version = *version;
 
                     if (key_values.find(BBL_JSON_KEY_FILAMENT_ID) != key_values.end())
@@ -1572,11 +1567,6 @@ bool PresetCollection::load_user_preset(std::string name, std::map<std::string, 
     boost::optional<Semver> cloud_version = Semver::parse(version_str);
     if (!cloud_version) {
         BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format("invalid version %1%, not loading for user preset %2%")%version_str %name;
-        return false;
-    }
-    Semver app_version = *(Semver::parse(SLIC3R_VERSION));
-    if ( cloud_version->maj() !=  app_version.maj()) {
-        BOOST_LOG_TRIVIAL(warning)<< __FUNCTION__ << boost::format("version %1% mismatch with app version %2%, not loading for user preset %3%")%version_str %SLIC3R_VERSION %name;
         return false;
     }
 
