@@ -248,12 +248,21 @@ static t_config_enum_values s_keys_map_SeamPosition {
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SeamPosition)
 
+// Orca
 static t_config_enum_values s_keys_map_InternalBridgeFilter {
     { "disabled",        ibfDisabled },
     { "limited",        ibfLimited },
     { "nofilter",           ibfNofilter },
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(InternalBridgeFilter)
+
+// Orca
+static t_config_enum_values s_keys_map_GapFillTarget {
+    { "everywhere",        gftEverywhere },
+    { "topbottom",        gftTopBottom },
+    { "nowhere",           gftNowhere },
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(GapFillTarget)
 
 static const t_config_enum_values s_keys_map_SLADisplayOrientation = {
     { "landscape",      sladoLandscape},
@@ -753,13 +762,25 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->set_default_value(new ConfigOptionFloat(0.));
     
-    def = this->add("enable_gap_fill_for_top_bottom_surfaces", coBool);
-    def->label = L("Enable gap fill");
+    def = this->add("gap_fill_target", coEnum);
+    def->label = L("Apply gap fill");
     def->category = L("Strength");
-    def->tooltip = L("Enables gap fill for top and bottom surfaces. The minimum gap length that will be filled can be controlled"
-                     "from the filter out tiny gaps option in the infill section below.");
+    def->tooltip = L("Enables gap fill for the selected surfaces. The minimum gap length that will be filled can be controlled"
+                     "from the filter out tiny gaps option below.\n\n"
+                     "Options:\n"
+                     "1. Everywhere: Applies gap fill to top, bottom and internal solid surfaces\n"
+                     "2. Top and Bottom surfaces: Applies gap fill to top and bottom surfaces only\n"
+                     "3. Nowhere: Disables gap fill\n");
+    def->enum_keys_map = &ConfigOptionEnum<GapFillTarget>::get_enum_values();
+    def->enum_values.push_back("everywhere");
+    def->enum_values.push_back("topbottom");
+    def->enum_values.push_back("nowhere");
+    def->enum_labels.push_back(L("Everywhere"));
+    def->enum_labels.push_back(L("Top and Bottom surfaces"));
+    def->enum_labels.push_back(L("Nowhere"));
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionBool(true));
+    def->set_default_value(new ConfigOptionEnum<GapFillTarget>(gftEverywhere));
+    
 
     def = this->add("enable_overhang_bridge_fan", coBools);
     def->label = L("Force cooling for overhang and bridge");
@@ -1346,14 +1367,6 @@ void PrintConfigDef::init_fff_params()
     def->enum_values   = def_top_fill_pattern->enum_values;
     def->enum_labels   = def_top_fill_pattern->enum_labels;
     def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipMonotonic));
-    
-    def = this->add("enable_gap_fill_for_solid_infill", coBool);
-    def->label = L("Enable gap fill");
-    def->category = L("Strength");
-    def->tooltip = L("Enables gap fill for internal solid infill. The minimum gap length that will be filled can be controlled"
-                     "from the filter out tiny gaps option");
-    def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionBool(false));
     
     def = this->add("outer_wall_line_width", coFloatOrPercent);
     def->label = L("Outer wall");

@@ -188,11 +188,9 @@ void Fill::_create_gap_fill(const Surface* surface, const FillParams& params, Ex
     if (this->print_object_config == nullptr) return;
     
     // Orca: Enable gap fill as per the user preference. Return early if gap fill is to not be applied.
-    if(!((((surface->surface_type == stBottom || surface->surface_type == stTop) &&
-                                            this->print_object_config->enable_gap_fill_for_top_bottom_surfaces) ||
-            (surface->surface_type == stInternalSolid && this->print_object_config->enable_gap_fill_for_solid_infill))))
-       return;
-    
+    if ((this->print_object_config->gap_fill_target.value == gftNowhere) ||
+        (surface->surface_type == stInternalSolid && this->print_object_config->gap_fill_target.value != gftEverywhere))
+        return;
     
     Flow new_flow = params.flow;
     ExPolygons unextruded_areas;
