@@ -152,9 +152,16 @@ enum SeamPosition {
     spNearest, spAligned, spRear, spRandom
 };
 
+//Orca
 enum InternalBridgeFilter {
     ibfDisabled, ibfLimited, ibfNofilter
 };
+
+//Orca
+enum GapFillTarget {
+     gftEverywhere, gftTopBottom, gftNowhere
+ };
+
 
 enum LiftType {
     NormalLift,
@@ -789,6 +796,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionPercent,            tree_support_top_rate))
     ((ConfigOptionFloat,              tree_support_branch_diameter_organic))
     ((ConfigOptionFloat,              tree_support_branch_angle_organic))
+    ((ConfigOptionEnum<GapFillTarget>,gap_fill_target))
     ((ConfigOptionFloat,              min_length_factor))
 
     // Move all acceleration and jerk settings to object
