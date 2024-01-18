@@ -4395,7 +4395,7 @@ static std::unique_ptr<EdgeGrid::Grid> calculate_layer_edge_grid(const Layer& la
 }
 
 
-std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, double speed, ExtrusionEntitiesPtr region_perimeters)
+std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, double speed, const ExtrusionEntitiesPtr& region_perimeters)
 {
     // get a copy; don't modify the orientation of the original loop object otherwise
     // next copies (if any) would not detect the correct orientation
@@ -4489,7 +4489,7 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
         
         // Search region perimeters for lines that are touching the de-retraction point.
         // If an internal perimeter exists, we should find 2 perimeters touching the de-retraction point
-        // 1 - the currently printed external perimeter and 2 - the neighbouring internal perimeter.
+        // 1: the currently printed external perimeter and 2: the neighbouring internal perimeter.
         int discoveredTouchingLines = 0;
         for (const ExtrusionEntity* ee : region_perimeters){
             auto potential_touching_line = ee->as_polyline();
@@ -4497,7 +4497,7 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
             auto touching_line = potential_touching_line_distancer.all_lines_in_radius(pt, scale_(nozzle_diam));
             if(touching_line.size()){
                 discoveredTouchingLines ++;
-                if(discoveredTouchingLines > 1) break; // found 2 touching lines, end the search early.
+                if(discoveredTouchingLines > 1) break; // found 2 touching lines. End the search early.
             }
         }
         // found 2 perimeters touching the de-retraction point. Its safe to deretract as the point will be
@@ -4600,7 +4600,7 @@ std::string GCode::extrude_multi_path(ExtrusionMultiPath multipath, std::string 
     return gcode;
 }
 
-std::string GCode::extrude_entity(const ExtrusionEntity &entity, std::string description, double speed, ExtrusionEntitiesPtr region_perimeters)
+std::string GCode::extrude_entity(const ExtrusionEntity &entity, std::string description, double speed, const ExtrusionEntitiesPtr& region_perimeters)
 {
     if (const ExtrusionPath* path = dynamic_cast<const ExtrusionPath*>(&entity))
         return this->extrude_path(*path, description, speed);
