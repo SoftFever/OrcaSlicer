@@ -1,3 +1,9 @@
+///|/ Copyright (c) Prusa Research 2020 - 2023 Oleksandra Iushchenko @YuSanka, Lukáš Matěna @lukasmatena, Vojtěch Bubník @bubnikv, Enrico Turri @enricoturri1966, David Kocík @kocikdav
+///|/ Copyright (c) 2021 Pascal de Bruijn @pmjdebruijn
+///|/ Copyright (c) 2021 Sebastian Hammerl
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #include "UnsavedChangesDialog.hpp"
 
 #include <cstddef>
@@ -5,7 +11,6 @@
 #include <vector>
 #include <boost/algorithm/string.hpp>
 #include <boost/optional.hpp>
-#include <boost/nowide/convert.hpp>
 
 #include <wx/tokenzr.h>
 
@@ -22,10 +27,6 @@
 #include "MainFrame.hpp"
 #include "MsgDialog.hpp"
 
-//#define FTS_FUZZY_MATCH_IMPLEMENTATION
-//#include "fts_fuzzy_match.h"
-
-#include "BitmapCache.hpp"
 #include "PresetComboBoxes.hpp"
 #include "Widgets/RoundedRectangle.hpp"
 #include "Widgets/CheckBox.hpp"
@@ -41,6 +42,10 @@ using boost::optional;
 namespace Slic3r {
 
 namespace GUI {
+
+wxDEFINE_EVENT(EVT_DIFF_DIALOG_TRANSFER, SimpleEvent);
+wxDEFINE_EVENT(EVT_DIFF_DIALOG_SAVE, SimpleEvent);
+
 
 // ----------------------------------------------------------------------------
 //                  ModelNode: a node inside DiffModel
@@ -105,8 +110,8 @@ ModelNode::ModelNode(ModelNode* parent, const wxString& text, const std::string&
 ModelNode::ModelNode(ModelNode* parent, const wxString& text) :
     m_parent_win(parent->m_parent_win),
     m_parent(parent),
-    m_text(text),
-    m_icon_name("node_dot")
+    m_icon_name("node_dot"),
+    m_text(text)
 {
     UpdateIcons();
 }
@@ -143,11 +148,11 @@ ModelNode::ModelNode(ModelNode* parent, const wxString& text, const wxString& ol
     m_parent(parent),
     m_old_color(old_value.StartsWith("#") ? old_value : ""),
     m_new_color(new_value.StartsWith("#") ? new_value : ""),
-    m_container(false),
-    m_text(text),
     m_icon_name("empty"),
+    m_text(text),
     m_old_value(old_value),
-    m_new_value(new_value)
+    m_new_value(new_value),
+    m_container(false)
 {
     // check if old/new_value is color
     if (m_old_color.IsEmpty()) {
@@ -487,7 +492,7 @@ unsigned int DiffModel::GetChildren(const wxDataViewItem& parent, wxDataViewItem
     for (const std::unique_ptr<ModelNode>& child : children)
         array.Add(wxDataViewItem((void*)child.get()));
 
-    return array.size();
+    return array.Count();
 }
 
 
@@ -573,7 +578,7 @@ void DiffModel::Clear()
 
 static std::string get_pure_opt_key(std::string opt_key)
 {
-    int pos = opt_key.find("#");
+    const int pos = opt_key.find("#");
     if (pos > 0)
         boost::erase_tail(opt_key, opt_key.size() - pos);
     return opt_key;
@@ -1824,35 +1829,11 @@ static std::string get_selection(PresetComboBox* preset_combo)
     return into_u8(preset_combo->GetString(preset_combo->GetSelection()));
 }
 
-DiffPresetDialog::DiffPresetDialog(MainFrame* mainframe)
-    : DPIDialog(mainframe, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER),
-    m_pr_technology(wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology())
+void DiffPresetDialog::create_presets_sizer()
 {
-#if defined(__WXMSW__)
-    // ys_FIXME! temporary workaround for correct font scaling
-    // Because of from wxWidgets 3.1.3 auto rescaling is implemented for the Fonts,
-    // From the very beginning set dialog font to the wxSYS_DEFAULT_GUI_FONT
-    this->SetFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT));
-#endif // __WXMSW__
+    m_presets_sizer = new wxBoxSizer(wxVERTICAL);
 
-    int border = 10;
-    int em = em_unit();
-    SetBackgroundColour(*wxWHITE);
-    assert(wxGetApp().preset_bundle);
-
-    m_preset_bundle_left  = std::make_unique<PresetBundle>(*wxGetApp().preset_bundle);
-    m_preset_bundle_right = std::make_unique<PresetBundle>(*wxGetApp().preset_bundle);
-
-    //m_top_info_line = new wxStaticText(this, wxID_ANY, "Select presets to compare");
-    m_top_info_line = new wxStaticText(this, wxID_ANY, _L("Select presets to compare"));
-    m_top_info_line->SetFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Bold());
-
-    m_bottom_info_line = new wxStaticText(this, wxID_ANY, "");
-    m_bottom_info_line->SetFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Bold());
-
-    wxBoxSizer* presets_sizer = new wxBoxSizer(wxVERTICAL);
-
-    for (auto new_type : { Preset::TYPE_PRINT, Preset::TYPE_FILAMENT, Preset::TYPE_SLA_PRINT, Preset::TYPE_SLA_MATERIAL, Preset::TYPE_PRINTER })
+    for (auto new_type : { Preset::TYPE_PRINT, Preset::TYPE_SLA_PRINT, Preset::TYPE_FILAMENT, Preset::TYPE_SLA_MATERIAL, Preset::TYPE_PRINTER })
     {
         const PresetCollection* collection = get_preset_collection(new_type);
         wxBoxSizer* sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -1860,13 +1841,13 @@ DiffPresetDialog::DiffPresetDialog(MainFrame* mainframe)
         PresetComboBox* presets_right;
         ScalableButton* equal_bmp = new ScalableButton(this, wxID_ANY, "equal");
 
-        auto add_preset_combobox = [collection, sizer, new_type, em, this](PresetComboBox** cb_, PresetBundle* preset_bundle) {
-            *cb_ = new PresetComboBox(this, new_type, wxSize(em * 35, -1), preset_bundle);
+        auto add_preset_combobox = [collection, sizer, new_type, this](PresetComboBox** cb_, PresetBundle* preset_bundle) {
+            *cb_ = new PresetComboBox(this, new_type, wxSize(em_unit() * 35, -1), preset_bundle);
             PresetComboBox* cb = (*cb_);
             cb->set_selection_changed_function([this, new_type, preset_bundle, cb](int selection) {
                 if (m_view_type == Preset::TYPE_INVALID) {
-                    std::string preset_name = cb->GetString(selection).ToUTF8().data();
-                    update_compatibility(Preset::remove_suffix_modified(preset_name), new_type, preset_bundle);
+                    std::string preset_name = Preset::remove_suffix_modified(cb->GetString(selection).ToUTF8().data());
+                    update_compatibility(preset_name, new_type, preset_bundle);
                 }
                 update_tree();
             });
@@ -1879,7 +1860,7 @@ DiffPresetDialog::DiffPresetDialog(MainFrame* mainframe)
         add_preset_combobox(&presets_left, m_preset_bundle_left.get());
         sizer->Add(equal_bmp, 0, wxRIGHT | wxLEFT | wxALIGN_CENTER_VERTICAL, 5);
         add_preset_combobox(&presets_right, m_preset_bundle_right.get());
-        presets_sizer->Add(sizer, 1, wxTOP, 5);
+        m_presets_sizer->Add(sizer, 1, wxTOP, 5);
         equal_bmp->Show(new_type == Preset::TYPE_PRINTER);
 
         m_preset_combos.push_back({ presets_left, equal_bmp, presets_right });
@@ -1892,7 +1873,10 @@ DiffPresetDialog::DiffPresetDialog(MainFrame* mainframe)
             update_tree();
         });
     }
+}
 
+void DiffPresetDialog::create_show_all_presets_chb()
+{
     m_show_all_presets = new wxCheckBox(this, wxID_ANY, _L("Show all presets (including incompatible)"));
     m_show_all_presets->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent&) {
         bool show_all = m_show_all_presets->GetValue();
@@ -1905,25 +1889,172 @@ DiffPresetDialog::DiffPresetDialog(MainFrame* mainframe)
         if (m_view_type == Preset::TYPE_INVALID)
             update_tree();
     });
+}
 
-    m_tree = new DiffViewCtrl(this, wxSize(em * 65, em * 40));
+void DiffPresetDialog::create_info_lines()
+{
+    const wxFont font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Bold();
+
+    m_top_info_line = new wxStaticText(this, wxID_ANY, _L("Select presets to compare"));
+    m_top_info_line->SetFont(font);
+
+    m_bottom_info_line = new wxStaticText(this, wxID_ANY, "");
+    m_bottom_info_line->SetFont(font);
+}
+
+void DiffPresetDialog::create_tree()
+{
+    m_tree = new DiffViewCtrl(this, wxSize(em_unit() * 65, em_unit() * 40));
+    m_tree->AppendToggleColumn_(L"\u2714", DiffModel::colToggle, wxLinux ? 9 : 6);
     m_tree->AppendBmpTextColumn("",                      DiffModel::colIconText, 35);
     m_tree->AppendBmpTextColumn("Left Preset Value", DiffModel::colOldValue, 15);
     m_tree->AppendBmpTextColumn("Right Preset Value",DiffModel::colNewValue, 15);
     m_tree->Hide();
+    m_tree->GetColumn(DiffModel::colToggle)->SetHidden(true);
+}
 
+void DiffPresetDialog::create_buttons()
+{
+    wxFont font = this->GetFont().Scaled(1.4f);
+    m_buttons   = new wxBoxSizer(wxHORIZONTAL);
+
+    auto show_in_bottom_info = [this](const wxString& ext_line, wxMouseEvent& e) {
+        m_bottom_info_line->SetLabel(ext_line);
+        m_bottom_info_line->Show(true);
+        Layout();
+        e.Skip();
+    };
+
+    // Transfer 
+    m_transfer_btn = new ScalableButton(this, wxID_ANY, wxGetApp().dark_mode() ? "paste_menu_dark" : "paste_menu", _L("Transfer"), wxDefaultSize, wxDefaultPosition, wxBORDER_DEFAULT, 24);
+    m_transfer_btn->Bind(wxEVT_BUTTON, [this](wxEvent&) { button_event(Action::Transfer);});
+
+
+    auto enable_transfer = [this](const Preset::Type& type) {
+        const Preset& main_edited_preset = get_preset_collection(type, wxGetApp().preset_bundle)->get_edited_preset();
+        if (main_edited_preset.is_dirty)
+            return main_edited_preset.name == get_right_preset_name(type);
+        return true;
+    };
+    m_transfer_btn->Bind(wxEVT_UPDATE_UI, [this, enable_transfer](wxUpdateUIEvent& evt) {
+        bool enable = m_tree->has_selection();
+        if (enable) {
+            if (m_view_type == Preset::TYPE_INVALID) {
+                for (const Preset::Type& type : (m_pr_technology == ptFFF ? std::initializer_list<Preset::Type>{Preset::TYPE_PRINTER, Preset::TYPE_PRINT, Preset::TYPE_FILAMENT} :
+                                                                            std::initializer_list<Preset::Type>{ Preset::TYPE_PRINTER, Preset::TYPE_SLA_PRINT, Preset::TYPE_SLA_MATERIAL }))
+                    if (!enable_transfer(type)) {
+                        enable = false;
+                        break;
+                    }
+            }
+            else
+                enable = enable_transfer(m_view_type);
+        }
+        evt.Enable(enable);
+    });
+    m_transfer_btn->Bind(wxEVT_ENTER_WINDOW, [this, show_in_bottom_info](wxMouseEvent& e) {
+        show_in_bottom_info(_L("Transfer the selected options from left preset to the right.\n"
+                            "Note: New modified presets will be selected in setting stabs after close this dialog."), e); });
+
+    // Save
+    m_save_btn = new ScalableButton(this, wxID_ANY, "save", _L("Save"), wxDefaultSize, wxDefaultPosition, wxBORDER_DEFAULT, 24);
+    m_save_btn->Bind(wxEVT_BUTTON, [this](wxEvent&) { button_event(Action::Save); });
+    m_save_btn->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(m_tree->has_selection()); });
+    m_save_btn->Bind(wxEVT_ENTER_WINDOW, [this, show_in_bottom_info](wxMouseEvent& e) {
+        show_in_bottom_info(_L("Save the selected options from left preset to the right."), e); });
+
+    // Cancel
+    m_cancel_btn = new ScalableButton(this, wxID_CANCEL, "cross", _L("Cancel"), wxDefaultSize, wxDefaultPosition, wxBORDER_DEFAULT, 24);
+    m_cancel_btn->Bind(wxEVT_BUTTON, [this](wxEvent&) { button_event(Action::Discard);});
+
+    for (ScalableButton* btn : { m_transfer_btn, m_save_btn, m_cancel_btn }) {
+        btn->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent& e) { update_bottom_info(); Layout(); e.Skip(); });
+        m_buttons->Add(btn, 1, wxLEFT, 5);
+        btn->SetFont(font);
+    }
+
+    m_buttons->Show(false);
+}
+
+void DiffPresetDialog::create_edit_sizer()
+{
+    // Add check box for the edit mode
+    m_use_for_transfer = new wxCheckBox(this, wxID_ANY, _L("Transfer values from left to right"));
+    m_use_for_transfer->SetToolTip(_L("If enabled, this dialog can be used for transver selected values from left to right preset."));
+    m_use_for_transfer->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent&) {
+        bool use = m_use_for_transfer->GetValue();
+        m_tree->GetColumn(DiffModel::colToggle)->SetHidden(!use);
+        if (m_tree->IsShown()) {
+            m_buttons->Show(use);
+            Fit();
+            Refresh();
+        }
+        else
+            this->Layout();
+    });
+
+    // Add Buttons 
+    create_buttons();
+
+    // Create and fill edit sizer
+    m_edit_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_edit_sizer->Add(m_use_for_transfer, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 5);
+    m_edit_sizer->AddSpacer(em_unit() * 10);
+    m_edit_sizer->Add(m_buttons, 1, wxLEFT, 5);
+    m_edit_sizer->Show(false);
+}
+
+void DiffPresetDialog::complete_dialog_creation()
+{
     wxBoxSizer* topSizer = new wxBoxSizer(wxVERTICAL);
 
-    topSizer->Add(m_top_info_line, 0, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, 2 * border);
-    topSizer->Add(presets_sizer, 0, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, border);
-    topSizer->Add(m_show_all_presets, 0, wxEXPAND | wxALL, border);
-    topSizer->Add(m_bottom_info_line, 0, wxEXPAND | wxALL, 2 * border);
-    topSizer->Add(m_tree, 1, wxEXPAND | wxALL, border);
+    int border = 10;
+    topSizer->Add(m_top_info_line,      0, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, 2 * border);
+    topSizer->Add(m_presets_sizer,      0, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, border);
+    topSizer->Add(m_show_all_presets,   0, wxEXPAND | wxALL, border);
+    topSizer->Add(m_tree,               1, wxEXPAND | wxALL, border);
+    topSizer->Add(m_bottom_info_line,   0, wxEXPAND | wxALL, 2 * border);
+    topSizer->Add(m_edit_sizer,         0, wxEXPAND | wxLEFT | wxBOTTOM | wxRIGHT, 2 * border);
 
-    this->SetMinSize(wxSize(80 * em, 30 * em));
+    this->SetMinSize(wxSize(80 * em_unit(), 30 * em_unit()));
     this->SetSizer(topSizer);
     topSizer->SetSizeHints(this);
     wxGetApp().UpdateDlgDarkUI(this);
+}
+
+DiffPresetDialog::DiffPresetDialog(MainFrame* mainframe)
+    : DPIDialog(mainframe, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER),
+    m_pr_technology(wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology())
+{
+#if defined(__WXMSW__)
+    // ys_FIXME! temporary workaround for correct font scaling
+    // Because of from wxWidgets 3.1.3 auto rescaling is implemented for the Fonts,
+    // From the very beginning set dialog font to the wxSYS_DEFAULT_GUI_FONT
+    this->SetFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT));
+#endif // __WXMSW__
+
+    // Init bundles
+
+    assert(wxGetApp().preset_bundle);
+
+    m_preset_bundle_left  = std::make_unique<PresetBundle>(*wxGetApp().preset_bundle);
+    m_preset_bundle_right = std::make_unique<PresetBundle>(*wxGetApp().preset_bundle);
+
+    // Create UI items
+
+    SetBackgroundColour(*wxWHITE);
+
+    create_info_lines();
+
+    create_presets_sizer();
+
+    create_show_all_presets_chb();
+
+    create_tree();
+
+    create_edit_sizer();
+
+    complete_dialog_creation();
 }
 
 void DiffPresetDialog::update_controls_visibility(Preset::Type type /* = Preset::TYPE_INVALID*/)
@@ -1951,6 +2082,8 @@ void DiffPresetDialog::update_bundles_from_app()
 {
     *m_preset_bundle_left  = *wxGetApp().preset_bundle;
     *m_preset_bundle_right = *wxGetApp().preset_bundle;
+
+    m_pr_technology = m_preset_bundle_left.get()->printers.get_edited_preset().printer_technology();
 }
 
 void DiffPresetDialog::show(Preset::Type type /* = Preset::TYPE_INVALID*/)
@@ -1974,8 +2107,6 @@ void DiffPresetDialog::show(Preset::Type type /* = Preset::TYPE_INVALID*/)
 
 void DiffPresetDialog::update_presets(Preset::Type type)
 {
-    m_pr_technology = m_preset_bundle_left.get()->printers.get_edited_preset().printer_technology();
-
     update_bundles_from_app();
     update_controls_visibility(type);
 
@@ -1997,6 +2128,14 @@ void DiffPresetDialog::update_presets(Preset::Type type)
         }
 
     update_tree();
+}
+
+void DiffPresetDialog::update_bottom_info(wxString bottom_info)
+{
+    const bool show_bottom_info = !m_tree->IsShown();
+    if (show_bottom_info)
+        m_bottom_info_line->SetLabel(bottom_info);
+    m_bottom_info_line->Show(show_bottom_info);
 }
 
 void DiffPresetDialog::update_tree()
@@ -2091,9 +2230,12 @@ void DiffPresetDialog::update_tree()
 
     bool tree_was_shown = m_tree->IsShown();
     m_tree->Show(show_tree);
-    if (!show_tree)
-        m_bottom_info_line->SetLabel(bottom_info);
-    m_bottom_info_line->Show(!show_tree);
+
+    bool can_transfer_options = m_view_type == Preset::TYPE_INVALID || get_left_preset_name(m_view_type) != get_right_preset_name(m_view_type);
+    m_edit_sizer->Show(show_tree && can_transfer_options);
+    m_buttons->Show(m_edit_sizer->IsShown(size_t(0)) && m_use_for_transfer->GetValue());
+   
+    update_bottom_info(bottom_info);
 
     if (tree_was_shown == m_tree->IsShown())
         Layout();
@@ -2140,6 +2282,10 @@ void DiffPresetDialog::on_sys_color_changed()
         preset_combos.equal_bmp->msw_rescale();
         preset_combos.presets_right->msw_rescale();
     }
+
+    for (ScalableButton* btn : { m_transfer_btn, m_save_btn, m_cancel_btn })
+        btn->msw_rescale();
+
     // msw_rescale updates just icons, so use it
     m_tree->Rescale();
     Refresh();
@@ -2201,6 +2347,31 @@ void DiffPresetDialog::update_compatibility(const std::string& preset_name, Pres
         m_pr_technology = m_preset_bundle_left.get()->printers.get_edited_preset().printer_technology();
         update_controls_visibility();
     }
+}
+
+void DiffPresetDialog::button_event(Action act)
+{
+    if (act == Action::Save) {
+        wxPostEvent(this, SimpleEvent(EVT_DIFF_DIALOG_SAVE));
+    }
+    else {
+        Hide();
+        if (act == Action::Transfer)
+            wxPostEvent(this, SimpleEvent(EVT_DIFF_DIALOG_TRANSFER));
+    }
+}
+
+std::string DiffPresetDialog::get_left_preset_name(Preset::Type type)
+{
+    PresetComboBox* cb = m_preset_combos[int(type - Preset::TYPE_PRINT)].presets_left;
+    return Preset::remove_suffix_modified(get_selection(cb));
+}
+
+std::string DiffPresetDialog::get_right_preset_name(Preset::Type type)
+{
+
+    PresetComboBox* cb = m_preset_combos[int(type - Preset::TYPE_PRINT)].presets_right;
+    return Preset::remove_suffix_modified(get_selection(cb));
 }
 
 }

@@ -336,6 +336,8 @@ public:
 	void		OnKeyDown(wxKeyEvent& event);
 
 	void		compare_preset();
+	void		transfer_options(const std::string&name_from, const std::string&name_to, std::vector<std::string> options);
+    void		save_options(const std::string &name_from, const std::string &name_to, std::vector<std::string> options);
 	//BBS: add project embedded preset relate logic
 	void        save_preset(std::string name = std::string(), bool detach = false, bool save_to_project = false, bool from_input = false, std::string input_name = "");
 	//void		save_preset(std::string name = std::string(), bool detach = false);
@@ -393,7 +395,7 @@ public:
     void            update_wiping_button_visibility();
 	void			activate_option(const std::string& opt_key, const wxString& category);
     void			apply_searcher();
-	void			cache_config_diff(const std::vector<std::string>& selected_options);
+	void			cache_config_diff(const std::vector<std::string>& selected_options, const DynamicPrintConfig* config = nullptr);
 	void			apply_config_from_cache();
     void            show_timelapse_warning_dialog();
 
@@ -614,7 +616,7 @@ public:
 	bool 		supports_printer_technology(const PrinterTechnology /* tech */) const override { return true; }
 
 	wxSizer*	create_bed_shape_widget(wxWindow* parent);
-	void		cache_extruder_cnt();
+	void		cache_extruder_cnt(const DynamicPrintConfig* config = nullptr);
 	bool		apply_extruder_cnt_from_cache();
 
 };
