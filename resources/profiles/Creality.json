@@ -195,8 +195,16 @@
 			"sub_path": "process/0.12mm Fine @Creality Ender5Pro (2019).json"
 		},
 		{
+			"name": "0.12mm Fine @Creality K1 (0.4 nozzle)",
+			"sub_path": "process/0.12mm Fine @Creality K1 (0.4 nozzle).json"
+		},
+		{
 			"name": "0.12mm Fine @Creality K1C",
 			"sub_path": "process/0.12mm Fine @Creality K1C 0.4 nozzle.json"
+		},
+		{
+			"name": "0.12mm Fine @Creality K1Max (0.4 nozzle)",
+			"sub_path": "process/0.12mm Fine @Creality K1Max (0.4 nozzle).json"
 		},
 		{
 			"name": "0.12mm Detail @Creality Ender5Pro (2019) 0.5",
@@ -629,6 +637,10 @@
 			"sub_path": "filament/Creality HF Generic Speed PLA.json"
 		},
 		{
+			"name": "Creality Generic PLA-CF",
+			"sub_path": "filament/Creality Generic PLA-CF.json"
+		},
+		{
 			"name": "Creality Generic TPU",
 			"sub_path": "filament/Creality Generic TPU.json"
 		},
@@ -691,6 +703,10 @@
 		{
 			"name": "Creality Generic PLA Silk @K1-all",
 			"sub_path": "filament/Creality Generic PLA Silk @K1-all.json"
+		},
+		{
+			"name": "Creality Generic PLA-CF @K1-all",
+			"sub_path": "filament/Creality Generic PLA-CF @K1-all.json"
 		},
 		{
 			"name": "Creality Generic TPU @K1-all",
@@ -839,11 +855,11 @@
 			"sub_path": "machine/Creality K1C 0.4 nozzle.json"
 		},
 		{
-			"name": "Creality K1C (0.6 nozzle)",
+			"name": "Creality K1C 0.6 nozzle",
 			"sub_path": "machine/Creality K1C 0.6 nozzle.json"
 		},
 		{
-			"name": "Creality K1C (0.8 nozzle)",
+			"name": "Creality K1C 0.8 nozzle",
 			"sub_path": "machine/Creality K1C 0.8 nozzle.json"
 		},
 		{
