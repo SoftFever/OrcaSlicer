@@ -17,5 +17,8 @@
     "slow_down_layer_time": [
         "7"
     ],
+    "filament_cost": [
+        "30"
+    ],
     "compatible_printers": []
 }

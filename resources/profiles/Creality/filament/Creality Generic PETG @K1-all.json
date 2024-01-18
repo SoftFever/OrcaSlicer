@@ -9,7 +9,10 @@
         "9"
     ],
     "slow_down_layer_time": [
-        "5"
+        "12"
+    ],
+    "slow_down_min_speed": [
+        "20"
     ],
     "cool_plate_temp": [
         "70"

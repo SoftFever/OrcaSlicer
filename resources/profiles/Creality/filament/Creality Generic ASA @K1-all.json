@@ -9,7 +9,10 @@
         "9"
     ],
     "slow_down_layer_time": [
-        "5"
+        "3"
+    ],
+    "slow_down_min_speed": [
+        "20"
     ],
     "compatible_printers": [
         "Creality K1C 0.4 nozzle",
