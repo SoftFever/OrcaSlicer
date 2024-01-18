@@ -1,0 +1,43 @@
+{
+	"name": "OrcaSlicer",
+	"image": "mcr.microsoft.com/devcontainers/cpp",
+    "features": {
+        "ghcr.io/devcontainers/features/desktop-lite:1": {},
+		"ghcr.io/devcontainers/features/sshd:1": {}
+    },
+	"customizations": {
+		"vscode": {
+			"settings": { 
+				"cmake.configureArgs": [
+					"-DSLIC3R_GTK=3",
+					"-DBBL_RELEASE_TO_PUBLIC=1",
+					"-DBBL_INTERNAL_TESTING=0",
+					"-DSLIC3R_STATIC=1",
+					"-DCMAKE_PREFIX_PATH=${workspaceFolder}/deps/build/destdir/usr/local"
+				]
+			},
+			
+			// Add the IDs of extensions you want installed when the container is created.
+			"extensions": [
+				"ms-vscode.cmake-tools",
+				"ms-vscode.cpptools-extension-pack"
+			]
+		}
+	},
+	
+    "forwardPorts": [6080, 2222],
+	"portsAttributes": {
+		"6080": {
+			"label": "VNC web client (noVNC)",
+			"onAutoForward": "silent"
+		},
+		"2222": {
+			"label": "SSH",
+			"onAutoForward": "silent"
+		}
+    },
+	"otherPortsAttributes": {
+		"onAutoForward": "ignore"
+	},
+	"postCreateCommand": "sudo /bin/bash .devcontainer/postCreate.sh"
+}
