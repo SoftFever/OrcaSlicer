@@ -12,28 +12,28 @@
         "20"
     ],
     "cool_plate_temp": [
-        "45"
+        "55"
     ],
     "eng_plate_temp": [
-        "45"
+        "55"
     ],
     "hot_plate_temp": [
-        "45"
+        "55"
     ],
     "textured_plate_temp": [
-        "45"
+        "55"
     ],
     "cool_plate_temp_initial_layer": [
-        "45"
+        "55"
     ],
     "eng_plate_temp_initial_layer": [
-        "45"
+        "55"
     ],
     "hot_plate_temp_initial_layer": [
-        "45"
+        "55"
     ],
     "textured_plate_temp_initial_layer": [
-        "45"
+        "55"
     ],
     "compatible_printers": [
         "Creality K1C 0.4 nozzle",
