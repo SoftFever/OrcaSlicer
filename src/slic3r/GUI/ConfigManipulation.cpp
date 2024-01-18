@@ -510,6 +510,10 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
         apply(config, &new_conf);
     }
     
+    // Orca: Hide the filter out tiny gaps field when gap fill target is nowhere as no gap fill will be applied.
+    bool have_gap_fill = config->opt_enum<GapFillTarget>("gap_fill_target") != gftNowhere;
+    toggle_line("filter_out_gap_fill", have_gap_fill);
+
     bool have_ensure_vertical_thickness = config->opt_bool("ensure_vertical_shell_thickness");
     if(have_ensure_vertical_thickness) {
         DynamicPrintConfig new_conf = *config;

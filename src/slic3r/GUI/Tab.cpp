@@ -2009,6 +2009,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("infill_anchor");
         optgroup->append_single_option_line("infill_anchor_max");
         optgroup->append_single_option_line("internal_solid_infill_pattern");
+        optgroup->append_single_option_line("gap_fill_target");
         optgroup->append_single_option_line("filter_out_gap_fill");
 
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced");
