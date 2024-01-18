@@ -1297,6 +1297,16 @@ void PrintConfigDef::init_fff_params()
         "(top+bottom solid layers)");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(true));
+    
+    def = this->add("reduce_wall_solid_infill", coBool);
+    def->label = L("Further reduce solid infill on walls (experimental)");
+    def->category = L("Strength");
+    def->tooltip = L("Further reduces any solid infill applied to walls. As there will be very limited infill supporting"
+                     " solid surfaces, make sure that you are using adequate number of walls to support the part on sloping surfaces.\n\n"
+                     "For heavily sloped surfaces this option is not suitable as it will generate too thin of a top layer "
+                     "and should be disabled.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
 
     auto def_top_fill_pattern = def = this->add("top_surface_pattern", coEnum);
     def->label = L("Top surface pattern");
