@@ -765,7 +765,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("gap_fill_target", coEnum);
     def->label = L("Apply gap fill");
     def->category = L("Strength");
-    def->tooltip = L("Enables gap fill for the selected surfaces. The minimum gap length that will be filled can be controlled"
+    def->tooltip = L("Enables gap fill for the selected surfaces. The minimum gap length that will be filled can be controlled "
                      "from the filter out tiny gaps option below.\n\n"
                      "Options:\n"
                      "1. Everywhere: Applies gap fill to top, bottom and internal solid surfaces\n"
