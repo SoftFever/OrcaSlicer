@@ -510,6 +510,14 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
         apply(config, &new_conf);
     }
     
+    bool have_ensure_vertical_thickness = config->opt_bool("ensure_vertical_shell_thickness");
+    if(have_ensure_vertical_thickness) {
+        DynamicPrintConfig new_conf = *config;
+        new_conf.set_key_value("reduce_wall_solid_infill", new ConfigOptionBool(false));
+        apply(config, &new_conf);
+    }
+    toggle_line("reduce_wall_solid_infill",!have_ensure_vertical_thickness);
+    
     bool have_perimeters = config->opt_int("wall_loops") > 0;
     for (auto el : { "extra_perimeters_on_overhangs", "ensure_vertical_shell_thickness", "detect_thin_wall", "detect_overhang_wall",
         "seam_position", "staggered_inner_seams", "wall_sequence", "outer_wall_line_width",
