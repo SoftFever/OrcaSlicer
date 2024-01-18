@@ -295,7 +295,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
             : gcodegen.config().nozzle_temperature.get_at(gcodegen.writer().extruder()->id());
     }
 
-    // Ioannis Giannakas:
+    // Orca:
     // Function to calculate the excess retraction length that should be retracted either before or after wiping
     // in order for the wipe operation to respect the filament retraction speed
     Wipe::RetractionValues Wipe::calculateWipeRetractionLengths(GCode& gcodegen, bool toolchange) {
@@ -2463,9 +2463,11 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
         CalibPressureAdvanceLine pa_test(this);
 
-        auto fast_speed = CalibPressureAdvance::find_optimal_PA_speed(print.full_print_config(), pa_test.line_width(), 0.2);
-        auto slow_speed = std::max(20.0, fast_speed / 10.0);
-        
+        auto fast_speed = CalibPressureAdvance::find_optimal_PA_speed(print.full_print_config(), pa_test.line_width(), pa_test.height_layer());
+        auto slow_speed = std::max(10.0, fast_speed / 10.0);
+        if (fast_speed < slow_speed + 5)
+            fast_speed = slow_speed + 5;
+
         pa_test.set_speed(fast_speed, slow_speed);
         pa_test.draw_numbers() = print.calib_params().print_numbers;
         gcode += pa_test.generate_test(params.start, params.step, std::llround(std::ceil((params.end - params.start) / params.step)) + 1);
