@@ -1920,6 +1920,10 @@ std::array<Preset::Type, 3> DiffPresetDialog::types_list() const
 void DiffPresetDialog::create_buttons()
 {
     wxFont font = this->GetFont().Scaled(1.4f);
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Disabled),
+                            std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
+                            std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
+                            std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
     m_buttons   = new wxBoxSizer(wxHORIZONTAL);
 
     auto show_in_bottom_info = [this](const wxString& ext_line, wxMouseEvent& e) {
@@ -1930,7 +1934,13 @@ void DiffPresetDialog::create_buttons()
     };
 
     // Transfer 
-    m_transfer_btn = new ScalableButton(this, wxID_ANY, wxGetApp().dark_mode() ? "paste_menu_dark" : "paste_menu", _L("Transfer"), wxDefaultSize, wxDefaultPosition, wxBORDER_DEFAULT, 24);
+    m_transfer_btn = new Button(this, L("Transfer"));
+    m_transfer_btn->SetBackgroundColor(btn_bg_green);
+    m_transfer_btn->SetBorderColor(wxColour(0, 150, 136));
+    m_transfer_btn->SetTextColor(wxColour("#FFFFFE"));
+    m_transfer_btn->SetMinSize(wxSize(-1, -1));
+    m_transfer_btn->SetCornerRadius(FromDIP(12));
+
     m_transfer_btn->Bind(wxEVT_BUTTON, [this](wxEvent&) { button_event(Action::Transfer);});
 
 
@@ -1960,10 +1970,14 @@ void DiffPresetDialog::create_buttons()
                             "Note: New modified presets will be selected in settings tabs after close this dialog."), e); });
 
     // Cancel
-    m_cancel_btn = new ScalableButton(this, wxID_CANCEL, "cross", _L("Cancel"), wxDefaultSize, wxDefaultPosition, wxBORDER_DEFAULT, 24);
+    m_cancel_btn = new Button(this, L("Cancel"));
+    m_cancel_btn->SetTextColor(wxColour(107, 107, 107));
+    m_cancel_btn->SetMinSize(wxSize(-1, -1));
+    m_cancel_btn->SetCornerRadius(FromDIP(12));
+
     m_cancel_btn->Bind(wxEVT_BUTTON, [this](wxEvent&) { button_event(Action::Discard);});
 
-    for (ScalableButton* btn : { m_transfer_btn, m_cancel_btn }) {
+    for (Button* btn : { m_transfer_btn, m_cancel_btn }) {
         btn->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent& e) { update_bottom_info(); Layout(); e.Skip(); });
         m_buttons->Add(btn, 1, wxLEFT, 5);
         btn->SetFont(font);
@@ -2248,7 +2262,9 @@ void DiffPresetDialog::on_dpi_changed(const wxRect&)
 {
     int em = em_unit();
 
-    msw_buttons_rescale(this, em, { wxID_CANCEL});
+    msw_buttons_rescale(this, em, {wxID_CANCEL});
+    for (auto btn : {m_transfer_btn, m_cancel_btn})
+        if (btn) btn->SetMinSize(UNSAVE_CHANGE_DIALOG_BUTTON_SIZE);
 
     const wxSize& size = wxSize(80 * em, 30 * em);
     SetMinSize(size);
@@ -2278,9 +2294,6 @@ void DiffPresetDialog::on_sys_color_changed()
         preset_combos.equal_bmp->msw_rescale();
         preset_combos.presets_right->msw_rescale();
     }
-
-    for (ScalableButton* btn : { m_transfer_btn, m_cancel_btn })
-        btn->msw_rescale();
 
     // msw_rescale updates just icons, so use it
     m_tree->Rescale();

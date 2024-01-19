@@ -415,8 +415,8 @@ class DiffPresetDialog : public DPIDialog
     wxStaticText*           m_bottom_info_line  { nullptr };
     wxCheckBox*             m_show_all_presets  { nullptr };
     wxCheckBox*             m_use_for_transfer  { nullptr };
-    ScalableButton*         m_transfer_btn      { nullptr };
-    ScalableButton*         m_cancel_btn        { nullptr };
+    Button*                 m_transfer_btn      { nullptr };
+    Button*                 m_cancel_btn        { nullptr };
     wxBoxSizer*             m_buttons           { nullptr };
     wxBoxSizer*             m_edit_sizer        { nullptr };
 
