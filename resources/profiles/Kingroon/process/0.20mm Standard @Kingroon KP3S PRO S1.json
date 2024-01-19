@@ -8,5 +8,6 @@
   "name": "0.20mm Standard @Kingroon KP3S PRO S1",
   "initial_layer_print_height": "0.2",
   "layer_height": "0.2",
-  "line_width": "0.42"
+  "line_width": "0.42",
+  "instantiation": "true"
 }
