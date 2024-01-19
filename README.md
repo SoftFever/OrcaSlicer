@@ -70,7 +70,7 @@ Orca Slicer's logo is designed by community member Justin Levine(@freejstnalxndr
   - run `build_release_macos.sh`
   - To build and debug in XCode:
       - run `XCode.app`
-      - open `build_arm64/OrcaSlicer.xcodeproj`
+      - open ``build_`arch`/OrcaSlicer.xcodeproj``
       - menu bar: Product => Scheme => OrcaSlicer
       - menu bar: Product => Scheme => Edit Scheme...
           - Run => Info tab => Build Configuration: `RelWithDebInfo`
