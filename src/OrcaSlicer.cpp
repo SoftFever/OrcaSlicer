@@ -3542,6 +3542,7 @@ int CLI::run(int argc, char **argv)
             bool finished_arrange = false, first_run = true;
             Slic3r::GUI::PartPlate* cur_plate = nullptr;
             int low_duplicate_count = 0, up_duplicate_count = duplicate_count, arrange_count = 0;
+            float orig_wipe_x = 0.f, orig_wipe_y = 0.f;
 
             if (duplicate_count > 0) {
                 original_model = model;
@@ -3568,8 +3569,22 @@ int CLI::run(int argc, char **argv)
                         unprintable.clear();
                         locked_aps.clear();
                     }
-                    else
+                    else {
                         first_run = false;
+                        if (plate_to_slice > 0) {
+                            ConfigOptionFloats* wipe_x_option = m_print_config.option<ConfigOptionFloats>("wipe_tower_x");
+                            ConfigOptionFloats* wipe_y_option = m_print_config.option<ConfigOptionFloats>("wipe_tower_y");
+
+                            if (wipe_x_option && (wipe_x_option->size() > (plate_to_slice-1))) {
+                                orig_wipe_x = wipe_x_option->get_at(plate_to_slice-1);
+                                BOOST_LOG_TRIVIAL(info) << boost::format("%1%, plate_to_slice %2%, orig_wipe_x=%3%")%__LINE__%plate_to_slice%orig_wipe_x;
+                            }
+                            if (wipe_y_option && (wipe_y_option->size() > (plate_to_slice-1))) {
+                                orig_wipe_y = wipe_y_option->get_at(plate_to_slice-1);
+                                BOOST_LOG_TRIVIAL(info) << boost::format("%1%, plate_to_slice %2%, orig_wipe_y=%3%")%__LINE__%plate_to_slice%orig_wipe_y;
+                            }
+                        }
+                    }
 
                     cur_plate = (Slic3r::GUI::PartPlate *)partplate_list.get_plate(plate_to_slice-1);
                     cur_plate->duplicate_all_instance(duplicate_count, need_skip, skip_maps);
@@ -4002,11 +4017,22 @@ int CLI::run(int argc, char **argv)
                         if (duplicate_count == 0)
                         {
                             //restore to the original
-                            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": restore to the original model and plates");
+                            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": restore to the original model and plates, orig_wipe_x %1%, orig_wipe_y %2%")%orig_wipe_x %orig_wipe_y;
                             finished_arrange = true;
                             model = original_model;
                             partplate_list.load_from_3mf_structure(plate_data_src);
                             partplate_list.reset_size(current_printable_width, current_printable_depth, current_printable_height, true, true);
+                            if ((orig_wipe_x > 0.f) && (orig_wipe_y > 0.f))
+                            {
+                                ConfigOptionFloat wt_x_opt(orig_wipe_x);
+                                ConfigOptionFloat wt_y_opt(orig_wipe_y);
+                                ConfigOptionFloats* wipe_x_option = m_print_config.option<ConfigOptionFloats>("wipe_tower_x", true);
+                                ConfigOptionFloats* wipe_y_option = m_print_config.option<ConfigOptionFloats>("wipe_tower_y", true);
+
+                                wipe_x_option->set_at(&wt_x_opt, plate_to_slice-1, 0);
+                                wipe_y_option->set_at(&wt_y_opt, plate_to_slice-1, 0);
+                                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": restore wipe_tower position to {%1%, %2%}")%orig_wipe_x %orig_wipe_y;
+                            }
                             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": exit arrange process");
                         }
                         continue;
@@ -4015,7 +4041,7 @@ int CLI::run(int argc, char **argv)
                     if (duplicate_single_object)
                     {
                         if (real_duplicate_count <= 1) {
-                            BOOST_LOG_TRIVIAL(warning) << "no object can be placed under single object mode, restore to the original model and plates also" << std::endl;
+                            BOOST_LOG_TRIVIAL(warning) << boost::format("no object can be placed under single object mode, restore to the original model and plates also, orig_wipe_x %1%, orig_wipe_y %2%")%orig_wipe_x %orig_wipe_y;
                             //record_exit_reson(outfile_dir, CLI_OBJECT_ARRANGE_FAILED, 0, cli_errors[CLI_OBJECT_ARRANGE_FAILED], sliced_info);
                             //flush_and_exit(CLI_OBJECT_ARRANGE_FAILED);
                             finished_arrange = true;
@@ -4023,6 +4049,17 @@ int CLI::run(int argc, char **argv)
                             partplate_list.load_from_3mf_structure(plate_data_src);
                             partplate_list.reset_size(current_printable_width, current_printable_depth, current_printable_height, true, true);
                             duplicate_count = 0;
+                            if ((orig_wipe_x > 0.f) && (orig_wipe_y > 0.f))
+                            {
+                                ConfigOptionFloat wt_x_opt(orig_wipe_x);
+                                ConfigOptionFloat wt_y_opt(orig_wipe_y);
+                                ConfigOptionFloats* wipe_x_option = m_print_config.option<ConfigOptionFloats>("wipe_tower_x", true);
+                                ConfigOptionFloats* wipe_y_option = m_print_config.option<ConfigOptionFloats>("wipe_tower_y", true);
+
+                                wipe_x_option->set_at(&wt_x_opt, plate_to_slice-1, 0);
+                                wipe_y_option->set_at(&wt_y_opt, plate_to_slice-1, 0);
+                                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": restore wipe_tower position to {%1%, %2%}")%orig_wipe_x %orig_wipe_y;
+                            }
                             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": exit arrange process");
                             continue;
                         }
