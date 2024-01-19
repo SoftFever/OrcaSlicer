@@ -248,6 +248,22 @@ static t_config_enum_values s_keys_map_SeamPosition {
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SeamPosition)
 
+// Orca
+static t_config_enum_values s_keys_map_InternalBridgeFilter {
+    { "disabled",        ibfDisabled },
+    { "limited",        ibfLimited },
+    { "nofilter",           ibfNofilter },
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(InternalBridgeFilter)
+
+// Orca
+static t_config_enum_values s_keys_map_GapFillTarget {
+    { "everywhere",        gftEverywhere },
+    { "topbottom",        gftTopBottom },
+    { "nowhere",           gftNowhere },
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(GapFillTarget)
+
 static const t_config_enum_values s_keys_map_SLADisplayOrientation = {
     { "landscape",      sladoLandscape},
     { "portrait",       sladoPortrait}
@@ -745,6 +761,26 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm");
     def->min = 0;
     def->set_default_value(new ConfigOptionFloat(0.));
+    
+    def = this->add("gap_fill_target", coEnum);
+    def->label = L("Apply gap fill");
+    def->category = L("Strength");
+    def->tooltip = L("Enables gap fill for the selected surfaces. The minimum gap length that will be filled can be controlled "
+                     "from the filter out tiny gaps option below.\n\n"
+                     "Options:\n"
+                     "1. Everywhere: Applies gap fill to top, bottom and internal solid surfaces\n"
+                     "2. Top and Bottom surfaces: Applies gap fill to top and bottom surfaces only\n"
+                     "3. Nowhere: Disables gap fill\n");
+    def->enum_keys_map = &ConfigOptionEnum<GapFillTarget>::get_enum_values();
+    def->enum_values.push_back("everywhere");
+    def->enum_values.push_back("topbottom");
+    def->enum_values.push_back("nowhere");
+    def->enum_labels.push_back(L("Everywhere"));
+    def->enum_labels.push_back(L("Top and bottom surfaces"));
+    def->enum_labels.push_back(L("Nowhere"));
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionEnum<GapFillTarget>(gftEverywhere));
+    
 
     def = this->add("enable_overhang_bridge_fan", coBools);
     def->label = L("Force cooling for overhang and bridge");
@@ -1220,6 +1256,32 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(true));
 
+    def = this->add("dont_filter_internal_bridges", coEnum);
+    def->label = L("Don't filter out small internal bridges (experimental)");
+    def->category = L("Quality");
+    def->tooltip = L("This option can help reducing pillowing on top surfaces in heavily slanted or curved models.\n\n"
+                      "By default, small internal bridges are filtered out and the internal solid infill is printed directly"
+                      " over the sparse infill. This works well in most cases, speeding up printing without too much compromise"
+                      " on top surface quality. \n\nHowever, in heavily slanted or curved models especially where too low sparse"
+                     " infill density is used, this may result in curling of the unsupported solid infill, causing pillowing.\n\n"
+                      "Enabling this option will print internal bridge layer over slightly unsupported internal"
+                      " solid infill. The options below control the amount of filtering, i.e. the amount of internal bridges "
+                     "created.\n\n"
+                     "Disabled - Disables this option. This is the default behaviour and works well in most cases.\n\n"
+                     "Limited filtering - Creates internal bridges on heavily slanted surfaces, while avoiding creating "
+                     "uncessesary interal bridges. This works well for most difficult models.\n\n"
+                     "No filtering - Creates internal bridges on every potential internal overhang. This option is useful "
+                     "for heavily slanted top surface models. However, in most cases it creates too many unecessary bridges.");
+    def->enum_keys_map = &ConfigOptionEnum<InternalBridgeFilter>::get_enum_values();
+    def->enum_values.push_back("disabled");
+    def->enum_values.push_back("limited");
+    def->enum_values.push_back("nofilter");
+    def->enum_labels.push_back(L("Disabled"));
+    def->enum_labels.push_back(L("Limited filtering"));
+    def->enum_labels.push_back(L("No filtering"));
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionEnum<InternalBridgeFilter>(ibfDisabled));
+
 
     def = this->add("max_bridge_length", coFloat);
     def->label = L("Max bridge length");
@@ -1264,6 +1326,16 @@ void PrintConfigDef::init_fff_params()
         "(top+bottom solid layers)");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(true));
+    
+    def = this->add("reduce_wall_solid_infill", coBool);
+    def->label = L("Further reduce solid infill on walls (experimental)");
+    def->category = L("Strength");
+    def->tooltip = L("Further reduces any solid infill applied to walls. As there will be very limited infill supporting"
+                     " solid surfaces, make sure that you are using adequate number of walls to support the part on sloping surfaces.\n\n"
+                     "For heavily sloped surfaces this option is not suitable as it will generate too thin of a top layer "
+                     "and should be disabled.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
 
     auto def_top_fill_pattern = def = this->add("top_surface_pattern", coEnum);
     def->label = L("Top surface pattern");

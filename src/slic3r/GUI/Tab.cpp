@@ -1985,6 +1985,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("bridge_density");
         optgroup->append_single_option_line("thick_bridges");
         optgroup->append_single_option_line("thick_internal_bridges");
+        optgroup->append_single_option_line("dont_filter_internal_bridges");
     
         optgroup = page->new_optgroup(L("Overhangs"), L"param_advanced");
         optgroup->append_single_option_line("detect_overhang_wall");
@@ -2016,6 +2017,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("infill_anchor");
         optgroup->append_single_option_line("infill_anchor_max");
         optgroup->append_single_option_line("internal_solid_infill_pattern");
+        optgroup->append_single_option_line("gap_fill_target");
         optgroup->append_single_option_line("filter_out_gap_fill");
 
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced");
@@ -2026,6 +2028,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("infill_combination");
         optgroup->append_single_option_line("detect_narrow_internal_solid_infill");
         optgroup->append_single_option_line("ensure_vertical_shell_thickness");
+        optgroup->append_single_option_line("reduce_wall_solid_infill");
 
     page = add_options_page(L("Speed"), "empty");
         optgroup = page->new_optgroup(L("Initial layer speed"), L"param_speed_first", 15);

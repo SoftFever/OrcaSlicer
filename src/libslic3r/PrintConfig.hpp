@@ -152,6 +152,17 @@ enum SeamPosition {
     spNearest, spAligned, spRear, spRandom
 };
 
+//Orca
+enum InternalBridgeFilter {
+    ibfDisabled, ibfLimited, ibfNofilter
+};
+
+//Orca
+enum GapFillTarget {
+     gftEverywhere, gftTopBottom, gftNowhere
+ };
+
+
 enum LiftType {
     NormalLift,
     SpiralLift,
@@ -744,6 +755,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     // Orca internal thick bridge
     ((ConfigOptionBool,                thick_bridges))
     ((ConfigOptionBool,                thick_internal_bridges))
+    ((ConfigOptionEnum<InternalBridgeFilter>,  dont_filter_internal_bridges))
     // Overhang angle threshold.
     ((ConfigOptionInt,                 support_threshold_angle))
     ((ConfigOptionFloat,               support_object_xy_distance))
@@ -784,6 +796,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionPercent,            tree_support_top_rate))
     ((ConfigOptionFloat,              tree_support_branch_diameter_organic))
     ((ConfigOptionFloat,              tree_support_branch_angle_organic))
+    ((ConfigOptionEnum<GapFillTarget>,gap_fill_target))
     ((ConfigOptionFloat,              min_length_factor))
 
     // Move all acceleration and jerk settings to object
@@ -819,6 +832,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,                bridge_speed))
     ((ConfigOptionFloatOrPercent,       internal_bridge_speed))
     ((ConfigOptionBool,                 ensure_vertical_shell_thickness))
+    ((ConfigOptionBool,                 reduce_wall_solid_infill))
     ((ConfigOptionEnum<InfillPattern>,  top_surface_pattern))
     ((ConfigOptionEnum<InfillPattern>,  bottom_surface_pattern))
     ((ConfigOptionEnum<InfillPattern>, internal_solid_infill_pattern))

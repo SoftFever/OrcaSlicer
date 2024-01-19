@@ -2466,9 +2466,11 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
         CalibPressureAdvanceLine pa_test(this);
 
-        auto fast_speed = CalibPressureAdvance::find_optimal_PA_speed(print.full_print_config(), pa_test.line_width(), 0.2);
-        auto slow_speed = std::max(20.0, fast_speed / 10.0);
-        
+        auto fast_speed = CalibPressureAdvance::find_optimal_PA_speed(print.full_print_config(), pa_test.line_width(), pa_test.height_layer());
+        auto slow_speed = std::max(10.0, fast_speed / 10.0);
+        if (fast_speed < slow_speed + 5)
+            fast_speed = slow_speed + 5;
+
         pa_test.set_speed(fast_speed, slow_speed);
         pa_test.draw_numbers() = print.calib_params().print_numbers;
         gcode += pa_test.generate_test(params.start, params.step, std::llround(std::ceil((params.end - params.start) / params.step)) + 1);
@@ -4396,7 +4398,7 @@ static std::unique_ptr<EdgeGrid::Grid> calculate_layer_edge_grid(const Layer& la
 }
 
 
-std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, double speed)
+std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, double speed, const ExtrusionEntitiesPtr& region_perimeters)
 {
     // get a copy; don't modify the orientation of the original loop object otherwise
     // next copies (if any) would not detect the correct orientation
@@ -4441,8 +4443,12 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
     // extrude along the path
     std::string gcode;
     
+    // Orca:
     // Port of "wipe inside before extruding an external perimeter" feature from super slicer
-    if (m_config.wipe_before_external_loop.value && !paths.empty() && paths.front().size() > 1 && paths.back().size() > 1 && paths.front().role() == erExternalPerimeter) {
+    // If region perimeters size not greater than or equal to 2, then skip the wipe inside move as we will extrude in mid air
+    // as no neighbouring perimeter exists. If an internal perimeter exists, we should find 2 perimeters touching the de-retraction point
+    // 1 - the currently printed external perimeter and 2 - the neighbouring internal perimeter.
+    if (m_config.wipe_before_external_loop.value && !paths.empty() && paths.front().size() > 1 && paths.back().size() > 1 && paths.front().role() == erExternalPerimeter && region_perimeters.size() > 1) {
         const bool is_full_loop_ccw = loop.polygon().is_counter_clockwise();
         bool is_hole_loop = (loop.loop_role() & ExtrusionLoopRole::elrHole) != 0; // loop.make_counter_clockwise();
         const double nozzle_diam = EXTRUDER_CONFIG(nozzle_diameter);
@@ -4483,11 +4489,28 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
         pt.rotate(angle, current_point);
         pt = (current_pos + vec_dist * (2 * dist / vec_norm)).cast<coord_t>();
         pt.rotate(angle, current_point);
-
-        // use extrude instead of travel_to_xy to trigger the unretract
-        ExtrusionPath fake_path_wipe(Polyline{pt, current_point}, paths.front());
-        fake_path_wipe.mm3_per_mm = 0;
-        gcode += extrude_path(fake_path_wipe, "move inwards before retraction/seam", speed);
+        
+        // Search region perimeters for lines that are touching the de-retraction point.
+        // If an internal perimeter exists, we should find 2 perimeters touching the de-retraction point
+        // 1: the currently printed external perimeter and 2: the neighbouring internal perimeter.
+        int discoveredTouchingLines = 0;
+        for (const ExtrusionEntity* ee : region_perimeters){
+            auto potential_touching_line = ee->as_polyline();
+            AABBTreeLines::LinesDistancer<Line> potential_touching_line_distancer{potential_touching_line.lines()};
+            auto touching_line = potential_touching_line_distancer.all_lines_in_radius(pt, scale_(nozzle_diam));
+            if(touching_line.size()){
+                discoveredTouchingLines ++;
+                if(discoveredTouchingLines > 1) break; // found 2 touching lines. End the search early.
+            }
+        }
+        // found 2 perimeters touching the de-retraction point. Its safe to deretract as the point will be
+        // inside the model
+        if(discoveredTouchingLines > 1){
+            // use extrude instead of travel_to_xy to trigger the unretract
+            ExtrusionPath fake_path_wipe(Polyline{pt, current_point}, paths.front());
+            fake_path_wipe.mm3_per_mm = 0;
+            gcode += extrude_path(fake_path_wipe, "move inwards before retraction/seam", speed);
+        }
     }
 
     
@@ -4580,14 +4603,14 @@ std::string GCode::extrude_multi_path(ExtrusionMultiPath multipath, std::string 
     return gcode;
 }
 
-std::string GCode::extrude_entity(const ExtrusionEntity &entity, std::string description, double speed)
+std::string GCode::extrude_entity(const ExtrusionEntity &entity, std::string description, double speed, const ExtrusionEntitiesPtr& region_perimeters)
 {
     if (const ExtrusionPath* path = dynamic_cast<const ExtrusionPath*>(&entity))
         return this->extrude_path(*path, description, speed);
     else if (const ExtrusionMultiPath* multipath = dynamic_cast<const ExtrusionMultiPath*>(&entity))
         return this->extrude_multi_path(*multipath, description, speed);
     else if (const ExtrusionLoop* loop = dynamic_cast<const ExtrusionLoop*>(&entity))
-        return this->extrude_loop(*loop, description, speed);
+        return this->extrude_loop(*loop, description, speed, region_perimeters);
     else
         throw Slic3r::InvalidArgument("Invalid argument supplied to extrude()");
     return "";
@@ -4614,7 +4637,7 @@ std::string GCode::extrude_perimeters(const Print &print, const std::vector<Obje
             m_config.apply(print.get_print_region(&region - &by_region.front()).config());
 
             for (const ExtrusionEntity* ee : region.perimeters)
-                gcode += this->extrude_entity(*ee, "perimeter", -1.);
+                gcode += this->extrude_entity(*ee, "perimeter", -1., region.perimeters);
         }
     return gcode;
 }
