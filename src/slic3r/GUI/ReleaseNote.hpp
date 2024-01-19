@@ -46,6 +46,7 @@ wxDECLARE_EVENT(EVT_SECONDARY_CHECK_CONFIRM, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SECONDARY_CHECK_CANCEL, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SECONDARY_CHECK_RETRY, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SECONDARY_CHECK_DONE, wxCommandEvent);
+wxDECLARE_EVENT(EVT_SECONDARY_CHECK_RESUME, wxCommandEvent);
 wxDECLARE_EVENT(EVT_UPDATE_NOZZLE, wxCommandEvent);
 
 class ReleaseNoteDialog : public DPIDialog
@@ -116,8 +117,9 @@ public:
         CONFIRM_AND_CANCEL  = 1,
         CONFIRM_AND_DONE    = 2,
         CONFIRM_AND_RETRY   = 3,
-        DONE_AND_RETRY      = 4,
-        MAX_STYLE_NUM       = 5
+        CONFIRM_AND_RESUME  = 4,
+        DONE_AND_RETRY      = 5,
+        MAX_STYLE_NUM       = 6
     };
     SecondaryCheckDialog(
         wxWindow* parent,
@@ -150,6 +152,7 @@ public:
     Button* m_button_retry { nullptr };
     Button* m_button_cancel { nullptr };
     Button* m_button_fn { nullptr };
+    Button* m_button_resume { nullptr };
     wxCheckBox* m_show_again_checkbox;
     ButtonStyle m_button_style;
     bool not_show_again = false;

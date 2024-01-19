@@ -30,6 +30,7 @@ namespace Slic3r { namespace GUI {
 wxDEFINE_EVENT(EVT_SECONDARY_CHECK_CONFIRM, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SECONDARY_CHECK_CANCEL, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SECONDARY_CHECK_DONE, wxCommandEvent);
+wxDEFINE_EVENT(EVT_SECONDARY_CHECK_RESUME, wxCommandEvent);
 wxDEFINE_EVENT(EVT_CHECKBOX_CHANGE, wxCommandEvent);
 wxDEFINE_EVENT(EVT_ENTER_IP_ADDRESS, wxCommandEvent);
 wxDEFINE_EVENT(EVT_CLOSE_IPADDRESS_DLG, wxCommandEvent);
@@ -649,6 +650,21 @@ SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent, wxWindowID id, cons
             e.Skip();
         });
 
+    m_button_resume = new Button(this, _L("resume"));
+    m_button_resume->SetBackgroundColor(btn_bg_white);
+    m_button_resume->SetBorderColor(wxColour(38, 46, 48));
+    m_button_resume->SetFont(Label::Body_12);
+    m_button_resume->SetSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_button_resume->SetMinSize(wxSize(-1, FromDIP(24)));
+    m_button_resume->SetMaxSize(wxSize(-1, FromDIP(24)));
+    m_button_resume->SetCornerRadius(FromDIP(12));
+
+    m_button_resume->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
+        post_event(wxCommandEvent(EVT_SECONDARY_CHECK_RESUME));
+        e.Skip();
+        });
+    m_button_resume->Hide();
+
     if (btn_style == CONFIRM_AND_CANCEL) {
         m_button_cancel->Show();
         m_button_fn->Hide();
@@ -673,6 +689,7 @@ SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent, wxWindowID id, cons
     }
 
     sizer_button->AddStretchSpacer();
+    sizer_button->Add(m_button_resume, 0, wxALL, FromDIP(5));
     sizer_button->Add(m_button_retry, 0, wxALL, FromDIP(5));
     sizer_button->Add(m_button_fn, 0, wxALL, FromDIP(5));
     sizer_button->Add(m_button_ok, 0, wxALL, FromDIP(5));
@@ -776,26 +793,39 @@ void SecondaryCheckDialog::update_title_style(wxString title, SecondaryCheckDial
         m_button_cancel->Show();
         m_button_fn->Hide();
         m_button_retry->Hide();
+        m_button_resume->Hide();
     }
     else if (style == CONFIRM_AND_DONE) {
         m_button_cancel->Hide();
         m_button_fn->Show();
         m_button_retry->Hide();
+        m_button_resume->Hide();
     }
     else if (style == CONFIRM_AND_RETRY) {
         m_button_retry->Show();
         m_button_cancel->Hide();
         m_button_fn->Hide();
+        m_button_resume->Hide();
     }
     else if (style == DONE_AND_RETRY) {
         m_button_retry->Show();
         m_button_fn->Show();
         m_button_cancel->Hide();
+        m_button_resume->Hide();
+    }
+    else if(style == CONFIRM_AND_RESUME)
+    {
+        m_button_retry->Hide();
+        m_button_fn->Hide();
+        m_button_cancel->Hide();
+        m_button_resume->Show();
     }
     else {
         m_button_retry->Hide();
         m_button_cancel->Hide();
         m_button_fn->Hide();
+        m_button_resume->Hide();
+
     }
 
 
