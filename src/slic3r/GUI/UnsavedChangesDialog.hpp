@@ -18,7 +18,6 @@ namespace Slic3r {
 namespace GUI{
 
 wxDECLARE_EVENT(EVT_DIFF_DIALOG_TRANSFER, SimpleEvent);
-wxDECLARE_EVENT(EVT_DIFF_DIALOG_SAVE, SimpleEvent);
 
 // ----------------------------------------------------------------------------
 //                  ModelNode: a node inside DiffModel
@@ -413,7 +412,6 @@ class DiffPresetDialog : public DPIDialog
     wxCheckBox*             m_show_all_presets  { nullptr };
     wxCheckBox*             m_use_for_transfer  { nullptr };
     ScalableButton*         m_transfer_btn      { nullptr };
-    ScalableButton*         m_save_btn          { nullptr };
     ScalableButton*         m_cancel_btn        { nullptr };
     wxBoxSizer*             m_buttons           { nullptr };
     wxBoxSizer*             m_edit_sizer        { nullptr };

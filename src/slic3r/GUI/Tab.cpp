@@ -5024,16 +5024,6 @@ void Tab::transfer_options(const std::string &name_from, const std::string &name
     load_current_preset();
 }
 
-void Tab::save_options(const std::string &name_from, const std::string &name_to, std::vector<std::string> options)
-{
-    if (options.empty())
-        return;
-
-    Preset* preset_from = m_presets->find_preset(name_from);
-    Preset* preset_to = m_presets->find_preset(name_to);
-    
-}
-
 // Save the current preset into file.
 // This removes the "dirty" flag of the preset, possibly creates a new preset under a new name,
 // and activates the new preset.

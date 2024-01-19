@@ -337,7 +337,6 @@ public:
 
 	void		compare_preset();
 	void		transfer_options(const std::string&name_from, const std::string&name_to, std::vector<std::string> options);
-    void		save_options(const std::string &name_from, const std::string &name_to, std::vector<std::string> options);
 	//BBS: add project embedded preset relate logic
 	void        save_preset(std::string name = std::string(), bool detach = false, bool save_to_project = false, bool from_input = false, std::string input_name = "");
 	//void		save_preset(std::string name = std::string(), bool detach = false);

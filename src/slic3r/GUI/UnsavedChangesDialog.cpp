@@ -44,7 +44,6 @@ namespace Slic3r {
 namespace GUI {
 
 wxDEFINE_EVENT(EVT_DIFF_DIALOG_TRANSFER, SimpleEvent);
-wxDEFINE_EVENT(EVT_DIFF_DIALOG_SAVE, SimpleEvent);
 
 
 // ----------------------------------------------------------------------------
@@ -1956,18 +1955,11 @@ void DiffPresetDialog::create_buttons()
         show_in_bottom_info(_L("Transfer the selected options from left preset to the right.\n"
                             "Note: New modified presets will be selected in setting stabs after close this dialog."), e); });
 
-    // Save
-    m_save_btn = new ScalableButton(this, wxID_ANY, "save", _L("Save"), wxDefaultSize, wxDefaultPosition, wxBORDER_DEFAULT, 24);
-    m_save_btn->Bind(wxEVT_BUTTON, [this](wxEvent&) { button_event(Action::Save); });
-    m_save_btn->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(m_tree->has_selection()); });
-    m_save_btn->Bind(wxEVT_ENTER_WINDOW, [this, show_in_bottom_info](wxMouseEvent& e) {
-        show_in_bottom_info(_L("Save the selected options from left preset to the right."), e); });
-
     // Cancel
     m_cancel_btn = new ScalableButton(this, wxID_CANCEL, "cross", _L("Cancel"), wxDefaultSize, wxDefaultPosition, wxBORDER_DEFAULT, 24);
     m_cancel_btn->Bind(wxEVT_BUTTON, [this](wxEvent&) { button_event(Action::Discard);});
 
-    for (ScalableButton* btn : { m_transfer_btn, m_save_btn, m_cancel_btn }) {
+    for (ScalableButton* btn : { m_transfer_btn, m_cancel_btn }) {
         btn->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent& e) { update_bottom_info(); Layout(); e.Skip(); });
         m_buttons->Add(btn, 1, wxLEFT, 5);
         btn->SetFont(font);
@@ -2283,7 +2275,7 @@ void DiffPresetDialog::on_sys_color_changed()
         preset_combos.presets_right->msw_rescale();
     }
 
-    for (ScalableButton* btn : { m_transfer_btn, m_save_btn, m_cancel_btn })
+    for (ScalableButton* btn : { m_transfer_btn, m_cancel_btn })
         btn->msw_rescale();
 
     // msw_rescale updates just icons, so use it
@@ -2351,14 +2343,9 @@ void DiffPresetDialog::update_compatibility(const std::string& preset_name, Pres
 
 void DiffPresetDialog::button_event(Action act)
 {
-    if (act == Action::Save) {
-        wxPostEvent(this, SimpleEvent(EVT_DIFF_DIALOG_SAVE));
-    }
-    else {
-        Hide();
-        if (act == Action::Transfer)
-            wxPostEvent(this, SimpleEvent(EVT_DIFF_DIALOG_TRANSFER));
-    }
+    Hide();
+    if (act == Action::Transfer)
+        wxPostEvent(this, SimpleEvent(EVT_DIFF_DIALOG_TRANSFER));
 }
 
 std::string DiffPresetDialog::get_left_preset_name(Preset::Type type)
@@ -2369,7 +2356,6 @@ std::string DiffPresetDialog::get_left_preset_name(Preset::Type type)
 
 std::string DiffPresetDialog::get_right_preset_name(Preset::Type type)
 {
-
     PresetComboBox* cb = m_preset_combos[int(type - Preset::TYPE_PRINT)].presets_right;
     return Preset::remove_suffix_modified(get_selection(cb));
 }

@@ -629,13 +629,7 @@ void MainFrame::bind_diff_dialog()
     auto transfer = [this, get_tab](Preset::Type type) {
         get_tab(type)->transfer_options(diff_dialog.get_left_preset_name(type),
                                         diff_dialog.get_right_preset_name(type),
-                                        std::move(diff_dialog.get_selected_options(type)));
-    };
-
-    auto save = [this, get_tab](Preset::Type type) {
-        get_tab(type)->save_options(diff_dialog.get_left_preset_name(type),
-                                    diff_dialog.get_right_preset_name(type),
-                                    std::move(diff_dialog.get_selected_options(type)));
+                                        diff_dialog.get_selected_options(type));
     };
 
     auto process_options = [this](std::function<void(Preset::Type)> process) {
@@ -651,8 +645,6 @@ void MainFrame::bind_diff_dialog()
     };
 
     diff_dialog.Bind(EVT_DIFF_DIALOG_TRANSFER,  [this, process_options, transfer](SimpleEvent&) { process_options(transfer); });
-
-    diff_dialog.Bind(EVT_DIFF_DIALOG_SAVE,      [this, process_options, save](SimpleEvent&)     { process_options(save); });
 }
 
 
