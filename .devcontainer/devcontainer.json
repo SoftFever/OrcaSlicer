@@ -39,5 +39,5 @@
 	"otherPortsAttributes": {
 		"onAutoForward": "ignore"
 	},
-	"postCreateCommand": "sudo /bin/bash .devcontainer/postCreate.sh"
+	"postCreateCommand": "sudo /bin/bash -c \"chmod +x .devcontainer/postCreate.sh && .devcontainer/postCreate.sh\""
 }
