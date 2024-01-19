@@ -88,6 +88,12 @@ void ExtrusionLine::simplify(const int64_t smallest_line_segment_squared, const 
         const bool is_last = point_idx + 1 == junctions.size();
         const ExtrusionJunction& current = is_last ? new_junctions[0] : junctions[point_idx];
 
+        // Don't simplify closed polygons below 3 junctions.
+        if (this->is_closed && new_junctions.size() + (junctions.size() - point_idx) <= 3) {
+            new_junctions.push_back(current);
+            continue;
+        }
+
         // Spill over in case of overflow, unless the [next] vertex will then be equal to [previous].
         const bool spill_over = this->is_closed && point_idx + 2 >= junctions.size() &&
             point_idx + 2 - junctions.size() < new_junctions.size();
