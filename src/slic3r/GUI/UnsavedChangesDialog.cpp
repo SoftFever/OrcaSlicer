@@ -1912,6 +1912,11 @@ void DiffPresetDialog::create_tree()
     m_tree->GetColumn(DiffModel::colToggle)->SetHidden(true);
 }
 
+std::array<Preset::Type, 3> DiffPresetDialog::types_list() const
+{
+    return PresetBundle::types_list(m_pr_technology);
+}
+
 void DiffPresetDialog::create_buttons()
 {
     wxFont font = this->GetFont().Scaled(1.4f);
@@ -1939,8 +1944,7 @@ void DiffPresetDialog::create_buttons()
         bool enable = m_tree->has_selection();
         if (enable) {
             if (m_view_type == Preset::TYPE_INVALID) {
-                for (const Preset::Type& type : (m_pr_technology == ptFFF ? std::initializer_list<Preset::Type>{Preset::TYPE_PRINTER, Preset::TYPE_PRINT, Preset::TYPE_FILAMENT} :
-                                                                            std::initializer_list<Preset::Type>{ Preset::TYPE_PRINTER, Preset::TYPE_SLA_PRINT, Preset::TYPE_SLA_MATERIAL }))
+                for (const Preset::Type& type : types_list())
                     if (!enable_transfer(type)) {
                         enable = false;
                         break;
@@ -1951,9 +1955,9 @@ void DiffPresetDialog::create_buttons()
         }
         evt.Enable(enable);
     });
-    m_transfer_btn->Bind(wxEVT_ENTER_WINDOW, [this, show_in_bottom_info](wxMouseEvent& e) {
+    m_transfer_btn->Bind(wxEVT_ENTER_WINDOW, [show_in_bottom_info](wxMouseEvent& e) {
         show_in_bottom_info(_L("Transfer the selected options from left preset to the right.\n"
-                            "Note: New modified presets will be selected in setting stabs after close this dialog."), e); });
+                            "Note: New modified presets will be selected in settings tabs after close this dialog."), e); });
 
     // Cancel
     m_cancel_btn = new ScalableButton(this, wxID_CANCEL, "cross", _L("Cancel"), wxDefaultSize, wxDefaultPosition, wxBORDER_DEFAULT, 24);

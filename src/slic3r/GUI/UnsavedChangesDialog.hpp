@@ -1,3 +1,7 @@
+///|/ Copyright (c) Prusa Research 2020 - 2023 Oleksandra Iushchenko @YuSanka, Lukáš Hejl @hejllukas, Vojtěch Bubník @bubnikv, David Kocík @kocikdav
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #ifndef slic3r_UnsavedChangesDialog_hpp_
 #define slic3r_UnsavedChangesDialog_hpp_
 
@@ -460,6 +464,8 @@ public:
     std::string get_right_preset_name(Preset::Type type);
 
     std::vector<std::string> get_selected_options(Preset::Type type) const { return std::move(m_tree->options(type, true)); }
+
+    std::array<Preset::Type, 3>         types_list() const;
 
 protected:
     void on_dpi_changed(const wxRect& suggested_rect) override;
