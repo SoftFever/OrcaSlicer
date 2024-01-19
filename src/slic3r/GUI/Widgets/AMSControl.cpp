@@ -756,6 +756,8 @@ void AMSLib::render(wxDC &dc)
 void AMSLib::render_extra_text(wxDC& dc)
 {
     auto tmp_lib_colour = m_info.material_colour;
+
+    change_the_opacity(tmp_lib_colour);
     auto temp_text_colour = AMS_CONTROL_GRAY800;
 
     if (tmp_lib_colour.GetLuminance() < 0.6) {
@@ -843,6 +845,8 @@ void AMSLib::render_generic_text(wxDC &dc)
     }
 
     auto tmp_lib_colour = m_info.material_colour;
+    change_the_opacity(tmp_lib_colour);
+
     auto temp_text_colour = AMS_CONTROL_GRAY800;
 
     if (tmp_lib_colour.GetLuminance() < 0.6) {
@@ -977,6 +981,8 @@ void AMSLib::render_extra_lib(wxDC& dc)
 
 
     auto   tmp_lib_colour    = m_info.material_colour;
+    change_the_opacity(tmp_lib_colour);
+
     auto   temp_bitmap_third = m_bitmap_editable_light;
     auto   temp_bitmap_brand = m_bitmap_readonly_light;
 
@@ -1078,6 +1084,8 @@ void AMSLib::render_generic_lib(wxDC &dc)
 {
     wxSize size = GetSize();
     auto   tmp_lib_colour = m_info.material_colour;
+    change_the_opacity(tmp_lib_colour);
+
     auto   temp_bitmap_third = m_bitmap_editable_light;
     auto   temp_bitmap_brand = m_bitmap_readonly_light;
 
@@ -1725,7 +1733,9 @@ void AMSItem::doRender(wxDC &dc)
         dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
 
         if (wxWindow::IsEnabled()) {
-            dc.SetBrush(wxBrush(iter->material_colour));
+            wxColour color = iter->material_colour;
+            change_the_opacity(color);
+            dc.SetBrush(wxBrush(color));
         } else {
             dc.SetBrush(AMS_CONTROL_DISABLE_COLOUR);
         }

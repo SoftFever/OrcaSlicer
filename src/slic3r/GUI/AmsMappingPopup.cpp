@@ -140,13 +140,10 @@ void MaterialItem::render(wxDC &dc)
 
     auto mcolor = m_material_coloul;
     auto acolor = m_ams_coloul;
+    change_the_opacity(acolor);
     if (!IsEnabled()) {
         mcolor = wxColour(0x90, 0x90, 0x90);
         acolor = wxColour(0x90, 0x90, 0x90);
-    }
-    else {
-        mcolor = m_material_coloul;
-        acolor = m_ams_coloul;
     }
 
     // materials name
@@ -185,6 +182,7 @@ void MaterialItem::doRender(wxDC &dc)
 {
     auto mcolor = m_material_coloul;
     auto acolor = m_ams_coloul;
+    change_the_opacity(acolor);
 
     if (mcolor.Alpha() == 0 || acolor.Alpha() == 0) {
         dc.DrawBitmap(m_transparent_mitem.bmp(), FromDIP(1), FromDIP(1));
@@ -193,10 +191,6 @@ void MaterialItem::doRender(wxDC &dc)
     if (!IsEnabled()) {
         mcolor = wxColour(0x90, 0x90, 0x90);
         acolor = wxColour(0x90, 0x90, 0x90);
-    }
-    else {
-        mcolor = m_material_coloul;
-        acolor = m_ams_coloul;
     }
 
     //top
@@ -518,7 +512,7 @@ void AmsMapingPopup::add_ams_mapping(std::vector<TrayData> tray_data, wxWindow* 
         m_mapping_item_list.push_back(m_mapping_item);
 
         if (tray_data[i].type == NORMAL) {
-            if (is_match_material(tray_data[i].filament_type)) { 
+            if (is_match_material(tray_data[i].filament_type)) {
                 m_mapping_item->set_data(tray_data[i].colour, tray_data[i].name, tray_data[i]);
             } else {
                 m_mapping_item->set_data(wxColour(0xEE,0xEE,0xEE), tray_data[i].name, tray_data[i], true);
@@ -673,10 +667,13 @@ void MappingItem::set_data(wxColour colour, wxString name, TrayData data, bool u
 
 void MappingItem::doRender(wxDC &dc)
 {
-    dc.SetPen(m_coloul);
-    dc.SetBrush(wxBrush(m_coloul));
+    wxColour color = m_coloul;
+    change_the_opacity(color);
 
-    if (m_coloul.Alpha() == 0) {
+    dc.SetPen(color);
+    dc.SetBrush(wxBrush(color));
+
+    if (color.Alpha() == 0) {
        dc.DrawBitmap( m_transparent_mapping_item.bmp(), 0, (GetSize().y - MAPPING_ITEM_REAL_SIZE.y) / 2);
     }
     else {

@@ -5595,4 +5595,10 @@ std::string DeviceManager::load_gcode(std::string type_str, std::string gcode_fi
     return "";
 }
 
+void change_the_opacity(wxColour& colour)
+{
+    if (colour.Alpha() == 255) {
+        colour = wxColour(colour.Red(), colour.Green(), colour.Blue(), 254);
+    }
+}
 } // namespace Slic3r

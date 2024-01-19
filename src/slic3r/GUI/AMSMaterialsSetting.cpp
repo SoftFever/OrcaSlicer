@@ -1442,7 +1442,7 @@ void ColorPickerPopup::on_custom_clr_picker(wxMouseEvent& event)
             m_clrData->GetColour().Red(),
             m_clrData->GetColour().Green(),
             m_clrData->GetColour().Blue(),
-            254
+            255
         );
 
         if (picker_color.Alpha() == 0) {
