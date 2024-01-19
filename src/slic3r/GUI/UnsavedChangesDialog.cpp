@@ -1926,11 +1926,11 @@ void DiffPresetDialog::create_buttons()
                             std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
     m_buttons   = new wxBoxSizer(wxHORIZONTAL);
 
-    auto show_in_bottom_info = [this](const wxString& ext_line, wxMouseEvent& e) {
+    auto show_in_bottom_info = [this](const wxString& ext_line, wxEvent* e = nullptr) {
         m_bottom_info_line->SetLabel(ext_line);
         m_bottom_info_line->Show(true);
         Layout();
-        e.Skip();
+        if (e) e->Skip();
     };
 
     // Transfer 
@@ -1950,7 +1950,7 @@ void DiffPresetDialog::create_buttons()
             return main_edited_preset.name == get_right_preset_name(type);
         return true;
     };
-    m_transfer_btn->Bind(wxEVT_UPDATE_UI, [this, enable_transfer](wxUpdateUIEvent& evt) {
+    m_transfer_btn->Bind(wxEVT_UPDATE_UI, [this, enable_transfer, show_in_bottom_info](wxUpdateUIEvent& evt) {
         bool enable = m_tree->has_selection();
         if (enable) {
             if (m_view_type == Preset::TYPE_INVALID) {
@@ -1962,12 +1962,16 @@ void DiffPresetDialog::create_buttons()
             }
             else
                 enable = enable_transfer(m_view_type);
+
+            if (!enable && m_transfer_btn->IsShown()) {
+                show_in_bottom_info(_L("You can only transfer to current active profile because it has been modified."));
+            }
         }
         evt.Enable(enable);
     });
     m_transfer_btn->Bind(wxEVT_ENTER_WINDOW, [show_in_bottom_info](wxMouseEvent& e) {
         show_in_bottom_info(_L("Transfer the selected options from left preset to the right.\n"
-                            "Note: New modified presets will be selected in settings tabs after close this dialog."), e); });
+                            "Note: New modified presets will be selected in settings tabs after close this dialog."), &e); });
 
     // Cancel
     m_cancel_btn = new Button(this, L("Cancel"));
