@@ -98,7 +98,7 @@ var LangText = {
 		"t104":"Profile name",
 		"t105":"Profile Author",
 		"t106":"Profile description",
-
+    orca1: "Edit Project Info",
   },
   es_ES: {
     t1: "Bienvenido a Orca Slicer",
@@ -634,6 +634,7 @@ var LangText = {
     wk14: "与STL相比，STEP带来了更多有效的信息。由于STEP的高精度，切片时可以生成更多的圆弧路径。STEP还包括模型每个零件的装配关系，可分割模型后恢复装配视图。",
     wk15: "3D文本",
     wk16: "使用3D文本工具，用户可以轻松地在项目中创建各种3D文本形状，使模型更加个性化。Orca Slicer提供了数十种字体，并支持粗体和斜体样式，使文本具有更大的灵活性。",
+    orca1: "编辑项目信息",
   },
   zh_TW: {
     t1: "歡迎使用 Orca Slicer",
