@@ -1072,7 +1072,7 @@ void AuxiliaryPanel::update_all_cover()
      m_text_license->Wrap(-1);
      m_sizer_license->Add(m_text_license, 0, wxALIGN_CENTER, 0);
 
-     m_combo_license = new wxComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(450), -1), 0, NULL, wxCB_READONLY);
+     m_combo_license = new ComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(450), -1), 0, NULL, wxCB_READONLY);
      m_sizer_license->Add(m_combo_license, 0, wxALIGN_CENTER, 0);
 
      m_sizer_body->Add( 0, 0, 0, wxTOP, FromDIP(50) );
