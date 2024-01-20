@@ -449,17 +449,6 @@ void PrintObject::prepare_infill()
     } // for each region
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
 
-    // this will detect bridges and reverse bridges
-    // and rearrange top/bottom/internal surfaces
-    // It produces enlarged overlapping bridging areas.
-    //
-    // 1) stBottomBridge / stBottom infill is grown by 3mm and clipped by the total infill area. Bridges are detected. The areas may overlap.
-    // 2) stTop is grown by 3mm and clipped by the grown bottom areas. The areas may overlap.
-    // 3) Clip the internal surfaces by the grown top/bottom surfaces.
-    // 4) Merge surfaces with the same style. This will mostly get rid of the overlaps.
-    //FIXME This does not likely merge surfaces, which are supported by a material with different colors, but same properties.
-    this->process_external_surfaces();
-    m_print->throw_if_canceled();
 
     // Debugging output.
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
@@ -478,7 +467,21 @@ void PrintObject::prepare_infill()
     // and to add a configurable number of solid layers above the BOTTOM / BOTTOMBRIDGE surfaces
     // to close these surfaces reliably.
     //FIXME Vojtech: Is this a good place to add supporting infills below sloping perimeters?
+    // Orca: Brought this function call before the process_external_surfaces, to allow bridges over holes to expand more than
+    // one perimeter. Example of this is the bridge over the benchy lettering.
     this->discover_horizontal_shells();
+    m_print->throw_if_canceled();
+
+    // this will detect bridges and reverse bridges
+    // and rearrange top/bottom/internal surfaces
+    // It produces enlarged overlapping bridging areas.
+    //
+    // 1) stBottomBridge / stBottom infill is grown by 3mm and clipped by the total infill area. Bridges are detected. The areas may overlap.
+    // 2) stTop is grown by 3mm and clipped by the grown bottom areas. The areas may overlap.
+    // 3) Clip the internal surfaces by the grown top/bottom surfaces.
+    // 4) Merge surfaces with the same style. This will mostly get rid of the overlaps.
+    //FIXME This does not likely merge surfaces, which are supported by a material with different colors, but same properties.
+    this->process_external_surfaces();
     m_print->throw_if_canceled();
 
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
@@ -3224,7 +3227,10 @@ void PrintObject::discover_horizontal_shells()
                         // No internal solid needed on this layer. In order to decide whether to continue
                         // searching on the next neighbor (thus enforcing the configured number of solid
                         // layers, use different strategies according to configured infill density:
-                        if (region_config.sparse_infill_density.value == 0) {
+                        
+                        // Orca: Also use the same strategy if the user has selected to further reduce
+                        // the amount of solid infill on walls.
+                        if (region_config.sparse_infill_density.value == 0 || region_config.reduce_wall_solid_infill) {
                             // If user expects the object to be void (for example a hollow sloping vase),
                             // don't continue the search. In this case, we only generate the external solid
                             // shell if the object would otherwise show a hole (gap between perimeters of
@@ -3237,12 +3243,19 @@ void PrintObject::discover_horizontal_shells()
                         }
                     }
 
-                    if (region_config.sparse_infill_density.value == 0) {
+                    if (region_config.sparse_infill_density.value == 0 || region_config.reduce_wall_solid_infill) {
                         // if we're printing a hollow object we discard any solid shell thinner
                         // than a perimeter width, since it's probably just crossing a sloping wall
                         // and it's not wanted in a hollow print even if it would make sense when
                         // obeying the solid shell count option strictly (DWIM!)
-                        float margin = float(neighbor_layerm->flow(frExternalPerimeter).scaled_width());
+                        
+                        // Orca: Also use the same strategy if the user has selected to reduce
+                        // the amount of solid infill on walls. However reduce the margin to 20% overhang
+                        // as we want to generate infill on sloped vertical surfaces but still keep a small amount of
+                        // filtering. This is an arbitrary value to make this option safe
+                        // by ensuring that top surfaces, especially slanted ones dont go **completely** unsupported
+                        // especially when using single perimeter top layers.
+                        float margin = region_config.reduce_wall_solid_infill? float(neighbor_layerm->flow(frExternalPerimeter).scaled_width()) * 0.2f : float(neighbor_layerm->flow(frExternalPerimeter).scaled_width());
                         Polygons too_narrow = diff(
                             new_internal_solid,
                             opening(new_internal_solid, margin, margin + ClipperSafetyOffset, jtMiter, 5));

@@ -1181,7 +1181,7 @@ void CreateFilamentPresetDialog::select_curr_radiobox(std::vector<std::pair<Radi
                     m_filament_preset_combobox->SetLabelColor(DEFAULT_PROMPT_TEXT_COLOUR);
                 }
             } else if (curr_selected_type == m_create_type.base_filament_preset) {
-                m_filament_preset_text->SetLabel(_L("We would rename the presets as \"Vendor Type Serial @printer you selected\". \nTo add preset for more prinetrs, Please go to printer selection"));
+                m_filament_preset_text->SetLabel(_L("We would rename the presets as \"Vendor Type Serial @printer you selected\". \nTo add preset for more printers, Please go to printer selection"));
                 m_filament_preset_combobox->Hide();
                 if (_L("Select Type") != m_filament_type_combobox->GetLabel()) {
                     
