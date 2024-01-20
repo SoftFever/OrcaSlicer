@@ -36,13 +36,24 @@ wxDEFINE_EVENT(EVT_AUXILIARY_UPDATE_RENAME, wxCommandEvent);
 
 
 const std::vector<std::string> license_list = {
-    "BSD License",
-    "Apache License",
-    "GPL License",
-    "LGPL License",
-    "MIT License",
-    "CC License"
+    "",
+    "CC0",
+    "BY",
+    "BY-SA",
+    "BY-ND",
+    "BY-NC",
+    "BY-NC-SA",
+    "BY-NC-ND",
 };
+
+static std::shared_ptr<ModelInfo> ensure_model_info()
+{
+    auto& model = wxGetApp().plater()->model();
+    if (model.model_info == nullptr) {
+        model.model_info = std::make_shared<ModelInfo>();
+    }
+    return model.model_info;
+}
 
 AuFile::AuFile(wxWindow *parent, fs::path file_path, wxString file_name, AuxiliaryFolderType type, wxWindowID id, const wxPoint &pos, const wxSize &size, long style)
 {
@@ -454,10 +465,8 @@ void AuFile::on_mouse_left_up(wxMouseEvent &evt)
 
 void AuFile::on_set_cover()
 {
-    if (wxGetApp().plater()->model().model_info == nullptr) { wxGetApp().plater()->model().model_info = std::make_shared<ModelInfo>(); }
-
     fs::path path(into_path(m_file_name));
-    wxGetApp().plater()->model().model_info->cover_file = path.string();
+    ensure_model_info()->cover_file = path.string();
     //wxGetApp().plater()->model().model_info->cover_file = m_file_name.ToStdString();
 
     auto full_path          = m_file_path.branch_path();
@@ -520,8 +529,11 @@ void AuFile::on_set_delete()
         if (fs::exists(fs::path(middle_img_path))) { fs::remove(fs::path(middle_img_path)); }
     }
 
-    if (wxGetApp().plater()->model().model_info == nullptr) { wxGetApp().plater()->model().model_info = std::make_shared<ModelInfo>(); }
-    if (wxGetApp().plater()->model().model_info->cover_file == m_file_name) { wxGetApp().plater()->model().model_info->cover_file = ""; }
+    if (wxGetApp().plater()->model().model_info != nullptr) {
+        if (wxGetApp().plater()->model().model_info->cover_file == m_file_name) {
+            wxGetApp().plater()->model().model_info->cover_file = "";
+        }
+    }
 
     if (is_fine) {
         auto evt = wxCommandEvent(EVT_AUXILIARY_UPDATE_DELETE);
@@ -1055,22 +1067,21 @@ void AuxiliaryPanel::update_all_cover()
      m_imput_model_name->GetTextCtrl()->SetSize(wxSize(FromDIP(450), -1));
      m_sizer_model_name->Add(m_imput_model_name, 0, wxALIGN_CENTER, 0);
 
-     /*
      wxBoxSizer *m_sizer_license = new wxBoxSizer(wxHORIZONTAL);
-     auto m_text_license = new wxStaticText(this, wxID_ANY, _L("License"), wxDefaultPosition, wxSize(120, -1), 0);
+     auto m_text_license = new wxStaticText(this, wxID_ANY, _L("License"), wxDefaultPosition, wxSize(180, -1), 0);
      m_text_license->Wrap(-1);
      m_sizer_license->Add(m_text_license, 0, wxALIGN_CENTER, 0);
 
-     m_combo_license = new wxComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(450, -1), 0, NULL, wxCB_READONLY);
+     m_combo_license = new wxComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(450), -1), 0, NULL, wxCB_READONLY);
      m_sizer_license->Add(m_combo_license, 0, wxALIGN_CENTER, 0);
-     */
+
      m_sizer_body->Add( 0, 0, 0, wxTOP, FromDIP(50) );
      m_sizer_body->Add(m_sizer_designer, 0, wxLEFT, FromDIP(50));
      m_sizer_body->Add( 0, 0, 0, wxTOP, FromDIP(20));
      m_sizer_body->Add(m_sizer_model_name, 0, wxLEFT, FromDIP(50));
-     //m_sizer_body->Add(0, 0, 0, wxTOP, FromDIP(20));
-     //m_sizer_body->Add(m_sizer_license, 0, wxLEFT, FromDIP(50));
-     //init_license_list();
+     m_sizer_body->Add(0, 0, 0, wxTOP, FromDIP(20));
+     m_sizer_body->Add(m_sizer_license, 0, wxLEFT, FromDIP(50));
+     init_license_list();
 
      SetSizer(m_sizer_body);
      Layout();
@@ -1078,52 +1089,35 @@ void AuxiliaryPanel::update_all_cover()
 
      m_input_designer->Bind(wxEVT_TEXT, &DesignerPanel::on_input_enter_designer, this);
      m_imput_model_name->Bind(wxEVT_TEXT, &DesignerPanel::on_input_enter_model, this);
-     //m_combo_license->Connect(wxEVT_COMMAND_COMBOBOX_SELECTED, wxCommandEventHandler(DesignerPanel::on_select_license), NULL, this);
+     m_combo_license->Bind(wxEVT_COMMAND_COMBOBOX_SELECTED, &DesignerPanel::on_select_license, this);
 }
 
  DesignerPanel::~DesignerPanel()
  {
-     //m_combo_license->Disconnect(wxEVT_COMMAND_COMBOBOX_SELECTED, wxCommandEventHandler(DesignerPanel::on_select_license), NULL, this);
  }
 
  void DesignerPanel::init_license_list()
  {
-     /*
      wxArrayString text_licese;
      for (int i = 0; i < license_list.size(); i++) {
          text_licese.Add(license_list[i]);
      }
      m_combo_license->Set(text_licese);
-     */
  }
 
  void DesignerPanel::on_select_license(wxCommandEvent&evt)
  {
      int selected = evt.GetInt();
      if (selected >= 0 && selected < license_list.size()) {
-         if (wxGetApp().plater()->model().model_info == nullptr) {
-             wxGetApp().plater()->model().model_info = std::make_shared<ModelInfo>();
-         }
-         if (wxGetApp().plater()->model().model_info != nullptr) {
-             wxGetApp().plater()->model().model_info->license = license_list[selected];
-         }
+         ensure_model_info()->license = license_list[selected];
      }
  }
 
-bool DesignerPanel::Show(bool show) 
-{
-    if ( wxGetApp().plater()->model().design_info != nullptr) {
-        wxString text = wxString::FromUTF8(wxGetApp().plater()->model().design_info->Designer);
-        m_input_designer->GetTextCtrl()->SetValue(text);
-    }
-
-     if (wxGetApp().plater()->model().model_info != nullptr) { 
-         wxString text = wxString::FromUTF8(wxGetApp().plater()->model().model_info->model_name);
-         m_imput_model_name->GetTextCtrl()->SetValue(text);
-     }
-    
-    return wxPanel::Show(show);
-}
+bool DesignerPanel::Show(bool show)
+ {
+     if (show) update_info();
+     return wxPanel::Show(show);
+ }
 
 void DesignerPanel::on_input_enter_designer(wxCommandEvent &evt) 
 { 
@@ -1134,10 +1128,7 @@ void DesignerPanel::on_input_enter_designer(wxCommandEvent &evt)
 void DesignerPanel::on_input_enter_model(wxCommandEvent &evt) 
 {
     auto text   = evt.GetString();
-    if (wxGetApp().plater()->model().model_info == nullptr) {
-         wxGetApp().plater()->model().model_info = std::make_shared<ModelInfo>();
-    }
-    wxGetApp().plater()->model().model_info->model_name = std::string(text.ToUTF8().data());
+    ensure_model_info()->model_name = std::string(text.ToUTF8().data());
 }
 
 void DesignerPanel::update_info() 
@@ -1150,10 +1141,13 @@ void DesignerPanel::update_info()
     }
 
     if (wxGetApp().plater()->model().model_info != nullptr) {
-        wxString text = wxString::FromUTF8(wxGetApp().plater()->model().model_info->model_name);
-        m_imput_model_name->GetTextCtrl()->SetValue(text);
+        m_imput_model_name->GetTextCtrl()->SetValue(wxString::FromUTF8(wxGetApp().plater()->model().model_info->model_name));
+        if (!m_combo_license->SetStringSelection(wxString::FromUTF8(wxGetApp().plater()->model().model_info->license))) {
+            m_combo_license->SetSelection(0);
+        }
     } else {
-         m_imput_model_name->GetTextCtrl()->SetValue(wxEmptyString);
+        m_imput_model_name->GetTextCtrl()->SetValue(wxEmptyString);
+        m_combo_license->SetSelection(0);
     }
 }
 
@@ -1161,6 +1155,7 @@ void DesignerPanel::msw_rescale()
 {
     m_input_designer->GetTextCtrl()->SetSize(wxSize(FromDIP(450), -1));
     m_imput_model_name->GetTextCtrl()->SetSize(wxSize(FromDIP(450), -1));
+    m_combo_license->SetSize(wxSize(FromDIP(450), -1));
 }
 
 }} // namespace Slic3r::GUI

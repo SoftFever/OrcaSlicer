@@ -181,7 +181,7 @@ public:
 
     ::TextInput*        m_input_designer {nullptr};
     ::TextInput*        m_imput_model_name {nullptr};
-    //wxComboBox*         m_combo_license {nullptr};
+    wxComboBox*         m_combo_license {nullptr};
     bool Show(bool show) override;
     void                init_license_list();
     void                on_input_enter_designer(wxCommandEvent &evt);
