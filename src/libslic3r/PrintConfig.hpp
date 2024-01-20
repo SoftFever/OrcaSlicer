@@ -920,6 +920,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     
     ((ConfigOptionEnum<WallSequence>,  wall_sequence))
     ((ConfigOptionBool,                is_infill_first))
+    ((ConfigOptionBool,                small_area_infill_flow_compensation))
 )
 
 PRINT_CONFIG_CLASS_DEFINE(
@@ -1068,7 +1069,6 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                support_multi_bed_types))
 
     // Small Area Infill Flow Compensation
-    ((ConfigOptionBool,                 small_area_infill_flow_compensation))
     ((ConfigOptionStrings,              small_area_infill_flow_compensation_model))
 )
 
