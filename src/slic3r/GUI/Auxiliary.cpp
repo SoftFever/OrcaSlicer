@@ -33,6 +33,7 @@ wxDEFINE_EVENT(EVT_AUXILIARY_IMPORT, wxCommandEvent);
 wxDEFINE_EVENT(EVT_AUXILIARY_UPDATE_COVER, wxCommandEvent);
 wxDEFINE_EVENT(EVT_AUXILIARY_UPDATE_DELETE, wxCommandEvent);
 wxDEFINE_EVENT(EVT_AUXILIARY_UPDATE_RENAME, wxCommandEvent);
+wxDEFINE_EVENT(EVT_AUXILIARY_DONE, wxCommandEvent);
 
 
 const std::vector<std::string> license_list = {
@@ -833,9 +834,22 @@ void AuxiliaryPanel::init_bitmap()
 
 void AuxiliaryPanel::init_tabpanel()
 {
-    auto        m_side_tools     = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(220), FromDIP(18)));
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Disabled),
+                            std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
+                            std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
+                            std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
+    auto back_btn = new Button(this, _L("Back"), "assemble_return", wxBORDER_NONE | wxBU_LEFT | wxBU_EXACTFIT);
+    back_btn->SetSize(wxSize(FromDIP(220), FromDIP(18)));
+    back_btn->SetBackgroundColor(btn_bg_green);
+    back_btn->SetCornerRadius(0);
+    back_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](wxEvent& e) {
+        auto event = wxCommandEvent(EVT_AUXILIARY_DONE);
+        event.SetEventObject(m_parent);
+        wxPostEvent(m_parent, event);
+    });
+
     wxBoxSizer *sizer_side_tools = new wxBoxSizer(wxVERTICAL);
-    sizer_side_tools->Add(m_side_tools, 1, wxEXPAND, 0);
+    sizer_side_tools->Add(back_btn, 1, wxEXPAND, 0);
     m_tabpanel = new Tabbook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, sizer_side_tools, wxNB_LEFT | wxTAB_TRAVERSAL | wxNB_NOPAGETHEME);
     m_tabpanel->SetBackgroundColour(wxColour("#FEFFFF"));
     m_tabpanel->Bind(wxEVT_BOOKCTRL_PAGE_CHANGED, [this](wxBookCtrlEvent &e) { ; });

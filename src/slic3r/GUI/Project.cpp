@@ -65,6 +65,7 @@ ProjectPanel::ProjectPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     m_auxiliary = new AuxiliaryPanel(this);
     m_auxiliary->Hide();
     main_sizer->Add(m_auxiliary, wxSizerFlags().Expand().Proportion(1));
+    Bind(EVT_AUXILIARY_DONE, [this](wxCommandEvent& e) { update_model_data();});
 
     SetSizer(main_sizer);
     Layout();
