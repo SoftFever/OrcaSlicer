@@ -35,29 +35,29 @@ SmallAreaInfillFlowCompensator::SmallAreaInfillFlowCompensator(const Slic3r::GCo
                 if (std::getline(iss, value_str, ',')) {
                     eLengths.push_back(eLength);
                     flowComps.push_back(std::stod(value_str));
-    }
+                }
             } catch (...) {
                 std::stringstream ss;
                 ss << "Error parsing data point in small area infill compensation model:" << line << std::endl;
 
                 throw Slic3r::InvalidArgument(ss.str());
-    }
-    }
+            }
+        }
     }
 
     for (int i = 0; i < eLengths.size(); i++) {
         if (i == 0) {
             if (!nearly_equal(eLengths[i], 0.0)) {
                 throw Slic3r::InvalidArgument("First extrusion length for small area infill compensation model must be 0");
-    }
-    } else {
+            }
+        } else {
             if (nearly_equal(eLengths[i], 0.0)) {
                 throw Slic3r::InvalidArgument("Only the first extrusion length for small area infill compensation model can be 0");
-    }
+            }
             if (eLengths[i] <= eLengths[i - 1]) {
-        throw Slic3r::InvalidArgument("Extrusion lengths for subsequent points must be increasing");
-    }
-    }
+                throw Slic3r::InvalidArgument("Extrusion lengths for subsequent points must be increasing");
+            }
+        }
     }
 
     if (!flowComps.empty() && !nearly_equal(flowComps.back(), 1.0)) {
@@ -78,7 +78,7 @@ double SmallAreaInfillFlowCompensator::flow_comp_model(const double line_length)
 
 double SmallAreaInfillFlowCompensator::modify_flow(const double line_length, const double dE, const ExtrusionRole role)
 {
-    if (role == ExtrusionRole::erSolidInfill || role == ExtrusionRole::erTopSolidInfill) {
+    if (role == ExtrusionRole::erSolidInfill || role == ExtrusionRole::erTopSolidInfill || role == ExtrusionRole::erBottomSurface) {
         return dE * flow_comp_model(line_length);
     }
 
