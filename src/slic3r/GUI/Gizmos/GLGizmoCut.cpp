@@ -717,7 +717,12 @@ bool GLGizmoCut3D::render_reset_button(const std::string& label_id, const std::s
 
 static double get_grabber_mean_size(const BoundingBoxf3& bb)
 {
+#if ENABLE_FIXED_GRABBER
+    // Orca: make grabber larger
+    return 32. * GLGizmoBase::INV_ZOOM;
+#else
     return (bb.size().x() + bb.size().y() + bb.size().z()) / 30.;
+#endif
 }
 
 indexed_triangle_set GLGizmoCut3D::its_make_groove_plane()
