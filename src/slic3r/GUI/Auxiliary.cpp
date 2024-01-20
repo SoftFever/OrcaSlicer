@@ -669,6 +669,7 @@ void AuFolderPanel::update(std::vector<fs::path> paths)
     }
     m_gsizer_content->Layout();
     Layout();
+    Refresh();
 }
 
 void AuFolderPanel::msw_rescale() 
@@ -872,20 +873,7 @@ bool AuxiliaryPanel::Show(bool show) { return wxPanel::Show(show); }
 void AuxiliaryPanel::init_auxiliary()
 {
     Model &model = wxGetApp().plater()->model();
-    m_root_dir   = encode_path(model.get_auxiliary_file_temp_path().c_str());
-    if (wxDirExists(m_root_dir)) {
-        fs::path path_to_del(m_root_dir.ToStdWstring());
-        try {
-            fs::remove_all(path_to_del);
-        } catch (...) {
-            BOOST_LOG_TRIVIAL(error) << "Failed  removing the auxiliary directory " << m_root_dir.c_str();
-        }
-    }
-
-    fs::path top_dir_path(m_root_dir.ToStdWstring());
-    fs::create_directory(top_dir_path);
-
-    for (auto folder : s_default_folders) create_folder(folder);
+    Reload(encode_path(model.get_auxiliary_file_temp_path().c_str()), {});
 }
 
 void AuxiliaryPanel::on_import_file(wxCommandEvent &event)
@@ -987,76 +975,22 @@ std::string AuxiliaryPanel::replaceSpace(std::string s, std::string ts, std::str
     return s;
 }
 
-void AuxiliaryPanel::Reload(wxString aux_path)
+void AuxiliaryPanel::Reload(wxString aux_path, std::map<std::string, std::vector<json>> paths)
 {
-    fs::path new_aux_path(aux_path.ToStdWstring());
-
-    try {
-        fs::remove_all(fs::path(m_root_dir.ToStdWstring()));
-    } catch (...) {
-        BOOST_LOG_TRIVIAL(error) << "Failed  removing the auxiliary directory " << m_root_dir.c_str();
-    }
-
     m_root_dir = aux_path;
     m_paths_list.clear();
-    // Check new path. If not exist, create a new one.
-    if (!fs::exists(new_aux_path)) {
-        fs::create_directory(new_aux_path);
-        // Create default folders if they are not loaded
-        for (auto folder : s_default_folders) {
-            wxString folder_path = aux_path + "/" + folder;
-            if (fs::exists(folder_path.ToStdWstring())) continue;
-            fs::create_directory(folder_path.ToStdWstring());
+
+    for (const auto & path : paths) {
+        m_paths_list[path.first] = std::vector<fs::path>{};
+        for (const auto & j : path.second) {
+            m_paths_list[path.first].push_back(j["_filepath"]);
         }
-        update_all_panel();
-        m_designer_panel->update_info();
-        return;
-    }
-
-    // Load from new path
-    std::vector<fs::path>  dir_cache;
-    fs::directory_iterator iter_end;
-
-    for (fs::directory_iterator iter(new_aux_path); iter != iter_end; iter++) {
-        wxString path = iter->path().generic_wstring();
-        dir_cache.push_back(iter->path());
-    }
-
-    for (auto dir : dir_cache) {
-        for (fs::directory_iterator iter(dir); iter != iter_end; iter++) {
-            if (fs::is_directory(iter->path())) continue;
-            wxString file_path     = iter->path().generic_wstring();
-            //auto     file_path_str = encode_path(file_path.c_str());
-
-            for (auto folder : s_default_folders) {
-                auto idx = file_path.find(folder.ToStdString());
-                if (idx != std::string::npos) {
-                    auto iter = m_paths_list.find(folder.ToStdString());
-                    auto     file_path_str = fs::path(file_path.ToStdWstring());
-
-                    if (iter != m_paths_list.end()) {
-                        m_paths_list[folder.ToStdString()].push_back(file_path_str);
-                        break;
-                    } else {
-                        m_paths_list[folder.ToStdString()] = std::vector<fs::path>{file_path_str};
-                        break;
-                    }
-                }
-            }
-        }
-    }
-
-    // Create default folders if they are not loaded
-    wxDataViewItemArray default_items;
-    for (auto folder : s_default_folders) {
-        wxString folder_path = aux_path + "/" + folder;
-        if (fs::exists(folder_path.ToStdWstring())) continue;
-        fs::create_directory(folder_path.ToStdWstring());
     }
 
     update_all_panel();
     update_all_cover();
     m_designer_panel->update_info();
+    m_tabpanel->SetSelection(0);
 }
 
 void AuxiliaryPanel::update_all_panel()
@@ -1200,9 +1134,10 @@ void DesignerPanel::on_input_enter_designer(wxCommandEvent &evt)
 void DesignerPanel::on_input_enter_model(wxCommandEvent &evt) 
 {
     auto text   = evt.GetString();
-    if (wxGetApp().plater()->model().model_info) {
-        wxGetApp().plater()->model().model_info->model_name = std::string(text.ToUTF8().data());
+    if (wxGetApp().plater()->model().model_info == nullptr) {
+         wxGetApp().plater()->model().model_info = std::make_shared<ModelInfo>();
     }
+    wxGetApp().plater()->model().model_info->model_name = std::string(text.ToUTF8().data());
 }
 
 void DesignerPanel::update_info() 

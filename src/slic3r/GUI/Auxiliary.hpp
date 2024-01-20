@@ -232,7 +232,7 @@ public:
     void                                            create_folder(wxString name = wxEmptyString);
     std::string                                     replaceSpace(std::string s, std::string ts, std::string ns);
     void                                            on_import_file(wxCommandEvent &event);
-    void                                            Reload(wxString aux_path);
+    void                                            Reload(wxString aux_path, std::map<std::string, std::vector<json>> paths);
 
     void update_all_panel();
     void update_all_cover();
