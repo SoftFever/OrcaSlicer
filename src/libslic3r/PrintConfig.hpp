@@ -920,6 +920,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     
     ((ConfigOptionEnum<WallSequence>,  wall_sequence))
     ((ConfigOptionBool,                is_infill_first))
+    ((ConfigOptionBool,                small_area_infill_flow_compensation))
 )
 
 PRINT_CONFIG_CLASS_DEFINE(
@@ -1067,6 +1068,8 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                enable_filament_ramming))
     ((ConfigOptionBool,                support_multi_bed_types))
 
+    // Small Area Infill Flow Compensation
+    ((ConfigOptionStrings,              small_area_infill_flow_compensation_model))
 )
 
 // This object is mapped to Perl as Slic3r::Config::Print.

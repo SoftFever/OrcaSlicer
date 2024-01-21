@@ -742,6 +742,10 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
         apply(config, &new_conf);
     }
     toggle_line("timelapse_type", is_BBL_Printer);
+
+
+    bool have_small_area_infill_flow_compensation = config->opt_bool("small_area_infill_flow_compensation");
+    toggle_line("small_area_infill_flow_compensation_model", have_small_area_infill_flow_compensation);
 }
 
 void ConfigManipulation::update_print_sla_config(DynamicPrintConfig* config, const bool is_global_config/* = false*/)

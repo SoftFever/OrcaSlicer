@@ -1970,6 +1970,14 @@ void TabPrint::build()
         optgroup->append_single_option_line("only_one_wall_first_layer");
         optgroup->append_single_option_line("reduce_crossing_wall");
         optgroup->append_single_option_line("max_travel_detour_distance");
+
+        optgroup = page->new_optgroup(L("Small Area Infill Flow Compensation (experimental)"), L"param_advanced");
+        optgroup->append_single_option_line("small_area_infill_flow_compensation");
+        Option option = optgroup->get_option("small_area_infill_flow_compensation_model");
+        option.opt.full_width = true;
+        option.opt.is_code = true;
+        option.opt.height = 15;
+        optgroup->append_single_option_line(option);
         
         optgroup = page->new_optgroup(L("Bridging"), L"param_advanced");
         optgroup->append_single_option_line("bridge_flow");
@@ -2200,7 +2208,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("gcode_comments");
         optgroup->append_single_option_line("gcode_label_objects");
         optgroup->append_single_option_line("exclude_object");
-        Option option = optgroup->get_option("filename_format");
+        option = optgroup->get_option("filename_format");
         // option.opt.full_width = true;
         option.opt.is_code = true;
         option.opt.multiline = true;
