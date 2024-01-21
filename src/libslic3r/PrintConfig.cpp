@@ -195,6 +195,12 @@ static t_config_enum_values s_keys_map_PrintSequence {
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(PrintSequence)
 
+static t_config_enum_values s_keys_map_PrintOrder{
+    { "default",     int(PrintOrder::Default) },
+    { "as_obj_list", int(PrintOrder::AsObjectList)},
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(PrintOrder)
+
 static t_config_enum_values s_keys_map_SlicingMode {
     { "regular",        int(SlicingMode::Regular) },
     { "even_odd",       int(SlicingMode::EvenOdd) },
@@ -1170,6 +1176,17 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("By object"));
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionEnum<PrintSequence>(PrintSequence::ByLayer));
+
+    def = this->add("print_order", coEnum);
+    def->label = L("Layer order");
+    def->tooltip = L("Print order within a single layer");
+    def->enum_keys_map = &ConfigOptionEnum<PrintOrder>::get_enum_values();
+    def->enum_values.push_back("default");
+    def->enum_values.push_back("as_obj_list");
+    def->enum_labels.push_back(L("Default"));
+    def->enum_labels.push_back(L("As object list"));
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionEnum<PrintOrder>(PrintOrder::Default));
 
     def = this->add("slow_down_for_layer_cooling", coBools);
     def->label = L("Slow printing down for better layer cooling");
@@ -2667,6 +2684,26 @@ def = this->add("filament_loading_speed", coFloats);
     def->height = 12;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionString(""));
+
+    def = this->add("small_area_infill_flow_compensation", coBool);
+    def->label = L("Enable Flow Compensation");
+    def->tooltip = L("Enable flow compensation for small infill areas");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("small_area_infill_flow_compensation_model", coStrings);
+    def->label = L("Flow Compensation Model");
+    def->tooltip = L(
+        "Flow Compensation Model, used to adjust the flow for small infill "
+        "areas. The model is expressed as a comma separated pair of values for "
+        "extrusion length and flow correction factors, one per line, in the "
+        "following format: \"1.234,5.678\"");
+    def->mode = comAdvanced;
+    def->gui_flags = "serialized";
+    def->multiline = true;
+    def->full_width = true;
+    def->height = 15;
+    def->set_default_value(new ConfigOptionStrings{"0,0", "\n0.2,0.4444", "\n0.4,0.6145", "\n0.6,0.7059", "\n0.8,0.7619", "\n1.5,0.8571", "\n2,0.8889", "\n3,0.9231", "\n5,0.9520", "\n10,1"});
 
     {
         struct AxisDefault {

@@ -836,7 +836,7 @@ end:
 // BBS: backup all in one dir
 std::string Model::get_auxiliary_file_temp_path()
 {
-    return get_backup_path("/Auxiliaries");
+    return get_backup_path("Auxiliaries");
 }
 
 // BBS: backup dir
