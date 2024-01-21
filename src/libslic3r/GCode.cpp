@@ -1834,6 +1834,15 @@ static inline std::vector<const PrintInstance*> sort_object_instances_by_max_z(c
 //BBS: add sort logic for seq-print
 std::vector<const PrintInstance*> sort_object_instances_by_model_order(const Print& print, bool init_order)
 {
+    auto find_object_index = [](const Model& model, const ModelObject* obj) {
+        for (int index = 0; index < model.objects.size(); index++)
+        {
+            if (model.objects[index] == obj)
+                return index;
+        }
+        return -1;
+    };
+
     // Build up map from ModelInstance* to PrintInstance*
     std::vector<std::pair<const ModelInstance*, const PrintInstance*>> model_instance_to_print_instance;
     model_instance_to_print_instance.reserve(print.num_object_instances());
@@ -1841,10 +1850,16 @@ std::vector<const PrintInstance*> sort_object_instances_by_model_order(const Pri
         for (const PrintInstance &print_instance : print_object->instances())
         {
             if (init_order)
-                const_cast<ModelInstance*>(print_instance.model_instance)->arrange_order = print_instance.model_instance->id().id;
+                const_cast<ModelInstance*>(print_instance.model_instance)->arrange_order = find_object_index(print.model(), print_object->model_object());
             model_instance_to_print_instance.emplace_back(print_instance.model_instance, &print_instance);
         }
     std::sort(model_instance_to_print_instance.begin(), model_instance_to_print_instance.end(), [](auto &l, auto &r) { return l.first->arrange_order < r.first->arrange_order; });
+    if (init_order) {
+        // Re-assign the arrange_order so each instance has a unique order number
+        for (int k = 0; k < model_instance_to_print_instance.size(); k++) {
+            const_cast<ModelInstance*>(model_instance_to_print_instance[k].first)->arrange_order = k + 1;
+        }
+    }
 
     std::vector<const PrintInstance*> instances;
     instances.reserve(model_instance_to_print_instance.size());
@@ -2203,8 +2218,11 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         // In non-sequential print, the printing extruders may have been modified by the extruder switches stored in Model::custom_gcode_per_print_z.
         // Therefore initialize the printing extruders from there.
         this->set_extruders(tool_ordering.all_extruders());
-        // Order object instances using a nearest neighbor search.
-        print_object_instances_ordering = chain_print_object_instances(print);
+        print_object_instances_ordering = 
+            // By default, order object instances using a nearest neighbor search.
+            print.config().print_order == PrintOrder::Default ? chain_print_object_instances(print)
+            // Otherwise same order as the object list
+            : sort_object_instances_by_model_order(print);
     }
     if (initial_extruder_id == (unsigned int)-1) {
         // Nothing to print!
@@ -3972,7 +3990,7 @@ LayerResult GCode::process_layer(
         std::vector<InstanceToPrint> instances_to_print;
         bool has_prime_tower = print.config().enable_prime_tower
             && print.extruders().size() > 1
-            && (print.config().print_sequence == PrintSequence::ByLayer
+            && ((print.config().print_sequence == PrintSequence::ByLayer && print.config().print_order == PrintOrder::Default)
                 || (print.config().print_sequence == PrintSequence::ByObject && print.objects().size() == 1));
         if (has_prime_tower) {
             int plate_idx = print.get_plate_index();

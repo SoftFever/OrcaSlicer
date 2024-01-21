@@ -2188,6 +2188,7 @@ void TabPrint::build()
         optgroup = page->new_optgroup(L("Special mode"), L"param_special");
         optgroup->append_single_option_line("slicing_mode");
         optgroup->append_single_option_line("print_sequence", "sequent-print");
+        optgroup->append_single_option_line("print_order");
         optgroup->append_single_option_line("spiral_mode", "spiral-vase");
         optgroup->append_single_option_line("spiral_mode_smooth", "spiral-vase#smooth");
         optgroup->append_single_option_line("spiral_mode_max_xy_smoothing", "spiral-vase#max-xy-smoothing");
