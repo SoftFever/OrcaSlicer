@@ -2668,6 +2668,26 @@ def = this->add("filament_loading_speed", coFloats);
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionString(""));
 
+    def = this->add("small_area_infill_flow_compensation", coBool);
+    def->label = L("Enable Flow Compensation");
+    def->tooltip = L("Enable flow compensation for small infill areas");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("small_area_infill_flow_compensation_model", coStrings);
+    def->label = L("Flow Compensation Model");
+    def->tooltip = L(
+        "Flow Compensation Model, used to adjust the flow for small infill "
+        "areas. The model is expressed as a comma separated pair of values for "
+        "extrusion length and flow correction factors, one per line, in the "
+        "following format: \"1.234,5.678\"");
+    def->mode = comAdvanced;
+    def->gui_flags = "serialized";
+    def->multiline = true;
+    def->full_width = true;
+    def->height = 15;
+    def->set_default_value(new ConfigOptionStrings{"0,0", "\n0.2,0.4444", "\n0.4,0.6145", "\n0.6,0.7059", "\n0.8,0.7619", "\n1.5,0.8571", "\n2,0.8889", "\n3,0.9231", "\n5,0.9520", "\n10,1"});
+
     {
         struct AxisDefault {
             std::string         name;
