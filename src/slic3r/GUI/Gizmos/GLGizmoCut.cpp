@@ -717,7 +717,12 @@ bool GLGizmoCut3D::render_reset_button(const std::string& label_id, const std::s
 
 static double get_grabber_mean_size(const BoundingBoxf3& bb)
 {
+#if ENABLE_FIXED_GRABBER
+    // Orca: make grabber larger
+    return 32. * GLGizmoBase::INV_ZOOM;
+#else
     return (bb.size().x() + bb.size().y() + bb.size().z()) / 30.;
+#endif
 }
 
 indexed_triangle_set GLGizmoCut3D::its_make_groove_plane()
@@ -2503,13 +2508,13 @@ void GLGizmoCut3D::add_horizontal_shift(float shift)
 
 void GLGizmoCut3D::render_color_marker(float size, const ImU32& color)
 {
-    ImGui::SameLine();
     const float radius = 0.5f * size;
     ImVec2 pos = ImGui::GetCurrentWindow()->DC.CursorPos;
-    pos.x += size;
-    pos.y += 1.25f * radius;
+    pos.x += radius;
+    pos.y += 1.4f * radius;
     ImGui::GetCurrentWindow()->DrawList->AddNgonFilled(pos, radius, color, 6);
-    m_imgui->text(" ");
+    m_imgui->text("  ");
+    ImGui::SameLine();
 }
 
 void GLGizmoCut3D::render_groove_float_input(const std::string& label, float& in_val, const float& init_val, float& in_tolerance)
@@ -2730,20 +2735,27 @@ void GLGizmoCut3D::render_cut_plane_input_window(CutConnectors &connectors, floa
 
         // render "After Cut" section
 
-        float label_width = 0;
+        ImVec2 label_size;
         for (const wxString &label : {_L("Upper part"), _L("Lower part")}) {
-            const float width = m_imgui->calc_text_size(label).x + m_imgui->scaled(1.5f);
-            if (label_width < width)
-                    label_width = width;
+            const ImVec2 text_size = ImGuiWrapper::calc_text_size(label);
+            if (label_size.x < text_size.x)
+                label_size.x = text_size.x;
+            if (label_size.y < text_size.y)
+                label_size.y = text_size.y;
         }
 
-        auto render_part_action_line = [this, label_width, &connectors](const wxString &label, const wxString &suffix, bool &keep_part,
+        const float marker_size = label_size.y;
+        const float h_shift     = marker_size + label_size.x + m_imgui->scaled(2.f);
+
+        auto render_part_action_line = [this, h_shift, marker_size, &connectors](const wxString &label, const wxString &suffix, bool &keep_part,
                                                                         bool &place_on_cut_part, bool &rotate_part) {
             bool keep = true;
+
             ImGui::AlignTextToFramePadding();
+            render_color_marker(marker_size, ImGuiWrapper::to_ImU32(suffix == "##upper" ? UPPER_PART_COLOR : LOWER_PART_COLOR));
             m_imgui->text(label);
 
-            ImGui::SameLine(label_width);
+            ImGui::SameLine(h_shift);
 
             m_imgui->disabled_begin(!connectors.empty() || m_keep_as_parts);
             m_imgui->bbl_checkbox(_L("Keep") + suffix, connectors.empty() ? keep_part : keep);
