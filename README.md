@@ -68,6 +68,14 @@ Orca Slicer's logo is designed by community member Justin Levine(@freejstnalxndr
   - Tools needed: Xcode, Cmake, git, gettext, libtool, automake, autoconf, texinfo
       - You can install most of them by running `brew install cmake gettext libtool automake autoconf texinfo`
   - run `build_release_macos.sh`
+  - To build and debug in XCode:
+      - run `XCode.app`
+      - open ``build_`arch`/OrcaSlicer.xcodeproj``
+      - menu bar: Product => Scheme => OrcaSlicer
+      - menu bar: Product => Scheme => Edit Scheme...
+          - Run => Info tab => Build Configuration: `RelWithDebInfo`
+          - Run => Options tab => Document Versions: uncheck `Allow debugging when browsing versions`
+      - menu bar: Product => Run
 
 - Ubuntu 
   - Dependencies **Will be auto installed with the shell script**: `libmspack-dev libgstreamerd-3-dev libsecret-1-dev libwebkit2gtk-4.0-dev libosmesa6-dev libssl-dev libcurl4-openssl-dev eglexternalplatform-dev libudev-dev libdbus-1-dev extra-cmake-modules libgtk2.0-dev libglew-dev libudev-dev libdbus-1-dev cmake git texinfo`
