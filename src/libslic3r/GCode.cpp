@@ -1965,6 +1965,9 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     } else
 	    m_enable_extrusion_role_markers = false;
 
+    if (!print.config().small_area_infill_flow_compensation_model.empty())
+        m_small_area_infill_flow_compensator = make_unique<SmallAreaInfillFlowCompensator>(print.config());
+
     // if thumbnail type of BTT_TFT, insert above header
     // if not, it is inserted under the header in its normal spot
     const GCodeThumbnailsFormat m_gcode_thumbnail_format = print.full_print_config().opt_enum<GCodeThumbnailsFormat>("thumbnails_format");
@@ -5190,15 +5193,25 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                 for (const Line& line : path.polyline.lines()) {
                     const double line_length = line.length() * SCALING_FACTOR;
                     path_length += line_length;
+                    auto dE = e_per_mm * line_length;
+                    if (m_small_area_infill_flow_compensator && m_config.small_area_infill_flow_compensation.value) {
+                        auto oldE = dE;
+                        dE = m_small_area_infill_flow_compensator->modify_flow(line_length, dE, path.role());
+
+                        if (m_config.gcode_comments && oldE > 0 && oldE != dE) {
+                            description += Slic3r::format(" | Old Flow Value: %0.5f Length: %0.5f",oldE, line_length);
+                        }
+                    }
                     gcode += m_writer.extrude_to_xy(
                         this->point_to_gcode(line.b),
-                        e_per_mm * line_length,
+                        dE,
                         GCodeWriter::full_gcode_comment ? description : "", path.is_force_no_extrusion());
                 }
             } else {
                 // BBS: start to generate gcode from arc fitting data which includes line and arc
                 const std::vector<PathFittingData>& fitting_result = path.polyline.fitting_result;
                 for (size_t fitting_index = 0; fitting_index < fitting_result.size(); fitting_index++) {
+                    std::string tempDescription = description;
                     switch (fitting_result[fitting_index].path_type) {
                     case EMovePathType::Linear_move: {
                         size_t start_index = fitting_result[fitting_index].start_point_index;
@@ -5207,10 +5220,19 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                             const Line line = Line(path.polyline.points[point_index - 1], path.polyline.points[point_index]);
                             const double line_length = line.length() * SCALING_FACTOR;
                             path_length += line_length;
+                            auto dE = e_per_mm * line_length;
+                            if (m_small_area_infill_flow_compensator  && m_config.small_area_infill_flow_compensation.value) {
+                                auto oldE = dE;
+                                dE = m_small_area_infill_flow_compensator->modify_flow(line_length, dE, path.role());
+
+                                if (m_config.gcode_comments && oldE > 0 && oldE != dE) {
+                                    tempDescription += Slic3r::format(" | Old Flow Value: %0.5f Length: %0.5f",oldE, line_length);
+                                }
+                            }
                             gcode += m_writer.extrude_to_xy(
                                 this->point_to_gcode(line.b),
-                                e_per_mm * line_length,
-                                GCodeWriter::full_gcode_comment ? description : "", path.is_force_no_extrusion());
+                                dE,
+                                GCodeWriter::full_gcode_comment ? tempDescription : "", path.is_force_no_extrusion());
                         }
                         break;
                     }
@@ -5220,12 +5242,21 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                         const double arc_length = fitting_result[fitting_index].arc_data.length * SCALING_FACTOR;
                         const Vec2d center_offset = this->point_to_gcode(arc.center) - this->point_to_gcode(arc.start_point);
                         path_length += arc_length;
+                        auto dE = e_per_mm * arc_length;
+                        if (m_small_area_infill_flow_compensator && m_config.small_area_infill_flow_compensation.value) {
+                            auto oldE = dE;
+                            dE = m_small_area_infill_flow_compensator->modify_flow(arc_length, dE, path.role());
+
+                            if (m_config.gcode_comments && oldE > 0 && oldE != dE) {
+                                tempDescription += Slic3r::format(" | Old Flow Value: %0.5f Length: %0.5f",oldE, arc_length);
+                            }
+                        }
                         gcode += m_writer.extrude_arc_to_xy(
                             this->point_to_gcode(arc.end_point),
                             center_offset,
-                            e_per_mm * arc_length,
+                            dE,
                             arc.direction == ArcDirection::Arc_Dir_CCW,
-                            GCodeWriter::full_gcode_comment ? description : "", path.is_force_no_extrusion());
+                            GCodeWriter::full_gcode_comment ? tempDescription : "", path.is_force_no_extrusion());
                         break;
                     }
                     default:
@@ -5247,6 +5278,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             pre_fan_enabled = check_overhang_fan(new_points[0].overlap, path.role());
 
         for (size_t i = 1; i < new_points.size(); i++) {
+            std::string tempDescription = description;
             const ProcessedPoint &processed_point = new_points[i];
             const ProcessedPoint &pre_processed_point = new_points[i-1];
             Vec2d p = this->point_to_gcode_quantized(processed_point.p);
@@ -5285,8 +5317,17 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                 gcode += m_writer.set_speed(new_speed, "", comment);
                 last_set_speed = new_speed;
             }
+            auto dE = e_per_mm * line_length;
+            if (m_small_area_infill_flow_compensator  && m_config.small_area_infill_flow_compensation.value) {
+                auto oldE = dE;
+                dE = m_small_area_infill_flow_compensator->modify_flow(line_length, dE, path.role());
+
+                if (m_config.gcode_comments && oldE > 0 && oldE != dE) {
+                    tempDescription += Slic3r::format(" | Old Flow Value: %0.5f Length: %0.5f",oldE, line_length);
+                }
+            }
             gcode +=
-                m_writer.extrude_to_xy(p, e_per_mm * line_length, GCodeWriter::full_gcode_comment ? description : "");
+                m_writer.extrude_to_xy(p, dE, GCodeWriter::full_gcode_comment ? tempDescription : "");
 
             prev = p;
 
