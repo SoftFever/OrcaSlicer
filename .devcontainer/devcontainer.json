@@ -3,8 +3,7 @@
 	"image": "mcr.microsoft.com/devcontainers/cpp",
 	"runArgs": ["--env-file", ".devcontainer/temp.env"],
     "features": {
-        "ghcr.io/devcontainers/features/desktop-lite:1": {},
-		"ghcr.io/devcontainers/features/sshd:1": {}
+        "ghcr.io/devcontainers/features/desktop-lite:1": {}
     },
 	"customizations": {
 		"vscode": {
@@ -33,10 +32,6 @@
 	"portsAttributes": {
 		"6080": {
 			"label": "VNC web client (noVNC)",
-			"onAutoForward": "silent"
-		},
-		"2222": {
-			"label": "SSH",
 			"onAutoForward": "silent"
 		}
     },
