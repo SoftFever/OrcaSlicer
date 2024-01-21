@@ -1,6 +1,7 @@
 {
 	"name": "OrcaSlicer",
 	"image": "mcr.microsoft.com/devcontainers/cpp",
+	"runArgs": ["--env-file", ".devcontainer/temp.env"],
     "features": {
         "ghcr.io/devcontainers/features/desktop-lite:1": {},
 		"ghcr.io/devcontainers/features/sshd:1": {}
@@ -14,6 +15,9 @@
 					"-DBBL_INTERNAL_TESTING=0",
 					"-DSLIC3R_STATIC=1",
 					"-DCMAKE_PREFIX_PATH=${workspaceFolder}/deps/build/destdir/usr/local"
+				],
+				"cmake.buildToolArgs": [
+					"-l${containerEnv:CORES}"
 				]
 			},
 			
@@ -39,5 +43,11 @@
 	"otherPortsAttributes": {
 		"onAutoForward": "ignore"
 	},
-	"postCreateCommand": "sudo /bin/bash -c \"chmod +x .devcontainer/postCreate.sh && .devcontainer/postCreate.sh\""
+	
+	"initializeCommand": "echo \"CORES=`nproc --all`\" > .devcontainer/temp.env",
+	"onCreateCommand": {
+		"Remove temporary env file": "sudo rm .devcontainer/temp.env",
+		"Set postCreate executable flag": "chmod +x .devcontainer/postCreate.sh"
+	},
+	"postCreateCommand": "sudo .devcontainer/postCreate.sh"
 }
