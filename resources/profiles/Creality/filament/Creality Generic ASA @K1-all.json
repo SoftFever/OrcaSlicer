@@ -6,7 +6,7 @@
     "instantiation": "true",
     "inherits": "Creality Generic ASA",
     "filament_max_volumetric_speed": [
-        "9"
+        "12"
     ],
     "slow_down_layer_time": [
         "3"
