@@ -140,7 +140,7 @@ public:
 	// create controls for the option group
 	void		activate_line(Line& line);
 	//BBS: get line for opt_key
-//	Line* get_line(const std::string& opt_key);
+	Line* get_line(const std::string& opt_key);
 
 	// create all controls for the option group from the m_lines
 	bool		activate(std::function<void()> throw_if_canceled = [](){}, int horiz_alignment = wxALIGN_LEFT);
@@ -155,13 +155,6 @@ public:
     inline Field*	get_field(const t_config_option_key& id) const{
 							if (m_fields.find(id) == m_fields.end()) return nullptr;
 							return m_fields.at(id).get();
-    }
-
-    inline Line*	get_line(const t_config_option_key& id) {
-		for (Line& line : m_lines)
-			if (line.has_only_option(id))
-				return &line;
-		return nullptr;
     }
 
 	bool			set_value(const t_config_option_key& id, const boost::any& value, bool change_event = false) {

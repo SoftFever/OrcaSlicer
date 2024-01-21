@@ -218,7 +218,7 @@ void OptionsGroup::append_line(const Line& line)
         m_options_mode.push_back(option_set[0].opt.mode);
 }
 
-/*//BBS: get line for opt_key
+//BBS: get line for opt_key
 Line* OptionsGroup::get_line(const std::string& opt_key)
 {
     for (auto& l : m_lines)
@@ -230,7 +230,7 @@ Line* OptionsGroup::get_line(const std::string& opt_key)
     }
 
     return nullptr;
-}*/
+}
 
 void OptionsGroup::append_separator()
 {
