@@ -12634,7 +12634,7 @@ msgstr "Тип філаменту"
 msgid "Start temp: "
 msgstr "Початкова температура: "
 
-msgid "End end: "
+msgid "End temp: "
 msgstr "Кінцева температура: "
 
 msgid "Temp step: "

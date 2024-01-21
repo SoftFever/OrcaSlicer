@@ -13463,7 +13463,7 @@ msgstr "Filamenttyp"
 msgid "Start temp: "
 msgstr "Starttemperatur"
 
-msgid "End end: "
+msgid "End temp: "
 msgstr "Endtemperatur"
 
 msgid "Temp step: "
