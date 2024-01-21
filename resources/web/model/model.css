@@ -153,7 +153,7 @@ body
 	position:fixed;
 	top: 24px;
 	width: 264px;
-	height: 120px;
+	height: 160px;
     flex-shrink: 0;
 }
 
@@ -376,3 +376,19 @@ body
 	background-color: rgba(255,0,0,.5)!important;
 }
 
+#AddModelInfoBtn
+{
+	border-width: 1px;
+	border-style: solid;
+	padding: 0px 10px;
+	border-radius: 6px;
+	line-height: 26px;
+	height: 26px;
+	margin-top: 20px;
+	cursor: pointer;
+}
+
+#AddModelInfoBtn:hover
+{
+	background-color:#CDCECE;
+}

@@ -1989,6 +1989,14 @@ void TabPrint::build()
         optgroup->append_single_option_line("only_one_wall_first_layer");
         optgroup->append_single_option_line("reduce_crossing_wall");
         optgroup->append_single_option_line("max_travel_detour_distance");
+
+        optgroup = page->new_optgroup(L("Small Area Infill Flow Compensation (experimental)"), L"param_advanced");
+        optgroup->append_single_option_line("small_area_infill_flow_compensation");
+        Option option = optgroup->get_option("small_area_infill_flow_compensation_model");
+        option.opt.full_width = true;
+        option.opt.is_code = true;
+        option.opt.height = 15;
+        optgroup->append_single_option_line(option);
         
         optgroup = page->new_optgroup(L("Bridging"), L"param_advanced");
         optgroup->append_single_option_line("bridge_flow");
@@ -2028,6 +2036,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("infill_anchor");
         optgroup->append_single_option_line("infill_anchor_max");
         optgroup->append_single_option_line("internal_solid_infill_pattern");
+        optgroup->append_single_option_line("gap_fill_target");
         optgroup->append_single_option_line("filter_out_gap_fill");
 
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced");
@@ -2198,6 +2207,7 @@ void TabPrint::build()
         optgroup = page->new_optgroup(L("Special mode"), L"param_special");
         optgroup->append_single_option_line("slicing_mode");
         optgroup->append_single_option_line("print_sequence", "sequent-print");
+        optgroup->append_single_option_line("print_order");
         optgroup->append_single_option_line("spiral_mode", "spiral-vase");
         optgroup->append_single_option_line("spiral_mode_smooth", "spiral-vase#smooth");
         optgroup->append_single_option_line("spiral_mode_max_xy_smoothing", "spiral-vase#max-xy-smoothing");
@@ -2218,7 +2228,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("gcode_comments");
         optgroup->append_single_option_line("gcode_label_objects");
         optgroup->append_single_option_line("exclude_object");
-        Option option = optgroup->get_option("filename_format");
+        option = optgroup->get_option("filename_format");
         // option.opt.full_width = true;
         option.opt.is_code = true;
         option.opt.multiline = true;

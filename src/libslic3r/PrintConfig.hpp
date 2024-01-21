@@ -106,6 +106,13 @@ enum class PrintSequence {
     Count,
 };
 
+enum class PrintOrder
+{
+    Default,
+    AsObjectList,
+    Count,
+};
+
 enum class SlicingMode
 {
     // Regular, applying ClipperLib::pftNonZero rule when creating ExPolygons.
@@ -152,9 +159,16 @@ enum SeamPosition {
     spNearest, spAligned, spRear, spRandom
 };
 
+//Orca
 enum InternalBridgeFilter {
     ibfDisabled, ibfLimited, ibfNofilter
 };
+
+//Orca
+enum GapFillTarget {
+     gftEverywhere, gftTopBottom, gftNowhere
+ };
+
 
 enum LiftType {
     NormalLift,
@@ -789,6 +803,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionPercent,            tree_support_top_rate))
     ((ConfigOptionFloat,              tree_support_branch_diameter_organic))
     ((ConfigOptionFloat,              tree_support_branch_angle_organic))
+    ((ConfigOptionEnum<GapFillTarget>,gap_fill_target))
     ((ConfigOptionFloat,              min_length_factor))
 
     // Move all acceleration and jerk settings to object
@@ -912,6 +927,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     
     ((ConfigOptionEnum<WallSequence>,  wall_sequence))
     ((ConfigOptionBool,                is_infill_first))
+    ((ConfigOptionBool,                small_area_infill_flow_compensation))
 )
 
 PRINT_CONFIG_CLASS_DEFINE(
@@ -1059,6 +1075,8 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                enable_filament_ramming))
     ((ConfigOptionBool,                support_multi_bed_types))
 
+    // Small Area Infill Flow Compensation
+    ((ConfigOptionStrings,              small_area_infill_flow_compensation_model))
 )
 
 // This object is mapped to Perl as Slic3r::Config::Print.
@@ -1090,6 +1108,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionInts,               overhang_fan_speed))
     ((ConfigOptionEnumsGeneric,       overhang_fan_threshold))
     ((ConfigOptionEnum<PrintSequence>,print_sequence))
+    ((ConfigOptionEnum<PrintOrder>,   print_order))
     ((ConfigOptionInts,               first_layer_print_sequence))
     ((ConfigOptionBools,              slow_down_for_layer_cooling))
     ((ConfigOptionInts,               close_fan_the_first_x_layers))

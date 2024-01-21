@@ -771,7 +771,7 @@ static std::vector<std::string> s_Preset_print_options {
     "extra_perimeters_on_overhangs", "ensure_vertical_shell_thickness","reduce_wall_solid_infill", "reduce_crossing_wall", "detect_thin_wall", "detect_overhang_wall", "overhang_reverse", "overhang_reverse_threshold","overhang_reverse_internal_only",
     "seam_position", "staggered_inner_seams", "wall_sequence", "is_infill_first", "sparse_infill_density", "sparse_infill_pattern", "top_surface_pattern", "bottom_surface_pattern",
     "infill_direction",
-    "minimum_sparse_infill_area", "reduce_infill_retraction","internal_solid_infill_pattern",
+    "minimum_sparse_infill_area", "reduce_infill_retraction","internal_solid_infill_pattern","gap_fill_target",
     "ironing_type", "ironing_pattern", "ironing_flow", "ironing_speed", "ironing_spacing", "ironing_angle",
     "max_travel_detour_distance",
     "fuzzy_skin", "fuzzy_skin_thickness", "fuzzy_skin_point_distance", "fuzzy_skin_first_layer",
@@ -786,7 +786,7 @@ static std::vector<std::string> s_Preset_print_options {
     "independent_support_layer_height",
     "support_angle", "support_interface_top_layers", "support_interface_bottom_layers",
     "support_interface_pattern", "support_interface_spacing", "support_interface_loop_pattern",
-    "support_top_z_distance", "support_on_build_plate_only","support_critical_regions_only", "bridge_no_support", "thick_bridges", "thick_internal_bridges","dont_filter_internal_bridges", "max_bridge_length", "print_sequence", "support_remove_small_overhang",
+    "support_top_z_distance", "support_on_build_plate_only","support_critical_regions_only", "bridge_no_support", "thick_bridges", "thick_internal_bridges","dont_filter_internal_bridges", "max_bridge_length", "print_sequence", "print_order", "support_remove_small_overhang",
     "filename_format", "wall_filament", "support_bottom_z_distance",
     "sparse_infill_filament", "solid_infill_filament", "support_filament", "support_interface_filament","support_interface_not_for_body",
     "ooze_prevention", "standby_temperature_delta", "interface_shells", "line_width", "initial_layer_line_width",
@@ -817,6 +817,7 @@ static std::vector<std::string> s_Preset_print_options {
      "wipe_tower_cone_angle", "wipe_tower_extra_spacing", "wipe_tower_extruder", "wiping_volumes_extruders","wipe_tower_bridging", "single_extruder_multi_material_priming",
      "wipe_tower_rotation_angle", "tree_support_branch_distance_organic", "tree_support_branch_diameter_organic", "tree_support_branch_angle_organic",
      "hole_to_polyhole", "hole_to_polyhole_threshold", "hole_to_polyhole_twisted", "mmu_segmented_region_max_width", "mmu_segmented_region_interlocking_depth",
+     "small_area_infill_flow_compensation", "small_area_infill_flow_compensation_model",
 };
 
 static std::vector<std::string> s_Preset_filament_options {

@@ -510,6 +510,10 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
         apply(config, &new_conf);
     }
     
+    // Orca: Hide the filter out tiny gaps field when gap fill target is nowhere as no gap fill will be applied.
+    bool have_gap_fill = config->opt_enum<GapFillTarget>("gap_fill_target") != gftNowhere;
+    toggle_line("filter_out_gap_fill", have_gap_fill);
+
     bool have_ensure_vertical_thickness = config->opt_bool("ensure_vertical_shell_thickness");
     if(have_ensure_vertical_thickness) {
         DynamicPrintConfig new_conf = *config;
@@ -657,9 +661,10 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     for (auto el : { "ironing_pattern", "ironing_flow", "ironing_spacing", "ironing_speed", "ironing_angle" })
         toggle_line(el, has_ironing);
     
-    // bool have_sequential_printing = (config->opt_enum<PrintSequence>("print_sequence") == PrintSequence::ByObject);
+    bool have_sequential_printing = (config->opt_enum<PrintSequence>("print_sequence") == PrintSequence::ByObject);
     // for (auto el : { "extruder_clearance_radius", "extruder_clearance_height_to_rod", "extruder_clearance_height_to_lid" })
     //     toggle_field(el, have_sequential_printing);
+    toggle_field("print_order", !have_sequential_printing);
     
     bool have_ooze_prevention = config->opt_bool("ooze_prevention");
     toggle_field("standby_temperature_delta", have_ooze_prevention);
@@ -738,6 +743,10 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
         apply(config, &new_conf);
     }
     toggle_line("timelapse_type", is_BBL_Printer);
+
+
+    bool have_small_area_infill_flow_compensation = config->opt_bool("small_area_infill_flow_compensation");
+    toggle_line("small_area_infill_flow_compensation_model", have_small_area_infill_flow_compensation);
 }
 
 void ConfigManipulation::update_print_sla_config(DynamicPrintConfig* config, const bool is_global_config/* = false*/)
