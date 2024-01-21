@@ -39,9 +39,13 @@
 		"onAutoForward": "ignore"
 	},
 	
-	"initializeCommand": "echo \"CORES=`nproc --all`\" > .devcontainer/temp.env",
+	"initializeCommand": {
+		"Setup Temporary Env File": "echo \"CORES=`nproc --all`\" > .devcontainer/temp.env"
+	},
+	"postStartCommand": {
+		"Remove temporary env file": "sudo rm .devcontainer/temp.env"
+	},
 	"onCreateCommand": {
-		"Remove temporary env file": "sudo rm .devcontainer/temp.env",
 		"Set postCreate executable flag": "chmod +x .devcontainer/postCreate.sh"
 	},
 	"postCreateCommand": "sudo .devcontainer/postCreate.sh"
