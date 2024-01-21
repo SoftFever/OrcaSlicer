@@ -195,6 +195,12 @@ static t_config_enum_values s_keys_map_PrintSequence {
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(PrintSequence)
 
+static t_config_enum_values s_keys_map_PrintOrder{
+    { "default",     int(PrintOrder::Default) },
+    { "as_obj_list", int(PrintOrder::AsObjectList)},
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(PrintOrder)
+
 static t_config_enum_values s_keys_map_SlicingMode {
     { "regular",        int(SlicingMode::Regular) },
     { "even_odd",       int(SlicingMode::EvenOdd) },
@@ -1170,6 +1176,17 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("By object"));
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionEnum<PrintSequence>(PrintSequence::ByLayer));
+
+    def = this->add("print_order", coEnum);
+    def->label = L("Layer order");
+    def->tooltip = L("Print order within a single layer");
+    def->enum_keys_map = &ConfigOptionEnum<PrintOrder>::get_enum_values();
+    def->enum_values.push_back("default");
+    def->enum_values.push_back("as_obj_list");
+    def->enum_labels.push_back(L("Default"));
+    def->enum_labels.push_back(L("As object list"));
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionEnum<PrintOrder>(PrintOrder::Default));
 
     def = this->add("slow_down_for_layer_cooling", coBools);
     def->label = L("Slow printing down for better layer cooling");

@@ -32,6 +32,7 @@
 #include "Event.hpp"
 #include "libslic3r/ProjectTask.hpp"
 #include "wxExtensions.hpp"
+#include "Auxiliary.hpp"
 
 #define AUFILE_GREY700 wxColour(107, 107, 107)
 #define AUFILE_GREY500 wxColour(158, 158, 158)
@@ -63,9 +64,12 @@ private:
     bool       m_reload_already = {false};
 
     wxWebView* m_browser = {nullptr};
+    AuxiliaryPanel*   m_auxiliary{nullptr};
     wxString   m_project_home_url;
     wxString   m_root_dir;
     static inline int m_sequence_id = 8000;
+
+    void show_info_editor(bool show);
     
 
 public:
@@ -81,6 +85,7 @@ public:
     void msw_rescale();
     void update_model_data();
     void clear_model_info();
+    void init_auxiliary() { m_auxiliary->init_auxiliary(); }
 
     bool Show(bool show);
     void OnScriptMessage(wxWebViewEvent& evt);
