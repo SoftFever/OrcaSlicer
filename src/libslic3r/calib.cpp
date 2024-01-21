@@ -424,6 +424,13 @@ std::string CalibPressureAdvance::draw_box(GCodeWriter &writer, double min_x, do
 
     return gcode.str();
 }
+CalibPressureAdvanceLine::CalibPressureAdvanceLine(GCode* gcodegen)
+    : CalibPressureAdvance(gcodegen->config()), mp_gcodegen(gcodegen), m_nozzle_diameter(gcodegen->config().nozzle_diameter.get_at(0))
+{
+    m_line_width        = m_nozzle_diameter < 0.51 ? m_nozzle_diameter * 1.5 : m_nozzle_diameter * 1.05;
+    m_height_layer      = gcodegen->config().initial_layer_print_height;
+    m_number_line_width = m_thin_line_width = m_nozzle_diameter;
+};
 
 std::string CalibPressureAdvanceLine::generate_test(double start_pa /*= 0*/, double step_pa /*= 0.002*/, int count /*= 10*/)
 {
@@ -496,14 +503,15 @@ std::string CalibPressureAdvanceLine::print_pa_lines(double start_x, double star
         // gcode << move_to(Vec2d(start_x + m_length_short + m_length_long, y_pos + (num - 1) * m_space_y + 7), writer);
         // gcode << writer.extrude_to_xy(Vec2d(start_x + m_length_short + m_length_long, y_pos + (num - 1) * m_space_y + 2), thin_e_per_mm * 7);
 
-        DrawBoxOptArgs default_box_opt_args(2, m_height_layer, 0.6, fast);
+        const auto     box_start_x = start_x + m_length_short + m_length_long + m_length_short;
+        DrawBoxOptArgs default_box_opt_args(2, m_height_layer, m_line_width, fast);
         default_box_opt_args.is_filled = true;
-        gcode << draw_box(writer, start_x + m_length_short + m_length_long + m_length_short, start_y - m_space_y, number_spacing() * 8,
-                          (num + 1) * m_space_y, default_box_opt_args);
+        gcode << draw_box(writer, box_start_x, start_y - m_space_y,
+                          number_spacing() * 8, (num + 1) * m_space_y, default_box_opt_args);
         gcode << writer.travel_to_z(m_height_layer*2);
         for (int i = 0; i < num; i += 2) {
-            gcode << draw_number(start_x + m_length_short + m_length_long + m_length_short + 3, y_pos + i * m_space_y + m_space_y / 2,
-                                 start_pa + i * step_pa, m_draw_digit_mode, m_number_line_width, number_e_per_mm, 3600, writer);
+            gcode << draw_number(box_start_x + 3 + m_line_width, y_pos + i * m_space_y + m_space_y / 2, start_pa + i * step_pa, m_draw_digit_mode,
+                                 m_number_line_width, number_e_per_mm, 3600, writer);
         }
     }
     return gcode.str();
