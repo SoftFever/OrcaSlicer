@@ -802,7 +802,7 @@ void ParamsModel::GetValue(wxVariant& variant, const wxDataViewItem& item, unsig
     {
         wxIcon icon;
         icon.CopyFromBitmap(create_scaled_bitmap(node->icon_name, m_ctrl->GetParent()));
-        wxDataViewIconText(node->GetFormattedText(), icon);
+        variant << wxDataViewIconText(node->GetFormattedText(), icon);
     }
 #else
 //        variant << DataViewBitmapText(node->GetFormattedText(), get_bmp_bundle(node->icon_name)->GetBitmapFor(m_ctrl->GetParent())); //TODO: update to bundle with wx update
