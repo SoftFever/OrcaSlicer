@@ -11,7 +11,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 3.4.1\n"
+"X-Generator: Poedit 3.4.2\n"
 
 msgid "Supports Painting"
 msgstr "Pintar Soportes"
@@ -168,7 +168,7 @@ msgid "Height Range"
 msgstr "Rango de altura"
 
 msgid "Vertical"
-msgstr ""
+msgstr "Vertical"
 
 msgid "Horizontal"
 msgstr "Horizontal"
@@ -267,13 +267,13 @@ msgid "%"
 msgstr "%"
 
 msgid "uniform scale"
-msgstr "Escala uniforme"
+msgstr "escala uniforme"
 
 msgid "Planar"
-msgstr ""
+msgstr "Plano"
 
 msgid "Dovetail"
-msgstr ""
+msgstr "Cola de milano"
 
 msgid "Auto"
 msgstr "Automático"
@@ -288,10 +288,10 @@ msgid "Dowel"
 msgstr "Filamento"
 
 msgid "Snap"
-msgstr ""
+msgstr "Encaje a presión"
 
 msgid "Prism"
-msgstr ""
+msgstr "Prisma"
 
 msgid "Frustum"
 msgstr "Cono"
@@ -303,13 +303,13 @@ msgid "Hexagon"
 msgstr "Hexágono"
 
 msgid "Keep orientation"
-msgstr ""
+msgstr "Mantener orientación"
 
 msgid "Place on cut"
 msgstr "Colocar en la posición de corte"
 
 msgid "Flip upside down"
-msgstr ""
+msgstr "Voltear"
 
 msgid "Connectors"
 msgstr "Conectores"
@@ -327,19 +327,19 @@ msgstr "Forma"
 #. Size in emboss direction
 #. TRN - Input label. Be short as possible
 msgid "Depth"
-msgstr ""
+msgstr "Profundidad"
 
 msgid "Groove"
-msgstr ""
+msgstr "Ranura"
 
 msgid "Width"
 msgstr "Ancho"
 
 msgid "Flap Angle"
-msgstr ""
+msgstr "Ángulo de la aleta"
 
 msgid "Groove Angle"
-msgstr ""
+msgstr "Angulo de Ranura"
 
 msgid "Part"
 msgstr "Pieza"
@@ -351,21 +351,26 @@ msgid ""
 "Click to flip the cut plane\n"
 "Drag to move the cut plane"
 msgstr ""
+"Haga clic para voltear el plano de corte\n"
+"Arrastre para mover el plano de corte"
 
 msgid ""
 "Click to flip the cut plane\n"
 "Drag to move the cut plane\n"
 "Right-click a part to assign it to the other side"
 msgstr ""
+"Haga clic para voltear el plano de corte\n"
+"Arrastre para mover el plano de corte\n"
+"Haga clic con el botón derecho en una pieza para asignarla al otro lado"
 
 msgid "Move cut plane"
-msgstr ""
+msgstr "Mover plano de corte"
 
 msgid "Mode"
-msgstr ""
+msgstr "Modo"
 
 msgid "Change cut mode"
-msgstr ""
+msgstr "Cambiar modo de corte"
 
 msgid "Tolerance"
 msgstr "Toleráncia"
@@ -374,7 +379,7 @@ msgid "Drag"
 msgstr "Soltar"
 
 msgid "Draw cut line"
-msgstr ""
+msgstr "Dibujar línia de corte"
 
 msgid "Left click"
 msgstr "Click izquierdo"
@@ -404,22 +409,22 @@ msgid "Cut"
 msgstr "Cortar"
 
 msgid "Rotate cut plane"
-msgstr ""
+msgstr "Rotar plano de corte"
 
 msgid "Remove connectors"
 msgstr "Borrar conectores"
 
 msgid "Bulge"
-msgstr ""
+msgstr "Rebasar"
 
 msgid "Bulge proportion related to radius"
-msgstr ""
+msgstr "Proporción de rebase en relación al radio"
 
 msgid "Space"
 msgstr "Espacio"
 
 msgid "Space proportion related to radius"
-msgstr ""
+msgstr "Proporción de espacio en relación al radio"
 
 msgid "Confirm connectors"
 msgstr "Confirmar conectores"
@@ -428,26 +433,26 @@ msgid "Cancel"
 msgstr "Cancelar"
 
 msgid "Build Volume"
-msgstr ""
+msgstr "Volumen de construcción"
 
 msgid "Flip cut plane"
-msgstr ""
+msgstr "Voltear plano de corte"
 
 msgid "Groove change"
-msgstr ""
+msgstr "Cambio de ranura"
 
 msgid "Reset"
 msgstr "Reiniciar"
 
 #. TRN: This is an entry in the Undo/Redo stack. The whole line will be 'Edited: (name of whatever was edited)'.
 msgid "Edited"
-msgstr ""
+msgstr "Modificado"
 
 msgid "Cut position"
-msgstr ""
+msgstr "Posición de corte"
 
 msgid "Reset cutting plane"
-msgstr ""
+msgstr "Restablecer plano de corte"
 
 msgid "Edit connectors"
 msgstr "Editar conectores"
@@ -456,10 +461,10 @@ msgid "Add connectors"
 msgstr "Añadir conectores"
 
 msgid "Reset cut"
-msgstr ""
+msgstr "Restablecer corte"
 
 msgid "Reset cutting plane and remove connectors"
-msgstr ""
+msgstr "Restablecer plano de corte y quitar conectores"
 
 msgid "Upper part"
 msgstr "Parte alta"
@@ -491,32 +496,32 @@ msgstr "Conectores inválidos detectados"
 #, c-format, boost-format
 msgid "%1$d connector is out of cut contour"
 msgid_plural "%1$d connectors are out of cut contour"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%1$d conector fuera de contorno"
+msgstr[1] "%1$d conectores fuera de contorno"
 
 #, c-format, boost-format
 msgid "%1$d connector is out of object"
 msgid_plural "%1$d connectors are out of object"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%1$d conector fuera del objeto"
+msgstr[1] "%1$d conectores fuera del objeto"
 
 msgid "Some connectors are overlapped"
 msgstr "Algunos conectores están solapados"
 
 msgid "Select at least one object to keep after cutting."
-msgstr ""
+msgstr "Seleccionar al menos un objeto para conservar después de cortar."
 
 msgid "Cut plane is placed out of object"
-msgstr ""
+msgstr "El plano de corte está situado fuera del objeto"
 
 msgid "Cut plane with groove is invalid"
-msgstr ""
+msgstr "El plano de corte con ranura no es válido"
 
 msgid "Connector"
 msgstr "Conector"
 
 msgid "Cut by Plane"
-msgstr ""
+msgstr "Cortar por plano"
 
 msgid "non-manifold edges be caused by cut tool, do you want to fix it now?"
 msgstr ""
@@ -527,10 +532,10 @@ msgid "Repairing model object"
 msgstr "Reparación de un objeto modelo"
 
 msgid "Cut by line"
-msgstr ""
+msgstr "Cortar por linea"
 
 msgid "Delete connector"
-msgstr ""
+msgstr "Eliminar conector"
 
 msgid "Mesh name"
 msgstr "Nombre de la malla"
@@ -668,10 +673,10 @@ msgid "Text shape"
 msgstr "Forma de texto"
 
 msgid "Set Mirror"
-msgstr ""
+msgstr "Ajustar Reflejo"
 
 msgid "Embossed text"
-msgstr ""
+msgstr "Texto en relieve"
 
 msgid "Enter emboss gizmo"
 msgstr ""
@@ -680,22 +685,22 @@ msgid "Leave emboss gizmo"
 msgstr ""
 
 msgid "Embossing actions"
-msgstr ""
+msgstr "Acciones de relieve"
 
 msgid "Emboss"
-msgstr ""
+msgstr "Relieve"
 
 msgid "Text-Rotate"
-msgstr ""
+msgstr "Rotar texto"
 
 msgid "NORMAL"
-msgstr ""
+msgstr "NORMAL"
 
 msgid "SMALL"
-msgstr ""
+msgstr "PEQUEÑO"
 
 msgid "ITALIC"
-msgstr ""
+msgstr "CURSIVA"
 
 msgid "SWISS"
 msgstr ""
@@ -704,10 +709,10 @@ msgid "MODERN"
 msgstr ""
 
 msgid "First font"
-msgstr ""
+msgstr "Primera fuente"
 
 msgid "Default font"
-msgstr ""
+msgstr "Fuente por defecto"
 
 msgid "Advanced"
 msgstr "Avanzado"
@@ -716,12 +721,16 @@ msgid ""
 "The text cannot be written using the selected font. Please try choosing a "
 "different font."
 msgstr ""
+"El texto no se puede escribir con la fuente seleccionada. Intente elegir una "
+"fuente diferente."
 
 msgid "Embossed text cannot contain only white spaces."
-msgstr ""
+msgstr "El texto en relieve no puede contener únicamente espacios en blanco."
 
 msgid "Text contains character glyph (represented by '?') unknown by font."
 msgstr ""
+"El texto contiene un glifo de carácter (representado por '?') desconocido "
+"por la fuente."
 
 msgid "Text input doesn't show font skew."
 msgstr ""
@@ -1184,28 +1193,30 @@ msgid "Lock/unlock the aspect ratio of the SVG."
 msgstr ""
 
 msgid "Reset scale"
-msgstr ""
+msgstr "Restablecer escala"
 
 msgid "Resize"
-msgstr ""
+msgstr "Cambiar tamaño"
 
 msgid "Distance of the center of the SVG to the model surface."
-msgstr ""
+msgstr "Distancia del centro del SVG a la superficie del modelo."
 
 msgid "Reset distance"
-msgstr ""
+msgstr "Restablecer distancia"
 
 msgid "Reset rotation"
-msgstr ""
+msgstr "Restablecer rotación"
 
 msgid "Lock/unlock rotation angle when dragging above the surface."
 msgstr ""
+"Bloquear/desbloquear el ángulo de rotación al arrastrar por encima de la "
+"superficie."
 
 msgid "Mirror vertically"
-msgstr ""
+msgstr "Reflejar verticalmente"
 
 msgid "Mirror horizontally"
-msgstr ""
+msgstr "Reflejar horizontalmente"
 
 #. TRN: This is the name of the action that shows in undo/redo stack (changing part type from SVG to something else).
 msgid "Change SVG Type"
@@ -1287,7 +1298,7 @@ msgstr ""
 
 msgctxt "Verb"
 msgid "Scale"
-msgstr ""
+msgstr "Escalar"
 
 msgid "None"
 msgstr "Ninguno"
@@ -1526,7 +1537,7 @@ msgid "Switching application language"
 msgstr "Cambio de idioma de la aplicación"
 
 msgid "Select the language"
-msgstr "Seleccione el idioma"
+msgstr "Seleccionar el idioma"
 
 msgid "Language"
 msgstr "Idioma"
@@ -1544,7 +1555,7 @@ msgid "Ongoing uploads"
 msgstr "Cargas en curso"
 
 msgid "Select a G-code file:"
-msgstr "Seleccione un archivo de G-Code:"
+msgstr "Seleccionar un archivo de G-Code:"
 
 msgid "Import File"
 msgstr "Importar Archivo"
@@ -1653,7 +1664,7 @@ msgid "Add SVG modifier"
 msgstr "Añadir modificador SVG"
 
 msgid "Select settings"
-msgstr "Seleccione los ajustes"
+msgstr "Seleccionar los ajustes"
 
 msgid "Hide"
 msgstr "Ocultar"
@@ -10458,10 +10469,7 @@ msgid "Time cost"
 msgstr "Coste dinerario por hora"
 
 msgid "The printer cost per hour"
-msgstr ""
-"La cantidad de dinero que cuesta la impresión que vamos a realizar por hora. "
-"Podemos calcular el coste dependiendo de la potencia de la impresora, el "
-"coste del filamento, etc."
+msgstr "El coste por hora de la impresora"
 
 msgid "money/h"
 msgstr "dinero/hora"
@@ -10682,6 +10690,8 @@ msgid ""
 "If enabled, the machine limits will be emitted to G-code file.\n"
 "This option will be ignored if the g-code flavor is set to Klipper."
 msgstr ""
+"Si se activa, los límites de la máquina se guardaran en el G-code.\n"
+"Esta opción se ignorará si el tipo de G-code está configurado como Klipper."
 
 msgid ""
 "This G-code will be used as a code for the pause print. User can insert "
@@ -10877,7 +10887,7 @@ msgstr ""
 "Nota: este parámetro desactiva el ajuste de arco."
 
 msgid "mm³/s²"
-msgstr ""
+msgstr "mm³/s²"
 
 msgid "Smoothing segment length"
 msgstr "Longitud del segmento de suavizado"
@@ -11115,7 +11125,7 @@ msgid "Number of walls of every layer"
 msgstr "Número de perímetros de cada capa"
 
 msgid "Alternate extra wall"
-msgstr ""
+msgstr "Pared adicional alternativa"
 
 msgid ""
 "This setting adds an extra wall to every other layer. This way the infill "
@@ -11127,6 +11137,15 @@ msgid ""
 "Using lightning infill together with this option is not recommended as there "
 "is limited infill to anchor the extra perimeters to."
 msgstr ""
+"Este ajuste añade una pared adicional a cada capa. De este modo, el relleno "
+"queda encajado verticalmente entre las paredes, dando como resultado "
+"impresiones más resistentes. \n"
+"\n"
+"Cuando se activa esta opción, es necesario desactivar la opción de "
+"\"Detección de paredes delgadas\". \n"
+"\n"
+"No se recomienda utilizar el \"relleno rayo\" junto con esta opción, ya que "
+"el relleno es muy limitado para anclar los perímetros adicionales al relleno."
 
 msgid ""
 "If you want to process the output G-code through custom scripts, just list "
@@ -11433,7 +11452,7 @@ msgstr ""
 "la curva."
 
 msgid "Wipe before external loop"
-msgstr ""
+msgstr "Limpiar antes del bucle exterior"
 
 msgid ""
 "To minimise visibility of potential overextrusion at the start of an "
@@ -13248,7 +13267,7 @@ msgid "Step value"
 msgstr "Valor del paso"
 
 msgid "0.5"
-msgstr ""
+msgstr "0.5"
 
 msgid "0.005"
 msgstr ""
@@ -13779,10 +13798,10 @@ msgid "Printable Space"
 msgstr "Espacio Imprimible"
 
 msgid "X"
-msgstr ""
+msgstr "X"
 
 msgid "Y"
-msgstr ""
+msgstr "Y"
 
 msgid "Hot Bed STL"
 msgstr "Cama Caliente STL"
