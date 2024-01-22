@@ -45,7 +45,10 @@ RegionExpansionParameters RegionExpansionParameters::build(
     // The expansion should not be too tiny, but also small enough, so the following expansion will
     // compensate for tiny_expansion and bring the wave back to the boundary without producing
     // ugly cusps where it touches the boundary.
-    out.tiny_expansion = std::min(0.25f * full_expansion, scaled<float>(0.05f));
+    
+    // Orca: increase min value from 0.05mm to 0.1mm to account for exception models where bridging fails to attach to the walls.
+    out.tiny_expansion = std::min(0.25f * full_expansion, scaled<float>(0.10f));
+    printf("Full expansion %f\n", unscale_(full_expansion));
     size_t nsteps = size_t(ceil((full_expansion - out.tiny_expansion) / expansion_step));
     if (max_nr_expansion_steps > 0)
         nsteps = std::min(nsteps, max_nr_expansion_steps);
