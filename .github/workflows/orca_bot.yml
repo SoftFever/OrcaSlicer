@@ -4,17 +4,17 @@ on:
     - cron: "0 0 * * *"
 
 jobs:
-  close-issues:
+  stale:
     runs-on: ubuntu-latest
     permissions:
       issues: write
       pull-requests: write
-      contents: write
+      contents: write # only for delete-branch option
     steps:
       - uses: actions/stale@v9
         with:
           # PAT for GitHub API authentication
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          repo-token: ${{ github.token }}
           # Max number of operations per run
           operations-per-run: 1000
           # Order to get issues/PRs
