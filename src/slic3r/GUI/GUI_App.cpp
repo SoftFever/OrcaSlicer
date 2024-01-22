@@ -1040,8 +1040,15 @@ void GUI_App::post_init()
 
 
         if (this->init_params->input_files.size() == 1 &&
-            boost::starts_with(this->init_params->input_files.front(), "orcaslicer://open")) {
-            auto input_str_arr = split_str(this->init_params->input_files.front(), "orcaslicer://open/?file=");
+            (boost::starts_with(this->init_params->input_files.front(), "orcaslicer://open") ||
+             boost::starts_with(this->init_params->input_files.front(), "prusaslicer://open"))) {
+
+            vector<string> input_str_arr;
+            if (boost::starts_with(this->init_params->input_files.front(), "prusaslicer://open")) {
+                input_str_arr = split_str(this->init_params->input_files.front(), "prusaslicer://open?file=");
+            } else {
+                input_str_arr = split_str(this->init_params->input_files.front(), "orcaslicer://open/?file=");
+            }
 
             std::string download_origin_url;
             for (auto input_str:input_str_arr) {
@@ -1051,7 +1058,7 @@ void GUI_App::post_init()
             std::string download_file_url = url_decode(download_origin_url);
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << download_file_url;
             if (!download_file_url.empty() && ( boost::starts_with(download_file_url, "http://") ||  boost::starts_with(download_file_url, "https://")) ) {
-                request_model_download(download_origin_url);
+                request_model_download(download_file_url);
             }
         }
         else {

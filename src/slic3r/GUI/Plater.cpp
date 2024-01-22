@@ -8581,8 +8581,9 @@ void Plater::import_model_id(wxString download_info)
     /* prepare project and profile */
     boost::thread import_thread = Slic3r::create_thread([&percent, &cont, &cancel, &retry_count, max_retries, &msg, &target_path, &download_ok, download_url, &filename] {
 
-        NetworkAgent* m_agent = Slic3r::GUI::wxGetApp().getAgent();
-        if (!m_agent) return;
+        // Orca: NetworkAgent is not needed and only prevents this from running
+//        NetworkAgent* m_agent = Slic3r::GUI::wxGetApp().getAgent();
+//        if (!m_agent) return;
 
         int res = 0;
         unsigned int http_code;
