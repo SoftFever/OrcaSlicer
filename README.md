@@ -1,7 +1,9 @@
 [![Build all](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_all.yml/badge.svg?branch=main)](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_all.yml)
 # Orca Slicer     
 Orca Slicer is an open source slicer for FDM printers.   
-You can download Orca Slicer here: [github releases page](https://github.com/SoftFever/OrcaSlicer/releases/).  
+You can download latest stable release here: [github releases page](https://github.com/SoftFever/OrcaSlicer/releases/latest).  
+If you're interested in trying the latest nightly build, you can download it from here. [here](https://github.com/SoftFever/OrcaSlicer/releases/tag/nightly-builds).  
+
 ![discord-mark-blue](https://github.com/SoftFever/OrcaSlicer/assets/103989404/b97d5ffc-072d-4d0a-bbda-e67ef373876f) Join community: [OrcaSlicer Official Discord Server](https://discord.gg/P4VE9UY9gJ)   
 
 # Main features
@@ -55,7 +57,7 @@ Orca Slicer's logo is designed by community member Justin Levine(@freejstnalxndr
     
 **Linux(Ubuntu)**:
  1. If you run into trouble to execute it, try this command in terminal:  
-    `chmod +x /path_to_appimage/OrcaSlicer_ubu64.AppImage`
+    `chmod +x /path_to_appimage/OrcaSlicer_Linux.AppImage`
     
 # How to compile
 - Windows 64-bit  
