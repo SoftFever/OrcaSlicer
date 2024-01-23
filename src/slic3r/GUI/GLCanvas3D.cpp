@@ -6422,7 +6422,17 @@ void GLCanvas3D::_resize(unsigned int w, unsigned int h)
     m_last_w = w;
     m_last_h = h;
 
-    const float font_size = 1.5f * wxGetApp().em_unit();
+    float font_size = wxGetApp().em_unit();
+
+#ifdef _WIN32
+    // On Windows, if manually scaled here, rendering issues can occur when the system's Display
+    // scaling is greater than 300% as the font's size gets to be to large. So, use imgui font
+    // scaling instead (see: ImGuiWrapper::init_font() and issue #3401)
+    font_size *= (font_size > 30.0f) ? 1.0f : 1.5f;
+#else
+    font_size *= 1.5f;
+#endif
+
 #if ENABLE_RETINA_GL
     imgui->set_scaling(font_size, 1.0f, m_retina_helper->get_scale_factor());
 #else
@@ -7294,10 +7304,10 @@ void GLCanvas3D::_render_overlays()
 
 	auto curr_plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
     auto curr_print_seq = curr_plate->get_real_print_seq();
-    bool sequential_print = (curr_print_seq == PrintSequence::ByObject);
+    const Print* print = fff_print();
+    bool sequential_print = (curr_print_seq == PrintSequence::ByObject) || print->config().print_order == PrintOrder::AsObjectList;
     std::vector<const ModelInstance*> sorted_instances;
     if (sequential_print) {
-        const Print* print = fff_print();
         if (print) {
             for (const PrintObject *print_object : print->objects())
             {
