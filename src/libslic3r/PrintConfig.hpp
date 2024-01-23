@@ -96,6 +96,7 @@ enum class WallSequence {
     InnerOuter,
     OuterInner,
     InnerOuterInner,
+    OuterOuterInner,
     Count,
 };
 //BBS
