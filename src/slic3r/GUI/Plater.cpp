@@ -2646,6 +2646,15 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
             sidebar_layout.is_collapsed = !sidebar.IsShown();
         }
 
+        // Keep tracking the current sidebar size, by storing it using `best_size`, which will be stored
+        // in the config and re-applied when the app is opened again.
+        this->sidebar->Bind(wxEVT_IDLE, [&sidebar, this](wxIdleEvent& e) {
+            if (sidebar.IsShown() && sidebar.IsDocked() && sidebar.rect.GetWidth() > 0) {
+                sidebar.BestSize(sidebar.rect.GetWidth(), sidebar.best_size.GetHeight());
+            }
+            e.Skip();
+        });
+
         // Hide sidebar initially, will re-show it after initialization when we got proper window size
         sidebar.Hide();
         m_aui_mgr.Update();
