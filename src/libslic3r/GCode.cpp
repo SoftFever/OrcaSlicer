@@ -5207,6 +5207,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             // Attention: G2 and G3 is not supported in spiral_mode mode
             if (!m_config.enable_arc_fitting || path.polyline.fitting_result.empty() || m_config.spiral_mode) {
                 for (const Line& line : path.polyline.lines()) {
+                    std::string tempDescription = description;
                     const double line_length = line.length() * SCALING_FACTOR;
                     path_length += line_length;
                     auto dE = e_per_mm * line_length;
@@ -5215,13 +5216,13 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                         dE = m_small_area_infill_flow_compensator->modify_flow(line_length, dE, path.role());
 
                         if (m_config.gcode_comments && oldE > 0 && oldE != dE) {
-                            description += Slic3r::format(" | Old Flow Value: %0.5f Length: %0.5f",oldE, line_length);
+                            tempDescription += Slic3r::format(" | Old Flow Value: %0.5f Length: %0.5f",oldE, line_length);
                         }
                     }
                     gcode += m_writer.extrude_to_xy(
                         this->point_to_gcode(line.b),
                         dE,
-                        GCodeWriter::full_gcode_comment ? description : "", path.is_force_no_extrusion());
+                        GCodeWriter::full_gcode_comment ? tempDescription : "", path.is_force_no_extrusion());
                 }
             } else {
                 // BBS: start to generate gcode from arc fitting data which includes line and arc
