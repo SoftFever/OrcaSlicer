@@ -131,10 +131,12 @@ void CaliPresetCaliStagePanel::set_flow_ratio_value(float flow_ratio)
 void CaliPresetCaliStagePanel::set_flow_ratio_calibration_type(FlowRatioCalibrationType type) {
     if (type == COMPLETE_CALIBRATION) {
         m_complete_radioBox->SetValue(true);
+        m_stage = CaliPresetStage::CALI_MANUAL_STAGE_1;
         input_panel->Hide();
     }
     else if (type == FINE_CALIBRATION) {
         m_fine_radioBox->SetValue(true);
+        m_stage = CaliPresetStage::CALI_MANUAL_STAGE_2;
         input_panel->Show();
     }
     GetParent()->Layout();
