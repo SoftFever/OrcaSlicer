@@ -4659,8 +4659,8 @@ bool Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
 
     BOOST_LOG_TRIVIAL(info) << boost::format("before delete action, canceled %1%, delete_current %2%") %canceled %delete_current;
     bool        delete_third_printer = false;
-    std::vector<Preset> filament_presets;
-    std::vector<Preset> process_presets;
+    std::deque<Preset> filament_presets;
+    std::deque<Preset> process_presets;
     if (! canceled && delete_current) {
         // Delete the file and select some other reasonable preset.
         // It does not matter which preset will be made active as the preset will be re-selected from the preset_name variable.
@@ -4673,10 +4673,22 @@ bool Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
             if (m_preset_bundle && m_presets->get_preset_base(current_preset) == &current_preset && printer_tab && !current_preset.is_system) {
                 delete_third_printer = true;
                 for (const Preset &preset : m_preset_bundle->filaments.get_presets()) {
-                    if (preset.is_compatible && !preset.is_default) { filament_presets.push_back(preset); }
+                    if (preset.is_compatible && !preset.is_default) {
+                        if (preset.inherits() != "") 
+                            filament_presets.push_front(preset);
+                        else
+                            filament_presets.push_back(preset);
+                        if (!preset.setting_id.empty()) { m_preset_bundle->filaments.set_sync_info_and_save(preset.name, preset.setting_id, "delete", 0); }
+                    }
                 }
                 for (const Preset &preset : m_preset_bundle->prints.get_presets()) {
-                    if (preset.is_compatible && !preset.is_default) { process_presets.push_back(preset); }
+                    if (preset.is_compatible && !preset.is_default) {
+                        if (preset.inherits() != "")
+                            process_presets.push_front(preset);
+                        else
+                            process_presets.push_back(preset);
+                        if (!preset.setting_id.empty()) { m_preset_bundle->filaments.set_sync_info_and_save(preset.name, preset.setting_id, "delete", 0); }
+                    }
                 }
             }
             if (!current_preset.setting_id.empty()) {
@@ -4771,7 +4783,6 @@ bool Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
 
                 for (const Preset &preset : filament_presets) {
                     if (!preset.setting_id.empty()) {
-                        preset_bundle->filaments.set_sync_info_and_save(preset.name, preset.setting_id, "delete", 0);
                         wxGetApp().delete_preset_from_cloud(preset.setting_id);
                     }
                     BOOST_LOG_TRIVIAL(info) << "delete filament preset = " << preset.name << ", setting_id = " << preset.setting_id;
@@ -4780,7 +4791,6 @@ bool Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
 
                 for (const Preset &preset : process_presets) {
                     if (!preset.setting_id.empty()) {
-                        preset_bundle->prints.set_sync_info_and_save(preset.name, preset.setting_id, "delete", 0);
                         wxGetApp().delete_preset_from_cloud(preset.setting_id);
                     }
                     BOOST_LOG_TRIVIAL(info) << "delete print preset = " << preset.name << ", setting_id = " << preset.setting_id;
