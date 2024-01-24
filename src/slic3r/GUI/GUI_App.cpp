@@ -3185,14 +3185,17 @@ void GUI_App::UpdateDVCDarkUI(wxDataViewCtrl* dvc, bool highlited/* = false*/)
     UpdateDarkUI(dvc, highlited ? dark_mode() : false);
 #ifdef _MSW_DARK_MODE
     //dvc->RefreshHeaderDarkMode(&m_normal_font);
-    HWND hwnd = (HWND)dvc->GenericGetHeader()->GetHandle();
-    hwnd = GetWindow(hwnd, GW_CHILD);
-    if (hwnd != NULL)
-        NppDarkMode::SetDarkListViewHeader(hwnd);
-    wxItemAttr attr;
-    attr.SetTextColour(NppDarkMode::GetTextColor());
-    attr.SetFont(m_normal_font);
-    dvc->SetHeaderAttr(attr);
+    HWND hwnd;
+    if (!dvc->HasFlag(wxDV_NO_HEADER)) {
+        hwnd = (HWND) dvc->GenericGetHeader()->GetHandle();
+        hwnd = GetWindow(hwnd, GW_CHILD);
+        if (hwnd != NULL)
+            NppDarkMode::SetDarkListViewHeader(hwnd);
+        wxItemAttr attr;
+        attr.SetTextColour(NppDarkMode::GetTextColor());
+        attr.SetFont(m_normal_font);
+        dvc->SetHeaderAttr(attr);
+    }
 #endif //_MSW_DARK_MODE
     if (dvc->HasFlag(wxDV_ROW_LINES))
         dvc->SetAlternateRowColour(m_color_highlight_default);
@@ -3755,8 +3758,7 @@ void GUI_App::request_user_logout()
         bool     transfer_preset_changes = false;
         wxString header = _L("Some presets are modified.") + "\n" +
             _L("You can keep the modifield presets to the new project, discard or save changes as new presets.");
-        using ab        = UnsavedChangesDialog::ActionButtons;
-        wxGetApp().check_and_keep_current_preset_changes(_L("User logged out"), header, ab::KEEP | ab::SAVE, &transfer_preset_changes);
+        wxGetApp().check_and_keep_current_preset_changes(_L("User logged out"), header, ActionButtons::KEEP | ActionButtons::SAVE, &transfer_preset_changes);
 
         m_device_manager->clean_user_info();
         GUI::wxGetApp().sidebar().load_ams_list({}, {});
@@ -5603,11 +5605,11 @@ std::vector<std::pair<unsigned int, std::string>> GUI_App::get_selected_presets(
 bool GUI_App::check_and_save_current_preset_changes(const wxString& caption, const wxString& header, bool remember_choice/* = true*/, bool dont_save_insted_of_discard/* = false*/)
 {
     if (has_current_preset_changes()) {
-        int act_buttons = UnsavedChangesDialog::ActionButtons::SAVE;
+        int act_buttons = ActionButtons::SAVE;
         if (dont_save_insted_of_discard)
-            act_buttons |= UnsavedChangesDialog::ActionButtons::DONT_SAVE;
+            act_buttons |= ActionButtons::DONT_SAVE;
         if (remember_choice)
-            act_buttons |= UnsavedChangesDialog::ActionButtons::REMEMBER_CHOISE;
+            act_buttons |= ActionButtons::REMEMBER_CHOISE;
         UnsavedChangesDialog dlg(caption, header, "", act_buttons);
         if (dlg.ShowModal() == wxID_CANCEL)
             return false;
