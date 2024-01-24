@@ -1324,8 +1324,11 @@ void Selection::scale_legacy(const Vec3d& scale, TransformationType transformati
                     v.set_instance_offset(m_cache.dragging_center + m * (m_cache.volumes_data[i].get_instance_position() - m_cache.dragging_center));
 
                 v.set_instance_scaling_factor(new_scale);
+                // Restore mirror state
+                v.set_instance_mirror(m_cache.volumes_data[i].get_instance_transform().get_mirror());
             }
             else {
+                const auto mirror = v.get_instance_mirror();
                 if (transformation_type.world() && (std::abs(scale.x() - scale.y()) > EPSILON || std::abs(scale.x() - scale.z()) > EPSILON)) {
                     // Non-uniform scaling. Transform the scaling factors into the local coordinate system.
                     // This is only possible, if the instance rotation is mulitples of ninety degrees.
@@ -1334,16 +1337,24 @@ void Selection::scale_legacy(const Vec3d& scale, TransformationType transformati
                 }
                 else
                     v.set_instance_scaling_factor(scale);
+                // Restore mirror state
+                v.set_instance_mirror(mirror);
             }
 
             // update the instance assemble transform
             ModelObject* object = m_model->objects[v.object_idx()];
             Geometry::Transformation assemble_transform = object->instances[v.instance_idx()]->get_assemble_transformation();
+            const auto               mirror             = assemble_transform.get_mirror();
             assemble_transform.set_scaling_factor(v.get_instance_scaling_factor());
+            assemble_transform.set_mirror(mirror);
             object->instances[v.instance_idx()]->set_assemble_transformation(assemble_transform);
         }
-        else if (is_single_volume() || is_single_modifier())
+        else if (is_single_volume() || is_single_modifier()) {
+            const auto mirror = v.get_volume_transformation().get_mirror();
             v.set_volume_scaling_factor(scale);
+            // Restore mirror state
+            v.set_volume_mirror(mirror);
+        }
         else {
             Transform3d m = Geometry::assemble_transform(Vec3d::Zero(), Vec3d::Zero(), scale);
             if (m_mode == Instance) {
@@ -1354,6 +1365,8 @@ void Selection::scale_legacy(const Vec3d& scale, TransformationType transformati
                     v.set_instance_offset(m_cache.dragging_center + m * (m_cache.volumes_data[i].get_instance_position() - m_cache.dragging_center));
 
                 v.set_instance_scaling_factor(new_scale);
+                // Restore mirror state
+                v.set_instance_mirror(m_cache.volumes_data[i].get_instance_transform().get_mirror());
             }
             else if (m_mode == Volume) {
                 Eigen::Matrix<double, 3, 3, Eigen::DontAlign> new_matrix = (m * m_cache.volumes_data[i].get_volume_scale_matrix()).matrix().block(0, 0, 3, 3);
@@ -1364,6 +1377,8 @@ void Selection::scale_legacy(const Vec3d& scale, TransformationType transformati
                     v.set_volume_offset(m_cache.dragging_center - m_cache.volumes_data[i].get_instance_position() + offset);
                 }
                 v.set_volume_scaling_factor(new_scale);
+                // Restore mirror state
+                v.set_volume_mirror(m_cache.volumes_data[i].get_volume_transform().get_mirror());
             }
         }
     }
