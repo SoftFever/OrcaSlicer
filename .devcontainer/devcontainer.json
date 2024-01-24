@@ -1,7 +1,7 @@
 {
 	"name": "OrcaSlicer",
 	"image": "mcr.microsoft.com/devcontainers/cpp",
-	"runArgs": ["--env-file", ".devcontainer/temp.env"],
+	"runArgs": ["--env-file", "/tmp/devcontainer.env"],
     "features": {
         "ghcr.io/devcontainers/features/desktop-lite:1": {}
     },
@@ -28,7 +28,7 @@
 		}
 	},
 	
-    "forwardPorts": [6080, 2222],
+    "forwardPorts": [6080],
 	"portsAttributes": {
 		"6080": {
 			"label": "VNC web client (noVNC)",
@@ -40,10 +40,7 @@
 	},
 	
 	"initializeCommand": {
-		"Setup Temporary Env File": "echo \"CORES=`nproc --all`\" > .devcontainer/temp.env"
-	},
-	"postStartCommand": {
-		"Remove temporary env file": "sudo rm .devcontainer/temp.env"
+		"Setup Temporary Env File": "echo \"CORES=`nproc --all`\" > /tmp/devcontainer.env"
 	},
 	"onCreateCommand": {
 		"Set postCreate executable flag": "chmod +x .devcontainer/postCreate.sh"
