@@ -771,7 +771,7 @@ bool GuideFrame::apply_config(AppConfig *app_config, PresetBundle *preset_bundle
     check_unsaved_preset_changes = (enabled_vendors != old_enabled_vendors) || (enabled_filaments != old_enabled_filaments);
     wxString header = _L("The configuration package is changed in previous Config Guide");
     wxString caption = _L("Configuration package changed");
-    int act_btns = UnsavedChangesDialog::ActionButtons::KEEP|UnsavedChangesDialog::ActionButtons::SAVE;
+    int act_btns = ActionButtons::KEEP|ActionButtons::SAVE;
 
     if (check_unsaved_preset_changes &&
         !wxGetApp().check_and_keep_current_preset_changes(caption, header, act_btns, &apply_keeped_changes))

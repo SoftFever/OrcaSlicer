@@ -1,3 +1,17 @@
+///|/ Copyright (c) Prusa Research 2017 - 2023 Oleksandra Iushchenko @YuSanka, Tomáš Mészáros @tamasmeszaros, Vojtěch Bubník @bubnikv, Lukáš Matěna @lukasmatena, Enrico Turri @enricoturri1966, Vojtěch Král @vojtechkral
+///|/ Copyright (c) 2019 John Drake @foxox
+///|/ Copyright (c) 2018 Martin Loidl @LoidlM
+///|/
+///|/ ported from lib/Slic3r/GUI/Tab.pm:
+///|/ Copyright (c) Prusa Research 2016 - 2018 Vojtěch Bubník @bubnikv, Lukáš Matěna @lukasmatena
+///|/ Copyright (c) 2015 - 2017 Joseph Lenox @lordofhyphens
+///|/ Copyright (c) Slic3r 2012 - 2016 Alessandro Ranellucci @alranel
+///|/ Copyright (c) 2016 Chow Loong Jin @hyperair
+///|/ Copyright (c) 2012 QuantumConcepts
+///|/ Copyright (c) 2012 Henrik Brix Andersen @henrikbrixandersen
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #ifndef slic3r_Tab_hpp_
 #define slic3r_Tab_hpp_
 
@@ -338,6 +352,7 @@ public:
 	void		OnKeyDown(wxKeyEvent& event);
 
 	void		compare_preset();
+	void		transfer_options(const std::string&name_from, const std::string&name_to, std::vector<std::string> options);
 	//BBS: add project embedded preset relate logic
 	void        save_preset(std::string name = std::string(), bool detach = false, bool save_to_project = false, bool from_input = false, std::string input_name = "");
 	//void		save_preset(std::string name = std::string(), bool detach = false);
@@ -396,7 +411,7 @@ public:
     void            update_wiping_button_visibility();
 	void			activate_option(const std::string& opt_key, const wxString& category);
     void			apply_searcher();
-	void			cache_config_diff(const std::vector<std::string>& selected_options);
+	void			cache_config_diff(const std::vector<std::string>& selected_options, const DynamicPrintConfig* config = nullptr);
 	void			apply_config_from_cache();
     void            show_timelapse_warning_dialog();
 
@@ -625,7 +640,7 @@ public:
 	bool 		supports_printer_technology(const PrinterTechnology /* tech */) const override { return true; }
 
 	wxSizer*	create_bed_shape_widget(wxWindow* parent);
-	void		cache_extruder_cnt();
+	void		cache_extruder_cnt(const DynamicPrintConfig* config = nullptr);
 	bool		apply_extruder_cnt_from_cache();
 
 };

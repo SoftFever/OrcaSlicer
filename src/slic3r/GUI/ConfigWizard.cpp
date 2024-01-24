@@ -2405,9 +2405,9 @@ bool ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
     bool check_unsaved_preset_changes = false;
     if (check_unsaved_preset_changes)
         header = _L("All user presets will be deleted.");
-    int act_btns = UnsavedChangesDialog::ActionButtons::KEEP;
+    int act_btns = ActionButtons::KEEP;
     if (!check_unsaved_preset_changes)
-        act_btns |= UnsavedChangesDialog::ActionButtons::SAVE;
+        act_btns |= ActionButtons::SAVE;
 
     // Install bundles from resources if needed:
     std::vector<std::string> install_bundles;
