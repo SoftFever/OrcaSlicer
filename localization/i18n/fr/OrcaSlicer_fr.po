@@ -6152,7 +6152,7 @@ msgid "Units"
 msgstr "Unités"
 
 msgid "Home"
-msgstr "Acceuil"
+msgstr "Accueil"
 
 msgid "Default Page"
 msgstr "Page par défaut"
