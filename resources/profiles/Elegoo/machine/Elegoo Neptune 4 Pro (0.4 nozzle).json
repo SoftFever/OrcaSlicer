@@ -14,14 +14,13 @@
 	"printer_variant": "0.4",
 	"printable_area": [
 		"0x0",
-		"225x0",
-		"225x225",
-		"0x225"
+		"235x0",
+		"235x230",
+		"0x230"
 	],
 	"printable_height": "265",
 	"nozzle_type": "hardened_steel",
 	"auxiliary_fan": "0",
-
 	"max_layer_height": [
 		"0.32"
 	],

@@ -144,6 +144,11 @@ const std::string& sys_shapes_dir();
 // Return a full path to the custom shapes gallery directory.
 std::string custom_shapes_dir();
 
+// Set a path with shapes gallery files.
+void set_custom_gcodes_dir(const std::string &path);
+// Return a full path to the system shapes gallery directory.
+const std::string& custom_gcodes_dir();
+
 // Set a path with preset files.
 void set_data_dir(const std::string &path);
 // Return a full path to the GUI resource files.

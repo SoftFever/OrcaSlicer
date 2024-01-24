@@ -1585,6 +1585,21 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
 
     check_placeholder_parser_failed();
 
+#if ORCA_CHECK_GCODE_PLACEHOLDERS
+    if (!m_placeholder_error_messages.empty()){
+        std::ostringstream message;
+        message << "Some EditGcodeDialog defs were not specified properly. Do so in PrintConfig under SlicingStatesConfigDef:" << std::endl;
+        for (const auto& error : m_placeholder_error_messages) {
+            message << std::endl << error.first << ": " << std::endl;
+            for (const auto& str : error.second)
+                message << str << ", ";
+            message.seekp(-2, std::ios_base::end);
+            message << std::endl;
+        }
+        throw Slic3r::PlaceholderParserError(message.str());
+    }
+#endif
+
     BOOST_LOG_TRIVIAL(debug) << "Start processing gcode, " << log_memory_info();
     // Post-process the G-code to update time stamps.
 
@@ -2936,6 +2951,42 @@ void GCode::process_layers(
 
 std::string GCode::placeholder_parser_process(const std::string &name, const std::string &templ, unsigned int current_extruder_id, const DynamicConfig *config_override)
 {
+    // Orca: Added CMake config option since debug is rarely used in current workflow.
+    // Also changed from throwing error immediately to storing messages till slicing is completed
+    // to raise all errors at the same time.
+#if !defined(NDEBUG) || ORCA_CHECK_GCODE_PLACEHOLDERS // CHECK_CUSTOM_GCODE_PLACEHOLDERS
+    if (config_override) {
+        const auto& custom_gcode_placeholders = custom_gcode_specific_placeholders();
+
+        // 1-st check: custom G-code "name" have to be present in s_CustomGcodeSpecificOptions;
+        //if (custom_gcode_placeholders.count(name) > 0) {
+        //    const auto& placeholders = custom_gcode_placeholders.at(name);
+        if (auto it = custom_gcode_placeholders.find(name); it != custom_gcode_placeholders.end()) {
+            const auto& placeholders = it->second;
+
+            for (const std::string& key : config_override->keys()) {
+                // 2-nd check: "key" have to be present in s_CustomGcodeSpecificOptions for "name" custom G-code ;
+                if (std::find(placeholders.begin(), placeholders.end(), key) == placeholders.end()) {
+                    auto& vector = m_placeholder_error_messages[name + " - option not specified for custom gcode type (s_CustomGcodeSpecificOptions)"];
+                    if (std::find(vector.begin(), vector.end(), key) == vector.end())
+                        vector.emplace_back(key);
+                }
+                // 3-rd check: "key" have to be present in CustomGcodeSpecificConfigDef for "key" placeholder;
+                if (!custom_gcode_specific_config_def.has(key)) {
+                    auto& vector = m_placeholder_error_messages[name + " - option has no definition (CustomGcodeSpecificConfigDef)"];
+                    if (std::find(vector.begin(), vector.end(), key) == vector.end())
+                        vector.emplace_back(key);
+                }
+            }
+        }
+        else {
+            auto& vector = m_placeholder_error_messages[name + " - gcode type not found in s_CustomGcodeSpecificOptions"];
+            if (vector.empty())
+                vector.emplace_back("");
+        }
+    }
+#endif
+
 PlaceholderParserIntegration &ppi = m_placeholder_parser_integration;
     try {
         ppi.update_from_gcodewriter(m_writer);
@@ -3528,7 +3579,7 @@ LayerResult GCode::process_layer(
     m_last_height = height;
 
     // Set new layer - this will change Z and force a retraction if retract_when_changing_layer is enabled.
-    if (! print.config().before_layer_change_gcode.value.empty()) {
+    if (! m_config.before_layer_change_gcode.value.empty()) {
         DynamicConfig config;
         config.set_key_value("layer_num",   new ConfigOptionInt(m_layer_index + 1));
         config.set_key_value("layer_z",     new ConfigOptionFloat(print_z));
@@ -3551,7 +3602,7 @@ LayerResult GCode::process_layer(
 
     auto insert_timelapse_gcode = [this, print_z, &print]() -> std::string {
         std::string gcode_res;
-        if (!print.config().time_lapse_gcode.value.empty()) {
+        if (!m_config.time_lapse_gcode.value.empty()) {
             DynamicConfig config;
             config.set_key_value("layer_num", new ConfigOptionInt(m_layer_index));
             config.set_key_value("layer_z", new ConfigOptionFloat(print_z));
@@ -3579,7 +3630,7 @@ LayerResult GCode::process_layer(
             }
         }
     } else {
-        if (!print.config().time_lapse_gcode.value.empty()) {
+        if (!m_config.time_lapse_gcode.value.empty()) {
             DynamicConfig config;
             config.set_key_value("layer_num", new ConfigOptionInt(m_layer_index));
             config.set_key_value("layer_z", new ConfigOptionFloat(print_z));
@@ -3589,7 +3640,7 @@ LayerResult GCode::process_layer(
                      "\n";
         }
     }
-    if (! print.config().layer_change_gcode.value.empty()) {
+    if (! m_config.layer_change_gcode.value.empty()) {
         DynamicConfig config;
         config.set_key_value("layer_num", new ConfigOptionInt(m_layer_index));
         config.set_key_value("layer_z",   new ConfigOptionFloat(print_z));
@@ -4287,6 +4338,33 @@ void GCode::apply_print_config(const PrintConfig &print_config)
     m_writer.apply_print_config(print_config);
     m_config.apply(print_config);
     m_scaled_resolution = scaled<double>(print_config.resolution.value);
+
+#if ORCA_CHECK_GCODE_PLACEHOLDERS
+    // If the gcode value is empty, set a value so that the check code within the parser is run
+    for (auto opt : std::initializer_list<ConfigOptionString*>{
+             &m_config.machine_start_gcode,
+             &m_config.machine_end_gcode,
+             &m_config.before_layer_change_gcode,
+             &m_config.layer_change_gcode,
+             &m_config.time_lapse_gcode,
+             &m_config.change_filament_gcode,
+             &m_config.change_extrusion_role_gcode,
+             &m_config.printing_by_object_gcode,
+             &m_config.machine_pause_gcode,
+             &m_config.template_custom_gcode,
+         }) {
+        if (opt->empty())
+            opt->set(new ConfigOptionString(";VALUE FOR TESTING"));
+    }
+    for (auto opt : std::initializer_list<ConfigOptionStrings*>{
+             &m_config.filament_start_gcode,
+             &m_config.filament_end_gcode
+         }) {
+        if (opt->empty())
+            for (int i = 0; i < opt->size(); ++i)
+                opt->set_at(new ConfigOptionString(";VALUE FOR TESTING"), i, 0);
+    }
+#endif
 }
 
 void GCode::append_full_config(const Print &print, std::string &str)
