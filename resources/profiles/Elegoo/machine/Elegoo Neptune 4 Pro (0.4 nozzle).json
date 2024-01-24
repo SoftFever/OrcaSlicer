@@ -13,10 +13,10 @@
 	],
 	"printer_variant": "0.4",
 	"printable_area": [
-		"0x5",
-		"235x5",
-		"235x235",
-		"0x235"
+		"0x0",
+		"235x0",
+		"235x230",
+		"0x230"
 	],
 	"printable_height": "265",
 	"nozzle_type": "hardened_steel",
