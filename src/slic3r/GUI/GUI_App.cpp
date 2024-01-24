@@ -745,6 +745,7 @@ static const FileWildcards file_wildcards_by_type[FT_SIZE] = {
 #else
     /* FT_MODEL */   {"Supported files"sv,  {".3mf"sv, ".stl"sv, ".stp"sv, ".step"sv, ".svg"sv, ".amf"sv, ".obj"sv }},
 #endif
+    /* FT_ZIP */     { "ZIP files"sv,       { ".zip"sv } },
     /* FT_PROJECT */ { "Project files"sv,   { ".3mf"sv} },
     /* FT_GALLERY */ { "Known files"sv,     { ".stl"sv, ".obj"sv } },
 
@@ -3667,6 +3668,17 @@ void GUI_App::import_model(wxWindow *parent, wxArrayString& input_files) const
 
     if (dialog.ShowModal() == wxID_OK)
         dialog.GetPaths(input_files);
+}
+
+void GUI_App::import_zip(wxWindow* parent, wxString& input_file) const
+{
+    wxFileDialog dialog(parent ? parent : GetTopWindow(),
+                        _L("Choose ZIP file") + ":",
+                        from_u8(app_config->get_last_dir()), "",
+                        file_wildcards(FT_ZIP), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+
+    if (dialog.ShowModal() == wxID_OK)
+        input_file = dialog.GetPath();
 }
 
 void GUI_App::load_gcode(wxWindow* parent, wxString& input_file) const

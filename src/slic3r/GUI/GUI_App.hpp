@@ -85,6 +85,7 @@ enum FileType
     FT_3MF,
     FT_GCODE,
     FT_MODEL,
+    FT_ZIP,
     FT_PROJECT,
     FT_GALLERY,
 
@@ -411,6 +412,7 @@ private:
     void            keyboard_shortcuts();
     void            load_project(wxWindow *parent, wxString& input_file) const;
     void            import_model(wxWindow *parent, wxArrayString& input_files) const;
+    void            import_zip(wxWindow* parent, wxString& input_file) const;
     void            load_gcode(wxWindow* parent, wxString& input_file) const;
 
     wxString transition_tridid(int trid_id);

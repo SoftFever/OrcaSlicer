@@ -2245,6 +2245,9 @@ void MainFrame::init_menubar_as_editor()
             [this](wxCommandEvent&) { if (m_plater) { m_plater->add_model(); } }, "", nullptr,
             [this](){return can_add_models(); }, this);
 #endif
+        append_menu_item(import_menu, wxID_ANY, _L("Import Zip Archive") + dots, _L("Load models contained within a zip archive"),
+            [this](wxCommandEvent&) { if (m_plater) m_plater->import_zip_archive(); }, "menu_import", nullptr,
+            [this]() { return can_add_models(); });
         append_menu_item(import_menu, wxID_ANY, _L("Import Configs") + dots /*+ "\tCtrl+I"*/, _L("Load configs"),
             [this](wxCommandEvent&) { load_config_file(); }, "menu_import", nullptr,
             [this](){return true; }, this);
