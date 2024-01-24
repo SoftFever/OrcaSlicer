@@ -131,7 +131,7 @@ jobs:
           path: ${{ github.workspace }}/OrcaSlicer_Mac_${{inputs.arch}}_${{ env.ver }}.dmg
 
       - name: Deploy Mac release
-        if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/feature/nightly_release') && inputs.os == 'macos-12'
+        if: github.ref == 'refs/heads/main' && inputs.os == 'macos-12'
         uses: WebFreak001/deploy-nightly@v3.0.0
         with:
           upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label} 
@@ -197,7 +197,7 @@ jobs:
           path: ${{ github.workspace }}/build/src/Release/Debug_PDB_${{ env.ver }}_for_developers_only.7z
 
       - name: Deploy Windows release portable
-        if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/feature/nightly_release') && inputs.os == 'windows-latest'
+        if: github.ref == 'refs/heads/main' && inputs.os == 'windows-latest'
         uses: WebFreak001/deploy-nightly@v3.0.0
         with:
           upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label} 
@@ -208,7 +208,7 @@ jobs:
           max_releases: 1 
 
       - name: Deploy Windows release installer
-        if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/feature/nightly_release') && inputs.os == 'windows-latest'
+        if: github.ref == 'refs/heads/main' && inputs.os == 'windows-latest'
         uses: WebFreak001/deploy-nightly@v3.0.0
         with:
           upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label} 
@@ -254,7 +254,7 @@ jobs:
           path: './build/OrcaSlicer_Linux_${{ env.ver }}.AppImage'
 
       - name: Deploy Ubuntu release
-        if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/feature/nightly_release') && inputs.os == 'ubuntu-20.04'
+        if: github.ref == 'refs/heads/main' && inputs.os == 'ubuntu-20.04'
         uses: WebFreak001/deploy-nightly@v3.0.0
         with:
           upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label} 
