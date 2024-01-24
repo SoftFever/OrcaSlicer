@@ -201,6 +201,8 @@ protected:
 	ScalableBitmap 		   *m_bmp_non_system;
 	// Bitmaps to be shown on the "Undo user changes" button next to each input field.
 	ScalableBitmap 			m_bmp_value_revert;
+    // Bitmaps to be shown on the "Undo user changes" button next to each input field.
+    ScalableBitmap 			m_bmp_edit_value;
 
     std::vector<ScalableButton*>	m_scaled_buttons = {};
     std::vector<ScalableBitmap*>	m_scaled_bitmaps = {};
@@ -374,6 +376,7 @@ public:
     virtual void    msw_rescale();
     virtual void	sys_color_changed();
 	Field*			get_field(const t_config_option_key& opt_key, int opt_index = -1) const;
+	Line*			get_line(const t_config_option_key& opt_key);
 	std::pair<OG_CustomCtrl*, bool*> get_custom_ctrl_with_blinking_ptr(const t_config_option_key& opt_key, int opt_index = -1);
 
     Field*          get_field(const t_config_option_key &opt_key, Page** selected_page, int opt_index = -1);
@@ -410,6 +413,10 @@ public:
     bool        validate_custom_gcodes_was_shown{ false };
     void        set_just_edit(bool just_edit);
 
+    void						edit_custom_gcode(const t_config_option_key& opt_key);
+    virtual const std::string&	get_custom_gcode(const t_config_option_key& opt_key);
+    virtual void				set_custom_gcode(const t_config_option_key& opt_key, const std::string& value);
+
 protected:
 	void			create_line_with_widget(ConfigOptionsGroup* optgroup, const std::string& opt_key, const std::string& path, widget_t widget);
 	wxSizer*		compatible_widget_create(wxWindow* parent, PresetDependencies &deps);
@@ -427,6 +434,7 @@ protected:
 
     ConfigManipulation m_config_manipulation;
     ConfigManipulation get_config_manipulation();
+    friend class EditGCodeDialog;
 };
 
 class TabPrint : public Tab
@@ -562,6 +570,9 @@ public:
 	void		update() override;
 	void		clear_pages() override;
 	bool 		supports_printer_technology(const PrinterTechnology tech) const override { return tech == ptFFF; }
+
+    const std::string&	get_custom_gcode(const t_config_option_key& opt_key) override;
+    void				set_custom_gcode(const t_config_option_key& opt_key, const std::string& value) override;
 };
 
 class TabPrinter : public Tab

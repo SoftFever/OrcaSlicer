@@ -1465,6 +1465,74 @@ public:
     CLIMiscConfigDef();
 };
 
+typedef std::string t_custom_gcode_key;
+// This map containes list of specific placeholders for each custom G-code, if any exist
+const std::map<t_custom_gcode_key, t_config_option_keys>& custom_gcode_specific_placeholders();
+
+// Next classes define placeholders used by GUI::EditGCodeDialog.
+
+class ReadOnlySlicingStatesConfigDef : public ConfigDef
+{
+public:
+    ReadOnlySlicingStatesConfigDef();
+};
+
+class ReadWriteSlicingStatesConfigDef : public ConfigDef
+{
+public:
+    ReadWriteSlicingStatesConfigDef();
+};
+
+class OtherSlicingStatesConfigDef : public ConfigDef
+{
+public:
+    OtherSlicingStatesConfigDef();
+};
+
+class PrintStatisticsConfigDef : public ConfigDef
+{
+public:
+    PrintStatisticsConfigDef();
+};
+
+class ObjectsInfoConfigDef : public ConfigDef
+{
+public:
+    ObjectsInfoConfigDef();
+};
+
+class DimensionsConfigDef : public ConfigDef
+{
+public:
+    DimensionsConfigDef();
+};
+
+class TemperaturesConfigDef : public ConfigDef
+{
+public:
+    TemperaturesConfigDef();
+};
+
+class TimestampsConfigDef : public ConfigDef
+{
+public:
+    TimestampsConfigDef();
+};
+
+class OtherPresetsConfigDef : public ConfigDef
+{
+public:
+    OtherPresetsConfigDef();
+};
+
+// This classes defines all custom G-code specific placeholders.
+class CustomGcodeSpecificConfigDef : public ConfigDef
+{
+public:
+    CustomGcodeSpecificConfigDef();
+};
+extern const CustomGcodeSpecificConfigDef    custom_gcode_specific_config_def;
+
 // This class defines the command line options representing actions.
 extern const CLIActionsConfigDef    cli_actions_config_def;
 
