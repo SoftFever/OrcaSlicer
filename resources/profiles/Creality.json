@@ -621,6 +621,10 @@
 			"sub_path": "filament/fdm_filament_asa.json"
 		},
 		{
+			"name": "fdm_filament_pa",
+			"sub_path": "filament/fdm_filament_pa.json"
+		},
+		{
 			"name": "fdm_filament_pc",
 			"sub_path": "filament/fdm_filament_pc.json"
 		},
@@ -643,6 +647,14 @@
 		{
 			"name": "Creality Generic ASA",
 			"sub_path": "filament/Creality Generic ASA.json"
+		},
+		{
+			"name": "Creality Generic PA-CF",
+			"sub_path": "filament/Creality Generic PA-CF.json"
+		},
+		{
+			"name": "Creality Generic PC",
+			"sub_path": "filament/Creality Generic PC.json"
 		},
 		{
 			"name": "Creality Generic PETG",
@@ -707,6 +719,14 @@
 		{
 			"name": "Creality Generic ASA @K1-all",
 			"sub_path": "filament/Creality Generic ASA @K1-all.json"
+		},
+		{
+			"name": "Creality Generic PA-CF @K1-all",
+			"sub_path": "filament/Creality Generic PA-CF @K1-all.json"
+		},
+		{
+			"name": "Creality Generic PC @K1-all",
+			"sub_path": "filament/Creality Generic PC @K1-all.json"
 		},
 		{
 			"name": "Creality Generic PETG @K1-all",
