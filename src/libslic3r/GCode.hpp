@@ -183,7 +183,8 @@ public:
         m_last_obj_copy(nullptr, Point(std::numeric_limits<coord_t>::max(), std::numeric_limits<coord_t>::max())),
         // BBS
         m_toolchange_count(0),
-        m_nominal_z(0.)
+        m_nominal_z(0.),
+        m_nominal_z_prev(0.)
         {}
     ~GCode() = default;
 
@@ -563,6 +564,8 @@ private:
     Print* m_curr_print = nullptr;
     unsigned int m_toolchange_count;
     coordf_t m_nominal_z;
+    // Orca: previous layer z, used as the start z of a seam slope
+    coordf_t m_nominal_z_prev;
     bool m_need_change_layer_lift_z = false;
     int m_start_gcode_filament = -1;
 

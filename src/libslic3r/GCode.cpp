@@ -4458,6 +4458,8 @@ std::string GCode::change_layer(coordf_t print_z)
         m_need_change_layer_lift_z = true;
     }
 
+    // Orca: remember z of previous layer
+    m_nominal_z_prev = m_nominal_z;
     m_nominal_z = z;
 
     // forget last wiping path as wiping after raising Z is pointless
