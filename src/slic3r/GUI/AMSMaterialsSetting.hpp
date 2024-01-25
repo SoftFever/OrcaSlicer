@@ -33,6 +33,7 @@ class ColorPicker : public wxWindow
 {
 public:
     wxBitmap        m_bitmap_border;
+    wxBitmap        m_bitmap_border_dark;
     wxBitmap        m_bitmap_transparent;
     wxBitmap        m_bitmap_transparent_def; //default transparent material
 

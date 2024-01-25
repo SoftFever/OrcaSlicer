@@ -1121,12 +1121,14 @@ ColorPicker::~ColorPicker(){}
 void ColorPicker::msw_rescale()
 {
     m_bitmap_border = create_scaled_bitmap("color_picker_border", nullptr, 25);
+    m_bitmap_border_dark = create_scaled_bitmap("color_picker_border_dark", nullptr, 25);
+
     Refresh();
 }
 
 void ColorPicker::set_color(wxColour col)
 {
-    if (m_colour != col&&col.Alpha()!=0&&col.Alpha()!=255) {
+    if (m_colour != col && col.Alpha() != 0 && col.Alpha() != 255 && col.Alpha() != 254) {
         transparent_changed = true;
     }
     m_colour = col;
@@ -1176,14 +1178,14 @@ void ColorPicker::doRender(wxDC& dc)
     if (alpha == 0) {
         dc.DrawBitmap(m_bitmap_transparent_def, 0, 0);
     }
-    else if (alpha != 0 && alpha != 255) {
+    else if (alpha != 254 && alpha != 255) {
         if (transparent_changed) {
             std::string rgb = (m_colour.GetAsString(wxC2S_HTML_SYNTAX)).ToStdString();
             if (rgb.size() == 9) {
                 //delete alpha value
                 rgb = rgb.substr(0, rgb.size() - 2);
             }
-            float alpha_f = 0.3 * m_colour.Alpha() / 255.0;
+            float alpha_f = 0.7 * m_colour.Alpha() / 255.0;
             std::vector<std::string> replace;
             replace.push_back(rgb);
             std::string fill_replace = "fill-opacity=\"" + std::to_string(alpha_f);
@@ -1210,10 +1212,6 @@ void ColorPicker::doRender(wxDC& dc)
         dc.SetBrush(*wxTRANSPARENT_BRUSH);
         dc.DrawCircle(size.x / 2, size.y / 2, radius);
 
-        //transparent
-        if (alpha == 0) {
-            dc.DrawBitmap(m_bitmap_transparent, 0, 0);
-        }
         if (m_cols.size() > 1) {
             if (ctype == 0) {
                 int left = FromDIP(0);
@@ -1230,7 +1228,12 @@ void ColorPicker::doRender(wxDC& dc)
                     dc.GradientFillLinear(rect, m_cols[i], m_cols[i + 1], wxEAST);
                     left += gwidth;
                 }
-                dc.DrawBitmap(m_bitmap_border, wxPoint(0, 0));
+                if (wxGetApp().dark_mode()) {
+                    dc.DrawBitmap(m_bitmap_border_dark, wxPoint(0, 0));
+                }
+                else {
+                    dc.DrawBitmap(m_bitmap_border, wxPoint(0, 0));
+                }
             }
             else {
                 float ev_angle = 360.0 / m_cols.size();
@@ -1246,7 +1249,12 @@ void ColorPicker::doRender(wxDC& dc)
                     startAngle += ev_angle;
                     startAngle = startAngle > 360.0 ? startAngle - 360.0 : startAngle;
                 }
-                dc.DrawBitmap(m_bitmap_border, wxPoint(0, 0));
+                if (wxGetApp().dark_mode()) {
+                    dc.DrawBitmap(m_bitmap_border_dark, wxPoint(0, 0));
+                }
+                else {
+                    dc.DrawBitmap(m_bitmap_border, wxPoint(0, 0));
+                }
             }
         }
     }
