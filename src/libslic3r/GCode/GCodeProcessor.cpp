@@ -387,9 +387,8 @@ void GCodeProcessor::TimeProcessor::reset()
     extruder_unloaded = true;
     machine_envelope_processing_enabled = false;
     machine_limits = MachineEnvelopeConfig();
-    filament_load_times = 0.0f;
-    filament_unload_times = 0.0f;
-
+    filament_load_times = std::vector<float>();
+    filament_unload_times = std::vector<float>();
 
     for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count); ++i) {
         machines[i].reset();
@@ -1036,8 +1035,23 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
     // Filament load / unload times are not specific to a firmware flavor. Let anybody use it if they find it useful.
     // As of now the fields are shown at the UI dialog in the same combo box as the ramming values, so they
     // are considered to be active for the single extruder multi-material printers only.
-    m_time_processor.filament_load_times = static_cast<float>(config.machine_load_filament_time.value);
-    m_time_processor.filament_unload_times = static_cast<float>(config.machine_unload_filament_time.value);
+    if(s_IsBBLPrinter){
+        // BBL printers use machine_load_filament_time and machine_unload_filament_time
+        m_time_processor.filament_load_times.resize(1);
+        m_time_processor.filament_load_times[0] = static_cast<float>(config.machine_load_filament_time.value);
+        m_time_processor.filament_unload_times.resize(1);
+        m_time_processor.filament_unload_times[0] = static_cast<float>(config.machine_unload_filament_time.value);
+    } else {
+        // for non-BBL printers use the filament_load_time and filament_unload_time
+        m_time_processor.filament_load_times.resize(config.filament_load_time.values.size());
+        for (size_t i = 0; i < config.filament_load_time.values.size(); ++i) {
+            m_time_processor.filament_load_times[i] = static_cast<float>(config.filament_load_time.values[i]);
+        }
+        m_time_processor.filament_unload_times.resize(config.filament_unload_time.values.size());
+        for (size_t i = 0; i < config.filament_unload_time.values.size(); ++i) {
+            m_time_processor.filament_unload_times[i] = static_cast<float>(config.filament_unload_time.values[i]);
+        }
+    }
 
     for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count); ++i) {
         float max_acceleration = get_option_value(m_time_processor.machine_limits.machine_max_acceleration_extruding, i);
@@ -1245,13 +1259,36 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
 
     m_extruder_temps.resize(m_result.extruders_count);
 
-    const ConfigOptionFloat* machine_load_filament_time = config.option<ConfigOptionFloat>("machine_load_filament_time");
-    if (machine_load_filament_time != nullptr)
-        m_time_processor.filament_load_times = static_cast<float>(machine_load_filament_time->value);
+    if(s_IsBBLPrinter){
+        // BBL printers use machine_load_filament_time and machine_unload_filament_time
+        const ConfigOptionFloat* machine_load_filament_time = config.option<ConfigOptionFloat>("machine_load_filament_time");
+        if (machine_load_filament_time != nullptr){
+            m_time_processor.filament_load_times.resize(1);
+            m_time_processor.filament_load_times[0] = static_cast<float>(machine_load_filament_time->value);
+        }
 
-    const ConfigOptionFloat* machine_unload_filament_time = config.option<ConfigOptionFloat>("machine_unload_filament_time");
-    if (machine_unload_filament_time != nullptr)
-        m_time_processor.filament_unload_times = static_cast<float>(machine_unload_filament_time->value);
+        const ConfigOptionFloat* machine_unload_filament_time = config.option<ConfigOptionFloat>("machine_unload_filament_time");
+        if (machine_unload_filament_time != nullptr){
+            m_time_processor.filament_unload_times.resize(1);
+            m_time_processor.filament_unload_times[0] = static_cast<float>(machine_unload_filament_time->value);
+        }
+    } else {
+        // non-BBL printers use filament_load_time and filament_unload_time
+        const ConfigOptionFloats* filament_load_time = config.option<ConfigOptionFloats>("filament_load_time");
+        if (filament_load_time != nullptr) {
+            m_time_processor.filament_load_times.resize(filament_load_time->values.size());
+            for (size_t i = 0; i < filament_load_time->values.size(); ++i) {
+                m_time_processor.filament_load_times[i] = static_cast<float>(filament_load_time->values[i]);
+            }
+        }
+        const ConfigOptionFloats* filament_unload_time = config.option<ConfigOptionFloats>("filament_unload_time");
+        if (filament_unload_time != nullptr) {
+            m_time_processor.filament_unload_times.resize(filament_unload_time->values.size());
+            for (size_t i = 0; i < filament_unload_time->values.size(); ++i) {
+                m_time_processor.filament_unload_times[i] = static_cast<float>(filament_unload_time->values[i]);
+            }
+        }
+    }
 
     if (m_flavor == gcfMarlinLegacy || m_flavor == gcfMarlinFirmware || m_flavor == gcfKlipper) {
         const ConfigOptionFloats* machine_max_acceleration_x = config.option<ConfigOptionFloats>("machine_max_acceleration_x");
@@ -4357,14 +4394,32 @@ void GCodeProcessor::set_travel_acceleration(PrintEstimatedStatistics::ETimeMode
 
 float GCodeProcessor::get_filament_load_time(size_t extruder_id)
 {
-    //BBS: change load time to machine config and all extruder has same value
-    return m_time_processor.extruder_unloaded ? 0.0f : m_time_processor.filament_load_times;
+    if (s_IsBBLPrinter) {
+        // BBL printers
+        // BBS: change load time to machine config and all extruder has same value
+        return m_time_processor.extruder_unloaded ? 0.0f : m_time_processor.filament_load_times[0];
+    } else {
+        // non-BBL printers
+        return (m_time_processor.filament_load_times.empty() || m_time_processor.extruder_unloaded) ?
+                   0.0f :
+                   ((extruder_id < m_time_processor.filament_load_times.size()) ? m_time_processor.filament_load_times[extruder_id] :
+                                                                                  m_time_processor.filament_load_times.front());
+    }
 }
 
 float GCodeProcessor::get_filament_unload_time(size_t extruder_id)
 {
-    //BBS: change unload time to machine config and all extruder has same value
-    return m_time_processor.extruder_unloaded ? 0.0f : m_time_processor.filament_unload_times;
+    if (s_IsBBLPrinter) {
+        // BBL printers
+        // BBS: change unload time to machine config and all extruder has same value
+        return m_time_processor.extruder_unloaded ? 0.0f : m_time_processor.filament_unload_times[0];
+    } else {
+        // non-BBL printers
+        return (m_time_processor.filament_unload_times.empty() || m_time_processor.extruder_unloaded) ?
+                   0.0f :
+                   ((extruder_id < m_time_processor.filament_unload_times.size()) ? m_time_processor.filament_unload_times[extruder_id] :
+                                                                                    m_time_processor.filament_unload_times.front());
+    }
 }
 
 //BBS

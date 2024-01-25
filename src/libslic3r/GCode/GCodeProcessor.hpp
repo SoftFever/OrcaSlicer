@@ -476,8 +476,8 @@ namespace Slic3r {
             bool machine_envelope_processing_enabled;
             MachineEnvelopeConfig machine_limits;
             // Additional load / unload times for a filament exchange sequence.
-            float filament_load_times;
-            float filament_unload_times;
+            std::vector<float> filament_load_times;
+            std::vector<float> filament_unload_times;
             bool  disable_m73;
 
             std::array<TimeMachine, static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count)> machines;
