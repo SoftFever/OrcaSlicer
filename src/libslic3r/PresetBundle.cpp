@@ -5,6 +5,7 @@
 #include "Utils.hpp"
 #include "Model.hpp"
 #include "format.hpp"
+#include "libslic3r_version.h"
 
 #include <algorithm>
 #include <set>
@@ -675,7 +676,7 @@ PresetsConfigSubstitutions PresetBundle::import_presets(std::vector<std::string>
             import_json_presets(substitutions, file, override_confirm, rule, overwrite, result);
         }
         // Determine if it is a preset bundle
-        if (boost::iends_with(file, ".bbscfg") || boost::iends_with(file, ".bbsflmt") || boost::iends_with(file, ".zip")) {
+        if (boost::iends_with(file, ".orca_printer") || boost::iends_with(file, ".orca_filament") || boost::iends_with(file, ".zip")) {
             boost::system::error_code ec;
             // create user folder
             fs::path user_folder(data_dir() + "/" + PRESET_USER_DIR);
@@ -767,11 +768,6 @@ bool PresetBundle::import_json_presets(PresetsConfigSubstitutions &            s
         std::string                        version_str          = key_values[BBL_JSON_KEY_VERSION];
         boost::optional<Semver>            version              = Semver::parse(version_str);
         if (!version) return false;
-        Semver app_version = *(Semver::parse(SLIC3R_VERSION));
-        if (version->maj() != app_version.maj()) {
-            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << " Preset incompatibla, not loading: " << name;
-            return false;
-        }
 
         PresetCollection *collection = nullptr;
         if (config.has("printer_settings_id"))

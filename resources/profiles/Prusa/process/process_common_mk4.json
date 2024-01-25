@@ -24,5 +24,6 @@
   "top_surface_acceleration": "1000",
   "travel_acceleration": "4000",
   "inner_wall_acceleration": "4000",
-  "outer_wall_acceleration": "3000"
+  "outer_wall_acceleration": "3000",
+  "exclude_object": "1"
 }

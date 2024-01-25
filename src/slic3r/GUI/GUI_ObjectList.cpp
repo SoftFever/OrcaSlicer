@@ -1545,26 +1545,6 @@ void ObjectList::OnBeginDrag(wxDataViewEvent &event)
     }
 
     if (type & itObject) {
-        int curr_obj_id = m_objects_model->GetIdByItem(event.GetItem());
-        PartPlateList& partplate_list = wxGetApp().plater()->get_partplate_list();
-        int from_plate = partplate_list.find_instance(curr_obj_id, 0);
-        if (from_plate == -1) {
-            event.Veto();
-            return;
-        }
-        auto curr_plate_seq = partplate_list.get_plate(from_plate)->get_print_seq();
-        if (curr_plate_seq == PrintSequence::ByDefault) {
-            auto curr_preset_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
-            if (curr_preset_config.has("print_sequence"))
-                curr_plate_seq = curr_preset_config.option<ConfigOptionEnum<PrintSequence>>("print_sequence")->value;
-        }
-
-        if (curr_plate_seq != PrintSequence::ByObject) {
-            //drag forbidden under bylayer mode
-            event.Veto();
-            return;
-        }
-
         m_dragged_data.init(m_objects_model->GetIdByItem(item), type);
     }
     else if (type & itVolume){
@@ -2050,9 +2030,10 @@ void ObjectList::load_modifier(const wxArrayString& input_files, ModelObject& mo
         ModelVolume* new_volume = model_object.add_volume(std::move(mesh), type);
         new_volume->name = boost::filesystem::path(input_file).filename().string();
 
-        // BBS: object_mesh.get_init_shift() keep the relative position
-        TriangleMesh object_mesh = model_object.volumes[0]->mesh();
-        new_volume->set_offset(new_volume->mesh().get_init_shift() - object_mesh.get_init_shift());
+        // adjust offset as prusaslicer ObjectList::load_from_files does (works) instead of BBS method
+        //// BBS: object_mesh.get_init_shift() keep the relative position
+        //TriangleMesh object_mesh = model_object.volumes[0]->mesh();
+        //new_volume->set_offset(new_volume->mesh().get_init_shift() - object_mesh.get_init_shift());
 
         // set a default extruder value, since user can't add it manually
         // BBS
@@ -2076,6 +2057,8 @@ void ObjectList::load_modifier(const wxArrayString& input_files, ModelObject& mo
             const Vec3d offset = Vec3d(instance_bb.max.x(), instance_bb.min.y(), instance_bb.min.z()) + 0.5 * mesh_bb.size() - instance_offset;
             new_volume->set_offset(inv_inst_transform * offset);
         }
+        else
+            new_volume->set_offset(new_volume->source.mesh_offset - model_object.volumes.front()->source.mesh_offset);
 
         added_volumes.push_back(new_volume);
     }
@@ -2149,8 +2132,8 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const Mode
     // First (any) GLVolume of the selected instance. They all share the same instance matrix.
     const GLVolume* v = selection.get_first_volume();
     // Transform the new modifier to be aligned with the print bed.
-	const BoundingBoxf3 mesh_bb = new_volume->mesh().bounding_box();
-    new_volume->set_transformation(Geometry::Transformation::volume_to_bed_transformation(v->get_instance_transformation(), mesh_bb));
+    new_volume->set_transformation(v->get_instance_transformation().get_matrix_no_offset().inverse());
+    const BoundingBoxf3 mesh_bb = new_volume->mesh().bounding_box();
     // Set the modifier position.
     auto offset = (type_name == "Slab") ?
         // Slab: Lift to print bed

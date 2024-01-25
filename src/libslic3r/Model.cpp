@@ -38,7 +38,6 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/filesystem/string_file.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/nowide/iostream.hpp>
 
@@ -837,7 +836,7 @@ end:
 // BBS: backup all in one dir
 std::string Model::get_auxiliary_file_temp_path()
 {
-    return get_backup_path("/Auxiliaries");
+    return get_backup_path("Auxiliaries");
 }
 
 // BBS: backup dir
@@ -873,7 +872,7 @@ std::string Model::get_backup_path()
             BOOST_LOG_TRIVIAL(info) << "create /Metadata in " << temp_path;
             boost::filesystem::create_directories(backup_path + "/Metadata");
             BOOST_LOG_TRIVIAL(info) << "create /lock.txt in " << temp_path;
-            boost::filesystem::save_string_file(backup_path + "/lock.txt",
+            save_string_file(backup_path + "/lock.txt",
                 boost::lexical_cast<std::string>(get_current_pid()));
         }
     } catch (std::exception &ex) {

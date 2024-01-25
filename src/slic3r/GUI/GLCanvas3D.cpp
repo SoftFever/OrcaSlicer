@@ -2013,7 +2013,11 @@ void GLCanvas3D::render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w,
 void GLCanvas3D::render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params,
     const GLVolumeCollection& volumes, Camera::EType camera_type, bool use_top_view, bool for_picking)
 {
-    GLShaderProgram* shader = wxGetApp().get_shader("thumbnail");
+    GLShaderProgram* shader = nullptr;
+    if (for_picking)
+        shader = wxGetApp().get_shader("flat");
+    else
+        shader = wxGetApp().get_shader("thumbnail");
     ModelObjectPtrs& model_objects = GUI::wxGetApp().model().objects;
     std::vector<ColorRGBA> colors = ::get_extruders_colors();
     switch (OpenGLManager::get_framebuffers_type())
@@ -3221,8 +3225,8 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         //    }
         //    break;
         //}
-        //case 'I':
-        //case 'i': { _update_camera_zoom(1.0); break; }
+        case 'I':
+        case 'i': { _update_camera_zoom(1.0); break; }
         //case 'K':
         //case 'k': { wxGetApp().plater()->get_camera().select_next_type(); m_dirty = true; break; }
         //case 'L':
@@ -3234,8 +3238,8 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
             //}
             //break;
         //}
-        //case 'O':
-        //case 'o': { _update_camera_zoom(-1.0); break; }
+        case 'O':
+        case 'o': { _update_camera_zoom(-1.0); break; }
         //case 'Z':
         //case 'z': {
         //    if (!m_selection.is_empty())
@@ -5678,6 +5682,7 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
         //if (OpenGLManager::can_multisample())
               // This flag is often ignored by NVIDIA drivers if rendering into a screen buffer.
         //    glsafe(::glDisable(GL_MULTISAMPLE));
+        shader->start_using();
 
         glsafe(::glDisable(GL_BLEND));
 
@@ -5709,8 +5714,6 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
             const Transform3d model_matrix = vol->world_matrix();
             shader->set_uniform("view_model_matrix", view_matrix * model_matrix);
             shader->set_uniform("projection_matrix", projection_matrix);
-            const Matrix3d view_normal_matrix = view_matrix.matrix().block(0, 0, 3, 3) * model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose();
-            shader->set_uniform("view_normal_matrix", view_normal_matrix); 
             vol->simple_render(shader, model_objects, extruder_colors);
             vol->is_active = is_active;
         }
@@ -6419,7 +6422,17 @@ void GLCanvas3D::_resize(unsigned int w, unsigned int h)
     m_last_w = w;
     m_last_h = h;
 
-    const float font_size = 1.5f * wxGetApp().em_unit();
+    float font_size = wxGetApp().em_unit();
+
+#ifdef _WIN32
+    // On Windows, if manually scaled here, rendering issues can occur when the system's Display
+    // scaling is greater than 300% as the font's size gets to be to large. So, use imgui font
+    // scaling instead (see: ImGuiWrapper::init_font() and issue #3401)
+    font_size *= (font_size > 30.0f) ? 1.0f : 1.5f;
+#else
+    font_size *= 1.5f;
+#endif
+
 #if ENABLE_RETINA_GL
     imgui->set_scaling(font_size, 1.0f, m_retina_helper->get_scale_factor());
 #else
@@ -7291,10 +7304,10 @@ void GLCanvas3D::_render_overlays()
 
 	auto curr_plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
     auto curr_print_seq = curr_plate->get_real_print_seq();
-    bool sequential_print = (curr_print_seq == PrintSequence::ByObject);
+    const Print* print = fff_print();
+    bool sequential_print = (curr_print_seq == PrintSequence::ByObject) || print->config().print_order == PrintOrder::AsObjectList;
     std::vector<const ModelInstance*> sorted_instances;
     if (sequential_print) {
-        const Print* print = fff_print();
         if (print) {
             for (const PrintObject *print_object : print->objects())
             {

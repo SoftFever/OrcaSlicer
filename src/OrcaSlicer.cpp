@@ -5329,6 +5329,7 @@ bool CLI::setup(int argc, char **argv)
     set_var_dir((path_resources / "images").string());
     set_local_dir((path_resources / "i18n").string());
     set_sys_shapes_dir((path_resources / "shapes").string());
+    set_custom_gcodes_dir((path_resources / "custom_gcodes").string());
 
     // Parse all command line options into a DynamicConfig.
     // If any option is unsupported, print usage and abort immediately.
@@ -5355,7 +5356,7 @@ bool CLI::setup(int argc, char **argv)
         for (const t_optiondef_map::value_type &optdef : *options)
             m_config.option(optdef.first, true);
 
-    //set_data_dir(m_config.opt_string("datadir"));
+    set_data_dir(m_config.opt_string("datadir"));
 
     //FIXME Validating at this stage most likely does not make sense, as the config is not fully initialized yet.
     if (!validity.empty()) {
