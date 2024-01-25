@@ -450,6 +450,7 @@ public:
     std::string bind_user_id;
     std::string bind_state;     /* free | occupied */
     std::string bind_sec_link;
+    std::string bind_ssdp_version;
     bool is_avaliable() { return bind_state == "free"; }
     time_t last_alive;
     bool m_is_online;

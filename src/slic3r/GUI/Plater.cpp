@@ -10602,7 +10602,7 @@ void Plater::export_gcode(bool prefer_removable)
 
             PresetBundle *preset_bundle = wxGetApp().preset_bundle;
             if (preset_bundle) {
-                j["Gcode_printer_model"] = preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle);
+                j["gcode_printer_model"] = preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle);
             }
             NetworkAgent *agent = wxGetApp().getAgent();
         } catch (...) {}

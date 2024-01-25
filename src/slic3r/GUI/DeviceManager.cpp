@@ -2713,7 +2713,10 @@ int MachineObject::parse_json(std::string payload)
                         module_vers.emplace(ver_info.name, ver_info);
                         if (ver_info.name == "ota") {
                             NetworkAgent* agent = GUI::wxGetApp().getAgent();
-                            if (agent) agent->track_update_property("dev_ota_ver", ver_info.sw_ver);
+                            if (agent) {
+                                std::string dev_ota_str = "dev_ota_ver:" + this->dev_id;
+                                agent->track_update_property(dev_ota_str, ver_info.sw_ver);
+                            }
                         }
                     }
 
@@ -4911,8 +4914,12 @@ void DeviceManager::on_machine_alive(std::string json_str)
         std::string connect_type    = j["connect_type"].get<std::string>();
         std::string bind_state      = j["bind_state"].get<std::string>();
         std::string sec_link = "";
+        std::string ssdp_version = "";
         if (j.contains("sec_link")) {
             sec_link = j["sec_link"].get<std::string>();
+        }
+        if (j.contains("ssdp_version")) {
+            ssdp_version = j["ssdp_version"].get<std::string>();
         }
         std::string connection_name = "";
         if (j.contains("connection_name")) {
@@ -4928,6 +4935,7 @@ void DeviceManager::on_machine_alive(std::string json_str)
             it->second->bind_state              = bind_state;
             it->second->bind_sec_link           = sec_link;
             it->second->dev_connection_type     = connect_type;
+            it->second->bind_ssdp_version       = ssdp_version;
         }
 
         /* update localMachineList */
@@ -4958,6 +4966,7 @@ void DeviceManager::on_machine_alive(std::string json_str)
             obj->dev_connection_type= connect_type;
             obj->bind_state         = bind_state;
             obj->bind_sec_link      = sec_link;
+            obj->bind_ssdp_version = ssdp_version;
             obj->printer_type = MachineObject::parse_printer_type(printer_type_str);
 
             // U0 firmware
@@ -4982,6 +4991,7 @@ void DeviceManager::on_machine_alive(std::string json_str)
             obj->bind_state     = bind_state;
             obj->bind_sec_link  = sec_link;
             obj->dev_connection_name = connection_name;
+            obj->bind_ssdp_version = ssdp_version;
             obj->m_is_online = true;
 
             //load access code
