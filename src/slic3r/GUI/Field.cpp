@@ -196,6 +196,11 @@ void Field::on_back_to_sys_value()
 		m_back_to_sys_value(m_opt_id);
 }
 
+void Field::on_edit_value()
+{
+    if (m_fn_edit_value)
+        m_fn_edit_value(m_opt_id);
+}
 
 /// Fires the enable or disable function, based on the input.
 
@@ -206,7 +211,7 @@ wxString Field::get_tooltip_text(const wxString &default_string)
 	wxString tooltip_text("");
 #ifdef NDEBUG
 	wxString tooltip = _(m_opt.tooltip);
-    edit_tooltip(tooltip);
+    ::edit_tooltip(tooltip);
 
     std::string opt_id = m_opt_id;
     auto hash_pos = opt_id.find("#");

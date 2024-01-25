@@ -1,7 +1,7 @@
 [![Build all](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_all.yml/badge.svg?branch=main)](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_all.yml)
 # Orca Slicer     
 Orca Slicer is an open source slicer for FDM printers.   
-You can download Orca Slicer here: [github releases page](https://github.com/SoftFever/OrcaSlicer/releases/).  
+
 ![discord-mark-blue](https://github.com/SoftFever/OrcaSlicer/assets/103989404/b97d5ffc-072d-4d0a-bbda-e67ef373876f) Join community: [OrcaSlicer Official Discord Server](https://discord.gg/P4VE9UY9gJ)   
 
 # Main features
@@ -13,22 +13,27 @@ You can download Orca Slicer here: [github releases page](https://github.com/Sof
 - More granular controls
 - More features can be found in [change notes](https://github.com/SoftFever/OrcaSlicer/releases/)  
 
-### Some background
-OrcaSlicer is fork of Bambu Studio  
-It was previously known as BambuStudio-SoftFever  
-Bambu Studio is forked from [PrusaSlicer](https://github.com/prusa3d/PrusaSlicer) by Prusa Research, which is from [Slic3r](https://github.com/Slic3r/Slic3r) by Alessandro Ranellucci and the RepRap community. 
-Orca Slicer incorporates a lot of features from SuperSlicer by @supermerill
-Orca Slicer's logo is designed by community member Justin Levine(@freejstnalxndr)  
+
+# Download
+
+### Stable Release
+📥 **[Download the Latest Stable Release](https://github.com/SoftFever/OrcaSlicer/releases/latest)**  
+Visit our GitHub Releases page for the latest stable version of Orca Slicer, recommended for most users.
+
+### Nightly Builds
+🌙 **[Download the Latest Nightly Build](https://github.com/SoftFever/OrcaSlicer/releases/tag/nightly-builds)**  
+Explore the latest developments in Orca Slicer with our nightly builds. Feedback on these versions is highly appreciated.
+
 
 # How to install
 **Windows**: 
 1.  Download the installer for your preferred version from the [releases page](https://github.com/SoftFever/OrcaSlicer/releases).
     - *For convenience there is also a portable build available.*
     - *If you have troubles to run the build, you might need to install following runtimes:*
-      - [MicrosoftEdgeWebView2RuntimeInstallerX64](https://github.com/SoftFever/BambuStudio-SoftFever/releases/download/v1.0.10-sf2/MicrosoftEdgeWebView2RuntimeInstallerX64.exe)
+      - [MicrosoftEdgeWebView2RuntimeInstallerX64](https://github.com/SoftFever/OrcaSlicer/releases/download/v1.0.10-sf2/MicrosoftEdgeWebView2RuntimeInstallerX64.exe)
           - [Details of this runtime](https://aka.ms/webview2)
           - [Alternative Download Link Hosted by Microsoft](https://go.microsoft.com/fwlink/p/?LinkId=2124703)
-      - [vcredist2019_x64](https://github.com/SoftFever/BambuStudio-SoftFever/releases/download/v1.0.10-sf2/vcredist2019_x64.exe)
+      - [vcredist2019_x64](https://github.com/SoftFever/OrcaSlicer/releases/download/v1.0.10-sf2/vcredist2019_x64.exe)
           -  [Alternative Download Link Hosted by Microsoft](https://aka.ms/vs/17/release/vc_redist.x64.exe)
           -  This file may already be available on your computer if you've installed visual studio.  Check the following location: `%VCINSTALLDIR%Redist\MSVC\v142`
 
@@ -55,7 +60,7 @@ Orca Slicer's logo is designed by community member Justin Levine(@freejstnalxndr
     
 **Linux(Ubuntu)**:
  1. If you run into trouble to execute it, try this command in terminal:  
-    `chmod +x /path_to_appimage/OrcaSlicer_ubu64.AppImage`
+    `chmod +x /path_to_appimage/OrcaSlicer_Linux.AppImage`
     
 # How to compile
 - Windows 64-bit  
@@ -125,6 +130,14 @@ Ko-fi supporters: [Backers list](https://github.com/SoftFever/OrcaSlicer/wiki/Or
 
 Support me  
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/G2G5IP3CP)
+
+## Some background
+OrcaSlicer is originaly forked from Bambu Studio, it was previously known as BambuStudio-SoftFever.
+
+Bambu Studio is forked from [PrusaSlicer](https://github.com/prusa3d/PrusaSlicer) by Prusa Research, which is from [Slic3r](https://github.com/Slic3r/Slic3r) by Alessandro Ranellucci and the RepRap community. 
+Orca Slicer incorporates a lot of features from SuperSlicer by @supermerill
+Orca Slicer's logo is designed by community member Justin Levine(@freejstnalxndr)  
+
 
 # License
 Orca Slicer is licensed under the GNU Affero General Public License, version 3. Orca Slicer is based on Bambu Studio by BambuLab.
