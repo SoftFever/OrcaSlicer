@@ -1044,8 +1044,10 @@ void GUI_App::post_init()
             (boost::starts_with(this->init_params->input_files.front(), "orcaslicer://open") ||
              boost::starts_with(this->init_params->input_files.front(), "prusaslicer://open"))) {
 
+            bool is_ps_link = false;
             vector<string> input_str_arr;
             if (boost::starts_with(this->init_params->input_files.front(), "prusaslicer://open")) {
+                is_ps_link = true;
                 input_str_arr = split_str(this->init_params->input_files.front(), "prusaslicer://open?file=");
             } else {
                 input_str_arr = split_str(this->init_params->input_files.front(), "orcaslicer://open/?file=");
@@ -1059,7 +1061,9 @@ void GUI_App::post_init()
             std::string download_file_url = url_decode(download_origin_url);
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << download_file_url;
             if (!download_file_url.empty() && ( boost::starts_with(download_file_url, "http://") ||  boost::starts_with(download_file_url, "https://")) ) {
-                request_model_download(download_file_url);
+                // If it is a PS link, make sure that it is from printables and not another site
+                if (!is_ps_link || regex_match(download_file_url, std::regex(R"(^http[s]?:\/\/[a-z0-9]+\.printables\.com\/)", regex::flag_type::icase)))
+                    request_model_download(download_file_url);
             }
         }
         else {
