@@ -220,7 +220,7 @@ public:
     void            set_layer_count(unsigned int value) { m_layer_count = value; }
     void            apply_print_config(const PrintConfig &print_config);
 
-    std::string     travel_to(const Point& point, ExtrusionRole role, std::string comment);
+    std::string     travel_to(const Point& point, ExtrusionRole role, std::string comment, double z_ratio = 1.);
     bool            needs_retraction(const Polyline& travel, ExtrusionRole role, LiftType& lift_type);
     std::string     retract(bool toolchange = false, bool is_last_retraction = false, LiftType lift_type = LiftType::NormalLift);
     std::string     unretract() { return m_writer.unlift() + m_writer.unretract(); }
@@ -430,6 +430,8 @@ private:
 
     // BBS
     LiftType to_lift_type(ZHopType z_hop_types);
+
+    coordf_t get_sloped_z(double z_ratio) { return lerp(m_nominal_z_prev, m_nominal_z, z_ratio); }
 
     std::set<ObjectID>              m_objsWithBrim; // indicates the objs with brim
     std::set<ObjectID>              m_objSupportsWithBrim; // indicates the objs' supports with brim
