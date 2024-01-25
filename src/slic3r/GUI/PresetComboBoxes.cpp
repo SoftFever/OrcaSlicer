@@ -37,7 +37,6 @@
 #include "../Utils/FixModelByWin10.hpp"
 #include "../Utils/UndoRedo.hpp"
 #include "BitmapCache.hpp"
-#include "SavePresetDialog.hpp"
 #include "MsgDialog.hpp"
 #include "ParamsDialog.hpp"
 

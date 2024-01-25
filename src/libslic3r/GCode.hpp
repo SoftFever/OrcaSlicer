@@ -23,6 +23,7 @@
 #include "GCode/ExtrusionProcessor.hpp"
 
 #include "GCode/PressureEqualizer.hpp"
+#include "GCode/SmallAreaInfillFlowCompensator.hpp"
 
 #include <memory>
 #include <map>
@@ -157,6 +158,7 @@ struct LayerResult {
 };
 
 class GCode {
+
 public:
     GCode() :
     	m_origin(Vec2d::Zero()),
@@ -521,6 +523,10 @@ private:
     double                              m_last_mm3_per_mm;
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
 
+#if ORCA_CHECK_GCODE_PLACEHOLDERS
+    std::map<std::string, std::vector<std::string>> m_placeholder_error_messages;
+#endif
+
     Point                               m_last_pos;
     bool                                m_last_pos_defined;
 
@@ -530,6 +536,8 @@ private:
     std::unique_ptr<PressureEqualizer>  m_pressure_equalizer;
 
     std::unique_ptr<WipeTowerIntegration> m_wipe_tower;
+
+    std::unique_ptr<SmallAreaInfillFlowCompensator> m_small_area_infill_flow_compensator;
 
     // Heights (print_z) at which the skirt has already been extruded.
     std::vector<coordf_t>               m_skirt_done;
@@ -593,6 +601,7 @@ private:
     friend class WipeTowerIntegration;
     friend class PressureEqualizer;
     friend class Print;
+    friend class SmallAreaInfillFlowCompensator;
 };
 
 std::vector<const PrintInstance*> sort_object_instances_by_model_order(const Print& print, bool init_order = false);

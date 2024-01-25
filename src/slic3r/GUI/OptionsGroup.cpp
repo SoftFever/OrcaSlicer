@@ -102,6 +102,14 @@ const t_field& OptionsGroup::build_field(const t_config_option_key& id, const Co
 	};
     field->m_parent = parent();
 
+    if (edit_custom_gcode && opt.is_code) {
+        field->m_fn_edit_value = [this](std::string opt_id) {
+            if (!m_disabled)
+                this->edit_custom_gcode(opt_id);
+        };
+        field->set_edit_tooltip(_L("Edit Custom G-code"));
+    }
+
 	field->m_back_to_initial_value = [this](std::string opt_id) {
 		if (!m_disabled)
 			this->back_to_initial_value(opt_id);
@@ -678,6 +686,7 @@ void ConfigOptionsGroup::back_to_config_value(const DynamicPrintConfig& config, 
                  opt_key == "thumbnails" || opt_key == "bed_custom_texture" || opt_key == "bed_custom_model") {
         value = get_config_value(config, opt_key);
         this->change_opt_value(opt_key, value);
+        OptionsGroup::on_change_OG(opt_key, value);
         return;
         } else {
         auto opt_id = m_opt_map.find(opt_key)->first;
