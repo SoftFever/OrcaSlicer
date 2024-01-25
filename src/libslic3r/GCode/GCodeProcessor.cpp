@@ -4395,9 +4395,11 @@ void GCodeProcessor::set_travel_acceleration(PrintEstimatedStatistics::ETimeMode
 float GCodeProcessor::get_filament_load_time(size_t extruder_id)
 {
     if (s_IsBBLPrinter) {
+        // BBL printers
         // BBS: change load time to machine config and all extruder has same value
         return m_time_processor.extruder_unloaded ? 0.0f : m_time_processor.filament_load_times[0];
     } else {
+        // non-BBL printers
         return (m_time_processor.filament_load_times.empty() || m_time_processor.extruder_unloaded) ?
                    0.0f :
                    ((extruder_id < m_time_processor.filament_load_times.size()) ? m_time_processor.filament_load_times[extruder_id] :
@@ -4407,10 +4409,17 @@ float GCodeProcessor::get_filament_load_time(size_t extruder_id)
 
 float GCodeProcessor::get_filament_unload_time(size_t extruder_id)
 {
-    return (m_time_processor.filament_unload_times.empty() || m_time_processor.extruder_unloaded) ?
-        0.0f :
-        ((extruder_id < m_time_processor.filament_unload_times.size()) ?
-            m_time_processor.filament_unload_times[extruder_id] : m_time_processor.filament_unload_times.front());
+    if (s_IsBBLPrinter) {
+        // BBL printers
+        // BBS: change unload time to machine config and all extruder has same value
+        return m_time_processor.extruder_unloaded ? 0.0f : m_time_processor.filament_unload_times[0];
+    } else {
+        // non-BBL printers
+        return (m_time_processor.filament_unload_times.empty() || m_time_processor.extruder_unloaded) ?
+                   0.0f :
+                   ((extruder_id < m_time_processor.filament_unload_times.size()) ? m_time_processor.filament_unload_times[extruder_id] :
+                                                                                    m_time_processor.filament_unload_times.front());
+    }
 }
 
 //BBS
