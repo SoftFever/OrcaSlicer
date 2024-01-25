@@ -36,9 +36,7 @@ jobs:
       - name: Get the version and date on Ubuntu and macOS
         if: inputs.os != 'windows-latest'
         run: |
-          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
-            ver="nightly$(date +'%y%m%d')"
-          elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
             ver="PR${{ github.event.number }}"
           else
             ver=$(grep 'set(SoftFever_VERSION' version.inc | cut -d '"' -f2)
@@ -56,9 +54,7 @@ jobs:
           $eventName = "${{ github.event_name }}"
           $prNumber = "${{ github.event.number }}"
       
-          if ($ref -eq 'refs/heads/main') {
-              $ver = "nightly" + $date.Substring(2)
-          } elseif ($eventName -eq 'pull_request') {
+          if ($eventName -eq 'pull_request') {
               $ver = "PR" + $prNumber
           } else {
               $versionContent = Get-Content version.inc -Raw
