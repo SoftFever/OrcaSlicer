@@ -459,9 +459,9 @@ void WebViewPanel::OpenModelDetail(std::string id, NetworkAgent *agent)
     {
         if (url.find("?") != std::string::npos) 
         { 
-            url += "&from=bambustudio";
+            url += "&from=orcaslicer";
         } else {
-            url += "?from=bambustudio";
+            url += "?from=orcaslicer";
         }
         
         wxLaunchDefaultBrowser(url); 

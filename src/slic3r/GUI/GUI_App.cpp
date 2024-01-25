@@ -6078,6 +6078,12 @@ void GUI_App::open_mall_page_dialog()
        link_url = host_url + model_url;
     }
 
+    if (link_url.find("?") != std::string::npos) {
+        link_url += "&from=orcaslicer";
+    } else {
+        link_url += "?from=orcaslicer";
+    }
+
     wxLaunchDefaultBrowser(link_url);
 }
 
