@@ -4051,10 +4051,13 @@ void SelectMachineDialog::set_default_from_sdcard()
     update_page_turn_state(true);
 
     ThumbnailData& data = m_required_data_plate_data_list[m_print_plate_idx]->plate_thumbnail;
-    wxMemoryInputStream mis((unsigned char*)data.pixels.data(), data.pixels.size());
-    wxImage image = wxImage(mis);
-    image = image.Rescale(FromDIP(256), FromDIP(256));
-    m_thumbnailPanel->set_thumbnail(image);
+
+    if (data.pixels.size() > 0) {
+        wxMemoryInputStream mis((unsigned char*)data.pixels.data(), data.pixels.size());
+        wxImage image = wxImage(mis);
+        image = image.Rescale(FromDIP(256), FromDIP(256));
+        m_thumbnailPanel->set_thumbnail(image);
+    }
 
     //for black list
     std::vector<std::string> materials;
