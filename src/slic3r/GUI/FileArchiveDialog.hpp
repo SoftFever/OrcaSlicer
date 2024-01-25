@@ -11,6 +11,7 @@
 #include <boost/filesystem/path.hpp>
 #include <wx/wx.h>
 #include <wx/dataview.h>
+#include <slic3r/GUI/Widgets/Button.hpp>
 #include "wxExtensions.hpp"
 
 namespace Slic3r {
@@ -108,7 +109,7 @@ class FileArchiveDialog : public DPIDialog
 {
 public:
     FileArchiveDialog(wxWindow* parent_window, mz_zip_archive* archive, std::vector<std::pair<boost::filesystem::path, size_t>>& selected_paths_w_size);
-        
+
 protected:
     void on_dpi_changed(const wxRect& suggested_rect) override;
 
@@ -116,10 +117,13 @@ protected:
     void on_all_button();
     void on_none_button();
 
+    wxBoxSizer* create_btn_sizer();
+
     // chosen files are written into this vector and returned to caller via reference.
     // path in archive and decompressed size. The size can be used to distinguish between files with same path.
     std::vector<std::pair<boost::filesystem::path,size_t>>& m_selected_paths_w_size;
     ArchiveViewCtrl* m_avc;
+    std::vector<Button*> m_button_list;
 };
 
 } // namespace GU

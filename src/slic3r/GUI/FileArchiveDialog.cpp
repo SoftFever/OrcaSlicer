@@ -17,6 +17,9 @@
 namespace Slic3r {
 namespace GUI {
 
+#define BTN_SIZE                wxSize(FromDIP(58), FromDIP(24))
+#define BTN_GAP                 FromDIP(20)
+
 ArchiveViewModel::ArchiveViewModel(wxWindow* parent)
     :m_parent(parent)
 {}
@@ -177,7 +180,9 @@ FileArchiveDialog::FileArchiveDialog(wxWindow* parent_window, mz_zip_archive* ar
     , m_selected_paths_w_size (selected_paths_w_size)
 {
 #ifdef _WIN32
+    SetBackgroundColour(*wxWHITE);
     wxGetApp().UpdateDarkUI(this);
+    wxGetApp().UpdateDlgDarkUI(this);
 #else
     SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
 #endif
@@ -214,7 +219,7 @@ FileArchiveDialog::FileArchiveDialog(wxWindow* parent_window, mz_zip_archive* ar
         return struct_size + 1;
     };
 
-    const std::regex pattern_drop(".*[.](stl|obj|amf|3mf|prusa|step|stp)", std::regex::icase);
+    const std::regex pattern_drop(".*[.](stl|obj|amf|3mf|step|stp)", std::regex::icase);
     mz_uint num_entries = mz_zip_reader_get_num_files(archive);
     mz_zip_archive_file_stat stat;
     std::vector<std::pair<boost::filesystem::path, size_t>> filtered_entries; // second is unzipped size
@@ -263,41 +268,26 @@ FileArchiveDialog::FileArchiveDialog(wxWindow* parent_window, mz_zip_archive* ar
 
     toggle_column->SetWidth((4 + depth) * em);
 
-    wxBoxSizer* btn_sizer = new wxBoxSizer(wxHORIZONTAL);
-
-    wxButton* btn_all = new wxButton(this, wxID_ANY, _L("All"));
-    btn_all->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) { on_all_button(); });
-    btn_sizer->Add(btn_all, 0);
-
-    wxButton* btn_none = new wxButton(this, wxID_ANY, _L("None"));
-    btn_none->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) { on_none_button(); });
-    btn_sizer->Add(btn_none, 0, wxLEFT, em);
-
-    btn_sizer->AddStretchSpacer();
-    wxButton* btn_run = new wxButton(this, wxID_OK, _L("Open"));
-    btn_run->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) { on_open_button(); });
-    btn_sizer->Add(btn_run, 0, wxRIGHT, em);
-
-    wxButton* cancel_btn = new wxButton(this, wxID_CANCEL, _L("Cancel"));
-    cancel_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) { this->EndModal(wxID_CANCEL); });
-    btn_sizer->Add(cancel_btn, 0, wxRIGHT, em);
+    wxBoxSizer* btn_sizer = create_btn_sizer();
 
     topSizer->Add(m_avc, 1, wxEXPAND | wxALL, 10);
     topSizer->Add(btn_sizer, 0, wxEXPAND | wxALL, 10);
     this->SetSizer(topSizer);
     SetMinSize(wxSize(40 * em, 30 * em));
 
-    for (const wxString& id : {_L("All"), _L("None"), _L("Open"), _L("Cancel") })
-        wxGetApp().UpdateDarkUI(static_cast<wxButton*>(FindWindowByLabel(id, this)));
-}  
+    for (auto btn : m_button_list)
+        wxGetApp().UpdateDarkUI(btn);
+}
 
 void FileArchiveDialog::on_dpi_changed(const wxRect& suggested_rect)
 {
     int em = em_unit();
     BOOST_LOG_TRIVIAL(error) << "on_dpi_changed";
-    //msw_buttons_rescale(this, em, { wxID_CANCEL, m_save_btn_id, m_move_btn_id, m_continue_btn_id });
-    //for (auto btn : { m_save_btn, m_transfer_btn, m_discard_btn })
-    //    if (btn) btn->msw_rescale();
+
+    for (auto btn : m_button_list) {
+        btn->SetMinSize(BTN_SIZE);
+        btn->SetCornerRadius(FromDIP(12));
+    }
 
     const wxSize& size = wxSize(45 * em, 40 * em);
     SetSize(size);
@@ -385,6 +375,72 @@ void FileArchiveDialog::on_none_button()
     }
 
     this->Refresh();
+}
+
+//Orca: Apply buttons style
+wxBoxSizer* FileArchiveDialog::create_btn_sizer()
+{
+    auto btn_sizer = new wxBoxSizer(wxHORIZONTAL);
+
+    auto apply_highlighted_btn_colors = [](Button* btn) {
+        btn->SetBackgroundColor(StateColor(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
+                                           std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
+                                           std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal)));
+
+        btn->SetBorderColor(StateColor(std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal)));
+
+        btn->SetTextColor(StateColor(std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Normal)));
+    };
+
+    auto apply_std_btn_colors = [](Button* btn) {
+        btn->SetBackgroundColor(StateColor(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed),
+                                           std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
+                                           std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal)));
+
+        btn->SetBorderColor(StateColor(std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Normal)));
+
+        btn->SetTextColor(StateColor(std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Normal)));
+    };
+
+    auto style_btn = [this, apply_highlighted_btn_colors, apply_std_btn_colors](Button* btn, bool highlight) {
+        btn->SetMinSize(BTN_SIZE);
+        btn->SetCornerRadius(FromDIP(12));
+        if (highlight)
+            apply_highlighted_btn_colors(btn);
+        else
+            apply_std_btn_colors(btn);
+    };
+
+    Button* all_btn = new Button(this, _L("All"));
+    style_btn(all_btn, false);
+    all_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) { on_all_button(); });
+    btn_sizer->Add(all_btn, 0, wxALIGN_CENTER_VERTICAL);
+    m_button_list.push_back(all_btn);
+
+    Button* none_btn = new Button(this, _L("None"));
+    style_btn(none_btn, false);
+    none_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) { on_none_button(); });
+    btn_sizer->Add(none_btn, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, BTN_GAP);
+    m_button_list.push_back(none_btn);
+
+    btn_sizer->AddStretchSpacer();
+
+    Button* open_btn = new Button(this, _L("Open"));
+    style_btn(open_btn, true);
+    open_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) { on_open_button(); });
+    open_btn->SetFocus();
+    open_btn->SetId(wxID_OK);
+    btn_sizer->Add(open_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, BTN_GAP);
+    m_button_list.push_back(open_btn);
+
+    Button* cancel_btn = new Button(this, _L("Cancel"));
+    style_btn(cancel_btn, false);
+    cancel_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) { this->EndModal(wxID_CANCEL); });
+    cancel_btn->SetId(wxID_CANCEL);
+    btn_sizer->Add(cancel_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, BTN_GAP);
+    m_button_list.push_back(cancel_btn);
+
+    return btn_sizer;
 }
 
 } // namespace GUI
