@@ -1,9 +1,11 @@
 {
 	"name": "OrcaSlicer",
-	"image": "mcr.microsoft.com/devcontainers/cpp",
+	"image": "mcr.microsoft.com/devcontainers/cpp:ubuntu-20.04",
 	"runArgs": ["--env-file", "/tmp/devcontainer.env"],
     "features": {
-        "ghcr.io/devcontainers/features/desktop-lite:1": {}
+        "ghcr.io/devcontainers/features/desktop-lite:1": {
+			"password": "orca"
+		}
     },
 	"customizations": {
 		"vscode": {
