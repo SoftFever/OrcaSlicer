@@ -21,6 +21,7 @@ jobs:
     env:
       date:
       ver:
+      ver_pure:
 
     steps:
       - name: Checkout
@@ -36,15 +37,14 @@ jobs:
       - name: Get the version and date on Ubuntu and macOS
         if: inputs.os != 'windows-latest'
         run: |
-          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
-            ver="nightly$(date +'%y%m%d')"
-          elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            ver="PR${{ github.event.number }}"
+          ver_pure=$(grep 'set(SoftFever_VERSION' version.inc | cut -d '"' -f2)
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            ver="PR-${{ github.event.number }}"
           else
-            ver=$(grep 'set(SoftFever_VERSION' version.inc | cut -d '"' -f2)
-            ver=V$ver
+            ver=V$ver_pure
           fi
           echo "ver=$ver" >> $GITHUB_ENV
+          echo "ver_pure=$ver_pure" >> $GITHUB_ENV
           echo "date=$(date +'%Y%m%d')" >> $GITHUB_ENV
         shell: bash
 
@@ -56,9 +56,7 @@ jobs:
           $eventName = "${{ github.event_name }}"
           $prNumber = "${{ github.event.number }}"
       
-          if ($ref -eq 'refs/heads/main') {
-              $ver = "nightly" + $date.Substring(2)
-          } elseif ($eventName -eq 'pull_request') {
+          if ($eventName -eq 'pull_request') {
               $ver = "PR" + $prNumber
           } else {
               $versionContent = Get-Content version.inc -Raw
@@ -244,6 +242,7 @@ jobs:
         shell: bash
         run: |
           ./BuildLinux.sh -isr
+          mv -n ./build/OrcaSlicer_Linux_V${{ env.ver_pure }}.AppImage ./build/OrcaSlicer_Linux_${{ env.ver }}.AppImage
           chmod +x ./build/OrcaSlicer_Linux_${{ env.ver }}.AppImage
         
       - name: Upload artifacts Ubuntu
