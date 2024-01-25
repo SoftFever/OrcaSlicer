@@ -420,7 +420,7 @@ static std::string get_filament_id(std::string vendor_typr_serial)
             continue;
         }
         std::string filament_name = preset_name.substr(0, index_at - 1);
-        if (filament_name == vendor_typr_serial)
+        if (filament_name == vendor_typr_serial && preset.filament_id != "null")
             return preset.filament_id;
         filament_id_to_filament_name[preset.filament_id].insert(filament_name);
     }
@@ -437,7 +437,7 @@ static std::string get_filament_id(std::string vendor_typr_serial)
                 continue;
             }
             std::string filament_name = preset_name.substr(0, index_at - 1);
-            if (filament_name == vendor_typr_serial)
+            if (filament_name == vendor_typr_serial && preset->filament_id != "null")
                 return preset->filament_id;
             filament_id_to_filament_name[preset->filament_id].insert(filament_name);
         }
@@ -4867,6 +4867,14 @@ wxPanel *PresetTree::get_child_item(wxPanel *parent, std::shared_ptr<Preset> pre
     preset_name->SetFont(Label::Body_10);
     preset_name->SetForegroundColour(*wxBLACK);
     sizer->Add(preset_name, 0, wxEXPAND | wxALL, 5);
+    bool base_id_error = false;
+    if (preset->inherits() == "" && preset->base_id != "") base_id_error = true;
+    if (base_id_error) {
+        std::string      wiki_url             = "https://wiki.bambulab.com/en/software/bambu-studio/custom-filament-issue";
+        wxHyperlinkCtrl *m_download_hyperlink = new wxHyperlinkCtrl(panel, wxID_ANY, _L("[Delete Required]"), wiki_url, wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE);
+        m_download_hyperlink->SetFont(Label::Body_10);
+        sizer->Add(m_download_hyperlink, 0, wxEXPAND | wxALL, 5);
+    }
     sizer->Add(0, 0, 1, wxEXPAND, 0);
 
     StateColor flush_bg_col(std::pair<wxColour, int>(wxColour(219, 253, 231), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
@@ -4877,6 +4885,9 @@ wxPanel *PresetTree::get_child_item(wxPanel *parent, std::shared_ptr<Preset> pre
 
     StateColor flush_bd_col(std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Pressed), std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Hovered),
                             std::pair<wxColour, int>(wxColour(172, 172, 172), StateColor::Normal));
+
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+                            std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
 
     Button *edit_preset_btn = new Button(panel, _L("Edit Preset"));
     edit_preset_btn->SetFont(Label::Body_10);
@@ -4893,9 +4904,16 @@ wxPanel *PresetTree::get_child_item(wxPanel *parent, std::shared_ptr<Preset> pre
     del_preset_btn->SetFont(Label::Body_10);
     del_preset_btn->SetPaddingSize(wxSize(8, 3));
     del_preset_btn->SetCornerRadius(8);
-    del_preset_btn->SetBackgroundColor(flush_bg_col);
-    del_preset_btn->SetBorderColor(flush_bd_col);
-    del_preset_btn->SetTextColor(flush_fg_col);
+    if (base_id_error) {
+        del_preset_btn->SetBackgroundColor(btn_bg_green);
+        del_preset_btn->SetBorderColor(btn_bg_green);
+        del_preset_btn->SetTextColor(wxColour(0xFFFFFE));
+    } else {
+        del_preset_btn->SetBackgroundColor(flush_bg_col);
+        del_preset_btn->SetBorderColor(flush_bd_col);
+        del_preset_btn->SetTextColor(flush_fg_col);
+    }
+    
     //del_preset_btn->Hide();
     sizer->Add(del_preset_btn, 0, wxALL | wxALIGN_CENTER_VERTICAL, 0);
 
