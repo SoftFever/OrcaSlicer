@@ -2,7 +2,7 @@
 Name=OrcaSlicer
 GenericName=3D Printing Software
 Icon=OrcaSlicer
-Exec=orca-slicer %F
+Exec=orca-slicer %U
 Terminal=false
 Type=Application
 MimeType=model/stl;model/3mf;application/vnd.ms-3mfdocument;application/prs.wavefront-obj;application/x-amf;

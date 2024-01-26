@@ -6,6 +6,7 @@
     "setting_id": "GP086",
     "instantiation": "true",
     "default_acceleration": "6000",
+    "elefant_foot_compensation": "0.075",
     "initial_layer_infill_speed": "28",
     "initial_layer_speed": "16",
     "travel_speed": "700",
