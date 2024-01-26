@@ -6597,6 +6597,18 @@ CLIMiscConfigDef::CLIMiscConfigDef()
     def->tooltip = "Skip the modified gcodes in 3mf from Printer or filament Presets";
     def->cli_params = "option";
     def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("makerlab_name", coString);
+    def->label = "MakerLab name";
+    def->tooltip = "MakerLab name to generate this 3mf";
+    def->cli_params = "name";
+    def->set_default_value(new ConfigOptionString());
+
+    def = this->add("makerlab_version", coString);
+    def->label = "MakerLab version";
+    def->tooltip = "MakerLab version to generate this 3mf";
+    def->cli_params = "version";
+    def->set_default_value(new ConfigOptionString());
 }
 
 const CLIActionsConfigDef    cli_actions_config_def;
