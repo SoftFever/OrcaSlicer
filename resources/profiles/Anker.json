@@ -63,8 +63,8 @@
             "sub_path": "process/0.25mm Fast @Anker.json"
         },
         {
-            "name": "0.30mm Extra Draft @Anker",
-            "sub_path": "process/0.30mm Extra Draft @Anker.json"
+            "name": "0.30mm Superdraft @Anker",
+            "sub_path": "process/0.30mm Superdraft @Anker.json"
         }
     ],
     "filament_list": [
