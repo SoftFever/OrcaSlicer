@@ -1,9 +1,9 @@
 {
     "type": "filament",
-    "name": "Anker Generic ASA",
-    "inherits": "Anker Generic ASA @base",
+    "name": "Anker Generic PLA Silk",
+    "inherits": "Anker Generic PLA Silk @base",
     "from": "system",
-    "setting_id": "GFSB98",
+    "setting_id": "GFSL96",
     "instantiation": "true",
     "compatible_printers": [
         "Anker M5 PTFE 0.4 nozzle",
