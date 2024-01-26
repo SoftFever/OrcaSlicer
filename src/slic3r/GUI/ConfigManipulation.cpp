@@ -307,6 +307,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
             new_conf.set_key_value("detect_thin_wall", new ConfigOptionBool(false));
             new_conf.set_key_value("overhang_reverse", new ConfigOptionBool(false));
             new_conf.set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(tlTraditional));
+            new_conf.set_key_value("seam_slope_enabled", new ConfigOptionBool(false));
             sparse_infill_density = 0;
             timelapse_type = TimelapseType::tlTraditional;
             support = false;
@@ -747,6 +748,13 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
 
     bool have_small_area_infill_flow_compensation = config->opt_bool("small_area_infill_flow_compensation");
     toggle_line("small_area_infill_flow_compensation_model", have_small_area_infill_flow_compensation);
+
+    
+    toggle_field("seam_slope_enabled", !has_spiral_vase);
+    bool has_seam_slope = !has_spiral_vase && config->opt_bool("seam_slope_enabled");
+    toggle_line("seam_slope_start_height", has_seam_slope);
+    toggle_line("seam_slope_min_length", has_seam_slope);
+    toggle_line("seam_slope_steps", has_seam_slope);
 }
 
 void ConfigManipulation::update_print_sla_config(DynamicPrintConfig* config, const bool is_global_config/* = false*/)

@@ -4539,7 +4539,7 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
     } else
         loop.split_at(last_pos, false);
 
-    const bool enable_seam_slope = true;
+    const bool enable_seam_slope = m_config.seam_slope_enabled.value && !m_config.spiral_mode && loop.role() == erExternalPerimeter && layer_id() > 0;
 
     // clip the path to avoid the extruder to get exactly on the first point of the loop;
     // if polyline was shorter than the clipping distance we'd get a null polyline, so
@@ -4641,15 +4641,22 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
         return is_small_peri ? small_peri_speed : speed;
     };
 
-    if (!enable_seam_slope || m_config.spiral_mode || loop.role() != erExternalPerimeter || layer_id() <= 0) {
+    if (!enable_seam_slope) {
         for (ExtrusionPaths::iterator path = paths.begin(); path != paths.end(); ++path) {
             gcode += this->_extrude(*path, description, speed_for_path(*path));
         }
     } else {
         // Create seam slope
-        const double start_slope_ratio = 0.1;
-        const double slope_min_length  = 5.;
-        const int    slope_steps       = 10;
+        double start_slope_ratio;
+        if (m_config.seam_slope_start_height.percent) {
+            start_slope_ratio = m_config.seam_slope_start_height.value / 100.;
+        } else {
+            // Get the ratio against current layer height
+            double h = m_nominal_z - m_nominal_z_prev;
+            start_slope_ratio = m_config.seam_slope_start_height.value / h;
+        }
+        const double slope_min_length         = m_config.seam_slope_min_length;
+        const int    slope_steps              = m_config.seam_slope_steps;
         const double slope_max_segment_length = scale_(slope_min_length / slope_steps);
 
         SlopedLoop new_loop;

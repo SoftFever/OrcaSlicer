@@ -3430,6 +3430,35 @@ def = this->add("filament_loading_speed", coFloats);
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatOrPercent(10,true));
 
+    def = this->add("seam_slope_enabled", coBool);
+    def->label = L("Sloped seam");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+    
+    def = this->add("seam_slope_start_height", coFloatOrPercent);
+    def->label = L("Seam slope start height");
+    def->tooltip = L("Start height of the slope.\n"
+                     "This amount can be specified in millimeters or as a percentage of the current layer height. The default value for this parameter is 0.05mm.");
+    def->sidetext = L("mm or %");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloatOrPercent(0.05, false));
+
+    def = this->add("seam_slope_min_length", coFloat);
+    def->label = L("Seam slope length");
+    def->tooltip = L("Length of the slope. Setting this parameter to zero effectively disables the slope.");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(5));
+
+    def = this->add("seam_slope_steps", coInt);
+    def->label = L("Seam slope steps");
+    def->tooltip = L("Minimum number of segments of each slope.");
+    def->min = 1;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionInt(10));
+
     def = this->add("role_based_wipe_speed", coBool);
     def->label = L("Role base wipe speed");
     def->tooltip = L("The wipe speed is determined by the speed of the current extrusion role."

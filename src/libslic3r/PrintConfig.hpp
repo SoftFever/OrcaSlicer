@@ -825,6 +825,12 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,              initial_layer_jerk))
     ((ConfigOptionFloat,              travel_jerk))
 
+    // Orca: seam slopes
+    ((ConfigOptionBool,               seam_slope_enabled))
+    ((ConfigOptionFloatOrPercent,     seam_slope_start_height))
+    ((ConfigOptionFloat,              seam_slope_min_length))
+    ((ConfigOptionInt,                seam_slope_steps))
+
 )
 
 // This object is mapped to Perl as Slic3r::Config::PrintRegion.
