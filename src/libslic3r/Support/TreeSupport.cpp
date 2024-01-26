@@ -631,10 +631,14 @@ void TreeSupport::detect_overhangs(bool detect_first_sharp_tail_only)
     if (m_object->support_layer_count() >= m_object->layer_count())
         return;
 
+    bool tree_support_enable = m_object_config->enable_support.value && is_tree(m_object_config->support_type.value);
+
     // Clear and create Tree Support Layers
     m_object->clear_support_layers();
     m_object->clear_tree_support_preview_cache();
-    create_tree_support_layers();
+    create_tree_support_layers(tree_support_enable);
+    if (!tree_support_enable)
+        return;
 
     const PrintObjectConfig& config = m_object->config();
     SupportType stype = support_type;
@@ -1098,7 +1102,9 @@ void TreeSupport::detect_overhangs(bool detect_first_sharp_tail_only)
 #endif
 }
 
-void TreeSupport::create_tree_support_layers()
+// create support layers for raft and tree support
+// if support is disabled, only raft layers are created
+void TreeSupport::create_tree_support_layers(bool support_enabled)
 {
     int layer_id = 0;
     coordf_t raft_print_z = 0.f;
@@ -1114,6 +1120,9 @@ void TreeSupport::create_tree_support_layers()
         raft_slice_z = raft_print_z - m_slicing_params.interface_raft_layer_height / 2;
         m_object->add_tree_support_layer(layer_id, m_slicing_params.base_raft_layer_height, raft_print_z, raft_slice_z);
     }
+
+    if (!support_enabled)
+        return;
 
     for (Layer *layer : m_object->layers()) {
         SupportLayer* ts_layer = m_object->add_tree_support_layer(layer_id++, layer->height, layer->print_z, layer->slice_z);
@@ -1319,20 +1328,10 @@ void TreeSupport::generate_toolpaths()
 
     raft_areas = std::move(offset_ex(raft_areas, scale_(object_config.raft_first_layer_expansion)));
 
-    // generate raft tool path
-    if (m_raft_layers > 0)
-    {
-        SupportLayer *ts_layer = m_object->support_layers().front();
-        Flow flow = Flow(support_extrusion_width, ts_layer->height, nozzle_diameter);
-        extrusion_entities_append_loops(ts_layer->support_fills.entities, to_polygons(raft_areas), erSupportMaterial,
-            float(flow.mm3_per_mm()), float(flow.width()), float(flow.height()));
-        raft_areas = offset_ex(raft_areas, -flow.scaled_spacing() / 2.);
-    }
-
     for (size_t layer_nr = 0; layer_nr < m_slicing_params.base_raft_layers; layer_nr++) {
         SupportLayer *ts_layer = m_object->get_support_layer(layer_nr);
-        coordf_t expand_offset = (layer_nr == 0 ? 0. : -1.);
-        raft_areas = offset_ex(raft_areas, scale_(expand_offset));
+        coordf_t expand_offset = (layer_nr == 0 ? m_object_config->raft_first_layer_expansion.value : 0.);
+        auto raft_areas1 = offset_ex(raft_areas, scale_(expand_offset));
 
         Flow support_flow = Flow(support_extrusion_width, ts_layer->height, nozzle_diameter);
         Fill* filler_interface = Fill::new_from_type(ipRectilinear);
@@ -1343,16 +1342,25 @@ void TreeSupport::generate_toolpaths()
         fill_params.density     = object_config.raft_first_layer_density * 0.01;
         fill_params.dont_adjust = true;
 
-        fill_expolygons_generate_paths(ts_layer->support_fills.entities, raft_areas,
+        // wall of first layer raft
+        if (layer_nr == 0) {
+            Flow flow = Flow(support_extrusion_width, ts_layer->height, nozzle_diameter);
+            extrusion_entities_append_loops(ts_layer->support_fills.entities, to_polygons(raft_areas1), erSupportMaterial,
+                        float(flow.mm3_per_mm()), float(flow.width()), float(flow.height()));
+            raft_areas1 = offset_ex(raft_areas1, -flow.scaled_spacing() / 2.);
+        }
+        fill_expolygons_generate_paths(ts_layer->support_fills.entities, raft_areas1,
             filler_interface, fill_params, erSupportMaterial, support_flow);
     }
 
     // subtract the non-raft support bases, otherwise we'll get support base on top of raft interfaces which is not stable
-    SupportLayer* first_non_raft_layer = m_object->get_support_layer(m_raft_layers);
     ExPolygons first_non_raft_base;
-    for (auto& area_group : first_non_raft_layer->area_groups) {
-        if (area_group.type == SupportLayer::BaseType)
-            first_non_raft_base.emplace_back(*area_group.area);
+    SupportLayer* first_non_raft_layer = m_object->get_support_layer(m_raft_layers);
+    if (first_non_raft_layer) {
+        for (auto& area_group : first_non_raft_layer->area_groups) {
+            if (area_group.type == SupportLayer::BaseType)
+                first_non_raft_base.emplace_back(*area_group.area);
+        }
     }
     ExPolygons raft_base_areas = intersection_ex(raft_areas, first_non_raft_base);
     ExPolygons raft_interface_areas = diff_ex(raft_areas, raft_base_areas);
@@ -1379,6 +1387,9 @@ void TreeSupport::generate_toolpaths()
         fill_expolygons_generate_paths(ts_layer->support_fills.entities, raft_base_areas,
             filler_interface, fill_params, erSupportMaterial, support_flow);
     }
+
+    if (m_object->support_layer_count() <= m_raft_layers)
+        return;
 
     BoundingBox bbox_object(Point(-scale_(1.), -scale_(1.0)), Point(scale_(1.), scale_(1.)));
 
@@ -1869,7 +1880,8 @@ void TreeSupport::draw_circles(const std::vector<std::vector<SupportNode*>>& con
     coordf_t support_extrusion_width = m_support_params.support_extrusion_width;
     const float tree_brim_width = config.tree_support_brim_width.value;
 
-    const PrintObjectConfig& object_config = m_object->config();
+    if (m_object->support_layer_count() <= m_raft_layers)
+        return;
     BOOST_LOG_TRIVIAL(info) << "draw_circles for object: " << m_object->model_object()->name;
 
     tbb::parallel_for(tbb::blocked_range<size_t>(0, m_object->layer_count()),
@@ -2180,7 +2192,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<SupportNode*>>& con
 
 
             auto m_support_material_flow = support_material_flow(m_object, m_slicing_params.layer_height);
-            coordf_t support_spacing = object_config.support_base_pattern_spacing.value + m_support_material_flow.spacing();
+            coordf_t support_spacing = m_object_config->support_base_pattern_spacing.value + m_support_material_flow.spacing();
             coordf_t support_density = std::min(1., m_support_material_flow.spacing() / support_spacing * 2); // for lightning infill the density is defined differently, so need to double it
             generator = std::make_unique<FillLightning::Generator>(m_object, contours, overhangs, []() {}, support_density);
         }
@@ -3052,6 +3064,8 @@ void TreeSupport::generate_contact_points(std::vector<std::vector<SupportNode*>>
 
     // fix bug of generating support for very thin objects
     if (m_object->layers().size() <= z_distance_top_layers + 1)
+        return;
+    if (m_object->support_layer_count() <= m_raft_layers)
         return;
 
     int      nonempty_layers = 0;

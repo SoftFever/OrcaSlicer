@@ -484,7 +484,7 @@ private:
      * If a node is already at that position in the layer, the nodes are merged.
      */
     void insert_dropped_node(std::vector<SupportNode*>& nodes_layer, SupportNode* node);
-    void create_tree_support_layers();
+    void create_tree_support_layers(bool support_enabled=true);
     void generate_toolpaths();
     // get unscaled radius of node
     coordf_t calc_branch_radius(coordf_t base_radius, size_t layers_to_top, size_t tip_layers, double diameter_angle_scale_factor);

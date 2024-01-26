@@ -385,7 +385,7 @@ public:
 
     size_t          support_layer_count() const { return m_support_layers.size(); }
     void            clear_support_layers();
-    SupportLayer*   get_support_layer(int idx) { return m_support_layers[idx]; }
+    SupportLayer*   get_support_layer(int idx) { return idx<m_support_layers.size()? m_support_layers[idx]:nullptr; }
     const SupportLayer* get_support_layer_at_printz(coordf_t print_z, coordf_t epsilon) const;
     SupportLayer*   get_support_layer_at_printz(coordf_t print_z, coordf_t epsilon);
     SupportLayer*   add_support_layer(int id, int interface_id, coordf_t height, coordf_t print_z);
