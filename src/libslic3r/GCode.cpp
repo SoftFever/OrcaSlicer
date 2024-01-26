@@ -4493,6 +4493,29 @@ static std::unique_ptr<EdgeGrid::Grid> calculate_layer_edge_grid(const Layer& la
     return out;
 }
 
+struct SlopedLoop
+{
+    std::vector<ExtrusionPathSloped> increasing;
+    ExtrusionPaths                   flat;
+    std::vector<ExtrusionPathSloped> decreasing;
+
+    [[nodiscard]] std::vector<const ExtrusionPath*> get_all_paths() const
+    {
+        std::vector<const ExtrusionPath*> r;
+        r.reserve(increasing.size() + flat.size() + decreasing.size());
+        for (const auto& p : increasing) {
+            r.push_back(&p);
+        }
+        for (const auto& p : flat) {
+            r.push_back(&p);
+        }
+        for (const auto& p : decreasing) {
+            r.push_back(&p);
+        }
+
+        return r;
+    }
+};
 
 std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, double speed, const ExtrusionEntitiesPtr& region_perimeters)
 {
@@ -4609,15 +4632,88 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
         }
     }
 
-    
-    
-    bool is_small_peri = false;
-    for (ExtrusionPaths::iterator path = paths.begin(); path != paths.end(); ++path) {
-//    description += ExtrusionLoop::role_to_string(loop.loop_role());
-//    description += ExtrusionEntity::role_to_string(path->role);
+
+    const auto speed_for_path = [&speed, &small_peri_speed](const ExtrusionPath& path) {
         // don't apply small perimeter setting for overhangs/bridges/non-perimeters
-        is_small_peri = is_perimeter(path->role()) && !is_bridge(path->role()) && small_peri_speed > 0 && (path->get_overhang_degree() == 0 || path->get_overhang_degree() > 5);
-        gcode += this->_extrude(*path, description, is_small_peri ? small_peri_speed : speed);
+        const bool is_small_peri = is_perimeter(path.role()) && !is_bridge(path.role()) && small_peri_speed > 0 && (path.get_overhang_degree() == 0 || path.get_overhang_degree() > 5);
+        return is_small_peri ? small_peri_speed : speed;
+    };
+
+    const bool enable_seam_slope = true;
+    if (!enable_seam_slope || m_config.spiral_mode || loop.role() != erExternalPerimeter || layer_id() <= 0) {
+        for (ExtrusionPaths::iterator path = paths.begin(); path != paths.end(); ++path) {
+            gcode += this->_extrude(*path, description, speed_for_path(*path));
+        }
+    } else {
+        // Create seam slope
+        const double start_slope_ratio = 0.1;
+        const double slope_min_length  = 5.;
+        const int    slope_steps       = 10;
+        const double slope_max_segment_length = scale_(slope_min_length / slope_steps);
+
+        SlopedLoop new_loop;
+
+        double loop_length = 0.;
+        for (const auto & path : paths) {
+            loop_length += unscale_(path.length());
+        }
+
+        // create slopes
+        if (loop_length > slope_min_length) {
+            const auto add_slop = [&new_loop, slope_max_segment_length](const ExtrusionPath& path, const Polyline& poly, double ratio_begin,
+                                                                        double ratio_end) {
+                if (poly.empty()) {
+                    return;
+                }
+
+                // TODO: ensure `slope_max_segment_length`
+                new_loop.increasing.emplace_back(poly, path, 
+                    ExtrusionPathSloped::Slope{ratio_begin, ratio_begin},
+                    ExtrusionPathSloped::Slope{ratio_end, ratio_end}
+                );
+                new_loop.decreasing.emplace_back(poly, path, 
+                    ExtrusionPathSloped::Slope{1., 1. - ratio_begin},
+                    ExtrusionPathSloped::Slope{1., 1. - ratio_end}
+                );
+            };
+
+            double remaining_length = slope_min_length;
+
+            ExtrusionPaths::iterator path = paths.begin();
+            double start_ratio = start_slope_ratio;
+            for (; path != paths.end() && remaining_length > 0; ++path) {
+                const double path_len = unscale_(path->length());
+                if (path_len > remaining_length) {
+                    // Split current path into slope and non-slope part
+                    Polyline slope_path;
+                    Polyline flat_path;
+                    path->polyline.split_at_length(scale_(remaining_length), &slope_path, &flat_path);
+
+                    add_slop(*path, slope_path, start_ratio, 1);
+                    start_ratio = 1;
+
+                    new_loop.flat.emplace_back(std::move(flat_path), *path);
+                    remaining_length = 0;
+                } else {
+                    remaining_length -= path_len;
+                    const double end_ratio = lerp(1.0, start_slope_ratio, remaining_length / slope_min_length);
+                    add_slop(*path, path->polyline, start_ratio, end_ratio);
+                    start_ratio = end_ratio;
+                }
+            }
+            assert(remaining_length <= 0);
+            assert(start_ratio == 1.);
+
+            // Put remaining flat paths
+            new_loop.flat.insert(new_loop.flat.end(), path, paths.end());
+        } else {
+            // TODO: support small loops
+            new_loop.flat = paths;
+        }
+
+        for (const auto& p : new_loop.get_all_paths()) {
+            gcode += this->_extrude(*p, description, speed_for_path(*p));
+        }
     }
 
     // BBS
