@@ -21,23 +21,30 @@ jobs:
     env:
       date:
       ver:
+      ver_pure:
 
     steps:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - name: load cached deps
+        uses: actions/cache@v3
+        with:
+          path: ${{ inputs.cache-path }}
+          key: ${{ inputs.cache-key }}
+          fail-on-cache-miss: true
+
       - name: Get the version and date on Ubuntu and macOS
         if: inputs.os != 'windows-latest'
         run: |
-          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
-            ver="nightly$(date +'%y%m%d')"
-          elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            ver="PR${{ github.event.number }}"
+          ver_pure=$(grep 'set(SoftFever_VERSION' version.inc | cut -d '"' -f2)
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            ver="PR-${{ github.event.number }}"
           else
-            ver=$(grep 'set(SoftFever_VERSION' version.inc | cut -d '"' -f2)
-            ver=V$ver
+            ver=V$ver_pure
           fi
           echo "ver=$ver" >> $GITHUB_ENV
+          echo "ver_pure=$ver_pure" >> $GITHUB_ENV
           echo "date=$(date +'%Y%m%d')" >> $GITHUB_ENV
         shell: bash
 
@@ -49,9 +56,7 @@ jobs:
           $eventName = "${{ github.event_name }}"
           $prNumber = "${{ github.event.number }}"
       
-          if ($ref -eq 'refs/heads/main') {
-              $ver = "nightly" + $date.Substring(2)
-          } elseif ($eventName -eq 'pull_request') {
+          if ($eventName -eq 'pull_request') {
               $ver = "PR" + $prNumber
           } else {
               $versionContent = Get-Content version.inc -Raw
@@ -65,12 +70,6 @@ jobs:
           echo "date=$date" | Out-File -Append -FilePath $env:GITHUB_ENV -Encoding utf8
           echo "date: ${{ env.date }} version: ${{ env.ver }}"
         shell: pwsh
-      
-      - name: load cached deps
-        uses: actions/cache@v3
-        with:
-          path: ${{ inputs.cache-path }}
-          key: ${{ inputs.cache-key }}
         
 #   Mac
       - name: Install tools mac
@@ -129,6 +128,17 @@ jobs:
           name: OrcaSlicer_Mac_${{inputs.arch}}_${{ env.ver }}
           path: ${{ github.workspace }}/OrcaSlicer_Mac_${{inputs.arch}}_${{ env.ver }}.dmg
 
+      - name: Deploy Mac release
+        if: github.ref == 'refs/heads/main' && inputs.os == 'macos-12'
+        uses: WebFreak001/deploy-nightly@v3.0.0
+        with:
+          upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label} 
+          release_id: 137995723 
+          asset_path: ${{ github.workspace }}/OrcaSlicer_Mac_${{inputs.arch}}_${{ env.ver }}.dmg
+          asset_name: OrcaSlicer_Mac_${{inputs.arch}}_${{ env.ver }}.dmg
+          asset_content_type: application/octet-stream 
+          max_releases: 1 # optional, if there are more releases than this matching the asset_name, the oldest ones are going to be deleted
+
 # Windows
       - name: setup MSVC
         if: inputs.os == 'windows-latest'
@@ -184,6 +194,28 @@ jobs:
           name: PDB
           path: ${{ github.workspace }}/build/src/Release/Debug_PDB_${{ env.ver }}_for_developers_only.7z
 
+      - name: Deploy Windows release portable
+        if: github.ref == 'refs/heads/main' && inputs.os == 'windows-latest'
+        uses: WebFreak001/deploy-nightly@v3.0.0
+        with:
+          upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label} 
+          release_id: 137995723 
+          asset_path: ${{ github.workspace }}/build/OrcaSlicer_Windows_${{ env.ver }}_portable.zip
+          asset_name: OrcaSlicer_Windows_${{ env.ver }}_portable.zip
+          asset_content_type: application/x-zip-compressed 
+          max_releases: 1 
+
+      - name: Deploy Windows release installer
+        if: github.ref == 'refs/heads/main' && inputs.os == 'windows-latest'
+        uses: WebFreak001/deploy-nightly@v3.0.0
+        with:
+          upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label} 
+          release_id: 137995723 
+          asset_path: ${{ github.workspace }}/build/OrcaSlicer_Windows_Installer_${{ env.ver }}.exe
+          asset_name: OrcaSlicer_Windows_Installer_${{ env.ver }}.exe
+          asset_content_type: application/x-msdownload
+          max_releases: 1 
+
 # Ubuntu
       - name: Install dependencies
         if: inputs.os == 'ubuntu-20.04'
@@ -210,11 +242,23 @@ jobs:
         shell: bash
         run: |
           ./BuildLinux.sh -isr
-          chmod +x ./build/OrcaSlicer_ubu64.AppImage
+          mv -n ./build/OrcaSlicer_Linux_V${{ env.ver_pure }}.AppImage ./build/OrcaSlicer_Linux_${{ env.ver }}.AppImage
+          chmod +x ./build/OrcaSlicer_Linux_${{ env.ver }}.AppImage
         
       - name: Upload artifacts Ubuntu
         if: inputs.os == 'ubuntu-20.04'
         uses: actions/upload-artifact@v3
         with:
           name: OrcaSlicer_Linux_${{ env.ver }}
-          path: './build/OrcaSlicer_ubu64.AppImage'
+          path: './build/OrcaSlicer_Linux_${{ env.ver }}.AppImage'
+
+      - name: Deploy Ubuntu release
+        if: github.ref == 'refs/heads/main' && inputs.os == 'ubuntu-20.04'
+        uses: WebFreak001/deploy-nightly@v3.0.0
+        with:
+          upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label} 
+          release_id: 137995723 
+          asset_path: ./build/OrcaSlicer_Linux_${{ env.ver }}.AppImage
+          asset_name: OrcaSlicer_Linux_${{ env.ver }}.AppImage
+          asset_content_type: application/octet-stream
+          max_releases: 1 # optional, if there are more releases than this matching the asset_name, the oldest ones are going to be deleted

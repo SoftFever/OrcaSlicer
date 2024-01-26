@@ -6,6 +6,7 @@
   "instantiation": "true",
   "inherits": "fdm_creality_common",
   "printer_model": "Creality CR-6 SE",
+  "printer_structure": "i3",
   "default_filament_profile": [
     "Creality Generic PLA"
   ],

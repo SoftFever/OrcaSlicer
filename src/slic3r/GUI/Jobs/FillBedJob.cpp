@@ -150,8 +150,7 @@ void FillBedJob::prepare()
 
     double sc = scaled<double>(1.) * scaled(1.);
 
-    const GLCanvas3D::ArrangeSettings& settings = static_cast<const GLCanvas3D*>(m_plater->canvas3D())->get_arrange_settings();
-    auto polys = offset_ex(m_selected.front().poly, scaled(settings.distance) / 2);
+    auto polys = offset_ex(m_selected.front().poly, params.min_obj_distance / 2);
     ExPolygon poly = polys.empty() ? m_selected.front().poly : polys.front();
     double poly_area = poly.area() / sc;
     double unsel_area = std::accumulate(m_unselected.begin(),

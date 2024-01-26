@@ -66,3 +66,8 @@ a
 {
 	background-color:#36363C;
 }
+
+#AddModelInfoBtn:hover
+{
+	color: #000;
+}

@@ -1731,7 +1731,7 @@ void PerimeterGenerator::process_classic()
             // if brim will be printed, reverse the order of perimeters so that
             // we continue inwards after having finished the brim
             // TODO: add test for perimeter order
-            bool is_outer_wall_first = this->object_config->wall_sequence == WallSequence::OuterInner;
+            bool is_outer_wall_first = this->config->wall_sequence == WallSequence::OuterInner;
             if (is_outer_wall_first ||
                 //BBS: always print outer wall first when there indeed has brim.
                 (this->layer_id == 0 &&
@@ -1739,7 +1739,7 @@ void PerimeterGenerator::process_classic()
                     this->object_config->brim_width.value > 0))
                 entities.reverse();
             // SoftFever: sandwich mode 
-            else if (this->object_config->wall_sequence == WallSequence::InnerOuterInner)
+            else if (this->config->wall_sequence == WallSequence::InnerOuterInner)
                 if (entities.entities.size() > 1){
                     int              last_outer=0;
                     int              outer = 0;
@@ -1941,10 +1941,15 @@ void PerimeterGenerator::process_arachne()
         int        loop_number = this->config->wall_loops + surface.extra_perimeters - 1; // 0-indexed loops
         if (this->config->alternate_extra_wall && this->layer_id % 2 == 1 && !m_spiral_vase) // add alternating extra wall
             loop_number++;
-        if (this->layer_id == 0 && this->config->only_one_wall_first_layer)
+
+        // Set the bottommost layer to be one wall
+        const bool is_bottom_layer = (this->layer_id == 0) ? true : false;
+        if (is_bottom_layer && this->config->only_one_wall_first_layer)
             loop_number = 0;
+
         // Orca: set the topmost layer to be one wall according to the config
-        if (loop_number > 0 && config->only_one_wall_top && this->upper_slices == nullptr)
+        const bool is_topmost_layer = (this->upper_slices == nullptr) ? true : false;
+        if (is_topmost_layer && loop_number > 0 && config->only_one_wall_top)
             loop_number = 0;
         // Orca: properly adjust offset for the outer wall if precise_outer_wall is enabled.
         ExPolygons last = offset_ex(surface.expolygon.simplify_p(surface_simplify_resolution),
@@ -1952,6 +1957,9 @@ void PerimeterGenerator::process_arachne()
                                                  : -float(ext_perimeter_width / 2. - ext_perimeter_spacing / 2.));
         
         Arachne::WallToolPathsParams input_params = Arachne::make_paths_params(this->layer_id, *object_config, *print_config);
+        // Set params is_top_or_bottom_layer for adjusting short-wall removal sensitivity.
+        input_params.is_top_or_bottom_layer = (is_bottom_layer || is_topmost_layer) ? true : false;
+
         coord_t wall_0_inset = 0;
         if (config->precise_outer_wall)
            wall_0_inset = -coord_t(ext_perimeter_width / 2 - ext_perimeter_spacing / 2);
@@ -1959,29 +1967,45 @@ void PerimeterGenerator::process_arachne()
         std::vector<Arachne::VariableWidthLines> out_shell;
         ExPolygons top_fills;
         ExPolygons fill_clip;
-        if (loop_number > 0 && config->only_one_wall_top && !surface.is_bridge() && this->upper_slices != nullptr) {
-            // Check if current layer has surfaces that are not covered by upper layer (i.e., top surfaces)
-            ExPolygons non_top_polygons;
-            this->split_top_surfaces(last, top_fills, non_top_polygons, fill_clip);
 
-            if (top_fills.empty()) {
+        // Check if we're on a top surface, and make adjustments where needed
+        if (!surface.is_bridge() && !is_topmost_layer) {
+            ExPolygons non_top_polygons;
+            // Temporary storage, in the event all we need to do is set is_top_or_bottom_layer
+            ExPolygons top_fills_tmp;
+            ExPolygons fill_clip_tmp;
+            // Check if current layer has surfaces that are not covered by upper layer (i.e., top surfaces)
+            this->split_top_surfaces(last, top_fills_tmp, non_top_polygons, fill_clip_tmp);
+
+            if (top_fills_tmp.empty()) {
                 // No top surfaces, no special handling needed
             } else {
-                // First we slice the outer shell
-                Polygons last_p = to_polygons(last);
-                Arachne::WallToolPaths wallToolPaths(last_p, bead_width_0, perimeter_spacing, coord_t(1),
-                                                     wall_0_inset, layer_height, input_params);
-                out_shell = wallToolPaths.getToolPaths();
-                // Make sure infill not overlap with wall
-                top_fills = intersection_ex(top_fills, wallToolPaths.getInnerContour());
+                // Use single-wall on top-surfaces if configured
+                if (loop_number > 0 && config->only_one_wall_top) {
+                    // Adjust arachne input params to prevent removal of larger short walls, which could lead to gaps
+                    Arachne::WallToolPathsParams input_params_tmp = input_params;
+                    input_params_tmp.is_top_or_bottom_layer = true;
+                
+                    // Swap in the temporary storage
+                    top_fills.swap(top_fills_tmp);
+                    fill_clip.swap(fill_clip_tmp);
+                    
+                    // First we slice the outer shell
+                    Polygons last_p = to_polygons(last);
+                    Arachne::WallToolPaths wallToolPaths(last_p, bead_width_0, perimeter_spacing, coord_t(1),
+                                                        wall_0_inset, layer_height, input_params_tmp);
+                    out_shell = wallToolPaths.getToolPaths();
+                    // Make sure infill not overlap with wall
+                    top_fills = intersection_ex(top_fills, wallToolPaths.getInnerContour());
 
-                if (!top_fills.empty()) {
-                    // Then get the inner part that needs more walls
-                    last = intersection_ex(non_top_polygons, wallToolPaths.getInnerContour());
-                    loop_number--;
-                } else {
-                    // Give up the outer shell because we don't have any meaningful top surface
-                    out_shell.clear();
+                    if (!top_fills.empty()) {
+                        // Then get the inner part that needs more walls
+                        last = intersection_ex(non_top_polygons, wallToolPaths.getInnerContour());
+                        loop_number--;
+                    } else {
+                        // Give up the outer shell because we don't have any meaningful top surface
+                        out_shell.clear();
+                    }
                 }
             }
         }
@@ -2036,12 +2060,12 @@ void PerimeterGenerator::process_arachne()
         int direction = -1;
 
 		bool is_outer_wall_first =
-            	this->object_config->wall_sequence == WallSequence::OuterInner ||
-            	this->object_config->wall_sequence == WallSequence::InnerOuterInner;
+            	this->config->wall_sequence == WallSequence::OuterInner ||
+            	this->config->wall_sequence == WallSequence::InnerOuterInner;
         
         if (layer_id == 0){ // disable inner outer inner algorithm after the first layer
         	is_outer_wall_first =
-            	this->object_config->wall_sequence == WallSequence::OuterInner;
+            	this->config->wall_sequence == WallSequence::OuterInner;
         }
         if (is_outer_wall_first) {
             start_perimeter = 0;
@@ -2169,7 +2193,7 @@ void PerimeterGenerator::process_arachne()
         }
 
        // printf("New Layer: Layer ID %d\n",layer_id); //debug - new layer
-        if (this->object_config->wall_sequence == WallSequence::InnerOuterInner && layer_id > 0) { // only enable inner outer inner algorithm after first layer
+        if (this->config->wall_sequence == WallSequence::InnerOuterInner && layer_id > 0) { // only enable inner outer inner algorithm after first layer
             if (ordered_extrusions.size() > 2) { // 3 walls minimum needed to do inner outer inner ordering
                 int position = 0; // index to run the re-ordering for multiple external perimeters in a single island.
                 int arr_i, arr_j = 0;    // indexes to run through the walls in the for loops

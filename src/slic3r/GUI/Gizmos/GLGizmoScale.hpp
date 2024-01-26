@@ -34,10 +34,7 @@ class GLGizmoScale3D : public GLGizmoBase
 
     BoundingBoxf3 m_box;
     Transform3d m_transform;
-    // Transforms grabbers offsets to the proper reference system (world for instances, instance for volumes)
-    Transform3d m_offsets_transform;
     Vec3d m_scale{ Vec3d::Ones() };
-    Vec3d m_offset{ Vec3d::Zero() };
     double m_snap_step{ 0.05 };
     StartingData m_starting;
 
@@ -99,6 +96,7 @@ private:
     void do_scale_uniform(const UpdateData& data);
 
     double calc_ratio(const UpdateData& data) const;
+    void update_render_data();
 };
 
 

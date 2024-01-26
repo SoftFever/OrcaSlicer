@@ -31,7 +31,7 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/filesystem/operations.hpp>
-#include <boost/filesystem/string_file.hpp>
+#include <boost/lexical_cast.hpp>
 #include <boost/nowide/fstream.hpp>
 #include <boost/nowide/cstdio.hpp>
 #include <boost/spirit/include/karma.hpp>
@@ -45,6 +45,8 @@
 
 namespace pt = boost::property_tree;
 
+#include <tbb/blocked_range.h>
+#include <tbb/parallel_for.h>
 #include <tbb/parallel_reduce.h>
 
 #include <expat.h>
@@ -137,6 +139,9 @@ const std::string BBL_REGION_TAG                    = "Region";
 const std::string BBL_MODIFICATION_TAG              = "ModificationDate";
 const std::string BBL_CREATION_DATE_TAG             = "CreationDate";
 const std::string BBL_APPLICATION_TAG               = "Application";
+const std::string BBL_MAKERLAB_TAG                  = "MakerLab";
+const std::string BBL_MAKERLAB_VERSION_TAG          = "MakerLabVersion";
+
 
 const std::string BBL_PROFILE_TITLE_TAG             = "ProfileTitle";
 const std::string BBL_PROFILE_COVER_TAG             = "ProfileCover";
@@ -1290,9 +1295,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             model.set_backup_path(m_backup_path);
             try {
                 if (boost::filesystem::exists(model.get_backup_path() + "/origin.txt"))
-                    boost::filesystem::load_string_file(model.get_backup_path() + "/origin.txt", m_origin_file);
+                    load_string_file(model.get_backup_path() + "/origin.txt", m_origin_file);
             } catch (...) {}
-            boost::filesystem::save_string_file(
+            save_string_file(
                 model.get_backup_path() + "/lock.txt",
                 boost::lexical_cast<std::string>(get_current_pid()));
         }
@@ -1305,7 +1310,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             file_version = *m_bambuslicer_generator_version;
         // save for restore
         if (result && m_load_aux && !m_load_restore) {
-            boost::filesystem::save_string_file(model.get_backup_path() + "/origin.txt", filename);
+            save_string_file(model.get_backup_path() + "/origin.txt", filename);
         }
         if (m_load_restore && !result) // not clear failed backup data for later analyze
             model.set_backup_path("detach");
@@ -1717,18 +1722,18 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             project->project_country_code = m_contry_code;
         }
 
-        //BBS: version check
+        // Orca: skip version check
         bool dont_load_config = !m_load_config;
-        if (m_bambuslicer_generator_version) {
-            Semver app_version = *(Semver::parse(SoftFever_VERSION));
-            Semver file_version = *m_bambuslicer_generator_version;
-            if (file_version.maj() != app_version.maj())
-                dont_load_config = true;
-        }
-        else {
-            m_bambuslicer_generator_version = Semver::parse("0.0.0.0");
-            dont_load_config = true;
-        }
+        // if (m_bambuslicer_generator_version) {
+        //     Semver app_version = *(Semver::parse(SoftFever_VERSION));
+        //     Semver file_version = *m_bambuslicer_generator_version;
+        //     if (file_version.maj() != app_version.maj())
+        //         dont_load_config = true;
+        // }
+        // else {
+        //     m_bambuslicer_generator_version = Semver::parse("0.0.0.0");
+        //     dont_load_config = true;
+        // }
 
         // we then loop again the entries to read other files stored in the archive
         for (mz_uint i = 0; i < num_entries; ++i) {
@@ -5544,7 +5549,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 return false;
             }
             if (!(store_params.strategy & SaveStrategy::Silence))
-                boost::filesystem::save_string_file(store_params.model->get_backup_path() + "/origin.txt", filename);
+                save_string_file(store_params.model->get_backup_path() + "/origin.txt", filename);
         }
         return result;
     }
@@ -6314,7 +6319,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             std::stringstream stream;
             reset_stream(stream);
             stream << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
-            stream << "<" << MODEL_TAG << " unit=\"millimeter\" xml:lang=\"en-US\" xmlns=\"http://schemas.microsoft.com/3dmanufacturing/core/2015/02\" xmlns:slic3rpe=\"http://schemas.slic3r.org/3mf/2017/06\"";
+            stream << "<" << MODEL_TAG << " unit=\"millimeter\" xml:lang=\"en-US\" xmlns=\"http://schemas.microsoft.com/3dmanufacturing/core/2015/02\" xmlns:BambuStudio=\"http://schemas.bambulab.com/package/2021\"";
             if (m_production_ext)
                 stream << " xmlns:p=\"http://schemas.microsoft.com/3dmanufacturing/production/2015/06\" requiredextensions=\"p\"";
             stream << ">\n";
@@ -6383,6 +6388,15 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 metadata_item_map[BBL_APPLICATION_TAG] = (boost::format("%1%-%2%") % "BambuStudio" % SoftFever_VERSION).str();
             }
             metadata_item_map[BBS_3MF_VERSION] = std::to_string(VERSION_BBS_3MF);
+
+            if (!model.mk_name.empty()) {
+                metadata_item_map[BBL_MAKERLAB_TAG] = xml_escape(model.mk_name);
+                BOOST_LOG_TRIVIAL(info) << "saved mk_name " << model.mk_name;
+            }
+            if (!model.mk_version.empty()) {
+                metadata_item_map[BBL_MAKERLAB_VERSION_TAG] = xml_escape(model.mk_version);
+                BOOST_LOG_TRIVIAL(info) << "saved mk_version " << model.mk_version;
+            }
 
             // store metadata info
             for (auto item : metadata_item_map) {
@@ -8287,7 +8301,7 @@ bool has_restore_data(std::string & path, std::string& origin)
     }
     if (boost::filesystem::exists(path + "/lock.txt")) {
         std::string pid;
-        boost::filesystem::load_string_file(path + "/lock.txt", pid);
+        load_string_file(path + "/lock.txt", pid);
         try {
             if (get_process_name(boost::lexical_cast<int>(pid)) ==
                 get_process_name(0)) {
@@ -8304,7 +8318,7 @@ bool has_restore_data(std::string & path, std::string& origin)
         return false;
     try {
         if (boost::filesystem::exists(path + "/origin.txt"))
-            boost::filesystem::load_string_file(path + "/origin.txt", origin);
+            load_string_file(path + "/origin.txt", origin);
     }
     catch (...) {
     }

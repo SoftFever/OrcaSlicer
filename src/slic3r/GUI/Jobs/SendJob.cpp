@@ -114,47 +114,15 @@ void SendJob::process(Ctl &ctl)
     unsigned int http_code;
     std::string http_body;
 
-
-   
-   
-    // local print access
-    params.dev_ip = m_dev_ip;
-    params.username = "bblp";
-    params.password = m_access_code;
-    params.use_ssl_for_ftp = m_local_use_ssl_for_ftp;
-    params.use_ssl_for_mqtt = m_local_use_ssl_for_mqtt;
-
-    // check access code and ip address
-    params.dev_id = m_dev_id;
-    params.project_name = "verify_job";
-    params.filename = job_data._temp_path.string();
-    params.connection_type = this->connection_type;
-
-    result = m_agent->start_send_gcode_to_sdcard(params, nullptr, nullptr, nullptr);
-    if (result != 0) {
-        BOOST_LOG_TRIVIAL(error) << "access code is invalid";
-        m_enter_ip_address_fun_fail(result);
-        m_job_finished = true;
-        return;
-    }
-    else if(m_is_check_mode && !m_check_and_continue){
-        m_enter_ip_address_fun_success();
-        m_job_finished = true;
-        return;
-    }
-    
-
-    /* display info */
-    msg = _u8L("Sending gcode file over LAN");
-   /* if (this->connection_type == "lan") {
-        msg = _u8L("Sending gcode file over LAN");
+    if (this->connection_type == "lan") {
+        msg = _u8L("Sending print job over LAN");
     }
     else {
-        msg = _u8L("Sending gcode file through cloud service");
-    }*/
+        msg = _u8L("Sending print job through cloud service");
+    }
+
     ctl.call_on_main_thread([this] { prepare(); }).wait();
     ctl.update_status(0, msg);
-
     int total_plate_num = m_plater->get_partplate_list().get_plate_count();
 
     PartPlate* plate = m_plater->get_partplate_list().get_plate(job_data.plate_idx);

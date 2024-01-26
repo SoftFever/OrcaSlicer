@@ -38,7 +38,6 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/filesystem/string_file.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/nowide/iostream.hpp>
 
@@ -107,6 +106,9 @@ Model& Model::assign_copy(const Model &rhs)
     this->stl_design_id = rhs.stl_design_id;
     this->profile_info = rhs.profile_info;
 
+    this->mk_name = rhs.mk_name;
+    this->mk_version = rhs.mk_version;
+
     return *this;
 }
 
@@ -136,6 +138,8 @@ Model& Model::assign_copy(Model &&rhs)
     //BBS: add auxiliary path logic
     // BBS: backup, all in one temp dir
     this->stl_design_id = rhs.stl_design_id;
+    this->mk_name = rhs.mk_name;
+    this->mk_version = rhs.mk_version;
     this->backup_path = std::move(rhs.backup_path);
     this->object_backup_id_map = std::move(rhs.object_backup_id_map);
     this->next_object_backup_id = rhs.next_object_backup_id;
@@ -837,7 +841,7 @@ end:
 // BBS: backup all in one dir
 std::string Model::get_auxiliary_file_temp_path()
 {
-    return get_backup_path("/Auxiliaries");
+    return get_backup_path("Auxiliaries");
 }
 
 // BBS: backup dir
@@ -873,7 +877,7 @@ std::string Model::get_backup_path()
             BOOST_LOG_TRIVIAL(info) << "create /Metadata in " << temp_path;
             boost::filesystem::create_directories(backup_path + "/Metadata");
             BOOST_LOG_TRIVIAL(info) << "create /lock.txt in " << temp_path;
-            boost::filesystem::save_string_file(backup_path + "/lock.txt",
+            save_string_file(backup_path + "/lock.txt",
                 boost::lexical_cast<std::string>(get_current_pid()));
         }
     } catch (std::exception &ex) {
@@ -936,6 +940,8 @@ void Model::load_from(Model& model)
     stl_design_id = model.stl_design_id;
     model_info  = model.model_info;
     profile_info  = model.profile_info;
+    mk_name = model.mk_name;
+    mk_version = model.mk_version;
     model.design_info.reset();
     model.model_info.reset();
     model.profile_info.reset();
