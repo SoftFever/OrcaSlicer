@@ -469,29 +469,6 @@ PrinterFileSystem::File const &PrinterFileSystem::GetFile(size_t index, bool &se
     return m_file_list[m_group_month[index]];
 }
 
-int PrinterFileSystem::RecvData(std::function<int(Bambu_Sample& sample)> const & callback)
-{
-    int result = 0;
-    while (true) {
-        Bambu_Sample sample;
-        result = Bambu_ReadSample(m_session.tunnel, &sample);
-        if (result == Bambu_success) {
-            result = callback(sample);
-            if (result == 1)
-                continue;
-        } else if (result == Bambu_would_block) {
-            boost::this_thread::sleep(boost::posix_time::seconds(1));
-            continue;
-        } else if (result == Bambu_stream_end) {
-            result = 0;
-        } else {
-            result = ERROR_PIPE;
-        }
-        break;
-    }
-    return result;
-}
-
 void PrinterFileSystem::Attached()
 {
     boost::unique_lock lock(m_mutex);

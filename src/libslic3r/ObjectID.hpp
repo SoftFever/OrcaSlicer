@@ -2,6 +2,7 @@
 #define slic3r_ObjectID_hpp_
 
 #include <cereal/access.hpp>
+#include <cereal/types/base_class.hpp>
 
 namespace Slic3r {
 
