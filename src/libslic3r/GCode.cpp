@@ -4715,6 +4715,15 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
         for (const auto& p : new_loop.get_all_paths()) {
             gcode += this->_extrude(*p, description, speed_for_path(*p));
         }
+
+        // Fix path for wipe
+        if (!new_loop.decreasing.empty()) {
+            paths.clear();
+            // The increasing slope part is ignored as it overlaps with the decreasing part
+            paths.reserve(new_loop.flat.size() + new_loop.decreasing.size());
+            paths.insert(paths.end(), new_loop.flat.begin(), new_loop.flat.end());
+            paths.insert(paths.end(), new_loop.decreasing.begin(), new_loop.decreasing.end());
+        }
     }
 
     // BBS
