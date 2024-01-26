@@ -4667,12 +4667,19 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
                     return;
                 }
 
-                // TODO: ensure `slope_max_segment_length`
-                new_loop.increasing.emplace_back(poly, path, 
+                // Ensure `slope_max_segment_length`, by first split the path into small pieces
+                const auto& path_segments = poly.equally_spaced_lines(slope_max_segment_length);
+                // Then put them together
+                Polyline detailed_poly;
+                for (const auto & p : path_segments) {
+                    detailed_poly.append(p);
+                }
+
+                new_loop.increasing.emplace_back(detailed_poly, path, 
                     ExtrusionPathSloped::Slope{ratio_begin, ratio_begin},
                     ExtrusionPathSloped::Slope{ratio_end, ratio_end}
                 );
-                new_loop.decreasing.emplace_back(poly, path, 
+                new_loop.decreasing.emplace_back(detailed_poly, path, 
                     ExtrusionPathSloped::Slope{1., 1. - ratio_begin},
                     ExtrusionPathSloped::Slope{1., 1. - ratio_end}
                 );
