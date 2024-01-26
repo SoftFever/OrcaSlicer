@@ -4539,10 +4539,12 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
     } else
         loop.split_at(last_pos, false);
 
+    const bool enable_seam_slope = true;
+
     // clip the path to avoid the extruder to get exactly on the first point of the loop;
     // if polyline was shorter than the clipping distance we'd get a null polyline, so
     // we discard it in that case
-    double clip_length = m_enable_loop_clipping ?
+    double clip_length = m_enable_loop_clipping && !enable_seam_slope ?
     scale_(m_config.seam_gap.get_abs_value(EXTRUDER_CONFIG(nozzle_diameter))) : 0;
 
     // get paths
@@ -4639,7 +4641,6 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
         return is_small_peri ? small_peri_speed : speed;
     };
 
-    const bool enable_seam_slope = true;
     if (!enable_seam_slope || m_config.spiral_mode || loop.role() != erExternalPerimeter || layer_id() <= 0) {
         for (ExtrusionPaths::iterator path = paths.begin(); path != paths.end(); ++path) {
             gcode += this->_extrude(*path, description, speed_for_path(*path));
