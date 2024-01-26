@@ -333,6 +333,8 @@ public:
             lerp(slope_begin.e_ratio, slope_end.e_ratio, ratio),
         };
     }
+
+    bool is_flat() const { return is_approx(slope_begin.z_ratio, slope_end.z_ratio); }
 };
 
 class ExtrusionPathOriented : public ExtrusionPath
