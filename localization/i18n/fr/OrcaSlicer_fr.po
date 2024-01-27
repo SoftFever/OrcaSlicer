@@ -15370,19 +15370,6 @@ msgstr ""
 #~ "déformer, tels que l’ABS, une augmentation appropriée de la température "
 #~ "du plateau chauffant peut réduire la probabilité de déformation."
 
-#~ msgid "Layer order"
-#~ msgstr "Ordre des couches"
-
-#~ msgid ""
-#~ "We would rename the presets as \"Vendor Type Serial @printer you "
-#~ "selected\". \n"
-#~ "To add preset for more printers, Please go to printer selection"
-#~ msgstr ""
-#~ "Nous renommerions les préréglages en « Fournisseur Type Série @imprimante "
-#~ "que vous avez sélectionnée ». \n"
-#~ "Pour ajouter des préréglages pour d’autres imprimantes, veuillez aller à "
-#~ "la sélection de l’imprimante."
-
 #~ msgid "The Config can not be loaded."
 #~ msgstr "La configuration ne peut pas être chargée."
 
