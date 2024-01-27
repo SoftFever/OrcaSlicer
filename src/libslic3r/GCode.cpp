@@ -4657,76 +4657,72 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
             double h = m_nominal_z - m_nominal_z_prev;
             start_slope_ratio = m_config.seam_slope_start_height.value / h;
         }
-        const double slope_min_length         = m_config.seam_slope_min_length;
-        const int    slope_steps              = m_config.seam_slope_steps;
-        const double slope_max_segment_length = scale_(slope_min_length / slope_steps);
-
-        SlopedLoop new_loop;
 
         double loop_length = 0.;
         for (const auto & path : paths) {
             loop_length += unscale_(path.length());
         }
 
+        const double slope_min_length         = std::min(m_config.seam_slope_min_length.value, loop_length);
+        const int    slope_steps              = m_config.seam_slope_steps;
+        const double slope_max_segment_length = scale_(slope_min_length / slope_steps);
+
+        SlopedLoop new_loop;
+
         // create slopes
-        if (loop_length > slope_min_length) {
-            const auto add_slop = [&new_loop, slope_max_segment_length](const ExtrusionPath& path, const Polyline& poly, double ratio_begin,
-                                                                        double ratio_end) {
-                if (poly.empty()) {
-                    return;
-                }
-
-                // Ensure `slope_max_segment_length`, by first split the path into small pieces
-                const auto& path_segments = poly.equally_spaced_lines(slope_max_segment_length);
-                // Then put them together
-                Polyline detailed_poly;
-                for (const auto & p : path_segments) {
-                    detailed_poly.append(p);
-                }
-
-                new_loop.increasing.emplace_back(detailed_poly, path, 
-                    ExtrusionPathSloped::Slope{ratio_begin, ratio_begin},
-                    ExtrusionPathSloped::Slope{ratio_end, ratio_end}
-                );
-                new_loop.decreasing.emplace_back(detailed_poly, path, 
-                    ExtrusionPathSloped::Slope{1., 1. - ratio_begin},
-                    ExtrusionPathSloped::Slope{1., 1. - ratio_end}
-                );
-            };
-
-            double remaining_length = slope_min_length;
-
-            ExtrusionPaths::iterator path = paths.begin();
-            double start_ratio = start_slope_ratio;
-            for (; path != paths.end() && remaining_length > 0; ++path) {
-                const double path_len = unscale_(path->length());
-                if (path_len > remaining_length) {
-                    // Split current path into slope and non-slope part
-                    Polyline slope_path;
-                    Polyline flat_path;
-                    path->polyline.split_at_length(scale_(remaining_length), &slope_path, &flat_path);
-
-                    add_slop(*path, slope_path, start_ratio, 1);
-                    start_ratio = 1;
-
-                    new_loop.flat.emplace_back(std::move(flat_path), *path);
-                    remaining_length = 0;
-                } else {
-                    remaining_length -= path_len;
-                    const double end_ratio = lerp(1.0, start_slope_ratio, remaining_length / slope_min_length);
-                    add_slop(*path, path->polyline, start_ratio, end_ratio);
-                    start_ratio = end_ratio;
-                }
+        const auto add_slop = [&new_loop, slope_max_segment_length](const ExtrusionPath& path, const Polyline& poly, double ratio_begin,
+                                                                    double ratio_end) {
+            if (poly.empty()) {
+                return;
             }
-            assert(remaining_length <= 0);
-            assert(start_ratio == 1.);
 
-            // Put remaining flat paths
-            new_loop.flat.insert(new_loop.flat.end(), path, paths.end());
-        } else {
-            // TODO: support small loops
-            new_loop.flat = paths;
+            // Ensure `slope_max_segment_length`, by first split the path into small pieces
+            const auto& path_segments = poly.equally_spaced_lines(slope_max_segment_length);
+            // Then put them together
+            Polyline detailed_poly;
+            for (const auto & p : path_segments) {
+                detailed_poly.append(p);
+            }
+
+            new_loop.increasing.emplace_back(detailed_poly, path, 
+                ExtrusionPathSloped::Slope{ratio_begin, ratio_begin},
+                ExtrusionPathSloped::Slope{ratio_end, ratio_end}
+            );
+            new_loop.decreasing.emplace_back(detailed_poly, path, 
+                ExtrusionPathSloped::Slope{1., 1. - ratio_begin},
+                ExtrusionPathSloped::Slope{1., 1. - ratio_end}
+            );
+        };
+
+        double remaining_length = slope_min_length;
+
+        ExtrusionPaths::iterator path = paths.begin();
+        double start_ratio = start_slope_ratio;
+        for (; path != paths.end() && remaining_length > 0; ++path) {
+            const double path_len = unscale_(path->length());
+            if (path_len > remaining_length) {
+                // Split current path into slope and non-slope part
+                Polyline slope_path;
+                Polyline flat_path;
+                path->polyline.split_at_length(scale_(remaining_length), &slope_path, &flat_path);
+
+                add_slop(*path, slope_path, start_ratio, 1);
+                start_ratio = 1;
+
+                new_loop.flat.emplace_back(std::move(flat_path), *path);
+                remaining_length = 0;
+            } else {
+                remaining_length -= path_len;
+                const double end_ratio = lerp(1.0, start_slope_ratio, remaining_length / slope_min_length);
+                add_slop(*path, path->polyline, start_ratio, end_ratio);
+                start_ratio = end_ratio;
+            }
         }
+        assert(remaining_length <= 0);
+        assert(start_ratio == 1.);
+
+        // Put remaining flat paths
+        new_loop.flat.insert(new_loop.flat.end(), path, paths.end());
 
         for (const auto& p : new_loop.get_all_paths()) {
             gcode += this->_extrude(*p, description, speed_for_path(*p));
