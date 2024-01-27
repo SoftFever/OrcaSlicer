@@ -2,7 +2,7 @@
     "type": "filament",
     "filament_id": "GFG99",
     "setting_id": "GFSA04",
-    "name": "InfiMech Generic PETG",
+    "name": "InfiMech PETG",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pet",
@@ -34,7 +34,7 @@
         "8"
     ],
     "filament_flow_ratio": [
-        "0.931"
+        "0.94"
     ],
     "filament_max_volumetric_speed": [
         "12"
@@ -42,6 +42,12 @@
     "filament_start_gcode": [
         "; filament start gcode\n"
     ],
+    "enable_pressure_advance": [
+        "1"
+      ],
+      "pressure_advance": [
+        "0.084"
+      ],
     "compatible_printers": [
       "InfiMech TX 0.4 nozzle"
     ]
