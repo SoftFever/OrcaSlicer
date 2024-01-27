@@ -1,6 +1,6 @@
 {
     "name": "InfiMech",
-    "version": "01.01.01.01",
+    "version": "01.08.00.00",
     "force_update": "1",
     "description": "InfiMech configurations",
     "machine_model_list": [
@@ -60,29 +60,45 @@
             "name": "fdm_filament_pa",
             "sub_path": "filament/fdm_filament_pa.json"
         },
-		        {
-            "name": "InfiMech Generic PLA",
-            "sub_path": "filament/InfiMech Generic PLA.json"
+        {
+            "name": "fdm_filament_pla_Hyper",
+            "sub_path": "filament/fdm_filament_pla_Hyper.json"
         },
         {
-            "name": "InfiMech Generic PETG",
-            "sub_path": "filament/InfiMech Generic PETG.json"
+            "name": "fdm_filament_pla_other",
+            "sub_path": "filament/fdm_filament_pla_other.json"
+        },
+		{
+            "name": "InfiMech PLA",
+            "sub_path": "filament/InfiMech PLA.json"
         },
         {
-            "name": "InfiMech Generic ABS",
-            "sub_path": "filament/InfiMech Generic ABS.json"
+            "name": "InfiMech PETG",
+            "sub_path": "filament/InfiMech PETG.json"
         },
         {
-            "name": "InfiMech Generic TPU",
-            "sub_path": "filament/InfiMech Generic TPU.json"
+            "name": "InfiMech ABS",
+            "sub_path": "filament/InfiMech ABS.json"
         },
         {
-            "name": "InfiMech Generic PC",
-            "sub_path": "filament/InfiMech Generic PC.json"
+            "name": "InfiMech TPU",
+            "sub_path": "filament/InfiMech TPU.json"
         },
         {
-            "name": "InfiMech Generic PA-CF",
-            "sub_path": "filament/InfiMech Generic PA-CF.json"
+            "name": "InfiMech PC",
+            "sub_path": "filament/InfiMech PC.json"
+        },
+        {
+            "name": "InfiMech PLA Hyper",
+            "sub_path": "filament/InfiMech PLA Hyper.json"
+        },
+                {
+            "name": "InfiMech PLA other",
+            "sub_path": "filament/InfiMech PLA other.json"
+        },
+        {
+            "name": "InfiMech PA-CF",
+            "sub_path": "filament/InfiMech PA-CF.json"
         }
     ],
     "machine_list": [
