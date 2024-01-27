@@ -245,7 +245,7 @@ WXLRESULT wxMediaCtrl2::MSWWindowProc(WXUINT   nMsg,
                 }
             }
         }
-        BOOST_LOG_TRIVIAL(info) << msg.ToUTF8().data();
+        BOOST_LOG_TRIVIAL(trace) << msg.ToUTF8().data();
         return 0;
     }
     return wxMediaCtrl::MSWWindowProc(nMsg, wParam, lParam);

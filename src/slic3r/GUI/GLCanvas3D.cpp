@@ -7304,10 +7304,10 @@ void GLCanvas3D::_render_overlays()
 
 	auto curr_plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
     auto curr_print_seq = curr_plate->get_real_print_seq();
-    bool sequential_print = (curr_print_seq == PrintSequence::ByObject);
+    const Print* print = fff_print();
+    bool sequential_print = (curr_print_seq == PrintSequence::ByObject) || print->config().print_order == PrintOrder::AsObjectList;
     std::vector<const ModelInstance*> sorted_instances;
     if (sequential_print) {
-        const Print* print = fff_print();
         if (print) {
             for (const PrintObject *print_object : print->objects())
             {

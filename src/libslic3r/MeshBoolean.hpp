@@ -85,9 +85,12 @@ McutMeshPtr  triangle_mesh_to_mcut(const indexed_triangle_set &M);
 TriangleMesh mcut_to_triangle_mesh(const McutMesh &mcutmesh);
 
 // do boolean and save result to srcMesh
+// return true if sucessful
+bool do_boolean_single(McutMesh& srcMesh, const McutMesh& cutMesh, const std::string& boolean_opts);
+// do boolean of mesh with multiple volumes and save result to srcMesh
+// Both srcMesh and cutMesh may have multiple volumes.
 void do_boolean(McutMesh &srcMesh, const McutMesh &cutMesh, const std::string &boolean_opts);
 
-std::vector<TriangleMesh> make_boolean(const McutMesh &srcMesh, const McutMesh &cutMesh, const std::string &boolean_opts);
 
 // do boolean and convert result to TriangleMesh
 void make_boolean(const TriangleMesh &src_mesh, const TriangleMesh &cut_mesh, std::vector<TriangleMesh> &dst_mesh, const std::string &boolean_opts);

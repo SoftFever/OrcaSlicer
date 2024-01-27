@@ -1545,26 +1545,6 @@ void ObjectList::OnBeginDrag(wxDataViewEvent &event)
     }
 
     if (type & itObject) {
-        int curr_obj_id = m_objects_model->GetIdByItem(event.GetItem());
-        PartPlateList& partplate_list = wxGetApp().plater()->get_partplate_list();
-        int from_plate = partplate_list.find_instance(curr_obj_id, 0);
-        if (from_plate == -1) {
-            event.Veto();
-            return;
-        }
-        auto curr_plate_seq = partplate_list.get_plate(from_plate)->get_print_seq();
-        if (curr_plate_seq == PrintSequence::ByDefault) {
-            auto curr_preset_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
-            if (curr_preset_config.has("print_sequence"))
-                curr_plate_seq = curr_preset_config.option<ConfigOptionEnum<PrintSequence>>("print_sequence")->value;
-        }
-
-        if (curr_plate_seq != PrintSequence::ByObject) {
-            //drag forbidden under bylayer mode
-            event.Veto();
-            return;
-        }
-
         m_dragged_data.init(m_objects_model->GetIdByItem(item), type);
     }
     else if (type & itVolume){
@@ -2050,9 +2030,10 @@ void ObjectList::load_modifier(const wxArrayString& input_files, ModelObject& mo
         ModelVolume* new_volume = model_object.add_volume(std::move(mesh), type);
         new_volume->name = boost::filesystem::path(input_file).filename().string();
 
-        // BBS: object_mesh.get_init_shift() keep the relative position
-        TriangleMesh object_mesh = model_object.volumes[0]->mesh();
-        new_volume->set_offset(new_volume->mesh().get_init_shift() - object_mesh.get_init_shift());
+        // adjust offset as prusaslicer ObjectList::load_from_files does (works) instead of BBS method
+        //// BBS: object_mesh.get_init_shift() keep the relative position
+        //TriangleMesh object_mesh = model_object.volumes[0]->mesh();
+        //new_volume->set_offset(new_volume->mesh().get_init_shift() - object_mesh.get_init_shift());
 
         // set a default extruder value, since user can't add it manually
         // BBS
@@ -2076,6 +2057,8 @@ void ObjectList::load_modifier(const wxArrayString& input_files, ModelObject& mo
             const Vec3d offset = Vec3d(instance_bb.max.x(), instance_bb.min.y(), instance_bb.min.z()) + 0.5 * mesh_bb.size() - instance_offset;
             new_volume->set_offset(inv_inst_transform * offset);
         }
+        else
+            new_volume->set_offset(new_volume->source.mesh_offset - model_object.volumes.front()->source.mesh_offset);
 
         added_volumes.push_back(new_volume);
     }
@@ -2909,15 +2892,16 @@ void ObjectList::boolean()
 
     Plater::TakeSnapshot snapshot(wxGetApp().plater(), "boolean");
 
-    Model* model = (*m_objects)[0]->get_model();
-    ModelObject* new_object = model->add_object();
-    new_object->name = (*m_objects)[0]->name;
-    new_object->config.assign_config((*m_objects)[0]->config);
-    if (new_object->instances.empty())
-        new_object->add_instance();
-
     ModelObject* object = (*m_objects)[obj_idxs.front()];
     TriangleMesh mesh = Plater::combine_mesh_fff(*object, -1, [this](const std::string& msg) {return wxGetApp().notification_manager()->push_plater_error_notification(msg); });
+
+    // add mesh to model as a new object, keep the original object's name and config
+    Model* model = object->get_model();
+    ModelObject* new_object = model->add_object();
+    new_object->name = object->name;
+    new_object->config.assign_config(object->config);
+    if (new_object->instances.empty())
+        new_object->add_instance();
     ModelVolume* new_volume = new_object->add_volume(mesh);
 
     // BBS: ensure on bed but no need to ensure locate in the center around origin
@@ -3729,6 +3713,9 @@ wxDataViewItemArray ObjectList::add_volumes_to_object_in_list(size_t obj_idx, st
         }
 
         int volume_idx{-1};
+        auto& ui_and_3d_volume_map = m_objects_model->get_ui_and_3d_volume_map();
+        ui_and_3d_volume_map.clear();
+        int ui_volume_idx = 0;
         for (const ModelVolume *volume : object->volumes) {
             ++volume_idx;
             if (object->is_cut() && volume->is_cut_connector())
@@ -3743,6 +3730,8 @@ wxDataViewItemArray ObjectList::add_volumes_to_object_in_list(size_t obj_idx, st
                 get_warning_icon_name(volume->mesh().stats()),
                 volume->config.has("extruder") ? volume->config.extruder() : 0,
                 false);
+            ui_and_3d_volume_map[ui_volume_idx] = volume_idx;
+            ui_volume_idx++;
             add_settings_item(vol_item, &volume->config.get());
 
             if (add_to_selection && add_to_selection(volume))
@@ -4459,8 +4448,10 @@ void ObjectList::update_selections()
                 assert(obj_idx >= 0 && vol_idx >= 0);
                 if (object(obj_idx)->volumes[vol_idx]->is_cut_connector())
                     sels.Add(m_objects_model->GetInfoItemByType(m_objects_model->GetItemById(obj_idx), InfoItemType::CutConnectors));
-                else
+                else {
+                    vol_idx = m_objects_model->get_real_volume_index_in_ui(vol_idx);
                     sels.Add(m_objects_model->GetItemByVolumeId(obj_idx, vol_idx));
+                }
             }
         }
         m_selection_mode = smVolume; }
@@ -4564,7 +4555,8 @@ void ObjectList::update_selections_on_canvas()
         const int obj_idx = m_objects_model->GetObjectIdByItem(item);
 
         if (type == itVolume) {
-            const int vol_idx = m_objects_model->GetVolumeIdByItem(item);
+            int vol_idx = m_objects_model->GetVolumeIdByItem(item);
+            vol_idx     = m_objects_model->get_real_volume_index_in_3d(vol_idx);
             std::vector<unsigned int> idxs = selection.get_volume_idxs_from_volume(obj_idx, std::max(instance_idx, 0), vol_idx);
             volume_idxs.insert(volume_idxs.end(), idxs.begin(), idxs.end());
         }
@@ -5778,24 +5770,8 @@ wxDataViewItemArray ObjectList::reorder_volumes_and_get_selection(int obj_idx, s
         return items;
 
     object->sort_volumes(true);
-
-    wxDataViewItem object_item = m_objects_model->GetItemById(obj_idx);
-    m_objects_model->DeleteVolumeChildren(object_item);
-
-    for (const ModelVolume* volume : object->volumes) {
-        wxDataViewItem vol_item = m_objects_model->AddVolumeChild(object_item, from_u8(volume->name),
-            volume->type(),
-            volume->is_text(),
-            volume->is_svg(),
-            get_warning_icon_name(volume->mesh().stats()),
-            volume->config.has("extruder") ? volume->config.extruder() : 0,
-            false);
-        // add settings to the part, if it has those
-        add_settings_item(vol_item, &volume->config.get());
-
-        if (add_to_selection && add_to_selection(volume))
-            items.Add(vol_item);
-    }
+    update_info_items(obj_idx, nullptr, true);
+    items = add_volumes_to_object_in_list(obj_idx, std::move(add_to_selection));
 
     changed_object(obj_idx);
     return items;

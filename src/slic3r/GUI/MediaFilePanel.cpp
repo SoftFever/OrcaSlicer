@@ -198,7 +198,9 @@ MediaFilePanel::~MediaFilePanel()
     SetMachineObject(nullptr);
 }
 
-void MediaFilePanel::SetMachineObject(MachineObject* obj)
+wxString hide_id_middle_string(wxString const &str, size_t offset = 0, size_t length = -1);
+
+    void MediaFilePanel::SetMachineObject(MachineObject* obj)
 {
     std::string machine = obj ? obj->dev_id : "";
     if (obj) {
@@ -442,7 +444,7 @@ void MediaFilePanel::fetchUrl(boost::weak_ptr<PrinterFileSystem> wfs)
     if (agent) {
         agent->get_camera_url(m_machine,
             [this, wfs, m = m_machine, v = m_dev_ver](std::string url) {
-            BOOST_LOG_TRIVIAL(info) << "MediaFilePanel::fetchUrl: camera_url: " << hide_passwd(url, {"authkey=", "passwd="});
+            BOOST_LOG_TRIVIAL(info) << "MediaFilePanel::fetchUrl: camera_url: " << hide_id_middle_string(hide_passwd(url, {"authkey=", "passwd="}), 9, 20);
             CallAfter([=] {
                 boost::shared_ptr fs(wfs.lock());
                 if (!fs || fs != m_image_grid->GetFileSystem()) return;

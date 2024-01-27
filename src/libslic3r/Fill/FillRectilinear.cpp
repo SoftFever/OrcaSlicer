@@ -3099,7 +3099,22 @@ Points sample_grid_pattern(const Polygons& polygons, coord_t spacing, const Boun
     return sample_grid_pattern(union_ex(polygons), spacing, global_bounding_box);
 }
 
-void FillMonotonicLineWGapFill::fill_surface_extrusion(const Surface* surface, const FillParams& params, ExtrusionEntitiesPtr& out)
+// Orca: Introduced FillMonotonicLines from Prusa slicer, inhereting from FillRectilinear
+// This replaces the FillMonotonicLineWGapFill from BBS
+Polylines FillMonotonicLines::fill_surface(const Surface *surface, const FillParams &params)
+{
+    FillParams params2 = params;
+    params2.monotonic = true;
+    params2.anchor_length_max = 0.0f;
+    Polylines polylines_out;
+    if (! fill_surface_by_lines(surface, params2, 0.f, 0.f, polylines_out))
+        BOOST_LOG_TRIVIAL(error) << "FillMonotonicLines::fill_surface() failed to fill a region.";
+    return polylines_out;
+}
+    
+// Orca: Replaced with FillMonotonicLines from Prusa slicer. Moved gap fill algorithm to
+// FillBase to perform gap fill for all fill types.
+/*void FillMonotonicLineWGapFill::fill_surface_extrusion(const Surface* surface, const FillParams& params, ExtrusionEntitiesPtr& out)
 {
     ExtrusionEntityCollection *coll_nosort = new ExtrusionEntityCollection();
     coll_nosort->no_sort = this->no_sort();
@@ -3274,7 +3289,7 @@ void FillMonotonicLineWGapFill::fill_surface_by_lines(const Surface* surface, co
         //assert(! it->has_duplicate_points());
         it->remove_duplicate_points();
     }
-}
+}*/
 
 
 } // namespace Slic3r

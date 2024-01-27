@@ -225,7 +225,7 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
             auto check = [this](bool yes_or_no) {
                 // if (yes_or_no)
                 //    return true;
-                int act_btns = UnsavedChangesDialog::ActionButtons::SAVE;
+                int act_btns = ActionButtons::SAVE;
                 return wxGetApp().check_and_keep_current_preset_changes(_L("Switching application language"),
                                                                         _L("Switching application language while some presets are modified."), act_btns);
             };
@@ -667,6 +667,7 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
             } else {
                 wxGetApp().stop_sync_user_preset();
             }
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " sync_user_preset: " << (sync ? "true" : "false");
         }
 
         #ifdef __WXMSW__

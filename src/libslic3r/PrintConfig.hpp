@@ -106,6 +106,13 @@ enum class PrintSequence {
     Count,
 };
 
+enum class PrintOrder
+{
+    Default,
+    AsObjectList,
+    Count,
+};
+
 enum class SlicingMode
 {
     // Regular, applying ClipperLib::pftNonZero rule when creating ExPolygons.
@@ -152,9 +159,16 @@ enum SeamPosition {
     spNearest, spAligned, spRear, spRandom
 };
 
+//Orca
 enum InternalBridgeFilter {
     ibfDisabled, ibfLimited, ibfNofilter
 };
+
+//Orca
+enum GapFillTarget {
+     gftEverywhere, gftTopBottom, gftNowhere
+ };
+
 
 enum LiftType {
     NormalLift,
@@ -789,6 +803,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionPercent,            tree_support_top_rate))
     ((ConfigOptionFloat,              tree_support_branch_diameter_organic))
     ((ConfigOptionFloat,              tree_support_branch_angle_organic))
+    ((ConfigOptionEnum<GapFillTarget>,gap_fill_target))
     ((ConfigOptionFloat,              min_length_factor))
 
     // Move all acceleration and jerk settings to object
@@ -824,6 +839,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,                bridge_speed))
     ((ConfigOptionFloatOrPercent,       internal_bridge_speed))
     ((ConfigOptionBool,                 ensure_vertical_shell_thickness))
+    ((ConfigOptionBool,                 reduce_wall_solid_infill))
     ((ConfigOptionEnum<InfillPattern>,  top_surface_pattern))
     ((ConfigOptionEnum<InfillPattern>,  bottom_surface_pattern))
     ((ConfigOptionEnum<InfillPattern>, internal_solid_infill_pattern))
@@ -911,6 +927,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     
     ((ConfigOptionEnum<WallSequence>,  wall_sequence))
     ((ConfigOptionBool,                is_infill_first))
+    ((ConfigOptionBool,                small_area_infill_flow_compensation))
 )
 
 PRINT_CONFIG_CLASS_DEFINE(
@@ -1058,6 +1075,8 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                enable_filament_ramming))
     ((ConfigOptionBool,                support_multi_bed_types))
 
+    // Small Area Infill Flow Compensation
+    ((ConfigOptionStrings,              small_area_infill_flow_compensation_model))
 )
 
 // This object is mapped to Perl as Slic3r::Config::Print.
@@ -1089,6 +1108,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionInts,               overhang_fan_speed))
     ((ConfigOptionEnumsGeneric,       overhang_fan_threshold))
     ((ConfigOptionEnum<PrintSequence>,print_sequence))
+    ((ConfigOptionEnum<PrintOrder>,   print_order))
     ((ConfigOptionInts,               first_layer_print_sequence))
     ((ConfigOptionBools,              slow_down_for_layer_cooling))
     ((ConfigOptionInts,               close_fan_the_first_x_layers))
@@ -1443,6 +1463,74 @@ class CLIMiscConfigDef : public ConfigDef
 public:
     CLIMiscConfigDef();
 };
+
+typedef std::string t_custom_gcode_key;
+// This map containes list of specific placeholders for each custom G-code, if any exist
+const std::map<t_custom_gcode_key, t_config_option_keys>& custom_gcode_specific_placeholders();
+
+// Next classes define placeholders used by GUI::EditGCodeDialog.
+
+class ReadOnlySlicingStatesConfigDef : public ConfigDef
+{
+public:
+    ReadOnlySlicingStatesConfigDef();
+};
+
+class ReadWriteSlicingStatesConfigDef : public ConfigDef
+{
+public:
+    ReadWriteSlicingStatesConfigDef();
+};
+
+class OtherSlicingStatesConfigDef : public ConfigDef
+{
+public:
+    OtherSlicingStatesConfigDef();
+};
+
+class PrintStatisticsConfigDef : public ConfigDef
+{
+public:
+    PrintStatisticsConfigDef();
+};
+
+class ObjectsInfoConfigDef : public ConfigDef
+{
+public:
+    ObjectsInfoConfigDef();
+};
+
+class DimensionsConfigDef : public ConfigDef
+{
+public:
+    DimensionsConfigDef();
+};
+
+class TemperaturesConfigDef : public ConfigDef
+{
+public:
+    TemperaturesConfigDef();
+};
+
+class TimestampsConfigDef : public ConfigDef
+{
+public:
+    TimestampsConfigDef();
+};
+
+class OtherPresetsConfigDef : public ConfigDef
+{
+public:
+    OtherPresetsConfigDef();
+};
+
+// This classes defines all custom G-code specific placeholders.
+class CustomGcodeSpecificConfigDef : public ConfigDef
+{
+public:
+    CustomGcodeSpecificConfigDef();
+};
+extern const CustomGcodeSpecificConfigDef    custom_gcode_specific_config_def;
 
 // This class defines the command line options representing actions.
 extern const CLIActionsConfigDef    cli_actions_config_def;
