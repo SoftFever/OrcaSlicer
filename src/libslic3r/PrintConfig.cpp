@@ -1178,7 +1178,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionEnum<PrintSequence>(PrintSequence::ByLayer));
 
     def = this->add("print_order", coEnum);
-    def->label = L("Layer order");
+    def->label = L("Intra-layer order");
     def->tooltip = L("Print order within a single layer");
     def->enum_keys_map = &ConfigOptionEnum<PrintOrder>::get_enum_values();
     def->enum_values.push_back("default");
@@ -6626,6 +6626,18 @@ CLIMiscConfigDef::CLIMiscConfigDef()
     def->tooltip = "Skip the modified gcodes in 3mf from Printer or filament Presets";
     def->cli_params = "option";
     def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("makerlab_name", coString);
+    def->label = "MakerLab name";
+    def->tooltip = "MakerLab name to generate this 3mf";
+    def->cli_params = "name";
+    def->set_default_value(new ConfigOptionString());
+
+    def = this->add("makerlab_version", coString);
+    def->label = "MakerLab version";
+    def->tooltip = "MakerLab version to generate this 3mf";
+    def->cli_params = "version";
+    def->set_default_value(new ConfigOptionString());
 }
 
 const CLIActionsConfigDef    cli_actions_config_def;

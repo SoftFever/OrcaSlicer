@@ -752,9 +752,9 @@ double bed_stride_y(const Plater* plater) {
 arrangement::ArrangeParams init_arrange_params(Plater *p)
 {
     arrangement::ArrangeParams         params;
-    const GLCanvas3D::ArrangeSettings &settings = static_cast<const GLCanvas3D *>(p->canvas3D())->get_arrange_settings();
-    auto &                             print    = wxGetApp().plater()->get_partplate_list().get_current_fff_print();
-    const PrintConfig& print_config = print.config();
+    GLCanvas3D::ArrangeSettings       &settings     = p->canvas3D()->get_arrange_settings();
+    auto                              &print        = wxGetApp().plater()->get_partplate_list().get_current_fff_print();
+    const PrintConfig                 &print_config = print.config();
 
     params.clearance_height_to_rod             = print_config.extruder_clearance_height_to_rod.value;
     params.clearance_height_to_lid             = print_config.extruder_clearance_height_to_lid.value;

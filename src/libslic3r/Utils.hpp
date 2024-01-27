@@ -6,6 +6,7 @@
 #ifndef slic3r_Utils_hpp_
 #define slic3r_Utils_hpp_
 
+#include <iomanip>
 #include <locale>
 #include <utility>
 #include <functional>
