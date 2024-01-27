@@ -119,7 +119,19 @@ protected:
     float _layer_angle(size_t idx) const override { return 0.f; }
 };
 
-class FillMonotonicLineWGapFill : public Fill
+// Orca: Introduced FillMonotonicLines from Prusa slicer, inhereting from FillRectilinear
+// This replaces the FillMonotonicLineWGapFill from BBS
+class FillMonotonicLines : public FillRectilinear
+{
+public:
+    Fill* clone() const override { return new FillMonotonicLines(*this); }
+    ~FillMonotonicLines() override = default;
+    Polylines fill_surface(const Surface *surface, const FillParams &params) override;
+    bool no_sort() const override { return true; }
+};
+
+//Orca: Replaced with FillMonotonicLines, inheriting from FillRectilinear
+/*class FillMonotonicLineWGapFill : public Fill
 {
 public:
     ~FillMonotonicLineWGapFill() override = default;
@@ -131,7 +143,7 @@ protected:
 
 private:
     void fill_surface_by_lines(const Surface* surface, const FillParams& params, Polylines& polylines_out);
-};
+};*/
 
 Points sample_grid_pattern(const ExPolygon& expolygon, coord_t spacing, const BoundingBox& global_bounding_box);
 Points sample_grid_pattern(const ExPolygons& expolygons, coord_t spacing, const BoundingBox& global_bounding_box);
