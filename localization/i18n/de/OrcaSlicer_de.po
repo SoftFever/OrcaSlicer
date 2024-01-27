@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-19 18:27+0100\n"
+"POT-Creation-Date: 2024-01-27 13:20+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Heiko Liebscher <hliebschergmail.com>\n"
 "Language-Team: \n"
@@ -1010,9 +1010,9 @@ msgid ""
 "Can't load exactly same font(\"%1%\"). Aplication selected a similar "
 "one(\"%2%\"). You have to specify font for enable edit text."
 msgstr ""
-"Kann genau dieselbe Schriftart (\"%1%\") nicht laden. Die Anwendung hat "
-"eine ähnliche (\"%2%\") ausgewählt. Sie müssen eine Schriftart angeben, um "
-"die Textbearbeitung zu aktivieren."
+"Kann genau dieselbe Schriftart (\"%1%\") nicht laden. Die Anwendung hat eine "
+"ähnliche (\"%2%\") ausgewählt. Sie müssen eine Schriftart angeben, um die "
+"Textbearbeitung zu aktivieren."
 
 msgid "No symbol"
 msgstr "Kein Symbol"
@@ -1414,6 +1414,9 @@ msgstr "Kritischer Fehler"
 #, boost-format
 msgid "OrcaSlicer got an unhandled exception: %1%"
 msgstr "OrcaSlicer hat eine unbehandelte Ausnahme erzeugt: %1%"
+
+msgid "Untitled"
+msgstr "Unbenannt"
 
 msgid "Downloading Bambu Network Plug-in"
 msgstr "Lade Orca Network Plug-in herunter"
@@ -4077,7 +4080,7 @@ msgstr "Volumen:"
 msgid "Size:"
 msgstr "Größe:"
 
-#, boost-format
+#, c-format, boost-format
 msgid ""
 "Conflicts of gcode paths have been found at layer %d, z = %.2lf mm. Please "
 "separate the conflicted objects farther (%s <-> %s)."
@@ -5457,11 +5460,11 @@ msgstr "Entsperre aktuelle Platte "
 msgid "Lock current plate"
 msgstr "Speere aktuelle Platte"
 
+msgid "Edit current plate name"
+msgstr ""
+
 msgid "Customize current plate"
 msgstr "Aktuelle Platte anpassen"
-
-msgid "Untitled"
-msgstr "Unbenannt"
 
 #, boost-format
 msgid " plate %1%:"
@@ -6757,8 +6760,8 @@ msgstr ""
 msgid ""
 "Timelapse is not supported because Print sequence is set to \"By object\"."
 msgstr ""
-"Zeitraffer wird nicht unterstützt, da die Druckreihenfolge auf \"Nach "
-"Objekt\" eingestellt ist."
+"Zeitraffer wird nicht unterstützt, da die Druckreihenfolge auf \"Nach Objekt"
+"\" eingestellt ist."
 
 msgid "Errors"
 msgstr "Fehler"
@@ -7093,13 +7096,13 @@ msgstr "Ignorieren"
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "Wenn Sie einen Zeitraffer ohne Werkzeugkopf aufnehmen, wird empfohlen, einen "
 "\"Timelapse Wischturm\" hinzuzufügen, indem Sie mit der rechten Maustaste "
-"auf die leere Position der Bauplatte klicken und \"Primitiv hinzufügen\"-"
-">\"Timelapse Wischturm\" wählen."
+"auf die leere Position der Bauplatte klicken und \"Primitiv hinzufügen\"->"
+"\"Timelapse Wischturm\" wählen."
 
 msgid "Line width"
 msgstr "Breite der Linie"
@@ -7115,6 +7118,9 @@ msgstr "Wandgenerator"
 
 msgid "Walls and surfaces"
 msgstr "Wände und Oberflächen"
+
+msgid "Small Area Infill Flow Compensation (experimental)"
+msgstr ""
 
 msgid "Bridging"
 msgstr "Brücken"
@@ -7618,11 +7624,29 @@ msgstr "Allgemein"
 msgid "Capabilities"
 msgstr "Fähigkeiten"
 
+msgid "Show all presets (including incompatible)"
+msgstr "Alle Profile anzeigen (auch inkompatible)"
+
 msgid "Select presets to compare"
 msgstr "Wähle Voreinstellungen zum Vergleich aus"
 
-msgid "Show all presets (including incompatible)"
-msgstr "Alle Profile anzeigen (auch inkompatible)"
+msgid ""
+"You can only transfer to current active profile because it has been modified."
+msgstr ""
+
+msgid ""
+"Transfer the selected options from left preset to the right.\n"
+"Note: New modified presets will be selected in settings tabs after close "
+"this dialog."
+msgstr ""
+
+msgid "Transfer values from left to right"
+msgstr ""
+
+msgid ""
+"If enabled, this dialog can be used for transver selected values from left "
+"to right preset."
+msgstr ""
 
 msgid "Add File"
 msgstr "Datei hinzufügen"
@@ -7636,6 +7660,9 @@ msgstr "Abdeckung"
 #, boost-format
 msgid "The name \"%1%\" already exists."
 msgstr "Der Name \"%1%\" existiert bereits."
+
+msgid "Back"
+msgstr "Rückseite"
 
 msgid "Basic Info"
 msgstr "Basis-Info"
@@ -9145,7 +9172,7 @@ msgid ""
 "value. This can be useful to not let the 'one perimeter on top' trigger on "
 "surface that should be covered only by perimeters. This value can be a mm or "
 "a % of the perimeter extrusion width.\n"
-"Warning: If enabled, artifacts can be created is you have some thin features "
+"Warning: If enabled, artifacts can be created if you have some thin features "
 "on the next layer, like letters. Set this setting to 0 to remove these "
 "artifacts."
 msgstr ""
@@ -9378,6 +9405,15 @@ msgstr "Nach Ebene"
 msgid "By object"
 msgstr "Nach Objekt"
 
+msgid "Intra-layer order"
+msgstr ""
+
+msgid "Print order within a single layer"
+msgstr ""
+
+msgid "As object list"
+msgstr ""
+
 msgid "Slow printing down for better layer cooling"
 msgstr "Verlangsamen Sie den Druck für eine bessere Schichtkühlung"
 
@@ -9519,9 +9555,9 @@ msgstr ""
 "geneigten oder gekrümmten Modellen zu reduzieren.\n"
 "\n"
 "Standardmäßig werden kleine interne Brücken herausgefiltert und das interne "
-"massive Infill wird direkt über dem dünnen Infill gedruckt. Dies funktioniert "
-"in den meisten Fällen gut und beschleunigt den Druck ohne zu große "
-"Kompromisse bei der Qualität der Oberfläche.\n"
+"massive Infill wird direkt über dem dünnen Infill gedruckt. Dies "
+"funktioniert in den meisten Fällen gut und beschleunigt den Druck ohne zu "
+"große Kompromisse bei der Qualität der Oberfläche.\n"
 "\n"
 "In stark geneigten oder gekrümmten Modellen, insbesondere bei zu geringer "
 "Dichte des dünnen Infill, kann dies jedoch zu einer Krümmung des "
@@ -10423,13 +10459,13 @@ msgstr "Volle Lüfterdrehzahl ab Schicht"
 
 msgid ""
 "Fan speed will be ramped up linearly from zero at layer "
-"\"close_fan_the_first_x_layers\" to maximum at layer "
-"\"full_fan_speed_layer\". \"full_fan_speed_layer\" will be ignored if lower "
-"than \"close_fan_the_first_x_layers\", in which case the fan will be running "
-"at maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
+"\"close_fan_the_first_x_layers\" to maximum at layer \"full_fan_speed_layer"
+"\". \"full_fan_speed_layer\" will be ignored if lower than "
+"\"close_fan_the_first_x_layers\", in which case the fan will be running at "
+"maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
 msgstr ""
-"Die Lüftergeschwindigkeit wird linear von Null bei der "
-"Schicht\"close_fan_the_first_x_layers\" auf das Maximum bei der Schicht "
+"Die Lüftergeschwindigkeit wird linear von Null bei der Schicht"
+"\"close_fan_the_first_x_layers\" auf das Maximum bei der Schicht "
 "\"full_fan_speed_layer\" erhöht. \"full_fan_speed_layer\" wird ignoriert, "
 "wenn es niedriger ist als \"close_fan_the_first_x_layers\",in diesem Fall "
 "läuft der Lüfter bei Schicht \"close_fan_the_first_x_layers\"+ 1 mit maximal "
@@ -10687,7 +10723,8 @@ msgid "Support multi bed types"
 msgstr "Unterstützung mehrerer Betttypen"
 
 msgid "Enable this option if you want to use multiple bed types"
-msgstr "Aktivieren Sie diese Option, wenn Sie mehrere Betttypen verwenden möchten"
+msgstr ""
+"Aktivieren Sie diese Option, wenn Sie mehrere Betttypen verwenden möchten"
 
 msgid "Label objects"
 msgstr "Objekte beschriften"
@@ -10877,8 +10914,7 @@ msgid ""
 msgstr ""
 "Wenn diese Option aktiviert ist, werden die Maschinengrenzen in die G-Code-"
 "Datei ausgegeben.\n"
-"Diese Option wird ignoriert, wenn der G-Code-Typ auf Klipper eingestellt "
-"ist."
+"Diese Option wird ignoriert, wenn der G-Code-Typ auf Klipper eingestellt ist."
 
 msgid ""
 "This G-code will be used as a code for the pause print. User can insert "
@@ -10889,6 +10925,22 @@ msgstr ""
 
 msgid "This G-code will be used as a custom code"
 msgstr "Dieser G-Code wird als benutzerdefinierter Code verwendet"
+
+msgid "Enable Flow Compensation"
+msgstr ""
+
+msgid "Enable flow compensation for small infill areas"
+msgstr ""
+
+msgid "Flow Compensation Model"
+msgstr ""
+
+msgid ""
+"Flow Compensation Model, used to adjust the flow for small infill areas. The "
+"model is expressed as a comma separated pair of values for extrusion length "
+"and flow correction factors, one per line, in the following format: "
+"\"1.234,5.678\""
+msgstr ""
 
 msgid "Maximum speed X"
 msgstr "Maximale Geschwindigkeit X"
@@ -11564,9 +11616,6 @@ msgstr "Nächste"
 
 msgid "Aligned"
 msgstr "Ausgerichtet"
-
-msgid "Back"
-msgstr "Rückseite"
 
 msgid "Random"
 msgstr "Zufall"
@@ -12745,11 +12794,11 @@ msgstr ""
 "\n"
 "HINWEIS: Die unteren und oberen Oberflächen werden von diesem Wert nicht "
 "beeinflusst, um visuelle Lücken an der Außenseite des Modells zu vermeiden. "
-"Passen Sie die \"One wall threshold\" in den erweiterten Einstellungen "
-"unten an, um die Empfindlichkeit dessen anzupassen, was als obere Oberfläche "
-"angesehen wird. \"One wall threshold\" ist nur sichtbar, wenn diese Einstellung "
-"über den Standardwert von 0,5 gesetzt ist oder wenn einzelne Wände für die "
-"Oberfläche aktiviert sind."
+"Passen Sie die \"One wall threshold\" in den erweiterten Einstellungen unten "
+"an, um die Empfindlichkeit dessen anzupassen, was als obere Oberfläche "
+"angesehen wird. \"One wall threshold\" ist nur sichtbar, wenn diese "
+"Einstellung über den Standardwert von 0,5 gesetzt ist oder wenn einzelne "
+"Wände für die Oberfläche aktiviert sind."
 
 msgid "First layer minimum wall width"
 msgstr "Erste Schicht minimale Wandbreite"
@@ -12857,6 +12906,242 @@ msgstr "Lade benutzerdefinierten G-Code"
 
 msgid "Load custom gcode from json"
 msgstr "Lade benutzerdefinierten G-Code aus json"
+
+msgid "Current z-hop"
+msgstr ""
+
+msgid "Contains z-hop present at the beginning of the custom G-code block."
+msgstr ""
+
+msgid ""
+"Position of the extruder at the beginning of the custom G-code block. If the "
+"custom G-code travels somewhere else, it should write to this variable so "
+"PrusaSlicer knows where it travels from when it gets control back."
+msgstr ""
+
+msgid ""
+"Retraction state at the beginning of the custom G-code block. If the custom "
+"G-code moves the extruder axis, it should write to this variable so "
+"PrusaSlicer deretracts correctly when it gets control back."
+msgstr ""
+
+msgid "Extra deretraction"
+msgstr ""
+
+msgid "Currently planned extra extruder priming after deretraction."
+msgstr ""
+
+msgid "Current extruder"
+msgstr ""
+
+msgid "Zero-based index of currently used extruder."
+msgstr ""
+
+msgid "Current object index"
+msgstr ""
+
+msgid ""
+"Specific for sequential printing. Zero-based index of currently printed "
+"object."
+msgstr ""
+
+msgid "Has wipe tower"
+msgstr ""
+
+msgid "Whether or not wipe tower is being generated in the print."
+msgstr ""
+
+msgid "Initial extruder"
+msgstr ""
+
+msgid ""
+"Zero-based index of the first extruder used in the print. Same as "
+"initial_tool."
+msgstr ""
+
+msgid "Initial tool"
+msgstr ""
+
+msgid ""
+"Zero-based index of the first extruder used in the print. Same as "
+"initial_extruder."
+msgstr ""
+
+msgid "Is extruder used?"
+msgstr ""
+
+msgid "Vector of bools stating whether a given extruder is used in the print."
+msgstr ""
+
+msgid "Volume per extruder"
+msgstr ""
+
+msgid "Total filament volume extruded per extruder during the entire print."
+msgstr ""
+
+msgid "Total toolchanges"
+msgstr ""
+
+msgid "Number of toolchanges during the print."
+msgstr ""
+
+msgid "Total volume"
+msgstr ""
+
+msgid "Total volume of filament used during the entire print."
+msgstr ""
+
+msgid "Weight per extruder"
+msgstr ""
+
+msgid ""
+"Weight per extruder extruded during the entire print. Calculated from "
+"filament_density value in Filament Settings."
+msgstr ""
+
+msgid "Total weight"
+msgstr ""
+
+msgid ""
+"Total weight of the print. Calculated from filament_density value in "
+"Filament Settings."
+msgstr ""
+
+msgid "Total layer count"
+msgstr ""
+
+msgid "Number of layers in the entire print."
+msgstr ""
+
+msgid "Number of objects"
+msgstr ""
+
+msgid "Total number of objects in the print."
+msgstr ""
+
+msgid "Number of instances"
+msgstr ""
+
+msgid "Total number of object instances in the print, summed over all objects."
+msgstr ""
+
+msgid "Scale per object"
+msgstr ""
+
+msgid ""
+"Contains a string with the information about what scaling was applied to the "
+"individual objects. Indexing of the objects is zero-based (first object has "
+"index 0).\n"
+"Example: 'x:100% y:50% z:100'."
+msgstr ""
+
+msgid "Input filename without extension"
+msgstr ""
+
+msgid "Source filename of the first object, without extension."
+msgstr ""
+
+msgid ""
+"The vector has two elements: x and y coordinate of the point. Values in mm."
+msgstr ""
+
+msgid ""
+"The vector has two elements: x and y dimension of the bounding box. Values "
+"in mm."
+msgstr ""
+
+msgid "First layer convex hull"
+msgstr ""
+
+msgid ""
+"Vector of points of the first layer convex hull. Each element has the "
+"following format:'[x, y]' (x and y are floating-point numbers in mm)."
+msgstr ""
+
+msgid "Bottom-left corner of first layer bounding box"
+msgstr ""
+
+msgid "Top-right corner of first layer bounding box"
+msgstr ""
+
+msgid "Size of the first layer bounding box"
+msgstr ""
+
+msgid "Bottom-left corner of print bed bounding box"
+msgstr ""
+
+msgid "Top-right corner of print bed bounding box"
+msgstr ""
+
+msgid "Size of the print bed bounding box"
+msgstr ""
+
+msgid "Timestamp"
+msgstr ""
+
+msgid "String containing current time in yyyyMMdd-hhmmss format."
+msgstr ""
+
+msgid "Day"
+msgstr ""
+
+msgid "Hour"
+msgstr ""
+
+msgid "Minute"
+msgstr ""
+
+msgid "Print preset name"
+msgstr ""
+
+msgid "Name of the print preset used for slicing."
+msgstr ""
+
+msgid "Filament preset name"
+msgstr ""
+
+msgid ""
+"Names of the filament presets used for slicing. The variable is a vector "
+"containing one name for each extruder."
+msgstr ""
+
+msgid "Printer preset name"
+msgstr ""
+
+msgid "Name of the printer preset used for slicing."
+msgstr ""
+
+msgid "Physical printer name"
+msgstr ""
+
+msgid "Name of the physical printer used for slicing."
+msgstr ""
+
+msgid "Layer number"
+msgstr ""
+
+msgid "Index of the current layer. One-based (i.e. first layer is number 1)."
+msgstr ""
+
+msgid "Layer z"
+msgstr ""
+
+msgid ""
+"Height of the current layer above the print bed, measured to the top of the "
+"layer."
+msgstr ""
+
+msgid "Maximal layer z"
+msgstr ""
+
+msgid "Height of the last layer above the print bed."
+msgstr ""
+
+msgid "Filament extruder ID"
+msgstr ""
+
+msgid "The current extruder ID. The same as current_extruder."
+msgstr ""
 
 msgid "Error in zip archive"
 msgstr "Fehler im Zip-Archiv"
@@ -13953,8 +14238,8 @@ msgstr ""
 "Möchten Sie es überschreiben?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you "
-"selected\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
 "To add preset for more printers, Please go to printer selection"
 msgstr ""
 "Wir würden die Voreinstellungen als \"Hersteller Typ Seriennummer @Drucker, "
@@ -14345,6 +14630,9 @@ msgstr "Voreinstellung vom Filament kopieren"
 msgid "The filament choice not find filament preset, please reselect it"
 msgstr ""
 "Die Filamentauswahl findet keine Filamentvoreinstellung, bitte neu auswählen"
+
+msgid "[Delete Required]"
+msgstr ""
 
 msgid "Edit Preset"
 msgstr "Voreinstellung bearbeiten"
@@ -14947,8 +15235,8 @@ msgstr ""
 "Wahrscheinlichkeit von Verwerfungen verringert werden kann."
 
 #~ msgid ""
-#~ "We would rename the presets as \"Vendor Type Serial @printer you "
-#~ "selected\". \n"
+#~ "We would rename the presets as \"Vendor Type Serial @printer you selected"
+#~ "\". \n"
 #~ "To add preset for more prinetrs, Please go to printer selection"
 #~ msgstr ""
 #~ "Wir würden die Voreinstellungen als \"Hersteller Typ Seriennummer "

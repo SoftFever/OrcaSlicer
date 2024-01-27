@@ -2,6 +2,7 @@
 #define slic3r_Layer_hpp_
 
 #include "libslic3r.h"
+#include "BoundingBox.hpp"
 #include "Flow.hpp"
 #include "SurfaceCollection.hpp"
 #include "ExtrusionEntityCollection.hpp"

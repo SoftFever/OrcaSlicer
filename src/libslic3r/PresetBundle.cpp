@@ -611,6 +611,7 @@ PresetsConfigSubstitutions PresetBundle::load_user_presets(AppConfig &          
         std::map<std::string, std::string>::iterator inherits_iter = value_map.find(BBL_JSON_KEY_INHERITS);
         if ((pass == 1) == (inherits_iter == value_map.end() || inherits_iter->second.empty()))
             continue;
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " start load from cloud: " << name;
         //get the type first
         std::map<std::string, std::string>::iterator type_iter = value_map.find(BBL_JSON_KEY_TYPE);
         if (type_iter == value_map.end()) {
@@ -825,6 +826,7 @@ bool PresetBundle::import_json_presets(PresetsConfigSubstitutions &            s
         preset.version     = *version;
         inherit_preset     = collection->find_preset(inherits_value, false, true); // pointer maybe wrong after insert, redo find
         if (inherit_preset) preset.base_id = inherit_preset->setting_id;
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " " << __LINE__ << preset.name << " have filament_id: " << preset.filament_id << " and base_id: " << preset.base_id;
         Preset::normalize(preset.config);
         // Report configuration fields, which are misplaced into a wrong group.
         const Preset &default_preset = collection->default_preset_for(new_config);
@@ -1819,6 +1821,7 @@ void PresetBundle::set_num_filaments(unsigned int n, std::string new_color)
 
     ConfigOptionStrings* filament_color = project_config.option<ConfigOptionStrings>("filament_colour");
     filament_color->resize(n);
+    ams_multi_color_filment.resize(n);
 
     //BBS set new filament color to new_color
     if (old_filament_count < n) {
@@ -1836,15 +1839,18 @@ unsigned int PresetBundle::sync_ams_list(unsigned int &unknowns)
 {
     std::vector<std::string> filament_presets;
     std::vector<std::string> filament_colors;
+    ams_multi_color_filment.clear();
     for (auto &entry : filament_ams_list) {
         auto & ams = entry.second;
         auto filament_id = ams.opt_string("filament_id", 0u);
         auto filament_color = ams.opt_string("filament_colour", 0u);
         auto filament_changed = !ams.has("filament_changed") || ams.opt_bool("filament_changed");
+        auto filament_multi_color = ams.opt<ConfigOptionStrings>("filament_multi_colors")->values;
         if (filament_id.empty()) continue;
         if (!filament_changed && this->filament_presets.size() > filament_presets.size()) {
             filament_presets.push_back(this->filament_presets[filament_presets.size()]);
             filament_colors.push_back(filament_color);
+            ams_multi_color_filment.push_back(filament_multi_color);
             continue;
         }
         auto iter = std::find_if(filaments.begin(), filaments.end(), [this, &filament_id](auto &f) {
@@ -1859,17 +1865,27 @@ unsigned int PresetBundle::sync_ams_list(unsigned int &unknowns)
                         && boost::algorithm::starts_with(f.name, filament_type);
                 });
             }
-            if (iter == filaments.end())
+            if (iter == filaments.end()) {
+                // Prefer old selection
+                if (filament_presets.size() < this->filament_presets.size()) {
+                    filament_presets.push_back(this->filament_presets[filament_presets.size()]);
+                    filament_colors.push_back(filament_color);
+                    ams_multi_color_filment.push_back(filament_multi_color);
+                    ++unknowns;
+                    continue;
+                }
                 iter = std::find_if(filaments.begin(), filaments.end(), [&filament_type](auto &f) {
                         return f.is_compatible && f.is_system;
                 });
-            if (iter == filaments.end())
-                continue;
+                if (iter == filaments.end())
+                    continue;
+            }
             ++unknowns;
             filament_id = iter->filament_id;
         }
         filament_presets.push_back(iter->name);
         filament_colors.push_back(filament_color);
+        ams_multi_color_filment.push_back(filament_multi_color);
     }
     if (filament_presets.empty())
         return 0;
@@ -3453,6 +3469,7 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
             loaded.version = current_vendor_profile->config_version;
             loaded.setting_id = setting_id;
             loaded.filament_id = filament_id;
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " " << __LINE__ << loaded.name << " load filament_id: " << filament_id;
             if (presets_collection->type() == Preset::TYPE_FILAMENT) {
                 if (filament_id.empty() && "Template" != vendor_name) {
                     BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": can not find filament_id for " << preset_name;

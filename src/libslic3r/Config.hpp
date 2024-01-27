@@ -1786,6 +1786,8 @@ public:
     // Create a default option to be inserted into a DynamicConfig.
     ConfigOption*						create_default_option() const;
 
+    bool                                is_scalar()     const { return (int(this->type) & int(coVectorType)) == 0; }
+
     template<class Archive> ConfigOption* load_option_from_archive(Archive &archive) const {
     	if (this->nullable) {
 		    switch (this->type) {
@@ -1973,6 +1975,7 @@ public:
             out.push_back(kvp.first);
         return out;
     }
+    bool                    empty() { return options.empty(); }
 
     // Iterate through all of the CLI options and write them to a stream.
     std::ostream&           print_cli_help(

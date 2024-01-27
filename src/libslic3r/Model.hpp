@@ -1485,6 +1485,10 @@ public:
     std::shared_ptr<ModelInfo> model_info = nullptr;
     std::shared_ptr<ModelProfileInfo> profile_info = nullptr;
 
+    //makerlab information
+    std::string mk_name;
+    std::string mk_version;
+
     void SetDesigner(std::string designer, std::string designer_user_id) {
         if (design_info == nullptr) {
             design_info = std::make_shared<ModelDesignInfo>();

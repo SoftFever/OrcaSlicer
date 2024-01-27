@@ -43,7 +43,12 @@ endif ()
 set(DESTDIR "${CMAKE_CURRENT_BINARY_DIR}/destdir" CACHE PATH "Destination directory")
 set(DEP_DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR}/../DL_CACHE CACHE PATH "Path for downloaded source packages.")
 
-option(DEP_DEBUG "Build debug variants (only applicable on Windows)" OFF)
+get_property(_is_multi GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+
+if (_is_multi)
+    option(DEP_DEBUG "Build debug variants (only applicable on Windows)" OFF)
+    option(ORCA_INCLUDE_DEBUG_INFO "Includes debug information in a release build (like RelWithDebInfo) in a way that works with multi-configuration generators and incompatible dependencies. DEP_DEBUG option takes priority over this." OFF)
+endif ()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     option(DEP_WX_GTK3 "Build wxWidgets against GTK3" OFF)
@@ -87,8 +92,6 @@ find_package(Git REQUIRED)
 # The default command line for patching. Only works for newer 
 set(PATCH_CMD ${GIT_EXECUTABLE} apply --verbose --ignore-space-change --whitespace=fix)
 
-get_property(_is_multi GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
-
 if (NOT _is_multi AND NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
     message(STATUS "Forcing CMAKE_BUILD_TYPE to Release as it was not specified.")
@@ -99,7 +102,11 @@ function(orcaslicer_add_cmake_project projectname)
 
     set(_configs_line -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE})
     if (_is_multi OR MSVC)
-        set(_configs_line "")
+        if (ORCA_INCLUDE_DEBUG_INFO AND NOT DEP_DEBUG)
+            set(_configs_line "-DCMAKE_C_FLAGS_RELEASE:STRING=${CMAKE_C_FLAGS_RELWITHDEBINFO} -DCMAKE_CXX_FLAGS_RELEASE:STRING=${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
+        else ()
+            set(_configs_line "")
+        endif ()
     endif ()
 
     set(_gen "")
