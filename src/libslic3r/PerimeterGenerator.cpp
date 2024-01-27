@@ -1742,17 +1742,15 @@ void PerimeterGenerator::process_classic()
                 if (entities.entities.size() > 1) {
                     entities.reverse();
 
-                    int swapped = 0;
                     int index;
 
                     for (index=0; index < entities.entities.size(); index++) {
                         if (entities.entities[index]->role() == erExternalPerimeter) {
-                            if (swapped == 0 && (index+1) < entities.entities.size()) {
+                            if (  ( (index+1) < entities.entities.size() ) && (entities.entities[index+1]->role() == erPerimeter) ) {
                                 std::swap(entities.entities[index], entities.entities[index+1]);
-                                swapped = 1;
+                                // Skip next item (which we swapped)
+                                index++;
                             }
-                        } else {
-                            swapped = 0;
                         }
                     }
                 }
