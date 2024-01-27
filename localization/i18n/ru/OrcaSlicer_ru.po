@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OrcaSlicer V1.8.0 Official Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-13 17:34+0100\n"
+"POT-Creation-Date: 2024-01-27 13:20+0800\n"
 "PO-Revision-Date: 2023-11-20 01:07+0700\n"
 "Last-Translator: Andylg <andylg@yandex.ru>\n"
 "Language-Team: \n"
@@ -15,8 +15,8 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
-"n%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
+"%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
 "X-Generator: Poedit 3.4.1\n"
 
 msgid "Supports Painting"
@@ -1389,6 +1389,9 @@ msgstr "Критическая ошибка"
 #, boost-format
 msgid "OrcaSlicer got an unhandled exception: %1%"
 msgstr "Неизвестная ошибка OrcaSlicer : %1%"
+
+msgid "Untitled"
+msgstr "Без названия"
 
 msgid "Downloading Bambu Network Plug-in"
 msgstr "Загрузка сетевого плагина для принтеров Bambu"
@@ -4103,6 +4106,15 @@ msgstr "Запустить трансляцию"
 msgid "Resolution"
 msgstr "Разрешение"
 
+msgid "Enable"
+msgstr "Включить"
+
+msgid "Hostname or IP"
+msgstr ""
+
+msgid "Custom camera source"
+msgstr ""
+
 msgid "Show \"Live Video\" guide page."
 msgstr "Показать страницу руководства «Прямая трансляция»."
 
@@ -4908,6 +4920,9 @@ msgstr "SD-карта"
 msgid "Camera Setting"
 msgstr "Настройки камеры"
 
+msgid "Switch Camera View"
+msgstr ""
+
 msgid "Control"
 msgstr "Управление"
 
@@ -5376,11 +5391,11 @@ msgstr "Разблокировать текущую печатную пласт�
 msgid "Lock current plate"
 msgstr "Заблокировать текущую печатную пластину"
 
+msgid "Edit current plate name"
+msgstr ""
+
 msgid "Customize current plate"
 msgstr "Настроить текущую печатную пластину"
-
-msgid "Untitled"
-msgstr "Без названия"
 
 #, boost-format
 msgid " plate %1%:"
@@ -6810,8 +6825,8 @@ msgid ""
 "Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services."
 msgstr ""
 "Перед использованием устройства Bambu Lab ознакомьтесь с правилами и "
-"условиями. Нажимая на кнопку \"Согласие на использование устройства Bambu "
-"Lab\", вы соглашаетесь соблюдать Политику конфиденциальности и Условия "
+"условиями. Нажимая на кнопку \"Согласие на использование устройства Bambu Lab"
+"\", вы соглашаетесь соблюдать Политику конфиденциальности и Условия "
 "использования (далее - \"Условия\"). Если вы не соблюдаете или не согласны с "
 "Политикой конфиденциальности Bambu Lab, пожалуйста, не пользуйтесь "
 "оборудованием и услугами Bambu Lab."
@@ -6975,8 +6990,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "При записи таймлапса без видимости головы рекомендуется добавить «Черновая "
 "башня таймлапса». \n"
@@ -6996,6 +7011,9 @@ msgid "Wall generator"
 msgstr "Генератор периметров"
 
 msgid "Walls and surfaces"
+msgstr ""
+
+msgid "Small Area Infill Flow Compensation (experimental)"
 msgstr ""
 
 msgid "Bridging"
@@ -7493,11 +7511,29 @@ msgstr "Общие"
 msgid "Capabilities"
 msgstr "Характеристики принтера"
 
+msgid "Show all presets (including incompatible)"
+msgstr "Показать все профили (включая несовместимые)"
+
 msgid "Select presets to compare"
 msgstr "Выберите профили для сравнения"
 
-msgid "Show all presets (including incompatible)"
-msgstr "Показать все профили (включая несовместимые)"
+msgid ""
+"You can only transfer to current active profile because it has been modified."
+msgstr ""
+
+msgid ""
+"Transfer the selected options from left preset to the right.\n"
+"Note: New modified presets will be selected in settings tabs after close "
+"this dialog."
+msgstr ""
+
+msgid "Transfer values from left to right"
+msgstr ""
+
+msgid ""
+"If enabled, this dialog can be used for transver selected values from left "
+"to right preset."
+msgstr ""
 
 msgid "Add File"
 msgstr "Добавить файл"
@@ -7511,6 +7547,9 @@ msgstr "Обложка"
 #, boost-format
 msgid "The name \"%1%\" already exists."
 msgstr "Имя \"%1%\" уже существует."
+
+msgid "Back"
+msgstr "Сзади"
 
 msgid "Basic Info"
 msgstr "Общая информация"
@@ -8847,6 +8886,29 @@ msgstr ""
 "отключён, а толщина оболочки снизу полностью задаётся количеством сплошных "
 "слоёв снизу."
 
+msgid "Apply gap fill"
+msgstr ""
+
+msgid ""
+"Enables gap fill for the selected surfaces. The minimum gap length that will "
+"be filled can be controlled from the filter out tiny gaps option below.\n"
+"\n"
+"Options:\n"
+"1. Everywhere: Applies gap fill to top, bottom and internal solid surfaces\n"
+"2. Top and Bottom surfaces: Applies gap fill to top and bottom surfaces "
+"only\n"
+"3. Nowhere: Disables gap fill\n"
+msgstr ""
+
+msgid "Everywhere"
+msgstr ""
+
+msgid "Top and bottom surfaces"
+msgstr ""
+
+msgid "Nowhere"
+msgstr ""
+
 msgid "Force cooling for overhang and bridge"
 msgstr "Принудительный обдув навесов и мостов"
 
@@ -8974,7 +9036,7 @@ msgid ""
 "value. This can be useful to not let the 'one perimeter on top' trigger on "
 "surface that should be covered only by perimeters. This value can be a mm or "
 "a % of the perimeter extrusion width.\n"
-"Warning: If enabled, artifacts can be created is you have some thin features "
+"Warning: If enabled, artifacts can be created if you have some thin features "
 "on the next layer, like letters. Set this setting to 0 to remove these "
 "artifacts."
 msgstr ""
@@ -9184,6 +9246,15 @@ msgstr "Одновременно"
 msgid "By object"
 msgstr "По очереди"
 
+msgid "Intra-layer order"
+msgstr ""
+
+msgid "Print order within a single layer"
+msgstr ""
+
+msgid "As object list"
+msgstr ""
+
 msgid "Slow printing down for better layer cooling"
 msgstr "Замедлять печать для лучшего охлаждения слоёв"
 
@@ -9365,6 +9436,18 @@ msgid ""
 msgstr ""
 "Добавление сплошного заполнения вблизи наклонных поверхностей для "
 "обеспечения вертикальной толщины оболочки (верхний+нижний сплошные слои)."
+
+msgid "Further reduce solid infill on walls (experimental)"
+msgstr ""
+
+msgid ""
+"Further reduces any solid infill applied to walls. As there will be very "
+"limited infill supporting solid surfaces, make sure that you are using "
+"adequate number of walls to support the part on sloping surfaces.\n"
+"\n"
+"For heavily sloped surfaces this option is not suitable as it will generate "
+"too thin of a top layer and should be disabled."
+msgstr ""
 
 msgid "Top surface pattern"
 msgstr "Шаблон заполнения верхней поверхности"
@@ -10133,17 +10216,17 @@ msgstr "Полная скорость вентилятора на слое"
 
 msgid ""
 "Fan speed will be ramped up linearly from zero at layer "
-"\"close_fan_the_first_x_layers\" to maximum at layer "
-"\"full_fan_speed_layer\". \"full_fan_speed_layer\" will be ignored if lower "
-"than \"close_fan_the_first_x_layers\", in which case the fan will be running "
-"at maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
+"\"close_fan_the_first_x_layers\" to maximum at layer \"full_fan_speed_layer"
+"\". \"full_fan_speed_layer\" will be ignored if lower than "
+"\"close_fan_the_first_x_layers\", in which case the fan will be running at "
+"maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
 msgstr ""
 "Скорость вентилятора будет нарастать линейно от нуля на слое "
-"\"close_fan_the_first_x_layers\" до максимума на слое "
-"\"full_fan_speed_layer\". Значение \"full_fan_speed_layer\" будет "
-"игнорироваться, если оно меньше значения \"close_fan_the_first_x_layers\", в "
-"этом случае вентилятор будет работать на максимально допустимой скорости на "
-"слое \"close_fan_the_first_x_layers\" + 1."
+"\"close_fan_the_first_x_layers\" до максимума на слое \"full_fan_speed_layer"
+"\". Значение \"full_fan_speed_layer\" будет игнорироваться, если оно меньше "
+"значения \"close_fan_the_first_x_layers\", в этом случае вентилятор будет "
+"работать на максимально допустимой скорости на слое "
+"\"close_fan_the_first_x_layers\" + 1."
 
 msgid "Support interface fan speed"
 msgstr "Скорость вентилятора на связующем слое"
@@ -10592,6 +10675,22 @@ msgstr ""
 msgid "This G-code will be used as a custom code"
 msgstr "Этот G-код используется для пользовательского кода."
 
+msgid "Enable Flow Compensation"
+msgstr ""
+
+msgid "Enable flow compensation for small infill areas"
+msgstr ""
+
+msgid "Flow Compensation Model"
+msgstr ""
+
+msgid ""
+"Flow Compensation Model, used to adjust the flow for small infill areas. The "
+"model is expressed as a comma separated pair of values for extrusion length "
+"and flow correction factors, one per line, in the following format: "
+"\"1.234,5.678\""
+msgstr ""
+
 msgid "Maximum speed X"
 msgstr "Максимальная скорость перемещения по X"
 
@@ -10944,9 +11043,6 @@ msgstr ""
 "Это поможет снизить количество откатов при печати сложной модели и "
 "сэкономить время печати, но увеличит время нарезки и генерации G-кода."
 
-msgid "Enable"
-msgstr "Включить"
-
 msgid "Filename format"
 msgstr "Формат имени файла"
 
@@ -11276,9 +11372,6 @@ msgstr "Ближайшая"
 
 msgid "Aligned"
 msgstr "По краю"
-
-msgid "Back"
-msgstr "Сзади"
 
 msgid "Random"
 msgstr "Случайно"
@@ -12533,6 +12626,242 @@ msgstr "Загрузить пользовательский G-код"
 msgid "Load custom gcode from json"
 msgstr "Загрузить пользовательской G-код из json"
 
+msgid "Current z-hop"
+msgstr ""
+
+msgid "Contains z-hop present at the beginning of the custom G-code block."
+msgstr ""
+
+msgid ""
+"Position of the extruder at the beginning of the custom G-code block. If the "
+"custom G-code travels somewhere else, it should write to this variable so "
+"PrusaSlicer knows where it travels from when it gets control back."
+msgstr ""
+
+msgid ""
+"Retraction state at the beginning of the custom G-code block. If the custom "
+"G-code moves the extruder axis, it should write to this variable so "
+"PrusaSlicer deretracts correctly when it gets control back."
+msgstr ""
+
+msgid "Extra deretraction"
+msgstr ""
+
+msgid "Currently planned extra extruder priming after deretraction."
+msgstr ""
+
+msgid "Current extruder"
+msgstr ""
+
+msgid "Zero-based index of currently used extruder."
+msgstr ""
+
+msgid "Current object index"
+msgstr ""
+
+msgid ""
+"Specific for sequential printing. Zero-based index of currently printed "
+"object."
+msgstr ""
+
+msgid "Has wipe tower"
+msgstr ""
+
+msgid "Whether or not wipe tower is being generated in the print."
+msgstr ""
+
+msgid "Initial extruder"
+msgstr ""
+
+msgid ""
+"Zero-based index of the first extruder used in the print. Same as "
+"initial_tool."
+msgstr ""
+
+msgid "Initial tool"
+msgstr ""
+
+msgid ""
+"Zero-based index of the first extruder used in the print. Same as "
+"initial_extruder."
+msgstr ""
+
+msgid "Is extruder used?"
+msgstr ""
+
+msgid "Vector of bools stating whether a given extruder is used in the print."
+msgstr ""
+
+msgid "Volume per extruder"
+msgstr ""
+
+msgid "Total filament volume extruded per extruder during the entire print."
+msgstr ""
+
+msgid "Total toolchanges"
+msgstr ""
+
+msgid "Number of toolchanges during the print."
+msgstr ""
+
+msgid "Total volume"
+msgstr ""
+
+msgid "Total volume of filament used during the entire print."
+msgstr ""
+
+msgid "Weight per extruder"
+msgstr ""
+
+msgid ""
+"Weight per extruder extruded during the entire print. Calculated from "
+"filament_density value in Filament Settings."
+msgstr ""
+
+msgid "Total weight"
+msgstr ""
+
+msgid ""
+"Total weight of the print. Calculated from filament_density value in "
+"Filament Settings."
+msgstr ""
+
+msgid "Total layer count"
+msgstr ""
+
+msgid "Number of layers in the entire print."
+msgstr ""
+
+msgid "Number of objects"
+msgstr ""
+
+msgid "Total number of objects in the print."
+msgstr ""
+
+msgid "Number of instances"
+msgstr ""
+
+msgid "Total number of object instances in the print, summed over all objects."
+msgstr ""
+
+msgid "Scale per object"
+msgstr ""
+
+msgid ""
+"Contains a string with the information about what scaling was applied to the "
+"individual objects. Indexing of the objects is zero-based (first object has "
+"index 0).\n"
+"Example: 'x:100% y:50% z:100'."
+msgstr ""
+
+msgid "Input filename without extension"
+msgstr ""
+
+msgid "Source filename of the first object, without extension."
+msgstr ""
+
+msgid ""
+"The vector has two elements: x and y coordinate of the point. Values in mm."
+msgstr ""
+
+msgid ""
+"The vector has two elements: x and y dimension of the bounding box. Values "
+"in mm."
+msgstr ""
+
+msgid "First layer convex hull"
+msgstr ""
+
+msgid ""
+"Vector of points of the first layer convex hull. Each element has the "
+"following format:'[x, y]' (x and y are floating-point numbers in mm)."
+msgstr ""
+
+msgid "Bottom-left corner of first layer bounding box"
+msgstr ""
+
+msgid "Top-right corner of first layer bounding box"
+msgstr ""
+
+msgid "Size of the first layer bounding box"
+msgstr ""
+
+msgid "Bottom-left corner of print bed bounding box"
+msgstr ""
+
+msgid "Top-right corner of print bed bounding box"
+msgstr ""
+
+msgid "Size of the print bed bounding box"
+msgstr ""
+
+msgid "Timestamp"
+msgstr ""
+
+msgid "String containing current time in yyyyMMdd-hhmmss format."
+msgstr ""
+
+msgid "Day"
+msgstr ""
+
+msgid "Hour"
+msgstr ""
+
+msgid "Minute"
+msgstr ""
+
+msgid "Print preset name"
+msgstr ""
+
+msgid "Name of the print preset used for slicing."
+msgstr ""
+
+msgid "Filament preset name"
+msgstr ""
+
+msgid ""
+"Names of the filament presets used for slicing. The variable is a vector "
+"containing one name for each extruder."
+msgstr ""
+
+msgid "Printer preset name"
+msgstr ""
+
+msgid "Name of the printer preset used for slicing."
+msgstr ""
+
+msgid "Physical printer name"
+msgstr ""
+
+msgid "Name of the physical printer used for slicing."
+msgstr ""
+
+msgid "Layer number"
+msgstr ""
+
+msgid "Index of the current layer. One-based (i.e. first layer is number 1)."
+msgstr ""
+
+msgid "Layer z"
+msgstr ""
+
+msgid ""
+"Height of the current layer above the print bed, measured to the top of the "
+"layer."
+msgstr ""
+
+msgid "Maximal layer z"
+msgstr ""
+
+msgid "Height of the last layer above the print bed."
+msgstr ""
+
+msgid "Filament extruder ID"
+msgstr ""
+
+msgid "The current extruder ID. The same as current_extruder."
+msgstr ""
+
 msgid "Error in zip archive"
 msgstr "Ошибка с zip-архивом"
 
@@ -13600,9 +13929,9 @@ msgid ""
 msgstr ""
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you "
-"selected\". \n"
-"To add preset for more prinetrs, Please go to printer selection"
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
+"To add preset for more printers, Please go to printer selection"
 msgstr ""
 
 msgid "Create Printer/Nozzle"
@@ -13930,6 +14259,9 @@ msgstr ""
 msgid "The filament choice not find filament preset, please reselect it"
 msgstr ""
 
+msgid "[Delete Required]"
+msgstr ""
+
 msgid "Edit Preset"
 msgstr ""
 
@@ -14123,6 +14455,344 @@ msgid ""
 "Error: \"%2%\""
 msgstr ""
 
+#: resources/data/hints.ini: [hint:Precise wall]
+msgid ""
+"Precise wall\n"
+"Did you know that turning on precise wall can improve precision and layer "
+"consistency?"
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Sandwich mode]
+msgid ""
+"Sandwich mode\n"
+"Did you know that you can use sandwich mode (inner-outer-inner) to improve "
+"precision and layer consistency if your model doesn't have very steep "
+"overhangs?"
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Chamber temperature]
+msgid ""
+"Chamber temperature\n"
+"Did you know that OrcaSlicer supports chamber temperature?"
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Calibration]
+msgid ""
+"Calibration\n"
+"Did you know that calibrating your printer can do wonders? Check out our "
+"beloved calibration solution in OrcaSlicer."
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Auxiliary fan]
+msgid ""
+"Auxiliary fan\n"
+"Did you know that OrcaSlicer supports Auxiliary part cooling fan?"
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Air filtration]
+msgid ""
+"Air filtration/Exhuast Fan\n"
+"Did you know that OrcaSlicer can support Air filtration/Exhuast Fan?"
+msgstr ""
+
+#: resources/data/hints.ini: [hint:G-code window]
+msgid ""
+"G-code window\n"
+"You can turn on/off the G-code window by pressing the <b>C</b> key."
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Switch workspaces]
+msgid ""
+"Switch workspaces\n"
+"You can switch between <b>Prepare</b> and <b>Preview</b> workspaces by "
+"pressing the <b>Tab</b> key."
+msgstr ""
+
+#: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
+msgid ""
+"How to use keyboard shortcuts\n"
+"Did you know that Orca Slicer offers a wide range of keyboard shortcuts and "
+"3D scene operations."
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Reverse on odd]
+msgid ""
+"Reverse on odd\n"
+"Did you know that <b>Reverse on odd</b> feature can significantly improve "
+"the surface quality of your overhangs?"
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Cut Tool]
+msgid ""
+"Cut Tool\n"
+"Did you know that you can cut a model at any angle and position with the "
+"cutting tool?"
+msgstr ""
+"Режущий инструмент\n"
+"Знаете ли вы, что можно разрезать модель под любым углом с помощью режущего "
+"инструмента?"
+
+#: resources/data/hints.ini: [hint:Fix Model]
+msgid ""
+"Fix Model\n"
+"Did you know that you can fix a corrupted 3D model to avoid a lot of slicing "
+"problems on the Windows system?"
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Timelapse]
+msgid ""
+"Timelapse\n"
+"Did you know that you can generate a timelapse video during each print?"
+msgstr ""
+"Таймлапсы (ускоренная видеосъёмка)\n"
+"Знаете ли вы, что во время печати можно создавать таймлапсы?"
+
+#: resources/data/hints.ini: [hint:Auto-Arrange]
+msgid ""
+"Auto-Arrange\n"
+"Did you know that you can auto-arrange all objects in your project?"
+msgstr ""
+"Авторасстановка\n"
+"Знаете ли вы, что можно автоматически расставить все модели на вашем столе?"
+
+#: resources/data/hints.ini: [hint:Auto-Orient]
+msgid ""
+"Auto-Orient\n"
+"Did you know that you can rotate objects to an optimal orientation for "
+"printing by a simple click?"
+msgstr ""
+"Автоориентация\n"
+"Знаете ли вы, что можно повернуть модели в оптимальную для печати ориентацию "
+"простым щелчком мыши?"
+
+#: resources/data/hints.ini: [hint:Lay on Face]
+msgid ""
+"Lay on Face\n"
+"Did you know that you can quickly orient a model so that one of its faces "
+"sits on the print bed? Select the \"Place on face\" function or press the "
+"<b>F</b> key."
+msgstr ""
+"Поверхностью на стол\n"
+"Знаете ли вы, что можно быстро сориентировать модель так, чтобы одна из её "
+"граней лежала на столе? Используйте функцию «Поверхностью на стол» или "
+"нажмите клавишу <b>F</b>."
+
+#: resources/data/hints.ini: [hint:Object List]
+msgid ""
+"Object List\n"
+"Did you know that you can view all objects/parts in a list and change "
+"settings for each object/part?"
+msgstr ""
+"Список моделей\n"
+"Знаете ли вы, что можно просматривать все модели/части в списке и изменять "
+"настройки для каждой из них?"
+
+#: resources/data/hints.ini: [hint:Search Functionality]
+msgid ""
+"Search Functionality\n"
+"Did you know that you use the Search tool to quickly find a specific Orca "
+"Slicer setting?"
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Simplify Model]
+msgid ""
+"Simplify Model\n"
+"Did you know that you can reduce the number of triangles in a mesh using the "
+"Simplify mesh feature? Right-click the model and select Simplify model."
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Slicing Parameter Table]
+msgid ""
+"Slicing Parameter Table\n"
+"Did you know that you can view all objects/parts on a table and change "
+"settings for each object/part?"
+msgstr ""
+"Таблица параметров нарезки\n"
+"Знаете ли вы, что можно просмотреть все модели/части в таблице и изменить "
+"параметры печати для каждой из них?"
+
+#: resources/data/hints.ini: [hint:Split to Objects/Parts]
+msgid ""
+"Split to Objects/Parts\n"
+"Did you know that you can split a big object into small ones for easy "
+"colorizing or printing?"
+msgstr ""
+"Разделение на модели/части\n"
+"Знаете ли вы, что можно разделить большую модель на маленькие для удобства "
+"раскрашивания или печати?"
+
+#: resources/data/hints.ini: [hint:Subtract a Part]
+msgid ""
+"Subtract a Part\n"
+"Did you know that you can subtract one mesh from another using the Negative "
+"part modifier? That way you can, for example, create easily resizable holes "
+"directly in Orca Slicer."
+msgstr ""
+
+#: resources/data/hints.ini: [hint:STEP]
+msgid ""
+"STEP\n"
+"Did you know that you can improve your print quality by slicing a STEP file "
+"instead of an STL?\n"
+"Orca Slicer supports slicing STEP files, providing smoother results than a "
+"lower resolution STL. Give it a try!"
+msgstr ""
+"STEP\n"
+"Знаете ли вы, что можно улучшить качество печати, используя STEP файлы "
+"вместо STL?\n"
+"Orca Slicer поддерживает нарезку STEP файлов, что обеспечивает более точное "
+"представление геометрии, чем при нарезке STL файлов."
+
+#: resources/data/hints.ini: [hint:Z seam location]
+msgid ""
+"Z seam location\n"
+"Did you know that you can customize the location of the Z seam, and even "
+"paint it on your print, to have it in a less visible location? This improves "
+"the overall look of your model. Check it out!"
+msgstr ""
+"Позиция шва\n"
+"Знаете ли вы, что можно изменить расположение шва и даже нарисовать его на "
+"модели, чтобы он был менее заметен? Это улучшает общий вид модели. "
+"Попробуйте это!"
+
+#: resources/data/hints.ini: [hint:Fine-tuning for flow rate]
+msgid ""
+"Fine-tuning for flow rate\n"
+"Did you know that flow rate can be fine-tuned for even better-looking "
+"prints? Depending on the material, you can improve the overall finish of the "
+"printed model by doing some fine-tuning."
+msgstr ""
+"Точная настройка потока\n"
+"Знаете ли вы, что поток можно точно настроить для получения ещё более "
+"качественной печати? В зависимости от материала можно внести некоторые "
+"корректировки, чтобы улучшить общее качество печати."
+
+#: resources/data/hints.ini: [hint:Split your prints into plates]
+msgid ""
+"Split your prints into plates\n"
+"Did you know that you can split a model that has a lot of parts into "
+"individual plates ready to print? This will simplify the process of keeping "
+"track of all the parts."
+msgstr ""
+"Распределение печатаемого на другие столы\n"
+"Знаете ли вы, что модель, состоящую из большого количества частей, можно "
+"распределить на несколько столов? Это упрощает процесс отслеживания всех "
+"деталей при печати."
+
+#: resources/data/hints.ini: [hint:Speed up your print with Adaptive Layer
+#: Height]
+msgid ""
+"Speed up your print with Adaptive Layer Height\n"
+"Did you know that you can print a model even faster, by using the Adaptive "
+"Layer Height option? Check it out!"
+msgstr ""
+"Ускорение печати с функцией «Переменная высота слоёв»\n"
+"Знаете ли вы, что можно печатать ещё быстрее, используя функцию «Переменная "
+"высота слоёв». Попробуйте!"
+
+#: resources/data/hints.ini: [hint:Support painting]
+msgid ""
+"Support painting\n"
+"Did you know that you can paint the location of your supports? This feature "
+"makes it easy to place the support material only on the sections of the "
+"model that actually need it."
+msgstr ""
+"Рисование поддержек\n"
+"Знаете ли вы, что можно прямо на модели рисовать где будет размещаться "
+"принудительная поддержка, а где поддержка будет заблокирована? Используйте "
+"для этого функцию «Рисование поддержек»."
+
+#: resources/data/hints.ini: [hint:Different types of supports]
+msgid ""
+"Different types of supports\n"
+"Did you know that you can choose from multiple types of supports? Tree "
+"supports work great for organic models, while saving filament and improving "
+"print speed. Check them out!"
+msgstr ""
+"Различные типы поддержек\n"
+"Знаете ли вы, что можно выбрать один из нескольких типов поддержек? "
+"Древовидная поддержка отлично подходит для органических моделей, экономя при "
+"этом материал, уменьшая время печати."
+
+#: resources/data/hints.ini: [hint:Printing Silk Filament]
+msgid ""
+"Printing Silk Filament\n"
+"Did you know that Silk filament needs special consideration to print it "
+"successfully? Higher temperature and lower speed are always recommended for "
+"the best results."
+msgstr ""
+"Печать блестящей пластиковой нитью\n"
+"Знаете ли вы, что блестящая пластиковая нить требует особого внимания для "
+"успешной печати? Для достижения наилучшего результата рекомендуется более "
+"высокая температура и более низкая скорость печати."
+
+#: resources/data/hints.ini: [hint:Brim for better adhesion]
+msgid ""
+"Brim for better adhesion\n"
+"Did you know that when printing models have a small contact interface with "
+"the printing surface, it's recommended to use a brim?"
+msgstr ""
+"Кайма для лучшей адгезии\n"
+"Знаете ли вы, что при печати модели имеющей небольшой контакт с поверхностью "
+"стола, рекомендуется использовать кайму?"
+
+#: resources/data/hints.ini: [hint:Set parameters for multiple objects]
+msgid ""
+"Set parameters for multiple objects\n"
+"Did you know that you can set slicing parameters for all selected objects at "
+"one time?"
+msgstr ""
+"Задание параметров для нескольких моделей\n"
+"Знаете ли вы, что можно задать параметры нарезки сразу для всех выбранных "
+"моделей?"
+
+#: resources/data/hints.ini: [hint:Stack objects]
+msgid ""
+"Stack objects\n"
+"Did you know that you can stack objects as a whole one?"
+msgstr ""
+"Объединение моделей\n"
+"Знаете ли вы, что можно объединить несколько моделей в единую? Используйте "
+"для этого команду «Объединить в сборку», выбрав несколько моделей."
+
+#: resources/data/hints.ini: [hint:Flush into support/objects/infill]
+msgid ""
+"Flush into support/objects/infill\n"
+"Did you know that you can save the wasted filament by flushing them into "
+"support/objects/infill during filament change?"
+msgstr ""
+"Очистка в поддержку/модель/заполнение\n"
+"Знаете ли вы, что при смене пластиковой нити, можно сохранить материал, "
+"который иначе попал бы на черновую башню, сбросив его в поддержку/модель/"
+"заполнение?"
+
+#: resources/data/hints.ini: [hint:Improve strength]
+msgid ""
+"Improve strength\n"
+"Did you know that you can use more wall loops and higher sparse infill "
+"density to improve the strength of the model?"
+msgstr ""
+"Увеличение прочности\n"
+"Знаете ли вы, что для повышения прочности модели можно увеличить количество "
+"периметров и плотность заполнения?"
+
+#: resources/data/hints.ini: [hint:When need to print with the printer door
+#: opened]
+msgid ""
+"When need to print with the printer door opened\n"
+"Did you know that opening the printer door can reduce the probability of "
+"extruder/hotend clogging when printing lower temperature filament with a "
+"higher enclosure temperature. More info about this in the Wiki."
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Avoid warping]
+msgid ""
+"Avoid warping\n"
+"Did you know that when printing materials that are prone to warping such as "
+"ABS, appropriately increasing the heatbed temperature can reduce the "
+"probability of warping."
+msgstr ""
+
 #~ msgid "The Config can not be loaded."
 #~ msgstr "Конфигурация не может быть загружена."
 
@@ -14130,211 +14800,6 @@ msgstr ""
 #~ msgstr ""
 #~ "Этот 3mf создан в старой версии Orca Slicer, поэтому загрузятся только "
 #~ "данные геометрии."
-
-#~ msgid ""
-#~ "Cut Tool\n"
-#~ "Did you know that you can cut a model at any angle and position with the "
-#~ "cutting tool?"
-#~ msgstr ""
-#~ "Режущий инструмент\n"
-#~ "Знаете ли вы, что можно разрезать модель под любым углом с помощью "
-#~ "режущего инструмента?"
-
-#~ msgid ""
-#~ "Timelapse\n"
-#~ "Did you know that you can generate a timelapse video during each print?"
-#~ msgstr ""
-#~ "Таймлапсы (ускоренная видеосъёмка)\n"
-#~ "Знаете ли вы, что во время печати можно создавать таймлапсы?"
-
-#~ msgid ""
-#~ "Auto-Arrange\n"
-#~ "Did you know that you can auto-arrange all objects in your project?"
-#~ msgstr ""
-#~ "Авторасстановка\n"
-#~ "Знаете ли вы, что можно автоматически расставить все модели на вашем "
-#~ "столе?"
-
-#~ msgid ""
-#~ "Auto-Orient\n"
-#~ "Did you know that you can rotate objects to an optimal orientation for "
-#~ "printing by a simple click?"
-#~ msgstr ""
-#~ "Автоориентация\n"
-#~ "Знаете ли вы, что можно повернуть модели в оптимальную для печати "
-#~ "ориентацию простым щелчком мыши?"
-
-#~ msgid ""
-#~ "Lay on Face\n"
-#~ "Did you know that you can quickly orient a model so that one of its faces "
-#~ "sits on the print bed? Select the \"Place on face\" function or press the "
-#~ "<b>F</b> key."
-#~ msgstr ""
-#~ "Поверхностью на стол\n"
-#~ "Знаете ли вы, что можно быстро сориентировать модель так, чтобы одна из "
-#~ "её граней лежала на столе? Используйте функцию «Поверхностью на стол» или "
-#~ "нажмите клавишу <b>F</b>."
-
-#~ msgid ""
-#~ "Object List\n"
-#~ "Did you know that you can view all objects/parts in a list and change "
-#~ "settings for each object/part?"
-#~ msgstr ""
-#~ "Список моделей\n"
-#~ "Знаете ли вы, что можно просматривать все модели/части в списке и "
-#~ "изменять настройки для каждой из них?"
-
-#~ msgid ""
-#~ "Slicing Parameter Table\n"
-#~ "Did you know that you can view all objects/parts on a table and change "
-#~ "settings for each object/part?"
-#~ msgstr ""
-#~ "Таблица параметров нарезки\n"
-#~ "Знаете ли вы, что можно просмотреть все модели/части в таблице и изменить "
-#~ "параметры печати для каждой из них?"
-
-#~ msgid ""
-#~ "Split to Objects/Parts\n"
-#~ "Did you know that you can split a big object into small ones for easy "
-#~ "colorizing or printing?"
-#~ msgstr ""
-#~ "Разделение на модели/части\n"
-#~ "Знаете ли вы, что можно разделить большую модель на маленькие для "
-#~ "удобства раскрашивания или печати?"
-
-#~ msgid ""
-#~ "STEP\n"
-#~ "Did you know that you can improve your print quality by slicing a STEP "
-#~ "file instead of an STL?\n"
-#~ "Orca Slicer supports slicing STEP files, providing smoother results than "
-#~ "a lower resolution STL. Give it a try!"
-#~ msgstr ""
-#~ "STEP\n"
-#~ "Знаете ли вы, что можно улучшить качество печати, используя STEP файлы "
-#~ "вместо STL?\n"
-#~ "Orca Slicer поддерживает нарезку STEP файлов, что обеспечивает более "
-#~ "точное представление геометрии, чем при нарезке STL файлов."
-
-#~ msgid ""
-#~ "Z seam location\n"
-#~ "Did you know that you can customize the location of the Z seam, and even "
-#~ "paint it on your print, to have it in a less visible location? This "
-#~ "improves the overall look of your model. Check it out!"
-#~ msgstr ""
-#~ "Позиция шва\n"
-#~ "Знаете ли вы, что можно изменить расположение шва и даже нарисовать его "
-#~ "на модели, чтобы он был менее заметен? Это улучшает общий вид модели. "
-#~ "Попробуйте это!"
-
-#~ msgid ""
-#~ "Fine-tuning for flow rate\n"
-#~ "Did you know that flow rate can be fine-tuned for even better-looking "
-#~ "prints? Depending on the material, you can improve the overall finish of "
-#~ "the printed model by doing some fine-tuning."
-#~ msgstr ""
-#~ "Точная настройка потока\n"
-#~ "Знаете ли вы, что поток можно точно настроить для получения ещё более "
-#~ "качественной печати? В зависимости от материала можно внести некоторые "
-#~ "корректировки, чтобы улучшить общее качество печати."
-
-#~ msgid ""
-#~ "Split your prints into plates\n"
-#~ "Did you know that you can split a model that has a lot of parts into "
-#~ "individual plates ready to print? This will simplify the process of "
-#~ "keeping track of all the parts."
-#~ msgstr ""
-#~ "Распределение печатаемого на другие столы\n"
-#~ "Знаете ли вы, что модель, состоящую из большого количества частей, можно "
-#~ "распределить на несколько столов? Это упрощает процесс отслеживания всех "
-#~ "деталей при печати."
-
-#~ msgid ""
-#~ "Speed up your print with Adaptive Layer Height\n"
-#~ "Did you know that you can print a model even faster, by using the "
-#~ "Adaptive Layer Height option? Check it out!"
-#~ msgstr ""
-#~ "Ускорение печати с функцией «Переменная высота слоёв»\n"
-#~ "Знаете ли вы, что можно печатать ещё быстрее, используя функцию "
-#~ "«Переменная высота слоёв». Попробуйте!"
-
-#~ msgid ""
-#~ "Support painting\n"
-#~ "Did you know that you can paint the location of your supports? This "
-#~ "feature makes it easy to place the support material only on the sections "
-#~ "of the model that actually need it."
-#~ msgstr ""
-#~ "Рисование поддержек\n"
-#~ "Знаете ли вы, что можно прямо на модели рисовать где будет размещаться "
-#~ "принудительная поддержка, а где поддержка будет заблокирована? "
-#~ "Используйте для этого функцию «Рисование поддержек»."
-
-#~ msgid ""
-#~ "Different types of supports\n"
-#~ "Did you know that you can choose from multiple types of supports? Tree "
-#~ "supports work great for organic models, while saving filament and "
-#~ "improving print speed. Check them out!"
-#~ msgstr ""
-#~ "Различные типы поддержек\n"
-#~ "Знаете ли вы, что можно выбрать один из нескольких типов поддержек? "
-#~ "Древовидная поддержка отлично подходит для органических моделей, экономя "
-#~ "при этом материал, уменьшая время печати."
-
-#~ msgid ""
-#~ "Printing Silk Filament\n"
-#~ "Did you know that Silk filament needs special consideration to print it "
-#~ "successfully? Higher temperature and lower speed are always recommended "
-#~ "for the best results."
-#~ msgstr ""
-#~ "Печать блестящей пластиковой нитью\n"
-#~ "Знаете ли вы, что блестящая пластиковая нить требует особого внимания для "
-#~ "успешной печати? Для достижения наилучшего результата рекомендуется более "
-#~ "высокая температура и более низкая скорость печати."
-
-#~ msgid ""
-#~ "Brim for better adhesion\n"
-#~ "Did you know that when printing models have a small contact interface "
-#~ "with the printing surface, it's recommended to use a brim?"
-#~ msgstr ""
-#~ "Кайма для лучшей адгезии\n"
-#~ "Знаете ли вы, что при печати модели имеющей небольшой контакт с "
-#~ "поверхностью стола, рекомендуется использовать кайму?"
-
-#~ msgid ""
-#~ "Set parameters for multiple objects\n"
-#~ "Did you know that you can set slicing parameters for all selected objects "
-#~ "at one time?"
-#~ msgstr ""
-#~ "Задание параметров для нескольких моделей\n"
-#~ "Знаете ли вы, что можно задать параметры нарезки сразу для всех выбранных "
-#~ "моделей?"
-
-#~ msgid ""
-#~ "Stack objects\n"
-#~ "Did you know that you can stack objects as a whole one?"
-#~ msgstr ""
-#~ "Объединение моделей\n"
-#~ "Знаете ли вы, что можно объединить несколько моделей в единую? "
-#~ "Используйте для этого команду «Объединить в сборку», выбрав несколько "
-#~ "моделей."
-
-#~ msgid ""
-#~ "Flush into support/objects/infill\n"
-#~ "Did you know that you can save the wasted filament by flushing them into "
-#~ "support/objects/infill during filament change?"
-#~ msgstr ""
-#~ "Очистка в поддержку/модель/заполнение\n"
-#~ "Знаете ли вы, что при смене пластиковой нити, можно сохранить материал, "
-#~ "который иначе попал бы на черновую башню, сбросив его в поддержку/модель/"
-#~ "заполнение?"
-
-#~ msgid ""
-#~ "Improve strength\n"
-#~ "Did you know that you can use more wall loops and higher sparse infill "
-#~ "density to improve the strength of the model?"
-#~ msgstr ""
-#~ "Увеличение прочности\n"
-#~ "Знаете ли вы, что для повышения прочности модели можно увеличить "
-#~ "количество периметров и плотность заполнения?"
 
 #~ msgid ""
 #~ "Relative extrusion is recommended when using \"label_objects\" option."
