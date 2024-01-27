@@ -2,7 +2,7 @@
     "type": "filament",
     "filament_id": "GFN98",
     "setting_id": "GFSA04",
-    "name": "InfiMech Generic PA-CF",
+    "name": "InfiMech PA-CF",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pa",
@@ -10,13 +10,28 @@
         "PA-CF"
     ],
     "nozzle_temperature_initial_layer": [
-        "280"
+        "240"
     ],
     "nozzle_temperature": [
-        "300"
+        "240"
     ],
     "filament_max_volumetric_speed": [
         "8"
+    ],
+    "filament_flow_ratio": [
+        "0.96"
+    ],
+    "filament_wipe": [
+        "1"
+    ],
+    "filament_wipe_distance": [
+        "4"
+    ],
+    "filament_retract_before_wipe": [
+        "0%"
+    ],
+    "filament_retraction_length": [
+        "0.8"
     ],
     "compatible_printers": [
       "InfiMech TX 0.4 nozzle"
