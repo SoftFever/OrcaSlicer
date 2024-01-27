@@ -267,7 +267,7 @@ wxString HMSQuery::query_print_error_msg(int print_error)
 int HMSQuery::check_hms_info()
 {
     boost::thread check_thread = boost::thread([this] {
-        bool download_new_hms_info = false;
+        bool download_new_hms_info = true;
         // load local hms json file
         std::string version = "";
         if (load_from_local(version) == 0) {
