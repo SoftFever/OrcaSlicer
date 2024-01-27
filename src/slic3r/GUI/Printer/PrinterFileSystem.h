@@ -280,8 +280,6 @@ private:
 
     void Reconnect(boost::unique_lock<boost::mutex> & l, int result);
 
-    int RecvData(std::function<int(Bambu_Sample & sample)> const & callback);
-
     template <typename T>
     void PostCallback(Callback<T> const& callback, int result, T const& resp)
     {
