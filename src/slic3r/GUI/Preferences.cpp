@@ -167,6 +167,9 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
         else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_TURKISH)) {
             language_name = wxString::FromUTF8("Turkish");
         }
+        else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_POLISH)) {
+            language_name = wxString::FromUTF8("Polski");
+        }
 
         if (app_config->get(param) == vlist[i]->CanonicalName) {
             m_current_language_selected = i;
@@ -970,7 +973,8 @@ wxWindow* PreferencesDialog::create_general_page()
         wxLANGUAGE_KOREAN,
         wxLANGUAGE_RUSSIAN,
         wxLANGUAGE_UKRAINIAN,
-        wxLANGUAGE_TURKISH
+        wxLANGUAGE_TURKISH,
+        wxLANGUAGE_POLISH
 
     };
 
