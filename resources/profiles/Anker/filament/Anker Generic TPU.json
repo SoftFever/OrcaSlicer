@@ -6,7 +6,7 @@
     "setting_id": "GFSR99",
     "instantiation": "true",
     "compatible_printers": [
-        "Anker M5 PTFE 0.4 nozzle",
+        "Anker M5 0.4 nozzle",
         "Anker M5 All-Metal 0.4 nozzle",
         "Anker M5c 0.4 nozzle"
     ]

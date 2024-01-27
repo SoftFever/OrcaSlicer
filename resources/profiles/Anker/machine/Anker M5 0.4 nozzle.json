@@ -1,6 +1,6 @@
 {
     "type": "machine",
-    "name": "Anker M5 PTFE 0.4 nozzle",
+    "name": "Anker M5 0.4 nozzle",
     "inherits": "fdm_marlin_common",
     "from": "system",
     "setting_id": "GM001",
@@ -8,7 +8,7 @@
     "nozzle_diameter": [
         "0.4"
     ],
-    "printer_model": "Anker M5 PTFE Hot End",
+    "printer_model": "Anker M5",
     "printer_variant": "0.4",
     "auxiliary_fan": "0",
     "bed_exclude_area": [],

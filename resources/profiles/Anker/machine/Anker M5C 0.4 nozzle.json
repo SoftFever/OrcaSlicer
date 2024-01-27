@@ -1,6 +1,6 @@
 {
     "type": "machine",
-    "name": "Anker M5c 0.4 nozzle",
+    "name": "Anker M5C 0.4 nozzle",
     "inherits": "fdm_marlin_common",
     "from": "system",
     "setting_id": "GM003",
@@ -8,7 +8,7 @@
     "nozzle_diameter": [
         "0.4"
     ],
-    "printer_model": "Anker M5c",
+    "printer_model": "Anker M5C",
     "printer_variant": "0.4",
     "auxiliary_fan": "0",
     "bed_exclude_area": [],

@@ -5,16 +5,16 @@
     "description": "Anker configurations",
     "machine_model_list": [
         {
-            "name": "Anker M5 PTFE Hot End",
-            "sub_path": "machine/Anker M5 PTFE Hot End.json"
+            "name": "Anker M5",
+            "sub_path": "machine/Anker M5.json"
         },
         {
             "name": "Anker M5 All-Metal Hot End",
             "sub_path": "machine/Anker M5 All-Metal Hot End.json"
         },
         {
-            "name": "Anker M5c",
-            "sub_path": "machine/Anker M5c.json"
+            "name": "Anker M5C",
+            "sub_path": "machine/Anker M5C.json"
         }
     ],
     "process_list": [
@@ -219,16 +219,16 @@
             "sub_path": "machine/fdm_marlin_common.json"
         },
         {
-            "name": "Anker M5 PTFE 0.4 nozzle",
-            "sub_path": "machine/Anker M5 PTFE 0.4 nozzle.json"
+            "name": "Anker M5 0.4 nozzle",
+            "sub_path": "machine/Anker M5 0.4 nozzle.json"
         },
         {
             "name": "Anker M5 All-Metal 0.4 nozzle",
             "sub_path": "machine/Anker M5 All-Metal 0.4 nozzle.json"
         },
         {
-            "name": "Anker M5c 0.4 nozzle",
-            "sub_path": "machine/Anker M5c 0.4 nozzle.json"
+            "name": "Anker M5C 0.4 nozzle",
+            "sub_path": "machine/Anker M5C 0.4 nozzle.json"
         }
     ]
 }
