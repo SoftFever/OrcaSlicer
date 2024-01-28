@@ -276,7 +276,6 @@ msgstr "Plano"
 
 msgid "Dovetail"
 msgstr "Cola de milano"
-msgstr "Cola de milano"
 
 msgid "Auto"
 msgstr "Automático"
@@ -294,7 +293,6 @@ msgid "Snap"
 msgstr "Instantánea"
 
 msgid "Prism"
-msgstr "Prisma"
 msgstr "Prisma"
 
 msgid "Frustum"
@@ -375,14 +373,11 @@ msgstr ""
 
 msgid "Move cut plane"
 msgstr "Mover plano de corte"
-msgstr "Mover plano de corte"
 
 msgid "Mode"
 msgstr "Modo"
-msgstr "Modo"
 
 msgid "Change cut mode"
-msgstr "Cambiar modo de corte"
 msgstr "Cambiar modo de corte"
 
 msgid "Tolerance"
@@ -434,14 +429,12 @@ msgstr "Protuberancia"
 
 msgid "Bulge proportion related to radius"
 msgstr "Proporción de rebase en relación al radio"
-msgstr "Proporción de protuberancia en relación con el radio"
 
 msgid "Space"
 msgstr "Espacio"
 
 msgid "Space proportion related to radius"
 msgstr "Proporción de espacio en relación al radio"
-msgstr "Proporción de espacio en relación con el radio"
 
 msgid "Confirm connectors"
 msgstr "Confirmar conectores"
@@ -454,10 +447,8 @@ msgstr "Volumen de Construcción"
 
 msgid "Flip cut plane"
 msgstr "Voltear plano de corte"
-msgstr "Voltear plano de corte"
 
 msgid "Groove change"
-msgstr "Cambio de ranura"
 msgstr "Cambio de ranura"
 
 msgid "Reset"
@@ -469,13 +460,8 @@ msgstr "Editado"
 
 msgid "Cut position"
 msgstr "Posición de corte"
-msgstr "Posición de corte"
 
 msgid "Reset cutting plane"
-msgstr "Restablecer plano de corte"
-msgstr "Reiniciar plano de corte"
-
-msgid "Edit connectors"
 msgstr "Editar conectores"
 
 msgid "Add connectors"
@@ -700,7 +686,6 @@ msgstr "Configurar Espejo"
 
 msgid "Embossed text"
 msgstr "Texto en relieve"
-msgstr "Texto en relieve"
 
 msgid "Enter emboss gizmo"
 msgstr "Introducir dispositivo de relieve"
@@ -871,7 +856,6 @@ msgstr "Sólo se pueden añadir fuentes válidas al estilo."
 
 msgid "Add style to my list."
 msgstr "Añadir estilo a mi lista."
-msgstr "Añadir estilo a mi lista."
 
 msgid "Save as new style."
 msgstr "Guardar como nuevo estilo."
@@ -880,7 +864,6 @@ msgid "Remove style"
 msgstr "Borrar estilo"
 
 msgid "Can't remove the last existing style."
-msgstr "No se puede eliminar el último estilo existente."
 msgstr "No se puede eliminar el último estilo existente."
 
 #, boost-format
@@ -891,16 +874,13 @@ msgstr ""
 #, boost-format
 msgid "Delete \"%1%\" style."
 msgstr "Eliminar el estilo \"%1%\"."
-msgstr "Eliminar el estilo \"%1%\"."
 
 #, boost-format
 msgid "Can't delete \"%1%\". It is last style."
 msgstr "No se puede eliminar \"%1%\". Es el último estilo."
-msgstr "No se puede borrar \"%1%\". Es el último estilo."
 
 #, boost-format
 msgid "Can't delete temporary style \"%1%\"."
-msgstr "No se puede eliminar el estilo temporal \"%1%\"."
 msgstr "No se puede eliminar el estilo temporal \"%1%\"."
 
 #, boost-format
@@ -1345,13 +1325,11 @@ msgstr "El archivo SVG NO contiene una ruta única para el relieve (%1%)."
 
 msgid "Vertex"
 msgstr "Vértice"
-msgstr "Vértice"
 
 msgid "Edge"
 msgstr "Borde"
 
 msgid "Plane"
-msgstr "Plano"
 msgstr "Plano"
 
 msgid "Point on edge"
@@ -1362,7 +1340,6 @@ msgstr "Punto en el circulo"
 msgstr "Punto del círculo"
 
 msgid "Point on plane"
-msgstr "Punto en el plano"
 msgstr "Punto del plano"
 
 msgid "Center of edge"
@@ -1370,7 +1347,6 @@ msgstr "Centro de la arista"
 msgstr "Centro del borde"
 
 msgid "Center of circle"
-msgstr "Centro del círculo"
 msgstr "Centro del círculo"
 
 msgid "ShiftLeft mouse button"
