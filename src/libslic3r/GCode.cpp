@@ -4549,8 +4549,8 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
     // clip the path to avoid the extruder to get exactly on the first point of the loop;
     // if polyline was shorter than the clipping distance we'd get a null polyline, so
     // we discard it in that case
-    double clip_length = m_enable_loop_clipping && !enable_seam_slope ?
-    scale_(m_config.seam_gap.get_abs_value(EXTRUDER_CONFIG(nozzle_diameter))) : 0;
+    const double seam_gap = scale_(m_config.seam_gap.get_abs_value(EXTRUDER_CONFIG(nozzle_diameter)));
+    const double clip_length = m_enable_loop_clipping && !enable_seam_slope ? seam_gap : 0;
 
     // get paths
     ExtrusionPaths paths;
@@ -4673,8 +4673,8 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
         SlopedLoop new_loop;
 
         // create slopes
-        const auto add_slop = [&new_loop, slope_max_segment_length](const ExtrusionPath& path, const Polyline& poly, double ratio_begin,
-                                                                    double ratio_end) {
+        const auto add_slop = [&new_loop, slope_max_segment_length, seam_gap](const ExtrusionPath& path, const Polyline& poly,
+                                                                              double ratio_begin, double ratio_end) {
             if (poly.empty()) {
                 return;
             }
@@ -4705,10 +4705,29 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
                 ExtrusionPathSloped::Slope{ratio_begin, ratio_begin},
                 ExtrusionPathSloped::Slope{ratio_end, ratio_end}
             );
-            new_loop.decreasing.emplace_back(detailed_poly, path, 
-                ExtrusionPathSloped::Slope{1., 1. - ratio_begin},
-                ExtrusionPathSloped::Slope{1., 1. - ratio_end}
-            );
+
+            if (is_approx(ratio_end, 1.) && seam_gap > 0) {
+                // Remove the segments that has no extrusion
+                const auto seg_length = detailed_poly.length();
+                if (seg_length > seam_gap) {
+                    // Split the segment and remove the last `seam_gap` bit
+                    const Polyline orig = detailed_poly;
+                    Polyline tmp;
+                    orig.split_at_length(seg_length - seam_gap, &detailed_poly, &tmp);
+
+                    ratio_end = lerp(ratio_begin, ratio_end, (seg_length - seam_gap) / seg_length);
+                    assert(1. - ratio_end > EPSILON);
+                } else {
+                    // Remove the entire segment
+                    detailed_poly.clear();
+                }
+            }
+            if (!detailed_poly.empty()) {
+                new_loop.decreasing.emplace_back(detailed_poly, path, 
+                    ExtrusionPathSloped::Slope{1., 1. - ratio_begin},
+                    ExtrusionPathSloped::Slope{1., 1. - ratio_end}
+                );
+            }
         };
 
         double remaining_length = slope_min_length;
