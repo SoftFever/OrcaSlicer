@@ -1,7 +1,7 @@
 Build
 Build.bat
 /build*/
-deps/build
+deps/build*
 MYMETA.json
 MYMETA.yml
 _build

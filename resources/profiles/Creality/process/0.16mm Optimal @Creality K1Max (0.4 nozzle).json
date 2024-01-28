@@ -36,7 +36,7 @@
     "initial_layer_acceleration": "500",
     "initial_layer_line_width": "0.5",
     "initial_layer_print_height": "0.16",
-    "initial_layer_speed": "50",
+    "initial_layer_speed": "60",
     "gap_infill_speed": "250",
     "infill_combination": "0",
     "sparse_infill_line_width": "0.45",

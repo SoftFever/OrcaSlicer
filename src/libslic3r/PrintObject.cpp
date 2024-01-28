@@ -928,6 +928,10 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "wipe_on_loops"
             || opt_key == "wipe_speed") {
             steps.emplace_back(posPerimeters);
+        } else if (
+               opt_key == "small_area_infill_flow_compensation"
+            || opt_key == "small_area_infill_flow_compensation_model") {
+            steps.emplace_back(posSlice);
         } else if (opt_key == "gap_infill_speed"
             || opt_key == "filter_out_gap_fill" ) {
             // Return true if gap-fill speed has changed from zero value to non-zero or from non-zero value to zero.

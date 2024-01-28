@@ -475,7 +475,7 @@ static ClipperLib_Z::Paths clip_extrusion(const ClipperLib_Z::Path& subject, con
                 end = e2top;
             }
 
-            assert(start.z() > 0 && end.z() > 0);
+            assert(start.z() >= 0 && end.z() >= 0);
 
             // Interpolate extrusion line width.
             double length_sqr = (end - start).cast<double>().squaredNorm();
@@ -832,6 +832,8 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
             if (extrusion->is_closed) {
                 ExtrusionLoop extrusion_loop(std::move(paths), pg_extrusion.is_contour ? elrDefault : elrHole);
                 extrusion_loop.make_counter_clockwise();
+                // TODO: it seems in practice that ExtrusionLoops occasionally have significantly disconnected paths,
+                // triggering the asserts below. Is this a problem?
                 for (auto it = std::next(extrusion_loop.paths.begin()); it != extrusion_loop.paths.end(); ++it) {
                     assert(it->polyline.points.size() >= 2);
                     assert(std::prev(it)->polyline.last_point() == it->polyline.first_point());
@@ -843,12 +845,11 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
             else {
                 // Because we are processing one ExtrusionLine all ExtrusionPaths should form one connected path.
                 // But there is possibility that due to numerical issue there is poss
-                assert([&paths = std::as_const(paths)]() -> bool {
-                    for (auto it = std::next(paths.begin()); it != paths.end(); ++it)
-                        if (std::prev(it)->polyline.last_point() != it->polyline.first_point())
-                            return false;
-                    return true;
-                }());
+                // TODO: do we need some tolerance for disconnected paths below?
+                for (auto it = std::next(paths.begin()); it != paths.end(); ++it) {
+                    assert(it->polyline.points.size() >= 2);
+                    assert(std::prev(it)->polyline.last_point() == it->polyline.first_point());
+                }
                 ExtrusionMultiPath multi_path;
                 multi_path.paths.emplace_back(std::move(paths.front()));
 
@@ -1504,8 +1505,9 @@ void PerimeterGenerator::process_classic()
     for (size_t order_idx = 0; order_idx < surface_order.size(); order_idx++) {
         const Surface &surface = this->slices->surfaces[surface_order[order_idx]];
         // detect how many perimeters must be generated for this island
-        int        loop_number = this->config->wall_loops + surface.extra_perimeters - 1;  // 0-indexed loops
-        if (this->config->alternate_extra_wall && this->layer_id % 2 == 1 && !m_spiral_vase) // add alternating extra wall
+        int loop_number = this->config->wall_loops + surface.extra_perimeters - 1;  // 0-indexed loops
+        int sparse_infill_density = this->config->sparse_infill_density.value;
+        if (this->config->alternate_extra_wall && this->layer_id % 2 == 1 && !m_spiral_vase && sparse_infill_density > 0) // add alternating extra wall
             loop_number++;
         if (this->layer_id == 0 && this->config->only_one_wall_first_layer)
             loop_number = 0;
@@ -1938,8 +1940,9 @@ void PerimeterGenerator::process_arachne()
     for (const Surface& surface : this->slices->surfaces) {
         coord_t bead_width_0 = ext_perimeter_spacing;
         // detect how many perimeters must be generated for this island
-        int        loop_number = this->config->wall_loops + surface.extra_perimeters - 1; // 0-indexed loops
-        if (this->config->alternate_extra_wall && this->layer_id % 2 == 1 && !m_spiral_vase) // add alternating extra wall
+        int loop_number = this->config->wall_loops + surface.extra_perimeters - 1; // 0-indexed loops
+        int sparse_infill_density = this->config->sparse_infill_density.value;
+        if (this->config->alternate_extra_wall && this->layer_id % 2 == 1 && !m_spiral_vase && sparse_infill_density > 0) // add alternating extra wall
             loop_number++;
 
         // Set the bottommost layer to be one wall
