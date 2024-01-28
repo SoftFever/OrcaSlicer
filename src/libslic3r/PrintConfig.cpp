@@ -395,6 +395,13 @@ static const t_config_enum_values  s_keys_map_GCodeThumbnailsFormat = {
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(GCodeThumbnailsFormat)
 
+static const t_config_enum_values s_keys_map_CounterboleHoleBridgingOption{
+    { "none", chbNone },
+    { "partiallybridge", chbBridges },
+    { "sacrificiallayer", chbFilled },
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(CounterboleHoleBridgingOption)
+
 static void assign_printer_technology_to_unknown(t_optiondef_map &options, PrinterTechnology printer_technology)
 {
     for (std::pair<const t_config_option_key, ConfigOptionDef> &kvp : options)
@@ -941,6 +948,24 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Apply the reverse perimeters logic only on internal perimeters. \n\nThis setting greatly reduces part stresses as they are now distributed in alternating directions. This should reduce part warping while also maintaining external wall quality. This feature can be very useful for warp prone material, like ABS/ASA, and also for elastic filaments, like TPU and Silk PLA. It can also help reduce warping on floating regions over supports.\n\nFor this setting to be the most effective, it is recomended to set the Reverse Threshold to 0 so that all internal walls print in alternating directions on odd layers irrespective of their overhang degree.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("counterbole_hole_bridging", coEnum);
+    def->label = L("Bridge counterbole holes");
+    def->category = L("Quality");
+    def->tooltip  = L(
+        "This option creates bridges for counterbore holes, allowing them to be printed without support. Available modes include:\n"
+         "1. None: No bridge is created.\n"
+         "2. Partially Bridged: Only a part of the unsupported area will be bridged.\n"
+         "3. Sacrificial Layer: A full sacrificial bridge layer is created.");
+    def->mode = comAdvanced;
+    def->enum_keys_map = &ConfigOptionEnum<CounterboleHoleBridgingOption>::get_enum_values();
+    def->enum_values.emplace_back("none");
+    def->enum_values.emplace_back("partiallybridge");
+    def->enum_values.emplace_back("sacrificiallayer");
+    def->enum_labels.emplace_back(L("None"));
+    def->enum_labels.emplace_back(L("Partially bridged"));
+    def->enum_labels.emplace_back(L("Sacrificial layer"));
+    def->set_default_value(new ConfigOptionEnum<CounterboleHoleBridgingOption>(chbNone));
 
     def = this->add("overhang_reverse_threshold", coFloatOrPercent);
     def->label = L("Reverse threshold");
