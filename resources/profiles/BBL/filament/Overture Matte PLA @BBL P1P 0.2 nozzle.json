@@ -6,7 +6,7 @@
     "setting_id": "GFSL05_04",
     "instantiation": "true",
     "filament_max_volumetric_speed": [
-        "1"
+        "1.8"
     ],
     "compatible_printers": [
         "Bambu Lab P1P 0.2 nozzle"

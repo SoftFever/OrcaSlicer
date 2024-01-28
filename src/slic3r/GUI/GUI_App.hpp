@@ -664,6 +664,7 @@ private:
     std::string             m_older_data_dir_path;
     boost::optional<Semver> m_last_config_version;
     bool                    m_config_corrupted { false };
+    std::string             m_open_method;
 };
 
 DECLARE_APP(GUI_App)

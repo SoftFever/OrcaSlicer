@@ -1366,7 +1366,7 @@ void MachineObject::parse_status(int flag)
     }
 
     is_support_filament_tangle_detect = ((flag >> 19) & 0x1) != 0;
-
+    is_support_user_preset = ((flag >> 22) & 0x1) != 0;
     if (xcam_filament_tangle_detect_count > 0)
         xcam_filament_tangle_detect_count--;
     else {
@@ -1383,6 +1383,9 @@ void MachineObject::parse_status(int flag)
 
         if (installed_plus && supported_plus) {
             is_support_p1s_plus = true;
+        }
+        else {
+            is_support_p1s_plus = false;
         }
     }
 
@@ -2226,41 +2229,6 @@ int MachineObject::command_get_flow_ratio_calibration_result(float nozzle_diamet
     return -1;
 }
 
-int MachineObject::command_unload_filament()
-{
-    if (get_printer_series() == PrinterSeries::SERIES_X1 && !ams_support_virtual_tray) {
-        // fixed gcode file
-        json j;
-        j["print"]["command"] = "gcode_file";
-        j["print"]["param"] = "/usr/etc/print/filament_unload.gcode";
-        j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
-        return this->publish_json(j.dump());
-    }
-    else if (get_printer_series() == PrinterSeries::SERIES_P1P || (get_printer_series() == PrinterSeries::SERIES_X1 && ams_support_virtual_tray) ) {
-        std::string gcode = DeviceManager::load_gcode(printer_type, "ams_unload.gcode");
-        if (gcode.empty()) {
-            return -1;
-        }
-
-        json j;
-        j["print"]["command"] = "gcode_line";
-        j["print"]["param"] = gcode;
-        j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
-
-        if (m_agent)
-            j["print"]["user_id"] = m_agent->get_user_id();
-
-        return this->publish_json(j.dump());
-    }
-    else {
-        json j;
-        j["print"]["command"] = "unload_filament";
-        j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
-        return this->publish_json(j.dump());
-    }
-}
-
-
 int MachineObject::command_ipcam_record(bool on_off)
 {
     BOOST_LOG_TRIVIAL(info) << "command_ipcam_record = " << on_off;
@@ -2721,7 +2689,7 @@ int MachineObject::parse_json(std::string payload)
 
         uint64_t t_utc = j.value("t_utc", 0ULL);
         if (t_utc > 0) 
-            last_update_time = std::chrono::system_clock::time_point(t_utc * 1ms);
+            last_utc_time = std::chrono::system_clock::time_point(t_utc * 1ms);
 
         BOOST_LOG_TRIVIAL(trace) << "parse_json: dev_id=" << dev_id << ", playload=" << j.dump(4);
 
@@ -2745,7 +2713,10 @@ int MachineObject::parse_json(std::string payload)
                         module_vers.emplace(ver_info.name, ver_info);
                         if (ver_info.name == "ota") {
                             NetworkAgent* agent = GUI::wxGetApp().getAgent();
-                            if (agent) agent->track_update_property("dev_ota_ver", ver_info.sw_ver);
+                            if (agent) {
+                                std::string dev_ota_str = "dev_ota_ver:" + this->dev_id;
+                                agent->track_update_property(dev_ota_str, ver_info.sw_ver);
+                            }
                         }
                     }
 
@@ -3869,6 +3840,10 @@ int MachineObject::parse_json(std::string payload)
                                             curr_tray->color = "";
                                         }
 
+                                        if (tray_it->contains("ctype"))
+                                            curr_tray->ctype = (*tray_it)["ctype"].get<int>();
+                                        else
+                                            curr_tray->ctype = 0;
                                         curr_tray->cols.clear();
                                         if (tray_it->contains("cols")) {
                                             if ((*tray_it)["cols"].is_array()) {
@@ -4943,8 +4918,12 @@ void DeviceManager::on_machine_alive(std::string json_str)
         std::string connect_type    = j["connect_type"].get<std::string>();
         std::string bind_state      = j["bind_state"].get<std::string>();
         std::string sec_link = "";
+        std::string ssdp_version = "";
         if (j.contains("sec_link")) {
             sec_link = j["sec_link"].get<std::string>();
+        }
+        if (j.contains("ssdp_version")) {
+            ssdp_version = j["ssdp_version"].get<std::string>();
         }
         std::string connection_name = "";
         if (j.contains("connection_name")) {
@@ -4960,6 +4939,7 @@ void DeviceManager::on_machine_alive(std::string json_str)
             it->second->bind_state              = bind_state;
             it->second->bind_sec_link           = sec_link;
             it->second->dev_connection_type     = connect_type;
+            it->second->bind_ssdp_version       = ssdp_version;
         }
 
         /* update localMachineList */
@@ -4990,6 +4970,7 @@ void DeviceManager::on_machine_alive(std::string json_str)
             obj->dev_connection_type= connect_type;
             obj->bind_state         = bind_state;
             obj->bind_sec_link      = sec_link;
+            obj->bind_ssdp_version = ssdp_version;
             obj->printer_type = MachineObject::parse_printer_type(printer_type_str);
 
             // U0 firmware
@@ -5014,6 +4995,7 @@ void DeviceManager::on_machine_alive(std::string json_str)
             obj->bind_state     = bind_state;
             obj->bind_sec_link  = sec_link;
             obj->dev_connection_name = connection_name;
+            obj->bind_ssdp_version = ssdp_version;
             obj->m_is_online = true;
 
             //load access code

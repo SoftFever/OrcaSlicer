@@ -272,8 +272,56 @@ static void get_trapezoids2(const ExPolygon &expoly, Polygons* polygons, double 
         polygon.rotate(-(PI/2 - angle), Point(0,0));
 }
 
-// Coverage is currently only used by the unit tests. It is extremely slow and unreliable!
-Polygons BridgeDetector::coverage(double angle) const
+
+
+void get_trapezoids3_half(const ExPolygon& expoly, Polygons* polygons, float spacing)
+{
+
+    // get all points of this ExPolygon
+    Points pp = to_points(expoly);
+
+    if (pp.empty()) return;
+
+    // build our bounding box
+    BoundingBox bb(pp);
+
+    // get all x coordinates
+    coord_t min_x = pp[0].x(), max_x = pp[0].x();
+    std::vector<coord_t> xx;
+    for (Points::const_iterator p = pp.begin(); p != pp.end(); ++p) {
+        if (min_x > p->x()) min_x = p->x();
+        if (max_x < p->x()) max_x = p->x();
+    }
+    for (coord_t x = min_x; x < max_x - (coord_t)(spacing / 2); x += (coord_t)spacing) {
+        xx.push_back(x);
+    }
+    xx.push_back(max_x);
+    //std::sort(xx.begin(), xx.end());
+
+    // find trapezoids by looping from first to next-to-last coordinate
+    for (std::vector<coord_t>::const_iterator x = xx.begin(); x != xx.end() - 1; ++x) {
+        coord_t next_x = *(x + 1);
+        if (*x == next_x) continue;
+
+        // build rectangle
+        Polygon poly;
+        poly.points.resize(4);
+        poly[0].x() = *x + (coord_t)spacing / 4;
+        poly[0].y() = bb.min(1);
+        poly[1].x() = next_x - (coord_t)spacing / 4;
+        poly[1].y() = bb.min(1);
+        poly[2].x() = next_x - (coord_t)spacing / 4;
+        poly[2].y() = bb.max(1);
+        poly[3].x() = *x + (coord_t)spacing / 4;
+        poly[3].y() = bb.max(1);
+
+        // intersect with this expolygon
+        // append results to return value
+        polygons_append(*polygons, intersection(Polygons{ poly }, to_polygons(expoly)));
+    }
+}
+
+Polygons BridgeDetector::coverage(double angle, bool precise) const
 {
     if (angle == -1)
         angle = this->angle;
@@ -283,26 +331,65 @@ Polygons BridgeDetector::coverage(double angle) const
     if (angle != -1) {
         // Get anchors, convert them to Polygons and rotate them.
         Polygons anchors = to_polygons(this->_anchor_regions);
-        polygons_rotate(anchors, PI/2.0 - angle);
-        
+        polygons_rotate(anchors, PI / 2.0 - angle);
+        //same for region which do not need bridging
+        //Polygons supported_area = diff(this->lower_slices.expolygons, this->_anchor_regions, true);
+        //polygons_rotate(anchors, PI / 2.0 - angle);
+
         for (ExPolygon expolygon : this->expolygons) {
             // Clone our expolygon and rotate it so that we work with vertical lines.
-            expolygon.rotate(PI/2.0 - angle);            
+            expolygon.rotate(PI / 2.0 - angle);
             // Outset the bridge expolygon by half the amount we used for detecting anchors;
             // we'll use this one to generate our trapezoids and be sure that their vertices
             // are inside the anchors and not on their contours leading to false negatives.
             for (ExPolygon &expoly : offset_ex(expolygon, 0.5f * float(this->spacing))) {
                 // Compute trapezoids according to a vertical orientation
                 Polygons trapezoids;
-                get_trapezoids2(expoly, &trapezoids, PI/2.0);
-                for (const Polygon &trapezoid : trapezoids) {
-                    // not nice, we need a more robust non-numeric check
+                if (!precise) get_trapezoids2(expoly, &trapezoids, PI / 2);
+                else get_trapezoids3_half(expoly, &trapezoids, float(this->spacing));
+                for (Polygon &trapezoid : trapezoids) {
                     size_t n_supported = 0;
-                    for (const Line &supported_line : intersection_ln(trapezoid.lines(), anchors))
-                        if (supported_line.length() >= this->spacing)
-                            ++ n_supported;
-                    if (n_supported >= 2) 
+                    if (!precise) {
+                        // not nice, we need a more robust non-numeric check
+                        // imporvment 1: take into account when we go in the supported area.
+                        for (const Line &supported_line : intersection_ln(trapezoid.lines(), anchors))
+                            if (supported_line.length() >= this->spacing)
+                                ++n_supported;
+                    } else {
+                        Polygons intersects = intersection(Polygons{trapezoid}, anchors);
+                        n_supported = intersects.size();
+
+                        if (n_supported >= 2) {
+                            // trim it to not allow to go outside of the intersections
+                            BoundingBox center_bound = intersects[0].bounding_box();
+                            coord_t min_y = center_bound.center()(1), max_y = center_bound.center()(1);
+                            for (Polygon &poly_bound : intersects) {
+                                center_bound = poly_bound.bounding_box();
+                                if (min_y > center_bound.center()(1)) min_y = center_bound.center()(1);
+                                if (max_y < center_bound.center()(1)) max_y = center_bound.center()(1);
+                            }
+                            coord_t min_x = trapezoid[0](0), max_x = trapezoid[0](0);
+                            for (Point &p : trapezoid.points) {
+                                if (min_x > p(0)) min_x = p(0);
+                                if (max_x < p(0)) max_x = p(0);
+                            }
+                            //add what get_trapezoids3 has removed (+EPSILON)
+                            min_x -= (this->spacing / 4 + 1);
+                            max_x += (this->spacing / 4 + 1);
+                            coord_t mid_x = (min_x + max_x) / 2;
+                            for (Point &p : trapezoid.points) {
+                                if (p(1) < min_y) p(1) = min_y;
+                                if (p(1) > max_y) p(1) = max_y;
+                                if (p(0) > min_x && p(0) < mid_x) p(0) = min_x;
+                                if (p(0) < max_x && p(0) > mid_x) p(0) = max_x;
+                            }
+                        }
+                    }
+
+                    if (n_supported >= 2) {
+                        //add it
                         covered.push_back(std::move(trapezoid));
+                    }
                 }
             }
         }
@@ -312,7 +399,7 @@ Polygons BridgeDetector::coverage(double angle) const
         covered = union_(covered);
         // Intersect trapezoids with actual bridge area to remove extra margins and append it to result.
         polygons_rotate(covered, -(PI/2.0 - angle));
-    	covered = intersection(this->expolygons, covered);
+        //covered = intersection(this->expolygons, covered);
 #if 0
         {
             my @lines = map @{$_->lines}, @$trapezoids;

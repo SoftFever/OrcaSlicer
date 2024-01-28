@@ -68,9 +68,15 @@ std::string PrintJob::truncate_string(const std::string& str, size_t maxLength)
     }
 
     wxString local_str = wxString::FromUTF8(str);
-    wxString truncatedStr = local_str.Mid(0, maxLength - 3);
-    truncatedStr.append("...");
+    wxString truncatedStr;
 
+    for (auto i = 1; i < local_str.Length(); i++) {
+        wxString tagStr = local_str.Mid(0, i);
+        if (tagStr.ToUTF8().length() >= maxLength) {
+            truncatedStr = local_str.Mid(0, i - 1);
+            break;
+        }
+    }
     return truncatedStr.utf8_string();
 }
 
