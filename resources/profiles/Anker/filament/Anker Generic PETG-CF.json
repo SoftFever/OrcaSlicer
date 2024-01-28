@@ -1,9 +1,9 @@
 {
     "type": "filament",
-    "name": "Anker Generic PVA",
-    "inherits": "Anker Generic PVA @base",
+    "name": "Anker Generic PETG-CF",
+    "inherits": "Anker Generic PETG-CF @base",
     "from": "system",
-    "setting_id": "GFSS99",
+    "setting_id": "GFSG98",
     "instantiation": "true",
     "compatible_printers": [
         "Anker M5 0.4 nozzle",
