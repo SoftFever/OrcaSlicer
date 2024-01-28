@@ -3460,6 +3460,12 @@ def = this->add("filament_loading_speed", coFloats);
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInt(10));
 
+    def = this->add("seam_slope_inner_walls", coBool);
+    def->label = L("Scarf joint for inner walls");
+    def->tooltip = L("Use scarf joint for inner walls as well.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
     def = this->add("role_based_wipe_speed", coBool);
     def->label = L("Role base wipe speed");
     def->tooltip = L("The wipe speed is determined by the speed of the current extrusion role."

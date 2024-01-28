@@ -1992,6 +1992,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("seam_slope_start_height");
         optgroup->append_single_option_line("seam_slope_min_length");
         optgroup->append_single_option_line("seam_slope_steps");
+        optgroup->append_single_option_line("seam_slope_inner_walls");
         optgroup->append_single_option_line("role_based_wipe_speed","seam");
         optgroup->append_single_option_line("wipe_speed", "seam");
         optgroup->append_single_option_line("wipe_on_loops","seam");

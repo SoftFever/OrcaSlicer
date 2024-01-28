@@ -830,6 +830,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloatOrPercent,     seam_slope_start_height))
     ((ConfigOptionFloat,              seam_slope_min_length))
     ((ConfigOptionInt,                seam_slope_steps))
+    ((ConfigOptionBool,               seam_slope_inner_walls))
 
 )
 

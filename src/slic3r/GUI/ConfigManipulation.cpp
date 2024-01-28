@@ -754,6 +754,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     toggle_line("seam_slope_start_height", has_seam_slope);
     toggle_line("seam_slope_min_length", has_seam_slope);
     toggle_line("seam_slope_steps", has_seam_slope);
+    toggle_line("seam_slope_inner_walls", has_seam_slope);
 }
 
 void ConfigManipulation::update_print_sla_config(DynamicPrintConfig* config, const bool is_global_config/* = false*/)

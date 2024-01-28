@@ -4541,7 +4541,10 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
     } else
         loop.split_at(last_pos, false);
 
-    const bool enable_seam_slope = m_config.seam_slope_enabled.value && !m_config.spiral_mode && loop.role() == erExternalPerimeter && layer_id() > 0;
+    const bool enable_seam_slope = m_config.seam_slope_enabled.value &&
+        !m_config.spiral_mode &&
+        (loop.role() == erExternalPerimeter || (loop.role() == erPerimeter && m_config.seam_slope_inner_walls)) &&
+        layer_id() > 0;
 
     // clip the path to avoid the extruder to get exactly on the first point of the loop;
     // if polyline was shorter than the clipping distance we'd get a null polyline, so
