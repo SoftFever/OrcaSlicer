@@ -2023,6 +2023,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("thick_bridges");
         optgroup->append_single_option_line("thick_internal_bridges");
         optgroup->append_single_option_line("dont_filter_internal_bridges");
+        optgroup->append_single_option_line("counterbole_hole_bridging","counterbole-hole-bridging");
     
         optgroup = page->new_optgroup(L("Overhangs"), L"param_advanced");
         optgroup->append_single_option_line("detect_overhang_wall");
@@ -2033,7 +2034,6 @@ void TabPrint::build()
         optgroup->append_single_option_line("overhang_reverse");
         optgroup->append_single_option_line("overhang_reverse_internal_only");
         optgroup->append_single_option_line("overhang_reverse_threshold");
-        optgroup->append_single_option_line("no_perimeter_unsupported_algo");
 
     page = add_options_page(L("Strength"), "empty");
         optgroup = page->new_optgroup(L("Walls"), L"param_wall");

@@ -1908,10 +1908,11 @@ void PerimeterGenerator::add_infill_contour_for_arachne( ExPolygons        infil
     append(*this->fill_no_overlap, offset2_ex(union_ex(inner_pp), float(-min_perimeter_infill_spacing / 2.), float(+min_perimeter_infill_spacing / 2.)));
 }
 
+// Orca: sacrificial bridge layer algorithm ported from SuperSlicer
 void PerimeterGenerator::process_no_bridge(Surfaces& all_surfaces, coord_t perimeter_spacing, coord_t ext_perimeter_width)
 {
     //store surface for bridge infill to avoid unsupported perimeters (but the first one, this one is always good)
-    if (this->config->no_perimeter_unsupported_algo != npuaNone
+    if (this->config->counterbole_hole_bridging != chbNone
         && this->lower_slices != NULL && !this->lower_slices->empty()) {
         const coordf_t bridged_infill_margin = scale_(BRIDGE_INFILL_MARGIN);
 
@@ -1944,7 +1945,7 @@ void PerimeterGenerator::process_no_bridge(Surfaces& all_surfaces, coord_t perim
                         }
                         if (!bridgeable.empty()) {
                             //check if we get everything or just the bridgeable area
-                            if (this->config->no_perimeter_unsupported_algo.value == npuaNoPeri || this->config->no_perimeter_unsupported_algo.value == npuaFilled) {
+                            if (/*this->config->counterbole_hole_bridging.value == chbNoPeri || */this->config->counterbole_hole_bridging.value == chbFilled) {
                                 //we bridge everything, even the not-bridgeable bits
                                 for (size_t i = 0; i < unsupported_filtered.size();) {
                                     ExPolygon& poly_unsupp = *(unsupported_filtered.begin() + i);
@@ -1966,7 +1967,7 @@ void PerimeterGenerator::process_no_bridge(Surfaces& all_surfaces, coord_t perim
                                 }
                                 unsupported_filtered = intersection_ex(last,
                                                                        offset2_ex(unsupported_filtered, double(-perimeter_spacing / 2), double(bridged_infill_margin + perimeter_spacing / 2)));
-                                if (this->config->no_perimeter_unsupported_algo.value == npuaFilled) {
+                                if (this->config->counterbole_hole_bridging.value == chbFilled) {
                                     for (ExPolygon& expol : unsupported_filtered) {
                                         //check if the holes won't be covered by the upper layer
                                         //TODO: if we want to do that, we must modify the geometry before making perimeters.
@@ -2016,7 +2017,7 @@ void PerimeterGenerator::process_no_bridge(Surfaces& all_surfaces, coord_t perim
 
                                 }
                                 //TODO: add other polys as holes inside this one (-margin)
-                            } else if (this->config->no_perimeter_unsupported_algo.value == npuaBridgesOverhangs || this->config->no_perimeter_unsupported_algo.value == npuaBridges) {
+                            } else if (/*this->config->counterbole_hole_bridging.value == chbBridgesOverhangs || */this->config->counterbole_hole_bridging.value == chbBridges) {
                                 //simplify to avoid most of artefacts from printing lines.
                                 ExPolygons bridgeable_simplified;
                                 for (ExPolygon& poly : bridgeable) {
@@ -2035,7 +2036,7 @@ void PerimeterGenerator::process_no_bridge(Surfaces& all_surfaces, coord_t perim
                                 //unbridgeable = offset2_ex(unbridgeable, -ext_perimeter_width, ext_perimeter_width);
 
 
-                                if (this->config->no_perimeter_unsupported_algo.value == npuaBridges) {
+                                // if (this->config->counterbole_hole_bridging.value == chbBridges) {
                                     ExPolygons unbridgeable = unsupported_filtered;
                                     for (ExPolygon& expol : unbridgeable)
                                         expol.holes.clear();
@@ -2062,19 +2063,19 @@ void PerimeterGenerator::process_no_bridge(Surfaces& all_surfaces, coord_t perim
                                     bridges_temp = diff_ex(bridges_temp, unbridgeable);
                                     unsupported_filtered = offset_ex(bridges_temp, offset_to_do);
                                     unsupported_filtered = intersection_ex(unsupported_filtered, reference);
-                                } else {
-                                    ExPolygons unbridgeable = intersection_ex(unsupported, diff_ex(unsupported_filtered, offset_ex(bridgeable_simplified, ext_perimeter_width / 2)));
-                                    unbridgeable = offset2_ex(unbridgeable, -ext_perimeter_width, ext_perimeter_width);
-                                    unsupported_filtered = unbridgeable;
+                                // } else {
+                                //     ExPolygons unbridgeable = intersection_ex(unsupported, diff_ex(unsupported_filtered, offset_ex(bridgeable_simplified, ext_perimeter_width / 2)));
+                                //     unbridgeable = offset2_ex(unbridgeable, -ext_perimeter_width, ext_perimeter_width);
+                                //     unsupported_filtered = unbridgeable;
 
-                                    ////put the bridge area inside the unsupported_filtered variable
-                                    //unsupported_filtered = intersection_ex(last,
-                                    //    diff_ex(
-                                    //    offset_ex(bridgeable_simplified, (double)perimeter_spacing / 2),
-                                    //    unbridgeable
-                                    //    )
-                                    //    );
-                                }
+                                //     ////put the bridge area inside the unsupported_filtered variable
+                                //     //unsupported_filtered = intersection_ex(last,
+                                //     //    diff_ex(
+                                //     //    offset_ex(bridgeable_simplified, (double)perimeter_spacing / 2),
+                                //     //    unbridgeable
+                                //     //    )
+                                //     //    );
+                                // }
                             } else {
                                 unsupported_filtered.clear();
                             }
