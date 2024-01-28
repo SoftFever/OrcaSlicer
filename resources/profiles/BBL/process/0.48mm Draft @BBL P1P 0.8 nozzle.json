@@ -5,6 +5,7 @@
     "from": "system",
     "setting_id": "GP074",
     "instantiation": "true",
+    "elefant_foot_compensation": "0.15",
     "compatible_printers": [
         "Bambu Lab P1P 0.8 nozzle"
     ]

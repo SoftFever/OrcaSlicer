@@ -131,6 +131,7 @@ class MainFrame : public DPIFrame
     bool can_delete() const;
     bool can_delete_all() const;
     bool can_reslice() const;
+    void bind_diff_dialog();
 
     // BBS
     wxBoxSizer* create_side_tools();

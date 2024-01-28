@@ -1060,29 +1060,13 @@ bool PresetUpdater::priv::install_bundles_rsrc(std::vector<std::string> bundles,
 		updates.updates.emplace_back(std::move(path_in_rsrc), std::move(path_in_vendors), Version(), bundle, "", "");
 
         //BBS: add directory support
-        auto print_in_rsrc = (this->rsrc_path / bundle / PRESET_PRINT_NAME);
-		auto print_in_vendors = (this->vendor_path / bundle / PRESET_PRINT_NAME);
+        auto print_in_rsrc = this->rsrc_path / bundle;
+		auto print_in_vendors = this->vendor_path / bundle;
         fs::path print_folder(print_in_vendors);
         if (fs::exists(print_folder))
             fs::remove_all(print_folder);
         fs::create_directories(print_folder);
 		updates.updates.emplace_back(std::move(print_in_rsrc), std::move(print_in_vendors), Version(), bundle, "", "", false, true);
-
-        auto filament_in_rsrc = (this->rsrc_path / bundle / PRESET_FILAMENT_NAME);
-		auto filament_in_vendors = (this->vendor_path / bundle / PRESET_FILAMENT_NAME);
-        fs::path filament_folder(filament_in_vendors);
-        if (fs::exists(filament_folder))
-            fs::remove_all(filament_folder);
-        fs::create_directories(filament_folder);
-		updates.updates.emplace_back(std::move(filament_in_rsrc), std::move(filament_in_vendors), Version(), bundle, "", "", false, true);
-
-        auto machine_in_rsrc = (this->rsrc_path / bundle / PRESET_PRINTER_NAME);
-		auto machine_in_vendors = (this->vendor_path / bundle / PRESET_PRINTER_NAME);
-        fs::path machine_folder(machine_in_vendors);
-        if (fs::exists(machine_folder))
-            fs::remove_all(machine_folder);
-        fs::create_directories(machine_folder);
-		updates.updates.emplace_back(std::move(machine_in_rsrc), std::move(machine_in_vendors), Version(), bundle, "", "", false, true);
 	}
 
 	return perform_updates(std::move(updates), snapshot);
@@ -1256,14 +1240,7 @@ Updates PresetUpdater::priv::get_config_updates(const Semver &old_slic3r_version
                         updates.updates.emplace_back(std::move(file_path), std::move(path_in_vendor.string()), std::move(version), vendor_name, changelog, "", force_update, false);
 
                         //BBS: add directory support
-                        auto print_in_vendors = (vendor_path / vendor_name / PRESET_PRINT_NAME);
-                        updates.updates.emplace_back(std::move(print_in_cache), std::move(print_in_vendors.string()), Version(), vendor_name, "", "", force_update, true);
-
-                        auto filament_in_vendors = (vendor_path / vendor_name / PRESET_FILAMENT_NAME);
-                        updates.updates.emplace_back(std::move(filament_in_cache), std::move(filament_in_vendors.string()), Version(), vendor_name, "", "", force_update, true);
-
-                        auto machine_in_vendors = (vendor_path / vendor_name / PRESET_PRINTER_NAME);
-                        updates.updates.emplace_back(std::move(machine_in_cache), std::move(machine_in_vendors.string()), Version(), vendor_name, "", "", force_update, true);
+                        updates.updates.emplace_back(cache_path / vendor_name, vendor_path / vendor_name, Version(), vendor_name, "", "", force_update, true);
                     }
                 }
             }

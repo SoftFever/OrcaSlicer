@@ -192,6 +192,7 @@ public:
     std::string     nozzle_temp_min;
     std::string     xcam_info;
     std::string     uuid;
+    int             ctype = 0;
     float           k = 0.0f;       // k range: 0 ~ 0.5
     float           n = 0.0f;       // k range: 0.6 ~ 2.0
     int             cali_idx = 0;
@@ -450,6 +451,7 @@ public:
     std::string bind_user_id;
     std::string bind_state;     /* free | occupied */
     std::string bind_sec_link;
+    std::string bind_ssdp_version;
     bool is_avaliable() { return bind_state == "free"; }
     time_t last_alive;
     bool m_is_online;
@@ -461,6 +463,7 @@ public:
     int  parse_msg_count = 0;
     int  keep_alive_count = 0;
     std::chrono::system_clock::time_point   last_update_time;   /* last received print data from machine */
+    std::chrono::system_clock::time_point   last_utc_time;   /* last received print data from machine */
     std::chrono::system_clock::time_point   last_keep_alive;    /* last received print data from machine */
     std::chrono::system_clock::time_point   last_push_time;     /* last received print push from machine */
     std::chrono::system_clock::time_point   last_request_push;  /* last received print push from machine */
@@ -876,8 +879,6 @@ public:
     // flow ratio calibration
     int command_start_flow_ratio_calibration(const X1CCalibInfos& calib_data);
     int command_get_flow_ratio_calibration_result(float nozzle_diameter);
-
-    int command_unload_filament();
 
     // camera control
     int command_ipcam_record(bool on_off);

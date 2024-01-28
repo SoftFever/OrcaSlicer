@@ -37,7 +37,6 @@
 #include "../Utils/FixModelByWin10.hpp"
 #include "../Utils/UndoRedo.hpp"
 #include "BitmapCache.hpp"
-#include "SavePresetDialog.hpp"
 #include "MsgDialog.hpp"
 #include "ParamsDialog.hpp"
 
@@ -1425,7 +1424,7 @@ void GUI::CalibrateFilamentComboBox::load_tray(DynamicPrintConfig &config)
         auto &filaments = m_collection->get_presets();
         auto  iter      = std::find_if(filaments.begin(), filaments.end(), [this](auto &f) {
             bool is_compatible = m_preset_bundle->calibrate_filaments.find(&f) != m_preset_bundle->calibrate_filaments.end();
-            return is_compatible && f.is_system && f.filament_id == m_filament_id;
+            return is_compatible && f.filament_id == m_filament_id;
             });
         //if (iter == filaments.end() && !m_filament_type.empty()) {
         //    auto filament_type = "Generic " + m_filament_type;

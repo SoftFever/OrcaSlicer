@@ -6,6 +6,7 @@
     "setting_id": "GP038",
     "instantiation": "true",
     "default_acceleration": "6000",
+    "elefant_foot_compensation": "0",
     "travel_speed": "700",
     "compatible_printers": [
         "Bambu Lab A1 mini 0.6 nozzle"
