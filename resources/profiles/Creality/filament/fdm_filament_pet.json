@@ -74,7 +74,7 @@
         "220"
     ],
     "nozzle_temperature_range_high": [
-        "260"
+        "270"
     ],
     "filament_start_gcode": [
         "; filament start gcode\n"

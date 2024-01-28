@@ -2791,9 +2791,9 @@ static bool is_left_handed(const Transform3d& m)
 }
 
 #ifndef NDEBUG
-static bool is_rotation_xy_synchronized(const Vec3d &rot_xyz_from, const Vec3d &rot_xyz_to)
+static bool is_rotation_xy_synchronized(const Transform3d &rot_xyz_from, const Transform3d &rot_xyz_to)
 {
-    const Eigen::AngleAxisd angle_axis(Geometry::rotation_xyz_diff(rot_xyz_from, rot_xyz_to));
+    const Eigen::AngleAxisd angle_axis((rot_xyz_from * rot_xyz_to.inverse()).rotation());
     const Vec3d  axis = angle_axis.axis();
     const double angle = angle_axis.angle();
     if (std::abs(angle) < 1e-8)
@@ -2817,10 +2817,10 @@ static void verify_instances_rotation_synchronized(const Model &model, const GLV
         //assert(idx_volume_first != -1); // object without instances?
         if (idx_volume_first == -1)
             continue;
-        const Vec3d &rotation0 = volumes[idx_volume_first]->get_instance_rotation();
+        const Transform3d &rotation0 = volumes[idx_volume_first]->get_instance_transformation().get_matrix();
         for (int i = idx_volume_first + 1; i < (int)volumes.size(); ++i)
             if (volumes[i]->object_idx() == idx_object) {
-                const Vec3d &rotation = volumes[i]->get_instance_rotation();
+                const Transform3d &rotation = volumes[i]->get_instance_transformation().get_matrix();
                 assert(is_rotation_xy_synchronized(rotation, rotation0));
             }
     }
