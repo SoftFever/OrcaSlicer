@@ -138,12 +138,6 @@ static std::vector<std::pair<TreeSupportSettings, std::vector<size_t>>> group_me
     // as different settings in the same group may only occur in the tip, which uses the original settings objects from the meshes.
     for (size_t object_id : print_object_ids) {
         const PrintObject       &print_object  = *print.get_object(object_id);
-#ifndef NDEBUG
-        const PrintObjectConfig &object_config = print_object.config();
-#endif // NDEBUG
-        // Support must be enabled and set to Tree style.
-        assert(object_config.enable_support || object_config.enforce_support_layers > 0);
-        assert(object_config.support_type == stTree || object_config.support_style == smsOrganic);
 
         bool found_existing_group = false;
         TreeSupportSettings next_settings{ TreeSupportMeshGroupSettings{ print_object }, print_object.slicing_parameters() };
@@ -3537,11 +3531,10 @@ static void generate_support_areas(Print &print, const BuildVolume &build_volume
 
             if (print_object.config().support_style.value != smsOrganic &&
                 // Orca: use organic as default
-                print_object.config().support_style.value != smsDefault)
-                draw_areas(*print.get_object(processing.second.front()), volumes, config, overhangs, move_bounds, 
-                    bottom_contacts, top_contacts, intermediate_layers, layer_storage, throw_on_cancel);
-            else {
-                assert(print_object.config().support_style == smsOrganic);
+                print_object.config().support_style.value != smsDefault) {
+                draw_areas(*print.get_object(processing.second.front()), volumes, config, overhangs, move_bounds,
+                           bottom_contacts, top_contacts, intermediate_layers, layer_storage, throw_on_cancel);
+            } else {
                 organic_draw_branches(
                     *print.get_object(processing.second.front()), volumes, config, move_bounds, 
                     bottom_contacts, top_contacts, interface_placer, intermediate_layers, layer_storage, 

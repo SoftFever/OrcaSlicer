@@ -14,6 +14,9 @@
     "filament_max_volumetric_speed": [
         "12"
     ],
+    "filament_retraction_length": [
+        "0.8"
+    ],
     "filament_vendor": [
         "Bambu Lab"
     ],

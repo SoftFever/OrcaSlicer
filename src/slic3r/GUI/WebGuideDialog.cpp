@@ -45,21 +45,50 @@ static wxString update_custom_filaments()
     std::map<std::string, std::vector<Preset const *>> temp_filament_id_to_presets = preset_bundle->filaments.get_filament_presets();
     
     std::vector<std::pair<std::string, std::string>>   need_sort;
+    bool                                             need_delete_some_filament = false;
     for (std::pair<std::string, std::vector<Preset const *>> filament_id_to_presets : temp_filament_id_to_presets) {
         std::string filament_id = filament_id_to_presets.first;
         if (filament_id.empty()) continue;
+        if (filament_id == "null") {
+            need_delete_some_filament = true;
+        }
+        bool filament_with_base_id = false;
+        bool not_need_show = false;
+        std::string filament_name;
         for (const Preset *preset : filament_id_to_presets.second) {
-            if (preset->is_system || filament_id.empty() || "null" == filament_id || filament_id.size() != 8 || filament_id[0] != 'P') break;
-            auto filament_vendor = dynamic_cast<ConfigOptionStrings *> (const_cast<Preset*>(preset)->config.option("filament_vendor",false));
-            if(filament_vendor&&filament_vendor->values.size()&&filament_vendor->values[0] == "Generic") break;
-            std::string preset_name = preset->name;
-            size_t      index_at    = preset_name.find(" @");
-            if (std::string::npos != index_at) { preset_name = preset_name.substr(0, index_at); }
-            need_sort.push_back(std::make_pair(preset_name, preset->filament_id));
-            break;
+            if (preset->is_system) {
+                not_need_show = true;
+                break;
+            }
+            if (preset->inherits() != "") continue;
+            if (!preset->base_id.empty()) filament_with_base_id = true;
+
+            if (!not_need_show) {
+                auto filament_vendor = dynamic_cast<ConfigOptionStrings *>(const_cast<Preset *>(preset)->config.option("filament_vendor", false));
+                if (filament_vendor && filament_vendor->values.size() && filament_vendor->values[0] == "Generic") not_need_show = true;
+            }
+            
+            if (filament_name.empty()) {
+                std::string preset_name = preset->name;
+                size_t      index_at    = preset_name.find(" @");
+                if (std::string::npos != index_at) { preset_name = preset_name.substr(0, index_at); }
+                filament_name = preset_name;
+            }
+        }
+        if (not_need_show) continue;
+        if (!filament_name.empty()) {
+            if (filament_with_base_id) {
+                need_sort.push_back(std::make_pair("[Action Required] " + filament_name, filament_id));
+            } else {
+
+                need_sort.push_back(std::make_pair(filament_name, filament_id));
+            }
         }
     }
     std::sort(need_sort.begin(), need_sort.end(), [](const std::pair<std::string, std::string> &a, const std::pair<std::string, std::string> &b) { return a.first < b.first; });
+    if (need_delete_some_filament) {
+        need_sort.push_back(std::make_pair("[Action Required]", "null"));
+    }
     json temp_j;
     for (std::pair<std::string, std::string> &filament_name_to_id : need_sort) {
         temp_j["name"] = filament_name_to_id.first;
@@ -162,7 +191,7 @@ GuideFrame::~GuideFrame()
 
 void GuideFrame::load_url(wxString &url)
 {
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< " enter, url=" << url.ToStdString();
+    BOOST_LOG_TRIVIAL(trace) << __FUNCTION__<< " enter, url=" << url.ToStdString();
     WebView::LoadUrl(m_browser, url);
     m_browser->SetFocus();
     UpdateState();
@@ -523,7 +552,7 @@ void GuideFrame::OnError(wxWebViewEvent &evt)
     // Show the info bar with an error
     // m_info->ShowMessage(_L("An error occurred loading ") + evt.GetURL() +
     // "\n" + "'" + category + "'", wxICON_ERROR);
-    BOOST_LOG_TRIVIAL(info) << "GuideFrame::OnError: An error occurred loading " << evt.GetURL() << category;
+    BOOST_LOG_TRIVIAL(trace) << "GuideFrame::OnError: An error occurred loading " << evt.GetURL() << category;
 
     UpdateState();
 }
@@ -1581,7 +1610,7 @@ bool GuideFrame::LoadFile(std::string jPath, std::string &sContent)
         std::stringstream buffer;
         buffer << t.rdbuf();
         sContent=buffer.str();
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", load %1% into buffer")% jPath;
+        BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << boost::format(", load %1% into buffer")% jPath;
     }
     catch (std::exception &e)
     {
