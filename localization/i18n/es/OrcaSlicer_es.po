@@ -272,7 +272,6 @@ msgstr "escala uniforme"
 
 msgid "Planar"
 msgstr "Plano"
-msgstr "Plano"
 
 msgid "Dovetail"
 msgstr "Cola de milano"
@@ -330,10 +329,8 @@ msgstr "Forma"
 #. TRN - Input label. Be short as possible
 msgid "Depth"
 msgstr "Profundidad"
-msgstr "Profundidad"
 
 msgid "Groove"
-msgstr "Ranura"
 msgstr "Ranura"
 
 msgid "Width"
@@ -343,7 +340,6 @@ msgid "Flap Angle"
 msgstr "Ángulo de solapa"
 
 msgid "Groove Angle"
-msgstr "Angulo de Ranura"
 msgstr "Ángulo de Ranura"
 
 msgid "Part"
@@ -364,9 +360,6 @@ msgid ""
 "Drag to move the cut plane\n"
 "Right-click a part to assign it to the other side"
 msgstr ""
-"Haga clic para voltear el plano de corte\n"
-"Arrastre para mover el plano de corte\n"
-"Haga clic con el botón derecho en una pieza para asignarla al otro lado"
 "Haga clic para voltear el plano de corte\n"
 "Arrastre para mover el plano de corte\n"
 "Haga clic con el botón derecho en una pieza para asignarla al otro lado"
@@ -418,14 +411,12 @@ msgstr "Cortar"
 
 msgid "Rotate cut plane"
 msgstr "Rotar plano de corte"
-msgstr "Rotar plano de corte"
 
 msgid "Remove connectors"
 msgstr "Borrar conectores"
 
 msgid "Bulge"
 msgstr "Rebasar"
-msgstr "Protuberancia"
 
 msgid "Bulge proportion related to radius"
 msgstr "Proporción de rebase en relación al radio"
@@ -522,7 +513,6 @@ msgid "Cut plane is placed out of object"
 msgstr "El plano de corte se sitúa fuera del objeto"
 
 msgid "Cut plane with groove is invalid"
-msgstr "El plano de corte con ranura no es válido"
 msgstr "El plano de corte con ranura no es válido"
 
 msgid "Connector"
@@ -681,7 +671,6 @@ msgid "Text shape"
 msgstr "Forma de texto"
 
 msgid "Set Mirror"
-msgstr "Ajustar Reflejo"
 msgstr "Configurar Espejo"
 
 msgid "Embossed text"
@@ -695,10 +684,8 @@ msgstr "Abandonar dispositivo de relieve"
 
 msgid "Embossing actions"
 msgstr "Acciones de relieve"
-msgstr "Acciones de relieve"
 
 msgid "Emboss"
-msgstr "Relieve"
 msgstr "Relieve"
 
 msgid "Text-Rotate"
@@ -708,12 +695,12 @@ msgid "NORMAL"
 msgstr "NORMAL"
 
 msgid "SMALL"
-msgstr "PEQUEÑO"
+
 msgstr "PEQUEÑA"
 
 msgid "ITALIC"
 msgstr "CURSIVA"
-msgstr "CURSIVA"
+
 
 msgid "SWISS"
 msgstr "SUIZA"
@@ -723,10 +710,8 @@ msgstr "MODERNA"
 
 msgid "First font"
 msgstr "Primera fuente"
-msgstr "Primera fuente"
 
 msgid "Default font"
-msgstr "Fuente por defecto"
 msgstr "Fuente por defecto"
 
 msgid "Advanced"
@@ -759,7 +744,6 @@ msgstr "La introducción de texto no muestra el espacio entre líneas."
 msgid "Too tall, diminished font height inside text input."
 msgstr ""
 "Demasiado alto, altura de fuente disminuida dentro de la entrada de texto."
-"Demasiado alto, altura de fuente disminuida dentro de la entrada de texto."
 
 msgid "Too small, enlarged font height inside text input."
 msgstr ""
@@ -767,7 +751,6 @@ msgstr ""
 "texto."
 
 msgid "Text doesn't show current horizontal alignment."
-msgstr "El texto no muestra la alineación horizontal actual."
 msgstr "El texto no muestra la alineación horizontal actual."
 
 msgid "Revert font changes."
@@ -779,7 +762,6 @@ msgstr "No se puede seleccionar la fuente \"%1%\"."
 
 msgid "Operation"
 msgstr "Operación"
-msgstr "Operación"
 
 msgid "Join"
 msgstr "Ingresar"
@@ -789,11 +771,9 @@ msgstr "Haga clic para cambiar el texto en la parte del objeto."
 
 msgid "You can't change a type of the last solid part of the object."
 msgstr "No se puede cambiar el tipo de la última parte sólida del objeto."
-msgstr "No se puede cambiar el tipo de la última parte sólida del objeto."
 
 msgctxt "EmbossOperation"
 msgid "Cut"
-msgstr "Cortar"
 msgstr "Cortar"
 
 msgid "Click to change part type into negative volume."
@@ -807,14 +787,12 @@ msgstr "Haga clic para cambiar el tipo de pieza en modificador."
 
 msgid "Change Text Type"
 msgstr "Cambiar tipo de texto"
-msgstr "Cambiar tipo de texto"
 
 #, boost-format
 msgid "Rename style(%1%) for embossing text"
 msgstr "Renombrar estilo(%1%) para texto en relieve"
 
 msgid "Name can't be empty."
-msgstr "El nombre no puede estar vacío."
 msgstr "El nombre no puede estar vacío."
 
 msgid "Name has to be unique."
@@ -825,14 +803,11 @@ msgstr "OK"
 
 msgid "Rename style"
 msgstr "Renombrar estilo"
-msgstr "Renombrar estilo"
 
 msgid "Rename current style."
 msgstr "Renombrar el estilo actual."
-msgstr "Cambiar el nombre del estilo actual."
 
 msgid "Can't rename temporary style."
-msgstr "No se puede renombrar el estilo temporal."
 msgstr "No se puede renombrar el estilo temporal."
 
 msgid "First Add style to list."
@@ -886,11 +861,9 @@ msgstr "No se puede eliminar el estilo temporal \"%1%\"."
 #, boost-format
 msgid "Modified style \"%1%\""
 msgstr "Estilo modificado \"%1%\""
-msgstr "Estilo modificado \"%1%\""
 
 #, boost-format
 msgid "Current style is \"%1%\""
-msgstr "El estilo actual es \"%1%\""
 msgstr "El estilo actual es \"%1%\""
 
 #, boost-format
@@ -905,11 +878,9 @@ msgstr ""
 
 msgid "Not valid style."
 msgstr "Estilo no válido."
-msgstr "Estilo no válido."
 
 #, boost-format
 msgid "Style \"%1%\" can't be used and will be removed from a list."
-msgstr "El estilo \"%1%\" no se puede utilizar y se eliminará de una lista."
 msgstr "El estilo \"%1%\" no se puede utilizar y se eliminará de una lista."
 
 msgid "Unset italic"
@@ -952,26 +923,21 @@ msgstr "Establezca la posición y la orientación por glifo."
 msgctxt "Alignment"
 msgid "Left"
 msgstr "Izquierda"
-msgstr "Izquierda"
 
 msgctxt "Alignment"
 msgid "Center"
-msgstr "Centro"
 msgstr "Centro"
 
 msgctxt "Alignment"
 msgid "Right"
 msgstr "Derecha"
-msgstr "Derecha"
 
 msgctxt "Alignment"
 msgid "Top"
 msgstr "Arriba"
-msgstr "Arriba"
 
 msgctxt "Alignment"
 msgid "Middle"
-msgstr "Medio"
 msgstr "Medio"
 
 msgctxt "Alignment"
@@ -984,20 +950,17 @@ msgstr "Revertir alineamiento."
 #. TRN EmbossGizmo: font units
 msgid "points"
 msgstr "puntos"
-msgstr "puntos"
 
 msgid "Revert gap between characters"
 msgstr "Revert gap between characters"
 
 msgid "Distance between characters"
 msgstr "Distancia entre caracteres"
-msgstr "Distancia entre caracteres"
 
 msgid "Revert gap between lines"
 msgstr "Revertir el espacio entre líneas"
 
 msgid "Distance between lines"
-msgstr "Distancia entre líneas"
 msgstr "Distancia entre líneas"
 
 msgid "Undo boldness"
@@ -1016,7 +979,6 @@ msgid "Undo translation"
 msgstr "Deshacer la traducción"
 
 msgid "Distance of the center of the text to the model surface."
-msgstr "Distancia del centro del texto a la superficie del modelo."
 msgstr "Distancia del centro del texto a la superficie del modelo."
 
 msgid "Undo rotation"
@@ -1054,13 +1016,11 @@ msgstr ""
 
 msgid "No symbol"
 msgstr "Sin símbolo"
-msgstr "Sin símbolo"
 
 msgid "Loading"
 msgstr "Cargando"
 
 msgid "In queue"
-msgstr "En cola"
 msgstr "En cola"
 
 #. TRN - Input label. Be short as possible
@@ -1072,7 +1032,6 @@ msgstr "Altura"
 #. Copy surface of model on surface of the embossed text
 #. TRN - Input label. Be short as possible
 msgid "Use surface"
-msgstr "Usar superficie"
 msgstr "Usar superficie"
 
 #. TRN - Input label. Be short as possible
@@ -1121,7 +1080,6 @@ msgstr "Mantener"
 #. this is numerical selector of font inside font collections
 msgid "Collection"
 msgstr "Colección"
-msgstr "Colección"
 
 msgid "Enter SVG gizmo"
 msgstr "Introducir el objeto SVG"
@@ -1131,7 +1089,6 @@ msgstr "Abandonar el objeto SVG"
 
 msgid "SVG actions"
 msgstr "Acciones SVG"
-msgstr "Acciones SVG"
 
 msgid "SVG"
 msgstr "SVG"
@@ -1139,11 +1096,9 @@ msgstr "SVG"
 #. TRN This is an item label in the undo-redo stack.
 msgid "SVG-Rotate"
 msgstr "Rotar-SVG"
-msgstr "Rotar-SVG"
 
 #, boost-format
 msgid "Opacity (%1%)"
-msgstr "Opacidad (%1%)"
 msgstr "Opacidad (%1%)"
 
 #, boost-format
@@ -1155,10 +1110,8 @@ msgstr "Tipo de relleno indefinido"
 
 msgid "Linear gradient"
 msgstr "Gradiente lineal"
-msgstr "Gradiente lineal"
 
 msgid "Radial gradient"
-msgstr "Gradiente radial"
 msgstr "Gradiente radial"
 
 msgid "Open filled path"
@@ -1181,7 +1134,6 @@ msgstr ""
 #, boost-format
 msgid "Shape is marked as invisible (%1%)."
 msgstr "La forma está marcada como invisible (%1%)."
-msgstr "La forma está marcada como invisible (%1%)."
 
 #. TRN: The first placeholder is shape identifier, the second one is text describing the problem.
 #, boost-format
@@ -1203,7 +1155,6 @@ msgstr "De cara a la cámara"
 #. TRN - Preview of filename after clear local filepath.
 msgid "Unknown filename"
 msgstr "Nombre de archivo desconocido"
-msgstr "Nombre de archivo desconocido"
 
 #, boost-format
 msgid "SVG file path is \"%1%\""
@@ -1217,10 +1168,8 @@ msgstr "Cambiar archivo"
 
 msgid "Change to another .svg file"
 msgstr "Cambiar a otro archivo .svg"
-msgstr "Cambiar a otro archivo .svg"
 
 msgid "Forget the file path"
-msgstr "Olvidar la ruta del archivo"
 msgstr "Olvidar la ruta del archivo"
 
 msgid ""
@@ -1239,7 +1188,6 @@ msgid "Bake into model as uneditable part"
 msgstr "Horneado en el modelo como parte no editable"
 
 msgid "Save as"
-msgstr "Guardar como"
 msgstr "Guardar como"
 
 msgid "Save SVG file"
@@ -1262,18 +1210,17 @@ msgstr "Anchura del SVG."
 msgid "Height of SVG."
 msgstr "Altura del SVG."
 
+
 msgid "Lock/unlock the aspect ratio of the SVG."
 msgstr "Bloquear/desbloquear la relación de aspecto del SVG."
 
 msgid "Reset scale"
-msgstr "Restablecer escala"
 msgstr "Restablecer escala"
 
 msgid "Resize"
 msgstr "Reescalar"
 
 msgid "Distance of the center of the SVG to the model surface."
-msgstr "Distancia del centro del SVG a la superficie del modelo."
 msgstr "Distancia del centro del SVG a la superficie del modelo."
 
 msgid "Reset distance"
@@ -1337,14 +1284,12 @@ msgstr "Punto en el borde"
 
 msgid "Point on circle"
 msgstr "Punto en el circulo"
-msgstr "Punto del círculo"
 
 msgid "Point on plane"
 msgstr "Punto del plano"
 
 msgid "Center of edge"
 msgstr "Centro de la arista"
-msgstr "Centro del borde"
 
 msgid "Center of circle"
 msgstr "Centro del círculo"
@@ -1354,10 +1299,8 @@ msgstr "Mayúsculas + Botón izquierdo del ratón"
 
 msgid "Select feature"
 msgstr "Seleccionar característica"
-msgstr "Seleccionar característica"
 
 msgid "Select point"
-msgstr "Seleccionar punto"
 msgstr "Seleccionar punto"
 
 msgid "Delete"
@@ -1365,20 +1308,17 @@ msgstr "Borrar"
 
 msgid "Restart selection"
 msgstr "Reiniciar selección"
-msgstr "Reiniciar selección"
 
 msgid "Esc"
 msgstr "Esc"
 
 msgid "Unselect"
 msgstr "Deseleccionar"
-msgstr "Deseleccionar"
 
 msgid "Measure"
 msgstr "Medida"
 
 msgid "Edit to scale"
-msgstr "Editar a escala"
 msgstr "Editar a escala"
 
 msgctxt "Verb"
@@ -1396,25 +1336,20 @@ msgstr "Largo"
 
 msgid "Selection"
 msgstr "Selección"
-msgstr "Seleccion"
 
 msgid "Copy to clipboard"
 msgstr "Copiar al portapapeles"
 
 msgid "Perpendicular distance"
 msgstr "Distancia perpendicular"
-msgstr "Distancia perpendicular"
 
 msgid "Distance"
-msgstr "Distancia"
 msgstr "Distancia"
 
 msgid "Direct distance"
 msgstr "Distancia directa"
-msgstr "Distancia directa"
 
 msgid "Distance XYZ"
-msgstr "Distancia XYZ"
 msgstr "Distancia XYZ"
 
 msgid "Ctrl+"
@@ -1785,7 +1720,6 @@ msgstr "Cono"
 
 msgid "Disc"
 msgstr "Disco"
-msgstr "Disco"
 
 msgid "Torus"
 msgstr ""
@@ -1957,7 +1891,6 @@ msgid "Add Primitive"
 msgstr "Añadir Primitivo"
 
 msgid "Add Handy models"
-msgstr "Añadir modelos prácticos"
 msgstr "Añadir modelos prácticos"
 
 msgid "Show Labels"
@@ -8029,11 +7962,9 @@ msgstr "Gizmo Texto en relieve / grabado"
 
 msgid "Zoom in"
 msgstr "Acercarse"
-msgstr "Aumentar"
 
 msgid "Zoom out"
 msgstr "Alejarse"
-msgstr "Disminuir"
 
 msgid "Switch between Prepare/Preview"
 msgstr "Cambiar  entre Preparar/Previsualizar"
@@ -11365,7 +11296,6 @@ msgstr "Número de perímetros de cada capa"
 
 msgid "Alternate extra wall"
 msgstr "Pared adicional alternativa"
-msgstr "Pared adicional alternativa"
 
 msgid ""
 "This setting adds an extra wall to every other layer. This way the infill "
@@ -12795,7 +12725,6 @@ msgstr ""
 
 msgid "Minimum wall length"
 msgstr "Longitud mínima de pared"
-msgstr "Longitud mínima de la pared"
 
 msgid ""
 "Adjust this value to prevent short, unclosed walls from being printed, which "
