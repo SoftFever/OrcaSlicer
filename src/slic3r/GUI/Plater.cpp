@@ -5295,7 +5295,7 @@ bool Plater::priv::replace_volume_with_stl(int object_idx, int volume_idx, const
     ModelObject* old_model_object = model.objects[object_idx];
     ModelVolume* old_volume = old_model_object->volumes[volume_idx];
 
-    bool sinking = old_model_object->bounding_box().min.z() < SINKING_Z_THRESHOLD;
+    bool sinking = old_model_object->min_z() < SINKING_Z_THRESHOLD;
 
     ModelObject* new_model_object = new_model.objects.front();
     old_model_object->add_volume(*new_model_object->volumes.front());
@@ -5616,7 +5616,7 @@ void Plater::priv::reload_from_disk()
             ModelObject *old_model_object = model.objects[obj_idx];
             ModelVolume *old_volume       = old_model_object->volumes[vol_idx];
 
-            bool sinking = old_model_object->bounding_box().min.z() < SINKING_Z_THRESHOLD;
+            bool sinking = old_model_object->min_z() < SINKING_Z_THRESHOLD;
 
             bool has_source = !old_volume->source.input_file.empty() &&
                               boost::algorithm::iequals(fs::path(old_volume->source.input_file).filename().string(), fs::path(path).filename().string());
@@ -7846,7 +7846,7 @@ bool Plater::priv::layers_height_allowed() const
         return false;
 
     int obj_idx = get_selected_object_idx();
-    return 0 <= obj_idx && obj_idx < (int)model.objects.size() && model.objects[obj_idx]->bounding_box().max.z() > SINKING_Z_THRESHOLD && view3D->is_layers_editing_allowed();
+    return 0 <= obj_idx && obj_idx < (int)model.objects.size() && model.objects[obj_idx]->max_z() > SINKING_Z_THRESHOLD && view3D->is_layers_editing_allowed();
 }
 
 bool Plater::priv::can_layers_editing() const
@@ -12432,7 +12432,7 @@ void Plater::changed_objects(const std::vector<size_t>& object_idxs)
 
     for (size_t obj_idx : object_idxs) {
         if (obj_idx < p->model.objects.size()) {
-            if (p->model.objects[obj_idx]->bounding_box().min.z() >= SINKING_Z_THRESHOLD)
+            if (p->model.objects[obj_idx]->min_z() >= SINKING_Z_THRESHOLD)
                 // re - align to Z = 0
                 p->model.objects[obj_idx]->ensure_on_bed();
         }
