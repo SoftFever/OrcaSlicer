@@ -1,14 +1,14 @@
 {
     "type": "machine",
-    "name": "Anker M5C 0.4 nozzle",
+    "name": "Anker M5 All-Metal 0.4 nozzle",
     "inherits": "fdm_marlin_common",
     "from": "system",
-    "setting_id": "GM003",
+    "setting_id": "GM002",
     "instantiation": "true",
     "nozzle_diameter": [
         "0.4"
     ],
-    "printer_model": "Anker M5C",
+    "printer_model": "Anker M5 All-Metal Hot End",
     "printer_variant": "0.4",
     "auxiliary_fan": "0",
     "bed_exclude_area": [],
@@ -26,12 +26,12 @@
     "printable_height": "250",
     "printable_area": [
         "0x0",
-        "220x0",
-        "220x220",
-        "0x220"
+        "235x0",
+        "235x235",
+        "0x235"
     ],
     "retraction_length": [
-        "0.8"
+        "0.5"
     ],
     "upward_compatible_machine": []
 }
