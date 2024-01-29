@@ -11160,11 +11160,10 @@ msgstr "Pokaż znaczniki autokalibracji"
 msgid "Disable set remaining print time"
 msgstr "Wyłącz ustawianie pozostałego czasu druku"
 
-msgid ""
-"Disable generating of the M73: Set remaining print time in the final gcode"
+msgid "Disable generating of the M73: Set remaining print time in the final gcode"
 msgstr ""
-"Zablokuj generowanie polecenia M73: Ustaw pozostały czas druku w "
-"końcowym kodzie G-code"
+"Zablokuj generowanie polecenia M73: Ustaw pozostały czas druku w końcowym kodzie G-"
+"code"
 
 msgid "Seam position"
 msgstr "Pozycja szwu"
@@ -13003,13 +13002,13 @@ msgstr ""
 "zrozumiałeś proces."
 
 msgid "When you need Max Volumetric Speed Calibration"
-msgstr "Kiedy potrzebujesz kalibracji maksymalnej Prędkości Przepływu"
+msgstr "Kiedy potrzebujesz kalibracji Maksymalnej Prędkości Przepływu"
 
 msgid "Over-extrusion or under extrusion"
 msgstr "Nadmierna ekstruzja lub niedostateczna ekstruzja"
 
 msgid "Max Volumetric Speed calibration is recommended when you print with:"
-msgstr "Kalibracja Prędkości Przepływu jest zalecana przy druku z:"
+msgstr "Kalibracja Maksymalnej Prędkości Przepływu jest zalecana przy druku z:"
 
 msgid "material with significant thermal shrinkage/expansion, such as..."
 msgstr "filamentem z istotnym skurczem termicznym/rozszerzeniem, takim jak..."
