@@ -3074,7 +3074,7 @@ int CLI::run(int argc, char **argv)
         } else if (opt_key == "align_xy") {
             const Vec2d &p = m_config.option<ConfigOptionPoint>("align_xy")->value;
             for (auto &model : m_models) {
-                BoundingBoxf3 bb = model.bounding_box();
+                BoundingBoxf3 bb = model.bounding_box_exact();
                 // this affects volumes:
                 model.translate(-(bb.min.x() - p.x()), -(bb.min.y() - p.y()), -bb.min.z());
             }

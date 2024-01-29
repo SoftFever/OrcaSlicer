@@ -570,11 +570,11 @@ bool Model::add_default_instances()
 }
 
 // this returns the bounding box of the *transformed* instances
-BoundingBoxf3 Model::bounding_box() const
+BoundingBoxf3 Model::bounding_box_approx() const
 {
     BoundingBoxf3 bb;
     for (ModelObject *o : this->objects)
-        bb.merge(o->bounding_box());
+        bb.merge(o->bounding_box_approx());
     return bb;
 }
 
@@ -1037,12 +1037,7 @@ ModelObject& ModelObject::assign_copy(const ModelObject &rhs)
     this->printable                   = rhs.printable;
     this->origin_translation          = rhs.origin_translation;
     this->cut_id.copy(rhs.cut_id);
-    m_bounding_box                    = rhs.m_bounding_box;
-    m_bounding_box_valid              = rhs.m_bounding_box_valid;
-    m_raw_bounding_box                = rhs.m_raw_bounding_box;
-    m_raw_bounding_box_valid          = rhs.m_raw_bounding_box_valid;
-    m_raw_mesh_bounding_box           = rhs.m_raw_mesh_bounding_box;
-    m_raw_mesh_bounding_box_valid     = rhs.m_raw_mesh_bounding_box_valid;
+    this->copy_transformation_caches(rhs);
 
     this->clear_volumes();
     this->volumes.reserve(rhs.volumes.size());
@@ -1080,12 +1075,7 @@ ModelObject& ModelObject::assign_copy(ModelObject &&rhs)
     this->layer_height_profile        = std::move(rhs.layer_height_profile);
     this->printable                   = std::move(rhs.printable);
     this->origin_translation          = std::move(rhs.origin_translation);
-    m_bounding_box                    = std::move(rhs.m_bounding_box);
-    m_bounding_box_valid              = std::move(rhs.m_bounding_box_valid);
-    m_raw_bounding_box                = rhs.m_raw_bounding_box;
-    m_raw_bounding_box_valid          = rhs.m_raw_bounding_box_valid;
-    m_raw_mesh_bounding_box           = rhs.m_raw_mesh_bounding_box;
-    m_raw_mesh_bounding_box_valid     = rhs.m_raw_mesh_bounding_box_valid;
+    this->copy_transformation_caches(rhs);
 
     this->clear_volumes();
 	this->volumes = std::move(rhs.volumes);
@@ -1328,16 +1318,16 @@ void ModelObject::clear_instances()
 
 // Returns the bounding box of the transformed instances.
 // This bounding box is approximate and not snug.
-const BoundingBoxf3& ModelObject::bounding_box() const
+const BoundingBoxf3& ModelObject::bounding_box_approx() const
 {
-    if (! m_bounding_box_valid) {
-        m_bounding_box_valid = true;
+    if (! m_bounding_box_approx_valid) {
+        m_bounding_box_approx_valid = true;
         BoundingBoxf3 raw_bbox = this->raw_mesh_bounding_box();
-        m_bounding_box.reset();
+        m_bounding_box_approx.reset();
         for (const ModelInstance *i : this->instances)
-            m_bounding_box.merge(i->transform_bounding_box(raw_bbox));
+            m_bounding_box_approx.merge(i->transform_bounding_box(raw_bbox));
     }
-    return m_bounding_box;
+    return m_bounding_box_approx;
 }
 
 // Returns the bounding box of the transformed instances.
@@ -1643,8 +1633,8 @@ void ModelObject::translate(double x, double y, double z)
         v->translate(x, y, z);
     }
 
-    if (m_bounding_box_valid)
-        m_bounding_box.translate(x, y, z);
+    if (m_bounding_box_approx_valid)
+        m_bounding_box_approx.translate(x, y, z);
     if (m_bounding_box_exact_valid)
         m_bounding_box_exact.translate(x, y, z);
 }

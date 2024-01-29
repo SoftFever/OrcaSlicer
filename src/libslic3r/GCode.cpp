@@ -127,7 +127,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
     std::vector<std::pair<double, double>> object_intervals;
     for (PrintObject *print_object : print.objects()) {
         const PrintInstances &print_instances = print_object->instances();
-        BoundingBoxf3 bounding_box = print_instances[0].model_instance->get_object()->bounding_box();
+        BoundingBoxf3 bounding_box = print_instances[0].model_instance->get_object()->bounding_box_exact();
 
         if (bounding_box.min.x() < start_x_position && bounding_box.min.y() < cutter_area_y)
             can_travel_form_left = false;

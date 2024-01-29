@@ -380,7 +380,7 @@ public:
     // The pairs of <z, layer_height> are packed into a 1D array.
     LayerHeightProfile      layer_height_profile;
     // Whether or not this object is printable
-    bool                    printable;
+    bool                    printable { true };
 
     // This vector holds position of selected support points for SLA. The data are
     // saved in mesh coordinates to allow using them for several instances.
@@ -445,7 +445,7 @@ public:
     void                    clear_instances();
 
     // Returns the bounding box of the transformed instances. This bounding box is approximate and not snug, it is being cached.
-    const BoundingBoxf3& bounding_box() const;
+    const BoundingBoxf3&    bounding_box_approx() const;
     // Returns an exact bounding box of the transformed instances. The result it is being cached.
     const BoundingBoxf3&    bounding_box_exact() const;
     // Return minimum / maximum of a printable object transformed into the world coordinate system.
@@ -454,7 +454,7 @@ public:
     double                  max_z() const;
 
     void invalidate_bounding_box() {
-        m_bounding_box_valid            = false;
+        m_bounding_box_approx_valid     = false;
         m_bounding_box_exact_valid      = false;
         m_min_max_z_valid               = false;
         m_raw_bounding_box_valid        = false;
@@ -552,14 +552,13 @@ public:
 private:
     friend class Model;
     // This constructor assigns new ID to this ModelObject and its config.
-    explicit ModelObject(Model* model) : m_model(model), printable(true), origin_translation(Vec3d::Zero()),
-        m_bounding_box_valid(false), m_raw_bounding_box_valid(false), m_raw_mesh_bounding_box_valid(false)
+    explicit ModelObject(Model* model) : m_model(model), origin_translation(Vec3d::Zero())
     {
         assert(this->id().valid());
         assert(this->config.id().valid());
         assert(this->layer_height_profile.id().valid());
     }
-    explicit ModelObject(int) : ObjectBase(-1), config(-1), layer_height_profile(-1), m_model(nullptr), printable(true), origin_translation(Vec3d::Zero()), m_bounding_box_valid(false), m_raw_bounding_box_valid(false), m_raw_mesh_bounding_box_valid(false)
+    explicit ModelObject(int) : ObjectBase(-1), config(-1), layer_height_profile(-1), origin_translation(Vec3d::Zero())
     {
         assert(this->id().invalid());
         assert(this->config.id().invalid());
@@ -640,8 +639,8 @@ private:
     Model                *m_model { nullptr };
 
     // Bounding box, cached.
-    mutable BoundingBoxf3 m_bounding_box;
-    mutable bool          m_bounding_box_valid { false };
+    mutable BoundingBoxf3 m_bounding_box_approx;
+    mutable bool          m_bounding_box_approx_valid { false };
     mutable BoundingBoxf3 m_bounding_box_exact;
     mutable bool          m_bounding_box_exact_valid { false };
     mutable bool          m_min_max_z_valid { false };
@@ -649,6 +648,19 @@ private:
     mutable bool          m_raw_bounding_box_valid { false };
     mutable BoundingBoxf3 m_raw_mesh_bounding_box;
     mutable bool          m_raw_mesh_bounding_box_valid { false };
+
+    // Only use this method if now the source and dest ModelObjects are equal, for example they were synchronized by Print::apply().
+    void copy_transformation_caches(const ModelObject &src) {
+        m_bounding_box_approx             = src.m_bounding_box_approx;
+        m_bounding_box_approx_valid       = src.m_bounding_box_approx_valid;
+        m_bounding_box_exact              = src.m_bounding_box_exact;
+        m_bounding_box_exact_valid        = src.m_bounding_box_exact_valid;
+        m_min_max_z_valid                 = src.m_min_max_z_valid;
+        m_raw_bounding_box                = src.m_raw_bounding_box;
+        m_raw_bounding_box_valid          = src.m_raw_bounding_box_valid;
+        m_raw_mesh_bounding_box           = src.m_raw_mesh_bounding_box;
+        m_raw_mesh_bounding_box_valid     = src.m_raw_mesh_bounding_box_valid;
+    }
 
     // Called by Print::apply() to set the model pointer after making a copy.
     friend class Print;
@@ -671,7 +683,7 @@ private:
         Internal::StaticSerializationWrapper<LayerHeightProfile const> layer_heigth_profile_wrapper(layer_height_profile);
         ar(name, module_name, input_file, instances, volumes, config_wrapper, layer_config_ranges, layer_heigth_profile_wrapper,
             sla_support_points, sla_points_status, sla_drain_holes, printable, origin_translation,
-            m_bounding_box, m_bounding_box_valid,
+            m_bounding_box_approx, m_bounding_box_approx_valid, 
             m_bounding_box_exact, m_bounding_box_exact_valid, m_min_max_z_valid,
             m_raw_bounding_box, m_raw_bounding_box_valid, m_raw_mesh_bounding_box, m_raw_mesh_bounding_box_valid,
             cut_connectors, cut_id);
@@ -684,7 +696,7 @@ private:
         SaveObjectGaurd gaurd(*this);
         ar(name, module_name, input_file, instances, volumes, config_wrapper, layer_config_ranges, layer_heigth_profile_wrapper,
             sla_support_points, sla_points_status, sla_drain_holes, printable, origin_translation,
-            m_bounding_box, m_bounding_box_valid,
+            m_bounding_box_approx, m_bounding_box_approx_valid, 
             m_bounding_box_exact, m_bounding_box_exact_valid, m_min_max_z_valid,
             m_raw_bounding_box, m_raw_bounding_box_valid, m_raw_mesh_bounding_box, m_raw_mesh_bounding_box_valid,
             cut_connectors, cut_id);
@@ -1592,8 +1604,8 @@ public:
     void          delete_material(t_model_material_id material_id);
     void          clear_materials();
     bool          add_default_instances();
-    // Returns approximate axis aligned bounding box of this model
-    BoundingBoxf3 bounding_box() const;
+    // Returns approximate axis aligned bounding box of this model.
+    BoundingBoxf3 bounding_box_approx() const;
     // Returns exact axis aligned bounding box of this model.
     BoundingBoxf3 bounding_box_exact() const;
     // Return maximum height of all printable objects.
