@@ -343,13 +343,9 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         // return the remaining retraction length to be retracted during the wipe
         if (retractionDuringWipe - retraction_length_remaining > EPSILON) return {retractionBeforeWipe,retraction_length_remaining};
         
-        // If the user has requested any retract before wipe, proceed with incrementing the retraction amount before wiping with the difference
+        // We will always proceed with incrementing the retraction amount before wiping with the difference
         // and return the maximum allowed wipe amount to be retracted during the wipe move
-        // If the user has not requested any retract before wipe, the retraction amount before wiping should not be incremented and left to the parent
-        // function to retract after wipe is done.
-        if(gcodegen.config().retract_before_wipe.get_at(gcodegen.writer().extruder()->id()) > EPSILON){
-            retractionBeforeWipe += retraction_length_remaining - retractionDuringWipe;
-        }
+        retractionBeforeWipe += retraction_length_remaining - retractionDuringWipe;
         return {retractionBeforeWipe, retractionDuringWipe};
     }
 
