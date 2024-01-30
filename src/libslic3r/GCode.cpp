@@ -4662,7 +4662,8 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
             loop_length += unscale_(path.length());
         }
 
-        const double slope_min_length         = std::min(m_config.seam_slope_min_length.value, loop_length);
+        const double slope_entire_loop        = m_config.seam_slope_entire_loop;
+        const double slope_min_length         = slope_entire_loop ? loop_length : std::min(m_config.seam_slope_min_length.value, loop_length);
         const int    slope_steps              = m_config.seam_slope_steps;
         const double slope_max_segment_length = scale_(slope_min_length / slope_steps);
 

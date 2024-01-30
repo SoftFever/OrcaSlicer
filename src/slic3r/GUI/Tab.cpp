@@ -1990,6 +1990,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("seam_gap","seam");
         optgroup->append_single_option_line("seam_slope_enabled");
         optgroup->append_single_option_line("seam_slope_start_height");
+        optgroup->append_single_option_line("seam_slope_entire_loop");
         optgroup->append_single_option_line("seam_slope_min_length");
         optgroup->append_single_option_line("seam_slope_steps");
         optgroup->append_single_option_line("seam_slope_inner_walls");

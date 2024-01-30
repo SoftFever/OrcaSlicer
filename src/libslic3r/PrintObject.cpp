@@ -1141,6 +1141,7 @@ bool PrintObject::invalidate_state_by_config_options(
                opt_key == "seam_position"
             || opt_key == "seam_slope_enabled"
             || opt_key == "seam_slope_start_height"
+            || opt_key == "seam_slope_entire_loop"
             || opt_key == "seam_slope_min_length"
             || opt_key == "seam_slope_steps"
             || opt_key == "seam_slope_inner_walls"

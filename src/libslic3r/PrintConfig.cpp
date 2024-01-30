@@ -3470,6 +3470,12 @@ def = this->add("filament_loading_speed", coFloats);
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatOrPercent(0.05, false));
 
+    def = this->add("seam_slope_entire_loop", coBool);
+    def->label = L("Scarf around entire wall");
+    def->tooltip = L("The scarf extends to the entire length of the wall.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
     def = this->add("seam_slope_min_length", coFloat);
     def->label = L("Scarf length");
     def->tooltip = L("Length of the scarf. Setting this parameter to zero effectively disables the scarf.");
