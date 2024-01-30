@@ -2,6 +2,7 @@
 #define BBLSTATUSBAR_HPP
 
 #include <wx/panel.h>
+#include <wx/sizer.h>
 #include <wx/stattext.h>
 
 #include <memory>

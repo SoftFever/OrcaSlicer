@@ -1,6 +1,7 @@
 #include "RoundedRectangle.hpp"
 #include "../wxExtensions.hpp"
 #include <wx/dcgraph.h>
+#include <wx/dcclient.h>
 
 BEGIN_EVENT_TABLE(RoundedRectangle, wxPanel)
 EVT_PAINT(RoundedRectangle::OnPaint)

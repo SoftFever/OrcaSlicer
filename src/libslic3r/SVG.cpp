@@ -1,6 +1,7 @@
 #include "SVG.hpp"
 #include <iostream>
 
+#include <boost/filesystem.hpp>
 #include <boost/nowide/cstdio.hpp>
 
 namespace Slic3r {

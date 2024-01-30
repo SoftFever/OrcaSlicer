@@ -2,6 +2,7 @@
 #define slic3r_GUI_PROGRESSDIALOG_hpp_
 
 #include "wx/dialog.h"
+#include "wx/progdlg.h"
 #include "wx/weakref.h"
 #include "wx/simplebook.h"
 #include "Button.hpp"

@@ -1,6 +1,8 @@
 #ifndef slic3r_Color_hpp_
 #define slic3r_Color_hpp_
 
+#include <vector>
+#include <string>
 #include <array>
 #include <algorithm>
 
