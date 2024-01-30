@@ -43,11 +43,36 @@ MediaPlayCtrl::MediaPlayCtrl(wxWindow *parent, wxMediaCtrl2 *media_ctrl, const w
 
     m_label_stat = new Label(this, "");
     m_label_stat->SetForegroundColour(wxColour("#323A3C"));
-#if !BBL_RELEASE_TO_PUBLIC
     m_media_ctrl->Bind(EVT_MEDIA_CTRL_STAT, [this](auto & e) {
-        m_label_stat->SetLabel(e.GetString());
-    });
+#if !BBL_RELEASE_TO_PUBLIC
+        wxSize size = m_media_ctrl->GetVideoSize();
+        m_label_stat->SetLabel(e.GetString() + wxString::Format(" VS:%ix%i", size.x, size.y));
 #endif
+        wxString str = e.GetString();
+        m_stat.clear();
+        for (auto k : {"FPS:", "BPS:", "T:", "B:"}) {
+            auto ik = str.Find(k);
+            double value = 0;
+            if (ik != wxString::npos) {
+                ik += strlen(k);
+                auto ip = str.find(' ', ik);
+                if (ip == wxString::npos) ip = str.Length();
+                auto v = str.Mid(ik, ip - ik);
+                if (k == "T:" && v.Length() == 8) {
+                    long h = 0,m = 0,s = 0;
+                    v.Left(2).ToLong(&h);
+                    v.Mid(3, 2).ToLong(&m);
+                    v.Mid(6, 2).ToLong(&s);
+                    value = h * 3600. + m * 60 + s;
+                } else {
+                    v.ToDouble(&value);
+                    if (v.Right(1) == "K") value *= 1024;
+                    else if (v.Right(1) == "%") value *= 0.01;
+                }
+            }
+            m_stat.push_back(value);
+        }
+    });
 
     m_button_play->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](auto &e) { TogglePlay(); });
     m_button_play->Bind(wxEVT_RIGHT_UP, [this](auto & e) { m_media_ctrl->Play(); });
@@ -319,6 +344,7 @@ void MediaPlayCtrl::Stop(wxString const &msg)
     if (last_state != wxMEDIASTATE_PLAYING && m_failed_code != 0 
             && m_last_failed_codes.find(m_failed_code) == m_last_failed_codes.end()
             && (m_user_triggered || m_failed_retry > 3)) {
+
         m_last_failed_codes.insert(m_failed_code);
     }
 

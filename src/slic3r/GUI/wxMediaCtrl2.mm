@@ -32,6 +32,12 @@ void wxMediaCtrl2::bambu_log(void const * ctx, int level, char const * msg)
                 if (msg2.SubString(n + 1, msg2.Length() - 2).ToLong(&val))
                     ctrl->m_error = (int) val;
             }
+        } else if (strstr(msg, "stat_log")) {
+            wxMediaCtrl2 * ctrl = (wxMediaCtrl2 *) ctx;
+            wxCommandEvent evt(EVT_MEDIA_CTRL_STAT);
+            evt.SetEventObject(ctrl);
+            evt.SetString(strchr(msg, ' ') + 1);
+            wxPostEvent(ctrl, evt);
         }
     } else if (level < 0) {
         wxMediaCtrl2 * ctrl = (wxMediaCtrl2 *) ctx;

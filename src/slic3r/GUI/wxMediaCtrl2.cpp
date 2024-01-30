@@ -59,7 +59,8 @@ void wxMediaCtrl2::Load(wxURI url)
 {
 #ifdef __WIN32__
     if (m_imp == nullptr) {
-        CallAfter([] {
+        static bool notified = false;
+        if (!notified) CallAfter([] {
             auto res = wxMessageBox(_L("Windows Media Player is required for this task! Do you want to enable 'Windows Media Player' for your operation system?"), _L("Error"), wxOK | wxCANCEL);
             if (res == wxOK) {
                 wxString url = IsWindows10OrGreater() 
