@@ -522,12 +522,12 @@ wxMenu* MenuFactory::append_submenu_add_handy_model(wxMenu* menu, ModelVolumeTyp
     auto sub_menu = new wxMenu;
 
     for (auto &item : {L("Orca Cube"), L("3DBenchy"), L("Autodesk FDM Test"),
-                       L("Voron Cube"), L("Stanford Bunny"), L("Orca String Hell") }) {
+                       L("Voron Cube"), L("Stanford Bunny"), L("Orca String Test") }) {
         append_menu_item(
             sub_menu, wxID_ANY, _(item), "",
             [type, item](wxCommandEvent&) {
                 std::vector<boost::filesystem::path> input_files;
-                bool                                 is_stringhell = false;
+                bool                                 is_stringtest = false;
                 std::string                          file_name     = item;
                 if (file_name == L("Orca Cube"))
                     file_name = "OrcaCube_v2.3mf";
@@ -539,17 +539,17 @@ wxMenu* MenuFactory::append_submenu_add_handy_model(wxMenu* menu, ModelVolumeTyp
                     file_name = "Voron_Design_Cube_v7.stl";
                 else if (file_name == L("Stanford Bunny"))
                     file_name = "Stanford_Bunny.stl";
-                else if (file_name == L("Orca String Hell")) {
-                    file_name     = "Orca_stringhell.stl";
-                    is_stringhell = true;
+                else if (file_name == L("Orca String Test")) {
+                    file_name     = "Orca_stringtest.stl";
+                    is_stringtest = true;
                 } else
                     return;
                 input_files.push_back((boost::filesystem::path(Slic3r::resources_dir()) / "handy_models" / file_name));
                 plater()->load_files(input_files, LoadStrategy::LoadModel);
 
-                // Suggest to change settings for stringhell
+                // Suggest to change settings for stringtest
                 // This serves as mini tutorial for new users
-                if (is_stringhell) {
+                if (is_stringtest) {
                     wxGetApp().CallAfter([=] {
                         DynamicPrintConfig* m_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
 
