@@ -8959,6 +8959,42 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
     printer_config.set_key_value("wipe", new ConfigOptionBools{false});
     printer_config.set_key_value("retract_when_changing_layer", new ConfigOptionBools{false});
 
+    //Orca: find acceleration to use in the test
+    auto accel = print_config.option<ConfigOptionFloat>("outer_wall_acceleration")->value; // get the outer wall acceleration
+    if (accel == 0) // if outer wall accel isnt defined, fall back to inner wall accel
+        accel = print_config.option<ConfigOptionFloat>("inner_wall_acceleration")->value;
+    if (accel == 0) // if inner wall accel is not defined fall back to default accel
+        accel = print_config.option<ConfigOptionFloat>("default_acceleration")->value;
+    // Orca: Set all accelerations except first layer, as the first layer accel doesnt affect the PA test since accel
+    // is set to the travel accel before printing the pattern.
+    print_config.set_key_value( "default_acceleration", new ConfigOptionFloat(accel));
+    print_config.set_key_value( "outer_wall_acceleration", new ConfigOptionFloat(accel));
+    print_config.set_key_value( "inner_wall_acceleration", new ConfigOptionFloat(accel));
+    print_config.set_key_value( "bridge_acceleration", new ConfigOptionFloatOrPercent(accel, false));
+    print_config.set_key_value( "sparse_infill_acceleration", new ConfigOptionFloatOrPercent(accel, false));
+    print_config.set_key_value( "internal_solid_infill_acceleration", new ConfigOptionFloatOrPercent(accel, false));
+    print_config.set_key_value( "top_surface_acceleration", new ConfigOptionFloat(accel));
+    print_config.set_key_value( "travel_acceleration", new ConfigOptionFloat(accel));
+    
+    
+    //Orca: find jerk value to use in the test
+    if(print_config.option<ConfigOptionFloat>("default_jerk")->value > 0){ // we have set a jerk value
+        auto jerk = print_config.option<ConfigOptionFloat>("outer_wall_jerk")->value; // get outer wall jerk
+        if (jerk == 0) // if outer wall jerk is not defined, get inner wall jerk
+            jerk = print_config.option<ConfigOptionFloat>("inner_wall_jerk")->value;
+        if (jerk == 0) // if inner wall jerk is not defined, get the default jerk
+            jerk = print_config.option<ConfigOptionFloat>("default_jerk")->value;
+        
+        //Orca: Set jerk values. Again first layer jerk should not matter as it is reset to the travel jerk before the
+        // first PA pattern is printed.
+        print_config.set_key_value( "default_jerk", new ConfigOptionFloat(jerk));
+        print_config.set_key_value( "outer_wall_jerk", new ConfigOptionFloat(jerk));
+        print_config.set_key_value( "inner_wall_jerk", new ConfigOptionFloat(jerk));
+        print_config.set_key_value( "top_surface_jerk", new ConfigOptionFloat(jerk));
+        print_config.set_key_value( "infill_jerk", new ConfigOptionFloat(jerk));
+        print_config.set_key_value( "travel_jerk", new ConfigOptionFloat(jerk));
+    }
+    
     for (const auto opt : SuggestedConfigCalibPAPattern().float_pairs) {
         print_config.set_key_value(
             opt.first,
