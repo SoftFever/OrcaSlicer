@@ -85,6 +85,7 @@ private:
     bool        m_local_support = false;
     bool        m_remote_support = false;
     bool        m_model_download_support = false;
+    bool        m_device_busy  = false;
     bool        m_waiting_enable = false;
     bool        m_waiting_support = false;
 
