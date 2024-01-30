@@ -4,29 +4,32 @@
     "from": "system",
     "instantiation": "false",
     "inherits": "fdm_filament_common",
+    "filament_vendor": [
+        "InfiMech"
+    ],
     "cool_plate_temp" : [
         "0"
     ],
     "eng_plate_temp" : [
-        "100"
+        "110"
     ],
     "hot_plate_temp" : [
-        "100"
+        "110"
     ],
     "textured_plate_temp" : [
-        "100"
+        "110"
     ],
     "cool_plate_temp_initial_layer" : [
         "0"
     ],
     "eng_plate_temp_initial_layer" : [
-        "100"
+        "110"
     ],
     "hot_plate_temp_initial_layer" : [
-        "100"
+        "110"
     ],
     "textured_plate_temp_initial_layer" : [
-        "100"
+        "110"
     ],
     "slow_down_for_layer_cooling": [
         "1"
@@ -38,7 +41,7 @@
         "5"
     ],
     "filament_max_volumetric_speed": [
-        "6"
+        "8"
     ],
     "filament_type": [
         "PA"
@@ -50,7 +53,7 @@
         "20"
     ],
     "nozzle_temperature_initial_layer": [
-        "280"
+        "240"
     ],
     "reduce_fan_stop_start_freq": [
         "0"
@@ -65,28 +68,19 @@
         "40"
     ],
     "nozzle_temperature": [
-        "280"
+        "240"
     ],
     "temperature_vitrification": [
         "108"
     ],
     "nozzle_temperature_range_low": [
-        "270"
+        "240"
     ],
     "nozzle_temperature_range_high": [
-        "300"
+        "280"
     ],
     "slow_down_min_speed": [
         "20"
-    ],
-    "filament_flow_ratio": [
-        "0.98"
-    ],
-    "overhang_fan_threshold": [
-        "0%"
-    ],
-    "filament_retraction_length": [
-        "0.8"
     ],
     "slow_down_layer_time": [
         "2"
