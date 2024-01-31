@@ -2203,6 +2203,10 @@ std::map<std::string, std::vector<Preset const *>> PresetCollection::get_filamen
 {
     std::map<std::string, std::vector<Preset const *>> filament_presets;
     for (auto &preset : m_presets) {
+        if (preset.is_user()) {
+            if (preset.inherits() == "") { filament_presets[preset.filament_id].push_back(&preset); }
+            continue;
+        }
         if (get_preset_base(preset) == &preset) { filament_presets[preset.filament_id].push_back(&preset); }
     }
     return filament_presets;

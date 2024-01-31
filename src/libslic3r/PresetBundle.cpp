@@ -1944,6 +1944,28 @@ void PresetBundle::set_calibrate_printer(std::string name)
     }
 }
 
+std::set<std::string> PresetBundle::get_printer_names_by_printer_type_and_nozzle(const std::string &printer_type, const std::string &nozzle_diameter_str)
+{
+    std::set<std::string> printer_names;
+    std::ostringstream    stream;
+
+    for (auto printer_it = this->printers.begin(); printer_it != this->printers.end(); printer_it++) {
+        if (!printer_it->is_system) continue;
+
+        ConfigOption *      printer_model_opt = printer_it->config.option("printer_model");
+        ConfigOptionString *printer_model_str = dynamic_cast<ConfigOptionString *>(printer_model_opt);
+        if (!printer_model_str) continue;
+
+        // use printer_model as printer type
+        if (printer_model_str->value != printer_type) continue;
+
+        if (printer_it->name.find(nozzle_diameter_str) != std::string::npos) printer_names.insert(printer_it->name);
+    }
+    assert(printer_names.size() == 1);
+
+    return printer_names;
+}
+
 //BBS: check whether this is the only edited filament
 bool PresetBundle::is_the_only_edited_filament(unsigned int filament_index)
 {

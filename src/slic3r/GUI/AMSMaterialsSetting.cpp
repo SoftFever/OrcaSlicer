@@ -774,8 +774,12 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
     
 
     std::set<std::string> filament_id_set;
-
-    PresetBundle* preset_bundle = wxGetApp().preset_bundle;
+    PresetBundle *        preset_bundle = wxGetApp().preset_bundle;
+    std::ostringstream    stream;
+    stream << std::fixed << std::setprecision(1) << obj->nozzle_diameter;
+    std::string nozzle_diameter_str = stream.str();
+    std::set<std::string> printer_names = preset_bundle->get_printer_names_by_printer_type_and_nozzle(MachineObject::get_preset_printer_model_name(obj->printer_type), nozzle_diameter_str);
+    
     if (preset_bundle) {
         BOOST_LOG_TRIVIAL(trace) << "system_preset_bundle filament number=" << preset_bundle->filaments.size();
         for (auto filament_it = preset_bundle->filaments.begin(); filament_it != preset_bundle->filaments.end(); filament_it++) {
@@ -787,79 +791,64 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
             if (preset_bundle->filaments.get_preset_base(*filament_it) != &preset || (!filament_it->is_system && !obj->is_support_user_preset)) {
                 continue;
             }
+  
+            ConfigOption *       printer_opt  = filament_it->config.option("compatible_printers");
+            ConfigOptionStrings *printer_strs = dynamic_cast<ConfigOptionStrings *>(printer_opt);
+            for (auto printer_str : printer_strs->values) {
+                if (printer_names.find(printer_str) != printer_names.end()) {
+                    if (filament_id_set.find(filament_it->filament_id) != filament_id_set.end()) {
+                        continue;
+                    } else {
+                        filament_id_set.insert(filament_it->filament_id);
+                        // name matched
+                        if (filament_it->is_system) {
+                            filament_items.push_back(filament_it->alias);
+                            FilamentInfos filament_infos;
+                            filament_infos.filament_id             = filament_it->filament_id;
+                            filament_infos.setting_id              = filament_it->setting_id;
+                            map_filament_items[filament_it->alias] = filament_infos;
+                        } else {
+                            char   target = '@';
+                            size_t pos    = filament_it->name.find(target);
+                            if (pos != std::string::npos) {
+                                std::string user_preset_alias    = filament_it->name.substr(0, pos - 1);
+                                wxString    wx_user_preset_alias = wxString(user_preset_alias.c_str(), wxConvUTF8);
+                                user_preset_alias                = wx_user_preset_alias.ToStdString();
 
-            for (auto printer_it = preset_bundle->printers.begin(); printer_it != preset_bundle->printers.end(); printer_it++) {
-                // filter by system preset
-                if (!printer_it->is_system) continue;
-                // get printer_model
-                ConfigOption* printer_model_opt = printer_it->config.option("printer_model");
-                ConfigOptionString* printer_model_str = dynamic_cast<ConfigOptionString*>(printer_model_opt);
-                if (!printer_model_str )
-                    continue;
-
-                // use printer_model as printer type
-                if (printer_model_str->value != MachineObject::get_preset_printer_model_name(obj->printer_type))
-                    continue;
-                ConfigOption* printer_opt = filament_it->config.option("compatible_printers");
-                ConfigOptionStrings* printer_strs = dynamic_cast<ConfigOptionStrings*>(printer_opt);
-                for (auto printer_str : printer_strs->values) {
-                    if (printer_it->name == printer_str) {
-                        if (filament_id_set.find(filament_it->filament_id) != filament_id_set.end()) {
-                            continue;
-                        }
-                        else {
-                            filament_id_set.insert(filament_it->filament_id);
-                            // name matched
-                            if (filament_it->is_system) {
-                                filament_items.push_back(filament_it->alias);
+                                filament_items.push_back(user_preset_alias);
                                 FilamentInfos filament_infos;
-                                filament_infos.filament_id             = filament_it->filament_id;
-                                filament_infos.setting_id              = filament_it->setting_id;
-                                map_filament_items[filament_it->alias] = filament_infos;
+                                filament_infos.filament_id            = filament_it->filament_id;
+                                filament_infos.setting_id             = filament_it->setting_id;
+                                map_filament_items[user_preset_alias] = filament_infos;
                             }
-                            else {
-                                char target = '@';
-                                size_t pos = filament_it->name.find(target);
-                                if (pos != std::string::npos) {
-                                    std::string user_preset_alias = filament_it->name.substr(0, pos-1);
-                                    wxString  wx_user_preset_alias = wxString(user_preset_alias.c_str(), wxConvUTF8);
-                                    user_preset_alias = wx_user_preset_alias.ToStdString();
-
-                                    filament_items.push_back(user_preset_alias);
-                                    FilamentInfos filament_infos;
-                                    filament_infos.filament_id            = filament_it->filament_id;
-                                    filament_infos.setting_id             = filament_it->setting_id;
-                                    map_filament_items[user_preset_alias] = filament_infos;
-                                }
-                                
-                            }
-
-                            if (filament_it->filament_id == ams_filament_id) {
-                                selection_idx = idx;
-
-                                // update if nozzle_temperature_range is found
-                                ConfigOption* opt_min = filament_it->config.option("nozzle_temperature_range_low");
-                                if (opt_min) {
-                                    ConfigOptionInts* opt_min_ints = dynamic_cast<ConfigOptionInts*>(opt_min);
-                                    if (opt_min_ints) {
-                                        wxString text_nozzle_temp_min = wxString::Format("%d", opt_min_ints->get_at(0));
-                                        m_input_nozzle_min->GetTextCtrl()->SetValue(text_nozzle_temp_min);
-                                    }
-                                }
-                                ConfigOption* opt_max = filament_it->config.option("nozzle_temperature_range_high");
-                                if (opt_max) {
-                                    ConfigOptionInts* opt_max_ints = dynamic_cast<ConfigOptionInts*>(opt_max);
-                                    if (opt_max_ints) {
-                                        wxString text_nozzle_temp_max = wxString::Format("%d", opt_max_ints->get_at(0));
-                                        m_input_nozzle_max->GetTextCtrl()->SetValue(text_nozzle_temp_max);
-                                    }
-                                }
-                            }
-                            idx++;
                         }
+
+                        if (filament_it->filament_id == ams_filament_id) {
+                            selection_idx = idx;
+
+                            // update if nozzle_temperature_range is found
+                            ConfigOption *opt_min = filament_it->config.option("nozzle_temperature_range_low");
+                            if (opt_min) {
+                                ConfigOptionInts *opt_min_ints = dynamic_cast<ConfigOptionInts *>(opt_min);
+                                if (opt_min_ints) {
+                                    wxString text_nozzle_temp_min = wxString::Format("%d", opt_min_ints->get_at(0));
+                                    m_input_nozzle_min->GetTextCtrl()->SetValue(text_nozzle_temp_min);
+                                }
+                            }
+                            ConfigOption *opt_max = filament_it->config.option("nozzle_temperature_range_high");
+                            if (opt_max) {
+                                ConfigOptionInts *opt_max_ints = dynamic_cast<ConfigOptionInts *>(opt_max);
+                                if (opt_max_ints) {
+                                    wxString text_nozzle_temp_max = wxString::Format("%d", opt_max_ints->get_at(0));
+                                    m_input_nozzle_max->GetTextCtrl()->SetValue(text_nozzle_temp_max);
+                                }
+                            }
+                        }
+                        idx++;
                     }
                 }
             }
+            
         }
     }
 

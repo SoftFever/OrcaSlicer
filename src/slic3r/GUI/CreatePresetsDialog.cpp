@@ -1285,7 +1285,7 @@ void CreateFilamentPresetDialog::get_filament_presets_by_machine()
 
             if (filament_types && filament_types->values.empty()) continue;
             const std::string filament_type = filament_types->values[0];
-            if (filament_type != type_name) {
+            if (filament_type != system_filament_types_map[type_name]) {
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " preset type is not selected type and preset name is: " << preset->name;
                 continue;
             }
@@ -3219,6 +3219,7 @@ CreatePresetSuccessfulDialog::CreatePresetSuccessfulDialog(wxWindow *parent, con
     wxBoxSizer *success_text_sizer = new wxBoxSizer(wxVERTICAL);
     wxStaticText *success_text;
     wxStaticText *next_step_text;
+    bool          sync_user_preset_need_enabled = wxGetApp().getAgent() && wxGetApp().app_config->get("sync_user_preset") == "false";
     switch (create_success_type) {
     case PRINTER: 
         success_text = new wxStaticText(this, wxID_ANY, _L("Printer Created")); 
@@ -3226,11 +3227,14 @@ CreatePresetSuccessfulDialog::CreatePresetSuccessfulDialog(wxWindow *parent, con
         break;
     case FILAMENT: 
         success_text = new wxStaticText(this, wxID_ANY, _L("Filament Created")); 
-        next_step_text = new wxStaticText(this, wxID_ANY, _L("Please go to filament setting to edit your presets if you need.\nPlease note that nozzle temperature, hot bed temperature, and maximum volumetric speed have a significant impact on printing quality. Please set them carefully.")); 
+        wxString prompt_text = _L("Please go to filament setting to edit your presets if you need.\nPlease note that nozzle temperature, hot bed temperature, and maximum "
+                                  "volumetric speed has a significant impact on printing quality. Please set them carefully.");
+        wxString sync_text = sync_user_preset_need_enabled ? _L("\n\nStudio has detected that your user presets synchronization function is not enabled, which may result in unsuccessful Filament settings on "
+                   "the Device page. \nClick \"Sync user presets\" to enable the synchronization function.") : "";
+        next_step_text = new wxStaticText(this, wxID_ANY, prompt_text + sync_text); 
         break;
     }
     success_text->SetFont(Label::Head_18);
-    //next_step_text->SetFont(Label::Body_14);
     success_text_sizer->Add(success_text, 0, wxEXPAND, 0);
     success_text_sizer->Add(next_step_text, 0, wxEXPAND | wxTOP, FromDIP(5));
     horizontal_sizer->Add(success_text_sizer, 0, wxEXPAND | wxALL, FromDIP(5));
@@ -3244,8 +3248,7 @@ CreatePresetSuccessfulDialog::CreatePresetSuccessfulDialog(wxWindow *parent, con
     case PRINTER: 
         m_button_ok = new Button(this, _L("Printer Setting"));
         break;
-    case FILAMENT:
-        m_button_ok = new Button(this, _L("OK"));
+    case FILAMENT: m_button_ok = sync_user_preset_need_enabled ? new Button(this, _L("Sync user presets")) : new Button(this, _L("OK"));
         break;
     }
     StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
@@ -3262,9 +3265,15 @@ CreatePresetSuccessfulDialog::CreatePresetSuccessfulDialog(wxWindow *parent, con
     m_button_ok->SetCornerRadius(FromDIP(12));
     btn_sizer->Add(m_button_ok, 0, wxRIGHT, FromDIP(10));
 
-    m_button_ok->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { EndModal(wxID_OK); });
+    m_button_ok->Bind(wxEVT_LEFT_DOWN, [this, sync_user_preset_need_enabled](wxMouseEvent &e) {
+        if (sync_user_preset_need_enabled) {
+            wxGetApp().app_config->set("sync_user_preset", "true");
+            wxGetApp().start_sync_user_preset();
+        }
+        EndModal(wxID_OK);
+        });
     
-    if (PRINTER == create_success_type) {
+    if (PRINTER == create_success_type || sync_user_preset_need_enabled) {
         m_button_cancel = new Button(this, _L("Cancel"));
         m_button_cancel->SetBackgroundColor(btn_bg_white);
         m_button_cancel->SetBorderColor(wxColour(38, 46, 48));

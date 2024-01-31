@@ -125,6 +125,8 @@ public:
     void set_is_validation_mode(bool mode) { validation_mode = mode; }
     void set_vendor_to_validate(std::string vendor) { vendor_to_validate = vendor; }
 
+    std::set<std::string> get_printer_names_by_printer_type_and_nozzle(const std::string &printer_type, const std::string &nozzle_diameter_str);
+
     PresetCollection            prints;
     PresetCollection            sla_prints;
     PresetCollection            filaments;
