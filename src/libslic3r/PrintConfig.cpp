@@ -20,6 +20,7 @@
 ///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
 ///|/
 #include "PrintConfig.hpp"
+#include "ClipperUtils.hpp"
 #include "Config.hpp"
 #include "I18N.hpp"
 

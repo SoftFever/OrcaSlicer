@@ -5,6 +5,7 @@
 #include <wx/sizer.h>
 #include <wx/statbox.h>
 #include "wx/evtloop.h"
+#include <wx/mstream.h>
 #include <wx/tokenzr.h>
 #include <wx/richmsgdlg.h>
 #include <wx/richtext/richtextctrl.h>

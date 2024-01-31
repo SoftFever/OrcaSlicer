@@ -26,6 +26,8 @@
 #include "Widgets/SideButton.hpp"
 #include "Widgets/SideMenuPopup.hpp"
 
+#include <boost/property_tree/ptree_fwd.hpp>
+
 // BBS
 #include "BBLTopbar.hpp"
 #include "PrinterWebView.hpp"

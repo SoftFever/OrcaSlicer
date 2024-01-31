@@ -4,6 +4,7 @@
 #define BAMBU_DYNAMIC
 #include "BambuTunnel.h"
 
+#include <wx/bitmap.h>
 #include <wx/event.h>
 
 #include <boost/thread.hpp>

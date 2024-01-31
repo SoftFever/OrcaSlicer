@@ -1,6 +1,7 @@
 #ifndef slic3r_GUI_DropDown_hpp_
 #define slic3r_GUI_DropDown_hpp_
 
+#include <boost/date_time/posix_time/posix_time.hpp>
 #include <wx/stattext.h>
 #include "../wxExtensions.hpp"
 #include "StateHandler.hpp"
