@@ -3052,6 +3052,7 @@ void TreeSupport::generate_contact_points(std::vector<std::vector<SupportNode*>>
 		}
     }
     const int z_distance_top_layers = round_up_divide(scale_(z_distance_top), scale_(layer_height)) + 1; //Support must always be 1 layer below overhang.
+    int gap_layers = z_distance_top == 0 ? 0 : 1;
     // virtual layer with 0 height will be deleted
     if (z_distance_top == 0)
         z_distance_top = 0.001;
@@ -3095,7 +3096,7 @@ void TreeSupport::generate_contact_points(std::vector<std::vector<SupportNode*>>
                     // print_z=object_layer->bottom_z: it directly contacts the bottom
                     // height=z_distance_top: it's height is exactly the gap distance
                     // dist_mm_to_top=0: it directly contacts the bottom
-                    contact_node = m_ts_data->create_node(pt, -1, layer_nr - 1, support_roof_layers + 1, to_buildplate, SupportNode::NO_PARENT, bottom_z, z_distance_top, 0,
+                    contact_node = m_ts_data->create_node(pt, -gap_layers, layer_nr - 1, support_roof_layers + 1, to_buildplate, SupportNode::NO_PARENT, bottom_z, z_distance_top, 0,
                         unscale_(radius));
                     contact_node->overhang = overhang_part;
                     contact_node->is_sharp_tail = is_sharp_tail;
@@ -3179,7 +3180,7 @@ void TreeSupport::generate_contact_points(std::vector<std::vector<SupportNode*>>
                 }
                 else {
                     for (auto& elem : move_bounds_layer) {
-                        SupportNode* contact_node = m_ts_data->create_node(elem.state.result_on_layer, -z_distance_top_layers, layer_nr, support_roof_layers + z_distance_top_layers, elem.state.to_buildplate,
+                        SupportNode* contact_node = m_ts_data->create_node(elem.state.result_on_layer, -gap_layers, layer_nr-1, support_roof_layers + 1, elem.state.to_buildplate,
                             SupportNode::NO_PARENT, print_z, height, z_distance_top);
                         contact_node->overhang = ExPolygon(elem.influence_area.front());
                         curr_nodes.emplace_back(contact_node);
