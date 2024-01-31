@@ -3486,7 +3486,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->sidetext = L("mm");
     def->min = 0;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(5));
+    def->set_default_value(new ConfigOptionFloat(20));
 
     def = this->add("seam_slope_steps", coInt);
     def->label = L("Scarf steps");
