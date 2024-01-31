@@ -2730,6 +2730,10 @@ def = this->add("filament_loading_speed", coFloats);
     def->height = 15;
     def->set_default_value(new ConfigOptionStrings{"0,0", "\n0.2,0.4444", "\n0.4,0.6145", "\n0.6,0.7059", "\n0.8,0.7619", "\n1.5,0.8571", "\n2,0.8889", "\n3,0.9231", "\n5,0.9520", "\n10,1"});
 
+    def = this->add("has_scarf_joint_seam", coBool);
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
     {
         struct AxisDefault {
             std::string         name;

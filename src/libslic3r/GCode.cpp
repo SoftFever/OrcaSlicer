@@ -1913,8 +1913,15 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 {
     PROFILE_FUNC();
 
+    PrintConfig print_config(print.config());
+    {
+        const auto o         = print.objects();
+        print_config.has_scarf_joint_seam.value = std::any_of(o.begin(), o.end(),
+                                                 [](const PrintObject* obj) { return obj->config().seam_slope_enabled; });
+    }
     // modifies m_silent_time_estimator_enabled
-    DoExport::init_gcode_processor(print.config(), m_processor, m_silent_time_estimator_enabled);
+    DoExport::init_gcode_processor(print_config, m_processor, m_silent_time_estimator_enabled);
+
     const bool is_bbl_printers = print.is_BBL_printer();
     m_calib_config.clear();
     // resets analyzer's tracking data
