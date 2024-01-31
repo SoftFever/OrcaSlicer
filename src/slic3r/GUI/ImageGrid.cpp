@@ -8,6 +8,8 @@
 
 #include <wx/dcgraph.h>
 
+#include <boost/log/trivial.hpp>
+
 wxDEFINE_EVENT(EVT_ITEM_ACTION, wxCommandEvent);
 
 BEGIN_EVENT_TABLE(Slic3r::GUI::ImageGrid, wxPanel)

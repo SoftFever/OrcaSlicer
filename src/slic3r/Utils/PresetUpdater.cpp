@@ -818,9 +818,9 @@ void PresetUpdater::priv::sync_tooltip(std::string http_url, std::string languag
         fs::path cache_root = fs::path(data_dir()) / "resources/tooltip";
         try {
             auto vf = cache_root / "common" / "version";
-            if (fs::exists(vf)) load_string_file(vf, common_version);
+            if (fs::exists(vf)) Slic3r::load_string_file(vf, common_version);
             vf = cache_root / language / "version";
-            if (fs::exists(vf)) load_string_file(vf, language_version);
+            if (fs::exists(vf)) Slic3r::load_string_file(vf, language_version);
         } catch (...) {}
         std::map<std::string, Resource> resources
         {
@@ -996,11 +996,11 @@ void PresetUpdater::priv::sync_printer_config(std::string http_url)
     auto                    cache_folder = data_dir_path / "ota" / "printers";
 
     try {
-        load_string_file(config_folder / "version.txt", curr_version);
+        Slic3r::load_string_file(config_folder / "version.txt", curr_version);
         boost::algorithm::trim(curr_version);
     } catch (...) {}
     try {
-        load_string_file(cache_folder / "version.txt", cached_version);
+        Slic3r::load_string_file(cache_folder / "version.txt", cached_version);
         boost::algorithm::trim(cached_version);
     } catch (...) {}
     if (!cached_version.empty()) {
@@ -1034,7 +1034,7 @@ void PresetUpdater::priv::sync_printer_config(std::string http_url)
 
     bool result = false;
     try {
-        load_string_file(cache_folder / "version.txt", cached_version);
+        Slic3r::load_string_file(cache_folder / "version.txt", cached_version);
         boost::algorithm::trim(cached_version);
         result = true;
     } catch (...) {}
@@ -1137,11 +1137,11 @@ Updates PresetUpdater::priv::get_printer_config_updates(bool update) const
     std::string             curr_version;
     std::string             resc_version;
     try {
-        load_string_file(resc_folder / "version.txt", resc_version);
+        Slic3r::load_string_file(resc_folder / "version.txt", resc_version);
         boost::algorithm::trim(resc_version);
     } catch (...) {}
     try {
-        load_string_file(config_folder / "version.txt", curr_version);
+        Slic3r::load_string_file(config_folder / "version.txt", curr_version);
         boost::algorithm::trim(curr_version);
     } catch (...) {}
 

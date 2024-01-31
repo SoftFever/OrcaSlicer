@@ -5,6 +5,7 @@
 #include "wxExtensions.hpp"
 #include "GUI_Utils.hpp"
 #include "DeviceManager.hpp"
+#include "wx/colourdata.h"
 #include "wx/clrpicker.h"
 #include "Widgets/RadioBox.hpp"
 #include "Widgets/Button.hpp"
