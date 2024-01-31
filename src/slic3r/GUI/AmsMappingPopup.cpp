@@ -803,98 +803,52 @@ AmsHumidityTipPopup::AmsHumidityTipPopup(wxWindow* parent)
 {
     SetBackgroundColour(*wxWHITE);
 
-    wxBoxSizer* main_sizer;
-    main_sizer = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer* main_sizer = new wxBoxSizer(wxVERTICAL);
 
+    close_img = ScalableBitmap(this, "hum_popup_close", FromDIP(24));
 
-    main_sizer->Add(0, 0, 0, wxTOP, 28);
+    m_staticText = new Label(this, _L("Current Cabin humidity"));
+    m_staticText->SetFont(::Label::Head_24);
 
-    wxBoxSizer* m_sizer_body;
-    m_sizer_body = new wxBoxSizer(wxHORIZONTAL);
+    humidity_level_list = new AmsHumidityLevelList(this);
+    curr_humidity_img = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("hum_level1_light", this, FromDIP(132)), wxDefaultPosition, wxSize(FromDIP(132), FromDIP(132)), 0);
 
-    m_img = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("ams_humidity_tips", this, 125), wxDefaultPosition, wxSize(FromDIP(125), FromDIP(145)), 0);
-
-    m_sizer_body->Add(m_img, 0, wxEXPAND | wxALL, 2);
-
-
-    m_sizer_body->Add(0, 0, 0, wxEXPAND | wxLEFT, FromDIP(18));
-
-    wxBoxSizer* m_sizer_tips = new wxBoxSizer(wxVERTICAL);
-
-    m_staticText1 = new Label(this, _L("Cabin humidity"));
-    m_staticText1->SetFont(::Label::Head_13);
+    m_staticText_note = new Label(this, _L("Please change the desiccant when it is too wet. The indicator may not represent accurately in following cases : when the lid is open or the desiccant pack is changed. it take hours to absorb the moisture, low temperatures also slow down the process."));
+    m_staticText_note->SetMinSize(wxSize(FromDIP(680), -1));
+    m_staticText_note->SetMaxSize(wxSize(FromDIP(680), -1));
+    m_staticText_note->Wrap(FromDIP(680));
    
 
-    m_staticText2 = new Label(this, _L("Green means that AMS humidity is normal, orange represent humidity is high, red represent humidity is too high.(Hygrometer: lower the better.)"));
-    m_staticText2->SetFont(::Label::Body_13);
-    m_staticText2->SetSize(wxSize(FromDIP(357), -1));
-    m_staticText2->SetMinSize(wxSize(FromDIP(357), -1));
-    m_staticText2->SetMaxSize(wxSize(FromDIP(357), -1));
-    m_staticText2->Wrap(FromDIP(357));
-    
-
-    m_staticText3 = new Label(this, _L("Desiccant status"));
-    m_staticText3->SetFont(::Label::Head_13);
-  
-
-    m_staticText4 = new Label(this, _L("A desiccant status lower than two bars indicates that desiccant may be inactive. Please change the desiccant.(The bars: higher the better.)"));
-    m_staticText4->SetFont(::Label::Body_13);
-    m_staticText4->SetSize(wxSize(FromDIP(357), -1));
-    m_staticText4->SetMinSize(wxSize(FromDIP(357), -1));
-    m_staticText4->SetMaxSize(wxSize(FromDIP(357), -1));
-    m_staticText4->Wrap(FromDIP(357));
-
-    m_sizer_tips->Add(m_staticText1, 0, wxLEFT|wxRIGHT, 3);
-    m_sizer_tips->Add(0,0,0,wxTOP,2);
-    m_sizer_tips->Add(m_staticText2, 0, wxLEFT|wxRIGHT, 3);
-    m_sizer_tips->Add(0,0,0,wxTOP,8);
-    m_sizer_tips->Add(m_staticText3, 0, wxLEFT|wxRIGHT, 3);
-    m_sizer_tips->Add(0,0,0,wxTOP,2);
-    m_sizer_tips->Add(m_staticText4, 0, wxLEFT|wxRIGHT, 3);
-
-
-    m_sizer_body->Add(m_sizer_tips, 0, wxEXPAND, 0);
-
-
-    main_sizer->Add(m_sizer_body, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
-
-    m_staticText_note = new Label(this, _L("Note: When the lid is open or the desiccant pack is changed, it can take hours or a night to absorb the moisture. Low temperatures also slow down the process. During this time, the indicator may not represent the chamber accurately."));
-    m_staticText4->SetFont(::Label::Body_13);
-    m_staticText_note->SetMinSize(wxSize(FromDIP(523), -1));
-    m_staticText_note->SetMaxSize(wxSize(FromDIP(523), -1));
-    m_staticText_note->Wrap(FromDIP(523));
-    main_sizer->Add(m_staticText_note, 0, wxALL | wxLEFT | wxRIGHT, 22);
-
-    m_button_confirm = new Button(this, _L("OK"));
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Pressed), std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
-    m_button_confirm->SetBackgroundColor(btn_bg_green);
-    m_button_confirm->SetBorderColor(wxColour(0, 150, 136));
-    m_button_confirm->SetTextColor(wxColour(0xFFFFFE));
-    m_button_confirm->SetSize(wxSize(FromDIP(72), FromDIP(24)));
-    m_button_confirm->SetMinSize(wxSize(FromDIP(72), FromDIP(24)));
-    m_button_confirm->SetCornerRadius(FromDIP(12));
-
-
-    m_button_confirm->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
-         Dismiss();
-    });
-
     Bind(wxEVT_LEFT_UP, [this](auto& e) {
+
+        auto rect = ClientToScreen(wxPoint(0, 0));
+
+        auto close_left     = rect.x + GetSize().x - close_img.GetBmpWidth() - FromDIP(38);
+        auto close_right    = close_left + close_img.GetBmpWidth();
+        auto close_top      = rect.y + FromDIP(24);
+        auto close_bottom   = close_top + close_img.GetBmpHeight();
+
         auto mouse_pos = ClientToScreen(e.GetPosition());
-        auto rect = m_button_confirm->ClientToScreen(wxPoint(0, 0));
-        if (mouse_pos.x > rect.x && mouse_pos.y > rect.y
-            && mouse_pos.x < (rect.x + m_button_confirm->GetSize().x)
-            && mouse_pos.y < (rect.y + m_button_confirm->GetSize().y)) 
+        if (mouse_pos.x > close_left 
+            && mouse_pos.y > close_top
+            && mouse_pos.x < close_right
+            && mouse_pos.y < close_bottom
+            )
         {
             Dismiss();
         }
-    });
-    main_sizer->Add(m_button_confirm, 0, wxALIGN_CENTER | wxALL, 0);
+        });
 
-
-    main_sizer->Add(0, 0, 0, wxEXPAND | wxTOP, 18);
-
-
+    main_sizer->Add(0, 0, 0, wxTOP, FromDIP(24));
+    main_sizer->Add(m_staticText, 0, wxALIGN_CENTER, 0);
+    main_sizer->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(28));
+    main_sizer->Add(curr_humidity_img, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, FromDIP(35));
+    main_sizer->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(15));
+    main_sizer->Add(humidity_level_list, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, FromDIP(35));
+    main_sizer->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(6));
+    main_sizer->Add(m_staticText_note, 0, wxALIGN_CENTER, 0);
+    main_sizer->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(5));
+    main_sizer->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(25));
     SetSizer(main_sizer);
     Layout();
     Fit();
@@ -906,15 +860,57 @@ AmsHumidityTipPopup::AmsHumidityTipPopup(wxWindow* parent)
 void AmsHumidityTipPopup::paintEvent(wxPaintEvent& evt)
 {
     wxPaintDC dc(this);
-    dc.SetPen(wxColour(0xAC, 0xAC, 0xAC));
-    dc.SetBrush(*wxTRANSPARENT_BRUSH);
-    dc.DrawRoundedRectangle(0, 0, GetSize().x, GetSize().y, 0);
+    render(dc);
 }
 
 void AmsHumidityTipPopup::OnDismiss() {}
 
 bool AmsHumidityTipPopup::ProcessLeftDown(wxMouseEvent& event) {
     return PopupWindow::ProcessLeftDown(event);
+}
+
+void AmsHumidityTipPopup::set_humidity_level(int level)
+{
+    current_humidity_level = level;
+    if (current_humidity_level<= 0) {return;}
+
+    std::string mode_string = wxGetApp().dark_mode()?"_dark":"_light";
+
+    curr_humidity_img->SetBitmap(create_scaled_bitmap("hum_level" + std::to_string(current_humidity_level) + mode_string, this, FromDIP(132)));
+    curr_humidity_img->Refresh();
+    curr_humidity_img->Update();
+}
+
+void AmsHumidityTipPopup::render(wxDC& dc)
+{
+#ifdef __WXMSW__
+    wxSize     size = GetSize();
+    wxMemoryDC memdc;
+    wxBitmap   bmp(size.x, size.y);
+    memdc.SelectObject(bmp);
+    memdc.Blit({ 0, 0 }, size, &dc, { 0, 0 });
+
+    {
+        wxGCDC dc2(memdc);
+        doRender(dc2);
+    }
+
+    memdc.SelectObject(wxNullBitmap);
+    dc.DrawBitmap(bmp, 0, 0);
+#else
+    doRender(dc);
+#endif
+}
+
+void AmsHumidityTipPopup::doRender(wxDC& dc)
+{
+    //close
+    dc.DrawBitmap(close_img.bmp(), GetSize().x - close_img.GetBmpWidth() - FromDIP(38), FromDIP(24));
+
+    //background
+    dc.SetPen(wxColour(0xAC, 0xAC, 0xAC));
+    dc.SetBrush(*wxTRANSPARENT_BRUSH);
+    dc.DrawRoundedRectangle(0, 0, GetSize().x, GetSize().y, 0);
 }
 
 AmsTutorialPopup::AmsTutorialPopup(wxWindow* parent)
@@ -1588,6 +1584,95 @@ void AmsRMGroup::doRender(wxDC& dc)
     dc.SetFont(Label::Body_13);
     text_size = dc.GetTextExtent(m_group_index);
     dc.DrawText(m_group_index, (size.x - text_size.x) / 2, (size.y - text_size.y) / 2 + FromDIP(10));
+}
+
+AmsHumidityLevelList::AmsHumidityLevelList(wxWindow* parent)
+ : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
+{
+#ifdef __WINDOWS__
+    SetDoubleBuffered(true);
+#endif //__WINDOWS__
+
+    SetSize(wxSize(FromDIP(680), FromDIP(104)));
+    SetMinSize(wxSize(FromDIP(680), FromDIP(104)));
+    SetMaxSize(wxSize(FromDIP(680), FromDIP(104)));
+    SetBackgroundColour(*wxWHITE);
+
+    background_img = ScalableBitmap(this, "humidity_list_background", FromDIP(104));
+
+    for (int i = 1; i <= 5; i++) {
+        hum_level_img_light.push_back(ScalableBitmap(this, ("hum_level" + std::to_string(i) + "_light"), FromDIP(54)));
+    }
+
+    for (int i = 1; i <= 5; i++) {
+        hum_level_img_dark.push_back(ScalableBitmap(this, ("hum_level" + std::to_string(i) + "_dark"), FromDIP(54)));
+    }
+
+    Bind(wxEVT_PAINT, &AmsHumidityLevelList::paintEvent, this);
+    wxGetApp().UpdateDarkUI(this);
+}
+
+void AmsHumidityLevelList::msw_rescale()
+{
+
+}
+
+void AmsHumidityLevelList::paintEvent(wxPaintEvent& evt)
+{
+    wxPaintDC dc(this);
+    render(dc);
+}
+
+void AmsHumidityLevelList::render(wxDC& dc)
+{
+#ifdef __WXMSW__
+    wxSize     size = GetSize();
+    wxMemoryDC memdc;
+    wxBitmap   bmp(size.x, size.y);
+    memdc.SelectObject(bmp);
+    memdc.Blit({ 0, 0 }, size, &dc, { 0, 0 });
+
+    {
+        wxGCDC dc2(memdc);
+        doRender(dc2);
+    }
+
+    memdc.SelectObject(wxNullBitmap);
+    dc.DrawBitmap(bmp, 0, 0);
+#else
+    doRender(dc);
+#endif
+}
+
+void AmsHumidityLevelList::doRender(wxDC& dc)
+{
+    dc.DrawBitmap(background_img.bmp(), 0,0);
+
+    auto width_center = GetSize().x / 2;
+    auto left = width_center - FromDIP(27) - FromDIP(46) * 2 - FromDIP(54) * 2;
+
+
+    //dry / wet
+    dc.SetTextForeground(wxColour(0x989898));
+    dc.SetFont(::Label::Head_20);
+
+    auto font_top = GetSize().y - dc.GetTextExtent(_L("DRY")).GetHeight();
+    dc.DrawText(_L("DRY"), wxPoint(FromDIP(38), font_top / 2));
+    dc.DrawText(_L("WET"), wxPoint(( GetSize().x - FromDIP(38) -  dc.GetTextExtent(_L("DRY")).GetWidth()), font_top / 2));
+
+
+    //level list
+    
+    for (int i = 0; i < hum_level_img_light.size(); i++) {
+        if (wxGetApp().dark_mode()) {
+            dc.DrawBitmap(hum_level_img_dark[i].bmp(), left, (GetSize().y - FromDIP(54)) / 2);
+        }
+        else {
+             dc.DrawBitmap(hum_level_img_light[i].bmp(), left, (GetSize().y - FromDIP(54)) / 2);
+        }
+        
+        left += FromDIP(46) + FromDIP(54);
+    }
 }
 
 }} // namespace Slic3r::GUI

@@ -1372,11 +1372,13 @@ AMSRoad::AMSRoad(wxWindow *parent, wxWindowID id, Caninfo info, int canindex, in
         m_rode_mode = AMSRoadMode::AMS_ROAD_MODE_NONE_ANY_ROAD;
     }
 
-    ams_humidity_0 = ScalableBitmap(this, "ams_humidity_0", 20);
-    ams_humidity_1 = ScalableBitmap(this, "ams_humidity_1", 20);
-    ams_humidity_2 = ScalableBitmap(this, "ams_humidity_2", 20);
-    ams_humidity_3 = ScalableBitmap(this, "ams_humidity_3", 20);
-    ams_humidity_4 = ScalableBitmap(this, "ams_humidity_4", 20);
+    for (int i = 1; i <= 5; i++) {
+        ams_humidity_img.push_back(ScalableBitmap(this, "hum_level" + std::to_string(i) + "_light", FromDIP(32)));
+    }
+
+    for (int i = 1; i <= 5; i++) {
+        ams_humidity_img.push_back(ScalableBitmap(this, "hum_level" + std::to_string(i) + "_dark", FromDIP(32)));
+    }
 
     create(parent, id, pos, size);
     Bind(wxEVT_PAINT, &AMSRoad::paintEvent, this);
@@ -1387,8 +1389,8 @@ AMSRoad::AMSRoad(wxWindow *parent, wxWindowID id, Caninfo info, int canindex, in
             auto mouse_pos = ClientToScreen(e.GetPosition());
             auto rect = ClientToScreen(wxPoint(0, 0));
 
-            if (mouse_pos.x > rect.x + GetSize().x - FromDIP(25) && 
-                mouse_pos.y > rect.y + GetSize().y - FromDIP(25)) {
+            if (mouse_pos.x > rect.x + GetSize().x - FromDIP(40) && 
+                mouse_pos.y > rect.y + GetSize().y - FromDIP(40)) {
                 wxCommandEvent show_event(EVT_AMS_SHOW_HUMIDITY_TIPS);
                 wxPostEvent(GetParent()->GetParent(), show_event);
 
@@ -1549,24 +1551,15 @@ void AMSRoad::doRender(wxDC &dc)
         if (m_amsinfo.ams_humidity >= 1 && m_amsinfo.ams_humidity <= 5) {m_show_humidity = true;}
         else {m_show_humidity = false;}
 
-        if (m_amsinfo.ams_humidity == 5) {
-            dc.DrawBitmap(ams_humidity_4.bmp(), wxPoint(size.x - ams_humidity_4.GetBmpSize().x - FromDIP(4), size.y - ams_humidity_4.GetBmpSize().y - FromDIP(8)));
-        }
-        else if (m_amsinfo.ams_humidity == 4) {
-            dc.DrawBitmap(ams_humidity_3.bmp(), wxPoint(size.x - ams_humidity_3.GetBmpSize().x - FromDIP(4), size.y - ams_humidity_3.GetBmpSize().y - FromDIP(8)));
-        }
-        else if (m_amsinfo.ams_humidity == 3) {
-    
-            dc.DrawBitmap(ams_humidity_2.bmp(), wxPoint(size.x - ams_humidity_2.GetBmpSize().x - FromDIP(4), size.y - ams_humidity_2.GetBmpSize().y - FromDIP(8)));
-        }
-        else if (m_amsinfo.ams_humidity == 2) {
-            dc.DrawBitmap(ams_humidity_1.bmp(), wxPoint(size.x - ams_humidity_1.GetBmpSize().x - FromDIP(4), size.y - ams_humidity_1.GetBmpSize().y - FromDIP(8)));
-        }
-        else if (m_amsinfo.ams_humidity == 1) {
-            dc.DrawBitmap(ams_humidity_0.bmp(), wxPoint(size.x - ams_humidity_0.GetBmpSize().x - FromDIP(4), size.y - ams_humidity_0.GetBmpSize().y - FromDIP(8)));
+        if (m_amsinfo.ams_humidity >= 1 && m_amsinfo.ams_humidity <= 5) {
+
+            int hum_index = m_amsinfo.ams_humidity - 1;
+            if (wxGetApp().dark_mode()) {
+                hum_index += 5;
+            }
+            dc.DrawBitmap(ams_humidity_img[hum_index].bmp(), wxPoint(size.x - FromDIP(28), size.y - FromDIP(35)));
         }
         else {
-            /*dc.DrawBitmap(ams_humidity_4.bmp(), wxPoint(size.x - ams_humidity_4.GetBmpSize().x - FromDIP(4), size.y - ams_humidity_4.GetBmpSize().y - FromDIP(8)));*/
             //to do ...
         }
     }
@@ -2883,8 +2876,11 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
 
     Bind(EVT_AMS_SHOW_HUMIDITY_TIPS, [this](wxCommandEvent& evt) {
         wxPoint img_pos = ClientToScreen(wxPoint(0, 0));
-        wxPoint popup_pos(img_pos.x - m_Humidity_tip_popup.GetSize().GetWidth() + FromDIP(150), img_pos.y);
+        wxPoint popup_pos(img_pos.x - m_Humidity_tip_popup.GetSize().GetWidth() + FromDIP(150), img_pos.y - FromDIP(80));
         m_Humidity_tip_popup.Position(popup_pos, wxSize(0, 0));
+        if (m_ams_info.size() > 0) {
+            m_Humidity_tip_popup.set_humidity_level(m_ams_info[0].ams_humidity);
+        }
         m_Humidity_tip_popup.Popup();
     });
     
@@ -3463,7 +3459,6 @@ void AMSControl::SwitchAms(std::string ams_id)
 
         } else {
             item->amsItem->UnSelected();
-            //item->amsItem->HideHumidity();
         }
         m_sizer_top->Layout();
         m_panel_top->Fit();

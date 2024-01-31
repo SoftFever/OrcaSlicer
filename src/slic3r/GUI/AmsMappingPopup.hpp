@@ -185,6 +185,33 @@ public:
     wxStaticText *   m_tip_disable_ams;
 };
 
+class AmsHumidityLevelList : public wxPanel
+{
+public:
+    AmsHumidityLevelList(wxWindow* parent);
+    ~AmsHumidityLevelList() {};
+
+    ScalableBitmap background_img;
+    ScalableBitmap hum_level1_img;
+    ScalableBitmap hum_level2_img;
+    ScalableBitmap hum_level3_img;
+    ScalableBitmap hum_level4_img;
+
+    std::vector<ScalableBitmap> hum_level_img_light;
+    std::vector<ScalableBitmap> hum_level_img_dark;
+
+    wxStaticBitmap* hum_level1_bitmap;
+    wxStaticBitmap* hum_level2_bitmap;
+    wxStaticBitmap* hum_level3_bitmap;
+    wxStaticBitmap* hum_level4_bitmap;
+    wxStaticBitmap* hum_level5_bitmap;
+
+    void msw_rescale();
+    void paintEvent(wxPaintEvent& evt);
+    void render(wxDC& dc);
+    void doRender(wxDC& dc);
+};
+
 class AmsHumidityTipPopup : public PopupWindow
 {
 public:
@@ -195,14 +222,19 @@ public:
     virtual void OnDismiss() wxOVERRIDE;
     virtual bool ProcessLeftDown(wxMouseEvent& event) wxOVERRIDE;
 
+    void set_humidity_level(int level);
+    void render(wxDC& dc);
+    void doRender(wxDC& dc);
+
 public:
+    int current_humidity_level;
+
+    ScalableBitmap close_img;
+    wxStaticBitmap* curr_humidity_img;
+    AmsHumidityLevelList* humidity_level_list{nullptr};
     wxStaticBitmap* m_img;
-    Label* m_staticText1;
-    Label* m_staticText2;
-    Label* m_staticText3;
-    Label* m_staticText4;
+    Label* m_staticText;;
     Label* m_staticText_note;
-    Button* m_button_confirm;
 };
 
 class AmsTutorialPopup : public PopupWindow
