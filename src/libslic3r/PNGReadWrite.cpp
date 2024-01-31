@@ -5,6 +5,7 @@
 #include <cstdio>
 #include <png.h>
 
+#include <boost/format.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/nowide/cstdio.hpp>
 

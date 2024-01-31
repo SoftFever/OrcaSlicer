@@ -4,6 +4,8 @@
 #include "../I18N.hpp"
 #include "../GUI_App.hpp"
 
+#include <boost/log/trivial.hpp>
+
 #include <wx/simplebook.h>
 #include <wx/dcgraph.h>
 #include "CalibUtils.hpp"

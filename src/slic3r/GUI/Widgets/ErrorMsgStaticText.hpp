@@ -2,6 +2,7 @@
 #ifndef _WX_ERRORMSGSTATTEXT_H_
 #define _WX_ERRORMSGSTATTEXT_H_
 
+#include <wx/panel.h>
 #include "wx/stattext.h"
 
 class WXDLLIMPEXP_CORE ErrorMsgStaticText : public wxPanel

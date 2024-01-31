@@ -1,6 +1,7 @@
 #ifndef PNGREAD_HPP
 #define PNGREAD_HPP
 
+#include <cstdint>
 #include <vector>
 #include <string>
 #include <istream>
