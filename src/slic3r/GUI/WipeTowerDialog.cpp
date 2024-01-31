@@ -13,8 +13,6 @@
 #include "MainFrame.hpp"
 #include "libslic3r/Config.hpp"
 
-#include <wx/sizer.h>
-
 using namespace Slic3r;
 using namespace Slic3r::GUI;
 

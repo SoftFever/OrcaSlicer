@@ -3,6 +3,7 @@
 
 #include "TickCode.hpp"
 #include <imgui/imgui.h>
+#include <wx/slider.h>
 
 #include <set>
 

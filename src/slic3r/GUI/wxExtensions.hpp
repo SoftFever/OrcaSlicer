@@ -12,6 +12,7 @@
 #include <wx/popupwin.h>
 #include <wx/spinctrl.h>
 #include <wx/artprov.h>
+#include <wx/scrolwin.h>
 
 #include <vector>
 #include <functional>
