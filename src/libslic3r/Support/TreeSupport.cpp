@@ -625,7 +625,7 @@ TreeSupport::TreeSupport(PrintObject& object, const SlicingParameters &slicing_p
 
 
 #define SUPPORT_SURFACES_OFFSET_PARAMETERS ClipperLib::jtSquare, 0.
-void TreeSupport::detect_overhangs(bool detect_first_sharp_tail_only)
+void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
 {
     // overhangs are already detected
     if (m_object->support_layer_count() >= m_object->layer_count())
@@ -636,8 +636,8 @@ void TreeSupport::detect_overhangs(bool detect_first_sharp_tail_only)
     // Clear and create Tree Support Layers
     m_object->clear_support_layers();
     m_object->clear_tree_support_preview_cache();
-    create_tree_support_layers(tree_support_enable);
-    if (!tree_support_enable)
+    create_tree_support_layers();
+    if (!tree_support_enable && !check_support_necessity)
         return;
 
     const PrintObjectConfig& config = m_object->config();
@@ -863,9 +863,11 @@ void TreeSupport::detect_overhangs(bool detect_first_sharp_tail_only)
     ); // end tbb::parallel_for
 
     BOOST_LOG_TRIVIAL(info) << "max_cantilever_dist=" << max_cantilever_dist;
+    if (check_support_necessity)
+        return;
 
     // check if the sharp tails should be extended higher
-    if (is_auto(stype) && g_config_support_sharp_tails && !detect_first_sharp_tail_only) {
+    if (is_auto(stype) && g_config_support_sharp_tails) {
         for (size_t layer_nr = 0; layer_nr < m_object->layer_count(); layer_nr++) {
             if (m_object->print()->canceled())
                 break;
@@ -1104,7 +1106,7 @@ void TreeSupport::detect_overhangs(bool detect_first_sharp_tail_only)
 
 // create support layers for raft and tree support
 // if support is disabled, only raft layers are created
-void TreeSupport::create_tree_support_layers(bool support_enabled)
+void TreeSupport::create_tree_support_layers()
 {
     int layer_id = 0;
     coordf_t raft_print_z = 0.f;
@@ -1120,9 +1122,6 @@ void TreeSupport::create_tree_support_layers(bool support_enabled)
         raft_slice_z = raft_print_z - m_slicing_params.interface_raft_layer_height / 2;
         m_object->add_tree_support_layer(layer_id, m_slicing_params.base_raft_layer_height, raft_print_z, raft_slice_z);
     }
-
-    if (!support_enabled)
-        return;
 
     for (Layer *layer : m_object->layers()) {
         SupportLayer* ts_layer = m_object->add_tree_support_layer(layer_id++, layer->height, layer->print_z, layer->slice_z);
