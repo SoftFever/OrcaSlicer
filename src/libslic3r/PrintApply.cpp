@@ -1041,6 +1041,19 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
     else
         m_support_used = false;
 
+    {
+        const auto& o = model.objects;
+        const bool has_scarf_joint_seam = std::any_of(o.begin(), o.end(), [&new_full_config](ModelObject* obj) {
+            return obj->get_config_value<ConfigOptionBool>(new_full_config, "seam_slope_enabled")->value;
+        });
+
+        if (has_scarf_joint_seam) {
+            new_full_config.set("has_scarf_joint_seam", true);
+        }
+
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", has_scarf_joint_seam:" << has_scarf_joint_seam;
+    }
+
     // Find modified keys of the various configs. Resolve overrides extruder retract values by filament profiles.
     DynamicPrintConfig   filament_overrides;
     //BBS: add plate index
