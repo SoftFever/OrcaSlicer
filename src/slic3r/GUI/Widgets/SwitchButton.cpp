@@ -5,6 +5,8 @@
 #include "../wxExtensions.hpp"
 #include "../Utils/MacDarkMode.hpp"
 
+#include <wx/dcmemory.h>
+#include <wx/dcclient.h>
 #include <wx/dcgraph.h>
 
 SwitchButton::SwitchButton(wxWindow* parent, wxWindowID id)

@@ -3,6 +3,7 @@
 
 #include "GUI_Utils.hpp"
 
+#include <wx/sizer.h>
 #include <wx/spinctrl.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>

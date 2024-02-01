@@ -3,6 +3,7 @@
 
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/operations.hpp>
+#include "libslic3r/PrintConfig.hpp"
 #include "Job.hpp"
 
 namespace fs = boost::filesystem;
