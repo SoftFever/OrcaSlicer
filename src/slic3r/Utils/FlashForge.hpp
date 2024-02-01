@@ -1,5 +1,5 @@
-#ifndef slic3r_Flashforge_hpp_
-#define slic3r_Flashforge_hpp_
+#ifndef slic3r_FlashForge_hpp_
+#define slic3r_FlashForge_hpp_
 
 #include <string>
 #include <wx/string.h>

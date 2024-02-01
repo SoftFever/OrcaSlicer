@@ -511,8 +511,8 @@ set(SLIC3R_GUI_SOURCES
     Utils/MKS.cpp
     Utils/MKS.hpp
     Utils/WxFontUtils.cpp
-    Utils/Flashforge.hpp
-    Utils/Flashforge.cpp
+    Utils/FlashForge.hpp
+    Utils/FlashForge.cpp
     Utils/WxFontUtils.hpp
     Utils/Duet.cpp
     Utils/Duet.hpp

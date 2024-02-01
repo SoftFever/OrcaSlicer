@@ -1,4 +1,4 @@
-#include "Flashforge.hpp"
+#include "FlashForge.hpp"
 #include <algorithm>
 #include <ctime>
 #include <chrono>
