@@ -17,6 +17,7 @@
 #define BOOST_NO_CXX17_HDR_STRING_VIEW
 #endif
 
+#include <boost/log/trivial.hpp>
 #include <boost/multiprecision/integer.hpp>
 #include <boost/rational.hpp>
 

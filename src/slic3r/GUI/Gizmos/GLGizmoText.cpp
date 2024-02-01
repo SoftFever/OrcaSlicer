@@ -6,13 +6,15 @@
 #include "slic3r/GUI/ImGuiWrapper.hpp"
 #include "slic3r/GUI/GUI_ObjectList.hpp"
 #include "slic3r/GUI/Plater.hpp"
-
+#include "libslic3r/ClipperUtils.hpp"
 #include "libslic3r/Geometry/ConvexHull.hpp"
 #include "libslic3r/Model.hpp"
 
 #include "libslic3r/Shape/TextShape.hpp"
 
 #include <numeric>
+
+#include <boost/log/trivial.hpp>
 
 #include <GL/glew.h>
 

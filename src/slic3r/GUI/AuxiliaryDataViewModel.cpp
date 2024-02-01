@@ -3,6 +3,11 @@
 #include "libslic3r/Model.hpp"
 #include "libslic3r/Format/bbs_3mf.hpp"
 
+
+#include <boost/log/trivial.hpp>
+
+#include <wx/log.h>
+
 const static std::array<wxString, 4> s_default_folders = {
     _L("Model Pictures"),
     _L("Bill of Materials"),
