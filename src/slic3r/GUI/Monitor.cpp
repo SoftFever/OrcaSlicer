@@ -121,6 +121,17 @@ AddMachinePanel::~AddMachinePanel() {
     m_select_machine.Bind(EVT_FINISHED_UPDATE_MACHINE_LIST, [this](wxCommandEvent& e) {
         m_side_tools->start_interval();
     });
+
+    Bind(EVT_ALREADY_READ_HMS, [this](wxCommandEvent& e) {
+        auto key = e.GetString().ToStdString();
+        auto iter = m_hms_panel->temp_hms_list.find(key);
+        if (iter != m_hms_panel->temp_hms_list.end()) {
+            m_hms_panel->temp_hms_list[key].already_read = true;
+        }
+
+        update_hms_tag();
+        e.Skip();
+    });
 }
 
 MonitorPanel::~MonitorPanel()
@@ -389,6 +400,21 @@ void MonitorPanel::update_all()
         m_upgrade_panel->update(obj);
     }
 #endif
+
+    update_hms_tag();
+}
+
+void MonitorPanel::update_hms_tag()
+{
+    for (auto hmsitem : m_hms_panel->temp_hms_list) {
+        if (!hmsitem.second.already_read) {
+            //show HMS new tag
+            m_tabpanel->GetBtnsListCtrl()->showNewTag(3, true);
+            return;
+        }
+    }
+
+    m_tabpanel->GetBtnsListCtrl()->showNewTag(3, false);
 }
 
 bool MonitorPanel::Show(bool show)

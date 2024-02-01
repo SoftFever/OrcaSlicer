@@ -16,6 +16,7 @@ class HMSNotifyItem : public wxPanel
 {
     HMSItem &   m_hms_item;
     std::string m_url;
+    std::string long_error_code;
 
     wxPanel *       m_panel_hms;
     wxStaticBitmap *m_bitmap_notify;
@@ -38,6 +39,7 @@ public:
 
      void msw_rescale() {}
 };
+
 
 class HMSPanel : public wxPanel
 {
@@ -63,7 +65,10 @@ public:
     void show_status(int status);
 
     MachineObject *obj { nullptr };
+    std::map<std::string, HMSItem>    temp_hms_list;
 };
+
+wxDECLARE_EVENT(EVT_ALREADY_READ_HMS, wxCommandEvent);
 
 }
 }

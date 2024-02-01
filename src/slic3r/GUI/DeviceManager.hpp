@@ -290,6 +290,7 @@ public:
     unsigned        reserved;
     HMSMessageLevel msg_level = HMS_UNKNOWN;
     int             msg_code = 0;
+    bool            already_read = false;
     bool parse_hms_info(unsigned attr, unsigned code);
     std::string get_long_error_code();
 

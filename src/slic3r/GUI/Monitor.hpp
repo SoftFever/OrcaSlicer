@@ -141,6 +141,7 @@ public:
     //void update_ams(MachineObject* obj);
     void update_all();
 
+    void update_hms_tag();
     bool Show(bool show);
 
 	void update_side_panel();
