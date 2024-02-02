@@ -4456,9 +4456,6 @@ std::string GCode::change_layer(coordf_t print_z)
         //BBS: set m_need_change_layer_lift_z to be true so that z lift can be done in travel_to() function
         m_need_change_layer_lift_z = true;
     }
-
-    // Orca: remember z of previous layer
-    m_nominal_z_prev = m_nominal_z;
     m_nominal_z = z;
 
     // forget last wiping path as wiping after raising Z is pointless
@@ -4654,7 +4651,7 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
             start_slope_ratio = m_config.seam_slope_start_height.value / 100.;
         } else {
             // Get the ratio against current layer height
-            double h = m_nominal_z - m_nominal_z_prev;
+            double h = paths.front().height;
             start_slope_ratio = m_config.seam_slope_start_height.value / h;
         }
 
@@ -5045,6 +5042,11 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
 
     const ExtrusionPathSloped* sloped = dynamic_cast<const ExtrusionPathSloped*>(&path);
 
+    const auto get_sloped_z = [&sloped, this](double z_ratio) {
+        const auto height = sloped->height;
+        return lerp(m_nominal_z - height, m_nominal_z, z_ratio);
+    };
+
     // go to first point of extrusion path
     //BBS: path.first_point is 2D point. But in lazy raise case, lift z is done in travel_to function.
     //Add m_need_change_layer_lift_z when change_layer in case of no lift if m_last_pos is equal to path.first_point() by chance
@@ -5053,7 +5055,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             path.first_point(),
             path.role(),
             "move to first " + description + " point",
-            sloped == nullptr ? 1. : sloped->slope_begin.z_ratio
+            sloped == nullptr ? DBL_MAX : get_sloped_z(sloped->slope_begin.z_ratio)
         );
         m_need_change_layer_lift_z = false;
     }
@@ -5687,7 +5689,7 @@ std::string GCode::_encode_label_ids_to_base64(std::vector<size_t> ids)
 }
 
 // This method accepts &point in print coordinates.
-std::string GCode::travel_to(const Point& point, ExtrusionRole role, std::string comment, double z_ratio/* = 1.*/)
+std::string GCode::travel_to(const Point& point, ExtrusionRole role, std::string comment, double z/* = DBL_MAX*/)
 {
     /*  Define the travel move as a line between current position and the taget point.
         This is expressed in print coordinates, so it will need to be translated by
@@ -5781,7 +5783,7 @@ std::string GCode::travel_to(const Point& point, ExtrusionRole role, std::string
             if (travel.size() == 2) {
                 // No extra movements emitted by avoid_crossing_perimeters, simply move to the end point with z change
                 const auto& dest2d = this->point_to_gcode(travel.points.back());
-                Vec3d dest3d(dest2d(0), dest2d(1), get_sloped_z(z_ratio));
+                Vec3d dest3d(dest2d(0), dest2d(1), z == DBL_MAX ? m_nominal_z : z);
                 gcode += m_writer.travel_to_xyz(dest3d, comment + " travel_to_xyz");
             } else {
                 // Extra movements emitted by avoid_crossing_perimeters, lift the z to normal height at the beginning, then apply the z
@@ -5792,10 +5794,10 @@ std::string GCode::travel_to(const Point& point, ExtrusionRole role, std::string
                         Vec2d dest2d = this->point_to_gcode(travel.points[i]);
                         Vec3d dest3d(dest2d(0), dest2d(1), m_nominal_z);
                         gcode += m_writer.travel_to_xyz(dest3d, comment + " travel_to_xyz");
-                    } else if (z_ratio != 1. && i == travel.size() - 1) {
+                    } else if (z != DBL_MAX && i == travel.size() - 1) {
                         // Apply z_ratio for the very last point
                         Vec2d dest2d = this->point_to_gcode(travel.points[i]);
-                        Vec3d dest3d(dest2d(0), dest2d(1), get_sloped_z(z_ratio));
+                        Vec3d dest3d(dest2d(0), dest2d(1), z);
                         gcode += m_writer.travel_to_xyz(dest3d, comment + " travel_to_xyz");
                     } else {
                         // For all points in between, no z change

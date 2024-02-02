@@ -183,8 +183,7 @@ public:
         m_last_obj_copy(nullptr, Point(std::numeric_limits<coord_t>::max(), std::numeric_limits<coord_t>::max())),
         // BBS
         m_toolchange_count(0),
-        m_nominal_z(0.),
-        m_nominal_z_prev(0.)
+        m_nominal_z(0.)
         {}
     ~GCode() = default;
 
@@ -220,7 +219,7 @@ public:
     void            set_layer_count(unsigned int value) { m_layer_count = value; }
     void            apply_print_config(const PrintConfig &print_config);
 
-    std::string     travel_to(const Point& point, ExtrusionRole role, std::string comment, double z_ratio = 1.);
+    std::string     travel_to(const Point& point, ExtrusionRole role, std::string comment, double z = DBL_MAX);
     bool            needs_retraction(const Polyline& travel, ExtrusionRole role, LiftType& lift_type);
     std::string     retract(bool toolchange = false, bool is_last_retraction = false, LiftType lift_type = LiftType::NormalLift);
     std::string     unretract() { return m_writer.unlift() + m_writer.unretract(); }
@@ -431,8 +430,6 @@ private:
     // BBS
     LiftType to_lift_type(ZHopType z_hop_types);
 
-    coordf_t get_sloped_z(double z_ratio) { return lerp(m_nominal_z_prev, m_nominal_z, z_ratio); }
-
     std::set<ObjectID>              m_objsWithBrim; // indicates the objs with brim
     std::set<ObjectID>              m_objSupportsWithBrim; // indicates the objs' supports with brim
     // Cache for custom seam enforcers/blockers for each layer.
@@ -571,8 +568,6 @@ private:
     Print* m_curr_print = nullptr;
     unsigned int m_toolchange_count;
     coordf_t m_nominal_z;
-    // Orca: previous layer z, used as the start z of a seam slope
-    coordf_t m_nominal_z_prev;
     bool m_need_change_layer_lift_z = false;
     int m_start_gcode_filament = -1;
 
