@@ -2514,7 +2514,7 @@ void StatusPanel::update_ams(MachineObject *obj)
         m_ams_setting_dlg->obj = obj;
 
         if (obj && m_ams_setting_dlg->IsShown()) {
-            m_ams_setting_dlg->update_insert_material_read_mode(obj->ams_insert_flag);
+            update_ams_insert_material(obj);
             m_ams_setting_dlg->update_starting_read_mode(obj->ams_power_on_flag);
             m_ams_setting_dlg->update_remain_mode(obj->ams_calibrate_remain_flag);
             m_ams_setting_dlg->update_switch_filament(obj->ams_auto_switch_filament_flag);
@@ -2767,6 +2767,18 @@ void StatusPanel::update_ams(MachineObject *obj)
         
     update_ams_control_state(is_curr_tray_selected);
 }
+
+void StatusPanel::update_ams_insert_material(MachineObject* obj) {
+    std::string extra_ams_str = (boost::format("ams_f1/%1%") % 0).str();
+    auto extra_ams_it = obj->module_vers.find(extra_ams_str);
+    if (extra_ams_it != obj->module_vers.end()) {
+        m_ams_setting_dlg->update_insert_material_read_mode(obj->ams_insert_flag, extra_ams_it->second.sw_ver);
+    }
+    else {
+        m_ams_setting_dlg->update_insert_material_read_mode(obj->ams_insert_flag, "");
+    }
+}
+
 
 void StatusPanel::update_ams_control_state(bool is_curr_tray_selected)
 {
@@ -3463,7 +3475,7 @@ void StatusPanel::on_ams_setting_click(SimpleEvent &event)
 {
     if (!m_ams_setting_dlg) m_ams_setting_dlg = new AMSSetting((wxWindow *) this, wxID_ANY);
     if (obj) {
-        m_ams_setting_dlg->update_insert_material_read_mode(obj->ams_insert_flag);
+        update_ams_insert_material(obj);
         m_ams_setting_dlg->update_starting_read_mode(obj->ams_power_on_flag);
         m_ams_setting_dlg->update_ams_img(DeviceManager::get_printer_ams_img(obj->printer_type));
         std::string ams_id = m_ams_control->GetCurentShowAms();
