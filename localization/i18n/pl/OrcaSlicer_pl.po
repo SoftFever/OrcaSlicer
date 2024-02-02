@@ -2768,7 +2768,7 @@ msgid "Nozzle Diameter"
 msgstr "Średnica dyszy"
 
 msgid "Bed Type"
-msgstr "Typ stołu roboczego"
+msgstr "Typ Stołu"
 
 msgid "Nozzle temperature"
 msgstr "Temperatura dyszy"
@@ -5218,7 +5218,7 @@ msgid "Connection"
 msgstr "Połączenie"
 
 msgid "Bed type"
-msgstr "Typ stołu roboczego"
+msgstr "Typ stołu"
 
 msgid "Flushing volumes"
 msgstr "Objętość płukania"
@@ -12354,7 +12354,7 @@ msgid " ℃"
 msgstr " ℃"
 
 msgid "Plate Type"
-msgstr "Typ płyty"
+msgstr "Typ Płyty"
 
 msgid "filament position"
 msgstr "pozycja filamentu"
