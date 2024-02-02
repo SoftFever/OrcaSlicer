@@ -1489,6 +1489,8 @@ void GCodeProcessor::reset()
 
     m_detect_layer_based_on_tag = false;
 
+    m_seams_count = 0;
+
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
     m_mm3_per_mm_compare.reset();
     m_height_compare.reset();
@@ -2357,7 +2359,7 @@ void GCodeProcessor::process_tags(const std::string_view comment, bool producers
                 // add a placeholder for layer height. the actual value will be set inside process_G1() method
                 m_result.spiral_vase_layers.push_back({ FLT_MAX, { 0, 0 } });
             else {
-                const size_t move_id = m_result.moves.size() - 1;
+                const size_t move_id = m_result.moves.size() - 1 - m_seams_count;
                 if (!m_result.spiral_vase_layers.empty())
                     m_result.spiral_vase_layers.back().second.second = move_id;
                 // add a placeholder for layer height. the actual value will be set inside process_G1() method
@@ -3269,7 +3271,7 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
             }
         }
         if (!m_result.moves.empty())
-            m_result.spiral_vase_layers.back().second.second = m_result.moves.size() - 1;
+            m_result.spiral_vase_layers.back().second.second = m_result.moves.size() - 1 - m_seams_count;
     }
 
     // store move
@@ -4280,6 +4282,10 @@ void GCodeProcessor::store_move_vertex(EMoveType type, EMovePathType path_type)
         Vec3f(m_arc_center(0, 0) + m_x_offset, m_arc_center(1, 0) + m_y_offset, m_arc_center(2, 0)) + m_extruder_offsets[m_extruder_id],
         m_interpolation_points,
     });
+
+    if (type == EMoveType::Seam) {
+        m_seams_count++;
+    }
 
     // stores stop time placeholders for later use
     if (type == EMoveType::Color_change || type == EMoveType::Pause_Print) {

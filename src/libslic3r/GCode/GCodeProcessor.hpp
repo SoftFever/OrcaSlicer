@@ -701,6 +701,7 @@ namespace Slic3r {
         OptionsZCorrector m_options_z_corrector;
         size_t m_last_default_color_id;
         bool m_detect_layer_based_on_tag {false};
+        int m_seams_count;
 #if ENABLE_GCODE_VIEWER_STATISTICS
         std::chrono::time_point<std::chrono::high_resolution_clock> m_start_time;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
