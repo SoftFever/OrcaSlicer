@@ -3259,9 +3259,15 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
     }
 
     if (m_detect_layer_based_on_tag && !m_result.spiral_vase_layers.empty()) {
-        if (m_result.spiral_vase_layers.back().first == FLT_MAX && delta_pos[Z] >= 0.0)
+        if (delta_pos[Z] >= 0.0 && type == EMoveType::Extrude) {
+            const float current_z = static_cast<float>(m_end_position[Z]);
             // replace layer height placeholder with correct value
-            m_result.spiral_vase_layers.back().first = static_cast<float>(m_end_position[Z]);
+            if (m_result.spiral_vase_layers.back().first == FLT_MAX) {
+                m_result.spiral_vase_layers.back().first = current_z;
+            } else {
+                m_result.spiral_vase_layers.back().first = std::max(m_result.spiral_vase_layers.back().first, current_z);
+            }
+        }
         if (!m_result.moves.empty())
             m_result.spiral_vase_layers.back().second.second = m_result.moves.size() - 1;
     }
