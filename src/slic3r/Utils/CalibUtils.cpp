@@ -662,7 +662,7 @@ void CalibUtils::calib_temptue(const CalibInfo &calib_info, wxString &error_mess
     read_model_from_file(input_file, model);
 
     // cut upper
-    auto obj_bb      = model.objects[0]->bounding_box();
+    auto obj_bb      = model.objects[0]->bounding_box_exact();
     auto block_count = lround((350 - params.start) / 5 + 1);
     if (block_count > 0) {
         // add EPSILON offset to avoid cutting at the exact location where the flat surface is
@@ -673,7 +673,7 @@ void CalibUtils::calib_temptue(const CalibInfo &calib_info, wxString &error_mess
     }
 
     // cut bottom
-    obj_bb      = model.objects[0]->bounding_box();
+    obj_bb      = model.objects[0]->bounding_box_exact();
     block_count = lround((350 - params.end) / 5);
     if (block_count > 0) {
         auto new_height = block_count * 10.0 + EPSILON;
@@ -728,7 +728,7 @@ void CalibUtils::calib_max_vol_speed(const CalibInfo &calib_info, wxString &erro
     auto obj             = model.objects[0];
     auto         bed_shape = printer_config.option<ConfigOptionPoints>("printable_area")->values;
     BoundingBoxf bed_ext   = get_extents(bed_shape);
-    auto         scale_obj = (bed_ext.size().x() - 10) / obj->bounding_box().size().x();
+    auto         scale_obj = (bed_ext.size().x() - 10) / obj->bounding_box_exact().size().x();
     if (scale_obj < 1.0)
         obj->scale(scale_obj, 1, 1);
 
@@ -762,7 +762,7 @@ void CalibUtils::calib_max_vol_speed(const CalibInfo &calib_info, wxString &erro
     obj->config.set_key_value("brim_object_gap", new ConfigOptionFloat(0.0));
 
     //  cut upper
-    auto obj_bb = obj->bounding_box();
+    auto obj_bb = obj->bounding_box_exact();
     double height = (params.end - params.start + 1) / params.step;
     if (height < obj_bb.size().z()) {
         cut_model(model, height, ModelObjectCutAttribute::KeepLower);
@@ -820,7 +820,7 @@ void CalibUtils::calib_VFA(const CalibInfo &calib_info, wxString &error_message)
     model.objects[0]->config.set_key_value("brim_object_gap", new ConfigOptionFloat(0.0));
 
     // cut upper
-    auto obj_bb = model.objects[0]->bounding_box();
+    auto obj_bb = model.objects[0]->bounding_box_exact();
     auto height = 5 * ((params.end - params.start) / params.step + 1);
     if (height < obj_bb.size().z()) {
         cut_model(model, height, ModelObjectCutAttribute::KeepLower);
@@ -875,7 +875,7 @@ void CalibUtils::calib_retraction(const CalibInfo &calib_info, wxString &error_m
     obj->config.set_key_value("layer_height", new ConfigOptionFloat(layer_height));
 
     //  cut upper
-    auto obj_bb = obj->bounding_box();
+    auto obj_bb = obj->bounding_box_exact();
     auto height = 1.0 + 0.4 + ((params.end - params.start)) / params.step;
     if (height < obj_bb.size().z()) {
         cut_model(model, height, ModelObjectCutAttribute::KeepLower);
@@ -947,7 +947,7 @@ void CalibUtils::process_and_store_3mf(Model *model, const DynamicPrintConfig &f
         ModelInstance *instance = model->objects[0]->instances[0];
         instance->set_offset(instance->get_offset() + Vec3d(current_width / 2, current_depth / 2, 0));
     } else {
-        BoundingBoxf3 bbox = model->bounding_box();
+        BoundingBoxf3 bbox = model->bounding_box_exact();
         Vec3d bbox_center = bbox.center();
         for (auto object : model->objects) {
             ModelInstance *instance = object->instances[0];

@@ -12,6 +12,7 @@
 #include <boost/filesystem/operations.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/nowide/convert.hpp>
+#include <boost/nowide/cstdio.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 
 #include "libslic3r/libslic3r.h"
@@ -1601,7 +1602,7 @@ Vec3d PartPlate::estimate_wipe_tower_size(const DynamicPrintConfig & config, con
 		if (!use_global_objects && !contain_instance_totally(obj_idx, 0))
 			continue;
 
-		BoundingBoxf3 bbox = m_model->objects[obj_idx]->bounding_box();
+		BoundingBoxf3 bbox = m_model->objects[obj_idx]->bounding_box_exact();
 		max_height = std::max(bbox.size().z(), max_height);
 	}
 	wipe_tower_size(2) = max_height;

@@ -2,6 +2,7 @@
 #include "Model.hpp"
 
 #include <boost/container/small_vector.hpp>
+#include <boost/log/trivial.hpp>
 
 #ifndef NDEBUG
 //    #define EXPENSIVE_DEBUG_CHECKS

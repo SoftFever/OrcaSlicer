@@ -9,6 +9,8 @@
 #include <exception>
 #include <future>
 
+#include <wx/window.h>
+
 #include "libslic3r/libslic3r.h"
 #include "ProgressIndicator.hpp"
 

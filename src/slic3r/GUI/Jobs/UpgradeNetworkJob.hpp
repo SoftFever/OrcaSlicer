@@ -1,8 +1,11 @@
 #ifndef __UpgradeNetworkJob_HPP__
 #define __UpgradeNetworkJob_HPP__
 
+#include <boost/filesystem.hpp>
+#include <boost/log/trivial.hpp>
 #include <functional>
 #include "Job.hpp"
+#include <wx/window.h>
 
 namespace fs = boost::filesystem;
 

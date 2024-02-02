@@ -1,5 +1,6 @@
 #include "ProgressBar.hpp"
 #include "../I18N.hpp"
+#include <wx/dcclient.h>
 #include <wx/dcgraph.h>
 #include "Label.hpp"
 
