@@ -1491,6 +1491,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             plate->is_label_object_enabled = it->second->is_label_object_enabled;
             plate->skipped_objects = it->second->skipped_objects;
             plate->slice_filaments_info = it->second->slice_filaments_info;
+            plate->printer_model_id = it->second->printer_model_id;
+            plate->nozzle_diameters = it->second->nozzle_diameters;
             plate->warnings = it->second->warnings;
             plate->thumbnail_file = it->second->thumbnail_file;
             if (plate->thumbnail_file.empty()) {
@@ -4184,6 +4186,16 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             {
                 if (m_curr_plater)
                     std::istringstream(value) >> std::boolalpha >> m_curr_plater->is_label_object_enabled;
+            }
+            else if (key == PRINTER_MODEL_ID_ATTR)
+            {
+                if (m_curr_plater)
+                    m_curr_plater->printer_model_id = value;
+            }
+            else if (key == NOZZLE_DIAMETERS_ATTR)
+            {
+                if (m_curr_plater)
+                    m_curr_plater->nozzle_diameters = value;
             }
         }
 
