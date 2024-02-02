@@ -711,9 +711,7 @@ void wxMediaCtrl2::DoSetSize(int x, int y, int width, int height, int sizeFlags)
     wxMediaCtrl::DoSetSize(x, y, width, height, sizeFlags);
 #endif
     if (sizeFlags & wxSIZE_USE_EXISTING) return;
-    wxSize size = GetVideoSize();
-    if (size.GetWidth() <= 0)
-        size = wxSize{16, 9};
+    wxSize size = m_video_size;
     int maxHeight = (width * size.GetHeight() + size.GetHeight() - 1) / size.GetWidth();
     if (maxHeight != GetMaxHeight()) {
         // BOOST_LOG_TRIVIAL(info) << "wxMediaCtrl2::DoSetSize: width: " << width << ", height: " << height << ", maxHeight: " << maxHeight;

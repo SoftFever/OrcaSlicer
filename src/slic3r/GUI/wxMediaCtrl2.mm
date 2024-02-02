@@ -155,6 +155,8 @@ wxSize wxMediaCtrl2::GetVideoSize() const
     BambuPlayer * player2 = (BambuPlayer *) m_player;
     if (player2) {
         NSSize size = [player2 videoSize];
+        if (size.width > 0)
+            const_cast<wxSize&>(m_video_size) = {(int) size.width, (int) size.height};
         return {(int) size.width, (int) size.height};
     } else {
         return {0, 0};

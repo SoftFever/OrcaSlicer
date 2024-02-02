@@ -220,7 +220,10 @@ wxSize wxMediaCtrl2::GetVideoSize() const
     // "Loading...".  Fake it out for now.
     return m_loaded ? wxSize(1280, 720) : wxSize{};
 #else
-    return m_imp ? m_imp->GetVideoSize() : wxSize(0, 0);
+    wxSize size = m_imp ? m_imp->GetVideoSize() : wxSize(0, 0);
+    if (size.GetWidth() > 0)
+        const_cast<wxSize&>(m_video_size) = size;
+    return size;
 #endif
 }
 
