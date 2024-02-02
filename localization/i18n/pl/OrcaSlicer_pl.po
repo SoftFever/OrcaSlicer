@@ -102,7 +102,7 @@ msgid "Support Generated"
 msgstr "Wygenerowana podpora"
 
 msgid "Gizmo-Place on Face"
-msgstr "Gizmo-Umieść na powierzchni"
+msgstr "Uchwyt-Połóż na Płaszczyźnie"
 
 msgid "Lay on face"
 msgstr "Połóż na powierzchni"
@@ -184,13 +184,13 @@ msgid "Move"
 msgstr "Przesuń"
 
 msgid "Gizmo-Move"
-msgstr "Gizmo-Przesuń"
+msgstr "Uchwyt-Przesuń"
 
 msgid "Rotate"
 msgstr "Obróć"
 
 msgid "Gizmo-Rotate"
-msgstr "Gizmo-Obróć"
+msgstr "Uchwyt-Obróć"
 
 msgid "Optimize orientation"
 msgstr "Optymalizuj orientację"
@@ -202,7 +202,7 @@ msgid "Scale"
 msgstr "Skaluj"
 
 msgid "Gizmo-Scale"
-msgstr "Gizmo-Skaluj"
+msgstr "Uchwyt-Skaluj"
 
 msgid "Error: Please close all toolbar menus first"
 msgstr "Błąd: Proszę najpierw zamknąć wszystkie menu paska narzędziowego."
@@ -727,10 +727,10 @@ msgid "Text input doesn't show gap between lines."
 msgstr "Wprowadzanie tekstu nie pokazuje odstępu między wierszami."
 
 msgid "Too tall, diminished font height inside text input."
-msgstr "Zbyt wysoka, zmniejszona wysokość czcionki wewnątrz wejścia tekstowego."
+msgstr "Zmniejsz rozmiar czcionki, tekst jest za duży wewnątrz pola tekstowego."
 
 msgid "Too small, enlarged font height inside text input."
-msgstr "Zbyt mała, powiększona wysokość czcionki wewnątrz wejścia tekstowego."
+msgstr "Powiększ rozmiar czcionki, tekst jest za mały wewnątrz pola tekstowego."
 
 msgid "Text doesn't show current horizontal alignment."
 msgstr "Tekst nie pokazuje aktualnego wyrównania poziomego."
@@ -948,7 +948,7 @@ msgid "Undo boldness"
 msgstr "Cofnij pogrubienie"
 
 msgid "Tiny / Wide glyphs"
-msgstr "Małe / szerokie glify"
+msgstr "Wąskie / Szerokie glify"
 
 msgid "Undo letter's skew"
 msgstr "Cofnij pochylenie liter"
@@ -978,10 +978,10 @@ msgid "Select from True Type Collection."
 msgstr "Wybierz z kolekcji True Type."
 
 msgid "Set text to face camera"
-msgstr "Ustaw tekst, patrzył w twoją stronę"
+msgstr "Ustaw tekst w moją stronę"
 
 msgid "Orient the text towards the camera."
-msgstr "Orientuj tekst w kierunku kamery."
+msgstr "Orientuj tekst w moim kierunku."
 
 #, boost-format
 msgid ""
@@ -1003,7 +1003,7 @@ msgstr "W kolejce"
 #. TRN - Input label. Be short as possible
 #. Height of one text line - Font Ascent
 msgid "Height"
-msgstr "Wysokość"
+msgstr "Rozmiar"
 
 #. TRN - Input label. Be short as possible
 #. Copy surface of model on surface of the embossed text
@@ -1121,7 +1121,7 @@ msgid "Stroke of shape (%1%) contains unsupported: %2%."
 msgstr "Obrys kształtu (%1%) zawiera nieobsługiwane: %2%."
 
 msgid "Face the camera"
-msgstr "Patrz w kamerę"
+msgstr "Patrz w moim kierunku"
 
 #. TRN - Preview of filename after clear local filepath.
 msgid "Unknown filename"
@@ -5252,7 +5252,7 @@ msgstr ""
 
 msgid "Already did a synchronization, do you want to sync only changes or resync all?"
 msgstr ""
-"Synchronizacja została już wykonana. Czy chcesz synchronizować tylko zmiany czy zaktualizować wszystko ponownie?"
+"Synchronizacja została już wykonana. Chcesz synchronizować tylko zmiany czy zaktualizować wszystko ponownie?"
 
 msgid "Sync"
 msgstr "Tylko zmiany"
@@ -7494,13 +7494,13 @@ msgid "Gizmo Place face on bed"
 msgstr "Położenie na płaszczyźnie za pomocą \"uchwytów\""
 
 msgid "Gizmo SLA support points"
-msgstr "Gizmo punktów podparcia SLA"
+msgstr "Punkty podpór SLA za pomocą \"uchwytów\""
 
 msgid "Gizmo FDM paint-on seam"
-msgstr "Gizmo malowania szwu FDM"
+msgstr "Uchwyt malowania szwu FDM"
 
 msgid "Gizmo Text emboss / engrave"
-msgstr "chwyt wytłaczania / grawerowania tekstu"
+msgstr "Uchwyt wytłaczania / grawerowania tekstu"
 
 msgid "Zoom in"
 msgstr "Przybliżenie"
@@ -8360,8 +8360,8 @@ msgid ""
 "2. Top and Bottom surfaces: Applies gap fill to top and bottom surfaces only\n"
 "3. Nowhere: Disables gap fill\n"
 msgstr ""
-"Umożliwia wypełnienie szpar/szczelin dla wybranych powierzchni. Minimalną długość szpary, która zostanie "
-"wypełniona, można kontrolować poprzez opcję 'filtruj małe szpary' poniżej.\n"
+"Umożliwia wypełnienie szpar/szczelin dla wybranych powierzchni. Minimalną długość szczeliny, która zostanie "
+"wypełniona, można kontrolować poprzez opcję 'filtruj wąskie szczeliny' znajdującej się poniżej.\n"
 "\n"
 "Opcje:\n"
 "1. Wszędzie: Stosuje wypełnienie na górnych, dolnych i wewnętrznych powierzchniach stałych\n"
@@ -9609,13 +9609,13 @@ msgid "Whether to apply fuzzy skin on the first layer"
 msgstr "Czy zastosować Fuzzy skin na pierwszej warstwie"
 
 msgid "Filter out tiny gaps"
-msgstr "Filtruj małe szpary"
+msgstr "Filtruj wąskie szczeliny"
 
 msgid "Layers and Perimeters"
 msgstr "Warstwy i obwody"
 
 msgid "Filter out gaps smaller than the threshold specified"
-msgstr "Filtruj małe szpary mniejsze niż podany próg"
+msgstr "Filtruj szczeliny mniejsze niż podany próg"
 
 msgid "Speed of gap infill. Gap usually has irregular line width and should be printed more slowly"
 msgstr ""
@@ -12174,8 +12174,8 @@ msgstr ""
 "Po użyciu kalibracji dynamiki przepływu mogą nadal występować pewne problemy z ekstruzją, takie jak:\n"
 "1. Nadmierna ekstruzja: Nadmiar filamentu na twoim wydrukowanym obiekcie, tworzenie grudek lub pryszczy, lub "
 "warstwy wydają się być grubsze niż oczekiwano i nierówne.\n"
-"2. Niedostateczna ekstruzja: Bardzo cienkie warstwy, słaba wytrzymałość wypełnienia, lub luki w górnej warstwie "
-"modelu, nawet przy wolnym drukowaniu.\n"
+"2. Niedostateczna ekstruzja: Bardzo cienkie warstwy, słaba wytrzymałość wypełnienia, lubprzerwy w górnej "
+"warstwie modelu, nawet przy wolnym drukowaniu.\n"
 "3. Słaba jakość powierzchni: Powierzchnia twoich wydruków wydaje się być szorstka lub nierówna.\n"
 "4. Słaba wytrzymałość strukturalna: Wydruki łatwo się łamią lub nie wydają się być tak wytrzymałe, jak powinny."
 
