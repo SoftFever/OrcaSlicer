@@ -29,6 +29,7 @@
 #include <map>
 #include <set>
 #include <string>
+#include <cfloat>
 
 namespace Slic3r {
 

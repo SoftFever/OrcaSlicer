@@ -1915,7 +1915,6 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
     // modifies m_silent_time_estimator_enabled
     DoExport::init_gcode_processor(print.config(), m_processor, m_silent_time_estimator_enabled);
-
     const bool is_bbl_printers = print.is_BBL_printer();
     m_calib_config.clear();
     // resets analyzer's tracking data
@@ -4456,6 +4455,7 @@ std::string GCode::change_layer(coordf_t print_z)
         //BBS: set m_need_change_layer_lift_z to be true so that z lift can be done in travel_to() function
         m_need_change_layer_lift_z = true;
     }
+
     m_nominal_z = z;
 
     // forget last wiping path as wiping after raising Z is pointless
