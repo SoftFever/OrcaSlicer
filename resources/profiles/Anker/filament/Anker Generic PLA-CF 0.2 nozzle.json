@@ -1,0 +1,16 @@
+{
+    "type": "filament",
+    "name": "Anker Generic PLA-CF 2.0 nozzle",
+    "inherits": "Anker Generic PLA-CF @base",
+    "from": "system",
+    "setting_id": "GFSL98_20",
+    "instantiation": "true",
+    "filament_max_volumetric_speed": [
+        "2"
+    ],
+    "compatible_printers": [
+        "Anker M5 0.2 nozzle",
+        "Anker M5 All-Metal 0.2 nozzle",
+        "Anker M5C 0.2 nozzle"
+    ]
+}
