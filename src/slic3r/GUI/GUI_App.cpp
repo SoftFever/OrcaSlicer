@@ -2558,6 +2558,7 @@ bool GUI_App::on_init_inner()
             // }
             // });
 
+        //TODO: printago : comment out this event and return;
         Bind(EVT_ENTER_FORCE_UPGRADE, [this](const wxCommandEvent& evt) {
                 wxString      version_str = wxString::FromUTF8(this->app_config->get("upgrade", "version"));
                 wxString      description_text = wxString::FromUTF8(this->app_config->get("upgrade", "description"));
@@ -2584,12 +2585,14 @@ bool GUI_App::on_init_inner()
                 }
             });
 
+        // TODO: printago : comment out this event and return;
         Bind(EVT_SHOW_NO_NEW_VERSION, [this](const wxCommandEvent& evt) {
             wxString msg = _L("This is the newest version.");
             InfoDialog dlg(nullptr, _L("Info"), msg);
             dlg.ShowModal();
         });
 
+        // TODO: printago : comment out this event and return;
         Bind(EVT_SHOW_DIALOG, [this](const wxCommandEvent& evt) {
             wxString msg = evt.GetString();
             InfoDialog dlg(this->mainframe, _L("Info"), msg);
