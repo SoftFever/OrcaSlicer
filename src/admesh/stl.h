@@ -45,7 +45,7 @@ typedef Eigen::Matrix<int,   3, 1, Eigen::DontAlign> stl_triangle_vertex_indices
 static_assert(sizeof(stl_vertex) == 12, "size of stl_vertex incorrect");
 static_assert(sizeof(stl_normal) == 12, "size of stl_normal incorrect");
 
-typedef std::function<void(int current, int total, bool& cancel, std::string& model_id)> ImportstlProgressFn;
+typedef std::function<void(int current, int total, bool& cancel, std::string& model_id, std::string& code)> ImportstlProgressFn;
 
 typedef enum {
     eNormal,  // normal face

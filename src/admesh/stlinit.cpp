@@ -45,6 +45,7 @@ extern void stl_internal_reverse_quads(char *buf, size_t cnt);
 
 const int LOAD_STL_UNIT_NUM           = 5;
 static std::string model_id           = "";
+static std::string country_code       = "";
 
 static FILE* stl_open_count_facets(stl_file *stl, const char *file) 
 {
@@ -153,6 +154,8 @@ static bool stl_read(stl_file *stl, FILE *fp, int first_facet, bool first, Impor
 {
     if (stl->stats.type == binary) {
         fseek(fp, HEADER_SIZE, SEEK_SET);
+        model_id = "";
+        country_code = "";
     }
 	else {
         rewind(fp);
@@ -165,18 +168,22 @@ static bool stl_read(stl_file *stl, FILE *fp, int first_facet, bool first, Impor
                     // Extract the value after "MW"
                     char version_str[16];
                     char model_id_str[128]; 
-                    int num_values = sscanf(mw_position + 3, "%s %s", version_str, model_id_str);
-                    if (num_values == 2) {
+                    char country_code_str[16];
+                    int num_values = sscanf(mw_position + 3, "%s %s %s", version_str, model_id_str, country_code_str);
+                    if (num_values == 3) {
                         if (strcmp(version_str, "1.0") == 0) {
                             model_id = model_id_str;
+                            country_code = country_code_str;
                         }
                     }
                     else {
                         model_id = "";
+                        country_code = "";
                     }
                 }
                 else {
                     model_id = "";  // No MW format found
+                    country_code = "";
                 }
             }
         }
@@ -195,7 +202,7 @@ static bool stl_read(stl_file *stl, FILE *fp, int first_facet, bool first, Impor
         if ((i % unit) == 0) {
             bool cb_cancel = false;
             if (stlFn) {
-                stlFn(i, facets_num, cb_cancel, model_id);
+                stlFn(i, facets_num, cb_cancel, model_id, country_code);
                 if (cb_cancel)
                     return false;
             }

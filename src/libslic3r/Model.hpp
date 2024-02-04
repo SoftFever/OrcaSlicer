@@ -1510,6 +1510,7 @@ public:
 
     // DesignInfo of Model
     std::string stl_design_id;
+    std::string stl_design_country;
     std::shared_ptr<ModelDesignInfo> design_info = nullptr;
     std::shared_ptr<ModelInfo> model_info = nullptr;
     std::shared_ptr<ModelProfileInfo> profile_info = nullptr;
