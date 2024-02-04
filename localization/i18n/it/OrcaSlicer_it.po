@@ -1996,7 +1996,7 @@ msgstr[1] "%1$d errors repaired"
 msgid "Error: %1$d non-manifold edge."
 msgid_plural "Error: %1$d non-manifold edges."
 msgstr[0] "Errore: %1$d bordo non manifold."
-msgstr[1] "Error: %1$d non-manifold edges."
+msgstr[1] "Errore: %1$d bordi non-manifold."
 
 msgid "Remaining errors"
 msgstr "Errori rimanenti"
@@ -2185,12 +2185,12 @@ msgstr "Rinomina"
 msgid "Following model object has been repaired"
 msgid_plural "Following model objects have been repaired"
 msgstr[0] "Il seguente oggetto del modello è stato riparato"
-msgstr[1] "The following model objects have been repaired"
+msgstr[1] " seguenti oggetti del modello sono stati riparati"
 
 msgid "Failed to repair folowing model object"
 msgid_plural "Failed to repair folowing model objects"
 msgstr[0] "Impossibile riparare il seguente oggetto modello"
-msgstr[1] "Failed to repair the following model objects"
+msgstr[1] "mpossibile riparare i seguenti oggetti modello"
 
 msgid "Repairing was canceled"
 msgstr "La riparazione è stata annullata"
@@ -2423,7 +2423,7 @@ msgid "Ext Spool"
 msgstr "Bobina esterna"
 
 msgid "Tips"
-msgstr "Tips"
+msgstr "Suggerimenti"
 
 msgid "Guide"
 msgstr "Guida"
@@ -2464,7 +2464,7 @@ msgid "Purge old filament"
 msgstr "Spurgo filamento precedente"
 
 msgid "Feed Filament"
-msgstr "Filamento di alimentazione"
+msgstr "Alimentazione Filamento"
 
 msgid "Confirm extruded"
 msgstr "Conferma estrusione"
@@ -2500,7 +2500,7 @@ msgid ""
 "We can not do auto-arrange on this plate."
 msgstr ""
 "Il piatto è bloccato.\n"
-"Non puoi organizzare automaticamente questo piatto."
+"Non è possibile eseguire la disposizione automatica su questo piatto."
 
 msgid "Arranging..."
 msgstr "Disponendo..."
@@ -3037,12 +3037,12 @@ msgid "Group"
 msgstr "Gruppo"
 
 msgid "The printer does not currently support auto refill."
-msgstr "La stampante non supporta attualmente la ricarica automatica."
+msgstr "Attualmente la stampante non supporta la ricarica automatica."
 
 msgid ""
 "AMS filament backup is not enabled, please enable it in the AMS settings."
 msgstr ""
-"Il backup del filamento AMS non è abilitato, si prega di abilitarlo nelle "
+"Il backup del filamento AMS non è abilitato, è necessario abilitarlo nelle "
 "impostazioni AMS."
 
 msgid ""
@@ -3190,10 +3190,10 @@ msgid "Divide by zero"
 msgstr "Dividi per zero"
 
 msgid "Overflow"
-msgstr "Sovrafflusso"
+msgstr "Sovra-estrusione"
 
 msgid "Underflow"
-msgstr "Sotto-estruso"
+msgstr "Sotto-estrusione"
 
 msgid "Floating reserved operand"
 msgstr "Floating reserved operand"
@@ -3306,9 +3306,9 @@ msgid ""
 "Please make sure whether to use the temperature to print.\n"
 "\n"
 msgstr ""
-"The nozzle may become clogged when the temperature is out of the recommended "
-"range.\n"
-"Please make sure whether to use this temperature to print.\n"
+"Il Nozzle potrebbe intasarsi quando la temperatura non rientra "
+"nell'intervallo consigliato.\n"
+"Assicurarsi di utilizzare questa temperatura per la stampa.\n"
 "\n"
 
 #, c-format, boost-format
@@ -3471,7 +3471,7 @@ msgstr ""
 "Quindi, ripristina il layer skirt su 1 per evitare collisioni."
 
 msgid "Auto bed leveling"
-msgstr "Auto bed leveling"
+msgstr "Livellamento automatico piano"
 
 msgid "Heatbed preheating"
 msgstr "Preriscaldamento del piano"
@@ -3483,7 +3483,7 @@ msgid "Changing filament"
 msgstr "Cambio filamento"
 
 msgid "M400 pause"
-msgstr "M400 pause"
+msgstr "M400 pausa"
 
 msgid "Paused due to filament runout"
 msgstr "Pausa per filamento esaurito"
@@ -13752,7 +13752,7 @@ msgid "PA Calibration"
 msgstr "Calibrazione PA"
 
 msgid "DDE"
-msgstr "Richiesta DDE (poke) fallita"
+msgstr "Estrusore Diretto"
 
 msgid "Bowden"
 msgstr "Bowden"
@@ -13776,10 +13776,10 @@ msgid "End PA: "
 msgstr "Fine PA: "
 
 msgid "PA step: "
-msgstr "Passo PA: "
+msgstr "Incremento PA: "
 
 msgid "Print numbers"
-msgstr "Numeri di stampa"
+msgstr "Stampa numeri"
 
 msgid ""
 "Please input valid values:\n"
@@ -13817,13 +13817,13 @@ msgid "Filament type"
 msgstr "Tipo filamento"
 
 msgid "Start temp: "
-msgstr "Temperatura di avvio: "
+msgstr "Temperatura Iniziale: "
 
 msgid "End temp: "
-msgstr "Fine fine: "
+msgstr "Temperatura finale: "
 
 msgid "Temp step: "
-msgstr "Fase di temperatura: "
+msgstr "Incremento di temperatura: "
 
 msgid ""
 "Please input valid values:\n"
@@ -13846,7 +13846,7 @@ msgid "End volumetric speed: "
 msgstr "Velocità volumetrica finale: "
 
 msgid "step: "
-msgstr "Step: "
+msgstr "Incrementi: "
 
 msgid ""
 "Please input valid values:\n"
