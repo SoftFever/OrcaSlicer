@@ -166,6 +166,9 @@
 #include "DailyTips.hpp"
 #include "CreatePresetsDialog.hpp"
 
+//printago
+#include "PrintagoServer.hpp"
+
 using boost::optional;
 namespace fs = boost::filesystem;
 using Slic3r::_3DScene;
@@ -6269,6 +6272,23 @@ void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
             }
         }
     }
+
+    //printago
+    if (!PBJob::CanProcessJob()) 
+    {
+        int start  = PBJob::serverStateProgress.at(JobServerState::Slicing);
+        int end    = PBJob::serverStateProgress.at(JobServerState::Sending);
+
+        int previousePercent = PBJob::progress;
+
+        double overallProgress = start + (end - start) * (evt.status.percent / 100.0);
+        PBJob::progress = std::round(overallProgress);
+
+        if (previousePercent != PBJob::progress) {
+            wxGetApp().printago_director()->PostJobUpdateMessage();
+        }
+        
+    }
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format("exit.");
 }
 
@@ -6599,11 +6619,11 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
         }
     }
 
-    if (wxGetApp().mainframe->m_printago != nullptr && !wxGetApp().mainframe->m_printago->CanProcessJob()) {
-        wxEvent *clonedEvent = evt.Clone();
-        wxQueueEvent(wxGetApp().mainframe->m_printago, clonedEvent);
+    //printago
+    if (!PBJob::CanProcessJob()) {
+        SlicingProcessCompletedEvent::StatusType stat = evt.status();
+        wxGetApp().printago_director()->OnSlicingCompleted(stat);
     }
-    
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(", exit.");
 }
 

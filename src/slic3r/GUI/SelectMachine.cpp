@@ -2794,7 +2794,7 @@ void SelectMachineDialog::on_send_print()
 
 
     bool timelapse_option = select_timelapse->IsShown() ? m_checkbox_list["timelapse"]->GetValue() : true;
-
+    
     m_print_job->set_print_config(
         MachineBedTypeString[0],
         m_checkbox_list["bed_leveling"]->GetValue(),
@@ -4306,9 +4306,19 @@ void SelectMachineDialog::update_lan_machine_list()
     BOOST_LOG_TRIVIAL(trace) << "SelectMachineDialog update_lan_devices end";
 }
 
-void SelectMachineDialog::setPrinterLastSelect(const std::string& printerLastSelect) {
+//printago
+void SelectMachineDialog::SetPrinter(const std::string& printerLastSelect) {
         m_printer_last_select = printerLastSelect;
     }
+
+//printago
+void SelectMachineDialog::SetCheckboxOption(const std::string& key, bool value)
+{
+    if (m_checkbox_list.find(key) != m_checkbox_list.end()) {
+            m_checkbox_list[key]->SetValue(value);
+    }
+}
+
 
 EditDevNameDialog::EditDevNameDialog(Plater *plater /*= nullptr*/)
     : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, _L("Modifying the device name"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)

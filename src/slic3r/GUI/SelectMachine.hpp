@@ -472,7 +472,9 @@ public:
     PrintDialogStatus  get_status() { return m_print_status; }
     std::vector<std::string> sort_string(std::vector<std::string> strArray);
 
-    void setPrinterLastSelect(const std::string& printerLastSelect);
+    //Printago
+    void SetPrinter(const std::string& printerLastSelect);
+    void SetCheckboxOption(const std::string& key, bool value);
 };
 
 wxDECLARE_EVENT(EVT_FINISHED_UPDATE_MACHINE_LIST, wxCommandEvent);

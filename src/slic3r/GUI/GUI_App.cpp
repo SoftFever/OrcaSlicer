@@ -103,6 +103,9 @@
 #include "ModelMall.hpp"
 #include "HintNotification.hpp"
 
+//printago
+#include "PrintagoServer.hpp"
+
 //#ifdef WIN32
 //#include "BaseException.h"
 //#endif
@@ -2777,8 +2780,9 @@ bool GUI_App::on_init_inner()
 
     });
 
-    m_initialized = true;
+    printago_director_ = new PrintagoDirector();
 
+    m_initialized = true;
     flush_logs();
 
     BOOST_LOG_TRIVIAL(info) << "finished the gui app init";
@@ -4179,8 +4183,10 @@ void GUI_App::on_user_login(wxCommandEvent &evt)
 
 bool GUI_App::is_studio_active()
 {
-    //Printago: always return true; otherwise we stop processing stuff like whether or not the printer is connected.
+    //printago : always return true; otherwise we stop processing stuff like whether or not the printer is connected.
     return true;
+
+    //BBS & Orca:
 
     // auto curr_time = std::chrono::system_clock::now();
     // auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(curr_time - last_active_point);
@@ -6010,6 +6016,12 @@ Plater* GUI_App::plater()
 const Plater* GUI_App::plater() const
 {
     return plater_;
+}
+
+//printago
+PrintagoDirector* GUI_App::printago_director()
+{
+    return printago_director_;
 }
 
 ParamsPanel* GUI_App::params_panel()
