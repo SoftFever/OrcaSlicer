@@ -1050,6 +1050,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloatOrPercent,      initial_layer_travel_speed))
     ((ConfigOptionBool,                bbl_calib_mark_logo))
     ((ConfigOptionBool,                disable_m73))
+    ((ConfigOptionFloats,              max_volumetric_flow_rate))
 
     // Orca: mmu
     ((ConfigOptionFloat,               cooling_tube_retraction))

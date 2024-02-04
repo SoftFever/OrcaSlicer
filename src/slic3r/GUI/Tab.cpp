@@ -3969,6 +3969,9 @@ if (is_marlin_flavor)
                 update();
             };
 
+            optgroup = page->new_optgroup(L("Flow"), L"param_flow", -1, true);
+            optgroup->append_single_option_line("max_volumetric_flow_rate", "", extruder_idx);
+
             optgroup = page->new_optgroup(L("Layer height limits"), L"param_layer_height", -1, true);
             optgroup->append_single_option_line("min_layer_height", "", extruder_idx);
             optgroup->append_single_option_line("max_layer_height", "", extruder_idx);

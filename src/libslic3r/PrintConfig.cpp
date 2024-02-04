@@ -3425,6 +3425,16 @@ def = this->add("filament_loading_speed", coFloats);
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
+    def = this->add("max_volumetric_flow_rate", coFloats);
+    def->label = L("Max volumetric flow rate");
+    def->tooltip = L("This setting control for how much volume of filament can be melted and extruded per second. "
+                     "Printing speed is limited by max volumetric flow rate, in case of too high and unreasonable speed setting. "
+                     "Set to zero to disable limiting.");
+    def->sidetext = L("mm³/s");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloats { 0. });
+
     def = this->add("seam_position", coEnum);
     def->label = L("Seam position");
     def->category = L("Quality");

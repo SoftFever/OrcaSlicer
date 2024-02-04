@@ -5060,6 +5060,13 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     //        m_config.max_volumetric_speed.value / _mm3_per_mm
     //    );
     //}
+    if (EXTRUDER_CONFIG(max_volumetric_flow_rate) > 0) {
+        // cap speed with max_volumetric_flow_rate from extruder
+        speed = std::min(
+            speed,
+            EXTRUDER_CONFIG(max_volumetric_flow_rate) / _mm3_per_mm
+        );
+    }
     if (EXTRUDER_CONFIG(filament_max_volumetric_speed) > 0) {
         // cap speed with max_volumetric_speed anyway (even if user is not using autospeed)
         speed = std::min(
