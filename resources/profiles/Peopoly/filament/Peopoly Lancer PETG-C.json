@@ -1,0 +1,30 @@
+{
+    "type": "filament",
+    "filament_id": "GFL99",
+    "setting_id": "GFSL99",
+    "name": "Peopoly Lancer PETG-C",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "fdm_filament_petg",
+    "fan_cooling_layer_time": [
+        "20"
+    ],
+    "fan_max_speed": [
+        "40"
+    ],
+    "fan_min_speed": [
+        "5"
+    ],
+    "filament_max_volumetric_speed": [
+        "28"
+    ],
+    "overhang_fan_speed": [
+        "100"
+    ],
+    "filament_vendor": [
+        "Peopoly"
+    ],
+    "compatible_printers": [
+        "Peopoly Magneto X 0.4 nozzle"
+    ]
+}
