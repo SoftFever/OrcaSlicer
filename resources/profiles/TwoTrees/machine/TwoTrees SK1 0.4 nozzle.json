@@ -115,5 +115,6 @@
     "retraction_speed": "50",
     "thumbnails": [],
     "thumbnails_format": "PNG",
-    "use_relative_e_distances": "0"
+    "use_relative_e_distances": "0",
+	"support_multi_bed_types": "1"
 }
