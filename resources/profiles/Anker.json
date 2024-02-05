@@ -161,10 +161,6 @@
             "sub_path": "filament/Anker Generic PA-CF @base.json"
         },
         {
-            "name": "Anker Generic PA-CF 0.2 nozzle",
-            "sub_path": "filament/Anker Generic PA-CF 0.2 nozzle.json"
-        },
-        {
             "name": "Anker Generic PA-CF",
             "sub_path": "filament/Anker Generic PA-CF.json"
         },
@@ -191,10 +187,6 @@
         {
             "name": "Anker Generic PETG-CF @base",
             "sub_path": "filament/Anker Generic PETG-CF @base.json"
-        },
-        {
-            "name": "Anker Generic PETG-CF 0.2 nozzle",
-            "sub_path": "filament/Anker Generic PETG-CF 0.2 nozzle.json"
         },
         {
             "name": "Anker Generic PETG-CF",
@@ -239,10 +231,6 @@
         {
             "name": "Anker Generic PLA-CF @base",
             "sub_path": "filament/Anker Generic PLA-CF @base.json"
-        },
-        {
-            "name": "Anker Generic PLA-CF 0.2 nozzle",
-            "sub_path": "filament/Anker Generic PLA-CF 0.2 nozzle.json"
         },
         {
             "name": "Anker Generic PLA-CF",
