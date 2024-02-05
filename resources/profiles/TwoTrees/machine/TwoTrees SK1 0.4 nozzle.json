@@ -29,9 +29,7 @@
     "before_layer_change_gcode": [
         ""
     ],
-    "change_filament_gcode": [
-        ""
-    ],
+    "change_filament_gcode": "PAUSE",
     "layer_change_gcode": [
         ""
     ],
@@ -107,9 +105,7 @@
         "0",
         "0"
     ],
-    "machine_pause_gcode": [
-        "M601"
-    ],
+    "machine_pause_gcode": "PAUSE",
     "max_layer_height": "0.32",
     "min_layer_height": "0.08",
     "retract_before_wipe": "100%",
