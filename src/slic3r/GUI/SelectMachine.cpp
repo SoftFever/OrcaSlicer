@@ -2217,10 +2217,19 @@ bool SelectMachineDialog::is_blocking_printing(MachineObject* obj_)
 {
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev) return true;
-
-    PresetBundle* preset_bundle = wxGetApp().preset_bundle;
-    auto source_model = preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle);
     auto target_model = obj_->printer_type;
+    std::string source_model = "";
+
+    if (m_print_type == PrintFromType::FROM_NORMAL) {
+        PresetBundle* preset_bundle = wxGetApp().preset_bundle;
+        source_model = preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle);
+        
+       
+    }else if (m_print_type == PrintFromType::FROM_SDCARD_VIEW) {
+        if (m_required_data_plate_data_list.size() > 0) {
+            source_model = m_required_data_plate_data_list[m_print_plate_idx]->printer_model_id;
+        }
+    }
 
     if (source_model != target_model) {
         std::vector<std::string> compatible_machine = dev->get_compatible_machine(target_model);
@@ -3422,7 +3431,7 @@ void SelectMachineDialog::update_show_status()
         }
     }
 
-    if (m_print_type == PrintFromType::FROM_NORMAL && is_blocking_printing(obj_)) {
+    if (is_blocking_printing(obj_)) {
         show_status(PrintDialogStatus::PrintStatusUnsupportedPrinter);
         return;
     }
