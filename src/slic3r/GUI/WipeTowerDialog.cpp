@@ -486,7 +486,7 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
             edit_boxes.back().push_back(new wxTextCtrl(m_page_advanced, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(ITEM_WIDTH(), -1)));
 #endif
             if (i == j) {
-                edit_boxes[i][j]->SetValue(wxString("-"));
+                edit_boxes[i][j]->SetValue(wxString("0"));
                 edit_boxes[i][j]->SetEditable(false);
                 edit_boxes[i][j]->Bind(wxEVT_KILL_FOCUS, [this](wxFocusEvent&) {});
                 edit_boxes[i][j]->Bind(wxEVT_SET_FOCUS, [this](wxFocusEvent&) {});
