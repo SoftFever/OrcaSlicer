@@ -12,7 +12,7 @@
 #include "I18N.hpp"
 
 #include <iostream>
-
+#include <regex>
 
 namespace Slic3r {
 

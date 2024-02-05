@@ -33,6 +33,7 @@
 
 #include "libslic3r/Utils.hpp"
 #include "GUI_App.hpp"
+#include <boost/log/trivial.hpp>
 #include <wx/dcgraph.h>
 namespace Slic3r {
 namespace GUI {

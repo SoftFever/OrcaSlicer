@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include <boost/algorithm/string.hpp>
+#include <boost/log/trivial.hpp>
 
 #include <wx/sizer.h>
 #include <wx/stattext.h>

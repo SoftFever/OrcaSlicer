@@ -21,6 +21,8 @@
 #include <wx/arrstr.h>
 #include <wx/tglbtn.h>
 
+#include <boost/log/trivial.hpp>
+
 #include "wxExtensions.hpp"
 #include "GUI_App.hpp"
 #include "GUI_ObjectList.hpp"

@@ -4,6 +4,8 @@
 #include "GUI_App.hpp"
 #include "libslic3r/Preset.hpp"
 #include "I18N.hpp"
+#include <boost/log/trivial.hpp>
+#include <wx/colordlg.h>
 #include <wx/dcgraph.h>
 #include "CalibUtils.hpp"
 

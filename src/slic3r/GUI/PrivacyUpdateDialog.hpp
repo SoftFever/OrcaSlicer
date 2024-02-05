@@ -6,6 +6,7 @@
 #include "Widgets/Label.hpp"
 #include "Widgets/WebView.hpp"
 #include <wx/webview.h>
+#include <wx/progdlg.h>
 #include <wx/simplebook.h>
 
 namespace Slic3r { namespace GUI {
