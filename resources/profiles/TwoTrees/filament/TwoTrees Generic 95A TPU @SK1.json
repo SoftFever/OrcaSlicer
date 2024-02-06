@@ -9,7 +9,6 @@
     "compatible_printers": [
         "TwoTrees SK1 0.4 nozzle"
     ],
-    "default_filament_colour": "#29B2B2",
     "fan_cooling_layer_time": "60",
     "fan_max_speed": "100",
     "fan_min_speed": "35",

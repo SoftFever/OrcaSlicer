@@ -161,8 +161,16 @@
             "sub_path": "filament/TwoTrees Generic HS PLA @SK1.json"
         },
         {
+            "name": "TwoTrees Generic PETG @SK1",
+            "sub_path": "filament/TwoTrees Generic PETG @SK1.json"
+        },
+        {
             "name": "TwoTrees Generic PLA @SK1",
             "sub_path": "filament/TwoTrees Generic PLA @SK1.json"
+        },
+        {
+            "name": "TwoTrees Generic PLA-CF @SK1",
+            "sub_path": "filament/TwoTrees Generic PLA-CF @SK1.json"
         }
     ],
     "machine_list": [
