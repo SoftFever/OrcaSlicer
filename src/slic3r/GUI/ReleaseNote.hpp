@@ -159,6 +159,18 @@ public:
     std::string show_again_config_text = "";
 };
 
+
+struct ConfirmBeforeSendInfo
+{
+    enum InfoLevel {
+        Normal = 0,
+        Warning = 1
+    };
+    InfoLevel level;
+    wxString text;
+    ConfirmBeforeSendInfo(wxString txt, InfoLevel lev = Normal) : text(txt), level(lev) {}
+};
+
 class ConfirmBeforeSendDialog : public DPIDialog
 {
 public:
@@ -178,12 +190,15 @@ public:
         bool not_show_again_check = false
     );
     void update_text(wxString text);
+    void update_text(std::vector<ConfirmBeforeSendInfo> texts);
     void on_show();
     void on_hide();
     void update_btn_label(wxString ok_btn_text, wxString cancel_btn_text);
     void rescale();
     void on_dpi_changed(const wxRect& suggested_rect);
-    void show_update_nozzle_button();
+    void show_update_nozzle_button(bool show = false);
+    void disable_button_ok();
+    void enable_button_ok();
     wxString format_text(wxString str, int warp);
 
     ~ConfirmBeforeSendDialog();

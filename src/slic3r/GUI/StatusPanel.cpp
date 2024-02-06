@@ -1096,6 +1096,13 @@ wxBoxSizer *StatusBasePanel::create_machine_control_page(wxWindow *parent)
         std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered), std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
     StateColor btn_bd_green(std::pair<wxColour, int>(AMS_CONTROL_WHITE_COLOUR, StateColor::Disabled), std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Enabled));
 
+    m_parts_btn = new Button(m_panel_control_title, _L("Printer Parts"));
+    m_parts_btn->SetBackgroundColor(btn_bg_green);
+    m_parts_btn->SetBorderColor(btn_bd_green);
+    m_parts_btn->SetTextColor(wxColour("#FFFFFE"));
+    m_parts_btn->SetSize(wxSize(FromDIP(128), FromDIP(26)));
+    m_parts_btn->SetMinSize(wxSize(-1, FromDIP(26)));
+
     m_options_btn = new Button(m_panel_control_title, _L("Print Options"));
     m_options_btn->SetBackgroundColor(btn_bg_green);
     m_options_btn->SetBorderColor(btn_bd_green);
@@ -1113,6 +1120,7 @@ wxBoxSizer *StatusBasePanel::create_machine_control_page(wxWindow *parent)
 
     bSizer_control_title->Add(m_staticText_control, 1, wxALIGN_CENTER_VERTICAL | wxLEFT, PAGE_TITLE_LEFT_MARGIN);
     bSizer_control_title->Add(0, 0, 1, wxEXPAND, 0);
+    bSizer_control_title->Add(m_parts_btn, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(10));
     bSizer_control_title->Add(m_options_btn, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(10));
     bSizer_control_title->Add(m_calibration_btn, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(10));
 
@@ -1775,6 +1783,7 @@ StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
     m_switch_speed->Connect(wxEVT_LEFT_DOWN, wxCommandEventHandler(StatusPanel::on_switch_speed), NULL, this);
     m_calibration_btn->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_start_calibration), NULL, this);
     m_options_btn->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_show_print_options), NULL, this);
+    m_parts_btn->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_show_parts_options), NULL, this);
 }
 
 StatusPanel::~StatusPanel()
@@ -1807,6 +1816,7 @@ StatusPanel::~StatusPanel()
     m_switch_speed->Disconnect(wxEVT_LEFT_DOWN, wxCommandEventHandler(StatusPanel::on_switch_speed), NULL, this);
     m_calibration_btn->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_start_calibration), NULL, this);
     m_options_btn->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_show_print_options), NULL, this);
+    m_parts_btn->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_show_parts_options), NULL, this);
     m_button_unload->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_start_unload), NULL, this);
 
     // remove warning dialogs
@@ -2088,6 +2098,8 @@ void StatusPanel::update(MachineObject *obj)
         } else {
             m_options_btn->Hide();
         }
+
+        m_parts_btn->Show();
 
         //support edit chamber temp
         if (obj->is_support_chamber_edit) {
@@ -4112,7 +4124,8 @@ void StatusPanel::on_xyz_abs(wxCommandEvent &event)
     if (obj) obj->command_xyz_abs();
 }
 
-void StatusPanel::on_show_print_options(wxCommandEvent &event)
+
+void StatusPanel::on_show_print_options(wxCommandEvent& event)
 {
     if (obj) {
         if (print_options_dlg == nullptr) {
@@ -4123,6 +4136,22 @@ void StatusPanel::on_show_print_options(wxCommandEvent &event)
         else {
             print_options_dlg->update_machine_obj(obj);
             print_options_dlg->ShowModal();
+        }
+    }
+}
+
+
+void StatusPanel::on_show_parts_options(wxCommandEvent &event)
+{
+    if (obj) {
+        if (print_parts_dlg == nullptr) {
+            print_parts_dlg = new PrinterPartsDialog(this);
+            print_parts_dlg->update_machine_obj(obj);
+            print_parts_dlg->ShowModal();
+        }
+        else {
+            print_parts_dlg->update_machine_obj(obj);
+            print_parts_dlg->ShowModal();
         }
     }
 }
@@ -4180,6 +4209,7 @@ void StatusPanel::set_default()
     m_setting_button->Show();
     m_tempCtrl_chamber->Show();
     m_options_btn->Show();
+    m_parts_btn->Show();
 
     reset_temp_misc_control();
     m_ams_control->Hide();
@@ -4202,11 +4232,13 @@ void StatusPanel::show_status(int status)
         show_printing_status(false, false);
         m_calibration_btn->Disable();
         m_options_btn->Disable();
+        m_parts_btn->Disable();
         m_panel_monitoring_title->Disable();
     } else if ((status & (int) MonitorStatus::MONITOR_NORMAL) != 0) {
         show_printing_status(true, true);
         m_calibration_btn->Disable();
         m_options_btn->Enable();
+        m_parts_btn->Enable();
         m_panel_monitoring_title->Enable();
     }
 }
@@ -4331,7 +4363,10 @@ void StatusPanel::msw_rescale()
     m_calibration_btn->Rescale();
 
     m_options_btn->SetMinSize(wxSize(-1, FromDIP(26)));
-    m_options_btn->Rescale();
+    m_options_btn->Rescale(); 
+    
+    m_parts_btn->SetMinSize(wxSize(-1, FromDIP(26)));
+    m_parts_btn->Rescale();
 
     rescale_camera_icons();
 

@@ -2378,7 +2378,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
 {
 
     bool has_slice_warnings = false;
-    bool has_update_nozzle  = false;
+    bool is_printing_block  = false;
 
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev) return;
@@ -2386,14 +2386,13 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
     if (!obj_) return;
 
 
-    std::vector<wxString> confirm_text;
-    confirm_text.push_back(_L("Please check the following:") + "\n\n");
+    std::vector<ConfirmBeforeSendInfo> confirm_text;
+    confirm_text.push_back(ConfirmBeforeSendInfo(_L("Please check the following:")));
 
     //Check Printer Model Id
     bool is_same_printer_type = is_same_printer_model();
     if (!is_same_printer_type && (m_print_type == PrintFromType::FROM_NORMAL)) {
-        confirm_text.push_back(_L("The printer type selected when generating G-Code is not consistent with the currently selected printer. It is recommended that you use the same printer type for slicing.") + "\n");
-
+        confirm_text.push_back(ConfirmBeforeSendInfo(_L("The printer type selected when generating G-Code is not consistent with the currently selected printer. It is recommended that you use the same printer type for slicing.")));
         has_slice_warnings = true;
     }
 
@@ -2421,7 +2420,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
         if (in_blacklist && action == "warning") {
             wxString prohibited_error = wxString::FromUTF8(info);
 
-            confirm_text.push_back(prohibited_error + "\n");
+            confirm_text.push_back(ConfirmBeforeSendInfo(prohibited_error));
             has_slice_warnings = true;
         }
     }
@@ -2437,20 +2436,20 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
         }
         else if (warning.msg == NOT_SUPPORT_TRADITIONAL_TIMELAPSE) {
             if (obj_->get_printer_arch() == PrinterArch::ARCH_I3 && m_checkbox_list["timelapse"]->GetValue()) {
-                confirm_text.push_back(Plater::get_slice_warning_string(warning) + "\n");
+                confirm_text.push_back(ConfirmBeforeSendInfo(Plater::get_slice_warning_string(warning)));
                 has_slice_warnings = true;
             }
         }
         else if (warning.msg == NOT_GENERATE_TIMELAPSE) {
             continue;
         }
-        else {
+        else if(warning.msg == NOZZLE_HRC_CHECKER){
             wxString error_info = Plater::get_slice_warning_string(warning);
             if (error_info.IsEmpty()) {
                 error_info = wxString::Format("%s\n", warning.msg);
-                confirm_text.push_back(error_info + "\n");
-            } else
-                confirm_text.push_back(error_info + "\n");
+            } 
+
+            confirm_text.push_back(ConfirmBeforeSendInfo(error_info));
             has_slice_warnings = true;
         }
     }
@@ -2508,7 +2507,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
 
     if (has_unknown_filament) {
         has_slice_warnings = true;
-        confirm_text.push_back(_L("There are some unknown filaments in the AMS mappings. Please check whether they are the required filaments. If they are okay, press \"Confirm\" to start printing.") + "\n");
+        confirm_text.push_back(ConfirmBeforeSendInfo(_L("There are some unknown filaments in the AMS mappings. Please check whether they are the required filaments. If they are okay, press \"Confirm\" to start printing.")));
     }
 
     std::string nozzle_diameter;
@@ -2518,23 +2517,24 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
     if (!obj_->nozzle_type.empty() && (m_print_type == PrintFromType::FROM_NORMAL)) {
         if (!is_same_nozzle_diameters(tag_nozzle_type, nozzle_diameter)) {
             has_slice_warnings = true;
-            has_update_nozzle  = true;
+            is_printing_block  = true;
             
             wxString nozzle_in_preset = wxString::Format(_L("nozzle in preset: %s %s"),nozzle_diameter, "");
             wxString nozzle_in_printer = wxString::Format(_L("nozzle memorized: %.1f %s"), obj_->nozzle_diameter, "");
 
-            confirm_text.push_back(_L("Your nozzle diameter in preset is not consistent with memorized nozzle diameter. Did you change your nozzle lately?") 
+            confirm_text.push_back(ConfirmBeforeSendInfo(_L("Your nozzle diameter in sliced file is not consistent with memorized nozzle. If you changed your nozzle lately, please go to Device > Printer Parts to change settings.") 
                 + "\n    " + nozzle_in_preset 
                 + "\n    " + nozzle_in_printer
-                + "\n");
+                + "\n",  ConfirmBeforeSendInfo::InfoLevel::Warning));
         }
-        else if (!is_same_nozzle_type(filament_type, tag_nozzle_type)){
+        
+        if (!is_same_nozzle_type(filament_type, tag_nozzle_type)){
             has_slice_warnings = true;
-            has_update_nozzle = true;
+            is_printing_block = true;
             nozzle_diameter =  wxString::Format("%.1f", obj_->nozzle_diameter).ToStdString();
 
-                wxString nozzle_in_preset = wxString::Format(_L("*Printing %s material with %s may cause nozzle damage"), filament_type, format_steel_name(obj_->nozzle_type));
-            confirm_text.push_back(nozzle_in_preset + "\n");
+                wxString nozzle_in_preset = wxString::Format(_L("Printing high temperature material(%s material) with %s may cause nozzle damage"), filament_type, format_steel_name(obj_->nozzle_type));
+            confirm_text.push_back(ConfirmBeforeSendInfo(nozzle_in_preset, ConfirmBeforeSendInfo::InfoLevel::Warning));
         }
     }
     
@@ -2543,7 +2543,13 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
         wxString confirm_title = _L("Warning");
         ConfirmBeforeSendDialog confirm_dlg(this, wxID_ANY, confirm_title);
 
-        if(has_update_nozzle){confirm_dlg.show_update_nozzle_button();}
+        if(is_printing_block){
+            confirm_dlg.disable_button_ok();
+            confirm_text.push_back(ConfirmBeforeSendInfo(_L("Please fix the error above, otherwise printing cannot continue."), ConfirmBeforeSendInfo::InfoLevel::Warning));
+        }
+        else {
+            confirm_text.push_back(ConfirmBeforeSendInfo(_L("Please click the confirm button if you still want to proceed with printing.")));
+        }
 
         confirm_dlg.Bind(EVT_SECONDARY_CHECK_CONFIRM, [this, &confirm_dlg](wxCommandEvent& e) {
             confirm_dlg.on_hide();
@@ -2555,34 +2561,34 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
             }
         });
 
-        confirm_dlg.Bind(EVT_UPDATE_NOZZLE, [this, obj_, tag_nozzle_type, nozzle_diameter, &confirm_dlg](wxCommandEvent& e) {
-            if (obj_ && !tag_nozzle_type.empty() && !nozzle_diameter.empty()) {
-                try
-                {
-                    float diameter = std::stof(nozzle_diameter); 
-                    diameter = round(diameter * 10) / 10;
-                    obj_->command_set_printer_nozzle(tag_nozzle_type, diameter);
-                }
-                catch (...) {} 
-            }
-        });
+        //confirm_dlg.Bind(EVT_UPDATE_NOZZLE, [this, obj_, tag_nozzle_type, nozzle_diameter, &confirm_dlg](wxCommandEvent& e) {
+        //    if (obj_ && !tag_nozzle_type.empty() && !nozzle_diameter.empty()) {
+        //        try
+        //        {
+        //            float diameter = std::stof(nozzle_diameter);
+        //            diameter = round(diameter * 10) / 10;
+        //            obj_->command_set_printer_nozzle(tag_nozzle_type, diameter);
+        //        }
+        //        catch (...) {}
+        //    }
+        //    });
 
-        confirm_text.push_back(_L("Please click the confirm button if you still want to proceed with printing.") + "\n");
+       
         wxString info_msg = wxEmptyString;
 
         for (auto i = 0; i < confirm_text.size(); i++) {
             if (i == 0) {
-                info_msg += confirm_text[i];
+                //info_msg += confirm_text[i];
             }
             else if (i == confirm_text.size() - 1) {
-                info_msg += confirm_text[i];
+                //info_msg += confirm_text[i];
             }
             else {
-                info_msg += wxString::Format("%d. %s\n",i, confirm_text[i]);
+                confirm_text[i].text = wxString::Format("%d. %s",i, confirm_text[i].text);
             }
 
         }
-        confirm_dlg.update_text(info_msg);
+        confirm_dlg.update_text(confirm_text);
         confirm_dlg.on_show();
 
     } else {
