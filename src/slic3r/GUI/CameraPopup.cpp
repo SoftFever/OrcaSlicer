@@ -72,13 +72,14 @@ CameraPopup::CameraPopup(wxWindow *parent)
     m_text_liveview_retry->SetFont(Label::Head_14);
     m_text_liveview_retry->SetForegroundColour(TEXT_COL);
     m_switch_liveview_retry = new SwitchButton(m_panel);
-    m_switch_liveview_retry->SetValue(true);
+    bool auto_retry         = wxGetApp().app_config->get("liveview", "auto_retry") != "false";
+    m_switch_liveview_retry->SetValue(auto_retry);
 
     top_sizer->Add(m_text_liveview_retry, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT | wxALL, FromDIP(5));
     top_sizer->Add(m_switch_liveview_retry, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_RIGHT | wxALL, FromDIP(5));
 
     m_switch_liveview_retry->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent &e) {
-        dynamic_cast<MediaPlayCtrl *>(GetParent()->FindWindowByLabel("MediaPlayCtrl"))->SetAutoRetry(e.IsChecked());
+        wxGetApp().app_config->set("liveview", "auto_retry", e.IsChecked());
         e.Skip();
     });
 #endif
