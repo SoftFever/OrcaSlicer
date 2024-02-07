@@ -6657,7 +6657,7 @@ msgid "Walls and surfaces"
 msgstr "Ściany i powierzchnie"
 
 msgid "Small Area Infill Flow Compensation (experimental)"
-msgstr "Kompensacja przepływu na małym obszarze"
+msgstr "Kompensacja przepływu małych obszarów"
 
 msgid "Bridging"
 msgstr "Mosty"
