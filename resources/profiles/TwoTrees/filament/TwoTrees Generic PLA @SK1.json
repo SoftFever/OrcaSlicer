@@ -36,6 +36,6 @@
     "nozzle_temperature_initial_layer": "220",
     "reduce_fan_stop_start_freq": "0",
     "slow_down_for_layer_cooling": "1",
-    "slow_down_layer_time": "3",
+    "slow_down_layer_time": "5",
     "slow_down_min_speed": "10"
 }
