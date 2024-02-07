@@ -15,15 +15,15 @@
 #include "slic3r/GUI/BackgroundSlicingProcess.hpp"
 
 using namespace nlohmann;
-namespace beef      = boost::beast;
-namespace websocket = beef::websocket;
+namespace beefy      = boost::beast;
+namespace websocket = beefy::websocket;
 namespace net       = boost::asio;
 using tcp           = net::ip::tcp;
 
 namespace Slic3r {
 
 static constexpr short PRINTAGO_PORT = 33647;
-void printago_ws_error(beef::error_code ec, char const* what);
+void printago_ws_error(beefy::error_code ec, char const* what);
 
 class PrintagoDirector;
 
@@ -35,7 +35,7 @@ class PrintagoSession : public std::enable_shared_from_this<PrintagoSession>
     friend class PrintagoDirector;
 
     websocket::stream<tcp::socket> ws_;
-    beef::flat_buffer              buffer_;
+    beefy::flat_buffer              buffer_;
 
 public:
     explicit PrintagoSession(tcp::socket&& socket);
@@ -43,10 +43,10 @@ public:
 
 private:
     void on_run();
-    void on_accept(beef::error_code ec);
+    void on_accept(beefy::error_code ec);
     void do_read();
-    void on_read(beef::error_code ec, std::size_t bytes_transferred);
-    void on_write(beef::error_code ec, std::size_t bytes_transferred);
+    void on_read(beefy::error_code ec, std::size_t bytes_transferred);
+    void on_write(beefy::error_code ec, std::size_t bytes_transferred);
     void async_send(const std::string& message);
     void do_write(const std::string& message);
 };
@@ -72,7 +72,7 @@ public:
 
 private:
     void do_accept();
-    void on_accept(beef::error_code ec, tcp::socket socket);
+    void on_accept(beefy::error_code ec, tcp::socket socket);
     void handle_reconnect();
 };
 
@@ -87,15 +87,15 @@ public:
     PrintagoCommand(const wxString&         command_type,
                     const wxString&         action,
                     wxStringToStringHashMap parameters,
-                    const wxString&         originalCommandStr)
-        : m_command_type(command_type), m_action(action), m_parameters(std::move(parameters)), m_original_command_str(originalCommandStr)
+                    const json&             originalCommand)
+        : m_command_type(command_type), m_action(action), m_parameters(std::move(parameters)), m_original_command(originalCommand)
     {}
 
     PrintagoCommand(const PrintagoCommand& other)
         : m_command_type(other.m_command_type)
         , m_action(other.m_action)
         , m_parameters(other.m_parameters)
-        , m_original_command_str(other.m_original_command_str)
+        , m_original_command(other.m_original_command)
     {}
 
     virtual ~PrintagoCommand() {}
@@ -103,18 +103,18 @@ public:
     void SetCommandType(const wxString& command) { m_command_type = command; }
     void SetAction(const wxString& action) { m_action = action; }
     void SetParameters(const wxStringToStringHashMap& parameters) { m_parameters = parameters; }
-    void SetOriginalCommandStr(const wxString& originalCommandStr) { m_original_command_str = originalCommandStr; }
+    void SetOriginalCommand(const json& originalCommandStr) { m_original_command = originalCommandStr; }
 
     wxString                GetCommandType() const { return m_command_type; }
     wxString                GetAction() const { return m_action; }
     wxStringToStringHashMap GetParameters() const { return m_parameters; }
-    wxString                GetOriginalCommandStr() const { return m_original_command_str; }
+    json                    GetOriginalCommand() const { return m_original_command; }
 
 private:
     wxString                m_command_type;
     wxString                m_action;
     wxStringToStringHashMap m_parameters;
-    wxString                m_original_command_str;
+    json                    m_original_command;
 };
 
 //``````````````````````````````````````````````````
@@ -137,18 +137,18 @@ public:
 
     void SetMessageType(const wxString& message) { this->m_message_type = message; }
     void SetPrinterId(const wxString& printer_id) { this->m_printer_id = printer_id; }
-    void SetCommand(const wxString& command) { this->m_command = command; }
+    void SetCommand(const json& command) { this->m_command = command; }
     void SetData(const json& data) { this->m_data = data; }
 
     wxString GetMessageType() const { return this->m_message_type; }
     wxString GetPrinterId() const { return this->m_printer_id; }
-    wxString GetCommand() const { return this->m_command; }
+    json     GetCommand() const { return this->m_command; }
     json     GetData() const { return this->m_data; }
 
 private:
     wxString m_message_type;
     wxString m_printer_id;
-    wxString m_command;
+    json     m_command;
     json     m_data;
 };
 
@@ -161,7 +161,7 @@ public:
     PrintagoDirector();
     ~PrintagoDirector();
 
-    bool ParseCommand(const std::string& command);
+    bool ParseCommand(const json& command);
     void OnSlicingCompleted(SlicingProcessCompletedEvent::StatusType slicing_result);
     void OnPrintJobSent(wxString printerId, bool success);
 
@@ -180,14 +180,12 @@ private:
 
     Slic3r::GUI::SelectMachineDialog* m_select_machine_dlg = nullptr;
 
-    void PostStatusMessage   (const wxString printer_id, const json statusData,       const wxString command = "");
-    void PostResponseMessage (const wxString printer_id, const json responseData,     const wxString command = "");
-    void PostSuccessMessage  (const wxString printer_id, const wxString localCommand, const wxString command = "", const wxString localCommandDetail = "");
-    void PostErrorMessage    (const wxString printer_id, const wxString localCommand, const wxString command = "", const wxString errorDetail = "");
+    void PostStatusMessage   (const wxString printer_id, const json statusData,       const json command = {});
+    void PostResponseMessage (const wxString printer_id, const json responseData,     const json command = {});
+    void PostSuccessMessage  (const wxString printer_id, const wxString localCommand, const json command = {}, const wxString localCommandDetail = "");
+    void PostErrorMessage    (const wxString printer_id, const wxString localCommand, const json command = {}, const wxString errorDetail = "");
 
     void _PostResponse(const PrintagoResponse response);
-
-    wxStringToStringHashMap _ParseQueryString(const wxString& queryString);
 
     bool ValidatePrintagoCommand(const PrintagoCommand& cmd);
     bool ProcessPrintagoCommand(const PrintagoCommand& command);
@@ -232,7 +230,7 @@ private:
     {
         if (can_process_job) {
             printerId.Clear();
-            command.Clear();
+            command = {};
             localFile.Clear();
             m_serverState = JobServerState::Idle;
             configFiles.clear();
@@ -273,7 +271,7 @@ public:
 
     inline static wxString                                    jobId = "ptgo_default";
     inline static wxString                                    printerId;
-    inline static wxString                                    command;
+    inline static json                                        command;
     inline static wxFileName                                  localFile;
     inline static std::unordered_map<std::string, wxFileName> configFiles;
     inline static int                                         progress = 0;
