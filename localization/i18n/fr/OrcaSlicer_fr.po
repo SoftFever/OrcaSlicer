@@ -4338,7 +4338,7 @@ msgid "Recent projects"
 msgstr "Projets récents"
 
 msgid "Save Project"
-msgstr "Sauvegarder le projet"
+msgstr "Enregistrer le projet"
 
 msgid "Save current project to file"
 msgstr "Enregistrer le projet actuel dans un fichier"
