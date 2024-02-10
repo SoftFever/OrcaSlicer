@@ -1,0 +1,3877 @@
+{
+    "device_error": {
+        "nl": [
+            {
+                "ecode": "05008030",
+                "intro": ""
+            },
+            {
+                "ecode": "05014023",
+                "intro": "Toegang tot de cloud is geweigerd. Als je het meerdere keren hebt geprobeerd en het lukt nog steeds niet, neem dan contact op met de klantenservice."
+            },
+            {
+                "ecode": "05014024",
+                "intro": "Toegang tot de cloud is mislukt. Mogelijke oorzaken zijn onder meer netwerkinstabiliteit veroorzaakt door interferentie, onmogelijkheid om toegang te krijgen tot het internet of beperkingen in de configuratie van de firewall van de router. U kunt proberen de printer dichter bij de router te plaatsen of de configuratie van de router te controleren voordat u het opnieuw probeert."
+            },
+            {
+                "ecode": "05014025",
+                "intro": "Cloudreactie is ongeldig. Als je het meerdere keren hebt geprobeerd en het nog steeds niet lukt, neem dan contact op met de klantenservice."
+            },
+            {
+                "ecode": "05014026",
+                "intro": "Toegang tot de cloud is geweigerd. Als je het meerdere keren hebt geprobeerd en het lukt nog steeds niet, neem dan contact op met de klantenservice."
+            },
+            {
+                "ecode": "05014027",
+                "intro": "Toegang tot de cloud is mislukt; dit kan worden veroorzaakt door netwerkinstabiliteit als gevolg van interferentie. U kunt proberen de printer dichter bij de router te plaatsen voordat u het opnieuw probeert."
+            },
+            {
+                "ecode": "05014028",
+                "intro": "Cloudreactie is ongeldig. Als je het meerdere keren hebt geprobeerd en het nog steeds niet lukt, neem dan contact op met de klantenservice."
+            },
+            {
+                "ecode": "05014029",
+                "intro": "Toegang tot de cloud wordt geweigerd. Als je het meerdere keren hebt geprobeerd en het lukt nog steeds niet, neem dan contact op met de klantenservice."
+            },
+            {
+                "ecode": "05014031",
+                "intro": "Koppelingsproces is bezig met apparaatdetectie en de QR-code kan niet op het scherm worden weergegeven. U kunt wachten tot de koppeling is voltooid of het koppelingsproces voor apparaatdetectie in de app/Studio afbreken en opnieuw proberen de QR-code op het scherm te scannen om deze te koppelen."
+            },
+            {
+                "ecode": "05014032",
+                "intro": "Het koppelen via de QR-code is bezig en er kan geen verbinding worden gemaakt met de detectie van apparaten. U kunt de QR-code op het scherm scannen om deze te koppelen, of de weergavepagina van de QR-code op het scherm verlaten en proberen om de verbinding met apparaatdetectie te proberen."
+            },
+            {
+                "ecode": "0500402E",
+                "intro": "Het systeem ondersteunt het bestandssysteem dat momenteel wordt gebruikt door de microSD-kaart niet. Vervang de Micro SD-kaart of formatteer de huidige Micro SD-kaart naar FAT32."
+            },
+            {
+                "ecode": "0500402F",
+                "intro": "De sectorgegevens van de Micro SD-kaart zijn beschadigd. Gebruik de reparatietool voor de SD-kaart om deze te repareren of te formatteren. Als het nog steeds niet kan worden geïdentificeerd, vervang dan de Micro SD-kaart."
+            },
+            {
+                "ecode": "03008014",
+                "intro": "De nozzle is bedekt met filament of het verwarmingsbed is scheef geplaatst. Maak het mondstuk schoon of pas de positie van het verwarmingsbed aan. Daarna kunt u op \"Hervatten\" tikken om de printtaak te hervatten."
+            },
+            {
+                "ecode": "03008015",
+                "intro": "Het filament is op, voer nieuw filament in via de pagina \"Filament\", ga dan terug naar de afdrukpagina en tik op \"Hervatten\" om de afdruktaak te hervatten."
+            },
+            {
+                "ecode": "05014017",
+                "intro": "Koppeling is mislukt. Probeer het opnieuw of start de printer opnieuw."
+            },
+            {
+                "ecode": "05014018",
+                "intro": "Het verwerken van de koppelingsconfiguratie-informatie is mislukt, probeer het opnieuw."
+            },
+            {
+                "ecode": "05014019",
+                "intro": "De printer is al gekoppeld. Ontkoppel de printer en probeer het opnieuw."
+            },
+            {
+                "ecode": "0501401A",
+                "intro": "Toegang tot de cloud is mislukt. Mogelijke oorzaken zijn onder meer netwerkinstabiliteit veroorzaakt door interferentie, onmogelijkheid om toegang te krijgen tot het internet of beperkingen in de configuratie van de firewall van de router. U kunt proberen de printer dichter bij de router te plaatsen of de configuratie van de router te controleren en het vervolgens opnieuw proberen."
+            },
+            {
+                "ecode": "0501401B",
+                "intro": "Cloudreactie is ongeldig. Als je het meerdere keren hebt geprobeerd en het nog steeds niet lukt, neem dan contact op met de klantenservice."
+            },
+            {
+                "ecode": "0501401C",
+                "intro": "Toegang tot de cloud wordt geweigerd. Als je het meerdere keren hebt geprobeerd en het lukt nog steeds niet, neem dan contact op met de klantenservice."
+            },
+            {
+                "ecode": "0501401D",
+                "intro": "De toegang tot de cloud is mislukt, wat kan worden veroorzaakt door netwerkinstabiliteit als gevolg van interferentie. U kunt proberen de printer dichter bij de router te plaatsen voordat u het opnieuw probeert."
+            },
+            {
+                "ecode": "0501401E",
+                "intro": "Cloudreactie is ongeldig. Als je het meerdere keren hebt geprobeerd en het nog steeds niet lukt, neem dan contact op met de klantenservice."
+            },
+            {
+                "ecode": "0501401F",
+                "intro": "Autorisatie time-out. Zorg ervoor dat uw telefoon of pc toegang heeft tot internet en zorg ervoor dat de Bambu Studio/Bambu Handy-app op de voorgrond draait tijdens het koppelen."
+            },
+            {
+                "ecode": "05014020",
+                "intro": "Toegang tot de cloud is geweigerd. Als je het meerdere keren hebt geprobeerd en het lukt nog steeds niet, neem dan contact op met de klantenservice."
+            },
+            {
+                "ecode": "05014021",
+                "intro": "De toegang tot de cloud is mislukt, wat kan worden veroorzaakt door netwerkinstabiliteit als gevolg van interferentie. U kunt proberen de printer dichter bij de router te plaatsen voordat u het opnieuw probeert."
+            },
+            {
+                "ecode": "05014022",
+                "intro": "Cloudreactie is ongeldig. Als je het meerdere keren hebt geprobeerd en het nog steeds niet lukt, neem dan contact op met de klantenservice."
+            },
+            {
+                "ecode": "03008011",
+                "intro": "De huidige bouwplaat is niet hetzelfde als in G-code. Stop de printopdracht en vervang de bouwplaat. U kunt ook op „Hervatten” tikken om de printopdracht geforceerd te hervatten."
+            },
+            {
+                "ecode": "03008012",
+                "intro": ""
+            },
+            {
+                "ecode": "03008013",
+                "intro": "De print is door de gebruiker gepauzeerd. Tik op \"hervatten\" om de print voort te zetten."
+            },
+            {
+                "ecode": "0500402D",
+                "intro": "Systeemuitzondering"
+            },
+            {
+                "ecode": "0C00800A",
+                "intro": "De gedetecteerde bouwplaat is niet dezelfde als in de G-code."
+            },
+            {
+                "ecode": "12008001",
+                "intro": "Het filament kan niet worden doorgesneden. Controleer het snijmechanisme. Klik na het oplossen van problemen op de knop \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "12018001",
+                "intro": "Het filament kan niet worden doorgesneden. Controleer het snijmechanisme. Klik na het oplossen van problemen op de knop \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "12028001",
+                "intro": "Het filament kan niet worden doorgesneden. Controleer het snijmechanisme. Klik na het oplossen van problemen op de knop \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "12038001",
+                "intro": "Het filament kan niet worden doorgesneden. Controleer het snijmechanisme. Klik na het oplossen van problemen op de knop \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "12FF8001",
+                "intro": "Het filament kan niet worden doorgesneden. Controleer het snijmechanisme. Klik na het oplossen van problemen op de knop \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "12008002",
+                "intro": "Het snijmechanische is vastgelopen. Trek de hendel van het snijmechanisme uit en klik op \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "12018002",
+                "intro": "Het snijmechanische is vastgelopen. Trek de hendel van het snijmechanisme uit en klik op \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "12028002",
+                "intro": "Het snijmechanische is vastgelopen. Trek de hendel van het snijmechanisme uit en klik op \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "12038002",
+                "intro": "Het snijmechanische is vastgelopen. Trek de hendel van het snijmechanisme uit en klik op \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "12FF8002",
+                "intro": "Het snijmechanische is vastgelopen. Trek de hendel van het snijmechanisme uit en klik op \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "12008003",
+                "intro": "Het is niet gelukt om het filament uit de extruder terug te trekken. Controleer of de nozzle verstopt is of dat het filament gebroken is in de extruder. Klik na het oplossen van het probleem op de knop \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "12018003",
+                "intro": "Het is niet gelukt om het filament uit de extruder terug te trekken. Controleer of de nozzle verstopt is of dat het filament gebroken is in de extruder. Klik na het oplossen van het probleem op de knop \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "12028003",
+                "intro": "Het is niet gelukt om het filament uit de extruder terug te trekken. Controleer of de nozzle verstopt is of dat het filament gebroken is in de extruder. Klik na het oplossen van het probleem op de knop \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "12038003",
+                "intro": "Het is niet gelukt om het filament uit de extruder terug te trekken. Controleer of de nozzle verstopt is of dat het filament gebroken is in de extruder. Klik na het oplossen van het probleem op de knop \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "12FF8003",
+                "intro": "Verwijder het externe filament uit de extruder. Verbind vervolgens de PTFE-buis met de koppeling en klik op „Opnieuw proberen” als u een AMS gebruikt voor de volgende afdruk."
+            },
+            {
+                "ecode": "12FFC003",
+                "intro": "Verwijder het externe filament uit de extruder. Verbind vervolgens de PTFE-buis met de koppeling en klik op „Opnieuw proberen” als u een AMS gebruikt voor de volgende afdruk."
+            },
+            {
+                "ecode": "12008004",
+                "intro": "Het filament kon niet uit de gereedschapskop worden getrokken. Controleer of het filament vastzit. Klik na het oplossen van problemen op de knop \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "12018004",
+                "intro": "Het filament kon niet uit de gereedschapskop worden getrokken. Controleer of het filament vastzit. Klik na het oplossen van problemen op de knop \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "12028004",
+                "intro": "Het filament kon niet uit de gereedschapskop worden getrokken. Controleer of het filament vastzit. Klik na het oplossen van problemen op de knop \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "12038004",
+                "intro": "Het filament kon niet uit de gereedschapskop worden getrokken. Controleer of het filament vastzit. Klik na het oplossen van problemen op de knop \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "12FF8004",
+                "intro": "Het filament kon niet uit de gereedschapskop worden getrokken. Controleer of het filament vastzit. Klik na het oplossen van problemen op de knop \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "12008005",
+                "intro": "Invoeren van de filament is mislukt. Laad het filament en klik vervolgens op de knop \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "12018005",
+                "intro": "Invoeren van de filament is mislukt. Laad het filament en klik vervolgens op de knop \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "12028005",
+                "intro": "Invoeren van de filament is mislukt. Laad het filament en klik vervolgens op de knop \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "12038005",
+                "intro": "Invoeren van de filament is mislukt. Laad het filament en klik vervolgens op de knop \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "12FF8005",
+                "intro": "Invoeren van de filament is mislukt. Laad het filament en klik vervolgens op de knop \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "12008006",
+                "intro": "Het filament kon niet in de gereedschapskop worden ingevoerd. Controleer of het filament vastzit. Klik na het oplossen van problemen op de knop \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "12018006",
+                "intro": "Het filament kon niet in de gereedschapskop worden ingevoerd. Controleer of het filament vastzit. Klik na het oplossen van problemen op de knop \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "12028006",
+                "intro": "Het filament kon niet in de gereedschapskop worden ingevoerd. Controleer of het filament vastzit. Klik na het oplossen van problemen op de knop \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "12038006",
+                "intro": "Het filament kon niet in de gereedschapskop worden ingevoerd. Controleer of het filament vastzit. Klik na het oplossen van problemen op de knop \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "12FF8006",
+                "intro": "Voer vanaf de spoelhouder totdat de filamentsensor van de gereedschapskop wordt geactiveerd en klik vervolgens op de knop \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "12FFC006",
+                "intro": "Laadt filament vanaf de spoelhouder totdat de filament sensor van de printkop wordt geactiveerd."
+            },
+            {
+                "ecode": "12008007",
+                "intro": "Het extruden van het filament is mislukt. Controleer of de extruder verstopt is. Klik na het oplossen van problemen op de knop Opnieuw proberen."
+            },
+            {
+                "ecode": "12018007",
+                "intro": "Het extruden van het filament is mislukt. Controleer of de extruder verstopt is. Klik na het oplossen van problemen op de knop Opnieuw proberen."
+            },
+            {
+                "ecode": "12028007",
+                "intro": "Het extruden van het filament is mislukt. Controleer of de extruder verstopt is. Klik na het oplossen van problemen op de knop Opnieuw proberen."
+            },
+            {
+                "ecode": "12038007",
+                "intro": "Het extruden van het filament is mislukt. Controleer of de extruder verstopt is. Klik na het oplossen van problemen op de knop Opnieuw proberen."
+            },
+            {
+                "ecode": "12FF8007",
+                "intro": "Controleer nozzle. Klik op „Gereed” als het filament is geëxtrudeerd, duw anders het filament iets naar voren en klik op „Opnieuw proberen”."
+            },
+            {
+                "ecode": "12008010",
+                "intro": "Controleer of de spoel of het filament vastzit. Klik na het oplossen van problemen op de knop \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "12018010",
+                "intro": "Controleer of de spoel of het filament vastzit. Klik na het oplossen van problemen op de knop \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "12028010",
+                "intro": "Controleer of de spoel of het filament vastzit. Klik na het oplossen van problemen op de knop \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "12038010",
+                "intro": "Controleer of de spoel of het filament vastzit. Klik na het oplossen van problemen op de knop \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "12FF8010",
+                "intro": "Controleer of de spoel of het filament vastzit. Klik na het oplossen van problemen op de knop \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "12008011",
+                "intro": "AMS-filament is op. Plaats een nieuw filament in de AMS en klik op de knop \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "12018011",
+                "intro": "AMS-filament is op. Plaats een nieuw filament in de AMS en klik op de knop \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "12028011",
+                "intro": "AMS-filament is op. Plaats een nieuw filament in de AMS en klik op de knop \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "12038011",
+                "intro": "AMS-filament is op. Plaats een nieuw filament in de AMS en klik op de knop \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "12FF8011",
+                "intro": "AMS-filament is op. Plaats een nieuw filament in de AMS en klik op de knop \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "12008012",
+                "intro": "Kon de AMS-toewijzingstabel niet ophalen. Klik op de knop \"Opnieuw proberen\" om door te gaan."
+            },
+            {
+                "ecode": "12018012",
+                "intro": "Kon de AMS-toewijzingstabel niet ophalen; klik op de knop Opnieuw proberen om door te gaan."
+            },
+            {
+                "ecode": "12028012",
+                "intro": "Kon de AMS-toewijzingstabel niet ophalen. Klik op de knop \"Opnieuw proberen\" om door te gaan."
+            },
+            {
+                "ecode": "12038012",
+                "intro": "Kon de AMS-toewijzingstabel niet ophalen. Klik op de knop \"Opnieuw proberen\" om door te gaan."
+            },
+            {
+                "ecode": "12FF8012",
+                "intro": "Kon de AMS-toewijzingstabel niet ophalen. Klik op de knop \"Opnieuw proberen\" om door te gaan."
+            },
+            {
+                "ecode": "12008013",
+                "intro": "Time-out tijdens het verwijderen van oud filament. Controleer of het filament vastzit of dat de extruder verstopt is. Klik na het oplossen van het probleem op de knop \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "12018013",
+                "intro": "Time-out tijdens het verwijderen van oud filament. Controleer of het filament vastzit of dat de extruder verstopt is. Klik na het oplossen van het probleem op de knop \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "12028013",
+                "intro": "Time-out tijdens het verwijderen van oud filament. Controleer of het filament vastzit of dat de extruder verstopt is. Klik na het oplossen van het probleem op de knop \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "12038013",
+                "intro": "Time-out tijdens het verwijderen van oud filament. Controleer of het filament vastzit of dat de extruder verstopt is. Klik na het oplossen van het probleem op de knop \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "12FF8013",
+                "intro": "Time-out tijdens het verwijderen van oud filament. Controleer of het filament vastzit of dat de extruder verstopt is. Klik na het oplossen van het probleem op de knop \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "12004001",
+                "intro": "Filament wordt nog steeds vanuit de AMS geladen wanneer het is uitgeschakeld. Verwijder het AMS-filament, laad het uit de spoelhouder en start de printopdracht opnieuw."
+            },
+            {
+                "ecode": "12014001",
+                "intro": "Filament wordt nog steeds vanuit de AMS geladen wanneer het is uitgeschakeld. Verwijder het AMS-filament, laad het uit de spoelhouder en start de printopdracht opnieuw."
+            },
+            {
+                "ecode": "12024001",
+                "intro": "Filament wordt nog steeds vanuit de AMS geladen wanneer het is uitgeschakeld. Verwijder het AMS-filament, laad het uit de spoelhouder en start de printopdracht opnieuw."
+            },
+            {
+                "ecode": "12034001",
+                "intro": "Filament wordt nog steeds vanuit de AMS geladen wanneer het is uitgeschakeld. Verwijder het AMS-filament, laad het uit de spoelhouder en start de printopdracht opnieuw."
+            },
+            {
+                "ecode": "12FF4001",
+                "intro": "Filament wordt nog steeds vanuit de AMS geladen wanneer het is uitgeschakeld. Verwijder het AMS-filament, laad het uit de spoelhouder en start de printopdracht opnieuw."
+            },
+            {
+                "ecode": "12008014",
+                "intro": "Het is niet gelukt om de positie van het filament van alle sleuven te controleren. Klik na het oplossen van het probleem op \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "12018014",
+                "intro": "Het is niet gelukt om de positie van het filament van alle sleuven te controleren. Klik na het oplossen van het probleem op \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "12028014",
+                "intro": "Het is niet gelukt om de positie van het filament van alle sleuven te controleren. Klik na het oplossen van het probleem op \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "12038014",
+                "intro": "Het is niet gelukt om de positie van het filament van alle sleuven te controleren. Klik na het oplossen van het probleem op \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "05004016",
+                "intro": "De microSD-kaart is beschermd tegen schrijven. Vervang de microSD-kaart."
+            },
+            {
+                "ecode": "05004017",
+                "intro": "Binden is mislukt. Probeer het opnieuw of start de printer opnieuw."
+            },
+            {
+                "ecode": "05004018",
+                "intro": "Het parsen van de bindingsconfiguratie-informatie is mislukt, probeer het opnieuw."
+            },
+            {
+                "ecode": "05004019",
+                "intro": "De printer is al gebonden. Ontbind de printer en probeer het opnieuw."
+            },
+            {
+                "ecode": "0500401A",
+                "intro": "Toegang tot de cloud is mislukt. Mogelijke oorzaken zijn onder meer netwerkinstabiliteit veroorzaakt door interferentie, onmogelijkheid om toegang te krijgen tot het internet of beperkingen in de configuratie van de firewall van de router. U kunt proberen de printer dichter bij de router te plaatsen of de configuratie van de router te controleren en het vervolgens opnieuw proberen."
+            },
+            {
+                "ecode": "0500401B",
+                "intro": "Cloudreactie is ongeldig. Als je het meerdere keren hebt geprobeerd en het nog steeds niet lukt, neem dan contact op met de klantenservice."
+            },
+            {
+                "ecode": "0500401C",
+                "intro": "Toegang tot de cloud wordt geweigerd. Als je het meerdere keren hebt geprobeerd en het lukt nog steeds niet, neem dan contact op met de klantenservice."
+            },
+            {
+                "ecode": "0500401D",
+                "intro": "De toegang tot de cloud is mislukt, wat kan worden veroorzaakt door netwerkinstabiliteit als gevolg van interferentie. U kunt proberen de printer dichter bij de router te plaatsen voordat u het opnieuw probeert."
+            },
+            {
+                "ecode": "0500401E",
+                "intro": "Cloudreactie is ongeldig. Als je het meerdere keren hebt geprobeerd en het nog steeds niet lukt, neem dan contact op met de klantenservice."
+            },
+            {
+                "ecode": "0500401F",
+                "intro": "Autorisatie time-out. Zorg ervoor dat uw telefoon of pc toegang heeft tot internet en zorg ervoor dat de Bambu Studio/Bambu Handy-app op de voorgrond draait tijdens het koppelen."
+            },
+            {
+                "ecode": "05004020",
+                "intro": "Toegang tot de cloud is geweigerd. Als je het meerdere keren hebt geprobeerd en het lukt nog steeds niet, neem dan contact op met de klantenservice."
+            },
+            {
+                "ecode": "05004021",
+                "intro": "De toegang tot de cloud is mislukt, wat kan worden veroorzaakt door netwerkinstabiliteit als gevolg van interferentie. U kunt proberen de printer dichter bij de router te plaatsen voordat u het opnieuw probeert."
+            },
+            {
+                "ecode": "05004022",
+                "intro": "Cloudreactie is ongeldig. Als je het meerdere keren hebt geprobeerd en het nog steeds niet lukt, neem dan contact op met de klantenservice."
+            },
+            {
+                "ecode": "05004023",
+                "intro": "Toegang tot de cloud is geweigerd. Als je het meerdere keren hebt geprobeerd en het lukt nog steeds niet, neem dan contact op met de klantenservice."
+            },
+            {
+                "ecode": "05004024",
+                "intro": "Toegang tot de cloud is mislukt. Mogelijke oorzaken zijn onder meer netwerkinstabiliteit veroorzaakt door interferentie, onmogelijkheid om toegang te krijgen tot het internet of beperkingen in de configuratie van de firewall van de router. U kunt proberen de printer dichter bij de router te plaatsen of de configuratie van de router te controleren voordat u het opnieuw probeert."
+            },
+            {
+                "ecode": "05004025",
+                "intro": "Cloudreactie is ongeldig. Als je het meerdere keren hebt geprobeerd en het nog steeds niet lukt, neem dan contact op met de klantenservice."
+            },
+            {
+                "ecode": "05004026",
+                "intro": "Toegang tot cloud geweigerd. Als je het meerdere keren hebt geprobeerd en het lukt nog steeds niet, neem dan contact op met de klantenservice."
+            },
+            {
+                "ecode": "05004027",
+                "intro": "Toegang tot de cloud is mislukt; dit kan worden veroorzaakt door netwerkinstabiliteit als gevolg van interferentie. U kunt proberen de printer dichter bij de router te plaatsen voordat u het opnieuw probeert."
+            },
+            {
+                "ecode": "05004028",
+                "intro": "Cloud antwoord is ongeldig. Als u het meerdere keren hebt geprobeerd en het lukt nog steeds niet, neem dan contact op met de klantenservice."
+            },
+            {
+                "ecode": "05004029",
+                "intro": "Toegang tot de cloud wordt geweigerd. Als je het meerdere keren hebt geprobeerd en het lukt nog steeds niet, neem dan contact op met de klantenservice."
+            },
+            {
+                "ecode": "0500402A",
+                "intro": "Kan geen verbinding maken met de router, mogelijk veroorzaakt door draadloze interferentie of door een te grote afstand van de router. Probeer het opnieuw of plaats de printer dichter bij de router en probeer het opnieuw."
+            },
+            {
+                "ecode": "0500402B",
+                "intro": "De verbinding met de router is mislukt vanwege een onjuist wachtwoord. Controleer het wachtwoord en probeer het opnieuw."
+            },
+            {
+                "ecode": "0500402C",
+                "intro": "Het verkrijgen van het IP-adres is mislukt, wat kan worden veroorzaakt door draadloze interferentie, waardoor de gegevensoverdracht is mislukt of de DHCP-adrespool van de router vol is. Plaats de printer dichter bij de router en probeer het opnieuw. Als het probleem zich blijft voordoen, controleer dan de routerinstellingen om te zien of de IP-adressen zijn uitgeput."
+            },
+            {
+                "ecode": "05004015",
+                "intro": "Er is niet genoeg vrije opslagruimte voor de afdruktaak. Formatteer of reinig de MicroSD-kaart om beschikbare ruimte vrij te maken."
+            },
+            {
+                "ecode": "07FF8007",
+                "intro": "Controleer de nozzle. Als het filament geëxtrudeerd is, klik dan op \"Gereed\"; als dat niet het geval is, duw het filament dan iets naar voren en klik vervolgens op \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "07FF8001",
+                "intro": "Het filament kan niet worden doorgesneden. Controleer de filament snijder. Klik na het oplossen van problemen op de knop \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "07FF8002",
+                "intro": "De filament snijder is vastgelopen. Trek de hendel van het snijmechanisme uit en klik op \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "07FF8005",
+                "intro": "Het filament kan niet buiten de AMS worden gevoerd. Knip het uiteinde van het filament plat en controleer of de spoel vastzit. Klik na het oplossen van problemen op de knop opnieuw proberen."
+            },
+            {
+                "ecode": "07FF8010",
+                "intro": "De AMS-hulpmotor is overbelast. Controleer of de spoel of het filament vastzit en klik na het oplossen van de problemen op de knop Opnieuw proberen."
+            },
+            {
+                "ecode": "07FF8011",
+                "intro": "Filament in de AMS is op. Plaats nieuw filament in de AMS en tik op de knop \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "07FF8012",
+                "intro": "Kan de AMS-toewijzingstabel niet ophalen, tik op \"opnieuw proberen” om door te gaan."
+            },
+            {
+                "ecode": "07FF8013",
+                "intro": "Time-out van het verwijderen van het oude filament. Controleer of het filament vastzit of dat de extruder verstopt is, klik na het oplossen van problemen op de knop opnieuw proberen."
+            },
+            {
+                "ecode": "07FF4001",
+                "intro": "Er wordt nog steeds filament geladen vanuit het AMS nadat dit is uitgeschakeld. Verwijder het filament, laad het vanuit de spoelhouder en begin opnieuw met printen."
+            },
+            {
+                "ecode": "05008013",
+                "intro": "Het printbestand is niet beschikbaar. Controleer of het opslagmedium is verwijderd."
+            },
+            {
+                "ecode": "03008010",
+                "intro": "De ventilatorsnelheid van de heatbreak is abnormaal."
+            },
+            {
+                "ecode": "07FFC003",
+                "intro": "Verwijder het externe filament van de extruder. Indien later een AMS dient te worden gebruikt, sluit dan de PTFE-tube aan op de coupler."
+            },
+            {
+                "ecode": "07FFC006",
+                "intro": "Laadt filament vanaf de spoelhouder totdat de filament sensor van de printkop wordt geactiveerd."
+            },
+            {
+                "ecode": "07008003",
+                "intro": "Het is niet gelukt om het filament uit de extruder terug te trekken. Controleer of de nozzle verstopt is of dat het filament gebroken is in de extruder. Klik na het oplossen van het probleem op de knop \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "07018003",
+                "intro": "Het is niet gelukt om het filament uit de extruder terug te trekken. Controleer of de nozzle verstopt is of dat het filament gebroken is in de extruder. Klik na het oplossen van het probleem op de knop \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "07028003",
+                "intro": "Het is niet gelukt om het filament uit de extruder terug te trekken. Controleer of de nozzle verstopt is of dat het filament gebroken is in de extruder. Klik na het oplossen van het probleem op de knop \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "07038003",
+                "intro": "Het is niet gelukt om het filament uit de extruder terug te trekken. Controleer of de nozzle verstopt is of dat het filament gebroken is in de extruder. Klik na het oplossen van het probleem op de knop \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "07FF8003",
+                "intro": "Verwijder het externe filament uit de extruder. Als u later een AMS wilt gebruiken, sluit dan de PTFE-tube aan op de coupler en klik op de knop „opnieuw proberen”."
+            },
+            {
+                "ecode": "0300800E",
+                "intro": "Het printbestand is niet beschikbaar. Controleer of het opslagmedium is verwijderd."
+            },
+            {
+                "ecode": "0300800F",
+                "intro": "De deur lijkt open te staan, dus het printen werd gepauzeerd."
+            },
+            {
+                "ecode": "05004014",
+                "intro": "Kon de printopdracht niet slicen. Controleer de instellingen en start de printopdracht opnieuw."
+            },
+            {
+                "ecode": "0500C011",
+                "intro": ""
+            },
+            {
+                "ecode": "0500C010",
+                "intro": "SD-kaartfout: voeg deze opnieuw in, formatteer of vervang deze opnieuw."
+            },
+            {
+                "ecode": "07FF8004",
+                "intro": "Het is niet gelukt om het filament terug te trekken vanuit de printkop naar de AMS. Controleer of het filament of de spoel vastzit. Klik na het oplossen van het probleem op de knop \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "07FF8006",
+                "intro": "Voer vanaf de spoelhouder totdat de filamentsensor van de gereedschapskop wordt geactiveerd en klik vervolgens op \"Opnieuw proberen\""
+            },
+            {
+                "ecode": "0500400E",
+                "intro": "Het printen is geannuleerd."
+            },
+            {
+                "ecode": "07008004",
+                "intro": "Het is niet gelukt om het filament terug te trekken vanuit de printkop naar de AMS. Controleer of het filament of de spoel vastzit. Klik na het oplossen van het probleem op de knop \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "07018004",
+                "intro": "Het is niet gelukt om het filament terug te trekken vanuit de printkop naar de AMS. Controleer of het filament of de spoel vastzit. Klik na het oplossen van het probleem op de knop \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "07028004",
+                "intro": "Het is niet gelukt om het filament terug te trekken vanuit de printkop naar de AMS. Controleer of het filament of de spoel vastzit. Klik na het oplossen van het probleem op de knop \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "07038004",
+                "intro": "Het is niet gelukt om het filament terug te trekken vanuit de printkop naar de AMS. Controleer of het filament of de spoel vastzit. Klik na het oplossen van het probleem op de knop \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "0300800D",
+                "intro": "Sommige onderdelen zijn omgevallen of de extruder extrudeert niet normaal. Als de defecten acceptabel zijn, klikt u op het pictogram „Hervatten” om de printopdracht te hervatten."
+            },
+            {
+                "ecode": "07018007",
+                "intro": "Het extruden van het filament is mislukt. Controleer of de extruder verstopt is. Klik na het oplossen van problemen op de knop Opnieuw proberen."
+            },
+            {
+                "ecode": "07018010",
+                "intro": "De AMS-hulpmotor is overbelast. Controleer of de spoel of het filament vastzit en klik na het oplossen van de problemen op de knop Opnieuw proberen."
+            },
+            {
+                "ecode": "07028007",
+                "intro": "Het extruden van het filament is mislukt. Controleer of de extruder verstopt is. Klik na het oplossen van problemen op de knop Opnieuw proberen."
+            },
+            {
+                "ecode": "07028010",
+                "intro": "De AMS-hulpmotor is overbelast. Controleer of de spoel of het filament vastzit en klik na het oplossen van de problemen op de knop Opnieuw proberen."
+            },
+            {
+                "ecode": "07038007",
+                "intro": "Het extruden van het filament is mislukt. Controleer of de extruder verstopt is. Klik na het oplossen van problemen op de knop Opnieuw proberen."
+            },
+            {
+                "ecode": "07038010",
+                "intro": "De AMS-hulpmotor is overbelast. Controleer of de spoel of het filament vastzit en klik na het oplossen van de problemen op de knop Opnieuw proberen."
+            },
+            {
+                "ecode": "0300800C",
+                "intro": "Overgeslagen stap gedetecteerd, automatische omschakeling voltooid; hervat het afdrukken en controleer of er problemen zijn met de verschuiving van lagen."
+            },
+            {
+                "ecode": "0C008009",
+                "intro": "De localisatiemarker voor de printplaat is niet gevonden."
+            },
+            {
+                "ecode": "03008006",
+                "intro": "De localisatiemarker voor de printplaat is niet gevonden, of de huidige printplaat is niet hetzelfde als in de G-code. Stop alsjeblieft met het printen en vervang de printplaat. Je kunt ook op \"Hervatten” tikken om de printopdracht geforceerd te hervatten."
+            },
+            {
+                "ecode": "07008007",
+                "intro": "Kon het filament niet extruderen. Controleer of de extruder verstopt is. Klik na het oplossen van problemen op de knop Opnieuw proberen."
+            },
+            {
+                "ecode": "1000C001",
+                "intro": "De printbedtemperatuur overschrijdt de verglazingstemperatuur van het filament, wat een verstopping van de nozzle kan veroorzaken. Houd de voorklep van de printer open of verlaag de bedtemperatuur."
+            },
+            {
+                "ecode": "1000C002",
+                "intro": "De door het filament vereiste hardheid van de nozzle is hoger dan de standaard hardheid van de nozzle van de printer. Vervang door een hardere nozzle of filament. Anders raakt de nozzle versleten of beschadigd."
+            },
+            {
+                "ecode": "0500400C",
+                "intro": "Plaats een SD-kaart en start de printopdracht opnieuw."
+            },
+            {
+                "ecode": "0500400D",
+                "intro": "Voer een zelftest uit en start de printopdracht opnieuw."
+            },
+            {
+                "ecode": "07008010",
+                "intro": "De AMS-hulpmotor is overbelast. Controleer of de spoel of het filament vastzit en klik na het oplossen van de problemen op de knop Opnieuw proberen."
+            },
+            {
+                "ecode": "07008005",
+                "intro": "Het filament kan niet buiten de AMS worden gevoerd. Knip het uiteinde van het filament plat en controleer of de spoel vastzit. Klik na het oplossen van problemen op de knop opnieuw proberen."
+            },
+            {
+                "ecode": "07018005",
+                "intro": "Het filament kan niet buiten de AMS worden gevoerd. Knip het uiteinde van het filament plat en controleer of de spoel vastzit. Klik na het oplossen van problemen op de knop opnieuw proberen."
+            },
+            {
+                "ecode": "07028005",
+                "intro": "Het filament kan niet buiten de AMS worden gevoerd. Knip het uiteinde van het filament plat en controleer of de spoel vastzit. Klik na het oplossen van problemen op de knop opnieuw proberen."
+            },
+            {
+                "ecode": "07038005",
+                "intro": "Het filament kan niet buiten de AMS worden gevoerd. Knip het uiteinde van het filament plat en controleer of de spoel vastzit. Klik na het oplossen van problemen op de knop opnieuw proberen."
+            },
+            {
+                "ecode": "0500400B",
+                "intro": "Er is een probleem opgetreden bij het downloaden van een bestand. Controleer uw netwerkverbinding en verzend de printopdracht opnieuw."
+            },
+            {
+                "ecode": "03008002",
+                "intro": "Er zijn fouten in de eerste laag ontdekt. Als de defecten aanvaardbaar zijn, tikt u op \"Hervatten\" om de afdruktaak te hervatten."
+            },
+            {
+                "ecode": "03008003",
+                "intro": "Er zijn spaghettifouten ontdekt. Als de defecten aanvaardbaar zijn, tikt u op \"Hervatten\" om de afdruktaak te hervatten."
+            },
+            {
+                "ecode": "03008007",
+                "intro": "Er was een onvoltooide print taak toen de printer werd uitgeschakeld. Tik op \"Hervatten\" om de afdruktaak te hervatten."
+            },
+            {
+                "ecode": "03008009",
+                "intro": "Temperatuurstoring verwarmd printbed."
+            },
+            {
+                "ecode": "07008011",
+                "intro": "Filament in de AMS is op. Plaats een nieuw filament in de AMS en tik op de knop \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "07018011",
+                "intro": "Filament in de AMS is op. Plaats nieuw filament in de AMS, tik op de knop \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "07028011",
+                "intro": "Filament in de AMS is op. Plaats nieuw filament in de AMS en tik op de knop \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "07038011",
+                "intro": "Filament in de AMS is op. Plaats nieuw filament in de AMS en tik op de knop \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "0C008001",
+                "intro": "Er zijn defecten in de eerste laag ontdekt. Indien de defecten aanvaardbaar zijn, klik op het pictogram hervatten om de afdruktaak te voort te zetten."
+            },
+            {
+                "ecode": "0300800A",
+                "intro": "Gespoelde filamenten hebben zich opgestapeld in de stortkoker, wat een botsing met de printkop kan veroorzaken. Verwijder overtollig filament. Als dit is verwijderd of er geen probleem is, tikt u op het pictogram Hervatten om de afdruktaak"
+            },
+            {
+                "ecode": "0C008005",
+                "intro": "Er zit overtollig filament in het afvoerkanaal, dit kan zorgen voor een botsing met de printkop."
+            },
+            {
+                "ecode": "0C00C006",
+                "intro": "Het lijkt erop dat het afvoerkanaal vol zit met filament."
+            },
+            {
+                "ecode": "0300400E",
+                "intro": "De motor zelf-test is mislukt."
+            },
+            {
+                "ecode": "0300800B",
+                "intro": "Het snijmechanisme zit vast. Trek de hendel van de snijplotter eruit en tik op de knop hervatten."
+            },
+            {
+                "ecode": "07008012",
+                "intro": "Kan de AMS-toewijzingstabel niet ophalen, tik op \"opnieuw proberen” om door te gaan."
+            },
+            {
+                "ecode": "07018012",
+                "intro": "Kan de AMS-toewijzingstabel niet ophalen, tik op \"opnieuw proberen” om door te gaan."
+            },
+            {
+                "ecode": "07028012",
+                "intro": "Kan de AMS-toewijzingstabel niet ophalen, tik op \"opnieuw proberen” om door te gaan."
+            },
+            {
+                "ecode": "07038012",
+                "intro": "Kan de AMS-toewijzingstabel niet ophalen, tik op \"opnieuw proberen” om door te gaan."
+            },
+            {
+                "ecode": "07008013",
+                "intro": "Time-out van het verwijderen van het oude filament. Controleer of het filament vastzit of dat de extruder verstopt is, klik na het oplossen van problemen op de knop opnieuw proberen."
+            },
+            {
+                "ecode": "07018013",
+                "intro": "Time-out van het verwijderen van het oude filament. Controleer of het filament vastzit of dat de extruder verstopt is, klik na het oplossen van problemen op de knop opnieuw proberen."
+            },
+            {
+                "ecode": "07028013",
+                "intro": "Time-out van het verwijderen van het oude filament. Controleer of het filament vastzit of dat de extruder verstopt is, klik na het oplossen van problemen op de knop opnieuw proberen."
+            },
+            {
+                "ecode": "07038013",
+                "intro": "Time-out van het verwijderen van het oude filament. Controleer of het filament vastzit of dat de extruder verstopt is, klik na het oplossen van problemen op de knop opnieuw proberen."
+            },
+            {
+                "ecode": "07004001",
+                "intro": "Er wordt nog steeds filament geladen vanuit het AMS nadat dit is uitgeschakeld. Verwijder het filament, laad het vanuit de spoelhouder en begin opnieuw met printen."
+            },
+            {
+                "ecode": "07014001",
+                "intro": "Er wordt nog steeds filament geladen vanuit het AMS nadat dit is uitgeschakeld. Verwijder het filament, laad het vanuit de spoelhouder en begin opnieuw met printen."
+            },
+            {
+                "ecode": "07024001",
+                "intro": "Er wordt nog steeds filament geladen vanuit het AMS nadat dit is uitgeschakeld. Verwijder het filament, laad het vanuit de spoelhouder en begin opnieuw met printen."
+            },
+            {
+                "ecode": "07034001",
+                "intro": "Er wordt nog steeds filament geladen vanuit het AMS nadat dit is uitgeschakeld. Verwijder het filament, laad het vanuit de spoelhouder en begin opnieuw met printen."
+            },
+            {
+                "ecode": "07038006",
+                "intro": "Het is niet gelukt om het filament in de printkop te laden. Controleer of het filament of de spoel is vastgelopen. Klik op \"Opnieuw proberen\" als het probleem is opgelost."
+            },
+            {
+                "ecode": "0C008002",
+                "intro": "Er is een \"spaghetti fout\" geconstateerd."
+            },
+            {
+                "ecode": "0C00C003",
+                "intro": "Er zijn mogelijke fouten gedecteerd in de eerste laag."
+            },
+            {
+                "ecode": "0C00C004",
+                "intro": "Er is een mogelijke \"spaghetti fout\" gedetecteerd."
+            },
+            {
+                "ecode": "07018006",
+                "intro": "Het is niet gelukt om het filament in de printkop te laden. Controleer of het filament of de spoel is vastgelopen. Klik op \"Opnieuw proberen\" als het probleem is opgelost."
+            },
+            {
+                "ecode": "07028001",
+                "intro": "Het filament kan niet worden doorgesneden. Controleer de filament snijder. Klik na het oplossen van problemen op de knop \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "07028002",
+                "intro": "De filament snijder is vastgelopen. Trek de hendel van het snijmechanisme uit en klik op \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "07028006",
+                "intro": "Het is niet gelukt om het filament in de printkop te laden. Controleer of het filament of de spoel is vastgelopen. Klik op \"Opnieuw proberen\" als het probleem is opgelost."
+            },
+            {
+                "ecode": "07038001",
+                "intro": "Het filament kan niet worden doorgesneden. Controleer het snijmechanisme. Klik na het oplossen van problemen op de knop \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "07038002",
+                "intro": "Het snijmechanische is vastgelopen. Trek de hendel van het snijmechanisme uit en klik op \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "07008001",
+                "intro": "Het filament kan niet worden doorgesneden. Controleer het snijmechanisme. Klik na het oplossen van problemen op de knop \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "07008002",
+                "intro": "Het snijmechanische is vastgelopen. Trek de hendel van het snijmechanisme uit en klik op \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "07008006",
+                "intro": "Het is niet gelukt om het filament in de printkop te laden. Controleer of het filament of de spoel is vastgelopen. Klik op \"Opnieuw proberen\" als het probleem is opgelost."
+            },
+            {
+                "ecode": "07018001",
+                "intro": "Het filament is niet afgesneden. Controleer de filament snijder. Klik na het oplossen van het probleem op de knop \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "07018002",
+                "intro": "De filament snijder zit vast. Trek de hendel van het snijmechanisme uit en klik op de knop \"Opnieuw proberen\"."
+            },
+            {
+                "ecode": "03008008",
+                "intro": "Nozzle temperatuur storing"
+            },
+            {
+                "ecode": "05004001",
+                "intro": "Kan geen verbinding maken met Bambu Cloud. Controleer je netwerkverbinding."
+            },
+            {
+                "ecode": "05004002",
+                "intro": "Het is niet gelukt de ontvangen printtaak te verwerken. Installeer alstublieft de nieuwste firmware en probeer het opnieuw."
+            },
+            {
+                "ecode": "05004003",
+                "intro": "Er was een probleem bij het verwerken van gcode.3mf. Stuur de printopdracht opnieuw."
+            },
+            {
+                "ecode": "05004004",
+                "intro": "Printtaken mogen niet verzonden worden tijdens het printen."
+            },
+            {
+                "ecode": "05004005",
+                "intro": "Printtaken mogen niet worden verzonden tijdens het bijwerken van de firmware."
+            },
+            {
+                "ecode": "05004006",
+                "intro": "Er is niet voldoende vrije opslagruimte voor de printtaak. Terugzetten naar de fabrieksinstellingen kan beschikbare ruimte vrijmaken."
+            },
+            {
+                "ecode": "05004007",
+                "intro": "Printtaken mogen niet worden verzonden tijdens geforceerde updates of wanneer een reparatie-update vereist is."
+            },
+            {
+                "ecode": "05004008",
+                "intro": "Het starten van de print is mislukt. Herstart de printer en stuur de printtaak opnieuw."
+            },
+            {
+                "ecode": "05004009",
+                "intro": "Printtaken mogen niet worden verzonden tijdens het bijwerken van logboeken."
+            },
+            {
+                "ecode": "0500400A",
+                "intro": "De bestandsnaam wordt niet ondersteund. Wijzig de naam en start de printtaak opnieuw."
+            },
+            {
+                "ecode": "03004001",
+                "intro": "Er is een time-out opgetreden tijdens de cooldown van de nozzle, alvorens de printer naar de home positie kon gaan."
+            },
+            {
+                "ecode": "03004002",
+                "intro": "Het is niet gelukt een mesh levelling toe te passen."
+            },
+            {
+                "ecode": "03004005",
+                "intro": "De ventilatorsnelheid van de heatbreak is abnormaal."
+            },
+            {
+                "ecode": "03004006",
+                "intro": "De nozzle is verstopt."
+            },
+            {
+                "ecode": "03004008",
+                "intro": "Het is de AMS niet gelukt het filmant te wisselen."
+            },
+            {
+                "ecode": "03004009",
+                "intro": "Homing van de XY as is mislukt."
+            },
+            {
+                "ecode": "0300400A",
+                "intro": "Mechanische resonantie modus identificatie mislukt."
+            },
+            {
+                "ecode": "0300400B",
+                "intro": "Interne communicatie storing."
+            },
+            {
+                "ecode": "0300400C",
+                "intro": "Het printen is geannuleerd."
+            },
+            {
+                "ecode": "0300400D",
+                "intro": "Hervatten na stroomonderbreking is mislukt."
+            },
+            {
+                "ecode": "03008000",
+                "intro": "Het printen is om onbekende reden onderbroken. U kunt op \"Hervatten\" tikken om de printtaak te hervatten."
+            },
+            {
+                "ecode": "03008001",
+                "intro": "De print is door de gebruiker gepauzeerd. Tik op \"hervatten\" om de print voort te zetten."
+            },
+            {
+                "ecode": "03008004",
+                "intro": "Het filament is op. Laad nieuw filament in Temperatuur/As en tik op \"Hervatten\" om de printopdracht te hervatten."
+            },
+            {
+                "ecode": "03008005",
+                "intro": "De print is onderbroken, omdat het kapje aan de voorzijde van de printkop los is gekomen. Plaats het kapje terug en klik op \"Hervatten\" om de printtaak voort te zetten."
+            },
+            {
+                "ecode": "03004000",
+                "intro": "Homing van de Z-as is mislukt."
+            }
+        ],
+        "ver": 202309261900
+    },
+    "device_hms": {
+        "nl": [
+            {
+                "ecode": "03000D0000020004",
+                "intro": "De printplaat is niet juist geplaats. Pas de plaatsing aan."
+            },
+            {
+                "ecode": "03000D0000020005",
+                "intro": "De printplaat is niet juist geplaats. Pas de plaatsing aan."
+            },
+            {
+                "ecode": "03000D0000020006",
+                "intro": "De printplaat is niet juist geplaats. Pas de plaatsing aan."
+            },
+            {
+                "ecode": "03000D0000020007",
+                "intro": "De printplaat is niet juist geplaats. Pas de plaatsing aan."
+            },
+            {
+                "ecode": "03000D0000020008",
+                "intro": "De printplaat is niet juist geplaats. Pas de plaatsing aan."
+            },
+            {
+                "ecode": "03000D0000020009",
+                "intro": "De printplaat is niet juist geplaats. Pas de plaatsing aan."
+            },
+            {
+                "ecode": "03000D000002000A",
+                "intro": "De printplaat is niet juist geplaats. Pas de plaatsing aan."
+            },
+            {
+                "ecode": "03000D0000020003",
+                "intro": "De printplaat is niet juist geplaats. Pas de plaatsing aan."
+            },
+            {
+                "ecode": "0500040000020020",
+                "intro": ""
+            },
+            {
+                "ecode": "0300180000010002",
+                "intro": "De gevoeligheid van de extrusiekrachtsensor is laag, de hotend is mogelijk niet correct geïnstalleerd."
+            },
+            {
+                "ecode": "0300170000010001",
+                "intro": "De snelheid van de hotend-ventilator is te laag of gestopt. Mogelijk zit deze vast of de connector is niet goed aangesloten."
+            },
+            {
+                "ecode": "0300170000020002",
+                "intro": "De snelheid van de hotend-ventilator is laag. Mogelijk zit deze vast en moet deze worden schoongemaakt."
+            },
+            {
+                "ecode": "0300900000010001",
+                "intro": "Het verwarmen van de kamer werkt niet. De kamerverwarmer blaast mogelijk geen hete lucht."
+            },
+            {
+                "ecode": "0300900000010002",
+                "intro": "Het verwarmen van de kamer werkt niet. De deur of het lijk zijn mogelijk niet gesloten of de omgevingstemperatuur kan te laag zijn."
+            },
+            {
+                "ecode": "0300900000010003",
+                "intro": "Het verwarmen van de kamer werkt niet. De temperatuur van de voeding is mogelijk te hoog."
+            },
+            {
+                "ecode": "0300900000010004",
+                "intro": "Het verwarmen van de kamer werkt niet. De snelheid van de verwarmingsventilator is te laag."
+            },
+            {
+                "ecode": "0300900000010005",
+                "intro": "Het verwarmen van de kamer werkt niet. De thermische weerstand is te hoog."
+            },
+            {
+                "ecode": "0300910000010001",
+                "intro": "De temperatuur van kamerverwarming 1 is abnormaal. De verwarming kan kortsluiting hebben."
+            },
+            {
+                "ecode": "0300910000010002",
+                "intro": "De verwarming heeft mogelijk een kortsluiting of de thermische zekering is mogelijk in werking getreden."
+            },
+            {
+                "ecode": "0300910000010003",
+                "intro": "De verwarming heeft mogelijk een kortsluiting of de thermische zekering is mogelijk in werking getreden. De temperatuur van de verwarming is te hoog."
+            },
+            {
+                "ecode": "0300910000010006",
+                "intro": "De temperatuur van kamerverwarming 1 is abnormaal. De sensor heeft mogelijk een kortsluiting."
+            },
+            {
+                "ecode": "0300910000010007",
+                "intro": "De temperatuur van kamerverwarming 1 is abnormaal. De sensor heeft mogelijk een kortsluiting."
+            },
+            {
+                "ecode": "0300910000010008",
+                "intro": "Kamerverwarming 1 kon niet naar de doeltemperatuur stijgen."
+            },
+            {
+                "ecode": "0300920000010001",
+                "intro": "De temperatuur van kamerverwarming 2 is abnormaal. De sensor heeft mogelijk een kortsluiting."
+            },
+            {
+                "ecode": "0300920000010002",
+                "intro": "De temperatuur van kamerverwarming 2 is abnormaal. De verwarming heeft mogelijk een kortsluiting of de thermische zekering is mogelijk actief."
+            },
+            {
+                "ecode": "0300920000010003",
+                "intro": "De temperatuur van kamerverwarming 2 is abnormaal. De verwarming is oververhit."
+            },
+            {
+                "ecode": "0300920000010006",
+                "intro": "De temperatuur van kamerverwarming 2 is abnormaal. De sensor heeft mogelijk een kortsluiting."
+            },
+            {
+                "ecode": "0300920000010007",
+                "intro": "De temperatuur van kamerverwarming 2 is abnormaal. De sensor heeft mogelijk een kortsluiting."
+            },
+            {
+                "ecode": "0300920000010008",
+                "intro": "Kamerverwarming 2 kon niet naar de doeltemperatuur stijgen."
+            },
+            {
+                "ecode": "0300930000010001",
+                "intro": "De temperatuur van de kamer is abnormaal. De temperatuursensor van de kamerverwarmer kan kortsluiting hebben."
+            },
+            {
+                "ecode": "0300930000010002",
+                "intro": "De temperatuur van de kamer is abnormaal. De temperatuursensor van de kamerverwarming kan kortsluiting hebben."
+            },
+            {
+                "ecode": "0300930000010003",
+                "intro": "De temperatuur van de kamer is abnormaal. De luchtuitlaat temperatuursensor van de kamerverwarmering kan kortsluiting hebben."
+            },
+            {
+                "ecode": "0300930000010004",
+                "intro": "De temperatuur van de kamer is abnormaal. De luchtuitlaat temperatuursensor van de kamerverwarmering kan kortsluiting hebben."
+            },
+            {
+                "ecode": "0300930000010005",
+                "intro": "De temperatuur van de kamer is abnormaal. De luchtinlaat temperatuursensor van de kamerverwarmering kan kortsluiting hebben."
+            },
+            {
+                "ecode": "0300930000010006",
+                "intro": "De temperatuur van de kamer is abnormaal. De luchtinlaat temperatuursensor van de kamerverwarmering kan kortsluiting hebben."
+            },
+            {
+                "ecode": "0300930000010007",
+                "intro": "De temperatuur van de kamer is abnormaal. De temperatuursensor op de voeding kan kortsluiting hebben."
+            },
+            {
+                "ecode": "0300930000010008",
+                "intro": "De temperatuur van de kamer is abnormaal. De temperatuursensor op de voeding kan kortsluiting hebben."
+            },
+            {
+                "ecode": "0500030000010023",
+                "intro": "De CTC-module werkt niet goed. Start het apparaat opnieuw op."
+            },
+            {
+                "ecode": "0300900000010010",
+                "intro": "De communicatie van de kamertemperatuurregelaar is abnormaal."
+            },
+            {
+                "ecode": "12FF200000030007",
+                "intro": "Even geduld, de locatie van het filament in elk AMS-slot wordt gecontroleerd."
+            },
+            {
+                "ecode": "0300940000030001",
+                "intro": "De kamer koelt mogelijk te langzaam af. U kunt de kamer openen om het koelen te bevorderen als de dampen in de kamer niet giftig zijn."
+            },
+            {
+                "ecode": "0300180000010001",
+                "intro": "De waarde van de extrusiekrachtsensor is laag, de nozzle lijkt niet te zijn geïnstalleerd."
+            },
+            {
+                "ecode": "0300180000010003",
+                "intro": "De extrusiekrachtsensor is niet beschikbaar, de verbinding tussen de MC en TH is mogelijk verbroken of de sensor is defect."
+            },
+            {
+                "ecode": "0300180000010004",
+                "intro": "De gegevens van de extrusiekrachtsensor zijn abnormaal, de sensor lijkt defect te zijn."
+            },
+            {
+                "ecode": "0300190000010001",
+                "intro": "De wervelstroom sensor op de Y-as is niet beschikbaar, de kabel lijkt defect te zijn."
+            },
+            {
+                "ecode": "0300190000020002",
+                "intro": "De gevoeligheid van de wervelstroom sensor op de Y-as is te hoog."
+            },
+            {
+                "ecode": "0300940000030002",
+                "intro": "De instelwaarde van de kamertemperatuur overschrijdt de limiet, de grenswaarde wordt ingesteld."
+            },
+            {
+                "ecode": "12FF200000020007",
+                "intro": "Kan de positie van het filament in de gereedschapskop niet controleren, tik hier voor meer hulp."
+            },
+            {
+                "ecode": "0C0003000002000F",
+                "intro": "Onderdelen die vóór de inspectie van de eerste laag zijn ingesteld, worden overgeslagen. De inspectie wordt niet ondersteund voor de huidige printopdracht."
+            },
+            {
+                "ecode": "0500040000020010",
+                "intro": "De RFID-tag op AMS1 Slot 1 kan niet worden geïdentificeerd."
+            },
+            {
+                "ecode": "0500040000020011",
+                "intro": "De RFID-tag op AMS1 Slot2 kan niet worden geïdentificeerd."
+            },
+            {
+                "ecode": "0500040000020012",
+                "intro": "De RFID-tag op AMS1 Slot3 kan niet worden geïdentificeerd."
+            },
+            {
+                "ecode": "0500040000020014",
+                "intro": "De RFID-tag op AMS2 Slot 1 kan niet worden geïdentificeerd."
+            },
+            {
+                "ecode": "0500040000020015",
+                "intro": "De RFID-tag op AMS2 Slot 2 kan niet worden geïdentificeerd."
+            },
+            {
+                "ecode": "0500040000020016",
+                "intro": "De RFID-tag op AMS2 Slot3 kan niet worden geïdentificeerd."
+            },
+            {
+                "ecode": "0500040000020017",
+                "intro": "De RFID-tag op AMS2 Slot4 kan niet worden geïdentificeerd."
+            },
+            {
+                "ecode": "0500040000020018",
+                "intro": "De RFID-tag op AMS3 Slot1 kan niet worden geïdentificeerd."
+            },
+            {
+                "ecode": "0500040000020019",
+                "intro": "De RFID-tag op AMS3 Slot2 kan niet worden geïdentificeerd."
+            },
+            {
+                "ecode": "050004000002001A",
+                "intro": "De RFID-tag op AMS3 Slot3 kan niet worden geïdentificeerd."
+            },
+            {
+                "ecode": "050004000002001B",
+                "intro": "De RFID-tag op AMS3 Slot4 kan niet worden geïdentificeerd."
+            },
+            {
+                "ecode": "050004000002001C",
+                "intro": "De RFID-tag op AMS4 Slot 1 kan niet worden geïdentificeerd."
+            },
+            {
+                "ecode": "050004000002001D",
+                "intro": "De RFID-tag op AMS4 Slot2 kan niet worden geïdentificeerd."
+            },
+            {
+                "ecode": "050004000002001E",
+                "intro": "De RFID-tag op AMS4 Slot3 kan niet worden geïdentificeerd."
+            },
+            {
+                "ecode": "050004000002001F",
+                "intro": "De RFID-tag op AMS4 Slot 4 kan niet worden geïdentificeerd."
+            },
+            {
+                "ecode": "0500040000020013",
+                "intro": "De RFID-tag op AMS1 Slot 4 kan niet worden geïdentificeerd."
+            },
+            {
+                "ecode": "12FF800000020001",
+                "intro": "Het filament op de spoelhouder kan verstrikt zijn of vastzitten."
+            },
+            {
+                "ecode": "1200800000020001",
+                "intro": "AMS1 Slot1-filament is mogelijk verward of vastgelopen."
+            },
+            {
+                "ecode": "1200810000020001",
+                "intro": "Het AMS1 Slot2-filament kan verward of vastzitten."
+            },
+            {
+                "ecode": "1200820000020001",
+                "intro": "Het AMS1 Slot3-filament kan verward of vastzitten."
+            },
+            {
+                "ecode": "1200830000020001",
+                "intro": "Het AMS1 Slot4-filament kan verward of vastzitten."
+            },
+            {
+                "ecode": "1201800000020001",
+                "intro": "Het AMS2 Slot1-filament kan verward of vastzitten."
+            },
+            {
+                "ecode": "1201810000020001",
+                "intro": "Het AMS2 Slot2-filament kan verward of vastzitten."
+            },
+            {
+                "ecode": "1201820000020001",
+                "intro": "AMS2 Slot3-filament kan verward of vastzitten."
+            },
+            {
+                "ecode": "1201830000020001",
+                "intro": "Het AMS2 Slot4-filament kan verward of vastzitten."
+            },
+            {
+                "ecode": "1202800000020001",
+                "intro": "Het AMS3 Slot1-filament is mogelijk verward of vastgelopen."
+            },
+            {
+                "ecode": "1202810000020001",
+                "intro": "Het AMS3 Slot2-filament kan verward of vastzitten."
+            },
+            {
+                "ecode": "1202820000020001",
+                "intro": "Het AMS3 Slot3-filament kan verward of vastzitten."
+            },
+            {
+                "ecode": "1202830000020001",
+                "intro": "Het AMS3 Slot4-filament kan verward of vastzitten."
+            },
+            {
+                "ecode": "1203800000020001",
+                "intro": "Het AMS4 Slot1-filament is mogelijk verward of vastgelopen."
+            },
+            {
+                "ecode": "1203810000020001",
+                "intro": "Het AMS4 Slot2-filament kan verward of vastzitten."
+            },
+            {
+                "ecode": "1203820000020001",
+                "intro": "Het AMS4 Slot3-filament kan verward of vastzitten."
+            },
+            {
+                "ecode": "1203830000020001",
+                "intro": "Het AMS4 Slot4-filament kan verward of vastzitten."
+            },
+            {
+                "ecode": "1201310000010001",
+                "intro": "AMS2 Slot2 RFID-spoel is kapot of het RF-hardwarecircuit bevat een fout."
+            },
+            {
+                "ecode": "1202310000010001",
+                "intro": "AMS3 Slot2 RFID-spoel is kapot of het RF-hardwarecircuit bevat een fout."
+            },
+            {
+                "ecode": "1203310000010001",
+                "intro": "AMS4 Slot2 RFID-spoel is kapot of het RF-hardwarecircuit bevat een fout."
+            },
+            {
+                "ecode": "1200320000010001",
+                "intro": "AMS1 Slot3 RFID-spoel is kapot of het RF-hardwarecircuit bevat een fout."
+            },
+            {
+                "ecode": "1201320000010001",
+                "intro": "AMS2 Slot3 RFID-spoel is kapot of het RF-hardwarecircuit bevat een fout."
+            },
+            {
+                "ecode": "1202320000010001",
+                "intro": "AMS3 Slot3 RFID-spoel is kapot of het RF-hardwarecircuit bevat een fout."
+            },
+            {
+                "ecode": "1203320000010001",
+                "intro": "AMS4 Slot3 RFID-spoel is kapot of het RF-hardwarecircuit bevat een fout."
+            },
+            {
+                "ecode": "1200330000010001",
+                "intro": "AMS1 Slot4 RFID-spoel is kapot of het RF-hardwarecircuit bevat een fout."
+            },
+            {
+                "ecode": "1201330000010001",
+                "intro": "AMS2 Slot4 RFID-spoel is kapot of het RF-hardwarecircuit bevat een fout."
+            },
+            {
+                "ecode": "1202330000010001",
+                "intro": "AMS3 Slot4 RFID-spoel is kapot of het RF-hardwarecircuit bevat een fout."
+            },
+            {
+                "ecode": "1203330000010001",
+                "intro": "AMS4 Slot4 RFID-spoel is kapot of het RF-hardwarecircuit bevat een fout."
+            },
+            {
+                "ecode": "1200300000020002",
+                "intro": "De RFID-tag op AMS1 Slot1 is beschadigd."
+            },
+            {
+                "ecode": "1201300000020002",
+                "intro": "De RFID-tag op AMS2 Slot1 is beschadigd."
+            },
+            {
+                "ecode": "1202300000020002",
+                "intro": "De RFID-tag op AMS3 Slot1 is beschadigd."
+            },
+            {
+                "ecode": "1203300000020002",
+                "intro": "De RFID-tag op AMS4 Slot1 is beschadigd."
+            },
+            {
+                "ecode": "1200310000020002",
+                "intro": "De RFID-tag op AMS1 Slot2 is beschadigd."
+            },
+            {
+                "ecode": "1201310000020002",
+                "intro": "De RFID-tag op AMS2 Slot2 is beschadigd."
+            },
+            {
+                "ecode": "1202310000020002",
+                "intro": "De RFID-tag op AMS3 Slot2 is beschadigd."
+            },
+            {
+                "ecode": "1203310000020002",
+                "intro": "De RFID-tag op AMS4 Slot2 is beschadigd."
+            },
+            {
+                "ecode": "1200320000020002",
+                "intro": "De RFID-tag op AMS1 Slot3 is beschadigd."
+            },
+            {
+                "ecode": "1201320000020002",
+                "intro": "De RFID-tag op AMS2 Slot3 is beschadigd."
+            },
+            {
+                "ecode": "1202320000020002",
+                "intro": "De RFID-tag op AMS3 Slot3 is beschadigd."
+            },
+            {
+                "ecode": "1203320000020002",
+                "intro": "De RFID-tag op AMS4 Slot3 is beschadigd."
+            },
+            {
+                "ecode": "1200330000020002",
+                "intro": "De RFID-tag op AMS1 Slot4 is beschadigd."
+            },
+            {
+                "ecode": "1201330000020002",
+                "intro": "De RFID-tag op AMS2 Slot4 is beschadigd."
+            },
+            {
+                "ecode": "1202330000020002",
+                "intro": "De RFID-tag op AMS3 Slot4 is beschadigd."
+            },
+            {
+                "ecode": "1203330000020002",
+                "intro": "De RFID-tag op AMS4 Slot4 is beschadigd."
+            },
+            {
+                "ecode": "1200300000030003",
+                "intro": "AMS1 Slot1 RFID kan niet worden gelezen vanwege een structurele fout."
+            },
+            {
+                "ecode": "1201300000030003",
+                "intro": "AMS2 Slot1 RFID kan niet worden gelezen vanwege een structurele fout."
+            },
+            {
+                "ecode": "1202300000030003",
+                "intro": "AMS3 Slot1 RFID kan niet worden gelezen vanwege een structurele fout."
+            },
+            {
+                "ecode": "1203300000030003",
+                "intro": "AMS4 Slot1 RFID kan niet worden gelezen vanwege een structurele fout."
+            },
+            {
+                "ecode": "1200310000030003",
+                "intro": "AMS1 Slot2 RFID kan niet worden gelezen vanwege een structurele fout."
+            },
+            {
+                "ecode": "1201310000030003",
+                "intro": "AMS2 Slot2 RFID kan niet worden gelezen vanwege een structurele fout."
+            },
+            {
+                "ecode": "1202310000030003",
+                "intro": "AMS3 Slot2 RFID kan niet worden gelezen vanwege een structurele fout."
+            },
+            {
+                "ecode": "1203310000030003",
+                "intro": "AMS4 Slot2 RFID kan niet worden gelezen vanwege een structurele fout."
+            },
+            {
+                "ecode": "1200320000030003",
+                "intro": "AMS1 Slot3 RFID kan niet worden gelezen vanwege een structurele fout."
+            },
+            {
+                "ecode": "1201320000030003",
+                "intro": "AMS2 Slot3 RFID kan niet worden gelezen vanwege een structurele fout."
+            },
+            {
+                "ecode": "1202320000030003",
+                "intro": "AMS3 Slot3 RFID kan niet worden gelezen vanwege een structurele fout."
+            },
+            {
+                "ecode": "1203320000030003",
+                "intro": "AMS4 Slot3 RFID kan niet worden gelezen vanwege een structurele fout."
+            },
+            {
+                "ecode": "1200330000030003",
+                "intro": "AMS1 Slot4 RFID kan niet worden gelezen vanwege een structurele fout."
+            },
+            {
+                "ecode": "1201330000030003",
+                "intro": "AMS2 Slot4 RFID kan niet worden gelezen vanwege een structurele fout."
+            },
+            {
+                "ecode": "1202330000030003",
+                "intro": "AMS3 Slot4 RFID kan niet worden gelezen vanwege een structurele fout."
+            },
+            {
+                "ecode": "1203330000030003",
+                "intro": "AMS4 Slot4 RFID kan niet worden gelezen vanwege een structurele fout."
+            },
+            {
+                "ecode": "1200300000010004",
+                "intro": "RFID kan niet worden gelezen vanwege een storing in de coderingschip in AMS1."
+            },
+            {
+                "ecode": "1201300000010004",
+                "intro": "RFID kan niet worden gelezen vanwege een storing in de coderingschip in AMS2."
+            },
+            {
+                "ecode": "1202300000010004",
+                "intro": "RFID kan niet worden gelezen vanwege een storing in de coderingschip in AMS3."
+            },
+            {
+                "ecode": "1203300000010004",
+                "intro": "RFID kan niet worden gelezen vanwege een storing in de coderingschip in AMS4."
+            },
+            {
+                "ecode": "1200450000020001",
+                "intro": "De sensor van de filamentsnijder werkt niet goed; controleer of de connector goed is aangesloten."
+            },
+            {
+                "ecode": "1200450000020002",
+                "intro": "De snijafstand van de filamentsnijder is te groot. De X-motor kan stappen verliezen."
+            },
+            {
+                "ecode": "1200450000020003",
+                "intro": "De hendel van de draadafsnijder komt niet los. De handgreep of het mes kan vastzitten."
+            },
+            {
+                "ecode": "1200500000020001",
+                "intro": "AMS1-communicatie is abnormaal, controleer de verbindingskabel."
+            },
+            {
+                "ecode": "1201500000020001",
+                "intro": "AMS2-communicatie is abnormaal, controleer de verbindingskabel."
+            },
+            {
+                "ecode": "1202500000020001",
+                "intro": "AMS3-communicatie is abnormaal, controleer de verbindingskabel."
+            },
+            {
+                "ecode": "1203500000020001",
+                "intro": "AMS4-communicatie is abnormaal, controleer de verbindingskabel."
+            },
+            {
+                "ecode": "1200510000030001",
+                "intro": "AMS is uitgeschakeld; laad het filament uit de spoelhouder."
+            },
+            {
+                "ecode": "1200700000010001",
+                "intro": "AMS1 Filament snelheid en lengte fout: De sleuf 1 filament odometrie is mogelijk defect."
+            },
+            {
+                "ecode": "1201700000010001",
+                "intro": "AMS2 Filament snelheid en lengte fout: De sleuf 1 filament odometrie is mogelijk defect."
+            },
+            {
+                "ecode": "1202700000010001",
+                "intro": "AMS3 Filament snelheid en lengte fout: De sleuf 1 filament odometrie is mogelijk defect."
+            },
+            {
+                "ecode": "1203700000010001",
+                "intro": "AMS4 Filament snelheid en lengte fout: De sleuf 1 filament odometrie is mogelijk defect."
+            },
+            {
+                "ecode": "1200710000010001",
+                "intro": "AMS1 Filament snelheid en lengte fout: De sleuf 2 filament odometrie is mogelijk defect."
+            },
+            {
+                "ecode": "1201710000010001",
+                "intro": "Fout AMS2-filamentsnelheid en -lengte: de odometrie van het filament van slot 2 is mogelijk defect."
+            },
+            {
+                "ecode": "1202710000010001",
+                "intro": "Fout AMS3-filamentsnelheid en -lengte: de odometrie van de filament sleuf 2 is mogelijk defect."
+            },
+            {
+                "ecode": "1203710000010001",
+                "intro": "AMS4 Filament snelheid en lengte fout: De sleuf 2 filament odometrie is mogelijk defect."
+            },
+            {
+                "ecode": "1200720000010001",
+                "intro": "AMS1 Filament snelheid en lengte fout: De sleuf 3 filament odometrie is mogelijk defect."
+            },
+            {
+                "ecode": "1201720000010001",
+                "intro": "Fout AMS2-filamentsnelheid en -lengte: de odometrie van het filament van slot 3 is mogelijk defect."
+            },
+            {
+                "ecode": "1202720000010001",
+                "intro": "Fout AMS3-filamentsnelheid en -lengte: de odometrie van het filament van slot 3 is mogelijk defect."
+            },
+            {
+                "ecode": "1203720000010001",
+                "intro": "AMS4 Filament snelheid en lengte fout: De sleuf 3 filament odometrie is mogelijk defect."
+            },
+            {
+                "ecode": "1200730000010001",
+                "intro": "AMS1 Filament snelheid en lengte fout: De sleuf 4 filament odometrie is mogelijk defect."
+            },
+            {
+                "ecode": "1201730000010001",
+                "intro": "AMS2 Filament snelheid en lengte fout: De sleuf 4 filament odometrie is mogelijk defect."
+            },
+            {
+                "ecode": "1202730000010001",
+                "intro": "Fout AMS3-filamentsnelheid en -lengte: de odometrie van de gloeidraad van slot 4 is mogelijk defect."
+            },
+            {
+                "ecode": "1203730000010001",
+                "intro": "Fout AMS4-filamentsnelheid en -lengte: de odometrie van de gloeidraad van slot 4 is mogelijk defect."
+            },
+            {
+                "ecode": "12FF200000020005",
+                "intro": "Het filament is mogelijk gebroken in de kop van het gereedschap."
+            },
+            {
+                "ecode": "12FF200000020006",
+                "intro": "Het filament is niet geëxtrudeerd en de extruder is mogelijk verstopt."
+            },
+            {
+                "ecode": "0500010000030007",
+                "intro": "Kan geen time-lapse-fotografie opnemen zonder dat er een MicroSD-kaart is geplaatst."
+            },
+            {
+                "ecode": "1200100000010001",
+                "intro": "De AMS1 Slot1-motor is geslipt. Het extrusiewiel werkt mogelijk niet goed, of het filament is mogelijk te dun."
+            },
+            {
+                "ecode": "1201100000010001",
+                "intro": "De AMS2 Slot1-motor is geslipt. Het extrusiewiel werkt mogelijk niet goed, of het filament is mogelijk te dun."
+            },
+            {
+                "ecode": "1202100000010001",
+                "intro": "De AMS3 Slot1-motor is geslipt. Het extrusiewiel werkt mogelijk niet goed, of het filament is mogelijk te dun."
+            },
+            {
+                "ecode": "1203100000010001",
+                "intro": "De AMS4 Slot1-motor is geslipt. Het extrusiewiel werkt mogelijk niet goed, of het filament is mogelijk te dun."
+            },
+            {
+                "ecode": "1200110000010001",
+                "intro": "De AMS1 slot2 motor heeft geslipt. Het extrusiewiel is mogelijk defect of het filament is mogelijk te dun."
+            },
+            {
+                "ecode": "1201110000010001",
+                "intro": "De AMS2 slot2 motor heeft geslipt. Het kan zijn dat het tandwiel in de extruder niet werkt, of het gebruikte filament is te dun."
+            },
+            {
+                "ecode": "1202110000010001",
+                "intro": "De AMS3 slot2 motor heeft geslipt. Het kan zijn dat het tandwiel in de extruder niet werkt, of het gebruikte filament is te dun."
+            },
+            {
+                "ecode": "1203110000010001",
+                "intro": "De AMS4 slot2 motor heeft geslipt. Het kan zijn dat het tandwiel in de extruder niet werkt, of het gebruikte filament is te dun."
+            },
+            {
+                "ecode": "1200120000010001",
+                "intro": "De AMS1 slot3 motor heeft geslipt. Het extrusiewiel is mogelijk defect of het filament is mogelijk te dun."
+            },
+            {
+                "ecode": "1201120000010001",
+                "intro": "De AMS2 slot3 motor heeft geslipt. Het kan zijn dat het tandwiel in de extruder niet werkt, of het gebruikte filament is te dun."
+            },
+            {
+                "ecode": "1202120000010001",
+                "intro": "De AMS3 slot3 motor heeft geslipt. Het kan zijn dat het tandwiel in de extruder niet werkt, of het gebruikte filament is te dun."
+            },
+            {
+                "ecode": "1203120000010001",
+                "intro": "De AMS4 slot3 motor heeft geslipt. Het kan zijn dat het tandwiel in de extruder niet werkt, of het gebruikte filament is te dun."
+            },
+            {
+                "ecode": "1200130000010001",
+                "intro": "De AMS1 slot4 motor heeft geslipt. Het extrusiewiel is mogelijk defect of het filament is mogelijk te dun."
+            },
+            {
+                "ecode": "1201130000010001",
+                "intro": "De AMS2 slot4 motor heeft geslipt. Het kan zijn dat het tandwiel in de extruder niet werkt, of het gebruikte filament is te dun."
+            },
+            {
+                "ecode": "1202130000010001",
+                "intro": "De AMS3 slot4 motor heeft geslipt. Het kan zijn dat het tandwiel in de extruder niet werkt, of het gebruikte filament is te dun."
+            },
+            {
+                "ecode": "1203130000010001",
+                "intro": "De AMS4 slot4 motor heeft geslipt. Het kan zijn dat het tandwiel in de extruder niet werkt, of het gebruikte filament is te dun."
+            },
+            {
+                "ecode": "1200100000020002",
+                "intro": "De AMS1 Slot1-motor is overbelast. Het filament kan verstrikt zijn of vastzitten."
+            },
+            {
+                "ecode": "1201100000020002",
+                "intro": "De AMS2 Slot1-motor is overbelast. Het filament kan verstrikt zijn of vastzitten."
+            },
+            {
+                "ecode": "1202100000020002",
+                "intro": "De AMS3 Slot1-motor is overbelast. Het filament kan verstrikt zijn of vastzitten."
+            },
+            {
+                "ecode": "1203100000020002",
+                "intro": "De AMS4 Slot1-motor is overbelast. Het filament kan verstrikt zijn of vastzitten."
+            },
+            {
+                "ecode": "1200110000020002",
+                "intro": "De AMS1 Slot2-motor is overbelast. Het filament kan verstrikt zijn of vastzitten."
+            },
+            {
+                "ecode": "1201110000020002",
+                "intro": "De AMS2 Slot2-motor is overbelast. Het filament kan verstrikt zijn of vastzitten."
+            },
+            {
+                "ecode": "1202110000020002",
+                "intro": "De AMS3 Slot2-motor is overbelast. Het filament kan verstrikt zijn of vastzitten."
+            },
+            {
+                "ecode": "1203110000020002",
+                "intro": "De AMS4 Slot2-motor is overbelast. Het filament kan verstrikt zijn of vastzitten."
+            },
+            {
+                "ecode": "1200120000020002",
+                "intro": "De AMS1 Slot3-motor is overbelast. Het filament kan verstrikt zijn of vastzitten."
+            },
+            {
+                "ecode": "1201120000020002",
+                "intro": "De AMS2 Slot3-motor is overbelast. Het filament kan verstrikt zijn of vastzitten."
+            },
+            {
+                "ecode": "1202120000020002",
+                "intro": "De AMS3 Slot3-motor is overbelast. Het filament kan verstrikt zijn of vastzitten."
+            },
+            {
+                "ecode": "1203120000020002",
+                "intro": "De AMS4 Slot3-motor is overbelast. Het filament kan verstrikt zijn of vastzitten."
+            },
+            {
+                "ecode": "1200130000020002",
+                "intro": "De AMS1 Slot4-motor is overbelast. Het filament kan verstrikt zijn of vastzitten."
+            },
+            {
+                "ecode": "1201130000020002",
+                "intro": "De AMS2 Slot4-motor is overbelast. Het filament kan verstrikt zijn of vastzitten."
+            },
+            {
+                "ecode": "1202130000020002",
+                "intro": "De AMS3 Slot4-motor is overbelast. Het filament kan verstrikt zijn of vastzitten."
+            },
+            {
+                "ecode": "1203130000020002",
+                "intro": "De AMS4 Slot4-motor is overbelast. Het filament kan verstrikt zijn of vastzitten."
+            },
+            {
+                "ecode": "1200100000010003",
+                "intro": "De AMS1 Slot1-motorkoppelregeling werkt niet goed. De huidige sensor is mogelijk defect."
+            },
+            {
+                "ecode": "1201100000010003",
+                "intro": "De AMS2 Slot1-motorkoppelregeling werkt niet goed. De huidige sensor is mogelijk defect."
+            },
+            {
+                "ecode": "1202100000010003",
+                "intro": "De koppelregeling van de AMS3 Slot1-motor werkt niet goed. De huidige sensor is mogelijk defect."
+            },
+            {
+                "ecode": "1203100000010003",
+                "intro": "De koppelregeling van de AMS4 Slot1-motor werkt niet goed. De huidige sensor is mogelijk defect."
+            },
+            {
+                "ecode": "1200110000010003",
+                "intro": "De koppelregeling van de AMS1 slot2 motor werkt niet goed. De stroomsensor is mogelijk defect."
+            },
+            {
+                "ecode": "1201110000010003",
+                "intro": "De koppelregeling van de AMS2-slot2-motor werkt niet goed. De huidige sensor is mogelijk defect."
+            },
+            {
+                "ecode": "1202110000010003",
+                "intro": "De koppelregeling van de AMS3 slot2 motor werkt niet goed. De huidige sensor is mogelijk defect."
+            },
+            {
+                "ecode": "1203110000010003",
+                "intro": "De AMS4 slot2 motorkoppelregeling functioneert niet goed. De stroomsensor kan defect zijn."
+            },
+            {
+                "ecode": "1200120000010003",
+                "intro": "De koppelregeling van de AMS1 slot3-motor werkt niet goed. De stroomsensor is mogelijk defect."
+            },
+            {
+                "ecode": "1201120000010003",
+                "intro": "De AMS2 slot3 motorkoppelregeling werkt niet goed. De stroomsensor kan defect zijn."
+            },
+            {
+                "ecode": "1202120000010003",
+                "intro": "De koppelregeling van de AMS3 slot3 motor werkt niet goed. De huidige sensor is mogelijk defect."
+            },
+            {
+                "ecode": "1203120000010003",
+                "intro": "De AMS4 slot3 motorkoppelregeling werkt niet goed. De stroomsensor kan defect zijn."
+            },
+            {
+                "ecode": "1200130000010003",
+                "intro": "De koppelregeling van de AMS1 slot4 motor werkt niet goed. De stroomsensor is mogelijk defect."
+            },
+            {
+                "ecode": "1201130000010003",
+                "intro": "De AMS2 slot4 motorkoppelregeling werkt niet goed. De stroomsensor kan defect zijn."
+            },
+            {
+                "ecode": "1202130000010003",
+                "intro": "De koppelregeling van de AMS3 slot4 motor werkt niet goed. De huidige sensor is mogelijk defect."
+            },
+            {
+                "ecode": "1203130000010003",
+                "intro": "De AMS4 regeling van het motorkoppel werkt niet goed. De stroomsensor kan defect zijn."
+            },
+            {
+                "ecode": "1200200000020001",
+                "intro": "AMS1 Slot1-filament is op; plaats een nieuw filament."
+            },
+            {
+                "ecode": "1201200000020001",
+                "intro": "AMS2 Slot1-filament is op; plaats een nieuw filament."
+            },
+            {
+                "ecode": "1202200000020001",
+                "intro": "AMS3 Slot1-filament is op; plaats een nieuw filament."
+            },
+            {
+                "ecode": "1203200000020001",
+                "intro": "AMS4 Slot1-filament is op; plaats een nieuw filament."
+            },
+            {
+                "ecode": "1200210000020001",
+                "intro": "AMS1 Slot2-filament is op; plaats een nieuw filament."
+            },
+            {
+                "ecode": "1201210000020001",
+                "intro": "AMS2 Slot2-filament is op; plaats een nieuw filament."
+            },
+            {
+                "ecode": "1202210000020001",
+                "intro": "AMS3 Slot2-filament is op; plaats een nieuw filament."
+            },
+            {
+                "ecode": "1203210000020001",
+                "intro": "AMS4 Slot2-filament is op; plaats een nieuw filament."
+            },
+            {
+                "ecode": "1200220000020001",
+                "intro": "AMS1 Slot3-filament is op; plaats een nieuw filament."
+            },
+            {
+                "ecode": "1201220000020001",
+                "intro": "AMS2 Slot3-filament is op; plaats een nieuw filament."
+            },
+            {
+                "ecode": "1202220000020001",
+                "intro": "AMS3 Slot3-filament is op; plaats een nieuw filament."
+            },
+            {
+                "ecode": "1203220000020001",
+                "intro": "AMS4 Slot3-filament is op; plaats een nieuw filament."
+            },
+            {
+                "ecode": "1200230000020001",
+                "intro": "AMS1 Slot4-filament is op; plaats een nieuw filament."
+            },
+            {
+                "ecode": "1201230000020001",
+                "intro": "AMS2 Slot4-filament is op; plaats een nieuw filament."
+            },
+            {
+                "ecode": "1202230000020001",
+                "intro": "AMS3 Slot4-filament is op; plaats een nieuw filament."
+            },
+            {
+                "ecode": "1203230000020001",
+                "intro": "AMS4 Slot4-filament is op; plaats een nieuw filament."
+            },
+            {
+                "ecode": "12FF200000020001",
+                "intro": "Het filament in de spoelhouder is op; plaats een nieuw filament."
+            },
+            {
+                "ecode": "1200200000020002",
+                "intro": "AMS1 Slot1 is leeg; plaats een nieuw filament."
+            },
+            {
+                "ecode": "1201200000020002",
+                "intro": "AMS2 Slot1 is leeg; plaats een nieuw filament."
+            },
+            {
+                "ecode": "1202200000020002",
+                "intro": "AMS3 Slot1 is leeg; plaats een nieuw filament."
+            },
+            {
+                "ecode": "1203200000020002",
+                "intro": "AMS4 Slot1 is leeg; plaats een nieuw filament."
+            },
+            {
+                "ecode": "1200210000020002",
+                "intro": "AMS1 Slot2 is leeg; plaats een nieuw filament."
+            },
+            {
+                "ecode": "1201210000020002",
+                "intro": "AMS2 Slot2 is leeg; plaats een nieuw filament."
+            },
+            {
+                "ecode": "1202210000020002",
+                "intro": "AMS3 Slot2 is leeg; plaats een nieuw filament."
+            },
+            {
+                "ecode": "1203210000020002",
+                "intro": "AMS4 Slot2 is leeg; plaats een nieuw filament."
+            },
+            {
+                "ecode": "1200220000020002",
+                "intro": "AMS1 Slot3 is leeg; plaats een nieuw filament."
+            },
+            {
+                "ecode": "1201220000020002",
+                "intro": "AMS2 Slot3 is leeg; plaats een nieuw filament."
+            },
+            {
+                "ecode": "1202220000020002",
+                "intro": "AMS3 Slot3 is leeg; plaats een nieuw filament."
+            },
+            {
+                "ecode": "1203220000020002",
+                "intro": "AMS4 Slot3 is leeg; plaats een nieuw filament."
+            },
+            {
+                "ecode": "1200230000020002",
+                "intro": "AMS1 Slot4 is leeg; plaats een nieuw filament."
+            },
+            {
+                "ecode": "1201230000020002",
+                "intro": "AMS2 Slot4 is leeg; plaats een nieuw filament."
+            },
+            {
+                "ecode": "1202230000020002",
+                "intro": "AMS3 Slot4 is leeg; plaats een nieuw filament."
+            },
+            {
+                "ecode": "1203230000020002",
+                "intro": "AMS4 Slot4 is leeg; plaats een nieuw filament."
+            },
+            {
+                "ecode": "12FF200000020002",
+                "intro": "Het filament op de spoelhouder is leeg; plaats een nieuw filament."
+            },
+            {
+                "ecode": "1200200000020003",
+                "intro": "AMS1 Slot1 filament kan gebroken zijn in de PTFE-buis."
+            },
+            {
+                "ecode": "1201200000020003",
+                "intro": "AMS2 Slot1 draad kan gebroken zijn in de PTFE-buis."
+            },
+            {
+                "ecode": "1202200000020003",
+                "intro": "AMS3 Slot1 filament kan gebroken zijn in de PTFE-buis."
+            },
+            {
+                "ecode": "1203200000020003",
+                "intro": "AMS4 Slot1 filament kan gebroken zijn in de PTFE-buis."
+            },
+            {
+                "ecode": "1200210000020003",
+                "intro": "AMS1 Slot2 draad kan gebroken zijn in de PTFE-buis."
+            },
+            {
+                "ecode": "1201210000020003",
+                "intro": "AMS2 Slot2 draad kan gebroken zijn in de PTFE-buis."
+            },
+            {
+                "ecode": "1202210000020003",
+                "intro": "AMS3 Slot2 filament kan gebroken zijn in de PTFE-buis."
+            },
+            {
+                "ecode": "1203210000020003",
+                "intro": "AMS4 Slot2 filament kan gebroken zijn in de PTFE-buis."
+            },
+            {
+                "ecode": "1200220000020003",
+                "intro": "AMS1 Slot3 filament kan gebroken zijn in de PTFE-buis."
+            },
+            {
+                "ecode": "1201220000020003",
+                "intro": "AMS2 Slot3 draad kan gebroken zijn in de PTFE-buis."
+            },
+            {
+                "ecode": "1202220000020003",
+                "intro": "AMS3 Slot3 filament kan gebroken zijn in de PTFE-buis."
+            },
+            {
+                "ecode": "1203220000020003",
+                "intro": "AMS4 Slot3 filament kan gebroken zijn in de PTFE-buis."
+            },
+            {
+                "ecode": "1200230000020003",
+                "intro": "AMS1 Slot4 filament kan gebroken zijn in de PTFE-buis."
+            },
+            {
+                "ecode": "1201230000020003",
+                "intro": "AMS2 Slot4 filament kan gebroken zijn in de PTFE-buis."
+            },
+            {
+                "ecode": "1202230000020003",
+                "intro": "AMS3 Slot4 filament kan gebroken zijn in de PTFE-buis."
+            },
+            {
+                "ecode": "1203230000020003",
+                "intro": "De AMS4-gloeidraad kan in de PTFE-buis breken."
+            },
+            {
+                "ecode": "1200200000020004",
+                "intro": "Het filament in AMS1 Slot1 kan gebroken zijn in de gereedschapskop."
+            },
+            {
+                "ecode": "1201200000020004",
+                "intro": "Het filament in AMS2 Slot1 kan gebroken zijn in de printkop."
+            },
+            {
+                "ecode": "1202200000020004",
+                "intro": "Het filament in AMS3 Slot1 kan gebroken zijn in de printkop."
+            },
+            {
+                "ecode": "1203200000020004",
+                "intro": "Het filament in AMS4 Slot1 kan gebroken zijn in de printkop."
+            },
+            {
+                "ecode": "1200210000020004",
+                "intro": "Het filament in AMS1 Slot2 kan gebroken zijn in de printkop."
+            },
+            {
+                "ecode": "1201210000020004",
+                "intro": "Het filament in AMS2 Slot2 kan gebroken zijn in de printkop."
+            },
+            {
+                "ecode": "1202210000020004",
+                "intro": "Het filament in AMS3 Slot2 kan gebroken zijn in de printkop."
+            },
+            {
+                "ecode": "1203210000020004",
+                "intro": "Het filament in AMS4 Slot2 kan gebroken zijn in de printkop."
+            },
+            {
+                "ecode": "1200220000020004",
+                "intro": "Het filament in AMS1 Slot3 kan gebroken zijn in de printkop."
+            },
+            {
+                "ecode": "1201220000020004",
+                "intro": "Het filament in AMS2 Slot3 kan gebroken zijn in de printkop."
+            },
+            {
+                "ecode": "1202220000020004",
+                "intro": "Het filament in AMS3 Slot3 kan gebroken zijn in de printkop."
+            },
+            {
+                "ecode": "1203220000020004",
+                "intro": "Het filament in AMS4 Slot3 kan gebroken zijn in de printkop."
+            },
+            {
+                "ecode": "1200230000020004",
+                "intro": "Het filament in AMS1 Slot4 kan gebroken zijn in de printkop."
+            },
+            {
+                "ecode": "1201230000020004",
+                "intro": "Het filament in AMS2 Slot4 kan gebroken zijn in de printkop."
+            },
+            {
+                "ecode": "1202230000020004",
+                "intro": "Het filament in AMS3 Slot4 kan gebroken zijn in de printkop."
+            },
+            {
+                "ecode": "1203230000020004",
+                "intro": "Het filament in AMS4 Slot4 kan gebroken zijn in de printkop."
+            },
+            {
+                "ecode": "12FF200000020004",
+                "intro": "Trek het filament op de spoelhouder uit de extruder."
+            },
+            {
+                "ecode": "1200200000020005",
+                "intro": "AMS1 Slot1-filament is op en het verwijderen van het oude filament is abnormaal verlopen; controleer of het filament vastzit in de gereedschapskop."
+            },
+            {
+                "ecode": "1201200000020005",
+                "intro": "AMS2 Slot1-filament is op en het verwijderen van het oude filament is abnormaal verlopen; controleer of het filament vastzit in de gereedschapskop."
+            },
+            {
+                "ecode": "1202200000020005",
+                "intro": "AMS3 Slot1-filament is op en het verwijderen van het oude filament is abnormaal verlopen; controleer of het filament vastzit in de gereedschapskop."
+            },
+            {
+                "ecode": "1203200000020005",
+                "intro": "AMS4 Slot1-filament is op en het verwijderen van het oude filament is abnormaal verlopen; controleer of het filament vastzit in de gereedschapskop."
+            },
+            {
+                "ecode": "1200210000020005",
+                "intro": "Het AMS1 Slot2-filament is op en het verwijderen van het oude filament is abnormaal verlopen; controleer of het filament vastzit in de gereedschapskop."
+            },
+            {
+                "ecode": "1201210000020005",
+                "intro": "Het AMS2 Slot2-filament is op en het verwijderen van het oude filament is abnormaal verlopen; controleer of het filament vastzit in de gereedschapskop."
+            },
+            {
+                "ecode": "1202210000020005",
+                "intro": "Het AMS3 Slot2-filament is op en het verwijderen van het oude filament is abnormaal verlopen; controleer of het filament vastzit in de gereedschapskop."
+            },
+            {
+                "ecode": "1203210000020005",
+                "intro": "Het AMS4 Slot2-filament is op en het verwijderen van het oude filament is abnormaal verlopen; controleer of het filament vastzit in de gereedschapskop."
+            },
+            {
+                "ecode": "1200220000020005",
+                "intro": "Het AMS1 Slot3-filament is op en het verwijderen van het oude filament is abnormaal verlopen; controleer of het filament vastzit in de gereedschapskop."
+            },
+            {
+                "ecode": "1201220000020005",
+                "intro": "Het AMS2 Slot3-filament is op en het verwijderen van het oude filament is abnormaal verlopen; controleer of het filament vastzit in de gereedschapskop."
+            },
+            {
+                "ecode": "1202220000020005",
+                "intro": "Het AMS3 Slot3-filament is op en het verwijderen van het oude filament is abnormaal verlopen; controleer of het filament vastzit in de gereedschapskop."
+            },
+            {
+                "ecode": "1203220000020005",
+                "intro": "Het AMS4 Slot3-filament is op en het verwijderen van het oude filament is abnormaal verlopen; controleer of het filament vastzit in de gereedschapskop."
+            },
+            {
+                "ecode": "1200230000020005",
+                "intro": "Het AMS1 Slot4-filament is op en het verwijderen van het oude filament is abnormaal verlopen; controleer of het filament vastzit in de gereedschapskop."
+            },
+            {
+                "ecode": "1201230000020005",
+                "intro": "Het AMS2 Slot4-filament is op en het verwijderen van het oude filament is abnormaal verlopen; controleer of het filament vastzit in de gereedschapskop."
+            },
+            {
+                "ecode": "1202230000020005",
+                "intro": "Het AMS3 Slot4-filament is op en het verwijderen van het oude filament is abnormaal verlopen; controleer of het filament vastzit in de gereedschapskop."
+            },
+            {
+                "ecode": "1203230000020005",
+                "intro": "Het AMS4 Slot4-filament is op en het verwijderen van het oude filament is abnormaal verlopen; controleer of het filament vastzit in de gereedschapskop."
+            },
+            {
+                "ecode": "1200200000030001",
+                "intro": "AMS1 Slot1 filament is op. Het oude filament wordt verwijderd; even geduld alstublieft."
+            },
+            {
+                "ecode": "1201200000030001",
+                "intro": "AMS2 Slot1 filament is op. Het oude filament wordt verwijderd; even geduld alstublieft."
+            },
+            {
+                "ecode": "1202200000030001",
+                "intro": "AMS3 Slot1 filament is op. Het oude filament wordt verwijderd; even geduld alstublieft."
+            },
+            {
+                "ecode": "1203200000030001",
+                "intro": "AMS4 Slot1 filament is op. Het oude filament wordt verwijderd; even geduld alstublieft."
+            },
+            {
+                "ecode": "1200210000030001",
+                "intro": "AMS1 Slot2 filament is op. Het oude filament wordt verwijderd; even geduld alstublieft."
+            },
+            {
+                "ecode": "1201210000030001",
+                "intro": "AMS2 Slot2 filament is op. Het oude filament wordt verwijderd; even geduld alstublieft."
+            },
+            {
+                "ecode": "1202210000030001",
+                "intro": "AMS3 Slot2 filament is op. Het oude filament wordt verwijderd; even geduld alstublieft."
+            },
+            {
+                "ecode": "1203210000030001",
+                "intro": "AMS4 Slot2 filament is op. Het oude filament wordt verwijderd; even geduld alstublieft."
+            },
+            {
+                "ecode": "1200220000030001",
+                "intro": "AMS1 Slot3 filament is op. Het oude filament wordt verwijderd; even geduld alstublieft."
+            },
+            {
+                "ecode": "1201220000030001",
+                "intro": "AMS2 Slot3 filament is op. Het oude filament wordt verwijderd; even geduld alstublieft."
+            },
+            {
+                "ecode": "1202220000030001",
+                "intro": "AMS3 Slot3 filament is op. Het oude filament wordt verwijderd; even geduld alstublieft."
+            },
+            {
+                "ecode": "1203220000030001",
+                "intro": "AMS4 Slot3 filament is op. Het oude filament wordt verwijderd; even geduld alstublieft."
+            },
+            {
+                "ecode": "1200230000030001",
+                "intro": "AMS1 Slot4 filament is op. Het oude filament wordt verwijderd; even geduld alstublieft."
+            },
+            {
+                "ecode": "1201230000030001",
+                "intro": "AMS2 Slot4 filament is op. Het oude filament wordt verwijderd; even geduld alstublieft."
+            },
+            {
+                "ecode": "1202230000030001",
+                "intro": "AMS3 Slot4 filament is op. Het oude filament wordt verwijderd; even geduld alstublieft."
+            },
+            {
+                "ecode": "1203230000030001",
+                "intro": "AMS4 Slot4 filament is op. Het oude filament wordt verwijderd; even geduld alstublieft."
+            },
+            {
+                "ecode": "1200200000030002",
+                "intro": "Het filament in AMS1 Slot1 is op en er is automatisch overgeschakeld naar het slot met hetzelfde filament."
+            },
+            {
+                "ecode": "1201200000030002",
+                "intro": "Het filament in AMS2 Slot1 is op en er is automatisch overgeschakeld naar het slot met hetzelfde filament."
+            },
+            {
+                "ecode": "1202200000030002",
+                "intro": "Het filament in AMS3 Slot1 is op en er is automatisch overgeschakeld naar het slot met hetzelfde filament."
+            },
+            {
+                "ecode": "1203200000030002",
+                "intro": "Het filament in AMS4 Slot1 is op en er is automatisch overgeschakeld naar het slot met hetzelfde filament."
+            },
+            {
+                "ecode": "1200210000030002",
+                "intro": "Het filament in AMS1 Slot2 is op en er is automatisch overgeschakeld naar het slot met hetzelfde filament."
+            },
+            {
+                "ecode": "1201210000030002",
+                "intro": "Het filament in AMS2 Slot2 is op en er is automatisch overgeschakeld naar het slot met hetzelfde filament."
+            },
+            {
+                "ecode": "1202210000030002",
+                "intro": "Het filament in AMS3 Slot2 is op en er is automatisch overgeschakeld naar het slot met hetzelfde filament."
+            },
+            {
+                "ecode": "1203210000030002",
+                "intro": "Het filament in AMS4 Slot2 is op en er is automatisch overgeschakeld naar het slot met hetzelfde filament."
+            },
+            {
+                "ecode": "1200220000030002",
+                "intro": "Het filament in AMS1 Slot3 is op en er is automatisch overgeschakeld naar het slot met hetzelfde filament."
+            },
+            {
+                "ecode": "1201220000030002",
+                "intro": "Het filament in AMS2 Slot3 is op en er is automatisch overgeschakeld naar het slot met hetzelfde filament."
+            },
+            {
+                "ecode": "1202220000030002",
+                "intro": "Het filament in AMS3 Slot3 is op en er is automatisch overgeschakeld naar het slot met hetzelfde filament."
+            },
+            {
+                "ecode": "1203220000030002",
+                "intro": "Het filament in AMS4 Slot3 is op en er is automatisch overgeschakeld naar het slot met hetzelfde filament."
+            },
+            {
+                "ecode": "1200230000030002",
+                "intro": "Het filament in AMS1 Slot4 is op en er is automatisch overgeschakeld naar het slot met hetzelfde filament."
+            },
+            {
+                "ecode": "1201230000030002",
+                "intro": "Het filament in AMS2 Slot4 is op en er is automatisch overgeschakeld naar het slot met hetzelfde filament."
+            },
+            {
+                "ecode": "1202230000030002",
+                "intro": "Het filament in AMS3 Slot4 is op en er is automatisch overgeschakeld naar het slot met hetzelfde filament."
+            },
+            {
+                "ecode": "1203230000030002",
+                "intro": "Het filament in AMS4 Slot4 is op en er is automatisch overgeschakeld naar het slot met hetzelfde filament."
+            },
+            {
+                "ecode": "1200300000010001",
+                "intro": "AMS1 Slot1 RFID-spoel is kapot of het RF-hardwarecircuit bevat een fout."
+            },
+            {
+                "ecode": "1201300000010001",
+                "intro": "AMS2 Slot1 RFID-spoel is kapot of het RF-hardwarecircuit bevat een fout."
+            },
+            {
+                "ecode": "1202300000010001",
+                "intro": "AMS3 Slot1 RFID-spoel is kapot of het RF-hardwarecircuit bevat een fout."
+            },
+            {
+                "ecode": "1203300000010001",
+                "intro": "AMS4 Slot1 RFID-spoel is kapot of het RF-hardwarecircuit bevat een fout."
+            },
+            {
+                "ecode": "1200310000010001",
+                "intro": "AMS1 Slot2 RFID-spoel is kapot of het RF-hardwarecircuit bevat een fout."
+            },
+            {
+                "ecode": "0700300000020002",
+                "intro": "De RFID-tag op AMS1 Slot 1 is beschadigd of de inhoud ervan kan niet worden geïdentificeerd."
+            },
+            {
+                "ecode": "0700310000020002",
+                "intro": "De RFID-tag op AMS1 Slot2 is beschadigd of de inhoud ervan kan niet worden geïdentificeerd."
+            },
+            {
+                "ecode": "0700320000020002",
+                "intro": "De RFID-tag op AMS1 Slot3 is beschadigd of de inhoud ervan kan niet worden geïdentificeerd."
+            },
+            {
+                "ecode": "0700330000020002",
+                "intro": "De RFID-tag op AMS1 Slot4 is beschadigd of de inhoud ervan kan niet worden geïdentificeerd."
+            },
+            {
+                "ecode": "0701300000020002",
+                "intro": "De RFID-tag op AMS2 Slot 1 is beschadigd of de inhoud ervan kan niet worden geïdentificeerd."
+            },
+            {
+                "ecode": "0701310000020002",
+                "intro": "De RFID-tag op AMS2 Slot2 is beschadigd of de inhoud ervan kan niet worden geïdentificeerd."
+            },
+            {
+                "ecode": "0701320000020002",
+                "intro": "De RFID-tag op AMS2 Slot3 is beschadigd of de inhoud ervan kan niet worden geïdentificeerd."
+            },
+            {
+                "ecode": "0701330000020002",
+                "intro": "De RFID-tag op AMS2 Slot4 is beschadigd of de inhoud ervan kan niet worden geïdentificeerd."
+            },
+            {
+                "ecode": "0702300000020002",
+                "intro": "De RFID-tag op AMS3 Slot1 is beschadigd of de inhoud ervan kan niet worden geïdentificeerd."
+            },
+            {
+                "ecode": "0702310000020002",
+                "intro": "De RFID-tag op AMS3 Slot2 is beschadigd of de inhoud ervan kan niet worden geïdentificeerd."
+            },
+            {
+                "ecode": "0702320000020002",
+                "intro": "De RFID-tag op AMS3 Slot3 is beschadigd of de inhoud ervan kan niet worden geïdentificeerd."
+            },
+            {
+                "ecode": "0702330000020002",
+                "intro": "De RFID-tag op AMS3 Slot4 is beschadigd of de inhoud ervan kan niet worden geïdentificeerd."
+            },
+            {
+                "ecode": "0703300000020002",
+                "intro": "De RFID-tag op AMS4 Slot1 is beschadigd of de inhoud ervan kan niet worden geïdentificeerd."
+            },
+            {
+                "ecode": "0703310000020002",
+                "intro": "De RFID-tag op AMS4 Slot2 is beschadigd of de inhoud ervan kan niet worden geïdentificeerd."
+            },
+            {
+                "ecode": "0703320000020002",
+                "intro": "De RFID-tag op AMS4 Slot3 is beschadigd of de inhoud ervan kan niet worden geïdentificeerd."
+            },
+            {
+                "ecode": "0703330000020002",
+                "intro": "De RFID-tag op AMS4 Slot4 is beschadigd of de inhoud ervan kan niet worden geïdentificeerd."
+            },
+            {
+                "ecode": "0300030000020002",
+                "intro": ""
+            },
+            {
+                "ecode": "0500010000030004",
+                "intro": "Niet genoeg ruimte op de microSD-kaart, maak alstublieft wat ruimte vrij."
+            },
+            {
+                "ecode": "0700400000020004",
+                "intro": "Het signaal van de filament buffer is abnormaal; de veer kan vastzitten of het filament kan in de knoop zitten.."
+            },
+            {
+                "ecode": "0500040000030008",
+                "intro": "Er is gedetecteerd dat de deur open staat."
+            },
+            {
+                "ecode": "0700200000020002",
+                "intro": "AMS1 Slot1 is leeg; laad een nieuw filament."
+            },
+            {
+                "ecode": "0700210000020002",
+                "intro": "AMS1 Slot2 is leeg; laad een nieuw filament."
+            },
+            {
+                "ecode": "0700220000020002",
+                "intro": "AMS1 Slot3 is leeg; laad een nieuw filament."
+            },
+            {
+                "ecode": "0700230000020002",
+                "intro": "AMS1 Slot4 is leeg; laad een nieuw filament."
+            },
+            {
+                "ecode": "0701200000020002",
+                "intro": "AMS2 Slot1 is leeg; laad een nieuw filament."
+            },
+            {
+                "ecode": "0701210000020002",
+                "intro": "AMS2 Slot2 is leeg; laad een nieuw filament."
+            },
+            {
+                "ecode": "0701220000020002",
+                "intro": "AMS2 Slot3 is leeg; laad een nieuw filament."
+            },
+            {
+                "ecode": "0701230000020002",
+                "intro": "AMS2 Slot4 is leeg; laad een nieuw filament."
+            },
+            {
+                "ecode": "0702200000020002",
+                "intro": "AMS3 Slot1 is leeg; laad een nieuw filament."
+            },
+            {
+                "ecode": "0702210000020002",
+                "intro": "AMS3 Slot2 is leeg; laad een nieuw filament."
+            },
+            {
+                "ecode": "0702220000020002",
+                "intro": "AMS3 Slot3 is leeg; laad een nieuw filament."
+            },
+            {
+                "ecode": "0702230000020002",
+                "intro": "AMS3 Slot4 is leeg; laad een nieuw filament."
+            },
+            {
+                "ecode": "0703200000020002",
+                "intro": "AMS4 Slot1 is leeg; laad een nieuw filament."
+            },
+            {
+                "ecode": "0703210000020002",
+                "intro": "AMS4 Slot2 is leeg; laad een nieuw filament."
+            },
+            {
+                "ecode": "0703220000020002",
+                "intro": "AMS4 Slot3 is leeg; laad een nieuw filament."
+            },
+            {
+                "ecode": "0703230000020002",
+                "intro": "AMS4 Slot4 is leeg; laad een nieuw filament."
+            },
+            {
+                "ecode": "0C00030000020004",
+                "intro": "Inspectie van de eerste laag wordt niet ondersteund voor de huidige printopdracht."
+            },
+            {
+                "ecode": "0500030000010021",
+                "intro": "Hardware is niet compatibel, controleer de laser."
+            },
+            {
+                "ecode": "0500030000030022",
+                "intro": "Er is een verslechtering van de prestaties van de SD-kaart vastgesteld. Dit kan gevolgen hebben voor printopdrachten, logboeken en videorecords. Probeer de microSD-kaart te formatteren of te wijzigen."
+            },
+            {
+                "ecode": "07FF200000020001",
+                "intro": "Het externe filament is op; laad een nieuw filament."
+            },
+            {
+                "ecode": "07FF200000020002",
+                "intro": "Extern filament ontbreekt; laad een nieuw filament."
+            },
+            {
+                "ecode": "07FF200000020004",
+                "intro": "Verwijder het externe filament uit de extruder."
+            },
+            {
+                "ecode": "0500030000020020",
+                "intro": "De capaciteit van de SD-kaart is onvoldoende om afdrukbestanden in de cache op te slaan."
+            },
+            {
+                "ecode": "0500010000030005",
+                "intro": "SD-kaartfout: voeg deze opnieuw in, formatteer of vervang deze opnieuw."
+            },
+            {
+                "ecode": "0C0003000003000d",
+                "intro": "Sommige onderdelen zijn mogelijk omgevallen of de extruder extrudeert niet normaal. Controleer en beslis of het afdrukken moet worden gestopt."
+            },
+            {
+                "ecode": "0700200000030001",
+                "intro": "AMS1 Slot1 filament is op. Een ogenblik geduld a.u.b. terwijl het oude filament wordt verwijderd."
+            },
+            {
+                "ecode": "0700210000030001",
+                "intro": "AMS1 Slot2-filament is op. Een ogenblik geduld a.u.b. terwijl het oude filament wordt verwijderd."
+            },
+            {
+                "ecode": "0700220000030001",
+                "intro": "AMS1 Slot3-filament is op. Een ogenblik geduld a.u.b. terwijl het oude filament wordt verwijderd."
+            },
+            {
+                "ecode": "0700200000030002",
+                "intro": "Het filament in AMS1 Slot1 is op en er is automatisch overgeschakeld naar het slot met hetzelfde filament."
+            },
+            {
+                "ecode": "0700210000030002",
+                "intro": "Het filament in AMS1 Slot2 is op en er is automatisch overgeschakeld naar het slot met hetzelfde filament."
+            },
+            {
+                "ecode": "0700220000030002",
+                "intro": "Het filament in AMS1 Slot3 is op en er is automatisch overgeschakeld naar het slot met hetzelfde filament."
+            },
+            {
+                "ecode": "0500030000020010",
+                "intro": ""
+            },
+            {
+                "ecode": "0500030000020011",
+                "intro": ""
+            },
+            {
+                "ecode": "0500030000020012",
+                "intro": ""
+            },
+            {
+                "ecode": "0500030000020013",
+                "intro": ""
+            },
+            {
+                "ecode": "0500030000020014",
+                "intro": ""
+            },
+            {
+                "ecode": "0500030000020015",
+                "intro": ""
+            },
+            {
+                "ecode": "0500030000020016",
+                "intro": ""
+            },
+            {
+                "ecode": "0500030000020017",
+                "intro": ""
+            },
+            {
+                "ecode": "0500030000020018",
+                "intro": ""
+            },
+            {
+                "ecode": "0703600000020001",
+                "intro": "De AMS4 slot1 is overbelast. Het filament kan in de knoop zitten of de spoel kan vastzitten."
+            },
+            {
+                "ecode": "0700610000020001",
+                "intro": "De AMS1-slot2 is overbelast. Het filament kan verstrikt zijn geraakt of de spoel zit vast."
+            },
+            {
+                "ecode": "0701610000020001",
+                "intro": "De AMS2 slot2 is overbelast. Het filament kan in de knoop zitten of de spoel kan vastzitten."
+            },
+            {
+                "ecode": "0702610000020001",
+                "intro": "De AMS3 slot2 is overbelast. Het filament kan in de knoop zitten of de spoel kan vastzitten."
+            },
+            {
+                "ecode": "0703610000020001",
+                "intro": "De AMS4 slot2 is overbelast. Het filament kan in de knoop zitten of de spoel kan vastzitten."
+            },
+            {
+                "ecode": "0700620000020001",
+                "intro": "De AMS1-slot3 is overbelast. Het filament kan verstrikt zijn geraakt of de spoel zit vast."
+            },
+            {
+                "ecode": "0701620000020001",
+                "intro": "De AMS2 slot3 is overbelast. Het filament kan in de knoop zitten of de spoel kan vastzitten."
+            },
+            {
+                "ecode": "0702620000020001",
+                "intro": "De AMS3 slot3 is overbelast. Het filament kan in de knoop zitten of de spoel kan vastzitten."
+            },
+            {
+                "ecode": "0703620000020001",
+                "intro": "De AMS4 slot3 is overbelast. Het filament kan in de knoop zitten of de spoel kan vastzitten."
+            },
+            {
+                "ecode": "0700630000020001",
+                "intro": "De AMS1-slot4 is overbelast. Het filament kan verstrikt zijn geraakt of de spoel zit vast."
+            },
+            {
+                "ecode": "0701630000020001",
+                "intro": "De AMS2 slot4 is overbelast. Het filament kan in de knoop zitten of de spoel kan vastzitten."
+            },
+            {
+                "ecode": "0702630000020001",
+                "intro": "De AMS3 slot4 is overbelast. Het filament kan in de knoop zitten of de spoel kan vastzitten."
+            },
+            {
+                "ecode": "0703630000020001",
+                "intro": "De AMS4 slot4 is overbelast. Het filament kan in de knoop zitten of de spoel kan vastzitten."
+            },
+            {
+                "ecode": "0300010000030008",
+                "intro": "De temperatuur van het printbed overschrijdt de limiet en past zich automatisch aan de limiettemperatuur aan."
+            },
+            {
+                "ecode": "0700200000020004",
+                "intro": "Het filament in AMS1 Slot1 kan gebroken zijn in de gereedschapskop."
+            },
+            {
+                "ecode": "0701200000020004",
+                "intro": "Het filament in AMS2 Slot1  kan gebroken zijn in de printkop."
+            },
+            {
+                "ecode": "0702200000020004",
+                "intro": "Het filament in AMS3 Slot1 kan gebroken zijn in de printkop."
+            },
+            {
+                "ecode": "0703200000020004",
+                "intro": "Het filament in AMS4 Slot1 kan gebroken zijn in de printkop."
+            },
+            {
+                "ecode": "0700210000020004",
+                "intro": "Het filament in AMS1 Slot2  kan gebroken zijn in de printkop."
+            },
+            {
+                "ecode": "0701210000020004",
+                "intro": "Het filament in AMS2 Slot2  kan gebroken zijn in de printkop."
+            },
+            {
+                "ecode": "0702210000020004",
+                "intro": "Het filament in AMS3 Slot2 kan gebroken zijn in de printkop."
+            },
+            {
+                "ecode": "0703210000020004",
+                "intro": "Het filament in AMS4 Slot2 kan gebroken zijn in de printkop."
+            },
+            {
+                "ecode": "0700220000020004",
+                "intro": "Het filament in AMS1 Slot3  kan gebroken zijn in de printkop."
+            },
+            {
+                "ecode": "0701220000020004",
+                "intro": "Het filament in AMS2 Slot3 kan gebroken zijn in de printkop."
+            },
+            {
+                "ecode": "0702220000020004",
+                "intro": "Het filament in AMS3 Slot3 kan gebroken zijn in de printkop."
+            },
+            {
+                "ecode": "0703220000020004",
+                "intro": "Het filament in AMS4 Slot3 kan gebroken zijn in de printkop."
+            },
+            {
+                "ecode": "0700230000020004",
+                "intro": "Het filament in AMS1 Slot4  kan gebroken zijn in de printkop."
+            },
+            {
+                "ecode": "0701230000020004",
+                "intro": "Het filament in AMS2 Slot4 kan gebroken zijn in de printkop."
+            },
+            {
+                "ecode": "0702230000020004",
+                "intro": "Het filament in AMS3 Slot4 kan gebroken zijn in de printkop."
+            },
+            {
+                "ecode": "0703230000020004",
+                "intro": "Het filament in AMS4 Slot4 kan gebroken zijn in de printkop."
+            },
+            {
+                "ecode": "0700200000020005",
+                "intro": "Het filament in AMS1 Slot1 is op, en het terugtrekken van het oude filament verliep abnormaal; controleer of het filament vastzit in de gereedschapskop."
+            },
+            {
+                "ecode": "0701200000020005",
+                "intro": "Het filament in AMS2 Slot1 is op, en het terugtrekken van het oude filament ging abnormaal; controleer of het filament vastzit in de printkop."
+            },
+            {
+                "ecode": "0702200000020005",
+                "intro": "Het filament in AMS3 Slot1 is op, en het terugtrekken van het oude filament ging abnormaal; controleer of het filament vastzit in de printkop."
+            },
+            {
+                "ecode": "0703200000020005",
+                "intro": "Het filament in AMS4 Slot1 is op, en het terugtrekken van het oude filament ging abnormaal; controleer of het filament vastzit in de printkop."
+            },
+            {
+                "ecode": "0700210000020005",
+                "intro": "Het filament in AMS1 Slot2 is op, en het terugtrekken van het oude filament ging abnormaal; controleer of het filament vastzit in de printkop."
+            },
+            {
+                "ecode": "0701210000020005",
+                "intro": "Het filament in AMS2 Slot2 is op, en het terugtrekken van het oude filament ging abnormaal; controleer of het filament vastzit in de printkop."
+            },
+            {
+                "ecode": "0702210000020005",
+                "intro": "Het filament in AMS3 Slot2 is op, en het terugtrekken van het oude filament ging abnormaal; controleer of het filament vastzit in de printkop."
+            },
+            {
+                "ecode": "0703210000020005",
+                "intro": "Het filament in AMS4 Slot2 is op, en het terugtrekken van het oude filament ging abnormaal; controleer of het filament vastzit in de printkop."
+            },
+            {
+                "ecode": "0700220000020005",
+                "intro": "Het filament in AMS1 Slot3 is op, en het terugtrekken van het oude filament ging abnormaal; controleer of het filament vastzit in de printkop."
+            },
+            {
+                "ecode": "0701220000020005",
+                "intro": "Het filament in AMS2 Slot3 is op, en het terugtrekken van het oude filament ging abnormaal; controleer of het filament vastzit in de printkop."
+            },
+            {
+                "ecode": "0702220000020005",
+                "intro": "Het filament in AMS3 Slot3 is op, en het terugtrekken van het oude filament ging abnormaal; controleer of het filament vastzit in de printkop"
+            },
+            {
+                "ecode": "0703220000020005",
+                "intro": "Het filament in AMS4 Slot3 is op, en het terugtrekken van het oude filament ging abnormaal; controleer of het filament vastzit in de printkop."
+            },
+            {
+                "ecode": "0700230000020005",
+                "intro": "Het filament in AMS1 Slot4 is op, en het terugtrekken van het oude filament ging abnormaal; controleer of het filament vastzit in de printkop."
+            },
+            {
+                "ecode": "0701230000020005",
+                "intro": "Het filament in AMS2 Slot4 is op, en het terugtrekken van het oude filament ging abnormaal; controleer of het filament vastzit in de printkop."
+            },
+            {
+                "ecode": "0702230000020005",
+                "intro": "Het filament in AMS3 Slot4 is op, en het terugtrekken van het oude filament ging abnormaal; controleer of het filament vastzit in de printkop."
+            },
+            {
+                "ecode": "0703230000020005",
+                "intro": "Het filament in AMS4 Slot4 is op, en het terugtrekken van het oude filament ging abnormaal; controleer of het filament vastzit in de printkop."
+            },
+            {
+                "ecode": "0701200000030002",
+                "intro": "Het filament in AMS2 Slot1 is op en er is automatisch overgeschakeld naar het slot met hetzelfde filament."
+            },
+            {
+                "ecode": "0702200000030002",
+                "intro": "Het filament in AMS3 Slot1 is op en er is automatisch overgeschakeld naar het slot met hetzelfde filament."
+            },
+            {
+                "ecode": "0703200000030002",
+                "intro": "Het filament in AMS4 Slot1 is op en er is automatisch overgeschakeld naar het slot met hetzelfde filament."
+            },
+            {
+                "ecode": "0701210000030002",
+                "intro": "Het filament in AMS2 Slot2 is op en er is automatisch overgeschakeld naar het slot met hetzelfde filament."
+            },
+            {
+                "ecode": "0702210000030002",
+                "intro": "Het filament in AMS3 Slot2 is op en er is automatisch overgeschakeld naar het slot met hetzelfde filament."
+            },
+            {
+                "ecode": "0703210000030002",
+                "intro": "Het filament in AMS4 Slot2 is op en er is automatisch overgeschakeld naar het slot met hetzelfde filament."
+            },
+            {
+                "ecode": "0701220000030002",
+                "intro": "Het filament in AMS2 Slot3 is op en er is automatisch overgeschakeld naar het slot met hetzelfde filament."
+            },
+            {
+                "ecode": "0702220000030002",
+                "intro": "Het filament in AMS3 Slot3 is op en er is automatisch overgeschakeld naar het slot met hetzelfde filament."
+            },
+            {
+                "ecode": "0703220000030002",
+                "intro": "Het filament in AMS4 Slot3 is op en er is automatisch overgeschakeld naar het slot met hetzelfde filament."
+            },
+            {
+                "ecode": "0700230000030002",
+                "intro": "Het filament in AMS1 Slot4 is op en er is automatisch overgeschakeld naar het slot met hetzelfde filament."
+            },
+            {
+                "ecode": "0701230000030002",
+                "intro": "Het filament in AMS2 Slot4 is op en er is automatisch overgeschakeld naar het slot met hetzelfde filament."
+            },
+            {
+                "ecode": "0702230000030002",
+                "intro": "Het filament in AMS3 Slot4 is op en er is automatisch overgeschakeld naar het slot met hetzelfde filament."
+            },
+            {
+                "ecode": "0703230000030002",
+                "intro": "Het filament in AMS4 Slot4 is op en er is automatisch overgeschakeld naar het slot met hetzelfde filament."
+            },
+            {
+                "ecode": "0300020000010006",
+                "intro": "De temperatuur van de nozzle is abnormaal; de sensor kan kortsluiting hebben. Controleer of de stekker goed is aangesloten."
+            },
+            {
+                "ecode": "0300030000010001",
+                "intro": "De snelheid van de hotend-ventilator is te laag of deze is gestopt. Het kan zijn dat deze vastzit of dat de stekker niet goed is aangesloten."
+            },
+            {
+                "ecode": "0300040000020001",
+                "intro": "De snelheid van de onderdelenkoelventilator is te laag of deze is gestopt. Het kan zijn dat deze vastzit of dat de stekker niet goed is aangesloten."
+            },
+            {
+                "ecode": "0500010000030006",
+                "intro": "Ongeformatteerde SD-kaart: formatteer deze alstublieft."
+            },
+            {
+                "ecode": "0500020000020001",
+                "intro": "Kan geen verbinding maken met het internet, controleer uw netwerkverbinding."
+            },
+            {
+                "ecode": "0500020000020002",
+                "intro": "Het inloggen op het apparaat is mislukt. Controleer je accountgegevens."
+            },
+            {
+                "ecode": "0500020000020003",
+                "intro": "Kan geen verbinding maken met het internet, controleer uw netwerkverbinding."
+            },
+            {
+                "ecode": "0500020000020004",
+                "intro": "Onbevoegde gebruiker: controleer je accountgegevens."
+            },
+            {
+                "ecode": "0500020000020005",
+                "intro": "Kan geen verbinding maken met het internet, controleer uw netwerkverbinding."
+            },
+            {
+                "ecode": "0500020000020006",
+                "intro": "De Liveview-service werkt niet goed; controleer uw netwerkverbinding."
+            },
+            {
+                "ecode": "0500020000020007",
+                "intro": "Het inloggen op de Liveview-service is mislukt. Controleer uw netwerkverbinding."
+            },
+            {
+                "ecode": "0500030000010001",
+                "intro": "De MC-module werkt niet goed. Start het apparaat opnieuw op of controleer de kabelverbinding van het apparaat."
+            },
+            {
+                "ecode": "050003000001000a",
+                "intro": "De systeemstatus is abnormaal; herstel de fabrieksinstellingen."
+            },
+            {
+                "ecode": "050003000001000b",
+                "intro": "Het scherm werkt niet goed. Start het apparaat opnieuw op."
+            },
+            {
+                "ecode": "0700450000020001",
+                "intro": "De sensor van de filamentsnijder werkt niet goed; controleer of de connector goed is aangesloten."
+            },
+            {
+                "ecode": "0C00030000030006",
+                "intro": "Er kan zich te veel filament hebben opgestapeld in de stortkoker. Controleer en reinig de stortkoker."
+            },
+            {
+                "ecode": "0C00030000030007",
+                "intro": "Mogelijke defecten in de eerste laag zijn gedetecteerd. Controleer de kwaliteit van de eerste laag en beslis of de taak moet worden stopgezet."
+            },
+            {
+                "ecode": "0C00030000030008",
+                "intro": "Mogelijke spaghetti fouten zijn gedetecteerd. Controleer de afdrukkwaliteit en beslis of de taak moet worden stopgezet."
+            },
+            {
+                "ecode": "0C0003000003000b",
+                "intro": "Inspectie van de eerste laag: een ogenblik geduld."
+            },
+            {
+                "ecode": "0300100000020002",
+                "intro": "De resonantiefrequentie van de X-as wijkt sterk af van de laatste kalibratie. Maak de koolstofstaaf schoon en voer de kalibratie van de machine later opnieuw uit."
+            },
+            {
+                "ecode": "0300110000020002",
+                "intro": "De resonantiefrequentie van de Y-as wijkt sterk af van de laatste kalibratie. Maak de koolstof as schoon en voer de kalibratie van de machine later opnieuw uit."
+            },
+            {
+                "ecode": "0300200000010001",
+                "intro": "X-as homing abnormaal: controleer of de printkop vastzit of dat de koolstof as te veel weerstand heeft."
+            },
+            {
+                "ecode": "0300200000010002",
+                "intro": "Abnormale positionering van de Y-as: controleer of de printkop vastzit of dat de Y-slede te veel weerstand heeft."
+            },
+            {
+                "ecode": "0300200000010003",
+                "intro": "X-as homing abnormaal: de riem kan los zitten.."
+            },
+            {
+                "ecode": "0300200000010004",
+                "intro": "Abnormale homing van de Y-as: de riem zit mogelijk los."
+            },
+            {
+                "ecode": "0300400000020001",
+                "intro": "Gegevensoverdracht via de seriële poort is abnormaal; het softwaresysteem is mogelijk defect."
+            },
+            {
+                "ecode": "0300410000010001",
+                "intro": "De systeemspanning is onstabiel; hierdoor wordt de stroomuitvalbeveiligingsfunctie geactiveerd."
+            },
+            {
+                "ecode": "0700600000020001",
+                "intro": "De AMS1-slot1 is overbelast. Het filament kan verstrikt zijn geraakt of de spoel zit vast."
+            },
+            {
+                "ecode": "0701600000020001",
+                "intro": "De AMS2 slot1 is overbelast. Het filament kan in de knoop zitten of de spoel kan vastzitten."
+            },
+            {
+                "ecode": "0702600000020001",
+                "intro": "De AMS3 slot1 is overbelast. Het filament kan in de knoop zitten of de spoel kan vastzitten."
+            },
+            {
+                "ecode": "0500010000020002",
+                "intro": "De USB-camera is niet aangesloten, controleer de kabelaansluiting van de videocamera."
+            },
+            {
+                "ecode": "0C0001000001000B",
+                "intro": "Micro Lidar kon niet kalibreren, zorg ervoor dat het kalibratiebord schoon en niet geblokkeerd is; probeer daarna opnieuw te kalibreren."
+            },
+            {
+                "ecode": "03000A0000010002",
+                "intro": "De gevoeligheid van druksensor 1 van het printbed is laag. Het kan zijn dat de druksensor is losgekomen van de spanarm of de elektronische verbinding kan slecht zijn."
+            },
+            {
+                "ecode": "03000A0000010004",
+                "intro": "Er is een externe storing op druksensor 1. Het kan zijn dat het printbed geraakt is door iets buiten het printbed."
+            },
+            {
+                "ecode": "03000A0000010005",
+                "intro": "Krachtsensor 1 detecteerde onverwachte continue kracht. Het printbed kan vastzitten of de analoge front end kan kapot zijn."
+            },
+            {
+                "ecode": "03000B0000010001",
+                "intro": "De gevoeligheid van printbed druksensor 2 is te hoog. Het kan zijn dat deze vastzit tussen de spanarm en het printbed support, of de afstelschroef zit te strak."
+            },
+            {
+                "ecode": "03000B0000010003",
+                "intro": "Het signaal van printbed krachtsensor 2 is te zwak. De elektronische verbinding met de sensor kan verbroken zijn."
+            },
+            {
+                "ecode": "03000B0000010004",
+                "intro": "Op de krachtsensor 2 werd een externe storing gedetecteerd. Het kan zijn dat het printbed iets buiten het warmtebed heeft aangeraakt."
+            },
+            {
+                "ecode": "03000B0000010005",
+                "intro": "Krachtsensor 2 heeft onverwachte continue kracht gedetecteerd. Het printbed kan vast zitten of de analoge front end is mogelijk kapot."
+            },
+            {
+                "ecode": "03000B0000010002",
+                "intro": "Het signaal van printbed krachtsensor 2 is zwak. De krachtsensor kan kapot zijn of een slechte elektrische verbinding hebben."
+            },
+            {
+                "ecode": "03000C0000010001",
+                "intro": "Printbed krachtsensor 3 is te gevoelig. Het kan vast zitten tussen de rekarm en de warmtebedsteun, of de stelschroef kan te strak zitten."
+            },
+            {
+                "ecode": "03000C0000010002",
+                "intro": "Het signaal van printbed krachtsensor 3 is zwak. De krachtsensor is mogelijk defect of heeft een slechte elektrische verbinding."
+            },
+            {
+                "ecode": "03000C0000010003",
+                "intro": "Het signaal van printbed krachtsensor 3 is te zwak. De elektronische verbinding met de sensor is mogelijk verbroken."
+            },
+            {
+                "ecode": "03000C0000010004",
+                "intro": "Er is een externe storing gedetecteerd op krachtsensor 3. De plaat van het printbed heeft mogelijk iets buiten het printbed aangeraakt."
+            },
+            {
+                "ecode": "03000C0000010005",
+                "intro": "Krachtsensor 3 heeft onverwachte continue kracht gedetecteerd. Het printbed kan vast zitten of de analoge front end is mogelijk kapot."
+            },
+            {
+                "ecode": "0300100000020001",
+                "intro": "De resonantiefrequentie van de X-as is laag. De distributieriem kan los zitten."
+            },
+            {
+                "ecode": "0300110000020001",
+                "intro": "De resonantiefrequentie van de Y-as is laag. De distributieriem kan los zitten."
+            },
+            {
+                "ecode": "0C00010000020007",
+                "intro": "Micro Lidar-laserparameters zijn afwijkend. Kalibreer uw printer opnieuw."
+            },
+            {
+                "ecode": "0C00010000020008",
+                "intro": "Kan geen beeld krijgen van camera. Spaghetti en afvoer verstopping detectie is momenteel niet beschikbaar."
+            },
+            {
+                "ecode": "0C00020000020002",
+                "intro": "De horizontale laserlijn is te breed. Controleer of het printbed vuil is."
+            },
+            {
+                "ecode": "0C0001000001000A",
+                "intro": "De Micro Lidar-LED is mogelijk kapot."
+            },
+            {
+                "ecode": "0C00020000020008",
+                "intro": "De verticale laserlijn is te breed. Controleer of het printbed vuil is."
+            },
+            {
+                "ecode": "0C0003000002000c",
+                "intro": "De localisatiemarkering van het printbed is niet gedetecteerd. Controleer of het printbed correct is uitgelijnd."
+            },
+            {
+                "ecode": "0700510000030001",
+                "intro": "De AMS is uitgeschakeld; laad het filament van de spoelhouder."
+            },
+            {
+                "ecode": "0500040000020007",
+                "intro": "De bedtemperatuur overschrijdt de verglazingstemperatuur van het filament, wat een verstopping van de nozzle kan veroorzaken. Houd de voorklep van de printer open of verlaag de bedtemperatuur."
+            },
+            {
+                "ecode": "0300060000010001",
+                "intro": "Motor-A heeft een open circuit. Er kan een losse verbinding zijn of de motor is defect."
+            },
+            {
+                "ecode": "0300060000010002",
+                "intro": "Motor-A heeft een kortsluiting. Deze kan defect zijn."
+            },
+            {
+                "ecode": "0300070000010001",
+                "intro": "Motor-B heeft een open circuit. De verbinding kan los zitten of de motor is defect."
+            },
+            {
+                "ecode": "0300070000010002",
+                "intro": "Motor-B heeft een kortsluiting. Hij kan defect zijn."
+            },
+            {
+                "ecode": "0300080000010001",
+                "intro": "Motor-Z heeft een open circuit. De verbinding kan los zitten of de motor is defect."
+            },
+            {
+                "ecode": "0300080000010002",
+                "intro": "Motor-Z heeft een kortsluiting. Deze kan defect zijn."
+            },
+            {
+                "ecode": "0300090000010001",
+                "intro": "Motor-E heeft een open circuit. De verbinding kan los zitten of de motor is defect."
+            },
+            {
+                "ecode": "0300090000010002",
+                "intro": "Motor-E heeft een kortsluiting. Deze kan defect zijn."
+            },
+            {
+                "ecode": "0700200000020001",
+                "intro": "AMS1 Slot1 filament is op. Plaats nieuw filament."
+            },
+            {
+                "ecode": "0700200000020003",
+                "intro": "Het filament in AMS1 Slot1 is mogelijk gebroken in de AMS."
+            },
+            {
+                "ecode": "0700210000020001",
+                "intro": "Het filament in AMS1 Slot2 is op. Plaats nieuw filament."
+            },
+            {
+                "ecode": "0700210000020003",
+                "intro": "Het filament in AMS1 Slot2 is mogelijk gebroken in de AMS."
+            },
+            {
+                "ecode": "0700220000020001",
+                "intro": "Het filament in AMS1 Slot3 is op. Plaats nieuw filament."
+            },
+            {
+                "ecode": "0700220000020003",
+                "intro": "Het filament in AMS1 Slot3 is mogelijk gebroken in de AMS."
+            },
+            {
+                "ecode": "0700230000020001",
+                "intro": "Het filament in AMS1 Slot4 is op. Plaats nieuw filament."
+            },
+            {
+                "ecode": "0700230000020003",
+                "intro": "Het filament in AMS1 Slot4 is mogelijk gebroken in de AMS."
+            },
+            {
+                "ecode": "0701200000020001",
+                "intro": "Het filament in AMS2 Slot1 is op. Plaats nieuw filament."
+            },
+            {
+                "ecode": "0701200000020003",
+                "intro": "Het filament van AMS2 Slot1 is mogelijk gebroken in de AMS."
+            },
+            {
+                "ecode": "0701210000020001",
+                "intro": "Het filament in AMS2 Slot2 is op. Plaats nieuw filament."
+            },
+            {
+                "ecode": "0701210000020003",
+                "intro": "Het filament van AMS2 Slot2 is mogelijk gebroken in de AMS."
+            },
+            {
+                "ecode": "0701220000020001",
+                "intro": "Het filament in AMS2 Slot3 is op. Plaats nieuw filament."
+            },
+            {
+                "ecode": "0701220000020003",
+                "intro": "Het filament van AMS2 Slot3 is mogelijk gebroken in de AMS."
+            },
+            {
+                "ecode": "0701230000020001",
+                "intro": "Het filament in AMS2 Slot4 is op. Plaats nieuw filament."
+            },
+            {
+                "ecode": "0701230000020003",
+                "intro": "Het filament van AMS2 Slot4 is mogelijk gebroken in de AMS."
+            },
+            {
+                "ecode": "0702200000020001",
+                "intro": "Het filament in AMS3 Slot1 is op. Plaats nieuw filament."
+            },
+            {
+                "ecode": "0702200000020003",
+                "intro": "Het filament van AMS3 Slot1 is mogelijk gebroken in de AMS."
+            },
+            {
+                "ecode": "0702210000020001",
+                "intro": "Het filament in AMS3 Slot2 is op. Plaats nieuw filament."
+            },
+            {
+                "ecode": "0702210000020003",
+                "intro": "Het filament van AMS3 Slot2 is mogelijk gebroken in de AMS."
+            },
+            {
+                "ecode": "0702220000020001",
+                "intro": "Het filament in AMS3 Slot3 is op. Plaats nieuw filament."
+            },
+            {
+                "ecode": "0702220000020003",
+                "intro": "Het filament van AMS3 Slot3 is mogelijk gebroken in de AMS."
+            },
+            {
+                "ecode": "0702230000020001",
+                "intro": "Het filament in AMS3 Slot4 is op. Plaats nieuw filament."
+            },
+            {
+                "ecode": "0702230000020003",
+                "intro": "Het filament van AMS3 Slot4 is mogelijk gebroken in de AMS."
+            },
+            {
+                "ecode": "0703200000020001",
+                "intro": "Het filament in AMS4 Slot1 is op. Plaats nieuw filament."
+            },
+            {
+                "ecode": "0703200000020003",
+                "intro": "Het filament van AMS4 Slot1 is mogelijk gebroken in de AMS."
+            },
+            {
+                "ecode": "0703210000020001",
+                "intro": "Het filament in AMS4 Slot2 is op. Plaats nieuw filament."
+            },
+            {
+                "ecode": "0703210000020003",
+                "intro": "Het filament van AMS4 Slot2 is mogelijk gebroken in de AMS."
+            },
+            {
+                "ecode": "0703220000020001",
+                "intro": "Het filament in AMS4 Slot3 is op. Plaats nieuw filament."
+            },
+            {
+                "ecode": "0703220000020003",
+                "intro": "Het filament van AMS4 Slot3 is mogelijk gebroken in de AMS."
+            },
+            {
+                "ecode": "0703230000020001",
+                "intro": "Het filament in AMS4 Slot4 is op. Plaats nieuw filament."
+            },
+            {
+                "ecode": "0703230000020003",
+                "intro": "Het filament van AMS4 Slot4 is mogelijk gebroken in de AMS."
+            },
+            {
+                "ecode": "0C00020000010001",
+                "intro": "De horizontale laser brandt niet. Controleer of deze is afgedekt en of de hardware verbinding in orde is."
+            },
+            {
+                "ecode": "0C00020000020003",
+                "intro": "De horizontale laser is niet helder genoeg in de startpositie. Reinig of vervang het print bed indien dit bericht regelmatig verschijnt."
+            },
+            {
+                "ecode": "0C00020000020004",
+                "intro": "De nozzle hoogte lijkt te laag. Controleer of de nozzle versleten of gekanteld is. Kalibreer de Lidar opnieuw als de nozzle is vervangen."
+            },
+            {
+                "ecode": "0C00020000020006",
+                "intro": "De nozzle hoogte lijkt te hoog. Controleer of er filament resten aan de nozzle zitten."
+            },
+            {
+                "ecode": "0C00030000020001",
+                "intro": "De belichtingsmeting van het filament is mislukt omdat de laserreflectie te zwak is op dit materiaal. Hierdoor kan de inspectie van de eerste laag onnauwkeurig zijn."
+            },
+            {
+                "ecode": "0C00020000020007",
+                "intro": "De verticale laser brandt niet. Controleer of het afgedekt is en of de hardware verbinding normaal is."
+            },
+            {
+                "ecode": "0C0003000003000e",
+                "intro": "De printer lijkt te printen zonder te extruden."
+            },
+            {
+                "ecode": "0C0003000003000f",
+                "intro": "De nozzle lijkt bedekt te zijn met vastgeplakt filament of er is een clog."
+            },
+            {
+                "ecode": "0300060000010003",
+                "intro": "De weerstand van Motor-A is abnormaal, de motor kan defect zijn."
+            },
+            {
+                "ecode": "0300070000010003",
+                "intro": "De weerstand van Motor-B is abnormaal, de motor kan defect zijn."
+            },
+            {
+                "ecode": "0300080000010003",
+                "intro": "De weerstand van Motor-Z is abnormaal, de motor kan defect zijn."
+            },
+            {
+                "ecode": "0300090000010003",
+                "intro": "De weerstand van Motor-E is abnormaal, de motor kan defect zijn."
+            },
+            {
+                "ecode": "0300130000010001",
+                "intro": "De stroomsensor van motor-A is abnormaal. Dit kan worden veroorzaakt door een storing in het hardware sampling circuit."
+            },
+            {
+                "ecode": "0300140000010001",
+                "intro": "De stroomsensor van Motor-B is abnormaal. Dit kan worden veroorzaakt door een storing in het hardware sampling circuit."
+            },
+            {
+                "ecode": "0300150000010001",
+                "intro": "De stroomsensor van Motor-Z is abnormaal. Dit kan worden veroorzaakt door een storing in het hardware sampling circuit."
+            },
+            {
+                "ecode": "0300160000010001",
+                "intro": "De stroomsensor van Motor-E is abnormaal. Dit kan worden veroorzaakt door een storing in het hardware sampling circuit."
+            },
+            {
+                "ecode": "0701200000030001",
+                "intro": "AMS2 Slot1-filament is op. Een ogenblik geduld a.u.b. terwijl het oude filament wordt verwijderd."
+            },
+            {
+                "ecode": "0702200000030001",
+                "intro": "AMS3 Slot1 filament is op. Een ogenblik geduld a.u.b. terwijl het oude filament wordt verwijderd."
+            },
+            {
+                "ecode": "0703200000030001",
+                "intro": "AMS4 Slot1 filament is op. Een ogenblik geduld a.u.b. terwijl het oude filament wordt verwijderd."
+            },
+            {
+                "ecode": "0701210000030001",
+                "intro": "AMS2 Slot2-filament is op. Een ogenblik geduld a.u.b. terwijl het oude filament wordt verwijderd."
+            },
+            {
+                "ecode": "0702210000030001",
+                "intro": "AMS3 Slot2 filament is op. Een ogenblik geduld a.u.b. terwijl het oude filament wordt verwijderd."
+            },
+            {
+                "ecode": "0703210000030001",
+                "intro": "AMS4 Slot2 filament is op. Een ogenblik geduld a.u.b. terwijl het oude filament wordt verwijderd."
+            },
+            {
+                "ecode": "0701220000030001",
+                "intro": "AMS2 Slot3 filament is op. Een ogenblik geduld a.u.b. terwijl het oude filament wordt verwijderd."
+            },
+            {
+                "ecode": "0702220000030001",
+                "intro": "AMS3 Slot3 filament is op. Een ogenblik geduld a.u.b. terwijl het oude filament wordt verwijderd."
+            },
+            {
+                "ecode": "0703220000030001",
+                "intro": "AMS4 Slot3 filament is op. Een ogenblik geduld a.u.b. terwijl het oude filament wordt verwijderd."
+            },
+            {
+                "ecode": "0700230000030001",
+                "intro": "AMS1 Slot4-filament is op. Een ogenblik geduld a.u.b. terwijl het oude filament wordt verwijderd."
+            },
+            {
+                "ecode": "0701230000030001",
+                "intro": "AMS2 Slot4 filament is op. Een ogenblik geduld a.u.b. terwijl het oude filament wordt verwijderd."
+            },
+            {
+                "ecode": "0702230000030001",
+                "intro": "AMS3 Slot4 filament is op. Een ogenblik geduld a.u.b. terwijl het oude filament wordt verwijderd."
+            },
+            {
+                "ecode": "0703230000030001",
+                "intro": "AMS4 Slot4 filament is op. Een ogenblik geduld a.u.b. terwijl het oude filament wordt verwijderd."
+            },
+            {
+                "ecode": "0700500000020001",
+                "intro": "AMS1-communicatie is abnormaal, controleer de verbindingskabel."
+            },
+            {
+                "ecode": "0701500000020001",
+                "intro": "AMS2-communicatie is abnormaal, controleer de verbindingskabel."
+            },
+            {
+                "ecode": "0702500000020001",
+                "intro": "AMS3-communicatie is abnormaal, controleer de verbindingskabel."
+            },
+            {
+                "ecode": "0703500000020001",
+                "intro": "AMS4-communicatie is abnormaal, controleer de verbindingskabel."
+            },
+            {
+                "ecode": "0C00020000020009",
+                "intro": "De verticale laser is niet helder genoeg in de startpositie. Reinig of vervang het print bed als dit bericht regelmatig verschijnt."
+            },
+            {
+                "ecode": "0C00020000010005",
+                "intro": "Er is een nieuwe Micro Lidar gedetecteerd. Kalibreer het voor gebruik op de kalibratiepagina."
+            },
+            {
+                "ecode": "0C00030000010009",
+                "intro": "De inspectie van de eerste laag is niet correct afgerond. Het kan zijn dat het resultaat van de inspectie niet correct is."
+            },
+            {
+                "ecode": "0C0003000001000a",
+                "intro": "Uw printer staat in de fabrieksmodus. Neem contact op met de technische ondersteuning."
+            },
+            {
+                "ecode": "0C00030000020002",
+                "intro": "Inspectie van de eerste laag beëindigd wegens abnormale Lidar-gegevens."
+            },
+            {
+                "ecode": "0C00030000020005",
+                "intro": "Het Lidar scan proces is onjuist afgesloten, het kan zijn dat de huidige resultaten, niet accuraat zijn."
+            },
+            {
+                "ecode": "0C00010000010001",
+                "intro": "De Micro Lidar camera is offline. Controleer de hardwareverbinding."
+            },
+            {
+                "ecode": "0C00010000010003",
+                "intro": "Synchronisatie tussen de Micro Lidar camera en de MCU is abnormaal. Start de printer opnieuw op."
+            },
+            {
+                "ecode": "0C00010000010004",
+                "intro": "De lens van de Micro Lidar camera lijkt vuil te zijn. Maak de lens alstublieft schoon."
+            },
+            {
+                "ecode": "0C00010000010005",
+                "intro": "Micro Lidar camera OTP parameter is abnormaal. Neem contact op met after-sales."
+            },
+            {
+                "ecode": "0C00010000010009",
+                "intro": "De lens van de camera lijkt vuil te zijn. Maak de lens alstublieft schoon."
+            },
+            {
+                "ecode": "0C00010000020002",
+                "intro": "De Micro Lidar-camera werkt niet goed en gerelateerde functies kunnen mislukken. Neem contact op met de klantenservice als dit bericht in meerdere prints blijft verschijnen."
+            },
+            {
+                "ecode": "0C00010000020006",
+                "intro": "De extrinsieke parameters van de Micro Lidar-camera zijn abnormaal. Schakel de flow kalibratie in bij uw volgende afdruk."
+            },
+            {
+                "ecode": "0703300000010001",
+                "intro": "Het RFID-bord tussen AMS4 Slot1 en Slot2 heeft een storing."
+            },
+            {
+                "ecode": "0703300000010004",
+                "intro": "Fout in de encryptie chip."
+            },
+            {
+                "ecode": "0703300000030003",
+                "intro": "RFID kan niet worden gelezen vanwege een hardware- of structurele fout."
+            },
+            {
+                "ecode": "0703310000010001",
+                "intro": "Het RFID-bord tussen AMS4 Slot3 en Slot4 heeft een storing."
+            },
+            {
+                "ecode": "0703310000010004",
+                "intro": "Fout in de encryptie chip."
+            },
+            {
+                "ecode": "0703310000030003",
+                "intro": "RFID kan niet worden gelezen vanwege een hardware- of structurele fout."
+            },
+            {
+                "ecode": "0703350000010001",
+                "intro": "De temperatuur- en vochtigheidssensor heeft een fout. De chip kan defect zijn."
+            },
+            {
+                "ecode": "0703110000020002",
+                "intro": "De AMS4 slot2 motor is overbelast. Het filament kan in de knoop zitten of vastzitten."
+            },
+            {
+                "ecode": "0703120000010001",
+                "intro": "De AMS4 slot3 motor heeft geslipt. Het kan zijn dat het tandwiel in de extruder niet werkt, of het gebruikte filament is te dun."
+            },
+            {
+                "ecode": "0703120000010003",
+                "intro": "De AMS4 slot3 motorkoppelregeling werkt niet goed. De stroomsensor kan defect zijn."
+            },
+            {
+                "ecode": "0703120000020002",
+                "intro": "De AMS4 slot3 motor is overbelast. Het filament kan in de knoop- en/of vastzitten."
+            },
+            {
+                "ecode": "0703130000010001",
+                "intro": "De AMS4 slot4 motor heeft geslipt. Het kan zijn dat het tandwiel in de extruder niet werkt, of het gebruikte filament is te dun."
+            },
+            {
+                "ecode": "0703130000010003",
+                "intro": "De AMS4 regeling van het motorkoppel werkt niet goed. De stroomsensor kan defect zijn."
+            },
+            {
+                "ecode": "0703130000020002",
+                "intro": "De AMS4 slot4 motor is overbelast. Het filament kan in de knoop- en/of vastzitten."
+            },
+            {
+                "ecode": "0703010000010001",
+                "intro": "De AMS4 hulpmotor slipt. Het kan zijn dat het tandwiel in de extruder versleten is, of het gebruikte filament is te dun."
+            },
+            {
+                "ecode": "0703010000010003",
+                "intro": "De koppelregeling van de hulpmotor AMS4 werkt niet goed. De stroomsensor kan defect zijn."
+            },
+            {
+                "ecode": "0703010000010004",
+                "intro": "De snelheidsregeling van de AMS4-hulpmotor werkt niet goed. De snelheidssensor is mogelijk defect."
+            },
+            {
+                "ecode": "0703010000020002",
+                "intro": "De AMS4 hulpmotor is vastgelopen. Het kan zijn dat het filament verdraaid is of vast zit."
+            },
+            {
+                "ecode": "0703020000010001",
+                "intro": "AMS4 Fout in filament snelheid en lengte: De odometrie van het filament is mogelijk onjuist."
+            },
+            {
+                "ecode": "0703100000010001",
+                "intro": "De AMS4 slot1 motor heeft geslipt. Het kan zijn dat het tandwiel in de extruder niet werkt, of het gebruikte filament is te dun."
+            },
+            {
+                "ecode": "0703100000010003",
+                "intro": "De AMS4 slot1 motorkoppelregeling functioneert niet goed. De stroomsensor kan defect zijn."
+            },
+            {
+                "ecode": "0703100000020002",
+                "intro": "De AMS4 slot1 motor is overbelast. Het filament kan in de knoop zitten of vastzitten."
+            },
+            {
+                "ecode": "0703110000010001",
+                "intro": "De AMS4 slot2 motor heeft geslipt. Het kan zijn dat het tandwiel in de extruder niet werkt, of het gebruikte filament is te dun."
+            },
+            {
+                "ecode": "0703110000010003",
+                "intro": "De AMS4 slot2 motorkoppelregeling functioneert niet goed. De stroomsensor kan defect zijn."
+            },
+            {
+                "ecode": "0702300000010001",
+                "intro": "Het RFID-bord tussen AMS3 Slot1 en Slot2 heeft een storing."
+            },
+            {
+                "ecode": "0702300000010004",
+                "intro": "Fout in de encryptie chip."
+            },
+            {
+                "ecode": "0702300000030003",
+                "intro": "RFID kan niet worden gelezen vanwege een hardware- of structurele fout."
+            },
+            {
+                "ecode": "0702310000010001",
+                "intro": "Het RFID-bord tussen AMS3 Slot3 en Slot4 heeft een storing."
+            },
+            {
+                "ecode": "0702310000010004",
+                "intro": "Fout in de encryptie chip."
+            },
+            {
+                "ecode": "0702310000030003",
+                "intro": "RFID kan niet worden gelezen vanwege een hardware- of structurele fout."
+            },
+            {
+                "ecode": "0702350000010001",
+                "intro": "De temperatuur- en vochtigheidssensor heeft een storing. De chip is mogelijk defect."
+            },
+            {
+                "ecode": "0702120000010001",
+                "intro": "De AMS3 slot3 motor heeft geslipt. Het kan zijn dat het tandwiel in de extruder niet werkt, of het gebruikte filament is te dun."
+            },
+            {
+                "ecode": "0702120000010003",
+                "intro": "De koppelregeling van de AMS3 slot3 motor werkt niet goed. De huidige sensor is mogelijk defect."
+            },
+            {
+                "ecode": "0702120000020002",
+                "intro": "De AMS3 slot3 motor is overbelast. Het filament kan in de knoop- en/of vastzitten."
+            },
+            {
+                "ecode": "0702130000010001",
+                "intro": "De AMS3 slot4 motor heeft geslipt. Het kan zijn dat het tandwiel in de extruder niet werkt, of het gebruikte filament is te dun."
+            },
+            {
+                "ecode": "0702130000010003",
+                "intro": "De koppelregeling van de AMS3 slot4 motor werkt niet goed. De huidige sensor is mogelijk defect."
+            },
+            {
+                "ecode": "0702130000020002",
+                "intro": "De AMS3 slot4 motor is overbelast. Het filament kan in de knoop- en/of vastzitten."
+            },
+            {
+                "ecode": "0702010000010001",
+                "intro": "De AMS3 hulpmotor slipt. Het kan zijn dat het tandwiel in de extruder versleten is, of het gebruikte filament is te dun."
+            },
+            {
+                "ecode": "0702010000010003",
+                "intro": "De koppelregeling van de AMS3-hulpmotor werkt niet goed. De huidige sensor is mogelijk defect."
+            },
+            {
+                "ecode": "0702010000010004",
+                "intro": "De snelheidsregeling van de AMS3-hulpmotor werkt niet goed. De snelheidssensor is mogelijk defect."
+            },
+            {
+                "ecode": "0702010000020002",
+                "intro": "De AMS3 hulpmotor is vastgelopen. Het filament kan in de knoop- en/of vastzitten."
+            },
+            {
+                "ecode": "0702020000010001",
+                "intro": "AMS3 Fout in filament snelheid en lengte: De odometrie van het filament is mogelijk onjuist."
+            },
+            {
+                "ecode": "0702100000010001",
+                "intro": "De AMS3 slot1 motor heeft geslipt. Het kan zijn dat het tandwiel in de extruder niet werkt, of het gebruikte filament is te dun."
+            },
+            {
+                "ecode": "0702100000010003",
+                "intro": "De koppelregeling van de AMS3 slot1 motor werkt niet goed. De huidige sensor is mogelijk defect."
+            },
+            {
+                "ecode": "0702100000020002",
+                "intro": "De AMS3 slot1 motor is overbelast. Het filament kan in de knoop- en /of vastzitten."
+            },
+            {
+                "ecode": "0702110000010001",
+                "intro": "De AMS3 slot2 motor heeft geslipt. Het kan zijn dat het tandwiel in de extruder niet werkt, of het gebruikte filament is te dun."
+            },
+            {
+                "ecode": "0702110000010003",
+                "intro": "De koppelregeling van de AMS3 slot2 motor werkt niet goed. De huidige sensor is mogelijk defect."
+            },
+            {
+                "ecode": "0702110000020002",
+                "intro": "De AMS3 slot2 motor is overbelast. Het filament kan in de knoop- en/of vastzitten."
+            },
+            {
+                "ecode": "0701300000010001",
+                "intro": "Het RFID-bord tussen AMS2 Slot1 en Slot2 heeft een storing."
+            },
+            {
+                "ecode": "0701300000010004",
+                "intro": "Fout in de encryptie chip."
+            },
+            {
+                "ecode": "0701300000030003",
+                "intro": "RFID kan niet worden gelezen vanwege een hardware- of structurele fout."
+            },
+            {
+                "ecode": "0701310000010001",
+                "intro": "Het RFID bord tussen AMS2 Slot3 & Slot4 heeft een storing."
+            },
+            {
+                "ecode": "0701310000010004",
+                "intro": "Fout in de encryptie chip."
+            },
+            {
+                "ecode": "0701310000030003",
+                "intro": "RFID kan niet worden gelezen vanwege een hardware- of structurele fout."
+            },
+            {
+                "ecode": "0701350000010001",
+                "intro": "De temperatuur- en vochtsensor heeft een storing. De chip is mogelijk defect."
+            },
+            {
+                "ecode": "0701120000010001",
+                "intro": "De AMS2 slot3 motor heeft geslipt. Het kan zijn dat het tandwiel in de extruder niet werkt, of het gebruikte filament is te dun."
+            },
+            {
+                "ecode": "0701120000010003",
+                "intro": "De AMS2 slot3 motorkoppelregeling werkt niet goed. De stroomsensor kan defect zijn."
+            },
+            {
+                "ecode": "0701120000020002",
+                "intro": "De AMS2 slot3 motor is overbelast. Het filament kan in de knoop- en/of vastzitten."
+            },
+            {
+                "ecode": "0701130000010001",
+                "intro": "De AMS2 slot4 motor heeft geslipt. Het kan zijn dat het tandwiel in de extruder niet werkt, of het gebruikte filament is te dun."
+            },
+            {
+                "ecode": "0701130000010003",
+                "intro": "De AMS2 slot4 motorkoppelregeling werkt niet goed. De stroomsensor kan defect zijn."
+            },
+            {
+                "ecode": "0701130000020002",
+                "intro": "De AMS2 slot4 motor is overbelast. Het filament kan in de knoop- en/of vastzitten."
+            },
+            {
+                "ecode": "0700400000020003",
+                "intro": "De communicatie van de AMS Hub is abnormaal, de kabel is mogelijk niet goed aangesloten."
+            },
+            {
+                "ecode": "0700450000020002",
+                "intro": "De snijafstand van de filament snijder is te groot. De XY-motor kan stappen overslaan."
+            },
+            {
+                "ecode": "0700450000020003",
+                "intro": "De hendel van de filament snijder is niet losgekomen. Het handvat of het mesje kan vastzitten."
+            },
+            {
+                "ecode": "0701010000010001",
+                "intro": "De AMS2 hulpmotor slipt. Het kan zijn dat het tandwiel in de extruder versleten is, of het gebruikte filament is te dun."
+            },
+            {
+                "ecode": "0701010000010003",
+                "intro": "De koppelregeling van de AMS2-hulpmotor werkt niet goed. De huidige sensor is mogelijk defect."
+            },
+            {
+                "ecode": "0701010000010004",
+                "intro": "De snelheidsregeling van de AMS2-hulpmotor werkt niet goed. De snelheidssensor is mogelijk defect."
+            },
+            {
+                "ecode": "0701010000020002",
+                "intro": "De AMS2 hulpmotor is overbelast. Het filament kan in de knoop zitten of vastzitten."
+            },
+            {
+                "ecode": "0701020000010001",
+                "intro": "AMS2 Fout in filament snelheid en lengte: De odometrie van het filament is mogelijk onjuist."
+            },
+            {
+                "ecode": "0701100000010001",
+                "intro": "De AMS2 slot1 motor heeft geslipt. Het kan zijn dat het tandwiel in de extruder niet werkt, of het gebruikte filament is te dun."
+            },
+            {
+                "ecode": "0701100000010003",
+                "intro": "De AMS2 slot1 motorkoppelregeling werkt niet goed. De stroomsensor kan defect zijn."
+            },
+            {
+                "ecode": "0701100000020002",
+                "intro": "De AMS2 slot1 motor is overbelast. Het filament kan in de knoop zitten of vastzitten."
+            },
+            {
+                "ecode": "0701110000010001",
+                "intro": "De AMS2 slot2 motor heeft geslipt. Het kan zijn dat het tandwiel in de extruder niet werkt, of het gebruikte filament is te dun."
+            },
+            {
+                "ecode": "0701110000010003",
+                "intro": "De koppelregeling van de AMS2-slot2-motor werkt niet goed. De huidige sensor is mogelijk defect."
+            },
+            {
+                "ecode": "0701110000020002",
+                "intro": "De AMS2 slot2 motor is overbelast. Het filament kan in de knoop- en of vastzitten."
+            },
+            {
+                "ecode": "0700300000010001",
+                "intro": "Het RFID bord tussen AMS1 Slot1 & Slot2 heeft een storing."
+            },
+            {
+                "ecode": "0700300000010004",
+                "intro": "Fout in de encryptie chip."
+            },
+            {
+                "ecode": "0700300000030003",
+                "intro": "RFID kan niet gelezen worden door een hardware- of structurele fout."
+            },
+            {
+                "ecode": "0700310000010001",
+                "intro": "Het RFID-bord tussen AMS1 Slot3 en Slot4 heeft een storing."
+            },
+            {
+                "ecode": "0700310000010004",
+                "intro": "Fout in de encryptie chip."
+            },
+            {
+                "ecode": "0700310000030003",
+                "intro": "RFID kan niet gelezen worden door een hardware- of structurele fout."
+            },
+            {
+                "ecode": "0700350000010001",
+                "intro": "De temperatuur- en vochtsensor heeft een fout. De chip kan defect zijn."
+            },
+            {
+                "ecode": "0700400000020001",
+                "intro": "Het positiesignaal van de filament buffer is verbroken: de kabel of de positie sensor kan defect zijn."
+            },
+            {
+                "ecode": "0700400000020002",
+                "intro": "Fout in het positiesignaal van de filamentbuffer: de positiesensor kan defect zijn."
+            },
+            {
+                "ecode": "0700120000010003",
+                "intro": "De koppelregeling van de AMS1 slot3-motor werkt niet goed. De stroomsensor is mogelijk defect."
+            },
+            {
+                "ecode": "0700120000020002",
+                "intro": "De AMS1 slot3-motor is overbelast. Het filament kan in de knoop- en/of vastzitten."
+            },
+            {
+                "ecode": "0700130000010001",
+                "intro": "De AMS1 slot4 motor heeft geslipt. Het extrusiewiel is mogelijk defect of het filament is mogelijk te dun."
+            },
+            {
+                "ecode": "0700130000010003",
+                "intro": "De koppelregeling van de AMS1 slot4 motor werkt niet goed. De stroomsensor is mogelijk defect."
+            },
+            {
+                "ecode": "0700130000020002",
+                "intro": "De AMS1 slot4-motor is overbelast. Het filament kan in de knoop- en/of vastzitten."
+            },
+            {
+                "ecode": "0500040000010002",
+                "intro": "Kan de printstatus niet melden. Controleer je netwerkverbinding."
+            },
+            {
+                "ecode": "0500040000010003",
+                "intro": "De inhoud van het printbestand is onleesbaar. Stuur de printtaak opnieuw."
+            },
+            {
+                "ecode": "0500040000010004",
+                "intro": "Het print bestand is niet toegestaan."
+            },
+            {
+                "ecode": "0500040000010006",
+                "intro": "Het is niet gelukt om de voorgaande print te hervatten."
+            },
+            {
+                "ecode": "0700010000010001",
+                "intro": "De AMS1 hulpmotor slipt. Het kan zijn dat het tandwiel in de extruder versleten is, of het gebruikte filament is te dun."
+            },
+            {
+                "ecode": "0700010000010003",
+                "intro": "De koppelregeling van de hulpmotor AMS1 werkt niet goed. De stroomsensor kan defect zijn."
+            },
+            {
+                "ecode": "0700010000010004",
+                "intro": "De snelheidsregeling van de AMS1-hulpmotor werkt niet goed. De snelheidssensor is mogelijk defect."
+            },
+            {
+                "ecode": "0700010000020002",
+                "intro": "De AMS1 hulpmotor is overbelast. Het filament kan in de knoop- en/of vastzitten."
+            },
+            {
+                "ecode": "0700020000010001",
+                "intro": "AMS1 Fout in filament snelheid en lengte: De odometrie van het filament is mogelijk onjuist."
+            },
+            {
+                "ecode": "0700100000010001",
+                "intro": "De AMS1 slot1 motor heeft geslipt. Het kan zijn dat het tandwiel in de extruder niet werkt, of het gebruikte filament is te dun."
+            },
+            {
+                "ecode": "0700100000010003",
+                "intro": "De koppelregeling van de AMS1-slot1-motor werkt niet goed. De huidige sensor is mogelijk defect."
+            },
+            {
+                "ecode": "0700100000020002",
+                "intro": "De AMS1 slot1 motor is overbelast. Het filament kan in de knoop- en/of vastzitten."
+            },
+            {
+                "ecode": "0700110000010001",
+                "intro": "De AMS1 slot2 motor heeft geslipt. Het extrusiewiel is mogelijk defect of het filament is mogelijk te dun."
+            },
+            {
+                "ecode": "0700110000010003",
+                "intro": "De koppelregeling van de AMS1 slot2 motor werkt niet goed. De stroomsensor is mogelijk defect."
+            },
+            {
+                "ecode": "0700110000020002",
+                "intro": "De AMS1 slot2-motor is overbelast. Het filament kan in de knoop- en/of vastzitten."
+            },
+            {
+                "ecode": "0700120000010001",
+                "intro": "De AMS1 slot3 motor heeft geslipt. Het extrusiewiel is mogelijk defect of het filament is mogelijk te dun."
+            },
+            {
+                "ecode": "0500030000010002",
+                "intro": "De printkop werk niet goed. Herstart de printer."
+            },
+            {
+                "ecode": "0500030000010003",
+                "intro": "De AMS module functioneert niet juist. Start de printer opnieuw op."
+            },
+            {
+                "ecode": "0500030000010004",
+                "intro": "De interne communicatie werkt niet goed. Start de printer opnieuw op."
+            },
+            {
+                "ecode": "0500030000010005",
+                "intro": "Interne service werkt niet goed. Start de printer opnieuw op."
+            },
+            {
+                "ecode": "0500030000010006",
+                "intro": "Er is een kritische systeemfout opgetreden. Start de printer opnieuw op."
+            },
+            {
+                "ecode": "0500030000010008",
+                "intro": "Er is een systeemfout opgetreden. Start de printer opnieuw op."
+            },
+            {
+                "ecode": "0500030000010009",
+                "intro": "Er is een systeemstoring opgetreden. Het is hersteld door een automatische herstart."
+            },
+            {
+                "ecode": "050003000002000c",
+                "intro": "Draadloze hardwarefout: schakel wifi uit/in of start de printer opnieuw op."
+            },
+            {
+                "ecode": "050003000002000d",
+                "intro": "De controller van de SD-kaart werkt niet goed."
+            },
+            {
+                "ecode": "0500030000030007",
+                "intro": "Er heeft een systeemfout plaatsgevonden en het systeem is hersteld door opnieuw op te starten."
+            },
+            {
+                "ecode": "0500040000010001",
+                "intro": "Het downloaden van de printtaak is mislukt. Controleer je netwerkverbinding."
+            },
+            {
+                "ecode": "0300120000020001",
+                "intro": "Het kapje aan de voorzijde van de prinktkop is los geraakt."
+            },
+            {
+                "ecode": "0500010000020001",
+                "intro": "De mediapijplijn werkt niet goed."
+            },
+            {
+                "ecode": "0500010000020003",
+                "intro": "USB-camera werkt niet goed."
+            },
+            {
+                "ecode": "03000D0000010002",
+                "intro": "Het is niet gelukt om het printbed op de startpositie in te stellen. Er is teveel vibratie vanuit de omgeving."
+            },
+            {
+                "ecode": "03000D0000010003",
+                "intro": "De printplaat is niet juist geplaats. Pas de plaatsing aan."
+            },
+            {
+                "ecode": "03000D0000010004",
+                "intro": "De printplaat is niet juist geplaats. Pas de plaatsing aan."
+            },
+            {
+                "ecode": "03000D0000010005",
+                "intro": "De printplaat is niet juist geplaats. Pas de plaatsing aan."
+            },
+            {
+                "ecode": "03000D0000010006",
+                "intro": "De printplaat is niet juist geplaats. Pas de plaatsing aan."
+            },
+            {
+                "ecode": "03000D0000010007",
+                "intro": "De printplaat is niet juist geplaats. Pas de plaatsing aan."
+            },
+            {
+                "ecode": "03000D0000010008",
+                "intro": "De printplaat is niet juist geplaats. Pas de plaatsing aan."
+            },
+            {
+                "ecode": "03000D0000010009",
+                "intro": "De printplaat is niet juist geplaats. Pas de plaatsing aan."
+            },
+            {
+                "ecode": "03000D000001000A",
+                "intro": "De printplaat is niet juist geplaats. Pas de plaatsing aan."
+            },
+            {
+                "ecode": "03000D000001000B",
+                "intro": "De motor van de Z-as lijkt vast te zitten bij het omhoog bewegen, controleer of er vreemde voorwerpen op de Z-assen of de wielen van de Z-tandriem zitten."
+            },
+            {
+                "ecode": "03000D0000020001",
+                "intro": "Het instellen van de startpositie van het printbed is niet gelukt. Het kan zijn dat er een verdikking in het bed zit of de punt van de nozzle is niet schoon."
+            },
+            {
+                "ecode": "03000F0000010001",
+                "intro": "De data van de versnellingsmeter is niet beschikbaar. De communicatie verbinding met de printkop kan verbroken zijn, of de versnellingsmeter kan beschadigd zijn."
+            },
+            {
+                "ecode": "03000A0000010001",
+                "intro": "De gevoeligheid van printbed druksensor 1 is te hoog. Het kan zijn dat het vast zit tussen de spanarm en het printbed support, of de afstelschroef zit te strak."
+            },
+            {
+                "ecode": "03000A0000010003",
+                "intro": "De gevoeligheid van druksensor 1 van het printbed is laag. Het kan zijn dat de elektronische verbinding met de druksensor verbroken is."
+            },
+            {
+                "ecode": "0300020000010001",
+                "intro": "De temperatuur van de nozzle is abnormaal; het verwarmingselement kan kortsluiting vertonen."
+            },
+            {
+                "ecode": "0300020000010002",
+                "intro": "De temperatuur van de nozzle is abnormaal; het verwarmingselement kan een open circuit hebben."
+            },
+            {
+                "ecode": "0300020000010003",
+                "intro": "De temperatuur van de nozzle is abnormaal; het verwarmingselement is oververhit."
+            },
+            {
+                "ecode": "0300020000010007",
+                "intro": "De temperatuur van de nozzle is abnormaal; de sensor kan een open circuit hebben."
+            },
+            {
+                "ecode": "0300050000010001",
+                "intro": "De motoraandrijving raakt oververhit. De radiator kan los zitten of de koelventilator is beschadigd."
+            },
+            {
+                "ecode": "0300010000010001",
+                "intro": "De temperatuur van het printbed is abnormaal; het verwarmingselement kan kortsluiting hebben."
+            },
+            {
+                "ecode": "0300010000010002",
+                "intro": "De temperatuur van het printbed is abnormaal; het verwarmingselement kan een open circuit hebben of de thermische zekering kan open zijn."
+            },
+            {
+                "ecode": "0300010000010003",
+                "intro": "De temperatuur van het printbed is abnormaal; het verwarmingselement is oververhit."
+            },
+            {
+                "ecode": "0300010000010006",
+                "intro": "De temperatuur van het printbed is abnormaal; de sensor kan een kortsluiting hebben."
+            },
+            {
+                "ecode": "0300010000010007",
+                "intro": "De temperatuur van het printbed is abnormaal; de sensor kan een open circuit hebben."
+            }
+        ],
+        "ver": 202401191700
+    },
+    "version": "202401191700"
+}
