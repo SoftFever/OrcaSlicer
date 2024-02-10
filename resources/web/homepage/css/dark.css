@@ -33,7 +33,7 @@ body
 /*----Left Menu Button----*/
 #LogoutBtn:hover
 {
-	background: #004942;
+	background: #fc5d5d;
 	color: #efeff0;
 }
 
@@ -45,7 +45,7 @@ body
 .BtnItem:hover
 {
 	color: #efeff0;
-	background-color: #004942;
+	background-color: rgba(54, 54, 60, 0.88);
 }
 
 .BtnItem:hover .LeftIcon
@@ -56,7 +56,7 @@ body
 .BtnItemSelected
 {
 	color: #efeff0;
-	background-color: #004942;
+	background-color: #fc5d5d;
 }
 
 .BtnItemSelected .LeftIcon
@@ -67,8 +67,8 @@ body
 /*-----Right Top MenuBtn-----*/
 .MenuItem:hover
 {
-	border-color: #4db6ac;
-	background-color: #004942;
+	border-color: #fc5d5d;
+	background-color: #2d0703;
 }
 
 #RecentClearAllBtn:hover
@@ -89,7 +89,12 @@ body
 {
 	color:#818183;
 }
-
+/*----model3d------*/
+.model3DItem:hover
+{
+	border-color: #fc5d5d;
+	background-color: #2d0703;
+}
 /*---Staff PIck----*/
 #HotModel_Swiper
 {
