@@ -15,7 +15,7 @@
 #include "slic3r/GUI/BackgroundSlicingProcess.hpp"
 
 using namespace nlohmann;
-namespace beefy      = boost::beast;
+namespace beefy     = boost::beast;
 namespace websocket = beefy::websocket;
 namespace net       = boost::asio;
 using tcp           = net::ip::tcp;
@@ -23,7 +23,7 @@ using tcp           = net::ip::tcp;
 namespace Slic3r {
 
 static constexpr short PRINTAGO_PORT = 33647;
-void printago_ws_error(beefy::error_code ec, char const* what);
+void                   printago_ws_error(beefy::error_code ec, char const* what);
 
 class PrintagoDirector;
 
@@ -35,11 +35,15 @@ class PrintagoSession : public std::enable_shared_from_this<PrintagoSession>
     friend class PrintagoDirector;
 
     websocket::stream<tcp::socket> ws_;
-    beefy::flat_buffer              buffer_;
+    beefy::flat_buffer             buffer_;
+    bool                           is_authorized = false;
 
 public:
     explicit PrintagoSession(tcp::socket&& socket);
     void run();
+
+    void set_authorized(bool status) { is_authorized = status; }
+    bool get_authorized() const { return is_authorized; }
 
 private:
     void on_run();
@@ -48,7 +52,7 @@ private:
     void on_read(beefy::error_code ec, std::size_t bytes_transferred);
     void on_write(beefy::error_code ec, std::size_t bytes_transferred);
     void async_send(const std::string& message);
-    void do_write(const std::string& message);
+    void do_write(std::shared_ptr<std::string> messageBuffer);
 };
 
 //``````````````````````````````````````````````````
@@ -84,11 +88,8 @@ class PrintagoCommand
 public:
     PrintagoCommand() = default;
 
-    PrintagoCommand(const wxString&         command_type,
-                    const wxString&         action,
-                    wxStringToStringHashMap parameters,
-                    const json&             originalCommand)
-        : m_command_type(command_type), m_action(action), m_parameters(std::move(parameters)), m_original_command(originalCommand)
+    PrintagoCommand(const wxString& command_type, const wxString& action, json& parameters, json originalCommand)
+        : m_command_type(command_type), m_action(action), m_parameters(std::move(parameters)), m_original_command(std::move(originalCommand))
     {}
 
     PrintagoCommand(const PrintagoCommand& other)
@@ -102,18 +103,18 @@ public:
 
     void SetCommandType(const wxString& command) { m_command_type = command; }
     void SetAction(const wxString& action) { m_action = action; }
-    void SetParameters(const wxStringToStringHashMap& parameters) { m_parameters = parameters; }
+    void SetParameters(const json& parameters) { m_parameters = parameters; }
     void SetOriginalCommand(const json& originalCommandStr) { m_original_command = originalCommandStr; }
 
-    wxString                GetCommandType() const { return m_command_type; }
-    wxString                GetAction() const { return m_action; }
-    wxStringToStringHashMap GetParameters() const { return m_parameters; }
-    json                    GetOriginalCommand() const { return m_original_command; }
+    wxString GetCommandType() const { return m_command_type; }
+    wxString GetAction() const { return m_action; }
+    json     GetParameters() const { return m_parameters; }
+    json     GetOriginalCommand() const { return m_original_command; }
 
 private:
     wxString                m_command_type;
     wxString                m_action;
-    wxStringToStringHashMap m_parameters;
+    json                    m_parameters;
     json                    m_original_command;
 };
 
@@ -180,42 +181,52 @@ private:
 
     Slic3r::GUI::SelectMachineDialog* m_select_machine_dlg = nullptr;
 
-    void PostStatusMessage   (const wxString printer_id, const json statusData,       const json command = {});
-    void PostResponseMessage (const wxString printer_id, const json responseData,     const json command = {});
-    void PostSuccessMessage  (const wxString printer_id, const wxString localCommand, const json command = {}, const wxString localCommandDetail = "");
-    void PostErrorMessage    (const wxString printer_id, const wxString localCommand, const json command = {}, const wxString errorDetail = "");
+    void PostStatusMessage(const wxString printer_id, const json statusData, const json command = {});
+    void PostResponseMessage(const wxString printer_id, const json responseData, const json command = {});
+    void PostSuccessMessage(const wxString printer_id,
+                            const wxString localCommand,
+                            const json     command            = {},
+                            const wxString localCommandDetail = "");
+    void PostErrorMessage(const wxString printer_id, const wxString localCommand, const json command = {}, const wxString errorDetail = "");
 
     void _PostResponse(const PrintagoResponse response);
 
-    bool ValidatePrintagoCommand(const PrintagoCommand& cmd);
-    bool ProcessPrintagoCommand(const PrintagoCommand& command);
-    std::map<wxString, wxString> ExtractPrefixedParams(const wxStringToStringHashMap& params, const wxString& prefix);
+    bool                         ValidatePrintagoCommand(const PrintagoCommand& cmd);
+    bool                         ProcessPrintagoCommand(const PrintagoCommand& command);
 
-    json        GetAllStatus();
-    void        AddCurrentProcessJsonTo(json& statusObject);
-    json        GetMachineStatus(const wxString& printerId);
-    json        GetMachineStatus(MachineObject* machine);
-    json        MachineObjectToJson(MachineObject* machine);
-    json        ConfigToJson(const DynamicPrintConfig &config, const std::string &name, const std::string &from, const std::string &version, const std::string is_custom = "");
+    json GetAllStatus();
+    void AddCurrentProcessJsonTo(json& statusObject);
+    json GetMachineStatus(const wxString& printerId);
+    json GetMachineStatus(MachineObject* machine);
+    json MachineObjectToJson(MachineObject* machine);
+    json ConfigToJson(const DynamicPrintConfig& config,
+                      const std::string&        name,
+                      const std::string&        from,
+                      const std::string&        version,
+                      const std::string         is_custom = "");
 
-    json GetCompatOtherConfigsNames(Preset::Type preset_type, const Preset &printerPreset);
-    json GetCompatFilamentConfigNames(const Preset &printerPreset) { return GetCompatOtherConfigsNames(Preset::TYPE_FILAMENT, printerPreset); }
-    json GetCompatPrintConfigNames(const Preset &printerPreset)    { return GetCompatOtherConfigsNames(Preset::TYPE_PRINT   , printerPreset); }
+    json GetCompatOtherConfigsNames(Preset::Type preset_type, const Preset& printerPreset);
+    json GetCompatFilamentConfigNames(const Preset& printerPreset)
+    {
+        return GetCompatOtherConfigsNames(Preset::TYPE_FILAMENT, printerPreset);
+    }
+    json GetCompatPrintConfigNames(const Preset& printerPreset) { return GetCompatOtherConfigsNames(Preset::TYPE_PRINT, printerPreset); }
 
-    bool IsConfigCompatWithPrinter(const PresetWithVendorProfile &preset, const Preset &printerPreset);
-    bool IsConfigCompatWithParent(const PresetWithVendorProfile &preset, const PresetWithVendorProfile &active_printer);
+    bool IsConfigCompatWithPrinter(const PresetWithVendorProfile& preset, const Preset& printerPreset);
+    bool IsConfigCompatWithParent(const PresetWithVendorProfile& preset, const PresetWithVendorProfile& active_printer);
 
     std::string GetConfigNameFromJsonFile(const wxString& FilePath);
     json        GetConfigByName(wxString configType, wxString configName);
     json        GetCompatPrinterConfigNames(std::string printer_type);
     void        ImportPrintagoConfigs();
     void        SetPrintagoConfigs();
-    
 
     bool SwitchSelectedPrinter(const wxString& printerId);
 
     bool SavePrintagoFile(const wxString url, wxFileName& localPath);
     bool DownloadFileFromURL(const wxString url, const wxFileName& localPath);
+
+    bool ValidateToken(const std::string& token);
 };
 
 //``````````````````````````````````````````````````
@@ -264,10 +275,10 @@ public:
     }
 
     const inline static std::map<JobServerState, int> serverStateProgress = {{JobServerState::Idle, 0},
-                                                                               {JobServerState::Download, 7},
-                                                                               {JobServerState::Configure, 15},
-                                                                               {JobServerState::Slicing, 25},
-                                                                               {JobServerState::Sending, 90}};
+                                                                             {JobServerState::Download, 7},
+                                                                             {JobServerState::Configure, 15},
+                                                                             {JobServerState::Slicing, 25},
+                                                                             {JobServerState::Sending, 90}};
 
     inline static wxString                                    jobId = "ptgo_default";
     inline static wxString                                    printerId;
@@ -297,7 +308,6 @@ public:
 
     static void SetServerState(JobServerState new_state, bool postMessage = false)
     {
-        
         if (new_state != m_serverState)
             progress = serverStateProgress.at(new_state);
         m_serverState = new_state;
@@ -307,9 +317,9 @@ public:
     }
 
     static JobServerState GetServerState() { return m_serverState; }
-    static bool CanProcessJob() { return m_can_process_job; }
-    static bool BlockJobProcessing() { return SetCanProcessJob(false); }
-    static bool UnblockJobProcessing() { return SetCanProcessJob(true); }
+    static bool           CanProcessJob() { return m_can_process_job; }
+    static bool           BlockJobProcessing() { return SetCanProcessJob(false); }
+    static bool           UnblockJobProcessing() { return SetCanProcessJob(true); }
 };
 
 } // namespace Slic3r
