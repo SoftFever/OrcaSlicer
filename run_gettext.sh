@@ -31,7 +31,7 @@ do
             msgmerge -N -o $dir/OrcaSlicer_${lang}.po $dir/OrcaSlicer_${lang}.po $pot_file
          fi
         mkdir -p ./resources/i18n/${lang}/
-        msgfmt --check-format -o ./resources/i18n/${lang}/OrcaSlicer.mo $dir/OrcaSlicer_${lang}.po
+        msgfmt --check-format -o ./resources/i18n/${lang}/OrcaSlicerRED.mo $dir/OrcaSlicer_${lang}.po
         # Check the exit status of the msgfmt command
         if [ $? -ne 0 ]; then
             echo "Error encountered with msgfmt command for language ${lang}."
