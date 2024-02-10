@@ -31,5 +31,5 @@ goto :eof
         msgmerge -N -o "%file%" "%file%" "%pot_file%"
     )
     if not exist "./resources/i18n/%lang%" mkdir "./resources/i18n/%lang%"
-    msgfmt --check-format -o "./resources/i18n/%lang%/OrcaSlicer.mo" "%file%"
+    msgfmt --check-format -o "./resources/i18n/%lang%/OrcaSlicerRED.mo" "%file%"
 goto :eof
