@@ -6,6 +6,8 @@
 #include <openssl/md5.h>
 #include <openssl/evp.h>
 #include <wx/dcgraph.h>
+#include <wx/tooltip.h>
+#include <boost/nowide/cstdio.hpp>
 #include "libslic3r/PresetBundle.hpp"
 #include "I18N.hpp"
 #include "GUI_App.hpp"
@@ -420,7 +422,7 @@ static std::string get_filament_id(std::string vendor_typr_serial)
             continue;
         }
         std::string filament_name = preset_name.substr(0, index_at - 1);
-        if (filament_name == vendor_typr_serial)
+        if (filament_name == vendor_typr_serial && preset.filament_id != "null")
             return preset.filament_id;
         filament_id_to_filament_name[preset.filament_id].insert(filament_name);
     }
@@ -437,7 +439,7 @@ static std::string get_filament_id(std::string vendor_typr_serial)
                 continue;
             }
             std::string filament_name = preset_name.substr(0, index_at - 1);
-            if (filament_name == vendor_typr_serial)
+            if (filament_name == vendor_typr_serial && preset->filament_id != "null")
                 return preset->filament_id;
             filament_id_to_filament_name[preset->filament_id].insert(filament_name);
         }
@@ -460,7 +462,7 @@ static std::string get_filament_id(std::string vendor_typr_serial)
             user_filament_id = "P" + calculate_md5(vendor_typr_serial + get_curr_time()).substr(0, 7);
         }
     }
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " filament name is: " << vendor_typr_serial << "and create filament id is: " << user_filament_id;
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " filament name is: " << vendor_typr_serial << "and create filament_id is: " << user_filament_id;
     return user_filament_id;
 }
 
@@ -864,7 +866,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_filament_preset_item()
                 }
             }
         } else {
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " not find filament id corresponding to the type: and the type is" << filament_type;
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " not find filament_id corresponding to the type: and the type is" << filament_type;
         }
         sort_printer_by_nozzle(printer_name_to_filament_preset);
         for (std::pair<std::string, Preset *> printer_to_preset : printer_name_to_filament_preset)
@@ -1105,7 +1107,8 @@ wxArrayString CreateFilamentPresetDialog::get_filament_preset_choices()
         Preset *preset = filament_presets.second;
         auto    inherit = preset->config.option<ConfigOptionString>("inherits");
         if (inherit && !inherit->value.empty()) continue;
-        if (std::string::npos == filament_presets.first.find(type_name)) continue;
+        auto fila_type = preset->config.option<ConfigOptionStrings>("filament_type");
+        if (!fila_type || fila_type->values.empty() || system_filament_types_map[type_name] != fila_type->values[0]) continue;
         m_filament_choice_map[preset->filament_id].push_back(preset);
     }
     
@@ -1115,7 +1118,7 @@ wxArrayString CreateFilamentPresetDialog::get_filament_preset_choices()
         std::set<wxString> preset_name_set;
         for (Preset* filament_preset : preset.second) { 
             std::string preset_name = filament_preset->name;
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " filament id: " << filament_preset->filament_id << " preset name: " << filament_preset->name;
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " filament_id: " << filament_preset->filament_id << " preset name: " << filament_preset->name;
             size_t      index_at    = preset_name.find("@");
             if (std::string::npos != index_at) {
                 std::string cur_preset_name = preset_name.substr(0, index_at - 1);
@@ -1181,7 +1184,7 @@ void CreateFilamentPresetDialog::select_curr_radiobox(std::vector<std::pair<Radi
                     m_filament_preset_combobox->SetLabelColor(DEFAULT_PROMPT_TEXT_COLOUR);
                 }
             } else if (curr_selected_type == m_create_type.base_filament_preset) {
-                m_filament_preset_text->SetLabel(_L("We would rename the presets as \"Vendor Type Serial @printer you selected\". \nTo add preset for more prinetrs, Please go to printer selection"));
+                m_filament_preset_text->SetLabel(_L("We would rename the presets as \"Vendor Type Serial @printer you selected\". \nTo add preset for more printers, Please go to printer selection"));
                 m_filament_preset_combobox->Hide();
                 if (_L("Select Type") != m_filament_type_combobox->GetLabel()) {
                     
@@ -2645,7 +2648,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_page2_btns_item(wxWindow *parent)
             /******************************   clone filament preset    ********************************/
             std::vector<std::string> failures;
             if (!selected_filament_presets.empty()) {
-                bool create_preset_result = preset_bundle->filaments.create_presets_from_template_for_printer(selected_filament_presets, failures, printer_preset_name, get_filament_id, rewritten);
+                bool create_preset_result = preset_bundle->filaments.clone_presets_for_printer(selected_filament_presets, failures, printer_preset_name, get_filament_id, rewritten);
                 if (!create_preset_result) {
                     std::string message;
                     for (const std::string &failure : failures) { message += "\t" + failure + "\n"; }
@@ -2654,7 +2657,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_page2_btns_item(wxWindow *parent)
                                       wxYES | wxYES_DEFAULT | wxCENTRE);
                     int res = dlg.ShowModal();
                     if (wxID_YES == res) {
-                        create_preset_result = preset_bundle->filaments.create_presets_from_template_for_printer(selected_filament_presets, failures, printer_preset_name,
+                        create_preset_result = preset_bundle->filaments.clone_presets_for_printer(selected_filament_presets, failures, printer_preset_name,
                                                                                                               get_filament_id, true);
                     } else {
                         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " printer preset no same preset but filament has same preset, user cancel create the printer preset";
@@ -2670,7 +2673,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_page2_btns_item(wxWindow *parent)
             failures.clear();
             if (!selected_process_presets.empty()) {
                 generate_process_presets_data(selected_process_presets, printer_nozzle_name);
-                bool create_preset_result = preset_bundle->prints.create_presets_from_template_for_printer(selected_process_presets, failures, printer_preset_name,
+                bool create_preset_result = preset_bundle->prints.clone_presets_for_printer(selected_process_presets, failures, printer_preset_name,
                                                                                                            get_filament_id, rewritten);
                 if (!create_preset_result) {
                     std::string message;
@@ -2680,7 +2683,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_page2_btns_item(wxWindow *parent)
                                       wxYES | wxYES_DEFAULT | wxCENTRE);
                     int res = dlg.ShowModal();
                     if (wxID_YES == res) {
-                        create_preset_result = preset_bundle->prints.create_presets_from_template_for_printer(selected_process_presets, failures, printer_preset_name, get_filament_id, true);
+                        create_preset_result = preset_bundle->prints.clone_presets_for_printer(selected_process_presets, failures, printer_preset_name, get_filament_id, true);
                     } else {
                         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " printer preset no same preset but process has same preset, user cancel create the printer preset";
                         return;
@@ -2692,7 +2695,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_page2_btns_item(wxWindow *parent)
             /******************************   clone filament preset    ********************************/
             std::vector<std::string> failures;
             if (!selected_filament_presets.empty()) {
-                bool create_preset_result = preset_bundle->filaments.clone_presets_for_printer(selected_filament_presets, failures, printer_preset_name, rewritten);
+                bool create_preset_result = preset_bundle->filaments.clone_presets_for_printer(selected_filament_presets, failures, printer_preset_name, get_filament_id, rewritten);
                 if (!create_preset_result) {
                     std::string message;
                     for (const std::string& failure : failures) {
@@ -2703,7 +2706,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_page2_btns_item(wxWindow *parent)
                                       wxYES | wxYES_DEFAULT | wxCENTRE);
                     int           res = dlg.ShowModal();
                     if (wxID_YES == res) {
-                        create_preset_result = preset_bundle->filaments.clone_presets_for_printer(selected_filament_presets, failures, printer_preset_name, true);
+                        create_preset_result = preset_bundle->filaments.clone_presets_for_printer(selected_filament_presets, failures, printer_preset_name, get_filament_id, true);
                     } else {
                         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " printer preset no same preset but filament has same preset, user cancel create the printer preset";
                         return;
@@ -2714,7 +2717,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_page2_btns_item(wxWindow *parent)
             /******************************   clone process preset    ********************************/
             failures.clear();
             if (!selected_process_presets.empty()) {
-                bool create_preset_result = preset_bundle->prints.clone_presets_for_printer(selected_process_presets, failures, printer_preset_name, rewritten);
+                bool create_preset_result = preset_bundle->prints.clone_presets_for_printer(selected_process_presets, failures, printer_preset_name, get_filament_id, rewritten);
                 if (!create_preset_result) {
                     std::string message;
                     for (const std::string& failure : failures) {
@@ -2723,7 +2726,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_page2_btns_item(wxWindow *parent)
                     MessageDialog dlg(this, _L("Create process presets failed. As follows:\n") + from_u8(message) + _L("\nDo you want to rewrite it?"), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES | wxYES_DEFAULT | wxCENTRE);
                     int           res = dlg.ShowModal();
                     if (wxID_YES == res) {
-                        create_preset_result = preset_bundle->prints.clone_presets_for_printer(selected_process_presets, failures, printer_preset_name, true);
+                        create_preset_result = preset_bundle->prints.clone_presets_for_printer(selected_process_presets, failures, printer_preset_name, get_filament_id, true);
                     } else {
                         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " printer preset no same preset but filament has same preset, user cancel create the printer preset";
                         return;
@@ -4397,25 +4400,9 @@ void EditFilamentPresetDialog::edit_preset()
     }
 
     // edit preset
-    std::shared_ptr<Preset> need_edit_preset = filament_presets[m_need_edit_preset_index];
-    std::string             need_edit_preset_name = need_edit_preset->name;
-    Tab *                   tab                   = wxGetApp().get_tab(need_edit_preset->type);
-    if (tab == nullptr) {
-        m_selected_printer.clear();
-        m_need_edit_preset_index = -1;
-        return;
-    }
-
-    tab->restore_last_select_item();
-
-    wxGetApp().get_tab(need_edit_preset->type)->select_preset(need_edit_preset_name);
-    // when some preset have modified, if the printer is not need_edit_preset_name compatible printer, the preset will jump to other preset, need select again
-    if (!need_edit_preset->is_compatible) wxGetApp().get_tab(need_edit_preset->type)->select_preset(need_edit_preset_name);
-
-    m_selected_printer.clear();
-    m_need_edit_preset_index = -1;
-
+    m_need_edit_preset = filament_presets[m_need_edit_preset_index];
     wxGetApp().params_dialog()->set_editing_filament_id(m_filament_id);
+
     EndModal(wxID_EDIT);
 }
 
@@ -4882,6 +4869,14 @@ wxPanel *PresetTree::get_child_item(wxPanel *parent, std::shared_ptr<Preset> pre
     preset_name->SetFont(Label::Body_10);
     preset_name->SetForegroundColour(*wxBLACK);
     sizer->Add(preset_name, 0, wxEXPAND | wxALL, 5);
+    bool base_id_error = false;
+    if (preset->inherits() == "" && preset->base_id != "") base_id_error = true;
+    if (base_id_error) {
+        std::string      wiki_url             = "https://wiki.bambulab.com/en/software/bambu-studio/custom-filament-issue";
+        wxHyperlinkCtrl *m_download_hyperlink = new wxHyperlinkCtrl(panel, wxID_ANY, _L("[Delete Required]"), wiki_url, wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE);
+        m_download_hyperlink->SetFont(Label::Body_10);
+        sizer->Add(m_download_hyperlink, 0, wxEXPAND | wxALL, 5);
+    }
     sizer->Add(0, 0, 1, wxEXPAND, 0);
 
     StateColor flush_bg_col(std::pair<wxColour, int>(wxColour(219, 253, 231), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
@@ -4892,6 +4887,9 @@ wxPanel *PresetTree::get_child_item(wxPanel *parent, std::shared_ptr<Preset> pre
 
     StateColor flush_bd_col(std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Pressed), std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Hovered),
                             std::pair<wxColour, int>(wxColour(172, 172, 172), StateColor::Normal));
+
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
+                            std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
 
     Button *edit_preset_btn = new Button(panel, _L("Edit Preset"));
     edit_preset_btn->SetFont(Label::Body_10);
@@ -4908,9 +4906,16 @@ wxPanel *PresetTree::get_child_item(wxPanel *parent, std::shared_ptr<Preset> pre
     del_preset_btn->SetFont(Label::Body_10);
     del_preset_btn->SetPaddingSize(wxSize(8, 3));
     del_preset_btn->SetCornerRadius(8);
-    del_preset_btn->SetBackgroundColor(flush_bg_col);
-    del_preset_btn->SetBorderColor(flush_bd_col);
-    del_preset_btn->SetTextColor(flush_fg_col);
+    if (base_id_error) {
+        del_preset_btn->SetBackgroundColor(btn_bg_green);
+        del_preset_btn->SetBorderColor(btn_bg_green);
+        del_preset_btn->SetTextColor(wxColour(0xFFFFFE));
+    } else {
+        del_preset_btn->SetBackgroundColor(flush_bg_col);
+        del_preset_btn->SetBorderColor(flush_bd_col);
+        del_preset_btn->SetTextColor(flush_fg_col);
+    }
+    
     //del_preset_btn->Hide();
     sizer->Add(del_preset_btn, 0, wxALL | wxALIGN_CENTER_VERTICAL, 0);
 

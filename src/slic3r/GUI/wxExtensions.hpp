@@ -12,10 +12,11 @@
 #include <wx/popupwin.h>
 #include <wx/spinctrl.h>
 #include <wx/artprov.h>
+#include <wx/scrolwin.h>
 
 #include <vector>
 #include <functional>
-
+#include "BitmapCache.hpp"
 #include "Widgets/PopupWindow.hpp"
 
 #ifdef __WXMSW__
@@ -59,7 +60,13 @@ wxBitmap create_menu_bitmap(const std::string& bmp_name);
 wxBitmap create_scaled_bitmap(const std::string& bmp_name, wxWindow *win = nullptr, 
     const int px_cnt = 16, const bool grayscale = false,
     const std::string& new_color = std::string(), // color witch will used instead of orange
-    const bool menu_bitmap = false, const bool resize = false);
+    const bool menu_bitmap = false, const bool resize = false,
+    const bool bitmap2 = false,// for create_scaled_bitmap2
+    const std::vector<std::string>& array_new_color = std::vector<std::string>());
+//used for semi transparent material
+wxBitmap create_scaled_bitmap2(const std::string& bmp_name_in, Slic3r::GUI::BitmapCache& cache, wxWindow* win = nullptr,
+    const int px_cnt = 16, const bool grayscale = false, const bool resize = false,
+    const std::vector<std::string>& array_new_color = std::vector<std::string>()); // color witch will used instead of orange
 #else
 wxBitmap create_scaled_bitmap(const std::string& bmp_name, wxWindow *win = nullptr, 
     const int px_cnt = 16, const bool grayscale = false, const bool resize = false);
@@ -153,7 +160,9 @@ public:
                     const std::string& icon_name = "",
                     const int px_cnt = 16, 
                     const bool grayscale = false,
-                    const bool resize = false); // BBS: support resize by fill border
+                    const bool resize = false,
+                    const bool bitmap2 = false,
+                    const std::vector<std::string>& new_color = std::vector<std::string>());// BBS: support resize by fill border
 
     ~ScalableBitmap() {}
 

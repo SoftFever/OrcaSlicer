@@ -27,6 +27,7 @@
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/log/trivial.hpp>
+#include <boost/property_tree/ptree.hpp>
 
 #include "libslic3r/Print.hpp"
 #include "libslic3r/Polygon.hpp"
@@ -611,7 +612,40 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
 
     wxGetApp().persist_window_geometry(this, true);
     wxGetApp().persist_window_geometry(&m_settings_dialog, true);
+    // bind events from DiffDlg
+
+    bind_diff_dialog();
 }
+
+void MainFrame::bind_diff_dialog()
+{
+    auto get_tab = [](Preset::Type type) {
+        Tab* null_tab = nullptr;
+        for (Tab* tab : wxGetApp().tabs_list)
+            if (tab->type() == type)
+                return tab;
+        return null_tab;
+    };
+
+    auto transfer = [this, get_tab](Preset::Type type) {
+        get_tab(type)->transfer_options(diff_dialog.get_left_preset_name(type),
+                                        diff_dialog.get_right_preset_name(type),
+                                        diff_dialog.get_selected_options(type));
+    };
+
+    auto process_options = [this](std::function<void(Preset::Type)> process) {
+        const Preset::Type diff_dlg_type = diff_dialog.view_type();
+        if (diff_dlg_type == Preset::TYPE_INVALID) {
+            for (const Preset::Type& type : diff_dialog.types_list() )
+                process(type);
+        }
+        else
+            process(diff_dlg_type);
+    };
+
+    diff_dialog.Bind(EVT_DIFF_DIALOG_TRANSFER,      [process_options, transfer](SimpleEvent&)         { process_options(transfer); });
+}
+
 
 #ifdef __WIN32__
 
@@ -3599,9 +3633,6 @@ void MainFrame::RunScript(wxString js)
 
 void MainFrame::technology_changed()
 {
-    // upadte DiffDlg
-    diff_dialog.update_presets();
-
     // update menu titles
     PrinterTechnology pt = plater()->printer_technology();
     if (int id = m_menubar->FindMenu(pt == ptFFF ? _omitL("Material Settings") : _L("Filament Settings")); id != wxNOT_FOUND)
@@ -3658,11 +3689,13 @@ void MainFrame::on_select_default_preset(SimpleEvent& evt)
         case wxID_YES: {
             wxGetApp().app_config->set_bool("sync_user_preset", true);
             wxGetApp().start_sync_user_preset(true);
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " sync_user_preset: true";
             break;
         }
         case wxID_NO:
             wxGetApp().app_config->set_bool("sync_user_preset", false);
             wxGetApp().stop_sync_user_preset();
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " sync_user_preset: false";
             break;
         default:
             break;

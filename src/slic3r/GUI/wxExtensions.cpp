@@ -7,7 +7,6 @@
 
 #include <boost/algorithm/string/replace.hpp>
 
-#include "BitmapCache.hpp"
 #include "GUI.hpp"
 #include "GUI_App.hpp"
 #include "GUI_ObjectList.hpp"
@@ -432,10 +431,14 @@ wxBitmap create_scaled_bitmap(  const std::string& bmp_name_in,
                                 const bool grayscale/* = false*/,
                                 const std::string& new_color/* = std::string()*/, // color witch will used instead of orange
                                 const bool menu_bitmap/* = false*/,
-                                const bool resize/* = false*/)
+                                const bool resize/* = false*/,
+                                const bool bitmap2/* = false*/,
+                                const vector<std::string>& array_new_color/* = vector<std::string>*/)//used for semi transparent material)
 {
     static Slic3r::GUI::BitmapCache cache;
-
+    if (bitmap2) {
+        return create_scaled_bitmap2(bmp_name_in, cache, win, px_cnt, grayscale, resize, array_new_color);
+    }
     unsigned int width = 0;
     unsigned int height = (unsigned int) (win->FromDIP(px_cnt) + 0.5f);
 
@@ -461,6 +464,25 @@ wxBitmap create_scaled_bitmap(  const std::string& bmp_name_in,
 
     return *bmp;
 }
+
+wxBitmap create_scaled_bitmap2(const std::string& bmp_name_in, Slic3r::GUI::BitmapCache& cache, wxWindow* win/* = nullptr*/ ,
+    const int px_cnt/* = 16*/, const bool grayscale/* = false*/ , const bool resize/* = false*/ ,
+    const vector<std::string>& array_new_color/* = vector<std::string>()*/) // color witch will used instead of orange
+{
+    unsigned int width = 0;
+    unsigned int height = (unsigned int)(win->FromDIP(px_cnt) + 0.5f);
+
+    std::string bmp_name = bmp_name_in;
+    boost::replace_last(bmp_name, ".png", "");
+
+    wxBitmap* bmp = cache.load_svg2(bmp_name, width, height, grayscale, false, array_new_color, resize ? em_unit(win) * 0.1f : 0.f);
+    if (bmp == nullptr) {
+        // No SVG found
+        throw Slic3r::RuntimeError("Could not load bitmap: " + bmp_name);
+    }
+    return *bmp;
+}
+
 
 wxBitmap* get_default_extruder_color_icon(bool thin_icon/* = false*/)
 {
@@ -858,11 +880,13 @@ ScalableBitmap::ScalableBitmap( wxWindow *parent,
                                 const std::string& icon_name/* = ""*/,
                                 const int px_cnt/* = 16*/, 
                                 const bool grayscale/* = false*/,
-                                const bool resize/* = false*/):
+                                const bool resize/* = false*/,
+                                const bool bitmap2/* = false*/,
+                                const std::vector<std::string>& new_color/* = vector<std::string>*/) :
     m_parent(parent), m_icon_name(icon_name),
     m_px_cnt(px_cnt), m_grayscale(grayscale), m_resize(resize) // BBS: support resize by fill border
 {
-    m_bmp = create_scaled_bitmap(icon_name, parent, px_cnt, m_grayscale, std::string(), false, resize);
+    m_bmp = create_scaled_bitmap(icon_name, parent, px_cnt, m_grayscale, std::string(), false, resize, bitmap2, new_color);
     if (px_cnt == 0) {
         m_px_cnt = m_bmp.GetHeight(); // scale
         unsigned int height = (unsigned int) (parent->FromDIP(m_px_cnt) + 0.5f);

@@ -12,6 +12,7 @@
 #include <boost/filesystem/operations.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/nowide/convert.hpp>
+#include <boost/nowide/cstdio.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 
 #include "libslic3r/libslic3r.h"
@@ -51,6 +52,7 @@ static unsigned int GLOBAL_PLATE_INDEX = 0;
 
 static const double LOGICAL_PART_PLATE_GAP = 1. / 5.;
 static const int PARTPLATE_ICON_SIZE = 16;
+static const int PARTPLATE_EDIT_PLATE_NAME_ICON_SIZE = 12;
 static const int PARTPLATE_ICON_GAP_TOP = 3;
 static const int PARTPLATE_ICON_GAP_LEFT = 3;
 static const int PARTPLATE_ICON_GAP_Y = 5;
@@ -571,6 +573,42 @@ void PartPlate::calc_vertex_for_number(int index, bool one_number, GLModel &buff
 		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to generate geometry buffers for icons\n";
 }
 
+void PartPlate::calc_vertex_for_plate_name_edit_icon(GLTexture *texture, int index, PickingModel &model) {
+    model.reset();
+
+	auto    bed_ext = get_extents(m_shape);
+	auto    factor  = bed_ext.size()(1) / 200.0;
+	wxCoord w, h;
+	h = int(factor * 16);
+	ExPolygon poly;
+	Vec2d     p        = bed_ext[3];
+	float     offset_x = 1;
+	h = PARTPLATE_EDIT_PLATE_NAME_ICON_SIZE;
+    p += Vec2d(0, PARTPLATE_TEXT_OFFSET_Y + h);
+	if (texture && texture->get_width() > 0 && texture->get_height()) {
+		w    = int(factor * (texture->get_original_width() * 16) / texture->get_height()) + 1;
+
+		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + w), scale_(p(1) - h )});
+		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + w + PARTPLATE_EDIT_PLATE_NAME_ICON_SIZE), scale_(p(1) - h)});
+		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + w + PARTPLATE_EDIT_PLATE_NAME_ICON_SIZE), scale_(p(1))});
+		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + w), scale_(p(1) )});
+
+		if (!init_model_from_poly(model.model, poly, GROUND_Z))
+			BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to generate geometry buffers for icons\n";
+	} else {
+
+		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + offset_x ), scale_(p(1) - h )});
+		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + offset_x + PARTPLATE_EDIT_PLATE_NAME_ICON_SIZE), scale_(p(1) - h)});
+		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + offset_x + PARTPLATE_EDIT_PLATE_NAME_ICON_SIZE), scale_(p(1))});
+		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + offset_x), scale_(p(1) )});
+
+		if (!init_model_from_poly(model.model, poly, GROUND_Z))
+			BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to generate geometry buffers for icons\n";
+    }
+
+    init_raycaster_from_model(model);
+}
+
 void PartPlate::calc_vertex_for_icons(int index, PickingModel &model)
 {
     model.reset();
@@ -975,6 +1013,13 @@ void PartPlate::render_icons(bool bottom, bool only_name, int hover_id)
                     render_icon_texture(m_lock_icon.model, m_partplate_list->m_lockopen_texture);
             }
 
+			if (hover_id == 6) {
+                render_icon_texture(m_plate_name_edit_icon.model, m_partplate_list->m_plate_name_edit_hovered_texture);
+                show_tooltip(_u8L("Edit current plate name"));
+			}
+			else
+                render_icon_texture(m_plate_name_edit_icon.model, m_partplate_list->m_plate_name_edit_texture);
+
             if (m_partplate_list->render_plate_settings) {
                 if (hover_id == 5) {
                     if (get_bed_type() == BedType::btDefault && get_print_seq() == PrintSequence::ByDefault && get_first_layer_print_sequence().empty())
@@ -1272,6 +1317,9 @@ void PartPlate::register_raycasters_for_picking(GLCanvas3D &canvas)
     register_model_for_picking(canvas, m_lock_icon, picking_id_component(4));
     if (m_partplate_list->render_plate_settings)
         register_model_for_picking(canvas, m_plate_settings_icon, picking_id_component(5));
+
+    canvas.remove_raycasters_for_picking(SceneRaycaster::EType::Bed, picking_id_component(6));
+    register_model_for_picking(canvas, m_plate_name_edit_icon, picking_id_component(6));
 }
 
 int PartPlate::picking_id_component(int idx) const
@@ -1554,7 +1602,7 @@ Vec3d PartPlate::estimate_wipe_tower_size(const DynamicPrintConfig & config, con
 		if (!use_global_objects && !contain_instance_totally(obj_idx, 0))
 			continue;
 
-		BoundingBoxf3 bbox = m_model->objects[obj_idx]->bounding_box();
+		BoundingBoxf3 bbox = m_model->objects[obj_idx]->bounding_box_exact();
 		max_height = std::max(bbox.size().z(), max_height);
 	}
 	wipe_tower_size(2) = max_height;
@@ -1781,7 +1829,12 @@ void PartPlate::generate_plate_name_texture()
 	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + offset_x), scale_(p(1) - PARTPLATE_TEXT_OFFSET_Y) });
 
     if (!init_model_from_poly(m_plate_name_icon, poly, GROUND_Z))
-		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to generate geometry buffers for icons\n";
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to generate geometry buffers for icons\n";
+
+	auto canvas = this->m_partplate_list->m_plater->get_view3D_canvas3D();
+    canvas->remove_raycasters_for_picking(SceneRaycaster::EType::Bed, picking_id_component(6));
+    calc_vertex_for_plate_name_edit_icon(&m_name_texture, 0, m_plate_name_edit_icon);
+    register_model_for_picking(*canvas, m_plate_name_edit_icon, picking_id_component(6));
 }
 void PartPlate::set_plate_name(const std::string& name) 
 { 
@@ -3124,6 +3177,20 @@ void PartPlateList::generate_icon_textures()
 		}
 	}
 
+	// if (m_plate_name_edit_texture.get_id() == 0)
+	{
+		file_name = path + (m_is_dark ? "plate_name_edit_dark.svg" : "plate_name_edit.svg");
+		if (!m_plate_name_edit_texture.load_from_svg_file(file_name, true, false, false, icon_size)) {
+			BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":load file %1% failed") % file_name;
+		 }
+	}
+    // if (m_plate_name_edit_hovered_texture.get_id() == 0)
+	{
+		file_name = path + (m_is_dark ? "plate_name_edit_hover_dark.svg" : "plate_name_edit_hover.svg");
+		if (!m_plate_name_edit_hovered_texture.load_from_svg_file(file_name, true, false, false, icon_size)) {
+		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":load file %1% failed") % file_name;
+		}
+	}
 
 	std::string text_str = "01";
 	wxFont* font = find_font(text_str,32);
@@ -3161,7 +3228,8 @@ void PartPlateList::release_icon_textures()
 	m_plate_settings_texture.reset();
 	m_plate_settings_texture.reset();
 	m_plate_settings_hovered_texture.reset();
-
+	m_plate_name_edit_texture.reset();
+	m_plate_name_edit_hovered_texture.reset();
 	for (int i = 0;i < MAX_PLATE_COUNT; i++) {
 		m_idx_textures[i].reset();
 	}

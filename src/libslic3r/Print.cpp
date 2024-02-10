@@ -40,6 +40,7 @@
 #include "Utils.hpp"
 #include "PrintConfig.hpp"
 #include "Model.hpp"
+#include "format.hpp"
 #include <float.h>
 
 #include <algorithm>
@@ -49,6 +50,10 @@
 #include <boost/format.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/regex.hpp>
+#include <boost/nowide/fstream.hpp>
+
+#include <tbb/blocked_range.h>
+#include <tbb/parallel_for.h>
 
 //BBS: add json support
 #include "nlohmann/json.hpp"
@@ -314,6 +319,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             //|| opt_key == "resolution"
             //BBS: when enable arc fitting, we must re-generate perimeter
             || opt_key == "enable_arc_fitting"
+            || opt_key == "print_order"
             || opt_key == "wall_sequence") {
             osteps.emplace_back(posPerimeters);
             osteps.emplace_back(posEstimateCurledExtrusions);
@@ -1043,6 +1049,7 @@ boost::regex regex_g92e0 { "^[ \\t]*[gG]92[ \\t]*[eE](0(\\.0*)?|\\.0+)[ \\t]*(;.
 StringObjectException Print::validate(StringObjectException *warning, Polygons* collison_polygons, std::vector<std::pair<Polygon, float>>* height_polygons) const
 {
     std::vector<unsigned int> extruders = this->extruders();
+    unsigned int nozzles = m_config.nozzle_diameter.size();
 
     if (m_objects.empty())
         return {std::string()};
@@ -1050,7 +1057,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
     if (extruders.empty())
         return { L("No extrusions under current settings.") };
 
-    if (extruders.size() > 1 && m_config.print_sequence != PrintSequence::ByObject) {
+    if (nozzles < 2 && extruders.size() > 1 && m_config.print_sequence != PrintSequence::ByObject) {
         auto ret = check_multi_filament_valid(*this);
         if (!ret.string.empty())
         {
@@ -1115,8 +1122,8 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
             return
                 // Test whether the last slicing plane is below or above the print volume.
                 { 0.5 * (layers[layers.size() - 2] + layers.back()) > this->config().printable_height + EPSILON ?
-                format(_u8L("The object %1% exceeds the maximum build volume height."), print_object.model_object()->name) :
-                format(_u8L("While the object %1% itself fits the build volume, its last layer exceeds the maximum build volume height."), print_object.model_object()->name) +
+                    Slic3r::format(_u8L("The object %1% exceeds the maximum build volume height."), print_object.model_object()->name) :
+                    Slic3r::format(_u8L("While the object %1% itself fits the build volume, its last layer exceeds the maximum build volume height."), print_object.model_object()->name) +
                 " " + _u8L("You might want to reduce the size of your model or change current print settings and retry.") };
         }
     }
@@ -1399,7 +1406,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
 	                }
 
 	                StringObjectException except;
-	                except.string = format(L("Plate %d: %s does not support filament %s"), this->get_plate_index() + 1, L(bed_type_name), extruder_id + 1);
+	                except.string = Slic3r::format(L("Plate %d: %s does not support filament %s"), this->get_plate_index() + 1, L(bed_type_name), extruder_id + 1);
 	                except.string += "\n";
 	                except.type   = STRING_EXCEPT_FILAMENT_NOT_MATCH_BED_TYPE;
 	                except.params.push_back(std::to_string(this->get_plate_index() + 1));
@@ -2039,6 +2046,7 @@ std::string Print::export_gcode(const std::string& path_template, GCodeProcessor
     const Vec3d origin = this->get_plate_origin();
     gcode.set_gcode_offset(origin(0), origin(1));
     gcode.do_export(this, path.c_str(), result, thumbnail_cb);
+
     //BBS
     result->conflict_result = m_conflict_result;
     return path.c_str();

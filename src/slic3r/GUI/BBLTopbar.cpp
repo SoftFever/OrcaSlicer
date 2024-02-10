@@ -1,6 +1,7 @@
 #include "BBLTopbar.hpp"
 #include "wx/artprov.h"
 #include "wx/aui/framemanager.h"
+#include "wx/display.h"
 #include "I18N.hpp"
 #include "GUI_App.hpp"
 #include "GUI.hpp"
@@ -9,6 +10,8 @@
 #include "MainFrame.hpp"
 #include "WebViewDialog.hpp"
 #include "PartPlate.hpp"
+
+#include <boost/log/trivial.hpp>
 
 #define TOPBAR_ICON_SIZE  18
 #define TOPBAR_TITLE_WIDTH  300

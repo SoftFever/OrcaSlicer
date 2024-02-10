@@ -160,7 +160,8 @@ void GLCanvas3D::LayersEditing::select_object(const Model& model, int object_id)
     // Maximum height of an object changes when the object gets rotated or scaled.
     // Changing maximum height of an object will invalidate the layer heigth editing profile.
     // m_model_object->bounding_box() is cached, therefore it is cheap even if this method is called frequently.
-    const float new_max_z = (model_object_new == nullptr) ? 0.0f : static_cast<float>(model_object_new->bounding_box().max.z());
+    const float new_max_z = (model_object_new == nullptr) ? 0.0f : static_cast<float>(model_object_new->max_z());
+
     if (m_model_object != model_object_new || this->last_object_id != object_id || m_object_max_z != new_max_z ||
         (model_object_new != nullptr && m_model_object->id() != model_object_new->id())) {
         m_layer_height_profile.clear();
@@ -7304,10 +7305,10 @@ void GLCanvas3D::_render_overlays()
 
 	auto curr_plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
     auto curr_print_seq = curr_plate->get_real_print_seq();
-    bool sequential_print = (curr_print_seq == PrintSequence::ByObject);
+    const Print* print = fff_print();
+    bool sequential_print = (curr_print_seq == PrintSequence::ByObject) || print->config().print_order == PrintOrder::AsObjectList;
     std::vector<const ModelInstance*> sorted_instances;
     if (sequential_print) {
-        const Print* print = fff_print();
         if (print) {
             for (const PrintObject *print_object : print->objects())
             {

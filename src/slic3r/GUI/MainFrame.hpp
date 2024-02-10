@@ -26,6 +26,8 @@
 #include "Widgets/SideButton.hpp"
 #include "Widgets/SideMenuPopup.hpp"
 
+#include <boost/property_tree/ptree_fwd.hpp>
+
 // BBS
 #include "BBLTopbar.hpp"
 #include "PrinterWebView.hpp"
@@ -131,6 +133,7 @@ class MainFrame : public DPIFrame
     bool can_delete() const;
     bool can_delete_all() const;
     bool can_reslice() const;
+    void bind_diff_dialog();
 
     // BBS
     wxBoxSizer* create_side_tools();

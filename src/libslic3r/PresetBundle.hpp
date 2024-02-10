@@ -1,3 +1,8 @@
+///|/ Copyright (c) Prusa Research 2017 - 2023 Oleksandra Iushchenko @YuSanka, Enrico Turri @enricoturri1966, Lukáš Matěna @lukasmatena, Vojtěch Bubník @bubnikv, David Kocík @kocikdav, Vojtěch Král @vojtechkral
+///|/ Copyright (c) 2019 John Drake @foxox
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #ifndef slic3r_PresetBundle_hpp_
 #define slic3r_PresetBundle_hpp_
 
@@ -7,6 +12,7 @@
 
 #include <memory>
 #include <unordered_map>
+#include <array>
 #include <boost/filesystem/path.hpp>
 
 #define DEFAULT_USER_FOLDER_NAME "default"
@@ -128,6 +134,7 @@ public:
     std::vector<std::string>    filament_presets;
     // BBS: ams
     std::map<int, DynamicPrintConfig> filament_ams_list;
+    std::vector<std::vector<std::string>> ams_multi_color_filment;
     // Calibrate
     Preset const * calibrate_printer = nullptr;
     std::set<Preset const *> calibrate_filaments;
@@ -247,6 +254,13 @@ public:
 	static const char *BBL_DEFAULT_PRINTER_MODEL;
 	static const char *BBL_DEFAULT_PRINTER_VARIANT;
 	static const char *BBL_DEFAULT_FILAMENT;
+
+    static std::array<Preset::Type, 3>  types_list(PrinterTechnology pt) {
+        if (pt == ptFFF)
+            return  { Preset::TYPE_PRINTER, Preset::TYPE_PRINT, Preset::TYPE_FILAMENT };
+        return      { Preset::TYPE_PRINTER, Preset::TYPE_SLA_PRINT, Preset::TYPE_SLA_MATERIAL };
+    }
+
 private:
     //std::pair<PresetsConfigSubstitutions, std::string> load_system_presets(ForwardCompatibilitySubstitutionRule compatibility_rule);
     //BBS: add json related logic

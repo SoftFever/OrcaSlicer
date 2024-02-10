@@ -29,6 +29,7 @@
 #include "Fill/FillLightning.hpp"
 #include "Format/STL.hpp"
 #include "TreeSupport.hpp"
+#include "format.hpp"
 
 #include <float.h>
 #include <oneapi/tbb/blocked_range.h>
@@ -108,6 +109,7 @@ PrintObject::PrintObject(Print* print, ModelObject* model_object, const Transfor
     m_center_offset = Point::new_scale(bbox_center.x(), bbox_center.y());
     // Size of the transformed mesh. This bounding may not be snug in XY plane, but it is snug in Z.
     m_size = (bbox.size() * (1. / SCALING_FACTOR)).cast<coord_t>();
+    m_size.z() = coord_t(model_object->max_z() * (1. / SCALING_FACTOR));
 
     this->set_instances(std::move(instances));
 }
@@ -449,17 +451,6 @@ void PrintObject::prepare_infill()
     } // for each region
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
 
-    // this will detect bridges and reverse bridges
-    // and rearrange top/bottom/internal surfaces
-    // It produces enlarged overlapping bridging areas.
-    //
-    // 1) stBottomBridge / stBottom infill is grown by 3mm and clipped by the total infill area. Bridges are detected. The areas may overlap.
-    // 2) stTop is grown by 3mm and clipped by the grown bottom areas. The areas may overlap.
-    // 3) Clip the internal surfaces by the grown top/bottom surfaces.
-    // 4) Merge surfaces with the same style. This will mostly get rid of the overlaps.
-    //FIXME This does not likely merge surfaces, which are supported by a material with different colors, but same properties.
-    this->process_external_surfaces();
-    m_print->throw_if_canceled();
 
     // Debugging output.
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
@@ -478,7 +469,21 @@ void PrintObject::prepare_infill()
     // and to add a configurable number of solid layers above the BOTTOM / BOTTOMBRIDGE surfaces
     // to close these surfaces reliably.
     //FIXME Vojtech: Is this a good place to add supporting infills below sloping perimeters?
+    // Orca: Brought this function call before the process_external_surfaces, to allow bridges over holes to expand more than
+    // one perimeter. Example of this is the bridge over the benchy lettering.
     this->discover_horizontal_shells();
+    m_print->throw_if_canceled();
+
+    // this will detect bridges and reverse bridges
+    // and rearrange top/bottom/internal surfaces
+    // It produces enlarged overlapping bridging areas.
+    //
+    // 1) stBottomBridge / stBottom infill is grown by 3mm and clipped by the total infill area. Bridges are detected. The areas may overlap.
+    // 2) stTop is grown by 3mm and clipped by the grown bottom areas. The areas may overlap.
+    // 3) Clip the internal surfaces by the grown top/bottom surfaces.
+    // 4) Merge surfaces with the same style. This will mostly get rid of the overlaps.
+    //FIXME This does not likely merge surfaces, which are supported by a material with different colors, but same properties.
+    this->process_external_surfaces();
     m_print->throw_if_canceled();
 
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
@@ -655,7 +660,7 @@ void PrintObject::generate_support_material()
                     {SharpTail,L("floating regions")},
                     {Cantilever,L("floating cantilever")},
                     {LargeOverhang,L("large overhangs")} };
-                std::string warning_message = format(L("It seems object %s has %s. Please re-orient the object or enable support generation."),
+                std::string warning_message = Slic3r::format(L("It seems object %s has %s. Please re-orient the object or enable support generation."),
                     this->model_object()->name, reasons[sntype]);
                 this->active_step_add_warning(PrintStateBase::WarningLevel::NON_CRITICAL, warning_message, PrintStateBase::SlicingNeedSupportOn);
             }
@@ -925,6 +930,10 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "wipe_on_loops"
             || opt_key == "wipe_speed") {
             steps.emplace_back(posPerimeters);
+        } else if (
+               opt_key == "small_area_infill_flow_compensation"
+            || opt_key == "small_area_infill_flow_compensation_model") {
+            steps.emplace_back(posSlice);
         } else if (opt_key == "gap_infill_speed"
             || opt_key == "filter_out_gap_fill" ) {
             // Return true if gap-fill speed has changed from zero value to non-zero or from non-zero value to zero.
@@ -1276,13 +1285,19 @@ void PrintObject::detect_surfaces_type()
                     // collapse very narrow parts (using the safety offset in the diff is not enough)
                     float        offset = layerm->flow(frExternalPerimeter).scaled_width() / 10.f;
 
+                    ExPolygons     layerm_slices_surfaces = to_expolygons(layerm->slices.surfaces);
+                    // no_perimeter_full_bridge allow to put bridges where there are nothing, hence adding area to slice, that's why we need to start from the result of PerimeterGenerator.
+                    if (layerm->region().config().counterbole_hole_bridging.value == chbFilled) {
+                        layerm_slices_surfaces = union_ex(layerm_slices_surfaces, to_expolygons(layerm->fill_surfaces.surfaces));
+                    }
+
                     // find top surfaces (difference between current surfaces
                     // of current layer and upper one)
                     Surfaces top;
                     if (upper_layer) {
                         ExPolygons upper_slices = interface_shells ?
-                            diff_ex(layerm->slices.surfaces, upper_layer->m_regions[region_id]->slices.surfaces, ApplySafetyOffset::Yes) :
-                            diff_ex(layerm->slices.surfaces, upper_layer->lslices, ApplySafetyOffset::Yes);
+                            diff_ex(layerm_slices_surfaces, upper_layer->m_regions[region_id]->slices.surfaces, ApplySafetyOffset::Yes) :
+                            diff_ex(layerm_slices_surfaces, upper_layer->lslices, ApplySafetyOffset::Yes);
                         surfaces_append(top, opening_ex(upper_slices, offset), stTop);
                     } else {
                         // if no upper layer, all surfaces of this one are solid
@@ -1301,14 +1316,14 @@ void PrintObject::detect_surfaces_type()
                             to_polygons(lower_layer->get_region(region_id)->slices.surfaces) :
                             to_polygons(lower_layer->slices);
                         surfaces_append(bottom,
-                            opening_ex(diff(layerm->slices.surfaces, lower_slices, true), offset),
+                            opening_ex(diff(layerm_slices_surfaces, lower_slices, true), offset),
                             surface_type_bottom_other);
 #else
                         // Any surface lying on the void is a true bottom bridge (an overhang)
                         surfaces_append(
                             bottom,
                             opening_ex(
-                                diff_ex(layerm->slices.surfaces, lower_layer->lslices, ApplySafetyOffset::Yes),
+                                diff_ex(layerm_slices_surfaces, lower_layer->lslices, ApplySafetyOffset::Yes),
                                 offset),
                             surface_type_bottom_other);
                         // if user requested internal shells, we need to identify surfaces
@@ -1320,7 +1335,7 @@ void PrintObject::detect_surfaces_type()
                                 bottom,
                                 opening_ex(
                                     diff_ex(
-                                        intersection(layerm->slices.surfaces, lower_layer->lslices), // supported
+                                        intersection(layerm_slices_surfaces, lower_layer->lslices), // supported
                                         lower_layer->m_regions[region_id]->slices.surfaces,
                                         ApplySafetyOffset::Yes),
                                     offset),
@@ -1365,13 +1380,14 @@ void PrintObject::detect_surfaces_type()
                         surfaces_backup = std::move(surfaces_out);
                         surfaces_out.clear();
                     }
-                    const Surfaces &surfaces_prev = interface_shells ? layerm->slices.surfaces : surfaces_backup;
+                    //const Surfaces &surfaces_prev = interface_shells ? layerm->slices.surfaces : surfaces_backup;
+                    const ExPolygons& surfaces_prev_expolys = interface_shells ? layerm_slices_surfaces : to_expolygons(surfaces_backup);
 
                     // find internal surfaces (difference between top/bottom surfaces and others)
                     {
                         Polygons topbottom = to_polygons(top);
                         polygons_append(topbottom, to_polygons(bottom));
-                        surfaces_append(surfaces_out, diff_ex(surfaces_prev, topbottom), stInternal);
+                        surfaces_append(surfaces_out, diff_ex(surfaces_prev_expolys, topbottom), stInternal);
                     }
 
                     surfaces_append(surfaces_out, std::move(top));
@@ -2918,7 +2934,7 @@ void PrintObject::update_slicing_parameters()
 {
     if (!m_slicing_params.valid)
         m_slicing_params = SlicingParameters::create_from_config(
-            this->print()->config(), m_config, this->model_object()->bounding_box().max.z(), this->object_extruders());
+            this->print()->config(), m_config, this->model_object()->max_z(), this->object_extruders());
 }
 
 SlicingParameters PrintObject::slicing_parameters(const DynamicPrintConfig& full_config, const ModelObject& model_object, float object_max_z)
@@ -3224,7 +3240,10 @@ void PrintObject::discover_horizontal_shells()
                         // No internal solid needed on this layer. In order to decide whether to continue
                         // searching on the next neighbor (thus enforcing the configured number of solid
                         // layers, use different strategies according to configured infill density:
-                        if (region_config.sparse_infill_density.value == 0) {
+                        
+                        // Orca: Also use the same strategy if the user has selected to further reduce
+                        // the amount of solid infill on walls.
+                        if (region_config.sparse_infill_density.value == 0 || region_config.reduce_wall_solid_infill) {
                             // If user expects the object to be void (for example a hollow sloping vase),
                             // don't continue the search. In this case, we only generate the external solid
                             // shell if the object would otherwise show a hole (gap between perimeters of
@@ -3237,12 +3256,19 @@ void PrintObject::discover_horizontal_shells()
                         }
                     }
 
-                    if (region_config.sparse_infill_density.value == 0) {
+                    if (region_config.sparse_infill_density.value == 0 || region_config.reduce_wall_solid_infill) {
                         // if we're printing a hollow object we discard any solid shell thinner
                         // than a perimeter width, since it's probably just crossing a sloping wall
                         // and it's not wanted in a hollow print even if it would make sense when
                         // obeying the solid shell count option strictly (DWIM!)
-                        float margin = float(neighbor_layerm->flow(frExternalPerimeter).scaled_width());
+                        
+                        // Orca: Also use the same strategy if the user has selected to reduce
+                        // the amount of solid infill on walls. However reduce the margin to 20% overhang
+                        // as we want to generate infill on sloped vertical surfaces but still keep a small amount of
+                        // filtering. This is an arbitrary value to make this option safe
+                        // by ensuring that top surfaces, especially slanted ones dont go **completely** unsupported
+                        // especially when using single perimeter top layers.
+                        float margin = region_config.reduce_wall_solid_infill? float(neighbor_layerm->flow(frExternalPerimeter).scaled_width()) * 0.2f : float(neighbor_layerm->flow(frExternalPerimeter).scaled_width());
                         Polygons too_narrow = diff(
                             new_internal_solid,
                             opening(new_internal_solid, margin, margin + ClipperSafetyOffset, jtMiter, 5));

@@ -15,6 +15,8 @@
 
 #include <cereal/archives/binary.hpp>
 
+#include <wx/event.h>
+
 #define ENABLE_FIXED_GRABBER 1
 
 class wxWindow;

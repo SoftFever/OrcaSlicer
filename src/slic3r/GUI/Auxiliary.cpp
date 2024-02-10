@@ -21,6 +21,8 @@
 #include <wx/arrstr.h>
 #include <wx/tglbtn.h>
 
+#include <boost/log/trivial.hpp>
+
 #include "wxExtensions.hpp"
 #include "GUI_App.hpp"
 #include "GUI_ObjectList.hpp"
@@ -33,16 +35,28 @@ wxDEFINE_EVENT(EVT_AUXILIARY_IMPORT, wxCommandEvent);
 wxDEFINE_EVENT(EVT_AUXILIARY_UPDATE_COVER, wxCommandEvent);
 wxDEFINE_EVENT(EVT_AUXILIARY_UPDATE_DELETE, wxCommandEvent);
 wxDEFINE_EVENT(EVT_AUXILIARY_UPDATE_RENAME, wxCommandEvent);
+wxDEFINE_EVENT(EVT_AUXILIARY_DONE, wxCommandEvent);
 
 
 const std::vector<std::string> license_list = {
-    "BSD License",
-    "Apache License",
-    "GPL License",
-    "LGPL License",
-    "MIT License",
-    "CC License"
+    "",
+    "CC0",
+    "BY",
+    "BY-SA",
+    "BY-ND",
+    "BY-NC",
+    "BY-NC-SA",
+    "BY-NC-ND",
 };
+
+static std::shared_ptr<ModelInfo> ensure_model_info()
+{
+    auto& model = wxGetApp().plater()->model();
+    if (model.model_info == nullptr) {
+        model.model_info = std::make_shared<ModelInfo>();
+    }
+    return model.model_info;
+}
 
 AuFile::AuFile(wxWindow *parent, fs::path file_path, wxString file_name, AuxiliaryFolderType type, wxWindowID id, const wxPoint &pos, const wxSize &size, long style)
 {
@@ -344,7 +358,7 @@ void AuFile::on_input_enter(wxCommandEvent &evt)
     }
 
     auto     existing  = false;
-    auto     dir       = m_file_path.branch_path();
+    auto     dir       = m_file_path.parent_path();
     auto     new_fullname = new_file_name + m_file_path.extension().string();
 
     
@@ -454,14 +468,12 @@ void AuFile::on_mouse_left_up(wxMouseEvent &evt)
 
 void AuFile::on_set_cover()
 {
-    if (wxGetApp().plater()->model().model_info == nullptr) { wxGetApp().plater()->model().model_info = std::make_shared<ModelInfo>(); }
-
     fs::path path(into_path(m_file_name));
-    wxGetApp().plater()->model().model_info->cover_file = path.string();
+    ensure_model_info()->cover_file = path.string();
     //wxGetApp().plater()->model().model_info->cover_file = m_file_name.ToStdString();
 
-    auto full_path          = m_file_path.branch_path();
-    auto full_root_path         = full_path.branch_path();
+    auto full_path          = m_file_path.parent_path();
+    auto full_root_path         = full_path.parent_path();
     auto full_root_path_str = encode_path(full_root_path.string().c_str());
     auto dir       = wxString::Format("%s/.thumbnails", full_root_path_str);
 
@@ -505,8 +517,8 @@ void AuFile::on_set_delete()
     auto     is_fine = fs::remove(bfs_path);
 
     if (m_cover) {
-        auto full_path          = m_file_path.branch_path();
-        auto full_root_path     = full_path.branch_path();
+        auto full_path          = m_file_path.parent_path();
+        auto full_root_path     = full_path.parent_path();
         auto full_root_path_str = encode_path(full_root_path.string().c_str());
         auto dir                = wxString::Format("%s/.thumbnails", full_root_path_str);
         fs::path dir_path(dir.ToStdWstring());
@@ -520,8 +532,11 @@ void AuFile::on_set_delete()
         if (fs::exists(fs::path(middle_img_path))) { fs::remove(fs::path(middle_img_path)); }
     }
 
-    if (wxGetApp().plater()->model().model_info == nullptr) { wxGetApp().plater()->model().model_info = std::make_shared<ModelInfo>(); }
-    if (wxGetApp().plater()->model().model_info->cover_file == m_file_name) { wxGetApp().plater()->model().model_info->cover_file = ""; }
+    if (wxGetApp().plater()->model().model_info != nullptr) {
+        if (wxGetApp().plater()->model().model_info->cover_file == m_file_name) {
+            wxGetApp().plater()->model().model_info->cover_file = "";
+        }
+    }
 
     if (is_fine) {
         auto evt = wxCommandEvent(EVT_AUXILIARY_UPDATE_DELETE);
@@ -669,6 +684,7 @@ void AuFolderPanel::update(std::vector<fs::path> paths)
     }
     m_gsizer_content->Layout();
     Layout();
+    Refresh();
 }
 
 void AuFolderPanel::msw_rescale() 
@@ -820,9 +836,22 @@ void AuxiliaryPanel::init_bitmap()
 
 void AuxiliaryPanel::init_tabpanel()
 {
-    auto        m_side_tools     = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(220), FromDIP(18)));
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Disabled),
+                            std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
+                            std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
+                            std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
+    auto back_btn = new Button(this, _L("return"), "assemble_return", wxBORDER_NONE | wxBU_LEFT | wxBU_EXACTFIT);
+    back_btn->SetSize(wxSize(FromDIP(220), FromDIP(18)));
+    back_btn->SetBackgroundColor(btn_bg_green);
+    back_btn->SetCornerRadius(0);
+    back_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](wxEvent& e) {
+        auto event = wxCommandEvent(EVT_AUXILIARY_DONE);
+        event.SetEventObject(m_parent);
+        wxPostEvent(m_parent, event);
+    });
+
     wxBoxSizer *sizer_side_tools = new wxBoxSizer(wxVERTICAL);
-    sizer_side_tools->Add(m_side_tools, 1, wxEXPAND, 0);
+    sizer_side_tools->Add(back_btn, 1, wxEXPAND, 0);
     m_tabpanel = new Tabbook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, sizer_side_tools, wxNB_LEFT | wxTAB_TRAVERSAL | wxNB_NOPAGETHEME);
     m_tabpanel->SetBackgroundColour(wxColour("#FEFFFF"));
     m_tabpanel->Bind(wxEVT_BOOKCTRL_PAGE_CHANGED, [this](wxBookCtrlEvent &e) { ; });
@@ -872,20 +901,7 @@ bool AuxiliaryPanel::Show(bool show) { return wxPanel::Show(show); }
 void AuxiliaryPanel::init_auxiliary()
 {
     Model &model = wxGetApp().plater()->model();
-    m_root_dir   = encode_path(model.get_auxiliary_file_temp_path().c_str());
-    if (wxDirExists(m_root_dir)) {
-        fs::path path_to_del(m_root_dir.ToStdWstring());
-        try {
-            fs::remove_all(path_to_del);
-        } catch (...) {
-            BOOST_LOG_TRIVIAL(error) << "Failed  removing the auxiliary directory " << m_root_dir.c_str();
-        }
-    }
-
-    fs::path top_dir_path(m_root_dir.ToStdWstring());
-    fs::create_directory(top_dir_path);
-
-    for (auto folder : s_default_folders) create_folder(folder);
+    Reload(encode_path(model.get_auxiliary_file_temp_path().c_str()), {});
 }
 
 void AuxiliaryPanel::on_import_file(wxCommandEvent &event)
@@ -947,7 +963,7 @@ void AuxiliaryPanel::on_import_file(wxCommandEvent &event)
            
 
             boost::system::error_code ec;
-            if (!fs::copy_file(src_bfs_path, fs::path(dir_path.ToStdWstring()), fs::copy_option::overwrite_if_exists, ec)) continue;
+            if (!fs::copy_file(src_bfs_path, fs::path(dir_path.ToStdWstring()), fs::copy_options::overwrite_existing, ec)) continue;
             Slic3r::put_other_changes();
 
             // add in file list
@@ -987,76 +1003,22 @@ std::string AuxiliaryPanel::replaceSpace(std::string s, std::string ts, std::str
     return s;
 }
 
-void AuxiliaryPanel::Reload(wxString aux_path)
+void AuxiliaryPanel::Reload(wxString aux_path, std::map<std::string, std::vector<json>> paths)
 {
-    fs::path new_aux_path(aux_path.ToStdWstring());
-
-    try {
-        fs::remove_all(fs::path(m_root_dir.ToStdWstring()));
-    } catch (...) {
-        BOOST_LOG_TRIVIAL(error) << "Failed  removing the auxiliary directory " << m_root_dir.c_str();
-    }
-
     m_root_dir = aux_path;
     m_paths_list.clear();
-    // Check new path. If not exist, create a new one.
-    if (!fs::exists(new_aux_path)) {
-        fs::create_directory(new_aux_path);
-        // Create default folders if they are not loaded
-        for (auto folder : s_default_folders) {
-            wxString folder_path = aux_path + "/" + folder;
-            if (fs::exists(folder_path.ToStdWstring())) continue;
-            fs::create_directory(folder_path.ToStdWstring());
+
+    for (const auto & path : paths) {
+        m_paths_list[path.first] = std::vector<fs::path>{};
+        for (const auto & j : path.second) {
+            m_paths_list[path.first].push_back(j["_filepath"]);
         }
-        update_all_panel();
-        m_designer_panel->update_info();
-        return;
-    }
-
-    // Load from new path
-    std::vector<fs::path>  dir_cache;
-    fs::directory_iterator iter_end;
-
-    for (fs::directory_iterator iter(new_aux_path); iter != iter_end; iter++) {
-        wxString path = iter->path().generic_wstring();
-        dir_cache.push_back(iter->path());
-    }
-
-    for (auto dir : dir_cache) {
-        for (fs::directory_iterator iter(dir); iter != iter_end; iter++) {
-            if (fs::is_directory(iter->path())) continue;
-            wxString file_path     = iter->path().generic_wstring();
-            //auto     file_path_str = encode_path(file_path.c_str());
-
-            for (auto folder : s_default_folders) {
-                auto idx = file_path.find(folder.ToStdString());
-                if (idx != std::string::npos) {
-                    auto iter = m_paths_list.find(folder.ToStdString());
-                    auto     file_path_str = fs::path(file_path.ToStdWstring());
-
-                    if (iter != m_paths_list.end()) {
-                        m_paths_list[folder.ToStdString()].push_back(file_path_str);
-                        break;
-                    } else {
-                        m_paths_list[folder.ToStdString()] = std::vector<fs::path>{file_path_str};
-                        break;
-                    }
-                }
-            }
-        }
-    }
-
-    // Create default folders if they are not loaded
-    wxDataViewItemArray default_items;
-    for (auto folder : s_default_folders) {
-        wxString folder_path = aux_path + "/" + folder;
-        if (fs::exists(folder_path.ToStdWstring())) continue;
-        fs::create_directory(folder_path.ToStdWstring());
     }
 
     update_all_panel();
     update_all_cover();
     m_designer_panel->update_info();
+    m_tabpanel->SetSelection(0);
 }
 
 void AuxiliaryPanel::update_all_panel()
@@ -1121,22 +1083,21 @@ void AuxiliaryPanel::update_all_cover()
      m_imput_model_name->GetTextCtrl()->SetSize(wxSize(FromDIP(450), -1));
      m_sizer_model_name->Add(m_imput_model_name, 0, wxALIGN_CENTER, 0);
 
-     /*
      wxBoxSizer *m_sizer_license = new wxBoxSizer(wxHORIZONTAL);
-     auto m_text_license = new wxStaticText(this, wxID_ANY, _L("License"), wxDefaultPosition, wxSize(120, -1), 0);
+     auto m_text_license = new wxStaticText(this, wxID_ANY, _L("License"), wxDefaultPosition, wxSize(180, -1), 0);
      m_text_license->Wrap(-1);
      m_sizer_license->Add(m_text_license, 0, wxALIGN_CENTER, 0);
 
-     m_combo_license = new wxComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(450, -1), 0, NULL, wxCB_READONLY);
+     m_combo_license = new ComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(450), -1), 0, NULL, wxCB_READONLY);
      m_sizer_license->Add(m_combo_license, 0, wxALIGN_CENTER, 0);
-     */
+
      m_sizer_body->Add( 0, 0, 0, wxTOP, FromDIP(50) );
      m_sizer_body->Add(m_sizer_designer, 0, wxLEFT, FromDIP(50));
      m_sizer_body->Add( 0, 0, 0, wxTOP, FromDIP(20));
      m_sizer_body->Add(m_sizer_model_name, 0, wxLEFT, FromDIP(50));
-     //m_sizer_body->Add(0, 0, 0, wxTOP, FromDIP(20));
-     //m_sizer_body->Add(m_sizer_license, 0, wxLEFT, FromDIP(50));
-     //init_license_list();
+     m_sizer_body->Add(0, 0, 0, wxTOP, FromDIP(20));
+     m_sizer_body->Add(m_sizer_license, 0, wxLEFT, FromDIP(50));
+     init_license_list();
 
      SetSizer(m_sizer_body);
      Layout();
@@ -1144,52 +1105,35 @@ void AuxiliaryPanel::update_all_cover()
 
      m_input_designer->Bind(wxEVT_TEXT, &DesignerPanel::on_input_enter_designer, this);
      m_imput_model_name->Bind(wxEVT_TEXT, &DesignerPanel::on_input_enter_model, this);
-     //m_combo_license->Connect(wxEVT_COMMAND_COMBOBOX_SELECTED, wxCommandEventHandler(DesignerPanel::on_select_license), NULL, this);
+     m_combo_license->Bind(wxEVT_COMMAND_COMBOBOX_SELECTED, &DesignerPanel::on_select_license, this);
 }
 
  DesignerPanel::~DesignerPanel()
  {
-     //m_combo_license->Disconnect(wxEVT_COMMAND_COMBOBOX_SELECTED, wxCommandEventHandler(DesignerPanel::on_select_license), NULL, this);
  }
 
  void DesignerPanel::init_license_list()
  {
-     /*
      wxArrayString text_licese;
      for (int i = 0; i < license_list.size(); i++) {
          text_licese.Add(license_list[i]);
      }
      m_combo_license->Set(text_licese);
-     */
  }
 
  void DesignerPanel::on_select_license(wxCommandEvent&evt)
  {
      int selected = evt.GetInt();
      if (selected >= 0 && selected < license_list.size()) {
-         if (wxGetApp().plater()->model().model_info == nullptr) {
-             wxGetApp().plater()->model().model_info = std::make_shared<ModelInfo>();
-         }
-         if (wxGetApp().plater()->model().model_info != nullptr) {
-             wxGetApp().plater()->model().model_info->license = license_list[selected];
-         }
+         ensure_model_info()->license = license_list[selected];
      }
  }
 
-bool DesignerPanel::Show(bool show) 
-{
-    if ( wxGetApp().plater()->model().design_info != nullptr) {
-        wxString text = wxString::FromUTF8(wxGetApp().plater()->model().design_info->Designer);
-        m_input_designer->GetTextCtrl()->SetValue(text);
-    }
-
-     if (wxGetApp().plater()->model().model_info != nullptr) { 
-         wxString text = wxString::FromUTF8(wxGetApp().plater()->model().model_info->model_name);
-         m_imput_model_name->GetTextCtrl()->SetValue(text);
-     }
-    
-    return wxPanel::Show(show);
-}
+bool DesignerPanel::Show(bool show)
+ {
+     if (show) update_info();
+     return wxPanel::Show(show);
+ }
 
 void DesignerPanel::on_input_enter_designer(wxCommandEvent &evt) 
 { 
@@ -1200,9 +1144,7 @@ void DesignerPanel::on_input_enter_designer(wxCommandEvent &evt)
 void DesignerPanel::on_input_enter_model(wxCommandEvent &evt) 
 {
     auto text   = evt.GetString();
-    if (wxGetApp().plater()->model().model_info) {
-        wxGetApp().plater()->model().model_info->model_name = std::string(text.ToUTF8().data());
-    }
+    ensure_model_info()->model_name = std::string(text.ToUTF8().data());
 }
 
 void DesignerPanel::update_info() 
@@ -1215,10 +1157,13 @@ void DesignerPanel::update_info()
     }
 
     if (wxGetApp().plater()->model().model_info != nullptr) {
-        wxString text = wxString::FromUTF8(wxGetApp().plater()->model().model_info->model_name);
-        m_imput_model_name->GetTextCtrl()->SetValue(text);
+        m_imput_model_name->GetTextCtrl()->SetValue(wxString::FromUTF8(wxGetApp().plater()->model().model_info->model_name));
+        if (!m_combo_license->SetStringSelection(wxString::FromUTF8(wxGetApp().plater()->model().model_info->license))) {
+            m_combo_license->SetSelection(0);
+        }
     } else {
-         m_imput_model_name->GetTextCtrl()->SetValue(wxEmptyString);
+        m_imput_model_name->GetTextCtrl()->SetValue(wxEmptyString);
+        m_combo_license->SetSelection(0);
     }
 }
 
@@ -1226,6 +1171,7 @@ void DesignerPanel::msw_rescale()
 {
     m_input_designer->GetTextCtrl()->SetSize(wxSize(FromDIP(450), -1));
     m_imput_model_name->GetTextCtrl()->SetSize(wxSize(FromDIP(450), -1));
+    m_combo_license->SetSize(wxSize(FromDIP(450), -1));
 }
 
 }} // namespace Slic3r::GUI

@@ -4,6 +4,7 @@
 #define BAMBU_DYNAMIC
 #include "BambuTunnel.h"
 
+#include <wx/bitmap.h>
 #include <wx/event.h>
 
 #include <boost/thread.hpp>
@@ -279,8 +280,6 @@ private:
     void HandleResponse(boost::unique_lock<boost::mutex> &l, Bambu_Sample const &sample);
 
     void Reconnect(boost::unique_lock<boost::mutex> & l, int result);
-
-    int RecvData(std::function<int(Bambu_Sample & sample)> const & callback);
 
     template <typename T>
     void PostCallback(Callback<T> const& callback, int result, T const& resp)

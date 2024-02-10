@@ -818,9 +818,9 @@ void PresetUpdater::priv::sync_tooltip(std::string http_url, std::string languag
         fs::path cache_root = fs::path(data_dir()) / "resources/tooltip";
         try {
             auto vf = cache_root / "common" / "version";
-            if (fs::exists(vf)) load_string_file(vf, common_version);
+            if (fs::exists(vf)) Slic3r::load_string_file(vf, common_version);
             vf = cache_root / language / "version";
-            if (fs::exists(vf)) load_string_file(vf, language_version);
+            if (fs::exists(vf)) Slic3r::load_string_file(vf, language_version);
         } catch (...) {}
         std::map<std::string, Resource> resources
         {
@@ -996,11 +996,11 @@ void PresetUpdater::priv::sync_printer_config(std::string http_url)
     auto                    cache_folder = data_dir_path / "ota" / "printers";
 
     try {
-        load_string_file(config_folder / "version.txt", curr_version);
+        Slic3r::load_string_file(config_folder / "version.txt", curr_version);
         boost::algorithm::trim(curr_version);
     } catch (...) {}
     try {
-        load_string_file(cache_folder / "version.txt", cached_version);
+        Slic3r::load_string_file(cache_folder / "version.txt", cached_version);
         boost::algorithm::trim(cached_version);
     } catch (...) {}
     if (!cached_version.empty()) {
@@ -1034,7 +1034,7 @@ void PresetUpdater::priv::sync_printer_config(std::string http_url)
 
     bool result = false;
     try {
-        load_string_file(cache_folder / "version.txt", cached_version);
+        Slic3r::load_string_file(cache_folder / "version.txt", cached_version);
         boost::algorithm::trim(cached_version);
         result = true;
     } catch (...) {}
@@ -1060,29 +1060,13 @@ bool PresetUpdater::priv::install_bundles_rsrc(std::vector<std::string> bundles,
 		updates.updates.emplace_back(std::move(path_in_rsrc), std::move(path_in_vendors), Version(), bundle, "", "");
 
         //BBS: add directory support
-        auto print_in_rsrc = (this->rsrc_path / bundle / PRESET_PRINT_NAME);
-		auto print_in_vendors = (this->vendor_path / bundle / PRESET_PRINT_NAME);
+        auto print_in_rsrc = this->rsrc_path / bundle;
+		auto print_in_vendors = this->vendor_path / bundle;
         fs::path print_folder(print_in_vendors);
         if (fs::exists(print_folder))
             fs::remove_all(print_folder);
         fs::create_directories(print_folder);
 		updates.updates.emplace_back(std::move(print_in_rsrc), std::move(print_in_vendors), Version(), bundle, "", "", false, true);
-
-        auto filament_in_rsrc = (this->rsrc_path / bundle / PRESET_FILAMENT_NAME);
-		auto filament_in_vendors = (this->vendor_path / bundle / PRESET_FILAMENT_NAME);
-        fs::path filament_folder(filament_in_vendors);
-        if (fs::exists(filament_folder))
-            fs::remove_all(filament_folder);
-        fs::create_directories(filament_folder);
-		updates.updates.emplace_back(std::move(filament_in_rsrc), std::move(filament_in_vendors), Version(), bundle, "", "", false, true);
-
-        auto machine_in_rsrc = (this->rsrc_path / bundle / PRESET_PRINTER_NAME);
-		auto machine_in_vendors = (this->vendor_path / bundle / PRESET_PRINTER_NAME);
-        fs::path machine_folder(machine_in_vendors);
-        if (fs::exists(machine_folder))
-            fs::remove_all(machine_folder);
-        fs::create_directories(machine_folder);
-		updates.updates.emplace_back(std::move(machine_in_rsrc), std::move(machine_in_vendors), Version(), bundle, "", "", false, true);
 	}
 
 	return perform_updates(std::move(updates), snapshot);
@@ -1153,11 +1137,11 @@ Updates PresetUpdater::priv::get_printer_config_updates(bool update) const
     std::string             curr_version;
     std::string             resc_version;
     try {
-        load_string_file(resc_folder / "version.txt", resc_version);
+        Slic3r::load_string_file(resc_folder / "version.txt", resc_version);
         boost::algorithm::trim(resc_version);
     } catch (...) {}
     try {
-        load_string_file(config_folder / "version.txt", curr_version);
+        Slic3r::load_string_file(config_folder / "version.txt", curr_version);
         boost::algorithm::trim(curr_version);
     } catch (...) {}
 
@@ -1256,14 +1240,7 @@ Updates PresetUpdater::priv::get_config_updates(const Semver &old_slic3r_version
                         updates.updates.emplace_back(std::move(file_path), std::move(path_in_vendor.string()), std::move(version), vendor_name, changelog, "", force_update, false);
 
                         //BBS: add directory support
-                        auto print_in_vendors = (vendor_path / vendor_name / PRESET_PRINT_NAME);
-                        updates.updates.emplace_back(std::move(print_in_cache), std::move(print_in_vendors.string()), Version(), vendor_name, "", "", force_update, true);
-
-                        auto filament_in_vendors = (vendor_path / vendor_name / PRESET_FILAMENT_NAME);
-                        updates.updates.emplace_back(std::move(filament_in_cache), std::move(filament_in_vendors.string()), Version(), vendor_name, "", "", force_update, true);
-
-                        auto machine_in_vendors = (vendor_path / vendor_name / PRESET_PRINTER_NAME);
-                        updates.updates.emplace_back(std::move(machine_in_cache), std::move(machine_in_vendors.string()), Version(), vendor_name, "", "", force_update, true);
+                        updates.updates.emplace_back(cache_path / vendor_name, vendor_path / vendor_name, Version(), vendor_name, "", "", force_update, true);
                     }
                 }
             }

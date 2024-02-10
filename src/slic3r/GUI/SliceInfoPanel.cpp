@@ -1,5 +1,6 @@
 #include "SliceInfoPanel.hpp"
 
+#include <boost/log/trivial.hpp>
 #include "I18N.hpp"
 #include "Widgets/Label.hpp"
 #include "libslic3r/Utils.hpp"
