@@ -423,7 +423,18 @@ function OpenWikiUrl( strUrl )
 	
 	SendWXMessage( JSON.stringify(tSend) );	
 }
+//-------------model3D------------------
 
+function Openmodel3DUrl( strUrl )
+{
+	var tSend={};
+	tSend['sequence_id']=Math.round(new Date() / 1000);
+	tSend['command']="homepage_open_model3D";
+	tSend['data']={};
+	tSend['data']['url']=strUrl;
+	
+	SendWXMessage( JSON.stringify(tSend) );	
+}
 //--------------Staff Pick-------
 var StaffPickSwiper=null;
 function InitStaffPick()
