@@ -5139,7 +5139,6 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
 
     double e_per_mm = m_writer.extruder()->e_per_mm3() * _mm3_per_mm;
 
-    double min_speed = double(m_config.slow_down_min_speed.get_at(m_writer.extruder()->id()));
     // set speed
     if (speed == -1) {
         int overhang_degree = path.get_overhang_degree();
@@ -5536,7 +5535,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             }
         }
     } else {
-        double last_set_speed = std::max((float)EXTRUDER_CONFIG(slow_down_min_speed), new_points[0].speed) * 60.0;
+        double last_set_speed = new_points[0].speed * 60.0;
 
         double total_length = 0;
         if (sloped != nullptr) {
@@ -5591,7 +5590,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
 
             const double line_length = (p - prev).norm();
             path_length += line_length;
-            double new_speed = std::max((float)EXTRUDER_CONFIG(slow_down_min_speed), pre_processed_point.speed) * 60.0;
+            double new_speed = pre_processed_point.speed * 60.0;
             if (last_set_speed != new_speed) {
                 gcode += m_writer.set_speed(new_speed, "", comment);
                 last_set_speed = new_speed;
