@@ -1,16 +1,15 @@
 {
 	"type": "machine",
 	"setting_id": "GM001",
-	"name": "Creality Ender-3 0.4 nozzle",
+	"name": "Creality Ender-3 0.8 nozzle",
 	"from": "system",
 	"instantiation": "true",
 	"inherits": "fdm_creality_common",
 	"printer_model": "Creality Ender-3",
-	"printer_structure": "i3",
-	"default_print_profile": "0.20mm Standard @Creality Ender3 0.4",
+	"default_print_profile": "0.20mm Standard @Creality Ender3 0.8",
 	"thumbnails": [""],
 	"nozzle_diameter": [
-		"0.4"
+		"0.8"
 	],
 	"printable_area": [
 		"0x0",
