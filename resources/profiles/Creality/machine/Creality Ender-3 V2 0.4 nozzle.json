@@ -6,7 +6,6 @@
   "instantiation": "true",
   "inherits": "fdm_creality_common",
   "printer_model": "Creality Ender-3 V2",
-  "printer_structure": "i3",
   "default_filament_profile": [
     "Creality Generic PLA"
   ],

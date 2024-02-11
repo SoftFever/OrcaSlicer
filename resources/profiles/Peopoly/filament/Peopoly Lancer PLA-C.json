@@ -1,0 +1,38 @@
+{
+    "type": "filament",
+    "filament_id": "GFL99",
+    "setting_id": "GFSL99",
+    "name": "Peopoly Lancer PLA-C",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "fdm_filament_pla",
+    "filament_flow_ratio": [
+        "1.02"
+    ],
+    "nozzle_temperature_initial_layer":[
+        "210"
+    ],
+    "nozzle_temperature":[
+        "190"
+    ],
+    "hot_plate_temp_initial_layer":["50"],
+    "hot_plate_temp":["50"],
+    "filament_max_volumetric_speed": [
+        "40"
+    ],
+    "fan_max_speed":[
+        "50"
+    ],
+    "slow_down_layer_time": [
+        "6"
+    ],
+    "filament_type": [
+        "PLA"
+    ],
+    "filament_vendor": [
+        "Peopoly"
+    ],
+    "compatible_printers": [
+        "Peopoly Magneto X 0.4 nozzle"
+    ]
+}
