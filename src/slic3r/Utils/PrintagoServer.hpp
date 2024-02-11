@@ -162,7 +162,7 @@ public:
     PrintagoDirector();
     ~PrintagoDirector();
 
-    bool ParseCommand(const json& command);
+    bool ParseCommand(json command);
     void OnSlicingCompleted(SlicingProcessCompletedEvent::StatusType slicing_result);
     void OnPrintJobSent(wxString printerId, bool success);
 

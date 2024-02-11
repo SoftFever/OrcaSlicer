@@ -55,7 +55,7 @@ void PrintagoSession::on_read(beefy::error_code ec, std::size_t bytes_transferre
             auto json_msg = nlohmann::json::parse(msg);
             wxGetApp().printago_director()->ParseCommand(json_msg);
         } catch (const nlohmann::json::parse_error& e) {
-            // snooze ya lose.  JSON or YOLO into the void.
+            int x = 5 + 1;
         }
 
         buffer_.consume(buffer_.size());
@@ -271,26 +271,35 @@ void PrintagoDirector::_PostResponse(const PrintagoResponse response)
     }
 }
 
-bool PrintagoDirector::ParseCommand(const json& command)
+bool PrintagoDirector::ParseCommand(json command)
 {
-    // Check for existence of "commandType" and "action" in the JSON object
+    // Check for existence of "command" and "action" in the JSON object
     if (!command.contains("command") || !command.contains("action")) {
-        PostErrorMessage("", "", "", "Missing commandType or action in command");
+        PostErrorMessage("", "", "", "Missing 'command' or 'action' in command");
         return false;
     }
 
     wxString commandType = command["command"].get<std::string>();
     wxString action      = command["action"].get<std::string>();
-    json     parameters  = command["parameters"];  
+
+    // Initialize an empty json object for parameters
+    json parameters = json::object();
+
+    // Safely parse parameters if they exist
+    if (command.contains("parameters")) {
+        if (command["parameters"].is_object()) {
+            parameters = command["parameters"];
+        } else {
+            PostErrorMessage("", "", "", "'parameters' is not a JSON object");
+            return false;
+        }
+    }
 
     PrintagoCommand printagoCommand;
     printagoCommand.SetCommandType(commandType);
     printagoCommand.SetAction(action);
-    if (command.contains("parameters") && command["parameters"].is_object()) {
-        printagoCommand.SetParameters(parameters);    
-    }
-    
-    printagoCommand.SetOriginalCommand(command);
+    printagoCommand.SetParameters(parameters);   
+    printagoCommand.SetOriginalCommand(command); 
 
     if (!ValidatePrintagoCommand(printagoCommand)) {
         return false;
@@ -1114,7 +1123,6 @@ bool PrintagoDirector::SavePrintagoFile(const wxString url, wxFileName& localPat
     if (!fs::create_directories(tempDir, ec)) {
         if (ec) {
             // there was an error creating the directory
-            int x = 5 + 1;
         }
     }
 
