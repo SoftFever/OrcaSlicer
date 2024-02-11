@@ -327,11 +327,11 @@ bool face_selected_volume_to_camera(const Camera &camera, GLCanvas3D &canvas, co
         return false;
     ModelObject &object = *object_ptr;
 
-    ModelInstance *instance_ptr = get_model_instance(gl_volume, object);
+    const ModelInstance *instance_ptr = get_model_instance(gl_volume, object);
     assert(instance_ptr != nullptr);
     if (instance_ptr == nullptr)
         return false;
-    ModelInstance &instance = *instance_ptr;
+    const ModelInstance &instance = *instance_ptr;
 
     ModelVolume *volume_ptr = get_model_volume(gl_volume, object);
     assert(volume_ptr != nullptr);
@@ -390,10 +390,7 @@ bool face_selected_volume_to_camera(const Camera &camera, GLCanvas3D &canvas, co
     return true;
 }
 
-void do_local_z_rotate(GLCanvas3D &canvas, double relative_angle)
-{
-    Selection &selection = canvas.get_selection();
-
+void do_local_z_rotate(Selection &selection, double relative_angle) {
     assert(!selection.is_empty());
     if(selection.is_empty()) return;
 
@@ -423,17 +420,9 @@ void do_local_z_rotate(GLCanvas3D &canvas, double relative_angle)
         selection.rotate(Vec3d(0., 0., relative_angle), get_drag_transformation_type(selection));
     };
     selection_transform(selection, selection_rotate_fnc);
-
-    std::string snapshot_name; // empty meand no store undo / redo
-    // NOTE: it use L instead of _L macro because prefix _ is appended
-    // inside function do_move
-    // snapshot_name = L("Set text rotation");
-    canvas.do_rotate(snapshot_name);
 }
 
-void do_local_z_move(GLCanvas3D &canvas, double relative_move) {
-    
-    Selection &selection = canvas.get_selection();
+void do_local_z_move(Selection &selection, double relative_move) {
     assert(!selection.is_empty());
     if (selection.is_empty()) return;
 
@@ -443,12 +432,6 @@ void do_local_z_move(GLCanvas3D &canvas, double relative_move) {
         selection.translate(translate, TransformationType::Local);
     };
     selection_transform(selection, selection_translate_fnc);
-
-    std::string snapshot_name; // empty mean no store undo / redo
-    // NOTE: it use L instead of _L macro because prefix _ is appended inside
-    // function do_move
-    // snapshot_name = L("Set surface distance");
-    canvas.do_move(snapshot_name);
 }
 
 TransformationType get_drag_transformation_type(const Selection &selection)

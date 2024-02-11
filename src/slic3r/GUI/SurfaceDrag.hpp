@@ -137,16 +137,16 @@ bool face_selected_volume_to_camera(const Camera &camera, GLCanvas3D &canvas, co
 /// <summary>
 /// Rotation around z Axis(emboss direction)
 /// </summary>
-/// <param name="canvas">Selected volume for rotation</param>
+/// <param name="selection">Selected volume for rotation</param>
 /// <param name="relative_angle">Relative angle to rotate around emboss direction</param>
-void do_local_z_rotate(GLCanvas3D &canvas, double relative_angle);
+void do_local_z_rotate(Selection &selection, double relative_angle);
 
 /// <summary>
 /// Translation along local z Axis (emboss direction)
 /// </summary>
-/// <param name="canvas">Selected volume for translate</param>
+/// <param name="selection">Selected volume for translate</param>
 /// <param name="relative_move">Relative move along emboss direction</param>
-void do_local_z_move(GLCanvas3D &canvas, double relative_move);
+void do_local_z_move(Selection &selection, double relative_move);
 
 /// <summary>
 /// Distiguish between object and volume

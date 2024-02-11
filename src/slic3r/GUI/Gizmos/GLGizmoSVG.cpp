@@ -55,6 +55,14 @@ GLGizmoSVG::GLGizmoSVG(GLCanvas3D &parent)
 // Private functions to create emboss volume
 namespace{
 
+// TRN - Title in Undo/Redo stack after rotate with SVG around emboss axe
+const std::string rotation_snapshot_name = L("SVG rotate");
+// NOTE: Translation is made in "m_parent.do_rotate()"
+
+// TRN - Title in Undo/Redo stack after move with SVG along emboss axe - From surface
+const std::string move_snapshot_name = L("SVG move");
+// NOTE: Translation is made in "m_parent.do_translate()"
+
 // Variable keep limits for variables
 const struct Limits
 {
@@ -537,7 +545,7 @@ void GLGizmoSVG::on_stop_dragging()
 
     // apply rotation
     // TRN This is an item label in the undo-redo stack.
-    m_parent.do_rotate(L("SVG-Rotate"));
+    m_parent.do_rotate(rotation_snapshot_name);
     m_rotate_start_angle.reset();
     volume_transformation_changed();
 
@@ -1842,18 +1850,20 @@ void GLGizmoSVG::draw_distance()
         if (m_imgui->slider_optional_float("##distance", m_distance, min_distance, max_distance, "%.2f mm", 1.f, false, move_tooltip)) 
             is_moved = true;
     }
-
-    bool can_reset = m_distance.has_value();
-    if (can_reset) {
+    bool is_stop_sliding = m_imgui->get_last_slider_status().deactivated_after_edit;
+    bool is_reseted = false;
+    if (m_distance.has_value()) {
         if (reset_button(m_icons)) {
             m_distance.reset();
-            is_moved = true;
+            is_reseted = true;
         } else if (ImGui::IsItemHovered())
             m_imgui->tooltip(_u8L("Reset distance"), m_gui_cfg->max_tooltip_width);
     }
 
-    if (is_moved)
-        do_local_z_move(m_parent, m_distance.value_or(.0f) - prev_distance);
+    if (is_moved || is_reseted)
+        do_local_z_move(m_parent.get_selection(), m_distance.value_or(.0f) - prev_distance);    
+    if (is_stop_sliding || is_reseted)
+        m_parent.do_move(move_snapshot_name);
 }
 
 void GLGizmoSVG::draw_rotation()
@@ -1876,7 +1886,7 @@ void GLGizmoSVG::draw_rotation()
 
         double diff_angle = angle_rad - angle;
         
-        do_local_z_rotate(m_parent, diff_angle);
+        do_local_z_rotate(m_parent.get_selection(), diff_angle);
 
         // calc angle after rotation
         m_angle = calc_angle(m_parent.get_selection());
@@ -1885,19 +1895,27 @@ void GLGizmoSVG::draw_rotation()
         if (m_volume->emboss_shape->projection.use_surface)
             process();
     }
+    bool is_stop_sliding = m_imgui->get_last_slider_status().deactivated_after_edit;
 
     // Reset button
+    bool is_reseted = false;
     if (m_angle.has_value()) {
         if (reset_button(m_icons)) {
-            do_local_z_rotate(m_parent, -(*m_angle));
+            do_local_z_rotate(m_parent.get_selection(), -(*m_angle));
             m_angle.reset();
 
             // recalculate for surface cut
             if (m_volume->emboss_shape->projection.use_surface)
                 process();
+
+            is_reseted = true;
         } else if (ImGui::IsItemHovered())
             m_imgui->tooltip(_u8L("Reset rotation"), m_gui_cfg->max_tooltip_width);
     }
+
+    // Apply rotation on model (backend)
+    if (is_stop_sliding || is_reseted)
+        m_parent.do_rotate(rotation_snapshot_name);    
 
     // Keep up - lock button icon
     if (!m_volume->is_the_only_one_part()) {

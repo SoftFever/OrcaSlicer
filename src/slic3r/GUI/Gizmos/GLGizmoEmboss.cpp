@@ -81,6 +81,14 @@ using namespace Slic3r::GUI;
 using namespace Slic3r::GUI::Emboss;
 
 namespace {
+// TRN - Title in Undo/Redo stack after rotate with text around emboss axe
+const std::string rotation_snapshot_name = L("Text rotate");
+// NOTE: Translation is made in "m_parent.do_rotate()"
+
+// TRN - Title in Undo/Redo stack after move with text along emboss axe - From surface
+const std::string move_snapshot_name = L("Text move");
+// NOTE: Translation is made in "m_parent.do_translate()"
+
 template<typename T> struct Limit {
     // Limitation for view slider range in GUI
     MinMax<T> gui;
@@ -965,7 +973,7 @@ void GLGizmoEmboss::on_stop_dragging()
     m_rotate_gizmo.set_angle(PI/2);
 
     // apply rotation
-    m_parent.do_rotate(L("Text-Rotate"));
+    m_parent.do_rotate(rotation_snapshot_name);
     m_rotate_start_angle.reset();
     volume_transformation_changed();
 }
@@ -2129,7 +2137,9 @@ void fix_transformation(const StyleManager::Style &from, const StyleManager::Sty
         // fix rotation
         float f_angle = f_angle_opt.value_or(.0f);
         float t_angle = t_angle_opt.value_or(.0f);
-        do_local_z_rotate(canvas, t_angle - f_angle);
+        do_local_z_rotate(canvas.get_selection(), t_angle - f_angle);
+        std::string no_snapshot;
+        canvas.do_rotate(no_snapshot);
     }
 
     // fix distance (Z move) when exists difference in styles
@@ -2138,7 +2148,9 @@ void fix_transformation(const StyleManager::Style &from, const StyleManager::Sty
     if (!is_approx(f_move_opt, t_move_opt)) {
         float f_move = f_move_opt.value_or(.0f);
         float t_move = t_move_opt.value_or(.0f);
-        do_local_z_move(canvas, t_move - f_move);
+        do_local_z_move(canvas.get_selection(), t_move - f_move);
+        std::string no_snapshot;
+        canvas.do_move(no_snapshot);
     }
 }
 } // namesapce
@@ -2408,6 +2420,10 @@ bool GLGizmoEmboss::revertible(const std::string &name,
         ImGui::SameLine(undo_offset); // change cursor postion
         if (draw_button(m_icons, IconType::undo)) {
             value = *default_value;
+
+            // !! Fix to detect change of value after revert of float-slider
+            m_imgui->get_last_slider_status().deactivated_after_edit = true;
+
             return true;
         } else if (ImGui::IsItemHovered())
             m_imgui->tooltip(undo_tooltip, m_gui_cfg->max_tooltip_width);
@@ -2837,9 +2853,14 @@ void GLGizmoEmboss::draw_advanced()
         if (font_prop.per_glyph){
             process();
         } else {
-            do_local_z_move(m_parent, distance.value_or(.0f) - prev_distance);
+            do_local_z_move(m_parent.get_selection(), distance.value_or(.0f) - prev_distance);
         }
     }
+
+    // Apply move to model(backend)
+    if (m_imgui->get_last_slider_status().deactivated_after_edit)
+        m_parent.do_rotate(move_snapshot_name);
+
     m_imgui->disabled_end();  // allowe_surface_distance
 
     // slider for Clock-wise angle in degress
@@ -2861,7 +2882,7 @@ void GLGizmoEmboss::draw_advanced()
         Geometry::to_range_pi_pi(angle_rad);                
 
         double diff_angle = angle_rad - angle;
-        do_local_z_rotate(m_parent, diff_angle);
+        do_local_z_rotate(m_parent.get_selection(), diff_angle);
         
         // calc angle after rotation
         const Selection &selection = m_parent.get_selection();
@@ -2878,6 +2899,9 @@ void GLGizmoEmboss::draw_advanced()
         if (use_surface || font_prop.per_glyph) 
             process();
     }
+    // Apply rotation on model (backend)
+    if (m_imgui->get_last_slider_status().deactivated_after_edit)
+        m_parent.do_rotate(rotation_snapshot_name);    
 
     // Keep up - lock button icon
     if (!m_volume->is_the_only_one_part()) {
