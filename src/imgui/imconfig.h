@@ -210,6 +210,20 @@ namespace ImGui
     const wchar_t ExpandArrowIcon          = 0x0842;
     const wchar_t CompleteIcon             = 0x0843;
 
-//    void MyFunction(const char* name, const MyMatrix44& v);
+    // Orca
+    const wchar_t PlayButton           = 0x0850;
+    const wchar_t PlayDarkButton       = 0x0851;
+    const wchar_t PlayHoverButton      = 0x0852;
+    const wchar_t PlayHoverDarkButton  = 0x0853;
+    const wchar_t PauseButton          = 0x0854;
+    const wchar_t PauseDarkButton      = 0x0855;
+    const wchar_t PauseHoverButton     = 0x0856;
+    const wchar_t PauseHoverDarkButton = 0x0857;
+    const wchar_t OpenButton           = 0x0858;
+    const wchar_t OpenDarkButton       = 0x0859;
+    const wchar_t OpenHoverButton      = 0x085A;
+    const wchar_t OpenHoverDarkButton  = 0x085B;
+
+    //    void MyFunction(const char* name, const MyMatrix44& v);
 }
 
