@@ -6,9 +6,11 @@
 #include "GUI_App.hpp"
 #include "NotificationManager.hpp"
 #include "format.hpp"
+#include "MainFrame.hpp"
 
 #include <boost/algorithm/string.hpp>
 #include <boost/log/trivial.hpp>
+#include <boost/regex.hpp>
 
 namespace Slic3r {
 namespace GUI {
@@ -132,29 +134,46 @@ Downloader::Downloader()
 void Downloader::start_download(const std::string& full_url)
 {
 	assert(m_initialized);
-	
-	// TODO: There is a misterious slash appearing in recieved msg on windows
-#ifdef _WIN32
-	if (!boost::starts_with(full_url, "prusaslicer://open/?file=")) {
-#else
-    if (!boost::starts_with(full_url, "prusaslicer://open?file=")) {
-#endif
+
+    // Orca: check if url is registered
+    if (!wxGetApp().app_config->has("ps_url_registered") || !wxGetApp().app_config->get_bool("ps_url_registered")) {
+        BOOST_LOG_TRIVIAL(error) << "PrusaSlicer links are not enabled. Download aborted: " << full_url;
+        show_error(nullptr, "PrusaSlicer links are not enabled in preferences. Download aborted.");
+        return;
+    }
+
+    // Orca: Move to the 3D view
+    MainFrame* mainframe = wxGetApp().mainframe;
+    Plater* plater = wxGetApp().plater();
+
+    mainframe->Freeze();
+    mainframe->select_tab((size_t)MainFrame::TabPosition::tp3DEditor);
+    plater->select_view_3D("3D");
+    plater->select_view("plate");
+    plater->get_current_canvas3D()->zoom_to_bed();
+    mainframe->Thaw();
+
+    // Orca: Replace PS workaround for "mysterious slash" with a more dynamic approach
+    // Windows seems to have fixed the issue and this provides backwards compatability for those it still affects
+    boost::regex re(R"(^prusaslicer:\/\/open[\/]?\?file=)", boost::regbase::icase);
+    boost::smatch results;
+
+	if (!boost::regex_search(full_url, results, re)) {
 		BOOST_LOG_TRIVIAL(error) << "Could not start download due to wrong URL: " << full_url;
-		// TODO: show error?
+        // Orca: show error
+        NotificationManager* ntf_mngr = wxGetApp().notification_manager();
+        ntf_mngr->push_notification(NotificationType::CustomNotification, NotificationManager::NotificationLevel::ErrorNotificationLevel,
+                                    "Could not start download due to malformed URL");
 		return;
 	}
     size_t id = get_next_id();
-    // TODO: still same mistery 
-#ifdef _WIN32
-    std::string escaped_url = FileGet::escape_url(full_url.substr(25));
-#else
-    std::string escaped_url = FileGet::escape_url(full_url.substr(24));
-#endif
+    std::string escaped_url = FileGet::escape_url(full_url.substr(results.length()));
 	if (!boost::starts_with(escaped_url, "https://") || !FileGet::is_subdomain(escaped_url, "printables.com")) {
 		std::string msg = format(_L("Download won't start. Download URL doesn't point to https://printables.com : %1%"), escaped_url);
 		BOOST_LOG_TRIVIAL(error) << msg;
 		NotificationManager* ntf_mngr = wxGetApp().notification_manager();
-		ntf_mngr->push_notification(NotificationType::CustomNotification, NotificationManager::NotificationLevel::RegularNotificationLevel, msg);
+		ntf_mngr->push_notification(NotificationType::CustomNotification, NotificationManager::NotificationLevel::ErrorNotificationLevel,
+                                    "Download failed. Download URL doesn't point to https://printables.com.");
 		return;
 	}
 	
@@ -178,7 +197,7 @@ void Downloader::on_progress(wxCommandEvent& event)
 void Downloader::on_error(wxCommandEvent& event)
 {
 	size_t id = event.GetInt();
-    set_download_state(event.GetInt(), DownloadState::DownloadError);   
+    set_download_state(event.GetInt(), DownloadState::DownloadError);
     BOOST_LOG_TRIVIAL(error) << "Download error: " << event.GetString();
 	NotificationManager* ntf_mngr = wxGetApp().notification_manager();
 	ntf_mngr->set_download_URL_error(id, boost::nowide::narrow(event.GetString()));

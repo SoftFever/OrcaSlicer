@@ -5,6 +5,7 @@
 #include "GUI_Factories.hpp"
 #include "format.hpp"
 #include "libslic3r_version.h"
+#include "Downloader.hpp"
 
 // Localization headers: include libslic3r version first so everything in this file
 // uses the slic3r/GUI version (the macros will take precedence over the functions).
@@ -1044,26 +1045,22 @@ void GUI_App::post_init()
             (boost::starts_with(this->init_params->input_files.front(), "orcaslicer://open") ||
              boost::starts_with(this->init_params->input_files.front(), "prusaslicer://open"))) {
 
-            bool is_ps_link = false;
-            vector<string> input_str_arr;
             if (boost::starts_with(this->init_params->input_files.front(), "prusaslicer://open")) {
-                is_ps_link = true;
-                input_str_arr = split_str(this->init_params->input_files.front(), "prusaslicer://open?file=");
-            } else {
-                input_str_arr = split_str(this->init_params->input_files.front(), "orcaslicer://open/?file=");
-            }
+                switch_to_3d = true;
+                start_download(this->init_params->input_files.front());
+            } else if (vector<string> input_str_arr = split_str(this->init_params->input_files.front(), "orcaslicer://open/?file="); input_str_arr.size() > 1) {
+                std::string download_origin_url;
+                for (auto input_str : input_str_arr) {
+                    if (!input_str.empty())
+                        download_origin_url = input_str;
+                }
 
-            std::string download_origin_url;
-            for (auto input_str:input_str_arr) {
-                if (!input_str.empty()) download_origin_url = input_str;
-            }
-
-            std::string download_file_url = url_decode(download_origin_url);
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << download_file_url;
-            if (!download_file_url.empty() && ( boost::starts_with(download_file_url, "http://") ||  boost::starts_with(download_file_url, "https://")) ) {
-                // If it is a PS link, make sure that it is from printables and not another site
-                if (!is_ps_link || regex_match(download_file_url, std::regex(R"(^http[s]?:\/\/[a-z0-9]+\.printables\.com\/)", regex::flag_type::icase)))
+                std::string download_file_url = url_decode(download_origin_url);
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << download_file_url;
+                if (!download_file_url.empty() &&
+                    (boost::starts_with(download_file_url, "http://") || boost::starts_with(download_file_url, "https://"))) {
                     request_model_download(download_file_url);
+                }
             }
         }
         else {
@@ -1323,6 +1320,7 @@ GUI_App::GUI_App()
     , m_em_unit(10)
     , m_imgui(new ImGuiWrapper())
 	, m_removable_drive_manager(std::make_unique<RemovableDriveManager>())
+    , m_downloader(std::make_unique<Downloader>())
 	//, m_other_instance_message_handler(std::make_unique<OtherInstanceMessageHandler>())
 {
 	//app config initializes early becasuse it is used in instance checking in OrcaSlicer.cpp
@@ -5906,7 +5904,10 @@ void GUI_App::MacOpenURL(const wxString& url)
 {
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "get mac url " << url;
 
-    if (!url.empty() && boost::starts_with(url, "orcasliceropen://")) {
+    if (url.empty())
+        return;
+
+    if (boost::starts_with(url, "orcasliceropen://")) {
         auto input_str_arr = split_str(url.ToStdString(), "orcasliceropen://");
 
         std::string download_origin_url;
@@ -5925,7 +5926,8 @@ void GUI_App::MacOpenURL(const wxString& url)
                 m_download_file_url = download_file_url;
             }
         }
-    }
+    } else if (boost::starts_with(url, "prusasliceropen://"))
+        start_download(boost::nowide::narrow(url));
 }
 
 // wxWidgets override to get an event on open files.
@@ -6046,6 +6048,11 @@ ParamsDialog* GUI_App::params_dialog()
 Model& GUI_App::model()
 {
     return plater_->model();
+}
+
+Downloader* GUI_App::downloader()
+{
+    return m_downloader.get();
 }
 
 void GUI_App::load_url(wxString url)
@@ -6602,6 +6609,24 @@ void GUI_App::disassociate_files(std::wstring extend)
 
 
 #endif // __WXMSW__
+
+void GUI_App::start_download(std::string url)
+{
+    if (!plater_) {
+        BOOST_LOG_TRIVIAL(error) << "Could not start URL download: plater is nullptr.";
+        return;
+    }
+    //lets always init so if the download dest folder was changed, new dest is used
+    boost::filesystem::path dest_folder(app_config->get("download_path"));
+    if (dest_folder.empty() || !boost::filesystem::is_directory(dest_folder)) {
+        std::string msg = _u8L("Could not start URL download. Destination folder is not set. Please choose destination folder in Configuration Wizard.");
+        BOOST_LOG_TRIVIAL(error) << msg;
+        show_error(nullptr, msg);
+        return;
+    }
+    m_downloader->init(dest_folder);
+    m_downloader->start_download(url);
+}
 
 bool is_support_filament(int extruder_id)
 {

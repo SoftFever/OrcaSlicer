@@ -11,6 +11,7 @@
 #include "Event.hpp"
 #include "I18N.hpp"
 #include "Jobs/ProgressIndicator.hpp"
+#include "Downloader.hpp"
 
 #include <libslic3r/ObjectID.hpp>
 #include <libslic3r/Technologies.hpp>
@@ -129,6 +130,8 @@ enum class NotificationType
 	NetfabbFinished,
 	// Short meesage to fill space between start and finish of export
 	ExportOngoing,
+    // Progressbar of download from prusaslicer://url
+    URLDownload,
 	// BBS: Short meesage to fill space between start and finish of arranging
 	ArrangeOngoing,
 	// BBL: Plate Info ,Design For @YangLeDuo
@@ -247,6 +250,14 @@ public:
 	// Exporting finished, show this information with path, button to open containing folder and if ejectable - eject button
 	void push_exporting_finished_notification(const std::string& path, const std::string& dir_path, bool on_removable);
 	void push_import_finished_notification(const std::string& path, const std::string& dir_path, bool on_removable);
+
+    // Download URL progress notif
+    void push_download_URL_progress_notification(size_t id, const std::string& text, std::function<bool(DownloaderUserAction, int)> user_action_callback);
+    void set_download_URL_progress(size_t id, float percentage);
+    void set_download_URL_paused(size_t id);
+    void set_download_URL_canceled(size_t id);
+    void set_download_URL_error(size_t id, const std::string& text);
+
 	// notifications with progress bar
 	// slicing progress
 	void init_slicing_progress_notification(std::function<bool()> cancel_callback);
@@ -593,6 +604,7 @@ private:
 
 		ProgressBarNotification(const NotificationData& n, NotificationIDProvider& id_provider, wxEvtHandler* evt_handler) : PopNotification(n, id_provider, evt_handler) { }
 		virtual void set_percentage(float percent) { m_percentage = percent; }
+        float get_percentage() const { return m_percentage; }
 	protected:
 		virtual void init() override;
 		virtual void	render_text(ImGuiWrapper& imgui,
@@ -614,6 +626,62 @@ private:
 		// local time of last hover for showing tooltip
 
 	};
+
+    class URLDownloadNotification : public ProgressBarNotification
+    {
+    public:
+        URLDownloadNotification(const NotificationData& n, NotificationIDProvider& id_provider, wxEvtHandler* evt_handler, size_t download_id, std::function<bool(DownloaderUserAction, int)> user_action_callback)
+        //: ProgressBarWithCancelNotification(n, id_provider, evt_handler, cancel_callback)
+                : ProgressBarNotification(n, id_provider, evt_handler)
+                , m_download_id(download_id)
+                , m_user_action_callback(user_action_callback)
+        {
+        }
+        void	set_percentage(float percent) override
+        {
+            m_percentage = percent;
+            if (m_percentage >= 1.f) {
+                m_notification_start = GLCanvas3D::timestamp_now();
+                m_state = EState::Shown;
+            } else
+                m_state = EState::NotFading;
+        }
+        size_t	get_download_id() { return m_download_id; }
+        void	set_user_action_callback(std::function<bool(DownloaderUserAction, int)> user_action_callback) { m_user_action_callback = user_action_callback; }
+        void	set_paused(bool paused) { m_download_paused = paused; }
+        void    set_error_message(const std::string& message) { m_error_message = message; }
+        bool    compare_text(const std::string& text) const override { return false; };
+    protected:
+        void	render_close_button(ImGuiWrapper& imgui,
+                                    const float win_size_x, const float win_size_y,
+                                    const float win_pos_x, const float win_pos_y) override;
+        void    render_close_button_inner(ImGuiWrapper& imgui,
+                                          const float win_size_x, const float win_size_y,
+                                          const float win_pos_x, const float win_pos_y);
+        void    render_pause_cancel_buttons_inner(ImGuiWrapper& imgui,
+                                                  const float win_size_x, const float win_size_y,
+                                                  const float win_pos_x, const float win_pos_y);
+        void    render_open_button_inner(ImGuiWrapper& imgui,
+                                         const float win_size_x, const float win_size_y,
+                                         const float win_pos_x, const float win_pos_y);
+        void    render_cancel_button_inner(ImGuiWrapper& imgui,
+                                           const float win_size_x, const float win_size_y,
+                                           const float win_pos_x, const float win_pos_y);
+        void    render_pause_button_inner(ImGuiWrapper& imgui,
+                                          const float win_size_x, const float win_size_y,
+                                          const float win_pos_x, const float win_pos_y);
+        void	render_bar(ImGuiWrapper& imgui,
+                           const float win_size_x, const float win_size_y,
+                           const float win_pos_x, const float win_pos_y) override;
+        void    trigger_user_action_callback(DownloaderUserAction action);
+
+        void    count_spaces() override;
+
+        size_t							m_download_id;
+        std::function<bool(DownloaderUserAction, int)>	m_user_action_callback;
+        bool							m_download_paused {false};
+        std::string						m_error_message;
+    };
 
 	class PrintHostUploadNotification : public ProgressBarNotification
 	{

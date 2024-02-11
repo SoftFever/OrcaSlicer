@@ -70,6 +70,7 @@ class ObjectLayers;
 class Plater;
 class ParamsPanel;
 class NotificationManager;
+class Downloader;
 struct GUI_InitParams;
 class ParamsDialog;
 class HMSQuery;
@@ -270,6 +271,8 @@ private:
     //std::unique_ptr <wxSingleInstanceChecker> m_single_instance_checker;
     //std::string m_instance_hash_string;
 	//size_t m_instance_hash_int;
+
+    std::unique_ptr<Downloader> m_downloader;
 
     //BBS
     bool m_is_closing {false};
@@ -546,6 +549,7 @@ private:
     ParamsDialog*        params_dialog();
     Model&      		 model();
     NotificationManager * notification_manager();
+    Downloader*          downloader();
 
 
     std::string         m_mall_model_download_url;
@@ -627,6 +631,10 @@ private:
     void            associate_files(std::wstring extend);
     void            disassociate_files(std::wstring extend);
 #endif // __WXMSW__
+
+    // URL download - PrusaSlicer gets system call to open prusaslicer:// URL which should contain address of download
+    void            start_download(std::string url);
+
     std::string     get_plugin_url(std::string name, std::string country_code);
     int             download_plugin(std::string name, std::string package_name, InstallProgressFn pro_fn = nullptr, WasCancelledFn cancel_fn = nullptr);
     int             install_plugin(std::string name, std::string package_name, InstallProgressFn pro_fn = nullptr, WasCancelledFn cancel_fn = nullptr);
