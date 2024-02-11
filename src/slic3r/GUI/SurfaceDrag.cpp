@@ -198,15 +198,20 @@ std::optional<float> calc_distance(const GLVolume &gl_volume, RaycastManager &ra
     if (volume->is_the_only_one_part())
         return {};
 
+    if (!volume->emboss_shape.has_value())
+        return {};
+        
     RaycastManager::AllowVolumes condition = create_condition(object->volumes, volume->id());
     RaycastManager::Meshes meshes = create_meshes(canvas, condition);
     raycaster.actualize(*instance, &condition, &meshes);
-    return calc_distance(gl_volume, raycaster, &condition);
+    return calc_distance(gl_volume, raycaster, &condition, volume->emboss_shape->fix_3mf_tr);
 }
 
-std::optional<float> calc_distance(const GLVolume &gl_volume, const RaycastManager &raycaster, const RaycastManager::ISkip *condition)
-{
+std::optional<float> calc_distance(const GLVolume &gl_volume, const RaycastManager &raycaster, 
+    const RaycastManager::ISkip *condition, const std::optional<Slic3r::Transform3d>& fix) {
     Transform3d w = gl_volume.world_matrix();
+    if (fix.has_value())
+        w = w * fix->inverse();
     Vec3d p = w.translation();
     Vec3d dir = -get_z_base(w);
     auto hit_opt = raycaster.closest_hit(p, dir, condition);
@@ -589,7 +594,7 @@ bool start_dragging(const Vec2d                &mouse_pos,
 
     std::optional<float> start_distance;
     if (!volume->emboss_shape->projection.use_surface)
-        start_distance = calc_distance(gl_volume, raycast_manager, &condition);
+        start_distance = calc_distance(gl_volume, raycast_manager, &condition, volume->emboss_shape->fix_3mf_tr);
     surface_drag = SurfaceDrag{mouse_offset,   world_tr,  instance_tr_inv,
                                gl_volume_ptr,  condition, start_angle,
                                start_distance, true,      mouse_offset_without_sla_shift};
