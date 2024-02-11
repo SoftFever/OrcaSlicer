@@ -1032,10 +1032,13 @@ void update_volume(TriangleMesh &&mesh, const DataUpdate &data, const Transform3
     assert(plater->canvas3D()->get_gizmos_manager().get_current_type() == GLGizmosManager::Emboss ||
            plater->canvas3D()->get_gizmos_manager().get_current_type() == GLGizmosManager::Svg);
 
-    // TRN: This is the name of the action appearing in undo/redo stack.
-    std::string          snap_name = _u8L("Text/SVG attribute change");
-    Plater::TakeSnapshot snapshot(plater, snap_name, UndoRedo::SnapshotType::GizmoAction);
-        
+    if (data.make_snapshot) {
+        // TRN: This is the title of the action appearing in undo/redo stack.
+        // It is same for Text and SVG.
+        std::string snap_name = _u8L("Emboss attribute change");
+        Plater::TakeSnapshot snapshot(plater, snap_name, UndoRedo::SnapshotType::GizmoAction);
+    }
+
     ModelVolume *volume = get_model_volume(data.volume_id, plater->model().objects);   
 
     // could appear when user delete edited volume
