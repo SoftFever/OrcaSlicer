@@ -165,7 +165,7 @@ jobs:
         if: inputs.os == 'windows-latest'
         working-directory: ${{ github.workspace }}/build
         shell: cmd
-        run: '"C:/Program Files/7-Zip/7z.exe" a -tzip OrcaSlicerRED_Windows_${{ env.ver }}_portable.zip ${{ github.workspace }}/build/OrcaSlicer'
+        run: '"C:/Program Files/7-Zip/7z.exe" a -tzip OrcaSlicerRED_Windows_${{ env.ver }}_portable.zip ${{ github.workspace }}/build/OrcaSlicerRED'
 
       - name: Pack PDB
         if: inputs.os == 'windows-latest'
@@ -191,7 +191,7 @@ jobs:
         if: inputs.os == 'windows-latest'
         uses: actions/upload-artifact@v3
         with:
-          name: PDB_OSred
+          name: PDB_osRED
           path: ${{ github.workspace }}/build/src/Release/Debug_PDB_${{ env.ver }}_for_developers_only.7z
 
       #- name: Deploy Windows release portable
