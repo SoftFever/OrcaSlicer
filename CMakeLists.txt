@@ -768,21 +768,30 @@ install(FILES ${CMAKE_SOURCE_DIR}/LICENSE.txt DESTINATION ".")
 configure_file(${LIBDIR}/platform/unix/fhs.hpp.in ${LIBDIR_BIN}/platform/unix/fhs.hpp)
 
 set (CPACK_PACKAGE_NAME "OrcaSlicerRED")
-set (CPACK_PACKAGE_VENDOR "SoftFever")
+set (CPACK_PACKAGE_VENDOR "KrissMor")
 set (CPACK_PACKAGE_VERSION_MAJOR "${ORCA_VERSION_MAJOR}")
 set (CPACK_PACKAGE_VERSION_MINOR "${ORCA_VERSION_MINOR}")
 set (CPACK_PACKAGE_VERSION_PATCH "${ORCA_VERSION_PATCH}")
 set (CPACK_PACKAGE_FILE_NAME "OrcaSlicerRED_Windows_Installer_V${SoftFever_VERSION}")
 set (CPACK_PACKAGE_DESCRIPTION_SUMMARY "Orca SlicerRED is an open source slicer for FDM printers")
-set (CPACK_PACKAGE_HOMEPAGE_URL "https://github.com/SoftFever/OrcaSlicer")
+set (CPACK_PACKAGE_HOMEPAGE_URL "https://github.com/KrissMor/OrcaSlicerRED")
 set (CPACK_PACKAGE_INSTALL_DIRECTORY ${CPACK_PACKAGE_NAME})
 set (CPACK_PACKAGE_ICON "${CMAKE_SOURCE_DIR}/resources/images\\\\OrcaSlicer.ico")
 set (CPACK_NSIS_MUI_ICON "${CPACK_PACKAGE_ICON}")
 set (CPACK_NSIS_MUI_UNIICON "${CPACK_PACKAGE_ICON}")
-set (CPACK_NSIS_INSTALLED_ICON_NAME  "$INSTDIR\\\\orca-slicerRED.exe")
+set (CPACK_NSIS_INSTALLED_ICON_NAME  "$INSTDIR\\\\orca-slicer.exe")
 set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "
-    CreateShortCut \\\"$DESKTOP\\\\OrcaSlicerRED.lnk\\\" \\\"$INSTDIR\\\\orca-slicerRED.exe\\\"
+    CreateShortCut \\\"$DESKTOP\\\\OrcaSlicerRED.lnk\\\" \\\"$INSTDIR\\\\orca-slicer.exe\\\"
 ")
+# Create the directory :
+set (CPACK_NSIS_EXTRA_INSTALL_COMMANDS "CreateDirectory '$%AppData%\\\\${CPACK_PACKAGE_NAME}\\\\hms'")
+# Set the NSIS variable OUTDIR :
+set (CPACK_NSIS_EXTRA_INSTALL_COMMANDS "SetOutPath '$%AppData%\\\\${CPACK_PACKAGE_NAME}\\\\hms'")
+# Add file to be extracted to $OUTDIR :
+set (CPACK_NSIS_EXTRA_INSTALL_COMMANDS "File '${CMAKE_SOURCE_DIR}/resources/hms\\\\hms_pl.json'")
+set (CPACK_NSIS_EXTRA_INSTALL_COMMANDS "File '${CMAKE_SOURCE_DIR}/resources/hms\\\\hms_de.json'")
+# Replace ';' by '\n' in CPACK_NSIS_EXTRA_INSTALL_COMMANDS :
+string (REPLACE ";" "\n" CPACK_NSIS_EXTRA_INSTALL_COMMANDS "${CPACK_NSIS_EXTRA_INSTALL_COMMANDS}")
 set (CPACK_PACKAGE_CHECKSUM SHA256)
 set (CPACK_PACKAGE_INSTALL_REGISTRY_KEY "OrcaSlicerRED")
 set (CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL ON)
@@ -791,15 +800,6 @@ set (CPACK_NSIS_EXECUTABLES_DIRECTORY ".")
 set(CPACK_PACKAGE_EXECUTABLES "orca-slicerRED;OrcaSlicerRED")
 set(CPACK_CREATE_DESKTOP_LINKS "orca-slicerRED")
 set (CPACK_RESOURCE_FILE_LICENSE ${CMAKE_SOURCE_DIR}/LICENSE.txt) # must also include in install command
-
-# Create the directory :
-list(APPEND CPACK_NSIS_EXTRA_INSTALL_COMMANDS "CreateDirectory '$%AppData%\\\\${CPACK_PACKAGE_NAME}\\\\hms'")
-# Set the NSIS variable OUTDIR :
-list(APPEND CPACK_NSIS_EXTRA_INSTALL_COMMANDS "SetOutPath '$%AppData%\\\\${CPACK_PACKAGE_NAME}\\\\hms'")
-# Add file to be extracted to $OUTDIR :
-list(APPEND CPACK_NSIS_EXTRA_INSTALL_COMMANDS "File '${CMAKE_SOURCE_DIR}\\\\resources/hms\\\\hms_pl.json'")
-# Replace ';' by '\n' in CPACK_NSIS_EXTRA_INSTALL_COMMANDS :
-#string (REPLACE ";" "\n" CPACK_NSIS_EXTRA_INSTALL_COMMANDS "${CPACK_NSIS_EXTRA_INSTALL_COMMANDS}")
 
 set(CPACK_WIX_UPGRADE_GUID "058245e8-20e0-4a95-9ab7-1acfe17ad511")
 set(CPACK_GENERATOR NSIS)
