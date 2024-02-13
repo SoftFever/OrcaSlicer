@@ -60,9 +60,9 @@
             "name": "fdm_filament_pa",
             "sub_path": "filament/fdm_filament_pa.json"
         },
-		        {
-            "name": "FlyingBear Generic PLA",
-            "sub_path": "filament/FlyingBear Generic PLA.json"
+	{
+            "name": "FlyingBear PLA",
+            "sub_path": "filament/FlyingBear PLA.json"
         },
         {
             "name": "FlyingBear Generic PETG",
