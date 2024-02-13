@@ -11979,13 +11979,13 @@ msgstr ""
 "utilizzato il filamento corrente"
 
 msgid "Avoid interface filament for base"
-msgstr "Ridurre il filamento di interfaccia per la base"
+msgstr "Evitare di usare filamento di interfaccia per la base"
 
 msgid ""
 "Avoid using support interface filament to print support base if possible."
 msgstr ""
-"Evitare l'uso del filamento dell'interfaccia di supporto per stampare la "
-"base di supporto"
+"Se possibile, evitare di utilizzare il filamento dell'interfaccia di "
+"supporto per stampare la base dello stesso. "
 
 msgid ""
 "Line width of support. If expressed as a %, it will be computed over the "
