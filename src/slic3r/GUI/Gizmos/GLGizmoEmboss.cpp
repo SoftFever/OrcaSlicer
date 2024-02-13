@@ -81,6 +81,14 @@ using namespace Slic3r::GUI;
 using namespace Slic3r::GUI::Emboss;
 
 namespace {
+// TRN - Title in Undo/Redo stack after rotate with text around emboss axe
+const std::string rotation_snapshot_name = L("Text rotate");
+// NOTE: Translation is made in "m_parent.do_rotate()"
+
+// TRN - Title in Undo/Redo stack after move with text along emboss axe - From surface
+const std::string move_snapshot_name = L("Text move");
+// NOTE: Translation is made in "m_parent.do_translate()"
+
 template<typename T> struct Limit {
     // Limitation for view slider range in GUI
     MinMax<T> gui;
@@ -92,7 +100,7 @@ static const struct Limits
 {
     MinMax<double> emboss{0.01, 1e4}; // in mm
     MinMax<float> size_in_mm{0.1f, 1000.f}; // in mm
-    Limit<float> boldness{{-200.f, 200.f}, {-2e4f, 2e4f}}; // in font points
+    Limit<float> boldness{{-.5f, .5f}, {-5e5f, 5e5f}}; // in font points
     Limit<float> skew{{-1.f, 1.f}, {-100.f, 100.f}}; // ration without unit
     MinMax<int>  char_gap{-20000, 20000}; // in font points
     MinMax<int>  line_gap{-20000, 20000}; // in font points
@@ -377,7 +385,7 @@ bool GLGizmoEmboss::re_emboss(const ModelVolume &text_volume, std::shared_ptr<st
     TextLinesModel text_lines;
     const Selection &selection = wxGetApp().plater()->canvas3D()->get_selection();
     DataBasePtr base = create_emboss_data_base(tc.text, style_manager, text_lines, selection, text_volume.type(), job_cancel);
-    DataUpdate  data{std::move(base), text_volume.id()};
+    DataUpdate  data{std::move(base), text_volume.id(), false};
 
     RaycastManager raycast_manager; // Nothing is cached now, so It need to create raycasters
     return start_update_volume(std::move(data), text_volume, selection, raycast_manager);
@@ -965,7 +973,7 @@ void GLGizmoEmboss::on_stop_dragging()
     m_rotate_gizmo.set_angle(PI/2);
 
     // apply rotation
-    m_parent.do_rotate(L("Text-Rotate"));
+    m_parent.do_rotate(rotation_snapshot_name);
     m_rotate_start_angle.reset();
     volume_transformation_changed();
 }
@@ -1287,7 +1295,7 @@ namespace {
 bool is_text_empty(std::string_view text) { return text.empty() || text.find_first_not_of(" \n\t\r") == std::string::npos; }
 } // namespace
 
-bool GLGizmoEmboss::process()
+bool GLGizmoEmboss::process(bool make_snapshot)
 {
     // no volume is selected -> selection from right panel
     assert(m_volume != nullptr);
@@ -1301,7 +1309,7 @@ bool GLGizmoEmboss::process()
 
     const Selection& selection = m_parent.get_selection();
     DataBasePtr base = create_emboss_data_base(m_text, m_style_manager, m_text_lines, selection, m_volume->type(), m_job_cancel);
-    DataUpdate  data{std::move(base), m_volume->id()};
+    DataUpdate  data{std::move(base), m_volume->id(), make_snapshot};
 
     // check valid count of text lines
     assert(data.base->text_lines.empty() || data.base->text_lines.size() == get_count_lines(m_text));
@@ -2129,7 +2137,9 @@ void fix_transformation(const StyleManager::Style &from, const StyleManager::Sty
         // fix rotation
         float f_angle = f_angle_opt.value_or(.0f);
         float t_angle = t_angle_opt.value_or(.0f);
-        do_local_z_rotate(canvas, t_angle - f_angle);
+        do_local_z_rotate(canvas.get_selection(), t_angle - f_angle);
+        std::string no_snapshot;
+        canvas.do_rotate(no_snapshot);
     }
 
     // fix distance (Z move) when exists difference in styles
@@ -2138,7 +2148,9 @@ void fix_transformation(const StyleManager::Style &from, const StyleManager::Sty
     if (!is_approx(f_move_opt, t_move_opt)) {
         float f_move = f_move_opt.value_or(.0f);
         float t_move = t_move_opt.value_or(.0f);
-        do_local_z_move(canvas, t_move - f_move);
+        do_local_z_move(canvas.get_selection(), t_move - f_move);
+        std::string no_snapshot;
+        canvas.do_move(no_snapshot);
     }
 }
 } // namesapce
@@ -2408,6 +2420,10 @@ bool GLGizmoEmboss::revertible(const std::string &name,
         ImGui::SameLine(undo_offset); // change cursor postion
         if (draw_button(m_icons, IconType::undo)) {
             value = *default_value;
+
+            // !! Fix to detect change of value after revert of float-slider
+            m_imgui->get_last_slider_status().deactivated_after_edit = true;
+
             return true;
         } else if (ImGui::IsItemHovered())
             m_imgui->tooltip(undo_tooltip, m_gui_cfg->max_tooltip_width);
@@ -2645,7 +2661,6 @@ void GLGizmoEmboss::draw_advanced()
     m_imgui->text_colored(ImGuiWrapper::COL_GREY_DARK, ff_property);
 #endif // SHOW_FONT_FILE_PROPERTY
 
-    bool exist_change = false;
     auto &tr = m_gui_cfg->translations;
 
     const StyleManager::Style *stored_style = nullptr;
@@ -2737,6 +2752,7 @@ void GLGizmoEmboss::draw_advanced()
     auto def_char_gap = stored_style ?
         &stored_style->prop.char_gap : nullptr;
 
+    bool exist_change = false;
     int half_ascent = font_info.ascent / 2;
     int min_char_gap = -half_ascent;
     int max_char_gap = half_ascent;
@@ -2752,13 +2768,16 @@ void GLGizmoEmboss::draw_advanced()
             exist_change = true;
         }
     }
+    bool last_change = false;
+    if (m_imgui->get_last_slider_status().deactivated_after_edit)
+        last_change = true;
 
     // input gap between lines
-    bool is_multiline = m_text_lines.get_lines().size() > 1;
+    bool is_multiline = get_count_lines(m_volume->text_configuration->text) > 1; // TODO: cache count lines
     m_imgui->disabled_begin(!is_multiline);
     auto def_line_gap = stored_style ?
         &stored_style->prop.line_gap : nullptr;
-    int  min_line_gap = -half_ascent;
+    int min_line_gap = -half_ascent;
     int max_line_gap = half_ascent;
     if (rev_slider(tr.line_gap, current_prop.line_gap, def_line_gap, _u8L("Revert gap between lines"), 
         min_line_gap, max_line_gap, units_fmt, _L("Distance between lines"))){
@@ -2773,18 +2792,24 @@ void GLGizmoEmboss::draw_advanced()
             exist_change = true;
         }
     }
+    if (m_imgui->get_last_slider_status().deactivated_after_edit)
+        last_change = true;
     m_imgui->disabled_end(); // !is_multiline
 
     // input boldness
     auto def_boldness = stored_style ?
         &stored_style->prop.boldness : nullptr;
+    int min_boldness = static_cast<int>(font_info.ascent * limits.boldness.gui.min);
+    int max_boldness = static_cast<int>(font_info.ascent * limits.boldness.gui.max);
     if (rev_slider(tr.boldness, current_prop.boldness, def_boldness, _u8L("Undo boldness"), 
-        limits.boldness.gui.min, limits.boldness.gui.max, units_fmt, _L("Tiny / Wide glyphs"))){
+        min_boldness, max_boldness, units_fmt, _L("Tiny / Wide glyphs"))){
         const std::optional<float> &volume_boldness = m_volume->text_configuration->style.prop.boldness;
         if (!apply(current_prop.boldness, limits.boldness.values) ||
             !volume_boldness.has_value() || volume_boldness != current_prop.boldness)
             exist_change = true;
     }
+    if (m_imgui->get_last_slider_status().deactivated_after_edit)
+        last_change = true;
 
     // input italic
     auto def_skew = stored_style ?
@@ -2796,6 +2821,8 @@ void GLGizmoEmboss::draw_advanced()
             !volume_skew.has_value() ||volume_skew != current_prop.skew)
             exist_change = true;
     }
+    if (m_imgui->get_last_slider_status().deactivated_after_edit)
+        last_change = true;
     
     // input surface distance
     bool allowe_surface_distance = !use_surface && !m_volume->is_the_only_one_part();
@@ -2835,11 +2862,19 @@ void GLGizmoEmboss::draw_advanced()
 
     if (is_moved){
         if (font_prop.per_glyph){
-            process();
+            process(false);
         } else {
-            do_local_z_move(m_parent, distance.value_or(.0f) - prev_distance);
+            do_local_z_move(m_parent.get_selection(), distance.value_or(.0f) - prev_distance);
         }
     }
+
+    // Apply move to model(backend)
+    if (m_imgui->get_last_slider_status().deactivated_after_edit) {
+        m_parent.do_move(move_snapshot_name);
+        if (font_prop.per_glyph)
+            process();
+    }
+
     m_imgui->disabled_end();  // allowe_surface_distance
 
     // slider for Clock-wise angle in degress
@@ -2861,7 +2896,7 @@ void GLGizmoEmboss::draw_advanced()
         Geometry::to_range_pi_pi(angle_rad);                
 
         double diff_angle = angle_rad - angle;
-        do_local_z_rotate(m_parent, diff_angle);
+        do_local_z_rotate(m_parent.get_selection(), diff_angle);
         
         // calc angle after rotation
         const Selection &selection = m_parent.get_selection();
@@ -2876,6 +2911,15 @@ void GLGizmoEmboss::draw_advanced()
 
         // recalculate for surface cut
         if (use_surface || font_prop.per_glyph) 
+            process(false);
+    }
+
+    // Apply rotation on model (backend)
+    if (m_imgui->get_last_slider_status().deactivated_after_edit) {
+        m_parent.do_rotate(rotation_snapshot_name);
+
+        // recalculate for surface cut
+        if (use_surface || font_prop.per_glyph)
             process();
     }
 
@@ -2912,6 +2956,7 @@ void GLGizmoEmboss::draw_advanced()
                     if (i == 0) current_prop.collection_number.reset();
                     else current_prop.collection_number = i;
                     exist_change = true;
+                    last_change = true;
                 }
                 ImGui::PopID();
             }
@@ -2924,13 +2969,13 @@ void GLGizmoEmboss::draw_advanced()
             m_imgui->tooltip(tooltip, m_gui_cfg->max_tooltip_width);
     }
 
-    if (exist_change) {
+    if (exist_change || last_change) {
         m_style_manager.clear_glyphs_cache();
-        if (m_style_manager.get_font_prop().per_glyph)
+        if (font_prop.per_glyph)
             reinit_text_lines();
         else
             m_text_lines.reset();
-        process();
+        process(last_change);
     }
 
     if (ImGui::Button(_u8L("Set text to face camera").c_str())) {
