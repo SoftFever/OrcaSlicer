@@ -186,7 +186,7 @@ void PrintagoDirector::PostErrorMessage(const wxString printer_id,
     errorResponse["error_detail"]  = errorDetail.ToStdString();
     errorResponse["success"]       = false;
 
-    auto* resp = new PrintagoResponse();
+    auto resp = std::make_unique<PrintagoResponse>();
     resp->SetMessageType("error");
     resp->SetPrinterId(printer_id);
     resp->SetCommand(command);
@@ -198,7 +198,7 @@ void PrintagoDirector::PostErrorMessage(const wxString printer_id,
 void PrintagoDirector::PostJobUpdateMessage()
 {
     json  responseData;
-    auto* resp = new PrintagoResponse();
+    auto resp = std::make_unique<PrintagoResponse>();
     resp->SetMessageType("status");
     resp->SetPrinterId(PBJob::printerId);
     resp->SetCommand("job_update");
@@ -210,7 +210,7 @@ void PrintagoDirector::PostJobUpdateMessage()
 
 void PrintagoDirector::PostResponseMessage(const wxString printer_id, const json responseData, const json command)
 {
-    auto* resp = new PrintagoResponse();
+    auto resp = std::make_unique<PrintagoResponse>();
     resp->SetMessageType("status");
     resp->SetPrinterId(printer_id);
     resp->SetCommand(command);
@@ -229,7 +229,7 @@ void PrintagoDirector::PostSuccessMessage(const wxString printer_id,
     responseData["local_command_detail"] = localCommandDetail.ToStdString();
     responseData["success"]              = true;
 
-    auto* resp = new PrintagoResponse();
+    auto resp = std::make_unique<PrintagoResponse>();
     resp->SetMessageType("success");
     resp->SetPrinterId(printer_id);
     resp->SetCommand(command);
@@ -240,7 +240,7 @@ void PrintagoDirector::PostSuccessMessage(const wxString printer_id,
 
 void PrintagoDirector::PostStatusMessage(const wxString printer_id, const json statusData, const json command)
 {
-    auto* resp = new PrintagoResponse(); // PrintagoMessageEvent(PRINTAGO_SEND_WEBVIEW_MESSAGE_EVENT);
+    auto resp = std::make_unique<PrintagoResponse>();
     resp->SetMessageType("status");
     resp->SetPrinterId(printer_id);
     resp->SetCommand(command);
@@ -249,7 +249,7 @@ void PrintagoDirector::PostStatusMessage(const wxString printer_id, const json s
     _PostResponse(*resp);
 }
 
-void PrintagoDirector::_PostResponse(const PrintagoResponse response)
+void PrintagoDirector::_PostResponse(const PrintagoResponse& response)
 {
     wxDateTime now = wxDateTime::Now();
     now.MakeUTC();
@@ -407,6 +407,7 @@ bool PrintagoDirector::IsConfigCompatWithPrinter(const PresetWithVendorProfile& 
 
     DynamicPrintConfig extra_config;
     extra_config.set_key_value("printer_preset", new ConfigOptionString(printerPreset.name));
+
     const ConfigOption* opt = printerPreset.config.option("nozzle_diameter");
     if (opt)
         extra_config.set_key_value("num_extruders", new ConfigOptionInt((int) static_cast<const ConfigOptionFloats*>(opt)->values.size()));

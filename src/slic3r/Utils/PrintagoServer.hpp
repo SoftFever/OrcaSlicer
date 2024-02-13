@@ -189,7 +189,7 @@ private:
                             const wxString localCommandDetail = "");
     void PostErrorMessage(const wxString printer_id, const wxString localCommand, const json command = {}, const wxString errorDetail = "");
 
-    void _PostResponse(const PrintagoResponse response);
+    void _PostResponse(const PrintagoResponse& response);
 
     bool                         ValidatePrintagoCommand(const PrintagoCommand& cmd);
     bool                         ProcessPrintagoCommand(const PrintagoCommand& command);
