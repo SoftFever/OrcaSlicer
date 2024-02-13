@@ -1,6 +1,7 @@
 #include "PresetUpdater.hpp"
 
 #include <algorithm>
+#include <functional>
 #include <thread>
 #include <unordered_map>
 #include <ostream>
@@ -80,6 +81,8 @@ struct Update
 	//BBS: use changelog string instead of url
 	std::string change_log;
 	std::string descriptions;
+    // Orca: add file filter support
+    std::function<bool(const std::string)> file_filter;
 
 	bool forced_update;
 	//BBS: add directory support
@@ -99,11 +102,23 @@ struct Update
 		, is_directory(is_dir)
 	{}
 
+    Update(fs::path &&source, fs::path &&target, const Version &version, std::string vendor, std::string changelog, std::string description, std::function<bool(const std::string)> file_filter,  bool forced = false, bool is_dir = false)
+		: source(std::move(source))
+		, target(std::move(target))
+		, version(version)
+		, vendor(std::move(vendor))
+		, change_log(std::move(changelog))
+		, descriptions(std::move(description))
+        , file_filter(file_filter)
+		, forced_update(forced)
+		, is_directory(is_dir)
+	{}
+
 	//BBS: add directory support
 	void install() const
 	{
 	    if (is_directory) {
-            copy_directory_recursively(source, target);
+            copy_directory_recursively(source, target, file_filter);
         }
         else {
             copy_file_fix(source, target);
@@ -1066,7 +1081,11 @@ bool PresetUpdater::priv::install_bundles_rsrc(std::vector<std::string> bundles,
         if (fs::exists(print_folder))
             fs::remove_all(print_folder);
         fs::create_directories(print_folder);
-		updates.updates.emplace_back(std::move(print_in_rsrc), std::move(print_in_vendors), Version(), bundle, "", "", false, true);
+		updates.updates.emplace_back(std::move(print_in_rsrc), std::move(print_in_vendors), Version(), bundle, "", "",[](const std::string name){
+        // return false if name is end with .stl, case insensitive
+        return boost::iends_with(name, ".stl") || boost::iends_with(name, ".png") || boost::iends_with(name, ".svg") ||
+               boost::iends_with(name, ".jpeg") || boost::iends_with(name, ".jpg") || boost::iends_with(name, ".3mf");
+        }, false, true);
 	}
 
 	return perform_updates(std::move(updates), snapshot);
