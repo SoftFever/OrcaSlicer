@@ -1,0 +1,3825 @@
+{
+    "device_error": {
+        "hu": [
+            {
+                "ecode": "12028002",
+                "intro": "A vágó beragadt. Kérjük, húzd ki a vágó karját és kattints az újra gombra."
+            },
+            {
+                "ecode": "12038002",
+                "intro": "A vágó beragadt. Kérjük, húzd ki a vágó karját és kattints az újra gombra."
+            },
+            {
+                "ecode": "12FF8002",
+                "intro": "A vágó beragadt. Kérjük, húzd ki a vágó karját és kattints az újra gombra."
+            },
+            {
+                "ecode": "12008003",
+                "intro": "Nem sikerült kihúzni a filamentet az extruderből. Győződj meg róla, hogy a fúvóka nincs eldugulva, vagy a filament eltörve az extruderben. A hiba elhárítása után kattints az újra gombra."
+            },
+            {
+                "ecode": "12018003",
+                "intro": "Nem sikerült kihúzni a filamentet az extruderből. Győződj meg róla, hogy a fúvóka nincs eldugulva, vagy a filament eltörve az extruderben. A hiba elhárítása után kattints az újra gombra."
+            },
+            {
+                "ecode": "12028003",
+                "intro": "Nem sikerült kihúzni a filamentet az extruderből. Győződj meg róla, hogy a fúvóka nincs eldugulva, vagy a filament eltörve az extruderben. A hiba elhárítása után kattints az újra gombra."
+            },
+            {
+                "ecode": "12038003",
+                "intro": "Nem sikerült kihúzni a filamentet az extruderből. Győződj meg róla, hogy a fúvóka nincs eldugulva, vagy a filament eltörve az extruderben. A hiba elhárítása után kattints az újra gombra."
+            },
+            {
+                "ecode": "12FF8003",
+                "intro": "Kérjük, távolítsd el a külső filamentet az extruderből, majd csatlakoztasd vissza a PTFE-csövet és kattints az „Újra“ gombra, ha a következő nyomtatáshoz AMS-t szeretnél használni."
+            },
+            {
+                "ecode": "12FFC003",
+                "intro": "Kérjük, távolítsd el a külső filamentet az extruderből, majd csatlakoztasd vissza a PTFE-csövet és kattints az „Újra“ gombra, ha a következő nyomtatáshoz AMS-t szeretnél használni."
+            },
+            {
+                "ecode": "12008004",
+                "intro": "Nem sikerült visszahúzni a filamentet. Előfordulhat, hogy a filament vagy a tekercs elakadt. A hiba elhárítása után kattints az újra gombra."
+            },
+            {
+                "ecode": "12018004",
+                "intro": "Nem sikerült visszahúzni a filamentet. Előfordulhat, hogy a filament vagy a tekercs elakadt. A hiba elhárítása után kattints az újra gombra."
+            },
+            {
+                "ecode": "12028004",
+                "intro": "Nem sikerült visszahúzni a filamentet. Előfordulhat, hogy a filament vagy a tekercs elakadt. A hiba elhárítása után kattints az újra gombra."
+            },
+            {
+                "ecode": "12038004",
+                "intro": "Nem sikerült visszahúzni a filamentet. Előfordulhat, hogy a filament vagy a tekercs elakadt. A hiba elhárítása után kattints az újra gombra."
+            },
+            {
+                "ecode": "12FF8004",
+                "intro": "Nem sikerült visszahúzni a filamentet. Előfordulhat, hogy a filament vagy a tekercs elakadt. A hiba elhárítása után kattints az újra gombra."
+            },
+            {
+                "ecode": "12008005",
+                "intro": "Nem sikerült betölteni a filamentet. Kérjük, töltsd be a filamentet, majd kattints az újra gombra."
+            },
+            {
+                "ecode": "12018005",
+                "intro": "Nem sikerült betölteni a filamentet. Kérjük, töltsd be a filamentet, majd kattints az újra gombra."
+            },
+            {
+                "ecode": "12028005",
+                "intro": "Nem sikerült betölteni a filamentet. Kérjük, töltsd be a filamentet, majd kattints az újra gombra."
+            },
+            {
+                "ecode": "12038005",
+                "intro": "Nem sikerült betölteni a filamentet. Kérjük, töltsd be a filamentet, majd kattints az újra gombra."
+            },
+            {
+                "ecode": "12FF8005",
+                "intro": "Nem sikerült betölteni a filamentet. Kérjük, töltsd be a filamentet, majd kattints az újra gombra."
+            },
+            {
+                "ecode": "12008006",
+                "intro": "Nem sikerült betölteni a filamentet a nyomtatófejbe. Előfordulhat, hogy a filament megszorult. A hiba elhárítása után kattints az újra gombra."
+            },
+            {
+                "ecode": "12018006",
+                "intro": "Nem sikerült betölteni a filamentet a nyomtatófejbe. Előfordulhat, hogy a filament megszorult. A hiba elhárítása után kattints az újra gombra."
+            },
+            {
+                "ecode": "12028006",
+                "intro": "Nem sikerült betölteni a filamentet a nyomtatófejbe. Előfordulhat, hogy a filament megszorult. A hiba elhárítása után kattints az újra gombra."
+            },
+            {
+                "ecode": "12038006",
+                "intro": "Nem sikerült betölteni a filamentet a nyomtatófejbe. Előfordulhat, hogy a filament megszorult. A hiba elhárítása után kattints az újra gombra."
+            },
+            {
+                "ecode": "12FF8006",
+                "intro": "Kérjük, kezdd el adagolni a filamentet a külső tekercsről egészen addig, amíg a nyomtatófej filamentérzékelője aktiválódik. Ezután kattints az újra gombra."
+            },
+            {
+                "ecode": "12FFC006",
+                "intro": "Kérjük, kezdd el adagolni a filamentet a külső tekercsről egészen addig, amíg a nyomtatófej filamentérzékelője aktiválódik."
+            },
+            {
+                "ecode": "12008007",
+                "intro": "Nem sikerült extrudálni a filamentet. Előfordulhat, hogy az extruder eltömődött. A hiba elhárítása után kattints az újra gombra."
+            },
+            {
+                "ecode": "12018007",
+                "intro": "Nem sikerült extrudálni a filamentet. Előfordulhat, hogy az extruder eltömődött. A hiba elhárítása után kattints az újra gombra."
+            },
+            {
+                "ecode": "12028007",
+                "intro": "Nem sikerült extrudálni a filamentet. Előfordulhat, hogy az extruder eltömődött. A hiba elhárítása után kattints az újra gombra."
+            },
+            {
+                "ecode": "12038007",
+                "intro": "Nem sikerült extrudálni a filamentet. Előfordulhat, hogy az extruder eltömődött. A hiba elhárítása után kattints az újra gombra."
+            },
+            {
+                "ecode": "12FF8007",
+                "intro": "Figyeld a fúvókát. Ha a filament extrudálódott, kattints a „Kész“ gombra; ellenkező esetben told kicsit előrébb a filamentet és kattints az „Újra“ gombra."
+            },
+            {
+                "ecode": "12008010",
+                "intro": "Előfordulhat, hogy a filamenttekercs vagy a filament beszorult. A hiba elhárítása utána kattints az újra gombra."
+            },
+            {
+                "ecode": "12018010",
+                "intro": "Előfordulhat, hogy a filamenttekercs vagy a filament beszorult. A hiba elhárítása utána kattints az újra gombra."
+            },
+            {
+                "ecode": "12028010",
+                "intro": "Előfordulhat, hogy a filamenttekercs vagy a filament beszorult. A hiba elhárítása utána kattints az újra gombra."
+            },
+            {
+                "ecode": "12038010",
+                "intro": "Előfordulhat, hogy a filamenttekercs vagy a filament beszorult. A hiba elhárítása utána kattints az újra gombra."
+            },
+            {
+                "ecode": "12FF8010",
+                "intro": "Előfordulhat, hogy a filamenttekercs vagy a filament beszorult. A hiba elhárítása utána kattints az újra gombra."
+            },
+            {
+                "ecode": "12008011",
+                "intro": "Kifogyott a filament az AMS-ből. Kérjük, helyezz új filamentet az AMS-be és kattints az újra gombra."
+            },
+            {
+                "ecode": "12018011",
+                "intro": "Kifogyott a filament az AMS-ből. Kérjük, helyezz új filamentet az AMS-be és kattints az újra gombra."
+            },
+            {
+                "ecode": "12028011",
+                "intro": "Kifogyott a filament az AMS-ből. Kérjük, helyezz új filamentet az AMS-be és kattints az újra gombra."
+            },
+            {
+                "ecode": "12038011",
+                "intro": "Kifogyott a filament az AMS-ből. Kérjük, helyezz új filamentet az AMS-be és kattints az újra gombra."
+            },
+            {
+                "ecode": "12FF8011",
+                "intro": "Kifogyott a filament az AMS-ből. Kérjük, helyezz új filamentet az AMS-be és kattints az újra gombra."
+            },
+            {
+                "ecode": "12008012",
+                "intro": "Nem sikerült lekérni az AMS helyek kiosztását; kérjük, kattints az „Újra“ gombra a folytatáshoz."
+            },
+            {
+                "ecode": "12018012",
+                "intro": "Nem sikerült lekérni az AMS helyek kiosztását; kérjük, kattints az „Újra“ gombra a folytatáshoz."
+            },
+            {
+                "ecode": "12028012",
+                "intro": "Nem sikerült lekérni az AMS helyek kiosztását; kérjük, kattints az „Újra“ gombra a folytatáshoz."
+            },
+            {
+                "ecode": "12038012",
+                "intro": "Nem sikerült lekérni az AMS helyek kiosztását; kérjük, kattints az „Újra“ gombra a folytatáshoz."
+            },
+            {
+                "ecode": "12FF8012",
+                "intro": "Nem sikerült lekérni az AMS helyek kiosztását; kérjük, kattints az „Újra“ gombra a folytatáshoz."
+            },
+            {
+                "ecode": "12008013",
+                "intro": "Időtúllépés a régi filament kiöblítésekor: Előfordulhat, hogy a filament beragadt vagy az extruder eltömődött. A hiba elhárítása után kattints az újra gombra."
+            },
+            {
+                "ecode": "12018013",
+                "intro": "Időtúllépés a régi filament kiöblítésekor: Előfordulhat, hogy a filament beragadt vagy az extruder eltömődött. A hiba elhárítása után kattints az újra gombra."
+            },
+            {
+                "ecode": "12028013",
+                "intro": "Időtúllépés a régi filament kiöblítésekor: Előfordulhat, hogy a filament beragadt vagy az extruder eltömődött. A hiba elhárítása után kattints az újra gombra."
+            },
+            {
+                "ecode": "12038013",
+                "intro": "Időtúllépés a régi filament kiöblítésekor: Előfordulhat, hogy a filament beragadt vagy az extruder eltömődött. A hiba elhárítása után kattints az újra gombra."
+            },
+            {
+                "ecode": "12FF8013",
+                "intro": "Időtúllépés a régi filament kiöblítésekor: Előfordulhat, hogy a filament beragadt vagy az extruder eltömődött. A hiba elhárítása után kattints az újra gombra."
+            },
+            {
+                "ecode": "12004001",
+                "intro": "A filament még mindig az AMS-ből töltődik be, de az AMS le van tiltva. Kérjük, távolítsd el az AMS-ből betöltött filamentet, töltsd be az újat a külső tartóról és indítsd újra a nyomtatást."
+            },
+            {
+                "ecode": "12014001",
+                "intro": "A filament még mindig az AMS-ből töltődik be, de az AMS le van tiltva. Kérjük, távolítsd el az AMS-ből betöltött filamentet, töltsd be az újat a külső tartóról és indítsd újra a nyomtatást."
+            },
+            {
+                "ecode": "12024001",
+                "intro": "A filament még mindig az AMS-ből töltődik be, de az AMS le van tiltva. Kérjük, távolítsd el az AMS-ből betöltött filamentet, töltsd be az újat a külső tartóról és indítsd újra a nyomtatást."
+            },
+            {
+                "ecode": "12034001",
+                "intro": "A filament még mindig az AMS-ből töltődik be, de az AMS le van tiltva. Kérjük, távolítsd el az AMS-ből betöltött filamentet, töltsd be az újat a külső tartóról és indítsd újra a nyomtatást."
+            },
+            {
+                "ecode": "12FF4001",
+                "intro": "A filament még mindig az AMS-ből töltődik be, de az AMS le van tiltva. Kérjük, távolítsd el az AMS-ből betöltött filamentet, töltsd be az újat a külső tartóról és indítsd újra a nyomtatást."
+            },
+            {
+                "ecode": "12008014",
+                "intro": "Nem sikerült ellenőrizni a filament helyzetét az összes férőhelyben. A hiba elhárítása után kattints az „Újra” gombra."
+            },
+            {
+                "ecode": "12018014",
+                "intro": "Nem sikerült ellenőrizni a filament helyzetét az összes férőhelyben. A hiba elhárítása után kattints az „Újra” gombra."
+            },
+            {
+                "ecode": "12028014",
+                "intro": "Nem sikerült ellenőrizni a filament helyzetét az összes férőhelyben. A hiba elhárítása után kattints az „Újra” gombra."
+            },
+            {
+                "ecode": "12038014",
+                "intro": "Nem sikerült ellenőrizni a filament helyzetét az összes férőhelyben. A hiba elhárítása után kattints az „Újra” gombra."
+            },
+            {
+                "ecode": "05004016",
+                "intro": "A MicroSD-kártya írásvédett. Kérjük, cseréld ki a MicroSD-kártyát."
+            },
+            {
+                "ecode": "05004017",
+                "intro": "Sikertelen párosítás. Kérjük, próbáld újra, vagy indítsd újra a nyomtatót, és próbálkozz újra."
+            },
+            {
+                "ecode": "05004018",
+                "intro": "A párosítási információk beolvásas sikertelen, kérjük, próbáld újra."
+            },
+            {
+                "ecode": "05004019",
+                "intro": "Ez a nyomtató már párosítva lett egy fiókhoz. Kérjük, töröld a párosítást és próbáld újra."
+            },
+            {
+                "ecode": "0500401A",
+                "intro": "Nem sikerült hozzáférni a felhőszolgáltatáshoz. A lehetséges okok közé tartozik a hálózati instabilitás, amelyet interferencia, az internet-hozzáférés hiánya vagy az router tűzfal-konfigurációja okozhat. Megpróbálhatod a nyomtatót közelebb helyezni a routerhez, vagy ellenőrizd a router konfigurációját, mielőtt újból megpróbálod."
+            },
+            {
+                "ecode": "0500401B",
+                "intro": "Érvénytelen válasz a felhőből. Ha többszöri próbálkozás után sem sikerül, kérjük, fordulj az ügyfélszolgálathoz."
+            },
+            {
+                "ecode": "0500401C",
+                "intro": "A felhőalapú hozzáférés elutasítva. Ha többszöri próbálkozás után sem sikerül, kérjük, fordulj az ügyfélszolgálathoz."
+            },
+            {
+                "ecode": "0500401D",
+                "intro": "Nem sikerült hozzáférni a felhőszolgáltatáshoz instabilitás, vagy interferencia miatt. Megpróbálhatod a nyomtatót közelebb helyezni a routerhez, mielőtt újból megpróbálod."
+            },
+            {
+                "ecode": "0500401E",
+                "intro": "Érvénytelen válasz a felhőből. Ha többszöri próbálkozás után sem sikerül, kérjük, fordulj az ügyfélszolgálathoz."
+            },
+            {
+                "ecode": "0500401F",
+                "intro": "Hitelesítési időtúllépés. Kérjük, győződjön meg arról, hogy telefonod vagy számítógéped rendelkezik internet-hozzáféréssel és arról, hogy a Bambu Studio/Bambu Handy alkalmazás az előtérben fut a párosítás során."
+            },
+            {
+                "ecode": "05004020",
+                "intro": "A felhőalapú hozzáférés elutasítva. Ha többszöri próbálkozás után sem sikerül, kérjük, fordulj az ügyfélszolgálathoz."
+            },
+            {
+                "ecode": "05004021",
+                "intro": "Nem sikerült hozzáférni a felhőszolgáltatáshoz instabilitás, vagy interferencia miatt. Megpróbálhatod a nyomtatót közelebb helyezni a routerhez, mielőtt újból megpróbálod."
+            },
+            {
+                "ecode": "05004022",
+                "intro": "Érvénytelen válasz a felhőből. Ha többszöri próbálkozás után sem sikerül, kérjük, fordulj az ügyfélszolgálathoz."
+            },
+            {
+                "ecode": "05004023",
+                "intro": "A felhőalapú hozzáférés elutasítva. Ha többszöri próbálkozás után sem sikerül, kérjük, fordulj az ügyfélszolgálathoz."
+            },
+            {
+                "ecode": "05004024",
+                "intro": "Nem sikerült hozzáférni a felhőszolgáltatáshoz. A lehetséges okok közé tartozik a hálózati instabilitás, amelyet interferencia, az internet-hozzáférés hiánya vagy az router tűzfal-konfigurációja okozhat. Megpróbálhatod a nyomtatót közelebb helyezni a routerhez, vagy ellenőrizheted a router konfigurációját."
+            },
+            {
+                "ecode": "05004025",
+                "intro": "Érvénytelen válasz a felhőből. Ha többszöri próbálkozás után sem sikerül, kérjük, fordulj az ügyfélszolgálathoz."
+            },
+            {
+                "ecode": "05004026",
+                "intro": "A felhőalapú hozzáférés elutasítva. Ha többszöri próbálkozás után sem sikerül, kérjük, fordulj az ügyfélszolgálathoz."
+            },
+            {
+                "ecode": "05004027",
+                "intro": "Nem sikerült hozzáférni a felhőszolgáltatáshoz instabilitás, vagy interferencia miatt. Megpróbálhatod a nyomtatót közelebb helyezni a routerhez, mielőtt újból megpróbálod."
+            },
+            {
+                "ecode": "05004028",
+                "intro": "Érvénytelen válasz a felhőből. Ha többszöri próbálkozás után sem sikerül, kérjük, fordulj az ügyfélszolgálathoz."
+            },
+            {
+                "ecode": "05004029",
+                "intro": "A felhőalapú hozzáférés elutasítva. Ha többszöri próbálkozás után sem sikerül, kérjük, fordulj az ügyfélszolgálathoz."
+            },
+            {
+                "ecode": "0500402A",
+                "intro": "Nem sikerült csatlakozni a routerhez, amit vezeték nélküli interferencia vagy az routertől való távolság okozhat. Próbálkozz újra, vagy vidd közelebb a nyomtatót a routerhez."
+            },
+            {
+                "ecode": "0500402B",
+                "intro": "A routerhez való kapcsolódás hibás jelszó miatt nem sikerült. Kérjük, ellenőrizd a jelszót, és próbáld meg újra."
+            },
+            {
+                "ecode": "0500402C",
+                "intro": "Nem sikerült IP-címet szerezni. Ezt okozhatja vezetéknélküli interferencia, vagy az router DHCP-címkészlete megtelt. Kérjük, vidd közelebb a nyomtatót a routerhez, és próbáld meg újra. Ha a probléma továbbra is fennáll, ellenőrizd a router beállításait."
+            },
+            {
+                "ecode": "03008011",
+                "intro": "A jelenlegi tálca nem egyezik a G-kódban megadottal. Kérjük, helyezz be másik tálcát. A nyomtatási feladat folytatásához kattints a „Folytatás“ gombra."
+            },
+            {
+                "ecode": "03008012",
+                "intro": ""
+            },
+            {
+                "ecode": "03008013",
+                "intro": "A nyomtatást a felhasználó szüneteltette. A nyomtatási feladat folytatásához kattints a „Folytatás“ gombra."
+            },
+            {
+                "ecode": "0500402D",
+                "intro": "Rendszer kivétel."
+            },
+            {
+                "ecode": "0C00800A",
+                "intro": "A jelenlegi tálca nem egyezik a G-kódban megadottal."
+            },
+            {
+                "ecode": "0500402E",
+                "intro": "A rendszer nem támogatja a Micro SD-kártya jelenlegi fájlrendszerét. Kérjük, cseréld ki a Micro SD-kártyát, vagy formázd újra FAT32 formátumúra."
+            },
+            {
+                "ecode": "0500402F",
+                "intro": "A Micro SD-kártya szektoradatai megsérültek. Kérjük, próbáld megjavítani és formázni egy külső szoftverrel. Ha továbbra sem működik, cseréld ki a kártyát."
+            },
+            {
+                "ecode": "03008014",
+                "intro": "Filament ragadt a fúvókára vagy a tálca ferdén lett behelyezve. Kérjük, tisztítsd meg a fúvókát vagy igazítsd meg a tálcát. Ezután a nyomtatási feladat folytatásához koppints a „Folytatás“ gombra."
+            },
+            {
+                "ecode": "03008015",
+                "intro": "Kifogyott a filament, kérjük, tölts be új filamentet a „filament“ lapon, majd lépj vissza a nyomtatási oldalra. A nyomtatási feladat folytatásához koppints a „Folytatás“ gombra."
+            },
+            {
+                "ecode": "05014017",
+                "intro": "Sikertelen párosítás. Kérjük, próbáld újra, vagy indítsd újra a nyomtatót, és próbálkozz újra."
+            },
+            {
+                "ecode": "05014018",
+                "intro": "A párosítási információk beolvásas sikertelen, kérjük, próbáld újra."
+            },
+            {
+                "ecode": "05014019",
+                "intro": "Ez a nyomtató már párosítva lett egy fiókhoz. Kérjük, töröld a párosítást és próbáld újra."
+            },
+            {
+                "ecode": "0501401A",
+                "intro": "Nem sikerült hozzáférni a felhőszolgáltatáshoz. A lehetséges okok közé tartozik a hálózati instabilitás, amelyet interferencia, az internet-hozzáférés hiánya vagy az router tűzfal-konfigurációja okozhat. Megpróbálhatod a nyomtatót közelebb helyezni a routerhez, vagy ellenőrizd a router konfigurációját, mielőtt újból megpróbálod."
+            },
+            {
+                "ecode": "0501401B",
+                "intro": "Érvénytelen válasz a felhőből. Ha többszöri próbálkozás után sem sikerül, kérjük, fordulj az ügyfélszolgálathoz."
+            },
+            {
+                "ecode": "0501401C",
+                "intro": "A felhőalapú hozzáférés elutasítva. Ha többszöri próbálkozás után sem sikerül, kérjük, fordulj az ügyfélszolgálathoz."
+            },
+            {
+                "ecode": "0501401D",
+                "intro": "Nem sikerült hozzáférni a felhőszolgáltatáshoz instabilitás, vagy interferencia miatt. Megpróbálhatod a nyomtatót közelebb helyezni a routerhez, mielőtt újból megpróbálod."
+            },
+            {
+                "ecode": "0501401E",
+                "intro": "Érvénytelen válasz a felhőből. Ha többszöri próbálkozás után sem sikerül, kérjük, fordulj az ügyfélszolgálathoz."
+            },
+            {
+                "ecode": "0501401F",
+                "intro": "Hitelesítési időtúllépés. Kérjük, győződjön meg arról, hogy telefonod vagy számítógéped rendelkezik internet-hozzáféréssel és arról, hogy a Bambu Studio/Bambu Handy alkalmazás az előtérben fut a párosítás során."
+            },
+            {
+                "ecode": "05014020",
+                "intro": "A felhőalapú hozzáférés elutasítva. Ha többszöri próbálkozás után sem sikerül, kérjük, fordulj az ügyfélszolgálathoz."
+            },
+            {
+                "ecode": "05014021",
+                "intro": "Nem sikerült hozzáférni a felhőszolgáltatáshoz instabilitás, vagy interferencia miatt. Megpróbálhatod a nyomtatót közelebb helyezni a routerhez, mielőtt újból megpróbálod."
+            },
+            {
+                "ecode": "05014022",
+                "intro": "Érvénytelen válasz a felhőből. Ha többszöri próbálkozás után sem sikerül, kérjük, fordulj az ügyfélszolgálathoz."
+            },
+            {
+                "ecode": "05014023",
+                "intro": "A felhőalapú hozzáférés elutasítva. Ha többszöri próbálkozás után sem sikerül, kérjük, fordulj az ügyfélszolgálathoz."
+            },
+            {
+                "ecode": "05014024",
+                "intro": "Nem sikerült hozzáférni a felhőszolgáltatáshoz. A lehetséges okok közé tartozik a hálózati instabilitás, amelyet interferencia, az internet-hozzáférés hiánya vagy az router tűzfal-konfigurációja okozhat. Megpróbálhatod a nyomtatót közelebb helyezni a routerhez, vagy ellenőrizheted a router konfigurációját."
+            },
+            {
+                "ecode": "05014025",
+                "intro": "Érvénytelen válasz a felhőből. Ha többszöri próbálkozás után sem sikerül, kérjük, fordulj az ügyfélszolgálathoz."
+            },
+            {
+                "ecode": "05014026",
+                "intro": "A felhőalapú hozzáférés elutasítva. Ha többszöri próbálkozás után sem sikerül, kérjük, fordulj az ügyfélszolgálathoz."
+            },
+            {
+                "ecode": "05014027",
+                "intro": "Nem sikerült hozzáférni a felhőszolgáltatáshoz instabilitás, vagy interferencia miatt. Megpróbálhatod a nyomtatót közelebb helyezni a routerhez, mielőtt újból megpróbálod."
+            },
+            {
+                "ecode": "05014028",
+                "intro": "Érvénytelen válasz a felhőből. Ha többszöri próbálkozás után sem sikerül, kérjük, fordulj az ügyfélszolgálathoz."
+            },
+            {
+                "ecode": "05014029",
+                "intro": "A felhőalapú hozzáférés elutasítva. Ha többszöri próbálkozás után sem sikerül, kérjük, fordulj az ügyfélszolgálathoz."
+            },
+            {
+                "ecode": "05004015",
+                "intro": "Nincs elég szabad tárhely a nyomtatási feladathoz. Kérjük, formázd le vagy tisztítsd meg a MicroSD-kártyát, hogy helyet szabadíts fel."
+            },
+            {
+                "ecode": "12008001",
+                "intro": "Nem sikerült elvágni a filamentet. Kérjük, ellenőrizd a vágót. A hiba elhárítása után kattints az újra gombra."
+            },
+            {
+                "ecode": "12018001",
+                "intro": "Nem sikerült elvágni a filamentet. Kérjük, ellenőrizd a vágót. A hiba elhárítása után kattints az újra gombra."
+            },
+            {
+                "ecode": "12028001",
+                "intro": "Nem sikerült elvágni a filamentet. Kérjük, ellenőrizd a vágót. A hiba elhárítása után kattints az újra gombra."
+            },
+            {
+                "ecode": "12038001",
+                "intro": "Nem sikerült elvágni a filamentet. Kérjük, ellenőrizd a vágót. A hiba elhárítása után kattints az újra gombra."
+            },
+            {
+                "ecode": "12FF8001",
+                "intro": "Nem sikerült elvágni a filamentet. Kérjük, ellenőrizd a vágót. A hiba elhárítása után kattints az újra gombra."
+            },
+            {
+                "ecode": "12008002",
+                "intro": "A vágó beragadt. Kérjük, húzd ki a vágó karját és kattints az újra gombra."
+            },
+            {
+                "ecode": "12018002",
+                "intro": "A vágó beragadt. Kérjük, húzd ki a vágó karját és kattints az újra gombra."
+            },
+            {
+                "ecode": "05004009",
+                "intro": "Nem küldhetők feladatok a nyomtatóra a naplófájlok feltöltése közben."
+            },
+            {
+                "ecode": "0500400A",
+                "intro": "A fájlnév nem támogatott. Kérjük, nevezd át és indítsd újra a nyomtatási feladatot."
+            },
+            {
+                "ecode": "0300800A",
+                "intro": "Kiürített filament halmozódott fel az anyagkidobó csúszdában, ami beleütközhet a nyomtatófejbe. Kérjük, tisztítsd meg az anyagkidobó csúszdát. Ha ez megtörtént, kattints a Folytatás ikonra a nyomtatási feladat folytatásához."
+            },
+            {
+                "ecode": "0C008005",
+                "intro": "Kiürített filament halmozódott fel az anyagkidobó csúszdában, ami beleütközhet a nyomtatófejbe."
+            },
+            {
+                "ecode": "0C00C006",
+                "intro": "A kiürített filament felhalmozódhatott az anyagkidobó csúszdában."
+            },
+            {
+                "ecode": "0300400E",
+                "intro": "A motor öntesztje sikertelen volt."
+            },
+            {
+                "ecode": "0300800B",
+                "intro": "A filamentvágó beragadt. Kérjük, húzd ki a vágó karját és kattints az újra gombra."
+            },
+            {
+                "ecode": "07008012",
+                "intro": "Nem sikerült lekérni az AMS helyek kiosztását; kérjük, kattints az „Újra“ gombra a folytatáshoz."
+            },
+            {
+                "ecode": "07018012",
+                "intro": "Nem sikerült lekérni az AMS helyek kiosztását; kérjük, kattints az „Újra“ gombra a folytatáshoz."
+            },
+            {
+                "ecode": "07028012",
+                "intro": "Nem sikerült lekérni az AMS helyek kiosztását; kérjük, kattints az „Újra“ gombra a folytatáshoz."
+            },
+            {
+                "ecode": "07038012",
+                "intro": "Nem sikerült lekérni az AMS helyek kiosztását; kérjük, kattints az „Újra“ gombra a folytatáshoz."
+            },
+            {
+                "ecode": "07008013",
+                "intro": "Időtúllépés a régi filament kiöblítésekor: Előfordulhat, hogy a filament beragadt vagy az extruder eltömődött. A hiba elhárítása után kattints az újra gombra."
+            },
+            {
+                "ecode": "07018013",
+                "intro": "Időtúllépés a régi filament kiöblítésekor: Előfordulhat, hogy a filament beragadt vagy az extruder eltömődött. A hiba elhárítása után kattints az újra gombra."
+            },
+            {
+                "ecode": "07028013",
+                "intro": "Időtúllépés a régi filament kiöblítésekor: Előfordulhat, hogy a filament beragadt vagy az extruder eltömődött. A hiba elhárítása után kattints az újra gombra."
+            },
+            {
+                "ecode": "07038013",
+                "intro": "Időtúllépés a régi filament kiöblítésekor: Előfordulhat, hogy a filament beragadt vagy az extruder eltömődött. A hiba elhárítása után kattints az újra gombra."
+            },
+            {
+                "ecode": "07004001",
+                "intro": "A filament még mindig az AMS-ből töltődik be, de az AMS le van tiltva. Kérjük, távolítsd el a filamentet, töltsd be a külső tartóról és indítsd újra a nyomtatást."
+            },
+            {
+                "ecode": "07014001",
+                "intro": "A filament még mindig az AMS-ből töltődik be, de az AMS le van tiltva. Kérjük, távolítsd el a filamentet, töltsd be a külső tartóról és indítsd újra a nyomtatást."
+            },
+            {
+                "ecode": "07024001",
+                "intro": "A filament még mindig az AMS-ből töltődik be, de az AMS le van tiltva. Kérjük, távolítsd el a filamentet, töltsd be a külső tartóról és indítsd újra a nyomtatást."
+            },
+            {
+                "ecode": "07034001",
+                "intro": "A filament még mindig az AMS-ből töltődik be, de az AMS le van tiltva. Kérjük, távolítsd el a filamentet, töltsd be a külső tartóról és indítsd újra a nyomtatást."
+            },
+            {
+                "ecode": "0500400B",
+                "intro": "Hiba történt egy fájl letöltése közben. Kérjük, ellenőrizd a hálózati kapcsolatot, és küldd el újra a nyomtatási feladatot."
+            },
+            {
+                "ecode": "1000C001",
+                "intro": "Az asztal hőmérséklete meghaladja a filament üvegesedési hőmérsékletét, ami a fúvóka eltömődéséhez vezethet. Kérjük, hagyd nyitva a nyomtató ajtaját, vagy csökkentsd az asztal hőmérsékletét."
+            },
+            {
+                "ecode": "1000C002",
+                "intro": "A nyomtatni kívánt filament keményebb fúvókát igényel, mint a nyomtató alapértelmezett fúvókakeménysége. Kérjük, cseréld ki edzett fúvókára. Ellenkező esetben a fúvóka megsérülhet vagy idő előtt elhasználódhat."
+            },
+            {
+                "ecode": "0500400C",
+                "intro": "Kérjük, helyezz be egy MicroSD-kártyát, és indítsd újra a nyomtatási feladatot."
+            },
+            {
+                "ecode": "0500400D",
+                "intro": "Kérjük, futtass egy öntesztet, és indítsd újra a nyomtatási feladatot."
+            },
+            {
+                "ecode": "0300800C",
+                "intro": "Lépésvesztést észleltünk, az automatikus helyreállítás befejeződött; kérjük, folytasd a nyomtatást és győződj meg arról, hogy nincs rétegeltolódási probléma."
+            },
+            {
+                "ecode": "0C008009",
+                "intro": "Nem észlelhető érvényes azonosító a tálcán."
+            },
+            {
+                "ecode": "0500400E",
+                "intro": "A nyomtatást törölték."
+            },
+            {
+                "ecode": "0300800D",
+                "intro": "Úgy tűnik, hogy néhány tárgy eldőlt, vagy az extruder nem extrudál rendesen. Ha a hibák elfogadhatóak, kattints a „Folytatás“ ikonra a nyomtatás folytatásához."
+            },
+            {
+                "ecode": "07FF8001",
+                "intro": "Nem sikerült elvágni a filamentet. Kérjük, ellenőrizd a vágót. A hiba elhárítása után kattints az újra gombra."
+            },
+            {
+                "ecode": "07FF8002",
+                "intro": "A vágó beragadt. Kérjük, húzd ki a vágó karját és kattints az újra gombra."
+            },
+            {
+                "ecode": "07FF8003",
+                "intro": "Kérjük, távolítsd el a külső filamentet az extruderből. Ha később az AMS-t szeretnéd használni, kérjük, csatlakoztasd vissza a PTFE-csövet és kattints az újra gombra."
+            },
+            {
+                "ecode": "07FF8004",
+                "intro": "Nem sikerült visszahúzni a filamentet az AMS-be. Előfordulhat, hogy a filament vagy a tekercs elakadt. A hiba elhárítása után kattints az újra gombra."
+            },
+            {
+                "ecode": "07FF8005",
+                "intro": "Nem sikerült a filamentet betölteni az AMS-be. Kérjük, vágd le a filament végét és győződj meg róla, hogy a tekercs nincs elakadva. A hiba elhárítása után kattints az újra gombra."
+            },
+            {
+                "ecode": "07FF8006",
+                "intro": "Kérjük, kezdd el adagolni a filamentet a külső tekercsről egészen addig, amíg a nyomtatófej filamentérzékelője aktiválódik. Ezután kattints az újra gombra."
+            },
+            {
+                "ecode": "07FF8007",
+                "intro": "Kérjük, figyeld a fúvókát. Ha a filament extrudálódott, kattints a „Kész“ gombra; ellenkező esetben told kicsit előrébb a filamentet és kattints az „Újra“ gombra."
+            },
+            {
+                "ecode": "07FF8010",
+                "intro": "Az AMS-segédmotor túl van terhelve. Előfordulhat, hogy a filamenttekercs vagy a filament beszorult. A hiba elhárítása utána kattints az újra gombra."
+            },
+            {
+                "ecode": "07FF8011",
+                "intro": "Kifogyott a filament az AMS-ből. Kérjük, helyezz új filamentet az AMS-be és kattints az újra gombra."
+            },
+            {
+                "ecode": "07FF8012",
+                "intro": "Nem sikerült lekérni az AMS helyek kiosztását; kérjük, kattints az „Újra“ gombra a folytatáshoz."
+            },
+            {
+                "ecode": "07FF8013",
+                "intro": "Időtúllépés a régi filament kiöblítésekor: Előfordulhat, hogy a filament beragadt vagy az extruder eltömődött. A hiba elhárítása után kattints az újra gombra."
+            },
+            {
+                "ecode": "07FF4001",
+                "intro": "A filament még mindig az AMS-ből töltődik be, de az AMS le van tiltva. Kérjük, távolítsd el a filamentet, töltsd be a külső tartóról és indítsd újra a nyomtatást."
+            },
+            {
+                "ecode": "0300800E",
+                "intro": "A nyomtatási fájl nem elérhető. Kérjük, győződj meg róla, hogy az adathordozó nem lett eltávolítva."
+            },
+            {
+                "ecode": "0500C010",
+                "intro": "MicroSD-kártya hiba: kérjük, illeszd be újra, formázd vagy cseréld ki."
+            },
+            {
+                "ecode": "0500C011",
+                "intro": ""
+            },
+            {
+                "ecode": "05008013",
+                "intro": "A nyomtatási fájl nem elérhető. Kérjük, győződj meg róla, hogy az adathordozó nem lett eltávolítva."
+            },
+            {
+                "ecode": "0300800F",
+                "intro": "Úgy tűnik, az ajtó nyitva van, ezért a nyomtatás szünetel."
+            },
+            {
+                "ecode": "05004014",
+                "intro": "Nem sikerült szeletelni a nyomtatási feladatot; ellenőrizd a beállításokat, és indítsd újra a nyomtatási feladatot."
+            },
+            {
+                "ecode": "03008010",
+                "intro": "Rendellenes heatbreak ventilátor fordulatszám."
+            },
+            {
+                "ecode": "07FFC003",
+                "intro": "Kérjük, távolítsd el a külső filamentet az extruderből. Ha később az AMS-t szeretnéd használni, kérjük, csatlakoztasd vissza a PTFE-csövet."
+            },
+            {
+                "ecode": "07FFC006",
+                "intro": "Kérjük, kezdd el adagolni a filamentet a külső tekercsről egészen addig, amíg a nyomtatófej filamentérzékelője aktiválódik."
+            },
+            {
+                "ecode": "07028004",
+                "intro": "Nem sikerült visszahúzni a filamentet az AMS-be. Előfordulhat, hogy a filament vagy a tekercs elakadt. A hiba elhárítása után kattints az újra gombra."
+            },
+            {
+                "ecode": "07028005",
+                "intro": "Nem sikerült a filamentet betölteni az AMS-be. Kérjük, vágd le a filament végét és győződj meg róla, hogy a tekercs nincs elakadva. A hiba elhárítása után kattints az újra gombra."
+            },
+            {
+                "ecode": "07028006",
+                "intro": "Nem sikerült betölteni a filamentet a nyomtatófejbe. Előfordulhat, hogy a filamenttekercs vagy a filament megszorult. A hiba elhárítása után kattints az újra gombra."
+            },
+            {
+                "ecode": "07028007",
+                "intro": "Nem sikerült extrudálni a filamentet. Előfordulhat, hogy az extruder eltömődött. A hiba elhárítása után kattints az újra gombra."
+            },
+            {
+                "ecode": "07028010",
+                "intro": "Az AMS-segédmotor túl van terhelve. Előfordulhat, hogy a filamenttekercs vagy a filament beszorult. A hiba elhárítása után kattints az újra gombra."
+            },
+            {
+                "ecode": "07028011",
+                "intro": "Kifogyott a filament az AMS-ből. Kérjük, helyezz új filamentet az AMS-be és kattints az újra gombra."
+            },
+            {
+                "ecode": "07038001",
+                "intro": "Nem sikerült elvágni a filamentet. Ellenőrizd a filamentvágót. A hiba elhárítása után koppints az újra gombra."
+            },
+            {
+                "ecode": "07038002",
+                "intro": "A filamentvágó beragadt. Kérjük, húzd ki a vágó karját és kattints az újra gombra."
+            },
+            {
+                "ecode": "07038003",
+                "intro": "Nem sikerült kihúzni a filamentet az extruderből. Győződj meg róla, hogy a fúvóka nincs eldugulva, vagy a filament eltörve az extruderben. A hiba elhárítása után kattints az újra gombra."
+            },
+            {
+                "ecode": "07038004",
+                "intro": "Nem sikerült visszahúzni a filamentet az AMS-be. Előfordulhat, hogy a filament vagy a tekercs elakadt. A hiba elhárítása után kattints az újra gombra."
+            },
+            {
+                "ecode": "07038005",
+                "intro": "Nem sikerült a filamentet betölteni az AMS-be. Kérjük, vágd le a filament végét és győződj meg róla, hogy a tekercs nincs elakadva. A hiba elhárítása után kattints az újra gombra."
+            },
+            {
+                "ecode": "07038006",
+                "intro": "Nem sikerült betölteni a filamentet a nyomtatófejbe. Előfordulhat, hogy a filamenttekercs vagy a filament megszorult. A hiba elhárítása után kattints az újra gombra."
+            },
+            {
+                "ecode": "07038007",
+                "intro": "Nem sikerült extrudálni a filamentet. Előfordulhat, hogy az extruder eltömődött. A hiba elhárítása után kattints az újra gombra."
+            },
+            {
+                "ecode": "07038010",
+                "intro": "Az AMS-segédmotor túl van terhelve. Előfordulhat, hogy a filamenttekercs vagy a filament beszorult. A hiba elhárítása után kattints az újra gombra."
+            },
+            {
+                "ecode": "07038011",
+                "intro": "Kifogyott a filament az AMS-ből. Kérjük, helyezz új filamentet az AMS-be és kattints az újra gombra."
+            },
+            {
+                "ecode": "0C008001",
+                "intro": "Hibát észleltünk az első rétegen. Amennyiben a hibát elfogadhatónak találod, kattints a folytatás gombra a nyomtatási feladat folytatásához."
+            },
+            {
+                "ecode": "0C008002",
+                "intro": "Spagetti hibát észleltünk."
+            },
+            {
+                "ecode": "0C00C003",
+                "intro": "Lehetséges hibákat észleltünk az első rétegen."
+            },
+            {
+                "ecode": "0C00C004",
+                "intro": "Lehetséges spagetti hibát észleltünk."
+            },
+            {
+                "ecode": "03004000",
+                "intro": "Z tengely alaphelyzetbe állítása sikertelen."
+            },
+            {
+                "ecode": "03004001",
+                "intro": "Időtúllépés történt alaphelyzetbe álláskor, miközben a nyomtató arra várt, hogy a fúvóka lehűljön."
+            },
+            {
+                "ecode": "03004002",
+                "intro": "Automatikus asztalszintezés sikertelen."
+            },
+            {
+                "ecode": "03004005",
+                "intro": "Rendellenes heatbreak ventilátor fordulatszám."
+            },
+            {
+                "ecode": "03004006",
+                "intro": "A fúvóka eldugult."
+            },
+            {
+                "ecode": "03004008",
+                "intro": "Az AMS nem tudta kicserélni a filamentet."
+            },
+            {
+                "ecode": "03004009",
+                "intro": "XY tengely alaphelyzetbe állítása sikertelen."
+            },
+            {
+                "ecode": "0300400A",
+                "intro": "A mechanikai rezonancia mód meghatározása nem sikerült."
+            },
+            {
+                "ecode": "0300400B",
+                "intro": "Belső kommunikációs kivétel."
+            },
+            {
+                "ecode": "0300400C",
+                "intro": "A nyomtatást törölték."
+            },
+            {
+                "ecode": "0300400D",
+                "intro": "Áramkimaradás utáni folytatás sikertelen."
+            },
+            {
+                "ecode": "03008000",
+                "intro": "A nyomtatás ismeretlen okból szünetelt. A nyomtatási feladat folytatásához kattints a „Folytatás“ gombra."
+            },
+            {
+                "ecode": "03008001",
+                "intro": "A nyomtatást a felhasználó szüneteltette. A nyomtatási feladat folytatásához kattints a „Folytatás“ gombra."
+            },
+            {
+                "ecode": "03008002",
+                "intro": "Az első rétegen nyilvánvaló hibák találhatóak. Ha a hibák elfogadhatóak, a nyomtatási feladat folytatásához kattints a „Folytatás“ gombra."
+            },
+            {
+                "ecode": "03008003",
+                "intro": "Lehetséges nyomtatási hiba észlelve. Ha a hiba elfogadható, a nyomtatási feladat folytatásához kattints a „Folytatás“ gombra."
+            },
+            {
+                "ecode": "03008004",
+                "intro": "A filament kifogyott. Kérjük, tölts be új filamentet a Hőmérséklet/Tengely menüből, és a nyomtatási feladat folytatásához kattints a „Folytatás“ gombra."
+            },
+            {
+                "ecode": "03008005",
+                "intro": "A nyomtatás szünetelt, mert a nyomtatófej előlapja leesett. Kérjük, helyezd vissza, és a nyomtatási feladat folytatásához kattints a „Folytatás“ gombra."
+            },
+            {
+                "ecode": "03008006",
+                "intro": "A tálca nem egyezik G-kódban megadottal. Kérjük, helyezz be másik tálcát, és a nyomtatási feladat folytatásához kattints a „Folytatás“ gombra."
+            },
+            {
+                "ecode": "03008007",
+                "intro": "A nyomtató kikapcsolásakor egy nyomtatási feladat volt folyamatban. A nyomtatási feladat folytatásához kattints a „Folytatás“ gombra."
+            },
+            {
+                "ecode": "03008008",
+                "intro": "Fúvóka hőmérsékleti rendellenesség"
+            },
+            {
+                "ecode": "03008009",
+                "intro": "Tárgyasztal hőmérsékleti rendellenesség"
+            },
+            {
+                "ecode": "05004001",
+                "intro": "Nem sikerült csatlakozni a Bambu Cloudhoz. Kérjük, ellenőrizd a hálózati kapcsolatot."
+            },
+            {
+                "ecode": "05004002",
+                "intro": "Nem sikerült feldolgozni a kapott nyomtatási feladatot. Kérjük, frissítsd a firmware-t a legújabb verzióra, és próbáld meg újra."
+            },
+            {
+                "ecode": "05004003",
+                "intro": "Probléma adódott a gcode.3mf feldolgozása során. Kérjük, küldd el újra a nyomtatási feladatot."
+            },
+            {
+                "ecode": "05004004",
+                "intro": "Nem külhetők nyomtatási feladatok nyomtatás közben."
+            },
+            {
+                "ecode": "05004005",
+                "intro": "Nem küldhetők feladatok a nyomtatóra a firmware frissítése közben."
+            },
+            {
+                "ecode": "05004006",
+                "intro": "Nincs elég szabad tárhely a nyomtatási feladathoz. A gyári beállítások visszaállítása felszabadíthat némi helyet."
+            },
+            {
+                "ecode": "05004007",
+                "intro": "Nem küldhetők feladatok a nyomtatóra kényszerített frissítés közben, vagy ha javításra van szükség."
+            },
+            {
+                "ecode": "05004008",
+                "intro": "Nem sikerült elkezdeni a nyomtatást. Kérjük, indítsd újra a nyomtatót, és küldd el újra a nyomtatási feladatot."
+            },
+            {
+                "ecode": "07008001",
+                "intro": "Nem sikerült elvágni a filamentet. Kérjük, ellenőrizd a vágót. A hiba elhárítása után koppints az újra gombra."
+            },
+            {
+                "ecode": "07008002",
+                "intro": "A filamentvágó beragadt. Kérjük, húzd ki a vágó karját és kattints az újra gombra."
+            },
+            {
+                "ecode": "07008003",
+                "intro": "Nem sikerült kihúzni a filamentet az extruderből. Győződj meg róla, hogy a fúvóka nincs eldugulva, vagy a filament eltörve az extruderben. A hiba elhárítása után kattints az újra gombra."
+            },
+            {
+                "ecode": "07008004",
+                "intro": "Nem sikerült visszahúzni a filamentet az AMS-be. Előfordulhat, hogy a filament vagy a tekercs elakadt. A hiba elhárítása után kattints az újra gombra."
+            },
+            {
+                "ecode": "07008005",
+                "intro": "Nem sikerült a filamentet betölteni az AMS-be. Kérjük, vágd le a filament végét és győződj meg róla, hogy a tekercs nincs elakadva. A hiba elhárítása után kattints az újra gombra."
+            },
+            {
+                "ecode": "07008006",
+                "intro": "Nem sikerült betölteni a filamentet a nyomtatófejbe. Előfordulhat, hogy a filamenttekercs vagy a filament megszorult. A hiba elhárítása után kattints az újra gombra."
+            },
+            {
+                "ecode": "07008007",
+                "intro": "Nem sikerült extrudálni a filamentet. Előfordulhat, hogy az extruder eltömődött. A hiba elhárítása után kattints az újra gombra."
+            },
+            {
+                "ecode": "07008010",
+                "intro": "Az AMS-segédmotor túl van terhelve. Előfordulhat, hogy a filamenttekercs vagy a filament beszorult. A hiba elhárítása után kattints az újra gombra."
+            },
+            {
+                "ecode": "07008011",
+                "intro": "Kifogyott a filament az AMS-ből. Kérjük, helyezz új filamentet az AMS-be és kattints az újra gombra."
+            },
+            {
+                "ecode": "07018001",
+                "intro": "Nem sikerült elvágni a filamentet. Ellenőrizd a filamentvágót. A hiba elhárítása után koppints az újra gombra."
+            },
+            {
+                "ecode": "07018002",
+                "intro": "A filamentvágó beragadt. Kérjük, húzd ki a vágó karját és koppints az újra gombra."
+            },
+            {
+                "ecode": "07018003",
+                "intro": "Nem sikerült kihúzni a filamentet az extruderből. Győződj meg róla, hogy a fúvóka nincs eldugulva, vagy a filament eltörve az extruderben. A hiba elhárítása után kattints az újra gombra."
+            },
+            {
+                "ecode": "07018004",
+                "intro": "Nem sikerült visszahúzni a filamentet az AMS-be. Előfordulhat, hogy a filament vagy a tekercs elakadt. A hiba elhárítása után kattints az újra gombra."
+            },
+            {
+                "ecode": "07018005",
+                "intro": "Nem sikerült a filamentet betölteni az AMS-be. Kérjük, vágd le a filament végét és győződj meg róla, hogy a tekercs nincs elakadva. A hiba elhárítása után kattints az újra gombra."
+            },
+            {
+                "ecode": "07018006",
+                "intro": "Nem sikerült betölteni a filamentet a nyomtatófejbe. Előfordulhat, hogy a filamenttekercs vagy a filament megszorult. A hiba elhárítása után kattints az újra gombra."
+            },
+            {
+                "ecode": "07018007",
+                "intro": "Nem sikerült extrudálni a filamentet. Előfordulhat, hogy az extruder eltömődött. A hiba elhárítása után kattints az újra gombra."
+            },
+            {
+                "ecode": "07018010",
+                "intro": "Az AMS-segédmotor túl van terhelve. Előfordulhat, hogy a filamenttekercs vagy a filament beszorult. A hiba elhárítása után kattints az újra gombra."
+            },
+            {
+                "ecode": "07018011",
+                "intro": "Kifogyott a filament az AMS-ből. Kérjük, helyezz új filamentet az AMS-be és kattints az újra gombra."
+            },
+            {
+                "ecode": "07028001",
+                "intro": "Nem sikerült elvágni a filamentet. Ellenőrizd a filamentvágót. A hiba elhárítása után koppints az újra gombra."
+            },
+            {
+                "ecode": "07028002",
+                "intro": "A filamentvágó beragadt. Kérjük, húzd ki a vágó karját és kattints az újra gombra."
+            },
+            {
+                "ecode": "07028003",
+                "intro": "Nem sikerült kihúzni a filamentet az extruderből. Győződj meg róla, hogy a fúvóka nincs eldugulva, vagy a filament eltörve az extruderben. A hiba elhárítása után kattints az újra gombra."
+            }
+        ],
+        "ver": 202309202230
+    },
+    "device_hms": {
+        "hu": [
+            {
+                "ecode": "03000D0000020004",
+                "intro": "A nyomtatótálca nincs megfelelően az asztalra helyezve. Kérjük, igazítsd meg."
+            },
+            {
+                "ecode": "03000D0000020005",
+                "intro": "A nyomtatótálca nincs megfelelően az asztalra helyezve. Kérjük, igazítsd meg."
+            },
+            {
+                "ecode": "03000D0000020006",
+                "intro": "A nyomtatótálca nincs megfelelően az asztalra helyezve. Kérjük, igazítsd meg."
+            },
+            {
+                "ecode": "03000D0000020007",
+                "intro": "A nyomtatótálca nincs megfelelően az asztalra helyezve. Kérjük, igazítsd meg."
+            },
+            {
+                "ecode": "03000D0000020008",
+                "intro": "A nyomtatótálca nincs megfelelően az asztalra helyezve. Kérjük, igazítsd meg."
+            },
+            {
+                "ecode": "03000D0000020009",
+                "intro": "A nyomtatótálca nincs megfelelően az asztalra helyezve. Kérjük, igazítsd meg."
+            },
+            {
+                "ecode": "03000D000002000A",
+                "intro": "A nyomtatótálca nincs megfelelően az asztalra helyezve. Kérjük, igazítsd meg."
+            },
+            {
+                "ecode": "03000D0000020003",
+                "intro": "A nyomtatótálca nincs megfelelően az asztalra helyezve. Kérjük, igazítsd meg."
+            },
+            {
+                "ecode": "0500040000020020",
+                "intro": ""
+            },
+            {
+                "ecode": "12FF200000020005",
+                "intro": "Úgy tűnik, hogy filament eltört a nyomtatófejben."
+            },
+            {
+                "ecode": "12FF200000020006",
+                "intro": "Nem sikerült extrudálni a filamentet. Előfordulhat, hogy az extruder eltömődött."
+            },
+            {
+                "ecode": "0C0003000002000F",
+                "intro": "Kihagyott alkatrészek lettek beállítva az első réteg ellenőrzése előtt. Az első réteg ellenőrzése nem támogatott a jelenlegi nyomtatási módban."
+            },
+            {
+                "ecode": "0500040000020010",
+                "intro": "Az AMS1 Slot1 RFID-címkéje nem olvasható."
+            },
+            {
+                "ecode": "0500040000020011",
+                "intro": "Az AMS1 Slot2 RFID-címkéje nem olvasható."
+            },
+            {
+                "ecode": "0500040000020012",
+                "intro": "Az AMS1 Slot3 RFID-címkéje nem olvasható."
+            },
+            {
+                "ecode": "0500040000020014",
+                "intro": "Az AMS2 Slot1 RFID-címkéje nem olvasható."
+            },
+            {
+                "ecode": "0500040000020015",
+                "intro": "Az AMS2 Slot2 RFID-címkéje nem olvasható."
+            },
+            {
+                "ecode": "0500040000020016",
+                "intro": "Az AMS2 Slot3 RFID-címkéje nem olvasható."
+            },
+            {
+                "ecode": "0500040000020017",
+                "intro": "Az AMS2 Slot4 RFID-címkéje nem olvasható."
+            },
+            {
+                "ecode": "0500040000020018",
+                "intro": "Az AMS3 Slot1 RFID-címkéje nem olvasható."
+            },
+            {
+                "ecode": "0500040000020019",
+                "intro": "Az AMS3 Slot2 RFID-címkéje nem olvasható."
+            },
+            {
+                "ecode": "050004000002001A",
+                "intro": "Az AMS3 Slot3 RFID-címkéje nem olvasható."
+            },
+            {
+                "ecode": "050004000002001B",
+                "intro": "Az AMS3 Slot4 RFID-címkéje nem olvasható."
+            },
+            {
+                "ecode": "050004000002001C",
+                "intro": "Az AMS4 Slot1 RFID-címkéje nem olvasható."
+            },
+            {
+                "ecode": "050004000002001D",
+                "intro": "Az AMS4 Slot2 RFID-címkéje nem olvasható."
+            },
+            {
+                "ecode": "050004000002001E",
+                "intro": "Az AMS4 Slot3 RFID-címkéje nem olvasható."
+            },
+            {
+                "ecode": "050004000002001F",
+                "intro": "Az AMS4 Slot4 RFID-címkéje nem olvasható."
+            },
+            {
+                "ecode": "0500040000020013",
+                "intro": "Az AMS1 Slot4 RFID-címkéje nem olvasható."
+            },
+            {
+                "ecode": "12FF800000020001",
+                "intro": "Lehet, hogy a filament összegabalyodott vagy beragadt."
+            },
+            {
+                "ecode": "1200800000020001",
+                "intro": "AMS1 Slot1 filament lehet, összegabalyodott vagy beragadt."
+            },
+            {
+                "ecode": "1200810000020001",
+                "intro": "AMS1 Slot2 filament lehet, összegabalyodott vagy beragadt."
+            },
+            {
+                "ecode": "1200820000020001",
+                "intro": "AMS1 Slot3 filament lehet, összegabalyodott vagy beragadt."
+            },
+            {
+                "ecode": "1200830000020001",
+                "intro": "AMS1 Slot4 filament lehet, összegabalyodott vagy beragadt."
+            },
+            {
+                "ecode": "1201800000020001",
+                "intro": "AMS2 Slot1 filament lehet, összegabalyodott vagy beragadt."
+            },
+            {
+                "ecode": "1201810000020001",
+                "intro": "AMS2 Slot2 filament lehet, összegabalyodott vagy beragadt."
+            },
+            {
+                "ecode": "1201820000020001",
+                "intro": "AMS2 Slot3 filament lehet, összegabalyodott vagy beragadt."
+            },
+            {
+                "ecode": "1201830000020001",
+                "intro": "AMS2 Slot4 filament lehet, összegabalyodott vagy beragadt."
+            },
+            {
+                "ecode": "1202800000020001",
+                "intro": "AMS3 Slot1 filament lehet, összegabalyodott vagy beragadt."
+            },
+            {
+                "ecode": "1202810000020001",
+                "intro": "AMS3 Slot2 filament lehet, összegabalyodott vagy beragadt."
+            },
+            {
+                "ecode": "1202820000020001",
+                "intro": "AMS3 Slot3 filament lehet, összegabalyodott vagy beragadt."
+            },
+            {
+                "ecode": "1202830000020001",
+                "intro": "AMS3 Slot4 filament may be tangled or stuck."
+            },
+            {
+                "ecode": "1203800000020001",
+                "intro": "AMS4 Slot1 filament may be tangled or stuck."
+            },
+            {
+                "ecode": "1203810000020001",
+                "intro": "AMS4 Slot2 filament may be tangled or stuck."
+            },
+            {
+                "ecode": "1203820000020001",
+                "intro": "AMS4 Slot3 filament may be tangled or stuck."
+            },
+            {
+                "ecode": "1203830000020001",
+                "intro": "AMS4 Slot4 filament may be tangled or stuck."
+            },
+            {
+                "ecode": "0300170000010001",
+                "intro": "A hotend ventilátor fordulatszáma túl alacsony vagy megállt. Lehet, hogy beragadt vagy megsérült."
+            },
+            {
+                "ecode": "0300170000020002",
+                "intro": "A hotend ventilátor fordulatszáma túl alacsony. Lehet, hogy beragadt és tisztításra szorul."
+            },
+            {
+                "ecode": "0300900000010001",
+                "intro": "A kamrafűtés meghibásodott. Lehet, hogy a kamrafűtés nem képes a meleg levegő befúvására."
+            },
+            {
+                "ecode": "0300900000010002",
+                "intro": "A kamrafűtés meghibásodott. Lehet, hogy a tető nincs lezárva, vagy a külső hőmérséklet túl alacsony."
+            },
+            {
+                "ecode": "0300900000010003",
+                "intro": "A kamrafűtés meghibásodott. A tápegység hőmérséklete túl magas."
+            },
+            {
+                "ecode": "0300900000010004",
+                "intro": "A kamrafűtés meghibásodott. A fűtőventilátor fordulatszáma túl alacsony."
+            },
+            {
+                "ecode": "0300900000010005",
+                "intro": "A kamrafűtés meghibásodott. A hőellenállás túl nagy."
+            },
+            {
+                "ecode": "0300910000010001",
+                "intro": "Az 1. kamrafűtés hőmérséklete rendellenes. Lehet, hogy a fűtőelem zárlatos."
+            },
+            {
+                "ecode": "0300910000010002",
+                "intro": "Az 1. kamrafűtés hőmérséklete rendellenes. Lehet, hogy a fűtőelem megszakadt, vagy a hőbiztosíték működésbe lépett."
+            },
+            {
+                "ecode": "0300910000010003",
+                "intro": "Az 1. kamrafűtés hőmérséklete rendellenes. A fűtőelem túlmelegedett."
+            },
+            {
+                "ecode": "0300910000010006",
+                "intro": "Az 1. kamrafűtés hőmérséklete rendellenes. Lehet, hogy az érzékelő zárlatos."
+            },
+            {
+                "ecode": "0300910000010007",
+                "intro": "Az 1. kamrafűtés hőmérséklete rendellenes. Lehet, hogy az érzékelő szakadt."
+            },
+            {
+                "ecode": "0300910000010008",
+                "intro": "Az 1. kamrafűtés nem tudta elérni a beállított célhőmérsékletet."
+            },
+            {
+                "ecode": "0300920000010001",
+                "intro": "A 2. kamrafűtés hőmérséklete rendellenes. Lehet, hogy a fűtőelem zárlatos."
+            },
+            {
+                "ecode": "0300920000010002",
+                "intro": "A 2. kamrafűtés hőmérséklete rendellenes. Lehet, hogy a fűtőelem megszakadt, vagy a hőbiztosíték működésbe lépett."
+            },
+            {
+                "ecode": "0300920000010003",
+                "intro": "A 2. kamrafűtés hőmérséklete rendellenes. A fűtőelem túlmelegedett."
+            },
+            {
+                "ecode": "0300920000010006",
+                "intro": "A 2. kamrafűtés hőmérséklete rendellenes. Lehet, hogy az érzékelő zárlatos."
+            },
+            {
+                "ecode": "0300920000010007",
+                "intro": "A 2. kamrafűtés hőmérséklete rendellenes. Lehet, hogy az érzékelő szakadt."
+            },
+            {
+                "ecode": "0300920000010008",
+                "intro": "A 2. kamrafűtés nem tudta elérni a beállított célhőmérsékletet."
+            },
+            {
+                "ecode": "0300930000010001",
+                "intro": "A kamrafűtés hőmérséklete rendellenes. Lehet, hogy az érzékelő zárlatos."
+            },
+            {
+                "ecode": "0300930000010002",
+                "intro": "A kamrafűtés hőmérséklete rendellenes. Lehet, hogy az érzékelő szakadt."
+            },
+            {
+                "ecode": "0300930000010003",
+                "intro": "A kamrafűtés hőmérséklete rendellenes. Lehet, hogy a kamrafűtés hőmérséklet-érzékelője zárlatos a levegő kimeneténél."
+            },
+            {
+                "ecode": "0300930000010004",
+                "intro": "A kamrafűtés hőmérséklete rendellenes. Lehet, hogy a kamrafűtés hőmérséklet-érzékelője szakadt a levegő kimeneténél."
+            },
+            {
+                "ecode": "0300930000010005",
+                "intro": "A kamrafűtés hőmérséklete rendellenes. Lehet, hogy a kamrafűtés hőmérséklet-érzékelője zárlatos a levegő kimeneténél."
+            },
+            {
+                "ecode": "0300930000010006",
+                "intro": "A kamrafűtés hőmérséklete rendellenes. Lehet, hogy a kamrafűtés hőmérséklet-érzékelője szakadt a levegő kimeneténél."
+            },
+            {
+                "ecode": "0300930000010007",
+                "intro": "A kamrafűtés hőmérséklete rendellenes. Lehet, hogy a tápegység hőmérséklet-érzékelője zárlatos."
+            },
+            {
+                "ecode": "0300930000010008",
+                "intro": "A kamrafűtés hőmérséklete rendellenes. Lehet, hogy a tápegység hőmérséklet-érzékelője szakadt."
+            },
+            {
+                "ecode": "0500030000010023",
+                "intro": "A CTC modul hibásan működik. Kérjük, indítsd újra a készüléket."
+            },
+            {
+                "ecode": "0300900000010010",
+                "intro": "Kommunikációs probléma a kamra hőmérséklet-szabályozójával."
+            },
+            {
+                "ecode": "12FF200000030007",
+                "intro": "AMS-rekeszekben lévő filamentek helyének ellenőrzése, kérjük, várj."
+            },
+            {
+                "ecode": "0300940000030001",
+                "intro": "A kamra túl lassan hűl le. Az ajtó kinyitása segíthet a hűtésben, de csak akkor nyisd ki, ha olyan anyagot nyomtattál, amelynek gőze nem mérgező."
+            },
+            {
+                "ecode": "0300180000010001",
+                "intro": "Az extrudálóerő-érzékelő értéke alacsony. Lehet, hogy nincs fúvóka a nyomtatófejben."
+            },
+            {
+                "ecode": "0300180000010003",
+                "intro": "Az extrudálóerő-érzékelő nem található. Lehet, hogy az MC és a TH közötti kapcsolat megszakadt, vagy az érzékelő elromlott."
+            },
+            {
+                "ecode": "0300180000010004",
+                "intro": "Az extrudálóerő-érzékelő rendellenes adatokat küld. Lehet, hogy az érzékelőt elromlott."
+            },
+            {
+                "ecode": "0300190000010001",
+                "intro": "Az Y-tengelyen lévő örvényáram-érzékelő nem található. Lehet, hogy a vezeték elszakadt."
+            },
+            {
+                "ecode": "0300190000020002",
+                "intro": "Az Y-tengely örvényáram-érzékelő érzékenysége túl magas."
+            },
+            {
+                "ecode": "0300940000030002",
+                "intro": "A kamrahőmérséklet beállított értéke meghaladja a határértéket. A határérték lesz használva."
+            },
+            {
+                "ecode": "12FF200000020007",
+                "intro": "Nem sikerült detektálni a filament helyzetét a nyomtatófejben, kattints ide a további információért."
+            },
+            {
+                "ecode": "0300180000010002",
+                "intro": "Az extrudálóerő-érzékelő értéke alacsony. Lehet, hogy a hotend nincs megfelelően összeszerelve."
+            },
+            {
+                "ecode": "0500010000030007",
+                "intro": "MicroSD-kártya nélkül nem lehet time-lapse képeket készíteni."
+            },
+            {
+                "ecode": "1200100000010001",
+                "intro": "Az AMS1 slot1 motor megcsúszott. Lehet, hogy az extruderkerék elkopott, vagy a filament túl vékony."
+            },
+            {
+                "ecode": "1201100000010001",
+                "intro": "Az AMS2 slot1 motor megcsúszott. Lehet, hogy az extruderkerék elkopott, vagy a filament túl vékony."
+            },
+            {
+                "ecode": "1202100000010001",
+                "intro": "Az AMS3 slot1 motor megcsúszott. Lehet, hogy az extruderkerék elkopott, vagy a filament túl vékony."
+            },
+            {
+                "ecode": "1203100000010001",
+                "intro": "Az AMS4 slot1 motor megcsúszott. Lehet, hogy az extruderkerék elkopott, vagy a filament túl vékony."
+            },
+            {
+                "ecode": "1200110000010001",
+                "intro": "Az AMS1 slot2 motor megcsúszott. Lehet, hogy az extruderkerék elkopott, vagy a filament túl vékony."
+            },
+            {
+                "ecode": "1201110000010001",
+                "intro": "Az AMS2 slot2 motor megcsúszott. Lehet, hogy az extruderkerék elkopott, vagy a filament túl vékony."
+            },
+            {
+                "ecode": "1202110000010001",
+                "intro": "Az AMS3 slot2 motor megcsúszott. Lehet, hogy az extruderkerék elkopott, vagy a filament túl vékony."
+            },
+            {
+                "ecode": "1203110000010001",
+                "intro": "Az AMS4 slot2 motor megcsúszott. Lehet, hogy az extruderkerék elkopott, vagy a filament túl vékony."
+            },
+            {
+                "ecode": "1200120000010001",
+                "intro": "Az AMS1 slot3 motor megcsúszott. Lehet, hogy az extruderkerék elkopott, vagy a filament túl vékony."
+            },
+            {
+                "ecode": "1201120000010001",
+                "intro": "Az AMS2 slot3 motor megcsúszott. Lehet, hogy az extruderkerék elkopott, vagy a filament túl vékony."
+            },
+            {
+                "ecode": "1202120000010001",
+                "intro": "Az AMS3 slot3 motor megcsúszott. Lehet, hogy az extruderkerék elkopott, vagy a filament túl vékony."
+            },
+            {
+                "ecode": "1203120000010001",
+                "intro": "Az AMS4 slot3 motor megcsúszott. Lehet, hogy az extruderkerék elkopott, vagy a filament túl vékony."
+            },
+            {
+                "ecode": "1200130000010001",
+                "intro": "Az AMS1 slot4 motor megcsúszott. Lehet, hogy az extruderkerék elkopott, vagy a filament túl vékony."
+            },
+            {
+                "ecode": "1201130000010001",
+                "intro": "Az AMS2 slot4 motor megcsúszott. Lehet, hogy az extruderkerék elkopott, vagy a filament túl vékony."
+            },
+            {
+                "ecode": "1202130000010001",
+                "intro": "Az AMS3 slot4 motor megcsúszott. Lehet, hogy az extruderkerék elkopott, vagy a filament túl vékony."
+            },
+            {
+                "ecode": "1203130000010001",
+                "intro": "Az AMS4 slot4 motor megcsúszott. Lehet, hogy az extruderkerék elkopott, vagy a filament túl vékony."
+            },
+            {
+                "ecode": "1200100000020002",
+                "intro": "Az AMS1 slot1 motor túlterhelt. Lehet, hogy a filament összegabalyodott vagy beragadt."
+            },
+            {
+                "ecode": "1201100000020002",
+                "intro": "Az AMS2 slot1 motor túlterhelt. Lehet, hogy a filament összegabalyodott vagy beragadt."
+            },
+            {
+                "ecode": "1202100000020002",
+                "intro": "Az AMS3 slot1 motor túlterhelt. Lehet, hogy a filament összegabalyodott vagy beragadt."
+            },
+            {
+                "ecode": "1203100000020002",
+                "intro": "Az AMS4 slot1 motor túlterhelt. Lehet, hogy a filament összegabalyodott vagy beragadt."
+            },
+            {
+                "ecode": "1200110000020002",
+                "intro": "Az AMS1 slot2 motor túlterhelt. Lehet, hogy a filament összegabalyodott vagy beragadt."
+            },
+            {
+                "ecode": "1201110000020002",
+                "intro": "Az AMS2 slot2 motor túlterhelt. Lehet, hogy a filament összegabalyodott vagy beragadt."
+            },
+            {
+                "ecode": "1202110000020002",
+                "intro": "Az AMS3 slot2 motor túlterhelt. Lehet, hogy a filament összegabalyodott vagy beragadt."
+            },
+            {
+                "ecode": "1203110000020002",
+                "intro": "Az AMS4 slot2 motor túlterhelt. Lehet, hogy a filament összegabalyodott vagy beragadt."
+            },
+            {
+                "ecode": "1200120000020002",
+                "intro": "Az AMS1 slot3 motor túlterhelt. Lehet, hogy a filament összegabalyodott vagy beragadt."
+            },
+            {
+                "ecode": "1201120000020002",
+                "intro": "Az AMS2 slot3 motor túlterhelt. Lehet, hogy a filament összegabalyodott vagy beragadt."
+            },
+            {
+                "ecode": "1202120000020002",
+                "intro": "Az AMS3 slot3 motor túlterhelt. Lehet, hogy a filament összegabalyodott vagy beragadt."
+            },
+            {
+                "ecode": "1203120000020002",
+                "intro": "Az AMS4 slot3 motor túlterhelt. Lehet, hogy a filament összegabalyodott vagy beragadt."
+            },
+            {
+                "ecode": "1200130000020002",
+                "intro": "Az AMS1 slot4 motor túlterhelt. Lehet, hogy a filament összegabalyodott vagy beragadt."
+            },
+            {
+                "ecode": "1201130000020002",
+                "intro": "Az AMS2 slot4 motor túlterhelt. Lehet, hogy a filament összegabalyodott vagy beragadt."
+            },
+            {
+                "ecode": "1202130000020002",
+                "intro": "Az AMS3 slot4 motor túlterhelt. Lehet, hogy a filament összegabalyodott vagy beragadt."
+            },
+            {
+                "ecode": "1203130000020002",
+                "intro": "Az AMS4 slot4 motor túlterhelt. Lehet, hogy a filament összegabalyodott vagy beragadt."
+            },
+            {
+                "ecode": "1200100000010003",
+                "intro": "Az AMS1 slot1 motor nyomatékszabályzása hibásan működik. Lehet, hogy az áramérzékelő hibás."
+            },
+            {
+                "ecode": "1201100000010003",
+                "intro": "Az AMS2 slot1 motor nyomatékszabályzása hibásan működik. Lehet, hogy az áramérzékelő hibás."
+            },
+            {
+                "ecode": "1202100000010003",
+                "intro": "Az AMS3 slot1 motor nyomatékszabályzása hibásan működik. Lehet, hogy az áramérzékelő hibás."
+            },
+            {
+                "ecode": "1203100000010003",
+                "intro": "Az AMS4 slot1 motor nyomatékszabályzása hibásan működik. Lehet, hogy az áramérzékelő hibás."
+            },
+            {
+                "ecode": "1200110000010003",
+                "intro": "Az AMS1 slot2 motor nyomatékszabályzása hibásan működik. Lehet, hogy az áramérzékelő hibás."
+            },
+            {
+                "ecode": "1201110000010003",
+                "intro": "Az AMS2 slot2 motor nyomatékszabályzása hibásan működik. Lehet, hogy az áramérzékelő hibás."
+            },
+            {
+                "ecode": "1202110000010003",
+                "intro": "Az AMS3 slot2 motor nyomatékszabályzása hibásan működik. Lehet, hogy az áramérzékelő hibás."
+            },
+            {
+                "ecode": "1203110000010003",
+                "intro": "Az AMS4 slot2 motor nyomatékszabályzása hibásan működik. Lehet, hogy az áramérzékelő hibás."
+            },
+            {
+                "ecode": "1200120000010003",
+                "intro": "Az AMS1 slot3 motor nyomatékszabályzása hibásan működik. Lehet, hogy az áramérzékelő hibás."
+            },
+            {
+                "ecode": "1201120000010003",
+                "intro": "Az AMS2 slot3 motor nyomatékszabályzása hibásan működik. Lehet, hogy az áramérzékelő hibás."
+            },
+            {
+                "ecode": "1202120000010003",
+                "intro": "Az AMS3 slot3 motor nyomatékszabályzása hibásan működik. Lehet, hogy az áramérzékelő hibás."
+            },
+            {
+                "ecode": "1203120000010003",
+                "intro": "Az AMS4 slot3 motor nyomatékszabályzása hibásan működik. Lehet, hogy az áramérzékelő hibás."
+            },
+            {
+                "ecode": "1200130000010003",
+                "intro": "Az AMS1 slot4 motor nyomatékszabályzása hibásan működik. Lehet, hogy az áramérzékelő hibás."
+            },
+            {
+                "ecode": "1201130000010003",
+                "intro": "Az AMS2 slot4 motor nyomatékszabályzása hibásan működik. Lehet, hogy az áramérzékelő hibás."
+            },
+            {
+                "ecode": "1202130000010003",
+                "intro": "Az AMS3 slot4 motor nyomatékszabályzása hibásan működik. Lehet, hogy az áramérzékelő hibás."
+            },
+            {
+                "ecode": "1203130000010003",
+                "intro": "Az AMS4 slot4 motor nyomatékszabályzása hibásan működik. Lehet, hogy az áramérzékelő hibás."
+            },
+            {
+                "ecode": "1200200000020001",
+                "intro": "AMS1 Slot1 filament elfogyott. Kérjük, helyezz be új filamentet."
+            },
+            {
+                "ecode": "1201200000020001",
+                "intro": "AMS2 Slot1 filament elfogyott. Kérjük, helyezz be új filamentet."
+            },
+            {
+                "ecode": "1202200000020001",
+                "intro": "AMS3 Slot1 filament elfogyott. Kérjük, helyezz be új filamentet."
+            },
+            {
+                "ecode": "1203200000020001",
+                "intro": "AMS4 Slot1 filament elfogyott. Kérjük, helyezz be új filamentet."
+            },
+            {
+                "ecode": "1200210000020001",
+                "intro": "AMS1 Slot2 filament elfogyott. Kérjük, helyezz be új filamentet."
+            },
+            {
+                "ecode": "1201210000020001",
+                "intro": "AMS2 Slot2 filament elfogyott. Kérjük, helyezz be új filamentet."
+            },
+            {
+                "ecode": "1202210000020001",
+                "intro": "AMS3 Slot2 filament elfogyott. Kérjük, helyezz be új filamentet."
+            },
+            {
+                "ecode": "1203210000020001",
+                "intro": "AMS4 Slot2 filament elfogyott. Kérjük, helyezz be új filamentet."
+            },
+            {
+                "ecode": "1200220000020001",
+                "intro": "AMS1 Slot3 filament elfogyott. Kérjük, helyezz be új filamentet."
+            },
+            {
+                "ecode": "1201220000020001",
+                "intro": "AMS2 Slot3 filament elfogyott. Kérjük, helyezz be új filamentet."
+            },
+            {
+                "ecode": "1202220000020001",
+                "intro": "AMS3 Slot3 filament elfogyott. Kérjük, helyezz be új filamentet."
+            },
+            {
+                "ecode": "1203220000020001",
+                "intro": "AMS4 Slot3 filament elfogyott. Kérjük, helyezz be új filamentet."
+            },
+            {
+                "ecode": "1200230000020001",
+                "intro": "AMS1 Slot4 filament elfogyott. Kérjük, helyezz be új filamentet."
+            },
+            {
+                "ecode": "1201230000020001",
+                "intro": "AMS2 Slot4 filament elfogyott. Kérjük, helyezz be új filamentet."
+            },
+            {
+                "ecode": "1202230000020001",
+                "intro": "AMS3 Slot4 filament elfogyott. Kérjük, helyezz be új filamentet."
+            },
+            {
+                "ecode": "1203230000020001",
+                "intro": "AMS4 Slot4 filament elfogyott. Kérjük, helyezz be új filamentet."
+            },
+            {
+                "ecode": "12FF200000020001",
+                "intro": "Elfogyott a filament a külső tartóról; kérjük, helyezz be új filamentet."
+            },
+            {
+                "ecode": "1200200000020002",
+                "intro": "AMS1 Slot1 üres; kérjük, helyezz be új filamentet."
+            },
+            {
+                "ecode": "1201200000020002",
+                "intro": "AMS2 Slot1 üres; kérjük, helyezz be új filamentet."
+            },
+            {
+                "ecode": "1202200000020002",
+                "intro": "AMS3 Slot1 üres; kérjük, helyezz be új filamentet."
+            },
+            {
+                "ecode": "1203200000020002",
+                "intro": "AMS4 Slot1 üres; kérjük, helyezz be új filamentet."
+            },
+            {
+                "ecode": "1200210000020002",
+                "intro": "AMS1 Slot2 üres; kérjük, helyezz be új filamentet."
+            },
+            {
+                "ecode": "1201210000020002",
+                "intro": "AMS2 Slot2 üres; kérjük, helyezz be új filamentet."
+            },
+            {
+                "ecode": "1202210000020002",
+                "intro": "AMS3 Slot2 üres; kérjük, helyezz be új filamentet."
+            },
+            {
+                "ecode": "1203210000020002",
+                "intro": "AMS4 Slot2 üres; kérjük, helyezz be új filamentet."
+            },
+            {
+                "ecode": "1200220000020002",
+                "intro": "AMS1 Slot3 üres; kérjük, helyezz be új filamentet."
+            },
+            {
+                "ecode": "1201220000020002",
+                "intro": "AMS2 Slot3 üres; kérjük, helyezz be új filamentet."
+            },
+            {
+                "ecode": "1202220000020002",
+                "intro": "AMS3 Slot3 üres; kérjük, helyezz be új filamentet."
+            },
+            {
+                "ecode": "1203220000020002",
+                "intro": "AMS4 Slot3 üres; kérjük, helyezz be új filamentet."
+            },
+            {
+                "ecode": "1200230000020002",
+                "intro": "AMS1 Slot4 üres; kérjük, helyezz be új filamentet."
+            },
+            {
+                "ecode": "1201230000020002",
+                "intro": "AMS2 Slot4 üres; kérjük, helyezz be új filamentet."
+            },
+            {
+                "ecode": "1202230000020002",
+                "intro": "AMS3 Slot4 üres; kérjük, helyezz be új filamentet."
+            },
+            {
+                "ecode": "1203230000020002",
+                "intro": "AMS4 Slot4 üres; kérjük, helyezz be új filamentet."
+            },
+            {
+                "ecode": "12FF200000020002",
+                "intro": "Elfogyott a filament a külső tartóról; kérjük, helyezz be új filamentet."
+            },
+            {
+                "ecode": "1200200000020003",
+                "intro": "AMS1 Slot1 filament lehet, hogy eltört a PTFE-csőben."
+            },
+            {
+                "ecode": "1201200000020003",
+                "intro": "AMS2 Slot1 filament lehet, hogy eltört a PTFE-csőben."
+            },
+            {
+                "ecode": "1202200000020003",
+                "intro": "AMS3 Slot1 filament lehet, hogy eltört a PTFE-csőben."
+            },
+            {
+                "ecode": "1203200000020003",
+                "intro": "AMS4 Slot1 filament lehet, hogy eltört a PTFE-csőben."
+            },
+            {
+                "ecode": "1200210000020003",
+                "intro": "AMS1 Slot2 filament lehet, hogy eltört a PTFE-csőben."
+            },
+            {
+                "ecode": "1201210000020003",
+                "intro": "AMS2 Slot2 filament lehet, hogy eltört a PTFE-csőben."
+            },
+            {
+                "ecode": "1202210000020003",
+                "intro": "AMS3 Slot2 filament lehet, hogy eltört a PTFE-csőben."
+            },
+            {
+                "ecode": "1203210000020003",
+                "intro": "AMS4 Slot2 filament lehet, hogy eltört a PTFE-csőben."
+            },
+            {
+                "ecode": "1200220000020003",
+                "intro": "AMS1 Slot3 filament lehet, hogy eltört a PTFE-csőben."
+            },
+            {
+                "ecode": "1201220000020003",
+                "intro": "AMS2 Slot3 filament lehet, hogy eltört a PTFE-csőben."
+            },
+            {
+                "ecode": "1202220000020003",
+                "intro": "AMS3 Slot3 filament lehet, hogy eltört a PTFE-csőben."
+            },
+            {
+                "ecode": "1203220000020003",
+                "intro": "AMS4 Slot3 filament lehet, hogy eltört a PTFE-csőben."
+            },
+            {
+                "ecode": "1200230000020003",
+                "intro": "AMS1 Slot4 filament lehet, hogy eltört a PTFE-csőben."
+            },
+            {
+                "ecode": "1201230000020003",
+                "intro": "AMS2 Slot4 filament lehet, hogy eltört a PTFE-csőben."
+            },
+            {
+                "ecode": "1202230000020003",
+                "intro": "AMS3 Slot4 filament lehet, hogy eltört a PTFE-csőben."
+            },
+            {
+                "ecode": "1203230000020003",
+                "intro": "AMS4 Slot4 filament lehet, hogy eltört a PTFE-csőben."
+            },
+            {
+                "ecode": "1200200000020004",
+                "intro": "Úgy tűnik, hogy az AMS1 Slot1 filament eltört a nyomtatófejben."
+            },
+            {
+                "ecode": "1201200000020004",
+                "intro": "Úgy tűnik, hogy az AMS2 Slot1 filament eltört a nyomtatófejben."
+            },
+            {
+                "ecode": "1202200000020004",
+                "intro": "Úgy tűnik, hogy az AMS3 Slot1 filament eltört a nyomtatófejben."
+            },
+            {
+                "ecode": "1203200000020004",
+                "intro": "Úgy tűnik, hogy az AMS4 Slot1 filament eltört a nyomtatófejben."
+            },
+            {
+                "ecode": "1200210000020004",
+                "intro": "Úgy tűnik, hogy az AMS1 Slot2 filament eltört a nyomtatófejben."
+            },
+            {
+                "ecode": "1201210000020004",
+                "intro": "Úgy tűnik, hogy az AMS2 Slot2 filament eltört a nyomtatófejben."
+            },
+            {
+                "ecode": "1202210000020004",
+                "intro": "Úgy tűnik, hogy az AMS3 Slot2 filament eltört a nyomtatófejben."
+            },
+            {
+                "ecode": "1203210000020004",
+                "intro": "Úgy tűnik, hogy az AMS4 Slot2 filament eltört a nyomtatófejben."
+            },
+            {
+                "ecode": "1200220000020004",
+                "intro": "Úgy tűnik, hogy az AMS1 Slot3 filament eltört a nyomtatófejben."
+            },
+            {
+                "ecode": "1201220000020004",
+                "intro": "Úgy tűnik, hogy az AMS2 Slot3 filament eltört a nyomtatófejben."
+            },
+            {
+                "ecode": "1202220000020004",
+                "intro": "Úgy tűnik, hogy az AMS3 Slot3 filament eltört a nyomtatófejben."
+            },
+            {
+                "ecode": "1203220000020004",
+                "intro": "Úgy tűnik, hogy az AMS4 Slot3 filament eltört a nyomtatófejben."
+            },
+            {
+                "ecode": "1200230000020004",
+                "intro": "Úgy tűnik, hogy az AMS1 Slot4 filament eltört a nyomtatófejben."
+            },
+            {
+                "ecode": "1201230000020004",
+                "intro": "Úgy tűnik, hogy az AMS2 Slot4 filament eltört a nyomtatófejben."
+            },
+            {
+                "ecode": "1202230000020004",
+                "intro": "Úgy tűnik, hogy az AMS3 Slot4 filament eltört a nyomtatófejben."
+            },
+            {
+                "ecode": "1203230000020004",
+                "intro": "Úgy tűnik, hogy az AMS4 Slot4 filament eltört a nyomtatófejben."
+            },
+            {
+                "ecode": "12FF200000020004",
+                "intro": "Kérjük, húzd ki a külső tartón lévő filamentet az extruderből."
+            },
+            {
+                "ecode": "1200200000020005",
+                "intro": "AMS1 Slot1 filament kifogyott és a régi filament kiöblítése során hiba lépett fel. Kérjük, győződj meg róla, hogy nincs beragadt filament a nyomtatófejben."
+            },
+            {
+                "ecode": "1201200000020005",
+                "intro": "AMS2 Slot1 filament kifogyott és a régi filament kiöblítése során hiba lépett fel. Kérjük, győződj meg róla, hogy nincs beragadt filament a nyomtatófejben."
+            },
+            {
+                "ecode": "1202200000020005",
+                "intro": "AMS3 Slot1 filament kifogyott és a régi filament kiöblítése során hiba lépett fel. Kérjük, győződj meg róla, hogy nincs beragadt filament a nyomtatófejben."
+            },
+            {
+                "ecode": "1203200000020005",
+                "intro": "AMS4 Slot1 filament kifogyott és a régi filament kiöblítése során hiba lépett fel. Kérjük, győződj meg róla, hogy nincs beragadt filament a nyomtatófejben."
+            },
+            {
+                "ecode": "1200210000020005",
+                "intro": "AMS1 Slot2 filament kifogyott és a régi filament kiöblítése során hiba lépett fel. Kérjük, győződj meg róla, hogy nincs beragadt filament a nyomtatófejben."
+            },
+            {
+                "ecode": "1201210000020005",
+                "intro": "AMS2 Slot2 filament kifogyott és a régi filament kiöblítése során hiba lépett fel. Kérjük, győződj meg róla, hogy nincs beragadt filament a nyomtatófejben."
+            },
+            {
+                "ecode": "1202210000020005",
+                "intro": "AMS3 Slot2 filament kifogyott és a régi filament kiöblítése során hiba lépett fel. Kérjük, győződj meg róla, hogy nincs beragadt filament a nyomtatófejben."
+            },
+            {
+                "ecode": "1203210000020005",
+                "intro": "AMS4 Slot2 filament kifogyott és a régi filament kiöblítése során hiba lépett fel. Kérjük, győződj meg róla, hogy nincs beragadt filament a nyomtatófejben."
+            },
+            {
+                "ecode": "1200220000020005",
+                "intro": "AMS1 Slot3 filament kifogyott és a régi filament kiöblítése során hiba lépett fel. Kérjük, győződj meg róla, hogy nincs beragadt filament a nyomtatófejben."
+            },
+            {
+                "ecode": "1201220000020005",
+                "intro": "AMS2 Slot3 filament kifogyott és a régi filament kiöblítése során hiba lépett fel. Kérjük, győződj meg róla, hogy nincs beragadt filament a nyomtatófejben."
+            },
+            {
+                "ecode": "1202220000020005",
+                "intro": "AMS3 Slot3 filament kifogyott és a régi filament kiöblítése során hiba lépett fel. Kérjük, győződj meg róla, hogy nincs beragadt filament a nyomtatófejben."
+            },
+            {
+                "ecode": "1203220000020005",
+                "intro": "AMS4 Slot3 filament kifogyott és a régi filament kiöblítése során hiba lépett fel. Kérjük, győződj meg róla, hogy nincs beragadt filament a nyomtatófejben."
+            },
+            {
+                "ecode": "1200230000020005",
+                "intro": "AMS1 Slot4 filament kifogyott és a régi filament kiöblítése során hiba lépett fel. Kérjük, győződj meg róla, hogy nincs beragadt filament a nyomtatófejben."
+            },
+            {
+                "ecode": "1201230000020005",
+                "intro": "AMS2 Slot4 filament kifogyott és a régi filament kiöblítése során hiba lépett fel. Kérjük, győződj meg róla, hogy nincs beragadt filament a nyomtatófejben."
+            },
+            {
+                "ecode": "1202230000020005",
+                "intro": "AMS3 Slot4 filament kifogyott és a régi filament kiöblítése során hiba lépett fel. Kérjük, győződj meg róla, hogy nincs beragadt filament a nyomtatófejben."
+            },
+            {
+                "ecode": "1203230000020005",
+                "intro": "AMS4 Slot4 filament kifogyott és a régi filament kiöblítése során hiba lépett fel. Kérjük, győződj meg róla, hogy nincs beragadt filament a nyomtatófejben."
+            },
+            {
+                "ecode": "1200200000030001",
+                "intro": "AMS1 Slot1 filament elfogyott. Kérjük, várj, amíg a régi filamentet kiöblítjük."
+            },
+            {
+                "ecode": "1201200000030001",
+                "intro": "AMS2 Slot1 filament elfogyott. Kérjük, várj, amíg a régi filamentet kiöblítjük."
+            },
+            {
+                "ecode": "1202200000030001",
+                "intro": "AMS3 Slot1 filament elfogyott. Kérjük, várj, amíg a régi filamentet kiöblítjük."
+            },
+            {
+                "ecode": "1203200000030001",
+                "intro": "AMS4 Slot1 filament elfogyott. Kérjük, várj, amíg a régi filamentet kiöblítjük."
+            },
+            {
+                "ecode": "1200210000030001",
+                "intro": "AMS1 Slot2 filament elfogyott. Kérjük, várj, amíg a régi filamentet kiöblítjük."
+            },
+            {
+                "ecode": "1201210000030001",
+                "intro": "AMS2 Slot2 filament elfogyott. Kérjük, várj, amíg a régi filamentet kiöblítjük."
+            },
+            {
+                "ecode": "1202210000030001",
+                "intro": "AMS3 Slot2 filament elfogyott. Kérjük, várj, amíg a régi filamentet kiöblítjük."
+            },
+            {
+                "ecode": "1203210000030001",
+                "intro": "AMS4 Slot2 filament elfogyott. Kérjük, várj, amíg a régi filamentet kiöblítjük."
+            },
+            {
+                "ecode": "1200220000030001",
+                "intro": "AMS1 Slot3 filament elfogyott. Kérjük, várj, amíg a régi filamentet kiöblítjük."
+            },
+            {
+                "ecode": "1201220000030001",
+                "intro": "AMS2 Slot3 filament elfogyott. Kérjük, várj, amíg a régi filamentet kiöblítjük."
+            },
+            {
+                "ecode": "1202220000030001",
+                "intro": "AMS3 Slot3 filament elfogyott. Kérjük, várj, amíg a régi filamentet kiöblítjük."
+            },
+            {
+                "ecode": "1203220000030001",
+                "intro": "AMS4 Slot3 filament elfogyott. Kérjük, várj, amíg a régi filamentet kiöblítjük."
+            },
+            {
+                "ecode": "1200230000030001",
+                "intro": "AMS1 Slot4 filament elfogyott. Kérjük, várj, amíg a régi filamentet kiöblítjük."
+            },
+            {
+                "ecode": "1201230000030001",
+                "intro": "AMS2 Slot4 filament elfogyott. Kérjük, várj, amíg a régi filamentet kiöblítjük."
+            },
+            {
+                "ecode": "1202230000030001",
+                "intro": "AMS3 Slot4 filament elfogyott. Kérjük, várj, amíg a régi filamentet kiöblítjük."
+            },
+            {
+                "ecode": "1203230000030001",
+                "intro": "AMS4 Slot4 filament elfogyott. Kérjük, várj, amíg a régi filamentet kiöblítjük."
+            },
+            {
+                "ecode": "1200200000030002",
+                "intro": "AMS1 Slot1 filament kifogyott, és automatikusan átváltott egy azonos filamenttel feltöltött férőhelyre."
+            },
+            {
+                "ecode": "1201200000030002",
+                "intro": "AMS2 Slot1 filament kifogyott, és automatikusan átváltott egy azonos filamenttel feltöltött férőhelyre."
+            },
+            {
+                "ecode": "1202200000030002",
+                "intro": "AMS3 Slot1 filament kifogyott, és automatikusan átváltott egy azonos filamenttel feltöltött férőhelyre."
+            },
+            {
+                "ecode": "1203200000030002",
+                "intro": "AMS4 Slot1 filament kifogyott, és automatikusan átváltott egy azonos filamenttel feltöltött férőhelyre."
+            },
+            {
+                "ecode": "1200210000030002",
+                "intro": "AMS1 Slot2 filament kifogyott, és automatikusan átváltott egy azonos filamenttel feltöltött férőhelyre."
+            },
+            {
+                "ecode": "1201210000030002",
+                "intro": "AMS2 Slot2 filament kifogyott, és automatikusan átváltott egy azonos filamenttel feltöltött férőhelyre."
+            },
+            {
+                "ecode": "1202210000030002",
+                "intro": "AMS3 Slot2 filament kifogyott, és automatikusan átváltott egy azonos filamenttel feltöltött férőhelyre."
+            },
+            {
+                "ecode": "1203210000030002",
+                "intro": "AMS4 Slot2 filament kifogyott, és automatikusan átváltott egy azonos filamenttel feltöltött férőhelyre."
+            },
+            {
+                "ecode": "1200220000030002",
+                "intro": "AMS1 Slot3 filament kifogyott, és automatikusan átváltott egy azonos filamenttel feltöltött férőhelyre."
+            },
+            {
+                "ecode": "1201220000030002",
+                "intro": "AMS2 Slot3 filament kifogyott, és automatikusan átváltott egy azonos filamenttel feltöltött férőhelyre."
+            },
+            {
+                "ecode": "1202220000030002",
+                "intro": "AMS3 Slot3 filament kifogyott, és automatikusan átváltott egy azonos filamenttel feltöltött férőhelyre."
+            },
+            {
+                "ecode": "1203220000030002",
+                "intro": "AMS4 Slot3 filament kifogyott, és automatikusan átváltott egy azonos filamenttel feltöltött férőhelyre."
+            },
+            {
+                "ecode": "1200230000030002",
+                "intro": "AMS1 Slot4 filament kifogyott, és automatikusan átváltott egy azonos filamenttel feltöltött férőhelyre."
+            },
+            {
+                "ecode": "1201230000030002",
+                "intro": "AMS2 Slot4 filament kifogyott, és automatikusan átváltott egy azonos filamenttel feltöltött férőhelyre."
+            },
+            {
+                "ecode": "1202230000030002",
+                "intro": "AMS3 Slot4 filament kifogyott, és automatikusan átváltott egy azonos filamenttel feltöltött férőhelyre."
+            },
+            {
+                "ecode": "1203230000030002",
+                "intro": "AMS4 Slot4 filament kifogyott, és automatikusan átváltott egy azonos filamenttel feltöltött férőhelyre."
+            },
+            {
+                "ecode": "1200300000010001",
+                "intro": "AMS1 Slot1 RFID-tekercse megsérült, vagy a hardveráramkör hibás."
+            },
+            {
+                "ecode": "1201300000010001",
+                "intro": "AMS2 Slot1 RFID-tekercse megsérült, vagy a hardveráramkör hibás."
+            },
+            {
+                "ecode": "1202300000010001",
+                "intro": "AMS3 Slot1 RFID-tekercse megsérült, vagy a hardveráramkör hibás."
+            },
+            {
+                "ecode": "1203300000010001",
+                "intro": "AMS4 Slot1 RFID-tekercse megsérült, vagy a hardveráramkör hibás."
+            },
+            {
+                "ecode": "1200310000010001",
+                "intro": "AMS1 Slot2 RFID-tekercse megsérült, vagy a hardveráramkör hibás."
+            },
+            {
+                "ecode": "1201310000010001",
+                "intro": "AMS2 Slot2 RFID-tekercse megsérült, vagy a hardveráramkör hibás."
+            },
+            {
+                "ecode": "1202310000010001",
+                "intro": "AMS3 Slot2 RFID-tekercse megsérült, vagy a hardveráramkör hibás."
+            },
+            {
+                "ecode": "1203310000010001",
+                "intro": "AMS4 Slot2 RFID-tekercse megsérült, vagy a hardveráramkör hibás."
+            },
+            {
+                "ecode": "1200320000010001",
+                "intro": "AMS1 Slot3 RFID-tekercse megsérült, vagy a hardveráramkör hibás."
+            },
+            {
+                "ecode": "1201320000010001",
+                "intro": "AMS2 Slot3 RFID-tekercse megsérült, vagy a hardveráramkör hibás."
+            },
+            {
+                "ecode": "1202320000010001",
+                "intro": "AMS3 Slot3 RFID-tekercse megsérült, vagy a hardveráramkör hibás."
+            },
+            {
+                "ecode": "1203320000010001",
+                "intro": "AMS4 Slot3 RFID-tekercse megsérült, vagy a hardveráramkör hibás."
+            },
+            {
+                "ecode": "1200330000010001",
+                "intro": "AMS1 Slot4 RFID-tekercse megsérült, vagy a hardveráramkör hibás."
+            },
+            {
+                "ecode": "1201330000010001",
+                "intro": "AMS2 Slot4 RFID-tekercse megsérült, vagy a hardveráramkör hibás."
+            },
+            {
+                "ecode": "1202330000010001",
+                "intro": "AMS3 Slot4 RFID-tekercse megsérült, vagy a hardveráramkör hibás."
+            },
+            {
+                "ecode": "1203330000010001",
+                "intro": "AMS4 Slot4 RFID-tekercse megsérült, vagy a hardveráramkör hibás."
+            },
+            {
+                "ecode": "1200300000020002",
+                "intro": "Az AMS1 Slot1 RFID-címkéje megsérült."
+            },
+            {
+                "ecode": "1201300000020002",
+                "intro": "Az AMS2 Slot1 RFID-címkéje megsérült."
+            },
+            {
+                "ecode": "1202300000020002",
+                "intro": "Az AMS3 Slot1 RFID-címkéje megsérült."
+            },
+            {
+                "ecode": "1203300000020002",
+                "intro": "Az AMS4 Slot1 RFID-címkéje megsérült."
+            },
+            {
+                "ecode": "1200310000020002",
+                "intro": "Az AMS1 Slot2 RFID-címkéje megsérült."
+            },
+            {
+                "ecode": "1201310000020002",
+                "intro": "Az AMS2 Slot2 RFID-címkéje megsérült."
+            },
+            {
+                "ecode": "1202310000020002",
+                "intro": "Az AMS3 Slot2 RFID-címkéje megsérült."
+            },
+            {
+                "ecode": "1203310000020002",
+                "intro": "Az AMS4 Slot2 RFID-címkéje megsérült."
+            },
+            {
+                "ecode": "1200320000020002",
+                "intro": "Az AMS1 Slot3 RFID-címkéje megsérült."
+            },
+            {
+                "ecode": "1201320000020002",
+                "intro": "Az AMS2 Slot3 RFID-címkéje megsérült."
+            },
+            {
+                "ecode": "1202320000020002",
+                "intro": "Az AMS3 Slot3 RFID-címkéje megsérült."
+            },
+            {
+                "ecode": "1203320000020002",
+                "intro": "Az AMS4 Slot3 RFID-címkéje megsérült."
+            },
+            {
+                "ecode": "1200330000020002",
+                "intro": "Az AMS1 Slot4 RFID-címkéje megsérült."
+            },
+            {
+                "ecode": "1201330000020002",
+                "intro": "Az AMS2 Slot4 RFID-címkéje megsérült."
+            },
+            {
+                "ecode": "1202330000020002",
+                "intro": "Az AMS3 Slot4 RFID-címkéje megsérült."
+            },
+            {
+                "ecode": "1203330000020002",
+                "intro": "Az AMS4 Slot4 RFID-címkéje megsérült."
+            },
+            {
+                "ecode": "1200300000030003",
+                "intro": "Az AMS1 Slot1 RFID nem olvasható szerkezeti hiba miatt."
+            },
+            {
+                "ecode": "1201300000030003",
+                "intro": "Az AMS2 Slot1 RFID nem olvasható szerkezeti hiba miatt."
+            },
+            {
+                "ecode": "1202300000030003",
+                "intro": "Az AMS3 Slot1 RFID nem olvasható szerkezeti hiba miatt."
+            },
+            {
+                "ecode": "1203300000030003",
+                "intro": "Az AMS4 Slot1 RFID nem olvasható szerkezeti hiba miatt."
+            },
+            {
+                "ecode": "1200310000030003",
+                "intro": "Az AMS1 Slot2 RFID nem olvasható szerkezeti hiba miatt."
+            },
+            {
+                "ecode": "1201310000030003",
+                "intro": "Az AMS2 Slot2 RFID nem olvasható szerkezeti hiba miatt."
+            },
+            {
+                "ecode": "1202310000030003",
+                "intro": "Az AMS3 Slot2 RFID nem olvasható szerkezeti hiba miatt."
+            },
+            {
+                "ecode": "1203310000030003",
+                "intro": "Az AMS4 Slot2 RFID nem olvasható szerkezeti hiba miatt."
+            },
+            {
+                "ecode": "1200320000030003",
+                "intro": "Az AMS1 Slot3 RFID nem olvasható szerkezeti hiba miatt."
+            },
+            {
+                "ecode": "1201320000030003",
+                "intro": "Az AMS2 Slot3 RFID nem olvasható szerkezeti hiba miatt."
+            },
+            {
+                "ecode": "1202320000030003",
+                "intro": "Az AMS3 Slot3 RFID nem olvasható szerkezeti hiba miatt."
+            },
+            {
+                "ecode": "1203320000030003",
+                "intro": "Az AMS4 Slot3 RFID nem olvasható szerkezeti hiba miatt."
+            },
+            {
+                "ecode": "1200330000030003",
+                "intro": "Az AMS1 Slot4 RFID nem olvasható szerkezeti hiba miatt."
+            },
+            {
+                "ecode": "1201330000030003",
+                "intro": "Az AMS2 Slot4 RFID nem olvasható szerkezeti hiba miatt."
+            },
+            {
+                "ecode": "1202330000030003",
+                "intro": "Az AMS3 Slot4 RFID nem olvasható szerkezeti hiba miatt."
+            },
+            {
+                "ecode": "1203330000030003",
+                "intro": "Az AMS4 Slot4 RFID nem olvasható szerkezeti hiba miatt."
+            },
+            {
+                "ecode": "1200300000010004",
+                "intro": "Az RFID nem olvasható az AMS1 titkosítóchip hibája miatt."
+            },
+            {
+                "ecode": "1201300000010004",
+                "intro": "Az RFID nem olvasható az AMS2 titkosítóchip hibája miatt."
+            },
+            {
+                "ecode": "1202300000010004",
+                "intro": "Az RFID nem olvasható az AMS3 titkosítóchip hibája miatt."
+            },
+            {
+                "ecode": "1203300000010004",
+                "intro": "Az RFID nem olvasható az AMS4 titkosítóchip hibája miatt."
+            },
+            {
+                "ecode": "1200450000020001",
+                "intro": "A filamentvágó szenzora hibásan működik. Kérjük, győződj meg róla, hogy megfelelően van csatlakoztatva."
+            },
+            {
+                "ecode": "1200450000020002",
+                "intro": "A filamentvágó vágási távolsága túl nagy. Előfordulhat, hogy az X motor lépést veszt."
+            },
+            {
+                "ecode": "1200450000020003",
+                "intro": "A filamentvágó karja nem engedett ki. Lehet, hogy a kar vagy a penge beragadt."
+            },
+            {
+                "ecode": "1200500000020001",
+                "intro": "AMS1 kommunikációs hiba, kérjük, ellenőrizd a kábel csatlakoztatását."
+            },
+            {
+                "ecode": "1201500000020001",
+                "intro": "AMS2 kommunikációs hiba, kérjük, ellenőrizd a kábel csatlakoztatását."
+            },
+            {
+                "ecode": "1202500000020001",
+                "intro": "AMS3 kommunikációs hiba, kérjük, ellenőrizd a kábel csatlakoztatását."
+            },
+            {
+                "ecode": "1203500000020001",
+                "intro": "AMS4 kommunikációs hiba, kérjük, ellenőrizd a kábel csatlakoztatását."
+            },
+            {
+                "ecode": "1200510000030001",
+                "intro": "Az AMS ki van kapcsolva, kérjük, töltsd be a filamentet a külső tartóról."
+            },
+            {
+                "ecode": "1200700000010001",
+                "intro": "AMS1 filamentsebesség és hossz hiba. Lehet, hogy a slot 1 hosszmérő szenzor meghibásodott."
+            },
+            {
+                "ecode": "1201700000010001",
+                "intro": "AMS2 filamentsebesség és hossz hiba. Lehet, hogy a slot 1 hosszmérő szenzor meghibásodott."
+            },
+            {
+                "ecode": "1202700000010001",
+                "intro": "AMS3 filamentsebesség és hossz hiba. Lehet, hogy a slot 1 hosszmérő szenzor meghibásodott."
+            },
+            {
+                "ecode": "1203700000010001",
+                "intro": "AMS4 filamentsebesség és hossz hiba. Lehet, hogy a slot 1 hosszmérő szenzor meghibásodott."
+            },
+            {
+                "ecode": "1200710000010001",
+                "intro": "AMS1 filamentsebesség és hossz hiba. Lehet, hogy a slot 2 hosszmérő szenzor meghibásodott."
+            },
+            {
+                "ecode": "1201710000010001",
+                "intro": "AMS2 filamentsebesség és hossz hiba. Lehet, hogy a slot 2 hosszmérő szenzor meghibásodott."
+            },
+            {
+                "ecode": "1202710000010001",
+                "intro": "AMS3 filamentsebesség és hossz hiba. Lehet, hogy a slot 2 hosszmérő szenzor meghibásodott."
+            },
+            {
+                "ecode": "1203710000010001",
+                "intro": "AMS4 filamentsebesség és hossz hiba. Lehet, hogy a slot 2 hosszmérő szenzor meghibásodott."
+            },
+            {
+                "ecode": "1200720000010001",
+                "intro": "AMS1 filamentsebesség és hossz hiba. Lehet, hogy a slot 3 hosszmérő szenzor meghibásodott."
+            },
+            {
+                "ecode": "1201720000010001",
+                "intro": "AMS2 filamentsebesség és hossz hiba. Lehet, hogy a slot 3 hosszmérő szenzor meghibásodott."
+            },
+            {
+                "ecode": "1202720000010001",
+                "intro": "AMS3 filamentsebesség és hossz hiba. Lehet, hogy a slot 3 hosszmérő szenzor meghibásodott."
+            },
+            {
+                "ecode": "1203720000010001",
+                "intro": "AMS4 filamentsebesség és hossz hiba. Lehet, hogy a slot 3 hosszmérő szenzor meghibásodott."
+            },
+            {
+                "ecode": "1200730000010001",
+                "intro": "AMS1 filamentsebesség és hossz hiba. Lehet, hogy a slot 4 hosszmérő szenzor meghibásodott."
+            },
+            {
+                "ecode": "1201730000010001",
+                "intro": "AMS2 filamentsebesség és hossz hiba. Lehet, hogy a slot 4 hosszmérő szenzor meghibásodott."
+            },
+            {
+                "ecode": "1202730000010001",
+                "intro": "AMS3 filamentsebesség és hossz hiba. Lehet, hogy a slot 4 hosszmérő szenzor meghibásodott."
+            },
+            {
+                "ecode": "1203730000010001",
+                "intro": "AMS4 filamentsebesség és hossz hiba. Lehet, hogy a slot 4 hosszmérő szenzor meghibásodott."
+            },
+            {
+                "ecode": "0702120000010001",
+                "intro": "Az AMS3 slot3 motor megcsúszott. Lehet, hogy a kerék elkopott, vagy a filament túl vékony."
+            },
+            {
+                "ecode": "0702120000010003",
+                "intro": "Az AMS3 slot3 motor nyomatékszabályzása hibásan működik. Lehet, hogy az áramérzékelő hibás."
+            },
+            {
+                "ecode": "0702120000020002",
+                "intro": "Az AMS3 slot3 motor túlterhelt. Lehet, hogy a filament összegabalyodott vagy beragadt."
+            },
+            {
+                "ecode": "0702130000010001",
+                "intro": "Az AMS3 slot4 motor megcsúszott. Lehet, hogy a kerék elkopott, vagy a filament túl vékony."
+            },
+            {
+                "ecode": "0702130000010003",
+                "intro": "Az AMS3 slot4 motor nyomatékszabályzása hibásan működik. Lehet, hogy az áramérzékelő hibás."
+            },
+            {
+                "ecode": "0702130000020002",
+                "intro": "Az AMS3 slot4 motor túlterhelt. Lehet, hogy a filament összegabalyodott vagy beragadt."
+            },
+            {
+                "ecode": "0702200000020001",
+                "intro": "AMS3 Slot1 filament elfogyott. Kérjük, helyezz be új filamentet."
+            },
+            {
+                "ecode": "0702200000020002",
+                "intro": "AMS3 Slot1 üres."
+            },
+            {
+                "ecode": "0702200000020003",
+                "intro": "AMS3 Slot1 filament lehet, hogy eltört az AMS-ben."
+            },
+            {
+                "ecode": "0702210000020001",
+                "intro": "AMS3 Slot2 filament elfogyott. Kérjük, helyezz be új filamentet."
+            },
+            {
+                "ecode": "0702210000020002",
+                "intro": "AMS3 Slot2 üres."
+            },
+            {
+                "ecode": "0702210000020003",
+                "intro": "AMS3 Slot2 filament lehet, hogy eltört az AMS-ben."
+            },
+            {
+                "ecode": "0702220000020001",
+                "intro": "AMS3 Slot3 filament elfogyott. Kérjük, helyezz be új filamentet."
+            },
+            {
+                "ecode": "0702220000020002",
+                "intro": "AMS3 Slot3 üres."
+            },
+            {
+                "ecode": "0702220000020003",
+                "intro": "AMS3 Slot3 filament lehet, hogy eltört az AMS-ben."
+            },
+            {
+                "ecode": "0702230000020001",
+                "intro": "AMS3 Slot4 filament elfogyott. Kérjük, helyezz be új filamentet."
+            },
+            {
+                "ecode": "0702230000020002",
+                "intro": "AMS3 Slot4 üres."
+            },
+            {
+                "ecode": "0702230000020003",
+                "intro": "AMS3 Slot4 filament lehet, hogy eltört az AMS-ben."
+            },
+            {
+                "ecode": "0702300000010001",
+                "intro": "Az AMS3 Slot1 és Slot2 között található RFID olvasó meghibásodott."
+            },
+            {
+                "ecode": "0702300000010004",
+                "intro": "Titkosító chip meghibásodás."
+            },
+            {
+                "ecode": "0702300000020002",
+                "intro": "Az AMS3 Slot1 RFID-címkéje megsérült."
+            },
+            {
+                "ecode": "0702300000030003",
+                "intro": "Az RFID nem olvasható hardveres vagy szerkezeti hiba miatt."
+            },
+            {
+                "ecode": "0702310000010001",
+                "intro": "Az AMS3 Slot3 és Slot4 között található RFID olvasó meghibásodott."
+            },
+            {
+                "ecode": "0702310000010004",
+                "intro": "Titkosító chip meghibásodás."
+            },
+            {
+                "ecode": "0702310000020002",
+                "intro": "Az AMS3 Slot2 RFID-címkéje megsérült."
+            },
+            {
+                "ecode": "0702310000030003",
+                "intro": "Az RFID nem olvasható hardveres vagy szerkezeti hiba miatt."
+            },
+            {
+                "ecode": "0702320000020002",
+                "intro": "Az AMS3 Slot3 RFID-címkéje megsérült."
+            },
+            {
+                "ecode": "0702330000020002",
+                "intro": "Az AMS3 Slot4 RFID-címkéje megsérült."
+            },
+            {
+                "ecode": "0702350000010001",
+                "intro": "A hőmérséklet- és páratartalom-érzékelő hibásan működik. Lehet, hogy a chip hibás."
+            },
+            {
+                "ecode": "0703010000010001",
+                "intro": "Az AMS4 segédmotor megcsúszott. Lehet, hogy a kerék elkopott, vagy a filament túl vékony."
+            },
+            {
+                "ecode": "0703010000010003",
+                "intro": "Az AMS4 segédmotor nyomatékszabályzása hibásan működik. Lehet, hogy az áramérzékelő hibás."
+            },
+            {
+                "ecode": "0703010000010004",
+                "intro": "Az AMS4 segédmotor fordulatszámszabályzója hibásan működik. Lehet, hogy a sebességérzékelő meghibásodott."
+            },
+            {
+                "ecode": "0703010000020002",
+                "intro": "Az AMS4 segédmotor túlterhelt. Lehet, hogy a filament összegabalyodott vagy beragadt."
+            },
+            {
+                "ecode": "0703020000010001",
+                "intro": "AMS4 filamentsebesség és hossz hiba. Lehet, hogy a hosszmérő szenzor meghibásodott."
+            },
+            {
+                "ecode": "0703100000010001",
+                "intro": "Az AMS4 slot1 motor megcsúszott. Lehet, hogy a kerék elkopott, vagy a filament túl vékony."
+            },
+            {
+                "ecode": "0703100000010003",
+                "intro": "Az AMS4 slot1 motor nyomatékszabályzása hibásan működik. Lehet, hogy az áramérzékelő hibás."
+            },
+            {
+                "ecode": "0703100000020002",
+                "intro": "Az AMS4 slot1 motor túlterhelt. Lehet, hogy a filament összegabalyodott vagy beragadt."
+            },
+            {
+                "ecode": "0703110000010001",
+                "intro": "Az AMS4 slot2 motor megcsúszott. Lehet, hogy a kerék elkopott, vagy a filament túl vékony."
+            },
+            {
+                "ecode": "0703110000010003",
+                "intro": "Az AMS4 slot2 motor nyomatékszabályzása hibásan működik. Lehet, hogy az áramérzékelő hibás."
+            },
+            {
+                "ecode": "0703110000020002",
+                "intro": "Az AMS4 slot2 motor túlterhelt. Lehet, hogy a filament összegabalyodott vagy beragadt."
+            },
+            {
+                "ecode": "0703120000010001",
+                "intro": "Az AMS4 slot3 motor megcsúszott. Lehet, hogy a kerék elkopott, vagy a filament túl vékony."
+            },
+            {
+                "ecode": "0703120000010003",
+                "intro": "Az AMS4 slot3 motor nyomatékszabályzása hibásan működik. Lehet, hogy az áramérzékelő hibás."
+            },
+            {
+                "ecode": "0703120000020002",
+                "intro": "Az AMS4 slot3 motor túlterhelt. Lehet, hogy a filament összegabalyodott vagy beragadt."
+            },
+            {
+                "ecode": "0703130000010001",
+                "intro": "Az AMS4 slot4 motor megcsúszott. Lehet, hogy a kerék elkopott, vagy a filament túl vékony."
+            },
+            {
+                "ecode": "0703130000010003",
+                "intro": "Az AMS4 slot4 motor nyomatékszabályzása hibásan működik. Lehet, hogy az áramérzékelő hibás."
+            },
+            {
+                "ecode": "0703130000020002",
+                "intro": "Az AMS4 slot4 motor túlterhelt. Lehet, hogy a filament összegabalyodott vagy beragadt."
+            },
+            {
+                "ecode": "0703200000020001",
+                "intro": "AMS4 Slot1 filament elfogyott. Kérjük, helyezz be új filamentet."
+            },
+            {
+                "ecode": "0703200000020002",
+                "intro": "AMS4 Slot1 üres."
+            },
+            {
+                "ecode": "0703200000020003",
+                "intro": "AMS4 Slot1 filament lehet, hogy eltört az AMS-ben."
+            },
+            {
+                "ecode": "0703210000020001",
+                "intro": "AMS4 Slot2 filament elfogyott. Kérjük, helyezz be új filamentet."
+            },
+            {
+                "ecode": "0703210000020002",
+                "intro": "AMS4 Slot2 üres."
+            },
+            {
+                "ecode": "0703210000020003",
+                "intro": "AMS4 Slot2 filament lehet, hogy eltört az AMS-ben."
+            },
+            {
+                "ecode": "0703220000020001",
+                "intro": "AMS4 Slot3 filament elfogyott. Kérjük, helyezz be új filamentet."
+            },
+            {
+                "ecode": "0703220000020002",
+                "intro": "AMS4 Slot3 üres."
+            },
+            {
+                "ecode": "0703220000020003",
+                "intro": "AMS4 Slot3 filament lehet, hogy eltört az AMS-ben."
+            },
+            {
+                "ecode": "0703230000020001",
+                "intro": "AMS4 Slot4 filament elfogyott. Kérjük, helyezz be új filamentet."
+            },
+            {
+                "ecode": "0703230000020002",
+                "intro": "AMS4 Slot4 üres."
+            },
+            {
+                "ecode": "0703230000020003",
+                "intro": "AMS4 Slot4 filament lehet, hogy eltört az AMS-ben."
+            },
+            {
+                "ecode": "0703300000010001",
+                "intro": "Az AMS4 Slot1 és Slot2 között található RFID olvasó meghibásodott."
+            },
+            {
+                "ecode": "0703300000010004",
+                "intro": "Titkosító chip meghibásodás."
+            },
+            {
+                "ecode": "0703300000020002",
+                "intro": "Az AMS4 Slot1 RFID-címkéje megsérült."
+            },
+            {
+                "ecode": "0703300000030003",
+                "intro": "Az RFID nem olvasható hardveres vagy szerkezeti hiba miatt."
+            },
+            {
+                "ecode": "0703310000010001",
+                "intro": "Az AMS4 Slot3 és Slot4 között található RFID olvasó meghibásodott."
+            },
+            {
+                "ecode": "0703310000010004",
+                "intro": "Titkosító chip meghibásodás."
+            },
+            {
+                "ecode": "0703310000020002",
+                "intro": "Az AMS4 Slot2 RFID-címkéje megsérült."
+            },
+            {
+                "ecode": "0703310000030003",
+                "intro": "Az RFID nem olvasható hardveres vagy szerkezeti hiba miatt."
+            },
+            {
+                "ecode": "0703320000020002",
+                "intro": "Az AMS4 Slot3 RFID-címkéje megsérült."
+            },
+            {
+                "ecode": "0703330000020002",
+                "intro": "Az AMS4 Slot4 RFID-címkéje megsérült."
+            },
+            {
+                "ecode": "0703350000010001",
+                "intro": "A hőmérséklet- és páratartalom-érzékelő hibásan működik. Lehet, hogy a chip hibás."
+            },
+            {
+                "ecode": "0C00010000010001",
+                "intro": "A Micro Lidar kamera offline állapotban van. Kérjük, ellenőrizd a hardver csatlakozását."
+            },
+            {
+                "ecode": "0C00010000010003",
+                "intro": "A Micro Lidar kamera és az MCU közötti szinkronizálás rendellenes. Kérjük, indítsd újra a nyomtatót."
+            },
+            {
+                "ecode": "0C00010000010004",
+                "intro": "A Micro Lidar kamera lencséje szennyezettnek tűnik. Kérjük, tisztítsd meg a lencsét."
+            },
+            {
+                "ecode": "0C00010000010005",
+                "intro": "A Micro Lidar kamera OTP paramétere rendellenes. Kérjük, vedd fel a kapcsolatot az ügyfélszolgálattal."
+            },
+            {
+                "ecode": "0C00010000010009",
+                "intro": "A nyomtatótér kamera lencséje szennyezettnek tűnik. Kérjük, tisztítsd meg a lencsét."
+            },
+            {
+                "ecode": "0C00010000020002",
+                "intro": "A Micro Lidar kamera hibásan működik, emiatt a kapcsolódó szolgátatások is hibásak lehetnek. Kérjük, forduljon az ügyfélszolgálathoz, ha ez az üzenet többször is megjelenik."
+            },
+            {
+                "ecode": "0C00010000020006",
+                "intro": "A Micro Lidar kamera külső paraméterei rendellenesek. Kérjük, engedélyezd az anyagáramlás kalibrálását a következő nyomtatáskor."
+            },
+            {
+                "ecode": "0C00010000020007",
+                "intro": "A Micro Lidar lézer paraméterei rendellenesek. Kérjük, kalibráld újra a nyomtatót."
+            },
+            {
+                "ecode": "0C00010000020008",
+                "intro": "Nem sikerült lekérni a nyomtatókamra kamerájának képét. A spagetti észlelés jelenleg nem elérhető."
+            },
+            {
+                "ecode": "0C00020000010001",
+                "intro": "A vízszintes lézer nem világít. Kérjük, győződj meg róla, hogy nincs letakarva és megfelelően van csatlakoztatva."
+            },
+            {
+                "ecode": "0C00020000010005",
+                "intro": "Új Micro Lidart észleltünk. Kérjük, használat előtt futtasd le a kalibrációt a Kalibrálás oldalon."
+            },
+            {
+                "ecode": "0C00020000020002",
+                "intro": "A filament expozíciójának mérése sikertelen volt, mert a lézervisszaverődés túl gyenge ezen az anyagon. Az első réteg ellenőrzése pontatlan lehet."
+            },
+            {
+                "ecode": "0C00020000020003",
+                "intro": "A vízszintes lézer nem elég fényes a nyomtatófej alaphelyzetében. Kérjük, tisztítsd meg vagy cseréld le a tárgyasztalt, ha ez az üzenet ismételten megjelenik."
+            },
+            {
+                "ecode": "0C00020000020004",
+                "intro": "A fúvóka magassága túl alacsonynak tűnik. Előfordulhat, hogy a fúvóka el van kopva vagy elhajolt. A Lidart újból kell kalibrálni, ha lecseréled a fúvókát."
+            },
+            {
+                "ecode": "0C00020000020006",
+                "intro": "A fúvóka magassága túl nagynak tűnik. Kérjük, győződj meg arról, hogy nincs filament tapadva a fúvókához."
+            },
+            {
+                "ecode": "0C00030000010009",
+                "intro": "Az első réteg ellenőrzését végző modul rendellenesen újraindult. Az ellenőrzés eredménye pontatlan lehet."
+            },
+            {
+                "ecode": "0C0003000001000A",
+                "intro": "A nyomtató gyártási üzemmódban van. Kérjük, fordulj az ügyfélszolgálathoz."
+            },
+            {
+                "ecode": "0C00030000020001",
+                "intro": "A filament expozíciójának mérése sikertelen volt, mert a lézervisszaverődés túl gyenge ezen az anyagon. Az első réteg ellenőrzése pontatlan lehet."
+            },
+            {
+                "ecode": "0C00030000020002",
+                "intro": "Az első réteg ellenőrzése megszakadt a rendellenes Lidar adatok miatt."
+            },
+            {
+                "ecode": "0C00030000020004",
+                "intro": "Az első réteg ellenőrzése nem támogatott a jelenlegi nyomtatási módban."
+            },
+            {
+                "ecode": "0C00030000020005",
+                "intro": "Az első réteg vizsgálata váratlanul leállt, ezért az eredmények pontatlanok lehetnek."
+            },
+            {
+                "ecode": "0C00030000030006",
+                "intro": "A kiürített filament felhalmozódhatott az anyagkidobó csúszdában, ami beleütközhet a nyomtatófejbe. Kérjük, tisztítsd meg az anyagkidobó csúszdát."
+            },
+            {
+                "ecode": "0C00030000030007",
+                "intro": "Lehetséges hibákat észleltünk az első rétegen."
+            },
+            {
+                "ecode": "0C00030000030008",
+                "intro": "Lehetséges spagetti hibákat észleltünk."
+            },
+            {
+                "ecode": "0C0003000003000B",
+                "intro": "Első réteg vizsgálata, kérjük, várj egy pillanatot."
+            },
+            {
+                "ecode": "0300100000020002",
+                "intro": "Az X tengely mechanikai rezgésértéke nagy mértékben eltér a legutolsó kalibráláskor rögzített értéktől. Kérjük, futtasd le a kalibrálást később."
+            },
+            {
+                "ecode": "0300110000020002",
+                "intro": "Az Y tengely mechanikai rezgésértéke nagy mértékben eltér a legutolsó kalibráláskor rögzített értéktől. Kérjük, futtasd le a kalibrálást később."
+            },
+            {
+                "ecode": "0C0003000002000C",
+                "intro": "Nem észlelhető érvényes logó a tálcán, a jelenleg használt tálca lehet, hogy nem hivatalos, vagy nem megfelelően van felhelyezve."
+            },
+            {
+                "ecode": "0C00020000020007",
+                "intro": "A vízszintes lézer nem világít. Kérjük, győződj meg róla, hogy nincs letakarva és megfelelően van csatlakoztatva."
+            },
+            {
+                "ecode": "0C00020000020008",
+                "intro": "A függőleges lézernyaláb túl vastag. Kérjük, győződj meg róla, hogy a tárgyasztal nem szennyezett."
+            },
+            {
+                "ecode": "0C0003000003000D",
+                "intro": "Úgy tűnik, hogy néhány tárgy eldőlt."
+            },
+            {
+                "ecode": "0C0003000003000E",
+                "intro": "Úgy tűnik, hogy a nyomtató extrudálás nélkül nyomtat."
+            },
+            {
+                "ecode": "0C0003000003000F",
+                "intro": "Úgy tűnik, hogy a fúvóka filamenttel van borítva."
+            },
+            {
+                "ecode": "0C0001000001000A",
+                "intro": "A nyomtatófejen lévő világítás meghibásodhatott. Kérjük, ellenőrizd."
+            },
+            {
+                "ecode": "0300060000010003",
+                "intro": "Az \"A\" motor ellenállása rendellenes, lehet, hogy a motor meghibásodott."
+            },
+            {
+                "ecode": "0300070000010003",
+                "intro": "A \"B\" motor ellenállása rendellenes, lehet, hogy a motor meghibásodott."
+            },
+            {
+                "ecode": "0300080000010003",
+                "intro": "A \"Z\" motor ellenállása rendellenes, lehet, hogy a motor meghibásodott."
+            },
+            {
+                "ecode": "0300090000010003",
+                "intro": "Az \"E\" motor ellenállása rendellenes, lehet, hogy a motor meghibásodott."
+            },
+            {
+                "ecode": "0300130000010001",
+                "intro": "Az \"A\" motor áramérzékelője hibás. Ezt a mintavevő áramkör hibája okozhatja."
+            },
+            {
+                "ecode": "0300140000010001",
+                "intro": "A \"B\" motor áramérzékelője hibás. Ezt a mintavevő áramkör hibája okozhatja."
+            },
+            {
+                "ecode": "0300150000010001",
+                "intro": "A \"Z\" motor áramérzékelője hibás. Ezt a mintavevő áramkör hibája okozhatja."
+            },
+            {
+                "ecode": "0300160000010001",
+                "intro": "Az \"E\" motor áramérzékelője hibás. Ezt a mintavevő áramkör hibája okozhatja."
+            },
+            {
+                "ecode": "0700200000030001",
+                "intro": "AMS1 Slot1 filament elfogyott. Kérjük, várj, amíg a régi filamentet kiürítjük."
+            },
+            {
+                "ecode": "0701200000030001",
+                "intro": "AMS2 Slot1 filament elfogyott. Kérjük, várj, amíg a régi filamentet kiürítjük."
+            },
+            {
+                "ecode": "0702200000030001",
+                "intro": "AMS3 Slot1 filament elfogyott. Kérjük, várj, amíg a régi filamentet kiürítjük."
+            },
+            {
+                "ecode": "0703200000030001",
+                "intro": "AMS4 Slot1 filament elfogyott. Kérjük, várj, amíg a régi filamentet kiürítjük."
+            },
+            {
+                "ecode": "0700210000030001",
+                "intro": "AMS1 Slot2 filament elfogyott. Kérjük, várj, amíg a régi filamentet kiürítjük."
+            },
+            {
+                "ecode": "0701210000030001",
+                "intro": "AMS2 Slot2 filament elfogyott. Kérjük, várj, amíg a régi filamentet kiürítjük."
+            },
+            {
+                "ecode": "0702210000030001",
+                "intro": "AMS3 Slot2 filament elfogyott. Kérjük, várj, amíg a régi filamentet kiürítjük."
+            },
+            {
+                "ecode": "0703210000030001",
+                "intro": "AMS4 Slot2 filament elfogyott. Kérjük, várj, amíg a régi filamentet kiürítjük."
+            },
+            {
+                "ecode": "0700220000030001",
+                "intro": "AMS1 Slot3 filament elfogyott. Kérjük, várj, amíg a régi filamentet kiürítjük."
+            },
+            {
+                "ecode": "0701220000030001",
+                "intro": "AMS2 Slot3 filament elfogyott. Kérjük, várj, amíg a régi filamentet kiürítjük."
+            },
+            {
+                "ecode": "0702220000030001",
+                "intro": "AMS3 Slot3 filament elfogyott. Kérjük, várj, amíg a régi filamentet kiürítjük."
+            },
+            {
+                "ecode": "0703220000030001",
+                "intro": "AMS4 Slot3 filament elfogyott. Kérjük, várj, amíg a régi filamentet kiürítjük."
+            },
+            {
+                "ecode": "0700230000030001",
+                "intro": "AMS1 Slot4 filament elfogyott. Kérjük, várj, amíg a régi filamentet kiürítjük."
+            },
+            {
+                "ecode": "0701230000030001",
+                "intro": "AMS2 Slot4 filament elfogyott. Kérjük, várj, amíg a régi filamentet kiürítjük."
+            },
+            {
+                "ecode": "0702230000030001",
+                "intro": "AMS3 Slot4 filament elfogyott. Kérjük, várj, amíg a régi filamentet kiürítjük."
+            },
+            {
+                "ecode": "0703230000030001",
+                "intro": "AMS4 Slot4 filament elfogyott. Kérjük, várj, amíg a régi filamentet kiürítjük."
+            },
+            {
+                "ecode": "0700500000020001",
+                "intro": "AMS1 kommunikációs hiba, kérjük, ellenőrizd a kábel csatlakoztatását."
+            },
+            {
+                "ecode": "0701500000020001",
+                "intro": "AMS2 kommunikációs hiba, kérjük, ellenőrizd a kábel csatlakoztatását."
+            },
+            {
+                "ecode": "0702500000020001",
+                "intro": "AMS3 kommunikációs hiba, kérjük, ellenőrizd a kábel csatlakoztatását."
+            },
+            {
+                "ecode": "0703500000020001",
+                "intro": "AMS4 kommunikációs hiba, kérjük, ellenőrizd a kábel csatlakoztatását."
+            },
+            {
+                "ecode": "0700510000030001",
+                "intro": "Az AMS ki van kapcsolva, kérjük, töltsd be a filamentet a nyomtató mögött található tartóról."
+            },
+            {
+                "ecode": "0500040000020007",
+                "intro": "Az asztal hőmérséklete meghaladja a filament üvegesedési hőmérsékletét, ami a fúvóka eltömődéséhez vezethet. Kérjük, hagyd nyitva a nyomtató ajtaját, vagy csökkentsd az asztal hőmérsékletét."
+            },
+            {
+                "ecode": "0C00020000020009",
+                "intro": "A vízszintes lézer nem elég fényes a nyomtatófej alaphelyzetében. Kérjük, tisztítsd meg vagy cseréld le a tárgyasztalt, ha ez az üzenet ismételten megjelenik."
+            },
+            {
+                "ecode": "0C0001000001000B",
+                "intro": "A Micro Lidar kalibrálása nem sikerült, kérjük, győződj meg róla, hogy a kalibráló felület tiszta és nincs lefedve, majd próbáld meg újra kalibrálni."
+            },
+            {
+                "ecode": "0300200000010001",
+                "intro": "Rendellenesség az X tengely alaphelyzetbe állításakor: előfordulhat, hogy a nyomtatófej elakadt vagy a karbonrúd túl nagy mechanikai ellenállást fejt ki."
+            },
+            {
+                "ecode": "0300200000010002",
+                "intro": "Rendellenesség az Y tengely alaphelyzetbe állításakor: előfordulhat, hogy a nyomtatófej elakadt vagy az Y kocsi túl nagy mechanikai ellenállást fejt ki."
+            },
+            {
+                "ecode": "0300200000010003",
+                "intro": "Rendellenesség az X tengely alaphelyzetbe állításakor: előfordulhat, hogy a fogasszíj meglazult."
+            },
+            {
+                "ecode": "0300200000010004",
+                "intro": "Rendellenesség az Y tengely alaphelyzetbe állításakor: előfordulhat, hogy a fogasszíj meglazult."
+            },
+            {
+                "ecode": "0300400000020001",
+                "intro": "Rendellenes adatátvitel a soros porton keresztül; szoftverrendszer hiba."
+            },
+            {
+                "ecode": "0300410000010001",
+                "intro": "Instabil rendszerfeszültség; áramkimaradás elleni védelem aktiválva."
+            },
+            {
+                "ecode": "0700400000020004",
+                "intro": "Rendellenes filament-puffer jel; előfordulhat, hogy a rugó beragadt vagy a filament összegabalyodott."
+            },
+            {
+                "ecode": "0700600000020001",
+                "intro": "Az AMS1 slot1 túlterhelt. Lehet, hogy a filament összegabalyodott vagy beragadt."
+            },
+            {
+                "ecode": "0701600000020001",
+                "intro": "Az AMS2 slot1 túlterhelt. Lehet, hogy a filament összegabalyodott vagy beragadt."
+            },
+            {
+                "ecode": "0702600000020001",
+                "intro": "Az AMS3 slot1 túlterhelt. Lehet, hogy a filament összegabalyodott vagy beragadt."
+            },
+            {
+                "ecode": "0703600000020001",
+                "intro": "Az AMS4 slot1 túlterhelt. Lehet, hogy a filament összegabalyodott vagy beragadt."
+            },
+            {
+                "ecode": "0700610000020001",
+                "intro": "Az AMS1 slot2 túlterhelt. Lehet, hogy a filament összegabalyodott vagy beragadt."
+            },
+            {
+                "ecode": "0701610000020001",
+                "intro": "Az AMS2 slot2 túlterhelt. Lehet, hogy a filament összegabalyodott vagy beragadt."
+            },
+            {
+                "ecode": "0702610000020001",
+                "intro": "Az AMS3 slot2 túlterhelt. Lehet, hogy a filament összegabalyodott vagy beragadt."
+            },
+            {
+                "ecode": "0703610000020001",
+                "intro": "Az AMS4 slot2 túlterhelt. Lehet, hogy a filament összegabalyodott vagy beragadt."
+            },
+            {
+                "ecode": "0700620000020001",
+                "intro": "Az AMS1 slot3 túlterhelt. Lehet, hogy a filament összegabalyodott vagy beragadt."
+            },
+            {
+                "ecode": "0701620000020001",
+                "intro": "Az AMS2 slot3 túlterhelt. Lehet, hogy a filament összegabalyodott vagy beragadt."
+            },
+            {
+                "ecode": "0702620000020001",
+                "intro": "Az AMS3 slot3 túlterhelt. Lehet, hogy a filament összegabalyodott vagy beragadt."
+            },
+            {
+                "ecode": "0703620000020001",
+                "intro": "Az AMS4 slot3 túlterhelt. Lehet, hogy a filament összegabalyodott vagy beragadt."
+            },
+            {
+                "ecode": "0700630000020001",
+                "intro": "Az AMS1 slot4 túlterhelt. Lehet, hogy a filament összegabalyodott vagy beragadt."
+            },
+            {
+                "ecode": "0701630000020001",
+                "intro": "Az AMS2 slot4 túlterhelt. Lehet, hogy a filament összegabalyodott vagy beragadt."
+            },
+            {
+                "ecode": "0702630000020001",
+                "intro": "Az AMS3 slot4 túlterhelt. Lehet, hogy a filament összegabalyodott vagy beragadt."
+            },
+            {
+                "ecode": "0703630000020001",
+                "intro": "Az AMS4 slot4 túlterhelt. Lehet, hogy a filament összegabalyodott vagy beragadt."
+            },
+            {
+                "ecode": "0300010000030008",
+                "intro": "Az asztal hőmérséklete meghaladja a maximális hőmérsékletet, ezért automatikusan visszaáll a beállított maximális hőmérsékletre."
+            },
+            {
+                "ecode": "0700200000020004",
+                "intro": "Úgy tűnik, hogy az AMS1 Slot1 filament eltört a nyomtatófejben."
+            },
+            {
+                "ecode": "0701200000020004",
+                "intro": "Úgy tűnik, hogy az AMS2 Slot1 filament eltört a nyomtatófejben."
+            },
+            {
+                "ecode": "0702200000020004",
+                "intro": "Úgy tűnik, hogy az AMS3 Slot1 filament eltört a nyomtatófejben."
+            },
+            {
+                "ecode": "0703200000020004",
+                "intro": "Úgy tűnik, hogy az AMS4 Slot1 filament eltört a nyomtatófejben."
+            },
+            {
+                "ecode": "0700210000020004",
+                "intro": "Úgy tűnik, hogy az AMS1 Slot2 filament eltört a nyomtatófejben."
+            },
+            {
+                "ecode": "0701210000020004",
+                "intro": "Úgy tűnik, hogy az AMS2 Slot2 filament eltört a nyomtatófejben."
+            },
+            {
+                "ecode": "0702210000020004",
+                "intro": "Úgy tűnik, hogy az AMS3 Slot2 filament eltört a nyomtatófejben."
+            },
+            {
+                "ecode": "0703210000020004",
+                "intro": "Úgy tűnik, hogy az AMS4 Slot2 filament eltört a nyomtatófejben."
+            },
+            {
+                "ecode": "0700220000020004",
+                "intro": "Úgy tűnik, hogy az AMS1 Slot3 filament eltört a nyomtatófejben."
+            },
+            {
+                "ecode": "0701220000020004",
+                "intro": "Úgy tűnik, hogy az AMS2 Slot3 filament eltört a nyomtatófejben."
+            },
+            {
+                "ecode": "0702220000020004",
+                "intro": "Úgy tűnik, hogy az AMS3 Slot3 filament eltört a nyomtatófejben."
+            },
+            {
+                "ecode": "0703220000020004",
+                "intro": "Úgy tűnik, hogy az AMS4 Slot3 filament eltört a nyomtatófejben."
+            },
+            {
+                "ecode": "0700230000020004",
+                "intro": "Úgy tűnik, hogy az AMS1 Slot4 filament eltört a nyomtatófejben."
+            },
+            {
+                "ecode": "0701230000020004",
+                "intro": "Úgy tűnik, hogy az AMS2 Slot4 filament eltört a nyomtatófejben."
+            },
+            {
+                "ecode": "0702230000020004",
+                "intro": "Úgy tűnik, hogy az AMS3 Slot4 filament eltört a nyomtatófejben."
+            },
+            {
+                "ecode": "0703230000020004",
+                "intro": "Úgy tűnik, hogy az AMS4 Slot4 filament eltört a nyomtatófejben."
+            },
+            {
+                "ecode": "0700200000020005",
+                "intro": "AMS1 Slot1 filament kifogyott és a régi filament kiöblítése során hiba lépett fel. Kérjük, győződj meg róla, hogy nincs beragadt filament a nyomtatófejben."
+            },
+            {
+                "ecode": "0701200000020005",
+                "intro": "AMS2 Slot1 filament kifogyott és a régi filament kiöblítése során hiba lépett fel. Kérjük, győződj meg róla, hogy nincs beragadt filament a nyomtatófejben."
+            },
+            {
+                "ecode": "0702200000020005",
+                "intro": "AMS3 Slot1 filament kifogyott és a régi filament kiöblítése során hiba lépett fel. Kérjük, győződj meg róla, hogy nincs beragadt filament a nyomtatófejben."
+            },
+            {
+                "ecode": "0703200000020005",
+                "intro": "AMS4 Slot1 filament kifogyott és a régi filament kiöblítése során hiba lépett fel. Kérjük, győződj meg róla, hogy nincs beragadt filament a nyomtatófejben."
+            },
+            {
+                "ecode": "0700210000020005",
+                "intro": "AMS1 Slot2 filament kifogyott és a régi filament kiöblítése során hiba lépett fel. Kérjük, győződj meg róla, hogy nincs beragadt filament a nyomtatófejben."
+            },
+            {
+                "ecode": "0701210000020005",
+                "intro": "AMS2 Slot2 filament kifogyott és a régi filament kiöblítése során hiba lépett fel. Kérjük, győződj meg róla, hogy nincs beragadt filament a nyomtatófejben."
+            },
+            {
+                "ecode": "0702210000020005",
+                "intro": "AMS3 Slot2 filament kifogyott és a régi filament kiöblítése során hiba lépett fel. Kérjük, győződj meg róla, hogy nincs beragadt filament a nyomtatófejben."
+            },
+            {
+                "ecode": "0703210000020005",
+                "intro": "AMS4 Slot2 filament kifogyott és a régi filament kiöblítése során hiba lépett fel. Kérjük, győződj meg róla, hogy nincs beragadt filament a nyomtatófejben."
+            },
+            {
+                "ecode": "0700220000020005",
+                "intro": "AMS1 Slot3 filament kifogyott és a régi filament kiöblítése során hiba lépett fel. Kérjük, győződj meg róla, hogy nincs beragadt filament a nyomtatófejben."
+            },
+            {
+                "ecode": "0701220000020005",
+                "intro": "AMS2 Slot3 filament kifogyott és a régi filament kiöblítése során hiba lépett fel. Kérjük, győződj meg róla, hogy nincs beragadt filament a nyomtatófejben."
+            },
+            {
+                "ecode": "0702220000020005",
+                "intro": "AMS3 Slot3 filament kifogyott és a régi filament kiöblítése során hiba lépett fel. Kérjük, győződj meg róla, hogy nincs beragadt filament a nyomtatófejben."
+            },
+            {
+                "ecode": "0703220000020005",
+                "intro": "AMS4 Slot3 filament kifogyott és a régi filament kiöblítése során hiba lépett fel. Kérjük, győződj meg róla, hogy nincs beragadt filament a nyomtatófejben."
+            },
+            {
+                "ecode": "0700230000020005",
+                "intro": "AMS1 Slot4 filament kifogyott és a régi filament kiöblítése során hiba lépett fel. Kérjük, győződj meg róla, hogy nincs beragadt filament a nyomtatófejben."
+            },
+            {
+                "ecode": "0701230000020005",
+                "intro": "AMS2 Slot4 filament kifogyott és a régi filament kiöblítése során hiba lépett fel. Kérjük, győződj meg róla, hogy nincs beragadt filament a nyomtatófejben."
+            },
+            {
+                "ecode": "0702230000020005",
+                "intro": "AMS3 Slot4 filament kifogyott és a régi filament kiöblítése során hiba lépett fel. Kérjük, győződj meg róla, hogy nincs beragadt filament a nyomtatófejben."
+            },
+            {
+                "ecode": "0703230000020005",
+                "intro": "AMS4 Slot4 filament kifogyott és a régi filament kiöblítése során hiba lépett fel. Kérjük, győződj meg róla, hogy nincs beragadt filament a nyomtatófejben."
+            },
+            {
+                "ecode": "0700200000030002",
+                "intro": "AMS1 Slot1 filament kifogyott, és automatikusan átváltott egy azonos filamenttel feltöltött férőhelyre."
+            },
+            {
+                "ecode": "0701200000030002",
+                "intro": "AMS2 Slot1 filament kifogyott, és automatikusan átváltott egy azonos filamenttel feltöltött férőhelyre."
+            },
+            {
+                "ecode": "0702200000030002",
+                "intro": "AMS3 Slot1 filament kifogyott, és automatikusan átváltott egy azonos filamenttel feltöltött férőhelyre."
+            },
+            {
+                "ecode": "0703200000030002",
+                "intro": "AMS4 Slot1 filament kifogyott, és automatikusan átváltott egy azonos filamenttel feltöltött férőhelyre."
+            },
+            {
+                "ecode": "0700210000030002",
+                "intro": "AMS1 Slot2 filament kifogyott, és automatikusan átváltott egy azonos filamenttel feltöltött férőhelyre."
+            },
+            {
+                "ecode": "0701210000030002",
+                "intro": "AMS2 Slot2 filament kifogyott, és automatikusan átváltott egy azonos filamenttel feltöltött férőhelyre."
+            },
+            {
+                "ecode": "0702210000030002",
+                "intro": "AMS3 Slot2 filament kifogyott, és automatikusan átváltott egy azonos filamenttel feltöltött férőhelyre."
+            },
+            {
+                "ecode": "0703210000030002",
+                "intro": "AMS4 Slot2 filament kifogyott, és automatikusan átváltott egy azonos filamenttel feltöltött férőhelyre."
+            },
+            {
+                "ecode": "0700220000030002",
+                "intro": "AMS1 Slot3 filament kifogyott, és automatikusan átváltott egy azonos filamenttel feltöltött férőhelyre."
+            },
+            {
+                "ecode": "0701220000030002",
+                "intro": "AMS2 Slot3 filament kifogyott, és automatikusan átváltott egy azonos filamenttel feltöltött férőhelyre."
+            },
+            {
+                "ecode": "0702220000030002",
+                "intro": "AMS3 Slot3 filament kifogyott, és automatikusan átváltott egy azonos filamenttel feltöltött férőhelyre."
+            },
+            {
+                "ecode": "0703220000030002",
+                "intro": "AMS4 Slot3 filament kifogyott, és automatikusan átváltott egy azonos filamenttel feltöltött férőhelyre."
+            },
+            {
+                "ecode": "0700230000030002",
+                "intro": "AMS1 Slot4 filament kifogyott, és automatikusan átváltott egy azonos filamenttel feltöltött férőhelyre."
+            },
+            {
+                "ecode": "0701230000030002",
+                "intro": "AMS2 Slot4 filament kifogyott, és automatikusan átváltott egy azonos filamenttel feltöltött férőhelyre."
+            },
+            {
+                "ecode": "0702230000030002",
+                "intro": "AMS3 Slot4 filament kifogyott, és automatikusan átváltott egy azonos filamenttel feltöltött férőhelyre."
+            },
+            {
+                "ecode": "0703230000030002",
+                "intro": "AMS4 Slot4 filament kifogyott, és automatikusan átváltott egy azonos filamenttel feltöltött férőhelyre."
+            },
+            {
+                "ecode": "0500030000020020",
+                "intro": "Az SD-kártya kapacitása nem elegendő a nyomtatási fájlok gyorsítótárazásához."
+            },
+            {
+                "ecode": "0500030000010021",
+                "intro": "A hardver nem kompatibilis, kérjük, ellenőrizd a lézert."
+            },
+            {
+                "ecode": "0500030000030022",
+                "intro": "A rendszer a MicroSD-kártya teljesítményének csökkenését észlelte. Ez hatással lehet a nyomtatási feladatokra, a naplózásra és a videófelvételekre. Kérjük, próbáld meg formázni vagy cserélni a MicroSD-kártyát."
+            },
+            {
+                "ecode": "07FF200000020001",
+                "intro": "A külső filament elfogyott; kérjük, töltsd be új filamentet."
+            },
+            {
+                "ecode": "07FF200000020002",
+                "intro": "A külső filament hiányzik; kérjük, tölts be új filamentet."
+            },
+            {
+                "ecode": "07FF200000020004",
+                "intro": "Kérjük, húzd ki a külső filamentet az extruderből."
+            },
+            {
+                "ecode": "0500040000030008",
+                "intro": "Az ajtó nyitva van."
+            },
+            {
+                "ecode": "0300010000010001",
+                "intro": "A tárgyasztal hőmérséklete rendellenes; elképzelhető, hogy a fűtőelem rövidzárlatos."
+            },
+            {
+                "ecode": "0300010000010002",
+                "intro": "A tárgyasztal hőmérséklete rendellenes; elképzelhető, hogy a fűtőelem meghibásodott, vagy a hőbiztosíték kioldott."
+            },
+            {
+                "ecode": "0300010000010003",
+                "intro": "A tárgyasztal hőmérséklete rendellenes; a fűtőelem túlmelegedett."
+            },
+            {
+                "ecode": "0300010000010006",
+                "intro": "A tárgyasztal hőmérséklete rendellenes; elképzelhető, hogy a szenzor rövidzárlatos."
+            },
+            {
+                "ecode": "0300010000010007",
+                "intro": "A tárgyasztal hőmérséklete rendellenes; elképzelhető, hogy a szenzor megszakadt."
+            },
+            {
+                "ecode": "0300020000010001",
+                "intro": "A tárgyasztal hőmérséklete rendellenes; elképzelhető, hogy a fűtőelem rövidzárlatos."
+            },
+            {
+                "ecode": "0300020000010002",
+                "intro": "A fúvóka hőmérséklete rendellenes; elképzelhető, hogy a fűtőelem szakadt."
+            },
+            {
+                "ecode": "0300020000010003",
+                "intro": "A fúvóka hőmérséklete rendellenes; a fűtőelem túlmelegedett."
+            },
+            {
+                "ecode": "0300020000010006",
+                "intro": "A tárgyasztal hőmérséklete rendellenes; elképzelhető, hogy a szenzor rövidzárlatos."
+            },
+            {
+                "ecode": "0300020000010007",
+                "intro": "A fúvóka hőmérséklete rendellenes; elképzelhető, hogy a szenzor szakadt."
+            },
+            {
+                "ecode": "0300030000010001",
+                "intro": "A tárgyhűtőventilátor fordulatszáma túl alacsony vagy megállt. Lehet, hogy beragadt vagy megsérült."
+            },
+            {
+                "ecode": "0300040000020001",
+                "intro": "A tárgyhűtő ventilátor fordulatszáma túl alacsony vagy megállt. Lehet, hogy beragadt vagy megsérült."
+            },
+            {
+                "ecode": "0300050000010001",
+                "intro": "A motorvezérlő túlmelegszik. Lehet, hogy a hűtőborda nem illeszkedik megfelelően, vagy megsérült a hűtőventilátora."
+            },
+            {
+                "ecode": "0300060000010001",
+                "intro": "Az \"A\" motor áramkörében szakadást észleltünk. Lehet, hogy a csatlakozás nem megfelelő, vagy a motor leégett."
+            },
+            {
+                "ecode": "0300060000010002",
+                "intro": "Az \"A\" motor áramkörében rövidzárlatot észleltünk. Lehet, hogy a motor leégett."
+            },
+            {
+                "ecode": "0300070000010001",
+                "intro": "A \"B\" motor áramkörében szakadást észleltünk. Lehet, hogy a csatlakozás nem megfelelő, vagy a motor leégett."
+            },
+            {
+                "ecode": "0300070000010002",
+                "intro": "A \"B\" motor áramkörében rövidzárlatot észleltünk. Lehet, hogy a motor leégett."
+            },
+            {
+                "ecode": "0300080000010001",
+                "intro": "A \"Z\" motor áramkörében szakadást észleltünk. Lehet, hogy a csatlakozás nem megfelelő, vagy a motor leégett."
+            },
+            {
+                "ecode": "0300080000010002",
+                "intro": "A \"Z\" motor áramkörében rövidzárlatot észleltünk. Lehet, hogy a motor leégett."
+            },
+            {
+                "ecode": "0300090000010001",
+                "intro": "Az \"E\" motor áramkörében szakadást észleltünk. Lehet, hogy a csatlakozás nem megfelelő, vagy a motor leégett."
+            },
+            {
+                "ecode": "0300090000010002",
+                "intro": "Az \"E\" motor áramkörében rövidzárlatot észleltünk. Lehet, hogy a motor leégett."
+            },
+            {
+                "ecode": "03000A0000010001",
+                "intro": "A tárgyasztal 1. erőmérő szenzorának értéke túl magas. Lehet, hogy beszorult az asztal és a szenzort tartó kar közé, vagy az asztal szintezőcsavarja túl szoros."
+            },
+            {
+                "ecode": "03000A0000010002",
+                "intro": "A tárgyasztal 1. erőmérő szenzorának értéke túl alacsony. Lehet, hogy a szenzor levált a tartókarról."
+            },
+            {
+                "ecode": "03000A0000010003",
+                "intro": "A tárgyasztal 1. erőmérő szenzorának értéke túl alacsony. Lehet, hogy elszakadt a vezetéke."
+            },
+            {
+                "ecode": "03000A0000010004",
+                "intro": "Külső zavart észleltünk az 1. erőmérő szenzor érzékenységének vizsgálatakor. Lehet, hogy a tárgyasztal lemeze hozzáért valamihez."
+            },
+            {
+                "ecode": "03000A0000010005",
+                "intro": "Az 1. erőmérő szenzor statikus értéke nem 0. Lehet, hogy a tárgyasztal elakadt, vagy az analóg jelfeldolgozó áramkor tönkrement."
+            },
+            {
+                "ecode": "03000B0000010001",
+                "intro": "A tárgyasztal 2. erőmérő szenzorának értéke túl magas. Elképzelhető, hogy beszorult az asztal és a keret közé, vagy a csavar túl szoros."
+            },
+            {
+                "ecode": "03000B0000010003",
+                "intro": "A tárgyasztal 2. erőmérő szenzorának értéke túl alacsony. Lehet, hogy elszakadt a vezetéke."
+            },
+            {
+                "ecode": "03000B0000010004",
+                "intro": "Külső zavart észleltünk a 2. erőmérő szenzor érzékenységének vizsgálatakor. Lehet, hogy a tárgyasztal lemeze hozzáért valamihez."
+            },
+            {
+                "ecode": "03000B0000010005",
+                "intro": "A 2. erőmérő szenzor statikus értéke nem 0. Lehet, hogy a tárgyasztal elakadt, vagy az analóg jelfeldolgozó áramkor tönkrement."
+            },
+            {
+                "ecode": "03000B0000010002",
+                "intro": "A tárgyasztal 2. erőmérő szenzorának értéke túl alacsony. Lehet, hogy a szenzor levált a tartókarról."
+            },
+            {
+                "ecode": "03000C0000010001",
+                "intro": "A tárgyasztal 3. erőmérő szenzorának értéke túl magas. Elképzelhető, hogy beszorult az asztal és a keret közé, vagy a csavar túl szoros."
+            },
+            {
+                "ecode": "03000C0000010002",
+                "intro": "A tárgyasztal 3. erőmérő szenzorának értéke túl alacsony. Lehet, hogy a szenzor levált a tartókarról."
+            },
+            {
+                "ecode": "03000C0000010003",
+                "intro": "A tárgyasztal 3. erőmérő szenzorának értéke túl alacsony. Lehet, hogy elszakadt a vezetéke."
+            },
+            {
+                "ecode": "03000C0000010004",
+                "intro": "Külső zavart észleltünk az 3. erőmérő szenzor érzékenységének vizsgálatakor. Lehet, hogy a tárgyasztal lemeze hozzáért valamihez."
+            },
+            {
+                "ecode": "03000C0000010005",
+                "intro": "A 3. erőmérő szenzor statikus értéke nem 0. Lehet, hogy a tárgyasztal elakadt, vagy az analóg jelfeldolgozó áramkor tönkrement."
+            },
+            {
+                "ecode": "03000D0000010002",
+                "intro": "Nem sikerült alaphelyzetbe állítani a tárgyasztalt. Túl nagy a környezeti rezgés."
+            },
+            {
+                "ecode": "03000D0000010003",
+                "intro": "A nyomtatótálca nincs megfelelően az asztalra helyezve. Kérjük, igazítsd meg."
+            },
+            {
+                "ecode": "03000D0000010004",
+                "intro": "A nyomtatótálca nincs megfelelően az asztalra helyezve. Kérjük, igazítsd meg."
+            },
+            {
+                "ecode": "03000D0000010005",
+                "intro": "A nyomtatótálca nincs megfelelően az asztalra helyezve. Kérjük, igazítsd meg."
+            },
+            {
+                "ecode": "03000D0000010006",
+                "intro": "A nyomtatótálca nincs megfelelően az asztalra helyezve. Kérjük, igazítsd meg."
+            },
+            {
+                "ecode": "03000D0000010007",
+                "intro": "A nyomtatótálca nincs megfelelően az asztalra helyezve. Kérjük, igazítsd meg."
+            },
+            {
+                "ecode": "03000D0000010008",
+                "intro": "A nyomtatótálca nincs megfelelően az asztalra helyezve. Kérjük, igazítsd meg."
+            },
+            {
+                "ecode": "03000D0000010009",
+                "intro": "A nyomtatótálca nincs megfelelően az asztalra helyezve. Kérjük, igazítsd meg."
+            },
+            {
+                "ecode": "03000D000001000A",
+                "intro": "A nyomtatótálca nincs megfelelően az asztalra helyezve. Kérjük, igazítsd meg."
+            },
+            {
+                "ecode": "03000D000001000B",
+                "intro": "Úgy tűnik, hogy a Z tengely motorja elakadt, amikor felfelé próbált mozogni. Előfordulhat, hogy idegen anyag került a Z rudakra vagy a Z szíjtárcsákra."
+            },
+            {
+                "ecode": "03000D0000020001",
+                "intro": "Rendellenes értékeket észleltünk a tárgyasztal alaphelyzetbe állítása során. Lehet, hogy a tárgyasztalon valahon kitüremkedés található, vagy a fúvóka hegye nem tiszta."
+            },
+            {
+                "ecode": "03000F0000010001",
+                "intro": "A gyorsulásmérő adatai nem érhetők el. Lehet, hogy a nyomtatófejjel való kommunikációs kapcsolat megszakadt, vagy a gyorsulásmérő megsérült."
+            },
+            {
+                "ecode": "0300100000020001",
+                "intro": "Az X tengely mechanikai rezgésértéke túl alacsony. Lehet, hogy a szíj túl laza."
+            },
+            {
+                "ecode": "0300110000020001",
+                "intro": "Az Y tengely mechanikai rezgésértéke túl alacsony. Lehet, hogy a szíj túl laza."
+            },
+            {
+                "ecode": "0300120000020001",
+                "intro": "A nyomtatófej előlapja leesett."
+            },
+            {
+                "ecode": "0500010000020001",
+                "intro": "A média pipeline hibásan működik."
+            },
+            {
+                "ecode": "0500010000020002",
+                "intro": "Az USB kamera nincs csatlakoztatva."
+            },
+            {
+                "ecode": "0500010000020003",
+                "intro": "Az USB kamera hibásan működik."
+            },
+            {
+                "ecode": "0500010000030004",
+                "intro": "Nincs elég hely az SD kártyán"
+            },
+            {
+                "ecode": "0500010000030005",
+                "intro": "MicroSD-kártya hiba: kérjük, illeszd be újra, formázd vagy cseréld ki."
+            },
+            {
+                "ecode": "0500010000030006",
+                "intro": "Formázatlan SD kártya"
+            },
+            {
+                "ecode": "0500020000020001",
+                "intro": "Nem sikerült csatlakozni a Bambu Cloudhoz"
+            },
+            {
+                "ecode": "0500020000020002",
+                "intro": "Az eszköz bejelentkezése sikertelen."
+            },
+            {
+                "ecode": "0500020000020003",
+                "intro": "Nem sikerült beszerezni az eszközjegyet."
+            },
+            {
+                "ecode": "0500020000020004",
+                "intro": "Jogosulatlan felhasználó."
+            },
+            {
+                "ecode": "0500020000020005",
+                "intro": "Az MQTT szolgáltatás hibásan működik."
+            },
+            {
+                "ecode": "0500020000020006",
+                "intro": "A Liveview szolgáltatás hibásan működik."
+            },
+            {
+                "ecode": "0500020000020007",
+                "intro": "A Liveview szolgáltatás bejelentkezése sikertelen."
+            },
+            {
+                "ecode": "0500030000010001",
+                "intro": "Az MC modul hibásan működik. Indítsd újra az eszközt."
+            },
+            {
+                "ecode": "0500030000010002",
+                "intro": "A nyomtatófej hibásan működik. Indítsd újra az eszközt."
+            },
+            {
+                "ecode": "0500030000010003",
+                "intro": "Az AMS modul hibásan működik. Indítsd újra az eszközt."
+            },
+            {
+                "ecode": "0500030000010004",
+                "intro": "A belső kommunikáció hibásan működik. Indítsd újra az eszközt."
+            },
+            {
+                "ecode": "0500030000010005",
+                "intro": "Egy belső hibásan működik. Kérjük, indítsd újra a készüléket."
+            },
+            {
+                "ecode": "0500030000010006",
+                "intro": "Rendszerpánik lépett fel. Kérjük, indítsd újra a készüléket."
+            },
+            {
+                "ecode": "0500030000010008",
+                "intro": "Rendszerleállás történt. Kérjük, indítsd újra a készüléket."
+            },
+            {
+                "ecode": "0500030000010009",
+                "intro": "Rendszerleállás történt. Automatikus újraindítással helyreállt."
+            },
+            {
+                "ecode": "050003000001000A",
+                "intro": "A rendszer állapota rendellenes. Kérjük, fordulj az ügyfélszolgálathoz."
+            },
+            {
+                "ecode": "050003000001000B",
+                "intro": "A képernyő hibásan működik."
+            },
+            {
+                "ecode": "050003000002000C",
+                "intro": "WiFi hardverhiba: kapcsold ki/be a WiFi-t, vagy indítsd újra az eszközt."
+            },
+            {
+                "ecode": "050003000002000D",
+                "intro": "Az SD kártya vezérlője hibásan működik."
+            },
+            {
+                "ecode": "0500030000030007",
+                "intro": "Rendszerpánik lépett fel. Automatikus újraindítással helyreállt."
+            },
+            {
+                "ecode": "0500040000010001",
+                "intro": "Nem sikerült letölteni a nyomtatási feladatot. Kérjük, ellenőrizd a hálózati kapcsolatot."
+            },
+            {
+                "ecode": "0500040000010002",
+                "intro": "Nem sikerült jelenteni a nyomtatási állapotot. Kérjük, ellenőrizd a hálózati kapcsolatot."
+            },
+            {
+                "ecode": "0500040000010003",
+                "intro": "A nyomtatási fájl tartalma olvashatatlan. Kérjük, küldd el újra a nyomtatási feladatot."
+            },
+            {
+                "ecode": "0500040000010004",
+                "intro": "A nyomtatási fájl nem engedélyezett."
+            },
+            {
+                "ecode": "0500040000010006",
+                "intro": "Nem sikerült folytatni az előző nyomtatást."
+            },
+            {
+                "ecode": "0700010000010001",
+                "intro": "Az AMS1 segédmotor megcsúszott. Lehet, hogy a kerék elkopott, vagy a filament túl vékony."
+            },
+            {
+                "ecode": "0700010000010003",
+                "intro": "Az AMS1 segédmotor nyomatékszabályzása hibásan működik. Lehet, hogy az áramérzékelő hibás."
+            },
+            {
+                "ecode": "0700010000010004",
+                "intro": "Az AMS1 segédmotor fordulatszámszabályzója hibásan működik. Lehet, hogy a sebességérzékelő meghibásodott."
+            },
+            {
+                "ecode": "0700010000020002",
+                "intro": "Az AMS1 segédmotor túlterhelt. Lehet, hogy a filament összegabalyodott vagy beragadt."
+            },
+            {
+                "ecode": "0700020000010001",
+                "intro": "AMS1 filamentsebesség és hossz hiba. Lehet, hogy a hosszmérő szenzor meghibásodott."
+            },
+            {
+                "ecode": "0700100000010001",
+                "intro": "Az AMS1 slot1 motor megcsúszott. Lehet, hogy a kerék elkopott, vagy a filament túl vékony."
+            },
+            {
+                "ecode": "0700100000010003",
+                "intro": "Az AMS1 slot1 motor nyomatékszabályzása hibásan működik. Lehet, hogy az áramérzékelő hibás."
+            },
+            {
+                "ecode": "0700100000020002",
+                "intro": "Az AMS1 slot1 motor túlterhelt. Lehet, hogy a filament összegabalyodott vagy beragadt."
+            },
+            {
+                "ecode": "0700110000010001",
+                "intro": "Az AMS1 slot2 motor megcsúszott. Lehet, hogy a kerék elkopott, vagy a filament túl vékony."
+            },
+            {
+                "ecode": "0700110000010003",
+                "intro": "Az AMS1 slot2 motor nyomatékszabályzása hibásan működik. Lehet, hogy az áramérzékelő hibás."
+            },
+            {
+                "ecode": "0700110000020002",
+                "intro": "Az AMS1 slot2 motor túlterhelt. Lehet, hogy a filament összegabalyodott vagy beragadt."
+            },
+            {
+                "ecode": "0700120000010001",
+                "intro": "Az AMS1 slot3 motor megcsúszott. Lehet, hogy a kerék elkopott, vagy a filament túl vékony."
+            },
+            {
+                "ecode": "0700120000010003",
+                "intro": "Az AMS1 slot3 motor nyomatékszabályzása hibásan működik. Lehet, hogy az áramérzékelő hibás."
+            },
+            {
+                "ecode": "0700120000020002",
+                "intro": "Az AMS1 slot3 motor túlterhelt. Lehet, hogy a filament összegabalyodott vagy beragadt."
+            },
+            {
+                "ecode": "0700130000010001",
+                "intro": "Az AMS1 slot4 motor megcsúszott. Lehet, hogy a kerék elkopott, vagy a filament túl vékony."
+            },
+            {
+                "ecode": "0700130000010003",
+                "intro": "Az AMS1 slot4 motor nyomatékszabályzása hibásan működik. Lehet, hogy az áramérzékelő hibás."
+            },
+            {
+                "ecode": "0700130000020002",
+                "intro": "Az AMS1 slot4 motor túlterhelt. Lehet, hogy a filament összegabalyodott vagy beragadt."
+            },
+            {
+                "ecode": "0700200000020001",
+                "intro": "AMS1 Slot1 filament elfogyott. Kérjük, helyezz be új filamentet."
+            },
+            {
+                "ecode": "0700200000020002",
+                "intro": "AMS1 Slot1 üres."
+            },
+            {
+                "ecode": "0700200000020003",
+                "intro": "AMS1 Slot1 filament lehet, hogy eltört az AMS-ben."
+            },
+            {
+                "ecode": "0700210000020001",
+                "intro": "AMS1 Slot2 filament elfogyott. Kérjük, helyezz be új filamentet."
+            },
+            {
+                "ecode": "0700210000020002",
+                "intro": "AMS1 Slot2 üres."
+            },
+            {
+                "ecode": "0700210000020003",
+                "intro": "AMS1 Slot2 filament lehet, hogy eltört az AMS-ben."
+            },
+            {
+                "ecode": "0700220000020001",
+                "intro": "AMS1 Slot3 filament elfogyott. Kérjük, helyezz be új filamentet."
+            },
+            {
+                "ecode": "0700220000020002",
+                "intro": "AMS1 Slot3 üres."
+            },
+            {
+                "ecode": "0700220000020003",
+                "intro": "AMS1 Slot3 filament lehet, hogy eltört az AMS-ben."
+            },
+            {
+                "ecode": "0700230000020001",
+                "intro": "AMS1 Slot4 filament elfogyott. Kérjük, helyezz be új filamentet."
+            },
+            {
+                "ecode": "0700230000020002",
+                "intro": "AMS1 Slot4 üres."
+            },
+            {
+                "ecode": "0700230000020003",
+                "intro": "AMS1 Slot4 filament lehet, hogy eltört az AMS-ben."
+            },
+            {
+                "ecode": "0700300000010001",
+                "intro": "Az AMS1 Slot1 és Slot2 között található RFID olvasó meghibásodott."
+            },
+            {
+                "ecode": "0700300000010004",
+                "intro": "Titkosító chip meghibásodás."
+            },
+            {
+                "ecode": "0700300000020002",
+                "intro": "Az AMS1 Slot1 RFID-címkéje megsérült."
+            },
+            {
+                "ecode": "0700300000030003",
+                "intro": "Az RFID nem olvasható hardveres vagy szerkezeti hiba miatt."
+            },
+            {
+                "ecode": "0700310000010001",
+                "intro": "Az AMS1 Slot3 és Slot4 között található RFID olvasó meghibásodott."
+            },
+            {
+                "ecode": "0700310000010004",
+                "intro": "Titkosító chip meghibásodás."
+            },
+            {
+                "ecode": "0700310000020002",
+                "intro": "Az AMS1 Slot2 RFID-címkéje megsérült."
+            },
+            {
+                "ecode": "0700310000030003",
+                "intro": "Az RFID nem olvasható hardveres vagy szerkezeti hiba miatt."
+            },
+            {
+                "ecode": "0700320000020002",
+                "intro": "Az AMS1 Slot3 RFID-címkéje megsérült."
+            },
+            {
+                "ecode": "0700330000020002",
+                "intro": "Az AMS1 Slot4 RFID-címkéje megsérült."
+            },
+            {
+                "ecode": "0700350000010001",
+                "intro": "A hőmérséklet- és páratartalom-érzékelő hibásan működik. Lehet, hogy a chip hibás."
+            },
+            {
+                "ecode": "0700400000020001",
+                "intro": "A filament-puffer pozíciójele elveszett: a kábel vagy a pozícióérzékelő meghibásodhatott."
+            },
+            {
+                "ecode": "0700400000020002",
+                "intro": "Filament-puffer pozíciójel hiba: a pozícióérzékelő meghibásodhatott."
+            },
+            {
+                "ecode": "0700400000020003",
+                "intro": "Az AMS Hub kommunikációja rendellenes, lehet, hogy a kábel nincs megfelelően csatlakoztatva."
+            },
+            {
+                "ecode": "0700450000020001",
+                "intro": "A filamentvágó érzékelője hibásan működik. Lehet, hogy az érzékelő nincs csatlakoztatva, vagy megsérült."
+            },
+            {
+                "ecode": "0700450000020002",
+                "intro": "A filamentvágó vágási távolsága túl nagy. Az XY motor lépést veszthet."
+            },
+            {
+                "ecode": "0700450000020003",
+                "intro": "A filamentvágó karja nem engedett ki. Lehet, hogy a kar vagy a penge beragadt."
+            },
+            {
+                "ecode": "0701010000010001",
+                "intro": "Az AMS2 segédmotor megcsúszott. Lehet, hogy a kerék elkopott, vagy a filament túl vékony."
+            },
+            {
+                "ecode": "0701010000010003",
+                "intro": "Az AMS2 segédmotor nyomatékszabályzása hibásan működik. Lehet, hogy az áramérzékelő hibás."
+            },
+            {
+                "ecode": "0701010000010004",
+                "intro": "Az AMS2 segédmotor fordulatszámszabályzója hibásan működik. Lehet, hogy a sebességérzékelő meghibásodott."
+            },
+            {
+                "ecode": "0701010000020002",
+                "intro": "Az AMS2 segédmotor túlterhelt. Lehet, hogy a filament összegabalyodott vagy beragadt."
+            },
+            {
+                "ecode": "0701020000010001",
+                "intro": "AMS2 filamentsebesség és hossz hiba. Lehet, hogy a hosszmérő szenzor meghibásodott."
+            },
+            {
+                "ecode": "0701100000010001",
+                "intro": "Az AMS2 slot1 motor megcsúszott. Lehet, hogy a kerék elkopott, vagy a filament túl vékony."
+            },
+            {
+                "ecode": "0701100000010003",
+                "intro": "Az AMS2 slot1 motor nyomatékszabályzása hibásan működik. Lehet, hogy az áramérzékelő hibás."
+            },
+            {
+                "ecode": "0701100000020002",
+                "intro": "Az AMS2 slot1 motor túlterhelt. Lehet, hogy a filament összegabalyodott vagy beragadt."
+            },
+            {
+                "ecode": "0701110000010001",
+                "intro": "Az AMS2 slot2 motor megcsúszott. Lehet, hogy a kerék elkopott, vagy a filament túl vékony."
+            },
+            {
+                "ecode": "0701110000010003",
+                "intro": "Az AMS2 slot2 motor nyomatékszabályzása hibásan működik. Lehet, hogy az áramérzékelő hibás."
+            },
+            {
+                "ecode": "0701110000020002",
+                "intro": "Az AMS2 slot2 motor túlterhelt. Lehet, hogy a filament összegabalyodott vagy beragadt."
+            },
+            {
+                "ecode": "0701120000010001",
+                "intro": "Az AMS2 slot3 motor megcsúszott. Lehet, hogy a kerék elkopott, vagy a filament túl vékony."
+            },
+            {
+                "ecode": "0701120000010003",
+                "intro": "Az AMS2 slot3 motor nyomatékszabályzása hibásan működik. Lehet, hogy az áramérzékelő hibás."
+            },
+            {
+                "ecode": "0701120000020002",
+                "intro": "Az AMS2 slot3 motor túlterhelt. Lehet, hogy a filament összegabalyodott vagy beragadt."
+            },
+            {
+                "ecode": "0701130000010001",
+                "intro": "Az AMS2 slot4 motor megcsúszott. Lehet, hogy a kerék elkopott, vagy a filament túl vékony."
+            },
+            {
+                "ecode": "0701130000010003",
+                "intro": "Az AMS2 slot4 motor nyomatékszabályzása hibásan működik. Lehet, hogy az áramérzékelő hibás."
+            },
+            {
+                "ecode": "0701130000020002",
+                "intro": "Az AMS2 slot4 motor túlterhelt. Lehet, hogy a filament összegabalyodott vagy beragadt."
+            },
+            {
+                "ecode": "0701200000020001",
+                "intro": "AMS2 Slot1 filament elfogyott. Kérjük, helyezz be új filamentet."
+            },
+            {
+                "ecode": "0701200000020002",
+                "intro": "AMS2 Slot1 üres."
+            },
+            {
+                "ecode": "0701200000020003",
+                "intro": "AMS2 Slot1 filament lehet, hogy eltört az AMS-ben."
+            },
+            {
+                "ecode": "0701210000020001",
+                "intro": "AMS2 Slot2 filament elfogyott. Kérjük, helyezz be új filamentet."
+            },
+            {
+                "ecode": "0701210000020002",
+                "intro": "AMS2 Slot2 üres."
+            },
+            {
+                "ecode": "0701210000020003",
+                "intro": "AMS2 Slot2 filament lehet, hogy eltört az AMS-ben."
+            },
+            {
+                "ecode": "0701220000020001",
+                "intro": "AMS2 Slot3 filament elfogyott. Kérjük, helyezz be új filamentet."
+            },
+            {
+                "ecode": "0701220000020002",
+                "intro": "AMS2 Slot3 üres."
+            },
+            {
+                "ecode": "0701220000020003",
+                "intro": "AMS2 Slot3 filament lehet, hogy eltört az AMS-ben."
+            },
+            {
+                "ecode": "0701230000020001",
+                "intro": "AMS2 Slot4 filament elfogyott. Kérjük, helyezz be új filamentet."
+            },
+            {
+                "ecode": "0701230000020002",
+                "intro": "AMS2 Slot4 üres."
+            },
+            {
+                "ecode": "0701230000020003",
+                "intro": "AMS2 Slot4 filament lehet, hogy eltört az AMS-ben."
+            },
+            {
+                "ecode": "0701300000010001",
+                "intro": "Az AMS2 Slot1 és Slot2 között található RFID olvasó meghibásodott."
+            },
+            {
+                "ecode": "0701300000010004",
+                "intro": "Titkosító chip meghibásodás."
+            },
+            {
+                "ecode": "0701300000020002",
+                "intro": "Az AMS2 Slot1 RFID-címkéje megsérült."
+            },
+            {
+                "ecode": "0701300000030003",
+                "intro": "Az RFID nem olvasható hardveres vagy szerkezeti hiba miatt."
+            },
+            {
+                "ecode": "0701310000010001",
+                "intro": "Az AMS2 Slot3 és Slot4 között található RFID olvasó meghibásodott."
+            },
+            {
+                "ecode": "0701310000010004",
+                "intro": "Titkosító chip meghibásodás."
+            },
+            {
+                "ecode": "0701310000020002",
+                "intro": "Az AMS2 Slot2 RFID-címkéje megsérült."
+            },
+            {
+                "ecode": "0701310000030003",
+                "intro": "Az RFID nem olvasható hardveres vagy szerkezeti hiba miatt."
+            },
+            {
+                "ecode": "0701320000020002",
+                "intro": "Az AMS2 Slot3 RFID-címkéje megsérült."
+            },
+            {
+                "ecode": "0701330000020002",
+                "intro": "Az AMS2 Slot4 RFID-címkéje megsérült."
+            },
+            {
+                "ecode": "0701350000010001",
+                "intro": "A hőmérséklet- és páratartalom-érzékelő hibásan működik. Lehet, hogy a chip hibás."
+            },
+            {
+                "ecode": "0702010000010001",
+                "intro": "Az AMS3 segédmotor megcsúszott. Lehet, hogy a kerék elkopott, vagy a filament túl vékony."
+            },
+            {
+                "ecode": "0702010000010003",
+                "intro": "Az AMS3 segédmotor nyomatékszabályzása hibásan működik. Lehet, hogy az áramérzékelő hibás."
+            },
+            {
+                "ecode": "0702010000010004",
+                "intro": "Az AMS3 segédmotor fordulatszámszabályzója hibásan működik. Lehet, hogy a sebességérzékelő meghibásodott."
+            },
+            {
+                "ecode": "0702010000020002",
+                "intro": "Az AMS3 segédmotor túlterhelt. Lehet, hogy a filament összegabalyodott vagy beragadt."
+            },
+            {
+                "ecode": "0702020000010001",
+                "intro": "AMS3 filamentsebesség és hossz hiba. Lehet, hogy a hosszmérő szenzor meghibásodott."
+            },
+            {
+                "ecode": "0702100000010001",
+                "intro": "Az AMS3 slot1 motor megcsúszott. Lehet, hogy a kerék elkopott, vagy a filament túl vékony."
+            },
+            {
+                "ecode": "0702100000010003",
+                "intro": "Az AMS3 slot1 motor nyomatékszabályzása hibásan működik. Lehet, hogy az áramérzékelő hibás."
+            },
+            {
+                "ecode": "0702100000020002",
+                "intro": "Az AMS3 slot1 motor túlterhelt. Lehet, hogy a filament összegabalyodott vagy beragadt."
+            },
+            {
+                "ecode": "0702110000010001",
+                "intro": "Az AMS3 slot2 motor megcsúszott. Lehet, hogy a kerék elkopott, vagy a filament túl vékony."
+            },
+            {
+                "ecode": "0702110000010003",
+                "intro": "Az AMS3 slot2 motor nyomatékszabályzása hibásan működik. Lehet, hogy az áramérzékelő hibás."
+            },
+            {
+                "ecode": "0702110000020002",
+                "intro": "Az AMS3 slot2 motor túlterhelt. Lehet, hogy a filament összegabalyodott vagy beragadt."
+            }
+        ],
+        "ver": 202401191700
+    },
+    "version": "202401191700"
+}
