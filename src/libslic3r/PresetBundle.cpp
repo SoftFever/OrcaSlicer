@@ -2996,7 +2996,7 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
                 const Preset *preset_existing = presets->find_preset(section.first, false);
                 if (preset_existing != nullptr) {
                     BOOST_LOG_TRIVIAL(error) << "Error in a Vendor Config Bundle \"" << path << "\": The printer preset \"" <<
-                        section.first << "\" has already been loaded from another Confing Bundle.";
+                        section.first << "\" has already been loaded from another Config Bundle.";
                     continue;
                 }
             } else if (! flags.has(LoadConfigBundleAttribute::LoadSystem)) {
@@ -3076,7 +3076,7 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
             const PhysicalPrinter* ph_printer_existing = ph_printers->find_printer(ph_printer_name, false);
             if (ph_printer_existing != nullptr) {
                 BOOST_LOG_TRIVIAL(error) << "Error in a Vendor Config Bundle \"" << path << "\": The physical printer \"" <<
-                    section.first << "\" has already been loaded from another Confing Bundle.";
+                    section.first << "\" has already been loaded from another Config Bundle.";
                 continue;
             }
 
@@ -3455,7 +3455,7 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
         const Preset *preset_existing = presets_collection->find_preset(preset_name, false);
         if (preset_existing != nullptr) {
             BOOST_LOG_TRIVIAL(error) << "Error in a Vendor Config Bundle \"" << path << "\": The printer preset \"" <<
-                preset_name << "\" has already been loaded from another Confing Bundle.";
+                preset_name << "\" has already been loaded from another Config Bundle.";
             reason = std::string("duplicated defines");
             return reason;
         }
