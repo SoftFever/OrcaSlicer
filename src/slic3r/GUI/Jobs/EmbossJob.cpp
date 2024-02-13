@@ -102,6 +102,9 @@ struct DataCreateObject
 
     // Define which gizmo open on the success
     GLGizmosManager::EType gizmo;
+
+    // additionl rotation around Z axe, given by style settings
+    std::optional<float> angle = {};
 };
 
 /// <summary>
@@ -330,6 +333,12 @@ void CreateObjectJob::process(Ctl &ctl)
     offset -= m_result.center();
     Transform3d::TranslationType tt(offset.x(), offset.y(), offset.z());
     m_transformation = Transform3d(tt);
+
+    // rotate around Z by style settings
+    if (m_input.angle.has_value()) {
+        std::optional<float> distance; // new object ignore surface distance from style settings
+        apply_transformation(m_input.angle, distance, m_transformation);
+    }
 }
 
 void CreateObjectJob::finalize(bool canceled, std::exception_ptr &eptr)
@@ -1023,10 +1032,13 @@ void update_volume(TriangleMesh &&mesh, const DataUpdate &data, const Transform3
     assert(plater->canvas3D()->get_gizmos_manager().get_current_type() == GLGizmosManager::Emboss ||
            plater->canvas3D()->get_gizmos_manager().get_current_type() == GLGizmosManager::Svg);
 
-    // TRN: This is the name of the action appearing in undo/redo stack.
-    std::string          snap_name = _u8L("Text/SVG attribute change");
-    Plater::TakeSnapshot snapshot(plater, snap_name, UndoRedo::SnapshotType::GizmoAction);
-        
+    if (data.make_snapshot) {
+        // TRN: This is the title of the action appearing in undo/redo stack.
+        // It is same for Text and SVG.
+        std::string snap_name = _u8L("Emboss attribute change");
+        Plater::TakeSnapshot snapshot(plater, snap_name, UndoRedo::SnapshotType::GizmoAction);
+    }
+
     ModelVolume *volume = get_model_volume(data.volume_id, plater->model().objects);   
 
     // could appear when user delete edited volume
@@ -1486,8 +1498,14 @@ bool start_create_object_job(const CreateVolumeParams &input, DataBasePtr emboss
 {
     const Pointfs   &bed_shape  = input.build_volume.printable_area();
     auto             gizmo_type = static_cast<GLGizmosManager::EType>(input.gizmo);
-    DataCreateObject data{std::move(emboss_data), coor, input.camera, bed_shape, gizmo_type};
-    auto             job = std::make_unique<CreateObjectJob>(std::move(data));
+    DataCreateObject data{std::move(emboss_data), coor, input.camera, bed_shape, gizmo_type, input.angle};
+
+    // Fix: adding text on print bed with style containing use_surface
+    if (data.base->shape.projection.use_surface) 
+        // Til the print bed is flat using surface for Object is useless
+        data.base->shape.projection.use_surface = false;
+
+    auto job = std::make_unique<CreateObjectJob>(std::move(data));
     return queue_job(input.worker, std::move(job));
 }
 
