@@ -15,7 +15,7 @@ SwitchButton::SwitchButton(wxWindow* parent, wxWindowID id)
 	, m_off(this, "toggle_off", 16)
     , text_color(std::pair{0xfffffe, (int) StateColor::Checked}, std::pair{0x6B6B6B, (int) StateColor::Normal})
 	, track_color(0xD9D9D9)
-    , thumb_color(std::pair{0x009688, (int) StateColor::Checked}, std::pair{0xD9D9D9, (int) StateColor::Normal})
+    , thumb_color(std::pair{0xeb4949, (int) StateColor::Checked}, std::pair{0xD9D9D9, (int) StateColor::Normal})
 {
 	SetBackgroundColour(StaticBox::GetParentBackgroundColor(parent));
 	Bind(wxEVT_TOGGLEBUTTON, [this](auto& e) { update(); e.Skip(); });

@@ -56,7 +56,7 @@ NetworkTestDialog::NetworkTestDialog(wxWindow* parent, wxWindowID id, const wxSt
 
 wxBoxSizer* NetworkTestDialog::create_top_sizer(wxWindow* parent)
 {
-    StateColor btn_bg(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered), std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Enabled));
+    StateColor btn_bg(std::pair<wxColour, int>(wxColour(199, 24, 24), StateColor::Pressed), std::pair<wxColour, int>(wxColour(245, 100, 100), StateColor::Hovered), std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Enabled));
 	auto sizer = new wxBoxSizer(wxVERTICAL);
 
 	auto line_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -138,7 +138,7 @@ wxBoxSizer* NetworkTestDialog::create_content_sizer(wxWindow* parent)
 	grid_sizer->SetFlexibleDirection(wxBOTH);
 	grid_sizer->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);
 
-    StateColor btn_bg(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered), std::pair<wxColour, int>(wxColour(255,255,255), StateColor::Enabled));
+    StateColor btn_bg(std::pair<wxColour, int>(wxColour(199, 24, 24), StateColor::Pressed),std::pair<wxColour, int>(wxColour(245, 100, 100), StateColor::Hovered), std::pair<wxColour, int>(wxColour(255,255,255), StateColor::Enabled));
 	btn_link = new Button(this, _L("Test BambuLab"));
     btn_link->SetBackgroundColor(btn_bg);
 	grid_sizer->Add(btn_link, 0, wxEXPAND | wxALL, 5);

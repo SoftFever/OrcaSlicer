@@ -869,9 +869,9 @@ AmsHumidityTipPopup::AmsHumidityTipPopup(wxWindow* parent)
     main_sizer->Add(m_staticText_note, 0, wxALL | wxLEFT | wxRIGHT, 22);
 
     m_button_confirm = new Button(this, _L("OK"));
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Pressed), std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(235, 73, 73), StateColor::Pressed), std::pair<wxColour, int>(wxColour(235, 73, 73), StateColor::Normal));
     m_button_confirm->SetBackgroundColor(btn_bg_green);
-    m_button_confirm->SetBorderColor(wxColour(0, 150, 136));
+    m_button_confirm->SetBorderColor(wxColour(235, 73, 73));
     m_button_confirm->SetTextColor(wxColour(0xFFFFFE));
     m_button_confirm->SetSize(wxSize(FromDIP(72), FromDIP(24)));
     m_button_confirm->SetMinSize(wxSize(FromDIP(72), FromDIP(24)));
@@ -1190,7 +1190,7 @@ void AmsReplaceMaterialDialog::create()
 
     auto label_title = new Label(this, _L("Auto Refill"));
     label_title->SetFont(Label::Head_14);
-    label_title->SetForegroundColour(0x009688);
+    label_title->SetForegroundColour(0xeb4949);
     label_txt = new Label(this, _L("When the current material run out, the printer will continue to print in the following order."));
     label_txt->SetFont(Label::Body_13);
     label_txt->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#323A3C")));
@@ -1225,7 +1225,7 @@ void AmsReplaceMaterialDialog::create()
         std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
 
 
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(199, 24, 24), StateColor::Pressed), std::pair<wxColour, int>(wxColour(235, 73, 73), StateColor::Normal));
     m_button_sizer->Add( 0, 0, 1, wxEXPAND, 0 );
 
     m_main_sizer->Add(0,0,0, wxTOP, FromDIP(12));

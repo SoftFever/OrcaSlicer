@@ -3,14 +3,14 @@
 <svg version="1.0" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
 	 viewBox="0 0 16 16" enable-background="new 0 0 16 16" xml:space="preserve">
 <g id="cross">
-	<g><line fill="none" stroke="#009688" stroke-width="1" stroke-linecap="round" stroke-miterlimit="10" x1="12" y1="1" x2="15" y2="4"/></g>
-	<g><line fill="none" stroke="#009688" stroke-width="1" stroke-linecap="round" stroke-miterlimit="10" x1="12" y1="7" x2="15" y2="4"/></g>
-	<g><line fill="none" stroke="#009688" stroke-width="1" stroke-linecap="round" stroke-miterlimit="10" x1="8"  y1="1" x2="11" y2="4"/></g>
-	<g><line fill="none" stroke="#009688" stroke-width="1" stroke-linecap="round" stroke-miterlimit="10" x1="8"  y1="7" x2="11" y2="4"/></g>
+	<g><line fill="none" stroke="#eb4949" stroke-width="1" stroke-linecap="round" stroke-miterlimit="10" x1="12" y1="1" x2="15" y2="4"/></g>
+	<g><line fill="none" stroke="#eb4949" stroke-width="1" stroke-linecap="round" stroke-miterlimit="10" x1="12" y1="7" x2="15" y2="4"/></g>
+	<g><line fill="none" stroke="#eb4949" stroke-width="1" stroke-linecap="round" stroke-miterlimit="10" x1="8"  y1="1" x2="11" y2="4"/></g>
+	<g><line fill="none" stroke="#eb4949" stroke-width="1" stroke-linecap="round" stroke-miterlimit="10" x1="8"  y1="7" x2="11" y2="4"/></g>
 	
-	<g><line fill="none" stroke="#009688" stroke-width="1" stroke-linecap="round" stroke-miterlimit="10" x1="4" y1="9"  x2="1" y2="12"/></g>
-	<g><line fill="none" stroke="#009688" stroke-width="1" stroke-linecap="round" stroke-miterlimit="10" x1="4" y1="15" x2="1" y2="12"/></g>
-	<g><line fill="none" stroke="#009688" stroke-width="1" stroke-linecap="round" stroke-miterlimit="10" x1="8" y1="9"  x2="5" y2="12"/></g>
-	<g><line fill="none" stroke="#009688" stroke-width="1" stroke-linecap="round" stroke-miterlimit="10" x1="8" y1="15" x2="5" y2="12"/></g>
+	<g><line fill="none" stroke="#eb4949" stroke-width="1" stroke-linecap="round" stroke-miterlimit="10" x1="4" y1="9"  x2="1" y2="12"/></g>
+	<g><line fill="none" stroke="#eb4949" stroke-width="1" stroke-linecap="round" stroke-miterlimit="10" x1="4" y1="15" x2="1" y2="12"/></g>
+	<g><line fill="none" stroke="#eb4949" stroke-width="1" stroke-linecap="round" stroke-miterlimit="10" x1="8" y1="9"  x2="5" y2="12"/></g>
+	<g><line fill="none" stroke="#eb4949" stroke-width="1" stroke-linecap="round" stroke-miterlimit="10" x1="8" y1="15" x2="5" y2="12"/></g>
 </g>
 </svg>

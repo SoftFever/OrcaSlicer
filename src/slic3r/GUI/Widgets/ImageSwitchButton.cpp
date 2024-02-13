@@ -26,7 +26,7 @@ EVT_PAINT(FanSwitchButton::paintEvent)
 
 END_EVENT_TABLE()
 
-static const wxColour DEFAULT_HOVER_COL = wxColour(0, 150, 136);
+static const wxColour DEFAULT_HOVER_COL = wxColour(235, 73, 73);
 static const wxColour DEFAULT_PRESS_COL = wxColour(238, 238, 238);
 
 ImageSwitchButton::ImageSwitchButton(wxWindow *parent, ScalableBitmap &img_on, ScalableBitmap &img_off, long style)

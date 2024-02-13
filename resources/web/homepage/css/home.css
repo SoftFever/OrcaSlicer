@@ -169,8 +169,8 @@ body
 	font-size: 14px;
 	height: 24px;
 	line-height: 24px;
-	color: #4db6ac;
-	border: 1px solid  #009688;
+	color: #f98585;
+	border: 1px solid  #eb4949;
 	border-radius: 4px;
 	cursor: pointer;
 	margin-top: 5px;
@@ -179,7 +179,7 @@ body
 
 #LogoutBtn:hover
 {
-	background: #00f0d8;
+	background: #f98585;
 	color: #fff;
 }
 
@@ -203,12 +203,12 @@ body
 
 .BtnItem:hover
 {
-	background-color: #E0FCEB;
+	background-color: #cecece;
 }
 
 .BtnItemSelected
 {
-	background-color: #e0fcf3;
+	background-color: #f98f8f;
 }
 
 .BtnIcon
@@ -277,8 +277,8 @@ body
 
 .MenuItem:hover
 {
-	border-color: #4db6ac;
-	background-color: #E0FCEB;
+	border-color: #fc5d5d;
+	background-color: #fce4e0;
 }
 
 .MenuIcon
@@ -554,6 +554,58 @@ body
 }
 
 
+/*---------model3D----------*/
+#model3DBoard
+{
+	display:none;
+}
+
+#model3DContentBoard
+{
+	overflow-y:auto;
+	padding: 0px 40px;
+	display: flex;
+	flex-direction: column;
+	position: relative;
+	height: 100%;
+}
+
+#model3DArea
+{
+	height: 140px;
+	display: flex;
+	align-items: center;
+	flex: 0 0 140px;
+}
+
+.model3DItem
+{
+	border-width: 1px;
+	border-style: solid;
+	border-radius: 12px;
+	height: 101px;
+	width: 300px;
+	padding-left: 20px;
+	display: flex;
+	justify-content: flex-start;
+	align-items: center;
+	margin-right: 16px;
+	cursor: pointer;
+}
+
+.model3DItem:hover
+{
+	border-color: #fc5d5d;
+	background-color: #fce4e0;
+}
+
+/*---------lewy dolny----------*/
+.bottomleft {
+	position: absolute;
+	bottom: 5px;
+	left: 10px;
+	font-size: 10px;
+  }
 /*---------Wiki----------*/
 #WikiGuideBigBoard
 {
@@ -701,7 +753,7 @@ body
 #HotModel_RIGHT_Title:hover
 {
 	cursor: pointer;	
-	color:#009688;	
+	color:#eb4949;	
 }
 
 .HotModelPiece

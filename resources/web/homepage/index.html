@@ -39,13 +39,22 @@
 	</div>
 		
 	</div>
-
+	<!-- //Lewa strona> -->
 	<div id="BtnArea">
 	    <div menu="recent" class="BtnItem BtnItemSelected" onClick="GotoMenu('recent')">
 			<div class="BtnIcon "><img class="LeftIcon" src="img/i2.png" /></div>
 			<div class="trans" tid="t28">recent</div> 
 		</div>	
+		
+	    <div menu="wikiguide" class="BtnItem" onClick="GotoMenu('wikiguide')">
+			<div class="BtnIcon "><img class="LeftIcon" src="img/i1.png" /></div>
+			<div class="trans" tid="t87">UserGuide</div> 
+		</div>
 
+	    <div menu="model3D" class="BtnItem" onClick="GotoMenu('model3D')">
+			<div class="BtnIcon "><img class="LeftIcon" src="img/i3.png" /></div>
+			<div class="trans" tid="t101">3D Links </div> 
+		</div>
 	</div>
 </div>
 
@@ -53,13 +62,13 @@
 <div id="ContentBoard" class="ZScrol" board="recent">
     <div style="height: 14px;"></div>	
 	<div id="MenuArea">
-<!--		<div class="MenuItem" onClick="OnClickModelDepot()">
+		<!-- // <div class="MenuItem" onClick="OnClickModelDepot()">
 			<div class="MenuIcon"><img src="img/i6.png"></div>
 			<div>
 				<div class="trans TextS1" tid="t90">3D Model</div>
 				<div class="MenuDesc trans"  tid="t91">Download 3D Models</div>
 			</div>
-		</div>	-->	
+		</div>-->
 		<div class="MenuItem" onClick="OnClickNewProject()">
 			<div class="MenuIcon"><img src="img/i4.png"></div>
 			<div>
@@ -74,12 +83,73 @@
 				<div class="MenuDesc">3mf</div>
 			</div>
 		</div>		
-	</div>
+	</div> 
 	
-	<div id="DebugText"></div>	
+	<div id="DebugText"></div>
+	
+	<div id="HotModelArea">
+		<div id="HotModelBlock">
+		  <div id="HotModel_LEFT_Title">
+			<img class="TitleSmallIcon" src="./img/t1.svg" />
+		    <div id="HotModelTitle" class="Content-Title trans TextS1" tid="t107">Online Models</div>
+		  </div>
+		  <div id="HotModel_RIGHT_Title" onClick="OnClickModelDepot()">MORE ></div>
+		</div>
+		<div id="HotModel_Swiper" class="swiper">
+			<div  id="HotModelList" class="swiper-wrapper">
+<!--				<div class="HotModelPiece swiper-slide" onClick="OpenOneStaffPickModel(1)">
+					<div class="HotModel_Designer_Info"><img src="https://public-dev-cdn.bambu-lab.com/portal/u/userinfo-415112594-avatar-f89b3a6b03673" /><span class="TextS2">WuYiFan</span></div>
+					<div class="HotModel_PrevBlock"><img class="HotModel_PrevImg" src="img/wiki.png" /></div>
+					<div  class="HotModel_NameText TextS1">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</div>
+				</div>
+				<div class="HotModelPiece swiper-slide" onClick="OpenOneStaffPickModel(1)">
+					<div class="HotModel_Designer_Info"><img src="https://public-dev-cdn.bambu-lab.com/portal/u/userinfo-415112594-avatar-f89b3a6b03673" /><span class="TextS2">WuYiFan</span></div>
+					<div class="HotModel_PrevBlock"><img class="HotModel_PrevImg" src="img/a.jpg" /></div>
+					<div  class="HotModel_NameText TextS1">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</div>
+				</div>
+				<div class="HotModelPiece swiper-slide" onClick="OpenOneStaffPickModel(1)">
+					<div class="HotModel_Designer_Info"><img src="https://public-dev-cdn.bambu-lab.com/portal/u/userinfo-415112594-avatar-f89b3a6b03673" /><span class="TextS2">WuYiFan</span></div>
+					<div class="HotModel_PrevBlock"><img class="HotModel_PrevImg" src="img/wiki3.png" /></div>
+					<div  class="HotModel_NameText TextS1">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</div>
+				</div>
+				<div class="HotModelPiece swiper-slide" onClick="OpenOneStaffPickModel(1)">
+					<div class="HotModel_Designer_Info"><img src="https://public-dev-cdn.bambu-lab.com/portal/u/userinfo-415112594-avatar-f89b3a6b03673" /><span class="TextS2">WuYiFan</span></div>
+					<div class="HotModel_PrevBlock"><img class="HotModel_PrevImg" src="img/wiki2.png" /></div>
+					<div  class="HotModel_NameText TextS1">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</div>
+				</div>
+				<div class="HotModelPiece swiper-slide" onClick="OpenOneStaffPickModel(1)">
+					<div class="HotModel_Designer_Info"><img src="https://public-dev-cdn.bambu-lab.com/portal/u/userinfo-415112594-avatar-f89b3a6b03673" /><span class="TextS2">WuYiFan</span></div>
+					<div class="HotModel_PrevBlock"><img class="HotModel_PrevImg" src="img/wiki.png" /></div>
+					<div  class="HotModel_NameText TextS1">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</div>
+				</div>	
+				<div class="HotModelPiece swiper-slide" onClick="OpenOneStaffPickModel(1)">
+					<div class="HotModel_Designer_Info"><img src="https://public-dev-cdn.bambu-lab.com/portal/u/userinfo-415112594-avatar-f89b3a6b03673" /><span class="TextS2">WuYiFan</span></div>
+					<div class="HotModel_PrevBlock"><img class="HotModel_PrevImg" src="img/wiki3.png" /></div>
+					<div  class="HotModel_NameText TextS1">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</div>
+				</div>
+				<div class="HotModelPiece swiper-slide" onClick="OpenOneStaffPickModel(1)">
+					<div class="HotModel_Designer_Info"><img src="https://public-dev-cdn.bambu-lab.com/portal/u/userinfo-415112594-avatar-f89b3a6b03673" /><span class="TextS2">WuYiFan</span></div>
+					<div class="HotModel_PrevBlock"><img class="HotModel_PrevImg" src="img/wiki2.png" /></div>
+					<div  class="HotModel_NameText TextS1">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</div>
+				</div>
+				<div class="HotModelPiece swiper-slide" onClick="OpenOneStaffPickModel(1)">
+					<div class="HotModel_Designer_Info"><img src="https://public-dev-cdn.bambu-lab.com/portal/u/userinfo-415112594-avatar-f89b3a6b03673" /><span class="TextS2">WuYiFan</span></div>
+					<div class="HotModel_PrevBlock"><img class="HotModel_PrevImg" src="img/wiki.png" /></div>
+					<div  class="HotModel_NameText TextS1">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</div>
+				</div>	-->			
+			</div>
+            <div class="swiper-button-prev"></div>
+            <div class="swiper-button-next"></div>
+<!--			<div class="swiper-scrollbar"></div>-->
+		</div>
+	</div>	
+	
+	
+	
 	<div id="RecentFileArea">
 		<div id="RecentTitleBlock">
-		    <div id="RecentTitle" class="Content-Title trans TextS1" tid="t35">recent open</div>
+			<img class="TitleSmallIcon" src="./img/t2.svg" />
+		    <div id="RecentTitle" class="Content-Title trans TextS1" tid="t35">Recently opened</div>
 			<div id="RecentClearAllBtn" class="trans TextS1" tid="t12" onClick="OnDeleteAllRecentFiles()">Clear all</div>
 		</div>
 		<div id="FileList">
@@ -170,10 +240,154 @@
 			<div class="CT_Text trans" tid="t89">open in explorer </div>
 		</div>				
     </div>
-	
-	
 </div>
+<div id="model3DBoard" board="model3D">
+	<div id="model3DContentBoard">
+		<div style="height: 14px;"></div>
 
+		<div id="model3DArea">
+			<!--Printables-->
+			<div class="model3DItem" onClick="Openmodel3DUrl('https://www.printables.com/pl')">
+				<div class="MenuIcon"><img src="img/120.svg"></div>
+				<div>
+					<div class="trans TextS1" tid="t120">Printables</div>
+					<div class="MenuDesc trans"  tid="t121"> Prusa Research a.s.</div>
+				</div>
+			</div>
+			<div class="model3DItem" onClick="Openmodel3DUrl('https://www.thingiverse.com')">
+				<div class="MenuIcon"><img src="img/122.svg"></div>
+				<div>
+					<div class="trans TextS1" tid="t122">Thingiverse</div>
+					<div class="MenuDesc trans"  tid="t123">UltiMaker Thingiverse</div>
+				</div>
+			</div>
+			<div class="model3DItem" onClick="Openmodel3DUrl('https://www.tinkercad.com/things')">
+				<div class="MenuIcon"><img src="img/124.png"></div>
+				<div>
+					<div class="trans TextS1" tid="t124">Tinkercad</div>
+					<div class="MenuDesc trans"  tid="t125">AutoDesk</div>
+				</div>
+			</div>
+			<div class="model3DItem" onClick="Openmodel3DUrl('https://cults3d.com/')">
+				<div class="MenuIcon"><img src="img/126.svg"></div>
+				<div>
+					<div class="trans TextS1" tid="t126">CULTS</div>
+					<div class="MenuDesc trans"  tid="t127">THE 3D PRINTING PLATFORM</div>
+				</div>
+			</div>	
+		</div>
+		<div id="model3DArea">
+			<!--Printables-->
+			<div class="model3DItem" onClick="Openmodel3DUrl('https://www.stlfinder.com/')">
+				<div class="MenuIcon"><img src="img/128.png"></div>
+				<div>
+					<div class="trans TextS1" tid="t128">STLFinder</div>
+					<div class="MenuDesc trans"  tid="t129">Search free 3d models</div>
+				</div>
+			</div>
+			<div class="model3DItem" onClick="Openmodel3DUrl('https://makerworld.com/en/models/categories')">
+				<div class="MenuIcon"><img src="img/130.svg"></div>
+				<div>
+					<div class="trans TextS1" tid="t130">  MakerWorld</div>
+					<div class="MenuDesc trans"  tid="t131">  BambuLab</div>
+				</div>
+			</div>
+			<!--<div class="model3DItem" onClick="Openmodel3DUrl('https://www.tinkercad.com/things')">
+				<div class="MenuIcon"><img src="img/132.png"></div>
+				<div>
+					<div class="trans TextS1" tid="t132">7</div>
+					<div class="MenuDesc trans"  tid="t133">7</div>
+				</div>
+			</div>
+			<div class="model3DItem" onClick="Openmodel3DUrl('https://www.thingiverse.com')">
+				<div class="MenuIcon"><img src="img/134.png"></div>
+				<div>
+					<div class="trans TextS1" tid="t134">8</div>
+					<div class="MenuDesc trans"  tid="t135">8</div>
+				</div>
+			</div>-->
+		</div>
+		<div id="model3DArea">
+			<!--GitHub-->
+			<div class="model3DItem" onClick="Openmodel3DUrl('https://github.com/KrisMorr/OrcaSlicerRED')">
+				<div class="MenuIcon"><img src="img/136.png"></div>
+				<div>
+					<div class="trans TextS1" tid="t137">OrcaSlicerRED</div>
+					<div class="MenuDesc trans"  tid="t138">GitHub</div>
+				</div>
+			</div>
+			<!--<div class="model3DItem" onClick="Openmodel3DUrl('')">
+				<div class="MenuIcon"><img src="img/130.png"></div>
+				<div>
+					<div class="trans TextS1" tid="t130">6</div>
+					<div class="MenuDesc trans"  tid="t131">6</div>
+				</div>
+			</div>
+			<div class="model3DItem" onClick="Openmodel3DUrl('')">
+				<div class="MenuIcon"><img src="img/132.png"></div>
+				<div>
+					<div class="trans TextS1" tid="t132">7</div>
+					<div class="MenuDesc trans"  tid="t133">7</div>
+				</div>
+			</div>
+			<div class="model3DItem" onClick="Openmodel3DUrl('https://www.paypal.com/donate/?business=B43VVM5X4273L&no_recurring=0&currency_code=PLN&fbclid=IwAR3jYLd8pAKA-Jn-DxKbJvhnmDrBktFwSL4gv9YQGGCWclZSBuxmkU7dd5k')">
+				<div class="UG_IMG"><img src="img/Paypal.svg"></div>
+				<div>
+					<div class="UG_TITLE trans TextS1" tid="t134"></div>
+					<div class="UG_DESC trans"  tid="t135">Jeśli uważasz, że moja praca i czas, który poświęciłem, zasługują na symboliczne wsparcie to zapraszam</div>
+				</div>
+			</div>-->
+		</div>
+	</div>
+</div>
+	
+<div id="WikiGuideBigBoard" board="wikiguide">
+<div id="WikiGuideBoard" >
+	<div class="GuideBlock" onClick="OpenWikiUrl('https://wiki.bambulab.com/en/software/bambu-studio/studio-quick-start')">
+		<div class="UG_IMG"><img src="img/quick_start.png" /></div>
+		<div class="UG_TITLE trans TextS1" tid="wk1">Quick Start</div>
+		<div class="UG_DESC trans" tid="wk2">This article introduces the most basic usage of Bambu Studio. It guides users to configure software, create projects, and complete the first printing task step by step. </div>
+	</div>
+	<div class="GuideBlock" onClick="OpenWikiUrl('https://wiki.bambulab.com/en/software/bambu-studio/project-based-workflow')">
+		<div class="UG_IMG"><img src="img/project_based_workflow.png" /></div>
+		<div class="UG_TITLE trans TextS1" tid="wk3">Project Based Workflow</div>
+		<div class="UG_DESC trans" tid="wk4">Bambu Studio has put forward a leading workflow to truly achieve an “all in one” project. Based on the mainstream 3MF project format, it provides a series of revolutionary new features, such as Multi-Plate Support, a Project Resource Manager, and Assembly/Part View. It greatly improves the efficiency of both creators and regular users.</div>
+	</div>
+	<div class="GuideBlock" onClick="OpenWikiUrl('https://wiki.bambulab.com/en/software/bambu-studio/high-speed-print-at-quality')">
+		<div class="UG_IMG"><img src="img/high_speed_print_at_quality.png" /></div>
+		<div class="UG_TITLE trans TextS1" tid="wk5">High Speed Print at Quality</div>
+		<div class="UG_DESC trans" tid="wk6">It is challenging to print at high speed while maintaining high quality. Bambu Studio makes this happen.
+        "Arch Move" makes the toolhead move smoothly and reduces the machine's vibration. The smart cooling is based on fine-tuned cooling parameters for each filament type.
+        "Auto slow down" for overhang walls works to prevent deformation at high speeds.</div>
+	</div>
+	<div class="GuideBlock" onClick="OpenWikiUrl('https://wiki.bambulab.com/en/software/bambu-studio/multi-color-printing')">
+		<div class="UG_IMG"><img src="img/multi_color_printing.png" /></div>
+		<div class="UG_TITLE trans TextS1" tid="wk7">Multi-Color Printing</div>
+		<div class="UG_DESC trans" tid="wk8">Bambu Studio provides versatile colorizing tools to make a colorful model. You can freely add/remove filaments in a project and colorize your model with different brushes. Before printing, each filament will be auto-mapped to an AMS slot, not needing to manually change the spool placement in the AMS.</div>
+	</div>
+	<div class="GuideBlock" onClick="OpenWikiUrl('https://wiki.bambulab.com/en/software/bambu-studio/how-to-set-slicing-parameters')">
+		<div class="UG_IMG"><img src="img/setting_guide_of_slicing_parameters.png" /></div>
+		<div class="UG_TITLE trans TextS1" tid="wk9">Setting Guide of Slicing Parameters</div>
+		<div class="UG_DESC trans" tid="wk10">The parameter management features in Bambu Studio provide very flexible and powerful control over the slicing process. This article introduces the organization of parameters and provides some skills on taking full advantage of these capabilities.</div>
+	</div>
+	<div class="GuideBlock" onClick="OpenWikiUrl('https://wiki.bambulab.com/en/software/bambu-studio/remote-control')">
+		<div class="UG_IMG"><img src="img/remote_control_and_monitoring.png" /></div>
+		<div class="UG_TITLE trans TextS1" tid="wk11">Remote Control & Monitoring</div>
+		<div class="UG_DESC trans" tid="wk12">Bambu Studio support sending print job to your printer over WAN/LAN network, controlling & monitoring every aspect of your 3D printer and printing jobs. If you have more than one printer, you can easily switch between them in the device list.</div>
+	</div>
+	<div class="GuideBlock" onClick="OpenWikiUrl('https://wiki.bambulab.com/en/software/bambu-studio/step')">
+		<div class="UG_IMG"><img src="img/step.png" /></div>
+		<div class="UG_TITLE trans TextS1" tid="wk13">STEP Format</div>
+		<div class="UG_DESC trans" tid="wk14">Compared with STL, STEP brings more effective information. Thanks to the high accuracy of STEP, a lot of extrusion paths can be generated as arcs. STEP also includes the assembly relationship of each part of a model, which can be used to restore the assembly view after a model is split.</div>
+	</div>
+	<div class="GuideBlock" onClick="OpenWikiUrl('https://wiki.bambulab.com/en/software/bambu-studio/3d-text')">
+		<div class="UG_IMG"><img src="img/3d_text.png" /></div>
+		<div class="UG_TITLE trans TextS1" tid="wk15">3D Text</div>
+		<div class="UG_DESC trans" tid="wk16">With 3D Text tool, users can easily create various 3D text shapes in the project, making the model more personalized. Bambu Studio provides dozens of fonts and supports bold and italic styles to give text greater flexibility.</div>
+	</div>
+</div>
+</div>
+	
 </div>	
 </body>
 <script type="text/javascript">

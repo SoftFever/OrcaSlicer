@@ -6,7 +6,7 @@
 .BlockBanner
 {
 	padding: 0px;
-	border-bottom:#009688 1px solid;
+	border-bottom:#eb4949 1px solid;
 	width: 100%;
 }
 
@@ -37,7 +37,7 @@
 
 .Banner-Btn-green
 {
-	background-color: #009688;
+	background-color: #eb4949;
 	color: #fff;
 	padding: 0px 6px;
 	min-width: 50px;
@@ -50,7 +50,7 @@
 .BlockBanner  a
 {
 	display: inline-block;
-	background-color:#009688;
+	background-color:#eb4949;
 	line-height: 40px;
 	height: 40px;
 	padding: 0px 24px;
@@ -156,7 +156,7 @@
   
   .searchTerm {
 	width: 100%;
-	border: 3px solid #009688;
+	border: 3px solid #eb4949;
 	/*border-right: none;*/
 	padding: 5px;
 	height: 20px;
@@ -166,7 +166,7 @@
   }
   
   .searchTerm:focus{
-	color: #009688;
+	color: #eb4949;
   }
   
   /*Resize the wrap to see the search bar change!*/

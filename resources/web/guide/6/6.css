@@ -28,7 +28,7 @@ html,body
 	padding: 1.5mm 6mm;
 	font-size: 14px;
 	text-align: center;
-	background-color: #009688;
+	background-color: #eb4949;
 	border-radius: 6px;
 	color: #fff;
 	cursor: pointer;
@@ -38,7 +38,7 @@ html,body
 
 .Btn_Green:hover
 {
-	background-color:#4db6ac;
+	background-color:#fc5d5d;
 
 }
 
@@ -94,7 +94,7 @@ html,body
 	float: left;
 	height:20px;
 	width: 0%;
-	background-color:#009688;
+	background-color:#eb4949;
 	border-radius: 20px;		
 }
 

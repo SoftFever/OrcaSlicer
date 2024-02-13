@@ -1,0 +1,4089 @@
+{
+    "device_error": {
+        "sv": [
+            {
+                "ecode": "0500C010",
+                "intro": "Fel vid läsning/skrivning av MicroSD kort. sätt i eller byt ut MicroSD kortet."
+            },
+            {
+                "ecode": "0514039",
+                "intro": "Enhetens inloggning har löpt ut, försök att logga in igen."
+            },
+            {
+                "ecode": "03008018",
+                "intro": "Fel i kammar temperaturen."
+            },
+            {
+                "ecode": "03004005",
+                "intro": "Nozzel fläktens hastighet är onormal."
+            },
+            {
+                "ecode": "03008010",
+                "intro": "Nozzel fläktens hastighet är onormal."
+            },
+            {
+                "ecode": "12008007",
+                "intro": "Extruderingen av filamentet misslyckades. Extrudern kan vara igensatt eller filamentet kan ha fastnat, se HMS. Efter felsökning, klicka på knappen \"Försök igen\"."
+            },
+            {
+                "ecode": "12018007",
+                "intro": "Extruderingen av filamentet misslyckades. Extrudern kan vara igensatt eller filamentet kan ha fastnat, se HMS. Efter felsökning, klicka på knappen \"Försök igen\"."
+            },
+            {
+                "ecode": "12028007",
+                "intro": "Extruderingen av filamentet misslyckades. Extrudern kan vara igensatt eller filamentet kan ha fastnat, se HMS. Efter felsökning, klicka på knappen \"Försök igen\"."
+            },
+            {
+                "ecode": "12038007",
+                "intro": "Extruderingen av filamentet misslyckades. Extrudern kan vara igensatt eller filamentet kan ha fastnat, se HMS. Efter felsökning, klicka på knappen \"Försök igen\"."
+            },
+            {
+                "ecode": "03008014",
+                "intro": "Nozzeln är täckt av filament, eller så är byggplattan felaktigt installerad. Avbryt utskriften och rengör nozzeln eller justera byggplattan enligt aktuell status, eller tryck på knappen \"Fortsätt\" för att återuppta utskriftsjobbet."
+            },
+            {
+                "ecode": "03008016",
+                "intro": "Nozzeln är igensatt av filament. Avbryt utskriften och rengör nozzeln enligt aktuell status, eller tryck på knappen \"Fortsätt\" för att återuppta utskriftsjobbet."
+            },
+            {
+                "ecode": "12008016",
+                "intro": "Extrudern extruderar inte normalt, se HMS. Efter felsökning. Om defekterna är acceptabla, klicka på knappen \"Försök igen\"."
+            },
+            {
+                "ecode": "03008019",
+                "intro": "Ingen byggplatta är placerad."
+            },
+            {
+                "ecode": "05014038",
+                "intro": "De regionala inställningarna stämmer inte överens med skrivaren, kontrollera skrivarens regionala inställningar."
+            },
+            {
+                "ecode": "05004002",
+                "intro": "Sökväg eller namn för utskriftsfil stöds inte. Skicka utskriftsjobbet igen."
+            },
+            {
+                "ecode": "1000C002",
+                "intro": "Utskrift med CF material med rostfritt stål kan orsaka skador på nozzeln."
+            },
+            {
+                "ecode": "1000C003",
+                "intro": "Att aktivera traditionell timelapse kan leda till defekter. Fortsätta?"
+            },
+            {
+                "ecode": "1001C001",
+                "intro": "Timelapse stöds inte eftersom Spiral Vase är aktiverat i förinställningarna för beredning."
+            },
+            {
+                "ecode": "1001C002",
+                "intro": "Timelapse stöds inte eftersom utskriftssekvensen är inställd på \"Per objekt\"."
+            },
+            {
+                "ecode": "05008036",
+                "intro": "Din beredda fil överensstämmer inte med den aktuella skrivarmodellen. Fortsätta?"
+            },
+            {
+                "ecode": "05004037",
+                "intro": "Din beredda fil är inte kompatibel med aktuell skrivar modell. Den här filen kan inte skrivas ut på den här skrivaren."
+            },
+            {
+                "ecode": "05004038",
+                "intro": "Nozzel diametern i den beredda filen överensstämmer inte med den aktuella nozzel inställningen. Denna fil kan inte skrivas ut."
+            },
+            {
+                "ecode": "03008017",
+                "intro": "Främmande föremål har upptäckts på byggplattan, Kontrollera och rengör byggplattan, Tryck sedan på knappen \"Återuppta\" för att återuppta utskriftsjobbet."
+            },
+            {
+                "ecode": "1000C001",
+                "intro": "Hög temperatur på byggplattan kan leda till att filament fastnar i munstycket. Se till att skrivaren är ventilerad."
+            },
+            {
+                "ecode": "12008014",
+                "intro": "Det gick inte att kontrollera filament positionen i verktygshuvudet, se HMS. Efter felsökning, klicka på knappen \"Försök igen\"."
+            },
+            {
+                "ecode": "12018014",
+                "intro": "Det gick inte att kontrollera filament positionen i verktygshuvudet, se HMS. Efter felsökning, klicka på knappen \"Försök igen\"."
+            },
+            {
+                "ecode": "12028014",
+                "intro": "Det gick inte att kontrollera filament positionen i verktygshuvudet, se HMS. Efter felsökning, klicka på knappen \"Försök igen\"."
+            },
+            {
+                "ecode": "12038014",
+                "intro": "Det gick inte att kontrollera filament positionen i verktygshuvudet, se HMS. Efter felsökning, klicka på knappen \"Försök igen\"."
+            },
+            {
+                "ecode": "05014033",
+                "intro": "Din APP-region stämmer inte överens med din skrivare, ladda ner APP:en i motsvarande region och registrera ditt konto igen."
+            },
+            {
+                "ecode": "12008015",
+                "intro": "Det gick inte att dra tillbaka filamentet från verktygshuvudet. Kontrollera om filamentet har fastnat eller om filamentet har gått av inuti extrudern. Efter felsökning klickar du på knappen \"Försök igen\"."
+            },
+            {
+                "ecode": "12018015",
+                "intro": "Det gick inte att dra tillbaka filamentet från verktygshuvudet. Kontrollera om filamentet har fastnat eller om filamentet har gått av inuti extrudern. Efter felsökning klickar du på knappen \"Försök igen\"."
+            },
+            {
+                "ecode": "12028015",
+                "intro": "Det gick inte att dra tillbaka filamentet från verktygshuvudet. Kontrollera om filamentet har fastnat eller gått av inuti extrudern. Efter felsökning klickar du på knappen \"Försök igen\"."
+            },
+            {
+                "ecode": "12038015",
+                "intro": "Det gick inte att dra tillbaka filamentet från verktygshuvudet. Kontrollera om filamentet har fastnat eller gått av inuti extrudern. Efter felsökning klickar du på knappen \"Försök igen\"."
+            },
+            {
+                "ecode": "05014034",
+                "intro": "Berednings förloppet har inte uppdaterats på länge och utskriftsuppgiften har avslutats. Bekräfta parametrarna och starta utskriften igen."
+            },
+            {
+                "ecode": "05014035",
+                "intro": "Enheten håller på att sammankopplas och kan inte svara på nya sammankopplings förfrågningar."
+            },
+            {
+                "ecode": "05008030",
+                "intro": ""
+            },
+            {
+                "ecode": "0500402E",
+                "intro": "Systemet stöder inte det filsystem som SD kortet för närvarande använder. Byt ut SD kortet eller formatera det aktuella SD-kortet i FAT32."
+            },
+            {
+                "ecode": "0500402F",
+                "intro": "SD kortets sektor data är skadade. Använd reparationsverktyget för SD kort för att reparera eller formatera det. Om det fortfarande inte kan identifieras, byt ut SD kortet."
+            },
+            {
+                "ecode": "03008015",
+                "intro": "Filamentet har tagit slut, fyll på nytt filament på sidan \"Filament\", gå sedan tillbaka till utskriftssidan och tryck på \"Fortsätt\" för att återuppta utskriften."
+            },
+            {
+                "ecode": "05014017",
+                "intro": "Kopplingen misslyckades. Försök igen eller starta om skrivaren och försök igen."
+            },
+            {
+                "ecode": "05014018",
+                "intro": "Tolkning av kopplings konfigurations informationen misslyckades. Försök igen."
+            },
+            {
+                "ecode": "05014019",
+                "intro": "Skrivaren har redan kopplats. Ta bort kopplingen och försök igen."
+            },
+            {
+                "ecode": "0501401A",
+                "intro": "Moln åtkomst misslyckades. Möjliga orsaker kan vara instabilitet i nätverket på grund av störningar, att det inte går att komma åt Internet eller begränsningar i routerns brandväggs konfiguration. Du kan försöka flytta skrivaren närmare routern eller kontrollera routerns konfiguration och sedan försöka igen."
+            },
+            {
+                "ecode": "0501401B",
+                "intro": "Molnetsvaret är ogiltigt. Om du har försökt flera gånger och fortfarande inte lyckas kan du kontakta kundtjänsten."
+            },
+            {
+                "ecode": "0501401C",
+                "intro": "Molnåtkomst nekas. Om du har försökt flera gånger och det fortfarande inte går, kontakta kundtjänst."
+            },
+            {
+                "ecode": "0501401D",
+                "intro": "Moln åtkomst misslyckades, vilket kan bero på att nätverket är instabilt på grund av störningar. Du kan försöka flytta skrivaren närmare routern innan du försöker igen."
+            },
+            {
+                "ecode": "0501401E",
+                "intro": "Molnetsvaret är ogiltigt. Om du har försökt flera gånger och fortfarande inte lyckas kan du kontakta kundtjänsten."
+            },
+            {
+                "ecode": "0501401F",
+                "intro": "Tiden för auktorisering har gått ut. Se till att din telefon eller dator har tillgång till internet och att Bambu Studio/Bambu Handy APP är öppen under kopplings operationen."
+            },
+            {
+                "ecode": "05014020",
+                "intro": "Tillgång till molnet nekas. Om du har försökt flera gånger och det fortfarande inte går, kontakta kundtjänst."
+            },
+            {
+                "ecode": "05014021",
+                "intro": "Moln åtkomst misslyckades, vilket kan bero på att nätverket är instabilt på grund av störningar. Du kan försöka flytta skrivaren närmare routern innan du försöker igen."
+            },
+            {
+                "ecode": "05014022",
+                "intro": "Molnetsvaret är ogiltigt. Om du har försökt flera gånger och fortfarande inte lyckas kan du kontakta kundtjänsten."
+            },
+            {
+                "ecode": "05014023",
+                "intro": "Tillgång till molnet nekas. Om du har försökt flera gånger och det fortfarande inte går, kontakta kundtjänst."
+            },
+            {
+                "ecode": "05014024",
+                "intro": "Moln åtkomst misslyckades. Möjliga orsaker kan vara instabilitet i nätverket på grund av störningar, att det inte går att komma åt Internet eller begränsningar i routerns brandväggs konfiguration. Du kan försöka flytta skrivaren närmare routern eller kontrollera routerns konfiguration innan du försöker igen."
+            },
+            {
+                "ecode": "05014025",
+                "intro": "Molnetsvaret är ogiltigt. Om du har försökt flera gånger och fortfarande inte lyckas kan du kontakta kundtjänsten."
+            },
+            {
+                "ecode": "05014026",
+                "intro": "Tillgång till molnet nekas. Om du har försökt flera gånger och det fortfarande inte går, kontakta kundtjänst."
+            },
+            {
+                "ecode": "05014027",
+                "intro": "Moln åtkomst misslyckades; detta kan orsakas av instabilitet i nätverket på grund av störningar. Du kan försöka flytta skrivaren närmare routern innan du försöker igen."
+            },
+            {
+                "ecode": "05014028",
+                "intro": "Molnetsvaret är ogiltigt. Om du har försökt flera gånger och fortfarande inte lyckas kan du kontakta kundtjänsten."
+            },
+            {
+                "ecode": "05014029",
+                "intro": "Molnåtkomst nekas. Om du har försökt flera gånger och det fortfarande inte går, kontakta kundtjänst."
+            },
+            {
+                "ecode": "05014031",
+                "intro": "Bindning av enhetsidentifiering pågår och QR-koden kan inte visas på skärmen. Du kan vänta tills bindningen är klar eller avbryta bindningsprocessen för enhetsidentifiering i APP/Studio och försöka skanna QR-koden på skärmen igen för bindning."
+            },
+            {
+                "ecode": "05014032",
+                "intro": "Bindning av QR-kod pågår och bindning av enhetsidentifiering kan inte utföras. Du kan skanna QR-koden på skärmen för bindning, eller avsluta visningssidan för QR-kod på skärmen och försöka binda enhetsidentifiering."
+            },
+            {
+                "ecode": "07FF8003",
+                "intro": "Dra ut filamentet på spolhållaren från extrudern eller kontrollera om filamentet har gått av i extrudern, om AMS ska användas senare, anslut PTFE tuben till kopplingen och klicka på knappen \"försök igen\"."
+            },
+            {
+                "ecode": "07FFC003",
+                "intro": "Dra ut filamentet på spolhållaren från extrudern eller kontrollera om filamentet har gått av i extrudern, om AMS ska användas senare, anslut PTFE tuben till kopplingen."
+            },
+            {
+                "ecode": "12FF8003",
+                "intro": "Dra ut filamentet på spolhållaren från extrudern eller kontrollera om filamentet har gått av i extrudern, om AMS ska användas senare, anslut PTFE tuben till kopplingen och klicka på knappen \"försök igen\"."
+            },
+            {
+                "ecode": "12FFC003",
+                "intro": "Dra ut filamentet på spolhållaren från extrudern eller kontrollera om filamentet har gått av i extrudern, om AMS ska användas senare, anslut PTFE tuben till kopplingen."
+            },
+            {
+                "ecode": "03008012",
+                "intro": ""
+            },
+            {
+                "ecode": "12008001",
+                "intro": "Filament skärning misslyckades. Kontrollera skäraren. Efter felsökning, tryck på försök igen ikonen."
+            },
+            {
+                "ecode": "12018001",
+                "intro": "Filament skärning misslyckades. Kontrollera skäraren. Efter felsökning, tryck på försök igen ikonen."
+            },
+            {
+                "ecode": "12028001",
+                "intro": "Filament skärning misslyckades. Kontrollera skäraren. Efter felsökning, tryck på försök igen ikonen."
+            },
+            {
+                "ecode": "12038001",
+                "intro": "Filament skärning misslyckades. Kontrollera skäraren. Efter felsökning, tryck på försök igen ikonen."
+            },
+            {
+                "ecode": "12FF8001",
+                "intro": "Filament skärning misslyckades. Kontrollera skäraren. Efter felsökning, tryck på försök igen ikonen."
+            },
+            {
+                "ecode": "12008002",
+                "intro": "Klipparen sitter fast. Dra ut skärhandtaget och klicka på försök igen ikonen."
+            },
+            {
+                "ecode": "12018002",
+                "intro": "Klipparen sitter fast. Dra ut skärhandtaget och klicka på försök igen ikonen."
+            },
+            {
+                "ecode": "12028002",
+                "intro": "Klipparen sitter fast. Dra ut skärhandtaget och klicka på försök igen ikonen."
+            },
+            {
+                "ecode": "12038002",
+                "intro": "Skäraren är fast. Dra ut skärare handtaget och tryck på försök igen ikonen."
+            },
+            {
+                "ecode": "12FF8002",
+                "intro": "Klipparen sitter fast. Dra ut skärhandtaget och klicka på försök igen ikonen."
+            },
+            {
+                "ecode": "12008003",
+                "intro": "Misslyckat försök att dra ut filamentet ifrån extrudern. Kontrollera om nozzlen är igensatt eller om filamentet är trasigt inuti extrudern. Efter felsökning, tryck på försök igen ikonen."
+            },
+            {
+                "ecode": "12018003",
+                "intro": "Misslyckat försök att dra ut filamentet ifrån extrudern. Kontrollera om nozzlen är igensatt eller om filamentet är trasigt inuti extrudern. Efter felsökning, tryck på försök igen ikonen."
+            },
+            {
+                "ecode": "12028003",
+                "intro": "Misslyckat försök att dra ut filamentet ifrån extrudern. Kontrollera om nozzlen är igensatt eller om filamentet är trasigt inuti extrudern. Efter felsökning, tryck på försök igen ikonen."
+            },
+            {
+                "ecode": "12038003",
+                "intro": "Misslyckades med att dra ut filamentet ifrån extrudern. Kontrollera om extrudern är igensatt eller om filamentet är trasigt inuti extrudern. Efter felsökning, tryck på försök igen ikonen."
+            },
+            {
+                "ecode": "12028004",
+                "intro": "Det gick inte att dra tillbaka filamentet från verktygshuvudet. Kontrollera om filamentet sitter fast. Efter felsökning klickar du på knappen försök igen."
+            },
+            {
+                "ecode": "12038004",
+                "intro": "Det gick inte att dra tillbaka filamentet från verktygshuvudet. Kontrollera om filamentet sitter fast. Efter felsökning klickar du på knappen försök igen."
+            },
+            {
+                "ecode": "12FF8004",
+                "intro": "Det gick inte att dra tillbaka filamentet från verktygshuvudet. Kontrollera om filamentet sitter fast. Efter felsökning klickar du på knappen försök igen."
+            },
+            {
+                "ecode": "12028005",
+                "intro": "Det gick inte att mata filamentet. Fyll på filamentet och klicka sedan på knappen Försök igen."
+            },
+            {
+                "ecode": "12038005",
+                "intro": "Det gick inte att mata filamentet. Fyll på filamentet och klicka sedan på knappen Försök igen."
+            },
+            {
+                "ecode": "12FF8005",
+                "intro": "Det gick inte att mata filamentet. Fyll på filamentet och klicka sedan på knappen Försök igen."
+            },
+            {
+                "ecode": "12018006",
+                "intro": "Det gick inte att föra in filamentet i verktygshuvudet. Kontrollera om filamentet sitter fast. Efter felsökning klickar du på knappen försök igen."
+            },
+            {
+                "ecode": "12028006",
+                "intro": "Det gick inte att föra in filamentet i verktygshuvudet. Kontrollera om filamentet sitter fast. Efter felsökning klickar du på knappen försök igen."
+            },
+            {
+                "ecode": "12038006",
+                "intro": "Det gick inte att föra in filamentet i verktygshuvudet. Kontrollera om filamentet sitter fast. Efter felsökning klickar du på knappen försök igen."
+            },
+            {
+                "ecode": "12FFC006",
+                "intro": "Mata från spolhållaren tills verktygshuvudets filament sensor utlöses."
+            },
+            {
+                "ecode": "12018010",
+                "intro": "Kontrollera om spolen eller filamentet sitter fast. Efter felsökning klickar du på knappen försök igen."
+            },
+            {
+                "ecode": "12028010",
+                "intro": "Kontrollera om spolen eller filamentet sitter fast. Efter felsökning klickar du på knappen försök igen."
+            },
+            {
+                "ecode": "12038010",
+                "intro": "Kontrollera om spolen eller filamentet sitter fast. Efter felsökning klickar du på knappen försök igen."
+            },
+            {
+                "ecode": "12FF8010",
+                "intro": "Kontrollera om spolen eller filamentet sitter fast. Efter felsökning klickar du på knappen försök igen."
+            },
+            {
+                "ecode": "12018011",
+                "intro": "AMS filamentet har tagit slut. Sätt i nytt filament i AMS och klicka på knappen försök igen."
+            },
+            {
+                "ecode": "12028011",
+                "intro": "AMS filamentet har tagit slut. Sätt i nytt filament i AMS och klicka på knappen försök igen."
+            },
+            {
+                "ecode": "12038011",
+                "intro": "AMS filamentet har tagit slut. Sätt i nytt filament i AMS och klicka på knappen försök igen."
+            },
+            {
+                "ecode": "12FF8011",
+                "intro": "AMS filamentet har tagit slut. Sätt i nytt filament i AMS och klicka på knappen försök igen."
+            },
+            {
+                "ecode": "12018012",
+                "intro": "Misslyckades med att hämta AMS mappnings tabellen. Klicka på knappen försök igen för att fortsätta."
+            },
+            {
+                "ecode": "12038012",
+                "intro": "Misslyckades med att hämta AMS mappnings tabellen. Klicka på knappen försök igen för att fortsätta."
+            },
+            {
+                "ecode": "12FF8012",
+                "intro": "Misslyckades med att hämta AMS mappnings tabellen. Klicka på knappen försök igen för att fortsätta."
+            },
+            {
+                "ecode": "12018013",
+                "intro": "Timeout under rensning av gammalt filament. Kontrollera om filamentet sitter fast eller om extrudern är igensatt. Efter felsökning klickar du på knappen försök igen."
+            },
+            {
+                "ecode": "12028013",
+                "intro": "Timeout under rensning av gammalt filament. Kontrollera om filamentet sitter fast eller om extrudern är igensatt. Efter felsökning klickar du på knappen försök igen."
+            },
+            {
+                "ecode": "12038013",
+                "intro": "Timeout under rensning av gammalt filament. Kontrollera om filamentet sitter fast eller om extrudern är igensatt. Efter felsökning klickar du på knappen försök igen."
+            },
+            {
+                "ecode": "12FF8013",
+                "intro": "Timeout under rensning av gammalt filament. Kontrollera om filamentet sitter fast eller om extrudern är igensatt. Efter felsökning klickar du på knappen försök igen."
+            },
+            {
+                "ecode": "12014001",
+                "intro": "Filament laddas fortfarande från AMS när den har inaktiverats. Ta bort AMS filamentet, ladda från spolhållaren och starta om utskriftsjobbet."
+            },
+            {
+                "ecode": "12024001",
+                "intro": "Filament laddas fortfarande från AMS när den har inaktiverats. Ta bort AMS filamentet, ladda från spolhållaren och starta om utskriftsjobbet."
+            },
+            {
+                "ecode": "12034001",
+                "intro": "Filament laddas fortfarande från AMS när den har inaktiverats. Ta bort AMS filamentet, ladda från spolhållaren och starta om utskriftsjobbet."
+            },
+            {
+                "ecode": "12FF4001",
+                "intro": "Filament laddas fortfarande från AMS när den har inaktiverats. Ta bort AMS filamentet, ladda från spolhållaren och starta om utskriftsjobbet."
+            },
+            {
+                "ecode": "0500401E",
+                "intro": "Molnetsvaret är ogiltigt. Om du har försökt flera gånger och fortfarande inte lyckas kan du kontakta kundtjänsten."
+            },
+            {
+                "ecode": "05004021",
+                "intro": "Moln åtkomst misslyckades, vilket kan bero på att nätverket är instabilt på grund av störningar. Du kan försöka flytta skrivaren närmare routern innan du försöker igen."
+            },
+            {
+                "ecode": "05004022",
+                "intro": "Molnetsvaret är ogiltigt. Om du har försökt flera gånger och fortfarande inte lyckas kan du kontakta kundtjänsten."
+            },
+            {
+                "ecode": "05004023",
+                "intro": "Tillgång till molnet nekas. Om du har försökt flera gånger och det fortfarande inte går, kontakta kundtjänst."
+            },
+            {
+                "ecode": "05004025",
+                "intro": "Molnetsvaret är ogiltigt. Om du har försökt flera gånger och fortfarande inte lyckas kan du kontakta kundtjänsten."
+            },
+            {
+                "ecode": "05004026",
+                "intro": "Tillgång till molnet nekas. Om du har försökt flera gånger och det fortfarande inte går, kontakta kundtjänst."
+            },
+            {
+                "ecode": "05004028",
+                "intro": "Molnetsvaret är ogiltigt. Om du har försökt flera gånger och fortfarande inte lyckas kan du kontakta kundtjänsten."
+            },
+            {
+                "ecode": "05004029",
+                "intro": "Molnåtkomst nekas. Om du har försökt flera gånger och det fortfarande inte går, kontakta kundtjänst."
+            },
+            {
+                "ecode": "03008013",
+                "intro": "Utskrift pausad av användaren. Tryck på \"Återuppta\" ikonen för att fortsätta utskriften."
+            },
+            {
+                "ecode": "12FF8007",
+                "intro": "Kontrollera nozzeln. Om filamentet har extruderats klickar du på \"Klar\" om det inte är så, tryck filamentet något framåt och klicka sedan på knappen försök igen."
+            },
+            {
+                "ecode": "03008011",
+                "intro": "Nuvarande byggplattan är inte densamma som i G-kod. Stoppa utskriftsjobbet och byt ut byggplattan. Du kan också trycka på \"Fortsätt\" för att återuppta utskriftsjobbet."
+            },
+            {
+                "ecode": "0500402D",
+                "intro": "System undantag."
+            },
+            {
+                "ecode": "03008006",
+                "intro": "Byggplattans lokaliseringsmarkör hittades inte. Stoppa utskriftsjobbet och leta reda på byggplattan. Du kan också trycka på \"Fortsätt\" för att återuppta utskriftsjobbet."
+            },
+            {
+                "ecode": "0C00800A",
+                "intro": "Den upptäckta byggplattan är inte densamma som i G-koden."
+            },
+            {
+                "ecode": "07FF8007",
+                "intro": "Observera nozzeln. Om filamentet har extruderats klickar du på \"Done\" (klar); om det inte är det, tryck filamentet lite framåt och klicka sedan på \"Retry\" (försök igen)."
+            },
+            {
+                "ecode": "0500401F",
+                "intro": "Tiden för auktorisering har gått ut. Se till att din telefon eller dator har tillgång till internet och att Bambu Studio/Bambu Handy APP är öppen under kopplings operationen."
+            },
+            {
+                "ecode": "05004020",
+                "intro": "Tillgång till molnet nekas. Om du har försökt flera gånger och det fortfarande inte går, kontakta kundtjänst."
+            },
+            {
+                "ecode": "05004024",
+                "intro": "Moln åtkomst misslyckades. Möjliga orsaker kan vara instabilitet i nätverket på grund av störningar, att det inte går att komma åt Internet eller begränsningar i routerns brandväggs konfiguration. Du kan försöka flytta skrivaren närmare routern eller kontrollera routerns konfiguration innan du försöker igen."
+            },
+            {
+                "ecode": "05004027",
+                "intro": "Moln åtkomst misslyckades; detta kan orsakas av instabilitet i nätverket på grund av störningar. Du kan försöka flytta skrivaren närmare routern innan du försöker igen."
+            },
+            {
+                "ecode": "0500402A",
+                "intro": "Det gick inte att ansluta till routern, vilket kan bero på trådlösa störningar eller att skrivaren är för långt bort från routern. Försök igen eller flytta skrivaren närmare routern och försök igen."
+            },
+            {
+                "ecode": "0500402B",
+                "intro": "Router anslutningen misslyckades på grund av felaktigt lösenord. Kontrollera lösenordet och försök igen."
+            },
+            {
+                "ecode": "0500402C",
+                "intro": "Det gick inte att hämta IP-adress, vilket kan bero på trådlösa störningar som leder till att dataöverföringen misslyckas eller att routerns DHCP-adress pool är full. Flytta skrivaren närmare routern och försök igen. Om problemet kvarstår kan du kontrollera routerns inställningar för att se om IP-adresserna har förbrukats."
+            },
+            {
+                "ecode": "0500401C",
+                "intro": "Molnåtkomst nekas. Om du har försökt flera gånger och det fortfarande inte går, kontakta kundtjänst."
+            },
+            {
+                "ecode": "0500401D",
+                "intro": "Moln åtkomst misslyckades, vilket kan bero på att nätverket är instabilt på grund av störningar. Du kan försöka flytta skrivaren närmare routern innan du försöker igen."
+            },
+            {
+                "ecode": "05004016",
+                "intro": "MicroSD-kortet är skrivskyddat. Vänligen byt ut MicroSD-kortet."
+            },
+            {
+                "ecode": "05004017",
+                "intro": "Kopplingen misslyckades. Försök igen eller starta om skrivaren och försök igen."
+            },
+            {
+                "ecode": "05004018",
+                "intro": "Tolkning av kopplings konfigurations informationen misslyckades. Försök igen."
+            },
+            {
+                "ecode": "05004019",
+                "intro": "Skrivaren har redan kopplats. Ta bort kopplingen och försök igen."
+            },
+            {
+                "ecode": "0500401A",
+                "intro": "Moln åtkomst misslyckades. Möjliga orsaker kan vara instabilitet i nätverket på grund av störningar, att det inte går att komma åt Internet eller begränsningar i routerns brandväggs konfiguration. Du kan försöka flytta skrivaren närmare routern eller kontrollera routerns konfiguration och sedan försöka igen."
+            },
+            {
+                "ecode": "0500401B",
+                "intro": "Molnetsvaret är ogiltigt. Om du har försökt flera gånger och fortfarande inte lyckas kan du kontakta kundtjänsten."
+            },
+            {
+                "ecode": "12FF8006",
+                "intro": "Mata från spolhållaren tills verktygshuvudets filamentsensor utlöses och klicka sedan på knappen försök igen."
+            },
+            {
+                "ecode": "12028012",
+                "intro": "Misslyckades med att hämta AMS mappnings tabellen. Klicka på knappen försök igen för att fortsätta."
+            },
+            {
+                "ecode": "12018004",
+                "intro": "Det gick inte att dra tillbaka filamentet från verktygshuvudet. Kontrollera om filamentet sitter fast. Efter felsökning klickar du på knappen försök igen."
+            },
+            {
+                "ecode": "12018005",
+                "intro": "Det gick inte att mata filamentet. Ladda filamentet och klicka sedan på knappen försök igen."
+            },
+            {
+                "ecode": "12008011",
+                "intro": "AMS filamentet har tagit slut. Sätt i nytt filament i AMS och klicka på knappen försök igen."
+            },
+            {
+                "ecode": "12008012",
+                "intro": "Misslyckades med att hämta AMS mappnings tabellen. Klicka på knappen försök igen för att fortsätta."
+            },
+            {
+                "ecode": "12008013",
+                "intro": "Timeout under rensning av gammalt filament. Kontrollera om filamentet sitter fast eller om extrudern är igensatt. Efter felsökning klickar du på knappen försök igen."
+            },
+            {
+                "ecode": "12008004",
+                "intro": "Det gick inte att dra tillbaka filamentet från verktygshuvudet. Kontrollera om filamentet sitter fast. Efter felsökning klickar du på knappen Retry (försök igen)."
+            },
+            {
+                "ecode": "12008005",
+                "intro": "Det gick inte att mata filamentet. Fyll på filamentet och klicka sedan på knappen Försök igen."
+            },
+            {
+                "ecode": "12008006",
+                "intro": "Det gick inte att föra in filamentet i verktygshuvudet. Kontrollera om filamentet sitter fast. Efter felsökning klickar du på knappen försök igen."
+            },
+            {
+                "ecode": "12008010",
+                "intro": "Kontrollera om spolen eller filamentet sitter fast. Efter felsökning klickar du på knappen försök igen."
+            },
+            {
+                "ecode": "12004001",
+                "intro": "Filament laddas fortfarande från AMS när den har inaktiverats. Ta bort AMS filamentet, ladda från spolhållaren och starta om utskriftsjobbet."
+            },
+            {
+                "ecode": "05004015",
+                "intro": "Det finns inte tillräckligt med ledigt lagringsutrymme för utskriftsjobbet. Formatera eller rensa MicroSD kortet för att frigöra ledigt utrymme."
+            },
+            {
+                "ecode": "07FF8001",
+                "intro": "Filament skärning misslyckades. Kontrollera skäraren. Efter felsökning, tryck på försök igen ikonen."
+            },
+            {
+                "ecode": "07FF8002",
+                "intro": "Skäraren är fast. Dra ut skärare handtaget och tryck på försök igen ikonen."
+            },
+            {
+                "ecode": "07FF8005",
+                "intro": "Det gick inte att mata filamentet utanför AMS. Klipp av filamentändan rakt och kontrollera om spolen sitter fast. Efter felsökning klickar du på knappen för att försöka igen."
+            },
+            {
+                "ecode": "07FF8010",
+                "intro": "AMS assistmotor är överbelastad. Kontrollera om spolen eller filamentet sitter fast. Efter felsökning klickar du på knappen för att försöka igen."
+            },
+            {
+                "ecode": "07FF8011",
+                "intro": "AMS filamentet tog slut. Sätt i nytt filament i AMS och klicka på knappen Försök igen."
+            },
+            {
+                "ecode": "07FF8012",
+                "intro": "Det gick inte att hämta AMS- kartläggningstabellen, klicka på ”Försök igen” för att fortsätta."
+            },
+            {
+                "ecode": "07FF8013",
+                "intro": "Timeout för rensning av gammal filament. Kontrollera om filament sitter fast eller om extrudern är igensatt, klicka på knappen för att Försök igen efter felsökning."
+            },
+            {
+                "ecode": "07FF4001",
+                "intro": "Filamentet laddas fortfarande från AMS när AMS är inaktiverat, ta bort filamentet från AMS och ladda från spolhållaren och starta utskriften på nytt."
+            },
+            {
+                "ecode": "07018003",
+                "intro": "Misslyckades med att dra ut filamentet ifrån extrudern. Kontrollera om extrudern är igensatt eller om filamentet är trasigt inuti extrudern. Efter felsökning, tryck på försök igen ikonen."
+            },
+            {
+                "ecode": "07028003",
+                "intro": "Misslyckades med att dra ut filamentet ifrån extrudern. Kontrollera om extrudern är igensatt eller om filamentet är trasigt inuti extrudern. Efter felsökning, tryck på försök igen ikonen."
+            },
+            {
+                "ecode": "07038003",
+                "intro": "Misslyckades med att dra ut filamentet ifrån extrudern. Kontrollera om extrudern är igensatt eller om filamentet är trasigt inuti extrudern. Efter felsökning, tryck på försök igen ikonen."
+            },
+            {
+                "ecode": "07FFC006",
+                "intro": "Mata från spolhållaren tills verktygshuvudets filament sensor utlöses."
+            },
+            {
+                "ecode": "0300800F",
+                "intro": "Dörren har upptäckts att vara öppen, så utskriften är pausad."
+            },
+            {
+                "ecode": "0300800E",
+                "intro": "Utskriftsfilen är inte tillgänglig. Kontrollera om lagringsmediet har tagits bort."
+            },
+            {
+                "ecode": "05008013",
+                "intro": "Utskriftsfilen är inte tillgänglig. Kontrollera om lagringsmediet har tagits bort."
+            },
+            {
+                "ecode": "05004014",
+                "intro": "Utskriftsjobbet kunde inte beredas, kontrollera inställningarna och starta om utskriftsjobbet."
+            },
+            {
+                "ecode": "0500C011",
+                "intro": ""
+            },
+            {
+                "ecode": "05004012",
+                "intro": "Dörren har upptäckts att vara öppen, så utskriften är pausad."
+            },
+            {
+                "ecode": "07FF8004",
+                "intro": "Det gick inte att dra tillbaka filamentet från verktygshuvudet till AMS. Kontrollera om filamentet eller spolen sitter fast. Efter felsökning klickar du på knappen \"retry\" (försök igen)."
+            },
+            {
+                "ecode": "07FF8006",
+                "intro": "Mata från spolhållaren tills verktygshuvudets filament sensor utlöses och klicka sedan på \"Retry\" (försök igen)."
+            },
+            {
+                "ecode": "0300800D",
+                "intro": "Några föremål har fallit ner eller så extruderar inte extrudern normalt. Om defekterna är acceptabla klickar du på ikonen \"Resume\" (återuppta) för att återuppta utskriftsjobbet."
+            },
+            {
+                "ecode": "0500400E",
+                "intro": "Utskriften avbröts."
+            },
+            {
+                "ecode": "07008004",
+                "intro": "Det gick inte att dra tillbaka filamentet från verktygshuvudet till AMS. Kontrollera om filamentet eller spolen sitter fast. Efter felsökning klickar du på knappen för att försöka igen."
+            },
+            {
+                "ecode": "07018004",
+                "intro": "Det gick inte att dra tillbaka filamentet från verktygshuvudet till AMS. Kontrollera om filamentet eller spolen sitter fast. Efter felsökning klickar du på knappen för att försöka igen."
+            },
+            {
+                "ecode": "07028004",
+                "intro": "Det gick inte att dra tillbaka filamentet från verktygshuvudet till AMS. Kontrollera om filamentet eller spolen sitter fast. Efter felsökning klickar du på knappen för att försöka igen."
+            },
+            {
+                "ecode": "07038004",
+                "intro": "Det gick inte att dra tillbaka filamentet från verktygshuvudet till AMS. Kontrollera om filamentet eller spolen sitter fast. Efter felsökning klickar du på knappen för att försöka igen."
+            },
+            {
+                "ecode": "07028010",
+                "intro": "AMS assistmotor är överbelastad. Kontrollera om spolen eller filamentet sitter fast. Efter felsökning klickar du på knappen för att försöka igen."
+            },
+            {
+                "ecode": "07038007",
+                "intro": "Det gick inte att extrudera filamentet. Kontrollera om extrudern är igensatt. Efter felsökning klickar du på knappen för att försöka igen."
+            },
+            {
+                "ecode": "07038010",
+                "intro": "AMS assistmotor är överbelastad. Kontrollera om spolen eller filamentet sitter fast. Efter felsökning klickar du på knappen för att försöka igen."
+            },
+            {
+                "ecode": "07018010",
+                "intro": "AMS assistmotor är överbelastad. Kontrollera om spolen eller filamentet sitter fast. Efter felsökning klickar du på knappen för att försöka igen."
+            },
+            {
+                "ecode": "07028007",
+                "intro": "Det gick inte att extrudera filamentet. Kontrollera om extrudern är igensatt. Efter felsökning klickar du på knappen för att försöka igen."
+            },
+            {
+                "ecode": "0300800C",
+                "intro": "Avvikande steg upptäckt, automatisk återställning slutförd; återuppta utskriften och kontrollera om det finns något problem med lager förskjutning."
+            },
+            {
+                "ecode": "0C008009",
+                "intro": "Lokaliserings markören för byggplattan har inte hittats."
+            },
+            {
+                "ecode": "07008007",
+                "intro": "Det gick inte att extrudera filamentet. Kontrollera om extrudern är igensatt. Klicka på knappen för att försöka igen efter felsökning."
+            },
+            {
+                "ecode": "07008010",
+                "intro": "AMS assistmotor är överbelastad. Kontrollera om spolen eller filamentet sitter fast. Klicka på knappen för att försöka igen efter felsökning."
+            },
+            {
+                "ecode": "0500400C",
+                "intro": "Sätt i SD-kortet och starta om utskriftsjobbet."
+            },
+            {
+                "ecode": "0500400D",
+                "intro": "Kör ett självtest och starta om utskriftsjobbet."
+            },
+            {
+                "ecode": "07018007",
+                "intro": "Det gick inte att extrudera filamentet. Kontrollera om extrudern är igensatt, klicka på knappen för att försöka igen efter felsökning."
+            },
+            {
+                "ecode": "07008005",
+                "intro": "Det gick inte att mata filamentet utanför AMS. Klipp av filamentändan rakt och kontrollera om spolen sitter fast. Efter felsökning klickar du på knappen för att försöka igen."
+            },
+            {
+                "ecode": "07018005",
+                "intro": "Det gick inte att mata filamentet utanför AMS. Klipp av filamentändan rakt och kontrollera om spolen sitter fast. Efter felsökning klickar du på knappen för att försöka igen."
+            },
+            {
+                "ecode": "07028005",
+                "intro": "Det gick inte att mata filamentet utanför AMS. Klipp av filamentändan rakt och kontrollera om spolen sitter fast. Efter felsökning klickar du på knappen för att försöka igen."
+            },
+            {
+                "ecode": "07038005",
+                "intro": "Det gick inte att mata filamentet utanför AMS. Klipp av filamentändan rakt och kontrollera om spolen sitter fast. Efter felsökning klickar du på knappen för att försöka igen."
+            },
+            {
+                "ecode": "03008005",
+                "intro": "Utskrift har pausats eftersom verktygshuvudets skyddskåpa saknas. Återmontera det och tryck på \"Återuppta\" ikonen för att fortsätta utskriften."
+            },
+            {
+                "ecode": "0500400B",
+                "intro": "Det uppstod ett problem med att ladda ner filen. Kontrollera din nätverksanslutning och skicka utskriftsjobbet på nytt."
+            },
+            {
+                "ecode": "0300400A",
+                "intro": "Identifiering av mekanisk resonansfrekvens misslyckades."
+            },
+            {
+                "ecode": "07008011",
+                "intro": "AMS filamentet tog slut. Sätt i nytt filament i AMS och klicka på knappen Försök igen."
+            },
+            {
+                "ecode": "07018011",
+                "intro": "AMS filamentet tog slut. Sätt i nytt filament i AMS och klicka på knappen Försök igen."
+            },
+            {
+                "ecode": "07028011",
+                "intro": "AMS filamentet tog slut. Sätt i nytt filament i AMS och klicka på knappen Försök igen."
+            },
+            {
+                "ecode": "07038011",
+                "intro": "AMS filamentet tog slut. Sätt i nytt filament i AMS och klicka på knappen Försök igen."
+            },
+            {
+                "ecode": "0C008001",
+                "intro": "Avvikelser har upptäckts i första lager. Om avvikelserna är godtagbara, tryck på fortsätt ikonen för att återuppta utskriften."
+            },
+            {
+                "ecode": "0300800A",
+                "intro": "Rensat filament har samlats i rännan, vilket kan orsaka att verktygshuvudet kolliderar. Rengör det, om det är rengjort eller acceptabelt klickar du på ikonen fortsätt för att återuppta utskriftsjobbet."
+            },
+            {
+                "ecode": "0C008005",
+                "intro": "Rensat filament har samlats i avfalls rännan, detta kan orsaka kollision med verktygshuvudet."
+            },
+            {
+                "ecode": "0C00C006",
+                "intro": "Rensat filament kan ha samlats i avfalls rännan."
+            },
+            {
+                "ecode": "0300400E",
+                "intro": "Självtestet av motorn misslyckades."
+            },
+            {
+                "ecode": "0300800B",
+                "intro": "Filament skäraren har fastnat. Dra ut skär handtaget och klicka på knappen Fortsätt."
+            },
+            {
+                "ecode": "07008012",
+                "intro": "Det gick inte att hämta AMS- kartläggningstabellen, klicka på ”Försök igen” för att fortsätta."
+            },
+            {
+                "ecode": "07018012",
+                "intro": "Det gick inte att hämta AMS- kartläggningstabellen, klicka på ”Försök igen” för att fortsätta."
+            },
+            {
+                "ecode": "07028012",
+                "intro": "Det gick inte att hämta AMS- kartläggningstabellen, klicka på ”Försök igen” för att fortsätta."
+            },
+            {
+                "ecode": "07038012",
+                "intro": "Det gick inte att hämta AMS- kartläggningstabellen, klicka på ”Försök igen” för att fortsätta."
+            },
+            {
+                "ecode": "07008013",
+                "intro": "Timeout för rensning av gammal filament. Kontrollera om filament sitter fast eller om extrudern är igensatt, klicka på knappen för att Försök igen efter felsökning."
+            },
+            {
+                "ecode": "07018013",
+                "intro": "Timeout för rensning av gammal filament. Kontrollera om filament sitter fast eller om extrudern är igensatt, klicka på knappen för att Försök igen efter felsökning."
+            },
+            {
+                "ecode": "07028013",
+                "intro": "Timeout för rensning av gammal filament. Kontrollera om filament sitter fast eller om extrudern är igensatt, klicka på knappen för att Försök igen efter felsökning."
+            },
+            {
+                "ecode": "07038013",
+                "intro": "Timeout för rensning av gammal filament. Kontrollera om filament sitter fast eller om extrudern är igensatt, klicka på knappen för att Försök igen efter felsökning."
+            },
+            {
+                "ecode": "07004001",
+                "intro": "Filamentet laddas fortfarande från AMS när AMS är inaktiverat, ta bort filamentet från AMS och ladda från spolhållaren och starta utskriften på nytt."
+            },
+            {
+                "ecode": "07014001",
+                "intro": "Filamentet laddas fortfarande från AMS när AMS är inaktiverat, ta bort filamentet från AMS och ladda från spolhållaren och starta utskriften på nytt."
+            },
+            {
+                "ecode": "07024001",
+                "intro": "Filamentet laddas fortfarande från AMS när AMS är inaktiverat, ta bort filamentet från AMS och ladda från spolhållaren och starta utskriften på nytt."
+            },
+            {
+                "ecode": "07034001",
+                "intro": "Filamentet laddas fortfarande från AMS när AMS är inaktiverat, ta bort filamentet från AMS och ladda från spolhållaren och starta utskriften på nytt."
+            },
+            {
+                "ecode": "03008002",
+                "intro": "Avvikelser har upptäckts i första lagret. Om avvikelserna är godtagbara, tryck på \"Återuppta\" ikonen för att fortsätta utskriften."
+            },
+            {
+                "ecode": "03008003",
+                "intro": "Spaghetti fenomen har upptäckts. Om felen är godtagbara, tryck på \"Återuppta\" ikonen för att fortsätta utskriften."
+            },
+            {
+                "ecode": "03008007",
+                "intro": "Det fanns ett oavslutat utskriftsjobb när skrivaren stängdes av. Tryck på \"Återuppta\" för att återuppta utskriftsjobbet."
+            },
+            {
+                "ecode": "03008009",
+                "intro": "Fel på temperaturen i värmebädden."
+            },
+            {
+                "ecode": "0C008002",
+                "intro": "Spaghetti fenomen upptäcktes."
+            },
+            {
+                "ecode": "0C00C003",
+                "intro": "Eventuella fel upptäcktes i första lager."
+            },
+            {
+                "ecode": "0C00C004",
+                "intro": "Möjligt spaghetti fenomen upptäcktes."
+            },
+            {
+                "ecode": "07028002",
+                "intro": "Skäraren är fast. Dra ut skärare handtaget och tryck på försök igen ikonen."
+            },
+            {
+                "ecode": "07028006",
+                "intro": "Misslyckades att mata filament till verktygshuvudet. Kontrollera om filamentet eller rullen fastnat. Efter felsökning, tryck på försök igen ikonen."
+            },
+            {
+                "ecode": "07038001",
+                "intro": "Filament skärning misslyckades. Kontrollera skäraren. Efter felsökning, tryck på försök igen ikonen."
+            },
+            {
+                "ecode": "07038002",
+                "intro": "Skäraren är fast. Dra ut skärare handtaget och tryck på försök igen ikonen."
+            },
+            {
+                "ecode": "07038006",
+                "intro": "Misslyckades att mata filamentet till verktygshuvudet. Kontrollera om filamentet eller rullen fastnat. Efter felsökning, tryck på försök igen ikonen."
+            },
+            {
+                "ecode": "07008006",
+                "intro": "Misslyckades att mata filamentet till verktygshuvudet. Kontrollera om filamentet eller rullen fastnat. Efter felsökning, tryck på försök igen ikonen."
+            },
+            {
+                "ecode": "07018001",
+                "intro": "Filament skärning misslyckades. Kontrollera skäraren. Efter felsökning, tryck på försök igen ikonen."
+            },
+            {
+                "ecode": "07018002",
+                "intro": "Skäraren är fast. Dra ut skärare handtaget och tryck på försök igen ikonen."
+            },
+            {
+                "ecode": "07018006",
+                "intro": "Misslyckades att mata filamentet till verktygshuvudet. Kontrollera om filamentet eller rullen fastnat. Efter felsökning, tryck på försök igen ikonen."
+            },
+            {
+                "ecode": "07028001",
+                "intro": "Filament skärning misslyckades. Kontrollera skäraren. Efter felsökning, tryck på försök igen ikonen."
+            },
+            {
+                "ecode": "05004001",
+                "intro": "Kontakt med Bambu Cloud misslyckades. Kontrollera nätverks kopplingen."
+            },
+            {
+                "ecode": "05004003",
+                "intro": "Problem uppstod vid hanteringen av g-kod.3mf. Skicka utskrifts filen igen."
+            },
+            {
+                "ecode": "05004004",
+                "intro": "Utskriftsjobb får inte skickas under utskrift."
+            },
+            {
+                "ecode": "05004005",
+                "intro": "Utskriftsjobb får inte skickas vid uppdatering av firmware."
+            },
+            {
+                "ecode": "05004006",
+                "intro": "Inte tillräckligt med utrymme för utskrifts filen. Fabriksåterställning kan frigöra utrymme."
+            },
+            {
+                "ecode": "05004007",
+                "intro": "Utskrifts filer får inte skickas medan nödvändiga uppgraderingar eller reparationer krävs."
+            },
+            {
+                "ecode": "05004008",
+                "intro": "Start av utskrift misslyckades. Starta om enheten och skicka utskriftsfilen igen."
+            },
+            {
+                "ecode": "07008001",
+                "intro": "Filament skärning misslyckades. Kontrollera skäraren. Efter felsökning, tryck på försök igen ikonen."
+            },
+            {
+                "ecode": "07008002",
+                "intro": "Klipparen sitter fast. Dra ut skärhandtaget och klicka på försök igen ikonen."
+            },
+            {
+                "ecode": "07008003",
+                "intro": "Misslyckat försök att dra ut filamentet ifrån extrudern. Kontrollera om nozzlen är igensatt eller om filamentet är trasigt inuti extrudern. Efter felsökning, tryck på försök igen ikonen."
+            },
+            {
+                "ecode": "05004009",
+                "intro": "Utskriftsjobb får inte skickas vid uppdatering av loggar."
+            },
+            {
+                "ecode": "0500400A",
+                "intro": "Filnamnet stöds inte. Byt namn och starta om utskriftsjobbet."
+            },
+            {
+                "ecode": "03004008",
+                "intro": "Filament byte i AMS misslyckades."
+            },
+            {
+                "ecode": "03004009",
+                "intro": "Nollställning av XY axis misslyckades."
+            },
+            {
+                "ecode": "0300400B",
+                "intro": "Undantag för intern kommunikation."
+            },
+            {
+                "ecode": "0300400C",
+                "intro": "Utskriften avbröts."
+            },
+            {
+                "ecode": "0300400D",
+                "intro": "Återupptagande efter strömavbrott misslyckades."
+            },
+            {
+                "ecode": "03008000",
+                "intro": "Utskrift pausad av okänd orsak. Tryck på \"Återuppta\" ikonen för att fortsätta utskriften."
+            },
+            {
+                "ecode": "03008001",
+                "intro": "Utskrift pausad av användaren. Tryck på \"Återuppta\" ikonen för att fortsätta utskriften."
+            },
+            {
+                "ecode": "03008004",
+                "intro": "Filament slut. Ladda nytt filament i Temperatur/Axis och tryck på \"Återuppta\" ikonen för att fortsätta utskriften."
+            },
+            {
+                "ecode": "03008008",
+                "intro": "Fel på nozzlens temperatur."
+            },
+            {
+                "ecode": "03004000",
+                "intro": "Nollställning av Z-axeln misslyckades."
+            },
+            {
+                "ecode": "03004001",
+                "intro": "Skrivaren tog timeout i väntan på att nozzle skulle kylas ner innan nollställning."
+            },
+            {
+                "ecode": "03004002",
+                "intro": "Mesh justering av byggplattan misslyckades."
+            },
+            {
+                "ecode": "03004006",
+                "intro": "Nozzle är igensatt."
+            }
+        ],
+        "ver": 202401170800
+    },
+    "device_hms": {
+        "sv": [
+            {
+                "ecode": "03000D0000020004",
+                "intro": "Byggplattan är inte placerad på rätt sätt. Justera den."
+            },
+            {
+                "ecode": "03000D0000020005",
+                "intro": "Byggplattan är inte placerad på rätt sätt. Justera den."
+            },
+            {
+                "ecode": "03000D0000020006",
+                "intro": "Byggplattan är inte placerad på rätt sätt. Justera den."
+            },
+            {
+                "ecode": "03000D0000020007",
+                "intro": "Byggplattan är inte placerad på rätt sätt. Justera den."
+            },
+            {
+                "ecode": "03000D0000020008",
+                "intro": "Byggplattan är inte placerad på rätt sätt. Justera den."
+            },
+            {
+                "ecode": "03000D0000020009",
+                "intro": "Byggplattan är inte placerad på rätt sätt. Justera den."
+            },
+            {
+                "ecode": "03000D000002000A",
+                "intro": "Byggplattan är inte placerad på rätt sätt. Justera den."
+            },
+            {
+                "ecode": "03000D0000020003",
+                "intro": "Byggplattan är inte placerad på rätt sätt. Justera den."
+            },
+            {
+                "ecode": "03001C0000010001",
+                "intro": "Drivningen av extruderings motorn är onormal. MOSFET kan ha en kortslutning."
+            },
+            {
+                "ecode": "03001D0000010001",
+                "intro": "Positions sensorn för extruder motorn är onormal. Sensorns signalkabel kan vara felaktigt inkopplad."
+            },
+            {
+                "ecode": "030092000001000A",
+                "intro": "Temperaturen på kammar värmare 2 är onormal. AC-kortet kan vara trasigt."
+            },
+            {
+                "ecode": "0C0003000002000F",
+                "intro": "Delar som hoppas över före inspektion av första lagret, inspektionen kommer inte att stödjas för den aktuella utskriften."
+            },
+            {
+                "ecode": "0300170000010001",
+                "intro": "Nozzel fläktens hastighet är för långsam eller stoppad. Den kan ha fastnat eller så är kontakten inte ordentligt inkopplad."
+            },
+            {
+                "ecode": "0300170000020002",
+                "intro": "Nozzel fläktens hastighet är långsam. Den kan ha fastnat och behöver rengöras."
+            },
+            {
+                "ecode": "0300180000010002",
+                "intro": "Känsligheten hos sensorn för extruderings kraft är låg, munstycket är kanske inte korrekt installerat."
+            },
+            {
+                "ecode": "0500040000030009",
+                "intro": "Bäddtemperaturen överstiger filamentets förglasningstemperatur, vilket kan orsaka igensättning av nozzeln. Håll skrivarens dörr öppen. Stäng sedan av detekteringen av dörröppning tillfälligt."
+            },
+            {
+                "ecode": "03001B0000010001",
+                "intro": "Signalen från värmebäddens accelerationssensor är svag. Sensorn kan ha fallit av eller skadats."
+            },
+            {
+                "ecode": "03001B0000010002",
+                "intro": "Extern störning upptäcktes på värmebäddens accelerationssensor. Sensorns signalkabel kanske inte är fixerad."
+            },
+            {
+                "ecode": "03001B0000010003",
+                "intro": "Värmebäddens accelerationssensor detekterade oväntad kontinuerlig kraft. Sensorn kan ha fastnat eller så kan den analoga fronten vara trasig."
+            },
+            {
+                "ecode": "030001000001000A",
+                "intro": "Temperatur kontrollen i värmebädden är onormal, AC-kortet kan vara trasigt."
+            },
+            {
+                "ecode": "030091000001000A",
+                "intro": "Temperaturen på kammar värmare 1 är onormal. AC-kortet kan vara trasigt."
+            },
+            {
+                "ecode": "0500050000030002",
+                "intro": "Enheten är i konstruktions stadiet, var uppmärksam på frågor som rör informationssäkerhet."
+            },
+            {
+                "ecode": "03000D000001000B",
+                "intro": "Z-axelns motor verkar ha fastnat vid förflyttning. Kontrollera om det finns några främmande föremål på Z-axlarna eller Z-kuggremshjulen."
+            },
+            {
+                "ecode": "0C00030000020010",
+                "intro": "Främmande föremål har upptäckts på byggplattan, kontrollera och rengör byggplattan."
+            },
+            {
+                "ecode": "0500050000010001",
+                "intro": "Fabriksdata för AP kortet är onormala, byt ut AP kortet mot ett nytt."
+            },
+            {
+                "ecode": "0300900000010002",
+                "intro": "Uppvärmning av kammaren misslyckades. Kammaren kanske inte är sluten, eller så är omgivningstemperaturen för låg, eller så är nätaggregatets värme avledningsventil blockerad."
+            },
+            {
+                "ecode": "03001A0000020001",
+                "intro": "Munstycket är täckt av filament, eller så är byggplattan placerad snett."
+            },
+            {
+                "ecode": "03001A0000020002",
+                "intro": "Nozzeln är igensatt av filament."
+            },
+            {
+                "ecode": "1200200000020006",
+                "intro": "Extrudering av AMS1 Fack1 filament misslyckades; extrudern kan vara igensatt eller filamentet kan vara för tunt, vilket gör att extrudern slirar."
+            },
+            {
+                "ecode": "1201200000020006",
+                "intro": "Extrudering av AMS2 Fack1 filament misslyckades; extrudern kan vara igensatt eller filamentet kan vara för tunt, vilket gör att extrudern slirar."
+            },
+            {
+                "ecode": "1202200000020006",
+                "intro": "Extrudering av AMS3 Fack1 filament misslyckades; extrudern kan vara igensatt eller filamentet kan vara för tunt, vilket gör att extrudern slirar."
+            },
+            {
+                "ecode": "1203200000020006",
+                "intro": "Extrudering av AMS4 Fack1 filament misslyckades; extrudern kan vara igensatt eller filamentet kan vara för tunt, vilket gör att extrudern slirar."
+            },
+            {
+                "ecode": "1200210000020006",
+                "intro": "Extrudering av AMS1 Fack2 filament misslyckades; extrudern kan vara igensatt eller filamentet kan vara för tunt, vilket gör att extrudern slirar."
+            },
+            {
+                "ecode": "1201210000020006",
+                "intro": "Extrudering av AMS2 Fack2 filament misslyckades; extrudern kan vara igensatt eller filamentet kan vara för tunt, vilket gör att extrudern slirar."
+            },
+            {
+                "ecode": "1202210000020006",
+                "intro": "Extrudering av AMS3 Fack2 filament misslyckades; extrudern kan vara igensatt eller filamentet kan vara för tunt, vilket gör att extrudern slirar."
+            },
+            {
+                "ecode": "1203210000020006",
+                "intro": "Extrudering av AMS4 Fack2 filament misslyckades; extrudern kan vara igensatt eller filamentet kan vara för tunt, vilket gör att extrudern slirar."
+            },
+            {
+                "ecode": "1200220000020006",
+                "intro": "Extrudering av AMS1 Fack3 filament misslyckades; extrudern kan vara igensatt eller filamentet kan vara för tunt, vilket gör att extrudern slirar."
+            },
+            {
+                "ecode": "1201220000020006",
+                "intro": "Extrudering av AMS2 Fack3 filament misslyckades; extrudern kan vara igensatt eller filamentet kan vara för tunt, vilket gör att extrudern slirar."
+            },
+            {
+                "ecode": "1202220000020006",
+                "intro": "Extrudering av AMS3 Fack3 filament misslyckades; extrudern kan vara igensatt eller filamentet kan vara för tunt, vilket gör att extrudern slirar."
+            },
+            {
+                "ecode": "1203220000020006",
+                "intro": "Extrudering av AMS4 Fack3 filament misslyckades; extrudern kan vara igensatt eller filamentet kan vara för tunt, vilket gör att extrudern slirar."
+            },
+            {
+                "ecode": "1200230000020006",
+                "intro": "Extrudering av AMS1 Fack4 filament misslyckades; extrudern kan vara igensatt eller filamentet kan vara för tunt, vilket gör att extrudern slirar."
+            },
+            {
+                "ecode": "1201230000020006",
+                "intro": "Extrudering av AMS2 Fack4 filament misslyckades; extrudern kan vara igensatt eller filamentet kan vara för tunt, vilket gör att extrudern slirar."
+            },
+            {
+                "ecode": "1202230000020006",
+                "intro": "Extrudering av AMS3 Fack4 filament misslyckades; extrudern kan vara igensatt eller filamentet kan vara för tunt, vilket gör att extrudern slirar."
+            },
+            {
+                "ecode": "1203230000020006",
+                "intro": "Extrudering av AMS4 Fack4 filament misslyckades; extrudern kan vara igensatt eller filamentet kan vara för tunt, vilket gör att extrudern slirar."
+            },
+            {
+                "ecode": "0300020000010009",
+                "intro": "Nozzelns temperatur kontroll är onormal; hotenden är kanske inte är installerad. Om du vill värma hotenden utan att den är installerad, vänligen aktivera underhållsläget på inställningssidan."
+            },
+            {
+                "ecode": "0300940000020003",
+                "intro": "Kammaren nådde inte önskad temperatur. Maskinen stannar i väntan på kammartemperaturen."
+            },
+            {
+                "ecode": "0500040000020020",
+                "intro": ""
+            },
+            {
+                "ecode": "0500030000010004",
+                "intro": "Det är fel på AHB modulen. Vänligen starta om enheten."
+            },
+            {
+                "ecode": "12FF200000030007",
+                "intro": "Kontrollerar placeringen av filament i varje AMS fack, vänligen vänta."
+            },
+            {
+                "ecode": "0300940000030001",
+                "intro": "Kylningen av kammaren kan vara för långsam. Du kan öppna kammaren för att påskynda kylningen om gasen i kammaren är giftfri."
+            },
+            {
+                "ecode": "0300180000010001",
+                "intro": "Värdet på sensorn för extruderings kraft är lågt, nozzeln verkar inte vara installerad."
+            },
+            {
+                "ecode": "0300180000010003",
+                "intro": "Sensorn för extruderings kraft är inte tillgänglig, länken mellan MC och TH kan vara bruten eller sensorn är trasig."
+            },
+            {
+                "ecode": "0300180000010004",
+                "intro": "Data från sensorn för extruderings kraft är onormala, sensorn kan vara trasig."
+            },
+            {
+                "ecode": "0300190000010001",
+                "intro": "Virvelströms sensorn på Y-axeln är inte tillgänglig, kabeln kan vara trasig."
+            },
+            {
+                "ecode": "0300190000020002",
+                "intro": "Känsligheten hos Y-axelns virvel strömssensor är för låg."
+            },
+            {
+                "ecode": "0300940000030002",
+                "intro": "Inställningsvärdet för kammar temperaturen överskrider gränsen, gränsvärdet kommer att ställas in."
+            },
+            {
+                "ecode": "12FF200000020007",
+                "intro": "Det gick inte att kontrollera filament positionen i verktygshuvudet, klicka för mer hjälp."
+            },
+            {
+                "ecode": "0300900000010010",
+                "intro": "Kommunikationen med kammarens temperatur regulator är onormal."
+            },
+            {
+                "ecode": "0300900000010001",
+                "intro": "Uppvärmning av kammaren misslyckades. Kammarens värmare kanske inte blåser ut varmluft."
+            },
+            {
+                "ecode": "0300900000010003",
+                "intro": "Uppvärmning av kammaren misslyckades. Temperaturen på strömförsörjningen kan vara för hög."
+            },
+            {
+                "ecode": "0300900000010004",
+                "intro": "Uppvärmning av kammaren misslyckades. Värmefläktens hastighet är för låg."
+            },
+            {
+                "ecode": "0300900000010005",
+                "intro": "Uppvärmning av kammaren misslyckades. Värmemotståndet är för högt."
+            },
+            {
+                "ecode": "0300910000010001",
+                "intro": "Temperaturen på kammarvärmare 1 är onormal. Värmaren kan ha en kortslutning."
+            },
+            {
+                "ecode": "0300910000010002",
+                "intro": "Temperaturen på kammarvärmare 1 är onormal. Värmaren kan ha en öppen krets eller så har värme säkringen ha utlöst."
+            },
+            {
+                "ecode": "0300910000010003",
+                "intro": "Temperaturen för kammarvärmare 1 är onormal. Värmaren är överhettad."
+            },
+            {
+                "ecode": "0300910000010006",
+                "intro": "Temperaturen på kammarvärmare 1 är onormal. Givaren kan ha en kortslutning."
+            },
+            {
+                "ecode": "0300910000010007",
+                "intro": "Temperaturen på kammar värmare 1 är onormal. Givaren kan ha en öppen krets."
+            },
+            {
+                "ecode": "0300910000010008",
+                "intro": "Kammarens värmare 1 steg inte till önskad temperatur."
+            },
+            {
+                "ecode": "0300920000010001",
+                "intro": "Temperaturen på kammar värmare 2 är onormal. Värmaren kan ha en kortslutning."
+            },
+            {
+                "ecode": "0300920000010002",
+                "intro": "Temperaturen på kammar värmare 2 är onormal. Värmaren kan ha en öppen krets eller så har den termiska säkringen utlöst."
+            },
+            {
+                "ecode": "0300920000010003",
+                "intro": "Temperaturen för kammar värmare 2 är onormal. Värmaren är överhettad."
+            },
+            {
+                "ecode": "0300920000010006",
+                "intro": "Temperaturen på kammar värmare 2 är onormal. Givaren kan ha en kortslutning."
+            },
+            {
+                "ecode": "0300920000010007",
+                "intro": "Temperaturen på kammar värmare 2 är onormal. Sensorn kan ha en öppen krets."
+            },
+            {
+                "ecode": "0300920000010008",
+                "intro": "Kammar värmare 2 steg inte till önskad temperatur."
+            },
+            {
+                "ecode": "0300930000010001",
+                "intro": "Kammar temperaturen är onormal. Kammar värmarens temperatursensor kan ha en kortslutning."
+            },
+            {
+                "ecode": "0300930000010002",
+                "intro": "Kammar temperaturen är onormal. Kammar värmarens temperatursensor kan ha en öppen krets."
+            },
+            {
+                "ecode": "0300930000010003",
+                "intro": "Kammar temperaturen är onormal. Kammar värmarens temperatursensor vid luftutloppet kan ha en kortslutning."
+            },
+            {
+                "ecode": "0300930000010004",
+                "intro": "Kammar temperaturen är onormal. Kammar värmarens temperatursensor vid luftutloppet kan ha en öppen krets."
+            },
+            {
+                "ecode": "0300930000010005",
+                "intro": "Kammar temperaturen är onormal. Kammar värmarens temperatursensor vid luftintaget kan ha en kortslutning."
+            },
+            {
+                "ecode": "0300930000010006",
+                "intro": "Kammar temperaturen är onormal. Kammar värmarens temperatursensor vid luftintaget kan ha en öppen krets."
+            },
+            {
+                "ecode": "0300930000010007",
+                "intro": "Kammar temperaturen är onormal. Temperatur givaren vid strömförsörjningen kan ha en kortslutning."
+            },
+            {
+                "ecode": "0300930000010008",
+                "intro": "Kammar temperaturen är onormal. Temperatur sensorn vid strömförsörjningen kan ha en öppen krets."
+            },
+            {
+                "ecode": "0500030000010023",
+                "intro": "Det har uppstått ett fel i CTC modulen. Vänligen starta om enheten."
+            },
+            {
+                "ecode": "1203120000010003",
+                "intro": "AMS4 Fack3 motorns vridmoments kontroll är ur funktion. Strömsensorn kan vara felaktig."
+            },
+            {
+                "ecode": "1200130000010003",
+                "intro": "The AMS1 fack4 motorns vridmoments kontroll är ur funktion. Strömsensorn kan vara felaktig."
+            },
+            {
+                "ecode": "1201130000010003",
+                "intro": "The AMS2 fack4 motorns vridmoments kontroll är ur funktion. Strömsensorn kan vara felaktig."
+            },
+            {
+                "ecode": "1202130000010003",
+                "intro": "AMS3 Fack4 motorns vridmoments kontroll är ur funktion. Strömsensorn kan vara felaktig."
+            },
+            {
+                "ecode": "1203130000010003",
+                "intro": "AMS4 Fack4 motorns vridmoments kontroll är ur funktion. Strömsensorn kan vara felaktig."
+            },
+            {
+                "ecode": "1200200000020004",
+                "intro": "AMS1 Fack 1-filamentet kan ha gått sönder i verktygshuvudet."
+            },
+            {
+                "ecode": "1201200000020004",
+                "intro": "AMS2 Fack 1-filamentet kan ha gått sönder i verktygshuvudet."
+            },
+            {
+                "ecode": "1202200000020004",
+                "intro": "AMS3 Fack 1-filamentet kan ha gått sönder i verktygshuvudet."
+            },
+            {
+                "ecode": "1203200000020004",
+                "intro": "AMS4 Fack 1-filamentet kan ha gått sönder i verktygshuvudet."
+            },
+            {
+                "ecode": "1200210000020004",
+                "intro": "AMS1 Fack 2-filamentet kan ha gått sönder i verktygshuvudet."
+            },
+            {
+                "ecode": "1201210000020004",
+                "intro": "AMS2 fack 2-filamentet kan ha gått sönder i verktygshuvudet."
+            },
+            {
+                "ecode": "1202210000020004",
+                "intro": "AMS3 Fack 2-filamentet kan ha gått sönder i verktygshuvudet."
+            },
+            {
+                "ecode": "1203210000020004",
+                "intro": "AMS4 Fack 2-filamentet kan ha gått sönder i verktygshuvudet."
+            },
+            {
+                "ecode": "1200220000020004",
+                "intro": "AMS1 Fack 3-filamentet kan ha gått sönder i verktygshuvudet."
+            },
+            {
+                "ecode": "1201220000020004",
+                "intro": "AMS2 Fack 3-filamentet kan ha gått sönder i verktygshuvudet."
+            },
+            {
+                "ecode": "1202220000020004",
+                "intro": "AMS3 Fack 3-filamentet kan ha gått sönder i verktygshuvudet."
+            },
+            {
+                "ecode": "1203220000020004",
+                "intro": "AMS4 Fack 3 filamentet kan ha gått sönder i verktygshuvudet."
+            },
+            {
+                "ecode": "1200230000020004",
+                "intro": "AMS1 Fack 4-filamentet kan ha gått sönder i verktygshuvudet."
+            },
+            {
+                "ecode": "1201230000020004",
+                "intro": "AMS2 Fack 4-filamentet kan ha gått sönder i verktygshuvudet."
+            },
+            {
+                "ecode": "1202230000020004",
+                "intro": "AMS3 Fack 4-filamentet kan ha gått sönder i verktygshuvudet."
+            },
+            {
+                "ecode": "1203230000020004",
+                "intro": "AMS4 Fack 4 filamentet kan ha gått sönder i verktygshuvudet."
+            },
+            {
+                "ecode": "1200200000030002",
+                "intro": "AMS1 Fack 1 filament har tagit slut och bytte automatiskt till ett fack med samma filament."
+            },
+            {
+                "ecode": "1201200000030002",
+                "intro": "AMS2 Fack 1 filamentet har tagit slut och bytte automatiskt till ett fack med samma filament."
+            },
+            {
+                "ecode": "1202200000030002",
+                "intro": "AMS3 Fack 1 filamentet har tagit slut och bytte automatiskt till ett fack med samma filament."
+            },
+            {
+                "ecode": "1203200000030002",
+                "intro": "AMS4 Fack 1 filamentet har tagit slut och bytte automatiskt till ett fack med samma filament."
+            },
+            {
+                "ecode": "1200210000030002",
+                "intro": "AMS1 Fack 2 har slut på filament och bytte automatiskt till ett fack med samma filament."
+            },
+            {
+                "ecode": "1201210000030002",
+                "intro": "AMS2 Fack 2 har slut på filament och bytte automatiskt till ett fack med samma filament."
+            },
+            {
+                "ecode": "1202210000030002",
+                "intro": "AMS3 Fack 2 filamentet har tagit slut och bytte automatiskt till ett fack med samma filament."
+            },
+            {
+                "ecode": "1203210000030002",
+                "intro": "AMS4 Fack 2 filamentet har tagit slut och bytte automatiskt till ett fack med samma filament."
+            },
+            {
+                "ecode": "1200220000030002",
+                "intro": "AMS1 Fack 3 har slut på filament och bytte automatiskt till ett fack med samma filament."
+            },
+            {
+                "ecode": "1201220000030002",
+                "intro": "AMS2 Fack 3-filamentet har tagit slut och bytte automatiskt till ett fack med samma filament."
+            },
+            {
+                "ecode": "1202220000030002",
+                "intro": "AMS3 Fack 3 filamentet har tagit slut och bytte automatiskt till ett fack med samma filament."
+            },
+            {
+                "ecode": "1203220000030002",
+                "intro": "AMS4 Fack 3 filamentet har tagit slut och bytte automatiskt till ett fack med samma filament."
+            },
+            {
+                "ecode": "1200230000030002",
+                "intro": "AMS1 Fack 4 har slut på filament och bytte automatiskt till ett fack med samma filament."
+            },
+            {
+                "ecode": "1201230000030002",
+                "intro": "AMS2 Fack 4 filament har tagit slut och bytte automatiskt till ett fack med samma filament."
+            },
+            {
+                "ecode": "1202230000030002",
+                "intro": "AMS3 Fack 4 filamentet har tagit slut och bytte automatiskt till ett fack med samma filament."
+            },
+            {
+                "ecode": "1203230000030002",
+                "intro": "AMS4 Fack 4 filamentet har tagit slut och bytte automatiskt till ett fack med samma filament."
+            },
+            {
+                "ecode": "1200300000020002",
+                "intro": "RFID-taggen på AMS1 Fack1 är skadad."
+            },
+            {
+                "ecode": "1201300000020002",
+                "intro": "RFID-taggen på AMS2 fack1 är skadad."
+            },
+            {
+                "ecode": "1202300000020002",
+                "intro": "RFID-taggen på AMS3 Fack1 är skadad."
+            },
+            {
+                "ecode": "1203300000020002",
+                "intro": "RFID-taggen på AMS4 Fack1 är skadad."
+            },
+            {
+                "ecode": "1200310000020002",
+                "intro": "RFID-taggen på AMS1 Fack2 är skadad."
+            },
+            {
+                "ecode": "1201310000020002",
+                "intro": "RFID-taggen på AMS2 fack2 är skadad."
+            },
+            {
+                "ecode": "1202310000020002",
+                "intro": "RFID-taggen på AMS3 Fack2 är skadad."
+            },
+            {
+                "ecode": "1203310000020002",
+                "intro": "RFID-taggen på AMS4 Fack2 är skadad."
+            },
+            {
+                "ecode": "1200320000020002",
+                "intro": "RFID-taggen på AMS1 Fack3 är skadad."
+            },
+            {
+                "ecode": "1201320000020002",
+                "intro": "RFID-taggen på AMS2 Fack3 är skadad."
+            },
+            {
+                "ecode": "1202320000020002",
+                "intro": "RFID-taggen på AMS3 Fack3 är skadad."
+            },
+            {
+                "ecode": "1203320000020002",
+                "intro": "RFID-taggen på AMS4 Fack3 är skadad."
+            },
+            {
+                "ecode": "1200330000020002",
+                "intro": "RFID-taggen på AMS1 Fack4 är skadad."
+            },
+            {
+                "ecode": "1201330000020002",
+                "intro": "RFID-taggen på AMS2 Fack4 är skadad."
+            },
+            {
+                "ecode": "1202330000020002",
+                "intro": "RFID-taggen på AMS3 Fack4 är skadad."
+            },
+            {
+                "ecode": "1203330000020002",
+                "intro": "RFID-taggen på AMS4 Fack4 är skadad."
+            },
+            {
+                "ecode": "1200500000020001",
+                "intro": "AMS1 kommunikationen är onormal. Kontrollera anslutningskabeln."
+            },
+            {
+                "ecode": "1201500000020001",
+                "intro": "AMS2-kommunikation är onormal. Kontrollera anslutningskabeln."
+            },
+            {
+                "ecode": "1202500000020001",
+                "intro": "AMS3 kommunikation är onormal. Kontrollera anslutningskabeln."
+            },
+            {
+                "ecode": "1203500000020001",
+                "intro": "AMS4 kommunikation är onormal. Kontrollera anslutningskabeln."
+            },
+            {
+                "ecode": "1200110000010001",
+                "intro": "The AMS1 fack2 motor har slirat. Extruderings hjulet kan vara trasigt eller så är filamentet för tunt."
+            },
+            {
+                "ecode": "1201110000010001",
+                "intro": "The AMS2 fack2 motor har slirat. Extruderings hjulet kan vara trasigt eller så är filamentet för tunt."
+            },
+            {
+                "ecode": "1202110000010001",
+                "intro": "AMS3 Fack2 motor har slirat. Extruderings hjulet kan vara trasigt eller så är filamentet för tunt."
+            },
+            {
+                "ecode": "1203110000010001",
+                "intro": "AMS4 Fack2 motor har slirat. Extruderings hjulet kan vara trasigt eller så är filamentet för tunt."
+            },
+            {
+                "ecode": "1200120000010001",
+                "intro": "The AMS1 fack3 motor har slirat. Extruderings hjulet kan vara trasigt eller så är filamentet för tunt."
+            },
+            {
+                "ecode": "1201120000010001",
+                "intro": "The AMS2 fack3 motor har slirat. Extruderings hjulet kan vara trasigt eller så är filamentet för tunt."
+            },
+            {
+                "ecode": "1202120000010001",
+                "intro": "AMS3 Fack3 motor har slirat. Extruderings hjulet kan vara trasigt eller så är filamentet för tunt."
+            },
+            {
+                "ecode": "1203120000010001",
+                "intro": "AMS4 Fack3 motor har slirat. Extruderings hjulet kan vara trasigt eller så är filamentet för tunt."
+            },
+            {
+                "ecode": "1200130000010001",
+                "intro": "The AMS1 fack4 motor har slirat. Extruderings hjulet kan vara trasigt eller så är filamentet för tunt."
+            },
+            {
+                "ecode": "1201130000010001",
+                "intro": "The AMS2 fack4 motor har slirat. Extruderings hjulet kan vara trasigt eller så är filamentet för tunt."
+            },
+            {
+                "ecode": "1202130000010001",
+                "intro": "AMS3 Fack4 motor har slirat. Extruderings hjulet kan vara trasigt eller så är filamentet för tunt."
+            },
+            {
+                "ecode": "1203130000010001",
+                "intro": "AMS4 Fack4 motor har slirat. Extruderings hjulet kan vara trasigt eller så är filamentet för tunt."
+            },
+            {
+                "ecode": "1200110000010003",
+                "intro": "The AMS1 fack2 motorns vridmoments kontroll är ur funktion. Strömsensorn kan vara felaktig."
+            },
+            {
+                "ecode": "1201110000010003",
+                "intro": "The AMS2 fack2 motorns vridmoments kontroll är ur funktion. Strömsensorn kan vara felaktig."
+            },
+            {
+                "ecode": "1202110000010003",
+                "intro": "AMS3 Fack2 motorns vridmoments kontroll är ur funktion. Strömsensorn kan vara felaktig."
+            },
+            {
+                "ecode": "1203110000010003",
+                "intro": "AMS4 Fack2 motorns vridmoments kontroll är ur funktion. Strömsensorn kan vara felaktig."
+            },
+            {
+                "ecode": "1200120000010003",
+                "intro": "The AMS1 fack3 motorns vridmoments kontroll är ur funktion. Strömsensorn kan vara felaktig."
+            },
+            {
+                "ecode": "1201120000010003",
+                "intro": "The AMS2 fack3 motorns vridmoments kontroll är ur funktion. Strömsensorn kan vara felaktig."
+            },
+            {
+                "ecode": "1202120000010003",
+                "intro": "AMS3 Fack3 motorns vridmoments kontroll är ur funktion. Motstånds givaren kan vara felaktig."
+            },
+            {
+                "ecode": "0700300000020002",
+                "intro": "RFID-taggen på AMS1 Fack 1 är skadad eller så kan dess innehåll inte identifieras."
+            },
+            {
+                "ecode": "0700310000020002",
+                "intro": "RFID-taggen på AMS1 Fack 2 är skadad eller så kan dess innehåll inte identifieras."
+            },
+            {
+                "ecode": "0700320000020002",
+                "intro": "RFID-taggen på AMS1 Fack 3 är skadad eller så kan dess innehåll inte identifieras."
+            },
+            {
+                "ecode": "0700330000020002",
+                "intro": "RFID-taggen på AMS1 Fack 4 är skadad eller så kan dess innehåll inte identifieras."
+            },
+            {
+                "ecode": "0701300000020002",
+                "intro": "RFID-taggen på AMS2 Fack 1 är skadad eller så kan dess innehåll inte identifieras."
+            },
+            {
+                "ecode": "0701310000020002",
+                "intro": "RFID-taggen på AMS2 Fack 2 är skadad eller så kan dess innehåll inte identifieras."
+            },
+            {
+                "ecode": "0701320000020002",
+                "intro": "RFID-taggen på AMS2 Fack 3 är skadad eller så kan dess innehåll inte identifieras."
+            },
+            {
+                "ecode": "0701330000020002",
+                "intro": "RFID-taggen på AMS2 Fack 4 är skadad eller så kan dess innehåll inte identifieras."
+            },
+            {
+                "ecode": "0702300000020002",
+                "intro": "RFID-taggen på AMS3 Fack 1 är skadad eller så kan dess innehåll inte identifieras."
+            },
+            {
+                "ecode": "0702310000020002",
+                "intro": "RFID-taggen på AMS3 Fack 2 är skadad eller så kan dess innehåll inte identifieras."
+            },
+            {
+                "ecode": "0702320000020002",
+                "intro": "RFID-taggen på AMS3 Fack 3 är skadad eller så kan dess innehåll inte identifieras."
+            },
+            {
+                "ecode": "0702330000020002",
+                "intro": "RFID-taggen på AMS3 Fack 4 är skadad eller så kan dess innehåll inte identifieras."
+            },
+            {
+                "ecode": "0703300000020002",
+                "intro": "RFID-taggen på AMS4 Fack 1 är skadad eller så kan dess innehåll inte identifieras."
+            },
+            {
+                "ecode": "0703310000020002",
+                "intro": "RFID-taggen på AMS4 Fack 2 är skadad eller så kan dess innehåll inte identifieras."
+            },
+            {
+                "ecode": "0703320000020002",
+                "intro": "RFID-taggen på AMS4 Fack 3 är skadad eller så kan dess innehåll inte identifieras."
+            },
+            {
+                "ecode": "0703330000020002",
+                "intro": "RFID-taggen på AMS4 Fack 4 är skadad eller dess innehåll kan inte identifieras."
+            },
+            {
+                "ecode": "0500040000020010",
+                "intro": "RFID-taggen på AMS1 Fack 1 kan inte identifieras."
+            },
+            {
+                "ecode": "0500040000020011",
+                "intro": "RFID-taggen på AMS1 Fack 2 kan inte identifieras."
+            },
+            {
+                "ecode": "0500040000020012",
+                "intro": "RFID-taggen på AMS1 Fack 3 kan inte identifieras."
+            },
+            {
+                "ecode": "0500040000020014",
+                "intro": "RFID-taggen på AMS2 Fack 1 kan inte identifieras."
+            },
+            {
+                "ecode": "0500040000020015",
+                "intro": "RFID-taggen på AMS2 Fack 2 kan inte identifieras."
+            },
+            {
+                "ecode": "0500040000020016",
+                "intro": "RFID-taggen på AMS2 Fack 3 kan inte identifieras."
+            },
+            {
+                "ecode": "0500040000020017",
+                "intro": "RFID-taggen på AMS2 Fack 4 kan inte identifieras."
+            },
+            {
+                "ecode": "0500040000020018",
+                "intro": "RFID-taggen på AMS3 Fack 1 kan inte identifieras."
+            },
+            {
+                "ecode": "0500040000020019",
+                "intro": "RFID-taggen på AMS3 Fack 2 kan inte identifieras."
+            },
+            {
+                "ecode": "050004000002001A",
+                "intro": "RFID-taggen på AMS3 Fack 3 kan inte identifieras."
+            },
+            {
+                "ecode": "050004000002001B",
+                "intro": "RFID-taggen på AMS3 Fack 4 kan inte identifieras."
+            },
+            {
+                "ecode": "050004000002001C",
+                "intro": "RFID-taggen på AMS4 Fack 1 kan inte identifieras."
+            },
+            {
+                "ecode": "050004000002001D",
+                "intro": "RFID-taggen på AMS4 Fack 2 kan inte identifieras."
+            },
+            {
+                "ecode": "050004000002001E",
+                "intro": "RFID-taggen på AMS4 Fack 3 kan inte identifieras."
+            },
+            {
+                "ecode": "050004000002001F",
+                "intro": "RFID-taggen på AMS4 Fack 4 kan inte identifieras."
+            },
+            {
+                "ecode": "0500040000020013",
+                "intro": "RFID-taggen på AMS1 Fack 4 kan inte identifieras."
+            },
+            {
+                "ecode": "12FF800000020001",
+                "intro": "Filamentet på spol hållaren kan vara trassligt eller ha fastnat."
+            },
+            {
+                "ecode": "1200800000020001",
+                "intro": "AMS1 Fack 1 filamentet kan vara trassligt eller ha fastnat."
+            },
+            {
+                "ecode": "1200810000020001",
+                "intro": "AMS1 Fack 2 filamentet kan vara trassligt eller ha fastnat."
+            },
+            {
+                "ecode": "1200820000020001",
+                "intro": "AMS1 Fack 3 filamentet kan vara trassligt eller ha fastnat."
+            },
+            {
+                "ecode": "1200830000020001",
+                "intro": "AMS1 Fack 4 filamentet kan vara trassligt eller ha fastnat."
+            },
+            {
+                "ecode": "1201800000020001",
+                "intro": "AMS2 Fack 1 filamentet kan vara trassligt eller ha fastnat."
+            },
+            {
+                "ecode": "1201810000020001",
+                "intro": "AMS2 Fack 2 filamentet kan vara trassligt eller ha fastnat."
+            },
+            {
+                "ecode": "1201820000020001",
+                "intro": "AMS2 Fack 3 filamentet kan vara trassligt eller ha fastnat."
+            },
+            {
+                "ecode": "1201830000020001",
+                "intro": "AMS2 Fack 4 filamentet kan vara trassligt eller ha fastnat."
+            },
+            {
+                "ecode": "1202800000020001",
+                "intro": "AMS3 Fack 1 filamentet kan vara trassligt eller ha fastnat."
+            },
+            {
+                "ecode": "1202810000020001",
+                "intro": "AMS3 Fack 2 filamentet kan vara trassligt eller ha fastnat."
+            },
+            {
+                "ecode": "1202820000020001",
+                "intro": "AMS3 Fack 3 filamentet kan vara trassligt eller ha fastnat."
+            },
+            {
+                "ecode": "1202830000020001",
+                "intro": "AMS3 Fack 4 filamentet kan vara trassligt eller ha fastnat."
+            },
+            {
+                "ecode": "1203800000020001",
+                "intro": "AMS4 Fack 1 filamentet kan vara trassligt eller ha fastnat."
+            },
+            {
+                "ecode": "1203810000020001",
+                "intro": "AMS4 Fack 2 filamentet kan vara trassligt eller ha fastnat."
+            },
+            {
+                "ecode": "1203820000020001",
+                "intro": "AMS4 Fack 3 filamentet kan vara trassligt eller ha fastnat."
+            },
+            {
+                "ecode": "1203830000020001",
+                "intro": "AMS4 Fack 4 filamentet kan vara trassligt eller ha fastnat."
+            },
+            {
+                "ecode": "0500030000030022",
+                "intro": "Försämrad prestanda för MicroSD-kortet har upptäckts. Det kan påverka utskriftsjobb, loggar och videoinspelningar. Försök att formatera eller byta ut MicroSD-kortet."
+            },
+            {
+                "ecode": "0300030000020002",
+                "intro": ""
+            },
+            {
+                "ecode": "12FF200000020004",
+                "intro": "Dra ut filamentet på spolhållaren från extrudern."
+            },
+            {
+                "ecode": "12FF200000020005",
+                "intro": "Filament kan vara trasigt i verktygshuvudet."
+            },
+            {
+                "ecode": "12FF200000020006",
+                "intro": "Misslyckades med att extrudera filamentet och extrudern kan vara igensatt."
+            },
+            {
+                "ecode": "12FF200000020001",
+                "intro": "Filamentet i spolhållaren har tagit slut; sätt in ett nytt filament."
+            },
+            {
+                "ecode": "12FF200000020002",
+                "intro": "Filamentet på spolhållaren är tomt, sätt i ett nytt filament."
+            },
+            {
+                "ecode": "1203730000010001",
+                "intro": "AMS4 Fel i filament hastighet och längd: Distansmätningen i fack4 kan vara felaktig."
+            },
+            {
+                "ecode": "1203220000020001",
+                "intro": "AMS4 fack3 filament har tagit slut, sätt in ett nytt filament."
+            },
+            {
+                "ecode": "1203230000020001",
+                "intro": "AMS4 fack4 filament har tagit slut, sätt in ett nytt filament."
+            },
+            {
+                "ecode": "1203220000020002",
+                "intro": "AMS4 fack3 är tom; sätt in nytt filament."
+            },
+            {
+                "ecode": "1203230000020002",
+                "intro": "AMS4 fack4 är tom; sätt in nytt filament."
+            },
+            {
+                "ecode": "1203220000020003",
+                "intro": "AMS4 fack3 filament kan vara trasigt i PTFE-röret."
+            },
+            {
+                "ecode": "1203230000020003",
+                "intro": "AMS4 fack4 filament kan vara trasigt i PTFE-röret."
+            },
+            {
+                "ecode": "1203220000020005",
+                "intro": "AMS4 fack3 filamentet har tagit slut, och rensningen av det gamla filamentet gick onormalt; kontrollera om filamentet sitter fast i verktygshuvudet."
+            },
+            {
+                "ecode": "1203230000020005",
+                "intro": "AMS4 fack4 filamentet har tagit slut, och rensningen av det gamla filamentet gick onormalt; kontrollera om filamentet sitter fast i verktygshuvudet."
+            },
+            {
+                "ecode": "1203210000030001",
+                "intro": "AMS4 fack2 filamentet har tagit slut. Det gamla filamentet rensas bort; vänligen vänta."
+            },
+            {
+                "ecode": "1203220000030001",
+                "intro": "AMS4 fack3 filamentet har tagit slut. Det gamla filamentet rensas bort; vänligen vänta."
+            },
+            {
+                "ecode": "1203230000030001",
+                "intro": "AMS4 fack4 filamentet har tagit slut. Det gamla filamentet rensas bort; vänta lite."
+            },
+            {
+                "ecode": "1203300000010001",
+                "intro": "AMS4 fack1 RFID spolen är trasig eller RF hårdvarukretsen har ett fel."
+            },
+            {
+                "ecode": "1203310000010001",
+                "intro": "AMS4 fack2 RFID spolen är trasig eller RF hårdvarukretsen har ett fel."
+            },
+            {
+                "ecode": "1203320000010001",
+                "intro": "AMS4 fack3 RFID spolen är trasig eller RF hårdvarukretsen har ett fel."
+            },
+            {
+                "ecode": "1203330000010001",
+                "intro": "AMS4 fack4 RFID spolen är trasig eller RF hårdvarukretsen har ett fel."
+            },
+            {
+                "ecode": "1203300000030003",
+                "intro": "AMS4 fack1 RFID kan inte läsas på grund av ett strukturellt fel."
+            },
+            {
+                "ecode": "1203310000030003",
+                "intro": "AMS4 fack2 RFID kan inte läsas på grund av ett strukturellt fel."
+            },
+            {
+                "ecode": "1203320000030003",
+                "intro": "AMS4 fack3 RFID kan inte läsas på grund av ett strukturellt fel."
+            },
+            {
+                "ecode": "1203330000030003",
+                "intro": "AMS4 fack4 RFID kan inte läsas på grund av ett strukturellt fel."
+            },
+            {
+                "ecode": "1203300000010004",
+                "intro": "RFID kan inte läsas på grund av ett fel på ett krypterings chip i AMS4."
+            },
+            {
+                "ecode": "1203700000010001",
+                "intro": "AMS4 Fel i filament hastighet och längd: Distansmätningen i fack1 kan vara felaktig."
+            },
+            {
+                "ecode": "1203710000010001",
+                "intro": "AMS4 Fel i filament hastighet och längd: Distansmätningen i fack2 kan vara felaktig."
+            },
+            {
+                "ecode": "1203720000010001",
+                "intro": "AMS4 Fel i filament hastighet och längd: Distansmätningen i fack3 kan vara felaktig."
+            },
+            {
+                "ecode": "1203100000010001",
+                "intro": "AMS4 fack1 motor har slirat. Extruderings hjulet kan vara trasigt eller så är filamentet för tunt."
+            },
+            {
+                "ecode": "1203100000020002",
+                "intro": "AMS4 fack1 motor är överbelastad. Filament kan ha trasslat sig eller fastnat."
+            },
+            {
+                "ecode": "1203110000020002",
+                "intro": "AMS4 fack2 motor är överbelastad. Filament kan ha trasslat sig eller fastnat."
+            },
+            {
+                "ecode": "1203120000020002",
+                "intro": "AMS4 fack3 motor är överbelastad. Filament kan ha trasslat sig eller fastnat."
+            },
+            {
+                "ecode": "1203130000020002",
+                "intro": "AMS4 fack4 motor är överbelastad. Filament kan ha trasslat sig eller fastnat."
+            },
+            {
+                "ecode": "1203100000010003",
+                "intro": "AMS4 fack1 motorns vridmoments kontroll är ur funktion. Strömsensorn kan vara felaktig."
+            },
+            {
+                "ecode": "1203200000020001",
+                "intro": "AMS4 fack 1 filament har tagit slut, sätt in ett nytt filament."
+            },
+            {
+                "ecode": "1203210000020001",
+                "intro": "AMS4 fack2 filament har tagit slut, sätt in ett nytt filament."
+            },
+            {
+                "ecode": "1203200000020002",
+                "intro": "AMS4 fack1 är tom, sätt i nytt filament."
+            },
+            {
+                "ecode": "1203210000020002",
+                "intro": "AMS4 fack2 är tom; sätt in nytt filament."
+            },
+            {
+                "ecode": "1203200000020003",
+                "intro": "AMS4 fack1 filament kan vara trasigt i PTFE-röret."
+            },
+            {
+                "ecode": "1203210000020003",
+                "intro": "AMS4 fack2 filament kan vara trasigt i PTFE-röret."
+            },
+            {
+                "ecode": "1203200000020005",
+                "intro": "AMS4 fack1 filamentet har tagit slut, och rensningen av det gamla filamentet gick onormalt; kontrollera om filamentet sitter fast i verktygshuvudet."
+            },
+            {
+                "ecode": "1203210000020005",
+                "intro": "AMS4 fack2 filamentet har tagit slut, och rensningen av det gamla filamentet gick onormalt; kontrollera om filamentet sitter fast i verktygshuvudet."
+            },
+            {
+                "ecode": "1203200000030001",
+                "intro": "AMS4 fack1 filamentet har tagit slut. Det gamla filamentet rensas bort; vänta."
+            },
+            {
+                "ecode": "1202310000010001",
+                "intro": "AMS3 fack2 RFID spolen är trasig eller RF hårdvarukretsen har ett fel."
+            },
+            {
+                "ecode": "1202320000010001",
+                "intro": "AMS3 fack3 RFID spolen är trasig eller RF hårdvarukretsen har ett fel."
+            },
+            {
+                "ecode": "1202330000010001",
+                "intro": "AMS3 fack4 RFID spolen är trasig eller RF hårdvarukretsen har ett fel."
+            },
+            {
+                "ecode": "1202300000030003",
+                "intro": "AMS3 fack1 RFID kan inte läsas på grund av ett strukturellt fel."
+            },
+            {
+                "ecode": "1202310000030003",
+                "intro": "AMS3 fack2 RFID kan inte läsas på grund av ett strukturellt fel."
+            },
+            {
+                "ecode": "1202320000030003",
+                "intro": "AMS3 fack3 RFID kan inte läsas på grund av ett strukturellt fel."
+            },
+            {
+                "ecode": "1202330000030003",
+                "intro": "AMS3 fack4 RFID kan inte läsas på grund av ett strukturellt fel."
+            },
+            {
+                "ecode": "1202300000010004",
+                "intro": "RFID kan inte läsas på grund av ett fel på ett krypterings chip i AMS3."
+            },
+            {
+                "ecode": "1202700000010001",
+                "intro": "AMS3 Fel i filament hastighet och längd: Distansmätningen i fack1 kan vara felaktig."
+            },
+            {
+                "ecode": "1202710000010001",
+                "intro": "AMS3 Fel i filament hastighet och längd: Distansmätningen i fack2 kan vara felaktig."
+            },
+            {
+                "ecode": "1202720000010001",
+                "intro": "AMS3 Fel i filament hastighet och längd: Distansmätningen i fack3 kan vara felaktig."
+            },
+            {
+                "ecode": "1202730000010001",
+                "intro": "AMS3 Fel i filament hastighet och längd: Distansmätningen i fack4 kan vara felaktig."
+            },
+            {
+                "ecode": "1202210000020001",
+                "intro": "AMS3 fack2 filament har tagit slut, sätt in ett nytt filament."
+            },
+            {
+                "ecode": "1202220000020001",
+                "intro": "AMS3 fack3 filament har tagit slut, sätt in ett nytt filament."
+            },
+            {
+                "ecode": "1202230000020001",
+                "intro": "AMS3 fack4 filament har tagit slut, sätt in ett nytt filament."
+            },
+            {
+                "ecode": "1202210000020002",
+                "intro": "AMS3 fack2 är tom; sätt in nytt filament."
+            },
+            {
+                "ecode": "1202220000020002",
+                "intro": "AMS3 fack3 är tom; sätt in nytt filament."
+            },
+            {
+                "ecode": "1202230000020002",
+                "intro": "AMS3 fack4 är tom; sätt in nytt filament."
+            },
+            {
+                "ecode": "1202210000020003",
+                "intro": "AMS3 fack2 filament kan vara trasigt i PTFE-röret."
+            },
+            {
+                "ecode": "1202220000020003",
+                "intro": "AMS3 fack3 filament kan vara trasigt i PTFE-röret."
+            },
+            {
+                "ecode": "1202230000020003",
+                "intro": "AMS3 fack4 filament kan vara trasigt i PTFE-röret."
+            },
+            {
+                "ecode": "1202210000020005",
+                "intro": "AMS3 fack2 filamentet har tagit slut, och rensningen av det gamla filamentet gick onormalt; kontrollera om filamentet sitter fast i verktygshuvudet."
+            },
+            {
+                "ecode": "1202220000020005",
+                "intro": "AMS3 fack3 filamentet har tagit slut, och rensningen av det gamla filamentet gick onormalt; kontrollera om filamentet sitter fast i verktygshuvudet."
+            },
+            {
+                "ecode": "1202230000020005",
+                "intro": "AMS3 fack4 filamentet har tagit slut, och rensningen av det gamla filamentet gick onormalt; kontrollera om filamentet sitter fast i verktygshuvudet."
+            },
+            {
+                "ecode": "1202210000030001",
+                "intro": "AMS3 fack2 filamentet har tagit slut. Det gamla filamentet rensas bort; vänta."
+            },
+            {
+                "ecode": "1202220000030001",
+                "intro": "AMS3 fack3 filamentet har tagit slut. Det gamla filamentet rensas bort; vänligen vänta."
+            },
+            {
+                "ecode": "1202230000030001",
+                "intro": "AMS3 fack4 filamentet har tagit slut. Det gamla filamentet rensas bort; vänligen vänta."
+            },
+            {
+                "ecode": "1202300000010001",
+                "intro": "AMS3 fack1 RFID spolen är trasig eller RF hårdvarukretsen har ett fel."
+            },
+            {
+                "ecode": "1202100000010001",
+                "intro": "AMS3 fack1 motor har slirat. Extruderings hjulet kan vara trasigt eller så är filamentet för tunt."
+            },
+            {
+                "ecode": "1202100000020002",
+                "intro": "AMS3 fack1 motor är överbelastad. Filamentet kan ha trasslat sig eller fastnat."
+            },
+            {
+                "ecode": "1202110000020002",
+                "intro": "AMS3 fack2 motor är överbelastad. Filamentet kan ha trasslat sig eller fastnat."
+            },
+            {
+                "ecode": "1202120000020002",
+                "intro": "AMS3 fack3 motor är överbelastad. Filament kan ha trasslat sig eller fastnat."
+            },
+            {
+                "ecode": "1202130000020002",
+                "intro": "AMS3 fack4 motor är överbelastad. Filament kan ha trasslat sig eller fastnat."
+            },
+            {
+                "ecode": "1202100000010003",
+                "intro": "AMS3 fack1 motorns vridmoments kontroll är ur funktion. Strömsensorn kan vara felaktig."
+            },
+            {
+                "ecode": "1202200000020001",
+                "intro": "AMS3 fack1 filament har tagit slut, sätt i nytt filament."
+            },
+            {
+                "ecode": "1202200000020002",
+                "intro": "AMS3 fack1 är tom; sätt in nytt filament."
+            },
+            {
+                "ecode": "1202200000020003",
+                "intro": "AMS3 fack1 filamentet kan ha gått sönder i PTFE-röret."
+            },
+            {
+                "ecode": "1202200000020005",
+                "intro": "AMS3 fack1 filamentet har tagit slut, och rensningen av det gamla filamentet gick onormalt; kontrollera om filamentet sitter fast i verktygshuvudet."
+            },
+            {
+                "ecode": "1202200000030001",
+                "intro": "AMS3 fack1 filamentet har tagit slut. Det gamla filamentet rensas bort; vänligen vänta."
+            },
+            {
+                "ecode": "1201330000010001",
+                "intro": "AMS2 fack4 RFID spolen är trasig eller RF hårdvarukretsen har ett fel."
+            },
+            {
+                "ecode": "1201330000030003",
+                "intro": "AMS2 fack4 RFID kan inte läsas på grund av ett strukturellt fel."
+            },
+            {
+                "ecode": "1201700000010001",
+                "intro": "AMS2 Fel i filament hastighet och längd: Distansmätningen i fack1 kan vara felaktig."
+            },
+            {
+                "ecode": "1201710000010001",
+                "intro": "AMS2 Fel i filament hastighet och längd: Distansmätningen i fack2 kan vara felaktig."
+            },
+            {
+                "ecode": "1201720000010001",
+                "intro": "AMS2 Fel i filament hastighet och längd: Distansmätningen i fack3 kan vara felaktig."
+            },
+            {
+                "ecode": "1201730000010001",
+                "intro": "AMS2 Fel i filament hastighet och längd: Distansmätningen i fack4 kan vara felaktig."
+            },
+            {
+                "ecode": "1201220000020001",
+                "intro": "AMS2 fack3 filament har tagit slut, sätt i nytt filament."
+            },
+            {
+                "ecode": "1201230000020001",
+                "intro": "AMS2 fack4 filament har tagit slut, sätt i nytt filament."
+            },
+            {
+                "ecode": "1201220000020002",
+                "intro": "AMS2 fack3 är tom; sätt i nytt filament."
+            },
+            {
+                "ecode": "1201230000020002",
+                "intro": "AMS2 fack4 är tom; sätt i nytt filament."
+            },
+            {
+                "ecode": "1201210000020003",
+                "intro": "AMS2 fack2 filament kan vara trasigt i PTFE-röret."
+            },
+            {
+                "ecode": "1201220000020003",
+                "intro": "AMS2 fack3 filamentet kan ha gått sönder i PTFE-röret."
+            },
+            {
+                "ecode": "1201230000020003",
+                "intro": "AMS2 fack4 filament kan vara trasigt i PTFE-röret."
+            },
+            {
+                "ecode": "1201210000020005",
+                "intro": "AMS2 fack2 filamentet har tagit slut, och rensningen av det gamla filamentet gick onormalt; kontrollera om filamentet sitter fast i verktygshuvudet."
+            },
+            {
+                "ecode": "1201220000020005",
+                "intro": "AMS2 fack3 filamentet har tagit slut, och rensningen av det gamla filamentet gick onormalt; kontrollera om filamentet sitter fast i verktygshuvudet."
+            },
+            {
+                "ecode": "1201230000020005",
+                "intro": "AMS2 fack4 filamentet har tagit slut, och rensningen av det gamla filamentet gick onormalt; kontrollera om filamentet sitter fast i verktygshuvudet."
+            },
+            {
+                "ecode": "1201210000030001",
+                "intro": "AMS2 fack2 filamentet har tagit slut. Det gamla filamentet rensas bort; vänligen vänta."
+            },
+            {
+                "ecode": "1201220000030001",
+                "intro": "AMS2 fack3 filamentet har tagit slut. Det gamla filamentet rensas bort; vänligen vänta."
+            },
+            {
+                "ecode": "1201230000030001",
+                "intro": "AMS2 fack4 filamentet har tagit slut. Det gamla filamentet rensas bort; vänligen vänta."
+            },
+            {
+                "ecode": "1201300000010001",
+                "intro": "AMS2 fack1 RFID spolen är trasig eller RF hårdvarukretsen har ett fel."
+            },
+            {
+                "ecode": "1201310000010001",
+                "intro": "AMS2 fack2 RFID spolen är trasig eller RF hårdvarukretsen har ett fel."
+            },
+            {
+                "ecode": "1201320000010001",
+                "intro": "AMS2 fack3 RFID spolen är trasig eller RF hårdvarukretsen har ett fel."
+            },
+            {
+                "ecode": "1201300000030003",
+                "intro": "AMS2 fack1 RFID kan inte läsas på grund av ett strukturellt fel."
+            },
+            {
+                "ecode": "1201310000030003",
+                "intro": "AMS2 fack2 RFID kan inte läsas på grund av ett strukturellt fel."
+            },
+            {
+                "ecode": "1201320000030003",
+                "intro": "AMS2 fack3 RFID kan inte läsas på grund av ett strukturellt fel."
+            },
+            {
+                "ecode": "1201300000010004",
+                "intro": "RFID kan inte läsas på grund av ett fel på ett krypterings chip i AMS2."
+            },
+            {
+                "ecode": "1201100000010001",
+                "intro": "The AMS2 fack1 motor har slirat. Extruderings hjulet kan vara trasigt eller så är filamentet för tunt."
+            },
+            {
+                "ecode": "1201100000020002",
+                "intro": "The AMS2 fack1 motor är överbelastad. Filamentet kan ha trasslat sig eller fastnat."
+            },
+            {
+                "ecode": "1201110000020002",
+                "intro": "The AMS2 fack2 motor är överbelastad. Filamentet kan ha trasslat sig eller fastnat."
+            },
+            {
+                "ecode": "1201120000020002",
+                "intro": "The AMS2 fack3 motor är överbelastad. Filamentet kan ha trasslat sig eller fastnat."
+            },
+            {
+                "ecode": "1201130000020002",
+                "intro": "The AMS2 fack4 motor är överbelastad. Filamentet kan ha trasslat sig eller fastnat."
+            },
+            {
+                "ecode": "1201100000010003",
+                "intro": "The AMS2 fack1 motorns vridmoments kontroll är ur funktion. Strömsensorn kan vara felaktig."
+            },
+            {
+                "ecode": "1201200000020001",
+                "intro": "AMS2 fack1 filament har tagit slut, sätt in ett nytt filament."
+            },
+            {
+                "ecode": "1201210000020001",
+                "intro": "AMS2 fack2 filament har tagit slut, sätt i nytt filament."
+            },
+            {
+                "ecode": "1201200000020002",
+                "intro": "AMS2 fack1 är tom; sätt in nytt filament."
+            },
+            {
+                "ecode": "1201210000020002",
+                "intro": "AMS2 fack2 är tom; sätt i nytt filament."
+            },
+            {
+                "ecode": "1201200000020003",
+                "intro": "AMS2 fack1 filamentet kan ha gått sönder i PTFE-röret."
+            },
+            {
+                "ecode": "1201200000020005",
+                "intro": "AMS2 fack1 filamentet har tagit slut och rensningen av det gamla filamentet gick onormalt; kontrollera om filamentet sitter fast i verktygshuvudet."
+            },
+            {
+                "ecode": "1201200000030001",
+                "intro": "AMS2 fack1 filamentet har tagit slut. Det gamla filamentet rensas bort; vänta."
+            },
+            {
+                "ecode": "1200450000020001",
+                "intro": "Sensorn för filament klippning fungerar dåligt. Kontrollera om kontakten är korrekt inkopplad."
+            },
+            {
+                "ecode": "1200450000020002",
+                "intro": "Filament klipparens klippavstånd är för stort. X-motorn kan förlora steg."
+            },
+            {
+                "ecode": "1200450000020003",
+                "intro": "Handtaget för filament klipparen har inte släppt. Handtaget eller bladet kan ha fastnat."
+            },
+            {
+                "ecode": "1200510000030001",
+                "intro": "AMS är inaktiverad; ladda filament från spolhållaren."
+            },
+            {
+                "ecode": "1200700000010001",
+                "intro": "AMS1 Fel i filament hastighet och längd: Distansmätningen i fack1 kan vara felaktig."
+            },
+            {
+                "ecode": "1200710000010001",
+                "intro": "AMS1 Fel i filament hastighet och längd: Distansmätningen i fack2 kan vara felaktig."
+            },
+            {
+                "ecode": "1200720000010001",
+                "intro": "AMS1 Fel i filament hastighet och längd: Distansmätningen i fack3 kan vara felaktig."
+            },
+            {
+                "ecode": "1200730000010001",
+                "intro": "AMS1 Fel i filament hastighet och längd: Distansmätningen i fack4 kan vara felaktig."
+            },
+            {
+                "ecode": "1200230000020001",
+                "intro": "AMS1 fack4 filament har tagit slut, sätt in ett nytt filament."
+            },
+            {
+                "ecode": "1200230000020002",
+                "intro": "AMS1 fack4 är tom; sätt i nytt filament."
+            },
+            {
+                "ecode": "1200220000020003",
+                "intro": "AMS1 fack3 filamentet kan ha gått sönder i PTFE-röret."
+            },
+            {
+                "ecode": "1200230000020003",
+                "intro": "AMS1 fack4 filamentet kan vara brutet i PTFE-röret."
+            },
+            {
+                "ecode": "1200220000020005",
+                "intro": "AMS1 fack3 filamentet har tagit slut, och rensningen av det gamla filamentet gick onormalt; kontrollera om filamentet sitter fast i verktygshuvudet."
+            },
+            {
+                "ecode": "1200230000020005",
+                "intro": "AMS1 fack4 filamentet har tagit slut, och rensningen av det gamla filamentet gick onormalt; kontrollera om filamentet sitter fast i verktygshuvudet."
+            },
+            {
+                "ecode": "1200220000030001",
+                "intro": "AMS1 fack3 filamentet har tagit slut. Det gamla filamentet rensas bort; vänligen vänta."
+            },
+            {
+                "ecode": "1200230000030001",
+                "intro": "AMS1 fack4 filamentet har tagit slut. Det gamla filamentet rensas bort; vänligen vänta."
+            },
+            {
+                "ecode": "1200300000010001",
+                "intro": "AMS1 fack1 RFID spolen är trasig eller RF hårdvarukretsen har ett fel."
+            },
+            {
+                "ecode": "1200310000010001",
+                "intro": "AMS1 fack2 RFID spolen är trasig eller RF hårdvarukretsen har ett fel."
+            },
+            {
+                "ecode": "1200320000010001",
+                "intro": "AMS1 fack3 RFID spolen är trasig eller RF hårdvarukretsen har ett fel."
+            },
+            {
+                "ecode": "1200330000010001",
+                "intro": "AMS1 fack4 RFID spolen är trasig eller RF hårdvarukretsen har ett fel."
+            },
+            {
+                "ecode": "1200300000030003",
+                "intro": "AMS1 fack1 RFID kan inte läsas på grund av ett strukturellt fel."
+            },
+            {
+                "ecode": "1200310000030003",
+                "intro": "AMS1 fack2 RFID kan inte läsas på grund av ett strukturellt fel."
+            },
+            {
+                "ecode": "1200320000030003",
+                "intro": "AMS1 fack3 RFID kan inte läsas på grund av ett strukturellt fel."
+            },
+            {
+                "ecode": "1200330000030003",
+                "intro": "AMS1 fack4 RFID kan inte läsas på grund av ett strukturellt fel."
+            },
+            {
+                "ecode": "1200300000010004",
+                "intro": "RFID kan inte läsas på grund av ett fel på ett krypterings chip i AMS1."
+            },
+            {
+                "ecode": "1200220000020001",
+                "intro": "AMS1 fack3 filament har tagit slut, sätt in ett nytt filament."
+            },
+            {
+                "ecode": "1200220000020002",
+                "intro": "AMS1 fack3 är tom; sätt i nytt filament."
+            },
+            {
+                "ecode": "1200210000020005",
+                "intro": "AMS1 fack2 filamentet har tagit slut och rensning av det gamla filamentet gick onormalt; kontrollera om filamentet sitter fast i verktygshuvudet."
+            },
+            {
+                "ecode": "1200210000030001",
+                "intro": "AMS1 fack2 filamentet har tagit slut. Det gamla filamentet rensas bort; vänligen vänta."
+            },
+            {
+                "ecode": "1200100000010001",
+                "intro": "The AMS1 fack1 motor har slirat. Extruderings hjulet kan vara trasigt eller så är filamentet för tunt."
+            },
+            {
+                "ecode": "1200100000020002",
+                "intro": "The AMS1 fack1 motor är överbelastad. Filamentet kan ha trasslat sig eller fastnat."
+            },
+            {
+                "ecode": "1200110000020002",
+                "intro": "The AMS1 fack2 motor är överbelastad. Filamentet kan ha trasslat sig eller fastnat."
+            },
+            {
+                "ecode": "1200120000020002",
+                "intro": "The AMS1 fack3 motor är överbelastad. Filamentet kan ha trasslat sig eller fastnat."
+            },
+            {
+                "ecode": "1200130000020002",
+                "intro": "The AMS1 fack4 motor är överbelastad. Filamentet kan ha trasslat sig eller fastnat."
+            },
+            {
+                "ecode": "1200100000010003",
+                "intro": "The AMS1 stöd motorns vridmoments kontroll är ur funktion. Strömsensorn kan vara felaktig."
+            },
+            {
+                "ecode": "1200200000020001",
+                "intro": "AMS1 Fack 1 filament har tagit slut, sätt in ett nytt filament."
+            },
+            {
+                "ecode": "1200210000020001",
+                "intro": "AMS1 fack2 filament har tagit slut, sätt in ett nytt filament."
+            },
+            {
+                "ecode": "1200200000020002",
+                "intro": "AMS1 fack1 är tom; sätt i nytt filament."
+            },
+            {
+                "ecode": "1200210000020002",
+                "intro": "AMS1 fack2 är tom; sätt i nytt filament."
+            },
+            {
+                "ecode": "1200200000020003",
+                "intro": "AMS1 fack1 filamentet kan ha gått sönder i PTFE röret."
+            },
+            {
+                "ecode": "1200210000020003",
+                "intro": "AMS1 fack2 filamentet kan ha gått sönder i PTFE röret."
+            },
+            {
+                "ecode": "1200200000020005",
+                "intro": "AMS1 fack1 filamentet har tagit slut och rensningen av det gamla filamentet verkar onormalt; kontrollera om filamentet sitter fast i verktygshuvudet."
+            },
+            {
+                "ecode": "1200200000030001",
+                "intro": "AMS1 fack1 har tagit slut på filamentet. Den gamla glödtråden rensas bort; vänligen vänta."
+            },
+            {
+                "ecode": "0500010000030007",
+                "intro": "Det går inte att spela in time-lapse fotografering utan microSD kort isatt."
+            },
+            {
+                "ecode": "0500040000030008",
+                "intro": "Dörren upptäcks vara öppen."
+            },
+            {
+                "ecode": "0700400000020004",
+                "intro": "Filamentets buffersignal är onormal, fjädern eller filamentet kan ha fastnat."
+            },
+            {
+                "ecode": "07FF200000020004",
+                "intro": "Dra ut det externa filamentet ifrån extrudern."
+            },
+            {
+                "ecode": "0700200000020002",
+                "intro": "AMS1 Fack1 tom; sätt i nytt filament."
+            },
+            {
+                "ecode": "0700210000020002",
+                "intro": "AMS1 Fack2 tom; sätt i nytt filament."
+            },
+            {
+                "ecode": "0700220000020002",
+                "intro": "AMS1 Fack3 tom; sätt i nytt filament."
+            },
+            {
+                "ecode": "0700230000020002",
+                "intro": "AMS1 Fack4 tom; sätt i nytt filament."
+            },
+            {
+                "ecode": "0701200000020002",
+                "intro": "AMS2 Fack1 är tom; sätt i nytt filament."
+            },
+            {
+                "ecode": "0701210000020002",
+                "intro": "AMS2 fack2 tom; sätt i nytt filament."
+            },
+            {
+                "ecode": "0701220000020002",
+                "intro": "AMS2 fack3 tom; sätt i nytt filament."
+            },
+            {
+                "ecode": "0701230000020002",
+                "intro": "AMS2 fack4 tom; sätt i nytt filament."
+            },
+            {
+                "ecode": "0702200000020002",
+                "intro": "AMS3 Fack1 tom; sätt i nytt filament."
+            },
+            {
+                "ecode": "0702210000020002",
+                "intro": "AMS3 Fack2 tom; sätt i nytt filament."
+            },
+            {
+                "ecode": "0702220000020002",
+                "intro": "AMS3 Fack3 tom; sätt i nytt filament."
+            },
+            {
+                "ecode": "0702230000020002",
+                "intro": "AMS3 Fack4 tom; sätt i nytt filament."
+            },
+            {
+                "ecode": "0703200000020002",
+                "intro": "AMS4 Fack1 tom; sätt i nytt filament."
+            },
+            {
+                "ecode": "0703210000020002",
+                "intro": "AMS4 Fack2 tom; sätt i nytt filament."
+            },
+            {
+                "ecode": "0703220000020002",
+                "intro": "AMS4 Fack3 tom; sätt i nytt filament."
+            },
+            {
+                "ecode": "0703230000020002",
+                "intro": "AMS4 Fack4 tom; sätt i nytt filament."
+            },
+            {
+                "ecode": "07FF200000020001",
+                "intro": "Externa filamentet har tagit slut; sätt i nytt filament."
+            },
+            {
+                "ecode": "07FF200000020002",
+                "intro": "Externt filament saknas; sätt i nytt filament."
+            },
+            {
+                "ecode": "0C00030000020004",
+                "intro": "Inspektion av första lagret stöds inte för det nuvarande utskriftsjobbet."
+            },
+            {
+                "ecode": "0500030000010021",
+                "intro": "Hårdvaran är inkompatibel, kontrollera lasern."
+            },
+            {
+                "ecode": "0500030000020020",
+                "intro": "SD-kortets kapacitet är otillräcklig för att cachelagra utskriftsfiler."
+            },
+            {
+                "ecode": "0500010000030005",
+                "intro": "Fel på SD-kortet: Sätt tillbaka det, formatera eller byt ut det."
+            },
+            {
+                "ecode": "0C0003000003000d",
+                "intro": "Vissa föremål kan ha fallit ner, eller så extruderar inte extrudern normalt. Kontrollera och bestäm om utskriften ska stoppas."
+            },
+            {
+                "ecode": "0700200000030001",
+                "intro": "AMS1 Fack 1 filament har tagit slut, rensar det gamla filamentet, vänta."
+            },
+            {
+                "ecode": "0700210000030001",
+                "intro": "AMS1 Fack 2 filament har tagit slut och rensar ut det gamla filamentet, vänta."
+            },
+            {
+                "ecode": "0700220000030001",
+                "intro": "AMS1 Fack 3 filament har tagit slut och rensar ut det gamla filamentet, vänta."
+            },
+            {
+                "ecode": "0700200000030002",
+                "intro": "AMS1 Fack 1 filament har tagit slut och bytte automatiskt till ett fack med samma filament."
+            },
+            {
+                "ecode": "0700210000030002",
+                "intro": "AMS1 Fack 2 har slut på filament och bytte automatiskt till ett fack med samma filament."
+            },
+            {
+                "ecode": "0700220000030002",
+                "intro": "AMS1 Fack 3 har slut på filament och bytte automatiskt till ett fack med samma filament."
+            },
+            {
+                "ecode": "0500030000020010",
+                "intro": ""
+            },
+            {
+                "ecode": "0500030000020011",
+                "intro": ""
+            },
+            {
+                "ecode": "0500030000020012",
+                "intro": ""
+            },
+            {
+                "ecode": "0500030000020013",
+                "intro": ""
+            },
+            {
+                "ecode": "0500030000020014",
+                "intro": ""
+            },
+            {
+                "ecode": "0500030000020015",
+                "intro": ""
+            },
+            {
+                "ecode": "0500030000020016",
+                "intro": ""
+            },
+            {
+                "ecode": "0500030000020017",
+                "intro": ""
+            },
+            {
+                "ecode": "0500030000020018",
+                "intro": ""
+            },
+            {
+                "ecode": "0500020000020002",
+                "intro": "Inloggningen till enheten misslyckades; Kontrollera din kontoinformation."
+            },
+            {
+                "ecode": "0500020000020003",
+                "intro": "Det gick inte att ansluta internet; Kontrollera nätverksanslutningen."
+            },
+            {
+                "ecode": "0500020000020004",
+                "intro": "Obehörig användare: kontrollera din kontoinformation."
+            },
+            {
+                "ecode": "0500020000020005",
+                "intro": "Det gick inte att ansluta internet; kontrollera nätverksanslutningen."
+            },
+            {
+                "ecode": "0500020000020006",
+                "intro": "Liveview-tjänsten fungerar inte; kontrollera din nätverksanslutning."
+            },
+            {
+                "ecode": "0500020000020007",
+                "intro": "Inloggningen till Liveview-tjänsten misslyckades; kontrollera din nätverksanslutning."
+            },
+            {
+                "ecode": "0500030000010001",
+                "intro": "MC-modulen fungerar inte; starta om enheten eller kontrollera anslutningen av enhetens kablar."
+            },
+            {
+                "ecode": "050003000001000a",
+                "intro": "Systemtillståndet är onormalt; återställ fabriksinställningarna."
+            },
+            {
+                "ecode": "050003000001000b",
+                "intro": "Skärmen fungerar inte; starta om enheten."
+            },
+            {
+                "ecode": "0300100000020002",
+                "intro": "Resonansfrekvensen för X-axeln skiljer sig mycket från den senaste kalibreringen. Rengör axeln och gör en ny kalibrering av maskinen senare."
+            },
+            {
+                "ecode": "0300110000020002",
+                "intro": "Y-axelns resonansfrekvens skiljer sig mycket från den senaste kalibreringen. Rengör axeln och gör en ny kalibrering av maskinen senare."
+            },
+            {
+                "ecode": "0300200000010001",
+                "intro": "X-axelns nollställning är onormal: Kontrollera om verktygshuvudet sitter fast eller om axeln har för stort motstånd."
+            },
+            {
+                "ecode": "0300200000010002",
+                "intro": "Y-axelns nollställning är onormal: Kontrollera om verktygshuvudet sitter fast eller om Y-vagnen har för stort motstånd."
+            },
+            {
+                "ecode": "0300200000010003",
+                "intro": "X-axelns nollställning är onormal: Remmen kan vara lös.."
+            },
+            {
+                "ecode": "0300200000010004",
+                "intro": "Y-axelns nollställning är onormal: Remmen kan vara lös.."
+            },
+            {
+                "ecode": "0300400000020001",
+                "intro": "Dataöverföringen via den seriella porten är onormal; mjukvarusystemet kan vara felaktigt."
+            },
+            {
+                "ecode": "0300410000010001",
+                "intro": "Systemspänningen är instabil; vilket utlöser skyddsfunktionen för strömavbrott."
+            },
+            {
+                "ecode": "0300010000030008",
+                "intro": "Temperaturen i värmebädden överskrider gränsen och justeras automatiskt till gränstemperaturen."
+            },
+            {
+                "ecode": "0700200000020004",
+                "intro": "AMS1 Fack 1-filamentet kan ha gått sönder i verktygshuvudet."
+            },
+            {
+                "ecode": "0701200000020004",
+                "intro": "AMS2 Fack 1-filamentet kan ha gått sönder i verktygshuvudet."
+            },
+            {
+                "ecode": "0702200000020004",
+                "intro": "AMS3 Fack 1-filamentet kan ha gått sönder i verktygshuvudet."
+            },
+            {
+                "ecode": "0703200000020004",
+                "intro": "AMS4 Fack 1-filamentet kan ha gått sönder i verktygshuvudet."
+            },
+            {
+                "ecode": "0700210000020004",
+                "intro": "AMS1 Fack 2-filamentet kan ha gått sönder i verktygshuvudet."
+            },
+            {
+                "ecode": "0701210000020004",
+                "intro": "AMS2 fack 2-filamentet kan ha gått sönder i verktygshuvudet."
+            },
+            {
+                "ecode": "0702210000020004",
+                "intro": "AMS3 Fack 2-filamentet kan ha gått sönder i verktygshuvudet."
+            },
+            {
+                "ecode": "0703210000020004",
+                "intro": "AMS4 Fack 2-filamentet kan ha gått sönder i verktygshuvudet."
+            },
+            {
+                "ecode": "0700220000020004",
+                "intro": "AMS1 Fack 3-filamentet kan ha gått sönder i verktygshuvudet."
+            },
+            {
+                "ecode": "0701220000020004",
+                "intro": "AMS2 Fack 3-filamentet kan ha gått sönder i verktygshuvudet."
+            },
+            {
+                "ecode": "0702220000020004",
+                "intro": "AMS3 Fack 3-filamentet kan ha gått sönder i verktygshuvudet."
+            },
+            {
+                "ecode": "0703220000020004",
+                "intro": "AMS4 Fack 3 filamentet kan ha gått sönder i verktygshuvudet."
+            },
+            {
+                "ecode": "0700230000020004",
+                "intro": "AMS1 Fack 4-filamentet kan ha gått sönder i verktygshuvudet."
+            },
+            {
+                "ecode": "0701230000020004",
+                "intro": "AMS2 Fack 4-filamentet kan ha gått sönder i verktygshuvudet."
+            },
+            {
+                "ecode": "0702230000020004",
+                "intro": "AMS3 Fack 4-filamentet kan ha gått sönder i verktygshuvudet."
+            },
+            {
+                "ecode": "0703230000020004",
+                "intro": "AMS4 Fack 4 filamentet kan ha gått sönder i verktygshuvudet."
+            },
+            {
+                "ecode": "0700200000020005",
+                "intro": "AMS1 Fack 1-filamentet har tagit slut, och rensningen av det gamla filamentet gick onormalt; kontrollera om filamentet sitter fast i verktygshuvudet."
+            },
+            {
+                "ecode": "0701200000020005",
+                "intro": "AMS2 Fack 1-filamentet har tagit slut, och rensningen av det gamla filamentet gick onormalt; kontrollera om filamentet sitter fast i verktygshuvudet."
+            },
+            {
+                "ecode": "0702200000020005",
+                "intro": "AMS3 Fack 1-filamentet har tagit slut, och rensningen av det gamla filamentet gick onormalt; kontrollera om filamentet sitter fast i verktygshuvudet."
+            },
+            {
+                "ecode": "0703200000020005",
+                "intro": "AMS4 Fack 1-filamentet har tagit slut, och rensningen av det gamla filamentet gick onormalt; kontrollera om filamentet sitter fast i verktygshuvudet."
+            },
+            {
+                "ecode": "0700210000020005",
+                "intro": "AMS1 Fack 2-filamentet har tagit slut, och rensningen av det gamla filamentet gick onormalt; kontrollera om filamentet sitter fast i verktygshuvudet."
+            },
+            {
+                "ecode": "0701210000020005",
+                "intro": "AMS2 Fack 2-filamentet har tagit slut, och rensningen av det gamla filamentet gick onormalt; kontrollera om filamentet sitter fast i verktygshuvudet."
+            },
+            {
+                "ecode": "0702210000020005",
+                "intro": "AMS3 Fack 2-filamentet har tagit slut, och rensningen av det gamla filamentet gick onormalt; kontrollera om filamentet sitter fast i verktygshuvudet."
+            },
+            {
+                "ecode": "0703210000020005",
+                "intro": "AMS4 Fack 2-filamentet har tagit slut, och rensningen av det gamla filamentet gick onormalt; kontrollera om filamentet sitter fast i verktygshuvudet."
+            },
+            {
+                "ecode": "0700220000020005",
+                "intro": "AMS1 Fack 3-filamentet har tagit slut, och rensningen av det gamla filamentet gick onormalt; kontrollera om filamentet sitter fast i verktygshuvudet."
+            },
+            {
+                "ecode": "0701220000020005",
+                "intro": "AMS2 Fack 3-filamentet har tagit slut, och rensningen av det gamla filamentet gick onormalt; kontrollera om filamentet sitter fast i verktygshuvudet."
+            },
+            {
+                "ecode": "0702220000020005",
+                "intro": "AMS3 Fack 3-filamentet har tagit slut, och rensningen av det gamla filamentet gick onormalt; kontrollera om filamentet sitter fast i verktygshuvudet."
+            },
+            {
+                "ecode": "0703220000020005",
+                "intro": "AMS4 Fack 3 filamentet har tagit slut, och rensningen av det gamla filamentet gick onormalt; kontrollera om filamentet sitter fast i verktygshuvudet."
+            },
+            {
+                "ecode": "0700230000020005",
+                "intro": "AMS1 Fack 4-filamentet har tagit slut, och rensningen av det gamla filamentet gick onormalt; kontrollera om filamentet sitter fast i verktygshuvudet."
+            },
+            {
+                "ecode": "0701230000020005",
+                "intro": "AMS2 Fack 4-filamentet har tagit slut, och rensningen av det gamla filamentet gick onormalt; kontrollera om filamentet sitter fast i verktygshuvudet."
+            },
+            {
+                "ecode": "0702230000020005",
+                "intro": "AMS3 Fack 4-filamentet har tagit slut, och rensningen av det gamla filamentet gick onormalt; kontrollera om filamentet sitter fast i verktygshuvudet."
+            },
+            {
+                "ecode": "0703230000020005",
+                "intro": "AMS4 Fack 4 filamentet har tagit slut, och rensningen av det gamla filamentet gick onormalt; kontrollera om filamentet sitter fast i verktygshuvudet."
+            },
+            {
+                "ecode": "0701200000030002",
+                "intro": "AMS2 Fack 1 filamentet har tagit slut och bytte automatiskt till ett fack med samma filament."
+            },
+            {
+                "ecode": "0702200000030002",
+                "intro": "AMS3 Fack 1 filamentet har tagit slut och bytte automatiskt till ett fack med samma filament."
+            },
+            {
+                "ecode": "0703200000030002",
+                "intro": "AMS4 Fack 1 filamentet har tagit slut och bytte automatiskt till ett fack med samma filament."
+            },
+            {
+                "ecode": "0701210000030002",
+                "intro": "AMS2 Fack 2 har slut på filament och bytte automatiskt till ett fack med samma filament."
+            },
+            {
+                "ecode": "0702210000030002",
+                "intro": "AMS3 Fack 2 filamentet har tagit slut och bytte automatiskt till ett fack med samma filament."
+            },
+            {
+                "ecode": "0703210000030002",
+                "intro": "AMS4 Fack 2 filamentet har tagit slut och bytte automatiskt till ett fack med samma filament."
+            },
+            {
+                "ecode": "0701220000030002",
+                "intro": "AMS2 Fack 3-filamentet har tagit slut och bytte automatiskt till ett fack med samma filament."
+            },
+            {
+                "ecode": "0702220000030002",
+                "intro": "AMS3 Fack 3 filamentet har tagit slut och bytte automatiskt till ett fack med samma filament."
+            },
+            {
+                "ecode": "0703220000030002",
+                "intro": "AMS4 Fack 3 filamentet har tagit slut och bytte automatiskt till ett fack med samma filament."
+            },
+            {
+                "ecode": "0700230000030002",
+                "intro": "AMS1 Fack 4 har slut på filament och bytte automatiskt till ett fack med samma filament."
+            },
+            {
+                "ecode": "0701230000030002",
+                "intro": "AMS2 Fack 4 filament har tagit slut och bytte automatiskt till ett fack med samma filament."
+            },
+            {
+                "ecode": "0702230000030002",
+                "intro": "AMS3 Fack 4 filamentet har tagit slut och bytte automatiskt till ett fack med samma filament."
+            },
+            {
+                "ecode": "0703230000030002",
+                "intro": "AMS4 Fack 4 filamentet har tagit slut och bytte automatiskt till ett fack med samma filament."
+            },
+            {
+                "ecode": "0500020000020001",
+                "intro": "Det gick inte att ansluta internet. Kontrollera nätverksanslutningen."
+            },
+            {
+                "ecode": "0700450000020001",
+                "intro": "Sensorn för filament klippning fungerar dåligt. Kontrollera om kontakten är korrekt inkopplad."
+            },
+            {
+                "ecode": "0700600000020001",
+                "intro": "AMS1 fack 1 är överbelastad. Filamentet kan vara trassligt eller spolen kan ha fastnat."
+            },
+            {
+                "ecode": "0701600000020001",
+                "intro": "AMS2 fack 1 är överbelastad. Filamentet kan vara trassligt eller spolen kan ha fastnat."
+            },
+            {
+                "ecode": "0702600000020001",
+                "intro": "AMS3 fack 1 är överbelastad. Filamentet kan vara trassligt eller spolen kan ha fastnat."
+            },
+            {
+                "ecode": "0703600000020001",
+                "intro": "AMS4 fack 1 är överbelastad. Filamentet kan vara trassligt eller spolen kan ha fastnat."
+            },
+            {
+                "ecode": "0700610000020001",
+                "intro": "AMS1 fack 2 är överbelastad. Filamentet kan vara trassligt eller spolen kan ha fastnat."
+            },
+            {
+                "ecode": "0701610000020001",
+                "intro": "AMS2 fack 2 är överbelastad. Filamentet kan vara trassligt eller spolen kan ha fastnat."
+            },
+            {
+                "ecode": "0702610000020001",
+                "intro": "AMS3 fack 2 är överbelastad. Filamentet kan vara trassligt eller spolen kan ha fastnat."
+            },
+            {
+                "ecode": "0703610000020001",
+                "intro": "AMS4 fack 2 är överbelastad. Filamentet kan vara trassligt eller spolen kan ha fastnat."
+            },
+            {
+                "ecode": "0700620000020001",
+                "intro": "AMS1 fack 3 är överbelastad. Filamentet kan vara trassligt eller spolen kan ha fastnat."
+            },
+            {
+                "ecode": "0701620000020001",
+                "intro": "AMS2 fack 3 är överbelastad. Filamentet kan vara trassligt eller spolen kan ha fastnat."
+            },
+            {
+                "ecode": "0702620000020001",
+                "intro": "AMS3 fack 3 är överbelastad. Filamentet kan vara trassligt eller spolen kan ha fastnat."
+            },
+            {
+                "ecode": "0703620000020001",
+                "intro": "AMS4 fack 3 är överbelastad. Filamentet kan vara trassligt eller spolen kan ha fastnat."
+            },
+            {
+                "ecode": "0700630000020001",
+                "intro": "AMS1 fack 4 är överbelastad. Filamentet kan vara trassligt eller spolen kan ha fastnat."
+            },
+            {
+                "ecode": "0701630000020001",
+                "intro": "AMS2 fack 4 är överbelastad. Filamentet kan vara trassligt eller spolen kan ha fastnat."
+            },
+            {
+                "ecode": "0702630000020001",
+                "intro": "AMS3 fack 4 är överbelastad. Filamentet kan vara trassligt eller spolen kan ha fastnat."
+            },
+            {
+                "ecode": "0703630000020001",
+                "intro": "AMS4 fack 4 är överbelastad. Filamentet kan vara trassligt eller spolen kan ha fastnat."
+            },
+            {
+                "ecode": "0300010000010006",
+                "intro": "Byggplattans temperatur är onormal; sensorn kan vara kortsluten."
+            },
+            {
+                "ecode": "0300020000010006",
+                "intro": "Temperaturen i nozzeln är onormal; det kan vara kortslutning i sensorn, kontrollera om kontakten är korrekt ansluten."
+            },
+            {
+                "ecode": "0300030000010001",
+                "intro": "Hotend fläkten är för långsamt eller har stannat. Den kan ha fastnat eller så är kontakten inte ordentligt inkopplad."
+            },
+            {
+                "ecode": "0300040000020001",
+                "intro": "Kylfläktens hastighet är för långsam eller har stannat. Den kan ha fastnat eller så är kontakten inte ordentligt inkopplad."
+            },
+            {
+                "ecode": "0500010000020002",
+                "intro": "USB-kameran är inte ansluten. Kontrollera kamerans kabelanslutning."
+            },
+            {
+                "ecode": "0500010000030006",
+                "intro": "SD-kortet är oformaterat: formatera det."
+            },
+            {
+                "ecode": "050003000002000c",
+                "intro": "Fel i trådlös maskinvara: stäng av/på WiFi eller starta om enheten."
+            },
+            {
+                "ecode": "0C0003000003000b",
+                "intro": "Första lager inspektion: vänligen vänta."
+            },
+            {
+                "ecode": "0700500000020001",
+                "intro": "AMS1 kommunikationen är onormal. Kontrollera anslutningskabeln."
+            },
+            {
+                "ecode": "0701500000020001",
+                "intro": "AMS2-kommunikation är onormal. Kontrollera anslutningskabeln."
+            },
+            {
+                "ecode": "0702500000020001",
+                "intro": "AMS3 kommunikation är onormal. Kontrollera anslutningskabeln."
+            },
+            {
+                "ecode": "0703500000020001",
+                "intro": "AMS4 kommunikation är onormal. Kontrollera anslutningskabeln."
+            },
+            {
+                "ecode": "0500010000030004",
+                "intro": "Det finns inte tillräckligt med utrymme på SD-kortet, rensa det."
+            },
+            {
+                "ecode": "0C00030000030006",
+                "intro": "Rensat filament kan ha fyllt upp avfallsrännan. Kontrollera och rengör avfallsrännan."
+            },
+            {
+                "ecode": "0C00030000030007",
+                "intro": "Eventuella defekter i det första lagret har upptäckts. Kontrollera kvaliteten på det första lagret och bestäm om utskriften ska stoppas."
+            },
+            {
+                "ecode": "0C00030000030008",
+                "intro": "Möjliga spaghetti fenomen har upptäckts. Kontrollera utskriftskvaliteten och bestäm om utskriften ska stoppas."
+            },
+            {
+                "ecode": "0C0001000001000B",
+                "intro": "Det gick inte att kalibrera Micro Lidar. Kontrollera att kalibreringsdiagrammet är rent och att det inte är täckt, och kör kalibrering av maskinen igen."
+            },
+            {
+                "ecode": "0C00020000020002",
+                "intro": "Den horisontella lasern är för bred. Kontrollera om värmebädden är smutsig."
+            },
+            {
+                "ecode": "0C00020000020008",
+                "intro": "Den vertikala lasern är för bred. Kontrollera om värmebädden är smutsig."
+            },
+            {
+                "ecode": "03000A0000010004",
+                "intro": "En extern störning upptäcktes på kraft givare 1. Värmebädden kan ha rört något utanför värmebädden."
+            },
+            {
+                "ecode": "03000A0000010005",
+                "intro": "Kraftsensor 1 detekterade oväntad kontinuerlig kraft. Värmebädden kan ha fastnat eller så kan den analoga frontänden vara trasig."
+            },
+            {
+                "ecode": "03000B0000010004",
+                "intro": "En extern störning upptäcktes på kraftsensor 2. Värmebädden kan ha rört något utanför värmebädden."
+            },
+            {
+                "ecode": "03000B0000010005",
+                "intro": "Kraftsensor 2 har upptäckt en oväntad kontinuerlig kraft. Värmebädden kan ha fastnat eller så kan den analoga fronten vara trasig."
+            },
+            {
+                "ecode": "03000C0000010001",
+                "intro": "Värmebäddens kraftsensor 3 är för känslig. Den kan sitta fast mellan spännarmen och värmebäddens stöd eller så kan justeringsskruven vara för hårt åtdragen."
+            },
+            {
+                "ecode": "03000C0000010004",
+                "intro": "En extern störning upptäcktes på kraftsensor 3. Värmebädden kan ha rört något utanför värmebädden."
+            },
+            {
+                "ecode": "03000C0000010005",
+                "intro": "Kraftsensor 3 känner av en oväntad kontinuerlig kraft . Det kan hända att värmebädden sitter fast eller att den analoga fronten är trasig."
+            },
+            {
+                "ecode": "0700510000030001",
+                "intro": "AMS är inaktiverat; ladda filament från spolhållaren."
+            },
+            {
+                "ecode": "03000B0000010003",
+                "intro": "Värmebäddens kraftsensor 2 är för svag. Den elektroniska anslutningen till sensorn kan vara bruten."
+            },
+            {
+                "ecode": "03000B0000010002",
+                "intro": "Värmebäddens kraftsensor 2 är svag. Kraftsensorn kan vara trasig eller ha dålig elektrisk anslutning."
+            },
+            {
+                "ecode": "03000C0000010002",
+                "intro": "Signalen från värmebäddens kraftsensor 3 är svag. Kraftsensorn kan vara trasig eller ha dålig elektrisk anslutning."
+            },
+            {
+                "ecode": "03000C0000010003",
+                "intro": "Signalen från värmebäddens kraftsensor 3 är för svag. Den elektroniska anslutningen till sensorn kan vara trasig."
+            },
+            {
+                "ecode": "0300100000020001",
+                "intro": "Resonansfrekvensen för X-axeln är låg. Tandremmen kan vara lös."
+            },
+            {
+                "ecode": "0300110000020001",
+                "intro": "Y-axelns resonansfrekvens är låg. Tandremmen kan vara lös."
+            },
+            {
+                "ecode": "03000A0000010001",
+                "intro": "Värmebäddens kraft givare 1 är för känslig. Den kan ha fastnat mellan spännarmen och värmebäddens support eller så är juster skruven för hårt åtdragen."
+            },
+            {
+                "ecode": "03000A0000010002",
+                "intro": "Signalen från värmebäddens kraft givare 1 är svag. Kraft givaren kan vara trasig eller ha dålig elekrisk anslutning."
+            },
+            {
+                "ecode": "03000A0000010003",
+                "intro": "Signalen från värmebäddens kraft givare 1 är för svag. Den elektriska anslutningen kan vara bruten."
+            },
+            {
+                "ecode": "03000B0000010001",
+                "intro": "Värmebäddens kraft givare 2 är för känslig. Den kan ha fastnat mellan spännarmen och värmebäddens support eller så är juster skruven för hårt åtdragen."
+            },
+            {
+                "ecode": "0700200000020001",
+                "intro": "AMS1 Fack 1 filament har tagit slut, sätt in ett nytt filament."
+            },
+            {
+                "ecode": "0700200000020003",
+                "intro": "AMS1 Fack 1 filament kan vara trasigt i AMS."
+            },
+            {
+                "ecode": "0700210000020001",
+                "intro": "AMS1 Fack 2 filament har tagit slut, sätt in ett nytt filament."
+            },
+            {
+                "ecode": "0700210000020003",
+                "intro": "AMS1 Fack 2 filament kan vara trasigt i AMS."
+            },
+            {
+                "ecode": "0700220000020001",
+                "intro": "AMS1 Fack 3 filament har tagit slut, sätt in ett nytt filament."
+            },
+            {
+                "ecode": "0700220000020003",
+                "intro": "AMS1 Fack 3 filament kan vara trasigt i AMS."
+            },
+            {
+                "ecode": "0700230000020001",
+                "intro": "AMS1 Fack 4 filament har tagit slut, sätt in ett nytt filament."
+            },
+            {
+                "ecode": "0700230000020003",
+                "intro": "AMS1 Fack 4 filament kan vara trasigt i AMS."
+            },
+            {
+                "ecode": "0701200000020001",
+                "intro": "AMS2 Fack 1 filament har tagit slut, sätt in ett nytt filament."
+            },
+            {
+                "ecode": "0701200000020003",
+                "intro": "AMS2 Fack 1 filament kan vara trasigt i AMS."
+            },
+            {
+                "ecode": "0701210000020001",
+                "intro": "AMS2 Fack 2 filament har tagit slut, sätt in ett nytt filament."
+            },
+            {
+                "ecode": "0701210000020003",
+                "intro": "AMS2 Fack 2 filament kan vara trasigt i AMS."
+            },
+            {
+                "ecode": "0701220000020001",
+                "intro": "AMS2 Fack 3 filament har tagit slut, sätt in ett nytt filament."
+            },
+            {
+                "ecode": "0701220000020003",
+                "intro": "AMS2 Fack 3 filament kan vara trasigt i AMS."
+            },
+            {
+                "ecode": "0701230000020001",
+                "intro": "AMS2 Fack 4 filament har tagit slut, sätt in ett nytt filament."
+            },
+            {
+                "ecode": "0701230000020003",
+                "intro": "AMS2 Fack 4 filament kan vara trasigt i AMS."
+            },
+            {
+                "ecode": "0702200000020001",
+                "intro": "AMS3 Fack 1 filament har tagit slut, sätt in ett nytt filament."
+            },
+            {
+                "ecode": "0702200000020003",
+                "intro": "AMS3 Fack 1 filament kan vara trasigt i AMS."
+            },
+            {
+                "ecode": "0702210000020001",
+                "intro": "AMS3 Fack 2 filament har tagit slut, sätt in ett nytt filament."
+            },
+            {
+                "ecode": "0702210000020003",
+                "intro": "AMS3 Fack 2 filament kan vara trasigt i AMS."
+            },
+            {
+                "ecode": "0702220000020001",
+                "intro": "AMS3 Fack 3 filament har tagit slut, sätt in ett nytt filament."
+            },
+            {
+                "ecode": "0702220000020003",
+                "intro": "AMS3 Fack 3 filament kan vara trasigt i AMS."
+            },
+            {
+                "ecode": "0702230000020001",
+                "intro": "AMS3 Fack 4 filament har tagit slut, sätt in ett nytt filament."
+            },
+            {
+                "ecode": "0702230000020003",
+                "intro": "AMS3 Fack 4 filament kan vara trasigt i AMS."
+            },
+            {
+                "ecode": "0703200000020001",
+                "intro": "AMS4 Fack 1 filament har tagit slut, sätt in ett nytt filament."
+            },
+            {
+                "ecode": "0703200000020003",
+                "intro": "AMS4 Fack 1filament kan vara trasigt i AMS."
+            },
+            {
+                "ecode": "0703210000020001",
+                "intro": "AMS4 Fack 2 filament har tagit slut, sätt in ett nytt filament."
+            },
+            {
+                "ecode": "0703210000020003",
+                "intro": "AMS4 Fack 2 filament kan vara trasigt i AMS."
+            },
+            {
+                "ecode": "0703220000020001",
+                "intro": "AMS4 Fack 3 filament har tagit slut, sätt in ett nytt filament."
+            },
+            {
+                "ecode": "0703220000020003",
+                "intro": "AMS4 Fack 3 filament kan vara trasigt i AMS."
+            },
+            {
+                "ecode": "0703230000020001",
+                "intro": "AMS4 Fack 4 filament har tagit slut, sätt in ett nytt filament."
+            },
+            {
+                "ecode": "0703230000020003",
+                "intro": "AMS4 Fack 4 filament kan vara trasigt i AMS."
+            },
+            {
+                "ecode": "0C00010000020007",
+                "intro": "Micro Lidar laser parametrar är onormala. Kalibrera om skrivaren."
+            },
+            {
+                "ecode": "0C00010000020008",
+                "intro": "Det gick inte att hämta bilder från kammarens kamera. Spaghetti- och avfallsrännans detektering är inte tillgänglig för närvarande."
+            },
+            {
+                "ecode": "0C00020000010005",
+                "intro": "En ny Micro Lidar upptäcktes. Kalibrera den på sidan Kalibrering innan du använder den."
+            },
+            {
+                "ecode": "0C0001000001000A",
+                "intro": "Micro Lidar LED kan vara trasig."
+            },
+            {
+                "ecode": "0C0003000002000c",
+                "intro": "Lokaliseringsmarkören för byggplattan har inte upptäckts. Kontrollera om byggplattan är korrekt inriktad."
+            },
+            {
+                "ecode": "0C0003000003000f",
+                "intro": "Nozzeln verkar vara täckt av fastnat eller igensatt material."
+            },
+            {
+                "ecode": "0300060000010003",
+                "intro": "Motståndet hos Motor-A är onormalt, motorn kan ha gått sönder."
+            },
+            {
+                "ecode": "0300070000010003",
+                "intro": "Motståndet hos Motor-B är onormalt, motorn kan ha gått sönder."
+            },
+            {
+                "ecode": "0300080000010003",
+                "intro": "Motståndet i Motor-Z är onormalt, motorn kan ha gått sönder."
+            },
+            {
+                "ecode": "0300090000010003",
+                "intro": "Motståndet i Motor-E är onormalt, motorn kan ha gått sönder."
+            },
+            {
+                "ecode": "0300130000010001",
+                "intro": "Strömsensorn i Motor-A är onormal, vilket kan orsakas av ett fel i hårdvaru-samplingskretsen."
+            },
+            {
+                "ecode": "0300140000010001",
+                "intro": "Strömsensorn i Motor-B är onormal, vilket kan orsakas av ett fel i hårdvaru-samplingskretsen."
+            },
+            {
+                "ecode": "0300150000010001",
+                "intro": "Strömsensorn hos Motor-Z är onormal, vilket kan orsakas av ett fel i hårdvaru-samplingskretsen."
+            },
+            {
+                "ecode": "0300160000010001",
+                "intro": "Strömsensorn i Motor-E är onormal, vilket kan orsakas av ett fel i hårdvaru-samplingskretsen."
+            },
+            {
+                "ecode": "0701200000030001",
+                "intro": "AMS2 Fack 1 filament har tagit slut, rensar det gamla filamentet, vänta."
+            },
+            {
+                "ecode": "0702200000030001",
+                "intro": "AMS3 Fack 1 filamentet har tagit slut, rensar det gamla filamentet, vänta."
+            },
+            {
+                "ecode": "0703200000030001",
+                "intro": "AMS4 Fack 1 filamentet har tagit slut, rensar det gamla filamentet, vänta."
+            },
+            {
+                "ecode": "0701210000030001",
+                "intro": "AMS2 Fack 2 filament har tagit slut, rensar det gamla filamentet, vänta."
+            },
+            {
+                "ecode": "0702210000030001",
+                "intro": "AMS3 Fack 2 filamentet har tagit slut, rensar det gamla filamentet, vänta."
+            },
+            {
+                "ecode": "0703210000030001",
+                "intro": "AMS4 Fack 2 filamentet har tagit slut, rensar det gamla filamentet, vänta."
+            },
+            {
+                "ecode": "0701220000030001",
+                "intro": "AMS2 Fack 3 filament har tagit slut, rensar det gamla filamentet, vänta."
+            },
+            {
+                "ecode": "0702220000030001",
+                "intro": "AMS3 Fack 3 filament har tagit slut, rensar det gamla filamentet, vänta."
+            },
+            {
+                "ecode": "0703220000030001",
+                "intro": "AMS4 Fack 3 filamentet har tagit slut, rensar det gamla filamentet, vänta."
+            },
+            {
+                "ecode": "0700230000030001",
+                "intro": "AMS1 Fack 4 filament har tagit slut, rensar det gamla filamentet, vänta."
+            },
+            {
+                "ecode": "0701230000030001",
+                "intro": "AMS2 Fack 4 filament har tagit slut, rensar det gamla filamentet, vänta."
+            },
+            {
+                "ecode": "0702230000030001",
+                "intro": "AMS3 Fack 4 filament har tagit slut, rensar det gamla filamentet, vänta."
+            },
+            {
+                "ecode": "0703230000030001",
+                "intro": "AMS4 Fack 4 filamentet har tagit slut, rensar det gamla filamentet, vänta."
+            },
+            {
+                "ecode": "0500040000020007",
+                "intro": "Värmebäddens temperatur överstiger filamentets förglasnings temperatur, vilket kan orsaka igensättning av nozzeln. Håll skrivarens dörr öppen eller sänk bäddens temperatur."
+            },
+            {
+                "ecode": "0C00020000020009",
+                "intro": "Den vertikala lasern är inte tillräckligt ljus vid hemposition. Rengör eller byt ut värmebädden om det här meddelandet visas upprepade gånger."
+            },
+            {
+                "ecode": "0C0003000003000e",
+                "intro": "Det verkar som om skrivaren skriver ut utan att extrudera."
+            },
+            {
+                "ecode": "0C00020000020003",
+                "intro": "Lasern är inte tillräckligt ljus vid positionen för att hitta hem positionen. Rengör eller byt ut byggplattan om detta meddelande visas upprepade gånger."
+            },
+            {
+                "ecode": "0C00020000020004",
+                "intro": "Nozzle höjden verkar för låg, detta kan påverka utskriftskvaliteten. Kontrollera om nozzlen är sliten eller lutar. Kalibrera om Micro Lidar om nozzlen har bytts ut."
+            },
+            {
+                "ecode": "0C00020000020006",
+                "intro": "Nozzle höjden verkar för hög, vilket kan påverka justeringen av byggplattan. Kontrollera om det finns filament rester på nozzlen."
+            },
+            {
+                "ecode": "0C00030000010009",
+                "intro": "Första lager inspektion modulen omstartades onormalt. Inspektionen kan vara felaktig."
+            },
+            {
+                "ecode": "0C0003000001000a",
+                "intro": "Printern är i fabriks läge. Kontakta after-sales."
+            },
+            {
+                "ecode": "0C00030000020001",
+                "intro": "Filamentets exponerings parameter onormal. Inspektionen av första lager kan vara felaktig."
+            },
+            {
+                "ecode": "0C00030000020002",
+                "intro": "Inspektionen av det första lagret avbryts på grund av onormala Micro Lidar data."
+            },
+            {
+                "ecode": "0C00030000020005",
+                "intro": "Inspektionen av det första lagret har avslutats onormalt och de aktuella resultaten kan vara felaktiga."
+            },
+            {
+                "ecode": "0C00020000020007",
+                "intro": "Den vertikala lasern lyser inte. Kontrollera om den är täckt eller om hårdvaruanslutningen är normal."
+            },
+            {
+                "ecode": "0C00010000010001",
+                "intro": "Micro Lidar kameran är offline. Kontrollera maskinvaruanslutningen."
+            },
+            {
+                "ecode": "0C00010000010003",
+                "intro": "Synkroniseringen mellan Micro Lidar kameran och MCU är onormal. Starta om printern."
+            },
+            {
+                "ecode": "0C00010000010004",
+                "intro": "Micro Lidar kamera linsen verkar smutsig. Rengör linsen."
+            },
+            {
+                "ecode": "0C00010000010005",
+                "intro": "Micro Lidar kamerans OTP parametrar är onormala. Kontakta kundservice."
+            },
+            {
+                "ecode": "0C00010000010009",
+                "intro": "Kammarkamerans lins verkar smutsig. Rengör linsen."
+            },
+            {
+                "ecode": "0C00010000020002",
+                "intro": "Micro Lidar kameran är ur funktion alla relaterade funktioner kan misslyckas. Kontakta kundservice om detta meddelande återkommer på flera utskrifter."
+            },
+            {
+                "ecode": "0C00010000020006",
+                "intro": "Micro Lidar kamerans yttre parametrar är onormala. Aktivera flödeskalibrering vid nästa utskrift."
+            },
+            {
+                "ecode": "0C00020000010001",
+                "intro": "Den horisontella lasern lyser inte. Kontrollera om den är täckt eller hårdvaruanslutningen."
+            },
+            {
+                "ecode": "0703300000010001",
+                "intro": "RFID bryggan emellan AMS4 Fack1 & Fack2 har ett fel."
+            },
+            {
+                "ecode": "0703300000010004",
+                "intro": "Fel på krypteringschipet."
+            },
+            {
+                "ecode": "0703300000030003",
+                "intro": "RFID kan inte avläsas på grund av hårdvaru eller struktur fel."
+            },
+            {
+                "ecode": "0703310000010001",
+                "intro": "RFID bryggan emellan AMS4 Fack3 & Fack4 har ett fel."
+            },
+            {
+                "ecode": "0703310000010004",
+                "intro": "Fel på krypteringschipet."
+            },
+            {
+                "ecode": "0703310000030003",
+                "intro": "RFID kan inte avläsas på grund av hårdvaru eller struktur fel."
+            },
+            {
+                "ecode": "0703350000010001",
+                "intro": "Temperatur och fuktighets sensor fel. Chippet kan vara felaktigt."
+            },
+            {
+                "ecode": "0703120000010003",
+                "intro": "AMS4 Fack3 motorns vridmoments kontroll är ur funktion. Strömsensorn kan vara felaktig."
+            },
+            {
+                "ecode": "0703120000020002",
+                "intro": "AMS4 Fack3 motor är överbelastad. Filament kan ha trasslat sig eller fastnat."
+            },
+            {
+                "ecode": "0703130000010001",
+                "intro": "AMS4 Fack4 motor har slirat. Extruderings hjulet kan vara trasigt eller så är filamentet för tunt."
+            },
+            {
+                "ecode": "0703130000010003",
+                "intro": "AMS4 Fack4 motorns vridmoments kontroll är ur funktion. Strömsensorn kan vara felaktig."
+            },
+            {
+                "ecode": "0703130000020002",
+                "intro": "AMS4 Fack4 motor är överbelastad. Filament kan ha trasslat sig eller fastnat."
+            },
+            {
+                "ecode": "0703010000010001",
+                "intro": "AMS4 stöd motor har slirat. Extruderings hjulet kan vara utslitet eller så är filamentet för smalt."
+            },
+            {
+                "ecode": "0703010000010003",
+                "intro": "AMS4 stöd motorns vridmoments kontroll är ur funktion. Strömsensorn kan vara felaktig."
+            },
+            {
+                "ecode": "0703010000010004",
+                "intro": "AMS4 stöd motorns hastighets kontroll är ur funktion. Hastighets sensorn kan vara felaktig."
+            },
+            {
+                "ecode": "0703010000020002",
+                "intro": "AMS4 stöd motorn är överbelastad. Filament kan ha trasslat sig eller fastnat."
+            },
+            {
+                "ecode": "0703020000010001",
+                "intro": "AMS4 Filament hastighet och längd fel: Filament mätningen kan vara felaktig."
+            },
+            {
+                "ecode": "0703100000010001",
+                "intro": "AMS4 Fack1 motor har slirat. Extruderings hjulet kan vara trasigt eller så är filamentet för tunt."
+            },
+            {
+                "ecode": "0703100000010003",
+                "intro": "AMS4 Fack1 motorns vridmoments kontroll är ur funktion. Strömsensorn kan vara felaktig."
+            },
+            {
+                "ecode": "0703100000020002",
+                "intro": "AMS4 Fack1 motor är överbelastad. Filament kan ha trasslat sig eller fastnat."
+            },
+            {
+                "ecode": "0703110000010001",
+                "intro": "AMS4 Fack2 motor har slirat. Extruderings hjulet kan vara trasigt eller så är filamentet för tunt."
+            },
+            {
+                "ecode": "0703110000010003",
+                "intro": "AMS4 Fack2 motorns vridmoments kontroll är ur funktion. Strömsensorn kan vara felaktig."
+            },
+            {
+                "ecode": "0703110000020002",
+                "intro": "AMS4 Fack2 motor är överbelastad. Filament kan ha trasslat sig eller fastnat."
+            },
+            {
+                "ecode": "0703120000010001",
+                "intro": "AMS4 Fack3 motor har slirat. Extruderings hjulet kan vara trasigt eller så är filamentet för tunt."
+            },
+            {
+                "ecode": "0702300000010001",
+                "intro": "RFID bryggan emellan AMS3 Fack1 & Fack2 har ett fel."
+            },
+            {
+                "ecode": "0702300000010004",
+                "intro": "Fel på krypteringschipet."
+            },
+            {
+                "ecode": "0702300000030003",
+                "intro": "RFID kan inte avläsas på grund av hårdvaru eller struktur fel."
+            },
+            {
+                "ecode": "0702310000010001",
+                "intro": "RFID bryggan emellan AMS3 Fack3 & Fack4 har ett fel."
+            },
+            {
+                "ecode": "0702310000010004",
+                "intro": "Fel på krypteringschipet."
+            },
+            {
+                "ecode": "0702310000030003",
+                "intro": "RFID kan inte avläsas på grund av hårdvaru eller struktur fel."
+            },
+            {
+                "ecode": "0702350000010001",
+                "intro": "Temperatur och fuktighets sensor fel. Chippet kan vara felaktigt."
+            },
+            {
+                "ecode": "0702130000010001",
+                "intro": "AMS3 Fack4 motor har slirat. Extruderings hjulet kan vara trasigt eller så är filamentet för tunt."
+            },
+            {
+                "ecode": "0702130000010003",
+                "intro": "AMS3 Fack4 motorns vridmoments kontroll är ur funktion. Strömsensorn kan vara felaktig."
+            },
+            {
+                "ecode": "0702130000020002",
+                "intro": "AMS3 Fack4 motor är överbelastad. Filament kan ha trasslat sig eller fastnat."
+            },
+            {
+                "ecode": "0702010000010001",
+                "intro": "AMS3 stöd motor har slirat. Extruderingshjulet kan vara utslitet eller så är filamentet för smalt."
+            },
+            {
+                "ecode": "0702010000010003",
+                "intro": "AMS3 stöd motorns vridmoments kontroll är ur funktion. Strömsensorn kan vara felaktig."
+            },
+            {
+                "ecode": "0702010000010004",
+                "intro": "AMS3 stöd motorns fart kontroll är ur funktion. Fart sensorn kan vara felaktig."
+            },
+            {
+                "ecode": "0702010000020002",
+                "intro": "AMS3 stöd motorn är överbelastad. Filamentet kan ha trasslat sig eller fastnat."
+            },
+            {
+                "ecode": "0702020000010001",
+                "intro": "AMS3 Filament hastighet och längd fel: Filament mätningen kan vara felaktig."
+            },
+            {
+                "ecode": "0702100000010001",
+                "intro": "AMS3 Fack1 motor har slirat. Extruderings hjulet kan vara trasigt eller så är filamentet för tunt."
+            },
+            {
+                "ecode": "0702100000010003",
+                "intro": "AMS3 Fack1 motorns vridmoments kontroll är ur funktion. Strömsensorn kan vara felaktig."
+            },
+            {
+                "ecode": "0702100000020002",
+                "intro": "AMS3 Fack1 motor är överbelastad. Filamentet kan ha trasslat sig eller fastnat."
+            },
+            {
+                "ecode": "0702110000010001",
+                "intro": "AMS3 Fack2 motor har slirat. Extruderings hjulet kan vara trasigt eller så är filamentet för tunt."
+            },
+            {
+                "ecode": "0702110000010003",
+                "intro": "AMS3 Fack2 motorns vridmoments kontroll är ur funktion. Strömsensorn kan vara felaktig."
+            },
+            {
+                "ecode": "0702110000020002",
+                "intro": "AMS3 Fack2 motor är överbelastad. Filamentet kan ha trasslat sig eller fastnat."
+            },
+            {
+                "ecode": "0702120000010001",
+                "intro": "AMS3 Fack3 motor har slirat. Extruderings hjulet kan vara trasigt eller så är filamentet för tunt."
+            },
+            {
+                "ecode": "0702120000010003",
+                "intro": "AMS3 Fack3 motorns vridmoments kontroll är ur funktion. Motstånds givaren kan vara felaktig."
+            },
+            {
+                "ecode": "0702120000020002",
+                "intro": "AMS3 Fack3 motor är överbelastad. Filament kan ha trasslat sig eller fastnat."
+            },
+            {
+                "ecode": "0701300000030003",
+                "intro": "RFID kan inte avläsas på grund av ett hårdvaru eller struktur fel."
+            },
+            {
+                "ecode": "0701310000010001",
+                "intro": "RFID bryggan emellan AMS2 fack3 & fack4 har ett fel."
+            },
+            {
+                "ecode": "0701310000010004",
+                "intro": "Fel på krypteringschipet."
+            },
+            {
+                "ecode": "0701310000030003",
+                "intro": "RFID kan inte avläsas på grund av hårdvaru eller struktur fel."
+            },
+            {
+                "ecode": "0701350000010001",
+                "intro": "Temperatur och fuktighets sensor fel. Chippet kan vara felaktigt."
+            },
+            {
+                "ecode": "0701130000020002",
+                "intro": "The AMS2 fack4 motor är överbelastad. Filamentet kan ha trasslat sig eller fastnat."
+            },
+            {
+                "ecode": "0701300000010001",
+                "intro": "RFID bryggan emellan AMS2 fack1 & fack2 har ett fel."
+            },
+            {
+                "ecode": "0701300000010004",
+                "intro": "Fel på krypteringschipet."
+            },
+            {
+                "ecode": "0701010000010003",
+                "intro": "The AMS2 stöd motorns vridmoments kontroll är ur funktion. Strömsensorn kan vara trasig."
+            },
+            {
+                "ecode": "0701010000010004",
+                "intro": "The AMS2 stöd motorns hastighets kontroll är ur funktion. Hastighets sensorn kan vara trasig."
+            },
+            {
+                "ecode": "0701010000020002",
+                "intro": "The AMS2 stöd motorn är överbelastad. Filament kan ha trasslat sig eller fastnat."
+            },
+            {
+                "ecode": "0701020000010001",
+                "intro": "AMS2 Filament hastighet och längd fel: Filament mätningen kan vara felaktig."
+            },
+            {
+                "ecode": "0701100000010001",
+                "intro": "The AMS2 fack1 motor har slirat. Extruderings hjulet kan vara trasigt eller så är filamentet för tunt."
+            },
+            {
+                "ecode": "0701100000010003",
+                "intro": "The AMS2 fack1 motorns vridmoments kontroll är ur funktion. Strömsensorn kan vara felaktig."
+            },
+            {
+                "ecode": "0701100000020002",
+                "intro": "The AMS2 fack1 motor är överbelastad. Filamentet kan ha trasslat sig eller fastnat."
+            },
+            {
+                "ecode": "0701110000010001",
+                "intro": "The AMS2 fack2 motor har slirat. Extruderings hjulet kan vara trasigt eller så är filamentet för tunt."
+            },
+            {
+                "ecode": "0701110000010003",
+                "intro": "The AMS2 fack2 motorns vridmoments kontroll är ur funktion. Strömsensorn kan vara felaktig."
+            },
+            {
+                "ecode": "0701110000020002",
+                "intro": "The AMS2 fack2 motor är överbelastad. Filamentet kan ha trasslat sig eller fastnat."
+            },
+            {
+                "ecode": "0701120000010001",
+                "intro": "The AMS2 fack3 motor har slirat. Extruderings hjulet kan vara trasigt eller så är filamentet för tunt."
+            },
+            {
+                "ecode": "0701120000010003",
+                "intro": "The AMS2 fack3 motorns vridmoments kontroll är ur funktion. Strömsensorn kan vara felaktig."
+            },
+            {
+                "ecode": "0701120000020002",
+                "intro": "The AMS2 fack3 motor är överbelastad. Filamentet kan ha trasslat sig eller fastnat."
+            },
+            {
+                "ecode": "0701130000010001",
+                "intro": "The AMS2 fack4 motor har slirat. Extruderings hjulet kan vara trasigt eller så är filamentet för tunt."
+            },
+            {
+                "ecode": "0701130000010003",
+                "intro": "The AMS2 fack4 motorns vridmoments kontroll är ur funktion. Strömsensorn kan vara felaktig."
+            },
+            {
+                "ecode": "0700310000010001",
+                "intro": "RFID bryggan emellan AMS1 Fack3 & Fack4 har ett fel."
+            },
+            {
+                "ecode": "0700310000010004",
+                "intro": "Fel på krypteringschipet."
+            },
+            {
+                "ecode": "0700310000030003",
+                "intro": "RFID kan inte avläsas på grund av ett hårdvaru eller struktur fel."
+            },
+            {
+                "ecode": "0700350000010001",
+                "intro": "Temperatur- och luftfuktighetssensorn har ett fel. Chippet kan vara felaktigt."
+            },
+            {
+                "ecode": "0700400000020001",
+                "intro": "Filamentets buffer positions signal förlorad: kabel eller positions givaren kan vara ur funktion."
+            },
+            {
+                "ecode": "0700400000020002",
+                "intro": "Filamentets buffer positions signal fel: positions givaren kan vara trasig."
+            },
+            {
+                "ecode": "0700400000020003",
+                "intro": "AMS Hub-kommunikationen är onormal, kabeln kan vara dåligt ansluten."
+            },
+            {
+                "ecode": "0700450000020002",
+                "intro": "Filamentklipparens klippavstånd är för stort. XY-motorn kan förlora steg."
+            },
+            {
+                "ecode": "0700450000020003",
+                "intro": "Handtaget för filamentklipparen har inte släppt. Handtaget eller bladet kan ha fastnat."
+            },
+            {
+                "ecode": "0701010000010001",
+                "intro": "The AMS2 stöd motor har slirat. Extruderingshjulet kan vara utslitet eller så är filamentet för tunt."
+            },
+            {
+                "ecode": "0700300000010001",
+                "intro": "RFID bryggan emellan AMS1 Fack1 & Fack2 har ett fel."
+            },
+            {
+                "ecode": "0700300000010004",
+                "intro": "Fel på krypteringschipet."
+            },
+            {
+                "ecode": "0700300000030003",
+                "intro": "RFID kan inte avläsas på grund av ett hårdvaru eller struktur fel."
+            },
+            {
+                "ecode": "0700010000010003",
+                "intro": "The AMS1 stöd motorns vridmoments styrning är ur funktion. Strömsensorn kan vara felaktig."
+            },
+            {
+                "ecode": "0700010000010004",
+                "intro": "The AMS1 stöd motorns hastighets kontroll är ur funktion. Hastighets sensorn kan vara felaktig."
+            },
+            {
+                "ecode": "0700010000020002",
+                "intro": "The AMS1 stöd motor är överbelastad. Filamentet kan ha trasslat sig eller fastnat."
+            },
+            {
+                "ecode": "0700020000010001",
+                "intro": "AMS1 Filament hastighet och längd fel: Filamentetmätningen kan vara felaktig."
+            },
+            {
+                "ecode": "0700100000010001",
+                "intro": "The AMS1 fack1 motor har slirat. Extruderings hjulet kan vara trasigt eller så är filamentet för tunt."
+            },
+            {
+                "ecode": "0700100000010003",
+                "intro": "The AMS1 stöd motorns vridmoments kontroll är ur funktion. Strömsensorn kan vara felaktig."
+            },
+            {
+                "ecode": "0700100000020002",
+                "intro": "The AMS1 fack1 motor är överbelastad. Filamentet kan ha trasslat sig eller fastnat."
+            },
+            {
+                "ecode": "0700110000010001",
+                "intro": "The AMS1 fack2 motor har slirat. Extruderings hjulet kan vara trasigt eller så är filamentet för tunt."
+            },
+            {
+                "ecode": "0700110000010003",
+                "intro": "The AMS1 fack2 motorns vridmoments kontroll är ur funktion. Strömsensorn kan vara felaktig."
+            },
+            {
+                "ecode": "0700110000020002",
+                "intro": "The AMS1 fack2 motor är överbelastad. Filamentet kan ha trasslat sig eller fastnat."
+            },
+            {
+                "ecode": "0700120000010001",
+                "intro": "The AMS1 fack3 motor har slirat. Extruderings hjulet kan vara trasigt eller så är filamentet för tunt."
+            },
+            {
+                "ecode": "0700120000010003",
+                "intro": "The AMS1 fack3 motorns vridmoments kontroll är ur funktion. Strömsensorn kan vara felaktig."
+            },
+            {
+                "ecode": "0700120000020002",
+                "intro": "The AMS1 fack3 motor är överbelastad. Filamentet kan ha trasslat sig eller fastnat."
+            },
+            {
+                "ecode": "0700130000010001",
+                "intro": "The AMS1 fack4 motor har slirat. Extruderings hjulet kan vara trasigt eller så är filamentet för tunt."
+            },
+            {
+                "ecode": "0700130000010003",
+                "intro": "The AMS1 fack4 motorns vridmoments kontroll är ur funktion. Strömsensorn kan vara felaktig."
+            },
+            {
+                "ecode": "0700130000020002",
+                "intro": "The AMS1 fack4 motor är överbelastad. Filamentet kan ha trasslat sig eller fastnat."
+            },
+            {
+                "ecode": "0500030000010005",
+                "intro": "Intern service är ur funktion. Starta om enheten."
+            },
+            {
+                "ecode": "0500030000010006",
+                "intro": "Systemfel har upptäckts. Starta om enheten."
+            },
+            {
+                "ecode": "0500030000010008",
+                "intro": "Systemlåsning har inträffat. Starta om enheten."
+            },
+            {
+                "ecode": "0500030000010009",
+                "intro": "Systemlåsning har inträffat. Återställd efter automatisk omstart."
+            },
+            {
+                "ecode": "050003000002000d",
+                "intro": "SD-kort läsaren är ur funktion."
+            },
+            {
+                "ecode": "0500030000030007",
+                "intro": "Systemfel upptäckt. Det har återställts efter automatisk omstart."
+            },
+            {
+                "ecode": "0500040000010001",
+                "intro": "Nedladdning av utskriftsfil misslyckades. Kontrollera nätverkskopplingen."
+            },
+            {
+                "ecode": "0500040000010002",
+                "intro": "Rapport av utskrifts status misslyckades. Kontrollera nätverkskopplingen."
+            },
+            {
+                "ecode": "0500040000010003",
+                "intro": "Innehållet i utskriftsfilen är oläsbar. Skicka utskriftsfilen igen."
+            },
+            {
+                "ecode": "0500040000010004",
+                "intro": "Utskriftsfilen är inte tillåten."
+            },
+            {
+                "ecode": "0500040000010006",
+                "intro": "Återupptagande av föregående utskrift misslyckades."
+            },
+            {
+                "ecode": "0700010000010001",
+                "intro": "The AMS1 stöd motor har slirat. Extruderingshjulet kan vara utslitet eller så är filamentet för tunt."
+            },
+            {
+                "ecode": "0500010000020003",
+                "intro": "USB kameran är ur funktion."
+            },
+            {
+                "ecode": "0500030000010002",
+                "intro": "Verktygshuvudet är ur funktion. Starta om enheten."
+            },
+            {
+                "ecode": "0500030000010003",
+                "intro": "AMS modulen är ur funktion. Starta om enheten."
+            },
+            {
+                "ecode": "03000D0000010007",
+                "intro": "Byggplattan är inte placerad på rätt sätt. Justera den."
+            },
+            {
+                "ecode": "03000D0000010008",
+                "intro": "Byggplattan är inte placerad på rätt sätt. Justera den."
+            },
+            {
+                "ecode": "03000D0000010009",
+                "intro": "Byggplattan är inte placerad på rätt sätt. Justera den."
+            },
+            {
+                "ecode": "03000D000001000A",
+                "intro": "Byggplattan är inte placerad på rätt sätt. Justera den."
+            },
+            {
+                "ecode": "03000D0000020001",
+                "intro": "Värmebäddens nollpunkt är onormal. Det kan vara en ojämnhet på byggplattan eller så är nozzle spetsen inte ren."
+            },
+            {
+                "ecode": "03000F0000010001",
+                "intro": "Accelerometer data är inte tillgänglig. Kommunikationens koppling till verktygs huvudet kan vara trasigt eller så är accelerometern trasig."
+            },
+            {
+                "ecode": "0300120000020001",
+                "intro": "Frontskyddet på verktygs huvudet är av."
+            },
+            {
+                "ecode": "0500010000020001",
+                "intro": "Media pipelinen är ur funktion."
+            },
+            {
+                "ecode": "03000D0000010002",
+                "intro": "Värmebäddens nollställning misslyckades. Områdets vibrationer är för stora."
+            },
+            {
+                "ecode": "03000D0000010003",
+                "intro": "Byggplattan är inte placerad på rätt sätt. Justera den."
+            },
+            {
+                "ecode": "03000D0000010004",
+                "intro": "Byggplattan är inte placerad på rätt sätt. Justera den."
+            },
+            {
+                "ecode": "03000D0000010005",
+                "intro": "Byggplattan är inte placerad på rätt sätt. Justera den."
+            },
+            {
+                "ecode": "03000D0000010006",
+                "intro": "Byggplattan är inte placerad på rätt sätt. Justera den."
+            },
+            {
+                "ecode": "0300050000010001",
+                "intro": "Motorn överhettad. Elementet kan vara lös eller är dess kylfläkt skadad."
+            },
+            {
+                "ecode": "0300060000010001",
+                "intro": "Motor-A har en öppen krets. Det kan vara en lös anslutning eller så kan motorn vara trasig."
+            },
+            {
+                "ecode": "0300060000010002",
+                "intro": "Motor-A har en kortslutning. Den kan vara trasig."
+            },
+            {
+                "ecode": "0300070000010001",
+                "intro": "Motor-B har en öppen krets. Anslutningen kan vara lös eller så kan motorn vara trasig."
+            },
+            {
+                "ecode": "0300070000010002",
+                "intro": "Motor-B har en kortslutning. Den kan vara trasig."
+            },
+            {
+                "ecode": "0300080000010001",
+                "intro": "Motor-Z har en öppen krets. Anslutningen kan vara lös eller så kan motorn vara trasig."
+            },
+            {
+                "ecode": "0300080000010002",
+                "intro": "Motor-Z har en kortslutning. Den kan vara trasig."
+            },
+            {
+                "ecode": "0300090000010001",
+                "intro": "Motor-E har en öppen krets. Anslutningen kan vara lös eller så kan motorn vara trasig."
+            },
+            {
+                "ecode": "0300090000010002",
+                "intro": "Motor-E har en kortslutning. Den kan vara trasig."
+            },
+            {
+                "ecode": "0300010000010001",
+                "intro": "Värmebäddens temperatur onormal. Värmebäddens temperaturs givare kan vara kortsluten."
+            },
+            {
+                "ecode": "0300010000010002",
+                "intro": "Värmebäddens temperatur är onormal; värmaren kan ha en öppen krets, eller så kan termobrytaren vara öppen."
+            },
+            {
+                "ecode": "0300010000010003",
+                "intro": "Temperaturen i värmebädden är onormal, värmaren har för hög temperatur."
+            },
+            {
+                "ecode": "0300010000010007",
+                "intro": "Temperaturen i värmebädden är onormal, det kan vara en öppen krets i sensorn."
+            },
+            {
+                "ecode": "0300020000010001",
+                "intro": "Nozzle temperatur onormal; Sensorn för nozzle temperatur kan ha en kortslutning."
+            },
+            {
+                "ecode": "0300020000010002",
+                "intro": "Nozzle temperatur onormal; Det kan vara en öppen krets i värmaren."
+            },
+            {
+                "ecode": "0300020000010003",
+                "intro": "Nozzle temperaturen onormal; värmaren har för hög temperatur."
+            },
+            {
+                "ecode": "0300020000010007",
+                "intro": "Nozzle temperaturen är onormal, sensorn kan ha en öppen krets."
+            }
+        ],
+        "ver": 202401191700
+    },
+    "version": "202401191700"
+}

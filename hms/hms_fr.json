@@ -1,0 +1,3869 @@
+{
+    "device_error": {
+        "fr": [
+            {
+                "ecode": "05008030",
+                "intro": ""
+            },
+            {
+                "ecode": "0500402E",
+                "intro": "Le système ne prend pas en charge le système de fichiers actuellement utilisé par la carte SD. Veuillez remplacer la carte ou la formater au format FAT32."
+            },
+            {
+                "ecode": "0500402F",
+                "intro": "Les secteurs de la carte SD sont endommagées. Veuillez utiliser l'outil de réparation de la carte SD pour la réparer ou la formater. S'il n'est toujours pas possible de l'identifier, veuillez la remplacer."
+            },
+            {
+                "ecode": "03008014",
+                "intro": "La buse est recouverte de filaments ou la plaque d'impression est inséré de travers. Nettoyez la buse ou réglez la plaque. Vous pouvez ensuite appuyer sur « Reprendre » pour reprendre l'impression."
+            },
+            {
+                "ecode": "03008015",
+                "intro": "Le filament est épuisé, chargez un nouveau filament sur la page « filament », puis revenez à la page d'impression et appuyez sur « Reprendre » pour reprendre le travail d'impression."
+            },
+            {
+                "ecode": "05014017",
+                "intro": "La liaison a échoué. Veuillez réessayer sinon redémarrer et réessayer."
+            },
+            {
+                "ecode": "05014018",
+                "intro": "Échec de l’analyse des informations de configuration de liaison, veuillez réessayer."
+            },
+            {
+                "ecode": "05014019",
+                "intro": "L'imprimante a déjà été liée. Veuillez la dissocier et réessayer."
+            },
+            {
+                "ecode": "0501401A",
+                "intro": "L'accès au cloud a échoué. Parmi les raisons possibles figurent l'instabilité du réseau due à des interférences, l'impossibilité d'accéder à Internet ou des restrictions de configuration du pare-feu du routeur. Vous pouvez essayer de rapprocher l'imprimante du routeur ou de vérifier la configuration du routeur, puis réessayer."
+            },
+            {
+                "ecode": "0501401B",
+                "intro": "La réponse du cloud n'est pas valide. Si vous avez essayé plusieurs fois et que vous ne parvenez toujours pas, veuillez contacter le service client."
+            },
+            {
+                "ecode": "0501401C",
+                "intro": "Accès au cloud refusé. Si vous avez essayé plusieurs fois et que vous ne parvenez toujours pas, veuillez contacter le service client."
+            },
+            {
+                "ecode": "0501401D",
+                "intro": "L'accès au cloud a échoué, ce qui peut être dû à l'instabilité du réseau due à des interférences. Vous pouvez essayer de rapprocher l'imprimante du routeur avant de réessayer."
+            },
+            {
+                "ecode": "0501401E",
+                "intro": "La réponse du cloud n'est pas valide. Si vous avez essayé plusieurs fois et que vous ne parvenez toujours pas, veuillez contacter le service client."
+            },
+            {
+                "ecode": "0501401F",
+                "intro": "L'autorisation a expiré. Veuillez vous assurer que votre téléphone ou PC a accès à l'internet et que l'application Bambu Studio/Bambu Handy APP est en cours d'exécution au premier plan pendant l'opération de liaison."
+            },
+            {
+                "ecode": "05014020",
+                "intro": "Accès au cloud refusé. Si vous avez essayé plusieurs fois et que vous ne parvenez toujours pas, veuillez contacter le service client."
+            },
+            {
+                "ecode": "05014021",
+                "intro": "L'accès au cloud a échoué, ce qui peut être dû à l'instabilité du réseau due à des interférences. Vous pouvez essayer de rapprocher l'imprimante du routeur avant de réessayer."
+            },
+            {
+                "ecode": "05014022",
+                "intro": "La réponse du cloud n'est pas valide. Si vous avez essayé plusieurs fois et que vous ne parvenez toujours pas, veuillez contacter le service client."
+            },
+            {
+                "ecode": "05014023",
+                "intro": "Accès au cloud refusé. Si vous avez essayé plusieurs fois et que vous ne parvenez toujours pas, veuillez contacter le service client."
+            },
+            {
+                "ecode": "05014024",
+                "intro": "L'accès au cloud a échoué. Parmi les raisons possibles figurent l'instabilité du réseau due à des interférences, l'impossibilité d'accéder à Internet ou des restrictions de configuration du pare-feu du routeur. Vous pouvez essayer de rapprocher l'imprimante du routeur ou de vérifier la configuration du routeur, puis réessayer."
+            },
+            {
+                "ecode": "05014025",
+                "intro": "La réponse du cloud n'est pas valide. Si vous avez essayé plusieurs fois et que vous ne parvenez toujours pas, veuillez contacter le service client."
+            },
+            {
+                "ecode": "05014026",
+                "intro": "Accès au cloud refusé. Si vous avez essayé plusieurs fois et que vous ne parvenez toujours pas, veuillez contacter le service client."
+            },
+            {
+                "ecode": "05014027",
+                "intro": "L'accès au cloud a échoué, ce qui peut être dû à l'instabilité du réseau due à des interférences. Vous pouvez essayer de rapprocher l'imprimante du routeur avant de réessayer."
+            },
+            {
+                "ecode": "05014028",
+                "intro": "La réponse du cloud n'est pas valide. Si vous avez essayé plusieurs fois et que vous ne parvenez toujours pas, veuillez contacter le service client."
+            },
+            {
+                "ecode": "05014029",
+                "intro": "Accès au cloud refusé. Si vous avez essayé plusieurs fois et que vous ne parvenez toujours pas, veuillez contacter le service client."
+            },
+            {
+                "ecode": "03008011",
+                "intro": "La plaque d'impression actuelle est différente de celle du G-code. Il est recommandé de stopper l'impression afin de la remplacer. Vous pouvez également appuyer sur \"Reprendre\" pour forcer la reprise de la tâche d'impression."
+            },
+            {
+                "ecode": "03008013",
+                "intro": "L'impression a été interrompue par l'utilisateur. Vous pouvez appuyer sur « Reprendre » pour reprendre le travail d'impression."
+            },
+            {
+                "ecode": "0500402D",
+                "intro": "Erreur système"
+            },
+            {
+                "ecode": "0C00800A",
+                "intro": "La plaque d'impression détectée ne correspond à celle du G-code."
+            },
+            {
+                "ecode": "12008001",
+                "intro": "Impossible de couper le filament. Veuillez vérifier la lame du cutter. Après le dépannage, cliquez sur le bouton \"Réessayer\"."
+            },
+            {
+                "ecode": "12018001",
+                "intro": "Impossible de couper le filament. Veuillez vérifier la lame du cutter. Après le dépannage, cliquez sur le bouton \"Réessayer\"."
+            },
+            {
+                "ecode": "12028001",
+                "intro": "Impossible de couper le filament. Veuillez vérifier la lame du cutter. Après le dépannage, cliquez sur le bouton \"Réessayer\"."
+            },
+            {
+                "ecode": "12038001",
+                "intro": "Impossible de couper le filament. Veuillez vérifier la lame du cutter. Après le dépannage, cliquez sur le bouton \"Réessayer\"."
+            },
+            {
+                "ecode": "12FF8001",
+                "intro": "Impossible de couper le filament. Veuillez vérifier la lame du cutter. Après le dépannage, cliquez sur le bouton \"Réessayer\"."
+            },
+            {
+                "ecode": "12008002",
+                "intro": "Le cutter est bloqué. Veuillez retirer le manche du cutter et cliquer sur le bouton de Réessayer."
+            },
+            {
+                "ecode": "12018002",
+                "intro": "Le cutter est bloqué. Veuillez retirer le manche du cutter et cliquer sur le bouton de Réessayer."
+            },
+            {
+                "ecode": "12028002",
+                "intro": "Le cutter est bloqué. Veuillez retirer le manche du cutter et cliquer sur le bouton de Réessayer."
+            },
+            {
+                "ecode": "12038002",
+                "intro": "Le cutter est bloqué. Veuillez retirer le manche du cutter et cliquer sur le bouton de Réessayer."
+            },
+            {
+                "ecode": "12FF8002",
+                "intro": "Le cutter est bloqué. Veuillez retirer le manche du cutter et cliquer sur le bouton de Réessayer."
+            },
+            {
+                "ecode": "12008003",
+                "intro": "Échec de l'extraction du filament de l'extrudeur. Veuillez vérifier si la buse est obstruée ou si le filament est cassé à l'intérieur de l'extrudeuse. Après le dépannage, cliquez sur le bouton Réessayer."
+            },
+            {
+                "ecode": "12018003",
+                "intro": "Échec de l'extraction du filament de l'extrudeur. Veuillez vérifier si la buse est obstruée ou si le filament est cassé à l'intérieur de l'extrudeuse. Après le dépannage, cliquez sur le bouton Réessayer."
+            },
+            {
+                "ecode": "12028003",
+                "intro": "Échec de l'extraction du filament de l'extrudeur. Veuillez vérifier si la buse est obstruée ou si le filament est cassé à l'intérieur de l'extrudeuse. Après le dépannage, cliquez sur le bouton Réessayer."
+            },
+            {
+                "ecode": "12038003",
+                "intro": "Échec de l'extraction du filament de l'extrudeur. Veuillez vérifier si la buse est obstruée ou si le filament est cassé à l'intérieur de l'extrudeuse. Après le dépannage, cliquez sur le bouton Réessayer."
+            },
+            {
+                "ecode": "12FF8003",
+                "intro": "Veuillez retirer le filament du porte-bobine de l'extrudeur. Si un AMS doit être utilisé ultérieurement, connectez le tube en PTFE de l'AMS à l'extrudeur et cliquez sur le bouton Réessayer."
+            },
+            {
+                "ecode": "12FFC003",
+                "intro": "Veuillez retirer le filament du porte-bobine de l'extrudeur. Si un AMS doit être utilisé ultérieurement, connectez le tube en PTFE de l'AMS à l'extrudeur et cliquez sur le bouton Réessayer."
+            },
+            {
+                "ecode": "12008004",
+                "intro": "Le filament n'a pas été retiré de l'extrudeur. Veuillez vérifier si le filament est coincé. Après le dépannage, cliquez sur le bouton de Réessayer."
+            },
+            {
+                "ecode": "12018004",
+                "intro": "Impossible de retirer le filament de l'extrudeur. Vérifiez si le filament est coincé. Après le dépannage, cliquez sur le bouton Réessayer."
+            },
+            {
+                "ecode": "12028004",
+                "intro": "Impossible de retirer le filament de l'extrudeur. Vérifiez si le filament est coincé. Après le dépannage, cliquez sur le bouton Réessayer."
+            },
+            {
+                "ecode": "12038004",
+                "intro": "Le filament n'a pas été retiré de l'extrudeur. Veuillez vérifier si le filament est coincé. Après le dépannage, cliquez sur le bouton de Réessayer."
+            },
+            {
+                "ecode": "12FF8004",
+                "intro": "Impossible de retirer le filament de l'extrudeur. Vérifiez si le filament est coincé. Après le dépannage, cliquez sur le bouton Réessayer."
+            },
+            {
+                "ecode": "12008005",
+                "intro": "Le filament n'a pas été chargé. Veuillez pousser le filament, puis cliquez sur le bouton \"Réessayer\"."
+            },
+            {
+                "ecode": "12018005",
+                "intro": "Impossible d'alimenter le filament. Chargez le filament, puis cliquez sur le bouton Réessayer."
+            },
+            {
+                "ecode": "12028005",
+                "intro": "Impossible d'alimenter le filament. Chargez le filament, puis cliquez sur le bouton Réessayer."
+            },
+            {
+                "ecode": "12038005",
+                "intro": "Impossible d'alimenter le filament. Chargez le filament, puis cliquez sur le bouton Réessayer."
+            },
+            {
+                "ecode": "12FF8005",
+                "intro": "Impossible d'alimenter le filament. Chargez le filament, puis cliquez sur le bouton Réessayer."
+            },
+            {
+                "ecode": "12008006",
+                "intro": "Impossible d'introduire le filament dans la tête de l'outil. Vérifiez si le filament est coincé. Après le dépannage, cliquez sur le bouton Réessayer."
+            },
+            {
+                "ecode": "12018006",
+                "intro": "Impossible d'introduire le filament dans la tête de l'outil. Vérifiez si le filament est coincé. Après le dépannage, cliquez sur le bouton Réessayer."
+            },
+            {
+                "ecode": "12028006",
+                "intro": "Impossible d'introduire le filament dans la tête de l'outil. Vérifiez si le filament est coincé. Après le dépannage, cliquez sur le bouton Réessayer."
+            },
+            {
+                "ecode": "12038006",
+                "intro": "Impossible d'introduire le filament dans la tête de l'outil. Vérifiez si le filament est coincé. Après le dépannage, cliquez sur le bouton Réessayer."
+            },
+            {
+                "ecode": "12FF8006",
+                "intro": "Veuillez faire passer l'alimentation depuis le porte-bobine jusqu'à ce que le capteur de filament de la tête de l'outil se déclenche, puis cliquez sur le bouton Réessayer."
+            },
+            {
+                "ecode": "12FFC006",
+                "intro": "Veuillez alimenter à partir du porte-bobine jusqu'à ce que le capteur de filament de l'extrudeur se déclenche."
+            },
+            {
+                "ecode": "12008007",
+                "intro": "Impossible d'extruder le filament. Veuillez vérifier si l'extrudeur est bouché, après le dépannage, cliquez sur le bouton de Réessayer."
+            },
+            {
+                "ecode": "12018007",
+                "intro": "Impossible d'extruder le filament. Veuillez vérifier si l'extrudeur est bouché, après le dépannage, cliquez sur le bouton de Réessayer."
+            },
+            {
+                "ecode": "12028007",
+                "intro": "Impossible d'extruder le filament. Veuillez vérifier si l'extrudeur est bouché, après le dépannage, cliquez sur le bouton de Réessayer."
+            },
+            {
+                "ecode": "12038007",
+                "intro": "Impossible d'extruder le filament. Veuillez vérifier si l'extrudeur est bouché, après le dépannage, cliquez sur le bouton de Réessayer."
+            },
+            {
+                "ecode": "12FF8007",
+                "intro": "Veuillez observer la buse et cliquer sur « Terminé » si le filament a été extrudé; dans le cas contraire, poussez légèrement le filament vers l'avant puis cliquez sur le bouton Réessayer."
+            },
+            {
+                "ecode": "12008010",
+                "intro": "Vérifiez si la bobine ou le filament est coincé. Après le dépannage, cliquez sur le bouton Réessayer."
+            },
+            {
+                "ecode": "12018010",
+                "intro": "Veuillez vérifier si la bobine ou le filament est bloqué. Après le dépannage, cliquez sur le bouton \"Réessayer\"."
+            },
+            {
+                "ecode": "12028010",
+                "intro": "Vérifiez si la bobine ou le filament est coincé. Après le dépannage, cliquez sur le bouton Réessayer."
+            },
+            {
+                "ecode": "12038010",
+                "intro": "Vérifiez si la bobine ou le filament est coincé. Après le dépannage, cliquez sur le bouton Réessayer."
+            },
+            {
+                "ecode": "12FF8010",
+                "intro": "Vérifiez si la bobine ou le filament est coincé. Après le dépannage, cliquez sur le bouton Réessayer."
+            },
+            {
+                "ecode": "12008011",
+                "intro": "Il n'y a plus de filament dans l'AMS. Veuillez insérer un nouveau filament dans l'AMS et cliquez sur le bouton \"Réessayer\"."
+            },
+            {
+                "ecode": "12018011",
+                "intro": "Il n'y a plus de filament dans l'AMS. Veuillez insérer un nouveau filament dans l'AMS et cliquez sur le bouton \"Réessayer\"."
+            },
+            {
+                "ecode": "12028011",
+                "intro": "Il n'y a plus de filament dans l'AMS. Veuillez insérer un nouveau filament dans l'AMS et cliquez sur le bouton \"Réessayer\"."
+            },
+            {
+                "ecode": "12038011",
+                "intro": "Il n'y a plus de filament dans l'AMS. Veuillez insérer un nouveau filament dans l'AMS et cliquez sur le bouton \"Réessayer\"."
+            },
+            {
+                "ecode": "12FF8011",
+                "intro": "Il n'y a plus de filament dans l'AMS. Veuillez insérer un nouveau filament dans l'AMS et cliquez sur le bouton \"Réessayer\"."
+            },
+            {
+                "ecode": "12008012",
+                "intro": "Échec de synchronisation des correspondances AMS. Veuillez cliquer sur le bouton \"Réessayer\" pour continuer."
+            },
+            {
+                "ecode": "12018012",
+                "intro": "Échec de synchronisation des correspondances AMS. Veuillez cliquer sur le bouton \"Réessayer\" pour continuer."
+            },
+            {
+                "ecode": "12028012",
+                "intro": "Échec de synchronisation des correspondances AMS. Veuillez cliquer sur le bouton \"Réessayer\" pour continuer."
+            },
+            {
+                "ecode": "12038012",
+                "intro": "Échec de synchronisation des correspondances AMS. Veuillez cliquer sur le bouton \"Réessayer\" pour continuer."
+            },
+            {
+                "ecode": "12FF8012",
+                "intro": "Échec de synchronisation des correspondances AMS. Veuillez cliquer sur le bouton \"Réessayer\" pour continuer."
+            },
+            {
+                "ecode": "12008013",
+                "intro": "Délai expiré lors de la purge de l'ancien filament. Vérifiez si le filament est coincé ou si l'extrudeur est bouché. Après le dépannage, cliquez sur le bouton Réessayer."
+            },
+            {
+                "ecode": "12018013",
+                "intro": "Délai expiré lors de la purge de l'ancien filament. Vérifiez si le filament est coincé ou si l'extrudeur est bouché. Après le dépannage, cliquez sur le bouton Réessayer."
+            },
+            {
+                "ecode": "12028013",
+                "intro": "Délai expiré lors de la purge de l'ancien filament. Vérifiez si le filament est coincé ou si l'extrudeur est bouché. Après le dépannage, cliquez sur le bouton Réessayer."
+            },
+            {
+                "ecode": "12038013",
+                "intro": "Délai expiré lors de la purge de l'ancien filament. Vérifiez si le filament est coincé ou si l'extrudeur est bouché. Après le dépannage, cliquez sur le bouton Réessayer."
+            },
+            {
+                "ecode": "12FF8013",
+                "intro": "Délai expiré lors de la purge de l'ancien filament. Vérifiez si le filament est coincé ou si l'extrudeur est bouché. Après le dépannage, cliquez sur le bouton Réessayer."
+            },
+            {
+                "ecode": "12004001",
+                "intro": "Le filament est toujours chargé à partir de l'AMS alors qu'il a été désactivé. Veuillez décharger le filament AMS, le charger à partir du porte-bobine et relancer l'impression."
+            },
+            {
+                "ecode": "12014001",
+                "intro": "Le filament est toujours chargé à partir de l'AMS alors qu'il a été désactivé. Veuillez décharger le filament AMS, le charger à partir du porte-bobine et relancer l'impression."
+            },
+            {
+                "ecode": "12024001",
+                "intro": "Le filament est toujours chargé à partir de l'AMS alors qu'il a été désactivé. Veuillez décharger le filament AMS, le charger à partir du porte-bobine et relancer l'impression."
+            },
+            {
+                "ecode": "12034001",
+                "intro": "Le filament est toujours chargé à partir de l'AMS alors qu'il a été désactivé. Veuillez décharger le filament AMS, le charger à partir du porte-bobine et relancer l'impression."
+            },
+            {
+                "ecode": "12FF4001",
+                "intro": "Le filament est toujours chargé à partir de l'AMS alors qu'il a été désactivé. Veuillez décharger le filament AMS, le charger à partir du porte-bobine et relancer l'impression."
+            },
+            {
+                "ecode": "12008014",
+                "intro": "Nous n'avons pas vérifié la position initiale du filament dans tous les emplacements, veuillez retirer le filament de l'extrudeur. Après le dépannage, cliquez sur le bouton Réessayer."
+            },
+            {
+                "ecode": "12018014",
+                "intro": "Nous n'avons pas vérifié la position initiale du filament dans tous les emplacements, veuillez retirer le filament de l'extrudeur. Après le dépannage, cliquez sur le bouton Réessayer."
+            },
+            {
+                "ecode": "12028014",
+                "intro": "Nous n'avons pas vérifié la position initiale du filament dans tous les emplacements, veuillez retirer le filament de l'extrudeur. Après le dépannage, cliquez sur le bouton Réessayer."
+            },
+            {
+                "ecode": "12038014",
+                "intro": "Nous n'avons pas vérifié la position initiale du filament dans tous les emplacements, veuillez retirer le filament de l'extrudeur. Après le dépannage, cliquez sur le bouton Réessayer."
+            },
+            {
+                "ecode": "05004016",
+                "intro": "La carte SD est en lecture seule. Veuillez autoriser l'écriture ou la remplacer."
+            },
+            {
+                "ecode": "05004017",
+                "intro": "La liaison a échoué. Veuillez réessayer sinon redémarrer et réessayer."
+            },
+            {
+                "ecode": "05004018",
+                "intro": "Échec de l’analyse des informations de configuration de liaison, veuillez réessayer."
+            },
+            {
+                "ecode": "05004019",
+                "intro": "L'imprimante a déjà été liée. Veuillez la dissocier et réessayer."
+            },
+            {
+                "ecode": "0500401A",
+                "intro": "L'accès au cloud a échoué. Parmi les raisons possibles figurent l'instabilité du réseau due à des interférences, l'impossibilité d'accéder à Internet ou des restrictions de configuration du pare-feu du routeur. Vous pouvez essayer de rapprocher l'imprimante du routeur ou de vérifier la configuration du routeur, puis réessayer."
+            },
+            {
+                "ecode": "0500401B",
+                "intro": "La réponse du cloud n'est pas valide. Si vous avez essayé plusieurs fois et que vous ne parvenez toujours pas, veuillez contacter le service client."
+            },
+            {
+                "ecode": "0500401C",
+                "intro": "L'accès au cloud est refusé. Si vous avez essayé plusieurs fois et que vous ne parvenez toujours pas, veuillez contacter le service client."
+            },
+            {
+                "ecode": "0500401D",
+                "intro": "L'accès au cloud a échoué, ce qui peut être dû à l'instabilité du réseau due à des interférences. Vous pouvez essayer de rapprocher l'imprimante du routeur avant de réessayer."
+            },
+            {
+                "ecode": "0500401E",
+                "intro": "La réponse du cloud n'est pas valide. Si vous avez essayé plusieurs fois et que vous ne parvenez toujours pas, veuillez contacter le service client."
+            },
+            {
+                "ecode": "0500401F",
+                "intro": "L'autorisation a expiré. Veuillez vous assurer que votre téléphone ou PC a accès à l'internet et que l'application Bambu Studio/Bambu Handy APP est en cours d'exécution au premier plan pendant l'opération de liaison."
+            },
+            {
+                "ecode": "05004020",
+                "intro": "Accès au cloud refusé. Si vous avez essayé plusieurs fois et que vous ne parvenez toujours pas, veuillez contacter le service client."
+            },
+            {
+                "ecode": "05004021",
+                "intro": "L'accès au cloud a échoué, ce qui peut être dû à l'instabilité du réseau due à des interférences. Vous pouvez essayer de rapprocher l'imprimante du routeur avant de réessayer."
+            },
+            {
+                "ecode": "05004022",
+                "intro": "La réponse du cloud n'est pas valide. Si vous avez essayé plusieurs fois et que vous ne parvenez toujours pas, veuillez contacter le service client."
+            },
+            {
+                "ecode": "05004023",
+                "intro": "Accès au cloud refusé. Si vous avez essayé plusieurs fois et que vous ne parvenez toujours pas, veuillez contacter le service client."
+            },
+            {
+                "ecode": "05004024",
+                "intro": "L'accès au cloud a échoué. Parmi les raisons possibles figurent l'instabilité du réseau due à des interférences, l'impossibilité d'accéder à Internet ou des restrictions de configuration du pare-feu du routeur. Vous pouvez essayer de rapprocher l'imprimante du routeur ou de vérifier la configuration du routeur, puis réessayer."
+            },
+            {
+                "ecode": "05004025",
+                "intro": "La réponse du cloud n'est pas valide. Si vous avez essayé plusieurs fois et que vous ne parvenez toujours pas, veuillez contacter le service client."
+            },
+            {
+                "ecode": "05004026",
+                "intro": "Accès au cloud refusé. Si vous avez essayé plusieurs fois et que vous ne parvenez toujours pas, veuillez contacter le service client."
+            },
+            {
+                "ecode": "05004027",
+                "intro": "L'accès au cloud a échoué, ce qui peut être dû à l'instabilité du réseau due à des interférences. Vous pouvez essayer de rapprocher l'imprimante du routeur avant de réessayer."
+            },
+            {
+                "ecode": "05004028",
+                "intro": "La réponse du cloud n'est pas valide. Si vous avez essayé plusieurs fois et que vous ne parvenez toujours pas, veuillez contacter le service client."
+            },
+            {
+                "ecode": "05004029",
+                "intro": "Accès au cloud refusé. Si vous avez essayé plusieurs fois et que vous ne parvenez toujours pas, veuillez contacter le service client."
+            },
+            {
+                "ecode": "0500402A",
+                "intro": "Impossible de se connecter au routeur, ce qui peut être dû à des interférences sans fil ou à une trop grande distance du routeur. Réessayez ou rapprochez l'imprimante du routeur et réessayez."
+            },
+            {
+                "ecode": "0500402B",
+                "intro": "La connexion au routeur a échoué en raison d'un mot de passe incorrect. Vérifiez le mot de passe et réessayez."
+            },
+            {
+                "ecode": "0500402C",
+                "intro": "Échec de l'obtention de l'adresse IP, ce qui peut être dû à des interférences sans fil entraînant un échec de la transmission des données ou au fait que le pool d'adresses DHCP du routeur est plein. Rapprochez l'imprimante du routeur et réessayez. Si le problème persiste, vérifiez les paramètres du routeur pour voir si les adresses IP ont été épuisées."
+            },
+            {
+                "ecode": "03008012",
+                "intro": ""
+            },
+            {
+                "ecode": "0C008009",
+                "intro": "Le marqueur de localisation de la plaque d'impression est introuvable."
+            },
+            {
+                "ecode": "07FF8007",
+                "intro": "Veuillez contrôler la buse. Si le filament a été extrudé cliquez sur « Terminé », si ce n'est pas le cas poussez légèrement le filament vers l'avant, puis cliquez sur « Réessayer »."
+            },
+            {
+                "ecode": "05004015",
+                "intro": "L'espace de stockage disponible est insuffisant pour le travail d'impression. Veuillez formater ou nettoyer la carte microSD pour libérer de l'espace disponible."
+            },
+            {
+                "ecode": "0300800A",
+                "intro": "Des filaments purgés se sont accumulés dans la goulotte d'évacuation ce qui peut provoquer une collision avec la tête de l'outil. Veuillez nettoyer le filament. Si elle est propre ou acceptable, appuyez sur l'icône de reprise pour reprendre la tâche d'impression."
+            },
+            {
+                "ecode": "0C008005",
+                "intro": "Le filament purgé s'est amassé dans la goulotte d'évacuation, ce qui peut provoquer une collision de la tête de l'outil."
+            },
+            {
+                "ecode": "0C00C006",
+                "intro": "Le filament purgé peut s'être amassé dans la goulotte d'évacuation."
+            },
+            {
+                "ecode": "0300800E",
+                "intro": "Le fichier d'impression n'est pas disponible. Vérifiez si le support de stockage a été retiré."
+            },
+            {
+                "ecode": "07FF8001",
+                "intro": "Impossible de couper le filament. Veuillez vérifier la lame du cutter. Après le dépannage, cliquez sur le bouton \"Réessayer\"."
+            },
+            {
+                "ecode": "07FF8002",
+                "intro": "Le cutter est bloqué. Veuillez retirer le manche du cutter et cliquer sur le bouton de Réessayer."
+            },
+            {
+                "ecode": "07FF8003",
+                "intro": "Veuillez retirer le filament externe de l'extrudeur. (Si un AMS doit être utilisé ultérieurement, connectez le tube en PTFE au coupleur) et cliquez sur le bouton « Réessayer »."
+            },
+            {
+                "ecode": "07FF8004",
+                "intro": "Échec du retrait du filament vers AMS. Veuillez vérifier si le filament ou la bobine est coincé. Après le dépannage, cliquez sur le bouton \"Réessayer\"."
+            },
+            {
+                "ecode": "07FF8005",
+                "intro": "Impossible de pousser le filament en dehors de l'AMS. Veuillez couper la pointe du filament et vérifier si la bobine est coincée. Après le dépannage, cliquez sur le bouton Réessayer."
+            },
+            {
+                "ecode": "07FF8006",
+                "intro": "Veuillez alimenter à partir du porte-bobine jusqu'à ce que le capteur de filament de l'extrudeur se déclenche, puis cliquez sur \"Réessayer\"."
+            },
+            {
+                "ecode": "07FF8010",
+                "intro": "Le moteur d'assistance de l'AMS est surchargé, veuillez vérifier si la bobine ou le filament est bloqué, après le dépannage cliquez sur le bouton de Réessayer."
+            },
+            {
+                "ecode": "07FF8011",
+                "intro": "Le filament AMS est épuisé. Veuillez placer un nouveau filament dans AMS et cliquer sur le bouton Réessayer."
+            },
+            {
+                "ecode": "07FF8012",
+                "intro": "Impossible d'obtenir la table de correspondance AMS, veuillez cliquer sur \"Réessayer\" pour continuer."
+            },
+            {
+                "ecode": "07FF8013",
+                "intro": "Le temps de purge de l'ancien filament est dépassé: Veuillez vérifier si le filament est bloqué ou si l'extrudeur est bouché. Après le dépannage, cliquez sur le bouton de Réessayer."
+            },
+            {
+                "ecode": "07FF4001",
+                "intro": "Le filament est toujours chargé à partir d'AMS lorsque l'AMS est désactivé. Veuillez décharger le filament, le charger à partir du porte-bobine et recommencer l'impression."
+            },
+            {
+                "ecode": "0500C011",
+                "intro": "Une dégradation des performances de la carte SD a été détectée. Cela peut affecter les travaux d'impression, les journaux et les enregistrements vidéo. Essayez de formater ou de modifier la carte SD."
+            },
+            {
+                "ecode": "05008013",
+                "intro": "Le fichier d'impression n'est pas disponible. Vérifiez si le support de stockage a été retiré."
+            },
+            {
+                "ecode": "0300800F",
+                "intro": "La porte semble ouverte, l'impression a donc été interrompue."
+            },
+            {
+                "ecode": "05004014",
+                "intro": "Échec de la découpe du travail d'impression, veuillez vérifier les paramètres et relancer le travail d'impression."
+            },
+            {
+                "ecode": "03008010",
+                "intro": "La vitesse du ventilateur de l'extrudeur est anormale."
+            },
+            {
+                "ecode": "07FFC003",
+                "intro": "Veuillez retirer le filament externe de l'extrudeur. Si un AMS doit être utilisé ultérieurement, connectez le tube en PTFE au coupleur."
+            },
+            {
+                "ecode": "07FFC006",
+                "intro": "Veuillez alimenter à partir du porte-bobine jusqu'à ce que le capteur de filament de l'extrudeur se déclenche."
+            },
+            {
+                "ecode": "0500C010",
+                "intro": "Erreur de carte SD : veuillez la réinsérer, la formater ou la remplacer."
+            },
+            {
+                "ecode": "0300800D",
+                "intro": "Certains objets sont tombés ou l'extrudeuse ne fonctionne pas correctement. Si les défauts paraissent acceptables, cliquez sur l'icône « Reprendre » pour reprendre l'impression."
+            },
+            {
+                "ecode": "0500400E",
+                "intro": "L'impression a été annulée."
+            },
+            {
+                "ecode": "0500400D",
+                "intro": "Exécutez un auto-test et redémarrez le travail d'impression."
+            },
+            {
+                "ecode": "0300800C",
+                "intro": "Étape ignorée détectée, révocation automatique terminée, veuillez reprendre l'impression et vérifier s'il y a un problème de décalage de couche."
+            },
+            {
+                "ecode": "07008007",
+                "intro": "Impossible d'extruder le filament. Veuillez vérifier si l'extrudeuse est obstruée, après le dépannage, cliquez sur le bouton de réessai."
+            },
+            {
+                "ecode": "07008010",
+                "intro": "Le moteur d'assistance de l'AMS est surchargé, veuillez vérifier si la bobine ou le filament est bloqué, après le dépannage, cliquez sur le bouton de réessai."
+            },
+            {
+                "ecode": "07018007",
+                "intro": "Impossible d'extruder le filament. Veuillez vérifier si l'extrudeuse est obstruée, après le dépannage, cliquez sur le bouton de réessai."
+            },
+            {
+                "ecode": "07018010",
+                "intro": "Le moteur d'assistance de l'AMS est surchargé, veuillez vérifier si la bobine ou le filament est bloqué, après le dépannage, cliquez sur le bouton de réessai."
+            },
+            {
+                "ecode": "07028007",
+                "intro": "Impossible d'extruder le filament. Veuillez vérifier si l'extrudeuse est obstruée, après le dépannage, cliquez sur le bouton de réessai."
+            },
+            {
+                "ecode": "07028010",
+                "intro": "Le moteur d'assistance de l'AMS est surchargé, veuillez vérifier si la bobine ou le filament est bloqué, après le dépannage, cliquez sur le bouton de réessai."
+            },
+            {
+                "ecode": "07038007",
+                "intro": "Impossible d'extruder le filament. Veuillez vérifier si l'extrudeuse est obstruée, après le dépannage, cliquez sur le bouton de réessai."
+            },
+            {
+                "ecode": "07038010",
+                "intro": "Le moteur d'assistance de l'AMS est surchargé, veuillez vérifier si la bobine ou le filament est bloqué, après le dépannage, cliquez sur le bouton de réessai."
+            },
+            {
+                "ecode": "1000C001",
+                "intro": "La température du lit dépasse la température de vitrification du filament, ce qui peut provoquer l'obstruction de la buse. Veuillez garder le capot avant de l'imprimante ouvert ou baisser la température du lit."
+            },
+            {
+                "ecode": "1000C002",
+                "intro": "La dureté de buse requise par le filament est supérieure à la dureté de buse par défaut de l'imprimante. Veuillez remplacer la buse ou le filament durci, sinon la buse sera usée ou endommagée."
+            },
+            {
+                "ecode": "0500400C",
+                "intro": "Veuillez insérer la carte SD et relancer la tâche d'impression."
+            },
+            {
+                "ecode": "0500400B",
+                "intro": "Un problème s'est produit lors du téléchargement d'un fichier. Vérifiez votre connexion réseau et renvoyez le travail d'impression."
+            },
+            {
+                "ecode": "07008011",
+                "intro": "Le filament AMS est épuisé. Veuillez placer un nouveau filament dans AMS et cliquer sur le bouton Réessayer."
+            },
+            {
+                "ecode": "07018011",
+                "intro": "Le filament de l'AMS est terminé. Veuillez mettre un nouveau filament dans l'AMS, desserrer le connecteur du tube PTFE derrière l'imprimante, retirer l'ancien filament, réinstaller le connecteur du tube PTFE et cliquer sur le bouton de réessaie."
+            },
+            {
+                "ecode": "07028011",
+                "intro": "Le filament de l'AMS est épuisé. Veuillez mettre un nouveau filament dans l'AMS et cliquer sur le bouton de réessai."
+            },
+            {
+                "ecode": "07038011",
+                "intro": "Le filament AMS est épuisé. Veuillez placer un nouveau filament dans AMS et cliquer sur le bouton Réessayer."
+            },
+            {
+                "ecode": "0300400E",
+                "intro": "L'auto-vérification du moteur a échoué."
+            },
+            {
+                "ecode": "0300800B",
+                "intro": "Le cutter est bloqué. Veuillez retirer le manche du cutter et cliquer sur le bouton de reprise."
+            },
+            {
+                "ecode": "07008012",
+                "intro": "Impossible d'obtenir la table de correspondance AMS, veuillez cliquer sur \"Retry\" pour continuer."
+            },
+            {
+                "ecode": "07018012",
+                "intro": "Impossible d'obtenir la table de correspondance AMS, veuillez cliquer sur \"Retry\" pour continuer."
+            },
+            {
+                "ecode": "07028012",
+                "intro": "Impossible d'obtenir la table de correspondance AMS, veuillez cliquer sur \"Retry\" pour continuer."
+            },
+            {
+                "ecode": "07038012",
+                "intro": "Impossible d'obtenir la table de mappage AMS. Cliquez sur « Réessayer » pour continuer."
+            },
+            {
+                "ecode": "07008013",
+                "intro": "Délai d'expiration de la purge de l'ancien filament. Vérifiez si le filament est bloqué ou si l'extrudeuse est bouchée. Après le dépannage, cliquez sur le bouton Réessayer."
+            },
+            {
+                "ecode": "07018013",
+                "intro": "Délai d'expiration de la purge de l'ancien filament. Vérifiez si le filament est bloqué ou si l'extrudeuse est bouchée. Après le dépannage, cliquez sur le bouton Réessayer."
+            },
+            {
+                "ecode": "07028013",
+                "intro": "Timeout de la purge du vieux filament. Veuillez vérifier si le filament est coincé ou si l'extrudeuse est obstruée. Après le dépannage, cliquez sur le bouton de réessai."
+            },
+            {
+                "ecode": "07038013",
+                "intro": "Délai d'expiration de la purge de l'ancien filament. Vérifiez si le filament est bloqué ou si l'extrudeuse est bouchée. Après le dépannage, cliquez sur le bouton Réessayer."
+            },
+            {
+                "ecode": "07004001",
+                "intro": "Le filament est toujours chargé à partir d'AMS lorsque AMS est désactivé, veuillez décharger le filament sur AMS, le charger à partir du porte-bobine et recommencer l'impression."
+            },
+            {
+                "ecode": "07014001",
+                "intro": "Le filament est toujours chargé à partir d'AMS lorsque AMS est désactivé, veuillez décharger le filament sur AMS, le charger à partir du porte-bobine et recommencer l'impression."
+            },
+            {
+                "ecode": "07024001",
+                "intro": "Le filament est toujours chargé à partir d'AMS lorsque AMS est désactivé, veuillez décharger le filament sur AMS, le charger à partir du porte-bobine et recommencer l'impression."
+            },
+            {
+                "ecode": "07034001",
+                "intro": "Le filament est toujours chargé à partir d'AMS lorsque AMS est désactivé, veuillez décharger le filament sur AMS, le charger à partir du porte-bobine et recommencer l'impression."
+            },
+            {
+                "ecode": "07038001",
+                "intro": "Impossible de couper le filament. Veuillez vérifier le couteau. Après le dépannage, cliquez sur le bouton Réessayer."
+            },
+            {
+                "ecode": "07038002",
+                "intro": "Le cutter est bloqué. Veuillez retirer le manche du cutter et cliquer sur le bouton de réessai."
+            },
+            {
+                "ecode": "07038003",
+                "intro": "Échec de l'extraction du filament de l'extrudeur. Veuillez vérifier si la buse est obstruée ou si le filament est cassé à l'intérieur de l'extrudeuse. Après le dépannage, cliquez sur le bouton Réessayer."
+            },
+            {
+                "ecode": "07038004",
+                "intro": "Échec du retrait du filament vers AMS. Veuillez vérifier si le filament ou la bobine est coincé. Après le dépannage, cliquez sur le bouton Réessayer."
+            },
+            {
+                "ecode": "07038005",
+                "intro": "Impossible d'alimenter le filament en dehors de l'AMS. Veuillez nettoyer la pointe du filament et vérifier si la bobine est coincée. Après le dépannage, cliquez sur le bouton Réessayer."
+            },
+            {
+                "ecode": "07038006",
+                "intro": "Impossible d'alimenter le filament dans la tête d'outil. Veuillez vérifier si le filament ou la bobine est coincé. Après le dépannage, cliquez sur le bouton Réessayer."
+            },
+            {
+                "ecode": "0C008001",
+                "intro": "Des défauts évidents ont été détectés dans la première couche. Si les défauts sont acceptables, cliquez sur l'icône de reprise pour reprendre le travail d'impression."
+            },
+            {
+                "ecode": "0C008002",
+                "intro": "Un échec de spaghetti a été détecté. Si les défauts sont acceptables, cliquez sur le bouton de fermeture pour continuer l'impression du travail."
+            },
+            {
+                "ecode": "0C00C003",
+                "intro": "Des défauts éventuels ont été détectés dans la première couche."
+            },
+            {
+                "ecode": "0C00C004",
+                "intro": "Une défaillance possible des spaghettis a été détectée."
+            },
+            {
+                "ecode": "07018002",
+                "intro": "La fraise est coincée. Veuillez retirer la poignée du cutter et cliquer sur le bouton Réessayer."
+            },
+            {
+                "ecode": "07018003",
+                "intro": "Échec de l'extraction du filament de l'extrudeur. Veuillez vérifier si la buse est obstruée ou si le filament est cassé à l'intérieur de l'extrudeuse. Après le dépannage, cliquez sur le bouton Réessayer."
+            },
+            {
+                "ecode": "07018004",
+                "intro": "Échec du retrait du filament vers AMS. Veuillez vérifier si le filament ou la bobine est coincé. Après le dépannage, cliquez sur le bouton Réessayer."
+            },
+            {
+                "ecode": "07018005",
+                "intro": "Impossible d'alimenter le filament en dehors de l'AMS. Veuillez nettoyer la pointe du filament et vérifier si la bobine est coincée. Après le dépannage, cliquez sur le bouton Réessayer."
+            },
+            {
+                "ecode": "07018006",
+                "intro": "Impossible d'alimenter le filament dans la tête d'outil. Veuillez vérifier si le filament ou la bobine est coincé. Après le dépannage, cliquez sur le bouton Réessayer."
+            },
+            {
+                "ecode": "07028001",
+                "intro": "Impossible de couper le filament. Veuillez vérifier le couteau. Après le dépannage, cliquez sur le bouton Réessayer."
+            },
+            {
+                "ecode": "07028002",
+                "intro": "La fraise est coincée. Veuillez retirer la poignée du cutter et cliquer sur le bouton Réessayer."
+            },
+            {
+                "ecode": "07028003",
+                "intro": "Échec de l'extraction du filament de l'extrudeur. Veuillez vérifier si la buse est obstruée ou si le filament est cassé à l'intérieur de l'extrudeuse. Après le dépannage, cliquez sur le bouton Réessayer."
+            },
+            {
+                "ecode": "07028004",
+                "intro": "Échec du retrait du filament vers AMS. Veuillez vérifier si le filament ou la bobine est coincé. Après le dépannage, cliquez sur le bouton Réessayer."
+            },
+            {
+                "ecode": "07028005",
+                "intro": "Impossible d'alimenter le filament en dehors de l'AMS. Veuillez nettoyer la pointe du filament et vérifier si la bobine est coincée. Après le dépannage, cliquez sur le bouton Réessayer."
+            },
+            {
+                "ecode": "07028006",
+                "intro": "Impossible d'alimenter le filament dans la tête d'outil. Veuillez vérifier si le filament ou la bobine est coincé. Après le dépannage, cliquez sur le bouton Réessayer."
+            },
+            {
+                "ecode": "05004007",
+                "intro": "Les tâches d'impression ne peuvent pas être envoyées lorsqu'une mise à niveau forcée ou une mise à niveau de réparation est requise."
+            },
+            {
+                "ecode": "05004008",
+                "intro": "Le démarrage de l'impression a échoué. Veuillez redémarrer l'imprimante et renvoyer le travail d'impression."
+            },
+            {
+                "ecode": "07008001",
+                "intro": "Impossible de couper le filament. Veuillez vérifier le couteau. Après le dépannage, cliquez sur le bouton Réessayer."
+            },
+            {
+                "ecode": "07008002",
+                "intro": "La fraise est coincée. Veuillez retirer la poignée du cutter et cliquer sur le bouton Réessayer."
+            },
+            {
+                "ecode": "07008003",
+                "intro": "Échec de l'extraction du filament de l'extrudeur. Veuillez vérifier si la buse est obstruée ou si le filament est cassé à l'intérieur de l'extrudeuse. Après le dépannage, cliquez sur le bouton Réessayer."
+            },
+            {
+                "ecode": "07008004",
+                "intro": "Échec du retrait du filament vers AMS. Veuillez vérifier si le filament ou la bobine est coincé. Après le dépannage, cliquez sur le bouton Réessayer."
+            },
+            {
+                "ecode": "07008005",
+                "intro": "Impossible d'alimenter le filament en dehors de l'AMS. Veuillez nettoyer la pointe du filament et vérifier si la bobine est coincée. Après le dépannage, cliquez sur le bouton Réessayer."
+            },
+            {
+                "ecode": "07008006",
+                "intro": "Impossible d'alimenter le filament dans la tête d'outil. Veuillez vérifier si le filament ou la bobine est coincé. Après le dépannage, cliquez sur le bouton Réessayer."
+            },
+            {
+                "ecode": "07018001",
+                "intro": "Impossible de couper le filament. Veuillez vérifier le couteau. Après le dépannage, cliquez sur le bouton Réessayer."
+            },
+            {
+                "ecode": "05004009",
+                "intro": "L'envoi de travaux d'impression n'est pas autorisé pendant la mise à jour des journaux."
+            },
+            {
+                "ecode": "0500400A",
+                "intro": "Le nom du fichier n'est pas pris en charge. Veuillez le renommer et relancer la tâche d'impression."
+            },
+            {
+                "ecode": "03008002",
+                "intro": "Des défauts évidents ont été détectés dans la première couche. Si les défauts sont acceptables, cliquez sur l'icône de reprise pour reprendre le travail d'impression."
+            },
+            {
+                "ecode": "03008003",
+                "intro": "Une erreur d'impression possible a été détectée. Si les défauts sont acceptables, cliquez sur l'icône de reprise pour reprendre le travail d'impression."
+            },
+            {
+                "ecode": "03008004",
+                "intro": "Le filament s'est épuisé. Veuillez charger un nouveau filament dans Température/Axe et cliquez sur l'icône de reprise pour reprendre le travail d'impression."
+            },
+            {
+                "ecode": "03008005",
+                "intro": "L'impression a été interrompue car le capot avant de la tête de l'outil est tombé. Veuillez le remonter et cliquer sur l'icône de reprise pour reprendre le travail d'impression."
+            },
+            {
+                "ecode": "03008006",
+                "intro": "La plaque de construction n'est pas la même que celle du G-code. Veuillez passer à une autre plaque et cliquer sur l'icône de reprise pour reprendre le travail d'impression."
+            },
+            {
+                "ecode": "03008007",
+                "intro": "Si une tâche d'impression n'est pas terminée lors de la mise hors tension, appuyez sur \"Reprendre\" pour reprendre la tâche d'impression."
+            },
+            {
+                "ecode": "03008008",
+                "intro": "Dysfonctionnement de la température de la buse"
+            },
+            {
+                "ecode": "03008009",
+                "intro": "Dysfonctionnement de la température du plateau chauffant"
+            },
+            {
+                "ecode": "05004001",
+                "intro": "Échec de la connexion à Bambu Cloud. Veuillez vérifier votre connexion réseau."
+            },
+            {
+                "ecode": "05004002",
+                "intro": "Impossible d'analyser le travail d'impression reçu. Veuillez mettre à jour le micrologiciel vers la dernière version et réessayer."
+            },
+            {
+                "ecode": "05004003",
+                "intro": "Un problème est survenu lors de l'analyse de gcode.3mf. Veuillez renvoyer le travail d'impression."
+            },
+            {
+                "ecode": "05004004",
+                "intro": "Les travaux d'impression ne peuvent pas être envoyés pendant l'impression."
+            },
+            {
+                "ecode": "05004005",
+                "intro": "Les travaux d'impression ne peuvent pas être envoyés lors de la mise à jour du micrologiciel."
+            },
+            {
+                "ecode": "05004006",
+                "intro": "Il n'y a pas assez d'espace de stockage libre pour le travail d'impression. La restauration des paramètres d'usine peut libérer de l'espace disponible."
+            },
+            {
+                "ecode": "03004000",
+                "intro": "Echec du référencement de l'axe Z."
+            },
+            {
+                "ecode": "03004001",
+                "intro": "L'imprimante a expiré en attendant que la buse refroidisse avant de se diriger."
+            },
+            {
+                "ecode": "03004002",
+                "intro": "Le nivellement du lit grillagé a échoué."
+            },
+            {
+                "ecode": "03004005",
+                "intro": "La vitesse du ventilateur heatbreak est anormale."
+            },
+            {
+                "ecode": "03004006",
+                "intro": "La buse est bouchée."
+            },
+            {
+                "ecode": "03004008",
+                "intro": "L'AMS n'a pas réussi à changer le filament."
+            },
+            {
+                "ecode": "03004009",
+                "intro": "Échec de la prise d'origine de l'axe XY."
+            },
+            {
+                "ecode": "0300400A",
+                "intro": "L'identification du mode de résonance mécanique a échoué."
+            },
+            {
+                "ecode": "0300400B",
+                "intro": "Exception de communication interne."
+            },
+            {
+                "ecode": "0300400C",
+                "intro": "L'impression a été annulée."
+            },
+            {
+                "ecode": "0300400D",
+                "intro": "La reprise a échoué après une coupure de courant."
+            },
+            {
+                "ecode": "03008000",
+                "intro": "L'impression a été interrompue pour des raisons inconnues. Vous pouvez cliquer sur l'icône de reprise pour reprendre le travail d'impression."
+            },
+            {
+                "ecode": "03008001",
+                "intro": "L'impression a été interrompue par l'utilisateur. Vous pouvez cliquer sur l'icône de reprise pour reprendre le travail d'impression."
+            }
+        ],
+        "ver": 202309261900
+    },
+    "device_hms": {
+        "fr": [
+            {
+                "ecode": "03000D0000020004",
+                "intro": "La plaque d'impression n'est pas placée correctement. Veuillez l'ajuster."
+            },
+            {
+                "ecode": "03000D0000020005",
+                "intro": "La plaque d'impression n'est pas placée correctement. Veuillez l'ajuster."
+            },
+            {
+                "ecode": "03000D0000020006",
+                "intro": "La plaque d'impression n'est pas placée correctement. Veuillez l'ajuster."
+            },
+            {
+                "ecode": "03000D0000020007",
+                "intro": "La plaque d'impression n'est pas placée correctement. Veuillez l'ajuster."
+            },
+            {
+                "ecode": "03000D0000020008",
+                "intro": "La plaque d'impression n'est pas placée correctement. Veuillez l'ajuster."
+            },
+            {
+                "ecode": "03000D0000020009",
+                "intro": "La plaque d'impression n'est pas placée correctement. Veuillez l'ajuster."
+            },
+            {
+                "ecode": "03000D000002000A",
+                "intro": "La plaque d'impression n'est pas placée correctement. Veuillez l'ajuster."
+            },
+            {
+                "ecode": "03000D0000020003",
+                "intro": "La plaque d'impression n'est pas placée correctement. Veuillez l'ajuster."
+            },
+            {
+                "ecode": "0500040000020020",
+                "intro": ""
+            },
+            {
+                "ecode": "0300910000010002",
+                "intro": "La température du réchauffeur de chambre 1 est anormale. Le dispositif de chauffage peut avoir un circuit ouvert ou le fusible thermique peut avoir fait effet."
+            },
+            {
+                "ecode": "0300910000010003",
+                "intro": "La température du réchauffeur de chambre 1 est anormale. Le réchauffeur est en surchauffe."
+            },
+            {
+                "ecode": "0300910000010006",
+                "intro": "La température du réchauffeur de chambre 1 est anormale. Le capteur peut présenter un court-circuit."
+            },
+            {
+                "ecode": "0300910000010007",
+                "intro": "La température du réchauffeur de chambre 1 est anormale. Le capteur peut présenter un circuit ouvert."
+            },
+            {
+                "ecode": "0300910000010008",
+                "intro": "Le chauffage de la chambre 1 n'a pas atteint la température cible."
+            },
+            {
+                "ecode": "0300920000010001",
+                "intro": "La température du réchauffeur de chambre 2 est anormale. L'appareil de chauffage peut présenter un court-circuit."
+            },
+            {
+                "ecode": "0300920000010002",
+                "intro": "La température du réchauffeur de chambre 2 est anormale. Le dispositif de chauffage peut avoir un circuit ouvert ou le fusible thermique peut être actif."
+            },
+            {
+                "ecode": "0300920000010003",
+                "intro": "La température du chauffage de la chambre 2 est anormale. Le chauffage est en surchauffe."
+            },
+            {
+                "ecode": "0300920000010006",
+                "intro": "La température du réchauffeur de chambre 2 est anormale. Le capteur peut présenter un court-circuit."
+            },
+            {
+                "ecode": "0300920000010007",
+                "intro": "La température du réchauffeur de chambre 2 est anormale. Le capteur peut présenter un circuit ouvert."
+            },
+            {
+                "ecode": "0300920000010008",
+                "intro": "Le réchauffeur de chambre 2 n'a pas atteint la température cible."
+            },
+            {
+                "ecode": "0300930000010001",
+                "intro": "La température de la chambre est anormale. Le capteur de température du réchauffeur de chambre peut présenter un court-circuit."
+            },
+            {
+                "ecode": "0300930000010002",
+                "intro": "La température de la chambre est anormale. Le capteur de température du réchauffeur de chambre peut présenter un circuit ouvert."
+            },
+            {
+                "ecode": "0300930000010003",
+                "intro": "La température de la chambre est anormale. Le capteur de température du réchauffeur de chambre situé à la sortie d'air peut présenter un court-circuit."
+            },
+            {
+                "ecode": "0300930000010004",
+                "intro": "La température de la chambre est anormale. Le capteur de température du réchauffeur de chambre situé à la sortie d'air peut présenter un circuit ouvert."
+            },
+            {
+                "ecode": "0300930000010005",
+                "intro": "La température de la chambre est anormale. Le capteur de température du réchauffeur de chambre situé à l'entrée d'air peut présenter un court-circuit."
+            },
+            {
+                "ecode": "0300930000010006",
+                "intro": "La température de la chambre est anormale. Le capteur de température du réchauffeur de chambre situé à l'entrée d'air peut présenter un circuit ouvert."
+            },
+            {
+                "ecode": "0300930000010007",
+                "intro": "La température de la chambre est anormale. Le capteur de température de l'alimentation peut présenter un court-circuit."
+            },
+            {
+                "ecode": "0300930000010008",
+                "intro": "La température de la chambre est anormale. Le capteur de température au niveau de l'alimentation électrique peut avoir un circuit ouvert."
+            },
+            {
+                "ecode": "0500030000010023",
+                "intro": "Le module de Contrôle de Température de la Chambre ne fonctionne pas correctement. Redémarrez l'appareil."
+            },
+            {
+                "ecode": "0300900000010010",
+                "intro": "La communication du régulateur de température de la chambre est anormale."
+            },
+            {
+                "ecode": "12FF200000030007",
+                "intro": "Vérification du filament de chaque emplacement AMS, veuillez patienter."
+            },
+            {
+                "ecode": "0300940000030001",
+                "intro": "Le refroidissement de la chambre est peut-être trop lent. Vous pouvez aérer la chambre pour faciliter le refroidissement si le gaz contenu dans la chambre n'est pas toxique."
+            },
+            {
+                "ecode": "0300180000010001",
+                "intro": "La valeur du capteur de force d'extrusion est faible, la buse ne semble pas être installée."
+            },
+            {
+                "ecode": "0300180000010003",
+                "intro": "Les données du capteur de force d'extrusion n'ont pas pu être lues. Il s'agit probablement d'une panne de communication ou d'un capteur endommagé."
+            },
+            {
+                "ecode": "0300180000010004",
+                "intro": "Les données du capteur de force d'extrusion sont anormales, le capteur doit être cassé."
+            },
+            {
+                "ecode": "0300190000010001",
+                "intro": "Le capteur de courant de Foucault sur l'axe Y n'est pas disponible, le fil doit être cassé."
+            },
+            {
+                "ecode": "0300190000020002",
+                "intro": "La sensibilité du capteur de courant de Foucault de l'axe Y est trop élevée."
+            },
+            {
+                "ecode": "0300940000030002",
+                "intro": "La valeur de réglage de la température de la chambre dépasse la limite, la valeur limite sera définie."
+            },
+            {
+                "ecode": "12FF200000020007",
+                "intro": "Impossible de vérifier la position du filament dans la tête d'impression, cliquez pour obtenir de l'aide supplémentaire."
+            },
+            {
+                "ecode": "0300180000010002",
+                "intro": "La sensibilité du capteur de force d'extrusion est faible, le hotend risque de ne pas être installé correctement."
+            },
+            {
+                "ecode": "0C0003000002000F",
+                "intro": "Si le saut de pièces est défini avant l'inspection de la première couche, l'inspection ne sera pas prise en charge pour l'impression en cours."
+            },
+            {
+                "ecode": "0500040000020010",
+                "intro": "L'étiquette RFID sur filament 1 AMS 1 ne peut pas être identifiée."
+            },
+            {
+                "ecode": "0500040000020011",
+                "intro": "L'étiquette RFID sur filament 2 AMS 1 ne peut pas être identifiée."
+            },
+            {
+                "ecode": "0500040000020012",
+                "intro": "L'étiquette RFID sur filament 3 AMS 1 ne peut pas être identifiée."
+            },
+            {
+                "ecode": "0500040000020014",
+                "intro": "L'étiquette RFID sur filament 1 AMS 2 ne peut pas être identifiée."
+            },
+            {
+                "ecode": "0500040000020015",
+                "intro": "L'étiquette RFID sur filament 2 AMS 2 ne peut pas être identifiée."
+            },
+            {
+                "ecode": "0500040000020016",
+                "intro": "L'étiquette RFID sur filament 3 AMS 2 ne peut pas être identifiée."
+            },
+            {
+                "ecode": "0500040000020017",
+                "intro": "L'étiquette RFID sur filament 4 AMS 2 ne peut pas être identifiée."
+            },
+            {
+                "ecode": "0500040000020018",
+                "intro": "L'étiquette RFID sur filament 1 AMS 3 ne peut pas être identifiée."
+            },
+            {
+                "ecode": "0500040000020019",
+                "intro": "L'étiquette RFID sur filament 2 AMS 3 ne peut pas être identifiée."
+            },
+            {
+                "ecode": "050004000002001A",
+                "intro": "L'étiquette RFID sur filament 3 AMS 3 ne peut pas être identifiée."
+            },
+            {
+                "ecode": "050004000002001B",
+                "intro": "L'étiquette RFID sur filament 4 AMS 3 ne peut pas être identifiée."
+            },
+            {
+                "ecode": "050004000002001C",
+                "intro": "L'étiquette RFID sur filament 1 AMS 4 ne peut pas être identifiée."
+            },
+            {
+                "ecode": "050004000002001D",
+                "intro": "L'étiquette RFID sur filament 2 AMS 4 ne peut pas être identifiée."
+            },
+            {
+                "ecode": "050004000002001E",
+                "intro": "L'étiquette RFID sur filament 3 AMS 4 ne peut pas être identifiée."
+            },
+            {
+                "ecode": "050004000002001F",
+                "intro": "L'étiquette RFID sur filament 4 AMS 4 ne peut pas être identifiée."
+            },
+            {
+                "ecode": "0500040000020013",
+                "intro": "L'étiquette RFID sur filament 4 AMS 1 ne peut pas être identifiée."
+            },
+            {
+                "ecode": "12FF800000020001",
+                "intro": "Le filament du porte-bobine est peut-être emmêlé ou coincé."
+            },
+            {
+                "ecode": "1200800000020001",
+                "intro": "Le filament 1 de l'AMS 1 est peut-être emmêlé ou coincé."
+            },
+            {
+                "ecode": "1200810000020001",
+                "intro": "Le filament 2 de l'AMS 1 est peut-être emmêlé ou coincé."
+            },
+            {
+                "ecode": "1200820000020001",
+                "intro": "Le filament 3 de l'AMS 1 est peut-être emmêlé ou coincé."
+            },
+            {
+                "ecode": "1200830000020001",
+                "intro": "Le filament 4 de l'AMS 1 est peut-être emmêlé ou coincé."
+            },
+            {
+                "ecode": "1201800000020001",
+                "intro": "Le filament 1 de l'AMS 2 est peut-être emmêlé ou coincé."
+            },
+            {
+                "ecode": "1201810000020001",
+                "intro": "Le filament 2 de l'AMS 2 est peut-être emmêlé ou coincé."
+            },
+            {
+                "ecode": "1201820000020001",
+                "intro": "Le filament 3 de l'AMS 2 est peut-être emmêlé ou coincé."
+            },
+            {
+                "ecode": "1201830000020001",
+                "intro": "Le filament 4 de l'AMS 2 est peut-être emmêlé ou coincé."
+            },
+            {
+                "ecode": "1202800000020001",
+                "intro": "Le filament 1 de l'AMS 3 est peut-être emmêlé ou coincé."
+            },
+            {
+                "ecode": "1202810000020001",
+                "intro": "Le filament 2 de l'AMS 3 est peut-être emmêlé ou coincé."
+            },
+            {
+                "ecode": "1202820000020001",
+                "intro": "Le filament 3 de l'AMS 3 est peut-être emmêlé ou coincé."
+            },
+            {
+                "ecode": "1202830000020001",
+                "intro": "Le filament 4 de l'AMS 3 est peut-être emmêlé ou coincé."
+            },
+            {
+                "ecode": "1203800000020001",
+                "intro": "Le filament 1 de l'AMS 4 est peut-être emmêlé ou coincé."
+            },
+            {
+                "ecode": "1203810000020001",
+                "intro": "Le filament 2 de l'AMS 4 est peut-être emmêlé ou coincé."
+            },
+            {
+                "ecode": "1203820000020001",
+                "intro": "Le filament 3 de l'AMS 4 est peut-être emmêlé ou coincé."
+            },
+            {
+                "ecode": "1203830000020001",
+                "intro": "Le filament 4 de l'AMS 4 est peut-être emmêlé ou coincé."
+            },
+            {
+                "ecode": "0300170000010001",
+                "intro": "La vitesse du ventilateur du hotend est trop lente ou s'est arrêtée. Les pales sont peut-être coincée ou le connecteur n'est peut-être pas branché correctement."
+            },
+            {
+                "ecode": "0300170000020002",
+                "intro": "La vitesse du ventilateur du hotend est lente. Il est peut-être coincé et doit être nettoyé."
+            },
+            {
+                "ecode": "0300900000010001",
+                "intro": "Échec du chauffage de la chambre. Il se peut que le chauffage de la chambre ne parvienne pas à souffler de l'air chaud."
+            },
+            {
+                "ecode": "0300900000010002",
+                "intro": "Le chauffage de la chambre a échoué. La trappe n'est peut-être pas fermée ou la température ambiante est peut-être trop basse."
+            },
+            {
+                "ecode": "0300900000010003",
+                "intro": "Le chauffage de la chambre a échoué. La température de l'alimentation électrique est peut-être trop élevée."
+            },
+            {
+                "ecode": "0300900000010004",
+                "intro": "Le chauffage de la chambre a échoué. La vitesse du ventilateur de chauffage est trop faible."
+            },
+            {
+                "ecode": "0300900000010005",
+                "intro": "Le chauffage de la chambre a échoué. La résistance thermique est trop élevée."
+            },
+            {
+                "ecode": "0300910000010001",
+                "intro": "La température du réchauffeur de chambre 1 est anormale. L'appareil de chauffage peut présenter un court-circuit."
+            },
+            {
+                "ecode": "1200730000010001",
+                "intro": "Erreur de vitesse et de longueur du filament de l'AMS1 : L'odomètre du filament 4 peut être défectueux."
+            },
+            {
+                "ecode": "1201730000010001",
+                "intro": "Erreur de vitesse et de longueur du filament de l'AMS2 : L'odomètre du filament 4 peut être défectueux."
+            },
+            {
+                "ecode": "1202730000010001",
+                "intro": "Erreur de vitesse et de longueur du filament de l'AMS3 : L'odomètre du filament 4 peut être défectueux."
+            },
+            {
+                "ecode": "1203730000010001",
+                "intro": "Erreur de vitesse et de longueur du filament de l'AMS4 : L'odomètre du filament 4 peut être défectueux."
+            },
+            {
+                "ecode": "12FF200000020005",
+                "intro": "Le filament est peut-être cassé dans l'extrudeur."
+            },
+            {
+                "ecode": "12FF200000020006",
+                "intro": "Le filament n'a pas été extrudé, l'extrudeur est peut-être obstrué."
+            },
+            {
+                "ecode": "1202210000020005",
+                "intro": "Le filament 2 AMS3 est épuisé et la purge de l'ancien filament s'est déroulée de manière anormale. Veuillez vérifier si le filament n'est pas coincé dans la tête de l'outil."
+            },
+            {
+                "ecode": "1203210000020005",
+                "intro": "Le filament 2 AMS4 est épuisé et la purge de l'ancien filament s'est déroulée de manière anormale. Veuillez vérifier si le filament n'est pas coincé dans la tête de l'outil."
+            },
+            {
+                "ecode": "1200220000020005",
+                "intro": "Le filament 3 AMS1 est épuisé et la purge de l'ancien filament s'est déroulée de manière anormale. Veuillez vérifier si le filament n'est pas coincé dans la tête de l'outil."
+            },
+            {
+                "ecode": "1201220000020005",
+                "intro": "Le filament 3 AMS2 est épuisé et la purge de l'ancien filament s'est déroulée de manière anormale. Veuillez vérifier si le filament n'est pas coincé dans la tête de l'outil."
+            },
+            {
+                "ecode": "1202220000020005",
+                "intro": "Le filament 3 AMS3 est épuisé et la purge de l'ancien filament s'est déroulée de manière anormale. Veuillez vérifier si le filament n'est pas coincé dans la tête de l'outil."
+            },
+            {
+                "ecode": "1203220000020005",
+                "intro": "Le filament 3 AMS4 est épuisé et la purge de l'ancien filament s'est déroulée de manière anormale. Veuillez vérifier si le filament n'est pas coincé dans la tête de l'outil."
+            },
+            {
+                "ecode": "1200230000020005",
+                "intro": "Le filament 4 AMS1 est épuisé et la purge de l'ancien filament s'est déroulée de manière anormale. Veuillez vérifier si le filament n'est pas coincé dans la tête de l'outil."
+            },
+            {
+                "ecode": "1201230000020005",
+                "intro": "Le filament 4 AMS2 est épuisé et la purge de l'ancien filament s'est déroulée de manière anormale. Veuillez vérifier si le filament n'est pas coincé dans la tête de l'outil."
+            },
+            {
+                "ecode": "1202230000020005",
+                "intro": "Le filament 4 AMS3 est épuisé et la purge de l'ancien filament s'est déroulée de manière anormale. Veuillez vérifier si le filament n'est pas coincé dans la tête de l'outil."
+            },
+            {
+                "ecode": "1203230000020005",
+                "intro": "Le filament 4 AMS4 est épuisé et la purge de l'ancien filament s'est déroulée de manière anormale. Veuillez vérifier si le filament n'est pas coincé dans la tête de l'outil."
+            },
+            {
+                "ecode": "1200200000030001",
+                "intro": "Le filament 1 AMS1 est épuisé: Purge du filament restant, veuillez patienter..."
+            },
+            {
+                "ecode": "1201200000030001",
+                "intro": "Le filament 1 AMS2 est épuisé: Purge du filament restant, veuillez patienter..."
+            },
+            {
+                "ecode": "1202200000030001",
+                "intro": "Le filament 1 AMS3 est épuisé: Purge du filament restant, veuillez patienter..."
+            },
+            {
+                "ecode": "1203200000030001",
+                "intro": "Le filament 1 AMS4 est épuisé: Purge du filament restant, veuillez patienter..."
+            },
+            {
+                "ecode": "1200210000030001",
+                "intro": "Le filament 2 AMS1 est épuisé: Purge du filament restant, veuillez patienter..."
+            },
+            {
+                "ecode": "1201210000030001",
+                "intro": "Le filament 2 AMS2 est épuisé: Purge du filament restant, veuillez patienter..."
+            },
+            {
+                "ecode": "1202210000030001",
+                "intro": "Le filament 2 AMS3 est épuisé: Purge du filament restant, veuillez patienter..."
+            },
+            {
+                "ecode": "1203210000030001",
+                "intro": "Le filament 2 AMS4 est épuisé: Purge du filament restant, veuillez patienter..."
+            },
+            {
+                "ecode": "1200220000030001",
+                "intro": "Le filament 3 AMS1 est épuisé: Purge du filament restant, veuillez patienter..."
+            },
+            {
+                "ecode": "1201220000030001",
+                "intro": "Le filament 3 AMS2 est épuisé: Purge du filament restant, veuillez patienter..."
+            },
+            {
+                "ecode": "1202220000030001",
+                "intro": "Le filament 3 AMS3 est épuisé: Purge du filament restant, veuillez patienter..."
+            },
+            {
+                "ecode": "1203220000030001",
+                "intro": "Le filament 3 AMS4 est épuisé: Purge du filament restant, veuillez patienter..."
+            },
+            {
+                "ecode": "1200230000030001",
+                "intro": "Le filament 4 AMS1 est épuisé: Purge du filament restant, veuillez patienter..."
+            },
+            {
+                "ecode": "1201230000030001",
+                "intro": "Le filament 4 AMS2 est épuisé: Purge du filament restant, veuillez patienter..."
+            },
+            {
+                "ecode": "1202230000030001",
+                "intro": "Le filament 4 AMS3 est épuisé: Purge du filament restant, veuillez patienter..."
+            },
+            {
+                "ecode": "1203230000030001",
+                "intro": "Le filament 4 AMS4 est épuisé: Purge du filament restant, veuillez patienter..."
+            },
+            {
+                "ecode": "1200200000030002",
+                "intro": "Le filament 1 AMS1 est épuisé et est automatiquement transféré vers un emplacement contenant le même filament."
+            },
+            {
+                "ecode": "1201200000030002",
+                "intro": "Le filament 1 AMS2 est épuisé et est automatiquement transféré vers un emplacement contenant le même filament."
+            },
+            {
+                "ecode": "1202200000030002",
+                "intro": "Le filament 1 AMS3 est épuisé et est automatiquement transféré vers un emplacement contenant le même filament."
+            },
+            {
+                "ecode": "1203200000030002",
+                "intro": "Le filament 1 AMS4 est épuisé et est automatiquement transféré vers un emplacement contenant le même filament."
+            },
+            {
+                "ecode": "1200210000030002",
+                "intro": "Le filament 2 AMS1 est épuisé et est automatiquement transféré vers un emplacement contenant le même filament."
+            },
+            {
+                "ecode": "1201210000030002",
+                "intro": "Le filament 2 AMS2 est épuisé et est automatiquement transféré vers un emplacement contenant le même filament."
+            },
+            {
+                "ecode": "1202210000030002",
+                "intro": "Le filament 2 AMS3 est épuisé et est automatiquement transféré vers un emplacement contenant le même filament."
+            },
+            {
+                "ecode": "1203210000030002",
+                "intro": "Le filament 2 AMS4 est épuisé et est automatiquement transféré vers un emplacement contenant le même filament."
+            },
+            {
+                "ecode": "1200220000030002",
+                "intro": "Le filament 3 AMS1 est épuisé et est automatiquement transféré vers un emplacement contenant le même filament."
+            },
+            {
+                "ecode": "1201220000030002",
+                "intro": "Le filament 3 AMS2 est épuisé et est automatiquement transféré vers un emplacement contenant le même filament."
+            },
+            {
+                "ecode": "1202220000030002",
+                "intro": "Le filament 3 AMS3 est épuisé et est automatiquement transféré vers un emplacement contenant le même filament."
+            },
+            {
+                "ecode": "1203220000030002",
+                "intro": "Le filament 3 AMS4 est épuisé et est automatiquement transféré vers un emplacement contenant le même filament."
+            },
+            {
+                "ecode": "1200230000030002",
+                "intro": "Le filament 4 AMS1 est épuisé et est automatiquement transféré vers un emplacement contenant le même filament."
+            },
+            {
+                "ecode": "1201230000030002",
+                "intro": "Le filament 4 AMS2 est épuisé et est automatiquement transféré vers un emplacement contenant le même filament."
+            },
+            {
+                "ecode": "1202230000030002",
+                "intro": "Le filament 4 AMS3 est épuisé et est automatiquement transféré vers un emplacement contenant le même filament."
+            },
+            {
+                "ecode": "1203230000030002",
+                "intro": "Le filament 4 AMS4 est épuisé et est automatiquement transféré vers un emplacement contenant le même filament."
+            },
+            {
+                "ecode": "1200300000010001",
+                "intro": "La bobine RFID de l'emplacement 1 AMS1 est cassée ou le circuit RF présente une erreur."
+            },
+            {
+                "ecode": "1201300000010001",
+                "intro": "La bobine RFID de l'emplacement 1 AMS2 est cassée ou le circuit RF présente une erreur."
+            },
+            {
+                "ecode": "1202300000010001",
+                "intro": "La bobine RFID de l'emplacement 1 AMS3 est cassée ou le circuit RF présente une erreur."
+            },
+            {
+                "ecode": "1203300000010001",
+                "intro": "La bobine RFID de l'emplacement 1 AMS4 est cassée ou le circuit RF présente une erreur."
+            },
+            {
+                "ecode": "1200310000010001",
+                "intro": "La bobine RFID de l'emplacement 2 AMS1 est cassée ou le circuit RF présente une erreur."
+            },
+            {
+                "ecode": "1201310000010001",
+                "intro": "La bobine RFID de l'emplacement 2 AMS2 est cassée ou le circuit RF présente une erreur."
+            },
+            {
+                "ecode": "1202310000010001",
+                "intro": "La bobine RFID de l'emplacement 2 AMS3 est cassée ou le circuit RF présente une erreur."
+            },
+            {
+                "ecode": "1203310000010001",
+                "intro": "La bobine RFID de l'emplacement 2 AMS4 est cassée ou le circuit RF présente une erreur."
+            },
+            {
+                "ecode": "1200320000010001",
+                "intro": "La bobine RFID de l'emplacement 3 AMS1 est cassée ou le circuit RF présente une erreur."
+            },
+            {
+                "ecode": "1201320000010001",
+                "intro": "La bobine RFID de l'emplacement 3 AMS2 est cassée ou le circuit RF présente une erreur."
+            },
+            {
+                "ecode": "1202320000010001",
+                "intro": "La bobine RFID de l'emplacement 3 AMS3 est cassée ou le circuit RF présente une erreur."
+            },
+            {
+                "ecode": "1203320000010001",
+                "intro": "La bobine RFID de l'emplacement 3 AMS4 est cassée ou le circuit RF présente une erreur."
+            },
+            {
+                "ecode": "1200330000010001",
+                "intro": "La bobine RFID de l'emplacement 4 AMS1 est cassée ou le circuit RF présente une erreur."
+            },
+            {
+                "ecode": "1201330000010001",
+                "intro": "La bobine RFID de l'emplacement 4 AMS2 est cassée ou le circuit RF présente une erreur."
+            },
+            {
+                "ecode": "1202330000010001",
+                "intro": "La bobine RFID de l'emplacement 4 AMS3 est cassée ou le circuit RF présente une erreur."
+            },
+            {
+                "ecode": "1203330000010001",
+                "intro": "La bobine RFID de l'emplacement 4 AMS4 est cassée ou le circuit RF présente une erreur."
+            },
+            {
+                "ecode": "1200300000020002",
+                "intro": "L'étiquette RFID filament 1 AMS1 est endommagée."
+            },
+            {
+                "ecode": "1201300000020002",
+                "intro": "L'étiquette RFID filament 1 AMS2 est endommagée."
+            },
+            {
+                "ecode": "1202300000020002",
+                "intro": "L'étiquette RFID filament 1 AMS3 est endommagée."
+            },
+            {
+                "ecode": "1203300000020002",
+                "intro": "L'étiquette RFID filament 1 AMS4 est endommagée."
+            },
+            {
+                "ecode": "1200310000020002",
+                "intro": "L'étiquette RFID filament 2 AMS1 est endommagée."
+            },
+            {
+                "ecode": "1201310000020002",
+                "intro": "L'étiquette RFID filament 2 AMS2 est endommagée."
+            },
+            {
+                "ecode": "1202310000020002",
+                "intro": "L'étiquette RFID filament 2 AMS3 est endommagée."
+            },
+            {
+                "ecode": "1203310000020002",
+                "intro": "L'étiquette RFID filament 2 AMS4 est endommagée."
+            },
+            {
+                "ecode": "1200320000020002",
+                "intro": "L'étiquette RFID filament 3 AMS1 est endommagée."
+            },
+            {
+                "ecode": "1201320000020002",
+                "intro": "L'étiquette RFID filament 3 AMS2 est endommagée."
+            },
+            {
+                "ecode": "1202320000020002",
+                "intro": "L'étiquette RFID filament 3 AMS3 est endommagée."
+            },
+            {
+                "ecode": "1203320000020002",
+                "intro": "L'étiquette RFID filament 3 AMS4 est endommagée."
+            },
+            {
+                "ecode": "1200330000020002",
+                "intro": "L'étiquette RFID filament 4 AMS1 est endommagée."
+            },
+            {
+                "ecode": "1201330000020002",
+                "intro": "L'étiquette RFID filament 4 AMS2 est endommagée."
+            },
+            {
+                "ecode": "1202330000020002",
+                "intro": "L'étiquette RFID filament 4 AMS3 est endommagée."
+            },
+            {
+                "ecode": "1203330000020002",
+                "intro": "L'étiquette RFID filament 4 AMS4 est endommagée."
+            },
+            {
+                "ecode": "1200300000030003",
+                "intro": "Le RFID filament 1 AMS1 ne peut pas être lu en raison d'une erreur structurelle."
+            },
+            {
+                "ecode": "1201300000030003",
+                "intro": "Le RFID filament 1 AMS2 ne peut pas être lu en raison d'une erreur structurelle."
+            },
+            {
+                "ecode": "1202300000030003",
+                "intro": "Le RFID filament 1 AMS3 ne peut pas être lu en raison d'une erreur structurelle."
+            },
+            {
+                "ecode": "1203300000030003",
+                "intro": "Le RFID filament 1 AMS4 ne peut pas être lu en raison d'une erreur structurelle."
+            },
+            {
+                "ecode": "1200310000030003",
+                "intro": "Le RFID filament 2 AMS1 ne peut pas être lu en raison d'une erreur structurelle."
+            },
+            {
+                "ecode": "1201310000030003",
+                "intro": "Le RFID filament 2 AMS2 ne peut pas être lu en raison d'une erreur structurelle."
+            },
+            {
+                "ecode": "1202310000030003",
+                "intro": "Le RFID filament 2 AMS3 ne peut pas être lu en raison d'une erreur structurelle."
+            },
+            {
+                "ecode": "1203310000030003",
+                "intro": "Le RFID filament 2 AMS4 ne peut pas être lu en raison d'une erreur structurelle."
+            },
+            {
+                "ecode": "1200320000030003",
+                "intro": "Le RFID filament 3 AMS1 ne peut pas être lu en raison d'une erreur structurelle."
+            },
+            {
+                "ecode": "1201320000030003",
+                "intro": "Le RFID filament 3 AMS2 ne peut pas être lu en raison d'une erreur structurelle."
+            },
+            {
+                "ecode": "1202320000030003",
+                "intro": "Le RFID filament 3 AMS3 ne peut pas être lu en raison d'une erreur structurelle."
+            },
+            {
+                "ecode": "1203320000030003",
+                "intro": "Le RFID filament 3 AMS4 ne peut pas être lu en raison d'une erreur structurelle."
+            },
+            {
+                "ecode": "1200330000030003",
+                "intro": "Le RFID filament 4 AMS1 ne peut pas être lu en raison d'une erreur structurelle."
+            },
+            {
+                "ecode": "1201330000030003",
+                "intro": "Le RFID filament 4 AMS2 ne peut pas être lu en raison d'une erreur structurelle."
+            },
+            {
+                "ecode": "1202330000030003",
+                "intro": "Le RFID filament 4 AMS3 ne peut pas être lu en raison d'une erreur structurelle."
+            },
+            {
+                "ecode": "1203330000030003",
+                "intro": "Le RFID filament 4 AMS4 ne peut pas être lu en raison d'une erreur structurelle."
+            },
+            {
+                "ecode": "1200300000010004",
+                "intro": "La RFID ne peut pas être lue en raison d'une défaillance de la puce de chiffrement de l'AMS1."
+            },
+            {
+                "ecode": "1201300000010004",
+                "intro": "La RFID ne peut pas être lue en raison d'une défaillance de la puce de chiffrement de l'AMS2."
+            },
+            {
+                "ecode": "1202300000010004",
+                "intro": "La RFID ne peut pas être lue en raison d'une défaillance de la puce de chiffrement de l'AMS3."
+            },
+            {
+                "ecode": "1203300000010004",
+                "intro": "La RFID ne peut pas être lue en raison d'une défaillance de la puce de chiffrement de l'AMS4."
+            },
+            {
+                "ecode": "1200450000020001",
+                "intro": "Le capteur du coupe-filament ne fonctionne pas correctement. Vérifiez si le connecteur est correctement branché."
+            },
+            {
+                "ecode": "1200450000020002",
+                "intro": "La distance de coupe du coupe-filament est trop grande. Le moteur X pourrait perdre des pas."
+            },
+            {
+                "ecode": "1200450000020003",
+                "intro": "La poignée du coupe-filament ne s'est pas détachée. Le levier ou la lame sont peut-être coincés."
+            },
+            {
+                "ecode": "1200500000020001",
+                "intro": "La communication AMS1 est anormale, veuillez vérifier le câble de connexion."
+            },
+            {
+                "ecode": "1201500000020001",
+                "intro": "La communication AMS2 est anormale, veuillez vérifier le câble de connexion."
+            },
+            {
+                "ecode": "1202500000020001",
+                "intro": "La communication AMS3 est anormale, veuillez vérifier le câble de connexion."
+            },
+            {
+                "ecode": "1203500000020001",
+                "intro": "La communication AMS4 est anormale, veuillez vérifier le câble de connexion."
+            },
+            {
+                "ecode": "1200510000030001",
+                "intro": "L'AMS est désactivé , veuillez charger le filament depuis le porte-bobine."
+            },
+            {
+                "ecode": "1200700000010001",
+                "intro": "Erreur de vitesse et de longueur du filament de l'AMS1 : L'odomètre du filament 1 peut être défectueux."
+            },
+            {
+                "ecode": "1201700000010001",
+                "intro": "Erreur de vitesse et de longueur du filament de l'AMS2 : L'odomètre du filament 1 peut être défectueux."
+            },
+            {
+                "ecode": "1202700000010001",
+                "intro": "Erreur de vitesse et de longueur du filament de l'AMS3 : L'odomètre du filament 1 peut être défectueux."
+            },
+            {
+                "ecode": "1203700000010001",
+                "intro": "Erreur de vitesse et de longueur du filament de l'AMS4 : L'odomètre du filament 1 peut être défectueux."
+            },
+            {
+                "ecode": "1200710000010001",
+                "intro": "Erreur de vitesse et de longueur du filament de l'AMS1 : L'odomètre du filament 2 peut être défectueux."
+            },
+            {
+                "ecode": "1201710000010001",
+                "intro": "Erreur de vitesse et de longueur du filament de l'AMS2 : L'odomètre du filament 2 peut être défectueux."
+            },
+            {
+                "ecode": "1202710000010001",
+                "intro": "Erreur de vitesse et de longueur du filament de l'AMS3 : L'odomètre du filament 2 peut être défectueux."
+            },
+            {
+                "ecode": "1203710000010001",
+                "intro": "Erreur de vitesse et de longueur du filament de l'AMS4 : L'odomètre du filament 2 peut être défectueux."
+            },
+            {
+                "ecode": "1200720000010001",
+                "intro": "Erreur de vitesse et de longueur du filament de l'AMS1 : L'odomètre du filament 3 peut être défectueux."
+            },
+            {
+                "ecode": "1201720000010001",
+                "intro": "Erreur de vitesse et de longueur du filament de l'AMS2 : L'odomètre du filament 3 peut être défectueux."
+            },
+            {
+                "ecode": "1202720000010001",
+                "intro": "Erreur de vitesse et de longueur du filament de l'AMS3 : L'odomètre du filament 3 peut être défectueux."
+            },
+            {
+                "ecode": "1203720000010001",
+                "intro": "Erreur de vitesse et de longueur du filament de l'AMS4 : L'odomètre du filament 3 peut être défectueux."
+            },
+            {
+                "ecode": "1202210000020002",
+                "intro": "L'emplacement 2 AMS 3 est vide, veuillez insérer un nouveau filament."
+            },
+            {
+                "ecode": "1203210000020002",
+                "intro": "L'emplacement 2 AMS 4 est vide, veuillez insérer un nouveau filament."
+            },
+            {
+                "ecode": "1200220000020002",
+                "intro": "L'emplacement 3 AMS 1 est vide, veuillez insérer un nouveau filament."
+            },
+            {
+                "ecode": "1201220000020002",
+                "intro": "L'emplacement 3 AMS 2 est vide, veuillez insérer un nouveau filament."
+            },
+            {
+                "ecode": "1202220000020002",
+                "intro": "L'emplacement 3 AMS 3 est vide, veuillez insérer un nouveau filament."
+            },
+            {
+                "ecode": "1203220000020002",
+                "intro": "L'emplacement 3 AMS 4 est vide, veuillez insérer un nouveau filament."
+            },
+            {
+                "ecode": "1200230000020002",
+                "intro": "L'emplacement 4 AMS 1 est vide, veuillez insérer un nouveau filament."
+            },
+            {
+                "ecode": "1201230000020002",
+                "intro": "L'emplacement 4 AMS 2 est vide, veuillez insérer un nouveau filament."
+            },
+            {
+                "ecode": "1202230000020002",
+                "intro": "L'emplacement 4 AMS 3 est vide, veuillez insérer un nouveau filament."
+            },
+            {
+                "ecode": "1203230000020002",
+                "intro": "L'emplacement 4 AMS 4 est vide, veuillez insérer un nouveau filament."
+            },
+            {
+                "ecode": "12FF200000020002",
+                "intro": "Le filament du porte-bobine est vide, veuillez en insérer un nouveau."
+            },
+            {
+                "ecode": "1200200000020003",
+                "intro": "Le filament 1 AMS 1 est peut être cassé dans le tube PTFE."
+            },
+            {
+                "ecode": "1201200000020003",
+                "intro": "Le filament 1 AMS 2 est peut être cassé dans le tube PTFE."
+            },
+            {
+                "ecode": "1202200000020003",
+                "intro": "Le filament 1 AMS 3 est peut être cassé dans le tube PTFE."
+            },
+            {
+                "ecode": "1203200000020003",
+                "intro": "Le filament 1 AMS 4 est peut être cassé dans le tube PTFE."
+            },
+            {
+                "ecode": "1200210000020003",
+                "intro": "Le filament 2 AMS 1 est peut être cassé dans le tube PTFE."
+            },
+            {
+                "ecode": "1201210000020003",
+                "intro": "Le filament 2 AMS 2 est peut être cassé dans le tube PTFE."
+            },
+            {
+                "ecode": "1202210000020003",
+                "intro": "Le filament 2 AMS 3 est peut être cassé dans le tube PTFE."
+            },
+            {
+                "ecode": "1203210000020003",
+                "intro": "Le filament 2 AMS 4 est peut être cassé dans le tube PTFE."
+            },
+            {
+                "ecode": "1200220000020003",
+                "intro": "Le filament 3 AMS 1 est peut être cassé dans le tube PTFE."
+            },
+            {
+                "ecode": "1201220000020003",
+                "intro": "Le filament 3 AMS 2 est peut être cassé dans le tube PTFE."
+            },
+            {
+                "ecode": "1202220000020003",
+                "intro": "Le filament 3 AMS 3 est peut être cassé dans le tube PTFE."
+            },
+            {
+                "ecode": "1203220000020003",
+                "intro": "Le filament 3 AMS 4 est peut être cassé dans le tube PTFE."
+            },
+            {
+                "ecode": "1200230000020003",
+                "intro": "Le filament 4 AMS 1 est peut être cassé dans le tube PTFE."
+            },
+            {
+                "ecode": "1201230000020003",
+                "intro": "Le filament 4 AMS 2 est peut être cassé dans le tube PTFE."
+            },
+            {
+                "ecode": "1202230000020003",
+                "intro": "Le filament 4 AMS 3 est peut être cassé dans le tube PTFE."
+            },
+            {
+                "ecode": "1203230000020003",
+                "intro": "Le filament 4 AMS 4 est peut être cassé dans le tube PTFE."
+            },
+            {
+                "ecode": "1200200000020004",
+                "intro": "Le filament 1 de l'AMS1 est peut-être cassé dans l'extrudeur."
+            },
+            {
+                "ecode": "1201200000020004",
+                "intro": "Le filament 1 de l'AMS2 est peut-être cassé dans l'extrudeur."
+            },
+            {
+                "ecode": "1202200000020004",
+                "intro": "Le filament 1 de l'AMS3 est peut-être cassé dans l'extrudeur."
+            },
+            {
+                "ecode": "1203200000020004",
+                "intro": "Le filament 1 de l'AMS4 est peut-être cassé dans l'extrudeur."
+            },
+            {
+                "ecode": "1200210000020004",
+                "intro": "Le filament 2 de l'AMS1 est peut-être cassé dans l'extrudeur."
+            },
+            {
+                "ecode": "1201210000020004",
+                "intro": "Le filament 2 de l'AMS2 est peut-être cassé dans l'extrudeur."
+            },
+            {
+                "ecode": "1202210000020004",
+                "intro": "Le filament 2 de l'AMS3 est peut-être cassé dans l'extrudeur."
+            },
+            {
+                "ecode": "1203210000020004",
+                "intro": "Le filament 2 de l'AMS4 est peut-être cassé dans l'extrudeur."
+            },
+            {
+                "ecode": "1200220000020004",
+                "intro": "Le filament 3 de l'AMS1 est peut-être cassé dans l'extrudeur."
+            },
+            {
+                "ecode": "1201220000020004",
+                "intro": "Le filament 3 de l'AMS2 est peut-être cassé dans l'extrudeur."
+            },
+            {
+                "ecode": "1202220000020004",
+                "intro": "Le filament 3 de l'AMS3 est peut-être cassé dans l'extrudeur."
+            },
+            {
+                "ecode": "1203220000020004",
+                "intro": "Le filament 3 de l'AMS4 est peut-être cassé dans l'extrudeur."
+            },
+            {
+                "ecode": "1200230000020004",
+                "intro": "Le filament 4 de l'AMS1 est peut-être cassé dans l'extrudeur."
+            },
+            {
+                "ecode": "1201230000020004",
+                "intro": "Le filament 4 de l'AMS2 est peut-être cassé dans l'extrudeur."
+            },
+            {
+                "ecode": "1202230000020004",
+                "intro": "Le filament 4 de l'AMS3 est peut-être cassé dans l'extrudeur."
+            },
+            {
+                "ecode": "1203230000020004",
+                "intro": "Le filament 4 de l'AMS4 est peut-être cassé dans l'extrudeur."
+            },
+            {
+                "ecode": "12FF200000020004",
+                "intro": "Veuillez retirer de l'extrudeur le filament qui se trouve sur le porte-bobine."
+            },
+            {
+                "ecode": "1200200000020005",
+                "intro": "Le filament 1 AMS1 est épuisé et la purge de l'ancien filament s'est déroulée de manière anormale. Veuillez vérifier si le filament n'est pas coincé dans la tête de l'outil."
+            },
+            {
+                "ecode": "1201200000020005",
+                "intro": "Le filament 1 AMS2 est épuisé et la purge de l'ancien filament s'est déroulée de manière anormale. Veuillez vérifier si le filament n'est pas coincé dans la tête de l'outil."
+            },
+            {
+                "ecode": "1202200000020005",
+                "intro": "Le filament 1 AMS3 est épuisé et la purge de l'ancien filament s'est déroulée de manière anormale. Veuillez vérifier si le filament n'est pas coincé dans la tête de l'outil."
+            },
+            {
+                "ecode": "1203200000020005",
+                "intro": "Le filament 1 AMS4 est épuisé et la purge de l'ancien filament s'est déroulée de manière anormale. Veuillez vérifier si le filament n'est pas coincé dans la tête de l'outil."
+            },
+            {
+                "ecode": "1200210000020005",
+                "intro": "Le filament 2 AMS1 est épuisé et la purge de l'ancien filament s'est déroulée de manière anormale. Veuillez vérifier si le filament n'est pas coincé dans la tête de l'outil."
+            },
+            {
+                "ecode": "1201210000020005",
+                "intro": "Le filament 2 AMS2 est épuisé et la purge de l'ancien filament s'est déroulée de manière anormale. Veuillez vérifier si le filament n'est pas coincé dans la tête de l'outil."
+            },
+            {
+                "ecode": "0703120000010001",
+                "intro": "Le moteur filament 3 de l'AMS4 a patiné. La roue d'extrusion est peut être défectueuses ou le filament trop fin."
+            },
+            {
+                "ecode": "0703120000010003",
+                "intro": "Le contrôle du couple du moteur emplacement 3 AMS 4 est défectueux. Le capteur de courant peut être défectueux."
+            },
+            {
+                "ecode": "0703130000010001",
+                "intro": "Le moteur filament 4 de l'AMS4 a patiné. La roue d'extrusion est peut être défectueuses ou le filament trop fin."
+            },
+            {
+                "ecode": "0703130000010003",
+                "intro": "Le contrôle du couple du moteur emplacement 4 AMS 4 est défectueux. Le capteur de courant peut être défectueux."
+            },
+            {
+                "ecode": "0C0003000002000c",
+                "intro": "Le marqueur de localisation de la plaque d'impression n'est pas détecté. Vérifiez si la plaque est correctement alignée."
+            },
+            {
+                "ecode": "0700200000020004",
+                "intro": "Le filament 1 de l'AMS1 est peut-être cassé dans l'extrudeur."
+            },
+            {
+                "ecode": "0701200000020004",
+                "intro": "Le filament 1 de l'AMS2 est peut-être cassé dans l'extrudeur."
+            },
+            {
+                "ecode": "0702200000020004",
+                "intro": "Le filament 1 de l'AMS3 est peut-être cassé dans l'extrudeur."
+            },
+            {
+                "ecode": "0703200000020004",
+                "intro": "Le filament 1 de l'AMS4 est peut-être cassé dans l'extrudeur."
+            },
+            {
+                "ecode": "0700210000020004",
+                "intro": "Le filament 2 de l'AMS1 est peut-être cassé dans l'extrudeur."
+            },
+            {
+                "ecode": "0701210000020004",
+                "intro": "Le filament 2 de l'AMS2 est peut-être cassé dans l'extrudeur."
+            },
+            {
+                "ecode": "0702210000020004",
+                "intro": "Le filament 2 de l'AMS3 est peut-être cassé dans l'extrudeur."
+            },
+            {
+                "ecode": "0703210000020004",
+                "intro": "Le filament 2 de l'AMS4 est peut-être cassé dans l'extrudeur."
+            },
+            {
+                "ecode": "0700220000020004",
+                "intro": "Le filament 3 de l'AMS1 est peut-être cassé dans l'extrudeur."
+            },
+            {
+                "ecode": "0701220000020004",
+                "intro": "Le filament 3 de l'AMS2 est peut-être cassé dans l'extrudeur."
+            },
+            {
+                "ecode": "0702220000020004",
+                "intro": "Le filament 3 de l'AMS3 est peut-être cassé dans l'extrudeur."
+            },
+            {
+                "ecode": "0703220000020004",
+                "intro": "Le filament 3 de l'AMS4 est peut-être cassé dans l'extrudeur."
+            },
+            {
+                "ecode": "0700230000020004",
+                "intro": "Le filament 4 de l'AMS1 est peut-être cassé dans l'extrudeur."
+            },
+            {
+                "ecode": "0701230000020004",
+                "intro": "Le filament 4 de l'AMS2 est peut-être cassé dans l'extrudeur."
+            },
+            {
+                "ecode": "0702230000020004",
+                "intro": "Le filament 4 de l'AMS3 est peut-être cassé dans l'extrudeur."
+            },
+            {
+                "ecode": "0703230000020004",
+                "intro": "Le filament 4 de l'AMS4 est peut-être cassé dans l'extrudeur."
+            },
+            {
+                "ecode": "0700200000020005",
+                "intro": "Le filament 1 AMS1 est épuisé et la purge de l'ancien filament s'est déroulée de manière anormale, veuillez vérifier si le filament n'est pas coincé dans la tête de l'outil."
+            },
+            {
+                "ecode": "0701200000020005",
+                "intro": "Le filament 1 AMS2 est épuisé et la purge de l'ancien filament s'est déroulée de manière anormale, veuillez vérifier si le filament n'est pas coincé dans la tête de l'outil."
+            },
+            {
+                "ecode": "0702200000020005",
+                "intro": "Le filament 1 AMS3 est épuisé et la purge de l'ancien filament s'est déroulée de manière anormale, veuillez vérifier si le filament n'est pas coincé dans la tête de l'outil."
+            },
+            {
+                "ecode": "0703200000020005",
+                "intro": "Le filament 1 AMS4 est épuisé et la purge de l'ancien filament s'est déroulée de manière anormale, veuillez vérifier si le filament n'est pas coincé dans la tête de l'outil."
+            },
+            {
+                "ecode": "0700210000020005",
+                "intro": "Le filament 2 AMS1 est épuisé et la purge de l'ancien filament s'est déroulée de manière anormale, veuillez vérifier si le filament n'est pas coincé dans la tête de l'outil."
+            },
+            {
+                "ecode": "0701210000020005",
+                "intro": "Le filament 2 AMS2 est épuisé et la purge de l'ancien filament s'est déroulée de manière anormale, veuillez vérifier si le filament n'est pas coincé dans la tête de l'outil."
+            },
+            {
+                "ecode": "0702210000020005",
+                "intro": "Le filament 2 AMS3 est épuisé et la purge de l'ancien filament s'est déroulée de manière anormale, veuillez vérifier si le filament n'est pas coincé dans la tête de l'outil."
+            },
+            {
+                "ecode": "0703210000020005",
+                "intro": "Le filament 2 AMS4 est épuisé et la purge de l'ancien filament s'est déroulée de manière anormale, veuillez vérifier si le filament n'est pas coincé dans la tête de l'outil."
+            },
+            {
+                "ecode": "0700220000020005",
+                "intro": "Le filament 3 AMS1 est épuisé et la purge de l'ancien filament s'est déroulée de manière anormale, veuillez vérifier si le filament n'est pas coincé dans la tête de l'outil."
+            },
+            {
+                "ecode": "0701220000020005",
+                "intro": "Le filament 3 AMS2 est épuisé et la purge de l'ancien filament s'est déroulée de manière anormale, veuillez vérifier si le filament n'est pas coincé dans la tête de l'outil."
+            },
+            {
+                "ecode": "0702220000020005",
+                "intro": "Le filament 3 AMS3 est épuisé et la purge de l'ancien filament s'est déroulée de manière anormale, veuillez vérifier si le filament n'est pas coincé dans la tête de l'outil."
+            },
+            {
+                "ecode": "0703220000020005",
+                "intro": "Le filament 3 AMS4 est épuisé et la purge de l'ancien filament s'est déroulée de manière anormale, veuillez vérifier si le filament n'est pas coincé dans la tête de l'outil."
+            },
+            {
+                "ecode": "0700230000020005",
+                "intro": "Le filament 4 AMS1 est épuisé et la purge de l'ancien filament s'est déroulée de manière anormale, veuillez vérifier si le filament n'est pas coincé dans la tête de l'outil."
+            },
+            {
+                "ecode": "0701230000020005",
+                "intro": "Le filament 4 AMS2 est épuisé et la purge de l'ancien filament s'est déroulée de manière anormale, veuillez vérifier si le filament n'est pas coincé dans la tête de l'outil."
+            },
+            {
+                "ecode": "0702230000020005",
+                "intro": "Le filament 4 AMS3 est épuisé et la purge de l'ancien filament s'est déroulée de manière anormale, veuillez vérifier si le filament n'est pas coincé dans la tête de l'outil."
+            },
+            {
+                "ecode": "0703230000020005",
+                "intro": "Le filament 4 AMS4 est épuisé et la purge de l'ancien filament s'est déroulée de manière anormale, veuillez vérifier si le filament n'est pas coincé dans la tête de l'outil."
+            },
+            {
+                "ecode": "0701200000030002",
+                "intro": "Le filament 1 AMS2 est épuisé et est automatiquement transféré vers un emplacement contenant le même filament."
+            },
+            {
+                "ecode": "0702200000030002",
+                "intro": "Le filament 1 AMS3 est épuisé et est automatiquement transféré vers un emplacement contenant le même filament."
+            },
+            {
+                "ecode": "0703200000030002",
+                "intro": "Le filament 1 AMS4 est épuisé et est automatiquement transféré vers un emplacement contenant le même filament."
+            },
+            {
+                "ecode": "0701210000030002",
+                "intro": "Le filament 2 AMS2 est épuisé et est automatiquement transféré vers un emplacement contenant le même filament."
+            },
+            {
+                "ecode": "0702210000030002",
+                "intro": "Le filament 2 AMS3 est épuisé et est automatiquement transféré vers un emplacement contenant le même filament."
+            },
+            {
+                "ecode": "0703210000030002",
+                "intro": "Le filament 2 AMS4 est épuisé et est automatiquement transféré vers un emplacement contenant le même filament."
+            },
+            {
+                "ecode": "0701220000030002",
+                "intro": "Le filament 3 AMS2 est épuisé et est automatiquement transféré vers un emplacement contenant le même filament."
+            },
+            {
+                "ecode": "0702220000030002",
+                "intro": "Le filament 3 AMS3 est épuisé et est automatiquement transféré vers un emplacement contenant le même filament."
+            },
+            {
+                "ecode": "0703220000030002",
+                "intro": "Le filament 3 AMS4 est épuisé et est automatiquement transféré vers un emplacement contenant le même filament."
+            },
+            {
+                "ecode": "0700230000030002",
+                "intro": "Le filament 4 AMS1 est épuisé et est automatiquement transféré vers un emplacement contenant le même filament."
+            },
+            {
+                "ecode": "0701230000030002",
+                "intro": "Le filament 4 AMS2 est épuisé et est automatiquement transféré vers un emplacement contenant le même filament."
+            },
+            {
+                "ecode": "0702230000030002",
+                "intro": "Le filament 4 AMS3 est épuisé et est automatiquement transféré vers un emplacement contenant le même filament."
+            },
+            {
+                "ecode": "0703230000030002",
+                "intro": "Le filament 4 AMS4 est épuisé et est automatiquement transféré vers un emplacement contenant le même filament."
+            },
+            {
+                "ecode": "0700200000030002",
+                "intro": "Le filament 1 AMS1 est épuisé et est automatiquement transféré vers un emplacement contenant le même filament."
+            },
+            {
+                "ecode": "0700210000030002",
+                "intro": "Le filament 2 AMS1 est épuisé et est automatiquement transféré vers un emplacement contenant le même filament."
+            },
+            {
+                "ecode": "0700220000030002",
+                "intro": "Le filament 3 AMS1 est épuisé et est automatiquement transféré vers un emplacement contenant le même filament."
+            },
+            {
+                "ecode": "0500030000030022",
+                "intro": "Une dégradation des performances de la carte SD a été détectée. Cela peut affecter les travaux d'impression, les journaux et les enregistrements vidéo. Essayez de formater ou de changer la carte microSD."
+            },
+            {
+                "ecode": "0500010000030007",
+                "intro": "Impossible d'enregistrer des photos en time-lapse sans carte SD."
+            },
+            {
+                "ecode": "1200100000010001",
+                "intro": "Le moteur filament 1 de l'AMS1 a patiné. La roue d'extrusion est peut être défectueuses ou le filament trop fin."
+            },
+            {
+                "ecode": "1201100000010001",
+                "intro": "Le moteur filament 1 de l'AMS2 a patiné. La roue d'extrusion est peut être défectueuses ou le filament trop fin."
+            },
+            {
+                "ecode": "1202100000010001",
+                "intro": "Le moteur filament 1 de l'AMS3 a patiné. La roue d'extrusion est peut être défectueuses ou le filament trop fin."
+            },
+            {
+                "ecode": "1203100000010001",
+                "intro": "Le moteur filament 1 de l'AMS4 a patiné. La roue d'extrusion est peut être défectueuses ou le filament trop fin."
+            },
+            {
+                "ecode": "1200110000010001",
+                "intro": "Le moteur filament 2 de l'AMS1 a patiné. La roue d'extrusion est peut être défectueuses ou le filament trop fin."
+            },
+            {
+                "ecode": "1201110000010001",
+                "intro": "Le moteur filament 2 de l'AMS2 a patiné. La roue d'extrusion est peut être défectueuses ou le filament trop fin."
+            },
+            {
+                "ecode": "1202110000010001",
+                "intro": "Le moteur filament 2 de l'AMS3 a patiné. La roue d'extrusion est peut être défectueuses ou le filament trop fin."
+            },
+            {
+                "ecode": "1203110000010001",
+                "intro": "Le moteur filament 2 de l'AMS4 a patiné. La roue d'extrusion est peut être défectueuses ou le filament trop fin."
+            },
+            {
+                "ecode": "1200120000010001",
+                "intro": "Le moteur filament 3 de l'AMS1 a patiné. La roue d'extrusion est peut être défectueuses ou le filament trop fin."
+            },
+            {
+                "ecode": "1201120000010001",
+                "intro": "Le moteur filament 3 de l'AMS2 a patiné. La roue d'extrusion est peut être défectueuses ou le filament trop fin."
+            },
+            {
+                "ecode": "1202120000010001",
+                "intro": "Le moteur filament 3 de l'AMS3 a patiné. La roue d'extrusion est peut être défectueuses ou le filament trop fin."
+            },
+            {
+                "ecode": "1203120000010001",
+                "intro": "Le moteur filament 3 de l'AMS4 a patiné. La roue d'extrusion est peut être défectueuses ou le filament trop fin."
+            },
+            {
+                "ecode": "1200130000010001",
+                "intro": "Le moteur filament 4 de l'AMS1 a patiné. La roue d'extrusion est peut être défectueuses ou le filament trop fin."
+            },
+            {
+                "ecode": "1201130000010001",
+                "intro": "Le moteur filament 4 de l'AMS2 a patiné. La roue d'extrusion est peut être défectueuses ou le filament trop fin."
+            },
+            {
+                "ecode": "1202130000010001",
+                "intro": "Le moteur filament 4 de l'AMS3 a patiné. La roue d'extrusion est peut être défectueuses ou le filament trop fin."
+            },
+            {
+                "ecode": "1203130000010001",
+                "intro": "Le moteur filament 4 de l'AMS4 a patiné. La roue d'extrusion est peut être défectueuses ou le filament trop fin."
+            },
+            {
+                "ecode": "1200100000020002",
+                "intro": "Le moteur de l'emplacement 1 de l'AMS 1 est surchargé. Le filament peut être emmêlé ou bloqué."
+            },
+            {
+                "ecode": "1201100000020002",
+                "intro": "Le moteur de l'emplacement 1 de l'AMS 2 est surchargé. Le filament peut être emmêlé ou bloqué."
+            },
+            {
+                "ecode": "1202100000020002",
+                "intro": "Le moteur de l'emplacement 1 de l'AMS 3 est surchargé. Le filament peut être emmêlé ou bloqué."
+            },
+            {
+                "ecode": "1203100000020002",
+                "intro": "Le moteur de l'emplacement 1 de l'AMS 4 est surchargé. Le filament peut être emmêlé ou bloqué."
+            },
+            {
+                "ecode": "1200110000020002",
+                "intro": "Le moteur de l'emplacement 2 de l'AMS 1 est surchargé. Le filament peut être emmêlé ou bloqué."
+            },
+            {
+                "ecode": "1201110000020002",
+                "intro": "Le moteur de l'emplacement 2 de l'AMS 2 est surchargé. Le filament peut être emmêlé ou bloqué."
+            },
+            {
+                "ecode": "1202110000020002",
+                "intro": "Le moteur de l'emplacement 2 de l'AMS 3 est surchargé. Le filament peut être emmêlé ou bloqué."
+            },
+            {
+                "ecode": "1203110000020002",
+                "intro": "Le moteur de l'emplacement 2 de l'AMS 4 est surchargé. Le filament peut être emmêlé ou bloqué."
+            },
+            {
+                "ecode": "1200120000020002",
+                "intro": "Le moteur de l'emplacement 3 de l'AMS 1 est surchargé. Le filament peut être emmêlé ou bloqué."
+            },
+            {
+                "ecode": "1201120000020002",
+                "intro": "Le moteur de l'emplacement 3 de l'AMS 2 est surchargé. Le filament peut être emmêlé ou bloqué."
+            },
+            {
+                "ecode": "1202120000020002",
+                "intro": "Le moteur de l'emplacement 3 de l'AMS 3 est surchargé. Le filament peut être emmêlé ou bloqué."
+            },
+            {
+                "ecode": "1203120000020002",
+                "intro": "Le moteur de l'emplacement 3 de l'AMS 4 est surchargé. Le filament peut être emmêlé ou bloqué."
+            },
+            {
+                "ecode": "1200130000020002",
+                "intro": "Le moteur de l'emplacement 4 de l'AMS 1 est surchargé. Le filament peut être emmêlé ou bloqué."
+            },
+            {
+                "ecode": "1201130000020002",
+                "intro": "Le moteur de l'emplacement 4 de l'AMS 2 est surchargé. Le filament peut être emmêlé ou bloqué."
+            },
+            {
+                "ecode": "1202130000020002",
+                "intro": "Le moteur de l'emplacement 4 de l'AMS 3 est surchargé. Le filament peut être emmêlé ou bloqué."
+            },
+            {
+                "ecode": "1203130000020002",
+                "intro": "Le moteur de l'emplacement 4 de l'AMS 4 est surchargé. Le filament peut être emmêlé ou bloqué."
+            },
+            {
+                "ecode": "1200100000010003",
+                "intro": "Le contrôle du couple du moteur emplacement 1 AMS 1 est défectueux. Le capteur de courant peut être défectueux."
+            },
+            {
+                "ecode": "1201100000010003",
+                "intro": "Le contrôle du couple du moteur emplacement 1 AMS 2 est défectueux. Le capteur de courant peut être défectueux."
+            },
+            {
+                "ecode": "1202100000010003",
+                "intro": "Le contrôle du couple du moteur emplacement 1 AMS 3 est défectueux. Le capteur de courant peut être défectueux."
+            },
+            {
+                "ecode": "1203100000010003",
+                "intro": "Le contrôle du couple du moteur emplacement 1 AMS 4 est défectueux. Le capteur de courant peut être défectueux."
+            },
+            {
+                "ecode": "1200110000010003",
+                "intro": "Le contrôle du couple du moteur emplacement 2 AMS 1 est défectueux. Le capteur de courant peut être défectueux."
+            },
+            {
+                "ecode": "1201110000010003",
+                "intro": "Le contrôle du couple du moteur emplacement 2 AMS 2 est défectueux. Le capteur de courant peut être défectueux."
+            },
+            {
+                "ecode": "1202110000010003",
+                "intro": "Le contrôle du couple du moteur emplacement 2 AMS 3 est défectueux. Le capteur de courant peut être défectueux."
+            },
+            {
+                "ecode": "1203110000010003",
+                "intro": "Le contrôle du couple du moteur emplacement 2 AMS 4 est défectueux. Le capteur de courant peut être défectueux."
+            },
+            {
+                "ecode": "1200120000010003",
+                "intro": "Le contrôle du couple du moteur emplacement 3 AMS 1 est défectueux. Le capteur de courant peut être défectueux."
+            },
+            {
+                "ecode": "1201120000010003",
+                "intro": "Le contrôle du couple du moteur emplacement 3 AMS 2 est défectueux. Le capteur de courant peut être défectueux."
+            },
+            {
+                "ecode": "1202120000010003",
+                "intro": "Le contrôle du couple du moteur emplacement 3 AMS 3 est défectueux. Le capteur de courant peut être défectueux."
+            },
+            {
+                "ecode": "1203120000010003",
+                "intro": "Le contrôle du couple du moteur emplacement 3 AMS 4 est défectueux. Le capteur de courant peut être défectueux."
+            },
+            {
+                "ecode": "1200130000010003",
+                "intro": "Le contrôle du couple du moteur emplacement 4 AMS 1 est défectueux. Le capteur de courant peut être défectueux."
+            },
+            {
+                "ecode": "1201130000010003",
+                "intro": "Le contrôle du couple du moteur emplacement 4 AMS 2 est défectueux. Le capteur de courant peut être défectueux."
+            },
+            {
+                "ecode": "1202130000010003",
+                "intro": "Le contrôle du couple du moteur emplacement 4 AMS 3 est défectueux. Le capteur de courant peut être défectueux."
+            },
+            {
+                "ecode": "1203130000010003",
+                "intro": "Le contrôle du couple du moteur emplacement 4 AMS 4 est défectueux. Le capteur de courant peut être défectueux."
+            },
+            {
+                "ecode": "1200200000020001",
+                "intro": "Le filament 1 AMS1 est épuisé, veuillez en insérer un nouveau."
+            },
+            {
+                "ecode": "1201200000020001",
+                "intro": "Le filament 1 AMS2 est épuisé, veuillez mettre un nouveau filament."
+            },
+            {
+                "ecode": "1202200000020001",
+                "intro": "Le filament 1 AMS3 est épuisé, veuillez mettre un nouveau filament."
+            },
+            {
+                "ecode": "1203200000020001",
+                "intro": "Le filament 1 AMS4 est épuisé, veuillez mettre un nouveau filament."
+            },
+            {
+                "ecode": "1200210000020001",
+                "intro": "Le filament 2 AMS1 est épuisé, veuillez mettre un nouveau filament."
+            },
+            {
+                "ecode": "1201210000020001",
+                "intro": "Le filament 2 AMS2 est épuisé, veuillez mettre un nouveau filament."
+            },
+            {
+                "ecode": "1202210000020001",
+                "intro": "Le filament 2 AMS3 est épuisé, veuillez mettre un nouveau filament."
+            },
+            {
+                "ecode": "1203210000020001",
+                "intro": "Le filament 2 AMS4 est épuisé, veuillez mettre un nouveau filament."
+            },
+            {
+                "ecode": "1200220000020001",
+                "intro": "Le filament 3 AMS1 est épuisé, veuillez mettre un nouveau filament."
+            },
+            {
+                "ecode": "1201220000020001",
+                "intro": "Le filament 3 AMS2 est épuisé, veuillez mettre un nouveau filament."
+            },
+            {
+                "ecode": "1202220000020001",
+                "intro": "Le filament 3 AMS3 est épuisé, veuillez mettre un nouveau filament."
+            },
+            {
+                "ecode": "1203220000020001",
+                "intro": "Le filament 3 AMS4 est épuisé, veuillez mettre un nouveau filament."
+            },
+            {
+                "ecode": "1200230000020001",
+                "intro": "Le filament 4 AMS1 est épuisé, veuillez mettre un nouveau filament."
+            },
+            {
+                "ecode": "1201230000020001",
+                "intro": "Le filament 4 AMS2 est épuisé, veuillez mettre un nouveau filament."
+            },
+            {
+                "ecode": "1202230000020001",
+                "intro": "Le filament 4 AMS3 est épuisé, veuillez mettre un nouveau filament."
+            },
+            {
+                "ecode": "1203230000020001",
+                "intro": "Le filament 4 AMS4 est épuisé, veuillez mettre un nouveau filament."
+            },
+            {
+                "ecode": "12FF200000020001",
+                "intro": "Le filament du porte-bobine est épuisé, veuillez en insérer un nouveau."
+            },
+            {
+                "ecode": "1200200000020002",
+                "intro": "L'emplacement 1 AMS 1 est vide, veuillez insérer un nouveau filament."
+            },
+            {
+                "ecode": "1201200000020002",
+                "intro": "L'emplacement 1 AMS 2 est vide, veuillez insérer un nouveau filament."
+            },
+            {
+                "ecode": "1202200000020002",
+                "intro": "L'emplacement 1 AMS 3 est vide, veuillez insérer un nouveau filament."
+            },
+            {
+                "ecode": "1203200000020002",
+                "intro": "L'emplacement 1 AMS 4 est vide, veuillez insérer un nouveau filament."
+            },
+            {
+                "ecode": "1200210000020002",
+                "intro": "L'emplacement 2 AMS 1 est vide, veuillez insérer un nouveau filament."
+            },
+            {
+                "ecode": "1201210000020002",
+                "intro": "L'emplacement 2 AMS 2 est vide, veuillez insérer un nouveau filament."
+            },
+            {
+                "ecode": "03000D0000010003",
+                "intro": "La plaque d'impression n'est pas placée correctement. Veuillez l'ajuster."
+            },
+            {
+                "ecode": "03000D0000010004",
+                "intro": "La plaque d'impression n'est pas placée correctement. Veuillez l'ajuster."
+            },
+            {
+                "ecode": "03000D0000010005",
+                "intro": "La plaque d'impression n'est pas placée correctement. Veuillez l'ajuster."
+            },
+            {
+                "ecode": "03000D0000010006",
+                "intro": "La plaque d'impression n'est pas placée correctement. Veuillez l'ajuster."
+            },
+            {
+                "ecode": "03000D0000010007",
+                "intro": "La plaque d'impression n'est pas placée correctement. Veuillez l'ajuster."
+            },
+            {
+                "ecode": "03000D0000010008",
+                "intro": "La plaque d'impression n'est pas placée correctement. Veuillez l'ajuster."
+            },
+            {
+                "ecode": "03000D0000010009",
+                "intro": "La plaque d'impression n'est pas placée correctement. Veuillez l'ajuster."
+            },
+            {
+                "ecode": "03000D000001000A",
+                "intro": "La plaque d'impression n'est pas placée correctement. Veuillez l'ajuster."
+            },
+            {
+                "ecode": "0500010000030005",
+                "intro": "Erreur de carte microSD : veuillez la réinsérer, la formater ou la remplacer."
+            },
+            {
+                "ecode": "0700010000010001",
+                "intro": "Le moteur d'assistance AMS1 a patiné. La roue d'extrusion peut être usée ou le filament peut être trop fin."
+            },
+            {
+                "ecode": "0700010000010003",
+                "intro": "La contrôle du couple du moteur d'assistance AMS1 ne fonctionne pas correctement. Le capteur de courant est peut-être défectueux."
+            },
+            {
+                "ecode": "0700100000010001",
+                "intro": "Le moteur filament 1 de l'AMS1 a patiné. La roue d'extrusion peut être usée ou le filament peut être trop fin."
+            },
+            {
+                "ecode": "0700100000010003",
+                "intro": "Le contrôle du couple du moteur emplacement 1 AMS 1 est défectueux. Le capteur de courant peut être défectueux."
+            },
+            {
+                "ecode": "0700110000010001",
+                "intro": "Le moteur filament 2 de l'AMS1 a patiné. La roue d'extrusion peut être usée ou le filament peut être trop fin."
+            },
+            {
+                "ecode": "0700110000010003",
+                "intro": "Le contrôle du couple du moteur emplacement 2 AMS 1 est défectueux. Le capteur de courant peut être défectueux."
+            },
+            {
+                "ecode": "0700120000010001",
+                "intro": "Le moteur filament 3 de l'AMS1 a patiné. La roue d'extrusion est peut être défectueuses ou le filament trop fin."
+            },
+            {
+                "ecode": "0700120000010003",
+                "intro": "Le contrôle du couple du moteur emplacement 3 AMS 1 est défectueux. Le capteur de courant peut être défectueux."
+            },
+            {
+                "ecode": "0700130000010001",
+                "intro": "Le moteur filament 4 de l'AMS1 a patiné. La roue d'extrusion est peut être défectueuses ou le filament trop fin."
+            },
+            {
+                "ecode": "0700130000010003",
+                "intro": "Le contrôle du couple du moteur emplacement 4 AMS 1 est défectueux. Le capteur de courant peut être défectueux."
+            },
+            {
+                "ecode": "0701010000010001",
+                "intro": "Le moteur d'assistance AMS2 a patiné. La roue d'extrusion peut être usée ou le filament peut être trop fin."
+            },
+            {
+                "ecode": "0701010000010003",
+                "intro": "La contrôle du couple du moteur d'assistance AMS2 ne fonctionne pas correctement. Le capteur de courant est peut-être défectueux."
+            },
+            {
+                "ecode": "0701100000010001",
+                "intro": "Le moteur filament 1 de l'AMS2 a patiné. La roue d'extrusion est peut être défectueuses ou le filament trop fin."
+            },
+            {
+                "ecode": "0701100000010003",
+                "intro": "Le contrôle du couple du moteur emplacement 1 AMS 2 est défectueux. Le capteur de courant peut être défectueux."
+            },
+            {
+                "ecode": "0701110000010001",
+                "intro": "Le moteur filament 2 de l'AMS2 a patiné. La roue d'extrusion est peut être défectueuses ou le filament trop fin."
+            },
+            {
+                "ecode": "0701110000010003",
+                "intro": "Le contrôle du couple du moteur emplacement 2 AMS 2 est défectueux. Le capteur de courant peut être défectueux."
+            },
+            {
+                "ecode": "0701120000010001",
+                "intro": "Le moteur filament 3 de l'AMS2 a patiné. La roue d'extrusion est peut être défectueuses ou le filament trop fin."
+            },
+            {
+                "ecode": "0701120000010003",
+                "intro": "Le contrôle du couple du moteur emplacement 3 AMS 2 est défectueux. Le capteur de courant peut être défectueux."
+            },
+            {
+                "ecode": "0701130000010001",
+                "intro": "Le moteur filament 4 de l'AMS2 a patiné. La roue d'extrusion est peut être défectueuses ou le filament trop fin."
+            },
+            {
+                "ecode": "0701130000010003",
+                "intro": "Le contrôle du couple du moteur emplacement 4 AMS 2 est défectueux. Le capteur de courant peut être défectueux."
+            },
+            {
+                "ecode": "0702010000010001",
+                "intro": "Le moteur d'assistance AMS3 a patiné. La roue d'extrusion peut être usée ou le filament peut être trop fin."
+            },
+            {
+                "ecode": "0702010000010003",
+                "intro": "La contrôle du couple du moteur d'assistance AMS3 ne fonctionne pas correctement. Le capteur de courant est peut-être défectueux."
+            },
+            {
+                "ecode": "0702100000010001",
+                "intro": "Le moteur filament 1 de l'AMS3 a patiné. La roue d'extrusion est peut être défectueuses ou le filament trop fin."
+            },
+            {
+                "ecode": "0702100000010003",
+                "intro": "Le contrôle du couple du moteur emplacement 1 AMS 3 est défectueux. Le capteur de courant peut être défectueux."
+            },
+            {
+                "ecode": "0702110000010001",
+                "intro": "Le moteur filament 2 de l'AMS3 a patiné. La roue d'extrusion est peut être défectueuses ou le filament trop fin."
+            },
+            {
+                "ecode": "0702110000010003",
+                "intro": "Le contrôle du couple du moteur emplacement 2 AMS 3 est défectueux. Le capteur de courant peut être défectueux."
+            },
+            {
+                "ecode": "0702120000010001",
+                "intro": "Le moteur filament 3 de l'AMS3 a patiné. La roue d'extrusion est peut être défectueuses ou le filament trop fin."
+            },
+            {
+                "ecode": "0702120000010003",
+                "intro": "Le contrôle du couple du moteur emplacement 3 AMS 3 est défectueux. Le capteur de courant peut être défectueux."
+            },
+            {
+                "ecode": "0702130000010001",
+                "intro": "Le moteur filament 4 de l'AMS3 a patiné. La roue d'extrusion est peut être défectueuses ou le filament trop fin."
+            },
+            {
+                "ecode": "0702130000010003",
+                "intro": "Le contrôle du couple du moteur emplacement 4 AMS 3 est défectueux. Le capteur de courant peut être défectueux."
+            },
+            {
+                "ecode": "0703010000010001",
+                "intro": "Le moteur d'assistance AMS4 a patiné. La roue d'extrusion peut être usée ou le filament peut être trop fin."
+            },
+            {
+                "ecode": "0703010000010003",
+                "intro": "La contrôle du couple du moteur d'assistance AMS4 ne fonctionne pas correctement. Le capteur de courant est peut-être défectueux."
+            },
+            {
+                "ecode": "0703100000010001",
+                "intro": "Le moteur filament 1 de l'AMS4 a patiné. La roue d'extrusion est peut être défectueuses ou le filament trop fin."
+            },
+            {
+                "ecode": "0703100000010003",
+                "intro": "Le contrôle du couple du moteur emplacement 1 AMS 4 est défectueux. Le capteur de courant peut être défectueux."
+            },
+            {
+                "ecode": "0703110000010001",
+                "intro": "Le moteur filament 2 de l'AMS4 a patiné. La roue d'extrusion est peut être défectueuses ou le filament trop fin."
+            },
+            {
+                "ecode": "0703110000010003",
+                "intro": "Le contrôle du couple du moteur emplacement 2 AMS 4 est défectueux. Le capteur de courant peut être défectueux."
+            },
+            {
+                "ecode": "0300030000020002",
+                "intro": ""
+            },
+            {
+                "ecode": "0703220000020002",
+                "intro": "L'emplacement 3 de l'AMS 4 est vide, veuillez charger un nouveau filament."
+            },
+            {
+                "ecode": "0703230000020002",
+                "intro": "L'emplacement 4 de l'AMS 4 est vide, veuillez charger un nouveau filament."
+            },
+            {
+                "ecode": "0C00030000020004",
+                "intro": "L'inspection de la première couche n'est pas prise en charge par l'impression actuelle."
+            },
+            {
+                "ecode": "0C00030000030006",
+                "intro": "Les filaments purgés se sont peut-être amassés dans la goulotte d'évacuation. Vérifiez et nettoyez la goulotte d'évacuation."
+            },
+            {
+                "ecode": "0700400000020004",
+                "intro": "Le signal du buffer filament est anormal ; le ressort est peut-être bloqué ou le filament peut être coincé."
+            },
+            {
+                "ecode": "0300010000030008",
+                "intro": "La température du plateau dépasse la limite et se règle automatiquement sur la température limite."
+            },
+            {
+                "ecode": "0500030000010021",
+                "intro": "Matériel incompatible, veuillez vérifier le laser."
+            },
+            {
+                "ecode": "07FF200000020001",
+                "intro": "Le filament externe est épuisé, veuillez charger un nouveau filament."
+            },
+            {
+                "ecode": "07FF200000020002",
+                "intro": "Le filament externe est manquant, veuillez charger un nouveau filament."
+            },
+            {
+                "ecode": "07FF200000020004",
+                "intro": "Veuillez retirer le filament externe de l'extrudeur."
+            },
+            {
+                "ecode": "0500040000030008",
+                "intro": "La porte est détectée comme étant ouverte."
+            },
+            {
+                "ecode": "0300010000010002",
+                "intro": "La température du plateau est anormale, le circuit de chauffe pourrait être interrompu ou le fusible thermique est ouvert."
+            },
+            {
+                "ecode": "0300010000010003",
+                "intro": "La température du plateau est anormale, la chauffe dépasse la consigne."
+            },
+            {
+                "ecode": "0300010000010006",
+                "intro": "La température du plateau est anormale, le capteur pourrait être un court-circuit."
+            },
+            {
+                "ecode": "0300010000010007",
+                "intro": "La température du plateau est anormale, le circuit de mesure est peut être interrompu."
+            },
+            {
+                "ecode": "0300020000010001",
+                "intro": "La température de la buse est anormale, le circuit de chauffe pourrait être en court-circuit."
+            },
+            {
+                "ecode": "0300020000010002",
+                "intro": "La température de la buse est anormale, le circuit de chauffe pourrait être interrompu."
+            },
+            {
+                "ecode": "0300020000010003",
+                "intro": "La température de la buse est anormale, la chauffe dépasse la consigne."
+            },
+            {
+                "ecode": "0300020000010006",
+                "intro": "La température de la buse est anormale, le capteur pourrait avoir un court-circuit, veuillez vérifier si le connecteur est correctement branché."
+            },
+            {
+                "ecode": "0300020000010007",
+                "intro": "La température de la buse est anormale, le circuit de mesure est peut être interrompu."
+            },
+            {
+                "ecode": "0300030000010001",
+                "intro": "La vitesse du ventilateur hotend est trop lente ou arrêtée. Il est peut-être bloqué ou le connecteur n'est pas branché correctement."
+            },
+            {
+                "ecode": "03000D0000020001",
+                "intro": "Mise à l'origine du plateau anormale. Il peut y avoir une bosse sur la plateau ou la pointe de la buse n'est pas propre."
+            },
+            {
+                "ecode": "0500010000030006",
+                "intro": "Carte SD non formatée: veuillez la formater."
+            },
+            {
+                "ecode": "0700200000020002",
+                "intro": "L'emplacement 1 de l'AMS1 est vide, veuillez charger un nouveau filament."
+            },
+            {
+                "ecode": "0700210000020002",
+                "intro": "L'emplacement 2 de l'AMS 1 est vide, veuillez charger un nouveau filament."
+            },
+            {
+                "ecode": "0700220000020002",
+                "intro": "L'emplacement 3 de l'AMS 1 est vide, veuillez charger un nouveau filament."
+            },
+            {
+                "ecode": "0700230000020002",
+                "intro": "L'emplacement 4 de l'AMS 1 est vide, veuillez charger un nouveau filament."
+            },
+            {
+                "ecode": "0701200000020002",
+                "intro": "L'emplacement 1 de l'AMS 2 est vide, veuillez charger un nouveau filament."
+            },
+            {
+                "ecode": "0701210000020002",
+                "intro": "L'emplacement 2 de l'AMS 2 est vide, veuillez charger un nouveau filament."
+            },
+            {
+                "ecode": "0701220000020002",
+                "intro": "L'emplacement 3 de l'AMS 2 est vide, veuillez charger un nouveau filament."
+            },
+            {
+                "ecode": "0701230000020002",
+                "intro": "L'emplacement 4 de l'AMS 2 est vide, veuillez charger un nouveau filament."
+            },
+            {
+                "ecode": "0702200000020002",
+                "intro": "L'emplacement 1 de l'AMS 3 est vide, veuillez charger un nouveau filament."
+            },
+            {
+                "ecode": "0702210000020002",
+                "intro": "L'emplacement 2 de l'AMS 3 est vide, veuillez charger un nouveau filament."
+            },
+            {
+                "ecode": "0702220000020002",
+                "intro": "L'emplacement 3 de l'AMS 3 est vide, veuillez charger un nouveau filament."
+            },
+            {
+                "ecode": "0702230000020002",
+                "intro": "L'emplacement 4 de l'AMS 3 est vide, veuillez charger un nouveau filament."
+            },
+            {
+                "ecode": "0703200000020002",
+                "intro": "L'emplacement 1 de l'AMS 4 est vide, veuillez charger un nouveau filament."
+            },
+            {
+                "ecode": "0703210000020002",
+                "intro": "L'emplacement 2 de l'AMS 4 est vide, veuillez charger un nouveau filament."
+            },
+            {
+                "ecode": "0300010000010001",
+                "intro": "La température du plateau est anormale, le circuit de chauffe pourrait être en court-circuit."
+            },
+            {
+                "ecode": "0500030000020020",
+                "intro": "La capacité de la carte SD est insuffisante pour mettre en cache les fichiers d'impression."
+            },
+            {
+                "ecode": "0C0003000003000d",
+                "intro": "Certains objets peuvent être tombés, ou l'extrudeuse n'extrude pas normalement. Veuillez vérifier et décider si l'impression doit être arrêtée."
+            },
+            {
+                "ecode": "0700200000030001",
+                "intro": "Le filament AMS1 Slot1 a été épuisé, purge de l'ancien filament, veuillez patienter."
+            },
+            {
+                "ecode": "0700210000030001",
+                "intro": "Le filament AMS1 Slot2 a été épuisé, purge de l'ancien filament, veuillez patienter."
+            },
+            {
+                "ecode": "0700220000030001",
+                "intro": "Le filament AMS1 Slot3 a été épuisé, purge de l'ancien filament, veuillez patienter."
+            },
+            {
+                "ecode": "0300200000010001",
+                "intro": "L'orientation de l'axe X est anormale. Veuillez vérifier si la tête de l'outil est coincée ou si la tige de carbone présente une trop grande résistance."
+            },
+            {
+                "ecode": "0300200000010002",
+                "intro": "L'orientation de l'axe Y est anormale. Veuillez vérifier si la tête de l'outil est coincée ou si le chariot Y a trop de résistance."
+            },
+            {
+                "ecode": "0300200000010003",
+                "intro": "Rallage sur l'axe X anormal. La courroie de distribution est peut-être desserrée."
+            },
+            {
+                "ecode": "0300200000010004",
+                "intro": "L'orientation de l'axe Y est anormale. La courroie de distribution est peut-être desserrée."
+            },
+            {
+                "ecode": "0300400000020001",
+                "intro": "La transmission de données via le port série est anormale, peut-être que le système logiciel est défectueux."
+            },
+            {
+                "ecode": "0300410000010001",
+                "intro": "La tension du système est instable, ce qui déclenche la fonction de protection contre les pannes de courant."
+            },
+            {
+                "ecode": "0700600000020001",
+                "intro": "Le slot1 de l'AMS1 est surchargé. Le filament peut s'emmêler ou la bobine peut être bloquée."
+            },
+            {
+                "ecode": "0701600000020001",
+                "intro": "Le slot1 de l'AMS2 est surchargé. Le filament peut s'emmêler ou la bobine peut être bloquée."
+            },
+            {
+                "ecode": "0702600000020001",
+                "intro": "Le slot1 de l'AMS3 est surchargé. Le filament peut être emmêlé ou la bobine peut être bloquée."
+            },
+            {
+                "ecode": "0703600000020001",
+                "intro": "Le slot1 de l'AMS4 est surchargé. Le filament peut s'emmêler ou la bobine peut être bloquée."
+            },
+            {
+                "ecode": "0700610000020001",
+                "intro": "L'emplacement 2 de l'AMS1 est surchargé. Le filament peut s'emmêler ou la bobine peut être bloquée."
+            },
+            {
+                "ecode": "0701610000020001",
+                "intro": "Le slot2 de l'AMS2 est surchargé. Le filament peut s'emmêler ou la bobine peut être bloquée."
+            },
+            {
+                "ecode": "0702610000020001",
+                "intro": "Le slot2 de l'AMS3 est surchargé. Le filament peut s'emmêler ou la bobine peut être bloquée."
+            },
+            {
+                "ecode": "0703610000020001",
+                "intro": "Le slot2 de l'AMS4 est surchargé. Le filament peut s'emmêler ou la bobine peut être bloquée."
+            },
+            {
+                "ecode": "0700620000020001",
+                "intro": "L'emplacement 3 de l'AMS1 est surchargé. Le filament peut s'emmêler ou la bobine peut être bloquée."
+            },
+            {
+                "ecode": "0701620000020001",
+                "intro": "L'emplacement 3 de l'AMS2 est surchargé. Le filament peut s'emmêler ou la bobine peut être bloquée."
+            },
+            {
+                "ecode": "0702620000020001",
+                "intro": "Le slot3 de l'AMS3 est surchargé. Le filament peut s'emmêler ou la bobine peut être bloquée."
+            },
+            {
+                "ecode": "0703620000020001",
+                "intro": "Le slot3 de l'AMS4 est surchargé. Le filament peut s'emmêler ou la bobine peut être bloquée."
+            },
+            {
+                "ecode": "0700630000020001",
+                "intro": "Le slot4 de l'AMS1 est surchargé. Le filament peut s'emmêler ou la bobine peut être bloquée."
+            },
+            {
+                "ecode": "0701630000020001",
+                "intro": "Le slot4 de l'AMS2 est surchargé. Le filament peut s'emmêler ou la bobine peut être bloquée."
+            },
+            {
+                "ecode": "0702630000020001",
+                "intro": "L'emplacement 4 de l'AMS3 est surchargé. Le filament peut s'emmêler ou la bobine peut être bloquée."
+            },
+            {
+                "ecode": "0703630000020001",
+                "intro": "Le slot4 de l'AMS4 est surchargé. Le filament peut s'emmêler ou la bobine peut être bloquée."
+            },
+            {
+                "ecode": "0300040000020001",
+                "intro": "La vitesse du ventilateur de refroidissement de la pièce est trop lente ou arrêtée. Il est peut-être bloqué ou le connecteur n'est pas branché correctement."
+            },
+            {
+                "ecode": "0500010000020002",
+                "intro": "La caméra USB n'est pas connectée. Veuillez vérifier la connexion du câble de la caméra vidéo."
+            },
+            {
+                "ecode": "0500010000030004",
+                "intro": "Il n'y a pas assez d'espace sur la carte SD, veuillez la nettoyer."
+            },
+            {
+                "ecode": "0500020000020001",
+                "intro": "Impossible de se connecter à Internet. Vérifiez la connexion réseau."
+            },
+            {
+                "ecode": "0500020000020002",
+                "intro": "La connexion au périphérique a échoué. Veuillez vérifier les informations de votre compte."
+            },
+            {
+                "ecode": "0500020000020003",
+                "intro": "Impossible de se connecter à Internet. Vérifiez la connexion réseau."
+            },
+            {
+                "ecode": "0500020000020004",
+                "intro": "Utilisateur non autorisé. Veuillez vérifier les informations de votre compte."
+            },
+            {
+                "ecode": "0500020000020005",
+                "intro": "Impossible de se connecter à Internet. Vérifiez la connexion réseau."
+            },
+            {
+                "ecode": "0500020000020006",
+                "intro": "Le service Liveview ne fonctionne pas correctement. Veuillez vérifier votre connexion réseau."
+            },
+            {
+                "ecode": "0500020000020007",
+                "intro": "La connexion au service Liveview a échoué. Veuillez vérifier votre connexion réseau."
+            },
+            {
+                "ecode": "0500030000010001",
+                "intro": "Le module MC ne fonctionne pas correctement. Redémarrez l'appareil ou vérifiez la connexion des câbles de l'appareil."
+            },
+            {
+                "ecode": "050003000001000a",
+                "intro": "L'état du système est anormal. Veuillez restaurer les paramètres d'usine."
+            },
+            {
+                "ecode": "050003000001000b",
+                "intro": "L'écran ne fonctionne pas correctement. Veuillez redémarrer l'appareil."
+            },
+            {
+                "ecode": "050003000002000c",
+                "intro": "Erreur matérielle sans fil : veuillez éteindre/activer le WiFi ou redémarrer l'appareil."
+            },
+            {
+                "ecode": "0C00020000020004",
+                "intro": "La hauteur de la buse semble trop basse. Vérifiez si la buse est usée ou inclinée. Recalibrez le Lidar si la buse a été remplacée."
+            },
+            {
+                "ecode": "0C00030000030007",
+                "intro": "D'éventuels défauts de première couche ont été détectés. Vérifiez la qualité de la première couche et décidez si le travail doit être arrêté."
+            },
+            {
+                "ecode": "0C00030000030008",
+                "intro": "Des spaghettis possibles ont été détectés. Veuillez vérifier la qualité de l'impression et décider si la tâche doit être arrêtée."
+            },
+            {
+                "ecode": "0C0001000001000B",
+                "intro": "Impossible de calibrer le Micro Lidar. Assurez-vous que le tableau d'étalonnage est propre et qu'il n'est pas occulté, puis recommencez l'étalonnage de la machine."
+            },
+            {
+                "ecode": "0500030000020010",
+                "intro": ""
+            },
+            {
+                "ecode": "0500030000020011",
+                "intro": ""
+            },
+            {
+                "ecode": "0500030000020012",
+                "intro": ""
+            },
+            {
+                "ecode": "0500030000020013",
+                "intro": ""
+            },
+            {
+                "ecode": "0500030000020014",
+                "intro": ""
+            },
+            {
+                "ecode": "0500030000020015",
+                "intro": ""
+            },
+            {
+                "ecode": "0500030000020016",
+                "intro": ""
+            },
+            {
+                "ecode": "0500030000020017",
+                "intro": ""
+            },
+            {
+                "ecode": "0500030000020018",
+                "intro": ""
+            },
+            {
+                "ecode": "0C00020000020008",
+                "intro": "La ligne laser verticale est trop large. Veuillez vérifier si le lit chauffant est sale."
+            },
+            {
+                "ecode": "0700510000030001",
+                "intro": "L'AMS est désactivé ; veuillez charger le filament depuis le porte-bobine."
+            },
+            {
+                "ecode": "0500040000020007",
+                "intro": "La température du lit dépasse la température de vitrification du filament, ce qui peut provoquer l'obstruction de la buse. Veuillez laisser la porte avant de l'imprimante ouverte ou réduire la température du lit."
+            },
+            {
+                "ecode": "0300060000010001",
+                "intro": "Motor-A dispose d'un circuit ouvert. La connexion est peut-être desserrée ou le moteur est peut-être tombé en panne."
+            },
+            {
+                "ecode": "0300060000010002",
+                "intro": "Le moteur A a un court-circuit. Il est peut-être tombé en panne."
+            },
+            {
+                "ecode": "0300070000010001",
+                "intro": "Le moteur B dispose d'un circuit ouvert. La connexion est peut-être desserrée ou le moteur est peut-être en panne."
+            },
+            {
+                "ecode": "0300070000010002",
+                "intro": "Le moteur B a un court-circuit. Il est peut-être tombé en panne."
+            },
+            {
+                "ecode": "0300080000010001",
+                "intro": "Motor-Z dispose d'un circuit ouvert. La connexion est peut-être desserrée ou le moteur est peut-être en panne."
+            },
+            {
+                "ecode": "0300080000010002",
+                "intro": "Le moteur Z a un court-circuit. Il est peut-être tombé en panne."
+            },
+            {
+                "ecode": "0300090000010001",
+                "intro": "Motor-E dispose d'un circuit ouvert. La connexion est peut-être desserrée ou le moteur est peut-être en panne."
+            },
+            {
+                "ecode": "0300090000010002",
+                "intro": "Le moteur E a un court-circuit. Il est peut-être tombé en panne."
+            },
+            {
+                "ecode": "0700200000020001",
+                "intro": "Le filament AMS1 Slot1 a été épuisé, veuillez mettre un nouveau filament."
+            },
+            {
+                "ecode": "0700210000020001",
+                "intro": "Le filament AMS1 Slot2 est épuisé, veuillez mettre un nouveau filament."
+            },
+            {
+                "ecode": "0700220000020001",
+                "intro": "Le filament AMS1 Slot3 est épuisé, veuillez mettre un nouveau filament."
+            },
+            {
+                "ecode": "0700230000020001",
+                "intro": "Le filament de l'AMS1 Slot4 a été épuisé, veuillez mettre un nouveau filament."
+            },
+            {
+                "ecode": "0700230000020003",
+                "intro": "Le filament de l'AMS1 Slot4 peut être cassé dans AMS."
+            },
+            {
+                "ecode": "0701200000020001",
+                "intro": "Le filament de l'AMS2 Slot1 a été épuisé, veuillez mettre un nouveau filament."
+            },
+            {
+                "ecode": "0701200000020003",
+                "intro": "Le filament de l'AMS2 Slot1 peut être cassé dans AMS."
+            },
+            {
+                "ecode": "0701210000020001",
+                "intro": "Le filament de l'AMS2 Slot2 a été épuisé, veuillez mettre un nouveau filament."
+            },
+            {
+                "ecode": "0701210000020003",
+                "intro": "Le filament de l'AMS2 Slot2 peut être cassé dans AMS."
+            },
+            {
+                "ecode": "0701220000020001",
+                "intro": "Le filament de l'AMS2 Slot3 a été épuisé, veuillez mettre un nouveau filament."
+            },
+            {
+                "ecode": "0701220000020003",
+                "intro": "Le filament de l'AMS2 Slot3 peut être cassé dans l'AMS."
+            },
+            {
+                "ecode": "0701230000020001",
+                "intro": "Le filament de l'AMS2 Slot4 a été épuisé, veuillez mettre un nouveau filament."
+            },
+            {
+                "ecode": "0701230000020003",
+                "intro": "Le filament de l'AMS2 Slot4 peut être cassé dans AMS."
+            },
+            {
+                "ecode": "0702200000020001",
+                "intro": "Le filament de l'AMS3 Slot1 a été épuisé, veuillez mettre un nouveau filament."
+            },
+            {
+                "ecode": "0702200000020003",
+                "intro": "Le filament de l'AMS3 Slot1 peut être cassé dans AMS."
+            },
+            {
+                "ecode": "0702210000020001",
+                "intro": "Le filament de l'AMS3 Slot2 a été épuisé, veuillez mettre un nouveau filament."
+            },
+            {
+                "ecode": "0702210000020003",
+                "intro": "Le filament de l'AMS3 Slot2 peut être cassé dans l'AMS."
+            },
+            {
+                "ecode": "0702220000020001",
+                "intro": "Le filament de l'AMS3 Slot3 a été épuisé, veuillez mettre un nouveau filament."
+            },
+            {
+                "ecode": "0702220000020003",
+                "intro": "Le filament d'AMS3 Slot3 peut être cassé dans AMS."
+            },
+            {
+                "ecode": "0702230000020001",
+                "intro": "Le filament de l'AMS3 Slot4 a été épuisé, veuillez mettre un nouveau filament."
+            },
+            {
+                "ecode": "0702230000020003",
+                "intro": "Le filament de l'AMS3 Slot4 peut être cassé dans AMS."
+            },
+            {
+                "ecode": "0703200000020001",
+                "intro": "Le filament de l'AMS4 Slot1 a été épuisé, veuillez mettre un nouveau filament."
+            },
+            {
+                "ecode": "0703200000020003",
+                "intro": "Le filament de l'AMS4 Slot1 peut être cassé dans AMS."
+            },
+            {
+                "ecode": "0703210000020001",
+                "intro": "Le filament de l'AMS4 Slot2 a été épuisé, veuillez mettre un nouveau filament."
+            },
+            {
+                "ecode": "0703210000020003",
+                "intro": "Le filament de l'AMS4 Slot2 peut être cassé dans AMS."
+            },
+            {
+                "ecode": "0703220000020001",
+                "intro": "Le filament de l'AMS4 Slot3 a été épuisé, veuillez mettre un nouveau filament."
+            },
+            {
+                "ecode": "0703220000020003",
+                "intro": "Le filament de l'AMS4 Slot3 peut être cassé dans AMS."
+            },
+            {
+                "ecode": "0703230000020001",
+                "intro": "Le filament de l'AMS4 Slot4 a été épuisé, veuillez mettre un nouveau filament."
+            },
+            {
+                "ecode": "0703230000020003",
+                "intro": "Le filament de l'AMS4 Slot4 peut être cassé dans AMS."
+            },
+            {
+                "ecode": "0C0001000001000A",
+                "intro": "Le voyant d'appoint de la tête de l'outil est peut-être cassé. Vérifiez s'il vous plaît."
+            },
+            {
+                "ecode": "0C00020000020007",
+                "intro": "Le laser vertical n'est pas allumé. Vérifiez s'il est couvert ou si la connexion matérielle est normale."
+            },
+            {
+                "ecode": "0C0003000003000e",
+                "intro": "Il semble que votre imprimante imprime sans extrusion."
+            },
+            {
+                "ecode": "0C0003000003000f",
+                "intro": "Votre buse semble être recouverte d'un matériau coincé ou bouché."
+            },
+            {
+                "ecode": "0300060000010003",
+                "intro": "La résistance du moteur A est anormale, le moteur est peut-être tombé en panne."
+            },
+            {
+                "ecode": "0300070000010003",
+                "intro": "La résistance du moteur B est anormale, le moteur est peut-être tombé en panne."
+            },
+            {
+                "ecode": "0300080000010003",
+                "intro": "La résistance du moteur Z est anormale, le moteur est peut-être tombé en panne."
+            },
+            {
+                "ecode": "0300090000010003",
+                "intro": "La résistance du moteur E est anormale, le moteur est peut-être tombé en panne."
+            },
+            {
+                "ecode": "0300130000010001",
+                "intro": "Le capteur de courant du moteur A est anormal, ce qui peut être dû à une défaillance du circuit d'échantillonnage matériel."
+            },
+            {
+                "ecode": "0300140000010001",
+                "intro": "Le capteur de courant du moteur B est anormal, ce qui peut être dû à une défaillance du circuit d'échantillonnage matériel."
+            },
+            {
+                "ecode": "0300150000010001",
+                "intro": "Le capteur de courant de Motor-Z est anormal, ce qui peut être dû à une défaillance du circuit d'échantillonnage matériel."
+            },
+            {
+                "ecode": "0300160000010001",
+                "intro": "Le capteur de courant du Motor-E est anormal, ce qui peut être dû à une défaillance du circuit d'échantillonnage matériel."
+            },
+            {
+                "ecode": "0701200000030001",
+                "intro": "Le filament AMS2 Slot1 a été épuisé, purge de l'ancien filament, veuillez patienter."
+            },
+            {
+                "ecode": "0702200000030001",
+                "intro": "Le filament AMS3 Slot1 a été épuisé, purge de l'ancien filament, veuillez patienter."
+            },
+            {
+                "ecode": "0703200000030001",
+                "intro": "Le filament AMS4 Slot1 a été épuisé, purge de l'ancien filament, veuillez patienter."
+            },
+            {
+                "ecode": "0701210000030001",
+                "intro": "Le filament AMS2 Slot2 a été épuisé, purge de l'ancien filament, veuillez patienter."
+            },
+            {
+                "ecode": "0702210000030001",
+                "intro": "Le filament AMS3 Slot2 a été épuisé, purge de l'ancien filament, veuillez patienter."
+            },
+            {
+                "ecode": "0703210000030001",
+                "intro": "Le filament AMS4 Slot2 a été épuisé, purge de l'ancien filament, veuillez patienter."
+            },
+            {
+                "ecode": "0701220000030001",
+                "intro": "Le filament AMS2 Slot3 a été épuisé, purge de l'ancien filament, veuillez patienter."
+            },
+            {
+                "ecode": "0702220000030001",
+                "intro": "Le filament AMS3 Slot3 a été épuisé, purge de l'ancien filament, veuillez patienter."
+            },
+            {
+                "ecode": "0703220000030001",
+                "intro": "Le filament AMS4 Slot3 a été épuisé, purge de l'ancien filament, veuillez patienter."
+            },
+            {
+                "ecode": "0700230000030001",
+                "intro": "Le filament AMS1 Slot4 a été épuisé, purge de l'ancien filament, veuillez patienter."
+            },
+            {
+                "ecode": "0701230000030001",
+                "intro": "Le filament AMS2 Slot4 a été épuisé, purge de l'ancien filament, veuillez patienter."
+            },
+            {
+                "ecode": "0702230000030001",
+                "intro": "Le filament AMS3 Slot4 a été épuisé, purge de l'ancien filament, veuillez patienter."
+            },
+            {
+                "ecode": "0703230000030001",
+                "intro": "Le filament AMS4 Slot4 a été épuisé, purge de l'ancien filament, veuillez patienter."
+            },
+            {
+                "ecode": "0700500000020001",
+                "intro": "La communication AMS1 est anormale, veuillez vérifier le câble de connexion."
+            },
+            {
+                "ecode": "0701500000020001",
+                "intro": "La communication AMS2 est anormale, veuillez vérifier le câble de connexion."
+            },
+            {
+                "ecode": "0702500000020001",
+                "intro": "La communication AMS3 est anormale, veuillez vérifier le câble de connexion."
+            },
+            {
+                "ecode": "0703500000020001",
+                "intro": "La communication AMS4 est anormale, veuillez vérifier le câble de connexion."
+            },
+            {
+                "ecode": "0C00020000020009",
+                "intro": "Le laser vertical n'est pas assez lumineux en position de prise d'origine. Veuillez nettoyer ou remplacer le matelas chauffant si ce message s'affiche à plusieurs reprises."
+            },
+            {
+                "ecode": "0C00030000010009",
+                "intro": "Le module d'inspection de la première couche a redémarré anormalement. Le résultat de l'inspection peut être inexact."
+            },
+            {
+                "ecode": "0C0003000001000a",
+                "intro": "Votre imprimante est en mode usine. Veuillez contacter notre équipe d'assistance."
+            },
+            {
+                "ecode": "0C00030000020001",
+                "intro": "Le paramètre d'exposition du filament est anormal. L'inspection de la première couche peut être imprécise."
+            },
+            {
+                "ecode": "0C00030000020002",
+                "intro": "L'inspection de la première couche a été interrompue en raison de données Lidar anormales."
+            },
+            {
+                "ecode": "0C00030000020005",
+                "intro": "L'analyse Micro Lidar a expiré anormalement et les résultats actuels peuvent être inexacts."
+            },
+            {
+                "ecode": "0C0003000003000b",
+                "intro": "Inspecter la première couche ; Patientez s'il-vous-plait."
+            },
+            {
+                "ecode": "0C00010000010005",
+                "intro": "Le paramètre OTP de la caméra Micro Lidar est anormal. Veuillez contacter le service après-vente."
+            },
+            {
+                "ecode": "0C00010000010009",
+                "intro": "L'objectif ou lentille de la caméra de la chambre semble être sale. Veuillez nettoyer la lentille."
+            },
+            {
+                "ecode": "0C00010000020002",
+                "intro": "La caméra Micro Lidar fonctionne mal et les fonctions associées peuvent échouer. Veuillez contacter le service après-vente si ce message continue d'apparaître sur plusieurs impressions."
+            },
+            {
+                "ecode": "0C00010000020006",
+                "intro": "Les paramètres extrinsèques de la caméra Micro Lidar sont anormaux. Veuillez activer l'étalonnage du débit lors de votre prochaine impression."
+            },
+            {
+                "ecode": "0C00010000020007",
+                "intro": "Les paramètres du Micro Lidar sont anormaux. Veuillez recalibrer votre imprimante."
+            },
+            {
+                "ecode": "0C00010000020008",
+                "intro": "Impossible d'obtenir une image de la caméra de la chambre. La détection des spaghettis n'est pas disponible pour le moment."
+            },
+            {
+                "ecode": "0C00020000010001",
+                "intro": "Le laser n'est pas allumé. Veuillez vérifier la connexion matérielle."
+            },
+            {
+                "ecode": "0C00020000010005",
+                "intro": "Un nouveau Micro Lidar est détecté. Veuillez le calibrer sur la page Calibrage avant de l'utiliser."
+            },
+            {
+                "ecode": "0C00020000020002",
+                "intro": "Le réglage d'exposition de la caméra MIcro Lidar est anormal. L'inspection de la première couche peut être imprécise."
+            },
+            {
+                "ecode": "0C00020000020003",
+                "intro": "Le laser n'est pas assez brillant en position initiale. Veuillez nettoyer ou remplacer le plateau chauffant si ce message apparaît à plusieurs reprises."
+            },
+            {
+                "ecode": "0C00020000020006",
+                "intro": "La hauteur de la buse semble trop élevée, ce qui peut affecter la mise à niveau du plateau. Veuillez vérifier si un résidu de filament est attaché à la buse."
+            },
+            {
+                "ecode": "0703310000020002",
+                "intro": "L'étiquette RFID sur AMS4 slot2 est endommagée."
+            },
+            {
+                "ecode": "0703310000030003",
+                "intro": "La RFID ne peut pas être lue en raison d'une erreur matérielle ou structurelle."
+            },
+            {
+                "ecode": "0703320000020002",
+                "intro": "L'étiquette RFID sur AMS4 slot3 est endommagée."
+            },
+            {
+                "ecode": "0703330000020002",
+                "intro": "L'étiquette RFID sur AMS4 slot4 est endommagée."
+            },
+            {
+                "ecode": "0703350000010001",
+                "intro": "Le capteur de température et d'humidité a une erreur. La puce peut être défectueuse."
+            },
+            {
+                "ecode": "0C00010000010001",
+                "intro": "La caméra Micro Lidar est hors ligne. Veuillez vérifier la connexion  matérielle."
+            },
+            {
+                "ecode": "0C00010000010003",
+                "intro": "La synchronisation entre la caméra Micro Lidar et le MCU est anormale. Veuillez redémarrer votre imprimante."
+            },
+            {
+                "ecode": "0C00010000010004",
+                "intro": "L'objectif ou lentille de la caméra Micro Lidar semble être sale. Veuillez nettoyer la lentille."
+            },
+            {
+                "ecode": "0703300000010001",
+                "intro": "La carte RFID entre AMS4 slot1 & slot2 a une erreur."
+            },
+            {
+                "ecode": "0703300000010004",
+                "intro": "Échec de la puce de cryptage."
+            },
+            {
+                "ecode": "0703300000020002",
+                "intro": "L'étiquette RFID sur AMS4 slot1 est endommagée."
+            },
+            {
+                "ecode": "0703300000030003",
+                "intro": "La RFID ne peut pas être lue en raison d'une erreur matérielle ou structurelle."
+            },
+            {
+                "ecode": "0703310000010001",
+                "intro": "La carte RFID entre AMS4 slot3 & slot4 a une erreur."
+            },
+            {
+                "ecode": "0703310000010004",
+                "intro": "Échec de la puce de cryptage."
+            },
+            {
+                "ecode": "0703010000020002",
+                "intro": "Le moteur d'assistance AMS4 est surchargé. Le filament peut être emmêlé ou coincé."
+            },
+            {
+                "ecode": "0703020000010001",
+                "intro": "AMS4 Erreur de vitesse et de longueur du filament : L'odométrie du filament peut être défectueuse."
+            },
+            {
+                "ecode": "0703100000020002",
+                "intro": "Le moteur AMS4 slot1 est surchargé. Le filament peut être emmêlé ou coincé."
+            },
+            {
+                "ecode": "0703110000020002",
+                "intro": "Le moteur AMS4 slot2 est surchargé. Le filament peut être emmêlé ou coincé."
+            },
+            {
+                "ecode": "0703120000020002",
+                "intro": "Le moteur AMS4 slot3 est surchargé. Le filament peut être emmêlé ou coincé."
+            },
+            {
+                "ecode": "0703130000020002",
+                "intro": "Le moteur AMS4 slot4 est surchargé. Le filament peut être emmêlé ou coincé."
+            },
+            {
+                "ecode": "0702310000010001",
+                "intro": "La carte RFID entre AMS3 slot3 & slot4 a une erreur."
+            },
+            {
+                "ecode": "0702310000010004",
+                "intro": "Échec de la puce de cryptage."
+            },
+            {
+                "ecode": "0702310000020002",
+                "intro": "L'étiquette RFID sur AMS3 slot2 est endommagée."
+            },
+            {
+                "ecode": "0702310000030003",
+                "intro": "La RFID ne peut pas être lue en raison d'une erreur matérielle ou structurelle."
+            },
+            {
+                "ecode": "0702320000020002",
+                "intro": "L'étiquette RFID sur AMS3 slot3 est endommagée."
+            },
+            {
+                "ecode": "0702330000020002",
+                "intro": "L'étiquette RFID sur AMS3 slot4 est endommagée."
+            },
+            {
+                "ecode": "0702350000010001",
+                "intro": "Le capteur de température et d'humidité a une erreur. La puce peut être défectueuse."
+            },
+            {
+                "ecode": "0703010000010004",
+                "intro": "La commande de vitesse du moteur d'assistance AMS4 est défectueuse. Le capteur de vitesse peut être défectueux."
+            },
+            {
+                "ecode": "0702300000010001",
+                "intro": "La carte RFID entre AMS3 slot1 & slot2 a une erreur."
+            },
+            {
+                "ecode": "0702300000010004",
+                "intro": "Échec de la puce de cryptage."
+            },
+            {
+                "ecode": "0702300000020002",
+                "intro": "L'étiquette RFID sur AMS3 slot1 est endommagée."
+            },
+            {
+                "ecode": "0702300000030003",
+                "intro": "La RFID ne peut pas être lue en raison d'une erreur matérielle ou structurelle."
+            },
+            {
+                "ecode": "0702100000020002",
+                "intro": "Le moteur AMS3 slot1 est surchargé. Le filament peut être emmêlé ou coincé."
+            },
+            {
+                "ecode": "0702110000020002",
+                "intro": "Le moteur AMS3 slot2 est surchargé. Le filament peut être emmêlé ou coincé."
+            },
+            {
+                "ecode": "0702120000020002",
+                "intro": "Le moteur AMS3 slot3 est surchargé. Le filament peut être emmêlé ou coincé."
+            },
+            {
+                "ecode": "0702130000020002",
+                "intro": "Le moteur AMS3 slot4 est surchargé. Le filament peut être emmêlé ou coincé."
+            },
+            {
+                "ecode": "0701310000020002",
+                "intro": "L'étiquette RFID sur AMS2 slot2 est endommagée."
+            },
+            {
+                "ecode": "0701310000030003",
+                "intro": "La RFID ne peut pas être lue en raison d'une erreur matérielle ou structurelle."
+            },
+            {
+                "ecode": "0701320000020002",
+                "intro": "L'étiquette RFID sur AMS2 slot3 est endommagée."
+            },
+            {
+                "ecode": "0701330000020002",
+                "intro": "L'étiquette RFID sur AMS2 slot4 est endommagée."
+            },
+            {
+                "ecode": "0701350000010001",
+                "intro": "Le capteur de température et d'humidité a une erreur. La puce peut être défectueuse."
+            },
+            {
+                "ecode": "0702010000010004",
+                "intro": "La commande de vitesse du moteur d'assistance AMS3 est défectueuse. Le capteur de vitesse peut être défectueux."
+            },
+            {
+                "ecode": "0702010000020002",
+                "intro": "Le moteur d'assistance AMS3 est surchargé. Le filament peut être emmêlé ou coincé."
+            },
+            {
+                "ecode": "0702020000010001",
+                "intro": "AMS3 Erreur de vitesse et de longueur du filament : L'odométrie du filament peut être défectueuse."
+            },
+            {
+                "ecode": "0701300000010001",
+                "intro": "La carte RFID entre AMS2 slot1 & slot2 a une erreur."
+            },
+            {
+                "ecode": "0701300000010004",
+                "intro": "Échec de la puce de cryptage."
+            },
+            {
+                "ecode": "0701300000020002",
+                "intro": "L'étiquette RFID sur AMS2 slot1 est endommagée."
+            },
+            {
+                "ecode": "0701300000030003",
+                "intro": "La RFID ne peut pas être lue en raison d'une erreur matérielle ou structurelle."
+            },
+            {
+                "ecode": "0701310000010001",
+                "intro": "La carte RFID entre AMS2 slot3 & slot4 a une erreur."
+            },
+            {
+                "ecode": "0701310000010004",
+                "intro": "Échec de la puce de cryptage."
+            },
+            {
+                "ecode": "0701010000020002",
+                "intro": "Le moteur d'assistance AMS2 est surchargé. Le filament peut être emmêlé ou coincé."
+            },
+            {
+                "ecode": "0701020000010001",
+                "intro": "AMS2 Erreur de vitesse et de longueur du filament : L'odométrie du filament peut être défectueuse."
+            },
+            {
+                "ecode": "0701100000020002",
+                "intro": "Le moteur AMS2 slot1 est surchargé. Le filament peut être emmêlé ou coincé."
+            },
+            {
+                "ecode": "0701110000020002",
+                "intro": "Le moteur AMS2 slot2 est surchargé. Le filament peut être emmêlé ou coincé."
+            },
+            {
+                "ecode": "0701120000020002",
+                "intro": "Le moteur AMS2 slot3 est surchargé. Le filament peut être emmêlé ou coincé."
+            },
+            {
+                "ecode": "0701130000020002",
+                "intro": "Le moteur AMS2 slot4 est surchargé. Le filament peut être emmêlé ou coincé."
+            },
+            {
+                "ecode": "0700310000010004",
+                "intro": "Échec de la puce de cryptage."
+            },
+            {
+                "ecode": "0700310000020002",
+                "intro": "L'étiquette RFID sur AMS1 slot2 est endommagée."
+            },
+            {
+                "ecode": "0700310000030003",
+                "intro": "La RFID ne peut pas être lue en raison d'une erreur matérielle ou structurelle."
+            },
+            {
+                "ecode": "0700320000020002",
+                "intro": "L'étiquette RFID sur AMS1 slot3 est endommagée."
+            },
+            {
+                "ecode": "0700330000020002",
+                "intro": "L'étiquette RFID sur AMS1 slot4 est endommagée."
+            },
+            {
+                "ecode": "0700350000010001",
+                "intro": "Le capteur de température et d'humidité a une erreur. La puce peut être défectueuse."
+            },
+            {
+                "ecode": "0700400000020001",
+                "intro": "Le signal de position du tampon de filament est perdu : le câble ou le capteur de position peut être défectueux."
+            },
+            {
+                "ecode": "0700400000020002",
+                "intro": "L'erreur de signal de position du tampon de filament : le capteur de position peut être défectueux."
+            },
+            {
+                "ecode": "0700400000020003",
+                "intro": "La communication du concentrateur AMS est anormale, le câble n'est peut-être pas bien connecté."
+            },
+            {
+                "ecode": "0700450000020001",
+                "intro": "Le capteur du coupe-filament est défectueux. Le capteur peut être déconnecté ou endommagé."
+            },
+            {
+                "ecode": "0700450000020002",
+                "intro": "La distance de coupe du coupe-filament est trop grande. Le moteur XY peut perdre des pas."
+            },
+            {
+                "ecode": "0700450000020003",
+                "intro": "La poignée du coupe-filament ne s'est pas relâchée. Le manche ou la lame peut être coincé."
+            },
+            {
+                "ecode": "0701010000010004",
+                "intro": "La commande de vitesse du moteur d'assistance AMS2 est défectueuse. Le capteur de vitesse peut être défectueux."
+            },
+            {
+                "ecode": "0700210000020003",
+                "intro": "Le filament d'AMS1 slot2 peut être cassé dans le tube PTFE."
+            },
+            {
+                "ecode": "0700220000020003",
+                "intro": "Le filament d'AMS1 slot3 peut être cassé dans le tube PTFE."
+            },
+            {
+                "ecode": "0700300000010001",
+                "intro": "La carte RFID entre AMS1 slot1 & slot2 a une erreur."
+            },
+            {
+                "ecode": "0700300000010004",
+                "intro": "Échec de la puce de cryptage."
+            },
+            {
+                "ecode": "0700300000020002",
+                "intro": "L'étiquette RFID sur AMS1 slot1 est endommagée."
+            },
+            {
+                "ecode": "0700300000030003",
+                "intro": "La RFID ne peut pas être lue en raison d'une erreur matérielle ou structurelle."
+            },
+            {
+                "ecode": "0700310000010001",
+                "intro": "La carte RFID entre AMS1 slot3 & slot4 a une erreur."
+            },
+            {
+                "ecode": "0700100000020002",
+                "intro": "Le moteur AMS1 slot1 est surchargé. Le filament peut être emmêlé ou coincé."
+            },
+            {
+                "ecode": "0700110000020002",
+                "intro": "Le moteur AMS1 slot2 est surchargé. Le filament peut être emmêlé ou coincé."
+            },
+            {
+                "ecode": "0700120000020002",
+                "intro": "Le moteur AMS1 slot3 est surchargé. Le filament peut être emmêlé ou coincé."
+            },
+            {
+                "ecode": "0700130000020002",
+                "intro": "Le moteur AMS1 slot4 est surchargé. Le filament peut être emmêlé ou coincé."
+            },
+            {
+                "ecode": "0700200000020003",
+                "intro": "Le filament d'AMS1 slot1 peut être cassé dans le tube PTFE."
+            },
+            {
+                "ecode": "050003000002000d",
+                "intro": "Le contrôleur de la carte SD fonctionne mal."
+            },
+            {
+                "ecode": "0500030000030007",
+                "intro": "Une panique du système s'est produite. Il a été récupéré par redémarrage automatique."
+            },
+            {
+                "ecode": "0500040000010001",
+                "intro": "Échec du téléchargement du travail d'impression. Veuillez vérifier votre connexion réseau."
+            },
+            {
+                "ecode": "0500040000010002",
+                "intro": "Impossible de signaler l'état de l'impression. Veuillez vérifier votre connexion réseau."
+            },
+            {
+                "ecode": "0500040000010003",
+                "intro": "Le contenu du fichier d'impression est illisible. Veuillez renvoyer le travail d'impression."
+            },
+            {
+                "ecode": "0500040000010004",
+                "intro": "Le fichier d'impression n'est pas autorisé."
+            },
+            {
+                "ecode": "0500040000010006",
+                "intro": "Le fichier d'impression n'est pas autorisé."
+            },
+            {
+                "ecode": "0700010000010004",
+                "intro": "La commande de vitesse du moteur d'assistance AMS1 est défectueuse. Le capteur de vitesse peut être défectueux."
+            },
+            {
+                "ecode": "0700010000020002",
+                "intro": "Le moteur d'assistance AMS1 est surchargé. Le filament peut être emmêlé ou coincé."
+            },
+            {
+                "ecode": "0700020000010001",
+                "intro": "AMS1 Erreur de vitesse et de longueur du filament : L'odométrie du filament peut être défectueuse."
+            },
+            {
+                "ecode": "0500030000010002",
+                "intro": "La tête d'outil est défectueuse. Veuillez redémarrer l'appareil."
+            },
+            {
+                "ecode": "0500030000010003",
+                "intro": "Le module AMS est défectueux. Veuillez redémarrer l'appareil."
+            },
+            {
+                "ecode": "0500030000010004",
+                "intro": "La communication interne fonctionne mal. Veuillez redémarrer l'appareil."
+            },
+            {
+                "ecode": "0500030000010005",
+                "intro": "Le service interne fonctionne mal. Veuillez redémarrer l'appareil."
+            },
+            {
+                "ecode": "0500030000010006",
+                "intro": "Une panique du système s'est produite. Veuillez redémarrer l'appareil."
+            },
+            {
+                "ecode": "0500030000010008",
+                "intro": "Un blocage du système s'est produit. Veuillez redémarrer l'appareil."
+            },
+            {
+                "ecode": "0500030000010009",
+                "intro": "Un blocage du système s'est produit. Il a été récupéré par redémarrage automatique."
+            },
+            {
+                "ecode": "03000D000001000B",
+                "intro": "Le moteur de l'axe Z semble être bloqué lors du déplacement vers le haut, veuillez vérifier s'il y a des corps étrangers sur les curseurs Z ou les roues de la courroie dentée Z."
+            },
+            {
+                "ecode": "03000F0000010001",
+                "intro": "Les données de l'accéléromètre ne sont pas disponibles. La connexion de communication avec la tête de l'outil peut être interrompue ou l'accéléromètre peut être endommagé."
+            },
+            {
+                "ecode": "0300100000020001",
+                "intro": "Le mode de résonance mécanique du 1er ordre de l'axe X est faible. La courroie de distribution peut être desserrée."
+            },
+            {
+                "ecode": "0300110000020001",
+                "intro": "Le mode de résonance mécanique du 1er ordre de l'axe Y est faible. La courroie de distribution peut être desserrée."
+            },
+            {
+                "ecode": "0300120000020001",
+                "intro": "Le capot avant de la tête d'outil est tombé."
+            },
+            {
+                "ecode": "0500010000020001",
+                "intro": "Le pipeline des médias fonctionne mal."
+            },
+            {
+                "ecode": "0500010000020003",
+                "intro": "La caméra USB fonctionne mal."
+            },
+            {
+                "ecode": "0300100000020002",
+                "intro": "Le mode de résonance mécanique de 1er ordre de l'axe X est très différent du dernier calibrage. Veuillez relancer le calibrage de la machine ultérieurement."
+            },
+            {
+                "ecode": "0300110000020002",
+                "intro": "Le mode de résonance mécanique de 1er ordre de l'axe Y est très différent du dernier calibrage. Veuillez recommencer le calibrage de la machine ultérieurement."
+            },
+            {
+                "ecode": "03000B0000010005",
+                "intro": "Une perturbation externe a été détectée lors du test de sensibilité du capteur de force 2. La plaque du lit chauffant a peut-être touché quelque chose à l'extérieur du lit chauffant."
+            },
+            {
+                "ecode": "03000C0000010001",
+                "intro": "La sensibilité du capteur de force du lit chauffant 3 est trop élevée. Il est peut-être coincé entre le bras de tension et le support du lit chauffant, ou la vis de réglage est peut-être trop serrée."
+            },
+            {
+                "ecode": "03000C0000010002",
+                "intro": "La sensibilité du capteur de force du lit chauffant 3 est faible. Le capteur de force peut être détaché du bras de contrainte."
+            },
+            {
+                "ecode": "03000C0000010003",
+                "intro": "La sensibilité du capteur de force du lit chauffant 3 est trop faible. La connexion électronique au capteur peut être interrompue."
+            },
+            {
+                "ecode": "03000C0000010004",
+                "intro": "Une perturbation externe a été détectée lors du test de sensibilité du capteur de force 3. La plaque du lit chauffant a peut-être touché quelque chose à l'extérieur du lit chauffant."
+            },
+            {
+                "ecode": "03000C0000010005",
+                "intro": "La tension statique du capteur de force 3 n'est pas de 0. Le lit chauffant peut être bloqué ou l'extrémité avant analogique peut être cassée."
+            },
+            {
+                "ecode": "03000D0000010002",
+                "intro": "La prise d'origine du lit chauffant a échoué. La vibration environnementale est trop grande."
+            },
+            {
+                "ecode": "03000A0000010001",
+                "intro": "La sensibilité du capteur de force du lit chauffant 1 est trop élevée. Il est peut-être coincé entre le bras de tension et le support du lit chauffant, ou la vis de réglage est peut-être trop serrée."
+            },
+            {
+                "ecode": "03000A0000010002",
+                "intro": "La sensibilité du capteur de force du lit chauffant 1 est faible. Le capteur de force peut être détaché du bras de contrainte."
+            },
+            {
+                "ecode": "03000A0000010003",
+                "intro": "La sensibilité du capteur de force du lit chauffant 1 est trop faible. La connexion électronique au capteur peut être interrompue."
+            },
+            {
+                "ecode": "03000A0000010004",
+                "intro": "Une perturbation externe a été détectée lors du test de sensibilité du capteur de force 1. La plaque du lit chauffant a peut-être touché quelque chose à l'extérieur du lit chauffant."
+            },
+            {
+                "ecode": "03000A0000010005",
+                "intro": "La tension statique du capteur de force 1 n'est pas de 0. Le lit chauffant peut être bloqué ou le frontal analogique peut être cassé."
+            },
+            {
+                "ecode": "03000B0000010001",
+                "intro": "La sensibilité du capteur de force du lit chauffant 2 est trop élevée. Il est peut-être coincé entre le bras de tension et le support du lit chauffant, ou la vis de réglage est peut-être trop serrée."
+            },
+            {
+                "ecode": "03000B0000010003",
+                "intro": "La sensibilité du capteur de force du lit chauffant 2 est faible. Le capteur de force peut être détaché du bras de contrainte."
+            },
+            {
+                "ecode": "03000B0000010004",
+                "intro": "La sensibilité du capteur de force du lit chauffant 2 est trop faible. La connexion électronique au capteur peut être interrompue."
+            },
+            {
+                "ecode": "03000B0000010002",
+                "intro": "La tension statique du capteur de force 2 n'est pas de 0. Le lit chauffant peut être bloqué ou le frontal analogique peut être cassé."
+            },
+            {
+                "ecode": "0300050000010001",
+                "intro": "Le pilote du moteur surchauffe. Son radiateur peut être desserré ou son ventilateur de refroidissement peut être endommagé."
+            }
+        ],
+        "ver": 202401191700
+    },
+    "version": "202401191700"
+}
