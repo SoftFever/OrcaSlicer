@@ -4,6 +4,9 @@
     "from": "system",
     "instantiation": "false",
     "inherits": "fdm_filament_common",
+    "filament_vendor": [
+        "FlyingBear"
+    ],
     "cool_plate_temp" : [
         "105"
     ],
@@ -14,7 +17,7 @@
         "105"
     ],
     "textured_plate_temp" : [
-        "100"
+        "105"
     ],
     "cool_plate_temp_initial_layer" : [
         "105"
@@ -23,7 +26,7 @@
         "105"
     ],
     "hot_plate_temp_initial_layer" : [
-        "100"
+        "105"
     ],
     "textured_plate_temp_initial_layer" : [
         "105"
@@ -37,9 +40,6 @@
     "fan_cooling_layer_time": [
         "30"
     ],
-    "filament_max_volumetric_speed": [
-        "16"
-    ],
     "filament_type": [
         "ABS"
     ],
@@ -50,10 +50,10 @@
         "20"
     ],
     "nozzle_temperature_initial_layer": [
-        "250"
+        "230"
     ],
     "reduce_fan_stop_start_freq": [
-        "0"
+        "1"
     ],
     "fan_max_speed": [
         "20"
@@ -68,13 +68,13 @@
         "80"
     ],
     "nozzle_temperature": [
-        "250"
+        "230"
     ],
     "temperature_vitrification": [
         "110"
     ],
     "nozzle_temperature_range_low": [
-        "240"
+        "220"
     ],
     "nozzle_temperature_range_high": [
         "270"
@@ -82,7 +82,13 @@
     "slow_down_min_speed": [
         "20"
     ],
+    "activate_air_filtration": [
+        "1"
+    ],
+    "complete_print_exhaust_fan_speed": [
+        "60"
+    ],
     "slow_down_layer_time": [
-        "3"
+        "5"
     ]
 }
