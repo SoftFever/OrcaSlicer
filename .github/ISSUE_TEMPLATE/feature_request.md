@@ -1,5 +1,5 @@
 name: 🚀 Feature Request / Enhancement
-description: Suggest an improvemnt to make Orca Slicer even better!
+description: Suggest an improvement to make EdgeTX even better!
 labels: ["feature"]
 body:
   - type: markdown
@@ -8,8 +8,8 @@ body:
         Thanks for taking the time to fill out this feature request!
 
         If your idea is still at the formulation stage, or you're not sure it would
-        be useful to many users, you can raise it as a discussion topic under [Ideas](https://github.com/SoftFever/OrcaSlicer/discussions/categories/ideas)
-        or you can raise it on the [Discord server](https://discord.gg/P4VE9UY9gJ).
+        be useful to many users, you can raise it as a discussion topic under [Ideas](https://github.com/EdgeTX/edgetx/discussions/categories/ideas)
+        or you can raise it on the [Discord server](https://discord.gg/wF9wUKnZ6H).
   - type: checkboxes
     attributes:
       label: Is there an existing issue for this feature request?
@@ -26,19 +26,6 @@ body:
       placeholder: I'm always frustrated when [...]
     validations:
       required: true
-  - type: dropdown
-    id: printer_type
-    attributes:
-      label: "Operating System (OS)"
-      description: "Which printers will be beneficial to this feature?"
-      multiple: true
-      options:
-        - All
-        - Klipper
-        - Marlin
-        - Others
-    validations:
-      required: true  
   - type: textarea
     attributes:
       label: Describe the solution you'd like
