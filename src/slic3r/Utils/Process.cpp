@@ -102,7 +102,7 @@ static void start_new_slicer_or_gcodeviewer(const NewSlicerInstanceType instance
 		std::string my_path;
 		if (args.empty()) {
 			// Binary path was not set to the AppImage in the Linux specific block above, call the application directly.
-			my_path = (bin_path.parent_path() / ((instance_type == NewSlicerInstanceType::Slicer) ? "orca-slicer" : "bambu-gcodeviewer")).string();
+			my_path = (bin_path.parent_path() / ((instance_type == NewSlicerInstanceType::Slicer) ? "orca-slicerRED" : "bambu-gcodeviewer")).string();
 			args.emplace_back(my_path.c_str());
 		}
 		std::string to_open;
