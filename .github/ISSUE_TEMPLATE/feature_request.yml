@@ -30,7 +30,6 @@ body:
     attributes:
       label: Which printers will be beneficial to this feature?
       description: Select affected printer firmware type.
-      id: printer_type
       multiple: true
       options: 
         - Klipper
