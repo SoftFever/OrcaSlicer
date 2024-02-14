@@ -1,6 +1,5 @@
 name: 🚀 Feature Request / Enhancement
 description: Suggest an improvement to make Orca Slicer even better!
-assignees: ""
 labels: ["enhancement"]
 body:
   - type: markdown
@@ -12,16 +11,15 @@ body:
         be useful to many users, you can raise it as a discussion topic under [Ideas](https://github.com/SoftFever/OrcaSlicer/discussions/categories/ideas)
         or you can raise it on the [Discord server](https://discord.gg/P4VE9UY9gJ).
   - type: checkboxes
-    id: checkbox_searchfirst
     attributes:
       label: Is there an existing issue for this feature request?
       description: |
         Please search to see if an issue already exists for a feature, or perhaps one similar.
-        You can then comment and react so that we know know much interest there is in the feature request
+        You can then comment and react so that we know know much interest there is in the feature request.
       options:
         - label: I have searched the existing issues
           required: true
-    - type: textarea
+  - type: textarea
     attributes:
       label: Is your feature request related to a problem?
       description: A clear and concise description of what the problem is.
