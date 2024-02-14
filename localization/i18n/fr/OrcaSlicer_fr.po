@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-11 11:39+0100\n"
+"POT-Creation-Date: 2024-02-14 15:40+0100\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: Guislain Cyril, Thomas Lété\n"
@@ -674,6 +674,14 @@ msgstr "Faire pivoter le texte"
 msgid "Text shape"
 msgstr "Forme du texte"
 
+#. TRN - Title in Undo/Redo stack after rotate with text around emboss axe
+msgid "Text rotate"
+msgstr "Rotation du texte"
+
+#. TRN - Title in Undo/Redo stack after move with text along emboss axe - From surface
+msgid "Text move"
+msgstr "Déplacement du texte"
+
 msgid "Set Mirror"
 msgstr "Définir la symétrie"
 
@@ -691,9 +699,6 @@ msgstr "Actions d’embossage"
 
 msgid "Emboss"
 msgstr "Embosser"
-
-msgid "Text-Rotate"
-msgstr "Rotation du texte"
 
 msgid "NORMAL"
 msgstr ""
@@ -1086,6 +1091,14 @@ msgstr "Continuer"
 msgid "Collection"
 msgstr "Collection"
 
+#. TRN - Title in Undo/Redo stack after rotate with SVG around emboss axe
+msgid "SVG rotate"
+msgstr "Rotation du SVG"
+
+#. TRN - Title in Undo/Redo stack after move with SVG along emboss axe - From surface
+msgid "SVG move"
+msgstr "Déplacement du SVG"
+
 msgid "Enter SVG gizmo"
 msgstr "Ouvrir l’outil SVG"
 
@@ -1097,10 +1110,6 @@ msgstr "Actions SVG"
 
 msgid "SVG"
 msgstr "SVG"
-
-#. TRN This is an item label in the undo-redo stack.
-msgid "SVG-Rotate"
-msgstr "Rotation du SVG"
 
 #, boost-format
 msgid "Opacity (%1%)"
@@ -1225,9 +1234,6 @@ msgstr "Verrouiller/déverrouiller le ratio d’aspect du SVG."
 
 msgid "Reset scale"
 msgstr "Remise à zéro de l’échelle"
-
-msgid "Resize"
-msgstr "Redimensionner"
 
 msgid "Distance of the center of the SVG to the model surface."
 msgstr "Distance entre le centre du SVG et la surface du modèle."
@@ -8333,8 +8339,11 @@ msgstr ""
 "Besoin de vérifier les modifications non enregistrées avant les mises à jour "
 "de configuration."
 
-msgid "Configuration package updated to "
-msgstr "Package de configuration mis à jour pour "
+msgid "Configuration package: "
+msgstr "Paquet de configuration : "
+
+msgid " updated to "
+msgstr " mis à jour vers "
 
 msgid "Open G-code file:"
 msgstr "Ouvrir un fichier G-code :"
@@ -15044,6 +15053,18 @@ msgstr ""
 "L’énumération des imprimantes hôtes a échoué.\n"
 "Corps du message : « %1% »\n"
 "Erreur : « %2% »"
+
+#~ msgid "Text-Rotate"
+#~ msgstr "Rotation du texte"
+
+#~ msgid "SVG-Rotate"
+#~ msgstr "Rotation du SVG"
+
+#~ msgid "Resize"
+#~ msgstr "Redimensionner"
+
+#~ msgid "Configuration package updated to "
+#~ msgstr "Package de configuration mis à jour pour "
 
 #~ msgid ""
 #~ "The minimum printing speed for the filament when slow down for better "
