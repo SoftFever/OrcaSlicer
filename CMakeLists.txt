@@ -784,12 +784,12 @@ set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "
     CreateShortCut \\\"$DESKTOP\\\\OrcaSlicerRED.lnk\\\" \\\"$INSTDIR\\\\orca-slicer.exe\\\"
 ")
 # Create the directory :
-set (CPACK_NSIS_EXTRA_INSTALL_COMMANDS "CreateDirectory '$%AppData%\\\\${CPACK_PACKAGE_NAME}\\\\hms'")
+set (CPACK_NSIS_EXTRA_INSTALL_COMMANDS "CreateDirectory \\\"$%AppData%\\\\${CPACK_PACKAGE_NAME}\\\\hms\\\"")
 # Set the NSIS variable OUTDIR :
-set (CPACK_NSIS_EXTRA_INSTALL_COMMANDS "SetOutPath '$%AppData%\\\\${CPACK_PACKAGE_NAME}\\\\hms'")
+set (CPACK_NSIS_EXTRA_INSTALL_COMMANDS "SetOutPath \\\"$%AppData%\\\\${CPACK_PACKAGE_NAME}\\\\hms\\\"")
 # Add file to be extracted to $OUTDIR :
-set (CPACK_NSIS_EXTRA_INSTALL_COMMANDS "File '${CMAKE_SOURCE_DIR}/resources/hms\\\\hms_pl.json'")
-set (CPACK_NSIS_EXTRA_INSTALL_COMMANDS "File '${CMAKE_SOURCE_DIR}/resources/hms\\\\hms_de.json'")
+set (CPACK_NSIS_EXTRA_INSTALL_COMMANDS "File \\\"${CMAKE_SOURCE_DIR}\\\resources\\\hms\\\\hms_pl.json\\\"")
+set (CPACK_NSIS_EXTRA_INSTALL_COMMANDS "File \\\"${CMAKE_SOURCE_DIR}\\\resources\\\hms\\\\hms_de.json\\\"")
 # Replace ';' by '\n' in CPACK_NSIS_EXTRA_INSTALL_COMMANDS :
 string (REPLACE ";" "\n" CPACK_NSIS_EXTRA_INSTALL_COMMANDS "${CPACK_NSIS_EXTRA_INSTALL_COMMANDS}")
 set (CPACK_PACKAGE_CHECKSUM SHA256)
