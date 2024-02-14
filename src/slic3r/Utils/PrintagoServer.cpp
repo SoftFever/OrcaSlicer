@@ -32,21 +32,31 @@ void PrintagoSession::on_accept(beefy::error_code ec)
 {
     if (ec)
         return printago_ws_error(ec, "accept");
-
     do_read();
 }
 
 void PrintagoSession::do_read()
 {
     ws_.async_read(buffer_, [capture0 = shared_from_this()](auto&& PH1, auto&& PH2) {
-        capture0->on_read(std::forward<decltype(PH1)>(PH1), std::forward<decltype(PH2)>(PH2));
+        try {
+            capture0->on_read(std::forward<decltype(PH1)>(PH1), std::forward<decltype(PH2)>(PH2));
+        } catch (std::exception e) {
+            capture0->ws_.close(websocket::close_code::normal);
+            wxGetApp().printago_director()->GetServer()->get_session()->set_authorized(false);
+            wxGetApp().printago_director()->GetServer()->start();
+        }
     });
 }
 
 void PrintagoSession::on_read(beefy::error_code ec, std::size_t bytes_transferred)
 {
     if (ec) {
+        if (ws_.is_open())
+            ws_.close(websocket::close_code::normal);
         printago_ws_error(ec, "read");
+        wxGetApp().printago_director()->GetServer()->get_session()->set_authorized(false);
+        wxGetApp().printago_director()->GetServer()->start();
+        return;
     } else {
         ws_.text(ws_.got_text());
         const auto msg = beefy::buffers_to_string(buffer_.data());
@@ -55,21 +65,16 @@ void PrintagoSession::on_read(beefy::error_code ec, std::size_t bytes_transferre
             auto json_msg = nlohmann::json::parse(msg);
             wxGetApp().printago_director()->ParseCommand(json_msg);
         } catch (const nlohmann::json::parse_error& e) {
-            int x = 5 + 1;
+            ws_.close(websocket::close_code::normal);
+            printago_ws_error(ec, "parse");
+            wxGetApp().printago_director()->GetServer()->get_session()->set_authorized(false);
+            wxGetApp().printago_director()->GetServer()->start();
+            return;    
         }
 
         buffer_.consume(buffer_.size());
         do_read();
     }
-}
-
-void PrintagoSession::on_write(beefy::error_code ec, std::size_t bytes_transferred)
-{
-    if (ec)
-        return printago_ws_error(ec, "write");
-
-    buffer_.consume(buffer_.size());
-    do_read();
 }
 
 void PrintagoSession::async_send(const std::string& message)
@@ -82,7 +87,11 @@ void PrintagoSession::do_write(std::shared_ptr<std::string> messageBuffer)
 {
     ws_.async_write(net::buffer(*messageBuffer), [self = shared_from_this(), messageBuffer](beefy::error_code ec, std::size_t length) {
         if (ec) {
+            if (self->ws_.is_open())
+                self->ws_.close(websocket::close_code::normal);
             printago_ws_error(ec, "write");
+            wxGetApp().printago_director()->GetServer()->get_session()->set_authorized(false);
+            wxGetApp().printago_director()->GetServer()->start();
         }
     });
 }
@@ -123,23 +132,12 @@ void PrintagoServer::on_accept(beefy::error_code ec, tcp::socket socket)
 {
     if (ec) {
         printago_ws_error(ec, "accept");
-        handle_reconnect();
     } else {
         reconnection_delay_ = 1; // Reset delay on successful connection
         auto session        = std::make_shared<PrintagoSession>(std::move(socket));
         set_session(session);
         session->run();
-        do_accept();
     }
-}
-
-void PrintagoServer::handle_reconnect()
-{
-    if (reconnection_delay_ < 120) {
-        reconnection_delay_ *= 2; // Exponential back-off
-    }
-    auto timer = std::make_shared<net::steady_timer>(ioc_, std::chrono::seconds(reconnection_delay_));
-    timer->async_wait([capture0 = shared_from_this(), timer](const beefy::error_code&) { capture0->do_accept(); });
 }
 
 //``````````````````````````````````````````````````

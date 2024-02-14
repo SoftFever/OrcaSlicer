@@ -50,7 +50,6 @@ private:
     void on_accept(beefy::error_code ec);
     void do_read();
     void on_read(beefy::error_code ec, std::size_t bytes_transferred);
-    void on_write(beefy::error_code ec, std::size_t bytes_transferred);
     void async_send(const std::string& message);
     void do_write(std::shared_ptr<std::string> messageBuffer);
 };
@@ -77,7 +76,6 @@ public:
 private:
     void do_accept();
     void on_accept(beefy::error_code ec, tcp::socket socket);
-    void handle_reconnect();
 };
 
 //``````````````````````````````````````````````````
@@ -173,6 +171,8 @@ public:
         delete m_select_machine_dlg;
         m_select_machine_dlg = nullptr;
     }
+
+    std::shared_ptr<PrintagoServer> GetServer() { return server; }
 
 private:
     std::shared_ptr<net::io_context> _io_context;
