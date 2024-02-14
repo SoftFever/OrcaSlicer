@@ -179,17 +179,17 @@ private:
     std::shared_ptr<PrintagoServer>  server;
     std::thread                      server_thread;
 
-    Slic3r::GUI::SelectMachineDialog* m_select_machine_dlg = nullptr;
+    GUI::SelectMachineDialog* m_select_machine_dlg = nullptr;
 
-    void PostStatusMessage(const wxString printer_id, const json statusData, const json command = {});
-    void PostResponseMessage(const wxString printer_id, const json responseData, const json command = {});
-    void PostSuccessMessage(const wxString printer_id,
-                            const wxString localCommand,
-                            const json     command            = {},
-                            const wxString localCommandDetail = "");
-    void PostErrorMessage(const wxString printer_id, const wxString localCommand, const json command = {}, const wxString errorDetail = "");
+    void PostStatusMessage(const wxString& printer_id, const json& statusData, const json& command = {});
+    void PostResponseMessage(const wxString& printer_id, const json& responseData, const json& command = {});
+    void PostSuccessMessage(const wxString& printer_id,
+                            const wxString& localCommand,
+                            const json&     command            = {},
+                            const wxString& localCommandDetail = "");
+    void PostErrorMessage(const wxString& printer_id, const wxString& localCommand, const json& command = {}, const wxString& errorDetail = "");
 
-    void _PostResponse(const PrintagoResponse& response);
+    void _PostResponse(const PrintagoResponse& response) const;
 
     bool                         ValidatePrintagoCommand(const PrintagoCommand& cmd);
     bool                         ProcessPrintagoCommand(const PrintagoCommand& command);
@@ -253,6 +253,7 @@ private:
             bbl_do_flow_cali    = false;
 
             GUI::wxGetApp().printago_director()->ResetMachineDialog();
+
         }
 
         m_can_process_job = can_process_job;
