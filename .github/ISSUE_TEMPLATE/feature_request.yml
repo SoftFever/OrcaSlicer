@@ -12,6 +12,7 @@ body:
         be useful to many users, you can raise it as a discussion topic under [Ideas](https://github.com/SoftFever/OrcaSlicer/discussions/categories/ideas)
         or you can raise it on the [Discord server](https://discord.gg/P4VE9UY9gJ).
   - type: checkboxes
+    id: checkbox_searchfirst
     attributes:
       label: Is there an existing issue for this feature request?
       description: |
