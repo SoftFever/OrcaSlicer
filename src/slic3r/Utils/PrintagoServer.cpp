@@ -1293,7 +1293,7 @@ void PrintagoDirector::OnPrintJobSent(wxString printerId, bool success)
 
     PBJob::UnblockJobProcessing(); // unblock before notifying the client of the success.
 
-    PostSuccessMessage(PBJob::printerId, "start_print_bbl", PBJob::command, wxString::Format("print sent to: %s", printerId));
+    PostSuccessMessage(PBJob::printerId, "start_print_bbl", command, wxString::Format("print sent to: %s", printerId));
 }
 
 bool PrintagoDirector::ValidateToken(const std::string& token)
