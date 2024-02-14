@@ -27,30 +27,7 @@ Explore the latest developments in Orca SlicerRED with our nightly builds. Feedb
           -  [Alternative Download Link Hosted by Microsoft](https://aka.ms/vs/17/release/vc_redist.x64.exe)
           -  This file may already be available on your computer if you've installed visual studio.  Check the following location: `%VCINSTALLDIR%Redist\MSVC\v142`
 
-**Mac**:
-1. Download the DMG for your computer: `arm64` version for Apple Silicon and `x86_64` for Intel CPU.  
-2. Drag OrcaSlicer.app to Application folder. 
-3. *If you want to run a build from a PR, you also need following instructions below*  
-    <details quarantine>
-    - Option 1 (You only need to do this once. After that the app can be opened normally.):
-      - Step 1: Hold _cmd_ and right click the app, from the context menu choose **Open**.
-      - Step 2: A warning window will pop up, click _Open_  
-      
-    - Option 2:  
-      Execute this command in terminal: `xattr -dr com.apple.quarantine /Applications/OrcaSlicer.app`
-      ```console
-          softfever@mac:~$ xattr -dr com.apple.quarantine /Applications/OrcaSlicer.app
-      ```
-    - Option 3:  
-        - Step 1: open the app, a warning window will pop up  
-            ![image](./SoftFever_doc/mac_cant_open.png)  
-        - Step 2: in `System Settings` -> `Privacy & Security`, click `Open Anyway`:  
-            ![image](./SoftFever_doc/mac_security_setting.png)  
-    </details>
-    
-**Linux(Ubuntu)**:
- 1. If you run into trouble to execute it, try this command in terminal:  
-    `chmod +x /path_to_appimage/OrcaSlicer_Linux.AppImage`
+
     
 # How to compile
 - Windows 64-bit  
@@ -90,36 +67,9 @@ resolution: 0.1
 ```
 
 # Supports
-**Orca Slicer** is an open-source project, and I'm deeply grateful to all my sponsors and backers.   
+**Orca SlicerRED** is an open-source project, and I'm deeply grateful to all my sponsors and backers.   
 Their generous support enables me to purchase filaments and other essential 3D printing materials for the project.   
 Thank you! :)
-
-### Sponsors:  
-<table>
-<tr>
-<td>
-<a href="https://peopoly.net/">
-    <img src="SoftFever_doc\sponsor_logos\peopoly-standard-logo.png" alt="Peopoly" width="64" height="">
-</a>
-</td> 
-</tr>
-<tr>
-<td> </td>
-</tr>
-<tr>
-<td>
-<a href="https://qidi3d.com/">
-    <img src="SoftFever_doc\sponsor_logos\QIDI.png" alt="QIDI" width="64" height="">
-</a>
-</td>
-</tr>
-</table>
-
-### Backers:  
-Ko-fi supporters: [Backers list](https://github.com/SoftFever/OrcaSlicer/wiki/OrcaSlicer-backers-%E2%80%90-28-Oct-2023)
-
-Support me  
-[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/G2G5IP3CP)
 
 ## Some background
 OrcaSlicer is originaly forked from Bambu Studio, it was previously known as BambuStudio-SoftFever.
@@ -130,7 +80,8 @@ Orca Slicer's logo is designed by community member Justin Levine(@freejstnalxndr
 
 
 # License
-Orca Slicer is licensed under the GNU Affero General Public License, version 3. Orca Slicer is based on Bambu Studio by BambuLab.
+Orca SlicerRED is licensed under the GNU Affero General Public License, version 3. Orca SlicerRED is based on Orca Slicer 
+Orca Slicer is based on Bambu Studio by BambuLab.
 
 Bambu Studio is licensed under the GNU Affero General Public License, version 3. Bambu Studio is based on PrusaSlicer by PrusaResearch.
 
