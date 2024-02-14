@@ -2413,7 +2413,7 @@ ModelVolumeType type_from_string(const std::string &s)
         }
 
         // Adds slic3r print config file ("Metadata/Slic3r_PE.config").
-        // This file contains the content of FullPrintConfing / SLAFullPrintConfig.
+        // This file contains the content of FullPrintConfig / SLAFullPrintConfig.
         if (config != nullptr) {
             if (!_add_print_config_file_to_archive(archive, *config)) {
                 close_zip_writer(&archive);

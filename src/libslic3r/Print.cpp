@@ -40,6 +40,7 @@
 #include "Utils.hpp"
 #include "PrintConfig.hpp"
 #include "Model.hpp"
+#include "format.hpp"
 #include <float.h>
 
 #include <algorithm>
@@ -49,6 +50,10 @@
 #include <boost/format.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/regex.hpp>
+#include <boost/nowide/fstream.hpp>
+
+#include <tbb/blocked_range.h>
+#include <tbb/parallel_for.h>
 
 //BBS: add json support
 #include "nlohmann/json.hpp"
@@ -1117,8 +1122,8 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
             return
                 // Test whether the last slicing plane is below or above the print volume.
                 { 0.5 * (layers[layers.size() - 2] + layers.back()) > this->config().printable_height + EPSILON ?
-                format(_u8L("The object %1% exceeds the maximum build volume height."), print_object.model_object()->name) :
-                format(_u8L("While the object %1% itself fits the build volume, its last layer exceeds the maximum build volume height."), print_object.model_object()->name) +
+                    Slic3r::format(_u8L("The object %1% exceeds the maximum build volume height."), print_object.model_object()->name) :
+                    Slic3r::format(_u8L("While the object %1% itself fits the build volume, its last layer exceeds the maximum build volume height."), print_object.model_object()->name) +
                 " " + _u8L("You might want to reduce the size of your model or change current print settings and retry.") };
         }
     }
@@ -1401,7 +1406,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
 	                }
 
 	                StringObjectException except;
-	                except.string = format(L("Plate %d: %s does not support filament %s"), this->get_plate_index() + 1, L(bed_type_name), extruder_id + 1);
+	                except.string = Slic3r::format(L("Plate %d: %s does not support filament %s"), this->get_plate_index() + 1, L(bed_type_name), extruder_id + 1);
 	                except.string += "\n";
 	                except.type   = STRING_EXCEPT_FILAMENT_NOT_MATCH_BED_TYPE;
 	                except.params.push_back(std::to_string(this->get_plate_index() + 1));

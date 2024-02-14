@@ -5295,7 +5295,7 @@ bool Plater::priv::replace_volume_with_stl(int object_idx, int volume_idx, const
     ModelObject* old_model_object = model.objects[object_idx];
     ModelVolume* old_volume = old_model_object->volumes[volume_idx];
 
-    bool sinking = old_model_object->bounding_box().min.z() < SINKING_Z_THRESHOLD;
+    bool sinking = old_model_object->min_z() < SINKING_Z_THRESHOLD;
 
     ModelObject* new_model_object = new_model.objects.front();
     old_model_object->add_volume(*new_model_object->volumes.front());
@@ -5616,7 +5616,7 @@ void Plater::priv::reload_from_disk()
             ModelObject *old_model_object = model.objects[obj_idx];
             ModelVolume *old_volume       = old_model_object->volumes[vol_idx];
 
-            bool sinking = old_model_object->bounding_box().min.z() < SINKING_Z_THRESHOLD;
+            bool sinking = old_model_object->min_z() < SINKING_Z_THRESHOLD;
 
             bool has_source = !old_volume->source.input_file.empty() &&
                               boost::algorithm::iequals(fs::path(old_volume->source.input_file).filename().string(), fs::path(path).filename().string());
@@ -7846,7 +7846,7 @@ bool Plater::priv::layers_height_allowed() const
         return false;
 
     int obj_idx = get_selected_object_idx();
-    return 0 <= obj_idx && obj_idx < (int)model.objects.size() && model.objects[obj_idx]->bounding_box().max.z() > SINKING_Z_THRESHOLD && view3D->is_layers_editing_allowed();
+    return 0 <= obj_idx && obj_idx < (int)model.objects.size() && model.objects[obj_idx]->max_z() > SINKING_Z_THRESHOLD && view3D->is_layers_editing_allowed();
 }
 
 bool Plater::priv::can_layers_editing() const
@@ -8959,6 +8959,42 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
     printer_config.set_key_value("wipe", new ConfigOptionBools{false});
     printer_config.set_key_value("retract_when_changing_layer", new ConfigOptionBools{false});
 
+    //Orca: find acceleration to use in the test
+    auto accel = print_config.option<ConfigOptionFloat>("outer_wall_acceleration")->value; // get the outer wall acceleration
+    if (accel == 0) // if outer wall accel isnt defined, fall back to inner wall accel
+        accel = print_config.option<ConfigOptionFloat>("inner_wall_acceleration")->value;
+    if (accel == 0) // if inner wall accel is not defined fall back to default accel
+        accel = print_config.option<ConfigOptionFloat>("default_acceleration")->value;
+    // Orca: Set all accelerations except first layer, as the first layer accel doesnt affect the PA test since accel
+    // is set to the travel accel before printing the pattern.
+    print_config.set_key_value( "default_acceleration", new ConfigOptionFloat(accel));
+    print_config.set_key_value( "outer_wall_acceleration", new ConfigOptionFloat(accel));
+    print_config.set_key_value( "inner_wall_acceleration", new ConfigOptionFloat(accel));
+    print_config.set_key_value( "bridge_acceleration", new ConfigOptionFloatOrPercent(accel, false));
+    print_config.set_key_value( "sparse_infill_acceleration", new ConfigOptionFloatOrPercent(accel, false));
+    print_config.set_key_value( "internal_solid_infill_acceleration", new ConfigOptionFloatOrPercent(accel, false));
+    print_config.set_key_value( "top_surface_acceleration", new ConfigOptionFloat(accel));
+    print_config.set_key_value( "travel_acceleration", new ConfigOptionFloat(accel));
+    
+    
+    //Orca: find jerk value to use in the test
+    if(print_config.option<ConfigOptionFloat>("default_jerk")->value > 0){ // we have set a jerk value
+        auto jerk = print_config.option<ConfigOptionFloat>("outer_wall_jerk")->value; // get outer wall jerk
+        if (jerk == 0) // if outer wall jerk is not defined, get inner wall jerk
+            jerk = print_config.option<ConfigOptionFloat>("inner_wall_jerk")->value;
+        if (jerk == 0) // if inner wall jerk is not defined, get the default jerk
+            jerk = print_config.option<ConfigOptionFloat>("default_jerk")->value;
+        
+        //Orca: Set jerk values. Again first layer jerk should not matter as it is reset to the travel jerk before the
+        // first PA pattern is printed.
+        print_config.set_key_value( "default_jerk", new ConfigOptionFloat(jerk));
+        print_config.set_key_value( "outer_wall_jerk", new ConfigOptionFloat(jerk));
+        print_config.set_key_value( "inner_wall_jerk", new ConfigOptionFloat(jerk));
+        print_config.set_key_value( "top_surface_jerk", new ConfigOptionFloat(jerk));
+        print_config.set_key_value( "infill_jerk", new ConfigOptionFloat(jerk));
+        print_config.set_key_value( "travel_jerk", new ConfigOptionFloat(jerk));
+    }
+    
     for (const auto opt : SuggestedConfigCalibPAPattern().float_pairs) {
         print_config.set_key_value(
             opt.first,
@@ -9104,7 +9140,7 @@ void Plater::_calib_pa_tower(const Calib_Params& params) {
     wxGetApp().get_tab(Preset::TYPE_PRINTER)->reload_config();
 
     auto new_height = std::ceil((params.end - params.start) / params.step) + 1;
-    auto obj_bb = model().objects[0]->bounding_box();
+    auto obj_bb = model().objects[0]->bounding_box_exact();
     if (new_height < obj_bb.size().z()) {
         cut_horizontal(0, 0, new_height, ModelObjectCutAttribute::KeepLower);
     }
@@ -9245,7 +9281,7 @@ void Plater::calib_temp(const Calib_Params& params) {
     wxGetApp().get_tab(Preset::TYPE_FILAMENT)->reload_config();
 
     // cut upper
-    auto obj_bb = model().objects[0]->bounding_box();
+    auto obj_bb = model().objects[0]->bounding_box_exact();
     auto block_count = lround((350 - params.end) / 5 + 1);
     if(block_count > 0){
         // add EPSILON offset to avoid cutting at the exact location where the flat surface is
@@ -9256,7 +9292,7 @@ void Plater::calib_temp(const Calib_Params& params) {
     }
     
     // cut bottom
-    obj_bb = model().objects[0]->bounding_box();
+    obj_bb = model().objects[0]->bounding_box_exact();
     block_count = lround((350 - params.start) / 5);
     if(block_count > 0){
         auto new_height = block_count * 10.0 + EPSILON;
@@ -9285,7 +9321,7 @@ void Plater::calib_max_vol_speed(const Calib_Params& params)
 
     auto bed_shape = printer_config->option<ConfigOptionPoints>("printable_area")->values;
     BoundingBoxf bed_ext = get_extents(bed_shape);
-    auto scale_obj = (bed_ext.size().x() - 10) / obj->bounding_box().size().x();
+    auto scale_obj = (bed_ext.size().x() - 10) / obj->bounding_box_exact().size().x();
     if (scale_obj < 1.0)
         obj->scale(scale_obj, 1, 1);
 
@@ -9327,7 +9363,7 @@ void Plater::calib_max_vol_speed(const Calib_Params& params)
     wxGetApp().get_tab(Preset::TYPE_PRINTER)->reload_config();
 
     //  cut upper
-    auto obj_bb = obj->bounding_box();
+    auto obj_bb = obj->bounding_box_exact();
     auto height = (params.end - params.start + 1) / params.step;
     if (height < obj_bb.size().z()) {
         cut_horizontal(0, 0, height, ModelObjectCutAttribute::KeepLower);
@@ -9376,7 +9412,7 @@ void Plater::calib_retraction(const Calib_Params& params)
     changed_objects({ 0 });
 
     //  cut upper
-    auto obj_bb = obj->bounding_box();
+    auto obj_bb = obj->bounding_box_exact();
     auto height = 1.0 + 0.4 + ((params.end - params.start)) / params.step;
     if (height < obj_bb.size().z()) {
         cut_horizontal(0, 0, height, ModelObjectCutAttribute::KeepLower);
@@ -9419,7 +9455,7 @@ void Plater::calib_VFA(const Calib_Params& params)
     wxGetApp().get_tab(Preset::TYPE_FILAMENT)->update_ui_from_settings();
 
     // cut upper
-    auto obj_bb = model().objects[0]->bounding_box();
+    auto obj_bb = model().objects[0]->bounding_box_exact();
     auto height = 5 * ((params.end - params.start) / params.step + 1);
     if (height < obj_bb.size().z()) {
         cut_horizontal(0, 0, height, ModelObjectCutAttribute::KeepLower);
@@ -12432,7 +12468,7 @@ void Plater::changed_objects(const std::vector<size_t>& object_idxs)
 
     for (size_t obj_idx : object_idxs) {
         if (obj_idx < p->model.objects.size()) {
-            if (p->model.objects[obj_idx]->bounding_box().min.z() >= SINKING_Z_THRESHOLD)
+            if (p->model.objects[obj_idx]->min_z() >= SINKING_Z_THRESHOLD)
                 // re - align to Z = 0
                 p->model.objects[obj_idx]->ensure_on_bed();
         }

@@ -1,4 +1,5 @@
 #include "wx/clipbrd.h"
+#include "wx/display.h"
 
 #include "SelectMachine.hpp"
 #include "I18N.hpp"

@@ -3,6 +3,7 @@
 #include <numeric>
 #include <ClipperUtils.hpp>
 #include <boost/geometry/index/rtree.hpp>
+#include <boost/log/trivial.hpp>
 #include <tbb/parallel_for.h>
 
 #if defined(_MSC_VER) && defined(__clang__)

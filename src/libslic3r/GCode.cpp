@@ -127,7 +127,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
     std::vector<std::pair<double, double>> object_intervals;
     for (PrintObject *print_object : print.objects()) {
         const PrintInstances &print_instances = print_object->instances();
-        BoundingBoxf3 bounding_box = print_instances[0].model_instance->get_object()->bounding_box();
+        BoundingBoxf3 bounding_box = print_instances[0].model_instance->get_object()->bounding_box_exact();
 
         if (bounding_box.min.x() < start_x_position && bounding_box.min.y() < cutter_area_y)
             can_travel_form_left = false;
@@ -343,13 +343,9 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         // return the remaining retraction length to be retracted during the wipe
         if (retractionDuringWipe - retraction_length_remaining > EPSILON) return {retractionBeforeWipe,retraction_length_remaining};
         
-        // If the user has requested any retract before wipe, proceed with incrementing the retraction amount before wiping with the difference
+        // We will always proceed with incrementing the retraction amount before wiping with the difference
         // and return the maximum allowed wipe amount to be retracted during the wipe move
-        // If the user has not requested any retract before wipe, the retraction amount before wiping should not be incremented and left to the parent
-        // function to retract after wipe is done.
-        if(gcodegen.config().retract_before_wipe.get_at(gcodegen.writer().extruder()->id()) > EPSILON){
-            retractionBeforeWipe += retraction_length_remaining - retractionDuringWipe;
-        }
+        retractionBeforeWipe += retraction_length_remaining - retractionDuringWipe;
         return {retractionBeforeWipe, retractionDuringWipe};
     }
 
@@ -2956,7 +2952,7 @@ std::string GCode::placeholder_parser_process(const std::string &name, const std
     // Orca: Added CMake config option since debug is rarely used in current workflow.
     // Also changed from throwing error immediately to storing messages till slicing is completed
     // to raise all errors at the same time.
-#if !defined(NDEBUG) || ORCA_CHECK_GCODE_PLACEHOLDERS // CHECK_CUSTOM_GCODE_PLACEHOLDERS
+#if ORCA_CHECK_GCODE_PLACEHOLDERS
     if (config_override) {
         const auto& custom_gcode_placeholders = custom_gcode_specific_placeholders();
 
@@ -4375,7 +4371,10 @@ void GCode::append_full_config(const Print &print, std::string &str)
     // Sorted list of config keys, which shall not be stored into the G-code. Initializer list.
     static constexpr auto banned_keys = {
         "compatible_printers"sv,
-        "compatible_prints"sv
+        "compatible_prints"sv,
+        "print_host"sv,
+        "printhost_apikey"sv,
+        "printhost_cafile"sv
     };
     assert(std::is_sorted(banned_keys.begin(), banned_keys.end()));
     auto is_banned = [](const std::string &key) {
@@ -4979,7 +4978,6 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
 
     double e_per_mm = m_writer.extruder()->e_per_mm3() * _mm3_per_mm;
 
-    double min_speed = double(m_config.slow_down_min_speed.get_at(m_writer.extruder()->id()));
     // set speed
     if (speed == -1) {
         int overhang_degree = path.get_overhang_degree();
@@ -5365,7 +5363,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             }
         }
     } else {
-        double last_set_speed = std::max((float)EXTRUDER_CONFIG(slow_down_min_speed), new_points[0].speed) * 60.0;
+        double last_set_speed = new_points[0].speed * 60.0;
 
         gcode += m_writer.set_speed(last_set_speed, "", comment);
         Vec2d prev = this->point_to_gcode_quantized(new_points[0].p);
@@ -5409,7 +5407,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             }
 
             const double line_length = (p - prev).norm();
-            double new_speed = std::max((float)EXTRUDER_CONFIG(slow_down_min_speed), pre_processed_point.speed) * 60.0;
+            double new_speed = pre_processed_point.speed * 60.0;
             if (last_set_speed != new_speed) {
                 gcode += m_writer.set_speed(new_speed, "", comment);
                 last_set_speed = new_speed;
