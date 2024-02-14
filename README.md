@@ -1,10 +1,12 @@
 [![Build all](https://github.com/KrissMor/OrcaSlicerRED/actions/workflows/build_all.yml/badge.svg?branch=main)](https://github.com/KrissMor/OrcaSlicerRED/actions/workflows/build_all.yml)
+
 # Orca SlicerRED     
 
 
 ### Nightly Builds
-**[Download the Latest Nightly Build]([https://github.com/KrissMor/OrcaSlicerRED/releases/tag/Nightly-Build2.0]**
-Explore the latest developments in Orca Slicer with our nightly builds. Feedback on these versions is highly appreciated.
+
+ **[Download the Latest Nightly Build](https://github.com/KrissMor/OrcaSlicerRED/releases/tag/Nightly-Build2.0)**  
+Explore the latest developments in Orca SlicerRED with our nightly builds. Feedback on these versions is highly appreciated.
 
 
 
