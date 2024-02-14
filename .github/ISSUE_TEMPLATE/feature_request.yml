@@ -18,8 +18,8 @@ body:
         Please search to see if an issue already exists for a feature, or perhaps one similar.
         You can then comment and react so that we know know much interest there is in the feature request
       options:
-      - label: I have searched the existing issues
-        required: true
+        - label: I have searched the existing issues
+          required: true
     - type: textarea
     attributes:
       label: Is your feature request related to a problem?
