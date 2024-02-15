@@ -87,19 +87,20 @@ jobs:
         run: |
           ./build_release_macos.sh -s -n -a ${{inputs.arch}} -t 10.15
 
-      - name: Pack OrcaSlicerRED
+      - name: Pack OrcaSlicer
         working-directory: ${{ github.workspace }}
         run: |
           export ver=$(grep '^#define SoftFever_VERSION' ./build_x86_64/src/libslic3r/libslic3r_version.h | cut -d ' ' -f3)
           ver="_V${ver//\"}"
-          cd ${{ github.workspace }}/build_x86_64/OrcaSlicerRED
-          zip -FSrq OrcaSlicerRED${ver}_Mac_Intel_signed.zip ./OrcaSlicerRED.app
+          cd ${{ github.workspace }}/build_x86_64/OrcaSlicer
+          zip -FSrq OrcaSlicer${ver}_Mac_Intel_unsigned.zip ./OrcaSlicer.app
           
-      - name: Upload OrcaSlicerRED*.zip
+      - name: Upload OrcaSlicer*.zip
         uses: actions/upload-artifact@v3
         with:
-          name: OrcaSlicerRED_macOS_x64_nightly
-          path: ${{ github.workspace }}/build_x86_64/OrcaSlicerRED/OrcaSlicer*.zip
+          name: OrcaSlicer_macOS_x64_nightly
+          path: ${{ github.workspace }}/build_x86_64/OrcaSlicer/OrcaSlicer*.zip
+          
  # Thanks to RaySajuuk, it's working now
  #     - name: Sign app and notary
  #       if: (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/')) && inputs.os == 'macos-12'
