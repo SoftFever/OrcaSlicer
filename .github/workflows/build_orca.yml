@@ -90,8 +90,6 @@ jobs:
       - name: Pack OrcaSlicer
         working-directory: ${{ github.workspace }}
         run: |
-          export ver=$(grep '^#define SoftFever_VERSION' ./build_{{inputs.arch}}/src/libslic3r/libslic3r_version.h | cut -d ' ' -f3)
-          ver="_V${ver//\"}"
           cd ${{ github.workspace }}/build_{{inputs.arch}}/OrcaSlicer
           zip -FSrq ${{ github.workspace }}/OrcaSlicerRED_Mac_${{inputs.arch}}_${{ env.ver }}.zip ./OrcaSlicer.app
           
