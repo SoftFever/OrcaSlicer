@@ -1080,7 +1080,11 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
 
     const ConfigOptionBool* spiral_vase = config.option<ConfigOptionBool>("spiral_mode");
     if (spiral_vase != nullptr)
-        m_spiral_vase_active = spiral_vase->value;
+        m_detect_layer_based_on_tag = spiral_vase->value;
+
+    const ConfigOptionBool* has_scarf_joint_seam = config.option<ConfigOptionBool>("has_scarf_joint_seam");
+    if (has_scarf_joint_seam != nullptr)
+        m_detect_layer_based_on_tag = m_detect_layer_based_on_tag || has_scarf_joint_seam->value;
 
     const ConfigOptionBool* manual_filament_change = config.option<ConfigOptionBool>("manual_filament_change");
     if (manual_filament_change != nullptr)
@@ -1397,7 +1401,11 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
 
     const ConfigOptionBool* spiral_vase = config.option<ConfigOptionBool>("spiral_mode");
     if (spiral_vase != nullptr)
-        m_spiral_vase_active = spiral_vase->value;
+        m_detect_layer_based_on_tag = spiral_vase->value;
+
+    const ConfigOptionBool* has_scarf_joint_seam = config.option<ConfigOptionBool>("has_scarf_joint_seam");
+    if (has_scarf_joint_seam != nullptr)
+        m_detect_layer_based_on_tag = m_detect_layer_based_on_tag || has_scarf_joint_seam->value;
 
     const ConfigOptionEnumGeneric *bed_type = config.option<ConfigOptionEnumGeneric>("curr_bed_type");
     if (bed_type != nullptr)
@@ -1479,7 +1487,9 @@ void GCodeProcessor::reset()
 
     m_options_z_corrector.reset();
 
-    m_spiral_vase_active = false;
+    m_detect_layer_based_on_tag = false;
+
+    m_seams_count = 0;
 
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
     m_mm3_per_mm_compare.reset();
@@ -2344,12 +2354,12 @@ void GCodeProcessor::process_tags(const std::string_view comment, bool producers
     // layer change tag
     if (comment == reserved_tag(ETags::Layer_Change)) {
         ++m_layer_id;
-        if (m_spiral_vase_active) {
+        if (m_detect_layer_based_on_tag) {
             if (m_result.moves.empty() || m_result.spiral_vase_layers.empty())
                 // add a placeholder for layer height. the actual value will be set inside process_G1() method
                 m_result.spiral_vase_layers.push_back({ FLT_MAX, { 0, 0 } });
             else {
-                const size_t move_id = m_result.moves.size() - 1;
+                const size_t move_id = m_result.moves.size() - 1 - m_seams_count;
                 if (!m_result.spiral_vase_layers.empty())
                     m_result.spiral_vase_layers.back().second.second = move_id;
                 // add a placeholder for layer height. the actual value will be set inside process_G1() method
@@ -3250,12 +3260,18 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
         m_seams_detector.set_first_vertex(m_result.moves.back().position - m_extruder_offsets[m_extruder_id] - plate_offset);
     }
 
-    if (m_spiral_vase_active && !m_result.spiral_vase_layers.empty()) {
-        if (m_result.spiral_vase_layers.back().first == FLT_MAX && delta_pos[Z] >= 0.0)
+    if (m_detect_layer_based_on_tag && !m_result.spiral_vase_layers.empty()) {
+        if (delta_pos[Z] >= 0.0 && type == EMoveType::Extrude) {
+            const float current_z = static_cast<float>(m_end_position[Z]);
             // replace layer height placeholder with correct value
-            m_result.spiral_vase_layers.back().first = static_cast<float>(m_end_position[Z]);
+            if (m_result.spiral_vase_layers.back().first == FLT_MAX) {
+                m_result.spiral_vase_layers.back().first = current_z;
+            } else {
+                m_result.spiral_vase_layers.back().first = std::max(m_result.spiral_vase_layers.back().first, current_z);
+            }
+        }
         if (!m_result.moves.empty())
-            m_result.spiral_vase_layers.back().second.second = m_result.moves.size() - 1;
+            m_result.spiral_vase_layers.back().second.second = m_result.moves.size() - 1 - m_seams_count;
     }
 
     // store move
@@ -4266,6 +4282,10 @@ void GCodeProcessor::store_move_vertex(EMoveType type, EMovePathType path_type)
         Vec3f(m_arc_center(0, 0) + m_x_offset, m_arc_center(1, 0) + m_y_offset, m_arc_center(2, 0)) + m_extruder_offsets[m_extruder_id],
         m_interpolation_points,
     });
+
+    if (type == EMoveType::Seam) {
+        m_seams_count++;
+    }
 
     // stores stop time placeholders for later use
     if (type == EMoveType::Color_change || type == EMoveType::Pause_Print) {

@@ -2731,6 +2731,10 @@ def = this->add("filament_loading_speed", coFloats);
     def->height = 15;
     def->set_default_value(new ConfigOptionStrings{"0,0", "\n0.2,0.4444", "\n0.4,0.6145", "\n0.6,0.7059", "\n0.8,0.7619", "\n1.5,0.8571", "\n2,0.8889", "\n3,0.9231", "\n5,0.9520", "\n10,1"});
 
+    def = this->add("has_scarf_joint_seam", coBool);
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
     {
         struct AxisDefault {
             std::string         name;
@@ -3456,6 +3460,48 @@ def = this->add("filament_loading_speed", coFloats);
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatOrPercent(10,true));
+
+    def = this->add("seam_slope_enabled", coBool);
+    def->label = L("Scarf joint seam");
+    def->tooltip = L("Use scarf joint to minimize seam visibility and increase seam strength.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+    
+    def = this->add("seam_slope_start_height", coFloatOrPercent);
+    def->label = L("Scarf start height");
+    def->tooltip = L("Start height of the scarf.\n"
+                     "This amount can be specified in millimeters or as a percentage of the current layer height. The default value for this parameter is 0.05mm.");
+    def->sidetext = L("mm or %");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloatOrPercent(0.05, false));
+
+    def = this->add("seam_slope_entire_loop", coBool);
+    def->label = L("Scarf around entire wall");
+    def->tooltip = L("The scarf extends to the entire length of the wall.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("seam_slope_min_length", coFloat);
+    def->label = L("Scarf length");
+    def->tooltip = L("Length of the scarf. Setting this parameter to zero effectively disables the scarf.");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(20));
+
+    def = this->add("seam_slope_steps", coInt);
+    def->label = L("Scarf steps");
+    def->tooltip = L("Minimum number of segments of each scarf.");
+    def->min = 1;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionInt(10));
+
+    def = this->add("seam_slope_inner_walls", coBool);
+    def->label = L("Scarf joint for inner walls");
+    def->tooltip = L("Use scarf joint for inner walls as well.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("role_based_wipe_speed", coBool);
     def->label = L("Role base wipe speed");

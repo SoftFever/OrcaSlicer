@@ -301,6 +301,42 @@ private:
     bool m_no_extrusion = false;
 };
 
+class ExtrusionPathSloped : public ExtrusionPath
+{
+public:
+    struct Slope
+    {
+        double z_ratio{1.};
+        double e_ratio{1.};
+    };
+
+    Slope slope_begin;
+    Slope slope_end;
+
+    ExtrusionPathSloped(const ExtrusionPath& rhs, const Slope& begin, const Slope& end)
+        : ExtrusionPath(rhs), slope_begin(begin), slope_end(end)
+    {}
+    ExtrusionPathSloped(ExtrusionPath&& rhs, const Slope& begin, const Slope& end)
+        : ExtrusionPath(std::move(rhs)), slope_begin(begin), slope_end(end)
+    {}
+    ExtrusionPathSloped(const Polyline& polyline, const ExtrusionPath& rhs, const Slope& begin, const Slope& end)
+        : ExtrusionPath(polyline, rhs), slope_begin(begin), slope_end(end)
+    {}
+    ExtrusionPathSloped(Polyline&& polyline, const ExtrusionPath& rhs, const Slope& begin, const Slope& end)
+        : ExtrusionPath(std::move(polyline), rhs), slope_begin(begin), slope_end(end)
+    {}
+
+    Slope interpolate(const double ratio) const
+    {
+        return {
+            lerp(slope_begin.z_ratio, slope_end.z_ratio, ratio),
+            lerp(slope_begin.e_ratio, slope_end.e_ratio, ratio),
+        };
+    }
+
+    bool is_flat() const { return is_approx(slope_begin.z_ratio, slope_end.z_ratio); }
+};
+
 class ExtrusionPathOriented : public ExtrusionPath
 {
 public:

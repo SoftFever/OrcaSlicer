@@ -828,7 +828,6 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,              top_surface_jerk))
     ((ConfigOptionFloat,              initial_layer_jerk))
     ((ConfigOptionFloat,              travel_jerk))
-
 )
 
 // This object is mapped to Perl as Slic3r::Config::PrintRegion.
@@ -932,6 +931,14 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionEnum<WallSequence>,  wall_sequence))
     ((ConfigOptionBool,                is_infill_first))
     ((ConfigOptionBool,                small_area_infill_flow_compensation))
+
+    // Orca: seam slopes
+    ((ConfigOptionBool,                 seam_slope_enabled))
+    ((ConfigOptionFloatOrPercent,       seam_slope_start_height))
+    ((ConfigOptionBool,                 seam_slope_entire_loop))
+    ((ConfigOptionFloat,                seam_slope_min_length))
+    ((ConfigOptionInt,                  seam_slope_steps))
+    ((ConfigOptionBool,                 seam_slope_inner_walls))
 )
 
 PRINT_CONFIG_CLASS_DEFINE(
@@ -1081,6 +1088,8 @@ PRINT_CONFIG_CLASS_DEFINE(
 
     // Small Area Infill Flow Compensation
     ((ConfigOptionStrings,              small_area_infill_flow_compensation_model))
+
+    ((ConfigOptionBool,                has_scarf_joint_seam))
 )
 
 // This object is mapped to Perl as Slic3r::Config::Print.

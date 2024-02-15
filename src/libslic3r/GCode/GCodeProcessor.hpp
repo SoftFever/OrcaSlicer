@@ -700,7 +700,8 @@ namespace Slic3r {
         SeamsDetector m_seams_detector;
         OptionsZCorrector m_options_z_corrector;
         size_t m_last_default_color_id;
-        bool m_spiral_vase_active;
+        bool m_detect_layer_based_on_tag {false};
+        int m_seams_count;
 #if ENABLE_GCODE_VIEWER_STATISTICS
         std::chrono::time_point<std::chrono::high_resolution_clock> m_start_time;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
@@ -769,6 +770,10 @@ namespace Slic3r {
 
         //BBS: set offset for gcode writer
         void set_xy_offset(double x, double y) { m_x_offset = x; m_y_offset = y; }
+
+        // Orca: if true, only change new layer if ETags::Layer_Change occurs
+        // otherwise when we got a lift of z during extrusion, a new layer will be added
+        void detect_layer_based_on_tag(bool enabled) { m_detect_layer_based_on_tag = enabled; }
 
     private:
         void apply_config(const DynamicPrintConfig& config);
