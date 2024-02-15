@@ -467,10 +467,6 @@
 			"sub_path": "process/0.24mm Draft @Creality Ender3 0.6.json"
 		},
 		{
-			"name": "0.20mm Standard @Creality K1Max (0.4 nozzle)",
-			"sub_path": "process/0.20mm Standard @Creality K1Max (0.4 nozzle).json"
-		},
-		{
 			"name": "0.24mm Draft @Creality Ender3 0.8",
 			"sub_path": "process/0.24mm Draft @Creality Ender3 0.8.json"
 		},
