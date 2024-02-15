@@ -13,6 +13,78 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
 "X-Generator: Poedit 3.4.2\n"
 
+msgid "Scarf joint seam"
+msgstr "Szew szarfowy (eksperymentalne)"
+
+msgid "Use scarf joint to minimize seam visibility and increase seam strength."
+msgstr "Zastosuj szew szarfowy, aby zminimalizować widoczność szwu i zwiększyć jego wytrzymałość."
+
+msgid "Scarf start height"
+msgstr "Wysokość początkowa szwu szarfowego"
+
+msgid ""
+"Start height of the scarf.\n"
+"This amount can be specified in millimeters or as a percentage of the current layer height. The default value "
+"for this parameter is 0.05mm."
+msgstr ""
+"Początkowa wysokość szwu szarfowego.\n"
+"\n"
+"Ta wartość może być określona w milimetrach lub jako procent bieżącej wysokości warstwy. Domyślna wartość tego "
+"parametru to 0,05 mm."
+
+msgid "Scarf around entire wall"
+msgstr "Szew szarfowy obejmujący cały obrys ściany"
+
+msgid "The scarf extends to the entire length of the wall."
+msgstr "Szew szarfowy rozciąga się na całej długość ściany"
+
+msgid "Scarf length"
+msgstr "Długość szwu szarfowego"
+
+msgid "Scarf steps"
+msgstr "Krok szwu szarfowego"
+
+msgid "Minimum number of segments of each scarf."
+msgstr "Minimalna liczba segmentów szwu szarfowego."
+
+msgid "Scarf joint for inner walls"
+msgstr "Szwy szarfowe dla ścian wewnętrznych"
+
+msgid "Use scarf joint for inner walls as well."
+msgstr "Zastosuj szwy szarfowe również do ścian wewnętrznych."
+
+msgid "Length of the scarf. Setting this parameter to zero effectively disables the scarf."
+msgstr "Długość szwu szarfowego. Ustawienie tego parametru na zero wyłączy tą funkcje."
+
+msgid ""
+"When using scarf joint, we recommend the following settings:\n"
+"print outer wall first, disable wipe before external loop, reduce outer wall speed to no greater than 50mm/s, "
+"and don't use random or nearest seam position"
+msgstr ""
+"Przy korzystaniu ze szwu szarfowego zalecamy następujące ustawienia: \n"
+"drukuj zewnętrzną ściane jako pierwszą, wyłączenie czyszczenia przed zewnętrzną pętlą, ograniczenie prędkości "
+"zewnętrznej ściany do maksymalnie 50 mm/s oraz unikanie stosowania pozycji szwu \"losowo\" lub \"najbliższy\"."
+
+msgid "Bridge counterbole holes"
+msgstr "Most dla fazowanych otworów"
+
+msgid ""
+"This option creates bridges for counterbore holes, allowing them to be printed without support. Available modes include:\n"
+"1. None: No bridge is created.\n"
+"2. Partially Bridged: Only a part of the unsupported area will be bridged.\n"
+"3. Sacrificial Layer: A full sacrificial bridge layer is created."
+msgstr ""
+"Ta opcja generuje mosty dla otworów z fazowaniem, co pozwala na ich drukowanie bez konieczności stosowania dodatkowych podpór. Wybierz:\n"
+"1. Brak (czyli wyłączone)\n"
+"2. Częściowy most (most będzie konstruowany tylko nad niektórymi obszarami bez podpory)\n"
+"3. Warstwa pomocnicza (tworzy pełnowartościową warstwę podpory mostu)."
+
+msgid "Partially bridged"
+msgstr "Częściowy most"
+
+msgid "Sacrificial layer"
+msgstr "Warstwa pomocnicza"
+
 msgid "Supports Painting"
 msgstr "Malowanie podpór"
 
@@ -3203,8 +3275,8 @@ msgid ""
 "\n"
 "The value will be reset to 0."
 msgstr ""
-"Zbyt duże wyrównanie efektu elefantowej stopy jest nierozsądne.\n"
-"Jeśli rzeczywiście występuje poważny efekt elefantowej stopy, proszę sprawdzić inne ustawienia.\n"
+"Zbyt duża kompensacja efektu stopy słonia nie jest wskazane.\n"
+"Jeśli rzeczywiście występuje poważny efekt stopy słonia, proszę sprawdzić inne ustawienia.\n"
 "Na przykład, czy temperatura stołu jest zbyt wysoka.\n"
 "\n"
 "Wartość zostanie zresetowana do 0."
@@ -4925,7 +4997,7 @@ msgid "Update"
 msgstr "Aktualizacja"
 
 msgid "HMS"
-msgstr "Stan drukarki"
+msgstr "Stan drukarki (HMS)"
 
 msgid "Don't show again"
 msgstr "Nie pokazuj ponownie"
@@ -8119,14 +8191,14 @@ msgid "Bed custom model"
 msgstr "Niestandardowy model stołu"
 
 msgid "Elephant foot compensation"
-msgstr "Kompensacja \"stopa słonia\""
+msgstr "Kompensacja stopy słonia"
 
 msgid "Shrink the initial layer on build plate to compensate for elephant foot effect"
 msgstr ""
 "Zmniejszenie pierwszej warstwy w płaszczyźnie XY o określoną wartość, aby skompensować efekt 'stopy słonia'"
 
 msgid "Elephant foot compensation layers"
-msgstr "Warstwy kompensacji \"stopa słonia\""
+msgstr "Warstwy kompensacji  stopy słonia"
 
 msgid ""
 "The number of layers on which the elephant foot compensation will be active. The first layer will be shrunk by "
