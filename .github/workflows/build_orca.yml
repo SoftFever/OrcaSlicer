@@ -99,12 +99,13 @@ jobs:
           zip -FSrq OrcaSlicer${ver}_Mac_Intel_unsigned.zip ./OrcaSlicer.app
              
       - name: Upload OrcaSlicer*.zip
+        if: inputs.os == 'macos-12'
         uses: actions/upload-artifact@v3
         with:
           name: OrcaSlicerRED_macOS_x86_x64_nightly
           path: ${{ github.workspace }}/build_x86_64/OrcaSlicer/OrcaSlicer*.zip
 
-        - name: Pack Mac_arm64
+      - name: Pack Mac_arm64
         if: inputs.os == 'macos-12'
         working-directory: ${{ github.workspace }}
         run: |
@@ -114,6 +115,7 @@ jobs:
           zip -FSrq OrcaSlicer${ver}_Mac_Intel_unsigned.zip ./OrcaSlicer.app
              
       - name: Upload OrcaSlicer*.zip
+        if: inputs.os == 'macos-12'
         uses: actions/upload-artifact@v3
         with:
           name: OrcaSlicerRED_macOS_x64_nightly
