@@ -16,12 +16,11 @@ on:
 
 jobs:
   build_orca:
-    name: Build OrcaSlicerRED
+    name: Build OrcaSlicer
     runs-on: ${{ inputs.os }}
     env:
       date:
       ver:
-      ver_pure:
 
     steps:
       - name: Checkout
@@ -37,14 +36,15 @@ jobs:
       - name: Get the version and date on Ubuntu and macOS
         if: inputs.os != 'windows-latest'
         run: |
-          ver_pure=$(grep 'set(SoftFever_VERSION' version.inc | cut -d '"' -f2)
-          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            ver="PR-${{ github.event.number }}"
+          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            ver="nightly$(date +'%y%m%d')"
+          elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            ver="PR${{ github.event.number }}"
           else
-            ver=V$ver_pure
+            ver=$(grep 'set(SoftFever_VERSION' version.inc | cut -d '"' -f2)
+            ver=V$ver
           fi
           echo "ver=$ver" >> $GITHUB_ENV
-          echo "ver_pure=$ver_pure" >> $GITHUB_ENV
           echo "date=$(date +'%Y%m%d')" >> $GITHUB_ENV
         shell: bash
 
@@ -56,7 +56,9 @@ jobs:
           $eventName = "${{ github.event_name }}"
           $prNumber = "${{ github.event.number }}"
       
-          if ($eventName -eq 'pull_request') {
+          if ($ref -eq 'refs/heads/main') {
+              $ver = "nightly" + $date.Substring(2)
+          } elseif ($eventName -eq 'pull_request') {
               $ver = "PR" + $prNumber
           } else {
               $versionContent = Get-Content version.inc -Raw
@@ -87,78 +89,49 @@ jobs:
         run: |
           ./build_release_macos.sh -s -n -a ${{inputs.arch}} -t 10.15
 
-      - name: Pack OrcaSlicer64
+      - name: Pack Mac_x86
         if: inputs.os == 'macos-12'
         working-directory: ${{ github.workspace }}
         run: |
-          cd ${{ github.workspace }}/build_arm64/OrcaSlicer
-          zip -FSrq ${{ github.workspace }}/OrcaSlicerRED_Mac_/build_arm64_${{ env.ver }}.zip ./OrcaSlicer.app
-
-      - name: Pack OrcaSlicer86
-        if: inputs.os == 'macos-12'
-        working-directory: ${{ github.workspace }}
-        run: |
+          export ver=$(grep '^#define SoftFever_VERSION' ./build_x86_64/src/libslic3r/libslic3r_version.h | cut -d ' ' -f3)
+          ver="_V${ver//\"}"
           cd ${{ github.workspace }}/build_x86_64/OrcaSlicer
-          zip -FSrq ${{ github.workspace }}/OrcaSlicerRED_Mac_/build_x86_64_${{ env.ver }}.zip ./OrcaSlicer.app
-          
+          zip -FSrq OrcaSlicer${ver}_Mac_Intel_unsigned.zip ./OrcaSlicer.app
+             
       - name: Upload OrcaSlicer*.zip
-        if: inputs.os == 'macos-12'
         uses: actions/upload-artifact@v3
         with:
-          name: OrcaSlicerRED_Mac_${{inputs.arch}}_${{ env.ver }}-nightly_unsigned
-          path: ${{ github.workspace }}/OrcaSlicerRED_Mac_${{inputs.arch}}_${{ env.ver }}-nightly_unsigned.zip
-          
- # Thanks to RaySajuuk, it's working now
- #     - name: Sign app and notary
- #       if: (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/')) && inputs.os == 'macos-12'
-  #      working-directory: ${{ github.workspace }}
-   #     env:
-  #        BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
-  #        P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
-  #        KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
-   #       CERTIFICATE_ID: ${{ secrets.MACOS_CERTIFICATE_ID }}
-  #      run: |
-   #       CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
-   #       KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
-   #       echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode --output $CERTIFICATE_PATH
-    #      security create-keychain -p $KEYCHAIN_PASSWORD $KEYCHAIN_PATH
-    #      security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
-     #     security unlock-keychain -p $KEYCHAIN_PASSWORD $KEYCHAIN_PATH
-     #     security import $CERTIFICATE_PATH -P $P12_PASSWORD -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
-   #       security list-keychain -d user -s $KEYCHAIN_PATH
-   #       security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k $P12_PASSWORD $KEYCHAIN_PATH
-    #      codesign --deep --force --verbose --options runtime --timestamp --entitlements ${{ github.workspace }}/scripts/disable_validation.entitlements --sign "$CERTIFICATE_ID" ${{ github.workspace }}/build_${{inputs.arch}}/OrcaSlicer/OrcaSlicer.app
-    #      ln -s /Applications ${{ github.workspace }}/build_${{inputs.arch}}/OrcaSlicer/Applications
-    #      hdiutil create -volname "OrcaSlicer" -srcfolder ${{ github.workspace }}/build_${{inputs.arch}}/OrcaSlicer -ov -format UDZO OrcaSlicer_Mac_${{inputs.arch}}_${{ env.ver }}.dmg
-    #      codesign --deep --force --verbose --options runtime --timestamp --entitlements ${{ github.workspace }}/scripts/disable_validation.entitlements --sign "$CERTIFICATE_ID" OrcaSlicer_Mac_${{inputs.arch}}_${{ env.ver }}.dmg
-    #      xcrun notarytool store-credentials "notarytool-profile" --apple-id "${{ secrets.APPLE_DEV_ACCOUNT }}" --team-id "${{ secrets.TEAM_ID }}" --password "${{ secrets.APP_PWD }}"
-     #     xcrun notarytool submit "OrcaSlicer_Mac_${{inputs.arch}}_${{ env.ver }}.dmg" --keychain-profile "notarytool-profile" --wait
-    #      xcrun stapler staple OrcaSlicer_Mac_${{inputs.arch}}_${{ env.ver }}.dmg
+          name: OrcaSlicerRED_macOS_x86_x64_nightly
+          path: ${{ github.workspace }}/build_x86_64/OrcaSlicer/OrcaSlicer*.zip
 
-  #    - name: Create DMG without notary
- #       if: github.ref != 'refs/heads/main' && inputs.os == 'macos-12'
-   #     working-directory: ${{ github.workspace }}
-   #     run: |
-   #       ln -s /Applications ${{ github.workspace }}/build_${{inputs.arch}}/OrcaSlicer/Applications
-    #      hdiutil create -volname "OrcaSlicer" -srcfolder ${{ github.workspace }}/build_${{inputs.arch}}/OrcaSlicer -ov -format UDZO OrcaSlicer_Mac_${{inputs.arch}}_${{ env.ver }}.dmg
+        - name: Pack Mac_arm64
+        if: inputs.os == 'macos-12'
+        working-directory: ${{ github.workspace }}
+        run: |
+          export ver=$(grep '^#define SoftFever_VERSION' ./build_arm64/src/libslic3r/libslic3r_version.h | cut -d ' ' -f3)
+          ver="_V${ver//\"}"
+          cd ${{ github.workspace }}/build_arm64/OrcaSlicer
+          zip -FSrq OrcaSlicer${ver}_Mac_Intel_unsigned.zip ./OrcaSlicer.app
+             
+      - name: Upload OrcaSlicer*.zip
+        uses: actions/upload-artifact@v3
+        with:
+          name: OrcaSlicerRED_macOS_x64_nightly
+          path: ${{ github.workspace }}/build_arm64/OrcaSlicer/OrcaSlicer*.zip
 
-#      - name: Upload artifacts mac
-#        if: inputs.os == 'macos-12'
-#        uses: actions/upload-artifact@v3
-#        with:
- #         name: OrcaSlicer_Mac_${{inputs.arch}}_${{ env.ver }}
-  #        path: ${{ github.workspace }}/OrcaSlicer_Mac_${{inputs.arch}}_${{ env.ver }}.dmg
+     # - name: Create DMG without notary
+     #   if: github.ref != 'refs/heads/main' && inputs.os == 'macos-12'
+     #   working-directory: ${{ github.workspace }}
+      #  run: |
+     #     ln -s /Applications ${{ github.workspace }}/build_${{inputs.arch}}/OrcaSlicer/Applications
+     #     hdiutil create -volname "OrcaSlicer" -srcfolder ${{ github.workspace }}/build_${{inputs.arch}}/OrcaSlicer -ov -format UDZO OrcaSlicer_Mac_${{inputs.arch}}_${{ env.ver }}.dmg
 
-  #    - name: Deploy Mac release
-  #      if: github.ref == 'refs/heads/main' && inputs.os == 'macos-12'
-   #     uses: WebFreak001/deploy-nightly@v3.0.0
-   #     with:
-    #      upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label} 
-   #       release_id: 137995723 
-    #      asset_path: ${{ github.workspace }}/OrcaSlicer_Mac_${{inputs.arch}}_${{ env.ver }}.dmg
-   #       asset_name: OrcaSlicer_Mac_${{inputs.arch}}_${{ env.ver }}.dmg
-    #      asset_content_type: application/octet-stream 
-    #      max_releases: 1 # optional, if there are more releases than this matching the asset_name, the oldest ones are going to be deleted
+     # - name: Upload artifacts mac
+     #   if: inputs.os == 'macos-12'
+     #   uses: actions/upload-artifact@v3
+     #   with:
+     #     name: OrcaSlicer_Mac_${{inputs.arch}}_${{ env.ver }}
+     #     path: ${{ github.workspace }}/OrcaSlicer_Mac_${{inputs.arch}}_${{ env.ver }}.dmg
 
 # Windows
       - name: setup MSVC
@@ -186,56 +159,34 @@ jobs:
         if: inputs.os == 'windows-latest'
         working-directory: ${{ github.workspace }}/build
         shell: cmd
-        run: '"C:/Program Files/7-Zip/7z.exe" a -tzip OrcaSlicerRED_Windows_${{ env.ver }}_portable.zip ${{ github.workspace }}/build/OrcaSlicerRED'
+        run: '"C:/Program Files/7-Zip/7z.exe" a -tzip OrcaSlicer_Windows_${{ env.ver }}_portable.zip ${{ github.workspace }}/build/OrcaSlicer'
 
-     # - name: Pack PDB
-     #   if: inputs.os == 'windows-latest'
-     #   working-directory: ${{ github.workspace }}/build/src/Release
-     #   shell: cmd
-     #   run: '"C:/Program Files/7-Zip/7z.exe" a -m0=lzma2 -mx9 Debug_PDB_${{ env.ver }}_for_developers_only.7z  *.pdb'
+      - name: Pack PDB
+        if: inputs.os == 'windows-latest'
+        working-directory: ${{ github.workspace }}/build/src/Release
+        shell: cmd
+        run: '"C:/Program Files/7-Zip/7z.exe" a -m0=lzma2 -mx9 Debug_PDB_${{ env.ver }}_for_developers_only.7z  *.pdb'
           
       - name: Upload artifacts Win zip
         if: inputs.os == 'windows-latest'
         uses: actions/upload-artifact@v3
         with:
-          name: OrcaSlicerRED_Windows_${{ env.ver }}_portable
-          path: ${{ github.workspace }}/build/OrcaSlicerRED_Windows_${{ env.ver }}_portable.zip
+          name: OrcaSlicer_Windows_${{ env.ver }}_portable
+          path: ${{ github.workspace }}/build/OrcaSlicer_Windows_${{ env.ver }}_portable.zip
 
       - name: Upload artifacts Win installer
         if: inputs.os == 'windows-latest'
         uses: actions/upload-artifact@v3
         with:
-          name: OrcaSlicerRED_Windows_${{ env.ver }}
+          name: OrcaSlicer_Windows_${{ env.ver }}
           path: ${{ github.workspace }}/build/OrcaSlicer*.exe
 
-     # - name: Upload artifacts Win PDB
-     #   if: inputs.os == 'windows-latest'
-     #   uses: actions/upload-artifact@v3
-     #   with:
-     #     name: PDB_osRED
-     #     path: ${{ github.workspace }}/build/src/Release/Debug_PDB_${{ env.ver }}_for_developers_only.7z
-
-      #- name: Deploy Windows release portable
-      # if: github.ref == 'refs/heads/main' && inputs.os == 'windows-latest'
-      #  uses: WebFreak001/deploy-nightly@v3.0.0
-       # with:
-      #    upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label} 
-       #   release_id: 137995723 
-      #    asset_path: ${{ github.workspace }}/build/OrcaSlicer_Windows_${{ env.ver }}_portable.zip
-      #    asset_name: OrcaSlicer_Windows_${{ env.ver }}_portable.zip
-       #   asset_content_type: application/x-zip-compressed 
-      #    max_releases: 1 
-
-    #  - name: Deploy Windows release installer
-    #    if: github.ref == 'refs/heads/main' && inputs.os == 'windows-latest'
-    #    uses: WebFreak001/deploy-nightly@v3.0.0
-    #    with:
-    #      upload_url: https://uploads.github.com/repos/KrissMor/OrcaSlicerROD/releases/137995723/assets{?name,label} 
-    #      release_id: 137995723 
-    #      asset_path: ${{ github.workspace }}/build/OrcaSlicerRED_Windows_Installer_${{ env.ver }}.exe
-    #      asset_name: OrcaSlicerRED_Windows_Installer_${{ env.ver }}.exe
-    #      asset_content_type: application/x-msdownload
-    #      max_releases: 1 
+      - name: Upload artifacts Win PDB
+        if: inputs.os == 'windows-latest'
+        uses: actions/upload-artifact@v3
+        with:
+          name: PDB
+          path: ${{ github.workspace }}/build/src/Release/Debug_PDB_${{ env.ver }}_for_developers_only.7z
 
 # Ubuntu
       - name: Install dependencies
@@ -263,23 +214,11 @@ jobs:
         shell: bash
         run: |
           ./BuildLinux.sh -isr
-          mv -n ./build/OrcaSlicer_Linux_V${{ env.ver_pure }}.AppImage ./build/OrcaSlicer_Linux_${{ env.ver }}.AppImage
-          chmod +x ./build/OrcaSlicer_Linux_${{ env.ver }}.AppImage
+          chmod +x ./build/OrcaSlicer_ubu64.AppImage
         
       - name: Upload artifacts Ubuntu
         if: inputs.os == 'ubuntu-20.04'
         uses: actions/upload-artifact@v3
         with:
           name: OrcaSlicer_Linux_${{ env.ver }}
-          path: './build/OrcaSlicer_Linux_${{ env.ver }}.AppImage'
-
-      - name: Deploy Ubuntu release
-        if: github.ref == 'refs/heads/main' && inputs.os == 'ubuntu-20.04'
-        uses: WebFreak001/deploy-nightly@v3.0.0
-        with:
-          upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label} 
-          release_id: 137995723 
-          asset_path: ./build/OrcaSlicer_Linux_${{ env.ver }}.AppImage
-          asset_name: OrcaSlicer_Linux_${{ env.ver }}.AppImage
-          asset_content_type: application/octet-stream
-          max_releases: 1 # optional, if there are more releases than this matching the asset_name, the oldest ones are going to be deleted
+          path: './build/OrcaSlicer_ubu64.AppImage'
