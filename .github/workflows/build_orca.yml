@@ -93,13 +93,27 @@ jobs:
           export ver=$(grep '^#define SoftFever_VERSION' ./build_x86_64/src/libslic3r/libslic3r_version.h | cut -d ' ' -f3)
           ver="_V${ver//\"}"
           cd ${{ github.workspace }}/build_x86_64/OrcaSlicer
-          zip -FSrq OrcaSlicer${ver}_Mac_Intel_unsigned.zip ./OrcaSlicer.app
+          zip -FSrq OrcaSlicerRED${ver}_Mac_Intel_unsigned.zip ./OrcaSlicer.app
           
       - name: Upload OrcaSlicer*.zip
         uses: actions/upload-artifact@v3
         with:
-          name: OrcaSlicer_macOS_x64_nightly
+          name: OrcaSlicerRED_macOS_x86_64_nightly_unsigned
           path: ${{ github.workspace }}/build_x86_64/OrcaSlicer/OrcaSlicer*.zip
+
+      - name: Pack OrcaSlicer
+        working-directory: ${{ github.workspace }}
+        run: |
+          export ver=$(grep '^#define SoftFever_VERSION' ./build_arm64/src/libslic3r/libslic3r_version.h | cut -d ' ' -f3)
+          ver="_V${ver//\"}"
+          cd ${{ github.workspace }}/build_arm64/OrcaSlicer
+          zip -FSrq OrcaSlicerRED${ver}_Mac_AppleSilicon_unsigned.zip ./OrcaSlicer.app
+              
+      - name: Upload OrcaSlicer*.zip
+        uses: actions/upload-artifact@v3
+        with:
+          name: OrcaSlicerRED_macOS_arm64_nightly_unsligned
+          path: ${{ github.workspace }}/build_arm64/OrcaSlicer/OrcaSlicer*.zip
           
  # Thanks to RaySajuuk, it's working now
  #     - name: Sign app and notary
