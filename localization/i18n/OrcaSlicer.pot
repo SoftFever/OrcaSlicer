@@ -18,6 +18,12 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
+msgid "Partially bridged"
+msgstr ""
+
+msgid "Sacrificial layer"
+msgstr ""
+
 msgid "Supports Painting"
 msgstr ""
 
@@ -10221,6 +10227,62 @@ msgid ""
 msgstr ""
 
 msgid "Seam gap"
+msgstr ""
+
+
+msgid "Scarf joint seam"
+msgstr ""
+
+msgid "Use scarf joint to minimize seam visibility and increase seam strength."
+msgstr ""
+
+msgid "Scarf start height"
+msgstr ""
+
+msgid ""
+"Start height of the scarf.\n"
+"This amount can be specified in millimeters or as a percentage of the current layer height. The default value "
+"for this parameter is 0.05mm."
+msgstr ""
+
+msgid "Scarf around entire wall"
+msgstr ""
+
+msgid "The scarf extends to the entire length of the wall."
+msgstr ""
+
+msgid "Scarf length"
+msgstr ""
+
+msgid "Scarf steps"
+msgstr ""
+
+msgid "Minimum number of segments of each scarf."
+msgstr ""
+
+msgid "Scarf joint for inner walls"
+msgstr ""
+
+msgid "Use scarf joint for inner walls as well."
+msgstr ""
+
+msgid "Length of the scarf. Setting this parameter to zero effectively disables the scarf."
+msgstr ""
+
+msgid ""
+"When using scarf joint, we recommend the following settings:\n"
+"print outer wall first, disable wipe before external loop, reduce outer wall speed to no greater than 50mm/s, "
+"and don't use random or nearest seam position"
+msgstr ""
+
+msgid "Bridge counterbole holes"
+msgstr ""
+
+msgid ""
+"This option creates bridges for counterbore holes, allowing them to be printed without support. Available modes include:\n"
+"1. None: No bridge is created.\n"
+"2. Partially Bridged: Only a part of the unsupported area will be bridged.\n"
+"3. Sacrificial Layer: A full sacrificial bridge layer is created."
 msgstr ""
 
 msgid ""
