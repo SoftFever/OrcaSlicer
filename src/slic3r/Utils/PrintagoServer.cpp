@@ -172,9 +172,10 @@ PrintagoDirector::~PrintagoDirector()
 void PrintagoDirector::PostErrorMessage(const wxString& printer_id,
                                         const wxString& localCommand,
                                         const json&     command,
-                                        const wxString& errorDetail)
+                                        const wxString& errorDetail, 
+                                        const bool shouldUnblock)
 {
-    if (!PBJob::CanProcessJob()) {
+    if (!PBJob::CanProcessJob() && shouldUnblock) {
         PBJob::UnblockJobProcessing();
     }
 
@@ -313,6 +314,7 @@ bool PrintagoDirector::ValidatePrintagoCommand(const PrintagoCommand& cmd)
     wxString action      = cmd.GetAction();
 
     if (!server->get_session()->get_authorized() && !(commandType == "meta" && action == "init")) {
+        PBJob::UnblockJobProcessing();
         PostErrorMessage("", "", cmd.GetOriginalCommand(), "Unauthorized");
         return false;
     }
@@ -608,10 +610,10 @@ bool PrintagoDirector::ProcessPrintagoCommand(const PrintagoCommand& cmd)
             PBJob::BlockJobProcessing();
 
             if (printagoModelUrl.empty()) {
-                PostErrorMessage(printerId, action, originalCommand, "no url specified");
+                PostErrorMessage(printerId, action, originalCommand, "no url specified", true);
                 return false;
             } else if (printConfUrl.empty() || printerConfUrl.empty() || filamentConfUrl.empty()) {
-                PostErrorMessage(printerId, action, originalCommand, "must specify printer, filament, and print configurations");
+                PostErrorMessage(printerId, action, originalCommand, "must specify printer, filament, and print configurations", true);
                 return false;
             } else {
                 printagoModelUrl = Http::url_decode(printagoModelUrl);
@@ -626,7 +628,7 @@ bool PrintagoDirector::ProcessPrintagoCommand(const PrintagoCommand& cmd)
             if (SavePrintagoFile(printagoModelUrl, PBJob::localFile)) {
             } else {
                 PostErrorMessage(printerId, wxString::Format("%s:%s", action, PBJob::serverStateStr()), originalCommand,
-                                 "model download failed");
+                                 "model download failed", true);
                 return false;
             }
 
@@ -637,7 +639,7 @@ bool PrintagoDirector::ProcessPrintagoCommand(const PrintagoCommand& cmd)
                 SavePrintagoFile(printConfUrl, localPrintConf)) {
             } else {
                 PostErrorMessage(printerId, wxString::Format("%s:%s", action, PBJob::serverStateStr()), originalCommand,
-                                 "config download failed");
+                                 "config download failed", true);
                 return false;
             }
 
@@ -685,7 +687,7 @@ bool PrintagoDirector::ProcessPrintagoCommand(const PrintagoCommand& cmd)
                 wxGetApp().plater()->reslice();    
             } else {
                 PostErrorMessage(PBJob::printerId, wxString::Format("%s:%s", "start_print_bbl", PBJob::serverStateStr()), PBJob::command,
-                                 "and error occurred loading the model and config");
+                                 "and error occurred loading the model and config", true);
                 return false;
             }
             
@@ -1223,14 +1225,12 @@ bool PrintagoDirector::DownloadFileFromURL(const wxString url, const wxFileName&
 void PrintagoDirector::OnSlicingCompleted(SlicingProcessCompletedEvent::StatusType slicing_result)
 {
     // in case we got here by mistake and there's nothing we're trying to process; return silently.
-    if (PBJob::printerId.IsEmpty() ||  PBJob::CanProcessJob()) {
+    if (PBJob::printerId.IsEmpty() || PBJob::CanProcessJob()) {
         PBJob::UnblockJobProcessing();
         return;
     }
     const wxString action = "start_print_bbl";
     wxString       actionDetail;
-
-
 
     if (slicing_result != SlicingProcessCompletedEvent::StatusType::Finished) {
         actionDetail = "slicing Unknown Error: " + PBJob::localFile.GetFullPath();
@@ -1238,7 +1238,7 @@ void PrintagoDirector::OnSlicingCompleted(SlicingProcessCompletedEvent::StatusTy
             actionDetail = "slicing cancelled: " + PBJob::localFile.GetFullPath();
         else if (slicing_result == SlicingProcessCompletedEvent::StatusType::Error)
             actionDetail = "slicing error: " + PBJob::localFile.GetFullPath();
-        PostErrorMessage(PBJob::printerId, action, PBJob::command, actionDetail);
+        PostErrorMessage(PBJob::printerId, action, PBJob::command, actionDetail, true);
         return;
     }
 
@@ -1282,7 +1282,7 @@ void PrintagoDirector::OnPrintJobSent(wxString printerId, bool success)
         return;
     }
     if (!success) {
-        PostErrorMessage(PBJob::printerId, "start_print_bbl", PBJob::command, "an error occurred sending the print job.");
+        PostErrorMessage(PBJob::printerId, "start_print_bbl", PBJob::command, "an error occurred sending the print job.", true);
         return;
     }
 

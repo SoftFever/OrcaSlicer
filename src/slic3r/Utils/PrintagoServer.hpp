@@ -168,7 +168,9 @@ public:
 
     void ResetMachineDialog()
     {
-        delete m_select_machine_dlg;
+        if (m_select_machine_dlg) {
+            delete m_select_machine_dlg;
+        }
         m_select_machine_dlg = nullptr;
     }
 
@@ -187,7 +189,7 @@ private:
                             const wxString& localCommand,
                             const json&     command            = {},
                             const wxString& localCommandDetail = "");
-    void PostErrorMessage(const wxString& printer_id, const wxString& localCommand, const json& command = {}, const wxString& errorDetail = "");
+    void PostErrorMessage(const wxString& printer_id, const wxString& localCommand, const json& command = {}, const wxString& errorDetail = "", const bool shouldUnblock = false);
 
     void _PostResponse(const PrintagoResponse& response) const;
 
