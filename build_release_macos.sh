@@ -81,20 +81,20 @@ cd $WD
 mkdir -p build_$ARCH
 cd build_$ARCH
 echo "building slicer..."
-cmake .. -GXcode -DBBL_RELEASE_TO_PUBLIC=1 -DCMAKE_PREFIX_PATH="$DEPS/usr/local" -DCMAKE_INSTALL_PREFIX="$PWD/OrcaSlicer" -DCMAKE_BUILD_TYPE=Release -DCMAKE_MACOSX_RPATH=ON -DCMAKE_INSTALL_RPATH="$DEPS/usr/local" -DCMAKE_MACOSX_BUNDLE=ON -DCMAKE_OSX_ARCHITECTURES=${ARCH} -DCMAKE_OSX_DEPLOYMENT_TARGET=${OSX_DEPLOYMENT_TARGET}
+cmake .. -GXcode -DBBL_RELEASE_TO_PUBLIC=1 -DCMAKE_PREFIX_PATH="$DEPS/usr/local" -DCMAKE_INSTALL_PREFIX="$PWD/OrcaSlicerRED" -DCMAKE_BUILD_TYPE=Release -DCMAKE_MACOSX_RPATH=ON -DCMAKE_INSTALL_RPATH="$DEPS/usr/local" -DCMAKE_MACOSX_BUNDLE=ON -DCMAKE_OSX_ARCHITECTURES=${ARCH} -DCMAKE_OSX_DEPLOYMENT_TARGET=${OSX_DEPLOYMENT_TARGET}
 cmake --build . --config Release --target ALL_BUILD 
 cd ..
 ./run_gettext.sh
 cd build_$ARCH
-mkdir -p OrcaSlicer
-cd OrcaSlicer
-rm -r ./OrcaSlicer.app
-cp -pR ../src/Release/OrcaSlicer.app ./OrcaSlicer.app
-resources_path=$(readlink ./OrcaSlicer.app/Contents/Resources)
-rm ./OrcaSlicer.app/Contents/Resources
-cp -R $resources_path ./OrcaSlicer.app/Contents/Resources
+mkdir -p OrcaSlicerRED
+cd OrcaSlicerRED
+rm -r ./OrcaSlicerRED.app
+cp -pR ../src/Release/OrcaSlicerRED.app ./OrcaSlicerRED.app
+resources_path=$(readlink ./OrcaSlicerRED.app/Contents/Resources)
+rm ./OrcaSlicerRED.app/Contents/Resources
+cp -R $resources_path ./OrcaSlicerRED.app/Contents/Resources
 # delete .DS_Store file
-find ./OrcaSlicer.app/ -name '.DS_Store' -delete
+find ./OrcaSlicerRED.app/ -name '.DS_Store' -delete
 # extract version
 # export ver=$(grep '^#define SoftFever_VERSION' ../src/libslic3r/libslic3r_version.h | cut -d ' ' -f3)
 # ver="_V${ver//\"}"
