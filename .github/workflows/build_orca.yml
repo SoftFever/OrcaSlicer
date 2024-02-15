@@ -90,7 +90,7 @@ jobs:
       - name: Pack OrcaSlicer
         working-directory: ${{ github.workspace }}
         run: |
-          cd ${{ github.workspace }}/build_{{inputs.arch}}/OrcaSlicer
+          cd ${{ github.workspace }}/build_${{inputs.arch}}/OrcaSlicer
           zip -FSrq ${{ github.workspace }}/OrcaSlicerRED_Mac_${{inputs.arch}}_${{ env.ver }}.zip ./OrcaSlicer.app
           
       - name: Upload OrcaSlicer*.zip
