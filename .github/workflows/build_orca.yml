@@ -87,11 +87,17 @@ jobs:
         run: |
           ./build_release_macos.sh -s -n -a ${{inputs.arch}} -t 10.15
 
-      - name: Pack OrcaSlicer
+      - name: Pack OrcaSlicer64
         working-directory: ${{ github.workspace }}
         run: |
-          cd ${{ github.workspace }}/build_${{inputs.arch}}/OrcaSlicer
-          zip -FSrq ${{ github.workspace }}/OrcaSlicerRED_Mac_${{inputs.arch}}_${{ env.ver }}.zip ./OrcaSlicer.app
+          cd ${{ github.workspace }}/build_arm64/OrcaSlicer
+          zip -FSrq ${{ github.workspace }}/OrcaSlicerRED_Mac_/build_arm64_${{ env.ver }}.zip ./OrcaSlicer.app
+
+      - name: Pack OrcaSlicer86
+        working-directory: ${{ github.workspace }}
+        run: |
+          cd ${{ github.workspace }}/build_x86_64/OrcaSlicer
+          zip -FSrq ${{ github.workspace }}/OrcaSlicerRED_Mac_/build_x86_64_${{ env.ver }}.zip ./OrcaSlicer.app
           
       - name: Upload OrcaSlicer*.zip
         if: inputs.os == 'macos-12'
