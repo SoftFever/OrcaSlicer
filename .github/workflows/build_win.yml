@@ -1,4 +1,4 @@
-name: Build all
+name: Build_win all
 
 on:
   push:
