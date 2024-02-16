@@ -143,6 +143,12 @@ jobs:
         shell: cmd
         run: '"C:/Program Files/7-Zip/7z.exe" a -tzip OrcaSlicerRED_Windows_${{ env.ver }}_portable.zip ${{ github.workspace }}/build/OrcaSlicerRED'
 
+      - name: Pack hms
+        if: inputs.os == 'windows-latest'
+        working-directory: ${{ github.workspace }}/hms
+        shell: cmd
+        run: '"C:/Program Files/7-Zip/7z.exe" a -tzip Hms_xx_json.zip ${{ github.workspace }}/hms'
+
       - name: Pack PDB
         if: inputs.os == 'windows-latest'
         working-directory: ${{ github.workspace }}/build/src/Release
@@ -155,6 +161,13 @@ jobs:
         with:
           name: OrcaSlicerRED_Windows_${{ env.ver }}_portable
           path: ${{ github.workspace }}/build/OrcaSlicerRED_Windows_${{ env.ver }}_portable.zip
+
+      - name: Upload artifacts Hms zip
+        if: inputs.os == 'windows-latest'
+        uses: actions/upload-artifact@v3
+        with:
+         name: Hms_xx_json
+         path: ${{ github.workspace }}/hms/Hms_xx_json.zip   
 
       - name: Upload artifacts Win installer
         if: inputs.os == 'windows-latest'
