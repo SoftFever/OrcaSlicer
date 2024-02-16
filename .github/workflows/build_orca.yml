@@ -121,10 +121,12 @@ jobs:
  #         ln -s /Applications ${{ github.workspace }}/build_${{inputs.arch}}/OrcaSlicer/Applications
  #         hdiutil create -volname "OrcaSlicer" -srcfolder ${{ github.workspace }}/build_${{inputs.arch}}/OrcaSlicer -ov -format UDZO OrcaSlicer_Mac_${{inputs.arch}}_${{ env.ver }}.dmg
       
-      - name: Pack OrcaSlicer
+      - name: Pack OrcaSlicer_86
         if: inputs.os == 'macos-12'
         working-directory: ${{ github.workspace }}
         run: |
+          export ver=$(grep '^#define SoftFever_VERSION' ./build_${{inputs.arch}}/src/libslic3r/libslic3r_version.h | cut -d ' ' -f3)
+          ver="_V${ver//\"}"
           cd ${{ github.workspace }}/build_${{inputs.arch}}/OrcaSlicer
           zip -FSrq OrcaSlicer${ver}_Mac_${{inputs.arch}}_signed.zip ./OrcaSlicer.app
 
@@ -135,7 +137,15 @@ jobs:
           name: OrcaSlicer_Mac_${{inputs.arch}}_${{ env.ver }}
           path: ${{ github.workspace }}/OrcaSlicerRED_Mac_${{inputs.arch}}_${{ env.ver }}.zip
 
-
+      - name: Pack orcaSlicer arm64
+        if: inputs.os == 'macos-12'
+        working-directory: ${{ github.workspace }}
+        run: |
+          export ver=$(grep '^#define SoftFever_VERSION' ./build_${{inputs.arch}}/src/libslic3r/libslic3r_version.h | cut -d ' ' -f3)
+          ver="_V${ver//\"}"
+          cd ${{ github.workspace }}/build_${{inputs.arch}}/OrcaSlicer
+          zip -FSrq OrcaSlicer${ver}_Mac_Apple_Silicon_unsigned.zip ./OrcaSlicer.app
+          
 # Windows
       - name: setup MSVC
         if: inputs.os == 'windows-latest'
