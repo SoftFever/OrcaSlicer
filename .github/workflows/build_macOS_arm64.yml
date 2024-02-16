@@ -1,0 +1,87 @@
+name: Build macOS arm64
+
+on: 
+    push:
+      branches: 
+       - main
+      paths:
+       - 'src/**'
+       - '**/CMakeLists.txt'
+       - 'version.inc'
+       - 'bbl/**'
+       - 'resources/**'
+
+    pull_request:
+      branches: 
+       - main 
+      paths:
+       - 'src/**'
+       - '**/CMakeLists.txt'
+       - 'version.inc'
+       - 'bbl/**'
+       - 'resources/**'
+    
+jobs:
+  build_osx_arm64:
+    name: Build macOS arm64
+    runs-on: macos-13
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install tools
+        run: |
+          brew install cmake git gettext zstd
+      - run: mkdir -p ${{ github.workspace }}/deps/build_arm64
+      - run: mkdir -p ${{ github.workspace }}/deps/build_arm64/OrcaSlicer_dep_arm64
+          
+      - name: Build OrcaSlicer
+        working-directory: ${{ github.workspace }}
+        run: |
+          ./build_release_macos.sh -s -n -a arm64
+
+      #- name: Sign OrcaSlicer
+      #  working-directory: ${{ github.workspace }}
+      #  if: github.event_name != 'pull_request'
+      #  env:
+      #    BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
+      #    P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
+      #    KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+      #    CERTIFICATE_ID: ${{ secrets.MACOS_CERTIFICATE_ID }}
+      #  run: |
+      #    CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
+      #    KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+      #    echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode -o $CERTIFICATE_PATH
+      #    security create-keychain -p $KEYCHAIN_PASSWORD $KEYCHAIN_PATH
+      #    security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+      #    security unlock-keychain -p $KEYCHAIN_PASSWORD $KEYCHAIN_PATH
+      #    security import $CERTIFICATE_PATH -P $P12_PASSWORD -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+      #    security list-keychain -d user -s $KEYCHAIN_PATH
+      #    security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k $P12_PASSWORD $KEYCHAIN_PATH
+      #    codesign --deep --force --verbose --sign "$CERTIFICATE_ID" ${{ github.workspace }}/build_arm64/OrcaSlicer/OrcaSlicer.app
+      
+      - name: Pack OrcaSlicer
+        working-directory: ${{ github.workspace }}
+        run: |
+          export ver=$(grep '^#define OrcaSlicer_VERSION' ./build_arm64/src/libslic3r/libslic3r_version.h | cut -d ' ' -f3)
+          ver="_V${ver//\"}"
+          cd ${{ github.workspace }}/build_arm64/OrcaSlicer
+          zip -FSrq OrcaSlicer${ver}_Mac_AppleSilicon_signed.zip ./OrcaSlicer.app
+          
+      #- name: Create DMG
+      #  uses: QQxiaoming/create-dmg-action@v0.0.2
+      #  with:
+      #    name: 'OrcaSlicer'
+      #    srcdir: '${{ github.workspace }}/build_arm64/OrcaSlicer/OrcaSlicer.app'
+
+      #- name: Upload OrcaSlicer.dmg
+      #  uses: actions/upload-artifact@v3
+      #  with:
+      #    name: OrcaSlicer.dmg
+      #    path: OrcaSlicer.dmg
+          
+      - name: Upload OrcaSlicer*.zip
+        uses: actions/upload-artifact@v3
+        with:
+          name: OrcaSlicer_macOS_arm64_nightly
+          path: ${{ github.workspace }}/build_arm64/OrcaSlicer/OrcaSlicer*.zip
