@@ -20,6 +20,7 @@
 ///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
 ///|/
 #include "PrintConfig.hpp"
+#include "ClipperUtils.hpp"
 #include "Config.hpp"
 #include "I18N.hpp"
 
@@ -2940,7 +2941,8 @@ def = this->add("filament_loading_speed", coFloats);
 
     def = this->add("slow_down_min_speed", coFloats);
     def->label = L("Min print speed");
-    def->tooltip = L("The minimum printing speed for the filament when slow down for better layer cooling is enabled, when printing overhangs and when feature speeds are not specified explicitly.");
+    def->tooltip = L("The minimum printing speed that the printer will slow down to to attempt to maintain the minimum layer time "
+                     "above, when slow down for better layer cooling is enabled.");
     def->sidetext = L("mm/s");
     def->min = 0;
     def->mode = comAdvanced;

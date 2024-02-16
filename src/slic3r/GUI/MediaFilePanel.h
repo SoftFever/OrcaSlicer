@@ -10,7 +10,7 @@
 
 #include "GUI_Utils.hpp"
 #include "wxExtensions.hpp"
-
+#include <set>
 #include <wx/frame.h>
 
 class Button;

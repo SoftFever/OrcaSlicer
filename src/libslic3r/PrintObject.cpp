@@ -29,6 +29,7 @@
 #include "Fill/FillLightning.hpp"
 #include "Format/STL.hpp"
 #include "TreeSupport.hpp"
+#include "format.hpp"
 
 #include <float.h>
 #include <oneapi/tbb/blocked_range.h>
@@ -108,6 +109,7 @@ PrintObject::PrintObject(Print* print, ModelObject* model_object, const Transfor
     m_center_offset = Point::new_scale(bbox_center.x(), bbox_center.y());
     // Size of the transformed mesh. This bounding may not be snug in XY plane, but it is snug in Z.
     m_size = (bbox.size() * (1. / SCALING_FACTOR)).cast<coord_t>();
+    m_size.z() = coord_t(model_object->max_z() * (1. / SCALING_FACTOR));
 
     this->set_instances(std::move(instances));
 }
@@ -658,7 +660,7 @@ void PrintObject::generate_support_material()
                     {SharpTail,L("floating regions")},
                     {Cantilever,L("floating cantilever")},
                     {LargeOverhang,L("large overhangs")} };
-                std::string warning_message = format(L("It seems object %s has %s. Please re-orient the object or enable support generation."),
+                std::string warning_message = Slic3r::format(L("It seems object %s has %s. Please re-orient the object or enable support generation."),
                     this->model_object()->name, reasons[sntype]);
                 this->active_step_add_warning(PrintStateBase::WarningLevel::NON_CRITICAL, warning_message, PrintStateBase::SlicingNeedSupportOn);
             }
@@ -2932,7 +2934,7 @@ void PrintObject::update_slicing_parameters()
 {
     if (!m_slicing_params.valid)
         m_slicing_params = SlicingParameters::create_from_config(
-            this->print()->config(), m_config, this->model_object()->bounding_box().max.z(), this->object_extruders());
+            this->print()->config(), m_config, this->model_object()->max_z(), this->object_extruders());
 }
 
 SlicingParameters PrintObject::slicing_parameters(const DynamicPrintConfig& full_config, const ModelObject& model_object, float object_max_z)

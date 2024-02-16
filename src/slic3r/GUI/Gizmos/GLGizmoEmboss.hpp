@@ -114,7 +114,7 @@ private:
     void reset_volume();
 
     // create volume from text - main functionality
-    bool process();
+    bool process(bool make_snapshot = true);
     void close();
     void draw_window();
     void draw_text_input();

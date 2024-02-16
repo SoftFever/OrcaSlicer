@@ -27,6 +27,7 @@
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/log/trivial.hpp>
+#include <boost/property_tree/ptree.hpp>
 
 #include "libslic3r/Print.hpp"
 #include "libslic3r/Polygon.hpp"

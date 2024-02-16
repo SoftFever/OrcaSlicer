@@ -2,6 +2,8 @@
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/Utils/MacDarkMode.hpp"
 
+#include <boost/log/trivial.hpp>
+
 #include <wx/webviewarchivehandler.h>
 #include <wx/webviewfshandler.h>
 #if wxUSE_WEBVIEW_EDGE

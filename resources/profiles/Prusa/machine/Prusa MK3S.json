@@ -2,7 +2,7 @@
     "type": "machine_model",
     "name": "Prusa MK3S",
     "model_id": "MK3S",
-    "nozzle_diameter": "0.4",
+    "nozzle_diameter": "0.25;0.4;0.6;0.8",
     "machine_tech": "FFF",
     "family": "Prusa",
     "bed_model": "mk3_bed.stl",

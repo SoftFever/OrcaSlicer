@@ -5,6 +5,7 @@
 #include "GUI.hpp"
 #include "GUI_Utils.hpp"
 
+#include <boost/nowide/cstdio.hpp>
 #include <boost/filesystem.hpp>
 
 #ifdef __WXGTK2__

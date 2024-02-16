@@ -418,36 +418,12 @@ Vec3d extract_euler_angles(const Transform3d& transform)
 
 void rotation_from_two_vectors(Vec3d from, Vec3d to, Vec3d& rotation_axis, double& phi, Matrix3d* rotation_matrix)
 {
-    double epsilon = 1e-5;
-    // note: a.isMuchSmallerThan(b,prec) compares a.abs().sum()<b*prec, so previously we set b=0 && prec=dummpy_prec() is wrong
-    if ((from + to).isMuchSmallerThan(1, epsilon))
-    {
-        rotation_axis << 1, 0, 0;
-        phi = M_PI;
-        if (rotation_matrix)
-            *rotation_matrix = -Matrix3d::Identity();
-    }
-    else if ((from - to).isMuchSmallerThan(1, epsilon)) {
-        rotation_axis << 1, 0, 0;
-        phi = 0;
-        if (rotation_matrix)
-            *rotation_matrix = Matrix3d::Identity();
-    }
-    else {
-        rotation_axis = from.cross(to);
-        double s = rotation_axis.norm(); // sin(phi)
-        double c = from.dot(to); // cos(phi)
-        auto& v = rotation_axis;
-        Matrix3d kmat;
-        kmat << 0, -v[2], v[1],
-            v[2], 0, -v[0],
-            -v[1], v[0], 0;
-
-        rotation_axis.normalize();
-        phi = acos(std::min(from.dot(to), 1.0));
-        if (rotation_matrix)
-            *rotation_matrix = Matrix3d::Identity() + kmat + kmat * kmat * ((1 - c) / (s * s));
-    }
+    const Matrix3d m = Transform3d(Eigen::Quaterniond().setFromTwoVectors(from, to)).matrix().block<3, 3>(0, 0);
+    const Eigen::AngleAxisd aa(m);
+    rotation_axis = aa.axis();
+    phi           = aa.angle();
+    if (rotation_matrix)
+        *rotation_matrix = m;
 }
 
 Transform3d Transformation::get_offset_matrix() const
