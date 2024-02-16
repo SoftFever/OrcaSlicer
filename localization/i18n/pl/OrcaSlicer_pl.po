@@ -69,15 +69,20 @@ msgid "Bridge counterbole holes"
 msgstr "Most dla fazowanych otworów"
 
 msgid ""
-"This option creates bridges for counterbore holes, allowing them to be printed without support. Available modes include:\n"
+"This option creates bridges for counterbore holes, allowing them to be printed without support. Available modes "
+"include:\n"
 "1. None: No bridge is created.\n"
 "2. Partially Bridged: Only a part of the unsupported area will be bridged.\n"
 "3. Sacrificial Layer: A full sacrificial bridge layer is created."
 msgstr ""
-"Ta opcja generuje mosty dla otworów z fazowaniem, co pozwala na ich drukowanie bez konieczności stosowania dodatkowych podpór. Wybierz:\n"
+"Ta opcja generuje mosty dla otworów z fazowaniem, co pozwala na ich drukowanie bez konieczności stosowania "
+"dodatkowych podpór. Wybierz:\n"
 "1. Brak (czyli wyłączone)\n"
 "2. Częściowy most (most będzie konstruowany tylko nad niektórymi obszarami bez podpory)\n"
 "3. Warstwa pomocnicza (tworzy pełnowartościową warstwę podpory mostu)."
+
+msgid "Bring All to Front"
+msgstr "Przenieś wszystko na wierzch"
 
 msgid "Partially bridged"
 msgstr "Częściowy most"
@@ -4403,10 +4408,34 @@ msgid "Export toolpaths as OBJ"
 msgstr "Eksportuj ścieżki narzędzi jako OBJ"
 
 msgid "Open &Studio"
-msgstr "Otwórz &Studio"
+msgstr "Otwórz &Slicer"
 
 msgid "Open Studio"
-msgstr "Otwórz Studio"
+msgstr "Otwórz Slicer"
+
+msgid "Services"
+msgstr "Usługi"
+
+msgid "Hide Others"
+msgstr "Ukryj inne"
+
+msgid "Show All"
+msgstr "Pokaż wszystko"
+
+msgid "Minimize"
+msgstr "Zminimalizuj"
+
+msgid "Tile Window to Left of Screen"
+msgstr "Ułóż okno na lewo od ekranu"
+
+msgid "Tile Window to Right of Screen"
+msgstr "Ułóż okno na prawo od ekranu"
+
+msgid "Replace Tiled Window"
+msgstr "Zamień ułożonie okna"
+
+msgid "Remove Window from Set"
+msgstr "Usuń Okno z zestawu"
 
 msgid "&Quit"
 msgstr "&Wyjście"
@@ -4414,6 +4443,10 @@ msgstr "&Wyjście"
 #, c-format, boost-format
 msgid "Quit %s"
 msgstr "Wyjdź %s"
+
+#, c-format, boost-format
+msgid "Hide %s"
+msgstr "Ukryj %s"
 
 msgid "&File"
 msgstr "&Plik"
