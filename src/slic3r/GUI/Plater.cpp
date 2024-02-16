@@ -10136,23 +10136,21 @@ bool Plater::open_3mf_file(const fs::path &file_path)
     }
 
     LoadType load_type = LoadType::Unknown;
-    if (!model().objects.empty()) {
-        bool show_drop_project_dialog = true;
-        if (show_drop_project_dialog) {
-            ProjectDropDialog dlg(filename);
-            if (dlg.ShowModal() == wxID_OK) {
-                int choice = dlg.get_action();
-                load_type  = static_cast<LoadType>(choice);
-                wxGetApp().app_config->set("import_project_action", std::to_string(choice));
+    
+    bool show_drop_project_dialog = true;
+    if (show_drop_project_dialog) {
+        ProjectDropDialog dlg(filename);
+        if (dlg.ShowModal() == wxID_OK) {
+            int choice = dlg.get_action();
+            load_type  = static_cast<LoadType>(choice);
+            wxGetApp().app_config->set("import_project_action", std::to_string(choice));
 
-                // BBS: jump to plater panel
-                wxGetApp().mainframe->select_tab(MainFrame::tp3DEditor);
-            }
-        } else
-            load_type = static_cast<LoadType>(
-                std::clamp(std::stoi(wxGetApp().app_config->get("import_project_action")), static_cast<int>(LoadType::OpenProject), static_cast<int>(LoadType::LoadConfig)));
+            // BBS: jump to plater panel
+            wxGetApp().mainframe->select_tab(MainFrame::tp3DEditor);
+        }
     } else
-        load_type = LoadType::OpenProject;
+        load_type = static_cast<LoadType>(
+            std::clamp(std::stoi(wxGetApp().app_config->get("import_project_action")), static_cast<int>(LoadType::OpenProject), static_cast<int>(LoadType::LoadConfig)));
 
     if (load_type == LoadType::Unknown) return false;
 
