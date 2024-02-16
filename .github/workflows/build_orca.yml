@@ -91,10 +91,10 @@ jobs:
         if: inputs.os == 'macos-12'
         working-directory: ${{ github.workspace }}
         run: |
-          export ver=$(grep '^#define SoftFever_VERSION' ./build_x86_64/src/libslic3r/libslic3r_version.h | cut -d ' ' -f3)
+          export ver=$(grep '^#define SoftFever_VERSION' ./build_arm64/src/libslic3r/libslic3r_version.h | cut -d ' ' -f3)
           ver="_V${ver//\"}"
-          cd ${{ github.workspace }}/build_x86_64/OrcaSlicer
-          zip -FSrq OrcaSlicer${ver}_Mac_Intel_signed.zip ./OrcaSlicer.app
+          cd ${{ github.workspace }}/build_arm64/OrcaSlicer
+          zip -FSrq OrcaSlicer${ver}_Mac_ARM_unsigned.zip ./OrcaSlicer.app
           
       #- name: Create DMG
       #  uses: QQxiaoming/create-dmg-action@v0.0.2
@@ -112,26 +112,8 @@ jobs:
         if: inputs.os == 'macos-12'
         uses: actions/upload-artifact@v3
         with:
-          name: OrcaSlicer_macOS_x64_nightly
-          path: ${{ github.workspace }}/build_x86_64/OrcaSlicer/OrcaSlicer*.zip
-
-      - name: Upload artifacts mac
-        if: inputs.os == 'macos-12'
-        uses: actions/upload-artifact@v3
-        with:
-          name: OrcaSlicer_Mac_${{inputs.arch}}_${{ env.ver }}
-          path: ${{ github.workspace }}/OrcaSlicer_Mac_${{inputs.arch}}_${{ env.ver }}.dmg
-
-      - name: Deploy Mac release
-        if: github.ref == 'refs/heads/main' && inputs.os == 'macos-12'
-        uses: WebFreak001/deploy-nightly@v3.0.0
-        with:
-          upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label} 
-          release_id: 137995723 
-          asset_path: ${{ github.workspace }}/OrcaSlicer_Mac_${{inputs.arch}}_${{ env.ver }}.dmg
-          asset_name: OrcaSlicer_Mac_${{inputs.arch}}_${{ env.ver }}.dmg
-          asset_content_type: application/octet-stream 
-          max_releases: 1 # optional, if there are more releases than this matching the asset_name, the oldest ones are going to be deleted
+          name: OrcaSlicer_macOS_Apple_Silicon_arm_64_nightly
+          path: ${{ github.workspace }}/build_arm64/OrcaSlicer/OrcaSlicer*.zip
 
 # Windows
       - name: setup MSVC
