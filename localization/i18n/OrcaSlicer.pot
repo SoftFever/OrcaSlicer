@@ -4249,8 +4249,24 @@ msgstr ""
 msgid "&Quit"
 msgstr ""
 
+msgid "Services"
+msgstr ""
+
+msgid "Hide Others"
+msgstr ""
+
+msgid "Show All"
+msgstr ""
+
+msgid "Minimize"
+msgstr ""
+
 #, possible-c-format, possible-boost-format
 msgid "Quit %s"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "Hide %s"
 msgstr ""
 
 msgid "&File"
