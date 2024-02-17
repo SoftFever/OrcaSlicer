@@ -42,8 +42,8 @@ using namespace nlohmann;
 
 namespace Slic3r {
 
-static const std::string VERSION_CHECK_URL_STABLE = "https://github.com/KrissMor/OrcaSlicerRED/releases";
-static const std::string VERSION_CHECK_URL = "https://github.com/KrissMor/OrcaSlicerRED/releases";
+static const std::string VERSION_CHECK_URL_STABLE = "https://api.github.com/repos/KrissMor/OrcaSlicerRED/releases";
+static const std::string VERSION_CHECK_URL = "https://api.github.com/repos/KrissMor/OrcaSlicerRED/releases";
 static const std::string PROFILE_UPDATE_URL = "https://github.com/KrissMor/OrcaSlicerRED/tags";
 static const std::string MODELS_STR = "models";
 
