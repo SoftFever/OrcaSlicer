@@ -21,7 +21,7 @@ Explore the latest developments in Orca SlicerRED with our nightly builds. Feedb
 
 # How to install
 **Windows**: 
-1.  Download the installer for your preferred version from the [NB page](https://github.com/KrissMor/OrcaSlicerRED/releases/tag/Nightly-Build2.0).
+1.  Download the installer for your preferred version from the [NB page](https://github.com/KrissMor/OrcaSlicerRED/releases/tag/Nightly-Build_2.0_16.02.24).
     - *For convenience there is also a portable build available.*
     - *If you have troubles to run the build, you might need to install following runtimes:*
       - [MicrosoftEdgeWebView2RuntimeInstallerX64](https://github.com/SoftFever/OrcaSlicer/releases/download/v1.0.10-sf2/MicrosoftEdgeWebView2RuntimeInstallerX64.exe)
