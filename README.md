@@ -9,7 +9,7 @@
 
 ### Nightly Builds
 
- **[Download the Latest Nightly Build](https://github.com/KrissMor/OrcaSlicerRED/releases/tag/Nightly-Build2.0)**  
+ **[Download the Latest Nightly Build](https://github.com/KrissMor/OrcaSlicerRED/releases/tag)**  
 Explore the latest developments in Orca SlicerRED with our nightly builds. Feedback on these versions is highly appreciated.
 
 
