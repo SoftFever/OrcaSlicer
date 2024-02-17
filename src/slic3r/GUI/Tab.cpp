@@ -2063,6 +2063,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("infill_direction");
         optgroup->append_single_option_line("bridge_angle");
         optgroup->append_single_option_line("minimum_sparse_infill_area");
+        optgroup->append_single_option_line("min_fill_path_length");
         optgroup->append_single_option_line("infill_combination");
         optgroup->append_single_option_line("detect_narrow_internal_solid_infill");
         optgroup->append_single_option_line("ensure_vertical_shell_thickness");

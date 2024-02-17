@@ -1067,6 +1067,7 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "bottom_shell_thickness"
             || opt_key == "top_shell_thickness"
             || opt_key == "minimum_sparse_infill_area"
+            || opt_key == "min_fill_path_length"
             || opt_key == "sparse_infill_filament"
             || opt_key == "solid_infill_filament"
             || opt_key == "sparse_infill_line_width"
