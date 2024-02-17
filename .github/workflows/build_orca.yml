@@ -231,15 +231,15 @@ jobs:
         shell: bash
         run: |
           ./BuildLinux.sh -isr
-          mv -n ./build/OrcaSlicer_Linux_V${{ env.ver_pure }}.AppImage ./build/OrcaSlicer_Linux_${{ env.ver }}.AppImage
-          chmod +x ./build/OrcaSlicer_Linux_${{ env.ver }}.AppImage
+          mv -n ./build/OrcaSlicerRED_Linux_V${{ env.ver_pure }}.AppImage ./build/OrcaSlicerRED_Linux_${{ env.ver }}.AppImage
+          chmod +x ./build/OrcaSlicerRED_Linux_${{ env.ver }}.AppImage
         
       - name: Upload artifacts Ubuntu
         if: inputs.os == 'ubuntu-20.04'
         uses: actions/upload-artifact@v3
         with:
-          name: OrcaSlicer_Linux_${{ env.ver }}
-          path: './build/OrcaSlicer_Linux_${{ env.ver }}.AppImage'
+          name: OrcaSlicerRED_Linux_${{ env.ver }}
+          path: './build/OrcaSlicerRED_Linux_${{ env.ver }}.AppImage'
 
     #  - name: Deploy Ubuntu release
     #    if: github.ref == 'refs/heads/main' && inputs.os == 'ubuntu-20.04'
