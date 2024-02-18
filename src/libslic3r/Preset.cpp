@@ -1835,7 +1835,7 @@ std::pair<Preset*, bool> PresetCollection::load_external_preset(
     keys.erase(std::remove_if(keys.begin(), keys.end(),
                               [](std::string &val) {
                                 return val == "print_host" || val == "print_host_webui" || val == "printhost_apikey" ||
-                                       val == "printhost_cafile";
+                                       val == "printhost_cafile" || val == "printhost_user" || val == "printhost_password" || val == "printhost_port";
                               }),
                keys.end());
     cfg.apply_only(combined_config, keys, true);
