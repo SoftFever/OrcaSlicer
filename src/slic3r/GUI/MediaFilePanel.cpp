@@ -425,7 +425,7 @@ void MediaFilePanel::fetchUrl(boost::weak_ptr<PrinterFileSystem> wfs)
     m_waiting_enable = false;
     if (!m_local_support && !m_remote_support) {
         m_waiting_support = true;
-        m_image_grid->SetStatus(m_bmp_failed, _L("Initialize failed (Not supported on the current printer version)!"));
+        m_image_grid->SetStatus(m_bmp_failed, _L("Browsing file in SD card is not supported in current firmware. Please update the printer firmware."));
         fs->SetUrl("0");
         return;
     }
@@ -446,14 +446,19 @@ void MediaFilePanel::fetchUrl(boost::weak_ptr<PrinterFileSystem> wfs)
         fs->SetUrl(url);
         return;
     }
-    if (m_lan_mode) {
-        m_image_grid->SetStatus(m_bmp_failed, _L("Initialize failed (Not accessible in LAN-only mode)!"));
+    if (!m_remote_support && m_local_support) { // not support tutk
+        m_image_grid->SetStatus(m_bmp_failed, _L("Please enter the IP of printer to connect."));
         fs->SetUrl("0");
+        fs.reset();
+        if (wxGetApp().show_modal_ip_address_enter_dialog(_L("LAN Connection Failed (Failed to view sdcard)"))) {
+            if (auto fs = wfs.lock())
+                fs->Retry();
+        }
         return;
     }
-    if (!m_remote_support && m_local_support) { // not support tutk
-        m_image_grid->SetStatus(m_bmp_failed, _L("Initialize failed (Missing LAN ip of printer)!"));
-        fs->SetUrl("1");
+    if (m_lan_mode) {
+        m_image_grid->SetStatus(m_bmp_failed, _L("Browsing file in SD card is not supported in LAN Only Mode."));
+        fs->SetUrl("0");
         return;
     }
     NetworkAgent *agent = wxGetApp().getAgent();
