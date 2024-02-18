@@ -157,7 +157,7 @@ static int run_script(const std::string &script, const std::string &gcode, std::
 {
     // Try to obtain user's default shell
     const char *shell = ::getenv("SHELL");
-    if (shell == nullptr) { shell = "sh"; }
+    if (shell == nullptr) { shell = "/bin/sh"; }
 
     // Quote and escape the gcode path argument
     std::string command { script };
