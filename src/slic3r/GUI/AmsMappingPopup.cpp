@@ -805,13 +805,13 @@ AmsHumidityTipPopup::AmsHumidityTipPopup(wxWindow* parent)
 
     wxBoxSizer* main_sizer = new wxBoxSizer(wxVERTICAL);
 
-    close_img = ScalableBitmap(this, "hum_popup_close", FromDIP(24));
+    close_img = ScalableBitmap(this, "hum_popup_close", 24);
 
     m_staticText = new Label(this, _L("Current Cabin humidity"));
     m_staticText->SetFont(::Label::Head_24);
 
     humidity_level_list = new AmsHumidityLevelList(this);
-    curr_humidity_img = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("hum_level1_light", this, FromDIP(132)), wxDefaultPosition, wxSize(FromDIP(132), FromDIP(132)), 0);
+    curr_humidity_img = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("hum_level1_light", this, 132), wxDefaultPosition, wxSize(FromDIP(132), FromDIP(132)), 0);
 
     m_staticText_note = new Label(this, _L("Please change the desiccant when it is too wet. The indicator may not represent accurately in following cases : when the lid is open or the desiccant pack is changed. it take hours to absorb the moisture, low temperatures also slow down the process."));
     m_staticText_note->SetMinSize(wxSize(FromDIP(680), -1));
@@ -876,7 +876,7 @@ void AmsHumidityTipPopup::set_humidity_level(int level)
 
     std::string mode_string = wxGetApp().dark_mode()?"_dark":"_light";
 
-    curr_humidity_img->SetBitmap(create_scaled_bitmap("hum_level" + std::to_string(current_humidity_level) + mode_string, this, FromDIP(132)));
+    curr_humidity_img->SetBitmap(create_scaled_bitmap("hum_level" + std::to_string(current_humidity_level) + mode_string, this, 132));
     curr_humidity_img->Refresh();
     curr_humidity_img->Update();
 }
@@ -1598,14 +1598,14 @@ AmsHumidityLevelList::AmsHumidityLevelList(wxWindow* parent)
     SetMaxSize(wxSize(FromDIP(680), FromDIP(104)));
     SetBackgroundColour(*wxWHITE);
 
-    background_img = ScalableBitmap(this, "humidity_list_background", FromDIP(104));
+    background_img = ScalableBitmap(this, "humidity_list_background", 104);
 
     for (int i = 1; i <= 5; i++) {
-        hum_level_img_light.push_back(ScalableBitmap(this, ("hum_level" + std::to_string(i) + "_light"), FromDIP(54)));
+        hum_level_img_light.push_back(ScalableBitmap(this, ("hum_level" + std::to_string(i) + "_light"), 54));
     }
 
     for (int i = 1; i <= 5; i++) {
-        hum_level_img_dark.push_back(ScalableBitmap(this, ("hum_level" + std::to_string(i) + "_dark"), FromDIP(54)));
+        hum_level_img_dark.push_back(ScalableBitmap(this, ("hum_level" + std::to_string(i) + "_dark"), 54));
     }
 
     Bind(wxEVT_PAINT, &AmsHumidityLevelList::paintEvent, this);
