@@ -239,7 +239,21 @@ void FillBedJob::process(Ctl &ctl)
     // final align用的是凸包，在有fixed item的情况下可能找到的参考点位置是错的，这里就不做了。见STUDIO-3265
     params.do_final_align = !is_bbl;
 
-    arrangement::arrange(m_selected, m_unselected, m_bedpts, params);
+    if (m_selected.size() > 100){
+        // too many items, just find grid empty cells to put them
+        Vec2f step = unscaled<float>(get_extents(m_selected.front().poly).size()) + Vec2f(m_selected.front().brim_width, m_selected.front().brim_width);
+        std::vector<Vec2f> empty_cells = Plater::get_empty_cells(step);
+        size_t n=std::min(m_selected.size(), empty_cells.size());
+        for (size_t i = 0; i < n; i++) {
+            m_selected[i].translation = scaled<coord_t>(empty_cells[i]);
+            m_selected[i].bed_idx= 0;
+        }
+        for (size_t i = n; i < m_selected.size(); i++) {
+            m_selected[i].bed_idx = -1;
+        }
+    }
+    else
+        arrangement::arrange(m_selected, m_unselected, m_bedpts, params);
 
     // finalize just here.
     ctl.update_status(100, ctl.was_canceled() ?

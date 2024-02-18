@@ -12635,6 +12635,38 @@ void Plater::clone_selection()
     selection.clone(res);
 }
 
+std::vector<Vec2f> Plater::get_empty_cells(const Vec2f step)
+{
+    PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
+    BoundingBoxf3 build_volume = plate->get_build_volume();
+    Vec2d vmin(build_volume.min.x(), build_volume.min.y()), vmax(build_volume.max.x(), build_volume.max.y());
+    BoundingBoxf bbox(vmin, vmax);
+    std::vector<Vec2f> cells;
+    auto min_x = step(0)/2;// start_point.x() - step(0) * int((start_point.x() - bbox.min.x()) / step(0));
+    auto min_y = step(1)/2;// start_point.y() - step(1) * int((start_point.y() - bbox.min.y()) / step(1));
+    auto& exclude_box3s = plate->get_exclude_areas();
+    std::vector<BoundingBoxf> exclude_boxs;
+    for (auto& box : exclude_box3s) {
+        Vec2d vmin(box.min.x(), box.min.y()), vmax(box.max.x(), box.max.y());
+        exclude_boxs.emplace_back(vmin, vmax);
+    }
+    for (float x = min_x; x < bbox.max.x() - step(0) / 2; x += step(0))
+        for (float y = min_y; y < bbox.max.y() - step(1) / 2; y += step(1)) {
+            bool in_exclude = false;
+            BoundingBoxf cell(Vec2d(x - step(0) / 2, y - step(1) / 2), Vec2d(x + step(0) / 2, y + step(1) / 2));
+            for (auto& box : exclude_boxs) {
+                if (box.overlap(cell)) {
+                    in_exclude = true;
+                    break;
+                }
+            }
+            if(in_exclude)
+                continue;
+            cells.emplace_back(x, y);
+        }
+    return cells;
+}
+
 void Plater::search(bool plater_is_active, Preset::Type type, wxWindow *tag, TextInput *etag, wxWindow *stag)
 {
     if (plater_is_active) {
