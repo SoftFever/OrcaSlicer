@@ -1132,24 +1132,26 @@ MachineObject::LIGHT_EFFECT MachineObject::light_effect_parse(std::string effect
 
 std::string MachineObject::get_firmware_type_str()
 {
-    if (firmware_type == PrinterFirmwareType::FIRMWARE_TYPE_ENGINEER)
+    /*if (firmware_type == PrinterFirmwareType::FIRMWARE_TYPE_ENGINEER)
         return "engineer";
     else if (firmware_type == PrinterFirmwareType::FIRMWARE_TYPE_PRODUCTION)
-        return "product";
+        return "product";*/
 
-    // return engineer by default;
-    return "engineer";
+    // return product by default;
+    // always return product, printer do not push this field
+    return "product";
 }
 
 std::string MachineObject::get_lifecycle_type_str()
 {
-    if (lifecycle == PrinterFirmwareType::FIRMWARE_TYPE_ENGINEER)
+    /*if (lifecycle == PrinterFirmwareType::FIRMWARE_TYPE_ENGINEER)
         return "engineer";
     else if (lifecycle == PrinterFirmwareType::FIRMWARE_TYPE_PRODUCTION)
-        return "product";
+        return "product";*/
 
-    // return engineer by default;
-    return "engineer";
+    // return product by default;
+    // always return product, printer do not push this field
+    return "product";
 }
 
 bool MachineObject::is_in_upgrading()
