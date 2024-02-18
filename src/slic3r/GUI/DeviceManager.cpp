@@ -3517,8 +3517,8 @@ int MachineObject::parse_json(std::string payload)
                                 camera_resolution_supported.swap(resolution_supported);
                             }
                             if (ipcam.contains("liveview")) {
-                                char const *local_protos[] = { "none", "local", "rtsps", "rtsp" };
-                                liveview_local = enum_index_of(ipcam["liveview"].value<std::string>("local", "none").c_str(), local_protos, 4, LiveviewLocal::LVL_None);
+                                char const *local_protos[] = {"none", "disabled", "local", "rtsps", "rtsp"};
+                                liveview_local = enum_index_of(ipcam["liveview"].value<std::string>("local", "none").c_str(), local_protos, 5, LiveviewLocal::LVL_None);
                                 liveview_remote = ipcam["liveview"].value<std::string>("remote", "disabled") == "enabled";
                             }
                             if (ipcam.contains("file")) {
@@ -3530,7 +3530,7 @@ int MachineObject::parse_json(std::string payload)
                             if (ipcam.contains("rtsp_url")) {
                                 local_rtsp_url = ipcam["rtsp_url"].get<std::string>();
                                 liveview_local = local_rtsp_url.empty() ? LVL_None : local_rtsp_url == "disable" 
-                                        ? LVL_None : boost::algorithm::starts_with(local_rtsp_url, "rtsps") ? LVL_Rtsps : LVL_Rtsp;
+                                        ? LVL_Disable : boost::algorithm::starts_with(local_rtsp_url, "rtsps") ? LVL_Rtsps : LVL_Rtsp;
                             }
                             if (ipcam.contains("tutk_server")) {
                                 tutk_state = ipcam["tutk_server"].get<std::string>();

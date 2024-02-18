@@ -697,6 +697,7 @@ public:
     std::string tutk_state;
     enum LiveviewLocal {
         LVL_None,
+        LVL_Disable,
         LVL_Local, 
         LVL_Rtsps,
         LVL_Rtsp
