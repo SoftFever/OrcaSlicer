@@ -295,9 +295,16 @@ void ImageGrid::mouseMoved(wxMouseEvent& event)
     if (hit != std::make_pair(m_hit_type, m_hit_item)) {
         m_hit_type = hit.first;
         m_hit_item = hit.second;
-        if (hit.first == HIT_ITEM)
-            SetToolTip(from_u8(m_file_sys->GetFile(hit.second).Title()));
-        else
+        if (hit.first == HIT_ITEM) {
+            SetToolTip({});
+            auto & file = m_file_sys->GetFile(hit.second);
+            if (auto title = file.Title(); !title.empty()) {
+                auto tip = wxString::Format(_L("File: %s\nTitle: %s\n"), from_u8(file.name), from_u8(title));
+                SetToolTip(tip);
+            } else {
+                SetToolTip(from_u8(file.name));
+            }
+        } else
             SetToolTip({});
         Refresh();
     }

@@ -376,7 +376,7 @@ size_t PrinterFileSystem::GetCount() const
 
 int PrinterFileSystem::File::DownloadProgress() const { return download ? download->progress : !local_path.empty() ? 100 : -2; }
 
-std::string PrinterFileSystem::File::Title() const { return Metadata("Title", name); }
+std::string PrinterFileSystem::File::Title() const { return Metadata("Title", ""); }
 
 std::string PrinterFileSystem::File::Metadata(std::string const &key, std::string const &dflt) const
 {
