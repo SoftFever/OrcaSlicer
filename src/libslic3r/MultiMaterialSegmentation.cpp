@@ -1525,6 +1525,20 @@ static inline std::vector<std::vector<ExPolygons>> mmu_segmentation_top_and_bott
     }
 #endif // MMU_SEGMENTATION_DEBUG_TOP_BOTTOM
 
+    // When the upper surface of an object is occluded, it should no longer be considered the upper surface
+    {
+        for (size_t extruder_idx = 0; extruder_idx < num_extruders; ++extruder_idx) {
+            for (size_t layer_idx = 0; layer_idx < layers.size(); ++layer_idx) {
+                if (!top_raw[extruder_idx].empty() && !top_raw[extruder_idx][layer_idx].empty() && layer_idx + 1 < layers.size()) {
+                    top_raw[extruder_idx][layer_idx] = diff(top_raw[extruder_idx][layer_idx], input_expolygons[layer_idx + 1]);
+                }
+                if (!bottom_raw[extruder_idx].empty() && !bottom_raw[extruder_idx][layer_idx].empty() && layer_idx > 0) {
+                    bottom_raw[extruder_idx][layer_idx] = diff(bottom_raw[extruder_idx][layer_idx], input_expolygons[layer_idx - 1]);
+                }
+            }
+        }
+    }
+
     std::vector<std::vector<ExPolygons>> triangles_by_color_bottom(num_extruders);
     std::vector<std::vector<ExPolygons>> triangles_by_color_top(num_extruders);
     triangles_by_color_bottom.assign(num_extruders, std::vector<ExPolygons>(num_layers * 2));
