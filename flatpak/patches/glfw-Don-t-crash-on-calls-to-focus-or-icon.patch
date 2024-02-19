@@ -1,0 +1,45 @@
+From d8dcacd96df849760b41fb71667379a81659dafc Mon Sep 17 00:00:00 2001
+From: Bastien Nocera <hadess@hadess.net>
+Date: Fri, 19 Jan 2024 11:34:47 +0100
+Subject: [PATCH] wayland: Downgrade runtime errors to warnings
+
+---
+ src/wl_window.c | 9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
+
+diff --git a/src/wl_window.c b/src/wl_window.c
+index 985a57116816..19e5dac259d4 100644
+--- a/src/wl_window.c
++++ b/src/wl_window.c
+@@ -2163,8 +2163,7 @@ void _glfwPlatformSetWindowTitle(_GLFWwindow* window, const char* title)
+ void _glfwPlatformSetWindowIcon(_GLFWwindow* window,
+                                 int count, const GLFWimage* images)
+ {
+-    _glfwInputError(GLFW_PLATFORM_ERROR,
+-                    "Wayland: Setting window icon not supported");
++    fprintf(stderr, "!!! Ignoring Wayland error: Setting window icon not supported\n");
+ }
+ 
+ void _glfwPlatformGetWindowPos(_GLFWwindow* window, int* xpos, int* ypos)
+@@ -2172,16 +2171,14 @@ void _glfwPlatformGetWindowPos(_GLFWwindow* window, int* xpos, int* ypos)
+     // A Wayland client is not aware of its position, so just warn and leave it
+     // as (0, 0)
+ 
+-    _glfwInputError(GLFW_PLATFORM_ERROR,
+-                    "Wayland: Window position retrieval not supported");
++    fprintf(stderr, "!!! Ignoring Wayland error: Window position retrieval not supported\n");
+ }
+ 
+ void _glfwPlatformSetWindowPos(_GLFWwindow* window, int xpos, int ypos)
+ {
+     // A Wayland client can not set its position, so just warn
+ 
+-    _glfwInputError(GLFW_PLATFORM_ERROR,
+-                    "Wayland: Window position setting not supported");
++    fprintf(stderr, "!!! Ignoring Wayland error: Window position setting not supported\n");
+ }
+ 
+ void _glfwPlatformGetWindowSize(_GLFWwindow* window, int* width, int* height)
+-- 
+2.43.0
+

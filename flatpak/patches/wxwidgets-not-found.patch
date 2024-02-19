@@ -1,0 +1,166 @@
+From 28f59e8900c3a54d4fe6bce43f62d1c4b0070e2c Mon Sep 17 00:00:00 2001
+From: Scott Talbert <swt@techie.net>
+Date: Mon, 11 Oct 2021 12:43:52 -0400
+Subject: [PATCH] cmake: also link with GLU when using EGL
+
+Fixes #19282
+---
+ build/cmake/init.cmake | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/build/cmake/init.cmake b/build/cmake/init.cmake
+index e1426afd428f..d5ecda9c98de 100644
+--- a/build/cmake/init.cmake
++++ b/build/cmake/init.cmake
+@@ -411,7 +411,7 @@ if(wxUSE_GUI)
+         else()
+             find_package(OpenGL)
+             if(WXGTK3 AND OpenGL_EGL_FOUND AND wxUSE_GLCANVAS_EGL)
+-                set(OPENGL_LIBRARIES OpenGL::OpenGL OpenGL::EGL)
++                set(OPENGL_LIBRARIES OpenGL::OpenGL OpenGL::GLU OpenGL::EGL)
+                 find_package(WAYLANDEGL)
+                 if(WAYLANDEGL_FOUND AND wxHAVE_GDK_WAYLAND)
+                     list(APPEND OPENGL_LIBRARIES ${WAYLANDEGL_LIBRARIES})
+-- 
+2.43.0
+
+From 0d6485797e23b5df5dded689fd63c86e3149abc9 Mon Sep 17 00:00:00 2001
+From: Maarten Bent <MaartenBent@users.noreply.github.com>
+Date: Thu, 29 Apr 2021 21:39:15 +0200
+Subject: [PATCH 1/4] CMake: don't define WXUSINGDLL in wx-config for static
+ library
+
+---
+ build/cmake/config.cmake | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/build/cmake/config.cmake b/build/cmake/config.cmake
+index 91d11acba206..98b505cbef28 100644
+--- a/build/cmake/config.cmake
++++ b/build/cmake/config.cmake
+@@ -153,10 +153,14 @@ function(wx_write_config)
+         set(WXCONFIG_CFLAGS "-pthread")
+         set(WXCONFIG_LDFLAGS "-pthread")
+     endif()
+-    set(WXCONFIG_CPPFLAGS "-DWXUSINGDLL")
++    set(WXCONFIG_CPPFLAGS)
++    if(wxBUILD_SHARED)
++        wx_string_append(WXCONFIG_CPPFLAGS " -DWXUSINGDLL")
++    endif()
+     foreach(flag IN LISTS wxTOOLKIT_DEFINITIONS)
+         wx_string_append(WXCONFIG_CPPFLAGS " -D${flag}")
+     endforeach()
++    string(STRIP "${WXCONFIG_CPPFLAGS}" WXCONFIG_CPPFLAGS)
+     set(WXCONFIG_CXXFLAGS ${WXCONFIG_CFLAGS})
+     set(WXCONFIG_LDFLAGS_GUI)
+     set(WXCONFIG_RESFLAGS)
+-- 
+2.43.0
+
+
+From ea6049598d806023cd7157600942ed78b719b74f Mon Sep 17 00:00:00 2001
+From: Maarten Bent <MaartenBent@users.noreply.github.com>
+Date: Thu, 29 Apr 2021 21:41:06 +0200
+Subject: [PATCH 2/4] CMake: add '-l' prefix to all library dependencies
+
+---
+ build/cmake/config.cmake | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/build/cmake/config.cmake b/build/cmake/config.cmake
+index 98b505cbef28..d5ec8cf4fbad 100644
+--- a/build/cmake/config.cmake
++++ b/build/cmake/config.cmake
+@@ -39,11 +39,10 @@ macro(wx_get_dependencies var lib)
+                 else()
+                     get_target_property(dep_name ${dep} OUTPUT_NAME)
+                 endif()
+-                set(dep_name "-l${dep_name}")
+             else()
+                 get_filename_component(dep_name ${dep} NAME)
+             endif()
+-            wx_string_append(${var} "${dep_name} ")
++            wx_string_append(${var} "-l${dep_name} ")
+         endforeach()
+         string(STRIP ${${var}} ${var})
+     endif()
+-- 
+2.43.0
+
+
+From 4fae03bdd774b65211d6515104305d1993179eb3 Mon Sep 17 00:00:00 2001
+From: Maarten Bent <MaartenBent@users.noreply.github.com>
+Date: Tue, 4 May 2021 21:30:29 +0200
+Subject: [PATCH 3/4] CMake: Improve adding external libraries to wx-config
+
+Don't add -l to libraries already containing it (for example -lpthread).
+Change libraries with format libName.so or libName.a to -lName,
+configure also uses -l for these libraries. Account for possible invalid
+libraries (Name-NOTFOUND) which could happen with imported libraries,
+for example OpenGL::OpenGL.
+
+Closes https://github.com/wxWidgets/wxWidgets/pull/2359
+---
+ build/cmake/config.cmake | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/build/cmake/config.cmake b/build/cmake/config.cmake
+index d5ec8cf4fbad..c2aa026ef059 100644
+--- a/build/cmake/config.cmake
++++ b/build/cmake/config.cmake
+@@ -42,7 +42,13 @@ macro(wx_get_dependencies var lib)
+             else()
+                 get_filename_component(dep_name ${dep} NAME)
+             endif()
+-            wx_string_append(${var} "-l${dep_name} ")
++            if(dep_name MATCHES "^-l(.*)" OR  dep_name STREQUAL "libc.so")
++                wx_string_append(${var} "${dep_name} ")
++            elseif(dep_name MATCHES "^lib(.*)(.so|.a)")
++                wx_string_append(${var} "-l${CMAKE_MATCH_1} ")
++            elseif(dep_name)
++                wx_string_append(${var} "-l${dep_name} ")
++            endif()
+         endforeach()
+         string(STRIP ${${var}} ${var})
+     endif()
+-- 
+2.43.0
+
+
+From 8455b3a48baf73e91f34ac9301642832aec9b544 Mon Sep 17 00:00:00 2001
+From: Vadim Zeitlin <vadim@wxwidgets.org>
+Date: Wed, 25 Aug 2021 23:31:45 +0200
+Subject: [PATCH 4/4] Fix wx-config --libs output for static monolithic build
+
+Include all extra libraries we need (except for OpenGL ones, as there is
+still a separate library for it, even in monolithic build) in wx-config
+--libs output for static monolithic build as the application (may) need
+all of them, as all the libraries are part of the single monolithic one
+in this case.
+
+It seems that we had an attempt to fix this as far back as in 5719eab2bf
+(Fix missing 3rd party builtin libs for static monolithic builds.,
+2006-09-17), but it was insufficient as it didn't take the dependencies
+of the other GUI libraries (e.g. "media") into account.
+
+Closes #19175.
+---
+ wx-config.in | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/wx-config.in b/wx-config.in
+index 441f88ce9203..e3f7d115bbbd 100755
+--- a/wx-config.in
++++ b/wx-config.in
+@@ -1218,7 +1218,7 @@ if is_monolithic; then
+         # We still need the core lib deps for a static build though
+         if is_static; then
+             link_deps="${libdir}/libwx_@TOOLCHAIN_NAME@.a"
+-            wx_libs="$wx_libs $link_deps $ldlibs_core $ldlibs_base"
++            wx_libs="$wx_libs $link_deps $ldlibs_html $ldlibs_media $ldlibs_stc $ldlibs_webview $ldlibs_core $ldlibs_xml $ldlibs_base"
+         else
+             wx_libs="$wx_libs -lwx_@TOOLCHAIN_NAME@"
+         fi
+-- 
+2.43.0
+

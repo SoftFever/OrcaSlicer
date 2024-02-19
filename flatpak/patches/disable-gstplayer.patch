@@ -1,0 +1,26 @@
+From 2ef88023ba3eb323f47af89d92ce14a41f311c9e Mon Sep 17 00:00:00 2001
+From: Bastien Nocera <hadess@hadess.net>
+Date: Tue, 2 Jan 2024 00:55:20 +0100
+Subject: [PATCH] Disable GstPlayer media player version
+
+---
+ build/cmake/init.cmake | 3 ---
+ 1 file changed, 3 deletions(-)
+
+diff --git a/build/cmake/init.cmake b/build/cmake/init.cmake
+index 5ba4b6165b45..1931277f11c8 100644
+--- a/build/cmake/init.cmake
++++ b/build/cmake/init.cmake
+@@ -501,9 +501,6 @@ if(wxUSE_GUI)
+ 
+         set(wxUSE_GSTREAMER ${GSTREAMER_FOUND})
+         set(wxUSE_GSTREAMER_PLAYER OFF)
+-        if(GSTREAMER_PLAYER_INCLUDE_DIRS)
+-            set(wxUSE_GSTREAMER_PLAYER ON)
+-        endif()
+ 
+         if(NOT GSTREAMER_FOUND)
+             message(WARNING "GStreamer not found, wxMediaCtrl won't be available")
+-- 
+2.43.0
+

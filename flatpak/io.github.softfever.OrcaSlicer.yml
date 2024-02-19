@@ -105,7 +105,7 @@ modules:
         tag: v5.249.0
     cleanup:
       - / 
-
+  
   - name: orca_deps
     buildsystem: simple
     build-commands:
@@ -213,15 +213,6 @@ modules:
         dest: external-packages/TBB
         sha256: 83ea786c964a384dd72534f9854b419716f412f9d43c0be88d41874763e7bb47
       
-      ## Patched TBB cmake to make build without lto flag
-      #- type: file
-      #  dest: deps/TBB
-      #  path: patches/TBB/GNU.cmake
-
-      ## Apply TTB patches to fix linking failure. More info: https://github.com/prusa3d/PrusaSlicer/issues/8922
-      #- type: patch
-      #  path: patches/0001-Apply-TBB-LTO-patch.patch
-
       # Boost
       - type: file
         url: https://github.com/boostorg/boost/releases/download/boost-1.84.0/boost-1.84.0.tar.gz
@@ -246,10 +237,6 @@ modules:
       - |
         mkdir -p build && cd build
         CXXFLAGS=-std=gnu++20 cmake ../ \
-          -DCMAKE_INSTALL_PREFIX=/app \
-          -DCMAKE_INSTALL_LIBDIR=/app/lib \
-          -DCMAKE_PREFIX_PATH=/app \
-          -DSLIC3R_WX_STABLE=OFF \
           -DSLIC3R_PCH=OFF \
           -DSLIC3R_FHS=ON \
           -DSLIC3R_GTK=3 \
@@ -286,9 +273,6 @@ modules:
       # OrcaSlicer Source Archive
       - type: dir 
         path: ../
-
-      #- type: patch
-      #  path: patches/0001-Work-around-ClipperLib-union_-declaration-problem.patch
 
       # AppData metainfo for Gnome Software & Co.
       - type: file
