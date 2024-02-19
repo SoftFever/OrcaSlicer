@@ -1,0 +1,1711 @@
+diff --git a/src/libslic3r/Arrange.cpp b/src/libslic3r/Arrange.cpp
+index 5b4aee507..2631b936e 100644
+--- a/src/libslic3r/Arrange.cpp
++++ b/src/libslic3r/Arrange.cpp
+@@ -17,6 +17,7 @@
+ #define BOOST_NO_CXX17_HDR_STRING_VIEW
+ #endif
+ 
++#include <boost/log/trivial.hpp>
+ #include <boost/multiprecision/integer.hpp>
+ #include <boost/rational.hpp>
+ 
+diff --git a/src/libslic3r/Color.hpp b/src/libslic3r/Color.hpp
+index a11174639..c13f0bd2c 100644
+--- a/src/libslic3r/Color.hpp
++++ b/src/libslic3r/Color.hpp
+@@ -1,6 +1,8 @@
+ #ifndef slic3r_Color_hpp_
+ #define slic3r_Color_hpp_
+ 
++#include <vector>
++#include <string>
+ #include <array>
+ #include <algorithm>
+ 
+diff --git a/src/libslic3r/Format/bbs_3mf.hpp b/src/libslic3r/Format/bbs_3mf.hpp
+index af6994b77..d2f46be3e 100644
+--- a/src/libslic3r/Format/bbs_3mf.hpp
++++ b/src/libslic3r/Format/bbs_3mf.hpp
+@@ -8,6 +8,7 @@
+ 
+ namespace Slic3r {
+ class Model;
++class ModelObject;
+ struct ConfigSubstitutionContext;
+ class DynamicPrintConfig;
+ class Preset;
+diff --git a/src/libslic3r/GCodeReader.cpp b/src/libslic3r/GCodeReader.cpp
+index 1a660b4c1..116837828 100644
+--- a/src/libslic3r/GCodeReader.cpp
++++ b/src/libslic3r/GCodeReader.cpp
+@@ -1,6 +1,7 @@
+ #include "GCodeReader.hpp"
+ #include <boost/algorithm/string/classification.hpp>
+ #include <boost/algorithm/string/split.hpp>
++#include <boost/log/trivial.hpp>
+ #include <boost/nowide/fstream.hpp>
+ #include <boost/nowide/cstdio.hpp>
+ #include <fstream>
+diff --git a/src/libslic3r/Orient.cpp b/src/libslic3r/Orient.cpp
+index a87694ad9..ce448fc7e 100644
+--- a/src/libslic3r/Orient.cpp
++++ b/src/libslic3r/Orient.cpp
+@@ -3,6 +3,7 @@
+ #include <numeric>
+ #include <ClipperUtils.hpp>
+ #include <boost/geometry/index/rtree.hpp>
++#include <boost/log/trivial.hpp>
+ #include <tbb/parallel_for.h>
+ 
+ #if defined(_MSC_VER) && defined(__clang__)
+diff --git a/src/libslic3r/PNGReadWrite.cpp b/src/libslic3r/PNGReadWrite.cpp
+index e4b7489b8..32b9a8f79 100644
+--- a/src/libslic3r/PNGReadWrite.cpp
++++ b/src/libslic3r/PNGReadWrite.cpp
+@@ -5,6 +5,7 @@
+ #include <cstdio>
+ #include <png.h>
+ 
++#include <boost/format.hpp>
+ #include <boost/log/trivial.hpp>
+ #include <boost/nowide/cstdio.hpp>
+ 
+diff --git a/src/libslic3r/PNGReadWrite.hpp b/src/libslic3r/PNGReadWrite.hpp
+index c76d7b168..9a27fed49 100644
+--- a/src/libslic3r/PNGReadWrite.hpp
++++ b/src/libslic3r/PNGReadWrite.hpp
+@@ -1,6 +1,7 @@
+ #ifndef PNGREAD_HPP
+ #define PNGREAD_HPP
+ 
++#include <cstdint>
+ #include <vector>
+ #include <string>
+ #include <istream>
+diff --git a/src/libslic3r/PerimeterGenerator.cpp b/src/libslic3r/PerimeterGenerator.cpp
+index c9b1d5d98..0616ac5da 100644
+--- a/src/libslic3r/PerimeterGenerator.cpp
++++ b/src/libslic3r/PerimeterGenerator.cpp
+@@ -23,6 +23,7 @@
+ 
+ #include <cmath>
+ #include <cassert>
++#include <unordered_set>
+ 
+ static const int overhang_sampling_number = 6;
+ static const double narrow_loop_length_threshold = 10;
+diff --git a/src/libslic3r/Print.cpp b/src/libslic3r/Print.cpp
+index 7993f6a7b..da3a6da52 100644
+--- a/src/libslic3r/Print.cpp
++++ b/src/libslic3r/Print.cpp
+@@ -40,6 +40,7 @@
+ #include "Utils.hpp"
+ #include "PrintConfig.hpp"
+ #include "Model.hpp"
++#include "format.hpp"
+ #include <float.h>
+ 
+ #include <algorithm>
+@@ -49,6 +50,10 @@
+ #include <boost/format.hpp>
+ #include <boost/log/trivial.hpp>
+ #include <boost/regex.hpp>
++#include <boost/nowide/fstream.hpp>
++
++#include <tbb/blocked_range.h>
++#include <tbb/parallel_for.h>
+ 
+ //BBS: add json support
+ #include "nlohmann/json.hpp"
+@@ -1117,8 +1122,8 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons*
+             return
+                 // Test whether the last slicing plane is below or above the print volume.
+                 { 0.5 * (layers[layers.size() - 2] + layers.back()) > this->config().printable_height + EPSILON ?
+-                format(_u8L("The object %1% exceeds the maximum build volume height."), print_object.model_object()->name) :
+-                format(_u8L("While the object %1% itself fits the build volume, its last layer exceeds the maximum build volume height."), print_object.model_object()->name) +
++                    Slic3r::format(_u8L("The object %1% exceeds the maximum build volume height."), print_object.model_object()->name) :
++                    Slic3r::format(_u8L("While the object %1% itself fits the build volume, its last layer exceeds the maximum build volume height."), print_object.model_object()->name) +
+                 " " + _u8L("You might want to reduce the size of your model or change current print settings and retry.") };
+         }
+     }
+@@ -1401,7 +1406,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons*
+ 	                }
+ 
+ 	                StringObjectException except;
+-	                except.string = format(L("Plate %d: %s does not support filament %s"), this->get_plate_index() + 1, L(bed_type_name), extruder_id + 1);
++	                except.string = Slic3r::format(L("Plate %d: %s does not support filament %s"), this->get_plate_index() + 1, L(bed_type_name), extruder_id + 1);
+ 	                except.string += "\n";
+ 	                except.type   = STRING_EXCEPT_FILAMENT_NOT_MATCH_BED_TYPE;
+ 	                except.params.push_back(std::to_string(this->get_plate_index() + 1));
+diff --git a/src/libslic3r/PrintApply.cpp b/src/libslic3r/PrintApply.cpp
+index 6664b28a3..76598cca2 100644
+--- a/src/libslic3r/PrintApply.cpp
++++ b/src/libslic3r/PrintApply.cpp
+@@ -1,6 +1,7 @@
+ #include "Model.hpp"
+ #include "Print.hpp"
+ 
++#include <boost/log/trivial.hpp>
+ #include <cfloat>
+ 
+ namespace Slic3r {
+diff --git a/src/libslic3r/PrintBase.cpp b/src/libslic3r/PrintBase.cpp
+index 5ba9306b5..25b282c7b 100644
+--- a/src/libslic3r/PrintBase.cpp
++++ b/src/libslic3r/PrintBase.cpp
+@@ -3,6 +3,7 @@
+ 
+ #include <boost/filesystem.hpp>
+ #include <boost/lexical_cast.hpp>
++#include <boost/log/trivial.hpp>
+ 
+ #include "I18N.hpp"
+ 
+diff --git a/src/libslic3r/PrintConfig.cpp b/src/libslic3r/PrintConfig.cpp
+index 45a7f926e..0e24a821f 100644
+--- a/src/libslic3r/PrintConfig.cpp
++++ b/src/libslic3r/PrintConfig.cpp
+@@ -20,6 +20,7 @@
+ ///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+ ///|/
+ #include "PrintConfig.hpp"
++#include "ClipperUtils.hpp"
+ #include "Config.hpp"
+ #include "I18N.hpp"
+ 
+diff --git a/src/libslic3r/PrintObject.cpp b/src/libslic3r/PrintObject.cpp
+index 0dabd5ea0..8eada8cc4 100644
+--- a/src/libslic3r/PrintObject.cpp
++++ b/src/libslic3r/PrintObject.cpp
+@@ -29,6 +29,7 @@
+ #include "Fill/FillLightning.hpp"
+ #include "Format/STL.hpp"
+ #include "TreeSupport.hpp"
++#include "format.hpp"
+ 
+ #include <float.h>
+ #include <oneapi/tbb/blocked_range.h>
+@@ -659,7 +660,7 @@ void PrintObject::generate_support_material()
+                     {SharpTail,L("floating regions")},
+                     {Cantilever,L("floating cantilever")},
+                     {LargeOverhang,L("large overhangs")} };
+-                std::string warning_message = format(L("It seems object %s has %s. Please re-orient the object or enable support generation."),
++                std::string warning_message = Slic3r::format(L("It seems object %s has %s. Please re-orient the object or enable support generation."),
+                     this->model_object()->name, reasons[sntype]);
+                 this->active_step_add_warning(PrintStateBase::WarningLevel::NON_CRITICAL, warning_message, PrintStateBase::SlicingNeedSupportOn);
+             }
+diff --git a/src/libslic3r/ProjectTask.cpp b/src/libslic3r/ProjectTask.cpp
+index 622a20a85..fe5fd36a4 100644
+--- a/src/libslic3r/ProjectTask.cpp
++++ b/src/libslic3r/ProjectTask.cpp
+@@ -9,6 +9,7 @@
+ #include <codecvt>
+ 
+ #include <boost/random.hpp>
++#include <boost/log/trivial.hpp>
+ #include <boost/generator_iterator.hpp>
+ #include <boost/uuid/uuid.hpp>
+ #include <boost/uuid/uuid_generators.hpp>
+diff --git a/src/libslic3r/SVG.cpp b/src/libslic3r/SVG.cpp
+index 6377f405e..9ccddcd4f 100644
+--- a/src/libslic3r/SVG.cpp
++++ b/src/libslic3r/SVG.cpp
+@@ -1,6 +1,7 @@
+ #include "SVG.hpp"
+ #include <iostream>
+ 
++#include <boost/filesystem.hpp>
+ #include <boost/nowide/cstdio.hpp>
+ 
+ namespace Slic3r {
+diff --git a/src/libslic3r/Shape/TextShape.cpp b/src/libslic3r/Shape/TextShape.cpp
+index e740905ce..63c5f96df 100644
+--- a/src/libslic3r/Shape/TextShape.cpp
++++ b/src/libslic3r/Shape/TextShape.cpp
+@@ -28,6 +28,8 @@
+ #include "BRepPrimAPI_MakePrism.hxx"
+ #include "Font_FontMgr.hxx"
+ 
++#include <boost/log/trivial.hpp>
++
+ namespace Slic3r {
+ 
+ static std::map<std::string, std::string> g_occt_fonts_maps; //map<font_name, font_path>
+diff --git a/src/libslic3r/Shape/TextShape.hpp b/src/libslic3r/Shape/TextShape.hpp
+index 75c93bc64..d093c2da4 100644
+--- a/src/libslic3r/Shape/TextShape.hpp
++++ b/src/libslic3r/Shape/TextShape.hpp
+@@ -1,6 +1,8 @@
+ #ifndef slic3r_Text_Shape_hpp_
+ #define slic3r_Text_Shape_hpp_
+ 
++#include "libslic3r/TriangleMesh.hpp"
++
+ namespace Slic3r {
+ class TriangleMesh;
+ 
+@@ -17,4 +19,4 @@ std::map<std::string, std::string> get_occt_fonts_maps();
+ 
+ }; // namespace Slic3r
+ 
+-#endif // slic3r_Text_Shape_hpp_
+\ No newline at end of file
++#endif // slic3r_Text_Shape_hpp_
+diff --git a/src/libslic3r/Support/SupportCommon.cpp b/src/libslic3r/Support/SupportCommon.cpp
+index 9b2610a4b..c494507c7 100644
+--- a/src/libslic3r/Support/SupportCommon.cpp
++++ b/src/libslic3r/Support/SupportCommon.cpp
+@@ -11,9 +11,11 @@
+ #include "../MutablePolygon.hpp"
+ #include "../Geometry.hpp"
+ #include "../Point.hpp"
++#include "clipper/clipper_z.hpp"
+ 
+ #include <cmath>
+ #include <boost/container/static_vector.hpp>
++#include <boost/log/trivial.hpp>
+ 
+ #include <tbb/parallel_for.h>
+ 
+diff --git a/src/libslic3r/TreeSupport.cpp b/src/libslic3r/TreeSupport.cpp
+index 5b3ec7049..71080cf20 100644
+--- a/src/libslic3r/TreeSupport.cpp
++++ b/src/libslic3r/TreeSupport.cpp
+@@ -12,6 +12,10 @@
+ #include "I18N.hpp"
+ #include <libnest2d/backends/libslic3r/geometries.hpp>
+ 
++#include <boost/log/trivial.hpp>
++#include <tbb/blocked_range.h>
++#include <tbb/parallel_for.h>
++
+ #define _L(s) Slic3r::I18N::translate(s)
+ 
+ #define USE_PLAN_LAYER_HEIGHTS 1
+diff --git a/src/libslic3r/TriangleSelector.cpp b/src/libslic3r/TriangleSelector.cpp
+index 6499215b2..e78dd878d 100644
+--- a/src/libslic3r/TriangleSelector.cpp
++++ b/src/libslic3r/TriangleSelector.cpp
+@@ -2,6 +2,7 @@
+ #include "Model.hpp"
+ 
+ #include <boost/container/small_vector.hpp>
++#include <boost/log/trivial.hpp>
+ 
+ #ifndef NDEBUG
+ //    #define EXPENSIVE_DEBUG_CHECKS
+diff --git a/src/libslic3r/utils.cpp b/src/libslic3r/utils.cpp
+index 1a5422b7b..dae1c13e5 100644
+--- a/src/libslic3r/utils.cpp
++++ b/src/libslic3r/utils.cpp
+@@ -13,6 +13,7 @@
+ #include <cstdarg>
+ #include <stdio.h>
+ 
++#include "format.hpp"
+ #include "Platform.hpp"
+ #include "Time.hpp"
+ #include "libslic3r.h"
+@@ -1510,7 +1511,7 @@ bool bbl_calc_md5(std::string &filename, std::string &md5_out)
+ // SoftFever: copy directory recursively
+ void copy_directory_recursively(const boost::filesystem::path &source, const boost::filesystem::path &target)
+ {
+-    BOOST_LOG_TRIVIAL(info) << format("copy_directory_recursively %1% -> %2%", source, target);
++    BOOST_LOG_TRIVIAL(info) << Slic3r::format("copy_directory_recursively %1% -> %2%", source, target);
+     std::string error_message;
+ 
+     if (boost::filesystem::exists(target))
+@@ -1530,7 +1531,7 @@ void copy_directory_recursively(const boost::filesystem::path &source, const boo
+             CopyFileResult cfr = copy_file(source_file, target_file, error_message, false);
+             if (cfr != CopyFileResult::SUCCESS) {
+                 BOOST_LOG_TRIVIAL(error) << "Copying failed(" << cfr << "): " << error_message;
+-                throw Slic3r::CriticalException(format(
++                throw Slic3r::CriticalException(Slic3r::format(
+                     ("Copying directory %1% to %2% failed: %3%"),
+                     source, target, error_message));
+             }
+diff --git a/src/slic3r/GUI/AMSMaterialsSetting.cpp b/src/slic3r/GUI/AMSMaterialsSetting.cpp
+index 8e11493b3..ddbf120b2 100644
+--- a/src/slic3r/GUI/AMSMaterialsSetting.cpp
++++ b/src/slic3r/GUI/AMSMaterialsSetting.cpp
+@@ -4,6 +4,8 @@
+ #include "GUI_App.hpp"
+ #include "libslic3r/Preset.hpp"
+ #include "I18N.hpp"
++#include <boost/log/trivial.hpp>
++#include <wx/colordlg.h>
+ #include <wx/dcgraph.h>
+ #include "CalibUtils.hpp"
+ 
+diff --git a/src/slic3r/GUI/AMSMaterialsSetting.hpp b/src/slic3r/GUI/AMSMaterialsSetting.hpp
+index 065198863..c66052a07 100644
+--- a/src/slic3r/GUI/AMSMaterialsSetting.hpp
++++ b/src/slic3r/GUI/AMSMaterialsSetting.hpp
+@@ -5,6 +5,7 @@
+ #include "wxExtensions.hpp"
+ #include "GUI_Utils.hpp"
+ #include "DeviceManager.hpp"
++#include "wx/colourdata.h"
+ #include "wx/clrpicker.h"
+ #include "Widgets/RadioBox.hpp"
+ #include "Widgets/Button.hpp"
+diff --git a/src/slic3r/GUI/Auxiliary.cpp b/src/slic3r/GUI/Auxiliary.cpp
+index 623d39736..c28457ea0 100644
+--- a/src/slic3r/GUI/Auxiliary.cpp
++++ b/src/slic3r/GUI/Auxiliary.cpp
+@@ -21,6 +21,8 @@
+ #include <wx/arrstr.h>
+ #include <wx/tglbtn.h>
+ 
++#include <boost/log/trivial.hpp>
++
+ #include "wxExtensions.hpp"
+ #include "GUI_App.hpp"
+ #include "GUI_ObjectList.hpp"
+diff --git a/src/slic3r/GUI/AuxiliaryDataViewModel.cpp b/src/slic3r/GUI/AuxiliaryDataViewModel.cpp
+index 212566338..50368b854 100644
+--- a/src/slic3r/GUI/AuxiliaryDataViewModel.cpp
++++ b/src/slic3r/GUI/AuxiliaryDataViewModel.cpp
+@@ -3,6 +3,11 @@
+ #include "libslic3r/Model.hpp"
+ #include "libslic3r/Format/bbs_3mf.hpp"
+ 
++
++#include <boost/log/trivial.hpp>
++
++#include <wx/log.h>
++
+ const static std::array<wxString, 4> s_default_folders = {
+     _L("Model Pictures"),
+     _L("Bill of Materials"),
+diff --git a/src/slic3r/GUI/AuxiliaryDataViewModel.hpp b/src/slic3r/GUI/AuxiliaryDataViewModel.hpp
+index 109b74a25..76c046c5e 100644
+--- a/src/slic3r/GUI/AuxiliaryDataViewModel.hpp
++++ b/src/slic3r/GUI/AuxiliaryDataViewModel.hpp
+@@ -8,7 +8,7 @@
+ 
+ #include "I18N.hpp"
+ 
+-#include <filesystem>
++#include <boost/filesystem.hpp>
+ 
+ class AuxiliaryModelNode;
+ WX_DEFINE_ARRAY_PTR(AuxiliaryModelNode*, AuxiliaryModelNodePtrArray);
+diff --git a/src/slic3r/GUI/AuxiliaryDialog.cpp b/src/slic3r/GUI/AuxiliaryDialog.cpp
+index 5fadbf7ff..0fce2cc83 100644
+--- a/src/slic3r/GUI/AuxiliaryDialog.cpp
++++ b/src/slic3r/GUI/AuxiliaryDialog.cpp
+@@ -4,6 +4,8 @@
+ 
+ #include "libslic3r/Utils.hpp"
+ 
++#include <boost/property_tree/ptree.hpp>
++
+ namespace pt = boost::property_tree;
+ typedef pt::ptree JSON;
+ 
+@@ -33,4 +35,4 @@ void AuxiliaryDialog::on_dpi_changed(const wxRect& suggested_rect)
+ }
+ 
+ } // namespace GUI
+-} // namespace Slic3r
+\ No newline at end of file
++} // namespace Slic3r
+diff --git a/src/slic3r/GUI/BBLStatusBar.hpp b/src/slic3r/GUI/BBLStatusBar.hpp
+index 02a3af3ca..e643a9b53 100644
+--- a/src/slic3r/GUI/BBLStatusBar.hpp
++++ b/src/slic3r/GUI/BBLStatusBar.hpp
+@@ -2,6 +2,7 @@
+ #define BBLSTATUSBAR_HPP
+ 
+ #include <wx/panel.h>
++#include <wx/sizer.h>
+ #include <wx/stattext.h>
+ 
+ #include <memory>
+diff --git a/src/slic3r/GUI/BBLStatusBarSend.cpp b/src/slic3r/GUI/BBLStatusBarSend.cpp
+index 35ebd0f1b..3976ae7bb 100644
+--- a/src/slic3r/GUI/BBLStatusBarSend.cpp
++++ b/src/slic3r/GUI/BBLStatusBarSend.cpp
+@@ -12,7 +12,7 @@
+ #include "I18N.hpp"
+ 
+ #include <iostream>
+-
++#include <regex>
+ 
+ namespace Slic3r {
+ 
+diff --git a/src/slic3r/GUI/BBLTopbar.cpp b/src/slic3r/GUI/BBLTopbar.cpp
+index 7e33b8cd8..ee7c380a6 100644
+--- a/src/slic3r/GUI/BBLTopbar.cpp
++++ b/src/slic3r/GUI/BBLTopbar.cpp
+@@ -1,6 +1,7 @@
+ #include "BBLTopbar.hpp"
+ #include "wx/artprov.h"
+ #include "wx/aui/framemanager.h"
++#include "wx/display.h"
+ #include "I18N.hpp"
+ #include "GUI_App.hpp"
+ #include "GUI.hpp"
+@@ -10,6 +11,8 @@
+ #include "WebViewDialog.hpp"
+ #include "PartPlate.hpp"
+ 
++#include <boost/log/trivial.hpp>
++
+ #define TOPBAR_ICON_SIZE  18
+ #define TOPBAR_TITLE_WIDTH  300
+ 
+diff --git a/src/slic3r/GUI/BindDialog.cpp b/src/slic3r/GUI/BindDialog.cpp
+index 3c97fdf3d..df52d84b1 100644
+--- a/src/slic3r/GUI/BindDialog.cpp
++++ b/src/slic3r/GUI/BindDialog.cpp
+@@ -5,6 +5,7 @@
+ #include <wx/sizer.h>
+ #include <wx/statbox.h>
+ #include "wx/evtloop.h"
++#include <wx/mstream.h>
+ #include <wx/tokenzr.h>
+ #include <wx/richmsgdlg.h>
+ #include <wx/richtext/richtextctrl.h>
+diff --git a/src/slic3r/GUI/BitmapCache.cpp b/src/slic3r/GUI/BitmapCache.cpp
+index 318160f11..d5facd3f3 100644
+--- a/src/slic3r/GUI/BitmapCache.cpp
++++ b/src/slic3r/GUI/BitmapCache.cpp
+@@ -5,6 +5,7 @@
+ #include "GUI.hpp"
+ #include "GUI_Utils.hpp"
+ 
++#include <boost/nowide/cstdio.hpp>
+ #include <boost/filesystem.hpp>
+ 
+ #ifdef __WXGTK2__
+diff --git a/src/slic3r/GUI/CameraPopup.hpp b/src/slic3r/GUI/CameraPopup.hpp
+index a256f317b..8135f41fa 100644
+--- a/src/slic3r/GUI/CameraPopup.hpp
++++ b/src/slic3r/GUI/CameraPopup.hpp
+@@ -7,6 +7,7 @@
+ #include <wx/panel.h>
+ #include <wx/bitmap.h>
+ #include <wx/image.h>
++#include <wx/timer.h>
+ #include <wx/sizer.h>
+ #include <wx/gbsizer.h>
+ #include <wx/webrequest.h>
+diff --git a/src/slic3r/GUI/CreatePresetsDialog.cpp b/src/slic3r/GUI/CreatePresetsDialog.cpp
+index 628af9deb..a5b363568 100644
+--- a/src/slic3r/GUI/CreatePresetsDialog.cpp
++++ b/src/slic3r/GUI/CreatePresetsDialog.cpp
+@@ -6,6 +6,8 @@
+ #include <openssl/md5.h>
+ #include <openssl/evp.h>
+ #include <wx/dcgraph.h>
++#include <wx/tooltip.h>
++#include <boost/nowide/cstdio.hpp>
+ #include "libslic3r/PresetBundle.hpp"
+ #include "I18N.hpp"
+ #include "GUI_App.hpp"
+diff --git a/src/slic3r/GUI/DeviceManager.hpp b/src/slic3r/GUI/DeviceManager.hpp
+index 1e142a97c..1c3c5881b 100644
+--- a/src/slic3r/GUI/DeviceManager.hpp
++++ b/src/slic3r/GUI/DeviceManager.hpp
+@@ -6,6 +6,7 @@
+ #include <string>
+ #include <memory>
+ #include <chrono>
++#include <mutex>
+ #include <boost/thread.hpp>
+ #include <boost/nowide/fstream.hpp>
+ #include "nlohmann/json.hpp"
+diff --git a/src/slic3r/GUI/ExtrusionCalibration.cpp b/src/slic3r/GUI/ExtrusionCalibration.cpp
+index f4c17b5b7..8d5a939cb 100644
+--- a/src/slic3r/GUI/ExtrusionCalibration.cpp
++++ b/src/slic3r/GUI/ExtrusionCalibration.cpp
+@@ -3,6 +3,7 @@
+ #include "MsgDialog.hpp"
+ #include "libslic3r/Preset.hpp"
+ #include "I18N.hpp"
++#include <boost/log/trivial.hpp>
+ #include <wx/dcgraph.h>
+ 
+ namespace Slic3r { namespace GUI {
+diff --git a/src/slic3r/GUI/GCodeViewer.cpp b/src/slic3r/GUI/GCodeViewer.cpp
+index 96e296322..cec2f1e40 100644
+--- a/src/slic3r/GUI/GCodeViewer.cpp
++++ b/src/slic3r/GUI/GCodeViewer.cpp
+@@ -2,6 +2,7 @@
+ #include "GCodeViewer.hpp"
+ 
+ #include "libslic3r/BuildVolume.hpp"
++#include "libslic3r/ClipperUtils.hpp"
+ #include "libslic3r/Print.hpp"
+ #include "libslic3r/Geometry.hpp"
+ #include "libslic3r/Model.hpp"
+diff --git a/src/slic3r/GUI/GLTexture.cpp b/src/slic3r/GUI/GLTexture.cpp
+index dba352349..fcd9045ce 100644
+--- a/src/slic3r/GUI/GLTexture.cpp
++++ b/src/slic3r/GUI/GLTexture.cpp
+@@ -33,6 +33,7 @@
+ 
+ #include "libslic3r/Utils.hpp"
+ #include "GUI_App.hpp"
++#include <boost/log/trivial.hpp>
+ #include <wx/dcgraph.h>
+ namespace Slic3r {
+ namespace GUI {
+diff --git a/src/slic3r/GUI/GLTexture.hpp b/src/slic3r/GUI/GLTexture.hpp
+index 9af4f8a87..41068a9fb 100644
+--- a/src/slic3r/GUI/GLTexture.hpp
++++ b/src/slic3r/GUI/GLTexture.hpp
+@@ -6,6 +6,9 @@
+ #include <vector>
+ #include <thread>
+ 
++#include <wx/colour.h>
++#include <wx/font.h>
++
+ class wxImage;
+ 
+ namespace Slic3r {
+diff --git a/src/slic3r/GUI/GUI_App.cpp b/src/slic3r/GUI/GUI_App.cpp
+index 42c19513c..41e8a2c30 100644
+--- a/src/slic3r/GUI/GUI_App.cpp
++++ b/src/slic3r/GUI/GUI_App.cpp
+@@ -28,6 +28,8 @@
+ #include <boost/lexical_cast.hpp>
+ #include <boost/log/trivial.hpp>
+ #include <boost/nowide/convert.hpp>
++#include <boost/property_tree/ptree.hpp>
++#include <boost/property_tree/json_parser.hpp>
+ 
+ #include <wx/stdpaths.h>
+ #include <wx/imagpng.h>
+diff --git a/src/slic3r/GUI/GUI_App.hpp b/src/slic3r/GUI/GUI_App.hpp
+index bd7868dbd..893874ab3 100644
+--- a/src/slic3r/GUI/GUI_App.hpp
++++ b/src/slic3r/GUI/GUI_App.hpp
+@@ -1,6 +1,13 @@
+ #ifndef slic3r_GUI_App_hpp_
+ #define slic3r_GUI_App_hpp_
+ 
++#include <wx/app.h>
++#include <wx/colour.h>
++#include <wx/font.h>
++#include <wx/string.h>
++#include <wx/snglinst.h>
++#include <wx/msgdlg.h>
++
+ #include <memory>
+ #include <string>
+ #include "ImGuiWrapper.hpp"
+@@ -17,13 +24,6 @@
+ #include "slic3r/GUI/HttpServer.hpp"
+ #include "../Utils/PrintHost.hpp"
+ 
+-#include <wx/app.h>
+-#include <wx/colour.h>
+-#include <wx/font.h>
+-#include <wx/string.h>
+-#include <wx/snglinst.h>
+-#include <wx/msgdlg.h>
+-
+ #include <mutex>
+ #include <stack>
+ 
+diff --git a/src/slic3r/GUI/GUI_Colors.hpp b/src/slic3r/GUI/GUI_Colors.hpp
+index 0395e997c..4da03360b 100644
+--- a/src/slic3r/GUI/GUI_Colors.hpp
++++ b/src/slic3r/GUI/GUI_Colors.hpp
+@@ -3,6 +3,7 @@
+ 
+ #include "imgui/imgui.h"
+ #include "libslic3r/Color.hpp"
++#include <array>
+ 
+ enum RenderCol_ {
+     RenderCol_3D_Background = 0,
+diff --git a/src/slic3r/GUI/GUI_ObjectTable.cpp b/src/slic3r/GUI/GUI_ObjectTable.cpp
+index eda7c15b7..199be2062 100644
+--- a/src/slic3r/GUI/GUI_ObjectTable.cpp
++++ b/src/slic3r/GUI/GUI_ObjectTable.cpp
+@@ -1,4 +1,5 @@
+ #include "wx/clipbrd.h"
++#include "wx/display.h"
+ 
+ #include "SelectMachine.hpp"
+ #include "I18N.hpp"
+diff --git a/src/slic3r/GUI/Gizmos/GLGizmoBase.hpp b/src/slic3r/GUI/Gizmos/GLGizmoBase.hpp
+index 9e7aa0520..4ed37d5ae 100644
+--- a/src/slic3r/GUI/Gizmos/GLGizmoBase.hpp
++++ b/src/slic3r/GUI/Gizmos/GLGizmoBase.hpp
+@@ -15,6 +15,8 @@
+ 
+ #include <cereal/archives/binary.hpp>
+ 
++#include <wx/event.h>
++
+ #define ENABLE_FIXED_GRABBER 1
+ 
+ class wxWindow;
+diff --git a/src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp b/src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp
+index ccf3956f3..0471d0235 100644
+--- a/src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp
++++ b/src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp
+@@ -15,9 +15,9 @@
+ #include "slic3r/GUI/GUI.hpp"
+ #include "slic3r/Utils/UndoRedo.hpp"
+ 
+-
+ #include <GL/glew.h>
+ 
++#include <boost/log/trivial.hpp>
+ 
+ namespace Slic3r::GUI {
+ 
+diff --git a/src/slic3r/GUI/Gizmos/GLGizmoText.cpp b/src/slic3r/GUI/Gizmos/GLGizmoText.cpp
+index e7793c017..7034b0eb2 100644
+--- a/src/slic3r/GUI/Gizmos/GLGizmoText.cpp
++++ b/src/slic3r/GUI/Gizmos/GLGizmoText.cpp
+@@ -6,7 +6,7 @@
+ #include "slic3r/GUI/ImGuiWrapper.hpp"
+ #include "slic3r/GUI/GUI_ObjectList.hpp"
+ #include "slic3r/GUI/Plater.hpp"
+-
++#include "libslic3r/ClipperUtils.hpp"
+ #include "libslic3r/Geometry/ConvexHull.hpp"
+ #include "libslic3r/Model.hpp"
+ 
+@@ -14,6 +14,8 @@
+ 
+ #include <numeric>
+ 
++#include <boost/log/trivial.hpp>
++
+ #include <GL/glew.h>
+ 
+ #ifndef IMGUI_DEFINE_MATH_OPERATORS
+diff --git a/src/slic3r/GUI/HMS.cpp b/src/slic3r/GUI/HMS.cpp
+index 2f9ad630d..3e87d1fd2 100644
+--- a/src/slic3r/GUI/HMS.cpp
++++ b/src/slic3r/GUI/HMS.cpp
+@@ -1,5 +1,6 @@
+ #include "HMS.hpp"
+ 
++#include <boost/log/trivial.hpp>
+ 
+ 
+ namespace Slic3r {
+diff --git a/src/slic3r/GUI/HttpServer.hpp b/src/slic3r/GUI/HttpServer.hpp
+index 2a6a980ec..c545ab9b2 100644
+--- a/src/slic3r/GUI/HttpServer.hpp
++++ b/src/slic3r/GUI/HttpServer.hpp
+@@ -1,6 +1,7 @@
+ #ifndef slic3r_Http_App_hpp_
+ #define slic3r_Http_App_hpp_
+ 
++#include <iostream>
+ #include <mutex>
+ #include <stack>
+ 
+@@ -12,7 +13,6 @@
+ #include <string>
+ #include <memory>
+ 
+-using namespace boost;
+ using namespace boost::system;
+ using namespace boost::asio;
+ 
+@@ -73,21 +73,21 @@ public:
+ 
+ class session
+ {
+-    asio::streambuf buff;
++    boost::asio::streambuf buff;
+     http_headers headers;
+ 
+     static void read_body(std::shared_ptr<session> pThis)
+     {
+         int nbuffer = 1000;
+         std::shared_ptr<std::vector<char>> bufptr = std::make_shared<std::vector<char>>(nbuffer);
+-        asio::async_read(pThis->socket, boost::asio::buffer(*bufptr, nbuffer), [pThis](const boost::beast::error_code& e, std::size_t s)
++        boost::asio::async_read(pThis->socket, boost::asio::buffer(*bufptr, nbuffer), [pThis](const boost::beast::error_code& e, std::size_t s)
+             {
+             });
+     }
+ 
+     static void read_next_line(std::shared_ptr<session> pThis)
+     {
+-        asio::async_read_until(pThis->socket, pThis->buff, '\r', [pThis](const boost::beast::error_code& e, std::size_t s)
++        boost::asio::async_read_until(pThis->socket, pThis->buff, '\r', [pThis](const boost::beast::error_code& e, std::size_t s)
+             {
+                 std::string line, ignore;
+                 std::istream stream{ &pThis->buff };
+@@ -100,7 +100,7 @@ class session
+                     if (pThis->headers.content_length() == 0)
+                     {
+                         std::shared_ptr<std::string> str = std::make_shared<std::string>(pThis->headers.get_response());
+-                        asio::async_write(pThis->socket, boost::asio::buffer(str->c_str(), str->length()), [pThis, str](const boost::beast::error_code& e, std::size_t s)
++                        boost::asio::async_write(pThis->socket, boost::asio::buffer(str->c_str(), str->length()), [pThis, str](const boost::beast::error_code& e, std::size_t s)
+                             {
+                                 std::cout << "done" << std::endl;
+                             });
+@@ -119,7 +119,7 @@ class session
+ 
+     static void read_first_line(std::shared_ptr<session> pThis)
+     {
+-        asio::async_read_until(pThis->socket, pThis->buff, '\r', [pThis](const boost::beast::error_code& e, std::size_t s)
++        boost::asio::async_read_until(pThis->socket, pThis->buff, '\r', [pThis](const boost::beast::error_code& e, std::size_t s)
+             {
+                 std::string line, ignore;
+                 std::istream stream{ &pThis->buff };
+diff --git a/src/slic3r/GUI/IMSlider.hpp b/src/slic3r/GUI/IMSlider.hpp
+index 2bf700787..1b700d0d0 100644
+--- a/src/slic3r/GUI/IMSlider.hpp
++++ b/src/slic3r/GUI/IMSlider.hpp
+@@ -3,6 +3,7 @@
+ 
+ #include "TickCode.hpp"
+ #include <imgui/imgui.h>
++#include <wx/slider.h>
+ 
+ #include <set>
+ 
+diff --git a/src/slic3r/GUI/IconManager.cpp b/src/slic3r/GUI/IconManager.cpp
+index 896c5203f..f302f6ceb 100644
+--- a/src/slic3r/GUI/IconManager.cpp
++++ b/src/slic3r/GUI/IconManager.cpp
+@@ -1,6 +1,9 @@
+ #include "IconManager.hpp"
+ #include <cmath>
++#include <numeric>
+ #include <boost/log/trivial.hpp>
++#include <boost/filesystem.hpp>
++#include <boost/nowide/cstdio.hpp>
+ #include "nanosvg/nanosvg.h"
+ #include "nanosvg/nanosvgrast.h"
+ #include "libslic3r/Utils.hpp" // ScopeGuard   
+diff --git a/src/slic3r/GUI/ImGuiWrapper.hpp b/src/slic3r/GUI/ImGuiWrapper.hpp
+index 07ca50990..c188f61cc 100644
+--- a/src/slic3r/GUI/ImGuiWrapper.hpp
++++ b/src/slic3r/GUI/ImGuiWrapper.hpp
+@@ -7,6 +7,7 @@
+ 
+ #include <string>
+ #include <map>
++#include <cstdlib>
+ 
+ #include <imgui/imgui.h>
+ 
+diff --git a/src/slic3r/GUI/ImageGrid.cpp b/src/slic3r/GUI/ImageGrid.cpp
+index 2ab6748f4..770d46ec0 100644
+--- a/src/slic3r/GUI/ImageGrid.cpp
++++ b/src/slic3r/GUI/ImageGrid.cpp
+@@ -8,6 +8,8 @@
+ 
+ #include <wx/dcgraph.h>
+ 
++#include <boost/log/trivial.hpp>
++
+ wxDEFINE_EVENT(EVT_ITEM_ACTION, wxCommandEvent);
+ 
+ BEGIN_EVENT_TABLE(Slic3r::GUI::ImageGrid, wxPanel)
+diff --git a/src/slic3r/GUI/ImageGrid.h b/src/slic3r/GUI/ImageGrid.h
+index 34e016c06..4bc17e4b6 100644
+--- a/src/slic3r/GUI/ImageGrid.h
++++ b/src/slic3r/GUI/ImageGrid.h
+@@ -9,6 +9,7 @@
+ #define ImageGrid_h
+ 
+ #include <wx/window.h>
++#include <wx/timer.h>
+ #include <wx/arrstr.h>
+ #include <boost/shared_ptr.hpp>
+ 
+diff --git a/src/slic3r/GUI/Jobs/Job.hpp b/src/slic3r/GUI/Jobs/Job.hpp
+index 6c251cac3..55c6196c3 100644
+--- a/src/slic3r/GUI/Jobs/Job.hpp
++++ b/src/slic3r/GUI/Jobs/Job.hpp
+@@ -9,6 +9,8 @@
+ #include <exception>
+ #include <future>
+ 
++#include <wx/window.h>
++
+ #include "libslic3r/libslic3r.h"
+ #include "ProgressIndicator.hpp"
+ 
+diff --git a/src/slic3r/GUI/Jobs/PrintJob.hpp b/src/slic3r/GUI/Jobs/PrintJob.hpp
+index e703f86fb..7806a8623 100644
+--- a/src/slic3r/GUI/Jobs/PrintJob.hpp
++++ b/src/slic3r/GUI/Jobs/PrintJob.hpp
+@@ -3,6 +3,7 @@
+ 
+ #include <boost/filesystem/path.hpp>
+ #include <boost/filesystem/operations.hpp>
++#include "libslic3r/PrintConfig.hpp"
+ #include "Job.hpp"
+ 
+ namespace fs = boost::filesystem;
+diff --git a/src/slic3r/GUI/Jobs/ProgressIndicator.hpp b/src/slic3r/GUI/Jobs/ProgressIndicator.hpp
+index 4aa5757d2..4f7ec5d9f 100644
+--- a/src/slic3r/GUI/Jobs/ProgressIndicator.hpp
++++ b/src/slic3r/GUI/Jobs/ProgressIndicator.hpp
+@@ -7,6 +7,7 @@
+ 
+ #include <string>
+ #include <functional>
++#include <wx/string.h>
+ 
+ namespace Slic3r {
+ 
+diff --git a/src/slic3r/GUI/Jobs/SLAImportJob.hpp b/src/slic3r/GUI/Jobs/SLAImportJob.hpp
+index bb620c982..627452333 100644
+--- a/src/slic3r/GUI/Jobs/SLAImportJob.hpp
++++ b/src/slic3r/GUI/Jobs/SLAImportJob.hpp
+@@ -6,6 +6,7 @@
+ #define SLAIMPORTJOB_HPP
+ 
+ #include "Job.hpp"
++#include "libslic3r/Point.hpp"
+ 
+ namespace Slic3r { namespace GUI {
+ 
+diff --git a/src/slic3r/GUI/Jobs/UpgradeNetworkJob.hpp b/src/slic3r/GUI/Jobs/UpgradeNetworkJob.hpp
+index 0af597d0f..5a531065f 100644
+--- a/src/slic3r/GUI/Jobs/UpgradeNetworkJob.hpp
++++ b/src/slic3r/GUI/Jobs/UpgradeNetworkJob.hpp
+@@ -1,8 +1,11 @@
+ #ifndef __UpgradeNetworkJob_HPP__
+ #define __UpgradeNetworkJob_HPP__
+ 
++#include <boost/filesystem.hpp>
++#include <boost/log/trivial.hpp>
+ #include <functional>
+ #include "Job.hpp"
++#include <wx/window.h>
+ 
+ namespace fs = boost::filesystem;
+ 
+diff --git a/src/slic3r/GUI/MainFrame.cpp b/src/slic3r/GUI/MainFrame.cpp
+index 3b70614da..1dda42dbe 100644
+--- a/src/slic3r/GUI/MainFrame.cpp
++++ b/src/slic3r/GUI/MainFrame.cpp
+@@ -27,6 +27,7 @@
+ 
+ #include <boost/algorithm/string/predicate.hpp>
+ #include <boost/log/trivial.hpp>
++#include <boost/property_tree/ptree.hpp>
+ 
+ #include "libslic3r/Print.hpp"
+ #include "libslic3r/Polygon.hpp"
+diff --git a/src/slic3r/GUI/MainFrame.hpp b/src/slic3r/GUI/MainFrame.hpp
+index 14f11f1a2..9ef81a8b0 100644
+--- a/src/slic3r/GUI/MainFrame.hpp
++++ b/src/slic3r/GUI/MainFrame.hpp
+@@ -26,6 +26,8 @@
+ #include "Widgets/SideButton.hpp"
+ #include "Widgets/SideMenuPopup.hpp"
+ 
++#include <boost/property_tree/ptree_fwd.hpp>
++
+ // BBS
+ #include "BBLTopbar.hpp"
+ #include "PrinterWebView.hpp"
+diff --git a/src/slic3r/GUI/MarkdownTip.cpp b/src/slic3r/GUI/MarkdownTip.cpp
+index 63eafd361..7ffeae9e3 100644
+--- a/src/slic3r/GUI/MarkdownTip.cpp
++++ b/src/slic3r/GUI/MarkdownTip.cpp
+@@ -7,6 +7,8 @@
+ #include "libslic3r/Utils.hpp"
+ #include "I18N.hpp"
+ 
++#include <wx/display.h>
++
+ namespace fs = boost::filesystem;
+ 
+ namespace Slic3r { namespace GUI {
+diff --git a/src/slic3r/GUI/MediaFilePanel.h b/src/slic3r/GUI/MediaFilePanel.h
+index 8b9d84ae4..1ae5df791 100644
+--- a/src/slic3r/GUI/MediaFilePanel.h
++++ b/src/slic3r/GUI/MediaFilePanel.h
+@@ -10,7 +10,7 @@
+ 
+ #include "GUI_Utils.hpp"
+ #include "wxExtensions.hpp"
+-
++#include <set>
+ #include <wx/frame.h>
+ 
+ class Button;
+diff --git a/src/slic3r/GUI/MediaPlayCtrl.cpp b/src/slic3r/GUI/MediaPlayCtrl.cpp
+index 7fb8392f6..b5ab46647 100644
+--- a/src/slic3r/GUI/MediaPlayCtrl.cpp
++++ b/src/slic3r/GUI/MediaPlayCtrl.cpp
+@@ -8,6 +8,9 @@
+ #include "MsgDialog.hpp"
+ #include "DownloadProgressDialog.hpp"
+ 
++#include <boost/lexical_cast.hpp>
++#include <boost/log/trivial.hpp>
++#include <boost/nowide/cstdio.hpp>
+ #include <boost/nowide/utf8_codecvt.hpp>
+ #undef pid_t
+ #include <boost/process.hpp>
+@@ -18,6 +21,8 @@
+ #include <sys/shm.h>
+ #endif
+ 
++#include <wx/clipbrd.h>
++
+ namespace Slic3r {
+ namespace GUI {
+ 
+diff --git a/src/slic3r/GUI/MonitorPage.hpp b/src/slic3r/GUI/MonitorPage.hpp
+index 9cb05eecc..3efaccda3 100644
+--- a/src/slic3r/GUI/MonitorPage.hpp
++++ b/src/slic3r/GUI/MonitorPage.hpp
+@@ -2,6 +2,7 @@
+ #define slic3r_MonitorPage_hpp_
+ 
+ #include <wx/panel.h>
++#include <wx/sizer.h>
+ 
+ namespace Slic3r {
+ namespace GUI {
+diff --git a/src/slic3r/GUI/NetworkTestDialog.cpp b/src/slic3r/GUI/NetworkTestDialog.cpp
+index 195c0d55b..69be995e6 100644
+--- a/src/slic3r/GUI/NetworkTestDialog.cpp
++++ b/src/slic3r/GUI/NetworkTestDialog.cpp
+@@ -8,7 +8,7 @@
+ #include "slic3r/Utils/Http.hpp"
+ #include "libslic3r/AppConfig.hpp"
+ #include <boost/asio/ip/address.hpp>
+-
++#include <boost/log/trivial.hpp>
+ 
+ namespace Slic3r {
+ namespace GUI {
+diff --git a/src/slic3r/GUI/Notebook.hpp b/src/slic3r/GUI/Notebook.hpp
+index d75898a7c..7e6e94da3 100644
+--- a/src/slic3r/GUI/Notebook.hpp
++++ b/src/slic3r/GUI/Notebook.hpp
+@@ -4,6 +4,7 @@
+ //#ifdef _WIN32
+ 
+ #include <wx/bookctrl.h>
++#include <wx/sizer.h>
+ 
+ class ModeSizer;
+ class ScalableButton;
+diff --git a/src/slic3r/GUI/ObjectDataViewModel.hpp b/src/slic3r/GUI/ObjectDataViewModel.hpp
+index 872564519..47ac80d3d 100644
+--- a/src/slic3r/GUI/ObjectDataViewModel.hpp
++++ b/src/slic3r/GUI/ObjectDataViewModel.hpp
+@@ -5,6 +5,7 @@
+ #ifndef slic3r_GUI_ObjectDataViewModel_hpp_
+ #define slic3r_GUI_ObjectDataViewModel_hpp_
+ 
++#include <boost/log/trivial.hpp>
+ #include <wx/dataview.h>
+ #include <vector>
+ #include <map>
+diff --git a/src/slic3r/GUI/ParamsPanel.hpp b/src/slic3r/GUI/ParamsPanel.hpp
+index 1a20ec7d2..dfd3196f5 100644
+--- a/src/slic3r/GUI/ParamsPanel.hpp
++++ b/src/slic3r/GUI/ParamsPanel.hpp
+@@ -20,6 +20,8 @@
+ #include <wx/image.h>
+ #include <wx/icon.h>
+ #include <wx/button.h>
++#include <wx/timer.h>
++#include <wx/wupdlock.h>
+ #include <wx/sizer.h>
+ #include <wx/statline.h>
+ #include <wx/scrolwin.h>
+diff --git a/src/slic3r/GUI/PartPlate.cpp b/src/slic3r/GUI/PartPlate.cpp
+index 940028bd7..fc63dfce3 100644
+--- a/src/slic3r/GUI/PartPlate.cpp
++++ b/src/slic3r/GUI/PartPlate.cpp
+@@ -12,6 +12,7 @@
+ #include <boost/filesystem/operations.hpp>
+ #include <boost/log/trivial.hpp>
+ #include <boost/nowide/convert.hpp>
++#include <boost/nowide/cstdio.hpp>
+ #include <boost/algorithm/string/predicate.hpp>
+ 
+ #include "libslic3r/libslic3r.h"
+diff --git a/src/slic3r/GUI/PresetComboBoxes.hpp b/src/slic3r/GUI/PresetComboBoxes.hpp
+index 4598b3dc3..954c06862 100644
+--- a/src/slic3r/GUI/PresetComboBoxes.hpp
++++ b/src/slic3r/GUI/PresetComboBoxes.hpp
+@@ -4,6 +4,7 @@
+ //#include <wx/bmpcbox.h>
+ #include <wx/gdicmn.h>
+ #include <wx/clrpicker.h>
++#include <wx/colourdata.h>
+ 
+ #include "libslic3r/Preset.hpp"
+ #include "wxExtensions.hpp"
+diff --git a/src/slic3r/GUI/Printer/PrinterFileSystem.cpp b/src/slic3r/GUI/Printer/PrinterFileSystem.cpp
+index aeba24834..886421c65 100644
+--- a/src/slic3r/GUI/Printer/PrinterFileSystem.cpp
++++ b/src/slic3r/GUI/Printer/PrinterFileSystem.cpp
+@@ -7,10 +7,14 @@
+ #include "../../Utils/NetworkAgent.hpp"
+ #include "../BitmapCache.hpp"
+ 
++#include <boost/endian/conversion.hpp>
++#include <boost/log/trivial.hpp>
+ #include <boost/algorithm/hex.hpp>
+ #include <boost/uuid/detail/md5.hpp>
+ #include <boost/regex.hpp>
+ 
++#include <wx/mstream.h>
++
+ #include "nlohmann/json.hpp"
+ 
+ #include <cstring>
+diff --git a/src/slic3r/GUI/Printer/PrinterFileSystem.h b/src/slic3r/GUI/Printer/PrinterFileSystem.h
+index 2900685f8..237378744 100644
+--- a/src/slic3r/GUI/Printer/PrinterFileSystem.h
++++ b/src/slic3r/GUI/Printer/PrinterFileSystem.h
+@@ -4,6 +4,7 @@
+ #define BAMBU_DYNAMIC
+ #include "BambuTunnel.h"
+ 
++#include <wx/bitmap.h>
+ #include <wx/event.h>
+ 
+ #include <boost/thread.hpp>
+diff --git a/src/slic3r/GUI/PrivacyUpdateDialog.hpp b/src/slic3r/GUI/PrivacyUpdateDialog.hpp
+index b737bcd48..084916619 100644
+--- a/src/slic3r/GUI/PrivacyUpdateDialog.hpp
++++ b/src/slic3r/GUI/PrivacyUpdateDialog.hpp
+@@ -6,6 +6,7 @@
+ #include "Widgets/Label.hpp"
+ #include "Widgets/WebView.hpp"
+ #include <wx/webview.h>
++#include <wx/progdlg.h>
+ #include <wx/simplebook.h>
+ 
+ namespace Slic3r { namespace GUI {
+@@ -53,4 +54,4 @@ public:
+ 
+ }} // namespace Slic3r::GUI
+ 
+-#endif
+\ No newline at end of file
++#endif
+diff --git a/src/slic3r/GUI/Project.cpp b/src/slic3r/GUI/Project.cpp
+index 46e3c3442..003d0e4cd 100644
+--- a/src/slic3r/GUI/Project.cpp
++++ b/src/slic3r/GUI/Project.cpp
+@@ -4,6 +4,8 @@
+ #include "libslic3r/Model.hpp"
+ #include "libslic3r/Format/bbs_3mf.hpp"
+ 
++#include <boost/log/trivial.hpp>
++
+ #include <wx/app.h>
+ #include <wx/button.h>
+ #include <wx/scrolwin.h>
+diff --git a/src/slic3r/GUI/SavePresetDialog.cpp b/src/slic3r/GUI/SavePresetDialog.cpp
+index a4f5f2501..f3c8871e7 100644
+--- a/src/slic3r/GUI/SavePresetDialog.cpp
++++ b/src/slic3r/GUI/SavePresetDialog.cpp
+@@ -4,6 +4,7 @@
+ #include <vector>
+ #include <string>
+ #include <boost/algorithm/string.hpp>
++#include <boost/log/trivial.hpp>
+ 
+ #include <wx/sizer.h>
+ #include <wx/stattext.h>
+diff --git a/src/slic3r/GUI/SelectMachine.cpp b/src/slic3r/GUI/SelectMachine.cpp
+index bb0127fe7..9c9bfb259 100644
+--- a/src/slic3r/GUI/SelectMachine.cpp
++++ b/src/slic3r/GUI/SelectMachine.cpp
+@@ -20,6 +20,7 @@
+ #include <wx/progdlg.h>
+ #include <wx/clipbrd.h>
+ #include <wx/dcgraph.h>
++#include <wx/mstream.h>
+ #include <miniz.h>
+ #include <algorithm>
+ #include "Plater.hpp"
+diff --git a/src/slic3r/GUI/SliceInfoPanel.cpp b/src/slic3r/GUI/SliceInfoPanel.cpp
+index ddf9eb647..9aeb5f25a 100644
+--- a/src/slic3r/GUI/SliceInfoPanel.cpp
++++ b/src/slic3r/GUI/SliceInfoPanel.cpp
+@@ -1,5 +1,6 @@
+ #include "SliceInfoPanel.hpp"
+ 
++#include <boost/log/trivial.hpp>
+ #include "I18N.hpp"
+ #include "Widgets/Label.hpp"
+ #include "libslic3r/Utils.hpp"
+@@ -344,4 +345,4 @@ void SliceInfoPanel::msw_rescale()
+ 
+ 
+ }
+-}
+\ No newline at end of file
++}
+diff --git a/src/slic3r/GUI/StatusPanel.cpp b/src/slic3r/GUI/StatusPanel.cpp
+index 2557b0194..53394895f 100644
+--- a/src/slic3r/GUI/StatusPanel.cpp
++++ b/src/slic3r/GUI/StatusPanel.cpp
+@@ -18,6 +18,8 @@
+ #include "RecenterDialog.hpp"
+ #include "CalibUtils.hpp"
+ #include <slic3r/GUI/Widgets/ProgressDialog.hpp>
++#include <wx/display.h>
++#include <wx/mstream.h>
+ #include <wx/sstream.h>
+ #include <wx/zstream.h>
+ 
+diff --git a/src/slic3r/GUI/TabButton.cpp b/src/slic3r/GUI/TabButton.cpp
+index b972c1401..98525ee07 100644
+--- a/src/slic3r/GUI/TabButton.cpp
++++ b/src/slic3r/GUI/TabButton.cpp
+@@ -1,6 +1,7 @@
+ #include "TabButton.hpp"
+ #include "Widgets/Label.hpp"
+ 
++#include <wx/dcclient.h>
+ #include <wx/dcgraph.h>
+ 
+ BEGIN_EVENT_TABLE(TabButton, StaticBox)
+diff --git a/src/slic3r/GUI/WebUserLoginDialog.hpp b/src/slic3r/GUI/WebUserLoginDialog.hpp
+index 6a820bef9..3d0e2629d 100644
+--- a/src/slic3r/GUI/WebUserLoginDialog.hpp
++++ b/src/slic3r/GUI/WebUserLoginDialog.hpp
+@@ -24,6 +24,7 @@
+ #include "wx/fs_mem.h"
+ #include "wx/stdpaths.h"
+ #include <wx/frame.h>
++#include "wx/timer.h"
+ #include <wx/tbarbase.h>
+ #include "wx/textctrl.h"
+ 
+diff --git a/src/slic3r/GUI/WebViewDialog.cpp b/src/slic3r/GUI/WebViewDialog.cpp
+index 98d24d417..9e9568544 100644
+--- a/src/slic3r/GUI/WebViewDialog.cpp
++++ b/src/slic3r/GUI/WebViewDialog.cpp
+@@ -7,6 +7,9 @@
+ #include "libslic3r_version.h"
+ #include "../Utils/Http.hpp"
+ 
++#include <boost/property_tree/ptree.hpp>
++#include <boost/property_tree/json_parser.hpp>
++
+ #include <wx/sizer.h>
+ #include <wx/toolbar.h>
+ #include <wx/textdlg.h>
+diff --git a/src/slic3r/GUI/Widgets/AMSControl.cpp b/src/slic3r/GUI/Widgets/AMSControl.cpp
+index f70d16a7f..9b39a4bb5 100644
+--- a/src/slic3r/GUI/Widgets/AMSControl.cpp
++++ b/src/slic3r/GUI/Widgets/AMSControl.cpp
+@@ -4,6 +4,8 @@
+ #include "../I18N.hpp"
+ #include "../GUI_App.hpp"
+ 
++#include <boost/log/trivial.hpp>
++
+ #include <wx/simplebook.h>
+ #include <wx/dcgraph.h>
+ #include "CalibUtils.hpp"
+diff --git a/src/slic3r/GUI/Widgets/AxisCtrlButton.cpp b/src/slic3r/GUI/Widgets/AxisCtrlButton.cpp
+index 193dd682e..21a420f5e 100644
+--- a/src/slic3r/GUI/Widgets/AxisCtrlButton.cpp
++++ b/src/slic3r/GUI/Widgets/AxisCtrlButton.cpp
+@@ -1,6 +1,8 @@
+ #include "AxisCtrlButton.hpp"
+ #include "Label.hpp"
++#include "libslic3r/libslic3r.h"
+ 
++#include <wx/dcclient.h>
+ #include <wx/dcgraph.h>
+ 
+ StateColor blank_bg(StateColor(std::make_pair(wxColour("#FFFFFF"), (int)StateColor::Normal)));
+@@ -365,4 +367,4 @@ void AxisCtrlButton::sendButtonEvent()
+     event.SetEventObject(this);
+     event.SetInt(current_pos);
+     GetEventHandler()->ProcessEvent(event);
+-}
+\ No newline at end of file
++}
+diff --git a/src/slic3r/GUI/Widgets/DropDown.cpp b/src/slic3r/GUI/Widgets/DropDown.cpp
+index 03f8f366b..23a344e5a 100644
+--- a/src/slic3r/GUI/Widgets/DropDown.cpp
++++ b/src/slic3r/GUI/Widgets/DropDown.cpp
+@@ -1,6 +1,8 @@
+ #include "DropDown.hpp"
+ #include "Label.hpp"
+ 
++#include <wx/display.h>
++#include <wx/dcbuffer.h>
+ #include <wx/dcgraph.h>
+ 
+ #ifdef __WXGTK__
+diff --git a/src/slic3r/GUI/Widgets/DropDown.hpp b/src/slic3r/GUI/Widgets/DropDown.hpp
+index 4ff909c84..86f14aa27 100644
+--- a/src/slic3r/GUI/Widgets/DropDown.hpp
++++ b/src/slic3r/GUI/Widgets/DropDown.hpp
+@@ -1,6 +1,7 @@
+ #ifndef slic3r_GUI_DropDown_hpp_
+ #define slic3r_GUI_DropDown_hpp_
+ 
++#include <boost/date_time/posix_time/posix_time.hpp>
+ #include <wx/stattext.h>
+ #include "../wxExtensions.hpp"
+ #include "StateHandler.hpp"
+diff --git a/src/slic3r/GUI/Widgets/ErrorMsgStaticText.cpp b/src/slic3r/GUI/Widgets/ErrorMsgStaticText.cpp
+index cdcbf489c..dc6c2fc9e 100644
+--- a/src/slic3r/GUI/Widgets/ErrorMsgStaticText.cpp
++++ b/src/slic3r/GUI/Widgets/ErrorMsgStaticText.cpp
+@@ -1,4 +1,5 @@
+ #include "ErrorMsgStaticText.hpp"
++#include <wx/dcclient.h>
+ 
+ ErrorMsgStaticText::ErrorMsgStaticText() {}
+ 
+@@ -51,4 +52,4 @@ void ErrorMsgStaticText::paintEvent(wxPaintEvent &evt)
+     SetMinSize(wxSize(-1, line_count * text_height));
+     SetMaxSize(wxSize(-1, line_count * text_height));
+     dc.DrawText(out_txt, 0, 0);
+-}
+\ No newline at end of file
++}
+diff --git a/src/slic3r/GUI/Widgets/ErrorMsgStaticText.hpp b/src/slic3r/GUI/Widgets/ErrorMsgStaticText.hpp
+index 6a455b208..735a118a2 100644
+--- a/src/slic3r/GUI/Widgets/ErrorMsgStaticText.hpp
++++ b/src/slic3r/GUI/Widgets/ErrorMsgStaticText.hpp
+@@ -2,6 +2,7 @@
+ #ifndef _WX_ERRORMSGSTATTEXT_H_
+ #define _WX_ERRORMSGSTATTEXT_H_
+ 
++#include <wx/panel.h>
+ #include "wx/stattext.h"
+ 
+ class WXDLLIMPEXP_CORE ErrorMsgStaticText : public wxPanel
+@@ -19,4 +20,4 @@ public:
+     void SetLabel(wxString msg){m_msg = msg;};
+ 
+ };
+-#endif
+\ No newline at end of file
++#endif
+diff --git a/src/slic3r/GUI/Widgets/ImageSwitchButton.cpp b/src/slic3r/GUI/Widgets/ImageSwitchButton.cpp
+index 634d61e79..af48b6d27 100644
+--- a/src/slic3r/GUI/Widgets/ImageSwitchButton.cpp
++++ b/src/slic3r/GUI/Widgets/ImageSwitchButton.cpp
+@@ -3,6 +3,7 @@
+ #include "StaticBox.hpp"
+ #include "../wxExtensions.hpp"
+ 
++#include <wx/dcclient.h>
+ #include <wx/dcgraph.h>
+ 
+ BEGIN_EVENT_TABLE(ImageSwitchButton, StaticBox)
+@@ -369,4 +370,4 @@ void FanSwitchButton::sendButtonEvent()
+     wxCommandEvent event(wxEVT_COMMAND_BUTTON_CLICKED, GetId());
+     event.SetEventObject(this);
+     GetEventHandler()->ProcessEvent(event);
+-}
+\ No newline at end of file
++}
+diff --git a/src/slic3r/GUI/Widgets/Label.cpp b/src/slic3r/GUI/Widgets/Label.cpp
+index 8ac96e903..f981cfaee 100644
+--- a/src/slic3r/GUI/Widgets/Label.cpp
++++ b/src/slic3r/GUI/Widgets/Label.cpp
+@@ -2,6 +2,10 @@
+ #include "Label.hpp"
+ #include "StaticBox.hpp"
+ #include <wx/intl.h> // For wxLocale
++#include <wx/dcclient.h>
++#include <wx/settings.h>
++#include <boost/log/trivial.hpp>
++
+ 
+ wxFont Label::sysFont(int size, bool bold)
+ {
+diff --git a/src/slic3r/GUI/Widgets/ProgressBar.cpp b/src/slic3r/GUI/Widgets/ProgressBar.cpp
+index 9f11b682d..214e76db8 100644
+--- a/src/slic3r/GUI/Widgets/ProgressBar.cpp
++++ b/src/slic3r/GUI/Widgets/ProgressBar.cpp
+@@ -1,5 +1,6 @@
+ #include "ProgressBar.hpp"
+ #include "../I18N.hpp"
++#include <wx/dcclient.h>
+ #include <wx/dcgraph.h>
+ #include "Label.hpp"
+ 
+diff --git a/src/slic3r/GUI/Widgets/ProgressDialog.hpp b/src/slic3r/GUI/Widgets/ProgressDialog.hpp
+index f67f6b89b..eb62d27bd 100644
+--- a/src/slic3r/GUI/Widgets/ProgressDialog.hpp
++++ b/src/slic3r/GUI/Widgets/ProgressDialog.hpp
+@@ -2,6 +2,7 @@
+ #define slic3r_GUI_PROGRESSDIALOG_hpp_
+ 
+ #include "wx/dialog.h"
++#include "wx/progdlg.h"
+ #include "wx/weakref.h"
+ #include "wx/simplebook.h"
+ #include "Button.hpp"
+diff --git a/src/slic3r/GUI/Widgets/RoundedRectangle.cpp b/src/slic3r/GUI/Widgets/RoundedRectangle.cpp
+index a3c7c139a..07f2aa0b3 100644
+--- a/src/slic3r/GUI/Widgets/RoundedRectangle.cpp
++++ b/src/slic3r/GUI/Widgets/RoundedRectangle.cpp
+@@ -1,6 +1,7 @@
+ #include "RoundedRectangle.hpp"
+ #include "../wxExtensions.hpp"
+ #include <wx/dcgraph.h>
++#include <wx/dcclient.h>
+ 
+ BEGIN_EVENT_TABLE(RoundedRectangle, wxPanel)
+ EVT_PAINT(RoundedRectangle::OnPaint)
+@@ -32,4 +33,4 @@ void RoundedRectangle::OnPaint(wxPaintEvent &evt)
+         dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
+         dc.DrawRoundedRectangle(0, 0, GetSize().GetWidth(), GetSize().GetHeight(), m_radius);
+     }
+-}
+\ No newline at end of file
++}
+diff --git a/src/slic3r/GUI/Widgets/SideButton.cpp b/src/slic3r/GUI/Widgets/SideButton.cpp
+index 4ea48d9a5..53d7725fb 100644
+--- a/src/slic3r/GUI/Widgets/SideButton.cpp
++++ b/src/slic3r/GUI/Widgets/SideButton.cpp
+@@ -1,6 +1,7 @@
+ #include "SideButton.hpp"
+ #include "Label.hpp"
+ 
++#include <wx/dcclient.h>
+ #include <wx/dcgraph.h>
+ 
+ BEGIN_EVENT_TABLE(SideButton, wxPanel)
+diff --git a/src/slic3r/GUI/Widgets/SideMenuPopup.cpp b/src/slic3r/GUI/Widgets/SideMenuPopup.cpp
+index b50ed6b60..cde4fba39 100644
+--- a/src/slic3r/GUI/Widgets/SideMenuPopup.cpp
++++ b/src/slic3r/GUI/Widgets/SideMenuPopup.cpp
+@@ -1,6 +1,7 @@
+ #include "SideMenuPopup.hpp"
+ #include "Label.hpp"
+ 
++#include <wx/display.h>
+ #include <wx/dcgraph.h>
+ #include "../GUI_App.hpp"
+ 
+diff --git a/src/slic3r/GUI/Widgets/SpinInput.hpp b/src/slic3r/GUI/Widgets/SpinInput.hpp
+index 5b0868880..cc342276f 100644
+--- a/src/slic3r/GUI/Widgets/SpinInput.hpp
++++ b/src/slic3r/GUI/Widgets/SpinInput.hpp
+@@ -1,7 +1,10 @@
+ #ifndef slic3r_GUI_SpinInput_hpp_
+ #define slic3r_GUI_SpinInput_hpp_
+ 
++#include <wx/dcclient.h>
++#include <wx/timer.h>
+ #include <wx/textctrl.h>
++#include <wx/valtext.h>
+ #include "StaticBox.hpp"
+ 
+ class Button;
+diff --git a/src/slic3r/GUI/Widgets/StateHandler.cpp b/src/slic3r/GUI/Widgets/StateHandler.cpp
+index eb3d3be71..7b2e4cf6e 100644
+--- a/src/slic3r/GUI/Widgets/StateHandler.cpp
++++ b/src/slic3r/GUI/Widgets/StateHandler.cpp
+@@ -1,4 +1,5 @@
+ #include "StateHandler.hpp"
++#include <wx/window.h>
+ 
+ wxDEFINE_EVENT(EVT_ENABLE_CHANGED, wxCommandEvent);
+ 
+diff --git a/src/slic3r/GUI/Widgets/StateHandler.hpp b/src/slic3r/GUI/Widgets/StateHandler.hpp
+index c231b8f63..a0af2cc28 100644
+--- a/src/slic3r/GUI/Widgets/StateHandler.hpp
++++ b/src/slic3r/GUI/Widgets/StateHandler.hpp
+@@ -1,6 +1,7 @@
+ #ifndef slic3r_GUI_StateHandler_hpp_
+ #define slic3r_GUI_StateHandler_hpp_
+ 
++#include <memory>
+ #include <wx/event.h>
+ 
+ #include "StateColor.hpp"
+diff --git a/src/slic3r/GUI/Widgets/StaticBox.cpp b/src/slic3r/GUI/Widgets/StaticBox.cpp
+index 00855eddf..6eae5b3d6 100644
+--- a/src/slic3r/GUI/Widgets/StaticBox.cpp
++++ b/src/slic3r/GUI/Widgets/StaticBox.cpp
+@@ -1,5 +1,6 @@
+ #include "StaticBox.hpp"
+ #include "../GUI.hpp"
++#include <wx/dcclient.h>
+ #include <wx/dcgraph.h>
+ 
+ BEGIN_EVENT_TABLE(StaticBox, wxWindow)
+diff --git a/src/slic3r/GUI/Widgets/StaticLine.cpp b/src/slic3r/GUI/Widgets/StaticLine.cpp
+index d9b74f0ad..3dd564c02 100644
+--- a/src/slic3r/GUI/Widgets/StaticLine.cpp
++++ b/src/slic3r/GUI/Widgets/StaticLine.cpp
+@@ -2,6 +2,7 @@
+ #include "Label.hpp"
+ #include "StateColor.hpp"
+ 
++#include <wx/dcclient.h>
+ #include <wx/dcgraph.h>
+ 
+ BEGIN_EVENT_TABLE(StaticLine, wxWindow)
+diff --git a/src/slic3r/GUI/Widgets/StepCtrl.cpp b/src/slic3r/GUI/Widgets/StepCtrl.cpp
+index dfd38b140..73a3e80dd 100644
+--- a/src/slic3r/GUI/Widgets/StepCtrl.cpp
++++ b/src/slic3r/GUI/Widgets/StepCtrl.cpp
+@@ -1,6 +1,9 @@
+ #include "StepCtrl.hpp"
+ #include "Label.hpp"
+ 
++#include <wx/dc.h>
++#include <wx/pen.h>
++
+ wxDEFINE_EVENT( EVT_STEP_CHANGING, wxCommandEvent );
+ wxDEFINE_EVENT( EVT_STEP_CHANGED, wxCommandEvent );
+ 
+diff --git a/src/slic3r/GUI/Widgets/SwitchButton.cpp b/src/slic3r/GUI/Widgets/SwitchButton.cpp
+index e3b7a5fc8..f362221cf 100644
+--- a/src/slic3r/GUI/Widgets/SwitchButton.cpp
++++ b/src/slic3r/GUI/Widgets/SwitchButton.cpp
+@@ -5,6 +5,8 @@
+ #include "../wxExtensions.hpp"
+ #include "../Utils/MacDarkMode.hpp"
+ 
++#include <wx/dcmemory.h>
++#include <wx/dcclient.h>
+ #include <wx/dcgraph.h>
+ 
+ SwitchButton::SwitchButton(wxWindow* parent, wxWindowID id)
+diff --git a/src/slic3r/GUI/Widgets/TabCtrl.cpp b/src/slic3r/GUI/Widgets/TabCtrl.cpp
+index 4600014ba..36778f681 100644
+--- a/src/slic3r/GUI/Widgets/TabCtrl.cpp
++++ b/src/slic3r/GUI/Widgets/TabCtrl.cpp
+@@ -1,5 +1,7 @@
+ #include "TabCtrl.hpp"
+ 
++#include <wx/dc.h>
++
+ wxDEFINE_EVENT( wxEVT_TAB_SEL_CHANGING, wxCommandEvent );
+ wxDEFINE_EVENT( wxEVT_TAB_SEL_CHANGED, wxCommandEvent );
+ 
+diff --git a/src/slic3r/GUI/Widgets/TempInput.hpp b/src/slic3r/GUI/Widgets/TempInput.hpp
+index 7829b1082..09d89a724 100644
+--- a/src/slic3r/GUI/Widgets/TempInput.hpp
++++ b/src/slic3r/GUI/Widgets/TempInput.hpp
+@@ -3,6 +3,7 @@
+ 
+ #include "../wxExtensions.hpp"
+ #include <wx/textctrl.h>
++#include <wx/stattext.h>
+ #include "StaticBox.hpp"
+ 
+ wxDECLARE_EVENT(wxCUSTOMEVT_SET_TEMP_FINISH, wxCommandEvent);
+diff --git a/src/slic3r/GUI/Widgets/TextInput.cpp b/src/slic3r/GUI/Widgets/TextInput.cpp
+index 5cda9cbf0..f8fb92939 100644
+--- a/src/slic3r/GUI/Widgets/TextInput.cpp
++++ b/src/slic3r/GUI/Widgets/TextInput.cpp
+@@ -3,6 +3,7 @@
+ #include "TextCtrl.h"
+ #include "slic3r/GUI/Widgets/Label.hpp"
+ 
++#include <wx/dcclient.h>
+ #include <wx/dcgraph.h>
+ 
+ BEGIN_EVENT_TABLE(TextInput, wxPanel)
+diff --git a/src/slic3r/GUI/Widgets/WebView.cpp b/src/slic3r/GUI/Widgets/WebView.cpp
+index 5cb6eb450..11f431c30 100644
+--- a/src/slic3r/GUI/Widgets/WebView.cpp
++++ b/src/slic3r/GUI/Widgets/WebView.cpp
+@@ -2,6 +2,8 @@
+ #include "slic3r/GUI/GUI_App.hpp"
+ #include "slic3r/Utils/MacDarkMode.hpp"
+ 
++#include <boost/log/trivial.hpp>
++
+ #include <wx/webviewarchivehandler.h>
+ #include <wx/webviewfshandler.h>
+ #if wxUSE_WEBVIEW_EDGE
+diff --git a/src/slic3r/GUI/WipeTowerDialog.cpp b/src/slic3r/GUI/WipeTowerDialog.cpp
+index eb5ea701f..8df5270a4 100644
+--- a/src/slic3r/GUI/WipeTowerDialog.cpp
++++ b/src/slic3r/GUI/WipeTowerDialog.cpp
+@@ -13,8 +13,6 @@
+ #include "MainFrame.hpp"
+ #include "libslic3r/Config.hpp"
+ 
+-#include <wx/sizer.h>
+-
+ using namespace Slic3r;
+ using namespace Slic3r::GUI;
+ 
+diff --git a/src/slic3r/GUI/WipeTowerDialog.hpp b/src/slic3r/GUI/WipeTowerDialog.hpp
+index 71548eea3..ac58cf74f 100644
+--- a/src/slic3r/GUI/WipeTowerDialog.hpp
++++ b/src/slic3r/GUI/WipeTowerDialog.hpp
+@@ -3,6 +3,7 @@
+ 
+ #include "GUI_Utils.hpp"
+ 
++#include <wx/sizer.h>
+ #include <wx/spinctrl.h>
+ #include <wx/stattext.h>
+ #include <wx/textctrl.h>
+@@ -127,4 +128,4 @@ private:
+     std::unordered_map<int, Button *> m_button_list;
+ };
+ 
+-#endif  // _WIPE_TOWER_DIALOG_H_
+\ No newline at end of file
++#endif  // _WIPE_TOWER_DIALOG_H_
+diff --git a/src/slic3r/GUI/wxExtensions.hpp b/src/slic3r/GUI/wxExtensions.hpp
+index 3859fb26f..f388b52a6 100644
+--- a/src/slic3r/GUI/wxExtensions.hpp
++++ b/src/slic3r/GUI/wxExtensions.hpp
+@@ -12,6 +12,7 @@
+ #include <wx/popupwin.h>
+ #include <wx/spinctrl.h>
+ #include <wx/artprov.h>
++#include <wx/scrolwin.h>
+ 
+ #include <vector>
+ #include <functional>
+diff --git a/src/slic3r/Utils/ColorSpaceConvert.cpp b/src/slic3r/Utils/ColorSpaceConvert.cpp
+index b0292a515..2634d1c4c 100644
+--- a/src/slic3r/Utils/ColorSpaceConvert.cpp
++++ b/src/slic3r/Utils/ColorSpaceConvert.cpp
+@@ -1,6 +1,7 @@
+ #include "ColorSpaceConvert.hpp"
+ 
+ #include <algorithm>
++#include <cmath>
+ 
+ const static float param_13 = 1.0f / 3.0f;
+ const static float param_16116 = 16.0f / 116.0f;
+diff --git a/src/slic3r/Utils/ColorSpaceConvert.hpp b/src/slic3r/Utils/ColorSpaceConvert.hpp
+index 4f05379f0..9c3a659a0 100644
+--- a/src/slic3r/Utils/ColorSpaceConvert.hpp
++++ b/src/slic3r/Utils/ColorSpaceConvert.hpp
+@@ -1,6 +1,8 @@
+ #ifndef slic3r_Utils_ColorSpaceConvert_hpp_
+ #define slic3r_Utils_ColorSpaceConvert_hpp_
+ 
++#include <tuple>
++
+ std::tuple<int, int, int> rgb_to_yuv(float r, float g, float b);
+ double PivotRGB(double n);
+ double PivotXYZ(double n);
+diff --git a/src/slic3r/Utils/FileHelp.cpp b/src/slic3r/Utils/FileHelp.cpp
+index c272112c7..5189635d7 100644
+--- a/src/slic3r/Utils/FileHelp.cpp
++++ b/src/slic3r/Utils/FileHelp.cpp
+@@ -1,5 +1,6 @@
+ #include "FileHelp.hpp"
+ #include <boost/filesystem.hpp>
++#include <boost/log/trivial.hpp>
+ #include <regex>
+ namespace Slic3r {
+     namespace Utils {
+@@ -23,4 +24,4 @@ void slash_to_back_slash(std::string &file_path) {
+     file_path = std::regex_replace(file_path, regex, "/");
+ }
+ 
+-}} // namespace Slic3r::Utils
+\ No newline at end of file
++}} // namespace Slic3r::Utils
+diff --git a/src/slic3r/Utils/Http.hpp b/src/slic3r/Utils/Http.hpp
+index e8e4f41c0..c7f7ac2cd 100644
+--- a/src/slic3r/Utils/Http.hpp
++++ b/src/slic3r/Utils/Http.hpp
+@@ -1,11 +1,15 @@
+ #ifndef __Http_hpp__
+ #define __Http_hpp__
+ 
++#include <map>
+ #include <memory>
+ #include <string>
+ #include <functional>
+ #include <boost/filesystem/path.hpp>
+ 
++#include "libslic3r/Exception.hpp"
++#include "libslic3r_version.h"
++
+ #define MAX_SIZE_TO_FILE    3*1024
+ 
+ namespace Slic3r {
+diff --git a/src/slic3r/Utils/PresetUpdater.cpp b/src/slic3r/Utils/PresetUpdater.cpp
+index e09bcbe22..3ec79d17f 100644
+--- a/src/slic3r/Utils/PresetUpdater.cpp
++++ b/src/slic3r/Utils/PresetUpdater.cpp
+@@ -818,9 +818,9 @@ void PresetUpdater::priv::sync_tooltip(std::string http_url, std::string languag
+         fs::path cache_root = fs::path(data_dir()) / "resources/tooltip";
+         try {
+             auto vf = cache_root / "common" / "version";
+-            if (fs::exists(vf)) load_string_file(vf, common_version);
++            if (fs::exists(vf)) Slic3r::load_string_file(vf, common_version);
+             vf = cache_root / language / "version";
+-            if (fs::exists(vf)) load_string_file(vf, language_version);
++            if (fs::exists(vf)) Slic3r::load_string_file(vf, language_version);
+         } catch (...) {}
+         std::map<std::string, Resource> resources
+         {
+@@ -996,11 +996,11 @@ void PresetUpdater::priv::sync_printer_config(std::string http_url)
+     auto                    cache_folder = data_dir_path / "ota" / "printers";
+ 
+     try {
+-        load_string_file(config_folder / "version.txt", curr_version);
++        Slic3r::load_string_file(config_folder / "version.txt", curr_version);
+         boost::algorithm::trim(curr_version);
+     } catch (...) {}
+     try {
+-        load_string_file(cache_folder / "version.txt", cached_version);
++        Slic3r::load_string_file(cache_folder / "version.txt", cached_version);
+         boost::algorithm::trim(cached_version);
+     } catch (...) {}
+     if (!cached_version.empty()) {
+@@ -1034,7 +1034,7 @@ void PresetUpdater::priv::sync_printer_config(std::string http_url)
+ 
+     bool result = false;
+     try {
+-        load_string_file(cache_folder / "version.txt", cached_version);
++        Slic3r::load_string_file(cache_folder / "version.txt", cached_version);
+         boost::algorithm::trim(cached_version);
+         result = true;
+     } catch (...) {}
+@@ -1137,11 +1137,11 @@ Updates PresetUpdater::priv::get_printer_config_updates(bool update) const
+     std::string             curr_version;
+     std::string             resc_version;
+     try {
+-        load_string_file(resc_folder / "version.txt", resc_version);
++        Slic3r::load_string_file(resc_folder / "version.txt", resc_version);
+         boost::algorithm::trim(resc_version);
+     } catch (...) {}
+     try {
+-        load_string_file(config_folder / "version.txt", curr_version);
++        Slic3r::load_string_file(config_folder / "version.txt", curr_version);
+         boost::algorithm::trim(curr_version);
+     } catch (...) {}
+ 
+diff --git a/src/slic3r/Utils/json_diff.cpp b/src/slic3r/Utils/json_diff.cpp
+index d82ef2134..171a44c63 100644
+--- a/src/slic3r/Utils/json_diff.cpp
++++ b/src/slic3r/Utils/json_diff.cpp
+@@ -12,6 +12,10 @@
+ 
+ #include <libslic3r/Utils.hpp>
+ 
++#include <boost/log/trivial.hpp>
++#include <boost/nowide/iostream.hpp>
++#include <boost/nowide/fstream.hpp>
++
+ using namespace std;
+ using json = nlohmann::json;
+ 

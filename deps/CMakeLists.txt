@@ -204,16 +204,19 @@ else()
 endif()
 
 set(ZLIB_PKG "")
+find_package(ZLIB)
 if (NOT ZLIB_FOUND) 
     include(ZLIB/ZLIB.cmake)
     set(ZLIB_PKG dep_ZLIB)
 endif ()
 set(PNG_PKG "")
+find_package(PNG)
 if (NOT PNG_FOUND) 
     include(PNG/PNG.cmake)
     set(PNG_PKG dep_PNG)
 endif ()
 set(EXPAT_PKG "")
+find_package(EXPAT)
 if (NOT EXPAT_FOUND) 
     include(EXPAT/EXPAT.cmake)
     set(EXPAT_PKG dep_EXPAT)
@@ -226,6 +229,7 @@ include(Boost/Boost.cmake)
 include(Cereal/Cereal.cmake)
 include(Qhull/Qhull.cmake)
 include(GLEW/GLEW.cmake)
+
 include(GLFW/GLFW.cmake)
 include(OpenCSG/OpenCSG.cmake)
 
@@ -241,23 +245,45 @@ include(CGAL/CGAL.cmake)
 
 include(NLopt/NLopt.cmake)
 
-include(OpenSSL/OpenSSL.cmake)
-
 set(CURL_PKG "")
+find_package(CURL)
 if (NOT CURL_FOUND)
+    message(WARNING "no curl package found, building openssl and curl")
+    include(OpenSSL/OpenSSL.cmake)
     include(CURL/CURL.cmake)
+    set(OPENSSL_PKG dep_OpenSSL)
     set(CURL_PKG dep_CURL)
 endif ()
 
-include(JPEG/JPEG.cmake)
-include(TIFF/TIFF.cmake)
+set(JPEG_PKG "")
+find_package(JPEG)
+if (NOT JPEG_FOUND)
+    include(JPEG/JPEG.cmake)
+    set(JPEG_PKG dep_JPEG)
+endif()
+
+set(TIFF_PKG "")
+find_package(TIFF)
+if (NOT TIFF_FOUND)
+    include(TIFF/TIFF.cmake)
+    set(TIFF_PKG "dep_TIFF")
+endif()
+
 include(wxWidgets/wxWidgets.cmake)
+
+set(FREETYPE_PKG "")
+find_package(Freetype)
+if(NOT FREETYPE_FOUND)
+    include(FREETYPE/FREETYPE.cmake)
+    set(FREETYPE_PKG "dep_FREETYPE") 
+endif()
+
 include(OCCT/OCCT.cmake)
-include(FREETYPE/FREETYPE.cmake)
 
 set(_dep_list
     dep_Boost
     dep_TBB
+    ${OPENSSL_PKG}
     ${CURL_PKG}
     dep_wxWidgets
     dep_Cereal
@@ -265,8 +291,9 @@ set(_dep_list
     dep_OpenVDB
     dep_OpenCSG
     dep_CGAL
-    dep_OpenSSL
     dep_GLFW
+    dep_OCCT
+    ${FREETYPE_PKG}
     ${PNG_PKG}
     ${ZLIB_PKG}
     ${EXPAT_PKG}
@@ -280,9 +307,6 @@ else()
     # Not working, static build has different Eigen
     #list(APPEND _dep_list "dep_libigl")
 endif()
-
-list(APPEND _dep_list "dep_OCCT")
-list(APPEND _dep_list "dep_FREETYPE")
 
 add_custom_target(deps ALL DEPENDS ${_dep_list})
 

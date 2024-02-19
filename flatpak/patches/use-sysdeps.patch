@@ -1,0 +1,180 @@
+diff --git a/deps/CGAL/CGAL.cmake b/deps/CGAL/CGAL.cmake
+index 18fee7c15..7b886e93d 100644
+--- a/deps/CGAL/CGAL.cmake
++++ b/deps/CGAL/CGAL.cmake
+@@ -5,7 +5,7 @@ orcaslicer_add_cmake_project(
+     # For whatever reason, this keeps downloading forever (repeats downloads if finished)
+     URL      https://github.com/CGAL/cgal/archive/refs/tags/v5.4.zip
+     URL_HASH SHA256=d7605e0a5a5ca17da7547592f6f6e4a59430a0bc861948974254d0de43eab4c0
+-    DEPENDS dep_Boost dep_GMP dep_MPFR
++    DEPENDS dep_GMP dep_MPFR
+ )
+ 
+ include(GNUInstallDirs)
+diff --git a/deps/CMakeLists.txt b/deps/CMakeLists.txt
+index 02a07ffd3..70ba0dcd4 100644
+--- a/deps/CMakeLists.txt
++++ b/deps/CMakeLists.txt
+@@ -208,11 +208,6 @@ if (NOT ZLIB_FOUND)
+     include(ZLIB/ZLIB.cmake)
+     set(ZLIB_PKG dep_ZLIB)
+ endif ()
+-set(PNG_PKG "")
+-if (NOT PNG_FOUND) 
+-    include(PNG/PNG.cmake)
+-    set(PNG_PKG dep_PNG)
+-endif ()
+ set(EXPAT_PKG "")
+ if (NOT EXPAT_FOUND) 
+     include(EXPAT/EXPAT.cmake)
+@@ -220,13 +215,11 @@ if (NOT EXPAT_FOUND)
+ endif ()
+ 
+ set(DEP_Boost_COMPONENTS system iostreams filesystem thread log locale regex date_time)
+-include(Boost/Boost.cmake)
+ 
+ # The order of includes respects the dependencies between libraries
+ include(Cereal/Cereal.cmake)
+ include(Qhull/Qhull.cmake)
+ include(GLEW/GLEW.cmake)
+-include(GLFW/GLFW.cmake)
+ include(OpenCSG/OpenCSG.cmake)
+ 
+ include(TBB/TBB.cmake)
+@@ -241,33 +234,22 @@ include(CGAL/CGAL.cmake)
+ 
+ include(NLopt/NLopt.cmake)
+ 
+-include(OpenSSL/OpenSSL.cmake)
+-
+ set(CURL_PKG "")
+ if (NOT CURL_FOUND)
+     include(CURL/CURL.cmake)
+     set(CURL_PKG dep_CURL)
+ endif ()
+ 
+-include(JPEG/JPEG.cmake)
+-include(TIFF/TIFF.cmake)
+-include(wxWidgets/wxWidgets.cmake)
+ include(OCCT/OCCT.cmake)
+-include(FREETYPE/FREETYPE.cmake)
+ 
+ set(_dep_list
+-    dep_Boost
+     dep_TBB
+     ${CURL_PKG}
+-    dep_wxWidgets
+     dep_Cereal
+     dep_NLopt
+     dep_OpenVDB
+     dep_OpenCSG
+     dep_CGAL
+-    dep_OpenSSL
+-    dep_GLFW
+-    ${PNG_PKG}
+     ${ZLIB_PKG}
+     ${EXPAT_PKG}
+     )
+@@ -282,7 +264,6 @@ else()
+ endif()
+ 
+ list(APPEND _dep_list "dep_OCCT")
+-list(APPEND _dep_list "dep_FREETYPE")
+ 
+ add_custom_target(deps ALL DEPENDS ${_dep_list})
+ 
+diff --git a/deps/CURL/CURL.cmake b/deps/CURL/CURL.cmake
+index 9846c7c9c..b5d924e6f 100644
+--- a/deps/CURL/CURL.cmake
++++ b/deps/CURL/CURL.cmake
+@@ -72,10 +72,6 @@ orcaslicer_add_cmake_project(CURL
+     ${_curl_platform_flags}
+ )
+ 
+-# if (APPLE OR (CMAKE_SYSTEM_NAME STREQUAL "Linux"))
+-  add_dependencies(dep_CURL dep_OpenSSL)
+-# endif ()
+-
+ if (MSVC)
+     add_debug_dep(dep_CURL)
+ endif ()
+diff --git a/deps/OCCT/OCCT.cmake b/deps/OCCT/OCCT.cmake
+index 541412b1c..363a9dda2 100644
+--- a/deps/OCCT/OCCT.cmake
++++ b/deps/OCCT/OCCT.cmake
+@@ -14,7 +14,6 @@ orcaslicer_add_cmake_project(OCCT
+     #PATCH_COMMAND ${PATCH_CMD} ${CMAKE_CURRENT_LIST_DIR}/0001-OCCT-fix.patch
+     PATCH_COMMAND git apply --directory ${BINARY_DIR_REL}/dep_OCCT-prefix/src/dep_OCCT --verbose --ignore-space-change --whitespace=fix ${CMAKE_CURRENT_LIST_DIR}/0001-OCCT-fix.patch
+     #DEPENDS dep_Boost
+-    #DEPENDS dep_FREETYPE
+     CMAKE_ARGS
+         -DBUILD_LIBRARY_TYPE=${library_build_type}
+         -DUSE_TK=OFF
+@@ -30,5 +29,3 @@ orcaslicer_add_cmake_project(OCCT
+         -DBUILD_MODULE_ModelingData=OFF
+         -DBUILD_MODULE_Visualization=OFF
+ )
+-
+-add_dependencies(dep_OCCT dep_FREETYPE)
+diff --git a/deps/OpenVDB/OpenVDB.cmake b/deps/OpenVDB/OpenVDB.cmake
+index 7080b8b5d..e8b3695b2 100644
+--- a/deps/OpenVDB/OpenVDB.cmake
++++ b/deps/OpenVDB/OpenVDB.cmake
+@@ -10,7 +10,7 @@ orcaslicer_add_cmake_project(OpenVDB
+     #  support vs2022, update to 8.2
+     URL https://github.com/tamasmeszaros/openvdb/archive/a68fd58d0e2b85f01adeb8b13d7555183ab10aa5.zip 
+     URL_HASH SHA256=f353e7b99bd0cbfc27ac9082de51acf32a8bc0b3e21ff9661ecca6f205ec1d81
+-    DEPENDS dep_TBB dep_Blosc dep_OpenEXR dep_Boost
++    DEPENDS dep_TBB dep_Blosc dep_OpenEXR 
+     CMAKE_ARGS
+         -DCMAKE_POSITION_INDEPENDENT_CODE=ON 
+         -DOPENVDB_BUILD_PYTHON_MODULE=OFF
+@@ -34,4 +34,4 @@ if (MSVC)
+             WORKING_DIRECTORY "${BINARY_DIR}"
+         )
+     endif ()
+-endif ()
+\ No newline at end of file
++endif ()
+diff --git a/deps/TIFF/TIFF.cmake b/deps/TIFF/TIFF.cmake
+index b9c004d65..f74775a9d 100644
+--- a/deps/TIFF/TIFF.cmake
++++ b/deps/TIFF/TIFF.cmake
+@@ -5,7 +5,7 @@ if (APPLE)
+     orcaslicer_add_cmake_project(TIFF
+         URL https://gitlab.com/libtiff/libtiff/-/archive/v4.3.0/libtiff-v4.3.0.zip
+         URL_HASH SHA256=4fca1b582c88319f3ad6ecd5b46320eadaf5eb4ef6f6c32d44caaae4a03d0726
+-        DEPENDS ${ZLIB_PKG} ${PNG_PKG} dep_JPEG
++        DEPENDS ${ZLIB_PKG} ${PNG_PKG}
+         CMAKE_ARGS
+             -Dlzma:BOOL=OFF
+             -Dwebp:BOOL=OFF
+@@ -17,7 +17,7 @@ else()
+     orcaslicer_add_cmake_project(TIFF
+         URL https://gitlab.com/libtiff/libtiff/-/archive/v4.1.0/libtiff-v4.1.0.zip
+         URL_HASH SHA256=c56edfacef0a60c0de3e6489194fcb2f24c03dbb550a8a7de5938642d045bd32
+-        DEPENDS ${ZLIB_PKG} ${PNG_PKG} dep_JPEG
++        DEPENDS ${ZLIB_PKG} ${PNG_PKG}
+         CMAKE_ARGS
+             -Dlzma:BOOL=OFF
+             -Dwebp:BOOL=OFF
+diff --git a/deps/wxWidgets/wxWidgets.cmake b/deps/wxWidgets/wxWidgets.cmake
+index 50cf991a6..31f039bd8 100644
+--- a/deps/wxWidgets/wxWidgets.cmake
++++ b/deps/wxWidgets/wxWidgets.cmake
+@@ -31,7 +31,7 @@ orcaslicer_add_cmake_project(
+     GIT_REPOSITORY "https://github.com/wxWidgets/wxWidgets"
+     GIT_TAG ${_wx_git_tag}
+     PATCH_COMMAND ${_patch_cmd}
+-    DEPENDS ${PNG_PKG} ${ZLIB_PKG} ${EXPAT_PKG} dep_TIFF dep_JPEG
++    DEPENDS ${PNG_PKG} ${ZLIB_PKG} ${EXPAT_PKG} 
+     CMAKE_ARGS
+         -DwxBUILD_PRECOMP=ON
+         ${_wx_toolkit}
+@@ -62,4 +62,4 @@ orcaslicer_add_cmake_project(
+ 
+ if (MSVC)
+     add_debug_dep(dep_wxWidgets)
+-endif ()
+\ No newline at end of file
++endif ()
