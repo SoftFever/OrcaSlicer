@@ -1,6 +1,5 @@
 {
     "name": "CONSTRUCT3D",
-    "url": "",
     "version": "01.09.00.02",
     "force_update": "0",
     "description": "Construct3D configurations",
@@ -34,7 +33,7 @@
 		{
             "name": "0.38mm Draft @Construct 1 XL",
             "sub_path": "process/0.38mm Draft @Construct 1 XL.json"
-        }
+        },
 		{
             "name": "0.14mm Quality @Construct 1",
             "sub_path": "process/0.14mm Quality @Construct 1.json"
