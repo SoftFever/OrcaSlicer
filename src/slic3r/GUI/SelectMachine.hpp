@@ -288,7 +288,7 @@ private:
     int                                 m_print_plate_idx{0};
     int                                 m_print_plate_total{0};
     int                                 m_timeout_count{0};
-    int                                 m_print_error_code;
+    int                                 m_print_error_code{0};
     bool                                m_is_in_sending_mode{ false };
     bool                                m_ams_mapping_res{ false };
     bool                                m_ams_mapping_valid{ false };
