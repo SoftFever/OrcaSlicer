@@ -40,7 +40,6 @@ public:
     // Polygon of this contour.
     Polygon                             polygon;
     // Is it a contour or a hole?
-    // Contours are CCW oriented, holes are CW oriented.
     bool                                is_contour;
     // BBS: is perimeter using smaller width
     bool is_smaller_width_perimeter;
