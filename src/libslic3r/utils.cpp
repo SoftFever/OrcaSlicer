@@ -1509,7 +1509,7 @@ bool bbl_calc_md5(std::string &filename, std::string &md5_out)
 }
 
 // SoftFever: copy directory recursively
-void copy_directory_recursively(const boost::filesystem::path &source, const boost::filesystem::path &target)
+void copy_directory_recursively(const boost::filesystem::path &source, const boost::filesystem::path &target, std::function<bool(const std::string)> filter)
 {
     BOOST_LOG_TRIVIAL(info) << Slic3r::format("copy_directory_recursively %1% -> %2%", source, target);
     std::string error_message;
@@ -1528,6 +1528,8 @@ void copy_directory_recursively(const boost::filesystem::path &source, const boo
             copy_directory_recursively(dir_entry, target_path);
         }
         else {
+			if(filter && filter(name))
+				continue;
             CopyFileResult cfr = copy_file(source_file, target_file, error_message, false);
             if (cfr != CopyFileResult::SUCCESS) {
                 BOOST_LOG_TRIVIAL(error) << "Copying failed(" << cfr << "): " << error_message;
