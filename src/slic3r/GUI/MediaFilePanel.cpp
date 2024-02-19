@@ -105,7 +105,9 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
     m_button_download->SetToolTip(_L("Download selected files from printer."));
     m_button_management = new ::Button(m_manage_panel, _L("Select"));
     m_button_management->SetToolTip(_L("Batch manage files."));
-    for (auto b : {m_button_delete, m_button_download, m_button_management}) {
+    m_button_refresh = new ::Button(m_manage_panel, _L("Refresh"));
+    m_button_refresh->SetToolTip(_L("Reload file list from printer."));
+    for (auto b : {m_button_delete, m_button_download, m_button_refresh, m_button_management}) {
         b->SetFont(Label::Body_12);
         b->SetCornerRadius(12);
         b->SetPaddingSize({10, 6});
@@ -117,11 +119,16 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
     m_button_management->SetBackgroundColorNormal(wxColor("#009688"));
     m_button_management->SetTextColorNormal(*wxWHITE);
     m_button_management->Enable(false);
+    m_button_refresh->SetBorderWidth(0);
+    m_button_refresh->SetBackgroundColorNormal(wxColor("#00AE42"));
+    m_button_refresh->SetTextColorNormal(*wxWHITE);
+    m_button_refresh->Enable(false);
 
     wxBoxSizer *manage_sizer = new wxBoxSizer(wxHORIZONTAL);
     manage_sizer->AddStretchSpacer(1);
     manage_sizer->Add(m_button_download, 0, wxALIGN_CENTER_VERTICAL)->Show(false);
     manage_sizer->Add(m_button_delete, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 24)->Show(false);
+    manage_sizer->Add(m_button_refresh, 0, wxALIGN_CENTER_VERTICAL);
     manage_sizer->Add(m_button_management, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 24);
     m_manage_panel->SetSizer(manage_sizer);
     top_sizer->Add(m_manage_panel, 1, wxEXPAND);
@@ -171,6 +178,11 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
     m_button_management->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](auto &e) {
         e.Skip();
         SetSelecting(!m_image_grid->IsSelecting());
+    });
+    m_button_refresh->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](auto &e) {
+        e.Skip();
+        if (auto fs = m_image_grid->GetFileSystem())
+            fs->ListAllFiles();
     });
     m_button_download->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](auto &e) {
         m_image_grid->DoActionOnSelection(1);
@@ -241,6 +253,7 @@ wxString hide_id_middle_string(wxString const &str, size_t offset = 0, size_t le
         fs->Unbind(EVT_MODE_CHANGED, &MediaFilePanel::modeChanged, this);
         fs->Stop(true);
     }
+    m_button_refresh->Enable(false);
     m_button_management->Enable(false);
     SetSelecting(false);
     if (m_machine.empty()) {
@@ -257,6 +270,7 @@ wxString hide_id_middle_string(wxString const &str, size_t offset = 0, size_t le
                 return;
             m_time_panel->Show(fs->GetFileType() < PrinterFileSystem::F_MODEL);
             //m_manage_panel->Show(fs->GetFileType() < PrinterFileSystem::F_MODEL);
+            m_button_refresh->Enable(true);
             m_button_management->Enable(fs->GetCount() > 0);
             bool download_support = fs->GetFileType() < PrinterFileSystem::F_MODEL || m_model_download_support;
             m_image_grid->ShowDownload(download_support);
@@ -377,6 +391,7 @@ void MediaFilePanel::Rescale()
 
     m_button_download->Rescale();
     m_button_delete->Rescale();
+    m_button_refresh->Rescale();
     m_button_management->Rescale();
 
     m_image_grid->Rescale();
@@ -390,6 +405,7 @@ void MediaFilePanel::SetSelecting(bool selecting)
     bool download_support = fs && fs->GetFileType() < PrinterFileSystem::F_MODEL || m_model_download_support;
     m_manage_panel->GetSizer()->Show(m_button_download, selecting && download_support);
     m_manage_panel->GetSizer()->Show(m_button_delete, selecting);
+    m_manage_panel->GetSizer()->Show(m_button_refresh, !selecting);
     m_manage_panel->Layout();
 }
 

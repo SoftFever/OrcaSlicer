@@ -69,6 +69,7 @@ private:
     ::StaticBox *m_manage_panel        = nullptr;
     ::Button *   m_button_delete     = nullptr;
     ::Button *m_button_download = nullptr;
+    ::Button *m_button_refresh = nullptr;
     ::Button *m_button_management = nullptr;
 
     ImageGrid * m_image_grid   = nullptr;
