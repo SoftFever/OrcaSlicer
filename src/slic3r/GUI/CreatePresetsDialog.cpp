@@ -3369,6 +3369,10 @@ ExportConfigsDialog::~ExportConfigsDialog()
             }
         }
     }
+
+    // Delete the Temp folder
+    boost::filesystem::path temp_folder(data_dir() + "/" + PRESET_USER_DIR + "/" + "Temp");
+    if (boost::filesystem::exists(temp_folder)) boost::filesystem::remove_all(temp_folder);
 }
 
 void ExportConfigsDialog::on_dpi_changed(const wxRect &suggested_rect) {
@@ -3422,6 +3426,26 @@ bool ExportConfigsDialog::has_check_box_selected()
     }
 
     return false;
+}
+
+bool ExportConfigsDialog::earse_preset_fields_for_safe(Preset *preset)
+{ 
+    if (preset->type != Preset::Type::TYPE_PRINTER) return true;
+    
+    boost::filesystem::path file_path(data_dir() + "/" + PRESET_USER_DIR + "/" + "Temp" + "/" + (preset->name + ".json"));
+    preset->file = file_path.make_preferred().string();
+
+    DynamicPrintConfig &config = preset->config;
+    config.erase("print_host");
+    config.erase("print_host_webui");
+    config.erase("printhost_apikey");
+    config.erase("printhost_cafile");
+    config.erase("printhost_user");
+    config.erase("printhost_password");
+    config.erase("printhost_port");
+
+    preset->save(nullptr);
+    return true; 
 }
 
 std::string ExportConfigsDialog::initial_file_path(const wxString &path, const std::string &sub_file_path)
@@ -4098,19 +4122,45 @@ wxBoxSizer *ExportConfigsDialog::create_select_printer(wxWindow *parent)
 
 void ExportConfigsDialog::data_init()
 {
+    // Delete the Temp folder
+    boost::filesystem::path folder(data_dir() + "/" + PRESET_USER_DIR + "/" + "Temp");
+    if (boost::filesystem::exists(folder)) boost::filesystem::remove_all(folder);
+
+    boost::system::error_code ec;
+    boost::filesystem::path user_folder(data_dir() + "/" + PRESET_USER_DIR);
+    bool                      temp_folder_exist = true;
+    if (!boost::filesystem::exists(user_folder)) {
+        if (!boost::filesystem::create_directories(user_folder, ec)) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " create directory failed: " << user_folder << " "<<ec.message();
+            temp_folder_exist = false;
+        }
+    }
+    boost::filesystem::path temp_folder(user_folder / "Temp");
+    if (!boost::filesystem::exists(temp_folder)) {
+        if (!boost::filesystem::create_directories(temp_folder, ec)) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " create directory failed: " << temp_folder << " " << ec.message();
+            temp_folder_exist = false;
+        }
+    }
+    if (!temp_folder_exist) {
+        MessageDialog dlg(this, _L("Failed to create temporary folder, please try Export Configs again."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES_NO | wxYES_DEFAULT | wxCENTRE);
+        dlg.ShowModal();
+        EndModal(wxCANCEL);
+    }
+
     PresetBundle preset_bundle(*wxGetApp().preset_bundle);
 
     const std::deque<Preset> & printer_presets = preset_bundle.printers.get_presets();
     for (const Preset &printer_preset : printer_presets) {
         
         std::string preset_name        = printer_preset.name;
-        if (!printer_preset.is_visible || "Default Printer" == preset_name) continue;
+        if (!printer_preset.is_visible || printer_preset.is_default || printer_preset.is_project_embedded) continue;
         if (preset_bundle.printers.select_preset_by_name(preset_name, false)) {
             preset_bundle.update_compatible(PresetSelectCompatibleType::Always);
 
             const std::deque<Preset> &filament_presets = preset_bundle.filaments.get_presets();
             for (const Preset &filament_preset : filament_presets) {
-                if (filament_preset.is_system || filament_preset.is_default) continue;
+                if (filament_preset.is_system || filament_preset.is_default || filament_preset.is_project_embedded) continue;
                 if (filament_preset.is_compatible) {
                     Preset *new_filament_preset = new Preset(filament_preset);
                     m_filament_presets[preset_name].push_back(new_filament_preset);
@@ -4119,7 +4169,7 @@ void ExportConfigsDialog::data_init()
 
             const std::deque<Preset> &process_presets = preset_bundle.prints.get_presets();
             for (const Preset &process_preset : process_presets) {
-                if (process_preset.is_system || process_preset.is_default) continue;
+                if (process_preset.is_system || process_preset.is_default || process_preset.is_project_embedded) continue;
                 if (process_preset.is_compatible) {
                     Preset *new_prpcess_preset = new Preset(process_preset);
                     m_process_presets[preset_name].push_back(new_prpcess_preset);
@@ -4127,6 +4177,7 @@ void ExportConfigsDialog::data_init()
             }
             
             Preset *new_printer_preset     = new Preset(printer_preset);
+            earse_preset_fields_for_safe(new_printer_preset);
             m_printer_presets[preset_name] = new_printer_preset;
         }
     }
