@@ -1,5 +1,5 @@
 {
-    "name": "Construct3D",
+    "name": "CONSTRUCT3D",
     "url": "",
     "version": "01.09.00.02",
     "force_update": "0",
@@ -34,6 +34,22 @@
 		{
             "name": "0.38mm Draft @Construct 1 XL",
             "sub_path": "process/0.38mm Draft @Construct 1 XL.json"
+        }
+		{
+            "name": "0.14mm Quality @Construct 1",
+            "sub_path": "process/0.14mm Quality @Construct 1.json"
+        },
+        {
+            "name": "0.25mm Industrial@Construct 1",
+            "sub_path": "process/0.25mm Industrial@Construct 1.json"
+        },
+        {
+            "name": "0.22mm Standard@Construct 1",
+            "sub_path": "process/0.30mm Standard@Construct 1.json"
+        },
+		{
+            "name": "0.30mm Draft @Construct 1 XL",
+            "sub_path": "process/0.30mm Draft @Construct 1.json"
         }
     ],
     "filament_list": [

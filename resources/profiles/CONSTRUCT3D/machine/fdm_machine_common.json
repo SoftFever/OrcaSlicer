@@ -82,7 +82,7 @@
     "extruder_clearance_height_to_rod": "36",
     "extruder_clearance_height_to_lid": "140",
     "nozzle_diameter": [
-        "0.4"
+        "0.6"
     ],
     "printer_settings_id": "",
     "printer_variant": "0.4",
