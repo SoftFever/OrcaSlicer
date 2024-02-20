@@ -52,6 +52,7 @@ protected:
     void append_hms_panel(HMSItem &item);
     void delete_hms_panels();
 
+    
 public:
     HMSPanel(wxWindow *parent, wxWindowID id = wxID_ANY, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize, long style = wxTAB_TRAVERSAL);
     ~HMSPanel();
@@ -63,6 +64,8 @@ public:
     void update(MachineObject *obj_);
 
     void show_status(int status);
+
+    void clear_hms_tag();
 
     MachineObject *obj { nullptr };
     std::map<std::string, HMSItem>    temp_hms_list;

@@ -281,6 +281,10 @@ void MonitorPanel::on_update_all(wxMouseEvent &event)
     Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev) return;
 
+    if ( (dev->get_selected_machine()->dev_id != event.GetString().ToStdString()) && m_hms_panel) {
+        m_hms_panel->clear_hms_tag();
+    }
+
     if (!dev->set_selected_machine(event.GetString().ToStdString()))
         return;
 
@@ -391,7 +395,7 @@ void MonitorPanel::update_all()
         m_status_info_panel->update(obj);
     }
 
-    if (m_hms_panel->IsShown()) {
+    if (m_hms_panel->IsShown() ||  obj->hms_list.size() > 0) {
         m_hms_panel->update(obj);
     }
 

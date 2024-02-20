@@ -201,6 +201,11 @@ void HMSPanel::delete_hms_panels() {
     m_scrolledWindow->DestroyChildren();
 }
 
+void HMSPanel::clear_hms_tag()
+{
+    temp_hms_list.clear();
+}
+
 void HMSPanel::update(MachineObject *obj)
 {
     if (obj) {
@@ -219,7 +224,7 @@ void HMSPanel::update(MachineObject *obj)
                 append_hms_panel(item);
             }
         }
-
+        
         for (auto thms : temp_hms_list) {
             auto key = thms.second.get_long_error_code();
             auto inr = false;
@@ -229,7 +234,7 @@ void HMSPanel::update(MachineObject *obj)
                     break;
                 }
             }
-            
+
             if (!inr) {
                 temp_hms_list.erase(key);
             }
