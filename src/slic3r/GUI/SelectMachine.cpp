@@ -2141,9 +2141,39 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
         update_print_status_msg(msg_text, true, true);
         Enable_Send_Button(false);
         Enable_Refresh_Button(true);
-    } else if (status == PrintDialogStatus::PrintStatusUnsupportedPrinter) {
-        wxString msg_text = _L("The selected printer is incompatible with the chosen printer presets.");
-        update_print_status_msg(msg_text, true, true);
+    }else if (status == PrintDialogStatus::PrintStatusUnsupportedPrinter) {
+        wxString msg_text;
+        try
+        {
+            DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+            if (!dev) return;
+
+            //source print
+            MachineObject* obj_ = dev->get_selected_machine();
+            if (obj_ == nullptr) return;
+            auto sourcet_print_name = obj_->get_printer_type_display_str();
+            sourcet_print_name.Replace(wxT("Bambu Lab "), wxEmptyString);
+
+            //target print
+            std::string target_model_id;
+            if (m_print_type == PrintFromType::FROM_NORMAL){
+                PresetBundle* preset_bundle = wxGetApp().preset_bundle;
+                target_model_id = preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle);
+            }
+            else if (m_print_type == PrintFromType::FROM_SDCARD_VIEW) {
+                if (m_required_data_plate_data_list.size() > 0) {
+                    target_model_id = m_required_data_plate_data_list[m_print_plate_idx]->printer_model_id;
+                }
+            }
+
+            auto target_print_name = wxString(obj_->get_preset_printer_model_name(target_model_id));
+            target_print_name.Replace(wxT("Bambu Lab "), wxEmptyString);
+            msg_text = wxString::Format(_L("The selected printer (%s) is incompatible with the chosen printer profile in the slicer (%s)."), sourcet_print_name, target_print_name);
+            
+            update_print_status_msg(msg_text, true, true);
+        }
+        catch (...){}
+        
         Enable_Send_Button(false);
         Enable_Refresh_Button(true);
     }else if (status == PrintDialogStatus::PrintStatusTimelapseNoSdcard) {
