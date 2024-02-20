@@ -2893,10 +2893,15 @@ namespace IMGUIZMO_NAMESPACE
                   {
                      gContext.mDrawList->AddConvexPolyFilled(faceCoordsScreen, 4, IM_COL32(0xF0, 0xA0, 0x60, 0x80));
 
+#if IMGUI_VERSION_NUM >= 18723
+                     ImGui::SetNextFrameWantCaptureMouse(true);
+#else
+                     ImGui::CaptureMouseFromApp();
+#endif
                      if (io.MouseDown[0] && !isClicking && !isDraging && GImGui->ActiveId == 0) {
                         overBox = boxCoordInt;
                         isClicking = true;
-                        isDraging = true;
+                        isDraging  = true;
                      }
                   }
                }
@@ -2916,12 +2921,19 @@ namespace IMGUIZMO_NAMESPACE
          newUp = interpolationUp;
          vec_t newEye = camTarget + newDir * length;
          LookAt(&newEye.x, &camTarget.x, &newUp.x, view);
+         viewUpdated = true;
       }
       isInside = gContext.mbMouseOver && ImRect(position, position + size).Contains(io.MousePos);
 
       if (io.MouseDown[0] && (fabsf(io.MouseDelta[0]) || fabsf(io.MouseDelta[1])) && isClicking)
       {
          isClicking = false;
+
+#if IMGUI_VERSION_NUM >= 18723
+         ImGui::SetNextFrameWantCaptureMouse(true);
+#else
+         ImGui::CaptureMouseFromApp();
+#endif
       }
 
       if (!io.MouseDown[0])
@@ -2988,6 +3000,11 @@ namespace IMGUIZMO_NAMESPACE
 
          vec_t newEye = camTarget + newDir * length;
          LookAt(&newEye.x, &camTarget.x, &referenceUp.x, view);
+#if IMGUI_VERSION_NUM >= 18723
+         ImGui::SetNextFrameWantCaptureMouse(true);
+#else
+         ImGui::CaptureMouseFromApp();
+#endif
       }
 
       // restore view/projection because it was used to compute ray
