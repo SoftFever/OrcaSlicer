@@ -460,8 +460,8 @@ std::vector<unsigned int> Print::extruders(bool conside_custom_gcode) const
     if (conside_custom_gcode) {
         //BBS
         int num_extruders = m_config.filament_colour.size();
-        for (auto plate_data : m_model.plates_custom_gcodes) {
-            for (auto item : plate_data.second.gcodes) {
+        if (m_model.plates_custom_gcodes.find(m_model.curr_plate_index) != m_model.plates_custom_gcodes.end()) {
+            for (auto item : m_model.plates_custom_gcodes.at(m_model.curr_plate_index).gcodes) {
                 if (item.type == CustomGCode::Type::ToolChange && item.extruder <= num_extruders)
                     extruders.push_back((unsigned int)(item.extruder - 1));
             }
