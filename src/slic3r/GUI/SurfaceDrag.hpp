@@ -89,7 +89,8 @@ std::optional<Vec3d> calc_surface_offset(const Selection &selection, RaycastMana
 /// <param name="canvas">Contain model</param>
 /// <returns>Calculated distance from surface</returns>
 std::optional<float> calc_distance(const GLVolume &gl_volume, RaycastManager &raycaster, GLCanvas3D &canvas);
-std::optional<float> calc_distance(const GLVolume &gl_volume, const RaycastManager &raycaster, const RaycastManager::ISkip *condition);
+std::optional<float> calc_distance(const GLVolume &gl_volume, const RaycastManager &raycaster, 
+    const RaycastManager::ISkip *condition, const std::optional<Slic3r::Transform3d>& fix);
 
 /// <summary>
 /// Calculate up vector angle
@@ -136,16 +137,16 @@ bool face_selected_volume_to_camera(const Camera &camera, GLCanvas3D &canvas, co
 /// <summary>
 /// Rotation around z Axis(emboss direction)
 /// </summary>
-/// <param name="canvas">Selected volume for rotation</param>
+/// <param name="selection">Selected volume for rotation</param>
 /// <param name="relative_angle">Relative angle to rotate around emboss direction</param>
-void do_local_z_rotate(GLCanvas3D &canvas, double relative_angle);
+void do_local_z_rotate(Selection &selection, double relative_angle);
 
 /// <summary>
 /// Translation along local z Axis (emboss direction)
 /// </summary>
-/// <param name="canvas">Selected volume for translate</param>
+/// <param name="selection">Selected volume for translate</param>
 /// <param name="relative_move">Relative move along emboss direction</param>
-void do_local_z_move(GLCanvas3D &canvas, double relative_move);
+void do_local_z_move(Selection &selection, double relative_move);
 
 /// <summary>
 /// Distiguish between object and volume
