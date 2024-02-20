@@ -7309,13 +7309,16 @@ void GLCanvas3D::_render_overlays()
     {
         ImGuizmo::BeginFrame();
         ImGuiIO& io                  = ImGui::GetIO();
-        float    viewManipulateRight = io.DisplaySize.x;
-        float    viewManipulateTop   = 0;
+        float    viewManipulateLeft = 0;
+        float    viewManipulateTop   = io.DisplaySize.y;
         float    camDistance         = 8.f;
         ImGuizmo::SetID(0);
-        ImGuizmo::ViewManipulate(cameraView, cameraProjection, ImGuizmo::OPERATION::ROTATE, ImGuizmo::MODE::WORLD, identityMatrix,
-                                 camDistance,
-                                 ImVec2(viewManipulateRight - 128, viewManipulateTop), ImVec2(128, 128), 0x10101010);
+        bool dirty = ImGuizmo::ViewManipulate(cameraView, cameraProjection, ImGuizmo::OPERATION::ROTATE, ImGuizmo::MODE::WORLD, identityMatrix,
+                                 camDistance, ImVec2(viewManipulateLeft, viewManipulateTop - 128), ImVec2(128, 128), 0x10101010);
+
+        if (dirty) {
+            request_extra_frame();
+        }
     }
 
     if (m_layers_editing.last_object_id >= 0 && m_layers_editing.object_max_z() > 0.0f)
