@@ -2834,13 +2834,45 @@ void StatusPanel::update_ams_control_state(bool is_curr_tray_selected)
     }
     
     if (obj->ams_exist_bits == 0) {
-        if (obj->is_in_printing() && !obj->can_resume()) {
-            enable[ACTION_BTN_LOAD] = false;
-            enable[ACTION_BTN_UNLOAD] = false;
+        if (obj->is_in_printing()) {
+            if (!obj->can_resume()) {
+                enable[ACTION_BTN_LOAD] = false;
+                enable[ACTION_BTN_UNLOAD] = false;
+            }
+            else{
+                if (obj->m_tray_now == "255") {
+                    enable[ACTION_BTN_LOAD] = true;
+                    enable[ACTION_BTN_UNLOAD] = false;
+                }
+                else if (obj->m_tray_now == std::to_string(VIRTUAL_TRAY_ID)) {
+                    enable[ACTION_BTN_LOAD] = false;
+                    enable[ACTION_BTN_UNLOAD] = true;
+                }
+            }
         }
-        else {
-            enable[ACTION_BTN_LOAD] = true;
-            enable[ACTION_BTN_UNLOAD] = true;
+        
+    }
+    else {
+        if (obj->is_in_printing() /*&& obj->can_resume() && obj->m_tray_now != std::to_string(VIRTUAL_TRAY_ID) */) {
+
+            if (!obj->can_resume()) {
+                enable[ACTION_BTN_LOAD] = false;
+                enable[ACTION_BTN_UNLOAD] = false;
+            }
+            else {
+                if (obj->m_tray_now == "255") {
+                    enable[ACTION_BTN_LOAD] = true;
+                    enable[ACTION_BTN_UNLOAD] = false;
+                }
+                else if (obj->m_tray_now == std::to_string(VIRTUAL_TRAY_ID)) {
+                    enable[ACTION_BTN_LOAD] = false;
+                    enable[ACTION_BTN_UNLOAD] = true;
+                }
+                else {
+                    enable[ACTION_BTN_LOAD] = false;
+                    enable[ACTION_BTN_UNLOAD] = false;
+                }
+            } 
         }
     }
 
