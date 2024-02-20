@@ -192,9 +192,12 @@ modules:
         cmake ../ \
           -DDEP_WX_GTK3=1 \
           -DDEP_DOWNLOAD_DIR=/run/build/orca_deps/external-packages \
+          -DCMAKE_PREFIX_PATH=/app \
+          -DDESTDIR=/app \
           -DCMAKE_INSTALL_LIBDIR=/app/lib \
+          -DREMOVE_DESTDIR_POSTPEND=ON \ 
           -DCMAKE_INSTALL_PREFIX=/app 
-        cmake --build .
+        cmake --build . 
     
     cleanup:
       - /app/include
@@ -307,10 +310,10 @@ modules:
         sha256: e02d956935e5b9fb4abf90e2c2e07c9a0526d7eacae8ee5353484c69a2a76cd0
       
       # wxWidgets
-      - type: git 
-        url: https://github.com/wxWidgets/wxWidgets
+      - type: file
+        url: https://github.com/wxWidgets/wxWidgets/archive/refs/tags/v3.1.5.tar.gz
+        sha256: e8fd5f9fbff864562aa4d9c094f898c97f5e1274c90f25beb0bfd5cb61319dea
         dest: external-packages/wxWidgets
-        tag: v3.1.5
 
   - name: OrcaSlicer 
     buildsystem: simple
