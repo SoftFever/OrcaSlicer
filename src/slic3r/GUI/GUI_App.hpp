@@ -630,6 +630,8 @@ private:
     // extend is stl/3mf/gcode/step etc
     void            associate_files(std::wstring extend);
     void            disassociate_files(std::wstring extend);
+    void            associate_url(std::wstring url_prefix);
+    void            disassociate_url(std::wstring url_prefix);
 #endif // __WXMSW__
 
     // URL download - PrusaSlicer gets system call to open prusaslicer:// URL which should contain address of download

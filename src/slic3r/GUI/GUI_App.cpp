@@ -2514,6 +2514,10 @@ bool GUI_App::on_init_inner()
             associate_files(L"step");
             associate_files(L"stp");
         }
+        // Orca: add PS url functionality
+        if (app_config->get_bool("ps_url_registered")) {
+            associate_url(L"prusaslicer");
+        }
         if (app_config->get("associate_gcode") == "true")
             associate_files(L"gcode");
 #endif // __WXMSW__
@@ -5551,6 +5555,10 @@ void GUI_App::open_preferences(size_t open_on_tab, const std::string& highlight_
                 associate_files(L"step");
                 associate_files(L"stp");
             }
+            // Orca: add PS url functionality
+            if (app_config->get_bool("ps_url_registered")) {
+                associate_url(L"prusaslicer");
+            }
         }
         else {
             if (app_config->get("associate_gcode") == "true")
@@ -6607,6 +6615,39 @@ void GUI_App::disassociate_files(std::wstring extend)
        ::SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, nullptr, nullptr);
 }
 
+void GUI_App::associate_url(std::wstring url_prefix)
+{
+    // Registry key creation for "prusaslicer://" URL
+
+    boost::filesystem::path binary_path(boost::filesystem::canonical(boost::dll::program_location()));
+    // the path to binary needs to be correctly saved in string with respect to localized characters
+    wxString wbinary = wxString::FromUTF8(binary_path.string());
+    std::string binary_string = (boost::format("%1%") % wbinary).str();
+    BOOST_LOG_TRIVIAL(info) << "Downloader registration: Path of binary: " << binary_string;
+
+    std::string key_string = "\"" + binary_string + "\" \"%1\"";
+
+    wxRegKey key_first(wxRegKey::HKCU, "Software\\Classes\\" + url_prefix);
+    wxRegKey key_full(wxRegKey::HKCU, "Software\\Classes\\" + url_prefix + "\\shell\\open\\command");
+    if (!key_first.Exists()) {
+        key_first.Create(false);
+    }
+    key_first.SetValue("URL Protocol", "");
+
+    if (!key_full.Exists()) {
+        key_full.Create(false);
+    }
+    key_full = key_string;
+}
+
+void GUI_App::disassociate_url(std::wstring url_prefix)
+{
+    wxRegKey key_full(wxRegKey::HKCU, "Software\\Classes\\" + url_prefix + "\\shell\\open\\command");
+    if (!key_full.Exists()) {
+        return;
+    }
+    key_full = "";
+}
 
 #endif // __WXMSW__
 
