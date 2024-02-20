@@ -85,6 +85,8 @@
 #endif
 #include <imgui/imgui_internal.h>
 
+#include <imguizmo/ImGuizmo.h>
+
 static constexpr const float TRACKBALLSIZE = 0.8f;
 
 static Slic3r::ColorRGBA DEFAULT_BG_LIGHT_COLOR      = { 0.906f, 0.906f, 0.906f, 1.0f };
@@ -7275,6 +7277,10 @@ void GLCanvas3D::_check_and_update_toolbar_icon_scale()
         wxGetApp().set_auto_toolbar_icon_scale(new_scale);
 }
 
+static float identityMatrix[16] = {1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f};
+static const float cameraProjection[16] = {1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f};
+static float        cameraView[16]       = {1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f};
+
 void GLCanvas3D::_render_overlays()
 {
     glsafe(::glDisable(GL_DEPTH_TEST));
@@ -7299,6 +7305,18 @@ void GLCanvas3D::_render_overlays()
     //BBS: GUI refactor: GLToolbar
     //move gizmos behind of main
     _render_gizmos_overlay();
+
+    {
+        ImGuizmo::BeginFrame();
+        ImGuiIO& io                  = ImGui::GetIO();
+        float    viewManipulateRight = io.DisplaySize.x;
+        float    viewManipulateTop   = 0;
+        float    camDistance         = 8.f;
+        ImGuizmo::SetID(0);
+        ImGuizmo::ViewManipulate(cameraView, cameraProjection, ImGuizmo::OPERATION::ROTATE, ImGuizmo::MODE::WORLD, identityMatrix,
+                                 camDistance,
+                                 ImVec2(viewManipulateRight - 128, viewManipulateTop), ImVec2(128, 128), 0x10101010);
+    }
 
     if (m_layers_editing.last_object_id >= 0 && m_layers_editing.object_max_z() > 0.0f)
         m_layers_editing.render_overlay(*this);
