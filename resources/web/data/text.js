@@ -412,6 +412,13 @@ var LangText = {
     t104: "Název profilu",
     t105: "Autor profilu",
     t106: "Popis profilu",
+    t107: "Online modely",
+    t108: "VÍCE",
+    t109: "Systémové filamenty",
+    t110: "Vlastní filamenty",
+    t111: "Vytvořit nový",
+    t112: "Připojte se k programu",
+    t113: "Svoji volbu můžete kdykoli změnit v nastavení.",
   },
   fr_FR: {
     t1: "Bienvenue sur Orca Slicer",
