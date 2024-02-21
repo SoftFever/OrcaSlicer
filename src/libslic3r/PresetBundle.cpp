@@ -1962,7 +1962,11 @@ DynamicPrintConfig PresetBundle::full_config_secure() const
     config.erase("print_host");
     config.erase("print_host_webui");
     config.erase("printhost_apikey");
-    config.erase("printhost_cafile");    return config;
+    config.erase("printhost_cafile");    
+    config.erase("printhost_user");    
+    config.erase("printhost_password");    
+    config.erase("printhost_port");    
+    return config;
 }
 
 const std::set<std::string> ignore_settings_list ={
