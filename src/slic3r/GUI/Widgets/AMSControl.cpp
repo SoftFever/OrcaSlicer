@@ -1379,8 +1379,15 @@ AMSRoad::AMSRoad(wxWindow *parent, wxWindowID id, Caninfo info, int canindex, in
     for (int i = 1; i <= 5; i++) {
         ams_humidity_img.push_back(ScalableBitmap(this, "hum_level" + std::to_string(i) + "_dark", 32));
     }
+    if (m_rode_mode != AMSRoadMode::AMS_ROAD_MODE_VIRTUAL_TRAY) {
+        create(parent, id, pos, size);
+    }
+    else {
+        wxSize virtual_size(size.x - 1, size.y + 2);
+        create(parent, id, pos, virtual_size);
 
-    create(parent, id, pos, size);
+    }
+    
     Bind(wxEVT_PAINT, &AMSRoad::paintEvent, this);
     wxWindow::SetBackgroundColour(AMS_CONTROL_DEF_BLOCK_BK_COLOUR);
 
@@ -1737,16 +1744,24 @@ void AMSItem::doRender(wxDC &dc)
             int fleft = left;
             float total_width = AMS_ITEM_CUBE_SIZE.x;
             int gwidth = std::round(total_width / (iter->material_cols.size() - 1));
+            if (iter->ctype == 0) {
+                for (int i = 0; i < iter->material_cols.size() - 1; i++) {
 
-            for (int i = 0; i < iter->material_cols.size() - 1; i++) {
+                    if ((fleft + gwidth) > (AMS_ITEM_CUBE_SIZE.x)) {
+                        gwidth = (fleft + AMS_ITEM_CUBE_SIZE.x) - fleft;
+                    }
 
-                if ((fleft + gwidth) > (AMS_ITEM_CUBE_SIZE.x)) {
-                    gwidth = (fleft + AMS_ITEM_CUBE_SIZE.x) - fleft;
+                    auto rect = wxRect(fleft, (size.y - AMS_ITEM_CUBE_SIZE.y) / 2, gwidth, AMS_ITEM_CUBE_SIZE.y);
+                    dc.GradientFillLinear(rect, iter->material_cols[i], iter->material_cols[i + 1], wxEAST);
+                    fleft += gwidth;
                 }
-
-                auto rect = wxRect(fleft, (size.y - AMS_ITEM_CUBE_SIZE.y) / 2, gwidth, AMS_ITEM_CUBE_SIZE.y);
-                dc.GradientFillLinear(rect, iter->material_cols[i], iter->material_cols[i + 1], wxEAST);
-                fleft += gwidth;
+            } else {
+                int cols_size = iter->material_cols.size();
+                for (int i = 0; i < cols_size; i++) {
+                    dc.SetBrush(wxBrush(iter->material_cols[i]));
+                    float x = left + total_width * i / cols_size;
+                    dc.DrawRoundedRectangle(x, (size.y - AMS_ITEM_CUBE_SIZE.y) / 2, total_width / cols_size, AMS_ITEM_CUBE_SIZE.y , 0);
+                }
             }
 
             dc.SetPen(wxPen(StateColor::darkModeColorFor(m_background_colour)));
