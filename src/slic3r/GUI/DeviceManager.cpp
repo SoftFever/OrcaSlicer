@@ -2680,6 +2680,7 @@ int MachineObject::parse_json(std::string payload)
                         std::string access_code = j_pre["system"]["access_code"].get<std::string>();
                         if (!access_code.empty()) {
                             set_access_code(access_code);
+                            set_user_access_code(access_code);
                         }
                     }
                 }
