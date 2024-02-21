@@ -7279,7 +7279,6 @@ void GLCanvas3D::_check_and_update_toolbar_icon_scale()
 
 static float identityMatrix[16] = {1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f};
 static const float cameraProjection[16] = {1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f};
-static float        cameraView[16]       = {1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f};
 
 void GLCanvas3D::_render_overlays()
 {
@@ -7319,7 +7318,18 @@ void GLCanvas3D::_render_overlays()
         float    viewManipulateTop   = io.DisplaySize.y;
         float    camDistance         = 8.f;
         ImGuizmo::SetID(0);
-        bool dirty = ImGuizmo::ViewManipulate(cameraView, cameraProjection, ImGuizmo::OPERATION::ROTATE, ImGuizmo::MODE::WORLD, identityMatrix,
+
+        Camera&     camera           = wxGetApp().plater()->get_camera();
+        Transform3d m                = Transform3d::Identity();
+        m.matrix().block(0, 0, 3, 3) = camera.get_view_rotation().toRotationMatrix();
+        //float cameraView[16];
+        for (unsigned int c = 0; c < 4; ++c) {
+            for (unsigned int r = 0; r < 4; ++r) {
+                //cameraView[c * 4 + r] = m(r, c);
+            }
+        }
+
+        const bool dirty = ImGuizmo::ViewManipulate(cameraView, cameraProjection, ImGuizmo::OPERATION::ROTATE, ImGuizmo::MODE::WORLD, identityMatrix,
                                  camDistance, ImVec2(viewManipulateLeft, viewManipulateTop - 128), ImVec2(128, 128), 0x10101010);
 
         if (dirty) {
