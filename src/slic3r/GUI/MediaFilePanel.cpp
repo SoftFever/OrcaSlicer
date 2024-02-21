@@ -270,7 +270,7 @@ wxString hide_id_middle_string(wxString const &str, size_t offset = 0, size_t le
                 return;
             m_time_panel->Show(fs->GetFileType() < PrinterFileSystem::F_MODEL);
             //m_manage_panel->Show(fs->GetFileType() < PrinterFileSystem::F_MODEL);
-            m_button_refresh->Enable(true);
+            m_button_refresh->Enable(fs->GetStatus() == PrinterFileSystem::ListReady);
             m_button_management->Enable(fs->GetCount() > 0);
             bool download_support = fs->GetFileType() < PrinterFileSystem::F_MODEL || m_model_download_support;
             m_image_grid->ShowDownload(download_support);
@@ -300,9 +300,13 @@ wxString hide_id_middle_string(wxString const &str, size_t offset = 0, size_t le
             case PrinterFileSystem::Connecting: icon = m_bmp_loading; msg = _L("Connecting..."); break;
             case PrinterFileSystem::Failed: icon = m_bmp_failed; if (extra != 1) msg = _L("Connect failed [%d]!"); break;
             case PrinterFileSystem::ListSyncing: icon = m_bmp_loading; msg = _L("Loading file list..."); break;
-            case PrinterFileSystem::ListReady: icon = extra == 0 ? m_bmp_empty : m_bmp_failed; msg = extra == 0 ? _L("No files [%d]") : _L("Load failed [%d]"); break;
+            case PrinterFileSystem::ListReady: icon = extra == 0 ? m_bmp_empty : m_bmp_failed; msg = extra == 0 ? _L("No files") : _L("Load failed"); break;
             }
-            if (!e.GetString().IsEmpty()) msg = e.GetString();
+            int err = fs->GetLastError();
+            if (!e.GetString().IsEmpty())
+                msg = e.GetString();
+            if (err != 0)
+                msg += " [%d]";
             if (fs->GetCount() == 0 && !msg.empty())
                 m_image_grid->SetStatus(icon, msg);
             if (e.GetInt() == PrinterFileSystem::Initializing)

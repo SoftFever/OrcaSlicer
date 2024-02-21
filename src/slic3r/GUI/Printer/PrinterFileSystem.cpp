@@ -203,6 +203,7 @@ void PrinterFileSystem::ListAllFiles()
         }
         BuildGroups();
         UpdateGroupSelect();
+        m_last_error = 0;
         m_status = Status::ListReady;
         SendChangedEvent(EVT_STATUS_CHANGED, m_status);
         SendChangedEvent(EVT_FILE_CHANGED);
