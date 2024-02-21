@@ -4296,7 +4296,7 @@ msgstr "Ouvrir le Test de Réseau"
 
 #, c-format, boost-format
 msgid "&About %s"
-msgstr "&Au sujet de %s"
+msgstr "&À propos de %s"
 
 msgid "Upload Models"
 msgstr "Téléverser les Modèles"
