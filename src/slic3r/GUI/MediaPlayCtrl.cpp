@@ -234,13 +234,13 @@ void MediaPlayCtrl::Play()
         Stop(_L("Initialize failed (Device connection not ready)!"));
         return;
     }
-    if (!m_camera_exists) {
-        Stop(_L("Initialize failed (No Camera Device)!"));
-        return;
-    }
     if (m_device_busy) {
         Stop(_L("Printer is busy downloading, Please wait for the downloading to finish."));
         m_failed_retry = 0;
+        return;
+    }
+    if (!m_camera_exists) {
+        Stop(_L("Printer camera is malfunctioning."));
         return;
     }
 
