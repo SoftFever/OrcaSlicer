@@ -7,7 +7,7 @@
   <key>CFBundleGetInfoString</key>
   <string>@SLIC3R_APP_NAME@ Copyright(C) 2021-2023 Lunkuo All Rights Reserved</string>
   <key>CFBundleIconFile</key>
-  <string>OrcaSlicer.icns</string>
+  <string>images/OrcaSlicer.icns</string>
   <key>CFBundleName</key>
   <string>@SLIC3R_APP_KEY@</string>
   <key>CFBundleShortVersionString</key>
@@ -22,6 +22,17 @@
   <string>????</string>
   <key>CFBundleVersion</key>
   <string>@SLIC3R_BUILD_ID@</string>
+  <key>CFBundleURLTypes</key>
+  <array>
+    <dict>
+      <key>CFBundleURLName</key>
+      <string>orcasliceropen url</string>
+      <key>CFBundleURLSchemes</key>
+      <array>
+        <string>orcasliceropen</string>
+      </array>
+    </dict>
+  </array>
   <key>CFBundleDocumentTypes</key>
   <array>
     <dict>
@@ -31,7 +42,7 @@
         <string>STL</string>
       </array>
       <key>CFBundleTypeIconFile</key>
-      <string>stl.icns</string>
+      <string>images/stl.icns</string>
       <key>CFBundleTypeName</key>
       <string>STL</string>
       <key>CFBundleTypeRole</key>
@@ -48,7 +59,7 @@
         <string>OBJ</string>
       </array>
       <key>CFBundleTypeIconFile</key>
-      <string>OrcaSlicer.icns</string>
+      <string>images/OrcaSlicer.icns</string>
       <key>CFBundleTypeName</key>
       <string>STL</string>
       <key>CFBundleTypeRole</key>
@@ -65,7 +76,7 @@
         <string>AMF</string>
       </array>
       <key>CFBundleTypeIconFile</key>
-      <string>OrcaSlicer.icns</string>
+      <string>images/OrcaSlicer.icns</string>
       <key>CFBundleTypeName</key>
       <string>AMF</string>
       <key>CFBundleTypeRole</key>
@@ -82,7 +93,7 @@
         <string>3MF</string>
       </array>
       <key>CFBundleTypeIconFile</key>
-      <string>OrcaSlicer.icns</string>
+      <string>images/OrcaSlicer.icns</string>
       <key>CFBundleTypeName</key>
       <string>3MF</string>
       <key>CFBundleTypeRole</key>
@@ -99,7 +110,7 @@
         <string>GCODE</string>
       </array>
       <key>CFBundleTypeIconFile</key>
-      <string>gcode.icns</string>
+      <string>images/gcode.icns</string>
       <key>CFBundleTypeName</key>
       <string>GCODE</string>
       <key>CFBundleTypeRole</key>

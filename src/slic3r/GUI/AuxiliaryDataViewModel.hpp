@@ -8,7 +8,7 @@
 
 #include "I18N.hpp"
 
-#include <filesystem>
+#include <boost/filesystem.hpp>
 
 class AuxiliaryModelNode;
 WX_DEFINE_ARRAY_PTR(AuxiliaryModelNode*, AuxiliaryModelNodePtrArray);

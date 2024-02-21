@@ -1,6 +1,8 @@
 #include "AxisCtrlButton.hpp"
 #include "Label.hpp"
+#include "libslic3r/libslic3r.h"
 
+#include <wx/dcclient.h>
 #include <wx/dcgraph.h>
 
 StateColor blank_bg(StateColor(std::make_pair(wxColour("#FFFFFF"), (int)StateColor::Normal)));

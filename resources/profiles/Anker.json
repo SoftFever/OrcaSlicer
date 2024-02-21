@@ -9,6 +9,10 @@
             "sub_path": "machine/Anker M5.json"
         },
         {
+            "name": "Anker M5 All-Metal Hot End",
+            "sub_path": "machine/Anker M5 All-Metal Hot End.json"
+        },
+        {
             "name": "Anker M5C",
             "sub_path": "machine/Anker M5C.json"
         }
@@ -17,6 +21,14 @@
         {
             "name": "fdm_process_common",
             "sub_path": "process/fdm_process_common.json"
+        },
+        {
+            "name": "fdm_process_anker_common",
+            "sub_path": "process/fdm_process_anker_common.json"
+        },
+        {
+            "name": "fdm_process_anker_fast_common",
+            "sub_path": "process/fdm_process_anker_fast_common.json"
         },
         {
             "name": "0.05mm Ultradetail @Anker",
@@ -31,28 +43,28 @@
             "sub_path": "process/0.15mm Optimal @Anker.json"
         },
         {
-            "name": "0.20mm Standard @Anker",
-            "sub_path": "process/0.20mm Standard @Anker.json"
-        },
-        {
-            "name": "0.25mm Draft @Anker",
-            "sub_path": "process/0.25mm Draft @Anker.json"
-        },
-        {
-            "name": "0.30mm Superdraft @Anker",
-            "sub_path": "process/0.30mm Superdraft @Anker.json"
-        },
-        {
             "name": "0.15mm Fast @Anker",
             "sub_path": "process/0.15mm Fast @Anker.json"
+        },
+        {
+            "name": "0.20mm Standard @Anker",
+            "sub_path": "process/0.20mm Standard @Anker.json"
         },
         {
             "name": "0.20mm Fast @Anker",
             "sub_path": "process/0.20mm Fast @Anker.json"
         },
         {
+            "name": "0.25mm Draft @Anker",
+            "sub_path": "process/0.25mm Draft @Anker.json"
+        },
+        {
             "name": "0.25mm Fast @Anker",
             "sub_path": "process/0.25mm Fast @Anker.json"
+        },
+        {
+            "name": "0.30mm Superdraft @Anker",
+            "sub_path": "process/0.30mm Superdraft @Anker.json"
         }
     ],
     "filament_list": [
@@ -89,28 +101,92 @@
             "sub_path": "filament/fdm_filament_pva.json"
         },
         {
-            "name": "fdm_filament_pa",
+            "name": "fdm_filament_pa ",
             "sub_path": "filament/fdm_filament_pa.json"
+        },
+        {
+            "name": "Anker Generic PLA @base",
+            "sub_path": "filament/Anker Generic PLA @base.json"
+        },
+        {
+            "name": "Anker Generic PLA+ @base",
+            "sub_path": "filament/Anker Generic PLA+ @base.json"
+        },
+        {
+            "name": "Anker Generic PLA Silk @base",
+            "sub_path": "filament/Anker Generic PLA Silk @base.json"
+        },
+        {
+            "name": "Anker Generic PLA-CF @base",
+            "sub_path": "filament/Anker Generic PLA-CF @base.json"
+        },
+        {
+            "name": "Anker Generic TPU @base",
+            "sub_path": "filament/Anker Generic TPU @base.json"
+        },
+        {
+            "name": "Anker Generic PETG @base",
+            "sub_path": "filament/Anker Generic PETG @base.json"
+        },
+        {
+            "name": "Anker Generic PETG-CF @base",
+            "sub_path": "filament/Anker Generic PETG-CF @base.json"
+        },
+        {
+            "name": "Anker Generic ABS @base",
+            "sub_path": "filament/Anker Generic ABS @base.json"
+        },
+        {
+            "name": "Anker Generic ASA @base",
+            "sub_path": "filament/Anker Generic ASA @base.json"
+        },
+        {
+            "name": "Anker Generic PC @base",
+            "sub_path": "filament/Anker Generic PC @base.json"
+        },
+        {
+            "name": "Anker Generic PVA @base",
+            "sub_path": "filament/Anker Generic PVA @base.json"
+        },
+        {
+            "name": "Anker Generic PA @base",
+            "sub_path": "filament/Anker Generic PA @base.json"
+        },
+        {
+            "name": "Anker Generic PA-CF @base",
+            "sub_path": "filament/Anker Generic PA-CF @base.json"
         },
         {
             "name": "Anker Generic PLA",
             "sub_path": "filament/Anker Generic PLA.json"
         },
         {
+            "name": "Anker Generic PLA+",
+            "sub_path": "filament/Anker Generic PLA+.json"
+        },
+        {
+            "name": "Anker Generic PLA Silk",
+            "sub_path": "filament/Anker Generic PLA Silk.json"
+        },
+        {
             "name": "Anker Generic PLA-CF",
             "sub_path": "filament/Anker Generic PLA-CF.json"
+        },
+        {
+            "name": "Anker Generic TPU",
+            "sub_path": "filament/Anker Generic TPU.json"
         },
         {
             "name": "Anker Generic PETG",
             "sub_path": "filament/Anker Generic PETG.json"
         },
         {
-            "name": "Anker Generic ABS",
-            "sub_path": "filament/Anker Generic ABS.json"
+            "name": "Anker Generic PETG-CF",
+            "sub_path": "filament/Anker Generic PETG-CF.json"
         },
         {
-            "name": "Anker Generic TPU",
-            "sub_path": "filament/Anker Generic TPU.json"
+            "name": "Anker Generic ABS",
+            "sub_path": "filament/Anker Generic ABS.json"
         },
         {
             "name": "Anker Generic ASA",
@@ -139,8 +215,16 @@
             "sub_path": "machine/fdm_machine_common.json"
         },
         {
+            "name": "fdm_marlin_common",
+            "sub_path": "machine/fdm_marlin_common.json"
+        },
+        {
             "name": "Anker M5 0.4 nozzle",
             "sub_path": "machine/Anker M5 0.4 nozzle.json"
+        },
+        {
+            "name": "Anker M5 All-Metal 0.4 nozzle",
+            "sub_path": "machine/Anker M5 All-Metal 0.4 nozzle.json"
         },
         {
             "name": "Anker M5C 0.4 nozzle",

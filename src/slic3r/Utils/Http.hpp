@@ -1,10 +1,14 @@
 #ifndef __Http_hpp__
 #define __Http_hpp__
 
+#include <map>
 #include <memory>
 #include <string>
 #include <functional>
 #include <boost/filesystem/path.hpp>
+
+#include "libslic3r/Exception.hpp"
+#include "libslic3r_version.h"
 
 #define MAX_SIZE_TO_FILE    3*1024
 

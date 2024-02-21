@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-13 17:34+0100\n"
+"POT-Creation-Date: 2024-01-27 13:20+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Carlos Fco. Caruncho Serrano <puzzlero@gmail.com>\n"
 "Language-Team: \n"
@@ -11,6 +11,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 3.4.2\n"
 "X-Generator: Poedit 3.4.2\n"
 
 msgid "Supports Painting"
@@ -288,7 +289,7 @@ msgid "Dowel"
 msgstr "Clavija"
 
 msgid "Snap"
-msgstr "Encaje a presión"
+msgstr "Instantánea"
 
 msgid "Prism"
 msgstr "Prisma"
@@ -303,13 +304,13 @@ msgid "Hexagon"
 msgstr "Hexágono"
 
 msgid "Keep orientation"
-msgstr "Mantener orientación"
+msgstr "Mantener la orientación"
 
 msgid "Place on cut"
 msgstr "Colocar en la posición de corte"
 
 msgid "Flip upside down"
-msgstr "Voltear"
+msgstr "Dar la vuelta"
 
 msgid "Connectors"
 msgstr "Conectores"
@@ -336,10 +337,10 @@ msgid "Width"
 msgstr "Ancho"
 
 msgid "Flap Angle"
-msgstr "Ángulo de la aleta"
+msgstr "Ángulo de solapa"
 
 msgid "Groove Angle"
-msgstr "Angulo de Ranura"
+msgstr "Ángulo de Ranura"
 
 msgid "Part"
 msgstr "Pieza"
@@ -351,7 +352,7 @@ msgid ""
 "Click to flip the cut plane\n"
 "Drag to move the cut plane"
 msgstr ""
-"Haga clic para voltear el plano de corte\n"
+"Haga clic para voltear el plano de corte \n"
 "Arrastre para mover el plano de corte"
 
 msgid ""
@@ -379,7 +380,7 @@ msgid "Drag"
 msgstr "Soltar"
 
 msgid "Draw cut line"
-msgstr "Dibujar línia de corte"
+msgstr "Dibujar línea de corte"
 
 msgid "Left click"
 msgstr "Click izquierdo"
@@ -433,7 +434,7 @@ msgid "Cancel"
 msgstr "Cancelar"
 
 msgid "Build Volume"
-msgstr "Volumen de construcción"
+msgstr "Volumen de Construcción"
 
 msgid "Flip cut plane"
 msgstr "Voltear plano de corte"
@@ -446,25 +447,22 @@ msgstr "Reiniciar"
 
 #. TRN: This is an entry in the Undo/Redo stack. The whole line will be 'Edited: (name of whatever was edited)'.
 msgid "Edited"
-msgstr "Modificado"
+msgstr "Editado"
 
 msgid "Cut position"
 msgstr "Posición de corte"
 
 msgid "Reset cutting plane"
-msgstr "Restablecer plano de corte"
-
-msgid "Edit connectors"
 msgstr "Editar conectores"
 
 msgid "Add connectors"
 msgstr "Añadir conectores"
 
 msgid "Reset cut"
-msgstr "Restablecer corte"
+msgstr "Reiniciar corte"
 
 msgid "Reset cutting plane and remove connectors"
-msgstr "Restablecer plano de corte y quitar conectores"
+msgstr "Reajustar el plano de corte y retirar los conectores"
 
 msgid "Upper part"
 msgstr "Parte alta"
@@ -496,23 +494,23 @@ msgstr "Conectores inválidos detectados"
 #, c-format, boost-format
 msgid "%1$d connector is out of cut contour"
 msgid_plural "%1$d connectors are out of cut contour"
-msgstr[0] "%1$d conector fuera de contorno"
-msgstr[1] "%1$d conectores fuera de contorno"
+msgstr[0] "El conector %1$d está fuera del contorno de corte"
+msgstr[1] "Los conectores %1$d están fuera del contorno de corte"
 
 #, c-format, boost-format
 msgid "%1$d connector is out of object"
 msgid_plural "%1$d connectors are out of object"
-msgstr[0] "%1$d conector fuera del objeto"
-msgstr[1] "%1$d conectores fuera del objeto"
+msgstr[0] "El conector %1$d está fuera del objeto"
+msgstr[1] "Los conectores %1$d están fuera del objeto"
 
 msgid "Some connectors are overlapped"
 msgstr "Algunos conectores están solapados"
 
 msgid "Select at least one object to keep after cutting."
-msgstr "Seleccionar al menos un objeto para conservar después de cortar."
+msgstr "Selecciona al menos un objeto para conservarlo después de cortarlo."
 
 msgid "Cut plane is placed out of object"
-msgstr "El plano de corte está situado fuera del objeto"
+msgstr "El plano de corte se sitúa fuera del objeto"
 
 msgid "Cut plane with groove is invalid"
 msgstr "El plano de corte con ranura no es válido"
@@ -521,7 +519,7 @@ msgid "Connector"
 msgstr "Conector"
 
 msgid "Cut by Plane"
-msgstr "Cortar por plano"
+msgstr "Corte en Plano"
 
 msgid "non-manifold edges be caused by cut tool, do you want to fix it now?"
 msgstr ""
@@ -532,10 +530,10 @@ msgid "Repairing model object"
 msgstr "Reparación de un objeto modelo"
 
 msgid "Cut by line"
-msgstr "Cortar por linea"
+msgstr "Corte en Línea"
 
 msgid "Delete connector"
-msgstr "Eliminar conector"
+msgstr "Borrar Conector"
 
 msgid "Mesh name"
 msgstr "Nombre de la malla"
@@ -673,16 +671,16 @@ msgid "Text shape"
 msgstr "Forma de texto"
 
 msgid "Set Mirror"
-msgstr "Ajustar Reflejo"
+msgstr "Configurar Espejo"
 
 msgid "Embossed text"
 msgstr "Texto en relieve"
 
 msgid "Enter emboss gizmo"
-msgstr "Introduzca el gizmo de relieve"
+msgstr "Introducir dispositivo de relieve"
 
 msgid "Leave emboss gizmo"
-msgstr "Dejar gizmo de relieve"
+msgstr "Abandonar dispositivo de relieve"
 
 msgid "Embossing actions"
 msgstr "Acciones de relieve"
@@ -691,22 +689,24 @@ msgid "Emboss"
 msgstr "Relieve"
 
 msgid "Text-Rotate"
-msgstr "Rotar texto"
+msgstr "Rotación de texto"
 
 msgid "NORMAL"
 msgstr "NORMAL"
 
 msgid "SMALL"
-msgstr "PEQUEÑO"
+
+msgstr "PEQUEÑA"
 
 msgid "ITALIC"
 msgstr "CURSIVA"
 
+
 msgid "SWISS"
-msgstr "SWISS"
+msgstr "SUIZA"
 
 msgid "MODERN"
-msgstr "MODERNO"
+msgstr "MODERNA"
 
 msgid "First font"
 msgstr "Primera fuente"
@@ -721,25 +721,25 @@ msgid ""
 "The text cannot be written using the selected font. Please try choosing a "
 "different font."
 msgstr ""
-"El texto no se puede escribir con la fuente seleccionada. Intente elegir una "
-"fuente diferente."
+"El texto no puede escribirse con la fuente seleccionada. Por favor, intente "
+"elegir una fuente diferente."
 
 msgid "Embossed text cannot contain only white spaces."
-msgstr "El texto en relieve no puede contener únicamente espacios en blanco."
+msgstr "El texto en relieve no puede contener sólo espacios en blanco."
 
 msgid "Text contains character glyph (represented by '?') unknown by font."
 msgstr ""
-"El texto contiene un glifo de carácter (representado por '?') desconocido "
+"El texto contiene el glifo de carácter (representado por '?') desconocido "
 "por la fuente."
 
 msgid "Text input doesn't show font skew."
-msgstr "La entrada de texto no muestra la fuente sesgada."
+msgstr "La entrada de texto no muestra la inclinación de la fuente."
 
 msgid "Text input doesn't show font boldness."
-msgstr "La entrada de texto no muestra negrita."
+msgstr "La entrada de texto no muestra la negrita de la fuente."
 
 msgid "Text input doesn't show gap between lines."
-msgstr "La entrada de texto no muestra espacio entre líneas."
+msgstr "La introducción de texto no muestra el espacio entre líneas."
 
 msgid "Too tall, diminished font height inside text input."
 msgstr ""
@@ -747,26 +747,27 @@ msgstr ""
 
 msgid "Too small, enlarged font height inside text input."
 msgstr ""
-"Altura de fuente demasiado pequeña, ampliada dentro del campo de texto."
+"Altura de la fuente demasiado pequeña y aumentada dentro de la entrada de "
+"texto."
 
 msgid "Text doesn't show current horizontal alignment."
 msgstr "El texto no muestra la alineación horizontal actual."
 
 msgid "Revert font changes."
-msgstr "Revertir cambios en la fuente."
+msgstr "Revertir cambios de fuente."
 
 #, boost-format
 msgid "Font \"%1%\" can't be selected."
-msgstr "La fuente \"%1%\" no se puede seleccionar."
+msgstr "No se puede seleccionar la fuente \"%1%\"."
 
 msgid "Operation"
 msgstr "Operación"
 
 msgid "Join"
-msgstr "Unir"
+msgstr "Ingresar"
 
 msgid "Click to change text into object part."
-msgstr ""
+msgstr "Haga clic para cambiar el texto en la parte del objeto."
 
 msgid "You can't change a type of the last solid part of the object."
 msgstr "No se puede cambiar el tipo de la última parte sólida del objeto."
@@ -776,26 +777,26 @@ msgid "Cut"
 msgstr "Cortar"
 
 msgid "Click to change part type into negative volume."
-msgstr ""
+msgstr "Haga clic para cambiar el tipo de pieza a volumen negativo."
 
 msgid "Modifier"
 msgstr "Modificador"
 
 msgid "Click to change part type into modifier."
-msgstr ""
+msgstr "Haga clic para cambiar el tipo de pieza en modificador."
 
 msgid "Change Text Type"
 msgstr "Cambiar tipo de texto"
 
 #, boost-format
 msgid "Rename style(%1%) for embossing text"
-msgstr "Renombrar el estilo(%1%) para el texto en relieve"
+msgstr "Renombrar estilo(%1%) para texto en relieve"
 
 msgid "Name can't be empty."
 msgstr "El nombre no puede estar vacío."
 
 msgid "Name has to be unique."
-msgstr "El nombre tiene que ser único."
+msgstr "El nombre debe ser único."
 
 msgid "OK"
 msgstr "OK"
@@ -810,32 +811,32 @@ msgid "Can't rename temporary style."
 msgstr "No se puede renombrar el estilo temporal."
 
 msgid "First Add style to list."
-msgstr "Primero añade estilo a la lista."
+msgstr "Primero Añadir estilo a la lista."
 
 #, boost-format
 msgid "Save %1% style"
-msgstr "Guarda %1% estilo"
+msgstr "Guardar %1% estilo"
 
 msgid "No changes to save."
-msgstr "No hay cambios para guardar."
+msgstr "No hay cambios que guardar."
 
 msgid "New name of style"
-msgstr "Nuevo nombre de estilo"
+msgstr "Nuevo nombre del estilo"
 
 msgid "Save as new style"
-msgstr "Guardar como estilo nuevo"
+msgstr "Guardar como nuevo estilo"
 
 msgid "Only valid font can be added to style."
-msgstr "Sólo se puede agregar una fuente válida al estilo."
+msgstr "Sólo se pueden añadir fuentes válidas al estilo."
 
 msgid "Add style to my list."
 msgstr "Añadir estilo a mi lista."
 
 msgid "Save as new style."
-msgstr "Guardar como estilo nuevo."
+msgstr "Guardar como nuevo estilo."
 
 msgid "Remove style"
-msgstr "Eliminar estilo"
+msgstr "Borrar estilo"
 
 msgid "Can't remove the last existing style."
 msgstr "No se puede eliminar el último estilo existente."
@@ -843,7 +844,7 @@ msgstr "No se puede eliminar el último estilo existente."
 #, boost-format
 msgid "Are you sure you want to permanently remove the \"%1%\" style?"
 msgstr ""
-"¿Estás seguro de que deseas eliminar permanentemente el estilo \"%1%\"?"
+"¿Estás seguro de que quieres eliminar permanentemente el estilo \"%1%\"?"
 
 #, boost-format
 msgid "Delete \"%1%\" style."
@@ -873,7 +874,7 @@ msgid ""
 msgstr ""
 "Cambiar el estilo a \"%1%\" descartará la modificación del estilo actual.\n"
 "\n"
-"¿Quieres continuar de todos modos?"
+"¿Desea continuar de todos modos?"
 
 msgid "Not valid style."
 msgstr "Estilo no válido."
@@ -883,41 +884,41 @@ msgid "Style \"%1%\" can't be used and will be removed from a list."
 msgstr "El estilo \"%1%\" no se puede utilizar y se eliminará de una lista."
 
 msgid "Unset italic"
-msgstr "Quitar cursiva"
+msgstr "Cursiva no definida"
 
 msgid "Set italic"
-msgstr "Aplicar cursiva"
+msgstr "Poner cursiva"
 
 msgid "Unset bold"
-msgstr "Quitar negrita"
+msgstr "Desactivar negrita"
 
 msgid "Set bold"
-msgstr "Aplicar negrita"
+msgstr "Activar negrita"
 
 msgid "Revert text size."
-msgstr "Revertir el tamaño del texto."
+msgstr "Revertir tamaño de texto."
 
 msgid "Revert embossed depth."
-msgstr "Revertir la profundidad del relieve."
+msgstr "Revertir profundidad en relieve."
 
 msgid ""
 "Advanced options cannot be changed for the selected font.\n"
 "Select another font."
 msgstr ""
-"Las opciones avanzadas no se pueden cambiar para la fuente seleccionada.\n"
+"Las opciones avanzadas no pueden modificarse para la fuente seleccionada. "
 "Seleccione otra fuente."
 
 msgid "Revert using of model surface."
-msgstr ""
+msgstr "Revertir el uso de la superficie del modelo."
 
 msgid "Revert Transformation per glyph."
-msgstr "Revertir transformación por glifo."
+msgstr "Revertir Transformación por glifo."
 
 msgid "Set global orientation for whole text."
-msgstr "Establecer la orientación global para todo el texto."
+msgstr "Establece la orientación global para todo el texto."
 
 msgid "Set position and orientation per glyph."
-msgstr "Establecer la posición y orientación por glifo."
+msgstr "Establezca la posición y la orientación por glifo."
 
 msgctxt "Alignment"
 msgid "Left"
@@ -941,76 +942,77 @@ msgstr "Medio"
 
 msgctxt "Alignment"
 msgid "Bottom"
-msgstr "Abajo"
+msgstr "Bajo"
 
 msgid "Revert alignment."
-msgstr "Revertir alineación."
+msgstr "Revertir alineamiento."
 
 #. TRN EmbossGizmo: font units
 msgid "points"
 msgstr "puntos"
 
 msgid "Revert gap between characters"
-msgstr "Revertir espaciado entre caracteres"
+msgstr "Revert gap between characters"
 
 msgid "Distance between characters"
 msgstr "Distancia entre caracteres"
 
 msgid "Revert gap between lines"
-msgstr "Revertir espaciado entre líneas"
+msgstr "Revertir el espacio entre líneas"
 
 msgid "Distance between lines"
 msgstr "Distancia entre líneas"
 
 msgid "Undo boldness"
-msgstr "Deshacer negrita"
+msgstr "Deshacer el atrevimiento"
 
 msgid "Tiny / Wide glyphs"
-msgstr "Glifos pequeños/anchos"
+msgstr "Glifos minúsculos / anchos"
 
 msgid "Undo letter's skew"
-msgstr "Deshacer inclinación de la letra"
+msgstr "Deshacer la inclinación de la letra"
 
 msgid "Italic strength ratio"
-msgstr "Relación de intensidad de cursiva"
+msgstr "Relación de fuerza de la cursiva"
 
 msgid "Undo translation"
-msgstr "Deshacer traslación"
+msgstr "Deshacer la traducción"
 
 msgid "Distance of the center of the text to the model surface."
 msgstr "Distancia del centro del texto a la superficie del modelo."
 
 msgid "Undo rotation"
-msgstr "Deshacer rotación"
+msgstr "Deshacer la rotación"
 
 msgid "Rotate text Clock-wise."
-msgstr "Girar texto en el sentido de las agujas del reloj."
+msgstr "Girar el texto en el sentido de las agujas del reloj."
 
 msgid "Unlock the text's rotation when moving text along the object's surface."
 msgstr ""
-"Desbloquear la rotación del texto al moverlo por la superficie del objeto."
+"Desbloquea la rotación del texto al moverlo a lo largo de la superficie del "
+"objeto."
 
 msgid "Lock the text's rotation when moving text along the object's surface."
 msgstr ""
-"Bloquear la rotación del texto al moverlo por la superficie del objeto."
+"Bloquea la rotación del texto al desplazarlo por la superficie del objeto."
 
 msgid "Select from True Type Collection."
-msgstr "Seleccionar de la colección True Type."
+msgstr "Seleccione de la colección True Type."
 
 msgid "Set text to face camera"
-msgstr "Poner texto mirando a la cámara"
+msgstr "Poner el texto frente a la cámara"
 
 msgid "Orient the text towards the camera."
-msgstr "Orientar el texto hacia la cámara."
+msgstr "Orienta el texto hacia la cámara."
 
 #, boost-format
 msgid ""
 "Can't load exactly same font(\"%1%\"). Aplication selected a similar "
 "one(\"%2%\"). You have to specify font for enable edit text."
 msgstr ""
-"No se puede cargar exactamente la misma fuente (\"%1%\"). Se ha seleccionado "
-"una similar (\"%2%\"). Hay que especificar una fuente para habilitar la "
-"edición de texto."
+"No se puede cargar exactamente la misma fuente(\"%1%\"). La aplicación "
+"seleccionó una similar (\"%2%\"). Tiene que especificar la fuente para "
+"habilitar la edición de texto."
 
 msgid "No symbol"
 msgstr "Sin símbolo"
@@ -1036,29 +1038,29 @@ msgstr "Usar superficie"
 #. Option to change projection on curved surface
 #. for each character(glyph) in text separately
 msgid "Per glyph"
-msgstr "Por glypho"
+msgstr "Por glifo"
 
 #. TRN - Input label. Be short as possible
 #. Align Top|Middle|Bottom and Left|Center|Right
 msgid "Alignment"
-msgstr "Alineación"
+msgstr "Alineamiento"
 
 #. TRN - Input label. Be short as possible
 msgid "Char gap"
-msgstr "Espaciado de carácter"
+msgstr "Espacio de carácter"
 
 #. TRN - Input label. Be short as possible
 msgid "Line gap"
-msgstr "Espaciado de linea"
+msgstr "Espacio de línea"
 
 #. TRN - Input label. Be short as possible
 msgid "Boldness"
-msgstr ""
+msgstr "Negrita"
 
 #. TRN - Input label. Be short as possible
 #. Like Font italic
 msgid "Skew ratio"
-msgstr "Relación del sesgado"
+msgstr "Relación de inclinación"
 
 #. TRN - Input label. Be short as possible
 #. Distance from model surface to be able
@@ -1066,12 +1068,12 @@ msgstr "Relación del sesgado"
 #. move text as modifier fully out of not flat surface
 #. TRN - Input label. Be short as possible
 msgid "From surface"
-msgstr ""
+msgstr "Desde la superficie"
 
 #. TRN - Input label. Be short as possible
 #. Keep vector from bottom to top of text aligned with printer Y axis
 msgid "Keep up"
-msgstr ""
+msgstr "Mantener"
 
 #. TRN - Input label. Be short as possible.
 #. Some Font file contain multiple fonts inside and
@@ -1080,10 +1082,10 @@ msgid "Collection"
 msgstr "Colección"
 
 msgid "Enter SVG gizmo"
-msgstr ""
+msgstr "Introducir el objeto SVG"
 
 msgid "Leave SVG gizmo"
-msgstr ""
+msgstr "Abandonar el objeto SVG"
 
 msgid "SVG actions"
 msgstr "Acciones SVG"
@@ -1101,10 +1103,10 @@ msgstr "Opacidad (%1%)"
 
 #, boost-format
 msgid "Color gradient (%1%)"
-msgstr "Gradiente de color(%1%)"
+msgstr "Gradiente de color (%1%)"
 
 msgid "Undefined fill type"
-msgstr "Tipo de relleno no definido"
+msgstr "Tipo de relleno indefinido"
 
 msgid "Linear gradient"
 msgstr "Gradiente lineal"
@@ -1113,20 +1115,20 @@ msgid "Radial gradient"
 msgstr "Gradiente radial"
 
 msgid "Open filled path"
-msgstr ""
+msgstr "Abrir camino de relleno"
 
 msgid "Undefined stroke type"
-msgstr "Tipo de trazo no definido"
+msgstr "Tipo de golpe indefinido"
 
 msgid "Path can't be healed from selfintersection and multiple points."
 msgstr ""
-"El trazo no se puede arreglar de una autointersección y de múltiples puntos."
+"El camino no puede curarse de la auto-intersección y los puntos múltiples."
 
 msgid ""
 "Final shape constains selfintersection or multiple points with same "
 "coordinate."
 msgstr ""
-"La forma final contiene la autointersección de múltiples puntos con la misma "
+"La forma final contiene auto-intersección o múltiples puntos con la misma "
 "coordenada."
 
 #, boost-format
@@ -1136,19 +1138,19 @@ msgstr "La forma está marcada como invisible (%1%)."
 #. TRN: The first placeholder is shape identifier, the second one is text describing the problem.
 #, boost-format
 msgid "Fill of shape (%1%) contains unsupported: %2%."
-msgstr ""
+msgstr "Relleno de forma (%1%) contiene no soportado: %2%."
 
 #, boost-format
 msgid "Stroke of shape (%1%) is too thin (minimal width is %2% mm)."
 msgstr ""
-"El trazo de la forma (%1%) es demasiado delgado (el ancho mínimo es %2% mm)."
+"El trazo de la forma (%1%) es demasiado fino (la anchura mínima es %2% mm)."
 
 #, boost-format
 msgid "Stroke of shape (%1%) contains unsupported: %2%."
-msgstr ""
+msgstr "Trazo de forma (%1%) contiene no soportado: %2%."
 
 msgid "Face the camera"
-msgstr "Encarar la cámara"
+msgstr "De cara a la cámara"
 
 #. TRN - Preview of filename after clear local filepath.
 msgid "Unknown filename"
@@ -1156,13 +1158,13 @@ msgstr "Nombre de archivo desconocido"
 
 #, boost-format
 msgid "SVG file path is \"%1%\""
-msgstr "La ruta del archivo SVG es \"%1%\""
+msgstr "La ruta del archivo SVG es \"%1%\"."
 
 msgid "Reload SVG file from disk."
-msgstr "Recargar el archivo SVG desde el disco."
+msgstr "Vuelva a cargar el archivo SVG desde el disco."
 
 msgid "Change file"
-msgstr "Cambiar fichero"
+msgstr "Cambiar archivo"
 
 msgid "Change to another .svg file"
 msgstr "Cambiar a otro archivo .svg"
@@ -1174,114 +1176,117 @@ msgid ""
 "Do NOT save local path to 3MF file.\n"
 "Also disables 'reload from disk' option."
 msgstr ""
-"NO guardar la ruta local al archivo 3MF.\n"
-"También se desactiva la opción 'recargar desde disco'."
+"NO guarda la ruta local al archivo 3MF. \n"
+"También desactiva la opción 'recargar desde disco'."
 
 #. TRN: An menu option to convert the SVG into an unmodifiable model part.
 msgid "Bake"
-msgstr ""
+msgstr "Hornear"
 
 #. TRN: Tooltip for the menu item.
 msgid "Bake into model as uneditable part"
-msgstr ""
+msgstr "Horneado en el modelo como parte no editable"
 
 msgid "Save as"
 msgstr "Guardar como"
 
 msgid "Save SVG file"
-msgstr "Guardar fichero SVG"
+msgstr "Guardar archivo SVG"
 
 msgid "Save as '.svg' file"
-msgstr "Guardar como fichero '.svg'"
+msgstr "Guardar como archivo '.svg"
 
 msgid "Size in emboss direction."
-msgstr "Tamaño en dirección del relieve."
+msgstr "Tamaño en la dirección del relieve."
 
 #. TRN: The placeholder contains a number.
 #, boost-format
 msgid "Scale also changes amount of curve samples (%1%)"
-msgstr "La escala también cambia la cantidad de muestras de curva (%1%)"
+msgstr "La escala también cambia la cantidad de muestras de la curva (%1%)"
 
 msgid "Width of SVG."
-msgstr "Ancho de SVG."
+msgstr "Anchura del SVG."
 
 msgid "Height of SVG."
-msgstr "Altura de SVG."
+msgstr "Altura del SVG."
+
 
 msgid "Lock/unlock the aspect ratio of the SVG."
-msgstr "Bloquea/desbloquea la relación de aspecto del SVG."
+msgstr "Bloquear/desbloquear la relación de aspecto del SVG."
 
 msgid "Reset scale"
 msgstr "Restablecer escala"
 
 msgid "Resize"
-msgstr "Cambiar tamaño"
+msgstr "Reescalar"
 
 msgid "Distance of the center of the SVG to the model surface."
 msgstr "Distancia del centro del SVG a la superficie del modelo."
 
 msgid "Reset distance"
-msgstr "Restablecer distancia"
+msgstr "Reiniciar distancia"
 
 msgid "Reset rotation"
-msgstr "Restablecer rotación"
+msgstr "Reiniciar rotación"
 
 msgid "Lock/unlock rotation angle when dragging above the surface."
 msgstr ""
 "Bloquear/desbloquear el ángulo de rotación al arrastrar por encima de la "
 "superficie."
+"Bloquear/desbloquear el ángulo de rotación al arrastrar por encima de la "
+"superficie."
 
 msgid "Mirror vertically"
-msgstr "Reflejar verticalmente"
+msgstr "Espejo vertical"
 
 msgid "Mirror horizontally"
-msgstr "Reflejar horizontalmente"
+msgstr "Espejo horizontal"
 
 #. TRN: This is the name of the action that shows in undo/redo stack (changing part type from SVG to something else).
 msgid "Change SVG Type"
-msgstr "Cambiar tipo de SVG"
+msgstr "Cambiar tipo SVG"
 
 #. TRN - Input label. Be short as possible
 msgid "Mirror"
 msgstr "Reflejar"
 
 msgid "Choose SVG file for emboss:"
-msgstr "Elija el archivo SVG para grabar:"
+msgstr "Elegir archivo SVG para el relieve:"
 
 #, boost-format
 msgid "File does NOT exist (%1%)."
-msgstr "El archivo NO existe (%1%)."
+msgstr "El fichero NO existe (%1%)."
 
 #, boost-format
 msgid "Filename has to end with \".svg\" but you selected %1%"
 msgstr ""
-"El nombre del archivo debe terminar en \".svg\", pero seleccionaste %1%"
+"El nombre del archivo debe terminar con \".svg\" pero ha seleccionado %1%"
 
 #, boost-format
 msgid "Nano SVG parser can't load from file (%1%)."
-msgstr "El analizador Nano SVG no se puede cargar desde un archivo (%1%)."
+msgstr "El analizador Nano SVG no puede cargar desde el archivo (%1%)."
 
 #, boost-format
 msgid "SVG file does NOT contain a single path to be embossed (%1%)."
-msgstr "El archivo SVG NO contiene una única ruta para ser grabada (%1%)."
+msgstr "El archivo SVG NO contiene una ruta única para el relieve (%1%)."
 
 msgid "Vertex"
 msgstr "Vértice"
 
 msgid "Edge"
-msgstr "Arista"
+msgstr "Borde"
 
 msgid "Plane"
 msgstr "Plano"
 
 msgid "Point on edge"
-msgstr "Punto en la arista"
+msgstr "Punto en el borde"
 
 msgid "Point on circle"
 msgstr "Punto en el circulo"
 
 msgid "Point on plane"
-msgstr "Punto en el plano"
+msgstr "Punto del plano"
 
 msgid "Center of edge"
 msgstr "Centro de la arista"
@@ -1290,7 +1295,7 @@ msgid "Center of circle"
 msgstr "Centro del círculo"
 
 msgid "ShiftLeft mouse button"
-msgstr ""
+msgstr "Mayúsculas + Botón izquierdo del ratón"
 
 msgid "Select feature"
 msgstr "Seleccionar característica"
@@ -1311,14 +1316,14 @@ msgid "Unselect"
 msgstr "Deseleccionar"
 
 msgid "Measure"
-msgstr "Medir"
+msgstr "Medida"
 
 msgid "Edit to scale"
 msgstr "Editar a escala"
 
 msgctxt "Verb"
 msgid "Scale"
-msgstr "Escalar"
+msgstr "Escala"
 
 msgid "None"
 msgstr "Ninguno"
@@ -1419,6 +1424,9 @@ msgstr "Error crítico"
 #, boost-format
 msgid "OrcaSlicer got an unhandled exception: %1%"
 msgstr "OrcaSlicer recibió una notificación de excepción no controlada: %1%"
+
+msgid "Untitled"
+msgstr "Sin título"
 
 # msgid "OrcaSlicer got an unhandled exception: %1%"
 # msgstr "OrcaSlicer obtuvo una excepción no manejada: %1%"
@@ -1729,7 +1737,7 @@ msgid "Voron Cube"
 msgstr "Cubo de Vorón"
 
 msgid "Stanford Bunny"
-msgstr "Stanford Bunny"
+msgstr "Conejito Stanford"
 
 msgid "Text"
 msgstr "Texto"
@@ -3409,6 +3417,8 @@ msgid ""
 "Alternate extra wall only works with ensure vertical shell thickness "
 "disabled. "
 msgstr ""
+"La pared adicional alternativa sólo funciona si se desactiva la opción de "
+"asegurar el grosor del perímetro vertical. "
 
 msgid ""
 "Change these settings automatically? \n"
@@ -3416,10 +3426,9 @@ msgid ""
 "wall\n"
 "No  - Dont use alternate extra wall"
 msgstr ""
-"¿Cambiar esta configuracion automáticamente?\n"
-"Sí: deshabilita garantizar el espesor vertical de la carcasa y habilita una "
-"pared adicional alternativa\n"
-"No: no utilizar una pared adicional alternativa"
+"¿Cambiar estos ajustes automáticamente? \n"
+"Sí - Desactivar el grosor del perímetro vertical y activar la pared "
+"adicional alternativa No - No utilizar la pared adicional alternativa"
 
 msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support "
@@ -4133,6 +4142,15 @@ msgstr "Ir A En Vivo"
 msgid "Resolution"
 msgstr "Resolución"
 
+msgid "Enable"
+msgstr "Habilitar"
+
+msgid "Hostname or IP"
+msgstr ""
+
+msgid "Custom camera source"
+msgstr ""
+
 msgid "Show \"Live Video\" guide page."
 msgstr "Mostrar guía de \"Video En vivo\"."
 
@@ -4603,8 +4621,8 @@ msgid ""
 "the configs."
 msgstr ""
 "\n"
-"Sugerencia: Asegurate de haber agregado la impresora correspondiente antes "
-"de importar las configuraciones."
+"Sugerencia: Asegúrese de haber añadido la impresora correspondiente antes de "
+"importar las configuraciones."
 
 msgid "Import result"
 msgstr "Importar resultado"
@@ -4837,6 +4855,8 @@ msgstr "Conexión perdida. Por favor, reinténtelo."
 msgid "The device cannot handle more conversations. Please retry later."
 msgstr ""
 "El dispositivo no puede gestionar más conversaciones. Intentalo más tarde."
+"El aparato no puede manejar más conversaciones. Vuelva a intentarlo más "
+"tarde."
 
 msgid "File not exists."
 msgstr "El archivo no existe."
@@ -4939,6 +4959,9 @@ msgstr "Tarjeta SD"
 
 msgid "Camera Setting"
 msgstr "Ajuste de Cámara"
+
+msgid "Switch Camera View"
+msgstr ""
 
 msgid "Control"
 msgstr "Control"
@@ -5370,7 +5393,7 @@ msgid "Allow Prompt Sound"
 msgstr "Permitir Sonido de Aviso"
 
 msgid "Filament Tangle Detect"
-msgstr "Detección de enredos de filamento"
+msgstr "Detección de Enredos de Filamentos"
 
 msgid "Global"
 msgstr "Global"
@@ -5408,11 +5431,11 @@ msgstr "Desbloquear bandeja actual"
 msgid "Lock current plate"
 msgstr "Bloquear bandeja actual"
 
+msgid "Edit current plate name"
+msgstr ""
+
 msgid "Customize current plate"
 msgstr "Personalizar bandeja actual"
-
-msgid "Untitled"
-msgstr "Sin título"
 
 #, boost-format
 msgid " plate %1%:"
@@ -6094,7 +6117,7 @@ msgid "Stealth Mode"
 msgstr "Modo invisible"
 
 msgid "Check for stable updates only"
-msgstr "Solo buscar actualizaciones estables"
+msgstr "Buscar sólo actualizaciones estables"
 
 msgid "Metric"
 msgstr "Métrico"
@@ -6559,13 +6582,13 @@ msgid "Bambu Engineering Plate"
 msgstr "Bandeja de Ingeniería Bambú"
 
 msgid "Bambu Smooth PEI Plate"
-msgstr ""
+msgstr "Placa PEI Lisa Bambu"
 
 msgid "High temperature Plate"
 msgstr "Bandeja de Alta Temperatura"
 
 msgid "Bambu Textured PEI Plate"
-msgstr ""
+msgstr "Placa PEI Texturizada Bambu"
 
 msgid "Send print job to"
 msgstr "Enviar el trabajo de impresión a"
@@ -7007,6 +7030,8 @@ msgid ""
 msgstr ""
 "La altura de la capa es demasiado pequeña.\n"
 "Se establecerá en min_layer_height\n"
+"La altura de la capa es demasiado pequeña.\n"
+"Se establecerá en min_layer_height\n"
 
 msgid ""
 "Layer height exceeds the limit in Printer Settings -> Extruder -> Layer "
@@ -7028,8 +7053,8 @@ msgstr "Ignorar"
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "Cuando grabamos timelapse sin cabezal de impresión, es recomendable añadir "
 "un \"Torre de Purga de Intervalo\" \n"
@@ -7050,6 +7075,9 @@ msgstr "Generador de perímetros"
 
 msgid "Walls and surfaces"
 msgstr "Paredes y superficies"
+
+msgid "Small Area Infill Flow Compensation (experimental)"
+msgstr ""
 
 msgid "Bridging"
 msgstr "Puentes"
@@ -7551,11 +7579,29 @@ msgstr "General"
 msgid "Capabilities"
 msgstr "Capacidades"
 
+msgid "Show all presets (including incompatible)"
+msgstr "Mostrar todos los perfiles (incluyendo los compatibles)"
+
 msgid "Select presets to compare"
 msgstr "Seleccionar perfiles para comparar"
 
-msgid "Show all presets (including incompatible)"
-msgstr "Mostrar todos los perfiles (incluyendo los compatibles)"
+msgid ""
+"You can only transfer to current active profile because it has been modified."
+msgstr ""
+
+msgid ""
+"Transfer the selected options from left preset to the right.\n"
+"Note: New modified presets will be selected in settings tabs after close "
+"this dialog."
+msgstr ""
+
+msgid "Transfer values from left to right"
+msgstr ""
+
+msgid ""
+"If enabled, this dialog can be used for transver selected values from left "
+"to right preset."
+msgstr ""
 
 msgid "Add File"
 msgstr "Añadir archivo"
@@ -7569,6 +7615,9 @@ msgstr "Cubierta"
 #, boost-format
 msgid "The name \"%1%\" already exists."
 msgstr "El nombre \"%1%\" ya existe."
+
+msgid "Back"
+msgstr "Trasera"
 
 msgid "Basic Info"
 msgstr "Información Básica"
@@ -7685,6 +7734,9 @@ msgstr ""
 "Orca volverá a calcular sus volúmenes de descarga cada vez que se cambie el "
 "color de los filamentos. Puedes desactivar el cálculo automático en Orca "
 "Slicer > Preferencias"
+"Orca recalculaba los volúmenes de lavado cada vez que cambiaba el color de "
+"los filamentos. Puedes desactivar el auto-cálculo en Orca Slicer > "
+"Preferencias"
 
 msgid "Flushing volume (mm³) for each filament pair."
 msgstr "Volumen de limpieza (mm³) para cada par de filamentos."
@@ -7906,7 +7958,7 @@ msgid "Gizmo FDM paint-on seam"
 msgstr "Costura de pintura Gizmo FDM"
 
 msgid "Gizmo Text emboss / engrave"
-msgstr ""
+msgstr "Gizmo Texto en relieve / grabado"
 
 msgid "Zoom in"
 msgstr "Acercarse"
@@ -8912,6 +8964,29 @@ msgstr ""
 "0 significa que este ajuste está desactivado y el grosor de la capa inferior "
 "está absolutamente determinado por las capas de la capa inferior"
 
+msgid "Apply gap fill"
+msgstr ""
+
+msgid ""
+"Enables gap fill for the selected surfaces. The minimum gap length that will "
+"be filled can be controlled from the filter out tiny gaps option below.\n"
+"\n"
+"Options:\n"
+"1. Everywhere: Applies gap fill to top, bottom and internal solid surfaces\n"
+"2. Top and Bottom surfaces: Applies gap fill to top and bottom surfaces "
+"only\n"
+"3. Nowhere: Disables gap fill\n"
+msgstr ""
+
+msgid "Everywhere"
+msgstr ""
+
+msgid "Top and bottom surfaces"
+msgstr ""
+
+msgid "Nowhere"
+msgstr ""
+
 msgid "Force cooling for overhang and bridge"
 msgstr "Refrigeración forzada para el voladizo y el puente"
 
@@ -9042,7 +9117,7 @@ msgid ""
 "value. This can be useful to not let the 'one perimeter on top' trigger on "
 "surface that should be covered only by perimeters. This value can be a mm or "
 "a % of the perimeter extrusion width.\n"
-"Warning: If enabled, artifacts can be created is you have some thin features "
+"Warning: If enabled, artifacts can be created if you have some thin features "
 "on the next layer, like letters. Set this setting to 0 to remove these "
 "artifacts."
 msgstr ""
@@ -9272,6 +9347,15 @@ msgstr "Por capa"
 msgid "By object"
 msgstr "Por objeto"
 
+msgid "Intra-layer order"
+msgstr ""
+
+msgid "Print order within a single layer"
+msgstr ""
+
+msgid "As object list"
+msgstr ""
+
 msgid "Slow printing down for better layer cooling"
 msgstr ""
 "Reducir la velocidad de impresión para mejorar el refrigeración de las capas"
@@ -9382,7 +9466,7 @@ msgstr ""
 "si utilizas boquillas grandes."
 
 msgid "Don't filter out small internal bridges (experimental)"
-msgstr ""
+msgstr "No filtrar los pequeños puentes internos (experimental)"
 
 msgid ""
 "This option can help reducing pillowing on top surfaces in heavily slanted "
@@ -9412,15 +9496,42 @@ msgid ""
 "overhang. This option is useful for heavily slanted top surface models. "
 "However, in most cases it creates too many unecessary bridges."
 msgstr ""
+"Esta opción puede ayudar a reducir el pillowing en superficies superiores en "
+"modelos muy inclinados o curvados.\n"
+"\n"
+"Por defecto, los pequeños puentes internos se filtran y el relleno sólido "
+"interno se imprime directamente sobre el relleno disperso. Esto funciona "
+"bien en la mayoría de los casos, acelerando la impresión sin comprometer "
+"demasiado la calidad de la superficie superior. \n"
+"\n"
+"Sin embargo, en modelos muy inclinados o curvados, especialmente cuando se "
+"utiliza una densidad de relleno disperso demasiado baja, esto puede dar "
+"lugar a la curvatura del relleno sólido no soportado, causando pillowing.\n"
+"\n"
+"Activando esta opción se imprimirá la capa puente interna sobre el relleno "
+"sólido interno ligeramente sin soporte. Las opciones siguientes controlan la "
+"cantidad de filtrado, es decir, la cantidad de puentes internos creados.\n"
+"\n"
+"Desactivado - Desactiva esta opción. Este es el comportamiento por defecto y "
+"funciona bien en la mayoría de los casos.\n"
+"\n"
+"Filtrado limitado - Crea puentes internos en superficies muy inclinadas, "
+"evitando crear puentes internos innecesarios. Funciona bien en la mayoría de "
+"los modelos difíciles.\n"
+"\n"
+"Sin filtro: crea puentes interiores en todos los posibles salientes "
+"interiores. Esta opción es útil para modelos de superficie superior muy "
+"inclinada. Sin embargo, en la mayoría de los casos crea demasiados puentes "
+"innecesarios."
 
 msgid "Disabled"
-msgstr "Desactivado"
+msgstr "Deshabilitados"
 
 msgid "Limited filtering"
-msgstr ""
+msgstr "Filtrado limitado"
 
 msgid "No filtering"
-msgstr "Sin filtrar"
+msgstr "Sin filtro"
 
 msgid "Max bridge length"
 msgstr "Distancia máxima de puentes"
@@ -9462,6 +9573,18 @@ msgid ""
 msgstr ""
 "Añadir relleno sólido al lado de capas inclinadas para garantizar el grosor "
 "de carcasa vertical (capas sólidas superior+inferior)"
+
+msgid "Further reduce solid infill on walls (experimental)"
+msgstr ""
+
+msgid ""
+"Further reduces any solid infill applied to walls. As there will be very "
+"limited infill supporting solid surfaces, make sure that you are using "
+"adequate number of walls to support the part on sloping surfaces.\n"
+"\n"
+"For heavily sloped surfaces this option is not suitable as it will generate "
+"too thin of a top layer and should be disabled."
+msgstr ""
 
 msgid "Top surface pattern"
 msgstr "Patrón de relleno superior"
@@ -10272,10 +10395,10 @@ msgstr "Velocidad máxima del ventilador en la capa"
 
 msgid ""
 "Fan speed will be ramped up linearly from zero at layer "
-"\"close_fan_the_first_x_layers\" to maximum at layer "
-"\"full_fan_speed_layer\". \"full_fan_speed_layer\" will be ignored if lower "
-"than \"close_fan_the_first_x_layers\", in which case the fan will be running "
-"at maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
+"\"close_fan_the_first_x_layers\" to maximum at layer \"full_fan_speed_layer"
+"\". \"full_fan_speed_layer\" will be ignored if lower than "
+"\"close_fan_the_first_x_layers\", in which case the fan will be running at "
+"maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
 msgstr ""
 "La velocidad de ventilador se incrementará linealmente de cero a "
 "\"close_fan_the_first_x_layers\" al máximo de capa \"full_fan_speed_layer\". "
@@ -10537,10 +10660,10 @@ msgid "Klipper"
 msgstr "Klipper"
 
 msgid "Support multi bed types"
-msgstr ""
+msgstr "Admite varios tipos de cama"
 
 msgid "Enable this option if you want to use multiple bed types"
-msgstr "Habilitar esta opción si quieres utilizar varios tipos de cama"
+msgstr "Active esta opción si desea utilizar varios tipos de cama"
 
 msgid "Label objects"
 msgstr "Etiquetar objetos"
@@ -10714,7 +10837,7 @@ msgstr ""
 "menor aceleración para imprimir"
 
 msgid "Emit limits to G-code"
-msgstr ""
+msgstr "Emitir límites al código G"
 
 msgid "Machine limits"
 msgstr "Límites de la máquina"
@@ -10723,8 +10846,9 @@ msgid ""
 "If enabled, the machine limits will be emitted to G-code file.\n"
 "This option will be ignored if the g-code flavor is set to Klipper."
 msgstr ""
-"Si se activa, los límites de la máquina se guardaran en el G-code.\n"
-"Esta opción se ignorará si el tipo de G-code está configurado como Klipper."
+"Si está activada, los límites de la máquina se emitirán en un archivo G-"
+"code. \n"
+"Esta opción se ignorará si el tipo de g-code es Klipper."
 
 msgid ""
 "This G-code will be used as a code for the pause print. User can insert "
@@ -10735,6 +10859,22 @@ msgstr ""
 
 msgid "This G-code will be used as a custom code"
 msgstr "Este G-Code se usará para el código personalizado"
+
+msgid "Enable Flow Compensation"
+msgstr ""
+
+msgid "Enable flow compensation for small infill areas"
+msgstr ""
+
+msgid "Flow Compensation Model"
+msgstr ""
+
+msgid ""
+"Flow Compensation Model, used to adjust the flow for small infill areas. The "
+"model is expressed as a comma separated pair of values for extrusion length "
+"and flow correction factors, one per line, in the following format: "
+"\"1.234,5.678\""
+msgstr ""
 
 msgid "Maximum speed X"
 msgstr "Velocidad máxima X"
@@ -11090,9 +11230,6 @@ msgstr ""
 "retracción para modelos complejos y ahorrar tiempo de impresión, pero hacer "
 "que el corte y la generación de G-Code sea más lento"
 
-msgid "Enable"
-msgstr "Habilitar"
-
 msgid "Filename format"
 msgstr "Formato de los archivos"
 
@@ -11170,15 +11307,15 @@ msgid ""
 "Using lightning infill together with this option is not recommended as there "
 "is limited infill to anchor the extra perimeters to."
 msgstr ""
-"Este ajuste añade una pared adicional a cada capa. De este modo, el relleno "
-"queda encajado verticalmente entre las paredes, dando como resultado "
-"impresiones más resistentes. \n"
+"Este ajuste añade una pared adicional a cada dos capas. De este modo, el "
+"relleno queda encajado verticalmente entre las paredes, lo que da como "
+"resultado impresiones más resistentes.\n"
 "\n"
-"Cuando se activa esta opción, es necesario desactivar la opción de "
-"\"Detección de paredes delgadas\". \n"
+"Cuando esta opción está activada, es necesario desactivar la opción de "
+"asegurar el grosor vertical de la capa.\n"
 "\n"
-"No se recomienda utilizar el \"relleno rayo\" junto con esta opción, ya que "
-"el relleno es muy limitado para anclar los perímetros adicionales al relleno."
+"No se recomienda utilizar el relleno relámpago junto con esta opción, ya que "
+"el relleno es limitado para anclar los perímetros adicionales."
 
 msgid ""
 "If you want to process the output G-code through custom scripts, just list "
@@ -11430,9 +11567,6 @@ msgstr "Más cercano"
 msgid "Aligned"
 msgstr "Alineado"
 
-msgid "Back"
-msgstr "Trasera"
-
 msgid "Random"
 msgstr "Aleatorio"
 
@@ -11485,7 +11619,7 @@ msgstr ""
 "la curva."
 
 msgid "Wipe before external loop"
-msgstr "Limpiar antes del bucle exterior"
+msgstr "Limpiar antes del bucle externo"
 
 msgid ""
 "To minimise visibility of potential overextrusion at the start of an "
@@ -11509,6 +11643,17 @@ msgstr ""
 "Interior o Interior/Exterior/Interior, ya que en estos modos es más probable "
 "que se imprima un perímetro externo inmediatamente después de un movimiento "
 "de destracción."
+"Para minimizar la visibilidad de una posible sobreextrusión al inicio de un "
+"perímetro exterior cuando se imprime con orden de impresión Exterior/"
+"Interior o Interior/Exterior/Interior, la desetracción se realiza "
+"ligeramente en el interior desde el inicio del perímetro exterior. De esta "
+"forma, cualquier posible sobreextrusión queda oculta desde la superficie "
+"exterior.\n"
+"\n"
+"Esto es útil cuando se imprime con orden de impresión exterior/interior o "
+"interior/exterior/pared interior, ya que en estos modos es más probable que "
+"se imprima un perímetro exterior inmediatamente después de un movimiento de "
+"desetracción."
 
 msgid "Wipe speed"
 msgstr "Velocidad de limpieza"
@@ -12483,10 +12628,10 @@ msgid ""
 "printers. Default is checked"
 msgstr ""
 "Se recomienda la extrusión relativa cuando se utiliza la opción "
-"\"label_objects\". Algunos extrusores funcionan mejor con esta opción sin "
-"marcar (modo de extrusión absoluta). La torre de limpieza solo es compatible "
-"con el modo relativo. Se recomienda en la mayoría de las impresoras. El "
-"valor predeterminado está marcado"
+"\"label_objects\". Algunos extrusores funcionan mejor con esta opción "
+"desactivada (modo de extrusión absoluta). La torre de borrado sólo es "
+"compatible con el modo relativo. Se recomienda en la mayoría de las "
+"impresoras. Por defecto está marcada"
 
 msgid ""
 "Classic wall generator produces walls with constant extrusion width and for "
@@ -12591,17 +12736,16 @@ msgid ""
 "top-surface. 'One wall threshold' is only visibile if this setting is set "
 "above the default value of 0.5, or if single-wall top surfaces is enabled."
 msgstr ""
-"Ajuste este valor para evitar que se impriman paredes cortas y sin cerrar, "
-"lo que podría aumentar el tiempo de impresión. Valores más altos eliminan "
-"más paredes y más largas.\n"
+"Ajuste este valor para evitar que se impriman paredes cortas y no cerradas, "
+"lo que podría aumentar el tiempo de impresión. Los valores más altos "
+"eliminan más paredes y más largas.\n"
 "\n"
 "NOTA: Las superficies inferior y superior no se verán afectadas por este "
-"valor para evitar espacios visuales en el exterior del modelo. Ajustar el "
-"'Umbral de una pared' en la configuración avanzada a continuación para "
-"ajustar la sensibilidad de lo que se considera una superficie superior. El "
-"'Umbral de una pared' solo es visible si esta configuración se establece por "
-"encima del valor predeterminado de 0,5 o si las superficies superiores de "
-"una sola pared están habilitadas."
+"valor para evitar huecos visuales en el exterior del modelo. Ajuste \"Umbral "
+"de una pared\" en la configuración avanzada para ajustar la sensibilidad de "
+"lo que se considera una superficie superior. El \"Umbral de una pared\" sólo "
+"es visible si este valor es superior al valor predeterminado de 0,5, o si "
+"las superficies superiores de una sola pared están activadas."
 
 msgid "First layer minimum wall width"
 msgstr "Ancho mínimo del perímetro de la primera capa"
@@ -12710,6 +12854,242 @@ msgstr "Cargar G-Code personalizado"
 
 msgid "Load custom gcode from json"
 msgstr "Cargar G-Code personalizado desde json"
+
+msgid "Current z-hop"
+msgstr ""
+
+msgid "Contains z-hop present at the beginning of the custom G-code block."
+msgstr ""
+
+msgid ""
+"Position of the extruder at the beginning of the custom G-code block. If the "
+"custom G-code travels somewhere else, it should write to this variable so "
+"PrusaSlicer knows where it travels from when it gets control back."
+msgstr ""
+
+msgid ""
+"Retraction state at the beginning of the custom G-code block. If the custom "
+"G-code moves the extruder axis, it should write to this variable so "
+"PrusaSlicer deretracts correctly when it gets control back."
+msgstr ""
+
+msgid "Extra deretraction"
+msgstr ""
+
+msgid "Currently planned extra extruder priming after deretraction."
+msgstr ""
+
+msgid "Current extruder"
+msgstr ""
+
+msgid "Zero-based index of currently used extruder."
+msgstr ""
+
+msgid "Current object index"
+msgstr ""
+
+msgid ""
+"Specific for sequential printing. Zero-based index of currently printed "
+"object."
+msgstr ""
+
+msgid "Has wipe tower"
+msgstr ""
+
+msgid "Whether or not wipe tower is being generated in the print."
+msgstr ""
+
+msgid "Initial extruder"
+msgstr ""
+
+msgid ""
+"Zero-based index of the first extruder used in the print. Same as "
+"initial_tool."
+msgstr ""
+
+msgid "Initial tool"
+msgstr ""
+
+msgid ""
+"Zero-based index of the first extruder used in the print. Same as "
+"initial_extruder."
+msgstr ""
+
+msgid "Is extruder used?"
+msgstr ""
+
+msgid "Vector of bools stating whether a given extruder is used in the print."
+msgstr ""
+
+msgid "Volume per extruder"
+msgstr ""
+
+msgid "Total filament volume extruded per extruder during the entire print."
+msgstr ""
+
+msgid "Total toolchanges"
+msgstr ""
+
+msgid "Number of toolchanges during the print."
+msgstr ""
+
+msgid "Total volume"
+msgstr ""
+
+msgid "Total volume of filament used during the entire print."
+msgstr ""
+
+msgid "Weight per extruder"
+msgstr ""
+
+msgid ""
+"Weight per extruder extruded during the entire print. Calculated from "
+"filament_density value in Filament Settings."
+msgstr ""
+
+msgid "Total weight"
+msgstr ""
+
+msgid ""
+"Total weight of the print. Calculated from filament_density value in "
+"Filament Settings."
+msgstr ""
+
+msgid "Total layer count"
+msgstr ""
+
+msgid "Number of layers in the entire print."
+msgstr ""
+
+msgid "Number of objects"
+msgstr ""
+
+msgid "Total number of objects in the print."
+msgstr ""
+
+msgid "Number of instances"
+msgstr ""
+
+msgid "Total number of object instances in the print, summed over all objects."
+msgstr ""
+
+msgid "Scale per object"
+msgstr ""
+
+msgid ""
+"Contains a string with the information about what scaling was applied to the "
+"individual objects. Indexing of the objects is zero-based (first object has "
+"index 0).\n"
+"Example: 'x:100% y:50% z:100'."
+msgstr ""
+
+msgid "Input filename without extension"
+msgstr ""
+
+msgid "Source filename of the first object, without extension."
+msgstr ""
+
+msgid ""
+"The vector has two elements: x and y coordinate of the point. Values in mm."
+msgstr ""
+
+msgid ""
+"The vector has two elements: x and y dimension of the bounding box. Values "
+"in mm."
+msgstr ""
+
+msgid "First layer convex hull"
+msgstr ""
+
+msgid ""
+"Vector of points of the first layer convex hull. Each element has the "
+"following format:'[x, y]' (x and y are floating-point numbers in mm)."
+msgstr ""
+
+msgid "Bottom-left corner of first layer bounding box"
+msgstr ""
+
+msgid "Top-right corner of first layer bounding box"
+msgstr ""
+
+msgid "Size of the first layer bounding box"
+msgstr ""
+
+msgid "Bottom-left corner of print bed bounding box"
+msgstr ""
+
+msgid "Top-right corner of print bed bounding box"
+msgstr ""
+
+msgid "Size of the print bed bounding box"
+msgstr ""
+
+msgid "Timestamp"
+msgstr ""
+
+msgid "String containing current time in yyyyMMdd-hhmmss format."
+msgstr ""
+
+msgid "Day"
+msgstr ""
+
+msgid "Hour"
+msgstr ""
+
+msgid "Minute"
+msgstr ""
+
+msgid "Print preset name"
+msgstr ""
+
+msgid "Name of the print preset used for slicing."
+msgstr ""
+
+msgid "Filament preset name"
+msgstr ""
+
+msgid ""
+"Names of the filament presets used for slicing. The variable is a vector "
+"containing one name for each extruder."
+msgstr ""
+
+msgid "Printer preset name"
+msgstr ""
+
+msgid "Name of the printer preset used for slicing."
+msgstr ""
+
+msgid "Physical printer name"
+msgstr ""
+
+msgid "Name of the physical printer used for slicing."
+msgstr ""
+
+msgid "Layer number"
+msgstr ""
+
+msgid "Index of the current layer. One-based (i.e. first layer is number 1)."
+msgstr ""
+
+msgid "Layer z"
+msgstr ""
+
+msgid ""
+"Height of the current layer above the print bed, measured to the top of the "
+"layer."
+msgstr ""
+
+msgid "Maximal layer z"
+msgstr ""
+
+msgid "Height of the last layer above the print bed."
+msgstr ""
+
+msgid "Filament extruder ID"
+msgstr ""
+
+msgid "The current extruder ID. The same as current_extruder."
+msgstr ""
 
 msgid "Error in zip archive"
 msgstr "Error en el archivo zip"
@@ -13030,12 +13410,12 @@ msgstr ""
 "wiki.\n"
 "\n"
 "Normalmente la calibración es innecesaria. Cuando se inicia una impresión de "
-"un solo color/material, con la opción \"Calibración de la dinámica de "
-"caudal\" marcada en el menú de inicio de impresión, la impresora seguirá el "
-"método antiguo, calibrar el filamento antes de la impresión; Cuando se "
-"inicia una impresión de varios colores/materiales, la impresora utilizará el "
-"parámetro de compensación por defecto para el filamento durante cada cambio "
-"de filamento que tendrá un buen resultado en la mayoría de los casos.\n"
+"un solo color/material, con la opción \"Calibración de la dinámica de caudal"
+"\" marcada en el menú de inicio de impresión, la impresora seguirá el método "
+"antiguo, calibrar el filamento antes de la impresión; Cuando se inicia una "
+"impresión de varios colores/materiales, la impresora utilizará el parámetro "
+"de compensación por defecto para el filamento durante cada cambio de "
+"filamento que tendrá un buen resultado en la mayoría de los casos.\n"
 "\n"
 "Tenga en cuenta que hay algunos casos en los que el resultado de la "
 "calibración no es fiable: el uso de una placa de textura para hacer la "
@@ -13807,13 +14187,10 @@ msgstr ""
 "¿Quieres reescribirlo?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you "
-"selected\". \n"
-"To add preset for more prinetrs, Please go to printer selection"
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
+"To add preset for more printers, Please go to printer selection"
 msgstr ""
-"Cambiaremos el nombre de los perfiles a \"Tipo Número de Serie @impresora "
-"seleccionados\". \n"
-"Para añadir perfiles para más impresoras, vaya a la selección de impresoras"
 
 msgid "Create Printer/Nozzle"
 msgstr "Crear Impresora/Boquilla"
@@ -14199,6 +14576,9 @@ msgstr "Copiar perfil desde filamento"
 msgid "The filament choice not find filament preset, please reselect it"
 msgstr "Perfil de filamento no encontrado, por favor, seleccione otro"
 
+msgid "[Delete Required]"
+msgstr ""
+
 msgid "Edit Preset"
 msgstr "Editar Perfil"
 
@@ -14407,6 +14787,397 @@ msgstr ""
 "Cuerpo del mensaje: \"%1%\" \n"
 "Error: \"%2%\""
 
+#: resources/data/hints.ini: [hint:Precise wall]
+msgid ""
+"Precise wall\n"
+"Did you know that turning on precise wall can improve precision and layer "
+"consistency?"
+msgstr ""
+"Pared precisa \n"
+"¿Sabía que activar la pared precisa puede mejorar la precisión y la "
+"uniformidad de las capas?"
+
+#: resources/data/hints.ini: [hint:Sandwich mode]
+msgid ""
+"Sandwich mode\n"
+"Did you know that you can use sandwich mode (inner-outer-inner) to improve "
+"precision and layer consistency if your model doesn't have very steep "
+"overhangs?"
+msgstr ""
+"Modo sándwich \n"
+"¿Sabías que puedes utilizar el modo sándwich (interior-exterior-interior) "
+"para mejorar la precisión y la consistencia de las capas si tu modelo no "
+"tiene voladizos muy pronunciados?"
+
+#: resources/data/hints.ini: [hint:Chamber temperature]
+msgid ""
+"Chamber temperature\n"
+"Did you know that OrcaSlicer supports chamber temperature?"
+msgstr ""
+"Temperatura de la cámara \n"
+"¿Sabía que OrcaSlicer admite la temperatura de la cámara?"
+
+#: resources/data/hints.ini: [hint:Calibration]
+msgid ""
+"Calibration\n"
+"Did you know that calibrating your printer can do wonders? Check out our "
+"beloved calibration solution in OrcaSlicer."
+msgstr ""
+"Calibración \n"
+"¿Sabías que calibrar tu impresora puede hacer maravillas? Echa un vistazo a "
+"nuestra querida solución de calibración en OrcaSlicer."
+
+#: resources/data/hints.ini: [hint:Auxiliary fan]
+msgid ""
+"Auxiliary fan\n"
+"Did you know that OrcaSlicer supports Auxiliary part cooling fan?"
+msgstr ""
+"Ventilador auxiliar\n"
+"¿Sabía que OrcaSlicer admite un ventilador auxiliar de refrigeración de "
+"piezas?"
+
+#: resources/data/hints.ini: [hint:Air filtration]
+msgid ""
+"Air filtration/Exhuast Fan\n"
+"Did you know that OrcaSlicer can support Air filtration/Exhuast Fan?"
+msgstr ""
+"Filtración de aire/ventilador Exhuast \n"
+"¿Sabías que OrcaSlicer admite filtración de aire/ventilador Exhuast?"
+
+#: resources/data/hints.ini: [hint:G-code window]
+msgid ""
+"G-code window\n"
+"You can turn on/off the G-code window by pressing the <b>C</b> key."
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Switch workspaces]
+msgid ""
+"Switch workspaces\n"
+"You can switch between <b>Prepare</b> and <b>Preview</b> workspaces by "
+"pressing the <b>Tab</b> key."
+msgstr ""
+
+#: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
+msgid ""
+"How to use keyboard shortcuts\n"
+"Did you know that Orca Slicer offers a wide range of keyboard shortcuts and "
+"3D scene operations."
+msgstr ""
+"Cómo utilizar los atajos de teclado \n"
+"¿Sabías que Orca Slicer ofrece una amplia gama de atajos de teclado y "
+"operaciones de escenas 3D."
+
+#: resources/data/hints.ini: [hint:Reverse on odd]
+msgid ""
+"Reverse on odd\n"
+"Did you know that <b>Reverse on odd</b> feature can significantly improve "
+"the surface quality of your overhangs?"
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Cut Tool]
+msgid ""
+"Cut Tool\n"
+"Did you know that you can cut a model at any angle and position with the "
+"cutting tool?"
+msgstr ""
+"Herramienta de corte\n"
+"¿Sabías que puedes cortar un modelo en cualquier ángulo y posición con la "
+"herramienta de corte?"
+
+#: resources/data/hints.ini: [hint:Fix Model]
+msgid ""
+"Fix Model\n"
+"Did you know that you can fix a corrupted 3D model to avoid a lot of slicing "
+"problems on the Windows system?"
+msgstr ""
+"Arreglar modelo \n"
+"¿Sabías que puedes arreglar un modelo 3D dañado para evitar muchos problemas "
+"de corte en el sistema Windows?"
+
+#: resources/data/hints.ini: [hint:Timelapse]
+msgid ""
+"Timelapse\n"
+"Did you know that you can generate a timelapse video during each print?"
+msgstr ""
+"Intervalo\n"
+"¿Sabías que puedes generar un vídeo de intervalo de trabajo durante cada "
+"impresión?"
+
+#: resources/data/hints.ini: [hint:Auto-Arrange]
+msgid ""
+"Auto-Arrange\n"
+"Did you know that you can auto-arrange all objects in your project?"
+msgstr ""
+"Auto-organizar\n"
+"¿Sabías que puedes ordenar automáticamente todos los objetos de tu proyecto?"
+
+#: resources/data/hints.ini: [hint:Auto-Orient]
+msgid ""
+"Auto-Orient\n"
+"Did you know that you can rotate objects to an optimal orientation for "
+"printing by a simple click?"
+msgstr ""
+"Orientación automática\n"
+"¿Sabía que puede girar los objetos a una orientación óptima para la "
+"impresión con un simple clic?"
+
+#: resources/data/hints.ini: [hint:Lay on Face]
+msgid ""
+"Lay on Face\n"
+"Did you know that you can quickly orient a model so that one of its faces "
+"sits on the print bed? Select the \"Place on face\" function or press the "
+"<b>F</b> key."
+msgstr ""
+"Acostar sobre cara\n"
+"¿Sabías que puedes orientar rápidamente un modelo para que una de sus caras "
+"apoye en la cama de impresión? Seleccione la función 'Acostar sobre cara' o "
+"presione la tecla <b>F</b>."
+
+#: resources/data/hints.ini: [hint:Object List]
+msgid ""
+"Object List\n"
+"Did you know that you can view all objects/parts in a list and change "
+"settings for each object/part?"
+msgstr ""
+"Lista de objetos\n"
+"¿Sabías que puedes ver todos los objetos/piezas en una lista y cambiar los "
+"ajustes de cada objeto/pieza?"
+
+#: resources/data/hints.ini: [hint:Search Functionality]
+msgid ""
+"Search Functionality\n"
+"Did you know that you use the Search tool to quickly find a specific Orca "
+"Slicer setting?"
+msgstr ""
+"Funcionalidad de búsqueda \n"
+"¿Sabía que puede utilizar la herramienta de búsqueda para encontrar "
+"rápidamente un ajuste específico de Orca Slicer?"
+
+#: resources/data/hints.ini: [hint:Simplify Model]
+msgid ""
+"Simplify Model\n"
+"Did you know that you can reduce the number of triangles in a mesh using the "
+"Simplify mesh feature? Right-click the model and select Simplify model."
+msgstr ""
+"Simplificar modelo \n"
+"¿Sabía que puede reducir el número de triángulos de una malla utilizando la "
+"función Simplificar malla? Haga clic con el botón derecho del ratón en el "
+"modelo y seleccione Simplificar modelo."
+
+#: resources/data/hints.ini: [hint:Slicing Parameter Table]
+msgid ""
+"Slicing Parameter Table\n"
+"Did you know that you can view all objects/parts on a table and change "
+"settings for each object/part?"
+msgstr ""
+"Tabla de parámetros de laminado\n"
+"¿Sabía que puede ver todos los objetos/partes de una tabla y cambiar los "
+"parámetros de cada objeto/parte?"
+
+#: resources/data/hints.ini: [hint:Split to Objects/Parts]
+msgid ""
+"Split to Objects/Parts\n"
+"Did you know that you can split a big object into small ones for easy "
+"colorizing or printing?"
+msgstr ""
+"Dividir en Objetos/Partes\n"
+"¿Sabías que puedes dividir un objeto grande en pequeños para colorearlo o "
+"imprimirlo fácilmente?"
+
+#: resources/data/hints.ini: [hint:Subtract a Part]
+msgid ""
+"Subtract a Part\n"
+"Did you know that you can subtract one mesh from another using the Negative "
+"part modifier? That way you can, for example, create easily resizable holes "
+"directly in Orca Slicer."
+msgstr ""
+"Sustraer una parte \n"
+"¿Sabías que puedes sustraer una malla de otra utilizando el modificador "
+"Parte negativa? De esta forma puedes, por ejemplo, crear agujeros fácilmente "
+"redimensionables directamente en Orca Slicer."
+
+#: resources/data/hints.ini: [hint:STEP]
+msgid ""
+"STEP\n"
+"Did you know that you can improve your print quality by slicing a STEP file "
+"instead of an STL?\n"
+"Orca Slicer supports slicing STEP files, providing smoother results than a "
+"lower resolution STL. Give it a try!"
+msgstr ""
+"STEP\n"
+"¿Sabías que puedes mejorar la calidad de impresión cortando un archivo STEP "
+"en lugar de un STL?\n"
+"Orca Slicer soporta el corte de archivos STEP, proporcionando resultados más "
+"suaves que un STL de menor resolución. ¡Pruébalo!"
+
+#: resources/data/hints.ini: [hint:Z seam location]
+msgid ""
+"Z seam location\n"
+"Did you know that you can customize the location of the Z seam, and even "
+"paint it on your print, to have it in a less visible location? This improves "
+"the overall look of your model. Check it out!"
+msgstr ""
+"Ubicación de la costura Z\n"
+"¿Sabías que puedes personalizar la ubicación de la costura Z, e incluso "
+"pintarla en tu impresión, para tenerla en un lugar menos visible? Esto "
+"mejora el aspecto general de tu modelo. ¡Compruébalo!"
+
+#: resources/data/hints.ini: [hint:Fine-tuning for flow rate]
+msgid ""
+"Fine-tuning for flow rate\n"
+"Did you know that flow rate can be fine-tuned for even better-looking "
+"prints? Depending on the material, you can improve the overall finish of the "
+"printed model by doing some fine-tuning."
+msgstr ""
+"Ajuste fino del caudal\n"
+"¿Sabías que el caudal puede ajustarse para obtener impresiones aún más "
+"atractivas? Dependiendo del material, puede mejorar el acabado general del "
+"modelo impreso realizando algunos ajustes."
+
+#: resources/data/hints.ini: [hint:Split your prints into plates]
+msgid ""
+"Split your prints into plates\n"
+"Did you know that you can split a model that has a lot of parts into "
+"individual plates ready to print? This will simplify the process of keeping "
+"track of all the parts."
+msgstr ""
+"Divide tus impresiones en planchas\n"
+"¿Sabías que puedes dividir un modelo con muchas piezas en bandejas "
+"individuales listas para imprimir? Esto simplificará el proceso de "
+"seguimiento de todas las piezas."
+
+#: resources/data/hints.ini: [hint:Speed up your print with Adaptive Layer
+#: Height]
+msgid ""
+"Speed up your print with Adaptive Layer Height\n"
+"Did you know that you can print a model even faster, by using the Adaptive "
+"Layer Height option? Check it out!"
+msgstr ""
+"Acelere su impresión con la altura de capa adaptable\n"
+"¿Sabías que puedes imprimir un modelo aún más rápido utilizando la opción "
+"Altura de capa adaptable? ¡Compruébalo!"
+
+#: resources/data/hints.ini: [hint:Support painting]
+msgid ""
+"Support painting\n"
+"Did you know that you can paint the location of your supports? This feature "
+"makes it easy to place the support material only on the sections of the "
+"model that actually need it."
+msgstr ""
+"Pintura de soportes\n"
+"¿Sabías que puedes pintar la ubicación de los soportes? Esta función "
+"facilita la colocación del material de soporte sólo en las secciones del "
+"modelo que realmente lo necesitan."
+
+#: resources/data/hints.ini: [hint:Different types of supports]
+msgid ""
+"Different types of supports\n"
+"Did you know that you can choose from multiple types of supports? Tree "
+"supports work great for organic models, while saving filament and improving "
+"print speed. Check them out!"
+msgstr ""
+"Diferentes tipos de soportes\n"
+"¿Sabías que puedes elegir entre varios tipos de soportes? Los soportes en "
+"forma de árbol son ideales para modelos orgánicos, ahorran filamento y "
+"mejoran la velocidad de impresión. ¡Compruébalos!"
+
+#: resources/data/hints.ini: [hint:Printing Silk Filament]
+msgid ""
+"Printing Silk Filament\n"
+"Did you know that Silk filament needs special consideration to print it "
+"successfully? Higher temperature and lower speed are always recommended for "
+"the best results."
+msgstr ""
+"Impresión de filamento de seda\n"
+"¿Sabías que el filamento de seda necesita una consideración especial para "
+"imprimirlo con éxito? Se recomienda siempre una temperatura más alta y una "
+"velocidad más baja para obtener los mejores resultados."
+
+#: resources/data/hints.ini: [hint:Brim for better adhesion]
+msgid ""
+"Brim for better adhesion\n"
+"Did you know that when printing models have a small contact interface with "
+"the printing surface, it's recommended to use a brim?"
+msgstr ""
+"Borde de adherencia para una mejor adherencia\n"
+"¿Sabía que cuando los modelos de impresión tienen una pequeña interfaz de "
+"contacto con la superficie de impresión, se recomienda utilizar un borde de "
+"adherencia?"
+
+#: resources/data/hints.ini: [hint:Set parameters for multiple objects]
+msgid ""
+"Set parameters for multiple objects\n"
+"Did you know that you can set slicing parameters for all selected objects at "
+"one time?"
+msgstr ""
+"Establecer parámetros para varios objetos\n"
+"¿Sabías que puedes establecer parámetros de corte para todos los objetos "
+"seleccionados a la vez?"
+
+#: resources/data/hints.ini: [hint:Stack objects]
+msgid ""
+"Stack objects\n"
+"Did you know that you can stack objects as a whole one?"
+msgstr ""
+"Apilar objetos\n"
+"¿Sabías que puedes apilar objetos como un todo?"
+
+#: resources/data/hints.ini: [hint:Flush into support/objects/infill]
+msgid ""
+"Flush into support/objects/infill\n"
+"Did you know that you can save the wasted filament by flushing them into "
+"support/objects/infill during filament change?"
+msgstr ""
+"Descarga en soporte/objetos/relleno\n"
+"¿Sabías que puedes ahorrarte el filamento desperdiciado vertiéndolo en "
+"soporte/objetos/relleno durante el cambio de filamento?"
+
+#: resources/data/hints.ini: [hint:Improve strength]
+msgid ""
+"Improve strength\n"
+"Did you know that you can use more wall loops and higher sparse infill "
+"density to improve the strength of the model?"
+msgstr ""
+"Mejorar la resistencia\n"
+"¿Sabías que puedes utilizar más bucles de perímetro y mayor densidad de "
+"relleno de baja densidad para mejorar la resistencia del modelo?"
+
+#: resources/data/hints.ini: [hint:When need to print with the printer door
+#: opened]
+msgid ""
+"When need to print with the printer door opened\n"
+"Did you know that opening the printer door can reduce the probability of "
+"extruder/hotend clogging when printing lower temperature filament with a "
+"higher enclosure temperature. More info about this in the Wiki."
+msgstr ""
+"Cuando es necesario imprimir con la puerta de la impresora abierta \n"
+"¿Sabía usted que la apertura de la puerta de la impresora puede reducir la "
+"probabilidad de obstrucción del extrusor / hotend al imprimir filamento de "
+"baja temperatura con una temperatura más alta de la carcasa. Más información "
+"sobre esto en la Wiki."
+
+#: resources/data/hints.ini: [hint:Avoid warping]
+msgid ""
+"Avoid warping\n"
+"Did you know that when printing materials that are prone to warping such as "
+"ABS, appropriately increasing the heatbed temperature can reduce the "
+"probability of warping."
+msgstr ""
+"Evite la deformación\n"
+"Sabías que al imprimir materiales propensos a la deformación como el ABS, "
+"aumentar adecuadamente la temperatura del lecho térmico puede reducir la "
+"probabilidad de deformaciones."
+
+#~ msgid ""
+#~ "We would rename the presets as \"Vendor Type Serial @printer you selected"
+#~ "\". \n"
+#~ "To add preset for more prinetrs, Please go to printer selection"
+#~ msgstr ""
+#~ "Cambiaremos el nombre de los perfiles a \"Tipo Número de Serie @impresora "
+#~ "seleccionados\". \n"
+#~ "Para añadir perfiles para más impresoras, vaya a la selección de "
+#~ "impresoras"
+
 #~ msgid "The Config can not be loaded."
 #~ msgstr "La Configuración no será cargada."
 
@@ -14414,333 +15185,6 @@ msgstr ""
 #~ msgstr ""
 #~ "El 3mf está generado por un Orca Slicer antiguo, cargar solo datos de "
 #~ "geometría."
-
-#~ msgid ""
-#~ "Precise wall\n"
-#~ "Did you know that turning on precise wall can improve precision and layer "
-#~ "consistency?"
-#~ msgstr ""
-#~ "Pared precisa \n"
-#~ "¿Sabía que activar la pared precisa puede mejorar la precisión y la "
-#~ "uniformidad de las capas?"
-
-#~ msgid ""
-#~ "Sandwich mode\n"
-#~ "Did you know that you can use sandwich mode (inner-outer-inner) to "
-#~ "improve precision and layer consistency if your model doesn't have very "
-#~ "steep overhangs?"
-#~ msgstr ""
-#~ "Modo sándwich \n"
-#~ "¿Sabías que puedes utilizar el modo sándwich (interior-exterior-interior) "
-#~ "para mejorar la precisión y la consistencia de las capas si tu modelo no "
-#~ "tiene voladizos muy pronunciados?"
-
-#~ msgid ""
-#~ "Chamber temperature\n"
-#~ "Did you know that OrcaSlicer supports chamber temperature?"
-#~ msgstr ""
-#~ "Temperatura de la cámara \n"
-#~ "¿Sabía que OrcaSlicer admite la temperatura de la cámara?"
-
-#~ msgid ""
-#~ "Calibration\n"
-#~ "Did you know that calibrating your printer can do wonders? Check out our "
-#~ "beloved calibration solution in OrcaSlicer."
-#~ msgstr ""
-#~ "Calibración \n"
-#~ "¿Sabías que calibrar tu impresora puede hacer maravillas? Echa un vistazo "
-#~ "a nuestra querida solución de calibración en OrcaSlicer."
-
-#~ msgid ""
-#~ "Auxiliary fan\n"
-#~ "Did you know that OrcaSlicer supports Auxiliary part cooling fan?"
-#~ msgstr ""
-#~ "Ventilador auxiliar\n"
-#~ "¿Sabía que OrcaSlicer admite un ventilador auxiliar de refrigeración de "
-#~ "piezas?"
-
-#~ msgid ""
-#~ "Air filtration/Exhuast Fan\n"
-#~ "Did you know that OrcaSlicer can support Air filtration/Exhuast Fan?"
-#~ msgstr ""
-#~ "Filtración de aire/ventilador Exhuast \n"
-#~ "¿Sabías que OrcaSlicer admite filtración de aire/ventilador Exhuast?"
-
-#~ msgid ""
-#~ "How to use keyboard shortcuts\n"
-#~ "Did you know that Orca Slicer offers a wide range of keyboard shortcuts "
-#~ "and 3D scene operations."
-#~ msgstr ""
-#~ "Cómo utilizar los atajos de teclado \n"
-#~ "¿Sabías que Orca Slicer ofrece una amplia gama de atajos de teclado y "
-#~ "operaciones de escenas 3D."
-
-#~ msgid ""
-#~ "Cut Tool\n"
-#~ "Did you know that you can cut a model at any angle and position with the "
-#~ "cutting tool?"
-#~ msgstr ""
-#~ "Herramienta de corte\n"
-#~ "¿Sabías que puedes cortar un modelo en cualquier ángulo y posición con la "
-#~ "herramienta de corte?"
-
-#~ msgid ""
-#~ "Fix Model\n"
-#~ "Did you know that you can fix a corrupted 3D model to avoid a lot of "
-#~ "slicing problems on the Windows system?"
-#~ msgstr ""
-#~ "Arreglar modelo \n"
-#~ "¿Sabías que puedes arreglar un modelo 3D dañado para evitar muchos "
-#~ "problemas de corte en el sistema Windows?"
-
-#~ msgid ""
-#~ "Timelapse\n"
-#~ "Did you know that you can generate a timelapse video during each print?"
-#~ msgstr ""
-#~ "Intervalo\n"
-#~ "¿Sabías que puedes generar un vídeo de intervalo de trabajo durante cada "
-#~ "impresión?"
-
-#~ msgid ""
-#~ "Auto-Arrange\n"
-#~ "Did you know that you can auto-arrange all objects in your project?"
-#~ msgstr ""
-#~ "Auto-organizar\n"
-#~ "¿Sabías que puedes ordenar automáticamente todos los objetos de tu "
-#~ "proyecto?"
-
-#~ msgid ""
-#~ "Auto-Orient\n"
-#~ "Did you know that you can rotate objects to an optimal orientation for "
-#~ "printing by a simple click?"
-#~ msgstr ""
-#~ "Orientación automática\n"
-#~ "¿Sabía que puede girar los objetos a una orientación óptima para la "
-#~ "impresión con un simple clic?"
-
-#~ msgid ""
-#~ "Lay on Face\n"
-#~ "Did you know that you can quickly orient a model so that one of its faces "
-#~ "sits on the print bed? Select the \"Place on face\" function or press the "
-#~ "<b>F</b> key."
-#~ msgstr ""
-#~ "Acostar sobre cara\n"
-#~ "¿Sabías que puedes orientar rápidamente un modelo para que una de sus "
-#~ "caras apoye en la cama de impresión? Seleccione la función 'Acostar sobre "
-#~ "cara' o presione la tecla <b>F</b>."
-
-#~ msgid ""
-#~ "Object List\n"
-#~ "Did you know that you can view all objects/parts in a list and change "
-#~ "settings for each object/part?"
-#~ msgstr ""
-#~ "Lista de objetos\n"
-#~ "¿Sabías que puedes ver todos los objetos/piezas en una lista y cambiar "
-#~ "los ajustes de cada objeto/pieza?"
-
-#~ msgid ""
-#~ "Search Functionality\n"
-#~ "Did you know that you use the Search tool to quickly find a specific Orca "
-#~ "Slicer setting?"
-#~ msgstr ""
-#~ "Funcionalidad de búsqueda \n"
-#~ "¿Sabía que puede utilizar la herramienta de búsqueda para encontrar "
-#~ "rápidamente un ajuste específico de Orca Slicer?"
-
-#~ msgid ""
-#~ "Simplify Model\n"
-#~ "Did you know that you can reduce the number of triangles in a mesh using "
-#~ "the Simplify mesh feature? Right-click the model and select Simplify "
-#~ "model."
-#~ msgstr ""
-#~ "Simplificar modelo \n"
-#~ "¿Sabía que puede reducir el número de triángulos de una malla utilizando "
-#~ "la función Simplificar malla? Haga clic con el botón derecho del ratón en "
-#~ "el modelo y seleccione Simplificar modelo."
-
-#~ msgid ""
-#~ "Slicing Parameter Table\n"
-#~ "Did you know that you can view all objects/parts on a table and change "
-#~ "settings for each object/part?"
-#~ msgstr ""
-#~ "Tabla de parámetros de laminado\n"
-#~ "¿Sabía que puede ver todos los objetos/partes de una tabla y cambiar los "
-#~ "parámetros de cada objeto/parte?"
-
-#~ msgid ""
-#~ "Split to Objects/Parts\n"
-#~ "Did you know that you can split a big object into small ones for easy "
-#~ "colorizing or printing?"
-#~ msgstr ""
-#~ "Dividir en Objetos/Partes\n"
-#~ "¿Sabías que puedes dividir un objeto grande en pequeños para colorearlo o "
-#~ "imprimirlo fácilmente?"
-
-#~ msgid ""
-#~ "Subtract a Part\n"
-#~ "Did you know that you can subtract one mesh from another using the "
-#~ "Negative part modifier? That way you can, for example, create easily "
-#~ "resizable holes directly in Orca Slicer."
-#~ msgstr ""
-#~ "Sustraer una parte \n"
-#~ "¿Sabías que puedes sustraer una malla de otra utilizando el modificador "
-#~ "Parte negativa? De esta forma puedes, por ejemplo, crear agujeros "
-#~ "fácilmente redimensionables directamente en Orca Slicer."
-
-#~ msgid ""
-#~ "STEP\n"
-#~ "Did you know that you can improve your print quality by slicing a STEP "
-#~ "file instead of an STL?\n"
-#~ "Orca Slicer supports slicing STEP files, providing smoother results than "
-#~ "a lower resolution STL. Give it a try!"
-#~ msgstr ""
-#~ "STEP\n"
-#~ "¿Sabías que puedes mejorar la calidad de impresión cortando un archivo "
-#~ "STEP en lugar de un STL?\n"
-#~ "Orca Slicer soporta el corte de archivos STEP, proporcionando resultados "
-#~ "más suaves que un STL de menor resolución. ¡Pruébalo!"
-
-#~ msgid ""
-#~ "Z seam location\n"
-#~ "Did you know that you can customize the location of the Z seam, and even "
-#~ "paint it on your print, to have it in a less visible location? This "
-#~ "improves the overall look of your model. Check it out!"
-#~ msgstr ""
-#~ "Ubicación de la costura Z\n"
-#~ "¿Sabías que puedes personalizar la ubicación de la costura Z, e incluso "
-#~ "pintarla en tu impresión, para tenerla en un lugar menos visible? Esto "
-#~ "mejora el aspecto general de tu modelo. ¡Compruébalo!"
-
-#~ msgid ""
-#~ "Fine-tuning for flow rate\n"
-#~ "Did you know that flow rate can be fine-tuned for even better-looking "
-#~ "prints? Depending on the material, you can improve the overall finish of "
-#~ "the printed model by doing some fine-tuning."
-#~ msgstr ""
-#~ "Ajuste fino del caudal\n"
-#~ "¿Sabías que el caudal puede ajustarse para obtener impresiones aún más "
-#~ "atractivas? Dependiendo del material, puede mejorar el acabado general "
-#~ "del modelo impreso realizando algunos ajustes."
-
-#~ msgid ""
-#~ "Split your prints into plates\n"
-#~ "Did you know that you can split a model that has a lot of parts into "
-#~ "individual plates ready to print? This will simplify the process of "
-#~ "keeping track of all the parts."
-#~ msgstr ""
-#~ "Divide tus impresiones en planchas\n"
-#~ "¿Sabías que puedes dividir un modelo con muchas piezas en bandejas "
-#~ "individuales listas para imprimir? Esto simplificará el proceso de "
-#~ "seguimiento de todas las piezas."
-
-#~ msgid ""
-#~ "Speed up your print with Adaptive Layer Height\n"
-#~ "Did you know that you can print a model even faster, by using the "
-#~ "Adaptive Layer Height option? Check it out!"
-#~ msgstr ""
-#~ "Acelere su impresión con la altura de capa adaptable\n"
-#~ "¿Sabías que puedes imprimir un modelo aún más rápido utilizando la opción "
-#~ "Altura de capa adaptable? ¡Compruébalo!"
-
-#~ msgid ""
-#~ "Support painting\n"
-#~ "Did you know that you can paint the location of your supports? This "
-#~ "feature makes it easy to place the support material only on the sections "
-#~ "of the model that actually need it."
-#~ msgstr ""
-#~ "Pintura de soportes\n"
-#~ "¿Sabías que puedes pintar la ubicación de los soportes? Esta función "
-#~ "facilita la colocación del material de soporte sólo en las secciones del "
-#~ "modelo que realmente lo necesitan."
-
-#~ msgid ""
-#~ "Different types of supports\n"
-#~ "Did you know that you can choose from multiple types of supports? Tree "
-#~ "supports work great for organic models, while saving filament and "
-#~ "improving print speed. Check them out!"
-#~ msgstr ""
-#~ "Diferentes tipos de soportes\n"
-#~ "¿Sabías que puedes elegir entre varios tipos de soportes? Los soportes en "
-#~ "forma de árbol son ideales para modelos orgánicos, ahorran filamento y "
-#~ "mejoran la velocidad de impresión. ¡Compruébalos!"
-
-#~ msgid ""
-#~ "Printing Silk Filament\n"
-#~ "Did you know that Silk filament needs special consideration to print it "
-#~ "successfully? Higher temperature and lower speed are always recommended "
-#~ "for the best results."
-#~ msgstr ""
-#~ "Impresión de filamento de seda\n"
-#~ "¿Sabías que el filamento de seda necesita una consideración especial para "
-#~ "imprimirlo con éxito? Se recomienda siempre una temperatura más alta y "
-#~ "una velocidad más baja para obtener los mejores resultados."
-
-#~ msgid ""
-#~ "Brim for better adhesion\n"
-#~ "Did you know that when printing models have a small contact interface "
-#~ "with the printing surface, it's recommended to use a brim?"
-#~ msgstr ""
-#~ "Borde de adherencia para una mejor adherencia\n"
-#~ "¿Sabía que cuando los modelos de impresión tienen una pequeña interfaz de "
-#~ "contacto con la superficie de impresión, se recomienda utilizar un borde "
-#~ "de adherencia?"
-
-#~ msgid ""
-#~ "Set parameters for multiple objects\n"
-#~ "Did you know that you can set slicing parameters for all selected objects "
-#~ "at one time?"
-#~ msgstr ""
-#~ "Establecer parámetros para varios objetos\n"
-#~ "¿Sabías que puedes establecer parámetros de corte para todos los objetos "
-#~ "seleccionados a la vez?"
-
-#~ msgid ""
-#~ "Stack objects\n"
-#~ "Did you know that you can stack objects as a whole one?"
-#~ msgstr ""
-#~ "Apilar objetos\n"
-#~ "¿Sabías que puedes apilar objetos como un todo?"
-
-#~ msgid ""
-#~ "Flush into support/objects/infill\n"
-#~ "Did you know that you can save the wasted filament by flushing them into "
-#~ "support/objects/infill during filament change?"
-#~ msgstr ""
-#~ "Descarga en soporte/objetos/relleno\n"
-#~ "¿Sabías que puedes ahorrarte el filamento desperdiciado vertiéndolo en "
-#~ "soporte/objetos/relleno durante el cambio de filamento?"
-
-#~ msgid ""
-#~ "Improve strength\n"
-#~ "Did you know that you can use more wall loops and higher sparse infill "
-#~ "density to improve the strength of the model?"
-#~ msgstr ""
-#~ "Mejorar la resistencia\n"
-#~ "¿Sabías que puedes utilizar más bucles de perímetro y mayor densidad de "
-#~ "relleno de baja densidad para mejorar la resistencia del modelo?"
-
-#~ msgid ""
-#~ "When need to print with the printer door opened\n"
-#~ "Did you know that opening the printer door can reduce the probability of "
-#~ "extruder/hotend clogging when printing lower temperature filament with a "
-#~ "higher enclosure temperature. More info about this in the Wiki."
-#~ msgstr ""
-#~ "Cuando es necesario imprimir con la puerta de la impresora abierta \n"
-#~ "¿Sabía usted que la apertura de la puerta de la impresora puede reducir "
-#~ "la probabilidad de obstrucción del extrusor / hotend al imprimir "
-#~ "filamento de baja temperatura con una temperatura más alta de la carcasa. "
-#~ "Más información sobre esto en la Wiki."
-
-#~ msgid ""
-#~ "Avoid warping\n"
-#~ "Did you know that when printing materials that are prone to warping such "
-#~ "as ABS, appropriately increasing the heatbed temperature can reduce the "
-#~ "probability of warping."
-#~ msgstr ""
-#~ "Evite la deformación\n"
-#~ "Sabías que al imprimir materiales propensos a la deformación como el ABS, "
-#~ "aumentar adecuadamente la temperatura del lecho térmico puede reducir la "
-#~ "probabilidad de deformaciones."
 
 #~ msgid ""
 #~ "Relative extrusion is recommended when using \"label_objects\" option."

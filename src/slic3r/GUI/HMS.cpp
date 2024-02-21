@@ -1,5 +1,6 @@
 #include "HMS.hpp"
 
+#include <boost/log/trivial.hpp>
 
 
 namespace Slic3r {
@@ -17,7 +18,9 @@ int get_hms_info_version(std::string& version)
     }
     int result = -1;
     version = "";
-    std::string url = (boost::format("https://%1%/GetVersion.php") % hms_host).str();
+    std::string lang;
+    std::string query_params = HMSQuery::build_query_params(lang);
+    std::string url = (boost::format("https://%1%/GetVersion.php?%2%") % hms_host % query_params).str();
     Slic3r::Http http = Slic3r::Http::get(url);
     http.timeout_max(10)
         .on_complete([&result, &version](std::string body, unsigned status){
@@ -44,13 +47,14 @@ int HMSQuery::download_hms_info()
     if (!config) return -1;
 
     std::string hms_host = wxGetApp().app_config->get_hms_host();
-    std::string lang_code = HMSQuery::hms_language_code();
-    std::string url = (boost::format("https://%1%/query.php?lang=%2%") % hms_host % lang_code).str();
+    std::string lang;
+    std::string query_params = HMSQuery::build_query_params(lang);
+    std::string url = (boost::format("https://%1%/query.php?%2%") % hms_host % query_params).str();
 
     BOOST_LOG_TRIVIAL(info) << "hms: download url = " << url;
 
     Slic3r::Http http = Slic3r::Http::get(url);
-
+    m_hms_json.clear();
     http.on_complete([this](std::string body, unsigned status) {
         try {
             json j = json::parse(body);
@@ -73,7 +77,8 @@ int HMSQuery::download_hms_info()
             BOOST_LOG_TRIVIAL(error) << "HMSQuery: update hms info error = " << error << ", body = " << body << ", status = " << status;
         }).perform_sync();
 
-    save_to_local();
+    if (!m_hms_json.empty())
+        save_to_local(lang);
     return 0;
 }
 
@@ -84,7 +89,7 @@ int HMSQuery::load_from_local(std::string &version_info)
         BOOST_LOG_TRIVIAL(error) << "HMS: load_from_local, data_dir() is empty";
         return -1;
     }
-    std::string filename = get_hms_file();
+    std::string filename = get_hms_file(HMSQuery::hms_language_code());
     auto hms_folder = (boost::filesystem::path(data_dir()) / "hms");
     if (!fs::exists(hms_folder))
         fs::create_directory(hms_folder);
@@ -111,13 +116,13 @@ int HMSQuery::load_from_local(std::string &version_info)
     return 0;
 }
 
-int HMSQuery::save_to_local()
+int HMSQuery::save_to_local(std::string lang)
 {
     if (data_dir().empty()) {
         BOOST_LOG_TRIVIAL(error) << "HMS: save_to_local, data_dir() is empty";
         return -1;
     }
-    std::string filename = get_hms_file();
+    std::string filename = get_hms_file(lang);
     auto hms_folder = (boost::filesystem::path(data_dir()) / "hms");
     if (!fs::exists(hms_folder))
         fs::create_directory(hms_folder);
@@ -141,6 +146,7 @@ std::string HMSQuery::hms_language_code()
     std::string lang_code = wxGetApp().app_config->get_language_code();
     if (lang_code.compare("uk") == 0
         || lang_code.compare("cs") == 0
+	|| lang_code.compare("pl") == 0
         || lang_code.compare("ru") == 0) {
         BOOST_LOG_TRIVIAL(info) << "HMS: using english for lang_code = " << lang_code;
         return "en";
@@ -152,10 +158,18 @@ std::string HMSQuery::hms_language_code()
     return lang_code;
 }
 
-std::string HMSQuery::get_hms_file()
+std::string HMSQuery::build_query_params(std::string& lang)
 {
     std::string lang_code = HMSQuery::hms_language_code();
-    return (boost::format("hms_%1%.json") % lang_code).str();
+    lang = lang_code;
+    std::string query_params = (boost::format("lang=%1%") % lang_code).str();
+    return query_params;
+}
+
+std::string HMSQuery::get_hms_file(std::string lang)
+{
+    //std::string lang_code = HMSQuery::hms_language_code();
+    return (boost::format("hms_%1%.json") % lang).str();
 }
 
 wxString HMSQuery::query_hms_msg(std::string long_error_code)
@@ -263,6 +277,9 @@ int HMSQuery::check_hms_info()
             std::string new_version;
             get_hms_info_version(new_version);
             BOOST_LOG_TRIVIAL(info) << "HMS: check_hms_info latest version = " << new_version;
+
+            if (new_version.empty()) {return 0;}
+
             if (!version.empty() && version == new_version) {
                 download_new_hms_info = false;
             }
@@ -272,7 +289,7 @@ int HMSQuery::check_hms_info()
         if (download_new_hms_info) {
             download_hms_info();
         }
-        return;
+        return 0;
     });
     return 0;
 }

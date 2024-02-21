@@ -2,6 +2,7 @@
 ///|/
 ///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
 ///|/
+#include "libslic3r/Config.hpp"
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/PresetBundle.hpp"
 #include "libslic3r/Model.hpp"
@@ -23,8 +24,11 @@
 #include "Gizmos/GLGizmoSVG.hpp"
 
 #include <boost/algorithm/string.hpp>
+#include "slic3r/GUI/Tab.hpp"
 #include "slic3r/Utils/FixModelByWin10.hpp"
 #include "ParamsPanel.hpp"
+#include "MsgDialog.hpp"
+#include "wx/utils.h"
 
 namespace Slic3r
 {
@@ -518,28 +522,56 @@ wxMenu* MenuFactory::append_submenu_add_handy_model(wxMenu* menu, ModelVolumeTyp
     auto sub_menu = new wxMenu;
 
     for (auto &item : {L("Orca Cube"), L("3DBenchy"), L("Autodesk FDM Test"),
-                       L("Voron Cube"), L("Stanford Bunny")}) {
+                       L("Voron Cube"), L("Stanford Bunny"), L("Orca String Hell") }) {
         append_menu_item(
             sub_menu, wxID_ANY, _(item), "",
-            [type, item](wxCommandEvent &) {
-              std::vector<boost::filesystem::path> input_files;
-              std::string file_name = item;
-              if (file_name == L("Orca Cube"))
-                file_name = "OrcaCube_v2.3mf";
-              else if (file_name == L("3DBenchy"))
-                file_name = "3DBenchy.stl";
-              else if (file_name == L("Autodesk FDM Test"))
-                file_name = "ksr_fdmtest_v4.stl";
-              else if (file_name == L("Voron Cube"))
-                file_name = "Voron_Design_Cube_v7.stl";
-              else if (file_name == L("Stanford Bunny"))
-                file_name = "Stanford_Bunny.stl";
-              else
-                return;
-              input_files.push_back(
-                  (boost::filesystem::path(Slic3r::resources_dir()) /
-                   "handy_models" / file_name));
-              plater()->load_files(input_files, LoadStrategy::LoadModel);
+            [type, item](wxCommandEvent&) {
+                std::vector<boost::filesystem::path> input_files;
+                bool                                 is_stringhell = false;
+                std::string                          file_name     = item;
+                if (file_name == L("Orca Cube"))
+                    file_name = "OrcaCube_v2.3mf";
+                else if (file_name == L("3DBenchy"))
+                    file_name = "3DBenchy.stl";
+                else if (file_name == L("Autodesk FDM Test"))
+                    file_name = "ksr_fdmtest_v4.stl";
+                else if (file_name == L("Voron Cube"))
+                    file_name = "Voron_Design_Cube_v7.stl";
+                else if (file_name == L("Stanford Bunny"))
+                    file_name = "Stanford_Bunny.stl";
+                else if (file_name == L("Orca String Hell")) {
+                    file_name     = "Orca_stringhell.stl";
+                    is_stringhell = true;
+                } else
+                    return;
+                input_files.push_back((boost::filesystem::path(Slic3r::resources_dir()) / "handy_models" / file_name));
+                plater()->load_files(input_files, LoadStrategy::LoadModel);
+
+                // Suggest to change settings for stringhell
+                // This serves as mini tutorial for new users
+                if (is_stringhell) {
+                    wxGetApp().CallAfter([=] {
+                        DynamicPrintConfig* m_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
+
+                        bool is_only_one_wall_top  = m_config->opt_bool("only_one_wall_top");
+                        auto min_width_top_surface = m_config->option<ConfigOptionFloatOrPercent>("min_width_top_surface")->value;
+                        if (is_only_one_wall_top && min_width_top_surface > 0) {
+                            wxString msg_text = _L("This model features text embossment on the top surface. For optimal results, it is "
+                                                   "advisable to set the 'One Wall Threshold(min_width_top_surface)' "
+                                                   "to 0 for the 'Only One Wall on Top Surfaces' to work best.\n"
+                                                   "Yes - Change these settings automatically\n"
+                                                   "No  - Do not change these settings for me");
+
+                            MessageDialog dialog(wxGetApp().plater(), msg_text, "Suggestion", wxICON_WARNING | wxYES | wxNO);
+                            if (dialog.ShowModal() == wxID_YES) {
+                                m_config->set_key_value("min_width_top_surface", new ConfigOptionFloatOrPercent(0, false));
+                                wxGetApp().get_tab(Preset::TYPE_PRINT)->update_dirty();
+                                wxGetApp().get_tab(Preset::TYPE_PRINT)->reload_config();
+                            }
+                            wxGetApp().plater()->update();
+                        }
+                    });
+                }
             },
             "", menu);
     }
@@ -915,6 +947,10 @@ void MenuFactory::append_menu_items_flush_options(wxMenu* menu)
     ModelConfig& select_object_config = object_list->object(selection.get_object_idx())->config;
 
     wxMenu* flush_options_menu = new wxMenu();
+    auto can_flush = [&global_config]() {
+        auto option = global_config.option("enable_prime_tower");
+        return option ? option->getBool() : false;
+    };
     append_menu_check_item(flush_options_menu, wxID_ANY, _L("Flush into objects' infill"), "",
         [&select_object_config, &global_config](wxCommandEvent&) {
             const ConfigOption* option = select_object_config.option(FREQ_SETTINGS_BUNDLE_FFF["Flush options"][0]);
@@ -923,8 +959,8 @@ void MenuFactory::append_menu_items_flush_options(wxMenu* menu)
             }
             select_object_config.set_key_value(FREQ_SETTINGS_BUNDLE_FFF["Flush options"][0], new ConfigOptionBool(!option->getBool()));
             wxGetApp().obj_settings()->UpdateAndShow(true);
-        }, menu, []() {return true; }, 
-            [&select_object_config, &global_config]() {
+        }, menu, can_flush,
+        [&select_object_config, &global_config]() {
             const ConfigOption* option = select_object_config.option(FREQ_SETTINGS_BUNDLE_FFF["Flush options"][0]);
             if (!option) {
                 option = global_config.option(FREQ_SETTINGS_BUNDLE_FFF["Flush options"][0]);
@@ -940,8 +976,8 @@ void MenuFactory::append_menu_items_flush_options(wxMenu* menu)
             }
             select_object_config.set_key_value(FREQ_SETTINGS_BUNDLE_FFF["Flush options"][1], new ConfigOptionBool(!option->getBool()));
             wxGetApp().obj_settings()->UpdateAndShow(true);
-        }, menu, []() {return true; }, 
-            [&select_object_config, &global_config]() {
+        }, menu, can_flush,
+        [&select_object_config, &global_config]() {
             const ConfigOption* option = select_object_config.option(FREQ_SETTINGS_BUNDLE_FFF["Flush options"][1]);
             if (!option) {
                 option = global_config.option(FREQ_SETTINGS_BUNDLE_FFF["Flush options"][1]);
@@ -957,8 +993,8 @@ void MenuFactory::append_menu_items_flush_options(wxMenu* menu)
             }
             select_object_config.set_key_value(FREQ_SETTINGS_BUNDLE_FFF["Flush options"][2], new ConfigOptionBool(!option->getBool()));
             wxGetApp().obj_settings()->UpdateAndShow(true);
-        }, menu, []() {return true; }, 
-            [&select_object_config, &global_config]() {
+        }, menu, can_flush,
+        [&select_object_config, &global_config]() {
             const ConfigOption* option = select_object_config.option(FREQ_SETTINGS_BUNDLE_FFF["Flush options"][2]);
             if (!option) {
                 option = global_config.option(FREQ_SETTINGS_BUNDLE_FFF["Flush options"][2]);

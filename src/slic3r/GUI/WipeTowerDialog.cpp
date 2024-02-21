@@ -11,10 +11,9 @@
 #include "Widgets/Button.hpp"
 #include "slic3r/Utils/ColorSpaceConvert.hpp"
 #include "MainFrame.hpp"
+#include "libslic3r/Config.hpp"
 
-#include <wx/sizer.h>
-
-
+using namespace Slic3r;
 using namespace Slic3r::GUI;
 
 int scale(const int val) { return val * Slic3r::GUI::wxGetApp().em_unit() / 10; }
@@ -766,10 +765,29 @@ void WipingPanel::update_warning_texts()
 
 void WipingPanel::calc_flushing_volumes()
 {
-    for (int from_idx = 0; from_idx < m_colours.size(); from_idx++) {
-        const wxColour& from = m_colours[from_idx];
+    auto& ams_multi_color_filament = wxGetApp().preset_bundle->ams_multi_color_filment;
+    std::vector<std::vector<wxColour>> multi_colors;
+
+    // Support for multi-color filament
+    for (int i = 0; i < m_colours.size(); ++i) {
+        std::vector<wxColour> single_filament;
+        if (i < ams_multi_color_filament.size()) {
+            if (!ams_multi_color_filament[i].empty()) {
+                std::vector<std::string> colors = ams_multi_color_filament[i];
+                for (int j = 0; j < colors.size(); ++j) {
+                    single_filament.push_back(wxColour(colors[j]));
+                }
+                multi_colors.push_back(single_filament);
+                continue;
+            }
+        }
+        single_filament.push_back(wxColour(m_colours[i]));
+        multi_colors.push_back(single_filament);
+    }
+
+    for (int from_idx = 0; from_idx < multi_colors.size(); ++from_idx) {
         bool is_from_support = is_support_filament(from_idx);
-        for (int to_idx = 0; to_idx < m_colours.size(); to_idx++) {
+        for (int to_idx = 0; to_idx < multi_colors.size(); ++to_idx) {
             bool is_to_support = is_support_filament(to_idx);
             if (from_idx == to_idx) {
                 edit_boxes[to_idx][from_idx]->SetValue(std::to_string(0));
@@ -780,8 +798,15 @@ void WipingPanel::calc_flushing_volumes()
                     flushing_volume = Slic3r::g_flush_volume_to_support;
                 }
                 else {
-                    const wxColour& to = m_colours[to_idx];
-                    flushing_volume = calc_flushing_volume(from, to);
+                    for (int i = 0; i < multi_colors[from_idx].size(); ++i) {
+                        const wxColour& from = multi_colors[from_idx][i];
+                        for (int j = 0; j < multi_colors[to_idx].size(); ++j) {
+                            const wxColour& to = multi_colors[to_idx][j];
+                            int volume = calc_flushing_volume(from, to);
+                            flushing_volume = std::max(flushing_volume, volume);
+                        }
+                    }
+
                     if (is_from_support) {
                         flushing_volume = std::max(Slic3r::g_min_flush_volume_from_support, flushing_volume);
                     }

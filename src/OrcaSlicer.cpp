@@ -1037,7 +1037,7 @@ int CLI::run(int argc, char **argv)
     std::vector<std::string> current_filaments_name, current_filaments_system_name, current_inherits_group;
     DynamicPrintConfig load_process_config, load_machine_config;
     bool new_process_config_is_system = true, new_printer_config_is_system = true;
-    std::string pipe_name;
+    std::string pipe_name, makerlab_name, makerlab_version;
 
     // Read input file(s) if any.
     BOOST_LOG_TRIVIAL(info) << "Will start to read model file now, file count :" << m_input_files.size() << "\n";
@@ -1089,6 +1089,14 @@ int CLI::run(int argc, char **argv)
 #endif
         }
     }
+
+    ConfigOptionString* makerlab_name_option = m_config.option<ConfigOptionString>("makerlab_name");
+    if (makerlab_name_option)
+        makerlab_name = makerlab_name_option->value;
+
+    ConfigOptionString* makerlab_version_option = m_config.option<ConfigOptionString>("makerlab_version");
+    if (makerlab_version_option)
+        makerlab_version = makerlab_version_option->value;
 
     //skip model object map construct
     if (need_skip) {
@@ -1320,7 +1328,7 @@ int CLI::run(int argc, char **argv)
                     if (loaded_filament_ids.size() > input_index) {
                         if (loaded_filament_ids[input_index] > 0) {
                             if (loaded_filament_ids[input_index] > load_filaments.size()) {
-                                BOOST_LOG_TRIVIAL(error) << boost::format("invalid filament id %1% at index %2%, max %3%")%loaded_filament_ids[input_index] % (input_index + 1) %load_filaments.size();
+                                BOOST_LOG_TRIVIAL(error) << boost::format("invalid filament_id %1% at index %2%, max %3%")%loaded_filament_ids[input_index] % (input_index + 1) %load_filaments.size();
                                 record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, 0, cli_errors[CLI_INVALID_PARAMS], sliced_info);
                                 flush_and_exit(CLI_INVALID_PARAMS);
                             }
@@ -3066,7 +3074,7 @@ int CLI::run(int argc, char **argv)
         } else if (opt_key == "align_xy") {
             const Vec2d &p = m_config.option<ConfigOptionPoint>("align_xy")->value;
             for (auto &model : m_models) {
-                BoundingBoxf3 bb = model.bounding_box();
+                BoundingBoxf3 bb = model.bounding_box_exact();
                 // this affects volumes:
                 model.translate(-(bb.min.x() - p.x()), -(bb.min.y() - p.y()), -bb.min.z());
             }
@@ -5216,6 +5224,13 @@ int CLI::run(int argc, char **argv)
 #endif
 
         BOOST_LOG_TRIVIAL(info) << "will export 3mf to " << export_3mf_file << std::endl;
+        if (!makerlab_name.empty()) {
+            Model &model = m_models[0];
+
+            model.mk_name = makerlab_name;
+            model.mk_version = makerlab_version;
+            BOOST_LOG_TRIVIAL(info) << boost::format("mk_name %1%, mk_version %2%")%makerlab_name %makerlab_version;
+        }
         if (! this->export_project(&m_models[0], export_3mf_file, plate_data_list, project_presets, thumbnails, top_thumbnails, pick_thumbnails,
                                 calibration_thumbnails, plate_bboxes, &m_print_config, minimum_save, plate_to_slice - 1))
         {

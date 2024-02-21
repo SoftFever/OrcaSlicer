@@ -523,6 +523,11 @@ private:
     double                              m_last_mm3_per_mm;
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
 
+    // Always check gcode placeholders when building in debug mode.
+#if !defined(NDEBUG)
+#define ORCA_CHECK_GCODE_PLACEHOLDERS 1
+#endif
+    
 #if ORCA_CHECK_GCODE_PLACEHOLDERS
     std::map<std::string, std::vector<std::string>> m_placeholder_error_messages;
 #endif

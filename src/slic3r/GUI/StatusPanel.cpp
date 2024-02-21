@@ -18,6 +18,8 @@
 #include "RecenterDialog.hpp"
 #include "CalibUtils.hpp"
 #include <slic3r/GUI/Widgets/ProgressDialog.hpp>
+#include <wx/display.h>
+#include <wx/mstream.h>
 #include <wx/sstream.h>
 #include <wx/zstream.h>
 
@@ -2026,7 +2028,7 @@ void StatusPanel::update(MachineObject *obj)
     m_project_task_panel->Thaw();
 
 #if !BBL_RELEASE_TO_PUBLIC
-    auto delay1  = std::chrono::duration_cast<std::chrono::milliseconds>(obj->last_update_time - std::chrono::system_clock::now()).count();
+    auto delay1  = std::chrono::duration_cast<std::chrono::milliseconds>(obj->last_utc_time - std::chrono::system_clock::now()).count();
     auto delay2  = std::chrono::duration_cast<std::chrono::milliseconds>(obj->last_push_time - std::chrono::system_clock::now()).count();
     auto delay = wxString::Format(" %ld/%ld", delay1, delay2);
     m_staticText_timelapse
@@ -3228,7 +3230,7 @@ void StatusPanel::on_axis_ctrl_e_down_10(wxCommandEvent &event)
 
 void StatusPanel::on_start_unload(wxCommandEvent &event)
 {
-    if (obj) obj->command_unload_filament();
+    if (obj) obj->command_ams_switch(255);
 }
 
 void StatusPanel::on_set_bed_temp()
@@ -3504,7 +3506,7 @@ void StatusPanel::on_filament_edit(wxCommandEvent &event)
                         for (auto col : tray_it->second->cols) {
                             cols.push_back( AmsTray::decode_color(col));
                         }
-
+                        m_filament_setting_dlg->set_ctype(tray_it->second->ctype);
                         m_filament_setting_dlg->ams_filament_id = tray_it->second->setting_id;
 
                         if (m_filament_setting_dlg->ams_filament_id.empty()) {
@@ -3512,6 +3514,7 @@ void StatusPanel::on_filament_edit(wxCommandEvent &event)
                         }
                         else {
                             m_filament_setting_dlg->set_color(color);
+                            m_filament_setting_dlg->set_colors(cols);
                         }
 
                         m_filament_setting_dlg->m_is_third = !MachineObject::is_bbl_filament(tray_it->second->tag_uid);
@@ -3559,12 +3562,19 @@ void StatusPanel::on_ext_spool_edit(wxCommandEvent &event)
             wxColor color = AmsTray::decode_color(obj->vt_tray.color);
             m_filament_setting_dlg->ams_filament_id = obj->vt_tray.setting_id;
 
+            std::vector<wxColour> cols;
+            for (auto col : obj->vt_tray.cols) {
+                cols.push_back(AmsTray::decode_color(col));
+            }
+            m_filament_setting_dlg->set_ctype(obj->vt_tray.ctype);
 
             if (m_filament_setting_dlg->ams_filament_id.empty()) {
                 m_filament_setting_dlg->set_empty_color(color);
             }
             else {
                 m_filament_setting_dlg->set_color(color);
+                m_filament_setting_dlg->set_colors(cols);
+
             }
             
             m_filament_setting_dlg->m_is_third = !MachineObject::is_bbl_filament(obj->vt_tray.tag_uid);

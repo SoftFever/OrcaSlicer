@@ -1,4 +1,5 @@
 #include "StateHandler.hpp"
+#include <wx/window.h>
 
 wxDEFINE_EVENT(EVT_ENABLE_CHANGED, wxCommandEvent);
 
