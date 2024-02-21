@@ -281,7 +281,7 @@ void MonitorPanel::on_update_all(wxMouseEvent &event)
     Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev) return;
 
-    if ( (dev->get_selected_machine()->dev_id != event.GetString().ToStdString()) && m_hms_panel) {
+    if ( dev->get_selected_machine() && (dev->get_selected_machine()->dev_id != event.GetString().ToStdString()) && m_hms_panel) {
         m_hms_panel->clear_hms_tag();
     }
 
