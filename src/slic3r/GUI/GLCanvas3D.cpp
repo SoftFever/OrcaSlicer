@@ -7307,11 +7307,12 @@ void GLCanvas3D::_render_overlays()
 
     {
         ImGuizmo::BeginFrame();
+        ImGuizmo::AllowAxisFlip(false);
 
         auto& style         = ImGuizmo::GetStyle();
-        style.Colors[ImGuizmo::COLOR::DIRECTION_X] = ImGuiWrapper::to_ImVec4(ColorRGBA::X());
-        style.Colors[ImGuizmo::COLOR::DIRECTION_Y] = ImGuiWrapper::to_ImVec4(ColorRGBA::Y());
-        style.Colors[ImGuizmo::COLOR::DIRECTION_Z] = ImGuiWrapper::to_ImVec4(ColorRGBA::Z());
+        style.Colors[ImGuizmo::COLOR::DIRECTION_X] = ImGuiWrapper::to_ImVec4(ColorRGBA::Y());
+        style.Colors[ImGuizmo::COLOR::DIRECTION_Y] = ImGuiWrapper::to_ImVec4(ColorRGBA::Z());
+        style.Colors[ImGuizmo::COLOR::DIRECTION_Z] = ImGuiWrapper::to_ImVec4(ColorRGBA::X());
 
         ImGuiIO& io                  = ImGui::GetIO();
         float    viewManipulateLeft = 0;
@@ -7322,10 +7323,12 @@ void GLCanvas3D::_render_overlays()
         Camera&     camera           = wxGetApp().plater()->get_camera();
         Transform3d m                = Transform3d::Identity();
         m.matrix().block(0, 0, 3, 3) = camera.get_view_rotation().toRotationMatrix();
-        //float cameraView[16];
+        // Rotate along X and Z axis for 90 degrees to have Y-up
+        m = m * Geometry::rotation_transform(Vec3d(0.5 * PI, 0, 0.5 * PI));
+        float cameraView[16];
         for (unsigned int c = 0; c < 4; ++c) {
             for (unsigned int r = 0; r < 4; ++r) {
-                //cameraView[c * 4 + r] = m(r, c);
+                cameraView[c * 4 + r] = m(r, c);
             }
         }
 
