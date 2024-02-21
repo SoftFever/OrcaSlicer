@@ -7308,6 +7308,12 @@ void GLCanvas3D::_render_overlays()
 
     {
         ImGuizmo::BeginFrame();
+
+        auto& style         = ImGuizmo::GetStyle();
+        style.Colors[ImGuizmo::COLOR::DIRECTION_X] = ImGuiWrapper::to_ImVec4(ColorRGBA::X());
+        style.Colors[ImGuizmo::COLOR::DIRECTION_Y] = ImGuiWrapper::to_ImVec4(ColorRGBA::Y());
+        style.Colors[ImGuizmo::COLOR::DIRECTION_Z] = ImGuiWrapper::to_ImVec4(ColorRGBA::Z());
+
         ImGuiIO& io                  = ImGui::GetIO();
         float    viewManipulateLeft = 0;
         float    viewManipulateTop   = io.DisplaySize.y;
