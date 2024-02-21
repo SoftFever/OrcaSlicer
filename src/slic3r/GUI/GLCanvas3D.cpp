@@ -7336,6 +7336,14 @@ void GLCanvas3D::_render_overlays()
                                  camDistance, ImVec2(viewManipulateLeft, viewManipulateTop - 128), ImVec2(128, 128), 0x10101010);
 
         if (dirty) {
+            for (unsigned int c = 0; c < 4; ++c) {
+                for (unsigned int r = 0; r < 4; ++r) {
+                    m(r, c) = cameraView[c * 4 + r];
+                }
+            }
+            m = m * (Geometry::rotation_transform(Vec3d(0.5 * PI, 0, 0.5 * PI)).inverse());
+            camera.set_rotation(m);
+
             request_extra_frame();
         }
     }
