@@ -2931,18 +2931,35 @@ namespace IMGUIZMO_NAMESPACE
       // draw axis
       {
          ImDrawList* drawList = gContext.mDrawList;
-
-         // colors
-         ImU32 colors[7];
-         ComputeColors(colors, MT_NONE, TRANSLATE);
-
-         const vec_t  origin = makeVect(-0.5f, -0.5f, -0.5f);
+         const vec_t origin = makeVect(-0.5f, -0.5f, -0.5f);
          for (int i = 0; i < 3; ++i) {
             vec_t  dirAxis        = directionUnary[i];
             ImVec2 baseSSpace     = worldToPos(origin, res, position, size);
             ImVec2 worldDirSSpace = worldToPos(origin + dirAxis, res, position, size);
-            
-            drawList->AddLine(baseSSpace, worldDirSSpace, colors[i + 1], gContext.mStyle.TranslationLineThickness);
+
+            bool visible = false;
+            {
+               vec_t mid = origin + (dirAxis * 0.5);
+               vec_t eye = makeVect(0.f, 0.f, 0.5f);
+               eye.Normalize();
+               for (int j = 1; j <= 2; j++) {
+                   vec_t f = mid + (directionUnary[(i + j) % 3] * 0.5);
+                   f.TransformVector(cubeView);
+                   f.Normalize();
+                   auto w = f.Dot(eye);
+                   if (w > 0) {
+                       visible = true;
+                       break;
+                   }
+               }
+            }
+
+            ImVec4 directionColorV = gContext.mStyle.Colors[DIRECTION_X + i];
+            if (!visible) {
+                directionColorV.w *= 0.3f;
+            }
+            ImU32 directionColor = ImGui::ColorConvertFloat4ToU32(directionColorV); 
+            drawList->AddLine(baseSSpace, worldDirSSpace, directionColor, gContext.mStyle.TranslationLineThickness);
             
             // Arrow head begin
             ImVec2 dir(baseSSpace - worldDirSSpace);
@@ -2953,7 +2970,7 @@ namespace IMGUIZMO_NAMESPACE
             
             ImVec2 ortogonalDir(dir.y, -dir.x); // Perpendicular vector
             ImVec2 a(worldDirSSpace + dir);
-            drawList->AddTriangleFilled(worldDirSSpace - dir, a + ortogonalDir, a - ortogonalDir, colors[i + 1]);
+            drawList->AddTriangleFilled(worldDirSSpace - dir, a + ortogonalDir, a - ortogonalDir, directionColor);
             // Arrow head end
          }
       }
