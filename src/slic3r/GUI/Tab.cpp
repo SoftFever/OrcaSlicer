@@ -1590,12 +1590,12 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         }
     }
 
-    if (opt_key == "seam_slope_enabled") {
+    if (opt_key == "seam_slope_type") {
         auto bad_seam_position = m_config->opt_enum<SeamPosition>("seam_position") == spRandom ||
                                  m_config->opt_enum<SeamPosition>("seam_position") == spNearest;
         auto too_fast_outer_wall = m_config->opt_float("outer_wall_speed") > 50.;
 
-        if (boost::any_cast<bool>(value) && (m_config->opt_enum<WallSequence>("wall_sequence") != WallSequence::OuterInner ||
+        if (boost::any_cast<int>(value) != (int)SeamScarfType::None && (m_config->opt_enum<WallSequence>("wall_sequence") != WallSequence::OuterInner ||
                                              m_config->opt_bool("wipe_before_external_loop") || bad_seam_position || too_fast_outer_wall)) {
             wxString msg_text = _L("When using scarf joint, we recommend the following settings:\n"
                                    "print outer wall first, disable wipe before external loop, reduce outer wall speed to no greater than "
@@ -1988,7 +1988,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("seam_position", "seam");
         optgroup->append_single_option_line("staggered_inner_seams", "seam");
         optgroup->append_single_option_line("seam_gap","seam");
-        optgroup->append_single_option_line("seam_slope_enabled");
+        optgroup->append_single_option_line("seam_slope_type");
         optgroup->append_single_option_line("seam_slope_start_height");
         optgroup->append_single_option_line("seam_slope_entire_loop");
         optgroup->append_single_option_line("seam_slope_min_length");

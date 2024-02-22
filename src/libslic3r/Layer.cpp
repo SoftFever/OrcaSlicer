@@ -184,7 +184,7 @@ void Layer::make_perimeters()
                         && config.fuzzy_skin_thickness        == other_config.fuzzy_skin_thickness
                         && config.fuzzy_skin_point_distance       == other_config.fuzzy_skin_point_distance
                         && config.fuzzy_skin_first_layer          == other_config.fuzzy_skin_first_layer
-                        && config.seam_slope_enabled      == other_config.seam_slope_enabled
+                        && config.seam_slope_type         == other_config.seam_slope_type
                         && config.seam_slope_start_height == other_config.seam_slope_start_height
                         && config.seam_slope_entire_loop  == other_config.seam_slope_entire_loop
                         && config.seam_slope_min_length   == other_config.seam_slope_min_length

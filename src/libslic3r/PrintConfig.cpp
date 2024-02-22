@@ -256,6 +256,14 @@ static t_config_enum_values s_keys_map_SeamPosition {
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SeamPosition)
 
 // Orca
+static t_config_enum_values s_keys_map_SeamScarfType{
+    { "none",           int(SeamScarfType::None) },
+    { "external",       int(SeamScarfType::External) },
+    { "all",            int(SeamScarfType::All) },
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SeamScarfType)
+
+// Orca
 static t_config_enum_values s_keys_map_InternalBridgeFilter {
     { "disabled",        ibfDisabled },
     { "limited",        ibfLimited },
@@ -3461,11 +3469,18 @@ def = this->add("filament_loading_speed", coFloats);
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatOrPercent(10,true));
 
-    def = this->add("seam_slope_enabled", coBool);
+    def = this->add("seam_slope_type", coEnum);
     def->label = L("Scarf joint seam");
     def->tooltip = L("Use scarf joint to minimize seam visibility and increase seam strength.");
+    def->enum_keys_map = &ConfigOptionEnum<SeamScarfType>::get_enum_values();
+    def->enum_values.push_back("none");
+    def->enum_values.push_back("external");
+    def->enum_values.push_back("all");
+    def->enum_labels.push_back(L("None"));
+    def->enum_labels.push_back(L("Contour"));
+    def->enum_labels.push_back(L("Contour and hole"));
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionBool(false));
+    def->set_default_value(new ConfigOptionEnum<SeamScarfType>(SeamScarfType::None));
     
     def = this->add("seam_slope_start_height", coFloatOrPercent);
     def->label = L("Scarf start height");
