@@ -102,6 +102,5 @@
     "internal_solid_infill_speed": "200",
     "top_surface_speed": "100",
     "gap_infill_speed": "100",
-    "travel_speed": "320",
-    "prime_tower_width": "60"
+    "travel_speed": "320"
 }

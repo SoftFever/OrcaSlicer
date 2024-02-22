@@ -5,7 +5,6 @@
 	"name": "0.25mm Industrial @Construct 1",
 	"from": "system",	
 	"instantiation": "true",	
-	"print_settings_id": "",
     "bottom_shell_layers": "4",
     "bridge_speed": "60",
     "default_acceleration": "4000",
@@ -50,7 +49,8 @@
     "top_surface_speed": "160",
     "travel_acceleration": "6400",
     "travel_speed": "320",
-    "wall_sequence": "inner-outer-inner wall"
+    "wall_sequence": "inner-outer-inner wall",
+	"wall_loops": "3",
 		"compatible_printers": [
 		"Construct 1 0.4 nozzle"
 	]

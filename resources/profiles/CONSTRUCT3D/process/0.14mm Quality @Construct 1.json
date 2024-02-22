@@ -5,14 +5,12 @@
 	"name": "0.14mm Quality @Construct 1",
 	"from": "system",	
 	"instantiation": "true",	
-	"print_settings_id": "",
     "bottom_shell_layers": "4",
     "bridge_speed": "60",
     "default_acceleration": "4000",
     "default_jerk": "12",
     "enable_arc_fitting": "1",
     "extra_perimeters_on_overhangs": "1",
-    "from": "User",
     "gap_infill_speed": "125",
     "infill_jerk": "12",
     "initial_layer_acceleration": "2000",
@@ -51,7 +49,7 @@
     "travel_acceleration": "6400",
     "travel_speed": "320",
     "wall_loops": "2",
-    "wall_sequence": "inner-outer-inner wall"
+    "wall_sequence": "inner-outer-inner wall",
 	"compatible_printers": [
 		"Construct 1 0.4 nozzle"
 	]
