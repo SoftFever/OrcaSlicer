@@ -5563,7 +5563,8 @@ void GLCanvas3D::_render_3d_navigator()
     Transform3d m                = Transform3d::Identity();
     m.matrix().block(0, 0, 3, 3) = camera.get_view_rotation().toRotationMatrix();
     // Rotate along X and Z axis for 90 degrees to have Y-up
-    m = m * Geometry::rotation_transform(Vec3d(0.5 * PI, 0, 0.5 * PI));
+    const auto coord_mapping_transform = Geometry::rotation_transform(Vec3d(0.5 * PI, 0, 0.5 * PI));
+    m = m * coord_mapping_transform;
     float cameraView[16];
     for (unsigned int c = 0; c < 4; ++c) {
         for (unsigned int r = 0; r < 4; ++r) {
@@ -5581,7 +5582,8 @@ void GLCanvas3D::_render_3d_navigator()
                 m(r, c) = cameraView[c * 4 + r];
             }
         }
-        m = m * (Geometry::rotation_transform(Vec3d(0.5 * PI, 0, 0.5 * PI)).inverse());
+        // Rotate back
+        m = m * (coord_mapping_transform.inverse());
         camera.set_rotation(m);
 
         request_extra_frame();
