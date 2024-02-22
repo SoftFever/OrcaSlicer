@@ -2928,6 +2928,36 @@ namespace IMGUIZMO_NAMESPACE
          }
       }
 
+      // draw axis
+      {
+         ImDrawList* drawList = gContext.mDrawList;
+
+         // colors
+         ImU32 colors[7];
+         ComputeColors(colors, MT_NONE, TRANSLATE);
+
+         const vec_t  origin = makeVect(-0.5f, -0.5f, -0.5f);
+         for (int i = 0; i < 3; ++i) {
+            vec_t  dirAxis        = directionUnary[i];
+            ImVec2 baseSSpace     = worldToPos(origin, res, position, size);
+            ImVec2 worldDirSSpace = worldToPos(origin + dirAxis, res, position, size);
+            
+            drawList->AddLine(baseSSpace, worldDirSSpace, colors[i + 1], gContext.mStyle.TranslationLineThickness);
+            
+            // Arrow head begin
+            ImVec2 dir(baseSSpace - worldDirSSpace);
+            
+            float d = sqrtf(ImLengthSqr(dir));
+            dir /= d; // Normalize
+            dir *= gContext.mStyle.TranslationLineArrowSize;
+            
+            ImVec2 ortogonalDir(dir.y, -dir.x); // Perpendicular vector
+            ImVec2 a(worldDirSSpace + dir);
+            drawList->AddTriangleFilled(worldDirSSpace - dir, a + ortogonalDir, a - ortogonalDir, colors[i + 1]);
+            // Arrow head end
+         }
+      }
+
       bool viewUpdated = false;
       if (interpolationFrames)
       {
