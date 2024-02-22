@@ -7313,9 +7313,9 @@ void GLCanvas3D::_render_overlays()
         style.Colors[ImGuizmo::COLOR::DIRECTION_X] = ImGuiWrapper::to_ImVec4(ColorRGBA::Y());
         style.Colors[ImGuizmo::COLOR::DIRECTION_Y] = ImGuiWrapper::to_ImVec4(ColorRGBA::Z());
         style.Colors[ImGuizmo::COLOR::DIRECTION_Z] = ImGuiWrapper::to_ImVec4(ColorRGBA::X());
-        strcpy_s(style.AxisLabels[ImGuizmo::Axis::Axis_X], "y");
-        strcpy_s(style.AxisLabels[ImGuizmo::Axis::Axis_Y], "z");
-        strcpy_s(style.AxisLabels[ImGuizmo::Axis::Axis_Z], "x");
+        strcpy(style.AxisLabels[ImGuizmo::Axis::Axis_X], "y");
+        strcpy(style.AxisLabels[ImGuizmo::Axis::Axis_Y], "z");
+        strcpy(style.AxisLabels[ImGuizmo::Axis::Axis_Z], "x");
 
         ImGuiIO& io                  = ImGui::GetIO();
         float    viewManipulateLeft = 0;

@@ -663,9 +663,9 @@ namespace IMGUIZMO_NAMESPACE
       Colors[TEXT]                  = ImVec4(1.000f, 1.000f, 1.000f, 1.000f);
       Colors[TEXT_SHADOW]           = ImVec4(0.000f, 0.000f, 0.000f, 1.000f);
 
-      strcpy_s(AxisLabels[Axis_X], "x");
-      strcpy_s(AxisLabels[Axis_Y], "y");
-      strcpy_s(AxisLabels[Axis_Z], "z");
+      strcpy(AxisLabels[Axis_X], "x");
+      strcpy(AxisLabels[Axis_Y], "y");
+      strcpy(AxisLabels[Axis_Z], "z");
    }
 
    struct Context
