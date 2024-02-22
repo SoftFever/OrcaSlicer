@@ -287,6 +287,7 @@ private:
     // If the background processing stop was requested, throw CanceledException.
     void                throw_if_canceled() const { if (m_print->canceled()) throw CanceledException(); }
 	void				finalize_gcode();
+	void				export_gcode();
     void                prepare_upload();
     // To be executed at the background thread.
 	ThumbnailsList		render_thumbnails(const ThumbnailsParams &params);
