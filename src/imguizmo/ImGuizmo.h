@@ -252,6 +252,14 @@ namespace IMGUIZMO_NAMESPACE
       COUNT
    };
 
+   enum Axis
+   {
+       Axis_X,
+       Axis_Y,
+       Axis_Z,
+       Axis_COUNT,
+   };
+
    struct Style
    {
       IMGUI_API Style();
@@ -266,6 +274,8 @@ namespace IMGUIZMO_NAMESPACE
       float CenterCircleSize;           // Size of circle at the center of the translate/scale gizmo
 
       ImVec4 Colors[COLOR::COUNT];
+
+      char AxisLabels[Axis::Axis_COUNT][32];
    };
 
    IMGUI_API Style& GetStyle();

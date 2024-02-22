@@ -662,6 +662,10 @@ namespace IMGUIZMO_NAMESPACE
       Colors[HATCHED_AXIS_LINES]    = ImVec4(0.000f, 0.000f, 0.000f, 0.500f);
       Colors[TEXT]                  = ImVec4(1.000f, 1.000f, 1.000f, 1.000f);
       Colors[TEXT_SHADOW]           = ImVec4(0.000f, 0.000f, 0.000f, 1.000f);
+
+      strcpy_s(AxisLabels[Axis_X], "x");
+      strcpy_s(AxisLabels[Axis_Y], "y");
+      strcpy_s(AxisLabels[Axis_Z], "z");
    }
 
    struct Context
@@ -2972,6 +2976,11 @@ namespace IMGUIZMO_NAMESPACE
             ImVec2 a(worldDirSSpace + dir);
             drawList->AddTriangleFilled(worldDirSSpace - dir, a + ortogonalDir, a - ortogonalDir, directionColor);
             // Arrow head end
+
+            // Axis text
+            ImVec2 labelSSpace = worldToPos(origin + dirAxis * 1.3f, res, position, size);
+            ImVec2 labelSize   = ImGui::CalcTextSize(gContext.mStyle.AxisLabels[i]);
+            drawList->AddText(labelSSpace - labelSize * 0.5, directionColor, gContext.mStyle.AxisLabels[i]);
          }
       }
 
