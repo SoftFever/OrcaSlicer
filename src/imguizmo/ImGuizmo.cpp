@@ -2771,6 +2771,26 @@ namespace IMGUIZMO_NAMESPACE
       return ViewManipulate(view, length, position, size, backgroundColor);
    }
 
+   void OrthoGraphic(const float l, float r, float b, const float t, float zn, const float zf, float* m16)
+   {
+       m16[0]  = 2 / (r - l);
+       m16[1]  = 0.0f;
+       m16[2]  = 0.0f;
+       m16[3]  = 0.0f;
+       m16[4]  = 0.0f;
+       m16[5]  = 2 / (t - b);
+       m16[6]  = 0.0f;
+       m16[7]  = 0.0f;
+       m16[8]  = 0.0f;
+       m16[9]  = 0.0f;
+       m16[10] = 1.0f / (zf - zn);
+       m16[11] = 0.0f;
+       m16[12] = (l + r) / (l - r);
+       m16[13] = (t + b) / (b - t);
+       m16[14] = zn / (zn - zf);
+       m16[15] = 1.0f;
+   }
+
    bool ViewManipulate(float* view, float length, ImVec2 position, ImVec2 size, ImU32 backgroundColor)
    {
       static bool isDraging = false;
@@ -2795,8 +2815,7 @@ namespace IMGUIZMO_NAMESPACE
       // view/projection matrices
       const float distance = 3.f;
       matrix_t cubeProjection, cubeView;
-      float fov = acosf(distance / (sqrtf(distance * distance + 3.f))) * RAD2DEG;
-      Perspective(fov / sqrtf(2.f), size.x / size.y, 0.01f, 1000.f, cubeProjection.m16);
+      OrthoGraphic(-1, 1, -1, 1, 0.01f, 1000.f, cubeProjection.m16);
 
       vec_t dir = makeVect(viewInverse.m[2][0], viewInverse.m[2][1], viewInverse.m[2][2]);
       vec_t up = makeVect(viewInverse.m[1][0], viewInverse.m[1][1], viewInverse.m[1][2]);
@@ -2838,7 +2857,7 @@ namespace IMGUIZMO_NAMESPACE
             // plan local space
             const vec_t n = directionUnary[normalIndex] * invert;
             vec_t viewSpaceNormal = n;
-            vec_t viewSpacePoint = n * 0.5f;
+            vec_t viewSpacePoint = n * 0.f;
             viewSpaceNormal.TransformVector(cubeView);
             viewSpaceNormal.Normalize();
             viewSpacePoint.TransformPoint(cubeView);
