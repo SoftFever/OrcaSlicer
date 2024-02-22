@@ -203,6 +203,7 @@ modules:
       - /app/include
       - "*.a"
       - "*.la"
+      - /app/lib/cmake
     
     sources:
       # -
@@ -321,10 +322,9 @@ modules:
       - |
         mkdir -p build && cd build
         CXXFLAGS=-std=gnu++20 cmake ../ \
-          -GNinja \
           -DCMAKE_INSTALL_PREFIX=/app \
           -DCMAKE_INSTALL_LIBDIR=/app/lib \
-          -DCMAKE_PREFIX_PATH=/run/build/OrcaSlicer/deps/build/destdir/usr/local \
+          -DCMAKE_PREFIX_PATH=/app \
           -DSLIC3R_PCH=OFF \
           -DSLIC3R_FHS=ON \
           -DSLIC3R_GTK=3 \
@@ -367,8 +367,8 @@ modules:
 
       # Use system deps instead of building them within BambuStudio
       # https://github.com/hadess/BambuStudio/tree/wip/hadess/use-sysdeps , modified
-      - type: patch
-        path: patches/use-sysdeps.patch
+      #- type: patch
+      #  path: patches/use-sysdeps.patch
       
         ## other patches to contrib
         #- type: patch
