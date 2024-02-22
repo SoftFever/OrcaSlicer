@@ -169,6 +169,10 @@
             "sub_path": "filament/Anker Generic PC @base.json"
         },
         {
+            "name": "Anker Generic PC 0.2 nozzle",
+            "sub_path": "filament/Anker Generic PC 0.2 nozzle.json"
+        },
+        {
             "name": "Anker Generic PC",
             "sub_path": "filament/Anker Generic PC.json"
         },
