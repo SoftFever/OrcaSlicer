@@ -3819,7 +3819,21 @@ void SelectMachineDialog::set_default()
     }
 
     fs::path filename_path(filename.c_str());
-    m_current_project_name = wxString::FromUTF8(filename_path.filename().string());
+    std::string file_name  = filename_path.filename().string();
+    if (from_u8(file_name).find(_L("Untitled")) != wxString::npos) {
+        PartPlate *part_plate = m_plater->get_partplate_list().get_plate(m_print_plate_idx);
+        if (part_plate) {
+            if (std::vector<ModelObject *> objects = part_plate->get_objects(); objects.size() > 0) {
+                file_name = objects[0]->name;
+                for (int i = 1; i < objects.size(); i++) { file_name += (" + " + objects[i]->name); }
+            }
+            if (file_name.size() > 100) {
+                file_name = file_name.substr(0, 97) + "...";
+            }
+        }
+    }
+    m_current_project_name = wxString::FromUTF8(file_name);
+
 
     //unsupported character filter
     m_current_project_name = from_u8(filter_characters(m_current_project_name.ToUTF8().data(), "<>[]:/\\|?*\""));
