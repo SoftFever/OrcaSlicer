@@ -3470,11 +3470,11 @@ def = this->add("filament_loading_speed", coFloats);
     def = this->add("seam_slope_start_height", coFloatOrPercent);
     def->label = L("Scarf start height");
     def->tooltip = L("Start height of the scarf.\n"
-                     "This amount can be specified in millimeters or as a percentage of the current layer height. The default value for this parameter is 0.05mm.");
+                     "This amount can be specified in millimeters or as a percentage of the current layer height. The default value for this parameter is 0.");
     def->sidetext = L("mm or %");
     def->min = 0;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloatOrPercent(0.05, false));
+    def->set_default_value(new ConfigOptionFloatOrPercent(0, false));
 
     def = this->add("seam_slope_entire_loop", coBool);
     def->label = L("Scarf around entire wall");
