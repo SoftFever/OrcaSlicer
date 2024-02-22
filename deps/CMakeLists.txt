@@ -41,7 +41,13 @@ if (NPROC EQUAL 0)
 endif ()
 
 set(DESTDIR "${CMAKE_CURRENT_BINARY_DIR}/destdir" CACHE PATH "Destination directory")
+set(REMOVE_DESTDIR_POSTPEND FALSE CACHE BOOL "Used in flatpak to remove the '/usr/local' ending in destdir")
 set(DEP_DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR}/../DL_CACHE CACHE PATH "Path for downloaded source packages.")
+if (REMOVE_DESTDIR_POSTPEND)
+    set(_INTDESTDIR "${DESTDIR}" CACHE PATH "The true destdir")
+else()
+    set(_INTDESTDIR "${DESTDIR}/usr/local/" CACHE PATH "The true destdir")
+endif()
 
 get_property(_is_multi GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
 
@@ -83,7 +89,7 @@ endif ()
 # Slic3r compiles with a different version which will cause runtime errors.
 # option(DEP_BUILD_IGL_STATIC "Build IGL as a static library. Might cause link errors and increase binary size." OFF)
 
-message(STATUS "OrcaSlicer deps DESTDIR: ${DESTDIR}")
+message(STATUS "OrcaSlicer deps DESTDIR: ${_INTDESTDIR}")
 message(STATUS "OrcaSlicer dowload dir for source packages: ${DEP_DOWNLOAD_DIR}")
 message(STATUS "OrcaSlicer deps debug build: ${DEP_DEBUG}")
 
@@ -96,6 +102,7 @@ if (NOT _is_multi AND NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
     message(STATUS "Forcing CMAKE_BUILD_TYPE to Release as it was not specified.")
 endif ()
+
 
 function(orcaslicer_add_cmake_project projectname)
     cmake_parse_arguments(P_ARGS "" "INSTALL_DIR;BUILD_COMMAND;INSTALL_COMMAND" "CMAKE_ARGS" ${ARGN})
@@ -120,13 +127,13 @@ if (NOT IS_CROSS_COMPILE OR NOT APPLE)
     ExternalProject_Add(
         dep_${projectname}
         EXCLUDE_FROM_ALL    ON
-        INSTALL_DIR         ${DESTDIR}/usr/local
+        INSTALL_DIR         ${_INTDESTDIR}
         DOWNLOAD_DIR        ${DEP_DOWNLOAD_DIR}/${projectname}
         ${_gen}
         CMAKE_ARGS
-            -DCMAKE_INSTALL_PREFIX:STRING=${DESTDIR}/usr/local
+            -DCMAKE_INSTALL_PREFIX:STRING=${_INTDESTDIR}
             -DCMAKE_MODULE_PATH:STRING=${PROJECT_SOURCE_DIR}/../cmake/modules
-            -DCMAKE_PREFIX_PATH:STRING=${DESTDIR}/usr/local
+            -DCMAKE_PREFIX_PATH:STRING=${_INTDESTDIR}
             -DCMAKE_DEBUG_POSTFIX:STRING=d
             -DCMAKE_C_COMPILER:STRING=${CMAKE_C_COMPILER}
             -DCMAKE_CXX_COMPILER:STRING=${CMAKE_CXX_COMPILER}
@@ -144,12 +151,12 @@ else()
     ExternalProject_Add(
         dep_${projectname}
         EXCLUDE_FROM_ALL    ON
-        INSTALL_DIR         ${DESTDIR}/usr/local
+        INSTALL_DIR         ${_INTDESTDIR}
         DOWNLOAD_DIR        ${DEP_DOWNLOAD_DIR}/${projectname}
         ${_gen}
         CMAKE_ARGS
-            -DCMAKE_INSTALL_PREFIX:STRING=${DESTDIR}/usr/local
-            -DCMAKE_PREFIX_PATH:STRING=${DESTDIR}/usr/local
+            -DCMAKE_INSTALL_PREFIX:STRING=${_INTDESTDIR}
+            -DCMAKE_PREFIX_PATH:STRING=${_INTDESTDIR}
             -DBUILD_SHARED_LIBS:BOOL=OFF
             ${_cmake_osx_arch}
             "${_configs_line}"

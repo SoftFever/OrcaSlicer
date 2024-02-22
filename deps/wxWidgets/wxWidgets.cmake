@@ -28,8 +28,8 @@ endif ()
 
 orcaslicer_add_cmake_project(
     wxWidgets
-    GIT_REPOSITORY "https://github.com/wxWidgets/wxWidgets"
-    GIT_TAG ${_wx_git_tag}
+    URL "https://github.com/wxWidgets/wxWidgets/archive/refs/tags/v3.1.5.tar.gz"
+    URL_HASH SHA256=e8fd5f9fbff864562aa4d9c094f898c97f5e1274c90f25beb0bfd5cb61319dea
     PATCH_COMMAND ${_patch_cmd}
     DEPENDS ${PNG_PKG} ${ZLIB_PKG} ${EXPAT_PKG} ${TIFF_PKG} ${JPEG_PKG}
     CMAKE_ARGS
