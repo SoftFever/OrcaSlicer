@@ -102,7 +102,7 @@ enum class WallSequence {
 // Orca
 enum class WallDirection
 {
-    Default,
+    Auto,
     CounterClockwise,
     Clockwise,
     Count,

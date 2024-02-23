@@ -1732,7 +1732,7 @@ void PerimeterGenerator::process_classic()
             bool steep_overhang_contour = false;
             bool steep_overhang_hole    = false;
             const WallDirection wall_direction = config->wall_direction;
-            if (wall_direction != WallDirection::Default) {
+            if (wall_direction != WallDirection::Auto) {
                 // Skip steep overhang detection if wall direction is specified
                 steep_overhang_contour = true;
                 steep_overhang_hole    = true;
@@ -1741,8 +1741,8 @@ void PerimeterGenerator::process_classic()
             // All walls are counter-clockwise initially, so we don't need to reorient it if that's what we want
             if (wall_direction != WallDirection::CounterClockwise) {
                 reorient_perimeters(entities, steep_overhang_contour, steep_overhang_hole,
-                                    // Reverse internal only if the wall direction is default
-                                    this->config->overhang_reverse_internal_only && wall_direction == WallDirection::Default);
+                                    // Reverse internal only if the wall direction is auto
+                                    this->config->overhang_reverse_internal_only && wall_direction == WallDirection::Auto);
             }
 
             // if brim will be printed, reverse the order of perimeters so that
@@ -2532,7 +2532,7 @@ void PerimeterGenerator::process_arachne()
         bool steep_overhang_contour = false;
         bool steep_overhang_hole    = false;
         const WallDirection wall_direction = config->wall_direction;
-        if (wall_direction != WallDirection::Default) {
+        if (wall_direction != WallDirection::Auto) {
             // Skip steep overhang detection if wall direction is specified
             steep_overhang_contour = true;
             steep_overhang_hole    = true;
@@ -2541,8 +2541,8 @@ void PerimeterGenerator::process_arachne()
             // All walls are counter-clockwise initially, so we don't need to reorient it if that's what we want
             if (wall_direction != WallDirection::CounterClockwise) {
                 reorient_perimeters(extrusion_coll, steep_overhang_contour, steep_overhang_hole,
-                                    // Reverse internal only if the wall direction is default
-                                    this->config->overhang_reverse_internal_only && wall_direction == WallDirection::Default);
+                                    // Reverse internal only if the wall direction is auto
+                                    this->config->overhang_reverse_internal_only && wall_direction == WallDirection::Auto);
             }
             this->loops->append(extrusion_coll);
         }
