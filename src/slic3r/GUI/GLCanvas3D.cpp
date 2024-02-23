@@ -5542,6 +5542,10 @@ static const float cameraProjection[16] = {1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.
 
 void GLCanvas3D::_render_3d_navigator()
 {
+    if (!wxGetApp().show_3d_navigator()) {
+        return;
+    }
+
     ImGuizmo::BeginFrame();
     ImGuizmo::AllowAxisFlip(false);
 
