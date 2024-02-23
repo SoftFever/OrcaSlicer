@@ -51,7 +51,5 @@
     "version": "1.8.0.0",
     "wall_loops": "2",
     "wall_sequence": "inner-outer-inner wall",
-	"compatible_printers": [
-		"Construct 1 0.4 nozzle"
-	]
+	"compatible_printers": ["Construct 1 0.4 nozzle"]
 }

@@ -52,7 +52,5 @@
     "travel_speed": "320",
     "wall_loops": "2",
     "wall_sequence": "inner-outer-inner wall",
-	"compatible_printers": [
-		"Construct 1 0.4 nozzle"
-	]
+	"compatible_printers": ["Construct 1 0.4 nozzle"]
 }

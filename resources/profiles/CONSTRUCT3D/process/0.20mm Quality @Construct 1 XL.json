@@ -50,7 +50,5 @@
     "wall_loops": "2",
     "wall_sequence": "inner-outer-inner wall",
 	"filename_format": "{input_filename_base}_{filament_type[initial_tool]}_{print_time}.gcode",
-	"compatible_printers": [
-		"Construct 1 XL 0.6 nozzle"
-	]
+	"compatible_printers": ["Construct 1 XL 0.6 nozzle"]
 }
