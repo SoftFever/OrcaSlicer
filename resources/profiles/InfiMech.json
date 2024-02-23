@@ -83,7 +83,68 @@
         {
             "name": "InfiMech Generic PA-CF",
             "sub_path": "filament/InfiMech Generic PA-CF.json"
+        },
+	    
+	{
+            "name": "Other PLA",
+            "sub_path": "filament/Other PLA.json"
+        },
+
+        {
+            "name": "fdm_filament_tpu_other",
+            "sub_path": "filament/fdm_filament_tpu_other.json"
+        },
+        {
+            "name": "Other TPU",
+            "sub_path": "filament/Other TPU.json"
+        },
+
+        {
+            "name": "fdm_filament_pa_other",
+            "sub_path": "filament/fdm_filament_pa_other.json"
+        },
+        {
+            "name": "Other PA-CF",
+            "sub_path": "filament/Other PA-CF.json"
+        },
+        
+        {
+            "name": "fdm_filament_pet_other",
+            "sub_path": "filament/fdm_filament_pet_other.json"
+        },
+        {
+            "name": "Other PETG",
+            "sub_path": "filament/Other PETG.json"
+        },
+
+        {
+            "name": "fdm_filament_pc_other",
+            "sub_path": "filament/fdm_filament_pc_other.json"
+        },
+        {
+            "name": "Other PC",
+            "sub_path": "filament/Other PC.json"
+        },
+
+        {
+            "name": "fdm_filament_abs_other",
+            "sub_path": "filament/fdm_filament_abs_other.json"
+        },
+        {
+            "name": "Other ABS",
+            "sub_path": "filament/Other ABS.json"
+        },
+        
+        {
+            "name": "fdm_filament_pla_Hyper_other",
+            "sub_path": "filament/fdm_filament_pla_Hyper_other.json"
+        },
+        {
+            "name": "Other PLA Hyper",
+            "sub_path": "filament/Other PLA Hyper.json"
         }
+
+	    
     ],
     "machine_list": [
 	    {
