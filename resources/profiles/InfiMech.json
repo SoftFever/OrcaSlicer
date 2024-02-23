@@ -29,6 +29,10 @@
         {
             "name": "0.24mm Draft @InfiMech TX",
             "sub_path": "process/0.24mm Draft @InfiMech TX.json"
+        },
+        {
+            "name": "0.16mm Optimal @InfiMech TX",
+            "sub_path": "process/0.16mm Optimal @InfiMech TX.json"
         }
     ],
     "filament_list": [
