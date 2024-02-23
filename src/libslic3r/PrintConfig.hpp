@@ -98,6 +98,16 @@ enum class WallSequence {
     InnerOuterInner,
     Count,
 };
+
+// Orca
+enum class WallDirection
+{
+    Auto,
+    CounterClockwise,
+    Clockwise,
+    Count,
+};
+
 //BBS
 enum class PrintSequence {
     ByLayer,
@@ -932,6 +942,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionEnum<WallSequence>,  wall_sequence))
     ((ConfigOptionBool,                is_infill_first))
     ((ConfigOptionBool,                small_area_infill_flow_compensation))
+    ((ConfigOptionEnum<WallDirection>,  wall_direction))
 )
 
 PRINT_CONFIG_CLASS_DEFINE(
