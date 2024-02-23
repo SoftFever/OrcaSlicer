@@ -2,12 +2,12 @@
     "type": "process",
     "setting_id": "GP004",
     "name": "0.12mm Fine @InfiMech TX",
-	"from": "system",
-	"instantiation": "true",
-	"inherits": "fdm_process_common",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "fdm_process_common",
 
     "bottom_shell_layers": "5",
-    "overhang_1_4_speed": "60",
+    "overhang_1_4_speed": "50",
     "overhang_2_4_speed": "30",
     "overhang_3_4_speed": "10",
     "top_shell_layers": "5",
@@ -20,9 +20,12 @@
     "layer_height": "0.12",
     "print_settings_id": "0.12mm Fine @InfiMech TX",
     "sparse_infill_speed": "400",
-	"compatible_printers": [
+    "exclude_object": "0",
+    "internal_bridge_speed": "50",
+    "compatible_printers": [
         "InfiMech TX 0.4 nozzle"
     ]
+
 
 
 
