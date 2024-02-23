@@ -23,7 +23,7 @@ else ()
 endif ()
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    set(_patch_cmd ${PATCH_CMD} ${CMAKE_CURRENT_LIST_DIR}/0001-wx-3.1.5-patch-for-Orca.patch)
+    set(_patch_cmd ${PATCH_CMD} ${CMAKE_CURRENT_LIST_DIR}/0001-wx-3.1.5-patch-for-Orca.patch ${CMAKE_CURRENT_LIST_DIR}/0001-Add-support-for-building-WebView-with-libwebkit2gtk-.patch)
 endif ()
 
 orcaslicer_add_cmake_project(
@@ -44,6 +44,7 @@ orcaslicer_add_cmake_project(
         -DwxUSE_UNICODE=ON
         ${_wx_private_font}
         -DwxUSE_OPENGL=ON
+        -DwxUSE_WEBREQUEST=ON
         -DwxUSE_WEBVIEW=ON
         ${_wx_edge}
         -DwxUSE_WEBVIEW_IE=OFF
@@ -57,6 +58,7 @@ orcaslicer_add_cmake_project(
         -DwxUSE_ZLIB=sys
         -DwxUSE_LIBJPEG=sys
         -DwxUSE_LIBTIFF=sys
+        -DwxUSE_NANOSVG=OFF
         -DwxUSE_EXPAT=sys
 )
 
