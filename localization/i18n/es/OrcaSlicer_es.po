@@ -7076,7 +7076,7 @@ msgstr "Generador de perímetros"
 msgid "Walls and surfaces"
 msgstr "Paredes y superficies"
 
-msgid "Small Area Infill Flow Compensation (experimental)"
+msgid "Small Area Infill Flow Compensation (beta)"
 msgstr ""
 
 msgid "Bridging"
@@ -9087,8 +9087,8 @@ msgid "This factor affects the amount of material for bottom solid infill"
 msgstr ""
 "Este factor afecta a la cantidad de material para el relleno sólido inferior"
 
-msgid "Precise wall(experimental)"
-msgstr "Pared precisa(experimental)"
+msgid "Precise wall"
+msgstr "Pared precisa"
 
 msgid ""
 "Improve shell precision by adjusting outer wall spacing. This also improves "
@@ -9465,8 +9465,8 @@ msgstr ""
 "recomienda tener esta función activada. Sin embargo, considera desactivarla "
 "si utilizas boquillas grandes."
 
-msgid "Don't filter out small internal bridges (experimental)"
-msgstr "No filtrar los pequeños puentes internos (experimental)"
+msgid "Don't filter out small internal bridges (beta)"
+msgstr "No filtrar los pequeños puentes internos (beta)"
 
 msgid ""
 "This option can help reducing pillowing on top surfaces in heavily slanted "
@@ -9574,7 +9574,7 @@ msgstr ""
 "Añadir relleno sólido al lado de capas inclinadas para garantizar el grosor "
 "de carcasa vertical (capas sólidas superior+inferior)"
 
-msgid "Further reduce solid infill on walls (experimental)"
+msgid "Further reduce solid infill on walls (beta)"
 msgstr ""
 
 msgid ""

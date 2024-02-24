@@ -418,7 +418,7 @@ Vec3d extract_euler_angles(const Transform3d& transform)
 
 void rotation_from_two_vectors(Vec3d from, Vec3d to, Vec3d& rotation_axis, double& phi, Matrix3d* rotation_matrix)
 {
-    const Matrix3d m = Transform3d(Eigen::Quaterniond().setFromTwoVectors(from, to)).matrix().block<3, 3>(0, 0);
+    const Matrix3d m = Eigen::Quaterniond().setFromTwoVectors(from, to).toRotationMatrix();
     const Eigen::AngleAxisd aa(m);
     rotation_axis = aa.axis();
     phi           = aa.angle();

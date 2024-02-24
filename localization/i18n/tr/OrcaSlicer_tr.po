@@ -6978,7 +6978,7 @@ msgstr "Duvar Türü"
 msgid "Walls and surfaces"
 msgstr "Duvarlar ve Yüzeyler"
 
-msgid "Small Area Infill Flow Compensation (experimental)"
+msgid "Small Area Infill Flow Compensation (beta)"
 msgstr "Küçük Alan Dolgusu Akış Telafisi (deneysel)"
 
 msgid "Bridging"
@@ -8962,8 +8962,8 @@ msgstr "Alt katı dolgu akış oranı"
 msgid "This factor affects the amount of material for bottom solid infill"
 msgstr "Bu faktör alt katı dolgu için malzeme miktarını etkiler"
 
-msgid "Precise wall(experimental)"
-msgstr "Hassas duvar (deneysel)"
+msgid "Precise wall"
+msgstr "Hassas duvar"
 
 msgid ""
 "Improve shell precision by adjusting outer wall spacing. This also improves "
@@ -9332,7 +9332,7 @@ msgstr ""
 "açık olması önerilir. Ancak büyük nozul uçları kullanıyorsanız kapatmayı "
 "düşünün."
 
-msgid "Don't filter out small internal bridges (experimental)"
+msgid "Don't filter out small internal bridges (beta)"
 msgstr "Küçük iç köprüleri filtrelemeyin (deneysel)"
 
 msgid ""
@@ -9438,7 +9438,7 @@ msgstr ""
 "Dikey kabuk kalınlığını garanti etmek için eğimli yüzeylerin yakınına katı "
 "dolgu ekleyin (üst + alt katı katmanlar)"
 
-msgid "Further reduce solid infill on walls (experimental)"
+msgid "Further reduce solid infill on walls (beta)"
 msgstr "Duvarlardaki katı dolguyu daha da azaltın (deneysel)"
 
 msgid ""

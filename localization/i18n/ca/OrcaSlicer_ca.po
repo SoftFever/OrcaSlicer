@@ -8964,8 +8964,8 @@ msgid "This factor affects the amount of material for bottom solid infill"
 msgstr ""
 "Aquest factor afecta la quantitat de material per al farciment sòlid inferior"
 
-msgid "Precise wall(experimental)"
-msgstr "Perímetre precís ( experimental )"
+msgid "Precise wall"
+msgstr "Perímetre precís"
 
 msgid ""
 "Improve shell precision by adjusting outer wall spacing. This also improves "
@@ -14718,7 +14718,7 @@ msgstr ""
 #~ msgid "Zoom out"
 #~ msgstr "Reduir zoom"
 
-#~ msgid "Don't filter out small internal bridges (experimental)"
+#~ msgid "Don't filter out small internal bridges (beta)"
 #~ msgstr "No filtrar els petits ponts interns ( experimental )"
 
 #~ msgid ""
