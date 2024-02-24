@@ -1550,6 +1550,37 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(40));
 
+    def          = this->add("bed_mesh_min", coPoint);
+    def->label   = L("Bed mesh min");
+    def->tooltip = L(
+        "The minimum allowed bed mesh point depends on the probe location. To prevent the probe from going beyond the bed area, the bed "
+        "mesh minimum and maximum values should be set accordingly. These settings can usually be found in your printer's firmware "
+        "settings. The default setting is (-99999, -99999), which implies no limitation, allowing it to probe the entire bed.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionPoint(Vec2d(-99999, -99999)));
+
+    def          = this->add("bed_mesh_max", coPoint);
+    def->label   = L("Bed mesh max");
+    def->tooltip = L(
+        "The maximum allowed bed mesh point depends on the probe location. To prevent the probe from going beyond the bed area, the bed "
+        "mesh minimum and maximum values should be set accordingly. These settings can usually be found in your printer's firmware "
+        "settings. The default setting is (99999, 99999), which implies no limitation, allowing it to probe the entire bed.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionPoint(Vec2d(99999, 99999)));
+
+    def          = this->add("bed_mesh_probe_distance", coPoint);
+    def->label   = L("Probe point distance");
+    def->tooltip = L("Prefered distance between probe points(grid size) for X and Y direction, default is 50mm for both X and Y");
+    def->min     = 0;
+    def->mode    = comAdvanced;
+    def->set_default_value(new ConfigOptionPoint(Vec2d(50, 50)));
+
+    def          = this->add("adaptive_bed_mesh_margin", coFloat);
+    def->label   = L("Mesh margin");
+    def->tooltip = L("The bed mesh area will be expanded by this additional distance in all directions.");
+    def->mode    = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0));
+
     def = this->add("extruder_colour", coStrings);
     def->label = L("Extruder Color");
     def->tooltip = L("Only used as a visual help on UI");
