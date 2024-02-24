@@ -189,6 +189,14 @@ static t_config_enum_values s_keys_map_WallSequence {
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(WallSequence)
 
+//Orca
+static t_config_enum_values s_keys_map_WallDirection{
+    { "auto", int(WallDirection::Auto) },
+    { "ccw",  int(WallDirection::CounterClockwise) },
+    { "cw",   int(WallDirection::Clockwise)},
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(WallDirection)
+
 //BBS
 static t_config_enum_values s_keys_map_PrintSequence {
     { "by layer",     int(PrintSequence::ByLayer) },
@@ -903,9 +911,10 @@ void PrintConfigDef::init_fff_params()
 
 
     def = this->add("precise_outer_wall",coBool);
-    def->label = L("Precise wall(experimental)");
+    def->label = L("Precise wall");
     def->category = L("Quality");
-    def->tooltip = L("Improve shell precision by adjusting outer wall spacing. This also improves layer consistency.");
+    def->tooltip  = L("Improve shell precision by adjusting outer wall spacing. This also improves layer consistency.\nNote: This setting "
+                       "will only take effect if the wall sequence is configured to Inner-Outer");
     def->set_default_value(new ConfigOptionBool{false});
     
     def = this->add("only_one_wall_top", coBool);
@@ -1492,6 +1501,20 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Quality");
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionBool{false});
+
+    def = this->add("wall_direction", coEnum);
+    def->label = L("Wall loop direction");
+    def->category = L("Quality");
+    def->tooltip = L("The direction which the wall loops are extruded when looking down from the top.\n\nBy default all walls are extruded in counter-clockwise, unless Reverse on odd is enabled. Set this to any option other than Auto will force the wall direction regardless of the Reverse on odd.\n\nThis option will be disabled if sprial vase mode is enabled.");
+    def->enum_keys_map = &ConfigOptionEnum<WallDirection>::get_enum_values();
+    def->enum_values.push_back("auto");
+    def->enum_values.push_back("ccw");
+    def->enum_values.push_back("cw");
+    def->enum_labels.push_back(L("Auto"));
+    def->enum_labels.push_back(L("Counter clockwise"));
+    def->enum_labels.push_back(L("Clockwise"));
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionEnum<WallDirection>(WallDirection::Auto));
 
     def = this->add("extruder", coInt);
     def->gui_type = ConfigOptionDef::GUIType::i_enum_open;
