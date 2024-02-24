@@ -1551,6 +1551,42 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(40));
 
+    def          = this->add("bed_mesh_min", coPoint);
+    def->label   = L("Bed mesh min");
+    def->tooltip = L(
+        "This option sets the min point for the allowed bed mesh area. Due to the probe's XY offset, most printers are unable to probe the "
+        "entire bed. To ensure the probe point does not go outside the bed area, the minimum and maximum points of the bed mesh should be "
+        "set appropriately. OrcaSlicer ensures that adaptive_bed_mesh_min/adaptive_bed_mesh_max values do not exceed these min/max "
+        "points. This information can usually be obtained from your printer manufacturer. The default setting is (-99999, -99999), which "
+        "means there are no limits, thus allowing probing across the entire bed.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionPoint(Vec2d(-99999, -99999)));
+
+    def          = this->add("bed_mesh_max", coPoint);
+    def->label   = L("Bed mesh max");
+    def->tooltip = L(
+        "This option sets the max point for the allowed bed mesh area. Due to the probe's XY offset, most printers are unable to probe the "
+        "entire bed. To ensure the probe point does not go outside the bed area, the minimum and maximum points of the bed mesh should be "
+        "set appropriately. OrcaSlicer ensures that adaptive_bed_mesh_min/adaptive_bed_mesh_max values do not exceed these min/max "
+        "points. This information can usually be obtained from your printer manufacturer. The default setting is (99999, 99999), which "
+        "means there are no limits, thus allowing probing across the entire bed.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionPoint(Vec2d(99999, 99999)));
+
+    def          = this->add("bed_mesh_probe_distance", coPoint);
+    def->label   = L("Probe point distance");
+    def->tooltip = L("This option sets the preferred distance between probe points (grid size) for the X and Y directions, with the "
+                     "default being 50mm for both X and Y.");
+    def->min     = 0;
+    def->mode    = comAdvanced;
+    def->set_default_value(new ConfigOptionPoint(Vec2d(50, 50)));
+
+    def          = this->add("adaptive_bed_mesh_margin", coFloat);
+    def->label   = L("Mesh margin");
+    def->tooltip = L("This option determines the additional distance by which the adaptive bed mesh area should be expanded in the XY directions.");
+    def->mode    = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0));
+
     def = this->add("extruder_colour", coStrings);
     def->label = L("Extruder Color");
     def->tooltip = L("Only used as a visual help on UI");
