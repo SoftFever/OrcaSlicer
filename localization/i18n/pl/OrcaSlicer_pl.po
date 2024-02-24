@@ -6656,7 +6656,7 @@ msgstr "Generator ścian"
 msgid "Walls and surfaces"
 msgstr "Ściany i powierzchnie"
 
-msgid "Small Area Infill Flow Compensation (experimental)"
+msgid "Small Area Infill Flow Compensation (beta)"
 msgstr "Kompensacja przepływu małych obszarów"
 
 msgid "Bridging"
@@ -8459,8 +8459,8 @@ msgstr "Współczynnik przepływu dolnej powierzchni"
 msgid "This factor affects the amount of material for bottom solid infill"
 msgstr "Ten współczynnik wpływa na ilość materiału w dolnej warstwie pełnego wypełnienia"
 
-msgid "Precise wall(experimental)"
-msgstr "Ściany o wysokiej precyzji (eksperymentalne)"
+msgid "Precise wall"
+msgstr "Ściany o wysokiej precyzji"
 
 msgid "Improve shell precision by adjusting outer wall spacing. This also improves layer consistency."
 msgstr ""
@@ -8777,7 +8777,7 @@ msgstr ""
 "Jeśli włączone, będą używane grube wewnętrzne mosty. Zazwyczaj zaleca się użycie tej funkcji. Jednak rozważ jej "
 "wyłączenie, jeśli używasz dużych dysz."
 
-msgid "Don't filter out small internal bridges (experimental)"
+msgid "Don't filter out small internal bridges (beta)"
 msgstr "Nie filtruj małych wewnętrznych mostów (eksperymentalnie)"
 
 msgid ""
@@ -8869,7 +8869,7 @@ msgstr ""
 "Dodaj pełne wypełnienie w pobliżu nachylonych powierzchni, aby zagwarantować pionową grubość powłoki (górne+ "
 "dolne pełne warstwy)"
 
-msgid "Further reduce solid infill on walls (experimental)"
+msgid "Further reduce solid infill on walls (beta)"
 msgstr ""
 
 msgid ""

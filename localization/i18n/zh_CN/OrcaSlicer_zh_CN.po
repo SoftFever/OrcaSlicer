@@ -6664,7 +6664,7 @@ msgstr "墙生成器"
 msgid "Walls and surfaces"
 msgstr "墙壁和表面"
 
-msgid "Small Area Infill Flow Compensation (experimental)"
+msgid "Small Area Infill Flow Compensation (beta)"
 msgstr ""
 
 msgid "Bridging"
@@ -8480,8 +8480,8 @@ msgstr "底部表面流量比例"
 msgid "This factor affects the amount of material for bottom solid infill"
 msgstr "首层流量调整系数，默认为1.0"
 
-msgid "Precise wall(experimental)"
-msgstr "精准外墙尺寸(试验)"
+msgid "Precise wall"
+msgstr "精准外墙尺寸"
 
 msgid ""
 "Improve shell precision by adjusting outer wall spacing. This also improves "
@@ -8811,7 +8811,7 @@ msgstr ""
 "如果启用，将使用厚内部桥接。通常建议打开此功能。但是，如果您使用大喷嘴，请考"
 "虑关闭它。"
 
-msgid "Don't filter out small internal bridges (experimental)"
+msgid "Don't filter out small internal bridges (beta)"
 msgstr ""
 
 msgid ""
@@ -8888,7 +8888,7 @@ msgid ""
 "thickness (top+bottom solid layers)"
 msgstr "在斜面表面附近添加实心填充，以保证垂直外壳厚度（顶部+底部实心层）"
 
-msgid "Further reduce solid infill on walls (experimental)"
+msgid "Further reduce solid infill on walls (beta)"
 msgstr ""
 
 msgid ""

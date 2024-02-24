@@ -1310,7 +1310,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionBool(true));
 
     def = this->add("dont_filter_internal_bridges", coEnum);
-    def->label = L("Don't filter out small internal bridges (experimental)");
+    def->label = L("Don't filter out small internal bridges (beta)");
     def->category = L("Quality");
     def->tooltip = L("This option can help reducing pillowing on top surfaces in heavily slanted or curved models.\n\n"
                       "By default, small internal bridges are filtered out and the internal solid infill is printed directly"
@@ -1381,7 +1381,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionBool(true));
     
     def = this->add("reduce_wall_solid_infill", coBool);
-    def->label = L("Further reduce solid infill on walls (experimental)");
+    def->label = L("Further reduce solid infill on walls (beta)");
     def->category = L("Strength");
     def->tooltip = L("Further reduces any solid infill applied to walls. As there will be very limited infill supporting"
                      " solid surfaces, make sure that you are using adequate number of walls to support the part on sloping surfaces.\n\n"
@@ -2736,7 +2736,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->set_default_value(new ConfigOptionString(""));
 
     def = this->add("small_area_infill_flow_compensation", coBool);
-    def->label = L("Enable Flow Compensation");
+    def->label = L("Small area flow compensation (beta)");
     def->tooltip = L("Enable flow compensation for small infill areas");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
@@ -3723,7 +3723,7 @@ def = this->add("filament_loading_speed", coFloats);
 
 
     def = this->add("wipe_tower_no_sparse_layers", coBool);
-    def->label = L("No sparse layers (EXPERIMENTAL)");
+    def->label = L("No sparse layers (beta)");
     def->tooltip = L("If enabled, the wipe tower will not be printed on layers with no toolchanges. "
                     "On layers with a toolchange, extruder will travel downward to print the wipe tower. "
                     "User is responsible for ensuring there is no collision with the print.");
