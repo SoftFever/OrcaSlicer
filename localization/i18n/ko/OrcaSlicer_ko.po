@@ -6850,7 +6850,7 @@ msgstr "벽 생성기"
 msgid "Walls and surfaces"
 msgstr "벽과 표면"
 
-msgid "Small Area Infill Flow Compensation (experimental)"
+msgid "Small Area Infill Flow Compensation (beta)"
 msgstr ""
 
 msgid "Bridging"
@@ -8767,8 +8767,8 @@ msgstr "하단 표면 유량 비율"
 msgid "This factor affects the amount of material for bottom solid infill"
 msgstr "이 값은 하단 꽉찬 내부 채우기의 재료의 양에 영향을 미칩니다"
 
-msgid "Precise wall(experimental)"
-msgstr "정밀한 벽(실험적)"
+msgid "Precise wall"
+msgstr "정밀한 벽"
 
 msgid ""
 "Improve shell precision by adjusting outer wall spacing. This also improves "
@@ -9124,7 +9124,7 @@ msgstr ""
 "기능을 켜두세요. 하지만 다음과 같은 경우에는 끄는 것을 고려해 보세요.큰 노즐"
 "을 사용합니다."
 
-msgid "Don't filter out small internal bridges (experimental)"
+msgid "Don't filter out small internal bridges (beta)"
 msgstr ""
 
 msgid ""
@@ -9205,7 +9205,7 @@ msgstr ""
 "경사진 표면 근처에 꽉찬 내부 채우기를 추가하여 수직 쉘 두께를 보장합니다 (상"
 "단+하단 꽉찬 레이어)"
 
-msgid "Further reduce solid infill on walls (experimental)"
+msgid "Further reduce solid infill on walls (beta)"
 msgstr ""
 
 msgid ""

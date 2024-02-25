@@ -6694,7 +6694,7 @@ msgstr "壁面生成器"
 msgid "Walls and surfaces"
 msgstr ""
 
-msgid "Small Area Infill Flow Compensation (experimental)"
+msgid "Small Area Infill Flow Compensation (beta)"
 msgstr ""
 
 msgid "Bridging"
@@ -8529,7 +8529,7 @@ msgstr ""
 msgid "This factor affects the amount of material for bottom solid infill"
 msgstr ""
 
-msgid "Precise wall(experimental)"
+msgid "Precise wall"
 msgstr ""
 
 msgid ""
@@ -8838,7 +8838,7 @@ msgid ""
 "using large nozzles."
 msgstr ""
 
-msgid "Don't filter out small internal bridges (experimental)"
+msgid "Don't filter out small internal bridges (beta)"
 msgstr ""
 
 msgid ""
@@ -8916,7 +8916,7 @@ msgid ""
 "thickness (top+bottom solid layers)"
 msgstr "傾斜面にソリッドインフィルを追加"
 
-msgid "Further reduce solid infill on walls (experimental)"
+msgid "Further reduce solid infill on walls (beta)"
 msgstr ""
 
 msgid ""

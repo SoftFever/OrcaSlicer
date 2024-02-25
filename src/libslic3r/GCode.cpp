@@ -1,4 +1,5 @@
 #include "BoundingBox.hpp"
+#include "Config.hpp"
 #include "Polygon.hpp"
 #include "PrintConfig.hpp"
 #include "libslic3r.h"
@@ -21,6 +22,7 @@
 #include "Time.hpp"
 #include "GCode/ExtrusionProcessor.hpp"
 #include <algorithm>
+#include <cmath>
 #include <cstdlib>
 #include <chrono>
 #include <iostream>
@@ -2322,7 +2324,25 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         this->placeholder_parser().set("first_layer_print_min", new ConfigOptionFloats({bbox.min.x(), bbox.min.y()}));
         this->placeholder_parser().set("first_layer_print_max", new ConfigOptionFloats({bbox.max.x(), bbox.max.y()}));
         this->placeholder_parser().set("first_layer_print_size", new ConfigOptionFloats({ bbox.size().x(), bbox.size().y() }));
-        this->placeholder_parser().set("in_head_wrap_detect_zone",bbox_head_wrap_zone.overlap(bbox));
+
+        BoundingBoxf mesh_bbox(m_config.bed_mesh_min, m_config.bed_mesh_max);
+        auto         mesh_margin = m_config.adaptive_bed_mesh_margin.value;
+        mesh_bbox.min            = mesh_bbox.min.cwiseMax((bbox.min.array() - mesh_margin).matrix());
+        mesh_bbox.max            = mesh_bbox.max.cwiseMin((bbox.max.array() + mesh_margin).matrix());
+        this->placeholder_parser().set("adaptive_bed_mesh_min", new ConfigOptionFloats({mesh_bbox.min.x(), mesh_bbox.min.y()}));
+        this->placeholder_parser().set("adaptive_bed_mesh_max", new ConfigOptionFloats({mesh_bbox.max.x(), mesh_bbox.max.y()}));
+
+        auto probe_dist_x  = std::max(1., m_config.bed_mesh_probe_distance.value.x());
+        auto probe_dist_y  = std::max(1., m_config.bed_mesh_probe_distance.value.y());
+        int  probe_count_x = std::max(3, (int) std::ceil(mesh_bbox.size().x() / probe_dist_x));
+        int  probe_count_y = std::max(3, (int) std::ceil(mesh_bbox.size().y() / probe_dist_y));
+        this->placeholder_parser().set("bed_mesh_probe_count", new ConfigOptionInts({probe_count_x, probe_count_y}));
+        auto bed_mesh_algo = "bicubic";
+        if (probe_count_x < 4 || probe_count_y < 4) {
+            bed_mesh_algo = "lagrange";
+        }
+        this->placeholder_parser().set("bed_mesh_algo", bed_mesh_algo);
+        this->placeholder_parser().set("in_head_wrap_detect_zone",probe_count_y);
         // get center without wipe tower
         BoundingBoxf bbox_wo_wt; // bounding box without wipe tower
         for (auto &objPtr : print.objects()) {
