@@ -1317,7 +1317,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionBool(true));
 
     def = this->add("dont_filter_internal_bridges", coEnum);
-    def->label = L("Don't filter out small internal bridges (experimental)");
+    def->label = L("Don't filter out small internal bridges (beta)");
     def->category = L("Quality");
     def->tooltip = L("This option can help reducing pillowing on top surfaces in heavily slanted or curved models.\n\n"
                       "By default, small internal bridges are filtered out and the internal solid infill is printed directly"
@@ -1388,7 +1388,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionBool(true));
     
     def = this->add("reduce_wall_solid_infill", coBool);
-    def->label = L("Further reduce solid infill on walls (experimental)");
+    def->label = L("Further reduce solid infill on walls (beta)");
     def->category = L("Strength");
     def->tooltip = L("Further reduces any solid infill applied to walls. As there will be very limited infill supporting"
                      " solid surfaces, make sure that you are using adequate number of walls to support the part on sloping surfaces.\n\n"
@@ -1557,6 +1557,42 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(40));
+
+    def          = this->add("bed_mesh_min", coPoint);
+    def->label   = L("Bed mesh min");
+    def->tooltip = L(
+        "This option sets the min point for the allowed bed mesh area. Due to the probe's XY offset, most printers are unable to probe the "
+        "entire bed. To ensure the probe point does not go outside the bed area, the minimum and maximum points of the bed mesh should be "
+        "set appropriately. OrcaSlicer ensures that adaptive_bed_mesh_min/adaptive_bed_mesh_max values do not exceed these min/max "
+        "points. This information can usually be obtained from your printer manufacturer. The default setting is (-99999, -99999), which "
+        "means there are no limits, thus allowing probing across the entire bed.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionPoint(Vec2d(-99999, -99999)));
+
+    def          = this->add("bed_mesh_max", coPoint);
+    def->label   = L("Bed mesh max");
+    def->tooltip = L(
+        "This option sets the max point for the allowed bed mesh area. Due to the probe's XY offset, most printers are unable to probe the "
+        "entire bed. To ensure the probe point does not go outside the bed area, the minimum and maximum points of the bed mesh should be "
+        "set appropriately. OrcaSlicer ensures that adaptive_bed_mesh_min/adaptive_bed_mesh_max values do not exceed these min/max "
+        "points. This information can usually be obtained from your printer manufacturer. The default setting is (99999, 99999), which "
+        "means there are no limits, thus allowing probing across the entire bed.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionPoint(Vec2d(99999, 99999)));
+
+    def          = this->add("bed_mesh_probe_distance", coPoint);
+    def->label   = L("Probe point distance");
+    def->tooltip = L("This option sets the preferred distance between probe points (grid size) for the X and Y directions, with the "
+                     "default being 50mm for both X and Y.");
+    def->min     = 0;
+    def->mode    = comAdvanced;
+    def->set_default_value(new ConfigOptionPoint(Vec2d(50, 50)));
+
+    def          = this->add("adaptive_bed_mesh_margin", coFloat);
+    def->label   = L("Mesh margin");
+    def->tooltip = L("This option determines the additional distance by which the adaptive bed mesh area should be expanded in the XY directions.");
+    def->mode    = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0));
 
     def = this->add("extruder_colour", coStrings);
     def->label = L("Extruder Color");
@@ -2743,7 +2779,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->set_default_value(new ConfigOptionString(""));
 
     def = this->add("small_area_infill_flow_compensation", coBool);
-    def->label = L("Enable Flow Compensation");
+    def->label = L("Small area flow compensation (beta)");
     def->tooltip = L("Enable flow compensation for small infill areas");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
@@ -3781,7 +3817,7 @@ def = this->add("filament_loading_speed", coFloats);
 
 
     def = this->add("wipe_tower_no_sparse_layers", coBool);
-    def->label = L("No sparse layers (EXPERIMENTAL)");
+    def->label = L("No sparse layers (beta)");
     def->tooltip = L("If enabled, the wipe tower will not be printed on layers with no toolchanges. "
                     "On layers with a toolchange, extruder will travel downward to print the wipe tower. "
                     "User is responsible for ensuring there is no collision with the print.");

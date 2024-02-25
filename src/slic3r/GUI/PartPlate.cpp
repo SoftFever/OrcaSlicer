@@ -2356,13 +2356,18 @@ void PartPlate::generate_logo_polygon(ExPolygon &logo_polygon)
 {
 	if (m_shape.size() == 4)
 	{
-		//rectangle case
+	    auto preset_bundle = wxGetApp().preset_bundle;
+
+        bool is_bbl_vendor = false;
+        if (preset_bundle)
+            is_bbl_vendor = preset_bundle->is_bbl_vendor();
+        //rectangle case
 		for (int i = 0; i < 4; i++)
 		{
 			const Vec2d& p = m_shape[i];
 			if ((i  == 0) || (i  == 1)) {
-				logo_polygon.contour.append({ scale_(p(0)), scale_(p(1) - 12.f) });
-			}
+                logo_polygon.contour.append({scale_(p(0)), scale_(is_bbl_vendor ? p(1) - 12.f : p(1))});
+            }
 			else {
 				logo_polygon.contour.append({ scale_(p(0)), scale_(p(1)) });
 			}
