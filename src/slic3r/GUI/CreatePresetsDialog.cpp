@@ -37,13 +37,16 @@
 namespace Slic3r { 
 namespace GUI {
 
-static const std::vector<std::string> filament_vendors = {"Polymaker", "OVERTURE", "Kexcelled", "HATCHBOX",  "eSUN",       "SUNLU",    "Prusament", "Creality", "Protopasta",
-                                                          "Anycubic",  "Basf",     "ELEGOO",    "INLAND",    "FLASHFORGE", "AMOLEN",   "MIKA3D",    "3DXTECH",  "Duramic",
-                                                          "Priline",   "Eryone",   "3Dgunius",  "Novamaker", "Justmaker",  "Giantarm", "iProspect"};
+static const std::vector<std::string> filament_vendors = 
+    {"3Dgenius", "3DXTECH", "3D BEST-Q", "3D Fuel", "AMOLEN", "Ankermake", "Anycubic", "Atomic", "BASF", "Beyond Plastic",
+     "California Filament", "ColorFabb", "Creality", "Duramic", "ELEGOO", "Eryone", "eSUN",
+     "Fillamentum", "FLASHFORGE", "Giantarm", "HATCHBOX", "IEMAI", "INLAND", "iProspect", "iSANMATE",
+     "Justmaker", "Kexcelled", "MatterHackers", "MIKA3D", "NinjaTek",
+     "Novamaker", "OVERTURE", "Polymaker", "Priline", "Protopasta", "Prusament", "Regen", "SUNLU", "Ultimaker"};
 
-static const std::vector<std::string> filament_types = {"PLA",    "PLA+",  "PLA Tough", "PETG",  "ABS",    "ASA",    "FLEX",        "HIPS",   "PA",     "PACF",
-                                                        "NYLON",  "PVA",   "PC",        "PCABS", "PCTG",   "PCCF",   "PP",          "PEI",    "PET",    "PETG",
-                                                        "PETGCF", "PTBA",  "PTBA90A",   "PEEK",  "TPU93A", "TPU75D", "TPU",         "TPU92A", "TPU98A", "Misc",
+static const std::vector<std::string> filament_types = {"PLA",    "PLA+",  "PLA Tough", "PETG",  "ABS",    "ASA",    "FLEX",         "HIPS",   "PA",     "PACF",
+                                                        "NYLON",  "PVA",   "PC",        "PCABS", "PCTG",   "PCCF",   "PHA",          "PP",     "PEI",    "PET",    "PETG",
+                                                        "PETGCF", "PTBA",  "PTBA90A",   "PEEK",  "TPU93A", "TPU75D", "TPU",          "TPU92A", "TPU98A", "Misc",
                                                         "TPE",    "GLAZE", "Nylon",     "CPE",   "METAL",  "ABST",   "Carbon Fiber"};
 
 static const std::vector<std::string> system_filament_types = {"PLA",      "ABS",    "TPU",    "PC",     "ASA", "PA-CF", "PA6-CF", "PET-CF", "PETG", "PETG-CF",
@@ -57,13 +60,18 @@ static std::unordered_map<std::string, std::string> system_filament_types_map = 
                                                                                  {"HIPS", "HIPS"},       {"PPS", "PPS"},           {"PPS-CF", "PPS-CF"},
                                                                                  {"PVA", "PVA"}};
 
-static const std::vector<std::string> printer_vendors = {"Anycubic",  "Artillery", "BIBO",           "BIQU",     "Creality ENDER", "Creality CR", "Creality SERMOON",
-                                                         "FLSun",     "gCreate",   "Geeetech",       "INAT",     "Infinity3D",     "Jubilee",     "LNL3D",
-                                                         "LulzBot",   "MakerGear", "Original Prusa", "Papapiu",  "Print4Taste",    "RatRig",      "Rigid3D",
-                                                         "Snapmaker", "Sovol",     "TriLAB",         "Trimaker", "Ultimaker",      "Voron",       "Zonestar"};
+static const std::vector<std::string> printer_vendors = 
+    {"Anker",              "Anycubic",           "Artillery",          "Bambulab",           "BIQU",
+     "Comgrow",            "Creality",           "Custom Printer",     "Elegoo",             "Flashforge",
+     "FLSun",              "FlyingBear",         "Folgertech",         "InfiMech",           "Kingroon",
+     "Orca Arena Printer", "Peopoly",            "Prusa",              "Qidi",               "Raise3D",
+     "RatRig",             "SecKit",             "Snapmaker",          "Sovol",              "Tronxy",
+     "TwoTrees",           "UltiMaker",          "Vivedino",           "Voron",              "Voxelab",
+     "Vzbot",              "Wanhao"};
 
 static const std::unordered_map<std::string, std::vector<std::string>> printer_model_map =
-    {{"Anycubic",       {"Kossel Linear Plus", "Kossel Pulley(Linear)", "Mega Zero", "i3 Mega", "Predator"}},
+    {{"Anker",          {"Anker M5", "Anker M5 All-Metal Hot End", "Anker M5C"}},
+     {"Anycubic",       {"Kossel Linear Plus", "Kossel Pulley(Linear)", "Mega Zero", "i3 Mega", "Predator"}},
      {"Artillery",      {"sidewinder X1",   "Genius", "Hornet"}},
      {"BIBO",           {"BIBO2 Touch"}},
      {"BIQU",           {"BX"}},
@@ -748,7 +756,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_type_item()
     horizontal_sizer->Add(optionSizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
 
     wxArrayString filament_type;
-    for (const wxString &filament : system_filament_types) {
+    for (const wxString &filament : filament_types) {
         filament_type.Add(filament);
     }
 
