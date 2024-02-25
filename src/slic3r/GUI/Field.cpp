@@ -591,7 +591,7 @@ void TextCtrl::BUILD() {
     } else {
         // Orca: adds logic that scrolls the parent if the text control doesn't have focus
         text_ctrl->Bind(wxEVT_MOUSEWHEEL, [text_ctrl](wxMouseEvent& event) {
-            if (text_ctrl->HasFocus() && text_ctrl->CanScroll(wxVERTICAL))
+            if (text_ctrl->HasFocus() && text_ctrl->GetScrollRange(wxVERTICAL) != 1)
                 event.Skip(); // don't consume the event so that the text control will scroll
             else
                 text_ctrl->GetParent()->ScrollLines((event.GetWheelRotation() > 0 ? -1 : 1) * event.GetLinesPerAction());
