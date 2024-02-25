@@ -40,7 +40,6 @@ public:
     // Polygon of this contour.
     Polygon                             polygon;
     // Is it a contour or a hole?
-    // Contours are CCW oriented, holes are CW oriented.
     bool                                is_contour;
     // BBS: is perimeter using smaller width
     bool is_smaller_width_perimeter;
@@ -1445,7 +1444,8 @@ void PerimeterGenerator::process_classic()
 
     coord_t ext_perimeter_spacing   = this->ext_perimeter_flow.scaled_spacing();
     coord_t ext_perimeter_spacing2;
-    if(config->precise_outer_wall)
+    // Orca: ignore precise_outer_wall if wall_sequence is not InnerOuter
+    if(config->precise_outer_wall && this->config->wall_sequence == WallSequence::InnerOuter)
         ext_perimeter_spacing2 = scaled<coord_t>(0.5f * (this->ext_perimeter_flow.width() + this->perimeter_flow.width()));
     else
         ext_perimeter_spacing2 = scaled<coord_t>(0.5f * (this->ext_perimeter_flow.spacing() + this->perimeter_flow.spacing()));
@@ -1732,8 +1732,19 @@ void PerimeterGenerator::process_classic()
             // at this point, all loops should be in contours[0]
             bool steep_overhang_contour = false;
             bool steep_overhang_hole    = false;
+            const WallDirection wall_direction = config->wall_direction;
+            if (wall_direction != WallDirection::Auto) {
+                // Skip steep overhang detection if wall direction is specified
+                steep_overhang_contour = true;
+                steep_overhang_hole    = true;
+            }
             ExtrusionEntityCollection entities = traverse_loops(*this, contours.front(), thin_walls, steep_overhang_contour, steep_overhang_hole);
-            reorient_perimeters(entities, steep_overhang_contour, steep_overhang_hole, this->config->overhang_reverse_internal_only);
+            // All walls are counter-clockwise initially, so we don't need to reorient it if that's what we want
+            if (wall_direction != WallDirection::CounterClockwise) {
+                reorient_perimeters(entities, steep_overhang_contour, steep_overhang_hole,
+                                    // Reverse internal only if the wall direction is auto
+                                    this->config->overhang_reverse_internal_only && wall_direction == WallDirection::Auto);
+            }
 
             // if brim will be printed, reverse the order of perimeters so that
             // we continue inwards after having finished the brim
@@ -2173,9 +2184,11 @@ void PerimeterGenerator::process_arachne()
         const bool is_topmost_layer = (this->upper_slices == nullptr) ? true : false;
         if (is_topmost_layer && loop_number > 0 && config->only_one_wall_top)
             loop_number = 0;
+        
+        auto apply_precise_outer_wall = config->precise_outer_wall && this->config->wall_sequence == WallSequence::InnerOuter;
         // Orca: properly adjust offset for the outer wall if precise_outer_wall is enabled.
         ExPolygons last = offset_ex(surface.expolygon.simplify_p(surface_simplify_resolution),
-                      config->precise_outer_wall ? -float(ext_perimeter_width - ext_perimeter_spacing )
+                       apply_precise_outer_wall? -float(ext_perimeter_width - ext_perimeter_spacing )
                                                  : -float(ext_perimeter_width / 2. - ext_perimeter_spacing / 2.));
         
         Arachne::WallToolPathsParams input_params = Arachne::make_paths_params(this->layer_id, *object_config, *print_config);
@@ -2183,7 +2196,7 @@ void PerimeterGenerator::process_arachne()
         input_params.is_top_or_bottom_layer = (is_bottom_layer || is_topmost_layer) ? true : false;
 
         coord_t wall_0_inset = 0;
-        if (config->precise_outer_wall)
+        if (apply_precise_outer_wall)
            wall_0_inset = -coord_t(ext_perimeter_width / 2 - ext_perimeter_spacing / 2);
 
         std::vector<Arachne::VariableWidthLines> out_shell;
@@ -2521,8 +2534,19 @@ void PerimeterGenerator::process_arachne()
         
         bool steep_overhang_contour = false;
         bool steep_overhang_hole    = false;
+        const WallDirection wall_direction = config->wall_direction;
+        if (wall_direction != WallDirection::Auto) {
+            // Skip steep overhang detection if wall direction is specified
+            steep_overhang_contour = true;
+            steep_overhang_hole    = true;
+        }
         if (ExtrusionEntityCollection extrusion_coll = traverse_extrusions(*this, ordered_extrusions, steep_overhang_contour, steep_overhang_hole); !extrusion_coll.empty()) {
-            reorient_perimeters(extrusion_coll, steep_overhang_contour, steep_overhang_hole, this->config->overhang_reverse_internal_only);
+            // All walls are counter-clockwise initially, so we don't need to reorient it if that's what we want
+            if (wall_direction != WallDirection::CounterClockwise) {
+                reorient_perimeters(extrusion_coll, steep_overhang_contour, steep_overhang_hole,
+                                    // Reverse internal only if the wall direction is auto
+                                    this->config->overhang_reverse_internal_only && wall_direction == WallDirection::Auto);
+            }
             this->loops->append(extrusion_coll);
         }
 

@@ -1246,7 +1246,7 @@ void ObjectList::list_manipulation(const wxPoint& mouse_pos, bool evt_context_me
 	        toggle_printable_state();
         else if (col_num == colSupportPaint) {
             ObjectDataViewModelNode* node = (ObjectDataViewModelNode*)item.GetID();
-            if (node->HasSupportPainting()) {
+            if (node && node->HasSupportPainting()) {
                 GLGizmosManager& gizmos_mgr = wxGetApp().plater()->get_view3D_canvas3D()->get_gizmos_manager();
                 if (gizmos_mgr.get_current_type() != GLGizmosManager::EType::FdmSupports)
                     gizmos_mgr.open_gizmo(GLGizmosManager::EType::FdmSupports);
@@ -1257,7 +1257,7 @@ void ObjectList::list_manipulation(const wxPoint& mouse_pos, bool evt_context_me
         else if (col_num == colColorPaint) {
             if (wxGetApp().plater()->get_current_canvas3D()->get_canvas_type() != GLCanvas3D::CanvasAssembleView) {
                 ObjectDataViewModelNode* node = (ObjectDataViewModelNode*)item.GetID();
-                if (node->HasColorPainting()) {
+                if (node && node->HasColorPainting()) {
                     GLGizmosManager& gizmos_mgr = wxGetApp().plater()->get_view3D_canvas3D()->get_gizmos_manager();
                     if (gizmos_mgr.get_current_type() != GLGizmosManager::EType::MmuSegmentation)
                         gizmos_mgr.open_gizmo(GLGizmosManager::EType::MmuSegmentation);
@@ -1269,13 +1269,15 @@ void ObjectList::list_manipulation(const wxPoint& mouse_pos, bool evt_context_me
         else if (col_num == colSinking) {
             Plater *    plater = wxGetApp().plater();
             GLCanvas3D *cnv    = plater->canvas3D();
-            Plater::TakeSnapshot(plater, "Shift objects to bed");
             int obj_idx, vol_idx;
             get_selected_item_indexes(obj_idx, vol_idx, item);
-            (*m_objects)[obj_idx]->ensure_on_bed();
-            cnv->reload_scene(true, true);
-            update_info_items(obj_idx);
-            notify_instance_updated(obj_idx);
+            if (obj_idx != -1) {
+                Plater::TakeSnapshot(plater, "Shift objects to bed");
+                (*m_objects)[obj_idx]->ensure_on_bed();
+                cnv->reload_scene(true, true);
+                update_info_items(obj_idx);
+                notify_instance_updated(obj_idx);
+            }
         }
         else if (col_num == colEditing) {
             //show_context_menu(evt_context_menu);

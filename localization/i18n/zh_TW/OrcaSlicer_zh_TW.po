@@ -6995,7 +6995,7 @@ msgstr "牆產生器"
 msgid "Walls and surfaces"
 msgstr ""
 
-msgid "Small Area Infill Flow Compensation (experimental)"
+msgid "Small Area Infill Flow Compensation (beta)"
 msgstr ""
 
 msgid "Bridging"
@@ -8933,8 +8933,8 @@ msgid "This factor affects the amount of material for bottom solid infill"
 msgstr "首層流量調整係數，預設為 1.0"
 
 #, fuzzy
-msgid "Precise wall(experimental)"
-msgstr "精準外牆尺寸（試驗）"
+msgid "Precise wall"
+msgstr "精準外牆尺寸"
 
 #, fuzzy
 msgid ""
@@ -9283,7 +9283,7 @@ msgid ""
 "using large nozzles."
 msgstr ""
 
-msgid "Don't filter out small internal bridges (experimental)"
+msgid "Don't filter out small internal bridges (beta)"
 msgstr ""
 
 msgid ""
@@ -9364,7 +9364,7 @@ msgid ""
 "thickness (top+bottom solid layers)"
 msgstr "在斜面表面附近增加實心填充，以保證垂直外殼厚度（頂部+底部實心層）"
 
-msgid "Further reduce solid infill on walls (experimental)"
+msgid "Further reduce solid infill on walls (beta)"
 msgstr ""
 
 msgid ""
