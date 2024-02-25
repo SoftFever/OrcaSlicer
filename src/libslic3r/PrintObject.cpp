@@ -1114,6 +1114,7 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "overhang_reverse"
             || opt_key == "overhang_reverse_internal_only"
             || opt_key == "overhang_reverse_threshold"
+            || opt_key == "wall_direction"
             //BBS
             || opt_key == "enable_overhang_speed"
             || opt_key == "detect_thin_wall"
@@ -1155,7 +1156,11 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "sparse_infill_speed"
             || opt_key == "inner_wall_speed"
             || opt_key == "internal_solid_infill_speed"
-            || opt_key == "top_surface_speed") {
+            || opt_key == "top_surface_speed"
+            || opt_key == "bed_mesh_min"
+            || opt_key == "bed_mesh_max"
+            || opt_key == "adaptive_bed_mesh_margin"
+            || opt_key == "bed_mesh_probe_distance") {
             invalidated |= m_print->invalidate_step(psGCodeExport);
         } else if (
                opt_key == "flush_into_infill"
