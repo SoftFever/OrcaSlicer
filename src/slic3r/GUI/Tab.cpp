@@ -2017,6 +2017,7 @@ void TabPrint::build()
         optgroup = page->new_optgroup(L("Walls and surfaces"), L"param_advanced");
         optgroup->append_single_option_line("wall_sequence");
         optgroup->append_single_option_line("is_infill_first");
+        optgroup->append_single_option_line("wall_direction");
         optgroup->append_single_option_line("print_flow_ratio");
         optgroup->append_single_option_line("top_solid_infill_flow_ratio");
         optgroup->append_single_option_line("bottom_solid_infill_flow_ratio");
@@ -2026,13 +2027,12 @@ void TabPrint::build()
         optgroup->append_single_option_line("reduce_crossing_wall");
         optgroup->append_single_option_line("max_travel_detour_distance");
 
-        optgroup = page->new_optgroup(L("Small Area Infill Flow Compensation (experimental)"), L"param_advanced");
-        optgroup->append_single_option_line("small_area_infill_flow_compensation");
+        optgroup->append_single_option_line("small_area_infill_flow_compensation", "small-area-infill-flow-compensation");
         Option option = optgroup->get_option("small_area_infill_flow_compensation_model");
         option.opt.full_width = true;
         option.opt.is_code = true;
         option.opt.height = 15;
-        optgroup->append_single_option_line(option);
+        optgroup->append_single_option_line(option, "small-area-infill-flow-compensation");
         
         optgroup = page->new_optgroup(L("Bridging"), L"param_advanced");
         optgroup->append_single_option_line("bridge_flow");
@@ -3560,6 +3560,12 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line("extruder_clearance_radius");
         optgroup->append_single_option_line("extruder_clearance_height_to_rod");
         optgroup->append_single_option_line("extruder_clearance_height_to_lid");
+
+        optgroup = page->new_optgroup(L("Adaptive bed mesh"));
+        optgroup->append_single_option_line("bed_mesh_min", "adaptive_bed_mesh");
+        optgroup->append_single_option_line("bed_mesh_max", "adaptive_bed_mesh");
+        optgroup->append_single_option_line("bed_mesh_probe_distance", "adaptive_bed_mesh");
+        optgroup->append_single_option_line("adaptive_bed_mesh_margin", "adaptive_bed_mesh");
 
         optgroup = page->new_optgroup(L("Accessory") /*, L"param_accessory"*/);
         optgroup->append_single_option_line("nozzle_type");

@@ -7058,7 +7058,7 @@ msgstr "Generatore parete"
 msgid "Walls and surfaces"
 msgstr "Pareti e superfici"
 
-msgid "Small Area Infill Flow Compensation (experimental)"
+msgid "Small Area Infill Flow Compensation (beta)"
 msgstr ""
 
 msgid "Bridging"
@@ -9079,8 +9079,8 @@ msgstr ""
 "Questo fattore influisce sulla quantità di materiale per il riempimento "
 "solido inferiore"
 
-msgid "Precise wall(experimental)"
-msgstr "Parete precisa (sperimentale)"
+msgid "Precise wall"
+msgstr "Parete precisa"
 
 msgid ""
 "Improve shell precision by adjusting outer wall spacing. This also improves "
@@ -9459,7 +9459,7 @@ msgstr ""
 "consiglia di attivare questa funzione. Tuttavia, considera di disattivarlo "
 "se stai utilizzando ugelli di grandi dimensioni."
 
-msgid "Don't filter out small internal bridges (experimental)"
+msgid "Don't filter out small internal bridges (beta)"
 msgstr ""
 
 msgid ""
@@ -9570,7 +9570,7 @@ msgstr ""
 "garantire lo spessore verticale del guscio (layers solidi superiori e "
 "inferiori)."
 
-msgid "Further reduce solid infill on walls (experimental)"
+msgid "Further reduce solid infill on walls (beta)"
 msgstr ""
 
 msgid ""

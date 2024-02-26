@@ -7119,7 +7119,7 @@ msgstr "Wandgenerator"
 msgid "Walls and surfaces"
 msgstr "Wände und Oberflächen"
 
-msgid "Small Area Infill Flow Compensation (experimental)"
+msgid "Small Area Infill Flow Compensation (beta)"
 msgstr ""
 
 msgid "Bridging"
@@ -9142,8 +9142,8 @@ msgid "This factor affects the amount of material for bottom solid infill"
 msgstr ""
 "Dieser Faktor beeinflusst die Menge des Materials für die untere Füllung"
 
-msgid "Precise wall(experimental)"
-msgstr "Exakte Wand (experimentell)"
+msgid "Precise wall"
+msgstr "Exakte Wand"
 
 msgid ""
 "Improve shell precision by adjusting outer wall spacing. This also improves "
@@ -9520,7 +9520,7 @@ msgstr ""
 "wird normalerweise empfohlen, diese Funktion zu aktivieren. Wenn Sie jedoch "
 "große Düsen verwenden, sollten Sie diese Funktion deaktivieren."
 
-msgid "Don't filter out small internal bridges (experimental)"
+msgid "Don't filter out small internal bridges (beta)"
 msgstr "Kleine interne Brücken nicht herausfiltern (experimentell)"
 
 msgid ""
@@ -9629,7 +9629,7 @@ msgstr ""
 "In der Nähe von schrägen Flächen massive Füllungen hinzufügen, um die "
 "vertikale Wanddicke zu gewährleisten (obere + untere massive Schichten)."
 
-msgid "Further reduce solid infill on walls (experimental)"
+msgid "Further reduce solid infill on walls (beta)"
 msgstr "Weitere Reduzierung des festen Infill an den Wänden (experimentell)"
 
 msgid ""
