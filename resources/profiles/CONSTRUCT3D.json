@@ -24,11 +24,11 @@
         },
         {
             "name": "0.30mm Industrial @Construct 1 XL",
-            "sub_path": "process/0.30mm Industrial@Construct 1 XL.json"
+            "sub_path": "process/0.30mm Industrial @Construct 1 XL.json"
         },
         {
             "name": "0.30mm Standard @Construct 1 XL",
-            "sub_path": "process/0.30mm Standard@Construct 1 XL.json"
+            "sub_path": "process/0.30mm Standard @Construct 1 XL.json"
         },
 		{
             "name": "0.38mm Draft @Construct 1 XL",
@@ -40,11 +40,11 @@
         },
         {
             "name": "0.25mm Industrial @Construct 1",
-            "sub_path": "process/0.25mm Industrial@Construct 1.json"
+            "sub_path": "process/0.25mm Industrial @Construct 1.json"
         },
         {
             "name": "0.22mm Standard @Construct 1",
-            "sub_path": "process/0.30mm Standard@Construct 1.json"
+            "sub_path": "process/0.22mm Standard @Construct 1.json"
         },
 		{
             "name": "0.30mm Draft @Construct 1 XL",
