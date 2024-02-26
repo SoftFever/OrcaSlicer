@@ -38,12 +38,26 @@ namespace Slic3r {
 namespace GUI {
 
 static const std::vector<std::string> filament_vendors = 
-    {"3Dgenius", "3DXTECH", "3D BEST-Q", "3D Fuel", "AMOLEN", "Ankermake", "Anycubic", "Atomic", "BASF", "Beyond Plastic",
-     "California Filament", "ColorFabb", "Creality", "Duramic", "ELEGOO", "Eryone", "eSUN",
-     "Fillamentum", "FLASHFORGE", "Giantarm", "HATCHBOX", "IEMAI", "INLAND", "iProspect", "iSANMATE",
-     "Justmaker", "Kexcelled", "MatterHackers", "MIKA3D", "NinjaTek",
-     "Novamaker", "OVERTURE", "Polymaker", "Priline", "Protopasta", "Prusament", "Regen", "SUNLU", "Ultimaker"};
-
+    {"3Dgenius",               "3DJake",                 "3DXTECH",                "3D BEST-Q",              "3D Hero",
+     "3D-Fuel",                "Aceaddity",              "AddNorth",               "Amazon Basics",          "AMOLEN",
+     "Ankermake",              "Anycubic",               "Atomic",                 "AzureFilm",              "BASF",
+     "Bblife",                 "BCN3D",                  "Beyond Plastic",         "California Filament",    "Capricorn",
+     "CC3D",                   "colorFabb",              "Comgrow",                "Cookiecad",              "Creality",
+     "Das Filament",           "DO3D",                   "DOW",                    "DSM",                    "Duramic",
+     "ELEGOO",                 "Eryone",                 "Essentium",              "eSUN",                   "Extrudr",
+     "Fiberforce",             "Fiberlogy",              "FilaCube",               "Filamentive",            "Fillamentum",
+     "FLASHFORGE",             "Formfortura",            "Francofil",              "GEEETECH",               "Giantarm",
+     "Gizmo Dorks",            "GreenGate3D",            "HATCHBOX",               "Hello3D",                "IC3D",
+     "IEMAI",                  "IIID Max",               "INLAND",                 "iProspect",              "iSANMATE",
+     "Justmaker",              "Keene Village Plastics", "Kexcelled",              "MakerBot",               "MatterHackers",
+     "MIKA3D",                 "NinjaTek",               "Nobufil",                "Novamaker",              "OVERTURE",
+     "OVVNYXE",                "Polymaker",              "Priline",                "Printed Solid",          "Protopasta",
+     "Prusament",              "Push Plastic",           "R3D",                    "Re-pet3D",               "Recreus",
+     "Regen",                  "Sain SMART",             "SliceWorx",              "Snapmaker",              "SnoLabs",
+     "Spectrum",               "SUNLU",                  "TTYT3D",                 "UltiMaker",              "Verbatim",
+     "VO3D",                   "Voxelab",                "YOOPAI",                 "Yousu",                  "Ziro",
+     "Zyltech"};
+     
 static const std::vector<std::string> filament_types = {"PLA",    "PLA+",  "PLA Tough", "PETG",  "ABS",    "ASA",    "FLEX",         "HIPS",   "PA",     "PACF",
                                                         "NYLON",  "PVA",   "PC",        "PCABS", "PCTG",   "PCCF",   "PHA",          "PP",     "PEI",    "PET",    "PETG",
                                                         "PETGCF", "PTBA",  "PTBA90A",   "PEEK",  "TPU93A", "TPU75D", "TPU",          "TPU92A", "TPU98A", "Misc",
