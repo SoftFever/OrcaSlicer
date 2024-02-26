@@ -81,8 +81,7 @@ modules:
       - "*.a"
     sources:
       - type: archive
-        # url: https://archive.mesa3d.org/mesa-20.2.6.tar.xz
-        url: https://ftp.icm.edu.pl/pub/graphics/mesa/mesa-20.2.6.tar.xz
+        url: https://archive.mesa3d.org/mesa-20.2.6.tar.xz
         sha256: f12ca3c6c622f11cd79ad66b4220f04514fa96f795062fe92a37339ab19885db
 
   - name: glu
@@ -190,7 +189,7 @@ modules:
       - |
         mkdir deps/build && cd deps/build
         cmake ../ \
-          -DDEP_WX_GTK3=1 \
+          -DDEP_WX_GTK3=ON \
           -DDEP_DOWNLOAD_DIR=/run/build/orca_deps/external-packages \
           -DCMAKE_PREFIX_PATH=/app \
           -DDESTDIR=/app \
@@ -325,13 +324,14 @@ modules:
           -DCMAKE_INSTALL_PREFIX=/app \
           -DCMAKE_INSTALL_LIBDIR=/app/lib \
           -DCMAKE_PREFIX_PATH=/app \
+          -DSLIC3R_WX_STABLE=OFF \
           -DSLIC3R_PCH=OFF \
           -DSLIC3R_FHS=ON \
           -DSLIC3R_GTK=3 \
           -DSLIC3R_STATIC=ON \
           -DSLIC3R_BUILD_TESTS=OFF \
           -DSLIC3R_DESKTOP_INTEGRATION=OFF \
-          -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_BUILD_TYPE=RelWithDebInfo \
           -DBBL_RELEASE_TO_PUBLIC=1
         CXXFLAGS=-std=gnu++20 cmake --build . --target install -j$FLATPAK_BUILDER_N_JOBS
 
@@ -361,18 +361,8 @@ modules:
       - type: dir 
         path: ../
 
-
       - type: patch
         path: patches/0001-Work-around-ClipperLib-union_-declaration-problem.patch
-
-      # Use system deps instead of building them within BambuStudio
-      # https://github.com/hadess/BambuStudio/tree/wip/hadess/use-sysdeps , modified
-      #- type: patch
-      #  path: patches/use-sysdeps.patch
-      
-        ## other patches to contrib
-        #- type: patch
-        #  path: patches/0001-megapatch.patch
 
       # AppData metainfo for Gnome Software & Co.
       - type: file
