@@ -7127,7 +7127,7 @@ msgstr "Générateur de paroi"
 msgid "Walls and surfaces"
 msgstr "Parois et surfaces"
 
-msgid "Small Area Infill Flow Compensation (experimental)"
+msgid "Small Area Infill Flow Compensation (beta)"
 msgstr ""
 "Compensation des débits de remplissage des petites zones (expérimental)"
 
@@ -9185,8 +9185,8 @@ msgstr ""
 "Ce facteur affecte la quantité de matériau pour le remplissage solide "
 "inférieur"
 
-msgid "Precise wall(experimental)"
-msgstr "Parois précises (expérimental)"
+msgid "Precise wall"
+msgstr "Parois précises"
 
 msgid ""
 "Improve shell precision by adjusting outer wall spacing. This also improves "
@@ -9564,7 +9564,7 @@ msgstr ""
 "est généralement recommandé d’activer cette fonctionnalité. Pensez cependant "
 "à la désactiver si vous utilisez des buses larges."
 
-msgid "Don't filter out small internal bridges (experimental)"
+msgid "Don't filter out small internal bridges (beta)"
 msgstr "Ne pas filtrer les petits ponts internes (expérimental)"
 
 msgid ""
@@ -9677,7 +9677,7 @@ msgstr ""
 "garantir l'épaisseur verticale de la coque (couches solides supérieure"
 "+inférieure)."
 
-msgid "Further reduce solid infill on walls (experimental)"
+msgid "Further reduce solid infill on walls (beta)"
 msgstr "Réduire davantage le remplissage solide des parois (expérimental)"
 
 msgid ""

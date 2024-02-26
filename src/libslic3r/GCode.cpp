@@ -1,4 +1,5 @@
 #include "BoundingBox.hpp"
+#include "Config.hpp"
 #include "Polygon.hpp"
 #include "PrintConfig.hpp"
 #include "libslic3r.h"
@@ -21,6 +22,7 @@
 #include "Time.hpp"
 #include "GCode/ExtrusionProcessor.hpp"
 #include <algorithm>
+#include <cmath>
 #include <cstdlib>
 #include <chrono>
 #include <iostream>
@@ -2322,7 +2324,25 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         this->placeholder_parser().set("first_layer_print_min", new ConfigOptionFloats({bbox.min.x(), bbox.min.y()}));
         this->placeholder_parser().set("first_layer_print_max", new ConfigOptionFloats({bbox.max.x(), bbox.max.y()}));
         this->placeholder_parser().set("first_layer_print_size", new ConfigOptionFloats({ bbox.size().x(), bbox.size().y() }));
-        this->placeholder_parser().set("in_head_wrap_detect_zone",bbox_head_wrap_zone.overlap(bbox));
+
+        BoundingBoxf mesh_bbox(m_config.bed_mesh_min, m_config.bed_mesh_max);
+        auto         mesh_margin = m_config.adaptive_bed_mesh_margin.value;
+        mesh_bbox.min            = mesh_bbox.min.cwiseMax((bbox.min.array() - mesh_margin).matrix());
+        mesh_bbox.max            = mesh_bbox.max.cwiseMin((bbox.max.array() + mesh_margin).matrix());
+        this->placeholder_parser().set("adaptive_bed_mesh_min", new ConfigOptionFloats({mesh_bbox.min.x(), mesh_bbox.min.y()}));
+        this->placeholder_parser().set("adaptive_bed_mesh_max", new ConfigOptionFloats({mesh_bbox.max.x(), mesh_bbox.max.y()}));
+
+        auto probe_dist_x  = std::max(1., m_config.bed_mesh_probe_distance.value.x());
+        auto probe_dist_y  = std::max(1., m_config.bed_mesh_probe_distance.value.y());
+        int  probe_count_x = std::max(3, (int) std::ceil(mesh_bbox.size().x() / probe_dist_x));
+        int  probe_count_y = std::max(3, (int) std::ceil(mesh_bbox.size().y() / probe_dist_y));
+        this->placeholder_parser().set("bed_mesh_probe_count", new ConfigOptionInts({probe_count_x, probe_count_y}));
+        auto bed_mesh_algo = "bicubic";
+        if (probe_count_x < 4 || probe_count_y < 4) {
+            bed_mesh_algo = "lagrange";
+        }
+        this->placeholder_parser().set("bed_mesh_algo", bed_mesh_algo);
+        this->placeholder_parser().set("in_head_wrap_detect_zone",probe_count_y);
         // get center without wipe tower
         BoundingBoxf bbox_wo_wt; // bounding box without wipe tower
         for (auto &objPtr : print.objects()) {
@@ -4369,13 +4389,19 @@ void GCode::append_full_config(const Print &print, std::string &str)
 {
     const DynamicPrintConfig &cfg = print.full_print_config();
     // Sorted list of config keys, which shall not be stored into the G-code. Initializer list.
-    static constexpr auto banned_keys = {
+    static const std::set<std::string_view> banned_keys( {
         "compatible_printers"sv,
-        "compatible_prints"sv
-    };
-    assert(std::is_sorted(banned_keys.begin(), banned_keys.end()));
+        "compatible_prints"sv,
+        "print_host"sv,
+        "print_host_webui"sv,
+        "printhost_apikey"sv,
+        "printhost_cafile"sv,
+        "printhost_user"sv,
+        "printhost_password"sv,
+        "printhost_port"sv
+    });
     auto is_banned = [](const std::string &key) {
-        return std::binary_search(banned_keys.begin(), banned_keys.end(), key);
+        return banned_keys.find(key) != banned_keys.end();
     };
     std::ostringstream ss;
     for (const std::string& key : cfg.keys()) {
@@ -4975,7 +5001,6 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
 
     double e_per_mm = m_writer.extruder()->e_per_mm3() * _mm3_per_mm;
 
-    double min_speed = double(m_config.slow_down_min_speed.get_at(m_writer.extruder()->id()));
     // set speed
     if (speed == -1) {
         int overhang_degree = path.get_overhang_degree();
@@ -5361,7 +5386,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             }
         }
     } else {
-        double last_set_speed = std::max((float)EXTRUDER_CONFIG(slow_down_min_speed), new_points[0].speed) * 60.0;
+        double last_set_speed = new_points[0].speed * 60.0;
 
         gcode += m_writer.set_speed(last_set_speed, "", comment);
         Vec2d prev = this->point_to_gcode_quantized(new_points[0].p);
@@ -5405,7 +5430,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             }
 
             const double line_length = (p - prev).norm();
-            double new_speed = std::max((float)EXTRUDER_CONFIG(slow_down_min_speed), pre_processed_point.speed) * 60.0;
+            double new_speed = pre_processed_point.speed * 60.0;
             if (last_set_speed != new_speed) {
                 gcode += m_writer.set_speed(new_speed, "", comment);
                 last_set_speed = new_speed;

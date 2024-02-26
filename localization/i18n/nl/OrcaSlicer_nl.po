@@ -6911,7 +6911,7 @@ msgstr "Wandgenerator"
 msgid "Walls and surfaces"
 msgstr ""
 
-msgid "Small Area Infill Flow Compensation (experimental)"
+msgid "Small Area Infill Flow Compensation (beta)"
 msgstr ""
 
 msgid "Bridging"
@@ -8857,7 +8857,7 @@ msgstr ""
 msgid "This factor affects the amount of material for bottom solid infill"
 msgstr ""
 
-msgid "Precise wall(experimental)"
+msgid "Precise wall"
 msgstr ""
 
 msgid ""
@@ -9180,7 +9180,7 @@ msgid ""
 "using large nozzles."
 msgstr ""
 
-msgid "Don't filter out small internal bridges (experimental)"
+msgid "Don't filter out small internal bridges (beta)"
 msgstr ""
 
 msgid ""
@@ -9261,7 +9261,7 @@ msgstr ""
 "Voeg dichte vulling toe in de buurt van hellende oppervlakken om de "
 "verticale schaaldikte te garanderen (boven+onder vaste lagen)."
 
-msgid "Further reduce solid infill on walls (experimental)"
+msgid "Further reduce solid infill on walls (beta)"
 msgstr ""
 
 msgid ""
