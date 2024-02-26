@@ -176,6 +176,7 @@ void Layer::make_perimeters()
 		                && config.detect_overhang_wall                   == other_config.detect_overhang_wall
 		                && config.overhang_reverse                       == other_config.overhang_reverse
 		                && config.overhang_reverse_threshold             == other_config.overhang_reverse_threshold
+		                && config.wall_direction                         == other_config.wall_direction
 		                && config.opt_serialize("inner_wall_line_width") == other_config.opt_serialize("inner_wall_line_width")
 		                && config.opt_serialize("outer_wall_line_width") == other_config.opt_serialize("outer_wall_line_width")
 		                && config.detect_thin_wall                  == other_config.detect_thin_wall

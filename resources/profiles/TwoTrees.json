@@ -173,6 +173,10 @@
             "sub_path": "filament/TwoTrees Generic PLA-CF @SK1.json"
         },
         {
+            "name": "TwoTrees Generic PLA Matte @SK1",
+            "sub_path": "filament/TwoTrees Generic PLA Matte @SK1.json"
+        },
+        {
             "name": "TwoTrees Generic PLA Silk @SK1",
             "sub_path": "filament/TwoTrees Generic PLA Silk @SK1.json"
         }

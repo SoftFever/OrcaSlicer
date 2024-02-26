@@ -6537,7 +6537,7 @@ msgid "Walls and surfaces"
 msgstr "Периметры и поверхности"
 
 # ??? Компенсация потока заполнения небольших областей (экспер.)
-msgid "Small Area Infill Flow Compensation (experimental)"
+msgid "Small Area Infill Flow Compensation (beta)"
 msgstr "Компенсация потока небольших обл. заполнения"
 
 msgid "Bridging"
@@ -8239,8 +8239,8 @@ msgstr "Коэффициент потока на нижней поверхнос
 msgid "This factor affects the amount of material for bottom solid infill"
 msgstr "Этот параметр задаёт количество выдавливаемого материала для нижнего сплошного слоя заполнения."
 
-msgid "Precise wall(experimental)"
-msgstr "Точные периметры (экспериментально)"
+msgid "Precise wall"
+msgstr "Точные периметры"
 
 msgid "Improve shell precision by adjusting outer wall spacing. This also improves layer consistency."
 msgstr "Повышение точности оболочки за счет регулировки расстояния между внешними периметрами. Это также позволяет уменьшить расслоение слоёв."
@@ -8522,7 +8522,7 @@ msgstr ""
 "Если включено, будут использоваться толстые внутренние мосты. Обычно рекомендуется включить эту функцию. Однако при использовании сопел больших диаметров "
 "рекомендуется отключить эту опцию."
 
-msgid "Don't filter out small internal bridges (experimental)"
+msgid "Don't filter out small internal bridges (beta)"
 msgstr "Не отфильтровать небольшие внутренние мосты (экспериментально)"
 
 msgid ""
@@ -8602,7 +8602,7 @@ msgstr "Обеспечивать верт. толщину оболочки"
 msgid "Add solid infill near sloping surfaces to guarantee the vertical shell thickness (top+bottom solid layers)"
 msgstr "Добавление сплошного заполнения вблизи наклонных поверхностей для обеспечения вертикальной толщины оболочки (верхний+нижний сплошные слои)."
 
-msgid "Further reduce solid infill on walls (experimental)"
+msgid "Further reduce solid infill on walls (beta)"
 msgstr "Сокращение сплошного заполнения на периметрах (экспер.)"
 
 # ???
