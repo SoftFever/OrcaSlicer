@@ -15,7 +15,7 @@
     "bridge_flow": "0.98",
     "support_threshold_angle": "30",
     "support_top_z_distance": "0.15",
-    "support_bottom_z_distance": "0.2",
+    "support_bottom_z_distance": "0.15",
     "compatible_printers": [
       "Anker M5 0.2 nozzle",
       "Anker M5 All-Metal 0.2 nozzle",
