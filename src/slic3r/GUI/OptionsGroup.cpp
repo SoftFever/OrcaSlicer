@@ -1053,6 +1053,11 @@ boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config
             ret = 0;
             break;
         }
+        if (!config.has("other_layers_sequence_choice") && opt_key == "other_layers_sequence_choice") {
+            // reset to Auto value
+            ret = 0;
+            break;
+        }
         if (!config.has("curr_bed_type") && opt_key == "curr_bed_type") {
             // reset to global value
             DynamicConfig& global_cfg = wxGetApp().preset_bundle->project_config;

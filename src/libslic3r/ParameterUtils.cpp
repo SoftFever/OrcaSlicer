@@ -15,7 +15,7 @@ std::vector<LayerPrintSequence> get_other_layers_print_sequence(int sequence_num
 
     for (int i = 0; i < sequence_nums; ++i) {
         std::vector<int> item;
-        item.assign(sequence.begin() + i * item_nums, sequence.begin() + ((i + 1) * item_nums - 1));
+        item.assign(sequence.begin() + i * item_nums, sequence.begin() + ((i + 1) * item_nums));
 
         assert(item.size() > 2);
         std::pair<std::pair<int, int>, std::vector<int>> res_item;
@@ -36,6 +36,8 @@ void get_other_layers_print_sequence(const std::vector<LayerPrintSequence> &cust
 
     sequence_nums = (int) customize_sequences.size();
     for (const auto &customize_sequence : customize_sequences) {
+        sequence.push_back(customize_sequence.first.first);
+        sequence.push_back(customize_sequence.first.second);
         sequence.insert(sequence.end(), customize_sequence.second.begin(), customize_sequence.second.end());
     }
 }

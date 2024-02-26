@@ -22,6 +22,7 @@
 #include "GLModel.hpp"
 #include "3DBed.hpp"
 #include "MeshUtils.hpp"
+#include "libslic3r/ParameterUtils.hpp"
 
 class GLUquadric;
 typedef class GLUquadric GLUquadricObject;
@@ -469,7 +470,9 @@ public:
     int load_pattern_box_data(std::string filename);
 
     std::vector<int> get_first_layer_print_sequence() const;
+    std::vector<LayerPrintSequence> get_other_layers_print_sequence() const;
     void set_first_layer_print_sequence(const std::vector<int> &sorted_filaments);
+    void set_other_layers_print_sequence(const std::vector<LayerPrintSequence>& layer_seq_list);
     void update_first_layer_print_sequence(size_t filament_nums);
 
     void print() const;

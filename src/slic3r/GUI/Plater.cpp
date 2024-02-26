@@ -13014,7 +13014,7 @@ void Plater::validate_current_plate(bool& model_fits, bool& validate_error)
 
 void Plater::open_platesettings_dialog(wxCommandEvent& evt) {
     int plate_index = evt.GetInt();
-    PlateSettingsDialog dlg(this, _L("Plate Settings"), evt.GetString() == "only_first_layer_sequence");
+    PlateSettingsDialog dlg(this, _L("Plate Settings"), evt.GetString() == "only_layer_sequence");
     PartPlate* curr_plate = p->partplate_list.get_curr_plate();
     dlg.sync_bed_type(curr_plate->get_bed_type());
 
@@ -13030,6 +13030,13 @@ void Plater::open_platesettings_dialog(wxCommandEvent& evt) {
         dlg.sync_first_layer_print_seq(0);
     else
         dlg.sync_first_layer_print_seq(1, curr_plate->get_first_layer_print_sequence());
+
+    auto other_layers_print_seq = curr_plate->get_other_layers_print_sequence();
+    if (other_layers_print_seq.empty())
+        dlg.sync_other_layers_print_seq(0, {});
+    else {
+        dlg.sync_other_layers_print_seq(1, curr_plate->get_other_layers_print_sequence());
+    }
 
     dlg.sync_spiral_mode(curr_plate->get_spiral_vase_mode(), !curr_plate->has_spiral_mode_config());
 
@@ -13048,6 +13055,11 @@ void Plater::open_platesettings_dialog(wxCommandEvent& evt) {
             curr_plate->set_first_layer_print_sequence(dlg.get_first_layer_print_seq());
         else
             curr_plate->set_first_layer_print_sequence({});
+
+        if (dlg.get_other_layers_print_seq_choice() != 0)
+            curr_plate->set_other_layers_print_sequence(dlg.get_other_layers_print_seq_infos());
+        else
+            curr_plate->set_other_layers_print_sequence({});
 
         int ps_sel = dlg.get_print_seq_choice();
         if (ps_sel != 0)

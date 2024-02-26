@@ -1016,7 +1016,8 @@ void PartPlate::render_icons(bool bottom, bool only_name, int hover_id)
 			else
                 render_icon_texture(m_plate_name_edit_icon.model, m_partplate_list->m_plate_name_edit_texture);
 
-            if (m_partplate_list->render_plate_settings) {
+			if (m_partplate_list->render_plate_settings) {
+				bool has_plate_settings = get_bed_type() != BedType::btDefault || get_print_seq() != PrintSequence::ByDefault || !get_first_layer_print_sequence().empty() || !get_other_layers_print_sequence().empty() || has_spiral_mode_config();
                 if (hover_id == 5) {
                     if (get_bed_type() == BedType::btDefault && get_print_seq() == PrintSequence::ByDefault && get_first_layer_print_sequence().empty())
                         render_icon_texture(m_plate_settings_icon.model, m_partplate_list->m_plate_settings_hovered_texture);
@@ -2874,6 +2875,20 @@ std::vector<int> PartPlate::get_first_layer_print_sequence() const
         return std::vector<int>();
 }
 
+std::vector<LayerPrintSequence> PartPlate::get_other_layers_print_sequence() const
+{
+	const ConfigOptionInts* other_layers_print_sequence_op = m_config.option<ConfigOptionInts>("other_layers_print_sequence");
+	const ConfigOptionInt* other_layers_print_sequence_nums_op = m_config.option<ConfigOptionInt>("other_layers_print_sequence_nums");
+	if (other_layers_print_sequence_op && other_layers_print_sequence_nums_op) {
+		const std::vector<int>& print_sequence = other_layers_print_sequence_op->values;
+		int sequence_nums = other_layers_print_sequence_nums_op->value;
+		auto other_layers_seqs = Slic3r::get_other_layers_print_sequence(sequence_nums, print_sequence);
+		return other_layers_seqs;
+	}
+	else
+		return {};
+}
+
 void PartPlate::set_first_layer_print_sequence(const std::vector<int>& sorted_filaments)
 {
     if (sorted_filaments.size() > 0) {
@@ -2893,8 +2908,52 @@ void PartPlate::set_first_layer_print_sequence(const std::vector<int>& sorted_fi
 	}
 }
 
+void PartPlate::set_other_layers_print_sequence(const std::vector<LayerPrintSequence>& layer_seq_list)
+{
+	if (layer_seq_list.empty()) {
+		m_config.erase("other_layers_print_sequence");
+		m_config.erase("other_layers_print_sequence_nums");
+		return;
+	}
+
+	int sequence_nums;
+	std::vector<int> other_layers_seqs;
+	Slic3r::get_other_layers_print_sequence(layer_seq_list, sequence_nums, other_layers_seqs);
+	ConfigOptionInts* other_layers_print_sequence_op = m_config.option<ConfigOptionInts>("other_layers_print_sequence");
+	ConfigOptionInt* other_layers_print_sequence_nums_op = m_config.option<ConfigOptionInt>("other_layers_print_sequence_nums");
+	if (other_layers_print_sequence_op)
+		other_layers_print_sequence_op->values = other_layers_seqs;
+	else
+		m_config.set_key_value("other_layers_print_sequence", new ConfigOptionInts(other_layers_seqs));
+	if (other_layers_print_sequence_nums_op)
+		other_layers_print_sequence_nums_op->value = sequence_nums;
+	else
+		m_config.set_key_value("other_layers_print_sequence_nums", new ConfigOptionInt(sequence_nums));
+}
+
 void PartPlate::update_first_layer_print_sequence(size_t filament_nums)
 {
+	auto other_layers_seqs = get_other_layers_print_sequence();
+	if (!other_layers_seqs.empty()) {
+		bool need_update_data = false;
+		for (auto& other_layers_seq : other_layers_seqs) {
+			std::vector<int>& orders = other_layers_seq.second;
+			if (orders.size() > filament_nums) {
+				orders.erase(std::remove_if(orders.begin(), orders.end(), [filament_nums](int n) { return n > filament_nums; }), orders.end());
+				need_update_data = true;
+			}
+			if (orders.size() < filament_nums) {
+				for (size_t extruder_id = orders.size(); extruder_id < filament_nums; ++extruder_id) {
+					orders.push_back(extruder_id + 1);
+					need_update_data = true;
+				}
+			}
+		}
+		if (need_update_data)
+			set_other_layers_print_sequence(other_layers_seqs);
+	}
+
+
     ConfigOptionInts * op_print_sequence_1st = m_config.option<ConfigOptionInts>("first_layer_print_sequence");
     if (!op_print_sequence_1st) {
 		return;

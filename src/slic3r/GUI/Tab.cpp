@@ -2545,12 +2545,18 @@ void TabPrintModel::update_model_config()
                     }
                 }
                 if (!plate_config.has("first_layer_print_sequence")) {
-                    // same as global
-                    m_config->set_key_value("first_layer_sequence_choice", new ConfigOptionEnum<FirstLayerSeq>(flsAuto));
+                    m_config->set_key_value("first_layer_sequence_choice", new ConfigOptionEnum<LayerSeq>(flsAuto));
                 }
                 else {
                     replace(m_all_keys.begin(), m_all_keys.end(), std::string("first_layer_print_sequence"), std::string("first_layer_sequence_choice"));
-                    m_config->set_key_value("first_layer_sequence_choice", new ConfigOptionEnum<FirstLayerSeq>(flsCutomize));
+                    m_config->set_key_value("first_layer_sequence_choice", new ConfigOptionEnum<LayerSeq>(flsCutomize));
+                }
+                if (!plate_config.has("other_layers_print_sequence")) {
+                    m_config->set_key_value("other_layers_sequence_choice", new ConfigOptionEnum<LayerSeq>(flsAuto));
+                }
+                else {
+                    replace(m_all_keys.begin(), m_all_keys.end(), std::string("other_layers_print_sequence"), std::string("other_layers_sequence_choice"));
+                    m_config->set_key_value("other_layers_sequence_choice", new ConfigOptionEnum<LayerSeq>(flsCutomize));
                 }
                 notify_changed(plate_item.first);
             }
@@ -2676,7 +2682,7 @@ void TabPrintModel::update_custom_dirty()
 }
 
 //BBS: GUI refactor
-static const std::vector<std::string> plate_keys = { "curr_bed_type", "first_layer_print_sequence", "first_layer_sequence_choice", "print_sequence"/*, "spiral_mode"*/};
+static const std::vector<std::string> plate_keys = { "curr_bed_type", "first_layer_print_sequence", "first_layer_sequence_choice", "other_layers_print_sequence", "other_layers_sequence_choice", "print_sequence"/*, "spiral_mode"*/};
 TabPrintPlate::TabPrintPlate(ParamsPanel* parent) :
     TabPrintModel(parent, plate_keys)
 {
@@ -2698,12 +2704,15 @@ void TabPrintPlate::build()
     }
     m_config->option("first_layer_sequence_choice", true);
     m_config->option("first_layer_print_sequence", true);
+    m_config->option("other_layers_print_sequence", true);
+    m_config->option("other_layers_sequence_choice", true);
 
     auto page = add_options_page(L("Plate Settings"), "empty");
     auto optgroup = page->new_optgroup("");
     optgroup->append_single_option_line("curr_bed_type");
     optgroup->append_single_option_line("print_sequence");
     optgroup->append_single_option_line("first_layer_sequence_choice");
+    optgroup->append_single_option_line("other_layers_sequence_choice");
     // hidden
     //optgroup->append_single_option_line("spiral_mode");
     for (auto& line : const_cast<std::vector<Line>&>(optgroup->get_lines())) {
@@ -2753,6 +2762,8 @@ void TabPrintPlate::on_value_change(const std::string& opt_key, const boost::any
                 plate->set_print_seq(PrintSequence::ByDefault);
             if (k == "first_layer_sequence_choice")
                 plate->set_first_layer_print_sequence({});
+            if (k == "other_layers_sequence_choice")
+                plate->set_other_layers_print_sequence({});
             if (k == "spiral_mode")
                 plate->set_spiral_vase_mode(false, true);
         }
@@ -2764,7 +2775,8 @@ void TabPrintPlate::on_value_change(const std::string& opt_key, const boost::any
             auto plate = dynamic_cast<PartPlate*>(plate_item.first);
             BedType bed_type;
             PrintSequence print_seq;
-            FirstLayerSeq first_layer_seq_choice;
+            LayerSeq first_layer_seq_choice;
+            LayerSeq other_layer_seq_choice;
             if (k == "curr_bed_type") {
                 bed_type = m_config->opt_enum<BedType>("curr_bed_type");
                 plate->set_bed_type(BedType(bed_type));
@@ -2774,11 +2786,11 @@ void TabPrintPlate::on_value_change(const std::string& opt_key, const boost::any
                 plate->set_print_seq(print_seq);
             }
             if (k == "first_layer_sequence_choice") {
-                first_layer_seq_choice = m_config->opt_enum<FirstLayerSeq>("first_layer_sequence_choice");
-                if (first_layer_seq_choice == FirstLayerSeq::flsAuto) {
+                first_layer_seq_choice = m_config->opt_enum<LayerSeq>("first_layer_sequence_choice");
+                if (first_layer_seq_choice == LayerSeq::flsAuto) {
                     plate->set_first_layer_print_sequence({});
                 }
-                else if (first_layer_seq_choice == FirstLayerSeq::flsCutomize) {
+                else if (first_layer_seq_choice == LayerSeq::flsCutomize) {
                     const DynamicPrintConfig& plate_config = plate_item.second->get();
                     if (!plate_config.has("first_layer_print_sequence")) {
                         std::vector<int> initial_sequence;
@@ -2789,9 +2801,30 @@ void TabPrintPlate::on_value_change(const std::string& opt_key, const boost::any
                     }
                     wxCommandEvent evt(EVT_OPEN_PLATESETTINGSDIALOG);
                     evt.SetInt(plate->get_index());
-                    evt.SetString("only_first_layer_sequence");
+                    evt.SetString("only_layer_sequence");
                     evt.SetEventObject(wxGetApp().plater());
-                    //wxGetApp().plater()->GetEventHandler()->ProcessEvent(evt);
+                    wxPostEvent(wxGetApp().plater(), evt);
+                }
+            }
+            if (k == "other_layers_sequence_choice") {
+                other_layer_seq_choice = m_config->opt_enum<LayerSeq>("other_layers_sequence_choice");
+                if (other_layer_seq_choice == LayerSeq::flsAuto) {
+                    plate->set_other_layers_print_sequence({});
+                }
+                else if (other_layer_seq_choice == LayerSeq::flsCutomize) {
+                    const DynamicPrintConfig& plate_config = plate_item.second->get();
+                    if (!plate_config.has("other_layers_print_sequence")) {
+                        std::vector<int> initial_sequence;
+                        for (int i = 0; i < wxGetApp().filaments_cnt(); i++) {
+                            initial_sequence.push_back(i + 1);
+                        }
+                        std::vector<LayerPrintSequence> initial_layer_sequence{ std::make_pair(std::make_pair(2, INT_MAX), initial_sequence) };
+                        plate->set_other_layers_print_sequence(initial_layer_sequence);
+                    }
+                    wxCommandEvent evt(EVT_OPEN_PLATESETTINGSDIALOG);
+                    evt.SetInt(plate->get_index());
+                    evt.SetString("only_layer_sequence");
+                    evt.SetEventObject(wxGetApp().plater());
                     wxPostEvent(wxGetApp().plater(), evt);
                 }
             }
@@ -2832,8 +2865,11 @@ void TabPrintPlate::update_custom_dirty()
     for (auto k : m_null_keys) 
         m_options_list[k] = 0;
     for (auto k : m_all_keys) {
-        if (k == "first_layer_sequence_choice") {
-            if (m_config->opt_enum<FirstLayerSeq>("first_layer_sequence_choice") != FirstLayerSeq::flsAuto) {
+        if (k == "first_layer_sequence_choice" || k == "other_layers_sequence_choice") {
+            if (m_config->opt_enum<LayerSeq>("first_layer_sequence_choice") != LayerSeq::flsAuto) {
+                m_options_list[k] &= ~osInitValue;
+            }
+            if (m_config->opt_enum<LayerSeq>("other_layers_sequence_choice") != LayerSeq::flsAuto) {
                 m_options_list[k] &= ~osInitValue;
             }
         }
