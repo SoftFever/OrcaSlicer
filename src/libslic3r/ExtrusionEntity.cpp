@@ -430,7 +430,7 @@ ExtrusionLoopSloped::ExtrusionLoopSloped(ExtrusionPaths&   original_paths,
     assert(start_ratio == 1.);
 
     // Put remaining flat paths
-    paths.insert(paths.end(), path, paths.end());
+    paths.insert(paths.end(), path, original_paths.end());
 }
 
 std::vector<const ExtrusionPath*> ExtrusionLoopSloped::get_all_paths() const {
