@@ -28,7 +28,7 @@ else ()
 endif ()
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    set(_patch_cmd ${PATCH_CMD} ${CMAKE_CURRENT_LIST_DIR}/0001-wx-3.1.5-patch-for-Orca.patch ${CMAKE_CURRENT_LIST_DIR}/0001-Add-support-for-building-WebView-with-libwebkit2gtk-.patch)
+    set(_patch_cmd cat ${CMAKE_CURRENT_LIST_DIR}/0001-wx-3.1.5-patch-for-Orca.patch ${CMAKE_CURRENT_LIST_DIR}/0001-Add-support-for-building-WebView-with-libwebkit2gtk-.patch | patch -p1)
 endif ()
 
 # Note: for anybody wanting to switch to tarball fetching - this won't just work as
