@@ -3225,12 +3225,22 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
             machine.calculate_time(TimeProcessor::Planner::queue_size);
     }
 
+    const Vec3f plate_offset = {(float) m_x_offset, (float) m_y_offset, 0.0f};
+
     if (m_seams_detector.is_active()) {
         // check for seam starting vertex
-        if (type == EMoveType::Extrude && m_extrusion_role == erExternalPerimeter && !m_seams_detector.has_first_vertex()) {
+        if (type == EMoveType::Extrude && m_extrusion_role == erExternalPerimeter) {
             //BBS: m_result.moves.back().position has plate offset, must minus plate offset before calculate the real seam position
-            const Vec3f real_first_pos = Vec3f(m_result.moves.back().position.x() - m_x_offset, m_result.moves.back().position.y() - m_y_offset, m_result.moves.back().position.z());
-            m_seams_detector.set_first_vertex(real_first_pos - m_extruder_offsets[m_extruder_id]);
+            const Vec3f new_pos = m_result.moves.back().position - m_extruder_offsets[m_extruder_id] - plate_offset;
+            if (!m_seams_detector.has_first_vertex()) {
+                m_seams_detector.set_first_vertex(new_pos);
+            } else if (m_detect_layer_based_on_tag) {
+                // We may have sloped loop, drop any previous start pos if we have z increment
+                const std::optional<Vec3f> first_vertex = m_seams_detector.get_first_vertex();
+                if (new_pos.z() > first_vertex->z()) {
+                    m_seams_detector.set_first_vertex(new_pos);
+                }
+            }
         }
         // check for seam ending vertex and store the resulting move
         else if ((type != EMoveType::Extrude || (m_extrusion_role != erExternalPerimeter && m_extrusion_role != erOverhangPerimeter)) && m_seams_detector.has_first_vertex()) {
@@ -3240,8 +3250,7 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
 
             const Vec3f curr_pos(m_end_position[X], m_end_position[Y], m_end_position[Z]);
             //BBS: m_result.moves.back().position has plate offset, must minus plate offset before calculate the real seam position
-            const Vec3f real_last_pos = Vec3f(m_result.moves.back().position.x() - m_x_offset, m_result.moves.back().position.y() - m_y_offset, m_result.moves.back().position.z());
-            const Vec3f new_pos = real_last_pos - m_extruder_offsets[m_extruder_id];
+            const Vec3f new_pos = m_result.moves.back().position - m_extruder_offsets[m_extruder_id] - plate_offset;
             const std::optional<Vec3f> first_vertex = m_seams_detector.get_first_vertex();
             // the threshold value = 0.0625f == 0.25 * 0.25 is arbitrary, we may find some smarter condition later
 
@@ -3256,7 +3265,6 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
     }
     else if (type == EMoveType::Extrude && m_extrusion_role == erExternalPerimeter) {
         m_seams_detector.activate(true);
-        Vec3f plate_offset = {(float) m_x_offset, (float) m_y_offset, 0.0f};
         m_seams_detector.set_first_vertex(m_result.moves.back().position - m_extruder_offsets[m_extruder_id] - plate_offset);
     }
 
@@ -3653,8 +3661,17 @@ void  GCodeProcessor::process_G2_G3(const GCodeReader::GCodeLine& line)
 
     if (m_seams_detector.is_active()) {
         //BBS: check for seam starting vertex
-        if (type == EMoveType::Extrude && m_extrusion_role == erExternalPerimeter && !m_seams_detector.has_first_vertex()) {
-            m_seams_detector.set_first_vertex(m_result.moves.back().position - m_extruder_offsets[m_extruder_id] - plate_offset);
+        if (type == EMoveType::Extrude && m_extrusion_role == erExternalPerimeter) {
+            const Vec3f new_pos = m_result.moves.back().position - m_extruder_offsets[m_extruder_id] - plate_offset;
+            if (!m_seams_detector.has_first_vertex()) {
+                m_seams_detector.set_first_vertex(new_pos);
+            } else if (m_detect_layer_based_on_tag) {
+                // We may have sloped loop, drop any previous start pos if we have z increment
+                const std::optional<Vec3f> first_vertex = m_seams_detector.get_first_vertex();
+                if (new_pos.z() > first_vertex->z()) {
+                    m_seams_detector.set_first_vertex(new_pos);
+                }
+            }
         }
         //BBS: check for seam ending vertex and store the resulting move
         else if ((type != EMoveType::Extrude || (m_extrusion_role != erExternalPerimeter && m_extrusion_role != erOverhangPerimeter)) && m_seams_detector.has_first_vertex()) {
