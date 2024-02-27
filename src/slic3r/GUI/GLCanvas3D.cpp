@@ -1366,7 +1366,36 @@ ModelInstanceEPrintVolumeState GLCanvas3D::check_volumes_outside_state() const
     return state;
 }
 
-void GLCanvas3D::toggle_sla_auxiliaries_visibility(bool visible, const ModelObject* mo, int instance_idx)
+void GLCanvas3D::toggle_selected_volume_visibility(bool selected_visible)
+{
+    m_render_sla_auxiliaries = !selected_visible;
+    if (selected_visible) {
+        const Selection::IndicesList &idxs = m_selection.get_volume_idxs();
+        if (idxs.size() > 0) {
+            for (GLVolume *vol : m_volumes.volumes) {
+                if (vol->composite_id.object_id >= 1000 && vol->composite_id.object_id < 1000 + wxGetApp().plater()->get_partplate_list().get_plate_count())
+                    continue; // the wipe tower
+                if (vol->composite_id.volume_id >= 0) {
+                    vol->is_active = false;
+                }
+            }
+            for (unsigned int idx : idxs) {
+                GLVolume *v  = const_cast<GLVolume *>(m_selection.get_volume(idx));
+                v->is_active = true;
+            }
+        }
+    } else { // show all
+        for (GLVolume *vol : m_volumes.volumes) {
+            if (vol->composite_id.object_id >= 1000 && vol->composite_id.object_id < 1000 + wxGetApp().plater()->get_partplate_list().get_plate_count())
+                continue; // the wipe tower
+            if (vol->composite_id.volume_id >= 0) {
+                vol->is_active = true;
+            }
+        }
+    }
+}
+
+void GLCanvas3D::toggle_sla_auxiliaries_visibility(bool visible, const ModelObject *mo, int instance_idx)
 {
     if (current_printer_technology() != ptSLA)
         return;
