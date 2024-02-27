@@ -4515,30 +4515,6 @@ static std::unique_ptr<EdgeGrid::Grid> calculate_layer_edge_grid(const Layer& la
     return out;
 }
 
-struct SlopedLoop
-{
-    std::vector<ExtrusionPathSloped> increasing;
-    ExtrusionPaths                   flat;
-    std::vector<ExtrusionPathSloped> decreasing;
-
-    [[nodiscard]] std::vector<const ExtrusionPath*> get_all_paths() const
-    {
-        std::vector<const ExtrusionPath*> r;
-        r.reserve(increasing.size() + flat.size() + decreasing.size());
-        for (const auto& p : increasing) {
-            r.push_back(&p);
-        }
-        for (const auto& p : flat) {
-            r.push_back(&p);
-        }
-        for (const auto& p : decreasing) {
-            r.push_back(&p);
-        }
-
-        return r;
-    }
-};
-
 std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, double speed, const ExtrusionEntitiesPtr& region_perimeters)
 {
     // get a copy; don't modify the orientation of the original loop object otherwise
@@ -4692,107 +4668,21 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
         const int    slope_steps              = m_config.seam_slope_steps;
         const double slope_max_segment_length = scale_(slope_min_length / slope_steps);
 
-        SlopedLoop new_loop;
+        // Calculate the sloped loop
+        ExtrusionLoopSloped new_loop(paths, seam_gap, slope_min_length, slope_max_segment_length, start_slope_ratio, loop.loop_role());
 
-        // create slopes
-        const auto add_slop = [&new_loop, slope_max_segment_length, seam_gap](const ExtrusionPath& path, const Polyline& poly,
-                                                                              double ratio_begin, double ratio_end) {
-            if (poly.empty()) {
-                return;
-            }
-
-            // Ensure `slope_max_segment_length`
-            Polyline detailed_poly;
-            {
-                detailed_poly.append(poly.first_point());
-
-                // Recursively split the line into half until no longer than `slope_max_segment_length`
-                const std::function<void(const Line&)> handle_line = [slope_max_segment_length, &detailed_poly, &handle_line](const Line& line) {
-                    if (line.length() <= slope_max_segment_length) {
-                        detailed_poly.append(line.b);
-                    } else {
-                        // Then process left half
-                        handle_line({line.a, line.midpoint()});
-                        // Then process right half
-                        handle_line({line.midpoint(), line.b});
-                    }
-                };
-
-                for (const auto & l : poly.lines()) {
-                    handle_line(l);
-                }
-            }
-
-            new_loop.increasing.emplace_back(detailed_poly, path, 
-                ExtrusionPathSloped::Slope{ratio_begin, ratio_begin},
-                ExtrusionPathSloped::Slope{ratio_end, ratio_end}
-            );
-
-            if (is_approx(ratio_end, 1.) && seam_gap > 0) {
-                // Remove the segments that has no extrusion
-                const auto seg_length = detailed_poly.length();
-                if (seg_length > seam_gap) {
-                    // Split the segment and remove the last `seam_gap` bit
-                    const Polyline orig = detailed_poly;
-                    Polyline tmp;
-                    orig.split_at_length(seg_length - seam_gap, &detailed_poly, &tmp);
-
-                    ratio_end = lerp(ratio_begin, ratio_end, (seg_length - seam_gap) / seg_length);
-                    assert(1. - ratio_end > EPSILON);
-                } else {
-                    // Remove the entire segment
-                    detailed_poly.clear();
-                }
-            }
-            if (!detailed_poly.empty()) {
-                new_loop.decreasing.emplace_back(detailed_poly, path, 
-                    ExtrusionPathSloped::Slope{1., 1. - ratio_begin},
-                    ExtrusionPathSloped::Slope{1., 1. - ratio_end}
-                );
-            }
-        };
-
-        double remaining_length = slope_min_length;
-
-        ExtrusionPaths::iterator path = paths.begin();
-        double start_ratio = start_slope_ratio;
-        for (; path != paths.end() && remaining_length > 0; ++path) {
-            const double path_len = unscale_(path->length());
-            if (path_len > remaining_length) {
-                // Split current path into slope and non-slope part
-                Polyline slope_path;
-                Polyline flat_path;
-                path->polyline.split_at_length(scale_(remaining_length), &slope_path, &flat_path);
-
-                add_slop(*path, slope_path, start_ratio, 1);
-                start_ratio = 1;
-
-                new_loop.flat.emplace_back(std::move(flat_path), *path);
-                remaining_length = 0;
-            } else {
-                remaining_length -= path_len;
-                const double end_ratio = lerp(1.0, start_slope_ratio, remaining_length / slope_min_length);
-                add_slop(*path, path->polyline, start_ratio, end_ratio);
-                start_ratio = end_ratio;
-            }
-        }
-        assert(remaining_length <= 0);
-        assert(start_ratio == 1.);
-
-        // Put remaining flat paths
-        new_loop.flat.insert(new_loop.flat.end(), path, paths.end());
-
+        // Then extrude it
         for (const auto& p : new_loop.get_all_paths()) {
             gcode += this->_extrude(*p, description, speed_for_path(*p));
         }
 
         // Fix path for wipe
-        if (!new_loop.decreasing.empty()) {
+        if (!new_loop.ends.empty()) {
             paths.clear();
-            // The increasing slope part is ignored as it overlaps with the decreasing part
-            paths.reserve(new_loop.flat.size() + new_loop.decreasing.size());
-            paths.insert(paths.end(), new_loop.flat.begin(), new_loop.flat.end());
-            paths.insert(paths.end(), new_loop.decreasing.begin(), new_loop.decreasing.end());
+            // The start slope part is ignored as it overlaps with the end part
+            paths.reserve(new_loop.paths.size() + new_loop.ends.size());
+            paths.insert(paths.end(), new_loop.paths.begin(), new_loop.paths.end());
+            paths.insert(paths.end(), new_loop.ends.begin(), new_loop.ends.end());
         }
     }
 

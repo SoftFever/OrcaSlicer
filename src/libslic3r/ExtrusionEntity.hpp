@@ -495,6 +495,22 @@ private:
     ExtrusionLoopRole m_loop_role;
 };
 
+class ExtrusionLoopSloped : public ExtrusionLoop
+{
+public:
+    std::vector<ExtrusionPathSloped> starts;
+    std::vector<ExtrusionPathSloped> ends;
+
+    ExtrusionLoopSloped(ExtrusionPaths& original_paths,
+                        double          seam_gap,
+                        double          slope_min_length,
+                        double          slope_max_segment_length,
+                        double          start_slope_ratio,
+                        ExtrusionLoopRole role = elrDefault);
+
+    [[nodiscard]] std::vector<const ExtrusionPath*> get_all_paths() const;
+};
+
 inline void extrusion_paths_append(ExtrusionPaths &dst, Polylines &polylines, ExtrusionRole role, double mm3_per_mm, float width, float height)
 {
     dst.reserve(dst.size() + polylines.size());
