@@ -5556,6 +5556,12 @@ void GLCanvas3D::_render_3d_navigator()
     strcpy(style.AxisLabels[ImGuizmo::Axis::Axis_X], "y");
     strcpy(style.AxisLabels[ImGuizmo::Axis::Axis_Y], "z");
     strcpy(style.AxisLabels[ImGuizmo::Axis::Axis_Z], "x");
+    
+    float sc = get_scale();
+#ifdef WIN32
+    const int dpi = get_dpi_for_window(wxGetApp().GetTopWindow());
+    sc *= (float) dpi / (float) DPI_DEFAULT;
+#endif // WIN32
 
     const ImGuiIO& io              = ImGui::GetIO();
     const float viewManipulateLeft = 0;
@@ -5576,9 +5582,10 @@ void GLCanvas3D::_render_3d_navigator()
         }
     }
 
+    const float size  = 128 * sc;
     const bool dirty = ImGuizmo::ViewManipulate(cameraView, cameraProjection, ImGuizmo::OPERATION::ROTATE, ImGuizmo::MODE::WORLD,
-                                                identityMatrix, camDistance, ImVec2(viewManipulateLeft, viewManipulateTop - 128),
-                                                ImVec2(128, 128), 0x10101010);
+                                                identityMatrix, camDistance, ImVec2(viewManipulateLeft, viewManipulateTop - size),
+                                                ImVec2(size, size), 0x10101010);
 
     if (dirty) {
         for (unsigned int c = 0; c < 4; ++c) {
