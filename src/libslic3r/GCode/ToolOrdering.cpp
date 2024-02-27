@@ -1,6 +1,8 @@
 #include "Print.hpp"
 #include "ToolOrdering.hpp"
 #include "Layer.hpp"
+#include "ClipperUtils.hpp"
+#include "ParameterUtils.hpp"
 
 // #define SLIC3R_DEBUG
 
@@ -845,12 +847,49 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume()
         return hash_key;
     };
 
+    std::vector<LayerPrintSequence> other_layers_seqs;
+    const ConfigOptionInts *other_layers_print_sequence_op = print_config->option<ConfigOptionInts>("other_layers_print_sequence");
+    const ConfigOptionInt *other_layers_print_sequence_nums_op = print_config->option<ConfigOptionInt>("other_layers_print_sequence_nums");
+    if (other_layers_print_sequence_op && other_layers_print_sequence_nums_op) {
+        const std::vector<int> &print_sequence = other_layers_print_sequence_op->values;
+        int sequence_nums = other_layers_print_sequence_nums_op->value;
+        other_layers_seqs = get_other_layers_print_sequence(sequence_nums, print_sequence);
+    }
+
+    // other_layers_seq: the layer_idx and extruder_idx are base on 1
+    auto get_custom_seq = [&other_layers_seqs](int layer_idx, std::vector<int>& out_seq) -> bool {
+        for (size_t idx = other_layers_seqs.size() - 1; idx != size_t(-1); --idx) {
+            const auto &other_layers_seq = other_layers_seqs[idx];
+            if (layer_idx + 1 >= other_layers_seq.first.first && layer_idx + 1 <= other_layers_seq.first.second) {
+                out_seq = other_layers_seq.second;
+                return true;
+            }
+        }
+        return false;
+    };
 
     unsigned int current_extruder_id = -1;
     for (int i = 0; i < m_layer_tools.size(); ++i) {
         LayerTools& lt = m_layer_tools[i];
         if (lt.extruders.empty())
             continue;
+
+        std::vector<int> custom_extruder_seq;
+        if (get_custom_seq(i, custom_extruder_seq) && !custom_extruder_seq.empty()) {
+            std::vector<unsigned int> unsign_custom_extruder_seq;
+            for (int extruder : custom_extruder_seq) {
+                unsigned int unsign_extruder = static_cast<unsigned int>(extruder) - 1;
+                auto it = std::find(lt.extruders.begin(), lt.extruders.end(), unsign_extruder);
+                if (it != lt.extruders.end()) {
+                    unsign_custom_extruder_seq.emplace_back(unsign_extruder);
+                }
+            }
+            assert(lt.extruders.size() == unsign_custom_extruder_seq.size());
+            lt.extruders = unsign_custom_extruder_seq;
+            current_extruder_id = lt.extruders.back();
+            continue;
+        }
+
         // The algorithm complexity is O(n2*2^n)
         if (i != 0) {
             auto hash_key = extruders_to_hash_key(lt.extruders, current_extruder_id);

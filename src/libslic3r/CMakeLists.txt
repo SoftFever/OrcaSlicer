@@ -238,6 +238,8 @@ set(lisbslic3r_sources
     NSVGUtils.hpp
     ObjectID.cpp
     ObjectID.hpp
+	ParameterUtils.cpp
+    ParameterUtils.hpp
     PerimeterGenerator.cpp
     PerimeterGenerator.hpp
     PlaceholderParser.cpp

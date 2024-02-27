@@ -770,6 +770,16 @@ void PrintConfigDef::init_fff_params()
     def->max        = 16;
     def->set_default_value(new ConfigOptionInts{0});
 
+    def        = this->add("other_layers_print_sequence", coInts);
+    def->label = L("Other layers print sequence");
+    def->min   = 0;
+    def->max   = 16;
+    def->set_default_value(new ConfigOptionInts{0});
+
+    def        = this->add("other_layers_print_sequence_nums", coInt);
+    def->label = L("The number of other layers print sequence");
+    def->set_default_value(new ConfigOptionInt{0});
+
     def = this->add("first_layer_sequence_choice", coEnum);
     def->category = L("Quality");
     def->label = L("First layer filament sequence");
