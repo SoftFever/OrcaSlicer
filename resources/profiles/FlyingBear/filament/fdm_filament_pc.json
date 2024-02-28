@@ -4,6 +4,9 @@
     "from": "system",
     "instantiation": "false",
     "inherits": "fdm_filament_common",
+    "filament_vendor": [
+        "FlyingBear"
+    ],
     "cool_plate_temp" : [
         "0"
     ],
@@ -81,6 +84,12 @@
     ],
     "slow_down_min_speed": [
         "20"
+    ],
+    "activate_air_filtration": [
+        "1"
+    ],
+    "complete_print_exhaust_fan_speed": [
+        "60"
     ],
     "slow_down_layer_time": [
         "2"
