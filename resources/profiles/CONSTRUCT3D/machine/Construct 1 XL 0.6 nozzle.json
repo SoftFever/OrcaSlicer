@@ -11,6 +11,7 @@
 	"nozzle_diameter": [
 		"0.6"
 	],
+	"printer_variant": "0.6",
     "printable_area": [
         "0x0",
         "325x0",
