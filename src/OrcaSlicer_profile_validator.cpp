@@ -1,5 +1,6 @@
 #include "libslic3r/PresetBundle.hpp"
 #include "libslic3r/Utils.hpp"
+#include <boost/filesystem/operations.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/program_options.hpp>
 #include <iostream>
@@ -36,6 +37,14 @@ int main(int argc, char* argv[])
     std::string path      = vm["path"].as<std::string>();
     std::string vendor    = vm["vendor"].as<std::string>();
     int         log_level = vm["log_level"].as<int>();
+
+    //  check if path is valid, and return error if not
+    if (!fs::exists(path) || !fs::is_directory(path)) {
+        std::cerr << "Error: " << path << " is not a valid directory\n";
+        return 1;
+    }
+
+
     // std::cout<<"path: "<<path<<std::endl;
     // std::cout<<"vendor: "<<vendor<<std::endl;
     // std::cout<<"log_level: "<<log_level<<std::endl;
