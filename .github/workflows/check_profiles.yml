@@ -23,7 +23,7 @@ jobs:
           chmod +x ./OrcaSlicer_profile_validator_ubuntu
 
       # validate profiles
-      - name: Check translation format
+      - name: validate profiles
         run: |
           ./OrcaSlicer_profile_validator_ubuntu -p ${{ github.workspace }}/resources/profiles -l 2
 
