@@ -495,6 +495,14 @@
 			"sub_path": "process/0.24mm Draft @Creality Ender3V2Neo.json"
 		},
 		{
+			"name": "0.24mm Draft @Creality Ender3V3SE",
+			"sub_path": "process/0.24mm Draft @Creality Ender3V3SE.json"
+		},
+		{
+			"name": "0.24mm Draft @Creality Ender3V3KE",
+			"sub_path": "process/0.24mm Draft @Creality Ender3V3KE.json"
+		},
+		{
 			"name": "0.24mm Draft @Creality Ender5Pro (2019) 0.3",
 			"sub_path": "process/0.24mm Draft @Creality Ender5Pro (2019) 0.3.json"
 		},

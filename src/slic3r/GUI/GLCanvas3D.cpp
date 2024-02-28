@@ -85,6 +85,8 @@
 #endif
 #include <imgui/imgui_internal.h>
 
+#include <imguizmo/ImGuizmo.h>
+
 static constexpr const float TRACKBALLSIZE = 0.8f;
 
 static Slic3r::ColorRGBA DEFAULT_BG_LIGHT_COLOR      = { 0.906f, 0.906f, 0.906f, 1.0f };
@@ -5535,6 +5537,70 @@ bool GLCanvas3D::_render_arrange_menu(float left, float right, float bottom, flo
     return settings_changed;
 }
 
+static float       identityMatrix[16]   = {1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f};
+static const float cameraProjection[16] = {1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f};
+
+void GLCanvas3D::_render_3d_navigator()
+{
+    if (!wxGetApp().show_3d_navigator()) {
+        return;
+    }
+
+    ImGuizmo::BeginFrame();
+    ImGuizmo::AllowAxisFlip(false);
+
+    auto& style                                = ImGuizmo::GetStyle();
+    style.Colors[ImGuizmo::COLOR::DIRECTION_X] = ImGuiWrapper::to_ImVec4(ColorRGBA::Y());
+    style.Colors[ImGuizmo::COLOR::DIRECTION_Y] = ImGuiWrapper::to_ImVec4(ColorRGBA::Z());
+    style.Colors[ImGuizmo::COLOR::DIRECTION_Z] = ImGuiWrapper::to_ImVec4(ColorRGBA::X());
+    strcpy(style.AxisLabels[ImGuizmo::Axis::Axis_X], "y");
+    strcpy(style.AxisLabels[ImGuizmo::Axis::Axis_Y], "z");
+    strcpy(style.AxisLabels[ImGuizmo::Axis::Axis_Z], "x");
+    
+    float sc = get_scale();
+#ifdef WIN32
+    const int dpi = get_dpi_for_window(wxGetApp().GetTopWindow());
+    sc *= (float) dpi / (float) DPI_DEFAULT;
+#endif // WIN32
+
+    const ImGuiIO& io              = ImGui::GetIO();
+    const float viewManipulateLeft = 0;
+    const float viewManipulateTop  = io.DisplaySize.y;
+    const float camDistance        = 8.f;
+    ImGuizmo::SetID(0);
+
+    Camera&     camera           = wxGetApp().plater()->get_camera();
+    Transform3d m                = Transform3d::Identity();
+    m.matrix().block(0, 0, 3, 3) = camera.get_view_rotation().toRotationMatrix();
+    // Rotate along X and Z axis for 90 degrees to have Y-up
+    const auto coord_mapping_transform = Geometry::rotation_transform(Vec3d(0.5 * PI, 0, 0.5 * PI));
+    m = m * coord_mapping_transform;
+    float cameraView[16];
+    for (unsigned int c = 0; c < 4; ++c) {
+        for (unsigned int r = 0; r < 4; ++r) {
+            cameraView[c * 4 + r] = m(r, c);
+        }
+    }
+
+    const float size  = 128 * sc;
+    const bool dirty = ImGuizmo::ViewManipulate(cameraView, cameraProjection, ImGuizmo::OPERATION::ROTATE, ImGuizmo::MODE::WORLD,
+                                                identityMatrix, camDistance, ImVec2(viewManipulateLeft, viewManipulateTop - size),
+                                                ImVec2(size, size), 0x10101010);
+
+    if (dirty) {
+        for (unsigned int c = 0; c < 4; ++c) {
+            for (unsigned int r = 0; r < 4; ++r) {
+                m(r, c) = cameraView[c * 4 + r];
+            }
+        }
+        // Rotate back
+        m = m * (coord_mapping_transform.inverse());
+        camera.set_rotation(m);
+
+        request_extra_frame();
+    }
+}
+
 #define ENABLE_THUMBNAIL_GENERATOR_DEBUG_OUTPUT 0
 #if ENABLE_THUMBNAIL_GENERATOR_DEBUG_OUTPUT
 static void debug_output_thumbnail(const ThumbnailData& thumbnail_data)
@@ -7324,6 +7390,8 @@ void GLCanvas3D::_render_overlays()
             }*/
     }
     m_labels.render(sorted_instances);
+
+    _render_3d_navigator();
 }
 
 void GLCanvas3D::_render_style_editor()

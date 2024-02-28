@@ -26,6 +26,7 @@ add_subdirectory(libslic3r)
 
 if (SLIC3R_GUI)
     add_subdirectory(imgui)
+    add_subdirectory(imguizmo)
     add_subdirectory(hidapi)
     include_directories(hidapi/include)
 
