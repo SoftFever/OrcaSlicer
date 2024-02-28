@@ -1,10 +1,12 @@
 #include "PhysicalPrinterDialog.hpp"
 #include "PresetComboBoxes.hpp"
+#include "PrinterCloudAuthDialog.hpp"
 
 #include <cstddef>
 #include <vector>
 #include <string>
 #include <boost/algorithm/string.hpp>
+#include <boost/regex.hpp>
 
 #include <wx/sizer.h>
 #include <wx/stattext.h>
@@ -124,6 +126,8 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
             this->update();
         if (opt_key == "print_host")
             this->update_printhost_buttons();
+        if (opt_key == "printhost_port")
+            this->update_ports();
     };
 
     m_optgroup->append_single_option_line("host_type");
@@ -161,12 +165,31 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
                 show_error(this, text);
                 return;
             }
+
             wxString msg;
             bool result;
             {
                 // Show a wait cursor during the connection test, as it is blocking UI.
                 wxBusyCursor wait;
                 result = host->test(msg);
+
+                if (!result && host->is_cloud()) {
+                    PrinterCloudAuthDialog dlg(this->GetParent(), host.get());
+                    dlg.ShowModal();
+
+                    auto api_key = dlg.GetApiKey();
+                    m_config->opt_string("printhost_apikey") = api_key;
+                    result       = !api_key.empty();
+                    if (result) {
+                        if (Field* print_host_webui_field = this->m_optgroup->get_field("printhost_apikey"); print_host_webui_field) {
+                            if (TextInput* temp_input = dynamic_cast<TextInput*>(print_host_webui_field->getWindow()); temp_input) {
+                                if (wxTextCtrl* temp = temp_input->GetTextCtrl()) {
+                                    temp->SetValue(wxString(api_key));
+                                }
+                            }
+                        }
+                    }
+                }
             }
             if (result)
                 show_info(this, host->get_test_ok_msg(), _L("Success!"));
@@ -311,6 +334,42 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
     update();
 }
 
+void PhysicalPrinterDialog::update_ports() {
+    const PrinterTechnology tech = Preset::printer_technology(*m_config);
+    if (tech == ptFFF) {
+        const auto opt = m_config->option<ConfigOptionEnum<PrintHostType>>("host_type");
+        if (opt->value == htObico) {
+            auto build_web_ui = [](DynamicPrintConfig* config) {
+                auto host = config->opt_string("print_host");
+                auto port = config->opt_string("printhost_port");
+                auto api_key = config->opt_string("printhost_apikey");
+                if (host.empty() || port.empty()) {
+                    return std::string();
+                }
+                boost::regex  re("\\[(\\d+)\\]");
+                boost::smatch match;
+                if (!boost::regex_search(port, match, re))
+                    return std::string();
+                if (match.size() <= 1) {
+                    return std::string();
+                }
+                boost::format urlFormat("%1%/printers/%2%/control");
+                urlFormat % host % match[1];
+                return urlFormat.str();
+            };
+            auto url = build_web_ui(m_config);
+            if (Field* print_host_webui_field = m_optgroup->get_field("print_host_webui"); print_host_webui_field) {
+                if (TextInput* temp_input = dynamic_cast<TextInput*>(print_host_webui_field->getWindow()); temp_input) {
+                    if (wxTextCtrl* temp = temp_input->GetTextCtrl()) {
+                        temp->SetValue(wxString(url));
+                        m_config->opt_string("print_host_webui") = url;
+                    }
+                }
+            }
+        }
+    }
+}
+
 void PhysicalPrinterDialog::update_printhost_buttons()
 {
     std::unique_ptr<PrintHost> host(PrintHost::get_print_host(m_config));
@@ -415,6 +474,12 @@ void PhysicalPrinterDialog::update(bool printer_change)
             if (wxTextCtrl* temp = dynamic_cast<wxTextCtrl*>(printhost_field->getWindow()); temp && temp->GetValue() == L"https://connect.prusa3d.com") {
                 temp->SetValue(wxString());
             }
+
+            if (TextInput* temp_input = dynamic_cast<TextInput*>(printhost_field->getWindow()); temp_input) {
+                if (wxTextCtrl* temp = temp_input->GetTextCtrl(); temp &&temp->GetValue() == L"https://app.obico.io") {
+                 temp->SetValue(wxString());
+                }
+            }
         }
         if (opt->value == htPrusaLink) { // PrusaConnect does NOT allow http digest
             m_optgroup->show_field("printhost_authorization_type");
@@ -432,6 +497,18 @@ void PhysicalPrinterDialog::update(bool printer_change)
                 if (Field* printhost_field = m_optgroup->get_field("print_host"); printhost_field) {
                     if (wxTextCtrl* temp = dynamic_cast<wxTextCtrl*>(printhost_field->getWindow()); temp && temp->GetValue().IsEmpty()) {
                         temp->SetValue(L"https://connect.prusa3d.com");
+                    }
+                }
+            }
+        }
+
+        if (opt->value == htObico) {
+            supports_multiple_printers = true;
+            if (Field* printhost_field = m_optgroup->get_field("print_host"); printhost_field) {
+                if (TextInput* temp_input = dynamic_cast<TextInput*>(printhost_field->getWindow()); temp_input) {
+                    if (wxTextCtrl* temp = temp_input->GetTextCtrl(); temp && temp->GetValue().IsEmpty()) {
+                        temp->SetValue(L"https://app.obico.io");
+                        m_config->opt_string("print_host") = "https://app.obico.io";
                     }
                 }
             }
