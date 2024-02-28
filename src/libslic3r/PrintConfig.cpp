@@ -981,7 +981,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Reverse threshold");
     def->full_label = L("Overhang reversal threshold");
     def->category = L("Quality");
-    def->tooltip = L("Number of mm the overhang need to be for the reversal to be considered useful. Can be a (%) of the perimeter width."
+    def->tooltip = L("Number of mm the overhang need to be for the reversal to be considered useful. Can be a %% of the perimeter width."
                      "\nValue 0 enables reversal on every odd layers regardless.");
     def->sidetext = L("mm or %");
     def->ratio_over = "line_width";
