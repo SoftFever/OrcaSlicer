@@ -121,6 +121,9 @@ public:
     void           update_selections(AppConfig &config);
     void set_calibrate_printer(std::string name);
 
+    void set_is_validation_mode(bool mode) { validation_mode = mode; }
+    void set_vendor_to_validate(std::string vendor) { vendor_to_validate = vendor; }
+
     PresetCollection            prints;
     PresetCollection            sla_prints;
     PresetCollection            filaments;
@@ -284,6 +287,9 @@ private:
 
     DynamicPrintConfig          full_fff_config() const;
     DynamicPrintConfig          full_sla_config() const;
+
+    bool validation_mode = false;
+    std::string vendor_to_validate = ""; 
 };
 
 ENABLE_ENUM_BITMASK_OPERATORS(PresetBundle::LoadConfigBundleAttribute)
