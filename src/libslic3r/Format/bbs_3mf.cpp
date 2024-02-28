@@ -7825,18 +7825,22 @@ bool _BBS_3MF_Exporter::_add_auxiliary_dir_to_archive(mz_zip_archive &archive, c
     int root_dir_len = dir.string().length() + 1;
     //boost file access
     while (!directories.empty()) {
-        boost::filesystem::directory_iterator iterator(directories.front());
+        boost::system::error_code ec;
+        boost::filesystem::directory_iterator iterator(directories.front(), ec);
         directories.pop_front();
-        for (auto &dir_entry : iterator)
+        if (ec) continue;
+        for (; iterator != end(iterator); iterator.increment(ec))
         {
+            if (ec) break;
+            auto dir_entry = *iterator;
             std::string src_file;
             std::string dst_in_3mf;
-            if (boost::filesystem::is_directory(dir_entry.path()))
+            if (boost::filesystem::is_directory(dir_entry.path(), ec))
             {
                 directories.push_back(dir_entry.path());
                 continue;
             }
-            if (boost::filesystem::is_regular_file(dir_entry.path()) && !m_skip_auxiliary)
+            if (boost::filesystem::is_regular_file(dir_entry.path(), ec) && !m_skip_auxiliary)
             {
                 src_file = dir_entry.path().string();
                 dst_in_3mf = dir_entry.path().string();
