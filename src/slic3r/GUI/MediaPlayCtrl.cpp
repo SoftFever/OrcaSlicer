@@ -651,13 +651,15 @@ void MediaPlayCtrl::media_proc()
 bool MediaPlayCtrl::start_stream_service(bool *need_install)
 {
 #ifdef __WIN32__
-    std::string file_source = data_dir() + "\\cameratools\\bambu_source.exe";
-    std::string file_ffmpeg = data_dir() + "\\cameratools\\ffmpeg.exe";
-    std::string file_ff_cfg = data_dir() + "\\cameratools\\ffmpeg.cfg";
+    auto tools_dir = boost::nowide::widen(data_dir())  + L"\\cameratools\\";
+    auto file_source = tools_dir + L"bambu_source.exe";
+    auto file_ffmpeg = tools_dir + L"ffmpeg.exe";
+    auto file_ff_cfg = tools_dir + L"ffmpeg.cfg";
 #else
-    std::string file_source = data_dir() + "/cameratools/bambu_source";
-    std::string file_ffmpeg = data_dir() + "/cameratools/ffmpeg";
-    std::string file_ff_cfg = data_dir() + "/cameratools/ffmpeg.cfg";
+    auto tools_dir   = data_dir() + "/cameratools/";
+    auto file_source = tools_dir + "bambu_source";
+    auto file_ffmpeg = tools_dir + "ffmpeg";
+    auto file_ff_cfg = tools_dir + "ffmpeg.cfg";
 #endif
     if (!boost::filesystem::exists(file_source) || !boost::filesystem::exists(file_ffmpeg) || !boost::filesystem::exists(file_ff_cfg)) {
         if (need_install) *need_install = true;
@@ -680,18 +682,15 @@ bool MediaPlayCtrl::start_stream_service(bool *need_install)
         boost::process::pipe intermediate;
         boost::filesystem::path start_dir(boost::filesystem::path(data_dir()) / "plugins");
 #ifdef __WXMSW__
-        start_dir = boost::filesystem::path(data_dir()) / "cameratools";
-        std::string file_dll  = data_dir() + "/cameratools/BambuSource.dll";
-        std::string file_dll2 = data_dir() + "/plugins/BambuSource.dll";
-        std::string live555_dll  = data_dir() + "/cameratools/live555.dll";
-        std::string live555_dll2 = data_dir() + "/plugins/live555.dll";
-        if (!boost::filesystem::exists(file_dll) || boost::filesystem::last_write_time(file_dll) != boost::filesystem::last_write_time(file_dll2))
-            boost::filesystem::copy_file(file_dll2, file_dll, boost::filesystem::copy_option::overwrite_if_exists);
-        if (!boost::filesystem::exists(live555_dll) || boost::filesystem::last_write_time(live555_dll) != boost::filesystem::last_write_time(live555_dll2))
-            boost::filesystem::copy_file(live555_dll2, live555_dll, boost::filesystem::copy_option::overwrite_if_exists);
-        static std::locale tmp = std::locale(std::locale(), new boost::nowide::utf8_codecvt<wchar_t>());
-        boost::process::imbue(tmp);
-        boost::process::child process_source(file_source, into_u8(file_url2), boost::process::start_dir(start_dir), boost::process::windows::create_no_window, 
+        auto plugins_dir = boost::nowide::widen(data_dir()) + L"\\plugins\\";
+        for (auto dll : {L"BambuSource.dll", L"live555.dll"}) {
+            auto file_dll  = tools_dir + dll;
+            auto file_dll2 = plugins_dir + dll;
+            if (!boost::filesystem::exists(file_dll) || boost::filesystem::last_write_time(file_dll) != boost::filesystem::last_write_time(file_dll2))
+                boost::filesystem::copy_file(file_dll2, file_dll, boost::filesystem::copy_option::overwrite_if_exists);
+        }
+        boost::process::child process_source(file_source, file_url2.ToStdWstring(), boost::process::start_dir(tools_dir), 
+                                             boost::process::windows::create_no_window, 
                                              boost::process::std_out > intermediate, boost::process::limit_handles);
         boost::process::child process_ffmpeg(file_ffmpeg, configss, boost::process::windows::create_no_window, 
                                              boost::process::std_in < intermediate, boost::process::limit_handles);
@@ -705,7 +704,7 @@ bool MediaPlayCtrl::start_stream_service(bool *need_install)
         process_source.detach();
         process_ffmpeg.detach();
     } catch (std::exception &e) {
-        BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl failed to start camera stream: " << e.what();
+        BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl failed to start camera stream: " << decode_path(e.what());
         return false;
     }
     return true;
