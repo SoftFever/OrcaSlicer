@@ -741,7 +741,17 @@ void Slic3r::GUI::ImageGrid::renderText(wxDC &dc, wxString const &text, wxRect c
     dc.SetTextForeground(m_buttonTextColor.colorForStatesNoDark(states));
     wxRect rc({0, 0}, dc.GetTextExtent(text));
     rc = rc.CenterIn(rect);
-    dc.DrawText(text, rc.GetTopLeft());
+    float fontScale = float(rect.width - 8) / rc.width;
+    if (fontScale < 1) {
+        auto font = dc.GetFont();
+        dc.SetFont(font.Scaled(fontScale));
+        wxRect rc({0, 0}, dc.GetTextExtent(text));
+        rc = rc.CenterIn(rect);
+        dc.DrawText(text, rc.GetTopLeft());
+        dc.SetFont(font);
+    } else {
+        dc.DrawText(text, rc.GetTopLeft());
+    }
 }
 
 void Slic3r::GUI::ImageGrid::renderText2(wxDC &dc, wxString text, wxRect const &rect)

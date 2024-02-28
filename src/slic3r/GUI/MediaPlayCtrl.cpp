@@ -318,6 +318,8 @@ void MediaPlayCtrl::Play()
     }
 }
 
+void start_ping_test();
+
 void MediaPlayCtrl::Stop(wxString const &msg)
 {
     int last_state = m_last_state;
@@ -330,10 +332,24 @@ void MediaPlayCtrl::Stop(wxString const &msg)
         m_cond.notify_all();
         m_last_state = MEDIASTATE_IDLE;
         if (!msg.IsEmpty())
-            SetStatus(msg, false);
-        else if (m_failed_code)
-            SetStatus(_L("Stopped [%d]!"), true);
-        else
+            SetStatus(msg);
+        else if (m_failed_code) {
+            auto iter = error_messages.find(m_failed_code);
+            auto msg2 = iter == error_messages.end()
+                ? _L("Please check the network and try again, You can restart or update the printer if the issue persists.")
+                : _L(iter->second.c_str());
+            if (m_failed_code == 1) {
+                if (m_last_state == wxMEDIASTATE_PLAYING)
+                    msg2 = _L("The printer has been logged out and cannot connect.");
+            }
+#if !BBL_RELEASE_TO_PUBLIC && defined(__WINDOWS__)
+            if (m_failed_code < 0)
+                boost::thread ping_thread = Slic3r::create_thread([] {
+                    start_ping_test();
+                });
+#endif
+            SetStatus(msg2);
+        } else
             SetStatus(_L("Stopped."), false);
         if (!m_auto_retry || m_failed_code >= 100) // not keep retry on local error
             m_next_retry = wxDateTime();
