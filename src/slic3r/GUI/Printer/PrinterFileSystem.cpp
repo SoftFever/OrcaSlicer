@@ -1224,7 +1224,7 @@ void PrinterFileSystem::Reconnect(boost::unique_lock<boost::mutex> &l, int resul
     if (m_session.tunnel) {
         auto tunnel = m_session.tunnel;
         m_session.tunnel = nullptr;
-        wxLogMessage("PrinterFileSystem::Reconnect close");
+        wxLogMessage("PrinterFileSystem::Reconnect close %d", result);
         l.unlock();
         Bambu_Close(tunnel);
         Bambu_Destroy(tunnel);
@@ -1274,7 +1274,11 @@ void PrinterFileSystem::Reconnect(boost::unique_lock<boost::mutex> &l, int resul
                 ret = Bambu_Open(tunnel);
             }
             if (ret == 0)
-                ret = Bambu_StartStream(tunnel, false);
+                do {
+                    ret = Bambu_StartStreamEx 
+                        ? Bambu_StartStreamEx(tunnel, CTRL_TYPE)
+                        : Bambu_StartStream(tunnel, false);
+                } while (ret == Bambu_would_block);
             l.lock();
             if (ret == 0) {
                 m_session.tunnel = tunnel;
@@ -1355,6 +1359,7 @@ StaticBambuLib &StaticBambuLib::get()
     GET_FUNC(Bambu_Create);
     GET_FUNC(Bambu_Open);
     GET_FUNC(Bambu_StartStream);
+    GET_FUNC(Bambu_StartStreamEx);
     GET_FUNC(Bambu_GetStreamCount);
     GET_FUNC(Bambu_GetStreamInfo);
     GET_FUNC(Bambu_SendMessage);
