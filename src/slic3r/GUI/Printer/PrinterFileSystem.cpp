@@ -45,9 +45,9 @@ wxDEFINE_EVENT(EVT_FILE_CALLBACK, wxCommandEvent);
 static wxBitmap default_thumbnail;
 
 static std::map<int, std::string> error_messages = {
-    {PrinterFileSystem::ERROR_PIPE, L("Connection lost. Please retry.")},
-    {PrinterFileSystem::ERROR_RES_BUSY, L("The device cannot handle more conversations. Please retry later.")},
-    {PrinterFileSystem::FILE_NO_EXIST, L("File not exists.")},
+    {PrinterFileSystem::ERROR_PIPE, L("Reconnecting the printer, the operation cannot be completed immediately, please try again later.")},
+    {PrinterFileSystem::ERROR_RES_BUSY, L("Over 4 studio/handy are using remote access, you can close some and try again.")},
+    {PrinterFileSystem::FILE_NO_EXIST, L("File does not exist.")},
     {PrinterFileSystem::FILE_CHECK_ERR, L("File checksum error. Please retry.")},
     {PrinterFileSystem::FILE_TYPE_ERR, L("Not supported on the current printer version.")},
     {PrinterFileSystem::STORAGE_UNAVAILABLE, L("Storage unavailable, insert SD card.")}
@@ -358,6 +358,13 @@ void PrinterFileSystem::FetchModel(size_t index, std::function<void(int, std::st
         [this, file_data, callback](int result, Void const &) {
             if (result == CONTINUE) return;
             m_task_flags &= ~FF_FETCH_MODEL;
+            if (result != 0) {
+                auto iter = error_messages.find(result);
+                if (iter != error_messages.end())     
+                    *file_data = _u8L(iter->second.c_str());
+                else
+                    file_data->clear();
+            }
             callback(result, *file_data);
         });
 }
@@ -1026,10 +1033,7 @@ void PrinterFileSystem::DumpLog(void * thiz, int, tchar const *msg)
 boost::uint32_t PrinterFileSystem::SendRequest(int type, json const &req, callback_t2 const &callback)
 {
     if (m_session.tunnel == nullptr) {
-        {
-            boost::unique_lock l(m_mutex);
-            m_cond.notify_all();
-        }
+        Retry();
         callback(ERROR_PIPE, json(), nullptr);
         return 0;
     }

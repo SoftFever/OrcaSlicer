@@ -324,7 +324,9 @@ void MediaFilePanel::SetMachineObject(MachineObject* obj)
 
             int result = e.GetExtraLong();
             if (result > 1 && !e.GetString().IsEmpty())
-                MessageDialog(this, e.GetString(), _L("Download failed"), wxOK | wxICON_ERROR).ShowModal();
+                CallAfter([this, m = e.GetString()] {
+                    MessageDialog(this, m, _L("Download failed"), wxOK | wxICON_ERROR).ShowModal();
+                });
                 
             NetworkAgent* agent = wxGetApp().getAgent();
             if (result > 1 || result == 0) {
@@ -539,9 +541,11 @@ void MediaFilePanel::doAction(size_t index, int action)
                     if (result == PrinterFileSystem::ERROR_CANCEL)
                         return;
                     if (result != 0) {
-                        MessageDialog(this, 
-                            _L("Failed to fetching model infomations from printer."), 
-                            _L("Error"), wxOK).ShowModal();
+                        wxString msg = data.empty() ? _L("Failed to fetch model information from printer.") :
+                                                      from_u8(data);
+                        CallAfter([this, msg] {
+                            MessageDialog(this, msg, _L("Print"), wxOK).ShowModal();
+                        });
                         return;
                     }
                     Slic3r::DynamicPrintConfig config;
@@ -552,8 +556,8 @@ void MediaFilePanel::doAction(size_t index, int action)
                     if (!Slic3r::load_gcode_3mf_from_stream(is, &config, &model, &plate_data_list, &file_version)
                             || plate_data_list.empty()) {
                         MessageDialog(this, 
-                            _L("Failed to parse model infomations."), 
-                            _L("Error"), wxOK).ShowModal();
+                            _L("Failed to parse model information."), 
+                            _L("Print"), wxOK).ShowModal();
                         return;
                     }
 
