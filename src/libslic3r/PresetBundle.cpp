@@ -1211,6 +1211,9 @@ std::pair<PresetsConfigSubstitutions, std::string> PresetBundle::load_system_pre
     // Here the vendor specific read only Config Bundles are stored.
     //BBS: change directory by design
     boost::filesystem::path     dir = (boost::filesystem::path(data_dir()) / PRESET_SYSTEM_DIR).make_preferred();
+    if (validation_mode)
+        dir = (boost::filesystem::path(data_dir())).make_preferred();
+
     PresetsConfigSubstitutions  substitutions;
     std::string                 errors_cummulative;
     bool                        first = true;
@@ -1221,6 +1224,10 @@ std::pair<PresetsConfigSubstitutions, std::string> PresetBundle::load_system_pre
             std::string vendor_name = dir_entry.path().filename().string();
             // Remove the .json suffix.
             vendor_name.erase(vendor_name.size() - 5);
+
+            if (validation_mode && !vendor_to_validate.empty() && vendor_name != vendor_to_validate)
+                continue;
+
             try {
                 // Load the config bundle, flatten it.
                 if (first) {
@@ -1243,8 +1250,12 @@ std::pair<PresetsConfigSubstitutions, std::string> PresetBundle::load_system_pre
                     }
                 }
             } catch (const std::runtime_error &err) {
-                errors_cummulative += err.what();
-                errors_cummulative += "\n";
+                if (validation_mode)
+                    throw err;
+                else {
+                    errors_cummulative += err.what();
+                    errors_cummulative += "\n";
+                }
             }
         }
     }
@@ -3329,8 +3340,9 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
     // 3) paste the process/filament/print configs
     PresetCollection         *presets = nullptr;
     size_t                   presets_loaded = 0;
+    bool                      _validation_mode = validation_mode;
 
-    auto parse_subfile = [path, vendor_name, presets_loaded, current_vendor_profile](\
+    auto parse_subfile = [path, vendor_name, presets_loaded, current_vendor_profile, _validation_mode](
         ConfigSubstitutionContext& substitution_context,
         PresetsConfigSubstitutions& substitutions,
         LoadConfigBundleAttributes& flags,
@@ -3465,6 +3477,9 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
         }
 
         auto file_path = (boost::filesystem::path(data_dir())  /PRESET_SYSTEM_DIR/ vendor_name / subfile_iter.second).make_preferred();
+        if(_validation_mode)
+            file_path = (boost::filesystem::path(data_dir()) / vendor_name / subfile_iter.second).make_preferred();
+
         // Load the preset into the list of presets, save it to disk.
         Preset &loaded = presets_collection->load_preset(file_path.string(), preset_name, std::move(config), false);
         if (flags.has(LoadConfigBundleAttribute::LoadSystem)) {
