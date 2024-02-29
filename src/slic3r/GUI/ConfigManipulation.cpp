@@ -161,7 +161,7 @@ void ConfigManipulation::check_chamber_temperature(DynamicPrintConfig* config)
     }
 }
 
-void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, const bool is_global_config)
+void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, const bool is_global_config, const bool is_plate_config)
 {
     // #ys_FIXME_to_delete
     //! Temporary workaround for the correct updates of the TextCtrl (like "layer_height"):
@@ -170,6 +170,8 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
     // let check if this process is already started.
     if (is_msg_dlg_already_exist)
         return;
+
+    bool is_object_config = (!is_global_config && !is_plate_config);
 
     // layer_height shouldn't be equal to zero
     auto layer_height = config->opt_float("layer_height");
@@ -273,7 +275,8 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
     double sparse_infill_density = config->option<ConfigOptionPercent>("sparse_infill_density")->value;
     auto timelapse_type = config->opt_enum<TimelapseType>("timelapse_type");
 
-    if (config->opt_bool("spiral_mode") &&
+    if (!is_plate_config &&
+        config->opt_bool("spiral_mode") &&
         ! (config->opt_int("wall_loops") == 1 &&
            config->opt_int("top_shell_layers") == 0 &&
            sparse_infill_density == 0 &&
@@ -284,24 +287,10 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
             config->opt_enum<WallDirection>("wall_direction") == WallDirection::Auto &&
             config->opt_enum<TimelapseType>("timelapse_type") == TimelapseType::tlTraditional))
     {
-        wxString msg_text = _(L("Spiral mode only works when wall loops is 1, support is disabled, top shell layers is 0, sparse infill density is 0 and timelapse type is traditional."));
-
-        auto printer_structure_opt = wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionEnum<PrinterStructure>>("printer_structure");
-        if (printer_structure_opt && printer_structure_opt->value == PrinterStructure::psI3) {
-            msg_text += _(L(" But machines with I3 structure will not generate timelapse videos."));
-        }
-
-        if (is_global_config)
-            msg_text += "\n\n" + _(L("Change these settings automatically? \n"
-                                     "Yes - Change these settings and enable spiral mode automatically\n"
-                                     "No  - Give up using spiral mode this time"));
-        MessageDialog dialog(m_msg_dlg_parent, msg_text, "",
-                               wxICON_WARNING | (is_global_config ? wxYES | wxNO : wxOK));
         DynamicPrintConfig new_conf = *config;
-        is_msg_dlg_already_exist = true;
-        auto answer = dialog.ShowModal();
+        auto answer = show_spiral_mode_settings_dialog(is_object_config);
         bool support = true;
-        if (!is_global_config || answer == wxID_YES) {
+        if (answer == wxID_YES) {
             new_conf.set_key_value("wall_loops", new ConfigOptionInt(1));
             new_conf.set_key_value("top_shell_layers", new ConfigOptionInt(0));
             new_conf.set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
@@ -842,6 +831,29 @@ void ConfigManipulation::toggle_print_sla_options(DynamicPrintConfig* config)
     toggle_field("pad_object_connector_width", zero_elev);
     toggle_field("pad_object_connector_penetration", zero_elev);
 }
+
+int ConfigManipulation::show_spiral_mode_settings_dialog(bool is_object_config)
+{
+    wxString msg_text = _(L("Spiral mode only works when wall loops is 1, support is disabled, top shell layers is 0, sparse infill density is 0 and timelapse type is traditional."));
+    auto printer_structure_opt = wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionEnum<PrinterStructure>>("printer_structure");
+    if (printer_structure_opt && printer_structure_opt->value == PrinterStructure::psI3) {
+        msg_text += _(L(" But machines with I3 structure will not generate timelapse videos."));
+    }
+    if (!is_object_config)
+        msg_text += "\n\n" + _(L("Change these settings automatically? \n"
+            "Yes - Change these settings and enable spiral mode automatically\n"
+            "No  - Give up using spiral mode this time"));
+
+    MessageDialog dialog(m_msg_dlg_parent, msg_text, "",
+        wxICON_WARNING | (!is_object_config ? wxYES | wxNO : wxOK));
+    is_msg_dlg_already_exist = true;
+    auto answer = dialog.ShowModal();
+    is_msg_dlg_already_exist = false;
+    if (is_object_config)
+        answer = wxID_YES;
+    return answer;
+}
+
 
 } // GUI
 } // Slic3r

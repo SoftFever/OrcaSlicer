@@ -1090,7 +1090,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
 
     if (m_config.spiral_mode) {
         size_t total_copies_count = 0;
-        for (const PrintObject *object : m_objects)
+        for (const PrintObject* object : m_objects)
             total_copies_count += object->instances().size();
         // #4043
         if (total_copies_count > 1 && m_config.print_sequence != PrintSequence::ByObject)

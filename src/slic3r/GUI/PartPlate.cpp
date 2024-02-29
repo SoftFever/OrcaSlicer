@@ -319,8 +319,18 @@ void PartPlate::set_spiral_vase_mode(bool spiral_mode, bool as_global)
 	std::string key = "spiral_mode";
 	if (as_global)
 		m_config.erase(key);
-	else
-		m_config.set_key_value(key, new ConfigOptionBool(spiral_mode));
+	else {
+		if (spiral_mode) {
+			// Secondary confirmation
+			auto answer = static_cast<TabPrintPlate*>(wxGetApp().plate_tab)->show_spiral_mode_settings_dialog(false);
+			if (answer == wxID_YES) {
+				m_config.set_key_value(key, new ConfigOptionBool(true));
+				set_vase_mode_related_object_config();
+			}
+		}
+		else
+			m_config.set_key_value(key, new ConfigOptionBool(false));
+	}
 }
 
 bool PartPlate::valid_instance(int obj_id, int instance_id)
@@ -1897,6 +1907,16 @@ bool PartPlate::is_valid_gcode_file()
 	return true;
 }
 
+ModelObjectPtrs PartPlate::get_objects_on_this_plate() {
+    ModelObjectPtrs objects_ptr;
+    int obj_id;
+    for (auto it = obj_to_instance_set.begin(); it != obj_to_instance_set.end(); it++) {
+        obj_id = it->first;
+        objects_ptr.push_back(m_model->objects[obj_id]);
+    }
+    return objects_ptr;
+}
+
 ModelInstance* PartPlate::get_instance(int obj_id, int instance_id)
 {
 	if (!contain_instance(obj_id, instance_id))
@@ -2055,7 +2075,7 @@ int PartPlate::add_instance(int obj_id, int instance_id, bool move_position, Bou
 	ModelInstance* instance = object->instances[instance_id];
 	std::pair<int, int> pair(obj_id, instance_id);
 
-	obj_to_instance_set.insert(pair);
+    obj_to_instance_set.insert(pair);
 
 	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": plate_id %1%, add instance obj_id %2%, instance_id %3%, move_position %4%") % m_plate_index % obj_id % instance_id % move_position;
 
@@ -2251,6 +2271,28 @@ void PartPlate::update_object_index(int obj_idx_removed, int obj_idx_max)
 	instance_outside_set.clear();
 	instance_outside_set = temp_set;
 
+}
+
+void PartPlate::set_vase_mode_related_object_config(int obj_id) {
+	ModelObjectPtrs obj_ptrs;
+	if (obj_id != -1) {
+		ModelObject* object = m_model->objects[obj_id];
+		obj_ptrs.push_back(object);
+	}
+	else
+		obj_ptrs = get_objects_on_this_plate();
+	for (ModelObject* object : obj_ptrs) {
+		ModelConfigObject& config = object->config;
+		config.set_key_value("wall_loops", new ConfigOptionInt(1));
+		config.set_key_value("top_shell_layers", new ConfigOptionInt(0));
+		config.set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
+		config.set_key_value("enable_support", new ConfigOptionBool(false));
+		config.set_key_value("enforce_support_layers", new ConfigOptionInt(0));
+		config.set_key_value("ensure_vertical_shell_thickness", new ConfigOptionBool(true));
+		config.set_key_value("detect_thin_wall", new ConfigOptionBool(false));
+		config.set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(tlTraditional));
+	}
+	//wxGetApp().obj_list()->update_selections();
 }
 
 int PartPlate::printable_instance_size()
@@ -4072,6 +4114,21 @@ int PartPlateList::notify_instance_update(int obj_id, int instance_id)
 		}
 	}
 
+	auto is_object_config_compatible_with_spiral_vase = [](ModelObject* object) {
+		const DynamicPrintConfig& config = object->config.get();
+		if (config.has("wall_loops") && config.opt_int("wall_loops") == 1 &&
+			config.has("top_shell_layers") && config.opt_int("top_shell_layers") == 0 &&
+			config.has("sparse_infill_density") && config.option<ConfigOptionPercent>("sparse_infill_density")->value == 0 &&
+			config.has("enable_support") && !config.opt_bool("enable_support") &&
+			config.has("enforce_support_layers") && config.opt_int("enforce_support_layers") == 0 &&
+			config.has("ensure_vertical_shell_thickness") && config.opt_bool("ensure_vertical_shell_thickness") &&
+			config.has("detect_thin_wall") && !config.opt_bool("detect_thin_wall") &&
+			config.has("timelapse_type") && config.opt_enum<TimelapseType>("timelapse_type") == TimelapseType::tlTraditional)
+			return true;
+		else
+			return false;
+	};
+
 	//try to find a new plate
 	for (unsigned int i = 0; i < (unsigned int)m_plate_list.size(); ++i)
 	{
@@ -4082,6 +4139,15 @@ int PartPlateList::notify_instance_update(int obj_id, int instance_id)
 		{
 			//found a new plate, add it to plate
 			plate->add_instance(obj_id, instance_id, false, &boundingbox);
+			
+			// spiral mode, update object setting
+			if (plate->config()->has("spiral_mode") && plate->config()->opt_bool("spiral_mode") && !is_object_config_compatible_with_spiral_vase(object)) {
+				auto answer = static_cast<TabPrintPlate*>(wxGetApp().plate_tab)->show_spiral_mode_settings_dialog(true);
+				if (answer == wxID_YES) {
+					plate->set_vase_mode_related_object_config(obj_id);
+				}
+			}
+
 			plate->update_slice_result_valid_state();
 			plate->thumbnail_data.reset();
 			plate->top_thumbnail_data.reset();

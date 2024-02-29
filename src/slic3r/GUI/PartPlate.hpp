@@ -293,6 +293,7 @@ public:
     // BBS
     Vec2d get_size() const { return Vec2d(m_width, m_depth); }
     ModelObjectPtrs get_objects() { return m_model->objects; }
+    ModelObjectPtrs get_objects_on_this_plate();
     ModelInstance* get_instance(int obj_id, int instance_id);
 
     Vec3d get_origin() { return m_origin; }
@@ -336,6 +337,9 @@ public:
 
     //update object's index caused by original object deleted
     void update_object_index(int obj_idx_removed, int obj_idx_max);
+
+    // set objects configs when enabling spiral vase mode.
+    void set_vase_mode_related_object_config(int obj_id = -1);
 
     //whether it is empty
     bool empty() { return obj_to_instance_set.empty(); }

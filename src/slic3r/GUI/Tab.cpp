@@ -78,6 +78,8 @@ namespace GUI {
 
 #define DISABLE_UNDO_SYS
 
+static const std::vector<std::string> plate_keys = { "curr_bed_type", "first_layer_print_sequence", "first_layer_sequence_choice", "other_layers_print_sequence", "other_layers_sequence_choice", "print_sequence", "spiral_mode"};
+
 void Tab::Highlighter::set_timer_owner(wxEvtHandler* owner, int timerid/* = wxID_ANY*/)
 {
     m_timer.SetOwner(owner, timerid);
@@ -2389,7 +2391,7 @@ void TabPrint::update()
         m_config_manipulation.initialize_support_material_overhangs_queried(is_user_and_saved_preset && support_material_overhangs_queried);
     }
 
-    m_config_manipulation.update_print_fff_config(m_config, m_type < Preset::TYPE_COUNT);
+    m_config_manipulation.update_print_fff_config(m_config, m_type < Preset::TYPE_COUNT, m_type == Preset::TYPE_PLATE);
 
     update_description_lines();
     //BBS: GUI refactor
@@ -2504,6 +2506,9 @@ void TabPrintModel::update_model_config()
         return;
     }
     m_config->apply(*m_parent_tab->m_config);
+    if (m_type != Preset::TYPE_PLATE) {
+        m_config->apply_only(*wxGetApp().plate_tab->get_config(), plate_keys);
+    }
     m_null_keys.clear();
     if (!m_object_configs.empty()) {
         DynamicPrintConfig const & global_config= *m_config;
@@ -2682,7 +2687,6 @@ void TabPrintModel::update_custom_dirty()
 }
 
 //BBS: GUI refactor
-static const std::vector<std::string> plate_keys = { "curr_bed_type", "first_layer_print_sequence", "first_layer_sequence_choice", "other_layers_print_sequence", "other_layers_sequence_choice", "print_sequence"/*, "spiral_mode"*/};
 TabPrintPlate::TabPrintPlate(ParamsPanel* parent) :
     TabPrintModel(parent, plate_keys)
 {
@@ -2711,10 +2715,10 @@ void TabPrintPlate::build()
     auto optgroup = page->new_optgroup("");
     optgroup->append_single_option_line("curr_bed_type");
     optgroup->append_single_option_line("print_sequence");
+    optgroup->append_single_option_line("spiral_mode");
     optgroup->append_single_option_line("first_layer_sequence_choice");
     optgroup->append_single_option_line("other_layers_sequence_choice");
-    // hidden
-    //optgroup->append_single_option_line("spiral_mode");
+
     for (auto& line : const_cast<std::vector<Line>&>(optgroup->get_lines())) {
         line.undo_to_sys = true;
     }
