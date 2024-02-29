@@ -89,7 +89,11 @@
             "sub_path": "filament/InfiMech Generic PA-CF.json"
         },
 	    
-	{
+        {
+            "name": "fdm_filament_pla_other",
+            "sub_path": "filament/fdm_filament_pla_other.json"
+        },
+	    {
             "name": "Other PLA",
             "sub_path": "filament/Other PLA.json"
         },
