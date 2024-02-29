@@ -8,10 +8,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-29 18:06+0800\n"
+"POT-Creation-Date: 2024-02-28 21:04+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -660,6 +660,14 @@ msgstr ""
 msgid "Text shape"
 msgstr ""
 
+#. TRN - Title in Undo/Redo stack after rotate with text around emboss axe
+msgid "Text rotate"
+msgstr ""
+
+#. TRN - Title in Undo/Redo stack after move with text along emboss axe - From surface
+msgid "Text move"
+msgstr ""
+
 msgid "Set Mirror"
 msgstr ""
 
@@ -676,9 +684,6 @@ msgid "Embossing actions"
 msgstr ""
 
 msgid "Emboss"
-msgstr ""
-
-msgid "Text-Rotate"
 msgstr ""
 
 msgid "NORMAL"
@@ -1050,6 +1055,14 @@ msgstr ""
 msgid "Collection"
 msgstr ""
 
+#. TRN - Title in Undo/Redo stack after rotate with SVG around emboss axe
+msgid "SVG rotate"
+msgstr ""
+
+#. TRN - Title in Undo/Redo stack after move with SVG along emboss axe - From surface
+msgid "SVG move"
+msgstr ""
+
 msgid "Enter SVG gizmo"
 msgstr ""
 
@@ -1060,10 +1073,6 @@ msgid "SVG actions"
 msgstr ""
 
 msgid "SVG"
-msgstr ""
-
-#. TRN This is an item label in the undo-redo stack.
-msgid "SVG-Rotate"
 msgstr ""
 
 #, possible-boost-format
@@ -1177,9 +1186,6 @@ msgid "Lock/unlock the aspect ratio of the SVG."
 msgstr ""
 
 msgid "Reset scale"
-msgstr ""
-
-msgid "Resize"
 msgstr ""
 
 msgid "Distance of the center of the SVG to the model surface."
@@ -1658,6 +1664,17 @@ msgid "Voron Cube"
 msgstr ""
 
 msgid "Stanford Bunny"
+msgstr ""
+
+msgid "Orca String Hell"
+msgstr ""
+
+msgid ""
+"This model features text embossment on the top surface. For optimal results, "
+"it is advisable to set the 'One Wall Threshold(min_width_top_surface)' to 0 "
+"for the 'Only One Wall on Top Surfaces' to work best.\n"
+"Yes - Change these settings automatically\n"
+"No  - Do not change these settings for me"
 msgstr ""
 
 msgid "Text"
@@ -6471,6 +6488,15 @@ msgid ""
 msgstr ""
 
 msgid ""
+"Enabling this option will modify the model's shape. If your print requires "
+"precise dimensions or is part of an assembly, it's important to double-check "
+"whether this change in geometry impacts the functionality of your print."
+msgstr ""
+
+msgid "Are you sure you want to enable this option?"
+msgstr ""
+
+msgid ""
 "Layer height is too small.\n"
 "It will set to min_layer_height\n"
 msgstr ""
@@ -6509,9 +6535,6 @@ msgid "Wall generator"
 msgstr ""
 
 msgid "Walls and surfaces"
-msgstr ""
-
-msgid "Small Area Infill Flow Compensation (beta)"
 msgstr ""
 
 msgid "Bridging"
@@ -6731,6 +6754,9 @@ msgid "Fan speed-up time"
 msgstr ""
 
 msgid "Extruder Clearance"
+msgstr ""
+
+msgid "Adaptive bed mesh"
 msgstr ""
 
 msgid "Accessory"
@@ -6990,9 +7016,6 @@ msgstr ""
 
 #, possible-boost-format
 msgid "The name \"%1%\" already exists."
-msgstr ""
-
-msgid "Back"
 msgstr ""
 
 msgid "Basic Info"
@@ -7573,7 +7596,10 @@ msgstr ""
 msgid "Need to check the unsaved changes before configuration updates."
 msgstr ""
 
-msgid "Configuration package updated to "
+msgid "Configuration package: "
+msgstr ""
+
+msgid " updated to "
 msgstr ""
 
 msgid "Open G-code file:"
@@ -7923,6 +7949,10 @@ msgstr ""
 msgid "Plate %d: %s does not support filament %s"
 msgstr ""
 
+msgid ""
+"Setting the jerk speed too low could lead to artifacts on curved surfaces"
+msgstr ""
+
 msgid "Generating skirt & brim"
 msgstr ""
 
@@ -8267,7 +8297,9 @@ msgstr ""
 
 msgid ""
 "Improve shell precision by adjusting outer wall spacing. This also improves "
-"layer consistency."
+"layer consistency.\n"
+"Note: This setting will only take effect if the wall sequence is configured "
+"to Inner-Outer"
 msgstr ""
 
 msgid "Only one wall on top surfaces"
@@ -8287,7 +8319,7 @@ msgid ""
 "layer, it won't be considered at a top layer where its width is below this "
 "value. This can be useful to not let the 'one perimeter on top' trigger on "
 "surface that should be covered only by perimeters. This value can be a mm or "
-"a % of the perimeter extrusion width.\n"
+"a %% of the perimeter extrusion width.\n"
 "Warning: If enabled, artifacts can be created if you have some thin features "
 "on the next layer, like letters. Set this setting to 0 to remove these "
 "artifacts."
@@ -8342,16 +8374,32 @@ msgid ""
 "directions on odd layers irrespective of their overhang degree."
 msgstr ""
 
+msgid "Bridge counterbole holes"
+msgstr ""
+
+msgid ""
+"This option creates bridges for counterbore holes, allowing them to be "
+"printed without support. Available modes include:\n"
+"1. None: No bridge is created.\n"
+"2. Partially Bridged: Only a part of the unsupported area will be bridged.\n"
+"3. Sacrificial Layer: A full sacrificial bridge layer is created."
+msgstr ""
+
+msgid "Partially bridged"
+msgstr ""
+
+msgid "Sacrificial layer"
+msgstr ""
+
 msgid "Reverse threshold"
 msgstr ""
 
 msgid "Overhang reversal threshold"
 msgstr ""
 
-#, possible-c-format, possible-boost-format
 msgid ""
 "Number of mm the overhang need to be for the reversal to be considered "
-"useful. Can be a % of the perimeter width.\n"
+"useful. Can be a (%) of the perimeter width.\n"
 "Value 0 enables reversal on every odd layers regardless."
 msgstr ""
 
@@ -8517,11 +8565,11 @@ msgid "Fan speed"
 msgstr ""
 
 msgid ""
-"Speed of exhaust fan during printing.This speed will overwrite the speed in "
+"Speed of exhuast fan during printing.This speed will overwrite the speed in "
 "filament custom gcode"
 msgstr ""
 
-msgid "Speed of exhaust fan after printing completes"
+msgid "Speed of exhuast fan after printing completes"
 msgstr ""
 
 msgid "No cooling for the first"
@@ -8767,6 +8815,26 @@ msgid ""
 "external surfaces of the part."
 msgstr ""
 
+msgid "Wall loop direction"
+msgstr ""
+
+msgid ""
+"The direction which the wall loops are extruded when looking down from the "
+"top.\n"
+"\n"
+"By default all walls are extruded in counter-clockwise, unless Reverse on "
+"odd is enabled. Set this to any option other than Auto will force the wall "
+"direction regardless of the Reverse on odd.\n"
+"\n"
+"This option will be disabled if sprial vase mode is enabled."
+msgstr ""
+
+msgid "Counter clockwise"
+msgstr ""
+
+msgid "Clockwise"
+msgstr ""
+
 msgid "Height to rod"
 msgstr ""
 
@@ -8786,6 +8854,50 @@ msgstr ""
 msgid ""
 "Clearance radius around extruder. Used for collision avoidance in by-object "
 "printing."
+msgstr ""
+
+msgid "Bed mesh min"
+msgstr ""
+
+msgid ""
+"This option sets the min point for the allowed bed mesh area. Due to the "
+"probe's XY offset, most printers are unable to probe the entire bed. To "
+"ensure the probe point does not go outside the bed area, the minimum and "
+"maximum points of the bed mesh should be set appropriately. OrcaSlicer "
+"ensures that adaptive_bed_mesh_min/adaptive_bed_mesh_max values do not "
+"exceed these min/max points. This information can usually be obtained from "
+"your printer manufacturer. The default setting is (-99999, -99999), which "
+"means there are no limits, thus allowing probing across the entire bed."
+msgstr ""
+
+msgid "Bed mesh max"
+msgstr ""
+
+msgid ""
+"This option sets the max point for the allowed bed mesh area. Due to the "
+"probe's XY offset, most printers are unable to probe the entire bed. To "
+"ensure the probe point does not go outside the bed area, the minimum and "
+"maximum points of the bed mesh should be set appropriately. OrcaSlicer "
+"ensures that adaptive_bed_mesh_min/adaptive_bed_mesh_max values do not "
+"exceed these min/max points. This information can usually be obtained from "
+"your printer manufacturer. The default setting is (99999, 99999), which "
+"means there are no limits, thus allowing probing across the entire bed."
+msgstr ""
+
+msgid "Probe point distance"
+msgstr ""
+
+msgid ""
+"This option sets the preferred distance between probe points (grid size) for "
+"the X and Y directions, with the default being 50mm for both X and Y."
+msgstr ""
+
+msgid "Mesh margin"
+msgstr ""
+
+msgid ""
+"This option determines the additional distance by which the adaptive bed "
+"mesh area should be expanded in the XY directions."
 msgstr ""
 
 msgid "Extruder Color"
@@ -8893,8 +9005,9 @@ msgstr ""
 #, possible-c-format, possible-boost-format
 msgid ""
 "Enter the shrinkage percentage that the filament will get after cooling "
-"(94% if you measure 94mm instead of 100mm). The part will be scaled in xy to "
-"compensate. Only the filament used for the perimeter is taken into account.\n"
+"(94%% if you measure 94mm instead of 100mm). The part will be scaled in xy "
+"to compensate. Only the filament used for the perimeter is taken into "
+"account.\n"
 "Be sure to allow enough space between objects, as this compensation is done "
 "after the checks."
 msgstr ""
@@ -9074,7 +9187,7 @@ msgstr ""
 
 #, possible-c-format, possible-boost-format
 msgid ""
-"Density of internal sparse infill, 100% turns all sparse infill into solid "
+"Density of internal sparse infill, 100%% turns all sparse infill into solid "
 "infill and internal solid infill pattern will be used"
 msgstr ""
 
@@ -9649,7 +9762,7 @@ msgstr ""
 msgid "This G-code will be used as a custom code"
 msgstr ""
 
-msgid "Enable Flow Compensation"
+msgid "Small area flow compensation (beta)"
 msgstr ""
 
 msgid "Enable flow compensation for small infill areas"
@@ -9852,9 +9965,9 @@ msgid "Min print speed"
 msgstr ""
 
 msgid ""
-"The minimum printing speed for the filament when slow down for better layer "
-"cooling is enabled, when printing overhangs and when feature speeds are not "
-"specified explicitly."
+"The minimum printing speed that the printer will slow down to to attempt to "
+"maintain the minimum layer time above, when slow down for better layer "
+"cooling is enabled."
 msgstr ""
 
 msgid "Nozzle diameter"
@@ -10209,6 +10322,9 @@ msgstr ""
 msgid "Aligned"
 msgstr ""
 
+msgid "Back"
+msgstr ""
+
 msgid "Random"
 msgstr ""
 
@@ -10394,7 +10510,7 @@ msgstr ""
 msgid "Enable filament ramming"
 msgstr ""
 
-msgid "No sparse layers (EXPERIMENTAL)"
+msgid "No sparse layers (beta)"
 msgstr ""
 
 msgid ""
@@ -10989,13 +11105,12 @@ msgstr ""
 msgid "Polyhole detection margin"
 msgstr ""
 
-#, possible-c-format, possible-boost-format
 msgid ""
 "Maximum defection of a point to the estimated radius of the circle.\n"
 "As cylinders are often exported as triangles of varying size, points may not "
 "be on the circle circumference. This setting allows you some leway to "
 "broaden the detection.\n"
-"In mm or in % of the radius."
+"In (mm or in %) of the radius."
 msgstr ""
 
 msgid "Polyhole twist"
@@ -13703,6 +13818,38 @@ msgid ""
 "version of PrusaSlicer and is not compatible."
 msgstr ""
 
+#, possible-boost-format
+msgid ""
+"Post-processing script %1% failed.\n"
+"\n"
+"The post-processing script is expected to change the G-code file %2% in "
+"place, but the G-code file was deleted and likely saved under a new name.\n"
+"Please adjust the post-processing script to change the G-code in place and "
+"consult the manual on how to optionally rename the post-processed G-code "
+"file.\n"
+msgstr ""
+
+#, possible-boost-format
+msgid ""
+"The selected 3mf file has been saved with a newer version of %1% and is not "
+"compatible."
+msgstr ""
+
+msgid ""
+"The selected 3MF contains FDM supports painted object using a newer version "
+"of PrusaSlicer and is not compatible."
+msgstr ""
+
+msgid ""
+"The selected 3MF contains seam painted object using a newer version of "
+"PrusaSlicer and is not compatible."
+msgstr ""
+
+msgid ""
+"The selected 3MF contains multi-material painted object using a newer "
+"version of PrusaSlicer and is not compatible."
+msgstr ""
+
 
 #: resources/data/hints.ini: [hint:Precise wall]
 msgid "Precise wall\nDid you know that turning on precise wall can improve precision and layer consistency?"
@@ -13851,3 +13998,4 @@ msgstr ""
 #: resources/data/hints.ini: [hint:Avoid warping]
 msgid "Avoid warping\nDid you know that when printing materials that are prone to warping such as ABS, appropriately increasing the heatbed temperature can reduce the probability of warping."
 msgstr ""
+
