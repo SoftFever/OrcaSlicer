@@ -59,7 +59,7 @@ enum class FuzzySkinType {
 };
 
 enum PrintHostType {
-    htPrusaLink, htPrusaConnect, htOctoPrint, htDuet, htFlashAir, htAstroBox, htRepetier, htMKS
+    htPrusaLink, htPrusaConnect, htOctoPrint, htDuet, htFlashAir, htAstroBox, htRepetier, htMKS, htObico
 };
 
 enum AuthorizationType {
@@ -98,6 +98,16 @@ enum class WallSequence {
     InnerOuterInner,
     Count,
 };
+
+// Orca
+enum class WallDirection
+{
+    Auto,
+    CounterClockwise,
+    Clockwise,
+    Count,
+};
+
 //BBS
 enum class PrintSequence {
     ByLayer,
@@ -932,6 +942,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionEnum<WallSequence>,  wall_sequence))
     ((ConfigOptionBool,                is_infill_first))
     ((ConfigOptionBool,                small_area_infill_flow_compensation))
+    ((ConfigOptionEnum<WallDirection>,  wall_direction))
 )
 
 PRINT_CONFIG_CLASS_DEFINE(
@@ -1213,7 +1224,12 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionBools,               activate_chamber_temp_control))
     ((ConfigOptionInts ,               chamber_temperature))
     
+    // Orca: support adaptive bed mesh
     ((ConfigOptionFloat,               preferred_orientation))
+    ((ConfigOptionPoint,               bed_mesh_min))
+    ((ConfigOptionPoint,               bed_mesh_max))
+    ((ConfigOptionPoint,               bed_mesh_probe_distance))
+    ((ConfigOptionFloat,               adaptive_bed_mesh_margin))
 
 
 )
