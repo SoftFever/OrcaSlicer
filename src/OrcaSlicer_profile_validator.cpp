@@ -43,16 +43,17 @@ void generate_custom_presets(PresetBundle* preset_bundle, AppConfig& app_config)
         for (auto p : custom_preset) {
             // Creating a new preset.
             auto parent = collection->find_preset(p.parent_name);
-            collection->save_current_preset(p.name, false, false, parent);
-            auto new_preset = collection->find_preset(p.name, false, true);
             if (type == Preset::TYPE_FILAMENT)
-                new_preset->config.set_key_value("filament_start_gcode",
+                parent->config.set_key_value("filament_start_gcode",
                                                  new ConfigOptionStrings({"this_is_orca_test_filament_start_gcode_mock"}));
             else if (type == Preset::TYPE_PRINT)
-                new_preset->config.set_key_value("filename_format", new ConfigOptionString("this_is_orca_test_filename_format_mock"));
+                parent->config.set_key_value("filename_format", new ConfigOptionString("this_is_orca_test_filename_format_mock"));
             else if (type == Preset::TYPE_PRINTER)
-                new_preset->config.set_key_value("machine_start_gcode",
+                parent->config.set_key_value("machine_start_gcode",
                                                  new ConfigOptionString("this_is_orca_test_machine_start_gcode_mock"));
+
+            collection->save_current_preset(p.name, false, false, parent);
+
         }
     };
     createCustomPrinters(Preset::TYPE_PRINTER);
