@@ -2,10 +2,10 @@
     "type": "filament",
     "filament_id": "GFN98",
     "setting_id": "GFSA04",
-    "name": "InfiMech Generic PA-CF",
+    "name": "Other PA-CF",
     "from": "system",
     "instantiation": "true",
-    "inherits": "fdm_filament_pa",
+    "inherits": "fdm_filament_pa_other",
     "filament_type": [
         "PA-CF"
     ],
