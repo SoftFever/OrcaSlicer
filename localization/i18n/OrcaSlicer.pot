@@ -2144,9 +2144,6 @@ msgstr ""
 msgid "Outside"
 msgstr ""
 
-msgid ""
-msgstr ""
-
 msgid "Layer height"
 msgstr ""
 
@@ -13785,17 +13782,6 @@ msgstr ""
 
 #, possible-boost-format
 msgid ""
-"Post-processing script %1% failed.\n"
-"\n"
-"The post-processing script is expected to change the G-code file %2% in "
-"place, but the G-code file was deleted and likely saved under a new name.\n"
-"Please adjust the post-processing script to change the G-code in place and "
-"consult the manual on how to optionally rename the post-processed G-code "
-"file.\n"
-msgstr ""
-
-#, possible-boost-format
-msgid ""
 "The selected 3mf file has been saved with a newer version of %1% and is not "
 "compatible."
 msgstr ""
@@ -13810,11 +13796,6 @@ msgid ""
 "PrusaSlicer and is not compatible."
 msgstr ""
 
-msgid ""
-"The selected 3MF contains multi-material painted object using a newer "
-"version of PrusaSlicer and is not compatible."
-msgstr ""
-
 #, possible-boost-format
 msgid ""
 "Post-processing script %1% failed.\n"
@@ -13824,22 +13805,6 @@ msgid ""
 "Please adjust the post-processing script to change the G-code in place and "
 "consult the manual on how to optionally rename the post-processed G-code "
 "file.\n"
-msgstr ""
-
-#, possible-boost-format
-msgid ""
-"The selected 3mf file has been saved with a newer version of %1% and is not "
-"compatible."
-msgstr ""
-
-msgid ""
-"The selected 3MF contains FDM supports painted object using a newer version "
-"of PrusaSlicer and is not compatible."
-msgstr ""
-
-msgid ""
-"The selected 3MF contains seam painted object using a newer version of "
-"PrusaSlicer and is not compatible."
 msgstr ""
 
 msgid ""
