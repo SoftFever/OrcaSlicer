@@ -5,6 +5,9 @@
     "from": "system",
     "filament_id": "GFN98",
     "instantiation": "false",
+    "filament_type": [
+        "PA-CF"
+    ],
     "required_nozzle_HRC": [
         "40"
     ],
