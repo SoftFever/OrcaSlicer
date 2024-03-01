@@ -1968,7 +1968,7 @@ std::map<std::string, std::string> GUI_App::get_extra_header()
     extra_headers.insert(std::make_pair("X-BBL-OS-Version", os_version));
     if (app_config)
         extra_headers.insert(std::make_pair("X-BBL-Device-ID", app_config->get("slicer_uuid")));
-    extra_headers.insert(std::make_pair("X-BBL-Language", convert_studio_language_to_api(app_config->get("language"))));
+    extra_headers.insert(std::make_pair("X-BBL-Language", convert_studio_language_to_api(into_u8(current_language_code_safe()))));
     return extra_headers;
 }
 
@@ -2146,9 +2146,6 @@ bool GUI_App::on_init_inner()
         for (auto d : dialogStack)
             d->EndModal(wxID_ABORT);
     });
-
-    std::map<std::string, std::string> extra_headers = get_extra_header();
-    Slic3r::Http::set_extra_headers(extra_headers);
 
     // Verify resources path
     const wxString resources_dir = from_u8(Slic3r::resources_dir());
@@ -2411,6 +2408,10 @@ bool GUI_App::on_init_inner()
     Bind(EVT_CHECK_PRIVACY_SHOW, &GUI_App::show_check_privacy_dlg, this);
 
     Bind(EVT_SHOW_IP_DIALOG, &GUI_App::show_ip_address_enter_dialog_handler, this);
+
+
+    std::map<std::string, std::string> extra_headers = get_extra_header();
+    Slic3r::Http::set_extra_headers(extra_headers);
 
     copy_network_if_available();
     on_init_network();
