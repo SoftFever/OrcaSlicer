@@ -250,7 +250,7 @@ jobs:
         working-directory: ${{ github.workspace }}/build/src
         shell: bash
         run: |
-          OrcaSlicer_profile_validator -p ${{ github.workspace }}/resources/profiles -g 1
+          ./OrcaSlicer_profile_validator -p ${{ github.workspace }}/resources/profiles -g 1
           cd ${{ github.workspace }}/resources/profiles
           zip -r orca_custom_preset_tests.zip user/
 
