@@ -227,13 +227,16 @@ then
     
     # cmake
     pushd build
-        echo -e "cmake .. -DCMAKE_PREFIX_PATH=\"$PWD/../deps/build/destdir/usr/local\" -DSLIC3R_STATIC=1 ${BUILD_ARGS}"
-        cmake .. -DCMAKE_PREFIX_PATH="$PWD/../deps/build/destdir/usr/local" -DSLIC3R_STATIC=1 ${BUILD_ARGS}
+        echo -e "cmake .. -DCMAKE_PREFIX_PATH=\"$PWD/../deps/build/destdir/usr/local\" -DSLIC3R_STATIC=1 -DORCA_TOOLS=ON ${BUILD_ARGS}"
+        cmake .. -DCMAKE_PREFIX_PATH="$PWD/../deps/build/destdir/usr/local" -DSLIC3R_STATIC=1 ${BUILD_ARGS} -DORCA_TOOLS=ON 
         echo "done"
         
         # make Slic3r
         echo "[8/9] Building Slic3r..."
         make -j$NCORES OrcaSlicer # Slic3r
+
+        # make OrcaSlicer_profile_validator
+        make -j$NCORES OrcaSlicer_profile_validator
     popd
     ./run_gettext.sh
     echo "done"
