@@ -1,35 +1,35 @@
 {
     "type": "filament",
-    "name": "fdm_filament_pet",
+    "name": "fdm_filament_abs_other",
     "from": "system",
     "instantiation": "false",
     "inherits": "fdm_filament_common",
     "filament_vendor": [
-        "InfiMech"
+        "Other"
     ],
     "cool_plate_temp" : [
-        "60"
+        "105"
     ],
     "eng_plate_temp" : [
-        "0"
+        "105"
     ],
     "hot_plate_temp" : [
-        "75"
+        "105"
     ],
     "textured_plate_temp" : [
-        "80"
+        "105"
     ],
     "cool_plate_temp_initial_layer" : [
-        "60"
+        "105"
     ],
     "eng_plate_temp_initial_layer" : [
-        "0"
+        "105"
     ],
     "hot_plate_temp_initial_layer" : [
-        "75"
+        "105"
     ],
     "textured_plate_temp_initial_layer" : [
-        "80"
+        "105"
     ],
     "slow_down_for_layer_cooling": [
         "1"
@@ -40,49 +40,58 @@
     "fan_cooling_layer_time": [
         "30"
     ],
-    "filament_max_volumetric_speed": [
-        "12"
-    ],
     "filament_type": [
-        "PETG"
+        "ABS"
     ],
     "filament_density": [
-        "1.27"
+        "1.04"
     ],
     "filament_cost": [
-        "30"
+        "20"
     ],
     "nozzle_temperature_initial_layer": [
-        "220"
+        "250"
     ],
     "reduce_fan_stop_start_freq": [
         "1"
     ],
     "fan_max_speed": [
-        "90"
+        "20"
     ],
     "fan_min_speed": [
-        "40"
+        "10"
+    ],
+    "overhang_fan_threshold": [
+        "25%"
     ],
     "overhang_fan_speed": [
-        "90"
-    ],
-    "nozzle_temperature": [
-        "220"
-    ],
-    "temperature_vitrification": [
         "80"
     ],
+    "nozzle_temperature": [
+        "250"
+    ],
+    "temperature_vitrification": [
+        "110"
+    ],
     "nozzle_temperature_range_low": [
-        "200"
+        "220"
     ],
     "nozzle_temperature_range_high": [
-        "280"
+        "270"
     ],
-    "additional_cooling_fan_speed": [
+    "slow_down_min_speed": [
+        "20"
+    ],
+    "activate_air_filtration": [
+        "1"
+    ],
+    "complete_print_exhaust_fan_speed": [
+        "80"
+    ],
+    "during_print_exhaust_fan_speed": [
         "100"
     ],
-    "filament_start_gcode": [
-        "; filament start gcode\n"
+    "slow_down_layer_time": [
+        "5"
     ]
 }

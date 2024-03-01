@@ -1,11 +1,11 @@
 {
     "type": "filament",
-    "name": "fdm_filament_pet",
+    "name": "fdm_filament_pet_other",
     "from": "system",
     "instantiation": "false",
     "inherits": "fdm_filament_common",
     "filament_vendor": [
-        "InfiMech"
+        "Other"
     ],
     "cool_plate_temp" : [
         "60"
@@ -53,7 +53,7 @@
         "30"
     ],
     "nozzle_temperature_initial_layer": [
-        "220"
+        "230"
     ],
     "reduce_fan_stop_start_freq": [
         "1"
@@ -68,7 +68,7 @@
         "90"
     ],
     "nozzle_temperature": [
-        "220"
+        "230"
     ],
     "temperature_vitrification": [
         "80"
