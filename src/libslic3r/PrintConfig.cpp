@@ -922,7 +922,7 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Quality");
     def->tooltip = L("If a top surface has to be printed and it's partially covered by another layer, it won't be considered at a top layer where its width is below this value."
         " This can be useful to not let the 'one perimeter on top' trigger on surface that should be covered only by perimeters."
-        " This value can be a mm or a %% of the perimeter extrusion width."
+        " This value can be a mm or a % of the perimeter extrusion width."
         "\nWarning: If enabled, artifacts can be created if you have some thin features on the next layer, like letters. Set this setting to 0 to remove these artifacts.");
     def->sidetext = L("mm or %");
     def->ratio_over = "inner_wall_line_width";
@@ -982,7 +982,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Reverse threshold");
     def->full_label = L("Overhang reversal threshold");
     def->category = L("Quality");
-    def->tooltip = L("Number of mm the overhang need to be for the reversal to be considered useful. Can be a %% of the perimeter width."
+    def->tooltip = L("Number of mm the overhang need to be for the reversal to be considered useful. Can be a % of the perimeter width."
                      "\nValue 0 enables reversal on every odd layers regardless.");
     def->sidetext = L("mm or %");
     def->ratio_over = "line_width";
@@ -1734,7 +1734,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("filament_shrink", coPercents);
     def->label = L("Shrinkage");
-    def->tooltip = L("Enter the shrinkage percentage that the filament will get after cooling (94%% if you measure 94mm instead of 100mm)."
+    def->tooltip = L("Enter the shrinkage percentage that the filament will get after cooling (94% if you measure 94mm instead of 100mm)."
         " The part will be scaled in xy to compensate."
         " Only the filament used for the perimeter is taken into account."
         "\nBe sure to allow enough space between objects, as this compensation is done after the checks.");
@@ -1961,7 +1961,7 @@ def = this->add("filament_loading_speed", coFloats);
     def = this->add("sparse_infill_density", coPercent);
     def->label = L("Sparse infill density");
     def->category = L("Strength");
-    def->tooltip = L("Density of internal sparse infill, 100%% turns all sparse infill into solid infill and internal solid infill pattern will be used");
+    def->tooltip = L("Density of internal sparse infill, 100% turns all sparse infill into solid infill and internal solid infill pattern will be used");
     def->sidetext = L("%");
     def->min = 0;
     def->max = 100;
@@ -3039,7 +3039,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->enum_values.push_back("astrobox");
     def->enum_values.push_back("repetier");
     def->enum_values.push_back("mks");
-def->enum_values.push_back("obico");
+    def->enum_values.push_back("obico");
     def->enum_labels.push_back("PrusaLink");
     def->enum_labels.push_back("PrusaConnect");
     def->enum_labels.push_back("Octo/Klipper");
@@ -3048,7 +3048,7 @@ def->enum_values.push_back("obico");
     def->enum_labels.push_back("AstroBox");
     def->enum_labels.push_back("Repetier");
     def->enum_labels.push_back("MKS");
-def->enum_labels.push_back("Obico");
+    def->enum_labels.push_back("Obico");
     def->mode = comAdvanced;
     def->cli = ConfigOptionDef::nocli;
     def->set_default_value(new ConfigOptionEnum<PrintHostType>(htOctoPrint));
@@ -4624,7 +4624,7 @@ def->enum_labels.push_back("Obico");
     def->tooltip = L("Maximum defection of a point to the estimated radius of the circle."
                      "\nAs cylinders are often exported as triangles of varying size, points may not be on the circle circumference."
                      " This setting allows you some leway to broaden the detection."
-                     "\nIn (mm or in %) of the radius.");
+                     "\nIn mm or in % of the radius.");
     def->sidetext = L("mm or %");
     def->max_literal = 10;
     def->mode = comAdvanced;
@@ -4752,7 +4752,7 @@ def->enum_labels.push_back("Obico");
     "NOTE: Bottom and top surfaces will not be affected by this value to prevent visual gaps on the ouside of the model. "
     "Adjust 'One wall threshold' in the Advanced settings below to adjust the sensitivity of what is considered a top-surface. "
     "'One wall threshold' is only visibile if this setting is set above the default value of 0.5, or if single-wall top surfaces is enabled.");
-    def->sidetext = L(" ");
+    def->sidetext = L("");
     def->mode = comAdvanced;
     def->min = 0.0;
     def->max = 25.0;
