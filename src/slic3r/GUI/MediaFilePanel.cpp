@@ -460,9 +460,15 @@ void MediaFilePanel::fetchUrl(boost::weak_ptr<PrinterFileSystem> wfs)
         return;
     }
     m_waiting_support = false;
+    NetworkAgent *agent = wxGetApp().getAgent();
+    std::string  agent_version = agent ? agent->get_version() : "";
     if ((m_lan_mode || !m_remote_support) && m_local_support && !m_lan_ip.empty()) {
-        std::string url = "bambu:///local/" + m_lan_ip + ".?port=6000&user=" + m_lan_user + "&passwd=" + m_lan_passwd + 
-                "&device=" + m_machine + "&dev_ver=" + m_dev_ver;
+        std::string url = "bambu:///local/" + m_lan_ip + ".?port=6000&user=" + m_lan_user + "&passwd=" + m_lan_passwd;
+        url += "&device=" + m_machine;
+        url += "&net_ver=" + agent_version;
+        url += "&dev_ver=" + m_dev_ver;
+        url += "&cli_id=" + wxGetApp().app_config->get("client_id");
+        url += "&cli_ver=" + std::string(SLIC3R_VERSION);
         fs->SetUrl(url);
         return;
     }
@@ -481,10 +487,16 @@ void MediaFilePanel::fetchUrl(boost::weak_ptr<PrinterFileSystem> wfs)
         fs->SetUrl("0");
         return;
     }
-    NetworkAgent *agent = wxGetApp().getAgent();
     if (agent) {
         agent->get_camera_url(m_machine,
-            [this, wfs, m = m_machine, v = m_dev_ver](std::string url) {
+            [this, wfs, m = m_machine, v = agent->get_version(), dv = m_dev_ver](std::string url) {
+            if (boost::algorithm::starts_with(url, "bambu:///")) {
+                url += "&device=" + m;
+                url += "&net_ver=" + v;
+                url += "&dev_ver=" + dv;
+                url += "&cli_id=" + wxGetApp().app_config->get("client_id");
+                url += "&cli_ver=" + std::string(SLIC3R_VERSION);
+            }
             BOOST_LOG_TRIVIAL(info) << "MediaFilePanel::fetchUrl: camera_url: " << hide_id_middle_string(hide_passwd(url, {"authkey=", "passwd="}), 9, 20);
             CallAfter([=] {
                 boost::shared_ptr fs(wfs.lock());

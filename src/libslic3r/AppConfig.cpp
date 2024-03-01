@@ -382,6 +382,13 @@ void AppConfig::set_defaults()
         set_str("print", "timelapse", "1");
     }
 
+    if (get("client_id").empty()) {
+        boost::uuids::uuid uuid = boost::uuids::random_generator()();
+        auto client_id = boost::uuids::to_string(uuid);
+        boost::algorithm::replace_all(client_id, "-", "");
+        set("client_id", client_id);
+    }
+
     // Remove legacy window positions/sizes
     erase("app", "main_frame_maximized");
     erase("app", "main_frame_pos");
