@@ -1,6 +1,5 @@
 {
   "type": "machine",
-  "bbl_calib_mark_logo": "1",
   "name": "fdm_machine_common",
   "auxiliary_fan": "0",
   "fan_kickstart": "0",

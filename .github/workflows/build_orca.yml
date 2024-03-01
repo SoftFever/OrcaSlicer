@@ -244,7 +244,16 @@ jobs:
           ./BuildLinux.sh -isr
           mv -n ./build/OrcaSlicer_Linux_V${{ env.ver_pure }}.AppImage ./build/OrcaSlicer_Linux_${{ env.ver }}.AppImage
           chmod +x ./build/OrcaSlicer_Linux_${{ env.ver }}.AppImage
-        
+
+      - name: Build orca_custom_preset_tests
+        if: github.ref == 'refs/heads/main' && inputs.os == 'ubuntu-20.04'
+        working-directory: ${{ github.workspace }}/build/src
+        shell: bash
+        run: |
+          ./OrcaSlicer_profile_validator -p ${{ github.workspace }}/resources/profiles -g 1
+          cd ${{ github.workspace }}/resources/profiles
+          zip -r orca_custom_preset_tests.zip user/
+
       - name: Upload artifacts Ubuntu
         if: inputs.os == 'ubuntu-20.04'
         uses: actions/upload-artifact@v3
@@ -262,3 +271,14 @@ jobs:
           asset_name: OrcaSlicer_Linux_${{ env.ver }}.AppImage
           asset_content_type: application/octet-stream
           max_releases: 1 # optional, if there are more releases than this matching the asset_name, the oldest ones are going to be deleted
+
+      - name: Deploy orca_custom_preset_tests
+        if: github.ref == 'refs/heads/main' && inputs.os == 'ubuntu-20.04'
+        uses: WebFreak001/deploy-nightly@v3.0.0
+        with:
+          upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label} 
+          release_id: 137995723 
+          asset_path: ${{ github.workspace }}/resources/profiles/orca_custom_preset_tests.zip
+          asset_name: orca_custom_preset_tests
+          asset_content_type: application/octet-stream
+          max_releases: 1 
