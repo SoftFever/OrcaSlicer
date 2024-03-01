@@ -121,6 +121,9 @@ public:
     void           update_selections(AppConfig &config);
     void set_calibrate_printer(std::string name);
 
+    void set_is_validation_mode(bool mode) { validation_mode = mode; }
+    void set_vendor_to_validate(std::string vendor) { vendor_to_validate = vendor; }
+
     PresetCollection            prints;
     PresetCollection            sla_prints;
     PresetCollection            filaments;
@@ -261,6 +264,14 @@ public:
         return      { Preset::TYPE_PRINTER, Preset::TYPE_SLA_PRINT, Preset::TYPE_SLA_MATERIAL };
     }
 
+    // Orca: for validation only
+    bool has_errors() const
+    {
+        if (m_errors != 0 || printers.m_errors != 0 || filaments.m_errors != 0 || prints.m_errors != 0)
+            return true;
+        return false;
+    }
+
 private:
     //std::pair<PresetsConfigSubstitutions, std::string> load_system_presets(ForwardCompatibilitySubstitutionRule compatibility_rule);
     //BBS: add json related logic
@@ -284,6 +295,12 @@ private:
 
     DynamicPrintConfig          full_fff_config() const;
     DynamicPrintConfig          full_sla_config() const;
+
+    // Orca: used for validation only
+    bool validation_mode = false;
+    std::string vendor_to_validate = ""; 
+    int m_errors = 0;
+
 };
 
 ENABLE_ENUM_BITMASK_OPERATORS(PresetBundle::LoadConfigBundleAttribute)

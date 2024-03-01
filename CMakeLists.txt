@@ -69,6 +69,7 @@ endif ()
 # Proposal for C++ unit tests and sandboxes
 option(SLIC3R_BUILD_SANDBOXES   "Build development sandboxes" OFF)
 option(SLIC3R_BUILD_TESTS       "Build unit tests" OFF)
+option(ORCA_TOOLS       "Build Orca tools" OFF)
 
 if (IS_CROSS_COMPILE)
     message("Detected cross compilation setup. Tests and encoding checks will be forcedly disabled!")
@@ -378,7 +379,7 @@ endif()
 # boost::process was introduced first in version 1.64.0,
 # boost::beast::detail::base64 was introduced first in version 1.66.0
 set(MINIMUM_BOOST_VERSION "1.66.0")
-set(_boost_components "system;filesystem;thread;log;locale;regex;chrono;atomic;date_time;iostreams")
+set(_boost_components "system;filesystem;thread;log;locale;regex;chrono;atomic;date_time;iostreams;program_options")
 find_package(Boost ${MINIMUM_BOOST_VERSION} REQUIRED COMPONENTS ${_boost_components})
 
 add_library(boost_libs INTERFACE)
