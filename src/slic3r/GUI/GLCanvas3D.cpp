@@ -1819,7 +1819,9 @@ void GLCanvas3D::render(bool only_init)
 
     if (!is_initialized() && !init())
         return;
-
+    if (m_canvas_type == ECanvasType::CanvasView3D  && m_gizmos.get_current_type() == GLGizmosManager::Undefined) { 
+        enable_return_toolbar(false);
+    }
     if (!m_main_toolbar.is_enabled())
         m_gcode_viewer.init(wxGetApp().get_mode(), wxGetApp().preset_bundle);
 
