@@ -59,7 +59,7 @@ enum class FuzzySkinType {
 };
 
 enum PrintHostType {
-    htPrusaLink, htPrusaConnect, htOctoPrint, htDuet, htFlashAir, htAstroBox, htRepetier, htMKS
+    htPrusaLink, htPrusaConnect, htOctoPrint, htDuet, htFlashAir, htAstroBox, htRepetier, htMKS, htObico
 };
 
 enum AuthorizationType {
