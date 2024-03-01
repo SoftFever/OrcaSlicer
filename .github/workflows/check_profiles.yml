@@ -1,4 +1,4 @@
-name: Check locale
+name: Check profiles
 on: 
     pull_request:
       branches: 
