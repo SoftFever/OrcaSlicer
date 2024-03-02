@@ -1815,7 +1815,7 @@ void ObjectGridTable::init_cols(ObjectGrid *object_grid)
     m_col_data.push_back(col);
 
     //first column for plate_index
-    col = new ObjectGridCol(coString, "plate_index", L(" "), true, false, false, false, wxALIGN_CENTRE); //bool only_object, bool icon, bool edit, bool config
+    col = new ObjectGridCol(coString, "plate_index", " ", true, false, false, false, wxALIGN_CENTRE); //bool only_object, bool icon, bool edit, bool config
     m_col_data.push_back(col);
 
     //second column for module name
