@@ -9558,13 +9558,13 @@ msgid "Fan speed"
 msgstr "Vitesse du ventilateur"
 
 msgid ""
-"Speed of exhuast fan during printing.This speed will overwrite the speed in "
+"Speed of exhaust fan during printing.This speed will overwrite the speed in "
 "filament custom gcode"
 msgstr ""
 "Vitesse du ventilateur d’extraction pendant l’impression. Cette vitesse "
 "écrasera la vitesse dans le G-code personnalisé du filament."
 
-msgid "Speed of exhuast fan after printing completes"
+msgid "Speed of exhaust fan after printing completes"
 msgstr "Vitesse du ventilateur d’extraction après l’impression"
 
 msgid "No cooling for the first"
@@ -15116,8 +15116,8 @@ msgstr ""
 
 #: resources/data/hints.ini: [hint:Air filtration]
 msgid ""
-"Air filtration/Exhuast Fan\n"
-"Did you know that OrcaSlicer can support Air filtration/Exhuast Fan?"
+"Air filtration/Exhaust Fan\n"
+"Did you know that OrcaSlicer can support Air filtration/Exhaust Fan?"
 msgstr ""
 "Filtration de l’air/ventilateur d’extraction\n"
 "Saviez-vous qu’OrcaSlicer peut prendre en charge la filtration de l’air/le "

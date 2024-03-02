@@ -1262,7 +1262,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("during_print_exhaust_fan_speed", coInts);
     def->label   = L("Fan speed");
-    def->tooltip=L("Speed of exhuast fan during printing.This speed will overwrite the speed in filament custom gcode");
+    def->tooltip=L("Speed of exhaust fan during printing.This speed will overwrite the speed in filament custom gcode");
     def->sidetext = L("%");
     def->min=0;
     def->max=100;
@@ -1272,7 +1272,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("complete_print_exhaust_fan_speed", coInts);
     def->label = L("Fan speed");
     def->sidetext = L("%");
-    def->tooltip=L("Speed of exhuast fan after printing completes");
+    def->tooltip=L("Speed of exhaust fan after printing completes");
     def->min=0;
     def->max=100;
     def->mode = comSimple;
