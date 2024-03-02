@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-02 21:41+0100\n"
+"POT-Creation-Date: 2024-03-02 21:43+0100\n"
 "PO-Revision-Date: 2023-09-30 15:15+0200\n"
 "Last-Translator: René Mošner <Renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -3616,6 +3616,68 @@ msgstr ""
 msgid "default"
 msgstr "výchozí"
 
+#, boost-format
+msgid "Edit Custom G-code (%1%)"
+msgstr ""
+
+msgid "Built-in placeholders (Double click item to add to G-code)"
+msgstr ""
+
+msgid "Search gcode placeholders"
+msgstr ""
+
+msgid "Add selected placeholder to G-code"
+msgstr ""
+
+msgid "Select placeholder"
+msgstr ""
+
+msgid "[Global] Slicing State"
+msgstr ""
+
+msgid "Read Only"
+msgstr ""
+
+msgid "Read Write"
+msgstr ""
+
+msgid "Slicing State"
+msgstr ""
+
+msgid "Print Statistics"
+msgstr ""
+
+msgid "Objects Info"
+msgstr ""
+
+msgid "Dimensions"
+msgstr ""
+
+msgid "Temperatures"
+msgstr ""
+
+msgid "Timestamps"
+msgstr ""
+
+#, boost-format
+msgid "Specific for %1%"
+msgstr ""
+
+msgid "Presets"
+msgstr "Předvolby"
+
+msgid "Print settings"
+msgstr "Nastavení tisku"
+
+msgid "Filament settings"
+msgstr "Nastavení filamentu"
+
+msgid "SLA Materials settings"
+msgstr ""
+
+msgid "Printer settings"
+msgstr "Nastavení tiskárny"
+
 msgid "parameter name"
 msgstr "název parametru"
 
@@ -3808,9 +3870,6 @@ msgstr "Tisk"
 
 msgid "Printer"
 msgstr "Tiskárna"
-
-msgid "Print settings"
-msgstr "Nastavení tisku"
 
 msgid "Custom g-code"
 msgstr ""
@@ -5331,12 +5390,6 @@ msgstr "Porovnání přednastavení"
 msgid "View all object's settings"
 msgstr "Zobrazit všechna nastavení objektu"
 
-msgid "Filament settings"
-msgstr "Nastavení filamentu"
-
-msgid "Printer settings"
-msgstr "Nastavení tiskárny"
-
 msgid "Remove current plate (if not last one)"
 msgstr "Odebrat aktuální podložku (pokud není poslední)"
 
@@ -6065,9 +6118,6 @@ msgstr ""
 
 msgid "If enabled, auto-calculate everytime the color changed."
 msgstr ""
-
-msgid "Presets"
-msgstr "Předvolby"
 
 msgid "Auto sync user presets(Printer/Filament/Process)"
 msgstr ""

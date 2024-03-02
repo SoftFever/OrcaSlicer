@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-02 21:41+0100\n"
+"POT-Creation-Date: 2024-03-02 21:43+0100\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -3570,6 +3570,68 @@ msgstr ""
 msgid "default"
 msgstr "standard"
 
+#, boost-format
+msgid "Edit Custom G-code (%1%)"
+msgstr ""
+
+msgid "Built-in placeholders (Double click item to add to G-code)"
+msgstr ""
+
+msgid "Search gcode placeholders"
+msgstr ""
+
+msgid "Add selected placeholder to G-code"
+msgstr ""
+
+msgid "Select placeholder"
+msgstr ""
+
+msgid "[Global] Slicing State"
+msgstr ""
+
+msgid "Read Only"
+msgstr ""
+
+msgid "Read Write"
+msgstr ""
+
+msgid "Slicing State"
+msgstr ""
+
+msgid "Print Statistics"
+msgstr ""
+
+msgid "Objects Info"
+msgstr ""
+
+msgid "Dimensions"
+msgstr ""
+
+msgid "Temperatures"
+msgstr ""
+
+msgid "Timestamps"
+msgstr ""
+
+#, boost-format
+msgid "Specific for %1%"
+msgstr ""
+
+msgid "Presets"
+msgstr "Förinställningar"
+
+msgid "Print settings"
+msgstr "Utskrifts inställningar"
+
+msgid "Filament settings"
+msgstr "Filament inställningar"
+
+msgid "SLA Materials settings"
+msgstr ""
+
+msgid "Printer settings"
+msgstr "Skrivarens inställningar"
+
 msgid "parameter name"
 msgstr "Parameter namn"
 
@@ -3762,9 +3824,6 @@ msgstr "Skriv ut"
 
 msgid "Printer"
 msgstr "Skrivare"
-
-msgid "Print settings"
-msgstr "Utskrifts inställningar"
 
 msgid "Custom g-code"
 msgstr ""
@@ -5250,12 +5309,6 @@ msgstr "Jämför inställningar"
 msgid "View all object's settings"
 msgstr "Se alla objektens inställningar"
 
-msgid "Filament settings"
-msgstr "Filament inställningar"
-
-msgid "Printer settings"
-msgstr "Skrivarens inställningar"
-
 msgid "Remove current plate (if not last one)"
 msgstr ""
 
@@ -5971,9 +6024,6 @@ msgstr ""
 
 msgid "If enabled, auto-calculate everytime the color changed."
 msgstr ""
-
-msgid "Presets"
-msgstr "Förinställningar"
 
 msgid "Auto sync user presets(Printer/Filament/Process)"
 msgstr ""

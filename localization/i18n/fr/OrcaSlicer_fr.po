@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-02 21:41+0100\n"
+"POT-Creation-Date: 2024-03-02 21:43+0100\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: Guislain Cyril, Thomas Lété\n"
@@ -3723,6 +3723,68 @@ msgstr ""
 msgid "default"
 msgstr "défaut"
 
+#, boost-format
+msgid "Edit Custom G-code (%1%)"
+msgstr ""
+
+msgid "Built-in placeholders (Double click item to add to G-code)"
+msgstr ""
+
+msgid "Search gcode placeholders"
+msgstr ""
+
+msgid "Add selected placeholder to G-code"
+msgstr ""
+
+msgid "Select placeholder"
+msgstr ""
+
+msgid "[Global] Slicing State"
+msgstr ""
+
+msgid "Read Only"
+msgstr ""
+
+msgid "Read Write"
+msgstr ""
+
+msgid "Slicing State"
+msgstr ""
+
+msgid "Print Statistics"
+msgstr ""
+
+msgid "Objects Info"
+msgstr ""
+
+msgid "Dimensions"
+msgstr ""
+
+msgid "Temperatures"
+msgstr ""
+
+msgid "Timestamps"
+msgstr ""
+
+#, boost-format
+msgid "Specific for %1%"
+msgstr ""
+
+msgid "Presets"
+msgstr "Préréglages"
+
+msgid "Print settings"
+msgstr "Réglages d'impression"
+
+msgid "Filament settings"
+msgstr "Réglages du filament"
+
+msgid "SLA Materials settings"
+msgstr ""
+
+msgid "Printer settings"
+msgstr "Paramètres de l'imprimante"
+
 msgid "parameter name"
 msgstr "nom du paramètre"
 
@@ -3912,9 +3974,6 @@ msgstr "Imprimer"
 
 msgid "Printer"
 msgstr "Imprimante"
-
-msgid "Print settings"
-msgstr "Réglages d'impression"
 
 msgid "Custom g-code"
 msgstr "G-code personnalisé"
@@ -5454,12 +5513,6 @@ msgstr "Comparer les Préréglages"
 msgid "View all object's settings"
 msgstr "Afficher tous les paramètres de l'objet"
 
-msgid "Filament settings"
-msgstr "Réglages du filament"
-
-msgid "Printer settings"
-msgstr "Paramètres de l'imprimante"
-
 msgid "Remove current plate (if not last one)"
 msgstr "Retirer la plaque actuelle (si elle n'est pas la dernière)"
 
@@ -6228,9 +6281,6 @@ msgid "If enabled, auto-calculate everytime the color changed."
 msgstr ""
 "Si cette option est activée, le calcul se fera automatiquement à chaque "
 "changement de couleur."
-
-msgid "Presets"
-msgstr "Préréglages"
 
 msgid "Auto sync user presets(Printer/Filament/Process)"
 msgstr ""

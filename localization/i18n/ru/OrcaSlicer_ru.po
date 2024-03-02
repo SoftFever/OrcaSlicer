@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OrcaSlicer V2.0.0-dev Nightly Builds\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-02 21:41+0100\n"
+"POT-Creation-Date: 2024-03-02 21:43+0100\n"
 "PO-Revision-Date: 2024-02-11 23:36+0700\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3699,6 +3699,68 @@ msgstr ""
 msgid "default"
 msgstr "По ум."
 
+#, boost-format
+msgid "Edit Custom G-code (%1%)"
+msgstr ""
+
+msgid "Built-in placeholders (Double click item to add to G-code)"
+msgstr ""
+
+msgid "Search gcode placeholders"
+msgstr ""
+
+msgid "Add selected placeholder to G-code"
+msgstr ""
+
+msgid "Select placeholder"
+msgstr ""
+
+msgid "[Global] Slicing State"
+msgstr ""
+
+msgid "Read Only"
+msgstr ""
+
+msgid "Read Write"
+msgstr ""
+
+msgid "Slicing State"
+msgstr ""
+
+msgid "Print Statistics"
+msgstr ""
+
+msgid "Objects Info"
+msgstr ""
+
+msgid "Dimensions"
+msgstr ""
+
+msgid "Temperatures"
+msgstr ""
+
+msgid "Timestamps"
+msgstr ""
+
+#, boost-format
+msgid "Specific for %1%"
+msgstr ""
+
+msgid "Presets"
+msgstr "Профили"
+
+msgid "Print settings"
+msgstr "Настройки печати"
+
+msgid "Filament settings"
+msgstr "Настройки прутка"
+
+msgid "SLA Materials settings"
+msgstr ""
+
+msgid "Printer settings"
+msgstr "Настройки принтера"
+
 msgid "parameter name"
 msgstr "Имя параметра"
 
@@ -3891,9 +3953,6 @@ msgstr "Печать"
 
 msgid "Printer"
 msgstr "Профиль принтера"
-
-msgid "Print settings"
-msgstr "Настройки печати"
 
 msgid "Custom g-code"
 msgstr "Пользовательский G-код"
@@ -5424,12 +5483,6 @@ msgstr "Сравнение профилей"
 msgid "View all object's settings"
 msgstr "Просмотр всех настроек модели"
 
-msgid "Filament settings"
-msgstr "Настройки прутка"
-
-msgid "Printer settings"
-msgstr "Настройки принтера"
-
 msgid "Remove current plate (if not last one)"
 msgstr "Удалить текущую печатную пластину (кроме последней)"
 
@@ -6187,9 +6240,6 @@ msgid "If enabled, auto-calculate everytime the color changed."
 msgstr ""
 "Если включено, выполняется автоматический перерасчет объёма очистки при "
 "каждом изменении цвета."
-
-msgid "Presets"
-msgstr "Профили"
 
 msgid "Auto sync user presets(Printer/Filament/Process)"
 msgstr "Автосинхронизация пользовательских профилей (принтера/прутка/процесса)"

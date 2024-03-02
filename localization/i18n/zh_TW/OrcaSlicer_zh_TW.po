@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-02 21:41+0100\n"
+"POT-Creation-Date: 2024-03-02 21:43+0100\n"
 "PO-Revision-Date: 2023-11-06 14:37+0800\n"
 "Last-Translator: ablegods <ablegods@gmail.com>\n"
 "Language-Team: \n"
@@ -3632,6 +3632,69 @@ msgstr "含 CF/GF 線材又硬又脆，在 AMS 中很容易斷裂或卡住，請
 msgid "default"
 msgstr "預設"
 
+#, boost-format
+msgid "Edit Custom G-code (%1%)"
+msgstr ""
+
+msgid "Built-in placeholders (Double click item to add to G-code)"
+msgstr ""
+
+msgid "Search gcode placeholders"
+msgstr ""
+
+msgid "Add selected placeholder to G-code"
+msgstr ""
+
+msgid "Select placeholder"
+msgstr ""
+
+msgid "[Global] Slicing State"
+msgstr ""
+
+msgid "Read Only"
+msgstr ""
+
+msgid "Read Write"
+msgstr ""
+
+msgid "Slicing State"
+msgstr ""
+
+msgid "Print Statistics"
+msgstr ""
+
+msgid "Objects Info"
+msgstr ""
+
+msgid "Dimensions"
+msgstr ""
+
+msgid "Temperatures"
+msgstr ""
+
+msgid "Timestamps"
+msgstr ""
+
+#, boost-format
+msgid "Specific for %1%"
+msgstr ""
+
+msgid "Presets"
+msgstr "預設"
+
+msgid "Print settings"
+msgstr "列印設定"
+
+msgid "Filament settings"
+msgstr "線材設定"
+
+msgid "SLA Materials settings"
+msgstr ""
+
+#, fuzzy
+msgid "Printer settings"
+msgstr "列印設備設定"
+
 msgid "parameter name"
 msgstr "參數名稱"
 
@@ -3840,9 +3903,6 @@ msgstr "列印"
 #, fuzzy
 msgid "Printer"
 msgstr "列印設備"
-
-msgid "Print settings"
-msgstr "列印設定"
 
 msgid "Custom g-code"
 msgstr ""
@@ -5380,13 +5440,6 @@ msgstr "比較預設檔"
 msgid "View all object's settings"
 msgstr "查看所有物件的設定"
 
-msgid "Filament settings"
-msgstr "線材設定"
-
-#, fuzzy
-msgid "Printer settings"
-msgstr "列印設備設定"
-
 #, fuzzy
 msgid "Remove current plate (if not last one)"
 msgstr "刪除目前列印板（如果不是最後一個）"
@@ -6114,9 +6167,6 @@ msgstr ""
 
 msgid "If enabled, auto-calculate everytime the color changed."
 msgstr ""
-
-msgid "Presets"
-msgstr "預設"
 
 #, fuzzy
 msgid "Auto sync user presets(Printer/Filament/Process)"

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-02 21:41+0100\n"
+"POT-Creation-Date: 2024-03-02 21:43+0100\n"
 "PO-Revision-Date: 2024-02-17 22:49+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3690,6 +3690,68 @@ msgstr ""
 msgid "default"
 msgstr "per defecte"
 
+#, boost-format
+msgid "Edit Custom G-code (%1%)"
+msgstr ""
+
+msgid "Built-in placeholders (Double click item to add to G-code)"
+msgstr ""
+
+msgid "Search gcode placeholders"
+msgstr ""
+
+msgid "Add selected placeholder to G-code"
+msgstr ""
+
+msgid "Select placeholder"
+msgstr ""
+
+msgid "[Global] Slicing State"
+msgstr ""
+
+msgid "Read Only"
+msgstr ""
+
+msgid "Read Write"
+msgstr ""
+
+msgid "Slicing State"
+msgstr ""
+
+msgid "Print Statistics"
+msgstr ""
+
+msgid "Objects Info"
+msgstr ""
+
+msgid "Dimensions"
+msgstr ""
+
+msgid "Temperatures"
+msgstr ""
+
+msgid "Timestamps"
+msgstr ""
+
+#, boost-format
+msgid "Specific for %1%"
+msgstr ""
+
+msgid "Presets"
+msgstr "Perfils"
+
+msgid "Print settings"
+msgstr "Configuració d'impressio"
+
+msgid "Filament settings"
+msgstr "Configuració del Filament"
+
+msgid "SLA Materials settings"
+msgstr ""
+
+msgid "Printer settings"
+msgstr "Configuració de la Impressora"
+
 msgid "parameter name"
 msgstr "nom del paràmetre"
 
@@ -3882,9 +3944,6 @@ msgstr "Imprimir"
 
 msgid "Printer"
 msgstr "Impressora"
-
-msgid "Print settings"
-msgstr "Configuració d'impressio"
 
 msgid "Custom g-code"
 msgstr "Codi-G personalitzat"
@@ -5418,12 +5477,6 @@ msgstr "Comparar els perfils"
 msgid "View all object's settings"
 msgstr "Veure tots els paràmetres de l'objecte"
 
-msgid "Filament settings"
-msgstr "Configuració del Filament"
-
-msgid "Printer settings"
-msgstr "Configuració de la Impressora"
-
 msgid "Remove current plate (if not last one)"
 msgstr "Treure la placa actual ( si no és l'última )"
 
@@ -6174,9 +6227,6 @@ msgid "If enabled, auto-calculate everytime the color changed."
 msgstr ""
 "Si està activat, fa els clculs automàticament cada vegada que canviï el "
 "color."
-
-msgid "Presets"
-msgstr "Perfils"
 
 msgid "Auto sync user presets(Printer/Filament/Process)"
 msgstr ""

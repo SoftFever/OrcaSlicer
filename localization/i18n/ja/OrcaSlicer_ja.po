@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-02 21:41+0100\n"
+"POT-Creation-Date: 2024-03-02 21:43+0100\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3498,6 +3498,68 @@ msgstr ""
 msgid "default"
 msgstr "デフォルト"
 
+#, boost-format
+msgid "Edit Custom G-code (%1%)"
+msgstr ""
+
+msgid "Built-in placeholders (Double click item to add to G-code)"
+msgstr ""
+
+msgid "Search gcode placeholders"
+msgstr ""
+
+msgid "Add selected placeholder to G-code"
+msgstr ""
+
+msgid "Select placeholder"
+msgstr ""
+
+msgid "[Global] Slicing State"
+msgstr ""
+
+msgid "Read Only"
+msgstr ""
+
+msgid "Read Write"
+msgstr ""
+
+msgid "Slicing State"
+msgstr ""
+
+msgid "Print Statistics"
+msgstr ""
+
+msgid "Objects Info"
+msgstr ""
+
+msgid "Dimensions"
+msgstr ""
+
+msgid "Temperatures"
+msgstr ""
+
+msgid "Timestamps"
+msgstr ""
+
+#, boost-format
+msgid "Specific for %1%"
+msgstr ""
+
+msgid "Presets"
+msgstr "Presets"
+
+msgid "Print settings"
+msgstr "造形設定"
+
+msgid "Filament settings"
+msgstr "フィラメント設定"
+
+msgid "SLA Materials settings"
+msgstr ""
+
+msgid "Printer settings"
+msgstr "プリンター設定"
+
 msgid "parameter name"
 msgstr "パラメータ名"
 
@@ -3689,9 +3751,6 @@ msgstr "造形する"
 
 msgid "Printer"
 msgstr "プリンター"
-
-msgid "Print settings"
-msgstr "造形設定"
 
 msgid "Custom g-code"
 msgstr ""
@@ -5161,12 +5220,6 @@ msgstr "プリセットを比較"
 msgid "View all object's settings"
 msgstr "全てのオブジェクトの設定"
 
-msgid "Filament settings"
-msgstr "フィラメント設定"
-
-msgid "Printer settings"
-msgstr "プリンター設定"
-
 msgid "Remove current plate (if not last one)"
 msgstr ""
 
@@ -5874,9 +5927,6 @@ msgstr ""
 
 msgid "If enabled, auto-calculate everytime the color changed."
 msgstr ""
-
-msgid "Presets"
-msgstr "Presets"
 
 msgid "Auto sync user presets(Printer/Filament/Process)"
 msgstr "ユーザープリセットの自動同期 (プリンター/フィラメント/プロセス)"

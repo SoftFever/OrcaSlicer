@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-02 21:41+0100\n"
+"POT-Creation-Date: 2024-03-02 21:43+0100\n"
 "PO-Revision-Date: 2024-01-01 14:28+0900\n"
 "Last-Translator: Hotsolidinfill <138652683+Hotsolidinfill@users.noreply."
 "github.com>, crwusiz <crwusiz@naver.com>\n"
@@ -3583,6 +3583,68 @@ msgstr ""
 msgid "default"
 msgstr "기본값"
 
+#, boost-format
+msgid "Edit Custom G-code (%1%)"
+msgstr ""
+
+msgid "Built-in placeholders (Double click item to add to G-code)"
+msgstr ""
+
+msgid "Search gcode placeholders"
+msgstr ""
+
+msgid "Add selected placeholder to G-code"
+msgstr ""
+
+msgid "Select placeholder"
+msgstr ""
+
+msgid "[Global] Slicing State"
+msgstr ""
+
+msgid "Read Only"
+msgstr ""
+
+msgid "Read Write"
+msgstr ""
+
+msgid "Slicing State"
+msgstr ""
+
+msgid "Print Statistics"
+msgstr ""
+
+msgid "Objects Info"
+msgstr ""
+
+msgid "Dimensions"
+msgstr ""
+
+msgid "Temperatures"
+msgstr ""
+
+msgid "Timestamps"
+msgstr ""
+
+#, boost-format
+msgid "Specific for %1%"
+msgstr ""
+
+msgid "Presets"
+msgstr "사전 설정"
+
+msgid "Print settings"
+msgstr "프린터 설정"
+
+msgid "Filament settings"
+msgstr "필라멘트 설정"
+
+msgid "SLA Materials settings"
+msgstr ""
+
+msgid "Printer settings"
+msgstr "프린터 설정"
+
 msgid "parameter name"
 msgstr "매개변수 이름"
 
@@ -3775,9 +3837,6 @@ msgstr "출력"
 
 msgid "Printer"
 msgstr "프린터"
-
-msgid "Print settings"
-msgstr "프린터 설정"
 
 msgid "Custom g-code"
 msgstr "사용자 정의 G코드"
@@ -5276,12 +5335,6 @@ msgstr "사전 설정 비교"
 msgid "View all object's settings"
 msgstr "모든 개체 설정 보기"
 
-msgid "Filament settings"
-msgstr "필라멘트 설정"
-
-msgid "Printer settings"
-msgstr "프린터 설정"
-
 msgid "Remove current plate (if not last one)"
 msgstr "현재 플레이트 제거(마지막 플레이트가 아닌 경우)"
 
@@ -6009,9 +6062,6 @@ msgstr "플러시 볼륨: 색상이 변경될 때마다 자동 계산됩니다."
 
 msgid "If enabled, auto-calculate everytime the color changed."
 msgstr "활성화하면 색상이 변경될 때마다 자동 계산됩니다."
-
-msgid "Presets"
-msgstr "사전 설정"
 
 msgid "Auto sync user presets(Printer/Filament/Process)"
 msgstr "사용자 사전 설정 자동 동기화(프린터/필라멘트/프로세스)"

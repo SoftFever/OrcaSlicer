@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-02 21:41+0100\n"
+"POT-Creation-Date: 2024-03-02 21:43+0100\n"
 "PO-Revision-Date: 2023-08-10 20:25-0400\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3600,6 +3600,68 @@ msgstr ""
 msgid "default"
 msgstr "за замовчуванням"
 
+#, boost-format
+msgid "Edit Custom G-code (%1%)"
+msgstr ""
+
+msgid "Built-in placeholders (Double click item to add to G-code)"
+msgstr ""
+
+msgid "Search gcode placeholders"
+msgstr ""
+
+msgid "Add selected placeholder to G-code"
+msgstr ""
+
+msgid "Select placeholder"
+msgstr ""
+
+msgid "[Global] Slicing State"
+msgstr ""
+
+msgid "Read Only"
+msgstr ""
+
+msgid "Read Write"
+msgstr ""
+
+msgid "Slicing State"
+msgstr ""
+
+msgid "Print Statistics"
+msgstr ""
+
+msgid "Objects Info"
+msgstr ""
+
+msgid "Dimensions"
+msgstr ""
+
+msgid "Temperatures"
+msgstr ""
+
+msgid "Timestamps"
+msgstr ""
+
+#, boost-format
+msgid "Specific for %1%"
+msgstr ""
+
+msgid "Presets"
+msgstr "Пресети"
+
+msgid "Print settings"
+msgstr "Параметри друку"
+
+msgid "Filament settings"
+msgstr "Настінні філаменти"
+
+msgid "SLA Materials settings"
+msgstr ""
+
+msgid "Printer settings"
+msgstr "Налаштування принтера"
+
 msgid "parameter name"
 msgstr "ім'я параметра"
 
@@ -3792,9 +3854,6 @@ msgstr "Друк"
 
 msgid "Printer"
 msgstr "Принтер"
-
-msgid "Print settings"
-msgstr "Параметри друку"
 
 msgid "Custom g-code"
 msgstr ""
@@ -5300,12 +5359,6 @@ msgstr "Порівняти пресети"
 msgid "View all object's settings"
 msgstr "Переглянути всі налаштування об'єкта"
 
-msgid "Filament settings"
-msgstr "Настінні філаменти"
-
-msgid "Printer settings"
-msgstr "Налаштування принтера"
-
 msgid "Remove current plate (if not last one)"
 msgstr ""
 
@@ -6025,9 +6078,6 @@ msgstr ""
 
 msgid "If enabled, auto-calculate everytime the color changed."
 msgstr ""
-
-msgid "Presets"
-msgstr "Пресети"
 
 msgid "Auto sync user presets(Printer/Filament/Process)"
 msgstr ""

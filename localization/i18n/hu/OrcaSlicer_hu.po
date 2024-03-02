@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-02 21:41+0100\n"
+"POT-Creation-Date: 2024-03-02 21:43+0100\n"
 "Language: hu\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -3581,6 +3581,68 @@ msgstr ""
 msgid "default"
 msgstr "alapértelmezett"
 
+#, boost-format
+msgid "Edit Custom G-code (%1%)"
+msgstr ""
+
+msgid "Built-in placeholders (Double click item to add to G-code)"
+msgstr ""
+
+msgid "Search gcode placeholders"
+msgstr ""
+
+msgid "Add selected placeholder to G-code"
+msgstr ""
+
+msgid "Select placeholder"
+msgstr ""
+
+msgid "[Global] Slicing State"
+msgstr ""
+
+msgid "Read Only"
+msgstr ""
+
+msgid "Read Write"
+msgstr ""
+
+msgid "Slicing State"
+msgstr ""
+
+msgid "Print Statistics"
+msgstr ""
+
+msgid "Objects Info"
+msgstr ""
+
+msgid "Dimensions"
+msgstr ""
+
+msgid "Temperatures"
+msgstr ""
+
+msgid "Timestamps"
+msgstr ""
+
+#, boost-format
+msgid "Specific for %1%"
+msgstr ""
+
+msgid "Presets"
+msgstr "Presets"
+
+msgid "Print settings"
+msgstr "Nyomtatási beállítások"
+
+msgid "Filament settings"
+msgstr "Filament beállítások"
+
+msgid "SLA Materials settings"
+msgstr ""
+
+msgid "Printer settings"
+msgstr "Nyomtató beállítások"
+
 msgid "parameter name"
 msgstr "paraméter neve"
 
@@ -3773,9 +3835,6 @@ msgstr "Nyomtatás"
 
 msgid "Printer"
 msgstr "Nyomtató"
-
-msgid "Print settings"
-msgstr "Nyomtatási beállítások"
 
 msgid "Custom g-code"
 msgstr ""
@@ -5265,12 +5324,6 @@ msgstr "Beállítások összehasonlítása"
 msgid "View all object's settings"
 msgstr "Összes objektum beállításainak megtekintése"
 
-msgid "Filament settings"
-msgstr "Filament beállítások"
-
-msgid "Printer settings"
-msgstr "Nyomtató beállítások"
-
 msgid "Remove current plate (if not last one)"
 msgstr ""
 
@@ -5988,9 +6041,6 @@ msgstr ""
 
 msgid "If enabled, auto-calculate everytime the color changed."
 msgstr ""
-
-msgid "Presets"
-msgstr "Presets"
 
 msgid "Auto sync user presets(Printer/Filament/Process)"
 msgstr ""
