@@ -6,7 +6,7 @@
     "machine_tech": "FFF",
     "family": "VoronDesign",
     "bed_model": "",
-    "bed_texture": "voron_v0_logo.png",
+    "bed_texture": "voron_logo.png",
     "hotend_model": "",
     "default_materials": "Voron Generic ABS;Voron Generic PLA;Voron Generic PLA-CF;Voron Generic PETG;Voron Generic TPU;Voron Generic ASA;Voron Generic PC;Voron Generic PVA;Voron Generic PA;Voron Generic PA-CF"
 }

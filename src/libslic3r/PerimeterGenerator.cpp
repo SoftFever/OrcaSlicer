@@ -40,7 +40,6 @@ public:
     // Polygon of this contour.
     Polygon                             polygon;
     // Is it a contour or a hole?
-    // Contours are CCW oriented, holes are CW oriented.
     bool                                is_contour;
     // BBS: is perimeter using smaller width
     bool is_smaller_width_perimeter;
@@ -899,18 +898,16 @@ void PerimeterGenerator::split_top_surfaces(const ExPolygons &orig_polygons, ExP
     else
         offset_top_surface = 0;
     // don't takes into account too thin areas
-    // skip if the exposed area is smaller than "min_width_top_surface"
-    double min_width_top_surface = std::max(double(ext_perimeter_spacing / 2 + 10), scale_(config->min_width_top_surface.get_abs_value(unscale_(perimeter_width))));
-
-    Polygons grown_upper_slices = offset(*this->upper_slices, min_width_top_surface);
-
     // get boungding box of last
     BoundingBox last_box = get_extents(orig_polygons);
     last_box.offset(SCALED_EPSILON);
 
+    // skip if the exposed area is smaller than "min_width_top_surface"
+    double min_width_top_surface = std::max(double(ext_perimeter_spacing / 2. + 10), scale_(config->min_width_top_surface.get_abs_value(unscale_(perimeter_width))));
+
     // get the Polygons upper the polygon this layer
-    Polygons upper_polygons_series_clipped =
-        ClipperUtils::clip_clipper_polygons_with_subject_bbox(grown_upper_slices, last_box);
+    Polygons upper_polygons_series_clipped = ClipperUtils::clip_clipper_polygons_with_subject_bbox(*this->upper_slices, last_box);
+    upper_polygons_series_clipped          = offset(upper_polygons_series_clipped, min_width_top_surface);
 
     // set the clip to a virtual "second perimeter"
     fill_clip = offset_ex(orig_polygons, -double(ext_perimeter_spacing));
@@ -928,7 +925,7 @@ void PerimeterGenerator::split_top_surfaces(const ExPolygons &orig_polygons, ExP
         const float bridge_margin =
             std::min(float(scale_(BRIDGE_INFILL_MARGIN)), float(scale_(nozzle_diameter * BRIDGE_INFILL_MARGIN / 0.4)));
         bridge_checker = offset_ex(diff_ex(orig_polygons, lower_polygons_series_clipped, ApplySafetyOffset::Yes),
-                                   1.5 * bridge_offset + bridge_margin + perimeter_spacing / 2);
+                                   1.5 * bridge_offset + bridge_margin + perimeter_spacing / 2.);
     }
     ExPolygons delete_bridge = diff_ex(orig_polygons, bridge_checker, ApplySafetyOffset::Yes);
 
@@ -938,7 +935,7 @@ void PerimeterGenerator::split_top_surfaces(const ExPolygons &orig_polygons, ExP
     ExPolygons temp_gap = diff_ex(top_polygons, fill_clip);
     ExPolygons inner_polygons =
         diff_ex(orig_polygons,
-                offset_ex(top_polygons, offset_top_surface + min_width_top_surface - double(ext_perimeter_spacing / 2)),
+                offset_ex(top_polygons, offset_top_surface + min_width_top_surface - double(ext_perimeter_spacing / 2.)),
                 ApplySafetyOffset::Yes);
     // get the enlarged top surface, by using inner_polygons instead of upper_slices, and clip it for it to be exactly
     // the polygons to fill.
@@ -948,7 +945,7 @@ void PerimeterGenerator::split_top_surfaces(const ExPolygons &orig_polygons, ExP
     //set the clip to the external wall but go back inside by infill_extrusion_width/2 to be sure the extrusion won't go outside even with a 100% overlap.
     double infill_spacing_unscaled = this->config->sparse_infill_line_width.get_abs_value(nozzle_diameter);
     if (infill_spacing_unscaled == 0) infill_spacing_unscaled = Flow::auto_extrusion_width(frInfill, nozzle_diameter);
-    fill_clip = offset_ex(orig_polygons, double(ext_perimeter_spacing / 2) - scale_(infill_spacing_unscaled / 2));
+    fill_clip = offset_ex(orig_polygons, double(ext_perimeter_spacing / 2.) - scale_(infill_spacing_unscaled / 2.));
     // ExPolygons oldLast = last;
 
     non_top_polygons = intersection_ex(inner_polygons, orig_polygons);
@@ -1445,7 +1442,8 @@ void PerimeterGenerator::process_classic()
 
     coord_t ext_perimeter_spacing   = this->ext_perimeter_flow.scaled_spacing();
     coord_t ext_perimeter_spacing2;
-    if(config->precise_outer_wall)
+    // Orca: ignore precise_outer_wall if wall_sequence is not InnerOuter
+    if(config->precise_outer_wall && this->config->wall_sequence == WallSequence::InnerOuter)
         ext_perimeter_spacing2 = scaled<coord_t>(0.5f * (this->ext_perimeter_flow.width() + this->perimeter_flow.width()));
     else
         ext_perimeter_spacing2 = scaled<coord_t>(0.5f * (this->ext_perimeter_flow.spacing() + this->perimeter_flow.spacing()));
@@ -1732,8 +1730,19 @@ void PerimeterGenerator::process_classic()
             // at this point, all loops should be in contours[0]
             bool steep_overhang_contour = false;
             bool steep_overhang_hole    = false;
+            const WallDirection wall_direction = config->wall_direction;
+            if (wall_direction != WallDirection::Auto) {
+                // Skip steep overhang detection if wall direction is specified
+                steep_overhang_contour = true;
+                steep_overhang_hole    = true;
+            }
             ExtrusionEntityCollection entities = traverse_loops(*this, contours.front(), thin_walls, steep_overhang_contour, steep_overhang_hole);
-            reorient_perimeters(entities, steep_overhang_contour, steep_overhang_hole, this->config->overhang_reverse_internal_only);
+            // All walls are counter-clockwise initially, so we don't need to reorient it if that's what we want
+            if (wall_direction != WallDirection::CounterClockwise) {
+                reorient_perimeters(entities, steep_overhang_contour, steep_overhang_hole,
+                                    // Reverse internal only if the wall direction is auto
+                                    this->config->overhang_reverse_internal_only && wall_direction == WallDirection::Auto);
+            }
 
             // if brim will be printed, reverse the order of perimeters so that
             // we continue inwards after having finished the brim
@@ -2173,9 +2182,11 @@ void PerimeterGenerator::process_arachne()
         const bool is_topmost_layer = (this->upper_slices == nullptr) ? true : false;
         if (is_topmost_layer && loop_number > 0 && config->only_one_wall_top)
             loop_number = 0;
+        
+        auto apply_precise_outer_wall = config->precise_outer_wall && this->config->wall_sequence == WallSequence::InnerOuter;
         // Orca: properly adjust offset for the outer wall if precise_outer_wall is enabled.
         ExPolygons last = offset_ex(surface.expolygon.simplify_p(surface_simplify_resolution),
-                      config->precise_outer_wall ? -float(ext_perimeter_width - ext_perimeter_spacing )
+                       apply_precise_outer_wall? -float(ext_perimeter_width - ext_perimeter_spacing )
                                                  : -float(ext_perimeter_width / 2. - ext_perimeter_spacing / 2.));
         
         Arachne::WallToolPathsParams input_params = Arachne::make_paths_params(this->layer_id, *object_config, *print_config);
@@ -2183,7 +2194,7 @@ void PerimeterGenerator::process_arachne()
         input_params.is_top_or_bottom_layer = (is_bottom_layer || is_topmost_layer) ? true : false;
 
         coord_t wall_0_inset = 0;
-        if (config->precise_outer_wall)
+        if (apply_precise_outer_wall)
            wall_0_inset = -coord_t(ext_perimeter_width / 2 - ext_perimeter_spacing / 2);
 
         std::vector<Arachne::VariableWidthLines> out_shell;
@@ -2521,8 +2532,19 @@ void PerimeterGenerator::process_arachne()
         
         bool steep_overhang_contour = false;
         bool steep_overhang_hole    = false;
+        const WallDirection wall_direction = config->wall_direction;
+        if (wall_direction != WallDirection::Auto) {
+            // Skip steep overhang detection if wall direction is specified
+            steep_overhang_contour = true;
+            steep_overhang_hole    = true;
+        }
         if (ExtrusionEntityCollection extrusion_coll = traverse_extrusions(*this, ordered_extrusions, steep_overhang_contour, steep_overhang_hole); !extrusion_coll.empty()) {
-            reorient_perimeters(extrusion_coll, steep_overhang_contour, steep_overhang_hole, this->config->overhang_reverse_internal_only);
+            // All walls are counter-clockwise initially, so we don't need to reorient it if that's what we want
+            if (wall_direction != WallDirection::CounterClockwise) {
+                reorient_perimeters(extrusion_coll, steep_overhang_contour, steep_overhang_hole,
+                                    // Reverse internal only if the wall direction is auto
+                                    this->config->overhang_reverse_internal_only && wall_direction == WallDirection::Auto);
+            }
             this->loops->append(extrusion_coll);
         }
 

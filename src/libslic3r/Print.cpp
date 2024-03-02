@@ -1419,6 +1419,17 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
         }
     }
 
+    if (warning && (m_default_object_config.default_jerk == 1 || m_default_object_config.outer_wall_jerk == 1 ||
+                    m_default_object_config.inner_wall_jerk == 1)) {
+        warning->string = L("Setting the jerk speed too low could lead to artifacts on curved surfaces");
+        if (m_default_object_config.outer_wall_jerk == 1)
+            warning->opt_key = "outer_wall_jerk";
+        else if (m_default_object_config.inner_wall_jerk == 1)
+            warning->opt_key = "inner_wall_jerk";
+        else
+            warning->opt_key = "default_jerk";
+    }
+
     return {};
 }
 
