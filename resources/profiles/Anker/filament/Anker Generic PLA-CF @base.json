@@ -5,6 +5,9 @@
     "from": "system",
     "filament_id": "GFL98",
     "instantiation": "false",
+    "filament_type": [
+        "PLA-CF"
+    ],
     "required_nozzle_HRC": [
         "40"
     ],

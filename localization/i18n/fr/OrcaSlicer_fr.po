@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-14 15:40+0100\n"
+"POT-Creation-Date: 2024-03-02 11:40+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: Guislain Cyril, Thomas Lété\n"
@@ -676,11 +676,11 @@ msgstr "Forme du texte"
 
 #. TRN - Title in Undo/Redo stack after rotate with text around emboss axe
 msgid "Text rotate"
-msgstr "Rotation du texte"
+msgstr ""
 
 #. TRN - Title in Undo/Redo stack after move with text along emboss axe - From surface
 msgid "Text move"
-msgstr "Déplacement du texte"
+msgstr ""
 
 msgid "Set Mirror"
 msgstr "Définir la symétrie"
@@ -1093,11 +1093,11 @@ msgstr "Collection"
 
 #. TRN - Title in Undo/Redo stack after rotate with SVG around emboss axe
 msgid "SVG rotate"
-msgstr "Rotation du SVG"
+msgstr ""
 
 #. TRN - Title in Undo/Redo stack after move with SVG along emboss axe - From surface
 msgid "SVG move"
-msgstr "Déplacement du SVG"
+msgstr ""
 
 msgid "Enter SVG gizmo"
 msgstr "Ouvrir l’outil SVG"
@@ -1760,12 +1760,6 @@ msgid ""
 "Yes - Change these settings automatically\n"
 "No  - Do not change these settings for me"
 msgstr ""
-"Ce modèle présente un texte en relief sur la surface supérieure. Pour "
-"obtenir des résultats optimum, il est conseillé de régler le « Seuil une "
-"paroi(min_width_top_surface) » sur 0 pour que l’option « Une seule paroi sur "
-"les surfaces supérieures » fonctionne au mieux.\n"
-"Oui - Modifier ces paramètres automatiquement\n"
-"Non - Ne pas modifier ces paramètres pour moi"
 
 msgid "Text"
 msgstr "Texte"
@@ -2259,9 +2253,6 @@ msgstr "la copie de plusieurs cellules n'est pas prise en charge"
 
 msgid "Outside"
 msgstr "Hors plaque"
-
-msgid " "
-msgstr " "
 
 msgid "Layer height"
 msgstr "Hauteur de couche"
@@ -4488,6 +4479,12 @@ msgstr "Afficher la fenêtre du &G-code"
 
 msgid "Show g-code window in Previce scene"
 msgstr "Afficher la fenêtre du G-code dans la scène précédente"
+
+msgid "Show 3D Navigator"
+msgstr ""
+
+msgid "Show 3D navigator in Prepare and Preview scene"
+msgstr ""
 
 msgid "Reset Window Layout"
 msgstr "Réinitialiser la présentation de la fenêtre"
@@ -7100,6 +7097,15 @@ msgstr ""
 "et désactivation de la hauteur indépendante de la couche de support"
 
 msgid ""
+"Enabling this option will modify the model's shape. If your print requires "
+"precise dimensions or is part of an assembly, it's important to double-check "
+"whether this change in geometry impacts the functionality of your print."
+msgstr ""
+
+msgid "Are you sure you want to enable this option?"
+msgstr ""
+
+msgid ""
 "Layer height is too small.\n"
 "It will set to min_layer_height\n"
 msgstr ""
@@ -7149,10 +7155,6 @@ msgstr "Générateur de paroi"
 
 msgid "Walls and surfaces"
 msgstr "Parois et surfaces"
-
-msgid "Small Area Infill Flow Compensation (experimental)"
-msgstr ""
-"Compensation des débits de remplissage des petites zones (expérimental)"
 
 msgid "Bridging"
 msgstr "Ponts"
@@ -7407,6 +7409,9 @@ msgstr "Durée d’accélération du ventilateur"
 
 msgid "Extruder Clearance"
 msgstr "Dégagement de l'extrudeur"
+
+msgid "Adaptive bed mesh"
+msgstr ""
 
 msgid "Accessory"
 msgstr "Accessoire"
@@ -8340,10 +8345,10 @@ msgstr ""
 "de configuration."
 
 msgid "Configuration package: "
-msgstr "Paquet de configuration : "
+msgstr ""
 
 msgid " updated to "
-msgstr " mis à jour vers "
+msgstr ""
 
 msgid "Open G-code file:"
 msgstr "Ouvrir un fichier G-code :"
@@ -8768,6 +8773,10 @@ msgstr ""
 #, c-format, boost-format
 msgid "Plate %d: %s does not support filament %s"
 msgstr "Plaque %d : %s ne prend pas en charge le filament %s"
+
+msgid ""
+"Setting the jerk speed too low could lead to artifacts on curved surfaces"
+msgstr ""
 
 msgid "Generating skirt & brim"
 msgstr "Génération jupe et bord"
@@ -9216,15 +9225,15 @@ msgstr ""
 "Ce facteur affecte la quantité de matériau pour le remplissage solide "
 "inférieur"
 
-msgid "Precise wall(experimental)"
-msgstr "Parois précises (expérimental)"
+msgid "Precise wall"
+msgstr "Parois précises"
 
 msgid ""
 "Improve shell precision by adjusting outer wall spacing. This also improves "
-"layer consistency."
+"layer consistency.\n"
+"Note: This setting will only take effect if the wall sequence is configured "
+"to Inner-Outer"
 msgstr ""
-"Améliorer la précision de la coque en ajustant l’espacement des parois "
-"extérieures. Cela améliore également la consistance des couches."
 
 msgid "Only one wall on top surfaces"
 msgstr "Une seule paroi sur les surfaces supérieures"
@@ -9239,7 +9248,7 @@ msgstr ""
 msgid "One wall threshold"
 msgstr "Seuil de paroi unique"
 
-#, fuzzy, c-format, boost-format
+#, no-c-format, no-boost-format
 msgid ""
 "If a top surface has to be printed and it's partially covered by another "
 "layer, it won't be considered at a top layer where its width is below this "
@@ -9335,7 +9344,7 @@ msgstr ""
 "soit leur degré de surplomb."
 
 msgid "Bridge counterbole holes"
-msgstr "Soutenir des perçages"
+msgstr ""
 
 msgid ""
 "This option creates bridges for counterbore holes, allowing them to be "
@@ -9344,19 +9353,12 @@ msgid ""
 "2. Partially Bridged: Only a part of the unsupported area will be bridged.\n"
 "3. Sacrificial Layer: A full sacrificial bridge layer is created."
 msgstr ""
-"Cette option crée des ponts pour les trous de contre-perçage, ce qui permet "
-"de les imprimer sans support. Les modes disponibles sont les suivants\n"
-"1. Aucun : Aucun pont n’est créé.\n"
-"2. Partiellement relié : Seule une partie de la zone non prise en charge "
-"sera pontée.\n"
-"3. Couche sacrificielle : Une couche de pont sacrificielle complète est "
-"créée."
 
 msgid "Partially bridged"
-msgstr "Partiellement relié"
+msgstr ""
 
 msgid "Sacrificial layer"
-msgstr "Couche sacrificielle"
+msgstr ""
 
 msgid "Reverse threshold"
 msgstr "Seuil d’inversion"
@@ -9364,7 +9366,7 @@ msgstr "Seuil d’inversion"
 msgid "Overhang reversal threshold"
 msgstr "Seuil d’inversion des surplombs"
 
-#, fuzzy, c-format, boost-format
+#, no-c-format, no-boost-format
 msgid ""
 "Number of mm the overhang need to be for the reversal to be considered "
 "useful. Can be a % of the perimeter width.\n"
@@ -9564,13 +9566,13 @@ msgid "Fan speed"
 msgstr "Vitesse du ventilateur"
 
 msgid ""
-"Speed of exhuast fan during printing.This speed will overwrite the speed in "
+"Speed of exhaust fan during printing.This speed will overwrite the speed in "
 "filament custom gcode"
 msgstr ""
 "Vitesse du ventilateur d’extraction pendant l’impression. Cette vitesse "
 "écrasera la vitesse dans le G-code personnalisé du filament."
 
-msgid "Speed of exhuast fan after printing completes"
+msgid "Speed of exhaust fan after printing completes"
 msgstr "Vitesse du ventilateur d’extraction après l’impression"
 
 msgid "No cooling for the first"
@@ -9619,7 +9621,7 @@ msgstr ""
 "est généralement recommandé d’activer cette fonctionnalité. Pensez cependant "
 "à la désactiver si vous utilisez des buses larges."
 
-msgid "Don't filter out small internal bridges (experimental)"
+msgid "Don't filter out small internal bridges (beta)"
 msgstr "Ne pas filtrer les petits ponts internes (expérimental)"
 
 msgid ""
@@ -9732,7 +9734,7 @@ msgstr ""
 "garantir l'épaisseur verticale de la coque (couches solides "
 "supérieure+inférieure)."
 
-msgid "Further reduce solid infill on walls (experimental)"
+msgid "Further reduce solid infill on walls (beta)"
 msgstr "Réduire davantage le remplissage solide des parois (expérimental)"
 
 msgid ""
@@ -9926,6 +9928,26 @@ msgstr ""
 "la surface extérieure. Cela peut également faire briller le remplissage à "
 "travers les surfaces externes de la pièce."
 
+msgid "Wall loop direction"
+msgstr ""
+
+msgid ""
+"The direction which the wall loops are extruded when looking down from the "
+"top.\n"
+"\n"
+"By default all walls are extruded in counter-clockwise, unless Reverse on "
+"odd is enabled. Set this to any option other than Auto will force the wall "
+"direction regardless of the Reverse on odd.\n"
+"\n"
+"This option will be disabled if sprial vase mode is enabled."
+msgstr ""
+
+msgid "Counter clockwise"
+msgstr ""
+
+msgid "Clockwise"
+msgstr ""
+
 msgid "Height to rod"
 msgstr "Hauteur jusqu’à la tige"
 
@@ -9952,6 +9974,50 @@ msgid ""
 msgstr ""
 "Rayon de dégagement autour de l'extrudeuse : utilisé pour éviter les "
 "collisions lors de l'impression par objets."
+
+msgid "Bed mesh min"
+msgstr ""
+
+msgid ""
+"This option sets the min point for the allowed bed mesh area. Due to the "
+"probe's XY offset, most printers are unable to probe the entire bed. To "
+"ensure the probe point does not go outside the bed area, the minimum and "
+"maximum points of the bed mesh should be set appropriately. OrcaSlicer "
+"ensures that adaptive_bed_mesh_min/adaptive_bed_mesh_max values do not "
+"exceed these min/max points. This information can usually be obtained from "
+"your printer manufacturer. The default setting is (-99999, -99999), which "
+"means there are no limits, thus allowing probing across the entire bed."
+msgstr ""
+
+msgid "Bed mesh max"
+msgstr ""
+
+msgid ""
+"This option sets the max point for the allowed bed mesh area. Due to the "
+"probe's XY offset, most printers are unable to probe the entire bed. To "
+"ensure the probe point does not go outside the bed area, the minimum and "
+"maximum points of the bed mesh should be set appropriately. OrcaSlicer "
+"ensures that adaptive_bed_mesh_min/adaptive_bed_mesh_max values do not "
+"exceed these min/max points. This information can usually be obtained from "
+"your printer manufacturer. The default setting is (99999, 99999), which "
+"means there are no limits, thus allowing probing across the entire bed."
+msgstr ""
+
+msgid "Probe point distance"
+msgstr ""
+
+msgid ""
+"This option sets the preferred distance between probe points (grid size) for "
+"the X and Y directions, with the default being 50mm for both X and Y."
+msgstr ""
+
+msgid "Mesh margin"
+msgstr ""
+
+msgid ""
+"This option determines the additional distance by which the adaptive bed "
+"mesh area should be expanded in the XY directions."
+msgstr ""
 
 msgid "Extruder Color"
 msgstr "Couleur de l'extrudeur"
@@ -10084,10 +10150,10 @@ msgstr ""
 msgid "Shrinkage"
 msgstr "Pourcentage de retrait"
 
-#, fuzzy, c-format, boost-format
+#, no-c-format, no-boost-format
 msgid ""
-"Enter the shrinkage percentage that the filament will get after cooling "
-"(94% if you measure 94mm instead of 100mm). The part will be scaled in xy to "
+"Enter the shrinkage percentage that the filament will get after cooling (94% "
+"if you measure 94mm instead of 100mm). The part will be scaled in xy to "
 "compensate. Only the filament used for the perimeter is taken into account.\n"
 "Be sure to allow enough space between objects, as this compensation is done "
 "after the checks."
@@ -10317,7 +10383,7 @@ msgstr ""
 msgid "Sparse infill density"
 msgstr "Densité de remplissage"
 
-#, fuzzy, c-format, boost-format
+#, no-c-format, no-boost-format
 msgid ""
 "Density of internal sparse infill, 100% turns all sparse infill into solid "
 "infill and internal solid infill pattern will be used"
@@ -11042,8 +11108,8 @@ msgstr ""
 msgid "This G-code will be used as a custom code"
 msgstr "Ce G-code sera utilisé comme code personnalisé"
 
-msgid "Enable Flow Compensation"
-msgstr "Activer la compensation de débit"
+msgid "Small area flow compensation (beta)"
+msgstr ""
 
 msgid "Enable flow compensation for small infill areas"
 msgstr ""
@@ -11309,9 +11375,6 @@ msgid ""
 "maintain the minimum layer time above, when slow down for better layer "
 "cooling is enabled."
 msgstr ""
-"Vitesse d’impression minimale à laquelle l’imprimante ralentira pour tenter "
-"de maintenir le temps de couche minimal ci-dessus, lorsque la fonction de "
-"ralentissement pour un meilleur refroidissement de la couche est activée."
 
 msgid "Nozzle diameter"
 msgstr "Diamètre de la buse"
@@ -12011,8 +12074,8 @@ msgstr "Purger le filament restant dans la tour d’essuyage"
 msgid "Enable filament ramming"
 msgstr "Activer le pilonnage du filament"
 
-msgid "No sparse layers (EXPERIMENTAL)"
-msgstr "Pas sur toutes les couches (EXPÉRIMENTAL)"
+msgid "No sparse layers (beta)"
+msgstr ""
 
 msgid ""
 "If enabled, the wipe tower will not be printed on layers with no "
@@ -12773,7 +12836,7 @@ msgstr ""
 msgid "Polyhole detection margin"
 msgstr "Marge de détection des trous polygones"
 
-#, fuzzy, c-format, boost-format
+#, no-c-format, no-boost-format
 msgid ""
 "Maximum defection of a point to the estimated radius of the circle.\n"
 "As cylinders are often exported as triangles of varying size, points may not "
@@ -15121,13 +15184,14 @@ msgstr ""
 #~ "Saviez-vous qu’OrcaSlicer prend en charge le ventilateur auxiliaire de "
 #~ "refroidissement des pièces ?"
 
-#~ msgid ""
-#~ "Air filtration/Exhuast Fan\n"
-#~ "Did you know that OrcaSlicer can support Air filtration/Exhuast Fan?"
-#~ msgstr ""
-#~ "Filtration de l’air/ventilateur d’extraction\n"
-#~ "Saviez-vous qu’OrcaSlicer peut prendre en charge la filtration de l’air/"
-#~ "le ventilateur d’extraction ?"
+#: resources/data/hints.ini: [hint:Air filtration]
+msgid ""
+"Air filtration/Exhaust Fan\n"
+"Did you know that OrcaSlicer can support Air filtration/Exhaust Fan?"
+msgstr ""
+"Filtration de l’air/ventilateur d’extraction\n"
+"Saviez-vous qu’OrcaSlicer peut prendre en charge la filtration de l’air/le "
+"ventilateur d’extraction ?"
 
 #~ msgid ""
 #~ "G-code window\n"
@@ -15398,15 +15462,99 @@ msgstr ""
 #~ "Empiler des objets\n"
 #~ "Saviez-vous que vous pouvez empiler des objets pour n'en former qu'un?"
 
-#~ msgid ""
-#~ "Flush into support/objects/infill\n"
-#~ "Did you know that you can save the wasted filament by flushing them into "
-#~ "support/objects/infill during filament change?"
+#: resources/data/hints.ini: [hint:Flush into support/objects/infill]
+msgid ""
+"Flush into support/objects/infill\n"
+"Did you know that you can save the wasted filament by flushing them into "
+"support/objects/infill during filament change?"
+msgstr ""
+"Purger dans les supports/les objets/le remplissage\n"
+"Saviez-vous que vous pouvez réduire le filament gaspillé en le purgeant dans "
+"les supports/les objets/le remplissage lors des changements de filament ?"
+
+#: resources/data/hints.ini: [hint:Improve strength]
+msgid ""
+"Improve strength\n"
+"Did you know that you can use more wall loops and higher sparse infill "
+"density to improve the strength of the model?"
+msgstr ""
+"Améliorer la solidité\n"
+"Saviez-vous que vous pouvez définir un plus grand nombre de périmètre et une "
+"densité de remplissage plus élevée pour améliorer la résistance du modèle ?"
+
+#: resources/data/hints.ini: [hint:When need to print with the printer door
+#: opened]
+msgid ""
+"When need to print with the printer door opened\n"
+"Did you know that opening the printer door can reduce the probability of "
+"extruder/hotend clogging when printing lower temperature filament with a "
+"higher enclosure temperature. More info about this in the Wiki."
+msgstr ""
+"Quand il faut imprimer avec la porte de l’imprimante ouverte\n"
+"Saviez-vous que l’ouverture de la porte de l’imprimante peut réduire la "
+"probabilité de blocage de l’extrudeuse/du réchauffeur lors de l’impression "
+"de filament à basse température avec une température de boîtier plus élevée. "
+"Plus d’informations à ce sujet dans le Wiki."
+
+#: resources/data/hints.ini: [hint:Avoid warping]
+msgid ""
+"Avoid warping\n"
+"Did you know that when printing materials that are prone to warping such as "
+"ABS, appropriately increasing the heatbed temperature can reduce the "
+"probability of warping."
+msgstr ""
+"Éviter la déformation\n"
+"Saviez-vous que lors de l’impression de matériaux susceptibles de se "
+"déformer, tels que l’ABS, une augmentation appropriée de la température du "
+"plateau chauffant peut réduire la probabilité de déformation."
+
+#~ msgid " "
+#~ msgstr " "
+
+#~ msgid "Text-Rotate"
+#~ msgstr "Rotation du texte"
+
+#~ msgid "SVG-Rotate"
+#~ msgstr "Rotation du SVG"
+
+#~ msgid "Resize"
+#~ msgstr "Redimensionner"
+
+#~ msgid "Small Area Infill Flow Compensation (beta)"
 #~ msgstr ""
-#~ "Purger dans les supports/les objets/le remplissage\n"
-#~ "Saviez-vous que vous pouvez réduire le filament gaspillé en le purgeant "
-#~ "dans les supports/les objets/le remplissage lors des changements de "
-#~ "filament ?"
+#~ "Compensation des débits de remplissage des petites zones (expérimental)"
+
+#~ msgid "Configuration package updated to "
+#~ msgstr "Package de configuration mis à jour pour "
+
+#~ msgid ""
+#~ "Improve shell precision by adjusting outer wall spacing. This also "
+#~ "improves layer consistency."
+#~ msgstr ""
+#~ "Améliorer la précision de la coque en ajustant l’espacement des parois "
+#~ "extérieures. Cela améliore également la consistance des couches."
+
+#~ msgid "Enable Flow Compensation"
+#~ msgstr "Activer la compensation de débit"
+
+#~ msgid ""
+#~ "The minimum printing speed for the filament when slow down for better "
+#~ "layer cooling is enabled, when printing overhangs and when feature speeds "
+#~ "are not specified explicitly."
+#~ msgstr ""
+#~ "La vitesse d’impression minimale lors du ralentissement pour un meilleur "
+#~ "refroidissement des couches est activée, lors de l’impression des "
+#~ "surplombs et lorsque les fonctionnalités de vitesses ne sont pas "
+#~ "spécifiées explicitement."
+
+#~ msgid "No sparse layers (EXPERIMENTAL)"
+#~ msgstr "Pas sur toutes les couches (EXPÉRIMENTAL)"
+
+#~ msgid "Layer order"
+#~ msgstr "Ordre des couches"
+
+#~ msgid "End end: "
+#~ msgstr "Temp. de fin: "
 
 #~ msgid ""
 #~ "Improve strength\n"
