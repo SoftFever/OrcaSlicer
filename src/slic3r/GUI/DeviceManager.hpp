@@ -708,6 +708,8 @@ public:
     bool        file_model_download{false};
     bool        virtual_camera{false};
 
+    int nozzle_setting_hold_count = 0;
+
     bool xcam_ai_monitoring{ false };
     int  xcam_ai_monitoring_hold_count = 0;
     std::string xcam_ai_monitoring_sensitivity;

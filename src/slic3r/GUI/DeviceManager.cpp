@@ -1871,6 +1871,7 @@ int MachineObject::command_set_chamber_light(LIGHT_EFFECT effect, int on_time, i
 
 int MachineObject::command_set_printer_nozzle(std::string nozzle_type, float diameter)
 {
+    nozzle_setting_hold_count = HOLD_COUNT_MAX * 2;
     BOOST_LOG_TRIVIAL(info) << "command_set_printer_nozzle, nozzle_type = " << nozzle_type << " diameter = " << diameter;
     json j;
     j["system"]["command"] = "set_accessories";
@@ -3348,11 +3349,19 @@ int MachineObject::parse_json(std::string payload)
 #pragma endregion
                     try {
                         if (jj.contains("nozzle_diameter")) {
-                            if (jj["nozzle_diameter"].is_number_float()) {
-                                nozzle_diameter = jj["nozzle_diameter"].get<float>();
-                            } else if (jj["nozzle_diameter"].is_string()) {
-                                nozzle_diameter = string_to_float(jj["nozzle_diameter"].get<std::string>());
+
+                            if (nozzle_setting_hold_count > 0) {
+                                nozzle_setting_hold_count--;
+                            } else {
+                                if (jj["nozzle_diameter"].is_number_float()) {
+                                    nozzle_diameter = jj["nozzle_diameter"].get<float>();
+                                }
+                                else if (jj["nozzle_diameter"].is_string()) {
+                                    nozzle_diameter = string_to_float(jj["nozzle_diameter"].get<std::string>());
+                                }
                             }
+
+                            
                         }
                     }
                     catch(...) {
@@ -3361,8 +3370,14 @@ int MachineObject::parse_json(std::string payload)
 
                     try {
                         if (jj.contains("nozzle_type")) {
-                            if (jj["nozzle_type"].is_string()) {
-                                nozzle_type = jj["nozzle_type"].get<std::string>();
+
+                            if (nozzle_setting_hold_count > 0) {
+                                nozzle_setting_hold_count--;
+                            }
+                            else {
+                                if (jj["nozzle_type"].is_string()) {
+                                    nozzle_type = jj["nozzle_type"].get<std::string>();
+                                }
                             }
                         }
                     }
