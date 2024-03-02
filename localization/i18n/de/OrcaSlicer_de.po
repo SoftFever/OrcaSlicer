@@ -15035,6 +15035,24 @@ msgstr ""
 "Nachrichtentext: \"%2%\""
 
 #, boost-format
+msgid ""
+"Parsing of host response failed.\n"
+"Message body: \"%1%\"\n"
+"Error: \"%2%\""
+msgstr ""
+"Das Parsen der Host-Antwort ist fehlgeschlagen.\n"
+"Nachrichtentext: \"%1%\"\n"
+"Fehler: \"%2%\""
+
+#, boost-format
+msgid ""
+"Enumeration of host printers failed.\n"
+"Message body: \"%1%\"\n"
+"Error: \"%2%\""
+msgstr ""
+"Die Aufzählung der Drucker des Hosts ist fehlgeschlagen.\n"
+"Nachrichtentext: \"%1%\"\n"
+"Fehler: \"%2%\""
 
 #: resources/data/hints.ini: [hint:Precise wall]
 msgid ""
