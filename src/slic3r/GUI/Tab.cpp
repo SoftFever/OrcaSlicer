@@ -1608,36 +1608,6 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         }
     }
 
-    if (opt_key == "seam_slope_type") {
-        auto bad_seam_position = m_config->opt_enum<SeamPosition>("seam_position") == spRandom ||
-                                 m_config->opt_enum<SeamPosition>("seam_position") == spNearest;
-        auto too_fast_outer_wall = m_config->opt_float("outer_wall_speed") > 50.;
-
-        if (boost::any_cast<int>(value) != (int)SeamScarfType::None && (m_config->opt_enum<WallSequence>("wall_sequence") != WallSequence::OuterInner ||
-                                             m_config->opt_bool("wipe_before_external_loop") || bad_seam_position || too_fast_outer_wall)) {
-            wxString msg_text = _L("When using scarf joint, we recommend the following settings:\n"
-                                   "print outer wall first, disable wipe before external loop, reduce outer wall speed to no greater than "
-                                   "50mm/s, and don't use random or nearest seam position");
-            msg_text += "\n\n" + _L("Change these settings automatically? \n"
-                                    "Yes - Change these settings automatically\n"
-                                    "No  - Do not change these settings for me");
-            MessageDialog      dialog(wxGetApp().plater(), msg_text, "Suggestion", wxICON_WARNING | wxYES | wxNO);
-            DynamicPrintConfig new_conf = *m_config;
-            if (dialog.ShowModal() == wxID_YES) {
-                new_conf.set_key_value("wall_sequence", new ConfigOptionEnum<WallSequence>(WallSequence::OuterInner));
-                new_conf.set_key_value("wipe_before_external_loop", new ConfigOptionBool(false));
-                if (bad_seam_position) {
-                    new_conf.set_key_value("seam_position", new ConfigOptionEnum<SeamPosition>(SeamPosition::spRear));
-                }
-                if (too_fast_outer_wall) {
-                    new_conf.set_key_value("outer_wall_speed", new ConfigOptionFloat(50.));
-                }
-                m_config_manipulation.apply(m_config, &new_conf);
-            }
-            wxGetApp().plater()->update();
-        }
-    }
-
     // BBS
 #if 0
     if (opt_key == "extruders_count")
