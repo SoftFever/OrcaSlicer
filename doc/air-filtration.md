@@ -1,6 +1,6 @@
-OrcaSlicer use `M106 P3` command to control air-filtration/exhuast fan.
+OrcaSlicer use `M106 P3` command to control air-filtration/exhaust fan.
 
-If you are using Klipper, you can define a `M106` macro to control the both normal part cooling fan and auxiliary fan and exhuast fan.  
+If you are using Klipper, you can define a `M106` macro to control the both normal part cooling fan and auxiliary fan and exhaust fan.  
 Below is a reference configuration for Klipper.   
 *Note: Don't forget to change the pin name to the actual pin name you are using in the configuration*
 
