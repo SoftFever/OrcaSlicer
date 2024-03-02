@@ -3456,8 +3456,8 @@ msgid ""
 "No  - Dont use alternate extra wall"
 msgstr ""
 "Modifier ces paramètres automatiquement ? \n"
-"Oui - Désactiver « Assurer l’épaisseur verticale de la coque » et activer "
-"« Paroi supplémentaire alternée »\n"
+"Oui - Désactiver « Assurer l’épaisseur verticale de la coque » et activer « "
+"Paroi supplémentaire alternée »\n"
 "Non - Ne pas utiliser « Paroi supplémentaire alternée »"
 
 msgid ""
@@ -3725,50 +3725,51 @@ msgstr "défaut"
 
 #, boost-format
 msgid "Edit Custom G-code (%1%)"
-msgstr ""
+msgstr "Modifier le G-code personnalisé (%1%)"
 
 msgid "Built-in placeholders (Double click item to add to G-code)"
 msgstr ""
+"Placeholders intégrés (double-cliquez sur l’élément pour l’ajouter au code G)"
 
 msgid "Search gcode placeholders"
-msgstr ""
+msgstr "Rechercher les placeholders de G-code"
 
 msgid "Add selected placeholder to G-code"
-msgstr ""
+msgstr "Ajouter le placeholder sélectionné au G-code"
 
 msgid "Select placeholder"
-msgstr ""
+msgstr "Sélectionner un placeholder"
 
 msgid "[Global] Slicing State"
-msgstr ""
+msgstr "[Global] État de la découpe"
 
 msgid "Read Only"
-msgstr ""
+msgstr "Lecture seule"
 
 msgid "Read Write"
-msgstr ""
+msgstr "Lire et écrire"
 
 msgid "Slicing State"
-msgstr ""
+msgstr "État de la découpe"
 
 msgid "Print Statistics"
-msgstr ""
+msgstr "Statistiques d’impression"
 
 msgid "Objects Info"
-msgstr ""
+msgstr "Informations sur les objets"
 
 msgid "Dimensions"
 msgstr ""
 
 msgid "Temperatures"
-msgstr ""
+msgstr "Températures"
 
 msgid "Timestamps"
-msgstr ""
+msgstr "Horodatages"
 
 #, boost-format
 msgid "Specific for %1%"
-msgstr ""
+msgstr "Spécifique à %1%"
 
 msgid "Presets"
 msgstr "Préréglages"
@@ -3780,7 +3781,7 @@ msgid "Filament settings"
 msgstr "Réglages du filament"
 
 msgid "SLA Materials settings"
-msgstr ""
+msgstr "Paramètres des matériaux SLA"
 
 msgid "Printer settings"
 msgstr "Paramètres de l'imprimante"
@@ -12277,8 +12278,8 @@ msgid ""
 "Use \"Even-odd\" for 3DLabPrint airplane models. Use \"Close holes\" to "
 "close all holes in the model."
 msgstr ""
-"Utilisez « Pair-impair » pour les modèles d'avion 3DLabPrint. Utilisez "
-"« Fermer les trous » pour fermer tous les trous du modèle."
+"Utilisez « Pair-impair » pour les modèles d'avion 3DLabPrint. Utilisez « "
+"Fermer les trous » pour fermer tous les trous du modèle."
 
 msgid "Regular"
 msgstr "Standard"
@@ -13043,8 +13044,8 @@ msgid ""
 "Wipe tower is only compatible with relative mode. It is recommended on most "
 "printers. Default is checked"
 msgstr ""
-"L’extrusion relative est recommandée lors de l’utilisation de l’option "
-"« label_objects ». Certains extrudeurs fonctionnent mieux avec cette option "
+"L’extrusion relative est recommandée lors de l’utilisation de l’option « "
+"label_objects ». Certains extrudeurs fonctionnent mieux avec cette option "
 "non verrouillée (mode d’extrusion absolu). La tour d’essuyage n’est "
 "compatible qu’avec le mode relatif. Il est recommandé sur la plupart des "
 "imprimantes. L’option par défaut est cochée"
