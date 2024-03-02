@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OrcaSlicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-27 13:20+0800\n"
+"POT-Creation-Date: 2024-03-02 11:40+0800\n"
 "PO-Revision-Date: 2024-01-28 13:16+0300\n"
 "Last-Translator: Olcay ÖREN\n"
 "Language-Team: Türkçe\n"
@@ -675,6 +675,14 @@ msgstr "Metni döndür"
 msgid "Text shape"
 msgstr "Metin şekli"
 
+#. TRN - Title in Undo/Redo stack after rotate with text around emboss axe
+msgid "Text rotate"
+msgstr ""
+
+#. TRN - Title in Undo/Redo stack after move with text along emboss axe - From surface
+msgid "Text move"
+msgstr ""
+
 msgid "Set Mirror"
 msgstr "Aynayı Ayarla"
 
@@ -692,9 +700,6 @@ msgstr "Kabartma eylemleri"
 
 msgid "Emboss"
 msgstr "Kabartma"
-
-msgid "Text-Rotate"
-msgstr "Metin Döndürme"
 
 msgid "NORMAL"
 msgstr "NORMAL"
@@ -1080,6 +1085,14 @@ msgstr "Sürdür"
 msgid "Collection"
 msgstr "Koleksiyon"
 
+#. TRN - Title in Undo/Redo stack after rotate with SVG around emboss axe
+msgid "SVG rotate"
+msgstr ""
+
+#. TRN - Title in Undo/Redo stack after move with SVG along emboss axe - From surface
+msgid "SVG move"
+msgstr ""
+
 msgid "Enter SVG gizmo"
 msgstr "SVG aletine girin"
 
@@ -1091,10 +1104,6 @@ msgstr "SVG eylemleri"
 
 msgid "SVG"
 msgstr "SVG"
-
-#. TRN This is an item label in the undo-redo stack.
-msgid "SVG-Rotate"
-msgstr "SVG-Döndürme"
 
 #, fuzzy, boost-format
 msgid "Opacity (%1%)"
@@ -1212,9 +1221,6 @@ msgstr "SVG'nin en boy oranını kilitleyin/kilidini açın."
 
 msgid "Reset scale"
 msgstr "Ölçeği sıfırla"
-
-msgid "Resize"
-msgstr "Boyutlandır"
 
 msgid "Distance of the center of the SVG to the model surface."
 msgstr "SVG merkezinin model yüzeyine uzaklığı."
@@ -1716,6 +1722,17 @@ msgstr "Voron Küpü"
 msgid "Stanford Bunny"
 msgstr "Stanford Tavşanı"
 
+msgid "Orca String Hell"
+msgstr ""
+
+msgid ""
+"This model features text embossment on the top surface. For optimal results, "
+"it is advisable to set the 'One Wall Threshold(min_width_top_surface)' to 0 "
+"for the 'Only One Wall on Top Surfaces' to work best.\n"
+"Yes - Change these settings automatically\n"
+"No  - Do not change these settings for me"
+msgstr ""
+
 msgid "Text"
 msgstr "Metin"
 
@@ -2193,9 +2210,6 @@ msgstr "birden fazla hücre kopyalama desteklenmiyor"
 
 msgid "Outside"
 msgstr "Dış"
-
-msgid " "
-msgstr " "
 
 msgid "Layer height"
 msgstr "Katman Yüksekliği"
@@ -4395,6 +4409,12 @@ msgstr "&G-code Penceresini Göster"
 
 msgid "Show g-code window in Previce scene"
 msgstr "Previce sahnesinde G-kodu penceresini göster"
+
+msgid "Show 3D Navigator"
+msgstr ""
+
+msgid "Show 3D navigator in Prepare and Preview scene"
+msgstr ""
 
 msgid "Reset Window Layout"
 msgstr "Pencere Düzenini Sıfırla"
@@ -6929,6 +6949,15 @@ msgstr ""
 "katmanı yüksekliğini devre dışı bırakma"
 
 msgid ""
+"Enabling this option will modify the model's shape. If your print requires "
+"precise dimensions or is part of an assembly, it's important to double-check "
+"whether this change in geometry impacts the functionality of your print."
+msgstr ""
+
+msgid "Are you sure you want to enable this option?"
+msgstr ""
+
+msgid ""
 "Layer height is too small.\n"
 "It will set to min_layer_height\n"
 msgstr ""
@@ -6977,9 +7006,6 @@ msgstr "Duvar Türü"
 
 msgid "Walls and surfaces"
 msgstr "Duvarlar ve Yüzeyler"
-
-msgid "Small Area Infill Flow Compensation (beta)"
-msgstr "Küçük Alan Dolgusu Akış Telafisi (deneysel)"
 
 msgid "Bridging"
 msgstr "Köprüleme"
@@ -7224,6 +7250,9 @@ msgstr "Fan hızlanma süresi"
 
 msgid "Extruder Clearance"
 msgstr "Ekstruder Boşluğu"
+
+msgid "Adaptive bed mesh"
+msgstr ""
 
 msgid "Accessory"
 msgstr "Aksesuar"
@@ -7487,8 +7516,8 @@ msgid ""
 "this dialog."
 msgstr ""
 "Seçilen seçenekleri sol ön ayardan sağa aktarın.\n"
-"Not: Bu iletişim kutusunu kapattıktan sonra ayarlar sekmelerinde değiştirilen "
-"yeni ön ayarlar seçilecektir."
+"Not: Bu iletişim kutusunu kapattıktan sonra ayarlar sekmelerinde "
+"değiştirilen yeni ön ayarlar seçilecektir."
 
 msgid "Transfer values from left to right"
 msgstr "Değerleri soldan sağa aktarın"
@@ -7512,9 +7541,6 @@ msgstr "Kapak"
 #, boost-format
 msgid "The name \"%1%\" already exists."
 msgstr "\"%1%\" adı zaten mevcut."
-
-msgid "Back"
-msgstr "Arka"
 
 msgid "Basic Info"
 msgstr "Temel bilgi"
@@ -8132,8 +8158,11 @@ msgstr ""
 "Yapılandırma güncellemelerinden önce kaydedilmemiş değişiklikleri kontrol "
 "etmeniz gerekir."
 
-msgid "Configuration package updated to "
-msgstr "Yapılandırma paketi şu şekilde güncellendi: "
+msgid "Configuration package: "
+msgstr ""
+
+msgid " updated to "
+msgstr ""
 
 msgid "Open G-code file:"
 msgstr "G kodu dosyasını açın:"
@@ -8538,6 +8567,10 @@ msgstr ""
 msgid "Plate %d: %s does not support filament %s"
 msgstr "Plaka %d: %s, %s filamentini desteklemiyor"
 
+msgid ""
+"Setting the jerk speed too low could lead to artifacts on curved surfaces"
+msgstr ""
+
 msgid "Generating skirt & brim"
 msgstr "Etek ve kenar oluşturma"
 
@@ -8850,7 +8883,8 @@ msgid ""
 "3. Nowhere: Disables gap fill\n"
 msgstr ""
 "Seçilen yüzeyler için boşluk doldurmayı etkinleştirir. Doldurulacak minimum "
-"boşluk uzunluğu aşağıdaki küçük boşlukları filtrele seçeneğinden kontrol edilebilir.\n"
+"boşluk uzunluğu aşağıdaki küçük boşlukları filtrele seçeneğinden kontrol "
+"edilebilir.\n"
 "\n"
 "Seçenekler:\n"
 "1. Her Yerde: Üst, alt ve iç katı yüzeylere boşluk doldurma uygular\n"
@@ -8967,10 +9001,10 @@ msgstr "Hassas duvar"
 
 msgid ""
 "Improve shell precision by adjusting outer wall spacing. This also improves "
-"layer consistency."
+"layer consistency.\n"
+"Note: This setting will only take effect if the wall sequence is configured "
+"to Inner-Outer"
 msgstr ""
-"Dış duvar aralığını ayarlayarak kabuk hassasiyetini artırın. Bu aynı zamanda "
-"katman tutarlılığını da artırır."
 
 msgid "Only one wall on top surfaces"
 msgstr "Üst yüzeylerde yalnızca bir duvar"
@@ -8985,7 +9019,7 @@ msgstr ""
 msgid "One wall threshold"
 msgstr "Tek duvar eşiği"
 
-#, fuzzy, c-format, boost-format
+#, no-c-format, no-boost-format
 msgid ""
 "If a top surface has to be printed and it's partially covered by another "
 "layer, it won't be considered at a top layer where its width is below this "
@@ -9076,13 +9110,30 @@ msgstr ""
 "bakılmaksızın tek katmanlar üzerine değişen yönlerde yazdırılması için Ters "
 "Eşiği 0'a ayarlamanız önerilir."
 
+msgid "Bridge counterbole holes"
+msgstr ""
+
+msgid ""
+"This option creates bridges for counterbore holes, allowing them to be "
+"printed without support. Available modes include:\n"
+"1. None: No bridge is created.\n"
+"2. Partially Bridged: Only a part of the unsupported area will be bridged.\n"
+"3. Sacrificial Layer: A full sacrificial bridge layer is created."
+msgstr ""
+
+msgid "Partially bridged"
+msgstr ""
+
+msgid "Sacrificial layer"
+msgstr ""
+
 msgid "Reverse threshold"
 msgstr "Ters eşik"
 
 msgid "Overhang reversal threshold"
 msgstr "Çıkıntıyı tersine çevirme eşiği"
 
-#, fuzzy, c-format, boost-format
+#, no-c-format, no-boost-format
 msgid ""
 "Number of mm the overhang need to be for the reversal to be considered "
 "useful. Can be a % of the perimeter width.\n"
@@ -9278,13 +9329,13 @@ msgid "Fan speed"
 msgstr "Fan hızı"
 
 msgid ""
-"Speed of exhuast fan during printing.This speed will overwrite the speed in "
+"Speed of exhaust fan during printing.This speed will overwrite the speed in "
 "filament custom gcode"
 msgstr ""
 "Baskı sırasında egzoz fanının hızı. Bu hız, filament özel gcode'undaki hızın "
 "üzerine yazılacaktır"
 
-msgid "Speed of exhuast fan after printing completes"
+msgid "Speed of exhaust fan after printing completes"
 msgstr "Baskı tamamlandıktan sonra egzoz fanının hızı"
 
 msgid "No cooling for the first"
@@ -9617,6 +9668,26 @@ msgstr ""
 "yüzey kalitesine neden olacaktır. Ayrıca dolgunun parçanın dış yüzeylerinden "
 "parlamasına da neden olabilir."
 
+msgid "Wall loop direction"
+msgstr ""
+
+msgid ""
+"The direction which the wall loops are extruded when looking down from the "
+"top.\n"
+"\n"
+"By default all walls are extruded in counter-clockwise, unless Reverse on "
+"odd is enabled. Set this to any option other than Auto will force the wall "
+"direction regardless of the Reverse on odd.\n"
+"\n"
+"This option will be disabled if sprial vase mode is enabled."
+msgstr ""
+
+msgid "Counter clockwise"
+msgstr ""
+
+msgid "Clockwise"
+msgstr ""
+
 msgid "Height to rod"
 msgstr "Çubuğa kadar olan yükseklik"
 
@@ -9643,6 +9714,50 @@ msgid ""
 msgstr ""
 "Ekstruder etrafındaki boşluk yarıçapı. Nesneye göre yazdırmada çarpışmayı "
 "önlemek için kullanılır."
+
+msgid "Bed mesh min"
+msgstr ""
+
+msgid ""
+"This option sets the min point for the allowed bed mesh area. Due to the "
+"probe's XY offset, most printers are unable to probe the entire bed. To "
+"ensure the probe point does not go outside the bed area, the minimum and "
+"maximum points of the bed mesh should be set appropriately. OrcaSlicer "
+"ensures that adaptive_bed_mesh_min/adaptive_bed_mesh_max values do not "
+"exceed these min/max points. This information can usually be obtained from "
+"your printer manufacturer. The default setting is (-99999, -99999), which "
+"means there are no limits, thus allowing probing across the entire bed."
+msgstr ""
+
+msgid "Bed mesh max"
+msgstr ""
+
+msgid ""
+"This option sets the max point for the allowed bed mesh area. Due to the "
+"probe's XY offset, most printers are unable to probe the entire bed. To "
+"ensure the probe point does not go outside the bed area, the minimum and "
+"maximum points of the bed mesh should be set appropriately. OrcaSlicer "
+"ensures that adaptive_bed_mesh_min/adaptive_bed_mesh_max values do not "
+"exceed these min/max points. This information can usually be obtained from "
+"your printer manufacturer. The default setting is (99999, 99999), which "
+"means there are no limits, thus allowing probing across the entire bed."
+msgstr ""
+
+msgid "Probe point distance"
+msgstr ""
+
+msgid ""
+"This option sets the preferred distance between probe points (grid size) for "
+"the X and Y directions, with the default being 50mm for both X and Y."
+msgstr ""
+
+msgid "Mesh margin"
+msgstr ""
+
+msgid ""
+"This option determines the additional distance by which the adaptive bed "
+"mesh area should be expanded in the XY directions."
+msgstr ""
 
 msgid "Extruder Color"
 msgstr "Ekstruder Rengi"
@@ -9772,10 +9887,10 @@ msgstr ""
 msgid "Shrinkage"
 msgstr "Büzüşme"
 
-#, fuzzy, c-format, boost-format
+#, no-c-format, no-boost-format
 msgid ""
-"Enter the shrinkage percentage that the filament will get after cooling "
-"(94% if you measure 94mm instead of 100mm). The part will be scaled in xy to "
+"Enter the shrinkage percentage that the filament will get after cooling (94% "
+"if you measure 94mm instead of 100mm). The part will be scaled in xy to "
 "compensate. Only the filament used for the perimeter is taken into account.\n"
 "Be sure to allow enough space between objects, as this compensation is done "
 "after the checks."
@@ -9995,7 +10110,7 @@ msgstr ""
 msgid "Sparse infill density"
 msgstr "Dolgu yoğunluğu"
 
-#, fuzzy, c-format, boost-format
+#, no-c-format, no-boost-format
 msgid ""
 "Density of internal sparse infill, 100% turns all sparse infill into solid "
 "infill and internal solid infill pattern will be used"
@@ -10693,8 +10808,8 @@ msgstr ""
 msgid "This G-code will be used as a custom code"
 msgstr "Bu G kodu özel kod olarak kullanılacak"
 
-msgid "Enable Flow Compensation"
-msgstr "Akış telafisi'ni etkinleştir"
+msgid "Small area flow compensation (beta)"
+msgstr ""
 
 msgid "Enable flow compensation for small infill areas"
 msgstr "Küçük dolgu alanları için akış telafisini etkinleştirin"
@@ -10708,10 +10823,10 @@ msgid ""
 "and flow correction factors, one per line, in the following format: "
 "\"1.234,5.678\""
 msgstr ""
-"Akış Telafisi Modeli, küçük dolgu alanları için akışı ayarlamak için kullanılır. Model, "
-"ekstrüzyon uzunluğu ve akış düzeltme faktörleri için virgülle ayrılmış değer çifti "
-"olarak, her satıra bir tane olmak üzere aşağıdaki formatta ifade edilir: "
-"\"1.234,5.678\""
+"Akış Telafisi Modeli, küçük dolgu alanları için akışı ayarlamak için "
+"kullanılır. Model, ekstrüzyon uzunluğu ve akış düzeltme faktörleri için "
+"virgülle ayrılmış değer çifti olarak, her satıra bir tane olmak üzere "
+"aşağıdaki formatta ifade edilir: \"1.234,5.678\""
 
 msgid "Maximum speed X"
 msgstr "Maksimum hız X"
@@ -10948,13 +11063,10 @@ msgid "Min print speed"
 msgstr "Minimum baskı hızı"
 
 msgid ""
-"The minimum printing speed for the filament when slow down for better layer "
-"cooling is enabled, when printing overhangs and when feature speeds are not "
-"specified explicitly."
+"The minimum printing speed that the printer will slow down to to attempt to "
+"maintain the minimum layer time above, when slow down for better layer "
+"cooling is enabled."
 msgstr ""
-"Daha iyi katman soğutması için yavaşlama etkinleştirildiğinde, yazdırma "
-"çıkıntıları olduğunda ve özellik hızları açıkça belirtilmediğinde filament "
-"için minimum yazdırma hızı."
 
 msgid "Nozzle diameter"
 msgstr "Nozul çapı"
@@ -11388,6 +11500,9 @@ msgstr "En yakın"
 msgid "Aligned"
 msgstr "Hizalı"
 
+msgid "Back"
+msgstr "Arka"
+
 msgid "Random"
 msgstr "Rastgele"
 
@@ -11627,8 +11742,8 @@ msgstr "Kalan filamenti Prime Tower'da boşalt"
 msgid "Enable filament ramming"
 msgstr "Filament sıkıştırmayı etkinleştir"
 
-msgid "No sparse layers (EXPERIMENTAL)"
-msgstr "Seyrek katman yok (DENEYSEL)"
+msgid "No sparse layers (beta)"
+msgstr ""
 
 msgid ""
 "If enabled, the wipe tower will not be printed on layers with no "
@@ -12369,7 +12484,7 @@ msgstr ""
 msgid "Polyhole detection margin"
 msgstr "Çokgen delik tespiti marjı"
 
-#, fuzzy, c-format, boost-format
+#, no-c-format, no-boost-format
 msgid ""
 "Maximum defection of a point to the estimated radius of the circle.\n"
 "As cylinders are often exported as triangles of varying size, points may not "
@@ -12663,15 +12778,16 @@ msgid ""
 "G-code moves the extruder axis, it should write to this variable so "
 "PrusaSlicer deretracts correctly when it gets control back."
 msgstr ""
-"Özel G kodu bloğunun başlangıcındaki geri çekilme durumu. Özel G kodu ekstruder "
-"eksenini hareket ettirirse, Slicer'ın kontrolü geri aldığında doğru şekilde "
-"geri çekme yapması için bu değişkene yazması gerekir."
+"Özel G kodu bloğunun başlangıcındaki geri çekilme durumu. Özel G kodu "
+"ekstruder eksenini hareket ettirirse, Slicer'ın kontrolü geri aldığında "
+"doğru şekilde geri çekme yapması için bu değişkene yazması gerekir."
 
 msgid "Extra deretraction"
 msgstr "Ekstra deretraksiyon"
 
 msgid "Currently planned extra extruder priming after deretraction."
-msgstr "Şu anda, geri çekilmeden sonra ekstra ekstruder hazırlaması planlanıyor."
+msgstr ""
+"Şu anda, geri çekilmeden sonra ekstra ekstruder hazırlaması planlanıyor."
 
 msgid "Current extruder"
 msgstr "Mevcut ekstruder"
@@ -12701,8 +12817,8 @@ msgid ""
 "Zero-based index of the first extruder used in the print. Same as "
 "initial_tool."
 msgstr ""
-"Baskıda kullanılan ilk ekstruderin sıfır bazlı indeksi. "
-"başlangıç_aracı ile aynı."
+"Baskıda kullanılan ilk ekstruderin sıfır bazlı indeksi. başlangıç_aracı ile "
+"aynı."
 
 msgid "Initial tool"
 msgstr "Başlangıç ​​aracı"
@@ -12711,20 +12827,24 @@ msgid ""
 "Zero-based index of the first extruder used in the print. Same as "
 "initial_extruder."
 msgstr ""
-"Baskıda kullanılan ilk ekstruderin sıfır bazlı indeksi. "
-"İlk ekstruder ile aynı."
+"Baskıda kullanılan ilk ekstruderin sıfır bazlı indeksi. İlk ekstruder ile "
+"aynı."
 
 msgid "Is extruder used?"
 msgstr "Ekstruder kullanılıyor mu?"
 
 msgid "Vector of bools stating whether a given extruder is used in the print."
-msgstr "Belirli bir ekstruderin baskıda kullanılıp kullanılmadığını belirten bool vektörü."
+msgstr ""
+"Belirli bir ekstruderin baskıda kullanılıp kullanılmadığını belirten bool "
+"vektörü."
 
 msgid "Volume per extruder"
 msgstr "Ekstruder başına hacim"
 
 msgid "Total filament volume extruded per extruder during the entire print."
-msgstr "Baskının tamamı boyunca ekstruder başına ekstrüzyona tabi tutulan toplam filament hacmi."
+msgstr ""
+"Baskının tamamı boyunca ekstruder başına ekstrüzyona tabi tutulan toplam "
+"filament hacmi."
 
 msgid "Total toolchanges"
 msgstr "Toplam takım değişiklikleri"
@@ -12774,7 +12894,9 @@ msgid "Number of instances"
 msgstr "Örnek sayısı"
 
 msgid "Total number of object instances in the print, summed over all objects."
-msgstr "Tüm nesneler üzerinden toplanan, yazdırmadaki nesne örneklerinin toplam sayısı."
+msgstr ""
+"Tüm nesneler üzerinden toplanan, yazdırmadaki nesne örneklerinin toplam "
+"sayısı."
 
 msgid "Scale per object"
 msgstr "Nesne başına ölçeklendirme"
@@ -12785,8 +12907,9 @@ msgid ""
 "index 0).\n"
 "Example: 'x:100% y:50% z:100'."
 msgstr ""
-"Bireysel nesnelere hangi ölçeklendirmenin uygulandığına ilişkin bilgileri içeren bir dize "
-"içerir. Nesnelerin indekslenmesi sıfır tabanlıdır (ilk nesnenin indeksi 0'dır).\n"
+"Bireysel nesnelere hangi ölçeklendirmenin uygulandığına ilişkin bilgileri "
+"içeren bir dize içerir. Nesnelerin indekslenmesi sıfır tabanlıdır (ilk "
+"nesnenin indeksi 0'dır).\n"
 "Örnek: 'x:100% y:50% z:100'."
 
 msgid "Input filename without extension"
@@ -12798,14 +12921,15 @@ msgstr "İlk nesnenin kaynak dosya adı, uzantısız."
 msgid ""
 "The vector has two elements: x and y coordinate of the point. Values in mm."
 msgstr ""
-"Vektörün iki öğesi vardır: noktanın x ve y koordinatı. Değerler mm cinsindendir."
+"Vektörün iki öğesi vardır: noktanın x ve y koordinatı. Değerler mm "
+"cinsindendir."
 
 msgid ""
 "The vector has two elements: x and y dimension of the bounding box. Values "
 "in mm."
 msgstr ""
-"Vektörün iki öğesi vardır: sınırlayıcı kutunun x ve y boyutu. "
-"Değerler mm cinsindendir."
+"Vektörün iki öğesi vardır: sınırlayıcı kutunun x ve y boyutu. Değerler mm "
+"cinsindendir."
 
 msgid "First layer convex hull"
 msgstr "İlk katman dışbükey gövde"
@@ -12814,8 +12938,8 @@ msgid ""
 "Vector of points of the first layer convex hull. Each element has the "
 "following format:'[x, y]' (x and y are floating-point numbers in mm)."
 msgstr ""
-"Birinci katmanın dışbükey gövdesinin noktalarının vektörü. Her öğe şu formata "
-"sahiptir:'[x, y]' (x ve y, mm cinsinden kayan noktalı sayılardır)."
+"Birinci katmanın dışbükey gövdesinin noktalarının vektörü. Her öğe şu "
+"formata sahiptir:'[x, y]' (x ve y, mm cinsinden kayan noktalı sayılardır)."
 
 msgid "Bottom-left corner of first layer bounding box"
 msgstr "İlk katman sınırlayıcı kutusunun sol alt köşesi"
@@ -12891,8 +13015,8 @@ msgid ""
 "Height of the current layer above the print bed, measured to the top of the "
 "layer."
 msgstr ""
-"Geçerli katmanın baskı yatağı üzerindeki yüksekliği, katmanın tepesine "
-"kadar ölçülür."
+"Geçerli katmanın baskı yatağı üzerindeki yüksekliği, katmanın tepesine kadar "
+"ölçülür."
 
 msgid "Maximal layer z"
 msgstr "Maksimum katman z"
@@ -13974,8 +14098,8 @@ msgid ""
 "\". \n"
 "To add preset for more printers, Please go to printer selection"
 msgstr ""
-"Ön ayarları şu şekilde yeniden adlandırırdık: \"Satıcı Türü Seçtiğiniz Seri @printer"
-"\". \n"
+"Ön ayarları şu şekilde yeniden adlandırırdık: \"Satıcı Türü Seçtiğiniz Seri "
+"@printer\". \n"
 "Daha fazla yazıcıya yönelik ön ayar eklemek için lütfen yazıcı seçimine gidin"
 
 msgid "Create Printer/Nozzle"
@@ -14607,8 +14731,8 @@ msgstr ""
 
 #: resources/data/hints.ini: [hint:Air filtration]
 msgid ""
-"Air filtration/Exhuast Fan\n"
-"Did you know that OrcaSlicer can support Air filtration/Exhuast Fan?"
+"Air filtration/Exhaust Fan\n"
+"Did you know that OrcaSlicer can support Air filtration/Exhaust Fan?"
 msgstr ""
 "Hava filtreleme/Egzoz Fanı\n"
 "OrcaSlicer'ın Hava filtreleme/Egzoz Fanını destekleyebileceğini biliyor "
@@ -14944,6 +15068,46 @@ msgstr ""
 "ABS gibi bükülmeye yatkın malzemelere baskı yaparken, ısıtma yatağı "
 "sıcaklığının uygun şekilde arttırılmasının bükülme olasılığını "
 "azaltabileceğini biliyor muydunuz?"
+
+#~ msgid " "
+#~ msgstr " "
+
+#~ msgid "Text-Rotate"
+#~ msgstr "Metin Döndürme"
+
+#~ msgid "SVG-Rotate"
+#~ msgstr "SVG-Döndürme"
+
+#~ msgid "Resize"
+#~ msgstr "Boyutlandır"
+
+#~ msgid "Small Area Infill Flow Compensation (beta)"
+#~ msgstr "Küçük Alan Dolgusu Akış Telafisi (deneysel)"
+
+#~ msgid "Configuration package updated to "
+#~ msgstr "Yapılandırma paketi şu şekilde güncellendi: "
+
+#~ msgid ""
+#~ "Improve shell precision by adjusting outer wall spacing. This also "
+#~ "improves layer consistency."
+#~ msgstr ""
+#~ "Dış duvar aralığını ayarlayarak kabuk hassasiyetini artırın. Bu aynı "
+#~ "zamanda katman tutarlılığını da artırır."
+
+#~ msgid "Enable Flow Compensation"
+#~ msgstr "Akış telafisi'ni etkinleştir"
+
+#~ msgid ""
+#~ "The minimum printing speed for the filament when slow down for better "
+#~ "layer cooling is enabled, when printing overhangs and when feature speeds "
+#~ "are not specified explicitly."
+#~ msgstr ""
+#~ "Daha iyi katman soğutması için yavaşlama etkinleştirildiğinde, yazdırma "
+#~ "çıkıntıları olduğunda ve özellik hızları açıkça belirtilmediğinde "
+#~ "filament için minimum yazdırma hızı."
+
+#~ msgid "No sparse layers (EXPERIMENTAL)"
+#~ msgstr "Seyrek katman yok (DENEYSEL)"
 
 #~ msgid ""
 #~ "We would rename the presets as \"Vendor Type Serial @printer you selected"
