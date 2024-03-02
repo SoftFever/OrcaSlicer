@@ -677,11 +677,11 @@ msgstr "Text zufügen"
 
 #. TRN - Title in Undo/Redo stack after rotate with text around emboss axe
 msgid "Text rotate"
-msgstr ""
+msgstr "Text drehen"
 
 #. TRN - Title in Undo/Redo stack after move with text along emboss axe - From surface
 msgid "Text move"
-msgstr ""
+msgstr "Text verschieben"   
 
 msgid "Set Mirror"
 msgstr "Spiegel setzen"
@@ -1088,7 +1088,7 @@ msgstr "Sammlung"
 
 #. TRN - Title in Undo/Redo stack after rotate with SVG around emboss axe
 msgid "SVG rotate"
-msgstr ""
+msgstr "SVG drehen"
 
 #. TRN - Title in Undo/Redo stack after move with SVG along emboss axe - From surface
 msgid "SVG move"
@@ -14936,24 +14936,6 @@ msgstr ""
 "Nachrichtentext: \"%2%\""
 
 #, boost-format
-msgid ""
-"Parsing of host response failed.\n"
-"Message body: \"%1%\"\n"
-"Error: \"%2%\""
-msgstr ""
-"Das Parsen der Host-Antwort ist fehlgeschlagen.\n"
-"Nachrichtentext: \"%1%\"\n"
-"Fehler: \"%2%\""
-
-#, boost-format
-msgid ""
-"Enumeration of host printers failed.\n"
-"Message body: \"%1%\"\n"
-"Error: \"%2%\""
-msgstr ""
-"Die Aufzählung der Drucker des Hosts ist fehlgeschlagen.\n"
-"Nachrichtentext: \"%1%\"\n"
-"Fehler: \"%2%\""
 
 #: resources/data/hints.ini: [hint:Precise wall]
 msgid ""
