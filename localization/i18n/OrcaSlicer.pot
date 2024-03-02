@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-02 11:40+0800\n"
+"POT-Creation-Date: 2024-03-02 19:55+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1449,6 +1449,9 @@ msgstr ""
 msgid "Choose one or more files (3mf/step/stl/svg/obj/amf):"
 msgstr ""
 
+msgid "Choose ZIP file"
+msgstr ""
+
 msgid "Choose one file (gcode/3mf):"
 msgstr ""
 
@@ -1510,6 +1513,11 @@ msgid "Ongoing uploads"
 msgstr ""
 
 msgid "Select a G-code file:"
+msgstr ""
+
+msgid ""
+"Could not start URL download. Destination folder is not set. Please choose "
+"destination folder in Configuration Wizard."
 msgstr ""
 
 msgid "Import File"
@@ -3408,6 +3416,68 @@ msgstr ""
 msgid "default"
 msgstr ""
 
+#, possible-boost-format
+msgid "Edit Custom G-code (%1%)"
+msgstr ""
+
+msgid "Built-in placeholders (Double click item to add to G-code)"
+msgstr ""
+
+msgid "Search gcode placeholders"
+msgstr ""
+
+msgid "Add selected placeholder to G-code"
+msgstr ""
+
+msgid "Select placeholder"
+msgstr ""
+
+msgid "[Global] Slicing State"
+msgstr ""
+
+msgid "Read Only"
+msgstr ""
+
+msgid "Read Write"
+msgstr ""
+
+msgid "Slicing State"
+msgstr ""
+
+msgid "Print Statistics"
+msgstr ""
+
+msgid "Objects Info"
+msgstr ""
+
+msgid "Dimensions"
+msgstr ""
+
+msgid "Temperatures"
+msgstr ""
+
+msgid "Timestamps"
+msgstr ""
+
+#, possible-boost-format
+msgid "Specific for %1%"
+msgstr ""
+
+msgid "Presets"
+msgstr ""
+
+msgid "Print settings"
+msgstr ""
+
+msgid "Filament settings"
+msgstr ""
+
+msgid "SLA Materials settings"
+msgstr ""
+
+msgid "Printer settings"
+msgstr ""
+
 msgid "parameter name"
 msgstr ""
 
@@ -3596,9 +3666,6 @@ msgid "Print"
 msgstr ""
 
 msgid "Printer"
-msgstr ""
-
-msgid "Print settings"
 msgstr ""
 
 msgid "Custom g-code"
@@ -4048,6 +4115,12 @@ msgid "Import 3MF/STL/STEP/SVG/OBJ/AMF"
 msgstr ""
 
 msgid "Load a model"
+msgstr ""
+
+msgid "Import Zip Archive"
+msgstr ""
+
+msgid "Load models contained within a zip archive"
 msgstr ""
 
 msgid "Import Configs"
@@ -4933,10 +5006,10 @@ msgstr[1] ""
 msgid "ERROR"
 msgstr ""
 
-msgid "CANCELED"
+msgid "COMPLETED"
 msgstr ""
 
-msgid "COMPLETED"
+msgid "CANCELED"
 msgstr ""
 
 msgid "Cancel upload"
@@ -5057,12 +5130,6 @@ msgid "Compare presets"
 msgstr ""
 
 msgid "View all object's settings"
-msgstr ""
-
-msgid "Filament settings"
-msgstr ""
-
-msgid "Printer settings"
 msgstr ""
 
 msgid "Remove current plate (if not last one)"
@@ -5471,6 +5538,20 @@ msgstr ""
 msgid "Error occurs while loading G-code file"
 msgstr ""
 
+#. TRN %1% is archive path
+#, possible-boost-format
+msgid "Loading of a ZIP archive on path %1% has failed."
+msgstr ""
+
+#. TRN: First argument = path to file, second argument = error description
+#, possible-boost-format
+msgid "Failed to unzip file to %1%: %2%"
+msgstr ""
+
+#, possible-boost-format
+msgid "Failed to find unzipped file at %1%. Unzipping of file has failed."
+msgstr ""
+
 msgid "Drop project file"
 msgstr ""
 
@@ -5735,9 +5816,6 @@ msgstr ""
 msgid "If enabled, auto-calculate everytime the color changed."
 msgstr ""
 
-msgid "Presets"
-msgstr ""
-
 msgid "Auto sync user presets(Printer/Filament/Process)"
 msgstr ""
 
@@ -5800,6 +5878,9 @@ msgid "The peroid of backup in seconds."
 msgstr ""
 
 msgid "Downloads"
+msgstr ""
+
+msgid "Allow downloads from Printables.com"
 msgstr ""
 
 msgid "Dark Mode"
@@ -6516,6 +6597,13 @@ msgid "Adjust"
 msgstr ""
 
 msgid "Ignore"
+msgstr ""
+
+msgid ""
+"When using scarf joint, we recommend the following settings:\n"
+"print outer wall first, disable wipe before external loop, reduce outer wall "
+"speed to no greater than 50mm/s, and don't use random or nearest seam "
+"position"
 msgstr ""
 
 msgid ""
@@ -10349,6 +10437,47 @@ msgid ""
 "current extruder diameter. The default value for this parameter is 10%."
 msgstr ""
 
+msgid "Scarf joint seam (beta)"
+msgstr ""
+
+msgid "Use scarf joint to minimize seam visibility and increase seam strength."
+msgstr ""
+
+msgid "Scarf start height"
+msgstr ""
+
+msgid ""
+"Start height of the scarf.\n"
+"This amount can be specified in millimeters or as a percentage of the "
+"current layer height. The default value for this parameter is 0."
+msgstr ""
+
+msgid "Scarf around entire wall"
+msgstr ""
+
+msgid "The scarf extends to the entire length of the wall."
+msgstr ""
+
+msgid "Scarf length"
+msgstr ""
+
+msgid ""
+"Length of the scarf. Setting this parameter to zero effectively disables the "
+"scarf."
+msgstr ""
+
+msgid "Scarf steps"
+msgstr ""
+
+msgid "Minimum number of segments of each scarf."
+msgstr ""
+
+msgid "Scarf joint for inner walls"
+msgstr ""
+
+msgid "Use scarf joint for inner walls as well."
+msgstr ""
+
 msgid "Role base wipe speed"
 msgstr ""
 
@@ -13030,7 +13159,7 @@ msgid "Auxiliary fan\nDid you know that OrcaSlicer supports Auxiliary part cooli
 msgstr ""
 
 #: resources/data/hints.ini: [hint:Air filtration]
-msgid "Air filtration/Exhaust Fan\nDid you know that OrcaSlicer can support Air filtration/Exhaust Fan?"
+msgid "Air filtration/Exhuast Fan\nDid you know that OrcaSlicer can support Air filtration/Exhuast Fan?"
 msgstr ""
 
 #: resources/data/hints.ini: [hint:G-code window]
