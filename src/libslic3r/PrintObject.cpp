@@ -1142,6 +1142,12 @@ bool PrintObject::invalidate_state_by_config_options(
             steps.emplace_back(posSlice);
         } else if (
                opt_key == "seam_position"
+            || opt_key == "seam_slope_type"
+            || opt_key == "seam_slope_start_height"
+            || opt_key == "seam_slope_entire_loop"
+            || opt_key == "seam_slope_min_length"
+            || opt_key == "seam_slope_steps"
+            || opt_key == "seam_slope_inner_walls"
             || opt_key == "support_speed"
             || opt_key == "support_interface_speed"
             || opt_key == "overhang_1_4_speed"
