@@ -9121,13 +9121,13 @@ msgid "Fan speed"
 msgstr "팬 속도"
 
 msgid ""
-"Speed of exhuast fan during printing.This speed will overwrite the speed in "
+"Speed of exhaust fan during printing.This speed will overwrite the speed in "
 "filament custom gcode"
 msgstr ""
 "출력 중 배기 팬 속도. 이 속도는 필라멘트 사용자 정의 G코드의 속도를 덮어씁니"
 "다"
 
-msgid "Speed of exhuast fan after printing completes"
+msgid "Speed of exhaust fan after printing completes"
 msgstr "출력 완료 후 배기 팬 속도"
 
 msgid "No cooling for the first"
@@ -14262,8 +14262,8 @@ msgstr ""
 
 #: resources/data/hints.ini: [hint:Air filtration]
 msgid ""
-"Air filtration/Exhuast Fan\n"
-"Did you know that OrcaSlicer can support Air filtration/Exhuast Fan?"
+"Air filtration/Exhaust Fan\n"
+"Did you know that OrcaSlicer can support Air filtration/Exhaust Fan?"
 msgstr ""
 "공기 여과/배기 팬\n"
 "오르카 슬라이서가 공기 여과/배기 팬을 지원할 수 있다는 사실을 알고 계셨나요?"
