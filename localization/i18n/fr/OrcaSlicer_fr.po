@@ -11982,7 +11982,7 @@ msgstr "Éviter la déformation\n"
 #~ msgstr "Redimensionner"
 
 #~ msgid "Configuration package updated to "
-#~ msgstr "Package de configuration mis à jour pour "
+#~ msgstr "Package de configuration mis à jour en "
 
 #~ msgid ""
 #~ "The minimum printing speed for the filament when slow down for better "
@@ -12311,21 +12311,9 @@ msgstr "Éviter la déformation\n"
 #~ msgid " "
 #~ msgstr " "
 
-#~ msgid "Text-Rotate"
-#~ msgstr "Rotation du texte"
-
-#~ msgid "SVG-Rotate"
-#~ msgstr "Rotation du SVG"
-
-#~ msgid "Resize"
-#~ msgstr "Redimensionner"
-
 #~ msgid "Small Area Infill Flow Compensation (beta)"
 #~ msgstr ""
 #~ "Compensation des débits de remplissage des petites zones (expérimental)"
-
-#~ msgid "Configuration package updated to "
-#~ msgstr "Package de configuration mis à jour pour "
 
 #~ msgid ""
 #~ "Improve shell precision by adjusting outer wall spacing. This also "
@@ -12336,16 +12324,6 @@ msgstr "Éviter la déformation\n"
 
 #~ msgid "Enable Flow Compensation"
 #~ msgstr "Activer la compensation de débit"
-
-#~ msgid ""
-#~ "The minimum printing speed for the filament when slow down for better "
-#~ "layer cooling is enabled, when printing overhangs and when feature speeds "
-#~ "are not specified explicitly."
-#~ msgstr ""
-#~ "La vitesse d’impression minimale lors du ralentissement pour un meilleur "
-#~ "refroidissement des couches est activée, lors de l’impression des "
-#~ "surplombs et lorsque les fonctionnalités de vitesses ne sont pas "
-#~ "spécifiées explicitement."
 
 #~ msgid "No sparse layers (EXPERIMENTAL)"
 #~ msgstr "Pas sur toutes les couches (EXPÉRIMENTAL)"
