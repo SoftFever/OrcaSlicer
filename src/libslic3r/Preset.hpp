@@ -770,6 +770,9 @@ private:
 
     //BBS: mutex
     std::mutex          m_mutex;
+
+    // Orca: used for validation only
+    int m_errors = 0;
 };
 
 // Printer supports the FFF and SLA technologies, with different set of configuration values,

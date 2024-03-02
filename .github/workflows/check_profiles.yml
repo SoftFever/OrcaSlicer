@@ -1,4 +1,4 @@
-name: Check locale
+name: Check profiles
 on: 
     pull_request:
       branches: 
@@ -19,12 +19,21 @@ jobs:
       - name: Download 
         working-directory: ${{ github.workspace }}
         run: |
-          curl -LJO https://github.com/SoftFever/Orca_tools/releases/download/1/OrcaSlicer_profile_validator_ubuntu
-          chmod +x ./OrcaSlicer_profile_validator_ubuntu
+          curl -LJO https://github.com/SoftFever/Orca_tools/releases/download/1/OrcaSlicer_profile_validator
+          chmod +x ./OrcaSlicer_profile_validator
 
       # validate profiles
-      - name: validate profiles
+      - name: validate system profiles
         run: |
-          ./OrcaSlicer_profile_validator_ubuntu -p ${{ github.workspace }}/resources/profiles -l 2
+          ./OrcaSlicer_profile_validator -p ${{ github.workspace }}/resources/profiles -l 2
+
+      - name: validate custom presets
+        working-directory: ${{ github.workspace }}
+        run: |
+          curl -LJO https://github.com/SoftFever/OrcaSlicer/releases/download/nightly-builds/orca_custom_preset_tests.zip
+          unzip ./orca_custom_preset_tests.zip -d ${{ github.workspace }}/resources/profiles
+          ./OrcaSlicer_profile_validator -p ${{ github.workspace }}/resources/profiles -l 2
+
+
 
         
