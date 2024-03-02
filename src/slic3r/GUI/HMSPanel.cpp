@@ -225,9 +225,9 @@ void HMSPanel::update(MachineObject *obj)
             }
         }
         
-        for (auto thms : temp_hms_list) {
-            auto key = thms.second.get_long_error_code();
-            auto inr = false;
+        for (auto it = temp_hms_list.begin(); it != temp_hms_list.end(); ) {
+            auto key = it->second.get_long_error_code();
+            bool inr = false;
             for (auto hms : obj->hms_list) {
                 if (hms.get_long_error_code() == key) {
                     inr = true;
@@ -236,7 +236,10 @@ void HMSPanel::update(MachineObject *obj)
             }
 
             if (!inr) {
-                temp_hms_list.erase(key);
+                it = temp_hms_list.erase(it);
+            }
+            else {
+                ++it;
             }
         }
 

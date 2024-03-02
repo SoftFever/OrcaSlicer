@@ -370,6 +370,8 @@ void MonitorPanel::update_all()
     
     if (!obj) {
         show_status((int)MONITOR_NO_PRINTER);
+        m_hms_panel->clear_hms_tag();
+        m_tabpanel->GetBtnsListCtrl()->showNewTag(3, false);
         return;
     }
 
@@ -395,7 +397,7 @@ void MonitorPanel::update_all()
         m_status_info_panel->update(obj);
     }
 
-    if (m_hms_panel->IsShown() ||  obj->hms_list.size() > 0) {
+    if (m_hms_panel->IsShown() ||  (obj->hms_list.size() != m_hms_panel->temp_hms_list.size())) {
         m_hms_panel->update(obj);
     }
 
