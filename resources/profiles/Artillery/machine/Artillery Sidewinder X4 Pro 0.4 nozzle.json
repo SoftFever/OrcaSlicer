@@ -1,0 +1,118 @@
+{
+    "type": "machine",
+    "setting_id": "GM003",
+    "name": "Artillery Sidewinder X4 Pro 0.4 nozzle",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "fdm_machine_common",
+    "printer_model": "Artillery Sidewinder X4 Pro",
+    "default_print_profile": "0.20mm Standard @Artillery X4 Pro",
+    "nozzle_diameter": [
+        "0.4"
+    ],
+    "bed_exclude_area": [
+      "0x0"
+    ],
+    "printable_area": [
+      "0x0",
+      "240x0",
+      "240x240",
+      "0x240"
+    ],
+    "printable_height": "260",
+	"nozzle_type": "hardened_steel",
+	"auxiliary_fan": "0",
+	"machine_max_acceleration_extruding": [
+		"10000",
+		"1250"
+	],
+	"machine_max_acceleration_retracting": [
+		"10000",
+		"1250"
+	],
+	"machine_max_acceleration_travel": [
+		"1500",
+		"1250"
+	],
+	"machine_max_acceleration_x": [
+		"10000",
+		"1000"
+	],
+	"machine_max_acceleration_y": [
+		"10000",
+		"1000"
+	],
+	"machine_max_acceleration_z": [
+		"200",
+		"200"
+	],
+	"machine_max_speed_e": [
+		"120",
+		"120"
+	],
+	"machine_max_speed_x": [
+		"200",
+		"100"
+	],
+	"machine_max_speed_y": [
+		"200",
+		"100"
+	],
+	"machine_max_speed_z": [
+		"12",
+		"12"
+	],
+	"machine_max_jerk_e": [
+		"2.5",
+		"2.5"
+	],
+	"machine_max_jerk_x": [
+		"10",
+		"10"
+	],
+	"machine_max_jerk_y": [
+		"10",
+		"10"
+	],
+	"machine_max_jerk_z": [
+		"0.2",
+		"0.4"
+	],
+	"max_layer_height": [
+		"0"
+	],
+	"min_layer_height": [
+		"0.07"
+	],
+	"printer_settings_id": "Artillery",
+	"retraction_minimum_travel": [
+		"1"
+	],
+	"retract_before_wipe": [
+		"0%"
+	],
+	"retraction_length": [
+		"0"
+	],
+	"retract_length_toolchange": [
+		"10"
+	],
+	"retraction_speed": [
+        "20"
+    ],
+	"deretraction_speed": [
+		"0"
+	],
+	"single_extruder_multi_material": "0",
+	"change_filament_gcode": "M600",
+	"machine_pause_gcode": "M601",
+	"default_filament_profile": [
+		"Artillery Generic PLA"
+	],
+    "machine_start_gcode": "G28",
+    "machine_end_gcode": "G91 ;Relative positioning\nG1 E-2 F2700 ;Retract a bit\nG1 E-2 Z0.2 F2400 ;Retract and raise Z\nG1 X5 Y5 F3000 ;Wipe out\nG1 Z1 ;Raise Z more\nG90 ;Absolute positionning\nG1 X5 Y220 F3000 ;Wipe out\nM106 S0 ;Turn-off fan\nM104 S0 ;Turn-off hotend\nM140 S0 ;Turn-off bed\nM84 X Y E ;Disable all steppers but Z",
+    "before_layer_change_gcode": ";BEFORE_LAYER_CHANGE\nG92 E0\n;[layer_z]\n\n",
+	"layer_change_gcode": ";AFTER_LAYER_CHANGE\n;[layer_z]",
+    "scan_first_layer": "0"
+  }
+  

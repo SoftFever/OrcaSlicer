@@ -20,6 +20,26 @@
             "name": "Artillery Sidewinder X2",
             "sub_path": "machine/Artillery Sidewinder X2.json"
         },
+        {
+            "name": "Artillery Sidewinder X3 Pro",
+            "sub_path": "machine/Artillery Sidewinder X3 Pro.json"
+        },
+        {
+            "name": "Artillery Sidewinder X3 Plus",
+            "sub_path": "machine/Artillery Sidewinder X3 Plus.json"
+        },
+        {
+            "name": "Artillery Sidewinder X4 Pro",
+            "sub_path": "machine/Artillery Sidewinder X4 Pro.json"
+        },
+        {
+            "name": "Artillery Sidewinder X4 Plus",
+            "sub_path": "machine/Artillery Sidewinder X4 Plus.json"
+        },
+        {
+            "name": "Artillery Sidewinder X4 Max",
+            "sub_path": "machine/Artillery Sidewinder X4 Max.json"
+        },
 		{
             "name": "Artillery Hornet",
             "sub_path": "machine/Artillery Hornet.json"
@@ -47,10 +67,6 @@
             "sub_path": "process/0.16mm Optimal @Artillery Hornet.json"
         },
 		{
-            "name": "0.20mm Standard @Artillery X1",
-            "sub_path": "process/0.20mm Standard @Artillery X1.json"
-        },
-		{
             "name": "0.20mm Standard @Artillery Genius",
             "sub_path": "process/0.20mm Standard @Artillery Genius.json"
         },
@@ -59,12 +75,36 @@
             "sub_path": "process/0.20mm Standard @Artillery Genius Pro.json"
         },
         {
+            "name": "0.20mm Standard @Artillery Hornet",
+            "sub_path": "process/0.20mm Standard @Artillery Hornet.json"
+        },
+        {
+            "name": "0.20mm Standard @Artillery X1",
+            "sub_path": "process/0.20mm Standard @Artillery X1.json"
+        },
+        {
             "name": "0.20mm Standard @Artillery X2",
             "sub_path": "process/0.20mm Standard @Artillery X2.json"
         },
-		{
-            "name": "0.20mm Standard @Artillery Hornet",
-            "sub_path": "process/0.20mm Standard @Artillery Hornet.json"
+        {
+            "name": "0.20mm Standard @Artillery X3 Pro",
+            "sub_path": "process/0.20mm Standard @Artillery X3 Pro.json"
+        },
+        {
+            "name": "0.20mm Standard @Artillery X3 Plus",
+            "sub_path": "process/0.20mm Standard @Artillery X3 Plus.json"
+        },
+        {
+            "name": "0.20mm Standard @Artillery X4 Pro",
+            "sub_path": "process/0.20mm Standard @Artillery X4 Pro.json"
+        },
+        {
+            "name": "0.20mm Standard @Artillery X4 Plus",
+            "sub_path": "process/0.20mm Standard @Artillery X4 Plus.json"
+        },
+        {
+            "name": "0.20mm Standard @Artillery X4 Max",
+            "sub_path": "process/0.20mm Standard @Artillery X4 Max.json"
         },
 		{
             "name": "0.24mm Draft @Artillery X1",
@@ -139,16 +179,8 @@
             "sub_path": "machine/fdm_machine_common.json"
         },
 		{
-            "name": "Artillery Sidewinder X1 0.4 nozzle",
-            "sub_path": "machine/Artillery Sidewinder X1 0.4 nozzle.json"
-        },
-		{
             "name": "Artillery Genius 0.4 nozzle",
             "sub_path": "machine/Artillery Genius 0.4 nozzle.json"
-        },
-        {
-            "name": "Artillery Sidewinder X2 0.4 nozzle",
-            "sub_path": "machine/Artillery Sidewinder X2 0.4 nozzle.json"
         },
 		{
             "name": "Artillery Genius Pro 0.4 nozzle",
@@ -157,6 +189,34 @@
 		{
             "name": "Artillery Hornet 0.4 nozzle",
             "sub_path": "machine/Artillery Hornet 0.4 nozzle.json"
+        },
+        {
+            "name": "Artillery Sidewinder X1 0.4 nozzle",
+            "sub_path": "machine/Artillery Sidewinder X1 0.4 nozzle.json"
+        },
+        {
+            "name": "Artillery Sidewinder X2 0.4 nozzle",
+            "sub_path": "machine/Artillery Sidewinder X2 0.4 nozzle.json"
+        },
+        {
+            "name": "Artillery Sidewinder X3 Pro 0.4 nozzle",
+            "sub_path": "machine/Artillery Sidewinder X3 Pro 0.4 nozzle.json"
+        },
+        {
+            "name": "Artillery Sidewinder X3 Plus 0.4 nozzle",
+            "sub_path": "machine/Artillery Sidewinder X4 Plus 0.4 nozzle.json"
+        },
+        {
+            "name": "Artillery Sidewinder X4 Pro 0.4 nozzle",
+            "sub_path": "machine/Artillery Sidewinder X4 Pro 0.4 nozzle.json"
+        },
+        {
+            "name": "Artillery Sidewinder X4 Pus 0.4 nozzle",
+            "sub_path": "machine/Artillery Sidewinder X4 Plus 0.4 nozzle.json"
+        },
+        {
+            "name": "Artillery Sidewinder X4 Max 0.4 nozzle",
+            "sub_path": "machine/Artillery Sidewinder X4 Max 0.4 nozzle.json"
         }
     ]
 }
