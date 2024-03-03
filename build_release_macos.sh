@@ -24,7 +24,7 @@ while getopts ":dpa:snt:xbc:h" opt; do
         export OSX_DEPLOYMENT_TARGET="$OPTARG"
         ;;
     x )
-        export CMAKE_GENERATOR="Xcode"
+        export CMAKE_GENERATOR="Ninja"
         ;;
     b )
         export BUILD_ONLY="1"
@@ -38,9 +38,9 @@ while getopts ":dpa:snt:xbc:h" opt; do
         echo "   -s: Build slicer only"
         echo "   -n: Nightly build"
         echo "   -t: Specify minimum version of the target platform, default is 11.3"
-        echo "   -x: Use Xcode generator instead of Ninja"
+        echo "   -x: Use Ninja CMake generator, default is Xcode"
         echo "   -b: Build without reconfiguring CMake"
-        echo "   -c: Set CMake build configuration"
+        echo "   -c: Set CMake build configuration, default is Release"
         exit 0
         ;;
     * )
@@ -64,7 +64,11 @@ if [ -z "$BUILD_TARGET" ]; then
 fi
 
 if [ -z "$CMAKE_GENERATOR" ]; then
-  export CMAKE_GENERATOR="Ninja"
+  export CMAKE_GENERATOR="Xcode"
+fi
+
+if [ -z "$OSX_DEPLOYMENT_TARGET" ]; then
+  export OSX_DEPLOYMENT_TARGET="11.3"
 fi
 
 echo "Build params:"
