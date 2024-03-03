@@ -756,6 +756,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     
     toggle_field("seam_slope_type", !has_spiral_vase);
     bool has_seam_slope = !has_spiral_vase && config->opt_enum<SeamScarfType>("seam_slope_type") != SeamScarfType::None;
+    toggle_line("seam_slope_conditional", has_seam_slope);
     toggle_line("seam_slope_start_height", has_seam_slope);
     toggle_line("seam_slope_entire_loop", has_seam_slope);
     toggle_line("seam_slope_min_length", has_seam_slope);

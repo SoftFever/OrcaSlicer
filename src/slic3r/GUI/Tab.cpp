@@ -1977,6 +1977,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("staggered_inner_seams", "seam");
         optgroup->append_single_option_line("seam_gap","seam");
         optgroup->append_single_option_line("seam_slope_type");
+        optgroup->append_single_option_line("seam_slope_conditional");
         optgroup->append_single_option_line("seam_slope_start_height");
         optgroup->append_single_option_line("seam_slope_entire_loop");
         optgroup->append_single_option_line("seam_slope_min_length");

@@ -3547,6 +3547,12 @@ def = this->add("filament_loading_speed", coFloats);
     def->enum_labels.push_back(L("Contour and hole"));
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<SeamScarfType>(SeamScarfType::None));
+
+    def = this->add("seam_slope_conditional", coBool);
+    def->label = L("Conditional scarf joint");
+    def->tooltip = L("Apply scarf joints only to smooth perimeters where traditional seams do not conceal the seams at sharp corners effectively.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(true));
     
     def = this->add("seam_slope_start_height", coFloatOrPercent);
     def->label = L("Scarf start height");

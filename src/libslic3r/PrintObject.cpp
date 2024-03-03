@@ -1143,6 +1143,7 @@ bool PrintObject::invalidate_state_by_config_options(
         } else if (
                opt_key == "seam_position"
             || opt_key == "seam_slope_type"
+            || opt_key == "seam_slope_conditional"
             || opt_key == "seam_slope_start_height"
             || opt_key == "seam_slope_entire_loop"
             || opt_key == "seam_slope_min_length"
