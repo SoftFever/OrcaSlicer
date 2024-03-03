@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OrcaSlicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-02 11:40+0800\n"
-"PO-Revision-Date: 2024-03-02 21:46+0300\n"
+"POT-Creation-Date: 2024-03-03 09:32+0800\n"
+"PO-Revision-Date: 2024-03-03 12:24+0300\n"
 "Last-Translator: Olcay ÖREN\n"
 "Language-Team: Türkçe\n"
 "Language: tr_TR\n"
@@ -11581,6 +11581,47 @@ msgstr ""
 "kesintiye uğrar ve belirli bir miktarda kısaltılır.\n"
 "Bu miktar milimetre cinsinden veya mevcut ekstruder çapının yüzdesi olarak "
 "belirtilebilir. Bu parametrenin varsayılan değeri %10'dur."
+
+msgid "Scarf joint seam (beta)"
+msgstr ""
+
+msgid "Use scarf joint to minimize seam visibility and increase seam strength."
+msgstr ""
+
+msgid "Scarf start height"
+msgstr ""
+
+msgid ""
+"Start height of the scarf.\n"
+"This amount can be specified in millimeters or as a percentage of the "
+"current layer height. The default value for this parameter is 0."
+msgstr ""
+
+msgid "Scarf around entire wall"
+msgstr ""
+
+msgid "The scarf extends to the entire length of the wall."
+msgstr ""
+
+msgid "Scarf length"
+msgstr ""
+
+msgid ""
+"Length of the scarf. Setting this parameter to zero effectively disables the "
+"scarf."
+msgstr ""
+
+msgid "Scarf steps"
+msgstr ""
+
+msgid "Minimum number of segments of each scarf."
+msgstr ""
+
+msgid "Scarf joint for inner walls"
+msgstr ""
+
+msgid "Use scarf joint for inner walls as well."
+msgstr ""
 
 msgid "Role base wipe speed"
 msgstr "Otomatik temizleme hızı"

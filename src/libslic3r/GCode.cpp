@@ -2324,6 +2324,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         this->placeholder_parser().set("first_layer_print_min", new ConfigOptionFloats({bbox.min.x(), bbox.min.y()}));
         this->placeholder_parser().set("first_layer_print_max", new ConfigOptionFloats({bbox.max.x(), bbox.max.y()}));
         this->placeholder_parser().set("first_layer_print_size", new ConfigOptionFloats({ bbox.size().x(), bbox.size().y() }));
+        this->placeholder_parser().set("in_head_wrap_detect_zone",bbox_head_wrap_zone.overlap(bbox));
 
         BoundingBoxf mesh_bbox(m_config.bed_mesh_min, m_config.bed_mesh_max);
         auto         mesh_margin = m_config.adaptive_bed_mesh_margin.value;
@@ -2342,7 +2343,6 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             bed_mesh_algo = "lagrange";
         }
         this->placeholder_parser().set("bed_mesh_algo", bed_mesh_algo);
-        this->placeholder_parser().set("in_head_wrap_detect_zone",probe_count_y);
         // get center without wipe tower
         BoundingBoxf bbox_wo_wt; // bounding box without wipe tower
         for (auto &objPtr : print.objects()) {
