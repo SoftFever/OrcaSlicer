@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-27 13:20+0800\n"
+"POT-Creation-Date: 2024-03-03 09:32+0800\n"
 "PO-Revision-Date: 2024-01-01 14:28+0900\n"
 "Last-Translator: Hotsolidinfill <138652683+Hotsolidinfill@users.noreply."
 "github.com>, crwusiz <crwusiz@naver.com>\n"
@@ -671,6 +671,14 @@ msgstr "텍스트 회전"
 msgid "Text shape"
 msgstr "텍스트 모양"
 
+#. TRN - Title in Undo/Redo stack after rotate with text around emboss axe
+msgid "Text rotate"
+msgstr ""
+
+#. TRN - Title in Undo/Redo stack after move with text along emboss axe - From surface
+msgid "Text move"
+msgstr ""
+
 msgid "Set Mirror"
 msgstr "반전 설정"
 
@@ -688,9 +696,6 @@ msgstr "양각 작업"
 
 msgid "Emboss"
 msgstr "양각"
-
-msgid "Text-Rotate"
-msgstr "텍스트 회전"
 
 msgid "NORMAL"
 msgstr "NORMAL"
@@ -1069,6 +1074,14 @@ msgstr "유지하다"
 msgid "Collection"
 msgstr "수집"
 
+#. TRN - Title in Undo/Redo stack after rotate with SVG around emboss axe
+msgid "SVG rotate"
+msgstr ""
+
+#. TRN - Title in Undo/Redo stack after move with SVG along emboss axe - From surface
+msgid "SVG move"
+msgstr ""
+
 msgid "Enter SVG gizmo"
 msgstr "SVG 기즈모 입력"
 
@@ -1080,10 +1093,6 @@ msgstr "SVG 작업"
 
 msgid "SVG"
 msgstr "SVG"
-
-#. TRN This is an item label in the undo-redo stack.
-msgid "SVG-Rotate"
-msgstr "SVG-회전"
 
 #, boost-format
 msgid "Opacity (%1%)"
@@ -1200,9 +1209,6 @@ msgstr "SVG의 종횡비를 잠금/잠금 해제합니다."
 
 msgid "Reset scale"
 msgstr "규모 재설정"
-
-msgid "Resize"
-msgstr "크기 조정"
 
 msgid "Distance of the center of the SVG to the model surface."
 msgstr "SVG 중심에서 모델 표면까지의 거리입니다."
@@ -1703,6 +1709,17 @@ msgstr "보론 큐브"
 msgid "Stanford Bunny"
 msgstr "스탠포드 버니"
 
+msgid "Orca String Hell"
+msgstr ""
+
+msgid ""
+"This model features text embossment on the top surface. For optimal results, "
+"it is advisable to set the 'One Wall Threshold(min_width_top_surface)' to 0 "
+"for the 'Only One Wall on Top Surfaces' to work best.\n"
+"Yes - Change these settings automatically\n"
+"No  - Do not change these settings for me"
+msgstr ""
+
 msgid "Text"
 msgstr "텍스트"
 
@@ -2173,9 +2190,6 @@ msgstr "다중 셀 복사는 지원되지 않습니다"
 
 msgid "Outside"
 msgstr "외부"
-
-msgid " "
-msgstr " "
 
 msgid "Layer height"
 msgstr "레이어 높이"
@@ -4330,6 +4344,12 @@ msgstr "G코드 창 표시 (&G)"
 
 msgid "Show g-code window in Previce scene"
 msgstr "예측 장면에 G코드 창 표시"
+
+msgid "Show 3D Navigator"
+msgstr ""
+
+msgid "Show 3D navigator in Prepare and Preview scene"
+msgstr ""
 
 msgid "Reset Window Layout"
 msgstr "창 레이아웃 재설정"
@@ -6802,6 +6822,15 @@ msgstr ""
 "상단 Z 거리 0, 접점 간격 0, 접점 패턴 동심원 및 독립적 지지대 높이 비활성화"
 
 msgid ""
+"Enabling this option will modify the model's shape. If your print requires "
+"precise dimensions or is part of an assembly, it's important to double-check "
+"whether this change in geometry impacts the functionality of your print."
+msgstr ""
+
+msgid "Are you sure you want to enable this option?"
+msgstr ""
+
+msgid ""
 "Layer height is too small.\n"
 "It will set to min_layer_height\n"
 msgstr ""
@@ -6849,9 +6878,6 @@ msgstr "벽 생성기"
 
 msgid "Walls and surfaces"
 msgstr "벽과 표면"
-
-msgid "Small Area Infill Flow Compensation (beta)"
-msgstr ""
 
 msgid "Bridging"
 msgstr "브릿지"
@@ -7087,6 +7113,9 @@ msgstr "팬 가속 시간"
 
 msgid "Extruder Clearance"
 msgstr "압출기 회피"
+
+msgid "Adaptive bed mesh"
+msgstr ""
 
 msgid "Accessory"
 msgstr "악세서리"
@@ -7364,9 +7393,6 @@ msgstr "커버"
 #, boost-format
 msgid "The name \"%1%\" already exists."
 msgstr "%1% 이름이 이미 있습니다."
-
-msgid "Back"
-msgstr "뒷면"
 
 msgid "Basic Info"
 msgstr "기본 정보"
@@ -7975,8 +8001,11 @@ msgstr "파일 %1%을(를) %2%(으)로 복사 실패: %3%"
 msgid "Need to check the unsaved changes before configuration updates."
 msgstr "구성 업데이트 전에 저장되지 않은 변경 사항을 확인해야 합니다."
 
-msgid "Configuration package updated to "
-msgstr "다음으로 업데이트된 구성 패키지 "
+msgid "Configuration package: "
+msgstr ""
+
+msgid " updated to "
+msgstr ""
 
 msgid "Open G-code file:"
 msgstr "G코드 파일 열기:"
@@ -8364,6 +8393,10 @@ msgstr ""
 #, c-format, boost-format
 msgid "Plate %d: %s does not support filament %s"
 msgstr "%d: %s 플레이트는 %s 필라멘트를 지원하지 않습니다"
+
+msgid ""
+"Setting the jerk speed too low could lead to artifacts on curved surfaces"
+msgstr ""
 
 msgid "Generating skirt & brim"
 msgstr "스커트 & 브림 생성 중"
@@ -8772,10 +8805,10 @@ msgstr "정밀한 벽"
 
 msgid ""
 "Improve shell precision by adjusting outer wall spacing. This also improves "
-"layer consistency."
+"layer consistency.\n"
+"Note: This setting will only take effect if the wall sequence is configured "
+"to Inner-Outer"
 msgstr ""
-"외벽 간격을 조정하여 쉘 정밀도를 향상시킵니다. 이는 또한 레이어 일관성을 향상"
-"시킵니다."
 
 msgid "Only one wall on top surfaces"
 msgstr "상단 표면에 단일 벽 생성"
@@ -8790,7 +8823,7 @@ msgstr ""
 msgid "One wall threshold"
 msgstr "단일 벽 임계값"
 
-#, c-format, boost-format
+#, no-c-format, no-boost-format
 msgid ""
 "If a top surface has to be printed and it's partially covered by another "
 "layer, it won't be considered at a top layer where its width is below this "
@@ -8876,13 +8909,30 @@ msgstr ""
 "벽이 교대로 출력되도록 임계값을 0으로 역방향오버행 정도에 관계없이 홀수 레이"
 "어의 방향입니다."
 
+msgid "Bridge counterbole holes"
+msgstr ""
+
+msgid ""
+"This option creates bridges for counterbore holes, allowing them to be "
+"printed without support. Available modes include:\n"
+"1. None: No bridge is created.\n"
+"2. Partially Bridged: Only a part of the unsupported area will be bridged.\n"
+"3. Sacrificial Layer: A full sacrificial bridge layer is created."
+msgstr ""
+
+msgid "Partially bridged"
+msgstr ""
+
+msgid "Sacrificial layer"
+msgstr ""
+
 msgid "Reverse threshold"
 msgstr "반전 임계값"
 
 msgid "Overhang reversal threshold"
 msgstr "돌출부 반전 임계값"
 
-#, fuzzy, c-format, boost-format
+#, no-c-format, no-boost-format
 msgid ""
 "Number of mm the overhang need to be for the reversal to be considered "
 "useful. Can be a % of the perimeter width.\n"
@@ -9071,13 +9121,13 @@ msgid "Fan speed"
 msgstr "팬 속도"
 
 msgid ""
-"Speed of exhuast fan during printing.This speed will overwrite the speed in "
+"Speed of exhaust fan during printing.This speed will overwrite the speed in "
 "filament custom gcode"
 msgstr ""
 "출력 중 배기 팬 속도. 이 속도는 필라멘트 사용자 정의 G코드의 속도를 덮어씁니"
 "다"
 
-msgid "Speed of exhuast fan after printing completes"
+msgid "Speed of exhaust fan after printing completes"
 msgstr "출력 완료 후 배기 팬 속도"
 
 msgid "No cooling for the first"
@@ -9371,6 +9421,26 @@ msgstr ""
 "표면 마감이 더 나빠집니다. 또한 충전재가 부품의 외부 표면을 통해 빛날 수도 있"
 "습니다."
 
+msgid "Wall loop direction"
+msgstr ""
+
+msgid ""
+"The direction which the wall loops are extruded when looking down from the "
+"top.\n"
+"\n"
+"By default all walls are extruded in counter-clockwise, unless Reverse on "
+"odd is enabled. Set this to any option other than Auto will force the wall "
+"direction regardless of the Reverse on odd.\n"
+"\n"
+"This option will be disabled if sprial vase mode is enabled."
+msgstr ""
+
+msgid "Counter clockwise"
+msgstr ""
+
+msgid "Clockwise"
+msgstr ""
+
 msgid "Height to rod"
 msgstr "레일까지의 높이"
 
@@ -9392,6 +9462,50 @@ msgid ""
 "Clearance radius around extruder. Used for collision avoidance in by-object "
 "printing."
 msgstr "압출기 주변의 회피 반경. 개체별 출력에서 충돌 방지에 사용됩니다."
+
+msgid "Bed mesh min"
+msgstr ""
+
+msgid ""
+"This option sets the min point for the allowed bed mesh area. Due to the "
+"probe's XY offset, most printers are unable to probe the entire bed. To "
+"ensure the probe point does not go outside the bed area, the minimum and "
+"maximum points of the bed mesh should be set appropriately. OrcaSlicer "
+"ensures that adaptive_bed_mesh_min/adaptive_bed_mesh_max values do not "
+"exceed these min/max points. This information can usually be obtained from "
+"your printer manufacturer. The default setting is (-99999, -99999), which "
+"means there are no limits, thus allowing probing across the entire bed."
+msgstr ""
+
+msgid "Bed mesh max"
+msgstr ""
+
+msgid ""
+"This option sets the max point for the allowed bed mesh area. Due to the "
+"probe's XY offset, most printers are unable to probe the entire bed. To "
+"ensure the probe point does not go outside the bed area, the minimum and "
+"maximum points of the bed mesh should be set appropriately. OrcaSlicer "
+"ensures that adaptive_bed_mesh_min/adaptive_bed_mesh_max values do not "
+"exceed these min/max points. This information can usually be obtained from "
+"your printer manufacturer. The default setting is (99999, 99999), which "
+"means there are no limits, thus allowing probing across the entire bed."
+msgstr ""
+
+msgid "Probe point distance"
+msgstr ""
+
+msgid ""
+"This option sets the preferred distance between probe points (grid size) for "
+"the X and Y directions, with the default being 50mm for both X and Y."
+msgstr ""
+
+msgid "Mesh margin"
+msgstr ""
+
+msgid ""
+"This option determines the additional distance by which the adaptive bed "
+"mesh area should be expanded in the XY directions."
+msgstr ""
 
 msgid "Extruder Color"
 msgstr "압출기 색상"
@@ -9513,10 +9627,10 @@ msgstr ""
 msgid "Shrinkage"
 msgstr "수축"
 
-#, c-format, boost-format
+#, no-c-format, no-boost-format
 msgid ""
-"Enter the shrinkage percentage that the filament will get after cooling "
-"(94% if you measure 94mm instead of 100mm). The part will be scaled in xy to "
+"Enter the shrinkage percentage that the filament will get after cooling (94% "
+"if you measure 94mm instead of 100mm). The part will be scaled in xy to "
 "compensate. Only the filament used for the perimeter is taken into account.\n"
 "Be sure to allow enough space between objects, as this compensation is done "
 "after the checks."
@@ -9724,7 +9838,7 @@ msgstr "선의 시작 또는 주 방향을 제어하는 드문 채우기 패턴�
 msgid "Sparse infill density"
 msgstr "드문 채우기 밀도"
 
-#, fuzzy, c-format, boost-format
+#, no-c-format, no-boost-format
 msgid ""
 "Density of internal sparse infill, 100% turns all sparse infill into solid "
 "infill and internal solid infill pattern will be used"
@@ -10396,7 +10510,7 @@ msgstr ""
 msgid "This G-code will be used as a custom code"
 msgstr "이 G코드는 사용자 정의 코드로 사용됩니다"
 
-msgid "Enable Flow Compensation"
+msgid "Small area flow compensation (beta)"
 msgstr ""
 
 msgid "Enable flow compensation for small infill areas"
@@ -10641,12 +10755,10 @@ msgid "Min print speed"
 msgstr "최소 출력 속도"
 
 msgid ""
-"The minimum printing speed for the filament when slow down for better layer "
-"cooling is enabled, when printing overhangs and when feature speeds are not "
-"specified explicitly."
+"The minimum printing speed that the printer will slow down to to attempt to "
+"maintain the minimum layer time above, when slow down for better layer "
+"cooling is enabled."
 msgstr ""
-"보다 나은 레이어 냉각을 위해 속도를 늦출 때, 돌출부 출력 속도가 명시적으로 지"
-"정되지 않은 경우 필라멘트의 최소 출력 속도가 활성화됩니다."
 
 msgid "Nozzle diameter"
 msgstr "노즐 직경"
@@ -11063,6 +11175,9 @@ msgstr "근접"
 msgid "Aligned"
 msgstr "정렬"
 
+msgid "Back"
+msgstr "뒷면"
+
 msgid "Random"
 msgstr "무작위"
 
@@ -11089,6 +11204,47 @@ msgstr ""
 "짧아집니다.\n"
 "이 양은 밀리미터로 지정하거나 현재 압출기 직경의 백분율로 지정할 수 있습니"
 "다. 이 매개 변수의 기본값은 10%입니다."
+
+msgid "Scarf joint seam (beta)"
+msgstr ""
+
+msgid "Use scarf joint to minimize seam visibility and increase seam strength."
+msgstr ""
+
+msgid "Scarf start height"
+msgstr ""
+
+msgid ""
+"Start height of the scarf.\n"
+"This amount can be specified in millimeters or as a percentage of the "
+"current layer height. The default value for this parameter is 0."
+msgstr ""
+
+msgid "Scarf around entire wall"
+msgstr ""
+
+msgid "The scarf extends to the entire length of the wall."
+msgstr ""
+
+msgid "Scarf length"
+msgstr ""
+
+msgid ""
+"Length of the scarf. Setting this parameter to zero effectively disables the "
+"scarf."
+msgstr ""
+
+msgid "Scarf steps"
+msgstr ""
+
+msgid "Minimum number of segments of each scarf."
+msgstr ""
+
+msgid "Scarf joint for inner walls"
+msgstr ""
+
+msgid "Use scarf joint for inner walls as well."
+msgstr ""
 
 msgid "Role base wipe speed"
 msgstr "역할 기반 닦기 속도"
@@ -11289,8 +11445,8 @@ msgstr "남은 필라멘트를 프라임 타워에서 제거"
 msgid "Enable filament ramming"
 msgstr "필라멘트 래밍 활성화"
 
-msgid "No sparse layers (EXPERIMENTAL)"
-msgstr "드문 레이어 없음(실험적)"
+msgid "No sparse layers (beta)"
+msgstr ""
 
 msgid ""
 "If enabled, the wipe tower will not be printed on layers with no "
@@ -11993,7 +12149,7 @@ msgstr ""
 msgid "Polyhole detection margin"
 msgstr "폴리홀 감지 마진"
 
-#, c-format, boost-format
+#, no-c-format, no-boost-format
 msgid ""
 "Maximum defection of a point to the estimated radius of the circle.\n"
 "As cylinders are often exported as triangles of varying size, points may not "
@@ -14147,8 +14303,8 @@ msgstr ""
 
 #: resources/data/hints.ini: [hint:Air filtration]
 msgid ""
-"Air filtration/Exhuast Fan\n"
-"Did you know that OrcaSlicer can support Air filtration/Exhuast Fan?"
+"Air filtration/Exhaust Fan\n"
+"Did you know that OrcaSlicer can support Air filtration/Exhaust Fan?"
 msgstr ""
 "공기 여과/배기 팬\n"
 "오르카 슬라이서가 공기 여과/배기 팬을 지원할 수 있다는 사실을 알고 계셨나요?"
@@ -14475,6 +14631,39 @@ msgstr ""
 "뒤틀림 방지\n"
 "ABS 등 뒤틀림이 발생하기 쉬운 소재를 출력할 때, 히트베드 온도를 적절하게 높이"
 "면 뒤틀림 가능성을 줄일 수 있다는 사실을 알고 계셨나요?"
+
+#~ msgid " "
+#~ msgstr " "
+
+#~ msgid "Text-Rotate"
+#~ msgstr "텍스트 회전"
+
+#~ msgid "SVG-Rotate"
+#~ msgstr "SVG-회전"
+
+#~ msgid "Resize"
+#~ msgstr "크기 조정"
+
+#~ msgid "Configuration package updated to "
+#~ msgstr "다음으로 업데이트된 구성 패키지 "
+
+#~ msgid ""
+#~ "Improve shell precision by adjusting outer wall spacing. This also "
+#~ "improves layer consistency."
+#~ msgstr ""
+#~ "외벽 간격을 조정하여 쉘 정밀도를 향상시킵니다. 이는 또한 레이어 일관성을 "
+#~ "향상시킵니다."
+
+#~ msgid ""
+#~ "The minimum printing speed for the filament when slow down for better "
+#~ "layer cooling is enabled, when printing overhangs and when feature speeds "
+#~ "are not specified explicitly."
+#~ msgstr ""
+#~ "보다 나은 레이어 냉각을 위해 속도를 늦출 때, 돌출부 출력 속도가 명시적으"
+#~ "로 지정되지 않은 경우 필라멘트의 최소 출력 속도가 활성화됩니다."
+
+#~ msgid "No sparse layers (EXPERIMENTAL)"
+#~ msgstr "드문 레이어 없음(실험적)"
 
 #~ msgid ""
 #~ "We would rename the presets as \"Vendor Type Serial @printer you selected"
