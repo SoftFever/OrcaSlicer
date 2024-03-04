@@ -3570,11 +3570,11 @@ def = this->add("filament_loading_speed", coFloats);
     def->category = L("Quality");
     def->tooltip  = L(
         "This option sets the printing speed for scarf joints. It is recommended to print scarf joints at a slow speed (less than 100 "
-         "mm/s). Additionally, enabling 'Extrusion rate smoothing' is advised if this speed significantly differs from the outer wall "
-         "speed. Should the speed set here exceed the outer wall speed, the outer wall speed will be utilized instead. When expressed as a "
-         "percentage (e.g., 80%), the value is calculated based on the outer wall speed. The default value is 100%.");
+         "mm/s).  It's also advisable to enable 'Extrusion rate smoothing' if the set speed varies significantly from the speed of the "
+         "outer or inner walls. If the speed specified here is higher than the speed of the outer or inner walls, the printer will default "
+         "to the slower of the two speeds. When specified as a percentage (e.g., 80%), the speed is calculated based on the respective "
+         "outer or inner wall speed. The default value is set to 100%.");
     def->sidetext = L("mm/s or %");
-    def->ratio_over = "outer_wall_speed";
     def->min = 1;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatOrPercent(100, true));
