@@ -98,7 +98,13 @@ If you are printing with a 0.2 layer height, you can increase these values by 25
 Perform a test print with the above and adjust to your liking! If you notice budging on sharp overhangs where speed changes, like the hull of the benchy, reduce this value by 10% and try again. If you're not noticing any artefacts, increase by 10% but dont go over the maximum values recommended above as then this feature would have no effect in your print.
 
 <h2>A note for bowden printers using marlin without pressure advance. </h2>
-If your printer is not equipped with pressure advance and especially if you are using a bowden setup, you dont have the benefit of pressure advance adjusting your flow dynamically based on print speed and accelerations. In this special case, ERS will be doing all the heavy lifting that pressure advance would typically perform. In this scenario a low value of 8-10mm3/sec is usually recomended, irrespective of your acceleration settings, to smooth out pressure changes in the extrusion system as much as possible without impacting print speed too much. 
+If your printer is not equipped with pressure advance and especially if you are using a bowden setup, you dont have the benefit of pressure advance adjusting your flow dynamically based on print speed and accelerations. 
+
+In this special case, ERS will be doing all the heavy lifting that pressure advance would typically perform. In this scenario a low value of 8-10mm3/sec is usually recomended, irrespective of your acceleration settings, to smooth out pressure changes in the extrusion system as much as possible without impacting print speed too much. 
 
 <h2>A note on ERS Segment length </h2>
-Ideally you want this value set to 1 to allow for the largest number of steps between each speed transition. However this may result in a too large of a gcode, with too many commands sent to your MCU per second and it may not be able to keep up. For klipper printers, a segment length of 1 works OK as the RPI or similar have enough computational power to handle the gcode command volume. Similarly for a Bambu lab printer, a segment length of 1 works well. However if you do notice your printer stuttering or stalling or getting "Timer too close" errors increase this value to 2 or 3. This would reduce the effectiveness of the setting but will present a more manageable load to your printer.
+Ideally you want this value set to 1 to allow for the largest number of steps between each speed transition. However this may result in a too large of a gcode, with too many commands sent to your MCU per second and it may not be able to keep up. 
+
+For klipper printers, a segment length of 1 works OK as the RPI or similar have enough computational power to handle the gcode command volume. 
+
+Similarly for a Bambu lab printer, a segment length of 1 works well. However if you do notice your printer stuttering or stalling or getting "Timer too close" errors increase this value to 2 or 3. This would reduce the effectiveness of the setting but will present a more manageable load to your printer.
