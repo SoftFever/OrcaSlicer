@@ -353,8 +353,8 @@ bool ExtrusionLoop::is_smooth(double angle_threshold, double min_arm_length) con
     float distance_to_prev = 0;
     float distance_to_next = 0;
 
-    Points points;
-    collect_points(points);
+    const auto _polyline = as_polyline();
+    const Points& points = _polyline.points;
 
     std::vector<float> lengths{};
     for (size_t point_idx = 0; point_idx < points.size() - 1; ++point_idx) {

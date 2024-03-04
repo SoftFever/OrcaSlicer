@@ -954,6 +954,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     // Orca: seam slopes
     ((ConfigOptionEnum<SeamScarfType>,  seam_slope_type))
     ((ConfigOptionBool,                 seam_slope_conditional))
+    ((ConfigOptionInt,                  scarf_angle_threshold))
     ((ConfigOptionFloatOrPercent,       seam_slope_start_height))
     ((ConfigOptionBool,                 seam_slope_entire_loop))
     ((ConfigOptionFloat,                seam_slope_min_length))
