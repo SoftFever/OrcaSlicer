@@ -73,7 +73,7 @@ In the worked example above, **we need to set an Extrusion Rate smoothing value 
 
 <h2>Finding the ideal Extrusion Rate smoothing value:</h2>
 
-Firstly, this value needs to be lower than the extrusion rate changes resulting from the acceleration profile of the printer. As generaly the greatest impact is in external wall finish, use your external perimeter acceleration as a point of reference. Below are some approximate ERS values for a given acceleration and 0.42 line width
+Firstly, this value needs to be lower than the extrusion rate changes resulting from the acceleration profile of the printer. As, generaly, the greatest impact is in external wall finish, use your external perimeter acceleration as a point of reference. Below are some approximate ERS values for a given acceleration and 0.42 line width
 1. 30mm3/sec for 0.5k acceleration
 2. 60.5mm3/sec for 1k acceleration
 3. 121mm3/sec2 for 2k acceleration
