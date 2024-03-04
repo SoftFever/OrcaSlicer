@@ -1,5 +1,8 @@
 WIP...
 
+### Scarf joint seam
+WIP...
+
 ### Seam gap
 ![image](https://user-images.githubusercontent.com/103989404/215331359-236874c9-ca91-4dd4-b969-3cefc70ebe1b.png)
 

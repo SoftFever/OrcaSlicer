@@ -3723,6 +3723,69 @@ msgstr ""
 msgid "default"
 msgstr "défaut"
 
+#, boost-format
+msgid "Edit Custom G-code (%1%)"
+msgstr "Modifier le G-code personnalisé (%1%)"
+
+msgid "Built-in placeholders (Double click item to add to G-code)"
+msgstr ""
+"Placeholders intégrés (double-cliquez sur l’élément pour l’ajouter au code G)"
+
+msgid "Search gcode placeholders"
+msgstr "Rechercher les placeholders de G-code"
+
+msgid "Add selected placeholder to G-code"
+msgstr "Ajouter le placeholder sélectionné au G-code"
+
+msgid "Select placeholder"
+msgstr "Sélectionner un placeholder"
+
+msgid "[Global] Slicing State"
+msgstr "[Global] État de la découpe"
+
+msgid "Read Only"
+msgstr "Lecture seule"
+
+msgid "Read Write"
+msgstr "Lire et écrire"
+
+msgid "Slicing State"
+msgstr "État de la découpe"
+
+msgid "Print Statistics"
+msgstr "Statistiques d’impression"
+
+msgid "Objects Info"
+msgstr "Informations sur les objets"
+
+msgid "Dimensions"
+msgstr ""
+
+msgid "Temperatures"
+msgstr "Températures"
+
+msgid "Timestamps"
+msgstr "Horodatages"
+
+#, boost-format
+msgid "Specific for %1%"
+msgstr "Spécifique à %1%"
+
+msgid "Presets"
+msgstr "Préréglages"
+
+msgid "Print settings"
+msgstr "Réglages d'impression"
+
+msgid "Filament settings"
+msgstr "Réglages du filament"
+
+msgid "SLA Materials settings"
+msgstr "Paramètres des matériaux SLA"
+
+msgid "Printer settings"
+msgstr "Paramètres de l'imprimante"
+
 msgid "parameter name"
 msgstr "nom du paramètre"
 
@@ -3912,9 +3975,6 @@ msgstr "Imprimer"
 
 msgid "Printer"
 msgstr "Imprimante"
-
-msgid "Print settings"
-msgstr "Réglages d'impression"
 
 msgid "Custom g-code"
 msgstr "G-code personnalisé"
@@ -5454,12 +5514,6 @@ msgstr "Comparer les Préréglages"
 msgid "View all object's settings"
 msgstr "Afficher tous les paramètres de l'objet"
 
-msgid "Filament settings"
-msgstr "Réglages du filament"
-
-msgid "Printer settings"
-msgstr "Paramètres de l'imprimante"
-
 msgid "Remove current plate (if not last one)"
 msgstr "Retirer la plaque actuelle (si elle n'est pas la dernière)"
 
@@ -6228,9 +6282,6 @@ msgid "If enabled, auto-calculate everytime the color changed."
 msgstr ""
 "Si cette option est activée, le calcul se fera automatiquement à chaque "
 "changement de couleur."
-
-msgid "Presets"
-msgstr "Préréglages"
 
 msgid "Auto sync user presets(Printer/Filament/Process)"
 msgstr ""
@@ -7144,8 +7195,8 @@ msgstr "Ignorer"
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "Lorsque vous enregistrez un timelapse sans tête d’outil, il est recommandé "
 "d’ajouter une \"Tour d’essuyage timelapse\".\n"
@@ -8674,8 +8725,8 @@ msgstr ""
 
 msgid "The prime tower is not supported in \"By object\" print."
 msgstr ""
-"La tour de nettoyage n'est pas prise en charge dans l'impression \"Par objet"
-"\"."
+"La tour de nettoyage n'est pas prise en charge dans l'impression \"Par "
+"objet\"."
 
 msgid ""
 "The prime tower is not supported when adaptive layer height is on. It "
@@ -11916,45 +11967,52 @@ msgstr ""
 "diamètre actuel de la buse. La valeur par défaut de ce paramètre est 10%."
 
 msgid "Scarf joint seam (beta)"
-msgstr ""
+msgstr "Couture en écharpe (beta)"
 
 msgid "Use scarf joint to minimize seam visibility and increase seam strength."
 msgstr ""
+"Utiliser une couture en écharpe pour minimiser la visibilité de la couture "
+"et augmenter sa solidité."
 
 msgid "Scarf start height"
-msgstr ""
+msgstr "Hauteur de départ de l’écharpe"
 
 msgid ""
 "Start height of the scarf.\n"
 "This amount can be specified in millimeters or as a percentage of the "
 "current layer height. The default value for this parameter is 0."
 msgstr ""
+"Hauteur de départ de l’écharpe.\n"
+"Cette hauteur peut être spécifiée en millimètres ou en pourcentage de la "
+"hauteur de la couche actuelle. La valeur par défaut de ce paramètre est 0."
 
 msgid "Scarf around entire wall"
-msgstr ""
+msgstr "Écharpe sur toute la paroi"
 
 msgid "The scarf extends to the entire length of the wall."
-msgstr ""
+msgstr "L’écharpe s’étend sur toute la longueur de la paroi."
 
 msgid "Scarf length"
-msgstr ""
+msgstr "Longueur de l’écharpe"
 
 msgid ""
 "Length of the scarf. Setting this parameter to zero effectively disables the "
 "scarf."
 msgstr ""
+"Longueur de l’écharpe. La mise à zéro de ce paramètre désactive "
+"automatiquement l’écharpe."
 
 msgid "Scarf steps"
-msgstr ""
+msgstr "Étapes de l’écharpe"
 
 msgid "Minimum number of segments of each scarf."
-msgstr ""
+msgstr "Nombre minimum de segments de chaque écharpe."
 
 msgid "Scarf joint for inner walls"
-msgstr ""
+msgstr "Joint en écharpe pour les parois internes"
 
 msgid "Use scarf joint for inner walls as well."
-msgstr ""
+msgstr "Utiliser également un joint en écharpe pour les parois intérieures."
 
 msgid "Role base wipe speed"
 msgstr "Vitesse d’essuyage basée sur la vitesse d’extrusion"
@@ -13823,9 +13881,9 @@ msgstr ""
 "Wiki.\n"
 "\n"
 "Habituellement, la calibration est inutile. Lorsque vous démarrez une "
-"impression d'une seule couleur/matériau, avec l'option \"Calibration du débit"
-"\" cochée dans le menu de démarrage de l'impression, l'imprimante suivra "
-"l'ancienne méthode de calibration du filament avant l'impression.\n"
+"impression d'une seule couleur/matériau, avec l'option \"Calibration du "
+"débit\" cochée dans le menu de démarrage de l'impression, l'imprimante "
+"suivra l'ancienne méthode de calibration du filament avant l'impression.\n"
 "Lorsque vous démarrez une impression multi-couleurs/matériaux, l'imprimante "
 "utilise le paramètre de compensation par défaut pour le filament lors de "
 "chaque changement de filament, ce qui donne un bon résultat dans la plupart "
@@ -13836,7 +13894,16 @@ msgstr ""
 "calibration, utiliser un plateau qui n'a pas une bonne adhérence (veuillez "
 "dans ce cas laver la plaque de construction ou appliquer de la colle)… Vous "
 "pouvez trouver d'autres cas sur notre Wiki.\n"
+"Veuillez noter qu'il y a quelques cas qui rendront le résultat de "
+"calibration non fiable : utiliser un plateau texturé pour faire la "
+"calibration, utiliser un plateau qui n'a pas une bonne adhérence (veuillez "
+"dans ce cas laver la plaque de construction ou appliquer de la colle)… Vous "
+"pouvez trouver d'autres cas sur notre Wiki.\n"
 "\n"
+"Les résultats de calibration ont environ 10 % d'écart dans nos tests, ce qui "
+"peut faire en sorte que le résultat ne soit pas exactement le même à chaque "
+"calibration. Nous enquêtons toujours sur la cause première pour apporter des "
+"améliorations avec de nouvelles mises à jour."
 "Les résultats de calibration ont environ 10 % d'écart dans nos tests, ce qui "
 "peut faire en sorte que le résultat ne soit pas exactement le même à chaque "
 "calibration. Nous enquêtons toujours sur la cause première pour apporter des "
@@ -14606,8 +14673,8 @@ msgstr ""
 "Voulez-vous le réécrire ?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more printers, Please go to printer selection"
 msgstr ""
 "Nous renommerions les préréglages en « Vendor Type Serial @printer you "
