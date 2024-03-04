@@ -85,13 +85,13 @@ For 0.45 line width the below are approximate ERS values:
 3. 129mm3/sec2 for 2k acceleration
 4. 260mm3/sec2 for 4k acceleration
 
-So your tuning starting point needs to be an ERS value that is less than this. A good point experiment with test prints would be a value of 80% of the above maximum values. This will give some meaningfull assistance to pressure advance, reducing the deviation introduced by pressure advance smooth time. The greater the smooth time, the greater the quality benefit will be.
+So your tuning starting point needs to be an ERS value that is less than this. A good point experiment with test prints would be a value of 60-80% of the above maximum values. This will give some meaningfull assistance to pressure advance, reducing the deviation introduced by pressure advance smooth time. The greater the smooth time, the greater the quality benefit will be.
 
 Therefore, for a 0.42 line width, the below are a recommended set of starting ERS values
-1. 25mm3/sec for 0.5k acceleration
-2. 50mm3/sec for 1k acceleration
-3. 100mm3/sec2 for 2k acceleration
-4. 200mm3/sec2 for 4k acceleration
+1. 18-25mm3/sec for 0.5k acceleration
+2. 35-50mm3/sec for 1k acceleration
+3. 70-100mm3/sec2 for 2k acceleration
+4. 145-200mm3/sec2 for 4k acceleration
 
 Perform a test print with the above and adjust to your liking!
 
