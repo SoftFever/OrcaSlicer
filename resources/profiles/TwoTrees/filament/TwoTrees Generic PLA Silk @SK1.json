@@ -10,7 +10,7 @@
         "TwoTrees SK1 0.4 nozzle"
     ],
 	"filament_max_volumetric_speed": [
-		"12"
+		"15"
 	],
 	"slow_down_layer_time": [
 		"8"

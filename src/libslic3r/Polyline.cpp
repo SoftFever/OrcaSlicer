@@ -309,6 +309,53 @@ bool Polyline::split_at_index(const size_t index, Polyline* p1, Polyline* p2) co
     return true;
 }
 
+bool Polyline::split_at_length(const double length, Polyline* p1, Polyline* p2) const
+{
+    if (this->points.empty()) return false;
+    if (length < 0 || length > this->length()) {
+        return false;
+    }
+
+    if (length < SCALED_EPSILON) {
+        p1->clear();
+        p1->append(this->first_point());
+        *p2 = *this;
+    } else if (is_approx(length, this->length(), SCALED_EPSILON)) {
+        p2->clear();
+        p2->append(this->last_point());
+        *p1 = *this;
+    } else {
+        // 1 find the line to split at
+        size_t line_idx = 0;
+        double acc_length = 0;
+        Point p = this->first_point();
+        for (const auto& l : this->lines()) {
+            p = l.b;
+
+            const double current_length = l.length();
+            if (acc_length + current_length >= length) {
+                p = lerp(l.a, l.b, (length - acc_length) / current_length);
+                break;
+            }
+            acc_length += current_length;
+            line_idx++;
+        }
+
+        //2 judge whether the cloest point is one vertex of polyline.
+        //  and spilit the polyline at different index
+        int index = this->find_point(p);
+        if (index != -1) {
+            this->split_at_index(index, p1, p2);
+        } else {
+            Polyline temp;
+            this->split_at_index(line_idx, p1, &temp);
+            p1->append(p);
+            this->split_at_index(line_idx + 1, &temp, p2);
+            p2->append_before(p);
+        }
+    }
+    return true;
+}
 
 bool Polyline::is_straight() const
 {

@@ -19,7 +19,7 @@
         "90"
     ],
     "overhang_fan_threshold": [
-        "25%"
+        "10%"
     ],
     "fan_max_speed": [
         "90"
@@ -34,7 +34,7 @@
         "8"
     ],
     "filament_flow_ratio": [
-        "0.931"
+        "0.94"
     ],
     "filament_max_volumetric_speed": [
         "12"
@@ -42,6 +42,12 @@
     "filament_start_gcode": [
         "; filament start gcode\n"
     ],
+    "enable_pressure_advance": [
+        "1"
+      ],
+      "pressure_advance": [
+        "0.084"
+      ],
     "compatible_printers": [
       "FlyingBear Reborn3 0.4 nozzle"
     ]
