@@ -1560,11 +1560,14 @@ void AMSRoad::doRender(wxDC &dc)
 
         if (m_amsinfo.ams_humidity >= 1 && m_amsinfo.ams_humidity <= 5) {
 
-            int hum_index = m_amsinfo.ams_humidity - 1;
+            int hum_index = 6 - m_amsinfo.ams_humidity - 1;
             if (wxGetApp().dark_mode()) {
                 hum_index += 5;
             }
-            dc.DrawBitmap(ams_humidity_img[hum_index].bmp(), wxPoint(size.x - FromDIP(33), size.y - FromDIP(33)));
+
+            if (hum_index >= 0) {
+                dc.DrawBitmap(ams_humidity_img[hum_index].bmp(), wxPoint(size.x - FromDIP(33), size.y - FromDIP(33)));
+            }
         }
         else {
             //to do ...
