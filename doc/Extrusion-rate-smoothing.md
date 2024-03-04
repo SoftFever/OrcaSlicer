@@ -93,7 +93,7 @@ Therefore, for a 0.42 line width, the below are a recommended set of starting ER
 3. 70-100mm3/sec2 for 2k acceleration
 4. 145-200mm3/sec2 for 4k acceleration
 
-Perform a test print with the above and adjust to your liking!
+Perform a test print with the above and adjust to your liking! If you notice budging on sharp overhangs where speed changes, like the hull of the benchy, reduce this value by 10% and try again. If you're not noticing any artefacts, increase by 10% but dont go over the maximum values recommended above as then this feature would have no effect in your print.
 
 <h2>A note for bowden printers using marlin without pressure advance. </h2>
 If your printer is not equipped with pressure advance and especially if you are using a bowden setup, you dont have the benefit of pressure advance adjusting your flow dynamically based on print speed and accelerations. In this special case, ERS will be doing all the heavy lifting that pressure advance would typically perform. In this scenario a low value of 8-10mm3/sec is usually recomended, irrespective of your acceleration settings, to smooth out pressure changes in the extrusion system as much as possible without impacting print speed too much. 
