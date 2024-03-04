@@ -9,7 +9,8 @@ Enabling this feature creates a small extrusion rate "ramp" by slowing down and 
 In summart, it takes the "edge" off pressure advance. It reduces wall artefacts that show when the print speeds change suddenly, because the extruder cannot perfectly adhere to the requested by the firmware flow rates, especially when the extrusion rate is changing rapidly. 
 
 The below artefact is mitigated through the use of ERS
-https://private-user-images.githubusercontent.com/59056762/270168527-31fdbf91-2067-4286-8bc1-4f7de4a628b6.jpeg?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3MDk1NjgyNjQsIm5iZiI6MTcwOTU2Nzk2NCwicGF0aCI6Ii81OTA1Njc2Mi8yNzAxNjg1MjctMzFmZGJmOTEtMjA2Ny00Mjg2LThiYzEtNGY3ZGU0YTYyOGI2LmpwZWc_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjQwMzA0JTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI0MDMwNFQxNTU5MjRaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT0wZTczZGJiZDE1NDFmNjI5NWFkYTBjMzg4YWFkZDllOTA5YWE2MDFmOGU3YzRlN2ZkZTgyMTFiNjU4YjNlNzM3JlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCZhY3Rvcl9pZD0wJmtleV9pZD0wJnJlcG9faWQ9MCJ9.fRxgHI5twW6mIKU92raWjtOll1a-vgUTP0EJttsArXo
+![ERS Disabled](https://github.com/SoftFever/OrcaSlicer/assets/59056762/31fdbf91-2067-4286-8bc1-4f7de4a628b6)
+
 
 
 to cover for the deficiency in its internal jerk implementation which is worse in my view compared to the Klipper SCV implementation and aggressive PA smoothing. Hence the high value recommendation for BBL stock profiles. Experimentally it worked well - taking the edge off the artefacts.
