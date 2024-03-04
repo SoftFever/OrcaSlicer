@@ -31,9 +31,11 @@ A printer's motion system does not exactly follow the speed changes seen in the 
 ![image](https://github.com/igiannakas/OrcaSlicer/assets/59056762/3958deb5-fbc3-4d07-8903-4575033717fd)
 
 The time taken to declerate to this new speed would be 0.08 seconds, derived from the following equation:
+
 ![image](https://github.com/igiannakas/OrcaSlicer/assets/59056762/ea9f19b4-defe-4656-9ecc-a6576c87d8e0)
 
 A printer printing at 200mm/sec with a 0.42 line width and 0.16 layer height would be extruding plastic at approx 12.16mm3/sec as can also seen from the below visual.
+
 ![image](https://github.com/igiannakas/OrcaSlicer/assets/59056762/83242b26-7174-4da1-b815-d9fcec767bcd)
 
 When the printer is extruding at 40mm/sec with the same line width and layer height as above, the flow rate is 2.43mm3/sec.
