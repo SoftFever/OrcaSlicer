@@ -2522,8 +2522,9 @@ void PerimeterGenerator::process_arachne()
                     
                     // printf("Layer ID %d, Outer index %d, inner index %d, second inner index %d, maximum internal perimeter %d \n",layer_id,outer,first_internal,second_internal, max_internal);
                     if (outer > -1 && first_internal > -1 && second_internal > -1) { // found perimeters to re-order?
+                        std::vector<PerimeterGeneratorArachneExtrusion> inner_outer_extrusions; // temporary array to hold extrusions for reordering
+                        //Inner Outer Inner wall mode
                         if(this->config->wall_sequence == WallSequence::InnerOuterInner){
-                            std::vector<PerimeterGeneratorArachneExtrusion> inner_outer_extrusions; // temporary array to hold extrusions for reordering
                             inner_outer_extrusions.reserve(max_internal - position + 1); // reserve array containing the number of perimeters before a new island. Variables are array indexes hence need to add +1 to convert to position allocations
                             // printf("Allocated array size %d, max_internal index %d, start position index %d \n",max_internal-position+1,max_internal,position);
                             
@@ -2542,10 +2543,8 @@ void PerimeterGenerator::process_arachne()
                             
                             for(arr_j = position; arr_j <= max_internal; ++arr_j) // replace perimeter array with the new re-ordered array
                                 ordered_extrusions[arr_j] = inner_outer_extrusions[arr_j-position];
-                        }else 
+                        }else //Middle Outer Inner wall mode
                             if(this->config->wall_sequence == WallSequence::MiddleOuterInner){
-                                std::vector<PerimeterGeneratorArachneExtrusion> inner_outer_extrusions; // temporary array to hold extrusions for reordering
-                                
                                 for (arr_j = max_internal; arr_j >=position; --arr_j){ // go inside out for all perimers except any that have inset index 2 (second internal). These will be printed last
                                     if(reordered_extrusions[arr_j].extrusion->inset_idx!=2){
                                         inner_outer_extrusions.emplace_back(reordered_extrusions[arr_j]);
@@ -2556,7 +2555,6 @@ void PerimeterGenerator::process_arachne()
                                         inner_outer_extrusions.emplace_back(reordered_extrusions[arr_j]);
                                     }
                                 }
-                                
                                 for(arr_j = position; arr_j <= max_internal; ++arr_j) // replace perimeter array with the new re-ordered array
                                     ordered_extrusions[arr_j] = inner_outer_extrusions[arr_j-position];
                             }
