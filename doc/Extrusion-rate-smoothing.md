@@ -4,7 +4,7 @@ Extrusion rate smoothing (ERS) aims to limit the rate of extrusion volume change
 
 ![Screenshot 2023-09-18 at 22 44 26](https://github.com/SoftFever/OrcaSlicer/assets/59056762/281b9c78-9f5c-428e-86b9-509de099a3e7)
 
-<h2>Theory:</h2>
+<h2>Theory</h2>
 
 Enabling this feature creates a small extrusion rate "ramp" by slowing down and ramping up print speeds prior to and after the features causing a sudden change in extrusion flow rate needs, such as overhangs and overhang perimeters. 
 This happens by breaking down the line segments into smaller "chunks" proportional to the ERS segment length and reducing the print speed of that segment, so that the requested extrusion volumetric flow rate change is at or below the ERS threshold.
@@ -71,15 +71,15 @@ In essence, pressure advance smooth time creates an intentional deviation from t
 
 In the worked example above, **we need to set an Extrusion Rate smoothing value enough to decrease the error introduced by pressure advance smooth time to the produced output flow.** The lower the extrusion rate smoothing value, the lower the changes in flow hence the lower the deviation from the ideal extrusion caused by the smooth time algorithm.
 
-<h2>Finding the ideal Extrusion Rate smoothing value:</h2>
+<h2>Finding the ideal Extrusion Rate smoothing value</h2>
 
-Firstly, this value needs to be lower than the extrusion rate changes resulting from the acceleration profile of the printer. As, generaly, the greatest impact is in external wall finish, use your external perimeter acceleration as a point of reference. Below are some approximate ERS values for a given acceleration and 0.42 line width
+Firstly, this value needs to be lower than the extrusion rate changes resulting from the acceleration profile of the printer. As, generaly, the greatest impact is in external wall finish, use your external perimeter acceleration as a point of reference. Below are some approximate ERS values for a given acceleration and 0.42 line width and 0.16 layer height.
 1. 30mm3/sec for 0.5k acceleration
 2. 60.5mm3/sec for 1k acceleration
 3. 121mm3/sec2 for 2k acceleration
 4. 242mm3/sec2 for 4k acceleration
 
-For 0.45 line width the below are approximate ERS values:
+For 0.45 line width and 0.16 layer height the below are approximate ERS values:
 1. 32mm3/sec for 0.5k acceleration
 2. 65mm3/sec for 1k acceleration
 3. 129mm3/sec2 for 2k acceleration
@@ -87,11 +87,13 @@ For 0.45 line width the below are approximate ERS values:
 
 So your tuning starting point needs to be an ERS value that is less than this. A good point experiment with test prints would be a value of 60-80% of the above maximum values. This will give some meaningfull assistance to pressure advance, reducing the deviation introduced by pressure advance smooth time. The greater the smooth time, the greater the quality benefit will be.
 
-Therefore, for a 0.42 line width, the below are a recommended set of starting ERS values
+Therefore, for a 0.42 line width and 0.16 layer height, the below are a recommended set of starting ERS values
 1. 18-25mm3/sec for 0.5k acceleration
 2. 35-50mm3/sec for 1k acceleration
 3. 70-100mm3/sec2 for 2k acceleration
 4. 145-200mm3/sec2 for 4k acceleration
+
+If you are printing with a 0.2 layer height, you can increase these values by 25% and simlarly reduce if printing with lower.
 
 Perform a test print with the above and adjust to your liking! If you notice budging on sharp overhangs where speed changes, like the hull of the benchy, reduce this value by 10% and try again. If you're not noticing any artefacts, increase by 10% but dont go over the maximum values recommended above as then this feature would have no effect in your print.
 
