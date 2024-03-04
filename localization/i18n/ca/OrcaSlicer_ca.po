@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-29 22:55+0800\n"
+"POT-Creation-Date: 2024-03-03 09:32+0800\n"
 "PO-Revision-Date: 2024-02-17 22:49+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -675,6 +675,14 @@ msgstr "Rotar text"
 msgid "Text shape"
 msgstr "Forma del text"
 
+#. TRN - Title in Undo/Redo stack after rotate with text around emboss axe
+msgid "Text rotate"
+msgstr ""
+
+#. TRN - Title in Undo/Redo stack after move with text along emboss axe - From surface
+msgid "Text move"
+msgstr ""
+
 msgid "Set Mirror"
 msgstr "Establir reflex"
 
@@ -692,9 +700,6 @@ msgstr "Accions de relleu"
 
 msgid "Emboss"
 msgstr "Relleu"
-
-msgid "Text-Rotate"
-msgstr "Rotació-Text"
 
 msgid "NORMAL"
 msgstr "NORMAL"
@@ -1081,6 +1086,14 @@ msgstr "Mantenir a dalt"
 msgid "Collection"
 msgstr "Col·lecció"
 
+#. TRN - Title in Undo/Redo stack after rotate with SVG around emboss axe
+msgid "SVG rotate"
+msgstr ""
+
+#. TRN - Title in Undo/Redo stack after move with SVG along emboss axe - From surface
+msgid "SVG move"
+msgstr ""
+
 msgid "Enter SVG gizmo"
 msgstr "Entrar al gizmo SVG"
 
@@ -1092,10 +1105,6 @@ msgstr "Accions SVG"
 
 msgid "SVG"
 msgstr "SVG"
-
-#. TRN This is an item label in the undo-redo stack.
-msgid "SVG-Rotate"
-msgstr "SVG-Rotar"
 
 #, boost-format
 msgid "Opacity (%1%)"
@@ -1214,9 +1223,6 @@ msgstr "Bloquejar/desbloquejar la relació d'aspecte del SVG."
 
 msgid "Reset scale"
 msgstr "Reinicialitza l'escala"
-
-msgid "Resize"
-msgstr "Redimensionar"
 
 msgid "Distance of the center of the SVG to the model surface."
 msgstr "Distància del centre del SVG a la superfície del model."
@@ -1416,6 +1422,9 @@ msgstr "Error crític"
 #, boost-format
 msgid "OrcaSlicer got an unhandled exception: %1%"
 msgstr "OrcaSlicer ha tingut una excepció no gestionada: %1%"
+
+msgid "Untitled"
+msgstr "Sense títol"
 
 msgid "Downloading Bambu Network Plug-in"
 msgstr "Descarregant el Plug-in de Xarxa de Bambu"
@@ -1727,6 +1736,17 @@ msgstr "Cub de Voron"
 
 msgid "Stanford Bunny"
 msgstr "Conill de Stanford"
+
+msgid "Orca String Hell"
+msgstr ""
+
+msgid ""
+"This model features text embossment on the top surface. For optimal results, "
+"it is advisable to set the 'One Wall Threshold(min_width_top_surface)' to 0 "
+"for the 'Only One Wall on Top Surfaces' to work best.\n"
+"Yes - Change these settings automatically\n"
+"No  - Do not change these settings for me"
+msgstr ""
 
 msgid "Text"
 msgstr "Text"
@@ -2215,9 +2235,6 @@ msgstr "no s'admet la còpia de diverses cel·les"
 msgid "Outside"
 msgstr "Fora"
 
-msgid " "
-msgstr " "
-
 msgid "Layer height"
 msgstr "Alçada de capa"
 
@@ -2360,14 +2377,14 @@ msgstr "Sense impressora"
 msgid "..."
 msgstr "..."
 
+msgid "Failed to connect to the server"
+msgstr "No s'ha pogut connectar al servidor"
+
 msgid "Check the status of current system services"
 msgstr "Comprovar l'estat dels serveis actuals del sistema"
 
 msgid "code"
 msgstr "codi"
-
-msgid "Failed to connect to the server"
-msgstr "No s'ha pogut connectar al servidor"
 
 msgid "Failed to connect to cloud service"
 msgstr "No s'ha pogut connectar al servei al núvol"
@@ -4124,6 +4141,15 @@ msgstr "Entra en directe"
 msgid "Resolution"
 msgstr "Resolució"
 
+msgid "Enable"
+msgstr "Activar"
+
+msgid "Hostname or IP"
+msgstr ""
+
+msgid "Custom camera source"
+msgstr ""
+
 msgid "Show \"Live Video\" guide page."
 msgstr "Mostra la pàgina de guia \"Vídeo en directe\"."
 
@@ -4428,6 +4454,12 @@ msgstr "Mostra Finestra %Codi-G"
 msgid "Show g-code window in Previce scene"
 msgstr "Mostra la finestra de Codi-g a l'escena prèvia"
 
+msgid "Show 3D Navigator"
+msgstr ""
+
+msgid "Show 3D navigator in Prepare and Preview scene"
+msgstr ""
+
 msgid "Reset Window Layout"
 msgstr "Restableix el disseny de la finestra"
 
@@ -4586,6 +4618,15 @@ msgstr[0] ""
 msgstr[1] ""
 "Hi ha %d configuracions importades. ( Només configuracions que no siguin del "
 "sistema i compatibles )"
+
+msgid ""
+"\n"
+"Hint: Make sure you have added the corresponding printer before importing "
+"the configs."
+msgstr ""
+"\n"
+"Consell: Assegureu-vos que heu afegit la impressora corresponent abans "
+"d'importar les configuracions."
 
 msgid "Import result"
 msgstr "Resultat de la importació"
@@ -4928,6 +4969,9 @@ msgstr "Targeta SD"
 
 msgid "Camera Setting"
 msgstr "Configuració de la càmera"
+
+msgid "Switch Camera View"
+msgstr ""
 
 msgid "Control"
 msgstr "Control"
@@ -5395,11 +5439,11 @@ msgstr "Desbloquejar la placa actual"
 msgid "Lock current plate"
 msgstr "Bloquejar la placa actual"
 
+msgid "Edit current plate name"
+msgstr ""
+
 msgid "Customize current plate"
 msgstr "Personalitzar la placa actual"
-
-msgid "Untitled"
-msgstr "Sense títol"
 
 #, boost-format
 msgid " plate %1%:"
@@ -5561,13 +5605,27 @@ msgstr ""
 msgid "Load 3mf"
 msgstr "Carregar 3mf"
 
-msgid "The Config can not be loaded."
-msgstr "La Configuració no es pot carregar."
-
-msgid "The 3mf is generated by old Orca Slicer, load geometry data only."
+#, c-format, boost-format
+msgid ""
+"The 3mf's version %s is newer than %s's version %s, Found following keys "
+"unrecognized:"
 msgstr ""
-"El 3mf està generat amb una versió d'Orca Slicer antiga, només carrega dades "
-"de geometria."
+"La versió de 3mf %s és més nova que la versió de %s %s, S'han trobat les "
+"següents claus no reconegudes:"
+
+msgid "You'd better upgrade your software.\n"
+msgstr "És millor que actualitzeu el vostre programari.\n"
+
+msgid "Newer 3mf version"
+msgstr "Nova versió 3mf"
+
+#, c-format, boost-format
+msgid ""
+"The 3mf's version %s is newer than %s's version %s, Suggest to upgrade your "
+"software."
+msgstr ""
+"La versió de 3mf %s és més nova que la versió de %s %s, es suggereix que "
+"actualitzis el teu programari."
 
 msgid "Invalid values found in the 3mf:"
 msgstr "Valors no vàlids trobats en el 3mf:"
@@ -6968,6 +7026,15 @@ msgstr ""
 "desactivar alçada de suport independent d'alçada de capa"
 
 msgid ""
+"Enabling this option will modify the model's shape. If your print requires "
+"precise dimensions or is part of an assembly, it's important to double-check "
+"whether this change in geometry impacts the functionality of your print."
+msgstr ""
+
+msgid "Are you sure you want to enable this option?"
+msgstr ""
+
+msgid ""
 "Layer height is too small.\n"
 "It will set to min_layer_height\n"
 msgstr ""
@@ -6994,8 +7061,8 @@ msgstr "Ignorar"
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "Quan graveu timelapse sense capçal d'impressió, es recomana afegir una "
 "\"Torre de Purga Timelapse\" \n"
@@ -7264,6 +7331,9 @@ msgstr "Temps d'acceleració del ventilador"
 msgid "Extruder Clearance"
 msgstr "Espai lliure de l'extrusor"
 
+msgid "Adaptive bed mesh"
+msgstr ""
+
 msgid "Accessory"
 msgstr "Accessori"
 
@@ -7505,11 +7575,29 @@ msgstr "General"
 msgid "Capabilities"
 msgstr "Capacitats"
 
+msgid "Show all presets (including incompatible)"
+msgstr "Mostra tots els perfils ( inclosos els incompatibles )"
+
 msgid "Select presets to compare"
 msgstr "Seleccioneu els perfils a comparar"
 
-msgid "Show all presets (including incompatible)"
-msgstr "Mostra tots els perfils ( inclosos els incompatibles )"
+msgid ""
+"You can only transfer to current active profile because it has been modified."
+msgstr ""
+
+msgid ""
+"Transfer the selected options from left preset to the right.\n"
+"Note: New modified presets will be selected in settings tabs after close "
+"this dialog."
+msgstr ""
+
+msgid "Transfer values from left to right"
+msgstr ""
+
+msgid ""
+"If enabled, this dialog can be used for transver selected values from left "
+"to right preset."
+msgstr ""
 
 msgid "Add File"
 msgstr "Afegir arxiu"
@@ -7867,6 +7955,15 @@ msgstr "Gizmo de Punts de suport SLA"
 msgid "Gizmo FDM paint-on seam"
 msgstr "Eina de Pintat de costures FDM"
 
+msgid "Gizmo Text emboss / engrave"
+msgstr "Gizmo de Text en relleu / gravat"
+
+msgid "Zoom in"
+msgstr "Augmentar zoom"
+
+msgid "Zoom out"
+msgstr "Reduir zoom"
+
 msgid "Switch between Prepare/Preview"
 msgstr "Canviar entre Preparar/Previsualitzar"
 
@@ -8143,8 +8240,11 @@ msgstr ""
 "Cal comprovar els canvis no desats abans de les actualitzacions de "
 "configuració."
 
-msgid "Configuration package updated to "
-msgstr "Paquet de configuració actualitzat a "
+msgid "Configuration package: "
+msgstr ""
+
+msgid " updated to "
+msgstr ""
 
 msgid "Open G-code file:"
 msgstr "Obre el fitxer de Codi-G:"
@@ -8561,6 +8661,10 @@ msgstr ""
 msgid "Plate %d: %s does not support filament %s"
 msgstr "La placa %d: %s no admet el filament %s"
 
+msgid ""
+"Setting the jerk speed too low could lead to artifacts on curved surfaces"
+msgstr ""
+
 msgid "Generating skirt & brim"
 msgstr "Generant Faldilla i Vora d'Adherència"
 
@@ -8864,6 +8968,29 @@ msgstr ""
 "gruix de la carcassa inferior està absolutament determinat per les capes "
 "inferiors de la carcassa"
 
+msgid "Apply gap fill"
+msgstr ""
+
+msgid ""
+"Enables gap fill for the selected surfaces. The minimum gap length that will "
+"be filled can be controlled from the filter out tiny gaps option below.\n"
+"\n"
+"Options:\n"
+"1. Everywhere: Applies gap fill to top, bottom and internal solid surfaces\n"
+"2. Top and Bottom surfaces: Applies gap fill to top and bottom surfaces "
+"only\n"
+"3. Nowhere: Disables gap fill\n"
+msgstr ""
+
+msgid "Everywhere"
+msgstr ""
+
+msgid "Top and bottom surfaces"
+msgstr ""
+
+msgid "Nowhere"
+msgstr ""
+
 msgid "Force cooling for overhang and bridge"
 msgstr "Força la refrigeració per voladís i pont"
 
@@ -8969,10 +9096,10 @@ msgstr "Perímetre precís"
 
 msgid ""
 "Improve shell precision by adjusting outer wall spacing. This also improves "
-"layer consistency."
+"layer consistency.\n"
+"Note: This setting will only take effect if the wall sequence is configured "
+"to Inner-Outer"
 msgstr ""
-"Milloreu la precisió de la carcassa ajustant l'espaiat del perímetre "
-"exterior. Això també millora la consistència de la capa."
 
 msgid "Only one wall on top surfaces"
 msgstr "Només un perímetre a les superfícies superiors"
@@ -8987,26 +9114,17 @@ msgstr ""
 msgid "One wall threshold"
 msgstr "Llindar d'un sol perímetre"
 
-#, c-format, boost-format
+#, no-c-format, no-boost-format
 msgid ""
 "If a top surface has to be printed and it's partially covered by another "
 "layer, it won't be considered at a top layer where its width is below this "
 "value. This can be useful to not let the 'one perimeter on top' trigger on "
 "surface that should be covered only by perimeters. This value can be a mm or "
 "a % of the perimeter extrusion width.\n"
-"Warning: If enabled, artifacts can be created is you have some thin features "
+"Warning: If enabled, artifacts can be created if you have some thin features "
 "on the next layer, like letters. Set this setting to 0 to remove these "
 "artifacts."
 msgstr ""
-"Si s'ha d'imprimir una superfície superior i està parcialment coberta per "
-"una altra capa, no es considerarà una capa superior si la seva amplada és "
-"inferior a aquest valor. Això pot ser útil per no deixar que el \"perímetre "
-"a la part superior\" s'activi quan les superfícies estan pensades per ser "
-"cobertes només per perímetres. Aquest valor pot especificar en mm o com a "
-"% o de l'amplada d'extrusió perimetral.\n"
-"Advertència: Si està activat, es poden produir artefactes si teniu alguna "
-"característica fina a la capa següent, com ara lletres. Establiu aquest "
-"paràmetre a 0 per eliminar aquests artefactes."
 
 msgid "Only one wall on first layer"
 msgstr "Només un perímetre a la primera capa"
@@ -9080,13 +9198,30 @@ msgstr ""
 "invers a 0 de manera que totes els perímetres interns s'imprimeixin en "
 "direccions alternes en capes senars, independentment del seu grau de voladís."
 
+msgid "Bridge counterbole holes"
+msgstr ""
+
+msgid ""
+"This option creates bridges for counterbore holes, allowing them to be "
+"printed without support. Available modes include:\n"
+"1. None: No bridge is created.\n"
+"2. Partially Bridged: Only a part of the unsupported area will be bridged.\n"
+"3. Sacrificial Layer: A full sacrificial bridge layer is created."
+msgstr ""
+
+msgid "Partially bridged"
+msgstr ""
+
+msgid "Sacrificial layer"
+msgstr ""
+
 msgid "Reverse threshold"
 msgstr "Llindar invers"
 
 msgid "Overhang reversal threshold"
 msgstr "Llindar d'inversió en voladís"
 
-#, c-format, boost-format
+#, no-c-format, no-boost-format
 msgid ""
 "Number of mm the overhang need to be for the reversal to be considered "
 "useful. Can be a % of the perimeter width.\n"
@@ -9225,6 +9360,15 @@ msgstr "Capa"
 msgid "By object"
 msgstr "Objecte"
 
+msgid "Intra-layer order"
+msgstr ""
+
+msgid "Print order within a single layer"
+msgstr ""
+
+msgid "As object list"
+msgstr ""
+
 msgid "Slow printing down for better layer cooling"
 msgstr ""
 "Reduir la velocitat d'impressió per millorar la refrigeració de les capes"
@@ -9279,13 +9423,13 @@ msgid "Fan speed"
 msgstr "Velocitat del ventilador"
 
 msgid ""
-"Speed of exhuast fan during printing.This speed will overwrite the speed in "
+"Speed of exhaust fan during printing.This speed will overwrite the speed in "
 "filament custom gcode"
 msgstr ""
 "Velocitat del ventilador d'extracció durant la impressió. Aquesta velocitat "
 "sobreescriurà la velocitat del Codi-G personalitzat del filament"
 
-msgid "Speed of exhuast fan after printing completes"
+msgid "Speed of exhaust fan after printing completes"
 msgstr "Velocitat del ventilador d'extracció després de completar la impressió"
 
 msgid "No cooling for the first"
@@ -9334,6 +9478,76 @@ msgstr ""
 "recomana tenir activada aquesta funció. Tanmateix, penseu a desactivar-lo si "
 "utilitzeu broquets grans."
 
+msgid "Don't filter out small internal bridges (beta)"
+msgstr "No filtrar els petits ponts interns ( experimental )"
+
+msgid ""
+"This option can help reducing pillowing on top surfaces in heavily slanted "
+"or curved models.\n"
+"\n"
+"By default, small internal bridges are filtered out and the internal solid "
+"infill is printed directly over the sparse infill. This works well in most "
+"cases, speeding up printing without too much compromise on top surface "
+"quality. \n"
+"\n"
+"However, in heavily slanted or curved models especially where too low sparse "
+"infill density is used, this may result in curling of the unsupported solid "
+"infill, causing pillowing.\n"
+"\n"
+"Enabling this option will print internal bridge layer over slightly "
+"unsupported internal solid infill. The options below control the amount of "
+"filtering, i.e. the amount of internal bridges created.\n"
+"\n"
+"Disabled - Disables this option. This is the default behaviour and works "
+"well in most cases.\n"
+"\n"
+"Limited filtering - Creates internal bridges on heavily slanted surfaces, "
+"while avoiding creating uncessesary interal bridges. This works well for "
+"most difficult models.\n"
+"\n"
+"No filtering - Creates internal bridges on every potential internal "
+"overhang. This option is useful for heavily slanted top surface models. "
+"However, in most cases it creates too many unecessary bridges."
+msgstr ""
+"Aquesta opció pot ajudar a reduir la formació de forats a les superfícies "
+"superiors en models molt inclinats o corbats.\n"
+"\n"
+"Per defecte, es filtren petits ponts interns i el farciment sòlid intern "
+"s'imprimeix directament sobre el farciment poc dens. Això funciona bé en la "
+"majoria dels casos, accelerant la impressió sense comprometre massa la "
+"qualitat superior de la superfície. \n"
+"\n"
+"No obstant això, en models molt inclinats o corbats, especialment on "
+"s'utilitza una densitat de farciment massa baixa i escassa, això pot "
+"resultar en l'enrotllament del farciment sòlid no suportat, causant formació "
+"de forats\n"
+"\n"
+"Si activeu aquesta opció, s'imprimirà la capa de pont intern sobre un "
+"farciment sòlid intern lleugerament sense suport. Les opcions següents "
+"controlen la quantitat de filtratge, és a dir, la quantitat de ponts interns "
+"creats.\n"
+"\n"
+"Desactivat: desactiva aquesta opció. Aquest és el comportament predeterminat "
+"i funciona bé en la majoria dels casos.\n"
+"\n"
+"Filtratge limitat: crea ponts interns en superfícies molt inclinades, alhora "
+"que evita crear ponts interns innecessaris. Això funciona bé per als models "
+"més difícils.\n"
+"\n"
+"Sense filtratge: crea ponts interns sobre tots els voladissos interns "
+"potencials. Aquesta opció és útil per a models de superfície superior molt "
+"inclinats. No obstant això, en la majoria dels casos crea massa ponts "
+"innecessaris."
+
+msgid "Disabled"
+msgstr "Deshabilitat"
+
+msgid "Limited filtering"
+msgstr "Filtratge limitat"
+
+msgid "No filtering"
+msgstr "Sense filtres"
+
 msgid "Max bridge length"
 msgstr "Longitud màxima del pont"
 
@@ -9374,6 +9588,18 @@ msgid ""
 msgstr ""
 "Afegir farciment sòlid a prop de les superfícies inclinades per garantir el "
 "gruix vertical requerit ( capes sòlides superior+inferior )."
+
+msgid "Further reduce solid infill on walls (beta)"
+msgstr ""
+
+msgid ""
+"Further reduces any solid infill applied to walls. As there will be very "
+"limited infill supporting solid surfaces, make sure that you are using "
+"adequate number of walls to support the part on sloping surfaces.\n"
+"\n"
+"For heavily sloped surfaces this option is not suitable as it will generate "
+"too thin of a top layer and should be disabled."
+msgstr ""
 
 msgid "Top surface pattern"
 msgstr "Patró de superfície superior"
@@ -9548,6 +9774,26 @@ msgstr ""
 "cosa que provocarà un pitjor acabat superficial extern. També pot fer que el "
 "farciment brilli a les superfícies externes de la peça."
 
+msgid "Wall loop direction"
+msgstr ""
+
+msgid ""
+"The direction which the wall loops are extruded when looking down from the "
+"top.\n"
+"\n"
+"By default all walls are extruded in counter-clockwise, unless Reverse on "
+"odd is enabled. Set this to any option other than Auto will force the wall "
+"direction regardless of the Reverse on odd.\n"
+"\n"
+"This option will be disabled if sprial vase mode is enabled."
+msgstr ""
+
+msgid "Counter clockwise"
+msgstr ""
+
+msgid "Clockwise"
+msgstr ""
+
 msgid "Height to rod"
 msgstr "Alçada a la tija"
 
@@ -9574,6 +9820,50 @@ msgid ""
 msgstr ""
 "Radi d'espai lliure al voltant de l'extrusora. S'utilitza per evitar "
 "col·lisions en impressió per objecte."
+
+msgid "Bed mesh min"
+msgstr ""
+
+msgid ""
+"This option sets the min point for the allowed bed mesh area. Due to the "
+"probe's XY offset, most printers are unable to probe the entire bed. To "
+"ensure the probe point does not go outside the bed area, the minimum and "
+"maximum points of the bed mesh should be set appropriately. OrcaSlicer "
+"ensures that adaptive_bed_mesh_min/adaptive_bed_mesh_max values do not "
+"exceed these min/max points. This information can usually be obtained from "
+"your printer manufacturer. The default setting is (-99999, -99999), which "
+"means there are no limits, thus allowing probing across the entire bed."
+msgstr ""
+
+msgid "Bed mesh max"
+msgstr ""
+
+msgid ""
+"This option sets the max point for the allowed bed mesh area. Due to the "
+"probe's XY offset, most printers are unable to probe the entire bed. To "
+"ensure the probe point does not go outside the bed area, the minimum and "
+"maximum points of the bed mesh should be set appropriately. OrcaSlicer "
+"ensures that adaptive_bed_mesh_min/adaptive_bed_mesh_max values do not "
+"exceed these min/max points. This information can usually be obtained from "
+"your printer manufacturer. The default setting is (99999, 99999), which "
+"means there are no limits, thus allowing probing across the entire bed."
+msgstr ""
+
+msgid "Probe point distance"
+msgstr ""
+
+msgid ""
+"This option sets the preferred distance between probe points (grid size) for "
+"the X and Y directions, with the default being 50mm for both X and Y."
+msgstr ""
+
+msgid "Mesh margin"
+msgstr ""
+
+msgid ""
+"This option determines the additional distance by which the adaptive bed "
+"mesh area should be expanded in the XY directions."
+msgstr ""
 
 msgid "Extruder Color"
 msgstr "Color de l'extrusor"
@@ -9705,10 +9995,10 @@ msgstr ""
 msgid "Shrinkage"
 msgstr "Encongiment"
 
-#, c-format, boost-format
+#, no-c-format, no-boost-format
 msgid ""
-"Enter the shrinkage percentage that the filament will get after cooling "
-"(94% if you measure 94mm instead of 100mm). The part will be scaled in xy to "
+"Enter the shrinkage percentage that the filament will get after cooling (94% "
+"if you measure 94mm instead of 100mm). The part will be scaled in xy to "
 "compensate. Only the filament used for the perimeter is taken into account.\n"
 "Be sure to allow enough space between objects, as this compensation is done "
 "after the checks."
@@ -9940,7 +10230,7 @@ msgstr ""
 msgid "Sparse infill density"
 msgstr "Densitat de farciment poc dens"
 
-#, c-format, boost-format
+#, no-c-format, no-boost-format
 msgid ""
 "Density of internal sparse infill, 100% turns all sparse infill into solid "
 "infill and internal solid infill pattern will be used"
@@ -10186,15 +10476,15 @@ msgstr "Velocitat màxima del ventilador a la capa"
 
 msgid ""
 "Fan speed will be ramped up linearly from zero at layer "
-"\"close_fan_the_first_x_layers\" to maximum at layer "
-"\"full_fan_speed_layer\". \"full_fan_speed_layer\" will be ignored if lower "
-"than \"close_fan_the_first_x_layers\", in which case the fan will be running "
-"at maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
+"\"close_fan_the_first_x_layers\" to maximum at layer \"full_fan_speed_layer"
+"\". \"full_fan_speed_layer\" will be ignored if lower than "
+"\"close_fan_the_first_x_layers\", in which case the fan will be running at "
+"maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
 msgstr ""
 "La velocitat del ventilador augmentarà linealment de zero a la capa "
-"\"close_fan_the_first_x_layers\" al màxim a la capa "
-"\"full_fan_speed_layer\". S'ignorarà \"full_fan_speed_layer\" si és inferior "
-"a \"close_fan_the_first_x_layers\", en aquest cas el ventilador funcionarà a "
+"\"close_fan_the_first_x_layers\" al màxim a la capa \"full_fan_speed_layer"
+"\". S'ignorarà \"full_fan_speed_layer\" si és inferior a "
+"\"close_fan_the_first_x_layers\", en aquest cas el ventilador funcionarà a "
 "la velocitat màxima permesa a la capa \"close_fan_the_first_x_layers\" + 1."
 
 msgid "Support interface fan speed"
@@ -10452,6 +10742,12 @@ msgstr "Amb quin tipus de Codi-G és compatible la impressora"
 msgid "Klipper"
 msgstr "Klipper"
 
+msgid "Support multi bed types"
+msgstr "Admetre diversos tipus de llits"
+
+msgid "Enable this option if you want to use multiple bed types"
+msgstr "Activa aquesta opció si vols utilitzar diversos tipus de llit"
+
 msgid "Label objects"
 msgstr "Etiquetar objectes"
 
@@ -10646,6 +10942,22 @@ msgstr ""
 
 msgid "This G-code will be used as a custom code"
 msgstr "Aquest Codi-G s'utilitzarà com a codi personalitzat"
+
+msgid "Small area flow compensation (beta)"
+msgstr ""
+
+msgid "Enable flow compensation for small infill areas"
+msgstr ""
+
+msgid "Flow Compensation Model"
+msgstr ""
+
+msgid ""
+"Flow Compensation Model, used to adjust the flow for small infill areas. The "
+"model is expressed as a comma separated pair of values for extrusion length "
+"and flow correction factors, one per line, in the following format: "
+"\"1.234,5.678\""
+msgstr ""
 
 msgid "Maximum speed X"
 msgstr "Velocitat màxima X"
@@ -10885,14 +11197,10 @@ msgid "Min print speed"
 msgstr "Velocitat d'impressió mínima"
 
 msgid ""
-"The minimum printing speed for the filament when slow down for better layer "
-"cooling is enabled, when printing overhangs and when feature speeds are not "
-"specified explicitly."
+"The minimum printing speed that the printer will slow down to to attempt to "
+"maintain the minimum layer time above, when slow down for better layer "
+"cooling is enabled."
 msgstr ""
-"La velocitat mínima d'impressió del filament quan l'alentiment per a un "
-"millor refredament de la capa està habilitat, quan els voladissos "
-"d'impressió i quan les velocitats de les característiques no s'especifiquen "
-"explícitament."
 
 msgid "Nozzle diameter"
 msgstr "Diàmetre del broquet( nozzle )"
@@ -10999,9 +11307,6 @@ msgstr ""
 "vol dir que l'oozing( goteig ) queda amagat. Això pot reduir els temps de "
 "retracció per a models complexos i estalviar temps d'impressió, però fer que "
 "el laminat i la generació de Codi-G siguin més lents"
-
-msgid "Enable"
-msgstr "Activar"
 
 msgid "Filename format"
 msgstr "Format del nom del fitxer"
@@ -11370,6 +11675,47 @@ msgstr ""
 "diàmetre actual de l'extrusora. El valor predeterminat d'aquest paràmetre és "
 "del 10%."
 
+msgid "Scarf joint seam (beta)"
+msgstr ""
+
+msgid "Use scarf joint to minimize seam visibility and increase seam strength."
+msgstr ""
+
+msgid "Scarf start height"
+msgstr ""
+
+msgid ""
+"Start height of the scarf.\n"
+"This amount can be specified in millimeters or as a percentage of the "
+"current layer height. The default value for this parameter is 0."
+msgstr ""
+
+msgid "Scarf around entire wall"
+msgstr ""
+
+msgid "The scarf extends to the entire length of the wall."
+msgstr ""
+
+msgid "Scarf length"
+msgstr ""
+
+msgid ""
+"Length of the scarf. Setting this parameter to zero effectively disables the "
+"scarf."
+msgstr ""
+
+msgid "Scarf steps"
+msgstr ""
+
+msgid "Minimum number of segments of each scarf."
+msgstr ""
+
+msgid "Scarf joint for inner walls"
+msgstr ""
+
+msgid "Use scarf joint for inner walls as well."
+msgstr ""
+
 msgid "Role base wipe speed"
 msgstr "Velocitat de neteja basada en l'acció"
 
@@ -11588,8 +11934,8 @@ msgstr "Purga el filament restant a la Torre de Purga"
 msgid "Enable filament ramming"
 msgstr "Habilitar Moldejat de punta( Ramming ) de filament"
 
-msgid "No sparse layers (EXPERIMENTAL)"
-msgstr "Sense capes poc denses( EXPERIMENTAL )"
+msgid "No sparse layers (beta)"
+msgstr ""
 
 msgid ""
 "If enabled, the wipe tower will not be printed on layers with no "
@@ -12348,7 +12694,7 @@ msgstr ""
 msgid "Polyhole detection margin"
 msgstr "Marge de detecció de poliforats"
 
-#, c-format, boost-format
+#, no-c-format, no-boost-format
 msgid ""
 "Maximum defection of a point to the estimated radius of the circle.\n"
 "As cylinders are often exported as triangles of varying size, points may not "
@@ -12492,6 +12838,31 @@ msgstr ""
 "la mida mínima s'ampliaran a l'amplada mínima del perímetre. S'expressa en "
 "percentatge sobre el diàmetre del broquet"
 
+msgid "Minimum wall length"
+msgstr "Longitud mínima del perímetre"
+
+msgid ""
+"Adjust this value to prevent short, unclosed walls from being printed, which "
+"could increase print time. Higher values remove more and longer walls.\n"
+"\n"
+"NOTE: Bottom and top surfaces will not be affected by this value to prevent "
+"visual gaps on the ouside of the model. Adjust 'One wall threshold' in the "
+"Advanced settings below to adjust the sensitivity of what is considered a "
+"top-surface. 'One wall threshold' is only visibile if this setting is set "
+"above the default value of 0.5, or if single-wall top surfaces is enabled."
+msgstr ""
+"Ajusteu aquest valor per evitar que s'imprimeixin perímetres curts sense "
+"tancar, cosa que podria augmentar el temps d'impressió. Els valors més alts "
+"eliminen més perímetres i més llargs.\n"
+"\n"
+"NOTA: Les superfícies inferior i superior no es veuran afectades per aquest "
+"valor per evitar buits visuals a la part exterior del model. Ajusteu "
+"\"Llindar d'un sol perímetre\" a la configuració avançada següent per "
+"ajustar la sensibilitat del que es considera una superfície superior. "
+"L'ajustament del \"Llindar d'un sol perímetre\" només és visible si aquesta "
+"opció de configuració s'estableix per sobre del valor predeterminat de 0,5 o "
+"si les superfícies superiors d'un sol perímetre estan habilitades."
+
 msgid "First layer minimum wall width"
 msgstr "Amplada mínima del perímetre de la primera capa"
 
@@ -12598,6 +12969,242 @@ msgstr "Carregar Codi-G personalitzat"
 
 msgid "Load custom gcode from json"
 msgstr "Carregar el Codi-G personalitzat des de json"
+
+msgid "Current z-hop"
+msgstr ""
+
+msgid "Contains z-hop present at the beginning of the custom G-code block."
+msgstr ""
+
+msgid ""
+"Position of the extruder at the beginning of the custom G-code block. If the "
+"custom G-code travels somewhere else, it should write to this variable so "
+"PrusaSlicer knows where it travels from when it gets control back."
+msgstr ""
+
+msgid ""
+"Retraction state at the beginning of the custom G-code block. If the custom "
+"G-code moves the extruder axis, it should write to this variable so "
+"PrusaSlicer deretracts correctly when it gets control back."
+msgstr ""
+
+msgid "Extra deretraction"
+msgstr ""
+
+msgid "Currently planned extra extruder priming after deretraction."
+msgstr ""
+
+msgid "Current extruder"
+msgstr ""
+
+msgid "Zero-based index of currently used extruder."
+msgstr ""
+
+msgid "Current object index"
+msgstr ""
+
+msgid ""
+"Specific for sequential printing. Zero-based index of currently printed "
+"object."
+msgstr ""
+
+msgid "Has wipe tower"
+msgstr ""
+
+msgid "Whether or not wipe tower is being generated in the print."
+msgstr ""
+
+msgid "Initial extruder"
+msgstr ""
+
+msgid ""
+"Zero-based index of the first extruder used in the print. Same as "
+"initial_tool."
+msgstr ""
+
+msgid "Initial tool"
+msgstr ""
+
+msgid ""
+"Zero-based index of the first extruder used in the print. Same as "
+"initial_extruder."
+msgstr ""
+
+msgid "Is extruder used?"
+msgstr ""
+
+msgid "Vector of bools stating whether a given extruder is used in the print."
+msgstr ""
+
+msgid "Volume per extruder"
+msgstr ""
+
+msgid "Total filament volume extruded per extruder during the entire print."
+msgstr ""
+
+msgid "Total toolchanges"
+msgstr ""
+
+msgid "Number of toolchanges during the print."
+msgstr ""
+
+msgid "Total volume"
+msgstr ""
+
+msgid "Total volume of filament used during the entire print."
+msgstr ""
+
+msgid "Weight per extruder"
+msgstr ""
+
+msgid ""
+"Weight per extruder extruded during the entire print. Calculated from "
+"filament_density value in Filament Settings."
+msgstr ""
+
+msgid "Total weight"
+msgstr ""
+
+msgid ""
+"Total weight of the print. Calculated from filament_density value in "
+"Filament Settings."
+msgstr ""
+
+msgid "Total layer count"
+msgstr ""
+
+msgid "Number of layers in the entire print."
+msgstr ""
+
+msgid "Number of objects"
+msgstr ""
+
+msgid "Total number of objects in the print."
+msgstr ""
+
+msgid "Number of instances"
+msgstr ""
+
+msgid "Total number of object instances in the print, summed over all objects."
+msgstr ""
+
+msgid "Scale per object"
+msgstr ""
+
+msgid ""
+"Contains a string with the information about what scaling was applied to the "
+"individual objects. Indexing of the objects is zero-based (first object has "
+"index 0).\n"
+"Example: 'x:100% y:50% z:100'."
+msgstr ""
+
+msgid "Input filename without extension"
+msgstr ""
+
+msgid "Source filename of the first object, without extension."
+msgstr ""
+
+msgid ""
+"The vector has two elements: x and y coordinate of the point. Values in mm."
+msgstr ""
+
+msgid ""
+"The vector has two elements: x and y dimension of the bounding box. Values "
+"in mm."
+msgstr ""
+
+msgid "First layer convex hull"
+msgstr ""
+
+msgid ""
+"Vector of points of the first layer convex hull. Each element has the "
+"following format:'[x, y]' (x and y are floating-point numbers in mm)."
+msgstr ""
+
+msgid "Bottom-left corner of first layer bounding box"
+msgstr ""
+
+msgid "Top-right corner of first layer bounding box"
+msgstr ""
+
+msgid "Size of the first layer bounding box"
+msgstr ""
+
+msgid "Bottom-left corner of print bed bounding box"
+msgstr ""
+
+msgid "Top-right corner of print bed bounding box"
+msgstr ""
+
+msgid "Size of the print bed bounding box"
+msgstr ""
+
+msgid "Timestamp"
+msgstr ""
+
+msgid "String containing current time in yyyyMMdd-hhmmss format."
+msgstr ""
+
+msgid "Day"
+msgstr ""
+
+msgid "Hour"
+msgstr ""
+
+msgid "Minute"
+msgstr ""
+
+msgid "Print preset name"
+msgstr ""
+
+msgid "Name of the print preset used for slicing."
+msgstr ""
+
+msgid "Filament preset name"
+msgstr ""
+
+msgid ""
+"Names of the filament presets used for slicing. The variable is a vector "
+"containing one name for each extruder."
+msgstr ""
+
+msgid "Printer preset name"
+msgstr ""
+
+msgid "Name of the printer preset used for slicing."
+msgstr ""
+
+msgid "Physical printer name"
+msgstr ""
+
+msgid "Name of the physical printer used for slicing."
+msgstr ""
+
+msgid "Layer number"
+msgstr ""
+
+msgid "Index of the current layer. One-based (i.e. first layer is number 1)."
+msgstr ""
+
+msgid "Layer z"
+msgstr ""
+
+msgid ""
+"Height of the current layer above the print bed, measured to the top of the "
+"layer."
+msgstr ""
+
+msgid "Maximal layer z"
+msgstr ""
+
+msgid "Height of the last layer above the print bed."
+msgstr ""
+
+msgid "Filament extruder ID"
+msgstr ""
+
+msgid "The current extruder ID. The same as current_extruder."
+msgstr ""
 
 msgid "Error in zip archive"
 msgstr "Error amb el fitxer ZIP"
@@ -13350,8 +13957,8 @@ msgstr "Tipus de filament"
 msgid "Start temp: "
 msgstr "Temperatura Inicial: "
 
-msgid "End end: "
-msgstr "Final: "
+msgid "End temp: "
+msgstr "Temperatura final: "
 
 msgid "Temp step: "
 msgstr "Pas de temperatura: "
@@ -13689,13 +14296,10 @@ msgstr ""
 "Vols reescriure'l?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you "
-"selected\". \n"
-"To add preset for more prinetrs, Please go to printer selection"
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
+"To add preset for more printers, Please go to printer selection"
 msgstr ""
-"Canviaríem el nom dels perfils seleccionats com a \"Proveïdor Tipus "
-"Número_de_Sèrie @impressora\". \n"
-"Per afegir perfils per a més impressores, aneu a la selecció d'impressora"
 
 msgid "Create Printer/Nozzle"
 msgstr "Crear Impressora/Broquet"
@@ -14080,6 +14684,9 @@ msgstr "Copiar perfil des del filament"
 msgid "The filament choice not find filament preset, please reselect it"
 msgstr "Perfil de filament no trobat, si us plau, seleccioneu-ne un altre"
 
+msgid "[Delete Required]"
+msgstr ""
+
 msgid "Edit Preset"
 msgstr "Edita el Perfil"
 
@@ -14340,8 +14947,8 @@ msgstr ""
 
 #: resources/data/hints.ini: [hint:Air filtration]
 msgid ""
-"Air filtration/Exhuast Fan\n"
-"Did you know that OrcaSlicer can support Air filtration/Exhuast Fan?"
+"Air filtration/Exhaust Fan\n"
+"Did you know that OrcaSlicer can support Air filtration/Exhaust Fan?"
 msgstr ""
 "Filtració d'Aire/Ventilador d'Extracció\n"
 "Sabíeu que OrcaSlicer admet lea funcionalitat de Filtració d'Aire/Ventilador "
@@ -14678,149 +15285,78 @@ msgstr ""
 "augmentar adequadament la temperatura del llit pot reduir la probabilitat de "
 "deformació."
 
-#~ msgid ""
-#~ "\n"
-#~ "Hint: Make sure you have added the corresponding printer before importing "
-#~ "the configs."
+#~ msgid " "
+#~ msgstr " "
+
+#~ msgid "Text-Rotate"
+#~ msgstr "Rotació-Text"
+
+#~ msgid "SVG-Rotate"
+#~ msgstr "SVG-Rotar"
+
+#~ msgid "Resize"
+#~ msgstr "Redimensionar"
+
+#~ msgid "The Config can not be loaded."
+#~ msgstr "La Configuració no es pot carregar."
+
+#~ msgid "The 3mf is generated by old Orca Slicer, load geometry data only."
 #~ msgstr ""
-#~ "\n"
-#~ "Consell: Assegureu-vos que heu afegit la impressora corresponent abans "
-#~ "d'importar les configuracions."
+#~ "El 3mf està generat amb una versió d'Orca Slicer antiga, només carrega "
+#~ "dades de geometria."
+
+#~ msgid "Configuration package updated to "
+#~ msgstr "Paquet de configuració actualitzat a "
+
+#~ msgid ""
+#~ "Improve shell precision by adjusting outer wall spacing. This also "
+#~ "improves layer consistency."
+#~ msgstr ""
+#~ "Milloreu la precisió de la carcassa ajustant l'espaiat del perímetre "
+#~ "exterior. Això també millora la consistència de la capa."
 
 #, c-format, boost-format
 #~ msgid ""
-#~ "The 3mf's version %s is newer than %s's version %s, Found following keys "
-#~ "unrecognized:"
+#~ "If a top surface has to be printed and it's partially covered by another "
+#~ "layer, it won't be considered at a top layer where its width is below "
+#~ "this value. This can be useful to not let the 'one perimeter on top' "
+#~ "trigger on surface that should be covered only by perimeters. This value "
+#~ "can be a mm or a % of the perimeter extrusion width.\n"
+#~ "Warning: If enabled, artifacts can be created is you have some thin "
+#~ "features on the next layer, like letters. Set this setting to 0 to remove "
+#~ "these artifacts."
 #~ msgstr ""
-#~ "La versió de 3mf %s és més nova que la versió de %s %s, S'han trobat les "
-#~ "següents claus no reconegudes:"
-
-#~ msgid "You'd better upgrade your software.\n"
-#~ msgstr "És millor que actualitzeu el vostre programari.\n"
-
-#~ msgid "Newer 3mf version"
-#~ msgstr "Nova versió 3mf"
-
-#, c-format, boost-format
-#~ msgid ""
-#~ "The 3mf's version %s is newer than %s's version %s, Suggest to upgrade "
-#~ "your software."
-#~ msgstr ""
-#~ "La versió de 3mf %s és més nova que la versió de %s %s, es suggereix que "
-#~ "actualitzis el teu programari."
-
-#~ msgid "Gizmo Text emboss / engrave"
-#~ msgstr "Gizmo de Text en relleu / gravat"
-
-#~ msgid "Zoom in"
-#~ msgstr "Augmentar zoom"
-
-#~ msgid "Zoom out"
-#~ msgstr "Reduir zoom"
-
-#~ msgid "Don't filter out small internal bridges (beta)"
-#~ msgstr "No filtrar els petits ponts interns ( experimental )"
+#~ "Si s'ha d'imprimir una superfície superior i està parcialment coberta per "
+#~ "una altra capa, no es considerarà una capa superior si la seva amplada és "
+#~ "inferior a aquest valor. Això pot ser útil per no deixar que el "
+#~ "\"perímetre a la part superior\" s'activi quan les superfícies estan "
+#~ "pensades per ser cobertes només per perímetres. Aquest valor pot "
+#~ "especificar en mm o com a % o de l'amplada d'extrusió perimetral.\n"
+#~ "Advertència: Si està activat, es poden produir artefactes si teniu alguna "
+#~ "característica fina a la capa següent, com ara lletres. Establiu aquest "
+#~ "paràmetre a 0 per eliminar aquests artefactes."
 
 #~ msgid ""
-#~ "This option can help reducing pillowing on top surfaces in heavily "
-#~ "slanted or curved models.\n"
-#~ "\n"
-#~ "By default, small internal bridges are filtered out and the internal "
-#~ "solid infill is printed directly over the sparse infill. This works well "
-#~ "in most cases, speeding up printing without too much compromise on top "
-#~ "surface quality. \n"
-#~ "\n"
-#~ "However, in heavily slanted or curved models especially where too low "
-#~ "sparse infill density is used, this may result in curling of the "
-#~ "unsupported solid infill, causing pillowing.\n"
-#~ "\n"
-#~ "Enabling this option will print internal bridge layer over slightly "
-#~ "unsupported internal solid infill. The options below control the amount "
-#~ "of filtering, i.e. the amount of internal bridges created.\n"
-#~ "\n"
-#~ "Disabled - Disables this option. This is the default behaviour and works "
-#~ "well in most cases.\n"
-#~ "\n"
-#~ "Limited filtering - Creates internal bridges on heavily slanted surfaces, "
-#~ "while avoiding creating uncessesary interal bridges. This works well for "
-#~ "most difficult models.\n"
-#~ "\n"
-#~ "No filtering - Creates internal bridges on every potential internal "
-#~ "overhang. This option is useful for heavily slanted top surface models. "
-#~ "However, in most cases it creates too many unecessary bridges."
+#~ "The minimum printing speed for the filament when slow down for better "
+#~ "layer cooling is enabled, when printing overhangs and when feature speeds "
+#~ "are not specified explicitly."
 #~ msgstr ""
-#~ "Aquesta opció pot ajudar a reduir la formació de forats a les superfícies "
-#~ "superiors en models molt inclinats o corbats.\n"
-#~ "\n"
-#~ "Per defecte, es filtren petits ponts interns i el farciment sòlid intern "
-#~ "s'imprimeix directament sobre el farciment poc dens. Això funciona bé en "
-#~ "la majoria dels casos, accelerant la impressió sense comprometre massa la "
-#~ "qualitat superior de la superfície. \n"
-#~ "\n"
-#~ "No obstant això, en models molt inclinats o corbats, especialment on "
-#~ "s'utilitza una densitat de farciment massa baixa i escassa, això pot "
-#~ "resultar en l'enrotllament del farciment sòlid no suportat, causant "
-#~ "formació de forats\n"
-#~ "\n"
-#~ "Si activeu aquesta opció, s'imprimirà la capa de pont intern sobre un "
-#~ "farciment sòlid intern lleugerament sense suport. Les opcions següents "
-#~ "controlen la quantitat de filtratge, és a dir, la quantitat de ponts "
-#~ "interns creats.\n"
-#~ "\n"
-#~ "Desactivat: desactiva aquesta opció. Aquest és el comportament "
-#~ "predeterminat i funciona bé en la majoria dels casos.\n"
-#~ "\n"
-#~ "Filtratge limitat: crea ponts interns en superfícies molt inclinades, "
-#~ "alhora que evita crear ponts interns innecessaris. Això funciona bé per "
-#~ "als models més difícils.\n"
-#~ "\n"
-#~ "Sense filtratge: crea ponts interns sobre tots els voladissos interns "
-#~ "potencials. Aquesta opció és útil per a models de superfície superior "
-#~ "molt inclinats. No obstant això, en la majoria dels casos crea massa "
-#~ "ponts innecessaris."
+#~ "La velocitat mínima d'impressió del filament quan l'alentiment per a un "
+#~ "millor refredament de la capa està habilitat, quan els voladissos "
+#~ "d'impressió i quan les velocitats de les característiques no "
+#~ "s'especifiquen explícitament."
 
-#~ msgid "Disabled"
-#~ msgstr "Deshabilitat"
+#~ msgid "No sparse layers (EXPERIMENTAL)"
+#~ msgstr "Sense capes poc denses( EXPERIMENTAL )"
 
-#~ msgid "Limited filtering"
-#~ msgstr "Filtratge limitat"
-
-#~ msgid "No filtering"
-#~ msgstr "Sense filtres"
-
-#~ msgid "Support multi bed types"
-#~ msgstr "Admetre diversos tipus de llits"
-
-#~ msgid "Enable this option if you want to use multiple bed types"
-#~ msgstr "Activa aquesta opció si vols utilitzar diversos tipus de llit"
-
-#~ msgid "Minimum wall length"
-#~ msgstr "Longitud mínima del perímetre"
+#~ msgid "End end: "
+#~ msgstr "Final: "
 
 #~ msgid ""
-#~ "Adjust this value to prevent short, unclosed walls from being printed, "
-#~ "which could increase print time. Higher values remove more and longer "
-#~ "walls.\n"
-#~ "\n"
-#~ "NOTE: Bottom and top surfaces will not be affected by this value to "
-#~ "prevent visual gaps on the ouside of the model. Adjust 'One wall "
-#~ "threshold' in the Advanced settings below to adjust the sensitivity of "
-#~ "what is considered a top-surface. 'One wall threshold' is only visibile "
-#~ "if this setting is set above the default value of 0.5, or if single-wall "
-#~ "top surfaces is enabled."
+#~ "We would rename the presets as \"Vendor Type Serial @printer you selected"
+#~ "\". \n"
+#~ "To add preset for more prinetrs, Please go to printer selection"
 #~ msgstr ""
-#~ "Ajusteu aquest valor per evitar que s'imprimeixin perímetres curts sense "
-#~ "tancar, cosa que podria augmentar el temps d'impressió. Els valors més "
-#~ "alts eliminen més perímetres i més llargs.\n"
-#~ "\n"
-#~ "NOTA: Les superfícies inferior i superior no es veuran afectades per "
-#~ "aquest valor per evitar buits visuals a la part exterior del model. "
-#~ "Ajusteu \"Llindar d'un sol perímetre\" a la configuració avançada següent "
-#~ "per ajustar la sensibilitat del que es considera una superfície superior. "
-#~ "L'ajustament del \"Llindar d'un sol perímetre\" només és visible si "
-#~ "aquesta opció de configuració s'estableix per sobre del valor "
-#~ "predeterminat de 0,5 o si les superfícies superiors d'un sol perímetre "
-#~ "estan habilitades."
-
-#~ msgid "End temp: "
-#~ msgstr "Temperatura final: "
+#~ "Canviaríem el nom dels perfils seleccionats com a \"Proveïdor Tipus "
+#~ "Número_de_Sèrie @impressora\". \n"
+#~ "Per afegir perfils per a més impressores, aneu a la selecció d'impressora"

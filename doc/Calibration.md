@@ -10,12 +10,13 @@
   1. [Max Volumetric speed](#Max-Volumetric-speed)
   2. [VFA]  
 
-**NOTE**: After completing the calibration process, remember to create a new project in order to exit the calibration mode.
+**NOTE**: After completing the calibration process, remember to create a new project in order to exit the calibration mode.  
+**NOTE2**: @ItsDeidara has made a webpage to help with the calculation. Check it out if those equations give you a headache [here](https://orcalibrate.com/).
 # Flow rate
  ##### *NOTE: For Bambulab X1/X1C users, make sure you do not select the 'Flow calibration' option.*  
  ![uncheck](https://user-images.githubusercontent.com/103989404/221345187-3c317a46-4d85-4221-99b9-adb5c7f48026.jpeg)  
 ----------------------------------------
-![flowrate](https://user-images.githubusercontent.com/103989404/210137579-3fd141ad-f2da-4542-a1fd-fc4b4d673908.gif)
+![flowrate](./images/flow-calibration.gif)
 Calibrating the flow rate involves a two-step process.  
 Steps
 1. Select the printer, filament, and process you would like to use for the test.
@@ -29,8 +30,8 @@ Steps
 6. Perform the `Pass 2` calibration. This process is similar to `Pass 1`, but a new project with ten blocks will be generated. The flow rate modifiers for this project will range from `-9 to 0`.
 7. Repeat steps 4 and 5. In this case, if your previous flow ratio was 1.029 and you selected the block with a flow rate modifier of -6, the new value should be calculated as follows: `1.029x(100-6)/100 = 0.96726`. ** Remember ** to save the filament profile.  
 ![pass2](https://user-images.githubusercontent.com/103989404/210139072-f2fa91a6-4e3b-4d2a-81f2-c50155e1ff6d.jpg)
-![-6](https://user-images.githubusercontent.com/103989404/210139131-ee224146-b242-4c1c-ac96-35ef0ca591f1.jpg)
-![image](https://user-images.githubusercontent.com/103989404/210139721-919be130-fbba-4e3a-aa58-8a563e8c7792.png)
+![-6](https://user-images.githubusercontent.com/103989404/210139131-ee224146-b242-4c1c-ac96-35ef0ca591f1.jpg)  
+![image](./images/flowcalibration_update_flowrate.jpg)  
 
 # Pressure Advance
 
