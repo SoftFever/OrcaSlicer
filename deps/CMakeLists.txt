@@ -43,7 +43,7 @@ endif ()
 set(DESTDIR "${CMAKE_CURRENT_BINARY_DIR}/destdir" CACHE PATH "Destination directory")
 set(REMOVE_DESTDIR_POSTPEND FALSE CACHE BOOL "Used in flatpak to remove the '/usr/local' ending in destdir")
 set(DEP_DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR}/../DL_CACHE CACHE PATH "Path for downloaded source packages.")
-if (NOT REMOVE_DESTDIR_POSTPEND)
+if (REMOVE_DESTDIR_POSTPEND)
     set(DESTDIR "${DESTDIR}/usr/local/" CACHE PATH "The true destdir")
 endif()
 
