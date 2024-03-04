@@ -6,21 +6,32 @@ Extrusion rate smoothing (ERS) aims to limit the rate of extrusion volume change
 
 <h2>Theory:</h2>
 
-Enabling this feature creates a small extrusion rate "ramp" by slowing down and ramping up print speeds prior to and after the features causing a sudden change in extrusion flow rate needs, such as overhangs and overhang perimeters. This happens by breaking down the line segments into smaller "chunks" proportional to the ERS segment length and reducing the print speed of that segment, so that the requested extrusion volumetric flow rate change is at or below the ERS threshold.
+Enabling this feature creates a small extrusion rate "ramp" by slowing down and ramping up print speeds prior to and after the features causing a sudden change in extrusion flow rate needs, such as overhangs and overhang perimeters. 
+This happens by breaking down the line segments into smaller "chunks" proportional to the ERS segment length and reducing the print speed of that segment, so that the requested extrusion volumetric flow rate change is at or below the ERS threshold.
 
 In summary, it takes the "edge" off pressure advance. It reduces wall artefacts that show when the print speeds change suddenly, because the extruder cannot perfectly adhere to the requested by the firmware flow rates, especially when the extrusion rate is changing rapidly. 
 
 The below artefact is mitigated through the use of ERS.
 ![ERS Disabled](https://github.com/SoftFever/OrcaSlicer/assets/59056762/31fdbf91-2067-4286-8bc1-4f7de4a628b6)
 
-The bulging visible above is due to the extruder not being able to respond fast enough against the required speed change when printing with high accelerations and high speeds and requested to slow down for an overhang. In the above scenario, the printer (Bambu Lab X1 Carbon) was requested to slow down from a 200mm/sec print speed to 40mm/sec at an acceleration of 5k/sec2. The extruder could not keep up with the pressure change, resulting in a slight bump ahead at the point of speed change.
+The bulging visible above is due to the extruder not being able to respond fast enough against the required speed change when printing with high accelerations and high speeds and requested to slow down for an overhang. 
+In the above scenario, the printer (Bambu Lab X1 Carbon) was requested to slow down from a 200mm/sec print speed to 40mm/sec at an acceleration of 5k/sec2. The extruder could not keep up with the pressure change, resulting in a slight bump ahead at the point of speed change.
 
 <h2>Tuning recomendations</h2>
 
+This parameter interacts with the below printer kinematic settings and physical limits:
+1. The limits of the extruder system - how fast can it change pressure in the nozzle
+2. The configured pressure advance values - that also affect pressure changes in the nozzle
+3. The acceleration profile of the printer - higher accelerations mean higher pressure changes
+4. The pressure advance smooth time (klipper) - higher smooth time means higher deviation from ideal extrusion, hence more opportunity for this feature to be useful.
+
+<h3>Bambu Lab Printers</h3>
 
 
 <h3>Smoothing Segment Length:</h3>
-Below you can see the effect of varying segment length values. A segment length of 1 will create the smoothest transitions with a larger segment creating more coarse speed changes. However, a downside to smaller segment lengths is the gcode size. As the extrusions are segmented in smaller lengths, the gcode volume and number of gcode commands sent to the printer per second increases. For some printers and models, setting a value of 1 may result in too many commands to process per second, resulting in stalling or "timer too close" messages. If you encounter this issue, increase the segment length until it stops occuring. A value of 1 usually works well for most models, with a value of 2 or 3 needed for slower printers (Marlin) or where the MCU cannot cope with the rate of commands issued. 
+Below you can see the effect of varying segment length values. A segment length of 1 will create the smoothest transitions with a larger segment creating more coarse speed changes. 
+However, a downside to smaller segment lengths is the gcode size. As the extrusions are segmented in smaller lengths, the gcode volume and number of gcode commands sent to the printer per second increases. 
+For some printers and models, setting a value of 1 may result in too many commands to process per second, resulting in stalling or "timer too close" messages. If you encounter this issue, increase the segment length until it stops occuring. A value of 1 usually works well for most models, with a value of 2 or 3 needed for slower printers (Marlin) or where the MCU cannot cope with the rate of commands issued. 
 
 **Segment Length = 1**
 ![Screenshot 2023-09-19 at 18 52 06](https://github.com/SoftFever/OrcaSlicer/assets/59056762/9dc9bd7b-3f32-4690-b5ab-dae66cb82246)
