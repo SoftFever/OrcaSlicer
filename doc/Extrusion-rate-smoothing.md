@@ -27,6 +27,7 @@ This parameter interacts with the below printer kinematic settings and physical 
 A printer's motion system does not exactly follow the speed changes seen in the gcode preview screen of Orca slicer. When a speed change is requested, the look ahead planner of the firmware calculates the slow down needed in advance of that slower point and commences slowing down alead of time. The rate of slowdown is limited by the move's acceleration values. At 2k acceleration, slowing down from 200mm/sec to 40mm/sec would take approximately 9.6mm. This is derived from the following equation:
 
 ![image](https://github.com/igiannakas/OrcaSlicer/assets/59056762/4ba0356b-49ab-428c-ab10-f2c88bcc1bcb)
+
 ![image](https://github.com/igiannakas/OrcaSlicer/assets/59056762/3958deb5-fbc3-4d07-8903-4575033717fd)
 
 The time taken to declerate to this new speed would be 0.08 seconds, derived from the following equation:
