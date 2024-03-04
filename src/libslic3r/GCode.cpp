@@ -23,7 +23,6 @@
 #include "GCode/ExtrusionProcessor.hpp"
 #include <algorithm>
 #include <cmath>
-#include <corecrt_math_defines.h>
 #include <cstdlib>
 #include <chrono>
 #include <iostream>
