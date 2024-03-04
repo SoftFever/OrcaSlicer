@@ -4563,8 +4563,7 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
         layer_id() > 0;
 
     if (enable_seam_slope && m_config.seam_slope_conditional.value) {
-        enable_seam_slope = enable_seam_slope &&
-                            loop.is_smooth((180 - m_config.scarf_angle_threshold.value) * M_PI / 180., EXTRUDER_CONFIG(nozzle_diameter));
+        enable_seam_slope = loop.is_smooth((180 - m_config.scarf_angle_threshold.value) * M_PI / 180., EXTRUDER_CONFIG(nozzle_diameter));
     }
     // clip the path to avoid the extruder to get exactly on the first point of the loop;
     // if polyline was shorter than the clipping distance we'd get a null polyline, so
