@@ -1976,12 +1976,12 @@ void TabPrint::build()
         optgroup->append_single_option_line("seam_position", "seam");
         optgroup->append_single_option_line("staggered_inner_seams", "seam");
         optgroup->append_single_option_line("seam_gap","seam");
-        optgroup->append_single_option_line("seam_slope_type");
-        optgroup->append_single_option_line("seam_slope_start_height");
-        optgroup->append_single_option_line("seam_slope_entire_loop");
-        optgroup->append_single_option_line("seam_slope_min_length");
-        optgroup->append_single_option_line("seam_slope_steps");
-        optgroup->append_single_option_line("seam_slope_inner_walls");
+        optgroup->append_single_option_line("seam_slope_type", "seam#scarf-joint-seam");
+        optgroup->append_single_option_line("seam_slope_start_height", "seam#scarf-joint-seam");
+        optgroup->append_single_option_line("seam_slope_entire_loop", "seam#scarf-joint-seam");
+        optgroup->append_single_option_line("seam_slope_min_length", "seam#scarf-joint-seam");
+        optgroup->append_single_option_line("seam_slope_steps", "seam#scarf-joint-seam");
+        optgroup->append_single_option_line("seam_slope_inner_walls", "seam#scarf-joint-seam");
         optgroup->append_single_option_line("role_based_wipe_speed","seam");
         optgroup->append_single_option_line("wipe_speed", "seam");
         optgroup->append_single_option_line("wipe_on_loops","seam");
