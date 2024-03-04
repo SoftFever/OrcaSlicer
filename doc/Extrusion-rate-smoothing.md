@@ -24,7 +24,7 @@ This parameter interacts with the below printer kinematic settings and physical 
 4. The pressure advance smooth time (klipper) - higher smooth time means higher deviation from ideal extrusion, hence more opportunity for this feature to be useful.
 
 <h3>Acceleration vs. Extrusion rate smoothing</h3>
-A printer's motion system does not exactly follow the speed changes seen in the gcode preview screen of Orca slicer. When a speed change is requested, the look ahead planner of the firmware calculates the slow down needed in advance of that slower point and commences slowing down alead of time. The rate of slowdown is limited by the move's acceleration values. At 2k acceleration, slowing down from 200mm/sec to 40mm/sec would take approximately 9.6mm. This is derived from the following equation:
+A printer's motion system does not exactly follow the speed changes seen in the gcode preview screen of Orca slicer. When a speed change is requested, the look ahead planner of the firmware calculates the slow down needed commences slowing. The rate of slowdown is limited by the move's acceleration values. At 2k acceleration, slowing down from 200mm/sec to 40mm/sec would take approximately 9.6mm. This is derived from the following equation:
 
 ![image](https://github.com/igiannakas/OrcaSlicer/assets/59056762/4ba0356b-49ab-428c-ab10-f2c88bcc1bcb)
 
@@ -44,15 +44,15 @@ So what we are asking the extruder to do is slow down from 12.16mm3/sec flow to 
 
 **This value is proportional to the acceleration of the printer. At 4k this value doubles, at 1k it is half and is independant of the speed of movement or starting and ending speeds.**
 
-**This value is also proportional to the line width - double the line width will result in double the extrusion rate change and vice versa.**
+**This value is also proportional to the line width - double the line width will result in double the extrusion rate change and vice versa. Same for layer height.**
 
-So, continuing with the worked example, a 2k acceleration produces an extrusion rate change ramp of 121mm3/sec2. **Therefore, setting a value higher than this would not bring any benefit to the print quality as the motion system would slow down less aggressively based on its acceleration limits.**
+So, continuing with the worked example, a 2k acceleration produces an extrusion rate change ramp of 121mm3/sec2. **Therefore, setting a value higher than this would not bring any benefit to the print quality as the motion system would slow down less aggressively based on its acceleration settings.**
 
 <h3>Pressure advance vs extrusion rate smoothing</h3>
 
 Then we need to consider pressure advance and smooth time. 
 
-**Pressure Advance** adjusts the extruder's speed to account for the pressure changes inside the hotend's melt zone. When the print head moves and extrudes filament, there's a delay between the movement of the extruder gear and the plastic actually being extruded due to the compressibility of the molten plastic in the hotend. This delay can cause too much plastic to be extruded when the print head starts moving or not enough plastic when the print head stops, leading to issues like blobbing or under-extrusion. This 
+**Pressure Advance** adjusts the extruder's speed to account for the pressure changes inside the hotend's melt zone. When the print head moves and extrudes filament, there's a delay between the movement of the extruder gear and the plastic actually being extruded due to the compressibility of the molten plastic in the hotend. This delay can cause too much plastic to be extruded when the print head starts moving or not enough plastic when the print head stops, leading to issues like blobbing or under-extrusion.
 
 **Pressure Advance Smooth time** helps to mitigate potential negative effects on print quality due to the rapid changes in extruder flow rate, which are controlled by the Pressure Advance algorithm. This parameter essentially adds a smoothing effect to the adjustments made by Pressure Advance, aiming to prevent sharp or sudden changes in the extrusion rate.
 
@@ -62,7 +62,9 @@ When Pressure Advance adjusts the extruder speed to compensate for the pressure 
 2. Increased wear on the extruder gear and filament,
 3. Visible artifacts on the print surface due to non-uniform extrusion.
 
-The smooth time setting introduces a controlled delay over which the Pressure Advance adjustments are spread out. This results in a more gradual application or reduction of extrusion pressure, leading to smoother transitions in filament flow.
+The smooth time setting introduces a controlled delay over which the Pressure Advance adjustments are spread out. This results in a more gradual application or reduction of extrusion pressure, leading to smoother transitions in filament flow. 
+
+The tradeoff is extrusion accuracy. There is a deviation between the requested extrusion amount and the actual extrusion amount due to this smoothing.
 
 **1. Increasing Smooth Time:** Leads to more gradual changes in extrusion pressure. While this can reduce artifacts and stress on the extruder system, setting it too high may diminish the effectiveness of Pressure Advance, as the compensation becomes too delayed to counteract the pressure dynamics accurately.
 
@@ -70,7 +72,7 @@ The smooth time setting introduces a controlled delay over which the Pressure Ad
 
 In essence, pressure advance smooth time creates an intentional deviation from the ideal extruder rotation and, as a consequence, extrusion amount, to allow the printer's extruder to perform within its mechanical limits. Typically this value is set to 0.04sec, which means that when Pressure Advance makes adjustments to the extruder's flow rate to compensate for changes in pressure within the hotend, these adjustments are spread out over a period of 0.04 seconds. 
 
-In the worked example above, **we need to set an Extrusion Rate smoothing value enough to decrease the error introduced by pressure advance smooth time to the produced output flow.** The lower the extrusion rate smoothing value, the lower the changes in flow hence the lower the deviation from the ideal extrusion caused by the smooth time algorithm.
+In the worked example above, **we need to set an Extrusion Rate smoothing value enough to decrease the error introduced by pressure advance smooth time against the produced output flow.** The lower the extrusion rate smoothing value, the lower the changes in flow hence the lower the deviation from the ideal extrusion caused by the smooth time algorithm.
 
 <h2>Finding the ideal Extrusion Rate smoothing value</h2>
 
@@ -96,7 +98,13 @@ Therefore, for a 0.42 line width and 0.16 layer height, the below are a recommen
 
 If you are printing with a 0.2 layer height, you can increase these values by 25% and simlarly reduce if printing with lower.
 
-Perform a test print with the above and adjust to your liking! If you notice budging on sharp overhangs where speed changes, like the hull of the benchy, reduce this value by 10% and try again. If you're not noticing any artefacts, increase by 10% but dont go over the maximum values recommended above as then this feature would have no effect in your print.
+The second factor is your extruder's mechanical abilities. Direct drive extruders with a good grip on the filament typically are more responsive to extrusion rate changes. Similarly with stiff filaments. So a bowden printer or when printing softer material like TPU or soft PLAs like polyterra there is more opportunity for the extruder to slip or deviate from the desired extrusion amount due to mechanical grip or material deformation or just delay in propagating the pressure changes (in a bowden setup).
+
+So where does that leave us?
+
+Perform a test print with the above settings as a starting point and adjust to your liking! If you notice budging on sharp overhangs where speed changes, like the hull of the benchy, reduce this value by 10% and try again. 
+
+If you're not noticing any artefacts, increase by 10% but dont go over the maximum values recommended above as then this feature would have no effect in your print.
 
 <h2>A note for bowden printers using marlin without pressure advance. </h2>
 If your printer is not equipped with pressure advance and especially if you are using a bowden setup, you dont have the benefit of pressure advance adjusting your flow dynamically based on print speed and accelerations. 
