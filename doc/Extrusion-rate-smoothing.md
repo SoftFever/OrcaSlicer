@@ -65,6 +65,7 @@ When Pressure Advance adjusts the extruder speed to compensate for the pressure 
 The smooth time setting introduces a controlled delay over which the Pressure Advance adjustments are spread out. This results in a more gradual application or reduction of extrusion pressure, leading to smoother transitions in filament flow.
 
 **1. Increasing Smooth Time:** Leads to more gradual changes in extrusion pressure. While this can reduce artifacts and stress on the extruder system, setting it too high may diminish the effectiveness of Pressure Advance, as the compensation becomes too delayed to counteract the pressure dynamics accurately.
+
 **2. Decreasing Smooth Time:** Makes the Pressure Advance adjustments more immediate, which can improve the responsiveness of pressure compensation but may also reintroduce abrupt changes in flow rate, potentially leading to the issues mentioned above.
 
 In essence, pressure advance smooth time creates an intentional deviation from the ideal extruder rotation and, as a consequence, extrusion amount, to allow the printer's extruder to perform within its mechanical limits. Typically this value is set to 0.04sec, which means that when Pressure Advance makes adjustments to the extruder's flow rate to compensate for changes in pressure within the hotend, these adjustments are spread out over a period of 0.04 seconds. 
