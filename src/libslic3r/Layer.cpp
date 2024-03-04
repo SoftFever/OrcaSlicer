@@ -188,6 +188,7 @@ void Layer::make_perimeters()
                         && config.seam_slope_type         == other_config.seam_slope_type
                         && config.seam_slope_conditional == other_config.seam_slope_conditional
                         && config.scarf_angle_threshold  == other_config.scarf_angle_threshold
+                        && config.scarf_joint_speed       == other_config.scarf_joint_speed
                         && config.seam_slope_start_height == other_config.seam_slope_start_height
                         && config.seam_slope_entire_loop  == other_config.seam_slope_entire_loop
                         && config.seam_slope_min_length   == other_config.seam_slope_min_length

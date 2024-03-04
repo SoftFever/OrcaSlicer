@@ -5085,12 +5085,19 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                 double new_speed = m_config.get_abs_value(overhang_speed_key_map[overhang_degree].c_str());
                 speed = new_speed == 0.0 ? speed : new_speed;
             }
+
+            if (sloped) {
+                speed = std::min(speed, m_config.scarf_joint_speed.get_abs_value(m_config.get_abs_value("inner_wall_speed")));
+            }
         } else if (path.role() == erExternalPerimeter) {
             speed = m_config.get_abs_value("outer_wall_speed");
             if (m_config.overhang_speed_classic.value && m_config.enable_overhang_speed.value &&
                 overhang_degree > 0 && overhang_degree <= 5) {
                 double new_speed = m_config.get_abs_value(overhang_speed_key_map[overhang_degree].c_str());
                 speed = new_speed == 0.0 ? speed : new_speed;
+            }
+            if (sloped) {
+                speed = std::min(speed, m_config.scarf_joint_speed.get_abs_value(m_config.get_abs_value("outer_wall_speed")));
             }
         } 
         else if(path.role() == erInternalBridgeInfill) {
