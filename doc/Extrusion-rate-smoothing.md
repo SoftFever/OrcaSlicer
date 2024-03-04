@@ -9,7 +9,7 @@ Extrusion rate smoothing (ERS) aims to limit the rate of extrusion volume change
 Enabling this feature creates a small extrusion rate "ramp" by slowing down and ramping up print speeds prior to and after the features causing a sudden change in extrusion flow rate needs, such as overhangs and overhang perimeters. 
 This happens by breaking down the line segments into smaller "chunks" proportional to the ERS segment length and reducing the print speed of that segment, so that the requested extrusion volumetric flow rate change is at or below the ERS threshold.
 
-In summary, it takes the "edge" off pressure advance. It reduces wall artefacts that show when the print speeds change suddenly, because the extruder cannot perfectly adhere to the requested by the firmware flow rates, especially when the extrusion rate is changing rapidly. 
+In summary, it takes the "edge" off rapid extrusion changes caused by acceleration/deceleration. It reduces wall artefacts that show when the print speeds change suddenly, because the extruder cannot perfectly adhere to the requested by the firmware flow rates, especially when the extrusion rate is changing rapidly. 
 
 The below artefact is mitigated through the use of ERS.
 ![ERS Disabled](https://github.com/SoftFever/OrcaSlicer/assets/59056762/31fdbf91-2067-4286-8bc1-4f7de4a628b6)
@@ -17,15 +17,62 @@ The below artefact is mitigated through the use of ERS.
 The bulging visible above is due to the extruder not being able to respond fast enough against the required speed change when printing with high accelerations and high speeds and requested to slow down for an overhang. 
 In the above scenario, the printer (Bambu Lab X1 Carbon) was requested to slow down from a 200mm/sec print speed to 40mm/sec at an acceleration of 5k/sec2. The extruder could not keep up with the pressure change, resulting in a slight bump ahead at the point of speed change.
 
-<h2>Tuning recomendations</h2>
-
 This parameter interacts with the below printer kinematic settings and physical limits:
 1. The limits of the extruder system - how fast can it change pressure in the nozzle
 2. The configured pressure advance values - that also affect pressure changes in the nozzle
 3. The acceleration profile of the printer - higher accelerations mean higher pressure changes
 4. The pressure advance smooth time (klipper) - higher smooth time means higher deviation from ideal extrusion, hence more opportunity for this feature to be useful.
 
+<h3>Acceleration vs. Extrusion rate smoothing</h3>
+A printer's motion system does not exactly follow the speed changes seen in the gcode preview screen of Orca slicer. When a speed change is requested, the look ahead planner of the firmware calculates the slow down needed in advance of that slower point and commences slowing down alead of time. The rate of slowdown is limited by the move's acceleration values. At 2k acceleration, slowing down from 200mm/sec to 40mm/sec would take approximately 9.6mm. This is derived from the following equation:
+
+![image](https://github.com/igiannakas/OrcaSlicer/assets/59056762/4ba0356b-49ab-428c-ab10-f2c88bcc1bcb)
+![image](https://github.com/igiannakas/OrcaSlicer/assets/59056762/3958deb5-fbc3-4d07-8903-4575033717fd)
+
+The time taken to declerate to this new speed would be 0.08 seconds, derived from the following equation:
+![image](https://github.com/igiannakas/OrcaSlicer/assets/59056762/ea9f19b4-defe-4656-9ecc-a6576c87d8e0)
+
+A printer printing at 200mm/sec with a 0.42 line width and 0.16 layer height would be extruding plastic at approx 12.16mm3/sec as can also seen from the below visual.
+![image](https://github.com/igiannakas/OrcaSlicer/assets/59056762/83242b26-7174-4da1-b815-d9fcec767bcd)
+
+When the printer is extruding at 40mm/sec with the same line width and layer height as above, the flow rate is 2.43mm3/sec.
+
+So what we are asking the extruder to do is slow down from 12.16mm3/sec flow to 2.43mm3/sec flow in 0.08 seconds or an extrusion change rate of 121mm3/sec2. 
+
+**This value is proportional to the acceleration of the printer. At 4k this value doubles, at 1k it is half and is independant of the speed of movement or starting and ending speeds.**
+
+So, continuing with the worked example, a 2k acceleration produces an extrusion rate change ramp of 121mm3/sec2. **Therefore, setting a value higher than this would not bring any benefit to the print quality as the motion system would slow down less aggressively based on its acceleration limits.**
+
+<h3>Pressure advance vs extrusion rate smoothing</h3>
+
+Then we need to consider pressure advance and smooth time. 
+
+**Pressure Advance ** adjusts the extruder's speed to account for the pressure changes inside the hotend's melt zone. When the print head moves and extrudes filament, there's a delay between the movement of the extruder gear and the plastic actually being extruded due to the compressibility of the molten plastic in the hotend. This delay can cause too much plastic to be extruded when the print head starts moving or not enough plastic when the print head stops, leading to issues like blobbing or under-extrusion. This 
+
+
+
+Next, we need to consider pressure advance and pressure advance smooth time. In klipper the pressure advance smooth time value 
+
+<h2>Tuning recomendations</h2>
+**However, this feature won't make a difference if the extrusion rate smoothing slope results in speed changes that are less than what the internal motion planner of the firmware plans during acceleration/deceleration moves.** For example, when transitioning from a high speed area to a low speed area there is no "sudden" stop as you're bound by the print acceleration, so what you see on the speed view in Orca isn't exactly what is happening when printing the model. For a BBL printer printing at 10k+ speeds the ERS value can be afforded to be higher as the deceleration-> acceleration slope will result in more sudden extrusion rate changes compared to a print with more moderate accelerations.
+
+**Then the matter of Pressure Advance smooth time comes in.** This is the amount of time allowed to the extruder to smooth out a newly requested extrusion rate value in Klipper. (https://klipper.discourse.group/t/pressure-advance-smooth-time-on-direct-extruders-with-short-filament-path/1971/6) **This results in deviations from the ideal nozzle pressure, as the extruder cannot move instantaneously, hence why its extrusion rate change is smoothed over time. This deviation is what we are trying to mitigate here in areas of sudden speed change.**
+
+Ideally, I think that you'd want extrusion rate smoothing to be resulting in **extrusion rate changes that are smaller than the PA smooth time value** for it to have any meaningful effect (hence speed changes that are larger than what the planner would produce). I think that if the ERS flow changes are over the PA smooth time threshold the look ahead planner will reduce extrusion rate faster than the ERS smoothing moves hence making it redundant.
+
+So in summary **it may make more sense to go conservative in this value** to allow it to have an effect on the print. For a fast accelerating printer with PA smoothing that is close to 0, as is the BBL printers (which result in artefacts when slowing down quickly), it may make sense to keep the value high, like 200/300 or so.
+
+**For a Klipper printer, especially if you have PA smooth time of 0.04** which is the default and are printing with more conservative accelerations (like 2-6k), maybe it makes sense to keep the value at a more moderate level, like 100 or so or even lower.
+
+For a slower printer with no PA and limited accelerations, a much lower value makes more sense - like 10-15 or so.
+
+This should be solvable with math, however it makes my head spin just thinking of it :) You have a **speed ramp** due to the acceleration profile, that results in an **extrusion rate ramp** based on the PA value which **is smoothed out** over PA smooth time. **Ideally you want the ERS value to be below the computed flow changes from the above.**
+
+So where does this leave us? Lower values are more likely to produce a meaningful result, but going too low will slow down the print more than needed to take the edge off these artefacts...
+
+
 <h3>Bambu Lab Printers</h3>
+When I ported it, I targeted BBL printers mostly which, because of the fast external perimeter speed and high accelerations and less than ideal PA smoothing implementation, needed high ERS values to take the "edge" off PA artefacting. Basically providing a small "ramp" to slow down and ramp up speeds to cover for the deficiency in its internal jerk implementation which is worse in my view compared to the Klipper SCV implementation and aggressive PA smoothing. Hence the high value recommendation for BBL stock profiles. Experimentally it worked well - taking the edge off the artefacts.
 
 
 <h3>Smoothing Segment Length:</h3>
@@ -58,23 +105,8 @@ However this may not be the right answer as we are trying to fight:
 3. The acceleration profile of the printer - higher accelerations mean higher pressure changes
 4. The pressure advance smooth time - higher smooth time means higher deviation from ideal extrusion, hence more opportunity for this feature to be useful.
 
-When I ported it, I targeted BBL printers mostly which, because of the fast external perimeter speed and high accelerations and less than ideal PA smoothing implementation, needed high ERS values to take the "edge" off PA artefacting. Basically providing a small "ramp" to slow down and ramp up speeds to cover for the deficiency in its internal jerk implementation which is worse in my view compared to the Klipper SCV implementation and aggressive PA smoothing. Hence the high value recommendation for BBL stock profiles. Experimentally it worked well - taking the edge off the artefacts.
 
-**However, this feature won't make a difference if the extrusion rate smoothing slope results in speed changes that are less than what the internal motion planner of the firmware plans during acceleration/deceleration moves.** For example, when transitioning from a high speed area to a low speed area there is no "sudden" stop as you're bound by the print acceleration, so what you see on the speed view in Orca isn't exactly what is happening when printing the model. For a BBL printer printing at 10k+ speeds the ERS value can be afforded to be higher as the deceleration-> acceleration slope will result in more sudden extrusion rate changes compared to a print with more moderate accelerations.
 
-**Then the matter of Pressure Advance smooth time comes in.** This is the amount of time allowed to the extruder to smooth out a newly requested extrusion rate value in Klipper. (https://klipper.discourse.group/t/pressure-advance-smooth-time-on-direct-extruders-with-short-filament-path/1971/6) **This results in deviations from the ideal nozzle pressure, as the extruder cannot move instantaneously, hence why its extrusion rate change is smoothed over time. This deviation is what we are trying to mitigate here in areas of sudden speed change.**
-
-Ideally, I think that you'd want extrusion rate smoothing to be resulting in **extrusion rate changes that are smaller than the PA smooth time value** for it to have any meaningful effect (hence speed changes that are larger than what the planner would produce). I think that if the ERS flow changes are over the PA smooth time threshold the look ahead planner will reduce extrusion rate faster than the ERS smoothing moves hence making it redundant.
-
-So in summary **it may make more sense to go conservative in this value** to allow it to have an effect on the print. For a fast accelerating printer with PA smoothing that is close to 0, as is the BBL printers (which result in artefacts when slowing down quickly), it may make sense to keep the value high, like 200/300 or so.
-
-**For a Klipper printer, especially if you have PA smooth time of 0.04** which is the default and are printing with more conservative accelerations (like 2-6k), maybe it makes sense to keep the value at a more moderate level, like 100 or so or even lower.
-
-For a slower printer with no PA and limited accelerations, a much lower value makes more sense - like 10-15 or so.
-
-This should be solvable with math, however it makes my head spin just thinking of it :) You have a **speed ramp** due to the acceleration profile, that results in an **extrusion rate ramp** based on the PA value which **is smoothed out** over PA smooth time. **Ideally you want the ERS value to be below the computed flow changes from the above.**
-
-So where does this leave us? Lower values are more likely to produce a meaningful result, but going too low will slow down the print more than needed to take the edge off these artefacts...
 
 **Personally I use it on occasion on the BBL X1C where models show the need for it** (sharp speed changes on external walls) but in these cases I may just print the perimeter slower anyway to get better quality as loosing arcs is a bigger issue quality wise on that printer (steppers exhibit more VFA without arc moves). **When I do use it I have settled on a value of 200 with 3 as a segment (to avoid overloading the MCU).**
 
