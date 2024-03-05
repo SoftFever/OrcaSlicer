@@ -1,6 +1,6 @@
 <h1>Extrusion rate smoothing (known as pressure equalizer in Prusa Slicer)</h1>
 
-Extrusion rate smoothing (ERS) aims to limit the rate of extrusion volume change to be below a user set threshold (the ERS value). It aims to assist the printer firmware internal motion planners, pressure advance and pressure advance smooth time in achieving the desired nozzle flow by reducing the stresses put on the extrusion system, especially when printing at high speeds and high accelerations.
+Extrusion rate smoothing (ERS) aims to **limit the rate of extrusion volume change to be below a user set threshold (the ERS value).** It aims to assist the printer firmware internal motion planners, pressure advance in achieving the desired nozzle flow and reducing deviations against the ideal flow, by reducing the stresses put on the extrusion system and the deviations from the ideal extrusion flow caused by pressure advance smooth time. This is especially helpful when printing at high accelerations and large flow rates.
 
 ![Screenshot 2023-09-18 at 22 44 26](https://github.com/SoftFever/OrcaSlicer/assets/59056762/281b9c78-9f5c-428e-86b9-509de099a3e7)
 
@@ -11,7 +11,7 @@ This happens by breaking down the line segments into smaller "chunks" proportion
 
 In summary, it takes the "edge" off rapid extrusion changes caused by acceleration/deceleration. It reduces wall artefacts that show when the print speeds change suddenly, because the extruder cannot perfectly adhere to the requested by the firmware flow rates, especially when the extrusion rate is changing rapidly. 
 
-The below artefact is mitigated through the use of ERS.
+The below artefact is mitigated by ERS.
 ![ERS Disabled](https://github.com/SoftFever/OrcaSlicer/assets/59056762/31fdbf91-2067-4286-8bc1-4f7de4a628b6)
 
 The bulging visible above is due to the extruder not being able to respond fast enough against the required speed change when printing with high accelerations and high speeds and requested to slow down for an overhang. 
@@ -30,11 +30,11 @@ A printer's motion system does not exactly follow the speed changes seen in the 
 
 ![image](https://github.com/igiannakas/OrcaSlicer/assets/59056762/3958deb5-fbc3-4d07-8903-4575033717fd)
 
-The time taken to declerate to this new speed would be 0.08 seconds, derived from the following equation:
+The time taken to decelerate to this new speed would be 0.08 seconds, derived from the following equation:
 
 ![image](https://github.com/igiannakas/OrcaSlicer/assets/59056762/ea9f19b4-defe-4656-9ecc-a6576c87d8e0)
 
-A printer printing at 200mm/sec with a 0.42 line width and 0.16 layer height would be extruding plastic at approx 12.16mm3/sec as can also seen from the below visual.
+A printer printing at 200mm/sec with a 0.42 line width and 0.16 layer height would be extruding plastic at approx. 12.16mm3/sec as can also be seen from the below visual.
 
 ![image](https://github.com/igiannakas/OrcaSlicer/assets/59056762/83242b26-7174-4da1-b815-d9fcec767bcd)
 
@@ -42,7 +42,7 @@ When the printer is extruding at 40mm/sec with the same line width and layer hei
 
 So what we are asking the extruder to do is slow down from 12.16mm3/sec flow to 2.43mm3/sec flow in 0.08 seconds or an extrusion change rate of 121mm3/sec2. 
 
-**This value is proportional to the acceleration of the printer. At 4k this value doubles, at 1k it is half and is independant of the speed of movement or starting and ending speeds.**
+**This value is proportional to the acceleration of the printer. At 4k this value doubles, at 1k it is half and is independent of the speed of movement or starting and ending speeds.**
 
 **This value is also proportional to the line width - double the line width will result in double the extrusion rate change and vice versa. Same for layer height.**
 
@@ -52,11 +52,11 @@ So, continuing with the worked example, a 2k acceleration produces an extrusion 
 
 Then we need to consider pressure advance and smooth time. 
 
-**Pressure Advance** adjusts the extruder's speed to account for the pressure changes inside the hotend's melt zone. When the print head moves and extrudes filament, there's a delay between the movement of the extruder gear and the plastic actually being extruded due to the compressibility of the molten plastic in the hotend. This delay can cause too much plastic to be extruded when the print head starts moving or not enough plastic when the print head stops, leading to issues like blobbing or under-extrusion.
+**Pressure Advance** adjusts the extruder's speed to account for the pressure changes inside the hot end’s melt zone. When the print head moves and extrudes filament, there's a delay between the movement of the extruder gear and the plastic being extruded due to the compressibility of the molten plastic in the hot end. This delay can cause too much plastic to be extruded when the print head starts moving or not enough plastic when the print head stops, leading to issues like blobbing or under-extrusion.
 
 **Pressure Advance Smooth time** helps to mitigate potential negative effects on print quality due to the rapid changes in extruder flow rate, which are controlled by the Pressure Advance algorithm. This parameter essentially adds a smoothing effect to the adjustments made by Pressure Advance, aiming to prevent sharp or sudden changes in the extrusion rate.
 
-When Pressure Advance adjusts the extruder speed to compensate for the pressure build-up or reduction in the hotend, it can lead to abrupt changes in the flow rate. These abrupt changes can potentially cause issues like:
+When Pressure Advance adjusts the extruder speed to compensate for the pressure build-up or reduction in the hot end, it can lead to abrupt changes in the flow rate. These abrupt changes can potentially cause issues like:
 
 1. Extruder motor skipping,
 2. Increased wear on the extruder gear and filament,
@@ -64,21 +64,21 @@ When Pressure Advance adjusts the extruder speed to compensate for the pressure 
 
 The smooth time setting introduces a controlled delay over which the Pressure Advance adjustments are spread out. This results in a more gradual application or reduction of extrusion pressure, leading to smoother transitions in filament flow. 
 
-The tradeoff is extrusion accuracy. There is a deviation between the requested extrusion amount and the actual extrusion amount due to this smoothing.
+The trade-off is extrusion accuracy. There is a deviation between the requested extrusion amount and the actual extrusion amount due to this smoothing.
 
 **1. Increasing Smooth Time:** Leads to more gradual changes in extrusion pressure. While this can reduce artifacts and stress on the extruder system, setting it too high may diminish the effectiveness of Pressure Advance, as the compensation becomes too delayed to counteract the pressure dynamics accurately.
 
 **2. Decreasing Smooth Time:** Makes the Pressure Advance adjustments more immediate, which can improve the responsiveness of pressure compensation but may also reintroduce abrupt changes in flow rate, potentially leading to the issues mentioned above.
 
-In essence, pressure advance smooth time creates an intentional deviation from the ideal extruder rotation and, as a consequence, extrusion amount, to allow the printer's extruder to perform within its mechanical limits. Typically this value is set to 0.04sec, which means that when Pressure Advance makes adjustments to the extruder's flow rate to compensate for changes in pressure within the hotend, these adjustments are spread out over a period of 0.04 seconds. 
+In essence, pressure advance smooth time creates an intentional deviation from the ideal extruder rotation and, therefore, extrusion amount, to allow the printer's extruder to perform within its mechanical limits. Typically, this value is set to 0.04sec, which means that when Pressure Advance makes adjustments to the extruder's flow rate to compensate for changes in pressure within the hot end, these adjustments are spread out over a period of 0.04 seconds. 
 
-There is a great example of pressure advance smooth time induced deviations [here](https://klipper.discourse.group/t/pressure-advance-smooth-time-skews-pressure-advance/13451) that is worth a read to get more insight in this tradeoff.
+There is a great example of pressure advance smooth time induced deviations [here](https://klipper.discourse.group/t/pressure-advance-smooth-time-skews-pressure-advance/13451) that is worth a read to get more insight in this trade-off.
 
 In the worked example above, **we need to set an Extrusion Rate smoothing value enough to decrease the error introduced by pressure advance smooth time against the produced output flow.** The lower the extrusion rate smoothing value, the lower the changes in flow over time hence the lower the absolute deviation from the ideal extrusion caused by the smooth time algorithm.
 
 <h2>Finding the ideal Extrusion Rate smoothing value</h2>
 
-Firstly, this value needs to be lower than the extrusion rate changes resulting from the acceleration profile of the printer. As, generaly, the greatest impact is in external wall finish, use your external perimeter acceleration as a point of reference. Below are some approximate ERS values for a given acceleration and 0.42 line width and 0.16 layer height.
+Firstly, this value needs to be lower than the extrusion rate changes resulting from the acceleration profile of the printer. As, generally, the greatest impact is in external wall finish, use your external perimeter acceleration as a point of reference. Below are some approximate ERS values for a given acceleration and 0.42 line width and 0.16 layer height.
 1. 30mm3/sec for 0.5k acceleration
 2. 60.5mm3/sec for 1k acceleration
 3. 121mm3/sec2 for 2k acceleration
@@ -90,7 +90,7 @@ For 0.45 line width and 0.16 layer height the below are approximate ERS values:
 3. 129mm3/sec2 for 2k acceleration
 4. 260mm3/sec2 for 4k acceleration
 
-So your tuning starting point needs to be an ERS value that is less than this. A good point experiment with test prints would be a value of 60-80% of the above maximum values. This will give some meaningfull assistance to pressure advance, reducing the deviation introduced by pressure advance smooth time. The greater the smooth time, the greater the quality benefit will be.
+So your tuning starting point needs to be an ERS value that is less than this. A good point experiment with test prints would be a value of 60-80% of the above maximum values. This will give some meaningful assistance to pressure advance, reducing the deviation introduced by pressure advance smooth time. The greater the smooth time, the greater the quality benefit will be.
 
 Therefore, for a 0.42 line width and 0.16 layer height, the below are a recommended set of starting ERS values
 1. 18-25mm3/sec for 0.5k acceleration
@@ -98,29 +98,29 @@ Therefore, for a 0.42 line width and 0.16 layer height, the below are a recommen
 3. 70-100mm3/sec2 for 2k acceleration
 4. 145-200mm3/sec2 for 4k acceleration
 
-If you are printing with a 0.2 layer height, you can increase these values by 25% and simlarly reduce if printing with lower.
+If you are printing with a 0.2 layer height, you can increase these values by 25% and similarly reduce if printing with lower.
 
-The second factor is your extruder's mechanical abilities. Direct drive extruders with a good grip on the filament typically are more responsive to extrusion rate changes. Similarly with stiff filaments. So a bowden printer or when printing softer material like TPU or soft PLAs like polyterra there is more opportunity for the extruder to slip or deviate from the desired extrusion amount due to mechanical grip or material deformation or just delay in propagating the pressure changes (in a bowden setup).
+The second factor is your extruder's mechanical abilities. Direct drive extruders with a good grip on the filament typically are more responsive to extrusion rate changes. Similarly with stiff filaments. So a Bowden printer or when printing softer material like TPU or soft PLAs like polyterra there is more opportunity for the extruder to slip or deviate from the desired extrusion amount due to mechanical grip or material deformation or just delay in propagating the pressure changes (in a Bowden setup).
 
 So where does that leave us?
 
 Perform a test print with the above settings as a starting point and adjust to your liking! If you notice budging on sharp overhangs where speed changes, like the hull of the benchy, reduce this value by 10% and try again. 
 
-If you're not noticing any artefacts, increase by 10% but dont go over the maximum values recommended above as then this feature would have no effect in your print.
+If you're not noticing any artefacts, increase by 10% but don’t go over the maximum values recommended above as then this feature would have no effect in your print.
 
-<h2>A note for bowden printers using marlin without pressure advance. </h2>
-If your printer is not equipped with pressure advance and especially if you are using a bowden setup, you dont have the benefit of pressure advance adjusting your flow dynamically based on print speed and accelerations. 
+<h2>A note for Bowden printers using marlin without pressure advance. </h2>
+If your printer is not equipped with pressure advance and especially if you are using a Bowden setup, you don’t have the benefit of pressure advance adjusting your flow dynamically based on print speed and accelerations. 
 
-In this special case, ERS will be doing all the heavy lifting that pressure advance would typically perform. In this scenario a low value of 8-10mm3/sec is usually recomended, irrespective of your acceleration settings, to smooth out pressure changes in the extrusion system as much as possible without impacting print speed too much. 
+In this special case, ERS will be doing all the heavy lifting that pressure advance would typically perform. In this scenario a low value of 8-10mm3/sec is usually recommended, irrespective of your acceleration settings, to smooth out pressure changes in the extrusion system as much as possible without impacting print speed too much. 
 
 <h2>A note on ERS Segment length </h2>
 Ideally you want this value set to 1 to allow for the largest number of steps between each speed transition. However this may result in a too large of a gcode, with too many commands sent to your MCU per second and it may not be able to keep up. 
 
 For klipper printers, a segment length of 1 works OK as the RPI or similar have enough computational power to handle the gcode command volume. 
 
-Similarly for a Bambu lab printer, a segment length of 1 works well. However if you do notice your printer stuttering or stalling or getting "Timer too close" errors increase this value to 2 or 3. This would reduce the effectiveness of the setting but will present a more manageable load to your printer.
+Similarly, for a Bambu lab printer, a segment length of 1 works well. However, if you do notice your printer stuttering or stalling or getting "Timer too close" errors increase this value to 2 or 3. This would reduce the effectiveness of the setting but will present a more manageable load to your printer.
 
 <h2>Limitations:</h2>
 This feature can only work where speed changes are induced by the slicer - for example when transitioning from fast to slow print moves when printing overhangs, bridges and from printing internal features to external features and vice versa. 
 
-However it will not affect extruder behaviour when the printer is slowing down due to the firmware - for example when turning around corners, the printer slows down and then accelerates. In this case, the slicer is commanding a consistent speed; however the printer is adjusting this in order to operate within its printer kinematic limits (SCV/Jerk) and accelerations. In this scenario as the slicer is not aware of this slow down, it cannot apply pre-emptive extrusion rate smoothing to the feature.
+However, it will not affect extruder behaviour when the printer is slowing down due to the firmware - for example when turning around corners, the printer slows down and then accelerates. In this case, the slicer is commanding a consistent speed; however, the printer is adjusting this in order to operate within its printer kinematic limits (SCV/Jerk) and accelerations. In this scenario as the slicer is not aware of this slow down, it cannot apply pre-emptive extrusion rate smoothing to the feature.
