@@ -1,7 +1,10 @@
-#!/bin/sh
+#!/bin/bash
 
-while getopts ":a:sdpt:hn" opt; do
-  case ${opt} in
+set -e
+set -o pipefail
+
+while getopts ":dpa:snt:xbc:h" opt; do
+  case "${opt}" in
     d )
         export BUILD_TARGET="deps"
         ;;
@@ -20,25 +23,62 @@ while getopts ":a:sdpt:hn" opt; do
     t )
         export OSX_DEPLOYMENT_TARGET="$OPTARG"
         ;;
+    x )
+        export CMAKE_GENERATOR="Ninja"
+        ;;
+    b )
+        export BUILD_ONLY="1"
+        ;;
+    c )
+        export BUILD_CONFIG="$OPTARG"
+        ;;
     h ) echo "Usage: ./build_release_macos.sh [-d]"
         echo "   -d: Build deps only"
         echo "   -a: Set ARCHITECTURE (arm64 or x86_64)"
         echo "   -s: Build slicer only"
         echo "   -n: Nightly build"
         echo "   -t: Specify minimum version of the target platform, default is 11.3"
+        echo "   -x: Use Ninja CMake generator, default is Xcode"
+        echo "   -b: Build without reconfiguring CMake"
+        echo "   -c: Set CMake build configuration, default is Release"
         exit 0
+        ;;
+    * )
         ;;
   esac
 done
 
-if [ -z "$ARCH" ]
-then
-  export ARCH=$(uname -m)
+# Set defaults
+
+if [ -z "$ARCH" ]; then
+  ARCH="$(uname -m)"
+  export ARCH
 fi
 
-echo "Arch: $ARCH"
-echo "BUILD_TARGET: $BUILD_TARGET"
-echo "OSX_DEPLOYMENT_TARGET: $OSX_DEPLOYMENT_TARGET"
+if [ -z "$BUILD_CONFIG" ]; then
+  export BUILD_CONFIG="Release"
+fi
+
+if [ -z "$BUILD_TARGET" ]; then
+  export BUILD_TARGET="all"
+fi
+
+if [ -z "$CMAKE_GENERATOR" ]; then
+  export CMAKE_GENERATOR="Xcode"
+fi
+
+if [ -z "$OSX_DEPLOYMENT_TARGET" ]; then
+  export OSX_DEPLOYMENT_TARGET="11.3"
+fi
+
+echo "Build params:"
+echo " - ARCH: $ARCH"
+echo " - BUILD_CONFIG: $BUILD_CONFIG"
+echo " - BUILD_TARGET: $BUILD_TARGET"
+echo " - CMAKE_GENERATOR: $CMAKE_GENERATOR"
+echo " - OSX_DEPLOYMENT_TARGET: $OSX_DEPLOYMENT_TARGET"
+echo
+
 # if which -s brew; then
 # 	brew --prefix libiconv
 # 	brew --prefix zstd
@@ -52,57 +92,121 @@ echo "OSX_DEPLOYMENT_TARGET: $OSX_DEPLOYMENT_TARGET"
 # 	exit 1
 # fi
 
+PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_BUILD_DIR="$PROJECT_DIR/build_$ARCH"
+DEPS_DIR="$PROJECT_DIR/deps"
+DEPS_BUILD_DIR="$DEPS_DIR/build_$ARCH"
+DEPS="$DEPS_BUILD_DIR/OrcaSlicer_dep_$ARCH"
 
-WD="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cd $WD/deps
-mkdir -p build_$ARCH
-cd build_$ARCH
-DEPS=$PWD/OrcaSlicer_dep_$ARCH
-mkdir -p $DEPS
-if [ "slicer." != $BUILD_TARGET. ]; 
-then
-    echo "building deps..."
-    echo "cmake ../ -DDESTDIR=$DEPS -DOPENSSL_ARCH=darwin64-${ARCH}-cc -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES:STRING=${ARCH} -DCMAKE_OSX_DEPLOYMENT_TARGET=${OSX_DEPLOYMENT_TARGET}"
-    cmake ../ -DDESTDIR="$DEPS" -DOPENSSL_ARCH="darwin64-${ARCH}-cc" -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES:STRING=${ARCH} -DCMAKE_OSX_DEPLOYMENT_TARGET=${OSX_DEPLOYMENT_TARGET}
-    cmake --build . --config Release --target deps 
-    if [ "1." == "$PACK_DEPS". ];
-    then
-        tar -zcvf OrcaSlicer_dep_mac_${ARCH}_$(date +"%Y%m%d").tar.gz OrcaSlicer_dep_$ARCH
-    fi
+# Fix for Multi-config generators
+if [ "$CMAKE_GENERATOR" == "Xcode" ]; then
+    export BUILD_DIR_CONFIG_SUBDIR="$BUILD_CONFIG/"
+else
+    export BUILD_DIR_CONFIG_SUBDIR=""
 fi
 
+function build_deps() {
+    echo "Building deps..."
+    (
+        set -x
+        mkdir -p "$DEPS"
+        cd "$DEPS_BUILD_DIR"
+        if [ "1." != "$BUILD_ONLY". ]; then
+            cmake .. \
+                -DDESTDIR="$DEPS" \
+                -DOPENSSL_ARCH="darwin64-${ARCH}-cc" \
+                -DCMAKE_BUILD_TYPE="$BUILD_CONFIG" \
+                -DCMAKE_OSX_ARCHITECTURES:STRING="${ARCH}" \
+                -DCMAKE_OSX_DEPLOYMENT_TARGET="${OSX_DEPLOYMENT_TARGET}"
+        fi
+        cmake --build . --config "$BUILD_CONFIG" --target deps
+    )
+}
 
-if [ "deps." == "$BUILD_TARGET". ];
-then
-    exit 0
+function pack_deps() {
+    echo "Packing deps..."
+    (
+        set -x
+        mkdir -p "$DEPS"
+        cd "$DEPS_BUILD_DIR"
+        tar -zcvf "OrcaSlicer_dep_mac_${ARCH}_$(date +"%Y%m%d").tar.gz" "OrcaSlicer_dep_$ARCH"
+    )
+}
+
+function build_slicer() {
+    echo "Building slicer..."
+    (
+        set -x
+        mkdir -p "$PROJECT_BUILD_DIR"
+        cd "$PROJECT_BUILD_DIR"
+        if [ "1." != "$BUILD_ONLY". ]; then
+            cmake .. \
+                -DBBL_RELEASE_TO_PUBLIC=1 \
+                -DCMAKE_PREFIX_PATH="$DEPS/usr/local" \
+                -DCMAKE_INSTALL_PREFIX="$PWD/OrcaSlicer" \
+                -DCMAKE_BUILD_TYPE="$BUILD_CONFIG" \
+                -DCMAKE_MACOSX_RPATH=ON \
+                -DCMAKE_INSTALL_RPATH="${DEPS}/usr/local" \
+                -DCMAKE_MACOSX_BUNDLE=ON \
+                -DCMAKE_OSX_ARCHITECTURES="${ARCH}" \
+                -DCMAKE_OSX_DEPLOYMENT_TARGET="${OSX_DEPLOYMENT_TARGET}"
+        fi
+        cmake --build . --config "$BUILD_CONFIG" --target all
+    )
+
+    echo "Verify localization with gettext..."
+    (
+        cd "$PROJECT_DIR"
+        ./run_gettext.sh
+        # ./run_gettext.sh --full "$PROJECT_BUILD_DIR" "$BUILD_DIR_CONFIG_SUBDIR"
+    )
+
+    echo "Fix macOS app package..."
+    (
+        cd "$PROJECT_BUILD_DIR"
+        mkdir -p OrcaSlicer
+        cd OrcaSlicer
+        # remove previously built app
+        rm -rf ./OrcaSlicer.app
+        # fully copy newly built app
+        cp -pR "../src$BUILD_DIR_CONFIG_SUBDIR/OrcaSlicer.app" ./OrcaSlicer.app
+        # fix resources
+        resources_path=$(readlink ./OrcaSlicer.app/Contents/Resources)
+        rm ./OrcaSlicer.app/Contents/Resources
+        cp -R "$resources_path" ./OrcaSlicer.app/Contents/Resources
+        # delete .DS_Store file
+        find ./OrcaSlicer.app/ -name '.DS_Store' -delete
+    )
+
+    # extract version
+    # export ver=$(grep '^#define SoftFever_VERSION' ../src/libslic3r/libslic3r_version.h | cut -d ' ' -f3)
+    # ver="_V${ver//\"}"
+    # echo $PWD
+    # if [ "1." != "$NIGHTLY_BUILD". ];
+    # then
+    #     ver=${ver}_dev
+    # fi
+
+    # zip -FSr OrcaSlicer${ver}_Mac_${ARCH}.zip OrcaSlicer.app
+}
+
+case "${BUILD_TARGET}" in
+    all)
+        build_deps
+        build_slicer
+        ;;
+    deps)
+        build_deps
+        ;;
+    slicer)
+        build_slicer
+        ;;
+    *)
+        echo "Unknown target: $BUILD_TARGET. Available targets: deps, slicer, all."
+        exit 1
+        ;;
+esac
+
+if [ "1." == "$PACK_DEPS". ]; then
+    pack_deps
 fi
-
-cd $WD
-mkdir -p build_$ARCH
-cd build_$ARCH
-echo "building slicer..."
-cmake .. -GXcode -DBBL_RELEASE_TO_PUBLIC=1 -DCMAKE_PREFIX_PATH="$DEPS/usr/local" -DCMAKE_INSTALL_PREFIX="$PWD/OrcaSlicer" -DCMAKE_BUILD_TYPE=Release -DCMAKE_MACOSX_RPATH=ON -DCMAKE_INSTALL_RPATH="$DEPS/usr/local" -DCMAKE_MACOSX_BUNDLE=ON -DCMAKE_OSX_ARCHITECTURES=${ARCH} -DCMAKE_OSX_DEPLOYMENT_TARGET=${OSX_DEPLOYMENT_TARGET}
-cmake --build . --config Release --target ALL_BUILD 
-cd ..
-./run_gettext.sh
-cd build_$ARCH
-mkdir -p OrcaSlicer
-cd OrcaSlicer
-rm -r ./OrcaSlicer.app
-cp -pR ../src/Release/OrcaSlicer.app ./OrcaSlicer.app
-resources_path=$(readlink ./OrcaSlicer.app/Contents/Resources)
-rm ./OrcaSlicer.app/Contents/Resources
-cp -R $resources_path ./OrcaSlicer.app/Contents/Resources
-# delete .DS_Store file
-find ./OrcaSlicer.app/ -name '.DS_Store' -delete
-# extract version
-# export ver=$(grep '^#define SoftFever_VERSION' ../src/libslic3r/libslic3r_version.h | cut -d ' ' -f3)
-# ver="_V${ver//\"}"
-# echo $PWD
-# if [ "1." != "$NIGHTLY_BUILD". ];
-# then
-#     ver=${ver}_dev
-# fi
-
-
-# zip -FSr OrcaSlicer${ver}_Mac_${ARCH}.zip OrcaSlicer.app
