@@ -585,8 +585,6 @@ void ArrangeJob::process(Ctl &ctl)
             BOOST_LOG_TRIVIAL(debug) << item.name << ", bed: " << item.bed_idx << ", trans: " << item.translation.transpose();
     }
 
-    arrangement::arrange(m_unprintable, {}, bedpts, params);
-
     // put unpackable items to m_unprintable so they goes outside
     bool we_have_unpackable_items = false;
     for (auto item : m_selected) {
