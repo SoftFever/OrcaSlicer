@@ -274,7 +274,7 @@ void MediaPlayCtrl::Play()
         url += "&device=" + m_machine;
         url += "&net_ver=" + agent_version;
         url += "&dev_ver=" + m_dev_ver;
-        url += "&cli_id=" + wxGetApp().app_config->get("client_id");
+        url += "&cli_id=" + wxGetApp().app_config->get("slicer_uuid");
         url += "&cli_ver=" + std::string(SLIC3R_VERSION);
         BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl: " << hide_passwd(hide_id_middle_string(url, url.find(m_lan_ip), m_lan_ip.length()), {m_lan_passwd});
         m_url = url;
@@ -318,7 +318,7 @@ void MediaPlayCtrl::Play()
                 url += "&device=" + into_u8(m);
                 url += "&net_ver=" + v;
                 url += "&dev_ver=" + dv;
-                url += "&cli_id=" + wxGetApp().app_config->get("client_id");
+                url += "&cli_id=" + wxGetApp().app_config->get("slicer_uuid");
                 url += "&cli_ver=" + std::string(SLIC3R_VERSION);
             }
             BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl: " << hide_passwd(url, 
@@ -519,7 +519,7 @@ void MediaPlayCtrl::ToggleStream()
             url += "&device=" + m;
             url += "&net_ver=" + v;
             url += "&dev_ver=" + dv;
-            url += "&cli_id=" + wxGetApp().app_config->get("client_id");
+            url += "&cli_id=" + wxGetApp().app_config->get("slicer_uuid");
             url += "&cli_ver=" + std::string(SLIC3R_VERSION);
         }
         BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::ToggleStream: " << hide_passwd(url, 

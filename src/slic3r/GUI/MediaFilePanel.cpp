@@ -211,9 +211,7 @@ MediaFilePanel::~MediaFilePanel()
     SetMachineObject(nullptr);
 }
 
-wxString hide_id_middle_string(wxString const &str, size_t offset = 0, size_t length = -1);
-
-    void MediaFilePanel::SetMachineObject(MachineObject* obj)
+void MediaFilePanel::SetMachineObject(MachineObject* obj)
 {
     std::string machine = obj ? obj->dev_id : "";
     if (obj) {
@@ -315,16 +313,6 @@ wxString hide_id_middle_string(wxString const &str, size_t offset = 0, size_t le
             err = fs->GetLastError();
             if ((status == PrinterFileSystem::Failed && m_last_errors.find(err) == m_last_errors.end()) ||
                 status == PrinterFileSystem::ListReady) {
-                json j;
-                j["code"] = err;
-                j["dev_id"] = m_machine;
-                j["dev_ip"] = m_lan_ip;
-                NetworkAgent* agent = wxGetApp().getAgent();
-                if (status == PrinterFileSystem::Failed && err != 0) {
-                    j["result"] = "failed";
-                } else if (status == PrinterFileSystem::ListReady) {
-                    j["result"] = "success";
-                }
                 m_last_errors.insert(fs->GetLastError());
             }
         });
@@ -467,7 +455,7 @@ void MediaFilePanel::fetchUrl(boost::weak_ptr<PrinterFileSystem> wfs)
         url += "&device=" + m_machine;
         url += "&net_ver=" + agent_version;
         url += "&dev_ver=" + m_dev_ver;
-        url += "&cli_id=" + wxGetApp().app_config->get("client_id");
+        url += "&cli_id=" + wxGetApp().app_config->get("slicer_uuid");
         url += "&cli_ver=" + std::string(SLIC3R_VERSION);
         fs->SetUrl(url);
         return;
@@ -494,10 +482,10 @@ void MediaFilePanel::fetchUrl(boost::weak_ptr<PrinterFileSystem> wfs)
                 url += "&device=" + m;
                 url += "&net_ver=" + v;
                 url += "&dev_ver=" + dv;
-                url += "&cli_id=" + wxGetApp().app_config->get("client_id");
+                url += "&cli_id=" + wxGetApp().app_config->get("slicer_uuid");
                 url += "&cli_ver=" + std::string(SLIC3R_VERSION);
             }
-            BOOST_LOG_TRIVIAL(info) << "MediaFilePanel::fetchUrl: camera_url: " << hide_id_middle_string(hide_passwd(url, {"authkey=", "passwd="}), 9, 20);
+            BOOST_LOG_TRIVIAL(info) << "MediaFilePanel::fetchUrl: camera_url: " << hide_passwd(url, {"?uid=", "authkey=", "passwd="});
             CallAfter([=] {
                 boost::shared_ptr fs(wfs.lock());
                 if (!fs || fs != m_image_grid->GetFileSystem()) return;
