@@ -1,9 +1,1 @@
-<svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-<rect x="4.5" y="2.5" width="20" height="22.7097" rx="2.5" stroke="#6B6B6B" stroke-linejoin="round"/>
-<path d="M8.06458 8.09668H17.5484" stroke="#009688" stroke-width="2" stroke-linecap="round"/>
-<path d="M20.9354 8.09668H21.6128" stroke="#009688" stroke-width="2" stroke-linecap="round"/>
-<path d="M20.9354 14.1936H21.6128" stroke="#009688" stroke-width="2" stroke-linecap="round"/>
-<path d="M20.9354 20.2905H21.6128" stroke="#009688" stroke-width="2" stroke-linecap="round"/>
-<path d="M8.06458 14.1936H17.5484" stroke="#009688" stroke-width="2" stroke-linecap="round"/>
-<path d="M8.06458 20.2905H17.5484" stroke="#009688" stroke-width="2" stroke-linecap="round"/>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M11.5,5h-3a.5.5,0,0,0,0,1h3a.5.5,0,0,0,0-1Z" style="fill:#009688"/><path d="M12.5,1H2.5A1.5,1.5,0,0,0,1,2.5v10A1.5,1.5,0,0,0,2.5,14h10A1.5,1.5,0,0,0,14,12.5V2.5A1.5,1.5,0,0,0,12.5,1ZM13,12.5a.5.5,0,0,1-.5.5H2.5a.5.5,0,0,1-.5-.5V2.5A.5.5,0,0,1,2.5,2h10a.5.5,0,0,1,.5.5Z" style="fill:#009688"/><path d="M4.05,6.72s0,0,0,0a.36.36,0,0,0,.07.1l.06.05.06,0A.6.6,0,0,0,4.5,7a.54.54,0,0,0,.21,0h0l.07,0,.06-.05,3-3a.49.49,0,0,0-.7-.7L4.64,5.66,4,4.28a.5.5,0,0,0-.9.44Z" style="fill:#009688"/><path d="M11.5,10h-3a.5.5,0,0,0,0,1h3a.5.5,0,0,0,0-1Z" style="fill:#009688"/><path d="M7.85,8.15a.48.48,0,0,0-.7,0L4.64,10.66,4,9.28a.5.5,0,0,0-.9.44l1,2,0,0a.36.36,0,0,0,.07.1l.06.05.06,0A.6.6,0,0,0,4.5,12,.54.54,0,0,0,4.71,12h0l.07,0,.06-.05,3-3A.48.48,0,0,0,7.85,8.15Z" style="fill:#009688"/></svg>
