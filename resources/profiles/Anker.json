@@ -39,6 +39,10 @@
             "sub_path": "process/fdm_process_anker_fast_common.json"
         },
         {
+            "name": "fdm_process_anker_common_0_6",
+            "sub_path": "process/fdm_process_anker_common_0_6.json"
+        },
+        {
             "name": "0.05mm Optimal 0.2 nozzle @Anker",
             "sub_path": "process/0.05mm Optimal 0.2 nozzle @Anker.json"
         },
@@ -79,12 +83,20 @@
             "sub_path": "process/0.15mm Fast @Anker.json"
         },
         {
+            "name": "0.15mm Detail 0.6 nozzle @Anker",
+            "sub_path": "process/0.15mm Detail 0.6 nozzle @Anker.json"
+        },
+        {
             "name": "0.20mm Standard @Anker",
             "sub_path": "process/0.20mm Standard @Anker.json"
         },
         {
             "name": "0.20mm Fast @Anker",
             "sub_path": "process/0.20mm Fast @Anker.json"
+        },
+        {
+            "name": "0.20mm Optimal 0.6 nozzle @Anker",
+            "sub_path": "process/0.20mm Optimal 0.6 nozzle @Anker.json"
         },
         {
             "name": "0.25mm Draft @Anker",
@@ -97,6 +109,18 @@
         {
             "name": "0.30mm Superdraft @Anker",
             "sub_path": "process/0.30mm Superdraft @Anker.json"
+        },
+        {
+            "name": "0.30mm Standard 0.6mm nozzle @Anker",
+            "sub_path": "process/0.30mm Standard 0.6mm nozzle @Anker.json"
+        },
+        {
+            "name": "0.35mm Draft 0.6mm nozzle @Anker",
+            "sub_path": "process/0.35mm Draft 0.6mm nozzle @Anker.json"
+        },
+        {
+            "name": "0.40mm Superdraft 0.6mm nozzle @Anker",
+            "sub_path": "process/0.40mm Superdraft 0.6mm nozzle @Anker.json"
         }
     ],
     "filament_list": [
@@ -327,6 +351,10 @@
             "sub_path": "machine/Anker M5 0.4 nozzle.json"
         },
         {
+            "name": "Anker M5 0.6 nozzle",
+            "sub_path": "machine/Anker M5 0.6 nozzle.json"
+        },
+        {
             "name": "Anker M5 All-Metal 0.2 nozzle",
             "sub_path": "machine/Anker M5 All-Metal 0.2 nozzle.json"
         },
@@ -339,6 +367,10 @@
             "sub_path": "machine/Anker M5 All-Metal 0.4 nozzle.json"
         },
         {
+            "name": "Anker M5 All-Metal 0.6 nozzle",
+            "sub_path": "machine/Anker M5 All-Metal 0.6 nozzle.json"
+        },
+        {
             "name": "Anker M5C 0.2 nozzle",
             "sub_path": "machine/Anker M5C 0.2 nozzle.json"
         },
@@ -349,6 +381,10 @@
         {
             "name": "Anker M5C 0.4 nozzle",
             "sub_path": "machine/Anker M5C 0.4 nozzle.json"
+        },
+        {
+            "name": "Anker M5C 0.6 nozzle",
+            "sub_path": "machine/Anker M5C 0.6 nozzle.json"
         }
     ]
 }
