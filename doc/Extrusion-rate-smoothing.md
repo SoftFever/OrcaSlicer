@@ -119,3 +119,8 @@ Ideally you want this value set to 1 to allow for the largest number of steps be
 For klipper printers, a segment length of 1 works OK as the RPI or similar have enough computational power to handle the gcode command volume. 
 
 Similarly for a Bambu lab printer, a segment length of 1 works well. However if you do notice your printer stuttering or stalling or getting "Timer too close" errors increase this value to 2 or 3. This would reduce the effectiveness of the setting but will present a more manageable load to your printer.
+
+<h2>Limitations:</h2>
+This feature can only work where speed changes are induced by the slicer - for example when transitioning from fast to slow print moves when printing overhangs, bridges and from printing internal features to external features and vice versa. 
+
+However it will not affect extruder behaviour when the printer is slowing down due to the firmware - for example when turning around corners, the printer slows down and then accelerates. In this case, the slicer is commanding a consistent speed; however the printer is adjusting this in order to operate within its printer kinematic limits (SCV/Jerk) and accelerations. In this scenario as the slicer is not aware of this slow down, it cannot apply pre-emptive extrusion rate smoothing to the feature.
