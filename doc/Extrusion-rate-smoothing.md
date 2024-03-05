@@ -72,7 +72,9 @@ The tradeoff is extrusion accuracy. There is a deviation between the requested e
 
 In essence, pressure advance smooth time creates an intentional deviation from the ideal extruder rotation and, as a consequence, extrusion amount, to allow the printer's extruder to perform within its mechanical limits. Typically this value is set to 0.04sec, which means that when Pressure Advance makes adjustments to the extruder's flow rate to compensate for changes in pressure within the hotend, these adjustments are spread out over a period of 0.04 seconds. 
 
-In the worked example above, **we need to set an Extrusion Rate smoothing value enough to decrease the error introduced by pressure advance smooth time against the produced output flow.** The lower the extrusion rate smoothing value, the lower the changes in flow hence the lower the deviation from the ideal extrusion caused by the smooth time algorithm.
+There is a great example of pressure advance smooth time induced deviations [here](https://klipper.discourse.group/t/pressure-advance-smooth-time-skews-pressure-advance/13451) that is worth a read to get more insight in this tradeoff.
+
+In the worked example above, **we need to set an Extrusion Rate smoothing value enough to decrease the error introduced by pressure advance smooth time against the produced output flow.** The lower the extrusion rate smoothing value, the lower the changes in flow over time hence the lower the absolute deviation from the ideal extrusion caused by the smooth time algorithm.
 
 <h2>Finding the ideal Extrusion Rate smoothing value</h2>
 
