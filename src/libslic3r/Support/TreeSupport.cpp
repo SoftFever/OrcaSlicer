@@ -1333,12 +1333,13 @@ void TreeSupport::generate_toolpaths()
         auto raft_areas1 = offset_ex(raft_areas, scale_(expand_offset));
 
         Flow support_flow = Flow(support_extrusion_width, ts_layer->height, nozzle_diameter);
-        Fill* filler_interface = Fill::new_from_type(ipRectilinear);
-        filler_interface->angle = layer_nr == 0 ? 90 : 0;
-        filler_interface->spacing = support_extrusion_width;
+        Fill* filler_raft = Fill::new_from_type(ipRectilinear);
+        filler_raft->angle = layer_nr == 0 ? PI/2 : 0;
+        filler_raft->spacing = support_flow.spacing();
 
         FillParams fill_params;
-        fill_params.density     = object_config.raft_first_layer_density * 0.01;
+        coordf_t raft_density = std::min(1., support_flow.spacing() / (object_config.support_base_pattern_spacing.value + support_flow.spacing()));
+        fill_params.density = layer_nr == 0 ? object_config.raft_first_layer_density * 0.01 : raft_density;
         fill_params.dont_adjust = true;
 
         // wall of first layer raft
@@ -1349,7 +1350,7 @@ void TreeSupport::generate_toolpaths()
             raft_areas1 = offset_ex(raft_areas1, -flow.scaled_spacing() / 2.);
         }
         fill_expolygons_generate_paths(ts_layer->support_fills.entities, raft_areas1,
-            filler_interface, fill_params, erSupportMaterial, support_flow);
+            filler_raft, fill_params, erSupportMaterial, support_flow);
     }
 
     // subtract the non-raft support bases, otherwise we'll get support base on top of raft interfaces which is not stable
@@ -1372,8 +1373,8 @@ void TreeSupport::generate_toolpaths()
 
         Flow support_flow(support_extrusion_width, ts_layer->height, nozzle_diameter);
         Fill* filler_interface = Fill::new_from_type(ipRectilinear);
-        filler_interface->angle = 0;
-        filler_interface->spacing = support_extrusion_width;
+        filler_interface->angle = PI / 2;  // interface should be perpendicular to base
+        filler_interface->spacing = support_flow.spacing();
 
         FillParams fill_params;
         fill_params.density = interface_density;
