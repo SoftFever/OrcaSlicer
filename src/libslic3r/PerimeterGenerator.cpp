@@ -2545,13 +2545,13 @@ void PerimeterGenerator::process_arachne()
                                 ordered_extrusions[arr_j] = inner_outer_extrusions[arr_j-position];
                         }else //Middle Outer Inner wall mode
                             if(this->config->wall_sequence == WallSequence::MiddleOuterInner){
-                                for (arr_j = max_internal; arr_j >=position; --arr_j){ // go inside out for all perimers except any that have inset index 2 (second internal). These will be printed last
-                                    if(reordered_extrusions[arr_j].extrusion->inset_idx!=2){
+                                for (arr_j = max_internal; arr_j >=position; --arr_j){ // print the first internal and external perimeters inside out
+                                    if(reordered_extrusions[arr_j].extrusion->inset_idx<2){
                                         inner_outer_extrusions.emplace_back(reordered_extrusions[arr_j]);
                                     }
                                 }
-                                for (arr_j = max_internal; arr_j >=position; --arr_j){ // print any inset index 2 perimeters that were skipped before
-                                    if(reordered_extrusions[arr_j].extrusion->inset_idx==2){
+                                for (arr_j = position; arr_j <=max_internal; ++arr_j){ // print the remaining perimeters outside in
+                                    if(reordered_extrusions[arr_j].extrusion->inset_idx>=2){
                                         inner_outer_extrusions.emplace_back(reordered_extrusions[arr_j]);
                                     }
                                 }
