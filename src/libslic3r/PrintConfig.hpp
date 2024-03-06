@@ -831,6 +831,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionInt,                 support_threshold_angle))
     ((ConfigOptionFloatOrPercent,      support_threshold_overlap))
     ((ConfigOptionFloat,               support_object_xy_distance))
+    ((ConfigOptionFloat,               support_object_first_layer_gap))
     ((ConfigOptionFloat,               xy_hole_compensation))
     ((ConfigOptionFloat,               xy_contour_compensation))
     ((ConfigOptionBool,                flush_into_objects))

@@ -69,10 +69,11 @@ struct SupportParameters {
             external_perimeter_width = std::max(external_perimeter_width, coordf_t(region.flow(object, frExternalPerimeter, slicing_params.layer_height).width()));
             bridge_flow_ratio += region.config().bridge_flow;
         }
-        this->gap_xy = object_config.support_object_xy_distance;//.get_abs_value(external_perimeter_width);
+        this->gap_xy = object_config.support_object_xy_distance.value;
+        this->gap_xy_first_layer = object_config.support_object_first_layer_gap.value;
         bridge_flow_ratio /= object.num_printing_regions();
-        
-        this->support_material_bottom_interface_flow = slicing_params.soluble_interface || ! object_config.thick_bridges ?
+
+        this->support_material_bottom_interface_flow = slicing_params.soluble_interface || !object_config.thick_bridges ?
             this->support_material_interface_flow.with_flow_ratio(bridge_flow_ratio) :
             Flow::bridging_flow(bridge_flow_ratio * this->support_material_interface_flow.nozzle_diameter(), this->support_material_interface_flow.nozzle_diameter());
         
@@ -209,7 +210,8 @@ struct SupportParameters {
     coordf_t 				support_layer_height_min;
 //	coordf_t				support_layer_height_max;
 
-	coordf_t				gap_xy;
+    coordf_t	gap_xy;
+    coordf_t	gap_xy_first_layer;
 
     float    				base_angle;
     float    				interface_angle;

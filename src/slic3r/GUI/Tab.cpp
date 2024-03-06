@@ -2263,6 +2263,7 @@ void TabPrint::build()
         //optgroup->append_single_option_line("support_interface_loop_pattern");
 
         optgroup->append_single_option_line("support_object_xy_distance", "support");
+        optgroup->append_single_option_line("support_object_first_layer_gap", "support");
         optgroup->append_single_option_line("bridge_no_support", "support#base-pattern");
         optgroup->append_single_option_line("max_bridge_length", "support#base-pattern");
         optgroup->append_single_option_line("independent_support_layer_height", "support");

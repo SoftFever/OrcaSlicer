@@ -1926,7 +1926,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<SupportNode*>>& con
                     }
                     else {
                         if (collision_base.empty())
-                            collision_base = m_ts_data->get_collision((layer_nr == 0 && has_brim) ? config.brim_object_gap : m_ts_data->m_xy_distance, layer_nr);
+                            collision_base = m_ts_data->get_collision((layer_nr == 0) ? config.support_object_first_layer_gap : m_ts_data->m_xy_distance, layer_nr);
                         return collision_base;
                     }
                 };
@@ -2044,7 +2044,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<SupportNode*>>& con
                 roof_1st_layer = intersection_ex(roof_1st_layer, m_machine_border);
 
                 // let supports touch objects when brim is on
-                //auto avoid_region = get_collision_polys((layer_nr == 0 && has_brim) ? config.brim_object_gap : m_ts_data->m_xy_distance, layer_nr);
+                //auto avoid_region = get_collision_polys((layer_nr == 0) ? config.support_object_xy_distance : m_ts_data->m_xy_distance, layer_nr);
                 //base_areas = avoid_object_remove_extra_small_parts(base_areas, avoid_region);
                 //base_areas = diff_clipped(base_areas, avoid_region);
                 ExPolygons roofs; append(roofs, roof_1st_layer); append(roofs, roof_areas);append(roofs, roof_gap_areas);
@@ -2295,7 +2295,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<SupportNode*>>& con
                                 // make sure 1) roof1 and object 2) roof1 and roof, won't intersect
                                 // Note: We can't replace roof1 directly, as we have recorded its address.
                                 //       So instead we need to replace its members one by one.
-                                auto tmp1 = diff_ex(roof1, get_collision((layer_nr == 0 && has_brim) ? config.brim_object_gap : m_ts_data->m_xy_distance, layer_nr));
+                                auto tmp1 = diff_ex(roof1, get_collision((layer_nr == 0) ? config.support_object_xy_distance : m_ts_data->m_xy_distance, layer_nr));
                                 tmp1 = diff_ex(tmp1, ts_layer->roof_areas);
                                 if (!tmp1.empty()) {
                                     roof1.contour = std::move(tmp1[0].contour);

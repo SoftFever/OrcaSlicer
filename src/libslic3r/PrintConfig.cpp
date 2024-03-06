@@ -4493,6 +4493,17 @@ void PrintConfigDef::init_fff_params()
     //Support with too small spacing may touch the object and difficult to remove.
     def->set_default_value(new ConfigOptionFloat(0.35));
 
+    def = this->add("support_object_first_layer_gap", coFloat);
+    def->label = L("Support/object first layer gap");
+    def->category = L("Support");
+    def->tooltip = L("XY separation between an object and its support at the first layer.");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->max = 10;
+    def->mode = comAdvanced;
+    //Support with too small spacing may touch the object and difficult to remove.
+    def->set_default_value(new ConfigOptionFloat(0.2));
+
     def = this->add("support_angle", coFloat);
     def->label = L("Pattern angle");
     def->category = L("Support");

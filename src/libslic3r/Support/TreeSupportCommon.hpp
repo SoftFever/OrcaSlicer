@@ -69,6 +69,7 @@ struct TreeSupportMeshGroupSettings {
             0;
         this->support_material_buildplate_only = config.support_on_build_plate_only;
         this->support_xy_distance       = scaled<coord_t>(config.support_object_xy_distance.value);
+        this->support_xy_distance_1st_layer = scaled<coord_t>(config.support_object_first_layer_gap.value);
         // Separation of interfaces, it is likely smaller than support_xy_distance.
         this->support_xy_distance_overhang = std::min(this->support_xy_distance, scaled<coord_t>(0.5 * external_perimeter_width));
         this->support_top_distance      = scaled<coord_t>(slicing_params.gap_support_object);
@@ -158,6 +159,7 @@ struct TreeSupportMeshGroupSettings {
     // Distance of the support structure from the print in the X/Y directions.
     // minimum: 0, maximum warning: 1.5 * machine_nozzle_tip_outer_diameter
     coord_t                         support_xy_distance                     { scaled<coord_t>(0.7) };
+    coord_t                         support_xy_distance_1st_layer           { scaled<coord_t>(0.7) };
     // Minimum Support X/Y Distance
     // Distance of the support structure from the overhang in the X/Y directions.
     // minimum_value: 0,  minimum warning": support_xy_distance - support_line_width * 2, maximum warning: support_xy_distance

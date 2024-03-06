@@ -792,7 +792,7 @@ static std::vector<std::string> s_Preset_print_options {
     "fuzzy_skin", "fuzzy_skin_thickness", "fuzzy_skin_point_distance", "fuzzy_skin_first_layer", "fuzzy_skin_noise_type", "fuzzy_skin_scale", "fuzzy_skin_octaves", "fuzzy_skin_persistence",
     "max_volumetric_extrusion_rate_slope", "max_volumetric_extrusion_rate_slope_segment_length","extrusion_rate_smoothing_external_perimeter_only",
     "inner_wall_speed", "outer_wall_speed", "sparse_infill_speed", "internal_solid_infill_speed",
-    "top_surface_speed", "support_speed", "support_object_xy_distance", "support_interface_speed",
+    "top_surface_speed", "support_speed", "support_object_xy_distance", "support_object_first_layer_gap", "support_interface_speed",
     "bridge_speed", "internal_bridge_speed", "gap_infill_speed", "travel_speed", "travel_speed_z", "initial_layer_speed",
     "outer_wall_acceleration", "initial_layer_acceleration", "top_surface_acceleration", "default_acceleration", "skirt_type", "skirt_loops", "skirt_speed","min_skirt_length", "skirt_distance", "skirt_start_angle", "skirt_height", "draft_shield",
     "brim_width", "brim_object_gap", "brim_type", "brim_ears_max_angle", "brim_ears_detection_length", "enable_support", "support_type", "support_threshold_angle", "support_threshold_overlap","enforce_support_layers",
