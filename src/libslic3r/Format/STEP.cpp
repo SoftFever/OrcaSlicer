@@ -210,6 +210,9 @@ static void getNamedSolids(const TopLoc_Location& location, const std::string& p
         case TopAbs_SOLID:
             namedSolids.emplace_back(TopoDS::Solid(transform.Shape()), fullName);
             break;
+        case TopAbs_SHELL:
+            namedSolids.emplace_back(TopoDS::Shell(transform.Shape()), fullName);
+            break;
         default:
             break;
         }

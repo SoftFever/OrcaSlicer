@@ -1298,10 +1298,9 @@ public:
 
     // BBS
     void rotate(Matrix3d rotation_matrix) {
-        auto R = m_transformation.get_rotation_matrix().matrix().block<3, 3>(0, 0);
-        auto R_new = rotation_matrix * R;
-        auto euler_angles = Geometry::extract_euler_angles(R_new);
-        set_rotation(euler_angles);
+        auto rotation = m_transformation.get_rotation_matrix();
+        rotation      = rotation_matrix * rotation;
+        set_rotation(Geometry::Transformation(rotation).get_rotation());
     }
 
     Vec3d get_scaling_factor() const { return m_transformation.get_scaling_factor(); }

@@ -32,3 +32,4 @@ src/OrcaSlicer-doc/
 **/filament_full/
 /deps/DL_CACHE/
 /deps/DL_CACHE
+resources/profiles/user/default

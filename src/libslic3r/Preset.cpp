@@ -770,7 +770,7 @@ bool Preset::has_cali_lines(PresetBundle* preset_bundle)
 static std::vector<std::string> s_Preset_print_options {
     "layer_height", "initial_layer_print_height", "wall_loops", "alternate_extra_wall", "slice_closing_radius", "spiral_mode", "spiral_mode_smooth", "spiral_mode_max_xy_smoothing", "slicing_mode",
     "top_shell_layers", "top_shell_thickness", "bottom_shell_layers", "bottom_shell_thickness",
-    "extra_perimeters_on_overhangs", "ensure_vertical_shell_thickness","reduce_wall_solid_infill", "reduce_crossing_wall", "detect_thin_wall", "detect_overhang_wall", "overhang_reverse", "overhang_reverse_threshold","overhang_reverse_internal_only",
+    "extra_perimeters_on_overhangs", "ensure_vertical_shell_thickness","reduce_wall_solid_infill", "reduce_crossing_wall", "detect_thin_wall", "detect_overhang_wall", "overhang_reverse", "overhang_reverse_threshold","overhang_reverse_internal_only", "wall_direction",
     "seam_position", "staggered_inner_seams", "wall_sequence", "is_infill_first", "sparse_infill_density", "sparse_infill_pattern", "top_surface_pattern", "bottom_surface_pattern",
     "infill_direction", "counterbole_hole_bridging",
     "minimum_sparse_infill_area", "reduce_infill_retraction","internal_solid_infill_pattern","gap_fill_target",
@@ -820,6 +820,7 @@ static std::vector<std::string> s_Preset_print_options {
      "wipe_tower_rotation_angle", "tree_support_branch_distance_organic", "tree_support_branch_diameter_organic", "tree_support_branch_angle_organic",
      "hole_to_polyhole", "hole_to_polyhole_threshold", "hole_to_polyhole_twisted", "mmu_segmented_region_max_width", "mmu_segmented_region_interlocking_depth",
      "small_area_infill_flow_compensation", "small_area_infill_flow_compensation_model",
+     "seam_slope_type", "seam_slope_start_height", "seam_slope_entire_loop", "seam_slope_min_length", "seam_slope_steps", "seam_slope_inner_walls",
 };
 
 static std::vector<std::string> s_Preset_filament_options {
@@ -881,7 +882,7 @@ static std::vector<std::string> s_Preset_printer_options {
     "cooling_tube_retraction",
     "cooling_tube_length", "high_current_on_filament_swap", "parking_pos_retraction", "extra_loading_move", "purge_in_prime_tower", "enable_filament_ramming",
     "z_offset",
-    "disable_m73", "preferred_orientation", "emit_machine_limits_to_gcode", "support_multi_bed_types"
+    "disable_m73", "preferred_orientation", "emit_machine_limits_to_gcode", "support_multi_bed_types","bed_mesh_min","bed_mesh_max","bed_mesh_probe_distance", "adaptive_bed_mesh_margin"
     };
 
 static std::vector<std::string> s_Preset_sla_print_options {
@@ -1122,6 +1123,7 @@ void PresetCollection::load_presets(
                         if (fs::exists(file_path))
                             fs::remove(file_path);
                         BOOST_LOG_TRIVIAL(error) << boost::format("parse config %1% failed")%preset.file;
+                        ++m_errors;
                         continue;
                     }
 
@@ -1159,6 +1161,7 @@ void PresetCollection::load_presets(
                         auto inherits_config2 = dynamic_cast<ConfigOptionString *>(inherits_config);
                         if ((inherits_config2 && !inherits_config2->value.empty()) && !preset.is_custom_defined()) {
                             BOOST_LOG_TRIVIAL(error) << boost::format("can not find parent for config %1%!")%preset.file;
+                            ++m_errors;
                             continue;
                         }
                         // Find a default preset for the config. The PrintPresetCollection provides different default preset based on the "printer_technology" field.
@@ -1169,9 +1172,12 @@ void PresetCollection::load_presets(
                     Preset::normalize(preset.config);
                     // Report configuration fields, which are misplaced into a wrong group.
                     std::string incorrect_keys = Preset::remove_invalid_keys(preset.config, default_preset.config);
-                    if (!incorrect_keys.empty())
-                        BOOST_LOG_TRIVIAL(error) << "Error in a preset file: The preset \"" <<
-                        preset.file << "\" contains the following incorrect keys: " << incorrect_keys << ", which were removed";
+                    if (!incorrect_keys.empty()) {
+                        ++m_errors;
+                        BOOST_LOG_TRIVIAL(error)
+                            << "Error in a preset file: The preset \"" << preset.file
+                            << "\" contains the following incorrect keys: " << incorrect_keys << ", which were removed";
+                    }
                     preset.loaded = true;
                     //BBS: add some workaround for previous incorrect settings
                     if ((!preset.setting_id.empty())&&(preset.setting_id == preset.base_id))
@@ -1179,6 +1185,7 @@ void PresetCollection::load_presets(
                     //BBS: add config related logs
                     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(", preset type %1%, name %2%, path %3%, is_system %4%, is_default %5% is_visible %6%")%Preset::get_type_string(m_type) %preset.name %preset.file %preset.is_system %preset.is_default %preset.is_visible;
                 } catch (const std::ifstream::failure &err) {
+                    ++m_errors;
                     BOOST_LOG_TRIVIAL(error) << boost::format("The user-config cannot be loaded: %1%. Reason: %2%")%preset.file %err.what();
                     fs::path file_path(preset.file);
                     if (fs::exists(file_path))
@@ -1188,6 +1195,7 @@ void PresetCollection::load_presets(
                         fs::remove(file_path);
                     //throw Slic3r::RuntimeError(std::string("The selected preset cannot be loaded: ") + preset.file + "\n\tReason: " + err.what());
                 } catch (const std::runtime_error &err) {
+                    ++m_errors;
                     BOOST_LOG_TRIVIAL(error) << boost::format("Failed loading the user-config file: %1%. Reason: %2%")%preset.file %err.what();
                     //throw Slic3r::RuntimeError(std::string("Failed loading the preset file: ") + preset.file + "\n\tReason: " + err.what());
                     fs::path file_path(preset.file);
@@ -1252,6 +1260,7 @@ int PresetCollection::get_differed_values_to_update(Preset& preset, std::map<std
 {
     if (preset.is_system || preset.is_default || preset.is_project_embedded) {
         BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" Error: not a user preset! Should not happen, name %1%") %preset.name;
+        ++m_errors;
         return -1;
     }
 
@@ -1351,9 +1360,11 @@ void PresetCollection::load_project_embedded_presets(std::vector<Preset*>& proje
             Preset::normalize(preset->config);
             // Report configuration fields, which are misplaced into a wrong group.
             std::string incorrect_keys = Preset::remove_invalid_keys(preset->config, default_preset.config);
-            if (! incorrect_keys.empty())
-                BOOST_LOG_TRIVIAL(error) << "Error in a preset file: The preset \"" <<
-                    preset->name << "\" contains the following incorrect keys: " << incorrect_keys << ", which were removed";
+            if (!incorrect_keys.empty()) {
+                ++m_errors;
+                BOOST_LOG_TRIVIAL(error) << "Error in a preset file: The preset \"" << preset->name
+                                         << "\" contains the following incorrect keys: " << incorrect_keys << ", which were removed";
+            }
             preset->loaded = true;
             presets_loaded.emplace_back(*preset);
             BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(", %1% got preset, name %2%, path %3%, is_system %4%, is_default %5% is_visible %6%")%Preset::get_type_string(m_type) %preset->name %preset->file %preset->is_system %preset->is_default %preset->is_visible;
@@ -1533,6 +1544,7 @@ void PresetCollection::save_user_presets(const std::string& dir_path, const std:
             }
             Preset* parent_preset = this->find_preset(inherits, false, true);
             if (!parent_preset) {
+                ++m_errors;
                 BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" can not find parent preset for %1% , inherits %2%")%preset->name %inherits;
                 continue;
             }
@@ -1680,9 +1692,11 @@ bool PresetCollection::load_user_preset(std::string name, std::map<std::string, 
         Preset::normalize(new_config);
         // Report configuration fields, which are misplaced into a wrong group.
         std::string incorrect_keys = Preset::remove_invalid_keys(new_config, default_preset.config);
-        if (! incorrect_keys.empty())
-            BOOST_LOG_TRIVIAL(error) << "Error in a preset file: The preset \"" <<
-                name << "\" contains the following incorrect keys: " << incorrect_keys << ", which were removed";
+        if (!incorrect_keys.empty()) {
+            ++m_errors;
+            BOOST_LOG_TRIVIAL(error) << "Error in a preset file: The preset \"" << name
+                                     << "\" contains the following incorrect keys: " << incorrect_keys << ", which were removed";
+        }
         if (need_update) {
             if (iter->name == m_edited_preset.name && iter->is_dirty) {
                 // Keep modifies when update from remote
@@ -2800,9 +2814,13 @@ void PresetCollection::update_map_system_profile_renamed()
 	for (Preset &preset : m_presets)
 		for (const std::string &renamed_from : preset.renamed_from) {
             const auto [it, success] = m_map_system_profile_renamed.insert(std::pair<std::string, std::string>(renamed_from, preset.name));
-			if (! success)
-                BOOST_LOG_TRIVIAL(error) << boost::format("Preset name \"%1%\" was marked as renamed from \"%2%\", though preset name \"%3%\" was marked as renamed from \"%2%\" as well.") % preset.name % renamed_from % it->second;
-		}
+            if (!success) {
+                ++m_errors;
+                BOOST_LOG_TRIVIAL(error) << boost::format("Preset name \"%1%\" was marked as renamed from \"%2%\", though preset name "
+                                                          "\"%3%\" was marked as renamed from \"%2%\" as well.") %
+                                                preset.name % renamed_from % it->second;
+            }
+        }
 }
 
 std::string PresetCollection::name() const

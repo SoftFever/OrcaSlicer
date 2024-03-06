@@ -7,13 +7,16 @@
     "instantiation": "true",
     "inherits": "fdm_filament_pla",
     "filament_flow_ratio": [
-        "0.931"
+        "0.94"
     ],
     "filament_max_volumetric_speed": [
-        "26"
+        "12"
     ],
     "slow_down_layer_time": [
         "8"
+    ],
+    "pressure_advance": [
+        "0.084"
     ],
     "compatible_printers": [
       "FlyingBear Reborn3 0.4 nozzle"
