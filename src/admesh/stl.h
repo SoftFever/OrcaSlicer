@@ -98,8 +98,12 @@ struct stl_neighbors {
 };
 
 struct stl_stats {
-    stl_stats() { memset(&header, 0, 81); }
-    char          header[81];
+    stl_stats() {}
+    void  reset_header(int size) {
+        header.clear();
+        header.resize(size +1);
+    }
+    std::vector<char>    header;
     stl_type      type                      = (stl_type)0;
     // Should always match the number of facets stored inside stl_file::facet_start.
     uint32_t      number_of_facets          = 0;
@@ -247,7 +251,7 @@ struct indexed_triangle_set
     }
 };
 
-extern bool stl_open(stl_file *stl, const char *file, ImportstlProgressFn stlFn = nullptr);
+extern bool stl_open(stl_file *stl, const char *file, ImportstlProgressFn stlFn = nullptr,int custom_header_length = 80);
 extern void stl_stats_out(stl_file *stl, FILE *file, char *input_file);
 extern bool stl_print_neighbors(stl_file *stl, char *file);
 extern bool stl_write_ascii(stl_file *stl, const char *file, const char *label);
