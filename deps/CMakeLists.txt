@@ -41,10 +41,10 @@ if (NPROC EQUAL 0)
 endif ()
 
 set(DESTDIR "${CMAKE_CURRENT_BINARY_DIR}/destdir" CACHE PATH "Destination directory")
-set(REMOVE_DESTDIR_POSTPEND FALSE CACHE BOOL "Used in flatpak to remove the '/usr/local' ending in destdir")
 set(DEP_DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR}/../DL_CACHE CACHE PATH "Path for downloaded source packages.")
-if (REMOVE_DESTDIR_POSTPEND)
-    set(DESTDIR "${DESTDIR}/usr/local/" CACHE PATH "The true destdir")
+set(REMOVE_DESTDIR_POSTPEND FALSE CACHE BOOL "Used in flatpak to remove the '/usr/local' ending in destdir")
+if (NOT REMOVE_DESTDIR_POSTPEND)
+    set(DESTDIR "${DESTDIR}/usr/local/")
 endif()
 
 get_property(_is_multi GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
