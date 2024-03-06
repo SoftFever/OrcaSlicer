@@ -24,7 +24,8 @@ while getopts ":dpa:snt:xbc:h" opt; do
         export OSX_DEPLOYMENT_TARGET="$OPTARG"
         ;;
     x )
-        export CMAKE_GENERATOR="Ninja"
+        export SLICER_CMAKE_GENERATOR="Ninja"
+        export DEPS_CMAKE_GENERATOR="Ninja"
         ;;
     b )
         export BUILD_ONLY="1"
@@ -63,8 +64,12 @@ if [ -z "$BUILD_TARGET" ]; then
   export BUILD_TARGET="all"
 fi
 
-if [ -z "$CMAKE_GENERATOR" ]; then
-  export CMAKE_GENERATOR="Xcode"
+if [ -z "$SLICER_CMAKE_GENERATOR" ]; then
+  export SLICER_CMAKE_GENERATOR="Xcode"
+fi
+
+if [ -z "$DEPS_CMAKE_GENERATOR" ]; then
+  export DEPS_CMAKE_GENERATOR="Unix Makefiles"
 fi
 
 if [ -z "$OSX_DEPLOYMENT_TARGET" ]; then
@@ -75,7 +80,7 @@ echo "Build params:"
 echo " - ARCH: $ARCH"
 echo " - BUILD_CONFIG: $BUILD_CONFIG"
 echo " - BUILD_TARGET: $BUILD_TARGET"
-echo " - CMAKE_GENERATOR: $CMAKE_GENERATOR"
+echo " - CMAKE_GENERATOR: $SLICER_CMAKE_GENERATOR for Slicer, $DEPS_CMAKE_GENERATOR for deps"
 echo " - OSX_DEPLOYMENT_TARGET: $OSX_DEPLOYMENT_TARGET"
 echo
 
@@ -113,6 +118,7 @@ function build_deps() {
         cd "$DEPS_BUILD_DIR"
         if [ "1." != "$BUILD_ONLY". ]; then
             cmake .. \
+                -G "${DEPS_CMAKE_GENERATOR}" \
                 -DDESTDIR="$DEPS" \
                 -DOPENSSL_ARCH="darwin64-${ARCH}-cc" \
                 -DCMAKE_BUILD_TYPE="$BUILD_CONFIG" \
@@ -141,6 +147,7 @@ function build_slicer() {
         cd "$PROJECT_BUILD_DIR"
         if [ "1." != "$BUILD_ONLY". ]; then
             cmake .. \
+                -G "${SLICER_CMAKE_GENERATOR}" \
                 -DBBL_RELEASE_TO_PUBLIC=1 \
                 -DCMAKE_PREFIX_PATH="$DEPS/usr/local" \
                 -DCMAKE_INSTALL_PREFIX="$PWD/OrcaSlicer" \
