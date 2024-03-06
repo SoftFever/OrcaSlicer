@@ -2295,6 +2295,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
     {
         BoundingBoxf bbox_bed(print.config().printable_area.values);
+        Vec2f plate_offset = m_writer.get_xy_offset();
         this->placeholder_parser().set("print_bed_min", new ConfigOptionFloats({ bbox_bed.min.x(), bbox_bed.min.y()}));
         this->placeholder_parser().set("print_bed_max", new ConfigOptionFloats({ bbox_bed.max.x(), bbox_bed.max.y()}));
         this->placeholder_parser().set("print_bed_size", new ConfigOptionFloats({ bbox_bed.size().x(), bbox_bed.size().y() }));
@@ -2322,12 +2323,37 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                 pts->values.emplace_back(print.translate_to_print_space(pt));
             bbox = BoundingBoxf((pts->values));
         }
-        BoundingBoxf bbox_head_wrap_zone (print.config().head_wrap_detect_zone.values);
         this->placeholder_parser().set("first_layer_print_convex_hull", pts.release());
         this->placeholder_parser().set("first_layer_print_min", new ConfigOptionFloats({bbox.min.x(), bbox.min.y()}));
         this->placeholder_parser().set("first_layer_print_max", new ConfigOptionFloats({bbox.max.x(), bbox.max.y()}));
         this->placeholder_parser().set("first_layer_print_size", new ConfigOptionFloats({ bbox.size().x(), bbox.size().y() }));
-        this->placeholder_parser().set("in_head_wrap_detect_zone",bbox_head_wrap_zone.overlap(bbox));
+
+        {  
+            // use first layer convex_hull union with each object's bbox to check whether in head detect zone
+            Polygons object_projections;
+            for (auto& obj : print.objects()) {
+                for (auto& instance : obj->instances()) {
+                    const auto& bbox = instance.get_bounding_box();
+                    Point min_p{ coord_t(scale_(bbox.min.x())),coord_t(scale_(bbox.min.y())) };
+                    Point max_p{ coord_t(scale_(bbox.max.x())),coord_t(scale_(bbox.max.y())) };
+                    Polygon instance_projection = {
+                        {min_p.x(),min_p.y()},
+                        {max_p.x(),min_p.y()},
+                        {max_p.x(),max_p.y()},
+                        {min_p.x(),max_p.y()}
+                    };
+                    object_projections.emplace_back(std::move(instance_projection));
+                }
+            }
+            object_projections.emplace_back(print.first_layer_convex_hull());
+
+            Polygons project_polys = union_(object_projections);
+            Polygon  head_wrap_detect_zone;
+            for (auto& point : print.config().head_wrap_detect_zone.values)
+                head_wrap_detect_zone.append(scale_(point).cast<coord_t>() + scale_(plate_offset).cast<coord_t>());
+
+            this->placeholder_parser().set("in_head_wrap_detect_zone", !intersection_pl(project_polys, {head_wrap_detect_zone}).empty());
+        }
 
         BoundingBoxf mesh_bbox(m_config.bed_mesh_min, m_config.bed_mesh_max);
         auto         mesh_margin = m_config.adaptive_bed_mesh_margin.value;
