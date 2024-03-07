@@ -150,6 +150,15 @@
         {
             "name": "Other PLA Hyper",
             "sub_path": "filament/Other PLA Hyper.json"
+        },
+        
+        {
+            "name": "fdm_filament_pla_Hyper",
+            "sub_path": "filament/fdm_filament_pla_Hyper.json"
+        },
+        {
+            "name": "InfiMech PLA Hyper",
+            "sub_path": "filament/InfiMech PLA Hyper.json"
         }
 
 	    
