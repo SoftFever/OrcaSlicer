@@ -70,12 +70,12 @@ jobs:
         if: inputs.os == 'macos-12'
         working-directory: ${{ github.workspace }}
         run: |
-            brew install cmake git gettext automake texinfo
+            brew install cmake git gettext automake texinfo ninja
             brew list
             mkdir -p ${{ github.workspace }}/deps/build_${{ inputs.arch }}
             mkdir -p ${{ github.workspace }}/deps/build_${{ inputs.arch }}/OrcaSlicer_dep_${{ inputs.arch }}
             brew uninstall --ignore-dependencies zstd
-            ./build_release_macos.sh -dp -a ${{ inputs.arch }} -t 10.15
+            ./build_release_macos.sh -dpx -a ${{ inputs.arch }} -t 10.15
             brew install zstd
 
 
