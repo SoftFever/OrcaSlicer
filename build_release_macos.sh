@@ -109,8 +109,8 @@ DEPS_BUILD_DIR="$DEPS_DIR/build_$ARCH"
 DEPS="$DEPS_BUILD_DIR/OrcaSlicer_dep_$ARCH"
 
 # Fix for Multi-config generators
-if [ "$CMAKE_GENERATOR" == "Xcode" ]; then
-    export BUILD_DIR_CONFIG_SUBDIR="$BUILD_CONFIG/"
+if [ "$SLICER_CMAKE_GENERATOR" == "Xcode" ]; then
+    export BUILD_DIR_CONFIG_SUBDIR="/$BUILD_CONFIG"
 else
     export BUILD_DIR_CONFIG_SUBDIR=""
 fi
