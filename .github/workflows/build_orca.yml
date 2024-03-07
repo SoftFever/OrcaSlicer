@@ -250,7 +250,7 @@ jobs:
         working-directory: ${{ github.workspace }}/build/src
         shell: bash
         run: |
-          OrcaSlicer_profile_validator -p ${{ github.workspace }}/resources/profiles -g 1
+          ./OrcaSlicer_profile_validator -p ${{ github.workspace }}/resources/profiles -g 1
           cd ${{ github.workspace }}/resources/profiles
           zip -r orca_custom_preset_tests.zip user/
 
@@ -279,6 +279,6 @@ jobs:
           upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label} 
           release_id: 137995723 
           asset_path: ${{ github.workspace }}/resources/profiles/orca_custom_preset_tests.zip
-          asset_name: orca_custom_preset_tests
+          asset_name: orca_custom_preset_tests.zip
           asset_content_type: application/octet-stream
           max_releases: 1 
