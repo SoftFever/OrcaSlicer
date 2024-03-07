@@ -24,7 +24,9 @@ while getopts ":dpa:snt:xbc:h" opt; do
         export OSX_DEPLOYMENT_TARGET="$OPTARG"
         ;;
     x )
-        export CMAKE_GENERATOR="Ninja"
+        export SLICER_CMAKE_GENERATOR="Ninja"
+        export SLICER_BUILD_TARGET="all"
+        export DEPS_CMAKE_GENERATOR="Ninja"
         ;;
     b )
         export BUILD_ONLY="1"
@@ -63,8 +65,16 @@ if [ -z "$BUILD_TARGET" ]; then
   export BUILD_TARGET="all"
 fi
 
-if [ -z "$CMAKE_GENERATOR" ]; then
-  export CMAKE_GENERATOR="Xcode"
+if [ -z "$SLICER_CMAKE_GENERATOR" ]; then
+  export SLICER_CMAKE_GENERATOR="Xcode"
+fi
+
+if [ -z "$SLICER_BUILD_TARGET" ]; then
+  export SLICER_BUILD_TARGET="ALL_BUILD"
+fi
+
+if [ -z "$DEPS_CMAKE_GENERATOR" ]; then
+  export DEPS_CMAKE_GENERATOR="Unix Makefiles"
 fi
 
 if [ -z "$OSX_DEPLOYMENT_TARGET" ]; then
@@ -75,7 +85,7 @@ echo "Build params:"
 echo " - ARCH: $ARCH"
 echo " - BUILD_CONFIG: $BUILD_CONFIG"
 echo " - BUILD_TARGET: $BUILD_TARGET"
-echo " - CMAKE_GENERATOR: $CMAKE_GENERATOR"
+echo " - CMAKE_GENERATOR: $SLICER_CMAKE_GENERATOR for Slicer, $DEPS_CMAKE_GENERATOR for deps"
 echo " - OSX_DEPLOYMENT_TARGET: $OSX_DEPLOYMENT_TARGET"
 echo
 
@@ -99,8 +109,8 @@ DEPS_BUILD_DIR="$DEPS_DIR/build_$ARCH"
 DEPS="$DEPS_BUILD_DIR/OrcaSlicer_dep_$ARCH"
 
 # Fix for Multi-config generators
-if [ "$CMAKE_GENERATOR" == "Xcode" ]; then
-    export BUILD_DIR_CONFIG_SUBDIR="$BUILD_CONFIG/"
+if [ "$SLICER_CMAKE_GENERATOR" == "Xcode" ]; then
+    export BUILD_DIR_CONFIG_SUBDIR="/$BUILD_CONFIG"
 else
     export BUILD_DIR_CONFIG_SUBDIR=""
 fi
@@ -113,6 +123,7 @@ function build_deps() {
         cd "$DEPS_BUILD_DIR"
         if [ "1." != "$BUILD_ONLY". ]; then
             cmake .. \
+                -G "${DEPS_CMAKE_GENERATOR}" \
                 -DDESTDIR="$DEPS" \
                 -DOPENSSL_ARCH="darwin64-${ARCH}-cc" \
                 -DCMAKE_BUILD_TYPE="$BUILD_CONFIG" \
@@ -141,6 +152,7 @@ function build_slicer() {
         cd "$PROJECT_BUILD_DIR"
         if [ "1." != "$BUILD_ONLY". ]; then
             cmake .. \
+                -G "${SLICER_CMAKE_GENERATOR}" \
                 -DBBL_RELEASE_TO_PUBLIC=1 \
                 -DCMAKE_PREFIX_PATH="$DEPS/usr/local" \
                 -DCMAKE_INSTALL_PREFIX="$PWD/OrcaSlicer" \
@@ -151,14 +163,13 @@ function build_slicer() {
                 -DCMAKE_OSX_ARCHITECTURES="${ARCH}" \
                 -DCMAKE_OSX_DEPLOYMENT_TARGET="${OSX_DEPLOYMENT_TARGET}"
         fi
-        cmake --build . --config "$BUILD_CONFIG" --target all
+        cmake --build . --config "$BUILD_CONFIG" --target "$SLICER_BUILD_TARGET"
     )
 
     echo "Verify localization with gettext..."
     (
         cd "$PROJECT_DIR"
         ./run_gettext.sh
-        # ./run_gettext.sh --full "$PROJECT_BUILD_DIR" "$BUILD_DIR_CONFIG_SUBDIR"
     )
 
     echo "Fix macOS app package..."
