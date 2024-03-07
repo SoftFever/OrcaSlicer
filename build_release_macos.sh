@@ -25,6 +25,7 @@ while getopts ":dpa:snt:xbc:h" opt; do
         ;;
     x )
         export SLICER_CMAKE_GENERATOR="Ninja"
+        export SLICER_BUILD_TARGET="all"
         export DEPS_CMAKE_GENERATOR="Ninja"
         ;;
     b )
@@ -66,6 +67,10 @@ fi
 
 if [ -z "$SLICER_CMAKE_GENERATOR" ]; then
   export SLICER_CMAKE_GENERATOR="Xcode"
+fi
+
+if [ -z "$SLICER_BUILD_TARGET" ]; then
+  export SLICER_BUILD_TARGET="ALL_BUILD"
 fi
 
 if [ -z "$DEPS_CMAKE_GENERATOR" ]; then
@@ -158,14 +163,13 @@ function build_slicer() {
                 -DCMAKE_OSX_ARCHITECTURES="${ARCH}" \
                 -DCMAKE_OSX_DEPLOYMENT_TARGET="${OSX_DEPLOYMENT_TARGET}"
         fi
-        cmake --build . --config "$BUILD_CONFIG" --target all
+        cmake --build . --config "$BUILD_CONFIG" --target "$SLICER_BUILD_TARGET"
     )
 
     echo "Verify localization with gettext..."
     (
         cd "$PROJECT_DIR"
         ./run_gettext.sh
-        # ./run_gettext.sh --full "$PROJECT_BUILD_DIR" "$BUILD_DIR_CONFIG_SUBDIR"
     )
 
     echo "Fix macOS app package..."
