@@ -17,13 +17,13 @@ else ()
 endif ()
 
 if (MSVC)
-    set(_patch_cmd if not exist WXWIDGETS_PATCHED ( "${GIT_EXECUTABLE}" apply --verbose --ignore-space-change --whitespace=fix ${CMAKE_CURRENT_LIST_DIR}/0001-wx-3.1.5-patch-for-Orca.patch && type nul > WXWIDGETS_PATCHED ) )
+    set(_patch_cmd if not exist WXWIDGETS_PATCHED ( patch --verbose -p1 -l -i ${CMAKE_CURRENT_LIST_DIR}/0001-wx-3.1.5-patch-for-Orca.patch && type nul > WXWIDGETS_PATCHED ) )
 else ()
-    set(_patch_cmd test -f WXWIDGETS_PATCHED || ${PATCH_CMD} ${CMAKE_CURRENT_LIST_DIR}/0001-wx-3.1.5-patch-for-Orca.patch && touch WXWIDGETS_PATCHED)
+    set(_patch_cmd test -f WXWIDGETS_PATCHED || patch --verbose -p1 -l -i ${CMAKE_CURRENT_LIST_DIR}/0001-wx-3.1.5-patch-for-Orca.patch && touch WXWIDGETS_PATCHED)
 endif ()
 
-if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    set(_patch_cmd cat ${CMAKE_CURRENT_LIST_DIR}/0001-wx-3.1.5-patch-for-Orca.patch ${CMAKE_CURRENT_LIST_DIR}/0001-Add-support-for-building-WebView-with-libwebkit2gtk-.patch | patch -p1)
+if (FLATPAK)
+    set(_patch_cmd cat ${CMAKE_CURRENT_LIST_DIR}/0001-wx-3.1.5-patch-for-Orca.patch ${CMAKE_CURRENT_LIST_DIR}/0001-Add-support-for-building-WebView-with-libwebkit2gtk-.patch | patch --verbose -p1 -l)
 endif ()
 
 orcaslicer_add_cmake_project(
