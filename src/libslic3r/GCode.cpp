@@ -5182,6 +5182,9 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         (is_bridge(path.role()) || is_perimeter(path.role()))) {
             bool is_external = is_external_perimeter(path.role());
             double ref_speed   = is_external ? m_config.get_abs_value("outer_wall_speed") : m_config.get_abs_value("inner_wall_speed");
+            if (sloped) {
+                ref_speed = std::min(ref_speed, m_config.scarf_joint_speed.get_abs_value(ref_speed));
+            }
             ConfigOptionPercents         overhang_overlap_levels({75, 50, 25, 13, 12.99, 0});
 
         	if (m_config.slowdown_for_curled_perimeters){
@@ -5245,6 +5248,10 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     }
 
     double F = speed * 60;  // convert mm/sec to mm/min
+    if(abs(F - 5753.504) < 0.002)
+    {
+        std::cout << "F: " << F << std::endl;
+    }
 
     //Orca: process custom gcode for extrusion role change
     if (path.role() != m_last_extrusion_role && !m_config.change_extrusion_role_gcode.value.empty()) {
