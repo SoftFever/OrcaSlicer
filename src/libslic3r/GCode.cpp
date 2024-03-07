@@ -5071,6 +5071,8 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         _mm3_per_mm *= m_config.bottom_solid_infill_flow_ratio;
     else if (path.role() == erInternalBridgeInfill)
         _mm3_per_mm *= m_config.internal_bridge_flow;
+    else if(sloped)
+        _mm3_per_mm *= m_config.scarf_joint_flow_ratio;
 
 
     double e_per_mm = m_writer.extruder()->e_per_mm3() * _mm3_per_mm;

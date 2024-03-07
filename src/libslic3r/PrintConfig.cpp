@@ -3579,6 +3579,13 @@ def = this->add("filament_loading_speed", coFloats);
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatOrPercent(100, true));
 
+    def = this->add("scarf_joint_flow_ratio", coFloat);
+    def->label = L("Scarf joint flow ratio");
+    def->tooltip = L("This factor affects the amount of material for scarf joints.");
+    def->mode = comAdvanced;
+    def->max = 2;
+    def->set_default_value(new ConfigOptionFloat(1));
+
     def = this->add("seam_slope_start_height", coFloatOrPercent);
     def->label = L("Scarf start height");
     def->tooltip = L("Start height of the scarf.\n"
