@@ -778,6 +778,7 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
 
                 Layer* lower_layer = layer->lower_layer;
                 coordf_t lower_layer_offset = layer_nr < enforce_support_layers ? -0.15 * extrusion_width : (float)lower_layer->height / tan(threshold_rad);
+                //lower_layer_offset = std::min(lower_layer_offset, extrusion_width);
                 coordf_t support_offset_scaled = scale_(lower_layer_offset);
                 // Filter out areas whose diameter that is smaller than extrusion_width. Do not use offset2() for this purpose!
                 ExPolygons lower_polys;
@@ -838,7 +839,8 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
 
                     // check cantilever
                     {
-                        auto cluster_boundary_ex = intersection_ex(poly, offset_ex(lower_layer->lslices, scale_(0.5)));
+                        // lower_layer_offset may be very small, so we need to do max and then add 0.1
+                        auto cluster_boundary_ex = intersection_ex(poly, offset_ex(lower_layer->lslices, scale_(std::max(extrusion_width,lower_layer_offset)+0.1)));
                         Polygons cluster_boundary = to_polygons(cluster_boundary_ex);
                         if (cluster_boundary.empty()) continue;
                         double dist_max = 0;
