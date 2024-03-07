@@ -1,11 +1,10 @@
 set(_srcdir ${CMAKE_CURRENT_LIST_DIR}/mpfr)
-set(_dstdir ${DESTDIR}/usr/local)
 
 if (MSVC)
-    set(_output  ${_dstdir}/include/mpfr.h
-                 ${_dstdir}/include/mpf2mpfr.h
-                 ${_dstdir}/lib/libmpfr-4.lib 
-                 ${_dstdir}/bin/libmpfr-4.dll)
+    set(_output  ${DESTDIR}/include/mpfr.h
+                 ${DESTDIR}/include/mpf2mpfr.h
+                 ${DESTDIR}/lib/libmpfr-4.lib 
+                 ${DESTDIR}/bin/libmpfr-4.dll)
 
     add_custom_command(
         OUTPUT  ${_output}

@@ -1,11 +1,10 @@
 
 set(_srcdir ${CMAKE_CURRENT_LIST_DIR}/gmp)
-set(_dstdir ${DESTDIR}/usr/local)
 
 if (MSVC)
-    set(_output  ${_dstdir}/include/gmp.h 
-                 ${_dstdir}/lib/libgmp-10.lib 
-                 ${_dstdir}/bin/libgmp-10.dll)
+    set(_output  ${DESTDIR}/include/gmp.h 
+                 ${DESTDIR}/lib/libgmp-10.lib 
+                 ${DESTDIR}/bin/libgmp-10.dll)
 
     add_custom_command(
         OUTPUT  ${_output}
