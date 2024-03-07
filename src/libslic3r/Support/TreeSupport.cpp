@@ -752,6 +752,17 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
     max_cantilever_dist = 0;
     m_highest_overhang_layer = 0;
 
+    // calc the extrudable expolygons of each layer
+    tbb::parallel_for(tbb::blocked_range<size_t>(0, m_object->layer_count()),
+        [&](const tbb::blocked_range<size_t>& range) {
+            for (size_t layer_nr = range.begin(); layer_nr < range.end(); layer_nr++) {
+                if (m_object->print()->canceled())
+                    break;
+                Layer* layer = m_object->get_layer(layer_nr);
+                // Filter out areas whose diameter that is smaller than extrusion_width, but we don't want to lose any details.
+                layer->lslices_extrudable = intersection_ex(layer->lslices, offset2_ex(layer->lslices, -extrusion_width_scaled / 2, extrusion_width_scaled));
+            }
+        });
     // main part of overhang detection can be parallel
     tbb::parallel_for(tbb::blocked_range<size_t>(0, m_object->layer_count()),
         [&](const tbb::blocked_range<size_t>& range) {
@@ -770,7 +781,7 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
                         if (!((bbox_size.x() > length_thresh_well_supported && bbox_size.y() > length_thresh_well_supported))
                             && g_config_support_sharp_tails) {
                             layer->sharp_tails.push_back(slice);
-                            layer->sharp_tails_height.insert({ &slice, layer->height });
+                            layer->sharp_tails_height.push_back(layer->height);
                         }
                     }
                     continue;
@@ -780,21 +791,8 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
                 coordf_t lower_layer_offset = layer_nr < enforce_support_layers ? -0.15 * extrusion_width : (float)lower_layer->height / tan(threshold_rad);
                 //lower_layer_offset = std::min(lower_layer_offset, extrusion_width);
                 coordf_t support_offset_scaled = scale_(lower_layer_offset);
-                // Filter out areas whose diameter that is smaller than extrusion_width. Do not use offset2() for this purpose!
-                ExPolygons lower_polys;
-                for (const ExPolygon& expoly : lower_layer->lslices) {
-                    if (!offset_ex(expoly, -extrusion_width_scaled / 2).empty()) {
-                        lower_polys.emplace_back(expoly);
-                    }
-                }
-                ExPolygons curr_polys;
-                std::vector<const ExPolygon*> curr_poly_ptrs;
-                for (const ExPolygon& expoly : layer->lslices) {
-                    if (!offset_ex(expoly, -extrusion_width_scaled / 2).empty()) {
-                        curr_polys.emplace_back(expoly);
-                        curr_poly_ptrs.emplace_back(&expoly);
-                    }
-                }
+                ExPolygons& curr_polys = layer->lslices_extrudable;
+                ExPolygons& lower_polys = lower_layer->lslices_extrudable;
 
                 // normal overhang
                 ExPolygons lower_layer_offseted = offset_ex(lower_polys, support_offset_scaled, SUPPORT_SURFACES_OFFSET_PARAMETERS);
@@ -803,24 +801,24 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
                 if (is_auto(stype) && g_config_support_sharp_tails)
                 {
                     // BBS detect sharp tail
-                    for (const ExPolygon* expoly : curr_poly_ptrs) {
+                    for (const ExPolygon& expoly : curr_polys) {
                         bool  is_sharp_tail = false;
                         // 1. nothing below
                         // this is a sharp tail region if it's floating and non-ignorable
-                        if (!overlaps(offset_ex(*expoly, 0.5 * extrusion_width_scaled), lower_polys)) {
-                            is_sharp_tail = !offset_ex(*expoly, -0.1 * extrusion_width_scaled).empty();
+                        if (!overlaps(offset_ex(expoly, 0.5 * extrusion_width_scaled), lower_polys)) {
+                            is_sharp_tail = !offset_ex(expoly, -0.1 * extrusion_width_scaled).empty();
                         }
 
                         if (is_sharp_tail) {
-                            ExPolygons overhang = diff_ex({ *expoly }, lower_polys);
-                            layer->sharp_tails.push_back(*expoly);
-                            layer->sharp_tails_height.insert({ expoly, layer->height });
+                            ExPolygons overhang = diff_ex({ expoly }, lower_polys);
+                            layer->sharp_tails.push_back(expoly);
+                            layer->sharp_tails_height.push_back(layer->height);
                             append(overhang_areas, overhang);
 
                             if (!overhang.empty()) {
                                 has_sharp_tails = true;
 #ifdef SUPPORT_TREE_DEBUG_TO_SVG
-							SVG::export_expolygons(debug_out_path("sharp_tail_orig_%.02f.svg", layer->print_z), { expoly });
+                            	SVG::export_expolygons(debug_out_path("sharp_tail_orig_%.02f.svg", layer->print_z), { expoly });
 #endif
                             }
                         }                        
@@ -834,7 +832,7 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
                     // check cantilever
                     {
                         // lower_layer_offset may be very small, so we need to do max and then add 0.1
-                        auto cluster_boundary_ex = intersection_ex(poly, offset_ex(lower_layer->lslices, scale_(std::max(extrusion_width,lower_layer_offset)+0.1)));
+                        auto cluster_boundary_ex = intersection_ex(poly, offset_ex(lower_polys, scale_(std::max(extrusion_width,lower_layer_offset)+0.1)));
                         Polygons cluster_boundary = to_polygons(cluster_boundary_ex);
                         if (cluster_boundary.empty()) continue;
                         double dist_max = 0;
@@ -877,7 +875,7 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
             // BBS detect sharp tail
             const ExPolygons& lower_layer_sharptails = lower_layer->sharp_tails;
             const auto& lower_layer_sharptails_height = lower_layer->sharp_tails_height;
-            for (ExPolygon& expoly : layer->lslices) {
+            for (ExPolygon& expoly : layer->lslices_extrudable) {
                 bool  is_sharp_tail = false;
                 float accum_height = layer->height;
                 do {
@@ -907,9 +905,9 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
                     }
 
                     // 2.3 check whether sharp tail exceed the max height
-                    for (const auto& lower_sharp_tail_height : lower_layer_sharptails_height) {
-                        if (lower_sharp_tail_height.first->overlaps(expoly)) {
-                            accum_height += lower_sharp_tail_height.second;
+                    for(size_t i=0;i<lower_layer_sharptails.size();i++) {
+                        if (lower_layer_sharptails[i].overlaps(expoly)) {
+                            accum_height += lower_layer_sharptails_height[i];
                             break;
                         }
                     }
@@ -933,7 +931,7 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
                 if (is_sharp_tail) {
                     ExPolygons overhang = diff_ex({ expoly }, lower_layer->lslices);
                     layer->sharp_tails.push_back(expoly);
-                    layer->sharp_tails_height.insert({ &expoly, accum_height });
+                    layer->sharp_tails_height.push_back( accum_height);
                     append(ts_layer->overhang_areas, overhang);
 
                     if (!overhang.empty())
