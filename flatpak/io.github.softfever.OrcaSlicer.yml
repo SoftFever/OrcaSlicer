@@ -119,6 +119,7 @@ modules:
           -DDESTDIR=/app \
           -DCMAKE_INSTALL_LIBDIR=/app/lib \
           -DFLATPAK=ON \ 
+          -DCMAKE_BUILD_TYPE=Release \
           -DCMAKE_INSTALL_PREFIX=/app 
         cmake --build . 
     
