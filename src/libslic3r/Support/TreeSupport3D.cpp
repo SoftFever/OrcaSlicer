@@ -195,7 +195,7 @@ static std::vector<std::pair<TreeSupportSettings, std::vector<size_t>>> group_me
 }
 #endif
 
-[[nodiscard]] static const std::vector<Polygons> generate_overhangs(const TreeSupportSettings &settings, const PrintObject &print_object, std::function<void()> throw_on_cancel)
+[[nodiscard]] static const std::vector<Polygons> generate_overhangs(const TreeSupportSettings &settings, PrintObject &print_object, std::function<void()> throw_on_cancel)
 {
     const size_t num_raft_layers   = settings.raft_layers.size();
     const size_t num_object_layers = print_object.layer_count();
@@ -216,6 +216,20 @@ static std::vector<std::pair<TreeSupportSettings, std::vector<size_t>>> group_me
     double                   tan_threshold          = support_threshold_auto ? 0. : tan(M_PI * double(support_threshold + 1) / 180.);
     //FIXME this is a fudge constant!
     auto                     enforcer_overhang_offset = scaled<double>(config.tree_support_tip_diameter.value);
+
+    // calc the extrudable expolygons of each layer
+    const coordf_t extrusion_width = config.line_width.value;
+    const coordf_t extrusion_width_scaled = scale_(extrusion_width);
+    tbb::parallel_for(tbb::blocked_range<size_t>(0, print_object.layer_count()),
+        [&](const tbb::blocked_range<size_t>& range) {
+            for (size_t layer_nr = range.begin(); layer_nr < range.end(); layer_nr++) {
+                if (print_object.print()->canceled())
+                    break;
+                Layer* layer = print_object.get_layer(layer_nr);
+                // Filter out areas whose diameter that is smaller than extrusion_width, but we don't want to lose any details.
+                layer->lslices_extrudable = intersection_ex(layer->lslices, offset2_ex(layer->lslices, -extrusion_width_scaled / 2, extrusion_width_scaled));
+            }
+        });
 
     size_t num_overhang_layers = support_auto ? num_object_layers : std::min(num_object_layers, std::max(size_t(support_enforce_layers), enforcers_layers.size()));
     tbb::parallel_for(tbb::blocked_range<LayerIndex>(1, num_overhang_layers),
@@ -244,9 +258,8 @@ static std::vector<std::pair<TreeSupportSettings, std::vector<size_t>>> group_me
                     lower_layer_offset = external_perimeter_width - float(scale_(config.support_threshold_overlap.get_abs_value(unscale_(external_perimeter_width))));
                 } else
                     lower_layer_offset = scaled<float>(lower_layer.height / tan_threshold);
-                overhangs = lower_layer_offset == 0 ?
-                    diff(current_layer.lslices, lower_layer.lslices) :
-                    diff(current_layer.lslices, offset(lower_layer.lslices, lower_layer_offset));
+                Polygons lower_layer_offseted = offset(lower_layer.lslices_extrudable, lower_layer_offset);
+                overhangs = diff(current_layer.lslices_extrudable, lower_layer_offseted);
                 if (lower_layer_offset == 0) {
                     raw_overhangs = overhangs;
                     raw_overhangs_calculated = true;
@@ -3441,6 +3454,7 @@ static void generate_support_areas(Print &print, const BuildVolume &build_volume
             auto t_place = std::chrono::high_resolution_clock::now();
 
             // ### draw these points as circles
+            // this new function give correct result when raft is also enabled
             organic_draw_branches(
                 *print.get_object(processing.second.front()), volumes, config, move_bounds,
                 bottom_contacts, top_contacts, interface_placer, intermediate_layers, layer_storage,
