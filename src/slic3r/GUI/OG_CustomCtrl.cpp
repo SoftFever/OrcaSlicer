@@ -773,8 +773,8 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord h_pos, wxCoord v_pos)
         if (field && field->undo_bitmap()) {
             // if (field)
             //  BBS: new layout
-            const wxPoint pos = draw_act_bmps(dc, wxPoint(h_pos, v_pos), field->undo_to_sys_bitmap()->get_bitmap(),
-                                              field->undo_bitmap()->get_bitmap(), field->blink());
+            const wxPoint pos = draw_act_bmps(dc, wxPoint(h_pos, v_pos), field->undo_to_sys_bitmap()->bmp(),
+                                              field->undo_bitmap()->bmp(), field->blink());
             if (field->has_edit_ui())
                 draw_edit_bmp(dc, pos, *field->edit_bitmap());
         }
@@ -831,7 +831,7 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord h_pos, wxCoord v_pos)
 
     auto draw_buttons = [&h_pos, &dc, &v_pos, this](Field* field, size_t bmp_rect_id = 0) {
         if (field && field->undo_to_sys_bitmap()) {
-            h_pos = draw_act_bmps(dc, wxPoint(h_pos, v_pos), field->undo_to_sys_bitmap()->get_bitmap(), field->undo_bitmap()->get_bitmap(), field->blink(), bmp_rect_id).x;
+            h_pos = draw_act_bmps(dc, wxPoint(h_pos, v_pos), field->undo_to_sys_bitmap()->bmp(), field->undo_bitmap()->bmp(), field->blink(), bmp_rect_id).x;
         }
 #ifndef DISABLE_BLINKING
         else if (field && !field->undo_to_sys_bitmap() && field->blink()) 
@@ -974,7 +974,7 @@ wxPoint OG_CustomCtrl::CtrlLine::draw_blinking_bmp(wxDC& dc, wxPoint pos, bool i
     return wxPoint(h_pos, v_pos);
 }
 
-wxPoint OG_CustomCtrl::CtrlLine::draw_act_bmps(wxDC& dc, wxPoint pos, const wxBitmapBundle& bmp_undo_to_sys, const wxBitmapBundle& bmp_undo, bool is_blinking, size_t rect_id)
+wxPoint OG_CustomCtrl::CtrlLine::draw_act_bmps(wxDC& dc, wxPoint pos, const wxBitmap& bmp_undo_to_sys, const wxBitmap& bmp_undo, bool is_blinking, size_t rect_id)
 {
 #ifndef DISABLE_BLINKING
     pos = draw_blinking_bmp(dc, pos, is_blinking);
