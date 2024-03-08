@@ -1977,10 +1977,14 @@ void TabPrint::build()
         optgroup->append_single_option_line("staggered_inner_seams", "seam");
         optgroup->append_single_option_line("seam_gap","seam");
         optgroup->append_single_option_line("seam_slope_type", "seam#scarf-joint-seam");
+        optgroup->append_single_option_line("seam_slope_conditional", "seam#scarf-joint-seam");
+        optgroup->append_single_option_line("scarf_angle_threshold", "seam#scarf-joint-seam");
+        optgroup->append_single_option_line("scarf_joint_speed", "seam#scarf-joint-seam");
         optgroup->append_single_option_line("seam_slope_start_height", "seam#scarf-joint-seam");
         optgroup->append_single_option_line("seam_slope_entire_loop", "seam#scarf-joint-seam");
         optgroup->append_single_option_line("seam_slope_min_length", "seam#scarf-joint-seam");
         optgroup->append_single_option_line("seam_slope_steps", "seam#scarf-joint-seam");
+        optgroup->append_single_option_line("scarf_joint_flow_ratio", "seam#scarf-joint-seam");
         optgroup->append_single_option_line("seam_slope_inner_walls", "seam#scarf-joint-seam");
         optgroup->append_single_option_line("role_based_wipe_speed","seam");
         optgroup->append_single_option_line("wipe_speed", "seam");
