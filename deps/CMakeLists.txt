@@ -145,6 +145,26 @@ if (NOT IS_CROSS_COMPILE OR NOT APPLE)
        BUILD_COMMAND ${CMAKE_COMMAND} --build . --config Release -- ${_build_j}
        INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install --config Release
     )
+elseif(FLATPAK)
+    # save some space after each build because limited CI space
+    ExternalProject_Add(
+        dep_${projectname}
+        EXCLUDE_FROM_ALL    ON
+        INSTALL_DIR         ${DESTDIR}
+        DOWNLOAD_DIR        ${DEP_DOWNLOAD_DIR}/${projectname}
+        ${_gen}
+        CMAKE_ARGS
+            -DCMAKE_INSTALL_PREFIX:STRING=${DESTDIR}
+            -DCMAKE_PREFIX_PATH:STRING=${DESTDIR}
+            -DBUILD_SHARED_LIBS:BOOL=OFF
+            ${_cmake_osx_arch}
+            "${_configs_line}"
+            ${DEP_CMAKE_OPTS}
+            ${P_ARGS_CMAKE_ARGS}
+       ${P_ARGS_UNPARSED_ARGUMENTS}
+       BUILD_COMMAND ${CMAKE_COMMAND} --build . --config Release -- ${_build_j}
+       INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install --config Release && ${CMAKE_COMMAND} remove_directory .
+    )
 else()
     ExternalProject_Add(
         dep_${projectname}
