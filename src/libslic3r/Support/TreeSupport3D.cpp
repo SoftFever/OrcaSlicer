@@ -216,6 +216,7 @@ static std::vector<std::pair<TreeSupportSettings, std::vector<size_t>>> group_me
     double                   tan_threshold          = support_threshold_auto ? 0. : tan(M_PI * double(support_threshold + 1) / 180.);
     //FIXME this is a fudge constant!
     auto                     enforcer_overhang_offset = scaled<double>(config.tree_support_tip_diameter.value);
+    const coordf_t radius_sample_resolution = g_config_tree_support_collision_resolution;
 
     // calc the extrudable expolygons of each layer
     const coordf_t extrusion_width = config.line_width.value;
@@ -234,7 +235,7 @@ static std::vector<std::pair<TreeSupportSettings, std::vector<size_t>>> group_me
     size_t num_overhang_layers = support_auto ? num_object_layers : std::min(num_object_layers, std::max(size_t(support_enforce_layers), enforcers_layers.size()));
     tbb::parallel_for(tbb::blocked_range<LayerIndex>(1, num_overhang_layers),
         [&print_object, &config, &print_config, &enforcers_layers, &blockers_layers, 
-         support_auto, support_enforce_layers, support_threshold_auto, tan_threshold, enforcer_overhang_offset, num_raft_layers, &throw_on_cancel, &out]
+         support_auto, support_enforce_layers, support_threshold_auto, tan_threshold, enforcer_overhang_offset, num_raft_layers, radius_sample_resolution, &throw_on_cancel, &out]
         (const tbb::blocked_range<LayerIndex> &range) {
         for (LayerIndex layer_id = range.begin(); layer_id < range.end(); ++ layer_id) {
             const Layer   &current_layer  = *print_object.get_layer(layer_id);
@@ -264,12 +265,8 @@ static std::vector<std::pair<TreeSupportSettings, std::vector<size_t>>> group_me
                     raw_overhangs = overhangs;
                     raw_overhangs_calculated = true;
                 }
-                if (! (enforced_layer || blockers_layers.empty() || blockers_layers[layer_id].empty())) {
-                    Polygons &blocker = blockers_layers[layer_id];
-                    // Arthur: union_ is a must because after mirroring, the blocker polygons are in left-hand coordinates, ie clockwise,
-                    // which are not valid polygons, and will be removed by offset. union_ can make these polygons right.
-                    overhangs = diff(overhangs, offset(union_(blocker), scale_(g_config_tree_support_collision_resolution)), ApplySafetyOffset::Yes);
-                }
+                if (! (enforced_layer || blockers_layers.empty() || blockers_layers[layer_id].empty()))
+                    overhangs = diff(overhangs, offset_ex(union_(blockers_layers[layer_id]), scale_(radius_sample_resolution)), ApplySafetyOffset::Yes);
                 if (config.bridge_no_support) {
                     for (const LayerRegion *layerm : current_layer.regions())
                         remove_bridges_from_contacts(print_config, lower_layer, *layerm, 
