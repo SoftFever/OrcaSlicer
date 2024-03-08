@@ -2487,12 +2487,20 @@ def = this->add("filament_loading_speed", coFloats);
     def->set_default_value(new ConfigOptionFloat(0));
 
 
-    def = this->add("time_cost", coFloat);
-    def->label = L("Time cost");
-    def->tooltip = L("The printer cost per hour");
-    def->sidetext = L("money/h");
+    def = this->add("electric_consumption", coFloat);
+    def->label = L("Electric consumption");
+    def->tooltip = L("The printer's electric consumption per hour");
+    def->sidetext = L("watts/h");
     def->min     = 0;
     def->mode    = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0));
+
+    def = this->add("electric_cost", coFloat);
+    def->label = L("Electric cost");
+    def->tooltip = L("The electric cost of 1 kWh in your area");
+    def->sidetext = L("money/kWh");
+    def->min = 0;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0));
 
     // Orca: may remove this option later
