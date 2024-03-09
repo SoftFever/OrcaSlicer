@@ -36,6 +36,7 @@ This parameter interacts with the below printer kinematic settings and physical 
 <h3>Acceleration vs. Extrusion rate smoothing</h3>
 A printer's motion system does not exactly follow the speed changes seen in the gcode preview screen of Orca slicer. 
 
+
 When a speed change is requested, the firmware look ahead planner calculates the slow down needed to achieve the target speed. The rate of slowdown is limited by the move's acceleration value. 
 
 **Lets consider an example.** Assume printing an overhang wall with **2k external wall acceleration**, were the printer is called to slow down from **200mm/sec to 40mm/sec**.
