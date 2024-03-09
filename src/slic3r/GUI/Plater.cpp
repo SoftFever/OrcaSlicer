@@ -9115,21 +9115,26 @@ void Plater::_calib_pa_tower(const Calib_Params& params) {
     const double nozzle_diameter = printer_config->option<ConfigOptionFloats>("nozzle_diameter")->get_at(0);
 
     filament_config->set_key_value("slow_down_layer_time", new ConfigOptionFloats{ 1.0f });
-    print_config->set_key_value("alternate_extra_wall", new ConfigOptionBool(false));
-    print_config->set_key_value("default_jerk", new ConfigOptionFloat(1.0f));
-    print_config->set_key_value("outer_wall_jerk", new ConfigOptionFloat(1.0f));
-    print_config->set_key_value("inner_wall_jerk", new ConfigOptionFloat(1.0f));
+
+
+    auto& obj_cfg = model().objects[0]->config;
+
+    obj_cfg.set_key_value("alternate_extra_wall", new ConfigOptionBool(false));
     auto full_config = wxGetApp().preset_bundle->full_config();
     auto wall_speed = CalibPressureAdvance::find_optimal_PA_speed(
         full_config, full_config.get_abs_value("line_width", nozzle_diameter),
         full_config.get_abs_value("layer_height"), 0);
-    print_config->set_key_value("outer_wall_speed", new ConfigOptionFloat(wall_speed));
-    print_config->set_key_value("inner_wall_speed", new ConfigOptionFloat(wall_speed));
-    // print_config->set_key_value("wall_generator", new ConfigOptionEnum<PerimeterGeneratorType>(PerimeterGeneratorType::Classic));
-    const auto _wall_generator = print_config->option<ConfigOptionEnum<PerimeterGeneratorType>>("wall_generator");
-    if (_wall_generator->value == PerimeterGeneratorType::Arachne)
-        print_config->set_key_value("wall_transition_angle", new ConfigOptionFloat(25));
-    model().objects[0]->config.set_key_value("seam_position", new ConfigOptionEnum<SeamPosition>(spRear));
+    obj_cfg.set_key_value("outer_wall_speed", new ConfigOptionFloat(wall_speed));
+    obj_cfg.set_key_value("inner_wall_speed", new ConfigOptionFloat(wall_speed));
+    obj_cfg.set_key_value("seam_position", new ConfigOptionEnum<SeamPosition>(spRear));
+    obj_cfg.set_key_value("wall_loops", new ConfigOptionInt(2));
+    obj_cfg.set_key_value("top_shell_layers", new ConfigOptionInt(0));
+    obj_cfg.set_key_value("bottom_shell_layers", new ConfigOptionInt(0));
+    obj_cfg.set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
+    obj_cfg.set_key_value("brim_type", new ConfigOptionEnum<BrimType>(btEar));
+    obj_cfg.set_key_value("brim_object_gap", new ConfigOptionFloat(.0f));
+    obj_cfg.set_key_value("brim_ears_max_angle", new ConfigOptionFloat(135.f));
+    obj_cfg.set_key_value("brim_width", new ConfigOptionFloat(6.f));
 
     changed_objects({ 0 });
     wxGetApp().get_tab(Preset::TYPE_PRINT)->update_dirty();

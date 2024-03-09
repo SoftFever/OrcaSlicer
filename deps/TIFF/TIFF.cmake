@@ -11,6 +11,7 @@ if (APPLE)
             -Dwebp:BOOL=OFF
             -Djbig:BOOL=OFF
             -Dzstd:BOOL=OFF
+            -Dlibdeflate:BOOL=OFF
             -Dpixarlog:BOOL=OFF
     )
 else()
