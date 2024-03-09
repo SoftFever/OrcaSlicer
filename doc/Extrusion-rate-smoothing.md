@@ -25,9 +25,13 @@ In the above scenario, the printer (Bambu Lab X1 Carbon) was requested to slow d
 
 This parameter interacts with the below printer kinematic settings and physical limits:
 **1. The limits of the extruder system** - how fast can it change pressure in the nozzle
+
 **2. The configured pressure advance values** - that also affect pressure changes in the nozzle
+
 **3. The acceleration profile of the printer** - higher accelerations mean higher pressure changes
+
 **4. The pressure advance smooth time (klipper)** - higher smooth time means higher deviation from ideal extrusion, hence more opportunity for this feature to be useful.
+
 
 <h3>Acceleration vs. Extrusion rate smoothing</h3>
 A printer's motion system does not exactly follow the speed changes seen in the gcode preview screen of Orca slicer. 
