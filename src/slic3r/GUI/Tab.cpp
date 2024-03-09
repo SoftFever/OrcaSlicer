@@ -2156,8 +2156,8 @@ void TabPrint::build()
         optgroup->append_single_option_line("travel_jerk");
         
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced", 15);
-        optgroup->append_single_option_line("max_volumetric_extrusion_rate_slope");
-        optgroup->append_single_option_line("max_volumetric_extrusion_rate_slope_segment_length");
+        optgroup->append_single_option_line("max_volumetric_extrusion_rate_slope", "extrusion-rate-smoothing");
+        optgroup->append_single_option_line("max_volumetric_extrusion_rate_slope_segment_length", "extrusion-rate-smoothing");
 
     page = add_options_page(L("Support"), "support");
         optgroup = page->new_optgroup(L("Support"), L"param_support");
