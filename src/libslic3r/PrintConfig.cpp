@@ -3547,7 +3547,45 @@ def = this->add("filament_loading_speed", coFloats);
     def->enum_labels.push_back(L("Contour and hole"));
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<SeamScarfType>(SeamScarfType::None));
-    
+
+    def = this->add("seam_slope_conditional", coBool);
+    def->label = L("Conditional scarf joint");
+    def->tooltip = L("Apply scarf joints only to smooth perimeters where traditional seams do not conceal the seams at sharp corners effectively.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("scarf_angle_threshold", coInt);
+    def->label = L("Conditional angle threshold");
+    def->tooltip = L(
+        "This option sets the threshold angle for applying a conditional scarf joint seam.\nIf the maximum angle within the perimeter loop "
+        "exceeds this value (indicating the absence of sharp corners), a scarf joint seam will be used. The default value is 155°.");
+    def->mode = comAdvanced;
+    def->sidetext = L("°");
+    def->min = 0;
+    def->max = 180;
+    def->set_default_value(new ConfigOptionInt(155));
+
+    def = this->add("scarf_joint_speed", coFloatOrPercent);
+    def->label = L("Scarf joint speed");
+    def->category = L("Quality");
+    def->tooltip  = L(
+        "This option sets the printing speed for scarf joints. It is recommended to print scarf joints at a slow speed (less than 100 "
+         "mm/s).  It's also advisable to enable 'Extrusion rate smoothing' if the set speed varies significantly from the speed of the "
+         "outer or inner walls. If the speed specified here is higher than the speed of the outer or inner walls, the printer will default "
+         "to the slower of the two speeds. When specified as a percentage (e.g., 80%), the speed is calculated based on the respective "
+         "outer or inner wall speed. The default value is set to 100%.");
+    def->sidetext = L("mm/s or %");
+    def->min = 1;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloatOrPercent(100, true));
+
+    def = this->add("scarf_joint_flow_ratio", coFloat);
+    def->label = L("Scarf joint flow ratio");
+    def->tooltip = L("This factor affects the amount of material for scarf joints.");
+    def->mode = comAdvanced;
+    def->max = 2;
+    def->set_default_value(new ConfigOptionFloat(1));
+
     def = this->add("seam_slope_start_height", coFloatOrPercent);
     def->label = L("Scarf start height");
     def->tooltip = L("Start height of the scarf.\n"
