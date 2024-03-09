@@ -3572,10 +3572,10 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line("extruder_clearance_height_to_lid");
 
         optgroup = page->new_optgroup(L("Adaptive bed mesh"));
-        optgroup->append_single_option_line("bed_mesh_min", "adaptive_bed_mesh");
-        optgroup->append_single_option_line("bed_mesh_max", "adaptive_bed_mesh");
-        optgroup->append_single_option_line("bed_mesh_probe_distance", "adaptive_bed_mesh");
-        optgroup->append_single_option_line("adaptive_bed_mesh_margin", "adaptive_bed_mesh");
+        optgroup->append_single_option_line("bed_mesh_min", "adaptive-bed-mesh");
+        optgroup->append_single_option_line("bed_mesh_max", "adaptive-bed-mesh");
+        optgroup->append_single_option_line("bed_mesh_probe_distance", "adaptive-bed-mesh");
+        optgroup->append_single_option_line("adaptive_bed_mesh_margin", "adaptive-bed-mesh");
 
         optgroup = page->new_optgroup(L("Accessory") /*, L"param_accessory"*/);
         optgroup->append_single_option_line("nozzle_type");
