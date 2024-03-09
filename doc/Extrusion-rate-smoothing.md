@@ -24,6 +24,8 @@ The bulging visible above is due to the extruder not being able to respond fast 
 In the above scenario, the printer (Bambu Lab X1 Carbon) was requested to slow down from a 200mm/sec print speed to 40mm/sec at an acceleration of 5k/sec2. **The extruder could not keep up with the pressure change, resulting in a slight bump ahead at the point of speed change.**
 
 This parameter interacts with the below printer kinematic settings and physical limits:
+
+
 **1. The limits of the extruder system** - how fast can it change pressure in the nozzle
 
 **2. The configured pressure advance values** - that also affect pressure changes in the nozzle
