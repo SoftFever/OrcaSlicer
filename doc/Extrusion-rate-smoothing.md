@@ -162,7 +162,7 @@ In this case, the printer slows down and then accelerates independently of what 
 
 <h2>Credits</h2>
 
-**Feature authors:** The Prusa Slicer team - [@bubnikv](https://github.com/bubnikv), [@hejllukas](https://github.com/hejllukas)
+**Original feature authors and creators:** The Prusa Slicer team, including [@bubnikv](https://github.com/bubnikv), [@hejllukas](https://github.com/hejllukas)
 
 **Enhanced by:** [@MGunlogson](https://github.com/MGunlogson), introducing the feature to external perimeters, enhancing it by taking into account travel, retraction and implementing near-contiguous extrusions pressure equalizer adjustments.
 
