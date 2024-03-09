@@ -25,10 +25,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: load cached deps
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ inputs.cache-path }}
           key: ${{ inputs.cache-key }}
@@ -86,7 +86,7 @@ jobs:
           ./build_release_macos.sh -s -n -x -a ${{inputs.arch}} -t 10.15
  # Thanks to RaySajuuk, it's working now
       - name: Create DMG without notary
-        if: github.ref != 'refs/heads/main' && inputs.os == 'macos-12'
+        if: github.ref == 'refs/heads/main' && inputs.os == 'macos-12'
         working-directory: ${{ github.workspace }}
         run: |
           ln -s /Applications ${{ github.workspace }}/build_${{inputs.arch}}/OrcaSlicer/Applications
