@@ -161,10 +161,18 @@ However, it will not affect extruder behaviour when the printer is slowing down 
 In this case, the printer slows down and then accelerates independently of what the slicer has requested. In this case, the slicer is commanding a consistent speed; however, the printer is adjusting this to operate within its printer kinematic limits (SCV/Jerk) and accelerations. As the slicer is not aware of this slow down, it cannot apply pre-emptive extrusion rate smoothing to the feature and instead, the changes are governed by the printer firmware exclusively.
 
 <h2>Credits</h2>
-**Feature authors:** The Prusa Slicer team - @bubnikv, @hejllukas and 
+
+**Feature authors:** The Prusa Slicer team - @bubnikv, @hejllukas
+
 **Enhanced by:** @MGunlogson, introducing the feature to external perimeters, enhancing it by taking into account travel, retraction and implementing near-contiguous extrusions pressure equalizer adjustments.
+
 **Ported to Orca:** @igiannakas
+
 **Enhanced by:** @noisyfox, per object pressure equalization and fixing calculation logic bugs
+
 **Documentation written:** @igiannakas
+
 **Overall Orca owner and assurance:** @softfever
+
+**Community testing and feedback:** @HakunMatat4, @psiberfunk, @u3dreal and more
 
