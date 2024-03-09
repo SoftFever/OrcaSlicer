@@ -153,9 +153,18 @@ For Klipper printers, a segment length of 1 works OK as the RPI or similar have 
 
 Similarly, for a Bambu lab printer, a segment length of 1 works well. **However, if you do notice your printer stuttering or stalling** (which may be the case with the lower powered P1 series printers) **or getting "Timer too close" errors** in Klipper, **increase this value to 2 or 3**. This would reduce the effectiveness of the setting but will present a more manageable load to your printer.
 
-<h2>Limitations:</h2>
+<h2>Limitations</h2>
 **This feature can only work where speed changes are induced by the slicer** - for example when transitioning from fast to slow print moves when printing overhangs, bridges and from printing internal features to external features and vice versa. 
 
 However, it will not affect extruder behaviour when the printer is slowing down due to firmware commands - for example when turning around corners. 
 
 In this case, the printer slows down and then accelerates independently of what the slicer has requested. In this case, the slicer is commanding a consistent speed; however, the printer is adjusting this to operate within its printer kinematic limits (SCV/Jerk) and accelerations. As the slicer is not aware of this slow down, it cannot apply pre-emptive extrusion rate smoothing to the feature and instead, the changes are governed by the printer firmware exclusively.
+
+<h2>Credits</h2>
+**Feature authors:** The Prusa Slicer team - @bubnikv, @hejllukas and 
+**Enhanced by:** @MGunlogson, introducing the feature to external perimeters, enhancing it by taking into account travel, retraction and implementing near-contiguous extrusions pressure equalizer adjustments.
+**Ported to Orca:** @igiannakas
+**Enhanced by:** @noisyfox, per object pressure equalization and fixing calculation logic bugs
+**Documentation written:** @igiannakas
+**Overall Orca owner and assurance:** @softfever
+
