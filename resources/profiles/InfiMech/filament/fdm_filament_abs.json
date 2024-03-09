@@ -86,7 +86,10 @@
         "1"
     ],
     "complete_print_exhaust_fan_speed": [
-        "60"
+        "80"
+    ],
+    "during_print_exhaust_fan_speed": [
+        "100"
     ],
     "slow_down_layer_time": [
         "5"
