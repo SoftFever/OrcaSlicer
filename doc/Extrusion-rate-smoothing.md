@@ -154,6 +154,7 @@ For Klipper printers, a segment length of 1 works OK as the RPI or similar have 
 Similarly, for a Bambu lab printer, a segment length of 1 works well. **However, if you do notice your printer stuttering or stalling** (which may be the case with the lower powered P1 series printers) **or getting "Timer too close" errors** in Klipper, **increase this value to 2 or 3**. This would reduce the effectiveness of the setting but will present a more manageable load to your printer.
 
 <h2>Limitations</h2>
+
 **This feature can only work where speed changes are induced by the slicer** - for example when transitioning from fast to slow print moves when printing overhangs, bridges and from printing internal features to external features and vice versa. 
 
 However, it will not affect extruder behaviour when the printer is slowing down due to firmware commands - for example when turning around corners. 
