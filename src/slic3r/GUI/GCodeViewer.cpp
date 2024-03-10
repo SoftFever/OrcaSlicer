@@ -5099,14 +5099,6 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         ::sprintf(buf, "%.2f", ps.total_filament_cost);
         imgui.text(buf);
 
-        //BBS display electric costs
-        ImGui::Dummy({ window_padding, window_padding });
-        ImGui::SameLine();
-        imgui.text(_u8L("Electric cost")+":");
-        ImGui::SameLine();
-        ::sprintf(buf, "%.2f", ps.electric_cost);
-        imgui.text(buf);
-
         break;
     }
     default: { break; }
@@ -5530,7 +5522,8 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         ImGui::SameLine();
         imgui.title(time_title);
         std::string filament_str = _u8L("Filament");
-        std::string cost_str = _u8L("Cost");
+        std::string cost_filament = _u8L("Filament cost");
+        std::string cost_energy = _u8L("Electric cost");
         std::string prepare_str = _u8L("Prepare time");
         std::string print_str = _u8L("Model printing time");
         std::string total_str = _u8L("Total time");
@@ -5565,12 +5558,19 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             ::sprintf(buf, imperial_units ? "  %.2f oz" : "  %.2f g", ps.total_weight / unit_conver);
             imgui.text(buf);
 
-            //BBS: display cost of filaments
+            //BBS: display electric costs
             ImGui::Dummy({ window_padding, window_padding });
             ImGui::SameLine();
-            imgui.text(cost_str + ":");
+            imgui.text(cost_energy+":");
             ImGui::SameLine(max_len);
+            ::sprintf(buf, "%.2f", ps.electric_cost);
+            imgui.text(buf);
 
+            //BBS: display filament cost
+            ImGui::Dummy({ window_padding, window_padding });
+            ImGui::SameLine();
+            imgui.text(cost_filament+":");
+            ImGui::SameLine(max_len);
             ::sprintf(buf, "%.2f", ps.total_filament_cost);
             imgui.text(buf);
         }
