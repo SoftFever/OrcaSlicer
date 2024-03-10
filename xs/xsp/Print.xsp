@@ -78,8 +78,8 @@ _constant()
         %code%{ RETVAL = THIS->print_statistics().total_extruded_volume; %};
     double total_weight()
         %code%{ RETVAL = THIS->print_statistics().total_weight; %};
-    double total_cost()
-        %code%{ RETVAL = THIS->print_statistics().total_cost; %};
+    double total_filament_cost()
+        %code%{ RETVAL = THIS->print_statistics().total_filament_cost; %};
     double total_wipe_tower_cost()
         %code%{ RETVAL = THIS->print_statistics().total_wipe_tower_cost; %};
     double total_wipe_tower_filament()

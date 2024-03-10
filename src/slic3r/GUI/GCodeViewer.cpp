@@ -4203,7 +4203,7 @@ void GCodeViewer::render_all_plates_stats(const std::vector<const GCodeProcessor
             
             Print     *print;
             plate->get_print((PrintBase **) &print, nullptr, nullptr);
-            total_cost_all_plates += print->print_statistics().total_cost;
+            total_cost_all_plates += print->print_statistics().total_filament_cost;
         }
        
         for (auto it = model_volume_of_extruders_all_plates.begin(); it != model_volume_of_extruders_all_plates.end(); it++) {
@@ -5571,7 +5571,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             imgui.text(cost_str + ":");
             ImGui::SameLine(max_len);
 
-            ::sprintf(buf, "%.2f", ps.total_cost);
+            ::sprintf(buf, "%.2f", ps.total_filament_cost);
             imgui.text(buf);
         }
 

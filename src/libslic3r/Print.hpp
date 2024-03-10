@@ -760,7 +760,7 @@ struct PrintStatistics
     void clear() {
         total_used_filament    = 0.;
         total_extruded_volume  = 0.;
-        total_cost             = 0.;
+        total_filament_cost    = 0.;
         total_toolchanges      = 0;
         total_weight           = 0.;
         total_wipe_tower_cost  = 0.;

@@ -6959,7 +6959,7 @@ PrintStatisticsConfigDef::PrintStatisticsConfigDef()
     def->label = L("Print time (silent mode)");
     def->tooltip = L("Estimated print time when printed in silent mode.");
 
-    def = this->add("total_cost", coFloat);
+    def = this->add("total_filament_cost", coFloat);
     def->label = L("Total cost");
     def->tooltip = L("Total cost of all material used in the print. Calculated from filament_cost value in Filament Settings.");
 
