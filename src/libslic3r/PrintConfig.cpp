@@ -2505,8 +2505,8 @@ def = this->add("filament_loading_speed", coFloats);
     def->mode    = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0));
 
-    def = this->add("electric_cost", coFloat);
-    def->label = L("Electric cost");
+    def = this->add("kWh_cost", coFloat);
+    def->label = L("kWh cost");
     def->tooltip = L("The electric cost of 1 kWh in your area");
     def->sidetext = L("money/kWh");
     def->min = 0;

@@ -1381,6 +1381,7 @@ namespace DoExport {
         double total_weight          = 0.0;
         double total_filament_cost   = 0.0;
         double electric_cost         = 0.0;
+        double total_cost            = 0.0;
         for (auto volume : result.print_statistics.volumes_per_extruder) {
             total_extruded_volume += volume.second;
 
@@ -1426,13 +1427,15 @@ namespace DoExport {
             total_filament_cost += weight * extruder->filament_cost() * 0.001;
         }
 
-        electric_cost += ((config.electric_consumption.getFloat()/1000) * (normal_print_time/3600.0) * config.electric_cost.getFloat());
+        electric_cost += ((config.electric_consumption.getFloat()/1000) * (normal_print_time/3600.0) * config.kWh_cost.getFloat());
+        total_cost += (electric_cost + total_filament_cost);
         
         print_statistics.total_extruded_volume = total_extruded_volume;
         print_statistics.total_used_filament   = total_used_filament;
         print_statistics.total_weight          = total_weight;
         print_statistics.total_filament_cost   = total_filament_cost;
         print_statistics.electric_cost         = electric_cost;
+        print_statistics.total_cost            = total_cost;
 
         print_statistics.filament_stats = result.print_statistics.volumes_per_extruder;
     }
