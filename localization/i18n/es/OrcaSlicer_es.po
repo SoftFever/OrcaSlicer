@@ -12483,7 +12483,7 @@ msgstr ""
 "vecinos."
 
 msgid "Branch Density"
-msgstr "Baja densidad de ramas"
+msgstr "Densidad de ramas"
 
 #. TRN PrintSettings: "Organic supports" > "Branch Density"
 msgid ""
@@ -12542,7 +12542,7 @@ msgstr "Este ajuste determina el diámetro inicial de los nodos de apoyo."
 
 #. TRN PrintSettings: #lmFIXME
 msgid "Branch Diameter Angle"
-msgstr "Baja densidad de ramas"
+msgstr "Ángulo del Diámetro de ramas"
 
 #. TRN PrintSettings: "Organic supports" > "Branch Diameter Angle"
 msgid ""
