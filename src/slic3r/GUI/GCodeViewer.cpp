@@ -5533,7 +5533,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             max_len += ImGui::CalcTextSize(total_str.c_str()).x;
         else {
             if (m_view_type == EViewType::FeatureType)
-                max_len += std::max(ImGui::CalcTextSize(cost_str.c_str()).x,
+                max_len += std::max(ImGui::CalcTextSize(cost_energy.c_str()).x,
                     std::max(ImGui::CalcTextSize(print_str.c_str()).x,
                         std::max(std::max(ImGui::CalcTextSize(prepare_str.c_str()).x, ImGui::CalcTextSize(total_str.c_str()).x),
                             ImGui::CalcTextSize(filament_str.c_str()).x)));
