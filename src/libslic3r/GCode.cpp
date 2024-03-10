@@ -1379,7 +1379,7 @@ namespace DoExport {
         double total_extruded_volume = 0.0;
         double total_used_filament   = 0.0;
         double total_weight          = 0.0;
-        double total_cost            = 0.0;
+        double total_filament_cost   = 0.0;
         double electric_cost         = 0.0;
         for (auto volume : result.print_statistics.volumes_per_extruder) {
             total_extruded_volume += volume.second;
@@ -1393,7 +1393,7 @@ namespace DoExport {
             double weight = volume.second * extruder->filament_density() * 0.001;
             total_used_filament += volume.second/s;
             total_weight        += weight;
-            total_cost          += weight * extruder->filament_cost() * 0.001;
+            total_filament_cost += weight * extruder->filament_cost() * 0.001;
         }
         //BBS: add flush volume
         for (auto volume : result.print_statistics.flush_per_filament) {
@@ -1408,7 +1408,7 @@ namespace DoExport {
             double weight = volume.second * extruder->filament_density() * 0.001;
             total_used_filament += volume.second/s;
             total_weight        += weight;
-            total_cost          += weight * extruder->filament_cost() * 0.001;
+            total_filament_cost += weight * extruder->filament_cost() * 0.001;
         }
 
         for (auto volume : result.print_statistics.wipe_tower_volumes_per_extruder) {
@@ -1423,7 +1423,7 @@ namespace DoExport {
             double weight = volume.second * extruder->filament_density() * 0.001;
             total_used_filament += volume.second/s;
             total_weight        += weight;
-            total_cost          += weight * extruder->filament_cost() * 0.001;
+            total_filament_cost += weight * extruder->filament_cost() * 0.001;
         }
 
         electric_cost += ((config.electric_consumption.getFloat()/1000) * (normal_print_time/3600.0) * config.electric_cost.getFloat());
@@ -1431,7 +1431,8 @@ namespace DoExport {
         print_statistics.total_extruded_volume = total_extruded_volume;
         print_statistics.total_used_filament   = total_used_filament;
         print_statistics.total_weight          = total_weight;
-        print_statistics.total_cost            = total_cost;
+        print_statistics.total_filament_cost   = total_filament_cost;
+        print_statistics.electric_cost         = electric_cost;
 
         print_statistics.filament_stats = result.print_statistics.volumes_per_extruder;
     }
@@ -1811,7 +1812,7 @@ namespace DoExport {
 	                print_statistics.total_weight = print_statistics.total_weight + filament_weight;
 	                append(out_filament_used_g, "%.2lf", filament_weight);
 	                if (filament_cost > 0.) {
-	                    print_statistics.total_cost = print_statistics.total_cost + filament_cost;
+	                    print_statistics.total_filament_cost = print_statistics.total_filament_cost + filament_cost;
 	                    append(out_filament_cost, "%.2lf", filament_cost);
 	                }
 	            }
@@ -2748,7 +2749,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         file.write_format("; total filament used [g] = %.2lf\n",
             print.m_print_statistics.total_weight);
         file.write_format("; total filament cost = %.2lf\n",
-            print.m_print_statistics.total_cost);
+            print.m_print_statistics.total_filament_cost);
         if (print.m_print_statistics.total_toolchanges > 0)
             file.write_format("; total filament change = %i\n",
                 print.m_print_statistics.total_toolchanges);

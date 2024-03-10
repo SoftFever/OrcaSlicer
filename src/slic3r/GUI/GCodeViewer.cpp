@@ -5094,9 +5094,9 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         //BBS display filament cost
         ImGui::Dummy({ window_padding, window_padding });
         ImGui::SameLine();
-        imgui.text(_u8L("Cost")+":");
+        imgui.text(_u8L("Filament cost")+":");
         ImGui::SameLine();
-        ::sprintf(buf, "%.2f", ps.total_cost);
+        ::sprintf(buf, "%.2f", ps.total_filament_cost);
         imgui.text(buf);
 
         //BBS display electric costs
