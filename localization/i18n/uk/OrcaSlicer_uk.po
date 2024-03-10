@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-03 09:32+0800\n"
+"POT-Creation-Date: 2024-03-10 23:17+0800\n"
 "PO-Revision-Date: 2023-08-10 20:25-0400\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3600,6 +3600,68 @@ msgstr ""
 msgid "default"
 msgstr "за замовчуванням"
 
+#, boost-format
+msgid "Edit Custom G-code (%1%)"
+msgstr ""
+
+msgid "Built-in placeholders (Double click item to add to G-code)"
+msgstr ""
+
+msgid "Search gcode placeholders"
+msgstr ""
+
+msgid "Add selected placeholder to G-code"
+msgstr ""
+
+msgid "Select placeholder"
+msgstr ""
+
+msgid "[Global] Slicing State"
+msgstr ""
+
+msgid "Read Only"
+msgstr ""
+
+msgid "Read Write"
+msgstr ""
+
+msgid "Slicing State"
+msgstr ""
+
+msgid "Print Statistics"
+msgstr ""
+
+msgid "Objects Info"
+msgstr ""
+
+msgid "Dimensions"
+msgstr ""
+
+msgid "Temperatures"
+msgstr ""
+
+msgid "Timestamps"
+msgstr ""
+
+#, boost-format
+msgid "Specific for %1%"
+msgstr ""
+
+msgid "Presets"
+msgstr "Пресети"
+
+msgid "Print settings"
+msgstr "Параметри друку"
+
+msgid "Filament settings"
+msgstr "Настінні філаменти"
+
+msgid "SLA Materials settings"
+msgstr ""
+
+msgid "Printer settings"
+msgstr "Налаштування принтера"
+
 msgid "parameter name"
 msgstr "ім'я параметра"
 
@@ -3792,9 +3854,6 @@ msgstr "Друк"
 
 msgid "Printer"
 msgstr "Принтер"
-
-msgid "Print settings"
-msgstr "Параметри друку"
 
 msgid "Custom g-code"
 msgstr ""
@@ -5300,12 +5359,6 @@ msgstr "Порівняти пресети"
 msgid "View all object's settings"
 msgstr "Переглянути всі налаштування об'єкта"
 
-msgid "Filament settings"
-msgstr "Настінні філаменти"
-
-msgid "Printer settings"
-msgstr "Налаштування принтера"
-
 msgid "Remove current plate (if not last one)"
 msgstr ""
 
@@ -6025,9 +6078,6 @@ msgstr ""
 
 msgid "If enabled, auto-calculate everytime the color changed."
 msgstr ""
-
-msgid "Presets"
-msgstr "Пресети"
 
 msgid "Auto sync user presets(Printer/Filament/Process)"
 msgstr ""
@@ -8403,6 +8453,33 @@ msgid ""
 "Setting the jerk speed too low could lead to artifacts on curved surfaces"
 msgstr ""
 
+msgid ""
+"The jerk setting exceeds the printer's maximum jerk (machine_max_jerk_x/"
+"machine_max_jerk_y).\n"
+"Orca will automatically cap the jerk speed to ensure it doesn't surpass the "
+"printer's capabilities.\n"
+"You can adjust the maximum jerk setting in your printer's configuration to "
+"get higher speeds."
+msgstr ""
+
+msgid ""
+"The acceleration setting exceeds the printer's maximum acceleration "
+"(machine_max_acceleration_extruding).\n"
+"Orca will automatically cap the acceleration speed to ensure it doesn't "
+"surpass the printer's capabilities.\n"
+"You can adjust the machine_max_acceleration_extruding value in your "
+"printer's configuration to get higher speeds."
+msgstr ""
+
+msgid ""
+"The speed setting exceeds the printer's maximum speed (machine_max_speed_x/"
+"machine_max_speed_y).\n"
+"Orca will automatically cap the print speed to ensure it doesn't surpass the "
+"printer's capabilities.\n"
+"You can adjust the maximum speed setting in your printer's configuration to "
+"get higher speeds."
+msgstr ""
+
 msgid "Generating skirt & brim"
 msgstr "Створення спідниці та кайми"
 
@@ -9230,21 +9307,19 @@ msgstr "Забезпечення вертикальної товщини обо�
 
 msgid ""
 "Add solid infill near sloping surfaces to guarantee the vertical shell "
-"thickness (top+bottom solid layers)"
+"thickness (top+bottom solid layers)\n"
+"None: No solid infill will be added anywhere. Caution: Use this option "
+"carefully if your model has sloped surfaces\n"
+"Critical Only: Avoid adding solid infill for walls\n"
+"Moderate: Add solid infill for heavily sloping surfaces only\n"
+"All: Add solid infill for all suitable sloping surfaces\n"
+"Default value is All."
 msgstr ""
-"Додавання заповнення твердого тіла поблизу похилих поверхонь для Гарантії "
-"товщини вертикальної оболонки (верхній + нижній шари твердого тіла)"
 
-msgid "Further reduce solid infill on walls (beta)"
+msgid "Critical Only"
 msgstr ""
 
-msgid ""
-"Further reduces any solid infill applied to walls. As there will be very "
-"limited infill supporting solid surfaces, make sure that you are using "
-"adequate number of walls to support the part on sloping surfaces.\n"
-"\n"
-"For heavily sloped surfaces this option is not suitable as it will generate "
-"too thin of a top layer and should be disabled."
+msgid "Moderate"
 msgstr ""
 
 msgid "Top surface pattern"
@@ -11112,6 +11187,45 @@ msgid "Scarf joint seam (beta)"
 msgstr ""
 
 msgid "Use scarf joint to minimize seam visibility and increase seam strength."
+msgstr ""
+
+msgid "Conditional scarf joint"
+msgstr ""
+
+msgid ""
+"Apply scarf joints only to smooth perimeters where traditional seams do not "
+"conceal the seams at sharp corners effectively."
+msgstr ""
+
+msgid "Conditional angle threshold"
+msgstr ""
+
+msgid ""
+"This option sets the threshold angle for applying a conditional scarf joint "
+"seam.\n"
+"If the maximum angle within the perimeter loop exceeds this value "
+"(indicating the absence of sharp corners), a scarf joint seam will be used. "
+"The default value is 155°."
+msgstr ""
+
+msgid "Scarf joint speed"
+msgstr ""
+
+msgid ""
+"This option sets the printing speed for scarf joints. It is recommended to "
+"print scarf joints at a slow speed (less than 100 mm/s).  It's also "
+"advisable to enable 'Extrusion rate smoothing' if the set speed varies "
+"significantly from the speed of the outer or inner walls. If the speed "
+"specified here is higher than the speed of the outer or inner walls, the "
+"printer will default to the slower of the two speeds. When specified as a "
+"percentage (e.g., 80%), the speed is calculated based on the respective "
+"outer or inner wall speed. The default value is set to 100%."
+msgstr ""
+
+msgid "Scarf joint flow ratio"
+msgstr ""
+
+msgid "This factor affects the amount of material for scarf joints."
 msgstr ""
 
 msgid "Scarf start height"
@@ -14284,6 +14398,13 @@ msgid ""
 "ABS, appropriately increasing the heatbed temperature can reduce the "
 "probability of warping."
 msgstr ""
+
+#~ msgid ""
+#~ "Add solid infill near sloping surfaces to guarantee the vertical shell "
+#~ "thickness (top+bottom solid layers)"
+#~ msgstr ""
+#~ "Додавання заповнення твердого тіла поблизу похилих поверхонь для Гарантії "
+#~ "товщини вертикальної оболонки (верхній + нижній шари твердого тіла)"
 
 #~ msgid "Configuration package updated to "
 #~ msgstr "Пакет конфігурації оновлено до "

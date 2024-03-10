@@ -2300,7 +2300,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         auto pts = std::make_unique<ConfigOptionPoints>();
         if (print.calib_mode() == CalibMode::Calib_PA_Line || print.calib_mode() == CalibMode::Calib_PA_Pattern) {
             bbox = bbox_bed;
-            bbox.offset(-5.0);
+            bbox.offset(-25.0);
             // add 4 corner points of bbox into pts
             pts->values.reserve(4);
             pts->values.emplace_back(bbox.min.x(), bbox.min.y());
@@ -4557,11 +4557,14 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
         loop.split_at(last_pos, false);
 
     const auto seam_scarf_type = m_config.seam_slope_type.value;
-    const bool enable_seam_slope = ((seam_scarf_type == SeamScarfType::External && !is_hole) || seam_scarf_type == SeamScarfType::All) &&
+    bool enable_seam_slope = ((seam_scarf_type == SeamScarfType::External && !is_hole) || seam_scarf_type == SeamScarfType::All) &&
         !m_config.spiral_mode &&
         (loop.role() == erExternalPerimeter || (loop.role() == erPerimeter && m_config.seam_slope_inner_walls)) &&
         layer_id() > 0;
 
+    if (enable_seam_slope && m_config.seam_slope_conditional.value) {
+        enable_seam_slope = loop.is_smooth(m_config.scarf_angle_threshold.value * M_PI / 180., EXTRUDER_CONFIG(nozzle_diameter));
+    }
     // clip the path to avoid the extruder to get exactly on the first point of the loop;
     // if polyline was shorter than the clipping distance we'd get a null polyline, so
     // we discard it in that case
@@ -5068,6 +5071,8 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         _mm3_per_mm *= m_config.bottom_solid_infill_flow_ratio;
     else if (path.role() == erInternalBridgeInfill)
         _mm3_per_mm *= m_config.internal_bridge_flow;
+    else if(sloped)
+        _mm3_per_mm *= m_config.scarf_joint_flow_ratio;
 
 
     double e_per_mm = m_writer.extruder()->e_per_mm3() * _mm3_per_mm;
@@ -5082,12 +5087,19 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                 double new_speed = m_config.get_abs_value(overhang_speed_key_map[overhang_degree].c_str());
                 speed = new_speed == 0.0 ? speed : new_speed;
             }
+
+            if (sloped) {
+                speed = std::min(speed, m_config.scarf_joint_speed.get_abs_value(m_config.get_abs_value("inner_wall_speed")));
+            }
         } else if (path.role() == erExternalPerimeter) {
             speed = m_config.get_abs_value("outer_wall_speed");
             if (m_config.overhang_speed_classic.value && m_config.enable_overhang_speed.value &&
                 overhang_degree > 0 && overhang_degree <= 5) {
                 double new_speed = m_config.get_abs_value(overhang_speed_key_map[overhang_degree].c_str());
                 speed = new_speed == 0.0 ? speed : new_speed;
+            }
+            if (sloped) {
+                speed = std::min(speed, m_config.scarf_joint_speed.get_abs_value(m_config.get_abs_value("outer_wall_speed")));
             }
         } 
         else if(path.role() == erInternalBridgeInfill) {
@@ -5172,6 +5184,9 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         (is_bridge(path.role()) || is_perimeter(path.role()))) {
             bool is_external = is_external_perimeter(path.role());
             double ref_speed   = is_external ? m_config.get_abs_value("outer_wall_speed") : m_config.get_abs_value("inner_wall_speed");
+            if (sloped) {
+                ref_speed = std::min(ref_speed, m_config.scarf_joint_speed.get_abs_value(ref_speed));
+            }
             ConfigOptionPercents         overhang_overlap_levels({75, 50, 25, 13, 12.99, 0});
 
         	if (m_config.slowdown_for_curled_perimeters){
@@ -5235,6 +5250,10 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     }
 
     double F = speed * 60;  // convert mm/sec to mm/min
+    if(abs(F - 5753.504) < 0.002)
+    {
+        std::cout << "F: " << F << std::endl;
+    }
 
     //Orca: process custom gcode for extrusion role change
     if (path.role() != m_last_extrusion_role && !m_config.change_extrusion_role_gcode.value.empty()) {
@@ -6183,7 +6202,7 @@ std::string GCode::set_object_info(Print *print) {
     // Orca: check if we are in pa calib mode
     if (print->calib_mode() == CalibMode::Calib_PA_Line || print->calib_mode() == CalibMode::Calib_PA_Pattern) {
         BoundingBoxf bbox_bed(print->config().printable_area.values);
-        bbox_bed.offset(-5.0);
+        bbox_bed.offset(-25.0);
         Polygon polygon_bed;
         polygon_bed.append(Point(bbox_bed.min.x(), bbox_bed.min.y()));
         polygon_bed.append(Point(bbox_bed.max.x(), bbox_bed.min.y()));

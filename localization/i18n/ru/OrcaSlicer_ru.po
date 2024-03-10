@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OrcaSlicer V2.0.0-dev Nightly Builds\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-03 09:32+0800\n"
+"POT-Creation-Date: 2024-03-10 23:17+0800\n"
 "PO-Revision-Date: 2024-02-11 23:36+0700\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3699,6 +3699,68 @@ msgstr ""
 msgid "default"
 msgstr "По ум."
 
+#, boost-format
+msgid "Edit Custom G-code (%1%)"
+msgstr ""
+
+msgid "Built-in placeholders (Double click item to add to G-code)"
+msgstr ""
+
+msgid "Search gcode placeholders"
+msgstr ""
+
+msgid "Add selected placeholder to G-code"
+msgstr ""
+
+msgid "Select placeholder"
+msgstr ""
+
+msgid "[Global] Slicing State"
+msgstr ""
+
+msgid "Read Only"
+msgstr ""
+
+msgid "Read Write"
+msgstr ""
+
+msgid "Slicing State"
+msgstr ""
+
+msgid "Print Statistics"
+msgstr ""
+
+msgid "Objects Info"
+msgstr ""
+
+msgid "Dimensions"
+msgstr ""
+
+msgid "Temperatures"
+msgstr ""
+
+msgid "Timestamps"
+msgstr ""
+
+#, boost-format
+msgid "Specific for %1%"
+msgstr ""
+
+msgid "Presets"
+msgstr "Профили"
+
+msgid "Print settings"
+msgstr "Настройки печати"
+
+msgid "Filament settings"
+msgstr "Настройки прутка"
+
+msgid "SLA Materials settings"
+msgstr ""
+
+msgid "Printer settings"
+msgstr "Настройки принтера"
+
 msgid "parameter name"
 msgstr "Имя параметра"
 
@@ -3891,9 +3953,6 @@ msgstr "Печать"
 
 msgid "Printer"
 msgstr "Профиль принтера"
-
-msgid "Print settings"
-msgstr "Настройки печати"
 
 msgid "Custom g-code"
 msgstr "Пользовательский G-код"
@@ -5424,12 +5483,6 @@ msgstr "Сравнение профилей"
 msgid "View all object's settings"
 msgstr "Просмотр всех настроек модели"
 
-msgid "Filament settings"
-msgstr "Настройки прутка"
-
-msgid "Printer settings"
-msgstr "Настройки принтера"
-
 msgid "Remove current plate (if not last one)"
 msgstr "Удалить текущую печатную пластину (кроме последней)"
 
@@ -6187,9 +6240,6 @@ msgid "If enabled, auto-calculate everytime the color changed."
 msgstr ""
 "Если включено, выполняется автоматический перерасчет объёма очистки при "
 "каждом изменении цвета."
-
-msgid "Presets"
-msgstr "Профили"
 
 msgid "Auto sync user presets(Printer/Filament/Process)"
 msgstr "Автосинхронизация пользовательских профилей (принтера/прутка/процесса)"
@@ -8700,6 +8750,33 @@ msgid ""
 "Setting the jerk speed too low could lead to artifacts on curved surfaces"
 msgstr ""
 
+msgid ""
+"The jerk setting exceeds the printer's maximum jerk (machine_max_jerk_x/"
+"machine_max_jerk_y).\n"
+"Orca will automatically cap the jerk speed to ensure it doesn't surpass the "
+"printer's capabilities.\n"
+"You can adjust the maximum jerk setting in your printer's configuration to "
+"get higher speeds."
+msgstr ""
+
+msgid ""
+"The acceleration setting exceeds the printer's maximum acceleration "
+"(machine_max_acceleration_extruding).\n"
+"Orca will automatically cap the acceleration speed to ensure it doesn't "
+"surpass the printer's capabilities.\n"
+"You can adjust the machine_max_acceleration_extruding value in your "
+"printer's configuration to get higher speeds."
+msgstr ""
+
+msgid ""
+"The speed setting exceeds the printer's maximum speed (machine_max_speed_x/"
+"machine_max_speed_y).\n"
+"Orca will automatically cap the print speed to ensure it doesn't surpass the "
+"printer's capabilities.\n"
+"You can adjust the maximum speed setting in your printer's configuration to "
+"get higher speeds."
+msgstr ""
+
 msgid "Generating skirt & brim"
 msgstr "Генерация юбки и каймы"
 
@@ -9639,30 +9716,20 @@ msgstr "Обеспечивать верт. толщину оболочки"
 
 msgid ""
 "Add solid infill near sloping surfaces to guarantee the vertical shell "
-"thickness (top+bottom solid layers)"
+"thickness (top+bottom solid layers)\n"
+"None: No solid infill will be added anywhere. Caution: Use this option "
+"carefully if your model has sloped surfaces\n"
+"Critical Only: Avoid adding solid infill for walls\n"
+"Moderate: Add solid infill for heavily sloping surfaces only\n"
+"All: Add solid infill for all suitable sloping surfaces\n"
+"Default value is All."
 msgstr ""
-"Добавление сплошного заполнения вблизи наклонных поверхностей для "
-"обеспечения вертикальной толщины оболочки (верхний+нижний сплошные слои)."
 
-msgid "Further reduce solid infill on walls (beta)"
-msgstr "Сокращение сплошного заполнения на периметрах (экспер.)"
-
-# ???
-msgid ""
-"Further reduces any solid infill applied to walls. As there will be very "
-"limited infill supporting solid surfaces, make sure that you are using "
-"adequate number of walls to support the part on sloping surfaces.\n"
-"\n"
-"For heavily sloped surfaces this option is not suitable as it will generate "
-"too thin of a top layer and should be disabled."
+msgid "Critical Only"
 msgstr ""
-"Ещё больше сокращает количество сплошного заполнения, наносимого на "
-"периметры. Поскольку количество заполнения, поддерживающих твердые "
-"поверхности, будет очень ограничено, убедитесь, что у вас достаточно "
-"периметров для поддержки частей на наклонных поверхностях.\n"
-"\n"
-"Для поверхностей с большим уклоном эта опция не подходит, так как верхний "
-"слой получится слишком тонким, и её следует отключить."
+
+msgid "Moderate"
+msgstr ""
 
 msgid "Top surface pattern"
 msgstr "Шаблон заполнения верхней поверхности"
@@ -11734,6 +11801,45 @@ msgid "Scarf joint seam (beta)"
 msgstr ""
 
 msgid "Use scarf joint to minimize seam visibility and increase seam strength."
+msgstr ""
+
+msgid "Conditional scarf joint"
+msgstr ""
+
+msgid ""
+"Apply scarf joints only to smooth perimeters where traditional seams do not "
+"conceal the seams at sharp corners effectively."
+msgstr ""
+
+msgid "Conditional angle threshold"
+msgstr ""
+
+msgid ""
+"This option sets the threshold angle for applying a conditional scarf joint "
+"seam.\n"
+"If the maximum angle within the perimeter loop exceeds this value "
+"(indicating the absence of sharp corners), a scarf joint seam will be used. "
+"The default value is 155°."
+msgstr ""
+
+msgid "Scarf joint speed"
+msgstr ""
+
+msgid ""
+"This option sets the printing speed for scarf joints. It is recommended to "
+"print scarf joints at a slow speed (less than 100 mm/s).  It's also "
+"advisable to enable 'Extrusion rate smoothing' if the set speed varies "
+"significantly from the speed of the outer or inner walls. If the speed "
+"specified here is higher than the speed of the outer or inner walls, the "
+"printer will default to the slower of the two speeds. When specified as a "
+"percentage (e.g., 80%), the speed is calculated based on the respective "
+"outer or inner wall speed. The default value is set to 100%."
+msgstr ""
+
+msgid "Scarf joint flow ratio"
+msgstr ""
+
+msgid "This factor affects the amount of material for scarf joints."
 msgstr ""
 
 msgid "Scarf start height"
@@ -15362,6 +15468,33 @@ msgstr ""
 "Знаете ли вы, что при печати материалами, склонными к короблению, таких как "
 "ABS, повышение температуры подогреваемого стола может снизить вероятность "
 "коробления?"
+
+#~ msgid ""
+#~ "Add solid infill near sloping surfaces to guarantee the vertical shell "
+#~ "thickness (top+bottom solid layers)"
+#~ msgstr ""
+#~ "Добавление сплошного заполнения вблизи наклонных поверхностей для "
+#~ "обеспечения вертикальной толщины оболочки (верхний+нижний сплошные слои)."
+
+#~ msgid "Further reduce solid infill on walls (beta)"
+#~ msgstr "Сокращение сплошного заполнения на периметрах (экспер.)"
+
+# ???
+#~ msgid ""
+#~ "Further reduces any solid infill applied to walls. As there will be very "
+#~ "limited infill supporting solid surfaces, make sure that you are using "
+#~ "adequate number of walls to support the part on sloping surfaces.\n"
+#~ "\n"
+#~ "For heavily sloped surfaces this option is not suitable as it will "
+#~ "generate too thin of a top layer and should be disabled."
+#~ msgstr ""
+#~ "Ещё больше сокращает количество сплошного заполнения, наносимого на "
+#~ "периметры. Поскольку количество заполнения, поддерживающих твердые "
+#~ "поверхности, будет очень ограничено, убедитесь, что у вас достаточно "
+#~ "периметров для поддержки частей на наклонных поверхностях.\n"
+#~ "\n"
+#~ "Для поверхностей с большим уклоном эта опция не подходит, так как верхний "
+#~ "слой получится слишком тонким, и её следует отключить."
 
 #~ msgid "Text-Rotate"
 #~ msgstr "Поворот текста"
