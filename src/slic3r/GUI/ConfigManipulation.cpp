@@ -7,6 +7,7 @@
 #include "I18N.hpp"
 #include "GUI_App.hpp"
 #include "format.hpp"
+#include "libslic3r/Config.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/PresetBundle.hpp"
 #include "MsgDialog.hpp"
@@ -326,9 +327,9 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         }
         is_msg_dlg_already_exist = false;
     }
-    
-    if (config->opt_bool("alternate_extra_wall") && config->opt_bool("ensure_vertical_shell_thickness"))
-    {
+
+    if (config->opt_bool("alternate_extra_wall") &&
+        (config->opt_enum<EnsureVerticalShellThickness>("ensure_vertical_shell_thickness") == evstAll)) {
         wxString msg_text = _(L("Alternate extra wall only works with ensure vertical shell thickness disabled. "));
 
         if (is_global_config)
@@ -341,11 +342,11 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         DynamicPrintConfig new_conf = *config;
         auto answer = dialog.ShowModal();
         if (!is_global_config || answer == wxID_YES) {
-            new_conf.set_key_value("ensure_vertical_shell_thickness", new ConfigOptionBool(false));
+            new_conf.set_key_value("ensure_vertical_shell_thickness", new ConfigOptionEnum<EnsureVerticalShellThickness>(vsNone));
             new_conf.set_key_value("alternate_extra_wall", new ConfigOptionBool(true));
         }
         else {
-            new_conf.set_key_value("ensure_vertical_shell_thickness", new ConfigOptionBool(true));
+            new_conf.set_key_value("ensure_vertical_shell_thickness", new ConfigOptionEnum<EnsureVerticalShellThickness>(evstAll));
             new_conf.set_key_value("alternate_extra_wall", new ConfigOptionBool(false));
         }
         apply(config, &new_conf);
@@ -516,13 +517,6 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     bool have_gap_fill = config->opt_enum<GapFillTarget>("gap_fill_target") != gftNowhere;
     toggle_line("filter_out_gap_fill", have_gap_fill);
 
-    bool have_ensure_vertical_thickness = config->opt_bool("ensure_vertical_shell_thickness");
-    if(have_ensure_vertical_thickness) {
-        DynamicPrintConfig new_conf = *config;
-        new_conf.set_key_value("reduce_wall_solid_infill", new ConfigOptionBool(false));
-        apply(config, &new_conf);
-    }
-    toggle_line("reduce_wall_solid_infill",!have_ensure_vertical_thickness);
     
     bool have_perimeters = config->opt_int("wall_loops") > 0;
     for (auto el : { "extra_perimeters_on_overhangs", "ensure_vertical_shell_thickness", "detect_thin_wall", "detect_overhang_wall",
