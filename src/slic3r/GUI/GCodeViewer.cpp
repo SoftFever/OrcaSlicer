@@ -5086,17 +5086,25 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         //BBS display filament change times
         ImGui::Dummy({window_padding, window_padding});
         ImGui::SameLine();
-        imgui.text(_u8L("Filament change times") + ":");
+        imgui.text(_u8L("Filament change times")+":");
         ImGui::SameLine();
         ::sprintf(buf, "%d", m_print_statistics.total_filamentchanges);
         imgui.text(buf);
 
-        //BBS display cost
+        //BBS display filament cost
         ImGui::Dummy({ window_padding, window_padding });
         ImGui::SameLine();
         imgui.text(_u8L("Cost")+":");
         ImGui::SameLine();
         ::sprintf(buf, "%.2f", ps.total_cost);
+        imgui.text(buf);
+
+        //BBS display electric costs
+        ImGui::Dummy({ window_padding, window_padding });
+        ImGui::SameLine();
+        imgui.text(_u8L("Electric cost")+":");
+        ImGui::SameLine();
+        ::sprintf(buf, "%.2f", ps.electric_cost);
         imgui.text(buf);
 
         break;
