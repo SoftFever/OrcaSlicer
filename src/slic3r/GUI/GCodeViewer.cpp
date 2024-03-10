@@ -4326,7 +4326,6 @@ void GCodeViewer::render_all_plates_stats(const std::vector<const GCodeProcessor
         ImGui::SameLine();
         imgui.text(_u8L("Electric cost") + ":");
         ImGui::SameLine();
-        char buf[64];
         ::sprintf(buf, "%.2f", electric_cost_all_plates);
         imgui.text(buf);
 
@@ -4334,7 +4333,6 @@ void GCodeViewer::render_all_plates_stats(const std::vector<const GCodeProcessor
         ImGui::SameLine();
         imgui.text(_u8L("Total cost") + ":");
         ImGui::SameLine();
-        char buf[64];
         ::sprintf(buf, "%.2f", total_cost_all_plates);
         imgui.text(buf);
     }
