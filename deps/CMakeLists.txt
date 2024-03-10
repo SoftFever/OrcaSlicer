@@ -42,7 +42,7 @@ endif ()
 
 set(DESTDIR "${CMAKE_CURRENT_BINARY_DIR}/destdir" CACHE PATH "Destination directory")
 set(DEP_DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR}/../DL_CACHE CACHE PATH "Path for downloaded source packages.")
-set(FLATPAK FALSE CACHE BOOL "Toggles /usr/local path for building deps, the flatpak just shoves everything into /app")
+set(FLATPAK FALSE CACHE BOOL "Toggles various build settings for flatpak, like /usr/local in DESTDIR")
 if (NOT FLATPAK)
     set(DESTDIR "${DESTDIR}/usr/local/")
 endif()
@@ -146,7 +146,6 @@ if (NOT IS_CROSS_COMPILE OR NOT APPLE)
        INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install --config Release
     )
 elseif(FLATPAK)
-    # save some space after each build because limited CI space
     ExternalProject_Add(
         dep_${projectname}
         EXCLUDE_FROM_ALL    ON
@@ -155,7 +154,12 @@ elseif(FLATPAK)
         ${_gen}
         CMAKE_ARGS
             -DCMAKE_INSTALL_PREFIX:STRING=${DESTDIR}
+            -DCMAKE_MODULE_PATH:STRING=${PROJECT_SOURCE_DIR}/../cmake/modules
             -DCMAKE_PREFIX_PATH:STRING=${DESTDIR}
+            -DCMAKE_DEBUG_POSTFIX:STRING=d
+            -DCMAKE_C_COMPILER:STRING=${CMAKE_C_COMPILER}
+            -DCMAKE_CXX_COMPILER:STRING=${CMAKE_CXX_COMPILER}
+            -DCMAKE_TOOLCHAIN_FILE:STRING=${CMAKE_TOOLCHAIN_FILE}
             -DBUILD_SHARED_LIBS:BOOL=OFF
             ${_cmake_osx_arch}
             "${_configs_line}"
@@ -163,7 +167,10 @@ elseif(FLATPAK)
             ${P_ARGS_CMAKE_ARGS}
        ${P_ARGS_UNPARSED_ARGUMENTS}
        BUILD_COMMAND ${CMAKE_COMMAND} --build . --config Release -- ${_build_j}
-       INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install --config Release && ${CMAKE_COMMAND} remove_directory .
+       INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install --config Release
+       # HACK: save space after each compile job, because CI
+       # note: for whatever reason cmake changes directory after this, so just keep only the folders
+       COMMAND find "${CMAKE_BINARY_DIR}/dep_${projectname}-prefix/" -type f -delete
     )
 else()
     ExternalProject_Add(
@@ -182,7 +189,7 @@ else()
             ${P_ARGS_CMAKE_ARGS}
        ${P_ARGS_UNPARSED_ARGUMENTS}
        BUILD_COMMAND ${CMAKE_COMMAND} --build . --config Release -- ${_build_j}
-       INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install --config Release
+       INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install --config Release 
     )
 
 endif()
