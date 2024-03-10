@@ -4314,20 +4314,22 @@ void GCodeViewer::render_all_plates_stats(const std::vector<const GCodeProcessor
         ImGui::SameLine();
         imgui.text(short_time(get_time_dhms(total_time_all_plates)));
 
-        ImGui::Dummy({ window_padding, window_padding });
-        ImGui::SameLine();
-        imgui.text(_u8L("Filament cost") + ":");
-        ImGui::SameLine();
-        char buf[64];
-        ::sprintf(buf, "%.2f", filament_cost_all_plates);
-        imgui.text(buf);
+        if electric_cost > 0{
+            ImGui::Dummy({ window_padding, window_padding });
+            ImGui::SameLine();
+            imgui.text(_u8L("Filament cost") + ":");
+            ImGui::SameLine();
+            char buf[64];
+            ::sprintf(buf, "%.2f", filament_cost_all_plates);
+            imgui.text(buf);
 
-        ImGui::Dummy({ window_padding, window_padding });
-        ImGui::SameLine();
-        imgui.text(_u8L("Electric cost") + ":");
-        ImGui::SameLine();
-        ::sprintf(buf, "%.2f", electric_cost_all_plates);
-        imgui.text(buf);
+            ImGui::Dummy({ window_padding, window_padding });
+            ImGui::SameLine();
+            imgui.text(_u8L("Electric cost") + ":");
+            ImGui::SameLine();
+            ::sprintf(buf, "%.2f", electric_cost_all_plates);
+            imgui.text(buf);
+        }
 
         ImGui::Dummy({ window_padding, window_padding });
         ImGui::SameLine();
@@ -5577,21 +5579,23 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             ::sprintf(buf, imperial_units ? "  %.2f oz" : "  %.2f g", ps.total_weight / unit_conver);
             imgui.text(buf);
 
-            //BBS: display filament cost
-            ImGui::Dummy({ window_padding, window_padding });
-            ImGui::SameLine();
-            imgui.text(cost_filament+":");
-            ImGui::SameLine(max_len);
-            ::sprintf(buf, "%.2f", ps.total_filament_cost);
-            imgui.text(buf);
+            if electric_cost > 0{
+                //BBS: display filament cost
+                ImGui::Dummy({ window_padding, window_padding });
+                ImGui::SameLine();
+                imgui.text(cost_filament+":");
+                ImGui::SameLine(max_len);
+                ::sprintf(buf, "%.2f", ps.total_filament_cost);
+                imgui.text(buf);
 
-            //BBS: display electric costs
-            ImGui::Dummy({ window_padding, window_padding });
-            ImGui::SameLine();
-            imgui.text(cost_energy+":");
-            ImGui::SameLine(max_len);
-            ::sprintf(buf, "%.2f", ps.electric_cost);
-            imgui.text(buf);
+                //BBS: display electric costs
+                ImGui::Dummy({ window_padding, window_padding });
+                ImGui::SameLine();
+                imgui.text(cost_energy+":");
+                ImGui::SameLine(max_len);
+                ::sprintf(buf, "%.2f", ps.electric_cost);
+                imgui.text(buf);
+            }
 
             //BBS: display total costs
             ImGui::Dummy({ window_padding, window_padding });
