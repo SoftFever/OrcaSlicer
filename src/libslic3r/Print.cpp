@@ -1468,9 +1468,10 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
                if (m_default_object_config.default_jerk > 0)
                     warning_key = check_motion_ability_object_setting(jerk_to_check, max_jerk);
                if (!warning_key.empty()) {
-                    warning->string  = L("The jerk is set higher than the printer's maximum jerk "
-                                          "(machine_max_jerk_x/machine_max_jerk_y), resulting in the jerk speed being capped.\nYou might "
-                                          "consider increasing the maximum jerk in your printer settings.");
+                    warning->string = L(
+                        "The jerk setting exceeds the printer's maximum jerk (machine_max_jerk_x/machine_max_jerk_y).\nOrca will "
+                        "automatically cap the jerk speed to ensure it doesn't surpass the printer's capabilities.\nYou can adjust the "
+                        "maximum jerk setting in your printer's configuration to get higher speeds.");
                     warning->opt_key = warning_key;
                }
             }
@@ -1491,10 +1492,11 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
                const auto max_accel = m_config.machine_max_acceleration_extruding.values[0];
                warning_key          = check_motion_ability_object_setting(accel_to_check, max_accel);
                if (!warning_key.empty()) {
-                    warning->string = L(
-                        "The acceleration is set higher than the printer's maximum extruding acceleration "
-                        "(machine_max_acceleration_extruding), resulting in the print acceleration being capped.\nYou might "
-                        "consider increasing the maximum acceleration in your printer settings.");
+                    warning->string  = L("The acceleration setting exceeds the printer's maximum acceleration "
+                                          "(machine_max_acceleration_extruding).\nOrca will "
+                                          "automatically cap the acceleration speed to ensure it doesn't surpass the printer's "
+                                          "capabilities.\nYou can adjust the "
+                                          "machine_max_acceleration_extruding value in your printer's configuration to get higher speeds.");
                     warning->opt_key = warning_key;
                }
             }
@@ -1509,9 +1511,10 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
                if (warning_key.empty() && m_config.travel_speed > max_speed)
                     warning_key = "travel_speed";
                if (!warning_key.empty()) {
-                    warning->string  = L("The speed is set higher than the printer's maximum speed "
-                                          "(machine_max_speed_x/machine_max_speed_y), resulting in the print speed being capped.\nYou might "
-                                          "consider increasing the maximum speed in your printer settings.");
+                    warning->string = L(
+                        "The speed setting exceeds the printer's maximum speed (machine_max_speed_x/machine_max_speed_y).\nOrca will "
+                        "automatically cap the print speed to ensure it doesn't surpass the printer's capabilities.\nYou can adjust the "
+                        "maximum speed setting in your printer's configuration to get higher speeds.");
                     warning->opt_key = warning_key;
                }
             }
