@@ -1396,7 +1396,7 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Strength");
     def->tooltip  = L(
         "Add solid infill near sloping surfaces to guarantee the vertical shell thickness (top+bottom solid layers)\nNone: No solid infill "
-         "will be added anywhere\nCritical Only: Avoid adding solid infill for walls\nModerate: Add solid infill for heavily "
+         "will be added anywhere. Caution: Use this option carefully if your model has sloped surfaces\nCritical Only: Avoid adding solid infill for walls\nModerate: Add solid infill for heavily "
          "sloping surfaces only\nAll: Add solid infill for all suitable sloping surfaces\nDefault value is All.");
     def->enum_keys_map = &ConfigOptionEnum<EnsureVerticalShellThickness>::get_enum_values();
     def->enum_values.push_back("none");
