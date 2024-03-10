@@ -4207,7 +4207,7 @@ void GCodeViewer::render_all_plates_stats(const std::vector<const GCodeProcessor
             plate->get_print((PrintBase **) &print, nullptr, nullptr);
             filament_cost_all_plates += print->print_statistics().total_filament_cost;
             electric_cost_all_plates += print->print_statistics().electric_cost;
-            total_cost_all_plates += (print->print_statistics().total_filament_cost + print->print_statistics().electric_cost);
+            total_cost_all_plates += print->print_statistics().total_filament_cost + print->print_statistics().electric_cost;
         }
        
         for (auto it = model_volume_of_extruders_all_plates.begin(); it != model_volume_of_extruders_all_plates.end(); it++) {
