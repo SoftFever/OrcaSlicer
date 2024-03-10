@@ -146,6 +146,7 @@ if (NOT IS_CROSS_COMPILE OR NOT APPLE)
        INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install --config Release
     )
 elseif(FLATPAK)
+    # TODO: maybe use shared libs for size reduction
     ExternalProject_Add(
         dep_${projectname}
         EXCLUDE_FROM_ALL    ON

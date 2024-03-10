@@ -235,11 +235,6 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     include_directories(${DBUS_INCLUDE_DIRS})
 endif()
 
-if (CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUXX)
-    # Adding -fext-numeric-literals to enable GCC extensions on definitions of quad float literals, which are required by Boost.
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fext-numeric-literals" )
-endif()
-
 if (NOT MSVC AND ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang"))
     if (NOT MINGW)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall" )
@@ -248,10 +243,13 @@ if (NOT MSVC AND ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMP
 
     # On GCC and Clang, no return from a non-void function is a warning only. Here, we make it an error.
     add_compile_options(-Werror=return-type)
+    # Adding -fext-numeric-literals to enable GCC extensions on definitions of quad float literals, which are required by Boost.
+    add_compile_options(-fext-numeric-literals)
 
     # removes LOTS of extraneous Eigen warnings (GCC only supports it since 6.1)
     # https://eigen.tuxfamily.org/bz/show_bug.cgi?id=1221
-    if("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" OR CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 6.0)
+    if("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" OR 
+            "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 6.0)
         add_compile_options(-Wno-ignored-attributes) # Tamas: Eigen include dirs are marked as SYSTEM
     endif()
 
@@ -268,6 +266,11 @@ if (NOT MSVC AND ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMP
     # We will turn the warning of for GCC for now:
     if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
         add_compile_options(-Wno-unknown-pragmas)
+    endif()
+
+    # Bit of a hack for flatpak building: compress the debug info with zstd to save space in CI 
+    if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 13.0)
+        add_compile_options(-gz=zstd)
     endif()
 
 endif()
