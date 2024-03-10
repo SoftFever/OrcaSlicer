@@ -4092,6 +4092,8 @@ void GCodeViewer::render_all_plates_stats(const std::vector<const GCodeProcessor
     std::vector<double> wipe_tower_used_filaments_g_all_plates;
     float total_time_all_plates = 0.0f;
     float total_cost_all_plates = 0.0f;
+    float filament_cost_all_plates = 0.0f;
+    float electric_cost_all_plates = 0.0f;
     bool show_detailed_statistics_page = false;
     struct ColumnData {
         enum {
@@ -4203,7 +4205,9 @@ void GCodeViewer::render_all_plates_stats(const std::vector<const GCodeProcessor
             
             Print     *print;
             plate->get_print((PrintBase **) &print, nullptr, nullptr);
-            total_cost_all_plates += print->print_statistics().total_filament_cost;
+            filament_cost_all_plates += print->print_statistics().total_filament_cost;
+            electric_cost_all_plates += print->print_statistics().electric_cost;
+            total_cost_all_plates += (print->print_statistics().total_filament_cost + print->print_statistics().electric_cost);
         }
        
         for (auto it = model_volume_of_extruders_all_plates.begin(); it != model_volume_of_extruders_all_plates.end(); it++) {
@@ -4309,6 +4313,22 @@ void GCodeViewer::render_all_plates_stats(const std::vector<const GCodeProcessor
         imgui.text(_u8L("Total time") + ":");
         ImGui::SameLine();
         imgui.text(short_time(get_time_dhms(total_time_all_plates)));
+
+        ImGui::Dummy({ window_padding, window_padding });
+        ImGui::SameLine();
+        imgui.text(_u8L("Filament cost") + ":");
+        ImGui::SameLine();
+        char buf[64];
+        ::sprintf(buf, "%.2f", filament_cost_all_plates);
+        imgui.text(buf);
+
+        ImGui::Dummy({ window_padding, window_padding });
+        ImGui::SameLine();
+        imgui.text(_u8L("Electric cost") + ":");
+        ImGui::SameLine();
+        char buf[64];
+        ::sprintf(buf, "%.2f", electric_cost_all_plates);
+        imgui.text(buf);
 
         ImGui::Dummy({ window_padding, window_padding });
         ImGui::SameLine();
