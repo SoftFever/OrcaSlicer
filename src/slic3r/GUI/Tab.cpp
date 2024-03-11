@@ -2094,7 +2094,6 @@ void TabPrint::build()
         optgroup->append_single_option_line("infill_combination");
         optgroup->append_single_option_line("detect_narrow_internal_solid_infill");
         optgroup->append_single_option_line("ensure_vertical_shell_thickness");
-        optgroup->append_single_option_line("reduce_wall_solid_infill");
 
     page = add_options_page(L("Speed"), "empty");
         optgroup = page->new_optgroup(L("Initial layer speed"), L"param_speed_first", 15);
@@ -2156,8 +2155,8 @@ void TabPrint::build()
         optgroup->append_single_option_line("travel_jerk");
         
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced", 15);
-        optgroup->append_single_option_line("max_volumetric_extrusion_rate_slope");
-        optgroup->append_single_option_line("max_volumetric_extrusion_rate_slope_segment_length");
+        optgroup->append_single_option_line("max_volumetric_extrusion_rate_slope", "extrusion-rate-smoothing");
+        optgroup->append_single_option_line("max_volumetric_extrusion_rate_slope_segment_length", "extrusion-rate-smoothing");
 
     page = add_options_page(L("Support"), "support");
         optgroup = page->new_optgroup(L("Support"), L"param_support");
@@ -3572,10 +3571,10 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line("extruder_clearance_height_to_lid");
 
         optgroup = page->new_optgroup(L("Adaptive bed mesh"));
-        optgroup->append_single_option_line("bed_mesh_min", "adaptive_bed_mesh");
-        optgroup->append_single_option_line("bed_mesh_max", "adaptive_bed_mesh");
-        optgroup->append_single_option_line("bed_mesh_probe_distance", "adaptive_bed_mesh");
-        optgroup->append_single_option_line("adaptive_bed_mesh_margin", "adaptive_bed_mesh");
+        optgroup->append_single_option_line("bed_mesh_min", "adaptive-bed-mesh");
+        optgroup->append_single_option_line("bed_mesh_max", "adaptive-bed-mesh");
+        optgroup->append_single_option_line("bed_mesh_probe_distance", "adaptive-bed-mesh");
+        optgroup->append_single_option_line("adaptive_bed_mesh_margin", "adaptive-bed-mesh");
 
         optgroup = page->new_optgroup(L("Accessory") /*, L"param_accessory"*/);
         optgroup->append_single_option_line("nozzle_type");

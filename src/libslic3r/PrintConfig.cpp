@@ -273,6 +273,15 @@ static t_config_enum_values s_keys_map_SeamScarfType{
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SeamScarfType)
 
 // Orca
+static t_config_enum_values s_keys_map_EnsureVerticalShellThickness{
+    { "none",           int(EnsureVerticalShellThickness::vsNone) },
+    { "ensure_critical_only",         int(EnsureVerticalShellThickness::evstCriticalOnly) },
+    { "ensure_moderate",            int(EnsureVerticalShellThickness::evstModerate) },
+    { "ensure_all",         int(EnsureVerticalShellThickness::evstAll) },
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(EnsureVerticalShellThickness)
+
+// Orca
 static t_config_enum_values s_keys_map_InternalBridgeFilter {
     { "disabled",        ibfDisabled },
     { "limited",        ibfLimited },
@@ -1382,24 +1391,25 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionStrings { " " });
 
-    def = this->add("ensure_vertical_shell_thickness", coBool);
+    def = this->add("ensure_vertical_shell_thickness", coEnum);
     def->label = L("Ensure vertical shell thickness");
     def->category = L("Strength");
-    def->tooltip = L("Add solid infill near sloping surfaces to guarantee the vertical shell thickness "
-        "(top+bottom solid layers)");
+    def->tooltip  = L(
+        "Add solid infill near sloping surfaces to guarantee the vertical shell thickness (top+bottom solid layers)\nNone: No solid infill "
+         "will be added anywhere. Caution: Use this option carefully if your model has sloped surfaces\nCritical Only: Avoid adding solid infill for walls\nModerate: Add solid infill for heavily "
+         "sloping surfaces only\nAll: Add solid infill for all suitable sloping surfaces\nDefault value is All.");
+    def->enum_keys_map = &ConfigOptionEnum<EnsureVerticalShellThickness>::get_enum_values();
+    def->enum_values.push_back("none");
+    def->enum_values.push_back("ensure_critical_only");
+    def->enum_values.push_back("ensure_moderate");
+    def->enum_values.push_back("ensure_all");
+    def->enum_labels.push_back(L("None"));
+    def->enum_labels.push_back(L("Critical Only"));
+    def->enum_labels.push_back(L("Moderate"));
+    def->enum_labels.push_back(L("All"));
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionBool(true));
+    def->set_default_value(new ConfigOptionEnum<EnsureVerticalShellThickness>(EnsureVerticalShellThickness::evstAll));
     
-    def = this->add("reduce_wall_solid_infill", coBool);
-    def->label = L("Further reduce solid infill on walls (beta)");
-    def->category = L("Strength");
-    def->tooltip = L("Further reduces any solid infill applied to walls. As there will be very limited infill supporting"
-                     " solid surfaces, make sure that you are using adequate number of walls to support the part on sloping surfaces.\n\n"
-                     "For heavily sloped surfaces this option is not suitable as it will generate too thin of a top layer "
-                     "and should be disabled.");
-    def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionBool(false));
-
     auto def_top_fill_pattern = def = this->add("top_surface_pattern", coEnum);
     def->label = L("Top surface pattern");
     def->category = L("Strength");
@@ -5710,6 +5720,14 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
     } else if(opt_key == "single_extruder_multi_material") {
         value = "1";
     }
+    else if(opt_key == "ensure_vertical_shell_thickness") {
+        if(value == "1") {
+            value = "ensure_all";
+        }
+        else if (value == "0"){
+            value = "ensure_moderate";
+        }
+    }
     else if (opt_key == "sparse_infill_anchor") {
         opt_key = "infill_anchor";
     } 
@@ -5737,9 +5755,8 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
     static std::set<std::string> ignore = {
         "acceleration", "scale", "rotate", "duplicate", "duplicate_grid",
         "bed_size",
-        "print_center", "g0", "wipe_tower_per_color_wipe"
-        // BBS
-        , "support_sharp_tails","support_remove_small_overhangs", "support_with_sheath",
+        "print_center", "g0", "wipe_tower_per_color_wipe", 
+        "support_sharp_tails","support_remove_small_overhangs", "support_with_sheath",
         "tree_support_collision_resolution", "tree_support_with_infill",
         "max_volumetric_speed", "max_print_speed",
         "support_closing_radius",
@@ -5748,7 +5765,7 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         "can_switch_nozzle_type", "can_add_auxiliary_fan", "extra_flush_volume", "spaghetti_detector", "adaptive_layer_height",
         "z_hop_type", "z_lift_type", "bed_temperature_difference",
         "extruder_type",
-        "internal_bridge_support_thickness","extruder_clearance_max_radius", "top_area_threshold"
+        "internal_bridge_support_thickness","extruder_clearance_max_radius", "top_area_threshold", "reduce_wall_solid_infill"
     };
 
     if (ignore.find(opt_key) != ignore.end()) {
