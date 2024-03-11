@@ -1428,7 +1428,7 @@ namespace DoExport {
         }
 
         electric_cost += ((config.electric_consumption.getFloat()/1000) * (normal_print_time/3600.0) * config.kWh_cost.getFloat());
-        total_cost += (electric_cost + total_filament_cost);
+        total_cost = (electric_cost + total_filament_cost);
         
         print_statistics.total_extruded_volume = total_extruded_volume;
         print_statistics.total_used_filament   = total_used_filament;
