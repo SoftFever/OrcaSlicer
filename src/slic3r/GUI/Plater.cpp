@@ -1147,18 +1147,20 @@ void Sidebar::update_all_preset_comboboxes()
         ams_btn->Hide();
         auto print_btn_type = MainFrame::PrintSelectType::eExportGcode;
         wxString url = cfg.opt_string("print_host_webui").empty() ? cfg.opt_string("print_host") : cfg.opt_string("print_host_webui");
-        if(!url.empty()) 
-        {
-            if(!url.Lower().starts_with("http"))
-                url = wxString::Format("http://%s",url);
-
-            wxString apikey;
+        wxString apikey;
+        if(url.empty())
+            url = wxString::Format("file://%s/web/orca/missing_connection.html", from_u8(resources_dir()));
+        else {
+            if (!url.Lower().starts_with("http"))
+                url = wxString::Format("http://%s", url);
             if (cfg.has("printhost_apikey"))
                 apikey = cfg.opt_string("printhost_apikey");
-            p_mainframe->load_printer_url(url, apikey);
-
             print_btn_type = MainFrame::PrintSelectType::eSendGcode;
         }
+
+        p_mainframe->load_printer_url(url, apikey);
+
+
         p_mainframe->set_print_button_to_default(print_btn_type);
 
     }

@@ -5,6 +5,9 @@
     "from": "system",
     "setting_id": "GFSG99_03",
     "instantiation": "true",
+    "filament_max_volumetric_speed": [
+        "8"
+    ],
     "hot_plate_temp": [
         "80"
     ],
