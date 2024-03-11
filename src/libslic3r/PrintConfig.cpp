@@ -2513,6 +2513,14 @@ def = this->add("filament_loading_speed", coFloats);
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0));
 
+    def = this->add("other_costs", coFloat);
+    def->label = L("Other costs");
+    def->tooltip = L("Add any other costs that you have per hour");
+    def->sidetext = L("money/h");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0));
+
     // Orca: may remove this option later
     def =this->add("support_chamber_temp_control",coBool);
     def->label=L("Support control chamber temperature");

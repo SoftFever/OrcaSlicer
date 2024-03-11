@@ -743,6 +743,7 @@ struct PrintStatistics
     double                          total_extruded_volume;
     double                          total_filament_cost;
     double                          electric_cost;
+    double                          other_costs;
     double                          total_cost;
     int                             total_toolchanges;
     double                          total_weight;

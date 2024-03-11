@@ -4094,6 +4094,7 @@ void GCodeViewer::render_all_plates_stats(const std::vector<const GCodeProcessor
     float total_cost_all_plates = 0.0f;
     float filament_cost_all_plates = 0.0f;
     float electric_cost_all_plates = 0.0f;
+    float other_costs_all_plates = 0.0f;
     bool show_detailed_statistics_page = false;
     struct ColumnData {
         enum {
@@ -4207,7 +4208,8 @@ void GCodeViewer::render_all_plates_stats(const std::vector<const GCodeProcessor
             plate->get_print((PrintBase **) &print, nullptr, nullptr);
             filament_cost_all_plates += print->print_statistics().total_filament_cost;
             electric_cost_all_plates += print->print_statistics().electric_cost;
-            total_cost_all_plates += print->print_statistics().total_filament_cost + print->print_statistics().electric_cost;
+            other_costs_all_plates += print->print_statistics().other_costs;
+            total_cost_all_plates = filament_cost_all_plates + electric_cost_all_plates + other_costs_all_plates;
         }
        
         for (auto it = model_volume_of_extruders_all_plates.begin(); it != model_volume_of_extruders_all_plates.end(); it++) {
@@ -4334,7 +4336,17 @@ void GCodeViewer::render_all_plates_stats(const std::vector<const GCodeProcessor
             imgui.text(buf);
         }
 
-        if (electric_cost_all_plates > 0 || filament_cost_all_plates > 0) {
+        if (other_costs_all_plates > 0) {
+            ImGui::Dummy({ window_padding, window_padding });
+            ImGui::SameLine();
+            imgui.text(_u8L("Other costs") + ":");
+            ImGui::SameLine();
+            char buf[64];
+            ::sprintf(buf, "%.2f", other_costs_all_plates);
+            imgui.text(buf);
+        }
+
+        if (electric_cost_all_plates > 0 || filament_cost_all_plates > 0 || other_costs_all_plates > 0) {
             ImGui::Dummy({ window_padding, window_padding });
             ImGui::SameLine();
             imgui.text(_u8L("Total cost") + ":");
@@ -5552,6 +5564,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         std::string filament_str = _u8L("Filament");
         std::string cost_filament = _u8L("Filament cost");
         std::string cost_energy = _u8L("Electric cost");
+        std::string other_costs = _u8L("Other costs");
         std::string total_cost = _u8L("Total cost");
         std::string prepare_str = _u8L("Prepare time");
         std::string print_str = _u8L("Model printing time");
@@ -5587,7 +5600,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             ::sprintf(buf, imperial_units ? "  %.2f oz" : "  %.2f g", ps.total_weight / unit_conver);
             imgui.text(buf);
 
-            //BBS: display filament costs if any costs are caculated
+            //BBS: display filament costs, if any costs are caculated
             if (ps.total_filament_cost > 0) {
                 ImGui::Dummy({ window_padding, window_padding });
                 ImGui::SameLine();
@@ -5598,7 +5611,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
                 imgui.text(buf);
             }
 
-            //BBS: display electric costs if any costs are caculated
+            //BBS: display electric costs, if any costs are caculated
             if (ps.electric_cost > 0) {
                 ImGui::Dummy({ window_padding, window_padding });
                 ImGui::SameLine();
@@ -5609,8 +5622,19 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
                 imgui.text(buf);
             }
 
-            //BBS: display total costs if any costs are caculated
-            if (ps.electric_cost > 0 || ps.total_filament_cost > 0) {
+            //BBS: display other costs, if any costs are caculated
+            if (ps.electric_cost > 0) {
+                ImGui::Dummy({ window_padding, window_padding });
+                ImGui::SameLine();
+                imgui.text(other_costs+":");
+                ImGui::SameLine(max_len);
+                char buf[64];
+                ::sprintf(buf, "%.2f", ps.other_costs);
+                imgui.text(buf);
+            }
+
+            //BBS: display total costs, if any costs are caculated
+            if (ps.electric_cost > 0 || ps.total_filament_cost > 0 || ps.other_costs > 0) {
                 ImGui::Dummy({ window_padding, window_padding });
                 ImGui::SameLine();
                 imgui.text(total_cost+":");

@@ -1041,7 +1041,8 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionEnum<GCodeFlavor>,   gcode_flavor))
 
     ((ConfigOptionFloat,               electric_consumption))
-    ((ConfigOptionFloat,               kWh_cost)) 
+    ((ConfigOptionFloat,               kWh_cost))
+    ((ConfigOptionFloat,               other_costs))
     ((ConfigOptionString,              layer_change_gcode))
     ((ConfigOptionString,              time_lapse_gcode))
 
