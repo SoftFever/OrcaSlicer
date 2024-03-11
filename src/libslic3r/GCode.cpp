@@ -2300,7 +2300,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         auto pts = std::make_unique<ConfigOptionPoints>();
         if (print.calib_mode() == CalibMode::Calib_PA_Line || print.calib_mode() == CalibMode::Calib_PA_Pattern) {
             bbox = bbox_bed;
-            bbox.offset(-5.0);
+            bbox.offset(-25.0);
             // add 4 corner points of bbox into pts
             pts->values.reserve(4);
             pts->values.emplace_back(bbox.min.x(), bbox.min.y());
@@ -6202,7 +6202,7 @@ std::string GCode::set_object_info(Print *print) {
     // Orca: check if we are in pa calib mode
     if (print->calib_mode() == CalibMode::Calib_PA_Line || print->calib_mode() == CalibMode::Calib_PA_Pattern) {
         BoundingBoxf bbox_bed(print->config().printable_area.values);
-        bbox_bed.offset(-5.0);
+        bbox_bed.offset(-25.0);
         Polygon polygon_bed;
         polygon_bed.append(Point(bbox_bed.min.x(), bbox_bed.min.y()));
         polygon_bed.append(Point(bbox_bed.max.x(), bbox_bed.min.y()));

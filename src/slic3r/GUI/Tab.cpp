@@ -2094,7 +2094,6 @@ void TabPrint::build()
         optgroup->append_single_option_line("infill_combination");
         optgroup->append_single_option_line("detect_narrow_internal_solid_infill");
         optgroup->append_single_option_line("ensure_vertical_shell_thickness");
-        optgroup->append_single_option_line("reduce_wall_solid_infill");
 
     page = add_options_page(L("Speed"), "empty");
         optgroup = page->new_optgroup(L("Initial layer speed"), L"param_speed_first", 15);
@@ -2156,8 +2155,8 @@ void TabPrint::build()
         optgroup->append_single_option_line("travel_jerk");
         
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced", 15);
-        optgroup->append_single_option_line("max_volumetric_extrusion_rate_slope");
-        optgroup->append_single_option_line("max_volumetric_extrusion_rate_slope_segment_length");
+        optgroup->append_single_option_line("max_volumetric_extrusion_rate_slope", "extrusion-rate-smoothing");
+        optgroup->append_single_option_line("max_volumetric_extrusion_rate_slope_segment_length", "extrusion-rate-smoothing");
 
     page = add_options_page(L("Support"), "support");
         optgroup = page->new_optgroup(L("Support"), L"param_support");
