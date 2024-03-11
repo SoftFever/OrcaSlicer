@@ -32,6 +32,8 @@ jobs:
       # Setup the environment
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          lfs: 'true'
         
       - name: load cached deps
         uses: actions/cache@v4
