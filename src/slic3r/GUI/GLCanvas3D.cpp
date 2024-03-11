@@ -1024,6 +1024,8 @@ wxDEFINE_EVENT(EVT_GLCANVAS_EDIT_COLOR_CHANGE, wxKeyEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_JUMP_TO, wxKeyEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_UNDO, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_REDO, SimpleEvent);
+wxDEFINE_EVENT(EVT_GLCANVAS_SWITCH_TO_OBJECT, SimpleEvent);
+wxDEFINE_EVENT(EVT_GLCANVAS_SWITCH_TO_GLOBAL, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_COLLAPSE_SIDEBAR, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_RELOAD_FROM_DISK, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_RENDER_TIMER, wxTimerEvent/*RenderTimerEvent*/);
@@ -4091,6 +4093,13 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         // to remove hover on objects when the mouse goes out of this canvas
         m_mouse.position = Vec2d(-1.0, -1.0);
         m_dirty = true;
+    }
+    else if (evt.LeftDClick()) {
+        // switch to object panel if double click on object, otherwise switch to global panel if double click on background
+        if (selected_object_idx >= 0)
+            post_event(SimpleEvent(EVT_GLCANVAS_SWITCH_TO_OBJECT));
+        else
+            post_event(SimpleEvent(EVT_GLCANVAS_SWITCH_TO_GLOBAL));
     }
     else if (evt.LeftDown() || evt.RightDown() || evt.MiddleDown()) {
         //BBS: add orient deactivate logic

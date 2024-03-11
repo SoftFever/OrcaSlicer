@@ -2855,6 +2855,16 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         //preview_canvas->Bind(EVT_GLTOOLBAR_PRINT_PLATE, &priv::on_action_print_plate, this);
         //preview_canvas->Bind(EVT_GLTOOLBAR_PRINT_ALL, &priv::on_action_print_all, this);
         //review_canvas->Bind(EVT_GLTOOLBAR_EXPORT_GCODE, &priv::on_action_export_gcode, this);
+        view3D_canvas->Bind(EVT_GLCANVAS_SWITCH_TO_OBJECT, [main_frame](SimpleEvent&) {
+                if (main_frame->m_param_panel) {
+                    main_frame->m_param_panel->switch_to_object(false);
+                }
+            });
+        view3D_canvas->Bind(EVT_GLCANVAS_SWITCH_TO_GLOBAL, [main_frame](SimpleEvent&) {
+                if (main_frame->m_param_panel) {
+                    main_frame->m_param_panel->switch_to_global();
+                }
+            });
     }
     view3D_canvas->Bind(EVT_GLCANVAS_UPDATE_BED_SHAPE, [q](SimpleEvent&) { q->set_bed_shape(); });
 
