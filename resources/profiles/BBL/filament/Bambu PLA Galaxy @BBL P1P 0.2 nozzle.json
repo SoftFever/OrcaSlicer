@@ -1,28 +1,32 @@
 {
     "type": "filament",
-    "name": "Generic PETG @BBL A1",
-    "inherits": "Generic PETG @base",
+    "name": "Bambu PLA Galaxy @BBL P1P 0.2 nozzle",
+    "inherits": "Bambu PLA Galaxy @base",
     "from": "system",
-    "setting_id": "GFSG99_03",
+    "setting_id": "GFSA15_04",
     "instantiation": "true",
+    "fan_cooling_layer_time": [
+        "80"
+    ],
+    "fan_min_speed": [
+        "50"
+    ],
     "filament_max_volumetric_speed": [
-        "8"
+        "2"
     ],
     "hot_plate_temp": [
-        "80"
+        "65"
     ],
     "hot_plate_temp_initial_layer": [
-        "80"
+        "65"
     ],
     "textured_plate_temp": [
-        "80"
+        "65"
     ],
     "textured_plate_temp_initial_layer": [
-        "80"
+        "65"
     ],
     "compatible_printers": [
-        "Bambu Lab A1 0.4 nozzle",
-        "Bambu Lab A1 0.6 nozzle",
-        "Bambu Lab A1 0.8 nozzle"
+        "Bambu Lab P1P 0.2 nozzle"
     ]
 }
