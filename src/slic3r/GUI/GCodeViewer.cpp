@@ -4314,7 +4314,7 @@ void GCodeViewer::render_all_plates_stats(const std::vector<const GCodeProcessor
         ImGui::SameLine();
         imgui.text(short_time(get_time_dhms(total_time_all_plates)));
 
-        if (electric_cost > 0) {
+        if (electric_cost_all_plates > 0) {
             ImGui::Dummy({ window_padding, window_padding });
             ImGui::SameLine();
             imgui.text(_u8L("Filament cost") + ":");
@@ -4335,6 +4335,7 @@ void GCodeViewer::render_all_plates_stats(const std::vector<const GCodeProcessor
         ImGui::SameLine();
         imgui.text(_u8L("Total cost") + ":");
         ImGui::SameLine();
+        char buf[64];
         ::sprintf(buf, "%.2f", total_cost_all_plates);
         imgui.text(buf);
     }
@@ -5579,7 +5580,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             ::sprintf(buf, imperial_units ? "  %.2f oz" : "  %.2f g", ps.total_weight / unit_conver);
             imgui.text(buf);
 
-            if (electric_cost > 0) {
+            if (ps.electric_cost > 0) {
                 //BBS: display filament cost
                 ImGui::Dummy({ window_padding, window_padding });
                 ImGui::SameLine();
