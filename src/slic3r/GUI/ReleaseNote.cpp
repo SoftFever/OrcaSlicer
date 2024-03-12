@@ -1387,6 +1387,16 @@ void ConfirmBeforeSendDialog::show_update_nozzle_button(bool show)
     Layout();
 }
 
+void ConfirmBeforeSendDialog::hide_button_ok()
+{
+    m_button_ok->Hide();
+}
+
+void ConfirmBeforeSendDialog::edit_cancel_button_txt(wxString txt)
+{
+    m_button_cancel->SetLabel(txt);
+}
+
 void ConfirmBeforeSendDialog::disable_button_ok()
 {
     m_button_ok->Disable();

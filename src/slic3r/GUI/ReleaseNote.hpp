@@ -245,6 +245,8 @@ public:
     void rescale();
     void on_dpi_changed(const wxRect& suggested_rect);
     void show_update_nozzle_button(bool show = false);
+    void hide_button_ok();
+    void edit_cancel_button_txt(wxString txt);
     void disable_button_ok();
     void enable_button_ok();
     wxString format_text(wxString str, int warp);
