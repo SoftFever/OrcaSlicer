@@ -46,16 +46,15 @@ static const std::vector<std::string> filament_types = {"PLA",    "PLA+",  "PLA 
                                                         "PETGCF", "PTBA",  "PTBA90A",   "PEEK",  "TPU93A", "TPU75D", "TPU",         "TPU92A", "TPU98A", "Misc",
                                                         "TPE",    "GLAZE", "Nylon",     "CPE",   "METAL",  "ABST",   "Carbon Fiber"};
 
-static const std::vector<std::string> system_filament_types = {"PLA",      "ABS",    "TPU",    "PC",     "ASA", "PA-CF", "PA6-CF", "PET-CF", "PETG", "PETG-CF",
-                                                               "PLA Aero", "PLA-CF", "PPA-CF", "PPA-GF", "PA",  "HIPS",  "PPS",    "PPS-CF", "PVA"};
+static const std::vector<std::string> system_filament_types = {"PLA",      "ABS",    "TPU",    "PC",     "ASA", "PA-CF", "PA6-CF", "PET-CF", "PETG", "PETG-CF", "PLA Aero", "PLA-CF", "PPA-CF", "PPA-GF", "PA",    "HIPS",   "PPS",    "PPS-CF",
+                                                               "PVA",     "PE",       "PP",     "EVA",    "PHA",    "BVOH",  "PE-CF",  "PP-CF",  "PP-GF"};
 
-static std::unordered_map<std::string, std::string> system_filament_types_map = {{"PLA", "PLA"},         {"ABS", "ABS"},           {"TPU", "TPU"},
-                                                                                 {"PC", "PC"},           {"ASA", "ASA"},           {"PA-CF", "PA-CF"},
-                                                                                 {"PA6-CF", "PA6-CF"},   {"PET-CF", "PET-CF"},     {"PETG", "PETG"},
-                                                                                 {"PETG-CF", "PETG-CF"}, {"PLA Aero", "PLA-AERO"}, {"PLA-CF", "PLA-CF"},
-                                                                                 {"PPA-CF", "PPA-CF"},   {"PPA-GF", "PPA-GF"},     {"PA", "PA"},
-                                                                                 {"HIPS", "HIPS"},       {"PPS", "PPS"},           {"PPS-CF", "PPS-CF"},
-                                                                                 {"PVA", "PVA"}};
+static std::unordered_map<std::string, std::string> system_filament_types_map =
+    {{"PLA", "PLA"},       {"ABS", "ABS"},       {"TPU", "TPU"},    {"PC", "PC"},           {"ASA", "ASA"},           {"PA-CF", "PA-CF"},
+     {"PA6-CF", "PA6-CF"}, {"PET-CF", "PET-CF"}, {"PETG", "PETG"},  {"PETG-CF", "PETG-CF"}, {"PLA Aero", "PLA-AERO"}, {"PLA-CF", "PLA-CF"},
+     {"PPA-CF", "PPA-CF"}, {"PPA-GF", "PPA-GF"}, {"PA", "PA"},      {"HIPS", "HIPS"},       {"PPS", "PPS"},           {"PPS-CF", "PPS-CF"},
+     {"PVA", "PVA"},       {"PE", "PE"},         {"PP", "PP"},      {"EVA", "EVA"},         {"PHA", "PHA"},           {"BVOH", "BVOH"},
+     {"PE-CF", "PE-CF"},   {"PP-CF", "PP-CF"},   {"PP-GF", "PP-GF"}};
 
 static const std::vector<std::string> printer_vendors = {"Anycubic",  "Artillery", "BIBO",           "BIQU",     "Creality ENDER", "Creality CR", "Creality SERMOON",
                                                          "FLSun",     "gCreate",   "Geeetech",       "INAT",     "Infinity3D",     "Jubilee",     "LNL3D",
