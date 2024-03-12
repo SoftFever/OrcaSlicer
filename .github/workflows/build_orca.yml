@@ -25,10 +25,12 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+        with:
+          lfs: 'true'
 
       - name: load cached deps
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ inputs.cache-path }}
           key: ${{ inputs.cache-key }}
@@ -123,14 +125,14 @@ jobs:
 
       - name: Upload artifacts mac
         if: inputs.os == 'macos-12'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: OrcaSlicer_Mac_${{inputs.arch}}_${{ env.ver }}
           path: ${{ github.workspace }}/OrcaSlicer_Mac_${{inputs.arch}}_${{ env.ver }}.dmg
 
       - name: Deploy Mac release
         if: github.ref == 'refs/heads/main' && inputs.os == 'macos-12'
-        uses: WebFreak001/deploy-nightly@v3.0.0
+        uses: WebFreak001/deploy-nightly@v3.1.0
         with:
           upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label} 
           release_id: 137995723 
@@ -142,7 +144,7 @@ jobs:
 # Windows
       - name: setup MSVC
         if: inputs.os == 'windows-latest'
-        uses: microsoft/setup-msbuild@v1.1
+        uses: microsoft/setup-msbuild@v2
 
       - name: Install nsis
         if: inputs.os == 'windows-latest'
@@ -175,28 +177,28 @@ jobs:
           
       - name: Upload artifacts Win zip
         if: inputs.os == 'windows-latest'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: OrcaSlicer_Windows_${{ env.ver }}_portable
           path: ${{ github.workspace }}/build/OrcaSlicer_Windows_${{ env.ver }}_portable.zip
 
       - name: Upload artifacts Win installer
         if: inputs.os == 'windows-latest'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: OrcaSlicer_Windows_${{ env.ver }}
           path: ${{ github.workspace }}/build/OrcaSlicer*.exe
 
       - name: Upload artifacts Win PDB
         if: inputs.os == 'windows-latest'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: PDB
           path: ${{ github.workspace }}/build/src/Release/Debug_PDB_${{ env.ver }}_for_developers_only.7z
 
       - name: Deploy Windows release portable
         if: github.ref == 'refs/heads/main' && inputs.os == 'windows-latest'
-        uses: WebFreak001/deploy-nightly@v3.0.0
+        uses: WebFreak001/deploy-nightly@v3.1.0
         with:
           upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label} 
           release_id: 137995723 
@@ -207,7 +209,7 @@ jobs:
 
       - name: Deploy Windows release installer
         if: github.ref == 'refs/heads/main' && inputs.os == 'windows-latest'
-        uses: WebFreak001/deploy-nightly@v3.0.0
+        uses: WebFreak001/deploy-nightly@v3.1.0
         with:
           upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label} 
           release_id: 137995723 
@@ -256,14 +258,14 @@ jobs:
 
       - name: Upload artifacts Ubuntu
         if: inputs.os == 'ubuntu-20.04'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: OrcaSlicer_Linux_${{ env.ver }}
           path: './build/OrcaSlicer_Linux_${{ env.ver }}.AppImage'
 
       - name: Deploy Ubuntu release
         if: github.ref == 'refs/heads/main' && inputs.os == 'ubuntu-20.04'
-        uses: WebFreak001/deploy-nightly@v3.0.0
+        uses: WebFreak001/deploy-nightly@v3.1.0
         with:
           upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label} 
           release_id: 137995723 
@@ -274,7 +276,7 @@ jobs:
 
       - name: Deploy orca_custom_preset_tests
         if: github.ref == 'refs/heads/main' && inputs.os == 'ubuntu-20.04'
-        uses: WebFreak001/deploy-nightly@v3.0.0
+        uses: WebFreak001/deploy-nightly@v3.1.0
         with:
           upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label} 
           release_id: 137995723 

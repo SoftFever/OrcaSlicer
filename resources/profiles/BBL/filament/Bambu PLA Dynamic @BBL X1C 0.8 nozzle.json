@@ -1,0 +1,23 @@
+{
+    "type": "filament",
+    "name": "Bambu PLA Dynamic @BBL X1C 0.8 nozzle",
+    "inherits": "Bambu PLA Dynamic @base",
+    "from": "system",
+    "setting_id": "GFSA13_02",
+    "instantiation": "true",
+    "filament_flow_ratio": [
+        "0.98"
+    ],
+    "filament_max_volumetric_speed": [
+        "21"
+    ],
+    "filament_vendor": [
+        "Bambu Lab"
+    ],
+    "compatible_printers": [
+        "Bambu Lab X1 Carbon 0.8 nozzle",
+        "Bambu Lab P1S 0.8 nozzle",
+        "Bambu Lab X1E 0.8 nozzle",
+        "Bambu Lab X1 0.8 nozzle"
+    ]
+}
