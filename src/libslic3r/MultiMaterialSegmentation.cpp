@@ -1931,6 +1931,9 @@ std::vector<std::vector<ExPolygons>> multi_material_segmentation_by_painting(con
                             min_z        = std::min(min_z, facet[p_idx].z());
                         }
 
+                        if (is_equal(min_z, max_z))
+                            continue;
+
                         // Sort the vertices by z-axis for simplification of projected_facet on slices
                         std::sort(facet.begin(), facet.end(), [](const Vec3f &p1, const Vec3f &p2) { return p1.z() < p2.z(); });
 
