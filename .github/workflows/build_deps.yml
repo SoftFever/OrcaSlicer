@@ -31,17 +31,19 @@ jobs:
       
       # Setup the environment
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+        with:
+          lfs: 'true'
         
       - name: load cached deps
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ inputs.cache-path }}
           key: ${{ inputs.cache-key }}
 
       - name: setup dev on Windows
         if: inputs.os == 'windows-latest'
-        uses: microsoft/setup-msbuild@v1.1
+        uses: microsoft/setup-msbuild@v2
 
       - name: Get the date on Ubuntu and macOS
         if: inputs.os != 'windows-latest'
@@ -101,21 +103,21 @@ jobs:
       # Upload Artifacts
       - name: Upload Mac ${{ inputs.arch }} artifacts
         if: inputs.os == 'macos-12'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: OrcaSlicer_dep_mac_${{ inputs.arch }}_${{ env.date }}
           path: ${{ github.workspace }}/deps/build_${{ inputs.arch }}/OrcaSlicer_dep*.tar.gz
 
       - name: Upload Windows artifacts
         if: inputs.os == 'windows-latest'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: OrcaSlicer_dep_win64_${{ env.date }}
           path: ${{ github.workspace }}/deps/build/OrcaSlicer_dep*.zip
 
       - name: Upload Ubuntu artifacts
         if: inputs.os == 'ubuntu-20.04'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: OrcaSlicer_dep_ubuntu_${{ env.date }}
           path: ${{ github.workspace }}/deps/build/OrcaSlicer_dep_ubuntu_*.tar.gz

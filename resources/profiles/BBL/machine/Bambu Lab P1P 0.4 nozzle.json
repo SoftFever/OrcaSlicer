@@ -10,7 +10,7 @@
     ],
     "printer_model": "Bambu Lab P1P",
     "printer_variant": "0.4",
-    "auxiliary_fan": "1",
+    "auxiliary_fan": "0",
     "bed_exclude_area": [
         "0x0",
         "18x0",
