@@ -1043,7 +1043,6 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,               electric_consumption))
     ((ConfigOptionFloat,               kWh_cost))
     ((ConfigOptionFloat,               other_costs))
-    ((ConfigOptionString,              currency))
     ((ConfigOptionString,              layer_change_gcode))
     ((ConfigOptionString,              time_lapse_gcode))
 
