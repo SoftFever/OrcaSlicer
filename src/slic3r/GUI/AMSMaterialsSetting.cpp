@@ -251,8 +251,11 @@ void AMSMaterialsSetting::create_panel_normal(wxWindow* parent)
     m_panel_SN->Fit();
 
     wxBoxSizer* m_tip_sizer = new wxBoxSizer(wxHORIZONTAL);
-    m_tip_readonly = new wxStaticText(parent, wxID_ANY, _L("Setting AMS slot information while printing is not supported"), wxDefaultPosition, wxSize(-1, AMS_MATERIALS_SETTING_INPUT_SIZE.y));
+    m_tip_readonly = new Label(parent, _L("Setting AMS slot information while printing is not supported"));
     m_tip_readonly->SetForegroundColour(*wxBLACK);
+    m_tip_readonly->SetBackgroundColour(*wxWHITE);
+    m_tip_readonly->SetMinSize(wxSize(FromDIP(450), -1));
+    m_tip_readonly->SetMaxSize(wxSize(FromDIP(450), -1));
     m_tip_readonly->Hide();
     m_tip_sizer->Add(m_tip_readonly, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(20));
 
@@ -409,6 +412,7 @@ void AMSMaterialsSetting::enable_confirm_button(bool en)
         else {
             m_tip_readonly->SetLabelText(_L("Setting Virtual slot information while printing is not supported"));
         }
+        m_tip_readonly->Wrap(FromDIP(450));
         m_tip_readonly->Show(!en);
     }
 }
