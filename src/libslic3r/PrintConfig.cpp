@@ -2528,7 +2528,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->height = 5;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionString());
-    def->cli = ConfigOptionDef::nocli;
+    // def->cli = ConfigOptionDef::nocli;
 
     // Orca: may remove this option later
     def =this->add("support_chamber_temp_control",coBool);
