@@ -4322,7 +4322,7 @@ void GCodeViewer::render_all_plates_stats(const std::vector<const GCodeProcessor
             imgui.text(_u8L("Filament cost") + ":");
             ImGui::SameLine();
             char buf[64];
-            std::sprintf(buf, "%s%.2f", ps.currency.c_str(), filament_cost_all_plates);
+            std::sprintf(buf, "%s%.2f", ps.currency, filament_cost_all_plates);
             imgui.text(buf);
         }
 
@@ -4332,7 +4332,7 @@ void GCodeViewer::render_all_plates_stats(const std::vector<const GCodeProcessor
             imgui.text(_u8L("Electric cost") + ":");
             ImGui::SameLine();
             char buf[64];
-            std::sprintf(buf, "%s%.2f", ps.currency.c_str(), electric_cost_all_plates);
+            std::sprintf(buf, "%s%.2f", ps.currency, electric_cost_all_plates);
             imgui.text(buf);
         }
 
@@ -4342,7 +4342,7 @@ void GCodeViewer::render_all_plates_stats(const std::vector<const GCodeProcessor
             imgui.text(_u8L("Other costs") + ":");
             ImGui::SameLine();
             char buf[64];
-            std::sprintf(buf, "%s%.2f", ps.currency.c_str(), other_costs_all_plates);
+            std::sprintf(buf, "%s%.2f", ps.currency, other_costs_all_plates);
             imgui.text(buf);
         }
 
@@ -4352,7 +4352,7 @@ void GCodeViewer::render_all_plates_stats(const std::vector<const GCodeProcessor
             imgui.text(_u8L("Total cost") + ":");
             ImGui::SameLine();
             char buf[64];
-            std::sprintf(buf, "%s%.2f", ps.currency.c_str(), total_cost_all_plates);
+            std::sprintf(buf, "%s%.2f", ps.currency, total_cost_all_plates);
             imgui.text(buf);
         }
     }
@@ -5135,7 +5135,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             ImGui::SameLine();
             imgui.text(_u8L("Filament cost")+":");
             ImGui::SameLine();
-            std::sprintf(buf, "%s%.2f", ps.currency.c_str(), ps.total_filament_cost);
+            std::sprintf(buf, "%s%.2f", ps.currency, ps.total_filament_cost);
             imgui.text(buf);
         }
 
@@ -5607,7 +5607,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
                 imgui.text(cost_filament+":");
                 ImGui::SameLine(max_len);
                 char buf[64];
-                std::sprintf(buf, "%s%.2f", ps.currency.c_str(), ps.total_filament_cost);
+                std::sprintf(buf, "%s%.2f", ps.currency, ps.total_filament_cost);
                 imgui.text(buf);
             }
 
@@ -5618,7 +5618,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
                 imgui.text(cost_energy+":");
                 ImGui::SameLine(max_len);
                 char buf[64];
-                std::sprintf(buf, "%s%.2f", ps.currency.c_str(), ps.electric_cost);
+                std::sprintf(buf, "%s%.2f", ps.currency, ps.electric_cost);
                 imgui.text(buf);
             }
 
@@ -5629,7 +5629,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
                 imgui.text(other_costs+":");
                 ImGui::SameLine(max_len);
                 char buf[64];
-                std::sprintf(buf, "%s%.2f", ps.currency.c_str(), ps.other_costs);;
+                std::sprintf(buf, "%s%.2f", ps.currency, ps.other_costs);;
                 imgui.text(buf);
             }
 
@@ -5640,7 +5640,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
                 imgui.text(total_cost+":");
                 ImGui::SameLine(max_len);
                 char buf[64];
-                std::sprintf(buf, "%s%.2f", ps.currency.c_str(), ps.total_cost);
+                std::sprintf(buf, "%s%.2f", ps.currency, ps.total_cost);
                 imgui.text(buf);
             }
         }
