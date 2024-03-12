@@ -3559,6 +3559,7 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line("electric_consumption");
         optgroup->append_single_option_line("kWh_cost");
         optgroup->append_single_option_line("other_costs");
+        optgroup->append_single_option_line("currency");
         
         optgroup = page->new_optgroup(L("Cooling Fan"));
         Line line = Line{ L("Fan speed-up time"), optgroup->get_option("fan_speedup_time").opt.tooltip };

@@ -2521,6 +2521,15 @@ def = this->add("filament_loading_speed", coFloats);
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0));
 
+    def = this->add("currency", coString);
+    def->label = "Currency";
+    def->tooltip = "Enter the symbol of your currency";
+    def->full_width = true;
+    def->height = 5;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionString());
+    // def->cli = ConfigOptionDef::nocli;
+
     // Orca: may remove this option later
     def =this->add("support_chamber_temp_control",coBool);
     def->label=L("Support control chamber temperature");
