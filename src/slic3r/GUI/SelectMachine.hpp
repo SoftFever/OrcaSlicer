@@ -64,6 +64,34 @@ enum PrintFromType {
     FROM_SDCARD_VIEW,
 };
 
+static int get_brightness_value(wxImage image) {
+
+    wxImage grayImage = image.ConvertToGreyscale();
+
+    int width = grayImage.GetWidth();
+    int height = grayImage.GetHeight();
+
+    int totalLuminance = 0;
+    unsigned char alpha;
+    int num_none_transparent = 0;
+    for (int y = 0; y < height; y += 2) {
+
+        for (int x = 0; x < width; x += 2) {
+
+            alpha = image.GetAlpha(x, y);
+            if (alpha != 0) {
+                wxColour pixelColor = grayImage.GetRed(x, y);
+                totalLuminance += pixelColor.Red();
+                num_none_transparent = num_none_transparent + 1;
+            }
+        }
+    }
+    if (totalLuminance <= 0 || num_none_transparent <= 0) {
+        return 0;
+    }
+    return totalLuminance / num_none_transparent;
+}
+
 class Material
 {
 public:

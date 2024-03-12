@@ -4542,7 +4542,7 @@ void EditDevNameDialog::on_edit_name(wxCommandEvent &e)
      dc.DrawBitmap(m_background_bitmap.bmp(), 0, 0);
      dc.DrawBitmap(m_bitmap, 0, 0);
      dc.SelectObject(wxNullBitmap);
-
+     Refresh();
  }
 
  void ThumbnailPanel::OnPaint(wxPaintEvent& event) {
