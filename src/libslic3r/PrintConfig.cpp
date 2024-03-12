@@ -1518,7 +1518,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("wall_direction", coEnum);
     def->label = L("Wall loop direction");
     def->category = L("Quality");
-    def->tooltip = L("The direction which the wall loops are extruded when looking down from the top.\n\nBy default all walls are extruded in counter-clockwise, unless Reverse on odd is enabled. Set this to any option other than Auto will force the wall direction regardless of the Reverse on odd.\n\nThis option will be disabled if sprial vase mode is enabled.");
+    def->tooltip = L("The direction in which the wall loops are extruded when looking down from the top.\n\nBy default, all walls are extruded counter-clockwise, unless Reverse on odd is enabled. Set this to any option, other than Auto will force the wall direction regardless of the Reverse on odd argument.\n\nThis option will be disabled if spiral vase mode is enabled.");
     def->enum_keys_map = &ConfigOptionEnum<WallDirection>::get_enum_values();
     def->enum_values.push_back("auto");
     def->enum_values.push_back("ccw");
