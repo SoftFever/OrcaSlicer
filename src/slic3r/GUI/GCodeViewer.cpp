@@ -5623,7 +5623,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             }
 
             //BBS: display other costs, if any costs are caculated
-            if (ps.electric_cost > 0) {
+            if (ps.other_costs > 0) {
                 ImGui::Dummy({ window_padding, window_padding });
                 ImGui::SameLine();
                 imgui.text(other_costs+":");
