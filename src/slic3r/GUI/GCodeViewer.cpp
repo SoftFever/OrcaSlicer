@@ -4319,40 +4319,40 @@ void GCodeViewer::render_all_plates_stats(const std::vector<const GCodeProcessor
         if (filament_cost_all_plates > 0) {
             ImGui::Dummy({ window_padding, window_padding });
             ImGui::SameLine();
-            imgui.text(_u8L("Filament cost") + ":");
+            imgui.text(_u8L("Filament cost") + ":" + ps.currency);
             ImGui::SameLine();
             char buf[64];
-            ::sprintf(buf, "%.2f", ps.currency + filament_cost_all_plates);
+            ::sprintf(buf, "%.2f", filament_cost_all_plates);
             imgui.text(buf);
         }
 
         if (electric_cost_all_plates > 0) {
             ImGui::Dummy({ window_padding, window_padding });
             ImGui::SameLine();
-            imgui.text(_u8L("Electric cost") + ":");
+            imgui.text(_u8L("Electric cost") + ":" + ps.currency);
             ImGui::SameLine();
             char buf[64];
-            ::sprintf(buf, "%.2f", ps.currency + electric_cost_all_plates);
+            ::sprintf(buf, "%.2f", electric_cost_all_plates);
             imgui.text(buf);
         }
 
         if (other_costs_all_plates > 0) {
             ImGui::Dummy({ window_padding, window_padding });
             ImGui::SameLine();
-            imgui.text(_u8L("Other costs") + ":");
+            imgui.text(_u8L("Other costs") + ":" + ps.currency);
             ImGui::SameLine();
             char buf[64];
-            ::sprintf(buf, "%.2f", ps.currency + other_costs_all_plates);
+            ::sprintf(buf, "%.2f", other_costs_all_plates);
             imgui.text(buf);
         }
 
         if (electric_cost_all_plates > 0 || filament_cost_all_plates > 0 || other_costs_all_plates > 0) {
             ImGui::Dummy({ window_padding, window_padding });
             ImGui::SameLine();
-            imgui.text(_u8L("Total cost") + ":");
+            imgui.text(_u8L("Total cost") + ":" + ps.currency);
             ImGui::SameLine();
             char buf[64];
-            ::sprintf(buf, "%.2f", ps.currency + total_cost_all_plates);
+            ::sprintf(buf, "%.2f", total_cost_all_plates);
             imgui.text(buf);
         }
     }
@@ -5133,9 +5133,9 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         if (ps.total_filament_cost > 0) {
             ImGui::Dummy({ window_padding, window_padding });
             ImGui::SameLine();
-            imgui.text(_u8L("Filament cost")+":");
+            imgui.text(_u8L("Filament cost")+":"+ps.currency);
             ImGui::SameLine();
-            ::sprintf(buf, "%.2f", ps.currency + ps.total_filament_cost);
+            ::sprintf(buf, "%.2f", ps.total_filament_cost);
             imgui.text(buf);
         }
 
@@ -5604,10 +5604,10 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             if (ps.total_filament_cost > 0) {
                 ImGui::Dummy({ window_padding, window_padding });
                 ImGui::SameLine();
-                imgui.text(cost_filament+":");
+                imgui.text(cost_filament+":"+ps.currency);
                 ImGui::SameLine(max_len);
                 char buf[64];
-                ::sprintf(buf, "%.2f", ps.currency + ps.total_filament_cost);
+                ::sprintf(buf, "%.2f", ps.total_filament_cost);
                 imgui.text(buf);
             }
 
@@ -5615,10 +5615,10 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             if (ps.electric_cost > 0) {
                 ImGui::Dummy({ window_padding, window_padding });
                 ImGui::SameLine();
-                imgui.text(cost_energy+":");
+                imgui.text(cost_energy+":"+ps.currency);
                 ImGui::SameLine(max_len);
                 char buf[64];
-                ::sprintf(buf, "%.2f", ps.currency + ps.electric_cost);
+                ::sprintf(buf, "%.2f", ps.electric_cost);
                 imgui.text(buf);
             }
 
@@ -5626,10 +5626,10 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             if (ps.other_costs > 0) {
                 ImGui::Dummy({ window_padding, window_padding });
                 ImGui::SameLine();
-                imgui.text(other_costs+":");
+                imgui.text(other_costs+":"+ps.currency);
                 ImGui::SameLine(max_len);
                 char buf[64];
-                ::sprintf(buf, "%.2f", ps.currency + ps.other_costs);
+                ::sprintf(buf, "%.2f", ps.other_costs);
                 imgui.text(buf);
             }
 
@@ -5637,10 +5637,10 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             if (ps.electric_cost > 0 || ps.total_filament_cost > 0 || ps.other_costs > 0) {
                 ImGui::Dummy({ window_padding, window_padding });
                 ImGui::SameLine();
-                imgui.text(total_cost+":");
+                imgui.text(total_cost+":"+ps.currency);
                 ImGui::SameLine(max_len);
                 char buf[64];
-                ::sprintf(buf, "%.2f", ps.currency + ps.total_cost);
+                ::sprintf(buf, "%.2f", ps.total_cost);
                 imgui.text(buf);
             }
         }
