@@ -28,6 +28,7 @@
 static const int overhang_sampling_number = 6;
 static const double narrow_loop_length_threshold = 10;
 static const double min_degree_gap = 0.1;
+static const int max_overhang_degree = overhang_sampling_number - 1;
 //BBS: when the width of expolygon is smaller than
 //ext_perimeter_width + ext_perimeter_spacing  * (1 - SMALLER_EXT_INSET_OVERLAP_TOLERANCE),
 //we think it's small detail area and will generate smaller line width for it
@@ -241,6 +242,7 @@ static std::deque<PolylineWithDegree> split_polyline_by_degree(const Polyline &p
     // BBS: merge degree in limited range
     //find first degee base
     double degree_base = int(points_overhang[points_overhang.size() - 1] / min_degree_gap) * min_degree_gap + min_degree_gap;
+    degree_base = degree_base > max_overhang_degree ? max_overhang_degree : degree_base;
     double short_poly_len = 0;
     for (int point_idx = points_overhang.size() - 2; point_idx > 0; --point_idx) {
 
@@ -255,7 +257,7 @@ static std::deque<PolylineWithDegree> split_polyline_by_degree(const Polyline &p
         out.push_back(PolylineWithDegree(right, degree_base));
 
         degree_base = int(degree / min_degree_gap) * min_degree_gap + min_degree_gap;
-        degree_base = degree_base > overhang_sampling_number - 2 ? overhang_sampling_number - 2 : degree_base;
+        degree_base = degree_base > max_overhang_degree ? max_overhang_degree : degree_base;
     }
 
     if (!temp_copy.empty()) {
@@ -366,7 +368,7 @@ static std::deque<PolylineWithDegree> detect_overahng_degree(Polygons        low
             float overhang_dist = prev_layer_distancer->distance_from_perimeter(pt.cast<float>());
             overhang_dist       = overhang_dist > upper_bound ? upper_bound : overhang_dist;
             // BBS : calculate overhang degree
-            int    max_overhang = overhang_sampling_number - 2;
+            int    max_overhang = max_overhang_degree;
             int    min_overhang = 0;
             double t            = (overhang_dist - lower_bound) / (upper_bound - lower_bound);
             t = t > 1.0 ? 1: t;
