@@ -526,8 +526,11 @@ set(SLIC3R_GUI_SOURCES
     Utils/CalibUtils.hpp
     GUI/PrinterCloudAuthDialog.cpp
     GUI/PrinterCloudAuthDialog.hpp
-    Utils/Obico.cpp    
+    Utils/Obico.cpp
     Utils/Obico.hpp
+
+    GUI/Jobs/OAuthJob.cpp
+    GUI/Jobs/OAuthJob.hpp
 )
 
 if (WIN32)
