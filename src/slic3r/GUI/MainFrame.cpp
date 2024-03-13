@@ -3109,8 +3109,8 @@ void MainFrame::export_config()
             }, false);
             if (!files.empty())
                 m_last_config = from_u8(files.back());
-            MessageDialog dlg(this, wxString::Format(_L_PLURAL("There is %d config exported. (Only non-system configs)",
-                "There are %d configs exported. (Only non-system configs)", files.size()), files.size()),
+            MessageDialog dlg(this, wxString::Format(_L_PLURAL("Exported %d user (non-system) config.",
+                "Exported %d user (non-system) configs.", files.size()), files.size()),
                               _L("Export result"), wxOK);
             dlg.ShowModal();
         } catch (const std::exception &ex) {
@@ -3156,8 +3156,8 @@ void MainFrame::load_config_file()
     }
     wxGetApp().preset_bundle->update_compatible(PresetSelectCompatibleType::Always);
     update_side_preset_ui();
-    auto msg = wxString::Format(_L_PLURAL("There is %d config imported. (Only non-system and compatible configs)",
-        "There are %d configs imported. (Only non-system and compatible configs)", cfiles.size()), cfiles.size());
+    auto msg = wxString::Format(_L_PLURAL("Imported %d compatible user (non-system) config.",
+        "Imported %d compatible user (non-system) configs.", cfiles.size()), cfiles.size());
     if(cfiles.empty())
         msg += _L("\nHint: Make sure you have added the corresponding printer before importing the configs.");
     MessageDialog dlg2(this,msg ,
