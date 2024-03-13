@@ -7482,7 +7482,7 @@ msgid "Machine end G-code"
 msgstr "G-code de fin de machine"
 
 msgid "Printing by object G-code"
-msgstr "Impression par objet G-code"
+msgstr "G-code d’impression par objet"
 
 msgid "Before layer change G-code"
 msgstr "G-Code avant changement de couche"
