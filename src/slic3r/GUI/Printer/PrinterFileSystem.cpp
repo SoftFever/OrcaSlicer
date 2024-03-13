@@ -1295,7 +1295,7 @@ void PrinterFileSystem::Reconnect(boost::unique_lock<boost::mutex> &l, int resul
         }
         wxLogMessage("PrinterFileSystem::Reconnect Failed");
         m_status = Status::Failed;
-        SendChangedEvent(EVT_STATUS_CHANGED, m_status, "", url.size() < 2 ? 1 : 0);
+        SendChangedEvent(EVT_STATUS_CHANGED, m_status, "", m_last_error);
         m_cond.timed_wait(l, boost::posix_time::seconds(10));
     }
     m_status = Status::ListSyncing;
