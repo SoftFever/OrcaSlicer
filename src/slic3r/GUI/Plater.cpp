@@ -5011,6 +5011,12 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
 
         notification_manager->set_slicing_progress_hidden();
     }
+    else {
+        if (preview && preview->get_reload_paint_after_background_process_apply()) {
+            preview->set_reload_paint_after_background_process_apply(false);
+            preview->reload_print();
+        }
+    }
 
     if ((invalidated != Print::APPLY_STATUS_UNCHANGED || force_validation) && ! background_process.empty()) {
         // The delayed error message is no more valid.
@@ -10388,6 +10394,10 @@ void Plater::select_view(const std::string& direction) { p->select_view(directio
 
 //BBS: add no_slice logic
 void Plater::select_view_3D(const std::string& name, bool no_slice) { p->select_view_3D(name, no_slice); }
+
+void Plater::reload_paint_after_background_process_apply() {
+    p->preview->set_reload_paint_after_background_process_apply(true);
+}
 
 bool Plater::is_preview_shown() const { return p->is_preview_shown(); }
 bool Plater::is_preview_loaded() const { return p->is_preview_loaded(); }

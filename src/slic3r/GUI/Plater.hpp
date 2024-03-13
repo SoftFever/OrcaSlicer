@@ -342,6 +342,7 @@ public:
     //BBS: add no_slice logic
     void select_view_3D(const std::string& name, bool no_slice = true);
 
+    void reload_paint_after_background_process_apply();
     bool is_preview_shown() const;
     bool is_preview_loaded() const;
     bool is_view3D_shown() const;
