@@ -4976,6 +4976,12 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
 {
     std::string gcode;
 
+    if (path.role() == erSolidInfill && m_config.min_fill_path_length.value > 0) {
+        if (unscale_(path.length()) < m_config.min_fill_path_length.value) {
+            return gcode;
+        }
+    }
+
     if (is_bridge(path.role()))
         description += " (bridge)";
 
