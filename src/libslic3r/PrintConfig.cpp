@@ -422,12 +422,12 @@ static const t_config_enum_values  s_keys_map_GCodeThumbnailsFormat = {
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(GCodeThumbnailsFormat)
 
-static const t_config_enum_values s_keys_map_CounterboleHoleBridgingOption{
+static const t_config_enum_values s_keys_map_CounterboreHoleBridgingOption{
     { "none", chbNone },
     { "partiallybridge", chbBridges },
     { "sacrificiallayer", chbFilled },
 };
-CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(CounterboleHoleBridgingOption)
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(CounterboreHoleBridgingOption)
 
 static void assign_printer_technology_to_unknown(t_optiondef_map &options, PrinterTechnology printer_technology)
 {
@@ -978,8 +978,8 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
-    def = this->add("counterbole_hole_bridging", coEnum);
-    def->label = L("Bridge counterbole holes");
+    def = this->add("counterbore_hole_bridging", coEnum);
+    def->label = L("Bridge counterbore holes");
     def->category = L("Quality");
     def->tooltip  = L(
         "This option creates bridges for counterbore holes, allowing them to be printed without support. Available modes include:\n"
@@ -987,14 +987,14 @@ void PrintConfigDef::init_fff_params()
          "2. Partially Bridged: Only a part of the unsupported area will be bridged.\n"
          "3. Sacrificial Layer: A full sacrificial bridge layer is created.");
     def->mode = comAdvanced;
-    def->enum_keys_map = &ConfigOptionEnum<CounterboleHoleBridgingOption>::get_enum_values();
+    def->enum_keys_map = &ConfigOptionEnum<CounterboreHoleBridgingOption>::get_enum_values();
     def->enum_values.emplace_back("none");
     def->enum_values.emplace_back("partiallybridge");
     def->enum_values.emplace_back("sacrificiallayer");
     def->enum_labels.emplace_back(L("None"));
     def->enum_labels.emplace_back(L("Partially bridged"));
     def->enum_labels.emplace_back(L("Sacrificial layer"));
-    def->set_default_value(new ConfigOptionEnum<CounterboleHoleBridgingOption>(chbNone));
+    def->set_default_value(new ConfigOptionEnum<CounterboreHoleBridgingOption>(chbNone));
 
     def = this->add("overhang_reverse_threshold", coFloatOrPercent);
     def->label = L("Reverse threshold");
@@ -1518,7 +1518,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("wall_direction", coEnum);
     def->label = L("Wall loop direction");
     def->category = L("Quality");
-    def->tooltip = L("The direction in which the wall loops are extruded when looking down from the top.\n\nBy default, all walls are extruded counter-clockwise, unless Reverse on odd is enabled. Set this to any option, other than Auto will force the wall direction regardless of the Reverse on odd argument.\n\nThis option will be disabled if spiral vase mode is enabled.");
+    def->tooltip = L("The direction which the wall loops are extruded when looking down from the top.\n\nBy default all walls are extruded in counter-clockwise, unless Reverse on odd is enabled. Set this to any option other than Auto will force the wall direction regardless of the Reverse on odd.\n\nThis option will be disabled if sprial vase mode is enabled.");
     def->enum_keys_map = &ConfigOptionEnum<WallDirection>::get_enum_values();
     def->enum_values.push_back("auto");
     def->enum_values.push_back("ccw");
