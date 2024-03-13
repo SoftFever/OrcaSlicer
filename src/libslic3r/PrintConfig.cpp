@@ -5750,6 +5750,9 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
     else if(opt_key == "ironing_direction") {
         opt_key = "ironing_angle";
     }
+    else if(opt_key == "counterbole_hole_bridging"){
+        opt_key = "counterbore_hole_bridging";
+    }
 
     // Ignore the following obsolete configuration keys:
     static std::set<std::string> ignore = {
