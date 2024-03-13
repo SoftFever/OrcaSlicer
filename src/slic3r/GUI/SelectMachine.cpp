@@ -3824,9 +3824,11 @@ void SelectMachineDialog::set_default()
     if (from_u8(file_name).find(_L("Untitled")) != wxString::npos) {
         PartPlate *part_plate = m_plater->get_partplate_list().get_plate(m_print_plate_idx);
         if (part_plate) {
-            if (std::vector<ModelObject *> objects = part_plate->get_objects(); objects.size() > 0) {
+            if (std::vector<ModelObject *> objects = part_plate->get_objects_on_this_plate(); objects.size() > 0) {
                 file_name = objects[0]->name;
-                for (int i = 1; i < objects.size(); i++) { file_name += (" + " + objects[i]->name); }
+                for (int i = 1; i < objects.size(); i++) {
+                    file_name += (" + " + objects[i]->name);
+                }
             }
             if (file_name.size() > 100) {
                 file_name = file_name.substr(0, 97) + "...";
