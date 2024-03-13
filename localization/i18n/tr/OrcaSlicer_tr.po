@@ -9203,7 +9203,7 @@ msgstr ""
 "bakılmaksızın tek katmanlar üzerine değişen yönlerde yazdırılması için Ters "
 "Eşiği 0'a ayarlamanız önerilir."
 
-msgid "Bridge counterbole holes"
+msgid "Bridge counterbore holes"
 msgstr "Köprü havşa delikleri"
 
 msgid ""

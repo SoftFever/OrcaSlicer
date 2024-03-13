@@ -9455,7 +9455,7 @@ msgstr ""
 "s’impriment dans des directions alternées sur les couches impaires, quel que "
 "soit leur degré de surplomb."
 
-msgid "Bridge counterbole holes"
+msgid "Bridge counterbore holes"
 msgstr "Trous de contre-trou de pont"
 
 msgid ""

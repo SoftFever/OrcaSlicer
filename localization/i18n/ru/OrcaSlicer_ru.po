@@ -9332,7 +9332,7 @@ msgstr ""
 
 # counterbore???
 # Мост для отверстий с зенковкой
-msgid "Bridge counterbole holes"
+msgid "Bridge counterbore holes"
 msgstr "Мост для зенкованных отверстий"
 
 # ??? слой жертвенного моста.

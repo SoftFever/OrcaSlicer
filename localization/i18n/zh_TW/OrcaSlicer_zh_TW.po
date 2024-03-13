@@ -9131,7 +9131,7 @@ msgid ""
 "directions on odd layers irrespective of their overhang degree."
 msgstr ""
 
-msgid "Bridge counterbole holes"
+msgid "Bridge counterbore holes"
 msgstr ""
 
 msgid ""

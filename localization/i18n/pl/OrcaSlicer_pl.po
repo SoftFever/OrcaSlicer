@@ -9313,7 +9313,7 @@ msgstr ""
 "przemiennych kierunkach na nieparzystych warstwach, niezależnie od stopnia "
 "nawisu."
 
-msgid "Bridge counterbole holes"
+msgid "Bridge counterbore holes"
 msgstr "Most dla fazowanych otworów"
 
 msgid ""

@@ -9359,7 +9359,7 @@ msgstr ""
 "inverso en 0 para que todas las paredes internas se impriman en direcciones "
 "alternas en las capas impares, independientemente de su grado de voladizo."
 
-msgid "Bridge counterbole holes"
+msgid "Bridge counterbore holes"
 msgstr "Agujeros del contrafuerte del puente"
 
 msgid ""

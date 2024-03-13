@@ -8986,7 +8986,7 @@ msgstr ""
 "벽이 교대로 출력되도록 임계값을 0으로 역방향오버행 정도에 관계없이 홀수 레이"
 "어의 방향입니다."
 
-msgid "Bridge counterbole holes"
+msgid "Bridge counterbore holes"
 msgstr ""
 
 msgid ""
