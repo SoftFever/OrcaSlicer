@@ -1922,7 +1922,7 @@ void PerimeterGenerator::add_infill_contour_for_arachne( ExPolygons        infil
 void PerimeterGenerator::process_no_bridge(Surfaces& all_surfaces, coord_t perimeter_spacing, coord_t ext_perimeter_width)
 {
     //store surface for bridge infill to avoid unsupported perimeters (but the first one, this one is always good)
-    if (this->config->counterbole_hole_bridging != chbNone
+    if (this->config->counterbore_hole_bridging != chbNone
         && this->lower_slices != NULL && !this->lower_slices->empty()) {
         const coordf_t bridged_infill_margin = scale_(BRIDGE_INFILL_MARGIN);
 
@@ -1955,7 +1955,7 @@ void PerimeterGenerator::process_no_bridge(Surfaces& all_surfaces, coord_t perim
                         }
                         if (!bridgeable.empty()) {
                             //check if we get everything or just the bridgeable area
-                            if (/*this->config->counterbole_hole_bridging.value == chbNoPeri || */this->config->counterbole_hole_bridging.value == chbFilled) {
+                            if (/*this->config->counterbore_hole_bridging.value == chbNoPeri || */this->config->counterbore_hole_bridging.value == chbFilled) {
                                 //we bridge everything, even the not-bridgeable bits
                                 for (size_t i = 0; i < unsupported_filtered.size();) {
                                     ExPolygon& poly_unsupp = *(unsupported_filtered.begin() + i);
@@ -1977,7 +1977,7 @@ void PerimeterGenerator::process_no_bridge(Surfaces& all_surfaces, coord_t perim
                                 }
                                 unsupported_filtered = intersection_ex(last,
                                                                        offset2_ex(unsupported_filtered, double(-perimeter_spacing / 2), double(bridged_infill_margin + perimeter_spacing / 2)));
-                                if (this->config->counterbole_hole_bridging.value == chbFilled) {
+                                if (this->config->counterbore_hole_bridging.value == chbFilled) {
                                     for (ExPolygon& expol : unsupported_filtered) {
                                         //check if the holes won't be covered by the upper layer
                                         //TODO: if we want to do that, we must modify the geometry before making perimeters.
@@ -2027,7 +2027,7 @@ void PerimeterGenerator::process_no_bridge(Surfaces& all_surfaces, coord_t perim
 
                                 }
                                 //TODO: add other polys as holes inside this one (-margin)
-                            } else if (/*this->config->counterbole_hole_bridging.value == chbBridgesOverhangs || */this->config->counterbole_hole_bridging.value == chbBridges) {
+                            } else if (/*this->config->counterbore_hole_bridging.value == chbBridgesOverhangs || */this->config->counterbore_hole_bridging.value == chbBridges) {
                                 //simplify to avoid most of artefacts from printing lines.
                                 ExPolygons bridgeable_simplified;
                                 for (ExPolygon& poly : bridgeable) {
@@ -2046,7 +2046,7 @@ void PerimeterGenerator::process_no_bridge(Surfaces& all_surfaces, coord_t perim
                                 //unbridgeable = offset2_ex(unbridgeable, -ext_perimeter_width, ext_perimeter_width);
 
 
-                                // if (this->config->counterbole_hole_bridging.value == chbBridges) {
+                                // if (this->config->counterbore_hole_bridging.value == chbBridges) {
                                     ExPolygons unbridgeable = unsupported_filtered;
                                     for (ExPolygon& expol : unbridgeable)
                                         expol.holes.clear();

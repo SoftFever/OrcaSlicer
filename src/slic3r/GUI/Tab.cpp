@@ -2051,7 +2051,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("thick_bridges");
         optgroup->append_single_option_line("thick_internal_bridges");
         optgroup->append_single_option_line("dont_filter_internal_bridges");
-        optgroup->append_single_option_line("counterbole_hole_bridging","counterbole-hole-bridging");
+        optgroup->append_single_option_line("counterbore_hole_bridging","counterbore-hole-bridging");
     
         optgroup = page->new_optgroup(L("Overhangs"), L"param_advanced");
         optgroup->append_single_option_line("detect_overhang_wall");
