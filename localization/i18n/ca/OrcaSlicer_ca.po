@@ -9275,7 +9275,7 @@ msgstr ""
 "invers a 0 de manera que totes els perímetres interns s'imprimeixin en "
 "direccions alternes en capes senars, independentment del seu grau de voladís."
 
-msgid "Bridge counterbole holes"
+msgid "Bridge counterbore holes"
 msgstr ""
 
 msgid ""

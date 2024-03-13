@@ -8699,7 +8699,7 @@ msgstr ""
 "为了使这个设置最有效，建议将反转阈值设置为0，这样所有的内墙都会在奇数层交替打"
 "印。"
 
-msgid "Bridge counterbole holes"
+msgid "Bridge counterbore holes"
 msgstr "沉孔搭桥"
 
 msgid ""

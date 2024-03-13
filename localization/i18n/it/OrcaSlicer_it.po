@@ -9343,7 +9343,7 @@ msgstr ""
 "in direzioni alternate sugli strati dispari, indipendentemente dal loro "
 "grado di sporgenza."
 
-msgid "Bridge counterbole holes"
+msgid "Bridge counterbore holes"
 msgstr "Fori per controbolo del ponte"
 
 msgid ""

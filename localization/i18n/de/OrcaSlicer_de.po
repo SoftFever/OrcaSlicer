@@ -9392,7 +9392,7 @@ msgstr ""
 "Schichten unabhängig von ihrem Überhangsgrad in abwechselnden Richtungen "
 "gedruckt werden."
 
-msgid "Bridge counterbole holes"
+msgid "Bridge counterbore holes"
 msgstr "Brücken für Senkungen"
 
 msgid ""
