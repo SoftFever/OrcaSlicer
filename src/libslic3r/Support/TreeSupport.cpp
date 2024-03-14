@@ -1952,6 +1952,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<SupportNode*>>& con
                         }
                         if (node.type == ePolygon)
                             has_polygon_node = true;
+                        area = diff_clipped(area, get_collision(node.is_sharp_tail && node.distance_to_top <= 0));
                     }
                     else {
                         Polygon circle(branch_circle);
@@ -1982,7 +1983,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<SupportNode*>>& con
                             if(!tmp.empty())
                                 circle = tmp[0];
                         }
-                        area.emplace_back(ExPolygon(circle));
+                        area = avoid_object_remove_extra_small_parts(ExPolygons{ ExPolygon(circle) }, get_collision(node.is_sharp_tail && node.distance_to_top <= 0));
                         // merge overhang to get a smoother interface surface
                         // Do not merge when buildplate_only is on, because some underneath nodes may have been deleted.
                         if (top_interface_layers > 0 && node.support_roof_layers_below > 0 && !on_buildplate_only && !node.is_sharp_tail) {
@@ -2025,28 +2026,10 @@ void TreeSupport::draw_circles(const std::vector<std::vector<SupportNode*>>& con
                 roof_areas = std::move(offset2_ex(roof_areas, contact_dist_scaled, -contact_dist_scaled));
                 roof_1st_layer = std::move(offset2_ex(roof_1st_layer, contact_dist_scaled, -contact_dist_scaled));
 
-                // avoid object
-                // arthur: do not leave a gap for top interface if the top z distance is 0. See STUDIO-3991
-                Polygons avoid_region_interface = get_trim_support_regions(*m_object, ts_layer, m_slicing_params.gap_support_object, m_slicing_params.gap_object_support,
-                    m_slicing_params.gap_support_object == 0 ? 0 : m_ts_data->m_xy_distance);
-                if (has_circle_node) {
-                    roof_areas = avoid_object_remove_extra_small_parts(roof_areas, avoid_region_interface);
-                    roof_1st_layer = avoid_object_remove_extra_small_parts(roof_1st_layer, avoid_region_interface);
-                }
-                else {
-                    roof_areas = diff_ex(roof_areas, ClipperUtils::clip_clipper_polygons_with_subject_bbox(avoid_region_interface, get_extents(roof_areas)));
-                    roof_1st_layer = diff_ex(roof_1st_layer, ClipperUtils::clip_clipper_polygons_with_subject_bbox(avoid_region_interface, get_extents(roof_1st_layer)));
-                }
-                roof_areas = intersection_ex(roof_areas, m_machine_border);
-
                 // roof_1st_layer and roof_areas may intersect, so need to subtract roof_areas from roof_1st_layer
                 roof_1st_layer = diff_ex(roof_1st_layer, ClipperUtils::clip_clipper_polygons_with_subject_bbox(roof_areas,get_extents(roof_1st_layer)));
                 roof_1st_layer = intersection_ex(roof_1st_layer, m_machine_border);
 
-                // let supports touch objects when brim is on
-                //auto avoid_region = get_collision_polys((layer_nr == 0) ? config.support_object_xy_distance : m_ts_data->m_xy_distance, layer_nr);
-                //base_areas = avoid_object_remove_extra_small_parts(base_areas, avoid_region);
-                //base_areas = diff_clipped(base_areas, avoid_region);
                 ExPolygons roofs; append(roofs, roof_1st_layer); append(roofs, roof_areas);append(roofs, roof_gap_areas);
                 base_areas = diff_ex(base_areas, ClipperUtils::clip_clipper_polygons_with_subject_bbox(roofs, get_extents(base_areas)));
                 base_areas = intersection_ex(base_areas, m_machine_border);
@@ -2549,7 +2532,7 @@ void TreeSupport::drop_nodes(std::vector<std::vector<SupportNode*>>& contact_nod
                     SupportNode* neighbour = nodes_per_part[group_index][neighbours[0]];
                     SupportNode* node_;
                     if (p_node->parent && neighbour->parent)
-                        node_ = (node.dist_mm_to_top >= neighbour->dist_mm_to_top && p_node->parent) ? p_node : neighbour;
+                        node_ = (node.dist_mm_to_top >= neighbour->dist_mm_to_top) ? p_node : neighbour;
                     else
                         node_ = p_node->parent ? p_node : neighbour;
                     // Make sure the next pass doesn't drop down either of these (since that already happened).
@@ -2557,7 +2540,6 @@ void TreeSupport::drop_nodes(std::vector<std::vector<SupportNode*>>& contact_nod
                     const bool to_buildplate = !is_inside_ex(get_collision(0, layer_nr_next), next_position);
                     SupportNode *     next_node     = m_ts_data->create_node(next_position, node_->distance_to_top + 1, layer_nr_next, node_->support_roof_layers_below-1, to_buildplate, node_,
                                                print_z_next, height_next);
-                    next_node->movement = next_position - node.position;
                     get_max_move_dist(next_node);
                     contact_nodes[layer_nr_next].push_back(next_node);
 
@@ -2574,10 +2556,9 @@ void TreeSupport::drop_nodes(std::vector<std::vector<SupportNode*>>& contact_nod
                         {
                             SupportNode* neighbour_node = nodes_per_part[group_index][neighbour];
                             if (neighbour_node->type == ePolygon) continue;
+                            // only allow bigger node to merge smaller nodes. See STUDIO-6326
+                            if(node.dist_mm_to_top < neighbour_node->dist_mm_to_top) continue;
 
-                            node.distance_to_top = std::max(node.distance_to_top, neighbour_node->distance_to_top);
-                            node.support_roof_layers_below = std::max(node.support_roof_layers_below, neighbour_node->support_roof_layers_below);
-                            node.dist_mm_to_top            = std::max(node.dist_mm_to_top, neighbour_node->dist_mm_to_top);
                             node.merged_neighbours.push_front(neighbour_node);
                             node.merged_neighbours.insert(node.merged_neighbours.end(), neighbour_node->merged_neighbours.begin(), neighbour_node->merged_neighbours.end());
                             to_delete.insert(neighbour_node);
@@ -2753,7 +2734,6 @@ void TreeSupport::drop_nodes(std::vector<std::vector<SupportNode*>>& contact_nod
                 const bool to_buildplate = !is_inside_ex(get_collision(0, layer_nr_next), next_layer_vertex);
                 SupportNode *     next_node     = m_ts_data->create_node(next_layer_vertex, node.distance_to_top + 1, layer_nr_next, node.support_roof_layers_below - 1, to_buildplate, p_node,
                     print_z_next, height_next);
-                next_node->movement  = movement;
                 get_max_move_dist(next_node);
                 contact_nodes[layer_nr_next].push_back(next_node);
             }
@@ -2906,91 +2886,94 @@ std::vector<LayerHeightData> TreeSupport::plan_layer_heights(std::vector<std::ve
         for (int layer_nr = 0; layer_nr < contact_nodes.size(); layer_nr++) {
             layer_heights[layer_nr] = {m_object->get_layer(layer_nr)->print_z, m_object->get_layer(layer_nr)->height, layer_nr > 0 ? size_t(layer_nr - 1) : 0};
         }
-        return layer_heights;
     }
-
-    bounds.push_back(0);
-    // Keep first layer still
-    layer_heights[0] = {m_object->get_layer(0)->print_z, m_object->get_layer(0)->height, 0};
-    // Collect top contact layers
-    coordf_t print_z = layer_heights[0].print_z;
-    for (int layer_nr = 1; layer_nr < contact_nodes.size(); layer_nr++)
-    {
-        if (!contact_nodes[layer_nr].empty()) {
-            bounds.push_back(layer_nr);
-            layer_heights[layer_nr].print_z = contact_nodes[layer_nr].front()->print_z;
-            layer_heights[layer_nr].height = contact_nodes[layer_nr].front()->height;
-            if (layer_heights[layer_nr].bottom_z() - print_z < m_slicing_params.min_layer_height) {
-                layer_heights[layer_nr].height = layer_heights[layer_nr].print_z - print_z;
-                for (auto& node : contact_nodes[layer_nr]) {
-                    node->height = layer_heights[layer_nr].height;
+    else {
+        bounds.push_back(0);
+        // Keep first layer still
+        layer_heights[0] = { m_object->get_layer(0)->print_z, m_object->get_layer(0)->height, 0 };
+        // Collect top contact layers
+        coordf_t print_z = layer_heights[0].print_z;
+        for (int layer_nr = 1; layer_nr < contact_nodes.size(); layer_nr++) {
+            if (!contact_nodes[layer_nr].empty()) {
+                bounds.push_back(layer_nr);
+                layer_heights[layer_nr].print_z = contact_nodes[layer_nr].front()->print_z;
+                layer_heights[layer_nr].height = contact_nodes[layer_nr].front()->height;
+                if (layer_heights[layer_nr].bottom_z() - print_z < m_slicing_params.min_layer_height) {
+                    layer_heights[layer_nr].height = layer_heights[layer_nr].print_z - print_z;
+                    for (auto& node : contact_nodes[layer_nr]) {
+                        node->height = layer_heights[layer_nr].height;
+                    }
                 }
+                print_z = layer_heights[layer_nr].print_z;
+
+                BOOST_LOG_TRIVIAL(trace) << "plan_layer_heights0 print_z, height, layer_nr: " << layer_heights[layer_nr].print_z << " " << layer_heights[layer_nr].height << "   "
+                    << layer_nr;
+            }
+        }
+        std::set<int> s(bounds.begin(), bounds.end());
+        bounds.assign(s.begin(), s.end());
+
+        for (size_t idx_extreme = 1; idx_extreme < bounds.size(); idx_extreme++) {
+            int extr2_layer_nr = bounds[idx_extreme];
+            coordf_t extr2z = layer_heights[extr2_layer_nr].bottom_z();
+            int extr1_layer_nr = bounds[idx_extreme - 1];
+            coordf_t extr1z = layer_heights[extr1_layer_nr].print_z;
+            coordf_t dist = extr2z - extr1z;
+
+            // Insert intermediate layers.
+            size_t n_layers_extra = size_t(ceil(dist / (m_slicing_params.max_suport_layer_height + EPSILON)));
+            int actual_internel_layers = extr2_layer_nr - extr1_layer_nr - 1;
+            int extr_layers_left = extr2_layer_nr - extr1_layer_nr - n_layers_extra - 1;
+            if (n_layers_extra < 1)
+                continue;
+
+            coordf_t step = dist / coordf_t(n_layers_extra);
+            coordf_t print_z = extr1z + step;
+            //assert(step >= layer_height - EPSILON);
+            coordf_t extr2z_large_steps = extr2z;
+            for (int layer_nr = extr1_layer_nr + 1; layer_nr < extr2_layer_nr; layer_nr++) {
+                // if (curr_layer_nodes.empty()) continue;
+                if (std::abs(print_z - m_object->get_layer(layer_nr)->print_z) < step / 2 + EPSILON || extr_layers_left < 1) {
+                    layer_heights[layer_nr].print_z = print_z;
+                    layer_heights[layer_nr].height = step;
+                    print_z += step;
                 }
-            print_z = layer_heights[layer_nr].print_z;
-            BOOST_LOG_TRIVIAL(trace) << "plan_layer_heights0 print_z, height, layer_nr: " << layer_heights[layer_nr].print_z << " " << layer_heights[layer_nr].height << "   "
-                << layer_nr;
-
+                else {
+                    // can't clear curr_layer_nodes, or the model will have empty layers
+                    layer_heights[layer_nr].print_z = 0.0;
+                    layer_heights[layer_nr].height = 0.0;
+                    extr_layers_left--;
+                }
             }
-    }
-    std::set<int> s(bounds.begin(), bounds.end());
-    bounds.assign(s.begin(), s.end());
+        }
 
-    for (size_t idx_extreme = 1; idx_extreme < bounds.size(); idx_extreme++) {
-        int extr2_layer_nr = bounds[idx_extreme];
-        coordf_t extr2z = layer_heights[extr2_layer_nr].bottom_z();
-        int extr1_layer_nr = bounds[idx_extreme - 1];
-        coordf_t extr1z = layer_heights[extr1_layer_nr].print_z;
-        coordf_t dist = extr2z - extr1z;
-
-        // Insert intermediate layers.
-        size_t n_layers_extra = size_t(ceil(dist / (m_slicing_params.max_suport_layer_height + EPSILON)));
-        int actual_internel_layers = extr2_layer_nr - extr1_layer_nr - 1;
-        int extr_layers_left = extr2_layer_nr - extr1_layer_nr - n_layers_extra - 1;
-        if (n_layers_extra < 1)
-            continue;
-
-        coordf_t step = dist / coordf_t(n_layers_extra);
-        coordf_t print_z = extr1z + step;
-        //assert(step >= layer_height - EPSILON);
-        coordf_t extr2z_large_steps = extr2z;
-        for (int layer_nr = extr1_layer_nr + 1; layer_nr < extr2_layer_nr; layer_nr++) {
-            // if (curr_layer_nodes.empty()) continue;
-            if (std::abs(print_z - m_object->get_layer(layer_nr)->print_z) < step / 2 + EPSILON || extr_layers_left < 1) {
-                layer_heights[layer_nr].print_z = print_z;
-                layer_heights[layer_nr].height = step;
-                print_z += step;
+        // fill in next_layer_nr
+        int i = layer_heights.size() - 1, j = i;
+        for (; j >= 0; i = j) {
+            if (layer_heights[i].height < EPSILON) {
+                j--;
+                continue;
             }
-            else {
-                // can't clear curr_layer_nodes, or the model will have empty layers
-                layer_heights[layer_nr].print_z = 0.0;
-                layer_heights[layer_nr].height = 0.0;
-                extr_layers_left--;
+            for (j = i - 1; j >= 0; j--) {
+                if (layer_heights[j].height > EPSILON) {
+                    layer_heights[i].next_layer_nr = j;
+                    break;
+                }
             }
+        }
+
+        for (i = 0; i < layer_heights.size(); i++) {
+            // there might be gap between layers due to non-integer interfaces
+            if (size_t next_layer_nr = layer_heights[i].next_layer_nr;
+                next_layer_nr > 0 && layer_heights[i].height + EPSILON < layer_heights[i].print_z - layer_heights[next_layer_nr].print_z) {
+                layer_heights[i].height = layer_heights[i].print_z - layer_heights[next_layer_nr].print_z;
+            }
+            
         }
     }
 
-    // fill in next_layer_nr
-    int i = layer_heights.size() - 1, j = i;
-    for (; j >= 0; i = j) {
-        if (layer_heights[i].height < EPSILON) {
-            j--;
-            continue;
-        }
-        for (j = i - 1; j >= 0; j--) {
-            if (layer_heights[j].height > EPSILON) {
-                layer_heights[i].next_layer_nr = j;
-                break;
-            }
-        }
-    }
-    for (i = 0; i < layer_heights.size(); i++) {
-        // there might be gap between layers due to non-integer interfaces
-        if (size_t next_layer_nr = layer_heights[i].next_layer_nr;
-            next_layer_nr>0 && layer_heights[i].height + EPSILON < layer_heights[i].print_z - layer_heights[next_layer_nr].print_z)
-        {
-            layer_heights[i].height = layer_heights[i].print_z - layer_heights[next_layer_nr].print_z;
-        }
-        // update interfaces' height
+    // update interfaces' height
+    for (size_t i = 0; i < layer_heights.size(); i++) {
         for (auto& node : contact_nodes[i]) {
             node->height = layer_heights[i].height;
         }
@@ -2998,7 +2981,6 @@ std::vector<LayerHeightData> TreeSupport::plan_layer_heights(std::vector<std::ve
             BOOST_LOG_TRIVIAL(trace) << "plan_layer_heights print_z, height, lower_layer_nr->layer_nr: " << layer_heights[i].print_z << " " << layer_heights[i].height << "   "
             << layer_heights[i].next_layer_nr << "->" << i;
     }
-
     return layer_heights;
 }
 
@@ -3295,6 +3277,8 @@ SupportNode* TreeSupportData::create_node(const Point position, const int distan
     SupportNode* node = new SupportNode(position, distance_to_top, obj_layer_nr, support_roof_layers_below, to_buildplate, parent, print_z_, height_, dist_mm_to_top_, radius_);
     contact_nodes.emplace_back(node);
     m_mutex.unlock();
+    if (parent)
+        node->movement = position - parent->position;
     return node;
 }
 void TreeSupportData::clear_nodes()

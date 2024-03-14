@@ -81,7 +81,7 @@ struct SupportNode
             overhang = parent->overhang;
             if (dist_mm_to_top == 0)
                 dist_mm_to_top = parent->dist_mm_to_top + parent->height;
-            if (radius == 0)
+            if (radius == 0 && parent->radius>0)
                 radius = parent->radius + (dist_mm_to_top - parent->dist_mm_to_top) * diameter_angle_scale_factor;
             parent->child = this;
             for (auto& neighbor : parent->merged_neighbours) {
