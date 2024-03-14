@@ -4010,6 +4010,7 @@ int MachineObject::parse_json(std::string payload)
                                         char     col_buf[10];
                                         sprintf(col_buf, "%02X%02X%02XFF", (int) color.Red(), (int) color.Green(), (int) color.Blue());
                                         try {
+                                            BOOST_LOG_TRIVIAL(info) << "no filament_id in filament_list and reset vt_tray and the filament_id is: " << vt_tray.setting_id;
                                             this->command_ams_filament_settings(255, std::stoi(vt_tray.id), "", "", std::string(col_buf), "", 0, 0);
                                         } catch (...) {
                                             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " " << __LINE__ << " stoi error and tray_id" << vt_tray.id;

@@ -2000,7 +2000,7 @@ bool PresetBundle::check_filament_temp_equation_by_printer_type_and_nozzle_for_m
                             min_temp_equation = true;
                         else {
                             BOOST_LOG_TRIVIAL(info) << "tray min temp: " << nozzle_temp_min << " preset min temp: " << min_nozzle_temp;
-                            //nozzle_temp_min = std::to_string(min_nozzle_temp);
+                            nozzle_temp_min = std::to_string(min_nozzle_temp);
                         }
                     }
                     ConfigOption *opt_max = const_cast<Preset *>(preset)->config.option("nozzle_temperature_range_high");
@@ -2011,7 +2011,7 @@ bool PresetBundle::check_filament_temp_equation_by_printer_type_and_nozzle_for_m
                             max_temp_equation = true;
                         else {
                             BOOST_LOG_TRIVIAL(info) << "tray max temp: " << nozzle_temp_max << " preset min temp: " << max_nozzle_temp;
-                            //nozzle_temp_max = std::to_string(max_nozzle_temp);
+                            nozzle_temp_max = std::to_string(max_nozzle_temp);
                         }
                     }
                     if (min_temp_equation && max_temp_equation) {
