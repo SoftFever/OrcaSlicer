@@ -176,6 +176,14 @@ enum class SeamScarfType {
     All,
 };
 
+// Orca
+enum EnsureVerticalShellThickness {
+    vsNone,
+    evstCriticalOnly,
+    evstModerate,
+    evstAll,
+};
+
 //Orca
 enum InternalBridgeFilter {
     ibfDisabled, ibfLimited, ibfNofilter
@@ -310,7 +318,7 @@ enum class GCodeThumbnailsFormat {
     PNG, JPG, QOI, BTT_TFT, ColPic
 };
 
-enum CounterboleHoleBridgingOption {
+enum CounterboreHoleBridgingOption {
     chbNone, chbBridges, chbFilled
 };
 
@@ -398,7 +406,7 @@ CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(BedType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(DraftShield)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(ForwardCompatibilitySubstitutionRule)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(GCodeThumbnailsFormat)
-CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(CounterboleHoleBridgingOption)
+CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(CounterboreHoleBridgingOption)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(PrintHostType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(AuthorizationType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(PerimeterGeneratorType)
@@ -859,8 +867,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,                internal_bridge_flow))
     ((ConfigOptionFloat,                bridge_speed))
     ((ConfigOptionFloatOrPercent,       internal_bridge_speed))
-    ((ConfigOptionBool,                 ensure_vertical_shell_thickness))
-    ((ConfigOptionBool,                 reduce_wall_solid_infill))
+    ((ConfigOptionEnum<EnsureVerticalShellThickness>,   ensure_vertical_shell_thickness))
     ((ConfigOptionEnum<InfillPattern>,  top_surface_pattern))
     ((ConfigOptionEnum<InfillPattern>,  bottom_surface_pattern))
     ((ConfigOptionEnum<InfillPattern>, internal_solid_infill_pattern))
@@ -945,7 +952,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                 overhang_reverse))
     ((ConfigOptionBool,                 overhang_reverse_internal_only))
     ((ConfigOptionFloatOrPercent,       overhang_reverse_threshold))
-    ((ConfigOptionEnum<CounterboleHoleBridgingOption>, counterbole_hole_bridging))
+    ((ConfigOptionEnum<CounterboreHoleBridgingOption>, counterbore_hole_bridging))
     ((ConfigOptionEnum<WallSequence>,  wall_sequence))
     ((ConfigOptionBool,                is_infill_first))
     ((ConfigOptionBool,                small_area_infill_flow_compensation))
@@ -953,11 +960,17 @@ PRINT_CONFIG_CLASS_DEFINE(
 
     // Orca: seam slopes
     ((ConfigOptionEnum<SeamScarfType>,  seam_slope_type))
+    ((ConfigOptionBool,                 seam_slope_conditional))
+    ((ConfigOptionInt,                  scarf_angle_threshold))
     ((ConfigOptionFloatOrPercent,       seam_slope_start_height))
     ((ConfigOptionBool,                 seam_slope_entire_loop))
     ((ConfigOptionFloat,                seam_slope_min_length))
     ((ConfigOptionInt,                  seam_slope_steps))
     ((ConfigOptionBool,                 seam_slope_inner_walls))
+    ((ConfigOptionFloatOrPercent,       scarf_joint_speed))
+    ((ConfigOptionFloat,                scarf_joint_flow_ratio))
+
+
 )
 
 PRINT_CONFIG_CLASS_DEFINE(

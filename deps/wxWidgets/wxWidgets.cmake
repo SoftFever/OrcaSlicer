@@ -1,12 +1,16 @@
-set(_wx_git_tag v3.1.5)
+set(_wx_version 3.1.5)
+set(_wx_git_tag v${_wx_version})
 
 set(_wx_toolkit "")
-    set(_wx_private_font "-DwxUSE_PRIVATE_FONTS=1")
-    if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+set(_wx_private_font "-DwxUSE_PRIVATE_FONTS=1")
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set(_gtk_ver 2)
+
     if (DEP_WX_GTK3)
         set(_gtk_ver 3)
     endif ()
+
     set(_wx_toolkit "-DwxBUILD_TOOLKIT=gtk${_gtk_ver}")
 endif()
 
@@ -16,6 +20,7 @@ else ()
     set(_wx_edge "-DwxUSE_WEBVIEW_EDGE=OFF")
 endif ()
 
+set(_wx_orcaslicer_patch "${CMAKE_CURRENT_LIST_DIR}/0001-wx-3.1.5-patch-for-Orca.patch")
 if (MSVC)
     set(_patch_cmd if not exist WXWIDGETS_PATCHED ( patch --verbose -p1 -l -i ${CMAKE_CURRENT_LIST_DIR}/0001-wx-3.1.5-patch-for-Orca.patch && type nul > WXWIDGETS_PATCHED ) )
 else ()
@@ -26,10 +31,23 @@ if (FLATPAK)
     set(_patch_cmd cat ${CMAKE_CURRENT_LIST_DIR}/0001-wx-3.1.5-patch-for-Orca.patch ${CMAKE_CURRENT_LIST_DIR}/0001-Add-support-for-building-WebView-with-libwebkit2gtk-.patch | patch --verbose -p1 -l)
 endif ()
 
+# Note: for anybody wanting to switch to tarball fetching - this won't just work as
+# git apply expects a git repo. Either git init empty repo, or change patching method.
+# if (WIN32)
+#     # Windows requires a different tarball because of configured line endings as stated in docs.
+#     set(_wx_tarball_url https://github.com/wxWidgets/wxWidgets/releases/download/${_wx_git_tag}/wxWidgets-${_wx_version}.7z)
+#     set(_wx_tarball_hash 99f5382312e4a4aea444ada07341a72c5d4a69b58d8e76586d4b94ede7f5ef4d)
+# else()
+#     set(_wx_tarball_url https://github.com/wxWidgets/wxWidgets/releases/download/${_wx_git_tag}/wxWidgets-${_wx_version}.tar.bz2)
+#     set(_wx_tarball_hash d7b3666de33aa5c10ea41bb9405c40326e1aeb74ee725bb88f90f1d50270a224)
+# endif()
+
 orcaslicer_add_cmake_project(
     wxWidgets
+
     URL "https://github.com/wxWidgets/wxWidgets/archive/refs/tags/v3.1.5.tar.gz"
     URL_HASH SHA256=e8fd5f9fbff864562aa4d9c094f898c97f5e1274c90f25beb0bfd5cb61319dea
+
     PATCH_COMMAND ${_patch_cmd}
     DEPENDS ${PNG_PKG} ${ZLIB_PKG} ${EXPAT_PKG} ${TIFF_PKG} ${JPEG_PKG}
     CMAKE_ARGS

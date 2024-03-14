@@ -769,8 +769,11 @@ inline bool is_just_line_with_extrude_set_speed_tag(const std::string &line)
     return p_line <= line_end && is_eol(*p_line);
 }
 
-void PressureEqualizer::push_line_to_output(const size_t line_idx, const float new_feedrate, const char *comment)
+void PressureEqualizer::push_line_to_output(const size_t line_idx, float new_feedrate, const char *comment)
 {
+    // Orca: sanity check, 1 mm/s is the minimum feedrate.
+    if (new_feedrate < 60)
+        new_feedrate = 60;
     const GCodeLine &line = m_gcode_lines[line_idx];
     if (line_idx > 0 && output_buffer_length > 0) {
         const std::string prev_line_str = std::string(output_buffer.begin() + int(this->output_buffer_prev_length),

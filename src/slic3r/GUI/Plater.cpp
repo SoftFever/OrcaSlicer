@@ -1147,18 +1147,20 @@ void Sidebar::update_all_preset_comboboxes()
         ams_btn->Hide();
         auto print_btn_type = MainFrame::PrintSelectType::eExportGcode;
         wxString url = cfg.opt_string("print_host_webui").empty() ? cfg.opt_string("print_host") : cfg.opt_string("print_host_webui");
-        if(!url.empty()) 
-        {
-            if(!url.Lower().starts_with("http"))
-                url = wxString::Format("http://%s",url);
-
-            wxString apikey;
+        wxString apikey;
+        if(url.empty())
+            url = wxString::Format("file://%s/web/orca/missing_connection.html", from_u8(resources_dir()));
+        else {
+            if (!url.Lower().starts_with("http"))
+                url = wxString::Format("http://%s", url);
             if (cfg.has("printhost_apikey"))
                 apikey = cfg.opt_string("printhost_apikey");
-            p_mainframe->load_printer_url(url, apikey);
-
             print_btn_type = MainFrame::PrintSelectType::eSendGcode;
         }
+
+        p_mainframe->load_printer_url(url, apikey);
+
+
         p_mainframe->set_print_button_to_default(print_btn_type);
 
     }
@@ -9108,28 +9110,35 @@ void Plater::cut_horizontal(size_t obj_idx, size_t instance_idx, double z, Model
 void Plater::_calib_pa_tower(const Calib_Params& params) {
     add_model(false, Slic3r::resources_dir() + "/calib/pressure_advance/tower_with_seam.stl");
 
-    auto print_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
+    auto& print_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
     auto printer_config = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
     auto filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
 
     const double nozzle_diameter = printer_config->option<ConfigOptionFloats>("nozzle_diameter")->get_at(0);
 
     filament_config->set_key_value("slow_down_layer_time", new ConfigOptionFloats{ 1.0f });
-    print_config->set_key_value("alternate_extra_wall", new ConfigOptionBool(false));
-    print_config->set_key_value("default_jerk", new ConfigOptionFloat(1.0f));
-    print_config->set_key_value("outer_wall_jerk", new ConfigOptionFloat(1.0f));
-    print_config->set_key_value("inner_wall_jerk", new ConfigOptionFloat(1.0f));
+
+
+    auto& obj_cfg = model().objects[0]->config;
+
+    obj_cfg.set_key_value("alternate_extra_wall", new ConfigOptionBool(false));
     auto full_config = wxGetApp().preset_bundle->full_config();
     auto wall_speed = CalibPressureAdvance::find_optimal_PA_speed(
         full_config, full_config.get_abs_value("line_width", nozzle_diameter),
         full_config.get_abs_value("layer_height"), 0);
-    print_config->set_key_value("outer_wall_speed", new ConfigOptionFloat(wall_speed));
-    print_config->set_key_value("inner_wall_speed", new ConfigOptionFloat(wall_speed));
-    // print_config->set_key_value("wall_generator", new ConfigOptionEnum<PerimeterGeneratorType>(PerimeterGeneratorType::Classic));
-    const auto _wall_generator = print_config->option<ConfigOptionEnum<PerimeterGeneratorType>>("wall_generator");
-    if (_wall_generator->value == PerimeterGeneratorType::Arachne)
-        print_config->set_key_value("wall_transition_angle", new ConfigOptionFloat(25));
-    model().objects[0]->config.set_key_value("seam_position", new ConfigOptionEnum<SeamPosition>(spRear));
+    obj_cfg.set_key_value("outer_wall_speed", new ConfigOptionFloat(wall_speed));
+    obj_cfg.set_key_value("inner_wall_speed", new ConfigOptionFloat(wall_speed));
+    obj_cfg.set_key_value("seam_position", new ConfigOptionEnum<SeamPosition>(spRear));
+    obj_cfg.set_key_value("wall_loops", new ConfigOptionInt(2));
+    obj_cfg.set_key_value("top_shell_layers", new ConfigOptionInt(0));
+    obj_cfg.set_key_value("bottom_shell_layers", new ConfigOptionInt(0));
+    obj_cfg.set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
+    obj_cfg.set_key_value("brim_type", new ConfigOptionEnum<BrimType>(btEar));
+    obj_cfg.set_key_value("brim_object_gap", new ConfigOptionFloat(.0f));
+    obj_cfg.set_key_value("brim_ears_max_angle", new ConfigOptionFloat(135.f));
+    obj_cfg.set_key_value("brim_width", new ConfigOptionFloat(6.f));
+    obj_cfg.set_key_value("seam_slope_type", new ConfigOptionEnum<SeamScarfType>(SeamScarfType::None));
+    print_config.set_key_value("max_volumetric_extrusion_rate_slope", new ConfigOptionFloat(0));
 
     changed_objects({ 0 });
     wxGetApp().get_tab(Preset::TYPE_PRINT)->update_dirty();
@@ -9227,11 +9236,12 @@ void Plater::calib_flowrate(int pass) {
         _obj->config.set_key_value("internal_solid_infill_line_width", new ConfigOptionFloatOrPercent(nozzle_diameter * 1.2f, false));
         _obj->config.set_key_value("top_surface_pattern", new ConfigOptionEnum<InfillPattern>(ipMonotonic));
         _obj->config.set_key_value("top_solid_infill_flow_ratio", new ConfigOptionFloat(1.0f));
-        _obj->config.set_key_value("top_surface_pattern", new ConfigOptionEnum<InfillPattern>(ipMonotonic));
         _obj->config.set_key_value("infill_direction", new ConfigOptionFloat(45));
         _obj->config.set_key_value("ironing_type", new ConfigOptionEnum<IroningType>(IroningType::NoIroning));
         _obj->config.set_key_value("internal_solid_infill_speed", new ConfigOptionFloat(internal_solid_speed));
         _obj->config.set_key_value("top_surface_speed", new ConfigOptionFloat(top_surface_speed));
+        _obj->config.set_key_value("seam_slope_type", new ConfigOptionEnum<SeamScarfType>(SeamScarfType::None));
+        print_config->set_key_value("max_volumetric_extrusion_rate_slope", new ConfigOptionFloat(0));
 
         // extract flowrate from name, filename format: flowrate_xxx
         std::string obj_name = _obj->name;
@@ -9273,6 +9283,7 @@ void Plater::calib_temp(const Calib_Params& params) {
     model().objects[0]->config.set_key_value("brim_width", new ConfigOptionFloat(5.0));
     model().objects[0]->config.set_key_value("brim_object_gap", new ConfigOptionFloat(0.0));
     model().objects[0]->config.set_key_value("alternate_extra_wall", new ConfigOptionBool(false));
+    model().objects[0]->config.set_key_value("seam_slope_type", new ConfigOptionEnum<SeamScarfType>(SeamScarfType::None));
 
     changed_objects({ 0 });
     wxGetApp().get_tab(Preset::TYPE_PRINT)->update_dirty();
@@ -9318,6 +9329,7 @@ void Plater::calib_max_vol_speed(const Calib_Params& params)
     auto filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
     auto printer_config = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
     auto obj = model().objects[0];
+    auto& obj_cfg = obj->config;
 
     auto bed_shape = printer_config->option<ConfigOptionPoints>("printable_area")->values;
     BoundingBoxf bed_ext = get_extents(bed_shape);
@@ -9338,21 +9350,21 @@ void Plater::calib_max_vol_speed(const Calib_Params& params)
     filament_config->set_key_value("filament_max_volumetric_speed", new ConfigOptionFloats { 200 });
     filament_config->set_key_value("slow_down_layer_time", new ConfigOptionFloats{0.0});
     
-    print_config->set_key_value("enable_overhang_speed", new ConfigOptionBool { false });
+    obj_cfg.set_key_value("enable_overhang_speed", new ConfigOptionBool { false });
+    obj_cfg.set_key_value("wall_loops", new ConfigOptionInt(1));
+    obj_cfg.set_key_value("alternate_extra_wall", new ConfigOptionBool(false));
+    obj_cfg.set_key_value("top_shell_layers", new ConfigOptionInt(0));
+    obj_cfg.set_key_value("bottom_shell_layers", new ConfigOptionInt(0));
+    obj_cfg.set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
+    obj_cfg.set_key_value("overhang_reverse", new ConfigOptionBool(false));
+    obj_cfg.set_key_value("outer_wall_line_width", new ConfigOptionFloatOrPercent(line_width, false));
+    obj_cfg.set_key_value("layer_height", new ConfigOptionFloat(layer_height));
+    obj_cfg.set_key_value("brim_type", new ConfigOptionEnum<BrimType>(btOuterAndInner));
+    obj_cfg.set_key_value("brim_width", new ConfigOptionFloat(5.0));
+    obj_cfg.set_key_value("brim_object_gap", new ConfigOptionFloat(0.0));
     print_config->set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(tlTraditional));
-    print_config->set_key_value("wall_loops", new ConfigOptionInt(1));
-    print_config->set_key_value("alternate_extra_wall", new ConfigOptionBool(false));
-    print_config->set_key_value("top_shell_layers", new ConfigOptionInt(0));
-    print_config->set_key_value("bottom_shell_layers", new ConfigOptionInt(0));
-    print_config->set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
-    print_config->set_key_value("overhang_reverse", new ConfigOptionBool(false));
     print_config->set_key_value("spiral_mode", new ConfigOptionBool(true));
-    print_config->set_key_value("outer_wall_line_width", new ConfigOptionFloatOrPercent(line_width, false));
-    print_config->set_key_value("initial_layer_print_height", new ConfigOptionFloat(layer_height));
-    print_config->set_key_value("layer_height", new ConfigOptionFloat(layer_height));
-    obj->config.set_key_value("brim_type", new ConfigOptionEnum<BrimType>(btOuterAndInner));
-    obj->config.set_key_value("brim_width", new ConfigOptionFloat(5.0));
-    obj->config.set_key_value("brim_object_gap", new ConfigOptionFloat(0.0));
+    print_config->set_key_value("max_volumetric_extrusion_rate_slope", new ConfigOptionFloat(0));
 
     changed_objects({ 0 });
     wxGetApp().get_tab(Preset::TYPE_PRINT)->update_dirty();
@@ -9405,7 +9417,7 @@ void Plater::calib_retraction(const Calib_Params& params)
     obj->config.set_key_value("top_shell_layers", new ConfigOptionInt(0));
     obj->config.set_key_value("bottom_shell_layers", new ConfigOptionInt(3));
     obj->config.set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
-    obj->config.set_key_value("initial_layer_print_height", new ConfigOptionFloat(layer_height));
+    print_config->set_key_value("initial_layer_print_height", new ConfigOptionFloat(layer_height));
     obj->config.set_key_value("layer_height", new ConfigOptionFloat(layer_height));
     obj->config.set_key_value("alternate_extra_wall", new ConfigOptionBool(false));
 

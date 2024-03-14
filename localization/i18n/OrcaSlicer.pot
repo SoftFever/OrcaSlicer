@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-02 19:55+0100\n"
+"POT-Creation-Date: 2024-03-13 22:09+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1449,9 +1449,6 @@ msgstr ""
 msgid "Choose one or more files (3mf/step/stl/svg/obj/amf):"
 msgstr ""
 
-msgid "Choose ZIP file"
-msgstr ""
-
 msgid "Choose one file (gcode/3mf):"
 msgstr ""
 
@@ -1513,11 +1510,6 @@ msgid "Ongoing uploads"
 msgstr ""
 
 msgid "Select a G-code file:"
-msgstr ""
-
-msgid ""
-"Could not start URL download. Destination folder is not set. Please choose "
-"destination folder in Configuration Wizard."
 msgstr ""
 
 msgid "Import File"
@@ -3181,14 +3173,14 @@ msgid ""
 msgstr ""
 
 msgid ""
-"Alternate extra wall only works with ensure vertical shell thickness "
-"disabled. "
+"Alternate extra wall does't work well when ensure vertical shell thickness "
+"is set to All. "
 msgstr ""
 
 msgid ""
 "Change these settings automatically? \n"
-"Yes - Disable ensure vertical shell thickness and enable alternate extra "
-"wall\n"
+"Yes - Change ensure vertical shell thickness to Moderate and enable "
+"alternate extra wall\n"
 "No  - Dont use alternate extra wall"
 msgstr ""
 
@@ -4117,12 +4109,6 @@ msgstr ""
 msgid "Load a model"
 msgstr ""
 
-msgid "Import Zip Archive"
-msgstr ""
-
-msgid "Load models contained within a zip archive"
-msgstr ""
-
 msgid "Import Configs"
 msgstr ""
 
@@ -5006,10 +4992,10 @@ msgstr[1] ""
 msgid "ERROR"
 msgstr ""
 
-msgid "COMPLETED"
+msgid "CANCELED"
 msgstr ""
 
-msgid "CANCELED"
+msgid "COMPLETED"
 msgstr ""
 
 msgid "Cancel upload"
@@ -5538,20 +5524,6 @@ msgstr ""
 msgid "Error occurs while loading G-code file"
 msgstr ""
 
-#. TRN %1% is archive path
-#, possible-boost-format
-msgid "Loading of a ZIP archive on path %1% has failed."
-msgstr ""
-
-#. TRN: First argument = path to file, second argument = error description
-#, possible-boost-format
-msgid "Failed to unzip file to %1%: %2%"
-msgstr ""
-
-#, possible-boost-format
-msgid "Failed to find unzipped file at %1%. Unzipping of file has failed."
-msgstr ""
-
 msgid "Drop project file"
 msgstr ""
 
@@ -5878,9 +5850,6 @@ msgid "The peroid of backup in seconds."
 msgstr ""
 
 msgid "Downloads"
-msgstr ""
-
-msgid "Allow downloads from Printables.com"
 msgstr ""
 
 msgid "Dark Mode"
@@ -6597,13 +6566,6 @@ msgid "Adjust"
 msgstr ""
 
 msgid "Ignore"
-msgstr ""
-
-msgid ""
-"When using scarf joint, we recommend the following settings:\n"
-"print outer wall first, disable wipe before external loop, reduce outer wall "
-"speed to no greater than 50mm/s, and don't use random or nearest seam "
-"position"
 msgstr ""
 
 msgid ""
@@ -8044,6 +8006,33 @@ msgid ""
 "Setting the jerk speed too low could lead to artifacts on curved surfaces"
 msgstr ""
 
+msgid ""
+"The jerk setting exceeds the printer's maximum jerk (machine_max_jerk_x/"
+"machine_max_jerk_y).\n"
+"Orca will automatically cap the jerk speed to ensure it doesn't surpass the "
+"printer's capabilities.\n"
+"You can adjust the maximum jerk setting in your printer's configuration to "
+"get higher speeds."
+msgstr ""
+
+msgid ""
+"The acceleration setting exceeds the printer's maximum acceleration "
+"(machine_max_acceleration_extruding).\n"
+"Orca will automatically cap the acceleration speed to ensure it doesn't "
+"surpass the printer's capabilities.\n"
+"You can adjust the machine_max_acceleration_extruding value in your "
+"printer's configuration to get higher speeds."
+msgstr ""
+
+msgid ""
+"The speed setting exceeds the printer's maximum speed (machine_max_speed_x/"
+"machine_max_speed_y).\n"
+"Orca will automatically cap the print speed to ensure it doesn't surpass the "
+"printer's capabilities.\n"
+"You can adjust the maximum speed setting in your printer's configuration to "
+"get higher speeds."
+msgstr ""
+
 msgid "Generating skirt & brim"
 msgstr ""
 
@@ -8465,7 +8454,7 @@ msgid ""
 "directions on odd layers irrespective of their overhang degree."
 msgstr ""
 
-msgid "Bridge counterbole holes"
+msgid "Bridge counterbore holes"
 msgstr ""
 
 msgid ""
@@ -8770,19 +8759,19 @@ msgstr ""
 
 msgid ""
 "Add solid infill near sloping surfaces to guarantee the vertical shell "
-"thickness (top+bottom solid layers)"
+"thickness (top+bottom solid layers)\n"
+"None: No solid infill will be added anywhere. Caution: Use this option "
+"carefully if your model has sloped surfaces\n"
+"Critical Only: Avoid adding solid infill for walls\n"
+"Moderate: Add solid infill for heavily sloping surfaces only\n"
+"All: Add solid infill for all suitable sloping surfaces\n"
+"Default value is All."
 msgstr ""
 
-msgid "Further reduce solid infill on walls (beta)"
+msgid "Critical Only"
 msgstr ""
 
-msgid ""
-"Further reduces any solid infill applied to walls. As there will be very "
-"limited infill supporting solid surfaces, make sure that you are using "
-"adequate number of walls to support the part on sloping surfaces.\n"
-"\n"
-"For heavily sloped surfaces this option is not suitable as it will generate "
-"too thin of a top layer and should be disabled."
+msgid "Moderate"
 msgstr ""
 
 msgid "Top surface pattern"
@@ -10441,6 +10430,45 @@ msgid "Scarf joint seam (beta)"
 msgstr ""
 
 msgid "Use scarf joint to minimize seam visibility and increase seam strength."
+msgstr ""
+
+msgid "Conditional scarf joint"
+msgstr ""
+
+msgid ""
+"Apply scarf joints only to smooth perimeters where traditional seams do not "
+"conceal the seams at sharp corners effectively."
+msgstr ""
+
+msgid "Conditional angle threshold"
+msgstr ""
+
+msgid ""
+"This option sets the threshold angle for applying a conditional scarf joint "
+"seam.\n"
+"If the maximum angle within the perimeter loop exceeds this value "
+"(indicating the absence of sharp corners), a scarf joint seam will be used. "
+"The default value is 155°."
+msgstr ""
+
+msgid "Scarf joint speed"
+msgstr ""
+
+msgid ""
+"This option sets the printing speed for scarf joints. It is recommended to "
+"print scarf joints at a slow speed (less than 100 mm/s).  It's also "
+"advisable to enable 'Extrusion rate smoothing' if the set speed varies "
+"significantly from the speed of the outer or inner walls. If the speed "
+"specified here is higher than the speed of the outer or inner walls, the "
+"printer will default to the slower of the two speeds. When specified as a "
+"percentage (e.g., 80%), the speed is calculated based on the respective "
+"outer or inner wall speed. The default value is set to 100%."
+msgstr ""
+
+msgid "Scarf joint flow ratio"
+msgstr ""
+
+msgid "This factor affects the amount of material for scarf joints."
 msgstr ""
 
 msgid "Scarf start height"
@@ -13159,7 +13187,7 @@ msgid "Auxiliary fan\nDid you know that OrcaSlicer supports Auxiliary part cooli
 msgstr ""
 
 #: resources/data/hints.ini: [hint:Air filtration]
-msgid "Air filtration/Exhuast Fan\nDid you know that OrcaSlicer can support Air filtration/Exhuast Fan?"
+msgid "Air filtration/Exhaust Fan\nDid you know that OrcaSlicer can support Air filtration/Exhaust Fan?"
 msgstr ""
 
 #: resources/data/hints.ini: [hint:G-code window]

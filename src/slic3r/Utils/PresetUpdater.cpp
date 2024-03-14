@@ -1182,16 +1182,16 @@ Updates PresetUpdater::priv::get_config_updates(const Semver &old_slic3r_version
 
                 bool version_match = ((vendor_ver.maj() == cache_ver.maj()) && (vendor_ver.min() == cache_ver.min()));
                 if (version_match && (vendor_ver < cache_ver)) {
-                    Semver app_ver = *Semver::parse(SLIC3R_VERSION);
-                    if (cache_ver.maj() == app_ver.maj()){
-                        BOOST_LOG_TRIVIAL(info) << "[Orca Updater]:need to update settings from "<<vendor_ver.to_string()<<" to newer version "<<cache_ver.to_string() <<", app version "<<SLIC3R_VERSION;
-                        Version version;
-                        version.config_version = cache_ver;
-                        version.comment = description;
+                    BOOST_LOG_TRIVIAL(info) << "[Orca Updater]:need to update settings from " << vendor_ver.to_string()
+                                            << " to newer version " << cache_ver.to_string() << ", app version " << SLIC3R_VERSION;
+                    Version version;
+                    version.config_version = cache_ver;
+                    version.comment        = description;
 
-                        updates.updates.emplace_back(std::move(file_path), std::move(path_in_vendor.string()), std::move(version), vendor_name, changelog, "", force_update, false);
-                        updates.updates.emplace_back(cache_profile_path / vendor_name, vendor_path / vendor_name, Version(), vendor_name, "", "", force_update, true);
-                    }
+                    updates.updates.emplace_back(std::move(file_path), std::move(path_in_vendor.string()), std::move(version), vendor_name,
+                                                 changelog, "", force_update, false);
+                    updates.updates.emplace_back(cache_profile_path / vendor_name, vendor_path / vendor_name, Version(), vendor_name, "",
+                                                 "", force_update, true);
                 }
             }
         }
