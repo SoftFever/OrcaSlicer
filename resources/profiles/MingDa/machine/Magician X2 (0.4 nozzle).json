@@ -1,0 +1,251 @@
+{
+  "type": "machine",
+  "setting_id": "MagicianX2",
+  "name": "Magician X2 (0.4 nozzle)",
+  "from": "system",
+  "instantiation": "true",
+  "inherits": "fdm_machine_common",
+  "printer_model": "Magician X2",
+  "default_print_profile": "0.20mm Standard @Magician X2 (0.4 nozzle)",
+  "nozzle_diameter": [
+    "0.4"
+  ],
+  "printable_area": [
+    "0x0",
+    "230x0",
+    "230x230",
+    "0x230"
+  ],
+  "printable_height": "260",
+  "nozzle_type": "hardened_steel",
+
+    "bed_custom_model": "",
+    "bed_custom_texture": "",
+    "bed_exclude_area": [
+        "0x0"
+    ],
+    "before_layer_change_gcode": ";BEFORE_LAYER_CHANGE\n;[layer_z]\nG92 E0\n",
+    "best_object_pos": "0.5,0.5",
+    "change_extrusion_role_gcode": "",
+    "change_filament_gcode": "M600",
+    "cooling_tube_length": "5",
+    "cooling_tube_retraction": "91.5",
+    "default_filament_profile": [
+        "MingDa PLA"
+    ],
+    "deretraction_speed": [
+        "40"
+    ],
+    "enable_filament_ramming": "1",
+    "extra_loading_move": "-2",
+    "extruder_colour": [
+        "#FCE94F"
+    ],
+    "extruder_offset": [
+        "0x0"
+    ],
+    "fan_kickstart": "0",
+    "fan_speedup_overhangs": "1",
+    "fan_speedup_time": "0",
+    "high_current_on_filament_swap": "0",
+    "host_type": "octoprint",
+    "machine_load_filament_time": "0",
+    "machine_max_jerk_e": [
+        "5",
+        "5"
+    ],
+    "machine_min_extruding_rate": [
+        "0",
+        "0"
+    ],
+    "machine_min_travel_rate": [
+        "0",
+        "0"
+    ],
+    "machine_unload_filament_time": "0",
+    "manual_filament_change": "0",
+    "min_layer_height": [
+        "0.08"
+    ],
+    "nozzle_hrc": "0",
+    "nozzle_volume": "0",
+    "parking_pos_retraction": "92",
+    "print_host": "192.168.0.1",
+    "print_host_webui": "",
+    "printer_notes": "",
+    "printer_structure": "undefine",
+    "printer_technology": "FFF",
+    "printer_variant": "0.4",
+    "printhost_apikey": "",
+    "printhost_authorization_type": "key",
+    "printhost_cafile": "",
+    "printhost_password": "",
+    "printhost_port": "",
+    "printhost_ssl_ignore_revoke": "0",
+    "printhost_user": "",
+    "purge_in_prime_tower": "1",
+    "retract_before_wipe": [
+        "70%"
+    ],
+    "retract_length_toolchange": [
+        "1"
+    ],
+    "retract_lift_above": [
+        "0"
+    ],
+    "retract_lift_below": [
+        "0"
+    ],
+    "retract_lift_enforce": [
+        "All Surfaces"
+    ],
+    "retract_restart_extra": [
+        "0"
+    ],
+    "retract_restart_extra_toolchange": [
+        "0"
+    ],
+    "retract_when_changing_layer": [
+        "1"
+    ],
+    "retraction_speed": [
+        "40"
+    ],
+    "scan_first_layer": "0",
+    "silent_mode": "0",
+    "single_extruder_multi_material": "1",
+    "support_air_filtration": "1",
+    "support_chamber_temp_control": "1",
+    "template_custom_gcode": "",
+    "thumbnails": [
+        "300x300"
+    ],
+    "thumbnails_format": "PNG",
+    "time_cost": "0",
+    "time_lapse_gcode": "",
+    "upward_compatible_machine": [],
+    "use_firmware_retraction": "0",
+    "use_relative_e_distances": "1",
+    "wipe": [
+        "1"
+    ],
+    "wipe_distance": [
+        "1"
+    ],
+    "z_hop": [
+        "0.4"
+    ],
+    "z_hop_types": [
+        "Normal Lift"
+    ],
+    "z_offset": "0",
+    "auxiliary_fan": "0",
+    "extruder_clearance_height_to_lid": "34",
+    "extruder_clearance_height_to_rod": "47",
+    "extruder_clearance_radius": "90",
+    "gcode_flavor": "marlin2",
+    "layer_change_gcode": "",
+    "machine_end_gcode": "G91 ;Relative positionning \nG1 E-2 F2700 ;Retract a bit \nG1 E-2 Z0.2 F2400 ;Retract and raise Z \nG1 X5 Y5 F3000 ;Wipe out \nG1 Z10 ;Raise Z more \nG90 ;Absolute positionning \n \nG1 X0 Y0 ;Present print \nM106 S0 ;Turn-off fan \nM104 S0 ;Turn-off hotend \nM140 S0 ;Turn-off bed \n \nM84 X Y E ;Disable all steppers but Z",
+    "machine_max_acceleration_e": [
+        "5000",
+        "10000"
+    ],
+    "machine_max_acceleration_extruding": [
+        "5000",
+        "15000"
+    ],
+    "machine_max_acceleration_retracting": [
+        "2500",
+        "15000"
+    ],
+    "machine_max_acceleration_travel": [
+        "5000",
+        "15000"
+    ],
+    "machine_max_acceleration_x": [
+        "5000",
+        "15000"
+    ],
+    "machine_max_acceleration_y": [
+        "5000",
+        "15000"
+    ],
+    "machine_max_acceleration_z": [
+        "500",
+        "100"
+    ],
+    "machine_max_jerk_x": [
+        "10",
+        "8"
+    ],
+    "machine_max_jerk_y": [
+        "10",
+        "8"
+    ],
+    "machine_max_speed_e": [
+        "100",
+        "60"
+    ],
+    "machine_max_speed_x": [
+        "500",
+        "500"
+    ],
+    "machine_max_speed_y": [
+        "500",
+        "500"
+    ],
+    "machine_max_speed_z": [
+        "30",
+        "15"
+    ],
+    "machine_pause_gcode": "M25\n",
+    "machine_start_gcode": "M220 S100 ;Reset Feedrate \nM221 S100 ;Reset Flowrate \n \nM140 S[bed_temperature_initial_layer_single] ;Set final bed temp \nG28 ;Home \n \nG92 E0 ;Reset Extruder \nG1 Z2.0 F3000 ;Move Z Axis up \nM104 S[nozzle_temperature_initial_layer] ;Set final nozzle temp \nG1 X-2.1 Y20 Z0.28 F5000.0 ;Move to start position \nM190 S[bed_temperature_initial_layer_single] ;Wait for bed temp to stabilize \nM109 S[nozzle_temperature_initial_layer] ;Wait for nozzle temp to stabilize \nG1 X-2.1 Y145.0 Z0.28 F1500.0 E15 ;Draw the first line \nG1 X-2.4 Y145.0 Z0.28 F5000.0 ;Move to side a little \nG1 X-2.4 Y20 Z0.28 F1500.0 E30 ;Draw the second line \nG92 E0  ;Reset Extruder \nG1 E-1.0000 F1800 ;Retract a bit \nG1 Z2.0 F3000 ;Move Z Axis up \nG1 E0.0000 F1800",
+    "max_layer_height": [
+        "0.36"
+    ],
+    "retraction_length": [
+        "1.2"
+    ],
+    "retraction_minimum_travel": [
+        "2"
+    ],
+        "bottom_shell_layers": "4",
+    "bridge_speed": "100",
+    "default_acceleration": "2500",
+    "default_jerk": "8",
+    "elefant_foot_compensation": "0",
+    "gap_infill_speed": "50",
+    "infill_jerk": "20",
+    "infill_wall_overlap": "15%",
+    "initial_layer_acceleration": "500",
+    "initial_layer_infill_speed": "80",
+    "initial_layer_jerk": "8",
+    "initial_layer_line_width": "0.46",
+    "initial_layer_speed": "30",
+    "inner_wall_acceleration": "2000",
+    "inner_wall_jerk": "20",
+    "inner_wall_speed": "90",
+    "internal_solid_infill_line_width": "0",
+    "internal_solid_infill_speed": "180",
+    "is_custom_defined": "0",
+    "line_width": "0.46",
+    "minimum_sparse_infill_area": "10",
+    "outer_wall_acceleration": "1000",
+    "outer_wall_jerk": "20",
+    "outer_wall_speed": "60",
+    "overhang_2_4_speed": "20",
+    "overhang_4_4_speed": "10",
+    "small_perimeter_threshold": "0",
+    "sparse_infill_speed": "180",
+    "support_line_width": "0.38",
+    "top_shell_layers": "4",
+    "top_shell_thickness": "0.8",
+    "top_surface_acceleration": "2500",
+    "top_surface_jerk": "20",
+    "top_surface_speed": "50",
+    "travel_acceleration": "2500",
+    "travel_jerk": "8",
+    "travel_speed": "150",
+    "wall_generator": "arachne",
+    "wall_loops": "2"
+}
