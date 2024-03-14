@@ -121,6 +121,7 @@ modules:
           -DFLATPAK=ON \ 
           -DCMAKE_INSTALL_PREFIX=/app 
         cmake --build . 
+        rm -r /run/build/orca_deps/external-packages 
     
     cleanup:
       - /app/include
