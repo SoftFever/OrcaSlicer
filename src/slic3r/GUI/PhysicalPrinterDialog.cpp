@@ -471,13 +471,9 @@ void PhysicalPrinterDialog::update(bool printer_change)
 
         // hide PrusaConnect address
         if (Field* printhost_field = m_optgroup->get_field("print_host"); printhost_field) {
-            if (wxTextCtrl* temp = dynamic_cast<wxTextCtrl*>(printhost_field->getWindow()); temp && temp->GetValue() == L"https://connect.prusa3d.com") {
-                temp->SetValue(wxString());
-            }
-
-            if (TextInput* temp_input = dynamic_cast<TextInput*>(printhost_field->getWindow()); temp_input) {
-                if (wxTextCtrl* temp = temp_input->GetTextCtrl(); temp &&temp->GetValue() == L"https://app.obico.io") {
-                 temp->SetValue(wxString());
+            if (wxTextCtrl* temp = dynamic_cast<TextCtrl*>(printhost_field)->text_ctrl(); temp) {
+                if (temp->GetValue() == L"https://connect.prusa3d.com" || temp->GetValue() == L"https://app.obico.io") {
+                    temp->SetValue(wxString());
                 }
             }
         }
@@ -492,21 +488,17 @@ void PhysicalPrinterDialog::update(bool printer_change)
             m_optgroup->show_field("printhost_apikey", true);
             for (const std::string& opt_key : std::vector<std::string>{ "printhost_user", "printhost_password" })
                 m_optgroup->hide_field(opt_key);
-            supports_multiple_printers = opt && opt->value == htRepetier;
+            supports_multiple_printers = opt->value == htRepetier || opt->value == htObico;
+
             if (opt->value == htPrusaConnect) { // automatically show default prusaconnect address
                 if (Field* printhost_field = m_optgroup->get_field("print_host"); printhost_field) {
-                    if (wxTextCtrl* temp = dynamic_cast<wxTextCtrl*>(printhost_field->getWindow()); temp && temp->GetValue().IsEmpty()) {
+                    if (wxTextCtrl* temp = dynamic_cast<TextCtrl*>(printhost_field)->text_ctrl(); temp && temp->GetValue().IsEmpty()) {
                         temp->SetValue(L"https://connect.prusa3d.com");
                     }
                 }
-            }
-        }
-
-        if (opt->value == htObico) {
-            supports_multiple_printers = true;
-            if (Field* printhost_field = m_optgroup->get_field("print_host"); printhost_field) {
-                if (TextInput* temp_input = dynamic_cast<TextInput*>(printhost_field->getWindow()); temp_input) {
-                    if (wxTextCtrl* temp = temp_input->GetTextCtrl(); temp && temp->GetValue().IsEmpty()) {
+            } else if (opt->value == htObico) { // automatically show default obico address
+                if (Field* printhost_field = m_optgroup->get_field("print_host"); printhost_field) {
+                    if (wxTextCtrl* temp = dynamic_cast<TextCtrl*>(printhost_field)->text_ctrl(); temp && temp->GetValue().IsEmpty()) {
                         temp->SetValue(L"https://app.obico.io");
                         m_config->opt_string("print_host") = "https://app.obico.io";
                     }
