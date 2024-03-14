@@ -243,8 +243,6 @@ if (NOT MSVC AND ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMP
 
     # On GCC and Clang, no return from a non-void function is a warning only. Here, we make it an error.
     add_compile_options(-Werror=return-type)
-    # Adding -fext-numeric-literals to enable GCC extensions on definitions of quad float literals, which are required by Boost.
-    add_compile_options(-fext-numeric-literals)
 
     # removes LOTS of extraneous Eigen warnings (GCC only supports it since 6.1)
     # https://eigen.tuxfamily.org/bz/show_bug.cgi?id=1221
@@ -260,12 +258,14 @@ if (NOT MSVC AND ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMP
         add_compile_options(-Wno-deprecated-declarations)
     endif()
 
-    #GCC generates loads of -Wunknown-pragmas when compiling igl. The fix is not easy due to a bug in gcc, see
-    # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=66943 or
-    # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=53431
-    # We will turn the warning of for GCC for now:
     if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+        # GCC generates loads of -Wunknown-pragmas when compiling igl. The fix is not easy due to a bug in gcc, see
+        # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=66943 or
+        # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=53431
+        # We will turn the warning of for GCC for now:
         add_compile_options(-Wno-unknown-pragmas)
+        # Adding -fext-numeric-literals to enable GCC extensions on definitions of quad float literals, which are required by Boost.
+        add_compile_options(-fext-numeric-literals)
     endif()
 
     # Bit of a hack for flatpak building: compress the debug info with zstd to save space in CI 
