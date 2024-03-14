@@ -10377,7 +10377,7 @@ msgstr ""
 "cette vitesse."
 
 msgid "Minimal purge on wipe tower"
-msgstr "Purge minimale sur la tour de purge"
+msgstr "Purge minimale sur la tour d’essuyage"
 
 msgid ""
 "After a tool change, the exact position of the newly loaded filament inside "
@@ -10445,7 +10445,7 @@ msgstr ""
 "paramètres de l’imprimante n’est pas cochée). Une fois vérifié, une petite "
 "quantité de filament est rapidement extrudée sur la tour d’essuyage juste "
 "avant le changement d’outil. Cette option n’est utilisée que lorsque la tour "
-"de purge est activée."
+"d’essuyage est activée."
 
 msgid "Multitool ramming volume"
 msgstr "Volume du pilonnage multi-outils"
@@ -12322,10 +12322,10 @@ msgstr ""
 "PAUSE pour déclencher l’action de changement manuel de filament."
 
 msgid "Purge in prime tower"
-msgstr "Purge dans la tour d’essuyage"
+msgstr "Purge dans la tour de purge"
 
 msgid "Purge remaining filament into prime tower"
-msgstr "Purger le filament restant dans la tour d’essuyage"
+msgstr "Purger le filament restant dans la tour de purge"
 
 msgid "Enable filament ramming"
 msgstr "Activer le pilonnage du filament"
@@ -12341,7 +12341,7 @@ msgid ""
 msgstr ""
 "Si cette option est activée, la tour d’essuyage ne sera pas imprimée sur les "
 "couches sans changement d’outil. Sur les couches avec changement d’outil, "
-"l’extrudeur se déplacera vers le bas pour imprimer la tour de purge. "
+"l’extrudeur se déplacera vers le bas pour imprimer la tour d’essuyage. "
 "L’utilisateur est responsable de s’assurer qu’il n’y a pas de collision avec "
 "l’impression."
 
@@ -12987,7 +12987,7 @@ msgid "Spacing of purge lines on the wipe tower."
 msgstr "Espacement des lignes de purge sur la tour d’essuyage."
 
 msgid "Wipe tower extruder"
-msgstr "Extrudeuse de tour d’essuyage"
+msgstr "Extrudeur de tour d’essuyage"
 
 msgid ""
 "The extruder to use when printing perimeter of the wipe tower. Set to 0 to "
