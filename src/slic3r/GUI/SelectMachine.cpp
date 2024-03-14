@@ -4223,14 +4223,8 @@ void SelectMachineDialog::set_default_from_sdcard()
     m_scrollable_view->SetMinSize(m_scrollable_region->GetSize());
     m_scrollable_view->SetMaxSize(m_scrollable_region->GetSize());
 
-    //disable pei bed
-    auto bed_type = m_plater->get_partplate_list().get_curr_plate()->get_bed_type(true);
-    if (bed_type == BedType::btPTE) {
-        set_flow_calibration_state(false);
-    }
-    else {
-        set_flow_calibration_state(true);
-    }
+    //auto bed_type = m_plater->get_partplate_list().get_curr_plate()->get_bed_type(true);
+    set_flow_calibration_state(true);
 
     wxSize screenSize = wxGetDisplaySize();
     auto dialogSize = this->GetSize();
