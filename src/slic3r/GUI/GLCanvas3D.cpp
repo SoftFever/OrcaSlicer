@@ -5503,7 +5503,7 @@ bool GLCanvas3D::_render_arrange_menu(float left, float right, float bottom, flo
     PrinterTechnology ptech = current_printer_technology();
 
     bool settings_changed = false;
-    float dist_min = 0.1f;  // should be larger than 0 so objects won't touch
+    float dist_min = 0.f;  // 0 means auto
     std::string dist_key = "min_object_distance", rot_key = "enable_rotation";
     std::string bed_shrink_x_key = "bed_shrink_x", bed_shrink_y_key = "bed_shrink_y";
     std::string multi_material_key = "allow_multi_materials_on_same_plate";
@@ -5514,10 +5514,8 @@ bool GLCanvas3D::_render_arrange_menu(float left, float right, float bottom, flo
     bool seq_print = false;
 
     if (ptech == ptSLA) {
-        dist_min     = 0.1f;
         postfix      = "_sla";
     } else if (ptech == ptFFF) {
-        dist_min = settings.distance;
         seq_print = &settings == &m_arrange_settings_fff_seq_print;
         if (seq_print) {
             postfix      = "_fff_seq_print";
@@ -5546,6 +5544,8 @@ bool GLCanvas3D::_render_arrange_menu(float left, float right, float bottom, flo
         appcfg->set("arrange", dist_key.c_str(), float_to_string_decimal_point(settings_out.distance));
         settings_changed = true;
     }
+    imgui->text(_L("0 means auto spacing."));
+
     ImGui::Separator();
     if (imgui->bbl_checkbox(_L("Auto rotate for arrangement"), settings.enable_rotation)) {
         settings_out.enable_rotation = settings.enable_rotation;
