@@ -1728,24 +1728,22 @@ Polygons TreeSupport::get_collision_polys(coordf_t radius, size_t layer_nr)
     return Polygons();
 }
 
-template<typename RegionType> // RegionType could be ExPolygons or Polygons
-ExPolygons avoid_object_remove_extra_small_parts(ExPolygons &expolys, const RegionType&avoid_region) {
+ExPolygons avoid_object_remove_extra_small_parts(const ExPolygon &expoly, const ExPolygons& avoid_region) {
     ExPolygons expolys_out;
-    if(expolys.empty()) return expolys_out;
-    auto clipped_avoid_region=ClipperUtils::clip_clipper_polygons_with_subject_bbox(avoid_region, get_extents(expolys));
-    for (auto expoly : expolys) {
-        auto  expolys_avoid = diff_ex(expoly, clipped_avoid_region);
-        int   idx_max_area  = -1;
-        float max_area      = 0;
-        for (int i = 0; i < expolys_avoid.size(); ++i) {
-            auto a = expolys_avoid[i].area();
-            if (a > max_area) {
-                max_area     = a;
-                idx_max_area = i;
-            }
+    if(expoly.empty()) return expolys_out;
+    auto clipped_avoid_region=ClipperUtils::clip_clipper_polygons_with_subject_bbox(avoid_region, get_extents(expoly));
+    auto  expolys_avoid = diff_ex(expoly, clipped_avoid_region);
+    int   idx_max_area  = -1;
+    float max_area      = 0;
+    for (int i = 0; i < expolys_avoid.size(); ++i) {
+        auto a = expolys_avoid[i].area();
+        if (a > max_area) {
+            max_area     = a;
+            idx_max_area = i;
         }
-        if (idx_max_area >= 0) expolys_out.emplace_back(std::move(expolys_avoid[idx_max_area]));
     }
+    if (idx_max_area >= 0) expolys_out.emplace_back(std::move(expolys_avoid[idx_max_area]));
+    
     return expolys_out;
 }
 
@@ -1983,7 +1981,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<SupportNode*>>& con
                             if(!tmp.empty())
                                 circle = tmp[0];
                         }
-                        area = avoid_object_remove_extra_small_parts(ExPolygons{ ExPolygon(circle) }, get_collision(node.is_sharp_tail && node.distance_to_top <= 0));
+                        area = avoid_object_remove_extra_small_parts(ExPolygon(circle), get_collision(node.is_sharp_tail && node.distance_to_top <= 0));
                         // merge overhang to get a smoother interface surface
                         // Do not merge when buildplate_only is on, because some underneath nodes may have been deleted.
                         if (top_interface_layers > 0 && node.support_roof_layers_below > 0 && !on_buildplate_only && !node.is_sharp_tail) {
