@@ -274,7 +274,7 @@ CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SeamScarfType)
 
 // Orca
 static t_config_enum_values s_keys_map_EnsureVerticalShellThickness{
-    { "none",           int(EnsureVerticalShellThickness::vsNone) },
+    { "none",           int(EnsureVerticalShellThickness::evstNone) },
     { "ensure_critical_only",         int(EnsureVerticalShellThickness::evstCriticalOnly) },
     { "ensure_moderate",            int(EnsureVerticalShellThickness::evstModerate) },
     { "ensure_all",         int(EnsureVerticalShellThickness::evstAll) },
