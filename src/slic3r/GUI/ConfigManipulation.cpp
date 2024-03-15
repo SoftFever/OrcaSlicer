@@ -279,6 +279,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
            config->opt_int("enforce_support_layers") == 0 &&
            ! config->opt_bool("detect_thin_wall") &&
            ! config->opt_bool("overhang_reverse") &&
+            config->opt_enum<WallDirection>("wall_direction") == WallDirection::Auto &&
             config->opt_enum<TimelapseType>("timelapse_type") == TimelapseType::tlTraditional))
     {
         wxString msg_text = _(L("Spiral mode only works when wall loops is 1, support is disabled, top shell layers is 0, sparse infill density is 0 and timelapse type is traditional."));
@@ -306,6 +307,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
             new_conf.set_key_value("enforce_support_layers", new ConfigOptionInt(0));
             new_conf.set_key_value("detect_thin_wall", new ConfigOptionBool(false));
             new_conf.set_key_value("overhang_reverse", new ConfigOptionBool(false));
+            new_conf.set_key_value("wall_direction", new ConfigOptionEnum<WallDirection>(WallDirection::Auto));
             new_conf.set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(tlTraditional));
             sparse_infill_density = 0;
             timelapse_type = TimelapseType::tlTraditional;
@@ -510,6 +512,18 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
         apply(config, &new_conf);
     }
     
+    // Orca: Hide the filter out tiny gaps field when gap fill target is nowhere as no gap fill will be applied.
+    bool have_gap_fill = config->opt_enum<GapFillTarget>("gap_fill_target") != gftNowhere;
+    toggle_line("filter_out_gap_fill", have_gap_fill);
+
+    bool have_ensure_vertical_thickness = config->opt_bool("ensure_vertical_shell_thickness");
+    if(have_ensure_vertical_thickness) {
+        DynamicPrintConfig new_conf = *config;
+        new_conf.set_key_value("reduce_wall_solid_infill", new ConfigOptionBool(false));
+        apply(config, &new_conf);
+    }
+    toggle_line("reduce_wall_solid_infill",!have_ensure_vertical_thickness);
+    
     bool have_perimeters = config->opt_int("wall_loops") > 0;
     for (auto el : { "extra_perimeters_on_overhangs", "ensure_vertical_shell_thickness", "detect_thin_wall", "detect_overhang_wall",
         "seam_position", "staggered_inner_seams", "wall_sequence", "outer_wall_line_width",
@@ -542,6 +556,8 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     
     toggle_field("top_shell_thickness", ! has_spiral_vase && has_top_solid_infill);
     toggle_field("bottom_shell_thickness", ! has_spiral_vase && has_bottom_solid_infill);
+
+    toggle_field("wall_direction", !has_spiral_vase);
     
     // Gap fill is newly allowed in between perimeter lines even for empty infill (see GH #1476).
     toggle_field("gap_infill_speed", have_perimeters);
@@ -649,9 +665,10 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     for (auto el : { "ironing_pattern", "ironing_flow", "ironing_spacing", "ironing_speed", "ironing_angle" })
         toggle_line(el, has_ironing);
     
-    // bool have_sequential_printing = (config->opt_enum<PrintSequence>("print_sequence") == PrintSequence::ByObject);
+    bool have_sequential_printing = (config->opt_enum<PrintSequence>("print_sequence") == PrintSequence::ByObject);
     // for (auto el : { "extruder_clearance_radius", "extruder_clearance_height_to_rod", "extruder_clearance_height_to_lid" })
     //     toggle_field(el, have_sequential_printing);
+    toggle_field("print_order", !have_sequential_printing);
     
     bool have_ooze_prevention = config->opt_bool("ooze_prevention");
     toggle_field("standby_temperature_delta", have_ooze_prevention);
@@ -719,7 +736,8 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     
     bool has_detect_overhang_wall = config->opt_bool("detect_overhang_wall");
     bool has_overhang_reverse     = config->opt_bool("overhang_reverse");
-    bool allow_overhang_reverse   = has_detect_overhang_wall && !has_spiral_vase;
+    bool force_wall_direction     = config->opt_enum<WallDirection>("wall_direction") != WallDirection::Auto;
+    bool allow_overhang_reverse   = has_detect_overhang_wall && !has_spiral_vase && !force_wall_direction;
     toggle_field("overhang_reverse", allow_overhang_reverse);
     toggle_line("overhang_reverse_threshold", allow_overhang_reverse && has_overhang_reverse);
     toggle_line("overhang_reverse_internal_only", allow_overhang_reverse && has_overhang_reverse);
@@ -730,6 +748,20 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
         apply(config, &new_conf);
     }
     toggle_line("timelapse_type", is_BBL_Printer);
+
+
+    bool have_small_area_infill_flow_compensation = config->opt_bool("small_area_infill_flow_compensation");
+    toggle_line("small_area_infill_flow_compensation_model", have_small_area_infill_flow_compensation);
+
+    
+    toggle_field("seam_slope_type", !has_spiral_vase);
+    bool has_seam_slope = !has_spiral_vase && config->opt_enum<SeamScarfType>("seam_slope_type") != SeamScarfType::None;
+    toggle_line("seam_slope_start_height", has_seam_slope);
+    toggle_line("seam_slope_entire_loop", has_seam_slope);
+    toggle_line("seam_slope_min_length", has_seam_slope);
+    toggle_line("seam_slope_steps", has_seam_slope);
+    toggle_line("seam_slope_inner_walls", has_seam_slope);
+    toggle_field("seam_slope_min_length", !config->opt_bool("seam_slope_entire_loop"));
 }
 
 void ConfigManipulation::update_print_sla_config(DynamicPrintConfig* config, const bool is_global_config/* = false*/)

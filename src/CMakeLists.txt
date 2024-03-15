@@ -26,6 +26,7 @@ add_subdirectory(libslic3r)
 
 if (SLIC3R_GUI)
     add_subdirectory(imgui)
+    add_subdirectory(imguizmo)
     add_subdirectory(hidapi)
     include_directories(hidapi/include)
 
@@ -101,6 +102,15 @@ if (SLIC3R_GUI)
     add_subdirectory(slic3r)
 endif()
 
+if(ORCA_TOOLS)
+    # OrcaSlicer_profile_validator
+    add_executable(OrcaSlicer_profile_validator OrcaSlicer_profile_validator.cpp)
+    target_link_libraries(OrcaSlicer_profile_validator libslic3r boost_headeronly libcurl OpenSSL::SSL OpenSSL::Crypto)
+    target_compile_definitions(OrcaSlicer_profile_validator PRIVATE -DBOOST_ALL_NO_LIB -DBOOST_USE_WINAPI_VERSION=0x602 -DBOOST_SYSTEM_USE_UTF8)
+    if(WIN32)
+        target_link_libraries(OrcaSlicer_profile_validator bcrypt.lib)
+    endif()
+endif()
 
 # Create a slic3r executable
 # Process mainfests for various platforms.
@@ -239,7 +249,11 @@ else ()
         set(BIN_RESOURCES_DIR "${CMAKE_CURRENT_BINARY_DIR}/../resources")
     endif ()
     if (CMAKE_MACOSX_BUNDLE)
-        set(BIN_RESOURCES_DIR "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/OrcaSlicer.app/Contents/Resources")
+        if (XCODE)
+            set(BIN_RESOURCES_DIR "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/OrcaSlicer.app/Contents/Resources")
+        else()
+            set(BIN_RESOURCES_DIR "${CMAKE_CURRENT_BINARY_DIR}/OrcaSlicer.app/Contents/Resources")
+        endif()
         set(MACOSX_BUNDLE_ICON_FILE Icon.icns)
         set(MACOSX_BUNDLE_BUNDLE_NAME "OrcaSlicer")
         set(MACOSX_BUNDLE_SHORT_VERSION_STRING ${SoftFever_VERSION})

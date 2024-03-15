@@ -28,6 +28,8 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/nowide/convert.hpp>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
 
 #include <wx/stdpaths.h>
 #include <wx/imagpng.h>
@@ -1028,8 +1030,12 @@ void GUI_App::post_init()
         // BOOST_LOG_TRIVIAL(info) << "Loading user presets...";
         // scrn->SetText(_L("Loading user presets..."));
         if (m_agent) { start_sync_user_preset(); }
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " sync_user_preset: true";
+    } else {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " sync_user_preset: false";
     }
 
+    m_open_method = "double_click";
     bool switch_to_3d = false;
     if (!this->init_params->input_files.empty()) {
 
@@ -1053,6 +1059,7 @@ void GUI_App::post_init()
             if (!download_file_url.empty() && ( boost::starts_with(download_file_url, "http://") ||  boost::starts_with(download_file_url, "https://")) ) {
                 request_model_download(download_origin_url);
             }
+            m_open_method = "makerworld";
         }
         else {
             switch_to_3d = true;
@@ -1060,22 +1067,27 @@ void GUI_App::post_init()
                 mainframe->select_tab(size_t(MainFrame::tp3DEditor));
                 plater_->select_view_3D("3D");
                 this->plater()->load_gcode(from_u8(this->init_params->input_files.front()));
+                m_open_method = "gcode";
             }
             else {
                 mainframe->select_tab(size_t(MainFrame::tp3DEditor));
                 plater_->select_view_3D("3D");
-                Plater::TakeSnapshot      snapshot(this->plater(), "Load Project", UndoRedo::SnapshotType::ProjectSeparator);
-                const std::vector<size_t> res = this->plater()->load_files(this->init_params->input_files);
-                if (!res.empty()) {
-                    if (this->init_params->input_files.size() == 1) {
-                        // Update application titlebar when opening a project file
-                        const std::string& filename = this->init_params->input_files.front();
-                        this->plater()->up_to_date(true, false);
-                        this->plater()->up_to_date(true, true);
-                        //BBS: remove amf logic as project
-                        if (boost::algorithm::iends_with(filename, ".3mf"))
-                            this->plater()->set_project_filename(from_u8(filename));
+                wxArrayString input_files;
+                for (auto & file : this->init_params->input_files) {
+                    input_files.push_back(wxString::FromUTF8(file));
+                }
+                this->plater()->set_project_filename(_L("Untitled"));
+                this->plater()->load_files(input_files);
+                try {
+                    if (!input_files.empty()) {
+                        std::string file_path = input_files.front().ToStdString();
+                        std::filesystem::path path(file_path);
+                        m_open_method = "file_" + path.extension().string();
                     }
+                }
+                catch (...) {
+                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ", file path exception!";
+                    m_open_method = "file";
                 }
             }
         }
@@ -1199,9 +1211,6 @@ void GUI_App::post_init()
     // This is ugly but I honestly found no better way to do it.
     // Neither wxShowEvent nor wxWindowCreateEvent work reliably.
     if (this->preset_updater) { // G-Code Viewer does not initialize preset_updater.
-        BOOST_LOG_TRIVIAL(info) << "before check_updates";
-        this->check_updates(false);
-        BOOST_LOG_TRIVIAL(info) << "after check_updates";
         CallAfter([this] {
             bool cw_showed = this->config_wizard_startup();
 
@@ -2656,7 +2665,7 @@ bool GUI_App::on_init_inner()
 
     sidebar().obj_list()->init();
     //sidebar().aux_list()->init_auxiliary();
-    //mainframe->m_auxiliary->init_auxiliary();
+    mainframe->m_project->init_auxiliary();
 
 //     update_mode(); // !!! do that later
     SetTopWindow(mainframe);
@@ -3185,14 +3194,17 @@ void GUI_App::UpdateDVCDarkUI(wxDataViewCtrl* dvc, bool highlited/* = false*/)
     UpdateDarkUI(dvc, highlited ? dark_mode() : false);
 #ifdef _MSW_DARK_MODE
     //dvc->RefreshHeaderDarkMode(&m_normal_font);
-    HWND hwnd = (HWND)dvc->GenericGetHeader()->GetHandle();
-    hwnd = GetWindow(hwnd, GW_CHILD);
-    if (hwnd != NULL)
-        NppDarkMode::SetDarkListViewHeader(hwnd);
-    wxItemAttr attr;
-    attr.SetTextColour(NppDarkMode::GetTextColor());
-    attr.SetFont(m_normal_font);
-    dvc->SetHeaderAttr(attr);
+    HWND hwnd;
+    if (!dvc->HasFlag(wxDV_NO_HEADER)) {
+        hwnd = (HWND) dvc->GenericGetHeader()->GetHandle();
+        hwnd = GetWindow(hwnd, GW_CHILD);
+        if (hwnd != NULL)
+            NppDarkMode::SetDarkListViewHeader(hwnd);
+        wxItemAttr attr;
+        attr.SetTextColour(NppDarkMode::GetTextColor());
+        attr.SetFont(m_normal_font);
+        dvc->SetHeaderAttr(attr);
+    }
 #endif //_MSW_DARK_MODE
     if (dvc->HasFlag(wxDV_ROW_LINES))
         dvc->SetAlternateRowColour(m_color_highlight_default);
@@ -3297,17 +3309,8 @@ void GUI_App::link_to_network_check()
     else if (country_code == "CN") {
         url = "https://status.bambulab.cn";
     }
-    else if (country_code == "ENV_CN_DEV") {
-        url = "https://status.bambu-lab.com";
-    }
-    else if (country_code == "ENV_CN_QA") {
-        url = "https://status.bambu-lab.com";
-    }
-    else if (country_code == "ENV_CN_PRE") {
-        url = "https://status.bambu-lab.com";
-    }
     else {
-        url = "https://status.bambu-lab.com";
+        url = "https://status.bambulab.com";
     }
     wxLaunchDefaultBrowser(url);
 }
@@ -3755,8 +3758,7 @@ void GUI_App::request_user_logout()
         bool     transfer_preset_changes = false;
         wxString header = _L("Some presets are modified.") + "\n" +
             _L("You can keep the modifield presets to the new project, discard or save changes as new presets.");
-        using ab        = UnsavedChangesDialog::ActionButtons;
-        wxGetApp().check_and_keep_current_preset_changes(_L("User logged out"), header, ab::KEEP | ab::SAVE, &transfer_preset_changes);
+        wxGetApp().check_and_keep_current_preset_changes(_L("User logged out"), header, ActionButtons::KEEP | ActionButtons::SAVE, &transfer_preset_changes);
 
         m_device_manager->clean_user_info();
         GUI::wxGetApp().sidebar().load_ams_list({}, {});
@@ -4160,6 +4162,10 @@ void GUI_App::check_track_enable()
         /* record studio start event */
         json j;
         j["user_mode"] = this->get_mode_str();
+        j["open_method"] = m_open_method;
+        if (m_agent) {
+            m_agent->track_event("studio_launch", j.dump());
+        }
     }
 }
 
@@ -5603,11 +5609,11 @@ std::vector<std::pair<unsigned int, std::string>> GUI_App::get_selected_presets(
 bool GUI_App::check_and_save_current_preset_changes(const wxString& caption, const wxString& header, bool remember_choice/* = true*/, bool dont_save_insted_of_discard/* = false*/)
 {
     if (has_current_preset_changes()) {
-        int act_buttons = UnsavedChangesDialog::ActionButtons::SAVE;
+        int act_buttons = ActionButtons::SAVE;
         if (dont_save_insted_of_discard)
-            act_buttons |= UnsavedChangesDialog::ActionButtons::DONT_SAVE;
+            act_buttons |= ActionButtons::DONT_SAVE;
         if (remember_choice)
-            act_buttons |= UnsavedChangesDialog::ActionButtons::REMEMBER_CHOISE;
+            act_buttons |= ActionButtons::REMEMBER_CHOISE;
         UnsavedChangesDialog dlg(caption, header, "", act_buttons);
         if (dlg.ShowModal() == wxID_CANCEL)
             return false;
@@ -5879,7 +5885,7 @@ void GUI_App::OSXStoreOpenFiles(const wxArrayString &fileNames)
 
 void GUI_App::MacOpenURL(const wxString& url)
 {
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "get mac url " << url;
+    BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << "get mac url " << url;
 
     if (!url.empty() && boost::starts_with(url, "orcasliceropen://")) {
         auto input_str_arr = split_str(url.ToStdString(), "orcasliceropen://");
@@ -5890,7 +5896,7 @@ void GUI_App::MacOpenURL(const wxString& url)
         }
 
         std::string download_file_url = url_decode(download_origin_url);
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << download_file_url;
+        BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << download_file_url;
         if (!download_file_url.empty() && (boost::starts_with(download_file_url, "http://") || boost::starts_with(download_file_url, "https://"))) {
 
             if (m_post_initialized) {
@@ -6060,6 +6066,12 @@ void GUI_App::open_mall_page_dialog()
 
     if (result < 0) {
        link_url = host_url + model_url;
+    }
+
+    if (link_url.find("?") != std::string::npos) {
+        link_url += "&from=orcaslicer";
+    } else {
+        link_url += "?from=orcaslicer";
     }
 
     wxLaunchDefaultBrowser(link_url);

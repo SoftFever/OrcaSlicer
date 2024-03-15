@@ -7,6 +7,8 @@
 #include "libslic3r/Utils.hpp"
 #include "I18N.hpp"
 
+#include <wx/display.h>
+
 namespace fs = boost::filesystem;
 
 namespace Slic3r { namespace GUI {

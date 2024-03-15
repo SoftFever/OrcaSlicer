@@ -163,9 +163,10 @@ then
     fi
     if [[ -n "$BUILD_DEBUG" ]]
     then
-        # have to build deps with debug & release or the cmake won't find evrything it needs
+        # have to build deps with debug & release or the cmake won't find everything it needs
         mkdir deps/build/release
         pushd deps/build/release
+            echo -e "cmake ../.. -DDESTDIR=\"../destdir\" $BUILD_ARGS"
             cmake ../.. -DDESTDIR="../destdir" $BUILD_ARGS
             make -j$NCORES
         popd
@@ -174,6 +175,7 @@ then
     
     # cmake deps
     pushd deps/build
+        echo "cmake .. $BUILD_ARGS"
         cmake .. $BUILD_ARGS
         echo "done"
         
@@ -225,12 +227,16 @@ then
     
     # cmake
     pushd build
-        cmake .. -DCMAKE_PREFIX_PATH="$PWD/../deps/build/destdir/usr/local" -DSLIC3R_STATIC=1 ${BUILD_ARGS}
+        echo -e "cmake .. -DCMAKE_PREFIX_PATH=\"$PWD/../deps/build/destdir/usr/local\" -DSLIC3R_STATIC=1 -DORCA_TOOLS=ON ${BUILD_ARGS}"
+        cmake .. -DCMAKE_PREFIX_PATH="$PWD/../deps/build/destdir/usr/local" -DSLIC3R_STATIC=1 ${BUILD_ARGS} -DORCA_TOOLS=ON 
         echo "done"
         
         # make Slic3r
         echo "[8/9] Building Slic3r..."
         make -j$NCORES OrcaSlicer # Slic3r
+
+        # make OrcaSlicer_profile_validator
+        make -j$NCORES OrcaSlicer_profile_validator
     popd
     ./run_gettext.sh
     echo "done"

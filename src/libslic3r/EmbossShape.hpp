@@ -105,7 +105,7 @@ struct EmbossShape
             // Note: image is only cache it is not neccessary to store
 
             // Store file data as plain string
-            assert(file_data != nullptr);
+            // For Embossed text file_data are nullptr
             ar(path, path_in_3mf, (file_data != nullptr) ? *file_data : std::string(""));
         }
         template<class Archive> void load(Archive &ar) {

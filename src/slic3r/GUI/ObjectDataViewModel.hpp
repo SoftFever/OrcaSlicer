@@ -5,6 +5,7 @@
 #ifndef slic3r_GUI_ObjectDataViewModel_hpp_
 #define slic3r_GUI_ObjectDataViewModel_hpp_
 
+#include <boost/log/trivial.hpp>
 #include <wx/dataview.h>
 #include <vector>
 #include <map>
@@ -342,13 +343,30 @@ class ObjectDataViewModel :public wxDataViewModel
     wxDataViewCtrl*                             m_ctrl { nullptr };
     std::vector<std::pair<ObjectDataViewModelNode*, wxString>> assembly_name_list;
     std::vector<std::pair<ObjectDataViewModelNode*, wxString>> search_found_list;
+    std::map<int, int>                          m_ui_and_3d_volume_map;
 
 public:
     ObjectDataViewModel();
     ~ObjectDataViewModel();
 
     void Init();
-
+    std::map<int, int> &get_ui_and_3d_volume_map() { return m_ui_and_3d_volume_map; }
+    int                 get_real_volume_index_in_3d(int ui_value)
+    {
+        if (m_ui_and_3d_volume_map.find(ui_value) != m_ui_and_3d_volume_map.end()) { 
+            return m_ui_and_3d_volume_map[ui_value];
+        }
+        return ui_value;
+    }
+    int get_real_volume_index_in_ui(int _3d_value)
+    {
+        for (auto item: m_ui_and_3d_volume_map) {
+            if (item.second == _3d_value) {
+                return item.first;
+            }
+        }
+        return _3d_value;
+    }
     wxDataViewItem AddPlate(PartPlate* part_plate, wxString name = wxEmptyString, bool refresh = true);
     wxDataViewItem AddObject(ModelObject* model_object, std::string warning_bitmap, bool has_lock = false, bool refresh = true);
     wxDataViewItem AddVolumeChild(  const wxDataViewItem &parent_item,

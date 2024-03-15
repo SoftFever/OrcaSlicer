@@ -196,6 +196,11 @@ void Field::on_back_to_sys_value()
 		m_back_to_sys_value(m_opt_id);
 }
 
+void Field::on_edit_value()
+{
+    if (m_fn_edit_value)
+        m_fn_edit_value(m_opt_id);
+}
 
 /// Fires the enable or disable function, based on the input.
 
@@ -206,7 +211,7 @@ wxString Field::get_tooltip_text(const wxString &default_string)
 	wxString tooltip_text("");
 #ifdef NDEBUG
 	wxString tooltip = _(m_opt.tooltip);
-    edit_tooltip(tooltip);
+    ::edit_tooltip(tooltip);
 
     std::string opt_id = m_opt_id;
     auto hash_pos = opt_id.find("#");
@@ -583,6 +588,14 @@ void TextCtrl::BUILD() {
             EnterPressed enter(this);
             propagate_value();
         }), text_ctrl->GetId());
+    } else {
+        // Orca: adds logic that scrolls the parent if the text control doesn't have focus
+        text_ctrl->Bind(wxEVT_MOUSEWHEEL, [text_ctrl](wxMouseEvent& event) {
+            if (text_ctrl->HasFocus() && text_ctrl->GetScrollRange(wxVERTICAL) != 1)
+                event.Skip(); // don't consume the event so that the text control will scroll
+            else
+                text_ctrl->GetParent()->ScrollLines((event.GetWheelRotation() > 0 ? -1 : 1) * event.GetLinesPerAction());
+        });
     }
 
 	text_ctrl->Bind(wxEVT_LEFT_DOWN, ([temp](wxEvent &event)

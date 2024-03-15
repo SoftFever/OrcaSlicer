@@ -181,7 +181,7 @@ public:
 
     ::TextInput*        m_input_designer {nullptr};
     ::TextInput*        m_imput_model_name {nullptr};
-    //wxComboBox*         m_combo_license {nullptr};
+    ComboBox*           m_combo_license {nullptr};
     bool Show(bool show) override;
     void                init_license_list();
     void                on_input_enter_designer(wxCommandEvent &evt);
@@ -232,7 +232,7 @@ public:
     void                                            create_folder(wxString name = wxEmptyString);
     std::string                                     replaceSpace(std::string s, std::string ts, std::string ns);
     void                                            on_import_file(wxCommandEvent &event);
-    void                                            Reload(wxString aux_path);
+    void                                            Reload(wxString aux_path, std::map<std::string, std::vector<json>> paths);
 
     void update_all_panel();
     void update_all_cover();
@@ -242,6 +242,7 @@ wxDECLARE_EVENT(EVT_AUXILIARY_IMPORT, wxCommandEvent);
 wxDECLARE_EVENT(EVT_AUXILIARY_UPDATE_COVER, wxCommandEvent);
 wxDECLARE_EVENT(EVT_AUXILIARY_UPDATE_DELETE, wxCommandEvent);
 wxDECLARE_EVENT(EVT_AUXILIARY_UPDATE_RENAME, wxCommandEvent);
+wxDECLARE_EVENT(EVT_AUXILIARY_DONE, wxCommandEvent);
 }} // namespace Slic3r::GUI
 
 #endif

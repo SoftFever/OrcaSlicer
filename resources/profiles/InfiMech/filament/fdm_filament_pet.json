@@ -4,6 +4,9 @@
     "from": "system",
     "instantiation": "false",
     "inherits": "fdm_filament_common",
+    "filament_vendor": [
+        "InfiMech"
+    ],
     "cool_plate_temp" : [
         "60"
     ],
@@ -11,7 +14,7 @@
         "0"
     ],
     "hot_plate_temp" : [
-        "70"
+        "75"
     ],
     "textured_plate_temp" : [
         "80"
@@ -23,7 +26,7 @@
         "0"
     ],
     "hot_plate_temp_initial_layer" : [
-        "70"
+        "75"
     ],
     "textured_plate_temp_initial_layer" : [
         "80"
@@ -65,16 +68,19 @@
         "90"
     ],
     "nozzle_temperature": [
-        "255"
+        "220"
     ],
     "temperature_vitrification": [
         "80"
     ],
     "nozzle_temperature_range_low": [
-        "220"
+        "200"
     ],
     "nozzle_temperature_range_high": [
-        "260"
+        "280"
+    ],
+    "additional_cooling_fan_speed": [
+        "100"
     ],
     "filament_start_gcode": [
         "; filament start gcode\n"

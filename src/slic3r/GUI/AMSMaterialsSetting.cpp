@@ -4,6 +4,8 @@
 #include "GUI_App.hpp"
 #include "libslic3r/Preset.hpp"
 #include "I18N.hpp"
+#include <boost/log/trivial.hpp>
+#include <wx/colordlg.h>
 #include <wx/dcgraph.h>
 #include "CalibUtils.hpp"
 
@@ -671,6 +673,10 @@ void AMSMaterialsSetting::set_colors(std::vector<wxColour> colors)
     m_clr_picker->set_colors(colors);
 }
 
+void AMSMaterialsSetting::set_ctype(int ctype)
+{
+    m_clr_picker->ctype = ctype;
+}
 
 void AMSMaterialsSetting::on_picker_color(wxCommandEvent& event)
 {
@@ -1107,6 +1113,8 @@ ColorPicker::ColorPicker(wxWindow* parent, wxWindowID id, const wxPoint& pos /*=
     Bind(wxEVT_PAINT, &ColorPicker::paintEvent, this);
 
     m_bitmap_border = create_scaled_bitmap("color_picker_border", nullptr, 25);
+    m_bitmap_border_dark = create_scaled_bitmap("color_picker_border_dark", nullptr, 25);
+    m_bitmap_transparent_def = create_scaled_bitmap("transparent_color_picker", nullptr, 25);
     m_bitmap_transparent = create_scaled_bitmap("transparent_color_picker", nullptr, 25);
 }
 
@@ -1115,11 +1123,16 @@ ColorPicker::~ColorPicker(){}
 void ColorPicker::msw_rescale()
 {
     m_bitmap_border = create_scaled_bitmap("color_picker_border", nullptr, 25);
+    m_bitmap_border_dark = create_scaled_bitmap("color_picker_border_dark", nullptr, 25);
+
     Refresh();
 }
 
 void ColorPicker::set_color(wxColour col)
 {
+    if (m_colour != col && col.Alpha() != 0 && col.Alpha() != 255 && col.Alpha() != 254) {
+        transparent_changed = true;
+    }
     m_colour = col;
     Refresh();
 }
@@ -1161,11 +1174,27 @@ void ColorPicker::doRender(wxDC& dc)
 {
     wxSize     size = GetSize();
     auto alpha = m_colour.Alpha();
-
     auto radius = m_show_full ? size.x / 2 - FromDIP(1) : size.x / 2;
     if (m_selected) radius -= FromDIP(1);
 
     if (alpha == 0) {
+        dc.DrawBitmap(m_bitmap_transparent_def, 0, 0);
+    }
+    else if (alpha != 254 && alpha != 255) {
+        if (transparent_changed) {
+            std::string rgb = (m_colour.GetAsString(wxC2S_HTML_SYNTAX)).ToStdString();
+            if (rgb.size() == 9) {
+                //delete alpha value
+                rgb = rgb.substr(0, rgb.size() - 2);
+            }
+            float alpha_f = 0.7 * m_colour.Alpha() / 255.0;
+            std::vector<std::string> replace;
+            replace.push_back(rgb);
+            std::string fill_replace = "fill-opacity=\"" + std::to_string(alpha_f);
+            replace.push_back(fill_replace);
+            m_bitmap_transparent = ScalableBitmap(this, "transparent_color_picker", 25, false, false, true, replace).bmp();
+            transparent_changed = false;
+        }
         dc.DrawBitmap(m_bitmap_transparent, 0, 0);
     }
     else {
@@ -1185,27 +1214,50 @@ void ColorPicker::doRender(wxDC& dc)
         dc.SetBrush(*wxTRANSPARENT_BRUSH);
         dc.DrawCircle(size.x / 2, size.y / 2, radius);
 
-        //transparent
-        if (alpha == 0) {
-            dc.DrawBitmap(m_bitmap_transparent, 0, 0);
-        }
-
         if (m_cols.size() > 1) {
-            int left = FromDIP(0);
-            float total_width = size.x;
-            int gwidth = std::round(total_width / (m_cols.size() - 1));
+            if (ctype == 0) {
+                int left = FromDIP(0);
+                float total_width = size.x;
+                int gwidth = std::round(total_width / (m_cols.size() - 1));
 
-            for (int i = 0; i < m_cols.size() - 1; i++) {
+                for (int i = 0; i < m_cols.size() - 1; i++) {
 
-                if ((left + gwidth) > (size.x)) {
-                    gwidth = size.x - left;
+                    if ((left + gwidth) > (size.x)) {
+                        gwidth = size.x - left;
+                    }
+
+                    auto rect = wxRect(left, 0, gwidth, size.y);
+                    dc.GradientFillLinear(rect, m_cols[i], m_cols[i + 1], wxEAST);
+                    left += gwidth;
                 }
-
-                auto rect = wxRect(left, 0, gwidth, size.y);
-                dc.GradientFillLinear(rect, m_cols[i], m_cols[i + 1], wxEAST);
-                left += gwidth;
+                if (wxGetApp().dark_mode()) {
+                    dc.DrawBitmap(m_bitmap_border_dark, wxPoint(0, 0));
+                }
+                else {
+                    dc.DrawBitmap(m_bitmap_border, wxPoint(0, 0));
+                }
             }
-            dc.DrawBitmap(m_bitmap_border, wxPoint(0, 0));
+            else {
+                float ev_angle = 360.0 / m_cols.size();
+                float startAngle = 270.0;
+                float endAngle = 270.0;
+                dc.SetPen(*wxTRANSPARENT_PEN);
+                for (int i = 0; i < m_cols.size(); i++) {
+                    dc.SetBrush(m_cols[i]);
+                    endAngle += ev_angle;
+                    endAngle = endAngle > 360.0 ? endAngle - 360.0 : endAngle;
+                    wxPoint center(size.x / 2, size.y / 2);
+                    dc.DrawEllipticArc(center.x - radius, center.y - radius, 2 * radius, 2 * radius, startAngle, endAngle);
+                    startAngle += ev_angle;
+                    startAngle = startAngle > 360.0 ? startAngle - 360.0 : startAngle;
+                }
+                if (wxGetApp().dark_mode()) {
+                    dc.DrawBitmap(m_bitmap_border_dark, wxPoint(0, 0));
+                }
+                else {
+                    dc.DrawBitmap(m_bitmap_border, wxPoint(0, 0));
+                }
+            }
         }
     }
 

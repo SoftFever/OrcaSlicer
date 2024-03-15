@@ -14,6 +14,10 @@
       "sub_path": "machine/Flashforge Adventurer 5M Pro.json"
     },
     {
+      "name": "Flashforge Adventurer 3 Series",
+      "sub_path": "machine/Flashforge Adventurer 3 Series.json"
+    },
+    {
       "name": "Flashforge Guider 3 Ultra",
       "sub_path": "machine/Flashforge Guider 3 Ultra.json"
     }
@@ -50,6 +54,18 @@
     {
       "name": "0.30mm Standard @Flashforge AD5M Pro 0.6 Nozzle",
       "sub_path": "process/0.30mm Standard @Flashforge AD5M Pro 0.6 Nozzle.json"
+    },
+    {
+      "name": "0.20mm Standard @Flashforge AD3 0.4 Nozzle",
+      "sub_path": "process/0.20mm Standard @Flashforge AD3 0.4 Nozzle.json"
+    },
+    {
+      "name": "0.30mm Fast @Flashforge AD3 0.4 Nozzle",
+      "sub_path": "process/0.30mm Fast @Flashforge AD3 0.4 Nozzle.json"
+    },
+    {
+      "name": "0.30mm Standard @Flashforge AD3 0.6 Nozzle",
+      "sub_path": "process/0.30mm Standard @Flashforge AD3 0.6 Nozzle.json"
     },
     {
       "name": "0.20mm Standard @Flashforge G3U 0.4 Nozzle",
@@ -118,6 +134,18 @@
       "sub_path": "filament/Flashforge Generic TPU.json"
     },
     {
+      "name": "Flashforge ABS",
+      "sub_path": "filament/Flashforge ABS.json"
+    },
+    {
+      "name": "Flashforge PETG",
+      "sub_path": "filament/Flashforge PETG.json"
+    },
+    {
+      "name": "Flashforge PLA",
+      "sub_path": "filament/Flashforge PLA.json"
+    },
+    {
       "name": "Flashforge Generic ABS @G3U",
       "sub_path": "filament/Flashforge Generic ABS @G3U.json"
     },
@@ -178,7 +206,6 @@
       "sub_path": "filament/FusRock Generic NexPA-CF25.json"
     }
   ],
-
   "machine_list": [
     {
       "name": "fdm_machine_common",
@@ -203,6 +230,18 @@
     {
       "name": "Flashforge Adventurer 5M Pro 0.6 Nozzle",
       "sub_path": "machine/Flashforge Adventurer 5M Pro 0.6 Nozzle.json"
+    },
+    {
+      "name": "fdm_flashforge_common",
+      "sub_path": "machine/fdm_adventurer3_common.json"
+    },
+    {
+      "name": "Flashforge Adventurer 3 Series 0.4 Nozzle",
+      "sub_path": "machine/Flashforge Adventurer 3 Series 0.4 nozzle.json"
+    },
+    {
+      "name": "Flashforge Adventurer 3 Series 0.6 Nozzle",
+      "sub_path": "machine/Flashforge Adventurer 3 Series 0.6 nozzle.json"
     },
     {
       "name": "Flashforge Guider 3 Ultra 0.4 Nozzle",

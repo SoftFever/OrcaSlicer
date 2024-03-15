@@ -1,0 +1,9 @@
+version: "3.7"
+
+services:
+  build:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/home/orcaslicer

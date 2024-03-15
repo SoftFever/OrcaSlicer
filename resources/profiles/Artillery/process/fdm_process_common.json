@@ -22,7 +22,7 @@
     "outer_wall_acceleration": "700",
     "bridge_no_support": "0",
     "draft_shield": "disabled",
-    "elefant_foot_compensation": "0",
+    "elefant_foot_compensation": "0.15",
     
     "outer_wall_line_width": "0.4",
     "wall_infill_order": "inner wall/outer wall/infill",
@@ -48,7 +48,7 @@
     "overhang_3_4_speed": "30",
     "overhang_4_4_speed": "10",
     "inner_wall_line_width": "0.45",
-    "wall_loops": "3",
+    "wall_loops": "2",
     "print_settings_id": "",
     "raft_layers": "0",
     "seam_position": "aligned",

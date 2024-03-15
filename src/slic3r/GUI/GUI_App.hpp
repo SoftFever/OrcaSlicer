@@ -1,6 +1,13 @@
 #ifndef slic3r_GUI_App_hpp_
 #define slic3r_GUI_App_hpp_
 
+#include <wx/app.h>
+#include <wx/colour.h>
+#include <wx/font.h>
+#include <wx/string.h>
+#include <wx/snglinst.h>
+#include <wx/msgdlg.h>
+
 #include <memory>
 #include <string>
 #include "ImGuiWrapper.hpp"
@@ -16,13 +23,6 @@
 #include "slic3r/GUI/Jobs/UpgradeNetworkJob.hpp"
 #include "slic3r/GUI/HttpServer.hpp"
 #include "../Utils/PrintHost.hpp"
-
-#include <wx/app.h>
-#include <wx/colour.h>
-#include <wx/font.h>
-#include <wx/string.h>
-#include <wx/snglinst.h>
-#include <wx/msgdlg.h>
 
 #include <mutex>
 #include <stack>
@@ -328,6 +328,9 @@ private:
     // SoftFever
     bool show_gcode_window() const { return m_show_gcode_window; }
     void toggle_show_gcode_window();
+
+    bool show_3d_navigator() const { return app_config->get_bool("show_3d_navigator"); }
+    void toggle_show_3d_navigator() const { app_config->set_bool("show_3d_navigator", !show_3d_navigator()); }
 
     wxString get_inf_dialog_contect () {return m_info_dialog_content;};
 
@@ -664,6 +667,7 @@ private:
     std::string             m_older_data_dir_path;
     boost::optional<Semver> m_last_config_version;
     bool                    m_config_corrupted { false };
+    std::string             m_open_method;
 };
 
 DECLARE_APP(GUI_App)

@@ -1,6 +1,8 @@
 #include "DropDown.hpp"
 #include "Label.hpp"
 
+#include <wx/display.h>
+#include <wx/dcbuffer.h>
 #include <wx/dcgraph.h>
 
 #ifdef __WXGTK__

@@ -262,7 +262,6 @@ private:
     void        on_dpi_changed(const wxRect &suggested_rect) override;
     void        show_export_result(const ExportCase &export_case);
     bool        has_check_box_selected();
-    bool        preset_is_not_compatible_bbl_printer(Preset *preset);
     std::string initial_file_path(const wxString &path, const std::string &sub_file_path);
     std::string initial_file_name(const wxString &path, const std::string file_name);
     wxBoxSizer *create_export_config_item(wxWindow *parent);
@@ -356,6 +355,7 @@ public:
     ~EditFilamentPresetDialog();
     
     wxPanel *get_preset_tree_panel() { return m_preset_tree_panel; }
+    std::shared_ptr<Preset> get_need_edit_preset() { return m_need_edit_preset; }
     void     set_printer_name(const std::string &printer_name) { m_selected_printer = printer_name; }
     void     set_need_delete_preset_index(int need_delete_preset_index) { m_need_delete_preset_index = need_delete_preset_index; }
     void     set_need_edit_preset_index(int need_edit_preset_index) { m_need_edit_preset_index = need_edit_preset_index; }
@@ -388,6 +388,7 @@ private:
     wxStaticText *                                                        m_note_text                = nullptr;
     int                                                                   m_need_delete_preset_index = -1;
     int                                                                   m_need_edit_preset_index   = -1;
+    std::shared_ptr<Preset>                                               m_need_edit_preset;
     std::string                                                           m_selected_printer         = "";
     std::unordered_map<std::string, std::vector<std::shared_ptr<Preset>>> m_printer_compatible_presets;
 

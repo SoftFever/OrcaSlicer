@@ -6,10 +6,11 @@
   "instantiation": "true",
   "inherits": "fdm_machine_common",
   "printer_model": "MK3S",
+  "printer_variant": "0.4",
   "default_filament_profile": [
       "Prusa Generic PLA"
   ],
-  "default_print_profile": "0.20mm Speed @MK3S",
+  "default_print_profile": "0.20mm Speed @MK3S 0.4",
   "nozzle_diameter": [
       "0.4"
   ],

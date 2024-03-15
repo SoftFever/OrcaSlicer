@@ -6,6 +6,7 @@
 #ifndef slic3r_Utils_hpp_
 #define slic3r_Utils_hpp_
 
+#include <iomanip>
 #include <locale>
 #include <utility>
 #include <functional>
@@ -143,6 +144,11 @@ const std::string& sys_shapes_dir();
 
 // Return a full path to the custom shapes gallery directory.
 std::string custom_shapes_dir();
+
+// Set a path with shapes gallery files.
+void set_custom_gcodes_dir(const std::string &path);
+// Return a full path to the system shapes gallery directory.
+const std::string& custom_gcodes_dir();
 
 // Set a path with preset files.
 void set_data_dir(const std::string &path);
@@ -648,7 +654,7 @@ inline std::string filter_characters(const std::string& str, const std::string& 
     return filteredStr;
 }
 
-void copy_directory_recursively(const boost::filesystem::path &source, const boost::filesystem::path &target);
+void copy_directory_recursively(const boost::filesystem::path &source, const boost::filesystem::path &target, std::function<bool(const std::string)> filter = nullptr);
 
 // Orca: Since 1.7.9 Boost deprecated save_string_file and load_string_file, copy and modified from boost 1.7.8
 void save_string_file(const boost::filesystem::path& p, const std::string& str);

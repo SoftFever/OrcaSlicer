@@ -23,11 +23,13 @@
 #include "GCode/ExtrusionProcessor.hpp"
 
 #include "GCode/PressureEqualizer.hpp"
+#include "GCode/SmallAreaInfillFlowCompensator.hpp"
 
 #include <memory>
 #include <map>
 #include <set>
 #include <string>
+#include <cfloat>
 
 namespace Slic3r {
 
@@ -157,6 +159,7 @@ struct LayerResult {
 };
 
 class GCode {
+
 public:
     GCode() :
     	m_origin(Vec2d::Zero()),
@@ -217,7 +220,7 @@ public:
     void            set_layer_count(unsigned int value) { m_layer_count = value; }
     void            apply_print_config(const PrintConfig &print_config);
 
-    std::string     travel_to(const Point& point, ExtrusionRole role, std::string comment);
+    std::string     travel_to(const Point& point, ExtrusionRole role, std::string comment, double z = DBL_MAX);
     bool            needs_retraction(const Polyline& travel, ExtrusionRole role, LiftType& lift_type);
     std::string     retract(bool toolchange = false, bool is_last_retraction = false, LiftType lift_type = LiftType::NormalLift);
     std::string     unretract() { return m_writer.unlift() + m_writer.unretract(); }
@@ -347,8 +350,12 @@ private:
     std::string     preamble();
     // BBS
     std::string     change_layer(coordf_t print_z);
-    std::string     extrude_entity(const ExtrusionEntity &entity, std::string description = "", double speed = -1.);
-    std::string     extrude_loop(ExtrusionLoop loop, std::string description, double speed = -1.);
+    // Orca: pass the complete collection of region perimeters to the extrude loop to check whether the wipe before external loop
+    // should be executed
+    std::string     extrude_entity(const ExtrusionEntity &entity, std::string description = "", double speed = -1., const ExtrusionEntitiesPtr& region_perimeters = ExtrusionEntitiesPtr());
+    // Orca: pass the complete collection of region perimeters to the extrude loop to check whether the wipe before external loop
+    // should be executed
+    std::string     extrude_loop(ExtrusionLoop loop, std::string description, double speed = -1., const ExtrusionEntitiesPtr& region_perimeters = ExtrusionEntitiesPtr());
     std::string     extrude_multi_path(ExtrusionMultiPath multipath, std::string description = "", double speed = -1.);
     std::string     extrude_path(ExtrusionPath path, std::string description = "", double speed = -1.);
 
@@ -517,6 +524,15 @@ private:
     double                              m_last_mm3_per_mm;
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
 
+    // Always check gcode placeholders when building in debug mode.
+#if !defined(NDEBUG)
+#define ORCA_CHECK_GCODE_PLACEHOLDERS 1
+#endif
+    
+#if ORCA_CHECK_GCODE_PLACEHOLDERS
+    std::map<std::string, std::vector<std::string>> m_placeholder_error_messages;
+#endif
+
     Point                               m_last_pos;
     bool                                m_last_pos_defined;
 
@@ -526,6 +542,8 @@ private:
     std::unique_ptr<PressureEqualizer>  m_pressure_equalizer;
 
     std::unique_ptr<WipeTowerIntegration> m_wipe_tower;
+
+    std::unique_ptr<SmallAreaInfillFlowCompensator> m_small_area_infill_flow_compensator;
 
     // Heights (print_z) at which the skirt has already been extruded.
     std::vector<coordf_t>               m_skirt_done;
@@ -589,6 +607,7 @@ private:
     friend class WipeTowerIntegration;
     friend class PressureEqualizer;
     friend class Print;
+    friend class SmallAreaInfillFlowCompensator;
 };
 
 std::vector<const PrintInstance*> sort_object_instances_by_model_order(const Print& print, bool init_order = false);

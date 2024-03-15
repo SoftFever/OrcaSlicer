@@ -28,6 +28,8 @@
 #include "BRepPrimAPI_MakePrism.hxx"
 #include "Font_FontMgr.hxx"
 
+#include <boost/log/trivial.hpp>
+
 namespace Slic3r {
 
 static std::map<std::string, std::string> g_occt_fonts_maps; //map<font_name, font_path>

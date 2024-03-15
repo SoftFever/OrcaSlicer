@@ -1062,17 +1062,6 @@ public:
     void highlight_toolbar_item(const std::string& item_name);
     void highlight_gizmo(const std::string& gizmo_name);
 
-    ArrangeSettings get_arrange_settings() const {
-        const ArrangeSettings &settings = get_arrange_settings(this);
-        ArrangeSettings ret = settings;
-        if (&settings == &m_arrange_settings_fff_seq_print) {
-            ret.distance = std::max(ret.distance,
-                                    float(min_object_distance(*m_config)));
-        }
-
-        return ret;
-    }
-
     // Timestamp for FPS calculation and notification fade-outs.
     static int64_t timestamp_now() {
 #ifdef _WIN32
@@ -1192,6 +1181,7 @@ private:
     //BBS: GUI refactor: adjust main toolbar position
     bool _render_orient_menu(float left, float right, float bottom, float top);
     bool _render_arrange_menu(float left, float right, float bottom, float top);
+    void _render_3d_navigator();
     // render thumbnail using the default framebuffer
     void render_thumbnail_legacy(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, PartPlateList& partplate_list, ModelObjectPtrs& model_objects, const GLVolumeCollection& volumes, std::vector<ColorRGBA>& extruder_colors, GLShaderProgram* shader, Camera::EType camera_type);
 

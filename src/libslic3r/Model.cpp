@@ -106,6 +106,9 @@ Model& Model::assign_copy(const Model &rhs)
     this->stl_design_id = rhs.stl_design_id;
     this->profile_info = rhs.profile_info;
 
+    this->mk_name = rhs.mk_name;
+    this->mk_version = rhs.mk_version;
+
     return *this;
 }
 
@@ -135,6 +138,8 @@ Model& Model::assign_copy(Model &&rhs)
     //BBS: add auxiliary path logic
     // BBS: backup, all in one temp dir
     this->stl_design_id = rhs.stl_design_id;
+    this->mk_name = rhs.mk_name;
+    this->mk_version = rhs.mk_version;
     this->backup_path = std::move(rhs.backup_path);
     this->object_backup_id_map = std::move(rhs.object_backup_id_map);
     this->next_object_backup_id = rhs.next_object_backup_id;
@@ -565,12 +570,28 @@ bool Model::add_default_instances()
 }
 
 // this returns the bounding box of the *transformed* instances
-BoundingBoxf3 Model::bounding_box() const
+BoundingBoxf3 Model::bounding_box_approx() const
 {
     BoundingBoxf3 bb;
     for (ModelObject *o : this->objects)
-        bb.merge(o->bounding_box());
+        bb.merge(o->bounding_box_approx());
     return bb;
+}
+
+BoundingBoxf3 Model::bounding_box_exact() const
+{
+    BoundingBoxf3 bb;
+    for (ModelObject *o : this->objects)
+        bb.merge(o->bounding_box_exact());
+    return bb;
+}
+
+double Model::max_z() const
+{
+    double z = 0;
+    for (ModelObject *o : this->objects)
+        z = std::max(z, o->max_z());
+    return z;
 }
 
 unsigned int Model::update_print_volume_state(const BuildVolume &build_volume)
@@ -623,7 +644,7 @@ void Model::duplicate_objects_grid(size_t x, size_t y, coordf_t dist)
     ModelObject* object = this->objects.front();
     object->clear_instances();
 
-    Vec3d ext_size = object->bounding_box().size() + dist * Vec3d::Ones();
+    Vec3d ext_size = object->bounding_box_exact().size() + dist * Vec3d::Ones();
 
     for (size_t x_copy = 1; x_copy <= x; ++x_copy) {
         for (size_t y_copy = 1; y_copy <= y; ++y_copy) {
@@ -642,7 +663,7 @@ bool Model::looks_like_multipart_object() const
         if (obj->volumes.size() > 1 || obj->config.keys().size() > 1)
             return false;
 
-        double zmin_this = obj->get_min_z();
+        double zmin_this = obj->min_z();
         if (zmin == std::numeric_limits<double>::max())
             zmin = zmin_this;
         else if (std::abs(zmin - zmin_this) > EPSILON)
@@ -799,13 +820,13 @@ void Model::adjust_min_z()
     if (objects.empty())
         return;
 
-    if (bounding_box().min(2) < 0.0)
+    if (this->bounding_box_exact().min.z() < 0.0)
     {
         for (ModelObject* obj : objects)
         {
             if (obj != nullptr)
             {
-                coordf_t obj_min_z = obj->bounding_box().min(2);
+                coordf_t obj_min_z = obj->min_z();
                 if (obj_min_z < 0.0)
                     obj->translate_instances(Vec3d(0.0, 0.0, -obj_min_z));
             }
@@ -836,7 +857,7 @@ end:
 // BBS: backup all in one dir
 std::string Model::get_auxiliary_file_temp_path()
 {
-    return get_backup_path("/Auxiliaries");
+    return get_backup_path("Auxiliaries");
 }
 
 // BBS: backup dir
@@ -935,6 +956,8 @@ void Model::load_from(Model& model)
     stl_design_id = model.stl_design_id;
     model_info  = model.model_info;
     profile_info  = model.profile_info;
+    mk_name = model.mk_name;
+    mk_version = model.mk_version;
     model.design_info.reset();
     model.model_info.reset();
     model.profile_info.reset();
@@ -1014,12 +1037,7 @@ ModelObject& ModelObject::assign_copy(const ModelObject &rhs)
     this->printable                   = rhs.printable;
     this->origin_translation          = rhs.origin_translation;
     this->cut_id.copy(rhs.cut_id);
-    m_bounding_box                    = rhs.m_bounding_box;
-    m_bounding_box_valid              = rhs.m_bounding_box_valid;
-    m_raw_bounding_box                = rhs.m_raw_bounding_box;
-    m_raw_bounding_box_valid          = rhs.m_raw_bounding_box_valid;
-    m_raw_mesh_bounding_box           = rhs.m_raw_mesh_bounding_box;
-    m_raw_mesh_bounding_box_valid     = rhs.m_raw_mesh_bounding_box_valid;
+    this->copy_transformation_caches(rhs);
 
     this->clear_volumes();
     this->volumes.reserve(rhs.volumes.size());
@@ -1057,12 +1075,7 @@ ModelObject& ModelObject::assign_copy(ModelObject &&rhs)
     this->layer_height_profile        = std::move(rhs.layer_height_profile);
     this->printable                   = std::move(rhs.printable);
     this->origin_translation          = std::move(rhs.origin_translation);
-    m_bounding_box                    = std::move(rhs.m_bounding_box);
-    m_bounding_box_valid              = std::move(rhs.m_bounding_box_valid);
-    m_raw_bounding_box                = rhs.m_raw_bounding_box;
-    m_raw_bounding_box_valid          = rhs.m_raw_bounding_box_valid;
-    m_raw_mesh_bounding_box           = rhs.m_raw_mesh_bounding_box;
-    m_raw_mesh_bounding_box_valid     = rhs.m_raw_mesh_bounding_box_valid;
+    this->copy_transformation_caches(rhs);
 
     this->clear_volumes();
 	this->volumes = std::move(rhs.volumes);
@@ -1305,16 +1318,72 @@ void ModelObject::clear_instances()
 
 // Returns the bounding box of the transformed instances.
 // This bounding box is approximate and not snug.
-const BoundingBoxf3& ModelObject::bounding_box() const
+const BoundingBoxf3& ModelObject::bounding_box_approx() const
 {
-    if (! m_bounding_box_valid) {
-        m_bounding_box_valid = true;
+    if (! m_bounding_box_approx_valid) {
+        m_bounding_box_approx_valid = true;
         BoundingBoxf3 raw_bbox = this->raw_mesh_bounding_box();
-        m_bounding_box.reset();
+        m_bounding_box_approx.reset();
         for (const ModelInstance *i : this->instances)
-            m_bounding_box.merge(i->transform_bounding_box(raw_bbox));
+            m_bounding_box_approx.merge(i->transform_bounding_box(raw_bbox));
     }
-    return m_bounding_box;
+    return m_bounding_box_approx;
+}
+
+// Returns the bounding box of the transformed instances.
+// This bounding box is approximate and not snug.
+const BoundingBoxf3& ModelObject::bounding_box_exact() const
+{
+    if (! m_bounding_box_exact_valid) {
+        m_bounding_box_exact_valid = true;
+        m_min_max_z_valid = true;
+        m_bounding_box_exact.reset();
+        for (size_t i = 0; i < this->instances.size(); ++ i)
+            m_bounding_box_exact.merge(this->instance_bounding_box(i));
+    }
+    return m_bounding_box_exact;
+}
+
+double ModelObject::min_z() const
+{
+    const_cast<ModelObject*>(this)->update_min_max_z();
+    return m_bounding_box_exact.min.z();
+}
+
+double ModelObject::max_z() const
+{
+    const_cast<ModelObject*>(this)->update_min_max_z();
+    return m_bounding_box_exact.max.z();
+}
+
+void ModelObject::update_min_max_z()
+{
+    assert(! this->instances.empty());
+    if (! m_min_max_z_valid && ! this->instances.empty()) {
+        m_min_max_z_valid = true;
+        const Transform3d mat_instance = this->instances.front()->get_transformation().get_matrix();
+        double global_min_z = std::numeric_limits<double>::max();
+        double global_max_z = - std::numeric_limits<double>::max();
+        for (const ModelVolume *v : this->volumes)
+            if (v->is_model_part()) {
+                const Transform3d m = mat_instance * v->get_matrix();
+                const Vec3d  row_z   = m.linear().row(2).cast<double>();
+                const double shift_z = m.translation().z();
+                double this_min_z = std::numeric_limits<double>::max();
+                double this_max_z = - std::numeric_limits<double>::max();
+                for (const Vec3f &p : v->mesh().its.vertices) {
+                    double z = row_z.dot(p.cast<double>());
+                    this_min_z = std::min(this_min_z, z);
+                    this_max_z = std::max(this_max_z, z);
+                }
+                this_min_z += shift_z;
+                this_max_z += shift_z;
+                global_min_z = std::min(global_min_z, this_min_z);
+                global_max_z = std::max(global_max_z, this_max_z);
+            }
+        m_bounding_box_exact.min.z() = global_min_z;
+        m_bounding_box_exact.max.z() = global_max_z;
+    }
 }
 
 // A mesh containing all transformed instances of this object.
@@ -1525,19 +1594,19 @@ void ModelObject::ensure_on_bed(bool allow_negative_z)
 
     if (allow_negative_z) {
         if (parts_count() == 1) {
-            const double min_z = get_min_z();
-            const double max_z = get_max_z();
+            const double min_z = this->min_z();
+            const double max_z = this->max_z();
             if (min_z >= SINKING_Z_THRESHOLD || max_z < 0.0)
                 z_offset = -min_z;
         }
         else {
-            const double max_z = get_max_z();
+            const double max_z = this->max_z();
             if (max_z < SINKING_MIN_Z_THRESHOLD)
                 z_offset = SINKING_MIN_Z_THRESHOLD - max_z;
         }
     }
     else
-        z_offset = -get_min_z();
+        z_offset = -this->min_z();
 
     if (z_offset != 0.0)
         translate_instances(z_offset * Vec3d::UnitZ());
@@ -1564,8 +1633,10 @@ void ModelObject::translate(double x, double y, double z)
         v->translate(x, y, z);
     }
 
-    if (m_bounding_box_valid)
-        m_bounding_box.translate(x, y, z);
+    if (m_bounding_box_approx_valid)
+        m_bounding_box_approx.translate(x, y, z);
+    if (m_bounding_box_exact_valid)
+        m_bounding_box_exact.translate(x, y, z);
 }
 
 void ModelObject::scale(const Vec3d &versor)
@@ -2040,32 +2111,6 @@ void ModelObject::bake_xy_rotation_into_meshes(size_t instance_idx)
     }
 
     this->invalidate_bounding_box();
-}
-
-double ModelObject::get_min_z() const
-{
-    if (instances.empty())
-        return 0.0;
-    else {
-        double min_z = DBL_MAX;
-        for (size_t i = 0; i < instances.size(); ++i) {
-            min_z = std::min(min_z, get_instance_min_z(i));
-        }
-        return min_z;
-    }
-}
-
-double ModelObject::get_max_z() const
-{
-    if (instances.empty())
-        return 0.0;
-    else {
-        double max_z = -DBL_MAX;
-        for (size_t i = 0; i < instances.size(); ++i) {
-            max_z = std::max(max_z, get_instance_max_z(i));
-        }
-        return max_z;
-    }
 }
 
 double ModelObject::get_instance_min_z(size_t instance_idx) const
@@ -2604,7 +2649,7 @@ void ModelVolume::scale(const Vec3d& scaling_factors)
 
 void ModelObject::scale_to_fit(const Vec3d &size)
 {
-    Vec3d orig_size = this->bounding_box().size();
+    Vec3d orig_size = this->bounding_box_exact().size();
     double factor = std::min(
         size.x() / orig_size.x(),
         std::min(
