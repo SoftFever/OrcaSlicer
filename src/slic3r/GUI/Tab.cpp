@@ -3525,7 +3525,7 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line(option);
         // optgroup->append_single_option_line("printable_area");
         optgroup->append_single_option_line("printable_height");
-        optgroup->append_single_option_line("support_multi_bed_types");
+        optgroup->append_single_option_line("support_multi_bed_types","bed-types");
         optgroup->append_single_option_line("nozzle_volume");
         optgroup->append_single_option_line("best_object_pos");
         optgroup->append_single_option_line("z_offset");
