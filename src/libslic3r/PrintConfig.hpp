@@ -178,7 +178,7 @@ enum class SeamScarfType {
 
 // Orca
 enum EnsureVerticalShellThickness {
-    vsNone,
+    evstNone,
     evstCriticalOnly,
     evstModerate,
     evstAll,
