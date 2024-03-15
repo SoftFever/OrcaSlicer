@@ -279,10 +279,10 @@ if (NOT MSVC AND ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMP
         # More of a "size" optimization, use thin archives for static building to not waste space
         # Taken from https://bugs.webkit.org/show_bug.cgi?id=108330
         if(SLIC3R_STATIC AND ${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-            set(CMAKE_CXX_ARCHIVE_CREATE "<CMAKE_AR> crU --thin <TARGET> <LINK_FLAGS> <OBJECTS>")
-            set(CMAKE_C_ARCHIVE_CREATE "<CMAKE_AR> crU --thin <TARGET> <LINK_FLAGS> <OBJECTS>")
-            set(CMAKE_CXX_ARCHIVE_APPEND "<CMAKE_AR> rU --thin <TARGET> <LINK_FLAGS> <OBJECTS>")
-            set(CMAKE_C_ARCHIVE_APPEND "<CMAKE_AR> rU --thin <TARGET> <LINK_FLAGS> <OBJECTS>")
+            set(CMAKE_CXX_ARCHIVE_CREATE "<CMAKE_AR> crUT <TARGET> <LINK_FLAGS> <OBJECTS>")
+            set(CMAKE_C_ARCHIVE_CREATE "<CMAKE_AR> crUT <TARGET> <LINK_FLAGS> <OBJECTS>")
+            set(CMAKE_CXX_ARCHIVE_APPEND "<CMAKE_AR> rUT <TARGET> <LINK_FLAGS> <OBJECTS>")
+            set(CMAKE_C_ARCHIVE_APPEND "<CMAKE_AR> rUT <TARGET> <LINK_FLAGS> <OBJECTS>")
         endif()
     endif()
 
