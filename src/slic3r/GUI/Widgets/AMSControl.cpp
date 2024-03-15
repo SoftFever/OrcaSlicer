@@ -1560,7 +1560,7 @@ void AMSRoad::doRender(wxDC &dc)
 
         if (m_amsinfo.ams_humidity >= 1 && m_amsinfo.ams_humidity <= 5) {
 
-            int hum_index = 6 - m_amsinfo.ams_humidity - 1;
+            int hum_index = m_amsinfo.ams_humidity - 1;
             if (wxGetApp().dark_mode()) {
                 hum_index += 5;
             }

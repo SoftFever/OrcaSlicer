@@ -1600,11 +1600,11 @@ AmsHumidityLevelList::AmsHumidityLevelList(wxWindow* parent)
 
     background_img = ScalableBitmap(this, "humidity_list_background", 104);
 
-    for (int i = 1; i <= 5; i++) {
+    for (int i = 5; i > 0; i--) {
         hum_level_img_light.push_back(ScalableBitmap(this, ("hum_level" + std::to_string(i) + "_light"), 54));
     }
 
-    for (int i = 1; i <= 5; i++) {
+    for (int i = 5; i > 5; i--) {
         hum_level_img_dark.push_back(ScalableBitmap(this, ("hum_level" + std::to_string(i) + "_dark"), 54));
     }
 
