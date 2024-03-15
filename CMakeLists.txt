@@ -284,6 +284,10 @@ if (NOT MSVC AND ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMP
             set(CMAKE_CXX_ARCHIVE_APPEND "<CMAKE_AR> rUT <TARGET> <LINK_FLAGS> <OBJECTS>")
             set(CMAKE_C_ARCHIVE_APPEND "<CMAKE_AR> rUT <TARGET> <LINK_FLAGS> <OBJECTS>")
         endif()
+        # Maybe size reduction at cost of compile times?
+        if(FLATPAK)
+            set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
+        endif()
     endif()
 
     # Bit of a hack for flatpak building: compress the debug info with zstd to save space in CI 
