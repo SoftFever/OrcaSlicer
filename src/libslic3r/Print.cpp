@@ -1477,27 +1477,60 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
             }
 
             // check acceleration
-            if (warning_key.empty() && m_default_object_config.default_acceleration > 0) {
-               auto accel_to_check = {
-                   "default_acceleration",
-                   "inner_wall_acceleration",
-                   "outer_wall_acceleration",
-                   "bridge_acceleration",
-                   "initial_layer_acceleration",
-                   "sparse_infill_acceleration",
-                   "internal_solid_infill_acceleration",
-                   "top_surface_acceleration",
-                   "travel_acceleration",
-               };
-               const auto max_accel = m_config.machine_max_acceleration_extruding.values[0];
-               warning_key          = check_motion_ability_object_setting(accel_to_check, max_accel);
-               if (!warning_key.empty()) {
+            const auto max_accel = m_config.machine_max_acceleration_extruding.values[0];
+            if (warning_key.empty() && m_default_object_config.default_acceleration > 0 && max_accel > 0) {
+                const bool support_travel_acc = (m_config.gcode_flavor == gcfRepetier || m_config.gcode_flavor == gcfMarlinFirmware || m_config.gcode_flavor == gcfRepRapFirmware);
+
+                std::initializer_list<const char *> accel_to_check;
+                if (!support_travel_acc)
+                    accel_to_check = {
+                        "default_acceleration",
+                        "inner_wall_acceleration",
+                        "outer_wall_acceleration",
+                        "bridge_acceleration",
+                        "initial_layer_acceleration",
+                        "sparse_infill_acceleration",
+                        "internal_solid_infill_acceleration",
+                        "top_surface_acceleration",
+                        "travel_acceleration",
+                    };
+                else
+                    accel_to_check = {
+                        "default_acceleration",
+                        "inner_wall_acceleration",
+                        "outer_wall_acceleration",
+                        "bridge_acceleration",
+                        "initial_layer_acceleration",
+                        "sparse_infill_acceleration",
+                        "internal_solid_infill_acceleration",
+                        "top_surface_acceleration",
+                    };
+                warning_key          = check_motion_ability_object_setting(accel_to_check, max_accel);
+                if (!warning_key.empty()) {
                     warning->string  = L("The acceleration setting exceeds the printer's maximum acceleration "
                                           "(machine_max_acceleration_extruding).\nOrca will "
                                           "automatically cap the acceleration speed to ensure it doesn't surpass the printer's "
                                           "capabilities.\nYou can adjust the "
                                           "machine_max_acceleration_extruding value in your printer's configuration to get higher speeds.");
                     warning->opt_key = warning_key;
+               }
+               if (support_travel_acc) {
+                   const auto max_travel = m_config.machine_max_acceleration_travel.values[0];
+                   if (max_travel > 0) {
+                       accel_to_check = {
+                           "travel_acceleration",
+                       };
+                       warning_key = check_motion_ability_object_setting(accel_to_check, max_travel);
+                       if (!warning_key.empty()) {
+                           warning->string = L(
+                               "The travel acceleration setting exceeds the printer's maximum travel acceleration "
+                               "(machine_max_acceleration_travel).\nOrca will "
+                               "automatically cap the travel acceleration speed to ensure it doesn't surpass the printer's "
+                               "capabilities.\nYou can adjust the "
+                               "machine_max_acceleration_travel value in your printer's configuration to get higher speeds.");
+                           warning->opt_key = warning_key;
+                       }
+                   }
                }
             }
 
