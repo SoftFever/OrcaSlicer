@@ -225,7 +225,7 @@ void AppConfig::set_defaults()
         set_bool("enable_ssl_for_ftp", true);
 
     if (get("severity_level").empty())
-        set("severity_level", "info");
+        set("severity_level", "2");
 
     if (get("internal_developer_mode").empty())
         set_bool("internal_developer_mode", false);
