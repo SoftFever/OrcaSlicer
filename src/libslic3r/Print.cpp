@@ -1422,8 +1422,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
     // check if print speed/accel/jerk is higher than the maximum speed of the printer
     if (warning) {
         try {
-            auto check_motion_ability_object_setting = [&](const std::initializer_list<const char*>& keys_to_check,
-                                                           double                                    limit) -> std::string {
+            auto check_motion_ability_object_setting = [&](const std::vector<std::string>& keys_to_check, double limit) -> std::string {
                 std::string warning_key;
                 for (const auto& key : keys_to_check) {
                     if (m_default_object_config.get_abs_value(key) > limit) {
@@ -1433,8 +1432,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
                 }
                 return warning_key;
             };
-            auto check_motion_ability_region_setting = [&](const std::initializer_list<const char*>& keys_to_check,
-                                                           double                                    limit) -> std::string {
+            auto check_motion_ability_region_setting = [&](const std::vector<std::string>& keys_to_check, double limit) -> std::string {
                 std::string warning_key;
                 for (const auto& key : keys_to_check) {
                     if (m_default_region_config.get_abs_value(key) > limit) {
@@ -1461,9 +1459,9 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
             }
 
             if (warning_key.empty() && m_default_object_config.default_jerk > 0) {
-               auto       jerk_to_check = {"default_jerk",     "outer_wall_jerk",    "inner_wall_jerk", "infill_jerk",
-                                           "top_surface_jerk", "initial_layer_jerk", "travel_jerk"};
-               const auto max_jerk      = std::min(m_config.machine_max_jerk_x.values[0], m_config.machine_max_jerk_y.values[0]);
+               std::vector<std::string> jerk_to_check = {"default_jerk",     "outer_wall_jerk",    "inner_wall_jerk", "infill_jerk",
+                                                         "top_surface_jerk", "initial_layer_jerk", "travel_jerk"};
+               const auto               max_jerk = std::min(m_config.machine_max_jerk_x.values[0], m_config.machine_max_jerk_y.values[0]);
                warning_key.clear();
                if (m_default_object_config.default_jerk > 0)
                     warning_key = check_motion_ability_object_setting(jerk_to_check, max_jerk);
@@ -1479,10 +1477,11 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
             // check acceleration
             const auto max_accel = m_config.machine_max_acceleration_extruding.values[0];
             if (warning_key.empty() && m_default_object_config.default_acceleration > 0 && max_accel > 0) {
-                const bool support_travel_acc = (m_config.gcode_flavor == gcfRepetier || m_config.gcode_flavor == gcfMarlinFirmware || m_config.gcode_flavor == gcfRepRapFirmware);
+               const bool support_travel_acc = (m_config.gcode_flavor == gcfRepetier || m_config.gcode_flavor == gcfMarlinFirmware ||
+                                                m_config.gcode_flavor == gcfRepRapFirmware);
 
-                std::initializer_list<const char *> accel_to_check;
-                if (!support_travel_acc)
+               std::vector<std::string> accel_to_check;
+               if (!support_travel_acc)
                     accel_to_check = {
                         "default_acceleration",
                         "inner_wall_acceleration",
@@ -1494,7 +1493,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
                         "top_surface_acceleration",
                         "travel_acceleration",
                     };
-                else
+               else
                     accel_to_check = {
                         "default_acceleration",
                         "inner_wall_acceleration",
@@ -1505,8 +1504,8 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
                         "internal_solid_infill_acceleration",
                         "top_surface_acceleration",
                     };
-                warning_key          = check_motion_ability_object_setting(accel_to_check, max_accel);
-                if (!warning_key.empty()) {
+               warning_key = check_motion_ability_object_setting(accel_to_check, max_accel);
+               if (!warning_key.empty()) {
                     warning->string  = L("The acceleration setting exceeds the printer's maximum acceleration "
                                           "(machine_max_acceleration_extruding).\nOrca will "
                                           "automatically cap the acceleration speed to ensure it doesn't surpass the printer's "
@@ -1515,22 +1514,22 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
                     warning->opt_key = warning_key;
                }
                if (support_travel_acc) {
-                   const auto max_travel = m_config.machine_max_acceleration_travel.values[0];
-                   if (max_travel > 0) {
-                       accel_to_check = {
-                           "travel_acceleration",
-                       };
-                       warning_key = check_motion_ability_object_setting(accel_to_check, max_travel);
-                       if (!warning_key.empty()) {
-                           warning->string = L(
-                               "The travel acceleration setting exceeds the printer's maximum travel acceleration "
-                               "(machine_max_acceleration_travel).\nOrca will "
-                               "automatically cap the travel acceleration speed to ensure it doesn't surpass the printer's "
-                               "capabilities.\nYou can adjust the "
-                               "machine_max_acceleration_travel value in your printer's configuration to get higher speeds.");
-                           warning->opt_key = warning_key;
-                       }
-                   }
+                    const auto max_travel = m_config.machine_max_acceleration_travel.values[0];
+                    if (max_travel > 0) {
+                        accel_to_check = {
+                            "travel_acceleration",
+                        };
+                        warning_key = check_motion_ability_object_setting(accel_to_check, max_travel);
+                        if (!warning_key.empty()) {
+                            warning->string = L(
+                                "The travel acceleration setting exceeds the printer's maximum travel acceleration "
+                                "(machine_max_acceleration_travel).\nOrca will "
+                                "automatically cap the travel acceleration speed to ensure it doesn't surpass the printer's "
+                                "capabilities.\nYou can adjust the "
+                                "machine_max_acceleration_travel value in your printer's configuration to get higher speeds.");
+                            warning->opt_key = warning_key;
+                        }
+                    }
                }
             }
 
