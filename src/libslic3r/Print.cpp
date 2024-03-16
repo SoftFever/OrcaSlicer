@@ -1535,22 +1535,23 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
             }
 
             // check speed
-            if (warning_key.empty()) {
-               auto       speed_to_check = {"inner_wall_speed",  "outer_wall_speed", "sparse_infill_speed",   "internal_solid_infill_speed",
-                                            "top_surface_speed", "bridge_speed",     "internal_bridge_speed", "gap_infill_speed"};
-               const auto max_speed      = std::min(m_config.machine_max_speed_x.values[0], m_config.machine_max_speed_y.values[0]);
-               warning_key.clear();
-               warning_key = check_motion_ability_region_setting(speed_to_check, max_speed);
-               if (warning_key.empty() && m_config.travel_speed > max_speed)
-                    warning_key = "travel_speed";
-               if (!warning_key.empty()) {
-                    warning->string = L(
-                        "The speed setting exceeds the printer's maximum speed (machine_max_speed_x/machine_max_speed_y).\nOrca will "
-                        "automatically cap the print speed to ensure it doesn't surpass the printer's capabilities.\nYou can adjust the "
-                        "maximum speed setting in your printer's configuration to get higher speeds.");
-                    warning->opt_key = warning_key;
-               }
-            }
+            // Orca: disable the speed check for now as we don't cap the speed
+            // if (warning_key.empty()) {
+            //    auto       speed_to_check = {"inner_wall_speed",  "outer_wall_speed", "sparse_infill_speed",   "internal_solid_infill_speed",
+            //                                 "top_surface_speed", "bridge_speed",     "internal_bridge_speed", "gap_infill_speed"};
+            //    const auto max_speed      = std::min(m_config.machine_max_speed_x.values[0], m_config.machine_max_speed_y.values[0]);
+            //    warning_key.clear();
+            //    warning_key = check_motion_ability_region_setting(speed_to_check, max_speed);
+            //    if (warning_key.empty() && m_config.travel_speed > max_speed)
+            //         warning_key = "travel_speed";
+            //    if (!warning_key.empty()) {
+            //         warning->string = L(
+            //             "The speed setting exceeds the printer's maximum speed (machine_max_speed_x/machine_max_speed_y).\nOrca will "
+            //             "automatically cap the print speed to ensure it doesn't surpass the printer's capabilities.\nYou can adjust the "
+            //             "maximum speed setting in your printer's configuration to get higher speeds.");
+            //         warning->opt_key = warning_key;
+            //    }
+            // }
 
         } catch (std::exception& e) {
             BOOST_LOG_TRIVIAL(warning) << "Orca: validate motion ability failed: " << e.what() << std::endl;
