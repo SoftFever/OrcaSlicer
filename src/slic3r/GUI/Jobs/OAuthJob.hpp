@@ -51,6 +51,8 @@ public:
     void finalize(bool canceled, std::exception_ptr& e) override;
 
     void set_event_handle(wxWindow* hanle) { m_event_handle = hanle; }
+
+    static void parse_token_response(const std::string& body, bool error, OAuthResult& result);
 };
 
 wxDECLARE_EVENT(EVT_OAUTH_COMPLETE_MESSAGE, wxCommandEvent);

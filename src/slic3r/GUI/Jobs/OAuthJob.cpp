@@ -13,6 +13,26 @@ wxDEFINE_EVENT(EVT_OAUTH_COMPLETE_MESSAGE, wxCommandEvent);
 
 OAuthJob::OAuthJob(const OAuthData& input) : local_authorization_server(input.params.callback_port), _data(input) {}
 
+void OAuthJob::parse_token_response(const std::string& body, bool error, OAuthResult& result)
+{
+    const auto j = nlohmann::json::parse(body, nullptr, false, true);
+    if (j.is_discarded()) {
+        BOOST_LOG_TRIVIAL(warning) << "Invalid or no JSON data on token response: " << body;
+        result.error_message = _u8L("Unknown error");
+    } else if (error) {
+        if (j.contains("error_description")) {
+            j.at("error_description").get_to(result.error_message);
+        } else {
+            result.error_message = _u8L("Unknown error");
+        }
+    } else {
+        j.at("access_token").get_to(result.access_token);
+        j.at("refresh_token").get_to(result.refresh_token);
+        result.success = true;
+    }
+}
+
+
 void OAuthJob::process(Ctl& ctl)
 {
     // Prepare auth process
@@ -47,24 +67,6 @@ void OAuthJob::process(Ctl& ctl)
 
 
             OAuthResult r;
-            const auto  handle_token_result = [&](const std::string body, bool error) {
-                const auto j = nlohmann::json::parse(body, nullptr, false, true);
-                if (j.is_discarded()) {
-                    BOOST_LOG_TRIVIAL(warning) << "Invalid or no JSON data on token response: " << body;
-                    r.error_message = _u8L("Unknown error");
-                } else if (error) {
-                    if (j.contains("error_description")) {
-                        j.at("error_description").get_to(r.error_message);
-                    } else {
-                        r.error_message = _u8L("Unknown error");
-                    }
-                } else {
-                    j.at("access_token").get_to(r.access_token);
-                    j.at("refresh_token").get_to(r.refresh_token);
-                    r.success = true;
-                }
-            };
-
             // Request the access token from the authorization server.
             auto http = Http::post(_data.params.token_url);
             http.timeout_connect(5)
@@ -75,8 +77,8 @@ void OAuthJob::process(Ctl& ctl)
                 .form_add("code", code)
                 .form_add("code_verifier", _data.params.verification_code)
                 .form_add("scope", _data.params.scope)
-                .on_complete([&](std::string body, unsigned status) { handle_token_result(body, false); })
-                .on_error([&](std::string body, std::string error, unsigned status) { handle_token_result(body, true); })
+                .on_complete([&](std::string body, unsigned status) { parse_token_response(body, false, r); })
+                .on_error([&](std::string body, std::string error, unsigned status) { parse_token_response(body, true, r); })
                 .perform_sync();
 
             queue.push(r);
@@ -104,6 +106,8 @@ void OAuthJob::process(Ctl& ctl)
     if (!received && !ctl.was_canceled()) {
         BOOST_LOG_TRIVIAL(debug) << "Timeout when authenticating with the account server.";
         _data.result->error_message = _u8L("Timeout when authenticating with the account server.");
+    } else if (ctl.was_canceled()) {
+        _data.result->error_message = _u8L("User cancelled.");
     }
 }
 
