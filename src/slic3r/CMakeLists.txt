@@ -531,7 +531,7 @@ set(SLIC3R_GUI_SOURCES
     Utils/Obico.cpp    
     Utils/Obico.hpp
     Utils/Flashforge.cpp
-    Utils/FlashForge.hpp
+    Utils/Flashforge.hpp
 )
 
 if (WIN32)
