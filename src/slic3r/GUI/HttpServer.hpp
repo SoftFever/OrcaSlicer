@@ -13,9 +13,6 @@
 #include <string>
 #include <memory>
 
-using namespace boost::system;
-using namespace boost::asio;
-
 #define LOCALHOST_PORT      13618
 #define LOCALHOST_URL       "http://localhost:"
 
@@ -72,7 +69,7 @@ public:
 
 class HttpServer
 {
-    ip::port_type port;
+    boost::asio::ip::port_type port;
 
 public:
     class Response
@@ -99,7 +96,7 @@ public:
         void write_response(std::stringstream& ssOut) override;
     };
 
-    HttpServer(ip::port_type port = LOCALHOST_PORT);
+    HttpServer(boost::asio::ip::port_type port = LOCALHOST_PORT);
 
     boost::thread m_http_server_thread;
     bool          start_http_server = false;
@@ -116,11 +113,11 @@ private:
     {
     public:
         HttpServer&                        server;
-        io_service                         io_service;
-        ip::tcp::acceptor                  acceptor;
+        boost::asio::io_service            io_service;
+        boost::asio::ip::tcp::acceptor     acceptor;
         std::set<std::shared_ptr<session>> sessions;
 
-        IOServer(HttpServer& server) : server(server), acceptor(io_service, {ip::tcp::v4(), server.port}) {}
+        IOServer(HttpServer& server) : server(server), acceptor(io_service, {boost::asio::ip::tcp::v4(), server.port}) {}
 
         void do_accept();
 
@@ -138,7 +135,7 @@ private:
 class session : public std::enable_shared_from_this<session>
 {
     HttpServer::IOServer& server;
-    ip::tcp::socket       socket;
+    boost::asio::ip::tcp::socket socket;
 
     boost::asio::streambuf buff;
     http_headers headers;
@@ -148,7 +145,7 @@ class session : public std::enable_shared_from_this<session>
     void read_body();
 
 public:
-    session(HttpServer::IOServer& server, ip::tcp::socket socket) : server(server), socket(std::move(socket)) {}
+    session(HttpServer::IOServer& server, boost::asio::ip::tcp::socket socket) : server(server), socket(std::move(socket)) {}
 
     void start();
     void stop();

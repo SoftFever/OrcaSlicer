@@ -31,7 +31,7 @@ void session::start()
 void session::stop()
 {
     boost::system::error_code ignored_ec;
-    socket.shutdown(socket_base::shutdown_both, ignored_ec);
+    socket.shutdown(boost::asio::socket_base::shutdown_both, ignored_ec);
     socket.close(ignored_ec);
 }
 
@@ -47,7 +47,7 @@ void session::read_first_line()
             std::getline(stream, ignore, '\n');
             headers.on_read_request_line(line);
             read_next_line();
-        } else if (e != error::operation_aborted) {
+        } else if (e != boost::asio::error::operation_aborted) {
             server.stop(self);
         }
     });
@@ -59,7 +59,7 @@ void session::read_body()
 
     int                                nbuffer = 1000;
     std::shared_ptr<std::vector<char>> bufptr  = std::make_shared<std::vector<char>>(nbuffer);
-    async_read(socket, buffer(*bufptr, nbuffer),
+    async_read(socket, boost::asio::buffer(*bufptr, nbuffer),
                [this, self](const boost::beast::error_code& e, std::size_t s) { server.stop(self); });
 }
 
@@ -82,7 +82,8 @@ void session::read_next_line()
                     std::stringstream ssOut;
                     resp->write_response(ssOut);
                     std::shared_ptr<std::string> str = std::make_shared<std::string>(ssOut.str());
-                    async_write(socket, buffer(str->c_str(), str->length()), [this, self](const boost::beast::error_code& e, std::size_t s) {
+                    async_write(socket, boost::asio::buffer(str->c_str(), str->length()),
+                                [this, self](const boost::beast::error_code& e, std::size_t s) {
                         std::cout << "done" << std::endl;
                         server.stop(self);
                     });
@@ -92,7 +93,7 @@ void session::read_next_line()
             } else {
                 read_next_line();
             }
-        } else if (e != error::operation_aborted) {
+        } else if (e != boost::asio::error::operation_aborted) {
             server.stop(self);
         }
     });
@@ -100,7 +101,7 @@ void session::read_next_line()
 
 void HttpServer::IOServer::do_accept()
 {
-    acceptor.async_accept([this](boost::system::error_code ec, ip::tcp::socket socket) {
+    acceptor.async_accept([this](boost::system::error_code ec, boost::asio::ip::tcp::socket socket) {
         if (!acceptor.is_open()) {
             return;
         }
@@ -135,7 +136,7 @@ void HttpServer::IOServer::stop_all()
 }
 
 
-HttpServer::HttpServer(ip::port_type port) : port(port) {}
+HttpServer::HttpServer(boost::asio::ip::port_type port) : port(port) {}
 
 void HttpServer::start()
 {

@@ -6,11 +6,12 @@
 #include "nlohmann/json.hpp"
 #include "libslic3r/Utils.hpp"
 #include "slic3r/GUI/I18N.hpp"
+#include "slic3r/GUI/format.hpp"
 
 
 namespace Slic3r {
 
-static constexpr ip::port_type CALLBACK_PORT = 21328;
+static constexpr boost::asio::ip::port_type CALLBACK_PORT         = 21328;
 static const std::string CALLBACK_URL = "http://localhost:21328/callback";
 static const std::string RESPONSE_TYPE  = "code";
 static const std::string CLIENT_ID = "simplyprintorcaslicer";
