@@ -107,7 +107,7 @@
 		"40"
 	],
 	"z_hop": [
-		"0.1"
+		"0.2"
 	],
 	"single_extruder_multi_material": "1",
 	"manual_filament_change": "1",
