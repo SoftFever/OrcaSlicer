@@ -1755,6 +1755,22 @@ void PerimeterGenerator::process_classic()
                     this->object_config->brim_type == BrimType::btOuterOnly &&
                     this->object_config->brim_width.value > 0))
                 entities.reverse();
+            else if (this->config->wall_sequence == WallSequence::OuterOuterInner)
+                if (entities.entities.size() > 1) {
+                    entities.reverse();
+
+                    int index;
+
+                    for (index=0; index < entities.entities.size(); index++) {
+                        if (entities.entities[index]->role() == erExternalPerimeter) {
+                            if (  ( (index+1) < entities.entities.size() ) && (entities.entities[index+1]->role() == erPerimeter) ) {
+                                std::swap(entities.entities[index], entities.entities[index+1]);
+                                // Skip next item (which we swapped)
+                                index++;
+                            }
+                        }
+                    }
+                }
             // SoftFever: sandwich mode 
             else if (this->config->wall_sequence == WallSequence::InnerOuterInner)
                 if (entities.entities.size() > 1){
