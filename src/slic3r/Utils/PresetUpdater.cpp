@@ -677,7 +677,7 @@ void PresetUpdater::priv::sync_config()
                     }
                 } catch (...) {}
             }
-            BOOST_LOG_TRIVIAL(error) << format("Error getting: `%1%`: HTTP %2%, %3%", "sync_config_orca", http_status, error);
+            BOOST_LOG_TRIVIAL(info) << format("Error getting: `%1%`: HTTP %2%, %3%", "sync_config_orca", http_status, error);
         })
         .timeout_connect(5)
         .on_complete([this, asset_name, cache_profile_path, cache_profile_update_file](std::string body, unsigned http_status) {
