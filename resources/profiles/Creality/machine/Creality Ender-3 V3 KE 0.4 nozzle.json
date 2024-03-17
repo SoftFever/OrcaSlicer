@@ -71,12 +71,12 @@
 		"5"
 	],
 	"machine_max_jerk_x": [
-		"20",
-		"20"
+		"10",
+		"10"
 	],
 	"machine_max_jerk_y": [
-		"20",
-		"20"
+		"10",
+		"10"
 	],
 	"machine_max_jerk_z": [
 		"0.4",
