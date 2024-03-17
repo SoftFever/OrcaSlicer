@@ -238,6 +238,57 @@ bool SimplyPrint::test(wxString& curl_msg) const
         });
 }
 
-bool SimplyPrint::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, ErrorFn error_fn, InfoFn info_fn) const { return false; }
+bool SimplyPrint::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, ErrorFn error_fn, InfoFn info_fn) const
+{
+    if (cred.find("access_token") == cred.end()) {
+        return false;
+    }
+
+    // If file is over 100 MB, fail
+    if (boost::filesystem::file_size(upload_data.source_path) > 104857600ull) {
+        error_fn(_L("File size exceeds the 100MB upload limit. Please upload your file through the panel."));
+        return false;
+    }
+
+    const auto filename = upload_data.upload_path.filename().string();
+
+    return do_api_call(
+        [&upload_data, &prorgess_fn, &filename](bool is_retry) {
+            auto http = Http::post("https://simplyprint.io/api/files/TempUpload");
+            http.form_add_file("file", upload_data.source_path.string(), filename)
+                .on_progress([&prorgess_fn](Http::Progress progress, bool& cancel) { prorgess_fn(std::move(progress), cancel); });
+
+            return http;
+        },
+        [&error_fn, &filename](std::string body, unsigned status) {
+            BOOST_LOG_TRIVIAL(info) << boost::format("SimplyPrint: File uploaded: HTTP %1%: %2%") % status % body;
+
+            // Get file UUID
+            const auto j = nlohmann::json::parse(body, nullptr, false, true);
+            if (j.is_discarded()) {
+                BOOST_LOG_TRIVIAL(error) << "SimplyPrint: Invalid or no JSON data on token response: " << body;
+                error_fn(_L("Unknown error"));
+                return false;
+            }
+
+            if (j.find("uuid") == j.end()) {
+                BOOST_LOG_TRIVIAL(error) << "SimplyPrint: Invalid or no JSON data on token response: " << body;
+                error_fn(_L("Unknown error"));
+                return false;
+            }
+            const std::string uuid = j["uuid"];
+
+            // Launch external browser for file importing after uploading
+            const auto url = "https://simplyprint.io/panel?" + url_encode({{"import", "tmp:" + uuid}, {"filename", filename}});
+            wxLaunchDefaultBrowser(url);
+
+            return true;
+        },
+        [this, &error_fn](std::string body, std::string error, unsigned status) {
+            BOOST_LOG_TRIVIAL(error) << boost::format("SimplyPrint: Error uploading file : %1%, HTTP %2%, body: `%3%`") % error % status % body;
+            error_fn(format_error(body, error, status));
+            return false;
+        });
+}
 
 } // namespace Slic3r
