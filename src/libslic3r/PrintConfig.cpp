@@ -3588,6 +3588,17 @@ def = this->add("filament_loading_speed", coFloats);
     def->max = 180;
     def->set_default_value(new ConfigOptionInt(155));
 
+    def = this->add("scarf_overhang_threshold", coPercent);
+    def->label = L("Conditional overhang threshold");
+    def->category = L("Quality");
+    def->tooltip  = L("This option determines the overhang threshold for the application of scarf joint seams. If the unsupported portion "
+                       "of the perimeter is less than this threshold, scarf joint seams will be applied. The default threshold is set at 40% "
+                       "of the external wall's width. Due to performance considerations, the degree of overhang is estimated.");
+    def->sidetext = L("%");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionPercent(40));
+
     def = this->add("scarf_joint_speed", coFloatOrPercent);
     def->label = L("Scarf joint speed");
     def->category = L("Quality");
@@ -3605,7 +3616,7 @@ def = this->add("filament_loading_speed", coFloats);
     def = this->add("scarf_joint_flow_ratio", coFloat);
     def->label = L("Scarf joint flow ratio");
     def->tooltip = L("This factor affects the amount of material for scarf joints.");
-    def->mode = comAdvanced;
+    def->mode = comDevelop;
     def->max = 2;
     def->set_default_value(new ConfigOptionFloat(1));
 
