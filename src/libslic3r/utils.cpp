@@ -171,7 +171,7 @@ boost::shared_ptr<boost::log::sinks::synchronous_sink<boost::log::sinks::text_fi
 // to perform unit and integration tests.
 static struct RunOnInit {
     RunOnInit() {
-        set_logging_level(1);
+        set_logging_level(2);
 
     }
 } g_RunOnInit;
@@ -345,10 +345,11 @@ void set_log_path_and_level(const std::string& file, unsigned int level)
 		keywords::format =
 		(
 			expr::stream
+			<< "[" << expr::attr< logging::trivial::severity_level >("Severity") << "]\t"
 			<< expr::format_date_time< boost::posix_time::ptime >("TimeStamp", "%Y-%m-%d %H:%M:%S.%f")
 			<<"[Thread " << expr::attr<attrs::current_thread_id::value_type>("ThreadID") << "]"
 			<< ":" << expr::smessage
-			)
+		)
 	);
 
 	logging::add_common_attributes();

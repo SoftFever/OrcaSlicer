@@ -405,6 +405,7 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
 
             // Reapply the nearest point search for starting point.
             // We allow polyline reversal because Clipper may have randomly reversed polylines during clipping.
+            if(paths.empty()) continue;
             chain_and_reorder_extrusion_paths(paths, &paths.front().first_point());
             // smothing the overhang degree
             // merge small path between paths which have same overhang degree
