@@ -1,5 +1,5 @@
 #!/bin/sh
-APPIMAGETOOLURL="https://github.com/AppImage/AppImageKit/releases/latest/download/appimagetool-x86_64.AppImage"
+APPIMAGETOOLURL="https://github.com/AppImage/AppImageKit/releases/latest/download/appimagetool-$(uname -m).AppImage"
 
 
 APP_IMAGE="@SLIC3R_APP_KEY@_Linux_V@SoftFever_VERSION@.AppImage"
@@ -35,5 +35,5 @@ else
   ../appimagetool.AppImage . $([ ! -z "${container}" ] && echo '--appimage-extract-and-run')
 fi
 
-mv @SLIC3R_APP_KEY@-x86_64.AppImage ${APP_IMAGE}
+mv @SLIC3R_APP_KEY@-$(uname -m).AppImage ${APP_IMAGE}
 chmod +x ${APP_IMAGE}

@@ -7,6 +7,7 @@
 #include <cmath>
 #include <limits>
 #include <sstream>
+#include "Utils.hpp"
 
 #define L(s) (s)
 
@@ -338,6 +339,174 @@ double ExtrusionLoop::min_mm3_per_mm() const
     for (const ExtrusionPath &path : this->paths)
         min_mm3_per_mm = std::min(min_mm3_per_mm, path.mm3_per_mm);
     return min_mm3_per_mm;
+}
+
+// Orca: This function is used to check if the loop is smooth(continuous) or not. 
+// TODO: the main logic is largly copied from the calculate_polygon_angles_at_vertices function in SeamPlacer file. Need to refactor the code in the future.
+bool ExtrusionLoop::is_smooth(double angle_threshold, double min_arm_length) const
+{
+    // go through all the points in the loop and check if the angle between two segments(AB and BC) is less than the threshold
+    size_t idx_prev = 0;
+    size_t idx_curr = 0;
+    size_t idx_next = 0;
+
+    float distance_to_prev = 0;
+    float distance_to_next = 0;
+
+    const auto _polygon = polygon();
+    const Points& points = _polygon.points;
+
+    std::vector<float> lengths{};
+    for (size_t point_idx = 0; point_idx < points.size() - 1; ++point_idx) {
+        lengths.push_back((unscale(points[point_idx]) - unscale(points[point_idx + 1])).norm());
+    }
+    lengths.push_back(std::max((unscale(points[0]) - unscale(points[points.size() - 1])).norm(), 0.1));
+
+    // push idx_prev far enough back as initialization
+    while (distance_to_prev < min_arm_length) {
+        idx_prev = Slic3r::prev_idx_modulo(idx_prev, points.size());
+        distance_to_prev += lengths[idx_prev];
+    }
+
+    for (size_t _i = 0; _i < points.size(); ++_i) {
+        // pull idx_prev to current as much as possible, while respecting the min_arm_length
+        while (distance_to_prev - lengths[idx_prev] > min_arm_length) {
+            distance_to_prev -= lengths[idx_prev];
+            idx_prev = Slic3r::next_idx_modulo(idx_prev, points.size());
+        }
+
+        // push idx_next forward as far as needed
+        while (distance_to_next < min_arm_length) {
+            distance_to_next += lengths[idx_next];
+            idx_next = Slic3r::next_idx_modulo(idx_next, points.size());
+        }
+
+        // Calculate angle between idx_prev, idx_curr, idx_next.
+        const Point& p0 = points[idx_prev];
+        const Point& p1 = points[idx_curr];
+        const Point& p2 = points[idx_next];
+        const auto a = angle(p0 - p1, p2 - p1);
+        if (a > 0 ? a < angle_threshold : a > -angle_threshold) {
+            return false;
+        }
+
+        // increase idx_curr by one
+        float curr_distance = lengths[idx_curr];
+        idx_curr++;
+        distance_to_prev += curr_distance;
+        distance_to_next -= curr_distance;
+    }
+
+    return true;
+}
+
+ExtrusionLoopSloped::ExtrusionLoopSloped(ExtrusionPaths&   original_paths,
+                                         double            seam_gap,
+                                         double            slope_min_length,
+                                         double            slope_max_segment_length,
+                                         double            start_slope_ratio,
+                                         ExtrusionLoopRole role)
+    : ExtrusionLoop(role)
+{
+    // create slopes
+    const auto add_slop = [this, slope_max_segment_length, seam_gap](const ExtrusionPath& path, const Polyline& poly,
+                                                                          double ratio_begin, double ratio_end) {
+        if (poly.empty()) {
+            return;
+        }
+
+        // Ensure `slope_max_segment_length`
+        Polyline detailed_poly;
+        {
+            detailed_poly.append(poly.first_point());
+
+            // Recursively split the line into half until no longer than `slope_max_segment_length`
+            const std::function<void(const Line&)> handle_line = [slope_max_segment_length, &detailed_poly, &handle_line](const Line& line) {
+                if (line.length() <= slope_max_segment_length) {
+                    detailed_poly.append(line.b);
+                } else {
+                    // Then process left half
+                    handle_line({line.a, line.midpoint()});
+                    // Then process right half
+                    handle_line({line.midpoint(), line.b});
+                }
+            };
+
+            for (const auto& l : poly.lines()) {
+                handle_line(l);
+            }
+        }
+
+        starts.emplace_back(detailed_poly, path, ExtrusionPathSloped::Slope{ratio_begin, ratio_begin},
+                                    ExtrusionPathSloped::Slope{ratio_end, ratio_end});
+
+        if (is_approx(ratio_end, 1.) && seam_gap > 0) {
+            // Remove the segments that has no extrusion
+            const auto seg_length = detailed_poly.length();
+            if (seg_length > seam_gap) {
+                // Split the segment and remove the last `seam_gap` bit
+                const Polyline orig = detailed_poly;
+                Polyline       tmp;
+                orig.split_at_length(seg_length - seam_gap, &detailed_poly, &tmp);
+
+                ratio_end = lerp(ratio_begin, ratio_end, (seg_length - seam_gap) / seg_length);
+                assert(1. - ratio_end > EPSILON);
+            } else {
+                // Remove the entire segment
+                detailed_poly.clear();
+            }
+        }
+        if (!detailed_poly.empty()) {
+            ends.emplace_back(detailed_poly, path, ExtrusionPathSloped::Slope{1., 1. - ratio_begin},
+                                      ExtrusionPathSloped::Slope{1., 1. - ratio_end});
+        }
+    };
+
+    double remaining_length = slope_min_length;
+
+    ExtrusionPaths::iterator path        = original_paths.begin();
+    double                   start_ratio = start_slope_ratio;
+    for (; path != original_paths.end() && remaining_length > 0; ++path) {
+        const double path_len = unscale_(path->length());
+        if (path_len > remaining_length) {
+            // Split current path into slope and non-slope part
+            Polyline slope_path;
+            Polyline flat_path;
+            path->polyline.split_at_length(scale_(remaining_length), &slope_path, &flat_path);
+
+            add_slop(*path, slope_path, start_ratio, 1);
+            start_ratio = 1;
+
+            paths.emplace_back(std::move(flat_path), *path);
+            remaining_length = 0;
+        } else {
+            remaining_length -= path_len;
+            const double end_ratio = lerp(1.0, start_slope_ratio, remaining_length / slope_min_length);
+            add_slop(*path, path->polyline, start_ratio, end_ratio);
+            start_ratio = end_ratio;
+        }
+    }
+    assert(remaining_length <= 0);
+    assert(start_ratio == 1.);
+
+    // Put remaining flat paths
+    paths.insert(paths.end(), path, original_paths.end());
+}
+
+std::vector<const ExtrusionPath*> ExtrusionLoopSloped::get_all_paths() const {
+    std::vector<const ExtrusionPath*> r;
+    r.reserve(starts.size() + paths.size() + ends.size());
+    for (const auto& p : starts) {
+        r.push_back(&p);
+    }
+    for (const auto& p : paths) {
+        r.push_back(&p);
+    }
+    for (const auto& p : ends) {
+        r.push_back(&p);
+    }
+
+    return r;
 }
 
 

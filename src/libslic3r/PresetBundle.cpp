@@ -130,6 +130,7 @@ PresetBundle& PresetBundle::operator=(const PresetBundle &rhs)
     project_config      = rhs.project_config;
     vendors             = rhs.vendors;
     obsolete_presets    = rhs.obsolete_presets;
+    m_errors    = rhs.m_errors;
 
     // Adjust Preset::vendor pointers to point to the copied vendors map.
     prints       .update_vendor_ptrs_after_copy(this->vendors);
@@ -1405,6 +1406,7 @@ std::vector<std::string> PresetBundle::merge_presets(PresetBundle &&other)
 	append(duplicate_prints, std::move(duplicate_filaments));
     append(duplicate_prints, std::move(duplicate_sla_materials));
     append(duplicate_prints, std::move(duplicate_printers));
+    m_errors += other.m_errors;
     return duplicate_prints;
 }
 

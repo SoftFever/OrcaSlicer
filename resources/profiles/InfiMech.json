@@ -1,6 +1,6 @@
 {
     "name": "InfiMech",
-    "version": "01.09.00.02",
+    "version": "02.00.00.00",
     "force_update": "1",
     "description": "InfiMech configurations",
     "machine_model_list": [
@@ -150,6 +150,15 @@
         {
             "name": "Other PLA Hyper",
             "sub_path": "filament/Other PLA Hyper.json"
+        },
+        
+        {
+            "name": "fdm_filament_pla_Hyper",
+            "sub_path": "filament/fdm_filament_pla_Hyper.json"
+        },
+        {
+            "name": "InfiMech PLA Hyper",
+            "sub_path": "filament/InfiMech PLA Hyper.json"
         }
 
 	    

@@ -7,6 +7,7 @@
 #include "I18N.hpp"
 #include "GUI_App.hpp"
 #include "format.hpp"
+#include "libslic3r/Config.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/PresetBundle.hpp"
 #include "MsgDialog.hpp"
@@ -171,8 +172,9 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         return;
 
     // layer_height shouldn't be equal to zero
+    auto layer_height = config->opt_float("layer_height");
     auto gpreset = GUI::wxGetApp().preset_bundle->printers.get_edited_preset();
-    if (config->opt_float("layer_height") < EPSILON)
+    if (layer_height < EPSILON)
     {
         const wxString msg_text = _(L("Too small layer height.\nReset to 0.2"));
         MessageDialog dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxOK);
@@ -186,7 +188,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
 
     //BBS: limite the max layer_herght
     auto max_lh = gpreset.config.opt_float("max_layer_height",0);
-    if (max_lh > 0.2 && config->opt_float("layer_height") > max_lh+ EPSILON)
+    if (max_lh > 0.2 && layer_height > max_lh+ EPSILON)
     {
         const wxString msg_text = wxString::Format(L"Too large layer height.\nReset to %0.3f", max_lh);
         MessageDialog dialog(nullptr, msg_text, "", wxICON_WARNING | wxOK);
@@ -326,14 +328,14 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         }
         is_msg_dlg_already_exist = false;
     }
-    
-    if (config->opt_bool("alternate_extra_wall") && config->opt_bool("ensure_vertical_shell_thickness"))
-    {
-        wxString msg_text = _(L("Alternate extra wall only works with ensure vertical shell thickness disabled. "));
+
+    if (config->opt_bool("alternate_extra_wall") &&
+        (config->opt_enum<EnsureVerticalShellThickness>("ensure_vertical_shell_thickness") == evstAll)) {
+        wxString msg_text = _(L("Alternate extra wall does't work well when ensure vertical shell thickness is set to All. "));
 
         if (is_global_config)
             msg_text += "\n\n" + _(L("Change these settings automatically? \n"
-                                     "Yes - Disable ensure vertical shell thickness and enable alternate extra wall\n"
+                                     "Yes - Change ensure vertical shell thickness to Moderate and enable alternate extra wall\n"
                                      "No  - Dont use alternate extra wall"));
         
         MessageDialog dialog(m_msg_dlg_parent, msg_text, "",
@@ -341,11 +343,11 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         DynamicPrintConfig new_conf = *config;
         auto answer = dialog.ShowModal();
         if (!is_global_config || answer == wxID_YES) {
-            new_conf.set_key_value("ensure_vertical_shell_thickness", new ConfigOptionBool(false));
+            new_conf.set_key_value("ensure_vertical_shell_thickness", new ConfigOptionEnum<EnsureVerticalShellThickness>(evstModerate));
             new_conf.set_key_value("alternate_extra_wall", new ConfigOptionBool(true));
         }
         else {
-            new_conf.set_key_value("ensure_vertical_shell_thickness", new ConfigOptionBool(true));
+            new_conf.set_key_value("ensure_vertical_shell_thickness", new ConfigOptionEnum<EnsureVerticalShellThickness>(evstAll));
             new_conf.set_key_value("alternate_extra_wall", new ConfigOptionBool(false));
         }
         apply(config, &new_conf);
@@ -397,7 +399,6 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
 
     // BBS
     if (has_wipe_tower && config->opt_bool("enable_support") && !config->opt_bool("independent_support_layer_height")) {
-        double layer_height = config->opt_float("layer_height");
         double top_gap_raw = config->opt_float("support_top_z_distance");
         //double bottom_gap_raw = config->opt_float("support_bottom_z_distance");
         double top_gap = std::round(top_gap_raw / layer_height) * layer_height;
@@ -467,7 +468,18 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         apply(config, &new_conf);
         is_msg_dlg_already_exist = false;
     }
-    
+
+    if (config->opt_enum<SeamScarfType>("seam_slope_type") != SeamScarfType::None &&
+        config->get_abs_value("seam_slope_start_height") >= layer_height) {
+        const wxString     msg_text = _(L("seam_slope_start_height need to be smaller than layer_height.\nReset to 0."));
+        MessageDialog      dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxOK);
+        DynamicPrintConfig new_conf = *config;
+        is_msg_dlg_already_exist    = true;
+        dialog.ShowModal();
+        new_conf.set_key_value("seam_slope_start_height", new ConfigOptionFloatOrPercent(0, false));
+        apply(config, &new_conf);
+        is_msg_dlg_already_exist = false;
+    }
 }
 
 void ConfigManipulation::apply_null_fff_config(DynamicPrintConfig *config, std::vector<std::string> const &keys, std::map<ObjectBase *, ModelConfig *> const &configs)
@@ -516,13 +528,6 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     bool have_gap_fill = config->opt_enum<GapFillTarget>("gap_fill_target") != gftNowhere;
     toggle_line("filter_out_gap_fill", have_gap_fill);
 
-    bool have_ensure_vertical_thickness = config->opt_bool("ensure_vertical_shell_thickness");
-    if(have_ensure_vertical_thickness) {
-        DynamicPrintConfig new_conf = *config;
-        new_conf.set_key_value("reduce_wall_solid_infill", new ConfigOptionBool(false));
-        apply(config, &new_conf);
-    }
-    toggle_line("reduce_wall_solid_infill",!have_ensure_vertical_thickness);
     
     bool have_perimeters = config->opt_int("wall_loops") > 0;
     for (auto el : { "extra_perimeters_on_overhangs", "ensure_vertical_shell_thickness", "detect_thin_wall", "detect_overhang_wall",
@@ -752,6 +757,20 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
 
     bool have_small_area_infill_flow_compensation = config->opt_bool("small_area_infill_flow_compensation");
     toggle_line("small_area_infill_flow_compensation_model", have_small_area_infill_flow_compensation);
+
+    
+    toggle_field("seam_slope_type", !has_spiral_vase);
+    bool has_seam_slope = !has_spiral_vase && config->opt_enum<SeamScarfType>("seam_slope_type") != SeamScarfType::None;
+    toggle_line("seam_slope_conditional", has_seam_slope);
+    toggle_line("seam_slope_start_height", has_seam_slope);
+    toggle_line("seam_slope_entire_loop", has_seam_slope);
+    toggle_line("seam_slope_min_length", has_seam_slope);
+    toggle_line("seam_slope_steps", has_seam_slope);
+    toggle_line("seam_slope_inner_walls", has_seam_slope);
+    toggle_line("scarf_joint_speed", has_seam_slope);
+    toggle_line("scarf_joint_flow_ratio", has_seam_slope);
+    toggle_field("seam_slope_min_length", !config->opt_bool("seam_slope_entire_loop"));
+    toggle_line("scarf_angle_threshold", has_seam_slope && config->opt_bool("seam_slope_conditional"));
 }
 
 void ConfigManipulation::update_print_sla_config(DynamicPrintConfig* config, const bool is_global_config/* = false*/)

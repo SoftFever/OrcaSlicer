@@ -1976,6 +1976,16 @@ void TabPrint::build()
         optgroup->append_single_option_line("seam_position", "seam");
         optgroup->append_single_option_line("staggered_inner_seams", "seam");
         optgroup->append_single_option_line("seam_gap","seam");
+        optgroup->append_single_option_line("seam_slope_type", "seam#scarf-joint-seam");
+        optgroup->append_single_option_line("seam_slope_conditional", "seam#scarf-joint-seam");
+        optgroup->append_single_option_line("scarf_angle_threshold", "seam#scarf-joint-seam");
+        optgroup->append_single_option_line("scarf_joint_speed", "seam#scarf-joint-seam");
+        optgroup->append_single_option_line("seam_slope_start_height", "seam#scarf-joint-seam");
+        optgroup->append_single_option_line("seam_slope_entire_loop", "seam#scarf-joint-seam");
+        optgroup->append_single_option_line("seam_slope_min_length", "seam#scarf-joint-seam");
+        optgroup->append_single_option_line("seam_slope_steps", "seam#scarf-joint-seam");
+        optgroup->append_single_option_line("scarf_joint_flow_ratio", "seam#scarf-joint-seam");
+        optgroup->append_single_option_line("seam_slope_inner_walls", "seam#scarf-joint-seam");
         optgroup->append_single_option_line("role_based_wipe_speed","seam");
         optgroup->append_single_option_line("wipe_speed", "seam");
         optgroup->append_single_option_line("wipe_on_loops","seam");
@@ -2041,7 +2051,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("thick_bridges");
         optgroup->append_single_option_line("thick_internal_bridges");
         optgroup->append_single_option_line("dont_filter_internal_bridges");
-        optgroup->append_single_option_line("counterbole_hole_bridging","counterbole-hole-bridging");
+        optgroup->append_single_option_line("counterbore_hole_bridging","counterbore-hole-bridging");
     
         optgroup = page->new_optgroup(L("Overhangs"), L"param_advanced");
         optgroup->append_single_option_line("detect_overhang_wall");
@@ -2084,7 +2094,6 @@ void TabPrint::build()
         optgroup->append_single_option_line("infill_combination");
         optgroup->append_single_option_line("detect_narrow_internal_solid_infill");
         optgroup->append_single_option_line("ensure_vertical_shell_thickness");
-        optgroup->append_single_option_line("reduce_wall_solid_infill");
 
     page = add_options_page(L("Speed"), "empty");
         optgroup = page->new_optgroup(L("Initial layer speed"), L"param_speed_first", 15);
@@ -2146,8 +2155,8 @@ void TabPrint::build()
         optgroup->append_single_option_line("travel_jerk");
         
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced", 15);
-        optgroup->append_single_option_line("max_volumetric_extrusion_rate_slope");
-        optgroup->append_single_option_line("max_volumetric_extrusion_rate_slope_segment_length");
+        optgroup->append_single_option_line("max_volumetric_extrusion_rate_slope", "extrusion-rate-smoothing");
+        optgroup->append_single_option_line("max_volumetric_extrusion_rate_slope_segment_length", "extrusion-rate-smoothing");
 
     page = add_options_page(L("Support"), "support");
         optgroup = page->new_optgroup(L("Support"), L"param_support");
@@ -3516,7 +3525,7 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line(option);
         // optgroup->append_single_option_line("printable_area");
         optgroup->append_single_option_line("printable_height");
-        optgroup->append_single_option_line("support_multi_bed_types");
+        optgroup->append_single_option_line("support_multi_bed_types","bed-types");
         optgroup->append_single_option_line("nozzle_volume");
         optgroup->append_single_option_line("best_object_pos");
         optgroup->append_single_option_line("z_offset");
@@ -3562,10 +3571,10 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line("extruder_clearance_height_to_lid");
 
         optgroup = page->new_optgroup(L("Adaptive bed mesh"));
-        optgroup->append_single_option_line("bed_mesh_min", "adaptive_bed_mesh");
-        optgroup->append_single_option_line("bed_mesh_max", "adaptive_bed_mesh");
-        optgroup->append_single_option_line("bed_mesh_probe_distance", "adaptive_bed_mesh");
-        optgroup->append_single_option_line("adaptive_bed_mesh_margin", "adaptive_bed_mesh");
+        optgroup->append_single_option_line("bed_mesh_min", "adaptive-bed-mesh");
+        optgroup->append_single_option_line("bed_mesh_max", "adaptive-bed-mesh");
+        optgroup->append_single_option_line("bed_mesh_probe_distance", "adaptive-bed-mesh");
+        optgroup->append_single_option_line("adaptive_bed_mesh_margin", "adaptive-bed-mesh");
 
         optgroup = page->new_optgroup(L("Accessory") /*, L"param_accessory"*/);
         optgroup->append_single_option_line("nozzle_type");
@@ -4586,7 +4595,7 @@ bool Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
         bool 			   new_preset_compatible = is_compatible_with_print(dependent.get_edited_preset_with_vendor_profile(),
         	m_presets->get_preset_with_vendor_profile(*m_presets->find_preset(preset_name, true)), printer_profile);
         if (! canceled)
-            canceled = old_preset_dirty && ! new_preset_compatible && ! may_discard_current_dirty_preset(&dependent, preset_name) && !force_select;
+            canceled = old_preset_dirty && ! may_discard_current_dirty_preset(&dependent, preset_name) && ! new_preset_compatible && !force_select;
         if (! canceled) {
             // The preset will be switched to a different, compatible preset, or the '-- default --'.
             m_dependent_tabs.emplace_back((printer_technology == ptFFF) ? Preset::Type::TYPE_FILAMENT : Preset::Type::TYPE_SLA_MATERIAL);
@@ -4627,7 +4636,7 @@ bool Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
                 pu.old_preset_dirty = (old_printer_technology == pu.technology) && pu.presets->current_is_dirty();
                 pu.new_preset_compatible = (new_printer_technology == pu.technology) && is_compatible_with_printer(pu.presets->get_edited_preset_with_vendor_profile(), new_printer_preset_with_vendor_profile);
                 if (!canceled)
-                    canceled = pu.old_preset_dirty && !pu.new_preset_compatible && !may_discard_current_dirty_preset(pu.presets, preset_name) && !force_select;
+                    canceled = pu.old_preset_dirty && !may_discard_current_dirty_preset(pu.presets, preset_name) && !pu.new_preset_compatible && !force_select;
             }
             if (!canceled) {
                 for (PresetUpdate &pu : updates) {

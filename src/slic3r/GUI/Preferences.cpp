@@ -351,7 +351,7 @@ wxBoxSizer *PreferencesDialog::create_item_loglevel_combobox(wxString title, wxW
     std::vector<wxString>::iterator iter;
     for (iter = vlist.begin(); iter != vlist.end(); iter++) { combobox->Append(*iter); }
 
-    auto severity_level = app_config->get("severity_level");
+    auto severity_level = app_config->get("log_severity_level");
     if (!severity_level.empty()) { combobox->SetValue(severity_level); }
 
     m_sizer_combox->Add(combobox, 0, wxALIGN_CENTER, 0);
@@ -360,7 +360,7 @@ wxBoxSizer *PreferencesDialog::create_item_loglevel_combobox(wxString title, wxW
     combobox->GetDropDown().Bind(wxEVT_COMBOBOX, [this](wxCommandEvent &e) {
         auto level = Slic3r::get_string_logging_level(e.GetSelection());
         Slic3r::set_logging_level(Slic3r::level_string_to_boost(level));
-        app_config->set("severity_level",level);
+        app_config->set("log_severity_level",level);
         e.Skip();
      });
     return m_sizer_combox;

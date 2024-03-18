@@ -301,6 +301,42 @@ private:
     bool m_no_extrusion = false;
 };
 
+class ExtrusionPathSloped : public ExtrusionPath
+{
+public:
+    struct Slope
+    {
+        double z_ratio{1.};
+        double e_ratio{1.};
+    };
+
+    Slope slope_begin;
+    Slope slope_end;
+
+    ExtrusionPathSloped(const ExtrusionPath& rhs, const Slope& begin, const Slope& end)
+        : ExtrusionPath(rhs), slope_begin(begin), slope_end(end)
+    {}
+    ExtrusionPathSloped(ExtrusionPath&& rhs, const Slope& begin, const Slope& end)
+        : ExtrusionPath(std::move(rhs)), slope_begin(begin), slope_end(end)
+    {}
+    ExtrusionPathSloped(const Polyline& polyline, const ExtrusionPath& rhs, const Slope& begin, const Slope& end)
+        : ExtrusionPath(polyline, rhs), slope_begin(begin), slope_end(end)
+    {}
+    ExtrusionPathSloped(Polyline&& polyline, const ExtrusionPath& rhs, const Slope& begin, const Slope& end)
+        : ExtrusionPath(std::move(polyline), rhs), slope_begin(begin), slope_end(end)
+    {}
+
+    Slope interpolate(const double ratio) const
+    {
+        return {
+            lerp(slope_begin.z_ratio, slope_end.z_ratio, ratio),
+            lerp(slope_begin.e_ratio, slope_end.e_ratio, ratio),
+        };
+    }
+
+    bool is_flat() const { return is_approx(slope_begin.z_ratio, slope_end.z_ratio); }
+};
+
 class ExtrusionPathOriented : public ExtrusionPath
 {
 public:
@@ -443,7 +479,8 @@ public:
             append(dst, p.polyline.points);
     }
     double total_volume() const override { double volume =0.; for (const auto& path : paths) volume += path.total_volume(); return volume; }
-
+    // check if the loop is smooth, angle_threshold is in radians, default is 10 degrees
+    bool is_smooth(double angle_threshold = 0.174, double min_arm_length = 0.025) const;
     //static inline std::string role_to_string(ExtrusionLoopRole role);
 
 #ifndef NDEBUG
@@ -457,6 +494,22 @@ public:
 
 private:
     ExtrusionLoopRole m_loop_role;
+};
+
+class ExtrusionLoopSloped : public ExtrusionLoop
+{
+public:
+    std::vector<ExtrusionPathSloped> starts;
+    std::vector<ExtrusionPathSloped> ends;
+
+    ExtrusionLoopSloped(ExtrusionPaths& original_paths,
+                        double          seam_gap,
+                        double          slope_min_length,
+                        double          slope_max_segment_length,
+                        double          start_slope_ratio,
+                        ExtrusionLoopRole role = elrDefault);
+
+    [[nodiscard]] std::vector<const ExtrusionPath*> get_all_paths() const;
 };
 
 inline void extrusion_paths_append(ExtrusionPaths &dst, Polylines &polylines, ExtrusionRole role, double mm3_per_mm, float width, float height)
