@@ -6184,8 +6184,8 @@ bool GLCanvas3D::_init_main_toolbar()
     //BBS: main toolbar is at the top and left, we don't need the rounded-corner effect at the right side and the top side
     m_main_toolbar.set_horizontal_orientation(GLToolbar::Layout::HO_Right);
     m_main_toolbar.set_vertical_orientation(GLToolbar::Layout::VO_Top);
-    m_main_toolbar.set_border(5.0f);
-    m_main_toolbar.set_separator_size(5);
+    m_main_toolbar.set_border(4.0f);
+    m_main_toolbar.set_separator_size(4);
     m_main_toolbar.set_gap_size(4);
 
     m_main_toolbar.del_all_item();
@@ -6374,7 +6374,7 @@ bool GLCanvas3D::_init_assemble_view_toolbar()
     //BBS: assemble toolbar is at the top and right, we don't need the rounded-corner effect at the left side and the top side
     m_assemble_view_toolbar.set_horizontal_orientation(GLToolbar::Layout::HO_Left);
     m_assemble_view_toolbar.set_vertical_orientation(GLToolbar::Layout::VO_Top);
-    m_assemble_view_toolbar.set_border(5.0f);
+    m_assemble_view_toolbar.set_border(4.0f);
     m_assemble_view_toolbar.set_separator_size(10);
     m_assemble_view_toolbar.set_gap_size(4);
 
@@ -6431,7 +6431,7 @@ bool GLCanvas3D::_init_separator_toolbar()
     //BBS: assemble toolbar is at the top and right, we don't need the rounded-corner effect at the left side and the top side
     m_separator_toolbar.set_horizontal_orientation(GLToolbar::Layout::HO_Left);
     m_separator_toolbar.set_vertical_orientation(GLToolbar::Layout::VO_Top);
-    m_separator_toolbar.set_border(5.0f);
+    m_separator_toolbar.set_border(4.0f);
 
     m_separator_toolbar.del_all_item();
 
@@ -7274,8 +7274,11 @@ void GLCanvas3D::_check_and_update_toolbar_icon_scale()
     Size cnv_size = get_canvas_size();
 
     //BBS: GUI refactor: GLToolbar
-    float size = int(GLToolbar::Default_Icons_Size * scale);
-    //float main_size = GLGizmosManager::Default_Icons_Size * scale;
+    int size_i = int(GLToolbar::Default_Icons_Size * scale);
+    // force even size
+    if (size_i % 2 != 0)
+        size_i -= 1;
+    float size   = size_i;
 
     // Set current size for all top toolbars. It will be used for next calculations
 #if ENABLE_RETINA_GL
