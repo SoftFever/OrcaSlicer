@@ -2495,7 +2495,7 @@ void PerimeterGenerator::process_arachne()
                                 }
                                 break;
                         }
-                        if(outer >-1 && first_internal>-1 && second_internal>-1 && ordered_extrusions[arr_i].extrusion->inset_idx == 0){ // found a new external perimeter after we've found all three perimeters to re-order -> this means we entered a new island.
+                        if(outer >-1 && first_internal>-1 && second_internal>-1 && reordered_extrusions[arr_i].extrusion->inset_idx == 0){  // found a new external perimeter after we've found all three perimeters to re-order -> this means we entered a new island.
                             arr_i=arr_i-1; //step back one perimeter
                             max_internal = arr_i; // new maximum internal perimeter is now this as we have found a new external perimeter, hence a new island.
                             break; // exit the for loop
