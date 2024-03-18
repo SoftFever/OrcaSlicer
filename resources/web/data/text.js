@@ -205,6 +205,13 @@ var LangText = {
     t104: "Nombre del perfil",
     t105: "Autor del perfil",
     t106: "Descripción del perfil",
+    t107: "Modelos en línea",
+    t108: "Más",
+    t109: "Filamentos del sistema",
+    t110: "Filamentos personalizados",
+    t111: "Crear nuevo",
+    t112: "Unirse al programa",
+    t113: "Puede cambiar su elección en preferencias en cualquier momento.",
   },
   de_DE: {
     t1: "Willkommen im Orca Slicer",

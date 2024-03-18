@@ -1,6 +1,6 @@
 {
 	"name": "Creality",
-	"version": "01.09.00.02",
+	"version": "02.00.00.00",
 	"force_update": "0",
 	"description": "Creality configurations",
 	"machine_model_list": [
@@ -493,6 +493,14 @@
 		{
 			"name": "0.24mm Draft @Creality Ender3V2Neo",
 			"sub_path": "process/0.24mm Draft @Creality Ender3V2Neo.json"
+		},
+		{
+			"name": "0.24mm Draft @Creality Ender3V3SE",
+			"sub_path": "process/0.24mm Draft @Creality Ender3V3SE.json"
+		},
+		{
+			"name": "0.24mm Draft @Creality Ender3V3KE",
+			"sub_path": "process/0.24mm Draft @Creality Ender3V3KE.json"
 		},
 		{
 			"name": "0.24mm Draft @Creality Ender5Pro (2019) 0.3",

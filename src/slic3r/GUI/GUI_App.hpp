@@ -329,6 +329,9 @@ private:
     bool show_gcode_window() const { return m_show_gcode_window; }
     void toggle_show_gcode_window();
 
+    bool show_3d_navigator() const { return app_config->get_bool("show_3d_navigator"); }
+    void toggle_show_3d_navigator() const { app_config->set_bool("show_3d_navigator", !show_3d_navigator()); }
+
     wxString get_inf_dialog_contect () {return m_info_dialog_content;};
 
     std::vector<std::string> split_str(std::string src, std::string separator);

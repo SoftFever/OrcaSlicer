@@ -1,6 +1,6 @@
 {
     "name": "TwoTrees",
-    "version": "01.09.00.02",
+    "version": "02.00.00.00",
     "force_update": "1",
     "description": "TwoTrees configurations",
     "machine_model_list": [
@@ -171,6 +171,10 @@
         {
             "name": "TwoTrees Generic PLA-CF @SK1",
             "sub_path": "filament/TwoTrees Generic PLA-CF @SK1.json"
+        },
+        {
+            "name": "TwoTrees Generic PLA Matte @SK1",
+            "sub_path": "filament/TwoTrees Generic PLA Matte @SK1.json"
         },
         {
             "name": "TwoTrees Generic PLA Silk @SK1",

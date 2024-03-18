@@ -59,7 +59,7 @@ enum class FuzzySkinType {
 };
 
 enum PrintHostType {
-    htPrusaLink, htPrusaConnect, htOctoPrint, htDuet, htFlashAir, htAstroBox, htRepetier, htMKS
+    htPrusaLink, htPrusaConnect, htOctoPrint, htDuet, htFlashAir, htAstroBox, htRepetier, htMKS, htObico
 };
 
 enum AuthorizationType {
@@ -98,6 +98,16 @@ enum class WallSequence {
     InnerOuterInner,
     Count,
 };
+
+// Orca
+enum class WallDirection
+{
+    Auto,
+    CounterClockwise,
+    Clockwise,
+    Count,
+};
+
 //BBS
 enum class PrintSequence {
     ByLayer,
@@ -157,6 +167,21 @@ inline bool is_auto(SupportType stype)
 
 enum SeamPosition {
     spNearest, spAligned, spRear, spRandom
+};
+
+// Orca
+enum class SeamScarfType {
+    None,
+    External,
+    All,
+};
+
+// Orca
+enum EnsureVerticalShellThickness {
+    evstNone,
+    evstCriticalOnly,
+    evstModerate,
+    evstAll,
 };
 
 //Orca
@@ -293,7 +318,7 @@ enum class GCodeThumbnailsFormat {
     PNG, JPG, QOI, BTT_TFT, ColPic
 };
 
-enum CounterboleHoleBridgingOption {
+enum CounterboreHoleBridgingOption {
     chbNone, chbBridges, chbFilled
 };
 
@@ -372,6 +397,7 @@ CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SupportMaterialInterfacePattern)
 // BBS
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SupportType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SeamPosition)
+CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SeamScarfType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SLADisplayOrientation)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SLAPillarConnectionMode)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(BrimType)
@@ -380,7 +406,7 @@ CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(BedType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(DraftShield)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(ForwardCompatibilitySubstitutionRule)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(GCodeThumbnailsFormat)
-CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(CounterboleHoleBridgingOption)
+CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(CounterboreHoleBridgingOption)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(PrintHostType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(AuthorizationType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(PerimeterGeneratorType)
@@ -828,7 +854,6 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,              top_surface_jerk))
     ((ConfigOptionFloat,              initial_layer_jerk))
     ((ConfigOptionFloat,              travel_jerk))
-
 )
 
 // This object is mapped to Perl as Slic3r::Config::PrintRegion.
@@ -842,8 +867,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,                internal_bridge_flow))
     ((ConfigOptionFloat,                bridge_speed))
     ((ConfigOptionFloatOrPercent,       internal_bridge_speed))
-    ((ConfigOptionBool,                 ensure_vertical_shell_thickness))
-    ((ConfigOptionBool,                 reduce_wall_solid_infill))
+    ((ConfigOptionEnum<EnsureVerticalShellThickness>,   ensure_vertical_shell_thickness))
     ((ConfigOptionEnum<InfillPattern>,  top_surface_pattern))
     ((ConfigOptionEnum<InfillPattern>,  bottom_surface_pattern))
     ((ConfigOptionEnum<InfillPattern>, internal_solid_infill_pattern))
@@ -928,10 +952,25 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                 overhang_reverse))
     ((ConfigOptionBool,                 overhang_reverse_internal_only))
     ((ConfigOptionFloatOrPercent,       overhang_reverse_threshold))
-    ((ConfigOptionEnum<CounterboleHoleBridgingOption>, counterbole_hole_bridging))
+    ((ConfigOptionEnum<CounterboreHoleBridgingOption>, counterbore_hole_bridging))
     ((ConfigOptionEnum<WallSequence>,  wall_sequence))
     ((ConfigOptionBool,                is_infill_first))
     ((ConfigOptionBool,                small_area_infill_flow_compensation))
+    ((ConfigOptionEnum<WallDirection>,  wall_direction))
+
+    // Orca: seam slopes
+    ((ConfigOptionEnum<SeamScarfType>,  seam_slope_type))
+    ((ConfigOptionBool,                 seam_slope_conditional))
+    ((ConfigOptionInt,                  scarf_angle_threshold))
+    ((ConfigOptionFloatOrPercent,       seam_slope_start_height))
+    ((ConfigOptionBool,                 seam_slope_entire_loop))
+    ((ConfigOptionFloat,                seam_slope_min_length))
+    ((ConfigOptionInt,                  seam_slope_steps))
+    ((ConfigOptionBool,                 seam_slope_inner_walls))
+    ((ConfigOptionFloatOrPercent,       scarf_joint_speed))
+    ((ConfigOptionFloat,                scarf_joint_flow_ratio))
+
+
 )
 
 PRINT_CONFIG_CLASS_DEFINE(
@@ -1081,6 +1120,8 @@ PRINT_CONFIG_CLASS_DEFINE(
 
     // Small Area Infill Flow Compensation
     ((ConfigOptionStrings,              small_area_infill_flow_compensation_model))
+
+    ((ConfigOptionBool,                has_scarf_joint_seam))
 )
 
 // This object is mapped to Perl as Slic3r::Config::Print.
@@ -1213,7 +1254,12 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionBools,               activate_chamber_temp_control))
     ((ConfigOptionInts ,               chamber_temperature))
     
+    // Orca: support adaptive bed mesh
     ((ConfigOptionFloat,               preferred_orientation))
+    ((ConfigOptionPoint,               bed_mesh_min))
+    ((ConfigOptionPoint,               bed_mesh_max))
+    ((ConfigOptionPoint,               bed_mesh_probe_distance))
+    ((ConfigOptionFloat,               adaptive_bed_mesh_margin))
 
 
 )
