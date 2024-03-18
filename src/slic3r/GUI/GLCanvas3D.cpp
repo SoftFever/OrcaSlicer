@@ -7274,7 +7274,7 @@ void GLCanvas3D::_check_and_update_toolbar_icon_scale()
     Size cnv_size = get_canvas_size();
 
     //BBS: GUI refactor: GLToolbar
-    float size = GLToolbar::Default_Icons_Size * scale;
+    float size = int(GLToolbar::Default_Icons_Size * scale);
     //float main_size = GLGizmosManager::Default_Icons_Size * scale;
 
     // Set current size for all top toolbars. It will be used for next calculations
@@ -7292,7 +7292,7 @@ void GLCanvas3D::_check_and_update_toolbar_icon_scale()
     m_gizmos.set_overlay_scale(sc);
 #else
     //BBS: GUI refactor: GLToolbar
-    m_main_toolbar.set_icons_size(GLGizmosManager::Default_Icons_Size * scale);
+    m_main_toolbar.set_icons_size(size);
     m_assemble_view_toolbar.set_icons_size(size);
     m_separator_toolbar.set_icons_size(size);
     collapse_toolbar.set_icons_size(size / 2.0);
@@ -7553,7 +7553,7 @@ void GLCanvas3D::_render_gizmos_overlay()
     }
 }
 
-float GLCanvas3D::get_main_toolbar_offset() const
+int GLCanvas3D::get_main_toolbar_offset() const
 {
     const float cnv_width              = get_canvas_size().get_width();
     const float collapse_toolbar_width = get_collapse_toolbar_width() * 2;
