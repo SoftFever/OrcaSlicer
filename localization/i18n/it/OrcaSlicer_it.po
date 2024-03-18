@@ -3434,7 +3434,7 @@ msgid ""
 "is set to All. "
 msgstr ""
 "Parete Aggiuntiva Alternativa on funziona bene quando Garantisci spessore "
-"del guscio è impostato su Tutto"
+"verticale del guscio è impostato su Tutto"
 
 msgid ""
 "Change these settings automatically? \n"
@@ -3443,7 +3443,7 @@ msgid ""
 "No  - Dont use alternate extra wall"
 msgstr ""
 "Modificare automaticamente queste impostazioni? \n"
-"Sì - Modifica Garantisci spessore verticale del guscio a Moderato e
+"Sì - Modifica Garantisci spessore verticale del guscio a Moderato e "
 "abilita Parete Aggiuntiva Alternativa\n"
 "No - Non utilizzare Parete Aggiuntiva Alternativa"
 
