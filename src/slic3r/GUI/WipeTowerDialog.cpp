@@ -501,6 +501,9 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
                         str = wxString::Format(("%d"), MAX_FLUSH_VALUE);
                         edit_boxes[i][j]->SetValue(str);
                     }
+                    else if (value < 0) {
+                        edit_boxes[i][j]->SetValue(wxString("0"));
+                    }
                     });
 
                 auto on_apply_text_modify = [this, i, j](wxEvent &e) {

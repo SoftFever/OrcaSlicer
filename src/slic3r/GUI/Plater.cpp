@@ -7071,13 +7071,14 @@ void Plater::priv::on_filament_color_changed(wxCommandEvent &event)
     //q->update_all_plate_thumbnails(true);
     //q->get_preview_canvas3D()->update_plate_thumbnails();
     int modify_id = event.GetInt();
-    if (wxGetApp().app_config->get("auto_calculate") == "true") {
-        sidebar->auto_calc_flushing_volumes(modify_id);
-    }
 
     auto& ams_multi_color_filment = wxGetApp().preset_bundle->ams_multi_color_filment;
     if (modify_id >= 0 && modify_id < ams_multi_color_filment.size())
         ams_multi_color_filment[modify_id].clear();
+
+    if (wxGetApp().app_config->get("auto_calculate") == "true") {
+        sidebar->auto_calc_flushing_volumes(modify_id);
+    }
 }
 
 void Plater::priv::install_network_plugin(wxCommandEvent &event)
