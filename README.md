@@ -1,9 +1,3 @@
-
-Trying to add Flashforge Adventurer5M Pro wifi print functionality.
-
-You could buy me a coffee via paypal [@HerbakIstvan](https://paypal.com/paypalme/herbakIstvan) to thank:  :)
-
-
 [![Build all](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_all.yml/badge.svg?branch=main)](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_all.yml)
 # Orca Slicer     
 Orca Slicer is an open source slicer for FDM printers.   
