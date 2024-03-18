@@ -3328,12 +3328,7 @@ void SelectMachineDialog::update_flow_cali_check(MachineObject* obj)
 
     if (obj && obj->get_printer_arch() == PrinterArch::ARCH_I3) { show_cali_tips = false; }
 
-    if (bed_type == BedType::btPTE) {
-        set_flow_calibration_state(false, show_cali_tips);
-    }
-    else {
-        set_flow_calibration_state(true, show_cali_tips);
-    }
+    set_flow_calibration_state(true, show_cali_tips);
 }
 
 void SelectMachineDialog::update_ams_check(MachineObject* obj)
@@ -4223,7 +4218,6 @@ void SelectMachineDialog::set_default_from_sdcard()
     m_scrollable_view->SetMinSize(m_scrollable_region->GetSize());
     m_scrollable_view->SetMaxSize(m_scrollable_region->GetSize());
 
-    //auto bed_type = m_plater->get_partplate_list().get_curr_plate()->get_bed_type(true);
     set_flow_calibration_state(true);
 
     wxSize screenSize = wxGetDisplaySize();

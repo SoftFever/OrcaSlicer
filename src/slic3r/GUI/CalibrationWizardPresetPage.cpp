@@ -1086,11 +1086,6 @@ void CalibrationPresetPage::update_plate_type_collection(CalibrationMethod metho
     const ConfigOptionDef* bed_type_def = print_config_def.get("curr_bed_type");
     if (bed_type_def && bed_type_def->enum_keys_map) {
         for (int i = 0; i < bed_type_def->enum_labels.size(); i++) {
-            if(btDefault + 1 + i == btPTE) {
-                if (method == CalibrationMethod::CALI_METHOD_AUTO) {
-                    continue;
-                }
-            }
             m_comboBox_bed_type->AppendString(_L(bed_type_def->enum_labels[i]));
         }
         m_comboBox_bed_type->SetSelection(0);
