@@ -124,6 +124,7 @@ std::map<int, std::string> cli_errors = {
     {CLI_OBJECT_ARRANGE_FAILED, "An error occurred when auto-arranging object(s)."},
     {CLI_OBJECT_ORIENT_FAILED, "An error occurred when auto-orienting object(s)."},
     {CLI_MODIFIED_PARAMS_TO_PRINTER, "Found modified parameter in printer preset in the 3mf file, which should not be changed."},
+        {CLI_FILE_VERSION_NOT_SUPPORTED, "Unsupported 3MF version. Please make sure the 3MF file was created with the official version of Bambu Studio, not a beta version."},
     {CLI_NO_SUITABLE_OBJECTS, "One of the plate is empty or has no object fully inside it. Please check that the 3mf contains no empty plate in Orca Slicer before uploading."},
     {CLI_VALIDATE_ERROR, "There are some incorrect slicing parameters in the 3mf. Please verify the slicing of all plates in Orca Slicer before uploading."},
     {CLI_OBJECTS_PARTLY_INSIDE, "Some objects are located over the boundary of the heated bed."},
@@ -1030,7 +1031,7 @@ int CLI::run(int argc, char **argv)
     int arrange_option;
     int plate_to_slice = 0, filament_count = 0, duplicate_count = 0, real_duplicate_count = 0;
     bool first_file = true, is_bbl_3mf = false, need_arrange = true, has_thumbnails = false, up_config_to_date = false, normative_check = true, duplicate_single_object = false, use_first_fila_as_default = false, minimum_save = false, enable_timelapse = false;
-    bool allow_rotations = true, skip_modified_gcodes = false, avoid_extrusion_cali_region = false;
+    bool allow_rotations = true, skip_modified_gcodes = false, avoid_extrusion_cali_region = false, skip_useless_pick = false, allow_newer_file = false;
     Semver file_version;
     std::map<size_t, bool> orients_requirement;
     std::vector<Preset*> project_presets;
@@ -1074,6 +1075,14 @@ int CLI::run(int argc, char **argv)
     ConfigOptionBool* skip_modified_gcodes_option = m_config.option<ConfigOptionBool>("skip_modified_gcodes");
     if (skip_modified_gcodes_option)
         skip_modified_gcodes = skip_modified_gcodes_option->value;
+
+    ConfigOptionBool* skip_useless_picks_option = m_config.option<ConfigOptionBool>("skip_useless_pick");
+    if (skip_useless_picks_option)
+        skip_useless_pick = skip_useless_picks_option->value;
+
+    ConfigOptionBool* allow_newer_file_option = m_config.option<ConfigOptionBool>("allow_newer_file");
+    if (allow_newer_file_option)
+        allow_newer_file = allow_newer_file_option->value;
 
     ConfigOptionBool* avoid_extrusion_cali_region_option = m_config.option<ConfigOptionBool>("avoid_extrusion_cali_region");
     if (avoid_extrusion_cali_region_option)
@@ -1126,8 +1135,8 @@ int CLI::run(int argc, char **argv)
     const std::vector<int>  clone_objects  = m_config.option<ConfigOptionInts>("clone_objects", true)->values;
     //when load objects from stl/obj, the total used filaments set
     std::set<int> used_filament_set;
-    BOOST_LOG_TRIVIAL(info) << boost::format("allow_multicolor_oneplate %1%, allow_rotations %2% skip_modified_gcodes %3% avoid_extrusion_cali_region %4% loaded_filament_ids size %5%, clone_objects size %6%")
-        %allow_multicolor_oneplate %allow_rotations %skip_modified_gcodes %avoid_extrusion_cali_region %loaded_filament_ids.size() %clone_objects.size();
+    BOOST_LOG_TRIVIAL(info) << boost::format("allow_multicolor_oneplate %1%, allow_rotations %2% skip_modified_gcodes %3% avoid_extrusion_cali_region %4% loaded_filament_ids size %5%, clone_objects size %6%, skip_useless_pick %7%, allow_newer_file %8%")
+        %allow_multicolor_oneplate %allow_rotations %skip_modified_gcodes %avoid_extrusion_cali_region %loaded_filament_ids.size() %clone_objects.size() %skip_useless_pick %allow_newer_file;
     if (clone_objects.size() > 0)
     {
         if (clone_objects.size() != m_input_files.size())
@@ -1225,6 +1234,12 @@ int CLI::run(int argc, char **argv)
                         BOOST_LOG_TRIVIAL(info) << "object "<<o->name <<", id :" << o->id().id << ", from bbl 3mf\n";
                     }*/
 
+                    Semver cli_ver = *Semver::parse(SLIC3R_VERSION);
+                    if (!allow_newer_file && ((cli_ver.maj() != file_version.maj()) || (cli_ver.min() < file_version.min()))){
+                        BOOST_LOG_TRIVIAL(error) << boost::format("Version Check: File Version %1% not supported by current cli version %2%")%file_version.to_string() %SLIC3R_VERSION;
+                        record_exit_reson(outfile_dir, CLI_FILE_VERSION_NOT_SUPPORTED, 0, cli_errors[CLI_FILE_VERSION_NOT_SUPPORTED], sliced_info);
+                        flush_and_exit(CLI_FILE_VERSION_NOT_SUPPORTED);
+                    }
                     Semver old_version(1, 5, 9), old_version2(1, 5, 9);
                     if ((file_version < old_version) && !config.empty()) {
                         translate_old = true;

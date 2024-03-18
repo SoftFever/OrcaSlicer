@@ -6869,6 +6869,12 @@ CLIMiscConfigDef::CLIMiscConfigDef()
     def->tooltip = "MakerLab version to generate this 3mf";
     def->cli_params = "version";
     def->set_default_value(new ConfigOptionString());
+
+    def = this->add("allow_newer_file", coBool);
+    def->label = "Allow 3mf with newer version to be sliced";
+    def->tooltip = "Allow 3mf with newer version to be sliced";
+    def->cli_params = "option";
+    def->set_default_value(new  ConfigOptionBool(false));
 }
 
 const CLIActionsConfigDef    cli_actions_config_def;
