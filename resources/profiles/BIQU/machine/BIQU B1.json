@@ -7,6 +7,6 @@
     "family": "BIQU",
     "bed_model": "biqu_b1_buildplate_model.stl",
     "bed_texture": "biqu_b1_buildplate_texture.png",
-    "hotend_model": "biqu_b1_hotend.stl",
+    "hotend_model": "",
     "default_materials": "BIQU Generic PLA;BIQU Generic PETG;BIQU Generic ABS"
 }
