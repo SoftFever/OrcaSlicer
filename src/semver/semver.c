@@ -223,6 +223,14 @@ compare_prerelease (char *x, char *y) {
   if (y == NULL && x) return -1;
   if (x == NULL && y) return 1;
 
+  // Orca: Special handling for 'dev'
+  if (strcmp(x, "dev") == 0 && strcmp(y, "dev") == 0)
+      return 0;
+  if (strcmp(x, "dev") == 0 && strcmp(y, "dev") != 0)
+      return -1;
+  if (strcmp(x, "dev") != 0 && strcmp(y, "dev") == 0)
+      return 1;
+
   lastx = x;
   lasty = y;
   xlen = strlen(x);
