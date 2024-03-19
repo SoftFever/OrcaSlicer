@@ -542,6 +542,13 @@ void PrintConfigDef::init_common_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionStrings());
 
+    def = this->add("bbl_use_printhost", coBool);
+    def->label = L("Use 3rd-part print host");
+    def->tooltip = L("Allow controlling BambuLab's printer through 3rd party print hosts");
+    def->mode = comAdvanced;
+    def->cli = ConfigOptionDef::nocli;
+    def->set_default_value(new ConfigOptionBool(false));
+
     def = this->add("print_host", coString);
     def->label = L("Hostname, IP or URL");
     def->tooltip = L("Orca Slicer can upload G-code files to a printer host. This field should contain "
