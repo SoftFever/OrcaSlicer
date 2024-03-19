@@ -172,8 +172,9 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         return;
 
     // layer_height shouldn't be equal to zero
+    auto layer_height = config->opt_float("layer_height");
     auto gpreset = GUI::wxGetApp().preset_bundle->printers.get_edited_preset();
-    if (config->opt_float("layer_height") < EPSILON)
+    if (layer_height < EPSILON)
     {
         const wxString msg_text = _(L("Too small layer height.\nReset to 0.2"));
         MessageDialog dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxOK);
@@ -187,7 +188,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
 
     //BBS: limite the max layer_herght
     auto max_lh = gpreset.config.opt_float("max_layer_height",0);
-    if (max_lh > 0.2 && config->opt_float("layer_height") > max_lh+ EPSILON)
+    if (max_lh > 0.2 && layer_height > max_lh+ EPSILON)
     {
         const wxString msg_text = wxString::Format(L"Too large layer height.\nReset to %0.3f", max_lh);
         MessageDialog dialog(nullptr, msg_text, "", wxICON_WARNING | wxOK);
@@ -318,13 +319,6 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
             new_conf.set_key_value("spiral_mode", new ConfigOptionBool(false));
         }
         apply(config, &new_conf);
-        if (cb_value_change) {
-            cb_value_change("sparse_infill_density", sparse_infill_density);
-            int timelapse_type_int = (int)timelapse_type;
-            cb_value_change("timelapse_type", timelapse_type_int);
-            if (!support)
-                cb_value_change("enable_support", false);
-        }
         is_msg_dlg_already_exist = false;
     }
 
@@ -398,7 +392,6 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
 
     // BBS
     if (has_wipe_tower && config->opt_bool("enable_support") && !config->opt_bool("independent_support_layer_height")) {
-        double layer_height = config->opt_float("layer_height");
         double top_gap_raw = config->opt_float("support_top_z_distance");
         //double bottom_gap_raw = config->opt_float("support_bottom_z_distance");
         double top_gap = std::round(top_gap_raw / layer_height) * layer_height;
@@ -468,7 +461,18 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         apply(config, &new_conf);
         is_msg_dlg_already_exist = false;
     }
-    
+
+    if (config->opt_enum<SeamScarfType>("seam_slope_type") != SeamScarfType::None &&
+        config->get_abs_value("seam_slope_start_height") >= layer_height) {
+        const wxString     msg_text = _(L("seam_slope_start_height need to be smaller than layer_height.\nReset to 0."));
+        MessageDialog      dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxOK);
+        DynamicPrintConfig new_conf = *config;
+        is_msg_dlg_already_exist    = true;
+        dialog.ShowModal();
+        new_conf.set_key_value("seam_slope_start_height", new ConfigOptionFloatOrPercent(0, false));
+        apply(config, &new_conf);
+        is_msg_dlg_already_exist = false;
+    }
 }
 
 void ConfigManipulation::apply_null_fff_config(DynamicPrintConfig *config, std::vector<std::string> const &keys, std::map<ObjectBase *, ModelConfig *> const &configs)

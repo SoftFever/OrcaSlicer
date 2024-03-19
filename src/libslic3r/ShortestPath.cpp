@@ -1042,6 +1042,7 @@ std::vector<std::pair<size_t, bool>> chain_extrusion_paths(std::vector<Extrusion
 void reorder_extrusion_paths(std::vector<ExtrusionPath> &extrusion_paths, const std::vector<std::pair<size_t, bool>> &chain)
 {
 	assert(extrusion_paths.size() == chain.size());
+	if(extrusion_paths.empty()) return;
 	std::vector<ExtrusionPath> out;
 	out.reserve(extrusion_paths.size());
     for (const std::pair<size_t, bool> &idx : chain) {

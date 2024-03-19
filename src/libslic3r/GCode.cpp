@@ -4679,6 +4679,8 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
             double h = paths.front().height;
             start_slope_ratio = m_config.seam_slope_start_height.value / h;
         }
+        if (start_slope_ratio >= 1)
+            start_slope_ratio = 0.99;
 
         double loop_length = 0.;
         for (const auto & path : paths) {
