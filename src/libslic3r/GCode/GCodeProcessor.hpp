@@ -75,6 +75,7 @@ namespace Slic3r {
         std::vector<double>                                 volumes_per_color_change;
         std::map<size_t, double>                            volumes_per_extruder;
         std::map<size_t, double>                            wipe_tower_volumes_per_extruder;
+        std::map<size_t, double>                            support_volumes_per_extruder;
         //BBS: the flush amount of every filament
         std::map<size_t, double>                            flush_per_filament;
         std::map<ExtrusionRole, std::pair<double, double>>  used_filaments_per_role;
@@ -504,6 +505,9 @@ namespace Slic3r {
             double wipe_tower_cache;
             std::map<size_t, double>wipe_tower_volume_per_extruder;
 
+            double support_volume_cache;
+            std::map<size_t, double>support_volume_per_extruder;
+
             //BBS: the flush amount of every filament
             std::map<size_t, double> flush_per_filament;
 
@@ -512,12 +516,28 @@ namespace Slic3r {
 
             void reset();
 
+            void increase_support_caches(double extruded_volume){
+                support_volume_cache += extruded_volume;
+                role_cache += extruded_volume;
+            }
+
             void increase_model_caches(double extruded_volume);
             void increase_wipe_tower_caches(double extruded_volume);
 
             void process_color_change_cache();
             void process_model_cache(GCodeProcessor* processor);
             void process_wipe_tower_cache(GCodeProcessor* processor);
+            void process_support_cache(GCodeProcessor* processor){
+                size_t active_extruder_id = processor->m_extruder_id;
+                if (support_volume_cache != 0.0f) {
+                    if (support_volume_per_extruder.find(active_extruder_id) != support_volume_per_extruder.end())
+                        support_volume_per_extruder[active_extruder_id] += support_volume_cache;
+                    else
+                        support_volume_per_extruder[active_extruder_id] = support_volume_cache;
+                    support_volume_cache = 0.0f;
+                }
+            }
+
             void update_flush_per_filament(size_t extrude_id, float flush_length);
             void process_role_cache(GCodeProcessor* processor);
             void process_caches(GCodeProcessor* processor);
