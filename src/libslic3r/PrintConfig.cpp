@@ -3601,6 +3601,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->tooltip = L("Start height of the scarf.\n"
                      "This amount can be specified in millimeters or as a percentage of the current layer height. The default value for this parameter is 0.");
     def->sidetext = L("mm or %");
+    def->ratio_over = "layer_height";
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatOrPercent(0, false));

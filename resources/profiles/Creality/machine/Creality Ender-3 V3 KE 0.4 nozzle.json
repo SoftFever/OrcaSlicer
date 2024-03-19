@@ -83,7 +83,7 @@
 		"0.4"
 	],
 	"max_layer_height": [
-		"0.36"
+		"0.32"
 	],
 	"min_layer_height": [
 		"0.08"
@@ -107,7 +107,7 @@
 		"40"
 	],
 	"z_hop": [
-		"0.1"
+		"0.2"
 	],
 	"single_extruder_multi_material": "1",
 	"manual_filament_change": "1",
