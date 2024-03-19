@@ -1,7 +1,7 @@
 {
     "type": "machine_model",
-    "name": "Generic Marlin Printer",
-    "model_id": "my_marlin_01",
+    "name": "Generic RRF Printer",
+    "model_id": "my_rrf_01",
     "nozzle_diameter": "0.4",
     "machine_tech": "FFF",
     "family": "MyPrinter",
