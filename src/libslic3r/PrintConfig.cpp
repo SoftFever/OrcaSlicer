@@ -274,7 +274,7 @@ CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SeamScarfType)
 
 // Orca
 static t_config_enum_values s_keys_map_EnsureVerticalShellThickness{
-    { "none",           int(EnsureVerticalShellThickness::vsNone) },
+    { "none",           int(EnsureVerticalShellThickness::evstNone) },
     { "ensure_critical_only",         int(EnsureVerticalShellThickness::evstCriticalOnly) },
     { "ensure_moderate",            int(EnsureVerticalShellThickness::evstModerate) },
     { "ensure_all",         int(EnsureVerticalShellThickness::evstAll) },
@@ -3617,6 +3617,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->tooltip = L("Start height of the scarf.\n"
                      "This amount can be specified in millimeters or as a percentage of the current layer height. The default value for this parameter is 0.");
     def->sidetext = L("mm or %");
+    def->ratio_over = "layer_height";
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatOrPercent(0, false));

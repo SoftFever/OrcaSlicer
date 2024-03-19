@@ -702,6 +702,9 @@ Sidebar::Sidebar(Plater *parent)
             bed_type_title->SetFont(font);
             SetCursor(wxCURSOR_ARROW);
         });
+        bed_type_title->Bind(wxEVT_LEFT_UP, [bed_type_title, this](wxMouseEvent &e) {
+            wxLaunchDefaultBrowser("https://github.com/SoftFever/OrcaSlicer/wiki/bed-types");
+        });
 
         AppConfig *app_config = wxGetApp().app_config;
         std::string str_bed_type = app_config->get("curr_bed_type");
