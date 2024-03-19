@@ -90,6 +90,28 @@ CalibrationWizard::CalibrationWizard(wxWindow* parent, CalibMode mode, wxWindowI
     main_sizer->Fit(this);
 
     Bind(EVT_CALIBRATION_JOB_FINISHED, &CalibrationWizard::on_cali_job_finished, this);
+
+#if !BBL_RELEASE_TO_PUBLIC
+    this->Bind(wxEVT_CHAR_HOOK, [this](auto& evt) {
+        const int keyCode = evt.GetKeyCode();
+        switch (keyCode)
+        {
+        case WXK_PAGEUP:
+        {
+            show_step(m_curr_step->prev);
+            break;
+        }
+        case WXK_PAGEDOWN:
+        {
+            show_step(m_curr_step->next);
+            break;
+        }
+        default:
+            evt.Skip();
+            break;
+        }
+        });
+#endif
 }
 
 CalibrationWizard::~CalibrationWizard()
