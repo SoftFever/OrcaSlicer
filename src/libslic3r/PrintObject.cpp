@@ -3184,7 +3184,7 @@ void PrintObject::discover_horizontal_shells()
 #endif
 
             // If ensure_vertical_shell_thickness, then the rest has already been performed by discover_vertical_shells().
-            if (region_config.ensure_vertical_shell_thickness.value == evstAll || region_config.ensure_vertical_shell_thickness.value == vsNone)
+            if (region_config.ensure_vertical_shell_thickness.value == evstAll)
                 continue;
 
             coordf_t print_z  = layer->print_z;
@@ -3258,7 +3258,7 @@ void PrintObject::discover_horizontal_shells()
                         
                         // Orca: Also use the same strategy if the user has selected to further reduce
                         // the amount of solid infill on walls.
-                        if (region_config.sparse_infill_density.value == 0 || region_config.ensure_vertical_shell_thickness.value == evstCriticalOnly) {
+                        if (region_config.sparse_infill_density.value == 0 || region_config.ensure_vertical_shell_thickness.value == evstCriticalOnly || region_config.ensure_vertical_shell_thickness.value == evstNone) {
                             // If user expects the object to be void (for example a hollow sloping vase),
                             // don't continue the search. In this case, we only generate the external solid
                             // shell if the object would otherwise show a hole (gap between perimeters of
@@ -3271,24 +3271,30 @@ void PrintObject::discover_horizontal_shells()
                         }
                     }
 
-                    if (region_config.sparse_infill_density.value == 0 || region_config.ensure_vertical_shell_thickness.value == evstCriticalOnly) {
+                    float factor = 0.0f;
+                    if (region_config.sparse_infill_density.value == 0)
+                        factor = 1.0f;
+                    else if (region_config.ensure_vertical_shell_thickness.value == evstNone)
+                        factor = 0.5f;
+                    else if (region_config.ensure_vertical_shell_thickness.value == evstCriticalOnly)
+                        factor = 0.2f;
+                    if (factor > 0.0f) {
                         // if we're printing a hollow object we discard any solid shell thinner
                         // than a perimeter width, since it's probably just crossing a sloping wall
                         // and it's not wanted in a hollow print even if it would make sense when
                         // obeying the solid shell count option strictly (DWIM!)
-                        
+
                         // Orca: Also use the same strategy if the user has selected to reduce
                         // the amount of solid infill on walls. However reduce the margin to 20% overhang
                         // as we want to generate infill on sloped vertical surfaces but still keep a small amount of
                         // filtering. This is an arbitrary value to make this option safe
                         // by ensuring that top surfaces, especially slanted ones dont go **completely** unsupported
                         // especially when using single perimeter top layers.
-                        float margin = region_config.ensure_vertical_shell_thickness.value == evstCriticalOnly? float(neighbor_layerm->flow(frExternalPerimeter).scaled_width()) * 0.2f : float(neighbor_layerm->flow(frExternalPerimeter).scaled_width());
-                        Polygons too_narrow = diff(
-                            new_internal_solid,
-                            opening(new_internal_solid, margin, margin + ClipperSafetyOffset, jtMiter, 5));
+                        float    margin     = float(neighbor_layerm->flow(frExternalPerimeter).scaled_width()) * factor;
+                        Polygons too_narrow = diff(new_internal_solid,
+                                                   opening(new_internal_solid, margin, margin + ClipperSafetyOffset, jtMiter, 5));
                         // Trim the regularized region by the original region.
-                        if (! too_narrow.empty())
+                        if (!too_narrow.empty())
                             new_internal_solid = solid = diff(new_internal_solid, too_narrow);
                     }
 
@@ -3296,7 +3302,7 @@ void PrintObject::discover_horizontal_shells()
                     // when spacing is added in Fill.pm
                     {
                         //FIXME Vojtech: Disable this and you will be sorry.
-                        float margin = 3.f * layerm->flow(frSolidInfill).scaled_width(); // require at least this size
+                        float margin = (region_config.ensure_vertical_shell_thickness.value != evstNone ? 3.f : 1.0f) * layerm->flow(frSolidInfill).scaled_width(); // require at least this size
                         // we use a higher miterLimit here to handle areas with acute angles
                         // in those cases, the default miterLimit would cut the corner and we'd
                         // get a triangle in $too_narrow; if we grow it below then the shell
