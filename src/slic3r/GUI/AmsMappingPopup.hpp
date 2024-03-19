@@ -55,9 +55,11 @@ struct TrayData
 {
     TrayType        type;
     int             id;
+    int             ctype = 0;
     std::string     name;
     std::string     filament_type;
     wxColour        colour;
+    std::vector<wxColour> material_cols = std::vector<wxColour>();
 };
 
 class MaterialItem: public wxPanel
@@ -72,6 +74,8 @@ public:
 
     wxColour m_ams_coloul;
     wxString m_ams_name;
+    int      m_ams_ctype = 0;
+    std::vector<wxColour> m_ams_cols = std::vector<wxColour>();
 
     ScalableBitmap m_arraw_bitmap_gray;
     ScalableBitmap m_arraw_bitmap_white;
@@ -81,7 +85,7 @@ public:
     bool m_warning{false};
 
     void msw_rescale();
-    void set_ams_info(wxColour col, wxString txt);
+    void set_ams_info(wxColour col, wxString txt, int ctype=0, std::vector<wxColour> cols= std::vector<wxColour>());
 
     void disable();
     void enable();

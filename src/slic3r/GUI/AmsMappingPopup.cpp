@@ -58,11 +58,13 @@ void MaterialItem::msw_rescale() {
     m_transparent_mitem  = ScalableBitmap(this, "transparent_material_item", FromDIP(32));
 }
 
-void MaterialItem::set_ams_info(wxColour col, wxString txt)
+void MaterialItem::set_ams_info(wxColour col, wxString txt, int ctype, std::vector<wxColour> cols)
 {
     auto need_refresh = false;
+    if (m_ams_cols != cols) { m_ams_cols = cols; need_refresh = true; }
+    if (m_ams_ctype != ctype) { m_ams_ctype = ctype; need_refresh = true; }
     if (m_ams_coloul != col) { m_ams_coloul = col; need_refresh = true;}
-    if (m_ams_name != txt) {m_ams_name   = txt;need_refresh = true;}
+    if (m_ams_name != txt) { m_ams_name = txt; need_refresh = true; }
     if (need_refresh) { Refresh();}
 }
 
@@ -180,6 +182,7 @@ void MaterialItem::render(wxDC &dc)
 
 void MaterialItem::doRender(wxDC &dc) 
 {
+    wxSize size = GetSize();
     auto mcolor = m_material_coloul;
     auto acolor = m_ams_coloul;
     change_the_opacity(acolor);
@@ -199,18 +202,48 @@ void MaterialItem::doRender(wxDC &dc)
     dc.DrawRoundedRectangle(FromDIP(1), FromDIP(1), MATERIAL_ITEM_REAL_SIZE.x, FromDIP(18), 5);
     
     //bottom
-    dc.SetPen(*wxTRANSPARENT_PEN);
-    dc.SetBrush(wxBrush(wxColour(acolor)));
-    dc.DrawRoundedRectangle(FromDIP(1), FromDIP(18), MATERIAL_ITEM_REAL_SIZE.x, FromDIP(16), 5);
+    if (m_ams_cols.size() > 1) {
+        int left = FromDIP(1);
+        int gwidth = std::round(MATERIAL_ITEM_REAL_SIZE.x / (m_ams_cols.size() - 1));
+        //gradient
+        if (m_ams_ctype == 0) {
+            for (int i = 0; i < m_ams_cols.size() - 1; i++) {
+                auto rect = wxRect(left, FromDIP(18), MATERIAL_ITEM_REAL_SIZE.x, FromDIP(16));
+                dc.GradientFillLinear(rect, m_ams_cols[i], m_ams_cols[i + 1], wxEAST);
+                left += gwidth;
+            }
+        }
+        else {
+            int cols_size = m_ams_cols.size();
+            for (int i = 0; i < cols_size; i++) {
+                dc.SetBrush(wxBrush(m_ams_cols[i]));
+                float x = left + ((float)MATERIAL_ITEM_REAL_SIZE.x) * i / cols_size;
+                if (i != cols_size - 1) {
+                    dc.DrawRoundedRectangle(x, FromDIP(18), ((float)MATERIAL_ITEM_REAL_SIZE.x) / cols_size + FromDIP(3), FromDIP(16), 3);
+                }
+                else {
+                    dc.DrawRoundedRectangle(x, FromDIP(18), ((float)MATERIAL_ITEM_REAL_SIZE.x) / cols_size , FromDIP(16), 3);
+                }
+            }
+ 
+        }
+    }
+    else {
+        
+        dc.SetPen(*wxTRANSPARENT_PEN);
+        dc.SetBrush(wxBrush(wxColour(acolor)));
+        dc.DrawRoundedRectangle(FromDIP(1), FromDIP(18), MATERIAL_ITEM_REAL_SIZE.x, FromDIP(16), 5);
+        ////middle
 
-    ////middle
+        dc.SetPen(*wxTRANSPARENT_PEN);
+        dc.SetBrush(wxBrush(acolor));
+        dc.DrawRectangle(FromDIP(1), FromDIP(18), MATERIAL_ITEM_REAL_SIZE.x, FromDIP(8));
+    }
     dc.SetPen(*wxTRANSPARENT_PEN);
     dc.SetBrush(wxBrush(mcolor));
     dc.DrawRectangle(FromDIP(1), FromDIP(11), MATERIAL_ITEM_REAL_SIZE.x, FromDIP(8));
 
-    dc.SetPen(*wxTRANSPARENT_PEN);
-    dc.SetBrush(wxBrush(acolor));
-    dc.DrawRectangle(FromDIP(1), FromDIP(18), MATERIAL_ITEM_REAL_SIZE.x, FromDIP(8));
+
 
     ////border
 #if __APPLE__
@@ -241,10 +274,10 @@ void MaterialItem::doRender(wxDC &dc)
     //arrow
     if ( (acolor.Red() > 160 && acolor.Green() > 160 && acolor.Blue() > 160) &&
         (acolor.Red() < 180 && acolor.Green() < 180 && acolor.Blue() < 180)) {
-        dc.DrawBitmap(m_arraw_bitmap_white.bmp(), GetSize().x - m_arraw_bitmap_white.GetBmpSize().x - FromDIP(7),  GetSize().y - m_arraw_bitmap_white.GetBmpSize().y);
+        dc.DrawBitmap(m_arraw_bitmap_white.bmp(), size.x - m_arraw_bitmap_white.GetBmpSize().x - FromDIP(7), size.y - m_arraw_bitmap_white.GetBmpSize().y);
     }
     else {
-        dc.DrawBitmap(m_arraw_bitmap_gray.bmp(), GetSize().x - m_arraw_bitmap_gray.GetBmpSize().x - FromDIP(7),  GetSize().y - m_arraw_bitmap_gray.GetBmpSize().y);
+        dc.DrawBitmap(m_arraw_bitmap_gray.bmp(), size.x - m_arraw_bitmap_gray.GetBmpSize().x - FromDIP(7), size.y - m_arraw_bitmap_gray.GetBmpSize().y);
     }
 
     
@@ -431,6 +464,10 @@ void AmsMapingPopup::update_ams_data(std::map<std::string, Ams*> amsList)
                     td.colour = AmsTray::decode_color(tray_data->color);
                     td.name   = tray_data->get_display_filament_type();
                     td.filament_type = tray_data->get_filament_type();
+                    td.ctype = tray_data->ctype;
+                    for (auto col : tray_data->cols) {
+                        td.material_cols.push_back(AmsTray::decode_color(col));
+                    }
                 }
             }
 
@@ -667,17 +704,38 @@ void MappingItem::set_data(wxColour colour, wxString name, TrayData data, bool u
 
 void MappingItem::doRender(wxDC &dc)
 {
+    wxSize size = GetSize();
     wxColour color = m_coloul;
     change_the_opacity(color);
 
     dc.SetPen(color);
     dc.SetBrush(wxBrush(color));
 
-    if (color.Alpha() == 0) {
-       dc.DrawBitmap( m_transparent_mapping_item.bmp(), 0, (GetSize().y - MAPPING_ITEM_REAL_SIZE.y) / 2);
+    if (m_tray_data.material_cols.size() > 1) {
+        int left = 0;
+        int gwidth = std::round(MAPPING_ITEM_REAL_SIZE.x / (m_tray_data.material_cols.size() - 1));
+        //gradient
+        if (m_tray_data.ctype == 0) {
+            for (int i = 0; i < m_tray_data.material_cols.size() - 1; i++) {
+                auto rect = wxRect(left, (size.y - MAPPING_ITEM_REAL_SIZE.y) / 2, MAPPING_ITEM_REAL_SIZE.x, MAPPING_ITEM_REAL_SIZE.y);
+                dc.GradientFillLinear(rect, m_tray_data.material_cols[i], m_tray_data.material_cols[i + 1], wxEAST);
+                left += gwidth;
+            }
+        }
+        else {
+            int cols_size = m_tray_data.material_cols.size();
+            for (int i = 0; i < cols_size; i++) {
+                dc.SetBrush(wxBrush(m_tray_data.material_cols[i]));
+                float x = (float)MAPPING_ITEM_REAL_SIZE.x * i / cols_size;
+                dc.DrawRectangle(x, (size.y - MAPPING_ITEM_REAL_SIZE.y) / 2, (float)MAPPING_ITEM_REAL_SIZE.x / cols_size, MAPPING_ITEM_REAL_SIZE.y);
+            }
+        }
+    }
+    else if (color.Alpha() == 0) {
+       dc.DrawBitmap( m_transparent_mapping_item.bmp(), 0, (size.y - MAPPING_ITEM_REAL_SIZE.y) / 2);
     }
     else {
-        dc.DrawRectangle(0, (GetSize().y - MAPPING_ITEM_REAL_SIZE.y) / 2, MAPPING_ITEM_REAL_SIZE.x, MAPPING_ITEM_REAL_SIZE.y);
+        dc.DrawRectangle(0, (size.y - MAPPING_ITEM_REAL_SIZE.y) / 2, MAPPING_ITEM_REAL_SIZE.x, MAPPING_ITEM_REAL_SIZE.y);
     }
 
 
@@ -686,11 +744,11 @@ void MappingItem::doRender(wxDC &dc)
     dc.SetPen(side_colour);
     dc.SetBrush(wxBrush(side_colour));
 #ifdef __APPLE__
-    dc.DrawRectangle(0, 0, FromDIP(4), GetSize().y);
-    dc.DrawRectangle(GetSize().x - FromDIP(4), 0, FromDIP(4), GetSize().y);
+    dc.DrawRectangle(0, 0, FromDIP(4), size.y);
+    dc.DrawRectangle(size.x - FromDIP(4), 0, FromDIP(4), size.y);
 #else
-    dc.DrawRectangle(0, 0, FromDIP(4), GetSize().y);
-    dc.DrawRectangle(GetSize().x - FromDIP(4), 0, FromDIP(4), GetSize().y);
+    dc.DrawRectangle(0, 0, FromDIP(4), size.y);
+    dc.DrawRectangle(size.x - FromDIP(4), 0, FromDIP(4), size.y);
 #endif // __APPLE__
 }
 

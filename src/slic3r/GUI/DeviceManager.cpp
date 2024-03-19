@@ -807,7 +807,9 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
                 info.color = tray->second->color;
                 info.type = tray->second->get_filament_type();
                 info.id = tray_index;
-                info.filament_id=tray->second->setting_id;
+                info.filament_id = tray->second->setting_id;
+                info.ctype = tray->second->ctype;
+                info.colors = tray->second->cols;
                 tray_filaments.emplace(std::make_pair(tray_index, info));
             }
         }
@@ -824,6 +826,8 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
                 info.tray_id = atoi(tray_it->first.c_str()) + atoi(it->first.c_str()) * 4;
                 info.color = tray_it->second->color;
                 info.type = tray_it->second->get_filament_type();
+                info.ctype = tray_it->second->ctype;
+                info.colors = tray_it->second->cols;
             }
             else {
                 info.id = -1;
@@ -857,6 +861,9 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
                         if (filaments[i].type == tray_it->second->get_filament_type()) {
                             info.color = tray_it->second->color;
                             info.type = tray_it->second->get_filament_type();
+                            info.ctype = tray_it->second->ctype;
+                            std::vector<wxColour> cols;
+                            info.colors = tray_it->second->cols;
                         } else {
                             info.tray_id = -1;
                             info.mapping_result = (int)MappingResult::MAPPING_RESULT_TYPE_MISMATCH;
@@ -960,6 +967,8 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
                 result[picked_src_idx].type     = tray->second.type;
                 result[picked_src_idx].distance = tray->second.distance;
                 result[picked_src_idx].filament_id = tray->second.filament_id;
+                result[picked_src_idx].ctype = tray->second.ctype;
+                result[picked_src_idx].colors = tray->second.colors;
             }
             else {
                 FilamentInfo info;
@@ -999,6 +1008,8 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
                     result[i].tray_id = tray_info_list[i].tray_id;
                     result[i].color = tray_info_list[i].color;
                     result[i].type = tray_info_list[i].type;
+                    result[i].ctype = tray_info_list[i].ctype;
+                    result[i].colors = tray_info_list[i].colors;
                 }
             }
         }

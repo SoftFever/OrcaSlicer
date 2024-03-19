@@ -1800,8 +1800,11 @@ void SelectMachineDialog::sync_ams_mapping_result(std::vector<FilamentInfo> &res
                     // default color
                     ams_col = wxColour(0xCE, 0xCE, 0xCE);
                 }
-
-                m->set_ams_info(ams_col, ams_id);
+                std::vector<wxColour> cols;
+                for (auto col : f->colors) {
+                    cols.push_back(AmsTray::decode_color(col));
+                }
+                m->set_ams_info(ams_col, ams_id,f->ctype, cols);
                 break;
             }
             iter++;
@@ -2928,15 +2931,32 @@ void SelectMachineDialog::on_set_finish_mapping(wxCommandEvent &evt)
     BOOST_LOG_TRIVIAL(info) << "The ams mapping selection result: data is " << selection_data;
 
     if (selection_data_arr.size() == 6) {
-         for (auto i = 0; i < m_ams_mapping_result.size(); i++) {
+        int ctype = 0;
+        std::vector<wxColour> material_cols;
+        std::vector<std::string> tray_cols;
+        for (auto mapping_item : m_mapping_popup.m_mapping_item_list) {
+            if (mapping_item->m_tray_data.id == evt.GetInt()) {
+                ctype = mapping_item->m_tray_data.ctype;
+                material_cols = mapping_item->m_tray_data.material_cols;
+                for (auto col : mapping_item->m_tray_data.material_cols) {
+                    wxString color = wxString::Format("#%02X%02X%02X%02X", col.Red(), col.Green(), col.Blue(), col.Alpha());
+                    tray_cols.push_back(color.ToStdString());
+                }
+                break;
+            }
+        }
+
+        for (auto i = 0; i < m_ams_mapping_result.size(); i++) {
             if (m_ams_mapping_result[i].id == wxAtoi(selection_data_arr[5])) {
                 m_ams_mapping_result[i].tray_id = evt.GetInt();
-				auto ams_colour = wxColour(wxAtoi(selection_data_arr[0]), wxAtoi(selection_data_arr[1]), wxAtoi(selection_data_arr[2]), wxAtoi(selection_data_arr[3]));
-				wxString color = wxString::Format("#%02X%02X%02X%02X", ams_colour.Red(), ams_colour.Green(), ams_colour.Blue(), ams_colour.Alpha());
-			    m_ams_mapping_result[i].color = color.ToStdString();
+                auto ams_colour = wxColour(wxAtoi(selection_data_arr[0]), wxAtoi(selection_data_arr[1]), wxAtoi(selection_data_arr[2]), wxAtoi(selection_data_arr[3]));
+                wxString color = wxString::Format("#%02X%02X%02X%02X", ams_colour.Red(), ams_colour.Green(), ams_colour.Blue(), ams_colour.Alpha());
+                m_ams_mapping_result[i].color = color.ToStdString();
+                m_ams_mapping_result[i].ctype = ctype;
+                m_ams_mapping_result[i].colors = tray_cols;
             }
             BOOST_LOG_TRIVIAL(trace) << "The ams mapping result: id is " << m_ams_mapping_result[i].id << "tray_id is " << m_ams_mapping_result[i].tray_id;
-         }
+        }
 
         MaterialHash::iterator iter = m_materialList.begin();
         while (iter != m_materialList.end()) {
@@ -2944,7 +2964,7 @@ void SelectMachineDialog::on_set_finish_mapping(wxCommandEvent &evt)
             MaterialItem *m  = item->item;
             if (item->id == m_current_filament_id) {
                 auto ams_colour = wxColour(wxAtoi(selection_data_arr[0]), wxAtoi(selection_data_arr[1]), wxAtoi(selection_data_arr[2]), wxAtoi(selection_data_arr[3]));
-                m->set_ams_info(ams_colour, selection_data_arr[4]);
+                m->set_ams_info(ams_colour, selection_data_arr[4], ctype, material_cols);
             }
             iter++;
         }
