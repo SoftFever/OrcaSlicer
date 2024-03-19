@@ -137,6 +137,9 @@ public:
     virtual Polylines as_polylines() const { Polylines dst; this->collect_polylines(dst); return dst; }
     virtual double length() const = 0;
     virtual double total_volume() const = 0;
+    
+    // Orca: Used for inner/outer/inner mode - classic perimeter generator
+    int inset_idx = -1;
 
     static std::string role_to_string(ExtrusionRole role);
     static ExtrusionRole string_to_role(const std::string_view role);
@@ -479,7 +482,8 @@ public:
             append(dst, p.polyline.points);
     }
     double total_volume() const override { double volume =0.; for (const auto& path : paths) volume += path.total_volume(); return volume; }
-
+    // check if the loop is smooth, angle_threshold is in radians, default is 10 degrees
+    bool is_smooth(double angle_threshold = 0.174, double min_arm_length = 0.025) const;
     //static inline std::string role_to_string(ExtrusionLoopRole role);
 
 #ifndef NDEBUG
