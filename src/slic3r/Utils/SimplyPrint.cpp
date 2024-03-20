@@ -11,7 +11,7 @@
 
 namespace Slic3r {
 
-static constexpr boost::asio::ip::port_type CALLBACK_PORT         = 21328;
+static constexpr boost::asio::ip::port_type CALLBACK_PORT = 21328;
 static const std::string CALLBACK_URL = "http://localhost:21328/callback";
 static const std::string RESPONSE_TYPE  = "code";
 static const std::string CLIENT_ID = "simplyprintorcaslicer";
@@ -242,6 +242,7 @@ bool SimplyPrint::test(wxString& curl_msg) const
 bool SimplyPrint::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, ErrorFn error_fn, InfoFn info_fn) const
 {
     if (cred.find("access_token") == cred.end()) {
+        error_fn(_L("User unauthorized."));
         return false;
     }
 
