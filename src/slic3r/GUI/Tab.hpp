@@ -92,6 +92,10 @@ public:
     bool            m_split_multi_line      = false;
     bool            m_option_label_at_right = false;
 
+    // Orca: allow the show value to be overridden by a callback function
+    // The function provides a bool parameter that is set to the current decision on whether it should be shown
+    std::function<bool(bool)> m_should_show_fn = 0;
+
 public:
 	std::vector <ConfigOptionsGroupShp> m_optgroups;
 	DynamicPrintConfig* m_config;

@@ -3284,6 +3284,10 @@ void TabFilament::build()
         optgroup->append_single_option_line("spoolman_used_length");
         optgroup->append_single_option_line("spoolman_archived");
 
+    page->m_should_show_fn = [&](bool current_value) {
+        return m_preset_bundle->printers.get_edited_preset().config.opt_bool("spoolman_enabled");
+    };
+
     page = add_options_page(L("Multimaterial"), "advanced");
         optgroup = page->new_optgroup(L("Wipe tower parameters"));
         optgroup->append_single_option_line("filament_minimal_purge_on_wipe_tower");
@@ -5739,7 +5743,7 @@ void Page::update_visibility(ConfigOptionMode mode, bool update_contolls_visibil
 #endif
     }
 
-    m_show = ret_val;
+    m_show = m_should_show_fn ? m_should_show_fn(ret_val) : ret_val;
 #ifdef __WXMSW__
     if (!m_show) return;
     // BBS: fix field control position
