@@ -543,7 +543,7 @@ void PrintConfigDef::init_common_params()
     def->set_default_value(new ConfigOptionStrings());
 
     def = this->add("bbl_use_printhost", coBool);
-    def->label = L("Use 3rd-part print host");
+    def->label = L("Use 3rd-party print host");
     def->tooltip = L("Allow controlling BambuLab's printer through 3rd party print hosts");
     def->mode = comAdvanced;
     def->cli = ConfigOptionDef::nocli;
