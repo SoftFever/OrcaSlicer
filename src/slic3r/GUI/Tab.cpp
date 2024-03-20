@@ -2013,7 +2013,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("ironing_spacing");
         optgroup->append_single_option_line("ironing_angle");
 
-        optgroup = page->new_optgroup(L("Wall generator"), L"param_wall");
+        optgroup = page->new_optgroup(L("Wall generator"), L"param_wall_generator");
         optgroup->append_single_option_line("wall_generator", "wall-generator");
         optgroup->append_single_option_line("wall_transition_angle");
         optgroup->append_single_option_line("wall_transition_filter_deviation");
@@ -2024,7 +2024,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("min_feature_size");
         optgroup->append_single_option_line("min_length_factor");
 
-        optgroup = page->new_optgroup(L("Walls and surfaces"), L"param_advanced");
+        optgroup = page->new_optgroup(L("Walls and surfaces"), L"param_wall_surface");
         optgroup->append_single_option_line("wall_sequence");
         optgroup->append_single_option_line("is_infill_first");
         optgroup->append_single_option_line("wall_direction");
@@ -2044,7 +2044,7 @@ void TabPrint::build()
         option.opt.height = 15;
         optgroup->append_single_option_line(option, "small-area-infill-flow-compensation");
         
-        optgroup = page->new_optgroup(L("Bridging"), L"param_advanced");
+        optgroup = page->new_optgroup(L("Bridging"), L"param_bridge");
         optgroup->append_single_option_line("bridge_flow");
 	    optgroup->append_single_option_line("internal_bridge_flow");
         optgroup->append_single_option_line("bridge_density");
@@ -2053,7 +2053,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("dont_filter_internal_bridges");
         optgroup->append_single_option_line("counterbore_hole_bridging","counterbore-hole-bridging");
     
-        optgroup = page->new_optgroup(L("Overhangs"), L"param_advanced");
+        optgroup = page->new_optgroup(L("Overhangs"), L"param_overhang");
         optgroup->append_single_option_line("detect_overhang_wall");
         optgroup->append_single_option_line("make_overhang_printable");
         optgroup->append_single_option_line("make_overhang_printable_angle");
@@ -2112,7 +2112,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("gap_infill_speed");
         optgroup->append_single_option_line("support_speed");
         optgroup->append_single_option_line("support_interface_speed");
-        optgroup = page->new_optgroup(L("Overhang speed"), L"param_speed", 15);
+        optgroup = page->new_optgroup(L("Overhang speed"), L"param_overhang_speed", 15);
         optgroup->append_single_option_line("enable_overhang_speed", "slow-down-for-overhang");
         optgroup->append_single_option_line("overhang_speed_classic", "slow-down-for-overhang");
         optgroup->append_single_option_line("slowdown_for_curled_perimeters");
@@ -2145,7 +2145,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("accel_to_decel_enable");
         optgroup->append_single_option_line("accel_to_decel_factor");
 
-        optgroup = page->new_optgroup(L("Jerk(XY)"), L"param_speed", 15);
+        optgroup = page->new_optgroup(L("Jerk(XY)"), L"param_jerk", 15);
         optgroup->append_single_option_line("default_jerk");
         optgroup->append_single_option_line("outer_wall_jerk");
         optgroup->append_single_option_line("inner_wall_jerk");
@@ -2202,7 +2202,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("max_bridge_length", "support#base-pattern");
         optgroup->append_single_option_line("independent_support_layer_height", "support");
 
-        optgroup = page->new_optgroup(L("Tree supports"), L"param_advanced");
+        optgroup = page->new_optgroup(L("Tree supports"), L"param_support_tree");
         optgroup->append_single_option_line("tree_support_tip_diameter");
         optgroup->append_single_option_line("tree_support_branch_distance", "support#tree-support-only-options");
         optgroup->append_single_option_line("tree_support_branch_distance_organic", "support#tree-support-only-options");
@@ -3137,13 +3137,13 @@ void TabFilament::build()
         optgroup->append_separator();
 
 
-        optgroup = page->new_optgroup(L("Print temperature"), L"param_temperature");
+        optgroup = page->new_optgroup(L("Print temperature"), L"param_extruder_temp");
         line = { L("Nozzle"), L("Nozzle temperature when printing") };
         line.append_option(optgroup->get_option("nozzle_temperature_initial_layer"));
         line.append_option(optgroup->get_option("nozzle_temperature"));
         optgroup->append_line(line);
 
-        optgroup = page->new_optgroup(L("Bed temperature"), L"param_temperature");
+        optgroup = page->new_optgroup(L("Bed temperature"), L"param_bed_temp");
         line = { L("Cool plate"), L("Bed temperature when cool plate is installed. Value 0 means the filament does not support to print on the Cool Plate") };
         line.append_option(optgroup->get_option("cool_plate_temp_initial_layer"));
         line.append_option(optgroup->get_option("cool_plate_temp"));
@@ -3213,11 +3213,11 @@ void TabFilament::build()
         //    return description_line_widget(parent, &m_cooling_description_line);
         //};
         //optgroup->append_line(line);
-        optgroup = page->new_optgroup(L("Cooling for specific layer"), L"param_cooling");
+        optgroup = page->new_optgroup(L("Cooling for specific layer"), L"param_cooling_specific_layer");
         optgroup->append_single_option_line("close_fan_the_first_x_layers", "auto-cooling");
         optgroup->append_single_option_line("full_fan_speed_layer");
 
-        optgroup = page->new_optgroup(L("Part cooling fan"), L"param_cooling_fan");
+        optgroup = page->new_optgroup(L("Part cooling fan"), L"param_cooling_part_fan");
         line = { L("Min fan speed threshold"), L("Part cooling fan speed will start to run at min speed when the estimated layer time is no longer than the layer time in setting. When layer time is shorter than threshold, fan speed is interpolated between the minimum and maximum fan speed according to layer printing time") };
         line.label_path = "auto-cooling";
         line.append_option(optgroup->get_option("fan_min_speed"));
@@ -3237,10 +3237,10 @@ void TabFilament::build()
         optgroup->append_single_option_line("overhang_fan_speed", "auto-cooling");
         optgroup->append_single_option_line("support_material_interface_fan_speed");
 
-        optgroup = page->new_optgroup(L("Auxiliary part cooling fan"), L"param_cooling_fan");
+        optgroup = page->new_optgroup(L("Auxiliary part cooling fan"), L"param_cooling_aux_fan");
         optgroup->append_single_option_line("additional_cooling_fan_speed", "auxiliary-fan");
 
-        optgroup = page->new_optgroup(L("Exhaust fan"),L"param_cooling_fan");
+        optgroup = page->new_optgroup(L("Exhaust fan"),L"param_cooling_exhaust");
 
         optgroup->append_single_option_line("activate_air_filtration", "air-filtration");
 
@@ -3283,10 +3283,10 @@ void TabFilament::build()
         optgroup->append_single_option_line(option);
 
     page = add_options_page(L("Multimaterial"), "advanced");
-        optgroup = page->new_optgroup(L("Wipe tower parameters"));
+        optgroup = page->new_optgroup(L("Wipe tower parameters"),L"param_tower");
         optgroup->append_single_option_line("filament_minimal_purge_on_wipe_tower");
 
-        optgroup = page->new_optgroup(L("Toolchange parameters with single extruder MM printers"));
+        optgroup = page->new_optgroup(L("Toolchange parameters with single extruder MM printers"),L"param_toolchange");
         optgroup->append_single_option_line("filament_loading_speed_start", "semm");
         optgroup->append_single_option_line("filament_loading_speed", "semm");
         optgroup->append_single_option_line("filament_unloading_speed_start", "semm");
@@ -3515,7 +3515,7 @@ void TabPrinter::build_fff()
             static_cast<const ConfigOptionFloats*>(parent_preset->config.option("nozzle_diameter"))->values.size();
 
     auto page = add_options_page(L("Basic information"), "printer");
-        auto optgroup = page->new_optgroup(L("Printable space")/*, L"param_printable_space"*/);
+        auto optgroup = page->new_optgroup(L("Printable space"), L"param_printable_space");
 
         create_line_with_widget(optgroup.get(), "printable_area", "custom-svg-and-png-bed-textures_124612", [this](wxWindow* parent) {
            return 	create_bed_shape_widget(parent);
@@ -3558,25 +3558,25 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line("machine_unload_filament_time");
         optgroup->append_single_option_line("time_cost");
         
-        optgroup = page->new_optgroup(L("Cooling Fan"));
+        optgroup  = page->new_optgroup(L("Cooling Fan"), L"param_cooling_fan");
         Line line = Line{ L("Fan speed-up time"), optgroup->get_option("fan_speedup_time").opt.tooltip };
         line.append_option(optgroup->get_option("fan_speedup_time"));
         line.append_option(optgroup->get_option("fan_speedup_overhangs"));
         optgroup->append_line(line);
         optgroup->append_single_option_line("fan_kickstart");
 
-        optgroup = page->new_optgroup(L("Extruder Clearance"));
+        optgroup = page->new_optgroup(L("Extruder Clearance"), L"param_extruder_clearence");
         optgroup->append_single_option_line("extruder_clearance_radius");
         optgroup->append_single_option_line("extruder_clearance_height_to_rod");
         optgroup->append_single_option_line("extruder_clearance_height_to_lid");
 
-        optgroup = page->new_optgroup(L("Adaptive bed mesh"));
+        optgroup = page->new_optgroup(L("Adaptive bed mesh"), L"param_adaptive_mesh");
         optgroup->append_single_option_line("bed_mesh_min", "adaptive-bed-mesh");
         optgroup->append_single_option_line("bed_mesh_max", "adaptive-bed-mesh");
         optgroup->append_single_option_line("bed_mesh_probe_distance", "adaptive-bed-mesh");
         optgroup->append_single_option_line("adaptive_bed_mesh_margin", "adaptive-bed-mesh");
 
-        optgroup = page->new_optgroup(L("Accessory") /*, L"param_accessory"*/);
+        optgroup = page->new_optgroup(L("Accessory"), L"param_accessory");
         optgroup->append_single_option_line("nozzle_type");
         optgroup->append_single_option_line("nozzle_hrc");
         optgroup->append_single_option_line("auxiliary_fan", "auxiliary-fan");
@@ -3861,7 +3861,7 @@ PageShp TabPrinter::build_kinematics_page()
         append_option_line(optgroup, "machine_max_acceleration_retracting");
         append_option_line(optgroup, "machine_max_acceleration_travel");
 
-        optgroup = page->new_optgroup(L("Jerk limitation"));
+        optgroup = page->new_optgroup(L("Jerk limitation"), "param_jerk");
         for (const std::string &axis : axes)	{
             append_option_line(optgroup, "machine_max_jerk_" + axis);
         }
@@ -3917,7 +3917,7 @@ if (is_marlin_flavor)
     if (from_initial_build) {
         // create a page, but pretend it's an extruder page, so we can add it to m_pages ourselves
         auto page     = add_options_page(L("Multimaterial"), "printer", true);
-        auto optgroup = page->new_optgroup(L("Single extruder multimaterial setup"));
+        auto optgroup = page->new_optgroup(L("Single extruder multimaterial setup"), L"param_multi_material");
         optgroup->append_single_option_line("single_extruder_multi_material", "semm");
         // Orca: we only support Single Extruder Multi Material, so it's always enabled
         // optgroup->m_on_change = [this](const t_config_option_key &opt_key, const boost::any &value) {
@@ -3929,12 +3929,12 @@ if (is_marlin_flavor)
         // };
         optgroup->append_single_option_line("manual_filament_change", "semm#manual-filament-change");
 
-        optgroup = page->new_optgroup(L("Wipe tower"));
+        optgroup = page->new_optgroup(L("Wipe tower"), L"param_tower");
         optgroup->append_single_option_line("purge_in_prime_tower", "semm");
         optgroup->append_single_option_line("enable_filament_ramming", "semm");
 
 
-        optgroup = page->new_optgroup(L("Single extruder multimaterial parameters"));
+        optgroup = page->new_optgroup(L("Single extruder multimaterial parameters"), L"param_settings");
         optgroup->append_single_option_line("cooling_tube_retraction", "semm");
         optgroup->append_single_option_line("cooling_tube_length", "semm");
         optgroup->append_single_option_line("parking_pos_retraction", "semm");
@@ -3963,7 +3963,7 @@ if (is_marlin_flavor)
         auto page = add_options_page(page_name, "empty", true);
         m_pages.insert(m_pages.begin() + n_before_extruders + extruder_idx, page);
 
-            auto optgroup = page->new_optgroup(L("Size"), L"param_diameter", -1, true);
+            auto optgroup = page->new_optgroup(L("Size"), L"param_extruder_size");
             optgroup->append_single_option_line("nozzle_diameter", "", extruder_idx);
 
             optgroup->m_on_change = [this, extruder_idx](const t_config_option_key& opt_key, boost::any value)
@@ -4002,11 +4002,11 @@ if (is_marlin_flavor)
                 update();
             };
 
-            optgroup = page->new_optgroup(L("Layer height limits"), L"param_layer_height", -1, true);
+            optgroup = page->new_optgroup(L("Layer height limits"), L"param_layer_height");
             optgroup->append_single_option_line("min_layer_height", "", extruder_idx);
             optgroup->append_single_option_line("max_layer_height", "", extruder_idx);
 
-            optgroup = page->new_optgroup(L("Position"), L"param_retraction", -1, true);
+            optgroup = page->new_optgroup(L("Position"), L"param_position");
             optgroup->append_single_option_line("extruder_offset", "", extruder_idx);
 
             //BBS: don't show retract related config menu in machine page
@@ -4023,12 +4023,12 @@ if (is_marlin_flavor)
             optgroup->append_single_option_line("wipe_distance", "", extruder_idx);
             optgroup->append_single_option_line("retract_before_wipe", "", extruder_idx);
 
-            optgroup = page->new_optgroup(L("Lift Z Enforcement"), L"param_retraction", -1, true);
+            optgroup = page->new_optgroup(L("Lift Z Enforcement"), L"param_extruder_lift_enforcement");
             optgroup->append_single_option_line("retract_lift_above", "", extruder_idx);
             optgroup->append_single_option_line("retract_lift_below", "", extruder_idx);
             optgroup->append_single_option_line("retract_lift_enforce", "", extruder_idx);
 
-            optgroup = page->new_optgroup(L("Retraction when switching material"), L"param_retraction", -1, true);
+            optgroup = page->new_optgroup(L("Retraction when switching material"), L"param_retraction_material_change");
             optgroup->append_single_option_line("retract_length_toolchange", "", extruder_idx);
             optgroup->append_single_option_line("retract_restart_extra_toolchange", "", extruder_idx);
 
