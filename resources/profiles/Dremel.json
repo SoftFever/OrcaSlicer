@@ -5,14 +5,82 @@
 	"description": "Dremel configurations",
 	"machine_model_list": [
 		{
-			"name": "Creality CR-10 V2",
-			"sub_path": "machine/Creality CR-10 V2.json"
+			"name": "Dremel 3D20",
+			"sub_path": "machine/Dremel 3D20.json"
+		},
+		{
+			"name": "Dremel 3D40",
+			"sub_path": "machine/Dremel 3D40.json"
+		},
+		{
+			"name": "Dremel 3D45",
+			"sub_path": "machine/Dremel 3D45.json"
+		},
+		{
+			"name": "fdm_machine_common",
+			"sub_path": "machine/fdm_machine_common.json"
 		}
 	],
 	"process_list": [
 		{
+			"name": "fdm_process_dremel_common",
+			"sub_path": "process/fdm_process_dremel_common.json"
+		},
+		{
 			"name": "fdm_process_common",
 			"sub_path": "process/fdm_process_common.json"
+		},
+		{
+			"name": ".05mm Super Detail @Dremel 3D40 0.4 nozzle.json",
+			"sub_path": "process/.05mm Super Detail @Dremel 3D40 0.4 nozzle.json"
+		},
+		{
+			"name": ".05mm Super Detail @Dremel 3D45 0.4 nozzle.json",
+			"sub_path": "process/.05mm Super Detail @Dremel 3D45 0.4 nozzle.json"
+		},
+		{
+			"name": ".10mm Detail @Dremel 3D40 0.4 nozzle.json",
+			"sub_path": "process/.10mm Detail @Dremel 3D40 0.4 nozzle.json"
+		},
+		{
+			"name": ".10mm Detail @Dremel 3D45 0.4 nozzle.json",
+			"sub_path": "process/.10mm Detail @Dremel 3D45 0.4 nozzle.json"
+		},
+		{
+			"name": ".10mm High Detail @Dremel 3D20 0.4.json",
+			"sub_path": "process/.10mm High Detail @Dremel 3D20 0.4.json"
+		},
+		{
+			"name": ".20mm Standard @Dremel 3D20 0.4.json",
+			"sub_path": "process/.20mm Standard @Dremel 3D20 0.4.json"
+		},
+		{
+			"name": ".20mm Standard @Dremel 3D40 0.4 nozzle.json",
+			"sub_path": "process/.20mm Standard @Dremel 3D40 0.4 nozzle.json"
+		},
+		{
+			"name": ".20mm Standard @Dremel 3D45 0.4 nozzle.json",
+			"sub_path": "process/.20mm Standard @Dremel 3D45 0.4 nozzle.json"
+		},
+		{
+			"name": ".30mm Draft @Dremel 3D20 0.4.json",
+			"sub_path": "process/.30mm Draft @Dremel 3D20 0.4.json"
+		},
+		{
+			"name": ".30mm Draft @Dremel 3D40 0.4 nozzle.json",
+			"sub_path": "process/.30mm Draft @Dremel 3D40 0.4 nozzle.json"
+		},
+		{
+			"name": ".30mm Draft @Dremel 3D45 0.4 nozzle.json",
+			"sub_path": "process/.30mm Draft @Dremel 3D45 0.4 nozzle.json"
+		},
+		{
+			"name": ".34mm SuperDraft @Dremel 3D40 0.4 nozzle.json",
+			"sub_path": "process/.34mm SuperDraft @Dremel 3D40 0.4 nozzle.json"
+		},
+		{
+			"name": ".34mm SuperDraft @Dremel 3D45 0.4 nozzle.json",
+			"sub_path": "process/.34mm SuperDraft @Dremel 3D45 0.4 nozzle.json"
 		}
 	],
 	"filament_list": [
@@ -21,38 +89,30 @@
 			"sub_path": "filament/fdm_filament_common.json"
 		},
 		{
-			"name": "fdm_filament_abs",
-			"sub_path": "filament/fdm_filament_abs.json"
+			"name": "Dremel Generic PLA @3D20 all",
+			"sub_path": "filament/Dremel Generic PLA @3D20 all.json"
 		},
 		{
-			"name": "fdm_filament_asa",
-			"sub_path": "filament/fdm_filament_asa.json"
+			"name": "Dremel Generic PLA @3D40 all",
+			"sub_path": "filament/Dremel Generic PLA @3D40 all.json"
 		},
 		{
-			"name": "fdm_filament_pa",
-			"sub_path": "filament/fdm_filament_pa.json"
-		},
-		{
-			"name": "fdm_filament_pc",
-			"sub_path": "filament/fdm_filament_pc.json"
-		},
-		{
-			"name": "fdm_filament_pet",
-			"sub_path": "filament/fdm_filament_pet.json"
-		},
-		{
-			"name": "fdm_filament_pla",
-			"sub_path": "filament/fdm_filament_pla.json"
-		},
-		{
-			"name": "fdm_filament_tpu",
-			"sub_path": "filament/fdm_filament_tpu.json"
+			"name": "Dremel Generic PLA @3D45 all",
+			"sub_path": "filament/Dremel Generic PLA @3D45 all.json"
 		}
 	],
 	"machine_list": [
 		{
-			"name": "fdm_machine_common",
-			"sub_path": "machine/fdm_machine_common.json"
+			"name": "Dremel 3D20 0.4 nozzle",
+			"sub_path": "machine/Dremel 3D20 0.4 nozzle.json"
+		},
+		{
+			"name": "Dremel 3D40 0.4 nozzle",
+			"sub_path": "machine/Dremel 3D40 0.4 nozzle.json"
+		},
+		{
+			"name": "Dremel 3D20 0.4 nozzle",
+			"sub_path": "machine/Dremel 3D45 0.4 nozzle.json"
 		}
 	]
 }

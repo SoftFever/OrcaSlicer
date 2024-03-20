@@ -14,7 +14,7 @@
     "change_filament_gcode": "PAUSE",
     "cooling_tube_length": "5",
     "cooling_tube_retraction": "91.5",
-    "default_filament_profile": "Dremel Generic PLA @3D20 all",
+    "default_filament_profile": "Dremel Generic PLA @3D45 all",
     "default_print_profile": "0.20mm Standard @Creality K1 (0.4 nozzle)",
     "deretraction_speed": [
         "40"
@@ -42,7 +42,7 @@
     "host_type": "octoprint",
     "is_custom_defined": "0",
     "layer_change_gcode": "",
-    "machine_end_gcode": "M104 S0 T0\nG1 Z140 F3300\nG28 X0 Y0\nM132 X Y Z A\nG91\nM18",
+    "machine_end_gcode": "M104 S0\nM140 S0\nG92 E1\nG1 E-1 F300\nG162 Z F600\nG162 X Y F2000\nM84",
     "machine_load_filament_time": "0",
     "machine_max_acceleration_e": [
         "6200",
@@ -113,16 +113,16 @@
         "0"
     ],
     "machine_pause_gcode": "PAUSE",
-    "machine_start_gcode": "G90\nG28\nM132 X Y Z A\nG1 Z100 F3300\nG1 X-110.5 Y-74 F6000\nM6 T0\nM907 X100 Y100 Z60 A100\nG1 Z0.6 F3300\nG4 P2000\nM108 T0",
+    "machine_start_gcode": "G28\nG1 Z50.00 F400\nG92 E0\nG1 F200 E3\nG92 E0\nM132 X Y Z A\nM907 X100 Y100 Z50 A100",
     "machine_unload_filament_time": "0",
     "manual_filament_change": "1",
     "max_layer_height": [
-        "0.3"
+        "0.34"
     ],
     "min_layer_height": [
-        "0.08"
+        "0.05"
     ],
-    "name": "Dremel 3D20 0.4 nozzle",
+    "name": "Dremel 3D45 0.4 nozzle",
     "nozzle_diameter": [
         "0.4"
     ],
@@ -135,14 +135,14 @@
     "print_host_webui": "",
     "printable_area": [
         "0x0",
-        "230x0",
-        "230x150",
-        "0x150"
+        "255x0",
+        "255x155",
+        "0x155"
     ],
-    "printable_height": "140",
-    "printer_model": "Dremel 3D20",
+    "printable_height": "170",
+    "printer_model": "Dremel 3D45",
     "printer_notes": "",
-    "printer_settings_id": "Dremel 3D20 0.4 nozzle",
+    "printer_settings_id": "Dremel 3D45 0.4 nozzle",
     "printer_structure": "undefine",
     "printer_technology": "FFF",
     "printer_variant": "0.4",
@@ -180,13 +180,13 @@
         "1"
     ],
     "retraction_length": [
-        "0.5"
+        "3"
     ],
     "retraction_minimum_travel": [
-        "2"
+        "5"
     ],
     "retraction_speed": [
-        "40"
+        "60"
     ],
     "scan_first_layer": "0",
     "silent_mode": "0",
@@ -213,7 +213,7 @@
         "1"
     ],
     "z_hop": [
-        "0.2"
+        "0.5"
     ],
     "z_hop_types": [
         "Normal Lift"

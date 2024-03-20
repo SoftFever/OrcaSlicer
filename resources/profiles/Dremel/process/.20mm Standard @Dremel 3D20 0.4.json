@@ -1,10 +1,11 @@
 {
+    "type": "process",
+    "from": "system",
     "bottom_shell_layers": "4",
     "brim_type": "no_brim",
     "default_acceleration": "5000",
-    "from": "User",
     "gap_infill_speed": "50",
-    "inherits": "process template @Dremel 3D20 0.4 nozzle",
+    "inherits": "fdm_process_dremel_common",
     "initial_layer_acceleration": "2000",
     "initial_layer_infill_speed": "50",
     "inner_wall_acceleration": "5000",

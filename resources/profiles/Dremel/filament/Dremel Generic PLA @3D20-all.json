@@ -9,11 +9,12 @@
         "60"
     ],
     "filament_settings_id": [
-        "Dremel Generic PLA @3D20-all"
+        "Dremel Generic PLA @3D20 all"
     ],
-    "from": "User",
+    "from": "system",
+    "inherits": "fdm_filament_common",
     "is_custom_defined": "0",
-    "name": "Dremel Generic PLA @3D20-all",
+    "name": "Dremel Generic PLA @3D20 all",
     "nozzle_temperature": [
         "225"
     ],
