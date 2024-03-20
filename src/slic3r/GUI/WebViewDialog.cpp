@@ -890,12 +890,13 @@ void WebViewPanel::OnError(wxWebViewEvent& evt)
 
     BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": [" << category << "] " << evt.GetString().ToUTF8().data();
 
-    if (wxGetApp().get_mode() == comDevelop)
+    if (wxGetApp().get_mode() == comDevelop) 
+    {
         wxLogMessage("%s", "Error; url='" + evt.GetURL() + "', error='" + category + " (" + evt.GetString() + ")'");
 
-    //Show the info bar with an error
-    m_info->ShowMessage(_L("An error occurred loading ") + evt.GetURL() + "\n" +
-        "'" + category + "'", wxICON_ERROR);
+        // Show the info bar with an error
+        m_info->ShowMessage(_L("An error occurred loading ") + evt.GetURL() + "\n" + "'" + category + "'", wxICON_ERROR);
+    }
 
     UpdateState();
 }
