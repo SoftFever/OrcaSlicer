@@ -528,6 +528,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/PrinterCloudAuthDialog.hpp
     Utils/Obico.cpp    
     Utils/Obico.hpp
+    Utils/Spoolman.cpp
+    Utils/Spoolman.hpp
 )
 
 if (WIN32)

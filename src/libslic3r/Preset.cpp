@@ -849,7 +849,8 @@ static std::vector<std::string> s_Preset_filament_options {
     "filament_loading_speed", "filament_loading_speed_start", "filament_load_time",
     "filament_unloading_speed", "filament_unloading_speed_start", "filament_unload_time", "filament_toolchange_delay", "filament_cooling_moves",
     "filament_cooling_initial_speed", "filament_cooling_final_speed", "filament_ramming_parameters",
-    "filament_multitool_ramming", "filament_multitool_ramming_volume", "filament_multitool_ramming_flow", "activate_chamber_temp_control"
+    "filament_multitool_ramming", "filament_multitool_ramming_volume", "filament_multitool_ramming_flow", "activate_chamber_temp_control",
+    "spoolman_spool_id", "spoolman_remaining_weight", "spoolman_used_weight", "spoolman_remaining_length", "spoolman_used_length", "spoolman_archived"
     };
 
 static std::vector<std::string> s_Preset_machine_limits_options {
@@ -874,7 +875,7 @@ static std::vector<std::string> s_Preset_printer_options {
     "best_object_pos","head_wrap_detect_zone",
     //SoftFever
     "host_type", "print_host", "printhost_apikey",
-    "print_host_webui",
+    "print_host_webui", "spoolman_enabled", "spoolman_port",
     "printhost_cafile","printhost_port","printhost_authorization_type",
     "printhost_user", "printhost_password", "printhost_ssl_ignore_revoke", "thumbnails", "thumbnails_format",
     "use_firmware_retraction", "use_relative_e_distances", "printer_notes",
@@ -2184,7 +2185,7 @@ bool PresetCollection::clone_presets_for_filament(Preset const *const &     pres
 {
     std::vector<Preset const *> const presets = {preset};
     return clone_presets(presets, failures, [&filament_name, &filament_id, &dynamic_config, &compatible_printers](Preset &preset, Preset::Type &type) {
-        preset.name        = filament_name + " @" + compatible_printers;
+        preset.name        = filament_name + (compatible_printers.empty() ? "" : (" @" + compatible_printers));
         if (type == Preset::TYPE_FILAMENT) {
             preset.config.apply_only(dynamic_config, {"filament_vendor", "compatible_printers", "filament_type"},true);
 

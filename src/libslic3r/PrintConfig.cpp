@@ -534,6 +534,20 @@ void PrintConfigDef::init_common_params()
     def->cli = ConfigOptionDef::nocli;
     def->set_default_value(new ConfigOptionString(""));
 
+    def = this->add("spoolman_enabled", coBool);
+    def->label = L("Spoolman Support");
+    def->tooltip = L("Enables spool management features powered by a Spoolman server instance");
+    def->mode = comAdvanced;
+    def->cli = ConfigOptionDef::nocli;
+    def->set_default_value(new ConfigOptionBool());
+
+    def = this->add("spoolman_port", coString);
+    def->label = L("Spoolman Port");
+    def->tooltip = L("Indicates the port your Spoolman instance is hosted on");
+    def->mode = comAdvanced;
+    def->cli = ConfigOptionDef::nocli;
+    def->set_default_value(new ConfigOptionString("8000"));
+
     def = this->add("print_host_webui", coString);
     def->label = L("Device UI");
     def->tooltip = L("Specify the URL of your device user interface if it's not same as print_host");
@@ -1946,6 +1960,55 @@ def = this->add("filament_loading_speed", coFloats);
     def->tooltip = L("Vendor of filament. For show only");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionStrings{L("(Undefined)")});
+    def->cli = ConfigOptionDef::nocli;
+
+    def = this->add("spoolman_spool_id", coInt);
+    def->label = L("Spoolman ID");
+    def->tooltip = L("The spool ID of this filament profile within your Spoolman instance. This will allow automatic spool switching when "
+                     "using moonraker to track spool usage and one touch updating of this filament profile from the Spoolman properties. "
+                     "Setting this to a value of 0 disables its functionality.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionInt());
+    def->cli = ConfigOptionDef::nocli;
+
+    def = this->add("spoolman_remaining_weight", coFloat);
+    def->label = L("Remaining Weight");
+    def->tooltip = L("Remaining weight of the spool");
+    def->mode    = comAdvanced;
+    def->readonly = true;
+    def->set_default_value(new ConfigOptionFloat());
+    def->cli = ConfigOptionDef::nocli;
+
+    def = this->add("spoolman_used_weight", coFloat);
+    def->label = L("Used Weight");
+    def->tooltip = L("Used weight of the spool");
+    def->mode = comAdvanced;
+    def->readonly = true;
+    def->set_default_value(new ConfigOptionFloat());
+    def->cli = ConfigOptionDef::nocli;
+
+    def = this->add("spoolman_remaining_length", coFloat);
+    def->label = L("Remaining Length");
+    def->tooltip = L("Remaining length of the filament on the spool");
+    def->mode = comAdvanced;
+    def->readonly = true;
+    def->set_default_value(new ConfigOptionFloat());
+    def->cli = ConfigOptionDef::nocli;
+
+    def = this->add("spoolman_used_length", coFloat);
+    def->label = L("Used Length");
+    def->tooltip = L("Used length of the filament from the spool");
+    def->mode = comAdvanced;
+    def->readonly = true;
+    def->set_default_value(new ConfigOptionFloat());
+    def->cli = ConfigOptionDef::nocli;
+
+    def = this->add("spoolman_archived", coBool);
+    def->label = L("Archived");
+    def->tooltip = L("Indicates if the spool is archived");
+    def->mode = comAdvanced;
+    def->readonly = true;
+    def->set_default_value(new ConfigOptionBool());
     def->cli = ConfigOptionDef::nocli;
 
     def = this->add("infill_direction", coFloat);

@@ -122,7 +122,7 @@ PhysicalPrinterDialog::~PhysicalPrinterDialog()
 void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgroup)
 {
     m_optgroup->m_on_change = [this](t_config_option_key opt_key, boost::any value) {
-        if (opt_key == "host_type" || opt_key == "printhost_authorization_type")
+        if (opt_key == "host_type" || opt_key == "printhost_authorization_type" || opt_key == "spoolman_enabled")
             this->update();
         if (opt_key == "print_host")
             this->update_printhost_buttons();
@@ -131,6 +131,12 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
     };
 
     m_optgroup->append_single_option_line("host_type");
+
+    m_optgroup->append_single_option_line("spoolman_enabled");
+
+    Option option = m_optgroup->get_option("spoolman_port");
+    option.opt.width = Field::def_width_wider();
+    m_optgroup->append_single_option_line(option);
 
     auto create_sizer_with_btn = [](wxWindow* parent, ScalableButton** btn, const std::string& icon_name, const wxString& label) {
         *btn = new ScalableButton(parent, wxID_ANY, icon_name, label, wxDefaultSize, wxDefaultPosition, wxBU_LEFT | wxBU_EXACTFIT);
@@ -210,7 +216,7 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
     };
 
     // Set a wider width for a better alignment
-    Option option = m_optgroup->get_option("print_host");
+    option = m_optgroup->get_option("print_host");
     option.opt.width = Field::def_width_wider();
     Line host_line = m_optgroup->create_single_option_line(option);
     host_line.append_widget(printhost_browse);
@@ -512,6 +518,15 @@ void PhysicalPrinterDialog::update(bool printer_change)
                     }
                 }
             }
+        } else if (opt->value == htOctoPrint) {
+            m_optgroup->show_field("spoolman_enabled");
+            m_optgroup->show_field("spoolman_port", m_config->opt_bool("spoolman_enabled"));
+        } else {
+            m_config->set("spoolman_enabled", false);
+            m_optgroup->hide_field("spoolman_enabled");
+
+            m_config->set("spoolman_port", m_optgroup->get_option("spoolman_port").opt.get_default_value<ConfigOptionString>()->value);
+            m_optgroup->hide_field("spoolman_port");
         }
     }
     else {

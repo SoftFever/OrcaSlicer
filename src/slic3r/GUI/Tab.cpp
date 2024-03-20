@@ -3273,6 +3273,17 @@ void TabFilament::build()
         option.opt.height = gcode_field_height;// 150;
         optgroup->append_single_option_line(option);
 
+    page = add_options_page(L("Spoolman"), "advanced");
+        optgroup = page->new_optgroup("Basic information");
+        optgroup->append_single_option_line("spoolman_spool_id");
+
+        optgroup = page->new_optgroup("Spool Statistics");
+        optgroup->append_single_option_line("spoolman_remaining_weight");
+        optgroup->append_single_option_line("spoolman_used_weight");
+        optgroup->append_single_option_line("spoolman_remaining_length");
+        optgroup->append_single_option_line("spoolman_used_length");
+        optgroup->append_single_option_line("spoolman_archived");
+
     page = add_options_page(L("Multimaterial"), "advanced");
         optgroup = page->new_optgroup(L("Wipe tower parameters"));
         optgroup->append_single_option_line("filament_minimal_purge_on_wipe_tower");
