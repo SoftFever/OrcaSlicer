@@ -502,13 +502,13 @@ void PhysicalPrinterDialog::update(bool printer_change)
         update_host_type(printer_change);
         const auto opt = m_config->option<ConfigOptionEnum<PrintHostType>>("host_type");
         m_optgroup->show_field("host_type");
-        
-        if (Field* printhost_field = m_optgroup->get_field("print_host"); printhost_field) {
-            printhost_field->enable();
-        }
-        if (Field* printhost_webui_field = m_optgroup->get_field("print_host_webui"); printhost_webui_field) {
-            printhost_webui_field->enable();
-        }
+
+        m_optgroup->enable_field("print_host");
+        m_optgroup->enable_field("print_host_webui");
+        m_optgroup->enable_field("printhost_cafile");
+        m_optgroup->enable_field("printhost_ssl_ignore_revoke");
+        if (m_printhost_cafile_browse_btn)
+            m_printhost_cafile_browse_btn->Enable();
 
         // hide pre-configured address, in case user switched to a different host type
         if (Field* printhost_field = m_optgroup->get_field("print_host"); printhost_field) {
@@ -572,6 +572,10 @@ void PhysicalPrinterDialog::update(bool printer_change)
                     m_config->opt_string("print_host_webui") = "https://simplyprint.io/panel";
                 }
                 m_optgroup->hide_field("printhost_apikey");
+                m_optgroup->disable_field("printhost_cafile");
+                m_optgroup->disable_field("printhost_ssl_ignore_revoke");
+                if (m_printhost_cafile_browse_btn)
+                    m_printhost_cafile_browse_btn->Disable();
             }
         }
     }
