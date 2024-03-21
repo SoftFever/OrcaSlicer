@@ -1947,7 +1947,7 @@ void PresetBundle::set_calibrate_printer(std::string name)
 std::set<std::string> PresetBundle::get_printer_names_by_printer_type_and_nozzle(const std::string &printer_type, std::string nozzle_diameter_str)
 {
     std::set<std::string> printer_names;
-    if ("0.0" == nozzle_diameter_str) {
+    if ("0.0" == nozzle_diameter_str || nozzle_diameter_str.empty()) {
         nozzle_diameter_str = "0.4";
     }
     std::ostringstream    stream;
@@ -1965,6 +1965,10 @@ std::set<std::string> PresetBundle::get_printer_names_by_printer_type_and_nozzle
         if (printer_it->name.find(nozzle_diameter_str) != std::string::npos) printer_names.insert(printer_it->name);
     }
     assert(printer_names.size() == 1);
+
+    for (auto& printer_name : printer_names) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " " << __LINE__ << " printer name: " << printer_name;
+    }
 
     return printer_names;
 }

@@ -936,12 +936,26 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
     m_filament_type = "";
     PresetBundle* preset_bundle = wxGetApp().preset_bundle;
     if (preset_bundle) {
+        std::ostringstream stream;
+        if (obj)
+            stream << std::fixed << std::setprecision(1) << obj->nozzle_diameter;
+        std::string nozzle_diameter_str = stream.str();
+        std::set<std::string> printer_names = preset_bundle->get_printer_names_by_printer_type_and_nozzle(MachineObject::get_preset_printer_model_name(obj->printer_type),
+                                                                                                          nozzle_diameter_str);
         for (auto it = preset_bundle->filaments.begin(); it != preset_bundle->filaments.end(); it++) {
             if (!m_comboBox_filament->GetValue().IsEmpty()) {
                 auto filament_item = map_filament_items[m_comboBox_filament->GetValue().ToStdString()];
                 std::string filament_id   = filament_item.filament_id;
                 if (it->filament_id.compare(filament_id) == 0) {
-
+                    bool has_compatible_printer = false;
+                    std::string preset_name            = it->name;
+                    for (std::string printer_name : printer_names) {
+                        if (preset_name.find(printer_name) != std::string::npos) {
+                            has_compatible_printer = true;
+                            break;
+                        }
+                    }
+                    if (!it->is_system && !has_compatible_printer) continue;
                     // ) if nozzle_temperature_range is found
                     ConfigOption* opt_min = it->config.option("nozzle_temperature_range_low");
                     if (opt_min) {
