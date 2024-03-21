@@ -1434,7 +1434,7 @@ int GUI_App::install_plugin(std::string name, std::string package_name, InstallP
     if (pro_fn)
         pro_fn(InstallStatusInstallCompleted, 100, cancel);
     if (name == "plugins")
-        app_config->set_str("app", "installed_networking", "1");
+        app_config->set_bool("installed_networking", true);
     BOOST_LOG_TRIVIAL(info) << "[install_plugin] success";
     return 0;
 }
@@ -2616,7 +2616,7 @@ void GUI_App::copy_network_if_available()
 
 bool GUI_App::on_init_network(bool try_backup)
 {
-    auto should_load_networking_plugin = app_config->get("installed_networking") == "1";
+    auto should_load_networking_plugin = app_config->get_bool("installed_networking");
     if(!should_load_networking_plugin) {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "Don't load plugin as installed_networking is false";
         return false;

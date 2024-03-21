@@ -989,30 +989,6 @@ void MainFrame::init_tabpanel() {
     m_tabpanel->Hide();
     m_settings_dialog.set_tabpanel(m_tabpanel);
 
-    m_tabpanel->Bind(wxEVT_NOTEBOOK_PAGE_CHANGING, [this](wxBookCtrlEvent &e) {
-      int old_sel = e.GetOldSelection();
-      int new_sel = e.GetSelection();
-      if (wxGetApp().preset_bundle && wxGetApp().preset_bundle->is_bbl_vendor() && new_sel == tpMonitor) {
-          if (!wxGetApp().getAgent()) {
-              e.Veto();
-              BOOST_LOG_TRIVIAL(info) << boost::format("skipped tab switch from %1% to %2%, lack of network plugins") % old_sel % new_sel;
-              if (m_plater) {
-                  wxCommandEvent *evt = new wxCommandEvent(EVT_INSTALL_PLUGIN_HINT);
-                  wxQueueEvent(m_plater, evt);
-              }
-          }
-      } else {
-          if (new_sel == tpMonitor && wxGetApp().preset_bundle != nullptr) {
-              auto     cfg = wxGetApp().preset_bundle->printers.get_edited_preset().config;
-              wxString url = cfg.opt_string("print_host_webui").empty() ? cfg.opt_string("print_host") : cfg.opt_string("print_host_webui");
-              if (url.empty()) {
-                  wxString url = wxString::Format("file://%s/web/orca/missing_connection.html", from_u8(resources_dir()));
-                  m_printer_view->load_url(url);
-              }
-          }
-      }
-    });
-
 #ifdef __WXMSW__
     m_tabpanel->Bind(wxEVT_BOOKCTRL_PAGE_CHANGED, [this](wxBookCtrlEvent& e) {
 #else
