@@ -32,9 +32,9 @@
     "printable_height": "250",
     "printable_area": [
         "0x0",
-        "235x0",
-        "235x235",
-        "0x235"
+        "220x0",
+        "220x220",
+        "0x220"
     ],
     "retraction_length": [
         "0.8"
