@@ -150,7 +150,13 @@ void LayerNumberTextInput::set_layer_number(int layer_number)
         m_value_type = ValueType::End;
     else
         m_value_type = ValueType::Custom;
-    update_label();
+
+    if (m_value_type == ValueType::End)
+        SetSelection(0);
+    if (m_value_type == ValueType::Custom) {
+        SetSelection(1);
+        update_label();
+    }
 }
 
 int LayerNumberTextInput::get_layer_number()
