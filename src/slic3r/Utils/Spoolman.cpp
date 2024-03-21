@@ -111,7 +111,7 @@ bool Spoolman::pull_spoolman_spools()
     return true;
 }
 
-bool Spoolman::create_filament_preset_from_spool(const SpoolmanSpoolShrPtr& spool, Preset* base_profile)
+bool Spoolman::create_filament_preset_from_spool(const SpoolmanSpoolShrPtr& spool, const Preset* base_profile)
 {
     PresetBundle*     preset_bundle        = wxGetApp().preset_bundle;
     PresetCollection& filaments            = preset_bundle->filaments;

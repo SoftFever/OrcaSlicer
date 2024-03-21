@@ -40,7 +40,7 @@ class Spoolman
 
 public:
     // returns true if the operation was successful and false for any errors/issues
-    static bool create_filament_preset_from_spool(const SpoolmanSpoolShrPtr& spool, Preset *base_profile);
+    static bool create_filament_preset_from_spool(const SpoolmanSpoolShrPtr& spool, const Preset* base_profile);
     // returns true if the operation was successful and false for any errors/issues
     static bool update_filament_preset_from_spool(Preset* filament_preset, bool update_from_server, bool only_update_statistics);
 

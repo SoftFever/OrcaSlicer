@@ -3298,7 +3298,7 @@ void TabFilament::build()
                 }
                 Spoolman::update_filament_preset_from_spool(&m_presets->get_edited_preset(), true, stats_only);
                 Spoolman::update_filament_preset_from_spool(&m_presets->get_selected_preset(), false, stats_only);
-                const Preset* preset = m_presets->find_preset(m_presets->get_edited_preset().inherits());
+                const Preset* preset = m_presets->get_selected_preset_parent();
                 m_presets->get_selected_preset().save(preset ? &preset->config : nullptr);
                 update_dirty();
             };
