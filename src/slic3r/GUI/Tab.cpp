@@ -67,7 +67,7 @@
 #include "Search.hpp"
 #include "BedShapeDialog.hpp"
 
-#include "BedShapeDialog.hpp"
+#include "Spoolman.hpp"
 // #include "BonjourDialog.hpp"
 #ifdef WIN32
 	#include <commctrl.h>
@@ -3285,6 +3285,36 @@ void TabFilament::build()
     page = add_options_page(L("Spoolman"), "advanced");
         optgroup = page->new_optgroup("Basic information");
         optgroup->append_single_option_line("spoolman_spool_id");
+
+        line = {"Spoolman Update", ""};
+        line.append_option(Option(ConfigOptionDef(), ""));
+        line.widget = [&](wxWindow* parent){
+            auto sizer = new wxBoxSizer(wxHORIZONTAL);
+            
+            auto on_click = [&](bool stats_only) {
+                if (m_presets->current_is_dirty() && m_active_page->get_field("spoolman_spool_id")->m_is_modified_value) {
+                    show_error(this, "This profile cannot be updated with an unsaved Spool ID value. Please save the profile, then try updating again.");
+                    return;
+                }
+                Spoolman::update_filament_preset_from_spool(&m_presets->get_edited_preset(), true, stats_only);
+                Spoolman::update_filament_preset_from_spool(&m_presets->get_selected_preset(), false, stats_only);
+                const Preset* preset = m_presets->find_preset(m_presets->get_edited_preset().inherits());
+                m_presets->get_selected_preset().save(preset ? &preset->config : nullptr);
+                update_dirty();
+            };
+
+            auto refresh_all_btn = new wxButton(parent, wxID_ANY, _L("Update Filament"));
+            refresh_all_btn->Bind(wxEVT_BUTTON, [on_click](wxCommandEvent& evt) { on_click(false); });
+            wxGetApp().UpdateDarkUI(refresh_all_btn);
+            sizer->Add(refresh_all_btn);
+
+            auto refresh_stats_btn = new wxButton(parent, wxID_ANY, _L("Update Stats"));
+            refresh_stats_btn->Bind(wxEVT_BUTTON, [on_click](wxCommandEvent& evt) { on_click(true); });
+            wxGetApp().UpdateDarkUI(refresh_stats_btn);
+            sizer->Add(refresh_stats_btn);
+            return sizer;
+        };
+        optgroup->append_line(line);
 
         optgroup = page->new_optgroup("Spool Statistics");
         optgroup->append_single_option_line("spoolman_remaining_weight");
