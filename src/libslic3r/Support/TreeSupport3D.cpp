@@ -3400,6 +3400,22 @@ static void generate_support_areas(Print &print, TreeSupport* tree_support, cons
                 append(overhangs[i + num_raft_layers], polys);
             }
         }
+        // add vertical enforcer points
+        std::vector<float> zs = zs_from_layers(print_object.layers());
+        Polygon            base_circle = make_circle(scale_(0.5), SUPPORT_TREE_CIRCLE_RESOLUTION);
+        for (auto &pt_and_normal :tree_support->m_vertical_enforcer_points) {
+            auto pt     = pt_and_normal.first;
+            auto normal = pt_and_normal.second; // normal seems useless
+            auto iter   = std::lower_bound(zs.begin(), zs.end(), pt.z());
+            if (iter != zs.end()) {
+                size_t layer_nr = iter - zs.begin();
+                if (layer_nr > 0 && layer_nr < print_object.layer_count()) {
+                    Polygon circle = base_circle;
+                    circle.translate(to_2d(pt).cast<coord_t>());
+                    overhangs[layer_nr + num_raft_layers].emplace_back(std::move(circle));
+                }
+            }
+        }
 #else
         std::vector<Polygons>        overhangs = generate_overhangs(config, *print.get_object(processing.second.front()), throw_on_cancel);
 #endif

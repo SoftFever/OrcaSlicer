@@ -260,7 +260,7 @@ private:
         coordf_t radius;
         size_t layer_nr;
         int recursions;
-        
+
     };
     struct RadiusLayerPairEquality {
         constexpr bool operator()(const RadiusLayerPair& _Left, const RadiusLayerPair& _Right) const {
@@ -334,7 +334,7 @@ public:
      * generally considered OK as the functions are still logically const
      * (ie there is no difference in behaviour for the user betweeen
      * calculating the values each time vs caching the results).
-     * 
+     *
      * coconut: previously stl::unordered_map is used which seems problematic with tbb::parallel_for.
      * So we change to tbb::concurrent_unordered_map
      */
@@ -413,6 +413,8 @@ public:
 
     enum OverhangType { Detected = 0, Enforced, SharpTail };
     std::map<const ExPolygon*, OverhangType> overhang_types;
+    std::vector<std::pair<Vec3f, Vec3f>>      m_vertical_enforcer_points;
+
 private:
     /*!
      * \brief Generator for model collision, avoidance and internal guide volumes
@@ -432,7 +434,6 @@ private:
     size_t          m_highest_overhang_layer = 0;
     std::vector<std::vector<MinimumSpanningTree>> m_spanning_trees;
     std::vector< std::unordered_map<Line, bool, LineHash>> m_mst_line_x_layer_contour_caches;
-
     float    DO_NOT_MOVER_UNDER_MM = 0.0;
     coordf_t base_radius                        = 0.0;
     const coordf_t MAX_BRANCH_RADIUS = 10.0;
@@ -481,7 +482,7 @@ private:
 
     /*! BBS: MusangKing: maximum layer height
      * \brief Optimize the generation of tree support by pre-planning the layer_heights
-     * 
+     *
     */
 
     std::vector<LayerHeightData> plan_layer_heights();

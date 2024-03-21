@@ -962,7 +962,8 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
 
     auto enforcers = m_object->slice_support_enforcers();
     auto blockers  = m_object->slice_support_blockers();
-    m_object->project_and_append_custom_facets(false, EnforcerBlockerType::ENFORCER, enforcers);
+    m_vertical_enforcer_points.clear();
+    m_object->project_and_append_custom_facets(false, EnforcerBlockerType::ENFORCER, enforcers, &m_vertical_enforcer_points);
     m_object->project_and_append_custom_facets(false, EnforcerBlockerType::BLOCKER, blockers);
 
     if (is_auto(stype) && config_remove_small_overhangs) {
@@ -2819,12 +2820,17 @@ void TreeSupport::drop_nodes()
                         movement = move_to_neighbor_center; // otherwise move to neighbor center first
                 }
 
-                if (vsize2_with_unscale(movement) > get_max_move_dist(&node,2))
-                    movement = normal(movement, scale_(get_max_move_dist(&node)));
+                if (node.is_sharp_tail && node.dist_mm_to_top < 3) {
+                    movement = normal(node.skin_direction, scale_(get_max_move_dist(&node)));
+                }
+                else if (dist2_to_outer > 0)
+                    movement = normal(direction_to_outer, scale_(get_max_move_dist(&node)));
+                else
+                    movement = normal(move_to_neighbor_center, scale_(get_max_move_dist(&node)));
 
                 next_layer_vertex += movement;
 
-                if (group_index == 0) {
+                if (group_index == 0 && 0) {
                     // Avoid collisions.
                     const coordf_t max_move_between_samples = get_max_move_dist(&node, 1) + radius_sample_resolution + EPSILON; // 100 micron extra for rounding errors.
                     bool           is_outside               = move_out_expolys(avoidance_next, next_layer_vertex, radius_sample_resolution + EPSILON, max_move_between_samples);
@@ -3171,6 +3177,21 @@ void TreeSupport::generate_contact_points()
 
     tbb::spin_mutex mtx;
 
+    // add vertical enforcer points
+    std::vector<float> zs = zs_from_layers(m_object->layers());
+    std::vector<std::vector<std::pair<Point,Point>>> vertical_enforcer_points_by_layers(m_object->layer_count());
+    for (auto& pt_and_normal : m_vertical_enforcer_points) {
+        auto pt = pt_and_normal.first;
+        auto normal = pt_and_normal.second;  // normal seems useless
+        auto iter = std::lower_bound(zs.begin(), zs.end(), pt.z());
+        if (iter != zs.end()) {
+            size_t layer_nr = iter - zs.begin();
+            if (layer_nr > 0 && layer_nr < contact_nodes.size()) {
+                vertical_enforcer_points_by_layers[layer_nr].push_back({ to_2d(pt).cast<coord_t>(),scaled(to_2d(normal)) });
+            }
+        }
+    }
+
     int      nonempty_layers = 0;
     tbb::concurrent_vector<Slic3r::Vec3f> all_nodes;
     tbb::parallel_for(tbb::blocked_range<size_t>(1, m_object->layers().size()), [&](const tbb::blocked_range<size_t>& range) {
@@ -3179,7 +3200,6 @@ void TreeSupport::generate_contact_points()
                 break;
             Layer* layer = m_object->get_layer(layer_nr);
             auto& curr_nodes = contact_nodes[layer_nr-1];
-            if (layer->loverhangs.empty()) continue;
 
             std::unordered_set<Point, PointHash> already_inserted;
             auto                                 bottom_z = m_object->get_layer(layer_nr)->bottom_z();
@@ -3280,6 +3300,13 @@ void TreeSupport::generate_contact_points()
                     }
                 }
             }
+            for (auto& pt_and_normal : vertical_enforcer_points_by_layers[layer_nr]) {
+                is_sharp_tail = true;// fake it as sharp tail point so the contact distance will be 0
+                auto vertical_enforcer_point= pt_and_normal.first;
+                auto node=insert_point(vertical_enforcer_point, ExPolygon(), false);
+                if (node)
+                    node->skin_direction = pt_and_normal.second;
+            }
             if (!curr_nodes.empty()) nonempty_layers++;
             for (auto node : curr_nodes) { all_nodes.emplace_back(node->position(0), node->position(1), scale_(node->print_z)); }
 #ifdef SUPPORT_TREE_DEBUG_TO_SVG
@@ -3288,6 +3315,9 @@ void TreeSupport::generate_contact_points()
 #endif
         }}
     ); // end tbb::parallel_for
+
+
+
     int nNodes = all_nodes.size();
     avg_node_per_layer = nodes_angle = 0;
     if (nNodes > 0) {
