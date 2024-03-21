@@ -756,6 +756,9 @@ void PlaterPresetComboBox::OnSelect(wxCommandEvent &evt)
         evt.StopPropagation();
         if (marker == LABEL_ITEM_MARKER)
             return;
+        if (marker == LABEL_ITEM_IMPORT_SPOOLMAN) {
+            return;
+        }
         //if (marker == LABEL_ITEM_WIZARD_PRINTERS)
         //    show_add_menu();
         //else {
@@ -1081,9 +1084,11 @@ void PlaterPresetComboBox::update()
         wxBitmap* bmp = get_bmp("edit_preset_list", wide_icons, "edit_uni");
         assert(bmp);
 
-        if (m_type == Preset::TYPE_FILAMENT)
+        if (m_type == Preset::TYPE_FILAMENT) {
             set_label_marker(Append(separator(L("Add/Remove filaments")), *bmp), LABEL_ITEM_WIZARD_FILAMENTS);
-        else if (m_type == Preset::TYPE_SLA_MATERIAL)
+            if (m_preset_bundle->printers.get_edited_preset().config.opt_bool("spoolman_enabled"))
+                set_label_marker(Append(separator(L("Import filament from Spoolman")), *bmp), LABEL_ITEM_IMPORT_SPOOLMAN);
+        } else if (m_type == Preset::TYPE_SLA_MATERIAL)
             set_label_marker(Append(separator(L("Add/Remove materials")), *bmp), LABEL_ITEM_WIZARD_MATERIALS);
         else {
             set_label_marker(Append(separator(L("Select/Remove printers(system presets)")), *bmp), LABEL_ITEM_WIZARD_PRINTERS);
