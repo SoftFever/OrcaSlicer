@@ -126,11 +126,7 @@ bool Spoolman::create_filament_preset_from_spool(const SpoolmanSpoolShrPtr& spoo
         return false;
     }
 
-    // Insert a new preset in the sorted location
-    auto it = filaments.find_preset_internal(filament_preset_name);
-    preset  = &*filaments.m_presets.emplace(it, Preset::TYPE_FILAMENT, filament_preset_name);
-
-    // Apply config values from base profile and spool then save
+    preset  = new Preset( Preset::TYPE_FILAMENT, filament_preset_name);
     preset->config.apply(base_profile->config);
     preset->config.set_key_value("filament_settings_id", new ConfigOptionStrings({filament_preset_name}));
     preset->config.set("inherits", base_profile->name, true);
@@ -138,7 +134,7 @@ bool Spoolman::create_filament_preset_from_spool(const SpoolmanSpoolShrPtr& spoo
     preset->filament_id = user_filament_id;
     preset->version     = base_profile->version;
     preset->file        = filaments.path_for_preset(*preset);
-    preset->save(&base_profile->config);
+    filaments.save_current_preset(filament_preset_name, false, false, preset);
 
     return true;
 }
