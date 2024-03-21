@@ -1610,6 +1610,27 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         }
     }
 
+    auto update_flush_volume = []() {
+        auto& project_config = wxGetApp().preset_bundle->project_config;
+        const std::vector<double>& init_matrix = (project_config.option<ConfigOptionFloats>("flush_volumes_matrix"))->values;
+        for (size_t idx = 0; idx < init_matrix.size(); ++idx)
+            wxGetApp().plater()->sidebar().auto_calc_flushing_volumes(idx);
+        };
+
+    if(opt_key == "long_retraction_when_cut"){
+        bool activate = boost::any_cast<bool>(value);
+        if (activate) {
+            MessageDialog dialog(wxGetApp().plater(), 
+            "Experimental feature: Retracting and cutting off the filament at a greater distance during filament changes to minimize flush."
+            "Although it can notably reduce flush, it may also elevate the risk of nozzle clogs or other printing complications.", "", wxICON_WARNING | wxOK);
+            dialog.ShowModal();
+        }
+        update_flush_volume();
+    }
+
+    if (opt_key == "retraction_distance_when_cut") {
+        update_flush_volume();
+    }
     // BBS
 #if 0
     if (opt_key == "extruders_count")
@@ -4073,6 +4094,8 @@ if (is_marlin_flavor)
             optgroup = page->new_optgroup(L("Retraction when switching material"), L"param_retraction", -1, true);
             optgroup->append_single_option_line("retract_length_toolchange", "", extruder_idx);
             optgroup->append_single_option_line("retract_restart_extra_toolchange", "", extruder_idx);
+            optgroup->append_single_option_line("long_retraction_when_cut", "");
+            optgroup->append_single_option_line("retraction_distance_when_cut", "");
 
 #if 0
             //optgroup = page->new_optgroup(L("Preview"), -1, true);
@@ -4314,6 +4337,10 @@ void TabPrinter::toggle_options()
 
         bool toolchange_retraction = m_config->opt_float("retract_length_toolchange", i) > 0;
         toggle_option("retract_restart_extra_toolchange", have_multiple_extruders && toolchange_retraction, i);
+
+        toggle_option("long_retraction_when_cut", !use_firmware_retraction && m_config->opt_bool("enable_long_retraction_when_cut"));
+        toggle_line("retraction_distance_when_cut", m_config->opt_bool("long_retraction_when_cut"));
+
     }
 
     if (m_active_page->title() == L("Motion ability")) {

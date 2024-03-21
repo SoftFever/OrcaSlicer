@@ -3422,6 +3422,26 @@ def = this->add("filament_loading_speed", coFloats);
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionFloats { 0.8 });
 
+    def = this->add("enable_long_retraction_when_cut",coBool);
+    def->mode = comDevelop;
+    def->set_default_value(new ConfigOptionBool {false});
+
+
+    def = this->add("long_retraction_when_cut", coBool);
+    def->label = L("Long retraction when cut(experimental)");
+    def->tooltip = L("Experimental feature.Retracting and cutting off the filament at a longer distance during changes to minimize purge."
+                     "While this reduces flush significantly, it may also raise the risk of nozzle clogs or other printing problems.");
+    def->mode = comDevelop;
+    def->set_default_value(new ConfigOptionBool {false});
+
+    def = this->add("retraction_distance_when_cut",coFloat);
+    def->label = L("Retraction distance when cut");
+    def->tooltip = L("Experimental feature.Retraction length before cutting off during filament change");
+    def->mode = comDevelop;
+    def->min = 10;
+    def->max = 20;
+    def->set_default_value(new ConfigOptionFloat {20});
+
     def = this->add("retract_length_toolchange", coFloats);
     def->label = L("Length");
     //def->full_label = L("Retraction Length (Toolchange)");

@@ -809,6 +809,10 @@ Sidebar::Sidebar(Plater *parent)
             const std::vector<double>& init_extruders = (project_config.option<ConfigOptionFloats>("flush_volumes_vector"))->values;
             ConfigOption* extra_flush_volume_opt = printer_config.option("nozzle_volume");
             int extra_flush_volume = extra_flush_volume_opt ? (int)extra_flush_volume_opt->getFloat() : 0;
+            bool activate = printer_config.option<ConfigOptionBool>("enable_long_retraction_when_cut")->value && printer_config.option<ConfigOptionBool>("long_retraction_when_cut")->value;
+            float extra_retract_length = activate && printer_config.option<ConfigOptionBool>("long_retraction_when_cut")->value ? printer_config.option<ConfigOptionFloat>("retraction_distance_when_cut")->value : 0;
+            float extra_retract_volume = PI * 1.75 * 1.75 / 4 * extra_retract_length;
+            extra_flush_volume = (int)std::max(0.f, extra_flush_volume - extra_retract_volume);
             ConfigOptionFloat* flush_multi_opt = project_config.option<ConfigOptionFloat>("flush_multiplier");
             float flush_multiplier = flush_multi_opt ? flush_multi_opt->getFloat() : 1.f;
 
@@ -1866,6 +1870,11 @@ void Sidebar::auto_calc_flushing_volumes(const int modify_id)
     const std::vector<double>& init_extruders = (project_config.option<ConfigOptionFloats>("flush_volumes_vector"))->values;
     ConfigOption* extra_flush_volume_opt = printer_config.option("nozzle_volume");
     int extra_flush_volume = extra_flush_volume_opt ? (int)extra_flush_volume_opt->getFloat() : 0;
+    bool activate = printer_config.option<ConfigOptionBool>("enable_long_retraction_when_cut")->value && printer_config.option<ConfigOptionBool>("long_retraction_when_cut")->value;
+    float extra_retract_length = activate && printer_config.option<ConfigOptionBool>("long_retraction_when_cut")->value ? printer_config.option<ConfigOptionFloat>("retraction_distance_when_cut")->value : 0;
+    float extra_retract_volume = PI * 1.75 * 1.75 / 4 * extra_retract_length;
+    extra_flush_volume = (int)std::max(0.f, extra_flush_volume - extra_retract_volume);
+
     ConfigOptionFloat* flush_multi_opt = project_config.option<ConfigOptionFloat>("flush_multiplier");
     float flush_multiplier = flush_multi_opt ? flush_multi_opt->getFloat() : 1.f;
     std::vector<double> matrix = init_matrix;
@@ -6324,6 +6333,12 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
 
             view3D->deselect_all();
         }
+        // update flush matrix
+        auto& project_config = wxGetApp().preset_bundle->project_config;
+        const std::vector<double>& init_matrix = (project_config.option<ConfigOptionFloats>("flush_volumes_matrix"))->values;
+        for (size_t idx = 0; idx < init_matrix.size(); ++idx)
+            wxGetApp().plater()->sidebar().auto_calc_flushing_volumes(idx);
+   
     }
 
 #ifdef __WXMSW__

@@ -2624,6 +2624,10 @@ int CLI::run(int argc, char **argv)
             m_print_config.option<ConfigOptionFloat>("flush_multiplier", true)->set(new ConfigOptionFloat(1.f));
             ConfigOption* extra_flush_volume_opt = m_print_config.option("nozzle_volume");
             int extra_flush_volume = extra_flush_volume_opt ? (int)extra_flush_volume_opt->getFloat() : 0;
+            bool activate = m_print_config.option<ConfigOptionBool>("enable_long_retraction_when_cut")->value && m_print_config.option<ConfigOptionBool>("long_retraction_when_cut")->value;
+            float extra_retract_length = activate && m_print_config.option<ConfigOptionBool>("long_retraction_when_cut")->value ? m_print_config.option<ConfigOptionFloat>("retraction_distance_when_cut")->value : 0;
+            float extra_retract_volume = PI * 1.75 * 1.75 / 4 * extra_retract_length;
+            extra_flush_volume = (int)std::max(0.f, extra_flush_volume - extra_retract_volume);
 
             if (filament_is_support->size() != project_filament_count)
             {

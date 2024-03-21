@@ -885,6 +885,7 @@ void GCodeProcessorResult::reset() {
     toolpath_outside = false;
     //BBS: add label_object_enabled
     label_object_enabled = false;
+    long_retraction_when_cut = false;
     timelapse_warning_code = 0;
     printable_height = 0.0f;
     settings_ids.reset();
@@ -4624,6 +4625,14 @@ void GCodeProcessor::update_slice_warnings()
             warning.error_code = "1001C002";
             m_result.warnings.push_back(warning);
         }
+    }
+
+    warning.params.clear();
+    warning.level = 1;
+    if (m_result.long_retraction_when_cut) {
+        warning.msg = LONG_RETRACTION_WHEN_CUT;
+        warning.error_code = "1001C004";
+        m_result.warnings.push_back(warning);
     }
 
     m_result.warnings.shrink_to_fit();
