@@ -773,6 +773,9 @@ private:
 
     // Orca: used for validation only
     int m_errors = 0;
+
+    // Orca: to access m_presets to manually insert a newly created preset
+    friend class Spoolman;
 };
 
 // Printer supports the FFF and SLA technologies, with different set of configuration values,

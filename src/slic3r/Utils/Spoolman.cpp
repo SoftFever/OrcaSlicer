@@ -111,38 +111,35 @@ bool Spoolman::pull_spoolman_spools()
     return true;
 }
 
-bool Spoolman::create_filament_preset_from_spool(const SpoolmanSpoolShrPtr& spool, const Preset* base_profile)
+bool Spoolman::create_filament_preset_from_spool(const SpoolmanSpoolShrPtr& spool, Preset* base_profile)
 {
     PresetBundle*     preset_bundle        = wxGetApp().preset_bundle;
     PresetCollection& filaments            = preset_bundle->filaments;
     string            filament_preset_name = remove_special_key(spool->getVendor()->name + " " + spool->m_filament_ptr->name + " " +
                                                                 spool->m_filament_ptr->material);
-    Preset*           preset               = filaments.find_preset(filament_preset_name);
+    string            user_filament_id     = get_filament_id(filament_preset_name);
+
+    // Check if the preset already exists
+    Preset* preset = filaments.find_preset(filament_preset_name);
     if (preset) {
         BOOST_LOG_TRIVIAL(error) << "Preset already exists with the name " << filament_preset_name;
         return false;
     }
-    string              user_filament_id = get_filament_id(filament_preset_name);
-    vector<std::string> failures;
-    DynamicConfig       config;
-    config.set_key_value("filament_vendor", new ConfigOptionStrings({spool->getVendor()->name}));
-    config.set_key_value("compatible_printers", base_profile->config.option("compatible_printers")->clone());
-    config.set_key_value("filament_type", new ConfigOptionStrings({spool->m_filament_ptr->material}));
-    //TODO: replace this clone function with a manual implementation that leaves inheritance intact
-    filaments.clone_presets_for_filament(base_profile, failures, filament_preset_name, user_filament_id, config, "");
-    if (!failures.empty()) {
-        BOOST_LOG_TRIVIAL(error) << "Failed to clone filament preset: " << failures.at(0);
-        return false;
-    }
-    preset = filaments.find_preset(filament_preset_name);
-    if (!preset) {
-        BOOST_LOG_TRIVIAL(error) << "Spoolman: The returned preset was a nullptr. Attempted to find the preset " + filament_preset_name;
-        return false;
-    }
-    config.clear();
-    spool->apply_to_config(config);
-    preset->config.apply(config);
-    preset->save(nullptr);
+
+    // Insert a new preset in the sorted location
+    auto it = filaments.find_preset_internal(filament_preset_name);
+    preset  = &*filaments.m_presets.emplace(it, Preset::TYPE_FILAMENT, filament_preset_name);
+
+    // Apply config values from base profile and spool then save
+    preset->config.apply(base_profile->config);
+    preset->config.set_key_value("filament_settings_id", new ConfigOptionStrings({filament_preset_name}));
+    preset->config.set("inherits", base_profile->name, true);
+    spool->apply_to_config(preset->config);
+    preset->filament_id = user_filament_id;
+    preset->version     = base_profile->version;
+    preset->file        = filaments.path_for_preset(*preset);
+    preset->save(&base_profile->config);
+
     return true;
 }
 
