@@ -455,16 +455,9 @@ PACalibResult EditCalibrationHistoryDialog::get_result() {
 
 void EditCalibrationHistoryDialog::on_save(wxCommandEvent& event) {
     wxString name = m_name_value->GetTextCtrl()->GetValue();
-    if (name.IsEmpty()) {
-        MessageDialog msg_dlg(nullptr, _L("The name cannot be empty."), wxEmptyString, wxICON_WARNING | wxOK);
-        msg_dlg.ShowModal();
+    if (!CalibUtils::validate_input_name(name))
         return;
-    }
-    if (name.Length() > 40) {
-        MessageDialog msg_dlg(nullptr, _L("The name cannot exceed 40 characters."), wxEmptyString, wxICON_WARNING | wxOK);
-        msg_dlg.ShowModal();
-        return;
-    }
+
     m_new_result.name = m_name_value->GetTextCtrl()->GetValue().ToUTF8().data();
     
     float k = 0.0f;
@@ -668,16 +661,8 @@ NewCalibrationHistoryDialog::NewCalibrationHistoryDialog(wxWindow *parent, const
 void NewCalibrationHistoryDialog::on_ok(wxCommandEvent &event)
 {
     wxString name = m_name_value->GetTextCtrl()->GetValue();
-    if (name.IsEmpty()) {
-        MessageDialog msg_dlg(nullptr, _L("The name cannot be empty."), wxEmptyString, wxICON_WARNING | wxOK);
-        msg_dlg.ShowModal();
+    if (!CalibUtils::validate_input_name(name))
         return;
-    }
-    if (name.Length() > 40) {
-        MessageDialog msg_dlg(nullptr, _L("The name cannot exceed 40 characters."), wxEmptyString, wxICON_WARNING | wxOK);
-        msg_dlg.ShowModal();
-        return;
-    }
 
     float k = 0.0f;
     if (!CalibUtils::validate_input_k_value(m_k_value->GetTextCtrl()->GetValue(), &k)) {

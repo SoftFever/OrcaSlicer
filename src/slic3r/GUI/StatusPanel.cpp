@@ -2535,7 +2535,7 @@ void StatusPanel::update_ams(MachineObject *obj)
     }
     if (m_filament_setting_dlg) { m_filament_setting_dlg->obj = obj; }
 
-    if ( (obj->get_printer_series() == PrinterSeries::SERIES_X1) && last_cali_version != obj->cali_version) {
+    if (obj->cali_version != -1 && last_cali_version != obj->cali_version) {
         last_cali_version = obj->cali_version;
         CalibUtils::emit_get_PA_calib_info(obj->nozzle_diameter, "");
     }

@@ -2084,33 +2084,45 @@ int MachineObject::command_start_pa_calibration(const X1CCalibInfos &pa_data, in
     CNumericLocalesSetter locales_setter;
 
     pa_calib_results.clear();
-    if (get_printer_series() == PrinterSeries::SERIES_X1) {
-        json j;
-        j["print"]["command"]     = "extrusion_cali";
-        j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
-        j["print"]["nozzle_diameter"] = to_string_nozzle_diameter(pa_data.calib_datas[0].nozzle_diameter);
-        j["print"]["mode"]          = mode;
+    json j;
+    j["print"]["command"]         = "extrusion_cali";
+    j["print"]["sequence_id"]     = std::to_string(MachineObject::m_sequence_id++);
+    j["print"]["nozzle_diameter"] = to_string_nozzle_diameter(pa_data.calib_datas[0].nozzle_diameter);
+    j["print"]["mode"]            = mode;
 
-        for (int i = 0; i < pa_data.calib_datas.size(); ++i) {
-            j["print"]["filaments"][i]["tray_id"]              = pa_data.calib_datas[i].tray_id;
-            j["print"]["filaments"][i]["bed_temp"]             = pa_data.calib_datas[i].bed_temp;
-            j["print"]["filaments"][i]["filament_id"]          = pa_data.calib_datas[i].filament_id;
-            j["print"]["filaments"][i]["setting_id"]           = pa_data.calib_datas[i].setting_id;
-            j["print"]["filaments"][i]["nozzle_temp"]          = pa_data.calib_datas[i].nozzle_temp;
-            j["print"]["filaments"][i]["max_volumetric_speed"] = std::to_string(pa_data.calib_datas[i].max_volumetric_speed);
-        }
+    std::string filament_ids;
+    for (int i = 0; i < pa_data.calib_datas.size(); ++i) {
+        j["print"]["filaments"][i]["tray_id"]              = pa_data.calib_datas[i].tray_id;
+        j["print"]["filaments"][i]["bed_temp"]             = pa_data.calib_datas[i].bed_temp;
+        j["print"]["filaments"][i]["filament_id"]          = pa_data.calib_datas[i].filament_id;
+        j["print"]["filaments"][i]["setting_id"]           = pa_data.calib_datas[i].setting_id;
+        j["print"]["filaments"][i]["nozzle_temp"]          = pa_data.calib_datas[i].nozzle_temp;
+        j["print"]["filaments"][i]["max_volumetric_speed"] = std::to_string(pa_data.calib_datas[i].max_volumetric_speed);
 
-        BOOST_LOG_TRIVIAL(trace) << "extrusion_cali: " << j.dump();
-        return this->publish_json(j.dump());
+        if (i > 0) filament_ids += ",";
+        filament_ids += pa_data.calib_datas[i].filament_id;
     }
-    return -1;
+
+    BOOST_LOG_TRIVIAL(trace) << "extrusion_cali: " << j.dump();
+
+    try {
+        json js;
+        js["cali_type"]       = "cali_pa_auto";
+        js["nozzle_diameter"] = pa_data.calib_datas[0].nozzle_diameter;
+        js["filament_id"]     = filament_ids;
+        js["printer_type"]    = this->printer_type;
+        NetworkAgent *agent   = GUI::wxGetApp().getAgent();
+        if (agent) agent->track_event("cali", js.dump());
+    } catch (...) {}
+
+    return this->publish_json(j.dump());
 }
 
 int MachineObject::command_set_pa_calibration(const std::vector<PACalibResult> &pa_calib_values, bool is_auto_cali)
 {
     CNumericLocalesSetter locales_setter;
 
-    if (get_printer_series() == PrinterSeries::SERIES_X1 && pa_calib_values.size() > 0) {
+    if (pa_calib_values.size() > 0) {
         json j;
         j["print"]["command"]     = "extrusion_cali_set";
         j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
@@ -2141,73 +2153,61 @@ int MachineObject::command_set_pa_calibration(const std::vector<PACalibResult> &
 
 int MachineObject::command_delete_pa_calibration(const PACalibIndexInfo& pa_calib)
 {
-    if (get_printer_series() == PrinterSeries::SERIES_X1) {
-        json j;
-        j["print"]["command"]     = "extrusion_cali_del";
-        j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
-        j["print"]["filament_id"] = pa_calib.filament_id;
-        j["print"]["cali_idx"]        = pa_calib.cali_idx;
-        j["print"]["nozzle_diameter"] = to_string_nozzle_diameter(pa_calib.nozzle_diameter);
+    json j;
+    j["print"]["command"]         = "extrusion_cali_del";
+    j["print"]["sequence_id"]     = std::to_string(MachineObject::m_sequence_id++);
+    j["print"]["filament_id"]     = pa_calib.filament_id;
+    j["print"]["cali_idx"]        = pa_calib.cali_idx;
+    j["print"]["nozzle_diameter"] = to_string_nozzle_diameter(pa_calib.nozzle_diameter);
 
-        BOOST_LOG_TRIVIAL(trace) << "extrusion_cali_del: " << j.dump();
-        return this->publish_json(j.dump());
-    }
-    return -1;
+    BOOST_LOG_TRIVIAL(trace) << "extrusion_cali_del: " << j.dump();
+    return this->publish_json(j.dump());
 }
 
 int MachineObject::command_get_pa_calibration_tab(float nozzle_diameter, const std::string &filament_id)
 {
     reset_pa_cali_history_result();
 
-    if (get_printer_series() == PrinterSeries::SERIES_X1) {
-        json j;
-        j["print"]["command"]     = "extrusion_cali_get";
-        j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
-        j["print"]["filament_id"] = filament_id;
-        j["print"]["nozzle_diameter"] = to_string_nozzle_diameter(nozzle_diameter);
+    json j;
+    j["print"]["command"]         = "extrusion_cali_get";
+    j["print"]["sequence_id"]     = std::to_string(MachineObject::m_sequence_id++);
+    j["print"]["filament_id"]     = filament_id;
+    j["print"]["nozzle_diameter"] = to_string_nozzle_diameter(nozzle_diameter);
 
-        BOOST_LOG_TRIVIAL(trace) << "extrusion_cali_get: " << j.dump();
-        return this->publish_json(j.dump());
-    }
-    return -1;
+    BOOST_LOG_TRIVIAL(trace) << "extrusion_cali_get: " << j.dump();
+    return this->publish_json(j.dump());
 }
 
 int MachineObject::command_get_pa_calibration_result(float nozzle_diameter)
 {
-    if (get_printer_series() == PrinterSeries::SERIES_X1) {
-        json j;
-        j["print"]["command"]     = "extrusion_cali_get_result";
-        j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
-        j["print"]["nozzle_diameter"] = to_string_nozzle_diameter(nozzle_diameter);
+    json j;
+    j["print"]["command"]         = "extrusion_cali_get_result";
+    j["print"]["sequence_id"]     = std::to_string(MachineObject::m_sequence_id++);
+    j["print"]["nozzle_diameter"] = to_string_nozzle_diameter(nozzle_diameter);
 
-        BOOST_LOG_TRIVIAL(trace) << "extrusion_cali_get_result: " << j.dump();
-        return this->publish_json(j.dump());
-    }
-    return -1;
+    BOOST_LOG_TRIVIAL(trace) << "extrusion_cali_get_result: " << j.dump();
+    return this->publish_json(j.dump());
 }
 
 int MachineObject::commnad_select_pa_calibration(const PACalibIndexInfo& pa_calib_info)
 {
-    if (get_printer_series() == PrinterSeries::SERIES_X1) {
-        json j;
-        j["print"]["command"]     = "extrusion_cali_sel";
-        j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
-        j["print"]["tray_id"]     = pa_calib_info.tray_id;
-        j["print"]["cali_idx"]        = pa_calib_info.cali_idx;
-        j["print"]["filament_id"] = pa_calib_info.filament_id;
-        j["print"]["nozzle_diameter"] = to_string_nozzle_diameter(pa_calib_info.nozzle_diameter);
+    json j;
+    j["print"]["command"]         = "extrusion_cali_sel";
+    j["print"]["sequence_id"]     = std::to_string(MachineObject::m_sequence_id++);
+    j["print"]["tray_id"]         = pa_calib_info.tray_id;
+    j["print"]["cali_idx"]        = pa_calib_info.cali_idx;
+    j["print"]["filament_id"]     = pa_calib_info.filament_id;
+    j["print"]["nozzle_diameter"] = to_string_nozzle_diameter(pa_calib_info.nozzle_diameter);
 
-        BOOST_LOG_TRIVIAL(trace) << "extrusion_cali_sel: " << j.dump();
-        return this->publish_json(j.dump());
-    }
-    return -1;
+    BOOST_LOG_TRIVIAL(trace) << "extrusion_cali_sel: " << j.dump();
+    return this->publish_json(j.dump());
 }
 
 int MachineObject::command_start_flow_ratio_calibration(const X1CCalibInfos& calib_data)
 {
     CNumericLocalesSetter locales_setter;
 
-    if (get_printer_series() == PrinterSeries::SERIES_X1 && calib_data.calib_datas.size() > 0) {
+    if (calib_data.calib_datas.size() > 0) {
         json j;
         j["print"]["command"]     = "flowrate_cali";
         j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
@@ -2232,16 +2232,13 @@ int MachineObject::command_start_flow_ratio_calibration(const X1CCalibInfos& cal
 
 int MachineObject::command_get_flow_ratio_calibration_result(float nozzle_diameter)
 {
-    if (get_printer_series() == PrinterSeries::SERIES_X1) {
-        json j;
-        j["print"]["command"]     = "flowrate_get_result";
-        j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
-        j["print"]["nozzle_diameter"] = to_string_nozzle_diameter(nozzle_diameter);
+    json j;
+    j["print"]["command"]         = "flowrate_get_result";
+    j["print"]["sequence_id"]     = std::to_string(MachineObject::m_sequence_id++);
+    j["print"]["nozzle_diameter"] = to_string_nozzle_diameter(nozzle_diameter);
 
-        BOOST_LOG_TRIVIAL(trace) << "flowrate_get_result: " << j.dump();
-        return this->publish_json(j.dump());
-    }
-    return -1;
+    BOOST_LOG_TRIVIAL(trace) << "flowrate_get_result: " << j.dump();
+    return this->publish_json(j.dump());
 }
 
 int MachineObject::command_ipcam_record(bool on_off)
@@ -3650,6 +3647,9 @@ int MachineObject::parse_json(std::string payload)
                         std::string str_j = jj.dump();
                         if (jj.contains("cali_version")) {
                             cali_version = jj["cali_version"].get<int>();
+                        }
+                        else {
+                            cali_version = -1;
                         }
                         std::string str = jj.dump();
                     }
