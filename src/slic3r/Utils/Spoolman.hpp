@@ -6,14 +6,15 @@
 namespace pt = boost::property_tree;
 
 namespace Slic3r {
+class Preset;
 
 class SpoolmanVendor;
 class SpoolmanFilament;
 class SpoolmanSpool;
 
-typedef shared_ptr<SpoolmanVendor>   SpoolmanVendorShrPtr;
-typedef shared_ptr<SpoolmanFilament> SpoolmanFilamentShrPtr;
-typedef shared_ptr<SpoolmanSpool>    SpoolmanSpoolShrPtr;
+typedef std::shared_ptr<SpoolmanVendor>   SpoolmanVendorShrPtr;
+typedef std::shared_ptr<SpoolmanFilament> SpoolmanFilamentShrPtr;
+typedef std::shared_ptr<SpoolmanSpool>    SpoolmanSpoolShrPtr;
 
 /// Contains routines to get the data from the Spoolman server, save as Spoolman data containers, and create presets from them.
 /// The Spoolman data classes can only be accessed/instantiated by this class.
@@ -30,11 +31,11 @@ class Spoolman
 
     Spoolman()
     {
-        m_instance = this;
+        m_instance    = this;
         m_initialized = pull_spoolman_spools();
     };
 
-    static pt::ptree get_spoolman_json(const string& api_endpoint);
+    static pt::ptree get_spoolman_json(const std::string& api_endpoint);
     /// get all the spools from the api and store them
     bool pull_spoolman_spools();
 
@@ -74,8 +75,8 @@ public:
 class SpoolmanVendor
 {
 public:
-    int    id;
-    string name;
+    int         id;
+    std::string name;
 
     void update_from_server();
 
@@ -97,16 +98,16 @@ private:
 class SpoolmanFilament
 {
 public:
-    int    id;
-    string name;
-    string material;
-    float  price;
-    float  density;
-    float  diameter;
-    string article_number;
-    int    extruder_temp;
-    int    bed_temp;
-    string color;
+    int         id;
+    std::string name;
+    std::string material;
+    float       price;
+    float       density;
+    float       diameter;
+    std::string article_number;
+    int         extruder_temp;
+    int         bed_temp;
+    std::string color;
 
     SpoolmanVendorShrPtr m_vendor_ptr;
 
