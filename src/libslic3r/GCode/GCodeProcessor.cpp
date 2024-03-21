@@ -774,6 +774,7 @@ void GCodeProcessor::UsedFilaments::increase_model_caches(double extruded_volume
 void GCodeProcessor::UsedFilaments::increase_wipe_tower_caches(double extruded_volume)
 {
     wipe_tower_cache += extruded_volume;
+    role_cache += extruded_volume;
 }
 
 void GCodeProcessor::UsedFilaments::process_color_change_cache()
