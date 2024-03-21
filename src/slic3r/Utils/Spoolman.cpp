@@ -143,13 +143,17 @@ bool Spoolman::create_filament_preset_from_spool(const SpoolmanSpoolShrPtr& spoo
     return true;
 }
 
-bool Spoolman::update_filament_preset_from_spool(Preset* filament_preset, bool only_update_statistics)
+bool Spoolman::update_filament_preset_from_spool(Preset* filament_preset, bool update_from_server, bool only_update_statistics)
 {
     DynamicConfig config;
     const int&    spool_id = filament_preset->config.opt_int("spoolman_spool_id");
     if (spool_id < 1)
         return false; // IDs below 1 are not used by spoolman and should be ignored
-    get_instance()->m_spools[spool_id]->apply_to_config(config);
+
+    SpoolmanSpoolShrPtr& spool = get_instance()->m_spools[spool_id];
+    if (update_from_server)
+        spool->update_from_server(!only_update_statistics);
+    spool->apply_to_config(config);
     filament_preset->config.apply_only(config, only_update_statistics ? statistics_keys : config.keys());
     return true;
 }

@@ -42,7 +42,7 @@ public:
     // returns true if the operation was successful and false for any errors/issues
     static bool create_filament_preset_from_spool(const SpoolmanSpoolShrPtr& spool, Preset *base_profile);
     // returns true if the operation was successful and false for any errors/issues
-    static bool update_filament_preset_from_spool(Preset* filament_preset, bool only_update_statistics = false);
+    static bool update_filament_preset_from_spool(Preset* filament_preset, bool update_from_server, bool only_update_statistics);
 
     const std::map<int, SpoolmanSpoolShrPtr>& get_spoolman_spools(bool update = false)
     {
