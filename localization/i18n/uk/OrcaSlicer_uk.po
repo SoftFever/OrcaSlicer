@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-27 13:20+0800\n"
+"POT-Creation-Date: 2024-03-16 17:57+0800\n"
 "PO-Revision-Date: 2023-08-10 20:25-0400\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -668,6 +668,14 @@ msgstr "Повернути текст"
 msgid "Text shape"
 msgstr "Форма тексту"
 
+#. TRN - Title in Undo/Redo stack after rotate with text around emboss axe
+msgid "Text rotate"
+msgstr ""
+
+#. TRN - Title in Undo/Redo stack after move with text along emboss axe - From surface
+msgid "Text move"
+msgstr ""
+
 msgid "Set Mirror"
 msgstr ""
 
@@ -684,9 +692,6 @@ msgid "Embossing actions"
 msgstr ""
 
 msgid "Emboss"
-msgstr ""
-
-msgid "Text-Rotate"
 msgstr ""
 
 msgid "NORMAL"
@@ -1058,6 +1063,14 @@ msgstr ""
 msgid "Collection"
 msgstr ""
 
+#. TRN - Title in Undo/Redo stack after rotate with SVG around emboss axe
+msgid "SVG rotate"
+msgstr ""
+
+#. TRN - Title in Undo/Redo stack after move with SVG along emboss axe - From surface
+msgid "SVG move"
+msgstr ""
+
 msgid "Enter SVG gizmo"
 msgstr ""
 
@@ -1068,10 +1081,6 @@ msgid "SVG actions"
 msgstr ""
 
 msgid "SVG"
-msgstr ""
-
-#. TRN This is an item label in the undo-redo stack.
-msgid "SVG-Rotate"
 msgstr ""
 
 #, boost-format
@@ -1185,9 +1194,6 @@ msgid "Lock/unlock the aspect ratio of the SVG."
 msgstr ""
 
 msgid "Reset scale"
-msgstr ""
-
-msgid "Resize"
 msgstr ""
 
 msgid "Distance of the center of the SVG to the model surface."
@@ -1677,6 +1683,17 @@ msgid "Voron Cube"
 msgstr "Voron Куб"
 
 msgid "Stanford Bunny"
+msgstr ""
+
+msgid "Orca String Hell"
+msgstr ""
+
+msgid ""
+"This model features text embossment on the top surface. For optimal results, "
+"it is advisable to set the 'One Wall Threshold(min_width_top_surface)' to 0 "
+"for the 'Only One Wall on Top Surfaces' to work best.\n"
+"Yes - Change these settings automatically\n"
+"No  - Do not change these settings for me"
 msgstr ""
 
 msgid "Text"
@@ -2170,9 +2187,6 @@ msgstr "копіювання кількох осередків не підтри
 
 msgid "Outside"
 msgstr "Зовнішній"
-
-msgid " "
-msgstr ""
 
 msgid "Layer height"
 msgstr "Висота шару"
@@ -3336,14 +3350,14 @@ msgstr ""
 "Ні - цього разу відмовитися від використання режиму спіралі"
 
 msgid ""
-"Alternate extra wall only works with ensure vertical shell thickness "
-"disabled. "
+"Alternate extra wall does't work well when ensure vertical shell thickness "
+"is set to All. "
 msgstr ""
 
 msgid ""
 "Change these settings automatically? \n"
-"Yes - Disable ensure vertical shell thickness and enable alternate extra "
-"wall\n"
+"Yes - Change ensure vertical shell thickness to Moderate and enable "
+"alternate extra wall\n"
 "No  - Dont use alternate extra wall"
 msgstr ""
 
@@ -3388,6 +3402,11 @@ msgid ""
 msgstr ""
 "Під час друку об'єкта екструдер може зіткнутися зі спідницею.\n"
 "Таким чином, скиньте шар спідниці до 1, щоб уникнути цього."
+
+msgid ""
+"seam_slope_start_height need to be smaller than layer_height.\n"
+"Reset to 0."
+msgstr ""
 
 msgid "Auto bed leveling"
 msgstr "Автоматичне вирівнювання столу"
@@ -3586,6 +3605,68 @@ msgstr ""
 msgid "default"
 msgstr "за замовчуванням"
 
+#, boost-format
+msgid "Edit Custom G-code (%1%)"
+msgstr ""
+
+msgid "Built-in placeholders (Double click item to add to G-code)"
+msgstr ""
+
+msgid "Search gcode placeholders"
+msgstr ""
+
+msgid "Add selected placeholder to G-code"
+msgstr ""
+
+msgid "Select placeholder"
+msgstr ""
+
+msgid "[Global] Slicing State"
+msgstr ""
+
+msgid "Read Only"
+msgstr ""
+
+msgid "Read Write"
+msgstr ""
+
+msgid "Slicing State"
+msgstr ""
+
+msgid "Print Statistics"
+msgstr ""
+
+msgid "Objects Info"
+msgstr ""
+
+msgid "Dimensions"
+msgstr ""
+
+msgid "Temperatures"
+msgstr ""
+
+msgid "Timestamps"
+msgstr ""
+
+#, boost-format
+msgid "Specific for %1%"
+msgstr ""
+
+msgid "Presets"
+msgstr "Пресети"
+
+msgid "Print settings"
+msgstr "Параметри друку"
+
+msgid "Filament settings"
+msgstr "Настінні філаменти"
+
+msgid "SLA Materials settings"
+msgstr ""
+
+msgid "Printer settings"
+msgstr "Налаштування принтера"
+
 msgid "parameter name"
 msgstr "ім'я параметра"
 
@@ -3778,9 +3859,6 @@ msgstr "Друк"
 
 msgid "Printer"
 msgstr "Принтер"
-
-msgid "Print settings"
-msgstr "Параметри друку"
 
 msgid "Custom g-code"
 msgstr ""
@@ -4347,6 +4425,12 @@ msgid "Show &G-code Window"
 msgstr ""
 
 msgid "Show g-code window in Previce scene"
+msgstr ""
+
+msgid "Show 3D Navigator"
+msgstr ""
+
+msgid "Show 3D navigator in Prepare and Preview scene"
 msgstr ""
 
 msgid "Reset Window Layout"
@@ -5280,12 +5364,6 @@ msgstr "Порівняти пресети"
 msgid "View all object's settings"
 msgstr "Переглянути всі налаштування об'єкта"
 
-msgid "Filament settings"
-msgstr "Настінні філаменти"
-
-msgid "Printer settings"
-msgstr "Налаштування принтера"
-
 msgid "Remove current plate (if not last one)"
 msgstr ""
 
@@ -6005,9 +6083,6 @@ msgstr ""
 
 msgid "If enabled, auto-calculate everytime the color changed."
 msgstr ""
-
-msgid "Presets"
-msgstr "Пресети"
 
 msgid "Auto sync user presets(Printer/Filament/Process)"
 msgstr ""
@@ -6818,6 +6893,15 @@ msgstr ""
 "та відключення висота незалежного опорного шару"
 
 msgid ""
+"Enabling this option will modify the model's shape. If your print requires "
+"precise dimensions or is part of an assembly, it's important to double-check "
+"whether this change in geometry impacts the functionality of your print."
+msgstr ""
+
+msgid "Are you sure you want to enable this option?"
+msgstr ""
+
+msgid ""
 "Layer height is too small.\n"
 "It will set to min_layer_height\n"
 msgstr ""
@@ -6860,9 +6944,6 @@ msgid "Wall generator"
 msgstr "Генерація периметрів"
 
 msgid "Walls and surfaces"
-msgstr ""
-
-msgid "Small Area Infill Flow Compensation (beta)"
 msgstr ""
 
 msgid "Bridging"
@@ -7109,6 +7190,9 @@ msgstr "Час розгону вентилятора"
 
 msgid "Extruder Clearance"
 msgstr "Очищення екструдера"
+
+msgid "Adaptive bed mesh"
+msgstr ""
 
 msgid "Accessory"
 msgstr "Аксесуари"
@@ -7390,9 +7474,6 @@ msgstr "Обкладинка"
 #, boost-format
 msgid "The name \"%1%\" already exists."
 msgstr "Ім'я %1% вже існує."
-
-msgid "Back"
-msgstr "Ззаду"
 
 msgid "Basic Info"
 msgstr "Основна інформація"
@@ -7988,8 +8069,11 @@ msgstr "Копіювання %1% у %2% не вдалося: %3%"
 msgid "Need to check the unsaved changes before configuration updates."
 msgstr "Необхідність перевірки незбережених змін перед оновленнямконфігурації."
 
-msgid "Configuration package updated to "
-msgstr "Пакет конфігурації оновлено до "
+msgid "Configuration package: "
+msgstr ""
+
+msgid " updated to "
+msgstr ""
 
 msgid "Open G-code file:"
 msgstr "Відкрийте файл G-коду:"
@@ -8369,6 +8453,37 @@ msgstr ""
 #, c-format, boost-format
 msgid "Plate %d: %s does not support filament %s"
 msgstr "Плита %d: %s не підтримує філамент %s"
+
+msgid ""
+"Setting the jerk speed too low could lead to artifacts on curved surfaces"
+msgstr ""
+
+msgid ""
+"The jerk setting exceeds the printer's maximum jerk (machine_max_jerk_x/"
+"machine_max_jerk_y).\n"
+"Orca will automatically cap the jerk speed to ensure it doesn't surpass the "
+"printer's capabilities.\n"
+"You can adjust the maximum jerk setting in your printer's configuration to "
+"get higher speeds."
+msgstr ""
+
+msgid ""
+"The acceleration setting exceeds the printer's maximum acceleration "
+"(machine_max_acceleration_extruding).\n"
+"Orca will automatically cap the acceleration speed to ensure it doesn't "
+"surpass the printer's capabilities.\n"
+"You can adjust the machine_max_acceleration_extruding value in your "
+"printer's configuration to get higher speeds."
+msgstr ""
+
+msgid ""
+"The travel acceleration setting exceeds the printer's maximum travel "
+"acceleration (machine_max_acceleration_travel).\n"
+"Orca will automatically cap the travel acceleration speed to ensure it "
+"doesn't surpass the printer's capabilities.\n"
+"You can adjust the machine_max_acceleration_travel value in your printer's "
+"configuration to get higher speeds."
+msgstr ""
 
 msgid "Generating skirt & brim"
 msgstr "Створення спідниці та кайми"
@@ -8789,10 +8904,10 @@ msgstr "Точні периметри"
 
 msgid ""
 "Improve shell precision by adjusting outer wall spacing. This also improves "
-"layer consistency."
+"layer consistency.\n"
+"Note: This setting will only take effect if the wall sequence is configured "
+"to Inner-Outer"
 msgstr ""
-"Підвищення точності оболонки за рахунок регулювання відстані між "
-"зовнішнімипериметрами. Це також покращує узгодженість шарів."
 
 msgid "Only one wall on top surfaces"
 msgstr "Тільки один периметр на верхніх поверхнях"
@@ -8807,7 +8922,7 @@ msgstr ""
 msgid "One wall threshold"
 msgstr ""
 
-#, c-format, boost-format
+#, no-c-format, no-boost-format
 msgid ""
 "If a top surface has to be printed and it's partially covered by another "
 "layer, it won't be considered at a top layer where its width is below this "
@@ -8870,13 +8985,30 @@ msgid ""
 "directions on odd layers irrespective of their overhang degree."
 msgstr ""
 
+msgid "Bridge counterbore holes"
+msgstr ""
+
+msgid ""
+"This option creates bridges for counterbore holes, allowing them to be "
+"printed without support. Available modes include:\n"
+"1. None: No bridge is created.\n"
+"2. Partially Bridged: Only a part of the unsupported area will be bridged.\n"
+"3. Sacrificial Layer: A full sacrificial bridge layer is created."
+msgstr ""
+
+msgid "Partially bridged"
+msgstr ""
+
+msgid "Sacrificial layer"
+msgstr ""
+
 msgid "Reverse threshold"
 msgstr ""
 
 msgid "Overhang reversal threshold"
 msgstr ""
 
-#, c-format, boost-format
+#, no-c-format, no-boost-format
 msgid ""
 "Number of mm the overhang need to be for the reversal to be considered "
 "useful. Can be a % of the perimeter width.\n"
@@ -9056,11 +9188,11 @@ msgid "Fan speed"
 msgstr "Швидкість вентилятора"
 
 msgid ""
-"Speed of exhuast fan during printing.This speed will overwrite the speed in "
+"Speed of exhaust fan during printing.This speed will overwrite the speed in "
 "filament custom gcode"
 msgstr ""
 
-msgid "Speed of exhuast fan after printing completes"
+msgid "Speed of exhaust fan after printing completes"
 msgstr ""
 
 msgid "No cooling for the first"
@@ -9180,21 +9312,19 @@ msgstr "Забезпечення вертикальної товщини обо�
 
 msgid ""
 "Add solid infill near sloping surfaces to guarantee the vertical shell "
-"thickness (top+bottom solid layers)"
+"thickness (top+bottom solid layers)\n"
+"None: No solid infill will be added anywhere. Caution: Use this option "
+"carefully if your model has sloped surfaces\n"
+"Critical Only: Avoid adding solid infill for walls\n"
+"Moderate: Add solid infill for heavily sloping surfaces only\n"
+"All: Add solid infill for all suitable sloping surfaces\n"
+"Default value is All."
 msgstr ""
-"Додавання заповнення твердого тіла поблизу похилих поверхонь для Гарантії "
-"товщини вертикальної оболонки (верхній + нижній шари твердого тіла)"
 
-msgid "Further reduce solid infill on walls (beta)"
+msgid "Critical Only"
 msgstr ""
 
-msgid ""
-"Further reduces any solid infill applied to walls. As there will be very "
-"limited infill supporting solid surfaces, make sure that you are using "
-"adequate number of walls to support the part on sloping surfaces.\n"
-"\n"
-"For heavily sloped surfaces this option is not suitable as it will generate "
-"too thin of a top layer and should be disabled."
+msgid "Moderate"
 msgstr ""
 
 msgid "Top surface pattern"
@@ -9329,6 +9459,26 @@ msgid ""
 "external surfaces of the part."
 msgstr ""
 
+msgid "Wall loop direction"
+msgstr ""
+
+msgid ""
+"The direction which the wall loops are extruded when looking down from the "
+"top.\n"
+"\n"
+"By default all walls are extruded in counter-clockwise, unless Reverse on "
+"odd is enabled. Set this to any option other than Auto will force the wall "
+"direction regardless of the Reverse on odd.\n"
+"\n"
+"This option will be disabled if sprial vase mode is enabled."
+msgstr ""
+
+msgid "Counter clockwise"
+msgstr ""
+
+msgid "Clockwise"
+msgstr ""
+
 msgid "Height to rod"
 msgstr "Висота до сопла"
 
@@ -9355,6 +9505,50 @@ msgid ""
 msgstr ""
 "Радіус вільного простору навколо екструдера. Використовується для уникнення "
 "зіткнення під час друку за об’єктами."
+
+msgid "Bed mesh min"
+msgstr ""
+
+msgid ""
+"This option sets the min point for the allowed bed mesh area. Due to the "
+"probe's XY offset, most printers are unable to probe the entire bed. To "
+"ensure the probe point does not go outside the bed area, the minimum and "
+"maximum points of the bed mesh should be set appropriately. OrcaSlicer "
+"ensures that adaptive_bed_mesh_min/adaptive_bed_mesh_max values do not "
+"exceed these min/max points. This information can usually be obtained from "
+"your printer manufacturer. The default setting is (-99999, -99999), which "
+"means there are no limits, thus allowing probing across the entire bed."
+msgstr ""
+
+msgid "Bed mesh max"
+msgstr ""
+
+msgid ""
+"This option sets the max point for the allowed bed mesh area. Due to the "
+"probe's XY offset, most printers are unable to probe the entire bed. To "
+"ensure the probe point does not go outside the bed area, the minimum and "
+"maximum points of the bed mesh should be set appropriately. OrcaSlicer "
+"ensures that adaptive_bed_mesh_min/adaptive_bed_mesh_max values do not "
+"exceed these min/max points. This information can usually be obtained from "
+"your printer manufacturer. The default setting is (99999, 99999), which "
+"means there are no limits, thus allowing probing across the entire bed."
+msgstr ""
+
+msgid "Probe point distance"
+msgstr ""
+
+msgid ""
+"This option sets the preferred distance between probe points (grid size) for "
+"the X and Y directions, with the default being 50mm for both X and Y."
+msgstr ""
+
+msgid "Mesh margin"
+msgstr ""
+
+msgid ""
+"This option determines the additional distance by which the adaptive bed "
+"mesh area should be expanded in the XY directions."
+msgstr ""
 
 msgid "Extruder Color"
 msgstr "Колір екструдера"
@@ -9485,10 +9679,10 @@ msgstr ""
 msgid "Shrinkage"
 msgstr "Усадка"
 
-#, c-format, boost-format
+#, no-c-format, no-boost-format
 msgid ""
-"Enter the shrinkage percentage that the filament will get after cooling "
-"(94% if you measure 94mm instead of 100mm). The part will be scaled in xy to "
+"Enter the shrinkage percentage that the filament will get after cooling (94% "
+"if you measure 94mm instead of 100mm). The part will be scaled in xy to "
 "compensate. Only the filament used for the perimeter is taken into account.\n"
 "Be sure to allow enough space between objects, as this compensation is done "
 "after the checks."
@@ -9675,7 +9869,7 @@ msgstr ""
 msgid "Sparse infill density"
 msgstr "Щільність заповнення"
 
-#, c-format, boost-format
+#, no-c-format, no-boost-format
 msgid ""
 "Density of internal sparse infill, 100% turns all sparse infill into solid "
 "infill and internal solid infill pattern will be used"
@@ -10359,7 +10553,7 @@ msgstr ""
 msgid "This G-code will be used as a custom code"
 msgstr "Цей G-код буде використовуватися як код користувача"
 
-msgid "Enable Flow Compensation"
+msgid "Small area flow compensation (beta)"
 msgstr ""
 
 msgid "Enable flow compensation for small infill areas"
@@ -10569,9 +10763,9 @@ msgid "Min print speed"
 msgstr "Мін. швидкість друку"
 
 msgid ""
-"The minimum printing speed for the filament when slow down for better layer "
-"cooling is enabled, when printing overhangs and when feature speeds are not "
-"specified explicitly."
+"The minimum printing speed that the printer will slow down to to attempt to "
+"maintain the minimum layer time above, when slow down for better layer "
+"cooling is enabled."
 msgstr ""
 
 msgid "Nozzle diameter"
@@ -10965,6 +11159,9 @@ msgstr "Найближчий"
 msgid "Aligned"
 msgstr "Вирівняний"
 
+msgid "Back"
+msgstr "Ззаду"
+
 msgid "Random"
 msgstr "Випадковий"
 
@@ -10990,6 +11187,86 @@ msgstr ""
 "Ця кількість може бути вказана в міліметрах або у відсотках від "
 "поточногодіаметр екструдера. Стандартне значення для цього параметра "
 "становить 10%."
+
+msgid "Scarf joint seam (beta)"
+msgstr ""
+
+msgid "Use scarf joint to minimize seam visibility and increase seam strength."
+msgstr ""
+
+msgid "Conditional scarf joint"
+msgstr ""
+
+msgid ""
+"Apply scarf joints only to smooth perimeters where traditional seams do not "
+"conceal the seams at sharp corners effectively."
+msgstr ""
+
+msgid "Conditional angle threshold"
+msgstr ""
+
+msgid ""
+"This option sets the threshold angle for applying a conditional scarf joint "
+"seam.\n"
+"If the maximum angle within the perimeter loop exceeds this value "
+"(indicating the absence of sharp corners), a scarf joint seam will be used. "
+"The default value is 155°."
+msgstr ""
+
+msgid "Scarf joint speed"
+msgstr ""
+
+msgid ""
+"This option sets the printing speed for scarf joints. It is recommended to "
+"print scarf joints at a slow speed (less than 100 mm/s).  It's also "
+"advisable to enable 'Extrusion rate smoothing' if the set speed varies "
+"significantly from the speed of the outer or inner walls. If the speed "
+"specified here is higher than the speed of the outer or inner walls, the "
+"printer will default to the slower of the two speeds. When specified as a "
+"percentage (e.g., 80%), the speed is calculated based on the respective "
+"outer or inner wall speed. The default value is set to 100%."
+msgstr ""
+
+msgid "Scarf joint flow ratio"
+msgstr ""
+
+msgid "This factor affects the amount of material for scarf joints."
+msgstr ""
+
+msgid "Scarf start height"
+msgstr ""
+
+msgid ""
+"Start height of the scarf.\n"
+"This amount can be specified in millimeters or as a percentage of the "
+"current layer height. The default value for this parameter is 0."
+msgstr ""
+
+msgid "Scarf around entire wall"
+msgstr ""
+
+msgid "The scarf extends to the entire length of the wall."
+msgstr ""
+
+msgid "Scarf length"
+msgstr ""
+
+msgid ""
+"Length of the scarf. Setting this parameter to zero effectively disables the "
+"scarf."
+msgstr ""
+
+msgid "Scarf steps"
+msgstr ""
+
+msgid "Minimum number of segments of each scarf."
+msgstr ""
+
+msgid "Scarf joint for inner walls"
+msgstr ""
+
+msgid "Use scarf joint for inner walls as well."
+msgstr ""
 
 msgid "Role base wipe speed"
 msgstr "Базова швидкість очищення ролей"
@@ -11184,7 +11461,7 @@ msgstr ""
 msgid "Enable filament ramming"
 msgstr ""
 
-msgid "No sparse layers (EXPERIMENTAL)"
+msgid "No sparse layers (beta)"
 msgstr ""
 
 msgid ""
@@ -11846,7 +12123,7 @@ msgstr ""
 msgid "Polyhole detection margin"
 msgstr ""
 
-#, c-format, boost-format
+#, no-c-format, no-boost-format
 msgid ""
 "Maximum defection of a point to the estimated radius of the circle.\n"
 "As cylinders are often exported as triangles of varying size, points may not "
@@ -13832,8 +14109,8 @@ msgstr ""
 
 #: resources/data/hints.ini: [hint:Air filtration]
 msgid ""
-"Air filtration/Exhuast Fan\n"
-"Did you know that OrcaSlicer can support Air filtration/Exhuast Fan?"
+"Air filtration/Exhaust Fan\n"
+"Did you know that OrcaSlicer can support Air filtration/Exhaust Fan?"
 msgstr ""
 
 #: resources/data/hints.ini: [hint:G-code window]
@@ -14126,6 +14403,23 @@ msgid ""
 "ABS, appropriately increasing the heatbed temperature can reduce the "
 "probability of warping."
 msgstr ""
+
+#~ msgid ""
+#~ "Add solid infill near sloping surfaces to guarantee the vertical shell "
+#~ "thickness (top+bottom solid layers)"
+#~ msgstr ""
+#~ "Додавання заповнення твердого тіла поблизу похилих поверхонь для Гарантії "
+#~ "товщини вертикальної оболонки (верхній + нижній шари твердого тіла)"
+
+#~ msgid "Configuration package updated to "
+#~ msgstr "Пакет конфігурації оновлено до "
+
+#~ msgid ""
+#~ "Improve shell precision by adjusting outer wall spacing. This also "
+#~ "improves layer consistency."
+#~ msgstr ""
+#~ "Підвищення точності оболонки за рахунок регулювання відстані між "
+#~ "зовнішнімипериметрами. Це також покращує узгодженість шарів."
 
 #~ msgid "The Config can not be loaded."
 #~ msgstr "Конфіг не завантажується."

@@ -9,7 +9,7 @@ for %%a in (%*) do (
 )
 
 if %FULL_MODE%==1 (
-    xgettext --keyword=L --keyword=_L --keyword=_u8L --keyword=L_CONTEXT:1,2c --keyword=_L_PLURAL:1,2 --add-comments=TRN --from-code=UTF-8 --no-location --debug --boost -f ./localization/i18n/list.txt -o ./localization/i18n/OrcaSlicer.pot
+    .\tools\xgettext.exe --keyword=L --keyword=_L --keyword=_u8L --keyword=L_CONTEXT:1,2c --keyword=_L_PLURAL:1,2 --add-comments=TRN --from-code=UTF-8 --no-location --debug --boost -f ./localization/i18n/list.txt -o ./localization/i18n/OrcaSlicer.pot
     build\\src\\hints\\Release\\hintsToPot ./resources ./localization/i18n
 )
 REM Print the current directory
@@ -28,8 +28,8 @@ goto :eof
     set "name=%~n1"
     set "lang=%name:OrcaSlicer_=%"
     if %FULL_MODE%==1 (
-        msgmerge -N -o "%file%" "%file%" "%pot_file%"
+        .\tools\msgmerge.exe -N -o "%file%" "%file%" "%pot_file%"
     )
     if not exist "./resources/i18n/%lang%" mkdir "./resources/i18n/%lang%"
-    msgfmt --check-format -o "./resources/i18n/%lang%/OrcaSlicer.mo" "%file%"
+    .\tools\msgfmt.exe --check-format -o "./resources/i18n/%lang%/OrcaSlicer.mo" "%file%"
 goto :eof

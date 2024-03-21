@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-27 13:20+0800\n"
+"POT-Creation-Date: 2024-03-16 17:57+0800\n"
 "PO-Revision-Date: 2023-04-01 13:21+0800\n"
 "Last-Translator: SoftFever <softfeverever@gmail.com>\n"
 "Language-Team: \n"
@@ -658,6 +658,14 @@ msgstr "旋转文字"
 msgid "Text shape"
 msgstr "文本形状"
 
+#. TRN - Title in Undo/Redo stack after rotate with text around emboss axe
+msgid "Text rotate"
+msgstr ""
+
+#. TRN - Title in Undo/Redo stack after move with text along emboss axe - From surface
+msgid "Text move"
+msgstr ""
+
 msgid "Set Mirror"
 msgstr ""
 
@@ -675,9 +683,6 @@ msgstr ""
 
 msgid "Emboss"
 msgstr "浮雕"
-
-msgid "Text-Rotate"
-msgstr "旋转文字"
 
 msgid "NORMAL"
 msgstr "常规"
@@ -1048,6 +1053,14 @@ msgstr "保持向上"
 msgid "Collection"
 msgstr ""
 
+#. TRN - Title in Undo/Redo stack after rotate with SVG around emboss axe
+msgid "SVG rotate"
+msgstr ""
+
+#. TRN - Title in Undo/Redo stack after move with SVG along emboss axe - From surface
+msgid "SVG move"
+msgstr ""
+
 msgid "Enter SVG gizmo"
 msgstr ""
 
@@ -1058,11 +1071,7 @@ msgid "SVG actions"
 msgstr ""
 
 msgid "SVG"
-msgstr ""
-
-#. TRN This is an item label in the undo-redo stack.
-msgid "SVG-Rotate"
-msgstr ""
+msgstr "SVG矢量图"
 
 #, boost-format
 msgid "Opacity (%1%)"
@@ -1175,9 +1184,6 @@ msgid "Lock/unlock the aspect ratio of the SVG."
 msgstr ""
 
 msgid "Reset scale"
-msgstr ""
-
-msgid "Resize"
 msgstr ""
 
 msgid "Distance of the center of the SVG to the model surface."
@@ -1662,8 +1668,19 @@ msgstr "Voron方块"
 msgid "Stanford Bunny"
 msgstr "斯坦福兔子"
 
-msgid "Text"
+msgid "Orca String Hell"
+msgstr "Orca拉丝地狱"
+
+msgid ""
+"This model features text embossment on the top surface. For optimal results, "
+"it is advisable to set the 'One Wall Threshold(min_width_top_surface)' to 0 "
+"for the 'Only One Wall on Top Surfaces' to work best.\n"
+"Yes - Change these settings automatically\n"
+"No  - Do not change these settings for me"
 msgstr ""
+
+msgid "Text"
+msgstr "文字浮雕"
 
 msgid "Height range Modifier"
 msgstr "高度范围修改器"
@@ -1796,16 +1813,16 @@ msgid "Mirror object"
 msgstr "镜像对象"
 
 msgid "Edit text"
-msgstr ""
+msgstr "编辑文字"
 
 msgid "Ability to change text, font, size, ..."
 msgstr ""
 
 msgid "Edit SVG"
-msgstr ""
+msgstr "编辑SVG"
 
 msgid "Change SVG source file, projection, size, ..."
-msgstr ""
+msgstr "改变SVG源文件，投影，大小，..."
 
 msgid "Invalidate cut info"
 msgstr "解除切割关系"
@@ -2126,9 +2143,6 @@ msgstr "不支持多个单元格的复制"
 
 msgid "Outside"
 msgstr "盘外"
-
-msgid " "
-msgstr " "
 
 msgid "Layer height"
 msgstr "层高"
@@ -3214,16 +3228,19 @@ msgstr ""
 "否 - 暂不使用旋转模式"
 
 msgid ""
-"Alternate extra wall only works with ensure vertical shell thickness "
-"disabled. "
-msgstr ""
+"Alternate extra wall does't work well when ensure vertical shell thickness "
+"is set to All. "
+msgstr "“交替添加额外”与“确保垂直外壳厚度”的”全部“选项不兼容。"
 
 msgid ""
 "Change these settings automatically? \n"
-"Yes - Disable ensure vertical shell thickness and enable alternate extra "
-"wall\n"
+"Yes - Change ensure vertical shell thickness to Moderate and enable "
+"alternate extra wall\n"
 "No  - Dont use alternate extra wall"
 msgstr ""
+"自动调整这些设置？\n"
+"是 - 自动调整确保垂直外壳厚度为“适量”，并开启交替添加额外内墙\n"
+"否 - 不使用交替添加额外内墙"
 
 msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support "
@@ -3263,6 +3280,13 @@ msgid ""
 "While printing by Object, the extruder may collide skirt.\n"
 "Thus, reset the skirt layer to 1 to avoid that."
 msgstr "逐件打印时，挤出机可能与裙边碰撞。因此将裙边的层数重置为1。"
+
+msgid ""
+"seam_slope_start_height need to be smaller than layer_height.\n"
+"Reset to 0."
+msgstr ""
+"seam_slope_start_height需要小于layer_height。\n"
+"重置为0。"
 
 msgid "Auto bed leveling"
 msgstr "自动热床调平"
@@ -3466,6 +3490,68 @@ msgstr "CF/GF耗材丝丝又硬又脆，在AMS中很容易断裂或卡住，请�
 msgid "default"
 msgstr "缺省"
 
+#, boost-format
+msgid "Edit Custom G-code (%1%)"
+msgstr ""
+
+msgid "Built-in placeholders (Double click item to add to G-code)"
+msgstr ""
+
+msgid "Search gcode placeholders"
+msgstr ""
+
+msgid "Add selected placeholder to G-code"
+msgstr ""
+
+msgid "Select placeholder"
+msgstr ""
+
+msgid "[Global] Slicing State"
+msgstr ""
+
+msgid "Read Only"
+msgstr ""
+
+msgid "Read Write"
+msgstr ""
+
+msgid "Slicing State"
+msgstr ""
+
+msgid "Print Statistics"
+msgstr ""
+
+msgid "Objects Info"
+msgstr ""
+
+msgid "Dimensions"
+msgstr ""
+
+msgid "Temperatures"
+msgstr ""
+
+msgid "Timestamps"
+msgstr ""
+
+#, boost-format
+msgid "Specific for %1%"
+msgstr ""
+
+msgid "Presets"
+msgstr "预设"
+
+msgid "Print settings"
+msgstr "打印设置"
+
+msgid "Filament settings"
+msgstr "耗材丝设置"
+
+msgid "SLA Materials settings"
+msgstr ""
+
+msgid "Printer settings"
+msgstr "打印机设置"
+
 msgid "parameter name"
 msgstr "参数名称"
 
@@ -3658,9 +3744,6 @@ msgstr "打印"
 
 msgid "Printer"
 msgstr "打印机"
-
-msgid "Print settings"
-msgstr "打印设置"
 
 msgid "Custom g-code"
 msgstr ""
@@ -4226,6 +4309,12 @@ msgid "Show &G-code Window"
 msgstr ""
 
 msgid "Show g-code window in Previce scene"
+msgstr ""
+
+msgid "Show 3D Navigator"
+msgstr ""
+
+msgid "Show 3D navigator in Prepare and Preview scene"
 msgstr ""
 
 msgid "Reset Window Layout"
@@ -5136,12 +5225,6 @@ msgstr "比较预设"
 msgid "View all object's settings"
 msgstr "查看所有对象的配置"
 
-msgid "Filament settings"
-msgstr "耗材丝设置"
-
-msgid "Printer settings"
-msgstr "打印机设置"
-
 msgid "Remove current plate (if not last one)"
 msgstr "移除当前板（如果不是最后一个）"
 
@@ -5832,9 +5915,6 @@ msgstr "冲刷体积：每一次更换颜色时自动计算。"
 
 msgid "If enabled, auto-calculate everytime the color changed."
 msgstr "如果启用，会在每一次更换颜色时自动计算。"
-
-msgid "Presets"
-msgstr "预设"
 
 msgid "Auto sync user presets(Printer/Filament/Process)"
 msgstr "同步用户预设（打印机/耗材丝/工艺）"
@@ -6621,6 +6701,15 @@ msgstr ""
 "0顶层z距离，0接触层间距，同心图案，并且禁用独立支撑层高"
 
 msgid ""
+"Enabling this option will modify the model's shape. If your print requires "
+"precise dimensions or is part of an assembly, it's important to double-check "
+"whether this change in geometry impacts the functionality of your print."
+msgstr ""
+
+msgid "Are you sure you want to enable this option?"
+msgstr ""
+
+msgid ""
 "Layer height is too small.\n"
 "It will set to min_layer_height\n"
 msgstr ""
@@ -6663,9 +6752,6 @@ msgstr "墙生成器"
 
 msgid "Walls and surfaces"
 msgstr "墙壁和表面"
-
-msgid "Small Area Infill Flow Compensation (beta)"
-msgstr ""
 
 msgid "Bridging"
 msgstr "搭桥"
@@ -6892,6 +6978,9 @@ msgstr "风扇响应时间"
 
 msgid "Extruder Clearance"
 msgstr "挤出机避让空间"
+
+msgid "Adaptive bed mesh"
+msgstr "自适应网床"
 
 msgid "Accessory"
 msgstr "配件"
@@ -7159,9 +7248,6 @@ msgstr "封面"
 #, boost-format
 msgid "The name \"%1%\" already exists."
 msgstr "名字\"%1%\"已经存在。"
-
-msgid "Back"
-msgstr "背面"
 
 msgid "Basic Info"
 msgstr "基本信息"
@@ -7759,8 +7845,11 @@ msgstr "从%1%拷贝文件到%2%失败：%3%"
 msgid "Need to check the unsaved changes before configuration updates."
 msgstr "需要在配置更新之前检查没有保存的参数修改。"
 
-msgid "Configuration package updated to "
-msgstr "配置包已更新到"
+msgid "Configuration package: "
+msgstr ""
+
+msgid " updated to "
+msgstr ""
 
 msgid "Open G-code file:"
 msgstr "打开G-code文件："
@@ -8116,6 +8205,49 @@ msgstr ""
 msgid "Plate %d: %s does not support filament %s"
 msgstr "盘 %d: %s 不支持耗材丝 %s"
 
+msgid ""
+"Setting the jerk speed too low could lead to artifacts on curved surfaces"
+msgstr "将抖动(jerk)速度设置得太低可能会导致打印曲面时出现瑕疵"
+
+msgid ""
+"The jerk setting exceeds the printer's maximum jerk (machine_max_jerk_x/"
+"machine_max_jerk_y).\n"
+"Orca will automatically cap the jerk speed to ensure it doesn't surpass the "
+"printer's capabilities.\n"
+"You can adjust the maximum jerk setting in your printer's configuration to "
+"get higher speeds."
+msgstr ""
+"抖动速度设置超过了打印机的最大抖动速度（machine_max_jerk_x/"
+"machine_max_jerk_y）。\n"
+"Orca将自动限制抖动速度，以确保不超过打印机的速度限制。\n"
+"您可以调整打印机配置中的最大抖动速度设置，以获得更高的速度。"
+
+msgid ""
+"The acceleration setting exceeds the printer's maximum acceleration "
+"(machine_max_acceleration_extruding).\n"
+"Orca will automatically cap the acceleration speed to ensure it doesn't "
+"surpass the printer's capabilities.\n"
+"You can adjust the machine_max_acceleration_extruding value in your "
+"printer's configuration to get higher speeds."
+msgstr ""
+"加速度设置超过了打印机的最大加速度（machine_max_acceleration_extruding）。\n"
+"Orca将自动限制加速度，以确保不超过打印机的速度限制。\n"
+"您可以调整打印机配置中的machine_max_acceleration_extruding值，以获得更高的速"
+"度。"
+
+msgid ""
+"The travel acceleration setting exceeds the printer's maximum travel "
+"acceleration (machine_max_acceleration_travel).\n"
+"Orca will automatically cap the travel acceleration speed to ensure it "
+"doesn't surpass the printer's capabilities.\n"
+"You can adjust the machine_max_acceleration_travel value in your printer's "
+"configuration to get higher speeds."
+msgstr ""
+"空驶加速度设置超过了打印机的最大空驶加速度"
+"（machine_max_acceleration_travel）。\n"
+"Orca将自动限制加速度，以确保不超过打印机的速度限制。\n"
+"您可以调整打印机配置中的machine_max_acceleration_travel值，以获得更高的速度。"
+
 msgid "Generating skirt & brim"
 msgstr "正在生成skirt和brim"
 
@@ -8377,7 +8509,7 @@ msgstr ""
 "全由底部壳体层数决定"
 
 msgid "Apply gap fill"
-msgstr ""
+msgstr "启用间隙填充"
 
 msgid ""
 "Enables gap fill for the selected surfaces. The minimum gap length that will "
@@ -8391,13 +8523,13 @@ msgid ""
 msgstr ""
 
 msgid "Everywhere"
-msgstr ""
+msgstr "所有地方"
 
 msgid "Top and bottom surfaces"
-msgstr ""
+msgstr "仅顶层和底层"
 
 msgid "Nowhere"
-msgstr ""
+msgstr "不填充"
 
 msgid "Force cooling for overhang and bridge"
 msgstr "悬垂/桥接强制冷却"
@@ -8485,8 +8617,10 @@ msgstr "精准外墙尺寸"
 
 msgid ""
 "Improve shell precision by adjusting outer wall spacing. This also improves "
-"layer consistency."
-msgstr "优化外墙刀路以提高外墙精度。这个优化同时减少层纹"
+"layer consistency.\n"
+"Note: This setting will only take effect if the wall sequence is configured "
+"to Inner-Outer"
+msgstr ""
 
 msgid "Only one wall on top surfaces"
 msgstr "顶面单层墙"
@@ -8499,7 +8633,7 @@ msgstr "顶面只使用单层墙，从而更多的空间能够使用顶部填充
 msgid "One wall threshold"
 msgstr "单层墙阈值"
 
-#, fuzzy, c-format, boost-format
+#, no-c-format, no-boost-format
 msgid ""
 "If a top surface has to be printed and it's partially covered by another "
 "layer, it won't be considered at a top layer where its width is below this "
@@ -8577,13 +8711,34 @@ msgstr ""
 "为了使这个设置最有效，建议将反转阈值设置为0，这样所有的内墙都会在奇数层交替打"
 "印。"
 
+msgid "Bridge counterbore holes"
+msgstr "沉孔搭桥"
+
+msgid ""
+"This option creates bridges for counterbore holes, allowing them to be "
+"printed without support. Available modes include:\n"
+"1. None: No bridge is created.\n"
+"2. Partially Bridged: Only a part of the unsupported area will be bridged.\n"
+"3. Sacrificial Layer: A full sacrificial bridge layer is created."
+msgstr ""
+"此选项为沉孔创建搭桥，使其可以在无支撑的情况下打印。可用的模式包括：\n"
+"1. 无：不创建搭桥。\n"
+"2. 部分搭桥：仅部分不支撑的区域将被搭桥。\n"
+"3. 牺牲层：创建一个完整的牺牲层。"
+
+msgid "Partially bridged"
+msgstr "部分搭桥"
+
+msgid "Sacrificial layer"
+msgstr "牺牲层"
+
 msgid "Reverse threshold"
 msgstr "反转阈值"
 
 msgid "Overhang reversal threshold"
 msgstr "悬垂反转阈值"
 
-#, fuzzy, c-format, boost-format
+#, no-c-format, no-boost-format
 msgid ""
 "Number of mm the overhang need to be for the reversal to be considered "
 "useful. Can be a % of the perimeter width.\n"
@@ -8709,13 +8864,13 @@ msgid "By object"
 msgstr "逐件"
 
 msgid "Intra-layer order"
-msgstr ""
+msgstr "层内打印顺序"
 
 msgid "Print order within a single layer"
-msgstr ""
+msgstr "同一层内的打印顺序"
 
 msgid "As object list"
-msgstr ""
+msgstr "按对象列表中的顺序"
 
 msgid "Slow printing down for better layer cooling"
 msgstr "降低打印速度 以得到更好的冷却"
@@ -8763,11 +8918,11 @@ msgid "Fan speed"
 msgstr "风扇速度"
 
 msgid ""
-"Speed of exhuast fan during printing.This speed will overwrite the speed in "
+"Speed of exhaust fan during printing.This speed will overwrite the speed in "
 "filament custom gcode"
 msgstr "打印过程中排气风扇的速度。此速度将覆盖耗材丝自定义gcode中的速度"
 
-msgid "Speed of exhuast fan after printing completes"
+msgid "Speed of exhaust fan after printing completes"
 msgstr "打印完成后排气风扇的速度"
 
 msgid "No cooling for the first"
@@ -8812,7 +8967,7 @@ msgstr ""
 "虑关闭它。"
 
 msgid "Don't filter out small internal bridges (beta)"
-msgstr ""
+msgstr "保留细微内部桥接（试验）"
 
 msgid ""
 "This option can help reducing pillowing on top surfaces in heavily slanted "
@@ -8842,15 +8997,33 @@ msgid ""
 "overhang. This option is useful for heavily slanted top surface models. "
 "However, in most cases it creates too many unecessary bridges."
 msgstr ""
+"此选项可以帮助减少在严重倾斜或弯曲模型的顶部表面上的枕头现象。\n"
+"\n"
+"默认情况下，小的内部搭桥会被过滤掉，内部实心填充会直接打印在稀疏填充上。这在"
+"大多数情况下效果很好，可以加快打印速度，而对顶部表面质量的影响不大。\n"
+"\n"
+"然而，在严重倾斜或弯曲的模型中，特别是在使用了过低的稀疏填充密度的情况下，这"
+"可能会导致不支撑的实心填充卷曲，从而导致枕头现象。\n"
+"\n"
+"启用此选项将在轻微不支撑的内部实心填充上打印内部搭桥层。下面的选项控制过滤的"
+"程度，即创建的内部搭桥的数量。\n"
+"\n"
+"禁用 - 禁用此选项。这是默认行为，在大多数情况下效果很好。\n"
+"\n"
+"有限过滤 - 在严重倾斜的表面上创建内部搭桥，同时避免创建不必要的内部搭桥。这对"
+"大多数困难模型效果很好。\n"
+"\n"
+"无过滤 - 在每个潜在的内部悬垂上创建内部搭桥。这个选项对于严重倾斜的顶部表面模"
+"型很有用。然而，在大多数情况下，它会创建太多不必要的桥接。"
 
 msgid "Disabled"
-msgstr ""
+msgstr "禁用"
 
 msgid "Limited filtering"
-msgstr ""
+msgstr "有限保留"
 
 msgid "No filtering"
-msgstr ""
+msgstr "保留全部"
 
 msgid "Max bridge length"
 msgstr "最大桥接长度"
@@ -8885,20 +9058,27 @@ msgstr "确保垂直外壳厚度"
 
 msgid ""
 "Add solid infill near sloping surfaces to guarantee the vertical shell "
-"thickness (top+bottom solid layers)"
-msgstr "在斜面表面附近添加实心填充，以保证垂直外壳厚度（顶部+底部实心层）"
-
-msgid "Further reduce solid infill on walls (beta)"
+"thickness (top+bottom solid layers)\n"
+"None: No solid infill will be added anywhere. Caution: Use this option "
+"carefully if your model has sloped surfaces\n"
+"Critical Only: Avoid adding solid infill for walls\n"
+"Moderate: Add solid infill for heavily sloping surfaces only\n"
+"All: Add solid infill for all suitable sloping surfaces\n"
+"Default value is All."
 msgstr ""
+"在倾斜表面附近添加实心填充，以保证垂直外壳的厚度（顶部+底部实心层）\n"
+"无：任何地方都不会添加实心填充。注意：如果您的模型有倾斜表面，请谨慎使用此选"
+"项\n"
+"仅关键区域：避免为墙壁添加实心填充\n"
+"适量：仅为严重倾斜的表面添加实心填充\n"
+"全部：为所有适当的倾斜表面添加实心填充\n"
+"默认值为全部。"
 
-msgid ""
-"Further reduces any solid infill applied to walls. As there will be very "
-"limited infill supporting solid surfaces, make sure that you are using "
-"adequate number of walls to support the part on sloping surfaces.\n"
-"\n"
-"For heavily sloped surfaces this option is not suitable as it will generate "
-"too thin of a top layer and should be disabled."
-msgstr ""
+msgid "Critical Only"
+msgstr "仅关键区域"
+
+msgid "Moderate"
+msgstr "适量"
 
 msgid "Top surface pattern"
 msgstr "顶面图案"
@@ -9046,6 +9226,32 @@ msgstr ""
 "会在附着在墙壁上的地方轻微地挤出打印的墙壁，导致外部表面质量更差。它还会导致"
 "填充物透过零件的外部表面。"
 
+msgid "Wall loop direction"
+msgstr "围墙打印方向"
+
+msgid ""
+"The direction which the wall loops are extruded when looking down from the "
+"top.\n"
+"\n"
+"By default all walls are extruded in counter-clockwise, unless Reverse on "
+"odd is enabled. Set this to any option other than Auto will force the wall "
+"direction regardless of the Reverse on odd.\n"
+"\n"
+"This option will be disabled if sprial vase mode is enabled."
+msgstr ""
+"从顶部往下看时,墙壁被打印的方向。\n"
+"\n"
+"默认情况下,所有墙壁都按逆时针方向被打印,除非启用了奇数层翻转选项。将此选项设"
+"置为除自动之外的任何选项,都会强制指定墙壁方向,而不受奇数层翻转选项的影响。\n"
+"\n"
+"如果启用了螺旋花瓶模式,此选项将被禁用。"
+
+msgid "Counter clockwise"
+msgstr "逆时针"
+
+msgid "Clockwise"
+msgstr "顺时针"
+
 msgid "Height to rod"
 msgstr "到横杆高度"
 
@@ -9066,6 +9272,62 @@ msgid ""
 "Clearance radius around extruder. Used for collision avoidance in by-object "
 "printing."
 msgstr "挤出机四周的避让半径。用于在逐件打印中避免碰撞。"
+
+msgid "Bed mesh min"
+msgstr "网床最小点"
+
+msgid ""
+"This option sets the min point for the allowed bed mesh area. Due to the "
+"probe's XY offset, most printers are unable to probe the entire bed. To "
+"ensure the probe point does not go outside the bed area, the minimum and "
+"maximum points of the bed mesh should be set appropriately. OrcaSlicer "
+"ensures that adaptive_bed_mesh_min/adaptive_bed_mesh_max values do not "
+"exceed these min/max points. This information can usually be obtained from "
+"your printer manufacturer. The default setting is (-99999, -99999), which "
+"means there are no limits, thus allowing probing across the entire bed."
+msgstr ""
+"此选项设置了允许的网床探测区域的最小点。由于探针的XY偏移，大多数打印机无法探"
+"测整个打印床。为了确保探针不会超出床的范围，应适当设置网床的最小和最大点。逆"
+"戟鲸切片确保adaptive_bed_mesh_min/adaptive_bed_mesh_max值不超过这些最小/最大"
+"点。这些信息通常可以从您的打印机制造商那里获得。默认设置为(-99999, -99999)，"
+"这意味着没有限制，因此允许在整个床上进行探测。"
+
+msgid "Bed mesh max"
+msgstr "网床最大点"
+
+msgid ""
+"This option sets the max point for the allowed bed mesh area. Due to the "
+"probe's XY offset, most printers are unable to probe the entire bed. To "
+"ensure the probe point does not go outside the bed area, the minimum and "
+"maximum points of the bed mesh should be set appropriately. OrcaSlicer "
+"ensures that adaptive_bed_mesh_min/adaptive_bed_mesh_max values do not "
+"exceed these min/max points. This information can usually be obtained from "
+"your printer manufacturer. The default setting is (99999, 99999), which "
+"means there are no limits, thus allowing probing across the entire bed."
+msgstr ""
+"此选项设置了允许的网床探测区域的最大点。由于探针的XY偏移，大多数打印机无法探"
+"测整个打印床。为了确保探针不会超出床的范围，应适当设置网床的最小和最大点。逆"
+"戟鲸切片确保adaptive_bed_mesh_min/adaptive_bed_mesh_max值不超过这些最小/最大"
+"点。这些信息通常可以从您的打印机制造商那里获得。默认设置为(99999, 99999)，这"
+"意味着没有限制，因此允许在整个床上进行探测。"
+
+msgid "Probe point distance"
+msgstr "网格点间距离"
+
+msgid ""
+"This option sets the preferred distance between probe points (grid size) for "
+"the X and Y directions, with the default being 50mm for both X and Y."
+msgstr ""
+"此选项设置了X和Y方向的探针点（网格大小）之间的首选距离，其默认值为X和Y方向均"
+"为50mm。"
+
+msgid "Mesh margin"
+msgstr "网床边缘外扩"
+
+msgid ""
+"This option determines the additional distance by which the adaptive bed "
+"mesh area should be expanded in the XY directions."
+msgstr "此选项决定了自适应网床网格区域在XY方向上应扩展的额外距离。"
 
 msgid "Extruder Color"
 msgstr "挤出机颜色"
@@ -9178,10 +9440,10 @@ msgstr "耗材丝直径被用于计算G-code文件中的挤出量。因此很重
 msgid "Shrinkage"
 msgstr "耗材收缩率"
 
-#, fuzzy, c-format, boost-format
+#, no-c-format, no-boost-format
 msgid ""
-"Enter the shrinkage percentage that the filament will get after cooling "
-"(94% if you measure 94mm instead of 100mm). The part will be scaled in xy to "
+"Enter the shrinkage percentage that the filament will get after cooling (94% "
+"if you measure 94mm instead of 100mm). The part will be scaled in xy to "
 "compensate. Only the filament used for the perimeter is taken into account.\n"
 "Be sure to allow enough space between objects, as this compensation is done "
 "after the checks."
@@ -9377,7 +9639,7 @@ msgstr "稀疏填充图案的角度，决定走线的开始或整体方向。"
 msgid "Sparse infill density"
 msgstr "稀疏填充密度"
 
-#, c-format, boost-format
+#, no-c-format, no-boost-format
 msgid ""
 "Density of internal sparse infill, 100% turns all sparse infill into solid "
 "infill and internal solid infill pattern will be used"
@@ -9644,7 +9906,7 @@ msgid ""
 msgstr "产生绒毛表面时，插入的随机点之间的平均距离"
 
 msgid "Apply fuzzy skin to first layer"
-msgstr ""
+msgstr "绒毛表面应用至首层"
 
 msgid "Whether to apply fuzzy skin on the first layer"
 msgstr ""
@@ -9985,14 +10247,14 @@ msgstr "该G-code用于暂停打印。您可以在gcode预览中插入暂停G-co
 msgid "This G-code will be used as a custom code"
 msgstr "该G-code是定制化指令"
 
-msgid "Enable Flow Compensation"
-msgstr ""
+msgid "Small area flow compensation (beta)"
+msgstr "小区域填充流量补偿（试验）"
 
 msgid "Enable flow compensation for small infill areas"
-msgstr ""
+msgstr "启用小区域填充的流量补偿"
 
 msgid "Flow Compensation Model"
-msgstr ""
+msgstr "流量补偿模型"
 
 msgid ""
 "Flow Compensation Model, used to adjust the flow for small infill areas. The "
@@ -10000,6 +10262,8 @@ msgid ""
 "and flow correction factors, one per line, in the following format: "
 "\"1.234,5.678\""
 msgstr ""
+"流量补偿模型，用于调整小区域填充的流量。模型以逗号分隔的形式表示，每行一个"
+"值，格式如下：\"1.234,5.678\""
 
 msgid "Maximum speed X"
 msgstr "X最大速度"
@@ -10210,9 +10474,9 @@ msgid "Min print speed"
 msgstr "最小打印速度"
 
 msgid ""
-"The minimum printing speed for the filament when slow down for better layer "
-"cooling is enabled, when printing overhangs and when feature speeds are not "
-"specified explicitly."
+"The minimum printing speed that the printer will slow down to to attempt to "
+"maintain the minimum layer time above, when slow down for better layer "
+"cooling is enabled."
 msgstr ""
 
 msgid "Nozzle diameter"
@@ -10362,7 +10626,7 @@ msgid "Number of walls of every layer"
 msgstr "每一层的外墙"
 
 msgid "Alternate extra wall"
-msgstr "交替额外内墙"
+msgstr "交替添加额外内墙"
 
 msgid ""
 "This setting adds an extra wall to every other layer. This way the infill "
@@ -10596,6 +10860,9 @@ msgstr "最近"
 msgid "Aligned"
 msgstr "对齐"
 
+msgid "Back"
+msgstr "背面"
+
 msgid "Random"
 msgstr "随机"
 
@@ -10617,6 +10884,95 @@ msgid ""
 "current extruder diameter. The default value for this parameter is 10%."
 msgstr ""
 
+msgid "Scarf joint seam (beta)"
+msgstr "斜拼接缝（试验）"
+
+msgid "Use scarf joint to minimize seam visibility and increase seam strength."
+msgstr "使用斜拼接缝来最小化接缝的可见性并增加接缝的强度。"
+
+msgid "Conditional scarf joint"
+msgstr "选择性应用斜拼接缝"
+
+msgid ""
+"Apply scarf joints only to smooth perimeters where traditional seams do not "
+"conceal the seams at sharp corners effectively."
+msgstr "当墙壁没有合适的锐角以至于传统接缝无法有效隐藏的时候使用斜拼接缝。"
+
+msgid "Conditional angle threshold"
+msgstr "角度阈值"
+
+msgid ""
+"This option sets the threshold angle for applying a conditional scarf joint "
+"seam.\n"
+"If the maximum angle within the perimeter loop exceeds this value "
+"(indicating the absence of sharp corners), a scarf joint seam will be used. "
+"The default value is 155°."
+msgstr ""
+"此选项设置判断是否应用斜拼接缝的角度阈值。\n"
+"如果围墙环内的最大角度超过了这个值（表示没有足够锐的角），则使用斜拼接缝接"
+"缝。默认值为155°。"
+
+msgid "Scarf joint speed"
+msgstr "斜拼接缝速度"
+
+msgid ""
+"This option sets the printing speed for scarf joints. It is recommended to "
+"print scarf joints at a slow speed (less than 100 mm/s).  It's also "
+"advisable to enable 'Extrusion rate smoothing' if the set speed varies "
+"significantly from the speed of the outer or inner walls. If the speed "
+"specified here is higher than the speed of the outer or inner walls, the "
+"printer will default to the slower of the two speeds. When specified as a "
+"percentage (e.g., 80%), the speed is calculated based on the respective "
+"outer or inner wall speed. The default value is set to 100%."
+msgstr ""
+"这个选项设置斜拼接缝的打印速度。建议以较慢的速度（小于100mm/s）打印斜拼接缝。"
+"如果设置的速度与外墙或内墙的速度相差较大，建议启用“平滑挤出率”。如果此处指定"
+"的速度高于外墙或内墙的速度，则打印机将默认使用两者中较慢的速度。当以百分比"
+"（例如80%）指定时，速度将基于外墙或内墙的速度进行计算。默认值为100%。"
+
+msgid "Scarf joint flow ratio"
+msgstr "斜拼接缝流量"
+
+msgid "This factor affects the amount of material for scarf joints."
+msgstr "这个参数影响斜拼接缝的材料用量。"
+
+msgid "Scarf start height"
+msgstr "斜拼接缝起始高度"
+
+msgid ""
+"Start height of the scarf.\n"
+"This amount can be specified in millimeters or as a percentage of the "
+"current layer height. The default value for this parameter is 0."
+msgstr ""
+"斜拼接缝的起始高度。\n"
+"这个数值可以用毫米或者当前层高的百分比表示。默认值为0。"
+
+msgid "Scarf around entire wall"
+msgstr "围绕整个围墙"
+
+msgid "The scarf extends to the entire length of the wall."
+msgstr "将斜拼接缝延伸到整个围墙"
+
+msgid "Scarf length"
+msgstr "斜拼接缝长度"
+
+msgid ""
+"Length of the scarf. Setting this parameter to zero effectively disables the "
+"scarf."
+msgstr "斜拼接缝的长度。长度为0时会禁用斜拼接缝"
+
+msgid "Scarf steps"
+msgstr "斜拼段数"
+
+msgid "Minimum number of segments of each scarf."
+msgstr "斜拼接缝所需的最少段数"
+
+msgid "Scarf joint for inner walls"
+msgstr "应用斜拼于内墙"
+
+msgid "Use scarf joint for inner walls as well."
+msgstr "同时应用斜拼接缝于内墙"
+
 msgid "Role base wipe speed"
 msgstr "自动擦拭速度"
 
@@ -10625,6 +10981,8 @@ msgid ""
 "if a wipe action is executed immediately following an outer wall extrusion, "
 "the speed of the outer wall extrusion will be utilized for the wipe action."
 msgstr ""
+"擦拭速度由当前挤出类型的速度决定。例如，如果擦拭动作紧随外墙，擦拭速度将使用"
+"外墙的速度。"
 
 msgid "Wipe on loops"
 msgstr "闭环擦拭"
@@ -10801,8 +11159,8 @@ msgstr "冲刷剩余的耗材丝进入擦拭塔"
 msgid "Enable filament ramming"
 msgstr "启用耗材尖端成型"
 
-msgid "No sparse layers (EXPERIMENTAL)"
-msgstr "无稀疏层（实验）"
+msgid "No sparse layers (beta)"
+msgstr ""
 
 msgid ""
 "If enabled, the wipe tower will not be printed on layers with no "
@@ -11451,7 +11809,7 @@ msgstr ""
 msgid "Polyhole detection margin"
 msgstr "多边型孔检测边缘"
 
-#, fuzzy, c-format, boost-format
+#, no-c-format, no-boost-format
 msgid ""
 "Maximum defection of a point to the estimated radius of the circle.\n"
 "As cylinders are often exported as triangles of varying size, points may not "
@@ -11835,69 +12193,69 @@ msgid ""
 msgstr ""
 
 msgid "Bottom-left corner of first layer bounding box"
-msgstr ""
+msgstr "第一层边界框的左下角"
 
 msgid "Top-right corner of first layer bounding box"
-msgstr ""
+msgstr "第一层边界框的右上角"
 
 msgid "Size of the first layer bounding box"
-msgstr ""
+msgstr "第一层边界框"
 
 msgid "Bottom-left corner of print bed bounding box"
-msgstr ""
+msgstr "热床边界框的左下角"
 
 msgid "Top-right corner of print bed bounding box"
-msgstr ""
+msgstr "热床边界框的右上角"
 
 msgid "Size of the print bed bounding box"
-msgstr ""
+msgstr "热床边界框"
 
 msgid "Timestamp"
-msgstr ""
+msgstr "时间戳"
 
 msgid "String containing current time in yyyyMMdd-hhmmss format."
-msgstr ""
+msgstr "包含当前时间的字符串，格式为yyyyMMdd-hhmmss。"
 
 msgid "Day"
-msgstr ""
+msgstr "日"
 
 msgid "Hour"
-msgstr ""
+msgstr "时"
 
 msgid "Minute"
-msgstr ""
+msgstr "分"
 
 msgid "Print preset name"
-msgstr ""
+msgstr "打印预设名称"
 
 msgid "Name of the print preset used for slicing."
-msgstr ""
+msgstr "用于切片的打印预设的名称。"
 
 msgid "Filament preset name"
-msgstr ""
+msgstr "打印材料预设名称"
 
 msgid ""
 "Names of the filament presets used for slicing. The variable is a vector "
 "containing one name for each extruder."
-msgstr ""
+msgstr "用于切片的打印材料预设的名称。该变量是一个向量，包含每个挤出机的名称。"
 
 msgid "Printer preset name"
-msgstr ""
+msgstr "打印机预设名称"
 
 msgid "Name of the printer preset used for slicing."
-msgstr ""
+msgstr "用于切片的打印机预设的名称。"
 
 msgid "Physical printer name"
-msgstr ""
+msgstr "物理打印机名称"
 
 msgid "Name of the physical printer used for slicing."
-msgstr ""
+msgstr "用于切片的物理打印机的名称。"
 
 msgid "Layer number"
-msgstr ""
+msgstr "层编号"
 
 msgid "Index of the current layer. One-based (i.e. first layer is number 1)."
-msgstr ""
+msgstr "当前层编号。从1开始编号（即第一层编号为1）。"
 
 msgid "Layer z"
 msgstr ""
@@ -13488,12 +13846,17 @@ msgid ""
 "precision and layer consistency if your model doesn't have very steep "
 "overhangs?"
 msgstr ""
+"三明治模式\n"
+"您知道吗？如果您的模型没有非常陡峭的悬垂，您可以使用三明治模式（内-外-内）来"
+"提高精度和层一致性。"
 
 #: resources/data/hints.ini: [hint:Chamber temperature]
 msgid ""
 "Chamber temperature\n"
 "Did you know that OrcaSlicer supports chamber temperature?"
 msgstr ""
+"仓温\n"
+"您知道吗？OrcaSlicer支持仓温。"
 
 #: resources/data/hints.ini: [hint:Calibration]
 msgid ""
@@ -13501,24 +13864,33 @@ msgid ""
 "Did you know that calibrating your printer can do wonders? Check out our "
 "beloved calibration solution in OrcaSlicer."
 msgstr ""
+"校准\n"
+"您知道吗？校准您的打印机可以带来奇迹？在OrcaSlicer中查看我们的备受欢迎的校准"
+"解决方案。"
 
 #: resources/data/hints.ini: [hint:Auxiliary fan]
 msgid ""
 "Auxiliary fan\n"
 "Did you know that OrcaSlicer supports Auxiliary part cooling fan?"
 msgstr ""
+"辅助风扇\n"
+"您知道吗？OrcaSlicer支持辅助部件冷却风扇。"
 
 #: resources/data/hints.ini: [hint:Air filtration]
 msgid ""
-"Air filtration/Exhuast Fan\n"
-"Did you know that OrcaSlicer can support Air filtration/Exhuast Fan?"
+"Air filtration/Exhaust Fan\n"
+"Did you know that OrcaSlicer can support Air filtration/Exhaust Fan?"
 msgstr ""
+"空气过滤/排气扇\n"
+"您知道吗？OrcaSlicer可以支持空气过滤/排气扇。"
 
 #: resources/data/hints.ini: [hint:G-code window]
 msgid ""
 "G-code window\n"
 "You can turn on/off the G-code window by pressing the <b>C</b> key."
 msgstr ""
+"G-code预览\n"
+"您可以通过按下<b>C</b>键打开/关闭G-code预览窗口。"
 
 #: resources/data/hints.ini: [hint:Switch workspaces]
 msgid ""
@@ -13526,6 +13898,8 @@ msgid ""
 "You can switch between <b>Prepare</b> and <b>Preview</b> workspaces by "
 "pressing the <b>Tab</b> key."
 msgstr ""
+"切换工作区\n"
+"您可以通过按下<b>Tab</b>键在<b>准备</b>和<b>预览</b>工作区之间切换。"
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
@@ -13533,6 +13907,8 @@ msgid ""
 "Did you know that Orca Slicer offers a wide range of keyboard shortcuts and "
 "3D scene operations."
 msgstr ""
+"如何使用键盘快捷键\n"
+"您知道吗？Orca Slicer提供了广泛的键盘快捷键和3D场景操作。"
 
 #: resources/data/hints.ini: [hint:Reverse on odd]
 msgid ""
@@ -13540,6 +13916,8 @@ msgid ""
 "Did you know that <b>Reverse on odd</b> feature can significantly improve "
 "the surface quality of your overhangs?"
 msgstr ""
+"奇数层反转\n"
+"您知道吗？<b>奇数层反转</b>功能可以显著提高您悬垂的表面质量。"
 
 #: resources/data/hints.ini: [hint:Cut Tool]
 msgid ""
@@ -13611,6 +13989,8 @@ msgid ""
 "Did you know that you use the Search tool to quickly find a specific Orca "
 "Slicer setting?"
 msgstr ""
+"搜索功能\n"
+"您知道吗？您可以使用搜索工具快速查找特定的逆戟鲸设置。"
 
 #: resources/data/hints.ini: [hint:Simplify Model]
 msgid ""
@@ -13618,6 +13998,9 @@ msgid ""
 "Did you know that you can reduce the number of triangles in a mesh using the "
 "Simplify mesh feature? Right-click the model and select Simplify model."
 msgstr ""
+"简化模型\n"
+"您知道吗？您可以使用简化三角面片功能减少网格中的三角形数量。右键单击模型，然"
+"后选择简化模型。"
 
 #: resources/data/hints.ini: [hint:Slicing Parameter Table]
 msgid ""
@@ -13644,6 +14027,9 @@ msgid ""
 "part modifier? That way you can, for example, create easily resizable holes "
 "directly in Orca Slicer."
 msgstr ""
+"减去一个部分\n"
+"您知道吗，您可以使用负零件修改器从一个网格中减去另一个网格。这样，您就可以直"
+"接在逆戟鲸中创建易于调整大小的孔。"
 
 #: resources/data/hints.ini: [hint:STEP]
 msgid ""
@@ -13798,6 +14184,55 @@ msgid ""
 msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
+
+#~ msgid ""
+#~ "The speed setting exceeds the printer's maximum speed "
+#~ "(machine_max_speed_x/machine_max_speed_y).\n"
+#~ "Orca will automatically cap the print speed to ensure it doesn't surpass "
+#~ "the printer's capabilities.\n"
+#~ "You can adjust the maximum speed setting in your printer's configuration "
+#~ "to get higher speeds."
+#~ msgstr ""
+#~ "速度设置超过了打印机的最大速度（machine_max_speed_x/"
+#~ "machine_max_speed_y）。\n"
+#~ "Orca将自动限制打印速度，以确保不超过打印机的速度限制。\n"
+#~ "您可以调整打印机配置中的最大速度设置，以获得更高的速度。"
+
+#~ msgid ""
+#~ "The travel acceleration setting exceeds the printer's maximum "
+#~ "acceleration (machine_max_acceleration_travel).\n"
+#~ "Orca will automatically cap the acceleration speed to ensure it doesn't "
+#~ "surpass the printer's capabilities.\n"
+#~ "You can adjust the machine_max_acceleration_travel value in your "
+#~ "printer's configuration to get higher speeds."
+#~ msgstr ""
+#~ "空驶加速度设置超过了打印机的最大空驶加速度"
+#~ "（machine_max_acceleration_travel）。\n"
+#~ "Orca将自动限制加速度，以确保不超过打印机的速度限制。\n"
+#~ "您可以调整打印机配置中的machine_max_acceleration_travel值，以获得更高的速"
+#~ "度。"
+
+#~ msgid ""
+#~ "Add solid infill near sloping surfaces to guarantee the vertical shell "
+#~ "thickness (top+bottom solid layers)"
+#~ msgstr "在斜面表面附近添加实心填充，以保证垂直外壳厚度（顶部+底部实心层）"
+
+#~ msgid " "
+#~ msgstr " "
+
+#~ msgid "Text-Rotate"
+#~ msgstr "旋转文字"
+
+#~ msgid "Configuration package updated to "
+#~ msgstr "配置包已更新到"
+
+#~ msgid ""
+#~ "Improve shell precision by adjusting outer wall spacing. This also "
+#~ "improves layer consistency."
+#~ msgstr "优化外墙刀路以提高外墙精度。这个优化同时减少层纹"
+
+#~ msgid "No sparse layers (EXPERIMENTAL)"
+#~ msgstr "无稀疏层（实验）"
 
 #~ msgid ""
 #~ "We would rename the presets as \"Vendor Type Serial @printer you selected"
