@@ -6850,8 +6850,8 @@ void Plater::priv::on_tab_selection_changing(wxBookCtrlEvent& e)
             auto     cfg = wxGetApp().preset_bundle->printers.get_edited_preset().config;
             wxString url = cfg.opt_string("print_host_webui").empty() ? cfg.opt_string("print_host") : cfg.opt_string("print_host_webui");
             if (url.empty()) {
-                wxString url = wxString::Format("file://%s/web/orca/missing_connection.html", from_u8(resources_dir()));
-                main_frame->load_printer_url(url);
+                // It's missing_connection page, reload so that we can replay the gif image
+                main_frame->m_printer_view->reload();
             }
         }
     }
