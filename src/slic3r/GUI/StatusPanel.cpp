@@ -2815,33 +2815,31 @@ void StatusPanel::update_ams_control_state(bool is_curr_tray_selected)
                 enable[ACTION_BTN_UNLOAD] = false;
             }
             else {
-                if (m_ams_control->GetCurentAms() == std::to_string(VIRTUAL_TRAY_ID)) {
-                    if (obj->m_tray_now == "255") {
+                if (obj->m_tray_now == "255") {
+
+                    if ( m_ams_control->GetCurentAms() == std::to_string(VIRTUAL_TRAY_ID) ) {
                         enable[ACTION_BTN_LOAD] = true;
                         enable[ACTION_BTN_UNLOAD] = false;
                     }
-                    else if (obj->m_tray_now == std::to_string(VIRTUAL_TRAY_ID)) {
+                    else if (!m_ams_control->GetCurrentCan(m_ams_control->GetCurentAms()).empty()) {
+                        enable[ACTION_BTN_LOAD] = false;
+                        enable[ACTION_BTN_UNLOAD] = false;
+                    } 
+                }
+                else if (obj->m_tray_now == std::to_string(VIRTUAL_TRAY_ID)) {
+                    if (m_ams_control->GetCurentAms() == std::to_string(VIRTUAL_TRAY_ID)) {
                         enable[ACTION_BTN_LOAD] = false;
                         enable[ACTION_BTN_UNLOAD] = true;
                     }
-                }
-                else if (!m_ams_control->GetCurrentCan(m_ams_control->GetCurentAms()).empty()) {
-                    enable[ACTION_BTN_LOAD] = false;
-                    enable[ACTION_BTN_UNLOAD] = false;
-                }
-
-               /* if (obj->m_tray_now == "255") {
-                    enable[ACTION_BTN_LOAD] = true;
-                    enable[ACTION_BTN_UNLOAD] = false;
-                }
-                else if (obj->m_tray_now == std::to_string(VIRTUAL_TRAY_ID)) {
-                    enable[ACTION_BTN_LOAD] = false;
-                    enable[ACTION_BTN_UNLOAD] = true;
+                    else if (!m_ams_control->GetCurrentCan(m_ams_control->GetCurentAms()).empty()) {
+                        enable[ACTION_BTN_LOAD] = false;
+                        enable[ACTION_BTN_UNLOAD] = false;
+                    }
                 }
                 else {
                     enable[ACTION_BTN_LOAD] = false;
                     enable[ACTION_BTN_UNLOAD] = false;
-                }*/
+                }
             } 
         }
     }
