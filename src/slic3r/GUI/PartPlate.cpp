@@ -321,6 +321,8 @@ void PartPlate::set_spiral_vase_mode(bool spiral_mode, bool as_global)
 		m_config.erase(key);
 	else {
 		if (spiral_mode) {
+			if (get_spiral_vase_mode())
+				return;
 			// Secondary confirmation
 			auto answer = static_cast<TabPrintPlate*>(wxGetApp().plate_tab)->show_spiral_mode_settings_dialog(false);
 			if (answer == wxID_YES) {
@@ -1029,14 +1031,14 @@ void PartPlate::render_icons(bool bottom, bool only_name, int hover_id)
 			if (m_partplate_list->render_plate_settings) {
 				bool has_plate_settings = get_bed_type() != BedType::btDefault || get_print_seq() != PrintSequence::ByDefault || !get_first_layer_print_sequence().empty() || !get_other_layers_print_sequence().empty() || has_spiral_mode_config();
                 if (hover_id == 5) {
-                    if (get_bed_type() == BedType::btDefault && get_print_seq() == PrintSequence::ByDefault && get_first_layer_print_sequence().empty())
+                    if (!has_plate_settings)
                         render_icon_texture(m_plate_settings_icon.model, m_partplate_list->m_plate_settings_hovered_texture);
                     else
                         render_icon_texture(m_plate_settings_icon.model, m_partplate_list->m_plate_settings_changed_hovered_texture);
 
                     show_tooltip(_u8L("Customize current plate"));
                 } else {
-                    if (get_bed_type() == BedType::btDefault && get_print_seq() == PrintSequence::ByDefault && get_first_layer_print_sequence().empty())
+                    if (!has_plate_settings)
                         render_icon_texture(m_plate_settings_icon.model, m_partplate_list->m_plate_settings_texture);
                     else
                         render_icon_texture(m_plate_settings_icon.model, m_partplate_list->m_plate_settings_changed_texture);
@@ -2281,18 +2283,31 @@ void PartPlate::set_vase_mode_related_object_config(int obj_id) {
 	}
 	else
 		obj_ptrs = get_objects_on_this_plate();
+
+	DynamicPrintConfig* global_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
+	DynamicPrintConfig new_conf;
+	new_conf.set_key_value("wall_loops", new ConfigOptionInt(1));
+	new_conf.set_key_value("top_shell_layers", new ConfigOptionInt(0));
+	new_conf.set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
+	new_conf.set_key_value("enable_support", new ConfigOptionBool(false));
+	new_conf.set_key_value("enforce_support_layers", new ConfigOptionInt(0));
+	new_conf.set_key_value("detect_thin_wall", new ConfigOptionBool(false));
+	new_conf.set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(tlTraditional));
+	new_conf.set_key_value("overhang_reverse", new ConfigOptionBool(false));
+	new_conf.set_key_value("wall_direction", new ConfigOptionEnum<WallDirection>(WallDirection::Auto));
+	auto applying_keys = global_config->diff(new_conf);
+
 	for (ModelObject* object : obj_ptrs) {
 		ModelConfigObject& config = object->config;
-		config.set_key_value("wall_loops", new ConfigOptionInt(1));
-		config.set_key_value("top_shell_layers", new ConfigOptionInt(0));
-		config.set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
-		config.set_key_value("enable_support", new ConfigOptionBool(false));
-		config.set_key_value("enforce_support_layers", new ConfigOptionInt(0));
-		config.set_key_value("detect_thin_wall", new ConfigOptionBool(false));
-		config.set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(tlTraditional));
-		config.set_key_value("overhang_reverse", new ConfigOptionBool(false));
-		config.set_key_value("wall_direction", new ConfigOptionEnum<WallDirection>(WallDirection::Auto));
 
+		for (auto opt_key : applying_keys) {
+			config.set_key_value(opt_key, new_conf.option(opt_key)->clone());
+		}
+
+		applying_keys = config.get().diff(new_conf);
+		for (auto opt_key : applying_keys) {
+			config.set_key_value(opt_key, new_conf.option(opt_key)->clone());
+		}
 	}
 	//wxGetApp().obj_list()->update_selections();
 }
