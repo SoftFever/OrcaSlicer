@@ -12726,8 +12726,8 @@ std::vector<Vec2f> Plater::get_empty_cells(const Vec2f step)
         Vec2d vmin(box.min.x(), box.min.y()), vmax(box.max.x(), box.max.y());
         exclude_boxs.emplace_back(vmin, vmax);
     }
-    for (float x = min_x; x < bbox.max.x() - step(0) / 2; x += step(0))
-        for (float y = min_y; y < bbox.max.y() - step(1) / 2; y += step(1)) {
+    for (float x = min_x + bbox.min.x(); x < bbox.max.x() - step(0) / 2; x += step(0))
+        for (float y = min_y + bbox.min.y(); y < bbox.max.y() - step(1) / 2; y += step(1)) {
             bool in_exclude = false;
             BoundingBoxf cell(Vec2d(x - step(0) / 2, y - step(1) / 2), Vec2d(x + step(0) / 2, y + step(1) / 2));
             for (auto& box : exclude_boxs) {

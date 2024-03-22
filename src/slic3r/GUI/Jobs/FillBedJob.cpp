@@ -299,10 +299,12 @@ void FillBedJob::finalize(bool canceled, std::exception_ptr &eptr)
             else
                 ap.bed_idx = cur_plate;
 
-            ap.row = ap.bed_idx / plate_cols;
-            ap.col = ap.bed_idx % plate_cols;
-            ap.translation(X) += bed_stride_x(m_plater) * ap.col;
-            ap.translation(Y) -= bed_stride_y(m_plater) * ap.row;
+            if (m_selected.size() <= 100) {
+                ap.row = ap.bed_idx / plate_cols;
+                ap.col = ap.bed_idx % plate_cols;
+                ap.translation(X) += bed_stride_x(m_plater) * ap.col;
+                ap.translation(Y) -= bed_stride_y(m_plater) * ap.row;
+            }
 
             ap.apply();
 
