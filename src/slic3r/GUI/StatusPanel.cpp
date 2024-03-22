@@ -65,6 +65,37 @@ static wxColour PAGE_TITLE_FONT_COL  = wxColour(107, 107, 107);
 static wxColour GROUP_TITLE_FONT_COL = wxColour(172, 172, 172);
 static wxColour TEXT_LIGHT_FONT_COL  = wxColour(107, 107, 107);
 
+static std::vector<std::string> message_containing_retry{
+    "0701 8004",
+    "0701 8005",
+    "0701 8006",
+    "0701 8006",
+    "0701 8007",
+    "0700 8012",
+    "0701 8012",
+    "0702 8012",
+    "0703 8012",
+    "07FF 8003",
+    "07FF 8004",
+    "07FF 8005",
+    "07FF 8006",
+    "07FF 8007",
+    "07FF 8010",
+    "07FF 8011",
+    "07FF 8012",
+    "07FF 8013",
+    "12FF 8007"
+};
+
+static std::vector<std::string> message_containing_done{
+    "07FF 8007",
+    "12FF 8007"
+};
+
+static std::vector<std::string> message_containing_resume{
+    "0300 8013"
+};
+
 static wxImage fail_image;
 
 
@@ -1748,7 +1779,6 @@ StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
     Bind(EVT_FAN_CHANGED, &StatusPanel::on_fan_changed, this);
     Bind(EVT_SECONDARY_CHECK_DONE, &StatusPanel::on_print_error_done, this);
     Bind(EVT_SECONDARY_CHECK_RESUME, &StatusPanel::on_subtask_pause_resume, this);
-    Bind(EVT_PRINT_ERROR_STOP, &StatusPanel::on_subtask_abort, this);
 
     m_switch_speed->Connect(wxEVT_LEFT_DOWN, wxCommandEventHandler(StatusPanel::on_switch_speed), NULL, this);
     m_calibration_btn->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_start_calibration), NULL, this);
@@ -2126,21 +2156,39 @@ void StatusPanel::show_recenter_dialog() {
         obj->command_go_home();
 }
 
-void StatusPanel::show_error_message(MachineObject* obj, wxString msg, std::string print_error_str, wxString image_url, std::vector<int> used_button)
+void StatusPanel::show_error_message(MachineObject* obj, wxString msg, std::string print_error_str)
 {
     if (msg.IsEmpty()) {
         error_info_reset();
     } else {
         m_project_task_panel->show_error_msg(msg);
 
+        auto it_retry = std::find(message_containing_retry.begin(), message_containing_retry.end(), print_error_str);
+        auto it_done = std::find(message_containing_done.begin(), message_containing_done.end(), print_error_str);
+        auto it_resume = std::find(message_containing_resume.begin(), message_containing_resume.end(), print_error_str);
 
         BOOST_LOG_TRIVIAL(info) << "show print error! error_msg = " << msg;
         if (m_print_error_dlg == nullptr) {
-            m_print_error_dlg = new PrintErrorDialog(this->GetParent(), wxID_ANY, _L("Error"));
+            m_print_error_dlg = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Warning"), SecondaryCheckDialog::ButtonStyle::ONLY_CONFIRM);
         }
 
-        m_print_error_dlg->update_title_style(_L("Error"), used_button,this);
-        m_print_error_dlg->update_text_image(msg, image_url);
+        if (it_done != message_containing_done.end() && it_retry != message_containing_retry.end()) {
+            m_print_error_dlg->update_title_style(_L("Warning"), SecondaryCheckDialog::ButtonStyle::DONE_AND_RETRY, this);
+        }
+        else if (it_done != message_containing_done.end()) {
+            m_print_error_dlg->update_title_style(_L("Warning"), SecondaryCheckDialog::ButtonStyle::CONFIRM_AND_DONE, this);
+        }
+        else if (it_retry != message_containing_retry.end()) {
+            m_print_error_dlg->update_title_style(_L("Warning"), SecondaryCheckDialog::ButtonStyle::CONFIRM_AND_RETRY, this);
+        }
+        else if (it_resume!= message_containing_resume.end()) {
+            m_print_error_dlg->update_title_style(_L("Warning"), SecondaryCheckDialog::ButtonStyle::CONFIRM_AND_RESUME, this);
+        }
+        else {
+            m_print_error_dlg->update_title_style(_L("Warning"), SecondaryCheckDialog::ButtonStyle::ONLY_CONFIRM, this);
+        }
+        m_print_error_dlg->update_text(msg);
+        
         m_print_error_dlg->Bind(EVT_SECONDARY_CHECK_CONFIRM, [this, obj](wxCommandEvent& e) {
             if (obj) {
                 obj->command_clean_print_error(obj->subtask_id_, obj->print_error);
@@ -2176,15 +2224,13 @@ void StatusPanel::update_error_message()
             }
 
             wxString error_msg = wxGetApp().get_hms_query()->query_print_error_msg(obj->print_error);
-            std::vector<int> used_button;
-            wxString error_image_url = wxGetApp().get_hms_query()->query_print_error_url_action(obj->print_error,obj->dev_id, used_button);
             if (!error_msg.IsEmpty()) {
                 wxDateTime now = wxDateTime::Now();
                 wxString show_time = now.Format("%H:%M:%S");
-                error_msg = wxString::Format("%s\n[%s %s]",
+                error_msg = wxString::Format("%s[%s %s]",
                     error_msg,
                     print_error_str, show_time);
-                show_error_message(obj, error_msg, print_error_str,error_image_url,used_button);
+                show_error_message(obj, error_msg, print_error_str);
             } else {
                 BOOST_LOG_TRIVIAL(info) << "show print error! error_msg is empty, print error = " << obj->print_error;
             }
