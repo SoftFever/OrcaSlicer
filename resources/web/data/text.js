@@ -665,7 +665,7 @@ var LangText = {
     wk15: "3D文本",
     wk16: "使用3D文本工具，用户可以轻松地在项目中创建各种3D文本形状，使模型更加个性化。Orca Slicer提供了数十种字体，并支持粗体和斜体样式，使文本具有更大的灵活性。",
     orca1: "编辑项目信息",
-    orca2: "no model information",
+    orca2: "该模型没有相关信息",
   },
   zh_TW: {
     t1: "歡迎使用 Orca Slicer",

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-16 17:57+0800\n"
+"POT-Creation-Date: 2024-03-22 19:58+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Carlos Fco. Caruncho Serrano <puzzlero@gmail.com>\n"
 "Language-Team: \n"
@@ -6195,6 +6195,9 @@ msgstr "Región de inicio de sesión"
 msgid "Stealth Mode"
 msgstr "Modo invisible"
 
+msgid "Enable network plugin"
+msgstr ""
+
 msgid "Check for stable updates only"
 msgstr "Buscar sólo actualizaciones estables"
 
@@ -6251,6 +6254,9 @@ msgstr "Volumenes de descarga: Auto calcular en cada cambio de color."
 
 msgid "If enabled, auto-calculate everytime the color changed."
 msgstr "Si está activado, auto calcula en cada cambio de color."
+
+msgid "Network"
+msgstr ""
 
 msgid "Auto sync user presets(Printer/Filament/Process)"
 msgstr ""
@@ -14456,8 +14462,8 @@ msgstr "Iniciar Prueba Monotarea"
 msgid "Export Log"
 msgstr "Exportar Registro"
 
-msgid "Studio Version:"
-msgstr "Versión de Orca:"
+msgid "OrcaSlicer Version:"
+msgstr ""
 
 msgid "System Version:"
 msgstr "Versión de Sistema:"
@@ -14465,50 +14471,17 @@ msgstr "Versión de Sistema:"
 msgid "DNS Server:"
 msgstr "Servidor DNS:"
 
-msgid "Test BambuLab"
-msgstr "Prueba OrcaSlicer"
+msgid "Test OrcaSlicer(GitHub)"
+msgstr ""
 
-msgid "Test BambuLab:"
-msgstr "Prueba OrcaSlicer:"
+msgid "Test OrcaSlicer(GitHub):"
+msgstr ""
 
 msgid "Test Bing.com"
 msgstr "Prueba Bing.com"
 
 msgid "Test bing.com:"
 msgstr "Prueba Bing,.com:"
-
-msgid "Test HTTP"
-msgstr "Prueba HTTP"
-
-msgid "Test HTTP Service:"
-msgstr "Prueba Servicio HTTP:"
-
-msgid "Test storage"
-msgstr "Prueba de almacenamiento"
-
-msgid "Test Storage Upload:"
-msgstr "Prueba de Carga de Almacenamiento:"
-
-msgid "Test storage upgrade"
-msgstr "Prueba de actualización de almacenamiento"
-
-msgid "Test Storage Upgrade:"
-msgstr "Prueba de Actualización de Almacenamiento:"
-
-msgid "Test storage download"
-msgstr "Prueba de descarga de almacenamiento"
-
-msgid "Test Storage Download:"
-msgstr "Prueba de Descarga de Almacenamiento:"
-
-msgid "Test plugin download"
-msgstr "Prueba de descarga de plugin"
-
-msgid "Test Plugin Download:"
-msgstr "Prueba de Descarga de Plugin:"
-
-msgid "Test Storage Upload"
-msgstr "Prueba de Carga de Almacenamiento"
 
 msgid "Log Info"
 msgstr "Información de Registro"
@@ -15609,6 +15582,48 @@ msgstr ""
 "Sabías que al imprimir materiales propensos a la deformación como el ABS, "
 "aumentar adecuadamente la temperatura del lecho térmico puede reducir la "
 "probabilidad de deformaciones."
+
+#~ msgid "Studio Version:"
+#~ msgstr "Versión de Orca:"
+
+#~ msgid "Test BambuLab"
+#~ msgstr "Prueba OrcaSlicer"
+
+#~ msgid "Test BambuLab:"
+#~ msgstr "Prueba OrcaSlicer:"
+
+#~ msgid "Test HTTP"
+#~ msgstr "Prueba HTTP"
+
+#~ msgid "Test HTTP Service:"
+#~ msgstr "Prueba Servicio HTTP:"
+
+#~ msgid "Test storage"
+#~ msgstr "Prueba de almacenamiento"
+
+#~ msgid "Test Storage Upload:"
+#~ msgstr "Prueba de Carga de Almacenamiento:"
+
+#~ msgid "Test storage upgrade"
+#~ msgstr "Prueba de actualización de almacenamiento"
+
+#~ msgid "Test Storage Upgrade:"
+#~ msgstr "Prueba de Actualización de Almacenamiento:"
+
+#~ msgid "Test storage download"
+#~ msgstr "Prueba de descarga de almacenamiento"
+
+#~ msgid "Test Storage Download:"
+#~ msgstr "Prueba de Descarga de Almacenamiento:"
+
+#~ msgid "Test plugin download"
+#~ msgstr "Prueba de descarga de plugin"
+
+#~ msgid "Test Plugin Download:"
+#~ msgstr "Prueba de Descarga de Plugin:"
+
+#~ msgid "Test Storage Upload"
+#~ msgstr "Prueba de Carga de Almacenamiento"
 
 #~ msgid ""
 #~ "The speed setting exceeds the printer's maximum speed "
