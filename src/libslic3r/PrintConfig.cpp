@@ -103,7 +103,8 @@ static t_config_enum_values s_keys_map_PrintHostType {
     { "astrobox",       htAstroBox },
     { "repetier",       htRepetier },
     { "mks",            htMKS },
-    { "obico",          htObico }
+    { "obico",          htObico },
+    { "flashforge",     htFlashforge}
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(PrintHostType)
 
@@ -3066,6 +3067,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->enum_values.push_back("repetier");
     def->enum_values.push_back("mks");
     def->enum_values.push_back("obico");
+    def->enum_values.push_back("flashforge");
     def->enum_labels.push_back("PrusaLink");
     def->enum_labels.push_back("PrusaConnect");
     def->enum_labels.push_back("Octo/Klipper");
@@ -3075,6 +3077,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->enum_labels.push_back("Repetier");
     def->enum_labels.push_back("MKS");
     def->enum_labels.push_back("Obico");
+    def->enum_labels.push_back("Flashforge");
     def->mode = comAdvanced;
     def->cli = ConfigOptionDef::nocli;
     def->set_default_value(new ConfigOptionEnum<PrintHostType>(htOctoPrint));

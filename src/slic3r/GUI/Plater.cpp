@@ -6835,6 +6835,26 @@ void Plater::priv::on_tab_selection_changing(wxBookCtrlEvent& e)
     const int new_sel = e.GetSelection();
     sidebar_layout.show = new_sel == MainFrame::tp3DEditor || new_sel == MainFrame::tpPreview;
     update_sidebar();
+    int old_sel = e.GetOldSelection();
+    if (wxGetApp().preset_bundle && wxGetApp().preset_bundle->is_bbl_vendor() && new_sel == MainFrame::tpMonitor) {
+        if (!wxGetApp().getAgent()) {
+            e.Veto();
+            BOOST_LOG_TRIVIAL(info) << boost::format("skipped tab switch from %1% to %2%, lack of network plugins") % old_sel % new_sel;
+            if (q) {
+                wxCommandEvent* evt = new wxCommandEvent(EVT_INSTALL_PLUGIN_HINT);
+                wxQueueEvent(q, evt);
+            }
+        }
+    } else {
+        if (new_sel == MainFrame::tpMonitor && wxGetApp().preset_bundle != nullptr) {
+            auto     cfg = wxGetApp().preset_bundle->printers.get_edited_preset().config;
+            wxString url = cfg.opt_string("print_host_webui").empty() ? cfg.opt_string("print_host") : cfg.opt_string("print_host_webui");
+            if (url.empty()) {
+                // It's missing_connection page, reload so that we can replay the gif image
+                main_frame->m_printer_view->reload();
+            }
+        }
+    }
 }
 
 int Plater::priv::update_print_required_data(Slic3r::DynamicPrintConfig config, Slic3r::Model model, Slic3r::PlateDataPtrs plate_data_list, std::string file_name, std::string file_path)

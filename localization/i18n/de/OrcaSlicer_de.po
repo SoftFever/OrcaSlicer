@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-16 17:57+0800\n"
+"POT-Creation-Date: 2024-03-22 19:58+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Heiko Liebscher <hliebschergmail.com>\n"
 "Language-Team: \n"
@@ -6237,6 +6237,9 @@ msgstr "Login-Region"
 msgid "Stealth Mode"
 msgstr "Unsichtbarer Modus"
 
+msgid "Enable network plugin"
+msgstr ""
+
 msgid "Check for stable updates only"
 msgstr "Nur nach stabilen Updates suchen"
 
@@ -6291,6 +6294,9 @@ msgstr "Reinigungsvolumen: Auto-Berechnung bei jeder Farbänderung."
 
 msgid "If enabled, auto-calculate everytime the color changed."
 msgstr "Wenn aktiviert, wird bei jeder Farbänderung automatisch berechnet."
+
+msgid "Network"
+msgstr ""
 
 msgid "Auto sync user presets(Printer/Filament/Process)"
 msgstr "Benutzerprofile automatisch synchronisieren (Drucker/Filament/Prozess)"
@@ -8853,8 +8859,9 @@ msgid ""
 msgstr ""
 "Die Beschleunigungseinstellung für das Verfahren überschreitet die maximale "
 "Verfahrensbeschleunigung des Druckers (machine_max_acceleration_travel).\n"
-"Orca wird automatisch die Verfahrensbeschleunigungsgeschwindigkeit begrenzen, "
-"um sicherzustellen, dass sie nicht die Fähigkeiten des Druckers überschreitet.\n"
+"Orca wird automatisch die Verfahrensbeschleunigungsgeschwindigkeit "
+"begrenzen, um sicherzustellen, dass sie nicht die Fähigkeiten des Druckers "
+"überschreitet.\n"
 "Sie können den Wert von machine_max_acceleration_travel in der Konfiguration "
 "Ihres Druckers anpassen, um höhere Geschwindigkeiten zu erreichen."
 
@@ -14505,8 +14512,8 @@ msgstr "Starten Sie den Test mit einem Thread"
 msgid "Export Log"
 msgstr "Protokoll exportieren"
 
-msgid "Studio Version:"
-msgstr "Studio Version:"
+msgid "OrcaSlicer Version:"
+msgstr ""
 
 msgid "System Version:"
 msgstr "System Version:"
@@ -14514,50 +14521,17 @@ msgstr "System Version:"
 msgid "DNS Server:"
 msgstr "DNS Server:"
 
-msgid "Test BambuLab"
-msgstr "Test BambuLab"
+msgid "Test OrcaSlicer(GitHub)"
+msgstr ""
 
-msgid "Test BambuLab:"
-msgstr "Test BambuLab:"
+msgid "Test OrcaSlicer(GitHub):"
+msgstr ""
 
 msgid "Test Bing.com"
 msgstr "Test Bing.com"
 
 msgid "Test bing.com:"
 msgstr "Test bing.com:"
-
-msgid "Test HTTP"
-msgstr "Test HTTP"
-
-msgid "Test HTTP Service:"
-msgstr "Test HTTP Service:"
-
-msgid "Test storage"
-msgstr "Test Speicher"
-
-msgid "Test Storage Upload:"
-msgstr "Test Speicher hochladen:"
-
-msgid "Test storage upgrade"
-msgstr "Test Speicher Upgrade"
-
-msgid "Test Storage Upgrade:"
-msgstr "Test Speicher Upgrade:"
-
-msgid "Test storage download"
-msgstr "Test Speicher Download"
-
-msgid "Test Storage Download:"
-msgstr "Test Speicher Download:"
-
-msgid "Test plugin download"
-msgstr "Test Plugin Download"
-
-msgid "Test Plugin Download:"
-msgstr "Test Plugin Download:"
-
-msgid "Test Storage Upload"
-msgstr "Test Speicher hochladen"
 
 msgid "Log Info"
 msgstr "Protokoll Info"
@@ -15662,6 +15636,48 @@ msgstr ""
 "Wussten Sie, dass beim Drucken von Materialien, die zu Verwerfungen neigen, "
 "wie z.B. ABS, durch eine entsprechende Erhöhung der Heizbetttemperatur die "
 "Wahrscheinlichkeit von Verwerfungen verringert werden kann."
+
+#~ msgid "Studio Version:"
+#~ msgstr "Studio Version:"
+
+#~ msgid "Test BambuLab"
+#~ msgstr "Test BambuLab"
+
+#~ msgid "Test BambuLab:"
+#~ msgstr "Test BambuLab:"
+
+#~ msgid "Test HTTP"
+#~ msgstr "Test HTTP"
+
+#~ msgid "Test HTTP Service:"
+#~ msgstr "Test HTTP Service:"
+
+#~ msgid "Test storage"
+#~ msgstr "Test Speicher"
+
+#~ msgid "Test Storage Upload:"
+#~ msgstr "Test Speicher hochladen:"
+
+#~ msgid "Test storage upgrade"
+#~ msgstr "Test Speicher Upgrade"
+
+#~ msgid "Test Storage Upgrade:"
+#~ msgstr "Test Speicher Upgrade:"
+
+#~ msgid "Test storage download"
+#~ msgstr "Test Speicher Download"
+
+#~ msgid "Test Storage Download:"
+#~ msgstr "Test Speicher Download:"
+
+#~ msgid "Test plugin download"
+#~ msgstr "Test Plugin Download"
+
+#~ msgid "Test Plugin Download:"
+#~ msgstr "Test Plugin Download:"
+
+#~ msgid "Test Storage Upload"
+#~ msgstr "Test Speicher hochladen"
 
 #~ msgid ""
 #~ "The speed setting exceeds the printer's maximum speed "
