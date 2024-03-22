@@ -659,7 +659,7 @@ void MenuFactory::append_menu_items_add_volume(wxMenu* menu)
 wxMenuItem* MenuFactory::append_menu_item_layers_editing(wxMenu* menu)
 {
     return append_menu_item(menu, wxID_ANY, _L("Height range Modifier"), "",
-        [](wxCommandEvent&) { obj_list()->layers_editing(); wxGetApp().params_panel()->switch_to_object(); }, "", menu,
+        [](wxCommandEvent&) { obj_list()->layers_editing(); wxGetApp().params_panel()->switch_to_object(); }, "height_range_modifier", menu,
         []() { return obj_list()->is_instance_or_object_selected(); }, m_parent);
 }
 

@@ -43,8 +43,8 @@ void ObjectDataViewModelNode::init_container()
 #endif  //__WXGTK__
 }
 
-static constexpr char LayerRootIcon[]   = "blank";
-static constexpr char LayerIcon[]       = "blank";
+static constexpr char LayerRootIcon[]   = "height_range_modifier";
+static constexpr char LayerIcon[]       = "height_range_layer";
 static constexpr char WarningIcon[]     = "obj_warning";
 static constexpr char WarningManifoldIcon[] = "obj_warning";
 static constexpr char LockIcon[]            = "cut_";
