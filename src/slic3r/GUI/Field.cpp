@@ -127,6 +127,8 @@ void Field::PostInitialize()
     if (getWindow()) {
         if (m_opt.readonly) { 
             this->disable();
+        } else {
+            this->enable();
         }
 		getWindow()->Bind(wxEVT_KEY_UP, [](wxKeyEvent& evt) {
 		    if ((evt.GetModifiers() & wxMOD_CONTROL) != 0) {
