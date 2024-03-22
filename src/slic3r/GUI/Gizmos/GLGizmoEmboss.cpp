@@ -164,7 +164,7 @@ enum class IconType : unsigned {
     unbold,
     system_selector,
     open_file,
-    exclamation,
+    obj_warning,
     lock,
     lock_bold,
     unlock,
@@ -1542,7 +1542,7 @@ void GLGizmoEmboss::draw_text_input()
                         cursor.y - m_gui_cfg->icon_width - scrollbar_height - 2*padding.y);
         
         ImGui::SetCursorPos(icon_pos);
-        draw(get_icon(m_icons, IconType::exclamation, IconState::hovered));
+        draw(get_icon(m_icons, IconType::obj_warning, IconState::hovered));
         ImGui::SetCursorPos(cursor);
     }
 
@@ -3163,7 +3163,7 @@ void GLGizmoEmboss::init_icons()
         "make_unbold.svg",   
         "search.svg",
         "open.svg", 
-        "exclamation.svg",   
+        "obj_warning.svg",   
         "lock_closed.svg",  // lock,
         "lock_closed_f.svg",// lock_bold,
         "lock_open.svg",    // unlock,
