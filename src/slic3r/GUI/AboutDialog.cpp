@@ -241,11 +241,11 @@ AboutDialog::AboutDialog()
 
     // version
     {
-        vesizer->Add(0, FromDIP(165), 1, wxEXPAND, FromDIP(5));
-        auto version_string = _L("Orca Slicer ") + " " + std::string(SoftFever_VERSION);
+        vesizer->Add(0, FromDIP(180), 1, wxEXPAND, FromDIP(5));
+        auto version_string = "V" + std::string(SoftFever_VERSION); // _L("Orca Slicer ") + " " + std::string(SoftFever_VERSION);
         wxStaticText* version = new wxStaticText(this, wxID_ANY, version_string.c_str(), wxDefaultPosition, wxDefaultSize);
-        wxStaticText* bs_version = new wxStaticText(this, wxID_ANY, wxString::Format("Based on BambuStudio and PrusaSlicer"), wxDefaultPosition, wxDefaultSize);
-        bs_version->SetFont(Label::Body_12);
+        // wxStaticText* bs_version = new wxStaticText(this, wxID_ANY, wxString::Format("Based on BambuStudio and PrusaSlicer"), wxDefaultPosition, wxDefaultSize);
+        // bs_version->SetFont(Label::Body_12);
         wxFont version_font = GetFont();
         #ifdef __WXMSW__
         version_font.SetPointSize(version_font.GetPointSize()-1);
@@ -254,14 +254,14 @@ AboutDialog::AboutDialog()
         #endif
         version_font.SetPointSize(FromDIP(16));
         version->SetFont(version_font);
-        version->SetForegroundColour(wxColour("#FFFFFD"));
-        bs_version->SetForegroundColour(wxColour("#FFFFFD"));
-        version->SetBackgroundColour(wxColour("#4d4d4d"));
-        bs_version->SetBackgroundColour(wxColour("#4d4d4d"));
+        version->SetForegroundColour(wxColour("#E9E9E9")); // was #FFFFFD
+        // bs_version->SetForegroundColour(wxColour("#FFFFFD"));
+        version->SetBackgroundColour(wxColour("#009789")); // was #4d4d4d
+        // bs_version->SetBackgroundColour(wxColour("#4d4d4d"));
 
 
         vesizer->Add(version, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, FromDIP(5));
-        vesizer->Add(bs_version, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, FromDIP(5));
+        // vesizer->Add(bs_version, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, FromDIP(5));
 // #if BBL_INTERNAL_TESTING
 //         wxString build_time = wxString::Format("Build Time: %s", std::string(SLIC3R_BUILD_TIME));
 //         wxStaticText* build_time_text = new wxStaticText(this, wxID_ANY, build_time, wxDefaultPosition, wxDefaultSize);
@@ -334,12 +334,12 @@ AboutDialog::AboutDialog()
           int size[] = {fs,fs,fs,fs,fs,fs,fs};
           m_html->SetFonts(font.GetFaceName(), font.GetFaceName(), size);
           m_html->SetMinSize(wxSize(FromDIP(-1), FromDIP(16)));
-          m_html->SetBorders(2);
+          m_html->SetBorders(0);
           const auto text = from_u8(
               (boost::format(
               "<html>"
               "<body>"
-              "<p style=\"text-align:left\"><a  href=\"https://github.com/SoftFever/Orcaslicer\">https://github.com/SoftFever/Orcaslicer</ a></p>"
+              "<a style=\"color:#009789;margin-top:10px\" href=\"https://github.com/SoftFever/Orcaslicer\">https://github.com/SoftFever/Orcaslicer</a>"
               "</body>"
               "</html>")
             ).str());
