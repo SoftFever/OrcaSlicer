@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-16 17:57+0800\n"
+"POT-Creation-Date: 2024-03-22 19:58+0800\n"
 "PO-Revision-Date: 2023-09-30 15:15+0200\n"
 "Last-Translator: René Mošner <Renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -6069,6 +6069,9 @@ msgstr "Región přihlášení"
 msgid "Stealth Mode"
 msgstr "Tajný Režim"
 
+msgid "Enable network plugin"
+msgstr ""
+
 msgid "Check for stable updates only"
 msgstr ""
 
@@ -6122,6 +6125,9 @@ msgid "Flushing volumes: Auto-calculate everytime the color changed."
 msgstr ""
 
 msgid "If enabled, auto-calculate everytime the color changed."
+msgstr ""
+
+msgid "Network"
 msgstr ""
 
 msgid "Auto sync user presets(Printer/Filament/Process)"
@@ -13772,7 +13778,7 @@ msgstr ""
 msgid "Export Log"
 msgstr ""
 
-msgid "Studio Version:"
+msgid "OrcaSlicer Version:"
 msgstr ""
 
 msgid "System Version:"
@@ -13781,49 +13787,16 @@ msgstr ""
 msgid "DNS Server:"
 msgstr ""
 
-msgid "Test BambuLab"
+msgid "Test OrcaSlicer(GitHub)"
 msgstr ""
 
-msgid "Test BambuLab:"
+msgid "Test OrcaSlicer(GitHub):"
 msgstr ""
 
 msgid "Test Bing.com"
 msgstr ""
 
 msgid "Test bing.com:"
-msgstr ""
-
-msgid "Test HTTP"
-msgstr ""
-
-msgid "Test HTTP Service:"
-msgstr ""
-
-msgid "Test storage"
-msgstr ""
-
-msgid "Test Storage Upload:"
-msgstr ""
-
-msgid "Test storage upgrade"
-msgstr ""
-
-msgid "Test Storage Upgrade:"
-msgstr ""
-
-msgid "Test storage download"
-msgstr ""
-
-msgid "Test Storage Download:"
-msgstr ""
-
-msgid "Test plugin download"
-msgstr ""
-
-msgid "Test Plugin Download:"
-msgstr ""
-
-msgid "Test Storage Upload"
 msgstr ""
 
 msgid "Log Info"

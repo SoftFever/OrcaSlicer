@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-16 17:57+0800\n"
+"POT-Creation-Date: 2024-03-22 19:58+0800\n"
 "PO-Revision-Date: 2024-03-15 23:12+0900\n"
 "Last-Translator: Hotsolidinfill <138652683+Hotsolidinfill@users.noreply."
 "github.com>, crwusiz <crwusiz@naver.com>\n"
@@ -6021,6 +6021,9 @@ msgstr "로그인 지역"
 msgid "Stealth Mode"
 msgstr "스텔스 모드"
 
+msgid "Enable network plugin"
+msgstr ""
+
 msgid "Check for stable updates only"
 msgstr "안정적인 업데이트만 확인"
 
@@ -6075,6 +6078,9 @@ msgstr "플러시 볼륨: 색상이 변경될 때마다 자동 계산됩니다."
 
 msgid "If enabled, auto-calculate everytime the color changed."
 msgstr "활성화하면 색상이 변경될 때마다 자동 계산됩니다."
+
+msgid "Network"
+msgstr ""
 
 msgid "Auto sync user presets(Printer/Filament/Process)"
 msgstr "사용자 사전 설정 자동 동기화(프린터/필라멘트/프로세스)"
@@ -13795,8 +13801,8 @@ msgstr "단일 스레드 테스트 시작"
 msgid "Export Log"
 msgstr "로그 내보내기"
 
-msgid "Studio Version:"
-msgstr "스튜디오 버전:"
+msgid "OrcaSlicer Version:"
+msgstr ""
 
 msgid "System Version:"
 msgstr "시스템 버전:"
@@ -13804,50 +13810,17 @@ msgstr "시스템 버전:"
 msgid "DNS Server:"
 msgstr "DNS 서버:"
 
-msgid "Test BambuLab"
-msgstr "테스트 뱀부랩"
+msgid "Test OrcaSlicer(GitHub)"
+msgstr ""
 
-msgid "Test BambuLab:"
-msgstr "테스트 뱀부랩:"
+msgid "Test OrcaSlicer(GitHub):"
+msgstr ""
 
 msgid "Test Bing.com"
 msgstr "테스트 Bing.com"
 
 msgid "Test bing.com:"
 msgstr "테스트 Bing.com:"
-
-msgid "Test HTTP"
-msgstr "테스트 HTTP"
-
-msgid "Test HTTP Service:"
-msgstr "테스트 HTTP 서비스:"
-
-msgid "Test storage"
-msgstr "테스트 저장소"
-
-msgid "Test Storage Upload:"
-msgstr "테스트 저장소 업로드:"
-
-msgid "Test storage upgrade"
-msgstr "테스트 저장소 업그레이드"
-
-msgid "Test Storage Upgrade:"
-msgstr "테스트 저장소 업그레이드:"
-
-msgid "Test storage download"
-msgstr "테스트 저장소 다운로드"
-
-msgid "Test Storage Download:"
-msgstr "테스트 저장소 다운로드:"
-
-msgid "Test plugin download"
-msgstr "테스트 플러그인 다운로드"
-
-msgid "Test Plugin Download:"
-msgstr "테스트 플러그인 다운로드:"
-
-msgid "Test Storage Upload"
-msgstr "테스트 저장소 업로드"
 
 msgid "Log Info"
 msgstr "로그 정보"
@@ -14900,6 +14873,48 @@ msgstr ""
 "뒤틀림 방지\n"
 "ABS 등 뒤틀림이 발생하기 쉬운 소재를 출력할 때, 히트베드 온도를 적절하게 높이"
 "면 뒤틀림 가능성을 줄일 수 있다는 사실을 알고 계셨나요?"
+
+#~ msgid "Studio Version:"
+#~ msgstr "스튜디오 버전:"
+
+#~ msgid "Test BambuLab"
+#~ msgstr "테스트 뱀부랩"
+
+#~ msgid "Test BambuLab:"
+#~ msgstr "테스트 뱀부랩:"
+
+#~ msgid "Test HTTP"
+#~ msgstr "테스트 HTTP"
+
+#~ msgid "Test HTTP Service:"
+#~ msgstr "테스트 HTTP 서비스:"
+
+#~ msgid "Test storage"
+#~ msgstr "테스트 저장소"
+
+#~ msgid "Test Storage Upload:"
+#~ msgstr "테스트 저장소 업로드:"
+
+#~ msgid "Test storage upgrade"
+#~ msgstr "테스트 저장소 업그레이드"
+
+#~ msgid "Test Storage Upgrade:"
+#~ msgstr "테스트 저장소 업그레이드:"
+
+#~ msgid "Test storage download"
+#~ msgstr "테스트 저장소 다운로드"
+
+#~ msgid "Test Storage Download:"
+#~ msgstr "테스트 저장소 다운로드:"
+
+#~ msgid "Test plugin download"
+#~ msgstr "테스트 플러그인 다운로드"
+
+#~ msgid "Test Plugin Download:"
+#~ msgstr "테스트 플러그인 다운로드:"
+
+#~ msgid "Test Storage Upload"
+#~ msgstr "테스트 저장소 업로드"
 
 #~ msgid ""
 #~ "The speed setting exceeds the printer's maximum speed "

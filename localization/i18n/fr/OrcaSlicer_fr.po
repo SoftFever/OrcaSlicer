@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-16 17:57+0800\n"
+"POT-Creation-Date: 2024-03-22 19:58+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: Guislain Cyril, Thomas Lété\n"
@@ -6222,6 +6222,9 @@ msgstr "Région d'origine"
 msgid "Stealth Mode"
 msgstr "Mode privé"
 
+msgid "Enable network plugin"
+msgstr ""
+
 msgid "Check for stable updates only"
 msgstr "Vérifier les mises à jour stables uniquement"
 
@@ -6281,6 +6284,9 @@ msgid "If enabled, auto-calculate everytime the color changed."
 msgstr ""
 "Si cette option est activée, le calcul se fera automatiquement à chaque "
 "changement de couleur."
+
+msgid "Network"
+msgstr ""
 
 msgid "Auto sync user presets(Printer/Filament/Process)"
 msgstr ""
@@ -14603,8 +14609,8 @@ msgstr "Démarrer le test Single-Thread"
 msgid "Export Log"
 msgstr "Exportation du journal"
 
-msgid "Studio Version:"
-msgstr "Version de Studio :"
+msgid "OrcaSlicer Version:"
+msgstr ""
 
 msgid "System Version:"
 msgstr "Version du système :"
@@ -14612,50 +14618,17 @@ msgstr "Version du système :"
 msgid "DNS Server:"
 msgstr "Serveur DNS :"
 
-msgid "Test BambuLab"
-msgstr "Test BambuLab"
+msgid "Test OrcaSlicer(GitHub)"
+msgstr ""
 
-msgid "Test BambuLab:"
-msgstr "Test BambuLab :"
+msgid "Test OrcaSlicer(GitHub):"
+msgstr ""
 
 msgid "Test Bing.com"
 msgstr "Test Bing.com"
 
 msgid "Test bing.com:"
 msgstr "Test bing.com :"
-
-msgid "Test HTTP"
-msgstr ""
-
-msgid "Test HTTP Service:"
-msgstr "Test du service HTTP :"
-
-msgid "Test storage"
-msgstr "Test du stockage"
-
-msgid "Test Storage Upload:"
-msgstr "Test de l’envoi du stockage:"
-
-msgid "Test storage upgrade"
-msgstr "Test de la mise à niveau du stockage"
-
-msgid "Test Storage Upgrade:"
-msgstr "Test de la mise à niveau du stockage :"
-
-msgid "Test storage download"
-msgstr "Test du téléchargement du stockage"
-
-msgid "Test Storage Download:"
-msgstr "Test du téléchargement du stockage :"
-
-msgid "Test plugin download"
-msgstr "Test du téléchargement du plugin"
-
-msgid "Test Plugin Download:"
-msgstr "Test du téléchargement du plugin :"
-
-msgid "Test Storage Upload"
-msgstr "Test de l’envoi du stockage"
 
 msgid "Log Info"
 msgstr "Journal de bord"
@@ -15774,6 +15747,45 @@ msgstr ""
 "Saviez-vous que lors de l’impression de matériaux susceptibles de se "
 "déformer, tels que l’ABS, une augmentation appropriée de la température du "
 "plateau chauffant peut réduire la probabilité de déformation."
+
+#~ msgid "Studio Version:"
+#~ msgstr "Version de Studio :"
+
+#~ msgid "Test BambuLab"
+#~ msgstr "Test BambuLab"
+
+#~ msgid "Test BambuLab:"
+#~ msgstr "Test BambuLab :"
+
+#~ msgid "Test HTTP Service:"
+#~ msgstr "Test du service HTTP :"
+
+#~ msgid "Test storage"
+#~ msgstr "Test du stockage"
+
+#~ msgid "Test Storage Upload:"
+#~ msgstr "Test de l’envoi du stockage:"
+
+#~ msgid "Test storage upgrade"
+#~ msgstr "Test de la mise à niveau du stockage"
+
+#~ msgid "Test Storage Upgrade:"
+#~ msgstr "Test de la mise à niveau du stockage :"
+
+#~ msgid "Test storage download"
+#~ msgstr "Test du téléchargement du stockage"
+
+#~ msgid "Test Storage Download:"
+#~ msgstr "Test du téléchargement du stockage :"
+
+#~ msgid "Test plugin download"
+#~ msgstr "Test du téléchargement du plugin"
+
+#~ msgid "Test Plugin Download:"
+#~ msgstr "Test du téléchargement du plugin :"
+
+#~ msgid "Test Storage Upload"
+#~ msgstr "Test de l’envoi du stockage"
 
 #~ msgid ""
 #~ "The speed setting exceeds the printer's maximum speed "

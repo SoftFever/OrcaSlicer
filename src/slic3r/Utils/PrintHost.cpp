@@ -21,6 +21,7 @@
 #include "MKS.hpp"
 #include "../GUI/PrintHostDialogs.hpp"
 #include "Obico.hpp"
+#include "Flashforge.hpp"
 #include "SimplyPrint.hpp"
 
 namespace fs = boost::filesystem;
@@ -57,6 +58,7 @@ PrintHost* PrintHost::get_print_host(DynamicPrintConfig *config)
             case htPrusaConnect: return new PrusaConnect(config);
             case htMKS:       return new MKS(config);
             case htObico:     return new Obico(config);
+            case htFlashforge: return new Flashforge(config);
             case htSimplyPrint: return new SimplyPrint(config);
             default:          return nullptr;
         }
