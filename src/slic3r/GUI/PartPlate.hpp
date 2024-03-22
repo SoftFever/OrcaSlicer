@@ -749,7 +749,7 @@ public:
     int find_instance_belongs(int obj_id, int instance_id);
 
     //notify instance's update, need to refresh the instance in plates
-    int notify_instance_update(int obj_id, int instance_id);
+    int notify_instance_update(int obj_id, int instance_id, bool is_new = false);
 
     //notify instance is removed
     int notify_instance_removed(int obj_id, int instance_id);
