@@ -41,6 +41,7 @@ public:
     void OnClose(wxCloseEvent& evt);
     void OnError(wxWebViewEvent& evt);
     void OnLoaded(wxWebViewEvent& evt);
+    void reload();
 private:
     void SendAPIKey();
 

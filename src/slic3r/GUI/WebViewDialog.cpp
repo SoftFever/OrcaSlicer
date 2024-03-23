@@ -421,6 +421,11 @@ void WebViewPanel::OnFreshLoginStatus(wxTimerEvent &event)
         Slic3r::GUI::wxGetApp().get_login_info();
 }
 
+void WebViewPanel::SetLoginPanelVisibility(bool bshow)
+{
+    wxString strJS = wxString::Format("SetLoginPanelVisibility(%s)", bshow ? "true" : "false");
+    RunScript(strJS);
+}
 void WebViewPanel::SendRecentList(int images)
 {
     boost::property_tree::wptree req;
