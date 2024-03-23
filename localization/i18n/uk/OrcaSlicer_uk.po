@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-22 19:58+0800\n"
+"POT-Creation-Date: 2024-03-23 13:08+0800\n"
 "PO-Revision-Date: 2023-08-10 20:25-0400\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -8568,6 +8568,12 @@ msgstr ""
 msgid "Printer preset names"
 msgstr "Імена налаштувань принтера"
 
+msgid "Use 3rd-party print host"
+msgstr ""
+
+msgid "Allow controlling BambuLab's printer through 3rd party print hosts"
+msgstr ""
+
 msgid "Hostname, IP or URL"
 msgstr "Ім'я хоста, IP або URL"
 
@@ -13890,6 +13896,9 @@ msgstr "Неможливо отримати дійсне посилання на
 msgid "Success!"
 msgstr "Успіх!"
 
+msgid "Are you sure to log out?"
+msgstr ""
+
 msgid "Refresh Printers"
 msgstr "Оновити принтери"
 
@@ -13920,6 +13929,9 @@ msgid ""
 msgstr ""
 "Щоб використовувати власний файл ЦС, імпортуйте файл ЦС в сховище "
 "сертифікатів/Keychain."
+
+msgid "Login/Test"
+msgstr ""
 
 msgid "Connection to printers connected via the print host failed."
 msgstr "Не вдалося підключитися до принтерів, підключених через вузол друку."
