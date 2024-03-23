@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-16 17:57+0800\n"
+"POT-Creation-Date: 2024-03-22 19:58+0800\n"
 "PO-Revision-Date: 2023-04-01 13:21+0800\n"
 "Last-Translator: SoftFever <softfeverever@gmail.com>\n"
 "Language-Team: \n"
@@ -4306,22 +4306,22 @@ msgid "Use Orthogonal View"
 msgstr "使用正交视角"
 
 msgid "Show &G-code Window"
-msgstr ""
+msgstr "显示G-code窗口"
 
 msgid "Show g-code window in Previce scene"
-msgstr ""
+msgstr "显示G-code窗口"
 
 msgid "Show 3D Navigator"
-msgstr ""
+msgstr "显示3D导航器"
 
 msgid "Show 3D navigator in Prepare and Preview scene"
-msgstr ""
+msgstr "显示3D导航器"
 
 msgid "Reset Window Layout"
-msgstr ""
+msgstr "重置窗口布局"
 
 msgid "Reset to default window layout"
-msgstr ""
+msgstr "重置为默认窗口布局"
 
 msgid "Show &Labels"
 msgstr "显示名称"
@@ -5863,8 +5863,11 @@ msgstr "登录区域"
 msgid "Stealth Mode"
 msgstr "局域网模式"
 
+msgid "Enable network plugin"
+msgstr "启用网络插件"
+
 msgid "Check for stable updates only"
-msgstr ""
+msgstr "仅检测正式版的更新"
 
 msgid "Metric"
 msgstr "公制"
@@ -5915,6 +5918,9 @@ msgstr "冲刷体积：每一次更换颜色时自动计算。"
 
 msgid "If enabled, auto-calculate everytime the color changed."
 msgstr "如果启用，会在每一次更换颜色时自动计算。"
+
+msgid "Network"
+msgstr "网络"
 
 msgid "Auto sync user presets(Printer/Filament/Process)"
 msgstr "同步用户预设（打印机/耗材丝/工艺）"
@@ -10078,10 +10084,10 @@ msgid "Klipper"
 msgstr ""
 
 msgid "Support multi bed types"
-msgstr ""
+msgstr "支持多种打印床类型"
 
 msgid "Enable this option if you want to use multiple bed types"
-msgstr ""
+msgstr "如果要使用多种打印床类型，请启用此选项"
 
 msgid "Label objects"
 msgstr "标注模型"
@@ -10092,6 +10098,9 @@ msgid ""
 "plugin. This settings is NOT compatible with Single Extruder Multi Material "
 "setup and Wipe into Object / Wipe into Infill."
 msgstr ""
+"启用此选项，将在G-code中添加注释，标记打印移动属于哪个对象，这对Octoprint "
+"CancelObject插件非常有用。此设置与单挤出机多材料设置和擦拭到对象/擦拭到填充不"
+"兼容。"
 
 msgid "Exclude objects"
 msgstr "对象排除"
@@ -10107,6 +10116,8 @@ msgid ""
 "descriptive text. If you print from SD card, the additional weight of the "
 "file could make your firmware slow down."
 msgstr ""
+"启用此选项，将获得带有注释的G-code文件，每行都有描述性文本解释。如果您从SD卡"
+"打印，文件的额外重量可能会使您的固件变慢。"
 
 msgid "Infill combination"
 msgstr "合并填充"
@@ -10215,7 +10226,7 @@ msgstr "熨烫角度"
 msgid ""
 "The angle ironing is done at. A negative number disables this function and "
 "uses the default method."
-msgstr ""
+msgstr "熨烫的角度。设为负值将禁用此功能并使用默认方法。"
 
 msgid "This gcode part is inserted at every layer change after lift z"
 msgstr "在每次换层抬升Z高度之后插入这段G-code。"
@@ -10238,6 +10249,8 @@ msgid ""
 "If enabled, the machine limits will be emitted to G-code file.\n"
 "This option will be ignored if the g-code flavor is set to Klipper."
 msgstr ""
+"如果启用，机器限制将写入到G-code文件。\n"
+"如果G-code风格设置为Klipper，则此选项将被忽略。"
 
 msgid ""
 "This G-code will be used as a code for the pause print. User can insert "
@@ -13144,8 +13157,8 @@ msgstr "单线程开始测试"
 msgid "Export Log"
 msgstr "输出日志"
 
-msgid "Studio Version:"
-msgstr "Studio 版本："
+msgid "OrcaSlicer Version:"
+msgstr "逆戟鲸版本："
 
 msgid "System Version:"
 msgstr "系统版本："
@@ -13153,50 +13166,17 @@ msgstr "系统版本："
 msgid "DNS Server:"
 msgstr "DNS服务："
 
-msgid "Test BambuLab"
-msgstr "测试 BambuLab"
+msgid "Test OrcaSlicer(GitHub)"
+msgstr "测试逆戟鲸项目网站(GitHub)"
 
-msgid "Test BambuLab:"
-msgstr "测试 BambuLab："
+msgid "Test OrcaSlicer(GitHub):"
+msgstr "测试逆戟鲸项目网站(GitHub)"
 
 msgid "Test Bing.com"
 msgstr "测试 Bing.com"
 
 msgid "Test bing.com:"
 msgstr "测试 Bing.com："
-
-msgid "Test HTTP"
-msgstr "测试 HTTP"
-
-msgid "Test HTTP Service:"
-msgstr "测试 HTTP 服务："
-
-msgid "Test storage"
-msgstr "测试存储"
-
-msgid "Test Storage Upload:"
-msgstr "测试存储上传："
-
-msgid "Test storage upgrade"
-msgstr "测试存储升级"
-
-msgid "Test Storage Upgrade:"
-msgstr "测试存储升级："
-
-msgid "Test storage download"
-msgstr "测试存储下载"
-
-msgid "Test Storage Download:"
-msgstr "测试存储下载："
-
-msgid "Test plugin download"
-msgstr "测试插件下载"
-
-msgid "Test Plugin Download:"
-msgstr "测试插件下载:"
-
-msgid "Test Storage Upload"
-msgstr "测试存储上传"
 
 msgid "Log Info"
 msgstr "日志信息"
@@ -14184,6 +14164,48 @@ msgid ""
 msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
+
+#~ msgid "Studio Version:"
+#~ msgstr "Studio 版本："
+
+#~ msgid "Test BambuLab"
+#~ msgstr "测试 BambuLab"
+
+#~ msgid "Test BambuLab:"
+#~ msgstr "测试 BambuLab："
+
+#~ msgid "Test HTTP"
+#~ msgstr "测试 HTTP"
+
+#~ msgid "Test HTTP Service:"
+#~ msgstr "测试 HTTP 服务："
+
+#~ msgid "Test storage"
+#~ msgstr "测试存储"
+
+#~ msgid "Test Storage Upload:"
+#~ msgstr "测试存储上传："
+
+#~ msgid "Test storage upgrade"
+#~ msgstr "测试存储升级"
+
+#~ msgid "Test Storage Upgrade:"
+#~ msgstr "测试存储升级："
+
+#~ msgid "Test storage download"
+#~ msgstr "测试存储下载"
+
+#~ msgid "Test Storage Download:"
+#~ msgstr "测试存储下载："
+
+#~ msgid "Test plugin download"
+#~ msgstr "测试插件下载"
+
+#~ msgid "Test Plugin Download:"
+#~ msgstr "测试插件下载:"
+
+#~ msgid "Test Storage Upload"
+#~ msgstr "测试存储上传"
 
 #~ msgid ""
 #~ "The speed setting exceeds the printer's maximum speed "

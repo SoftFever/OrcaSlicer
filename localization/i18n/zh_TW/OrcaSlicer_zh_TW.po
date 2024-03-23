@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-16 17:57+0800\n"
+"POT-Creation-Date: 2024-03-22 19:58+0800\n"
 "PO-Revision-Date: 2023-11-06 14:37+0800\n"
 "Last-Translator: ablegods <ablegods@gmail.com>\n"
 "Language-Team: \n"
@@ -6119,6 +6119,9 @@ msgstr "登入區域"
 msgid "Stealth Mode"
 msgstr "區域網路模式"
 
+msgid "Enable network plugin"
+msgstr ""
+
 msgid "Check for stable updates only"
 msgstr ""
 
@@ -6171,6 +6174,9 @@ msgid "Flushing volumes: Auto-calculate everytime the color changed."
 msgstr ""
 
 msgid "If enabled, auto-calculate everytime the color changed."
+msgstr ""
+
+msgid "Network"
 msgstr ""
 
 #, fuzzy
@@ -13660,7 +13666,7 @@ msgstr ""
 msgid "Export Log"
 msgstr ""
 
-msgid "Studio Version:"
+msgid "OrcaSlicer Version:"
 msgstr ""
 
 msgid "System Version:"
@@ -13669,49 +13675,16 @@ msgstr ""
 msgid "DNS Server:"
 msgstr ""
 
-msgid "Test BambuLab"
+msgid "Test OrcaSlicer(GitHub)"
 msgstr ""
 
-msgid "Test BambuLab:"
+msgid "Test OrcaSlicer(GitHub):"
 msgstr ""
 
 msgid "Test Bing.com"
 msgstr ""
 
 msgid "Test bing.com:"
-msgstr ""
-
-msgid "Test HTTP"
-msgstr ""
-
-msgid "Test HTTP Service:"
-msgstr ""
-
-msgid "Test storage"
-msgstr ""
-
-msgid "Test Storage Upload:"
-msgstr ""
-
-msgid "Test storage upgrade"
-msgstr ""
-
-msgid "Test Storage Upgrade:"
-msgstr ""
-
-msgid "Test storage download"
-msgstr ""
-
-msgid "Test Storage Download:"
-msgstr ""
-
-msgid "Test plugin download"
-msgstr ""
-
-msgid "Test Plugin Download:"
-msgstr ""
-
-msgid "Test Storage Upload"
 msgstr ""
 
 msgid "Log Info"
