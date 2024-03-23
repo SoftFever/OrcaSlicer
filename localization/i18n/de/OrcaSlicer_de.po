@@ -6238,7 +6238,7 @@ msgid "Stealth Mode"
 msgstr "Unsichtbarer Modus"
 
 msgid "Enable network plugin"
-msgstr ""
+msgstr "Netzwerk-Plugin aktivieren"
 
 msgid "Check for stable updates only"
 msgstr "Nur nach stabilen Updates suchen"
@@ -6296,7 +6296,7 @@ msgid "If enabled, auto-calculate everytime the color changed."
 msgstr "Wenn aktiviert, wird bei jeder Farbänderung automatisch berechnet."
 
 msgid "Network"
-msgstr ""
+msgstr "Netzwerk"
 
 msgid "Auto sync user presets(Printer/Filament/Process)"
 msgstr "Benutzerprofile automatisch synchronisieren (Drucker/Filament/Prozess)"
@@ -14513,7 +14513,7 @@ msgid "Export Log"
 msgstr "Protokoll exportieren"
 
 msgid "OrcaSlicer Version:"
-msgstr ""
+msgstr "OrcaSlicer Version:"
 
 msgid "System Version:"
 msgstr "System Version:"
@@ -14522,10 +14522,10 @@ msgid "DNS Server:"
 msgstr "DNS Server:"
 
 msgid "Test OrcaSlicer(GitHub)"
-msgstr ""
+msgstr "Test OrcaSlicer(GitHub)"
 
 msgid "Test OrcaSlicer(GitHub):"
-msgstr ""
+msgstr "Test OrcaSlicer(GitHub):"
 
 msgid "Test Bing.com"
 msgstr "Test Bing.com"
