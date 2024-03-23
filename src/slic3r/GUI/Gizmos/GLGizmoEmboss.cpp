@@ -1844,6 +1844,7 @@ void GLGizmoEmboss::draw_model_type()
     } else {
         ImGui::Text("%s", title.c_str());
     }
+    auto m_control_width = m_imgui->get_font_size() * 9.f;
 
     std::optional<ModelVolumeType> new_type;
     ModelVolumeType modifier = ModelVolumeType::PARAMETER_MODIFIER;
@@ -1853,13 +1854,16 @@ void GLGizmoEmboss::draw_model_type()
 
     //TRN EmbossOperation
     ImGuiWrapper::push_radio_style();
+    ImGui::SameLine(m_gui_cfg->input_offset);
+    ImGui::PushItemWidth(m_control_width);
     if (ImGui::RadioButton(_u8L("Join").c_str(), type == part))
         new_type = part;
     else if (ImGui::IsItemHovered())
         m_imgui->tooltip(_u8L("Click to change text into object part."), m_gui_cfg->max_tooltip_width);
-    ImGui::SameLine();
-
+    
     std::string last_solid_part_hint = _u8L("You can't change a type of the last solid part of the object.");
+    ImGui::SameLine();
+    ImGui::PushItemWidth(m_control_width);
     if (ImGui::RadioButton(_CTX_utf8(L_CONTEXT("Cut", "EmbossOperation"), "EmbossOperation").c_str(), type == negative))
         new_type = negative;
     else if (ImGui::IsItemHovered()) {
@@ -1872,6 +1876,7 @@ void GLGizmoEmboss::draw_model_type()
     // In simple mode are not modifiers
     if (wxGetApp().plater()->printer_technology() != ptSLA && wxGetApp().get_mode() != ConfigOptionMode::comSimple) {
         ImGui::SameLine();
+        ImGui::PushItemWidth(m_control_width);
         if (ImGui::RadioButton(_u8L("Modifier").c_str(), type == modifier))
             new_type = modifier;
         else if (ImGui::IsItemHovered()) {
@@ -2176,12 +2181,12 @@ void GLGizmoEmboss::draw_style_list() {
     }
 
     std::string title = _u8L("Style");
+    ImGui::AlignTextToFramePadding();
     if (m_style_manager.exist_stored_style())
         ImGui::Text("%s", title.c_str());
     else
         ImGui::TextColored(ImGuiWrapper::COL_ORCA, "%s", title.c_str());
-        
-    ImGui::SetNextItemWidth(m_gui_cfg->input_width);
+
     auto add_text_modify = [&is_modified](const std::string& name) {
         if (!is_modified) return name;
         return name + Preset::suffix_modified();
@@ -2189,6 +2194,8 @@ void GLGizmoEmboss::draw_style_list() {
     std::optional<size_t> selected_style_index;
     std::string tooltip = "";
     ImGuiWrapper::push_combo_style(m_parent.get_scale());
+    ImGui::SameLine(m_gui_cfg->input_offset);
+    ImGui::SetNextItemWidth(2 * m_gui_cfg->input_width);
     if (ImGui::BBLBeginCombo("##style_selector", add_text_modify(trunc_name).c_str())) {
         m_style_manager.init_style_images(m_gui_cfg->max_style_image_size, m_text);
         m_style_manager.init_trunc_names(max_style_name_width);
@@ -2721,7 +2728,7 @@ void GLGizmoEmboss::draw_advanced()
         else if (draw_button(icons, IconType::align_horizontal_right)) { align.first=FontProp::HorizontalAlign::right; is_change = true; }
         else if (ImGui::IsItemHovered()) m_imgui->tooltip(_CTX_utf8(L_CONTEXT("Right", "Alignment"), "Alignment"), m_gui_cfg->max_tooltip_width);
 
-        ImGui::SameLine();
+        ImGui::SameLine(0,24.f); // add a small gap between them for slight separation
         if (align.second==FontProp::VerticalAlign::top) draw(get_icon(icons, IconType::align_vertical_top, IconState::hovered));
         else if (draw_button(icons, IconType::align_vertical_top)) { align.second=FontProp::VerticalAlign::top; is_change = true; }
         else if (ImGui::IsItemHovered()) m_imgui->tooltip(_CTX_utf8(L_CONTEXT("Top", "Alignment"), "Alignment"), m_gui_cfg->max_tooltip_width);
