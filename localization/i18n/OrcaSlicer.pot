@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-22 19:58+0800\n"
+"POT-Creation-Date: 2024-03-23 13:08+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -8115,6 +8115,12 @@ msgstr ""
 msgid "Printer preset names"
 msgstr ""
 
+msgid "Use 3rd-party print host"
+msgstr ""
+
+msgid "Allow controlling BambuLab's printer through 3rd party print hosts"
+msgstr ""
+
 msgid "Hostname, IP or URL"
 msgstr ""
 
@@ -12994,6 +13000,9 @@ msgstr ""
 msgid "Success!"
 msgstr ""
 
+msgid "Are you sure to log out?"
+msgstr ""
+
 msgid "Refresh Printers"
 msgstr ""
 
@@ -13017,6 +13026,9 @@ msgstr ""
 msgid ""
 "To use a custom CA file, please import your CA file into Certificate Store / "
 "Keychain."
+msgstr ""
+
+msgid "Login/Test"
 msgstr ""
 
 msgid "Connection to printers connected via the print host failed."

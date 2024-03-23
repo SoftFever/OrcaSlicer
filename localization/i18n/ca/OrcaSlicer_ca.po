@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-22 19:58+0800\n"
+"POT-Creation-Date: 2024-03-23 13:08+0800\n"
 "PO-Revision-Date: 2024-03-17 22:08+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -8862,6 +8862,12 @@ msgstr ""
 msgid "Printer preset names"
 msgstr "Noms de perfils de la impressora"
 
+msgid "Use 3rd-party print host"
+msgstr ""
+
+msgid "Allow controlling BambuLab's printer through 3rd party print hosts"
+msgstr ""
+
 msgid "Hostname, IP or URL"
 msgstr "Nom d'equip, IP o URL"
 
@@ -14986,6 +14992,9 @@ msgstr ""
 msgid "Success!"
 msgstr "Èxit!"
 
+msgid "Are you sure to log out?"
+msgstr ""
+
 msgid "Refresh Printers"
 msgstr "Refrescar Impressores"
 
@@ -15017,6 +15026,9 @@ msgid ""
 msgstr ""
 "Per utilitzar un fitxer CA personalitzat, importa el teu fitxer CA al "
 "Magatzem de Certificats / Clauer."
+
+msgid "Login/Test"
+msgstr ""
 
 msgid "Connection to printers connected via the print host failed."
 msgstr ""

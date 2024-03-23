@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-22 19:58+0800\n"
+"POT-Creation-Date: 2024-03-23 13:08+0800\n"
 "PO-Revision-Date: 2024-03-15 23:12+0900\n"
 "Last-Translator: Hotsolidinfill <138652683+Hotsolidinfill@users.noreply."
 "github.com>, crwusiz <crwusiz@naver.com>\n"
@@ -8591,6 +8591,12 @@ msgstr "최초 임포트 시 Z축에서 자동으로 스톨 방향 지정"
 msgid "Printer preset names"
 msgstr "프린터 사전 설정 이름"
 
+msgid "Use 3rd-party print host"
+msgstr ""
+
+msgid "Allow controlling BambuLab's printer through 3rd party print hosts"
+msgstr ""
+
 msgid "Hostname, IP or URL"
 msgstr "호스트 이름, IP 또는 URL"
 
@@ -14332,6 +14338,9 @@ msgstr "유효한 프린터 호스트 참조를 가져올 수 없습니다"
 msgid "Success!"
 msgstr "성공!"
 
+msgid "Are you sure to log out?"
+msgstr ""
+
 msgid "Refresh Printers"
 msgstr "프린터 새로 고침"
 
@@ -14361,6 +14370,9 @@ msgid ""
 msgstr ""
 "사용자 정의 CA 파일을 사용하려면 CA 파일을 인증서 저장소/키체인으로 가져오십"
 "시오."
+
+msgid "Login/Test"
+msgstr ""
 
 msgid "Connection to printers connected via the print host failed."
 msgstr "출력 호스트를 통해 연결된 프린터에 연결하지 못했습니다."

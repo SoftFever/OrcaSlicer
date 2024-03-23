@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-22 19:58+0800\n"
+"POT-Creation-Date: 2024-03-23 13:08+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Heiko Liebscher <hliebschergmail.com>\n"
 "Language-Team: \n"
@@ -8950,6 +8950,12 @@ msgstr "Automatische Ausrichtung von STLs auf der Z-Achse beim Import"
 msgid "Printer preset names"
 msgstr "Drucker Profilname"
 
+msgid "Use 3rd-party print host"
+msgstr ""
+
+msgid "Allow controlling BambuLab's printer through 3rd party print hosts"
+msgstr ""
+
 msgid "Hostname, IP or URL"
 msgstr "Hostname, IP oder URL"
 
@@ -15074,6 +15080,9 @@ msgstr "Konnte keine gültige Referenz zum Druck-Host erhalten"
 msgid "Success!"
 msgstr "Erfolgreich!"
 
+msgid "Are you sure to log out?"
+msgstr ""
+
 msgid "Refresh Printers"
 msgstr "Drucker aktualisieren"
 
@@ -15104,6 +15113,9 @@ msgid ""
 msgstr ""
 "Um eine benutzerdefinierte CA-Datei zu verwenden, importieren Sie bitte Ihre "
 "CA-Datei in den Zertifikatspeicher / das Schlüsselbund."
+
+msgid "Login/Test"
+msgstr ""
 
 msgid "Connection to printers connected via the print host failed."
 msgstr ""
