@@ -383,10 +383,6 @@
 			"sub_path": "process/0.16mm Optimal @Creality Ender3V3SE 0.8.json"
 		},
 		{
-			"name": "0.16mm Optimal @Creality Ender3V3KE",
-			"sub_path": "process/0.16mm Optimal @Creality Ender3V3KE.json"
-		},
-		{
 			"name": "0.16mm Optimal @Creality Ender5",
 			"sub_path": "process/0.16mm Optimal @Creality Ender5.json"
 		},
@@ -511,10 +507,6 @@
 			"sub_path": "process/0.20mm Standard @Creality Ender3V3SE 0.8.json"
 		},
 		{
-			"name": "0.20mm Standard @Creality Ender3V3KE",
-			"sub_path": "process/0.20mm Standard @Creality Ender3V3KE.json"
-		},
-		{
 			"name": "0.20mm Standard @Creality Ender5",
 			"sub_path": "process/0.20mm Standard @Creality Ender5.json"
 		},
@@ -625,10 +617,6 @@
 		{
 			"name": "0.24mm Draft @Creality Ender3V3SE 0.8",
 			"sub_path": "process/0.24mm Draft @Creality Ender3V3SE 0.8.json"
-		},
-		{
-			"name": "0.24mm Draft @Creality Ender3V3KE",
-			"sub_path": "process/0.24mm Draft @Creality Ender3V3KE.json"
 		},
 		{
 			"name": "0.24mm Draft @Creality Ender5Pro (2019) 0.3",
