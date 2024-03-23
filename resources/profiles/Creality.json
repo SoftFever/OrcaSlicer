@@ -295,10 +295,6 @@
 			"sub_path": "process/0.12mm Fine @Creality Ender3V3SE 0.8.json"
 		},
 		{
-			"name": "0.12mm Fine @Creality Ender3V3KE",
-			"sub_path": "process/0.12mm Fine @Creality Ender3V3KE.json"
-		},
-		{
 			"name": "0.12mm Detail @Creality Ender5Pro (2019) 0.2",
 			"sub_path": "process/0.12mm Detail @Creality Ender5Pro (2019) 0.2.json"
 		},
