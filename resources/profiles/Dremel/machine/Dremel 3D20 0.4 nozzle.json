@@ -6,9 +6,9 @@
     "instantiation": "true",
     "inherits": "fdm_creality_common",
     "printer_model": "Dremel 3D20",
-    "printer_structure": "i3",
+    "printer_structure": "HBOT",
     "default_filament_profile": [
-      "Dremel Generic PLA @3D20-all"
+      "Dremel Generic PLA @3D20 all"
     ],
     "default_print_profile": ".20mm Standard @Dremel 3D20 0.4",
     "nozzle_diameter": [
