@@ -1302,7 +1302,7 @@ void PrintObject::detect_surfaces_type()
 
                     ExPolygons     layerm_slices_surfaces = to_expolygons(layerm->slices.surfaces);
                     // no_perimeter_full_bridge allow to put bridges where there are nothing, hence adding area to slice, that's why we need to start from the result of PerimeterGenerator.
-                    if (layerm->region().config().counterbole_hole_bridging.value == chbFilled) {
+                    if (layerm->region().config().counterbore_hole_bridging.value == chbFilled) {
                         layerm_slices_surfaces = union_ex(layerm_slices_surfaces, to_expolygons(layerm->fill_surfaces.surfaces));
                     }
 
