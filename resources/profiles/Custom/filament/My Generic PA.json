@@ -15,8 +15,9 @@
     "filament_max_volumetric_speed": [
         "12"
     ],
-"compatible_printers": [
+    "compatible_printers": [
       "MyKlipper 0.4 nozzle",
-      "MyMarlin 0.4 nozzle"
+      "MyMarlin 0.4 nozzle",
+      "MyRRF 0.4 nozzle"
     ]
 }

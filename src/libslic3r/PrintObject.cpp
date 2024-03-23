@@ -451,6 +451,17 @@ void PrintObject::prepare_infill()
     } // for each region
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
 
+    // this will detect bridges and reverse bridges
+    // and rearrange top/bottom/internal surfaces
+    // It produces enlarged overlapping bridging areas.
+    //
+    // 1) stBottomBridge / stBottom infill is grown by 3mm and clipped by the total infill area. Bridges are detected. The areas may overlap.
+    // 2) stTop is grown by 3mm and clipped by the grown bottom areas. The areas may overlap.
+    // 3) Clip the internal surfaces by the grown top/bottom surfaces.
+    // 4) Merge surfaces with the same style. This will mostly get rid of the overlaps.
+    //FIXME This does not likely merge surfaces, which are supported by a material with different colors, but same properties.
+    this->process_external_surfaces();
+    m_print->throw_if_canceled();
 
     // Debugging output.
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
@@ -474,17 +485,6 @@ void PrintObject::prepare_infill()
     this->discover_horizontal_shells();
     m_print->throw_if_canceled();
 
-    // this will detect bridges and reverse bridges
-    // and rearrange top/bottom/internal surfaces
-    // It produces enlarged overlapping bridging areas.
-    //
-    // 1) stBottomBridge / stBottom infill is grown by 3mm and clipped by the total infill area. Bridges are detected. The areas may overlap.
-    // 2) stTop is grown by 3mm and clipped by the grown bottom areas. The areas may overlap.
-    // 3) Clip the internal surfaces by the grown top/bottom surfaces.
-    // 4) Merge surfaces with the same style. This will mostly get rid of the overlaps.
-    //FIXME This does not likely merge surfaces, which are supported by a material with different colors, but same properties.
-    this->process_external_surfaces();
-    m_print->throw_if_canceled();
 
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
     for (size_t region_id = 0; region_id < this->num_printing_regions(); ++ region_id) {
@@ -2059,9 +2059,9 @@ void PrintObject::bridge_over_infill()
                 unsupported_area = closing(unsupported_area, float(SCALED_EPSILON));
                 
                 // Orca:
-                // Lightning infill benefits from always having a bridge layer so don't filter out small unsupported areas. Also, don't filter small internal unsupported areas if the user has requested so.
+                // Don't filter small internal unsupported areas if the user has requested so.
                 double expansion_multiplier = 3;
-                if(has_lightning_infill || po->config().dont_filter_internal_bridges.value !=ibfDisabled){
+                if(po->config().dont_filter_internal_bridges.value !=ibfDisabled){
                     expansion_multiplier = 1;
                 }
                 // By expanding the lower layer solids, we avoid making bridges from the tiny internal overhangs that are (very likely) supported by previous layer solids

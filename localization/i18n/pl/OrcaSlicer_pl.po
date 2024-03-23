@@ -2,9 +2,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-16 17:57+0800\n"
+"POT-Creation-Date: 2024-03-23 13:08+0800\n"
 "PO-Revision-Date: \n"
-"Last-Translator: Krzysztof Morga <tlumaczenieBS@gmail.com>\n"
+"Last-Translator: Krzysztof Morga <tlumaczeniebs@gmail.com>\n"
 "Language-Team: \n"
 "Language: pl_PL\n"
 "MIME-Version: 1.0\n"
@@ -3416,6 +3416,8 @@ msgid ""
 "Alternate extra wall does't work well when ensure vertical shell thickness "
 "is set to All. "
 msgstr ""
+"Alternatywna dodatkowa ściana działa tylko wtedy, gdy jest wyłączona opcja "
+"\"zapewnij stałą grubość pionowej powłoki\". "
 
 msgid ""
 "Change these settings automatically? \n"
@@ -3423,6 +3425,10 @@ msgid ""
 "alternate extra wall\n"
 "No  - Dont use alternate extra wall"
 msgstr ""
+"Zmienić te ustawienia automatycznie?\n"
+"Tak  - Wyłącz \"zapewnij pionową grubość powłoki\" i włącz \"alternatywną "
+"dodatkową ścianę\"\n"
+"Nie  - Nie używaj \"alternatywnej dodatkowej ściany\""
 
 msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support "
@@ -3473,6 +3479,8 @@ msgid ""
 "seam_slope_start_height need to be smaller than layer_height.\n"
 "Reset to 0."
 msgstr ""
+"seam_slope_start_height musi być mniejsza niż wysokość warstwy. \n"
+"Zresetuj do wartości 0"
 
 msgid "Auto bed leveling"
 msgstr "Automatyczne poziomowanie stołu"
@@ -4087,7 +4095,7 @@ msgid "Assembly Return"
 msgstr "Powrót do montażu"
 
 msgid "return"
-msgstr "Wróć"
+msgstr "wróć"
 
 msgid "Paint Toolbar"
 msgstr "Pasek narzędzi do malowania"
@@ -5311,7 +5319,7 @@ msgid "Open Folder."
 msgstr "Otwórz folder."
 
 msgid "Safely remove hardware."
-msgstr "Bezpiecznie usuń sprzęt"
+msgstr "Bezpiecznie usuń sprzęt."
 
 #, c-format, boost-format
 msgid "%1$d Object has custom supports."
@@ -6162,6 +6170,9 @@ msgstr "Region Logowania"
 msgid "Stealth Mode"
 msgstr "Tryb \"Niewidzialny\""
 
+msgid "Enable network plugin"
+msgstr ""
+
 msgid "Check for stable updates only"
 msgstr "Sprawdzaj aktualizacje (tylko wersje stabilne)"
 
@@ -6220,6 +6231,9 @@ msgstr ""
 msgid "If enabled, auto-calculate everytime the color changed."
 msgstr ""
 "Jeśli włączone, automatyczne obliczanie za każdym razem, gdy zmieni się kolor"
+
+msgid "Network"
+msgstr ""
 
 msgid "Auto sync user presets(Printer/Filament/Process)"
 msgstr ""
@@ -6666,7 +6680,7 @@ msgid "Synchronizing device information"
 msgstr "Synchronizacja informacji o urządzeniu"
 
 msgid "Synchronizing device information time out"
-msgstr "Czas synchronizacji informacji o urządzeniu minął"
+msgstr "Upłynął czas synchronizacji informacji o urządzeniu"
 
 msgid "Cannot send the print job when the printer is updating firmware"
 msgstr ""
@@ -7099,9 +7113,9 @@ msgid ""
 "\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "Podczas nagrywania timelapse'a bez głowicy narzędziowej zaleca się dodanie "
-"\"Wieżyczki Czyszczącej Timelapse\" \n"
+"\"Timelaps - Wieża Czyszcząca\" \n"
 "przez kliknięcie prawym przyciskiem myszy na pustym miejscu płyty i wybranie "
-"\"Dodaj Prymityw\"->\"Wieża czyszcząca Timelaps\"."
+"\"Dodaj Prymityw\"->\"Timelaps - Wieża Czyszcząca\"."
 
 msgid "Line width"
 msgstr "Szerokość linii"
@@ -8744,6 +8758,12 @@ msgid ""
 "You can adjust the machine_max_acceleration_travel value in your printer's "
 "configuration to get higher speeds."
 msgstr ""
+"Ustawienie przyspieszenia przekracza maksymalne przyspieszenie drukarki "
+"(machine_max_acceleration_extruding).\n"
+"Orca automatycznie ograniczy prędkość przyspieszenia, aby nie przekroczyć "
+"zdolności drukarki.\n"
+"Możesz dostosować wartość machine_max_acceleration_extruding w konfiguracji "
+"swojej drukarki, aby uzyskać wyższe prędkości."
 
 msgid "Generating skirt & brim"
 msgstr "Generowanie Skirtu i Brimu"
@@ -8830,6 +8850,12 @@ msgstr ""
 
 msgid "Printer preset names"
 msgstr "Nazwy profilu drukarki"
+
+msgid "Use 3rd-party print host"
+msgstr ""
+
+msgid "Allow controlling BambuLab's printer through 3rd party print hosts"
+msgstr ""
 
 msgid "Hostname, IP or URL"
 msgstr "Nazwa hosta, IP lub URL"
@@ -9307,7 +9333,7 @@ msgstr ""
 "nawisu."
 
 msgid "Bridge counterbore holes"
-msgstr "Most dla fazowanych otworów"
+msgstr "Mostek dla fazowanych otworów"
 
 msgid ""
 "This option creates bridges for counterbore holes, allowing them to be "
@@ -9316,10 +9342,10 @@ msgid ""
 "2. Partially Bridged: Only a part of the unsupported area will be bridged.\n"
 "3. Sacrificial Layer: A full sacrificial bridge layer is created."
 msgstr ""
-"Ta opcja generuje mosty dla otworów z fazowaniem, co pozwala na ich "
-"drukowanie bez konieczności stosowania dodatkowych podpór. Wybierz:\n"
+"Ta opcja generuje mostki (wsparcie) dla otworów z fazowaniem, co pozwala na "
+"ich drukowanie bez konieczności stosowania dodatkowych podpór. Wybierz:\n"
 "1. Brak (czyli wyłączone)\n"
-"2. Częściowy most (most będzie konstruowany tylko nad niektórymi obszarami "
+"2. Częściowy most (mostek będzie konstruowany tylko nad niektórymi obszarami "
 "bez podpory)\n"
 "3. Warstwa pomocnicza (tworzy pełnowartościową warstwę podpory mostu)."
 
@@ -11873,12 +11899,12 @@ msgstr ""
 "Ta opcja ustawia prędkość druku dla szwów ukośnych. Zaleca się drukowanie "
 "szwów ukośnych z niższą prędkością (poniżej 100 mm/s). Zaleca się również "
 "włączenie 'Wygładzania współczynnika ekstruzji', jeśli ustawiona prędkość "
-"znacząco różni się od prędkości zewnętrznych lub wewnętrznych ścian. Jeżeli "
-"prędkość określona tutaj jest wyższa niż prędkość zewnętrznych lub "
-"wewnętrznych ścian, drukarka przełączy się na wolniejszą z tych dwóch "
-"prędkości. Gdy jest określone jako procent (np. 80%), prędkość jest "
-"obliczana na podstawie odpowiedniej prędkości zewnętrznej lub wewnętrznej "
-"ściany. Wartość domyślna wynosi 100%."
+"znacząco różni się od prędkości zewnętrznych lub wewnętrznych obwodów. "
+"Jeżeli prędkość określona tutaj jest wyższa niż prędkość zewnętrznych lub "
+"wewnętrznych obwodów, drukarka domyślnie użyje wolniejszej z dwóch "
+"prędkości. Jeśli prędkość jest podana w procentach (np. 80%), jest ona "
+"obliczana na podstawie prędkości zewnętrznego lub wewnętrznego obwodu. "
+"Wartość domyślna wynosi 100%."
 
 msgid "Scarf joint flow ratio"
 msgstr "Współczynnik przepływu szwu ukośnego"
@@ -11915,16 +11941,16 @@ msgstr ""
 "Długość szwu ukośnego. Ustawienie tego parametru na zero wyłączy tą funkcje."
 
 msgid "Scarf steps"
-msgstr "Krok szwu ukośnego"
+msgstr "Kroki szwu ukośnego"
 
 msgid "Minimum number of segments of each scarf."
-msgstr "Minimalna liczba segmentów szwu ukośnego."
+msgstr "Minimalna liczba segmentów każdego szwu ukośnego."
 
 msgid "Scarf joint for inner walls"
-msgstr "Szwy ukośne dla ścian wewnętrznych"
+msgstr "Szwy ukośne dla wewnętrznych obwodów"
 
 msgid "Use scarf joint for inner walls as well."
-msgstr "Zastosuj szwy ukośne również do ścian wewnętrznych."
+msgstr "Zastosuj szwy ukośne również do wewnętrznych obrysów."
 
 msgid "Role base wipe speed"
 msgstr "Prędkość czyszczenia w oparciu o rolę ekstruzji"
@@ -14357,8 +14383,8 @@ msgstr "Rozpocznij test jednowątkowy"
 msgid "Export Log"
 msgstr "Eksportuj log"
 
-msgid "Studio Version:"
-msgstr "Wersja Studio:"
+msgid "OrcaSlicer Version:"
+msgstr ""
 
 msgid "System Version:"
 msgstr "Wersja systemu:"
@@ -14366,50 +14392,17 @@ msgstr "Wersja systemu:"
 msgid "DNS Server:"
 msgstr "Serwer DNS:"
 
-msgid "Test BambuLab"
-msgstr "Test BambuLab"
+msgid "Test OrcaSlicer(GitHub)"
+msgstr ""
 
-msgid "Test BambuLab:"
-msgstr "Test BambuLab:"
+msgid "Test OrcaSlicer(GitHub):"
+msgstr ""
 
 msgid "Test Bing.com"
 msgstr "Test Bing.com"
 
 msgid "Test bing.com:"
 msgstr "Test bing.com:"
-
-msgid "Test HTTP"
-msgstr "Test HTTP"
-
-msgid "Test HTTP Service:"
-msgstr "Test usługi HTTP:"
-
-msgid "Test storage"
-msgstr "Test pamięci"
-
-msgid "Test Storage Upload:"
-msgstr "Test Przesyłu:"
-
-msgid "Test storage upgrade"
-msgstr "Test aktualizacji pamięci masowej"
-
-msgid "Test Storage Upgrade:"
-msgstr "Test aktualizacji pamięci masowej:"
-
-msgid "Test storage download"
-msgstr "Test pamięci dla pobierania"
-
-msgid "Test Storage Download:"
-msgstr "Test pamięci dla pobierania:"
-
-msgid "Test plugin download"
-msgstr "Test pobierania pluginów"
-
-msgid "Test Plugin Download:"
-msgstr "Test pobierania Pluginów:"
-
-msgid "Test Storage Upload"
-msgstr "Test załadunku przechowywania"
 
 msgid "Log Info"
 msgstr "Informacje o logu"
@@ -14943,6 +14936,9 @@ msgstr "Nie można uzyskać ważnego odniesienia do hosta drukarki"
 msgid "Success!"
 msgstr "Sukces!"
 
+msgid "Are you sure to log out?"
+msgstr ""
+
 msgid "Refresh Printers"
 msgstr "Odśwież drukarki"
 
@@ -14973,6 +14969,9 @@ msgid ""
 msgstr ""
 "Aby użyć własnego certyfikatu, zaimportuj plik do magazynu (Certificate "
 "Store / Keychain)."
+
+msgid "Login/Test"
+msgstr ""
 
 msgid "Connection to printers connected via the print host failed."
 msgstr ""
@@ -15469,7 +15468,7 @@ msgid ""
 "density to improve the strength of the model?"
 msgstr ""
 "Zwiększanie wytrzymałości\n"
-"Czy wiesz, że możesz użyć więcej pętli ścien i większej gęstości "
+"Czy wiesz, że możesz użyć więcej pętli ścian i większej gęstości "
 "wypełnienia, aby zwiększyć wytrzymałość modelu?"
 
 #: resources/data/hints.ini: [hint:When need to print with the printer door
@@ -15498,6 +15497,48 @@ msgstr ""
 "takimi jak ABS, odpowiednie zwiększenie temperatury podgrzewanej płyty może "
 "zmniejszyć prawdopodobieństwo odkształceń."
 
+#~ msgid "Studio Version:"
+#~ msgstr "Wersja Studio:"
+
+#~ msgid "Test BambuLab"
+#~ msgstr "Test BambuLab"
+
+#~ msgid "Test BambuLab:"
+#~ msgstr "Test BambuLab:"
+
+#~ msgid "Test HTTP"
+#~ msgstr "Test HTTP"
+
+#~ msgid "Test HTTP Service:"
+#~ msgstr "Test usługi HTTP:"
+
+#~ msgid "Test storage"
+#~ msgstr "Test pamięci"
+
+#~ msgid "Test Storage Upload:"
+#~ msgstr "Test Przesyłu:"
+
+#~ msgid "Test storage upgrade"
+#~ msgstr "Test aktualizacji pamięci masowej"
+
+#~ msgid "Test Storage Upgrade:"
+#~ msgstr "Test aktualizacji pamięci masowej:"
+
+#~ msgid "Test storage download"
+#~ msgstr "Test pamięci dla pobierania"
+
+#~ msgid "Test Storage Download:"
+#~ msgstr "Test pamięci dla pobierania:"
+
+#~ msgid "Test plugin download"
+#~ msgstr "Test pobierania pluginów"
+
+#~ msgid "Test Plugin Download:"
+#~ msgstr "Test pobierania Pluginów:"
+
+#~ msgid "Test Storage Upload"
+#~ msgstr "Test załadunku przechowywania"
+
 #~ msgid ""
 #~ "The speed setting exceeds the printer's maximum speed "
 #~ "(machine_max_speed_x/machine_max_speed_y).\n"
@@ -15512,24 +15553,6 @@ msgstr ""
 #~ "zdolności drukarki.\n"
 #~ "Możesz dostosować ustawienie maksymalnej prędkości w konfiguracji swojej "
 #~ "drukarki, aby uzyskać wyższe prędkości."
-
-#~ msgid ""
-#~ "Alternate extra wall only works with ensure vertical shell thickness "
-#~ "disabled. "
-#~ msgstr ""
-#~ "Alternatywna dodatkowa ściana działa tylko wtedy, gdy jest wyłączona "
-#~ "opcja \"zapewnij stałą grubość pionowej powłoki\". "
-
-#~ msgid ""
-#~ "Change these settings automatically? \n"
-#~ "Yes - Disable ensure vertical shell thickness and enable alternate extra "
-#~ "wall\n"
-#~ "No  - Dont use alternate extra wall"
-#~ msgstr ""
-#~ "Zmienić te ustawienia automatycznie?\n"
-#~ "Tak  - Wyłącz \"zapewnij pionową grubość powłoki\" i włącz \"alternatywną "
-#~ "dodatkową ścianę\"\n"
-#~ "Nie  - Nie używaj \"alternatywnej dodatkowej ściany\""
 
 #~ msgid "Choose ZIP file"
 #~ msgstr "Wybierz plik ZIP"

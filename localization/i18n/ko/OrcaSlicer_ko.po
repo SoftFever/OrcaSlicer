@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-16 17:57+0800\n"
+"POT-Creation-Date: 2024-03-23 13:08+0800\n"
 "PO-Revision-Date: 2024-03-15 23:12+0900\n"
 "Last-Translator: Hotsolidinfill <138652683+Hotsolidinfill@users.noreply."
 "github.com>, crwusiz <crwusiz@naver.com>\n"
@@ -6021,6 +6021,9 @@ msgstr "로그인 지역"
 msgid "Stealth Mode"
 msgstr "스텔스 모드"
 
+msgid "Enable network plugin"
+msgstr ""
+
 msgid "Check for stable updates only"
 msgstr "안정적인 업데이트만 확인"
 
@@ -6075,6 +6078,9 @@ msgstr "플러시 볼륨: 색상이 변경될 때마다 자동 계산됩니다."
 
 msgid "If enabled, auto-calculate everytime the color changed."
 msgstr "활성화하면 색상이 변경될 때마다 자동 계산됩니다."
+
+msgid "Network"
+msgstr ""
 
 msgid "Auto sync user presets(Printer/Filament/Process)"
 msgstr "사용자 사전 설정 자동 동기화(프린터/필라멘트/프로세스)"
@@ -8584,6 +8590,12 @@ msgstr "최초 임포트 시 Z축에서 자동으로 스톨 방향 지정"
 
 msgid "Printer preset names"
 msgstr "프린터 사전 설정 이름"
+
+msgid "Use 3rd-party print host"
+msgstr ""
+
+msgid "Allow controlling BambuLab's printer through 3rd party print hosts"
+msgstr ""
 
 msgid "Hostname, IP or URL"
 msgstr "호스트 이름, IP 또는 URL"
@@ -13795,8 +13807,8 @@ msgstr "단일 스레드 테스트 시작"
 msgid "Export Log"
 msgstr "로그 내보내기"
 
-msgid "Studio Version:"
-msgstr "스튜디오 버전:"
+msgid "OrcaSlicer Version:"
+msgstr ""
 
 msgid "System Version:"
 msgstr "시스템 버전:"
@@ -13804,50 +13816,17 @@ msgstr "시스템 버전:"
 msgid "DNS Server:"
 msgstr "DNS 서버:"
 
-msgid "Test BambuLab"
-msgstr "테스트 뱀부랩"
+msgid "Test OrcaSlicer(GitHub)"
+msgstr ""
 
-msgid "Test BambuLab:"
-msgstr "테스트 뱀부랩:"
+msgid "Test OrcaSlicer(GitHub):"
+msgstr ""
 
 msgid "Test Bing.com"
 msgstr "테스트 Bing.com"
 
 msgid "Test bing.com:"
 msgstr "테스트 Bing.com:"
-
-msgid "Test HTTP"
-msgstr "테스트 HTTP"
-
-msgid "Test HTTP Service:"
-msgstr "테스트 HTTP 서비스:"
-
-msgid "Test storage"
-msgstr "테스트 저장소"
-
-msgid "Test Storage Upload:"
-msgstr "테스트 저장소 업로드:"
-
-msgid "Test storage upgrade"
-msgstr "테스트 저장소 업그레이드"
-
-msgid "Test Storage Upgrade:"
-msgstr "테스트 저장소 업그레이드:"
-
-msgid "Test storage download"
-msgstr "테스트 저장소 다운로드"
-
-msgid "Test Storage Download:"
-msgstr "테스트 저장소 다운로드:"
-
-msgid "Test plugin download"
-msgstr "테스트 플러그인 다운로드"
-
-msgid "Test Plugin Download:"
-msgstr "테스트 플러그인 다운로드:"
-
-msgid "Test Storage Upload"
-msgstr "테스트 저장소 업로드"
 
 msgid "Log Info"
 msgstr "로그 정보"
@@ -14359,6 +14338,9 @@ msgstr "유효한 프린터 호스트 참조를 가져올 수 없습니다"
 msgid "Success!"
 msgstr "성공!"
 
+msgid "Are you sure to log out?"
+msgstr ""
+
 msgid "Refresh Printers"
 msgstr "프린터 새로 고침"
 
@@ -14388,6 +14370,9 @@ msgid ""
 msgstr ""
 "사용자 정의 CA 파일을 사용하려면 CA 파일을 인증서 저장소/키체인으로 가져오십"
 "시오."
+
+msgid "Login/Test"
+msgstr ""
 
 msgid "Connection to printers connected via the print host failed."
 msgstr "출력 호스트를 통해 연결된 프린터에 연결하지 못했습니다."
@@ -14900,6 +14885,48 @@ msgstr ""
 "뒤틀림 방지\n"
 "ABS 등 뒤틀림이 발생하기 쉬운 소재를 출력할 때, 히트베드 온도를 적절하게 높이"
 "면 뒤틀림 가능성을 줄일 수 있다는 사실을 알고 계셨나요?"
+
+#~ msgid "Studio Version:"
+#~ msgstr "스튜디오 버전:"
+
+#~ msgid "Test BambuLab"
+#~ msgstr "테스트 뱀부랩"
+
+#~ msgid "Test BambuLab:"
+#~ msgstr "테스트 뱀부랩:"
+
+#~ msgid "Test HTTP"
+#~ msgstr "테스트 HTTP"
+
+#~ msgid "Test HTTP Service:"
+#~ msgstr "테스트 HTTP 서비스:"
+
+#~ msgid "Test storage"
+#~ msgstr "테스트 저장소"
+
+#~ msgid "Test Storage Upload:"
+#~ msgstr "테스트 저장소 업로드:"
+
+#~ msgid "Test storage upgrade"
+#~ msgstr "테스트 저장소 업그레이드"
+
+#~ msgid "Test Storage Upgrade:"
+#~ msgstr "테스트 저장소 업그레이드:"
+
+#~ msgid "Test storage download"
+#~ msgstr "테스트 저장소 다운로드"
+
+#~ msgid "Test Storage Download:"
+#~ msgstr "테스트 저장소 다운로드:"
+
+#~ msgid "Test plugin download"
+#~ msgstr "테스트 플러그인 다운로드"
+
+#~ msgid "Test Plugin Download:"
+#~ msgstr "테스트 플러그인 다운로드:"
+
+#~ msgid "Test Storage Upload"
+#~ msgstr "테스트 저장소 업로드"
 
 #~ msgid ""
 #~ "The speed setting exceeds the printer's maximum speed "

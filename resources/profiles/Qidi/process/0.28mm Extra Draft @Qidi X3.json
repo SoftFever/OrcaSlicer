@@ -89,6 +89,6 @@
     "seam_gap": "15%",
     "sparse_infill_speed": "200",
     "top_shell_layers": "3",
-    "top_shell_thickness": "0.6",
+    "top_shell_thickness": "0.84",
     "wall_generator": "classic"
 }
