@@ -93,7 +93,7 @@ wxBoxSizer* NetworkTestDialog::create_info_sizer(wxWindow* parent)
 	sizer->Add(text_basic_info, 0, wxALL, 5);
 
 	wxBoxSizer* version_sizer = new wxBoxSizer(wxHORIZONTAL);
-	text_version_title = new wxStaticText(this, wxID_ANY, _L("Studio Version:"), wxDefaultPosition, wxDefaultSize, 0);
+	text_version_title = new wxStaticText(this, wxID_ANY, _L("OrcaSlicer Version:"), wxDefaultPosition, wxDefaultSize, 0);
 	text_version_title->Wrap(-1);
 	version_sizer->Add(text_version_title, 0, wxALL, 5);
 
@@ -139,11 +139,11 @@ wxBoxSizer* NetworkTestDialog::create_content_sizer(wxWindow* parent)
 	grid_sizer->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);
 
     StateColor btn_bg(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered), std::pair<wxColour, int>(wxColour(255,255,255), StateColor::Enabled));
-	btn_link = new Button(this, _L("Test BambuLab"));
+	btn_link = new Button(this, _L("Test OrcaSlicer(GitHub)"));
     btn_link->SetBackgroundColor(btn_bg);
 	grid_sizer->Add(btn_link, 0, wxEXPAND | wxALL, 5);
 
-	text_link_title = new wxStaticText(this, wxID_ANY, _L("Test BambuLab:"), wxDefaultPosition, wxDefaultSize, 0);
+	text_link_title = new wxStaticText(this, wxID_ANY, _L("Test OrcaSlicer(GitHub):"), wxDefaultPosition, wxDefaultSize, 0);
 	text_link_title->Wrap(-1);
 	grid_sizer->Add(text_link_title, 0, wxALIGN_RIGHT | wxALL, 5);
 
@@ -163,112 +163,14 @@ wxBoxSizer* NetworkTestDialog::create_content_sizer(wxWindow* parent)
 	text_bing_val = new wxStaticText(this, wxID_ANY, _L("N/A"), wxDefaultPosition, wxDefaultSize, 0);
 	text_bing_val->Wrap(-1);
 	grid_sizer->Add(text_bing_val, 0, wxALL, 5);
-
-	btn_iot = new Button(this, _L("Test HTTP"));
-    btn_iot->SetBackgroundColor(btn_bg);
-	grid_sizer->Add(btn_iot, 0, wxEXPAND | wxALL, 5);
-
-	text_iot_title = new wxStaticText(this, wxID_ANY, _L("Test HTTP Service:"), wxDefaultPosition, wxDefaultSize, 0);
-	text_iot_title->Wrap(-1);
-	grid_sizer->Add(text_iot_title, 0, wxALIGN_RIGHT | wxALL, 5);
-
-	text_iot_value = new wxStaticText(this, wxID_ANY, _L("N/A"), wxDefaultPosition, wxDefaultSize, 0);
-	text_iot_value->Wrap(-1);
-	grid_sizer->Add(text_iot_value, 0, wxALL, 5);
-
-	btn_oss = new Button(this, _L("Test storage"));
-    btn_oss->SetBackgroundColor(btn_bg);
-	grid_sizer->Add(btn_oss, 0, wxEXPAND | wxALL, 5);
-
-	text_oss_title = new wxStaticText(this, wxID_ANY, _L("Test Storage Upload:"), wxDefaultPosition, wxDefaultSize, 0);
-	text_oss_title->Wrap(-1);
-	grid_sizer->Add(text_oss_title, 0, wxALIGN_RIGHT | wxALL, 5);
-
-	text_oss_value = new wxStaticText(this, wxID_ANY, _L("N/A"), wxDefaultPosition, wxDefaultSize, 0);
-	text_oss_value->Wrap(-1);
-	grid_sizer->Add(text_oss_value, 0, wxALL, 5);
-
-	btn_oss_upgrade = new Button(this, _L("Test storage upgrade"));
-    btn_oss_upgrade->SetBackgroundColor(btn_bg);
-	grid_sizer->Add(btn_oss_upgrade, 0, wxEXPAND | wxALL, 5);
-
-	text_oss_upgrade_title = new wxStaticText(this, wxID_ANY, _L("Test Storage Upgrade:"), wxDefaultPosition, wxDefaultSize, 0);
-	text_oss_upgrade_title->Wrap(-1);
-	grid_sizer->Add(text_oss_upgrade_title, 0, wxALIGN_RIGHT | wxALL, 5);
-
-	text_oss_upgrade_value = new wxStaticText(this, wxID_ANY, _L("N/A"), wxDefaultPosition, wxDefaultSize, 0);
-	text_oss_upgrade_value->Wrap(-1);
-	grid_sizer->Add(text_oss_upgrade_value, 0, wxALL, 5);
-
-	btn_oss_download = new Button(this, _L("Test storage download"));
-    btn_oss_download->SetBackgroundColor(btn_bg);
-	grid_sizer->Add(btn_oss_download, 0, wxEXPAND | wxALL, 5);
-
-	text_oss_download_title = new wxStaticText(this, wxID_ANY, _L("Test Storage Download:"), wxDefaultPosition, wxDefaultSize, 0);
-	text_oss_download_title->Wrap(-1);
-	grid_sizer->Add(text_oss_download_title, 0, wxALIGN_RIGHT | wxALL, 5);
-
-	text_oss_download_value = new wxStaticText(this, wxID_ANY, _L("N/A"), wxDefaultPosition, wxDefaultSize, 0);
-	text_oss_download_value->Wrap(-1);
-	grid_sizer->Add(text_oss_download_value, 0, wxALL, 5);
-
-	btn_network_plugin=new Button(this, _L("Test plugin download"));
-    btn_network_plugin->SetBackgroundColor(btn_bg);
-	grid_sizer->Add(btn_network_plugin, 0, wxEXPAND | wxALL, 5);
-
-	text_network_plugin_title=new wxStaticText(this, wxID_ANY, _L("Test Plugin Download:"), wxDefaultPosition, wxDefaultSize, 0);
-	text_network_plugin_title->Wrap(-1);
-	grid_sizer->Add(text_network_plugin_title, 0, wxALIGN_RIGHT | wxALL, 5);
-
-	text_network_plugin_value=new wxStaticText(this, wxID_ANY, _L("N/A"), wxDefaultPosition, wxDefaultSize, 0);
-	text_network_plugin_value->Wrap(-1);
-	grid_sizer->Add(text_network_plugin_value, 0, wxALL, 5);
-
-
-	btn_oss_upload = new Button(this, _L("Test Storage Upload"));
-    btn_oss_upload->SetBackgroundColor(btn_bg);
-	grid_sizer->Add(btn_oss_upload, 0, wxEXPAND | wxALL, 5);
-
-	text_oss_upload_title = new wxStaticText(this, wxID_ANY, _L("Test Storage Upload:"), wxDefaultPosition, wxDefaultSize, 0);
-	text_oss_upload_title->Wrap(-1);
-	grid_sizer->Add(text_oss_upload_title, 0, wxALIGN_RIGHT | wxALL, 5);
-
-	text_oss_upload_value = new wxStaticText(this, wxID_ANY, _L("N/A"), wxDefaultPosition, wxDefaultSize, 0);
-	text_oss_upload_value->Wrap(-1);
-	grid_sizer->Add(text_oss_upload_value, 0, wxALL, 5);
-
-	btn_oss_upload->Hide();
-	text_oss_upload_title->Hide();
-	text_oss_upload_value->Hide();
-
 	sizer->Add(grid_sizer, 1, wxEXPAND, 5);
 
 	btn_link->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
-		start_test_bambulab_thread();
+		start_test_github_thread();
 	});
 
 	btn_bing->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
 		start_test_bing_thread();
-	});
-
-	btn_iot->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
-		start_test_iot_thread();
-	});
-
-	btn_oss->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
-		start_test_oss_thread();
-	});
-
-	btn_oss_upgrade->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
-		start_test_oss_upgrade_thread();
-	});
-
-	btn_oss_download->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
-		start_test_oss_download_thread();
-	});
-
-	btn_network_plugin->Bind(wxEVT_BUTTON, [this](wxCommandEvent &evt) {
-		start_test_plugin_download_thread(); 
 	});
 
 	return sizer;
@@ -293,23 +195,11 @@ NetworkTestDialog::~NetworkTestDialog()
 void NetworkTestDialog::init_bind()
 {
 	Bind(EVT_UPDATE_RESULT, [this](wxCommandEvent& evt) {
-		if (evt.GetInt() == TEST_BAMBULAB_JOB) {
+		if (evt.GetInt() == TEST_ORCA_JOB) {
 			text_link_val->SetLabelText(evt.GetString());
 		} else if (evt.GetInt() == TEST_BING_JOB) {
 			text_bing_val->SetLabelText(evt.GetString());
-		} else if (evt.GetInt() == TEST_IOT_JOB) {
-			text_iot_value->SetLabelText(evt.GetString());
-		} else if (evt.GetInt() == TEST_OSS_JOB) {
-			text_oss_value->SetLabelText(evt.GetString());
-		} else if (evt.GetInt() == TEST_OSS_UPGRADE_JOB) {
-			text_oss_upgrade_value->SetLabelText(evt.GetString());
-		} else if (evt.GetInt() == TEST_OSS_DOWNLOAD_JOB) {
-			text_oss_download_value->SetLabelText(evt.GetString());
-		} else if (evt.GetInt() == TEST_OSS_UPLOAD_JOB) {
-			text_oss_upload_value->SetLabelText(evt.GetString());
-		} else if (evt.GetInt() == TEST_PLUGIN_JOB){
-			text_network_plugin_value->SetLabelText(evt.GetString());
-        }
+		}
 
 		std::time_t t = std::time(0);
 		std::tm* now_time = std::localtime(&t);
@@ -350,46 +240,35 @@ wxString NetworkTestDialog::get_dns_info()
 
 void NetworkTestDialog::start_all_job()
 {
-	start_test_bambulab_thread();
+	start_test_github_thread();
 	start_test_bing_thread();
-	
-	start_test_iot_thread();
-	start_test_oss_thread();
-	start_test_oss_upgrade_thread();
-	start_test_oss_download_thread();
-	start_test_plugin_download_thread();
-	start_test_ping_thread();
 }
 
 void NetworkTestDialog::start_all_job_sequence()
 {
 	m_sequence_job = new boost::thread([this] {
 		update_status(-1, "start_test_sequence");
-		start_test_bing();
+        start_test_url(TEST_BING_JOB, "Bing", "http://www.bing.com");
+        if (m_closing) return;
+		start_test_url(TEST_ORCA_JOB, "OrcaSlicer(GitHub)", "https://github.com/SoftFever/OrcaSlicer");
 		if (m_closing) return;
-		start_test_bambulab();
-		if (m_closing) return;
-		start_test_oss();
-		if (m_closing) return;
-		start_test_oss_upgrade();
-		if (m_closing) return;
-		start_test_oss_download();
-		if (m_closing) return;
-		start_test_plugin_download();
 		update_status(-1, "end_test_sequence");
 	});
 }
 
-void NetworkTestDialog::start_test_bing()
+void NetworkTestDialog::start_test_url(TestJob job, wxString name, wxString url)
 {
-	m_in_testing[TEST_BING_JOB] = true;
-	update_status(TEST_BING_JOB, "test bing start...");
+	m_in_testing[job] = true;
+	wxString info = wxString::Format("test %s start...", name);
 
-	std::string url = "http://www.bing.com/";
-	Slic3r::Http http = Slic3r::Http::get(url);
-	update_status(-1, "[test_bing]: url=" + url);
+	update_status(job, info);
 
-	int result = -1;
+	Slic3r::Http http = Slic3r::Http::get(url.ToStdString());
+	info = wxString::Format("[test %s]: url=%s", name,url);
+
+    update_status(-1, info);
+
+    int result = -1;
 	http.timeout_max(10)
 		.on_complete([this, &result](std::string body, unsigned status) {
 			try {
@@ -401,477 +280,19 @@ void NetworkTestDialog::start_test_bing()
 				;
 			}
 		})
-		.on_ip_resolve([this](std::string ip) {
-			wxString ip_report = wxString::Format("test bing ip resolved = %s", ip);
-			update_status(TEST_BING_JOB, ip_report);
+		.on_ip_resolve([this,name,job](std::string ip) {
+			wxString ip_report = wxString::Format("test %s ip resolved = %s", name, ip);
+			update_status(job, ip_report);
 		})
-		.on_error([this](std::string body, std::string error, unsigned int status) {
+		.on_error([this,name,job](std::string body, std::string error, unsigned int status) {
 		wxString info = wxString::Format("status=%u, body=%s, error=%s", status, body, error);
-		this->update_status(TEST_BING_JOB, "test bing failed");
-		this->update_status(-1, info);
+        this->update_status(job, wxString::Format("test %s failed", name));
+        this->update_status(-1, info);
 	}).perform_sync();
 	if (result == 0) {
-		update_status(TEST_BING_JOB, "test bing ok");
-	}
-	m_in_testing[TEST_BING_JOB] = false;
-}
-
-void NetworkTestDialog::start_test_bambulab()
-{
-	m_in_testing[TEST_BAMBULAB_JOB] = true;
-	update_status(TEST_BAMBULAB_JOB, "test bambulab start...");
-
-	std::string platform = "windows";
-
-#ifdef __WINDOWS__
-	platform = "windows";
-#endif
-#ifdef __APPLE__
-	platform = "macos";
-#endif
-#ifdef __LINUX__
-	platform = "linux";
-#endif
-	std::string query_params = (boost::format("?name=slicer&version=%1%&guide_version=%2%")
-		% VersionInfo::convert_full_version(SLIC3R_VERSION)
-		% VersionInfo::convert_full_version("0.0.0.1")
-		).str();
-
-	AppConfig* app_config = wxGetApp().app_config;
-	std::string url = wxGetApp().get_http_url(app_config->get_country_code()) + query_params;
-	Slic3r::Http http = Slic3r::Http::get(url);
-	update_status(-1, "[test_bambulab]: url=" + url);
-	int result = -1;
-	http.header("accept", "application/json")
-		.timeout_max(10)
-		.on_complete([this, &result](std::string body, unsigned status) {
-			try {
-				if (status == 200) {
-					result = 0;
-				}
-			}
-			catch (...) {
-				;
-			}
-		})
-		.on_ip_resolve([this](std::string ip) {
-			wxString ip_report = wxString::Format("test bambulab ip resolved = %s", ip);
-			update_status(TEST_BAMBULAB_JOB, ip_report);
-		})
-		.on_error([this](std::string body, std::string error, unsigned int status) {
-			wxString info = wxString::Format("status=%u, body=%s, error=%s", status, body, error);
-			this->update_status(TEST_BAMBULAB_JOB, "test bambulab failed");
-			this->update_status(-1, info);
-		}).perform_sync();
-	if (result == 0) {
-		update_status(TEST_BAMBULAB_JOB, "test bambulab ok");
-	}
-	m_in_testing[TEST_BAMBULAB_JOB] = false;
-}
-
-void NetworkTestDialog::start_test_iot()
-{
-	m_in_testing[TEST_IOT_JOB] = true;
-	update_status(TEST_IOT_JOB, "test http start...");
-	NetworkAgent* agent = wxGetApp().getAgent();
-	if (agent) {
-		unsigned int http_code;
-		std::string http_body;
-		if (!agent->is_user_login()) {
-			update_status(TEST_IOT_JOB, "please login first");
-		} else {
-			int result = agent->get_user_print_info(&http_code, &http_body);
-			if (result == 0) {
-				update_status(TEST_IOT_JOB, "test http ok");
-			} else {
-				update_status(TEST_IOT_JOB, "test http failed");
-				wxString info = wxString::Format("test http failed, status = %u, error = %s", http_code, http_body);
-				update_status(-1, info);
-			}
-		}
-	} else {
-		update_status(TEST_IOT_JOB, "please install network module first");
-	}
-	m_in_testing[TEST_IOT_JOB] = false;
-}
-
-void NetworkTestDialog::start_test_oss()
-{
-	m_in_testing[TEST_OSS_JOB] = true;
-	update_status(TEST_OSS_JOB, "test storage start...");
-
-	std::string url = "http://upload-file.bambulab.com";
-
-	AppConfig* config = wxGetApp().app_config;
-	if (config) {
-		if (config->get_country_code() == "CN")
-			url = "http://upload-file.bambulab.cn";
-	}
-
-	Slic3r::Http http = Slic3r::Http::get(url);
-	update_status(-1, "[test_oss]: url=" + url);
-
-	int result = -1;
-	http.timeout_max(15)
-		.on_complete([this, &result](std::string body, unsigned status) {
-		try {
-			if (status == 200) {
-				result = 0;
-			}
-		}
-		catch (...) {
-			;
-		}
-			})
-		.on_ip_resolve([this](std::string ip) {
-			wxString ip_report = wxString::Format("test oss ip resolved = %s", ip);
-			update_status(TEST_OSS_JOB, ip_report);
-		})
-		.on_error([this, &result](std::string body, std::string error, unsigned int status) {
-			if (status == 403) {
-				result = 0;
-			} else {
-				wxString info = wxString::Format("status=%u, body=%s, error=%s", status, body, error);
-				this->update_status(TEST_OSS_JOB, "test storage failed");
-				this->update_status(-1, info);
-			}
-		}).perform_sync();
-		if (result == 0) {
-			update_status(TEST_OSS_JOB, "test storage ok");
-		}
-	m_in_testing[TEST_OSS_JOB] = false;
-}
-
-void NetworkTestDialog::start_test_oss_upgrade()
-{
-	m_in_testing[TEST_OSS_UPGRADE_JOB] = true;
-	update_status(TEST_OSS_UPGRADE_JOB, "test storage upgrade start...");
-
-	std::string url = "http://upgrade-file.bambulab.com";
-
-	AppConfig* config = wxGetApp().app_config;
-	if (config) {
-		if (config->get_country_code() == "CN")
-			url = "http://upgrade-file.bambulab.cn";
-	}
-
-	Slic3r::Http http = Slic3r::Http::get(url);
-	update_status(-1, "[test_oss_upgrade]: url=" + url);
-
-	int result = -1;
-	http.timeout_max(15)
-		.on_complete([this, &result](std::string body, unsigned status) {
-		try {
-			if (status == 200) {
-				result = 0;
-			}
-		}
-		catch (...) {
-			;
-		}
-			})
-		.on_ip_resolve([this](std::string ip) {
-				wxString ip_report = wxString::Format("test storage upgrade ip resolved = %s", ip);
-				update_status(TEST_OSS_UPGRADE_JOB, ip_report);
-			})
-		.on_error([this, &result](std::string body, std::string error, unsigned int status) {
-			if (status == 403) {
-				result = 0;
-			}
-			else {
-				wxString info = wxString::Format("status=%u, body=%s, error=%s", status, body, error);
-				this->update_status(TEST_OSS_UPGRADE_JOB, "test storage upgrade failed");
-				this->update_status(-1, info);
-			}
-		}).perform_sync();
-
-	if (result == 0) {
-		update_status(TEST_OSS_UPGRADE_JOB, "test storage upgrade ok");
-	}
-	m_in_testing[TEST_OSS_UPGRADE_JOB] = false;
-}
-
-void NetworkTestDialog::start_test_oss_download()
-{
-	int result = 0;
-	// get country_code
-	AppConfig* app_config = wxGetApp().app_config;
-	if (!app_config) {
-		update_status(TEST_OSS_DOWNLOAD_JOB, "app config is nullptr");
-		return;
-	}
-
-	m_in_testing[TEST_OSS_DOWNLOAD_JOB] = true;
-	update_status(TEST_OSS_DOWNLOAD_JOB, "test storage download start...");
-	m_download_cancel = false;
-	// get temp path
-	fs::path target_file_path = (fs::temp_directory_path() / "test_storage_download.zip");
-	fs::path tmp_path = target_file_path;
-	tmp_path += (boost::format(".%1%%2%") % get_current_pid() % ".tmp").str();
-
-	// get_url
-	std::string url = wxGetApp().get_plugin_url("plugins", app_config->get_country_code());
-	std::string download_url;
-	Slic3r::Http http_url = Slic3r::Http::get(url);
-	update_status(-1, "[test_oss_download]: url=" + url);
-
-	http_url.on_complete(
-		[&download_url](std::string body, unsigned status) {
-			try {
-				json j = json::parse(body);
-				std::string message = j["message"].get<std::string>();
-                
-				if (message == "success") {
-					json resource = j.at("resources");
-					if (resource.is_array()) {
-						for (auto iter = resource.begin(); iter != resource.end(); iter++) {
-							Semver version;
-							std::string url;
-							std::string type;
-							std::string vendor;
-							std::string description;
-							for (auto sub_iter = iter.value().begin(); sub_iter != iter.value().end(); sub_iter++) {
-								if (boost::iequals(sub_iter.key(), "type")) {
-									type = sub_iter.value();
-									BOOST_LOG_TRIVIAL(info) << "[test_storage_download]: get version of settings's type, " << sub_iter.value();
-								}
-								else if (boost::iequals(sub_iter.key(), "version")) {
-									version = *(Semver::parse(sub_iter.value()));
-								}
-								else if (boost::iequals(sub_iter.key(), "description")) {
-									description = sub_iter.value();
-								}
-								else if (boost::iequals(sub_iter.key(), "url")) {
-									url = sub_iter.value();
-								}
-							}
-							BOOST_LOG_TRIVIAL(info) << "[test_storage_download]: get type " << type << ", version " << version.to_string() << ", url " << url;
-							download_url = url;
-						}
-					}
-				}
-				else {
-					BOOST_LOG_TRIVIAL(info) << "[test_storage_download]: get version of plugin failed, body=" << body;
-				}
-			}
-			catch (...) {
-				BOOST_LOG_TRIVIAL(error) << "[test_storage_download]: catch unknown exception";
-				;
-			}
-		}).on_error(
-			[&result, this](std::string body, std::string error, unsigned int status) {
-				BOOST_LOG_TRIVIAL(error) << "[test_storage_download] on_error: " << error << ", body = " << body;
-				wxString info = wxString::Format("status=%u, body=%s, error=%s", status, body, error);
-				this->update_status(TEST_OSS_DOWNLOAD_JOB, "test storage download failed");
-				this->update_status(-1, info);
-				result = -1;
-		}).perform_sync();
-
-	if (result < 0) {
-		this->update_status(TEST_OSS_DOWNLOAD_JOB, "test storage download failed");
-		m_in_testing[TEST_OSS_DOWNLOAD_JOB] = false;
-		return;
-	}
-
-	if (download_url.empty()) {
-		BOOST_LOG_TRIVIAL(info) << "[test_oss_download]: no availaible plugin found for this app version: " << SLIC3R_VERSION;
-		this->update_status(TEST_OSS_DOWNLOAD_JOB, "test storage download failed");
-		m_in_testing[TEST_OSS_DOWNLOAD_JOB] = false;
-		return;
-	}
-	if (m_download_cancel) {
-		this->update_status(TEST_OSS_DOWNLOAD_JOB, "test storage download canceled");
-		m_in_testing[TEST_OSS_DOWNLOAD_JOB] = false;
-		return;
-	}
-
-	bool cancel = false;
-	BOOST_LOG_TRIVIAL(info) << "[test_storage_download] get_url = " << download_url;
-
-	// download
-	Slic3r::Http http = Slic3r::Http::get(download_url);
-	int reported_percent = 0;
-	http.on_progress(
-		[this, &result, &reported_percent](Slic3r::Http::Progress progress, bool& cancel) {
-			int percent = 0;
-			if (progress.dltotal != 0) {
-				percent = progress.dlnow * 100 / progress.dltotal;
-			}
-			if (percent - reported_percent >= 10) {
-				reported_percent = percent;
-				std::string download_progress_info = (boost::format("downloading %1%%%") % percent).str();
-				this->update_status(TEST_OSS_DOWNLOAD_JOB, download_progress_info);
-			}
-
-			BOOST_LOG_TRIVIAL(info) << "[test_storage_download] progress: " << reported_percent;
-			cancel = m_download_cancel;
-
-			if (cancel)
-				result = -1;
-		})
-		.on_complete([this, tmp_path, target_file_path](std::string body, unsigned status) {
-			BOOST_LOG_TRIVIAL(info) << "[test_storage_download] completed";
-			bool cancel = false;
-			fs::fstream file(tmp_path, std::ios::out | std::ios::binary | std::ios::trunc);
-			file.write(body.c_str(), body.size());
-			file.close();
-			fs::rename(tmp_path, target_file_path);
-			//this->update_status(TEST_OSS_DOWNLOAD_JOB, "test storage download ok");
-		})
-		.on_error([this, &result](std::string body, std::string error, unsigned int status) {
-			BOOST_LOG_TRIVIAL(error) << "[test_oss_download] downloading... on_error: " << error << ", body = " << body;
-			wxString info = wxString::Format("status=%u, body=%s, error=%s", status, body, error);
-			this->update_status(TEST_OSS_DOWNLOAD_JOB, "test storage download failed");
-			this->update_status(-1, info);
-			result = -1;
-		});
-	http.perform_sync();
-	if (result < 0) {
-		this->update_status(TEST_OSS_DOWNLOAD_JOB, "test storage download failed");
-	} else {
-		this->update_status(TEST_OSS_DOWNLOAD_JOB, "test storage download ok");
-	}
-	m_in_testing[TEST_OSS_DOWNLOAD_JOB] = false;
-	return;
-}
-
-void NetworkTestDialog::start_test_oss_upload()
-{
-	
-}
-
-void NetworkTestDialog:: start_test_plugin_download(){
-    int result = 0;
-    // get country_code
-    AppConfig *app_config = wxGetApp().app_config;
-    if (!app_config) {
-        update_status(TEST_PLUGIN_JOB, "app config is nullptr");
-        return;
+        update_status(job, wxString::Format("test %s ok", name));
     }
-
-    m_in_testing[TEST_PLUGIN_JOB] = true;
-    update_status(TEST_PLUGIN_JOB, "test plugin download start...");
-    m_download_cancel = false;
-    // get temp path
-    fs::path target_file_path = (fs::temp_directory_path() / "test_plugin_download.zip");
-    fs::path tmp_path         = target_file_path;
-    tmp_path += (boost::format(".%1%%2%") % get_current_pid() % ".tmp").str();
-
-    // get_url
-    std::string  url = wxGetApp().get_plugin_url("plugins", app_config->get_country_code());
-    std::string  download_url;
-    Slic3r::Http http_url = Slic3r::Http::get(url);
-    http_url
-        .on_complete([&download_url,this](std::string body, unsigned status) {
-            try {
-                json        j       = json::parse(body);
-                std::string message = j["message"].get<std::string>();
-
-                if (message == "success") {
-                    json resource = j.at("resources");
-                    if (resource.is_array()) {
-                        for (auto iter = resource.begin(); iter != resource.end(); iter++) {
-                            Semver      version;
-                            std::string url;
-                            std::string type;
-                            std::string vendor;
-                            std::string description;
-                            for (auto sub_iter = iter.value().begin(); sub_iter != iter.value().end(); sub_iter++) {
-                                if (boost::iequals(sub_iter.key(), "type")) {
-                                    type = sub_iter.value();
-                                    BOOST_LOG_TRIVIAL(info) << "[test_plugin_download]: get version of settings's type, " << sub_iter.value();
-                                } else if (boost::iequals(sub_iter.key(), "version")) {
-                                    version = *(Semver::parse(sub_iter.value()));
-                                } else if (boost::iequals(sub_iter.key(), "description")) {
-                                    description = sub_iter.value();
-                                } else if (boost::iequals(sub_iter.key(), "url")) {
-                                    url = sub_iter.value();
-                                }
-                            }
-                            BOOST_LOG_TRIVIAL(info) << "[test_plugin_download]: get type " << type << ", version " << version.to_string() << ", url " << url;
-                            download_url = url;
-                           this->update_status(-1, "[test_plugin_download]: downloadurl=" + download_url);
-                        }
-                    }
-                } else {
-                    BOOST_LOG_TRIVIAL(info) << "[test_plugin_download]: get version of plugin failed, body=" << body;
-                }
-            } catch (...) {
-                BOOST_LOG_TRIVIAL(error) << "[test_plugin_download]: catch unknown exception";
-                ;
-            }
-        })
-        .on_error([&result, this](std::string body, std::string error, unsigned int status) {
-            BOOST_LOG_TRIVIAL(error) << "[test_plugin_download] on_error: " << error << ", body = " << body;
-            wxString info = wxString::Format("status=%u, body=%s, error=%s", status, body, error);
-            this->update_status(TEST_PLUGIN_JOB, "test plugin download failed");
-            this->update_status(-1, info);
-            result = -1;
-        })
-        .perform_sync();
-     
-
-    if (result < 0) {
-        this->update_status(TEST_PLUGIN_JOB, "test plugin download failed");
-        m_in_testing[TEST_PLUGIN_JOB] = false;
-        return;
-    }
-
-    if (download_url.empty()) {
-        BOOST_LOG_TRIVIAL(info) << "[test_plugin_download]: no availaible plugin found for this app version: " << SLIC3R_VERSION;
-        this->update_status(TEST_PLUGIN_JOB, "test plugin download failed");
-        m_in_testing[TEST_PLUGIN_JOB] = false;
-        return;
-    }
-    if (m_download_cancel) {
-        this->update_status(TEST_PLUGIN_JOB, "test plugin download canceled");
-        m_in_testing[TEST_PLUGIN_JOB] = false;
-        return;
-    }
-
-    bool cancel = false;
-    BOOST_LOG_TRIVIAL(info) << "[test_plugin_download] get_url = " << download_url;
-
-    // download
-    Slic3r::Http http             = Slic3r::Http::get(download_url);
-    int          reported_percent = 0;
-    http.on_progress([this, &result, &reported_percent](Slic3r::Http::Progress progress, bool &cancel) {
-            int percent = 0;
-            if (progress.dltotal != 0) { percent = progress.dlnow * 100 / progress.dltotal; }
-            if (percent - reported_percent >= 5) {
-                reported_percent                   = percent;
-                std::string download_progress_info = (boost::format("downloading %1%%%") % percent).str();
-                this->update_status(TEST_PLUGIN_JOB, download_progress_info);
-            }
-
-            BOOST_LOG_TRIVIAL(info) << "[test_plugin_download] progress: " << reported_percent;
-            cancel = m_download_cancel;
-
-            if (cancel) result = -1;
-        })
-        .on_complete([this, tmp_path, target_file_path](std::string body, unsigned status) {
-            BOOST_LOG_TRIVIAL(info) << "[test_plugin_download] completed";
-            bool        cancel = false;
-            fs::fstream file(tmp_path, std::ios::out | std::ios::binary | std::ios::trunc);
-            file.write(body.c_str(), body.size());
-            file.close();
-            fs::rename(tmp_path, target_file_path);
-        })
-        .on_error([this, &result](std::string body, std::string error, unsigned int status) {
-            BOOST_LOG_TRIVIAL(error) << "[test_plugin_download] downloading... on_error: " << error << ", body = " << body;
-            wxString info = wxString::Format("status=%u, body=%s, error=%s", status, body, error);
-            this->update_status(TEST_PLUGIN_JOB, "test plugin download failed");
-            this->update_status(-1, info);
-            result = -1;
-        });
-    http.perform_sync();
-    if (result < 0) {
-        this->update_status(TEST_PLUGIN_JOB, "test plugin download failed");
-    } else {
-        this->update_status(TEST_PLUGIN_JOB, "test plugin download ok");
-    }
-    m_in_testing[TEST_PLUGIN_JOB] = false;
-    return;
+	m_in_testing[job] = false;
 }
 
 void NetworkTestDialog::start_test_ping_thread()
@@ -882,63 +303,19 @@ void NetworkTestDialog::start_test_ping_thread()
 		m_in_testing[TEST_PING_JOB] = false;
 	});
 }
-
+void NetworkTestDialog::start_test_github_thread()
+{
+    if (m_in_testing[TEST_ORCA_JOB])
+        return;
+    test_job[TEST_ORCA_JOB] = new boost::thread([this] {
+        start_test_url(TEST_ORCA_JOB, "OrcaSlicer(GitHub)", "https://github.com/SoftFever/OrcaSlicer");
+    });
+}
 void NetworkTestDialog::start_test_bing_thread()
 {
-	test_job[TEST_BING_JOB] = new boost::thread([this] {
-		start_test_bing();
-	});
-}
-
-void NetworkTestDialog::start_test_bambulab_thread()
-{
-	if (m_in_testing[TEST_BAMBULAB_JOB]) return;
-	test_job[TEST_BAMBULAB_JOB] = new boost::thread([this] {
-		start_test_bambulab();
-	});
-}
-
-void NetworkTestDialog::start_test_iot_thread()
-{
-	if (m_in_testing[TEST_IOT_JOB]) return;
-	test_job[TEST_IOT_JOB] = new boost::thread([this] {
-		start_test_iot();
-	});
-}
-
-void NetworkTestDialog::start_test_oss_thread()
-{
-	test_job[TEST_OSS_JOB] = new boost::thread([this] {
-		start_test_oss();
-	});
-}
-
-void NetworkTestDialog::start_test_oss_upgrade_thread()
-{
-	test_job[TEST_OSS_UPGRADE_JOB] = new boost::thread([this] {
-		start_test_oss_upgrade();
-	});
-}
-
-void NetworkTestDialog::start_test_oss_download_thread()
-{
-	test_job[TEST_OSS_DOWNLOAD_JOB] = new boost::thread([this] {
-		start_test_oss_download();
-	});
-}
-
-void NetworkTestDialog::start_test_oss_upload_thread()
-{
-	test_job[TEST_OSS_UPLOAD_JOB] = new boost::thread([this] {
-		start_test_oss_upload();
-	});
-}
-
-void NetworkTestDialog:: start_test_plugin_download_thread(){
-
-	test_job[TEST_PLUGIN_JOB] = new boost::thread([this] { 
-		start_test_plugin_download(); 
-	});
+    test_job[TEST_BING_JOB] = new boost::thread([this] {
+        start_test_url(TEST_BING_JOB, "Bing", "http://www.bing.com");
+    });
 }
 
 void NetworkTestDialog::on_close(wxCloseEvent& event)
@@ -958,7 +335,7 @@ void NetworkTestDialog::on_close(wxCloseEvent& event)
 
 wxString NetworkTestDialog::get_studio_version()
 {
-	return wxString(SLIC3R_VERSION);
+	return wxString(SoftFever_VERSION);
 }
 
 void NetworkTestDialog::set_default()
@@ -975,13 +352,6 @@ void NetworkTestDialog::set_default()
 	txt_dns_info_value->SetLabelText(get_dns_info());
 	text_link_val->SetLabelText(NA_STR);
 	text_bing_val->SetLabelText(NA_STR);
-	text_iot_value->SetLabelText(NA_STR);
-	text_oss_value->SetLabelText(NA_STR);
-	text_oss_upgrade_value->SetLabelText(NA_STR);
-	text_oss_download_value->SetLabelText(NA_STR);
-	text_oss_upload_value->SetLabelText(NA_STR);
-	text_network_plugin_value->SetLabelText(NA_STR);
-	//text_ping_value->SetLabelText(NA_STR);
 	m_download_cancel = false;
 	m_closing = false;
 }

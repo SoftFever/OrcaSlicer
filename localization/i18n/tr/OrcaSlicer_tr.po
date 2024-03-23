@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OrcaSlicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-16 17:57+0800\n"
+"POT-Creation-Date: 2024-03-22 19:58+0800\n"
 "PO-Revision-Date: 2024-03-14 22:00+0300\n"
 "Last-Translator: Olcay ÖREN\n"
 "Language-Team: Türkçe\n"
@@ -6120,6 +6120,9 @@ msgstr "Giriş Bölgesi"
 msgid "Stealth Mode"
 msgstr "Gizli mod"
 
+msgid "Enable network plugin"
+msgstr ""
+
 msgid "Check for stable updates only"
 msgstr "Yalnızca kararlı güncellemeleri kontrol edin"
 
@@ -6176,6 +6179,9 @@ msgstr "Hacimleri temizleme: Renk her değiştiğinde otomatik olarak hesapla."
 
 msgid "If enabled, auto-calculate everytime the color changed."
 msgstr "Etkinleştirilirse, renk her değiştiğinde otomatik hesapla."
+
+msgid "Network"
+msgstr ""
 
 msgid "Auto sync user presets(Printer/Filament/Process)"
 msgstr "Kullanıcı ön ayarları otomatik senkronizasyon (Yazıcı/Filament/İşlem)"
@@ -14195,8 +14201,8 @@ msgstr "Tek İş Parçacığı Testini Başlat"
 msgid "Export Log"
 msgstr "Logu Dışa Aktar"
 
-msgid "Studio Version:"
-msgstr "Stüdyo Sürümü:"
+msgid "OrcaSlicer Version:"
+msgstr ""
 
 msgid "System Version:"
 msgstr "Sistem Versiyonu:"
@@ -14204,50 +14210,17 @@ msgstr "Sistem Versiyonu:"
 msgid "DNS Server:"
 msgstr "Dns sunucusu:"
 
-msgid "Test BambuLab"
-msgstr "BambuLab'ı test edin"
+msgid "Test OrcaSlicer(GitHub)"
+msgstr ""
 
-msgid "Test BambuLab:"
-msgstr "BambuLab'ı test edin"
+msgid "Test OrcaSlicer(GitHub):"
+msgstr ""
 
 msgid "Test Bing.com"
 msgstr "Bing.com'u test edin"
 
 msgid "Test bing.com:"
 msgstr "Bing.com'u test edin:"
-
-msgid "Test HTTP"
-msgstr "HTTP'yi test et"
-
-msgid "Test HTTP Service:"
-msgstr "HTTP Hizmetini Test Edin:"
-
-msgid "Test storage"
-msgstr "Test depolaması"
-
-msgid "Test Storage Upload:"
-msgstr "Depolama Yüklemesini Test Et:"
-
-msgid "Test storage upgrade"
-msgstr "Depolama yükseltmesini test edin"
-
-msgid "Test Storage Upgrade:"
-msgstr "Depolama Yükseltmesini Test Edin:"
-
-msgid "Test storage download"
-msgstr "Test depolama indirmesi"
-
-msgid "Test Storage Download:"
-msgstr "Test Depolama İndirme:"
-
-msgid "Test plugin download"
-msgstr "Test eklentisi indirme"
-
-msgid "Test Plugin Download:"
-msgstr "Test Eklentisini İndirin:"
-
-msgid "Test Storage Upload"
-msgstr "Depolama Yüklemesini Test Etme"
 
 msgid "Log Info"
 msgstr "Günlük Bilgisi"
@@ -15321,6 +15294,48 @@ msgstr ""
 "ABS gibi bükülmeye yatkın malzemelere baskı yaparken, ısıtma yatağı "
 "sıcaklığının uygun şekilde arttırılmasının bükülme olasılığını "
 "azaltabileceğini biliyor muydunuz?"
+
+#~ msgid "Studio Version:"
+#~ msgstr "Stüdyo Sürümü:"
+
+#~ msgid "Test BambuLab"
+#~ msgstr "BambuLab'ı test edin"
+
+#~ msgid "Test BambuLab:"
+#~ msgstr "BambuLab'ı test edin"
+
+#~ msgid "Test HTTP"
+#~ msgstr "HTTP'yi test et"
+
+#~ msgid "Test HTTP Service:"
+#~ msgstr "HTTP Hizmetini Test Edin:"
+
+#~ msgid "Test storage"
+#~ msgstr "Test depolaması"
+
+#~ msgid "Test Storage Upload:"
+#~ msgstr "Depolama Yüklemesini Test Et:"
+
+#~ msgid "Test storage upgrade"
+#~ msgstr "Depolama yükseltmesini test edin"
+
+#~ msgid "Test Storage Upgrade:"
+#~ msgstr "Depolama Yükseltmesini Test Edin:"
+
+#~ msgid "Test storage download"
+#~ msgstr "Test depolama indirmesi"
+
+#~ msgid "Test Storage Download:"
+#~ msgstr "Test Depolama İndirme:"
+
+#~ msgid "Test plugin download"
+#~ msgstr "Test eklentisi indirme"
+
+#~ msgid "Test Plugin Download:"
+#~ msgstr "Test Eklentisini İndirin:"
+
+#~ msgid "Test Storage Upload"
+#~ msgstr "Depolama Yüklemesini Test Etme"
 
 #~ msgid ""
 #~ "The speed setting exceeds the printer's maximum speed "
