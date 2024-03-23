@@ -23,7 +23,7 @@
 namespace Slic3r { namespace GUI {
 
 PrinterCloudAuthDialog::PrinterCloudAuthDialog(wxWindow* parent, PrintHost* host)
-    : wxDialog((wxWindow*) (wxGetApp().mainframe), wxID_ANY, "Login"), m_host(host)
+    : wxDialog((wxWindow*) (wxGetApp().mainframe), wxID_ANY, "Login")
 {
     SetBackgroundColour(*wxWHITE);
     // Url
@@ -91,7 +91,6 @@ void PrinterCloudAuthDialog::OnScriptMessage(wxWebViewEvent& evt)
         wxString strCmd = j["command"];
         if (strCmd == "login_token") {
             auto token = j["data"]["token"];
-            m_host->set_api_key(token);
             m_apikey = token;
         }
         Close();

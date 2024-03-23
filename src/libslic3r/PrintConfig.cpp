@@ -104,7 +104,8 @@ static t_config_enum_values s_keys_map_PrintHostType {
     { "repetier",       htRepetier },
     { "mks",            htMKS },
     { "obico",          htObico },
-    { "flashforge",     htFlashforge}
+    { "flashforge",     htFlashforge },
+    { "simplyprint",    htSimplyPrint },
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(PrintHostType)
 
@@ -541,6 +542,13 @@ void PrintConfigDef::init_common_params()
     //def->tooltip = L("Names of presets related to the physical printer");
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionStrings());
+
+    def = this->add("bbl_use_printhost", coBool);
+    def->label = L("Use 3rd-party print host");
+    def->tooltip = L("Allow controlling BambuLab's printer through 3rd party print hosts");
+    def->mode = comAdvanced;
+    def->cli = ConfigOptionDef::nocli;
+    def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("print_host", coString);
     def->label = L("Hostname, IP or URL");
@@ -3068,6 +3076,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->enum_values.push_back("mks");
     def->enum_values.push_back("obico");
     def->enum_values.push_back("flashforge");
+    def->enum_values.push_back("simplyprint");
     def->enum_labels.push_back("PrusaLink");
     def->enum_labels.push_back("PrusaConnect");
     def->enum_labels.push_back("Octo/Klipper");
@@ -3078,6 +3087,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->enum_labels.push_back("MKS");
     def->enum_labels.push_back("Obico");
     def->enum_labels.push_back("Flashforge");
+    def->enum_labels.push_back("SimplyPrint");
     def->mode = comAdvanced;
     def->cli = ConfigOptionDef::nocli;
     def->set_default_value(new ConfigOptionEnum<PrintHostType>(htOctoPrint));

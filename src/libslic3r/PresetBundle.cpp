@@ -344,6 +344,13 @@ VendorType PresetBundle::get_current_vendor_type()
     return t;
 }
 
+bool PresetBundle::use_bbl_network()
+{
+    const auto cfg             = printers.get_edited_preset().config;
+    const bool use_bbl_network = is_bbl_vendor() && !cfg.opt_bool("bbl_use_printhost");
+    return use_bbl_network;
+}
+
 //BBS: load project embedded presets
 PresetsConfigSubstitutions PresetBundle::load_project_embedded_presets(std::vector<Preset*> project_presets, ForwardCompatibilitySubstitutionRule substitution_rule)
 {
