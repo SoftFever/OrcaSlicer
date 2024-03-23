@@ -1844,7 +1844,6 @@ void GLGizmoEmboss::draw_model_type()
     } else {
         ImGui::Text("%s", title.c_str());
     }
-    auto m_control_width = m_imgui->get_font_size() * 9.f;
 
     std::optional<ModelVolumeType> new_type;
     ModelVolumeType modifier = ModelVolumeType::PARAMETER_MODIFIER;
@@ -1855,15 +1854,13 @@ void GLGizmoEmboss::draw_model_type()
     //TRN EmbossOperation
     ImGuiWrapper::push_radio_style();
     ImGui::SameLine(m_gui_cfg->input_offset);
-    ImGui::PushItemWidth(m_control_width);
     if (ImGui::RadioButton(_u8L("Join").c_str(), type == part))
         new_type = part;
     else if (ImGui::IsItemHovered())
         m_imgui->tooltip(_u8L("Click to change text into object part."), m_gui_cfg->max_tooltip_width);
-    
-    std::string last_solid_part_hint = _u8L("You can't change a type of the last solid part of the object.");
     ImGui::SameLine();
-    ImGui::PushItemWidth(m_control_width);
+
+    std::string last_solid_part_hint = _u8L("You can't change a type of the last solid part of the object.");
     if (ImGui::RadioButton(_CTX_utf8(L_CONTEXT("Cut", "EmbossOperation"), "EmbossOperation").c_str(), type == negative))
         new_type = negative;
     else if (ImGui::IsItemHovered()) {
@@ -1876,7 +1873,6 @@ void GLGizmoEmboss::draw_model_type()
     // In simple mode are not modifiers
     if (wxGetApp().plater()->printer_technology() != ptSLA && wxGetApp().get_mode() != ConfigOptionMode::comSimple) {
         ImGui::SameLine();
-        ImGui::PushItemWidth(m_control_width);
         if (ImGui::RadioButton(_u8L("Modifier").c_str(), type == modifier))
             new_type = modifier;
         else if (ImGui::IsItemHovered()) {
