@@ -15112,7 +15112,7 @@ msgstr ""
 "Błąd: \"%2%\""
 
 msgid "Connected to Obico successfully!"
-msgstr "Pomyślnie połączono z SimplyPrint!"
+msgstr "Pomyślnie połączono z Obico!"
 
 msgid "Could not connect to Obico"
 msgstr "Nie można połączyć się z Obico"
