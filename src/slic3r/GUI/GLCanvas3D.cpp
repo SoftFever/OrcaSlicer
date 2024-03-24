@@ -3685,7 +3685,7 @@ void GLCanvas3D::on_mouse_wheel(wxMouseEvent& evt)
     }
     // Calculate the zoom delta and apply it to the current zoom factor
 #ifdef SUPPORT_REVERSE_MOUSE_ZOOM
-    double direction_factor = (wxGetApp().app_config->get("reverse_mouse_wheel_zoom") == "1") ? -1.0 : 1.0;
+    double direction_factor = wxGetApp().app_config->get_bool("reverse_mouse_wheel_zoom") ? -1.0 : 1.0;
 #else
     double direction_factor = 1.0;
 #endif
