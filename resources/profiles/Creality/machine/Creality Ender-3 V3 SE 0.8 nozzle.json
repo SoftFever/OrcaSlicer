@@ -7,6 +7,7 @@
 	"instantiation": "true",
 	"inherits": "fdm_creality_common",
 	"printer_model": "Creality Ender-3 V3 SE",
+	"printer_variant": "0.8",
 	"gcode_flavor": "marlin2",
 	"printer_structure": "i3",
 	"default_print_profile": "0.20mm Standard @Creality Ender3V3SE 0.8",
