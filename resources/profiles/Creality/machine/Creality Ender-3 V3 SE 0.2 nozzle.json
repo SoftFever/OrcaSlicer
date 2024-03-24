@@ -15,7 +15,7 @@
     "extruder_clearance_radius": "90",
     "machine_load_filament_time": "11",
 	"nozzle_diameter": [
-		"0.4"
+		"0.2"
 	],
 	"printable_area": [
 		"0x0",
