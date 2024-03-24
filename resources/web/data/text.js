@@ -105,6 +105,8 @@ var LangText = {
     t111: "Create New",
     t112: "Join the Program",
     t113: "You may change your choice in preference anytime.",
+    orca1: "Edit Project Info",
+    orca2: "no model information",
   },
   es_ES: {
     t1: "Bienvenido a Orca Slicer",
@@ -212,6 +214,8 @@ var LangText = {
     t111: "Crear nuevo",
     t112: "Unirse al programa",
     t113: "Puede cambiar su elección en preferencias en cualquier momento.",
+    orca1: "Edit Project Info",
+    orca2: "no model information",
   },
   de_DE: {
     t1: "Willkommen im Orca Slicer",
@@ -312,6 +316,8 @@ var LangText = {
     t104: "Profilname",
     t105: "Profilautor",
     t106: "Profilbeschreibung",
+    orca1: "Edit Project Info",
+    orca2: "no model information",
   },
   cs_CZ: {
     t1: "Vítejte v Orca Slicer",
@@ -412,6 +418,8 @@ var LangText = {
     t104: "Název profilu",
     t105: "Autor profilu",
     t106: "Popis profilu",
+    orca1: "Edit Project Info",
+    orca2: "no model information",
   },
   fr_FR: {
     t1: "Bienvenue sur Orca Slicer",
@@ -471,7 +479,7 @@ var LangText = {
     t62: "Autres",
     t63: "Après avoir changé de région, votre compte sera déconnecté. Veuillez vous reconnecter ensuite.",
     t64: "Plug-in Bambu Network",
-    t65: "Please be aware that these plugins are not developed or maintained by OrcaSlicer. They should be used at your own discretion and risk.",
+    t65: "Veuillez noter que ces plugins ne sont pas développés ou maintenus par OrcaSlicer. Ils doivent être utilisés à votre propre discrétion et à vos propres risques.",
     t66: "Commande à distance complète",
     t67: "Diffusion en direct",
     t68: "Synchronisation des données utilisateur",
@@ -515,6 +523,8 @@ var LangText = {
     t109: "Filaments du système",
     t110: "Filaments personnalisés",
     t111: "Créer un nouveau filament",
+    orca1: "Modifier les informations du projet",
+    orca2: "pas d'information sur le modèle",
     wk1: "Démarrage rapide",
     wk2: "Cet article présente l'utilisation la plus basique de Orca Slicer. Il guide les utilisateurs pour configurer le logiciel, créer des projets et effectuer la première tâche d'impression étape par étape.",
     wk3: "Workflow basé sur des projets",
@@ -655,6 +665,7 @@ var LangText = {
     wk15: "3D文本",
     wk16: "使用3D文本工具，用户可以轻松地在项目中创建各种3D文本形状，使模型更加个性化。Orca Slicer提供了数十种字体，并支持粗体和斜体样式，使文本具有更大的灵活性。",
     orca1: "编辑项目信息",
+    orca2: "该模型没有相关信息",
   },
   zh_TW: {
     t1: "歡迎使用 Orca Slicer",
@@ -742,6 +753,8 @@ var LangText = {
     t90: "3D 模型",
     t91: "下載3D模型",
     t92: "Bambu聖誕小屋",
+    orca1: "Edit Project Info",
+    orca2: "no model information",
     wk1: "快速入門指南",
     wk2: "本文介紹了 Orca Slicer 的最基本用法。它指導用戶配置軟體，創建項目，並逐步完成第一個列印任務。",
     wk3: "基於項目的工作流",
@@ -865,6 +878,8 @@ var LangText = {
     t111: "Создать новый",
     t112: "Присоединяйтесь к программе",
     t113: "Вы можете изменить свой выбор в любое время.",
+    orca1: "Edit Project Info",
+    orca2: "no model information",
   },
   ko_KR: {
     t1: "Orca Slicer에 오신 것을 환영합니다",
@@ -954,6 +969,8 @@ var LangText = {
     t92: "Bambu Christmas Cabin",
     t93: "프린터 연결",
     t94: "장치를 보려면 프린터 연결을 설정하세요.",
+    orca1: "Edit Project Info",
+    orca2: "no model information",
   },
   tr_TR: {
     t1: "Orca Slicer'a hoş geldiniz",
@@ -1043,6 +1060,8 @@ var LangText = {
     t92: "Bambu Noel Kabini",
     t93: "Yazıcı Bağlantısı",
     t94: "Cihazı görüntülemek için lütfen yazıcı bağlantınızı kurun.",
+    orca1: "Edit Project Info",
+    orca2: "no model information",
   },
   pl_PL: {
     t1: "Witamy w Orca Slicer",
@@ -1057,7 +1076,7 @@ var LangText = {
     t10: "Wybór drukarki",
     t11: "Wszystkie",
     t12: "Wyczyść wszystko",
-    t13: "dysza mm",
+    t13: "mm dysza",
     t14: "Wybór filamentu",
     t15: "Drukarka",
     t16: "Typ filamentu",
@@ -1151,6 +1170,7 @@ var LangText = {
     t112: "Dołącz do programu",
     t113: "Możesz zmienić swój wybór w preferencjach w dowolnym momencie.",
     orca1: "Edytuj informacje o projekcie",
+    orca2: "brak informacji o modelu",
   },
 };
 

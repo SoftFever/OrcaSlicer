@@ -42,8 +42,6 @@ Obico::Obico(DynamicPrintConfig* config) :
 
 const char* Obico::get_name() const { return "Obico"; }
 
-void Obico::set_api_key(const std::string auth_api_key) { m_apikey = auth_api_key; }
-
 std::string Obico::get_host() const {
     return m_host;
 }
