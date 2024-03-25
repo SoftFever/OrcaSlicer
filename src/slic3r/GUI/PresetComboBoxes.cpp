@@ -39,6 +39,7 @@
 #include "BitmapCache.hpp"
 #include "MsgDialog.hpp"
 #include "ParamsDialog.hpp"
+#include "SpoolmanImportDialog.hpp"
 
 // A workaround for a set of issues related to text fitting into gtk widgets:
 #if defined(__WXGTK20__) || defined(__WXGTK3__)
@@ -757,6 +758,10 @@ void PlaterPresetComboBox::OnSelect(wxCommandEvent &evt)
         if (marker == LABEL_ITEM_MARKER)
             return;
         if (marker == LABEL_ITEM_IMPORT_SPOOLMAN) {
+            SpoolmanImportDialog dlg(wxGetApp().mainframe);
+            dlg.ShowModal();
+            // update to show any new presets
+            this->update();
             return;
         }
         //if (marker == LABEL_ITEM_WIZARD_PRINTERS)

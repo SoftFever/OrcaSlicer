@@ -530,6 +530,8 @@ set(SLIC3R_GUI_SOURCES
     Utils/Obico.hpp
     Utils/Spoolman.cpp
     Utils/Spoolman.hpp
+    GUI/SpoolmanImportDialog.cpp
+    GUI/SpoolmanImportDialog.hpp
 )
 
 if (WIN32)
