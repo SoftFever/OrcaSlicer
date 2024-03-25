@@ -13,6 +13,8 @@
 #include <string>
 
 #include "TCPConsole.hpp"
+#include "SerialMessage.hpp"
+#include "SerialMessageType.hpp"
 
 using boost::asio::steady_timer;
 using boost::asio::ip::tcp;
@@ -27,21 +29,25 @@ void TCPConsole::transmit_next_command()
         return;
     }
 
-    std::string cmd = m_cmd_queue.front();
+    SerialMessage cmd = m_cmd_queue.front();
     m_cmd_queue.pop_front();
 
     BOOST_LOG_TRIVIAL(debug) << boost::format("TCPConsole: transmitting '%3%' to %1%:%2%")
         % m_host_name
         % m_port_name
-        % cmd;
+        % cmd.message;
 
-    m_send_buffer = cmd + m_newline;
+    m_send_buffer = cmd.message;
+
+    if (cmd.messageType == Command) {
+        m_send_buffer += m_newline;
+    }
 
     set_deadline_in(m_write_timeout);
     boost::asio::async_write(
         m_socket,
         boost::asio::buffer(m_send_buffer),
-        boost::bind(&TCPConsole::handle_write, this, boost::placeholders::_1, boost::placeholders::_2)
+        boost::bind(&TCPConsole::handle_write, this, boost::placeholders::_1, boost::placeholders::_2, cmd.messageType)
     );
 }
 
@@ -99,7 +105,7 @@ void TCPConsole::handle_read(
 
 void TCPConsole::handle_write(
     const boost::system::error_code& ec,
-    std::size_t)
+    std::size_t, SerialMessageType messageType)
 {
     m_error_code = ec;
     if (ec) {
@@ -111,7 +117,12 @@ void TCPConsole::handle_write(
         m_io_context.stop();
     }
     else {
+        if(messageType == Command){
         wait_next_line();
+        }
+        else{
+            transmit_next_command();
+        }
     }
 }
 

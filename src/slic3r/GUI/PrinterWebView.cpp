@@ -80,6 +80,11 @@ void PrinterWebView::load_url(wxString& url, wxString apikey)
     //m_browser->SetFocus();
     UpdateState();
 }
+
+void PrinterWebView::reload()
+{
+    m_browser->Reload();
+}
 /**
  * Method that retrieves the current state from the web control and updates the
  * GUI the reflect this current state.

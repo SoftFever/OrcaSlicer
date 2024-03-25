@@ -9,7 +9,7 @@
   "bed_exclude_area": [
     "0x0"
   ],
-  "before_layer_change_gcode": ";BEFORE_LAYER_CHANGE\n;[layer_z]\n{if (\nfilament_type[0] ==\"PLA\" \nor filament_type[0] ==\"PETG\" \nor filament_type[0] ==\"TPU\" \nor filament_type[0] ==\"PVA\" \nor filament_type[0] ==\"PLA-CF\"\n\n)}\n{if layer_z >= initial_layer_print_height + layer_height * 2}\nM106 P101 S216\nM106 P0 S255 T0\nM106 P1 S255 T1\n{elsif layer_z >= initial_layer_print_height + layer_height * 1}\nM106 P0 S178 T0\nM106 P1 S178 T1\nM106 P101 S153\n{else}\nM106 P101 S0\n{endif}\n{endif}",
+  "before_layer_change_gcode": ";BEFORE_LAYER_CHANGE\n;[layer_z]\nG92 E0\n{if (\nfilament_type[0] ==\"PLA\" \nor filament_type[0] ==\"PETG\" \nor filament_type[0] ==\"TPU\" \nor filament_type[0] ==\"PVA\" \nor filament_type[0] ==\"PLA-CF\"\n\n)}\n{if layer_z >= initial_layer_print_height + layer_height * 2}\nM106 P101 S216\nM106 P0 S255 T0\nM106 P1 S255 T1\n{elsif layer_z >= initial_layer_print_height + layer_height * 1}\nM106 P0 S178 T0\nM106 P1 S178 T1\nM106 P101 S153\n{else}\nM106 P101 S0\n{endif}\n{endif}",
   "best_object_pos": "0.5,0.5",
   "change_extrusion_role_gcode": "",
   "change_filament_gcode": "; change filament start\n{if total_toolchanges == 0 and current_extruder == 1}\nM104 S0 T0\n{elsif total_toolchanges > 0 and current_extruder == 0}\nM104 S{nozzle_temperature[0]}\n{if layer_z == initial_layer_print_height}\nT1\nM109 S{nozzle_temperature_initial_layer[1]} T1\n{else}\nT1\nM109 S{nozzle_temperature[1]} T1\n{endif}\n{elsif total_toolchanges > 0 and current_extruder == 1}\nM104 S{nozzle_temperature[1]}\n{if layer_z == initial_layer_print_height}\nT0\nM109 S{nozzle_temperature_initial_layer[0]} T0\n{else}\nT0\nM109 S{nozzle_temperature[0]} T0\n{endif}\n{endif}\n",
@@ -198,7 +198,7 @@
   "upward_compatible_machine": [],
   "use_firmware_retraction": "0",
   "use_relative_e_distances": "1",
-  "version": "02.00.00.00",
+  "version": "02.00.01.00",
   "wipe": [
     "1"
   ],
