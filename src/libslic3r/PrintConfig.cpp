@@ -3523,7 +3523,7 @@ def = this->add("filament_loading_speed", coFloats);
 
     def = this->add("disable_m73", coBool);
     def->label = L("Disable set remaining print time");
-    def->tooltip = "Disable generating of the M73: Set remaining print time in the final gcode";
+    def->tooltip = L("Disable generating of the M73: Set remaining print time in the final gcode");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
