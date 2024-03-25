@@ -379,10 +379,9 @@ std::string RemovableDriveManager::get_removable_drive_from_path(const std::stri
 
 	// check if same filesystem
 	std::scoped_lock<std::mutex> lock(m_drives_mutex);
-	for (const DriveData &drive_data : m_current_drives) {
+	for (const DriveData &drive_data : m_current_drives)
 		if (search_for_drives_internal::compare_filesystem_id(new_path, drive_data.path))
 			return drive_data.path;
-	}
 	return std::string();
 }
 #endif
