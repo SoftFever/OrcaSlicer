@@ -13,14 +13,12 @@
 #include <string>
 #include <memory>
 
-using namespace boost::system;
-using namespace boost::asio;
-
 #define LOCALHOST_PORT      13618
 #define LOCALHOST_URL       "http://localhost:"
 
-namespace Slic3r {
-namespace GUI {
+namespace Slic3r { namespace GUI {
+
+class session;
 
 class http_headers
 {
@@ -31,16 +29,14 @@ class http_headers
     std::map<std::string, std::string> headers;
 
 public:
-
-    std::string get_response();
+    std::string get_url() { return url; }
 
     int content_length()
     {
         auto request = headers.find("content-length");
-        if (request != headers.end())
-        {
+        if (request != headers.end()) {
             std::stringstream ssLength(request->second);
-            int content_length;
+            int               content_length;
             ssLength >> content_length;
             return content_length;
         }
@@ -49,10 +45,10 @@ public:
 
     void on_read_header(std::string line)
     {
-        //std::cout << "header: " << line << std::endl;
+        // std::cout << "header: " << line << std::endl;
 
         std::stringstream ssHeader(line);
-        std::string headerName;
+        std::string       headerName;
         std::getline(ssHeader, headerName, ':');
 
         std::string value;
@@ -71,92 +67,92 @@ public:
     }
 };
 
-class session
+class HttpServer
 {
+    boost::asio::ip::port_type port;
+
+public:
+    class Response
+    {
+    public:
+        virtual ~Response()                                   = default;
+        virtual void write_response(std::stringstream& ssOut) = 0;
+    };
+
+    class ResponseNotFound : public Response
+    {
+    public:
+        ~ResponseNotFound() override = default;
+        void write_response(std::stringstream& ssOut) override;
+    };
+
+    class ResponseRedirect : public Response
+    {
+        const std::string location_str;
+
+    public:
+        ResponseRedirect(const std::string& location) : location_str(location) {}
+        ~ResponseRedirect() override = default;
+        void write_response(std::stringstream& ssOut) override;
+    };
+
+    HttpServer(boost::asio::ip::port_type port = LOCALHOST_PORT);
+
+    boost::thread m_http_server_thread;
+    bool          start_http_server = false;
+
+    bool is_started() { return start_http_server; }
+    void start();
+    void stop();
+    void set_request_handler(const std::function<std::shared_ptr<Response>(const std::string&)>& m_request_handler);
+
+    static std::shared_ptr<Response> bbl_auth_handle_request(const std::string& url);
+
+private:
+    class IOServer
+    {
+    public:
+        HttpServer&                        server;
+        boost::asio::io_service            io_service;
+        boost::asio::ip::tcp::acceptor     acceptor;
+        std::set<std::shared_ptr<session>> sessions;
+
+        IOServer(HttpServer& server) : server(server), acceptor(io_service, {boost::asio::ip::tcp::v4(), server.port}) {}
+
+        void do_accept();
+
+        void start(std::shared_ptr<session> session);
+        void stop(std::shared_ptr<session> session);
+        void stop_all();
+    };
+    friend class session;
+
+    std::unique_ptr<IOServer> server_{nullptr};
+
+    std::function<std::shared_ptr<Response>(const std::string&)> m_request_handler{&HttpServer::bbl_auth_handle_request};
+};
+
+class session : public std::enable_shared_from_this<session>
+{
+    HttpServer::IOServer& server;
+    boost::asio::ip::tcp::socket socket;
+
     boost::asio::streambuf buff;
     http_headers headers;
 
-    static void read_body(std::shared_ptr<session> pThis)
-    {
-        int nbuffer = 1000;
-        std::shared_ptr<std::vector<char>> bufptr = std::make_shared<std::vector<char>>(nbuffer);
-        boost::asio::async_read(pThis->socket, boost::asio::buffer(*bufptr, nbuffer), [pThis](const boost::beast::error_code& e, std::size_t s)
-            {
-            });
-    }
-
-    static void read_next_line(std::shared_ptr<session> pThis)
-    {
-        boost::asio::async_read_until(pThis->socket, pThis->buff, '\r', [pThis](const boost::beast::error_code& e, std::size_t s)
-            {
-                std::string line, ignore;
-                std::istream stream{ &pThis->buff };
-                std::getline(stream, line, '\r');
-                std::getline(stream, ignore, '\n');
-                pThis->headers.on_read_header(line);
-
-                if (line.length() == 0)
-                {
-                    if (pThis->headers.content_length() == 0)
-                    {
-                        std::shared_ptr<std::string> str = std::make_shared<std::string>(pThis->headers.get_response());
-                        boost::asio::async_write(pThis->socket, boost::asio::buffer(str->c_str(), str->length()), [pThis, str](const boost::beast::error_code& e, std::size_t s)
-                            {
-                                std::cout << "done" << std::endl;
-                            });
-                    }
-                    else
-                    {
-                        pThis->read_body(pThis);
-                    }
-                }
-                else
-                {
-                    pThis->read_next_line(pThis);
-                }
-            });
-    }
-
-    static void read_first_line(std::shared_ptr<session> pThis)
-    {
-        boost::asio::async_read_until(pThis->socket, pThis->buff, '\r', [pThis](const boost::beast::error_code& e, std::size_t s)
-            {
-                std::string line, ignore;
-                std::istream stream{ &pThis->buff };
-                std::getline(stream, line, '\r');
-                std::getline(stream, ignore, '\n');
-                pThis->headers.on_read_request_line(line);
-                pThis->read_next_line(pThis);
-            });
-    }
+    void read_first_line();
+    void read_next_line();
+    void read_body();
 
 public:
-    boost::asio::ip::tcp::socket socket;
+    session(HttpServer::IOServer& server, boost::asio::ip::tcp::socket socket) : server(server), socket(std::move(socket)) {}
 
-    session(io_service& io_service)
-        :socket(io_service)
-    {
-    }
-
-    static void interact(std::shared_ptr<session> pThis)
-    {
-        read_first_line(pThis);
-    }
+    void start();
+    void stop();
 };
 
-class HttpServer {
-public:
-    HttpServer();
+std::string url_get_param(const std::string& url, const std::string& key);
 
-    boost::thread    m_http_server_thread;
-    bool             start_http_server = false;
-
-    bool            is_started() { return start_http_server; }
-    void            start();
-    void            stop();
-};
-
-}
-};
+}};
 
 #endif

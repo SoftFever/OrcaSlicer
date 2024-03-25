@@ -3546,6 +3546,7 @@ void TabPrinter::build_fff()
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced");
         optgroup->append_single_option_line("printer_structure");
         optgroup->append_single_option_line("gcode_flavor");
+        optgroup->append_single_option_line("bbl_use_printhost");
         optgroup->append_single_option_line("disable_m73");
         option = optgroup->get_option("thumbnails");
         option.opt.full_width = true;
@@ -4188,7 +4189,7 @@ void TabPrinter::toggle_options()
 
         // SoftFever: hide BBL specific settings
         for (auto el :
-             {"scan_first_layer", "machine_load_filament_time", "machine_unload_filament_time", "bbl_calib_mark_logo"})
+             {"scan_first_layer", "machine_load_filament_time", "machine_unload_filament_time", "bbl_calib_mark_logo", "bbl_use_printhost"})
           toggle_line(el, is_BBL_printer);
 
         // SoftFever: hide non-BBL settings

@@ -2059,9 +2059,9 @@ void PrintObject::bridge_over_infill()
                 unsupported_area = closing(unsupported_area, float(SCALED_EPSILON));
                 
                 // Orca:
-                // Lightning infill benefits from always having a bridge layer so don't filter out small unsupported areas. Also, don't filter small internal unsupported areas if the user has requested so.
+                // Don't filter small internal unsupported areas if the user has requested so.
                 double expansion_multiplier = 3;
-                if(has_lightning_infill || po->config().dont_filter_internal_bridges.value !=ibfDisabled){
+                if(po->config().dont_filter_internal_bridges.value !=ibfDisabled){
                     expansion_multiplier = 1;
                 }
                 // By expanding the lower layer solids, we avoid making bridges from the tiny internal overhangs that are (very likely) supported by previous layer solids
