@@ -163,17 +163,19 @@ SpoolmanResult Spoolman::create_filament_preset_from_spool(const SpoolmanSpoolSh
             return result;
     }
 
+    std::string inherits = filaments.is_base_preset(*base_profile) ? base_profile->name : base_profile->inherits();
+
     preset = new Preset(Preset::TYPE_FILAMENT, filament_preset_name);
     preset->config.apply(base_profile->config);
     preset->config.set_key_value("filament_settings_id", new ConfigOptionStrings({filament_preset_name}));
-    preset->config.set("inherits", base_profile->name, true);
+    preset->config.set("inherits", inherits, true);
     spool->apply_to_config(preset->config);
     preset->filament_id = get_filament_id(filament_preset_name);
     preset->version     = base_profile->version;
-    preset->file        = filaments.path_for_preset(*preset);
+    preset->loaded      = true;
     filaments.save_current_preset(filament_preset_name, detach, false, preset);
 
-    return {};
+    return result;
 }
 
 SpoolmanResult Spoolman::update_filament_preset_from_spool(Preset* filament_preset, bool update_from_server, bool only_update_statistics)
