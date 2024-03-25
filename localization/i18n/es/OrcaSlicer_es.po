@@ -6204,7 +6204,7 @@ msgid "Stealth Mode"
 msgstr "Modo invisible"
 
 msgid "Enable network plugin"
-msgstr ""
+msgstr "Activar el plugin de red"
 
 msgid "Check for stable updates only"
 msgstr "Buscar sólo actualizaciones estables"
@@ -6264,7 +6264,7 @@ msgid "If enabled, auto-calculate everytime the color changed."
 msgstr "Si está activado, auto calcula en cada cambio de color."
 
 msgid "Network"
-msgstr ""
+msgstr "Red"
 
 msgid "Auto sync user presets(Printer/Filament/Process)"
 msgstr ""
@@ -8900,10 +8900,12 @@ msgid "Printer preset names"
 msgstr "Nombres de perfiles de la impresora"
 
 msgid "Use 3rd-party print host"
-msgstr ""
+msgstr "Utilizar host de impresión de terceros"
 
 msgid "Allow controlling BambuLab's printer through 3rd party print hosts"
 msgstr ""
+"Permitir el control de la impresora de BambuLab a través de hosts de "
+"impresión de terceros"
 
 msgid "Hostname, IP or URL"
 msgstr "Nombre de host, IP o URL"
@@ -14483,7 +14485,7 @@ msgid "Export Log"
 msgstr "Exportar Registro"
 
 msgid "OrcaSlicer Version:"
-msgstr ""
+msgstr "OrcaSlicer Versión:"
 
 msgid "System Version:"
 msgstr "Versión de Sistema:"
@@ -14492,10 +14494,10 @@ msgid "DNS Server:"
 msgstr "Servidor DNS:"
 
 msgid "Test OrcaSlicer(GitHub)"
-msgstr ""
+msgstr "Prueba OrcaSlicer(GitHub)"
 
 msgid "Test OrcaSlicer(GitHub):"
-msgstr ""
+msgstr "Prueba OrcaSlicer(GitHub):"
 
 msgid "Test Bing.com"
 msgstr "Prueba Bing.com"
@@ -15044,7 +15046,7 @@ msgid "Success!"
 msgstr "¡Exitoso!"
 
 msgid "Are you sure to log out?"
-msgstr ""
+msgstr "¿Estás seguro de cerrar la sesión?"
 
 msgid "Refresh Printers"
 msgstr "Refrescar Impresoras"
@@ -15079,7 +15081,7 @@ msgstr ""
 "Almacén de certificados / Llavero."
 
 msgid "Login/Test"
-msgstr ""
+msgstr "Inicio de sesión/Prueba"
 
 msgid "Connection to printers connected via the print host failed."
 msgstr ""
