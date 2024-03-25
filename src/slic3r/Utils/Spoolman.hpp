@@ -16,6 +16,13 @@ typedef std::shared_ptr<SpoolmanVendor>   SpoolmanVendorShrPtr;
 typedef std::shared_ptr<SpoolmanFilament> SpoolmanFilamentShrPtr;
 typedef std::shared_ptr<SpoolmanSpool>    SpoolmanSpoolShrPtr;
 
+struct SpoolmanResult
+{
+    SpoolmanResult() = default;
+    bool                     failure() { return !messages.empty(); }
+    std::vector<std::string> messages{};
+};
+
 /// Contains routines to get the data from the Spoolman server, save as Spoolman data containers, and create presets from them.
 /// The Spoolman data classes can only be accessed/instantiated by this class.
 /// An instance of this class can only be accessed via the get_instance() function.
@@ -41,9 +48,9 @@ class Spoolman
 
 public:
     // returns true if the operation was successful and false for any errors/issues
-    static bool create_filament_preset_from_spool(const SpoolmanSpoolShrPtr& spool, const Preset* base_profile);
+    static SpoolmanResult create_filament_preset_from_spool(const SpoolmanSpoolShrPtr& spool, const Preset* base_profile);
     // returns true if the operation was successful and false for any errors/issues
-    static bool update_filament_preset_from_spool(Preset* filament_preset, bool update_from_server, bool only_update_statistics);
+    static SpoolmanResult update_filament_preset_from_spool(Preset* filament_preset, bool update_from_server, bool only_update_statistics);
 
     const std::map<int, SpoolmanSpoolShrPtr>& get_spoolman_spools(bool update = false)
     {

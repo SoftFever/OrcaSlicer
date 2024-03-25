@@ -111,22 +111,53 @@ bool Spoolman::pull_spoolman_spools()
     return true;
 }
 
-bool Spoolman::create_filament_preset_from_spool(const SpoolmanSpoolShrPtr& spool, const Preset* base_profile)
+SpoolmanResult Spoolman::create_filament_preset_from_spool(const SpoolmanSpoolShrPtr& spool, const Preset* base_profile)
 {
     PresetBundle*     preset_bundle        = wxGetApp().preset_bundle;
     PresetCollection& filaments            = preset_bundle->filaments;
     string            filament_preset_name = remove_special_key(spool->getVendor()->name + " " + spool->m_filament_ptr->name + " " +
                                                                 spool->m_filament_ptr->material);
     string            user_filament_id     = get_filament_id(filament_preset_name);
+    SpoolmanResult    result;
 
     // Check if the preset already exists
     Preset* preset = filaments.find_preset(filament_preset_name);
     if (preset) {
-        BOOST_LOG_TRIVIAL(error) << "Preset already exists with the name " << filament_preset_name;
-        return false;
+        std::string msg("Preset already exists with the name");
+        BOOST_LOG_TRIVIAL(error) << msg << filament_preset_name;
+        result.messages.emplace_back(msg);
     }
 
-    preset  = new Preset( Preset::TYPE_FILAMENT, filament_preset_name);
+    // Check for presets with the same spool ID
+    int visible(0), invisible(0);
+    for (const auto& item : filaments.get_presets()) { // count num of visible and invisible
+        if (item.config.opt_int("spoolman_spool_id") == spool->id) {
+            if (item.is_visible)
+                visible++;
+            else
+                invisible++;
+        }
+        if (visible > 1 && invisible > 1)
+            break;
+    }
+    // if there were any, build the message
+    if (visible) {
+        if (visible > 1)
+            result.messages.emplace_back("Multiple visible presets share the same spool ID");
+        else
+            result.messages.emplace_back("A visible preset shares the same spool ID");
+    }
+    if (invisible) {
+        if (invisible > 1)
+            result.messages.emplace_back("Multiple invisible presets share the same spool ID");
+        else
+            result.messages.emplace_back("An invisible preset shares the same spool ID");
+    }
+
+    if (result.failure())
+        return result;
+
+    preset = new Preset(Preset::TYPE_FILAMENT, filament_preset_name);
     preset->config.apply(base_profile->config);
     preset->config.set_key_value("filament_settings_id", new ConfigOptionStrings({filament_preset_name}));
     preset->config.set("inherits", base_profile->name, true);
@@ -136,22 +167,25 @@ bool Spoolman::create_filament_preset_from_spool(const SpoolmanSpoolShrPtr& spoo
     preset->file        = filaments.path_for_preset(*preset);
     filaments.save_current_preset(filament_preset_name, false, false, preset);
 
-    return true;
+    return {};
 }
 
-bool Spoolman::update_filament_preset_from_spool(Preset* filament_preset, bool update_from_server, bool only_update_statistics)
+SpoolmanResult Spoolman::update_filament_preset_from_spool(Preset* filament_preset, bool update_from_server, bool only_update_statistics)
 {
-    DynamicConfig config;
-    const int&    spool_id = filament_preset->config.opt_int("spoolman_spool_id");
-    if (spool_id < 1)
-        return false; // IDs below 1 are not used by spoolman and should be ignored
-
+    DynamicConfig  config;
+    SpoolmanResult result;
+    const int&     spool_id = filament_preset->config.opt_int("spoolman_spool_id");
+    if (spool_id < 1) {
+        result.messages.emplace_back(
+            "Preset provided does not have a valid Spoolman spool ID"); // IDs below 1 are not used by spoolman and should be ignored
+        return result;
+    }
     SpoolmanSpoolShrPtr& spool = get_instance()->m_spools[spool_id];
     if (update_from_server)
         spool->update_from_server(!only_update_statistics);
     spool->apply_to_config(config);
     filament_preset->config.apply_only(config, only_update_statistics ? statistics_keys : config.keys());
-    return true;
+    return result;
 }
 
 //---------------------------------
