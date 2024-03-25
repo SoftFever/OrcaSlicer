@@ -256,8 +256,8 @@ modules:
           -DSLIC3R_STATIC=ON \
           -DSLIC3R_BUILD_TESTS=OFF \
           -DSLIC3R_DESKTOP_INTEGRATION=OFF \
-          -DCMAKE_BUILD_TYPE=RelWithDebInfo \
           -DFLATPAK=ON \
+          -DCMAKE_BUILD_TYPE=Release \
           -DBBL_RELEASE_TO_PUBLIC=1
         CXXFLAGS=-std=gnu++20 cmake --build . --target install -j$FLATPAK_BUILDER_N_JOBS
 
