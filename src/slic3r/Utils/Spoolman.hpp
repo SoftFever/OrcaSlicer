@@ -47,10 +47,15 @@ class Spoolman
     bool pull_spoolman_spools();
 
 public:
-    // returns true if the operation was successful and false for any errors/issues
-    static SpoolmanResult create_filament_preset_from_spool(const SpoolmanSpoolShrPtr& spool, const Preset* base_profile);
-    // returns true if the operation was successful and false for any errors/issues
-    static SpoolmanResult update_filament_preset_from_spool(Preset* filament_preset, bool update_from_server, bool only_update_statistics);
+    static SpoolmanResult create_filament_preset_from_spool(const SpoolmanSpoolShrPtr& spool,
+                                                            const Preset*              base_profile,
+                                                            bool                       detach = false,
+                                                            bool                       force = false);
+    static SpoolmanResult update_filament_preset_from_spool(Preset* filament_preset,
+                                                            bool    update_from_server     = true,
+                                                            bool    only_update_statistics = false);
+
+    static std::string    get_name_from_spool(const SpoolmanSpoolShrPtr& spool);
 
     const std::map<int, SpoolmanSpoolShrPtr>& get_spoolman_spools(bool update = false)
     {
