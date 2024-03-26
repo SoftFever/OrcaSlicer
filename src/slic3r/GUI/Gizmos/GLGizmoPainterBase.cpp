@@ -245,7 +245,7 @@ void GLGizmoPainterBase::render_cursor_sphere(const Transform3d& trafo) const
     if (shader == nullptr)
         return;
 
-    const Transform3d complete_scaling_matrix_inverse = Geometry::Transformation(trafo).get_matrix_no_scaling_factor().inverse();
+    const Transform3d complete_scaling_matrix_inverse = Geometry::Transformation(trafo).get_scaling_factor_matrix().inverse();
 
     // BBS
     ColorRGBA render_color = this->get_cursor_hover_color();

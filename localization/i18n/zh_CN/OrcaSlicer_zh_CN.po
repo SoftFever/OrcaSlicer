@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-22 19:58+0800\n"
+"POT-Creation-Date: 2024-03-23 13:08+0800\n"
 "PO-Revision-Date: 2023-04-01 13:21+0800\n"
 "Last-Translator: SoftFever <softfeverever@gmail.com>\n"
 "Language-Team: \n"
@@ -8327,6 +8327,12 @@ msgstr "导入模型时自动旋转到指定的朝向"
 msgid "Printer preset names"
 msgstr "打印机预设名"
 
+msgid "Use 3rd-party print host"
+msgstr "启用第三方网络连接"
+
+msgid "Allow controlling BambuLab's printer through 3rd party print hosts"
+msgstr "允许通过第三方网络连接控制BambuLab的打印机"
+
 msgid "Hostname, IP or URL"
 msgstr "主机名，IP或者URL"
 
@@ -11947,7 +11953,7 @@ msgstr ""
 "征将被加宽到墙最小宽度。参数值表示为相对喷嘴直径的百分比"
 
 msgid "Minimum wall length"
-msgstr ""
+msgstr "最小允许的墙长度"
 
 msgid ""
 "Adjust this value to prevent short, unclosed walls from being printed, which "
@@ -11959,6 +11965,13 @@ msgid ""
 "top-surface. 'One wall threshold' is only visibile if this setting is set "
 "above the default value of 0.5, or if single-wall top surfaces is enabled."
 msgstr ""
+"调整这个值以省略打印短的、未闭合的墙，这些可能会增加打印时间。设置较高的值将移除更"
+"多和更长的墙。\n"
+"\n"
+"注意：底部和顶部表面不会受到这个值的影响，以防止模型外部出现肉眼可见间隙。调整下面"
+"的高级设置中的“单层墙阈值”来调整什么被认为是顶部表面的敏感度。只有当这个设置高"
+"于默认值0.5，或者启用了单层顶部表面时，“单层墙阈值”才会显示。"
+
 
 msgid "First layer minimum wall width"
 msgstr "首层墙最小线宽"
@@ -13658,6 +13671,9 @@ msgstr "无法获取有效的打印机主机引用"
 msgid "Success!"
 msgstr "成功！"
 
+msgid "Are you sure to log out?"
+msgstr ""
+
 msgid "Refresh Printers"
 msgstr "刷新打印机"
 
@@ -13682,6 +13698,9 @@ msgid ""
 "To use a custom CA file, please import your CA file into Certificate Store / "
 "Keychain."
 msgstr "要使用自定义 CA 文件，请将您的 CA 文件导入到证书存储 / 密钥链中。"
+
+msgid "Login/Test"
+msgstr ""
 
 msgid "Connection to printers connected via the print host failed."
 msgstr "连接到通过打印主机连接的打印机失败。"
