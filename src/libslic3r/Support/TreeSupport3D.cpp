@@ -3367,10 +3367,28 @@ static void generate_support_areas(Print &print, const BuildVolume &build_volume
 #endif // SLIC3R_TREESUPPORTS_PROGRESS
             /* additional_excluded_areas */{} };
 
-        //FIXME generating overhangs just for the furst mesh of the group.
+        //FIXME generating overhangs just for the first mesh of the group.
         assert(processing.second.size() == 1);
-        std::vector<Polygons>        overhangs = generate_overhangs(config, *print.get_object(processing.second.front()), throw_on_cancel);
 
+#if 1
+        // use smart overhang detection
+        std::vector<Polygons>        overhangs;
+        tree_support->detect_overhangs();
+        const int       num_raft_layers = int(config.raft_layers.size());
+        const int       num_layers = int(print_object.layer_count()) + num_raft_layers;
+        overhangs.resize(num_layers);
+        for (size_t i = 0; i < print_object.layer_count(); i++) {
+            for (ExPolygon& expoly : print_object.get_layer(i)->loverhangs) {
+                Polygons polys = to_polygons(expoly);
+                if (tree_support->overhang_types[&expoly] == TreeSupport::SharpTail) {
+                    polys = offset(to_polygons(expoly), scale_(0.2));
+                }
+                append(overhangs[i + num_raft_layers], polys);
+            }
+        }
+#else
+        std::vector<Polygons>        overhangs = generate_overhangs(config, *print.get_object(processing.second.front()), throw_on_cancel);
+#endif
         // ### Precalculate avoidances, collision etc.
         size_t num_support_layers = precalculate(print, overhangs, processing.first, processing.second, volumes, throw_on_cancel);
         bool   has_support = num_support_layers > 0;
@@ -3443,6 +3461,7 @@ static void generate_support_areas(Print &print, const BuildVolume &build_volume
     #endif // TREESUPPORT_DEBUG_SVG
 
             // ### Propagate the influence areas downwards. This is an inherently serial operation.
+            print.set_status(60, _L("Generating support"));
             create_layer_pathing(volumes, config, move_bounds, throw_on_cancel);
             auto t_path = std::chrono::high_resolution_clock::now();
 
@@ -3496,6 +3515,7 @@ static void generate_support_areas(Print &print, const BuildVolume &build_volume
         });
 
         // Don't fill in the tree supports, make them hollow with just a single sheath line.
+        print.set_status(69, _L("Generating support"));
         generate_support_toolpaths(print_object.support_layers(), print_object.config(), support_params, print_object.slicing_parameters(),
             raft_layers, bottom_contacts, top_contacts, intermediate_layers, interface_layers, base_interface_layers);
 

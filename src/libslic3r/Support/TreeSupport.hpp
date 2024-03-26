@@ -380,7 +380,6 @@ public:
 
     int  avg_node_per_layer = 0;
     float nodes_angle       = 0;
-    bool  has_overhangs = false;
     bool  has_sharp_tails = false;
     bool  has_cantilever = false;
     double max_cantilever_dist = 0;
@@ -397,6 +396,8 @@ public:
      */
     ExPolygon m_machine_border;
 
+    enum OverhangType { Detected = 0, Enforced, SharpTail };
+    std::map<const ExPolygon*, OverhangType> overhang_types;
 private:
     /*!
      * \brief Generator for model collision, avoidance and internal guide volumes
@@ -416,6 +417,7 @@ private:
     size_t          m_highest_overhang_layer = 0;
     std::vector<std::vector<MinimumSpanningTree>> m_spanning_trees;
     std::vector< std::unordered_map<Line, bool, LineHash>> m_mst_line_x_layer_contour_caches;
+
     float    DO_NOT_MOVER_UNDER_MM = 0.0;
     coordf_t MAX_BRANCH_RADIUS = 10.0;
     coordf_t MIN_BRANCH_RADIUS = 0.5;
@@ -476,7 +478,7 @@ private:
      * \return For each layer, a list of points where the tree should connect
      * with the model.
      */
-    void generate_contact_points(std::vector<std::vector<SupportNode*>>& contact_nodes, const std::vector<TreeSupport3D::SupportElements>& move_bounds);
+    void generate_contact_points(std::vector<std::vector<SupportNode*>>& contact_nodes);
 
     /*!
      * \brief Add a node to the next layer.
