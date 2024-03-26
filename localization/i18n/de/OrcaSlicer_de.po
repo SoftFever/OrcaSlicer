@@ -8951,10 +8951,10 @@ msgid "Printer preset names"
 msgstr "Drucker Profilname"
 
 msgid "Use 3rd-party print host"
-msgstr ""
+msgstr "Benutze Drittanbieter-Druck-Hosts"
 
 msgid "Allow controlling BambuLab's printer through 3rd party print hosts"
-msgstr ""
+msgstr "Erlauben Sie die Steuerung von BambuLab-Druckern durch Drittanbieter-Druck-Hosts"
 
 msgid "Hostname, IP or URL"
 msgstr "Hostname, IP oder URL"
@@ -15081,7 +15081,7 @@ msgid "Success!"
 msgstr "Erfolgreich!"
 
 msgid "Are you sure to log out?"
-msgstr ""
+msgstr "Sind Sie sicher, dass Sie sich abmelden möchten?"
 
 msgid "Refresh Printers"
 msgstr "Drucker aktualisieren"
@@ -15115,7 +15115,7 @@ msgstr ""
 "CA-Datei in den Zertifikatspeicher / das Schlüsselbund."
 
 msgid "Login/Test"
-msgstr ""
+msgstr "Login/Test"
 
 msgid "Connection to printers connected via the print host failed."
 msgstr ""
