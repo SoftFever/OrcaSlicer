@@ -60,31 +60,25 @@ void ConfigManipulation::check_nozzle_recommended_temperature_range(DynamicPrint
     if (is_msg_dlg_already_exist)
         return;
 
-    int temperature_range_low = config->has("nozzle_temperature_range_low") ?
-                                config->opt_int("nozzle_temperature_range_low", (unsigned int)0) :
-                                0;
-    int temperature_range_high = config->has("nozzle_temperature_range_high") ?
-                                 config->opt_int("nozzle_temperature_range_high", (unsigned int)0) :
-                                 0;
+    int temperature_range_low, temperature_range_high;
+    if (!get_temperature_range(config, temperature_range_low, temperature_range_high)) return;
 
-    if (temperature_range_low != 0 && temperature_range_high != 0) {
-        wxString msg_text;
-        bool     need_check = false;
-        if (temperature_range_low < 190 || temperature_range_high > 300) {
-            msg_text += _L("The recommended minimum temperature is less than 190 degree or the recommended maximum temperature is greater than 300 degree.\n");
-            need_check = true;
-        }
-        if (temperature_range_low > temperature_range_high) {
-            msg_text += _L("The recommended minimum temperature cannot be higher than the recommended minimum temperature.\n");
-            need_check = true;
-        }
-        if (need_check) {
-            msg_text += _L("Please check.\n");
-            MessageDialog dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxOK);
-            is_msg_dlg_already_exist = true;
-            dialog.ShowModal();
-            is_msg_dlg_already_exist = false;
-        }
+    wxString msg_text;
+    bool     need_check = false;
+    if (temperature_range_low < 190 || temperature_range_high > 300) {
+        msg_text += _L("The recommended minimum temperature is less than 190 degree or the recommended maximum temperature is greater than 300 degree.\n");
+        need_check = true;
+    }
+    if (temperature_range_low > temperature_range_high) {
+        msg_text += _L("The recommended minimum temperature cannot be higher than the recommended maximum temperature.\n");
+        need_check = true;
+    }
+    if (need_check) {
+        msg_text += _L("Please check.\n");
+        MessageDialog dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxOK);
+        is_msg_dlg_already_exist = true;
+        dialog.ShowModal();
+        is_msg_dlg_already_exist = false;
     }
 }
 
@@ -93,19 +87,11 @@ void ConfigManipulation::check_nozzle_temperature_range(DynamicPrintConfig *conf
     if (is_msg_dlg_already_exist)
         return;
 
-    int temperature_range_low = config->has("nozzle_temperature_range_low") ?
-                                config->opt_int("nozzle_temperature_range_low", (unsigned int)0) :
-                                0;
-    int temperature_range_high = config->has("nozzle_temperature_range_high") ?
-                                 config->opt_int("nozzle_temperature_range_high", (unsigned int)0) :
-                                 0;
+    int temperature_range_low, temperature_range_high;
+    if (!get_temperature_range(config, temperature_range_low, temperature_range_high)) return;
 
-    if (temperature_range_low != 0 &&
-        temperature_range_high != 0 &&
-        config->has("nozzle_temperature")) {
-        if (config->opt_int("nozzle_temperature", 0) < temperature_range_low ||
-            config->opt_int("nozzle_temperature", 0) > temperature_range_high)
-        {
+    if (config->has("nozzle_temperature")) {
+        if (config->opt_int("nozzle_temperature", 0) < temperature_range_low || config->opt_int("nozzle_temperature", 0) > temperature_range_high) {
             wxString msg_text = _(L("Nozzle may be blocked when the temperature is out of recommended range.\n"
                 "Please make sure whether to use the temperature to print.\n\n"));
             msg_text += wxString::Format(_L("Recommended nozzle temperature of this filament type is [%d, %d] degree centigrade"), temperature_range_low, temperature_range_high);
@@ -122,16 +108,10 @@ void ConfigManipulation::check_nozzle_temperature_initial_layer_range(DynamicPri
     if (is_msg_dlg_already_exist)
         return;
 
-    int temperature_range_low = config->has("nozzle_temperature_range_low") ?
-                            config->opt_int("nozzle_temperature_range_low", (unsigned int)0) :
-                            0;
-    int temperature_range_high = config->has("nozzle_temperature_range_high") ?
-                                 config->opt_int("nozzle_temperature_range_high", (unsigned int)0) :
-                                 0;
+    int temperature_range_low, temperature_range_high;
+    if (!get_temperature_range(config, temperature_range_low, temperature_range_high)) return;
 
-    if (temperature_range_low != 0 &&
-        temperature_range_high != 0 &&
-        config->has("nozzle_temperature_initial_layer")) {
+    if (config->has("nozzle_temperature_initial_layer")) {
         if (config->opt_int("nozzle_temperature_initial_layer", 0) < temperature_range_low ||
             config->opt_int("nozzle_temperature_initial_layer", 0) > temperature_range_high)
         {
@@ -884,6 +864,20 @@ int ConfigManipulation::show_spiral_mode_settings_dialog(bool is_object_config)
     if (is_object_config)
         answer = wxID_YES;
     return answer;
+}
+
+bool ConfigManipulation::get_temperature_range(DynamicPrintConfig *config, int &range_low, int &range_high)
+{
+    bool range_low_exist = false, range_high_exist = false;
+    if (config->has("nozzle_temperature_range_low")) {
+        range_low       = config->opt_int("nozzle_temperature_range_low", (unsigned int) 0);
+        range_low_exist       = true;
+    }
+    if (config->has("nozzle_temperature_range_high")) {
+        range_high       = config->opt_int("nozzle_temperature_range_high", (unsigned int) 0);
+        range_high_exist       = true;
+    }
+    return range_low_exist && range_high_exist;
 }
 
 

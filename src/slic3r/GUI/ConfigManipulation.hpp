@@ -93,8 +93,7 @@ public:
     int    show_spiral_mode_settings_dialog(bool is_object_config = false);
 
 private:
-    std::vector<int> get_temperature_range_by_filament_type(const std::string &filament_type);
-
+    bool get_temperature_range(DynamicPrintConfig *config, int &range_low, int &range_high);
 };
 
 } // GUI
