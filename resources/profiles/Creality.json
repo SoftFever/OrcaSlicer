@@ -37,7 +37,7 @@
 			"sub_path": "machine/Creality Ender-3.json"
 		},
 		{
-			"name":"Creality Ender-3 Pro",
+			"name": "Creality Ender-3 Pro",
 			"sub_path": "machine/Creality Ender-3 Pro.json"
 		},
 		{
@@ -75,6 +75,14 @@
 		{
 			"name": "Creality Ender-6",
 			"sub_path": "machine/Creality Ender-6.json"
+		},
+		{
+			"name": "Creality Sermoon v1 Pro",
+			"sub_path": "machine/Creality Sermoon v1.json"
+		},
+		{
+			"name": "Creality Sermoon v1 Pro",
+			"sub_path": "machine/Creality Sermoon v1 Pro.json"
 		},
 		{
 			"name": "Creality K1",
@@ -777,6 +785,14 @@
 		{
 			"name": "0.48mm Draft @Creality K1Max (0.8 nozzle)",
 			"sub_path": "process/0.48mm Draft @Creality K1Max (0.8 nozzle).json"
+		},
+		{
+			"name": "0.20mm Standard @Creality Sermoon v1",
+			"sub_path": "process/0.20mm Standard @Creality Sermoon v1.json"
+		},
+		{
+			"name": "0.20mm Standard @Creality Sermoon v1 Pro",
+			"sub_path": "process/0.20mm Standard @Creality Sermoon v1 Pro.json"
 		}
 	],
 	"filament_list": [
@@ -989,7 +1005,7 @@
 		{
 			"name": "Creality Ender-3 0.2 nozzle",
 			"sub_path": "machine/Creality Ender-3 0.2 nozzle.json"
-		},		
+		},
 		{
 			"name": "Creality Ender-3 V2 Neo 0.4 nozzle",
 			"sub_path": "machine/Creality Ender-3 V2 Neo 0.4 nozzle.json"
@@ -1121,6 +1137,14 @@
 		{
 			"name": "Creality K1 Max (0.8 nozzle)",
 			"sub_path": "machine/Creality K1 Max (0.8 nozzle).json"
+		},
+		{
+			"name": "Creality Sermoon v1 nozzle",
+			"sub_path": "machine/Creality Sermoon v1  nozzle.json"
+		},
+		{
+			"name": "Creality Sermoon v1 Pro nozzle",
+			"sub_path": "machine/Creality Sermoon v1 pro nozzle.json"
 		}
 	]
 }
