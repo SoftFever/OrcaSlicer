@@ -11908,7 +11908,7 @@ msgstr ""
 "in base alla loro profondità, formando un motivo a zig-zag."
 
 msgid "Seam gap"
-msgstr "Fessura di cucitura"
+msgstr "Gap di cucitura"
 
 msgid ""
 "In order to reduce the visibility of the seam in a closed loop extrusion, "
@@ -11939,7 +11939,7 @@ msgid ""
 msgstr ""
 "Applicare le cuciture a sciarpa solo sui perimetri lisci, dove le cuciture "
 "tradizionali non riescono a nascondere efficacemente quelle in corrispondenza "
-"degli angoli vivi.
+"degli angoli vivi."
 
 msgid "Conditional angle threshold"
 msgstr "Soglia dell'angolo Condizionale"
@@ -11953,7 +11953,7 @@ msgid ""
 msgstr ""
 "Questa opzione imposta la soglia dell'angolo per l'applicazione di una "
 "cucitura condizionale.\n"
-Se l'angolo massimo all'interno dell'anello perimetrale supera questo "
+"Se l'angolo massimo all'interno dell'anello perimetrale supera questo "
 "valore (che indica l'assenza di spigoli vivi), si utilizzerà una cucitura "
 a sciarpa. Il valore predefinito è 155°.
 
