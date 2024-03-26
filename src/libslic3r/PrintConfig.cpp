@@ -103,7 +103,9 @@ static t_config_enum_values s_keys_map_PrintHostType {
     { "astrobox",       htAstroBox },
     { "repetier",       htRepetier },
     { "mks",            htMKS },
-    { "obico",          htObico }
+    { "obico",          htObico },
+    { "flashforge",     htFlashforge },
+    { "simplyprint",    htSimplyPrint },
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(PrintHostType)
 
@@ -274,7 +276,7 @@ CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SeamScarfType)
 
 // Orca
 static t_config_enum_values s_keys_map_EnsureVerticalShellThickness{
-    { "none",           int(EnsureVerticalShellThickness::vsNone) },
+    { "none",           int(EnsureVerticalShellThickness::evstNone) },
     { "ensure_critical_only",         int(EnsureVerticalShellThickness::evstCriticalOnly) },
     { "ensure_moderate",            int(EnsureVerticalShellThickness::evstModerate) },
     { "ensure_all",         int(EnsureVerticalShellThickness::evstAll) },
@@ -422,12 +424,12 @@ static const t_config_enum_values  s_keys_map_GCodeThumbnailsFormat = {
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(GCodeThumbnailsFormat)
 
-static const t_config_enum_values s_keys_map_CounterboleHoleBridgingOption{
+static const t_config_enum_values s_keys_map_CounterboreHoleBridgingOption{
     { "none", chbNone },
     { "partiallybridge", chbBridges },
     { "sacrificiallayer", chbFilled },
 };
-CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(CounterboleHoleBridgingOption)
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(CounterboreHoleBridgingOption)
 
 static void assign_printer_technology_to_unknown(t_optiondef_map &options, PrinterTechnology printer_technology)
 {
@@ -540,6 +542,13 @@ void PrintConfigDef::init_common_params()
     //def->tooltip = L("Names of presets related to the physical printer");
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionStrings());
+
+    def = this->add("bbl_use_printhost", coBool);
+    def->label = L("Use 3rd-party print host");
+    def->tooltip = L("Allow controlling BambuLab's printer through 3rd party print hosts");
+    def->mode = comAdvanced;
+    def->cli = ConfigOptionDef::nocli;
+    def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("print_host", coString);
     def->label = L("Hostname, IP or URL");
@@ -978,8 +987,8 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
-    def = this->add("counterbole_hole_bridging", coEnum);
-    def->label = L("Bridge counterbole holes");
+    def = this->add("counterbore_hole_bridging", coEnum);
+    def->label = L("Bridge counterbore holes");
     def->category = L("Quality");
     def->tooltip  = L(
         "This option creates bridges for counterbore holes, allowing them to be printed without support. Available modes include:\n"
@@ -987,14 +996,14 @@ void PrintConfigDef::init_fff_params()
          "2. Partially Bridged: Only a part of the unsupported area will be bridged.\n"
          "3. Sacrificial Layer: A full sacrificial bridge layer is created.");
     def->mode = comAdvanced;
-    def->enum_keys_map = &ConfigOptionEnum<CounterboleHoleBridgingOption>::get_enum_values();
+    def->enum_keys_map = &ConfigOptionEnum<CounterboreHoleBridgingOption>::get_enum_values();
     def->enum_values.emplace_back("none");
     def->enum_values.emplace_back("partiallybridge");
     def->enum_values.emplace_back("sacrificiallayer");
     def->enum_labels.emplace_back(L("None"));
     def->enum_labels.emplace_back(L("Partially bridged"));
     def->enum_labels.emplace_back(L("Sacrificial layer"));
-    def->set_default_value(new ConfigOptionEnum<CounterboleHoleBridgingOption>(chbNone));
+    def->set_default_value(new ConfigOptionEnum<CounterboreHoleBridgingOption>(chbNone));
 
     def = this->add("overhang_reverse_threshold", coFloatOrPercent);
     def->label = L("Reverse threshold");
@@ -3066,6 +3075,8 @@ def = this->add("filament_loading_speed", coFloats);
     def->enum_values.push_back("repetier");
     def->enum_values.push_back("mks");
     def->enum_values.push_back("obico");
+    def->enum_values.push_back("flashforge");
+    def->enum_values.push_back("simplyprint");
     def->enum_labels.push_back("PrusaLink");
     def->enum_labels.push_back("PrusaConnect");
     def->enum_labels.push_back("Octo/Klipper");
@@ -3075,6 +3086,8 @@ def = this->add("filament_loading_speed", coFloats);
     def->enum_labels.push_back("Repetier");
     def->enum_labels.push_back("MKS");
     def->enum_labels.push_back("Obico");
+    def->enum_labels.push_back("Flashforge");
+    def->enum_labels.push_back("SimplyPrint");
     def->mode = comAdvanced;
     def->cli = ConfigOptionDef::nocli;
     def->set_default_value(new ConfigOptionEnum<PrintHostType>(htOctoPrint));
@@ -3510,7 +3523,7 @@ def = this->add("filament_loading_speed", coFloats);
 
     def = this->add("disable_m73", coBool);
     def->label = L("Disable set remaining print time");
-    def->tooltip = "Disable generating of the M73: Set remaining print time in the final gcode";
+    def->tooltip = L("Disable generating of the M73: Set remaining print time in the final gcode");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
@@ -3601,6 +3614,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->tooltip = L("Start height of the scarf.\n"
                      "This amount can be specified in millimeters or as a percentage of the current layer height. The default value for this parameter is 0.");
     def->sidetext = L("mm or %");
+    def->ratio_over = "layer_height";
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatOrPercent(0, false));
@@ -5749,6 +5763,9 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
     }
     else if(opt_key == "ironing_direction") {
         opt_key = "ironing_angle";
+    }
+    else if(opt_key == "counterbole_hole_bridging"){
+        opt_key = "counterbore_hole_bridging";
     }
 
     // Ignore the following obsolete configuration keys:

@@ -677,7 +677,7 @@ void PresetUpdater::priv::sync_config()
                     }
                 } catch (...) {}
             }
-            BOOST_LOG_TRIVIAL(error) << format("Error getting: `%1%`: HTTP %2%, %3%", "sync_config_orca", http_status, error);
+            BOOST_LOG_TRIVIAL(info) << format("Error getting: `%1%`: HTTP %2%, %3%", "sync_config_orca", http_status, error);
         })
         .timeout_connect(5)
         .on_complete([this, asset_name, cache_profile_path, cache_profile_update_file](std::string body, unsigned http_status) {
@@ -942,12 +942,18 @@ void PresetUpdater::priv::sync_printer_config(std::string http_url)
     auto                    cache_folder = data_dir_path / "ota" / "printers";
 
     try {
-        Slic3r::load_string_file(config_folder / "version.txt", curr_version);
-        boost::algorithm::trim(curr_version);
+        auto version_file = config_folder / "version.txt";
+        if (fs::exists(version_file)) {
+            Slic3r::load_string_file(version_file, curr_version);
+            boost::algorithm::trim(curr_version);
+        }
     } catch (...) {}
     try {
-        Slic3r::load_string_file(cache_folder / "version.txt", cached_version);
-        boost::algorithm::trim(cached_version);
+        auto version_file = cache_folder / "version.txt";
+        if (fs::exists(version_file)) {
+            Slic3r::load_string_file(version_file, cached_version);
+            boost::algorithm::trim(cached_version);
+        }
     } catch (...) {}
     if (!cached_version.empty()) {
         bool   need_delete_cache = false;
@@ -980,9 +986,12 @@ void PresetUpdater::priv::sync_printer_config(std::string http_url)
 
     bool result = false;
     try {
-        Slic3r::load_string_file(cache_folder / "version.txt", cached_version);
-        boost::algorithm::trim(cached_version);
-        result = true;
+        auto version_file = cache_folder / "version.txt";
+        if (fs::exists(version_file)) {
+            Slic3r::load_string_file(version_file, cached_version);
+            boost::algorithm::trim(cached_version);
+            result = true;
+        }
     } catch (...) {}
     if (result) {
         BOOST_LOG_TRIVIAL(info) << format("[Orca Updater] found new printer config: %1%, prompt to update", cached_version);
@@ -1182,16 +1191,16 @@ Updates PresetUpdater::priv::get_config_updates(const Semver &old_slic3r_version
 
                 bool version_match = ((vendor_ver.maj() == cache_ver.maj()) && (vendor_ver.min() == cache_ver.min()));
                 if (version_match && (vendor_ver < cache_ver)) {
-                    Semver app_ver = *Semver::parse(SLIC3R_VERSION);
-                    if (cache_ver.maj() == app_ver.maj()){
-                        BOOST_LOG_TRIVIAL(info) << "[Orca Updater]:need to update settings from "<<vendor_ver.to_string()<<" to newer version "<<cache_ver.to_string() <<", app version "<<SLIC3R_VERSION;
-                        Version version;
-                        version.config_version = cache_ver;
-                        version.comment = description;
+                    BOOST_LOG_TRIVIAL(info) << "[Orca Updater]:need to update settings from " << vendor_ver.to_string()
+                                            << " to newer version " << cache_ver.to_string() << ", app version " << SLIC3R_VERSION;
+                    Version version;
+                    version.config_version = cache_ver;
+                    version.comment        = description;
 
-                        updates.updates.emplace_back(std::move(file_path), std::move(path_in_vendor.string()), std::move(version), vendor_name, changelog, "", force_update, false);
-                        updates.updates.emplace_back(cache_profile_path / vendor_name, vendor_path / vendor_name, Version(), vendor_name, "", "", force_update, true);
-                    }
+                    updates.updates.emplace_back(std::move(file_path), std::move(path_in_vendor.string()), std::move(version), vendor_name,
+                                                 changelog, "", force_update, false);
+                    updates.updates.emplace_back(cache_profile_path / vendor_name, vendor_path / vendor_name, Version(), vendor_name, "",
+                                                 "", force_update, true);
                 }
             }
         }

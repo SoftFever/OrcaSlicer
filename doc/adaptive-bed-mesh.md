@@ -28,7 +28,8 @@ The implementation is designed to be straightforward, requiring no additional pl
 
 ### Marlin:
 ```
-G29 X{bed_mesh_probe_count[0]} Y{bed_mesh_probe_count[1]} L{adaptive_bed_mesh_min[0]} R{adaptive_bed_mesh_max[0]} F{adaptive_bed_mesh_min[1]} B{adaptive_bed_mesh_max[1]} T V4
+; Marlin don't support speicify the probe count yet, so we only specify the probe area
+G29 L{adaptive_bed_mesh_min[0]} R{adaptive_bed_mesh_max[0]} F{adaptive_bed_mesh_min[1]} B{adaptive_bed_mesh_max[1]} T V4
 ```
 ### Klipper:
 ```

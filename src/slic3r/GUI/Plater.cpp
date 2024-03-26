@@ -702,6 +702,9 @@ Sidebar::Sidebar(Plater *parent)
             bed_type_title->SetFont(font);
             SetCursor(wxCURSOR_ARROW);
         });
+        bed_type_title->Bind(wxEVT_LEFT_UP, [bed_type_title, this](wxMouseEvent &e) {
+            wxLaunchDefaultBrowser("https://github.com/SoftFever/OrcaSlicer/wiki/bed-types");
+        });
 
         AppConfig *app_config = wxGetApp().app_config;
         std::string str_bed_type = app_config->get("curr_bed_type");
@@ -1129,13 +1132,14 @@ void Sidebar::update_all_preset_comboboxes()
     const auto print_tech = preset_bundle.printers.get_edited_preset().printer_technology();
 
     bool is_bbl_vendor = preset_bundle.is_bbl_vendor();
+    const bool use_bbl_network = preset_bundle.use_bbl_network();
 
     // Orca:: show device tab based on vendor type
     auto p_mainframe = wxGetApp().mainframe;
-    p_mainframe->show_device(is_bbl_vendor);
+    p_mainframe->show_device(use_bbl_network);
     auto cfg = preset_bundle.printers.get_edited_preset().config;
 
-    if (is_bbl_vendor) {
+    if (use_bbl_network) {
         //only show connection button for not-BBL printer
         connection_btn->Hide();
         //only show sync-ams button for BBL printer
@@ -1267,7 +1271,7 @@ void Sidebar::update_presets(Preset::Type preset_type)
         }
 
         Preset& printer_preset = wxGetApp().preset_bundle->printers.get_edited_preset();
-        bool isBBL = preset_bundle.is_bbl_vendor();
+        bool isBBL = preset_bundle.use_bbl_network();
         wxGetApp().mainframe->show_calibration_button(!isBBL);
 
         if (auto printer_structure_opt = printer_preset.config.option<ConfigOptionEnum<PrinterStructure>>("printer_structure")) {
@@ -6832,6 +6836,26 @@ void Plater::priv::on_tab_selection_changing(wxBookCtrlEvent& e)
     const int new_sel = e.GetSelection();
     sidebar_layout.show = new_sel == MainFrame::tp3DEditor || new_sel == MainFrame::tpPreview;
     update_sidebar();
+    int old_sel = e.GetOldSelection();
+    if (wxGetApp().preset_bundle && wxGetApp().preset_bundle->use_bbl_network() && new_sel == MainFrame::tpMonitor) {
+        if (!wxGetApp().getAgent()) {
+            e.Veto();
+            BOOST_LOG_TRIVIAL(info) << boost::format("skipped tab switch from %1% to %2%, lack of network plugins") % old_sel % new_sel;
+            if (q) {
+                wxCommandEvent* evt = new wxCommandEvent(EVT_INSTALL_PLUGIN_HINT);
+                wxQueueEvent(q, evt);
+            }
+        }
+    } else {
+        if (new_sel == MainFrame::tpMonitor && wxGetApp().preset_bundle != nullptr) {
+            auto     cfg = wxGetApp().preset_bundle->printers.get_edited_preset().config;
+            wxString url = cfg.opt_string("print_host_webui").empty() ? cfg.opt_string("print_host") : cfg.opt_string("print_host_webui");
+            if (url.empty()) {
+                // It's missing_connection page, reload so that we can replay the gif image
+                main_frame->m_printer_view->reload();
+            }
+        }
+    }
 }
 
 int Plater::priv::update_print_required_data(Slic3r::DynamicPrintConfig config, Slic3r::Model model, Slic3r::PlateDataPtrs plate_data_list, std::string file_name, std::string file_path)
