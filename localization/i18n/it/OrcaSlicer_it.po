@@ -3765,7 +3765,7 @@ msgid "Filament settings"
 msgstr "Impostazioni Filamento"
 
 msgid "SLA Materials settings"
-msgstr ""
+msgstr "Impostazioni Materiali SLA"
 
 msgid "Printer settings"
 msgstr "Impostazioni stampante"
@@ -6189,7 +6189,7 @@ msgid "Stealth Mode"
 msgstr "Modalità invisibile"
 
 msgid "Enable network plugin"
-msgstr ""
+msgstr "Abilita plugin di rete"
 
 msgid "Check for stable updates only"
 msgstr "Verifica solo la disponibilità di aggiornamenti stabili"
@@ -6249,7 +6249,7 @@ msgid "If enabled, auto-calculate everytime the color changed."
 msgstr "Se abilitato, calcola automaticamente ogni volta che il colore cambia."
 
 msgid "Network"
-msgstr ""
+msgstr "Rete"
 
 msgid "Auto sync user presets(Printer/Filament/Process)"
 msgstr ""
@@ -11931,15 +11931,18 @@ msgstr ""
 "cucitura e aumentare la resistenza della cucitura."
 
 msgid "Conditional scarf joint"
-msgstr ""
+msgstr "Cucitura a Sciarpa Condizionata"
 
 msgid ""
 "Apply scarf joints only to smooth perimeters where traditional seams do not "
 "conceal the seams at sharp corners effectively."
 msgstr ""
+"Applicare le cuciture a sciarpa solo sui perimetri lisci, dove le cuciture "
+"tradizionali non riescono a nascondere efficacemente quelle in corrispondenza "
+"degli angoli vivi.
 
 msgid "Conditional angle threshold"
-msgstr ""
+msgstr "Soglia dell'angolo Condizionale"
 
 msgid ""
 "This option sets the threshold angle for applying a conditional scarf joint "
@@ -11948,9 +11951,14 @@ msgid ""
 "(indicating the absence of sharp corners), a scarf joint seam will be used. "
 "The default value is 155°."
 msgstr ""
+"Questa opzione imposta la soglia dell'angolo per l'applicazione di una "
+"cucitura condizionale.\n"
+Se l'angolo massimo all'interno dell'anello perimetrale supera questo "
+"valore (che indica l'assenza di spigoli vivi), si utilizzerà una cucitura "
+a sciarpa. Il valore predefinito è 155°.
 
 msgid "Scarf joint speed"
-msgstr ""
+msgstr "Velocità Cucitura a Sciarpa"
 
 msgid ""
 "This option sets the printing speed for scarf joints. It is recommended to "
@@ -11962,12 +11970,23 @@ msgid ""
 "percentage (e.g., 80%), the speed is calculated based on the respective "
 "outer or inner wall speed. The default value is set to 100%."
 msgstr ""
+"Questa opzione imposta la velocità di stampa per le cuciture a sciarpa. "
+" È consigliabile stampare le cuciture a sciarpa a una velocità bassa "
+"(inferiore a 100 mm/s). È anche opportuno attivare l'opzione "
+"'Lisciatura del tasso di estrusione' se la velocità impostata varia in "
+"modo significativo rispetto alla velocità delle pareti esterne o interne."
+"Se la velocità specificata qui è superiore alla velocità delle pareti "
+"esterne o interne,  la stampante si regolerà di default sulla velocità "
+"più bassa delle due. Se specificata come percentuale (ad esempio, 80%), "
+"la velocità viene calcolata in base alla velocità della parete esterna "
+"o interna. Il valore predefinito è impostato su 100%"
 
 msgid "Scarf joint flow ratio"
-msgstr ""
+msgstr "Rapporto di Flusso Cucitura a Sciarpa"
 
 msgid "This factor affects the amount of material for scarf joints."
-msgstr ""
+msgstr "Questo fattore influisce sulla quantità di materiale per le Cuciture "
+"a Sciarpa"
 
 msgid "Scarf start height"
 msgstr "Altezza di partenza della sciarpa"
@@ -11999,16 +12018,16 @@ msgstr ""
 "viene effettivamente disabilitata."
 
 msgid "Scarf steps"
-msgstr "Gradini sciarpa"
+msgstr "Incrementi sciarpa"
 
 msgid "Minimum number of segments of each scarf."
 msgstr "Numero minimo di segmenti di ogni sciarpa."
 
 msgid "Scarf joint for inner walls"
-msgstr "Giunto a sciarpa per pareti interne"
+msgstr "Cucitura a sciarpa per pareti interne"
 
 msgid "Use scarf joint for inner walls as well."
-msgstr "Utilizzare il giunto a sciarpa anche per le pareti interne."
+msgstr "Utilizzare la cucitura a sciarpa anche per le pareti interne."
 
 msgid "Role base wipe speed"
 msgstr "Wipe Speed"
