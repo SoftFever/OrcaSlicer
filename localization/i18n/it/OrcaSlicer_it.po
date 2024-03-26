@@ -8899,10 +8899,10 @@ msgid "Printer preset names"
 msgstr "Nomi dei preset della stampante"
 
 msgid "Use 3rd-party print host"
-msgstr ""
+msgstr "Usare un host di stampa di terze parti"
 
 msgid "Allow controlling BambuLab's printer through 3rd party print hosts"
-msgstr ""
+msgstr "Consentire il controllo della stampante di BambuLab attraverso host di stampa di terze parti"
 
 msgid "Hostname, IP or URL"
 msgstr "Nome host, IP o URL"
@@ -15049,7 +15049,7 @@ msgid "Success!"
 msgstr "Successo!"
 
 msgid "Are you sure to log out?"
-msgstr ""
+msgstr "Sei sicuro di voler effettuare il logout?"
 
 msgid "Refresh Printers"
 msgstr "Aggiorna Stampanti"
