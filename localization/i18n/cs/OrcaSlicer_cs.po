@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-22 19:58+0800\n"
+"POT-Creation-Date: 2024-03-23 13:08+0800\n"
 "PO-Revision-Date: 2023-09-30 15:15+0200\n"
 "Last-Translator: René Mošner <Renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -8652,6 +8652,12 @@ msgstr ""
 msgid "Printer preset names"
 msgstr "Názvy přednastavení tiskáren"
 
+msgid "Use 3rd-party print host"
+msgstr ""
+
+msgid "Allow controlling BambuLab's printer through 3rd party print hosts"
+msgstr ""
+
 msgid "Hostname, IP or URL"
 msgstr "Název serveru, IP nebo URL"
 
@@ -14260,6 +14266,9 @@ msgstr "Nelze získat platný odkaz na tiskový server"
 msgid "Success!"
 msgstr "Úspěch!"
 
+msgid "Are you sure to log out?"
+msgstr ""
+
 msgid "Refresh Printers"
 msgstr "Obnovit tiskárny"
 
@@ -14290,6 +14299,9 @@ msgid ""
 msgstr ""
 "Chcete-li použít vlastní soubor CA, importujte soubor CA do Certificate "
 "Store / Keychain."
+
+msgid "Login/Test"
+msgstr ""
 
 msgid "Connection to printers connected via the print host failed."
 msgstr ""

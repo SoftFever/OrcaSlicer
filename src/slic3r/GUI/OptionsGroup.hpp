@@ -173,6 +173,9 @@ public:
 	void			show_field(const t_config_option_key& opt_key, bool show = true);
 	void			hide_field(const t_config_option_key& opt_key) {  show_field(opt_key, false);  }
 
+	void enable_field(const t_config_option_key& opt_key, bool enable = true);
+    void disable_field(const t_config_option_key& opt_key) { enable_field(opt_key, false); }
+
 	void			set_name(const wxString& new_name);
 
 	inline void		enable() { for (auto& field : m_fields) field.second->enable(); }

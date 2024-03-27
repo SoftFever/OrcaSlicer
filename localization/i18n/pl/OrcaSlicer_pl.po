@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-22 19:58+0800\n"
+"POT-Creation-Date: 2024-03-24 12:51+0100\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Krzysztof Morga <tlumaczeniebs@gmail.com>\n"
 "Language-Team: \n"
@@ -3226,7 +3226,7 @@ msgid "Succeed to export G-code to %1%"
 msgstr "Pomyślnie wyeksportowano G-code do %1%"
 
 msgid "Running post-processing scripts"
-msgstr "Uruchamianie skryptów po obróbce"
+msgstr "Uruchamianie skryptu post-procesingu"
 
 msgid "Copying of the temporary G-code to the output G-code failed"
 msgstr "Kopiowanie tymczasowego kodu G do kodu G wynikowego nie powiodło się"
@@ -6171,7 +6171,7 @@ msgid "Stealth Mode"
 msgstr "Tryb \"Niewidzialny\""
 
 msgid "Enable network plugin"
-msgstr ""
+msgstr "Włącz wtyczkę sieciową (BambuLab)"
 
 msgid "Check for stable updates only"
 msgstr "Sprawdzaj aktualizacje (tylko wersje stabilne)"
@@ -6233,7 +6233,7 @@ msgstr ""
 "Jeśli włączone, automatyczne obliczanie za każdym razem, gdy zmieni się kolor"
 
 msgid "Network"
-msgstr ""
+msgstr "Sieć"
 
 msgid "Auto sync user presets(Printer/Filament/Process)"
 msgstr ""
@@ -8850,6 +8850,13 @@ msgstr ""
 
 msgid "Printer preset names"
 msgstr "Nazwy profilu drukarki"
+
+msgid "Use 3rd-party print host"
+msgstr "Użyj innego serwera druku"
+
+msgid "Allow controlling BambuLab's printer through 3rd party print hosts"
+msgstr ""
+"Zezwól na kontrolowanie drukarki BambuLab przez serwery druku innych firm"
 
 msgid "Hostname, IP or URL"
 msgstr "Nazwa hosta, IP lub URL"
@@ -11802,6 +11809,12 @@ msgstr "Pokaż znaczniki autokalibracji"
 msgid "Disable set remaining print time"
 msgstr "Wyłącz ustawianie pozostałego czasu druku"
 
+msgid ""
+"Disable generating of the M73: Set remaining print time in the final gcode"
+msgstr ""
+"Zablokuj generowanie polecenia M73: Ustaw pozostały czas druku w końcowym "
+"kodzie G-code"
+
 msgid "Seam position"
 msgstr "Pozycja szwu"
 
@@ -14378,7 +14391,7 @@ msgid "Export Log"
 msgstr "Eksportuj log"
 
 msgid "OrcaSlicer Version:"
-msgstr ""
+msgstr "Wersja OrcaSlicer:"
 
 msgid "System Version:"
 msgstr "Wersja systemu:"
@@ -14387,10 +14400,10 @@ msgid "DNS Server:"
 msgstr "Serwer DNS:"
 
 msgid "Test OrcaSlicer(GitHub)"
-msgstr ""
+msgstr "Test OrcaSlicer(GitHub)"
 
 msgid "Test OrcaSlicer(GitHub):"
-msgstr ""
+msgstr "Test OrcaSlicer(GitHub):"
 
 msgid "Test Bing.com"
 msgstr "Test Bing.com"
@@ -14930,6 +14943,9 @@ msgstr "Nie można uzyskać ważnego odniesienia do hosta drukarki"
 msgid "Success!"
 msgstr "Sukces!"
 
+msgid "Are you sure to log out?"
+msgstr "Czy na pewno chcesz się wylogować?"
+
 msgid "Refresh Printers"
 msgstr "Odśwież drukarki"
 
@@ -14960,6 +14976,9 @@ msgid ""
 msgstr ""
 "Aby użyć własnego certyfikatu, zaimportuj plik do magazynu (Certificate "
 "Store / Keychain)."
+
+msgid "Login/Test"
+msgstr "Logowanie/Test"
 
 msgid "Connection to printers connected via the print host failed."
 msgstr ""
@@ -15097,6 +15116,55 @@ msgstr ""
 "Wyliczenie drukarek hosta nie powiodło się.\n"
 "Treść wiadomości: \"%1%\"\n"
 "Błąd: \"%2%\""
+
+msgid "Connected to Obico successfully!"
+msgstr "Pomyślnie połączono z SimplyPrint!"
+
+msgid "Could not connect to Obico"
+msgstr "Nie można połączyć się z Obico"
+
+msgid "Connected to SimplyPrint successfully!"
+msgstr "Pomyślnie połączono z SimplyPrint!"
+
+msgid "Could not connect to SimplyPrint"
+msgstr "Nie można połączyć się z SimplyPrint"
+
+msgid "SimplyPrint account not linked. Go to Connect options to set it up."
+msgstr ""
+"Nie połączono z kontem SimplyPrint. Przejdź do opcji Połącz, aby go "
+"skonfigurować."
+
+msgid ""
+"File size exceeds the 100MB upload limit. Please upload your file through "
+"the panel."
+msgstr ""
+"Rozmiar pliku przekracza limit przesyłania 100 MB. Proszę przesłać plik za "
+"pomocą panelu."
+
+msgid "Unknown error"
+msgstr "Nieznany błąd"
+
+msgid "Connection to Flashforge works correctly."
+msgstr "Połączenie z Flashforge działa poprawnie."
+
+msgid "Could not connect to Flashforge"
+msgstr "Nie można połączyć się z Flashforge"
+
+msgid "The provided state is not correct."
+msgstr "Podany stan nie jest właściwy"
+
+msgid "Please give the required permissions when authorizing this application."
+msgstr ""
+"Proszę udzielić wymaganych uprawnień podczas autoryzacji tej aplikacji."
+
+msgid "Something unexpected happened when trying to log in, please try again."
+msgstr "Wystąpił problem podczas próby logowania, proszę spróbować ponownie."
+
+msgid "Timeout when authenticating with the account server."
+msgstr "Przekroczono limit czasu serwera podczas uwierzytelniania."
+
+msgid "User cancelled."
+msgstr "Anulowane przez użytkownika."
 
 #: resources/data/hints.ini: [hint:Precise wall]
 msgid ""
@@ -15485,6 +15553,14 @@ msgstr ""
 "takimi jak ABS, odpowiednie zwiększenie temperatury podgrzewanej płyty może "
 "zmniejszyć prawdopodobieństwo odkształceń."
 
+#~ msgid ""
+#~ "Air filtration/Exhuast Fan\n"
+#~ "Did you know that OrcaSlicer can support Air filtration/Exhuast Fan?"
+#~ msgstr ""
+#~ "Filtracja powietrza/Wentylator wyciągowy\n"
+#~ "Czy wiesz, że OrcaSlicer może obsługiwać filtrację powietrza/wentylator "
+#~ "wyciągowy?"
+
 #~ msgid "Studio Version:"
 #~ msgstr "Wersja Studio:"
 
@@ -15610,14 +15686,6 @@ msgstr ""
 #~ "Ponieważ ilość wypełnienia podpory powierzchni stałych będzie bardzo "
 #~ "ograniczona, upewnij się, że używasz odpowiedniej liczby ścian do "
 #~ "podparcia części na nachylonych powierzchniach."
-
-#~ msgid ""
-#~ "Air filtration/Exhuast Fan\n"
-#~ "Did you know that OrcaSlicer can support Air filtration/Exhuast Fan?"
-#~ msgstr ""
-#~ "Filtracja powietrza/Wentylator wyciągowy\n"
-#~ "Czy wiesz, że OrcaSlicer może obsługiwać filtrację powietrza/wentylator "
-#~ "wyciągowy?"
 
 #~ msgid "Scarf joint seam"
 #~ msgstr "Szew szalikowy (beta)"
@@ -16613,12 +16681,6 @@ msgstr ""
 #~ "Uwaga: Jeśli ta funkcja jest włączona, mogą pojawić się artefakty, jeśli "
 #~ "masz na następnej warstwie jakieś cienkie elementy, na przykład litery. "
 #~ "Ustaw tę opcję na 0, aby usunąć te artefakty."
-
-#~ msgid ""
-#~ "Disable generating of the M73: Set remaining print time in the final gcode"
-#~ msgstr ""
-#~ "Zablokuj generowanie polecenia M73: Ustaw pozostały czas druku w końcowym "
-#~ "kodzie G-code"
 
 #~ msgid "Layer order"
 #~ msgstr "Kolejność warstw"
