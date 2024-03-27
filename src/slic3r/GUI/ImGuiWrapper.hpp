@@ -336,7 +336,12 @@ public:
     static const ImVec4 COL_WINDOW_BG_DARK;
     static const ImVec4 COL_SEPARATOR;
     static const ImVec4 COL_SEPARATOR_DARK;
+
+    //ORCA
     static const ImVec4 COL_ORCA;
+    static const ImVec4 COL_ORCA_LIGHT;
+    static const ImVec4 COL_ORCA_DARK;
+    static const ImVec4 COL_GREY_BALANCED;
 
     //BBS
     static void on_change_color_mode(bool is_dark);
