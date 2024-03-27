@@ -1983,6 +1983,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("seam_slope_type", "seam#scarf-joint-seam");
         optgroup->append_single_option_line("seam_slope_conditional", "seam#scarf-joint-seam");
         optgroup->append_single_option_line("scarf_angle_threshold", "seam#scarf-joint-seam");
+        optgroup->append_single_option_line("scarf_overhang_threshold", "seam#scarf-joint-seam");
         optgroup->append_single_option_line("scarf_joint_speed", "seam#scarf-joint-seam");
         optgroup->append_single_option_line("seam_slope_start_height", "seam#scarf-joint-seam");
         optgroup->append_single_option_line("seam_slope_entire_loop", "seam#scarf-joint-seam");
