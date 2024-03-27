@@ -288,7 +288,7 @@ void Tab::create_preset_tab()
     //search input
     m_search_item = new StaticBox(m_top_panel);
     StateColor box_colour(std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
-    StateColor box_border_colour(std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Normal));
+    StateColor box_border_colour(std::pair<wxColour, int>(wxColour("#009688"), StateColor::Normal)); // ORCA: Use orca as border color while showing search input box to indicate its focused
 
     m_search_item->SetBackgroundColor(box_colour);
     m_search_item->SetBorderColor(box_border_colour);
@@ -317,6 +317,8 @@ void Tab::create_preset_tab()
         if (m_presets_choice) m_presets_choice->Show();
 
         m_btn_save_preset->Show();
+        m_btn_delete_preset->Show(); // ORCA: fixes delete preset button visible while search box focused
+        m_undo_btn->Show();          // ORCA: fixes revert preset button visible while search box focused
         m_btn_search->Show();
         m_search_item->Hide();
 
@@ -345,6 +347,8 @@ void Tab::create_preset_tab()
              m_presets_choice->Hide();
 
          m_btn_save_preset->Hide();
+         m_btn_delete_preset->Hide(); // ORCA: fixes delete preset button visible while search box focused
+         m_undo_btn->Hide();          // ORCA: fixes revert preset button visible while search box focused
          m_btn_search->Hide();
          m_search_item->Show();
 
@@ -487,7 +491,7 @@ void Tab::create_preset_tab()
         //const auto selection = sel_item >= 0 ? m_tabctrl->GetItemText(sel_item) : "";
         //OutputDebugString(selection);
         //OutputDebugStringA("\n");
-        m_tabctrl->SetItemBold(sel_item, false);
+        //m_tabctrl->SetItemBold(sel_item, false); // ORCA: Disabled using bold font for active tab. Advantages; tabs always stays at same position, makes switching between tabs a bit faster
         });
     m_tabctrl->Bind(wxEVT_TAB_SEL_CHANGED, [this](wxCommandEvent& event) {
 #ifdef __linux__
@@ -4893,7 +4897,7 @@ void Tab::unselect_tree_item()
     // BBS: bold selection
     const auto sel_item = m_tabctrl->GetSelection();
     m_last_select_item = sel_item;
-    m_tabctrl->SetItemBold(sel_item, false);
+    //m_tabctrl->SetItemBold(sel_item, false); // ORCA: Disabled using bold font for active tab. Advantages; tabs always stays at same position, makes switching between tabs a bit faster
     m_tabctrl->Unselect();
     m_active_page = nullptr;
 }
@@ -5014,7 +5018,7 @@ bool Tab::tree_sel_change_delayed(wxCommandEvent& event)
     // BBS: bold selection
     //OutputDebugStringA("tree_sel_change_delayed ");
     //OutputDebugStringA(m_title.c_str());
-    m_tabctrl->SetItemBold(sel_item, true);
+    //m_tabctrl->SetItemBold(sel_item, true); // ORCA: Disabled using bold font for active tab. Advantages; tabs always stays at same position, makes switching between tabs a bit faster
     const auto selection = sel_item >= 0 ? m_tabctrl->GetItemText(sel_item) : "";
     //OutputDebugString(selection);
     //OutputDebugStringA("\n");
