@@ -166,6 +166,7 @@ void HttpServer::stop()
     if (server_) {
         server_->acceptor.close();
         server_->stop_all();
+        server_->io_service.stop();
     }
     if (m_http_server_thread.joinable())
         m_http_server_thread.join();
