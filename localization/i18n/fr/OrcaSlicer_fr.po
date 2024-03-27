@@ -9886,7 +9886,7 @@ msgstr ""
 "parois.\n"
 "Modéré : Ajouter un remplissage plein uniquement pour les surfaces fortement "
 "inclinées\n"
-"Tout : ajouter un remplissage plein pour toutes les surfaces inclinées "
+"Tous : ajouter un remplissage plein pour toutes les surfaces inclinées "
 "appropriées.\n"
 "La valeur par défaut est Tous."
 
