@@ -103,11 +103,11 @@ void OAuthJob::process(Ctl& ctl)
     }
 
     // Handle timeout
-    if (!received && !ctl.was_canceled()) {
-        BOOST_LOG_TRIVIAL(debug) << "Timeout when authenticating with the account server.";
-        _data.result->error_message = _u8L("Timeout when authenticating with the account server.");
-    } else if (ctl.was_canceled()) {
+    if (!received && ctl.was_canceled()) {
         _data.result->error_message = _u8L("User cancelled.");
+    } else {
+        // Wait a while to ensure the response has sent
+        std::this_thread::sleep_for(std::chrono::milliseconds(1500));
     }
 }
 
