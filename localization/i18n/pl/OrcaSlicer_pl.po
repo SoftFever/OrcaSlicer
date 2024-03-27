@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-16 17:57+0800\n"
+"POT-Creation-Date: 2024-03-24 12:51+0100\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Krzysztof Morga <tlumaczeniebs@gmail.com>\n"
 "Language-Team: \n"
@@ -3226,7 +3226,7 @@ msgid "Succeed to export G-code to %1%"
 msgstr "Pomyślnie wyeksportowano G-code do %1%"
 
 msgid "Running post-processing scripts"
-msgstr "Uruchamianie skryptów po obróbce"
+msgstr "Uruchamianie skryptu post-procesingu"
 
 msgid "Copying of the temporary G-code to the output G-code failed"
 msgstr "Kopiowanie tymczasowego kodu G do kodu G wynikowego nie powiodło się"
@@ -6170,6 +6170,9 @@ msgstr "Region Logowania"
 msgid "Stealth Mode"
 msgstr "Tryb \"Niewidzialny\""
 
+msgid "Enable network plugin"
+msgstr "Włącz wtyczkę sieciową (BambuLab)"
+
 msgid "Check for stable updates only"
 msgstr "Sprawdzaj aktualizacje (tylko wersje stabilne)"
 
@@ -6228,6 +6231,9 @@ msgstr ""
 msgid "If enabled, auto-calculate everytime the color changed."
 msgstr ""
 "Jeśli włączone, automatyczne obliczanie za każdym razem, gdy zmieni się kolor"
+
+msgid "Network"
+msgstr "Sieć"
 
 msgid "Auto sync user presets(Printer/Filament/Process)"
 msgstr ""
@@ -7103,8 +7109,8 @@ msgstr "Ignoruj"
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "Podczas nagrywania timelapse'a bez głowicy narzędziowej zaleca się dodanie "
 "\"Timelaps - Wieża Czyszcząca\" \n"
@@ -8845,6 +8851,13 @@ msgstr ""
 msgid "Printer preset names"
 msgstr "Nazwy profilu drukarki"
 
+msgid "Use 3rd-party print host"
+msgstr "Użyj innego serwera druku"
+
+msgid "Allow controlling BambuLab's printer through 3rd party print hosts"
+msgstr ""
+"Zezwól na kontrolowanie drukarki BambuLab przez serwery druku innych firm"
+
 msgid "Hostname, IP or URL"
 msgstr "Nazwa hosta, IP lub URL"
 
@@ -8944,10 +8957,10 @@ msgid ""
 msgstr ""
 "Unikaj ruchów nad obrysami-\n"
 "Maksymalna długość objazdu przy unikaniu przejeżdżania nad obrysami. Jeśli "
-"objazd miałby wykroczyć poza tę wartość, funkcja \"unikaj ruchów nad "
-"obrysami\" zostanie zignorowana dla tej ścieżki. Długość objazdu można "
-"zdefiniować jako wartość absolutna lub obliczona procentowo (np. 50%) z "
-"długości ruchu bezpośredniego."
+"objazd miałby wykroczyć poza tę wartość, funkcja \"unikaj ruchów nad obrysami"
+"\" zostanie zignorowana dla tej ścieżki. Długość objazdu można zdefiniować "
+"jako wartość absolutna lub obliczona procentowo (np. 50%) z długości ruchu "
+"bezpośredniego."
 
 msgid "mm or %"
 msgstr "mm lub %"
@@ -9507,9 +9520,9 @@ msgid ""
 "quality for needle and small details"
 msgstr ""
 "Włącz tę opcję, aby zwolnić prędkość druku, aby czas końcowej warstwy nie "
-"był krótszy niż próg czasu warstwy w \"Próg maksymalnej prędkości "
-"wentylatora\", tak aby warstwa mogła być chłodzona przez dłuższy czas. Może "
-"to poprawić jakość chłodzenia dla igieł i małych detali"
+"był krótszy niż próg czasu warstwy w \"Próg maksymalnej prędkości wentylatora"
+"\", tak aby warstwa mogła być chłodzona przez dłuższy czas. Może to poprawić "
+"jakość chłodzenia dla igieł i małych detali"
 
 msgid "Normal printing"
 msgstr "Normalne drukowanie"
@@ -10636,10 +10649,10 @@ msgstr "Pełna prędkość wentylatora na warstwie"
 
 msgid ""
 "Fan speed will be ramped up linearly from zero at layer "
-"\"close_fan_the_first_x_layers\" to maximum at layer "
-"\"full_fan_speed_layer\". \"full_fan_speed_layer\" will be ignored if lower "
-"than \"close_fan_the_first_x_layers\", in which case the fan will be running "
-"at maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
+"\"close_fan_the_first_x_layers\" to maximum at layer \"full_fan_speed_layer"
+"\". \"full_fan_speed_layer\" will be ignored if lower than "
+"\"close_fan_the_first_x_layers\", in which case the fan will be running at "
+"maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
 msgstr ""
 "Prędkość wentylatora będzie stopniowo zwiększana liniowo od zera na warstwie "
 "\"close_fan_the_first_x_layers\" do maksymalnej na warstwie "
@@ -11796,6 +11809,12 @@ msgstr "Pokaż znaczniki autokalibracji"
 msgid "Disable set remaining print time"
 msgstr "Wyłącz ustawianie pozostałego czasu druku"
 
+msgid ""
+"Disable generating of the M73: Set remaining print time in the final gcode"
+msgstr ""
+"Zablokuj generowanie polecenia M73: Ustaw pozostały czas druku w końcowym "
+"kodzie G-code"
+
 msgid "Seam position"
 msgstr "Pozycja szwu"
 
@@ -12109,8 +12128,8 @@ msgstr ""
 "poklatkowy po zakończeniu drukowania. Jeśli wybrany jest tryb \"Wygładź\", "
 "głowica narzędziowa przesunie się nad wieżę po wydrukowaniu każdej warstwy, "
 "a następnie zrobi zdjęcie. Ponieważ stopiony filament może wyciekać z dyszy "
-"podczas robienia zdjęcia, wieża czyszcząca jest wymagana w trybie "
-"\"Wygładź\" do czyszczenia dyszy."
+"podczas robienia zdjęcia, wieża czyszcząca jest wymagana w trybie \"Wygładź"
+"\" do czyszczenia dyszy."
 
 msgid "Traditional"
 msgstr "Tradycyjny"
@@ -12190,10 +12209,10 @@ msgid ""
 "triangle mesh slicing. The gap closing operation may reduce the final print "
 "resolution, therefore it is advisable to keep the value reasonably low."
 msgstr ""
-"Szpary mniejsze niż dwukrotność wartości parametru \"promień zamykania "
-"szpar\" zostaną zamknięte przy cięciu. Operacja zamykania szpar może "
-"zmniejszyć finalną rozdzielczość wydruku, więc zalecane jest ustawienie tej "
-"wartości na rozsądnie niskim poziomie."
+"Szpary mniejsze niż dwukrotność wartości parametru \"promień zamykania szpar"
+"\" zostaną zamknięte przy cięciu. Operacja zamykania szpar może zmniejszyć "
+"finalną rozdzielczość wydruku, więc zalecane jest ustawienie tej wartości na "
+"rozsądnie niskim poziomie."
 
 msgid "Slicing Mode"
 msgstr "Tryb cięcia"
@@ -14371,8 +14390,8 @@ msgstr "Rozpocznij test jednowątkowy"
 msgid "Export Log"
 msgstr "Eksportuj log"
 
-msgid "Studio Version:"
-msgstr "Wersja Studio:"
+msgid "OrcaSlicer Version:"
+msgstr "Wersja OrcaSlicer:"
 
 msgid "System Version:"
 msgstr "Wersja systemu:"
@@ -14380,50 +14399,17 @@ msgstr "Wersja systemu:"
 msgid "DNS Server:"
 msgstr "Serwer DNS:"
 
-msgid "Test BambuLab"
-msgstr "Test BambuLab"
+msgid "Test OrcaSlicer(GitHub)"
+msgstr "Test OrcaSlicer(GitHub)"
 
-msgid "Test BambuLab:"
-msgstr "Test BambuLab:"
+msgid "Test OrcaSlicer(GitHub):"
+msgstr "Test OrcaSlicer(GitHub):"
 
 msgid "Test Bing.com"
 msgstr "Test Bing.com"
 
 msgid "Test bing.com:"
 msgstr "Test bing.com:"
-
-msgid "Test HTTP"
-msgstr "Test HTTP"
-
-msgid "Test HTTP Service:"
-msgstr "Test usługi HTTP:"
-
-msgid "Test storage"
-msgstr "Test pamięci"
-
-msgid "Test Storage Upload:"
-msgstr "Test Przesyłu:"
-
-msgid "Test storage upgrade"
-msgstr "Test aktualizacji pamięci masowej"
-
-msgid "Test Storage Upgrade:"
-msgstr "Test aktualizacji pamięci masowej:"
-
-msgid "Test storage download"
-msgstr "Test pamięci dla pobierania"
-
-msgid "Test Storage Download:"
-msgstr "Test pamięci dla pobierania:"
-
-msgid "Test plugin download"
-msgstr "Test pobierania pluginów"
-
-msgid "Test Plugin Download:"
-msgstr "Test pobierania Pluginów:"
-
-msgid "Test Storage Upload"
-msgstr "Test załadunku przechowywania"
 
 msgid "Log Info"
 msgstr "Informacje o logu"
@@ -14529,8 +14515,8 @@ msgstr ""
 "Czy chcesz go zastąpić?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you "
-"selected\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
 "To add preset for more printers, Please go to printer selection"
 msgstr ""
 "Nazwa profilu zostanie zmieniona na \"Producent Typ Rodzaj @nazwa drukarki, "
@@ -14957,6 +14943,9 @@ msgstr "Nie można uzyskać ważnego odniesienia do hosta drukarki"
 msgid "Success!"
 msgstr "Sukces!"
 
+msgid "Are you sure to log out?"
+msgstr "Czy na pewno chcesz się wylogować?"
+
 msgid "Refresh Printers"
 msgstr "Odśwież drukarki"
 
@@ -14987,6 +14976,9 @@ msgid ""
 msgstr ""
 "Aby użyć własnego certyfikatu, zaimportuj plik do magazynu (Certificate "
 "Store / Keychain)."
+
+msgid "Login/Test"
+msgstr "Logowanie/Test"
 
 msgid "Connection to printers connected via the print host failed."
 msgstr ""
@@ -15124,6 +15116,55 @@ msgstr ""
 "Wyliczenie drukarek hosta nie powiodło się.\n"
 "Treść wiadomości: \"%1%\"\n"
 "Błąd: \"%2%\""
+
+msgid "Connected to Obico successfully!"
+msgstr "Pomyślnie połączono z SimplyPrint!"
+
+msgid "Could not connect to Obico"
+msgstr "Nie można połączyć się z Obico"
+
+msgid "Connected to SimplyPrint successfully!"
+msgstr "Pomyślnie połączono z SimplyPrint!"
+
+msgid "Could not connect to SimplyPrint"
+msgstr "Nie można połączyć się z SimplyPrint"
+
+msgid "SimplyPrint account not linked. Go to Connect options to set it up."
+msgstr ""
+"Nie połączono z kontem SimplyPrint. Przejdź do opcji Połącz, aby go "
+"skonfigurować."
+
+msgid ""
+"File size exceeds the 100MB upload limit. Please upload your file through "
+"the panel."
+msgstr ""
+"Rozmiar pliku przekracza limit przesyłania 100 MB. Proszę przesłać plik za "
+"pomocą panelu."
+
+msgid "Unknown error"
+msgstr "Nieznany błąd"
+
+msgid "Connection to Flashforge works correctly."
+msgstr "Połączenie z Flashforge działa poprawnie."
+
+msgid "Could not connect to Flashforge"
+msgstr "Nie można połączyć się z Flashforge"
+
+msgid "The provided state is not correct."
+msgstr "Podany stan nie jest właściwy"
+
+msgid "Please give the required permissions when authorizing this application."
+msgstr ""
+"Proszę udzielić wymaganych uprawnień podczas autoryzacji tej aplikacji."
+
+msgid "Something unexpected happened when trying to log in, please try again."
+msgstr "Wystąpił problem podczas próby logowania, proszę spróbować ponownie."
+
+msgid "Timeout when authenticating with the account server."
+msgstr "Przekroczono limit czasu serwera podczas uwierzytelniania."
+
+msgid "User cancelled."
+msgstr "Anulowane przez użytkownika."
 
 #: resources/data/hints.ini: [hint:Precise wall]
 msgid ""
@@ -15513,6 +15554,56 @@ msgstr ""
 "zmniejszyć prawdopodobieństwo odkształceń."
 
 #~ msgid ""
+#~ "Air filtration/Exhuast Fan\n"
+#~ "Did you know that OrcaSlicer can support Air filtration/Exhuast Fan?"
+#~ msgstr ""
+#~ "Filtracja powietrza/Wentylator wyciągowy\n"
+#~ "Czy wiesz, że OrcaSlicer może obsługiwać filtrację powietrza/wentylator "
+#~ "wyciągowy?"
+
+#~ msgid "Studio Version:"
+#~ msgstr "Wersja Studio:"
+
+#~ msgid "Test BambuLab"
+#~ msgstr "Test BambuLab"
+
+#~ msgid "Test BambuLab:"
+#~ msgstr "Test BambuLab:"
+
+#~ msgid "Test HTTP"
+#~ msgstr "Test HTTP"
+
+#~ msgid "Test HTTP Service:"
+#~ msgstr "Test usługi HTTP:"
+
+#~ msgid "Test storage"
+#~ msgstr "Test pamięci"
+
+#~ msgid "Test Storage Upload:"
+#~ msgstr "Test Przesyłu:"
+
+#~ msgid "Test storage upgrade"
+#~ msgstr "Test aktualizacji pamięci masowej"
+
+#~ msgid "Test Storage Upgrade:"
+#~ msgstr "Test aktualizacji pamięci masowej:"
+
+#~ msgid "Test storage download"
+#~ msgstr "Test pamięci dla pobierania"
+
+#~ msgid "Test Storage Download:"
+#~ msgstr "Test pamięci dla pobierania:"
+
+#~ msgid "Test plugin download"
+#~ msgstr "Test pobierania pluginów"
+
+#~ msgid "Test Plugin Download:"
+#~ msgstr "Test pobierania Pluginów:"
+
+#~ msgid "Test Storage Upload"
+#~ msgstr "Test załadunku przechowywania"
+
+#~ msgid ""
 #~ "The speed setting exceeds the printer's maximum speed "
 #~ "(machine_max_speed_x/machine_max_speed_y).\n"
 #~ "Orca will automatically cap the print speed to ensure it doesn't surpass "
@@ -15595,14 +15686,6 @@ msgstr ""
 #~ "Ponieważ ilość wypełnienia podpory powierzchni stałych będzie bardzo "
 #~ "ograniczona, upewnij się, że używasz odpowiedniej liczby ścian do "
 #~ "podparcia części na nachylonych powierzchniach."
-
-#~ msgid ""
-#~ "Air filtration/Exhuast Fan\n"
-#~ "Did you know that OrcaSlicer can support Air filtration/Exhuast Fan?"
-#~ msgstr ""
-#~ "Filtracja powietrza/Wentylator wyciągowy\n"
-#~ "Czy wiesz, że OrcaSlicer może obsługiwać filtrację powietrza/wentylator "
-#~ "wyciągowy?"
 
 #~ msgid "Scarf joint seam"
 #~ msgstr "Szew szalikowy (beta)"
@@ -16355,8 +16438,8 @@ msgstr ""
 #~ "Elevation is too low for object. Use the \"Pad around object\" feature to "
 #~ "print the object without elevation."
 #~ msgstr ""
-#~ "Podniesienie zbyt małe dla modelu. Użyj funkcji \"Podkładka wokół "
-#~ "modelu\", aby wydrukować model bez podniesienia."
+#~ "Podniesienie zbyt małe dla modelu. Użyj funkcji \"Podkładka wokół modelu"
+#~ "\", aby wydrukować model bez podniesienia."
 
 #~ msgid ""
 #~ "The endings of the support pillars will be deployed on the gap between "
@@ -16598,12 +16681,6 @@ msgstr ""
 #~ "Uwaga: Jeśli ta funkcja jest włączona, mogą pojawić się artefakty, jeśli "
 #~ "masz na następnej warstwie jakieś cienkie elementy, na przykład litery. "
 #~ "Ustaw tę opcję na 0, aby usunąć te artefakty."
-
-#~ msgid ""
-#~ "Disable generating of the M73: Set remaining print time in the final gcode"
-#~ msgstr ""
-#~ "Zablokuj generowanie polecenia M73: Ustaw pozostały czas druku w końcowym "
-#~ "kodzie G-code"
 
 #~ msgid "Layer order"
 #~ msgstr "Kolejność warstw"

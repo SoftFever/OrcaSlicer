@@ -1434,7 +1434,7 @@ int GUI_App::install_plugin(std::string name, std::string package_name, InstallP
     if (pro_fn)
         pro_fn(InstallStatusInstallCompleted, 100, cancel);
     if (name == "plugins")
-        app_config->set_str("app", "installed_networking", "1");
+        app_config->set_bool("installed_networking", true);
     BOOST_LOG_TRIVIAL(info) << "[install_plugin] success";
     return 0;
 }
@@ -2616,6 +2616,11 @@ void GUI_App::copy_network_if_available()
 
 bool GUI_App::on_init_network(bool try_backup)
 {
+    auto should_load_networking_plugin = app_config->get_bool("installed_networking");
+    if(!should_load_networking_plugin) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "Don't load plugin as installed_networking is false";
+        return false;
+    }
     int load_agent_dll = Slic3r::NetworkAgent::initialize_network_module();
     bool create_network_agent = false;
 __retry:
@@ -2627,7 +2632,7 @@ __retry:
             if (!bambu_source) {
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": can not get bambu source module!";
                 m_networking_compatible = false;
-                if (app_config->get("installed_networking") == "1") {
+                if (should_load_networking_plugin) {
                     m_networking_need_update = true;
                 }
             }
@@ -2642,13 +2647,13 @@ __retry:
                 goto __retry;
             }
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": on_init_network, version dismatch, need upload network module";
-            if (app_config->get("installed_networking") == "1") {
+            if (should_load_networking_plugin) {
                 m_networking_need_update = true;
             }
         }
     } else {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": on_init_network, load dll failed";
-        if (app_config->get("installed_networking") == "1") {
+        if (should_load_networking_plugin) {
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": on_init_network, need upload network module";
             m_networking_need_update = true;
         }
@@ -3208,9 +3213,9 @@ void GUI_App::ShowUserGuide() {
     try {
         bool res = false;
         GuideFrame GuideDlg(this);
-        //if (GuideDlg.IsFirstUse())
+                //if (GuideDlg.IsFirstUse())
         res = GuideDlg.run();
-        if (res) {
+if (res) {
             load_current_presets();
             update_publish_status();
             // BBS: remove SLA related message
@@ -3462,6 +3467,7 @@ void GUI_App::get_login_info()
             wxString strJS = wxString::Format("window.postMessage(%s)", logout_cmd);
             GUI::wxGetApp().run_script(strJS);
         }
+        mainframe->m_webview->SetLoginPanelVisibility(true);
     }
 }
 
