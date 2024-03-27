@@ -500,6 +500,7 @@ void PhysicalPrinterDialog::update_preset_input() {
 void PhysicalPrinterDialog::update(bool printer_change)
 {
     m_optgroup->reload_config();
+    this->Freeze();
 
     const PrinterTechnology tech = Preset::printer_technology(*m_config);
     // Only offer the host type selection for FFF, for SLA it's always the SL1 printer (at the moment)
@@ -535,6 +536,7 @@ void PhysicalPrinterDialog::update(bool printer_change)
                 }
             }
         }
+
         if (opt->value == htPrusaLink) { // PrusaConnect does NOT allow http digest
             m_optgroup->show_field("printhost_authorization_type");
             AuthorizationType auth_type = m_config->option<ConfigOptionEnum<AuthorizationType>>("printhost_authorization_type")->value;
@@ -547,43 +549,9 @@ void PhysicalPrinterDialog::update(bool printer_change)
             for (const std::string& opt_key : std::vector<std::string>{ "printhost_user", "printhost_password" })
                 m_optgroup->hide_field(opt_key);
             supports_multiple_printers = opt->value == htRepetier || opt->value == htObico;
+        }
 
-            if (opt->value == htPrusaConnect) { // automatically show default prusaconnect address
-                if (Field* printhost_field = m_optgroup->get_field("print_host"); printhost_field) {
-                    if (wxTextCtrl* temp = dynamic_cast<TextCtrl*>(printhost_field)->text_ctrl(); temp && temp->GetValue().IsEmpty()) {
-                        temp->SetValue(L"https://connect.prusa3d.com");
-                    }
-                }
-            } else if (opt->value == htObico) { // automatically show default obico address
-                if (Field* printhost_field = m_optgroup->get_field("print_host"); printhost_field) {
-                    if (wxTextCtrl* temp = dynamic_cast<TextCtrl*>(printhost_field)->text_ctrl(); temp && temp->GetValue().IsEmpty()) {
-                        temp->SetValue(L"https://app.obico.io");
-                        m_config->opt_string("print_host") = "https://app.obico.io";
-                    }
-                }
-            } else if (opt->value == htSimplyPrint) {
-                // Set the host url
-                if (Field* printhost_field = m_optgroup->get_field("print_host"); printhost_field) {
-                    printhost_field->disable();
-                    if (wxTextCtrl* temp = dynamic_cast<TextCtrl*>(printhost_field)->text_ctrl(); temp && temp->GetValue().IsEmpty()) {
-                        temp->SetValue("https://simplyprint.io");
-                    }
-                    m_config->opt_string("print_host") = "https://simplyprint.io";
-                }
-                if (Field* printhost_webui_field = m_optgroup->get_field("print_host_webui"); printhost_webui_field) {
-                    printhost_webui_field->disable();
-                    if (wxTextCtrl* temp = dynamic_cast<TextCtrl*>(printhost_webui_field)->text_ctrl(); temp && temp->GetValue().IsEmpty()) {
-                        temp->SetValue("https://simplyprint.io/panel");
-                    }
-                    m_config->opt_string("print_host_webui") = "https://simplyprint.io/panel";
-                }
-                m_optgroup->hide_field("printhost_apikey");
-                m_optgroup->disable_field("printhost_cafile");
-                m_optgroup->disable_field("printhost_ssl_ignore_revoke");
-                if (m_printhost_cafile_browse_btn)
-                    m_printhost_cafile_browse_btn->Disable();
-            }
-        } else if (opt->value == htOctoPrint) {
+        if (opt->value == htOctoPrint) {
             m_optgroup->show_field("spoolman_enabled");
             m_optgroup->show_field("spoolman_port", m_config->opt_bool("spoolman_enabled"));
         } else {
@@ -593,11 +561,45 @@ void PhysicalPrinterDialog::update(bool printer_change)
             m_config->set("spoolman_port", m_optgroup->get_option("spoolman_port").opt.get_default_value<ConfigOptionString>()->value);
             m_optgroup->hide_field("spoolman_port");
         }
-        
+
         if (opt->value == htFlashforge) {
-                m_optgroup->hide_field("printhost_apikey");
-                m_optgroup->hide_field("printhost_authorization_type");
+            m_optgroup->hide_field("printhost_apikey");
+            m_optgroup->hide_field("printhost_authorization_type");
+        } else if (opt->value == htPrusaConnect) { // automatically show default prusaconnect address
+            if (Field* printhost_field = m_optgroup->get_field("print_host"); printhost_field) {
+                if (wxTextCtrl* temp = dynamic_cast<TextCtrl*>(printhost_field)->text_ctrl(); temp && temp->GetValue().IsEmpty()) {
+                    temp->SetValue(L"https://connect.prusa3d.com");
+                }
             }
+        } else if (opt->value == htObico) { // automatically show default obico address
+            if (Field* printhost_field = m_optgroup->get_field("print_host"); printhost_field) {
+                if (wxTextCtrl* temp = dynamic_cast<TextCtrl*>(printhost_field)->text_ctrl(); temp && temp->GetValue().IsEmpty()) {
+                    temp->SetValue(L"https://app.obico.io");
+                    m_config->opt_string("print_host") = "https://app.obico.io";
+                }
+            }
+        } else if (opt->value == htSimplyPrint) { // automatically show default simplyprint address
+            // Set the host url
+            if (Field* printhost_field = m_optgroup->get_field("print_host"); printhost_field) {
+                printhost_field->disable();
+                if (wxTextCtrl* temp = dynamic_cast<TextCtrl*>(printhost_field)->text_ctrl(); temp && temp->GetValue().IsEmpty()) {
+                    temp->SetValue("https://simplyprint.io");
+                }
+                m_config->opt_string("print_host") = "https://simplyprint.io";
+            }
+            if (Field* printhost_webui_field = m_optgroup->get_field("print_host_webui"); printhost_webui_field) {
+                printhost_webui_field->disable();
+                if (wxTextCtrl* temp = dynamic_cast<TextCtrl*>(printhost_webui_field)->text_ctrl(); temp && temp->GetValue().IsEmpty()) {
+                    temp->SetValue("https://simplyprint.io/panel");
+                }
+                m_config->opt_string("print_host_webui") = "https://simplyprint.io/panel";
+            }
+            m_optgroup->hide_field("printhost_apikey");
+            m_optgroup->disable_field("printhost_cafile");
+            m_optgroup->disable_field("printhost_ssl_ignore_revoke");
+            if (m_printhost_cafile_browse_btn)
+                m_printhost_cafile_browse_btn->Disable();
+        }
     }
     else {
         m_optgroup->set_value("host_type", int(PrintHostType::htOctoPrint), false);
@@ -621,6 +623,8 @@ void PhysicalPrinterDialog::update(bool printer_change)
 
     this->SetSize(this->GetBestSize());
     this->Layout();
+    this->Refresh();
+    this->Thaw();
 }
 
 void PhysicalPrinterDialog::update_host_type(bool printer_change)
