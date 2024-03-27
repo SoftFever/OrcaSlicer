@@ -83,7 +83,7 @@ void session::read_next_line()
                     resp->write_response(ssOut);
                     std::shared_ptr<std::string> str = std::make_shared<std::string>(ssOut.str());
                     async_write(socket, boost::asio::buffer(str->c_str(), str->length()),
-                                [this, self](const boost::beast::error_code& e, std::size_t s) {
+                                [this, self, str](const boost::beast::error_code& e, std::size_t s) {
                         std::cout << "done" << std::endl;
                         server.stop(self);
                     });
