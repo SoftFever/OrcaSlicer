@@ -91,16 +91,19 @@
 		"0%"
 	],
 	"retraction_length": [
-		"0.8"
+		"0.4"
 	],
 	"retract_length_toolchange": [
 		"1"
 	],
 	"retraction_speed": [
-		"30"
+		"45"
 	],
 	"deretraction_speed": [
-		"30"
+		"45"
+	],
+	"retract_lift_enforce": [
+		"top"
 	],
 	"single_extruder_multi_material": "1",
 	"change_filament_gcode": "M600",
