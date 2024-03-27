@@ -1994,7 +1994,7 @@ msgid "Simplify Model"
 msgstr "Simplifier le Modèle"
 
 msgid "Center"
-msgstr "Centre"
+msgstr "Centrer"
 
 msgid "Edit Process Settings"
 msgstr "Modifier les paramètres du traitement"
