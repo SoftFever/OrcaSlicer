@@ -77,6 +77,13 @@ void session::read_next_line()
 
             if (line.length() == 0) {
                 if (headers.content_length() == 0) {
+                    std::cout << "Request received: " << headers.method << " " << headers.get_url();
+                    if (headers.method == "OPTIONS") {
+                        // Ignore http OPTIONS
+                        server.stop(self);
+                        return;
+                    }
+
                     const std::string url_str = Http::url_decode(headers.get_url());
                     const auto        resp    = server.server.m_request_handler(url_str);
                     std::stringstream ssOut;
