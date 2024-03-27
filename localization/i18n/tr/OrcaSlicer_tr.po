@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OrcaSlicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-22 19:58+0800\n"
+"POT-Creation-Date: 2024-03-23 13:08+0800\n"
 "PO-Revision-Date: 2024-03-14 22:00+0300\n"
 "Last-Translator: Olcay ÖREN\n"
 "Language-Team: Türkçe\n"
@@ -8765,6 +8765,12 @@ msgstr ""
 msgid "Printer preset names"
 msgstr "Yazıcı ön ayar adları"
 
+msgid "Use 3rd-party print host"
+msgstr ""
+
+msgid "Allow controlling BambuLab's printer through 3rd party print hosts"
+msgstr ""
+
 msgid "Hostname, IP or URL"
 msgstr "Ana bilgisayar adı, IP veya URL"
 
@@ -14739,6 +14745,9 @@ msgstr "Geçerli bir Yazıcı Ana Bilgisayarı referansı alınamadı"
 msgid "Success!"
 msgstr "Başarılı!"
 
+msgid "Are you sure to log out?"
+msgstr ""
+
 msgid "Refresh Printers"
 msgstr "Yazıcıları Yenile"
 
@@ -14769,6 +14778,9 @@ msgid ""
 msgstr ""
 "Özel bir CA dosyası kullanmak için lütfen CA dosyanızı Sertifika Deposuna/"
 "Anahtarlığa aktarın."
+
+msgid "Login/Test"
+msgstr ""
 
 msgid "Connection to printers connected via the print host failed."
 msgstr ""

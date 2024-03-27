@@ -528,10 +528,17 @@ set(SLIC3R_GUI_SOURCES
     Utils/CalibUtils.hpp
     GUI/PrinterCloudAuthDialog.cpp
     GUI/PrinterCloudAuthDialog.hpp
-    Utils/Obico.cpp    
+    Utils/Obico.cpp
     Utils/Obico.hpp
     Utils/Flashforge.cpp
     Utils/Flashforge.hpp
+
+    GUI/OAuthDialog.cpp
+    GUI/OAuthDialog.hpp
+    GUI/Jobs/OAuthJob.cpp
+    GUI/Jobs/OAuthJob.hpp
+    Utils/SimplyPrint.cpp
+    Utils/SimplyPrint.hpp
 )
 
 if (WIN32)
