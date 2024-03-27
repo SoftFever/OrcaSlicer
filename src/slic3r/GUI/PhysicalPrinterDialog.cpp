@@ -136,7 +136,7 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
 
     m_optgroup->append_single_option_line("spoolman_enabled");
 
-    Option option = m_optgroup->get_option("spoolman_port");
+    Option option = m_optgroup->get_option("spoolman_host");
     option.opt.width = Field::def_width_wider();
     m_optgroup->append_single_option_line(option);
 
@@ -553,13 +553,13 @@ void PhysicalPrinterDialog::update(bool printer_change)
 
         if (opt->value == htOctoPrint) {
             m_optgroup->show_field("spoolman_enabled");
-            m_optgroup->show_field("spoolman_port", m_config->opt_bool("spoolman_enabled"));
+            m_optgroup->show_field("spoolman_host", m_config->opt_bool("spoolman_enabled"));
         } else {
             m_config->set("spoolman_enabled", false);
             m_optgroup->hide_field("spoolman_enabled");
 
-            m_config->set("spoolman_port", m_optgroup->get_option("spoolman_port").opt.get_default_value<ConfigOptionString>()->value);
-            m_optgroup->hide_field("spoolman_port");
+            m_config->set("spoolman_host", m_optgroup->get_option("spoolman_host").opt.get_default_value<ConfigOptionString>()->value);
+            m_optgroup->hide_field("spoolman_host");
         }
 
         if (opt->value == htFlashforge) {

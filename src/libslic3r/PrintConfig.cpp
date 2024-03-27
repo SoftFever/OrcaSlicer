@@ -567,9 +567,11 @@ void PrintConfigDef::init_common_params()
     def->cli = ConfigOptionDef::nocli;
     def->set_default_value(new ConfigOptionBool());
 
-    def = this->add("spoolman_port", coString);
-    def->label = L("Spoolman Port");
-    def->tooltip = L("Indicates the port your Spoolman instance is hosted on");
+    def = this->add("spoolman_host", coString);
+    def->label = L("Spoolman Host");
+    def->tooltip = L("Points to where you Spoolman instance is hosted. "
+                     "You can either provide just the port to use the same URL as your printer "
+                     "or provide the full address in the format of <host>:<port>.");
     def->mode = comAdvanced;
     def->cli = ConfigOptionDef::nocli;
     def->set_default_value(new ConfigOptionString("8000"));

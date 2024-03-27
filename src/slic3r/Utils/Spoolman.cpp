@@ -23,7 +23,7 @@ pt::ptree Spoolman::get_spoolman_json(const string& api_endpoint)
 {
     DynamicPrintConfig& config        = GUI::wxGetApp().preset_bundle->printers.get_edited_preset().config;
     string              host          = config.opt_string("print_host");
-    string              spoolman_host = config.opt_string("spoolman_port");
+    string              spoolman_host = config.opt_string("spoolman_host");
     string              spoolman_port;
 
     if (auto idx = spoolman_host.find_last_of(':'); idx != string::npos) {
