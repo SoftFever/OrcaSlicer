@@ -276,21 +276,12 @@ if (NOT MSVC AND ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMP
         add_compile_options(-Wno-unknown-pragmas)
         # Adding -fext-numeric-literals to enable GCC extensions on definitions of quad float literals, which are required by Boost.
         add_compile_options(-fext-numeric-literals)
-        # More of a "size" optimization, use thin archives for static building to not waste space
-        # Taken from https://bugs.webkit.org/show_bug.cgi?id=108330
-        if(SLIC3R_STATIC AND ${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-            set(CMAKE_CXX_ARCHIVE_CREATE "<CMAKE_AR> crUT <TARGET> <LINK_FLAGS> <OBJECTS>")
-            set(CMAKE_C_ARCHIVE_CREATE "<CMAKE_AR> crUT <TARGET> <LINK_FLAGS> <OBJECTS>")
-            set(CMAKE_CXX_ARCHIVE_APPEND "<CMAKE_AR> rUT <TARGET> <LINK_FLAGS> <OBJECTS>")
-            set(CMAKE_C_ARCHIVE_APPEND "<CMAKE_AR> rUT <TARGET> <LINK_FLAGS> <OBJECTS>")
-        endif()
     endif()
 
     # Bit of a hack for flatpak building: compress the debug info with zstd to save space in CI 
     if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 13.0)
         add_compile_options(-gz=zstd)
     endif()
-
 
 endif()
 
