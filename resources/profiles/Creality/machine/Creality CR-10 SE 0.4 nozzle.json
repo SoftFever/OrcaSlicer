@@ -6,6 +6,7 @@
     "instantiation": "true",
     "inherits": "fdm_creality_common",
     "printer_model": "Creality CR-10 SE",
+    "printer_variant": "0.4",
     "printer_structure": "i3",
     "gcode_flavor": "klipper",
     "default_print_profile": "0.20mm Standard @Creality CR10SE 0.4",
