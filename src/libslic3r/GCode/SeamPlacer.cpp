@@ -1067,15 +1067,18 @@ void SeamPlacer::calculate_overhangs_and_layer_embedding(const PrintObject *po) 
                         std::unique_ptr<PerimeterDistancer> current_layer_distancer        = std::make_unique<PerimeterDistancer>(
                             to_unscaled_linesf(po->layers()[layer_idx]->lslices));
 
-                        for (SeamCandidate &perimeter_point : layers[layer_idx].points) {
+                        auto& layer_seams = layers[layer_idx];
+                        for (SeamCandidate &perimeter_point : layer_seams.points) {
                           Vec2f point = Vec2f { perimeter_point.position.head<2>() };
                           if (prev_layer_distancer.get() != nullptr) {
-                            perimeter_point.overhang = prev_layer_distancer->distance_from_lines<true>(point.cast<double>())
+                            const auto _dist = prev_layer_distancer->distance_from_lines<true>(point.cast<double>());
+                            perimeter_point.overhang = _dist
                                                        + 0.6f * perimeter_point.perimeter.flow_width
                                                        - tan(SeamPlacer::overhang_angle_threshold)
                                                              * po->layers()[layer_idx]->height;
                             perimeter_point.overhang =
                                 perimeter_point.overhang < 0.0f ? 0.0f : perimeter_point.overhang;
+                            perimeter_point.unsupported_dist = _dist + 0.4f * perimeter_point.perimeter.flow_width;
                           }
 
                           if (should_compute_layer_embedding) { // search for embedded perimeter points (points hidden inside the print ,e.g. multimaterial join, best position for seam)
@@ -1484,7 +1487,7 @@ void SeamPlacer::init(const Print &print, std::function<void(void)> throw_if_can
 }
 
 void SeamPlacer::place_seam(const Layer *layer, ExtrusionLoop &loop, bool external_first,
-                            const Point &last_pos) const {
+                            const Point &last_pos, float& overhang) const {
   using namespace SeamPlacerImpl;
   const PrintObject *po = layer->object();
   // Must not be called with supprot layer.
@@ -1546,6 +1549,7 @@ void SeamPlacer::place_seam(const Layer *layer, ExtrusionLoop &loop, bool extern
   }
 
   Point seam_point = Point::new_scale(seam_position.x(), seam_position.y());
+  overhang = layer_perimeters.points[seam_index].unsupported_dist;
 
   if (loop.role() == ExtrusionRole::erPerimeter) { //Hopefully inner perimeter
     const SeamCandidate &perimeter_point = layer_perimeters.points[seam_index];

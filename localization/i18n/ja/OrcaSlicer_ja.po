@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-22 19:58+0800\n"
+"POT-Creation-Date: 2024-03-23 13:08+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -8346,6 +8346,12 @@ msgstr ""
 msgid "Printer preset names"
 msgstr "プリセット名"
 
+msgid "Use 3rd-party print host"
+msgstr ""
+
+msgid "Allow controlling BambuLab's printer through 3rd party print hosts"
+msgstr ""
+
 msgid "Hostname, IP or URL"
 msgstr "Hostname、IPまたはURL"
 
@@ -13420,6 +13426,9 @@ msgstr ""
 msgid "Success!"
 msgstr ""
 
+msgid "Are you sure to log out?"
+msgstr ""
+
 msgid "Refresh Printers"
 msgstr ""
 
@@ -13443,6 +13452,9 @@ msgstr ""
 msgid ""
 "To use a custom CA file, please import your CA file into Certificate Store / "
 "Keychain."
+msgstr ""
+
+msgid "Login/Test"
 msgstr ""
 
 msgid "Connection to printers connected via the print host failed."

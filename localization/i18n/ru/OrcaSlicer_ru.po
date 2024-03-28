@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OrcaSlicer V2.0.0 beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-22 19:58+0800\n"
+"POT-Creation-Date: 2024-03-23 13:08+0800\n"
 "PO-Revision-Date: 2024-03-17 18:48+0700\n"
 "Last-Translator: \n"
 "Language-Team: andylg@yandex.ru\n"
@@ -8893,6 +8893,12 @@ msgstr "Автоориентация stl файлов по оси Z при пе�
 msgid "Printer preset names"
 msgstr "Имена профиля принтера"
 
+msgid "Use 3rd-party print host"
+msgstr ""
+
+msgid "Allow controlling BambuLab's printer through 3rd party print hosts"
+msgstr ""
+
 msgid "Hostname, IP or URL"
 msgstr "Имя хоста, IP/URL-адрес"
 
@@ -14993,6 +14999,9 @@ msgstr "Не удалось получить действительную ссы
 msgid "Success!"
 msgstr "Успешно!"
 
+msgid "Are you sure to log out?"
+msgstr ""
+
 msgid "Refresh Printers"
 msgstr "Обновить принтеры"
 
@@ -15023,6 +15032,9 @@ msgid ""
 msgstr ""
 "Чтобы использовать пользовательский файл корневого сертификата, импортируйте "
 "его в хранилище сертификатов/Keychain."
+
+msgid "Login/Test"
+msgstr ""
 
 msgid "Connection to printers connected via the print host failed."
 msgstr "Не удалось подключиться к принтерам, подключенным через хост печати."

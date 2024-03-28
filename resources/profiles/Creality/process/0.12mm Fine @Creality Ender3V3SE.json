@@ -113,6 +113,6 @@
 	"initial_layer_jerk": "8",
 	"travel_jerk": "8",
 	"compatible_printers": [
-		"Creality Ender-3 V3 SE 0.4 nozzle"
+		"Creality Ender-3 V3 SE"
 	]
 }
