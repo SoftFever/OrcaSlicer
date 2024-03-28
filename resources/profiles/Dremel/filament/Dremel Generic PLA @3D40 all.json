@@ -1,0 +1,19 @@
+{
+    "filament_settings_id": [
+        "Generic PLA @Dremel 3D40 all"
+    ],
+    "from": "system",
+    "hot_plate_temp": [
+        "60"
+    ],
+    "hot_plate_temp_initial_layer": [
+        "60"
+    ],
+    "inherits": "fdm_filament_common",
+    "is_custom_defined": "0",
+    "name": "Generic PLA @Dremel 3D40 all",
+    "nozzle_temperature_initial_layer": [
+        "225"
+    ],
+    "version": "1.7.0.2"
+}
