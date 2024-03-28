@@ -1978,7 +1978,9 @@ std::vector<std::vector<ExPolygons>> multi_material_segmentation_by_painting(con
                             // be outside EdgeGrid's BoundingBox, for example, when the negative volume is used on the painted area (GH #7618).
                             // To ensure that the painted line is always inside EdgeGrid's BoundingBox, it is clipped by EdgeGrid's BoundingBox in cases
                             // when any of the endpoints of the line are outside the EdgeGrid's BoundingBox.
-                            if (const BoundingBox &edge_grid_bbox = edge_grids[layer_idx].bbox(); !edge_grid_bbox.contains(line_to_test.a) || !edge_grid_bbox.contains(line_to_test.b)) {
+                            BoundingBox edge_grid_bbox = edge_grids[layer_idx].bbox();
+                            edge_grid_bbox.offset(10 * scale_(EPSILON));
+                            if (!edge_grid_bbox.contains(line_to_test.a) || !edge_grid_bbox.contains(line_to_test.b)) {
                                 // If the painted line (line_to_test) is entirely outside EdgeGrid's BoundingBox, skip this painted line.
                                 if (!edge_grid_bbox.overlap(BoundingBox(Points{line_to_test.a, line_to_test.b})) ||
                                     !line_to_test.clip_with_bbox(edge_grid_bbox))
