@@ -22,13 +22,13 @@ endif ()
 
 set(_wx_orcaslicer_patch "${CMAKE_CURRENT_LIST_DIR}/0001-wx-3.1.5-patch-for-Orca.patch")
 if (MSVC)
-    set(_patch_cmd if not exist WXWIDGETS_PATCHED ( "${GIT_EXECUTABLE}" apply --verbose --ignore-space-change --whitespace=fix ${_wx_orcaslicer_patch} && type nul > WXWIDGETS_PATCHED ) )
+    set(_patch_cmd if not exist WXWIDGETS_PATCHED ( patch --verbose -p1 -l -i ${CMAKE_CURRENT_LIST_DIR}/0001-wx-3.1.5-patch-for-Orca.patch && type nul > WXWIDGETS_PATCHED ) )
 else ()
-    set(_patch_cmd test -f WXWIDGETS_PATCHED || ${PATCH_CMD} ${_wx_orcaslicer_patch} && touch WXWIDGETS_PATCHED)
+    set(_patch_cmd test -f WXWIDGETS_PATCHED || patch --verbose -p1 -l -i ${CMAKE_CURRENT_LIST_DIR}/0001-wx-3.1.5-patch-for-Orca.patch && touch WXWIDGETS_PATCHED)
 endif ()
 
-if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    set(_patch_cmd ${PATCH_CMD} ${_wx_orcaslicer_patch})
+if (FLATPAK)
+    set(_patch_cmd cat ${CMAKE_CURRENT_LIST_DIR}/0001-wx-3.1.5-patch-for-Orca.patch ${CMAKE_CURRENT_LIST_DIR}/0001-Add-support-for-building-WebView-with-libwebkit2gtk-.patch | patch --verbose -p1 -l)
 endif ()
 
 # Note: for anybody wanting to switch to tarball fetching - this won't just work as
@@ -44,13 +44,12 @@ endif ()
 
 orcaslicer_add_cmake_project(
     wxWidgets
-    GIT_REPOSITORY "https://github.com/wxWidgets/wxWidgets"
-    GIT_TAG ${_wx_git_tag}
-    GIT_SHALLOW ON
-    # URL ${_wx_tarball_url}
-    # URL_HASH SHA256=${_wx_tarball_hash}
+
+    URL "https://github.com/wxWidgets/wxWidgets/archive/refs/tags/v3.1.5.tar.gz"
+    URL_HASH SHA256=e8fd5f9fbff864562aa4d9c094f898c97f5e1274c90f25beb0bfd5cb61319dea
+
     PATCH_COMMAND ${_patch_cmd}
-    DEPENDS ${PNG_PKG} ${ZLIB_PKG} ${EXPAT_PKG} dep_TIFF dep_JPEG
+    DEPENDS ${PNG_PKG} ${ZLIB_PKG} ${EXPAT_PKG} ${TIFF_PKG} ${JPEG_PKG}
     CMAKE_ARGS
         -DwxBUILD_PRECOMP=ON
         ${_wx_toolkit}
@@ -63,6 +62,7 @@ orcaslicer_add_cmake_project(
         -DwxUSE_UNICODE=ON
         ${_wx_private_font}
         -DwxUSE_OPENGL=ON
+        -DwxUSE_WEBREQUEST=ON
         -DwxUSE_WEBVIEW=ON
         ${_wx_edge}
         -DwxUSE_WEBVIEW_IE=OFF
@@ -76,6 +76,7 @@ orcaslicer_add_cmake_project(
         -DwxUSE_ZLIB=sys
         -DwxUSE_LIBJPEG=sys
         -DwxUSE_LIBTIFF=sys
+        -DwxUSE_NANOSVG=OFF
         -DwxUSE_EXPAT=sys
 )
 

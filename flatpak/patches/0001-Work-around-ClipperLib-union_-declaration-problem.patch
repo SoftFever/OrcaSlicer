@@ -1,0 +1,57 @@
+From 504e2a789502b76cf2553124a777e32e08bfa15c Mon Sep 17 00:00:00 2001
+From: Bastien Nocera <hadess@hadess.net>
+Date: Wed, 13 Dec 2023 12:38:11 +0100
+Subject: [PATCH] Work-around ClipperLib/union_ declaration problem
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+[116/471] Building CXX object src/libslic3r/CMakeFiles/libslic3r.dir/Format/svg.cpp.o
+FAILED: src/libslic3r/CMakeFiles/libslic3r.dir/Format/svg.cpp.o
+/run/ccache/bin/c++ -DBOOST_ATOMIC_NO_LIB -DBOOST_CHRONO_NO_LIB -DBOOST_DATE_TIME_NO_LIB -DBOOST_FILESYSTEM_NO_LIB -DBOOST_IOSTREAMS_NO_LIB -DBOOST_LOCALE_NO_LIB -DBOOST_LOG_NO_LIB -DBOOST_REGEX_NO_LIB -DBOOST_SYSTEM_NO_LIB -DBOOST_THREAD_NO_LIB -DHAVE_FREETYPE -DHAVE_OPENGL_EXT -DHAVE_XLIB -DLIBNEST2D_GEOMETRIES_libslic3r -DLIBNEST2D_OPTIMIZER_nlopt -DLIBNEST2D_STATIC -DLIBNEST2D_THREADING_tbb -DOCC_CONVERT_SIGNALS -DOPENVDB_OPENEXR_STATICLIB -DOPENVDB_STATICLIB -DSLIC3R_GUI -DTBB_USE_CAPTURED_EXCEPTION=0 -DUNICODE -DUSE_TBB -DWXINTL_NO_GETTEXT_MACRO -D_UNICODE -DwxNO_UNSAFE_WXSTRING_CONV -DwxUSE_UNICODE -I/usr/include/dbus-1.0 -I/usr/lib/x86_64-linux-gnu/dbus-1.0/include -I/run/build/BambuStudio/src -I/run/build/BambuStudio/build/src/platform -I/run/build/BambuStudio/src/libslic3r -I/run/build/BambuStudio/build/src/libslic3r -I/run/build/BambuStudio/deps/build/destdir/usr/local/include/opencascade -I/run/build/BambuStudio/src/libnest2d/include -I/run/build/BambuStudio/src/miniz -I/run/build/BambuStudio/src/glu-libtess/include -I/run/build/BambuStudio/src/clipper2/Clipper2Lib/include -isystem /run/build/BambuStudio/src/eigen -isystem /run/build/BambuStudio/src/libigl -isystem /run/build/BambuStudio/deps/build/destdir/usr/local/include -isystem /run/build/BambuStudio/deps/build/destdir/usr/local/include/boost-1_78 -isystem /run/build/BambuStudio/deps/build/destdir/usr/local/include/OpenEXR -O2 -pipe -g -Wp,-D_FORTIFY_SOURCE=2 -Wp,-D_GLIBCXX_ASSERTIONS -fexceptions -fstack-protector-strong -grecord-gcc-switches -fasynchronous-unwind-tables -fstack-clash-protection -fcf-protection -fno-omit-frame-pointer -fext-numeric-literals -Wall -Wno-reorder -O3 -DNDEBUG -std=gnu++17 -fPIC -fsigned-char -Werror=return-type -Wno-ignored-attributes -Wno-unknown-pragmas -DOPENVDB_ABI_VERSION_NUMBER=8 -MD -MT src/libslic3r/CMakeFiles/libslic3r.dir/Format/svg.cpp.o -MF src/libslic3r/CMakeFiles/libslic3r.dir/Format/svg.cpp.o.d -o src/libslic3r/CMakeFiles/libslic3r.dir/Format/svg.cpp.o -c /run/build/BambuStudio/src/libslic3r/Format/svg.cpp
+/run/build/BambuStudio/src/libslic3r/Format/svg.cpp:214:29: error: ‘Path’ is not a member of ‘Slic3r::ClipperLib’; did you mean ‘ClipperLib::Path’?
+  214 |                 ClipperLib::Path pt_path;
+      |                             ^~~~
+In file included from /run/build/BambuStudio/src/libslic3r/Format/svg.cpp:22:
+/run/build/BambuStudio/src/clipper/clipper.hpp:113:31: note: ‘ClipperLib::Path’ declared here
+  113 | typedef std::vector<IntPoint> Path;
+      |                               ^~~~
+/run/build/BambuStudio/src/libslic3r/Format/svg.cpp:240:28: error: ‘union_’ was not declared in this scope; did you mean ‘union’?
+  240 |                 polygons = union_(polygons);
+      |                            ^~~~~~
+      |                            union
+---
+ src/libslic3r/Format/svg.cpp | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/src/libslic3r/Format/svg.cpp b/src/libslic3r/Format/svg.cpp
+index 4a96274b99e4..ff895402255d 100644
+--- a/src/libslic3r/Format/svg.cpp
++++ b/src/libslic3r/Format/svg.cpp
+@@ -204,12 +204,14 @@ bool get_svg_profile(const char *path, std::vector<Element_Info> &element_infos,
+             path_line_points.push_back(profile_line_points);
+         }
+ 
++#if 0
+         if (shape->fill.gradient == nullptr) {
+             double scale_size = 1e6;
+             std::vector<std::vector<std::pair<gp_Pnt, gp_Pnt>>> new_path_line_points;
+             float stroke_width = shape->strokeWidth * scale_size;
+             Polygons polygons;
+             bool close_polygon = false;
++
+             for (int i = 0; i < path_line_points.size(); ++i) {
+                 ClipperLib::Path pt_path;
+                 for (auto line_point : path_line_points[i]) { 
+@@ -253,7 +255,7 @@ bool get_svg_profile(const char *path, std::vector<Element_Info> &element_infos,
+ 
+             path_line_points = new_path_line_points;
+         }
+-
++#endif
+         // generate all profile curves
+         std::vector<TopoDS_Wire> wires;
+         int index = 0;
+-- 
+2.43.0
+

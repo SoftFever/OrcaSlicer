@@ -42,6 +42,10 @@ endif ()
 
 set(DESTDIR "${CMAKE_CURRENT_BINARY_DIR}/destdir" CACHE PATH "Destination directory")
 set(DEP_DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR}/../DL_CACHE CACHE PATH "Path for downloaded source packages.")
+set(FLATPAK FALSE CACHE BOOL "Toggles various build settings for flatpak, like /usr/local in DESTDIR")
+if (NOT FLATPAK)
+    set(DESTDIR "${DESTDIR}/usr/local/")
+endif()
 
 get_property(_is_multi GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
 
@@ -90,12 +94,13 @@ message(STATUS "OrcaSlicer deps debug build: ${DEP_DEBUG}")
 find_package(Git REQUIRED)
 
 # The default command line for patching. Only works for newer 
-set(PATCH_CMD ${GIT_EXECUTABLE} apply --verbose --ignore-space-change --whitespace=fix)
+set(PATCH_CMD ${GIT_EXECUTABLE} apply --apply --verbose --ignore-space-change --whitespace=fix)
 
 if (NOT _is_multi AND NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
     message(STATUS "Forcing CMAKE_BUILD_TYPE to Release as it was not specified.")
 endif ()
+
 
 function(orcaslicer_add_cmake_project projectname)
     cmake_parse_arguments(P_ARGS "" "INSTALL_DIR;BUILD_COMMAND;INSTALL_COMMAND" "CMAKE_ARGS" ${ARGN})
@@ -120,13 +125,13 @@ if (NOT IS_CROSS_COMPILE OR NOT APPLE)
     ExternalProject_Add(
         dep_${projectname}
         EXCLUDE_FROM_ALL    ON
-        INSTALL_DIR         ${DESTDIR}/usr/local
+        INSTALL_DIR         ${DESTDIR}
         DOWNLOAD_DIR        ${DEP_DOWNLOAD_DIR}/${projectname}
         ${_gen}
         CMAKE_ARGS
-            -DCMAKE_INSTALL_PREFIX:STRING=${DESTDIR}/usr/local
+            -DCMAKE_INSTALL_PREFIX:STRING=${DESTDIR}
             -DCMAKE_MODULE_PATH:STRING=${PROJECT_SOURCE_DIR}/../cmake/modules
-            -DCMAKE_PREFIX_PATH:STRING=${DESTDIR}/usr/local
+            -DCMAKE_PREFIX_PATH:STRING=${DESTDIR}
             -DCMAKE_DEBUG_POSTFIX:STRING=d
             -DCMAKE_C_COMPILER:STRING=${CMAKE_C_COMPILER}
             -DCMAKE_CXX_COMPILER:STRING=${CMAKE_CXX_COMPILER}
@@ -140,16 +145,22 @@ if (NOT IS_CROSS_COMPILE OR NOT APPLE)
        BUILD_COMMAND ${CMAKE_COMMAND} --build . --config Release -- ${_build_j}
        INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install --config Release
     )
-else()
+elseif(FLATPAK)
+    # TODO: maybe use shared libs for size reduction
     ExternalProject_Add(
         dep_${projectname}
         EXCLUDE_FROM_ALL    ON
-        INSTALL_DIR         ${DESTDIR}/usr/local
+        INSTALL_DIR         ${DESTDIR}
         DOWNLOAD_DIR        ${DEP_DOWNLOAD_DIR}/${projectname}
         ${_gen}
         CMAKE_ARGS
-            -DCMAKE_INSTALL_PREFIX:STRING=${DESTDIR}/usr/local
-            -DCMAKE_PREFIX_PATH:STRING=${DESTDIR}/usr/local
+            -DCMAKE_INSTALL_PREFIX:STRING=${DESTDIR}
+            -DCMAKE_MODULE_PATH:STRING=${PROJECT_SOURCE_DIR}/../cmake/modules
+            -DCMAKE_PREFIX_PATH:STRING=${DESTDIR}
+            -DCMAKE_DEBUG_POSTFIX:STRING=d
+            -DCMAKE_C_COMPILER:STRING=${CMAKE_C_COMPILER}
+            -DCMAKE_CXX_COMPILER:STRING=${CMAKE_CXX_COMPILER}
+            -DCMAKE_TOOLCHAIN_FILE:STRING=${CMAKE_TOOLCHAIN_FILE}
             -DBUILD_SHARED_LIBS:BOOL=OFF
             ${_cmake_osx_arch}
             "${_configs_line}"
@@ -158,6 +169,28 @@ else()
        ${P_ARGS_UNPARSED_ARGUMENTS}
        BUILD_COMMAND ${CMAKE_COMMAND} --build . --config Release -- ${_build_j}
        INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install --config Release
+       # HACK: save space after each compile job, because CI
+       # note: for whatever reason cmake changes directory after this, so just keep only the folders
+       COMMAND find "${CMAKE_BINARY_DIR}/dep_${projectname}-prefix/" -type f -delete
+    )
+else()
+    ExternalProject_Add(
+        dep_${projectname}
+        EXCLUDE_FROM_ALL    ON
+        INSTALL_DIR         ${DESTDIR}
+        DOWNLOAD_DIR        ${DEP_DOWNLOAD_DIR}/${projectname}
+        ${_gen}
+        CMAKE_ARGS
+            -DCMAKE_INSTALL_PREFIX:STRING=${DESTDIR}
+            -DCMAKE_PREFIX_PATH:STRING=${DESTDIR}
+            -DBUILD_SHARED_LIBS:BOOL=OFF
+            ${_cmake_osx_arch}
+            "${_configs_line}"
+            ${DEP_CMAKE_OPTS}
+            ${P_ARGS_CMAKE_ARGS}
+       ${P_ARGS_UNPARSED_ARGUMENTS}
+       BUILD_COMMAND ${CMAKE_COMMAND} --build . --config Release -- ${_build_j}
+       INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install --config Release 
     )
 
 endif()
@@ -203,6 +236,17 @@ else()
     include("deps-linux.cmake")
 endif()
 
+if(FLATPAK)
+    # flatpak bundles some deps with the layer, so attempt to find them first
+    find_package(ZLIB)
+    find_package(PNG)
+    find_package(EXPAT)
+    find_package(CURL)
+    find_package(JPEG)
+    find_package(TIFF)
+    find_package(Freetype)
+endif()
+
 set(ZLIB_PKG "")
 if (NOT ZLIB_FOUND) 
     include(ZLIB/ZLIB.cmake)
@@ -226,6 +270,7 @@ include(Boost/Boost.cmake)
 include(Cereal/Cereal.cmake)
 include(Qhull/Qhull.cmake)
 include(GLEW/GLEW.cmake)
+
 include(GLFW/GLFW.cmake)
 include(OpenCSG/OpenCSG.cmake)
 
@@ -241,23 +286,41 @@ include(CGAL/CGAL.cmake)
 
 include(NLopt/NLopt.cmake)
 
-include(OpenSSL/OpenSSL.cmake)
-
 set(CURL_PKG "")
 if (NOT CURL_FOUND)
+    message(WARNING "no curl package found, building openssl and curl")
+    include(OpenSSL/OpenSSL.cmake)
     include(CURL/CURL.cmake)
+    set(OPENSSL_PKG dep_OpenSSL)
     set(CURL_PKG dep_CURL)
 endif ()
 
-include(JPEG/JPEG.cmake)
-include(TIFF/TIFF.cmake)
+set(JPEG_PKG "")
+if (NOT JPEG_FOUND)
+    include(JPEG/JPEG.cmake)
+    set(JPEG_PKG dep_JPEG)
+endif()
+
+set(TIFF_PKG "")
+if (NOT TIFF_FOUND)
+    include(TIFF/TIFF.cmake)
+    set(TIFF_PKG "dep_TIFF")
+endif()
+
 include(wxWidgets/wxWidgets.cmake)
+
+set(FREETYPE_PKG "")
+if(NOT FREETYPE_FOUND)
+    include(FREETYPE/FREETYPE.cmake)
+    set(FREETYPE_PKG "dep_FREETYPE") 
+endif()
+
 include(OCCT/OCCT.cmake)
-include(FREETYPE/FREETYPE.cmake)
 
 set(_dep_list
     dep_Boost
     dep_TBB
+    ${OPENSSL_PKG}
     ${CURL_PKG}
     dep_wxWidgets
     dep_Cereal
@@ -265,8 +328,9 @@ set(_dep_list
     dep_OpenVDB
     dep_OpenCSG
     dep_CGAL
-    dep_OpenSSL
     dep_GLFW
+    dep_OCCT
+    ${FREETYPE_PKG}
     ${PNG_PKG}
     ${ZLIB_PKG}
     ${EXPAT_PKG}
@@ -280,9 +344,6 @@ else()
     # Not working, static build has different Eigen
     #list(APPEND _dep_list "dep_libigl")
 endif()
-
-list(APPEND _dep_list "dep_OCCT")
-list(APPEND _dep_list "dep_FREETYPE")
 
 add_custom_target(deps ALL DEPENDS ${_dep_list})
 
