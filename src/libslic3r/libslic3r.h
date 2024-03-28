@@ -76,7 +76,7 @@ static constexpr double INSET_OVERLAP_TOLERANCE = 0.4;
 //FIXME This is quite a lot.
 static constexpr double EXTERNAL_INFILL_MARGIN = 3;
 static constexpr double BRIDGE_INFILL_MARGIN = 1;
-static constexpr double WIPE_TOWER_MARGIN = 15.;
+static constexpr double WIPE_TOWER_MARGIN = 1.;
 //FIXME Better to use an inline function with an explicit return type.
 //inline coord_t scale_(coordf_t v) { return coord_t(floor(v / SCALING_FACTOR + 0.5f)); }
 #define scale_(val) ((val) / SCALING_FACTOR)
