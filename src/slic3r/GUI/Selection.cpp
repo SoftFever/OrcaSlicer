@@ -147,6 +147,17 @@ void Selection::set_model(Model* model)
     update_valid();
 }
 
+int Selection::query_real_volume_idx_from_other_view(unsigned int object_idx, unsigned int instance_idx, unsigned int model_volume_idx)
+{
+    for (int i = 0; i < m_volumes->size(); i++) {
+        auto v = (*m_volumes)[i];
+        if (v->object_idx() == object_idx && instance_idx == v->instance_idx() && model_volume_idx == v->volume_idx()) {
+            return i;
+        }
+    }
+    return -1;
+}
+
 void Selection::add(unsigned int volume_idx, bool as_single_selection, bool check_for_already_contained)
 {
     if (!m_valid || (unsigned int)m_volumes->size() <= volume_idx)
