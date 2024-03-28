@@ -1,4 +1,1 @@
-<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-<circle cx="10" cy="10" r="10" fill="#DBFDE7"/>
-<path d="M15.874 6.75361C16.0401 6.92314 16.0401 7.20205 15.874 7.37158L8.58827 14.8091C8.4222 14.9786 8.14899 14.9786 7.98292 14.8091L4.12577 10.8716C3.9597 10.7021 3.9597 10.4231 4.12577 10.2536C4.29185 10.0841 4.56506 10.0841 4.73113 10.2536L8.2856 13.8821L15.2686 6.75361C15.4347 6.58408 15.7079 6.58408 15.874 6.75361Z" fill="black"/>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><circle cx="9.5" cy="9.5" r="9.5" style="fill:#009688"/><polyline points="14.5 7.5 7.5 12.5 4.5 8.5" style="fill:none;stroke:#fff;stroke-linecap:round;stroke-linejoin:round"/></svg>

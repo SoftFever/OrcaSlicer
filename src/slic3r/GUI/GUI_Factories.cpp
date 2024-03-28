@@ -498,18 +498,28 @@ wxMenu* MenuFactory::append_submenu_add_generic(wxMenu* menu, ModelVolumeType ty
 
     if (type != ModelVolumeType::INVALID) {
         append_menu_item(sub_menu, wxID_ANY, _L("Load..."), "",
-            [type](wxCommandEvent&) { obj_list()->load_subobject(type); }, "", menu);
+            [type](wxCommandEvent&) { obj_list()->load_subobject(type); }, "menu_load", menu);
         sub_menu->AppendSeparator();
     }
 
-    for (auto &item : {L("Cube"), L("Cylinder"), L("Sphere"), L("Cone"), L("Disc"), L("Torus")}) {
-        append_menu_item(
-            sub_menu, wxID_ANY, _(item), "",
-            [type, item](wxCommandEvent &) {
-              obj_list()->load_generic_subobject(item, type);
-            },
-            "", menu);
-    }
+    append_menu_item(sub_menu, wxID_ANY, _L("Cube"), "",
+        [type](wxCommandEvent&) { obj_list()->load_generic_subobject(L("Cube") ,type); },"menu_obj_cube", menu);
+
+    append_menu_item(sub_menu, wxID_ANY, _L("Cylinder"), "",
+        [type](wxCommandEvent&) { obj_list()->load_generic_subobject(L("Cylinder"), type); },"menu_obj_cylinder", menu);
+
+    append_menu_item(sub_menu, wxID_ANY, _L("Sphere"), "",
+        [type](wxCommandEvent&) { obj_list()->load_generic_subobject(L("Sphere"), type); },"menu_obj_sphere", menu);
+
+    append_menu_item(sub_menu, wxID_ANY, _L("Cone"), "",
+        [type](wxCommandEvent&) { obj_list()->load_generic_subobject(L("Cone"), type); },"menu_obj_cone", menu);
+
+    append_menu_item(sub_menu, wxID_ANY, _L("Disc"), "",
+        [type](wxCommandEvent&) { obj_list()->load_generic_subobject(L("Disc"), type); },"menu_obj_disc", menu);
+
+    append_menu_item(sub_menu, wxID_ANY, _L("Torus"), "",
+        [type](wxCommandEvent&) { obj_list()->load_generic_subobject(L("Torus"), type); },"menu_obj_torus", menu);
+
 
     append_menu_item_add_text(sub_menu, type);
     append_menu_item_add_svg(sub_menu, type);
@@ -617,7 +627,8 @@ static void append_menu_itemm_add_(const wxString& name, GLGizmosManager::EType 
     ) {
         wxString item_name = wxString(is_submenu_item ? "" : _(ADD_VOLUME_MENU_ITEMS[int(type)].first) + ": ") + name;
         menu->AppendSeparator();
-        const std::string icon_name = is_submenu_item ? "" : ADD_VOLUME_MENU_ITEMS[int(type)].second;
+        auto def_icon_name = (gizmo_type == GLGizmosManager::Emboss) ? "menu_obj_text" : "menu_obj_svg";
+        const std::string icon_name = is_submenu_item ? def_icon_name : ADD_VOLUME_MENU_ITEMS[int(type)].second;
         append_menu_item(menu, wxID_ANY, item_name, "", add_, icon_name, menu);
     }
 }
@@ -659,7 +670,7 @@ void MenuFactory::append_menu_items_add_volume(wxMenu* menu)
 wxMenuItem* MenuFactory::append_menu_item_layers_editing(wxMenu* menu)
 {
     return append_menu_item(menu, wxID_ANY, _L("Height range Modifier"), "",
-        [](wxCommandEvent&) { obj_list()->layers_editing(); wxGetApp().params_panel()->switch_to_object(); }, "", menu,
+        [](wxCommandEvent&) { obj_list()->layers_editing(); wxGetApp().params_panel()->switch_to_object(); }, "height_range_modifier", menu,
         []() { return obj_list()->is_instance_or_object_selected(); }, m_parent);
 }
 
@@ -1099,11 +1110,11 @@ void MenuFactory::append_menu_items_mirror(wxMenu* menu)
         return;
 
     append_menu_item(mirror_menu, wxID_ANY, _L("Along X axis"), _L("Mirror along the X axis"),
-        [](wxCommandEvent&) { plater()->mirror(X); }, "", menu);
+        [](wxCommandEvent&) { plater()->mirror(X); }, "menu_mirror_x", menu);
     append_menu_item(mirror_menu, wxID_ANY, _L("Along Y axis"), _L("Mirror along the Y axis"),
-        [](wxCommandEvent&) { plater()->mirror(Y); }, "", menu);
+        [](wxCommandEvent&) { plater()->mirror(Y); }, "menu_mirror_y", menu);
     append_menu_item(mirror_menu, wxID_ANY, _L("Along Z axis"), _L("Mirror along the Z axis"),
-        [](wxCommandEvent&) { plater()->mirror(Z); }, "", menu);
+        [](wxCommandEvent&) { plater()->mirror(Z); }, "menu_mirror_z", menu);
 
     append_submenu(menu, mirror_menu, wxID_ANY, _L("Mirror"), _L("Mirror object"), "",
         []() { return plater()->can_mirror(); }, m_parent);
@@ -1258,10 +1269,10 @@ void MenuFactory::create_object_menu()
         return;
 
     append_menu_item(split_menu, wxID_ANY, _L("To objects"), _L("Split the selected object into multiple objects"),
-        [](wxCommandEvent&) { plater()->split_object(); }, "split_objects", &m_object_menu,
+        [](wxCommandEvent&) { plater()->split_object(); }, "menu_split_objects", &m_object_menu,
         []() { return plater()->can_split(true); }, m_parent);
     append_menu_item(split_menu, wxID_ANY, _L("To parts"), _L("Split the selected object into multiple parts"),
-        [](wxCommandEvent&) { plater()->split_volume(); }, "split_parts", &m_object_menu,
+        [](wxCommandEvent&) { plater()->split_volume(); }, "menu_split_parts", &m_object_menu,
         []() { return plater()->can_split(false); }, m_parent);
 
     append_submenu(&m_object_menu, split_menu, wxID_ANY, _L("Split"), _L("Split the selected object"), "",
@@ -1292,10 +1303,10 @@ void MenuFactory::create_extra_object_menu()
     if (!split_menu)
         return;
     append_menu_item(split_menu, wxID_ANY, _L("To objects"), _L("Split the selected object into multiple objects"),
-        [](wxCommandEvent&) { plater()->split_object(); }, "split_objects", &m_object_menu,
+        [](wxCommandEvent&) { plater()->split_object(); }, "menu_split_objects", &m_object_menu,
         []() { return plater()->can_split(true); }, m_parent);
     append_menu_item(split_menu, wxID_ANY, _L("To parts"), _L("Split the selected object into multiple parts"),
-        [](wxCommandEvent&) { plater()->split_volume(); }, "split_parts", &m_object_menu,
+        [](wxCommandEvent&) { plater()->split_volume(); }, "menu_split_parts", &m_object_menu,
         []() { return plater()->can_split(false); }, m_parent);
 
     append_submenu(&m_object_menu, split_menu, wxID_ANY, _L("Split"), _L("Split the selected object"), "",
@@ -1337,7 +1348,7 @@ void MenuFactory::create_sla_object_menu()
 {
     create_common_object_menu(&m_sla_object_menu);
     append_menu_item(&m_sla_object_menu, wxID_ANY, _L("Split"), _L("Split the selected object into multiple objects"),
-        [](wxCommandEvent&) { plater()->split_object(); }, "split_objects", nullptr,
+        [](wxCommandEvent&) { plater()->split_object(); }, "", nullptr,
         []() { return plater()->can_split(true); }, m_parent);
 
     m_sla_object_menu.AppendSeparator();
@@ -1359,14 +1370,14 @@ void MenuFactory::create_part_menu()
     append_menu_item_merge_parts_to_single_part(menu);
 
     append_menu_item(menu, wxID_ANY, _L("Split"), _L("Split the selected object into multiple parts"),
-        [](wxCommandEvent&) { plater()->split_volume(); }, "split_parts", nullptr,
+        [](wxCommandEvent&) { plater()->split_volume(); }, "", nullptr,
         []() { return plater()->can_split(false); }, m_parent);
 
     menu->AppendSeparator();
     append_menu_item_change_type(menu);
     append_menu_items_mirror(&m_part_menu);
     append_menu_item(&m_part_menu, wxID_ANY, _L("Split"), _L("Split the selected object into multiple parts"),
-        [](wxCommandEvent&) { plater()->split_volume(); }, "split_parts", nullptr,
+        [](wxCommandEvent&) { plater()->split_volume(); }, "", nullptr,
         []() { return plater()->can_split(false); }, m_parent);
     m_part_menu.AppendSeparator();
     append_menu_item_per_object_settings(&m_part_menu);
@@ -1415,10 +1426,10 @@ void MenuFactory::create_bbl_part_menu()
         return;
 
     append_menu_item(split_menu, wxID_ANY, _L("To objects"), _L("Split the selected object into mutiple objects"),
-        [](wxCommandEvent&) { plater()->split_object(); }, "split_objects", menu,
+        [](wxCommandEvent&) { plater()->split_object(); }, "menu_split_objects", menu,
         []() { return plater()->can_split(true); }, m_parent);
     append_menu_item(split_menu, wxID_ANY, _L("To parts"), _L("Split the selected object into mutiple parts"),
-        [](wxCommandEvent&) { plater()->split_volume(); }, "split_parts", menu,
+        [](wxCommandEvent&) { plater()->split_volume(); }, "menu_split_parts", menu,
         []() { return plater()->can_split(false); }, m_parent);
 
     append_submenu(menu, split_menu, wxID_ANY, _L("Split"), _L("Split the selected object"), "",
@@ -1661,10 +1672,10 @@ wxMenu* MenuFactory::multi_selection_menu()
         wxMenu* split_menu = new wxMenu();
         if (split_menu) {
             append_menu_item(split_menu, wxID_ANY, _L("To objects"), _L("Split the selected object into multiple objects"),
-                [](wxCommandEvent&) { plater()->split_object(); }, "split_objects", menu,
+                [](wxCommandEvent&) { plater()->split_object(); }, "menu_split_objects", menu,
                 []() { return plater()->can_split(true); }, m_parent);
             append_menu_item(split_menu, wxID_ANY, _L("To parts"), _L("Split the selected object into multiple parts"),
-                [](wxCommandEvent&) { plater()->split_volume(); }, "split_parts", menu,
+                [](wxCommandEvent&) { plater()->split_volume(); }, "menu_split_parts", menu,
                 []() { return plater()->can_split(false); }, m_parent);
 
             append_submenu(menu, split_menu, wxID_ANY, _L("Split"), _L("Split the selected object"), "",

@@ -291,6 +291,7 @@ protected:
     static constexpr float SmartFillAngleStep = 1.f;
 
     // Orca: paint behavior enchancement
+    bool m_free_only = true;
     bool m_vertical_only = false;
     bool m_horizontal_only = false;
 

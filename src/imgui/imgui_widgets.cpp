@@ -6250,7 +6250,10 @@ bool ImGui::ColorButton(const char* desc_id, const ImVec4& col, ImGuiColorEditFl
         size.x = default_size;
     if (size.y == 0.0f)
         size.y = default_size;
-    const ImRect bb(window->DC.CursorPos, window->DC.CursorPos + size);
+    //const ImRect bb(window->DC.CursorPos, window->DC.CursorPos + size);
+    //  make sure all values int otherwise borders and rectangles will pixelated
+    const ImRect bb(ImVec2(round(window->DC.CursorPos.x), round(window->DC.CursorPos.y)),
+                    ImVec2(round(window->DC.CursorPos.x + size.x), round(window->DC.CursorPos.y + size.y)));
     ItemSize(bb, (size.y >= default_size) ? g.Style.FramePadding.y : 0.0f);
     if (!ItemAdd(bb, id))
         return false;
@@ -6266,14 +6269,14 @@ bool ImGui::ColorButton(const char* desc_id, const ImVec4& col, ImGuiColorEditFl
         ColorConvertHSVtoRGB(col_rgb.x, col_rgb.y, col_rgb.z, col_rgb.x, col_rgb.y, col_rgb.z);
 
     ImVec4 col_rgb_without_alpha(col_rgb.x, col_rgb.y, col_rgb.z, 1.0f);
-    float grid_step = ImMin(size.x, size.y) / 2.99f;
-    float rounding = ImMin(g.Style.FrameRounding, grid_step * 0.5f);
+    int grid_step = ImMin(size.x, size.y) / 2.99f;
+    int    rounding  = ImMin(g.Style.FrameRounding, grid_step * 0.5f);
     ImRect bb_inner = bb;
     float off = 0.0f;
     // BBS
     //if ((flags & ImGuiColorEditFlags_NoBorder) == 0)
     {
-        off = -2.5f; // The border (using Col_FrameBg) tends to look off when color is near-opaque and rounding is enabled. This offset seemed like a good middle ground to reduce those artifacts.
+        off = -2.f; // The border (using Col_FrameBg) tends to look off when color is near-opaque and rounding is enabled. This offset seemed like a good middle ground to reduce those artifacts.
         bb_inner.Expand(off);
     }
     if ((flags & ImGuiColorEditFlags_AlphaPreviewHalf) && col_rgb.w < 1.0f)
@@ -6297,10 +6300,10 @@ bool ImGui::ColorButton(const char* desc_id, const ImVec4& col, ImGuiColorEditFl
         if (g.Style.FrameBorderSize > 0.0f)
             RenderFrameBorder(bb.Min, bb.Max, rounding);
         else
-        #ifdef __APPLE__
-           window->DrawList->AddRect(bb.Min - ImVec2(3, 3), bb.Max + ImVec2(3, 3), GetColorU32(ImGuiCol_FrameBg), rounding * 2,NULL,4.0f);; // Color button are often in need of some sort of border
+        #ifdef __APPLE__ // requires testing on macOS. int numbers not giving perfect results for line widht with even numbers 
+           window->DrawList->AddRect(bb.Min - ImVec2(1.5f, 1.5f), bb.Max + ImVec2(1.5f, 1.5f), GetColorU32(ImGuiCol_FrameBg), rounding * 2,NULL,2.0f);; // Color button are often in need of some sort of border
         #else
-            window->DrawList->AddRect(bb.Min - ImVec2(2, 2), bb.Max + ImVec2(2, 2), GetColorU32(ImGuiCol_FrameBg), rounding * 2,NULL,3.0f); // Color button are often in need of some sort of border
+            window->DrawList->AddRect(bb.Min - ImVec2(1.5f, 1.5f), bb.Max + ImVec2(1.5f, 1.5f), GetColorU32(ImGuiCol_FrameBg), rounding * 2,NULL,2.0f); // Color button are often in need of some sort of border
         #endif
     }
 

@@ -164,7 +164,7 @@ enum class IconType : unsigned {
     unbold,
     system_selector,
     open_file,
-    exclamation,
+    obj_warning,
     lock,
     lock_bold,
     unlock,
@@ -1542,7 +1542,7 @@ void GLGizmoEmboss::draw_text_input()
                         cursor.y - m_gui_cfg->icon_width - scrollbar_height - 2*padding.y);
         
         ImGui::SetCursorPos(icon_pos);
-        draw(get_icon(m_icons, IconType::exclamation, IconState::hovered));
+        draw(get_icon(m_icons, IconType::obj_warning, IconState::hovered));
         ImGui::SetCursorPos(cursor);
     }
 
@@ -1853,6 +1853,7 @@ void GLGizmoEmboss::draw_model_type()
 
     //TRN EmbossOperation
     ImGuiWrapper::push_radio_style();
+    ImGui::SameLine(m_gui_cfg->input_offset);
     if (ImGui::RadioButton(_u8L("Join").c_str(), type == part))
         new_type = part;
     else if (ImGui::IsItemHovered())
@@ -2176,12 +2177,12 @@ void GLGizmoEmboss::draw_style_list() {
     }
 
     std::string title = _u8L("Style");
+    ImGui::AlignTextToFramePadding();
     if (m_style_manager.exist_stored_style())
         ImGui::Text("%s", title.c_str());
     else
         ImGui::TextColored(ImGuiWrapper::COL_ORCA, "%s", title.c_str());
-        
-    ImGui::SetNextItemWidth(m_gui_cfg->input_width);
+
     auto add_text_modify = [&is_modified](const std::string& name) {
         if (!is_modified) return name;
         return name + Preset::suffix_modified();
@@ -2189,6 +2190,8 @@ void GLGizmoEmboss::draw_style_list() {
     std::optional<size_t> selected_style_index;
     std::string tooltip = "";
     ImGuiWrapper::push_combo_style(m_parent.get_scale());
+    ImGui::SameLine(m_gui_cfg->input_offset);
+    ImGui::SetNextItemWidth(2 * m_gui_cfg->input_width);
     if (ImGui::BBLBeginCombo("##style_selector", add_text_modify(trunc_name).c_str())) {
         m_style_manager.init_style_images(m_gui_cfg->max_style_image_size, m_text);
         m_style_manager.init_trunc_names(max_style_name_width);
@@ -2721,7 +2724,7 @@ void GLGizmoEmboss::draw_advanced()
         else if (draw_button(icons, IconType::align_horizontal_right)) { align.first=FontProp::HorizontalAlign::right; is_change = true; }
         else if (ImGui::IsItemHovered()) m_imgui->tooltip(_CTX_utf8(L_CONTEXT("Right", "Alignment"), "Alignment"), m_gui_cfg->max_tooltip_width);
 
-        ImGui::SameLine();
+        ImGui::SameLine(0,24.f); // add a small gap between them for slight separation
         if (align.second==FontProp::VerticalAlign::top) draw(get_icon(icons, IconType::align_vertical_top, IconState::hovered));
         else if (draw_button(icons, IconType::align_vertical_top)) { align.second=FontProp::VerticalAlign::top; is_change = true; }
         else if (ImGui::IsItemHovered()) m_imgui->tooltip(_CTX_utf8(L_CONTEXT("Top", "Alignment"), "Alignment"), m_gui_cfg->max_tooltip_width);
@@ -3163,7 +3166,7 @@ void GLGizmoEmboss::init_icons()
         "make_unbold.svg",   
         "search.svg",
         "open.svg", 
-        "exclamation.svg",   
+        "obj_warning.svg",   
         "lock_closed.svg",  // lock,
         "lock_closed_f.svg",// lock_bold,
         "lock_open.svg",    // unlock,

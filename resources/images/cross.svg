@@ -1,8 +1,1 @@
-<svg id="图层_1" data-name="图层 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
-    <defs>
-        <style>.cls-1,.cls-2,.cls-3{fill:none;}.cls-2,.cls-3{stroke:#2b3436;stroke-linecap:round;}</style>
-    </defs>
-    <title>Slice 41</title>
-    <rect fill="none" x="-202.7" y="-112" width="1440" height="909"/>
-    <path fill="none" stroke="#262E30" stroke-linecap="round" d="M3.62,3.25l9,9.29"/>
-    <line fill="none" stroke="#262E30" stroke-linecap="round" x1="12.37" y1="3.47" x2="3.35" y2="12.75"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"><path d="M.5,13.5V1.5a1,1,0,0,1,1-1h12a1,1,0,0,1,1,1v12a1,1,0,0,1-1,1H1.5A1,1,0,0,1,.5,13.5Zm3-6h8" style="fill:none;stroke:#949494;stroke-linecap:square;stroke-linejoin:round;opacity:0.6000000000000001"/></svg>

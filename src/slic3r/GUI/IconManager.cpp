@@ -373,7 +373,7 @@ void draw(const IconManager::Icon &icon, const ImVec2 &size, const ImVec4 &tint_
     ImGuiContext &g           = *GImGui;
     float         cursor_y    = window->DC.CursorPos.y;
     float         line_height = ImGui::GetTextLineHeight() + g.Style.FramePadding.y * 2;
-    float         offset_y    = (line_height - s.y) / 2;
+    int           offset_y    = (line_height - s.y) / 2;
     window->DC.CursorPos.y += offset_y;
 
     ImGui::Image(id, s, icon.tl, icon.br, tint_col, border_col);

@@ -206,9 +206,9 @@ void GLCanvas3D::LayersEditing::show_tooltip_information(const GLCanvas3D& canva
     caption_max += GImGui->Style.WindowPadding.x + imgui.scaled(1);
 
     float font_size = ImGui::GetFontSize();
-    ImVec2 button_size = ImVec2(font_size * 1.8, font_size * 1.3);
+    ImVec2 button_size = ImVec2(30,22);
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {0.0f, GImGui->Style.FramePadding.y});
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {0, 0});
     ImGui::ImageButton3(normal_id, hover_id, button_size);
 
     if (ImGui::IsItemHovered()) {
@@ -7692,7 +7692,7 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
     float window_width = m_sel_plate_toolbar.icon_width + margin_size * 2 + (show_scroll ? 28.0f * f_scale : 20.0f * f_scale);
 
     ImVec4 window_bg = ImVec4(0.82f, 0.82f, 0.82f, 0.5f);
-    ImVec4 button_active = ImVec4(0.12f, 0.56f, 0.92, 1.0f);
+    ImVec4 button_active = ImGuiWrapper::COL_ORCA; // ORCA: Selected Thumbnail border
     ImVec4 button_hover = ImVec4(0.67f, 0.67f, 0.67, 1.0f);
     ImVec4 scroll_col = ImVec4(0.77f, 0.77f, 0.77f, 1.0f);
     //ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.f, 0.f, 0.f, 1.0f));
@@ -7754,12 +7754,12 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
         ImTextureID btn_texture_id;
         if (all_plates_stats_item->slice_state == IMToolbarItem::SliceState::UNSLICED || all_plates_stats_item->slice_state == IMToolbarItem::SliceState::SLICING || all_plates_stats_item->slice_state == IMToolbarItem::SliceState::SLICE_FAILED)
         {
-            text_clr = ImVec4(0, 174.0f / 255.0f, 66.0f / 255.0f, 0.2f);
+            text_clr       = ImVec4(0.f, 0.59f, 0.53f, 0.2f); // ORCA COLOR with transparency. "All Plates Text" Color while all plates not sliced / slicing
             btn_texture_id = (ImTextureID)(intptr_t)(all_plates_stats_item->image_texture_transparent.get_id());
         }
         else
         {
-            text_clr = ImVec4(0, 174.0f / 255.0f, 66.0f / 255.0f, 1);
+            text_clr       = ImGuiWrapper::COL_ORCA; // ORCA COLOR. "All Plates Text" Color when all plates sliced
             btn_texture_id = (ImTextureID)(intptr_t)(all_plates_stats_item->image_texture.get_id());
         }
 
@@ -7888,7 +7888,7 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
         }
 
         // draw text
-        ImVec2 text_start_pos = ImVec2(start_pos.x + 10.0f, start_pos.y + 8.0f);
+        ImVec2 text_start_pos = ImVec2(start_pos.x + 3.0f, start_pos.y + 2.0f); // ORCA: Use Plate number text on a bit closer to border so it will not overlaps with thumbnail
         ImGui::RenderText(text_start_pos, std::to_string(i + 1).c_str());
 
         ImGui::PopID();

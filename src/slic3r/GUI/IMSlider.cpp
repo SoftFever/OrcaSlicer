@@ -143,11 +143,11 @@ bool IMSlider::init_texture()
     bool result = true;
     if (!is_horizontal()) {
         // BBS init image texture id
-        result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/one_layer_on.svg", 24, 24, m_one_layer_on_id);
+        result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/one_layer_on.svg", 28, 28, m_one_layer_on_id); // ORCA corrected wrong resolution
         result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/one_layer_on_hover.svg", 28, 28, m_one_layer_on_hover_id);
         result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/one_layer_off.svg", 28, 28, m_one_layer_off_id);
         result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/one_layer_off_hover.svg", 28, 28, m_one_layer_off_hover_id);
-        result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/one_layer_on_dark.svg", 24, 24, m_one_layer_on_dark_id);
+        result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/one_layer_on_dark.svg", 28, 28, m_one_layer_on_dark_id); // ORCA corrected wrong resolution
         result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/one_layer_on_hover_dark.svg", 28, 28, m_one_layer_on_hover_dark_id);
         result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/one_layer_off_dark.svg", 28, 28, m_one_layer_off_dark_id);
         result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/one_layer_off_hover_dark.svg", 28, 28, m_one_layer_off_hover_dark_id);
@@ -1073,8 +1073,7 @@ bool IMSlider::render(int canvas_width, int canvas_height)
     ImGui::PushStyleVar(ImGuiStyleVar_::ImGuiStyleVar_FramePadding, ImVec2(0.0f, 0.0f));
     ImGui::PushStyleVar(ImGuiStyleVar_::ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
     ImGui::PushStyleColor(ImGuiCol_::ImGuiCol_WindowBg, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
-    ImGui::PushStyleColor(ImGuiCol_::ImGuiCol_Text, ImVec4(0, 0.682f, 0.259f, 1.0f));
-
+    ImGui::PushStyleColor(ImGuiCol_::ImGuiCol_Text, ImGuiWrapper::COL_ORCA); // ORCA slider layer number text color
     int windows_flag = ImGuiWindowFlags_NoTitleBar
                        | ImGuiWindowFlags_NoCollapse
                        | ImGuiWindowFlags_NoMove

@@ -1,5 +1,1 @@
-<svg width="32" height="18" viewBox="0 0 32 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M21.9872 4.5473L21.9872 13.2463C21.9872 13.716 21.3981 13.9265 21.1004 13.5632L17.5365 9.21328C17.3856 9.02899 17.3856 8.76377 17.5366 8.57949L21.1004 4.23039C21.3982 3.86708 21.9872 4.0776 21.9872 4.5473Z" stroke="#6B6B6B"/>
-<rect x="3.5" y="2.57501" width="12.9751" height="11.9001" rx="0.5" stroke="#6B6B6B"/>
-<circle cx="7.5" cy="10.5" r="2" stroke="#6B6B6B"/>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="18" viewBox="0 0 32 18"><rect x="6.5" y="2.5" width="12" height="13" rx="1" style="fill:none;stroke:#949494;stroke-linecap:round;stroke-linejoin:round"/><polyline points="18.5 8.499 23.5 4.5 23.5 13.5 18.5 9.5" style="fill:none;stroke:#949494;stroke-linecap:round;stroke-linejoin:round"/><line x1="8.5" y1="5.5" x2="13.5" y2="5.5" style="fill:none;stroke:#949494;stroke-linecap:round;stroke-linejoin:round"/><circle cx="11" cy="11" r="2.5" style="fill:none;stroke:#949494;stroke-linecap:round;stroke-linejoin:round"/></svg>

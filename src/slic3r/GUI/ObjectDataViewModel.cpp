@@ -43,8 +43,8 @@ void ObjectDataViewModelNode::init_container()
 #endif  //__WXGTK__
 }
 
-static constexpr char LayerRootIcon[]   = "blank";
-static constexpr char LayerIcon[]       = "blank";
+static constexpr char LayerRootIcon[]   = "height_range_modifier";
+static constexpr char LayerIcon[]       = "height_range_layer";
 static constexpr char WarningIcon[]     = "obj_warning";
 static constexpr char WarningManifoldIcon[] = "obj_warning";
 static constexpr char LockIcon[]            = "cut_";
@@ -72,9 +72,9 @@ struct InfoItemAtributes {
 
 const std::map<InfoItemType, InfoItemAtributes> INFO_ITEMS{
 //           info_item Type                         info_item Name              info_item BitmapName
-            { InfoItemType::CustomSupports,      {L("Support painting"),       "toolbar_support" },     },
+            { InfoItemType::CustomSupports,      {L("Support painting"),       "objlist_support_painting" },     },
             //{ InfoItemType::CustomSeam,          {L("Paint-on seam"),           "seam_" },             },
-            { InfoItemType::MmuSegmentation,     {L("Color painting"),          "mmu_segmentation"},  },
+            { InfoItemType::MmuSegmentation,     {L("Color painting"),          "objlist_color_painting"},  },
             //{ InfoItemType::Sinking,             {L("Sinking"),                 "objlist_sinking"}, },
             { InfoItemType::CutConnectors,       {L("Cut connectors"),          "cut_connectors" },    },
 };
@@ -232,7 +232,7 @@ void ObjectDataViewModelNode::set_color_icon(bool enable)
         return;
     m_color_enable = enable;
     if ((m_type & itObject) && enable)
-        m_color_icon = create_scaled_bitmap("mmu_segmentation");
+        m_color_icon = create_scaled_bitmap("objlist_color_painting");
     else
         m_color_icon = create_scaled_bitmap("dot");
 }
@@ -243,7 +243,7 @@ void ObjectDataViewModelNode::set_support_icon(bool enable)
         return;
     m_support_enable = enable;
     if ((m_type & itObject) && enable)
-        m_support_icon = create_scaled_bitmap("toolbar_support");
+        m_support_icon = create_scaled_bitmap("objlist_support_painting");
     else
         m_support_icon = create_scaled_bitmap("dot");
 }

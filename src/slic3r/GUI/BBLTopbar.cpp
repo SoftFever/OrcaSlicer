@@ -132,31 +132,38 @@ void BBLTopbarArt::DrawButton(wxDC& dc, wxWindow* wnd, const wxAuiToolBarItem& i
 
     if (!(item.GetState() & wxAUI_BUTTON_STATE_DISABLED))
     {
+        // ORCA: Changes
+        // Used same color for border and fill color for more modern look
+
+        const wxColour& OrcaColor = wxColour(0, 150, 136, 1);
+
         if (item.GetState() & wxAUI_BUTTON_STATE_PRESSED)
         {
-            dc.SetPen(wxPen(m_highlightColour));
-            dc.SetBrush(wxBrush(m_highlightColour.ChangeLightness(20)));
-            dc.DrawRectangle(rect);
+            dc.SetPen(wxPen(OrcaColor.ChangeLightness(75)));
+            dc.SetBrush(wxBrush(OrcaColor.ChangeLightness(75)));
+            dc.DrawRoundedRectangle(rect,2);
         }
         else if ((item.GetState() & wxAUI_BUTTON_STATE_HOVER) || item.IsSticky())
         {
-            dc.SetPen(wxPen(m_highlightColour));
-            dc.SetBrush(wxBrush(m_highlightColour.ChangeLightness(40)));
+            dc.SetPen(wxPen(OrcaColor.ChangeLightness(75)));
+            dc.SetBrush(wxBrush(OrcaColor.ChangeLightness(75)));
 
             // draw an even lighter background for checked item hovers (since
             // the hover background is the same color as the check background)
-            if (item.GetState() & wxAUI_BUTTON_STATE_CHECKED)
-                dc.SetBrush(wxBrush(m_highlightColour.ChangeLightness(50)));
+            if (item.GetState() & wxAUI_BUTTON_STATE_CHECKED) {
+                dc.SetPen(wxPen(OrcaColor.ChangeLightness(75)));
+                dc.SetBrush(wxBrush(OrcaColor.ChangeLightness(75)));
+            }
 
-            dc.DrawRectangle(rect);
+            dc.DrawRoundedRectangle(rect, 2);
         }
         else if (item.GetState() & wxAUI_BUTTON_STATE_CHECKED)
         {
             // it's important to put this code in an else statement after the
             // hover, otherwise hovers won't draw properly for checked items
-            dc.SetPen(wxPen(m_highlightColour));
-            dc.SetBrush(wxBrush(m_highlightColour.ChangeLightness(40)));
-            dc.DrawRectangle(rect);
+            dc.SetPen(wxPen(OrcaColor.ChangeLightness(75)));
+            dc.SetBrush(wxBrush(OrcaColor.ChangeLightness(75)));
+            dc.DrawRoundedRectangle(rect, 2);
         }
     }
 

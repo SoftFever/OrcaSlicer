@@ -137,7 +137,7 @@ enum class IconType : unsigned {
     change_file,
     bake,
     save,
-    exclamation,
+    obj_warning,
     lock,
     unlock,
     reflection_x,
@@ -397,7 +397,7 @@ IconManager::VIcons init_icons(IconManager &mng, const GuiCfg &cfg)
         "open.svg",          // changhe_file
         "burn.svg",          // bake
         "save.svg",          // save
-        "exclamation.svg",   // exclamation
+        "obj_warning.svg",   // warning
         "lock_closed.svg",   // lock
         "lock_open.svg",     // unlock
         "reflection_x.svg",  // reflection_x
@@ -1439,7 +1439,7 @@ void GLGizmoSVG::draw_filename(){
     }
 
     if (!m_shape_warnings.empty()){
-        draw(get_icon(m_icons, IconType::exclamation, IconState::hovered));
+        draw(get_icon(m_icons, IconType::obj_warning, IconState::hovered));
         if (ImGui::IsItemHovered()) {
             std::string tooltip;
             for (const std::string &w: m_shape_warnings){

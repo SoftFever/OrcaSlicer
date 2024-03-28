@@ -344,9 +344,9 @@ void GLGizmoMmuSegmentation::show_tooltip_information(float caption_max, float x
     caption_max += m_imgui->calc_text_size(std::string_view{": "}).x + 15.f;
 
     float font_size = ImGui::GetFontSize();
-    ImVec2 button_size = ImVec2(font_size * 1.8, font_size * 1.3);
+    ImVec2 button_size = ImVec2(30,22);
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 0, ImGui::GetStyle().FramePadding.y });
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 0, 0});
     ImGui::ImageButton3(normal_id, hover_id, button_size);
 
     if (ImGui::IsItemHovered()) {
@@ -436,21 +436,32 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
 
     const float sliders_width = m_imgui->scaled(7.0f);
     const float drag_left_width = ImGui::GetStyle().WindowPadding.x + sliders_width - space_size;
-
     const float max_tooltip_width = ImGui::GetFontSize() * 20.0f;
-    ImDrawList * draw_list = ImGui::GetWindowDrawList();
-    ImVec2 pos = ImGui::GetCursorScreenPos();
-    static float color_button_high  = 25.0;
-    draw_list->AddRectFilled({pos.x - 10.0f, pos.y - 7.0f}, {pos.x + window_width + ImGui::GetFrameHeight(), pos.y + color_button_high}, ImGui::GetColorU32(ImGuiCol_FrameBgActive, 1.0f), 5.0f);
-
-    float color_button = ImGui::GetCursorPos().y;
 
     m_imgui->text(m_desc.at("filaments"));
 
-    float start_pos_x = ImGui::GetCursorPos().x;
-    const ImVec2 max_label_size = ImGui::CalcTextSize("99", NULL, true);
-    const float item_spacing = m_imgui->scaled(0.8f);
+    ImDrawList * draw_list = ImGui::GetWindowDrawList();
+    ImVec2 pos = ImGui::GetCursorScreenPos();
+    static float color_button_high  = 25.0;
     size_t n_extruder_colors = std::min((size_t)EnforcerBlockerType::ExtruderMax, m_extruders_colors.size());
+    draw_list->AddRectFilled(
+        {pos.x - 2.0f, pos.y - 7.0f},
+        {pos.x + (n_extruder_colors >= max_filament_items_per_line ? max_filament_items_per_line : n_extruder_colors)  * filament_item_width + 5.0f, pos.y + color_button_high + 3.0f}, // resize width automatically to count of filaments and add padding
+        ImGui::GetColorU32(ImGuiCol_FrameBgActive, 1.0f),
+        6.0f  // Matched radius with tool selector
+    );
+    int color_button = ImGui::GetCursorPos().y;
+
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, {5.0, 5.0}); // ORCA reduced vertical spacing for saving some vertical space
+
+    ImGui::Spacing();
+    ImGui::SameLine();
+
+    int start_pos_x = ImGui::GetCursorPos().x;
+    const ImVec2 max_label_size = ImGui::CalcTextSize("99", NULL, true);
+    const ImVec2 button_size(max_label_size.x + m_imgui->scaled(0.5f), max_label_size.x + m_imgui->scaled(0.5f)); // ORCA Draw button as square
+    const int item_spacing = m_imgui->scaled(0.8f);
+    
     for (int extruder_idx = 0; extruder_idx < n_extruder_colors; extruder_idx++) {
         const ColorRGBA &extruder_color = m_extruders_colors[extruder_idx];
         ImVec4           color_vec      = ImGuiWrapper::to_ImVec4(extruder_color);
@@ -458,29 +469,32 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
         std::string item_text = std::to_string(extruder_idx + 1);
         const ImVec2 label_size = ImGui::CalcTextSize(item_text.c_str(), NULL, true);
 
-        const ImVec2 button_size(max_label_size.x + m_imgui->scaled(0.5f),0.f);
-
         float button_offset = start_pos_x;
         if (extruder_idx % max_filament_items_per_line != 0) {
-            button_offset += filament_item_width * (extruder_idx % max_filament_items_per_line);
+            button_offset += round(filament_item_width * (extruder_idx % max_filament_items_per_line)); // ORCA make sure its int
             ImGui::SameLine(button_offset);
+        }
+
+        if (extruder_idx == 8) {
+            ImGui::Spacing();
+            ImGui::SameLine();
         }
 
         // draw filament background
         ImGuiColorEditFlags flags = ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_NoPicker | ImGuiColorEditFlags_NoTooltip;
         if (m_selected_extruder_idx != extruder_idx) flags |= ImGuiColorEditFlags_NoBorder;
         #ifdef __APPLE__
-            ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
+            ImGui::PushStyleColor(ImGuiCol_FrameBg, ImGuiWrapper::COL_ORCA); // ORCA border color of selected filament
             ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
             ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 3.0);
             bool color_picked = ImGui::ColorButton(color_label.c_str(), color_vec, flags, button_size);
             ImGui::PopStyleVar(2);
             ImGui::PopStyleColor(1);
         #else
-            ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
+            ImGui::PushStyleColor(ImGuiCol_FrameBg, ImGuiWrapper::COL_ORCA); // ORCA border color of selected filament
             ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0);
             ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 2.0);
-            bool color_picked = ImGui::ColorButton(color_label.c_str(), color_vec, flags, button_size);
+            bool color_picked = ImGui::ColorButton(color_label.c_str(), color_vec, flags, button_size); // ORCA ColorButton edited border width and start positions rounded for pixel perfect icons
             ImGui::PopStyleVar(2);
             ImGui::PopStyleColor(1);
         #endif
@@ -491,15 +505,20 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
 
         // draw filament id
         float gray = 0.299 * extruder_color.r() + 0.587 * extruder_color.g() + 0.114 * extruder_color.b();
-        ImGui::SameLine(button_offset + (button_size.x - label_size.x) / 2.f);
-        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, {10.0,15.0});
+        ImGui::SameLine(button_offset + (button_size.x - label_size.x) / 2.f + 1.f); // ORCA slightly shifted to right
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {(button_size.x - label_size.x) / 2.f,(button_size.y - label_size.y) / 2.f + 1.f}); // ORCA Add padding for horizontal and vertical alignment
+
+        ImGui::AlignTextToFramePadding();
         if (gray * 255.f < 80.f)
             ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, 1.0f), item_text.c_str());
         else
             ImGui::TextColored(ImVec4(0.0f, 0.0f, 0.0f, 1.0f), item_text.c_str());
 
-        ImGui::PopStyleVar();
+        ImGui::PopStyleVar(1);
     }
+
+    ImGui::PopStyleVar(1);
+
     //ImGui::NewLine();
     ImGui::Dummy(ImVec2(0.0f, ImGui::GetFontSize() * 0.1));
 
@@ -513,27 +532,54 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
     else
         icons = { ImGui::CircleButtonIcon, ImGui::SphereButtonIcon, ImGui::TriangleButtonIcon, ImGui::HeightRangeIcon, ImGui::FillButtonIcon, ImGui::GapFillIcon };
     std::array<wxString, 6> tool_tips = { _L("Circle"), _L("Sphere"), _L("Triangle"), _L("Height Range"), _L("Fill"), _L("Gap Fill") };
+
+    // ORCA Tab UI Component
+    // Used variables for generation of tabs to making integration easier
+    // It can be converted a function
+
+    int     tab_count           = icons.size();
+    ImVec2  tab_icon_size       = ImVec2{16, 16};
+    ImVec2  tab_padding         = ImVec2{8, 6};
+    ImVec2  tab_size            = ImVec2{tab_icon_size.x + tab_padding.x * 2, tab_icon_size.y + tab_padding.y * 2};
+    int     tab_frame_padding   = 2;
+    int     tab_rounding        = 4;
+    ImVec2  tab_frame_offset    = ImVec2{-2,-7}; // use -7 for y if it has title. use -2 to align buttons instead of frame while using left aligned layout 
+
+    ImVec2 post = ImGui::GetCursorScreenPos();
+    draw_list->AddRectFilled(
+        {post.x + tab_frame_offset.x, post.y + tab_frame_offset.y},
+        {post.x + (tab_count * tab_size.x) + (tab_frame_padding * 2) + tab_frame_offset.x, post.y + tab_size.y + (tab_frame_padding * 2) + tab_frame_offset.y},
+        ImGui::GetColorU32(ImGuiCol_FrameBgActive, 1.0f),
+        tab_frame_padding + tab_rounding
+    );
+    ImGui::SetCursorScreenPos({post.x + tab_frame_offset.x + tab_frame_padding, post.y + tab_frame_offset.y + tab_frame_padding});
+
     for (int i = 0; i < tool_ids.size(); i++) {
         std::string  str_label = std::string("");
         std::wstring btn_name  = icons[i] + boost::nowide::widen(str_label);
 
-        if (i != 0) ImGui::SameLine((empty_button_width + m_imgui->scaled(1.75f)) * i + m_imgui->scaled(1.5f));
+        if (i != 0) ImGui::SameLine(0, 0); // Place them without spacing
+
         ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0);
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, tab_padding); // ORCA: Made icons bigger to make them easier to click
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, tab_rounding); // ORCA: increased radius to match button shape with Filament color buttons
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.f, 0.f, 0.f, 0.f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.5f, 0.5f, 0.5f, 0.2f)); // ORCA: Slightly visible grey. works with both dark and light theme
+        ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetColorU32(ImGuiCol_CheckMark)); // ORCA: Fixes icon without colors while using Light theme
         if (m_current_tool == tool_ids[i]) {
-            ImGui::PushStyleColor(ImGuiCol_Button, m_is_dark_mode ? ImVec4(43 / 255.0f, 64 / 255.0f, 54 / 255.0f, 1.00f) : ImVec4(0.86f, 0.99f, 0.91f, 1.00f)); // r, g, b, a
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, m_is_dark_mode ? ImVec4(43 / 255.0f, 64 / 255.0f, 54 / 255.0f, 1.00f) : ImVec4(0.86f, 0.99f, 0.91f, 1.00f));
-            ImGui::PushStyleColor(ImGuiCol_ButtonActive, m_is_dark_mode ? ImVec4(43 / 255.0f, 64 / 255.0f, 54 / 255.0f, 1.00f) : ImVec4(0.86f, 0.99f, 0.91f, 1.00f));
-            ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
-            ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0);
-            ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 1.0);
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.f, 150.f / 255.f, 136.f / 255.f, 0.25f));        // ORCA color with opacity
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.f, 150.f / 255.f, 136.f / 255.f, 0.35f)); // ORCA color with opacity
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.f, 150.f / 255.f, 136.f / 255.f, 0.5f)); // ORCA color with opacity
         }
-        bool btn_clicked = ImGui::Button(into_u8(btn_name).c_str());
+
+        bool btn_clicked = ImGui::BBLButton(into_u8(btn_name).c_str(), tab_size);
         if (m_current_tool == tool_ids[i])
         {
-            ImGui::PopStyleColor(4);
-            ImGui::PopStyleVar(2);
+            ImGui::PopStyleColor(3);
         }
-        ImGui::PopStyleVar(1);
+        
+        ImGui::PopStyleVar(3);
+        ImGui::PopStyleColor(3);
 
         if (btn_clicked && m_current_tool != tool_ids[i]) {
             m_current_tool = tool_ids[i];
@@ -716,16 +762,26 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
     }
 
     ImGui::Separator();
-    if(m_imgui->bbl_checkbox(_L("Vertical"), m_vertical_only)){
-        if(m_vertical_only){
-            m_horizontal_only = false;
-        }
+    // ORCA used radio buttons. it works better for options, it reduces vertical height, easier to understand
+    ImGuiWrapper::push_radio_style();
+    if (ImGui::RadioButton(_L("Free").c_str(), m_free_only)) {
+        m_free_only       = true;
+        m_vertical_only   = false;
+        m_horizontal_only = false;
     }
-    if(m_imgui->bbl_checkbox(_L("Horizontal"), m_horizontal_only)){
-        if(m_horizontal_only){
-            m_vertical_only = false;
-        }
+    ImGui::SameLine();
+    if (ImGui::RadioButton(_L("Vertical").c_str(), m_vertical_only)) {
+        m_free_only       = false;
+        m_vertical_only   = true;
+        m_horizontal_only = false;
     }
+    ImGui::SameLine();
+    if (ImGui::RadioButton(_L("Horizontal").c_str(), m_horizontal_only)) {
+        m_free_only       = false;
+        m_vertical_only   = false;
+        m_horizontal_only = true;
+    }
+    ImGuiWrapper::pop_radio_style();
 
     ImGui::Separator();
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6.0f, 10.0f));
