@@ -4761,6 +4761,7 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
 
         // Calculate the sloped loop
         ExtrusionLoopSloped new_loop(paths, seam_gap, slope_min_length, slope_max_segment_length, start_slope_ratio, loop.loop_role());
+        new_loop.clip_slope(seam_gap);
 
         // Then extrude it
         for (const auto& p : new_loop.get_all_paths()) {

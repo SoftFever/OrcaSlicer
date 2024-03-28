@@ -514,6 +514,10 @@ public:
                         ExtrusionLoopRole role = elrDefault);
 
     [[nodiscard]] std::vector<const ExtrusionPath*> get_all_paths() const;
+    void clip_slope(double distance, bool inter_perimeter = false );
+    void clip_end(const double distance);
+    void clip_front(const double distance);
+    double slope_path_length();
 };
 
 inline void extrusion_paths_append(ExtrusionPaths &dst, Polylines &polylines, ExtrusionRole role, double mm3_per_mm, float width, float height)
