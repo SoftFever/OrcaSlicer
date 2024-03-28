@@ -1,0 +1,35 @@
+{
+    "type": "filament",
+    "filament_id": "PA001",
+    "setting_id": "PA001",
+    "name": "MingDa PA",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "fdm_filament_pa",
+    "required_nozzle_HRC": [
+      "3"
+    ],
+    "nozzle_temperature_initial_layer": [
+      "280"
+    ],
+    "nozzle_temperature": [
+      "280"
+    ],
+    "filament_max_volumetric_speed": [
+      "16"
+    ],
+    "filament_vendor": [
+        "MingDa3D"
+    ],
+    "compatible_printers": [
+      "MingDa 400D 0.4 nozzle (Dual)",
+      "MingDa 400D 0.4 nozzle (Left)",
+      "MingDa 400D 0.4 nozzle (Right)",
+      "MingDa 600D 0.4 nozzle (Dual)",
+      "MingDa 600D 0.4 nozzle (Left)",
+      "MingDa 600D 0.4 nozzle (Right)",
+      "MingDa 1000D 0.4 nozzle (Dual)",
+      "MingDa 1000D 0.4 nozzle (Left)",
+      "MingDa 1000D 0.4 nozzle (Right)"
+    ]
+}

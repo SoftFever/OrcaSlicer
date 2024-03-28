@@ -1,0 +1,12 @@
+{
+    "type": "machine_model",
+    "name": "MingDa S2",
+    "model_id": "MingDa S2",
+    "nozzle_diameter": "0.4",
+    "machine_tech": "FFF",
+    "family": "MingDa",
+    "bed_model": "320x320_buildplate_model.stl",
+    "bed_texture": "320x320_buildplate_texture.png",
+    "hotend_model": "",
+    "default_materials": "MingDa PLA;MingDa PETG;MingDa PLA Silk;MingDa TPU-95A;MingDa TPU-75D;"
+}

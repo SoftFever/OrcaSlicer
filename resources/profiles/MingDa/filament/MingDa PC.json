@@ -1,0 +1,29 @@
+{
+  "type": "filament",
+  "filament_id": "GFC99",
+  "setting_id": "GFSC99",
+  "name": "MingDa PC",
+  "from": "system",
+  "instantiation": "true",
+  "inherits": "fdm_filament_pc",
+  "filament_max_volumetric_speed": [
+        "16"
+    ],
+    "filament_flow_ratio": [
+        "0.94"
+    ],
+    "filament_vendor": [
+        "MingDa3D"
+    ],
+    "compatible_printers": [
+        "MingDa 400D 0.4 nozzle (Dual)",
+        "MingDa 400D 0.4 nozzle (Left)",
+        "MingDa 400D 0.4 nozzle (Right)",
+        "MingDa 600D 0.4 nozzle (Dual)",
+        "MingDa 600D 0.4 nozzle (Left)",
+        "MingDa 600D 0.4 nozzle (Right)",
+        "MingDa 1000D 0.4 nozzle (Dual)",
+        "MingDa 1000D 0.4 nozzle (Left)",
+        "MingDa 1000D 0.4 nozzle (Right)"
+    ]
+}
