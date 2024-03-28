@@ -1445,7 +1445,7 @@ void PerimeterGenerator::process_classic()
     coord_t ext_perimeter_spacing   = this->ext_perimeter_flow.scaled_spacing();
     coord_t ext_perimeter_spacing2;
     // Orca: ignore precise_outer_wall if wall_sequence is not InnerOuter
-    if(config->precise_outer_wall && this->config->wall_sequence == WallSequence::InnerOuter)
+    if(config->precise_outer_wall && ((this->config->wall_sequence == WallSequence::InnerOuter)||(this->config->wall_sequence == WallSequence::MiddleOuterInner)) )
         ext_perimeter_spacing2 = scaled<coord_t>(0.5f * (this->ext_perimeter_flow.width() + this->perimeter_flow.width()));
     else
         ext_perimeter_spacing2 = scaled<coord_t>(0.5f * (this->ext_perimeter_flow.spacing() + this->perimeter_flow.spacing()));
@@ -1851,6 +1851,23 @@ void PerimeterGenerator::process_classic()
                             break;
                         // go to the next perimeter from the current position to continue scanning for external walls in the same island
                         position = arr_i + 1;
+                    }
+                }
+            }
+            else if (this->config->wall_sequence == WallSequence::MiddleOuterInner){
+                if (entities.entities.size() > 1) {
+                    entities.reverse();
+                    
+                    int index;
+                    
+                    for (index=0; index < entities.entities.size(); index++) {
+                        if (entities.entities[index]->role() == erExternalPerimeter) {
+                            if (  ( (index+1) < entities.entities.size() ) && (entities.entities[index+1]->role() == erPerimeter) ) {
+                                std::swap(entities.entities[index], entities.entities[index+1]);
+                                // Skip next item (which we swapped)
+                                index++;
+                            }
+                        }
                     }
                 }
             }
@@ -2273,7 +2290,7 @@ void PerimeterGenerator::process_arachne()
         if (is_topmost_layer && loop_number > 0 && config->only_one_wall_top)
             loop_number = 0;
         
-        auto apply_precise_outer_wall = config->precise_outer_wall && this->config->wall_sequence == WallSequence::InnerOuter;
+        auto apply_precise_outer_wall = config->precise_outer_wall && ((this->config->wall_sequence == WallSequence::InnerOuter) || (this->config->wall_sequence == WallSequence::MiddleOuterInner));
         // Orca: properly adjust offset for the outer wall if precise_outer_wall is enabled.
         ExPolygons last = offset_ex(surface.expolygon.simplify_p(surface_simplify_resolution),
                        apply_precise_outer_wall? -float(ext_perimeter_width - ext_perimeter_spacing )
@@ -2384,7 +2401,8 @@ void PerimeterGenerator::process_arachne()
 
 		bool is_outer_wall_first =
             	this->config->wall_sequence == WallSequence::OuterInner ||
-            	this->config->wall_sequence == WallSequence::InnerOuterInner;
+            	this->config->wall_sequence == WallSequence::InnerOuterInner ||
+                this->config->wall_sequence == WallSequence::MiddleOuterInner;
         
         if (layer_id == 0){ // disable inner outer inner algorithm after the first layer
         	is_outer_wall_first =
@@ -2516,8 +2534,9 @@ void PerimeterGenerator::process_arachne()
         }
 
        // printf("New Layer: Layer ID %d\n",layer_id); //debug - new layer
-        if (this->config->wall_sequence == WallSequence::InnerOuterInner && layer_id > 0) { // only enable inner outer inner algorithm after first layer
-            if (ordered_extrusions.size() > 2) { // 3 walls minimum needed to do inner outer inner ordering
+        if ( ((this->config->wall_sequence == WallSequence::InnerOuterInner) || (this->config->wall_sequence == WallSequence::MiddleOuterInner))
+            && layer_id > 0) { // only enable inner outer inner or middle outer inner algorithm after first layer
+            if (ordered_extrusions.size() > 2) { // 3 walls minimum needed to do inner outer inner / middle outer nner ordering
                 int position = 0; // index to run the re-ordering for multiple external perimeters in a single island.
                 int arr_i, arr_j = 0;    // indexes to run through the walls in the for loops
                 int outer, first_internal, second_internal, max_internal, current_perimeter; // allocate index values
@@ -2555,7 +2574,7 @@ void PerimeterGenerator::process_arachne()
                     skipped_extrusions.clear();
                 }
                                 
-                // Now start the sandwich mode wall re-ordering using the reordered_extrusions as the basis
+                // Now start the sandwich mode / middle outer inner wall re-ordering using the reordered_extrusions as the basis
                 // scan to find the external perimeter, first internal, second internal and last perimeter in the island.
                 // We then advance the position index to move to the second island and continue until there are no more
                 // perimeters left.
@@ -2594,24 +2613,41 @@ void PerimeterGenerator::process_arachne()
                     // printf("Layer ID %d, Outer index %d, inner index %d, second inner index %d, maximum internal perimeter %d \n",layer_id,outer,first_internal,second_internal, max_internal);
                     if (outer > -1 && first_internal > -1 && second_internal > -1) { // found perimeters to re-order?
                         std::vector<PerimeterGeneratorArachneExtrusion> inner_outer_extrusions; // temporary array to hold extrusions for reordering
-                        inner_outer_extrusions.reserve(max_internal - position + 1); // reserve array containing the number of perimeters before a new island. Variables are array indexes hence need to add +1 to convert to position allocations
-                        // printf("Allocated array size %d, max_internal index %d, start position index %d \n",max_internal-position+1,max_internal,position);
-                        
-                        for (arr_j = max_internal; arr_j >=position; --arr_j){ // go inside out towards the external perimeter (perimeters in reverse order) and store all internal perimeters until the first one identified with inset index 2
-                            if(arr_j >= second_internal){
-                                //printf("Inside out loop: Mapped perimeter index %d to array position %d\n", arr_j, max_internal-arr_j);
-                                inner_outer_extrusions[max_internal-arr_j] = reordered_extrusions[arr_j];
-                                current_perimeter++; 
+                        //Inner Outer Inner wall mode
+                        if(this->config->wall_sequence == WallSequence::InnerOuterInner){
+                            inner_outer_extrusions.reserve(max_internal - position + 1); // reserve array containing the number of perimeters before a new island. Variables are array indexes hence need to add +1 to convert to position allocations
+                            // printf("Allocated array size %d, max_internal index %d, start position index %d \n",max_internal-position+1,max_internal,position);
+                            
+                            for (arr_j = max_internal; arr_j >=position; --arr_j){ // go inside out towards the external perimeter (perimeters in reverse order) and store all internal perimeters until the first one identified with inset index 2
+                                if(arr_j >= second_internal){
+                                    //printf("Inside out loop: Mapped perimeter index %d to array position %d\n", arr_j, max_internal-arr_j);
+                                    inner_outer_extrusions[max_internal-arr_j] = reordered_extrusions[arr_j];
+                                    current_perimeter++;
+                                }
                             }
-                        }
-                        
-                        for (arr_j = position; arr_j < second_internal; ++arr_j){ // go outside in and map the remaining perimeters (external and first internal wall(s)) using the outside in wall order
-                            // printf("Outside in loop: Mapped perimeter index %d to array position %d\n", arr_j, current_perimeter+1);
-                            inner_outer_extrusions[++current_perimeter] = reordered_extrusions[arr_j];
-                        }
-                        
-                        for(arr_j = position; arr_j <= max_internal; ++arr_j) // replace perimeter array with the new re-ordered array
-                            ordered_extrusions[arr_j] = inner_outer_extrusions[arr_j-position];
+                            
+                            for (arr_j = position; arr_j < second_internal; ++arr_j){ // go outside in and map the remaining perimeters (external and first internal wall(s)) using the outside in wall order
+                                // printf("Outside in loop: Mapped perimeter index %d to array position %d\n", arr_j, current_perimeter+1);
+                                inner_outer_extrusions[++current_perimeter] = reordered_extrusions[arr_j];
+                            }
+                            
+                            for(arr_j = position; arr_j <= max_internal; ++arr_j) // replace perimeter array with the new re-ordered array
+                                ordered_extrusions[arr_j] = inner_outer_extrusions[arr_j-position];
+                        }else //Middle Outer Inner wall mode
+                            if(this->config->wall_sequence == WallSequence::MiddleOuterInner){
+                                for (arr_j = max_internal; arr_j >=position; --arr_j){ // print the first internal and external perimeters inside out
+                                    if(reordered_extrusions[arr_j].extrusion->inset_idx<2){
+                                        inner_outer_extrusions.emplace_back(reordered_extrusions[arr_j]);
+                                    }
+                                }
+                                for (arr_j = position; arr_j <=max_internal; ++arr_j){ // print the remaining perimeters outside in
+                                    if(reordered_extrusions[arr_j].extrusion->inset_idx>=2){
+                                        inner_outer_extrusions.emplace_back(reordered_extrusions[arr_j]);
+                                    }
+                                }
+                                for(arr_j = position; arr_j <= max_internal; ++arr_j) // replace perimeter array with the new re-ordered array
+                                    ordered_extrusions[arr_j] = inner_outer_extrusions[arr_j-position];
+                            }
                     } else
                         break;
                     // go to the next perimeter from the current position to continue scanning for external walls in the same island
@@ -2619,6 +2655,7 @@ void PerimeterGenerator::process_arachne()
                 }
             }
         }
+
         
         bool steep_overhang_contour = false;
         bool steep_overhang_hole    = false;
