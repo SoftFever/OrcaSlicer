@@ -1,7 +1,7 @@
 {
 	"type": "process",
 	"setting_id": "GP004",
-	"name": "0.20mm Standard @Creality Ender3V3SE",
+	"name": "0.20mm Standard @Creality Ender3V3SE 0.8",
 	"from": "system",
 	"inherits": "fdm_process_creality_common",
 	"instantiation": "true",
@@ -113,6 +113,6 @@
 	"initial_layer_jerk": "8",
 	"travel_jerk": "8",
 	"compatible_printers": [
-		"Creality Ender-3 V3 SE"
+		"Creality Ender-3 V3 SE 0.8 nozzle"
 	]
 }
