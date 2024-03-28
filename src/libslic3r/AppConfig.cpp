@@ -322,6 +322,11 @@ void AppConfig::set_defaults()
         set("download_path", "");
     }
 
+    // Orca
+    if (get("ps_url_registered").empty()) {
+        set_bool("ps_url_registered", false);
+    }
+
     if (get("mouse_wheel").empty()) {
         set("mouse_wheel", "0");
     }

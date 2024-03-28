@@ -7956,6 +7956,40 @@ mz_uint mz_zip_reader_get_extra(mz_zip_archive* pZip, mz_uint file_index, char* 
     return ne + 1;
 }
 
+mz_uint mz_zip_reader_get_filename_from_extra(mz_zip_archive* pZip, mz_uint file_index, char* buffer, mz_uint extra_buf_size)
+{
+    if (extra_buf_size == 0)
+        return 0;
+    mz_uint nf;
+    mz_uint ne;
+    const mz_uint8* p = mz_zip_get_cdh(pZip, file_index);
+    if (!p)
+    {
+        if (extra_buf_size)
+            buffer[0] = '\0';
+        mz_zip_set_error(pZip, MZ_ZIP_INVALID_PARAMETER);
+        return 0;
+    }
+    nf = MZ_READ_LE16(p + MZ_ZIP_CDH_FILENAME_LEN_OFS);
+    ne = MZ_READ_LE16(p + MZ_ZIP_CDH_EXTRA_LEN_OFS);
+
+    int copy = 0;
+    char const* p_nf = p + MZ_ZIP_CENTRAL_DIR_HEADER_SIZE + nf;
+    char const* e = p_nf + ne + 1;
+    while (p_nf + 4 < e) {
+        mz_uint16 len = ((mz_uint16)p_nf[2]) | ((mz_uint16)p_nf[3] << 8);
+        if (p_nf[0] == '\x75' && p_nf[1] == '\x70' && len >= 5 && p_nf + 4 + len < e && p_nf[4] == '\x01') {
+            mz_uint length = MZ_MIN(len - 5, extra_buf_size - 1);
+            memcpy(buffer, p_nf + 9, length);
+            return length;
+        }
+        else {
+            p_nf += 4 + len;
+        }
+    }
+    return 0;
+}
+
 mz_bool mz_zip_reader_file_stat(mz_zip_archive *pZip, mz_uint file_index, mz_zip_archive_file_stat *pStat)
 {
     return mz_zip_file_stat_internal(pZip, file_index, mz_zip_get_cdh(pZip, file_index), pStat, NULL);

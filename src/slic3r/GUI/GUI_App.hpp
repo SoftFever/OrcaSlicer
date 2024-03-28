@@ -70,6 +70,7 @@ class ObjectLayers;
 class Plater;
 class ParamsPanel;
 class NotificationManager;
+class Downloader;
 struct GUI_InitParams;
 class ParamsDialog;
 class HMSQuery;
@@ -85,6 +86,7 @@ enum FileType
     FT_3MF,
     FT_GCODE,
     FT_MODEL,
+    FT_ZIP,
     FT_PROJECT,
     FT_GALLERY,
 
@@ -270,6 +272,8 @@ private:
     //std::string m_instance_hash_string;
 	//size_t m_instance_hash_int;
 
+    std::unique_ptr<Downloader> m_downloader;
+
     //BBS
     bool m_is_closing {false};
     Slic3r::DeviceManager* m_device_manager { nullptr };
@@ -414,6 +418,7 @@ private:
     void            keyboard_shortcuts();
     void            load_project(wxWindow *parent, wxString& input_file) const;
     void            import_model(wxWindow *parent, wxArrayString& input_files) const;
+    void            import_zip(wxWindow* parent, wxString& input_file) const;
     void            load_gcode(wxWindow* parent, wxString& input_file) const;
 
     wxString transition_tridid(int trid_id);
@@ -547,6 +552,7 @@ private:
     ParamsDialog*        params_dialog();
     Model&      		 model();
     NotificationManager * notification_manager();
+    Downloader*          downloader();
 
 
     std::string         m_mall_model_download_url;
@@ -627,7 +633,13 @@ private:
     // extend is stl/3mf/gcode/step etc
     void            associate_files(std::wstring extend);
     void            disassociate_files(std::wstring extend);
+    void            associate_url(std::wstring url_prefix);
+    void            disassociate_url(std::wstring url_prefix);
 #endif // __WXMSW__
+
+    // URL download - PrusaSlicer gets system call to open prusaslicer:// URL which should contain address of download
+    void            start_download(std::string url);
+
     std::string     get_plugin_url(std::string name, std::string country_code);
     int             download_plugin(std::string name, std::string package_name, InstallProgressFn pro_fn = nullptr, WasCancelledFn cancel_fn = nullptr);
     int             install_plugin(std::string name, std::string package_name, InstallProgressFn pro_fn = nullptr, WasCancelledFn cancel_fn = nullptr);

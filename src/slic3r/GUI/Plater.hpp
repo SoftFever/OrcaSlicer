@@ -255,6 +255,7 @@ public:
     int  get_3mf_file_count(std::vector<fs::path> paths);
     void add_file();
     void add_model(bool imperial_units = false, std::string fname = "");
+    void import_zip_archive();
     void import_sl1_archive();
     void extract_config_from_project();
     void load_gcode();
@@ -290,6 +291,8 @@ public:
 
     static wxColour get_next_color_for_filament();
     static wxString get_slice_warning_string(GCodeProcessorResult::SliceWarning& warning);
+
+    bool preview_zip_archive(const boost::filesystem::path& archive_path);
 
     // BBS: restore
     std::vector<size_t> load_files(const std::vector<boost::filesystem::path>& input_files, LoadStrategy strategy = LoadStrategy::LoadModel | LoadStrategy::LoadConfig,  bool ask_multi = false);
@@ -792,7 +795,7 @@ private:
     bool m_only_gcode { false };
     bool m_exported_file { false };
     bool skip_thumbnail_invalid { false };
-    bool m_loading_project {false };
+    bool m_loading_project { false };
     std::string m_preview_only_filename;
     int m_valid_plates_count { 0 };
 

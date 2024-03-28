@@ -143,6 +143,8 @@ set(lisbslic3r_sources
     Format/SL1.cpp
 	Format/svg.hpp
     Format/svg.cpp
+    Format/ZipperArchiveImport.hpp
+    Format/ZipperArchiveImport.cpp
     GCode/ThumbnailData.cpp
     GCode/ThumbnailData.hpp
     GCode/CoolingBuffer.cpp
