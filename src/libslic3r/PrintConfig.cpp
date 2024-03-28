@@ -2420,6 +2420,15 @@ def = this->add("filament_loading_speed", coFloats);
     def->set_default_value(new ConfigOptionFloat(30));
 
     // BBS
+    def          = this->add("precise_z_height", coBool);
+    def->label   = L("Precise Z height");
+    def->tooltip = L("Enable this to get precise z height of object after slicing. "
+                     "It will get the precise object height by fine-tuning the layer heights of the last few layers. "
+                     "Note that this is an experimental parameter.");
+    def->mode    = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(0));
+
+    // BBS
     def = this->add("enable_arc_fitting", coBool);
     def->label = L("Arc fitting");
     def->tooltip = L("Enable this to get a G-code file which has G2 and G3 moves. "

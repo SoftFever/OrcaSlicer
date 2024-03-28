@@ -245,6 +245,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "nozzle_diameter"
             || opt_key == "filament_shrink"
             || opt_key == "resolution"
+            || opt_key == "precise_z_height"
             // Spiral Vase forces different kind of slicing than the normal model:
             // In Spiral Vase mode, holes are closed and only the largest area contour is kept at each layer.
             // Therefore toggling the Spiral Vase on / off requires complete reslicing.
@@ -1121,7 +1122,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
     for (size_t print_object_idx = 0; print_object_idx < m_objects.size(); ++ print_object_idx) {
         const PrintObject &print_object = *m_objects[print_object_idx];
         //FIXME It is quite expensive to generate object layers just to get the print height!
-        if (auto layers = generate_object_layers(print_object.slicing_parameters(), layer_height_profile(print_object_idx));
+        if (auto layers = generate_object_layers(print_object.slicing_parameters(), layer_height_profile(print_object_idx), print_object.config().precise_z_height.value);
             ! layers.empty() && layers.back() > this->config().printable_height + EPSILON) {
             return
                 // Test whether the last slicing plane is below or above the print volume.
@@ -1224,6 +1225,13 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
 
             // BBS: remove obsolete logics and _L()
             if (has_custom_layering) {
+                std::vector<std::vector<coordf_t>> layer_z_series;
+                layer_z_series.assign(m_objects.size(), std::vector<coordf_t>());
+               
+                for (size_t idx_object = 0; idx_object < m_objects.size(); ++idx_object) {
+                    layer_z_series[idx_object] = generate_object_layers(m_objects[idx_object]->slicing_parameters(), layer_height_profiles[idx_object], m_objects[idx_object]->config().precise_z_height.value);
+                }
+
                 for (size_t idx_object = 0; idx_object < m_objects.size(); ++idx_object) {
                     if (idx_object == tallest_object_idx) continue;
                     // Check that the layer height profiles are equal. This will happen when one object is

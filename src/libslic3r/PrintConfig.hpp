@@ -854,6 +854,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,              top_surface_jerk))
     ((ConfigOptionFloat,              initial_layer_jerk))
     ((ConfigOptionFloat,              travel_jerk))
+    ((ConfigOptionBool,               precise_z_height))
 )
 
 // This object is mapped to Perl as Slic3r::Config::PrintRegion.
