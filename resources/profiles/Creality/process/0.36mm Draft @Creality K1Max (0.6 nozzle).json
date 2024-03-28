@@ -62,7 +62,6 @@
     "raft_layers": "0",
     "seam_position": "aligned",
     "seam_slope_conditional": "1",
-    "seam_slope_min_length": "10",
     "seam_slope_inner_walls": "1",
     "skirt_distance": "2",
     "skirt_height": "1",
