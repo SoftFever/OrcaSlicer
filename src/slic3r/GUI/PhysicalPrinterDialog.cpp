@@ -518,6 +518,7 @@ void PhysicalPrinterDialog::update(bool printer_change)
                     current_host == L"https://app.obico.io" ||
                     current_host == "https://simplyprint.io") {
                     temp->SetValue(wxString());
+                    m_config->opt_string("print_host") = "";
                 }
             }
         }
@@ -526,6 +527,7 @@ void PhysicalPrinterDialog::update(bool printer_change)
                 const auto current_host = temp->GetValue();
                 if (current_host == "https://simplyprint.io/panel") {
                     temp->SetValue(wxString());
+                    m_config->opt_string("print_host_webui") = "";
                 }
             }
         }
