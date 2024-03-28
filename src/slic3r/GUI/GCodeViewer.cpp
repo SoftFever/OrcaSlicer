@@ -4092,6 +4092,9 @@ void GCodeViewer::render_all_plates_stats(const std::vector<const GCodeProcessor
     std::vector<double> wipe_tower_used_filaments_g_all_plates;
     float total_time_all_plates = 0.0f;
     float total_cost_all_plates = 0.0f;
+    float filament_cost_all_plates = 0.0f;
+    float electric_cost_all_plates = 0.0f;
+    float other_costs_all_plates = 0.0f;
     bool show_detailed_statistics_page = false;
     struct ColumnData {
         enum {
@@ -4203,7 +4206,10 @@ void GCodeViewer::render_all_plates_stats(const std::vector<const GCodeProcessor
             
             Print     *print;
             plate->get_print((PrintBase **) &print, nullptr, nullptr);
-            total_cost_all_plates += print->print_statistics().total_cost;
+            filament_cost_all_plates += print->print_statistics().total_filament_cost;
+            electric_cost_all_plates += print->print_statistics().electric_cost;
+            other_costs_all_plates += print->print_statistics().other_costs;
+            total_cost_all_plates = filament_cost_all_plates + electric_cost_all_plates + other_costs_all_plates;
         }
        
         for (auto it = model_volume_of_extruders_all_plates.begin(); it != model_volume_of_extruders_all_plates.end(); it++) {
@@ -4310,13 +4316,45 @@ void GCodeViewer::render_all_plates_stats(const std::vector<const GCodeProcessor
         ImGui::SameLine();
         imgui.text(short_time(get_time_dhms(total_time_all_plates)));
 
-        ImGui::Dummy({ window_padding, window_padding });
-        ImGui::SameLine();
-        imgui.text(_u8L("Total cost") + ":");
-        ImGui::SameLine();
-        char buf[64];
-        ::sprintf(buf, "%.2f", total_cost_all_plates);
-        imgui.text(buf);
+        if (filament_cost_all_plates > 0) {
+            ImGui::Dummy({ window_padding, window_padding });
+            ImGui::SameLine();
+            imgui.text(_u8L("Filament cost") + ":");
+            ImGui::SameLine();
+            char buf[64];
+            ::sprintf(buf, "%.2f", filament_cost_all_plates);
+            imgui.text(buf);
+        }
+
+        if (electric_cost_all_plates > 0) {
+            ImGui::Dummy({ window_padding, window_padding });
+            ImGui::SameLine();
+            imgui.text(_u8L("Electric cost") + ":");
+            ImGui::SameLine();
+            char buf[64];
+            ::sprintf(buf, "%.2f", electric_cost_all_plates);
+            imgui.text(buf);
+        }
+
+        if (other_costs_all_plates > 0) {
+            ImGui::Dummy({ window_padding, window_padding });
+            ImGui::SameLine();
+            imgui.text(_u8L("Other costs") + ":");
+            ImGui::SameLine();
+            char buf[64];
+            ::sprintf(buf, "%.2f", other_costs_all_plates);
+            imgui.text(buf);
+        }
+
+        if (electric_cost_all_plates > 0 || filament_cost_all_plates > 0 || other_costs_all_plates > 0) {
+            ImGui::Dummy({ window_padding, window_padding });
+            ImGui::SameLine();
+            imgui.text(_u8L("Total cost") + ":");
+            ImGui::SameLine();
+            char buf[64];
+            ::sprintf(buf, "%.2f", total_cost_all_plates);
+            imgui.text(buf);
+        }
     }
     ImGui::End();
     ImGui::PopStyleColor(6);
@@ -5086,18 +5124,20 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         //BBS display filament change times
         ImGui::Dummy({window_padding, window_padding});
         ImGui::SameLine();
-        imgui.text(_u8L("Filament change times") + ":");
+        imgui.text(_u8L("Filament change times")+":");
         ImGui::SameLine();
         ::sprintf(buf, "%d", m_print_statistics.total_filamentchanges);
         imgui.text(buf);
 
-        //BBS display cost
-        ImGui::Dummy({ window_padding, window_padding });
-        ImGui::SameLine();
-        imgui.text(_u8L("Cost")+":");
-        ImGui::SameLine();
-        ::sprintf(buf, "%.2f", ps.total_cost);
-        imgui.text(buf);
+        //BBS display filament cost if any costs are caculated
+        if (ps.total_filament_cost > 0) {
+            ImGui::Dummy({ window_padding, window_padding });
+            ImGui::SameLine();
+            imgui.text(_u8L("Filament cost")+":");
+            ImGui::SameLine();
+            ::sprintf(buf, "%.2f", ps.total_filament_cost);
+            imgui.text(buf);
+        }
 
         break;
     }
@@ -5522,7 +5562,10 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         ImGui::SameLine();
         imgui.title(time_title);
         std::string filament_str = _u8L("Filament");
-        std::string cost_str = _u8L("Cost");
+        std::string cost_filament = _u8L("Filament cost");
+        std::string cost_energy = _u8L("Electric cost");
+        std::string other_costs = _u8L("Other costs");
+        std::string total_cost = _u8L("Total cost");
         std::string prepare_str = _u8L("Prepare time");
         std::string print_str = _u8L("Model printing time");
         std::string total_str = _u8L("Total time");
@@ -5532,7 +5575,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             max_len += ImGui::CalcTextSize(total_str.c_str()).x;
         else {
             if (m_view_type == EViewType::FeatureType)
-                max_len += std::max(ImGui::CalcTextSize(cost_str.c_str()).x,
+                max_len += std::max(ImGui::CalcTextSize(cost_energy.c_str()).x,
                     std::max(ImGui::CalcTextSize(print_str.c_str()).x,
                         std::max(std::max(ImGui::CalcTextSize(prepare_str.c_str()).x, ImGui::CalcTextSize(total_str.c_str()).x),
                             ImGui::CalcTextSize(filament_str.c_str()).x)));
@@ -5557,14 +5600,49 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             ::sprintf(buf, imperial_units ? "  %.2f oz" : "  %.2f g", ps.total_weight / unit_conver);
             imgui.text(buf);
 
-            //BBS: display cost of filaments
-            ImGui::Dummy({ window_padding, window_padding });
-            ImGui::SameLine();
-            imgui.text(cost_str + ":");
-            ImGui::SameLine(max_len);
+            //BBS: display filament costs, if any costs are caculated
+            if (ps.total_filament_cost > 0) {
+                ImGui::Dummy({ window_padding, window_padding });
+                ImGui::SameLine();
+                imgui.text(cost_filament+":");
+                ImGui::SameLine(max_len);
+                char buf[64];
+                ::sprintf(buf, "%.2f", ps.total_filament_cost);
+                imgui.text(buf);
+            }
 
-            ::sprintf(buf, "%.2f", ps.total_cost);
-            imgui.text(buf);
+            //BBS: display electric costs, if any costs are caculated
+            if (ps.electric_cost > 0) {
+                ImGui::Dummy({ window_padding, window_padding });
+                ImGui::SameLine();
+                imgui.text(cost_energy+":");
+                ImGui::SameLine(max_len);
+                char buf[64];
+                ::sprintf(buf, "%.2f", ps.electric_cost);
+                imgui.text(buf);
+            }
+
+            //BBS: display other costs, if any costs are caculated
+            if (ps.other_costs > 0) {
+                ImGui::Dummy({ window_padding, window_padding });
+                ImGui::SameLine();
+                imgui.text(other_costs+":");
+                ImGui::SameLine(max_len);
+                char buf[64];
+                ::sprintf(buf, "%.2f", ps.other_costs);
+                imgui.text(buf);
+            }
+
+            //BBS: display total costs, if any costs are caculated
+            if (ps.electric_cost > 0 || ps.total_filament_cost > 0 || ps.other_costs > 0) {
+                ImGui::Dummy({ window_padding, window_padding });
+                ImGui::SameLine();
+                imgui.text(total_cost+":");
+                ImGui::SameLine(max_len);
+                char buf[64];
+                ::sprintf(buf, "%.2f", ps.total_cost);
+                imgui.text(buf);
+            }
         }
 
             auto role_time = [time_mode](ExtrusionRole role) {

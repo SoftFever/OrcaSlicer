@@ -2564,10 +2564,10 @@ static std::vector<MonotonicRegionLink> chain_monotonic_regions(
 		}
 
 		// Reinforce the path pheromones with the best path.
-        float total_cost = best_path_length + float(EPSILON);
+        float total_filament_cost = best_path_length + float(EPSILON);
         for (size_t i = 0; i + 1 < path.size(); ++ i) {
             MonotonicRegionLink &link = path[i];
-            link.next->pheromone = (1.f - pheromone_evaporation) * link.next->pheromone + pheromone_evaporation / total_cost;
+            link.next->pheromone = (1.f - pheromone_evaporation) * link.next->pheromone + pheromone_evaporation / total_filament_cost;
         }
 
         if (improved)

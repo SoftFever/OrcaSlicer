@@ -1211,7 +1211,7 @@ DynamicConfig SLAPrintStatistics::config() const
     config.set_key_value("print_time", new ConfigOptionString(print_time));
     config.set_key_value("objects_used_material", new ConfigOptionFloat(this->objects_used_material));
     config.set_key_value("support_used_material", new ConfigOptionFloat(this->support_used_material));
-    config.set_key_value("total_cost", new ConfigOptionFloat(this->total_cost));
+    config.set_key_value("total_filament_cost", new ConfigOptionFloat(this->total_filament_cost));
     config.set_key_value("total_weight", new ConfigOptionFloat(this->total_weight));
     return config;
 }
@@ -1220,7 +1220,7 @@ DynamicConfig SLAPrintStatistics::placeholders()
 {
     DynamicConfig config;
     for (const char *key : {
-        "print_time", "total_cost", "total_weight",
+        "print_time", "total_filament_cost", "total_weight",
         "objects_used_material", "support_used_material" })
         config.set_key_value(key, new ConfigOptionString(std::string("{") + key + "}"));
 

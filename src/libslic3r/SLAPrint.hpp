@@ -365,7 +365,7 @@ struct SLAPrintStatistics
     double                          support_used_material;
     size_t                          slow_layers_count;
     size_t                          fast_layers_count;
-    double                          total_cost;
+    double                          total_filament_cost;
     double                          total_weight;
     std::vector<double>             layers_times;
 
@@ -382,7 +382,7 @@ struct SLAPrintStatistics
         support_used_material = 0.;
         slow_layers_count = 0;
         fast_layers_count = 0;
-        total_cost = 0.;
+        total_filament_cost = 0.;
         total_weight = 0.;
         layers_times.clear();
     }

@@ -2506,12 +2506,28 @@ def = this->add("filament_loading_speed", coFloats);
     def->set_default_value(new ConfigOptionFloat(0));
 
 
-    def = this->add("time_cost", coFloat);
-    def->label = L("Time cost");
-    def->tooltip = L("The printer cost per hour");
-    def->sidetext = L("money/h");
+    def = this->add("electric_consumption", coFloat);
+    def->label = L("Electric consumption");
+    def->tooltip = L("The printer's electric consumption per hour");
+    def->sidetext = L("watts/h");
     def->min     = 0;
     def->mode    = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0));
+
+    def = this->add("kWh_cost", coFloat);
+    def->label = L("kWh cost");
+    def->tooltip = L("The electric cost of 1 kWh in your area");
+    def->sidetext = L("money/kWh");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0));
+
+    def = this->add("other_costs", coFloat);
+    def->label = L("Other costs");
+    def->tooltip = L("Add any other costs that you have per hour");
+    def->sidetext = L("money/h");
+    def->min = 0;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0));
 
     // Orca: may remove this option later
@@ -6996,7 +7012,7 @@ PrintStatisticsConfigDef::PrintStatisticsConfigDef()
     def->label = L("Print time (silent mode)");
     def->tooltip = L("Estimated print time when printed in silent mode.");
 
-    def = this->add("total_cost", coFloat);
+    def = this->add("total_filament_cost", coFloat);
     def->label = L("Total cost");
     def->tooltip = L("Total cost of all material used in the print. Calculated from filament_cost value in Filament Settings.");
 

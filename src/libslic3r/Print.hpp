@@ -741,6 +741,9 @@ struct PrintStatistics
     std::string                     estimated_silent_print_time;
     double                          total_used_filament;
     double                          total_extruded_volume;
+    double                          total_filament_cost;
+    double                          electric_cost;
+    double                          other_costs;
     double                          total_cost;
     int                             total_toolchanges;
     double                          total_weight;
@@ -759,7 +762,7 @@ struct PrintStatistics
     void clear() {
         total_used_filament    = 0.;
         total_extruded_volume  = 0.;
-        total_cost             = 0.;
+        total_filament_cost    = 0.;
         total_toolchanges      = 0;
         total_weight           = 0.;
         total_wipe_tower_cost  = 0.;

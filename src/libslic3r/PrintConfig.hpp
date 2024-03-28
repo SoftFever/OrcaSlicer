@@ -1041,7 +1041,9 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                bbl_bed_temperature_gcode))
     ((ConfigOptionEnum<GCodeFlavor>,   gcode_flavor))
 
-    ((ConfigOptionFloat,               time_cost)) 
+    ((ConfigOptionFloat,               electric_consumption))
+    ((ConfigOptionFloat,               kWh_cost))
+    ((ConfigOptionFloat,               other_costs))
     ((ConfigOptionString,              layer_change_gcode))
     ((ConfigOptionString,              time_lapse_gcode))
 
