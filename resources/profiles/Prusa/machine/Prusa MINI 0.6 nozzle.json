@@ -13,7 +13,7 @@
   ],
   "default_print_profile": "0.20mm Standard @MINI 0.6",
   "nozzle_diameter": [
-      "0.4"
+      "0.6"
   ],
   "bed_exclude_area": [
     "0x0"
