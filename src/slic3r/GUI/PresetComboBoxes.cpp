@@ -759,7 +759,6 @@ void PlaterPresetComboBox::OnSelect(wxCommandEvent &evt)
             return;
         if (marker == LABEL_ITEM_IMPORT_SPOOLMAN) {
             SpoolmanImportDialog dlg(wxGetApp().mainframe);
-            dlg.ShowModal();
             // update to show any new presets
             this->update();
             return;

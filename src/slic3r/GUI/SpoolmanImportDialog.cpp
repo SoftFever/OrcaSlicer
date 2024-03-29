@@ -91,22 +91,27 @@ bool SpoolmanViewModel::IsEnabled(const wxDataViewItem& item, unsigned int col) 
 SpoolmanViewCtrl::SpoolmanViewCtrl(wxWindow* parent) : wxDataViewCtrl(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxDV_ROW_LINES)
 {
     wxGetApp().UpdateDVCDarkUI(this);
+#if _WIN32
     ShowScrollbars(wxSHOW_SB_NEVER, wxSHOW_SB_DEFAULT);
+#elif
+    SetScrollbar(wxHORIZONTAL, 0, 0, 0)
+#endif
 
     m_model = new SpoolmanViewModel();
     this->AssociateModel(m_model);
     m_model->SetAssociatedControl(this);
 
     this->AppendToggleColumn(L"\u2714", COL_CHECK, wxDATAVIEW_CELL_ACTIVATABLE, 4 * EM, wxALIGN_CENTER, 0);
-    this->AppendTextColumn("ID", COL_ID, wxDATAVIEW_CELL_INERT, wxCOL_WIDTH_AUTOSIZE, wxALIGN_CENTER, 0);
+    this->AppendTextColumn("ID", COL_ID, wxDATAVIEW_CELL_INERT, wxCOL_WIDTH_AUTOSIZE, wxALIGN_CENTER, wxCOL_SORTABLE);
     this->AppendColumn(new wxDataViewColumn("Color", new ColorRenderer(), COL_COLOR, wxCOL_WIDTH_AUTOSIZE, wxALIGN_CENTER, 0));
-    this->AppendTextColumn("Vendor", COL_VENDOR)->SetWidth(wxCOL_WIDTH_AUTOSIZE);
-    this->AppendTextColumn("Name", COL_NAME)->SetWidth(wxCOL_WIDTH_AUTOSIZE);
-    this->AppendTextColumn("Material", COL_MATERIAL)->SetWidth(wxCOL_WIDTH_AUTOSIZE);
+    this->AppendTextColumn("Vendor", COL_VENDOR, wxDATAVIEW_CELL_INERT, wxCOL_WIDTH_AUTOSIZE, wxALIGN_NOT, wxCOL_SORTABLE);
+    this->AppendTextColumn("Name", COL_NAME, wxDATAVIEW_CELL_INERT, wxCOL_WIDTH_AUTOSIZE, wxALIGN_NOT, wxCOL_SORTABLE);
+    this->AppendTextColumn("Material", COL_MATERIAL, wxDATAVIEW_CELL_INERT, wxCOL_WIDTH_AUTOSIZE, wxALIGN_NOT, wxCOL_SORTABLE);
 
-    for (int i = COL_ID; i <= COL_MATERIAL; i++)
-        if (i != COL_COLOR)
-            this->GetColumn(i)->SetFlag(wxCOL_SORTABLE);
+    // fake column to put the expander in
+    auto temp_col = this->AppendTextColumn("", 100);
+    temp_col->SetHidden(true);
+    this->SetExpanderColumn(temp_col);
 }
 
 //-----------------------------------------
@@ -133,18 +138,18 @@ SpoolmanImportDialog::SpoolmanImportDialog(wxWindow* parent)
 
     // SpoolmanViewCtrl
     m_svc = new SpoolmanViewCtrl(this);
-    main_sizer->Add(m_svc, 1, wxCENTER | wxEXPAND | wxALL, 10);
+    main_sizer->Add(m_svc, 1, wxCENTER | wxEXPAND | wxALL, EM);
 
     // Base Preset Label
     auto* label = new Label(this, _L("Base Preset:"));
     wxGetApp().UpdateDarkUI(label);
-    main_sizer->Add(label, 0, wxLEFT, 10);
+    main_sizer->Add(label, 0, wxLEFT, EM);
 
     auto preset_sizer = new wxBoxSizer(wxHORIZONTAL);
 
     // PresetCombobox
     m_preset_combobox = new TabPresetComboBox(this, Preset::TYPE_FILAMENT);
-    preset_sizer->Add(m_preset_combobox, 1, wxEXPAND | wxRIGHT, 10);
+    preset_sizer->Add(m_preset_combobox, 1, wxEXPAND | wxRIGHT, EM);
     m_preset_combobox->update();
 
     // Detach Checkbox
@@ -152,16 +157,24 @@ SpoolmanImportDialog::SpoolmanImportDialog(wxWindow* parent)
     m_detach_checkbox->SetToolTip(_L("Save as a standalone preset"));
     preset_sizer->Add(m_detach_checkbox, 0, wxALIGN_CENTER_VERTICAL);
 
-    main_sizer->Add(preset_sizer, 0, wxEXPAND | wxALL, 10);
+    main_sizer->Add(preset_sizer, 0, wxEXPAND | wxALL, EM);
 
     // Buttons
-    main_sizer->Add(create_btn_sizer(), 0, wxCENTER | wxEXPAND | wxALL, 10);
+    main_sizer->Add(create_btn_sizer(), 0, wxCENTER | wxEXPAND | wxALL, EM);
 
     this->SetSizer(main_sizer);
 
     // Load data into SVC
     for (const auto& spoolman_spool : m_spoolman->get_spoolman_spools(true))
         m_svc->get_model()->AddSpool(spoolman_spool.second);
+
+    int colWidth = 8 * EM; // 4 EM for checkbox (width isn't calculated right), 4 EM for border
+    for (int i = COL_ID; i <= COL_MATERIAL; ++i) {
+        colWidth +=m_svc->GetColumnAt(i)->GetWidth();
+    }
+    this->SetSize(wxDefaultCoord, wxDefaultCoord, colWidth, wxDefaultCoord, wxSIZE_SET_CURRENT);
+
+    this->ShowModal();
 }
 
 void SpoolmanImportDialog::on_dpi_changed(const wxRect& suggested_rect)
