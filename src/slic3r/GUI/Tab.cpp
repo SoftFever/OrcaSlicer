@@ -3287,7 +3287,7 @@ void TabFilament::build()
         optgroup->append_single_option_line("spoolman_spool_id");
 
         line = {"Spoolman Update", ""};
-        line.append_option(Option(ConfigOptionDef(), ""));
+        line.append_option(Option(ConfigOptionDef(), "spoolman_update"));
         line.widget = [&](wxWindow* parent){
             auto sizer = new wxBoxSizer(wxHORIZONTAL);
             
@@ -3296,8 +3296,16 @@ void TabFilament::build()
                     show_error(this, "This profile cannot be updated with an unsaved Spool ID value. Please save the profile, then try updating again.");
                     return;
                 }
-                Spoolman::update_filament_preset_from_spool(&m_presets->get_edited_preset(), true, stats_only);
-                Spoolman::update_filament_preset_from_spool(&m_presets->get_selected_preset(), false, stats_only);
+                if (!Spoolman::is_server_valid()) {
+                    show_error(parent, "Failed to get data from the Spoolman server. Make sure that the port is correct and the server is running.");
+                    return;
+                }
+                auto res1 = Spoolman::update_filament_preset_from_spool(&m_presets->get_edited_preset(), true, stats_only);
+                auto res2 = Spoolman::update_filament_preset_from_spool(&m_presets->get_selected_preset(), false, stats_only);
+
+                if (res1.has_failed() || res2.has_failed())
+                    return;
+
                 const Preset* preset = m_presets->get_selected_preset_parent();
                 m_presets->get_selected_preset().save(preset ? &preset->config : nullptr);
                 update_dirty();
@@ -3470,6 +3478,10 @@ void TabFilament::toggle_options()
               "filament_unloading_speed_start", "filament_unloading_speed", "filament_load_time", "filament_unload_time",
               "filament_toolchange_delay", "filament_cooling_moves", "filament_cooling_initial_speed", "filament_cooling_final_speed"})
             toggle_option(el, !is_BBL_printer);
+    }
+
+    if (m_active_page->title() == L("Spoolman")) {
+        toggle_line("spoolman_update", m_config->opt_int("spoolman_spool_id") > 0);
     }
 }
 

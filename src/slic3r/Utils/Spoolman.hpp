@@ -1,8 +1,6 @@
 #ifndef SLIC3R_SPOOLMAN_HPP
 #define SLIC3R_SPOOLMAN_HPP
 
-#include <libslic3r/Color.hpp>
-
 namespace pt = boost::property_tree;
 
 namespace Slic3r {
@@ -19,7 +17,7 @@ typedef std::shared_ptr<SpoolmanSpool>    SpoolmanSpoolShrPtr;
 struct SpoolmanResult
 {
     SpoolmanResult() = default;
-    bool                     failure() { return !messages.empty(); }
+    bool                     has_failed() { return !messages.empty(); }
     std::vector<std::string> messages{};
 };
 
@@ -39,7 +37,8 @@ class Spoolman
     Spoolman()
     {
         m_instance    = this;
-        m_initialized = pull_spoolman_spools();
+        if (is_server_valid())
+            m_initialized = pull_spoolman_spools();
     };
 
     static pt::ptree get_spoolman_json(const std::string& api_endpoint);
@@ -56,6 +55,8 @@ public:
                                                             bool    only_update_statistics = false);
 
     static std::string    get_name_from_spool(const SpoolmanSpoolShrPtr& spool);
+
+    static bool is_server_valid();
 
     const std::map<int, SpoolmanSpoolShrPtr>& get_spoolman_spools(bool update = false)
     {

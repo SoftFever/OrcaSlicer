@@ -124,6 +124,11 @@ SpoolmanImportDialog::SpoolmanImportDialog(wxWindow* parent)
     SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
 #endif
 
+    if (!Spoolman::is_server_valid()) {
+        show_error(parent, "Failed to get data from the Spoolman server. Make sure that the port is correct and the server is running.");
+        return;
+    }
+
     auto main_sizer = new wxBoxSizer(wxVERTICAL);
 
     // SpoolmanViewCtrl
@@ -155,7 +160,7 @@ SpoolmanImportDialog::SpoolmanImportDialog(wxWindow* parent)
     this->SetSizer(main_sizer);
 
     // Load data into SVC
-    for (const auto& spoolman_spool : m_spoolman->get_spoolman_spools())
+    for (const auto& spoolman_spool : m_spoolman->get_spoolman_spools(true))
         m_svc->get_model()->AddSpool(spoolman_spool.second);
 }
 
@@ -196,7 +201,7 @@ void SpoolmanImportDialog::on_import()
         for (const auto& spool : spools) {
             threads.emplace_back(Slic3r::create_thread([&spool, &failed_spools, &current_preset, &force, &detach]() {
                 auto res = Spoolman::create_filament_preset_from_spool(spool, current_preset, detach, force);
-                if (res.failure())
+                if (res.has_failed())
                     failed_spools.emplace_back(spool, res);
             }));
         }

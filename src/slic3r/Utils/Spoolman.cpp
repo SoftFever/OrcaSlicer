@@ -48,9 +48,7 @@ pt::ptree Spoolman::get_spoolman_json(const string& api_endpoint)
     std::string res_body;
 
     http.on_error([&](const std::string& body, std::string error, unsigned status) {
-            string msg = "Failed to get data from the Spoolman server. Make sure that the port is correct and the server is running.";
-            BOOST_LOG_TRIVIAL(error) << msg << boost::format(" HTTP Error: %1%, HTTP status code: %2%") % error % status;
-            show_error(nullptr, msg);
+            BOOST_LOG_TRIVIAL(error) << "Failed to get data from the Spoolman server. Make sure that the port is correct and the server is running." << boost::format(" HTTP Error: %1%, HTTP status code: %2%") % error % status;
             res = false;
         })
         .on_complete([&](std::string body, unsigned) {
@@ -159,7 +157,7 @@ SpoolmanResult Spoolman::create_filament_preset_from_spool(const SpoolmanSpoolSh
             else
                 result.messages.emplace_back("An invisible preset shares the same spool ID");
         }
-        if (result.failure())
+        if (result.has_failed())
             return result;
     }
 
@@ -200,6 +198,11 @@ SpoolmanResult Spoolman::update_filament_preset_from_spool(Preset* filament_pres
 std::string Spoolman::get_name_from_spool(const SpoolmanSpoolShrPtr& spool)
 {
     return remove_special_key(spool->getVendor()->name + " " + spool->m_filament_ptr->name + " " + spool->m_filament_ptr->material);
+}
+
+bool Spoolman::is_server_valid()
+{
+    return !get_spoolman_json("info").empty();
 }
 
 //---------------------------------
