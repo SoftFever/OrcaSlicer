@@ -1052,8 +1052,8 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloats,              retraction_length))
     ((ConfigOptionFloats,              retract_length_toolchange))
     ((ConfigOptionBool,                enable_long_retraction_when_cut))
-    ((ConfigOptionBool,                long_retraction_when_cut))
-    ((ConfigOptionFloat,               retraction_distance_when_cut))
+    ((ConfigOptionFloats,              retraction_distances_when_cut))
+    ((ConfigOptionBools,               long_retractions_when_cut))
     ((ConfigOptionFloats,              z_hop))
     // BBS
     ((ConfigOptionEnumsGeneric,        z_hop_types))

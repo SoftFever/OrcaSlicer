@@ -3426,21 +3426,20 @@ def = this->add("filament_loading_speed", coFloats);
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionBool {false});
 
-
-    def = this->add("long_retraction_when_cut", coBool);
+    def = this->add("long_retractions_when_cut", coBools);
     def->label = L("Long retraction when cut(experimental)");
     def->tooltip = L("Experimental feature.Retracting and cutting off the filament at a longer distance during changes to minimize purge."
                      "While this reduces flush significantly, it may also raise the risk of nozzle clogs or other printing problems.");
     def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionBool {false});
+    def->set_default_value(new ConfigOptionBools {false});
 
-    def = this->add("retraction_distance_when_cut",coFloat);
+    def = this->add("retraction_distances_when_cut",coFloats);
     def->label = L("Retraction distance when cut");
     def->tooltip = L("Experimental feature.Retraction length before cutting off during filament change");
     def->mode = comDevelop;
     def->min = 10;
-    def->max = 20;
-    def->set_default_value(new ConfigOptionFloat {20});
+    def->max = 18;
+    def->set_default_value(new ConfigOptionFloats {18});
 
     def = this->add("retract_length_toolchange", coFloats);
     def->label = L("Length");
@@ -4978,7 +4977,10 @@ def = this->add("filament_loading_speed", coFloats);
         // bools
         "retract_when_changing_layer", "wipe",
         // percents
-        "retract_before_wipe"}) {
+        "retract_before_wipe",
+        "long_retractions_when_cut",
+        "retraction_distances_when_cut"
+        }) {
         auto it_opt = options.find(opt_key);
         assert(it_opt != options.end());
         def = this->add_nullable(std::string("filament_") + opt_key, it_opt->second.type);
@@ -4989,6 +4991,8 @@ def = this->add("filament_loading_speed", coFloats);
         def->enum_keys_map = it_opt->second.enum_keys_map;
         def->enum_labels   = it_opt->second.enum_labels;
         def->enum_values   = it_opt->second.enum_values;
+        def->min        = it_opt->second.min;
+        def->max        = it_opt->second.max;
         //BBS: shown specific filament retract config because we hide the machine retract into comDevelop mode
         if ((strcmp(opt_key, "retraction_length") == 0) ||
             (strcmp(opt_key, "z_hop") == 0))
@@ -5022,17 +5026,19 @@ void PrintConfigDef::init_extruder_option_keys()
         "retraction_length", "z_hop", "z_hop_types", "retract_lift_above", "retract_lift_below", "retract_lift_enforce", "retraction_speed", "deretraction_speed",
         "retract_before_wipe", "retract_restart_extra", "retraction_minimum_travel", "wipe", "wipe_distance",
         "retract_when_changing_layer", "retract_length_toolchange", "retract_restart_extra_toolchange", "extruder_colour",
-        "default_filament_profile"
+        "default_filament_profile","retraction_distances_when_cut","long_retractions_when_cut"
     };
 
     m_extruder_retract_keys = {
         "deretraction_speed",
+        "long_retractions_when_cut",
         "retract_before_wipe",
         "retract_lift_above",
         "retract_lift_below",
         "retract_lift_enforce",
         "retract_restart_extra",
         "retract_when_changing_layer",
+        "retraction_distances_when_cut",
         "retraction_length",
         "retraction_minimum_travel",
         "retraction_speed",
@@ -5051,17 +5057,19 @@ void PrintConfigDef::init_filament_option_keys()
         "retraction_length", "z_hop", "z_hop_types", "retract_lift_above", "retract_lift_below", "retract_lift_enforce", "retraction_speed", "deretraction_speed",
         "retract_before_wipe", "retract_restart_extra", "retraction_minimum_travel", "wipe", "wipe_distance",
         "retract_when_changing_layer", "retract_length_toolchange", "retract_restart_extra_toolchange", "filament_colour",
-        "default_filament_profile"/*,"filament_seam_gap"*/
+        "default_filament_profile","retraction_distances_when_cut","long_retractions_when_cut"/*,"filament_seam_gap"*/
     };
 
     m_filament_retract_keys = {
         "deretraction_speed",
+        "long_retractions_when_cut",
         "retract_before_wipe",
         "retract_lift_above",
         "retract_lift_below",
         "retract_lift_enforce",
         "retract_restart_extra",
         "retract_when_changing_layer",
+        "retraction_distances_when_cut",
         "retraction_length",
         "retraction_minimum_travel",
         "retraction_speed",
@@ -5841,7 +5849,8 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         "remove_freq_sweep", "remove_bed_leveling", "remove_extrusion_calibration",
         "support_transition_line_width", "support_transition_speed", "bed_temperature", "bed_temperature_initial_layer",
         "can_switch_nozzle_type", "can_add_auxiliary_fan", "extra_flush_volume", "spaghetti_detector", "adaptive_layer_height",
-        "z_hop_type", "z_lift_type", "bed_temperature_difference",
+        "z_hop_type", "z_lift_type", "bed_temperature_difference","long_retraction_when_cut",
+        "retraction_distance_when_cut",
         "extruder_type",
         "internal_bridge_support_thickness","extruder_clearance_max_radius", "top_area_threshold", "reduce_wall_solid_infill"
     };

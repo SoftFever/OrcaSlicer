@@ -88,11 +88,7 @@ int FlushVolCalculator::calc_flush_vol(unsigned char src_a, unsigned char src_r,
     float hs_flush = 230.f * hs_dist;
 
     float flush_volume = calc_triangle_3rd_edge(hs_flush, lumi_flush, 120.f);
-    constexpr int standard_nozzle_volume = 107;
-    auto formula = [](float rate) {
-        return 1.13 / (1 + 5.24*exp(-4 * rate)) - 0.031;
-        };
-    flush_volume = std::max(flush_volume, 60.f) *formula(float( m_min_flush_vol) / standard_nozzle_volume);
+    flush_volume = std::max(flush_volume, 60.f);
 
     //float flush_multiplier = std::atof(m_flush_multiplier_ebox->GetValue().c_str());
     flush_volume += m_min_flush_vol;

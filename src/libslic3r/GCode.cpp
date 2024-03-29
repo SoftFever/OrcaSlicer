@@ -639,6 +639,8 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         }
 
         gcodegen.placeholder_parser().set("current_extruder", new_extruder_id);
+        gcodegen.placeholder_parser().set("retraction_distance_when_cut", gcodegen.m_config.retraction_distances_when_cut.get_at(new_extruder_id));
+        gcodegen.placeholder_parser().set("long_retraction_when_cut", gcodegen.m_config.long_retractions_when_cut.get_at(new_extruder_id));
 
         // Process the start filament gcode.
         std::string        start_filament_gcode_str;
@@ -1613,8 +1615,15 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
     m_processor.result().timelapse_warning_code = m_timelapse_warning_code;
     m_processor.result().support_traditional_timelapse = m_support_traditional_timelapse;
 
-    m_processor.result().long_retraction_when_cut = m_config.long_retraction_when_cut;
+    bool activate_long_retraction_when_cut = false;
+    for (const auto& extruder : m_writer.extruders())
+        activate_long_retraction_when_cut |= (
+            m_config.long_retractions_when_cut.get_at(extruder.id()) 
+         && m_config.retraction_distances_when_cut.get_at(extruder.id()) > 0
+            );
 
+    m_processor.result().long_retraction_when_cut = activate_long_retraction_when_cut;
+   
     {   //BBS:check bed and filament compatible
         const ConfigOptionDef *bed_type_def = print_config_def.get("curr_bed_type");
         assert(bed_type_def != nullptr);
@@ -2277,6 +2286,12 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     this->placeholder_parser().set("initial_no_support_tool", initial_non_support_extruder_id);
     this->placeholder_parser().set("initial_no_support_extruder", initial_non_support_extruder_id);
     this->placeholder_parser().set("current_extruder", initial_extruder_id);
+    //set the key for compatibilty
+    this->placeholder_parser().set("retraction_distance_when_cut", m_config.retraction_distances_when_cut.get_at(initial_extruder_id));
+    this->placeholder_parser().set("long_retraction_when_cut", m_config.long_retractions_when_cut.get_at(initial_extruder_id));
+
+    this->placeholder_parser().set("retraction_distances_when_cut", new ConfigOptionFloats(m_config.retraction_distances_when_cut));
+    this->placeholder_parser().set("long_retractions_when_cut",new ConfigOptionBools(m_config.long_retractions_when_cut));
     //Set variable for total layer count so it can be used in custom gcode.
     this->placeholder_parser().set("total_layer_count", m_layer_count);
     // Useful for sequential prints.
@@ -6022,6 +6037,8 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z, bool b
     // if we are running a single-extruder setup, just set the extruder and return nothing
     if (!m_writer.multiple_extruders) {
         this->placeholder_parser().set("current_extruder", extruder_id);
+        this->placeholder_parser().set("retraction_distance_when_cut", m_config.retraction_distances_when_cut.get_at(extruder_id));
+        this->placeholder_parser().set("long_retraction_when_cut", m_config.long_retractions_when_cut.get_at(extruder_id));
 
         std::string gcode;
         // Append the filament start G-code.
@@ -6213,6 +6230,8 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z, bool b
     }
 
     this->placeholder_parser().set("current_extruder", extruder_id);
+    this->placeholder_parser().set("retraction_distance_when_cut", m_config.retraction_distances_when_cut.get_at(extruder_id));
+    this->placeholder_parser().set("long_retraction_when_cut", m_config.long_retractions_when_cut.get_at(extruder_id));
 
     // Append the filament start G-code.
     const std::string &filament_start_gcode = m_config.filament_start_gcode.get_at(extruder_id);

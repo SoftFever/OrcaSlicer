@@ -80,6 +80,7 @@ using namespace nlohmann;
 #include "slic3r/GUI/OpenGLManager.hpp"
 #include "slic3r/GUI/GLCanvas3D.hpp"
 #include "slic3r/GUI/Camera.hpp"
+#include "slic3r/GUI/Plater.hpp"
 #include <GLFW/glfw3.h>
 
 #ifdef __WXGTK__
@@ -2622,12 +2623,8 @@ int CLI::run(int argc, char **argv)
             //flush_vol_vector.resize(project_filament_count);
             //set multiplier to 1?
             m_print_config.option<ConfigOptionFloat>("flush_multiplier", true)->set(new ConfigOptionFloat(1.f));
-            ConfigOption* extra_flush_volume_opt = m_print_config.option("nozzle_volume");
-            int extra_flush_volume = extra_flush_volume_opt ? (int)extra_flush_volume_opt->getFloat() : 0;
-            bool activate = m_print_config.option<ConfigOptionBool>("enable_long_retraction_when_cut")->value && m_print_config.option<ConfigOptionBool>("long_retraction_when_cut")->value;
-            float extra_retract_length = activate && m_print_config.option<ConfigOptionBool>("long_retraction_when_cut")->value ? m_print_config.option<ConfigOptionFloat>("retraction_distance_when_cut")->value : 0;
-            float extra_retract_volume = PI * 1.75 * 1.75 / 4 * extra_retract_length;
-            extra_flush_volume = (int)std::max(0.f, extra_flush_volume - extra_retract_volume);
+
+            const std::vector<int>& min_flush_volumes = Slic3r::GUI::get_min_flush_volumes();
 
             if (filament_is_support->size() != project_filament_count)
             {
@@ -2636,9 +2633,13 @@ int CLI::run(int argc, char **argv)
                 flush_and_exit(CLI_CONFIG_FILE_ERROR);
             }
 
-            BOOST_LOG_TRIVIAL(info) << boost::format("extra_flush_volume: %1%")%extra_flush_volume;
-            BOOST_LOG_TRIVIAL(info) << boost::format("filament_is_support: %1%")%filament_is_support->serialize();
-            BOOST_LOG_TRIVIAL(info) << boost::format("flush_volumes_matrix before computing: %1%")%m_print_config.option<ConfigOptionFloats>("flush_volumes_matrix")->serialize();
+            {
+                std::ostringstream volumes_str;
+                std::copy(min_flush_volumes.begin(), min_flush_volumes.end(), std::ostream_iterator<int>(volumes_str, ","));
+                BOOST_LOG_TRIVIAL(info) << boost::format("extra_flush_volume: %1%") % volumes_str.str();
+                BOOST_LOG_TRIVIAL(info) << boost::format("filament_is_support: %1%") % filament_is_support->serialize();
+                BOOST_LOG_TRIVIAL(info) << boost::format("flush_volumes_matrix before computing: %1%") % m_print_config.option<ConfigOptionFloats>("flush_volumes_matrix")->serialize();
+            }
             for (int from_idx = 0; from_idx < project_filament_count; from_idx++) {
                 const std::string& from_color = project_filament_colors[from_idx];
                 unsigned char from_rgb[4] = {};
@@ -2662,7 +2663,7 @@ int CLI::run(int argc, char **argv)
                             //BOOST_LOG_TRIVIAL(info) << boost::format("src_rgba {%1%,%2%,%3%,%4%} dst_rgba {%5%,%6%,%7%,%8%}")%(unsigned int)(from_rgb[0]) %(unsigned int)(from_rgb[1]) %(unsigned int)(from_rgb[2]) %(unsigned int)(from_rgb[3])
                             //       %(unsigned int)(to_rgb[0]) %(unsigned int)(to_rgb[1]) %(unsigned int)(to_rgb[2]) %(unsigned int)(to_rgb[3]);
 
-                            Slic3r::FlushVolCalculator calculator(extra_flush_volume, Slic3r::g_max_flush_volume);
+                            Slic3r::FlushVolCalculator calculator(min_flush_volumes[from_idx], Slic3r::g_max_flush_volume);
 
                             flushing_volume = calculator.calc_flush_vol(from_rgb[3], from_rgb[0], from_rgb[1], from_rgb[2], to_rgb[3], to_rgb[0], to_rgb[1], to_rgb[2]);
                             if (is_from_support) {

@@ -491,6 +491,45 @@ void Sidebar::priv::hide_rich_tip(wxButton* btn)
 }
 #endif
 
+std::vector<int> get_min_flush_volumes()
+{
+    std::vector<int>extra_flush_volumes;
+    const auto& full_config = wxGetApp().preset_bundle->full_config();
+    auto& printer_config = wxGetApp().preset_bundle->printers.get_edited_preset().config;
+
+    ConfigOption* nozzle_volume_opt = printer_config.option("nozzle_volume");
+    int nozzle_volume_val = nozzle_volume_opt ? (int)nozzle_volume_opt->getFloat() : 0;
+
+    bool machine_enabled = printer_config.option<ConfigOptionBool>("enable_long_retraction_when_cut")->value;
+    bool machine_activated = printer_config.option<ConfigOptionBools>("long_retractions_when_cut")->values[0] == 1;
+
+    auto filament_retraction_distance_when_cut = full_config.option<ConfigOptionFloats>("filament_retraction_distances_when_cut");
+    auto printer_retraction_distance_when_cut = full_config.option<ConfigOptionFloats>("retraction_distances_when_cut");
+    auto filament_long_retractions_when_cut = full_config.option<ConfigOptionBools>("filament_long_retractions_when_cut");
+
+    size_t filament_size = filament_retraction_distance_when_cut->values.size();
+    for (size_t idx = 0; idx < filament_size; ++idx) {
+        int extra_flush_volume = nozzle_volume_val;
+        int retract_length = machine_enabled && machine_activated ? printer_retraction_distance_when_cut->values[0] : 0;
+
+        char filament_activated = filament_long_retractions_when_cut->values[idx];
+        double filament_retract_length = filament_retraction_distance_when_cut->values[idx];
+
+        if(filament_activated == 0)
+            retract_length = 0;
+        else if (filament_activated == 1 && machine_enabled) {
+            if (!std::isnan(filament_retract_length))
+                retract_length = (int)filament_retraction_distance_when_cut->values[idx];
+            else
+                retract_length = printer_retraction_distance_when_cut->values[0];
+        }
+
+        extra_flush_volume -= PI * 1.75 * 1.75 / 4 * retract_length;
+        extra_flush_volumes.emplace_back(extra_flush_volume);
+    }
+    return extra_flush_volumes;
+}
+
 // Sidebar / public
 
 static struct DynamicFilamentList : DynamicList
@@ -804,22 +843,14 @@ Sidebar::Sidebar(Plater *parent)
     p->m_flushing_volume_btn->Bind(wxEVT_BUTTON, ([parent](wxCommandEvent &e)
         {
             auto& project_config = wxGetApp().preset_bundle->project_config;
-            auto& printer_config = wxGetApp().preset_bundle->printers.get_edited_preset().config;
             const std::vector<double>& init_matrix = (project_config.option<ConfigOptionFloats>("flush_volumes_matrix"))->values;
             const std::vector<double>& init_extruders = (project_config.option<ConfigOptionFloats>("flush_volumes_vector"))->values;
-            ConfigOption* extra_flush_volume_opt = printer_config.option("nozzle_volume");
-            int extra_flush_volume = extra_flush_volume_opt ? (int)extra_flush_volume_opt->getFloat() : 0;
-            bool activate = printer_config.option<ConfigOptionBool>("enable_long_retraction_when_cut")->value && printer_config.option<ConfigOptionBool>("long_retraction_when_cut")->value;
-            float extra_retract_length = activate && printer_config.option<ConfigOptionBool>("long_retraction_when_cut")->value ? printer_config.option<ConfigOptionFloat>("retraction_distance_when_cut")->value : 0;
-            float extra_retract_volume = PI * 1.75 * 1.75 / 4 * extra_retract_length;
-            extra_flush_volume = (int)std::max(0.f, extra_flush_volume - extra_retract_volume);
             ConfigOptionFloat* flush_multi_opt = project_config.option<ConfigOptionFloat>("flush_multiplier");
             float flush_multiplier = flush_multi_opt ? flush_multi_opt->getFloat() : 1.f;
 
             const std::vector<std::string> extruder_colours = wxGetApp().plater()->get_extruder_colors_from_plater_config();
-
-            WipingDialog dlg(parent, cast<float>(init_matrix), cast<float>(init_extruders), extruder_colours, extra_flush_volume, flush_multiplier);
-
+            const auto& extra_flush_volumes = get_min_flush_volumes();
+            WipingDialog dlg(parent, cast<float>(init_matrix), cast<float>(init_extruders), extruder_colours, extra_flush_volumes, flush_multiplier);
             if (dlg.ShowModal() == wxID_OK) {
                 std::vector<float> matrix = dlg.get_matrix();
                 std::vector<float> extruders = dlg.get_extruders();
@@ -1868,17 +1899,12 @@ void Sidebar::auto_calc_flushing_volumes(const int modify_id)
 
     const std::vector<double>& init_matrix = (project_config.option<ConfigOptionFloats>("flush_volumes_matrix"))->values;
     const std::vector<double>& init_extruders = (project_config.option<ConfigOptionFloats>("flush_volumes_vector"))->values;
-    ConfigOption* extra_flush_volume_opt = printer_config.option("nozzle_volume");
-    int extra_flush_volume = extra_flush_volume_opt ? (int)extra_flush_volume_opt->getFloat() : 0;
-    bool activate = printer_config.option<ConfigOptionBool>("enable_long_retraction_when_cut")->value && printer_config.option<ConfigOptionBool>("long_retraction_when_cut")->value;
-    float extra_retract_length = activate && printer_config.option<ConfigOptionBool>("long_retraction_when_cut")->value ? printer_config.option<ConfigOptionFloat>("retraction_distance_when_cut")->value : 0;
-    float extra_retract_volume = PI * 1.75 * 1.75 / 4 * extra_retract_length;
-    extra_flush_volume = (int)std::max(0.f, extra_flush_volume - extra_retract_volume);
+
+    const std::vector<int>&   min_flush_volumes= get_min_flush_volumes();
 
     ConfigOptionFloat* flush_multi_opt = project_config.option<ConfigOptionFloat>("flush_multiplier");
     float flush_multiplier = flush_multi_opt ? flush_multi_opt->getFloat() : 1.f;
     std::vector<double> matrix = init_matrix;
-    int m_min_flush_volume = extra_flush_volume;
     int m_max_flush_volume = Slic3r::g_max_flush_volume;
     unsigned int m_number_of_extruders = (int)(sqrt(init_matrix.size()) + 0.001);
 
@@ -1905,12 +1931,10 @@ void Sidebar::auto_calc_flushing_volumes(const int modify_id)
 
     if (modify_id >= 0 && modify_id < multi_colours.size()) {
         for (int i = 0; i < multi_colours.size(); ++i) {
-
-            Slic3r::FlushVolCalculator calculator(m_min_flush_volume, m_max_flush_volume);
-
             // from to modify
             int from_idx = i;
             if (from_idx != modify_id) {
+                Slic3r::FlushVolCalculator calculator(min_flush_volumes[from_idx], m_max_flush_volume);
                 int flushing_volume = 0;
                 bool is_from_support = is_support_filament(from_idx);
                 bool is_to_support = is_support_filament(modify_id);
@@ -1935,6 +1959,7 @@ void Sidebar::auto_calc_flushing_volumes(const int modify_id)
             // modify to to
             int to_idx = i;
             if (to_idx != modify_id) {
+                Slic3r::FlushVolCalculator calculator(min_flush_volumes[modify_id], m_max_flush_volume);
                 bool is_from_support = is_support_filament(modify_id);
                 bool is_to_support = is_support_filament(to_idx);
                 int flushing_volume = 0;
@@ -6090,7 +6115,6 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
                     view3d_selection.add(real_idx, false);
                 }
             }
-        }
 
         view3D->get_canvas3d()->bind_event_handlers();
 
@@ -6365,11 +6389,9 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
             view3D->deselect_all();
         }
         // update flush matrix
-        auto& project_config = wxGetApp().preset_bundle->project_config;
-        const std::vector<double>& init_matrix = (project_config.option<ConfigOptionFloats>("flush_volumes_matrix"))->values;
-        for (size_t idx = 0; idx < init_matrix.size(); ++idx)
+        size_t filament_size = wxGetApp().plater()->get_extruder_colors_from_plater_config().size();
+        for (size_t idx = 0; idx < filament_size; ++idx)
             wxGetApp().plater()->sidebar().auto_calc_flushing_volumes(idx);
-   
     }
 
 #ifdef __WXMSW__

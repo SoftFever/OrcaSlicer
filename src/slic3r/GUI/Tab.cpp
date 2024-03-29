@@ -1610,27 +1610,52 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         }
     }
 
-    auto update_flush_volume = []() {
-        auto& project_config = wxGetApp().preset_bundle->project_config;
-        const std::vector<double>& init_matrix = (project_config.option<ConfigOptionFloats>("flush_volumes_matrix"))->values;
-        for (size_t idx = 0; idx < init_matrix.size(); ++idx)
+
+    // -1 means caculate all
+    auto update_flush_volume = [](int idx = -1) {
+        if (idx < 0) {
+            size_t filament_size = wxGetApp().plater()->get_extruder_colors_from_plater_config().size();
+            for (size_t i = 0; i < filament_size; ++i)
+                wxGetApp().plater()->sidebar().auto_calc_flushing_volumes(i);
+        }
+        else
             wxGetApp().plater()->sidebar().auto_calc_flushing_volumes(idx);
         };
 
-    if(opt_key == "long_retraction_when_cut"){
-        bool activate = boost::any_cast<bool>(value);
-        if (activate) {
-            MessageDialog dialog(wxGetApp().plater(), 
-            "Experimental feature: Retracting and cutting off the filament at a greater distance during filament changes to minimize flush."
-            "Although it can notably reduce flush, it may also elevate the risk of nozzle clogs or other printing complications.", "", wxICON_WARNING | wxOK);
+
+    string opt_key_without_idx = opt_key.substr(0, opt_key.find('#'));
+
+    if (opt_key_without_idx == "long_retractions_when_cut") {
+        unsigned char activate = boost::any_cast<unsigned char>(value);
+        if (activate == 1) {
+            MessageDialog dialog(wxGetApp().plater(),
+                _L("Experimental feature: Retracting and cutting off the filament at a greater distance during filament changes to minimize flush."
+                    "Although it can notably reduce flush,  it may also elevate the risk of nozzle clogs or other printing complications."), "", wxICON_WARNING | wxOK);
             dialog.ShowModal();
         }
         update_flush_volume();
     }
 
-    if (opt_key == "retraction_distance_when_cut") {
+    if (opt_key_without_idx == "retraction_distances_when_cut")
+        update_flush_volume();
+
+
+
+    if (opt_key == "filament_long_retractions_when_cut"){
+        unsigned char activate = boost::any_cast<unsigned char>(value);
+        if (activate == 1) {
+            MessageDialog dialog(wxGetApp().plater(), 
+            _L("Experimental feature: Retracting and cutting off the filament at a greater distance during filament changes to minimize flush."
+            "Although it can notably reduce flush, it may also elevate the risk of nozzle clogs or other printing complications."), "", wxICON_WARNING | wxOK);
+            dialog.ShowModal();
+        }
         update_flush_volume();
     }
+
+    if (opt_key == "filament_retraction_distances_when_cut")
+        update_flush_volume();
+
+
     // BBS
 #if 0
     if (opt_key == "extruders_count")
@@ -3096,6 +3121,8 @@ void TabFilament::add_filament_overrides_page()
                                         //BBS
                                         "filament_wipe_distance",
                                         "filament_retract_before_wipe",
+                                        "filament_long_retractions_when_cut",
+                                        "filament_retraction_distances_when_cut"
                                         //SoftFever
                                         // "filament_seam_gap"
                                      })
@@ -3133,6 +3160,8 @@ void TabFilament::update_filament_overrides_page()
                                             //BBS
                                             "filament_wipe_distance",
                                             "filament_retract_before_wipe",
+                                            "filament_long_retractions_when_cut",
+                                            "filament_retraction_distances_when_cut"
                                             //SoftFever
                                             // "filament_seam_gap"
                                         };
@@ -3151,8 +3180,19 @@ void TabFilament::update_filament_overrides_page()
         m_overrides_options[opt_key]->SetValue(is_checked);
 
         Field* field = optgroup->get_fieldc(opt_key, extruder_idx);
-        if (field != nullptr)
-            field->toggle(is_checked);
+        if (field != nullptr) {
+            if (opt_key == "filament_long_retractions_when_cut") {
+                bool machine_enabled = wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionBool>("enable_long_retraction_when_cut")->value;
+                field->toggle(is_checked&&machine_enabled);
+            }
+            else if (opt_key == "filament_retraction_distances_when_cut") {
+                bool machine_enabled = wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionBool>("enable_long_retraction_when_cut")->value;
+                bool filament_enabled = m_config->option<ConfigOptionBools>("filament_long_retractions_when_cut")->values[extruder_idx]==1;
+                field->toggle(is_checked && filament_enabled && machine_enabled);
+            }
+            else
+                field->toggle(is_checked);
+        }
     }
 }
 
@@ -4094,8 +4134,9 @@ if (is_marlin_flavor)
             optgroup = page->new_optgroup(L("Retraction when switching material"), L"param_retraction", -1, true);
             optgroup->append_single_option_line("retract_length_toolchange", "", extruder_idx);
             optgroup->append_single_option_line("retract_restart_extra_toolchange", "", extruder_idx);
-            optgroup->append_single_option_line("long_retraction_when_cut", "");
-            optgroup->append_single_option_line("retraction_distance_when_cut", "");
+            // do not display this params now
+            optgroup->append_single_option_line("long_retractions_when_cut", "", extruder_idx);
+            optgroup->append_single_option_line("retraction_distances_when_cut", "", extruder_idx);
 
 #if 0
             //optgroup = page->new_optgroup(L("Preview"), -1, true);
@@ -4338,9 +4379,9 @@ void TabPrinter::toggle_options()
         bool toolchange_retraction = m_config->opt_float("retract_length_toolchange", i) > 0;
         toggle_option("retract_restart_extra_toolchange", have_multiple_extruders && toolchange_retraction, i);
 
-        toggle_option("long_retraction_when_cut", !use_firmware_retraction && m_config->opt_bool("enable_long_retraction_when_cut"));
-        toggle_line("retraction_distance_when_cut", m_config->opt_bool("long_retraction_when_cut"));
-
+        // do not display this extruder param now
+        toggle_option("long_retractions_when_cut", !use_firmware_retraction && m_config->opt_bool("enable_long_retraction_when_cut"),i);
+        toggle_option("retraction_distances_when_cut", m_config->opt_bool("long_retractions_when_cut",i),i);
     }
 
     if (m_active_page->title() == L("Motion ability")) {
