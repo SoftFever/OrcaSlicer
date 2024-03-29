@@ -1,0 +1,64 @@
+{
+    "auxiliary_fan": "0",
+    "deretraction_speed": [
+        "30"
+    ],
+    "enable_filament_ramming": "0",
+    "gcode_flavor": "marlin",
+    "is_custom_defined": "0",
+    "machine_end_gcode": "G1 E-3 F3600\nG28; home\nM108 ; turn off temperature\nM84 ; disable motors",
+    "machine_max_acceleration_e": [
+        "2000",
+    ],
+    "machine_max_acceleration_extruding": [
+        "2000",
+    ],
+    "machine_max_acceleration_retracting": [
+        "2000",
+    ],
+    "machine_max_acceleration_travel": [
+        "4000",
+    ],
+    "machine_max_acceleration_x": [
+        "2000",
+    ],
+    "machine_max_acceleration_y": [
+        "2000",
+    ],
+    "machine_max_speed_x": [
+        "250",
+    ],
+    "machine_max_speed_y": [
+        "250",
+    ],
+    "machine_start_gcode": "M862.1 P[nozzle_diameter] ; nozzle diameter check\nM140 S[bed_temperature_initial_layer_single]\nM104 S[nozzle_temperature_initial_layer]\nM107; fans off\nG90\nG28; home\nM132 X Y Z A B\nG1 Z50.000 F300\nG161 X Y F3300\nM7 T0\nM6 T0\nM651 S255\nM108 T0",
+    "max_layer_height": [
+        "0.3"
+    ],
+    "nozzle_diameter": [
+        "0.6"
+    ],
+    "nozzle_type": "hardened_steel",
+    "preferred_orientation": "45",
+    "printable_area": [
+        "-150x-125",
+        "150x-125",
+        "150x125",
+        "-150x125"
+    ],
+    "printable_height": "340",
+    "printer_settings_id": "Flashforge Guider 3",
+    "printhost_ssl_ignore_revoke": "1",
+    "purge_in_prime_tower": "0",
+    "retraction_length": [
+        "1"
+    ],
+    "retraction_speed": [
+        "30"
+    ],
+    "support_multi_bed_types": "1",
+    "thumbnails": [
+        "110x110"
+    ],
+    "use_relative_e_distances": "0",
+}
