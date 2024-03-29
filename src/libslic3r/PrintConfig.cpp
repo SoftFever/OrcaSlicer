@@ -2561,6 +2561,12 @@ def = this->add("filament_loading_speed", coFloats);
     def->readonly = false;
     def->set_default_value(new ConfigOptionEnum<GCodeFlavor>(gcfMarlinLegacy));
 
+    def          = this->add("pellet_modded_printer", coBool);
+    def->label   = L("Pellet Modded Printer");
+    def->tooltip = L("Enable this option if your printer uses pellets instead of filaments");
+    def->mode    = comSimple;
+    def->set_default_value(new ConfigOptionBool(false));
+
     def = this->add("support_multi_bed_types", coBool);
     def->label = L("Support multi bed types");
     def->tooltip = L("Enable this option if you want to use multiple bed types");
