@@ -12839,6 +12839,7 @@ msgstr ""
 
 msgid "Scarf joint seam (beta)"
 msgstr "Costura de unión de bufanda (beta)"
+msgstr "Costura de unión de bufanda (beta)"
 
 msgid "Use scarf joint to minimize seam visibility and increase seam strength."
 msgstr ""
