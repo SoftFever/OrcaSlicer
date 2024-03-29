@@ -1,17 +1,17 @@
 {
   "type": "machine",
   "setting_id": "GM003",
-  "name": "Prusa MINI 0.4 nozzle",
+  "name": "Prusa MINI 0.2 nozzle",
   "from": "system",
   "instantiation": "true",
   "inherits": "fdm_machine_common",
   "gcode_flavor": "marlin2",
   "printer_model": "MINI",
-  "printer_variant": "0.4",
+  "printer_variant": "0.2",
   "default_filament_profile": [
       "Prusa Generic PLA"
   ],
-  "default_print_profile": "0.20mm Standard @MINI",
+  "default_print_profile": "0.20mm Standard @MINI 0.2",
   "nozzle_diameter": [
       "0.4"
   ],
