@@ -2547,7 +2547,7 @@ void TreeSupport::drop_nodes(std::vector<std::vector<SupportNode*>>& contact_nod
                     // Remove all circle neighbours that are completely inside the polygon and merge them into this node.
                     for (const Point &neighbour : neighbours) {
                         SupportNode *    neighbour_node          = nodes_this_part[neighbour];
-                        if(neighbour_node->type==ePolygon) return;
+                        if(neighbour_node->type==ePolygon) continue;
                         coord_t    neighbour_radius = scale_(neighbour_node->radius);
                         Point     pt_north = neighbour + Point(0, neighbour_radius), pt_south = neighbour - Point(0, neighbour_radius),
                               pt_west = neighbour - Point(neighbour_radius, 0), pt_east = neighbour + Point(neighbour_radius, 0);
@@ -2606,10 +2606,15 @@ void TreeSupport::drop_nodes(std::vector<std::vector<SupportNode*>>& contact_nod
                             // only allow bigger node to merge smaller nodes. See STUDIO-6326
                             if(node.dist_mm_to_top < neighbour_node->dist_mm_to_top) continue;
 
-                            node.merged_neighbours.push_front(neighbour_node);
-                            node.merged_neighbours.insert(node.merged_neighbours.end(), neighbour_node->merged_neighbours.begin(), neighbour_node->merged_neighbours.end());
-                            to_delete.insert(neighbour_node);
-                            neighbour_node->valid = false;
+                            m_ts_data->m_mutex.lock();
+                            if (to_delete.find(p_node) == to_delete.end())
+                            {  // since we are processing all nodes in parallel, p_node may have been deleted by another thread. In this case, we should not delete neighbour_node.
+                                node.merged_neighbours.push_front(neighbour_node);
+                                node.merged_neighbours.insert(node.merged_neighbours.end(), neighbour_node->merged_neighbours.begin(), neighbour_node->merged_neighbours.end());
+                                to_delete.insert(neighbour_node);
+                                neighbour_node->valid = false;
+                            }
+                            m_ts_data->m_mutex.unlock();
                         }
                     }
                 }
