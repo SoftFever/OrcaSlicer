@@ -3591,6 +3591,7 @@ def = this->add("filament_loading_speed", coFloats);
     def = this->add("scarf_overhang_threshold", coPercent);
     def->label = L("Conditional overhang threshold");
     def->category = L("Quality");
+    // xgettext:no-c-format, no-boost-format
     def->tooltip  = L("This option determines the overhang threshold for the application of scarf joint seams. If the unsupported portion "
                        "of the perimeter is less than this threshold, scarf joint seams will be applied. The default threshold is set at 40% "
                        "of the external wall's width. Due to performance considerations, the degree of overhang is estimated.");
