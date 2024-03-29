@@ -1,7 +1,7 @@
 {
   "type": "process",
   "setting_id": "GP004",
-  "name": "0.20mm Standard @MINI",
+  "name": "0.20mm Standard @MINI 0.8",
   "from": "system",
   "instantiation": "true",
   "inherits": "fdm_process_common",
