@@ -298,7 +298,7 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
         Line cafile_hint{ "", "" };
         cafile_hint.full_width = 1;
         cafile_hint.widget = [ca_file_hint](wxWindow* parent) {
-            auto txt = new wxStaticText(parent, wxID_ANY, ca_file_hint);
+            auto txt = new wxStaticText(parent, wxID_ANY, from_u8(ca_file_hint));
             auto sizer = new wxBoxSizer(wxHORIZONTAL);
             sizer->Add(txt);
             return sizer;
@@ -525,6 +525,7 @@ void PhysicalPrinterDialog::update(bool printer_change)
                     current_host == L"https://app.obico.io" ||
                     current_host == "https://simplyprint.io") {
                     temp->SetValue(wxString());
+                    m_config->opt_string("print_host") = "";
                 }
             }
         }
@@ -533,6 +534,7 @@ void PhysicalPrinterDialog::update(bool printer_change)
                 const auto current_host = temp->GetValue();
                 if (current_host == "https://simplyprint.io/panel") {
                     temp->SetValue(wxString());
+                    m_config->opt_string("print_host_webui") = "";
                 }
             }
         }

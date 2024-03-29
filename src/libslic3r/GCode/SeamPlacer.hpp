@@ -1,6 +1,7 @@
 #ifndef libslic3r_SeamPlacer_hpp_
 #define libslic3r_SeamPlacer_hpp_
 
+#include <limits>
 #include <optional>
 #include <vector>
 #include <memory>
@@ -66,6 +67,7 @@ struct SeamCandidate {
   Perimeter &perimeter;
   float visibility;
   float overhang;
+  float unsupported_dist;
   // distance inside the merged layer regions, for detecting perimeter points which are hidden indside the print (e.g. multimaterial join)
   // Negative sign means inside the print, comes from EdgeGrid structure
   float embedded_distance;
@@ -141,8 +143,7 @@ public:
 
   void init(const Print &print, std::function<void(void)> throw_if_canceled_func);
 
-  void place_seam(const Layer *layer, ExtrusionLoop &loop, bool external_first, const Point &last_pos) const;
-
+  void place_seam(const Layer *layer, ExtrusionLoop &loop, bool external_first, const Point &last_pos, float& overhang) const;
 private:
   void gather_seam_candidates(const PrintObject *po, const SeamPlacerImpl::GlobalModelInfo &global_model_info);
   void calculate_candidates_visibility(const PrintObject *po,
