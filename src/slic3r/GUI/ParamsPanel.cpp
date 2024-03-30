@@ -596,7 +596,7 @@ void ParamsPanel::set_active_tab(wxPanel* tab)
     }
     m_left_sizer->Layout();
     if (auto dialog = dynamic_cast<wxDialog*>(GetParent())) {
-        wxString title = cur_tab->type() == Preset::TYPE_FILAMENT ? _L("Filament settings") : _L("Printer settings");
+        wxString title = cur_tab->type() == Preset::TYPE_FILAMENT ? _L("Material settings") : _L("Printer settings");
         dialog->SetTitle(title);
     }
 
