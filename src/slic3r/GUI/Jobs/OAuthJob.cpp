@@ -36,16 +36,16 @@ void OAuthJob::parse_token_response(const std::string& body, bool error, OAuthRe
 void OAuthJob::process(Ctl& ctl)
 {
     // Prepare auth process
-    ThreadSafeQueueSPSC<OAuthResult> queue;
+    std::shared_ptr<ThreadSafeQueueSPSC<OAuthResult>> queue = std::make_shared<ThreadSafeQueueSPSC<OAuthResult>>();
 
     // Setup auth server to receive OAuth code from callback url
-    local_authorization_server.set_request_handler([this, &queue](const std::string& url) -> std::shared_ptr<HttpServer::Response> {
+    local_authorization_server.set_request_handler([this, queue](const std::string& url) -> std::shared_ptr<HttpServer::Response> {
         if (boost::contains(url, "/callback")) {
             const auto code = url_get_param(url, "code");
             const auto state = url_get_param(url, "state");
 
-            const auto handle_auth_fail = [this, &queue](const std::string& message) -> std::shared_ptr<HttpServer::ResponseRedirect> {
-                queue.push(OAuthResult{false, message});
+            const auto handle_auth_fail = [this, queue](const std::string& message) -> std::shared_ptr<HttpServer::ResponseRedirect> {
+                queue->push(OAuthResult{false, message});
                 return std::make_shared<HttpServer::ResponseRedirect>(this->_data.params.auth_fail_redirect_url);
             };
 
@@ -81,11 +81,11 @@ void OAuthJob::process(Ctl& ctl)
                 .on_error([&](std::string body, std::string error, unsigned status) { parse_token_response(body, true, r); })
                 .perform_sync();
 
-            queue.push(r);
+            queue->push(r);
             return std::make_shared<HttpServer::ResponseRedirect>(r.success ? _data.params.auth_success_redirect_url :
                                                                               _data.params.auth_fail_redirect_url);
         } else {
-            queue.push(OAuthResult{false});
+            queue->push(OAuthResult{false});
             return std::make_shared<HttpServer::ResponseNotFound>();
         }
     });
@@ -96,18 +96,18 @@ void OAuthJob::process(Ctl& ctl)
     // Wait until we received the result
     bool received = false;
     while (!ctl.was_canceled() && !received ) {
-        queue.consume_one(BlockingWait{1000}, [this, &received](const OAuthResult& result) {
+        queue->consume_one(BlockingWait{1000}, [this, &received](const OAuthResult& result) {
             *_data.result = result;
             received      = true;
         });
     }
 
     // Handle timeout
-    if (!received && !ctl.was_canceled()) {
-        BOOST_LOG_TRIVIAL(debug) << "Timeout when authenticating with the account server.";
-        _data.result->error_message = _u8L("Timeout when authenticating with the account server.");
-    } else if (ctl.was_canceled()) {
+    if (!received && ctl.was_canceled()) {
         _data.result->error_message = _u8L("User cancelled.");
+    } else {
+        // Wait a while to ensure the response has sent
+        std::this_thread::sleep_for(std::chrono::milliseconds(1500));
     }
 }
 
