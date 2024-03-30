@@ -1,20 +1,18 @@
 {
-    "fan_min_speed": [
-        "0"
-    ],
+	"type": "filament",
+	"setting_id": "GFSL99_00",
+	"name": "Dremel Generic PLA @3D20 all",
+	"from": "system",
+	"instantiation": "true",
+	"inherits": "fdm_filament_pla",
+	"filament_max_volumetric_speed": ["9"],
+	"slow_down_layer_time": ["10"],
     "filament_retraction_length": [
         "3"
     ],
     "filament_retraction_speed": [
         "60"
     ],
-    "filament_settings_id": [
-        "Dremel Generic PLA @3D20 all"
-    ],
-    "from": "system",
-    "inherits": "fdm_filament_common",
-    "is_custom_defined": "0",
-    "name": "Dremel Generic PLA @3D20 all",
     "nozzle_temperature": [
         "225"
     ],
@@ -24,8 +22,7 @@
     "nozzle_temperature_range_high": [
         "230"
     ],
-    "slow_down_min_speed": [
-        "10"
-    ],
-    "version": "1.7.0.2"
+	"compatible_printers": [
+		"Dremel 3D20 0.4 nozzle"
+	]
 }
