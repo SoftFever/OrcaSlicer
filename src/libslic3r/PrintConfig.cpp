@@ -1761,6 +1761,12 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->set_default_value(new ConfigOptionFloats { 1.75 });
 
+    def = this->add("pellet_flow_coefficient", coFloats);
+    def->label = L("Pellet flow coefficient");
+    def->tooltip = L("Pellet flow coefficient is emperically derived and allows for volume calculation for pellet printer");
+    def->min = 0;
+    def->set_default_value(new ConfigOptionFloats { 1.75 });
+
     def = this->add("filament_shrink", coPercents);
     def->label = L("Shrinkage");
     // xgettext:no-c-format, no-boost-format
