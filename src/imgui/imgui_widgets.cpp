@@ -3620,9 +3620,13 @@ bool ImGui::SliderScalar(const char* label, ImGuiDataType data_type, void* p_dat
     }
 
     // Draw frame
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.f, 0.59f, 0.53f, 0.f));           // ORCA: Change Background color
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(0.f, 0.59f, 0.53f, 0.1f)); // ORCA: Change Background color
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0.f, 0.59f, 0.53f, 0.2f));    // ORCA: Change Background color
     const ImU32 frame_col = GetColorU32(g.ActiveId == id ? ImGuiCol_FrameBgActive : g.HoveredId == id ? ImGuiCol_FrameBgHovered : ImGuiCol_FrameBg);
     RenderNavHighlight(frame_bb, id);
     RenderFrame(frame_bb.Min, frame_bb.Max, frame_col, true, g.Style.FrameRounding);
+    ImGui::PopStyleColor(3);
 
     // Slider behavior
     ImRect grab_bb;
@@ -3631,8 +3635,11 @@ bool ImGui::SliderScalar(const char* label, ImGuiDataType data_type, void* p_dat
         MarkItemEdited(id);
 
     // Render grab
+    ImGui::PushStyleColor(ImGuiCol_SliderGrab, ImVec4(0.f, 0.59f, 0.53f, 0.5f));  // ORCA: Change Thumb color
+    ImGui::PushStyleColor(ImGuiCol_SliderGrabActive, ImVec4(0.f, 0.59f, 0.53f, 0.75f)); // ORCA: Change Thumb color
     if (grab_bb.Max.x > grab_bb.Min.x)
         window->DrawList->AddRectFilled(grab_bb.Min, grab_bb.Max, GetColorU32(g.ActiveId == id ? ImGuiCol_SliderGrabActive : ImGuiCol_SliderGrab), style.GrabRounding);
+    ImGui::PopStyleColor(2);
 
     // Display value using user-provided display format so user can add prefix/suffix/decorations to the value.
     char value_buf[64];
@@ -4261,28 +4268,42 @@ bool ImGui::InputScalar(const char* label, ImGuiDataType data_type, void* p_data
 
         BeginGroup(); // The only purpose of the group here is to allow the caller to query item data e.g. IsItemActive()
         PushID(label);
-        SetNextItemWidth(ImMax(1.0f, CalcItemWidth() - (button_size + style.ItemInnerSpacing.x) * 2));
+        // SetNextItemWidth(ImMax(1.0f, CalcItemWidth() - (button_size + style.ItemInnerSpacing.x) * 2));
+        SetNextItemWidth(ImMax(1.0f, CalcItemWidth())); // ORCA: Use input size with full width istead of excluding button sizes
+		PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(style.FramePadding.x + 4,style.FramePadding.y)); // ORCA: give input box extra padding horizontally
+        PushStyleColor(ImGuiCol_BorderActive, ImVec4(0.f, 0.59f, 0.53f, 1.f)); // ORCA: Add hover effects
+        int input_width = CalcItemWidth(); // ORCA: Calculate input size
         if (InputText("", buf, IM_ARRAYSIZE(buf), flags)) // PushId(label) + "" gives us the expected ID from outside point of view
             value_changed = DataTypeApplyOpFromText(buf, g.InputTextState.InitialTextA.Data, data_type, p_data, format);
+        PopStyleColor();
+        PopStyleVar();
 
         // Step buttons
         const ImVec2 backup_frame_padding = style.FramePadding;
         style.FramePadding.x = style.FramePadding.y;
         ImGuiButtonFlags button_flags = ImGuiButtonFlags_Repeat | ImGuiButtonFlags_DontClosePopups;
+        
+        PushStyleColor(ImGuiCol_Button, ImVec4(0.f, 0.f, 0.f, 0.f));				// ORCA: Hide button decoration
+        PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.f, 0.59f, 0.53f, 0.35f));   // ORCA: Add hover effects
+        PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.f, 0.59f, 0.53f, 0.5f));		// ORCA: Add hover effects
+        PushStyleColor(ImGuiCol_Border, ImVec4(0.f, 0.f, 0.f, 0.f));				// ORCA: Hide button decoration
+        SetItemAllowOverlap(); // ORCA: allow item to click
         if (flags & ImGuiInputTextFlags_ReadOnly)
             button_flags |= ImGuiButtonFlags_Disabled;
-        SameLine(0, style.ItemInnerSpacing.x);
+
+        SameLine(input_width - button_size * 2); // ORCA: Move Inc/Dec buttons to inside of input box
         if (ButtonEx("-", ImVec2(button_size, button_size), button_flags))
         {
             DataTypeApplyOp(data_type, '-', p_data, p_data, g.IO.KeyCtrl && p_step_fast ? p_step_fast : p_step);
             value_changed = true;
         }
-        SameLine(0, style.ItemInnerSpacing.x);
+        SameLine(0,0); // ORCA: Place button without spacing
         if (ButtonEx("+", ImVec2(button_size, button_size), button_flags))
         {
             DataTypeApplyOp(data_type, '+', p_data, p_data, g.IO.KeyCtrl && p_step_fast ? p_step_fast : p_step);
             value_changed = true;
         }
+        PopStyleColor(4);
 
         const char* label_end = FindRenderedTextEnd(label);
         if (label != label_end)
@@ -7317,7 +7338,7 @@ bool ImGui::BBLSelectable(const char *label, bool selected, ImGuiSelectableFlags
     bool       hovered, held;
     bool       pressed = ButtonBehavior(bb, id, &hovered, &held, button_flags);
     if (hovered || g.ActiveId == id) {
-        ImGui::PushStyleColor(ImGuiCol_Border, GetColorU32(ImGuiCol_BorderActive));
+        ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.f, 0.f, 0.f, 0.f)); // ORCA: dont use border on hover or active list element. looks a bit more modern
         if(arrow_size == 0) {
             RenderFrameBorder(bb.Min, ImVec2(bb.Max.x - style.WindowPadding.x, bb.Max.y), style.FrameRounding);
         } else {

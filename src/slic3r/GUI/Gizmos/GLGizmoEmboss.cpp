@@ -262,6 +262,8 @@ struct GuiCfg
     float        max_style_name_width                 = 0.f;
     unsigned int icon_width                           = 0;
     float        max_tooltip_width                    = 0.f;
+    float        combo_box_offset					  = 0.f;
+    float        space			                      = 0.f;
 
     // maximal width and height of style image
     Vec2i max_style_image_size = Vec2i(0, 0);
@@ -270,7 +272,10 @@ struct GuiCfg
     float input_offset          = 0.f;
     float advanced_input_offset = 0.f;
     float lock_offset           = 0.f;
-
+    float window_left           = 0.f;
+    float advanced_undo_offset  = 0.f;
+    float combo_box_undo_offset = 0.f;
+   
     ImVec2 text_size;
 
     // maximal size of face name image
@@ -283,6 +288,7 @@ struct GuiCfg
     // Only translations needed for calc GUI size
     struct Translations
     {
+        std::string style;
         std::string font;
         std::string height;
         std::string depth;
@@ -1352,29 +1358,40 @@ void GLGizmoEmboss::draw_window()
 #endif //  ALLOW_DEBUG_MODE
 
     // Setter of indent must be befor disable !!!
-    ImGui::PushStyleVar(ImGuiStyleVar_IndentSpacing, m_gui_cfg->indent);
-    ScopeGuard indent_sc([](){ ImGui::PopStyleVar(/*ImGuiStyleVar_IndentSpacing*/); });
+    //ImGui::PushStyleVar(ImGuiStyleVar_IndentSpacing, m_gui_cfg->indent);
+    //ScopeGuard indent_sc([](){ ImGui::PopStyleVar(/*ImGuiStyleVar_IndentSpacing*/); });
 
     // Disable all except selection of font, when open text from 3mf with unknown font
     m_imgui->disabled_begin(m_is_unknown_font);
     ScopeGuard unknown_font_sc([imgui = m_imgui]() { imgui->disabled_end(/*m_is_unknown_font*/); });
 
+	//ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, {ImGui::GetStyle().ItemSpacing.x, 5});
+
+	draw_style_list(); // ORCA: Moved style to top
+
     draw_text_input();
 
-    ImGui::Indent();
+
+    //ImGui::Indent(); // Generally == (FontSize + FramePadding.x*2)
         // When unknown font is inside .3mf only font selection is allowed
         m_imgui->disabled_end(/*m_is_unknown_font*/);
         draw_font_list_line();
         m_imgui->disabled_begin(m_is_unknown_font);
         bool use_inch = wxGetApp().app_config->get_bool("use_inches");
+        //ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, {ImGui::GetStyle().ItemSpacing.x, 5}); // ORCA: Reduce vertical spacing for steppers to group them
         draw_height(use_inch);
         draw_depth(use_inch);
-    ImGui::Unindent();
+        //ImGui::PopStyleVar(1);
+    //ImGui::Unindent();
+    
+	//ImGui::PopStyleVar(1);
 
     // close advanced style property when unknown font is selected
     if (m_is_unknown_font && m_is_advanced_edit_style) 
         ImGui::SetNextTreeNodeOpen(false);
 
+	ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImGuiWrapper::COL_ORCA); // ORCA: Change hover background color of collapsable header
+    ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImGuiWrapper::COL_ORCA);
     if (ImGui::TreeNode(_u8L("Advanced").c_str())) {
         if (!m_is_advanced_edit_style) {
             m_is_advanced_edit_style = true;
@@ -1387,10 +1404,9 @@ void GLGizmoEmboss::draw_window()
         m_is_advanced_edit_style = false;
         m_imgui->set_requires_extra_frame();
     }
+    ImGui::PopStyleColor(2);
 
-    ImGui::Separator();
-
-    draw_style_list();
+    //ImGui::Separator();
 
     // Do not select volume type, when it is text object
     if (!m_volume->is_the_only_one_part()) {
@@ -1539,7 +1555,7 @@ void GLGizmoEmboss::draw_text_input()
         float width = ImGui::GetContentRegionAvailWidth();
         const ImVec2& padding = style.FramePadding;
         ImVec2 icon_pos(width - m_gui_cfg->icon_width - scrollbar_width + padding.x, 
-                        cursor.y - m_gui_cfg->icon_width - scrollbar_height - 2*padding.y);
+                        cursor.y - 2 * m_gui_cfg->icon_width - scrollbar_height - 2*padding.y);
         
         ImGui::SetCursorPos(icon_pos);
         draw(get_icon(m_icons, IconType::obj_warning, IconState::hovered));
@@ -1644,17 +1660,18 @@ void GLGizmoEmboss::pop_button_style()
 
 void GLGizmoEmboss::draw_font_list_line()
 {
-    ImGui::AlignTextToFramePadding();
+    ImGui::SetCursorPosX(m_gui_cfg->window_left); // ORCA: Use revert button after Text
+	ImGui::AlignTextToFramePadding();
 
     bool exist_stored_style   = m_style_manager.exist_stored_style();
     bool exist_change_in_font = m_style_manager.is_font_changed();
     const std::string& font_text = m_gui_cfg->translations.font;
     if (exist_change_in_font || !exist_stored_style)
-        ImGuiWrapper::text_colored(ImGuiWrapper::COL_ORCA, font_text);
+        ImGuiWrapper::text_colored(ImGuiWrapper::COL_ORCA_ORANGE, font_text); // ORCA: Use orange color for text if value edited
     else
         ImGuiWrapper::text(font_text);
 
-    ImGui::SameLine(m_gui_cfg->input_offset);
+    ImGui::SameLine(m_gui_cfg->combo_box_offset);
 
     draw_font_list();
 
@@ -1676,8 +1693,15 @@ void GLGizmoEmboss::draw_font_list_line()
 
     EmbossStyle &style = m_style_manager.get_style();
     if (exist_change_in_font) {
-        ImGui::SameLine(ImGui::GetStyle().WindowPadding.x);
-        if (draw_button(m_icons, IconType::undo)) {
+        ImGui::SameLine(m_gui_cfg->combo_box_undo_offset);                               // ORCA: Use revert button after Text
+
+		// const bool revert = draw_button(m_icons, IconType::undo); // ORCA: Always use revert icon color with orange
+        const bool revert = Slic3r::GUI::button(
+			get_icon(m_icons, IconType::undo, IconState::hovered), // ORCA: Always use revert icon color with orange
+			get_icon(m_icons, IconType::undo, IconState::hovered),
+			get_icon(m_icons, IconType::undo, IconState::disabled)
+		);
+        if (revert) {
             const EmbossStyle *stored_style = m_style_manager.get_stored_style();
 
             style.path          = stored_style->path;
@@ -1703,7 +1727,7 @@ void GLGizmoEmboss::draw_font_list()
 {
     ImGuiWrapper::push_combo_style(m_gui_cfg->screen_scale);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-    ImGui::PushStyleVar(ImGuiStyleVar_PopupRounding, 4.0f * m_gui_cfg->screen_scale);
+    ImGui::PushStyleVar(ImGuiStyleVar_PopupRounding, 2.0f * m_gui_cfg->screen_scale); // ORCA: Match with combo box
 
     wxString tooltip_name = "";
 
@@ -2178,11 +2202,11 @@ void GLGizmoEmboss::draw_style_list() {
 
     std::string title = _u8L("Style");
     ImGui::AlignTextToFramePadding();
-    if (m_style_manager.exist_stored_style())
-        ImGui::Text("%s", title.c_str());
+    if (is_modified)
+        ImGui::TextColored(ImGuiWrapper::COL_ORCA_ORANGE, "%s", title.c_str());
     else
-        ImGui::TextColored(ImGuiWrapper::COL_ORCA, "%s", title.c_str());
-
+        ImGui::Text("%s", title.c_str());
+        
     auto add_text_modify = [&is_modified](const std::string& name) {
         if (!is_modified) return name;
         return name + Preset::suffix_modified();
@@ -2190,7 +2214,7 @@ void GLGizmoEmboss::draw_style_list() {
     std::optional<size_t> selected_style_index;
     std::string tooltip = "";
     ImGuiWrapper::push_combo_style(m_parent.get_scale());
-    ImGui::SameLine(m_gui_cfg->input_offset);
+    ImGui::SameLine(m_gui_cfg->combo_box_offset);
     ImGui::SetNextItemWidth(2 * m_gui_cfg->input_width);
     if (ImGui::BBLBeginCombo("##style_selector", add_text_modify(trunc_name).c_str())) {
         m_style_manager.init_style_images(m_gui_cfg->max_style_image_size, m_text);
@@ -2290,6 +2314,24 @@ void GLGizmoEmboss::draw_style_list() {
     // delete button
     ImGui::SameLine();
     draw_delete_style_button();
+
+	// ORCA: Add revert button to styles
+	EmbossStyle& style = m_style_manager.get_style();
+    if (is_modified) {
+        ImGui::SameLine(m_gui_cfg->combo_box_undo_offset); // ORCA: Use revert button after Text
+        //const bool revert = m_imgui->image_button(ImGui::RevertBtn,_u8L("Revert font changes.")); // ORCA: Always use revert icon color with orange
+		const bool revert = Slic3r::GUI::button(
+			get_icon(m_icons, IconType::undo, IconState::hovered), // ORCA: Always use revert icon color with orange
+			get_icon(m_icons, IconType::undo, IconState::hovered),
+			get_icon(m_icons, IconType::undo, IconState::disabled)
+		);
+        if (revert) {
+            // load back style
+            size_t active_index = m_style_manager.get_style_index();
+            m_style_manager.load_style(active_index);
+        } else if (ImGui::IsItemHovered())
+            m_imgui->tooltip(_u8L("Revert font changes."), m_gui_cfg->max_tooltip_width);
+    }
 }
 
 bool GLGizmoEmboss::draw_italic_button()
@@ -2409,19 +2451,26 @@ bool GLGizmoEmboss::revertible(const std::string &name,
                                float              undo_offset,
                                Draw               draw) const
 {
-    ImGui::AlignTextToFramePadding();
+    ImGui::SetCursorPosX(m_gui_cfg->window_left); // ORCA: Use Test before revert button
+	ImGui::AlignTextToFramePadding();
     bool changed = exist_change(value, default_value);
     if (changed || default_value == nullptr)
-        ImGuiWrapper::text_colored(ImGuiWrapper::COL_ORCA, name);
+        ImGuiWrapper::text_colored(ImGuiWrapper::COL_ORCA_ORANGE, name); // ORCA: Use Orange color if value changed
     else
         ImGuiWrapper::text(name);
-
+	
     // render revert changes button
     if (changed) {
         ImGuiWindow *window = ImGui::GetCurrentWindow();
         float prev_x = window->DC.CursorPosPrevLine.x;
-        ImGui::SameLine(undo_offset); // change cursor postion
-        if (draw_button(m_icons, IconType::undo)) {
+        ImGui::SameLine(undo_offset); // ORCA: Use revert button after Text
+        //if (draw_button(m_icons, IconType::undo)) {
+		const bool revert = Slic3r::GUI::button(
+			get_icon(m_icons, IconType::undo, IconState::hovered), // ORCA: Always use revert icon color with orange
+			get_icon(m_icons, IconType::undo, IconState::hovered),
+			get_icon(m_icons, IconType::undo, IconState::disabled)
+		);
+        if (revert) {
             value = *default_value;
 
             // !! Fix to detect change of value after revert of float-slider
@@ -2446,14 +2495,14 @@ bool GLGizmoEmboss::rev_input(const std::string &name, T &value, const T *defaul
     const std::string &undo_tooltip, T step, T step_fast, const char *format, ImGuiInputTextFlags flags) const
 {
     // draw offseted input
-    auto draw_offseted_input = [&offset = m_gui_cfg->input_offset, &width = m_gui_cfg->input_width,
-                                &name, &value, &step, &step_fast, format, flags](){
+    auto draw_offseted_input = [&offset = m_gui_cfg->combo_box_offset, &width = m_gui_cfg->input_width,
+                                &name, &value, &step, &step_fast, format, flags](){ // ORCA: Use revert button after Text
         ImGui::SameLine(offset);
         ImGui::SetNextItemWidth(width);
         return imgui_input(("##" + name).c_str(),
             &value, step, step_fast, format, flags);
     };
-    float undo_offset = ImGui::GetStyle().WindowPadding.x;
+    float undo_offset = m_gui_cfg->combo_box_undo_offset;
     return revertible(name, value, default_value, undo_tooltip, undo_offset, draw_offseted_input);
 }
 
@@ -2505,7 +2554,7 @@ bool GLGizmoEmboss::rev_checkbox(const std::string &name,
         ImGui::SameLine(offset);
         return m_imgui->bbl_checkbox(wxString::FromUTF8("##" + name), value);
     };
-    float undo_offset  = ImGui::GetStyle().WindowPadding.x;
+    float undo_offset = m_gui_cfg->advanced_undo_offset;
     return revertible(name, value, default_value, undo_tooltip,
                       undo_offset, draw_offseted_input);
 }
@@ -2588,7 +2637,7 @@ bool GLGizmoEmboss::rev_slider(const std::string &name,
         return m_imgui->slider_optional_int( ("##" + name).c_str(), value, 
             v_min, v_max, format.c_str(), 1.f, false, tooltip);
     };
-    float undo_offset = ImGui::GetStyle().WindowPadding.x;
+    float undo_offset = m_gui_cfg->advanced_undo_offset;
     return revertible(name, value, default_value,
         undo_tooltip, undo_offset, draw_slider_optional_int);
 }
@@ -2610,7 +2659,7 @@ bool GLGizmoEmboss::rev_slider(const std::string &name,
         return m_imgui->slider_optional_float(("##" + name).c_str(), value,
             v_min, v_max, format.c_str(), 1.f, false, tooltip);
     };
-    float undo_offset = ImGui::GetStyle().WindowPadding.x;
+    float undo_offset = m_gui_cfg->advanced_undo_offset;
     return revertible(name, value, default_value,
         undo_tooltip, undo_offset, draw_slider_optional_float);
 }
@@ -2632,7 +2681,7 @@ bool GLGizmoEmboss::rev_slider(const std::string &name,
         return m_imgui->slider_float("##" + name, &value, v_min, v_max,
             format.c_str(), 1.f, false, tooltip);
     };
-    float undo_offset = ImGui::GetStyle().WindowPadding.x;
+    float undo_offset = m_gui_cfg->advanced_undo_offset;
     return revertible(name, value, default_value,
         undo_tooltip, undo_offset, draw_slider_float);
 }
@@ -2671,47 +2720,12 @@ void GLGizmoEmboss::draw_advanced()
         stored_style = m_style_manager.get_stored_style();
     
     bool is_the_only_one_part = m_volume->is_the_only_one_part();
-    bool can_use_surface = (m_volume->emboss_shape->projection.use_surface)? true : // already used surface must have option to uncheck
-                            !is_the_only_one_part;
-    m_imgui->disabled_begin(!can_use_surface);
-    const bool *def_use_surface = stored_style ?
-        &stored_style->projection.use_surface : nullptr;
-    StyleManager::Style &current_style = m_style_manager.get_style();
+	StyleManager::Style &current_style = m_style_manager.get_style();
     bool &use_surface = current_style.projection.use_surface;
-    if (rev_checkbox(tr.use_surface, use_surface, def_use_surface,
-                     _u8L("Revert using of model surface."))) {
-        if (use_surface)
-            // when using surface distance is not used
-            current_style.distance.reset();        
-        process();
-    }
-    m_imgui->disabled_end(); // !can_use_surface
-
-    bool &per_glyph = font_prop.per_glyph;
-    bool can_use_per_glyph = (per_glyph) ? true : // already used surface must have option to uncheck
-                            !is_the_only_one_part;
-    m_imgui->disabled_begin(!can_use_per_glyph);
-    const bool *def_per_glyph = stored_style ? &stored_style->prop.per_glyph : nullptr;
-    if (rev_checkbox(tr.per_glyph, per_glyph, def_per_glyph,
-        _u8L("Revert Transformation per glyph."))) {
-        if (per_glyph && !m_text_lines.is_init())
-            reinit_text_lines();
-        process();
-    } else if (ImGui::IsItemHovered()) {
-        if (per_glyph) {
-            m_imgui->tooltip(_u8L("Set global orientation for whole text."), m_gui_cfg->max_tooltip_width);
-        } else {
-            m_imgui->tooltip(_u8L("Set position and orientation per glyph."), m_gui_cfg->max_tooltip_width);
-            if (!m_text_lines.is_init())
-                reinit_text_lines();
-        }
-    } else if (!per_glyph && m_text_lines.is_init())
-        m_text_lines.reset();
-    m_imgui->disabled_end(); // !can_use_per_glyph
         
     auto draw_align = [&align = font_prop.align, input_offset = m_gui_cfg->advanced_input_offset, &icons = m_icons, &m_imgui = m_imgui, &m_gui_cfg = m_gui_cfg]() {
         bool is_change = false;
-        ImGui::SameLine(input_offset);
+        ImGui::SameLine(m_gui_cfg->advanced_input_offset);
         if (align.first==FontProp::HorizontalAlign::left) draw(get_icon(icons, IconType::align_horizontal_left, IconState::hovered));
         else if (draw_button(icons, IconType::align_horizontal_left)) { align.first=FontProp::HorizontalAlign::left; is_change = true; }
         else if (ImGui::IsItemHovered()) m_imgui->tooltip(_CTX_utf8(L_CONTEXT("Left", "Alignment"), "Alignment"), m_gui_cfg->max_tooltip_width);
@@ -2724,7 +2738,7 @@ void GLGizmoEmboss::draw_advanced()
         else if (draw_button(icons, IconType::align_horizontal_right)) { align.first=FontProp::HorizontalAlign::right; is_change = true; }
         else if (ImGui::IsItemHovered()) m_imgui->tooltip(_CTX_utf8(L_CONTEXT("Right", "Alignment"), "Alignment"), m_gui_cfg->max_tooltip_width);
 
-        ImGui::SameLine(0,24.f); // add a small gap between them for slight separation
+        ImGui::SameLine(0,m_gui_cfg->space * 2); // add a small gap between them for slight separation
         if (align.second==FontProp::VerticalAlign::top) draw(get_icon(icons, IconType::align_vertical_top, IconState::hovered));
         else if (draw_button(icons, IconType::align_vertical_top)) { align.second=FontProp::VerticalAlign::top; is_change = true; }
         else if (ImGui::IsItemHovered()) m_imgui->tooltip(_CTX_utf8(L_CONTEXT("Top", "Alignment"), "Alignment"), m_gui_cfg->max_tooltip_width);
@@ -2739,7 +2753,7 @@ void GLGizmoEmboss::draw_advanced()
         return is_change;
     };
     const FontProp::Align * def_align = stored_style ? &stored_style->prop.align : nullptr;
-    float undo_offset = ImGui::GetStyle().WindowPadding.x;
+    float undo_offset = m_gui_cfg->advanced_undo_offset;
     if (revertible(tr.alignment, font_prop.align, def_align, _u8L("Revert alignment."), undo_offset, draw_align)) {
         if (font_prop.per_glyph)
             reinit_text_lines(m_text_lines.get_lines().size());
@@ -2750,7 +2764,7 @@ void GLGizmoEmboss::draw_advanced()
     // TRN EmbossGizmo: font units
     std::string units = _u8L("points");
     std::string units_fmt = "%.0f " + units;
-    
+
     // input gap between characters
     auto def_char_gap = stored_style ?
         &stored_style->prop.char_gap : nullptr;
@@ -2826,61 +2840,8 @@ void GLGizmoEmboss::draw_advanced()
     }
     if (m_imgui->get_last_slider_status().deactivated_after_edit)
         last_change = true;
-    
-    // input surface distance
-    bool allowe_surface_distance = !use_surface && !m_volume->is_the_only_one_part();
-    std::optional<float> &distance = current_style.distance;
-    float prev_distance = distance.value_or(.0f);
-    float min_distance = static_cast<float>(-2 * current_style.projection.depth);
-    float max_distance = static_cast<float>(2 * current_style.projection.depth);
-    auto def_distance = stored_style ?
-        &stored_style->distance : nullptr;    
-    m_imgui->disabled_begin(!allowe_surface_distance);    
-    bool use_inch = wxGetApp().app_config->get_bool("use_inches");
-    const std::string undo_move_tooltip = _u8L("Undo translation");
-    const wxString move_tooltip = _L("Distance of the center of the text to the model surface.");
-    bool is_moved = false;
-    if (use_inch) {
-        std::optional<float> distance_inch;
-        if (distance.has_value()) distance_inch = (*distance * GizmoObjectManipulation::mm_to_in);
-        std::optional<float> def_distance_inch;
-        if (def_distance != nullptr) {
-            if (def_distance->has_value()) def_distance_inch = GizmoObjectManipulation::mm_to_in * (*(*def_distance));
-            def_distance = &def_distance_inch;
-        }
-        min_distance *= GizmoObjectManipulation::mm_to_in;
-        max_distance *= GizmoObjectManipulation::mm_to_in;
-        if (rev_slider(tr.from_surface, distance_inch, def_distance, undo_move_tooltip, min_distance, max_distance, "%.3f in", move_tooltip)) {
-            if (distance_inch.has_value()) {
-                distance = *distance_inch * GizmoObjectManipulation::in_to_mm;
-            } else {
-                distance.reset();
-            }
-            is_moved = true;
-        }
-    } else {
-        if (rev_slider(tr.from_surface, distance, def_distance, undo_move_tooltip, 
-        min_distance, max_distance, "%.2f mm", move_tooltip)) is_moved = true;
-    }
 
-    if (is_moved){
-        if (font_prop.per_glyph){
-            process(false);
-        } else {
-            do_local_z_move(m_parent.get_selection(), distance.value_or(.0f) - prev_distance);
-        }
-    }
-
-    // Apply move to model(backend)
-    if (m_imgui->get_last_slider_status().deactivated_after_edit) {
-        m_parent.do_move(move_snapshot_name);
-        if (font_prop.per_glyph)
-            process();
-    }
-
-    m_imgui->disabled_end();  // allowe_surface_distance
-
-    // slider for Clock-wise angle in degress
+	// slider for Clock-wise angle in degress
     // stored angle is optional CCW and in radians
     // Convert stored value to degress
     // minus create clock-wise roation from CCW
@@ -2896,24 +2857,24 @@ void GLGizmoEmboss::draw_advanced()
                    _L("Rotate text Clock-wise."))) {
         // convert back to radians and CCW
         double angle_rad = -angle_deg * M_PI / 180.0;
-        Geometry::to_range_pi_pi(angle_rad);                
+        Geometry::to_range_pi_pi(angle_rad);
 
         double diff_angle = angle_rad - angle;
         do_local_z_rotate(m_parent.get_selection(), diff_angle);
-        
+
         // calc angle after rotation
         const Selection &selection = m_parent.get_selection();
         const GLVolume *gl_volume = get_selected_gl_volume(selection);
         assert(gl_volume != nullptr);
         assert(m_style_manager.is_active_font());
-        if (m_style_manager.is_active_font() && gl_volume != nullptr) 
+        if (m_style_manager.is_active_font() && gl_volume != nullptr)
             m_style_manager.get_style().angle = calc_angle(selection);
-        
+
         if (font_prop.per_glyph)
             reinit_text_lines(m_text_lines.get_lines().size());
 
         // recalculate for surface cut
-        if (use_surface || font_prop.per_glyph) 
+        if (use_surface || font_prop.per_glyph)
             process(false);
     }
 
@@ -2934,12 +2895,107 @@ void GLGizmoEmboss::draw_advanced()
         const IconManager::Icon &icon_disable = get_icon(m_icons, m_keep_up ? IconType::lock : IconType::unlock, IconState::disabled);
         if (button(icon, icon_hover, icon_disable))
             m_keep_up = !m_keep_up;
-    
+
         if (ImGui::IsItemHovered())
             m_imgui->tooltip(m_keep_up?
                 _u8L("Unlock the text's rotation when moving text along the object's surface."):
                 _u8L("Lock the text's rotation when moving text along the object's surface.")
             , m_gui_cfg->max_tooltip_width);
+    }
+
+	if (!m_volume->is_the_only_one_part()) { // ORCA: Hide surface related features if there is no object relation
+
+		bool can_use_surface = (m_volume->emboss_shape->projection.use_surface) ? true : !is_the_only_one_part;// already used surface must have option to uncheck                                                      
+		bool is_moved = false;
+        
+        std::optional<float>& distance = current_style.distance;
+        float prev_distance = distance.value_or(.0f);
+		
+		// Use Surface
+        m_imgui->disabled_begin(!can_use_surface);
+        const bool* def_use_surface = stored_style ? &stored_style->projection.use_surface : nullptr;
+
+        if (rev_checkbox(tr.use_surface, use_surface, def_use_surface, _u8L("Revert using of model surface."))) {
+            if (use_surface)
+                // when using surface distance is not used
+                current_style.distance.reset();
+            process();
+        }
+        m_imgui->disabled_end(); // !can_use_surface
+
+		// Per Glyph
+        bool& per_glyph         = font_prop.per_glyph;
+        bool  can_use_per_glyph = (per_glyph) ? true : // already used surface must have option to uncheck
+                                               !is_the_only_one_part;
+        m_imgui->disabled_begin(!can_use_per_glyph);
+        const bool* def_per_glyph = stored_style ? &stored_style->prop.per_glyph : nullptr;
+        if (rev_checkbox(tr.per_glyph, per_glyph, def_per_glyph, _u8L("Revert Transformation per glyph."))) {
+            if (per_glyph && !m_text_lines.is_init())
+                reinit_text_lines();
+            process();
+        } else if (ImGui::IsItemHovered()) {
+            if (per_glyph) {
+                m_imgui->tooltip(_u8L("Set global orientation for whole text."), m_gui_cfg->max_tooltip_width);
+            } else {
+                m_imgui->tooltip(_u8L("Set position and orientation per glyph."), m_gui_cfg->max_tooltip_width);
+                if (!m_text_lines.is_init())
+                    reinit_text_lines();
+            }
+        } else if (!per_glyph && m_text_lines.is_init())
+            m_text_lines.reset();
+        m_imgui->disabled_end(); // !can_use_per_glyph
+
+        if (is_moved) {
+            if (font_prop.per_glyph) {
+                process(false);
+            } else {
+                do_local_z_move(m_parent.get_selection(), distance.value_or(.0f) - prev_distance);
+            }
+        }
+
+        // Apply move to model(backend)
+        if (m_imgui->get_last_slider_status().deactivated_after_edit) {
+            m_parent.do_move(move_snapshot_name);
+            if (font_prop.per_glyph)
+                process();
+        }
+
+        m_imgui->disabled_end(); // allowe_surface_distance
+
+		// input surface distance
+		bool                  allowe_surface_distance = !use_surface && !m_volume->is_the_only_one_part();
+		float                 min_distance            = static_cast<float>(-2 * current_style.projection.depth);
+		float                 max_distance            = static_cast<float>(2 * current_style.projection.depth);
+		auto                  def_distance            = stored_style ? &stored_style->distance : nullptr;
+		m_imgui->disabled_begin(!allowe_surface_distance);
+		bool              use_inch          = wxGetApp().app_config->get_bool("use_inches");
+		const std::string undo_move_tooltip = _u8L("Undo translation");
+		const wxString    move_tooltip      = _L("Distance of the center of the text to the model surface.");
+		if (use_inch) {
+			std::optional<float> distance_inch;
+			if (distance.has_value())
+				distance_inch = (*distance * GizmoObjectManipulation::mm_to_in);
+			std::optional<float> def_distance_inch;
+			if (def_distance != nullptr) {
+				if (def_distance->has_value())
+					def_distance_inch = GizmoObjectManipulation::mm_to_in * (*(*def_distance));
+				def_distance = &def_distance_inch;
+			}
+			min_distance *= GizmoObjectManipulation::mm_to_in;
+			max_distance *= GizmoObjectManipulation::mm_to_in;
+			if (rev_slider(tr.from_surface, distance_inch, def_distance, undo_move_tooltip, min_distance, max_distance, "%.3f in",
+						   move_tooltip)) {
+				if (distance_inch.has_value()) {
+					distance = *distance_inch * GizmoObjectManipulation::in_to_mm;
+				} else {
+					distance.reset();
+				}
+				is_moved = true;
+			}
+		} else {
+			if (rev_slider(tr.from_surface, distance, def_distance, undo_move_tooltip, min_distance, max_distance, "%.2f mm", move_tooltip))
+				is_moved = true;
+		}
     }
 
     // when more collection add selector
@@ -2980,6 +3036,8 @@ void GLGizmoEmboss::draw_advanced()
             m_text_lines.reset();
         process(last_change);
     }
+
+	ImGui::SetCursorPosX(m_gui_cfg->window_left);
 
     if (ImGui::Button(_u8L("Set text to face camera").c_str())) {
         assert(get_selected_volume(m_parent.get_selection()) == m_volume);
@@ -3600,10 +3658,13 @@ GuiCfg create_gui_configuration()
 {
     GuiCfg cfg; // initialize by default values;
 
-    float line_height = ImGui::GetTextLineHeight();
-    float line_height_with_spacing = ImGui::GetTextLineHeightWithSpacing();
-    float space = line_height_with_spacing - line_height;
+    int line_height = ImGui::GetTextLineHeight();
+    int line_height_with_spacing = ImGui::GetTextLineHeightWithSpacing();
+    int space = line_height_with_spacing - line_height;
     const ImGuiStyle &style  = ImGui::GetStyle();
+
+	cfg.space       = space;
+	cfg.window_left = style.WindowPadding.x;
 
     cfg.max_style_name_width = ImGui::CalcTextSize("Maximal font name, extended").x;
 
@@ -3623,6 +3684,9 @@ GuiCfg create_gui_configuration()
     // Select look of letter shape
     tr.font   = _u8L("Font");
     // TRN - Input label. Be short as possible
+    // Select presets
+    tr.style = _u8L("Style"); // ORCA added missing element
+    // TRN - Input label. Be short as possible
     // Height of one text line - Font Ascent
     tr.height = _u8L("Height");
     // TRN - Input label. Be short as possible
@@ -3630,7 +3694,6 @@ GuiCfg create_gui_configuration()
     tr.depth  = _u8L("Depth");
 
     float max_text_width = std::max({
-        ImGui::CalcTextSize(tr.font.c_str()).x,
         ImGui::CalcTextSize(tr.height.c_str()).x,
         ImGui::CalcTextSize(tr.depth.c_str()).x});
     cfg.indent       = static_cast<float>(cfg.icon_width);
@@ -3676,7 +3739,19 @@ GuiCfg create_gui_configuration()
     // this is numerical selector of font inside font collections
     tr.collection = _u8L("Collection");
 
-    float max_advanced_text_width = std::max({
+	int combo_box_offset = std::max({
+        ImGui::CalcTextSize(tr.font.c_str()).x,
+        ImGui::CalcTextSize(tr.style.c_str()).x,
+        ImGui::CalcTextSize(tr.height.c_str()).x,
+        ImGui::CalcTextSize(tr.depth.c_str()).x,
+    });
+
+	cfg.combo_box_offset = combo_box_offset + 3 * space + cfg.indent + cfg.icon_width;
+
+	cfg.combo_box_undo_offset = cfg.combo_box_offset - cfg.icon_width - space;
+
+
+    int max_advanced_text_width = std::max({
         ImGui::CalcTextSize(tr.use_surface.c_str()).x,
         ImGui::CalcTextSize(tr.per_glyph.c_str()).x,
         ImGui::CalcTextSize(tr.alignment.c_str()).x,
@@ -3685,13 +3760,16 @@ GuiCfg create_gui_configuration()
         ImGui::CalcTextSize(tr.boldness.c_str()).x,
         ImGui::CalcTextSize(tr.skew_ration.c_str()).x,
         ImGui::CalcTextSize(tr.from_surface.c_str()).x,
-        ImGui::CalcTextSize(tr.rotation.c_str()).x + cfg.icon_width + 2*space,
+        ImGui::CalcTextSize(tr.rotation.c_str()).x,
         ImGui::CalcTextSize(tr.keep_up.c_str()).x,
-        ImGui::CalcTextSize(tr.collection.c_str()).x });
-    cfg.advanced_input_offset = max_advanced_text_width
-        + 3 * space + cfg.indent;
+        ImGui::CalcTextSize(tr.collection.c_str()).x 
+	});
+    cfg.advanced_input_offset = max_advanced_text_width + 3 * space + cfg.indent + cfg.icon_width;
 
-    cfg.lock_offset = cfg.advanced_input_offset - (cfg.icon_width + space);
+	cfg.advanced_undo_offset = cfg.advanced_input_offset - cfg.icon_width - space;
+
+    cfg.lock_offset = ImGui::CalcTextSize(tr.rotation.c_str()).x + cfg.icon_width + space; //ORCA: Use lock icon closer to text so it will not overlap with revert icon
+
     // calculate window size
     float input_height = line_height_with_spacing + 2*style.FramePadding.y;
     float separator_height = 2 + style.FramePadding.y;

@@ -166,9 +166,12 @@ const ImVec4 ImGuiWrapper::COL_WINDOW_BG_DARK    = { 45 / 255.f, 45 / 255.f, 49 
 
 // ORCA
 
-const ImVec4 ImGuiWrapper::COL_ORCA              = to_ImVec4(ColorRGBA::ORCA());
-const ImVec4 ImGuiWrapper::COL_ORCA_LIGHT        = ImVec4(0.2f, 0.67f, 0.63f, 1.f); //Dark Theme hover color. Better to add for future use
-const ImVec4 ImGuiWrapper::COL_ORCA_DARK         = ImVec4(0.0f, 0.47f, 0.43f, 1.f); //Light Theme hover color. Better to add for future use
+const ImVec4 ImGuiWrapper::COL_ORCA				 = ImVec4(0.f, 0.59f, 0.53f, 1.f);
+const ImVec4 ImGuiWrapper::COL_ORCA_LIGHT        = ImVec4(0.2f, 0.67f, 0.63f, 1.f); //ORCA: Dark Theme hover color. Better to add for future use
+const ImVec4 ImGuiWrapper::COL_ORCA_DARK         = ImVec4(0.0f, 0.47f, 0.43f, 1.f); //ORCA: Light Theme hover color. Better to add for future use
+const ImVec4 ImGuiWrapper::COL_ORCA_ORANGE		 = ImVec4(1.0f, 0.43f, 0.f, 1.f);	//ORCA: Warning / Changed related color
+const ImVec4 ImGuiWrapper::COL_SELECTED_TEXT_BG  = ImVec4(0.f, 0.59f, 0.53f, 0.3f); //ORCA: Updated all selected text background colors
+
 
 int ImGuiWrapper::TOOLBAR_WINDOW_FLAGS = ImGuiWindowFlags_AlwaysAutoResize
                                  | ImGuiWindowFlags_NoMove
@@ -628,8 +631,8 @@ bool ImGuiWrapper::bbl_combo_with_filter(const char* label, const std::string& p
         is_new_open = true;
     }
     g.Style.ButtonTextAlign.x = ButtonTextAlignX;
-    ImGui::PopStyleVar();
-    ImGui::PopStyleColor();
+    ImGui::PopStyleVar(1);
+    ImGui::PopStyleColor(1);
     ImGui::BBLRenderArrow(window->DrawList, arrow_bb.Min + ImVec2(ImMax(0.0f, (arrow_size.x - g.FontSize) * 0.5f), ImMax(0.0f, (arrow_size.y - g.FontSize) * 0.5f)), ImGui::GetColorU32(ImGuiCol_Text), ImGuiDir_Down);
 
     if (is_new_open)
@@ -1030,23 +1033,24 @@ bool ImGuiWrapper::slider_float(const char* label, float* v, float v_min, float 
     if (clamp)
         *v = std::clamp(*v, v_min, v_max);
 
-    const ImGuiStyle& style = ImGui::GetStyle();
+    //const ImGuiStyle& style = ImGui::GetStyle();
     if (show_edit_btn) {
-        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 1, style.ItemSpacing.y });
-        ImGui::SameLine();
+        //ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 1, style.ItemSpacing.y });
+        ImGui::SameLine(0,0); // ORCA: Use on same line without spacing 
         std::wstring btn_name = ImGui::SliderFloatEditBtnIcon + boost::nowide::widen(str_label);
-        ImGui::PushStyleColor(ImGuiCol_Button, { 0.25f, 0.25f, 0.25f, 0.0f });
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, { 0.5f, 0.5f, 0.5f, 1.0f });
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, { 0.5f, 0.5f, 0.5f, 1.0f });
+        ImGui::PushStyleColor(ImGuiCol_Button, {0.f, 0.f, 0.f, 0.f});        // ORCA don't use decoration on edit button
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, {0.f, 0.f, 0.f, 0.f}); // ORCA don't use decoration on edit button
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, {0.f, 0.f, 0.f, 0.f});  // ORCA don't use decoration on edit button
+        ImGui::PushStyleColor(ImGuiCol_Border, {0.f, 0.f, 0.f, 0.f});        // ORCA don't use decoration on edit button
+
         if (ImGui::Button(into_u8(btn_name).c_str())) {
             ImGui::SetKeyboardFocusHere(-1);
             this->set_requires_extra_frame();
         }
-        ImGui::PopStyleColor(3);
         if (ImGui::IsItemHovered())
             this->tooltip(into_u8(_L("Edit")).c_str(), max_tooltip_width);
-
-        ImGui::PopStyleVar();
+        //ImGui::PopStyleVar(1);
+        ImGui::PopStyleColor(4);
     }
 
     if (label_visible) {
@@ -1056,10 +1060,10 @@ bool ImGuiWrapper::slider_float(const char* label, float* v, float v_min, float 
         if (pos != std::string::npos)
             out_label = out_label.substr(0, pos);
 
-        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 1, style.ItemSpacing.y });
-        ImGui::SameLine();
+        //ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 1, style.ItemSpacing.y });
+        ImGui::SameLine(0, 0); // ORCA: Use on same line without spacing
         this->text(out_label.c_str());
-        ImGui::PopStyleVar();
+        //ImGui::PopStyleVar(1);
     }
 
     return ret;
@@ -1405,8 +1409,8 @@ static bool selectable(const char* label, bool selected, ImGuiSelectableFlags fl
 
     if (flags & ImGuiSelectableFlags_Disabled) ImGui::PushStyleColor(ImGuiCol_Text, style.Colors[ImGuiCol_TextDisabled]);
     ImGui::RenderTextClipped(text_min, text_max, marked_label, NULL, &label_size, style.SelectableTextAlign, &bb);
-    if (flags & ImGuiSelectableFlags_Disabled) ImGui::PopStyleColor();
-    if (hovered || selected) ImGui::PopStyleColor();
+    if (flags & ImGuiSelectableFlags_Disabled) ImGui::PopStyleColor(1);
+    if (hovered || selected) ImGui::PopStyleColor(1);
 
     if (out_hovered) *out_hovered = hovered;
 
@@ -1633,7 +1637,7 @@ bool menu_item_with_icon(const char *label, const char *shortcut, ImVec2 icon_si
         if (shortcut_w > 0.0f) {
             ImGui::PushStyleColor(ImGuiCol_Text, g.Style.Colors[ImGuiCol_TextDisabled]);
             ImGui::RenderText(pos + ImVec2(window->DC.MenuColumns.Pos[1] + extra_w, 0.0f), shortcut, NULL, false);
-            ImGui::PopStyleColor();
+            ImGui::PopStyleColor(1);
         }
         if (selected) {
             //ImGui::RenderCheckMark(window->DrawList, pos + ImVec2(window->DC.MenuColumns.Pos[2] + extra_w + g.FontSize * 0.40f, g.FontSize * 0.134f * 0.5f),
@@ -2394,7 +2398,7 @@ void ImGuiWrapper::push_toolbar_style(const float scale)
         ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(84 / 255.0f, 84 / 255.0f, 90 / 255.0f, 1.00f));         // 9
         ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(62 / 255.0f, 62 / 255.0f, 69 / 255.0f, 1.00f));          // 10
         ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(238 / 255.0f, 238 / 255.0f, 238 / 255.0f, 0.00f));             // 11
-        ImGui::PushStyleColor(ImGuiCol_TextSelectedBg, ImVec4(43 / 255.0f, 64 / 255.0f, 54 / 255.0f, 1.00f));         // 12
+        ImGui::PushStyleColor(ImGuiCol_TextSelectedBg, COL_SELECTED_TEXT_BG);									      // 12  // ORCA: Use Orca color
         ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(1.00f, 1.00f, 1.00f, 1.00f));                                // 13
         ImGui::PushStyleColor(ImGuiCol_ScrollbarGrab, ImVec4(0.42f, 0.42f, 0.42f, 1.00f));                            // 14
         ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabHovered, ImVec4(0.93f, 0.93f, 0.93f, 1.00f));                     // 15
@@ -2418,7 +2422,7 @@ void ImGuiWrapper::push_toolbar_style(const float scale)
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(172 / 255.0f, 172 / 255.0f, 172 / 255.0f, 1.00f));                        // 9
         ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(238 / 255.0f, 238 / 255.0f, 238 / 255.0f, 1.00f));  // 10
         ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(238 / 255.0f, 238 / 255.0f, 238 / 255.0f, 0.00f));        // 11
-        ImGui::PushStyleColor(ImGuiCol_TextSelectedBg, COL_GREEN_LIGHT);                                     // 12
+        ImGui::PushStyleColor(ImGuiCol_TextSelectedBg, COL_SELECTED_TEXT_BG);     // 12		// ORCA: Use Orca color
         ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(1.00f, 1.00f, 1.00f, 1.00f));//13
         ImGui::PushStyleColor(ImGuiCol_ScrollbarGrab, ImVec4(0.42f, 0.42f, 0.42f, 1.00f));
         ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabHovered, ImVec4(0.93f, 0.93f, 0.93f, 1.00f));
@@ -2482,7 +2486,7 @@ void ImGuiWrapper::push_common_window_style(const float scale) {
         ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(62 / 255.0f, 62 / 255.0f, 69 / 255.0f, 1.00f));     // 10
         ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(238 / 255.0f, 238 / 255.0f, 238 / 255.0f, 0.00f));        // 11
         ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(1.00f, 1.00f, 1.00f, 1.00f));                           // 12
-        ImGui::PushStyleColor(ImGuiCol_TextSelectedBg, ImVec4(43 / 255.0f, 64 / 255.0f, 54 / 255.0f, 1.00f));    // 13
+        ImGui::PushStyleColor(ImGuiCol_TextSelectedBg, COL_SELECTED_TEXT_BG);                               // 13
         ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ImVec4(0.00f, 0.59f, 0.53f, 1.00f));                       // 14
     }
     else {
@@ -2503,7 +2507,7 @@ void ImGuiWrapper::push_common_window_style(const float scale) {
         ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(238 / 255.0f, 238 / 255.0f, 238 / 255.0f, 1.00f));  // 10
         ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(238 / 255.0f, 238 / 255.0f, 238 / 255.0f, 0.00f));        // 11
         ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(1.00f, 1.00f, 1.00f, 1.00f));                           // 12
-        ImGui::PushStyleColor(ImGuiCol_TextSelectedBg, ImGuiWrapper::COL_GREEN_LIGHT);                           // 13
+        ImGui::PushStyleColor(ImGuiCol_TextSelectedBg, COL_SELECTED_TEXT_BG);                               // 13
         ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ImVec4(0.00f, 0.59f, 0.53f, 1.00f));                       // 14
     }
 }
@@ -2588,6 +2592,7 @@ void ImGuiWrapper::push_combo_style(const float scale)
         ImGui::PushStyleColor(ImGuiCol_Header, COL_ORCA);
         ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, ImGuiWrapper::COL_WINDOW_BG_DARK);
         ImGui::PushStyleColor(ImGuiCol_Button, {1.00f, 1.00f, 1.00f, 0.0f});
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, to_ImVec4(to_rgba(ColorRGB::ORCA(), 0.1f))); // ORCA: Match style with other components
     } else {
         ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 1.0f * scale);
         ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f * scale);
@@ -2598,13 +2603,14 @@ void ImGuiWrapper::push_combo_style(const float scale)
         ImGui::PushStyleColor(ImGuiCol_Header, COL_ORCA);
         ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, ImGuiWrapper::COL_WINDOW_BG);
         ImGui::PushStyleColor(ImGuiCol_Button, {1.00f, 1.00f, 1.00f, 0.0f});
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, to_ImVec4(to_rgba(ColorRGB::ORCA(), 0.1f))); // ORCA: Match style with other components
     }
 }
 
 void ImGuiWrapper::pop_combo_style()
 {
     ImGui::PopStyleVar(2);
-    ImGui::PopStyleColor(7);
+    ImGui::PopStyleColor(8);
 }
 
 void ImGuiWrapper::push_radio_style()
@@ -2881,7 +2887,7 @@ void ImGuiWrapper::init_style()
     set_color(ImGuiCol_FrameBgActive, COL_GREY_LIGHT);
 
     // Text selection
-    set_color(ImGuiCol_TextSelectedBg, COL_ORANGE_DARK);
+    set_color(ImGuiCol_TextSelectedBg, COL_SELECTED_TEXT_BG); // ORCA:
 
     // Buttons
     set_color(ImGuiCol_Button, COL_BUTTON_BACKGROUND);

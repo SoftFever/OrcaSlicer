@@ -341,7 +341,8 @@ public:
     static const ImVec4 COL_ORCA;
     static const ImVec4 COL_ORCA_LIGHT;
     static const ImVec4 COL_ORCA_DARK;
-    static const ImVec4 COL_GREY_BALANCED;
+    static const ImVec4 COL_ORCA_ORANGE;
+    static const ImVec4 COL_SELECTED_TEXT_BG;
 
     //BBS
     static void on_change_color_mode(bool is_dark);
