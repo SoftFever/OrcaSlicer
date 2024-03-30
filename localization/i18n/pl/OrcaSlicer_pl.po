@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-24 12:51+0100\n"
+"POT-Creation-Date: 2024-03-29 21:10+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Krzysztof Morga <tlumaczeniebs@gmail.com>\n"
 "Language-Team: \n"
@@ -11890,6 +11890,18 @@ msgstr ""
 "wskazuje na brak ostrych narożników), zostanie użyty szew ukośny. Domyślna "
 "wartość to 155°."
 
+msgid "Conditional overhang threshold"
+msgstr ""
+
+#, no-c-format, no-boost-format
+msgid ""
+"This option determines the overhang threshold for the application of scarf "
+"joint seams. If the unsupported portion of the perimeter is less than this "
+"threshold, scarf joint seams will be applied. The default threshold is set "
+"at 40% of the external wall's width. Due to performance considerations, the "
+"degree of overhang is estimated."
+msgstr ""
+
 msgid "Scarf joint speed"
 msgstr "Prędkość szwu ukośnego"
 
@@ -15160,9 +15172,6 @@ msgstr ""
 msgid "Something unexpected happened when trying to log in, please try again."
 msgstr "Wystąpił problem podczas próby logowania, proszę spróbować ponownie."
 
-msgid "Timeout when authenticating with the account server."
-msgstr "Przekroczono limit czasu serwera podczas uwierzytelniania."
-
 msgid "User cancelled."
 msgstr "Anulowane przez użytkownika."
 
@@ -15552,6 +15561,9 @@ msgstr ""
 "Czy wiesz, że podczas drukowania filamentami podatnymi na odkształcenia, "
 "takimi jak ABS, odpowiednie zwiększenie temperatury podgrzewanej płyty może "
 "zmniejszyć prawdopodobieństwo odkształceń."
+
+#~ msgid "Timeout when authenticating with the account server."
+#~ msgstr "Przekroczono limit czasu serwera podczas uwierzytelniania."
 
 #~ msgid ""
 #~ "Air filtration/Exhuast Fan\n"

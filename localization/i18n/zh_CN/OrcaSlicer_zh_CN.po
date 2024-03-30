@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-23 13:08+0800\n"
+"POT-Creation-Date: 2024-03-29 21:10+0800\n"
 "PO-Revision-Date: 2023-04-01 13:21+0800\n"
 "Last-Translator: SoftFever <softfeverever@gmail.com>\n"
 "Language-Team: \n"
@@ -10867,6 +10867,10 @@ msgstr "显示雷达标定线"
 msgid "Disable set remaining print time"
 msgstr "禁用M73剩余打印时间"
 
+msgid ""
+"Disable generating of the M73: Set remaining print time in the final gcode"
+msgstr ""
+
 msgid "Seam position"
 msgstr "接缝位置"
 
@@ -10930,6 +10934,20 @@ msgstr ""
 "此选项设置判断是否应用斜拼接缝的角度阈值。\n"
 "如果围墙环内的最大角度超过了这个值（表示没有足够锐的角），则使用斜拼接缝接"
 "缝。默认值为155°。"
+
+msgid "Conditional overhang threshold"
+msgstr "悬垂阈值"
+
+#, no-c-format, no-boost-format
+msgid ""
+"This option determines the overhang threshold for the application of scarf "
+"joint seams. If the unsupported portion of the perimeter is less than this "
+"threshold, scarf joint seams will be applied. The default threshold is set "
+"at 40% of the external wall's width. Due to performance considerations, the "
+"degree of overhang is estimated."
+msgstr ""
+"此选项设置斜拼接缝应用的悬垂阈值。如果围墙的未支撑部分小于此阈值，则应用斜拼"
+"接缝接缝。默认阈值设置为外墙宽度的40%。由于性能考虑，悬垂程度是粗略估算。"
 
 msgid "Scarf joint speed"
 msgstr "斜拼接缝速度"
@@ -11965,13 +11983,12 @@ msgid ""
 "top-surface. 'One wall threshold' is only visibile if this setting is set "
 "above the default value of 0.5, or if single-wall top surfaces is enabled."
 msgstr ""
-"调整这个值以省略打印短的、未闭合的墙，这些可能会增加打印时间。设置较高的值将移除更"
-"多和更长的墙。\n"
+"调整这个值以省略打印短的、未闭合的墙，这些可能会增加打印时间。设置较高的值将"
+"移除更多和更长的墙。\n"
 "\n"
-"注意：底部和顶部表面不会受到这个值的影响，以防止模型外部出现肉眼可见间隙。调整下面"
-"的高级设置中的“单层墙阈值”来调整什么被认为是顶部表面的敏感度。只有当这个设置高"
-"于默认值0.5，或者启用了单层顶部表面时，“单层墙阈值”才会显示。"
-
+"注意：底部和顶部表面不会受到这个值的影响，以防止模型外部出现肉眼可见间隙。调"
+"整下面的高级设置中的“单层墙阈值”来调整什么被认为是顶部表面的敏感度。只有当这"
+"个设置高于默认值0.5，或者启用了单层顶部表面时，“单层墙阈值”才会显示。"
 
 msgid "First layer minimum wall width"
 msgstr "首层墙最小线宽"
@@ -13830,6 +13847,47 @@ msgid ""
 "Message body: \"%1%\"\n"
 "Error: \"%2%\""
 msgstr "主机打印机的枚举失败。消息体：\"%1%\"错误：\"%2%\""
+
+msgid "Connected to Obico successfully!"
+msgstr ""
+
+msgid "Could not connect to Obico"
+msgstr ""
+
+msgid "Connected to SimplyPrint successfully!"
+msgstr ""
+
+msgid "Could not connect to SimplyPrint"
+msgstr ""
+
+msgid "SimplyPrint account not linked. Go to Connect options to set it up."
+msgstr ""
+
+msgid ""
+"File size exceeds the 100MB upload limit. Please upload your file through "
+"the panel."
+msgstr ""
+
+msgid "Unknown error"
+msgstr ""
+
+msgid "Connection to Flashforge works correctly."
+msgstr ""
+
+msgid "Could not connect to Flashforge"
+msgstr ""
+
+msgid "The provided state is not correct."
+msgstr ""
+
+msgid "Please give the required permissions when authorizing this application."
+msgstr ""
+
+msgid "Something unexpected happened when trying to log in, please try again."
+msgstr ""
+
+msgid "User cancelled."
+msgstr ""
 
 #: resources/data/hints.ini: [hint:Precise wall]
 msgid ""
