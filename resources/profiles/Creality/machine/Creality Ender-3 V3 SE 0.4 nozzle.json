@@ -119,7 +119,5 @@
 	"scan_first_layer": "0",
 	"disable_m73": "1",
 	"thumbnails": [
-		"96x96",
-		"300x300"
 	]
 }
