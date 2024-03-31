@@ -28,44 +28,44 @@
 	"nozzle_type": "brass",
 	"auxiliary_fan": "0",
 	"machine_max_acceleration_extruding": [
-		"5000",
-		"5000"
+		"2500",
+		"2500"
 	],
 	"machine_max_acceleration_retracting": [
 		"2500",
 		"2500"
 	],
 	"machine_max_acceleration_travel": [
-		"5000",
-		"5000"
+		"2500",
+		"2500"
 	],
 	"machine_max_acceleration_x": [
-		"5000",
-		"5000"
+		"2500",
+		"2500"
 	],
 	"machine_max_acceleration_y": [
-		"5000",
-		"5000"
+		"2500",
+		"2500"
 	],
 	"machine_max_acceleration_z": [
 		"500",
 		"500"
 	],
 	"machine_max_speed_e": [
-		"100",
-		"100"
+		"40",
+		"40"
 	],
 	"machine_max_speed_x": [
-		"500",
-		"500"
+		"250",
+		"250"
 	],
 	"machine_max_speed_y": [
-		"500",
-		"500"
+		"250",
+		"250"
 	],
 	"machine_max_speed_z": [
-		"30",
-		"30"
+		"5",
+		"5"
 	],
 	"machine_max_jerk_e": [
 		"5",
