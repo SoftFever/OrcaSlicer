@@ -1156,7 +1156,8 @@ void Sidebar::update_all_preset_comboboxes()
         else {
             if (!url.Lower().starts_with("http"))
                 url = wxString::Format("http://%s", url);
-            if (cfg.has("printhost_apikey"))
+            const auto host_type = cfg.option<ConfigOptionEnum<PrintHostType>>("host_type")->value;
+            if (cfg.has("printhost_apikey") && (host_type != htSimplyPrint))
                 apikey = cfg.opt_string("printhost_apikey");
             print_btn_type = MainFrame::PrintSelectType::eSendGcode;
         }
