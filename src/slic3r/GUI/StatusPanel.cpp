@@ -2531,6 +2531,7 @@ void StatusPanel::update_ams(MachineObject *obj)
             m_ams_setting_dlg->update_starting_read_mode(obj->ams_power_on_flag);
             m_ams_setting_dlg->update_remain_mode(obj->ams_calibrate_remain_flag);
             m_ams_setting_dlg->update_switch_filament(obj->ams_auto_switch_filament_flag);
+            m_ams_setting_dlg->update_air_printing_detection(obj->ams_air_print_status);
         }
     }
     if (m_filament_setting_dlg) { m_filament_setting_dlg->obj = obj; }

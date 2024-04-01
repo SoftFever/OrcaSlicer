@@ -1390,6 +1390,12 @@ void MachineObject::parse_status(int flag)
     if(!is_support_motor_noise_cali){
         is_support_motor_noise_cali = ((flag >> 21) & 0x1) != 0;
     }
+
+    is_support_nozzle_blob_detection = ((flag >> 25) & 0x1) != 0;
+    nozzle_blob_detection_enabled = ((flag >> 24) & 0x1) != 0;
+
+    is_support_air_print_detection = ((flag >> 29) & 0x1) != 0;
+    ams_air_print_status = ((flag >> 28) & 0x1) != 0;
     
     if (!is_support_p1s_plus) {
         auto supported_plus = ((flag >> 27) & 0x1) != 0;
@@ -1984,6 +1990,16 @@ int MachineObject::command_set_printing_option(bool auto_recovery)
     return this->publish_json(j.dump());
 }
 
+int MachineObject::command_nozzle_blob_detect(bool nozzle_blob_detect)
+{
+    json j;
+    j["print"]["command"] = "print_option";
+    j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+    j["print"]["nozzle_blob_detect"] = nozzle_blob_detect;
+    nozzle_blob_detection_enabled = nozzle_blob_detect;
+    return this->publish_json(j.dump());
+}
+
 int MachineObject::command_set_prompt_sound(bool prompt_sound){
     json j;
     j["print"]["command"] = "print_option";
@@ -2012,6 +2028,19 @@ int MachineObject::command_ams_switch_filament(bool switch_filament)
     ams_auto_switch_filament_flag = switch_filament;
     BOOST_LOG_TRIVIAL(trace) << "command_ams_filament_settings:" << switch_filament;
     ams_print_option_count = HOLD_COUNT_MAX;
+
+    return this->publish_json(j.dump());
+}
+
+int MachineObject::command_ams_air_print_detect(bool air_print_detect)
+{
+    json j;
+    j["print"]["command"] = "print_option";
+    j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+    j["print"]["air_print_detect"] = air_print_detect;
+
+    ams_air_print_status = air_print_detect;
+    BOOST_LOG_TRIVIAL(trace) << "command_ams_air_print_detect:" << air_print_detect;
 
     return this->publish_json(j.dump());
 }

@@ -488,6 +488,7 @@ public:
     bool  ams_power_on_flag { false };
     bool  ams_calibrate_remain_flag { false };
     bool  ams_auto_switch_filament_flag  { false };
+    bool  ams_air_print_status { false };
     bool  ams_support_use_ams { false };
     bool  ams_support_virtual_tray { true };
     int   ams_humidity;
@@ -615,6 +616,7 @@ public:
     int     curr_layer = 0;
     int     total_layers = 0;
     bool    is_support_layer_num { false };
+    bool    nozzle_blob_detection_enabled{ false };
 
     int cali_version = -1;
     float                      cali_selected_nozzle_dia { 0.0 };
@@ -754,6 +756,8 @@ public:
     bool is_support_wait_sending_finish{false};
     bool is_support_user_preset{false};
     bool is_support_p1s_plus{false};
+    bool is_support_nozzle_blob_detection{false};
+    bool is_support_air_print_detection{false};
 
     int  nozzle_max_temperature = -1;
     int  bed_temperature_limit = -1;
@@ -844,6 +848,7 @@ public:
     int command_ams_user_settings(int ams_id, bool start_read_opt, bool tray_read_opt, bool remain_flag = false);
     int command_ams_user_settings(int ams_id, AmsOptionType op, bool value);
     int command_ams_switch_filament(bool switch_filament);
+    int command_ams_air_print_detect(bool air_print_detect);
     int command_ams_calibrate(int ams_id);
     int command_ams_filament_settings(int ams_id, int tray_id, std::string filament_id, std::string setting_id, std::string tray_color, std::string tray_type, int nozzle_temp_min, int nozzle_temp_max);
     int command_ams_select_tray(std::string tray_id);
@@ -867,6 +872,8 @@ public:
 
     // set print option
     int command_set_printing_option(bool auto_recovery);
+
+    int command_nozzle_blob_detect(bool nozzle_blob_detect);
 
     // axis string is X, Y, Z, E
     int command_axis_control(std::string axis, double unit = 1.0f, double input_val = 1.0f, int speed = 3000);

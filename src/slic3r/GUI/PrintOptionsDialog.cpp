@@ -67,6 +67,12 @@ PrintOptionsDialog::PrintOptionsDialog(wxWindow* parent)
         }
         evt.Skip();
     });
+    m_cb_nozzle_blob->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent& evt) {
+        if (obj) {
+            obj->command_nozzle_blob_detect(m_cb_nozzle_blob->GetValue());
+        }
+        evt.Skip();
+        });
 
     wxGetApp().UpdateDlgDarkUI(this);
 }
@@ -163,6 +169,18 @@ void PrintOptionsDialog::update_options(MachineObject* obj_)
         m_cb_filament_tangle->Hide();
         line6->Hide();
     }
+    if (obj_->is_support_nozzle_blob_detection) {
+        text_nozzle_blob->Show();
+        m_cb_nozzle_blob->Show();
+        text_nozzle_blob_caption->Show();
+        line7->Show();
+    }
+    else {
+        text_nozzle_blob->Hide();
+        m_cb_nozzle_blob->Hide();
+        text_nozzle_blob_caption->Hide();
+        line7->Hide();
+    }
 
     this->Freeze();
     
@@ -171,6 +189,7 @@ void PrintOptionsDialog::update_options(MachineObject* obj_)
     m_cb_auto_recovery->SetValue(obj_->xcam_auto_recovery_step_loss);
     m_cb_sup_sound->SetValue(obj_->xcam_allow_prompt_sound);
     m_cb_filament_tangle->SetValue(obj_->xcam_filament_tangle_detect);
+    m_cb_nozzle_blob->SetValue(obj_->nozzle_blob_detection_enabled);
 
     m_cb_ai_monitoring->SetValue(obj_->xcam_ai_monitoring);
     for (auto i = AiMonitorSensitivityLevel::LOW; i < LEVELS_NUM; i = (AiMonitorSensitivityLevel) (i + 1)) {
@@ -325,6 +344,33 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     line6 = new StaticLine(parent, false);
     line6->SetLineColour(STATIC_BOX_LINE_COL);
     sizer->Add(line6, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
+    sizer->Add(0, 0, 0, wxTOP, FromDIP(20));
+
+    //nozzle blob detect
+    line_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_cb_nozzle_blob = new CheckBox(parent);
+    text_nozzle_blob = new wxStaticText(parent, wxID_ANY, _L("Nozzle Clumping Detection"));
+    text_nozzle_blob->SetFont(Label::Body_14);
+    line_sizer->Add(FromDIP(5), 0, 0, 0);
+    line_sizer->Add(m_cb_nozzle_blob, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
+    line_sizer->Add(text_nozzle_blob, 1, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
+    sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
+    sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
+    line_sizer->Add(FromDIP(5), 0, 0, 0);
+
+    line_sizer = new wxBoxSizer(wxHORIZONTAL);
+    wxString nozzle_blob_caption_text = _L("Check if the nozzle is clumping by filament or other foreign objects.");
+    text_nozzle_blob_caption = new Label(parent, nozzle_blob_caption_text);
+    text_nozzle_blob_caption->SetFont(Label::Body_14);
+    text_nozzle_blob_caption->Wrap(-1);
+    text_nozzle_blob_caption->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
+    line_sizer->Add(FromDIP(30), 0, 0, 0);
+    line_sizer->Add(text_nozzle_blob_caption, 1, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(0));
+    sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
+
+    line7 = new StaticLine(parent, false);
+    line7->SetLineColour(STATIC_BOX_LINE_COL);
+    sizer->Add(line7, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
 
     ai_monitoring_level_list->Connect( wxEVT_COMBOBOX, wxCommandEventHandler(PrintOptionsDialog::set_ai_monitor_sensitivity), NULL, this );
 
