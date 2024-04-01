@@ -18,6 +18,6 @@ The drop down menus where you can see and select presets
 
 ## [`Tab`](../../src/slic3r/GUI/Tab.hpp)
 
-Refers to the pop windows that open when you click the edit preset button
+Refers to the various windows with settings. e.g. the Popup to edit printer or filament preset. Also the section to edit process preset and the object list. These 4 are managed by `TabPrinter`, `TabFilament`, `TabPrint` and `TabPrintModel` respectively.
 
 <img src="../images/tab-popup.png" alt="Example Image" width="320">

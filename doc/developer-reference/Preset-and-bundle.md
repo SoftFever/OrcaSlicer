@@ -30,7 +30,7 @@ This is a bundle containing a few types of `PresetCollection`. One bundle has pr
 
 each one of these contains a collection of processes, filaments and printers respectively.\
 
-#### Clarification Needed: It is unclear to me if `printers` contain different nozzle sizes of the same printer model or all different printers models by the same vendor or something else. Feel free to add clarification.
+#### Note: Printers, filaments and processes in the bundle don't all have to be compatible with each other. In fact all the saved presets are stored in one `PresetBundle`. The `PresetBundle` is loaded on start up. The list of filaments and processes shown for a particular printer is a subset of `filaments` and `prints` `PresetCollection`s.
 
 ## [`PresetCollection`](../../src/libslic3r/Preset.hpp)
 
