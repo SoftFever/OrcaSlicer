@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-23 13:08+0800\n"
+"POT-Creation-Date: 2024-03-29 21:10+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -10407,6 +10407,10 @@ msgstr ""
 msgid "Disable set remaining print time"
 msgstr ""
 
+msgid ""
+"Disable generating of the M73: Set remaining print time in the final gcode"
+msgstr ""
+
 msgid "Seam position"
 msgstr ""
 
@@ -10466,6 +10470,18 @@ msgid ""
 "If the maximum angle within the perimeter loop exceeds this value "
 "(indicating the absence of sharp corners), a scarf joint seam will be used. "
 "The default value is 155°."
+msgstr ""
+
+msgid "Conditional overhang threshold"
+msgstr ""
+
+#, no-c-format, no-boost-format
+msgid ""
+"This option determines the overhang threshold for the application of scarf "
+"joint seams. If the unsupported portion of the perimeter is less than this "
+"threshold, scarf joint seams will be applied. The default threshold is set "
+"at 40% of the external wall's width. Due to performance considerations, the "
+"degree of overhang is estimated."
 msgstr ""
 
 msgid "Scarf joint speed"
@@ -13154,6 +13170,47 @@ msgid ""
 "Enumeration of host printers failed.\n"
 "Message body: \"%1%\"\n"
 "Error: \"%2%\""
+msgstr ""
+
+msgid "Connected to Obico successfully!"
+msgstr ""
+
+msgid "Could not connect to Obico"
+msgstr ""
+
+msgid "Connected to SimplyPrint successfully!"
+msgstr ""
+
+msgid "Could not connect to SimplyPrint"
+msgstr ""
+
+msgid "SimplyPrint account not linked. Go to Connect options to set it up."
+msgstr ""
+
+msgid ""
+"File size exceeds the 100MB upload limit. Please upload your file through "
+"the panel."
+msgstr ""
+
+msgid "Unknown error"
+msgstr ""
+
+msgid "Connection to Flashforge works correctly."
+msgstr ""
+
+msgid "Could not connect to Flashforge"
+msgstr ""
+
+msgid "The provided state is not correct."
+msgstr ""
+
+msgid "Please give the required permissions when authorizing this application."
+msgstr ""
+
+msgid "Something unexpected happened when trying to log in, please try again."
+msgstr ""
+
+msgid "User cancelled."
 msgstr ""
 
 #: resources/data/hints.ini: [hint:Precise wall]

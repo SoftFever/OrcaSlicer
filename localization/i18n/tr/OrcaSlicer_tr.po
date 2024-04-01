@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OrcaSlicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-23 13:08+0800\n"
-"PO-Revision-Date: 2024-03-14 22:00+0300\n"
+"POT-Creation-Date: 2024-03-29 21:10+0800\n"
+"PO-Revision-Date: 2024-03-29 21:50+0300\n"
 "Last-Translator: Olcay ÖREN\n"
 "Language-Team: Türkçe\n"
 "Language: tr_TR\n"
@@ -3446,6 +3446,8 @@ msgid ""
 "seam_slope_start_height need to be smaller than layer_height.\n"
 "Reset to 0."
 msgstr ""
+"Dikiş eğimi başlangıç ​​yüksekliğinin katman yüksekliğinden daha küçük olması gerekir.\n"
+"0 a sıfırla."
 
 msgid "Auto bed leveling"
 msgstr "Otomatik yatak tesviyesi"
@@ -6121,7 +6123,7 @@ msgid "Stealth Mode"
 msgstr "Gizli mod"
 
 msgid "Enable network plugin"
-msgstr ""
+msgstr "Ağ eklentisini etkinleştir"
 
 msgid "Check for stable updates only"
 msgstr "Yalnızca kararlı güncellemeleri kontrol edin"
@@ -6181,7 +6183,7 @@ msgid "If enabled, auto-calculate everytime the color changed."
 msgstr "Etkinleştirilirse, renk her değiştiğinde otomatik hesapla."
 
 msgid "Network"
-msgstr ""
+msgstr "Ağ"
 
 msgid "Auto sync user presets(Printer/Filament/Process)"
 msgstr "Kullanıcı ön ayarları otomatik senkronizasyon (Yazıcı/Filament/İşlem)"
@@ -8766,10 +8768,10 @@ msgid "Printer preset names"
 msgstr "Yazıcı ön ayar adları"
 
 msgid "Use 3rd-party print host"
-msgstr ""
+msgstr "3. taraf yazdırma ana bilgisayarını kullanın"
 
 msgid "Allow controlling BambuLab's printer through 3rd party print hosts"
-msgstr ""
+msgstr "BambuLab yazıcısının 3. taraf yazdırma ana bilgisayarları aracılığıyla kontrol edilmesine izin ver"
 
 msgid "Hostname, IP or URL"
 msgstr "Ana bilgisayar adı, IP veya URL"
@@ -11650,6 +11652,11 @@ msgstr "Otomatik kalibrasyon işaretlerini göster"
 msgid "Disable set remaining print time"
 msgstr "Kalan yazdırma süresini ayarlamayı devre dışı bırak"
 
+msgid ""
+"Disable generating of the M73: Set remaining print time in the final gcode"
+msgstr ""
+"M73'ün oluşturulmasını devre dışı bırakın: Son gcode'da kalan yazdırma süresini ayarlayın"
+
 msgid "Seam position"
 msgstr "Dikiş konumu"
 
@@ -11725,6 +11732,23 @@ msgstr ""
 "Çevre halkası içindeki maksimum açı bu değeri aşarsa (keskin köşelerin "
 "bulunmadığını gösterir), bir atkı birleştirme dikişi kullanılacaktır. "
 "Varsayılan değer 155°'dir."
+
+msgid "Conditional overhang threshold"
+msgstr "Koşullu çıkıntı eşiği"
+
+#, no-c-format, no-boost-format
+msgid ""
+"This option determines the overhang threshold for the application of scarf "
+"joint seams. If the unsupported portion of the perimeter is less than this "
+"threshold, scarf joint seams will be applied. The default threshold is set "
+"at 40% of the external wall's width. Due to performance considerations, the "
+"degree of overhang is estimated."
+msgstr ""
+"Bu seçenek, atkı bağlantı dikişlerinin uygulanması için sarkma "
+"eşiğini belirler. Çevrenin desteklenmeyen kısmı bu eşikten az ise atkı "
+"birleştirme dikişleri uygulanacaktır. Varsayılan eşik, dış duvar genişliğinin "
+"%40'ına ayarlanmıştır. Performans değerlendirmeleri nedeniyle çıkıntının "
+"derecesi tahmin edilir."
 
 msgid "Scarf joint speed"
 msgstr "Atkı birleşim hızı"
@@ -14208,7 +14232,7 @@ msgid "Export Log"
 msgstr "Logu Dışa Aktar"
 
 msgid "OrcaSlicer Version:"
-msgstr ""
+msgstr "OrcaSlicer Sürümü:"
 
 msgid "System Version:"
 msgstr "Sistem Versiyonu:"
@@ -14217,10 +14241,10 @@ msgid "DNS Server:"
 msgstr "Dns sunucusu:"
 
 msgid "Test OrcaSlicer(GitHub)"
-msgstr ""
+msgstr "OrcaSlicer'ı (GitHub) test edin"
 
 msgid "Test OrcaSlicer(GitHub):"
-msgstr ""
+msgstr "OrcaSlicer'ı (GitHub) test edin:"
 
 msgid "Test Bing.com"
 msgstr "Bing.com'u test edin"
@@ -14746,7 +14770,7 @@ msgid "Success!"
 msgstr "Başarılı!"
 
 msgid "Are you sure to log out?"
-msgstr ""
+msgstr "Çıkış yaptığınızdan emin misiniz?"
 
 msgid "Refresh Printers"
 msgstr "Yazıcıları Yenile"
@@ -14780,7 +14804,7 @@ msgstr ""
 "Anahtarlığa aktarın."
 
 msgid "Login/Test"
-msgstr ""
+msgstr "Giriş/Test"
 
 msgid "Connection to printers connected via the print host failed."
 msgstr ""
@@ -14918,6 +14942,49 @@ msgstr ""
 "Ana yazıcıların numaralandırılması başarısız oldu.\n"
 "Mesaj gövdesi: \"%1%\"\n"
 "Hata: \"%2%\""
+
+msgid "Connected to Obico successfully!"
+msgstr "Obico'ya başarıyla bağlanıldı!"
+
+msgid "Could not connect to Obico"
+msgstr "Obico'ya bağlanılamadı"
+
+msgid "Connected to SimplyPrint successfully!"
+msgstr "SimplyPrint'e başarıyla bağlanıldı!"
+
+msgid "Could not connect to SimplyPrint"
+msgstr "SimplyPrint'e bağlanılamadı"
+
+msgid "SimplyPrint account not linked. Go to Connect options to set it up."
+msgstr "SimplyPrint hesabı bağlı değil. Ayarlamak için Bağlantı seçeneklerine gidin."
+
+msgid ""
+"File size exceeds the 100MB upload limit. Please upload your file through "
+"the panel."
+msgstr ""
+"Dosya boyutu 100 MB yükleme sınırını aşıyor. Lütfen dosyanızı panel "
+"üzerinden yükleyiniz."
+
+msgid "Unknown error"
+msgstr "Bilinmeyen hata"
+
+msgid "Connection to Flashforge works correctly."
+msgstr "Flashforge bağlantısı düzgün çalışıyor."
+
+msgid "Could not connect to Flashforge"
+msgstr "Flashforge'a bağlanılamadı"
+
+msgid "The provided state is not correct."
+msgstr "Sağlanan durum doğru değil."
+
+msgid "Please give the required permissions when authorizing this application."
+msgstr "Lütfen bu uygulamaya yetki verirken gerekli izinleri verin."
+
+msgid "Something unexpected happened when trying to log in, please try again."
+msgstr "Giriş yapmaya çalışırken beklenmeyen bir şey oldu, lütfen tekrar deneyin."
+
+msgid "User cancelled."
+msgstr "Kullanıcı iptal edildi."
 
 #: resources/data/hints.ini: [hint:Precise wall]
 msgid ""

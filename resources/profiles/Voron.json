@@ -1,6 +1,6 @@
 {
     "name": "Voron",
-    "version": "02.00.00.00",
+    "version": "02.00.02.00",
     "force_update": "0",
     "description": "Voron configurations",
     "machine_model_list": [
