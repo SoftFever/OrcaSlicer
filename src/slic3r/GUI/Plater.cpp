@@ -500,7 +500,7 @@ std::vector<int> get_min_flush_volumes()
     ConfigOption* nozzle_volume_opt = printer_config.option("nozzle_volume");
     int nozzle_volume_val = nozzle_volume_opt ? (int)nozzle_volume_opt->getFloat() : 0;
 
-    bool machine_enabled = printer_config.option<ConfigOptionBool>("enable_long_retraction_when_cut")->value;
+    int machine_enabled_level = printer_config.option<ConfigOptionInt>("enable_long_retraction_when_cut")->value;
     bool machine_activated = printer_config.option<ConfigOptionBools>("long_retractions_when_cut")->values[0] == 1;
 
     auto filament_retraction_distance_when_cut = full_config.option<ConfigOptionFloats>("filament_retraction_distances_when_cut");
@@ -510,14 +510,14 @@ std::vector<int> get_min_flush_volumes()
     size_t filament_size = filament_retraction_distance_when_cut->values.size();
     for (size_t idx = 0; idx < filament_size; ++idx) {
         int extra_flush_volume = nozzle_volume_val;
-        int retract_length = machine_enabled && machine_activated ? printer_retraction_distance_when_cut->values[0] : 0;
+        int retract_length = machine_enabled_level && machine_activated ? printer_retraction_distance_when_cut->values[0] : 0;
 
         char filament_activated = filament_long_retractions_when_cut->values[idx];
         double filament_retract_length = filament_retraction_distance_when_cut->values[idx];
 
-        if(filament_activated == 0)
+        if (filament_activated == 0)
             retract_length = 0;
-        else if (filament_activated == 1 && machine_enabled) {
+        else if (filament_activated == 1 && machine_enabled_level == LongRectrationLevel::EnableFilament) {
             if (!std::isnan(filament_retract_length))
                 retract_length = (int)filament_retraction_distance_when_cut->values[idx];
             else

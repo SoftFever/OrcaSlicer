@@ -3431,9 +3431,9 @@ def = this->add("filament_loading_speed", coFloats);
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionFloats { 0.8 });
 
-    def = this->add("enable_long_retraction_when_cut",coBool);
+    def = this->add("enable_long_retraction_when_cut",coInt);
     def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionBool {false});
+    def->set_default_value(new ConfigOptionInt {0});
 
     def = this->add("long_retractions_when_cut", coBools);
     def->label = L("Long retraction when cut(experimental)");
@@ -5004,7 +5004,9 @@ def = this->add("filament_loading_speed", coFloats);
         def->max        = it_opt->second.max;
         //BBS: shown specific filament retract config because we hide the machine retract into comDevelop mode
         if ((strcmp(opt_key, "retraction_length") == 0) ||
-            (strcmp(opt_key, "z_hop") == 0))
+            (strcmp(opt_key, "z_hop") == 0)||
+            (strcmp(opt_key, "long_retractions_when_cut") == 0)||
+            (strcmp(opt_key, "retraction_distances_when_cut") == 0))
             def->mode       = comSimple;
         else
             def->mode       = comAdvanced;

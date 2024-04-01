@@ -1052,7 +1052,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionPercents,            retract_before_wipe))
     ((ConfigOptionFloats,              retraction_length))
     ((ConfigOptionFloats,              retract_length_toolchange))
-    ((ConfigOptionBool,                enable_long_retraction_when_cut))
+    ((ConfigOptionInt,                 enable_long_retraction_when_cut))
     ((ConfigOptionFloats,              retraction_distances_when_cut))
     ((ConfigOptionBools,               long_retractions_when_cut))
     ((ConfigOptionFloats,              z_hop))

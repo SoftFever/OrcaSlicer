@@ -1646,7 +1646,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         if (activate == 1) {
             MessageDialog dialog(wxGetApp().plater(), 
             _L("Experimental feature: Retracting and cutting off the filament at a greater distance during filament changes to minimize flush."
-            "Although it can notably reduce flush, it may also elevate the risk of nozzle clogs or other printing complications."), "", wxICON_WARNING | wxOK);
+            "Although it can notably reduce flush, it may also elevate the risk of nozzle clogs or other printing complications.Please use with the latest printer firmware."), "", wxICON_WARNING | wxOK);
             dialog.ShowModal();
         }
         update_flush_volume();
@@ -3183,12 +3183,16 @@ void TabFilament::update_filament_overrides_page()
         Field* field = optgroup->get_fieldc(opt_key, extruder_idx);
         if (field != nullptr) {
             if (opt_key == "filament_long_retractions_when_cut") {
-                bool machine_enabled = wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionBool>("enable_long_retraction_when_cut")->value;
-                field->toggle(is_checked&&machine_enabled);
+                int machine_enabled_level = wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionInt>("enable_long_retraction_when_cut")->value;
+                bool machine_enabled = machine_enabled_level == LongRectrationLevel::EnableFilament;
+                toggle_line(opt_key, machine_enabled);
+                field->toggle(is_checked && machine_enabled);
             }
             else if (opt_key == "filament_retraction_distances_when_cut") {
-                bool machine_enabled = wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionBool>("enable_long_retraction_when_cut")->value;
-                bool filament_enabled = m_config->option<ConfigOptionBools>("filament_long_retractions_when_cut")->values[extruder_idx]==1;
+                int machine_enabled_level = wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionInt>("enable_long_retraction_when_cut")->value;
+                bool machine_enabled = machine_enabled_level == LongRectrationLevel::EnableFilament;
+                bool filament_enabled = m_config->option<ConfigOptionBools>("filament_long_retractions_when_cut")->values[extruder_idx] == 1;
+                toggle_line(opt_key, filament_enabled && machine_enabled);
                 field->toggle(is_checked && filament_enabled && machine_enabled);
             }
             else
@@ -4380,9 +4384,9 @@ void TabPrinter::toggle_options()
         bool toolchange_retraction = m_config->opt_float("retract_length_toolchange", i) > 0;
         toggle_option("retract_restart_extra_toolchange", have_multiple_extruders && toolchange_retraction, i);
 
-        // do not display this extruder param now
-        toggle_option("long_retractions_when_cut", !use_firmware_retraction && m_config->opt_bool("enable_long_retraction_when_cut"),i);
-        toggle_option("retraction_distances_when_cut", m_config->opt_bool("long_retractions_when_cut",i),i);
+        toggle_option("long_retractions_when_cut", !use_firmware_retraction && m_config->opt_int("enable_long_retraction_when_cut"),i);
+        toggle_line("retraction_distances_when_cut#0", m_config->opt_bool("long_retractions_when_cut", i));
+        //toggle_option("retraction_distances_when_cut", m_config->opt_bool("long_retractions_when_cut",i),i);
     }
 
     if (m_active_page->title() == L("Motion ability")) {

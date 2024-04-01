@@ -229,6 +229,9 @@ static t_config_option_keys print_config_diffs(
         if (opt_new == nullptr)
             //FIXME This may happen when executing some test cases.
             continue;
+        if ((opt_key == "long_retractions_when_cut" || opt_key == "retraction_distances_when_cut")
+            && current_config.enable_long_retraction_when_cut.getInt() != 2)
+            continue;   //BBS: hard code here, remove it later if the machine firwmare support
         const ConfigOption *opt_new_filament = std::binary_search(extruder_retract_keys.begin(), extruder_retract_keys.end(), opt_key) ? new_full_config.option(filament_prefix + opt_key) : nullptr;
         if (opt_new_filament != nullptr && ! opt_new_filament->is_nil()) {
             // An extruder retract override is available at some of the filament presets.
