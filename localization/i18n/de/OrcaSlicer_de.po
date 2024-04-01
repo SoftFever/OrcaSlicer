@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-13 22:09+0800\n"
+"POT-Creation-Date: 2024-03-29 21:10+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Heiko Liebscher <hliebschergmail.com>\n"
 "Language-Team: \n"
@@ -3458,6 +3458,8 @@ msgid ""
 "Alternate extra wall does't work well when ensure vertical shell thickness "
 "is set to All. "
 msgstr ""
+"Der alternative zusätzliche Wandmodus funktioniert nicht gut, wenn die "
+"vertikale Wanddicke auf Alle eingestellt ist."
 
 msgid ""
 "Change these settings automatically? \n"
@@ -3465,6 +3467,10 @@ msgid ""
 "alternate extra wall\n"
 "No  - Dont use alternate extra wall"
 msgstr ""
+"Diese Einstellungen automatisch ändern? \n"
+"Ja - Ändern Sie die vertikale Wanddicke auf Moderate und aktivieren Sie "
+"alternative zusätzliche Wand\n"
+"Nein - Verwenden Sie keine alternative zusätzliche Wand"
 
 msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support "
@@ -3510,6 +3516,13 @@ msgstr ""
 "Während des Druckens mit einem Objekt kann der Extruder auf den Rand "
 "stoßen.\n"
 "Daher sollten die Skirt-Ebenen zurückgesetzt werden."
+
+msgid ""
+"seam_slope_start_height need to be smaller than layer_height.\n"
+"Reset to 0."
+msgstr ""
+"seam_slope_start_height muss kleiner als layer_height sein.\n"
+"auf 0 gesetzt"
 
 msgid "Auto bed leveling"
 msgstr "Automatische Druckbettnivellierung"
@@ -3726,50 +3739,52 @@ msgstr "Standard"
 
 #, boost-format
 msgid "Edit Custom G-code (%1%)"
-msgstr ""
+msgstr "Benutzerdefinierten G-Code bearbeiten (%1%)"
 
 msgid "Built-in placeholders (Double click item to add to G-code)"
 msgstr ""
+"Eingebaute Platzhalter (Doppelklicken Sie auf ein Element, um es zum G-Code "
+"hinzuzufügen)"
 
 msgid "Search gcode placeholders"
-msgstr ""
+msgstr "G-Code-Platzhalter suchen"
 
 msgid "Add selected placeholder to G-code"
-msgstr ""
+msgstr "Ausgewählten Platzhalter zum G-Code hinzufügen"
 
 msgid "Select placeholder"
-msgstr ""
+msgstr "Platzhalter auswählen"
 
 msgid "[Global] Slicing State"
-msgstr ""
+msgstr "[Global] Slicing-Status"
 
 msgid "Read Only"
-msgstr ""
+msgstr "Nur lesen"
 
 msgid "Read Write"
-msgstr ""
+msgstr "Lesen Schreiben"
 
 msgid "Slicing State"
-msgstr ""
+msgstr "Slicing-Status"
 
 msgid "Print Statistics"
-msgstr ""
+msgstr "Druckstatistiken"
 
 msgid "Objects Info"
-msgstr ""
+msgstr "Objektinformationen"
 
 msgid "Dimensions"
-msgstr ""
+msgstr "Abmessungen"
 
 msgid "Temperatures"
-msgstr ""
+msgstr "Temperaturen"
 
 msgid "Timestamps"
-msgstr ""
+msgstr "Zeitstempel"
 
 #, boost-format
 msgid "Specific for %1%"
-msgstr ""
+msgstr "Spezifisch für %1%"
 
 msgid "Presets"
 msgstr "Voreinstellungen"
@@ -3781,7 +3796,7 @@ msgid "Filament settings"
 msgstr "Filamenteinstellungen"
 
 msgid "SLA Materials settings"
-msgstr ""
+msgstr "SLA-Material-Einstellungen"
 
 msgid "Printer settings"
 msgstr "Drucker-Einstellungen"
@@ -6222,6 +6237,9 @@ msgstr "Login-Region"
 msgid "Stealth Mode"
 msgstr "Unsichtbarer Modus"
 
+msgid "Enable network plugin"
+msgstr "Netzwerk-Plugin aktivieren"
+
 msgid "Check for stable updates only"
 msgstr "Nur nach stabilen Updates suchen"
 
@@ -6276,6 +6294,9 @@ msgstr "Reinigungsvolumen: Auto-Berechnung bei jeder Farbänderung."
 
 msgid "If enabled, auto-calculate everytime the color changed."
 msgstr "Wenn aktiviert, wird bei jeder Farbänderung automatisch berechnet."
+
+msgid "Network"
+msgstr "Netzwerk"
 
 msgid "Auto sync user presets(Printer/Filament/Process)"
 msgstr "Benutzerprofile automatisch synchronisieren (Drucker/Filament/Prozess)"
@@ -8805,6 +8826,12 @@ msgid ""
 "You can adjust the maximum jerk setting in your printer's configuration to "
 "get higher speeds."
 msgstr ""
+"Die Ruckgeschwindigkeitseinstellung überschreitet den maximalen Ruck des "
+"Druckers (machine_max_jerk_x/machine_max_jerk_y).\n"
+"Orca wird automatisch die Ruckgeschwindigkeit begrenzen, um sicherzustellen, "
+"dass sie nicht die Fähigkeiten des Druckers überschreitet.\n"
+"Sie können die maximale Ruckgeschwindigkeitseinstellung in der Konfiguration "
+"Ihres Druckers anpassen, um höhere Geschwindigkeiten zu erreichen."
 
 msgid ""
 "The acceleration setting exceeds the printer's maximum acceleration "
@@ -8814,15 +8841,29 @@ msgid ""
 "You can adjust the machine_max_acceleration_extruding value in your "
 "printer's configuration to get higher speeds."
 msgstr ""
+"Die Beschleunigungseinstellung überschreitet die maximale Beschleunigung des "
+"Druckers (machine_max_acceleration_extruding).\n"
+"Orca wird automatisch die Beschleunigungsgeschwindigkeit begrenzen, um "
+"sicherzustellen, dass sie nicht die Fähigkeiten des Druckers überschreitet.\n"
+"Sie können den Wert von machine_max_acceleration_extruding in der "
+"Konfiguration Ihres Druckers anpassen, um höhere Geschwindigkeiten zu "
+"erreichen."
 
 msgid ""
-"The speed setting exceeds the printer's maximum speed (machine_max_speed_x/"
-"machine_max_speed_y).\n"
-"Orca will automatically cap the print speed to ensure it doesn't surpass the "
-"printer's capabilities.\n"
-"You can adjust the maximum speed setting in your printer's configuration to "
-"get higher speeds."
+"The travel acceleration setting exceeds the printer's maximum travel "
+"acceleration (machine_max_acceleration_travel).\n"
+"Orca will automatically cap the travel acceleration speed to ensure it "
+"doesn't surpass the printer's capabilities.\n"
+"You can adjust the machine_max_acceleration_travel value in your printer's "
+"configuration to get higher speeds."
 msgstr ""
+"Die Beschleunigungseinstellung für das Verfahren überschreitet die maximale "
+"Verfahrensbeschleunigung des Druckers (machine_max_acceleration_travel).\n"
+"Orca wird automatisch die Verfahrensbeschleunigungsgeschwindigkeit "
+"begrenzen, um sicherzustellen, dass sie nicht die Fähigkeiten des Druckers "
+"überschreitet.\n"
+"Sie können den Wert von machine_max_acceleration_travel in der Konfiguration "
+"Ihres Druckers anpassen, um höhere Geschwindigkeiten zu erreichen."
 
 msgid "Generating skirt & brim"
 msgstr "Generieren von Schürze und Rand (skirt & brim)"
@@ -8908,6 +8949,14 @@ msgstr "Automatische Ausrichtung von STLs auf der Z-Achse beim Import"
 
 msgid "Printer preset names"
 msgstr "Drucker Profilname"
+
+msgid "Use 3rd-party print host"
+msgstr "Benutze Drittanbieter-Druck-Hosts"
+
+msgid "Allow controlling BambuLab's printer through 3rd party print hosts"
+msgstr ""
+"Erlauben Sie die Steuerung von BambuLab-Druckern durch Drittanbieter-Druck-"
+"Hosts"
 
 msgid "Hostname, IP or URL"
 msgstr "Hostname, IP oder URL"
@@ -9782,12 +9831,21 @@ msgid ""
 "All: Add solid infill for all suitable sloping surfaces\n"
 "Default value is All."
 msgstr ""
+"Fügen Sie massives Infill in der Nähe von geneigten Oberflächen hinzu, um "
+"die vertikale Wanddicke (obere + untere feste Schichten) zu garantieren\n"
+"Keine: Kein massives Infill wird irgendwo hinzugefügt. Vorsicht: Verwenden "
+"Sie diese Option vorsichtig, wenn Ihr Modell geneigte Oberflächen hat\n"
+"Nur kritisch: Vermeiden Sie das Hinzufügen von massivem Infill für Wände\n"
+"Moderat: Fügen Sie massives Infill nur für stark geneigte Oberflächen hinzu\n"
+"Alle: Fügen Sie massives Infill für alle geeigneten geneigten Oberflächen "
+"hinzu\n"
+"Der Standardwert ist Alle."
 
 msgid "Critical Only"
-msgstr ""
+msgstr "Nur kritisch"
 
 msgid "Moderate"
-msgstr ""
+msgstr "Moderat"
 
 msgid "Top surface pattern"
 msgstr "Muster der Oberfläche"
@@ -11845,6 +11903,12 @@ msgstr "Zeige automatische Kalibrierungsmarkierungen"
 msgid "Disable set remaining print time"
 msgstr "Deaktiviere die verbleibende Druckzeit"
 
+msgid ""
+"Disable generating of the M73: Set remaining print time in the final gcode"
+msgstr ""
+"Deaktiviert das Generieren von M73: Setze die verbleibende Druckzeit im "
+"endgültigen G-Code"
+
 msgid "Seam position"
 msgstr "Nahtposition"
 
@@ -11891,23 +11955,25 @@ msgstr ""
 "um das endgültige Produkt glatter und nahtloser aussehen zu lassen."
 
 msgid "Scarf joint seam (beta)"
-msgstr "Schaltnaht (Beta)"
+msgstr "Schrägnaht (Beta)"
 
 msgid "Use scarf joint to minimize seam visibility and increase seam strength."
 msgstr ""
-"Benutze Schaltnaht um die Sichtbarkeit der Naht zu minimieren und die "
+"Benutze die Schrägnaht um die Sichtbarkeit der Naht zu minimieren und die "
 "Nahtstärke zu erhöhen."
 
 msgid "Conditional scarf joint"
-msgstr ""
+msgstr "Bedingte Schrägnaht"
 
 msgid ""
 "Apply scarf joints only to smooth perimeters where traditional seams do not "
 "conceal the seams at sharp corners effectively."
 msgstr ""
+"Wenden Sie Schaltnähte nur auf glatte Umfänge an, bei denen traditionelle "
+"Nahtstellen die Nähte an scharfen Ecken nicht effektiv verbergen."
 
 msgid "Conditional angle threshold"
-msgstr ""
+msgstr "Winkel-Schwellenwert"
 
 msgid ""
 "This option sets the threshold angle for applying a conditional scarf joint "
@@ -11916,9 +11982,26 @@ msgid ""
 "(indicating the absence of sharp corners), a scarf joint seam will be used. "
 "The default value is 155°."
 msgstr ""
+"Diese Option legt den Schwellenwinkel für das Anwenden einer bedingten "
+"Schrägnaht fest.\n"
+"Wenn der maximale Winkel innerhalb der Umfangsschleife diesen Wert "
+"überschreitet (was auf das Fehlen von scharfen Ecken hinweist), wird eine "
+"Schrägnaht verwendet. Der Standardwert beträgt 155°."
+
+msgid "Conditional overhang threshold"
+msgstr ""
+
+#, no-c-format, no-boost-format
+msgid ""
+"This option determines the overhang threshold for the application of scarf "
+"joint seams. If the unsupported portion of the perimeter is less than this "
+"threshold, scarf joint seams will be applied. The default threshold is set "
+"at 40% of the external wall's width. Due to performance considerations, the "
+"degree of overhang is estimated."
+msgstr ""
 
 msgid "Scarf joint speed"
-msgstr ""
+msgstr "Schrägnaht Geschwindigkeit"
 
 msgid ""
 "This option sets the printing speed for scarf joints. It is recommended to "
@@ -11930,12 +12013,23 @@ msgid ""
 "percentage (e.g., 80%), the speed is calculated based on the respective "
 "outer or inner wall speed. The default value is set to 100%."
 msgstr ""
+"Diese Option legt die Druckgeschwindigkeit für Schaltnähte fest. Es wird "
+"empfohlen, Schaltnähte mit einer langsamen Geschwindigkeit (weniger als 100 "
+"mm/s) zu drucken. Es ist auch ratsam, die 'Glättung der Extrusionsrate' zu "
+"aktivieren, wenn die eingestellte Geschwindigkeit erheblich von der "
+"Geschwindigkeit der äußeren oder inneren Wände abweicht. Wenn die hier "
+"angegebene Geschwindigkeit höher ist als die Geschwindigkeit der äußeren "
+"oder inneren Wände, wird der Drucker auf die langsamere der beiden "
+"Geschwindigkeiten zurückgesetzt. Wenn sie als Prozentsatz angegeben wird (z."
+"B. 80%), wird die Geschwindigkeit auf der Grundlage der jeweiligen "
+"Geschwindigkeit der äußeren oder inneren Wand berechnet. Der Standardwert "
+"ist auf 100% eingestellt."
 
 msgid "Scarf joint flow ratio"
-msgstr ""
+msgstr "Schrägnaht Flussverhältnis"
 
 msgid "This factor affects the amount of material for scarf joints."
-msgstr ""
+msgstr "Dieser Faktor beeinflusst die Menge an Material für Schaltnähte."
 
 msgid "Scarf start height"
 msgstr "Start Höhe des Schalnaht"
@@ -11945,38 +12039,38 @@ msgid ""
 "This amount can be specified in millimeters or as a percentage of the "
 "current layer height. The default value for this parameter is 0."
 msgstr ""
-"Start Höhe des Schaltnaht.\n"
+"Start Höhe der Schrägnaht.\n"
 "Diese Menge kann in Millimetern oder als Prozentsatz der aktuellen "
 "Schichthöhe angegeben werden.\n"
 "Der Standardwert für diesen Parameter beträgt 0."
 
 msgid "Scarf around entire wall"
-msgstr "Schaltnaht um die gesamte Wand"
+msgstr "Schrägnaht um die gesamte Wand"
 
 msgid "The scarf extends to the entire length of the wall."
-msgstr "Die Schaltnaht erstreckt sich über die gesamte Länge der Wand."
+msgstr "Die Schrägnaht erstreckt sich über die gesamte Länge der Wand."
 
 msgid "Scarf length"
-msgstr "Länge der Schaltnaht"
+msgstr "Länge der Schrägnaht"
 
 msgid ""
 "Length of the scarf. Setting this parameter to zero effectively disables the "
 "scarf."
 msgstr ""
-"Länge der Schaltnaht. Das Einstellen dieses Parameters auf Null deaktiviert "
-"effektiv die Schaltnaht."
+"Länge der Schrägnaht. Das Einstellen dieses Parameters auf Null deaktiviert "
+"effektiv die Schrägnaht."
 
 msgid "Scarf steps"
-msgstr "Schaltnaht Schritte"
+msgstr "Schrägnaht Schritte"
 
 msgid "Minimum number of segments of each scarf."
-msgstr "Mindestanzahl von Segmenten jeder Schaltnaht."
+msgstr "Mindestanzahl von Segmenten jeder Schrägnaht."
 
 msgid "Scarf joint for inner walls"
-msgstr "Schaltnaht für innere Wände"
+msgstr "Schrägnaht für innere Wände"
 
 msgid "Use scarf joint for inner walls as well."
-msgstr "Verwenden Sie Schaltnaht auch für innere Wände."
+msgstr "Verwenden Sie Schrägnaht auch für innere Wände."
 
 msgid "Role base wipe speed"
 msgstr "Rollenbasierte Wipe Geschwindigkeit"
@@ -14444,8 +14538,8 @@ msgstr "Starten Sie den Test mit einem Thread"
 msgid "Export Log"
 msgstr "Protokoll exportieren"
 
-msgid "Studio Version:"
-msgstr "Studio Version:"
+msgid "OrcaSlicer Version:"
+msgstr "OrcaSlicer Version:"
 
 msgid "System Version:"
 msgstr "System Version:"
@@ -14453,50 +14547,17 @@ msgstr "System Version:"
 msgid "DNS Server:"
 msgstr "DNS Server:"
 
-msgid "Test BambuLab"
-msgstr "Test BambuLab"
+msgid "Test OrcaSlicer(GitHub)"
+msgstr "Test OrcaSlicer(GitHub)"
 
-msgid "Test BambuLab:"
-msgstr "Test BambuLab:"
+msgid "Test OrcaSlicer(GitHub):"
+msgstr "Test OrcaSlicer(GitHub):"
 
 msgid "Test Bing.com"
 msgstr "Test Bing.com"
 
 msgid "Test bing.com:"
 msgstr "Test bing.com:"
-
-msgid "Test HTTP"
-msgstr "Test HTTP"
-
-msgid "Test HTTP Service:"
-msgstr "Test HTTP Service:"
-
-msgid "Test storage"
-msgstr "Test Speicher"
-
-msgid "Test Storage Upload:"
-msgstr "Test Speicher hochladen:"
-
-msgid "Test storage upgrade"
-msgstr "Test Speicher Upgrade"
-
-msgid "Test Storage Upgrade:"
-msgstr "Test Speicher Upgrade:"
-
-msgid "Test storage download"
-msgstr "Test Speicher Download"
-
-msgid "Test Storage Download:"
-msgstr "Test Speicher Download:"
-
-msgid "Test plugin download"
-msgstr "Test Plugin Download"
-
-msgid "Test Plugin Download:"
-msgstr "Test Plugin Download:"
-
-msgid "Test Storage Upload"
-msgstr "Test Speicher hochladen"
 
 msgid "Log Info"
 msgstr "Protokoll Info"
@@ -15039,6 +15100,9 @@ msgstr "Konnte keine gültige Referenz zum Druck-Host erhalten"
 msgid "Success!"
 msgstr "Erfolgreich!"
 
+msgid "Are you sure to log out?"
+msgstr "Sind Sie sicher, dass Sie sich abmelden möchten?"
+
 msgid "Refresh Printers"
 msgstr "Drucker aktualisieren"
 
@@ -15069,6 +15133,9 @@ msgid ""
 msgstr ""
 "Um eine benutzerdefinierte CA-Datei zu verwenden, importieren Sie bitte Ihre "
 "CA-Datei in den Zertifikatspeicher / das Schlüsselbund."
+
+msgid "Login/Test"
+msgstr "Login/Test"
 
 msgid "Connection to printers connected via the print host failed."
 msgstr ""
@@ -15208,6 +15275,55 @@ msgstr ""
 "Die Aufzählung der Drucker des Hosts ist fehlgeschlagen.\n"
 "Nachrichtentext: \"%1%\"\n"
 "Fehler: \"%2%\""
+
+msgid "Connected to Obico successfully!"
+msgstr "Erfolgreich mit Obico verbunden!"
+
+msgid "Could not connect to Obico"
+msgstr "Konnte keine Verbindung zu Obico herstellen"
+
+msgid "Connected to SimplyPrint successfully!"
+msgstr "Erfolgreich mit SimplyPrint verbunden!"
+
+msgid "Could not connect to SimplyPrint"
+msgstr "Konnte keine Verbindung zu SimplyPrint herstellen"
+
+msgid "SimplyPrint account not linked. Go to Connect options to set it up."
+msgstr ""
+"SimplyPrint-Konto nicht verknüpft. Gehen Sie zu den Verbindungsoptionen, um "
+"es einzurichten."
+
+msgid ""
+"File size exceeds the 100MB upload limit. Please upload your file through "
+"the panel."
+msgstr ""
+"Die Dateigröße überschreitet das 100-MB-Upload-Limit. Bitte laden Sie Ihre "
+"Datei über das Panel hoch."
+
+msgid "Unknown error"
+msgstr "Unbekannter Fehler"
+
+msgid "Connection to Flashforge works correctly."
+msgstr "Verbindung zu Flashforge funktioniert korrekt."
+
+msgid "Could not connect to Flashforge"
+msgstr "Konnte keine Verbindung zu Flashforge herstellen"
+
+msgid "The provided state is not correct."
+msgstr "Der bereitgestellte Status ist nicht korrekt."
+
+msgid "Please give the required permissions when authorizing this application."
+msgstr ""
+"Bitte geben Sie die erforderlichen Berechtigungen an, wenn Sie diese "
+"Anwendung autorisieren."
+
+msgid "Something unexpected happened when trying to log in, please try again."
+msgstr ""
+"Es ist etwas Unerwartetes passiert, als Sie versucht haben, sich anzumelden. "
+"Bitte versuchen Sie es erneut."
+
+msgid "User cancelled."
+msgstr "Benutzer abgebrochen."
 
 #: resources/data/hints.ini: [hint:Precise wall]
 msgid ""
@@ -15601,6 +15717,67 @@ msgstr ""
 "Wussten Sie, dass beim Drucken von Materialien, die zu Verwerfungen neigen, "
 "wie z.B. ABS, durch eine entsprechende Erhöhung der Heizbetttemperatur die "
 "Wahrscheinlichkeit von Verwerfungen verringert werden kann."
+
+#~ msgid "Timeout when authenticating with the account server."
+#~ msgstr "Zeitüberschreitung bei der Authentifizierung mit dem Kontoserver."
+
+#~ msgid "Studio Version:"
+#~ msgstr "Studio Version:"
+
+#~ msgid "Test BambuLab"
+#~ msgstr "Test BambuLab"
+
+#~ msgid "Test BambuLab:"
+#~ msgstr "Test BambuLab:"
+
+#~ msgid "Test HTTP"
+#~ msgstr "Test HTTP"
+
+#~ msgid "Test HTTP Service:"
+#~ msgstr "Test HTTP Service:"
+
+#~ msgid "Test storage"
+#~ msgstr "Test Speicher"
+
+#~ msgid "Test Storage Upload:"
+#~ msgstr "Test Speicher hochladen:"
+
+#~ msgid "Test storage upgrade"
+#~ msgstr "Test Speicher Upgrade"
+
+#~ msgid "Test Storage Upgrade:"
+#~ msgstr "Test Speicher Upgrade:"
+
+#~ msgid "Test storage download"
+#~ msgstr "Test Speicher Download"
+
+#~ msgid "Test Storage Download:"
+#~ msgstr "Test Speicher Download:"
+
+#~ msgid "Test plugin download"
+#~ msgstr "Test Plugin Download"
+
+#~ msgid "Test Plugin Download:"
+#~ msgstr "Test Plugin Download:"
+
+#~ msgid "Test Storage Upload"
+#~ msgstr "Test Speicher hochladen"
+
+#~ msgid ""
+#~ "The speed setting exceeds the printer's maximum speed "
+#~ "(machine_max_speed_x/machine_max_speed_y).\n"
+#~ "Orca will automatically cap the print speed to ensure it doesn't surpass "
+#~ "the printer's capabilities.\n"
+#~ "You can adjust the maximum speed setting in your printer's configuration "
+#~ "to get higher speeds."
+#~ msgstr ""
+#~ "Die Geschwindigkeitseinstellung überschreitet die maximale "
+#~ "Geschwindigkeit des Druckers (machine_max_speed_x/machine_max_speed_y).\n"
+#~ "Orca wird automatisch die Druckgeschwindigkeit begrenzen, um "
+#~ "sicherzustellen, dass sie nicht die Fähigkeiten des Druckers "
+#~ "überschreitet.\n"
+#~ "Sie können die maximale Geschwindigkeitseinstellung in der Konfiguration "
+#~ "Ihres Druckers anpassen, um höhere Geschwindigkeiten zu erreichen."
 
 #~ msgid ""
 #~ "Alternate extra wall only works with ensure vertical shell thickness "

@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OrcaSlicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-13 22:09+0800\n"
-"PO-Revision-Date: 2024-03-03 22:12+0300\n"
+"POT-Creation-Date: 2024-03-29 21:10+0800\n"
+"PO-Revision-Date: 2024-03-29 21:50+0300\n"
 "Last-Translator: Olcay ÖREN\n"
 "Language-Team: Türkçe\n"
 "Language: tr_TR\n"
@@ -3385,6 +3385,8 @@ msgid ""
 "Alternate extra wall does't work well when ensure vertical shell thickness "
 "is set to All. "
 msgstr ""
+"Alternatif ekstra duvar, dikey kabuk kalınlığının Tümü olarak "
+"ayarlandığından emin olunduğunda iyi çalışmaz. "
 
 msgid ""
 "Change these settings automatically? \n"
@@ -3392,6 +3394,10 @@ msgid ""
 "alternate extra wall\n"
 "No  - Dont use alternate extra wall"
 msgstr ""
+"Bu ayarlar otomatik olarak değiştirilsin mi? \n"
+"Evet - Dikey kabuk kalınlığını Orta olarak değiştirin ve alternatif ekstra "
+"duvarı etkinleştirin\n"
+"Hayır - Alternatif ekstra duvar kullanmayın"
 
 msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support "
@@ -3435,6 +3441,13 @@ msgid ""
 msgstr ""
 "Nesne ile yazdırma sırasında ekstruder etekle çarpışabilir.\n"
 "Bu durumu önlemek için etek katmanını 1'e sıfırlayın."
+
+msgid ""
+"seam_slope_start_height need to be smaller than layer_height.\n"
+"Reset to 0."
+msgstr ""
+"Dikiş eğimi başlangıç ​​yüksekliğinin katman yüksekliğinden daha küçük olması gerekir.\n"
+"0 a sıfırla."
 
 msgid "Auto bed leveling"
 msgstr "Otomatik yatak tesviyesi"
@@ -3648,50 +3661,50 @@ msgstr "varsayılan"
 
 #, boost-format
 msgid "Edit Custom G-code (%1%)"
-msgstr ""
+msgstr "Özel G Kodunu Düzenle (%1%)"
 
 msgid "Built-in placeholders (Double click item to add to G-code)"
-msgstr ""
+msgstr "Yerleşik yer tutucular (G koduna eklemek için öğeye çift tıklayın)"
 
 msgid "Search gcode placeholders"
-msgstr ""
+msgstr "Gcode yer tutucularını arayın"
 
 msgid "Add selected placeholder to G-code"
-msgstr ""
+msgstr "Seçili yer tutucuyu G koduna ekle"
 
 msgid "Select placeholder"
-msgstr ""
+msgstr "Yer tutucuyu seçin"
 
 msgid "[Global] Slicing State"
-msgstr ""
+msgstr "[Global] Dilimleme Durumu"
 
 msgid "Read Only"
-msgstr ""
+msgstr "Sadece okunabilir"
 
 msgid "Read Write"
-msgstr ""
+msgstr "Okuma yazma"
 
 msgid "Slicing State"
-msgstr ""
+msgstr "Dilimleme Durumu"
 
 msgid "Print Statistics"
-msgstr ""
+msgstr "Yazdırma İstatistikleri"
 
 msgid "Objects Info"
-msgstr ""
+msgstr "Nesne Bilgisi"
 
 msgid "Dimensions"
-msgstr ""
+msgstr "Boyutlar"
 
 msgid "Temperatures"
-msgstr ""
+msgstr "Sıcaklıklar"
 
 msgid "Timestamps"
-msgstr ""
+msgstr "Zaman damgaları"
 
 #, boost-format
 msgid "Specific for %1%"
-msgstr ""
+msgstr "%1%'e özel"
 
 msgid "Presets"
 msgstr "Ön ayarlar"
@@ -3703,7 +3716,7 @@ msgid "Filament settings"
 msgstr "Filament Ayarları"
 
 msgid "SLA Materials settings"
-msgstr ""
+msgstr "SLA Malzemeleri ayarları"
 
 msgid "Printer settings"
 msgstr "Yazıcı Ayarları"
@@ -6109,6 +6122,9 @@ msgstr "Giriş Bölgesi"
 msgid "Stealth Mode"
 msgstr "Gizli mod"
 
+msgid "Enable network plugin"
+msgstr "Ağ eklentisini etkinleştir"
+
 msgid "Check for stable updates only"
 msgstr "Yalnızca kararlı güncellemeleri kontrol edin"
 
@@ -6165,6 +6181,9 @@ msgstr "Hacimleri temizleme: Renk her değiştiğinde otomatik olarak hesapla."
 
 msgid "If enabled, auto-calculate everytime the color changed."
 msgstr "Etkinleştirilirse, renk her değiştiğinde otomatik hesapla."
+
+msgid "Network"
+msgstr "Ağ"
 
 msgid "Auto sync user presets(Printer/Filament/Process)"
 msgstr "Kullanıcı ön ayarları otomatik senkronizasyon (Yazıcı/Filament/İşlem)"
@@ -8635,6 +8654,12 @@ msgid ""
 "You can adjust the maximum jerk setting in your printer's configuration to "
 "get higher speeds."
 msgstr ""
+"Sarsıntı ayarı yazıcının maksimum sarsıntısını aşıyor (machine_max_jerk_x/"
+"machine_max_jerk_y).\n"
+"Orca, yazıcının yeteneklerini aşmadığından emin olmak için sarsıntı hızını "
+"otomatik olarak sınırlayacaktır.\n"
+"Daha yüksek hızlar elde etmek için yazıcınızın yapılandırmasında maksimum "
+"sarsıntı ayarını yapabilirsiniz."
 
 msgid ""
 "The acceleration setting exceeds the printer's maximum acceleration "
@@ -8644,14 +8669,20 @@ msgid ""
 "You can adjust the machine_max_acceleration_extruding value in your "
 "printer's configuration to get higher speeds."
 msgstr ""
+"Hızlanma ayarı yazıcının maksimum hızlanmasını aşıyor "
+"(machine_max_acceleration_extruding).\n"
+"Orca, yazıcının yeteneklerini aşmadığından emin olmak için hızlanma hızını "
+"otomatik olarak sınırlayacaktır.\n"
+"Daha yüksek hızlar elde etmek için yazıcınızın yapılandırmasındaki "
+"machine_max_acceleration_extruding değerini ayarlayabilirsiniz."
 
 msgid ""
-"The speed setting exceeds the printer's maximum speed (machine_max_speed_x/"
-"machine_max_speed_y).\n"
-"Orca will automatically cap the print speed to ensure it doesn't surpass the "
-"printer's capabilities.\n"
-"You can adjust the maximum speed setting in your printer's configuration to "
-"get higher speeds."
+"The travel acceleration setting exceeds the printer's maximum travel "
+"acceleration (machine_max_acceleration_travel).\n"
+"Orca will automatically cap the travel acceleration speed to ensure it "
+"doesn't surpass the printer's capabilities.\n"
+"You can adjust the machine_max_acceleration_travel value in your printer's "
+"configuration to get higher speeds."
 msgstr ""
 
 msgid "Generating skirt & brim"
@@ -8735,6 +8766,12 @@ msgstr ""
 
 msgid "Printer preset names"
 msgstr "Yazıcı ön ayar adları"
+
+msgid "Use 3rd-party print host"
+msgstr "3. taraf yazdırma ana bilgisayarını kullanın"
+
+msgid "Allow controlling BambuLab's printer through 3rd party print hosts"
+msgstr "BambuLab yazıcısının 3. taraf yazdırma ana bilgisayarları aracılığıyla kontrol edilmesine izin ver"
 
 msgid "Hostname, IP or URL"
 msgstr "Ana bilgisayar adı, IP veya URL"
@@ -9585,12 +9622,20 @@ msgid ""
 "All: Add solid infill for all suitable sloping surfaces\n"
 "Default value is All."
 msgstr ""
+"Dikey kabuk kalınlığını garanti etmek için eğimli yüzeylerin yakınına katı "
+"dolgu ekleyin (üst + alt katı katmanlar)\n"
+"Yok: Hiçbir yere katı dolgu eklenmez. Dikkat: Modelinizin eğimli yüzeyleri "
+"varsa bu seçeneği dikkatli kullanın.\n"
+"Yalnızca Kritik: Duvarlar için katı dolgu eklemekten kaçının\n"
+"Orta: Yalnızca çok eğimli yüzeyler için katı dolgu ekleyin\n"
+"Hepsi: Tüm uygun eğimli yüzeyler için katı dolgu ekleyin\n"
+"Varsayılan değer Tümü'dür."
 
 msgid "Critical Only"
-msgstr ""
+msgstr "Yalnızca Kritik"
 
 msgid "Moderate"
-msgstr ""
+msgstr "Orta"
 
 msgid "Top surface pattern"
 msgstr "Üst yüzey deseni"
@@ -11607,6 +11652,11 @@ msgstr "Otomatik kalibrasyon işaretlerini göster"
 msgid "Disable set remaining print time"
 msgstr "Kalan yazdırma süresini ayarlamayı devre dışı bırak"
 
+msgid ""
+"Disable generating of the M73: Set remaining print time in the final gcode"
+msgstr ""
+"M73'ün oluşturulmasını devre dışı bırakın: Son gcode'da kalan yazdırma süresini ayarlayın"
+
 msgid "Seam position"
 msgstr "Dikiş konumu"
 
@@ -11664,6 +11714,8 @@ msgid ""
 "Apply scarf joints only to smooth perimeters where traditional seams do not "
 "conceal the seams at sharp corners effectively."
 msgstr ""
+"Atkı bağlantılarını yalnızca geleneksel dikişlerin keskin köşelerdeki "
+"dikişleri etkili bir şekilde gizleyemediği düzgün kenarlara uygulayın."
 
 msgid "Conditional angle threshold"
 msgstr "Koşullu açı eşiği"
@@ -11675,6 +11727,28 @@ msgid ""
 "(indicating the absence of sharp corners), a scarf joint seam will be used. "
 "The default value is 155°."
 msgstr ""
+"Bu seçenek, koşullu bir atkı eklem dikişi uygulamak için eşik açısını "
+"ayarlar.\n"
+"Çevre halkası içindeki maksimum açı bu değeri aşarsa (keskin köşelerin "
+"bulunmadığını gösterir), bir atkı birleştirme dikişi kullanılacaktır. "
+"Varsayılan değer 155°'dir."
+
+msgid "Conditional overhang threshold"
+msgstr "Koşullu çıkıntı eşiği"
+
+#, no-c-format, no-boost-format
+msgid ""
+"This option determines the overhang threshold for the application of scarf "
+"joint seams. If the unsupported portion of the perimeter is less than this "
+"threshold, scarf joint seams will be applied. The default threshold is set "
+"at 40% of the external wall's width. Due to performance considerations, the "
+"degree of overhang is estimated."
+msgstr ""
+"Bu seçenek, atkı bağlantı dikişlerinin uygulanması için sarkma "
+"eşiğini belirler. Çevrenin desteklenmeyen kısmı bu eşikten az ise atkı "
+"birleştirme dikişleri uygulanacaktır. Varsayılan eşik, dış duvar genişliğinin "
+"%40'ına ayarlanmıştır. Performans değerlendirmeleri nedeniyle çıkıntının "
+"derecesi tahmin edilir."
 
 msgid "Scarf joint speed"
 msgstr "Atkı birleşim hızı"
@@ -11689,6 +11763,14 @@ msgid ""
 "percentage (e.g., 80%), the speed is calculated based on the respective "
 "outer or inner wall speed. The default value is set to 100%."
 msgstr ""
+"Bu seçenek, atkı bağlantılarının yazdırma hızını ayarlar. Atkı "
+"bağlantılarının yavaş bir hızda (100 mm/s'den az) yazdırılması tavsiye "
+"edilir. Ayarlanan hızın dış veya iç duvarların hızından önemli ölçüde farklı "
+"olması durumunda 'Ekstrüzyon hızı yumuşatma' seçeneğinin etkinleştirilmesi "
+"de tavsiye edilir. Burada belirtilen hız, dış veya iç duvarların hızından "
+"daha yüksekse, yazıcı varsayılan olarak iki hızdan daha yavaş olanı "
+"seçecektir. Yüzde olarak belirtildiğinde (örn. %80), hız, ilgili dış veya iç "
+"duvar hızına göre hesaplanır. Varsayılan değer %100 olarak ayarlanmıştır."
 
 msgid "Scarf joint flow ratio"
 msgstr "Atkı birleşimi akış oranı"
@@ -14149,8 +14231,8 @@ msgstr "Tek İş Parçacığı Testini Başlat"
 msgid "Export Log"
 msgstr "Logu Dışa Aktar"
 
-msgid "Studio Version:"
-msgstr "Stüdyo Sürümü:"
+msgid "OrcaSlicer Version:"
+msgstr "OrcaSlicer Sürümü:"
 
 msgid "System Version:"
 msgstr "Sistem Versiyonu:"
@@ -14158,50 +14240,17 @@ msgstr "Sistem Versiyonu:"
 msgid "DNS Server:"
 msgstr "Dns sunucusu:"
 
-msgid "Test BambuLab"
-msgstr "BambuLab'ı test edin"
+msgid "Test OrcaSlicer(GitHub)"
+msgstr "OrcaSlicer'ı (GitHub) test edin"
 
-msgid "Test BambuLab:"
-msgstr "BambuLab'ı test edin"
+msgid "Test OrcaSlicer(GitHub):"
+msgstr "OrcaSlicer'ı (GitHub) test edin:"
 
 msgid "Test Bing.com"
 msgstr "Bing.com'u test edin"
 
 msgid "Test bing.com:"
 msgstr "Bing.com'u test edin:"
-
-msgid "Test HTTP"
-msgstr "HTTP'yi test et"
-
-msgid "Test HTTP Service:"
-msgstr "HTTP Hizmetini Test Edin:"
-
-msgid "Test storage"
-msgstr "Test depolaması"
-
-msgid "Test Storage Upload:"
-msgstr "Depolama Yüklemesini Test Et:"
-
-msgid "Test storage upgrade"
-msgstr "Depolama yükseltmesini test edin"
-
-msgid "Test Storage Upgrade:"
-msgstr "Depolama Yükseltmesini Test Edin:"
-
-msgid "Test storage download"
-msgstr "Test depolama indirmesi"
-
-msgid "Test Storage Download:"
-msgstr "Test Depolama İndirme:"
-
-msgid "Test plugin download"
-msgstr "Test eklentisi indirme"
-
-msgid "Test Plugin Download:"
-msgstr "Test Eklentisini İndirin:"
-
-msgid "Test Storage Upload"
-msgstr "Depolama Yüklemesini Test Etme"
 
 msgid "Log Info"
 msgstr "Günlük Bilgisi"
@@ -14720,6 +14769,9 @@ msgstr "Geçerli bir Yazıcı Ana Bilgisayarı referansı alınamadı"
 msgid "Success!"
 msgstr "Başarılı!"
 
+msgid "Are you sure to log out?"
+msgstr "Çıkış yaptığınızdan emin misiniz?"
+
 msgid "Refresh Printers"
 msgstr "Yazıcıları Yenile"
 
@@ -14750,6 +14802,9 @@ msgid ""
 msgstr ""
 "Özel bir CA dosyası kullanmak için lütfen CA dosyanızı Sertifika Deposuna/"
 "Anahtarlığa aktarın."
+
+msgid "Login/Test"
+msgstr "Giriş/Test"
 
 msgid "Connection to printers connected via the print host failed."
 msgstr ""
@@ -14887,6 +14942,49 @@ msgstr ""
 "Ana yazıcıların numaralandırılması başarısız oldu.\n"
 "Mesaj gövdesi: \"%1%\"\n"
 "Hata: \"%2%\""
+
+msgid "Connected to Obico successfully!"
+msgstr "Obico'ya başarıyla bağlanıldı!"
+
+msgid "Could not connect to Obico"
+msgstr "Obico'ya bağlanılamadı"
+
+msgid "Connected to SimplyPrint successfully!"
+msgstr "SimplyPrint'e başarıyla bağlanıldı!"
+
+msgid "Could not connect to SimplyPrint"
+msgstr "SimplyPrint'e bağlanılamadı"
+
+msgid "SimplyPrint account not linked. Go to Connect options to set it up."
+msgstr "SimplyPrint hesabı bağlı değil. Ayarlamak için Bağlantı seçeneklerine gidin."
+
+msgid ""
+"File size exceeds the 100MB upload limit. Please upload your file through "
+"the panel."
+msgstr ""
+"Dosya boyutu 100 MB yükleme sınırını aşıyor. Lütfen dosyanızı panel "
+"üzerinden yükleyiniz."
+
+msgid "Unknown error"
+msgstr "Bilinmeyen hata"
+
+msgid "Connection to Flashforge works correctly."
+msgstr "Flashforge bağlantısı düzgün çalışıyor."
+
+msgid "Could not connect to Flashforge"
+msgstr "Flashforge'a bağlanılamadı"
+
+msgid "The provided state is not correct."
+msgstr "Sağlanan durum doğru değil."
+
+msgid "Please give the required permissions when authorizing this application."
+msgstr "Lütfen bu uygulamaya yetki verirken gerekli izinleri verin."
+
+msgid "Something unexpected happened when trying to log in, please try again."
+msgstr "Giriş yapmaya çalışırken beklenmeyen bir şey oldu, lütfen tekrar deneyin."
+
+msgid "User cancelled."
+msgstr "Kullanıcı iptal edildi."
 
 #: resources/data/hints.ini: [hint:Precise wall]
 msgid ""
@@ -15275,6 +15373,63 @@ msgstr ""
 "ABS gibi bükülmeye yatkın malzemelere baskı yaparken, ısıtma yatağı "
 "sıcaklığının uygun şekilde arttırılmasının bükülme olasılığını "
 "azaltabileceğini biliyor muydunuz?"
+
+#~ msgid "Studio Version:"
+#~ msgstr "Stüdyo Sürümü:"
+
+#~ msgid "Test BambuLab"
+#~ msgstr "BambuLab'ı test edin"
+
+#~ msgid "Test BambuLab:"
+#~ msgstr "BambuLab'ı test edin"
+
+#~ msgid "Test HTTP"
+#~ msgstr "HTTP'yi test et"
+
+#~ msgid "Test HTTP Service:"
+#~ msgstr "HTTP Hizmetini Test Edin:"
+
+#~ msgid "Test storage"
+#~ msgstr "Test depolaması"
+
+#~ msgid "Test Storage Upload:"
+#~ msgstr "Depolama Yüklemesini Test Et:"
+
+#~ msgid "Test storage upgrade"
+#~ msgstr "Depolama yükseltmesini test edin"
+
+#~ msgid "Test Storage Upgrade:"
+#~ msgstr "Depolama Yükseltmesini Test Edin:"
+
+#~ msgid "Test storage download"
+#~ msgstr "Test depolama indirmesi"
+
+#~ msgid "Test Storage Download:"
+#~ msgstr "Test Depolama İndirme:"
+
+#~ msgid "Test plugin download"
+#~ msgstr "Test eklentisi indirme"
+
+#~ msgid "Test Plugin Download:"
+#~ msgstr "Test Eklentisini İndirin:"
+
+#~ msgid "Test Storage Upload"
+#~ msgstr "Depolama Yüklemesini Test Etme"
+
+#~ msgid ""
+#~ "The speed setting exceeds the printer's maximum speed "
+#~ "(machine_max_speed_x/machine_max_speed_y).\n"
+#~ "Orca will automatically cap the print speed to ensure it doesn't surpass "
+#~ "the printer's capabilities.\n"
+#~ "You can adjust the maximum speed setting in your printer's configuration "
+#~ "to get higher speeds."
+#~ msgstr ""
+#~ "Hız ayarı yazıcının maksimum hızını aşıyor (machine_max_speed_x/"
+#~ "machine_max_speed_y).\n"
+#~ "Orca, yazıcının yeteneklerini aşmadığından emin olmak için yazdırma "
+#~ "hızını otomatik olarak sınırlayacaktır.\n"
+#~ "Daha yüksek hızlar elde etmek için yazıcınızın yapılandırmasındaki "
+#~ "maksimum hız ayarını yapabilirsiniz."
 
 #~ msgid ""
 #~ "Alternate extra wall only works with ensure vertical shell thickness "

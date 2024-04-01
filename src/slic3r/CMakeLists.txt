@@ -508,6 +508,8 @@ set(SLIC3R_GUI_SOURCES
     Utils/PrintHost.hpp
     Utils/Serial.cpp
     Utils/Serial.hpp
+    Utils/SerialMessageType.hpp
+    Utils/SerialMessage.hpp
     Utils/MKS.cpp
     Utils/MKS.hpp
     Utils/WxFontUtils.cpp
@@ -526,8 +528,17 @@ set(SLIC3R_GUI_SOURCES
     Utils/CalibUtils.hpp
     GUI/PrinterCloudAuthDialog.cpp
     GUI/PrinterCloudAuthDialog.hpp
-    Utils/Obico.cpp    
+    Utils/Obico.cpp
     Utils/Obico.hpp
+    Utils/Flashforge.cpp
+    Utils/Flashforge.hpp
+
+    GUI/OAuthDialog.cpp
+    GUI/OAuthDialog.hpp
+    GUI/Jobs/OAuthJob.cpp
+    GUI/Jobs/OAuthJob.hpp
+    Utils/SimplyPrint.cpp
+    Utils/SimplyPrint.hpp
 )
 
 if (WIN32)

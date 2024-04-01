@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-13 22:09+0800\n"
+"POT-Creation-Date: 2024-03-29 21:10+0800\n"
 "PO-Revision-Date: 2023-09-30 15:15+0200\n"
 "Last-Translator: René Mošner <Renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -3407,6 +3407,11 @@ msgstr ""
 "Během tisku podle objektu může extruder narazit na obrys.\n"
 "Takže resetujte vrstvu obrysu na 1, abyste tomu zabránili."
 
+msgid ""
+"seam_slope_start_height need to be smaller than layer_height.\n"
+"Reset to 0."
+msgstr ""
+
 msgid "Auto bed leveling"
 msgstr "Automatické vyrovnávání podložky"
 
@@ -6064,6 +6069,9 @@ msgstr "Región přihlášení"
 msgid "Stealth Mode"
 msgstr "Tajný Režim"
 
+msgid "Enable network plugin"
+msgstr ""
+
 msgid "Check for stable updates only"
 msgstr ""
 
@@ -6117,6 +6125,9 @@ msgid "Flushing volumes: Auto-calculate everytime the color changed."
 msgstr ""
 
 msgid "If enabled, auto-calculate everytime the color changed."
+msgstr ""
+
+msgid "Network"
 msgstr ""
 
 msgid "Auto sync user presets(Printer/Filament/Process)"
@@ -8554,12 +8565,12 @@ msgid ""
 msgstr ""
 
 msgid ""
-"The speed setting exceeds the printer's maximum speed (machine_max_speed_x/"
-"machine_max_speed_y).\n"
-"Orca will automatically cap the print speed to ensure it doesn't surpass the "
-"printer's capabilities.\n"
-"You can adjust the maximum speed setting in your printer's configuration to "
-"get higher speeds."
+"The travel acceleration setting exceeds the printer's maximum travel "
+"acceleration (machine_max_acceleration_travel).\n"
+"Orca will automatically cap the travel acceleration speed to ensure it "
+"doesn't surpass the printer's capabilities.\n"
+"You can adjust the machine_max_acceleration_travel value in your printer's "
+"configuration to get higher speeds."
 msgstr ""
 
 msgid "Generating skirt & brim"
@@ -8640,6 +8651,12 @@ msgstr ""
 
 msgid "Printer preset names"
 msgstr "Názvy přednastavení tiskáren"
+
+msgid "Use 3rd-party print host"
+msgstr ""
+
+msgid "Allow controlling BambuLab's printer through 3rd party print hosts"
+msgstr ""
 
 msgid "Hostname, IP or URL"
 msgstr "Název serveru, IP nebo URL"
@@ -11333,6 +11350,10 @@ msgstr "Zobrazit automatické kalibrační značky"
 msgid "Disable set remaining print time"
 msgstr ""
 
+msgid ""
+"Disable generating of the M73: Set remaining print time in the final gcode"
+msgstr ""
+
 msgid "Seam position"
 msgstr "Pozice švu"
 
@@ -11398,6 +11419,18 @@ msgid ""
 "If the maximum angle within the perimeter loop exceeds this value "
 "(indicating the absence of sharp corners), a scarf joint seam will be used. "
 "The default value is 155°."
+msgstr ""
+
+msgid "Conditional overhang threshold"
+msgstr ""
+
+#, no-c-format, no-boost-format
+msgid ""
+"This option determines the overhang threshold for the application of scarf "
+"joint seams. If the unsupported portion of the perimeter is less than this "
+"threshold, scarf joint seams will be applied. The default threshold is set "
+"at 40% of the external wall's width. Due to performance considerations, the "
+"degree of overhang is estimated."
 msgstr ""
 
 msgid "Scarf joint speed"
@@ -13767,7 +13800,7 @@ msgstr ""
 msgid "Export Log"
 msgstr ""
 
-msgid "Studio Version:"
+msgid "OrcaSlicer Version:"
 msgstr ""
 
 msgid "System Version:"
@@ -13776,49 +13809,16 @@ msgstr ""
 msgid "DNS Server:"
 msgstr ""
 
-msgid "Test BambuLab"
+msgid "Test OrcaSlicer(GitHub)"
 msgstr ""
 
-msgid "Test BambuLab:"
+msgid "Test OrcaSlicer(GitHub):"
 msgstr ""
 
 msgid "Test Bing.com"
 msgstr ""
 
 msgid "Test bing.com:"
-msgstr ""
-
-msgid "Test HTTP"
-msgstr ""
-
-msgid "Test HTTP Service:"
-msgstr ""
-
-msgid "Test storage"
-msgstr ""
-
-msgid "Test Storage Upload:"
-msgstr ""
-
-msgid "Test storage upgrade"
-msgstr ""
-
-msgid "Test Storage Upgrade:"
-msgstr ""
-
-msgid "Test storage download"
-msgstr ""
-
-msgid "Test Storage Download:"
-msgstr ""
-
-msgid "Test plugin download"
-msgstr ""
-
-msgid "Test Plugin Download:"
-msgstr ""
-
-msgid "Test Storage Upload"
 msgstr ""
 
 msgid "Log Info"
@@ -14282,6 +14282,9 @@ msgstr "Nelze získat platný odkaz na tiskový server"
 msgid "Success!"
 msgstr "Úspěch!"
 
+msgid "Are you sure to log out?"
+msgstr ""
+
 msgid "Refresh Printers"
 msgstr "Obnovit tiskárny"
 
@@ -14312,6 +14315,9 @@ msgid ""
 msgstr ""
 "Chcete-li použít vlastní soubor CA, importujte soubor CA do Certificate "
 "Store / Keychain."
+
+msgid "Login/Test"
+msgstr ""
 
 msgid "Connection to printers connected via the print host failed."
 msgstr ""
@@ -14438,6 +14444,47 @@ msgid ""
 "Enumeration of host printers failed.\n"
 "Message body: \"%1%\"\n"
 "Error: \"%2%\""
+msgstr ""
+
+msgid "Connected to Obico successfully!"
+msgstr ""
+
+msgid "Could not connect to Obico"
+msgstr ""
+
+msgid "Connected to SimplyPrint successfully!"
+msgstr ""
+
+msgid "Could not connect to SimplyPrint"
+msgstr ""
+
+msgid "SimplyPrint account not linked. Go to Connect options to set it up."
+msgstr ""
+
+msgid ""
+"File size exceeds the 100MB upload limit. Please upload your file through "
+"the panel."
+msgstr ""
+
+msgid "Unknown error"
+msgstr ""
+
+msgid "Connection to Flashforge works correctly."
+msgstr ""
+
+msgid "Could not connect to Flashforge"
+msgstr ""
+
+msgid "The provided state is not correct."
+msgstr ""
+
+msgid "Please give the required permissions when authorizing this application."
+msgstr ""
+
+msgid "Something unexpected happened when trying to log in, please try again."
+msgstr ""
+
+msgid "User cancelled."
 msgstr ""
 
 #: resources/data/hints.ini: [hint:Precise wall]

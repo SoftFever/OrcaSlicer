@@ -224,8 +224,8 @@ void AppConfig::set_defaults()
     if (get("enable_ssl_for_ftp").empty())
         set_bool("enable_ssl_for_ftp", true);
 
-    if (get("severity_level").empty())
-        set("severity_level", "info");
+    if (get("log_severity_level").empty())
+        set("log_severity_level", "warning");
 
     if (get("internal_developer_mode").empty())
         set_bool("internal_developer_mode", false);
@@ -384,6 +384,7 @@ void AppConfig::set_defaults()
     erase("app", "object_settings_maximized");
     erase("app", "object_settings_pos");
     erase("app", "object_settings_size");
+    erase("app", "severity_level");
 }
 
 #ifdef WIN32
