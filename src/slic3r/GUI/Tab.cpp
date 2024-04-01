@@ -1433,12 +1433,12 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
 
     if (opt_key == "pellet_flow_coefficient") 
     {
-        double double_value = boost::any_cast<double>(value);
+        double double_value = Preset::convert_pellet_flow_to_filament_diameter(boost::any_cast<double>(value));
         m_config->set_key_value("filament_diameter", new ConfigOptionFloats{double_value});
 	}
 
     if (opt_key == "filament_diameter") {
-        double double_value = boost::any_cast<double>(value);
+        double double_value = Preset::convert_filament_diameter_to_pellet_flow(boost::any_cast<double>(value));
         m_config->set_key_value("pellet_flow_coefficient", new ConfigOptionFloats{double_value});
     }
     

@@ -318,6 +318,15 @@ public:
     bool has_cali_lines(PresetBundle* preset_bundle);
 
 
+    static double convert_pellet_flow_to_filament_diameter(double pellet_flow_coefficient)
+    {
+        return sqrt((4 * pellet_flow_coefficient) / PI); 
+    }
+
+    static double convert_filament_diameter_to_pellet_flow(double filament_diameter)
+    {
+        return pow(filament_diameter, 2) * PI/4; 
+    }
 
     static const std::vector<std::string>&  print_options();
     static const std::vector<std::string>&  filament_options();

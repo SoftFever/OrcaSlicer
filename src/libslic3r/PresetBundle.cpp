@@ -1533,6 +1533,27 @@ void PresetBundle::load_installed_filaments(AppConfig &config)
                         Preset* filament = filaments.find_preset(filament_iter.first, false, true);
                         if (filament && is_compatible_with_printer(PresetWithVendorProfile(*filament, filament->vendor), PresetWithVendorProfile(printer, printer.vendor)))
                         {
+                            /*
+                            For pellet printers, the flow coefficient is simply converted to a filament diameter that will produce
+                            the same amount of volume. This coefficient is found emperically by testing. 
+
+                            So it is important that the filament_diameter and pellet_flow_coefficient values always stay in sync
+                            */
+                            if (printer.config.opt_bool("pellet_modded_printer")) 
+                            {
+								double pellet_flow_coefficient_value = filament->config.opt_float("pellet_flow_coefficient", 0);
+								double calculated_filament_diamter   = Preset::convert_pellet_flow_to_filament_diameter(
+									pellet_flow_coefficient_value);
+								filament->config.set_key_value("filament_diameter",
+															   new ConfigOptionFloats{calculated_filament_diamter});
+                            }
+                            else 
+                            {
+								double filament_diameter = filament->config.opt_float("filament_diameter", 0);
+								double calculated_pellet_flow_coefficient = Preset::convert_filament_diameter_to_pellet_flow(
+									filament_diameter);
+								filament->config.set_key_value("pellet_flow_coefficient", new ConfigOptionFloats{calculated_pellet_flow_coefficient});
+							}
                             //already has compatible filament
                             add_default_materials = false;
                             break;
