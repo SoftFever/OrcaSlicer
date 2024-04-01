@@ -11797,6 +11797,9 @@ void Plater::send_gcode_legacy(int plate_idx, Export3mfProgressFn proFn, bool us
         return;
     }
     default_output_file = fs::path(Slic3r::fold_utf8_to_ascii(default_output_file.string()));
+    if (use_3mf) {
+        default_output_file.replace_extension("3mf");
+    }
 
     // Repetier specific: Query the server for the list of file groups.
     wxArrayString groups;
