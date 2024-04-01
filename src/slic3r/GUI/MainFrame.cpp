@@ -3584,7 +3584,7 @@ void MainFrame::load_printer_url(wxString url, wxString apikey)
 void MainFrame::load_printer_url()
 {
     PresetBundle &preset_bundle = *wxGetApp().preset_bundle;
-    if (preset_bundle.use_bbl_network())
+    if (preset_bundle.use_bbl_device_tab())
         return;
 
     auto     cfg = preset_bundle.printers.get_edited_preset().config;

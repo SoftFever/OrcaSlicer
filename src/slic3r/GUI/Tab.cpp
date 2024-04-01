@@ -3548,6 +3548,7 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line("printer_structure");
         optgroup->append_single_option_line("gcode_flavor");
         optgroup->append_single_option_line("bbl_use_printhost");
+        optgroup->append_single_option_line("bbl_use_print_host_webui");
         optgroup->append_single_option_line("disable_m73");
         option = optgroup->get_option("thumbnails");
         option.opt.full_width = true;
@@ -4196,6 +4197,8 @@ void TabPrinter::toggle_options()
         // SoftFever: hide non-BBL settings
         for (auto el : {"use_firmware_retraction", "use_relative_e_distances", "support_multi_bed_types"})
           toggle_line(el, !is_BBL_printer);
+
+        toggle_line("bbl_use_print_host_webui", is_BBL_printer && m_config->opt_bool("bbl_use_printhost"));
     }
 
     if (m_active_page->title() == L("Multimaterial")) {

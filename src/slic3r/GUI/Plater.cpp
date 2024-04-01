@@ -1132,14 +1132,13 @@ void Sidebar::update_all_preset_comboboxes()
     const auto print_tech = preset_bundle.printers.get_edited_preset().printer_technology();
 
     bool is_bbl_vendor = preset_bundle.is_bbl_vendor();
-    const bool use_bbl_network = preset_bundle.use_bbl_network();
 
     // Orca:: show device tab based on vendor type
     auto p_mainframe = wxGetApp().mainframe;
-    p_mainframe->show_device(use_bbl_network);
+    p_mainframe->show_device(preset_bundle.use_bbl_device_tab());
     auto cfg = preset_bundle.printers.get_edited_preset().config;
 
-    if (use_bbl_network) {
+    if (preset_bundle.use_bbl_network()) {
         //only show connection button for not-BBL printer
         connection_btn->Hide();
         //only show sync-ams button for BBL printer
@@ -6837,7 +6836,7 @@ void Plater::priv::on_tab_selection_changing(wxBookCtrlEvent& e)
     sidebar_layout.show = new_sel == MainFrame::tp3DEditor || new_sel == MainFrame::tpPreview;
     update_sidebar();
     int old_sel = e.GetOldSelection();
-    if (wxGetApp().preset_bundle && wxGetApp().preset_bundle->use_bbl_network() && new_sel == MainFrame::tpMonitor) {
+    if (wxGetApp().preset_bundle && wxGetApp().preset_bundle->use_bbl_device_tab() && new_sel == MainFrame::tpMonitor) {
         if (!wxGetApp().getAgent()) {
             e.Veto();
             BOOST_LOG_TRIVIAL(info) << boost::format("skipped tab switch from %1% to %2%, lack of network plugins") % old_sel % new_sel;
