@@ -552,6 +552,7 @@ void PhysicalPrinterDialog::update(bool printer_change)
                 if (Field* printhost_field = m_optgroup->get_field("print_host"); printhost_field) {
                     if (wxTextCtrl* temp = dynamic_cast<TextCtrl*>(printhost_field)->text_ctrl(); temp && temp->GetValue().IsEmpty()) {
                         temp->SetValue(L"https://connect.prusa3d.com");
+                        m_config->opt_string("print_host") = "https://connect.prusa3d.com";
                     }
                 }
             } else if (opt->value == htObico) { // automatically show default obico address
