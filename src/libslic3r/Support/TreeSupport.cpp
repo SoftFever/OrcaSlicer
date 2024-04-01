@@ -783,7 +783,7 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
                 Layer* layer = m_object->get_layer(layer_nr);
 
                 if (layer->lower_layer == nullptr) {
-                    for (auto& slice : layer->lslices) {
+                    for (auto& slice : layer->lslices_extrudable) {
                         auto bbox_size = get_extents(slice).size();
                         if (!((bbox_size.x() > length_thresh_well_supported && bbox_size.y() > length_thresh_well_supported))
                             && g_config_support_sharp_tails) {
@@ -1057,10 +1057,10 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
         if (layer_nr < enforcers.size() && lower_layer) {
             float no_interface_offset = std::accumulate(layer->regions().begin(), layer->regions().end(), FLT_MAX,
                 [](float acc, const LayerRegion* layerm) { return std::min(acc, float(layerm->flow(frExternalPerimeter).scaled_width())); });
-            Polygons  lower_layer_polygons = (layer_nr == 0) ? Polygons() : to_polygons(lower_layer->lslices);
+            Polygons  lower_layer_polygons = (layer_nr == 0) ? Polygons() : to_polygons(lower_layer->lslices_extrudable);
             Polygons& enforcer = enforcers[layer_nr];
             if (!enforcer.empty()) {
-                ExPolygons enforcer_polygons = diff_ex(intersection_ex(layer->lslices, enforcer),
+                ExPolygons enforcer_polygons = diff_ex(intersection_ex(layer->lslices_extrudable, enforcer),
                     // Inflate just a tiny bit to avoid intersection of the overhang areas with the object.
                     expand(lower_layer_polygons, 0.05f * no_interface_offset, SUPPORT_SURFACES_OFFSET_PARAMETERS));
                 append(layer->loverhangs, enforcer_polygons);
@@ -1091,21 +1091,21 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
             continue;
 
         SVG::export_expolygons(debug_out_path("overhang_areas_%d_%.2f.svg",layer->id(), layer->print_z), {
-            { m_object->get_layer(layer->id())->lslices, {"lslices","yellow",0.5} },
+            { m_object->get_layer(layer->id())->lslices_extrudable, {"lslices_extrudable","yellow",0.5} },
             { layer->loverhangs, {"overhang","red",0.5} }
             });
 
         if (enforcers.size() > layer->id()) {
             SVG svg(format("SVG/enforcer_%s.svg", layer->print_z), m_object->bounding_box());
             if (svg.is_opened()) {
-                svg.draw_outline(m_object->get_layer(layer->id())->lslices, "yellow");
+                svg.draw_outline(m_object->get_layer(layer->id())->lslices_extrudable, "yellow");
                 svg.draw(enforcers[layer->id()], "red");
             }
         }
         if (blockers.size() > layer->id()) {
             SVG svg(format("SVG/blocker_%s.svg", layer->print_z), m_object->bounding_box());
             if (svg.is_opened()) {
-                svg.draw_outline(m_object->get_layer(layer->id())->lslices, "yellow");
+                svg.draw_outline(m_object->get_layer(layer->id())->lslices_extrudable, "yellow");
                 svg.draw(blockers[layer->id()], "red");
             }
         }
@@ -1994,7 +1994,6 @@ void TreeSupport::draw_circles(const std::vector<std::vector<SupportNode*>>& con
                             if(!tmp.empty())
                                 circle = tmp[0];
                         }
-                        area = avoid_object_remove_extra_small_parts(ExPolygon(circle), get_collision(node.is_sharp_tail && node.distance_to_top <= 0));
                         // merge overhang to get a smoother interface surface
                         // Do not merge when buildplate_only is on, because some underneath nodes may have been deleted.
                         if (top_interface_layers > 0 && node.support_roof_layers_below > 0 && !on_buildplate_only && !node.is_sharp_tail) {
