@@ -62,6 +62,12 @@ enum PrintHostType {
     htPrusaLink, htPrusaConnect, htOctoPrint, htDuet, htFlashAir, htAstroBox, htRepetier, htMKS, htObico, htFlashforge, htSimplyPrint
 };
 
+enum class SimplyPrintPostUploadAction
+{
+    OpenExternalBrowser,
+    SwitchToDeviceTab,
+};
+
 enum AuthorizationType {
     atKeyPassword, atUserPassword
 };
@@ -408,6 +414,7 @@ CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(ForwardCompatibilitySubstitutionRule)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(GCodeThumbnailsFormat)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(CounterboreHoleBridgingOption)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(PrintHostType)
+CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SimplyPrintPostUploadAction)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(AuthorizationType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(PerimeterGeneratorType)
 #undef CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS

@@ -253,6 +253,8 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
     option.opt.width = Field::def_width_wider();
     m_optgroup->append_single_option_line(option);
 
+    m_optgroup->append_single_option_line("simplyprint_post_upload_action");
+
     m_optgroup->append_single_option_line("printhost_authorization_type");
 
     option = m_optgroup->get_option("printhost_apikey");
@@ -510,6 +512,8 @@ void PhysicalPrinterDialog::update(bool printer_change)
         if (m_printhost_cafile_browse_btn)
             m_printhost_cafile_browse_btn->Enable();
 
+        m_optgroup->hide_field("simplyprint_post_upload_action");
+
         // hide pre-configured address, in case user switched to a different host type
         if (Field* printhost_field = m_optgroup->get_field("print_host"); printhost_field) {
             if (wxTextCtrl* temp = dynamic_cast<TextCtrl*>(printhost_field)->text_ctrl(); temp) {
@@ -578,6 +582,10 @@ void PhysicalPrinterDialog::update(bool printer_change)
                 m_optgroup->disable_field("printhost_ssl_ignore_revoke");
                 if (m_printhost_cafile_browse_btn)
                     m_printhost_cafile_browse_btn->Disable();
+
+                if (!wxGetApp().preset_bundle->use_bbl_device_tab()) {
+                    m_optgroup->show_field("simplyprint_post_upload_action");
+                }
             }
         }
         

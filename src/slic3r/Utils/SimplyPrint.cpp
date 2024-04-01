@@ -7,6 +7,8 @@
 #include "libslic3r/Utils.hpp"
 #include "slic3r/GUI/I18N.hpp"
 #include "slic3r/GUI/format.hpp"
+#include "slic3r/GUI/GUI_App.hpp"
+#include "slic3r/GUI/MainFrame.hpp"
 
 
 namespace Slic3r {
@@ -65,6 +67,9 @@ static void set_auth(Http& http, const std::string& access_token) { http.header(
 
 SimplyPrint::SimplyPrint(DynamicPrintConfig* config)
 {
+    open_in_external_browser = GUI::wxGetApp().preset_bundle->use_bbl_device_tab() ||
+                               config->opt_enum<SimplyPrintPostUploadAction>("simplyprint_post_upload_action") == SimplyPrintPostUploadAction::OpenExternalBrowser;
+
     cred_file = (boost::filesystem::path(data_dir()) / OAUTH_CREDENTIAL_PATH).make_preferred().string();
     load_oauth_credential();
 }
@@ -262,7 +267,7 @@ bool SimplyPrint::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, Er
 
             return http;
         },
-        [&error_fn, &filename](std::string body, unsigned status) {
+        [&error_fn, &filename, this](std::string body, unsigned status) {
             BOOST_LOG_TRIVIAL(info) << boost::format("SimplyPrint: File uploaded: HTTP %1%: %2%") % status % body;
 
             // Get file UUID
@@ -282,7 +287,14 @@ bool SimplyPrint::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, Er
 
             // Launch external browser for file importing after uploading
             const auto url = "https://simplyprint.io/panel?" + url_encode({{"import", "tmp:" + uuid}, {"filename", filename}});
-            wxLaunchDefaultBrowser(url);
+
+            if (open_in_external_browser) {
+                wxLaunchDefaultBrowser(url);
+            } else {
+                const auto mainframe = GUI::wxGetApp().mainframe;
+                mainframe->request_select_tab(MainFrame::TabPosition::tpMonitor);
+                mainframe->load_printer_url(url);
+            }
 
             return true;
         },
