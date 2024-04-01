@@ -3,6 +3,9 @@
 
 #include "Job.hpp"
 #include "slic3r/GUI/HttpServer.hpp"
+#include <boost/nowide/fstream.hpp>
+#include <boost/nowide/cstdio.hpp>
+#include <boost/log/trivial.hpp>
 
 namespace Slic3r {
 namespace GUI {
