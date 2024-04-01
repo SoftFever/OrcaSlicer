@@ -1159,7 +1159,7 @@ void Sidebar::update_all_preset_comboboxes()
             const auto host_type = cfg.option<ConfigOptionEnum<PrintHostType>>("host_type")->value;
             if (cfg.has("printhost_apikey") && (host_type != htSimplyPrint))
                 apikey = cfg.opt_string("printhost_apikey");
-            print_btn_type = MainFrame::PrintSelectType::eSendGcode;
+            print_btn_type = preset_bundle.is_bbl_vendor() ? MainFrame::PrintSelectType::ePrintPlate : MainFrame::PrintSelectType::eSendGcode;
         }
 
         p_mainframe->load_printer_url(url, apikey);
@@ -6810,12 +6810,18 @@ void Plater::priv::on_action_print_plate(SimpleEvent&)
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received print plate event\n" ;
     }
 
-    //BBS
-    if (!m_select_machine_dlg) m_select_machine_dlg = new SelectMachineDialog(q);
-    m_select_machine_dlg->set_print_type(PrintFromType::FROM_NORMAL);
-    m_select_machine_dlg->prepare(partplate_list.get_curr_plate_index());
-    m_select_machine_dlg->ShowModal();
-    record_start_print_preset("print_plate");
+    PresetBundle& preset_bundle = *wxGetApp().preset_bundle;
+    if (preset_bundle.use_bbl_network()) {
+        // BBS
+        if (!m_select_machine_dlg)
+            m_select_machine_dlg = new SelectMachineDialog(q);
+        m_select_machine_dlg->set_print_type(PrintFromType::FROM_NORMAL);
+        m_select_machine_dlg->prepare(partplate_list.get_curr_plate_index());
+        m_select_machine_dlg->ShowModal();
+        record_start_print_preset("print_plate");
+    } else {
+        q->send_gcode_legacy(PLATE_CURRENT_IDX, nullptr, true);
+    }
 }
 
 void Plater::priv::on_action_print_plate_from_sdcard(SimpleEvent&)
@@ -6891,12 +6897,18 @@ void Plater::priv::on_action_print_all(SimpleEvent&)
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received print all event\n" ;
     }
 
-    //BBS
-    if (!m_select_machine_dlg) m_select_machine_dlg = new SelectMachineDialog(q);
-    m_select_machine_dlg->set_print_type(PrintFromType::FROM_NORMAL);
-    m_select_machine_dlg->prepare(PLATE_ALL_IDX);
-    m_select_machine_dlg->ShowModal();
-    record_start_print_preset("print_all");
+    PresetBundle& preset_bundle = *wxGetApp().preset_bundle;
+    if (preset_bundle.use_bbl_network()) {
+        // BBS
+        if (!m_select_machine_dlg)
+            m_select_machine_dlg = new SelectMachineDialog(q);
+        m_select_machine_dlg->set_print_type(PrintFromType::FROM_NORMAL);
+        m_select_machine_dlg->prepare(PLATE_ALL_IDX);
+        m_select_machine_dlg->ShowModal();
+        record_start_print_preset("print_all");
+    } else {
+        q->send_gcode_legacy(PLATE_ALL_IDX, nullptr, true);
+    }
 }
 
 void Plater::priv::on_action_export_gcode(SimpleEvent&)
@@ -11753,7 +11765,7 @@ void Plater::reslice_SLA_until_step(SLAPrintObjectStep step, const ModelObject &
     // and let the background processing start.
     this->p->restart_background_process(state | priv::UPDATE_BACKGROUND_PROCESS_FORCE_RESTART);
 }
-void Plater::send_gcode_legacy(int plate_idx, Export3mfProgressFn proFn)
+void Plater::send_gcode_legacy(int plate_idx, Export3mfProgressFn proFn, bool use_3mf)
 {
     // if physical_printer is selected, send gcode for this printer
     // DynamicPrintConfig* physical_printer_config = wxGetApp().preset_bundle->physical_printers.get_selected_printer_config();
@@ -11764,6 +11776,8 @@ void Plater::send_gcode_legacy(int plate_idx, Export3mfProgressFn proFn)
     PrintHostJob upload_job(physical_printer_config);
     if (upload_job.empty())
         return;
+
+    upload_job.upload_data.use_3mf = use_3mf;
 
     // Obtain default output path
     fs::path default_output_file;
@@ -11816,6 +11830,19 @@ void Plater::send_gcode_legacy(int plate_idx, Export3mfProgressFn proFn)
             GUI::MessageDialog dlg(nullptr, _L("Is the printer ready? Is the print sheet in place, empty and clean?"), _L("Upload and Print"), wxOK | wxCANCEL);
             if (dlg.ShowModal() != wxID_OK)
                 return;
+        }
+
+        if (use_3mf) {
+            // Process gcode
+            const int result = send_gcode(plate_idx, nullptr);
+
+            if (result < 0) {
+                wxString msg = _L("Abnormal print file data. Please slice again");
+                show_error(this, msg, false);
+                return;
+            }
+
+            upload_job.upload_data.source_path = p->m_print_job_data._3mf_path;
         }
 
         p->export_gcode(fs::path(), false, std::move(upload_job));

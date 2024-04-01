@@ -1600,7 +1600,7 @@ wxBoxSizer* MainFrame::create_side_tools()
             SidePopup* p = new SidePopup(this);
 
             if (wxGetApp().preset_bundle
-                && !wxGetApp().preset_bundle->use_bbl_network()) {
+                && !wxGetApp().preset_bundle->is_bbl_vendor()) {
                 // ThirdParty Buttons
                 SideButton* export_gcode_btn = new SideButton(p, _L("Export G-code file"), "");
                 export_gcode_btn->SetCornerRadius(0);
@@ -1711,9 +1711,32 @@ wxBoxSizer* MainFrame::create_side_tools()
                     p->Dismiss();
                     });
                 p->append_button(print_plate_btn);
-                p->append_button(print_all_btn);
-                p->append_button(send_to_printer_btn);
-                p->append_button(send_to_printer_all_btn);
+
+                bool support_send = true;
+                bool support_print_all = true;
+
+                const auto preset_bundle = wxGetApp().preset_bundle;
+                if (preset_bundle) {
+                    if (preset_bundle->use_bbl_network()) {
+                        // BBL network support everything
+                    } else {
+                        support_send = false; // All 3rd print hosts do not have the send options
+
+                        auto cfg = preset_bundle->printers.get_edited_preset().config;
+                        const auto host_type = cfg.option<ConfigOptionEnum<PrintHostType>>("host_type")->value;
+
+                        // Only simply print support uploading all plates
+                        support_print_all = host_type == PrintHostType::htSimplyPrint;
+                    }
+                }
+
+                if (support_print_all) {
+                    p->append_button(print_all_btn);
+                }
+                if (support_send) {
+                    p->append_button(send_to_printer_btn);
+                    p->append_button(send_to_printer_all_btn);
+                }
                 p->append_button(export_sliced_file_btn);
                 p->append_button(export_all_sliced_file_btn);
                 p->append_button(export_gcode_btn);
