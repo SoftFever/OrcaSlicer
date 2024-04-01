@@ -2662,7 +2662,7 @@ ExPolygons    infill_contour = union_ex(wallToolPaths.getInnerContour());
             ext_perimeter_spacing :
             // two or more loops?
             perimeter_spacing;
-        coord_t top_bottom_inset = inset;
+        coord_t top_inset = inset;
         
         top_inset = coord_t(scale_(this->config->top_bottom_infill_wall_overlap.get_abs_value(unscale<double>(inset))));
         if(is_topmost_layer || is_bottom_layer)
