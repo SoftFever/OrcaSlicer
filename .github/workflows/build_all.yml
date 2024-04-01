@@ -59,6 +59,8 @@ jobs:
   flatpak:
     name: "Flatpak"
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     container:
       image: bilelmoussaoui/flatpak-github-actions:gnome-45
       options: --privileged
