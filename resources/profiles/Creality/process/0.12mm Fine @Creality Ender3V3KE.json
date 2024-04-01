@@ -37,7 +37,7 @@
 	"outer_wall_acceleration": "5000",
 	"initial_layer_line_width": "0.5",
 	"initial_layer_print_height": "0.2",
-	"infill_combination": "0",
+	"infill_combination": "1",
 	"sparse_infill_line_width": "0.45",
 	"infill_wall_overlap": "25%",
 	"interface_shells": "0",
