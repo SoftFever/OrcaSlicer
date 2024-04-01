@@ -2626,6 +2626,15 @@ def = this->add("filament_loading_speed", coFloats);
     def->ratio_over = "inner_wall_line_width";
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionPercent(15));
+    
+    def = this->add("top_bottom_infill_wall_overlap", coPercent);
+    def->label = L("Top/Bottom solid infill/wall overlap");
+    def->category = L("Strength");
+    def->tooltip = L("Top solid infill area is enlarged slightly to overlap with wall for better bonding. The percentage value is relative to line width of sparse infill");
+    def->sidetext = L("%");
+    def->ratio_over = "inner_wall_line_width";
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionPercent(15));
 
     def = this->add("sparse_infill_speed", coFloat);
     def->label = L("Sparse infill");
