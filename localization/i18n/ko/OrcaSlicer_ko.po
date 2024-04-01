@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-23 13:08+0800\n"
+"POT-Creation-Date: 2024-03-29 21:10+0800\n"
 "PO-Revision-Date: 2024-03-15 23:12+0900\n"
 "Last-Translator: Hotsolidinfill <138652683+Hotsolidinfill@users.noreply."
 "github.com>, crwusiz <crwusiz@naver.com>\n"
@@ -11358,6 +11358,10 @@ msgstr "자동 교정 기호 표시"
 msgid "Disable set remaining print time"
 msgstr "설정된 남은 출력 시간 비활성화"
 
+msgid ""
+"Disable generating of the M73: Set remaining print time in the final gcode"
+msgstr ""
+
 msgid "Seam position"
 msgstr "솔기 위치"
 
@@ -11430,6 +11434,18 @@ msgstr ""
 "이 옵션은 조건부 스카프 접합 솔기를 적용하기 위한 임계값 각도를 설정합니다.\n"
 "주변 루프 내의 최대 각도가 이 값을 초과하는 경우(뾰족한 모서리가 없음을 나타"
 "냄) 스카프 조인트 솔기가 사용됩니다. 기본값은 155°입니다."
+
+msgid "Conditional overhang threshold"
+msgstr ""
+
+#, no-c-format, no-boost-format
+msgid ""
+"This option determines the overhang threshold for the application of scarf "
+"joint seams. If the unsupported portion of the perimeter is less than this "
+"threshold, scarf joint seams will be applied. The default threshold is set "
+"at 40% of the external wall's width. Due to performance considerations, the "
+"degree of overhang is estimated."
+msgstr ""
 
 msgid "Scarf joint speed"
 msgstr "스카프 조인트 속도"
@@ -14507,6 +14523,47 @@ msgstr ""
 "호스트 프린터 열거에 실패했습니다.\n"
 "메시지 본문: \"%1%\"\n"
 "오류: \"%2%\""
+
+msgid "Connected to Obico successfully!"
+msgstr ""
+
+msgid "Could not connect to Obico"
+msgstr ""
+
+msgid "Connected to SimplyPrint successfully!"
+msgstr ""
+
+msgid "Could not connect to SimplyPrint"
+msgstr ""
+
+msgid "SimplyPrint account not linked. Go to Connect options to set it up."
+msgstr ""
+
+msgid ""
+"File size exceeds the 100MB upload limit. Please upload your file through "
+"the panel."
+msgstr ""
+
+msgid "Unknown error"
+msgstr ""
+
+msgid "Connection to Flashforge works correctly."
+msgstr ""
+
+msgid "Could not connect to Flashforge"
+msgstr ""
+
+msgid "The provided state is not correct."
+msgstr ""
+
+msgid "Please give the required permissions when authorizing this application."
+msgstr ""
+
+msgid "Something unexpected happened when trying to log in, please try again."
+msgstr ""
+
+msgid "User cancelled."
+msgstr ""
 
 #: resources/data/hints.ini: [hint:Precise wall]
 msgid ""

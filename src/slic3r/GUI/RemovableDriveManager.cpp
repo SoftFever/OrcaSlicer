@@ -370,12 +370,13 @@ std::string RemovableDriveManager::get_removable_drive_path(const std::string &p
 
 std::string RemovableDriveManager::get_removable_drive_from_path(const std::string& path)
 {
-	std::size_t found = path.find_last_of("/");
-	std::string new_path = found == path.size() - 1 ? path.substr(0, found) : path;
-    // trim the filename
-    found = new_path.find_last_of("/");
-    new_path = new_path.substr(0, found);
-    
+	std::string new_path(path);
+	if (!boost::filesystem::is_directory(path)) {
+		std::size_t found = path.find_last_of("/");
+		if (found != std::string::npos)
+			new_path.erase(found);
+	}
+
 	// check if same filesystem
 	std::scoped_lock<std::mutex> lock(m_drives_mutex);
 	for (const DriveData &drive_data : m_current_drives)
