@@ -21,8 +21,8 @@
     "printable_height": "250",
     "nozzle_type": "hardened_steel",
     "auxiliary_fan": "1",
-	"support_air_filtration": "1",
-	"support_multi_bed_types": "1",
+    "support_air_filtration": "1",
+    "support_multi_bed_types": "1",
     "machine_max_acceleration_e": [
         "5000",
         "5000"
@@ -94,7 +94,7 @@
         "2"
     ],
     "retract_before_wipe": [
-        "70%"
+        "0%"
     ],
     "retraction_length": [
         "0.6"
