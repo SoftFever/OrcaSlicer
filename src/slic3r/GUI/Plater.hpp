@@ -72,12 +72,6 @@ class Ams;
 
 using ModelInstancePtrs = std::vector<ModelInstance*>;
 
-enum LongRectrationLevel
-{
-    Disabled=0,
-    EnableMachine,
-    EnableFilament
-};
 
 namespace UndoRedo {
     class Stack;

@@ -1633,13 +1633,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
                     "Although it can notably reduce flush,  it may also elevate the risk of nozzle clogs or other printing complications."), "", wxICON_WARNING | wxOK);
             dialog.ShowModal();
         }
-        update_flush_volume();
     }
-
-    if (opt_key_without_idx == "retraction_distances_when_cut")
-        update_flush_volume();
-
-
 
     if (opt_key == "filament_long_retractions_when_cut"){
         unsigned char activate = boost::any_cast<unsigned char>(value);
@@ -1649,11 +1643,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
             "Although it can notably reduce flush, it may also elevate the risk of nozzle clogs or other printing complications.Please use with the latest printer firmware."), "", wxICON_WARNING | wxOK);
             dialog.ShowModal();
         }
-        update_flush_volume();
     }
-
-    if (opt_key == "filament_retraction_distances_when_cut")
-        update_flush_volume();
 
 
     // BBS

@@ -6388,10 +6388,12 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
 
             view3D->deselect_all();
         }
+#if 0   // do not toggle auto calc when change printer
         // update flush matrix
         size_t filament_size = wxGetApp().plater()->get_extruder_colors_from_plater_config().size();
         for (size_t idx = 0; idx < filament_size; ++idx)
             wxGetApp().plater()->sidebar().auto_calc_flushing_volumes(idx);
+#endif
     }
 
 #ifdef __WXMSW__
@@ -6400,6 +6402,10 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
     // So, set the focus to the combobox explicitly
     combo->SetFocus();
 #endif
+    if (preset_type == Preset::TYPE_FILAMENT && wxGetApp().app_config->get("auto_calculate_when_filament_change") == "true") {
+        wxGetApp().plater()->sidebar().auto_calc_flushing_volumes(idx);
+    }
+
     // BBS: log modify of filament selection
     Slic3r::put_other_changes();
 

@@ -537,7 +537,7 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
         message_sizer->Add(m_tip_message_label, 0, wxEXPAND | wxALL, TIP_MESSAGES_PADDING);
     }
     m_sizer_advanced->Add(tip_message_panel, 0, wxEXPAND | wxRIGHT | wxLEFT, TABLE_BORDER);
-    bool is_show = wxGetApp().app_config->get("auto_calculate") == "true";
+    bool is_show = wxGetApp().app_config->get("auto_calculate") == "true" || wxGetApp().app_config->get("auto_calculate_when_filament_change") == "true";
     tip_message_panel->Show(is_show);
     m_sizer_advanced->AddSpacer(FromDIP(10));
     auto calc_btn_sizer = create_calc_btn_sizer(m_page_advanced);
