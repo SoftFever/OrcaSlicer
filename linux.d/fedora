@@ -1,0 +1,56 @@
+FOUND_GTK2=$(rpm -qa | grep -P '^gtk2' || true)
+FOUND_GTK3=$(rpm -qa | grep -P '^gtk3' || true)
+
+REQUIRED_DEV_PACKAGES=(
+    autoconf
+    automake
+    cmake
+    dbus-devel
+    eglexternalplatform-devel
+    extra-cmake-modules
+    file
+    gcc
+    gcc-c++
+    gettext
+    git
+    gstreamer1-devel
+    gstreamermm-devel
+    libmspack-devel
+    libsecret-devel
+    libtool
+    m4
+    mesa-libGLU-devel
+    mesa-libOSMesa-devel
+    ninja-build
+    openssl-devel
+    perl-FindBin
+    texinfo
+    wayland-protocols-devel
+    webkit2gtk4.0-devel
+    wget
+    libcurl-devel
+)
+
+if [[ -n "$UPDATE_LIB" ]]
+then
+    if [[ -z "$FOUND_GTK3" ]]
+    then
+        REQUIRED_DEV_PACKAGES+=(gtk2-devel)
+    else
+        REQUIRED_DEV_PACKAGES+=(gtk3-devel)
+    fi
+
+    NEEDED_PKGS=""
+    for PKG in ${REQUIRED_DEV_PACKAGES[@]}; do
+        rpm -q ${PKG} > /dev/null || NEEDED_PKGS+=" ${PKG}"
+    done
+
+    if [ -n "${NEEDED_PKGS}" ]; then
+        sudo dnf install -y ${NEEDED_PKGS}
+    fi
+    echo -e "done\n"
+    exit 0
+fi
+
+FOUND_GTK2_DEV=$(rpm -qa | grep -P '^gtk2-devel' || true)
+FOUND_GTK3_DEV=$(rpm -qa | grep -P '^gtk3-devel' || true)
