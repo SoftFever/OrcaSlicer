@@ -95,7 +95,7 @@
 		"2"
 	],
 	"retract_before_wipe": [
-		"70%"
+		"0%"
 	],
 	"retraction_length": [
 		"0.5"
