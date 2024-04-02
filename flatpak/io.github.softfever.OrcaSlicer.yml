@@ -98,7 +98,7 @@ modules:
       - /lib/pkgconfig
 
   - name: kde-extra-cmake-modules
-    buildsystem: cmake
+    buildsystem: cmake-ninja
     sources:
       - type: git
         url: https://github.com/KDE/extra-cmake-modules
@@ -213,14 +213,14 @@ modules:
         dest: external-packages/TBB
         sha256: 83ea786c964a384dd72534f9854b419716f412f9d43c0be88d41874763e7bb47
       
-      # Patched TBB cmake to make build without lto flag
-      - type: file
-        dest: deps/TBB
-        path: patches/TBB/GNU.cmake
+      ## Patched TBB cmake to make build without lto flag
+      #- type: file
+      #  dest: deps/TBB
+      #  path: patches/TBB/GNU.cmake
 
-      # Apply TTB patches to fix linking failure. More info: https://github.com/prusa3d/PrusaSlicer/issues/8922
-      - type: patch
-        path: patches/0001-Apply-TBB-LTO-patch.patch
+      ## Apply TTB patches to fix linking failure. More info: https://github.com/prusa3d/PrusaSlicer/issues/8922
+      #- type: patch
+      #  path: patches/0001-Apply-TBB-LTO-patch.patch
 
       # Boost
       - type: file
@@ -287,8 +287,8 @@ modules:
       - type: dir 
         path: ../
 
-      - type: patch
-        path: patches/0001-Work-around-ClipperLib-union_-declaration-problem.patch
+      #- type: patch
+      #  path: patches/0001-Work-around-ClipperLib-union_-declaration-problem.patch
 
       # AppData metainfo for Gnome Software & Co.
       - type: file
