@@ -3096,7 +3096,7 @@ void Selection::paste_objects_from_clipboard()
     if (src_objects.size() > 1) {
         BoundingBoxf3 bbox_all;
         for (const ModelObject *src_object : src_objects) {
-            BoundingBoxf3 bbox = src_object->instance_convex_hull_bounding_box(0);
+            BoundingBoxf3 bbox = src_object->instance_convex_hull_bounding_box(size_t(0));
             bbox_all.merge(bbox);
         }
         auto bsize = bbox_all.size();
@@ -3112,7 +3112,7 @@ void Selection::paste_objects_from_clipboard()
         ModelObject* dst_object = m_model->add_object(*src_object);
 
         // BBS: find an empty cell to put the copied object
-        BoundingBoxf3 bbox = src_object->instance_convex_hull_bounding_box(0);
+        BoundingBoxf3 bbox = src_object->instance_convex_hull_bounding_box(size_t(0));
 
         Vec3d displacement;
         bool  in_current  = plate->intersects(bbox);

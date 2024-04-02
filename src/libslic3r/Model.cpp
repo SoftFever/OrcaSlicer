@@ -1514,12 +1514,14 @@ BoundingBoxf3 ModelObject::instance_bounding_box(const ModelInstance &instance, 
 //BBS: add convex bounding box
 BoundingBoxf3 ModelObject::instance_convex_hull_bounding_box(size_t instance_idx, bool dont_translate) const
 {
+    return instance_convex_hull_bounding_box(this->instances[instance_idx], dont_translate);
+}
+
+BoundingBoxf3 ModelObject::instance_convex_hull_bounding_box(const ModelInstance* instance, bool dont_translate) const
+{
     BoundingBoxf3 bb;
-    const Transform3d& inst_matrix = dont_translate ?
-        this->instances[instance_idx]->get_transformation().get_matrix_no_offset() :
-        this->instances[instance_idx]->get_transformation().get_matrix();
-    for (ModelVolume *v : this->volumes)
-    {
+    const Transform3d& inst_matrix = instance->get_transformation().get_matrix(dont_translate);
+    for (ModelVolume* v : this->volumes) {
         if (v->is_model_part())
             bb.merge(v->get_convex_hull().transformed_bounding_box(inst_matrix * v->get_matrix()));
     }
