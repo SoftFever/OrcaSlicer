@@ -8,11 +8,16 @@ endif()
 # get relative path of CMAKE_BINARY_DIR against root source directory
 file(RELATIVE_PATH BINARY_DIR_REL  ${CMAKE_SOURCE_DIR}/.. ${CMAKE_BINARY_DIR})
 
+message("SB:"+${BINARY_DIR_REL})
+message("CMAKE_SOURCE_DIR:"+${CMAKE_SOURCE_DIR})
+message("CMAKE_BINARY_DIR:"+${CMAKE_BINARY_DIR})
+set(patch_command git apply --verbose --ignore-space-change --whitespace=fix ${CMAKE_CURRENT_LIST_DIR}/0001-OCCT-fix.patch)
+
 orcaslicer_add_cmake_project(OCCT
     URL https://github.com/Open-Cascade-SAS/OCCT/archive/refs/tags/V7_6_0.zip
     URL_HASH SHA256=28334f0e98f1b1629799783e9b4d21e05349d89e695809d7e6dfa45ea43e1dbc
     #PATCH_COMMAND ${PATCH_CMD} ${CMAKE_CURRENT_LIST_DIR}/0001-OCCT-fix.patch
-    PATCH_COMMAND git apply --directory ${BINARY_DIR_REL}/dep_OCCT-prefix/src/dep_OCCT --verbose --ignore-space-change --whitespace=fix ${CMAKE_CURRENT_LIST_DIR}/0001-OCCT-fix.patch
+    PATCH_COMMAND ${patch_command}
     #DEPENDS dep_Boost
     #DEPENDS dep_FREETYPE
     CMAKE_ARGS
@@ -32,3 +37,5 @@ orcaslicer_add_cmake_project(OCCT
 )
 
 add_dependencies(dep_OCCT dep_FREETYPE)
+
+

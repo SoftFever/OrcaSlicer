@@ -15,6 +15,7 @@ if (APPLE)
             -Dpixarlog:BOOL=OFF
     )
 else()
+    find_package(freeglut)
     orcaslicer_add_cmake_project(TIFF
         URL https://gitlab.com/libtiff/libtiff/-/archive/v4.1.0/libtiff-v4.1.0.zip
         URL_HASH SHA256=c56edfacef0a60c0de3e6489194fcb2f24c03dbb550a8a7de5938642d045bd32
