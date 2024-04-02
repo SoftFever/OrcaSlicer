@@ -1,5 +1,5 @@
 if (FLATPAK)
-    set(_patch_command ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_LIST_DIR}/GNU.cmake cmake/compilers/GNU.cmake)
+    set(_patch_command ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_LIST_DIR}/GNU.cmake ./cmake/compilers/GNU.cmake)
 else()
     set(_patch_command "")
 endif()
