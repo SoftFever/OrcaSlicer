@@ -3693,9 +3693,11 @@ void GLCanvas3D::on_mouse_wheel(wxMouseEvent& evt)
     }
     else {
         auto cnv_size = get_canvas_size();
-        auto screen_center_3d_pos = _mouse_to_3d({ cnv_size.get_width() * 0.5, cnv_size.get_height() * 0.5 });
-        auto mouse_3d_pos = _mouse_to_3d({evt.GetX(), evt.GetY()});
+        float z{0.f};
+        auto screen_center_3d_pos = _mouse_to_3d({ cnv_size.get_width() * 0.5, cnv_size.get_height() * 0.5 }, &z);
+        auto mouse_3d_pos = _mouse_to_3d({evt.GetX(), evt.GetY()}, &z);
         Vec3d displacement = mouse_3d_pos - screen_center_3d_pos;
+
         wxGetApp().plater()->get_camera().translate(displacement);
         auto origin_zoom = wxGetApp().plater()->get_camera().get_zoom();
         _update_camera_zoom(delta);
