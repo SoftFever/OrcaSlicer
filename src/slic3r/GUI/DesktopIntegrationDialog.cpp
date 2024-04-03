@@ -340,7 +340,7 @@ void DesktopIntegrationDialog::perform_desktop_integration()
                 "Categories=Graphics;3DGraphics;Engineering;\n"
                 "Keywords=3D;Printing;Slicer;slice;3D;printer;convert;gcode;stl;obj;amf;SLA\n"
                 "StartupNotify=false\n"
-                "StartupWMClass=orca-slicer\n", name_suffix, version_suffix, excutable_path);
+                "StartupWMClass=mingda-slicer\n", name_suffix, version_suffix, excutable_path);
 
             std::string path = GUI::format("%1%/applications/OrcaSlicer%2%.desktop", target_dir_desktop, version_suffix);
             if (create_desktop_file(path, desktop_file)){

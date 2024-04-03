@@ -92,4 +92,4 @@ RUN [[ "$UID" != "0" ]] \
 
 # Using an entrypoint instead of CMD because the binary
 # accepts several command line arguments.
-ENTRYPOINT ["/OrcaSlicer/build/package/bin/orca-slicer"]
+ENTRYPOINT ["/OrcaSlicer/build/package/bin/mingda-slicer"]

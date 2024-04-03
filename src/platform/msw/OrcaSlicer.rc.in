@@ -13,7 +13,7 @@ PRODUCTVERSION @SLIC3R_VERSION@
    VALUE "ProductVersion", "@SLIC3R_BUILD_ID@"
    VALUE "InternalName", "@SLIC3R_APP_NAME@"
    VALUE "LegalCopyright", ""
-   VALUE "OriginalFilename", "orca-slicer.exe"
+   VALUE "OriginalFilename", "mingda-slicer.exe"
   }
  }
  BLOCK "VarFileInfo"
