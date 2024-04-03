@@ -1,0 +1,12 @@
+{
+    "type": "machine_model",
+    "name": "MingDa 1000D",
+    "model_id": "MingDa-1000D",
+    "nozzle_diameter": "0.4",
+    "machine_tech": "FFF",
+    "family": "MingDa",
+    "bed_model": "MingDa_1000D_buildplate_model.stl",
+    "bed_texture": "MingDa_1000D_buildplate_texture.png",
+    "hotend_model": "",
+	"default_materials": "MingDa PETG-CF;MingDa PETG;MingDa PLA;MingDa PLA-CF;MingDa PA-CF25;MingDa PA-GF25;MingDa PA12-CF;MingDa TPU-95A;MingDa TPU-75D;MingDa ABS+.json;MingDa ABS-CF20.json;MingDa ABS-GF25;MingDa PET-CF;MingDa PET-GF;MingDa S-PAHT;MingDa S-Multi;MingDa PET-GF;MingDa PET-CF;MingDa PET-GF25;MingDa PET-CF25;"
+}

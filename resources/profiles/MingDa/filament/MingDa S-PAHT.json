@@ -1,0 +1,120 @@
+{
+  "type": "filament",
+    "filament_id": "SPAHT",
+    "setting_id": "SPAHT",
+    "name": "MingDa S-PAHT",
+
+
+  "from": "system",
+  "instantiation": "true",
+  "inherits": "fdm_filament_pet",
+  "cool_plate_temp" : [
+      "0"
+  ],
+  "eng_plate_temp" : [
+      "70"
+  ],
+  "textured_plate_temp" : [
+      "70"
+  ],
+  "cool_plate_temp_initial_layer" : [
+      "0"
+  ],
+  "eng_plate_temp_initial_layer" : [
+      "70"
+  ],
+  "textured_plate_temp_initial_layer" : [
+      "70"
+  ],
+  "required_nozzle_HRC": [
+      "40"
+  ],
+  "filament_vendor": [
+      "MingDa3D"
+  ],
+  "filament_type": [
+      "S-PAHT"
+  ],
+  "filament_cost": [
+      "34.99"
+  ],
+  "filament_density": [
+    "1.25"
+  ],
+  "fan_max_speed": [
+      "30"
+  ],
+    "compatible_printers": [
+        "MingDa 400D 0.4 nozzle (Dual)",
+        "MingDa 400D 0.4 nozzle (Left)",
+        "MingDa 400D 0.4 nozzle (Right)",
+        "MingDa 600D 0.4 nozzle (Dual)",
+        "MingDa 600D 0.4 nozzle (Left)",
+        "MingDa 600D 0.4 nozzle (Right)",
+        "MingDa 1000D 0.4 nozzle (Dual)",
+        "MingDa 1000D 0.4 nozzle (Left)",
+        "MingDa 1000D 0.4 nozzle (Right)"
+    ],
+
+    "complete_print_exhaust_fan_speed": [
+        "70"
+    ],
+    "during_print_exhaust_fan_speed": [
+        "70"
+    ],
+    "fan_cooling_layer_time": [
+        "5"
+    ],
+    "fan_min_speed": [
+        "10"
+    ],
+    "filament_end_gcode": [
+        "; filament end gcode \nM104 S200"
+    ],
+    "filament_max_volumetric_speed": [
+        "8"
+    ],
+    "filament_settings_id": [
+        "MingDa S-PAHT"
+    ],
+    "filament_start_gcode": [
+        "; filament start gcode\nM109 S[nozzle_temperature]"
+    ],
+    "hot_plate_temp": [
+        "70"
+    ],
+    "hot_plate_temp_initial_layer": [
+        "70"
+    ],
+    "is_custom_defined": "0",
+    "nozzle_temperature": [
+        "280"
+    ],
+    "nozzle_temperature_initial_layer": [
+        "280"
+    ],
+    "nozzle_temperature_range_high": [
+        "300"
+    ],
+    "nozzle_temperature_range_low": [
+        "260"
+    ],
+    "overhang_fan_speed": [
+        "40"
+    ],
+    "overhang_fan_threshold": [
+        "0%"
+    ],
+    "reduce_fan_stop_start_freq": [
+        "0"
+    ],
+    "slow_down_layer_time": [
+        "2"
+    ],
+    "slow_down_min_speed": [
+        "20"
+    ],
+    "temperature_vitrification": [
+        "185"
+    ]
+}

@@ -1,0 +1,88 @@
+{
+    "type": "filament",
+    "filament_id": "PACF25",
+    "setting_id": "PACF25",
+    "name": "MingDa PA-CF25",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "fdm_filament_pa",
+    "filament_type": [
+      "PA-CF"
+    ],
+    "filament_max_volumetric_speed": [
+      "8"
+    ],
+    "fan_max_speed": [
+      "30"
+    ],
+    "fan_min_speed": [
+      "10"
+    ],
+    "overhang_fan_threshold": [
+      "0%"
+    ],
+    "overhang_fan_speed": [
+      "40"
+    ],
+    "fan_cooling_layer_time": [
+      "5"
+    ],
+    "full_fan_speed_layer": [
+      "2"
+    ],
+    "filament_vendor": [
+        "MingDa3D"
+    ],
+    "compatible_printers": [
+      "MingDa 400D 0.4 nozzle (Dual)",
+      "MingDa 400D 0.4 nozzle (Left)",
+      "MingDa 400D 0.4 nozzle (Right)",
+      "MingDa 600D 0.4 nozzle (Dual)",
+      "MingDa 600D 0.4 nozzle (Left)",
+      "MingDa 600D 0.4 nozzle (Right)",
+      "MingDa 1000D 0.4 nozzle (Dual)",
+      "MingDa 1000D 0.4 nozzle (Left)",
+      "MingDa 1000D 0.4 nozzle (Right)"
+    ],
+
+    "enable_pressure_advance": [
+      "1"
+  ],
+  "filament_end_gcode": [
+      "; filament end gcode \nM104 S200"
+  ],
+  "filament_flow_ratio": [
+      "0.9567"
+  ],
+  "filament_minimal_purge_on_wipe_tower": [
+      "50"
+  ],
+  "filament_settings_id": [
+      "MingDa PA-CF25"
+  ],
+  "filament_start_gcode": [
+      "; Filament gcode\nM109 S[nozzle_temperature]"
+  ],
+  "is_custom_defined": "0",
+  "nozzle_temperature": [
+      "280"
+  ],
+  "nozzle_temperature_initial_layer": [
+      "300"
+  ],
+  "nozzle_temperature_range_high": [
+      "340"
+  ],
+  "nozzle_temperature_range_low": [
+      "280"
+  ],
+  "pressure_advance": [
+      "0.04"
+  ],
+  "slow_down_layer_time": [
+      "1"
+  ],
+  "temperature_vitrification": [
+      "180"
+  ]
+}

@@ -1,0 +1,177 @@
+{
+	"type": "machine",
+	"setting_id": "MD400D1",
+	"name": "MingDa 400D 0.4 nozzle (Right)",
+	"from": "system",
+	"instantiation": "true",
+	"inherits": "fdm_klipper_common",
+	"printer_model": "MingDa 400D",
+	"default_print_profile": "0.20mm Standard @MingDa 400D",
+	"nozzle_diameter": [
+		"0.4",
+		"0.4"
+	],
+    "extruder_colour": [
+        "#FCE94F",
+		"#FCE94F"
+    ],
+    "extruder_offset": [
+        "0x0",
+		"0x0"
+    ],
+	"printable_area": [
+		"0x0",
+		"400x0",
+		"400x400",
+		"0x400"
+	],
+	"printable_height": "400",
+	"nozzle_type": "hardened_steel",
+    "machine_max_acceleration_e": [
+        "3000",
+		"3000"
+    ],
+	"machine_max_acceleration_extruding": [
+		"1000",
+		"300"
+	],
+	"machine_max_acceleration_travel": [
+		"15000",
+		"5000"
+	],
+	"machine_max_acceleration_z": [
+		"1000",
+		"1000"
+	],
+	"machine_max_speed_e": [
+		"120",
+		"120"
+	],
+	"machine_max_speed_x": [
+		"500",
+		"200"
+	],
+	"machine_max_speed_y": [
+		"500",
+		"200"
+	],
+	"machine_max_speed_z": [
+		"12",
+		"12"
+	],
+	"max_layer_height": [
+		"0.4",
+		"0.4"
+	],
+	"min_layer_height": [
+		"0.1",
+		"0.1"
+	],
+	"printer_settings_id": "MingDa",
+	"retract_before_wipe": [
+		"0%",
+		"0%"
+	],
+	"retract_length_toolchange": [
+		"2",
+		"2"
+	],
+    "retract_when_changing_layer": [
+        "1",
+		"1"
+    ],
+    "retract_restart_extra": [
+        "0",
+		"0"
+    ],
+    "retract_restart_extra_toolchange": [
+        "0",
+		"0"
+    ],
+	"retraction_speed": [
+		"40",
+		"40"
+	],
+	"deretraction_speed": [
+		"0",
+		"0"
+	],
+    "wipe": [
+        "1",
+		"1"
+    ],
+	"single_extruder_multi_material": "1",
+	"change_filament_gcode": "",
+	"machine_pause_gcode": "; pause print\n",
+	"default_filament_profile": [
+		"MingDa PLA"
+	],
+	"toolchange_gcode": "; layer [layer_num] tool change",
+	"layer_change_gcode": ";AFTER_LAYER_CHANGE\n;[layer_z]",
+	"scan_first_layer": "0",
+
+
+	"auxiliary_fan": "1",
+    "before_layer_change_gcode": "",
+    "cooling_tube_length": "0",
+    "cooling_tube_retraction": "0",
+    "enable_filament_ramming": "0",
+    "extra_loading_move": "0",
+    "extruder_clearance_height_to_lid": "90",
+    "extruder_clearance_height_to_rod": "36",
+    "extruder_clearance_radius": "68",
+    "is_custom_defined": "0",
+	"machine_start_gcode": "START_PRINT EXTRUDER1=[first_layer_temperature] BED=[first_layer_bed_temperature]\nM106 P1 S255",
+    "machine_end_gcode": "END_PRINT",
+    "machine_max_acceleration_retracting": [
+        "5000",
+        "1500"
+    ],
+    "machine_max_acceleration_x": [
+        "10000",
+        "5000"
+    ],
+    "machine_max_acceleration_y": [
+        "10000",
+        "5000"
+    ],
+    "machine_max_jerk_e": [
+        "3.5",
+        "5"
+    ],
+    "machine_max_jerk_x": [
+        "9",
+        "5"
+    ],
+    "machine_max_jerk_y": [
+        "9",
+        "5"
+    ],
+    "machine_max_jerk_z": [
+        "3",
+        "0.4"
+    ],
+    "nozzle_volume": "251",
+    "parking_pos_retraction": "0",
+    "print_host": "",
+    "retract_lift_below": [
+        "400"
+    ],
+    "retraction_length": [
+        "1",
+        "0.5"
+    ],
+    "retraction_minimum_travel": [
+        "1",
+        "0.6"
+    ],
+    "wipe_distance": [
+        "2"
+    ],
+    "z_hop": [
+        "0.4"
+    ],
+    "z_hop_types": [
+        "Auto Lift"
+    ]
+}
