@@ -1,0 +1,10 @@
+{
+  "type": "machine_model",
+  "name": "Ginger One",
+  "model_id": "Ginger_One",
+  "nozzle_diameter": "1.0;1.2;1.75;3.0",
+  "machine_tech": "FFF",
+  "family": "Ginger",
+  "bed_model": "Ginger_One.stl",
+  "default_materials": "Ginger Generic PLA 1.0 nozzle"
+}

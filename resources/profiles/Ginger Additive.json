@@ -1,0 +1,50 @@
+{
+  "name": "Ginger Additive",
+  "version": "0.1",
+  "force_update": "1",
+  "description": "Ginger configuration",
+  "machine_model_list": [
+    {
+      "name": "Ginger One",
+      "sub_path": "machine/Ginger One.json"
+    }
+  ],
+  "machine_list": [
+    {
+      "name": "Ginger One 1.0 nozzle",
+      "sub_path": "machine/Ginger One 1.0 nozzle.json"
+    },
+    {
+      "name": "Ginger One 1.2 nozzle",
+      "sub_path": "machine/Ginger One 1.2 nozzle.json"
+    },
+    {
+      "name": "Ginger One 1.75 nozzle",
+      "sub_path": "machine/Ginger One 1.75 nozzle.json"
+    },
+    {
+      "name": "Ginger One 3.0 nozzle",
+      "sub_path": "machine/Ginger One 3.0 nozzle.json"
+    }
+  ],
+  "process_list": [
+    {
+      "name": "Common Process Ginger One 1.0 nozzle",
+      "sub_path": "process/Common Process Ginger One 1.0 nozzle.json"
+    },
+    {
+      "name": "DERIVE 3mm nozzle",
+      "sub_path": "process/DERIVE 3mm nozzle.json"
+    }
+  ],
+  "filament_list": [
+    {
+      "name": "Ginger Generic PLA @base",
+      "sub_path": "filament/Ginger Generic PLA @base.json"
+    },
+    {
+      "name": "Ginger Generic PLA 1.0 nozzle",
+      "sub_path": "filament/Ginger Generic PLA 1.0 nozzle.json"
+    }
+  ]
+}
