@@ -198,7 +198,6 @@
   "upward_compatible_machine": [],
   "use_firmware_retraction": "0",
   "use_relative_e_distances": "1",
-  "version": "02.00.01.00",
   "wipe": [
     "1"
   ],
