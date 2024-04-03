@@ -1,0 +1,51 @@
+{
+    "type": "filament",
+    "filament_id": "GFG99_1",
+    "setting_id": "GFSA04",
+    "name": "Prusa Generic PETG @MINIIS",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "fdm_filament_pet",
+    "reduce_fan_stop_start_freq": [
+        "1"
+    ],
+    "slow_down_for_layer_cooling": [
+        "1"
+    ],
+    "fan_cooling_layer_time": [
+        "30"
+    ],
+    "overhang_fan_speed": [
+        "90"
+    ],
+    "overhang_fan_threshold": [
+        "25%"
+    ],
+    "fan_max_speed": [
+        "90"
+    ],
+    "fan_min_speed": [
+        "40"
+    ],
+    "slow_down_min_speed": [
+        "10"
+    ],
+    "slow_down_layer_time": [
+        "8"
+    ],
+    "filament_flow_ratio": [
+        "0.95"
+    ],
+    "filament_max_volumetric_speed": [
+        "10"
+    ],
+    "filament_start_gcode": [
+        "; filament start gcode\nM900 K{if printer_notes=~/.*PRINTER_MODEL_MINIIS.*/ and nozzle_diameter[0]==0.6}0.12{elsif printer_notes=~/.*PRINTER_MODEL_MINIIS.*/ and nozzle_diameter[0]==0.8}0.06{elsif printer_notes=~/.*PRINTER_MODEL_MINIIS.*/}0.2{elsif nozzle_diameter[0]==0.8}0.02{elsif nozzle_diameter[0]==0.6}0.04{else}0.08{endif} ; Filament gcode LA 1.5\n{if printer_notes=~/.*PRINTER_MODEL_MINIIS.*/};{elsif printer_notes=~/.*PRINTER_HAS_BOWDEN.*/}M900 K200{elsif nozzle_diameter[0]==0.6}M900 K24{elsif nozzle_diameter[0]==0.8};{else}M900 K45{endif} ; Filament gcode LA 1.0 \n\nM572 S{if nozzle_diameter[0]==0.6}0.22{elsif nozzle_diameter[0]==0.8}0.15{elsif nozzle_diameter[0]==0.4}0.36{elsif nozzle_diameter[0]==0.25}1.02{else}0{endif}"
+    ],
+    "compatible_printers": [
+        "Prusa MINIIS 0.4 nozzle",
+        "Prusa MINIIS 0.25 nozzle",
+        "Prusa MINIIS 0.6 nozzle",
+        "Prusa MINIIS 0.8 nozzle"
+      ]
+}
