@@ -1,0 +1,155 @@
+{
+  "version": 4,
+  "include": [
+    "cmake/presets/Linux.json",
+    "cmake/presets/macOS.json",
+    "cmake/presets/Windows.json",
+    "cmake/presets/base.json"
+  ],
+  "configurePresets": [
+    {
+      "name": "linux-release",
+      "displayName": "Linux Release Configure",
+      "inherits": [
+        "linux-base",
+        "base-release"
+      ]
+    },
+    {
+      "name": "linux-relwithdebinfo",
+      "displayName": "Linux RelWithDebInfo Configure",
+      "inherits": [
+        "linux-base",
+        "base-relwithdebinfo"
+      ]
+    },
+    {
+      "name": "linux-gtk2-release",
+      "displayName": "Linux GTK2 Release Configure",
+      "inherits": [
+        "linux-base-gtk2",
+        "base-release"
+      ]
+    },
+    {
+      "name": "linux-gtk2-relwithdebinfo",
+      "displayName": "Linux GTK2 RelWithDebInfo Configure",
+      "inherits": [
+        "linux-base-gtk2",
+        "base-relwithdebinfo"
+      ]
+    },
+    {
+      "name": "macos-x64-release",
+      "displayName": "macOS x64 Release Configure",
+      "inherits": [
+        "macos-base-x64",
+        "base-release"
+      ]
+    },
+    {
+      "name": "macos-x64-relwithdebinfo",
+      "displayName": "macOS x64 RelWithDebInfo Configure",
+      "inherits": [
+        "macos-base-x64",
+        "base-relwithdebinfo"
+      ]
+    },
+    {
+      "name": "macos-arm64-release",
+      "displayName": "macOS ARM64 Release Configure",
+      "inherits": [
+        "macos-base-arm64",
+        "base-release"
+      ]
+    },
+    {
+      "name": "macos-arm64-relwithdebinfo",
+      "displayName": "macOS ARM64 RelWithDebInfo Configure",
+      "inherits": [
+        "macos-base-arm64",
+        "base-relwithdebinfo"
+      ]
+    },
+    {
+      "name": "windows-release",
+      "displayName": "Windows Release Configure",
+      "inherits": [
+        "windows-base",
+        "base-release"
+      ]
+    },
+    {
+      "name": "windows-relwithdebinfo",
+      "displayName": "Windows RelWithDebInfo Configure",
+      "inherits": [
+        "windows-base",
+        "base-relwithdebinfo"
+      ]
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "linux-release",
+      "displayName": "Linux Release Build",
+      "inherits": "linux-base-build",
+      "configurePreset": "linux-release"
+    },
+    {
+      "name": "linux-relwithdebinfo",
+      "displayName": "Linux RelWithDebInfo Build",
+      "inherits": "linux-base-build",
+      "configurePreset": "linux-relwithdebinfo"
+    },
+    {
+      "name": "linux-gtk2-release",
+      "displayName": "Linux GTK2 Release Build",
+      "inherits": "linux-base-build",
+      "configurePreset": "linux-gtk2-release"
+    },
+    {
+      "name": "linux-gtk2-relwithdebinfo",
+      "displayName": "Linux GTK2 RelWithDebInfo Build",
+      "inherits": "linux-base-build",
+      "configurePreset": "linux-gtk2-relwithdebinfo"
+    },
+    {
+      "name": "macos-x64-release",
+      "displayName": "macOS x64 Release Build",
+      "inherits": "macos-base-build",
+      "configurePreset": "macos-x64-release"
+    },
+    {
+      "name": "macos-x64-relwithdebinfo",
+      "displayName": "macOS x64 RelWithDebInfo Build",
+      "inherits": "macos-base-build",
+      "configurePreset": "macos-x64-relwithdebinfo"
+    },
+    {
+      "name": "macos-arm64-release",
+      "displayName": "macOS ARM64 Release Build",
+      "inherits": "macos-base-build",
+      "configurePreset": "macos-arm64-release"
+    },
+    {
+      "name": "macos-arm64-relwithdebinfo",
+      "displayName": "macOS ARM64 RelWithDebInfo Build",
+      "inherits": "macos-base-build",
+      "configurePreset": "macos-arm64-relwithdebinfo"
+    },
+    {
+      "name": "windows-release",
+      "displayName": "Windows Release Build",
+      "inherits": "windows-base-build",
+      "configurePreset": "windows-release",
+      "configuration": "Release"
+    },
+    {
+      "name": "windows-relwithdebinfo",
+      "displayName": "Windows RelWithDebInfo Build",
+      "inherits": "windows-base-build",
+      "configurePreset": "windows-relwithdebinfo",
+      "configuration": "RelWithDebInfo"
+    }
+  ]
+}

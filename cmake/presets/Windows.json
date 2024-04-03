@@ -1,0 +1,41 @@
+{
+  "version": 4,
+  "configurePresets": [
+    {
+      "name": "windows-base",
+      "hidden": true,
+      "generator": "Visual Studio 17 2022",
+      "architecture": "x64",
+      "vendor": {
+        "jetbrains.com/clion": {
+          "toolchain": "Visual Studio"
+        }
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "cacheVariables": {
+        "WIN10SDK_PATH": "C:/Program Files (x86)/Windows Kits/10/Include/10.0.22000.0"
+      }
+    },
+    {
+      "name": "windows-base-2019",
+      "hidden": true,
+      "generator": "Visual Studio 16 2019"
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "windows-base-build",
+      "hidden": true,
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "targets": "ALL_BUILD"
+    }
+  ]
+}

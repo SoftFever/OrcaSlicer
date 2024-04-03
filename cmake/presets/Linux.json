@@ -1,0 +1,38 @@
+{
+  "version": 4,
+  "configurePresets": [
+    {
+      "name": "linux-base",
+      "hidden": true,
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      },
+      "generator": "Ninja",
+      "environment": {
+        "DEP_DIR_NAME": "destdir"
+      }
+    },
+    {
+      "name": "linux-base-gtk2",
+      "inherits": "linux-base",
+      "hidden": true,
+      "cacheVariables": {
+        "SLIC3R_GTK": "2"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "linux-base-build",
+      "targets": "all",
+      "hidden": true,
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      }
+    }
+  ]
+}

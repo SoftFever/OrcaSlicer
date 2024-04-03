@@ -1,0 +1,55 @@
+{
+  "version": 4,
+  "configurePresets": [
+    {
+      "name": "macos-base",
+      "hidden": true,
+      "generator": "Xcode",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      },
+      "cacheVariables": {
+        "CMAKE_MACOSX_BUNDLE": true,
+        "CMAKE_MACOSX_RPATH": true,
+        "CMAKE_INSTALL_RPATH": "${sourceDir}/deps/build/$env{DEP_DIR_NAME}/usr/local",
+        "CMAKE_OSX_DEPLOYMENT_TARGET": "10.15"
+      }
+    },
+    {
+      "name": "macos-base-x64",
+      "inherits": "macos-base",
+      "hidden": true,
+      "environment": {
+        "DEP_DIR_NAME": "OrcaSlicer_dep_x86_64"
+      },
+      "cacheVariables": {
+        "CMAKE_OSX_ARCHITECTURES": "x86_64"
+      }
+    },
+    {
+      "name": "macos-base-arm64",
+      "inherits": "macos-base",
+      "hidden": true,
+      "environment": {
+        "DEP_DIR_NAME": "OrcaSlicer_dep_arm64"
+      },
+      "cacheVariables": {
+        "CMAKE_OSX_ARCHITECTURES": "arm64"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "macos-base-build",
+      "targets": "all",
+      "hidden": true,
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      }
+    }
+  ]
+}
