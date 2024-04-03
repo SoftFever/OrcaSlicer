@@ -1525,8 +1525,8 @@ void CalibrationPresetPage::init_with_machine(MachineObject* obj)
     }
 
     // set bed type collection from machine
-    if (m_cali_mode == CalibMode::Calib_PA_Line)
-        update_plate_type_collection(m_cali_method);
+    //if (m_cali_mode == CalibMode::Calib_PA_Line)
+    //    update_plate_type_collection(m_cali_method);
 
     // init default for filament source
     // TODO if user change ams/ext, need to update
