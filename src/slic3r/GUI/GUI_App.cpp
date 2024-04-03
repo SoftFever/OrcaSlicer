@@ -923,7 +923,7 @@ void GUI_App::post_init()
 
     if (app_config->get("stealth_mode") == "false")
         hms_query = new HMSQuery();
-    
+
     m_show_gcode_window = app_config->get_bool("show_gcode_window");
     if (m_networking_need_update) {
         //updating networking
@@ -2867,7 +2867,7 @@ void GUI_App::UpdateDarkUI(wxWindow* window, bool highlited/* = false*/, bool ju
 
     /*if (m_is_dark_mode != dark_mode() )
         m_is_dark_mode = dark_mode();*/
-    
+
 
     if (m_is_dark_mode) {
         auto original_col = window->GetBackgroundColour();
@@ -3828,7 +3828,7 @@ void GUI_App::on_http_error(wxCommandEvent &evt)
         MessageDialog msg_dlg(nullptr, _L("The version of Orca Slicer is too low and needs to be updated to the latest version before it can be used normally"), "", wxAPPLY | wxOK);
         if (msg_dlg.ShowModal() == wxOK) {
         }
-       
+
     }
 
     // request login
