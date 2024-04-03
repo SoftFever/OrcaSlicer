@@ -629,7 +629,7 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
             ;
         }
 
-        if (obj->cali_version >= -1) {
+        if (obj->cali_version >= 0) {
             PACalibIndexInfo select_index_info;
             select_index_info.tray_id = cali_tray_id;
             select_index_info.nozzle_diameter = obj->nozzle_diameter;
