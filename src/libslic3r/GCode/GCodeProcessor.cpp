@@ -4523,6 +4523,7 @@ void GCodeProcessor::process_filaments(CustomGCode::Type code)
 
     if (code == CustomGCode::ToolChange) {
         m_used_filaments.process_model_cache(this);
+        m_used_filaments.process_support_cache(this);
         //BBS: reset remaining filament
         m_remaining_volume = m_nozzle_volume;
     }
