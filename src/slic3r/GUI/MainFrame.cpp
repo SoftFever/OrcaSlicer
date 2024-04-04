@@ -589,6 +589,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
         {
             PreferencesDialog dlg(this);
             dlg.ShowModal();
+            plater()->get_current_canvas3D()->force_set_focus();
 #if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
             if (dlg.seq_top_layer_only_changed() || dlg.seq_seq_top_gcode_indices_changed())
 #else
@@ -2727,6 +2728,7 @@ void MainFrame::init_menubar_as_editor()
         [this](wxCommandEvent &) {
             PreferencesDialog dlg(this);
             dlg.ShowModal();
+            plater()->get_current_canvas3D()->force_set_focus();
 #if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
             if (dlg.seq_top_layer_only_changed() || dlg.seq_seq_top_gcode_indices_changed())
 #else
@@ -2753,6 +2755,7 @@ void MainFrame::init_menubar_as_editor()
         [this](wxCommandEvent &) {
             PreferencesDialog dlg(this);
             dlg.ShowModal();
+            plater()->get_current_canvas3D()->force_set_focus();
 #if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
             if (dlg.seq_top_layer_only_changed() || dlg.seq_seq_top_gcode_indices_changed())
 #else
