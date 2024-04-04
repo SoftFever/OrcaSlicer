@@ -173,6 +173,9 @@ void AppConfig::set_defaults()
     if (get("use_free_camera").empty())
         set_bool("use_free_camera", false);
 
+    if (get("camera_navigation_style").empty())
+        set("camera_navigation_style", "0");
+
     if (get("reverse_mouse_wheel_zoom").empty())
         set_bool("reverse_mouse_wheel_zoom", false);
 
