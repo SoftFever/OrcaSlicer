@@ -153,10 +153,11 @@ void GLGizmoSeam::show_tooltip_information(float caption_max, float x, float y)
 
     caption_max += m_imgui->calc_text_size(std::string_view{": "}).x + 35.f;
 
-    float font_size = ImGui::GetFontSize();
-    ImVec2 button_size = ImVec2(30, 22);
+    // float font_size = ImGui::GetFontSize();
+    //  ImVec2 button_size = ImVec2(font_size * 1.8, font_size * 1.3); // ORCA: Dont use font size to resize
+    ImVec2 button_size = ImVec2(25, 25); // ORCA: Use exact resolution will prevent blur on icon
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 0, 0});
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {0, 0}); // ORCA: remove paddings
     ImGui::ImageButton3(normal_id, hover_id, button_size);
 
     if (ImGui::IsItemHovered()) {
@@ -271,20 +272,20 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
         ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0);
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, tab_padding); // ORCA: Made icons bigger to make them easier to click
         ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, tab_rounding); // ORCA: increased radius to match button shape with Filament color buttons
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.f, 0.f, 0.f, 0.f));
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.5f, 0.5f, 0.5f, 0.2f)); // ORCA: Slightly visible grey. works with both dark and light theme
         ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetColorU32(ImGuiCol_CheckMark)); // ORCA: Fixes icon without colors while using Light theme
-        if (m_current_tool == tool_ids[i]) {
-            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.f, 150.f / 255.f, 136.f / 255.f, 0.25f));        // ORCA color with opacity
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.f, 150.f / 255.f, 136.f / 255.f, 0.35f)); // ORCA color with opacity
-            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.f, 150.f / 255.f, 136.f / 255.f, 0.5f)); // ORCA color with opacity
-        }
+		ImGui::PushStyleColor(ImGuiCol_Button, 
+			m_current_tool == tool_ids[i] 
+			? ImVec4(0.f, 0.59f, 0.53f, 0.25f)  // ORCA: ORCA color with opacity
+			: ImVec4(0.f, 0.f, 0.f, 0.f)		// ORCA: Transparent color
+		);
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, 
+			m_current_tool == tool_ids[i] 
+			? ImVec4(0.f, 0.59f, 0.53f, 0.35f)  // ORCA: ORCA color with opacity
+			: ImVec4(0.5f, 0.5f, 0.5f, 0.2f)    // ORCA: Slightly visible grey. works with both dark and light theme
+		);
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.f, 0.59f, 0.53f, 0.5f)); // ORCA: ORCA color with opacity
 
         bool btn_clicked = ImGui::BBLButton(into_u8(btn_name).c_str(), tab_size);
-        if (m_current_tool == tool_ids[i])
-        {
-            ImGui::PopStyleColor(3);
-        }
         
         ImGui::PopStyleVar(3);
         ImGui::PopStyleColor(3);
@@ -319,11 +320,15 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
     m_imgui->text(m_desc.at("cursor_size"));
     ImGui::SameLine(sliders_left_width);
 
-    ImGui::PushItemWidth(sliders_width);
-    m_imgui->bbl_slider_float_style("##cursor_radius", &m_cursor_radius, CursorRadiusMin, CursorRadiusMax, "%.2f", 1.0f, true);
-    ImGui::SameLine(drag_left_width);
-    ImGui::PushItemWidth(1.5 * slider_icon_width);
-    ImGui::BBLDragFloat("##cursor_radius_input", &m_cursor_radius, 0.05f, 0.0f, 0.0f, "%.2f");
+    //ImGui::PushItemWidth(sliders_width);
+    //m_imgui->bbl_slider_float_style("##cursor_radius", &m_cursor_radius, CursorRadiusMin, CursorRadiusMax, "%.2f", 1.0f, true);
+    //ImGui::SameLine(drag_left_width);
+    //ImGui::PushItemWidth(1.5 * slider_icon_width);
+    //ImGui::BBLDragFloat("##cursor_radius_input", &m_cursor_radius, 0.05f, 0.0f, 0.0f, "%.2f");
+
+	// ORCA: Use same slider style to improve UI consistency
+    ImGui::PushItemWidth(sliders_width + slider_icon_width);
+    m_imgui->slider_float("##cursor_radius", &m_cursor_radius, CursorRadiusMin, CursorRadiusMax, "%.2f", 1.0f, true);
 
     ImGui::Separator();
     if (m_c->object_clipper()->get_position() == 0.f) {
@@ -341,13 +346,18 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
     auto clp_dist = float(m_c->object_clipper()->get_position());
     ImGui::SameLine(sliders_left_width);
 
-    ImGui::PushItemWidth(sliders_width);
-    bool slider_clp_dist = m_imgui->bbl_slider_float_style("##clp_dist", &clp_dist, 0.f, 1.f, "%.2f", 1.0f, true);
+    //ImGui::PushItemWidth(sliders_width);
+    //bool slider_clp_dist = m_imgui->bbl_slider_float_style("##clp_dist", &clp_dist, 0.f, 1.f, "%.2f", 1.0f, true);
 
-    ImGui::SameLine(drag_left_width);
-    ImGui::PushItemWidth(1.5 * slider_icon_width);
-    bool b_clp_dist_input = ImGui::BBLDragFloat("##clp_dist_input", &clp_dist, 0.05f, 0.0f, 0.0f, "%.2f");
-    if (slider_clp_dist || b_clp_dist_input) { m_c->object_clipper()->set_position_by_ratio(clp_dist, true); }
+    //ImGui::SameLine(drag_left_width);
+    //ImGui::PushItemWidth(1.5 * slider_icon_width);
+    //bool b_clp_dist_input = ImGui::BBLDragFloat("##clp_dist_input", &clp_dist, 0.05f, 0.0f, 0.0f, "%.2f");
+    //if (slider_clp_dist || b_clp_dist_input) { m_c->object_clipper()->set_position_by_ratio(clp_dist, true); }
+
+	// ORCA: Use same slider style to improve UI consistency
+    ImGui::PushItemWidth(sliders_width + slider_icon_width);
+    bool slider_clp_dist = m_imgui->slider_float("##clp_dist", &clp_dist, 0.f, 1.f, "%.2f", 1.0f, true);
+	if (slider_clp_dist) { m_c->object_clipper()->set_position_by_ratio(clp_dist, true); }
 
     ImGui::Separator();
     // ORCA used radio buttons. it works better for options, it reduces vertical height, easier to understand
@@ -367,12 +377,12 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
 
     ImGui::Separator();
 
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6.0f, 10.0f));
+    //ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6.0f, 10.0f)); // ORCA: Dont change paddings or spacings. its already controlled by toolbar style
     float get_cur_y = ImGui::GetContentRegionMax().y + ImGui::GetFrameHeight() + y;
     show_tooltip_information(caption_max, x, get_cur_y);
 
-    float f_scale =m_parent.get_gizmos_manager().get_layout_scale();
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6.0f, 4.0f * f_scale));
+    //float f_scale =m_parent.get_gizmos_manager().get_layout_scale();
+    //ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6.0f, 4.0f * f_scale)); // ORCA: Dont change paddings or spacings. its already controlled by toolbar style
 
     ImGui::SameLine();
 
@@ -390,7 +400,7 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
         update_model_object();
         m_parent.set_as_dirty();
     }
-    ImGui::PopStyleVar(2);
+    //ImGui::PopStyleVar(2);
     GizmoImguiEnd();
 
     //BBS

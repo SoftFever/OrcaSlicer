@@ -257,12 +257,18 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
 
     ImGui::Separator();
 
-    if (m_imgui->bbl_radio_button("##use_error", !m_configuration.use_count)) {
-        m_configuration.use_count = !m_configuration.use_count;
+	bool radio_detail = !m_configuration.use_count;
+    bool radio_count  = m_configuration.use_count;
+    float radio_space = ImGui::GetStyle().ItemInnerSpacing.x;
+
+	ImGuiWrapper::push_radio_style();
+    if (ImGui::RadioButton("##detail", radio_detail)) {           // ORCA: Use same radio button type with other gizmos 
+        m_configuration.use_count = false;
         start_process = true;
     }
+    ImGuiWrapper::pop_radio_style();
 
-    ImGui::SameLine();
+    ImGui::SameLine(0,radio_space); // ORCA: Place text with spacing on regular radio button
     m_imgui->disabled_begin(m_configuration.use_count);
     ImGui::Text("%s", tr_detail_level.c_str());
     std::vector<std::string> reduce_captions = {
@@ -296,12 +302,14 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
     ImGui::PopStyleColor(5);
     m_imgui->disabled_end(); // !use_count
 
-    if (m_imgui->bbl_radio_button("##use_count", m_configuration.use_count)) {
-        m_configuration.use_count = !m_configuration.use_count;
+	ImGuiWrapper::push_radio_style();
+    if (ImGui::RadioButton("##count", radio_count)) {    // ORCA: Use same radio button type with other gizmos 
+        m_configuration.use_count = true;
         start_process = true;
     }
+    ImGuiWrapper::pop_radio_style();
 
-    ImGui::SameLine();
+    ImGui::SameLine(0, radio_space); // ORCA: Place text with spacing on regular radio button
 
     // show preview result triangle count (percent)
     if (!m_configuration.use_count) {
@@ -335,7 +343,7 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
     ImGui::BBLDragFloat("##decimate_ratio_input", &m_configuration.decimate_ratio, 0.05f, 0.0f, 0.0f, "%.2f%%");
 
     ImGui::NewLine();
-    ImGui::SameLine(bottom_left_width + space_size);
+    ImGui::SameLine(bottom_left_width); // ORCA: Align with slider
     ImGui::Text(_u8L("%d triangles").c_str(), m_configuration.wanted_count);
     m_imgui->disabled_end(); // use_count
 

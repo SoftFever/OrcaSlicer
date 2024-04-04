@@ -264,6 +264,8 @@ struct GuiCfg
     float        max_tooltip_width                    = 0.f;
     float        combo_box_offset					  = 0.f;
     float        space			                      = 0.f;
+    float        combo_box_width_style                = 0.f;
+    float        combo_box_width_font                 = 0.f;
 
     // maximal width and height of style image
     Vec2i max_style_image_size = Vec2i(0, 0);
@@ -864,7 +866,7 @@ void GLGizmoEmboss::on_render_input_window(float x, float y, float bottom_limit)
 
     // Orca
     ImGuiWrapper::push_toolbar_style(m_parent.get_scale());
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4.0, 5.0) * screen_scale);
+    //ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4.0, 5.0) * screen_scale); // ORCA: Moved this style to push_toolbar_style to prevent different paddings on different gizmos
     ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarSize, 4.0f * screen_scale);
 
     // Configuration creation
@@ -933,7 +935,7 @@ void GLGizmoEmboss::on_render_input_window(float x, float y, float bottom_limit)
     GizmoImguiEnd();
 
     // Orca
-    ImGui::PopStyleVar(2);
+    ImGui::PopStyleVar(1);
     ImGuiWrapper::pop_toolbar_style();
 }
 
@@ -1390,8 +1392,8 @@ void GLGizmoEmboss::draw_window()
     if (m_is_unknown_font && m_is_advanced_edit_style) 
         ImGui::SetNextTreeNodeOpen(false);
 
-	ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImGuiWrapper::COL_ORCA); // ORCA: Change hover background color of collapsable header
-    ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImGuiWrapper::COL_ORCA);
+	ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.00f, 0.59f, 0.53f, 0.5f)); // ORCA: Change hover background color of collapsable header
+    ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.00f, 0.59f, 0.53f, 0.5f));
     if (ImGui::TreeNode(_u8L("Advanced").c_str())) {
         if (!m_is_advanced_edit_style) {
             m_is_advanced_edit_style = true;
@@ -1554,8 +1556,8 @@ void GLGizmoEmboss::draw_text_input()
         ImVec2 cursor = ImGui::GetCursorPos();
         float width = ImGui::GetContentRegionAvailWidth();
         const ImVec2& padding = style.FramePadding;
-        ImVec2 icon_pos(width - m_gui_cfg->icon_width - scrollbar_width + padding.x, 
-                        cursor.y - 2 * m_gui_cfg->icon_width - scrollbar_height - 2*padding.y);
+        ImVec2 icon_pos(width - m_gui_cfg->icon_width - scrollbar_width + padding.x,
+			cursor.y - 2 * m_gui_cfg->icon_width - scrollbar_height - 2*padding.y); // ORCA: Shift warning icon to up to prevent overlapping with border
         
         ImGui::SetCursorPos(icon_pos);
         draw(get_icon(m_icons, IconType::obj_warning, IconState::hovered));
@@ -1726,8 +1728,8 @@ void GLGizmoEmboss::draw_font_list_line()
 void GLGizmoEmboss::draw_font_list()
 {
     ImGuiWrapper::push_combo_style(m_gui_cfg->screen_scale);
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-    ImGui::PushStyleVar(ImGuiStyleVar_PopupRounding, 2.0f * m_gui_cfg->screen_scale); // ORCA: Match with combo box
+    //ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f)); // ORCA: Moved this to push_combo_style
+    //ImGui::PushStyleVar(ImGuiStyleVar_PopupRounding, 2.0f * m_gui_cfg->screen_scale);
 
     wxString tooltip_name = "";
 
@@ -1746,7 +1748,7 @@ void GLGizmoEmboss::draw_font_list()
     // When deletation of font appear this variable is set
     std::optional<size_t> del_index;
     
-    ImGui::SetNextItemWidth(2 * m_gui_cfg->input_width);
+    ImGui::SetNextItemWidth(m_gui_cfg->combo_box_width_font);
     std::vector<int> filtered_items_idx;
     bool             is_filtered = false;
     if (m_imgui->bbl_combo_with_filter("##Combo_Font", selected, m_face_names->faces_names,
@@ -1850,7 +1852,7 @@ void GLGizmoEmboss::draw_font_list()
         ImGui::SetTooltip("Open dialog for choose from fonts.");
 #endif //  ALLOW_ADD_FONT_BY_OS_SELECTOR
     
-    ImGui::PopStyleVar(2);
+    //ImGui::PopStyleVar(2);
     ImGuiWrapper::pop_combo_style();
 
     if (!tooltip_name.IsEmpty())
@@ -2215,7 +2217,7 @@ void GLGizmoEmboss::draw_style_list() {
     std::string tooltip = "";
     ImGuiWrapper::push_combo_style(m_parent.get_scale());
     ImGui::SameLine(m_gui_cfg->combo_box_offset);
-    ImGui::SetNextItemWidth(2 * m_gui_cfg->input_width);
+    ImGui::SetNextItemWidth(m_gui_cfg->combo_box_width_style);
     if (ImGui::BBLBeginCombo("##style_selector", add_text_modify(trunc_name).c_str())) {
         m_style_manager.init_style_images(m_gui_cfg->max_style_image_size, m_text);
         m_style_manager.init_trunc_names(max_style_name_width);
@@ -3750,6 +3752,9 @@ GuiCfg create_gui_configuration()
 
 	cfg.combo_box_undo_offset = cfg.combo_box_offset - cfg.icon_width - space;
 
+	cfg.combo_box_width_style = 2 * cfg.input_width;
+
+    cfg.combo_box_width_font  = 2 * cfg.input_width + (cfg.icon_width + space) * 2;
 
     int max_advanced_text_width = std::max({
         ImGui::CalcTextSize(tr.use_surface.c_str()).x,

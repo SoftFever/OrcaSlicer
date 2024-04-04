@@ -1249,22 +1249,36 @@ void GLGizmoMeasure::render_dimensioning()
             ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 1.0f, 1.0f });
             m_imgui->begin(std::string("distance"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration);
             ImGui::BringWindowToDisplayFront(ImGui::GetCurrentWindow());
-            ImGui::AlignTextToFramePadding();
             ImDrawList* draw_list = ImGui::GetWindowDrawList();
             const ImVec2 pos = ImGui::GetCursorScreenPos();
+            const ImGuiStyle& style = ImGui::GetStyle();
             const std::string txt = curr_value_str + " " + units;
             ImVec2 txt_size = ImGui::CalcTextSize(txt.c_str());
-            const ImGuiStyle& style = ImGui::GetStyle();
-            draw_list->AddRectFilled({ pos.x - style.FramePadding.x, pos.y + style.FramePadding.y }, { pos.x + txt_size.x + 2.0f * style.FramePadding.x , pos.y + txt_size.y + 2.0f * style.FramePadding.y },
-              ImGuiWrapper::to_ImU32(ColorRGBA(1.0f, 1.0f, 1.0f, 0.5f)));
-            ImGui::SetCursorScreenPos({ pos.x + style.FramePadding.x, pos.y });
-            m_imgui->text(txt);
-            ImGui::SameLine();
-            if (m_imgui->image_button(ImGui::SliderFloatEditBtnIcon, _L("Edit to scale"))) {
+            const ImFontAtlasCustomRect* icon_rect = m_imgui->GetTextureCustomRect(ImGui::MeasureEditBtnIcon); // ORCA: Get icon size to add frame
+            draw_list->AddRectFilled( // ORCA: Correction on framing and placements
+				{pos.x, pos.y}, 
+                {pos.x + style.FramePadding.x * 2 + txt_size.x + icon_rect->Width + style.ItemSpacing.x, pos.y + txt_size.y + style.FramePadding.y * 2}, // ORCA: Added extra width for icon
+                ImGuiWrapper::to_ImU32(ColorRGBA(1.f, 1.f, 1.f, 0.7f)) // ORCA: Decreased opacity
+			);
+            ImGui::SetCursorScreenPos({
+				pos.x + style.FramePadding.x,
+				pos.y + style.FramePadding.y
+			});
+            m_imgui->text_colored(ImVec4(0.f, 0.f, 0.f, 0.6f), txt);
+            ImGui::SetCursorScreenPos({
+				round(pos.x + style.FramePadding.x + txt_size.x),
+                round(pos.y - (txt_size.y - icon_rect->Height ) / 2) - style.FrameBorderSize}
+			);
+            ImGui::PushStyleColor(ImGuiCol_Button, { 0.0f, 0.0f, 0.0f, 0.0f}); // ORCA: Dont use styling on icon
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, { 0.0f, 0.0f, 0.0f, 0.0f }); // ORCA: Dont use styling on icon
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, { 0.0f, 0.0f, 0.0f, 0.0f }); // ORCA: Dont use styling on icon
+            ImGui::PushStyleColor(ImGuiCol_Border, {0.0f, 0.0f, 0.0f, 0.0f});    // ORCA: Dont use styling on icon
+            if (m_imgui->image_button(ImGui::MeasureEditBtnIcon, _L("Edit to scale"))) {
                 m_editing_distance = true;
                 edit_value = curr_value;
                 m_imgui->requires_extra_frame();
             }
+            ImGui::PopStyleColor(4);
             m_imgui->end();
             ImGui::PopStyleVar(3);
         }
@@ -1573,16 +1587,19 @@ void GLGizmoMeasure::render_dimensioning()
         ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
         m_imgui->begin(wxString("##angle"), ImGuiWindowFlags_NoMouseInputs | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
         ImGui::BringWindowToDisplayFront(ImGui::GetCurrentWindow());
-        ImGui::AlignTextToFramePadding();
         ImDrawList* draw_list = ImGui::GetWindowDrawList();
         const ImVec2 pos = ImGui::GetCursorScreenPos();
         const std::string txt = format_double(Geometry::rad2deg(angle)) + "°";
         ImVec2 txt_size = ImGui::CalcTextSize(txt.c_str());
         const ImGuiStyle& style = ImGui::GetStyle();
-        draw_list->AddRectFilled({ pos.x - style.FramePadding.x, pos.y + style.FramePadding.y }, { pos.x + txt_size.x + 2.0f * style.FramePadding.x , pos.y + txt_size.y + 2.0f * style.FramePadding.y },
-          ImGuiWrapper::to_ImU32(ColorRGBA(1.0f, 1.0f, 1.0f, 0.5f)));
-        ImGui::SetCursorScreenPos({ pos.x + style.FramePadding.x, pos.y });
-        m_imgui->text(txt);
+        draw_list->AddRectFilled(
+			{pos.x - style.FramePadding.x, pos.y - style.FramePadding.y},
+            {pos.x + style.FramePadding.x * 2.0f + txt_size.x, pos.y + txt_size.y + style.FramePadding.y},
+            ImGuiWrapper::to_ImU32(ColorRGBA(1.f, 1.f, 1.f, 0.7f)) // ORCA: Decreased opacity. Used Orca color
+		);
+        ImGui::SetCursorScreenPos({pos.x + style.FramePadding.x, pos.y});
+        //ImGui::AlignTextToFramePadding();
+        m_imgui->text_colored(ImVec4(0.f, 0.f, 0.f, 0.6f),txt);
         m_imgui->end();
         ImGui::PopStyleVar();
         ImGuiWrapper::pop_common_window_style();
@@ -1882,43 +1899,51 @@ void GLGizmoMeasure::on_render_input_window(float x, float y, float bottom_limit
             return text;
         };
 
-        const float selection_cap_length = ImGui::CalcTextSize((_u8L("Selection") + " 1").c_str()).x * 2;
+        //const float selection_cap_length = ImGui::CalcTextSize((_u8L("Selection") + " 1").c_str()).x * 2;
 
         ImGui::AlignTextToFramePadding();
         ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::to_ImVec4(SELECTED_1ST_COLOR));
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 0.0f)); // ORCA:decrease vertical spacing between same values
         m_imgui->text(_u8L("Selection") + " 1");
-        ImGui::SameLine(selection_cap_length);
+        //ImGui::SameLine(selection_cap_length); // ORCA: Use selection value on new line
+        ImGui::PopStyleVar();
         m_imgui->text(format_item_text(m_selected_features.first));
         ImGui::PopStyleColor();
-
+        
         ImGui::AlignTextToFramePadding();
         ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::to_ImVec4(SELECTED_2ND_COLOR));
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 0.0f)); // ORCA:decrease vertical spacing between same values
         m_imgui->text(_u8L("Selection") + " 2");
-        ImGui::SameLine(selection_cap_length);
+        ImGui::PopStyleVar();
+        //ImGui::SameLine(selection_cap_length); // ORCA: Use selection value on new line
         m_imgui->text(format_item_text(m_selected_features.second));
         ImGui::PopStyleColor();
     }
 
-    m_imgui->disabled_begin(!m_selected_features.first.feature.has_value());
-        if (m_imgui->button(_L("Restart selection"))) {
-            m_selected_features.reset();
-            m_selected_sphere_raycasters.clear();
-            m_imgui->set_requires_extra_frame();
-        }
-    m_imgui->disabled_end();
-
     auto add_measure_row_to_table = [this](const std::string& col_1, const ImVec4& col_1_color, const std::string& col_2, const ImVec4& col_2_color) {
-        ImGui::TableNextRow();
+        ImFontAtlasCustomRect* icon_rect = m_imgui->GetTextureCustomRect(ImGui::ClipboardBtnIcon); // ORCA: get icon rect
+		float row_height = icon_rect->Height;  // ORCA: get icon height
+		ImGuiContext& g = *GImGui;
+		ImGuiStyle& style = g.Style;
+
+        ImGui::TableNextRow(ImGuiTableRowFlags_None, row_height); // ORCA: use icon height for row height
         ImGui::TableSetColumnIndex(0);
+        ImGui::AlignTextToFramePadding(); // ORCA: Align text vertically
         m_imgui->text_colored(col_1_color, col_1);
         ImGui::TableSetColumnIndex(1);
+        ImGui::AlignTextToFramePadding(); // ORCA: Align text vertically
         m_imgui->text_colored(col_2_color, col_2);
         ImGui::TableSetColumnIndex(2);
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.f, 0.f, 0.f, 0.f));				// ORCA: Hide button decoration
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.f, 0.59f, 0.53f, 0.3f)); // ORCA: Add hover effects
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.f, 0.59f, 0.53f, 0.3f));  // ORCA: Add hover effects
+        ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.f, 0.f, 0.f, 0.f));             // ORCA: Hide button decoration
         if (m_imgui->image_button(m_is_dark_mode ? ImGui::ClipboardBtnDarkIcon : ImGui::ClipboardBtnIcon, _L("Copy to clipboard"))) {
             wxTheClipboard->Open();
             wxTheClipboard->SetData(new wxTextDataObject(wxString((col_1 + ": " + col_2).c_str(), wxConvUTF8)));
             wxTheClipboard->Close();
         }
+        ImGui::PopStyleColor(4);
     };
 
     ImGui::Separator();
@@ -1926,7 +1951,7 @@ void GLGizmoMeasure::on_render_input_window(float x, float y, float bottom_limit
 
     const unsigned int max_measure_row_count = 2;
     unsigned int measure_row_count = 0;
-    if (ImGui::BeginTable("Measure", 4)) {
+    if (ImGui::BeginTable("Measure", 3, ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_NoClip | ImGuiTableFlags_NoHostExtendX)) {
         if (m_selected_features.second.feature.has_value()) {
             const Measure::MeasurementResult& measure = m_measurement_result;
             if (measure.angle.has_value()) {
@@ -1981,14 +2006,25 @@ void GLGizmoMeasure::on_render_input_window(float x, float y, float bottom_limit
 
     ImGui::Separator();
 
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6.0f, 10.0f));
+    //ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6.0f, 10.0f)); // ORCA: Dont change paddings or spacings. its already controlled by toolbar style
     float get_cur_y = ImGui::GetContentRegionMax().y + ImGui::GetFrameHeight() + y;
     show_tooltip_information(caption_max, x, get_cur_y);
 
-    float f_scale =m_parent.get_gizmos_manager().get_layout_scale();
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6.0f, 4.0f * f_scale));
+    //float f_scale =m_parent.get_gizmos_manager().get_layout_scale();
+    //ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6.0f, 4.0f * f_scale)); // ORCA: Dont change paddings or spacings. its already controlled by toolbar style
 
-    ImGui::PopStyleVar(2);
+    //ImGui::PopStyleVar(2);
+
+	ImGui::SameLine();
+
+	// ORCA: Move Restart selection to bottom to improve UI consistency and reduce window height
+	m_imgui->disabled_begin(!m_selected_features.first.feature.has_value());
+        if (m_imgui->button(_L("Restart selection"))) {
+            m_selected_features.reset();
+            m_selected_sphere_raycasters.clear();
+            m_imgui->set_requires_extra_frame();
+        }
+    m_imgui->disabled_end();
 
     if (last_feature != m_curr_feature || last_mode != m_mode || last_selected_features != m_selected_features) {
         // the dialog may have changed its size, ask for an extra frame to render it properly
@@ -2044,10 +2080,11 @@ void GLGizmoMeasure::show_tooltip_information(float caption_max, float x, float 
 
     caption_max += m_imgui->calc_text_size(std::string_view{": "}).x + 35.f;
 
-    float font_size = ImGui::GetFontSize();
-    ImVec2 button_size = ImVec2(30, 22);
-    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 0,0});
+    //float font_size = ImGui::GetFontSize();
+    // ImVec2 button_size = ImVec2(font_size * 1.8, font_size * 1.3); // ORCA: Dont use font size to resize
+    ImVec2 button_size = ImVec2(25, 25); //ORCA: Use exact resolution will prevent blur on icon
+	ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {0,0}); // ORCA: remove paddings 
     ImGui::ImageButton3(normal_id, hover_id, button_size);
 
     if (ImGui::IsItemHovered()) {

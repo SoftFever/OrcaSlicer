@@ -2345,12 +2345,12 @@ void GLGizmoCut3D::render_connectors_input_window(CutConnectors &connectors, flo
 
     ImGui::Separator();
 
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6.0f, 10.0f));
+    //ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6.0f, 10.0f)); // ORCA: Dont change paddings or spacings. its already controlled by toolbar style
     float get_cur_y = ImGui::GetContentRegionMax().y + ImGui::GetFrameHeight() + y;
     show_tooltip_information(x, get_cur_y);
 
-    float f_scale = m_parent.get_gizmos_manager().get_layout_scale();
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6.0f, 4.0f * f_scale));
+    //float f_scale = m_parent.get_gizmos_manager().get_layout_scale();
+    //ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6.0f, 4.0f * f_scale)); // ORCA: Dont change paddings or spacings. its already controlled by toolbar style
 
     ImGui::SameLine();
     if (m_imgui->button(_L("Confirm connectors"))) {
@@ -2365,7 +2365,7 @@ void GLGizmoCut3D::render_connectors_input_window(CutConnectors &connectors, flo
         set_connectors_editing(false);
     }
 
-    ImGui::PopStyleVar(2);
+    //ImGui::PopStyleVar(2);
 }
 
 void GLGizmoCut3D::render_build_size()
@@ -2787,12 +2787,12 @@ void GLGizmoCut3D::render_cut_plane_input_window(CutConnectors &connectors, floa
 
     ImGui::Separator();
 
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6.0f, 10.0f));
+    //ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6.0f, 10.0f)); // ORCA: Dont change paddings or spacings. its already controlled by toolbar style
     float get_cur_y = ImGui::GetContentRegionMax().y + ImGui::GetFrameHeight() + y;
     show_tooltip_information(x, get_cur_y);
 
-    float f_scale = m_parent.get_gizmos_manager().get_layout_scale();
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6.0f, 4.0f * f_scale));
+    //float f_scale = m_parent.get_gizmos_manager().get_layout_scale();
+    //ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6.0f, 4.0f * f_scale)); // ORCA: Dont change paddings or spacings. its already controlled by toolbar style
 
     ImGui::SameLine();
     m_imgui->disabled_begin(!can_perform_cut());
@@ -2800,7 +2800,7 @@ void GLGizmoCut3D::render_cut_plane_input_window(CutConnectors &connectors, floa
             perform_cut(m_parent.get_selection());
     m_imgui->disabled_end();
 
-    ImGui::PopStyleVar(2);
+    //ImGui::PopStyleVar(2);
 }
 
 void GLGizmoCut3D::validate_connector_settings()
@@ -2963,10 +2963,11 @@ void GLGizmoCut3D::show_tooltip_information(float x, float y)
 
     caption_max += m_imgui->calc_text_size(std::string_view{": "}).x + 35.f;
 
-    float  font_size   = ImGui::GetFontSize();
-    ImVec2 button_size = ImVec2(30,22);
+    // float font_size = ImGui::GetFontSize();
+    //  ImVec2 button_size = ImVec2(font_size * 1.8, font_size * 1.3); // ORCA: Dont use font size to resize
+    ImVec2 button_size = ImVec2(25, 25); // ORCA: Use exact resolution will prevent blur on icon
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {0, 0});
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {0, 0}); // ORCA: remove paddings
     ImGui::ImageButton3(normal_id, hover_id, button_size);
 
     if (ImGui::IsItemHovered()) {

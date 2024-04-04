@@ -210,6 +210,8 @@ namespace ImGui
     const wchar_t ExpandArrowIcon          = 0x0843;
     const wchar_t CompleteIcon             = 0x0844;
 
+	const wchar_t MeasureEditBtnIcon		= 0x0845;
+
 //    void MyFunction(const char* name, const MyMatrix44& v);
 }
 
