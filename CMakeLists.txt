@@ -52,6 +52,18 @@ if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Build type (default Release)" FORCE)
 endif()
 
+# Set compiler flags
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+    set(GNU TRUE)
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+    set(CLANG TRUE)
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang")
+    set(APPLECLANG TRUE)
+endif ()
+if (CLANG OR APPLECLANG)
+    set(CLANG_VARIANT TRUE)
+endif ()
+
 if (APPLE) # Set macOS target and determine if we are cross-compiling
     # if CMAKE_OSX_DEPLOYMENT_TARGET is not set, set it to 11.3
     if (NOT CMAKE_OSX_DEPLOYMENT_TARGET)
@@ -124,7 +136,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 if(WIN32)
     if (MSVC)
-        if (CMAKE_CXX_COMPILER_ID STREQUAL Clang)
+        if (CLANG)
             # clang-cl can interpret SYSTEM header paths if -imsvc is used
             set(CMAKE_INCLUDE_SYSTEM_FLAG_CXX "-imsvc")
 
@@ -209,7 +221,7 @@ if (APPLE)
         message("OS X Deployment Target: (default)")
     endif ()
 
-    if (${CMAKE_CXX_COMPILER_ID} STREQUAL "AppleClang" AND ${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER 15)
+    if (APPLECLANG AND ${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER 15)
         add_compile_definitions(BOOST_NO_CXX98_FUNCTION_BASE _HAS_AUTO_PTR_ETC=0)
     endif()
 endif ()
@@ -230,12 +242,12 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     include_directories(${DBUS_INCLUDE_DIRS})
 endif()
 
-if (CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUXX)
+if (GNU)
     # Adding -fext-numeric-literals to enable GCC extensions on definitions of quad float literals, which are required by Boost.
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fext-numeric-literals" )
 endif()
 
-if (NOT MSVC AND ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang"))
+if (NOT MSVC AND (GNU OR CLANG_VARIANT))
     if (NOT MINGW)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall" )
     endif ()
@@ -246,18 +258,18 @@ if (NOT MSVC AND ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMP
 
     # removes LOTS of extraneous Eigen warnings (GCC only supports it since 6.1)
     # https://eigen.tuxfamily.org/bz/show_bug.cgi?id=1221
-    if("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" OR CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 6.0)
+    if(CLANG_VARIANT OR CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 6.0)
         add_compile_options(-Wno-ignored-attributes) # Tamas: Eigen include dirs are marked as SYSTEM
     endif()
 
     # Clang reports legacy OpenGL calls as deprecated. Turn off the warning for now
     # to reduce the clutter, we know about this one. It should be reenabled after
     # we finally get rid of the deprecated code.
-    if("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+    if(CLANG)
         add_compile_options(-Wno-deprecated-declarations)
     endif()
 
-    if (${CMAKE_CXX_COMPILER_ID} STREQUAL "AppleClang" AND ${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER 15)
+    if (APPLECLANG AND ${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER 15)
         add_compile_options(-Wno-error=enum-constexpr-conversion)
     endif()
 
@@ -265,7 +277,7 @@ if (NOT MSVC AND ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMP
     # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=66943 or
     # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=53431
     # We will turn the warning of for GCC for now:
-    if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+    if(GNU)
         add_compile_options(-Wno-unknown-pragmas)
     endif()
 endif()
@@ -282,7 +294,7 @@ if (SLIC3R_ASAN)
         set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -fsanitize=address")
     endif ()
 
-    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+    if (GNU)
         set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lasan")
     endif ()
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror=partial-availability -Werror=unguarded-availability -Werror=unguarded-availability-new")
