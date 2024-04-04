@@ -1,57 +1,60 @@
 cmake_minimum_required(VERSION 3.13)
 
-if (APPLE)
-    # if CMAKE_OSX_DEPLOYMENT_TARGET is not set, set it to 11.3
-    if (NOT CMAKE_OSX_DEPLOYMENT_TARGET)
-        set(CMAKE_OSX_DEPLOYMENT_TARGET "11.3" CACHE STRING "Minimum OS X deployment version" FORCE)
-    endif ()
-    message(STATUS "CMAKE_OSX_DEPLOYMENT_TARGET: ${CMAKE_OSX_DEPLOYMENT_TARGET}")
-endif ()
-
 project(OrcaSlicer)
 
 include("version.inc")
 include(GNUInstallDirs)
 include(CMakeDependentOption)
 
+if (DEFINED ENV{SLIC3R_STATIC})
+    set(SLIC3R_STATIC_INITIAL $ENV{SLIC3R_STATIC})
+else ()
+    if (MSVC OR MINGW OR APPLE)
+        set(SLIC3R_STATIC_INITIAL 1)
+    else ()
+        set(SLIC3R_STATIC_INITIAL 0)
+    endif ()
+endif ()
+
+# Set options and initialize variables
+option(SLIC3R_STATIC 			    "Compile OrcaSlicer with static libraries (Boost, TBB, glew)" ${SLIC3R_STATIC_INITIAL})
+option(SLIC3R_GUI    			    "Compile OrcaSlicer with GUI components (OpenGL, wxWidgets)" 1)
+option(SLIC3R_FHS                   "Assume OrcaSlicer is to be installed in a FHS directory structure" 0)
+option(SLIC3R_WX_STABLE             "Build against wxWidgets stable (3.0) as oppsed to dev (3.1) on Linux" 0)
+option(SLIC3R_PROFILE 			    "Compile OrcaSlicer with an invasive Shiny profiler" 0)
+option(SLIC3R_PCH                   "Use precompiled headers" 1)
+option(SLIC3R_MSVC_COMPILE_PARALLEL "Compile on Visual Studio in parallel" 1)
+option(SLIC3R_MSVC_PDB              "Generate PDB files on MSVC in Release mode" 1)
+option(SLIC3R_PERL_XS               "Compile XS Perl module and enable Perl unit and integration tests" 0)
+option(SLIC3R_ASAN                  "Enable ASan on Clang and GCC" 0)
+# Proposal for C++ unit tests and sandboxes
+option(SLIC3R_BUILD_SANDBOXES       "Build development sandboxes" OFF)
+option(SLIC3R_BUILD_TESTS           "Build unit tests" OFF)
+option(ORCA_TOOLS                   "Build Orca tools" OFF)
+# If SLIC3R_FHS is enabled, forcibly disable desktop integration during runtime.
+CMAKE_DEPENDENT_OPTION(SLIC3R_DESKTOP_INTEGRATION "Allow performing desktop integration during runtime" 1 "NOT SLIC3R_FHS" 0)
+
+set(OPENVDB_FIND_MODULE_PATH "" CACHE PATH "Path to OpenVDB installation's find modules.")
+set(SLIC3R_GTK "2" CACHE STRING "GTK version to use with wxWidgets on Linux")
+set(IS_CROSS_COMPILE FALSE)
+set(CMAKE_WARN_DEPRECATED OFF CACHE BOOL "") # Disable deprecation warnings from dependencies built using old CMake versions
+
 set(SLIC3R_RESOURCES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/resources")
 file(TO_NATIVE_PATH "${SLIC3R_RESOURCES_DIR}" SLIC3R_RESOURCES_DIR_WIN)
 
+# Set the default build type to Release if not specified and not using multi-config generators.
 if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
-  message(STATUS "No build type selected, default to Release")
-  set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Build type (default Release)" FORCE)
+    message(STATUS "No build type selected, default to Release")
+    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Build type (default Release)" FORCE)
 endif()
-
-if(DEFINED ENV{SLIC3R_STATIC})
-        set(SLIC3R_STATIC_INITIAL $ENV{SLIC3R_STATIC})
-else()
-        if (MSVC OR MINGW OR APPLE)
-                set(SLIC3R_STATIC_INITIAL 1)
-        else()
-                set(SLIC3R_STATIC_INITIAL 0)
-        endif()
-endif()
-
-option(SLIC3R_STATIC 			"Compile OrcaSlicer with static libraries (Boost, TBB, glew)" ${SLIC3R_STATIC_INITIAL})
-option(SLIC3R_GUI    			"Compile OrcaSlicer with GUI components (OpenGL, wxWidgets)" 1)
-option(SLIC3R_FHS               "Assume OrcaSlicer is to be installed in a FHS directory structure" 0)
-option(SLIC3R_WX_STABLE         "Build against wxWidgets stable (3.0) as oppsed to dev (3.1) on Linux" 0)
-option(SLIC3R_PROFILE 			"Compile OrcaSlicer with an invasive Shiny profiler" 0)
-option(SLIC3R_PCH               "Use precompiled headers" 1)
-option(SLIC3R_MSVC_COMPILE_PARALLEL "Compile on Visual Studio in parallel" 1)
-option(SLIC3R_MSVC_PDB          "Generate PDB files on MSVC in Release mode" 1)
-option(SLIC3R_PERL_XS           "Compile XS Perl module and enable Perl unit and integration tests" 0)
-option(SLIC3R_ASAN              "Enable ASan on Clang and GCC" 0)
-# If SLIC3R_FHS is 1 -> SLIC3R_DESKTOP_INTEGRATION is always 0, othrewise variable.
-CMAKE_DEPENDENT_OPTION(SLIC3R_DESKTOP_INTEGRATION "Allow perfoming desktop integration during runtime" 1 "NOT SLIC3R_FHS" 0)
-
-set(OPENVDB_FIND_MODULE_PATH "" CACHE PATH "Path to OpenVDB installation's find modules.")
-
-set(SLIC3R_GTK "2" CACHE STRING "GTK version to use with wxWidgets on Linux")
-
-set(IS_CROSS_COMPILE FALSE)
 
 if (APPLE)
+    # if CMAKE_OSX_DEPLOYMENT_TARGET is not set, set it to 11.3
+    if (NOT CMAKE_OSX_DEPLOYMENT_TARGET)
+        set(CMAKE_OSX_DEPLOYMENT_TARGET "11.3" CACHE STRING "Minimum OS X deployment version" FORCE)
+    endif ()
+    message(STATUS "CMAKE_OSX_DEPLOYMENT_TARGET: ${CMAKE_OSX_DEPLOYMENT_TARGET}")
+
     set(CMAKE_FIND_FRAMEWORK LAST)
     set(CMAKE_FIND_APPBUNDLE LAST)
     list(FIND CMAKE_OSX_ARCHITECTURES ${CMAKE_SYSTEM_PROCESSOR} _arch_idx)
@@ -65,11 +68,6 @@ if (APPLE)
 
     message(STATUS "Orca: IS_CROSS_COMPILE: ${IS_CROSS_COMPILE}")
 endif ()
-
-# Proposal for C++ unit tests and sandboxes
-option(SLIC3R_BUILD_SANDBOXES   "Build development sandboxes" OFF)
-option(SLIC3R_BUILD_TESTS       "Build unit tests" OFF)
-option(ORCA_TOOLS       "Build Orca tools" OFF)
 
 if (IS_CROSS_COMPILE)
     message("Detected cross compilation setup. Tests and encoding checks will be forcedly disabled!")
@@ -94,20 +92,14 @@ if(SLIC3R_DESKTOP_INTEGRATION)
     add_definitions(-DSLIC3R_DESKTOP_INTEGRATION)
 endif ()
 
-if (MSVC AND CMAKE_CXX_COMPILER_ID STREQUAL Clang)
-    set(IS_CLANG_CL TRUE)
-
-    # clang-cl can interpret SYSTEM header paths if -imsvc is used
-    set(CMAKE_INCLUDE_SYSTEM_FLAG_CXX "-imsvc")
-
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall \
-        -Wno-old-style-cast -Wno-reserved-id-macro -Wno-c++98-compat-pedantic")
-else ()
-    set(IS_CLANG_CL FALSE)
-endif ()
-
 if (MSVC)
-    if (SLIC3R_MSVC_COMPILE_PARALLEL AND NOT IS_CLANG_CL)
+    if (CMAKE_CXX_COMPILER_ID STREQUAL Clang)
+        # clang-cl can interpret SYSTEM header paths if -imsvc is used
+        set(CMAKE_INCLUDE_SYSTEM_FLAG_CXX "-imsvc")
+
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall \
+        -Wno-old-style-cast -Wno-reserved-id-macro -Wno-c++98-compat-pedantic")
+    elseif (SLIC3R_MSVC_COMPILE_PARALLEL)
            add_compile_options(/MP)
     endif ()
     # /bigobj (Increase Number of Sections in .Obj file)
@@ -121,6 +113,16 @@ if (MSVC)
     # C4244: 'conversion' conversion from 'type1' to 'type2', possible loss of data. An integer type is converted to a smaller integer type.
     # C4267: The compiler detected a conversion from size_t to a smaller type.
     add_compile_options(/wd4244 /wd4267)
+    # Add compile option, ignore warning C4305 (truncation from type conversion)
+    add_compile_options(/wd4305)
+    # BOOST_ALL_NO_LIB: Avoid the automatic linking of Boost libraries on Windows. Rather rely on explicit linking.
+    add_definitions(-DBOOST_ALL_NO_LIB -DBOOST_USE_WINAPI_VERSION=0x602 -DBOOST_SYSTEM_USE_UTF8 )
+    # Force the source code encoding to UTF-8. See OrcaSlicer GH pull request #5583
+    add_compile_options("$<$<C_COMPILER_ID:MSVC>:/utf-8>")
+    add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
+else ()
+    # ARMs (Raspberry PI) use an unsigned char by default. Let's make it consistent for OrcaSlicer on all platforms.
+    add_compile_options(-fsigned-char)
 endif ()
 
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "AppleClang" AND ${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER 15)
@@ -129,11 +131,6 @@ endif()
 
 if (MINGW)
     add_compile_options(-Wa,-mbig-obj)
-endif ()
-
-if (NOT MSVC)
-    # ARMs (Raspberry PI) use an unsigned char by default. Let's make it consistent for OrcaSlicer on all platforms.
-    add_compile_options(-fsigned-char)
 endif ()
 
 # Display and check CMAKE_PREFIX_PATH
@@ -164,11 +161,6 @@ enable_testing ()
 # Enable C++17 language standard.
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-if(NOT WIN32)
-    # Add DEBUG flags to debug builds.
-    add_compile_options("$<$<CONFIG:DEBUG>:-DDEBUG>")
-endif()
 
 # To be able to link libslic3r with the Perl XS module.
 # Once we get rid of Perl and libslic3r is linked statically, we can get rid of -fPIC
@@ -208,6 +200,9 @@ if(WIN32)
     else()
         message("Building without Win10 Netfabb STL fixing service support")
     endif()
+else()
+    # Add DEBUG flags to debug builds.
+    add_compile_options("$<$<CONFIG:DEBUG>:-DDEBUG>")
 endif()
 
 if (APPLE)
@@ -291,17 +286,9 @@ if (SLIC3R_ASAN)
     if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
         set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lasan")
     endif ()
-endif ()
-
-if (APPLE)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror=partial-availability -Werror=unguarded-availability -Werror=unguarded-availability-new")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror=partial-availability -Werror=unguarded-availability -Werror=unguarded-availability-new")
 endif ()
-
-if(MSVC)
-# 添加编译选项，忽略警告 C4305 （格式转换截断）
-add_compile_options(/wd4305)
-endif()
 
 # Where all the bundled libraries reside?
 set(LIBDIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
@@ -318,13 +305,6 @@ include_directories(${LIBDIR}/libigl)
 
 if(WIN32)
     add_definitions(-D_USE_MATH_DEFINES -D_WIN32 -D_CRT_SECURE_NO_WARNINGS -D_SCL_SECURE_NO_WARNINGS)
-    if(MSVC)
-        # BOOST_ALL_NO_LIB: Avoid the automatic linking of Boost libraries on Windows. Rather rely on explicit linking.
-        add_definitions(-DBOOST_ALL_NO_LIB -DBOOST_USE_WINAPI_VERSION=0x602 -DBOOST_SYSTEM_USE_UTF8 )
-        # Force the source code encoding to UTF-8. See OrcaSlicer GH pull request #5583
-        add_compile_options("$<$<C_COMPILER_ID:MSVC>:/utf-8>")
-        add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
-    endif(MSVC)
 endif(WIN32)
 
 add_definitions(-DwxUSE_UNICODE -D_UNICODE -DUNICODE -DWXINTL_NO_GETTEXT_MACRO)
@@ -460,13 +440,7 @@ find_package(ZLIB REQUIRED)
 target_link_libraries(libcurl INTERFACE ZLIB::ZLIB)
 
 # Fixing curl's cmake config script bugs
-if (NOT WIN32)
-    # Required by libcurl
-    #find_package(ZLIB REQUIRED)
-    #target_link_libraries(libcurl INTERFACE ZLIB::ZLIB)
-    #find_package(Libssh2 REQUIRED)
-    #target_link_libraries(libcurl INTERFACE Libssh2::libssh2)
-else()
+if (WIN32)
     target_link_libraries(libcurl INTERFACE crypt32)
 endif()
 
