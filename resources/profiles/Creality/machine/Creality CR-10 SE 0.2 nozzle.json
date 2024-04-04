@@ -15,11 +15,11 @@
     ],
     "printable_area": [
       "0x0",
-      "250x0",
-      "250x250",
-      "0x250"
+      "220x0",
+      "220x220",
+      "0x220"
     ],
-    "printable_height": "250",
+    "printable_height": "265",
     "extruder_clearance_height_to_rod": "36",
     "extruder_clearance_height_to_lid": "140",
     "extruder_clearance_radius": "65",
