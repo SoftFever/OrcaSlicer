@@ -22,7 +22,6 @@ using namespace nlohmann;
 #define ENV_PRE_HOST		"2"
 #define ENV_PRODUCT_HOST	"3"
 
-#define SUPPORT_REVERSE_MOUSE_ZOOM
 #define SUPPORT_DARK_MODE
 //#define _MSW_DARK_MODE
 
