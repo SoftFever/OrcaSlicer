@@ -4454,11 +4454,12 @@ void GLCanvas3D::on_set_focus(wxFocusEvent& evt)
     }
     _refresh_if_shown_on_screen();
     m_tooltip_enabled = true;
+    m_is_touchpad_navigation = wxGetApp().app_config->get_bool("camera_navigation_style");
 }
 
 bool GLCanvas3D::is_camera_rotate(const wxMouseEvent& evt) const
 {
-    if (wxGetApp().app_config->get("camera_navigation_style") == "1") {
+    if (m_is_touchpad_navigation) {
         return evt.Moving() && evt.AltDown() && !evt.ShiftDown();
     } else {
         return evt.Dragging() && evt.LeftIsDown();
@@ -4467,7 +4468,7 @@ bool GLCanvas3D::is_camera_rotate(const wxMouseEvent& evt) const
 
 bool GLCanvas3D::is_camera_pan(const wxMouseEvent& evt) const
 {
-    if (wxGetApp().app_config->get("camera_navigation_style") == "1") {
+    if (m_is_touchpad_navigation) {
         return evt.Moving() && evt.ShiftDown() && !evt.AltDown();
     } else {
         return evt.Dragging() && (evt.MiddleIsDown() || evt.RightIsDown());

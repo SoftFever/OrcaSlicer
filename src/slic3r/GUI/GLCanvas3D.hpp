@@ -551,6 +551,8 @@ private:
 
     std::array<unsigned int, 2> m_old_size{ 0, 0 };
 
+    bool m_is_touchpad_navigation{ false };
+
     // Screen is only refreshed from the OnIdle handler if it is dirty.
     bool m_dirty;
     bool m_initialized;
