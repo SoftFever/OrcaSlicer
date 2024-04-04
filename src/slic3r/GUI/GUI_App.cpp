@@ -5302,6 +5302,7 @@ void GUI_App::open_preferences(size_t open_on_tab, const std::string& highlight_
         // so we put it into an inner scope
         PreferencesDialog dlg(mainframe, open_on_tab, highlight_option);
         dlg.ShowModal();
+        this->plater_->get_current_canvas3D()->force_set_focus();
         // BBS
         //app_layout_changed = dlg.settings_layout_changed();
 #if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
