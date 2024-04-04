@@ -39,6 +39,10 @@ set(SLIC3R_GTK "2" CACHE STRING "GTK version to use with wxWidgets on Linux")
 set(IS_CROSS_COMPILE FALSE)
 set(CMAKE_WARN_DEPRECATED OFF CACHE BOOL "") # Disable deprecation warnings from dependencies built using old CMake versions
 
+# Enable C++17 language standard.
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 set(SLIC3R_RESOURCES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/resources")
 file(TO_NATIVE_PATH "${SLIC3R_RESOURCES_DIR}" SLIC3R_RESOURCES_DIR_WIN)
 
@@ -48,7 +52,7 @@ if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Build type (default Release)" FORCE)
 endif()
 
-if (APPLE)
+if (APPLE) # Set macOS target and determine if we are cross-compiling
     # if CMAKE_OSX_DEPLOYMENT_TARGET is not set, set it to 11.3
     if (NOT CMAKE_OSX_DEPLOYMENT_TARGET)
         set(CMAKE_OSX_DEPLOYMENT_TARGET "11.3" CACHE STRING "Minimum OS X deployment version" FORCE)
@@ -67,12 +71,11 @@ if (APPLE)
     SET(CMAKE_XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "com.softfever3d.orca-slicer")
 
     message(STATUS "Orca: IS_CROSS_COMPILE: ${IS_CROSS_COMPILE}")
-endif ()
-
-if (IS_CROSS_COMPILE)
-    message("Detected cross compilation setup. Tests and encoding checks will be forcedly disabled!")
-    set(SLIC3R_PERL_XS OFF CACHE BOOL "" FORCE)
-    set(SLIC3R_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+    if (IS_CROSS_COMPILE)
+        message("Detected cross compilation setup. Tests and encoding checks will be forcedly disabled!")
+        set(SLIC3R_PERL_XS OFF CACHE BOOL "" FORCE)
+        set(SLIC3R_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+    endif ()
 endif ()
 
 # Print out the SLIC3R_* cache options
@@ -92,83 +95,76 @@ if(SLIC3R_DESKTOP_INTEGRATION)
     add_definitions(-DSLIC3R_DESKTOP_INTEGRATION)
 endif ()
 
-if (MSVC)
-    if (CMAKE_CXX_COMPILER_ID STREQUAL Clang)
-        # clang-cl can interpret SYSTEM header paths if -imsvc is used
-        set(CMAKE_INCLUDE_SYSTEM_FLAG_CXX "-imsvc")
-
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall \
-        -Wno-old-style-cast -Wno-reserved-id-macro -Wno-c++98-compat-pedantic")
-    elseif (SLIC3R_MSVC_COMPILE_PARALLEL)
-           add_compile_options(/MP)
-    endif ()
-    # /bigobj (Increase Number of Sections in .Obj file)
-    # error C3859: virtual memory range for PCH exceeded; please recompile with a command line option of '-Zm90' or greater
-    # Generate symbols at every build target, even for the release.
-    add_compile_options(-bigobj -Zm520 /Zi)
-    # Disable STL4007: Many result_type typedefs and all argument_type, first_argument_type, and second_argument_type typedefs are deprecated in C++17.
-    #FIXME Remove this line after eigen library adapts to the new C++17 adaptor rules.
-    add_compile_options(-D_SILENCE_CXX17_ADAPTOR_TYPEDEFS_DEPRECATION_WARNING)
-    # Disable warnings on conversion from unsigned to signed (possible loss of data)
-    # C4244: 'conversion' conversion from 'type1' to 'type2', possible loss of data. An integer type is converted to a smaller integer type.
-    # C4267: The compiler detected a conversion from size_t to a smaller type.
-    add_compile_options(/wd4244 /wd4267)
-    # Add compile option, ignore warning C4305 (truncation from type conversion)
-    add_compile_options(/wd4305)
-    # BOOST_ALL_NO_LIB: Avoid the automatic linking of Boost libraries on Windows. Rather rely on explicit linking.
-    add_definitions(-DBOOST_ALL_NO_LIB -DBOOST_USE_WINAPI_VERSION=0x602 -DBOOST_SYSTEM_USE_UTF8 )
-    # Force the source code encoding to UTF-8. See OrcaSlicer GH pull request #5583
-    add_compile_options("$<$<C_COMPILER_ID:MSVC>:/utf-8>")
-    add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
-else ()
-    # ARMs (Raspberry PI) use an unsigned char by default. Let's make it consistent for OrcaSlicer on all platforms.
-    add_compile_options(-fsigned-char)
-endif ()
-
-if (${CMAKE_CXX_COMPILER_ID} STREQUAL "AppleClang" AND ${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER 15)
-    add_compile_definitions(BOOST_NO_CXX98_FUNCTION_BASE _HAS_AUTO_PTR_ETC=0)
-endif()
-
-if (MINGW)
-    add_compile_options(-Wa,-mbig-obj)
-endif ()
-
 # Display and check CMAKE_PREFIX_PATH
-message(STATUS "SLIC3R_STATIC: ${SLIC3R_STATIC}")
 if (NOT "${CMAKE_PREFIX_PATH}" STREQUAL "")
     message(STATUS "CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH} (from cache or command line)")
     set(PREFIX_PATH_CHECK ${CMAKE_PREFIX_PATH})
 elseif (NOT "$ENV{CMAKE_PREFIX_PATH}" STREQUAL "")
     message(STATUS "CMAKE_PREFIX_PATH: $ENV{CMAKE_PREFIX_PATH} (from environment)")
     set(PREFIX_PATH_CHECK $ENV{CMAKE_PREFIX_PATH})
+    foreach (DIR ${PREFIX_PATH_CHECK})
+        if (NOT EXISTS "${DIR}")
+            message(WARNING "CMAKE_PREFIX_PATH element doesn't exist: ${DIR}")
+        endif ()
+    endforeach ()
 else ()
     message(STATUS "CMAKE_PREFIX_PATH: (default)")
 endif ()
-
-foreach (DIR ${PREFIX_PATH_CHECK})
-    if (NOT EXISTS "${DIR}")
-        message(WARNING "CMAKE_PREFIX_PATH element doesn't exist: ${DIR}")
-    endif ()
-endforeach ()
 
 # Add our own cmake module path.
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules/)
 message(STATUS "PROJECT_SOURCE_DIR: ${PROJECT_SOURCE_DIR}")
 message(STATUS "CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
 
-enable_testing ()
-
-# Enable C++17 language standard.
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+enable_testing()
 
 # To be able to link libslic3r with the Perl XS module.
 # Once we get rid of Perl and libslic3r is linked statically, we can get rid of -fPIC
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-# WIN10SDK_PATH is used to point CMake to the WIN10 SDK installation directory.
-# We pick it from environment if it is not defined in another way
 if(WIN32)
+    if (MSVC)
+        if (CMAKE_CXX_COMPILER_ID STREQUAL Clang)
+            # clang-cl can interpret SYSTEM header paths if -imsvc is used
+            set(CMAKE_INCLUDE_SYSTEM_FLAG_CXX "-imsvc")
+
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall \
+        -Wno-old-style-cast -Wno-reserved-id-macro -Wno-c++98-compat-pedantic")
+        elseif (SLIC3R_MSVC_COMPILE_PARALLEL)
+            add_compile_options(/MP)
+        endif ()
+        # /bigobj (Increase Number of Sections in .Obj file)
+        # error C3859: virtual memory range for PCH exceeded; please recompile with a command line option of '-Zm90' or greater
+        # Generate symbols at every build target, even for the release.
+        add_compile_options(-bigobj -Zm520 /Zi)
+        # Disable STL4007: Many result_type typedefs and all argument_type, first_argument_type, and second_argument_type typedefs are deprecated in C++17.
+        #FIXME Remove this line after eigen library adapts to the new C++17 adaptor rules.
+        add_compile_options(-D_SILENCE_CXX17_ADAPTOR_TYPEDEFS_DEPRECATION_WARNING)
+        # Disable warnings on conversion from unsigned to signed (possible loss of data)
+        # C4244: 'conversion' conversion from 'type1' to 'type2', possible loss of data. An integer type is converted to a smaller integer type.
+        # C4267: The compiler detected a conversion from size_t to a smaller type.
+        add_compile_options(/wd4244 /wd4267)
+        # Add compile option, ignore warning C4305 (truncation from type conversion)
+        add_compile_options(/wd4305)
+        # BOOST_ALL_NO_LIB: Avoid the automatic linking of Boost libraries on Windows. Rather rely on explicit linking.
+        add_definitions(-DBOOST_ALL_NO_LIB -DBOOST_USE_WINAPI_VERSION=0x602 -DBOOST_SYSTEM_USE_UTF8 )
+        # Force the source code encoding to UTF-8. See OrcaSlicer GH pull request #5583
+        add_compile_options("$<$<C_COMPILER_ID:MSVC>:/utf-8>")
+        add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
+    else ()
+        # ARMs (Raspberry PI) use an unsigned char by default. Let's make it consistent for OrcaSlicer on all platforms.
+        add_compile_options(-fsigned-char)
+    endif ()
+
+    if (MINGW)
+        add_compile_options(-Wa,-mbig-obj)
+    endif ()
+
+    # Windows specific definitions
+    add_definitions(-D_USE_MATH_DEFINES -D_WIN32 -D_CRT_SECURE_NO_WARNINGS -D_SCL_SECURE_NO_WARNINGS)
+
+    # WIN10SDK_PATH is used to point CMake to the WIN10 SDK installation directory.
+    # We pick it from environment if it is not defined in another way
     if(NOT DEFINED WIN10SDK_PATH)
         if(DEFINED ENV{WIN10SDK_PATH})
                 set(WIN10SDK_PATH "$ENV{WIN10SDK_PATH}")
@@ -212,6 +208,10 @@ if (APPLE)
     else ()
         message("OS X Deployment Target: (default)")
     endif ()
+
+    if (${CMAKE_CXX_COMPILER_ID} STREQUAL "AppleClang" AND ${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER 15)
+        add_compile_definitions(BOOST_NO_CXX98_FUNCTION_BASE _HAS_AUTO_PTR_ETC=0)
+    endif()
 endif ()
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
@@ -219,7 +219,7 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
 
     if (CMAKE_VERSION VERSION_LESS "3.1")
         # Workaround for an old CMake, which does not understand CMAKE_CXX_STANDARD.
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++${CMAKE_CXX_STANDARD}")
     endif()
 
     # Boost on Raspberry-Pi does not link to pthreads.
@@ -268,7 +268,6 @@ if (NOT MSVC AND ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMP
     if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
         add_compile_options(-Wno-unknown-pragmas)
     endif()
-
 endif()
 
 if (SLIC3R_ASAN)
@@ -303,12 +302,8 @@ include_directories(${LIBDIR_BIN}/platform)
 # For ligigl
 include_directories(${LIBDIR}/libigl)
 
-if(WIN32)
-    add_definitions(-D_USE_MATH_DEFINES -D_WIN32 -D_CRT_SECURE_NO_WARNINGS -D_SCL_SECURE_NO_WARNINGS)
-endif(WIN32)
-
+## Generic definitions
 add_definitions(-DwxUSE_UNICODE -D_UNICODE -DUNICODE -DWXINTL_NO_GETTEXT_MACRO)
-
 # Disable unsafe implicit wxString to const char* / std::string and vice versa. This implicit conversion breaks the UTF-8 encoding quite often.
 add_definitions(-DwxNO_UNSAFE_WXSTRING_CONV)
 
