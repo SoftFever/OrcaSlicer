@@ -216,16 +216,19 @@ void BBLTopbar::Init(wxFrame* parent)
     logo_item->SetHoverBitmap(logo_bitmap);
     logo_item->SetActive(false);*/
 
-    wxBitmap file_bitmap = create_scaled_bitmap("topbar_file", nullptr, TOPBAR_ICON_SIZE);
-    m_file_menu_item = this->AddTool(ID_TOP_FILE_MENU, _L("File"), file_bitmap, wxEmptyString, wxITEM_NORMAL);
+    //wxBitmap file_bitmap = create_scaled_bitmap("topbar_file", nullptr, TOPBAR_ICON_SIZE);
+    //m_file_menu_item = this->AddTool(ID_TOP_FILE_MENU, _L("File"), file_bitmap, wxEmptyString, wxITEM_NORMAL);
+    wxBitmap empty_icon = create_scaled_bitmap("topbar_blank", nullptr, 1);
+    m_file_menu_item    = this->AddTool(ID_TOP_FILE_MENU, _L("File"), empty_icon, wxEmptyString, wxITEM_NORMAL);
 
     this->SetForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_HIGHLIGHTTEXT));
 
     this->AddSpacer(FromDIP(5));
 
-    wxBitmap dropdown_bitmap = create_scaled_bitmap("topbar_dropdown", nullptr, TOPBAR_ICON_SIZE);
-    m_dropdown_menu_item = this->AddTool(ID_TOP_DROPDOWN_MENU, "",
-        dropdown_bitmap, wxEmptyString);
+    //wxBitmap dropdown_bitmap = create_scaled_bitmap("topbar_dropdown", nullptr, TOPBAR_ICON_SIZE);
+    //m_dropdown_menu_item = this->AddTool(ID_TOP_DROPDOWN_MENU, "", dropdown_bitmap, wxEmptyString);
+
+    m_dropdown_menu_item = this->AddTool(ID_TOP_DROPDOWN_MENU, _L("More"), empty_icon, wxEmptyString, wxITEM_NORMAL);
 
     this->AddSpacer(FromDIP(5));
     this->AddSeparator();
@@ -479,11 +482,11 @@ void BBLTopbar::Rescale() {
     /*item = this->FindTool(ID_LOGO);
     item->SetBitmap(create_scaled_bitmap("topbar_logo", nullptr, TOPBAR_ICON_SIZE));*/
 
-    item = this->FindTool(ID_TOP_FILE_MENU);
-    item->SetBitmap(create_scaled_bitmap("topbar_file", this, TOPBAR_ICON_SIZE));
+    //item = this->FindTool(ID_TOP_FILE_MENU);
+    //item->SetBitmap(create_scaled_bitmap("topbar_file", this, TOPBAR_ICON_SIZE));
 
-    item = this->FindTool(ID_TOP_DROPDOWN_MENU);
-    item->SetBitmap(create_scaled_bitmap("topbar_dropdown", this, TOPBAR_ICON_SIZE));
+    //item = this->FindTool(ID_TOP_DROPDOWN_MENU);
+    //item->SetBitmap(create_scaled_bitmap("topbar_dropdown", this, TOPBAR_ICON_SIZE));
 
     //item = this->FindTool(wxID_OPEN);
     //item->SetBitmap(create_scaled_bitmap("topbar_open", nullptr, TOPBAR_ICON_SIZE));
