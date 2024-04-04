@@ -176,10 +176,8 @@ void AppConfig::set_defaults()
     if (get("camera_navigation_style").empty())
         set("camera_navigation_style", "0");
 
-#ifdef SUPPORT_REVERSE_MOUSE_ZOOM
     if (get("reverse_mouse_wheel_zoom").empty())
         set_bool("reverse_mouse_wheel_zoom", false);
-#endif
 
     if (get("zoom_to_mouse").empty())
         set_bool("zoom_to_mouse", false);
