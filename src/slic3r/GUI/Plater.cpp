@@ -4055,6 +4055,9 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                 q->skip_thumbnail_invalid = false;
                 return empty_result;
             }
+
+            if (!model_object->instances.empty())
+                model_object->ensure_on_bed(is_project_file);
         }
 
         tolal_model_count += model_idx;
