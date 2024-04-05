@@ -3892,7 +3892,7 @@ void TabPrinter::build_extruder_pages(size_t n_before_extruders)
     for (auto extruder_idx = m_extruders_count_old; extruder_idx < m_extruders_count; ++extruder_idx) {
         //# build page
         //const wxString&page_name = wxString::Format("Extruder %d", int(extruder_idx + 1));
-        const wxString& page_name = (m_extruders_count > 1) ? wxString::Format("Extruder %d", int(extruder_idx + 1)) :
+        const wxString& page_name = (m_extruders_count > 1) ? wxString::Format("Extruder %d", int(extruder_idx)) :
                                                               wxString::Format("Extruder");
         auto           page      = add_options_page(page_name, "empty", true);
         m_pages.insert(m_pages.begin() + n_before_extruders + extruder_idx, page);
