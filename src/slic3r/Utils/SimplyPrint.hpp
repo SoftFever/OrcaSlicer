@@ -42,6 +42,11 @@ class SimplyPrint : public PrintHost
                         ProgressFn                     prorgess_fn,
                         ErrorFn                        error_fn) const;
 
+    bool do_chunk_upload(const boost::filesystem::path& file_path,
+                         const std::string&             filename,
+                         ProgressFn                     prorgess_fn,
+                         ErrorFn                        error_fn) const;
+
 public:
     SimplyPrint(DynamicPrintConfig* config);
     ~SimplyPrint() override = default;
