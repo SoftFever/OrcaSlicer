@@ -405,8 +405,9 @@ private:
 
         void init(wxFont init_font)
         {
-            // title
-            title = wxGetApp().is_editor() ? SLIC3R_APP_FULL_NAME : GCODEVIEWER_APP_NAME;
+            // title //TODO：YLG 这个地方改名字改软件过场动画显示的名字
+            //title = wxGetApp().is_editor() ? SLIC3R_APP_FULL_NAME : GCODEVIEWER_APP_NAME;
+            title = wxGetApp().is_editor() ? "MingDa OrcaSlicer" : GCODEVIEWER_APP_NAME;
 
             // dynamically get the version to display
             version = _L("V") + " " + GUI_App::format_display_version();
