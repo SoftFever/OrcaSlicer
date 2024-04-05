@@ -9,7 +9,7 @@
   "default_filament_profile": [
     "Creality Generic PLA"
   ],
-  "default_print_profile": "0.20mm Standard @Creality Ender3S1",
+  "default_print_profile": "0.20mm Standard @Creality Sermoon V1",
   "nozzle_diameter": [
     "0.4"
   ],
