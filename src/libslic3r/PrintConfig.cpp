@@ -3873,8 +3873,9 @@ def = this->add("filament_loading_speed", coFloats);
     def->label = L("Single Extruder Multi Material");
     def->tooltip = L("Use single nozzle to print multi filament");
     def->mode = comAdvanced;
-    def->readonly = true;
-    def->set_default_value(new ConfigOptionBool(true));
+    //TODO:ylg 我们的打印机不需要强制设置单挤出机多材料
+    //def->readonly = true;
+    def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("manual_filament_change", coBool);
     def->label = L("Manual Filament Change");
@@ -5743,9 +5744,11 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         } else {
             opt_key = "wall_sequence";
         }
-    } else if(opt_key == "single_extruder_multi_material") {
-        value = "1";
-    }
+    } 
+    //TODO:YLG 我们不需要强制设置单挤出机多材料设置，让他根据配置文件自动识别
+    // else if(opt_key == "single_extruder_multi_material") {
+    //     value = "0";
+    // }
     else if(opt_key == "ensure_vertical_shell_thickness") {
         if(value == "1") {
             value = "ensure_all";

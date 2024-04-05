@@ -3536,18 +3536,82 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line("z_offset");
         optgroup->append_single_option_line("preferred_orientation");
 
-        // ConfigOptionDef def;
-        //    def.type =  coInt,
-        //    def.set_default_value(new ConfigOptionInt(1));
-        //    def.label = L("Extruders");
-        //    def.tooltip = L("Number of extruders of the printer.");
-        //    def.min = 1;
-        //    def.max = 256;
-        //    //BBS
-        //    def.mode = comDevelop;
-        // Option option(def, "extruders_count");
-        // optgroup->append_single_option_line(option);
+        optgroup = page->new_optgroup(L("Capabilities"));
+        ConfigOptionDef def;
+            def.type =  coInt,
+            def.set_default_value(new ConfigOptionInt(1));
+            def.label = L("Extruders");
+            def.tooltip = L("Number of extruders of the printer.");
+            def.min = 1;
+            def.max = 256;
+            def.mode = comAdvanced;
+        Option option1(def, "extruders_count");
+        optgroup->append_single_option_line(option1);
+        optgroup->append_single_option_line("single_extruder_multi_material");
 
+        optgroup->m_on_change = [this, optgroup_wk = ConfigOptionsGroupWkp(optgroup)](t_config_option_key opt_key, boost::any value) {
+            auto optgroup_sh = optgroup_wk.lock();
+            if (!optgroup_sh)
+                return;
+
+            // optgroup->get_value() return int for def.type == coInt,
+            // Thus, there should be boost::any_cast<int> !
+            // Otherwise, boost::any_cast<size_t> causes an "unhandled unknown exception"
+            size_t extruders_count = size_t(boost::any_cast<int>(optgroup_sh->get_value("extruders_count")));
+            wxTheApp->CallAfter([this, opt_key, value, extruders_count]() {
+                if (opt_key == "extruders_count" || opt_key == "single_extruder_multi_material") {
+                    extruders_count_changed(extruders_count);
+                    init_options_list(); // m_options_list should be updated before UI updating
+                    update_dirty();
+                    if (opt_key == "single_extruder_multi_material") { // the single_extruder_multimaterial was added to force pages
+                        on_value_change(opt_key, value);                      // rebuild - let's make sure the on_value_change is not skipped
+
+                        if (boost::any_cast<bool>(value) && m_extruders_count > 1) {
+                            SuppressBackgroundProcessingUpdate sbpu;
+                            std::vector<double> nozzle_diameters = static_cast<const ConfigOptionFloats*>(m_config->option("nozzle_diameter"))->values;
+                            const double frst_diam = nozzle_diameters[0];
+
+                            for (auto cur_diam : nozzle_diameters) {
+                                // if value is differs from first nozzle diameter value
+                                if (fabs(cur_diam - frst_diam) > EPSILON) {
+                                    const wxString msg_text = _(L("Single Extruder Multi Material is selected, \n"
+                                                                  "and all extruders must have the same diameter.\n"
+                                                                  "Do you want to change the diameter for all extruders to first extruder nozzle diameter value?"));
+                                    MessageDialog dialog(parent(), msg_text, _(L("Nozzle diameter")), wxICON_WARNING | wxYES_NO);
+
+                                    DynamicPrintConfig new_conf = *m_config;
+                                    if (dialog.ShowModal() == wxID_YES) {
+                                        for (size_t i = 1; i < nozzle_diameters.size(); i++)
+                                            nozzle_diameters[i] = frst_diam;
+
+                                        new_conf.set_key_value("nozzle_diameter", new ConfigOptionFloats(nozzle_diameters));
+                                    }
+                                    else
+                                        new_conf.set_key_value("single_extruder_multi_material", new ConfigOptionBool(false));
+
+                                    load_config(new_conf);
+                                    break;
+                                }
+                            }
+                        }
+
+                        m_preset_bundle->update_compatible(PresetSelectCompatibleType::Never);
+                        // Upadte related comboboxes on Sidebar and Tabs
+                        Sidebar& sidebar = wxGetApp().plater()->sidebar();
+                        for (const Preset::Type& type : {Preset::TYPE_PRINT, Preset::TYPE_FILAMENT}) {
+                            sidebar.update_presets(type);
+                            wxGetApp().get_tab(type)->update_tab_ui();
+                        }
+                    }
+                }
+                else {
+                    update_dirty();
+                    on_value_change(opt_key, value);
+                }
+            });
+        };
+
+        //build_print_host_upload_group(page.get());
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced");
         optgroup->append_single_option_line("printer_structure");
         optgroup->append_single_option_line("gcode_flavor");
@@ -4122,6 +4186,7 @@ if (is_marlin_flavor)
         auto optgroup = page->new_optgroup(L("Single extruder multimaterial setup"));
         optgroup->append_single_option_line("single_extruder_multi_material", "");
         // Orca: we only support Single Extruder Multi Material, so it's always enabled
+        //Orca:我们只支持单挤出机多材料，所以它总是启用
         optgroup->m_on_change = [this](const t_config_option_key &opt_key, const boost::any &value) {
             wxTheApp->CallAfter([this, opt_key, value]() {
                 if (opt_key == "single_extruder_multi_material") {
@@ -4168,7 +4233,7 @@ if (is_marlin_flavor)
 void TabPrinter::on_preset_loaded()
 {
     // BBS
-#if 0
+#if 1
     // update the extruders count field
     auto   *nozzle_diameter = dynamic_cast<const ConfigOptionFloats*>(m_config->option("nozzle_diameter"));
     size_t extruders_count = nozzle_diameter->values.size();
