@@ -244,26 +244,27 @@ bool SimplyPrint::test(wxString& curl_msg) const
         });
 }
 
-bool SimplyPrint::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, ErrorFn error_fn, InfoFn info_fn) const
+bool SimplyPrint::do_temp_upload(const boost::filesystem::path& file_path,
+                                 const std::string&             chunk_id,
+                                 const std::string&             filename,
+                                 ProgressFn                     prorgess_fn,
+                                 ErrorFn                        error_fn) const
 {
-    if (cred.find("access_token") == cred.end()) {
-        error_fn(_L("SimplyPrint account not linked. Go to Connect options to set it up."));
+    if (file_path.empty() == chunk_id.empty()) {
+        BOOST_LOG_TRIVIAL(error) << "SimplyPrint: Invalid arguments: both file_path and chunk_id are set or not provided";
+        error_fn(_L("Internel error"));
         return false;
     }
-
-    // If file is over 100 MB, fail
-    if (boost::filesystem::file_size(upload_data.source_path) > 104857600ull) {
-        error_fn(_L("File size exceeds the 100MB upload limit. Please upload your file through the panel."));
-        return false;
-    }
-
-    const auto filename = upload_data.upload_path.filename().string();
 
     return do_api_call(
-        [&upload_data, &prorgess_fn, &filename](bool is_retry) {
+        [&file_path, &chunk_id, &prorgess_fn, &filename](bool is_retry) {
             auto http = Http::post("https://simplyprint.io/api/files/TempUpload");
-            http.form_add_file("file", upload_data.source_path.string(), filename)
-                .on_progress([&prorgess_fn](Http::Progress progress, bool& cancel) { prorgess_fn(std::move(progress), cancel); });
+            if (!file_path.empty()) {
+                http.form_add_file("file", file_path, filename);
+            } else {
+                http.form_add("chunkId", chunk_id);
+            }
+            http.on_progress([&prorgess_fn](Http::Progress progress, bool& cancel) { prorgess_fn(std::move(progress), cancel); });
 
             return http;
         },
@@ -303,6 +304,25 @@ bool SimplyPrint::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, Er
             error_fn(format_error(body, error, status));
             return false;
         });
+}
+
+
+bool SimplyPrint::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, ErrorFn error_fn, InfoFn info_fn) const
+{
+    if (cred.find("access_token") == cred.end()) {
+        error_fn(_L("SimplyPrint account not linked. Go to Connect options to set it up."));
+        return false;
+    }
+
+    // If file is over 100 MB, fail
+    if (boost::filesystem::file_size(upload_data.source_path) > 104857600ull) {
+        error_fn(_L("File size exceeds the 100MB upload limit. Please upload your file through the panel."));
+        return false;
+    }
+
+    const auto filename = upload_data.upload_path.filename().string();
+
+    return do_temp_upload(upload_data.source_path, {}, filename, prorgess_fn, error_fn);
 }
 
 } // namespace Slic3r
