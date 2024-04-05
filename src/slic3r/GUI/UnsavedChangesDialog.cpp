@@ -1502,9 +1502,11 @@ void UnsavedChangesDialog::update_list()
         item_line->SetBackgroundColour(wxColour(206, 206, 206));
         sizer_list->Add(item_line, 0, wxALL, 0); */
 
+        auto key = iter->first;
         // isset group
         for (auto i = 0; i < iter->second.size(); i++) {
             auto gname = iter->second[i];
+            
             for (auto g = 0; g < class_g_list[gname].size(); g++) {
 
                  //first group
@@ -1537,6 +1539,11 @@ void UnsavedChangesDialog::update_list()
                 }
 
                 auto data = class_g_list[gname][g];
+                //auto key        = data.category_name;
+                //TODO:ylg 种类不一致就不应该加载
+                if (key != data.category_name) {
+                    continue;
+                }
 
                 auto panel_item = new wxWindow(m_scrolledWindow, -1, wxDefaultPosition, wxSize(-1, UNSAVE_CHANGE_DIALOG_ITEM_HEIGHT));
                 panel_item->SetBackgroundColour(GREY200);

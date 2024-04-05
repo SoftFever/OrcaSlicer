@@ -633,6 +633,7 @@ public:
     void        update_pages(); // update m_pages according to printer technology
 	void		extruders_count_changed(size_t extruders_count);
 	PageShp		build_kinematics_page();
+	void		build_extruder_pages(size_t n_before_extruders);
 	void		build_unregular_pages(bool from_initial_build = false);
 	void		on_preset_loaded() override;
 	void		init_options_list() override;
