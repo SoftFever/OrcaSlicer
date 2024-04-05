@@ -2000,7 +2000,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
     // if thumbnail type of BTT_TFT, insert above header
     // if not, it is inserted under the header in its normal spot
-    GCodeThumbnailsFormat m_gcode_thumbnail_format = GCodeThumbnailsFormat::BTT_TFT;
+    GCodeThumbnailsFormat m_gcode_thumbnail_format = GCodeThumbnailsFormat::PNG;
     if (thumbnail_cb != nullptr) {
         m_gcode_thumbnail_format = print.full_print_config().opt_enum<GCodeThumbnailsFormat>("thumbnails_format");
         if (m_gcode_thumbnail_format == GCodeThumbnailsFormat::BTT_TFT)
