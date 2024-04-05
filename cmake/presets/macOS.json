@@ -21,9 +21,6 @@
       "name": "macos-base-x64",
       "inherits": "macos-base",
       "hidden": true,
-      "environment": {
-        "DEP_DIR_NAME": "OrcaSlicer_dep_x86_64"
-      },
       "cacheVariables": {
         "CMAKE_OSX_ARCHITECTURES": "x86_64"
       }
@@ -32,9 +29,6 @@
       "name": "macos-base-arm64",
       "inherits": "macos-base",
       "hidden": true,
-      "environment": {
-        "DEP_DIR_NAME": "OrcaSlicer_dep_arm64"
-      },
       "cacheVariables": {
         "CMAKE_OSX_ARCHITECTURES": "arm64"
       }

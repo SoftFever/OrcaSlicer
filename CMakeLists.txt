@@ -46,6 +46,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(SLIC3R_RESOURCES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/resources")
 file(TO_NATIVE_PATH "${SLIC3R_RESOURCES_DIR}" SLIC3R_RESOURCES_DIR_WIN)
 
+get_filename_component(BIN_DIR_NAME ${CMAKE_BINARY_DIR} NAME)
+message(STATUS "CMAKE_BINARY_DIR: ${BIN_DIR_NAME}")
+
 # Set the default build type to Release if not specified and not using multi-config generators.
 if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     message(STATUS "No build type selected, default to Release")
@@ -111,13 +114,39 @@ endif ()
 if (NOT "${CMAKE_PREFIX_PATH}" STREQUAL "")
     message(STATUS "CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH} (from cache or command line)")
     set(PREFIX_PATH_CHECK ${CMAKE_PREFIX_PATH})
-elseif (NOT "$ENV{CMAKE_PREFIX_PATH}" STREQUAL "")
-    message(STATUS "CMAKE_PREFIX_PATH: $ENV{CMAKE_PREFIX_PATH} (from environment)")
-    set(PREFIX_PATH_CHECK $ENV{CMAKE_PREFIX_PATH})
 else ()
-    message(STATUS "CMAKE_PREFIX_PATH: (default)")
+    if ("${DEP_BUILD_DIR}" STREQUAL "")
+        set(DEP_BUILD_DIR "${CMAKE_SOURCE_DIR}/deps/${BIN_DIR_NAME}")
+        if (APPLE)
+            set(DEP_BUILD_DIR "${DEP_BUILD_DIR}_${CMAKE_OSX_ARCHITECTURES}")
+        endif ()
+        set(DEP_BUILD_DIR ${DEP_BUILD_DIR} CACHE PATH "Path to dependencies build directory" FORCE)
+    else ()
+        message("DEP_BUILD_DIR: Set manually to ${DEP_BUILD_DIR}")
+    endif ()
+
+    if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND EXISTS ${CMAKE_SOURCE_DIR}\\deps\\${BIN_DIR_NAME}\\destdir\\usr\\local) # backward compatibility for old directory name
+        set(CMAKE_PREFIX_PATH "${DEP_BUILD_DIR}/destdir/usr/local" CACHE PATH "Path to dependencies" FORCE)
+        message(WARNING "You are using an old directory structure for dependencies that is being deprecated.
+        Please rename \"destdir\" to \"OrcaSlicer_dep\" or remove the destdir directory and rebuild.")
+    else ()
+        set(CMAKE_PREFIX_PATH "${DEP_BUILD_DIR}/OrcaSlicer_dep")
+        if (APPLE)
+            set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH}_${CMAKE_OSX_ARCHITECTURES}")
+        endif ()
+        set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH}/usr/local" CACHE PATH "Path to dependencies install directory" FORCE)
+    endif ()
+    message(STATUS "CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH} (generated automatically and saved to cache)")
+    set(PREFIX_PATH_CHECK ${CMAKE_PREFIX_PATH})
 endif ()
 
+# the CMAKE_PREFIX_PATH environment variable is separate from the CMAKE_PREFIX_PATH cache variable and provides additional paths to search for libraries.
+if (NOT "$ENV{CMAKE_PREFIX_PATH}" STREQUAL "")
+    message(STATUS "CMAKE_PREFIX_PATH: $ENV{CMAKE_PREFIX_PATH} (from environment)")
+    list(APPEND PREFIX_PATH_CHECK $ENV{CMAKE_PREFIX_PATH})
+endif ()
+
+# Check all directories in CMAKE_PREFIX_PATH variables
 foreach (DIR ${PREFIX_PATH_CHECK})
     if (NOT EXISTS "${DIR}")
         message(WARNING "CMAKE_PREFIX_PATH element doesn't exist: ${DIR}")

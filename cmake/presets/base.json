@@ -5,14 +5,10 @@
       "name": "base-release",
       "hidden": true,
       "binaryDir": "${sourceDir}/build",
-      "environment": {
-        "DEP_DIR_NAME": "OrcaSlicer_dep"
-      },
       "cacheVariables": {
         "SLIC3R_GTK": "3",
         "CMAKE_BUILD_TYPE": "Release",
         "BBL_RELEASE_TO_PUBLIC": "1",
-        "CMAKE_PREFIX_PATH": "${sourceDir}/deps/build/$env{DEP_DIR_NAME}/usr/local",
         "CMAKE_INSTALL_PREFIX": "./OrcaSlicer"
       }
     },
