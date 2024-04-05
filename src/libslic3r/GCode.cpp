@@ -3754,6 +3754,7 @@ LayerResult GCode::process_layer(
         for (const Extruder &extruder : m_writer.extruders()) {
             if (print.config().single_extruder_multi_material.value && extruder.id() != m_writer.extruder()->id())
                 // In single extruder multi material mode, set the temperature for the current extruder only.
+                //在单挤出机多材料模式下，只设置当前挤出机的温度。
                 continue;
             int temperature = print.config().nozzle_temperature.get_at(extruder.id());
             if (temperature > 0 && temperature != print.config().nozzle_temperature_initial_layer.get_at(extruder.id()))

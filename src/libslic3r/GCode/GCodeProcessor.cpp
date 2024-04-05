@@ -1213,6 +1213,7 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
     const ConfigOptionBool* single_extruder_multi_material = config.option<ConfigOptionBool>("single_extruder_multi_material");
     if (extruder_offset != nullptr) {
         //BBS: for single extruder multi material, only use the offset of first extruder
+        //对于单挤出机多材料，只使用第一挤出机的偏移量
         if (single_extruder_multi_material != nullptr && single_extruder_multi_material->getBool()) {
             Vec2f offset = extruder_offset->values[0].cast<float>();
             m_extruder_offsets.resize(m_result.extruders_count);
