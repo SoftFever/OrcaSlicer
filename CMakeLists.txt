@@ -140,6 +140,10 @@ else ()
     set(PREFIX_PATH_CHECK ${CMAKE_PREFIX_PATH})
 endif ()
 
+if (APPLE AND CMAKE_MACOSX_RPATH AND "${CMAKE_INSTALL_RPATH}" STREQUAL "")
+    set(CMAKE_INSTALL_RPATH ${CMAKE_PREFIX_PATH})
+endif ()
+
 # the CMAKE_PREFIX_PATH environment variable is separate from the CMAKE_PREFIX_PATH cache variable and provides additional paths to search for libraries.
 if (NOT "$ENV{CMAKE_PREFIX_PATH}" STREQUAL "")
     message(STATUS "CMAKE_PREFIX_PATH: $ENV{CMAKE_PREFIX_PATH} (from environment)")

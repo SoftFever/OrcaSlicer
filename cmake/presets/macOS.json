@@ -13,7 +13,6 @@
       "cacheVariables": {
         "CMAKE_MACOSX_BUNDLE": true,
         "CMAKE_MACOSX_RPATH": true,
-        "CMAKE_INSTALL_RPATH": "${sourceDir}/deps/build/$env{DEP_DIR_NAME}/usr/local",
         "CMAKE_OSX_DEPLOYMENT_TARGET": "10.15"
       }
     },
