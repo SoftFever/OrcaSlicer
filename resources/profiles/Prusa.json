@@ -35,6 +35,10 @@
             "sub_path": "process/process_common_miniis.json"
         },
         {
+            "name": "process_speed_miniis",
+            "sub_path": "process/process_speed_miniis.json"
+        },
+        {
             "name": "process_common_mk3",
             "sub_path": "process/process_common_mk3.json"
         },
