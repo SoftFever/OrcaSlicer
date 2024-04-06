@@ -5279,6 +5279,7 @@ bool Plater::priv::replace_volume_with_stl(int object_idx, int volume_idx, const
     try {
         new_model = Model::read_from_file(path, nullptr, nullptr, LoadStrategy::AddDefaultInstances | LoadStrategy::LoadModel);
         for (ModelObject* model_object : new_model.objects) {
+            model_object->input_file = path;
             model_object->center_around_origin();
             model_object->ensure_on_bed();
         }
@@ -5468,24 +5469,24 @@ void Plater::priv::reload_from_disk()
     for (auto [obj_idx, vol_idx] : selected_volumes) {
         const ModelObject *object = model.objects[obj_idx];
         const ModelVolume *volume = object->volumes[vol_idx];
-        if (fs::exists(volume->source.input_file))
-            input_paths.push_back(volume->source.input_file);
-        else {
-            // searches the source in the same folder containing the object
-            bool found = false;
-            if (!object->input_file.empty()) {
-                fs::path object_path = fs::path(object->input_file).remove_filename();
-                if (!object_path.empty()) {
-                    object_path /= fs::path(volume->source.input_file).filename();
-                    if (fs::exists(object_path)) {
-                        input_paths.push_back(object_path);
-                        found = true;
-                    }
+        // searches the source in the same folder containing the object
+        bool found = false;
+        if (!object->input_file.empty()) {
+            fs::path object_path = fs::path(object->input_file).remove_filename();
+            if (!object_path.empty()) {
+                object_path /= fs::path(volume->source.input_file).filename();
+                if (fs::exists(object_path)) {
+                    input_paths.push_back(object_path);
+                    found = true;
                 }
             }
-            if (!found)
-                missing_input_paths.push_back(volume->source.input_file);
         }
+        if (!found) {
+            if (fs::exists(volume->source.input_file))
+                input_paths.push_back(volume->source.input_file);
+            else
+                missing_input_paths.push_back(volume->source.input_file);
+        }   
     }
 #else
     std::vector<fs::path> replace_paths;
@@ -5599,6 +5600,7 @@ void Plater::priv::reload_from_disk()
             new_model = Model::read_from_file(path, nullptr, nullptr, LoadStrategy::AddDefaultInstances | LoadStrategy::LoadModel, &plate_data, &project_presets);
             for (ModelObject* model_object : new_model.objects)
             {
+                model_object->input_file = path;
                 model_object->center_around_origin();
                 model_object->ensure_on_bed();
             }
@@ -13293,6 +13295,7 @@ void Plater::show_object_info()
         //    return;
         //}
         info_text += (boost::format(_utf8(L("Object name: %1%\n"))) % model_object->name).str();
+        info_text += (boost::format(_utf8(L("Project path: %1%\n"))) % fs::path(model_object->input_file).parent_path().filename().string()).str();
         face_count = static_cast<int>(model_object->facets_count());
         size = model_object->instance_convex_hull_bounding_box(inst_idx).size();
     }
