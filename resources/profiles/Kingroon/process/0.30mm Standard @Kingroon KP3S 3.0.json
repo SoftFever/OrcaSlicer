@@ -47,9 +47,6 @@
     "overhang_2_4_speed": "50%",
     "overhang_3_4_speed": "30%",
     "overhang_4_4_speed": "20%",
-    "post_process": [
-        "C:\\Python\\Python3121\\python.exe \"C:\\tmp\\orca-first-layer-travel-acceleration-fix.py\""
-    ],
     "prime_tower_brim_width": "1",
     "prime_tower_width": "20",
     "prime_volume": "30",
