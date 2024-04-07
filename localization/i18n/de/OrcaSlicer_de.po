@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-29 21:10+0800\n"
+"POT-Creation-Date: 2024-04-05 11:32+0200\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Heiko Liebscher <hliebschergmail.com>\n"
 "Language-Team: \n"
@@ -4168,7 +4168,7 @@ msgstr "Volumen:"
 msgid "Size:"
 msgstr "Größe:"
 
-#, c-format, boost-format
+#, boost-format
 msgid ""
 "Conflicts of gcode paths have been found at layer %d, z = %.2lf mm. Please "
 "separate the conflicted objects farther (%s <-> %s)."
@@ -6261,6 +6261,21 @@ msgstr "Standardseite"
 msgid "Set the page opened on startup."
 msgstr "Legen Sie die Seite fest, die beim Start geöffnet wird."
 
+msgid "Touchpad"
+msgstr "Touchpad"
+
+msgid "Camera style"
+msgstr "Kamerastil"
+
+msgid ""
+"Select camera navigation style.\n"
+"Default: LMB+move for rotation, RMB/MMB+move for panning.\n"
+"Touchpad: Alt+move for rotation, Shift+move for panning."
+msgstr ""
+"Wählen Sie den Kameranavigationsstil aus.\n"
+"Standard: LMB+Verschieben für Rotation, RMB/MMB+Verschieben für Schwenken.\n"
+"Touchpad: Alt+Verschieben für Rotation, Shift+Verschieben für Schwenken."
+
 msgid "Zoom to mouse position"
 msgstr "Zum Mausposition zoomen"
 
@@ -6276,6 +6291,12 @@ msgstr "Freie Kamera verwenden"
 
 msgid "If enabled, use free camera. If not enabled, use constrained camera."
 msgstr "Wenn aktiviert, wird die freie Kamera verwendet."
+
+msgid "Reverse mouse zoom"
+msgstr "Maus-Zoom umkehren"
+
+msgid "If enabled, reverses the direction of zoom with mouse wheel."
+msgstr "Wenn aktiviert, wird die Richtung des Zooms mit dem Mausrad umgekehrt."
 
 msgid "Show splash screen"
 msgstr "Splash-Screen anzeigen"
@@ -12002,11 +12023,11 @@ msgid ""
 "at 40% of the external wall's width. Due to performance considerations, the "
 "degree of overhang is estimated."
 msgstr ""
-"Mit dieser Option wird der Schwellenwert für die Überlappung von "
-"Schrägnähten festgelegt. Wenn der freitragende Teil des Umfangs kleiner als "
-"dieser Schwellenwert ist, werden Schrägnähte angebracht. Der "
-"Standardschwellenwert ist auf 40 % der Außenwandbreite festgelegt. Aufgrund "
-"von Leistungsüberlegungen wird der Grad des Überhangs geschätzt."
+"Diese Option bestimmt den Überhangsschwellenwert für die Anwendung von "
+"Schrägnahtnähten. Wenn der nicht unterstützte Teil des Umfangs kleiner als "
+"dieser Schwellenwert ist, werden Schrägnahtnähte angewendet. Der "
+"Standardwert für die Schwelle beträgt 40% der Breite der äußeren Wand. Auf "
+"Grund von Leistungserwägungen wird der Grad des Überhangs geschätzt."
 
 msgid "Scarf joint speed"
 msgstr "Schrägnaht Geschwindigkeit"
@@ -12040,7 +12061,7 @@ msgid "This factor affects the amount of material for scarf joints."
 msgstr "Dieser Faktor beeinflusst die Menge an Material für Schrägnähte."
 
 msgid "Scarf start height"
-msgstr "Start Höhe der Schrägnaht"
+msgstr "Starthöhe der Schrägnaht"
 
 msgid ""
 "Start height of the scarf.\n"
