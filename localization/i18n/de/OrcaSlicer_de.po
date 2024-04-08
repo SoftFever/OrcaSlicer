@@ -14263,7 +14263,7 @@ msgid "From Volumetric Speed"
 msgstr "Vom volumetrischen Speed"
 
 msgid "To Volumetric Speed"
-msgstr "zur volumetrischer Geschwindigkeit"
+msgstr "zur volumetrischen Geschwindigkeit"
 
 msgid "Flow Dynamics Calibration Result"
 msgstr "Flussdynamik-Kalibrierungsergebnis"
