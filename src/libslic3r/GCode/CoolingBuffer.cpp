@@ -706,16 +706,20 @@ float CoolingBuffer::calculate_layer_slowdown(std::vector<PerExtruderAdjustments
 // Apply slow down over G-code lines stored in per_extruder_adjustments, enable fan if needed.
 // Returns the adjusted G-code.
 std::string CoolingBuffer::apply_layer_cooldown(
-    // Source G-code for the current layer.
+    // Source G-code for the current layer. 源代码为当前层的g代码。
     const std::string                      &gcode,
     // ID of the current layer, used to disable fan for the first n layers.
+    // // 当前层ID，用于关闭前n层的风扇。
     size_t                                  layer_id, 
     // Total time of this layer after slow down, used to control the fan.
+    //这层总时间经过减速后，用来控制风机。
     float                                   layer_time,
     // Per extruder list of G-code lines and their cool down attributes.
+    //每个挤出机的g代码行列表及其冷却属性。
     std::vector<PerExtruderAdjustments>    &per_extruder_adjustments)
 {
     // First sort the adjustment lines by of multiple extruders by their position in the source G-code.
+    //首先按多个挤出机在源代码中的位置对调整线进行排序。
     std::vector<const CoolingLine*> lines;
     {
         size_t n_lines = 0;
