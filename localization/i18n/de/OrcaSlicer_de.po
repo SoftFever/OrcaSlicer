@@ -12742,7 +12742,7 @@ msgstr "Diese Einstellung bestimmt den Anfangsdurchmesser der Stützknoten."
 
 #. TRN PrintSettings: #lmFIXME
 msgid "Branch Diameter Angle"
-msgstr "Abzweigdurchmesser Winkel"
+msgstr "Ast-Verjüngungs-Winkel"
 
 #. TRN PrintSettings: "Organic supports" > "Branch Diameter Angle"
 msgid ""
