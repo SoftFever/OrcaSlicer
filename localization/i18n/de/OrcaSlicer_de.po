@@ -7880,7 +7880,7 @@ msgstr ""
 "verhindert und selbst später wieder eingeführt werden kann.\n"
 "\n"
 "Dies ist eine Einstellung für Experten, eine falsche Einstellung führt "
-"wahrscheinlich zu Verstopfungen, schleifendes Extruderrad, usw."
+"wahrscheinlich zu Verstopfungen, schleifendem Extruderrad, usw."
 
 msgid "Total ramming time"
 msgstr "Summe der Ramming-Zeit"
