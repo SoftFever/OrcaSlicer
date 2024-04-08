@@ -141,7 +141,7 @@ modules:
           -DwxUSE_LIBPNG=sys \
           -DwxUSE_ZLIB=sys \
           -DwxUSE_LIBJPEG=sys \
-          -DwxUSE_LIBTIFF=sys \
+          -DwxUSE_LIBTIFF=OFF \
           -DwxUSE_EXPAT=sys \
           -DBUILD_SHARED_LIBS:BOOL=ON \
           -DCMAKE_INSTALL_PREFIX:STRING=/app \
