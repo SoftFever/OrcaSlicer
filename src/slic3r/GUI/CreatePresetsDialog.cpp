@@ -46,16 +46,6 @@ static const std::vector<std::string> filament_types = {"PLA",    "PLA+",  "PLA 
                                                         "PETGCF", "PTBA",  "PTBA90A",   "PEEK",  "TPU93A", "TPU75D", "TPU",         "TPU92A", "TPU98A", "Misc",
                                                         "TPE",    "GLAZE", "Nylon",     "CPE",   "METAL",  "ABST",   "Carbon Fiber"};
 
-static const std::vector<std::string> system_filament_types = {"PLA",      "ABS",    "TPU",    "PC",     "ASA", "PA-CF", "PA6-CF", "PET-CF", "PETG", "PETG-CF", "PLA Aero", "PLA-CF", "PPA-CF", "PPA-GF", "PA",    "HIPS",   "PPS",    "PPS-CF",
-                                                               "PVA",     "PE",       "PP",     "EVA",    "PHA",    "BVOH",  "PE-CF",  "PP-CF",  "PP-GF"};
-
-static std::unordered_map<std::string, std::string> system_filament_types_map =
-    {{"PLA", "PLA"},       {"ABS", "ABS"},       {"TPU", "TPU"},    {"PC", "PC"},           {"ASA", "ASA"},           {"PA-CF", "PA-CF"},
-     {"PA6-CF", "PA6-CF"}, {"PET-CF", "PET-CF"}, {"PETG", "PETG"},  {"PETG-CF", "PETG-CF"}, {"PLA Aero", "PLA-AERO"}, {"PLA-CF", "PLA-CF"},
-     {"PPA-CF", "PPA-CF"}, {"PPA-GF", "PPA-GF"}, {"PA", "PA"},      {"HIPS", "HIPS"},       {"PPS", "PPS"},           {"PPS-CF", "PPS-CF"},
-     {"PVA", "PVA"},       {"PE", "PE"},         {"PP", "PP"},      {"EVA", "EVA"},         {"PHA", "PHA"},           {"BVOH", "BVOH"},
-     {"PE-CF", "PE-CF"},   {"PP-CF", "PP-CF"},   {"PP-GF", "PP-GF"}};
-
 static const std::vector<std::string> printer_vendors = {"Anycubic",  "Artillery", "BIBO",           "BIQU",     "Creality ENDER", "Creality CR", "Creality SERMOON",
                                                          "FLSun",     "gCreate",   "Geeetech",       "INAT",     "Infinity3D",     "Jubilee",     "LNL3D",
                                                          "LulzBot",   "MakerGear", "Original Prusa", "Papapiu",  "Print4Taste",    "RatRig",      "Rigid3D",
@@ -560,6 +550,7 @@ CreateFilamentPresetDialog::CreateFilamentPresetDialog(wxWindow *parent)
 {
     m_create_type.base_filament = _L("Create Based on Current Filament");
     m_create_type.base_filament_preset = _L("Copy Current Filament Preset ");
+    get_all_filament_presets();
 
 	this->SetBackgroundColour(*wxWHITE);
     this->SetSize(wxSize(FromDIP(600), FromDIP(480)));
@@ -608,7 +599,6 @@ CreateFilamentPresetDialog::CreateFilamentPresetDialog(wxWindow *parent)
     m_main_sizer->Add(m_scrolled_preset_panel, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(10));
     m_main_sizer->Add(create_button_item(), 0, wxEXPAND | wxALL, FromDIP(10));
 
-    get_all_filament_presets();
     get_all_visible_printer_name();
     select_curr_radiobox(m_create_type_btns, 0);
 
@@ -761,7 +751,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_type_item()
     horizontal_sizer->Add(optionSizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
 
     wxArrayString filament_type;
-    for (const wxString &filament : system_filament_types) {
+    for (const wxString &filament : m_system_filament_types_set) {
         filament_type.Add(filament);
     }
 
@@ -1018,7 +1008,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_button_item()
             return;
         }
 
-        std::string filament_preset_name = vendor_name + " " + type_name + " " + serial_name;
+        std::string filament_preset_name = vendor_name + " " + (type_name == "PLA-AERO" ? "PLA Aero" : type_name) + " " + serial_name;
         PresetBundle *preset_bundle        = wxGetApp().preset_bundle;
         if (preset_bundle->filaments.is_alias_exist(filament_preset_name)) {
             MessageDialog dlg(this,
@@ -1134,7 +1124,7 @@ wxArrayString CreateFilamentPresetDialog::get_filament_preset_choices()
             continue;
         }
         auto fila_type = preset->config.option<ConfigOptionStrings>("filament_type");
-        if (!fila_type || fila_type->values.empty() || system_filament_types_map[type_name] != fila_type->values[0]) continue;
+        if (!fila_type || fila_type->values.empty() || type_name != fila_type->values[0]) continue;
         m_filament_choice_map[preset->filament_id].push_back(preset);
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " base user preset is:" << preset->name;
     }
@@ -1284,7 +1274,7 @@ void CreateFilamentPresetDialog::get_filament_presets_by_machine()
 
             if (filament_types && filament_types->values.empty()) continue;
             const std::string filament_type = filament_types->values[0];
-            if (filament_type != system_filament_types_map[type_name]) {
+            if (filament_type != type_name) {
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " preset type is not selected type and preset name is: " << preset->name;
                 continue;
             }
@@ -1333,8 +1323,11 @@ void CreateFilamentPresetDialog::get_all_filament_presets()
     const std::deque<Preset> &temp_filament_presets = preset_bundle->filaments.get_presets();
     for (const Preset& preset : temp_filament_presets) {
         if (preset.filament_id.empty() || "null" == preset.filament_id) continue;
-        std::string filament_preset_name = preset.name;
+        auto filament_type = preset.config.option<ConfigOptionStrings>("filament_type");
+        if (filament_type && filament_type->values.size())
+            m_system_filament_types_set.insert(filament_type->values[0]);
         if (!preset.is_visible) continue;
+        std::string filament_preset_name        = preset.name;
         Preset *filament_preset                 = new Preset(preset);
         m_all_presets_map[filament_preset_name] = filament_preset;
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " loaded preset name is: " << filament_preset->name;
@@ -4256,9 +4249,10 @@ EditFilamentPresetDialog::EditFilamentPresetDialog(wxWindow *parent, FilamentInf
         if (vendor_names  && !vendor_names->values.empty()) m_vendor_name = vendor_names->values[0];
         auto filament_types = dynamic_cast<ConfigOptionStrings *>(preset->config.option("filament_type"));
         if (filament_types && !filament_types->values.empty()) m_filament_type = filament_types->values[0];
-        size_t index = m_filament_name.find(m_filament_type);
-        if (std::string::npos != index && index + m_filament_type.size() < m_filament_name.size()) {
-            m_filament_serial = m_filament_name.substr(index + m_filament_type.size());
+        std::string filament_type = m_filament_type == "PLA-AERO" ? "PLA Aero" : m_filament_type;
+        size_t      index         = m_filament_name.find(filament_type);
+        if (std::string::npos != index && index + filament_type.size() < m_filament_name.size()) {
+            m_filament_serial = m_filament_name.substr(index + filament_type.size());
             if (m_filament_serial.size() > 2 && m_filament_serial[0] == ' ') {
                 m_filament_serial = m_filament_serial.substr(1);
             }
@@ -4736,8 +4730,7 @@ void CreatePresetForPrinterDialog::get_visible_printer_and_compatible_filament_p
                     
                     if (filament_types && filament_types->values.empty()) continue;
                     const std::string filament_type = filament_types->values[0];
-                    std::string       filament_type_ = system_filament_types_map[m_filament_type];
-                    if (filament_type_.empty()) filament_type_ = m_filament_type;
+                    std::string filament_type_ = m_filament_type == "PLA Aero" ? "PLA-AERO" : m_filament_type;
                     if (filament_type == filament_type_) {
                         m_printer_compatible_filament_presets[printer_preset.name].push_back(std::make_shared<Preset>(filament_preset));
                     }
