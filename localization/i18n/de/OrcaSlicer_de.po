@@ -6058,7 +6058,7 @@ msgid "The provided file name is not valid."
 msgstr "Der angegebene Dateiname ist ungültig."
 
 msgid "The following characters are not allowed by a FAT file system:"
-msgstr "Die folgenden Zeichen sind beim FAT Datei System nicht erlaubt:"
+msgstr "Folgende Zeichen werden vom FAT Dateisystem nicht unterstützt:"
 
 msgid "Save Sliced file as:"
 msgstr "Geslicte Datei speichern unter:"
