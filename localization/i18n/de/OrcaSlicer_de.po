@@ -8126,7 +8126,7 @@ msgid "Gizmo cut"
 msgstr "Trennen"
 
 msgid "Gizmo Place face on bed"
-msgstr "Gizmo-Fläche auf Druckbett platzieren "
+msgstr "Fläche auf Druckbett platzieren"
 
 msgid "Gizmo SLA support points"
 msgstr "SLA Stützpunkte"
