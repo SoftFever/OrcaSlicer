@@ -27,12 +27,11 @@ function check_available_memory_and_disk() {
 }
 
 function usage() {
-    echo "Usage: ./BuildLinux.sh [-1][-b][-c][-d][-g][-i][-r][-s][-u]"
+    echo "Usage: ./BuildLinux.sh [-1][-b][-c][-d][-i][-r][-s][-u]"
     echo "   -1: limit builds to 1 core (where possible)"
     echo "   -b: build in debug mode"
     echo "   -c: force a clean build"
     echo "   -d: build deps (optional)"
-    echo "   -g: force gtk2 build"
     echo "   -h: this help output"
     echo "   -i: Generate appimage (optional)"
     echo "   -r: skip ram and disk checks (low ram compiling)"
@@ -57,9 +56,6 @@ while getopts ":1bcdghirsu" opt; do
         ;;
     d )
         BUILD_DEPS="1"
-        ;;
-    g )
-        FORCE_GTK2="1"
         ;;
     h ) usage
         exit 0
@@ -93,21 +89,12 @@ then
 fi
 source ./linux.d/${DISTRIBUTION}
 
-if [[ -n "${FORCE_GTK2}" ]]
-then
-    FOUND_GTK3=""
-    FOUND_GTK3_DEV=""
-fi
-
-echo "FOUND_GTK2=${FOUND_GTK2}"
-if [[ -z "${FOUND_GTK2_DEV}" ]]
-then
+echo "FOUND_GTK3=${FOUND_GTK3}"
 if [[ -z "${FOUND_GTK3_DEV}" ]]
 then
     echo "Error, you must install the dependencies before."
     echo "Use option -u with sudo"
     exit 0
-fi
 fi
 
 echo "Changing date in version..."

@@ -1,4 +1,3 @@
-FOUND_GTK2=$(rpm -qa | grep -P '^gtk2' || true)
 FOUND_GTK3=$(rpm -qa | grep -P '^gtk3' || true)
 
 REQUIRED_DEV_PACKAGES=(
@@ -15,6 +14,7 @@ REQUIRED_DEV_PACKAGES=(
     git
     gstreamer1-devel
     gstreamermm-devel
+    gtk3-devel
     libmspack-devel
     libsecret-devel
     libtool
@@ -33,13 +33,6 @@ REQUIRED_DEV_PACKAGES=(
 
 if [[ -n "$UPDATE_LIB" ]]
 then
-    if [[ -z "$FOUND_GTK3" ]]
-    then
-        REQUIRED_DEV_PACKAGES+=(gtk2-devel)
-    else
-        REQUIRED_DEV_PACKAGES+=(gtk3-devel)
-    fi
-
     NEEDED_PKGS=""
     for PKG in ${REQUIRED_DEV_PACKAGES[@]}; do
         rpm -q ${PKG} > /dev/null || NEEDED_PKGS+=" ${PKG}"
@@ -52,5 +45,4 @@ then
     exit 0
 fi
 
-FOUND_GTK2_DEV=$(rpm -qa | grep -P '^gtk2-devel' || true)
 FOUND_GTK3_DEV=$(rpm -qa | grep -P '^gtk3-devel' || true)

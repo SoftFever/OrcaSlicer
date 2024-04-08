@@ -1,5 +1,4 @@
 # these are the Arch Linux specific build functions
-FOUND_GTK2=$(pacman -Q gtk2)
 FOUND_GTK3=$(pacman -Q gtk3)
 
 # Addtional Dev packages for OrcaSlicer
@@ -15,6 +14,7 @@ export REQUIRED_DEV_PACKAGES=(
     glew
     gstreamer
     gstreamermm
+    gtk3
     libmspack
     libsecret
     mesa
@@ -29,13 +29,6 @@ export REQUIRED_DEV_PACKAGES=(
 if [[ -n "$UPDATE_LIB" ]]
 then
     echo -n -e "Updating linux ...\n"
-    if [[ -z "$FOUND_GTK3" ]]
-    then
-        REQUIRED_DEV_PACKAGES+=(gtk2)
-    else
-        REQUIRED_DEV_PACKAGES+=(gtk3)
-    fi
-
     NEEDED_PKGS=""
     for PKG in ${REQUIRED_DEV_PACKAGES[@]}; do
         pacman -Q ${PKG} > /dev/null || NEEDED_PKGS+=" ${PKG}"
@@ -48,5 +41,4 @@ then
     exit 0
 fi
 
-FOUND_GTK2_DEV=${FOUND_GTK2}
 FOUND_GTK3_DEV=${FOUND_GTK3}
