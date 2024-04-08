@@ -129,7 +129,7 @@ else ()
         message("DEP_BUILD_DIR: Set manually to ${DEP_BUILD_DIR}")
     endif ()
 
-    if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND EXISTS ${CMAKE_SOURCE_DIR}\\deps\\${BIN_DIR_NAME}\\destdir\\usr\\local) # backward compatibility for old directory name
+    if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND EXISTS "${CMAKE_SOURCE_DIR}/deps/${BIN_DIR_NAME}/destdir/usr/local") # backward compatibility for old directory name
         set(CMAKE_PREFIX_PATH "${DEP_BUILD_DIR}/destdir/usr/local" CACHE PATH "Path to dependencies" FORCE)
         message(WARNING "You are using an old directory structure for dependencies that is being deprecated.
         Please rename \"destdir\" to \"OrcaSlicer_dep\" or remove the destdir directory and rebuild.")

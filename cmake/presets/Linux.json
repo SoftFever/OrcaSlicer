@@ -9,7 +9,10 @@
         "lhs": "${hostSystemName}",
         "rhs": "Linux"
       },
-      "generator": "Ninja"
+      "generator": "Ninja",
+      "cacheVariables":{
+        "SLIC3R_STATIC": "ON"
+      }
     },
     {
       "name": "linux-base-gtk2",
