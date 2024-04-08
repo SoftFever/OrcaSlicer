@@ -12757,7 +12757,7 @@ msgstr ""
 "organischen Stütze erhöhen."
 
 msgid "Branch Diameter with double walls"
-msgstr "Doppelte Wände für Abzweigdurchmesser"
+msgstr "Doppelte Wände für Ast-Durchmesser ab"
 
 #. TRN PrintSettings: "Organic supports" > "Branch Diameter"
 msgid ""
