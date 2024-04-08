@@ -2000,13 +2000,16 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
     // if thumbnail type of BTT_TFT, insert above header
     // if not, it is inserted under the header in its normal spot
-    const GCodeThumbnailsFormat m_gcode_thumbnail_format = print.full_print_config().opt_enum<GCodeThumbnailsFormat>("thumbnails_format");
-    if (m_gcode_thumbnail_format == GCodeThumbnailsFormat::BTT_TFT)
-        GCodeThumbnails::export_thumbnails_to_file(
-            thumbnail_cb, print.get_plate_index(), print.full_print_config().option<ConfigOptionPoints>("thumbnails")->values,
-            m_gcode_thumbnail_format,
-            [&file](const char *sz) { file.write(sz); },
-            [&print]() { print.throw_if_canceled(); });
+    GCodeThumbnailsFormat m_gcode_thumbnail_format = GCodeThumbnailsFormat::PNG;
+    if (thumbnail_cb != nullptr) {
+        m_gcode_thumbnail_format = print.full_print_config().opt_enum<GCodeThumbnailsFormat>("thumbnails_format");
+        if (m_gcode_thumbnail_format == GCodeThumbnailsFormat::BTT_TFT)
+            GCodeThumbnails::export_thumbnails_to_file(
+                thumbnail_cb, print.get_plate_index(), print.full_print_config().option<ConfigOptionPoints>("thumbnails")->values,
+                m_gcode_thumbnail_format,
+                [&file](const char *sz) { file.write(sz); },
+                [&print]() { print.throw_if_canceled(); });
+    }
 
     file.write_format("; HEADER_BLOCK_START\n");
     // Write information on the generator.
@@ -2067,32 +2070,32 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
       // as configuration key / value pairs to be parsable by older versions of
       // PrusaSlicer G-code viewer.
     {
-      if (is_bbl_printers) {
-        file.write("; CONFIG_BLOCK_START\n");
-        std::string full_config;
-        append_full_config(print, full_config);
-        if (!full_config.empty())
-          file.write(full_config);
+        if (is_bbl_printers) {
+            file.write("; CONFIG_BLOCK_START\n");
+            std::string full_config;
+            append_full_config(print, full_config);
+            if (!full_config.empty())
+                file.write(full_config);
 
-        // SoftFever: write compatiple image
-        int first_layer_bed_temperature = get_bed_temperature(0, true, print.config().curr_bed_type);
-        file.write_format("; first_layer_bed_temperature = %d\n",
-                          first_layer_bed_temperature);
-        file.write_format(
-            "; first_layer_temperature = %d\n",
-            print.config().nozzle_temperature_initial_layer.get_at(0));
-        file.write("; CONFIG_BLOCK_END\n\n");
-      } else {
-        if (m_gcode_thumbnail_format != GCodeThumbnailsFormat::BTT_TFT) {
-            auto thumbnaim_fmt = m_gcode_thumbnail_format;
-            // Orca: if the thumbnail format is ColPic, we write PNG in the beginning of gcode file and ColPic in the end of gcode file. 
-            if(m_gcode_thumbnail_format == GCodeThumbnailsFormat::ColPic)
-                thumbnaim_fmt = GCodeThumbnailsFormat::PNG;
-          GCodeThumbnails::export_thumbnails_to_file(
-              thumbnail_cb, print.get_plate_index(), print.full_print_config().option<ConfigOptionPoints>("thumbnails")->values,
-              thumbnaim_fmt, [&file](const char* sz) { file.write(sz); }, [&print]() { print.throw_if_canceled(); });
+            // SoftFever: write compatiple image
+            int first_layer_bed_temperature = get_bed_temperature(0, true, print.config().curr_bed_type);
+            file.write_format("; first_layer_bed_temperature = %d\n",
+                                first_layer_bed_temperature);
+            file.write_format(
+                "; first_layer_temperature = %d\n",
+                print.config().nozzle_temperature_initial_layer.get_at(0));
+            file.write("; CONFIG_BLOCK_END\n\n");
+        } else if (thumbnail_cb != nullptr) {
+            if (m_gcode_thumbnail_format != GCodeThumbnailsFormat::BTT_TFT) {
+                auto thumbnaim_fmt = m_gcode_thumbnail_format;
+                // Orca: if the thumbnail format is ColPic, we write PNG in the beginning of gcode file and ColPic in the end of gcode file. 
+                if (m_gcode_thumbnail_format == GCodeThumbnailsFormat::ColPic)
+                    thumbnaim_fmt = GCodeThumbnailsFormat::PNG;
+                GCodeThumbnails::export_thumbnails_to_file(
+                    thumbnail_cb, print.get_plate_index(), print.full_print_config().option<ConfigOptionPoints>("thumbnails")->values,
+                    thumbnaim_fmt, [&file](const char* sz) { file.write(sz); }, [&print]() { print.throw_if_canceled(); });
+            }
         }
-      }
     }
 
 
