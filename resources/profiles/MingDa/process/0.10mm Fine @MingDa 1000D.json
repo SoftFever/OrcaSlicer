@@ -56,7 +56,9 @@
 	"compatible_printers": [
 		"MingDa 1000D 0.4 nozzle (Dual)",
 		"MingDa 1000D 0.4 nozzle (Left)",
-		"MingDa 1000D 0.4 nozzle (Right)"
+		"MingDa 1000D 0.4 nozzle (Right)",
+		"MingDa 1000D 0.6 nozzle (Dual)",
+		"MingDa 1000D 0.8 nozzle (Dual)"
 	],
 	"bottom_shell_layers": "3",
     "bridge_flow": "1",

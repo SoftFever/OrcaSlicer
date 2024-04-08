@@ -23,13 +23,19 @@
     ],
     "compatible_printers": [
         "MingDa 400D 0.4 nozzle (Dual)",
-		"MingDa 400D 0.4 nozzle (Left)",
-		"MingDa 400D 0.4 nozzle (Right)",
-  	  	"MingDa 600D 0.4 nozzle (Dual)",
-		"MingDa 600D 0.4 nozzle (Left)",
-		"MingDa 600D 0.4 nozzle (Right)",
-  	  	"MingDa 1000D 0.4 nozzle (Dual)",
-		"MingDa 1000D 0.4 nozzle (Left)",
-		"MingDa 1000D 0.4 nozzle (Right)"
+        "MingDa 400D 0.4 nozzle (Left)",
+        "MingDa 400D 0.4 nozzle (Right)",
+        "MingDa 400D 0.6 nozzle (Dual)",
+        "MingDa 400D 0.8 nozzle (Dual)",
+        "MingDa 600D 0.4 nozzle (Dual)",
+        "MingDa 600D 0.4 nozzle (Left)",
+        "MingDa 600D 0.4 nozzle (Right)",
+        "MingDa 600D 0.6 nozzle (Dual)",
+        "MingDa 600D 0.8 nozzle (Dual)",
+        "MingDa 1000D 0.4 nozzle (Dual)",
+        "MingDa 1000D 0.4 nozzle (Left)",
+        "MingDa 1000D 0.4 nozzle (Right)",
+        "MingDa 1000D 0.6 nozzle (Dual)",
+        "MingDa 1000D 0.8 nozzle (Dual)"
     ]
 }

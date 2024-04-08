@@ -2,7 +2,7 @@
     "type": "machine_model",
     "name": "MingDa 600D",
     "model_id": "MingDa-600D",
-    "nozzle_diameter": "0.4",
+    "nozzle_diameter": "0.4;0.6;0.8",
     "machine_tech": "FFF",
     "family": "MingDa",
     "bed_model": "600x600_buildplate_model.stl",

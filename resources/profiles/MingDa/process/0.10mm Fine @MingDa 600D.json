@@ -58,7 +58,9 @@
 	"compatible_printers": [
 		"MingDa 600D 0.4 nozzle (Dual)",
 		"MingDa 600D 0.4 nozzle (Left)",
-		"MingDa 600D 0.4 nozzle (Right)"
+		"MingDa 600D 0.4 nozzle (Right)",
+		"MingDa 600D 0.6 nozzle (Dual)",
+		"MingDa 600D 0.8 nozzle (Dual)"
 	],
     "bottom_shell_layers": "3",
     "bridge_speed": "50",
