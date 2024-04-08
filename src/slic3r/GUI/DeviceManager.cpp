@@ -1429,6 +1429,10 @@ void MachineObject::parse_status(int flag)
     }
 
     sdcard_state = MachineObject::SdcardState((flag >> 8) & 0x11);
+
+    is_support_agora = ((flag >> 30) & 0x1) != 0;
+    if (is_support_agora)
+        is_support_tunnel_mqtt = false;
 }
 
 PrintingSpeedLevel MachineObject::_parse_printing_speed_lvl(int lvl)
@@ -2900,7 +2904,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
             }
 
             if (!key_field_only) {
-                if (!DeviceManager::EnableMultiMachine) {
+                if (!DeviceManager::EnableMultiMachine && !is_support_agora) {
                     if (jj.contains("support_tunnel_mqtt")) {
                         if (jj["support_tunnel_mqtt"].is_boolean()) {
                             is_support_tunnel_mqtt = jj["support_tunnel_mqtt"].get<bool>();
@@ -3698,11 +3702,18 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                 if (ipcam.contains("liveview")) {
                                     char const *local_protos[] = {"none", "disabled", "local", "rtsps", "rtsp"};
                                     liveview_local = enum_index_of(ipcam["liveview"].value<std::string>("local", "none").c_str(), local_protos, 5, LiveviewLocal::LVL_None);
-                                    liveview_remote = ipcam["liveview"].value<std::string>("remote", "disabled") == "enabled";
+                                    char const *remote_protos[] = {"none", "tutk", "agora", "tutk_agaro"};
+                                    liveview_remote = enum_index_of(ipcam["liveview"].value<std::string>("remote", "none").c_str(), remote_protos, 4, LiveviewRemote::LVR_None);
+                                    if (is_support_agora)
+                                        liveview_remote = liveview_remote == LVR_None ? LVR_Agora : liveview_remote == LVR_Tutk ? LVR_TutkAgora : liveview_remote;
                                 }
                                 if (ipcam.contains("file")) {
-                                    file_local     = ipcam["file"].value<std::string>("local", "disabled") == "enabled";
-                                    file_remote    = ipcam["file"].value<std::string>("remote", "disabled") == "enabled";
+                                    char const *local_protos[] = {"none", "local"};
+                                    file_local  = enum_index_of(ipcam["file"].value<std::string>("local", "none").c_str(), local_protos, 2, FileLocal::FL_None);
+                                    char const *remote_protos[] = {"none", "tutk", "agora", "tutk_agaro"};
+                                    file_remote = enum_index_of(ipcam["file"].value<std::string>("remote", "none").c_str(), remote_protos, 4, FileRemote::FR_None);
+                                    if (is_support_agora)
+                                        file_remote = file_remote == FR_None ? FR_Agora : file_remote == FR_Tutk ? FR_TutkAgora : file_remote;
                                     file_model_download = ipcam["file"].value<std::string>("model_download", "disabled") == "enabled";
                                 }
                                 virtual_camera = ipcam.value<std::string>("virtual_camera", "disabled") == "enabled";

@@ -226,6 +226,7 @@ public:
 
     int get_mw_user_preference(std::function<void(std::string)> callback);
     int get_mw_user_4ulist(int seed, int limit, std::function<void(std::string)> callback);
+    void *get_network_agent() { return network_agent; }
 
 private:
     bool enable_track = false;
