@@ -12732,7 +12732,7 @@ msgstr "Durchmesser der Spitze"
 
 #. TRN PrintSettings: "Organic supports" > "Tip Diameter"
 msgid "Branch tip diameter for organic supports."
-msgstr "Durchmesser der Abzweigspitzen für organische Stützstrukturen."
+msgstr "Astspitzen-Durchmesser für organische Stützstrukturen."
 
 msgid "Tree support branch diameter"
 msgstr "Durchmesser des Stützastes eines Baumes"
