@@ -360,12 +360,12 @@ bool SimplyPrint::do_chunk_upload(const boost::filesystem::path& file_path, cons
         {
             std::vector<std::pair<std::string, std::string>> query_parameters{
                 {"i", std::to_string(i)},
+                {"temp", "true"},
             };
             if (i == 0) {
                 query_parameters.emplace_back("filename", filename);
                 query_parameters.emplace_back("chunks", std::to_string(chunk_amount));
                 query_parameters.emplace_back("totalsize", std::to_string(file_size));
-                query_parameters.emplace_back("temp", "true");
             } else {
                 query_parameters.emplace_back("id", chunk_id);
             }
