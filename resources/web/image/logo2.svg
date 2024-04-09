@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 21.0.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1"
+	 id="svg2" inkscape:version="1.2.2 (732a01da63, 2022-12-09)" sodipodi:docname="OrcaSlicer_gradient_narrow.svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns:svg="http://www.w3.org/2000/svg"
+	 xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 815 1024"
+	 style="enable-background:new 0 0 815 1024;" xml:space="preserve">
+<style type="text/css">
+	.st0{fill:url(#SVGID_1_);}
+	.st1{fill:#F7F7F7;}
+</style>
+<sodipodi:namedview  bordercolor="#000000" borderopacity="0.25" id="namedview4" inkscape:current-layer="layer1" inkscape:cx="570.63517" inkscape:cy="562.857" inkscape:deskcolor="#d1d1d1" inkscape:pagecheckerboard="0" inkscape:pageopacity="0.0" inkscape:showpageshadow="2" inkscape:window-height="1369" inkscape:window-maximized="1" inkscape:window-width="3440" inkscape:window-x="-8" inkscape:window-y="-8" inkscape:zoom="0.70710678" pagecolor="#ffffff" showgrid="false">
+	</sodipodi:namedview>
+<linearGradient id="SVGID_1_" gradientUnits="userSpaceOnUse" x1="-52.864" y1="48.3331" x2="865.9335" y2="967.1363" gradientTransform="matrix(1 0 0 1 0 4)">
+	<stop  offset="0" style="stop-color:#1DADE5"/>
+	<stop  offset="0.621" style="stop-color:#0A7FC6"/>
+	<stop  offset="1" style="stop-color:#0068B6"/>
+</linearGradient>
+<rect y="1.4" class="st0" width="815" height="1022.6"/>
+<g>
+	<polygon class="st1" points="400.2,172.4 400.2,395.5 218.5,283.9 	"/>
+	<polygon class="st1" points="415.1,172.4 415.1,395.5 596.9,283.9 	"/>
+	<polygon class="st1" points="8.3,267.9 400.1,511.4 400.1,664.9 124.6,494.7 124.6,840.5 8.3,770.1 	"/>
+	<polygon class="st1" points="139.8,520.4 394,676.9 139.8,833.9 	"/>
+	<polygon class="st1" points="806.8,267.9 415.1,511.4 415.1,664.9 690.7,494.7 690.7,840.5 806.8,770.1 	"/>
+	<polygon class="st1" points="675.4,520.4 421.1,676.9 675.4,833.9 	"/>
+</g>
+</svg>
