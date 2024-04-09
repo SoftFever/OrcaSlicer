@@ -351,6 +351,7 @@ bool SimplyPrint::do_chunk_upload(const boost::filesystem::path& file_path, cons
         BOOST_LOG_TRIVIAL(info) << boost::format("SimplyPrint: Deleting file chunk %s...") % chunk_id;
         const std::vector<std::pair<std::string, std::string>> query_parameters{
             {"id", chunk_id},
+            {"temp", "true"},
             {"delete", ""},
         };
         const auto url = (boost::format("%s?%s") % CHUNCK_RECEIVE_URL % url_encode(query_parameters)).str();
