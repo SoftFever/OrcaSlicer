@@ -1663,6 +1663,7 @@ void UnsavedChangesDialog::update_tree(Preset::Type type, PresetCollection* pres
         auto dirty_options = presets->current_dirty_options(deep_compare);
 
         // process changes of extruders count
+        //挤出机的工艺变化计数
         if (type == Preset::TYPE_PRINTER && old_pt == ptFFF &&
             old_config.opt<ConfigOptionStrings>("extruder_colour")->values.size() != new_config.opt<ConfigOptionStrings>("extruder_colour")->values.size()) {
             wxString local_label = _L("Extruders count");
