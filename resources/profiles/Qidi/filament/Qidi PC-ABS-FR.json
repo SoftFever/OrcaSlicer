@@ -21,8 +21,11 @@
     "overhang_fan_speed": [
         "60"
     ],
-    "filament_start_gcode": [
-        "; filament start gcode\nM141 S55\n{if  (bed_temperature[current_extruder] >90)||(bed_temperature_initial_layer[current_extruder] >90)}M106 P3 S0\n{elsif(bed_temperature[current_extruder] >70)||(bed_temperature_initial_layer[current_extruder] >70)}M106 P3 S153\n{elsif(bed_temperature[current_extruder] >35)||(bed_temperature_initial_layer[current_extruder] >35)}M106 P3 S255\n{endif}"
+    "max_fan_speed":[
+        "40"
+    ],
+    "min_fan_speed":[
+        "10"
     ],
 	"compatible_printers": [
         "Qidi X-Plus 0.4 nozzle",
@@ -41,6 +44,9 @@
     "Qidi X-CF Pro 0.8 nozzle",
   "Qidi X-Smart 3 0.8 nozzle",
   "Qidi X-Plus 3 0.8 nozzle",
-  "Qidi X-Max 3 0.8 nozzle"
+  "Qidi X-Max 3 0.8 nozzle",
+  "Qidi Q1 Pro 0.4 nozzle",
+  "Qidi Q1 Pro 0.6 nozzle",
+  "Qidi Q1 Pro 0.8 nozzle"
 	]
 }

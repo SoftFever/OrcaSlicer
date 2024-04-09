@@ -3,7 +3,7 @@
 "setting_id": "GFSA04",
 "instantiation": "true",
     "activate_chamber_temp_control": [
-        "0"
+        "1"
     ],
     "chamber_temperature": [
         "55"
@@ -22,7 +22,7 @@
     "is_custom_defined": "0",
     "name": "Qidi Generic ASA @Qidi Q1 Pro 0.4 nozzle",
     "nozzle_temperature": [
-        "255"
+        "270"
     ],
     "nozzle_temperature_initial_layer": [
         "250"

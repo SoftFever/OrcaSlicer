@@ -3,7 +3,7 @@
 "setting_id": "GFSA04",
 "instantiation": "true",
     "activate_chamber_temp_control": [
-        "0"
+        "1"
     ],
     "chamber_temperature": [
         "55"
@@ -31,7 +31,7 @@
         "250"
     ],
     "pressure_advance": [
-        "0.082"
+        "0.04"
     ],
     "slow_down_layer_time": [
         "4"

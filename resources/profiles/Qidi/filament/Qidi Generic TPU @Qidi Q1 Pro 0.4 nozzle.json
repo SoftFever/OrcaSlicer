@@ -16,7 +16,7 @@
     "is_custom_defined": "0",
     "name": "Qidi Generic TPU @Qidi Q1 Pro 0.4 nozzle",
     "nozzle_temperature": [
-        "230"
+        "220"
     ],
     "nozzle_temperature_initial_layer": [
         "220"

@@ -16,25 +16,25 @@
       "320"
     ],
     "filament_max_volumetric_speed": [
-      "8"
+      "12"
     ],
     "fan_max_speed": [
-      "30"
+      "40"
     ],
     "fan_min_speed": [
-      "10"
+      "20"
     ],
     "overhang_fan_threshold": [
       "0%"
     ],
     "overhang_fan_speed": [
-      "40"
+      "100"
     ],
     "fan_cooling_layer_time": [
       "5"
     ],
     "full_fan_speed_layer": [
-      "3"
+      "0"
     ],
     "enable_pressure_advance": [
       "1"
@@ -59,6 +59,9 @@
   "Qidi X-CF Pro 0.8 nozzle",
 "Qidi X-Smart 3 0.8 nozzle",
 "Qidi X-Plus 3 0.8 nozzle",
-"Qidi X-Max 3 0.8 nozzle"
+"Qidi X-Max 3 0.8 nozzle",
+"Qidi Q1 Pro 0.4 nozzle",
+"Qidi Q1 Pro 0.6 nozzle",
+"Qidi Q1 Pro 0.8 nozzle"
     ]
 }

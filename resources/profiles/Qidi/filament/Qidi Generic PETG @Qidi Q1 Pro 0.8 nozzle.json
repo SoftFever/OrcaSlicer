@@ -3,9 +3,9 @@
 	"filament_id": "GFG99",
     "setting_id": "GFSG99",
     "name": "Qidi Generic PETG @Qidi Q1 Pro 0.8 nozzle",
-    "from": "system",
+    "from": "User",
     "instantiation": "true",
-    "inherits": "fdm_filament_pet",
+    "inherits": "Qidi Generic PETG",
 	"reduce_fan_stop_start_freq": [
         "1"
     ],
@@ -28,10 +28,10 @@
         "10"
     ],
     "slow_down_min_speed": [
-        "10"
+        "20"
     ],
     "slow_down_layer_time": [
-        "8"
+        "12"
     ],
     "filament_flow_ratio": [
         "0.95"

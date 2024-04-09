@@ -22,7 +22,7 @@
     "is_custom_defined": "0",
     "name": "Qidi TPU 95A-HF @Qidi Q1 Pro 0.4 nozzle",
     "nozzle_temperature": [
-        "250"
+        "220"
     ],
     "nozzle_temperature_initial_layer": [
         "220"

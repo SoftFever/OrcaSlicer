@@ -16,10 +16,10 @@
     ],
     "from": "User",
     "hot_plate_temp": [
-        "100"
+        "80"
     ],
     "hot_plate_temp_initial_layer": [
-        "100"
+        "80"
     ],
     "inherits": "QIDI PA-Ultra",
     "is_custom_defined": "0",

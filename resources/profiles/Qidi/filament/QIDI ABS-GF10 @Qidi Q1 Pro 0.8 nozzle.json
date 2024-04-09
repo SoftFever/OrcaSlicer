@@ -3,7 +3,7 @@
 "setting_id": "GFSA04",
 "instantiation": "true",
     "activate_chamber_temp_control": [
-        "0"
+        "1"
     ],
     "chamber_temperature": [
         "55"

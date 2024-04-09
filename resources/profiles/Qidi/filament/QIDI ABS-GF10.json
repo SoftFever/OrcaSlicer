@@ -7,19 +7,19 @@
     "instantiation": "true",
     "inherits": "QIDI ABS-GF25",
     "filament_flow_ratio": [
-        "0.94"
+        "0.95"
     ],
     "filament_max_volumetric_speed": [
-        "14"
+        "17"
     ],
     "nozzle_temperature": [
-        "280"
+        "270"
     ],
     "nozzle_temperature_range_high": [
-        "280"
+        "270"
     ],
     "pressure_advance": [
-        "0.02"
+        "0.01"
     ],
     "compatible_printers": [
         "Qidi X-Plus 0.4 nozzle",
@@ -38,6 +38,9 @@
         "Qidi X-CF Pro 0.8 nozzle",
         "Qidi X-Smart 3 0.8 nozzle",
         "Qidi X-Plus 3 0.8 nozzle",
-        "Qidi X-Max 3 0.8 nozzle"
+        "Qidi X-Max 3 0.8 nozzle",
+        "Qidi Q1 Pro 0.4 nozzle",
+        "Qidi Q1 Pro 0.6 nozzle",
+        "Qidi Q1 Pro 0.8 nozzle"
 	]
 }
