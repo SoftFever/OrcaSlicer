@@ -408,7 +408,9 @@ bool SimplyPrint::do_chunk_upload(const boost::filesystem::path& file_path, cons
                         return false;
                     }
 
-                    chunk_id = j["id"];
+                    const unsigned long id = j["id"];
+
+                    chunk_id = std::to_string(id);
                 }
                 return true;
             },
