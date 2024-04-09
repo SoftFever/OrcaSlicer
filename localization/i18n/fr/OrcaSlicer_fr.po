@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-23 13:08+0800\n"
+"POT-Creation-Date: 2024-03-29 21:10+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: Guislain Cyril, Thomas Lété\n"
@@ -3446,6 +3446,8 @@ msgid ""
 "Alternate extra wall does't work well when ensure vertical shell thickness "
 "is set to All. "
 msgstr ""
+"La paroi supplémentaire alternée ne fonctionne pas bien lorsque le paramètre "
+"Assurer l’épaisseur de la coque verticale est réglée sur Tous. "
 
 msgid ""
 "Change these settings automatically? \n"
@@ -3453,6 +3455,10 @@ msgid ""
 "alternate extra wall\n"
 "No  - Dont use alternate extra wall"
 msgstr ""
+"Modifier ces paramètres automatiquement ? \n"
+"Oui - Modifier l’épaisseur de la coque verticale pour qu’elle soit modérée "
+"et activer la paroi supplémentaire\n"
+"Non - Ne pas utiliser la paroi supplémentaire alternée"
 
 msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support "
@@ -3504,6 +3510,8 @@ msgid ""
 "seam_slope_start_height need to be smaller than layer_height.\n"
 "Reset to 0."
 msgstr ""
+"seam_slope_start_height doit être inférieur à la hauteur de couche.\n"
+"Remise à 0."
 
 msgid "Auto bed leveling"
 msgstr "Niveau de plateau automatique"
@@ -6223,7 +6231,7 @@ msgid "Stealth Mode"
 msgstr "Mode privé"
 
 msgid "Enable network plugin"
-msgstr ""
+msgstr "Activer le plug-in réseau"
 
 msgid "Check for stable updates only"
 msgstr "Vérifier les mises à jour stables uniquement"
@@ -6286,7 +6294,7 @@ msgstr ""
 "changement de couleur."
 
 msgid "Network"
-msgstr ""
+msgstr "Réseau"
 
 msgid "Auto sync user presets(Printer/Filament/Process)"
 msgstr ""
@@ -8884,6 +8892,12 @@ msgid ""
 "You can adjust the machine_max_acceleration_travel value in your printer's "
 "configuration to get higher speeds."
 msgstr ""
+"Le réglage de l’accélération de déplacement dépasse l’accélération de "
+"déplacement maximale de l’imprimante (machine_max_acceleration_travel).\n"
+"Orca plafonnera automatiquement la vitesse d’accélération du déplacement "
+"pour s’assurer qu’elle ne dépasse pas les capacités de l’imprimante.\n"
+"Vous pouvez ajuster la valeur machine_max_acceleration_travel dans la "
+"configuration de votre imprimante pour obtenir des vitesses plus élevées."
 
 msgid "Generating skirt & brim"
 msgstr "Génération jupe et bord"
@@ -8970,10 +8984,12 @@ msgid "Printer preset names"
 msgstr "Noms des préréglages de l'imprimante"
 
 msgid "Use 3rd-party print host"
-msgstr ""
+msgstr "Utiliser un hôte d’impression tiers"
 
 msgid "Allow controlling BambuLab's printer through 3rd party print hosts"
 msgstr ""
+"Permettre le contrôle de l’imprimante de BambuLab par des hôtes d’impression "
+"tiers"
 
 msgid "Hostname, IP or URL"
 msgstr "Nom d'hôte, adresse IP ou URL"
@@ -9848,7 +9864,7 @@ msgid "End G-code when finish the printing of this filament"
 msgstr "G-code de fin lorsque l'impression de ce filament est terminée"
 
 msgid "Ensure vertical shell thickness"
-msgstr "Assurer l'épaisseur verticale de la coque"
+msgstr "Assurer l’épaisseur de la coque verticale"
 
 msgid ""
 "Add solid infill near sloping surfaces to guarantee the vertical shell "
@@ -11973,6 +11989,10 @@ msgstr "Afficher les marques de calibration"
 msgid "Disable set remaining print time"
 msgstr "Désactiver le réglage du temps d’impression restant"
 
+msgid ""
+"Disable generating of the M73: Set remaining print time in the final gcode"
+msgstr ""
+
 msgid "Seam position"
 msgstr "Position de la couture"
 
@@ -12050,6 +12070,18 @@ msgstr ""
 "Si l’angle maximal à l’intérieur de la boucle périmétrique dépasse cette "
 "valeur (indiquant l’absence d’angles vifs), une couture en biseau sera "
 "utilisée. La valeur par défaut est de 155°."
+
+msgid "Conditional overhang threshold"
+msgstr ""
+
+#, no-c-format, no-boost-format
+msgid ""
+"This option determines the overhang threshold for the application of scarf "
+"joint seams. If the unsupported portion of the perimeter is less than this "
+"threshold, scarf joint seams will be applied. The default threshold is set "
+"at 40% of the external wall's width. Due to performance considerations, the "
+"degree of overhang is estimated."
+msgstr ""
 
 msgid "Scarf joint speed"
 msgstr "Vitesse de la couture en biseau"
@@ -14616,7 +14648,7 @@ msgid "Export Log"
 msgstr "Exportation du journal"
 
 msgid "OrcaSlicer Version:"
-msgstr ""
+msgstr "Version d’OrcaSlicer:"
 
 msgid "System Version:"
 msgstr "Version du système :"
@@ -14625,10 +14657,10 @@ msgid "DNS Server:"
 msgstr "Serveur DNS :"
 
 msgid "Test OrcaSlicer(GitHub)"
-msgstr ""
+msgstr "OrcaSlicer Test (GitHub)"
 
 msgid "Test OrcaSlicer(GitHub):"
-msgstr ""
+msgstr "OrcaSlicer Test (GitHub) :"
 
 msgid "Test Bing.com"
 msgstr "Test Bing.com"
@@ -15187,7 +15219,7 @@ msgid "Success!"
 msgstr "Succès !"
 
 msgid "Are you sure to log out?"
-msgstr ""
+msgstr "Êtes-vous sûr de pouvoir vous déconnecter ?"
 
 msgid "Refresh Printers"
 msgstr "Actualiser les imprimantes"
@@ -15222,7 +15254,7 @@ msgstr ""
 "dans magasin de certificats / trousseau."
 
 msgid "Login/Test"
-msgstr ""
+msgstr "Connexion/Test"
 
 msgid "Connection to printers connected via the print host failed."
 msgstr ""
@@ -15363,6 +15395,47 @@ msgstr ""
 "L’énumération des imprimantes hôtes a échoué.\n"
 "Corps du message : « %1% »\n"
 "Erreur : « %2% »"
+
+msgid "Connected to Obico successfully!"
+msgstr ""
+
+msgid "Could not connect to Obico"
+msgstr ""
+
+msgid "Connected to SimplyPrint successfully!"
+msgstr ""
+
+msgid "Could not connect to SimplyPrint"
+msgstr ""
+
+msgid "SimplyPrint account not linked. Go to Connect options to set it up."
+msgstr ""
+
+msgid ""
+"File size exceeds the 100MB upload limit. Please upload your file through "
+"the panel."
+msgstr ""
+
+msgid "Unknown error"
+msgstr ""
+
+msgid "Connection to Flashforge works correctly."
+msgstr ""
+
+msgid "Could not connect to Flashforge"
+msgstr ""
+
+msgid "The provided state is not correct."
+msgstr ""
+
+msgid "Please give the required permissions when authorizing this application."
+msgstr ""
+
+msgid "Something unexpected happened when trying to log in, please try again."
+msgstr ""
+
+msgid "User cancelled."
+msgstr ""
 
 #: resources/data/hints.ini: [hint:Precise wall]
 msgid ""

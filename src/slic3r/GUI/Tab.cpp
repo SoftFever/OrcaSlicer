@@ -1979,6 +1979,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("seam_slope_type", "seam#scarf-joint-seam");
         optgroup->append_single_option_line("seam_slope_conditional", "seam#scarf-joint-seam");
         optgroup->append_single_option_line("scarf_angle_threshold", "seam#scarf-joint-seam");
+        optgroup->append_single_option_line("scarf_overhang_threshold", "seam#scarf-joint-seam");
         optgroup->append_single_option_line("scarf_joint_speed", "seam#scarf-joint-seam");
         optgroup->append_single_option_line("seam_slope_start_height", "seam#scarf-joint-seam");
         optgroup->append_single_option_line("seam_slope_entire_loop", "seam#scarf-joint-seam");
@@ -4756,7 +4757,7 @@ bool Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
         apply_config_from_cache();
 
         // Orca: update presets for the selected printer
-        if (m_type == Preset::TYPE_PRINTER) {
+        if (m_type == Preset::TYPE_PRINTER && wxGetApp().app_config->get_bool("remember_printer_config")) {
           m_preset_bundle->update_selections(*wxGetApp().app_config);
           wxGetApp().plater()->sidebar().on_filaments_change(m_preset_bundle->filament_presets.size());
         }

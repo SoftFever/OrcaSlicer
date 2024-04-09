@@ -2000,13 +2000,16 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
     // if thumbnail type of BTT_TFT, insert above header
     // if not, it is inserted under the header in its normal spot
-    const GCodeThumbnailsFormat m_gcode_thumbnail_format = print.full_print_config().opt_enum<GCodeThumbnailsFormat>("thumbnails_format");
-    if (m_gcode_thumbnail_format == GCodeThumbnailsFormat::BTT_TFT)
-        GCodeThumbnails::export_thumbnails_to_file(
-            thumbnail_cb, print.get_plate_index(), print.full_print_config().option<ConfigOptionPoints>("thumbnails")->values,
-            m_gcode_thumbnail_format,
-            [&file](const char *sz) { file.write(sz); },
-            [&print]() { print.throw_if_canceled(); });
+    GCodeThumbnailsFormat m_gcode_thumbnail_format = GCodeThumbnailsFormat::PNG;
+    if (thumbnail_cb != nullptr) {
+        m_gcode_thumbnail_format = print.full_print_config().opt_enum<GCodeThumbnailsFormat>("thumbnails_format");
+        if (m_gcode_thumbnail_format == GCodeThumbnailsFormat::BTT_TFT)
+            GCodeThumbnails::export_thumbnails_to_file(
+                thumbnail_cb, print.get_plate_index(), print.full_print_config().option<ConfigOptionPoints>("thumbnails")->values,
+                m_gcode_thumbnail_format,
+                [&file](const char *sz) { file.write(sz); },
+                [&print]() { print.throw_if_canceled(); });
+    }
 
     file.write_format("; HEADER_BLOCK_START\n");
     // Write information on the generator.
@@ -2067,32 +2070,32 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
       // as configuration key / value pairs to be parsable by older versions of
       // PrusaSlicer G-code viewer.
     {
-      if (is_bbl_printers) {
-        file.write("; CONFIG_BLOCK_START\n");
-        std::string full_config;
-        append_full_config(print, full_config);
-        if (!full_config.empty())
-          file.write(full_config);
+        if (is_bbl_printers) {
+            file.write("; CONFIG_BLOCK_START\n");
+            std::string full_config;
+            append_full_config(print, full_config);
+            if (!full_config.empty())
+                file.write(full_config);
 
-        // SoftFever: write compatiple image
-        int first_layer_bed_temperature = get_bed_temperature(0, true, print.config().curr_bed_type);
-        file.write_format("; first_layer_bed_temperature = %d\n",
-                          first_layer_bed_temperature);
-        file.write_format(
-            "; first_layer_temperature = %d\n",
-            print.config().nozzle_temperature_initial_layer.get_at(0));
-        file.write("; CONFIG_BLOCK_END\n\n");
-      } else {
-        if (m_gcode_thumbnail_format != GCodeThumbnailsFormat::BTT_TFT) {
-            auto thumbnaim_fmt = m_gcode_thumbnail_format;
-            // Orca: if the thumbnail format is ColPic, we write PNG in the beginning of gcode file and ColPic in the end of gcode file. 
-            if(m_gcode_thumbnail_format == GCodeThumbnailsFormat::ColPic)
-                thumbnaim_fmt = GCodeThumbnailsFormat::PNG;
-          GCodeThumbnails::export_thumbnails_to_file(
-              thumbnail_cb, print.get_plate_index(), print.full_print_config().option<ConfigOptionPoints>("thumbnails")->values,
-              thumbnaim_fmt, [&file](const char* sz) { file.write(sz); }, [&print]() { print.throw_if_canceled(); });
+            // SoftFever: write compatiple image
+            int first_layer_bed_temperature = get_bed_temperature(0, true, print.config().curr_bed_type);
+            file.write_format("; first_layer_bed_temperature = %d\n",
+                                first_layer_bed_temperature);
+            file.write_format(
+                "; first_layer_temperature = %d\n",
+                print.config().nozzle_temperature_initial_layer.get_at(0));
+            file.write("; CONFIG_BLOCK_END\n\n");
+        } else if (thumbnail_cb != nullptr) {
+            if (m_gcode_thumbnail_format != GCodeThumbnailsFormat::BTT_TFT) {
+                auto thumbnaim_fmt = m_gcode_thumbnail_format;
+                // Orca: if the thumbnail format is ColPic, we write PNG in the beginning of gcode file and ColPic in the end of gcode file. 
+                if (m_gcode_thumbnail_format == GCodeThumbnailsFormat::ColPic)
+                    thumbnaim_fmt = GCodeThumbnailsFormat::PNG;
+                GCodeThumbnails::export_thumbnails_to_file(
+                    thumbnail_cb, print.get_plate_index(), print.full_print_config().option<ConfigOptionPoints>("thumbnails")->values,
+                    thumbnaim_fmt, [&file](const char* sz) { file.write(sz); }, [&print]() { print.throw_if_canceled(); });
+            }
         }
-      }
     }
 
 
@@ -4549,10 +4552,11 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
     // find the point of the loop that is closest to the current extruder position
     // or randomize if requested
     Point last_pos = this->last_pos();
+    float seam_overhang = std::numeric_limits<float>::lowest();
     if (!m_config.spiral_mode && description == "perimeter") {
         assert(m_layer != nullptr);
         bool is_outer_wall_first = m_config.wall_sequence == WallSequence::OuterInner;
-        m_seam_placer.place_seam(m_layer, loop, is_outer_wall_first, this->last_pos());
+        m_seam_placer.place_seam(m_layer, loop, is_outer_wall_first, this->last_pos(), seam_overhang);
     } else
         loop.split_at(last_pos, false);
 
@@ -4561,14 +4565,21 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
         !m_config.spiral_mode &&
         (loop.role() == erExternalPerimeter || (loop.role() == erPerimeter && m_config.seam_slope_inner_walls)) &&
         layer_id() > 0;
-
+    const auto nozzle_diameter = EXTRUDER_CONFIG(nozzle_diameter);
     if (enable_seam_slope && m_config.seam_slope_conditional.value) {
-        enable_seam_slope = loop.is_smooth(m_config.scarf_angle_threshold.value * M_PI / 180., EXTRUDER_CONFIG(nozzle_diameter));
+        enable_seam_slope = loop.is_smooth(m_config.scarf_angle_threshold.value * M_PI / 180., nozzle_diameter);
     }
+
+    if (enable_seam_slope && m_config.seam_slope_conditional.value && m_config.scarf_overhang_threshold.value > 0.0f) {
+        const auto _line_width = loop.role() == erExternalPerimeter ? m_config.outer_wall_line_width.get_abs_value(nozzle_diameter) :
+                                                                      m_config.inner_wall_line_width.get_abs_value(nozzle_diameter);
+        enable_seam_slope      = seam_overhang < m_config.scarf_overhang_threshold.value * 0.01f * _line_width;
+    }
+
     // clip the path to avoid the extruder to get exactly on the first point of the loop;
     // if polyline was shorter than the clipping distance we'd get a null polyline, so
     // we discard it in that case
-    const double seam_gap = scale_(m_config.seam_gap.get_abs_value(EXTRUDER_CONFIG(nozzle_diameter)));
+    const double seam_gap = scale_(m_config.seam_gap.get_abs_value(nozzle_diameter));
     const double clip_length = m_enable_loop_clipping && !enable_seam_slope ? seam_gap : 0;
 
     // get paths
@@ -4596,7 +4607,7 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
     if (m_config.wipe_before_external_loop.value && !paths.empty() && paths.front().size() > 1 && paths.back().size() > 1 && paths.front().role() == erExternalPerimeter && region_perimeters.size() > 1) {
         const bool is_full_loop_ccw = loop.polygon().is_counter_clockwise();
         bool is_hole_loop = (loop.loop_role() & ExtrusionLoopRole::elrHole) != 0; // loop.make_counter_clockwise();
-        const double nozzle_diam = EXTRUDER_CONFIG(nozzle_diameter);
+        const double nozzle_diam = nozzle_diameter;
 
         // note: previous & next are inverted to extrude "in the opposite direction, and we are "rewinding"
         Point previous_point = paths.front().polyline.points[1];
@@ -5186,76 +5197,67 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         (is_bridge(path.role()) || is_perimeter(path.role()))) {
             bool is_external = is_external_perimeter(path.role());
             double ref_speed   = is_external ? m_config.get_abs_value("outer_wall_speed") : m_config.get_abs_value("inner_wall_speed");
+            if (ref_speed == 0)
+                ref_speed = EXTRUDER_CONFIG(filament_max_volumetric_speed) / _mm3_per_mm;
+
+            if (EXTRUDER_CONFIG(filament_max_volumetric_speed) > 0) {
+                ref_speed = std::min(ref_speed, EXTRUDER_CONFIG(filament_max_volumetric_speed) / path.mm3_per_mm);
+            }
             if (sloped) {
                 ref_speed = std::min(ref_speed, m_config.scarf_joint_speed.get_abs_value(ref_speed));
             }
+            
             ConfigOptionPercents         overhang_overlap_levels({75, 50, 25, 13, 12.99, 0});
 
-        	if (m_config.slowdown_for_curled_perimeters){
-        	 	ConfigOptionFloatsOrPercents dynamic_overhang_speeds(
-            		{(m_config.get_abs_value("overhang_1_4_speed", ref_speed) < 0.5) ?
-                 		FloatOrPercent{100, true} :
-                 		FloatOrPercent{m_config.get_abs_value("overhang_1_4_speed", ref_speed) * 100 / ref_speed, true},
-            	 	(m_config.get_abs_value("overhang_2_4_speed", ref_speed) < 0.5) ?
-                 		FloatOrPercent{100, true} :
-                 		FloatOrPercent{m_config.get_abs_value("overhang_2_4_speed", ref_speed) * 100 / ref_speed, true},
-             		(m_config.get_abs_value("overhang_3_4_speed", ref_speed) < 0.5) ?
-                 		FloatOrPercent{100, true} :
-                 		FloatOrPercent{m_config.get_abs_value("overhang_3_4_speed", ref_speed) * 100 / ref_speed, true},
-             		(m_config.get_abs_value("overhang_4_4_speed", ref_speed) < 0.5) ?
-                 		FloatOrPercent{100, true} :
-                 		FloatOrPercent{m_config.get_abs_value("overhang_4_4_speed", ref_speed) * 100 / ref_speed, true},
-                	(m_config.get_abs_value("overhang_4_4_speed", ref_speed) < 0.5) ?
-                 		FloatOrPercent{100, true} :
-                 		FloatOrPercent{m_config.get_abs_value("overhang_4_4_speed", ref_speed) * 100 / ref_speed, true},
-                	(m_config.get_abs_value("overhang_4_4_speed", ref_speed) < 0.5) ?
-                		FloatOrPercent{100, true} :
-                 		FloatOrPercent{m_config.get_abs_value("overhang_4_4_speed", ref_speed) * 100 / ref_speed, true}});
-            	if (ref_speed == 0)
-            		ref_speed = EXTRUDER_CONFIG(filament_max_volumetric_speed) / _mm3_per_mm;
+            if (m_config.slowdown_for_curled_perimeters){
+                ConfigOptionFloatsOrPercents dynamic_overhang_speeds(
+                    {(m_config.get_abs_value("overhang_1_4_speed", ref_speed) < 0.5) ?
+                         FloatOrPercent{100, true} :
+                         FloatOrPercent{m_config.get_abs_value("overhang_1_4_speed", ref_speed) * 100 / ref_speed, true},
+                     (m_config.get_abs_value("overhang_2_4_speed", ref_speed) < 0.5) ?
+                         FloatOrPercent{100, true} :
+                         FloatOrPercent{m_config.get_abs_value("overhang_2_4_speed", ref_speed) * 100 / ref_speed, true},
+                     (m_config.get_abs_value("overhang_3_4_speed", ref_speed) < 0.5) ?
+                         FloatOrPercent{100, true} :
+                         FloatOrPercent{m_config.get_abs_value("overhang_3_4_speed", ref_speed) * 100 / ref_speed, true},
+                     (m_config.get_abs_value("overhang_4_4_speed", ref_speed) < 0.5) ?
+                         FloatOrPercent{100, true} :
+                         FloatOrPercent{m_config.get_abs_value("overhang_4_4_speed", ref_speed) * 100 / ref_speed, true},
+                     (m_config.get_abs_value("overhang_4_4_speed", ref_speed) < 0.5) ?
+                         FloatOrPercent{100, true} :
+                         FloatOrPercent{m_config.get_abs_value("overhang_4_4_speed", ref_speed) * 100 / ref_speed, true},
+                     (m_config.get_abs_value("overhang_4_4_speed", ref_speed) < 0.5) ?
+                         FloatOrPercent{100, true} :
+                         FloatOrPercent{m_config.get_abs_value("overhang_4_4_speed", ref_speed) * 100 / ref_speed, true}});
 
-        		if (EXTRUDER_CONFIG(filament_max_volumetric_speed) > 0) {
-            		ref_speed = std::min(ref_speed, EXTRUDER_CONFIG(filament_max_volumetric_speed) / path.mm3_per_mm);
-        		}
-
-        		new_points = m_extrusion_quality_estimator.estimate_extrusion_quality(path, overhang_overlap_levels, dynamic_overhang_speeds,
+                new_points = m_extrusion_quality_estimator.estimate_extrusion_quality(path, overhang_overlap_levels, dynamic_overhang_speeds,
                                                                               ref_speed, speed, m_config.slowdown_for_curled_perimeters);
         	}else{
-            	ConfigOptionFloatsOrPercents dynamic_overhang_speeds(
-            	{(m_config.get_abs_value("overhang_1_4_speed", ref_speed) < 0.5) ?
-                 	FloatOrPercent{100, true} :
-                 	FloatOrPercent{m_config.get_abs_value("overhang_1_4_speed", ref_speed) * 100 / ref_speed, true},
-             	(m_config.get_abs_value("overhang_2_4_speed", ref_speed) < 0.5) ?
-                 	FloatOrPercent{100, true} :
-                 	FloatOrPercent{m_config.get_abs_value("overhang_2_4_speed", ref_speed) * 100 / ref_speed, true},
-             	(m_config.get_abs_value("overhang_3_4_speed", ref_speed) < 0.5) ?
-                 	FloatOrPercent{100, true} :
-                 	FloatOrPercent{m_config.get_abs_value("overhang_3_4_speed", ref_speed) * 100 / ref_speed, true},
-             	(m_config.get_abs_value("overhang_4_4_speed", ref_speed) < 0.5) ?
-                 	FloatOrPercent{100, true} :
-                 	FloatOrPercent{m_config.get_abs_value("overhang_4_4_speed", ref_speed) * 100 / ref_speed, true},
-             	FloatOrPercent{m_config.get_abs_value("bridge_speed") * 100 / ref_speed, true},
-             	FloatOrPercent{m_config.get_abs_value("bridge_speed") * 100 / ref_speed, true}});
-             
-        		if (ref_speed == 0)
-            		ref_speed = EXTRUDER_CONFIG(filament_max_volumetric_speed) / _mm3_per_mm;
+                ConfigOptionFloatsOrPercents dynamic_overhang_speeds(
+                    {(m_config.get_abs_value("overhang_1_4_speed", ref_speed) < 0.5) ?
+                         FloatOrPercent{100, true} :
+                         FloatOrPercent{m_config.get_abs_value("overhang_1_4_speed", ref_speed) * 100 / ref_speed, true},
+                     (m_config.get_abs_value("overhang_2_4_speed", ref_speed) < 0.5) ?
+                         FloatOrPercent{100, true} :
+                         FloatOrPercent{m_config.get_abs_value("overhang_2_4_speed", ref_speed) * 100 / ref_speed, true},
+                     (m_config.get_abs_value("overhang_3_4_speed", ref_speed) < 0.5) ?
+                         FloatOrPercent{100, true} :
+                         FloatOrPercent{m_config.get_abs_value("overhang_3_4_speed", ref_speed) * 100 / ref_speed, true},
+                     (m_config.get_abs_value("overhang_4_4_speed", ref_speed) < 0.5) ?
+                         FloatOrPercent{100, true} :
+                         FloatOrPercent{m_config.get_abs_value("overhang_4_4_speed", ref_speed) * 100 / ref_speed, true},
+                     FloatOrPercent{m_config.get_abs_value("bridge_speed") * 100 / ref_speed, true},
+                     FloatOrPercent{m_config.get_abs_value("bridge_speed") * 100 / ref_speed, true}});
 
-        		if (EXTRUDER_CONFIG(filament_max_volumetric_speed) > 0) {
-            		ref_speed = std::min(ref_speed, EXTRUDER_CONFIG(filament_max_volumetric_speed) / path.mm3_per_mm);
-        		}
-
-        		new_points = m_extrusion_quality_estimator.estimate_extrusion_quality(path, overhang_overlap_levels, dynamic_overhang_speeds,
+                new_points = m_extrusion_quality_estimator.estimate_extrusion_quality(path, overhang_overlap_levels, dynamic_overhang_speeds,
                                                                               ref_speed, speed, m_config.slowdown_for_curled_perimeters);
-        	}
+            }
             variable_speed = std::any_of(new_points.begin(), new_points.end(),
                                          [speed](const ProcessedPoint &p) { return fabs(double(p.speed) - speed) > EPSILON; });
+
     }
 
     double F = speed * 60;  // convert mm/sec to mm/min
-    if(abs(F - 5753.504) < 0.002)
-    {
-        std::cout << "F: " << F << std::endl;
-    }
 
     //Orca: process custom gcode for extrusion role change
     if (path.role() != m_last_extrusion_role && !m_config.change_extrusion_role_gcode.value.empty()) {
