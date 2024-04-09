@@ -13,8 +13,16 @@
 
 namespace Slic3r {
 
+// to make testing easier
+//#define SIMPLYPRINT_TEST
+
+#ifdef SIMPLYPRINT_TEST
+#define URL_BASE_HOME "https://test.simplyprint.io"
+#define URL_BASE_API "https://testapi.simplyprint.io"
+#else
 #define URL_BASE_HOME "https://simplyprint.io"
 #define URL_BASE_API "https://api.simplyprint.io"
+#endif
 
 static constexpr boost::asio::ip::port_type CALLBACK_PORT = 21328;
 static const std::string CALLBACK_URL = "http://localhost:21328/callback";
@@ -23,7 +31,11 @@ static const std::string CLIENT_ID = "simplyprintorcaslicer";
 static const std::string CLIENT_SCOPES = "user.read files.temp_upload";
 static const std::string OAUTH_CREDENTIAL_PATH = "simplyprint_oauth.json";
 static const std::string TOKEN_URL = URL_BASE_API"/oauth2/Token";
+#ifdef SIMPLYPRINT_TEST
+static constexpr uint64_t MAX_SINGLE_UPLOAD_FILE_SIZE = 100000ull; // Max file size that can be uploaded in a single http request
+#else
 static constexpr uint64_t MAX_SINGLE_UPLOAD_FILE_SIZE = 100000000ull; // Max file size that can be uploaded in a single http request
+#endif
 static const std::string CHUNCK_RECEIVE_URL = URL_BASE_API"/0/files/ChunkReceive";
 
 static std::string generate_verification_code(int code_length = 32)
@@ -317,7 +329,11 @@ bool SimplyPrint::do_temp_upload(const boost::filesystem::path& file_path,
 bool SimplyPrint::do_chunk_upload(const boost::filesystem::path& file_path, const std::string& filename, ProgressFn prorgess_fn, ErrorFn error_fn) const
 {
     const auto file_size = boost::filesystem::file_size(file_path);
+#ifdef SIMPLYPRINT_TEST
+    constexpr auto buffer_size = MAX_SINGLE_UPLOAD_FILE_SIZE;
+#else
     constexpr auto buffer_size = MAX_SINGLE_UPLOAD_FILE_SIZE - 1000000;
+#endif
 
     const auto chunk_amount = (size_t)ceil((double) file_size / buffer_size);
 
