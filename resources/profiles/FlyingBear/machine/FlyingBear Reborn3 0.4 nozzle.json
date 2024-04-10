@@ -1,7 +1,7 @@
 {
   "type": "machine",
   "setting_id": "GM001",
-  "name": "FlyingBear Reborn3 0.4 nozzle",
+  "name": "Flying Bear Reborn 2 0.4 nozzle",
   "from": "system",
   "instantiation": "true",
   "inherits": "fdm_klipper_common",
