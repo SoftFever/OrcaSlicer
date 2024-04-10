@@ -1,8 +1,6 @@
 #!/bin/bash
 
 export ROOT=$(dirname $(readlink -f ${0}))
-export NCORES=$(nproc --all)
-export CMAKE_BUILD_PARALLEL_LEVEL=${NCORES}
 
 set -e # exit on first error
 
@@ -45,8 +43,7 @@ unset name
 while getopts ":1bcdghirsu" opt; do
   case ${opt} in
     1 )
-        NCORES=1
-        CMAKE_BUILD_PARALLEL_LEVEL=${NCORES}
+        export CMAKE_BUILD_PARALLEL_LEVEL=1
         ;;
     b )
         BUILD_DEBUG="1"
@@ -94,7 +91,7 @@ if [[ -z "${FOUND_GTK3_DEV}" ]]
 then
     echo "Error, you must install the dependencies before."
     echo "Use option -u with sudo"
-    exit 0
+    exit 1
 fi
 
 echo "Changing date in version..."
@@ -113,11 +110,7 @@ fi
 if [[ -n "${BUILD_DEPS}" ]]
 then
     echo "Configuring dependencies..."
-    BUILD_ARGS=""
-    if [[ -n "${FOUND_GTK3_DEV}" ]]
-    then
-        BUILD_ARGS="-DDEP_WX_GTK3=ON"
-    fi
+    BUILD_ARGS="-DDEP_WX_GTK3=ON"
     if [[ -n "${CLEAN_BUILD}" ]]
     then
         rm -fr deps/build
@@ -135,7 +128,7 @@ then
         BUILD_ARGS="${BUILD_ARGS} -DCMAKE_BUILD_TYPE=Debug"
     fi
 
-    echo "cmake .. ${BUILD_ARGS}"
+    echo "cmake -S deps -B deps/build -G Ninja ${BUILD_ARGS}"
     cmake -S deps -B deps/build -G Ninja ${BUILD_ARGS}
     cmake --build deps/build
 fi
