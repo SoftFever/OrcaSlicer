@@ -24,22 +24,6 @@
       ]
     },
     {
-      "name": "linux-gtk2-release",
-      "displayName": "Linux GTK2 Release Configure",
-      "inherits": [
-        "linux-base-gtk2",
-        "base-release"
-      ]
-    },
-    {
-      "name": "linux-gtk2-relwithdebinfo",
-      "displayName": "Linux GTK2 RelWithDebInfo Configure",
-      "inherits": [
-        "linux-base-gtk2",
-        "base-relwithdebinfo"
-      ]
-    },
-    {
       "name": "macos-x64-release",
       "displayName": "macOS x64 Release Configure",
       "inherits": [
@@ -100,18 +84,6 @@
       "displayName": "Linux RelWithDebInfo Build",
       "inherits": "linux-base-build",
       "configurePreset": "linux-relwithdebinfo"
-    },
-    {
-      "name": "linux-gtk2-release",
-      "displayName": "Linux GTK2 Release Build",
-      "inherits": "linux-base-build",
-      "configurePreset": "linux-gtk2-release"
-    },
-    {
-      "name": "linux-gtk2-relwithdebinfo",
-      "displayName": "Linux GTK2 RelWithDebInfo Build",
-      "inherits": "linux-base-build",
-      "configurePreset": "linux-gtk2-relwithdebinfo"
     },
     {
       "name": "macos-x64-release",

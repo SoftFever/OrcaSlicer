@@ -40,7 +40,7 @@ option(ORCA_TOOLS                   "Build Orca tools" OFF)
 CMAKE_DEPENDENT_OPTION(SLIC3R_DESKTOP_INTEGRATION "Allow performing desktop integration during runtime" 1 "NOT SLIC3R_FHS" 0)
 
 set(OPENVDB_FIND_MODULE_PATH "" CACHE PATH "Path to OpenVDB installation's find modules.")
-set(SLIC3R_GTK "2" CACHE STRING "GTK version to use with wxWidgets on Linux")
+set(SLIC3R_GTK "3" CACHE STRING "GTK version to use with wxWidgets on Linux")
 set(IS_CROSS_COMPILE FALSE)
 set(CMAKE_WARN_DEPRECATED OFF CACHE BOOL "") # Disable deprecation warnings from dependencies built using old CMake versions
 

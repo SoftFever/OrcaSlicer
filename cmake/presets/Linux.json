@@ -13,14 +13,6 @@
       "cacheVariables":{
         "SLIC3R_STATIC": "ON"
       }
-    },
-    {
-      "name": "linux-base-gtk2",
-      "inherits": "linux-base",
-      "hidden": true,
-      "cacheVariables": {
-        "SLIC3R_GTK": "2"
-      }
     }
   ],
   "buildPresets": [

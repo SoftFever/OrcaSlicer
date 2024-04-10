@@ -6,7 +6,6 @@
       "hidden": true,
       "binaryDir": "${sourceDir}/build",
       "cacheVariables": {
-        "SLIC3R_GTK": "3",
         "CMAKE_BUILD_TYPE": "Release",
         "BBL_RELEASE_TO_PUBLIC": "1",
         "CMAKE_INSTALL_PREFIX": "./OrcaSlicer"
