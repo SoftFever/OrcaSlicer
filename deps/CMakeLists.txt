@@ -41,6 +41,7 @@ if (NPROC EQUAL 0)
 endif ()
 
 set(DESTDIR "${CMAKE_CURRENT_BINARY_DIR}/destdir" CACHE PATH "Destination directory")
+set(REMOVE_DESTDIR_POSTPEND FALSE CACHE BOOL "Used in flatpak to remove the '/usr/local' ending in destdir")
 set(DEP_DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR}/../DL_CACHE CACHE PATH "Path for downloaded source packages.")
 set(FLATPAK FALSE CACHE BOOL "Toggles various build settings for flatpak, like /usr/local in DESTDIR")
 if (NOT FLATPAK)
@@ -87,7 +88,7 @@ endif ()
 # Slic3r compiles with a different version which will cause runtime errors.
 # option(DEP_BUILD_IGL_STATIC "Build IGL as a static library. Might cause link errors and increase binary size." OFF)
 
-message(STATUS "OrcaSlicer deps DESTDIR: ${DESTDIR}")
+message(STATUS "OrcaSlicer deps DESTDIR: ${_INTDESTDIR}")
 message(STATUS "OrcaSlicer dowload dir for source packages: ${DEP_DOWNLOAD_DIR}")
 message(STATUS "OrcaSlicer deps debug build: ${DEP_DEBUG}")
 
