@@ -1137,6 +1137,7 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, Bed3D &bed)
     , m_multisample_allowed(false)
     , m_moving(false)
     , m_tab_down(false)
+    , m_camera_movement(false)
     , m_cursor_type(Standard)
     , m_color_by("volume")
     , m_reload_delayed(false)
@@ -3684,11 +3685,7 @@ void GLCanvas3D::on_mouse_wheel(wxMouseEvent& evt)
         return;
     }
     // Calculate the zoom delta and apply it to the current zoom factor
-#ifdef SUPPORT_REVERSE_MOUSE_ZOOM
-    double direction_factor = (wxGetApp().app_config->get("reverse_mouse_wheel_zoom") == "1") ? -1.0 : 1.0;
-#else
-    double direction_factor = 1.0;
-#endif
+    double direction_factor = wxGetApp().app_config->get_bool("reverse_mouse_wheel_zoom") ? -1.0 : 1.0;
     auto delta = direction_factor * (double)evt.GetWheelRotation() / (double)evt.GetWheelDelta();
     bool zoom_to_mouse = wxGetApp().app_config->get("zoom_to_mouse") == "true";
     if (!zoom_to_mouse) {// zoom to center
@@ -3853,7 +3850,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         m_mouse.ignore_left_up = true;
     m_tooltip.set_in_imgui(false);
     if (imgui->update_mouse_data(evt)) {
-        if (evt.LeftDown() && m_canvas != nullptr)
+        if ((evt.LeftDown() || (evt.Moving() && (evt.AltDown() || evt.ShiftDown()))) && m_canvas != nullptr)
             m_canvas->SetFocus();
         m_mouse.position = evt.Leaving() ? Vec2d(-1.0, -1.0) : pos.cast<double>();
         m_tooltip.set_in_imgui(true);
@@ -4172,7 +4169,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             m_dirty = true;
         }
     }
-    else if (evt.Dragging()) {
+    else if (evt.Dragging() || is_camera_rotate(evt) || is_camera_pan(evt)) {
         m_mouse.dragging = true;
 
         if (m_layers_editing.state != LayersEditing::Unknown && layer_editing_object_idx != -1) {
@@ -4182,7 +4179,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             }
         }
         // do not process the dragging if the left mouse was set down in another canvas
-        else if (evt.LeftIsDown()) {
+        else if (is_camera_rotate(evt)) {
             // Orca: Sphere rotation for painting view 
             // if dragging over blank area with left button, rotate
             if ((any_gizmo_active || m_hover_volume_idxs.empty()) && m_mouse.is_start_position_3D_defined()) {
@@ -4244,9 +4241,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
                 m_dirty = true;
             }
+            m_camera_movement = true;
             m_mouse.drag.start_position_3D = Vec3d((double)pos(0), (double)pos(1), 0.0);
         }
-        else if (evt.MiddleIsDown() || evt.RightIsDown()) {
+        else if (is_camera_pan(evt)) {
             // If dragging over blank area with right button, pan.
             if (m_mouse.is_start_position_2D_defined()) {
                 // get point in model space at Z = 0
@@ -4268,10 +4266,12 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 m_mouse.ignore_right_up = true;
             }
 
+            m_camera_movement = true;
             m_mouse.drag.start_position_2D = pos;
         }
     }
-    else if (evt.LeftUp() || evt.MiddleUp() || evt.RightUp()) {
+    else if ((evt.LeftUp() || evt.MiddleUp() || evt.RightUp()) ||
+               (m_camera_movement && !is_camera_rotate(evt) && !is_camera_pan(evt))) {
         m_mouse.position = pos.cast<double>();
 
         if (evt.LeftUp()) {
@@ -4450,6 +4450,25 @@ void GLCanvas3D::on_set_focus(wxFocusEvent& evt)
     }
     _refresh_if_shown_on_screen();
     m_tooltip_enabled = true;
+    m_is_touchpad_navigation = wxGetApp().app_config->get_bool("camera_navigation_style");
+}
+
+bool GLCanvas3D::is_camera_rotate(const wxMouseEvent& evt) const
+{
+    if (m_is_touchpad_navigation) {
+        return evt.Moving() && evt.AltDown() && !evt.ShiftDown();
+    } else {
+        return evt.Dragging() && evt.LeftIsDown();
+    }
+}
+
+bool GLCanvas3D::is_camera_pan(const wxMouseEvent& evt) const
+{
+    if (m_is_touchpad_navigation) {
+        return evt.Moving() && evt.ShiftDown() && !evt.AltDown();
+    } else {
+        return evt.Dragging() && (evt.MiddleIsDown() || evt.RightIsDown());
+    }
 }
 
 Size GLCanvas3D::get_canvas_size() const
@@ -5052,6 +5071,7 @@ void GLCanvas3D::export_toolpaths_to_obj(const char* filename) const
 void GLCanvas3D::mouse_up_cleanup()
 {
     m_moving = false;
+    m_camera_movement = false;
     m_mouse.drag.move_volume_idx = -1;
     m_mouse.set_start_position_3D_as_invalid();
     m_mouse.set_start_position_2D_as_invalid();
