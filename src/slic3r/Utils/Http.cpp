@@ -272,7 +272,7 @@ size_t Http::priv::form_file_read_cb(char *buffer, size_t size, size_t nitems, v
                 return 0;
             }
 
-            max_read_size = std::min(max_read_size, f->content_length - read_size);
+            max_read_size = std::min(max_read_size, size_t(f->content_length - read_size));
             f->ifs.read(buffer, max_read_size);
         }
 	} catch (const std::exception &) {
