@@ -2,7 +2,7 @@
     "type": "filament",
     "filament_id": "GFN98",
     "setting_id": "GFSA04",
-    "name": "FlyingBear Generic PA-CF",
+    "name": "Flying Bear Generic PA-CF",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pa",
@@ -29,6 +29,5 @@
     ],
     "compatible_printers": [
       "FlyingBear Reborn3 0.4 nozzle"
-
     ]
   }

@@ -2,7 +2,7 @@
     "type": "filament",
     "filament_id": "GFL99",
     "setting_id": "GFSA04",
-    "name": "FlyingBear Generic PLA",
+    "name": "Flying Bear Generic PLA",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pla",

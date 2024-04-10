@@ -1,7 +1,7 @@
 {
     "type": "process",
     "setting_id": "GP004",
-    "name": "0.08mm Extra Fine @FlyingBear Reborn3",
+    "name": "0.08mm Extra Fine @Flying Bear Reborn 2",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_process_common",

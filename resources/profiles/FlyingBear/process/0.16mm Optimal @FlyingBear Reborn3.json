@@ -1,7 +1,7 @@
 {
     "type": "process",
     "setting_id": "GP005",
-    "name": "0.16mm Optimal @FlyingBear Reborn3",
+    "name": "0.16mm Optimal @Flying Bear Reborn 2",
 	"from": "system",
 	"instantiation": "true",
 	"inherits": "fdm_process_common",
