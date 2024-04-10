@@ -767,6 +767,12 @@ void GCodeProcessor::UsedFilaments::reset()
     support_volume_per_extruder.clear();
 }
 
+void GCodeProcessor::UsedFilaments::increase_support_caches(double extruded_volume)
+{
+    support_volume_cache += extruded_volume;
+    role_cache += extruded_volume;
+}
+
 void GCodeProcessor::UsedFilaments::increase_model_caches(double extruded_volume)
 {
     color_change_cache += extruded_volume;
@@ -809,6 +815,18 @@ void GCodeProcessor::UsedFilaments::process_wipe_tower_cache(GCodeProcessor* pro
         else
             wipe_tower_volume_per_extruder[active_extruder_id] = wipe_tower_cache;
         wipe_tower_cache = 0.0f;
+    }
+}
+
+void GCodeProcessor::UsedFilaments::process_support_cache(GCodeProcessor* processor)
+{
+    size_t active_extruder_id = processor->m_extruder_id;
+    if (support_volume_cache != 0.0f){
+        if (support_volume_per_extruder.find(active_extruder_id) != support_volume_per_extruder.end())
+            support_volume_per_extruder[active_extruder_id] += support_volume_cache;
+        else
+            support_volume_per_extruder[active_extruder_id] = support_volume_cache;
+        support_volume_cache = 0.0f;
     }
 }
 

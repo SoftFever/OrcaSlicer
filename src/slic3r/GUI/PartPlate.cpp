@@ -1578,11 +1578,19 @@ std::vector<int> PartPlate::get_used_extruders()
 	if (!result)
 		return used_extruders;
 
+	std::set<int> used_extruders_set;
 	PrintEstimatedStatistics& ps = result->print_statistics;
-	for (auto it = ps.volumes_per_extruder.begin(); it != ps.volumes_per_extruder.end(); it++) {
-		used_extruders.push_back(it->first + 1);
-	}
-	return used_extruders;
+	// model usage
+	for (const auto&item:ps.volumes_per_extruder)
+		used_extruders_set.emplace(item.first + 1);
+	// support usage
+	for (const auto&item:ps.support_volumes_per_extruder)
+		used_extruders_set.emplace(item.first + 1);
+	// wipe tower usage
+	for (const auto&item:ps.wipe_tower_volumes_per_extruder)
+		used_extruders_set.emplace(item.first + 1);
+
+	return std::vector(used_extruders_set.begin(), used_extruders_set.end());
 }
 
 Vec3d PartPlate::estimate_wipe_tower_size(const DynamicPrintConfig & config, const double w, const double d, int plate_extruder_size, bool use_global_objects) const
