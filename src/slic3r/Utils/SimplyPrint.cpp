@@ -338,21 +338,24 @@ bool SimplyPrint::do_chunk_upload(const boost::filesystem::path& file_path, cons
     const auto chunk_amount = (size_t)ceil((double) file_size / buffer_size);
 
     std::string chunk_id;
+    std::string delete_token;
 
     // Tell SimplyPrint that the upload has failed and the chunks should be deleted
     // Note: any error happens here won't be notified to the user
-    const auto clean_up = [this, &chunk_id]() {
+    const auto clean_up = [this, &chunk_id, &delete_token]() {
         if (chunk_id.empty()) {
             // The initial upload failed, do nothing
             BOOST_LOG_TRIVIAL(warning) << "SimplyPrint: Initial chunk upload failed, skip delete";
             return;
         }
 
+        assert(!delete_token.empty());
+
         BOOST_LOG_TRIVIAL(info) << boost::format("SimplyPrint: Deleting file chunk %s...") % chunk_id;
         const std::vector<std::pair<std::string, std::string>> query_parameters{
             {"id", chunk_id},
             {"temp", "true"},
-            {"delete", ""},
+            {"delete", delete_token},
         };
         const auto url = (boost::format("%s?%s") % CHUNCK_RECEIVE_URL % url_encode(query_parameters)).str();
         do_api_call(
@@ -408,7 +411,7 @@ bool SimplyPrint::do_chunk_upload(const boost::filesystem::path& file_path, cons
 
                 return http;
             },
-            [&error_fn, i, chunk_amount, this, &chunk_id](std::string body, unsigned status) {
+            [&error_fn, i, chunk_amount, this, &chunk_id, &delete_token](std::string body, unsigned status) {
                 BOOST_LOG_TRIVIAL(info) << boost::format("SimplyPrint: File chunk [%1%/%2%] uploaded: HTTP %3%: %4%") % (i + 1) % chunk_amount % status % body;
                 if (i == 0) {
                     // First chunk, parse chunk id
@@ -419,7 +422,7 @@ bool SimplyPrint::do_chunk_upload(const boost::filesystem::path& file_path, cons
                         return false;
                     }
 
-                    if (j.find("id") == j.end()) {
+                    if (j.find("id") == j.end() || j.find("delete_token") == j.end()) {
                         BOOST_LOG_TRIVIAL(error) << "SimplyPrint: Invalid or no JSON data on ChunkReceive: " << body;
                         error_fn(_L("Unknown error"));
                         return false;
@@ -428,6 +431,7 @@ bool SimplyPrint::do_chunk_upload(const boost::filesystem::path& file_path, cons
                     const unsigned long id = j["id"];
 
                     chunk_id = std::to_string(id);
+                    delete_token = j["delete_token"];
                 }
                 return true;
             },
