@@ -104,6 +104,7 @@ private:
     int last_wifi_signal = -1;
     int last_status;
     bool m_initialized { false };
+    bool update_flag{false};
     wxTimer* m_refresh_timer = nullptr;
 
 public:
@@ -149,6 +150,9 @@ public:
 
     MachineObject *obj { nullptr };
     std::string last_conn_type = "undedefined";
+
+    void stop_update() {update_flag = false;};
+    void start_update() {update_flag = true;};
 };
 
 

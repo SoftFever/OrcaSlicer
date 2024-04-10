@@ -263,17 +263,20 @@ void MonitorPanel::select_machine(std::string machine_sn)
 
 void MonitorPanel::on_update_all(wxMouseEvent &event)
 {
-    update_all();
-    Layout();
-    Refresh();
+    if (update_flag) {
+        update_all();
+        Layout();
+        Refresh();
+    }
 }
 
  void MonitorPanel::on_timer(wxTimerEvent& event)
 {
-    update_all();
-
-    Layout();
-    Refresh();
+     if (update_flag) {
+         update_all();
+         Layout();
+         Refresh();
+     }
 }
 
  void MonitorPanel::on_select_printer(wxCommandEvent& event)
@@ -432,6 +435,8 @@ bool MonitorPanel::Show(bool show)
     NetworkAgent* m_agent = wxGetApp().getAgent();
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (show) {
+        start_update();
+
         m_refresh_timer->Stop();
         m_refresh_timer->SetOwner(this);
         m_refresh_timer->Start(REFRESH_INTERVAL);
@@ -450,6 +455,7 @@ bool MonitorPanel::Show(bool show)
             }
         }
     } else {
+        stop_update();
         m_refresh_timer->Stop();
     }
     return wxPanel::Show(show);
