@@ -196,7 +196,7 @@ void FillFlippingLine ::_fill_surface_single(
     coord_t line_spacing = coord_t(scale_(this->spacing) / params.density);
 
     // reduce density
-    if (params.density < 0.999) line_spacing *= 1.5;
+    if (params.density < 0.999) line_spacing *= 1.08;
 
     bb.merge(align_to_grid(bb.min, Point(line_spacing * 4, line_spacing * 4)));
 
