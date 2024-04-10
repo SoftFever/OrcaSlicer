@@ -16,6 +16,11 @@ else ()
     endif ()
 endif ()
 
+# Backward compatibility for old CMake versions
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_VERSION VERSION_LESS "3.25")
+    set(LINUX ON CACHE BOOL "" FORCE)
+endif ()
+
 # Set options and initialize variables
 option(SLIC3R_STATIC 			    "Compile OrcaSlicer with static libraries (Boost, TBB, glew)" ${SLIC3R_STATIC_INITIAL})
 option(SLIC3R_GUI    			    "Compile OrcaSlicer with GUI components (OpenGL, wxWidgets)" 1)
@@ -129,7 +134,7 @@ else ()
         message("DEP_BUILD_DIR: Set manually to ${DEP_BUILD_DIR}")
     endif ()
 
-    if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND EXISTS "${CMAKE_SOURCE_DIR}/deps/${BIN_DIR_NAME}/destdir/usr/local") # backward compatibility for old directory name
+    if (LINUX AND EXISTS "${CMAKE_SOURCE_DIR}/deps/${BIN_DIR_NAME}/destdir/usr/local") # backward compatibility for old directory name
         set(CMAKE_PREFIX_PATH "${DEP_BUILD_DIR}/destdir/usr/local" CACHE PATH "Path to dependencies" FORCE)
         message(WARNING "You are using an old directory structure for dependencies that is being deprecated.
         Please rename \"destdir\" to \"OrcaSlicer_dep\" or remove the destdir directory and rebuild.")
@@ -270,7 +275,7 @@ if (APPLE)
     endif()
 endif ()
 
-if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+if (LINUX)
     find_package(PkgConfig REQUIRED)
 
     if (CMAKE_VERSION VERSION_LESS "3.1")
@@ -501,7 +506,7 @@ if (SLIC3R_STATIC AND NOT SLIC3R_STATIC_EXCLUDE_CURL)
         # On other systems, libcurl is linked statically if SLIC3R_STATIC is set.
         target_compile_definitions(libcurl INTERFACE CURL_STATICLIB)
     endif()
-    if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    if (LINUX)
         # As of now, our build system produces a statically linked libcurl,
         # which links the OpenSSL library dynamically.
         find_package(OpenSSL REQUIRED)
