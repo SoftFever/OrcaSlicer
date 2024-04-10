@@ -828,6 +828,7 @@ static std::vector<std::string> s_Preset_filament_options {
     "filament_max_volumetric_speed",
     "filament_flow_ratio", "filament_density", "filament_cost", "filament_minimal_purge_on_wipe_tower",
     "nozzle_temperature", "nozzle_temperature_initial_layer",
+
     // BBS
     "cool_plate_temp", "eng_plate_temp", "hot_plate_temp", "textured_plate_temp", "cool_plate_temp_initial_layer", "eng_plate_temp_initial_layer", "hot_plate_temp_initial_layer","textured_plate_temp_initial_layer",
     // "bed_type",
@@ -869,6 +870,7 @@ static std::vector<std::string> s_Preset_printer_options {
     "printer_model", "printer_variant", "printable_height", "extruder_clearance_radius", "extruder_clearance_height_to_lid", "extruder_clearance_height_to_rod",
     "default_print_profile", "inherits",
     "silent_mode",
+    "extruders_count",
     // BBS
     "scan_first_layer", "machine_load_filament_time", "machine_unload_filament_time","time_cost", "machine_pause_gcode", "template_custom_gcode",
     "nozzle_type", "nozzle_hrc","auxiliary_fan","single_nozzle_with_multiple_fans", "nozzle_volume","upward_compatible_machine", "z_hop_types", "retract_lift_enforce","support_chamber_temp_control","support_air_filtration","printer_structure",

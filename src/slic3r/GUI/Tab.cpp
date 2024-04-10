@@ -3549,17 +3549,17 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line("preferred_orientation");
 
         optgroup = page->new_optgroup(L("Capabilities"));
-        ConfigOptionDef def;
-            def.type =  coInt,
-            def.set_default_value(new ConfigOptionInt(1));
-            def.label = L("Extruders");
-            def.tooltip = L("Number of extruders of the printer.");
-            def.min = 1;
-            def.max = 256;
-            def.mode = comAdvanced;
-        Option option1(def, "extruders_count");
-        optgroup->append_single_option_line(option1);
-        optgroup->append_single_option_line("single_extruder_multi_material");
+        // ConfigOptionDef def;
+        //     def.type =  coInt,
+        //     def.set_default_value(new ConfigOptionInt(1));
+        //     def.label = L("Extruders");
+        //     def.tooltip = L("Number of extruders of the printer.");
+        //     def.min = 1;
+        //     def.max = 256;
+        //     def.mode = comAdvanced;
+        // Option option1(def, "extruders_count");
+        // optgroup->append_single_option_line(option1);
+        optgroup->append_single_option_line("extruders_count");
 
         optgroup->m_on_change = [this, optgroup_wk = ConfigOptionsGroupWkp(optgroup)](t_config_option_key opt_key, boost::any value) {
             auto optgroup_sh = optgroup_wk.lock();

@@ -13,6 +13,7 @@
 	"printer_model": "MingDa 400D",
 	"default_print_profile": "0.20mm Standard @MingDa 400D",
 	"printer_variant": "0.8",
+	"extruders_count":"2",
 	"nozzle_diameter": [
 		"0.8",
 		"0.8"

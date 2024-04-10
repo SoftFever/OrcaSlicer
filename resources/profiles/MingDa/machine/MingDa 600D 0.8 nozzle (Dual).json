@@ -13,6 +13,7 @@
 	"printer_model": "MingDa 600D",
 	"default_print_profile": "0.20mm Standard @MingDa 600D",
 	"printer_variant": "0.8",
+	"extruders_count":"2",
 	"nozzle_diameter": [
 		"0.8",
 		"0.8"

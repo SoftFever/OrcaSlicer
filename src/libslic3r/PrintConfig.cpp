@@ -3078,6 +3078,14 @@ def = this->add("filament_loading_speed", coFloats);
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats { 10. });
 
+    def = this->add("extruders_count", coInt);
+    def->label = L("Extruders");
+    def->tooltip = L("Number of extruders of the printer.");
+    def->mode = comAdvanced;
+    def->min = 1;
+    def->max = 256;
+    def->set_default_value(new ConfigOptionInt { 1 });
+
     def = this->add("nozzle_diameter", coFloats);
     def->label = L("Nozzle diameter");
     def->tooltip = L("Diameter of nozzle");

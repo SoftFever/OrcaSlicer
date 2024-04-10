@@ -12,6 +12,7 @@
         "parking_pos_retraction": "0",
 	"printer_model": "MingDa 600D",
 	"default_print_profile": "0.20mm Standard @MingDa 600D",
+	"extruders_count":"2",
 	"nozzle_diameter": [
 		"0.4",
 		"0.4"
