@@ -257,14 +257,14 @@ jobs:
           zip -r orca_custom_preset_tests.zip user/
 
       - name: Upload artifacts Ubuntu
-        if: inputs.os == 'ubuntu-20.04'
+        if: ${{ ! env.ACT && inputs.os == 'ubuntu-20.04' }}
         uses: actions/upload-artifact@v4
         with:
           name: OrcaSlicer_Linux_${{ env.ver }}
           path: './build/OrcaSlicer_Linux_${{ env.ver }}.AppImage'
 
       - name: Deploy Ubuntu release
-        if: github.ref == 'refs/heads/main' && inputs.os == 'ubuntu-20.04'
+        if: ${{ ! env.ACT && github.ref == 'refs/heads/main' && inputs.os == 'ubuntu-20.04' }}
         uses: WebFreak001/deploy-nightly@v3.1.0
         with:
           upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label}
@@ -275,7 +275,7 @@ jobs:
           max_releases: 1 # optional, if there are more releases than this matching the asset_name, the oldest ones are going to be deleted
 
       - name: Deploy orca_custom_preset_tests
-        if: github.ref == 'refs/heads/main' && inputs.os == 'ubuntu-20.04'
+        if: ${{ ! env.ACT && github.ref == 'refs/heads/main' && inputs.os == 'ubuntu-20.04' }}
         uses: WebFreak001/deploy-nightly@v3.1.0
         with:
           upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label}

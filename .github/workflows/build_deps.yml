@@ -116,7 +116,7 @@ jobs:
           path: ${{ github.workspace }}/deps/build/OrcaSlicer_dep*.zip
 
       - name: Upload Ubuntu artifacts
-        if: inputs.os == 'ubuntu-20.04'
+        if: ${{ ! env.ACT && inputs.os == 'ubuntu-20.04' }}
         uses: actions/upload-artifact@v4
         with:
           name: OrcaSlicer_dep_ubuntu_${{ env.date }}
