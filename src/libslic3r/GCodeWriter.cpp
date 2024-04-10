@@ -854,6 +854,21 @@ std::string GCodeWriter::set_additional_fan(unsigned int speed)
     gcode << "\n";
     return gcode.str();
 }
+//TODO:ylg 设置当喷头多风扇
+std::string GCodeWriter::set_single_nozzle_with_multiple_fan(unsigned int speed)
+{
+    std::ostringstream gcode;
+
+    gcode << "M106 " << "P1 " << "S" << (int)(255.0 * speed / 100.0);
+    if (GCodeWriter::full_gcode_comment) {
+        if (speed == 0)
+            gcode << " ; disable single nozzle with multiple fan ";
+        else
+            gcode << " ; enable single nozzle with multiple fan ";
+    }
+    gcode << "\n";
+    return gcode.str();
+}
 
 std::string GCodeWriter::set_exhaust_fan( int speed,bool add_eol)
 {

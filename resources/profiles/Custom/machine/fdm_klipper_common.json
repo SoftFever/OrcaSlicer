@@ -56,5 +56,6 @@
   "machine_pause_gcode": "PAUSE",
   "scan_first_layer": "0",
   "nozzle_type": "undefine",
-  "auxiliary_fan": "0"
+    "auxiliary_fan": "0",
+  "single_nozzle_with_multiple_fans":"0"
 }

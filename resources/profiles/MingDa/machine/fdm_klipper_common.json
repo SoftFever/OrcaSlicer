@@ -136,5 +136,6 @@
   "before_layer_change_gcode": ";BEFORE_LAYER_CHANGE\n;[layer_z]\nG92 E0\n",
   "scan_first_layer": "0",
   "nozzle_type": "undefine",
-  "auxiliary_fan": "0"
+    "auxiliary_fan": "0",
+  "single_nozzle_with_multiple_fans":"0"
 }

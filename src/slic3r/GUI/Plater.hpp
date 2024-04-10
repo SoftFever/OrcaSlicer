@@ -466,7 +466,7 @@ public:
     void enter_gizmos_stack();
     // BBS: return false if not changed
     bool leave_gizmos_stack();
-
+    void on_extruders_change(size_t extruders_count);
     void on_filaments_change(size_t extruders_count);
     // BBS
     void on_bed_type_change(BedType bed_type);

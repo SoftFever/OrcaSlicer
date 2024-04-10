@@ -111,6 +111,8 @@ public:
 	Field*		get_field(const t_config_option_key& opt_key, int opt_index = -1) const;
     Line *      get_line(const t_config_option_key &opt_key);
 	bool		set_value(const t_config_option_key& opt_key, const boost::any& value);
+	// TODO:ylg 添加一个页面
+	ConfigOptionsGroupShp	new_tab(const wxString& title, const wxString& icon = wxEmptyString, int noncommon_label_width = -1, bool is_extruder_og = false);
 	// BBS. Add is_extruder_og parameter.
 	ConfigOptionsGroupShp	new_optgroup(const wxString& title, const wxString& icon = wxEmptyString, int noncommon_label_width = -1, bool is_extruder_og = false);
 	const ConfigOptionsGroupShp	get_optgroup(const wxString& title) const;
@@ -563,6 +565,8 @@ protected:
 class TabFilament : public Tab
 {
 private:
+	//TODO:YLG 当前材料所用的挤出机
+	int             m_active_extruder {0};
 	ogStaticText*	m_volumetric_speed_description_line {nullptr};
 	ogStaticText*	m_cooling_description_line {nullptr};
 

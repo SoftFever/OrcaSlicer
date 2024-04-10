@@ -1480,6 +1480,8 @@ void Sidebar::jump_to_option(size_t selected)
 //    wxGetApp().mainframe->select_tab();
 }
 
+
+
 // BBS. Move logic from Plater::on_extruders_change() to Sidebar::on_filaments_change().
 void Sidebar::on_filaments_change(size_t num_filaments)
 {
@@ -1508,6 +1510,7 @@ void Sidebar::on_filaments_change(size_t num_filaments)
     }
 
     // remove unused choices if any
+    //删除未使用的选项(如果有的话)
     remove_unused_filament_combos(num_filaments);
 
     auto sizer = p->m_panel_filament_title->GetSizer();
@@ -12028,11 +12031,43 @@ bool Plater::search_string_getter(int idx, const char** label, const char** tool
 
     return false;
 }
+void Plater::on_extruders_change(size_t num_extruders)
+{
+    auto& choices = sidebar().combos_filament();
 
+    if (num_extruders == choices.size())
+        return;
+
+    //dynamic_cast<TabFilament*>(wxGetApp().get_tab(Preset::TYPE_FILAMENT))->update_extruder_combobox();
+
+    wxWindowUpdateLocker noUpdates_scrolled_panel(&sidebar()/*.scrolled_panel()*/);
+
+    size_t i = choices.size();
+    while ( i < num_extruders )
+    {
+        PlaterPresetComboBox* choice/*{ nullptr }*/;
+        sidebar().init_filament_combo(&choice, i);
+        int last_selection = choices.back()->GetSelection();
+        choices.push_back(choice);
+
+        // initialize selection
+        choice->update();
+        choice->SetSelection(last_selection);
+        ++i;
+    }
+
+    // remove unused choices if any
+    //删除未使用的选项(如果有的话)
+    sidebar().remove_unused_filament_combos(num_extruders);
+
+    sidebar().Layout();
+    sidebar().scrolled_panel()->Refresh();
+}
 // BBS.
 void Plater::on_filaments_change(size_t num_filaments)
 {
     // only update elements in plater
+    //只更新播放器中的元素
     update_filament_colors_in_full_config();
     sidebar().on_filaments_change(num_filaments);
     sidebar().obj_list()->update_objects_list_filament_column(num_filaments);

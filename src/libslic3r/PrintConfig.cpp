@@ -1313,6 +1313,16 @@ void PrintConfigDef::init_fff_params()
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionInts { 1 });
 
+    def = this->add("close_fan_the_first_x_layers_1", coInts);
+    def->label = L("No cooling for the first 1");
+    def->tooltip = L("Close all cooling fan for the first certain layers. Cooling fan of the first layer used to be closed "
+                     "to get better build plate adhesion");
+    def->sidetext = L("layers");
+    def->min = 0;
+    def->max = 1000;
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionInts { 1 });
+
     def = this->add("bridge_no_support", coBool);
     def->label = L("Don't support bridges");
     def->category = L("Support");
@@ -2318,6 +2328,17 @@ def = this->add("filament_loading_speed", coFloats);
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInts { 0 });
     
+    def = this->add("full_fan_speed_layer_1", coInts);
+    def->label = L("Full fan speed at layer 1");
+    def->tooltip = L("Fan speed will be ramped up linearly from zero at layer \"close_fan_the_first_x_layers\" "
+                  "to maximum at layer \"full_fan_speed_layer_1\". "
+                  "\"full_fan_speed_layer_1\" will be ignored if lower than \"close_fan_the_first_x_layers\", in which case "
+                  "the fan will be running at maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1.");
+    def->min = 0;
+    def->max = 1000;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionInts { 0 });
+
     def = this->add("support_material_interface_fan_speed", coInts);
     def->label = L("Support interface fan speed");
     def->tooltip = L("This fan speed is enforced during all support interfaces, to be able to weaken their bonding with a high fan speed."
@@ -2474,6 +2495,11 @@ def = this->add("filament_loading_speed", coFloats);
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
+   def = this->add("single_nozzle_with_multiple_fans", coBool);
+   def->label = L("Single nozzle with multiple fans");
+   def->tooltip = L("Single nozzle with multiple fans");
+   def->mode = comAdvanced;
+   def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("fan_speedup_time", coFloat);
 	// Label is set in Tab.cpp in the Line object.
@@ -3008,6 +3034,15 @@ def = this->add("filament_loading_speed", coFloats);
 
     def = this->add("fan_min_speed", coFloats);
     def->label = L("Fan speed");
+    def->tooltip = L("Minimum speed for part cooling fan");
+    def->sidetext = L("%");
+    def->min = 0;
+    def->max = 100;
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionFloats { 20 });
+
+    def = this->add("fan_min_speed_1", coFloats);
+    def->label = L("Fan speed 1");
     def->tooltip = L("Minimum speed for part cooling fan");
     def->sidetext = L("%");
     def->min = 0;

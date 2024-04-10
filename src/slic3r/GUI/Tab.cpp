@@ -1609,9 +1609,10 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
     }
 
     // BBS
-#if 0
+#if 1
     if (opt_key == "extruders_count")
-        wxGetApp().plater()->on_extruders_change(boost::any_cast<size_t>(value));
+        update_dirty();
+        //wxGetApp().plater()->on_extruders_change(boost::any_cast<size_t>(value));
 #endif
 
     if (m_postpone_update_ui) {
@@ -1621,7 +1622,8 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
     }
 
     update();
-    m_active_page->update_visibility(m_mode, true);
+    if (m_active_page)
+        m_active_page->update_visibility(m_mode, true);
     m_page_view->GetParent()->Layout();
 }
 
@@ -3205,7 +3207,9 @@ void TabFilament::build()
         //    return description_line_widget(parent, &m_volumetric_speed_description_line);
         //};
         //optgroup->append_line(line);
-
+    // page = add_options_page(L("temp"), "empty");
+    //     optgroup = page->new_optgroup("");
+        
     page = add_options_page(L("Cooling"), "empty");
 
         //line = { "", "" };
@@ -3216,11 +3220,12 @@ void TabFilament::build()
         //optgroup->append_line(line);
         optgroup = page->new_optgroup(L("Cooling for specific layer"), L"param_cooling");
         optgroup->append_single_option_line("close_fan_the_first_x_layers", "auto-cooling");
-        optgroup->append_single_option_line("full_fan_speed_layer");
+        optgroup->append_single_option_line("full_fan_speed_layer"); 
 
-        optgroup = page->new_optgroup(L("Cooling for specific layer1"), L"param_cooling");
-        optgroup->append_single_option_line("close_fan_the_first_x_layers", "auto-cooling");
-        optgroup->append_single_option_line("full_fan_speed_layer");
+        optgroup = page->new_optgroup(L("Cooling fan 1"), L"param_cooling");
+        optgroup->append_single_option_line("close_fan_the_first_x_layers_1", "auto-cooling");
+        optgroup->append_single_option_line("full_fan_speed_layer_1");
+        optgroup->append_single_option_line("fan_min_speed_1", "auto-cooling");
 
         optgroup = page->new_optgroup(L("Part cooling fan"), L"param_cooling_fan");
         line = { L("Min fan speed threshold"), L("Part cooling fan speed will start to run at min speed when the estimated layer time is no longer than the layer time in setting. When layer time is shorter than threshold, fan speed is interpolated between the minimum and maximum fan speed according to layer printing time") };
@@ -3242,8 +3247,10 @@ void TabFilament::build()
         optgroup->append_single_option_line("overhang_fan_speed", "auto-cooling");
         optgroup->append_single_option_line("support_material_interface_fan_speed");
 
+        //TODO：ylg 辅助部件风扇
         optgroup = page->new_optgroup(L("Auxiliary part cooling fan"), L"param_cooling_fan");
         optgroup->append_single_option_line("additional_cooling_fan_speed", "auxiliary-fan");
+
 
         optgroup = page->new_optgroup(L("Exhaust fan"),L"param_cooling_fan");
 
@@ -3409,6 +3416,11 @@ void TabFilament::toggle_options()
             toggle_option(el, has_enable_overhang_bridge_fan);
 
       toggle_option("additional_cooling_fan_speed", cfg.opt_bool("auxiliary_fan"));
+
+     //TODO:ylg 挤出机冷却风扇强行加的T1冷却风扇
+      toggle_option("close_fan_the_first_x_layers_1", cfg.opt_bool("single_nozzle_with_multiple_fans"));
+      toggle_option("full_fan_speed_layer_1", cfg.opt_bool("single_nozzle_with_multiple_fans"));
+      toggle_option("fan_min_speed_1", cfg.opt_bool("single_nozzle_with_multiple_fans"));
     }
     if (m_active_page->title() == L("Filament"))
     {
@@ -4194,6 +4206,9 @@ if (is_marlin_flavor)
                 }
             });
         };
+        //TODO:ylg 在机型设置中的材料设置中加入一个单喷头多风扇设定
+        optgroup->append_single_option_line("single_nozzle_with_multiple_fans");
+
         optgroup->append_single_option_line("manual_filament_change", "semm#manual-filament-change");
 
         optgroup = page->new_optgroup(L("Wipe tower"));
