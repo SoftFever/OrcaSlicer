@@ -1,7 +1,7 @@
 Build
 Build.bat
 /build*/
-deps/build*
+/deps/build*/
 MYMETA.json
 MYMETA.yml
 _build
@@ -13,15 +13,12 @@ MANIFEST.bak
 xs/MANIFEST.bak
 xs/assertlib*
 .init_bundle.ini
-.vs/*
+.vs/
 local-lib
 /src/TAGS
 /.vscode/
-build-linux/*
-deps/build*/*
 **/.DS_Store
 install_*
-build_*/
 SVG
 src/OrcaSlicer-doc/
 .idea/
@@ -30,6 +27,5 @@ src/OrcaSlicer-doc/
 **/process_full/
 **/machine_full/
 **/filament_full/
-/deps/DL_CACHE/
-/deps/DL_CACHE
+DL_CACHE
 resources/profiles/user/default
