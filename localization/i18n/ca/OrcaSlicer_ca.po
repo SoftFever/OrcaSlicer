@@ -7665,7 +7665,7 @@ msgid "Transfer values from left to right"
 msgstr "Transfereix valors d'esquerra a dreta"
 
 msgid ""
-"If enabled, this dialog can be used for transver selected values from left "
+"If enabled, this dialog can be used for transfer selected values from left "
 "to right preset."
 msgstr ""
 "Si està habilitat, aquest diàleg es pot utilitzar per transferir els valors "
