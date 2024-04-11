@@ -5,7 +5,7 @@
   "from": "system",
   "instantiation": "true",
   "inherits": "fdm_klipper_common",
-  "printer_model": "FlyingBear Reborn3",
+  "printer_model": "Flying Bear Reborn 2",
   "nozzle_diameter": [
     "0.4"
   ],
