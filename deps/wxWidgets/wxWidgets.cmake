@@ -22,9 +22,11 @@ endif ()
 
 set(_wx_orcaslicer_patch "${CMAKE_CURRENT_LIST_DIR}/0001-wx-3.1.5-patch-for-Orca.patch")
 if (MSVC)
-    set(_patch_cmd if not exist WXWIDGETS_PATCHED ( patch --verbose -p1 -l -i ${CMAKE_CURRENT_LIST_DIR}/0001-wx-3.1.5-patch-for-Orca.patch && type nul > WXWIDGETS_PATCHED ) )
+    set(_patch_cmd if not exist WXWIDGETS_PATCHED ( patch --verbose -p1 -l -i ${_wx_orcaslicer_patch} && type nul > WXWIDGETS_PATCHED ) )
+elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    set(_patch_cmd test -f WXWIDGETS_PATCHED || patch --verbose -p1 -l -i ${_wx_orcaslicer_patch} -i ${CMAKE_CURRENT_LIST_DIR}/0001-Add-support-for-building-WebView-with-libwebkit2gtk-.patch && touch WXWIDGETS_PATCHED)
 else ()
-    set(_patch_cmd test -f WXWIDGETS_PATCHED || patch --verbose -p1 -l -i ${CMAKE_CURRENT_LIST_DIR}/0001-wx-3.1.5-patch-for-Orca.patch && touch WXWIDGETS_PATCHED)
+    set(_patch_cmd test -f WXWIDGETS_PATCHED || patch --verbose -p1 -l -i ${_wx_orcaslicer_patch} && touch WXWIDGETS_PATCHED)
 endif ()
 
 # Note: for anybody wanting to switch to tarball fetching - this won't just work as

@@ -118,8 +118,8 @@ modules:
           -DCMAKE_PREFIX_PATH=/app \
           -DDESTDIR=/app \
           -DCMAKE_INSTALL_LIBDIR=/app/lib \
-          -DFLATPAK=ON \ 
-          -DCMAKE_INSTALL_PREFIX=/app 
+          -DFLATPAK=ON \
+          -DCMAKE_INSTALL_PREFIX=/app
         cmake --build . 
         rm -r /run/build/orca_deps/external-packages
     
@@ -245,7 +245,9 @@ modules:
           -DSLIC3R_DESKTOP_INTEGRATION=OFF \
           -DCMAKE_BUILD_TYPE=Release \
           -DFLATPAK=ON \
-          -DBBL_RELEASE_TO_PUBLIC=1
+          -DBBL_RELEASE_TO_PUBLIC=1 \
+          -DCMAKE_PREFIX_PATH=/app \
+          -DCMAKE_INSTALL_PREFIX=/app
         CXXFLAGS=-std=gnu++20 cmake --build . --target install -j$FLATPAK_BUILDER_N_JOBS
 
     cleanup:
