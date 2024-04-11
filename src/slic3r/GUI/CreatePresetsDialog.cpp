@@ -3278,6 +3278,7 @@ ExportConfigsDialog::ExportConfigsDialog(wxWindow *parent)
     m_exprot_type.process_preset  = _L("Process presets(.zip)");
 
     this->SetBackgroundColour(*wxWHITE);
+    this->SetForegroundColour(wxColour(0, 0, 0));
     this->SetSize(wxSize(FromDIP(600), FromDIP(600)));
 
     std::string icon_path = (boost::format("%1%/images/OrcaSlicerTitle.ico") % resources_dir()).str();
