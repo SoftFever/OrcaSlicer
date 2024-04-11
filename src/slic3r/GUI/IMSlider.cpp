@@ -1242,7 +1242,7 @@ void IMSlider::render_go_to_layer_dialog()
         | ImGuiWindowFlags_NoResize
         | ImGuiWindowFlags_NoScrollbar
         | ImGuiWindowFlags_NoScrollWithMouse;
-    if (ImGui::BeginPopupModal((_u8L("Jump to layer")).c_str(), NULL, windows_flag))
+    if (ImGui::BeginPopupModal((_u8L("Jump to Layer")).c_str(), NULL, windows_flag))
     {
         imgui.text(_u8L("Please enter the layer number") + " (" + std::to_string(m_min_value + 1) + " - " + std::to_string(m_max_value + 1) + "):");
         if (ImGui::IsMouseClicked(0)) {
