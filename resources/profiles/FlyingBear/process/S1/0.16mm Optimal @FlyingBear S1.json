@@ -1,10 +1,11 @@
 {
     "type": "process",
     "setting_id": "GP005",
-    "name": "0.16mm Optimal @Flying Bear S1",
+    "name": "0.16mm Optimal @FlyingBear S1",
 	"from": "system",
 	"instantiation": "true",
 	"inherits": "fdm_process_common_S1",
+    
     "overhang_2_4_speed": "50",
     "overhang_3_4_speed": "30",
     "top_shell_layers": "6",

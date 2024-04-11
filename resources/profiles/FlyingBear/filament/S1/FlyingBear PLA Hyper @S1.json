@@ -2,7 +2,7 @@
     "type": "filament",
     "filament_id": "GFL99",
     "setting_id": "GFSA04",
-    "name": "Flying Bear PLA Hyper @S1",
+    "name": "FlyingBear PLA Hyper @S1",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pla_Hyper @S1",

@@ -2,10 +2,11 @@
 	
 	"type": "process",
     "setting_id": "GP004",
-    "name": "0.08mm Extra Fine @Flying Bear S1",
+    "name": "0.08mm Extra Fine @FlyingBear S1",
 	"from": "system",
 	"instantiation": "true",
 	"inherits": "fdm_process_common_S1",
+
     "bottom_shell_layers": "7",
     "overhang_1_4_speed": "50",
     "overhang_2_4_speed": "30",
@@ -18,7 +19,7 @@
     "inner_wall_speed": "350",
     "internal_solid_infill_speed": "350",
     "layer_height": "0.08",
-    "print_settings_id": "0.08mm Extra Fine @Flying Bear S1",
+    "print_settings_id": "0.08mm Extra Fine @FlyingBear S1",
     "sparse_infill_speed": "450",
     "exclude_object": "0",
     "internal_bridge_speed": "50",
