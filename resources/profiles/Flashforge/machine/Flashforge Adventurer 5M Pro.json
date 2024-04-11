@@ -5,8 +5,8 @@
   "nozzle_diameter": "0.4;0.6",
   "machine_tech": "FFF",
   "family": "Flashforge",
-  "bed_model": "flashfoge_adventurer5m_series_buildplate_model.STL",
+  "bed_model": "flashforge_adventurer5m_series_buildplate_model.STL",
   "bed_texture": "flashforge_adventurer5m_buildplate_texture.png",
-  "hotend_model": "",
+  "hotend_model": "flashforge_adventurer_5m_series_hotend.STL",
   "default_materials": "Flashforge Generic ABS;Flashforge Generic PETG;Flashforge Generic PLA"
 }
