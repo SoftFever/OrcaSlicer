@@ -3696,6 +3696,23 @@ void  GCodeProcessor::process_G2_G3(const GCodeReader::GCodeLine& line)
         m_seams_detector.activate(true);
         m_seams_detector.set_first_vertex(m_result.moves.back().position - m_extruder_offsets[m_extruder_id] - plate_offset);
     }
+
+    // Orca: we now use spiral_vase_layers for proper layer detect when scarf joint is enabled,
+    // and this is needed if the layer has only arc moves
+    if (m_detect_layer_based_on_tag && !m_result.spiral_vase_layers.empty()) {
+        if (delta_pos[Z] >= 0.0 && type == EMoveType::Extrude) {
+            const float current_z = static_cast<float>(m_end_position[Z]);
+            // replace layer height placeholder with correct value
+            if (m_result.spiral_vase_layers.back().first == FLT_MAX) {
+                m_result.spiral_vase_layers.back().first = current_z;
+            } else {
+                m_result.spiral_vase_layers.back().first = std::max(m_result.spiral_vase_layers.back().first, current_z);
+            }
+        }
+        if (!m_result.moves.empty())
+            m_result.spiral_vase_layers.back().second.second = m_result.moves.size() - 1 - m_seams_count;
+    }
+
     //BBS: store move
     store_move_vertex(type, m_move_path_type);
 }
