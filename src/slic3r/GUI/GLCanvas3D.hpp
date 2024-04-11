@@ -551,6 +551,8 @@ private:
 
     std::array<unsigned int, 2> m_old_size{ 0, 0 };
 
+    bool m_is_touchpad_navigation{ false };
+
     // Screen is only refreshed from the OnIdle handler if it is dirty.
     bool m_dirty;
     bool m_initialized;
@@ -564,6 +566,7 @@ private:
     bool m_multisample_allowed;
     bool m_moving;
     bool m_tab_down;
+    bool m_camera_movement;
     //BBS: add toolpath outside
     bool m_toolpath_outside{ false };
     ECursorType m_cursor_type;
@@ -962,6 +965,9 @@ public:
     void on_paint(wxPaintEvent& evt);
     void on_set_focus(wxFocusEvent& evt);
     void force_set_focus();
+
+    bool is_camera_rotate(const wxMouseEvent& evt) const;
+    bool is_camera_pan(const wxMouseEvent& evt) const;
 
     Size get_canvas_size() const;
     Vec2d get_local_mouse_position() const;

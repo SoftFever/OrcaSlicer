@@ -2356,11 +2356,13 @@ void PartPlate::generate_logo_polygon(ExPolygon &logo_polygon)
 {
 	if (m_shape.size() == 4)
 	{
-	    auto preset_bundle = wxGetApp().preset_bundle;
-
         bool is_bbl_vendor = false;
-        if (preset_bundle)
-            is_bbl_vendor = preset_bundle->is_bbl_vendor();
+
+		if (m_plater) {
+            if (auto preset_bundle = wxGetApp().preset_bundle; preset_bundle)
+                is_bbl_vendor = preset_bundle->is_bbl_vendor();
+		}
+
         //rectangle case
 		for (int i = 0; i < 4; i++)
 		{
@@ -2545,8 +2547,8 @@ bool PartPlate::set_shape(const Pointfs& shape, const Pointfs& exclude_areas, Ve
 
 		ExPolygon logo_poly;
 		generate_logo_polygon(logo_poly);
-        m_logo_triangles.reset();
-        if (!init_model_from_poly(m_logo_triangles, logo_poly, GROUND_Z + 0.02f))
+		m_logo_triangles.reset();
+		if (!init_model_from_poly(m_logo_triangles, logo_poly, GROUND_Z + 0.02f))
 			BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":Unable to create logo triangles\n";
 
 		ExPolygon poly;
@@ -2576,8 +2578,10 @@ bool PartPlate::set_shape(const Pointfs& shape, const Pointfs& exclude_areas, Ve
         calc_vertex_for_icons(4, m_plate_settings_icon);
 		//calc_vertex_for_number(0, (m_plate_index < 9), m_plate_idx_icon);
 		calc_vertex_for_number(0, false, m_plate_idx_icon);
-		// calc vertex for plate name
-		generate_plate_name_texture();
+		if (m_plater) {
+			// calc vertex for plate name
+            generate_plate_name_texture();
+		}
 	}
 
 	calc_height_limit();
