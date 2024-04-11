@@ -50,6 +50,7 @@ PrintHostSendDialog::PrintHostSendDialog(const fs::path &path, PrintHostPostUplo
 #ifdef __APPLE__
     txt_filename->OSXDisableAllSmartSubstitutions();
 #endif
+    txt_filename->SetForegroundColour(wxColour(0, 0, 0));
     const AppConfig *app_config = wxGetApp().app_config;
 
     auto *label_dir_hint = new wxStaticText(this, wxID_ANY, _L("Use forward slashes ( / ) as a directory separator if needed."));
