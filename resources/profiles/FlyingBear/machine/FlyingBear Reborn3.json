@@ -1,7 +1,7 @@
 {
     "type": "machine_model",
     "name": "Flying Bear Reborn 2",
-    "model_id": "Flying Bear Reborn 2",
+    "model_id": "FlyingBear Reborn3",
     "nozzle_diameter": "0.4",
     "machine_tech": "FFF",
     "family": "FlyingBearDesign",
