@@ -89,16 +89,19 @@ wxBoxSizer* NetworkTestDialog::create_info_sizer(wxWindow* parent)
 	auto sizer = new wxBoxSizer(wxVERTICAL);
 
 	text_basic_info = new wxStaticText(this, wxID_ANY, _L("Basic Info"), wxDefaultPosition, wxDefaultSize, 0);
+	text_basic_info->SetForegroundColour(wxColour(0, 0, 0));
 	text_basic_info->Wrap(-1);
 	sizer->Add(text_basic_info, 0, wxALL, 5);
 
 	wxBoxSizer* version_sizer = new wxBoxSizer(wxHORIZONTAL);
 	text_version_title = new wxStaticText(this, wxID_ANY, _L("OrcaSlicer Version:"), wxDefaultPosition, wxDefaultSize, 0);
+	text_version_title->SetForegroundColour(wxColour(0, 0, 0));
 	text_version_title->Wrap(-1);
 	version_sizer->Add(text_version_title, 0, wxALL, 5);
 
 	wxString text_version = get_studio_version();
 	text_version_val = new wxStaticText(this, wxID_ANY, text_version, wxDefaultPosition, wxDefaultSize, 0);
+	text_version_val->SetForegroundColour(wxColour(0, 0, 0));
 	text_version_val->Wrap(-1);
 	version_sizer->Add(text_version_val, 0, wxALL, 5);
 	sizer->Add(version_sizer, 1, wxEXPAND, 5);
@@ -106,10 +109,12 @@ wxBoxSizer* NetworkTestDialog::create_info_sizer(wxWindow* parent)
 	wxBoxSizer* sys_sizer = new wxBoxSizer(wxHORIZONTAL);
 
 	txt_sys_info_title = new wxStaticText(this, wxID_ANY, _L("System Version:"), wxDefaultPosition, wxDefaultSize, 0);
+	txt_sys_info_title->SetForegroundColour(wxColour(0, 0, 0));
 	txt_sys_info_title->Wrap(-1);
 	sys_sizer->Add(txt_sys_info_title, 0, wxALL, 5);
 
 	txt_sys_info_value = new wxStaticText(this, wxID_ANY, get_os_info(), wxDefaultPosition, wxDefaultSize, 0);
+	txt_sys_info_value->SetForegroundColour(wxColour(0, 0, 0));
 	txt_sys_info_value->Wrap(-1);
 	sys_sizer->Add(txt_sys_info_value, 0, wxALL, 5);
 
@@ -117,11 +122,13 @@ wxBoxSizer* NetworkTestDialog::create_info_sizer(wxWindow* parent)
 
 	wxBoxSizer* line_sizer = new wxBoxSizer(wxHORIZONTAL);
 	txt_dns_info_title = new wxStaticText(this, wxID_ANY, _L("DNS Server:"), wxDefaultPosition, wxDefaultSize, 0);
+	txt_dns_info_title->SetForegroundColour(wxColour(0, 0, 0));
 	txt_dns_info_title->Wrap(-1);
 	txt_dns_info_title->Hide();
 	line_sizer->Add(txt_dns_info_title, 0, wxALL, 5);
 
 	txt_dns_info_value = new wxStaticText(this, wxID_ANY, get_dns_info(), wxDefaultPosition, wxDefaultSize, 0);
+	txt_dns_info_value->SetForegroundColour(wxColour(0, 0, 0));
 	txt_dns_info_value->Hide();
 	line_sizer->Add(txt_dns_info_value, 0, wxALL, 5);
 	sizer->Add(line_sizer, 1, wxEXPAND, 5);
@@ -144,10 +151,12 @@ wxBoxSizer* NetworkTestDialog::create_content_sizer(wxWindow* parent)
 	grid_sizer->Add(btn_link, 0, wxEXPAND | wxALL, 5);
 
 	text_link_title = new wxStaticText(this, wxID_ANY, _L("Test OrcaSlicer(GitHub):"), wxDefaultPosition, wxDefaultSize, 0);
+	text_link_title->SetForegroundColour(wxColour(0, 0, 0));
 	text_link_title->Wrap(-1);
 	grid_sizer->Add(text_link_title, 0, wxALIGN_RIGHT | wxALL, 5);
 
 	text_link_val = new wxStaticText(this, wxID_ANY, _L("N/A"), wxDefaultPosition, wxDefaultSize, 0);
+	text_link_val->SetForegroundColour(wxColour(0, 0, 0));
 	text_link_val->Wrap(-1);
 	grid_sizer->Add(text_link_val, 0, wxALL, 5);
 
@@ -156,11 +165,12 @@ wxBoxSizer* NetworkTestDialog::create_content_sizer(wxWindow* parent)
 	grid_sizer->Add(btn_bing, 0, wxEXPAND | wxALL, 5);
 
     text_bing_title = new wxStaticText(this, wxID_ANY, _L("Test bing.com:"), wxDefaultPosition, wxDefaultSize, 0);
-
+	text_bing_title->SetForegroundColour(wxColour(0, 0, 0));
 	text_bing_title->Wrap(-1);
 	grid_sizer->Add(text_bing_title, 0, wxALIGN_RIGHT | wxALL, 5);
 
 	text_bing_val = new wxStaticText(this, wxID_ANY, _L("N/A"), wxDefaultPosition, wxDefaultSize, 0);
+	text_bing_val->SetForegroundColour(wxColour(0, 0, 0));
 	text_bing_val->Wrap(-1);
 	grid_sizer->Add(text_bing_val, 0, wxALL, 5);
 	sizer->Add(grid_sizer, 1, wxEXPAND, 5);
@@ -183,6 +193,7 @@ wxBoxSizer* NetworkTestDialog::create_result_sizer(wxWindow* parent)
 	sizer->Add(text_result, 0, wxALL, 5);
 
 	txt_log = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE);
+	txt_log->SetForegroundColour(wxColour(0, 0, 0));
 	sizer->Add(txt_log, 1, wxALL | wxEXPAND, 5);
 	return sizer;
 }
@@ -373,5 +384,3 @@ void NetworkTestDialog::update_status(int job_id, wxString info)
 
 } // namespace GUI
 } // namespace Slic3r
-
-
