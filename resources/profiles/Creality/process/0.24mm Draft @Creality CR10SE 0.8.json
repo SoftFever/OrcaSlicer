@@ -1,13 +1,13 @@
 {
 	"type": "process",
 	"setting_id": "GP004",
-	"name": "0.20mm Standard @Creality CR10SE 0.8",
+	"name": "0.24mm Draft @Creality CR10SE 0.8",
 	"from": "system",
 	"inherits": "fdm_process_common_klipper",
 	"instantiation": "true",
 	"adaptive_layer_height": "1",
 	"reduce_crossing_wall": "0",
-	"layer_height": "0.2",
+	"layer_height": "0.24",
 	"max_travel_detour_distance": "0",
 	"bottom_surface_pattern": "monotonic",
 	"bottom_shell_layers": "4",
@@ -106,6 +106,6 @@
 	"xy_hole_compensation": "0",
 	"xy_contour_compensation": "0",
 	"compatible_printers": [
-		"Creality CD-10 SE 0.8 nozzle"
+		"Creality CR-10 SE 0.8 nozzle"
 	]
 }
