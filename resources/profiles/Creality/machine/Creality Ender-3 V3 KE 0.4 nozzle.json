@@ -104,10 +104,10 @@
 		"1"
 	],
 	"retraction_speed": [
-		"40"
+		"30"
 	],
 	"deretraction_speed": [
-		"40"
+		"0"
 	],
 	"z_hop": [
 		"0.2"
