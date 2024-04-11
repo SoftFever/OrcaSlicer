@@ -908,8 +908,20 @@ void MenuFactory::append_menu_item_change_extruder(wxMenu* menu)
         bool is_active_extruder = i == initial_extruder;
         int icon_idx = i == 0 ? 0 : i - 1;
 
-        const wxString& item_name = (i == 0 ? _L("Default") : wxString::Format(_L("Filament %d"), i)) +
-            (is_active_extruder ? " (" + _L("active") + ")" : "");
+        wxString item_name = _L("Default");
+
+        if (i > 0) {
+            auto preset = wxGetApp().preset_bundle->filaments.find_preset(wxGetApp().preset_bundle->filament_presets[i - 1]);
+            if (preset == nullptr) {
+                item_name = wxString::Format(_L("Filament %d"), i);
+            } else {
+                item_name = from_u8(preset->label(false));
+            }
+        }
+
+        if (is_active_extruder) {
+            item_name << " (" + _L("current") + ")";
+        }
 
         if (icon_idx >= 0 && icon_idx < icons.size()) {
             append_menu_item(
@@ -1892,8 +1904,20 @@ void MenuFactory::append_menu_item_change_filament(wxMenu* menu)
         //bool is_active_extruder = i == initial_extruder;
         bool is_active_extruder = false;
 
-        const wxString& item_name = (i == 0 ? _L("Default") : wxString::Format(_L("Filament %d"), i)) +
-            (is_active_extruder ? " (" + _L("current") + ")" : "");
+        wxString item_name = _L("Default");
+
+        if (i > 0) {
+            auto preset = wxGetApp().preset_bundle->filaments.find_preset(wxGetApp().preset_bundle->filament_presets[i - 1]);
+            if (preset == nullptr) {
+                item_name = wxString::Format(_L("Filament %d"), i);
+            } else {
+                item_name = from_u8(preset->label(false));
+            }
+        }
+
+        if (is_active_extruder) {
+            item_name << " (" + _L("current") + ")";
+        }
 
         append_menu_item(extruder_selection_menu, wxID_ANY, item_name, "",
             [i](wxCommandEvent&) { obj_list()->set_extruder_for_selected_items(i); }, i == 0 ? wxNullBitmap : *icons[i - 1], menu,
@@ -1969,10 +1993,10 @@ void MenuFactory::append_menu_item_plate_name(wxMenu *menu)
     // Delete old menu item
     const int item_id = menu->FindItem(name);
     if (item_id != wxNOT_FOUND) menu->Destroy(item_id);
-    
+
     PartPlate *plate = plater()->get_partplate_list().get_selected_plate();
     assert(plate);
-   
+
     auto item = append_menu_item(
         menu, wxID_ANY, name, "",
         [plate](wxCommandEvent &e) {
@@ -1984,7 +2008,7 @@ void MenuFactory::append_menu_item_plate_name(wxMenu *menu)
             else
             {
                 plater()->select_plate_by_hover_id(hover_idx, false, true);
-            } 
+            }
             plater()->get_current_canvas3D()->post_event(SimpleEvent(EVT_GLCANVAS_PLATE_NAME_CHANGE));
         },
         "", nullptr, []() { return true; }, m_parent);
