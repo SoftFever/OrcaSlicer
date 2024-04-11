@@ -43,8 +43,7 @@
   "enable_arc_fitting": "0",
   "initial_layer_min_bead_width": "100",
   "min_bead_width": "100",
-  "detect_thin_wall": "1",
-  "elefant_foot_compensation": "0",
+  "elefant_foot_compensation": "0.15",
   "small_perimeter_speed": "50%",
   "overhang_speed_classic": "0",
   "internal_bridge_speed": "64",
@@ -54,6 +53,7 @@
   "slow_down_layers": "1",
   "wipe_speed": "200",
   "reduce_crossing_wall": "1",
+  "max_travel_detour_distance": "50",
   "compatible_printers": [
     "Flashforge Adventurer 3 Series 0.4 Nozzle"
   ],
