@@ -61,15 +61,9 @@ TipsDialog::TipsDialog(wxWindow *parent, const wxString &title, const wxString &
     wxBoxSizer *m_sizer_right = new wxBoxSizer(wxHORIZONTAL);
 
     m_confirm = new Button(this, _L("OK"));
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
-
-    m_confirm->SetBackgroundColor(btn_bg_green);
-    m_confirm->SetBorderColor(wxColour(0, 150, 136));
-    m_confirm->SetTextColor(wxColour(255, 255, 255));
+    m_confirm->SetStyleConfirm(Label::Body_14); // ORCA match button style
     m_confirm->SetSize(TIPS_DIALOG_BUTTON_SIZE);
     m_confirm->SetMinSize(TIPS_DIALOG_BUTTON_SIZE);
-    m_confirm->SetCornerRadius(FromDIP(12));
     m_confirm->Bind(wxEVT_LEFT_DOWN, &TipsDialog::on_ok, this);
     m_sizer_right->Add(m_confirm, 0, wxALL, FromDIP(5));
 
@@ -209,8 +203,8 @@ ParamsPanel::ParamsPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, c
     if (dynamic_cast<Notebook*>(parent)) {
         // BBS: new layout
         m_top_panel = new StaticBox(this, wxID_ANY, wxDefaultPosition);
-        m_top_panel->SetBackgroundColor(0xF8F8F8);
-        m_top_panel->SetBackgroundColor2(0xF1F1F1);
+        m_top_panel->SetBackgroundColor(wxColour("#F2F2F2")); // ORCA: Use same color with other titlebars. Fixes not visible highlighting on light theme
+        m_top_panel->SetBackgroundColor2(wxColour("#F2F2F2")); // ORCA: Use same color for titlebar gradient
 
         m_process_icon = new ScalableButton(m_top_panel, wxID_ANY, "process");
 
@@ -226,6 +220,7 @@ ParamsPanel::ParamsPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, c
         m_tips_arrow->Hide();
 
         m_title_view = new Label(m_top_panel, _L("Advance"));
+        m_title_view->SetFont(Label::Body_12);
         m_mode_view = new SwitchButton(m_top_panel, wxID_ABOUT);
 
         // BBS: new layout
@@ -360,22 +355,18 @@ void ParamsPanel::create_layout()
 
     if (m_top_panel) {
         m_mode_sizer = new wxBoxSizer( wxHORIZONTAL );
-        m_mode_sizer->AddSpacer(FromDIP(11));
-        m_mode_sizer->Add(m_process_icon, 0, wxALIGN_CENTER);
-        m_mode_sizer->AddSpacer(FromDIP(11));
-        m_mode_sizer->Add( m_title_label, 0, wxALIGN_CENTER );
-        m_mode_sizer->AddStretchSpacer(2);
-        m_mode_sizer->Add(m_mode_region, 0, wxALIGN_CENTER);
-        m_mode_sizer->AddStretchSpacer(1);
-        m_mode_sizer->Add(m_tips_arrow, 0, wxALIGN_CENTER);
+        m_mode_sizer->Add(m_process_icon, 0, wxALIGN_CENTRE | wxLEFT | wxRIGHT, FromDIP(8)); // ORCA: Match spacings with Printer and filament Titlebars
+        m_mode_sizer->Add(m_title_label, 0, wxALIGN_CENTER );
+        m_mode_sizer->Add(m_mode_region, 0, wxALIGN_CENTER | wxLEFT, FromDIP(12)); // ORCA: Align mode toggle to left
+        //m_mode_sizer->AddStretchSpacer(1);
+        m_mode_sizer->Add(m_tips_arrow, 0, wxALIGN_CENTER | wxLEFT, FromDIP(4));
         m_mode_sizer->AddStretchSpacer(8);
-        m_mode_sizer->Add( m_title_view, 0, wxALIGN_CENTER );
-        m_mode_sizer->AddSpacer(FromDIP(2));
-        m_mode_sizer->Add(m_mode_view, 0, wxALIGN_CENTER);
-        m_mode_sizer->AddStretchSpacer(2);
-        m_mode_sizer->Add(m_setting_btn, 0, wxALIGN_CENTER);
-        m_mode_sizer->AddSpacer(FromDIP(2));
-        m_mode_sizer->Add(m_compare_btn, 0, wxALIGN_CENTER);
+        m_mode_sizer->Add(m_title_view, 0, wxALIGN_CENTER | wxLEFT, FromDIP(4)); // ORCA: Added space before text
+        //m_mode_sizer->AddSpacer(FromDIP(4));
+        m_mode_sizer->Add(m_mode_view, 0, wxALIGN_CENTER | wxLEFT, FromDIP(4)); // ORCA: Align Advanced toggle to right instead using AddStretchSpacer
+        //m_mode_sizer->AddStretchSpacer(2);
+        m_mode_sizer->Add(m_setting_btn, 0, wxALIGN_CENTER | wxLEFT, FromDIP(12)); // ORCA: Match space between icons
+        m_mode_sizer->Add(m_compare_btn, 0, wxALIGN_CENTER | wxLEFT, FromDIP(12));  // ORCA: Match space between icons
 
         m_mode_sizer->AddSpacer(FromDIP(8));
         //m_mode_sizer->Add( m_search_btn, 0, wxALIGN_CENTER );

@@ -38,6 +38,8 @@ private:
     StateColor   text_color2;
 	StateColor   track_color;
 	StateColor   thumb_color;
+    StateColor   toggle_track_color;
+    StateColor   toggle_thumb_color;
 };
 
 #endif // !slic3r_GUI_SwitchButton_hpp_

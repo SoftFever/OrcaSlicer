@@ -208,6 +208,7 @@ void SideButton::dorender(wxDC& dc, wxDC& text_dc)
     dc.SetPen(wxPen(border_color.colorForStates(states)));
     int pen_width = dc.GetPen().GetWidth();
 
+	int radius = FromDIP(4); // ORCA: use less radius to match button style
     
     // draw icon style
     if (icon.bmp().IsOk()) {
@@ -269,11 +270,11 @@ void SideButton::dorender(wxDC& dc, wxDC& text_dc)
     wxPoint pt = rcContent.GetLeftTop();
     if (icon.bmp().IsOk()) {
         //BBS extra pixels for icon
-        pt.x += icon_offset;
+        pt.x += icon_offset - 2; // ORCA: Center icon
         pt.y += (rcContent.height - szIcon.y) / 2;
         dc.DrawBitmap(icon.bmp(), pt);
         //BBS norrow size between text and icon
-        pt.x += szIcon.x + 5;
+        pt.x += szIcon.x + 7;
         pt.y = rcContent.y;
     }
 

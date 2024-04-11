@@ -77,7 +77,7 @@ void TextInput::Create(wxWindow *     parent,
     });
     text_ctrl->Bind(wxEVT_RIGHT_DOWN, [this](auto &e) {}); // disable context menu
     if (!icon.IsEmpty()) {
-        this->icon = ScalableBitmap(this, icon.ToStdString(), 16);
+        this->icon = ScalableBitmap(this, icon.ToStdString(), 0); // ORCA: 0 gets icon size from file
     }
     messureSize();
 }
@@ -193,15 +193,20 @@ void TextInput::render(wxDC& dc)
     wxSize size = GetSize();
     bool   align_right = GetWindowStyle() & wxRIGHT;
     // start draw
-    wxPoint pt = {5, 0};
+    wxPoint pt = {1, 0}; // ORCA: Start drawing at 0 for icons
     if (icon.bmp().IsOk()) {
         wxSize szIcon = icon.GetBmpSize();
         pt.y = (size.y - szIcon.y) / 2;
         dc.DrawBitmap(icon.bmp(), pt);
         pt.x += szIcon.x + 0;
+    } else {
+        pt.x += 5; // ORCA: Add left margin to text if there is no icon
     }
     auto text = wxWindow::GetLabel();
     if (!text.IsEmpty()) {
+        if (icon.bmp().IsOk()) {
+            pt.x += 3; // ORCA: Add left margin to text if there is an icon
+		}
         wxSize textSize = text_ctrl->GetSize();
         if (align_right) {
             if (pt.x + labelSize.x > size.x)

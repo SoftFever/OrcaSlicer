@@ -14,8 +14,8 @@
 #define SIDE_TOOLS_GREY900 wxColour(38, 46, 48)
 #define SIDE_TOOLS_GREY600 wxColour(144, 144, 144)
 #define SIDE_TOOLS_GREY400 wxColour(206, 206, 206)
-#define SIDE_TOOLS_BRAND wxColour(0, 150, 136)
-#define SIDE_TOOLS_LIGHT_GREEN wxColour(219, 253, 231)
+#define SIDE_TOOLS_BRAND wxColour("#009688") // ORCA Color
+#define SIDE_TOOLS_LIGHT_GREEN wxColour("#BFE1DE") // ORCA: Orca color with %25 opaciy
 
 enum WifiSignal {
     NONE,

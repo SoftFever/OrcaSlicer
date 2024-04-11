@@ -47,7 +47,7 @@ namespace GUI {
 //------------------------------------------
 
 PhysicalPrinterDialog::PhysicalPrinterDialog(wxWindow* parent) :
-    DPIDialog(parent, wxID_ANY, _L("Physical Printer"), wxDefaultPosition, wxSize(45 * wxGetApp().em_unit(), -1), wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+    DPIDialog(parent, wxID_ANY, _L("Physical Printer"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE) // ORCA: wxRESIZE_BORDER shows resize icon on corner that not compatible with dark mode also no need to use resize function on window. it will automatically resizing
 {
     SetFont(wxGetApp().normal_font());
     SetBackgroundColour(*wxWHITE);
@@ -65,18 +65,18 @@ PhysicalPrinterDialog::PhysicalPrinterDialog(wxWindow* parent) :
     label_top->SetFont(::Label::Body_13);
     label_top->SetForegroundColour(wxColour(38,46,48));
 
-    m_input_area = new RoundedRectangle(this, wxColor(172, 172, 172), wxDefaultPosition, wxSize(-1,-1), 3, 1);
+    m_input_area = new RoundedRectangle(this, wxColor("#DBDBDB"), wxPoint(0, 0), wxSize(-1, -1), 4, 1); // ORCA match border radius and draw at full width
     m_input_area->SetMinSize(wxSize(FromDIP(360), FromDIP(32)));
 
     wxBoxSizer *input_sizer_h = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer *input_sizer_v  = new wxBoxSizer(wxVERTICAL);
 
-    m_input_ctrl = new wxTextCtrl(m_input_area, -1, from_u8(preset_name), wxDefaultPosition, wxSize(wxSize(FromDIP(360), FromDIP(32)).x, -1), 0 | wxBORDER_NONE);
+    m_input_ctrl = new wxTextCtrl(m_input_area, -1, from_u8(preset_name), wxDefaultPosition, wxDefaultSize, 0 | wxBORDER_NONE);
     m_input_ctrl->SetBackgroundColour(wxColour(255, 255, 255));
     m_input_ctrl->Bind(wxEVT_TEXT, [this](wxCommandEvent &) { update(); });
 
 
-    input_sizer_v->Add(m_input_ctrl, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, 12);
+    input_sizer_v->Add(m_input_ctrl, 1, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(6)); // ORCA match margins
     input_sizer_h->Add(input_sizer_v, 0, wxALIGN_CENTER, 0);
 
     m_input_area->SetSizer(input_sizer_h);
@@ -85,28 +85,37 @@ PhysicalPrinterDialog::PhysicalPrinterDialog(wxWindow* parent) :
     m_valid_label = new wxStaticText(this, wxID_ANY, "");
     m_valid_label->SetForegroundColour(wxColor(255, 111, 0));
 
-    input_sizer->Add(label_top, 0, wxEXPAND | wxLEFT | wxTOP | wxBOTTOM, BORDER_W);
-    input_sizer->Add(m_input_area, 0, wxEXPAND | wxLEFT | wxTOP | wxBOTTOM, BORDER_W);
-    input_sizer->Add(m_valid_label, 0, wxEXPAND | wxLEFT | wxRIGHT, BORDER_W);
-
+	input_sizer->AddSpacer(FromDIP(6));
+    input_sizer->Add(label_top, 0, wxEXPAND | wxLEFT, FromDIP(10));
+    input_sizer->Add(m_input_area, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(4));
+    input_sizer->Add(m_valid_label, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(6));
 
     m_config = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
     m_optgroup = new ConfigOptionsGroup(this, _L("Print Host upload"), m_config);
     build_printhost_settings(m_optgroup);
 
-    wxStdDialogButtonSizer* btns = this->CreateStdDialogButtonSizer(wxOK | wxCANCEL);
-    btnOK = static_cast<wxButton*>(this->FindWindowById(wxID_OK, this));
-    wxGetApp().UpdateDarkUI(btnOK);
-    btnOK->Bind(wxEVT_BUTTON, &PhysicalPrinterDialog::OnOK, this);
+	// ORCA: Update window button to new style
+	wxBoxSizer* btns = new wxBoxSizer(wxHORIZONTAL);
+    btns->Add(0, 0, 1, wxEXPAND, 0);
 
-    wxGetApp().UpdateDarkUI(static_cast<wxButton*>(this->FindWindowById(wxID_CANCEL, this)));
-    (static_cast<wxButton*>(this->FindWindowById(wxID_CANCEL, this)))->Hide();
+	Button* btnOK = new Button(this, _L("Confirm"));
+    btnOK->SetMinSize(wxSize(FromDIP(120), FromDIP(26)));
+    btnOK->SetStyleConfirm(Label::Body_14); // ORCA: Match Button Style
+    btnOK->Bind(wxEVT_BUTTON, &PhysicalPrinterDialog::OnOK, this);
+    btns->Add(btnOK, 0, wxRIGHT, BORDER_W * 2); // Align to right
+
+    // wxStdDialogButtonSizer* btns = this->CreateStdDialogButtonSizer(wxOK | wxCANCEL);
+    // btnOK = static_cast<wxButton*>(this->FindWindowById(wxID_OK, this));
+    // wxGetApp().UpdateDarkUI(btnOK);
+	//btnOK->Bind(wxEVT_BUTTON, &PhysicalPrinterDialog::OnOK, this);
+    //wxGetApp().UpdateDarkUI(static_cast<wxButton*>(this->FindWindowById(wxID_CANCEL, this)));
+    //(static_cast<wxButton*>(this->FindWindowById(wxID_CANCEL, this)))->Hide();
 
     wxBoxSizer* topSizer = new wxBoxSizer(wxVERTICAL);
 
     // topSizer->Add(label_top           , 0, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, BORDER_W);
     topSizer->Add(input_sizer         , 0, wxEXPAND | wxALL, BORDER_W);
-    topSizer->Add(m_optgroup->sizer   , 1, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, BORDER_W);
+    topSizer->Add(m_optgroup->sizer   , 1, wxEXPAND | wxLEFT | wxRIGHT, BORDER_W);
     topSizer->Add(btns                , 0, wxEXPAND | wxALL, BORDER_W);
 
     Bind(wxEVT_CLOSE_WINDOW, [this](auto& e) {this->EndModal(wxID_NO);});
@@ -134,9 +143,16 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
 
     m_optgroup->append_single_option_line("host_type");
 
-    auto create_sizer_with_btn = [](wxWindow* parent, ScalableButton** btn, const std::string& icon_name, const wxString& label) {
-        *btn = new ScalableButton(parent, wxID_ANY, icon_name, label, wxDefaultSize, wxDefaultPosition, wxBU_LEFT | wxBU_EXACTFIT);
-        (*btn)->SetFont(wxGetApp().normal_font());
+    auto create_sizer_with_btn = [](wxWindow* parent, Button** btn, const std::string& icon_name, const wxString& label) {
+        //*btn = new ScalableButton(parent, wxID_ANY, icon_name, label, wxDefaultSize, wxDefaultPosition, wxBU_LEFT | wxBU_EXACTFIT);
+        //(*btn)->SetFont(wxGetApp().normal_font());
+
+		// ORCA: Match Button Style
+        *btn = new Button(parent, label, icon_name, 0, parent->FromDIP(16));
+        (*btn)->SetMinSize(wxSize(parent->FromDIP(80), parent->FromDIP(26)));
+        (*btn)->SetContentAlignment("L");                 
+        (*btn)->SetStyleDefault(Label::Body_14);
+        (*btn)->SetPaddingSize(wxSize(5,5));
 
         auto sizer = new wxBoxSizer(wxHORIZONTAL);
         sizer->Add(*btn);
@@ -234,8 +250,7 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
     auto print_host_printers = [this, create_sizer_with_btn](wxWindow* parent) {
         //add_scaled_button(parent, &m_printhost_port_browse_btn, "browse", _(L("Refresh Printers")), wxBU_LEFT | wxBU_EXACTFIT);
         auto sizer = create_sizer_with_btn(parent, &m_printhost_port_browse_btn, "monitor_signal_strong", _(L("Refresh Printers")));
-        ScalableButton* btn = m_printhost_port_browse_btn;
-        btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
+        Button* btn = m_printhost_port_browse_btn;
         btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent e) { update_printers(); });
         return sizer;
     };
@@ -664,11 +679,11 @@ void PhysicalPrinterDialog::on_dpi_changed(const wxRect& suggested_rect)
 {
     const int& em = em_unit();
 
-    m_printhost_browse_btn->msw_rescale();
-    m_printhost_test_btn->msw_rescale();
-    m_printhost_logout_btn->msw_rescale();
+    m_printhost_browse_btn->Rescale();
+    m_printhost_test_btn->Rescale();
+    m_printhost_logout_btn->Rescale();
     if (m_printhost_cafile_browse_btn)
-        m_printhost_cafile_browse_btn->msw_rescale();
+        m_printhost_cafile_browse_btn->Rescale();
 
     m_optgroup->msw_rescale();
 

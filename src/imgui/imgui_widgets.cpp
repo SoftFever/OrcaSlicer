@@ -4336,6 +4336,7 @@ bool ImGui::InputScalar(const char* label, ImGuiDataType data_type, void* p_data
         if (flags & ImGuiInputTextFlags_ReadOnly)
             button_flags |= ImGuiButtonFlags_Disabled;
 
+		// ORCA: NEEDFIX repeat not working on buttons while holding. not working on original source too
         SameLine(input_width - button_size * 2); // ORCA: Move Inc/Dec buttons to inside of input box
         if (ButtonEx("-", ImVec2(button_size, button_size), button_flags))
         {

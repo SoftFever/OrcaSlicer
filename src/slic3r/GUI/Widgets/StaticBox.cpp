@@ -40,6 +40,7 @@ bool StaticBox::Create(wxWindow* parent, wxWindowID id, const wxPoint& pos, cons
     if (style & wxBORDER_NONE)
         border_width = 0;
     wxWindow::Create(parent, id, pos, size, style);
+    this->SetCornerRadius(FromDIP(4)); // ORCA: use all static boxes with corner radius to match style
     state_handler.attach({&border_color, &background_color, &background_color2});
     state_handler.update_binds();
     SetBackgroundColour(GetParentBackgroundColor(parent));

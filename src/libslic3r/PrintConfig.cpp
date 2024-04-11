@@ -2050,19 +2050,22 @@ def = this->add("filament_loading_speed", coFloats);
     def->sidetext = L("mm or %");
     def->ratio_over = "sparse_infill_line_width";
     def->max_literal = 1000;
-    def->gui_type = ConfigOptionDef::GUIType::f_enum_open;
-    def->enum_values.push_back("0");
-    def->enum_values.push_back("1");
-    def->enum_values.push_back("2");
-    def->enum_values.push_back("5");
-    def->enum_values.push_back("10");
-    def->enum_values.push_back("1000");
-    def->enum_labels.push_back(L("0 (no open anchors)"));
-    def->enum_labels.push_back("1 mm");
-    def->enum_labels.push_back("2 mm");
-    def->enum_labels.push_back("5 mm");
-    def->enum_labels.push_back("10 mm");
-    def->enum_labels.push_back(L("1000 (unlimited)"));
+	// ORCA: Don't combine value box and bombo boxes together. current UI design not allows this.
+	// ORCA: NEEDFIX > Adding an icon to next of value box for pre defined values might be better choose
+    //def->gui_type = ConfigOptionDef::GUIType::f_enum_open;
+    //def->enum_values.push_back("0");
+    //def->enum_values.push_back("1");
+    //def->enum_values.push_back("2");
+    //def->enum_values.push_back("5");
+    //def->enum_values.push_back("10");
+    //def->enum_values.push_back("1000");
+    //def->enum_labels.push_back(L("0 (no open anchors)"));
+    //def->enum_labels.push_back("1 mm");
+    //def->enum_labels.push_back("2 mm");
+    //def->enum_labels.push_back("5 mm");
+    //def->enum_labels.push_back("10 mm");
+    //def->enum_labels.push_back(L("1000 (unlimited)"));
+    
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatOrPercent(400, true));
 
@@ -2076,15 +2079,15 @@ def = this->add("filament_loading_speed", coFloats);
                      "\nIf set to 0, the old algorithm for infill connection will be used, it should create the same result as with 1000 & 0.");
     def->sidetext    = def_infill_anchor_min->sidetext;
     def->ratio_over  = def_infill_anchor_min->ratio_over;
-    def->gui_type    = def_infill_anchor_min->gui_type;
-    def->enum_values = def_infill_anchor_min->enum_values;
+    //def->gui_type    = def_infill_anchor_min->gui_type;
+    //def->enum_values = def_infill_anchor_min->enum_values;
     def->max_literal = def_infill_anchor_min->max_literal;
-    def->enum_labels.push_back(L("0 (Simple connect)"));
-    def->enum_labels.push_back("1 mm");
-    def->enum_labels.push_back("2 mm");
-    def->enum_labels.push_back("5 mm");
-    def->enum_labels.push_back("10 mm");
-    def->enum_labels.push_back(L("1000 (unlimited)"));
+    //def->enum_labels.push_back(L("0 (Simple connect)"));
+    // def->enum_labels.push_back("1 mm");
+    // def->enum_labels.push_back("2 mm");
+    // def->enum_labels.push_back("5 mm");
+    // def->enum_labels.push_back("10 mm");
+    // def->enum_labels.push_back(L("1000 (unlimited)"));
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatOrPercent(20, false));
     
@@ -4102,34 +4105,38 @@ def = this->add("filament_loading_speed", coFloats);
     def->set_default_value(new ConfigOptionInt(0));
 
     auto support_interface_top_layers = def = this->add("support_interface_top_layers", coInt);
-    def->gui_type = ConfigOptionDef::GUIType::i_enum_open;
+    //def->gui_type = ConfigOptionDef::GUIType::i_enum_open;
     def->label = L("Top interface layers");
     def->category = L("Support");
     def->tooltip = L("Number of top interface layers");
     def->sidetext = L("layers");
     def->min = 0;
-    def->enum_values.push_back("0");
-    def->enum_values.push_back("1");
-    def->enum_values.push_back("2");
-    def->enum_values.push_back("3");
-    def->enum_labels.push_back("0");
-    def->enum_labels.push_back("1");
-    def->enum_labels.push_back("2");
-    def->enum_labels.push_back("3");
+    // ORCA: Don't combine value box and bombo boxes together. current UI design not allows this.
+    // ORCA: NEEDFIX > Adding an icon to next of value box for pre defined values might be better choose
+    //def->enum_values.push_back("0");
+    //def->enum_values.push_back("1");
+    //def->enum_values.push_back("2");
+    // def->enum_values.push_back("3");
+    // def->enum_labels.push_back("0");
+    // def->enum_labels.push_back("1");
+    // def->enum_labels.push_back("2");
+    // def->enum_labels.push_back("3");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInt(3));
 
     def = this->add("support_interface_bottom_layers", coInt);
-    def->gui_type = ConfigOptionDef::GUIType::i_enum_open;
+    //def->gui_type = ConfigOptionDef::GUIType::i_enum_open;
     def->label = L("Bottom interface layers");
     def->category = L("Support");
     def->tooltip = L("Number of bottom interface layers");
     def->sidetext = L("layers");
     def->min = -1;
-    def->enum_values.push_back("-1");
-    append(def->enum_values, support_interface_top_layers->enum_values);
-    def->enum_labels.push_back(L("Same as top"));
-    append(def->enum_labels, support_interface_top_layers->enum_labels);
+    // ORCA: Don't combine value box and bombo boxes together. current UI design not allows this.
+    // ORCA: NEEDFIX > Adding an icon to next of value box for pre defined values might be better choose
+    //def->enum_values.push_back("-1");
+    //append(def->enum_values, support_interface_top_layers->enum_values);
+    //def->enum_labels.push_back(L("Same as top"));
+    //append(def->enum_labels, support_interface_top_layers->enum_labels);
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInt(0));
 
@@ -4166,7 +4173,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->category = L("Support");
     def->tooltip = L("Line pattern of support");
     def->enum_keys_map = &ConfigOptionEnum<SupportMaterialPattern>::get_enum_values();
-    def->enum_values.push_back("default");
+    def->enum_values.push_back("default-pattern"); // ORCA: use new icon (param_default-pattern) for auto / default
     def->enum_values.push_back("rectilinear");
     def->enum_values.push_back("rectilinear-grid");
     def->enum_values.push_back("honeycomb");
@@ -4188,7 +4195,7 @@ def = this->add("filament_loading_speed", coFloats);
                      "Default pattern for non-soluble support interface is Rectilinear, "
                      "while default pattern for soluble support interface is Concentric");
     def->enum_keys_map = &ConfigOptionEnum<SupportMaterialInterfacePattern>::get_enum_values();
-    def->enum_values.push_back("auto");
+    def->enum_values.push_back("default-pattern"); // ORCA: use new icon (param_default-pattern) for auto / default
     def->enum_values.push_back("rectilinear");
     def->enum_values.push_back("concentric");
     def->enum_values.push_back("rectilinear_interlaced");

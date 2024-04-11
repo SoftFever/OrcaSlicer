@@ -358,6 +358,7 @@ struct Sidebar::priv
     wxPanel* m_panel_project_title;
     ScalableButton* m_filament_icon = nullptr;
     Button * m_flushing_volume_btn = nullptr;
+    ScalableButton * del_btn = nullptr;
     wxSearchCtrl* m_search_bar = nullptr;
     Search::SearchObjectDialog* dia = nullptr;
 
@@ -571,7 +572,7 @@ Sidebar::Sidebar(Plater *parent)
     auto* scrolled_sizer = m_scrolled_sizer = new wxBoxSizer(wxVERTICAL);
     p->scrolled->SetSizer(scrolled_sizer);
 
-    wxColour title_bg = wxColour(248, 248, 248);
+    wxColour title_bg      = wxColour("#F2F2F2"); // ORCA: Sidebar title background. Fix for titlebar highlight not visible on light theme
     wxColour inactive_text = wxColour(86, 86, 86);
     wxColour active_text = wxColour(0, 0, 0);
     wxColour static_line_col = wxColour(166, 169, 170);
@@ -586,7 +587,7 @@ Sidebar::Sidebar(Plater *parent)
         // 1.1 create title bar resources
         p->m_panel_printer_title = new StaticBox(p->scrolled, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL | wxBORDER_NONE);
         p->m_panel_printer_title->SetBackgroundColor(title_bg);
-        p->m_panel_printer_title->SetBackgroundColor2(0xF1F1F1);
+        p->m_panel_printer_title->SetBackgroundColor2(title_bg); // ORCA: Use same color for titlebar gradient
 
         p->m_printer_icon = new ScalableButton(p->m_panel_printer_title, wxID_ANY, "printer");
         p->m_text_printer_settings = new Label(p->m_panel_printer_title, _L("Printer"), LB_PROPAGATE_MOUSE_EVENT);
@@ -606,11 +607,11 @@ Sidebar::Sidebar(Plater *parent)
             });
 
         wxBoxSizer* h_sizer_title = new wxBoxSizer(wxHORIZONTAL);
-        h_sizer_title->Add(p->m_printer_icon, 0, wxALIGN_CENTRE | wxLEFT | wxRIGHT, em);
+        h_sizer_title->Add(p->m_printer_icon, 0, wxALIGN_CENTRE | wxLEFT | wxRIGHT, FromDIP(8));
         h_sizer_title->Add(p->m_text_printer_settings, 0, wxALIGN_CENTER);
         h_sizer_title->AddStretchSpacer();
         h_sizer_title->Add(p->m_printer_setting, 0, wxALIGN_CENTER);
-        h_sizer_title->Add(15 * em / 10, 0, 0, 0, 0);
+        h_sizer_title->Add(FromDIP(8), 0, 0, 0, 0); // ORCA: use less space after edit settings button
         h_sizer_title->SetMinSize(-1, 3 * em);
 
         p->m_panel_printer_title->SetSizer(h_sizer_title);
@@ -666,13 +667,13 @@ Sidebar::Sidebar(Plater *parent)
         wxBoxSizer* vsizer_printer = new wxBoxSizer(wxVERTICAL);
         wxBoxSizer* hsizer_printer = new wxBoxSizer(wxHORIZONTAL);
 
-        vsizer_printer->AddSpacer(FromDIP(16));
-        hsizer_printer->Add(combo_printer, 1, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(3));
-        hsizer_printer->Add(edit_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(3));
-        hsizer_printer->Add(FromDIP(8), 0, 0, 0, 0);
-        hsizer_printer->Add(connection_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(3));
-        hsizer_printer->Add(FromDIP(8), 0, 0, 0, 0);
-        vsizer_printer->Add(hsizer_printer, 0, wxEXPAND, 0);
+        vsizer_printer->AddSpacer(FromDIP(12)); // ORCA: Use a bit less vertical spacing
+        hsizer_printer->Add(combo_printer, 1, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(12)); // ORCA: Add margin to start & draw child elements in titlebars with bigger margin
+        hsizer_printer->Add(edit_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(6)); // ORCA: Match margin between combo box and button with other combo boxes
+        hsizer_printer->Add(connection_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(12));
+		hsizer_printer->Add(FromDIP(12), 0, 0, 0, 0); // ORCA: match right margin
+        vsizer_printer->Add(hsizer_printer, 0, wxEXPAND);
+        vsizer_printer->AddSpacer(FromDIP(6)); // ORCA: Add vertical space between printer and bed type combo boxes
 
         // Bed type selection
         wxBoxSizer* bed_type_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -680,7 +681,7 @@ Sidebar::Sidebar(Plater *parent)
         //bed_type_title->SetBackgroundColour();
         bed_type_title->Wrap(-1);
         bed_type_title->SetFont(Label::Body_14);
-        m_bed_type_list = new ComboBox(p->m_panel_printer_content, wxID_ANY, wxString(""), wxDefaultPosition, {-1, FromDIP(30)}, 0, nullptr, wxCB_READONLY);
+        m_bed_type_list = new ComboBox(p->m_panel_printer_content, wxID_ANY, wxString(""), wxDefaultPosition, {FromDIP(20), FromDIP(20)}, 0, nullptr, wxCB_READONLY); // ORCA: Use same size with other combo boxes
         const ConfigOptionDef* bed_type_def = print_config_def.get("curr_bed_type");
         if (bed_type_def && bed_type_def->enum_keys_map) {
             for (auto item : bed_type_def->enum_labels) {
@@ -717,10 +718,12 @@ Sidebar::Sidebar(Plater *parent)
 
         int bed_type_idx = bed_type_value - 1;
         m_bed_type_list->Select(bed_type_idx);
-        bed_type_sizer->Add(bed_type_title, 0, wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(10));
-        bed_type_sizer->Add(m_bed_type_list, 1, wxLEFT | wxRIGHT | wxEXPAND, FromDIP(10));
-        vsizer_printer->Add(bed_type_sizer, 0, wxEXPAND | wxTOP, FromDIP(5));
-        vsizer_printer->AddSpacer(FromDIP(16));
+        bed_type_sizer->Add(FromDIP(9), 0, 0, 0, 0); // ORCA: Draw child elements in titlebars with bigger margin
+        bed_type_sizer->Add(bed_type_title, 0, wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(3));
+        bed_type_sizer->Add(m_bed_type_list, 1, wxLEFT | wxRIGHT | wxEXPAND, FromDIP(3));
+        bed_type_sizer->Add(FromDIP(9), 0, 0, 0, 0); // ORCA: Draw child elements in titlebars with bigger margin
+        vsizer_printer->Add(bed_type_sizer, 0, wxEXPAND | wxTOP); // ORCA: Dont use margin on vsizer for simpler margin calculation
+        vsizer_printer->AddSpacer(FromDIP(12)); // ORCA: Use a bit less vertical spacing
 
         auto& project_config = wxGetApp().preset_bundle->project_config;
         /*const t_config_enum_values* keys_map = print_config_def.get("curr_bed_type")->enum_keys_map;
@@ -741,7 +744,7 @@ Sidebar::Sidebar(Plater *parent)
     // add filament title
     p->m_panel_filament_title = new StaticBox(p->scrolled, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL | wxBORDER_NONE);
     p->m_panel_filament_title->SetBackgroundColor(title_bg);
-    p->m_panel_filament_title->SetBackgroundColor2(0xF1F1F1);
+    p->m_panel_filament_title->SetBackgroundColor2(title_bg); // ORCA: Use same color for gradient to get solid color
     p->m_panel_filament_title->Bind(wxEVT_LEFT_UP, [this](wxMouseEvent &e) {
         if (e.GetPosition().x > (p->m_flushing_volume_btn->IsShown()
                 ? p->m_flushing_volume_btn->GetPosition().x : p->m_bpButton_add_filament->GetPosition().x))
@@ -757,7 +760,7 @@ Sidebar::Sidebar(Plater *parent)
     bSizer39 = new wxBoxSizer( wxHORIZONTAL );
     p->m_filament_icon = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "filament");
     p->m_staticText_filament_settings = new Label(p->m_panel_filament_title, _L("Filament"), LB_PROPAGATE_MOUSE_EVENT);
-    bSizer39->Add(p->m_filament_icon, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(10));
+    bSizer39->Add(p->m_filament_icon, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(8));
     bSizer39->Add( p->m_staticText_filament_settings, 0, wxALIGN_CENTER );
     bSizer39->Add(FromDIP(10), 0, 0, 0, 0);
     bSizer39->SetMinSize(-1, FromDIP(30));
@@ -778,25 +781,9 @@ Sidebar::Sidebar(Plater *parent)
     // add wiping dialog
     //wiping_dialog_button->SetFont(wxGetApp().normal_font());
     p->m_flushing_volume_btn = new Button(p->m_panel_filament_title, _L("Flushing volumes"));
-    p->m_flushing_volume_btn->SetFont(Label::Body_10);
+    p->m_flushing_volume_btn->SetStyleDefault(Label::Body_10); // ORCA match button style
     p->m_flushing_volume_btn->SetPaddingSize(wxSize(FromDIP(8),FromDIP(3)));
-    p->m_flushing_volume_btn->SetCornerRadius(FromDIP(8));
-
-    StateColor flush_bg_col(std::pair<wxColour, int>(wxColour(219, 253, 231), StateColor::Pressed),
-                            std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Normal));
-
-    StateColor flush_fg_col(std::pair<wxColour, int>(wxColour(107, 107, 106), StateColor::Pressed),
-                            std::pair<wxColour, int>(wxColour(107, 107, 106), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(107, 107, 106), StateColor::Normal));
-
-    StateColor flush_bd_col(std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Pressed),
-                            std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(172, 172, 172), StateColor::Normal));
-
-    p->m_flushing_volume_btn->SetBackgroundColor(flush_bg_col);
-    p->m_flushing_volume_btn->SetBorderColor(flush_bd_col);
-    p->m_flushing_volume_btn->SetTextColor(flush_fg_col);
+    p->m_flushing_volume_btn->SetTextColor(wxColour("#6B6B6A")); // ORCA Use dimmed color to reduce contrast
     p->m_flushing_volume_btn->SetFocus();
     p->m_flushing_volume_btn->SetId(wxID_RESET);
     p->m_flushing_volume_btn->Rescale();
@@ -832,32 +819,11 @@ Sidebar::Sidebar(Plater *parent)
 
     bSizer39->Add(p->m_flushing_volume_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(5));
     bSizer39->Hide(p->m_flushing_volume_btn);
-    bSizer39->Add(FromDIP(10), 0, 0, 0, 0 );
-
-    ScalableButton* add_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "add_filament");
-    add_btn->SetToolTip(_L("Add one filament"));
-    add_btn->Bind(wxEVT_BUTTON, [this, scrolled_sizer](wxCommandEvent& e){
-        // Orca: limit filament choices to 64
-        if (p->combos_filament.size() >= 64)
-            return;
-
-        int filament_count = p->combos_filament.size() + 1;
-        wxColour new_col = Plater::get_next_color_for_filament();
-        std::string new_color = new_col.GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
-        wxGetApp().preset_bundle->set_num_filaments(filament_count, new_color);
-        wxGetApp().plater()->on_filaments_change(filament_count);
-        wxGetApp().get_tab(Preset::TYPE_PRINT)->update();
-        wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
-        auto_calc_flushing_volumes(filament_count - 1);
-    });
-    p->m_bpButton_add_filament = add_btn;
-
-    bSizer39->Add(add_btn, 0, wxALIGN_CENTER|wxALL, FromDIP(5));
-    bSizer39->Add(FromDIP(10), 0, 0, 0, 0 );
-
-    ScalableButton* del_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "delete_filament");
-    del_btn->SetToolTip(_L("Remove last filament"));
-    del_btn->Bind(wxEVT_BUTTON, [this, scrolled_sizer](wxCommandEvent &e) {
+    
+	// ORCA: Replaced placement of add / delete filaments buttons. This will reduce accidental clicks while switching between single / multi filament
+	p->del_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "delete_filament");
+    p->del_btn->SetToolTip(_L("Remove last filament"));
+    p->del_btn->Bind(wxEVT_BUTTON, [this, scrolled_sizer](wxCommandEvent& e) {
         if (p->combos_filament.size() <= 1)
             return;
 
@@ -874,22 +840,42 @@ Sidebar::Sidebar(Plater *parent)
         wxGetApp().plater()->on_filaments_change(filament_count);
         wxGetApp().get_tab(Preset::TYPE_PRINT)->update();
         wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
+        // ORCA: NEEDFIX required refresh color paint gizmo if its open
     });
-    p->m_bpButton_del_filament = del_btn;
+    p->m_bpButton_del_filament = p->del_btn;
 
-    bSizer39->Add(del_btn, 0, wxALIGN_CENTER_VERTICAL, FromDIP(5));
-    bSizer39->Add(FromDIP(20), 0, 0, 0, 0);
+    bSizer39->Add(p->del_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(12)); // ORCA: Use equal margin between buttons
+    bSizer39->Hide(p->del_btn); // ORCA: Hide by default
 
-    ams_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "ams_fila_sync", wxEmptyString, wxDefaultSize, wxDefaultPosition,
-                                                 wxBU_EXACTFIT | wxNO_BORDER, false, 18);
+    ScalableButton* add_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "add_filament");
+    add_btn->SetToolTip(_L("Add one filament"));
+    add_btn->Bind(wxEVT_BUTTON, [this, scrolled_sizer](wxCommandEvent& e){
+        // Orca: limit filament choices to 64
+        if (p->combos_filament.size() >= 64)
+            return;
+
+        int filament_count = p->combos_filament.size() + 1;
+        wxColour new_col = Plater::get_next_color_for_filament();
+        std::string new_color = new_col.GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
+        wxGetApp().preset_bundle->set_num_filaments(filament_count, new_color);
+        wxGetApp().plater()->on_filaments_change(filament_count);
+        wxGetApp().get_tab(Preset::TYPE_PRINT)->update();
+        wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
+        auto_calc_flushing_volumes(filament_count - 1);
+		// ORCA: NEEDFIX required refresh color paint gizmo if its open
+    });
+    p->m_bpButton_add_filament = add_btn;
+
+    bSizer39->Add(add_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(12)); // ORCA: Use equal margin between buttons
+
+    ams_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "ams_fila_sync");
     ams_btn->SetToolTip(_L("Synchronize filament list from AMS"));
     ams_btn->Bind(wxEVT_BUTTON, [this, scrolled_sizer](wxCommandEvent &e) {
         sync_ams_list();
     });
     p->m_bpButton_ams_filament = ams_btn;
 
-    bSizer39->Add(ams_btn, 0, wxALIGN_CENTER|wxALL, FromDIP(5));
-    bSizer39->Add(FromDIP(10), 0, 0, 0, 0 );
+    bSizer39->Add(ams_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(12)); // ORCA: Use equal margin between buttons
 
     ScalableButton* set_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "settings");
     set_btn->SetToolTip(_L("Set filaments to use"));
@@ -901,11 +887,11 @@ Sidebar::Sidebar(Plater *parent)
         });
     p->m_bpButton_set_filament = set_btn;
 
-    bSizer39->Add(set_btn, 0, wxALIGN_CENTER);
-    bSizer39->Add(FromDIP(15), 0, 0, 0, 0);
+    bSizer39->Add(set_btn, 0, wxALIGN_CENTER | wxLEFT, FromDIP(12)); // ORCA: Use equal margin between buttons
+    bSizer39->Add(FromDIP(8), 0, 0, 0, 0); // ORCA: use less space after edit settings button
 
     // add filament content
-    p->m_panel_filament_content = new wxPanel( p->scrolled, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	p->m_panel_filament_content = new wxPanel( p->scrolled, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
     p->m_panel_filament_content->SetBackgroundColour( wxColour( 255, 255, 255 ) );
 
     //wxBoxSizer* bSizer_filament_content;
@@ -913,8 +899,8 @@ Sidebar::Sidebar(Plater *parent)
 
     // BBS:  filament double columns
     p->sizer_filaments = new wxBoxSizer(wxHORIZONTAL);
-    p->sizer_filaments->Add(new wxBoxSizer(wxVERTICAL), 1, wxEXPAND);
-    p->sizer_filaments->Add(new wxBoxSizer(wxVERTICAL), 1, wxEXPAND);
+    p->sizer_filaments->Add(new wxBoxSizer(wxVERTICAL), 1, wxEXPAND | wxALL, FromDIP(6)); // ORCA: Use framing to control margins
+    p->sizer_filaments->Add(new wxBoxSizer(wxVERTICAL), 1, wxEXPAND | wxALL, FromDIP(6)); // ORCA: Use framing to control margins
 
     p->combos_filament.push_back(nullptr);
 
@@ -922,12 +908,12 @@ Sidebar::Sidebar(Plater *parent)
     p->combos_filament[0] = new PlaterPresetComboBox(p->m_panel_filament_content, Preset::TYPE_FILAMENT);
     auto combo_and_btn_sizer = new wxBoxSizer(wxHORIZONTAL);
     // BBS:  filament double columns
-    combo_and_btn_sizer->Add(FromDIP(8), 0, 0, 0, 0);
+    //combo_and_btn_sizer->Add(FromDIP(8), 0, 0, 0, 0);
     if (p->combos_filament[0]->clr_picker) {
         p->combos_filament[0]->clr_picker->SetLabel("1");
         combo_and_btn_sizer->Add(p->combos_filament[0]->clr_picker, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(3));
     }
-    combo_and_btn_sizer->Add(p->combos_filament[0], 1, wxALL | wxEXPAND, FromDIP(2))->SetMinSize({-1, FromDIP(30) });
+    combo_and_btn_sizer->Add(p->combos_filament[0], 1, wxALL | wxEXPAND, FromDIP(3))->SetMinSize({-1, FromDIP(30) }); // ORCA: use same margin with other combo boxes
 
     ScalableButton* edit_btn = new ScalableButton(p->m_panel_filament_content, wxID_ANY, "edit");
     edit_btn->SetBackgroundColour(wxColour(255, 255, 255));
@@ -942,16 +928,16 @@ Sidebar::Sidebar(Plater *parent)
     combobox->edit_btn = edit_btn;
 
     combo_and_btn_sizer->Add(edit_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(3));
-    combo_and_btn_sizer->Add(FromDIP(8), 0, 0, 0, 0);
+    //combo_and_btn_sizer->Add(FromDIP(8), 0, 0, 0, 0);
 
     p->combos_filament[0]->set_filament_idx(0);
     p->sizer_filaments->GetItem((size_t)0)->GetSizer()->Add(combo_and_btn_sizer, 1, wxEXPAND);
 
     //bSizer_filament_content->Add(p->sizer_filaments, 1, wxALIGN_CENTER | wxALL);
     wxSizer *sizer_filaments2 = new wxBoxSizer(wxVERTICAL);
-    sizer_filaments2->AddSpacer(FromDIP(16));
-    sizer_filaments2->Add(p->sizer_filaments, 0, wxEXPAND, 0);
-    sizer_filaments2->AddSpacer(FromDIP(16));
+    sizer_filaments2->AddSpacer(FromDIP(3)); // ORCA: Use a bit less vertical spacing
+    sizer_filaments2->Add(p->sizer_filaments, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(6));
+    sizer_filaments2->AddSpacer(FromDIP(3)); // ORCA: Use a bit less vertical spacing
     p->m_panel_filament_content->SetSizer(sizer_filaments2);
     p->m_panel_filament_content->Layout();
     scrolled_sizer->Add(p->m_panel_filament_content, 0, wxEXPAND, 0);
@@ -1054,10 +1040,10 @@ void Sidebar::init_filament_combo(PlaterPresetComboBox **combo, const int filame
 
     // BBS:  filament double columns
     int em = wxGetApp().em_unit();
-    combo_and_btn_sizer->Add(FromDIP(8), 0, 0, 0, 0 );
+	//combo_and_btn_sizer->Add(FromDIP(8), 0, 0, 0, 0 );
     (*combo)->clr_picker->SetLabel(wxString::Format("%d", filament_idx + 1));
     combo_and_btn_sizer->Add((*combo)->clr_picker, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(3));
-    combo_and_btn_sizer->Add(*combo, 1, wxALL | wxEXPAND, FromDIP(2))->SetMinSize({-1, FromDIP(30)});
+    combo_and_btn_sizer->Add(*combo, 1, wxALL | wxEXPAND, FromDIP(3))->SetMinSize({-1, FromDIP(30)}); // ORCA: use same margin with other combo boxes
 
     /* BBS hide del_btn
     ScalableButton* del_btn = new ScalableButton(p->m_panel_filament_content, wxID_ANY, "delete_filament");
@@ -1087,7 +1073,7 @@ void Sidebar::init_filament_combo(PlaterPresetComboBox **combo, const int filame
 
     combo_and_btn_sizer->Add(edit_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(3));
 
-    combo_and_btn_sizer->Add(FromDIP(8), 0, 0, 0, 0);
+    //combo_and_btn_sizer->Add(FromDIP(8), 0, 0, 0, 0);
 
     // BBS:  filament double columns
     auto side = filament_idx % 2;
@@ -1149,7 +1135,7 @@ void Sidebar::update_all_preset_comboboxes()
     } else {
         connection_btn->Show();
         ams_btn->Hide();
-        auto print_btn_type = MainFrame::PrintSelectType::eExportGcode;
+		auto print_btn_type = MainFrame::PrintSelectType::eExportGcode;
         wxString url = cfg.opt_string("print_host_webui").empty() ? cfg.opt_string("print_host") : cfg.opt_string("print_host_webui");
         wxString apikey;
         if(url.empty())
@@ -1512,10 +1498,13 @@ void Sidebar::on_filaments_change(size_t num_filaments)
 
     auto sizer = p->m_panel_filament_title->GetSizer();
     if (p->m_flushing_volume_btn != nullptr && sizer != nullptr) {
-        if (num_filaments > 1)
+        if (num_filaments > 1) {
             sizer->Show(p->m_flushing_volume_btn);
-        else
+            sizer->Show(p->del_btn); // ORCA: Show delete filament button if multiple filaments
+        } else {
             sizer->Hide(p->m_flushing_volume_btn);
+            sizer->Hide(p->del_btn); // ORCA: Hide delete filament button if there is only one filament
+		}
     }
 
     Layout();

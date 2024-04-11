@@ -334,7 +334,8 @@ replaces["\"#0x00AE42\""] = "\"#009688\"";
         replaces["\"#6B6B6B\""] = "\"#818182\"";
         replaces["\"#909090\""] = "\"#FFFFFF\"";
         replaces["\"#00FF00\""] = "\"#FF0000\"";
-replaces["\"#009688\""] = "\"#00675b\"";
+        replaces["\"#F0F0F1\""] = "\"#333337\""; // Disabled element background
+        replaces["\"#009688\""] = "\"#00675b\"";
     }
     //if (!new_color.empty())
     //    replaces["\"#ED6B21\""] = "\"" + new_color + "\"";

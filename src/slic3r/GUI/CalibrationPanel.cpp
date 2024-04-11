@@ -135,7 +135,7 @@ void MObjectPanel::doRender(wxDC& dc)
 
 
     if (m_hover) {
-        dc.SetPen(SELECT_MACHINE_BRAND);
+        dc.SetPen(StateColor::darkModeColorFor(SELECT_MACHINE_BRAND)); // ORCA: Fix for dark mode compability
         dc.SetBrush(*wxTRANSPARENT_BRUSH);
         dc.DrawRectangle(0, 0, size.x, size.y);
     }

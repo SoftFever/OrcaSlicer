@@ -146,8 +146,8 @@ void SideToolsPanel::doRender(wxDC &dc)
     //}
 
     if (m_none_printer) {
-        dc.SetPen(SIDE_TOOLS_BRAND);
-        dc.SetBrush(SIDE_TOOLS_BRAND);
+        dc.SetPen(StateColor::darkModeColorFor(SIDE_TOOLS_BRAND)); // ORCA: Fix for dark mode compability
+        dc.SetBrush(StateColor::darkModeColorFor(SIDE_TOOLS_BRAND)); // ORCA: Fix for dark mode compability
         dc.DrawRectangle(0, 0, size.x, size.y);
 
         dc.DrawBitmap(m_none_printing_img.bmp(), left, (size.y - m_none_printing_img.GetBmpSize().y) / 2);
@@ -221,7 +221,7 @@ void SideToolsPanel::doRender(wxDC &dc)
     }
 
     if (m_hover) {
-        dc.SetPen(SIDE_TOOLS_BRAND);
+        dc.SetPen(StateColor::darkModeColorFor(SIDE_TOOLS_BRAND)); // ORCA: Fix for dark mode compability
         dc.SetBrush(*wxTRANSPARENT_BRUSH);
         dc.DrawRectangle(0, 0, size.x, size.y);
     }

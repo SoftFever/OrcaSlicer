@@ -2599,7 +2599,7 @@ void ImGuiWrapper::push_combo_style(const float scale)
 {
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f)); // ORCA: Remove Paddings from dropdown menus
     ImGui::PushStyleVar(ImGuiStyleVar_PopupRounding, 2.0f * scale); // ORCA: Match with combo box
-    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 1.0f * scale);
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4.0f * scale);
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f * scale);
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(10.0f, 5.0f) * scale); // ORCA: Use less vertical spacing
     ImGui::PushStyleColor(ImGuiCol_BorderActive, to_ImVec4(to_rgba(ColorRGB::ORCA(), 0.5f)));

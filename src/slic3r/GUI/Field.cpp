@@ -1694,6 +1694,7 @@ void PointCtrl::BUILD()
 #ifdef _WIN32
 	style |= wxBORDER_SIMPLE;
 #endif
+	// ORCA: NEEDFIX > Need to convert this to regular TextInput with X / Y labels
 	x_textctrl = new ::TextCtrl(m_parent, wxID_ANY, X, wxDefaultPosition, field_size, style);
 	y_textctrl = new ::TextCtrl(m_parent, wxID_ANY, Y, wxDefaultPosition, field_size, style);
     if (parent_is_custom_ctrl && m_opt.height < 0)

@@ -4,6 +4,9 @@
 #include "../wxExtensions.hpp"
 #include "StaticBox.hpp"
 
+#define ALIGN_LEFT
+#define ALIGN_RIGHT
+
 class Button : public StaticBox
 {
     wxRect textSize;
@@ -17,6 +20,8 @@ class Button : public StaticBox
     bool pressedDown = false;
     bool m_selected  = true;
     bool canFocus  = true;
+
+	int alignment = 1;
 
     static const int buttonWidth = 200;
     static const int buttonHeight = 50;
@@ -39,6 +44,14 @@ public:
     void SetMinSize(const wxSize& size) override;
     
     void SetPaddingSize(const wxSize& size);
+
+	void SetContentAlignment(const wxString& side);
+
+	void SetStyleAlert(const wxFont& font);
+
+    void SetStyleConfirm(const wxFont& font);
+
+    void SetStyleDefault(const wxFont& font);
     
     void SetTextColor(StateColor const &color);
 

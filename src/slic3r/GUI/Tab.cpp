@@ -292,17 +292,19 @@ void Tab::create_preset_tab()
 
     m_search_item->SetBackgroundColor(box_colour);
     m_search_item->SetBorderColor(box_border_colour);
-    m_search_item->SetCornerRadius(5);
+    m_search_item->SetCornerRadius(4); // ORCA: Match style
 
 
     //StateColor::darkModeColorFor(wxColour(238, 238, 238)), wxDefaultPosition, wxSize(m_top_panel->GetSize().GetWidth(), 3 * wxGetApp().em_unit()), 8);
     auto search_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_search_input = new TextInput(m_search_item, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 | wxBORDER_NONE);
     m_search_input->SetBackgroundColour(wxColour(238, 238, 238));
+    m_search_input->SetCornerRadius(0); // ORCA: fixes marks on corners
     m_search_input->SetForegroundColour(wxColour(43, 52, 54));
     m_search_input->SetFont(wxGetApp().bold_font());
+    m_search_input->SetIcon(*Slic3r::GUI::BitmapCache().load_svg("param_search", 0, 0)); // ORCA: Add serach icon to search box
 
-    search_sizer->Add(new wxWindow(m_search_item, wxID_ANY, wxDefaultPosition, wxSize(0, 0)), 0, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(6));
+    search_sizer->Add(new wxWindow(m_search_item, wxID_ANY, wxDefaultPosition, wxSize(0, 0)), 0, wxEXPAND,0);
     search_sizer->Add(m_search_input, 1, wxEXPAND | wxALL, FromDIP(2));
     //bbl for linux
     //search_sizer->Add(new wxWindow(m_search_input, wxID_ANY, wxDefaultPosition, wxSize(0, 0)), 0, wxEXPAND | wxLEFT, 16);
@@ -373,26 +375,29 @@ void Tab::create_preset_tab()
     m_main_sizer = new wxBoxSizer( wxVERTICAL );
     m_top_sizer = new wxBoxSizer( wxHORIZONTAL );
 
-    m_top_sizer->Add(m_undo_btn, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 5);
+	m_top_sizer->AddSpacer(12); // ORCA: Match left margin
+
+    m_top_sizer->Add(m_undo_btn, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(5));
     // BBS: model config
     if (m_presets_choice) {
         m_presets_choice->Reparent(m_top_panel);
-        m_top_sizer->Add(m_presets_choice, 1, wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL, 8);
+        m_top_sizer->Add(m_presets_choice, 1, wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(3)); // ORCA: Match margin with other combo boxes
     } else {
         m_top_sizer->AddSpacer(10);
         m_top_sizer->AddStretchSpacer(1);
     }
 
+	// ORCA: Match margins
     const float scale_factor = /*wxGetApp().*/em_unit(this)*0.1;// GetContentScaleFactor();
-#ifndef DISABLE_UNDO_SYS
-    m_top_sizer->Add( m_undo_to_sys_btn, 0, wxALIGN_CENTER_VERTICAL);
-    m_top_sizer->AddSpacer(8);
-#endif
-    m_top_sizer->Add( m_btn_save_preset, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 8  );
-    m_top_sizer->Add( m_btn_delete_preset, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 8 );
-    m_top_sizer->Add( m_btn_search, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 8 );
-    m_top_sizer->Add( m_search_item, 1, wxALIGN_CENTER_VERTICAL | wxRIGHT , 8 );
-
+	#ifndef DISABLE_UNDO_SYS
+		m_top_sizer->Add(m_undo_to_sys_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT , FromDIP(5));
+		//m_top_sizer->AddSpacer(8); // ORCA: Other components not uses extra space
+	#endif
+    m_top_sizer->Add(m_search_item, 1, wxALIGN_CENTER_VERTICAL | wxEXPAND, FromDIP(3)); // ORCA: Dont add extra margin
+    m_top_sizer->Add(m_btn_save_preset, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(3));
+    m_top_sizer->Add(m_btn_delete_preset, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(6));
+    m_top_sizer->Add(m_btn_search, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(12));
+    
     if (dynamic_cast<TabPrint*>(this) == nullptr) {
         m_static_title = new Label(m_top_panel, Label::Body_12, _L("Advance"));
         m_static_title->Wrap( -1 );
@@ -400,13 +405,16 @@ void Tab::create_preset_tab()
         m_static_title->Bind(wxEVT_LEFT_UP, [this](auto& e) {
             restore_last_select_item();
         });
-        m_top_sizer->Add( m_static_title, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 8 );
+        m_top_sizer->Add(m_static_title, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(12));
         m_mode_view = new SwitchButton(m_top_panel, wxID_ABOUT);
-        m_top_sizer->AddSpacer(4);
-        m_top_sizer->Add( m_mode_view, 0, wxALIGN_CENTER_VERTICAL);
+        m_top_sizer->Add(m_mode_view, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(6));
+		// ORCA: NEEDFIX not uses parent's background
+        //m_mode_view->Reparent(m_top_panel);
+        //m_mode_view->Rescale();
+        //m_mode_view->SetBackgroundColour(m_top_panel->GetBackgroundColour());
     }
 
-    m_top_sizer->AddSpacer(10);
+    m_top_sizer->AddSpacer(12); // ORCA: Match Right margin
 
     m_top_sizer->SetMinSize(-1, 3 * m_em_unit);
     m_top_panel->SetSizer(m_top_sizer);
@@ -1274,6 +1282,15 @@ void Tab::sys_color_changed()
     for (ScalableBitmap& bmp : m_scaled_icons_list)
         //m_icons->Add(bmp.bmp());
     m_tabctrl->AssignImageList(m_icons);
+    if (m_mode_view) { // ORCA: NEEDFIX button cant get parents background color
+        m_mode_view->Rescale(); // Updates image of icon but not background of icon. uses opposite colors for background currently 
+        //m_mode_view->SetBackgroundColour(StateColor::darkModeColorFor(m_top_panel->GetBackgroundColour()));
+		//#ifdef _MSW_DARK_MODE
+        //    m_mode_view->SetBackgroundColour(*wxWHITE);
+		//#else
+        //    m_mode_view->SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
+		//#endif // _MSW_DARK_MODE
+	}
 
     // Colors for ui "decoration"
     update_label_colours();
@@ -3304,14 +3321,19 @@ void TabFilament::build()
         optgroup->append_single_option_line("filament_cooling_final_speed", "semm");
 
         create_line_with_widget(optgroup.get(), "filament_ramming_parameters", "", [this](wxWindow* parent) {
-            auto ramming_dialog_btn = new wxButton(parent, wxID_ANY, _(L("Ramming settings"))+dots, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
-            wxGetApp().UpdateDarkUI(ramming_dialog_btn);
-            ramming_dialog_btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
-            ramming_dialog_btn->SetSize(ramming_dialog_btn->GetBestSize());
-            auto sizer = new wxBoxSizer(wxHORIZONTAL);
-            sizer->Add(ramming_dialog_btn);
+            //auto ramming_dialog_btn = new wxButton(parent, wxID_ANY, _(L("Ramming settings"))+dots, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
+            //wxGetApp().UpdateDarkUI(ramming_dialog_btn);
+            //ramming_dialog_btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
+            //ramming_dialog_btn->SetSize(ramming_dialog_btn->GetBestSize());
 
-            ramming_dialog_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e) {
+			Button* btn = new Button(parent, _(L("Set")) + " " + dots); // Use regular button to match style  
+            btn->SetStyleDefault(Label::Body_14);  // ORCA: Match Button Style
+            btn->SetSize(wxSize(FromDIP(120), FromDIP(26)));
+
+            auto sizer = new wxBoxSizer(wxHORIZONTAL);
+            sizer->Add(btn);
+
+            btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e) {
                 RammingDialog dlg(this,(m_config->option<ConfigOptionStrings>("filament_ramming_parameters"))->get_at(0));
                 if (dlg.ShowModal() == wxID_OK) {
                     load_key_value("filament_ramming_parameters", dlg.get_parameters());
@@ -5558,10 +5580,14 @@ wxSizer* Tab::compatible_widget_create(wxWindow* parent, PresetDependencies &dep
 // Return a callback to create a TabPrinter widget to edit bed shape
 wxSizer* TabPrinter::create_bed_shape_widget(wxWindow* parent)
 {
-    ScalableButton* btn = new ScalableButton(parent, wxID_ANY, "printer", " " + _(L("Set")) + " " + dots,
-        wxDefaultSize, wxDefaultPosition, wxBU_LEFT | wxBU_EXACTFIT, true);
-    btn->SetFont(wxGetApp().normal_font());
-    btn->SetSize(btn->GetBestSize());
+    //ScalableButton* btn = new ScalableButton(parent, wxID_ANY, "printer", " " + _(L("Set")) + " " + dots,
+    //    wxDefaultSize, wxDefaultPosition, wxBU_LEFT | wxBU_EXACTFIT, true);
+    //btn->SetFont(wxGetApp().normal_font());
+    //btn->SetSize(btn->GetBestSize());
+
+	Button* btn = new Button(parent, _(L("Set")) + " " + dots);          // Use regular button to match style
+    btn->SetStyleDefault(Label::Body_14);// ORCA: Match Button Style
+    btn->SetSize(wxSize(FromDIP(120), FromDIP(26)));
 
     auto sizer = new wxBoxSizer(wxHORIZONTAL);
     sizer->Add(btn, 0, wxALIGN_CENTER_VERTICAL);
