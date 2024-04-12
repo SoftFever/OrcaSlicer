@@ -823,6 +823,7 @@ void ObjectList::update_objects_list_filament_column(size_t filaments_count)
     m_prevent_update_filament_in_config = true;
 
     // BBS: update extruder values even when filaments_count is 1, because it may be reduced from value greater than 1
+    //即使filaments_count为1，也要更新挤出机的值，因为它可以从大于1的值中减少
     if (m_objects)
         update_filament_values_for_items(filaments_count);
 

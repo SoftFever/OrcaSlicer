@@ -1610,9 +1610,20 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
 
     // BBS
 #if 1
-    if (opt_key == "extruders_count")
-        update_dirty();
-        //wxGetApp().plater()->on_extruders_change(boost::any_cast<size_t>(value));
+    if (opt_key == "extruders_count") {
+        //update_dirty();
+        wxColour    new_col   = Plater::get_next_color_for_filament();
+        std::string new_color = new_col.GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
+        int         extruders_count = boost::any_cast<size_t>(value);
+        wxGetApp().preset_bundle->set_num_filaments(extruders_count, new_color);
+        wxGetApp().plater()->on_filaments_change(extruders_count);
+        wxGetApp().get_tab(Preset::TYPE_PRINT)->update();
+        wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
+        //DynamicPrintConfig new_conf = *m_config;
+        //new_conf.set_key_value("extruders_count", new ConfigOptionInt(extruders_count));
+        //load_config(new_conf);
+    }
+
 #endif
 
     if (m_postpone_update_ui) {
@@ -3524,7 +3535,7 @@ void TabPrinter::build_fff()
     auto   *nozzle_diameter = dynamic_cast<const ConfigOptionFloats*>(m_config->option("nozzle_diameter"));
     m_initial_extruders_count = m_extruders_count = nozzle_diameter->values.size();
     // BBS
-    //wxGetApp().obj_list()->update_objects_list_filament_column(m_initial_extruders_count);
+    wxGetApp().obj_list()->update_objects_list_filament_column(m_initial_extruders_count);
 
     const Preset* parent_preset = m_printer_technology == ptSLA ? nullptr // just for first build, if SLA printer preset is selected
                                   : m_presets->get_selected_preset_parent();
@@ -3549,17 +3560,17 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line("preferred_orientation");
 
         optgroup = page->new_optgroup(L("Capabilities"));
-        // ConfigOptionDef def;
-        //     def.type =  coInt,
-        //     def.set_default_value(new ConfigOptionInt(1));
-        //     def.label = L("Extruders");
-        //     def.tooltip = L("Number of extruders of the printer.");
-        //     def.min = 1;
-        //     def.max = 256;
-        //     def.mode = comAdvanced;
-        // Option option1(def, "extruders_count");
-        // optgroup->append_single_option_line(option1);
-        optgroup->append_single_option_line("extruders_count");
+        ConfigOptionDef def;
+            def.type =  coInt,
+            def.set_default_value(new ConfigOptionInt(int(m_sys_extruders_count)));
+            def.label = L("Extruders");
+            def.tooltip = L("Number of extruders of the printer.");
+            def.min = 1;
+            def.max = 256;
+            def.mode = comAdvanced;
+        Option option1(def, "extruders_count");
+        optgroup->append_single_option_line(option1);
+       // optgroup->append_single_option_line("extruders_count");
 
         optgroup->m_on_change = [this, optgroup_wk = ConfigOptionsGroupWkp(optgroup)](t_config_option_key opt_key, boost::any value) {
             auto optgroup_sh = optgroup_wk.lock();
@@ -3858,12 +3869,15 @@ void TabPrinter::extruders_count_changed(size_t extruders_count)
     bool is_count_changed = false;
     if (m_extruders_count != extruders_count) {
         m_extruders_count = extruders_count;
+        wxColour new_col = Plater::get_next_color_for_filament();
+        std::string new_color = new_col.GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
+        m_preset_bundle->set_num_filaments(m_extruders_count,new_color);
         m_preset_bundle->printers.get_edited_preset().set_num_extruders(extruders_count);
         m_preset_bundle->update_multi_material_filament_presets();
         is_count_changed = true;
     }
     // BBS
-#if 0
+#if 1
     else if (m_extruders_count == 1 &&
              m_preset_bundle->project_config.option<ConfigOptionFloats>("flush_volumes_matrix")->values.size()>1)
         m_preset_bundle->update_multi_material_filament_presets();
@@ -3877,7 +3891,7 @@ void TabPrinter::extruders_count_changed(size_t extruders_count)
     if (is_count_changed) {
         on_value_change("extruders_count", extruders_count);
         // BBS
-        //wxGetApp().obj_list()->update_objects_list_filament_column(extruders_count);
+        wxGetApp().obj_list()->update_objects_list_filament_column(extruders_count);
     }
 }
 
@@ -3962,9 +3976,10 @@ const std::vector<std::string> extruder_options = {
     "travel_slope", "travel_max_lift", "travel_lift_before_obstacle",
     "retract_length_toolchange", "retract_restart_extra_toolchange",
 };
-
+//extruders_count_changed
 void TabPrinter::build_extruder_pages(size_t n_before_extruders)
 {
+    //on_value_change("extruders_count", m_extruders_count);  
     for (auto extruder_idx = m_extruders_count_old; extruder_idx < m_extruders_count; ++extruder_idx) {
         //# build page
         //const wxString&page_name = wxString::Format("Extruder %d", int(extruder_idx + 1));
@@ -4508,7 +4523,7 @@ void Tab::load_current_preset()
 
 //	m_undo_to_sys_btn->Enable(!preset.is_default);
 
-#if 0
+#if 1
     // use CallAfter because some field triggers schedule on_change calls using CallAfter,
     // and we don't want them to be called after this update_dirty() as they would mark the
     // preset dirty again
@@ -4588,7 +4603,7 @@ void Tab::load_current_preset()
         update_visibility();
         update_changed_ui();
     }
-#if 0
+#if 1
     );
 #endif
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__<<boost::format(": exit");
@@ -4908,10 +4923,16 @@ bool Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
         // check if there is something in the cache to move to the new selected preset
         apply_config_from_cache();
 
-        // Orca: update presets for the selected printer
+        // Orca:更新所选打印机的预设
         if (m_type == Preset::TYPE_PRINTER) {
+
+          wxColour    new_col   = Plater::get_next_color_for_filament();
+          std::string new_color = new_col.GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
+          auto*       nozzle_diameter = dynamic_cast<const ConfigOptionFloats*>(m_config->option("nozzle_diameter"));
+          size_t      extruders_count = nozzle_diameter->values.size();
+          m_preset_bundle->set_num_filaments(extruders_count, new_color);
           m_preset_bundle->update_selections(*wxGetApp().app_config);
-          wxGetApp().plater()->sidebar().on_filaments_change(m_preset_bundle->filament_presets.size());
+          wxGetApp().plater()->sidebar().on_filaments_change(extruders_count);
         }
         load_current_preset();
 

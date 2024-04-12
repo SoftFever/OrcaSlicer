@@ -3621,13 +3621,16 @@ void PresetBundle::update_multi_material_filament_presets()
     // BBS
 #if 0
     // Verify and select the filament presets.
+    //验证并选择灯丝预设。
     auto   *nozzle_diameter = static_cast<const ConfigOptionFloats*>(printers.get_edited_preset().config.option("nozzle_diameter"));
     size_t  num_extruders   = nozzle_diameter->values.size();
     // Verify validity of the current filament presets.
+    //验证当前灯丝预设的有效性。
     for (size_t i = 0; i < std::min(this->filament_presets.size(), num_extruders); ++ i)
         this->filament_presets[i] = this->filaments.find_preset(this->filament_presets[i], true)->name;
     // Append the rest of filament presets.
     this->filament_presets.resize(num_extruders, this->filament_presets.empty() ? this->filaments.first_visible().name : this->filament_presets.back());
+    size_t num_filaments = this->filament_presets.size();
 #else
     size_t num_filaments = this->filament_presets.size();
 #endif

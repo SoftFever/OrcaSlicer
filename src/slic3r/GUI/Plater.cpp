@@ -842,6 +842,17 @@ Sidebar::Sidebar(Plater *parent)
             return;
 
         int filament_count = p->combos_filament.size() + 1;
+
+        //TODO：ylg 我们将要限定材料的添加数量
+        const size_t extruder_cnt = dynamic_cast<ConfigOptionFloats*>(wxGetApp().preset_bundle->printers.get_edited_preset().config.option("nozzle_diameter"))->values.size();
+        //const size_t filament_cnt = p->combos_filament.size() > extruder_cnt ? extruder_cnt : p->combos_filament.size();
+        if (filament_count > extruder_cnt) {
+            const wxString msg_text = _(L("The number of nozzles has exceeded the maximum number supported by the current printer!"));
+            MessageDialog dialog(this, msg_text, _(L("Nozzle count")), wxICON_WARNING | wxYES_NO);
+            dialog.ShowModal();
+            return;
+        }
+
         wxColour new_col = Plater::get_next_color_for_filament();
         std::string new_color = new_col.GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
         wxGetApp().preset_bundle->set_num_filaments(filament_count, new_color);
@@ -1215,7 +1226,7 @@ void Sidebar::update_presets(Preset::Type preset_type)
     case Preset::TYPE_FILAMENT:
     {
         // BBS
-#if 0
+#if 1
         const size_t extruder_cnt = print_tech != ptFFF ? 1 :
                                 dynamic_cast<ConfigOptionFloats*>(preset_bundle.printers.get_edited_preset().config.option("nozzle_diameter"))->values.size();
         const size_t filament_cnt = p->combos_filament.size() > extruder_cnt ? extruder_cnt : p->combos_filament.size();
@@ -12280,6 +12291,7 @@ void Plater::on_activate()
 }
 
 // Get vector of extruder colors considering filament color, if extruder color is undefined.
+//如果挤出机颜色未定义，则得到考虑长丝颜色的挤出机颜色向量。
 std::vector<std::string> Plater::get_extruder_colors_from_plater_config(const GCodeProcessorResult* const result) const
 {
     if (wxGetApp().is_gcode_viewer() && result != nullptr)
