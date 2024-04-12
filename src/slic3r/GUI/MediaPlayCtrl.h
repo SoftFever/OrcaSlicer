@@ -36,8 +36,6 @@ public:
 
     void SetMachineObject(MachineObject * obj);
 
-    void SetAutoRetry(bool b);
-
     bool IsStreaming() const;
 
     void ToggleStream();
@@ -86,7 +84,6 @@ private:
     bool m_remote_support = false;
     bool m_device_busy = false;
     bool m_disable_lan = false;
-    bool m_auto_retry = true;
     wxString m_url;
     
     std::deque<wxString> m_tasks;
