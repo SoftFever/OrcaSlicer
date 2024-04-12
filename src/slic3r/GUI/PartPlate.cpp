@@ -2288,9 +2288,11 @@ void PartPlate::set_vase_mode_related_object_config(int obj_id) {
 		config.set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
 		config.set_key_value("enable_support", new ConfigOptionBool(false));
 		config.set_key_value("enforce_support_layers", new ConfigOptionInt(0));
-		config.set_key_value("ensure_vertical_shell_thickness", new ConfigOptionBool(true));
 		config.set_key_value("detect_thin_wall", new ConfigOptionBool(false));
 		config.set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(tlTraditional));
+		config.set_key_value("overhang_reverse", new ConfigOptionBool(false));
+		config.set_key_value("wall_direction", new ConfigOptionEnum<WallDirection>(WallDirection::Auto));
+
 	}
 	//wxGetApp().obj_list()->update_selections();
 }
