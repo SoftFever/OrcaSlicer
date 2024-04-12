@@ -2,8 +2,8 @@
     "type": "filament",
 	"filament_id": "GFL99",
     "setting_id": "GFSL99",
-    "name": "QIDI PLA Rapido Matte 0.2 nozzle",
-    "from": "User",
+    "name": "QIDI PLA Rapido Matte @0.2 nozzle",
+    "from": "system",
     "instantiation": "true",
     "inherits": "QIDI PLA Rapido Matte",
 	"filament_flow_ratio": [
@@ -19,7 +19,7 @@
         "0.031"
     ],
     "filament_max_volumetric_speed": [
-        "21"
+        "2"
     ],
 	"compatible_printers": [
         "Qidi X-Plus 0.2 nozzle",

@@ -12,7 +12,7 @@
         "13"
     ],
     "filament_settings_id": [
-        "QIDI PETG Tough @Qidi Q1 Pro 0.4 nozzle"
+        "QIDI PETG Tough @Qidi Q1 Pro 0.6 nozzle"
     ],
     "from": "system",
     "hot_plate_temp_initial_layer": [
@@ -20,14 +20,11 @@
     ],
     "inherits": "QIDI PETG Tough",
     "is_custom_defined": "0",
-    "name": "QIDI PETG Tough @Qidi Q1 Pro 0.4 nozzle",
+    "name": "QIDI PETG Tough @Qidi Q1 Pro 0.6 nozzle",
     "overhang_fan_speed": [
         "100"
     ],
-    "pressure_advance": [
-        "0.086"
-    ],
     "compatible_printers": [
-    "Qidi Q1 Pro 0.4 nozzle"
+    "Qidi Q1 Pro 0.6 nozzle"
         ]
 }

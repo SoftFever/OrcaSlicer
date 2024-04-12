@@ -14,7 +14,7 @@
     "filament_settings_id": [
         "QIDI PLA-CF @Qidi Q1 Pro 0.8 nozzle"
     ],
-    "from": "User",
+    "from": "system",
     "inherits": "Qidi PLA-CF",
     "is_custom_defined": "0",
     "name": "QIDI PLA-CF @Qidi Q1 Pro 0.8 nozzle",

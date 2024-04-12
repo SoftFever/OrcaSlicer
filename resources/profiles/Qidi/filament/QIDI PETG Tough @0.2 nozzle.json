@@ -2,8 +2,8 @@
     "type": "filament",
 	"filament_id": "GFG99",
     "setting_id": "GFSG99",
-    "name": "QIDI PETG Tough 0.6 nozzle",
-    "from": "User",
+    "name": "QIDI PETG Tough @0.2 nozzle",
+    "from": "system",
     "instantiation": "true",
     "inherits": "QIDI PETG Tough",
 	"reduce_fan_stop_start_freq": [
@@ -20,6 +20,12 @@
     ],
     "overhang_fan_threshold": [
         "25%"
+    ],
+    "fan_max_speed": [
+        "40"
+    ],
+    "fan_min_speed": [
+        "10"
     ],
     "slow_down_min_speed": [
         "20"
@@ -39,18 +45,13 @@
     "filament_max_volumetric_speed": [
         "16"
     ],
-    "fan_max_speed": [
-        "40"
-    ],
-    "fan_min_speed": [
-        "10"
-    ],
 	"compatible_printers": [
-        "Qidi X-Plus 0.6 nozzle",
-        "Qidi X-Max 0.6 nozzle",
-        "Qidi X-CF Pro 0.6 nozzle",
-		"Qidi X-Smart 3 0.6 nozzle",
-		"Qidi X-Plus 3 0.6 nozzle",
-		"Qidi X-Max 3 0.6 nozzle"
+        "Qidi X-Plus 0.2 nozzle",
+        "Qidi X-Max 0.2 nozzle",
+        "Qidi X-CF Pro 0.2 nozzle",
+		"Qidi X-Smart 3 0.2 nozzle",
+		"Qidi X-Plus 3 0.2 nozzle",
+		"Qidi X-Max 3 0.2 nozzle",
+        "Qidi Q1 Pro 0.2 nozzle"
 	]
 }

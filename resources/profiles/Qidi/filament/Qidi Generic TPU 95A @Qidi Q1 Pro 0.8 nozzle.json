@@ -11,7 +11,7 @@
     "filament_settings_id": [
         "Qidi Generic TPU 95A @Qidi Q1 Pro 0.8 nozzle"
     ],
-    "from": "User",
+    "from": "system",
     "hot_plate_temp": [
         "60"
     ],
@@ -25,7 +25,7 @@
         "220"
     ],
     "nozzle_temperature_initial_layer": [
-        "220"
+        "230"
     ],
     "enable_pressure_advance": [
         "1"

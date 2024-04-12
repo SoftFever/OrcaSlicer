@@ -8,7 +8,7 @@
     "filament_settings_id": [
         "Qidi Generic PLA @Qidi Q1 Pro 0.4 nozzle"
     ],
-    "from": "User",
+    "from": "system",
     "full_fan_speed_layer": [
         "0"
     ],
