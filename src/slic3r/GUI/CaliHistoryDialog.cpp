@@ -364,6 +364,12 @@ float HistoryWindow::get_nozzle_value()
 
 void HistoryWindow::on_click_new_button(wxCommandEvent& event)
 {
+    if (curr_obj && curr_obj->get_printer_series() == PrinterSeries::SERIES_P1P && m_calib_results_history.size() >= 16) {
+        MessageDialog msg_dlg(nullptr, wxString::Format(_L("This machine type can only hold %d history results per nozzle."), 16), wxEmptyString, wxICON_WARNING | wxOK);
+        msg_dlg.ShowModal();
+        return;
+    }
+
     NewCalibrationHistoryDialog dlg(this, m_calib_results_history);
     dlg.ShowModal();
 }
@@ -699,26 +705,17 @@ void NewCalibrationHistoryDialog::on_ok(wxCommandEvent &event)
 
     // Check for duplicate names from history
     {
-        struct PACalibResult
-        {
-            size_t operator()(const std::pair<std::string, std::string> &item) const
-            {
-                return std::hash<string>()(item.first) * std::hash<string>()(item.second);
-            }
-        };
-        std::unordered_set<std::pair<std::string, std::string>, PACalibResult> set;
-        set.insert({m_new_result.name, m_new_result.filament_id});
+        auto iter = std::find_if(m_history_results.begin(), m_history_results.end(), [this](const PACalibResult &item) {
+            return item.name == m_new_result.name && item.filament_id == m_new_result.filament_id;
+        });
 
-        for (auto &result : m_history_results) {
-            if (!set.insert({result.name, result.filament_id}).second) {
-                MessageDialog msg_dlg(nullptr,
-                                      wxString::Format(_L("There is already a historical calibration result with the same name: %s. Only one of the results with the same name "
-                                                          "is saved. Are you sure you want to override the historical result?"),
-                                                       result.name),
-                                      wxEmptyString, wxICON_WARNING | wxYES_NO);
-                if (msg_dlg.ShowModal() != wxID_YES)
-                    return;
-            }
+        if (iter != curr_obj->pa_calib_tab.end()) {
+            MessageDialog msg_dlg(nullptr,
+                                  wxString::Format(_L("There is already a historical calibration result with the same name: %s. Only one of the results with the same name "
+                                                      "is saved. Are you sure you want to override the historical result?"),
+                                                   m_new_result.name),
+                                  wxEmptyString, wxICON_WARNING | wxYES_NO);
+            if (msg_dlg.ShowModal() != wxID_YES) return;
         }
     }
 

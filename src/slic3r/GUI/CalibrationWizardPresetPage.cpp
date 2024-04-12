@@ -1204,7 +1204,7 @@ void CalibrationPresetPage::update_show_status()
         show_status(CaliPresetPageStatus::CaliPresetStatusInPrinting);
         return;
     }
-    else if (need_check_sdcard(obj_) && obj_->get_sdcard_state() == MachineObject::SdcardState::NO_SDCARD) {
+    else if (!obj_->is_support_print_without_sd && (obj_->get_sdcard_state() == MachineObject::SdcardState::NO_SDCARD)) {
         show_status(CaliPresetPageStatus::CaliPresetStatusNoSdcard);
         return;
     }

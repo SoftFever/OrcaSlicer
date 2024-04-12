@@ -87,7 +87,7 @@ bool AMSinfo::parse_ams_info(MachineObject *obj, Ams *ams, bool remain_flag, boo
                 wxColour(255, 255, 255);
             }
 
-            if (obj->get_printer_series() == PrinterSeries::SERIES_X1 && it->second->is_tray_info_ready()) {
+            if (it->second->is_tray_info_ready() && obj->cali_version >= 0) {
                 CalibUtils::get_pa_k_n_value_by_cali_idx(obj, it->second->cali_idx, info.k, info.n);
             }
             else {
@@ -840,7 +840,7 @@ void AMSLib::render_extra_text(wxDC& dc)
 void AMSLib::render_generic_text(wxDC &dc)
 {
     bool show_k_value = true;
-    if (m_obj && (m_obj->get_printer_series() == PrinterSeries::SERIES_X1) && (abs(m_info.k - 0) < 1e-3)) {
+    if (m_obj && (m_obj->cali_version >= 0) && (abs(m_info.k - 0) < 1e-3)) {
         show_k_value = false;
     }
 
@@ -3286,7 +3286,7 @@ void AMSControl::show_vams_kn_value(bool show)
 void AMSControl::update_vams_kn_value(AmsTray tray, MachineObject* obj)
 {
     m_vams_lib->m_obj = obj;
-    if (obj->get_printer_series() == PrinterSeries::SERIES_X1) {
+    if (obj->cali_version >= 0) {
         float k_value = 0;
         float n_value = 0;
         CalibUtils::get_pa_k_n_value_by_cali_idx(obj, tray.cali_idx, k_value, n_value);
