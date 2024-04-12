@@ -131,7 +131,7 @@ void Field::PostInitialize()
 	// For the mode, when settings are in non-modal dialog, neither dialog nor tabpanel doesn't receive wxEVT_KEY_UP event, when some field is selected.
 	// So, like a workaround check wxEVT_KEY_UP event for the Filed and switch between tabs if Ctrl+(1-4) was pressed
     if (getWindow()) {
-        if (m_opt.readonly) { 
+        if (m_opt.readonly) {
             this->disable();
         }
 		getWindow()->Bind(wxEVT_KEY_UP, [](wxKeyEvent& evt) {
@@ -221,7 +221,7 @@ wxString Field::get_tooltip_text(const wxString &default_string)
     }
 
 	if (tooltip.length() > 0)
-        tooltip_text = tooltip + "\n" + 
+        tooltip_text = tooltip + "\n" +
         _(L("parameter name")) + "\t: " + opt_id;
  #endif
 	return tooltip_text;
@@ -276,7 +276,7 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
 
         const char dec_sep = is_decimal_separator_point() ? '.' : ',';
         const char dec_sep_alt = dec_sep == '.' ? ',' : '.';
-        // Replace the first incorrect separator in decimal number, 
+        // Replace the first incorrect separator in decimal number,
         // if this value doesn't "N/A" value in some language
         if (!is_na_value && str.Replace(dec_sep_alt, dec_sep, false) != 0)
             set_value(str, false);
@@ -667,7 +667,7 @@ bool TextCtrl::value_was_changed()
 
 void TextCtrl::propagate_value()
 {
-    
+
     if (!is_defined_input_value<wxTextCtrl>(text_ctrl(), m_opt.type)) { // BBS
 		// on_kill_focus() cause a call of OptionsGroup::reload_config(),
 		// Thus, do it only when it's really needed (when undefined value was input)
@@ -789,7 +789,7 @@ void CheckBox::BUILD() {
     m_last_meaningful_value = static_cast<unsigned char>(check_value);
 
 	// BBS: use ::CheckBox
-	auto temp = new ::CheckBox(m_parent); 
+	auto temp = new ::CheckBox(m_parent);
 	if (!wxOSX) temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
 	//temp->SetBackgroundColour(*wxWHITE);
 	temp->SetValue(check_value);
@@ -934,8 +934,8 @@ void SpinCtrl::BUILD() {
         propagate_value();
 	}));
 
-    temp->Bind(wxEVT_SPINCTRL, ([this](wxCommandEvent e) {  propagate_value();  }), temp->GetId()); 
-    
+    temp->Bind(wxEVT_SPINCTRL, ([this](wxCommandEvent e) {  propagate_value();  }), temp->GetId());
+
     temp->Bind(wxEVT_TEXT_ENTER, ([this](wxCommandEvent & e)
     {
         e.Skip();
@@ -1005,7 +1005,7 @@ void SpinCtrl::propagate_value()
         }
 #endif
         auto ctrl = dynamic_cast<SpinInput *>(window);
-        if (m_value.empty() 
+        if (m_value.empty()
             ? !ctrl->GetTextCtrl()->GetLabel().IsEmpty()
             : ctrl->GetValue() != boost::any_cast<int>(m_value))
             on_change_field();
@@ -1088,7 +1088,7 @@ void Choice::BUILD()
     auto         dynamic_list = dynamic_lists.find(m_opt.opt_key);
     if (dynamic_list != dynamic_lists.end())
         m_list = dynamic_list->second;
-    if (m_opt.gui_type != ConfigOptionDef::GUIType::undefined && m_opt.gui_type != ConfigOptionDef::GUIType::select_open 
+    if (m_opt.gui_type != ConfigOptionDef::GUIType::undefined && m_opt.gui_type != ConfigOptionDef::GUIType::select_open
             && m_list == nullptr) {
         m_is_editable = true;
         temp = new choice_ctrl(m_parent, wxID_ANY, wxString(""), wxDefaultPosition, size, 0, nullptr, wxTE_PROCESS_ENTER);
@@ -1336,7 +1336,7 @@ void Choice::set_value(const boost::any& value, bool change_event)
 			field->SetSelection(idx);
 
         if (!m_value.empty() && m_opt.opt_key == "sparse_infill_density") {
-            // If m_value was changed before, then update m_value here too to avoid case 
+            // If m_value was changed before, then update m_value here too to avoid case
             // when control's value is already changed from the ConfigManipulation::update_print_fff_config(),
             // but m_value doesn't respect it.
             if (double val; text_value.ToDouble(&val))
