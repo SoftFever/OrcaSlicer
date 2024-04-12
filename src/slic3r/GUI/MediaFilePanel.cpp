@@ -312,7 +312,7 @@ wxString hide_id_middle_string(wxString const &str, size_t offset = 0, size_t le
             if (e.GetInt() == PrinterFileSystem::Initializing)
                 fetchUrl(boost::weak_ptr(fs));
 
-            int err = fs->GetLastError();
+            err = fs->GetLastError();
             if ((status == PrinterFileSystem::Failed && m_last_errors.find(err) == m_last_errors.end()) ||
                 status == PrinterFileSystem::ListReady) {
                 json j;
