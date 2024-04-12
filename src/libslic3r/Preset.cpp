@@ -870,7 +870,6 @@ static std::vector<std::string> s_Preset_printer_options {
     "printer_model", "printer_variant", "printable_height", "extruder_clearance_radius", "extruder_clearance_height_to_lid", "extruder_clearance_height_to_rod",
     "default_print_profile", "inherits",
     "silent_mode",
-    "extruders_count",
     // BBS
     "scan_first_layer", "machine_load_filament_time", "machine_unload_filament_time","time_cost", "machine_pause_gcode", "template_custom_gcode",
     "nozzle_type", "nozzle_hrc","auxiliary_fan","single_nozzle_with_multiple_fans", "nozzle_volume","upward_compatible_machine", "z_hop_types", "retract_lift_enforce","support_chamber_temp_control","support_air_filtration","printer_structure",
@@ -1972,7 +1971,7 @@ std::pair<Preset*, bool> PresetCollection::load_external_preset(
                 it->is_visible = true;
                 //AppConfig* app_config = get_app_config();
                 //if (app_config)
-                //    app_config->set(AppConfig::SECTION_FILAMENTS, it->name, "1");
+                //   app_config->set(AppConfig::SECTION_FILAMENTS, it->name, "1");
             }
             //BBS: add config related logs
             BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" Select the existing preset %1% and override it with new values")%it->name;
