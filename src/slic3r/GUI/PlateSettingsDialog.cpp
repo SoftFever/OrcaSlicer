@@ -235,7 +235,7 @@ void PlateSettingsDialog::on_dpi_changed(const wxRect& suggested_rect)
 }
 
 wxString PlateSettingsDialog::get_plate_name() const {
-    return m_ti_plate_name->GetTextCtrl()->GetValue(); 
+    return m_ti_plate_name->GetTextCtrl()->GetValue();
 }
 
 void PlateSettingsDialog::set_plate_name(const wxString &name) { m_ti_plate_name->GetTextCtrl()->SetValue(name); }
