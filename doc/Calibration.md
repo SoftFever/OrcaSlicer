@@ -79,7 +79,7 @@ The PA value for this test will be increased by 0.002 for every 1 mm increase in
 Steps:
  1. Select the printer, filament, and process you would like to use for the test.
  2. Examine each corner of the print and mark the height that yields the best overall result.
- 3. I selected a height of 8 mm for this case, so the pressure advance value should be calculated as `0.002x8 = 0.016`.
+ 3. I selected a height of 8 mm for this case, so the pressure advance value should be calculated as `PressureAdvanceStart+(PressureAdvanceStep x measured)` example: `0+(0.002 x 8) = 0.016`.
 ![tower](https://user-images.githubusercontent.com/103989404/210140231-e886b98d-280a-4464-9781-c74ed9b7d44e.jpg)
 
 ![tower_measure](https://user-images.githubusercontent.com/103989404/210140232-885b549b-e3b8-46b9-a24c-5229c9182408.jpg)
