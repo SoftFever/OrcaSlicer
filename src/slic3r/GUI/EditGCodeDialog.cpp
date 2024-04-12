@@ -156,6 +156,7 @@ void EditGCodeDialog::init_params_list(const std::string& custom_gcode_name)
                                   custom_gcode_placeholders.at(custom_gcode_name) : t_config_option_keys({});
 
     // Add slicing states placeholders
+    m_params_list->SetForegroundColour(wxColour(0, 0, 0));
 
     wxDataViewItem slicing_state = m_params_list->AppendGroup(_L("[Global] Slicing State"), "custom-gcode_slicing-state_global");
     if (!cgp_ro_slicing_states_config_def.empty()) {
@@ -239,6 +240,8 @@ void EditGCodeDialog::init_params_list(const std::string& custom_gcode_name)
     if (!cgp_other_presets_config_def.empty())
         for (const auto& [opt_key, def] : cgp_other_presets_config_def.options)
             m_params_list->AppendParam(presets, get_type(opt_key, def), opt_key);
+
+    wxGetApp().UpdateDarkUI(m_params_list);
 }
 
 wxDataViewItem EditGCodeDialog::add_presets_placeholders()
