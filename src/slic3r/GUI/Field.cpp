@@ -1706,8 +1706,10 @@ void PointCtrl::BUILD()
 
 	auto static_text_x = new wxStaticText(m_parent, wxID_ANY, "x : ");
 	auto static_text_y = new wxStaticText(m_parent, wxID_ANY, "   y : ");
+	static_text_x->SetForegroundColour(wxColour(0, 0, 0));
 	static_text_x->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 	static_text_x->SetBackgroundStyle(wxBG_STYLE_PAINT);
+	static_text_y->SetForegroundColour(wxColour(0, 0, 0));
 	static_text_y->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 	static_text_y->SetBackgroundStyle(wxBG_STYLE_PAINT);
 
