@@ -845,8 +845,16 @@ Sidebar::Sidebar(Plater *parent)
 
         //TODO：ylg 我们将要限定材料的添加数量
         const size_t extruder_cnt = dynamic_cast<ConfigOptionFloats*>(wxGetApp().preset_bundle->printers.get_edited_preset().config.option("nozzle_diameter"))->values.size();
+        const auto ams_extruders_count = dynamic_cast<ConfigOptionInts*>(wxGetApp().preset_bundle->printers.get_edited_preset().config.option("ams_extruders_count"))->values;
+        const auto single_extruder_multi_material = (
+            wxGetApp().preset_bundle->printers.get_edited_preset().config.opt_bool("single_extruder_multi_material"));
+        size_t ams_num = 0;
+        if (single_extruder_multi_material)//TODO:ylg 勾选了单挤出机多材料才需要计算ams的设定
+            for (size_t idx = 0; idx < ams_extruders_count.size(); idx++) {
+                ams_num += ams_extruders_count.at(idx) -1;//这里的减一是因为得把自身的值减掉 
+            }
         //const size_t filament_cnt = p->combos_filament.size() > extruder_cnt ? extruder_cnt : p->combos_filament.size();
-        if (filament_count > extruder_cnt) {
+        if (filament_count > (extruder_cnt + ams_num)) {
             const wxString msg_text = _(L("The number of nozzles has exceeded the maximum number supported by the current printer!"));
             MessageDialog dialog(this, msg_text, _(L("Nozzle count")), wxICON_WARNING | wxYES_NO);
             dialog.ShowModal();

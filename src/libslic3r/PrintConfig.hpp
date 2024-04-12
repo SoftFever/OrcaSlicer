@@ -1077,6 +1077,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionEnum<NozzleType>,    nozzle_type))
     ((ConfigOptionInt,                 nozzle_hrc))
     ((ConfigOptionBool,                auxiliary_fan))
+    //((ConfigOptionBool,                auxiliary_ams))
     ((ConfigOptionBool,                single_nozzle_with_multiple_fans))
     ((ConfigOptionBool,                support_air_filtration))
     ((ConfigOptionEnum<PrinterStructure>,printer_structure))
@@ -1190,7 +1191,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionPoint,              best_object_pos))
     ((ConfigOptionFloats,             slow_down_min_speed))
     //TODO:ylg
-    //((ConfigOptionInt,                extruders_count))
+    ((ConfigOptionInts,               ams_extruders_count))
     ((ConfigOptionFloats,             nozzle_diameter))
     ((ConfigOptionBool,               reduce_infill_retraction))
     ((ConfigOptionBool,               ooze_prevention))

@@ -2495,11 +2495,17 @@ def = this->add("filament_loading_speed", coFloats);
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
-   def = this->add("single_nozzle_with_multiple_fans", coBool);
-   def->label = L("Single nozzle with multiple fans");
-   def->tooltip = L("Single nozzle with multiple fans");
-   def->mode = comAdvanced;
-   def->set_default_value(new ConfigOptionBool(false));
+    // def = this->add("auxiliary_ams", coBool);
+    // def->label = L("ams auxiliary");
+    // def->tooltip = L("Whether the device is connected to the ams device");
+    // def->mode = comAdvanced;
+    // def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("single_nozzle_with_multiple_fans", coBool);
+    def->label = L("Single nozzle with multiple fans");
+    def->tooltip = L("Single nozzle with multiple fans");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("fan_speedup_time", coFloat);
 	// Label is set in Tab.cpp in the Line object.
@@ -3078,13 +3084,13 @@ def = this->add("filament_loading_speed", coFloats);
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats { 10. });
 
-    // def = this->add("extruders_count", coInt);
-    // def->label = L("Extruders");
-    // def->tooltip = L("Number of extruders of the printer.");
-    // def->mode = comAdvanced;
-    // def->min = 1;
-    // def->max = 256;
-    // def->set_default_value(new ConfigOptionInt { 1 });
+    def = this->add("ams_extruders_count", coInts);
+    def->label = L("AMS Number of extruders");
+    def->tooltip = L("AMS Number of extruders.");
+    def->mode = comAdvanced;
+    def->min = 1;
+    def->max = 64;
+    def->set_default_value(new ConfigOptionInts { 1 });
 
     def = this->add("nozzle_diameter", coFloats);
     def->label = L("Nozzle diameter");
@@ -5016,7 +5022,7 @@ void PrintConfigDef::init_extruder_option_keys()
         "nozzle_diameter", "min_layer_height", "max_layer_height", "extruder_offset",
         "retraction_length", "z_hop", "z_hop_types", "retract_lift_above", "retract_lift_below", "retract_lift_enforce", "retraction_speed", "deretraction_speed",
         "retract_before_wipe", "retract_restart_extra", "retraction_minimum_travel", "wipe", "wipe_distance",
-        "retract_when_changing_layer", "retract_length_toolchange", "retract_restart_extra_toolchange", "extruder_colour",
+        "retract_when_changing_layer", "retract_length_toolchange", "retract_restart_extra_toolchange", "extruder_colour","ams_extruders_count",
         "default_filament_profile"
     };
 

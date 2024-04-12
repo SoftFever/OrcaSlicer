@@ -106,6 +106,7 @@
 	],
     "purge_in_prime_tower": "0",	
 	"single_extruder_multi_material": "0",
+	"ams_extruders_count": ["1","1"],
 	"change_filament_gcode": "M106 P1 S255 ;change filament gcode",
 	"machine_pause_gcode": "; pause print\n",
 	"default_filament_profile": [

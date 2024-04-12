@@ -140,7 +140,6 @@
     ],
     "z_offset": "0",
       "auxiliary_fan": "0",
-      "extruders_count":"1",
   "single_nozzle_with_multiple_fans":"0",
     "extruder_clearance_height_to_lid": "34",
     "extruder_clearance_height_to_rod": "47",

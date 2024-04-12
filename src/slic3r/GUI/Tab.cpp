@@ -3432,7 +3432,10 @@ void TabFilament::toggle_options()
       toggle_option("close_fan_the_first_x_layers_1", cfg.opt_bool("single_nozzle_with_multiple_fans"));
       toggle_option("full_fan_speed_layer_1", cfg.opt_bool("single_nozzle_with_multiple_fans"));
       toggle_option("fan_min_speed_1", cfg.opt_bool("single_nozzle_with_multiple_fans"));
+
+
     }
+
     if (m_active_page->title() == L("Filament"))
     {
         bool pa = m_config->opt_bool("enable_pressure_advance", 0);
@@ -3559,6 +3562,7 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line("z_offset");
         optgroup->append_single_option_line("preferred_orientation");
 
+        //TODO:YLG 我们不需要可以调节的挤出机数量
         optgroup = page->new_optgroup(L("Capabilities"));
         ConfigOptionDef def;
             def.type =  coInt,
@@ -3567,9 +3571,11 @@ void TabPrinter::build_fff()
             def.tooltip = L("Number of extruders of the printer.");
             def.min = 1;
             def.max = 256;
+            def.readonly = true;//TOD:ylg 喷头数量暂时是只读的
             def.mode = comAdvanced;
         Option option1(def, "extruders_count");
         optgroup->append_single_option_line(option1);
+        
        // optgroup->append_single_option_line("extruders_count");
 
         optgroup->m_on_change = [this, optgroup_wk = ConfigOptionsGroupWkp(optgroup)](t_config_option_key opt_key, boost::any value) {
@@ -3675,6 +3681,7 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line("auxiliary_fan", "auxiliary-fan");
         optgroup->append_single_option_line("support_chamber_temp_control", "chamber-temperature");
         optgroup->append_single_option_line("support_air_filtration", "air-filtration");
+        //optgroup->append_single_option_line("auxiliary_ams");
 
         auto edit_custom_gcode_fn = [this](const t_config_option_key& opt_key) { edit_custom_gcode(opt_key); };
 
@@ -4156,6 +4163,9 @@ void TabPrinter::build_extruder_pages(size_t n_before_extruders)
         optgroup = page->new_optgroup(L("Retraction when switching material"), L"param_retraction", -1, true);
         optgroup->append_single_option_line("retract_length_toolchange", "", extruder_idx);
         optgroup->append_single_option_line("retract_restart_extra_toolchange", "", extruder_idx);
+        
+        optgroup = page->new_optgroup(L("Accessory"));
+        optgroup->append_single_option_line("ams_extruders_count", "", extruder_idx);
     }
 
     // # remove extra pages
@@ -4375,74 +4385,79 @@ void TabPrinter::toggle_options()
 
     }
     wxString extruder_number;
-    long val = 1;
-    if ( m_active_page->title().IsSameAs(L("Extruder")) ||
-        (m_active_page->title().StartsWith("Extruder ", &extruder_number) && extruder_number.ToLong(&val) &&
-        val > 0 && (size_t)val <= m_extruders_count))
-    {
-        size_t i = size_t(val - 1);
-        bool have_retract_length = m_config->opt_float("retraction_length", i) > 0;
+    long val = 0;
+    for (size_t idx = 0; idx < m_extruders_count; idx++) {
+        val = idx;
+        if (m_active_page->title().IsSameAs(L("Extruder")) || (m_active_page->title().StartsWith("Extruder ", &extruder_number) &&
+                                                               extruder_number.ToLong(&val) /*&&
+val > 0*/ && (size_t) val <= m_extruders_count)) {
+            auto cfg = m_preset_bundle->printers.get_edited_preset().config;
 
-        // when using firmware retraction, firmware decides retraction length
-        bool use_firmware_retraction = m_config->opt_bool("use_firmware_retraction");
-        toggle_option("retract_length", !use_firmware_retraction, i);
+            size_t i = size_t(val);
+            
+            // TODO:ylg ams喷头数量
+            toggle_option("ams_extruders_count", cfg.opt_bool("single_extruder_multi_material"),i);
 
-        // user can customize travel length if we have retraction length or we"re using
-        // firmware retraction
-        toggle_option("retraction_minimum_travel", have_retract_length || use_firmware_retraction, i);
+            bool have_retract_length = m_config->opt_float("retraction_length", i) > 0;
 
-        // user can customize other retraction options if retraction is enabled
-        //BBS
-        bool retraction = have_retract_length || use_firmware_retraction;
-        std::vector<std::string> vec = { "z_hop", "retract_when_changing_layer" };
-        for (auto el : vec)
-            toggle_option(el, retraction, i);
+            // when using firmware retraction, firmware decides retraction length
+            bool use_firmware_retraction = m_config->opt_bool("use_firmware_retraction");
+            toggle_option("retract_length", !use_firmware_retraction, i);
 
-        // retract lift above / below + enforce only applies if using retract lift
-        vec.resize(0);
-        vec = {"retract_lift_above", "retract_lift_below", "retract_lift_enforce"};
-        for (auto el : vec)
-          toggle_option(el, retraction && (m_config->opt_float("z_hop", i) > 0), i);
+            // user can customize travel length if we have retraction length or we"re using
+            // firmware retraction
+            toggle_option("retraction_minimum_travel", have_retract_length || use_firmware_retraction, i);
 
-        // some options only apply when not using firmware retraction
-        vec.resize(0);
-        vec = {"retraction_speed", "deretraction_speed",    "retract_before_wipe",
-               "retract_length",   "retract_restart_extra", "wipe",
-               "wipe_distance"};
-        for (auto el : vec)
-            //BBS
-            toggle_option(el, retraction && !use_firmware_retraction, i);
+            // user can customize other retraction options if retraction is enabled
+            // BBS
+            bool                     retraction = have_retract_length || use_firmware_retraction;
+            std::vector<std::string> vec        = {"z_hop", "retract_when_changing_layer"};
+            for (auto el : vec)
+                toggle_option(el, retraction, i);
 
-        bool wipe = retraction && m_config->opt_bool("wipe", i);
-        toggle_option("retract_before_wipe", wipe, i);
-        if (use_firmware_retraction && wipe) {
-            //wxMessageDialog dialog(parent(),
-            MessageDialog dialog(parent(),
-                _(L("The Wipe option is not available when using the Firmware Retraction mode.\n"
-                    "\nShall I disable it in order to enable Firmware Retraction?")),
-                _(L("Firmware Retraction")), wxICON_WARNING | wxYES | wxNO);
+            // retract lift above / below + enforce only applies if using retract lift
+            vec.resize(0);
+            vec = {"retract_lift_above", "retract_lift_below", "retract_lift_enforce"};
+            for (auto el : vec)
+                toggle_option(el, retraction && (m_config->opt_float("z_hop", i) > 0), i);
 
-            DynamicPrintConfig new_conf = *m_config;
-            if (dialog.ShowModal() == wxID_YES) {
-                auto wipe = static_cast<ConfigOptionBools*>(m_config->option("wipe")->clone());
-                for (size_t w = 0; w < wipe->values.size(); w++)
-                    wipe->values[w] = false;
-                new_conf.set_key_value("wipe", wipe);
+            // some options only apply when not using firmware retraction
+            vec.resize(0);
+            vec = {"retraction_speed", "deretraction_speed", "retract_before_wipe", "retract_length", "retract_restart_extra", "wipe",
+                   "wipe_distance"};
+            for (auto el : vec)
+                // BBS
+                toggle_option(el, retraction && !use_firmware_retraction, i);
+
+            bool wipe = retraction && m_config->opt_bool("wipe", i);
+            toggle_option("retract_before_wipe", wipe, i);
+            if (use_firmware_retraction && wipe) {
+                // wxMessageDialog dialog(parent(),
+                MessageDialog dialog(parent(),
+                                     _(L("The Wipe option is not available when using the Firmware Retraction mode.\n"
+                                         "\nShall I disable it in order to enable Firmware Retraction?")),
+                                     _(L("Firmware Retraction")), wxICON_WARNING | wxYES | wxNO);
+
+                DynamicPrintConfig new_conf = *m_config;
+                if (dialog.ShowModal() == wxID_YES) {
+                    auto wipe = static_cast<ConfigOptionBools*>(m_config->option("wipe")->clone());
+                    for (size_t w = 0; w < wipe->values.size(); w++)
+                        wipe->values[w] = false;
+                    new_conf.set_key_value("wipe", wipe);
+                } else {
+                    new_conf.set_key_value("use_firmware_retraction", new ConfigOptionBool(false));
+                }
+                load_config(new_conf);
             }
-            else {
-                new_conf.set_key_value("use_firmware_retraction", new ConfigOptionBool(false));
-            }
-            load_config(new_conf);
+            // BBS
+            toggle_option("wipe_distance", wipe, i);
+
+            toggle_option("retract_length_toolchange", have_multiple_extruders, i);
+
+            bool toolchange_retraction = m_config->opt_float("retract_length_toolchange", i) > 0;
+            toggle_option("retract_restart_extra_toolchange", have_multiple_extruders && toolchange_retraction, i);
         }
-        // BBS
-        toggle_option("wipe_distance", wipe, i);
-
-        toggle_option("retract_length_toolchange", have_multiple_extruders, i);
-
-        bool toolchange_retraction = m_config->opt_float("retract_length_toolchange", i) > 0;
-        toggle_option("retract_restart_extra_toolchange", have_multiple_extruders && toolchange_retraction, i);
     }
-
     if (m_active_page->title() == L("Motion ability")) {
         auto gcf = m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value;
         bool silent_mode = m_config->opt_bool("silent_mode");

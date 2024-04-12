@@ -57,6 +57,6 @@
   "scan_first_layer": "0",
   "nozzle_type": "undefine",
     "auxiliary_fan": "0",
-    "extruders_count":"1",
+    "ams_extruders_count": ["1"],
   "single_nozzle_with_multiple_fans":"0"
 }

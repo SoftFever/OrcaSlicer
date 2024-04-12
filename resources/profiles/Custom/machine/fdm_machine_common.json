@@ -105,6 +105,7 @@
     "retraction_speed": [
         "60"
     ],
+    "ams_extruders_count": ["1"],
     "single_extruder_multi_material": "1",
     "change_filament_gcode": "",
     "wipe": [
