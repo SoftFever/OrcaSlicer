@@ -9,6 +9,7 @@
 #include "libslic3r/Model.hpp"
 #include "slic3r/GUI/Jobs/BoostThreadWorker.hpp"
 #include "slic3r/GUI/Jobs/PlaterWorker.hpp"
+#include "../GUI/MsgDialog.hpp"
 
 
 namespace Slic3r {

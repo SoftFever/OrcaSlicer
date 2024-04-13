@@ -1520,7 +1520,8 @@ BoundingBoxf3 ModelObject::instance_convex_hull_bounding_box(size_t instance_idx
 BoundingBoxf3 ModelObject::instance_convex_hull_bounding_box(const ModelInstance* instance, bool dont_translate) const
 {
     BoundingBoxf3 bb;
-    const Transform3d& inst_matrix = instance->get_transformation().get_matrix(dont_translate);
+    const Transform3d inst_matrix = dont_translate ? instance->get_transformation().get_matrix_no_offset() :
+                                                     instance->get_transformation().get_matrix();
     for (ModelVolume* v : this->volumes) {
         if (v->is_model_part())
             bb.merge(v->get_convex_hull().transformed_bounding_box(inst_matrix * v->get_matrix()));

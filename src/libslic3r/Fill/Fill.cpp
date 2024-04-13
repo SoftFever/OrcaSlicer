@@ -500,8 +500,8 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 					//Orca: enable thick bridge based on config
 					layerm.bridging_flow(extrusion_role, is_thick_bridge) :
 					layerm.flow(extrusion_role, (surface.thickness == -1) ? layer.height : surface.thickness);
-				//BBS: record speed params
-                if (!params.with_loop && !params.bridge) {
+				// record speed params
+                if (!params.bridge) {
                     if (params.extrusion_role == erInternalInfill)
                         params.sparse_infill_speed = region_config.sparse_infill_speed;
                     else if (params.extrusion_role == erTopSolidInfill)
