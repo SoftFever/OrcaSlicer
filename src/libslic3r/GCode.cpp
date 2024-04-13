@@ -5484,6 +5484,8 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                 for (const Line& line : path.polyline.lines()) {
                     std::string tempDescription = description;
                     const double line_length = line.length() * SCALING_FACTOR;
+                    if (line_length < EPSILON)
+                        continue;
                     path_length += line_length;
                     auto dE = e_per_mm * line_length;
                     if (m_small_area_infill_flow_compensator && m_config.small_area_infill_flow_compensation.value) {
@@ -5523,6 +5525,8 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                         for (size_t point_index = start_index + 1; point_index < end_index + 1; point_index++) {
                             const Line line = Line(path.polyline.points[point_index - 1], path.polyline.points[point_index]);
                             const double line_length = line.length() * SCALING_FACTOR;
+                            if (line_length < EPSILON)
+                                continue;
                             auto dE = e_per_mm * line_length;
                             if (m_small_area_infill_flow_compensator  && m_config.small_area_infill_flow_compensation.value) {
                                 auto oldE = dE;
@@ -5543,6 +5547,8 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                     case EMovePathType::Arc_move_ccw: {
                         const ArcSegment& arc = fitting_result[fitting_index].arc_data;
                         const double arc_length = fitting_result[fitting_index].arc_data.length * SCALING_FACTOR;
+                        if (arc_length < EPSILON)
+                            continue;
                         const Vec2d center_offset = this->point_to_gcode(arc.center) - this->point_to_gcode(arc.start_point);
                         auto dE = e_per_mm * arc_length;
                         if (m_small_area_infill_flow_compensator && m_config.small_area_infill_flow_compensation.value) {
@@ -5624,6 +5630,8 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             }
 
             const double line_length = (p - prev).norm();
+            if(line_length < EPSILON)
+                continue;
             path_length += line_length;
             double new_speed = pre_processed_point.speed * 60.0;
             if (last_set_speed != new_speed) {
