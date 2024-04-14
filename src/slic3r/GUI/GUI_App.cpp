@@ -240,9 +240,8 @@ public:
 
 		float f_scale = m_scale * 2;
 
-        scale_font(m_constant_text.title_font,			f_scale);
+        //scale_font(m_constant_text.title_font,			f_scale);
         scale_font(m_constant_text.version_font,		f_scale);
-        scale_font(m_constant_text.version_text_font,	f_scale);
         scale_font(m_constant_text.based_on_text_font,	f_scale);
         scale_font(m_constant_text.credits_font,		f_scale);
 
@@ -264,7 +263,7 @@ public:
             memDC.SelectObject(bitmap);
             memDC.SetFont(m_action_font);
             //memDC.SetTextForeground(StateColor::darkModeColorFor(wxColour(144, 144, 144)));
-            memDC.SetTextForeground(wxColor("#97CCC7"));
+            memDC.SetTextForeground(wxColor("#949494"));
             int width = bitmap.GetWidth();
             int text_height = memDC.GetTextExtent(text).GetHeight();
             int text_width = memDC.GetTextExtent(text).GetWidth();
@@ -285,60 +284,48 @@ public:
         if (!bmp.IsOk())
             return;
 
+		bool is_dark = wxGetApp().app_config->get("dark_color_mode") == "1";
+
         // use a memory DC to draw directly onto the bitmap
         wxMemoryDC memDC(bmp);
 
         // load bitmap for logo
         BitmapCache bmp_cache;
-        int         logo_height   = FromDIP(480 * m_scale);
-        int         logo_width = FromDIP(480 * m_scale);
-        wxBitmap    logo_bmp      = *bmp_cache.load_svg("splash_logo", logo_width, logo_height);
+        int         logo_height = FromDIP(480 * m_scale);
+        int         logo_width  = FromDIP(480 * m_scale);
+        wxBitmap    logo_bmp      = *bmp_cache.load_svg(is_dark ? "splash_logo_dark" : "splash_logo", logo_width, logo_height);
         memDC.DrawBitmap(logo_bmp, 0, 0, true);
 
-        int padding = logo_height / 20;
-        memDC.SetTextForeground(wxColor("#97CCC7"));
+        memDC.SetTextForeground(wxColor("#949494"));
 
         // Version Number
         memDC.SetFont(m_constant_text.version_font);
-        int    version_height = memDC.GetTextExtent(m_constant_text.version).GetHeight();
-        int    version_width  = memDC.GetTextExtent(m_constant_text.version).GetWidth();
+        int version_height = memDC.GetTextExtent(m_constant_text.version).GetHeight();
+        int version_width  = memDC.GetTextExtent(m_constant_text.version).GetWidth();
         memDC.DrawLabel(
             m_constant_text.version,
             wxRect(
-                wxPoint(logo_width - version_width - padding, logo_height - version_height - padding), // TOPLEFT
-                wxPoint(logo_width - padding, logo_height - padding)
+                wxPoint(0, round(logo_height * 0.61)), // TOPLEFT
+                wxPoint(logo_width, round(logo_height * 0.61) + version_width)
             ),
-            wxALIGN_RIGHT | wxALIGN_BOTTOM
+            wxALIGN_CENTER
         );
 
         // Based on Text
         memDC.SetFont(m_constant_text.based_on_text_font);
-        int    based_on_height = memDC.GetMultiLineTextExtent(m_constant_text.based_on_text).GetHeight();
-        int    based_on_width  = memDC.GetMultiLineTextExtent(m_constant_text.based_on_text).GetWidth();
+        int based_on_height = memDC.GetTextExtent(m_constant_text.based_on_text).GetHeight();
+        int based_on_width  = memDC.GetTextExtent(m_constant_text.based_on_text).GetWidth();
         memDC.DrawLabel(
             m_constant_text.based_on_text,
             wxRect(
-                wxPoint(padding , logo_height - padding),
-                wxPoint(padding + based_on_width , logo_height - padding - based_on_height)
+                wxPoint(0, logo_height - based_on_height - logo_height / 30),
+                wxPoint(logo_width, logo_height - logo_height / 30)
             ),
-            wxALIGN_LEFT | wxALIGN_BOTTOM
-        );
-
-		// Version Text
-        memDC.SetFont(m_constant_text.version_text_font);
-        int version_text_height = memDC.GetTextExtent(m_constant_text.version_text).GetHeight();
-        int version_text_width  = memDC.GetTextExtent(m_constant_text.version_text).GetWidth();
-        memDC.DrawLabel(
-            m_constant_text.version_text,
-            wxRect(
-                wxPoint(logo_width - version_text_width - padding, logo_height - padding - based_on_height), // TOPLEFT
-                wxPoint(logo_width - padding, logo_height - padding - version_text_height)
-            ),
-            wxALIGN_RIGHT | wxALIGN_TOP
+            wxALIGN_CENTER
         );
 
 		// calculate position for the dynamic text
-		m_action_line_y_position = round(logo_height * 0.66);
+		m_action_line_y_position = round(logo_height * 0.82);
 
     }
 
@@ -412,38 +399,33 @@ private:
 
     struct ConstantText
     {
-        wxString title;
+        //wxString title;
         wxString version;
-        wxString version_text;
         wxString credits;
         wxString based_on_text;
 
-        wxFont   title_font;
+        //wxFont   title_font;
         wxFont   version_font;
-        wxFont   version_text_font;
         wxFont   based_on_text_font;
         wxFont   credits_font;
 
         void init(wxFont init_font)
         {
             // title
-            title = wxGetApp().is_editor() ? SLIC3R_APP_FULL_NAME : GCODEVIEWER_APP_NAME;
+            //title = wxGetApp().is_editor() ? SLIC3R_APP_FULL_NAME : GCODEVIEWER_APP_NAME;
 
             // dynamically get the version to display
             version         = GUI_App::format_display_version();//version = _L("V") + " " + GUI_App::format_display_version();
 
-            version_text    = _L("Version");
-
-            based_on_text   = _L("Based on") + "\nPrusa Slicer &\nBamboo Studio";
+            based_on_text   = _L("Based on") + "Prusa Slicer & Bamboo Studio";
 
             // credits infornation
             credits = "";
 
-            title_font          = Label::Head_10;
-            version_font        = Label::Body_16;
-            version_text_font   = Label::Body_8;
+            //title_font          = Label::Head_10;
+            version_font        = Label::Body_13;
             based_on_text_font  = Label::Body_8;
-            credits_font        = Label::Body_10;
+            credits_font        = Label::Body_8;
         }
     }
     m_constant_text;
