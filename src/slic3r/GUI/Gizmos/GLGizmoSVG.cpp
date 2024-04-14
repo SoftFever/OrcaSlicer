@@ -1361,12 +1361,14 @@ void GLGizmoSVG::draw_window()
 }
 
 void GLGizmoSVG::draw_face_the_camera(){
+    ImGuiWrapper::push_default_button_style(); // ORCA match button style
     if (ImGui::Button(_u8L("Face the camera").c_str())) {
         const Camera &cam = wxGetApp().plater()->get_camera();
         auto wanted_up_limit = (m_keep_up) ? std::optional<double>(UP_LIMIT) : std::optional<double>{};
         if (face_selected_volume_to_camera(cam, m_parent, wanted_up_limit))
             volume_transformation_changed();
     }
+    ImGuiWrapper::pop_default_button_style(); // ORCA match button style
 }
 
 void GLGizmoSVG::draw_preview(){

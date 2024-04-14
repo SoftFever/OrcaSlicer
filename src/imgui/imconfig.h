@@ -212,6 +212,17 @@ namespace ImGui
 
 	const wchar_t MeasureEditBtnIcon		= 0x0845;
 
-//    void MyFunction(const char* name, const MyMatrix44& v);
+	const wchar_t MeshBooleanA				= 0x0846;
+    const wchar_t MeshBooleanB				= 0x0847;
+    const wchar_t MeshBooleanKeep			= 0x0848;
+    const wchar_t MeshBooleanSubtract		= 0x0849;
+    const wchar_t MeshBooleanUnion			= 0x0850;
+    const wchar_t MeshBooleanDifference     = 0x0851;
+    const wchar_t MeshBooleanIntersection   = 0x0852;
+    const wchar_t MeshBooleanUnionDark          = 0x0853;
+    const wchar_t MeshBooleanDifferenceDark     = 0x0854;
+    const wchar_t MeshBooleanIntersectionDark   = 0x0855;
+
+    //    void MyFunction(const char* name, const MyMatrix44& v);
 }
 

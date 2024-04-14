@@ -1356,7 +1356,9 @@ void GLGizmoEmboss::close()
 void GLGizmoEmboss::draw_window()
 {
 #ifdef ALLOW_DEBUG_MODE
+    ImGuiWrapper::push_default_button_style(); // ORCA match button style
     if (ImGui::Button("re-process")) process();
+    ImGuiWrapper::pop_default_button_style(); // ORCA match button style
 #endif //  ALLOW_DEBUG_MODE
 
     // Setter of indent must be befor disable !!!
@@ -1689,9 +1691,11 @@ void GLGizmoEmboss::draw_font_list_line()
         // when exist unknown font add confirmation button
         ImGui::SameLine();
         // Apply for actual selected font
+        ImGuiWrapper::push_default_button_style(); // ORCA match button style
         if (ImGui::Button(_u8L("Apply").c_str()))
             exist_change = true;
-    }
+		ImGuiWrapper::pop_default_button_style(); // ORCA match button style
+    }	
 
     EmbossStyle &style = m_style_manager.get_style();
     if (exist_change_in_font) {
@@ -1961,12 +1965,14 @@ void GLGizmoEmboss::draw_style_rename_popup() {
     bool store = false;
     ImGuiInputTextFlags flags = ImGuiInputTextFlags_EnterReturnsTrue;
     if (ImGui::InputText("##rename style", &new_name, flags) && allow_change) store = true;
+    ImGuiWrapper::push_default_button_style(); // ORCA match button style
     if (m_imgui->button(_L("OK"), ImVec2(0.f, 0.f), allow_change)) store = true;
     ImGui::SameLine();
     if (ImGui::Button(_u8L("Cancel").c_str())) {
         new_name = old_name;
         ImGui::CloseCurrentPopup();
     }
+    ImGuiWrapper::pop_default_button_style(); // ORCA match button style
 
     if (store) {
         // rename style in all objects and volumes
@@ -2043,7 +2049,8 @@ void GLGizmoEmboss::draw_style_save_as_popup() {
     ImGuiInputTextFlags flags = ImGuiInputTextFlags_EnterReturnsTrue;
     if (ImGui::InputText("##save as style", &new_name, flags))
         save_style = true;
-        
+     
+	ImGuiWrapper::push_default_button_style(); // ORCA match button style
     if (m_imgui->button(_L("OK"), ImVec2(0.f, 0.f), allow_change))
         save_style = true;
 
@@ -2053,6 +2060,7 @@ void GLGizmoEmboss::draw_style_save_as_popup() {
         new_name = m_style_manager.get_style().name;
         ImGui::CloseCurrentPopup();
     }
+    ImGuiWrapper::pop_default_button_style(); // ORCA match button style
 
     if (save_style && allow_change) {
         m_style_manager.add_style(new_name);
@@ -3041,6 +3049,7 @@ void GLGizmoEmboss::draw_advanced()
 
 	ImGui::SetCursorPosX(m_gui_cfg->window_left);
 
+	ImGuiWrapper::push_default_button_style(); // ORCA match button style
     if (ImGui::Button(_u8L("Set text to face camera").c_str())) {
         assert(get_selected_volume(m_parent.get_selection()) == m_volume);
         const Camera &cam = wxGetApp().plater()->get_camera();
@@ -3050,6 +3059,7 @@ void GLGizmoEmboss::draw_advanced()
     } else if (ImGui::IsItemHovered()) {
         m_imgui->tooltip(_u8L("Orient the text towards the camera."), m_gui_cfg->max_tooltip_width);
     }
+    ImGuiWrapper::pop_default_button_style(); // ORCA match button style
 
     //ImGui::SameLine(); if (ImGui::Button("Re-emboss")) GLGizmoEmboss::re_emboss(*m_volume);    
 

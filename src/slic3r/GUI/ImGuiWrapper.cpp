@@ -108,6 +108,17 @@ static const std::map<const wchar_t, std::string> font_icons = {
     {ImGui::CollapseArrowIcon,            "notification_collapse"             },
     {ImGui::ExpandArrowIcon,              "notification_expand"               },
     {ImGui::OpenArrowIcon,                "notification_arrow_open"           },
+
+	{ImGui::MeshBooleanA,                "mesh_boolean_a"				},
+	{ImGui::MeshBooleanB,                "mesh_boolean_b"				},
+	{ImGui::MeshBooleanKeep,             "mesh_boolean_keep"			},
+    {ImGui::MeshBooleanSubtract,		 "mesh_boolean_subtract"		},
+	{ImGui::MeshBooleanDifference,       "mesh_boolean_difference"      },
+	{ImGui::MeshBooleanIntersection,     "mesh_boolean_intersection"    },
+    {ImGui::MeshBooleanUnion,			 "mesh_boolean_union"			},
+	{ImGui::MeshBooleanDifferenceDark,   "mesh_boolean_difference_dark"      },
+	{ImGui::MeshBooleanIntersectionDark, "mesh_boolean_intersection_dark"    },
+    {ImGui::MeshBooleanUnionDark,		 "mesh_boolean_union_dark"			},
 };
 static const std::map<const wchar_t, std::string> font_icons_large = {
     {ImGui::CloseNotifButton        , "notification_close"              },
@@ -921,15 +932,12 @@ bool ImGuiWrapper::bbl_checkbox(const wxString &label, bool &value)
 {
     bool result;
     bool b_value = value;
-    if (b_value) {
-        ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.00f, 0.59f, 0.53f, 1.00f));
-        ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(0.00f, 0.59f, 0.53f, 1.00f));
-        ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0.00f, 0.59f, 0.53f, 1.00f));
-    }
+    // ORCA Add support for dark mode colors
+    ImGuiWrapper::push_check_style(b_value);
     auto label_utf8 = into_u8(label);
     result          = ImGui::BBLCheckbox(label_utf8.c_str(), &value);
 
-    if (b_value) { ImGui::PopStyleColor(3);}
+    ImGuiWrapper::pop_check_style(b_value);
     return result;
 }
 
@@ -2408,7 +2416,7 @@ void ImGuiWrapper::push_toolbar_style(const float scale)
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f * scale);
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(5.0, 5.0) * scale);      // ORCA: Use Equal paddings for all gizmos
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(16.0f, 10.0f) * scale); // ORCA:Slightly reduced horizontal padding for gizmos
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 3.0f * scale);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 4.0f * scale);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4.0f * scale); // ORCA: Increased rounding
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(10.0f, 10.0f) * scale);
@@ -2532,67 +2540,107 @@ void ImGuiWrapper::pop_common_window_style() {
     ImGui::PopStyleVar(6);
 }
 
+// ORCA Match button style
 void ImGuiWrapper::push_confirm_button_style() {
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8.0, 5.0));
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4.0f);
     if (m_is_dark_mode) {
-        ImGui::PushStyleColor(ImGuiCol_Button, ImGuiWrapper::COL_ORCA); // ORCA updated colors
-        ImGui::PushStyleColor(ImGuiCol_Border, ImGuiWrapper::COL_ORCA); // ORCA updated colors
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGuiWrapper::COL_ORCA_LIGHT); // ORCA updated colors
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImGuiWrapper::COL_ORCA);        // ORCA updated colors
-        ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(1.f, 1.f, 1.f, 0.88f));
-        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 0.88f));
+        ImGui::PushStyleColor(ImGuiCol_Button,			to_ImVec4(decode_color_to_float_array("#00675b")));
+        ImGui::PushStyleColor(ImGuiCol_Border,			to_ImVec4(decode_color_to_float_array("#00675b")));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered,	to_ImVec4(decode_color_to_float_array("#267E73")));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive,	to_ImVec4(decode_color_to_float_array("#00675b")));
+        ImGui::PushStyleColor(ImGuiCol_CheckMark,		to_ImVec4(decode_color_to_float_array("#EFEFF0")));
+        ImGui::PushStyleColor(ImGuiCol_Text,			to_ImVec4(decode_color_to_float_array("#EFEFF0")));
     }
     else {
-        ImGui::PushStyleColor(ImGuiCol_Button, ImGuiWrapper::COL_ORCA); // ORCA updated colors
-        ImGui::PushStyleColor(ImGuiCol_Border, ImGuiWrapper::COL_ORCA); // ORCA updated colors
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGuiWrapper::COL_ORCA_DARK); // ORCA updated colors
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImGuiWrapper::COL_ORCA);       // ORCA updated colors
-        ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(1.f, 1.f, 1.f, 1.f));
-        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f));
+        ImGui::PushStyleColor(ImGuiCol_Button,			to_ImVec4(decode_color_to_float_array("#009688")));
+        ImGui::PushStyleColor(ImGuiCol_Border,			to_ImVec4(decode_color_to_float_array("#009688")));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered,	to_ImVec4(decode_color_to_float_array("#26A69A")));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive,	to_ImVec4(decode_color_to_float_array("#009688")));
+        ImGui::PushStyleColor(ImGuiCol_CheckMark,		to_ImVec4(decode_color_to_float_array("#EFEFF0")));
+        ImGui::PushStyleColor(ImGuiCol_Text,			to_ImVec4(decode_color_to_float_array("#EFEFF0")));
     }
 }
 
 void ImGuiWrapper::pop_confirm_button_style() {
+    ImGui::PopStyleVar(2);
     ImGui::PopStyleColor(6);
 }
 
-void ImGuiWrapper::push_cancel_button_style() {
+// ORCA Match button style
+void ImGuiWrapper::push_default_button_style() {
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8.0, 5.0));
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4.0f);
     if (m_is_dark_mode) {
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.f, 0.f, 0.f, 0.f));
-        ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(1.f, 1.f, 1.f, 0.64f));
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(73 / 255.f, 73 / 255.f, 78 / 255.f, 1.f));
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(129 / 255.f, 129 / 255.f, 131 / 255.f, 1.f));
-        ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(1.f, 1.f, 1.f, 0.64f));
-        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 0.64f));
+        ImGui::PushStyleColor(ImGuiCol_Button,			to_ImVec4(decode_color_to_float_array("#3E3E45")));
+        ImGui::PushStyleColor(ImGuiCol_Border,			to_ImVec4(decode_color_to_float_array("#3E3E45")));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered,	to_ImVec4(decode_color_to_float_array("#4D4D54")));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive,	to_ImVec4(decode_color_to_float_array("#3E3E45")));
+        ImGui::PushStyleColor(ImGuiCol_CheckMark,		to_ImVec4(decode_color_to_float_array("#EFEFF0")));
+        ImGui::PushStyleColor(ImGuiCol_Text,			to_ImVec4(decode_color_to_float_array("#EFEFF0")));
     }
     else {
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(1.f, 1.f, 1.f, 1.f));
-        ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(38 / 255.f, 46 / 255.f, 48 / 255.f, 1.f));
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(238.f / 255.f, 238.f / 255.f, 238.f / 255.f, 1.f));
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(206.f / 255.f, 206.f / 255.f, 206.f / 255.f, 1.f));
-        ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(0.f, 0.f, 0.f, 1.f));
-        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(38.f / 255.0f, 46.f / 255.0f, 48.f / 255.0f, 1.00f));
+        ImGui::PushStyleColor(ImGuiCol_Button,			to_ImVec4(decode_color_to_float_array("#DFDFDF")));
+        ImGui::PushStyleColor(ImGuiCol_Border,			to_ImVec4(decode_color_to_float_array("#DFDFDF")));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered,	to_ImVec4(decode_color_to_float_array("#D4D4D4")));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive,	to_ImVec4(decode_color_to_float_array("#DFDFDF")));
+        ImGui::PushStyleColor(ImGuiCol_CheckMark,		to_ImVec4(decode_color_to_float_array("#262E30")));
+        ImGui::PushStyleColor(ImGuiCol_Text,			to_ImVec4(decode_color_to_float_array("#262E30")));
+    }
+}
+
+void ImGuiWrapper::pop_default_button_style() {
+    ImGui::PopStyleVar(2);
+    ImGui::PopStyleColor(6);
+}
+
+// ORCA Match button style
+void ImGuiWrapper::push_cancel_button_style() {
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8.0, 5.0));
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4.0f);
+    if (m_is_dark_mode) {
+        ImGui::PushStyleColor(ImGuiCol_Button,			to_ImVec4(decode_color_to_float_array("#3E3E45")));
+        ImGui::PushStyleColor(ImGuiCol_Border,			to_ImVec4(decode_color_to_float_array("#3E3E45")));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered,	to_ImVec4(decode_color_to_float_array("#4D4D54")));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive,	to_ImVec4(decode_color_to_float_array("#3E3E45")));
+        ImGui::PushStyleColor(ImGuiCol_CheckMark,		to_ImVec4(decode_color_to_float_array("#EFEFF0")));
+        ImGui::PushStyleColor(ImGuiCol_Text,			to_ImVec4(decode_color_to_float_array("#CD1F00")));
+    }
+    else {
+        ImGui::PushStyleColor(ImGuiCol_Button,			to_ImVec4(decode_color_to_float_array("#DFDFDF")));
+        ImGui::PushStyleColor(ImGuiCol_Border,			to_ImVec4(decode_color_to_float_array("#DFDFDF")));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered,	to_ImVec4(decode_color_to_float_array("#D4D4D4")));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive,	to_ImVec4(decode_color_to_float_array("#DFDFDF")));
+        ImGui::PushStyleColor(ImGuiCol_CheckMark,		to_ImVec4(decode_color_to_float_array("#262E30")));
+        ImGui::PushStyleColor(ImGuiCol_Text,			to_ImVec4(decode_color_to_float_array("#CD1F00")));
     }
 }
 
 void ImGuiWrapper::pop_cancel_button_style() {
+    ImGui::PopStyleVar(2);
     ImGui::PopStyleColor(6);
 }
 
+// ORCA Match button style
 void ImGuiWrapper::push_button_disable_style() {
     if (m_is_dark_mode) {
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(54 / 255.f, 54 / 255.f, 60 / 255.f, 1.f));
-        ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(54 / 255.f, 54 / 255.f, 60 / 255.f, 1.f));
-        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 0.4f));
+        ImGui::PushStyleColor(ImGuiCol_Button,			to_ImVec4(decode_color_to_float_array("#3E3E45")));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered,	to_ImVec4(decode_color_to_float_array("#3E3E45")));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive,	to_ImVec4(decode_color_to_float_array("#3E3E45")));
+        ImGui::PushStyleColor(ImGuiCol_Border,			to_ImVec4(decode_color_to_float_array("#3E3E45")));
+        ImGui::PushStyleColor(ImGuiCol_Text,			to_ImVec4(decode_color_to_float_array("#54545A")));
     }
     else {
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(206.f / 255.f, 206.f / 255.f, 206.f / 255.f, 1.f));
-        ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(206.f / 255.f, 206.f / 255.f, 206.f / 255.f, 1.f));
-        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f));
+        ImGui::PushStyleColor(ImGuiCol_Button,			to_ImVec4(decode_color_to_float_array("#DFDFDF")));
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered,	to_ImVec4(decode_color_to_float_array("#DFDFDF")));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive,	to_ImVec4(decode_color_to_float_array("#DFDFDF")));
+        ImGui::PushStyleColor(ImGuiCol_Border,			to_ImVec4(decode_color_to_float_array("#DFDFDF")));
+        ImGui::PushStyleColor(ImGuiCol_Text,			to_ImVec4(decode_color_to_float_array("#ACACAC")));
     }
 }
 
 void ImGuiWrapper::pop_button_disable_style() {
-    ImGui::PopStyleColor(3);
+    ImGui::PopStyleColor(5);
 }
 
 void ImGuiWrapper::push_combo_style(const float scale)
@@ -2629,9 +2677,9 @@ void ImGuiWrapper::push_radio_style()
 {
     ImGui::PushStyleColor(ImGuiCol_BorderActive, ImVec4(0.f, 0.59f, 0.53f, 0.5f));
     if (m_is_dark_mode) {
-        ImGui::PushStyleColor(ImGuiCol_CheckMark, COL_ORCA);
+        ImGui::PushStyleColor(ImGuiCol_CheckMark, to_ImVec4(decode_color_to_float_array("#00675b")));
     } else {
-        ImGui::PushStyleColor(ImGuiCol_CheckMark, COL_ORCA);
+        ImGui::PushStyleColor(ImGuiCol_CheckMark, to_ImVec4(decode_color_to_float_array("#009688")));
     }
 }
 
@@ -2639,6 +2687,24 @@ void ImGuiWrapper::pop_radio_style()
 {
     ImGui::PopStyleColor(2);
 }
+
+void ImGuiWrapper::push_check_style(bool value)
+{
+    const ImVec4 clr = to_ImVec4(decode_color_to_float_array(m_is_dark_mode ? "#00675b" : "#009688"));
+    const ImVec4 hvr = to_ImVec4(decode_color_to_float_array(m_is_dark_mode ? "#267E73" : "#26A69A"));
+    if (value) {
+        ImGui::PushStyleColor(ImGuiCol_FrameBg, clr);
+        ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, hvr);
+        ImGui::PushStyleColor(ImGuiCol_FrameBgActive, clr);
+    }
+}
+
+void ImGuiWrapper::pop_check_style(bool value) {
+    if (value) {
+        ImGui::PopStyleColor(3);
+    }
+}
+
 
 void ImGuiWrapper::init_font(bool compress)
 {

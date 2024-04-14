@@ -588,7 +588,8 @@ void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper,
 
     float space_size    = imgui_wrapper->get_style_scaling() * 8;
     float position_size = imgui_wrapper->calc_text_size(_L("Position")).x + space_size;
-    float World_size    = imgui_wrapper->calc_text_size(_L("World coordinates")).x + space_size;
+    //float World_size    = imgui_wrapper->calc_text_size(_L("World coordinates")).x + space_size;
+    float World_size    = 0;
     float caption_max   = std::max(position_size, World_size) + 2 * space_size;
     float end_text_size = imgui_wrapper->calc_text_size(this->m_new_unit_string).x;
 
@@ -608,8 +609,8 @@ void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper,
 
     ImGui::AlignTextToFramePadding();
     unsigned int current_active_id = ImGui::GetActiveID();
-    ImGui::PushItemWidth(caption_max);
-    imgui_wrapper->text(_L("World coordinates"));
+    //ImGui::PushItemWidth(caption_max);
+    //imgui_wrapper->text(_L("World coordinates")); // ORCA hide text to reduce window size
     ImGui::SameLine(caption_max + index * space_size);
     ImGui::PushItemWidth(unit_size);
     ImGui::TextAlignCenter("X");
@@ -703,7 +704,8 @@ void GizmoObjectManipulation::do_render_rotate_window(ImGuiWrapper *imgui_wrappe
 
     float space_size    = imgui_wrapper->get_style_scaling() * 8;
     float position_size = imgui_wrapper->calc_text_size(_L("Rotation")).x + space_size;
-    float World_size    = imgui_wrapper->calc_text_size(_L("World coordinates")).x + space_size;
+    //float World_size    = imgui_wrapper->calc_text_size(_L("World coordinates")).x + space_size;
+    float World_size    = 0;
     float caption_max   = std::max(position_size, World_size) + 2 * space_size;
     float end_text_size = imgui_wrapper->calc_text_size(this->m_new_unit_string).x;
 
@@ -723,8 +725,8 @@ void GizmoObjectManipulation::do_render_rotate_window(ImGuiWrapper *imgui_wrappe
 
     ImGui::AlignTextToFramePadding();
     unsigned int current_active_id = ImGui::GetActiveID();
-    ImGui::PushItemWidth(caption_max);
-    imgui_wrapper->text(_L("World coordinates"));
+    //ImGui::PushItemWidth(caption_max);
+    //imgui_wrapper->text(_L("World coordinates")); // ORCA hide text to reduce window size
     ImGui::SameLine(caption_max + index * space_size);
     ImGui::PushItemWidth(unit_size);
     ImGui::TextAlignCenter("X");

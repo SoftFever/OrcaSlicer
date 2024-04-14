@@ -352,6 +352,8 @@ public:
     static void pop_menu_style();
     static void push_common_window_style(const float scale);
     static void pop_common_window_style();
+    static void push_default_button_style();
+    static void pop_default_button_style();
     static void push_confirm_button_style();
     static void pop_confirm_button_style();
     static void push_cancel_button_style();
@@ -362,6 +364,8 @@ public:
     static void pop_combo_style();
     static void push_radio_style();
     static void pop_radio_style();
+    static void push_check_style(bool value);
+    static void pop_check_style(bool value);
 
     //BBS
     static int TOOLBAR_WINDOW_FLAGS;

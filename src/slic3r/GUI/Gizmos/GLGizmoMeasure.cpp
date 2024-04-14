@@ -1383,8 +1383,12 @@ void GLGizmoMeasure::render_dimensioning()
 
             m_imgui->disable_background_fadeout_animation();
             ImGui::PushItemWidth(value_str_width);
+            ImGuiWrapper::push_default_button_style(); // ORCA match input box style with buttons
+            ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(1.f, 1.f, 1.f, 0.7f)); // ORCA draw input box with background
             if (ImGui::InputDouble("##distance", &edit_value, 0.0f, 0.0f, "%.3f")) {
             }
+            ImGui::PopStyleColor(1);
+            ImGuiWrapper::pop_default_button_style();
 
             // trick to auto-select text in the input widgets on 1st frame
             if (m_is_editing_distance_first_frame) {
@@ -1405,10 +1409,10 @@ void GLGizmoMeasure::render_dimensioning()
                 action_scale(edit_value, curr_value);
             ImGuiWrapper::pop_confirm_button_style();
             ImGui::SameLine();
-            ImGuiWrapper::push_cancel_button_style();
+            ImGuiWrapper::push_default_button_style(); // ORCA only use cancel button style on critical operations
             if (m_imgui->button(_L("Cancel")))
                 action_exit();
-            ImGuiWrapper::pop_cancel_button_style();
+            ImGuiWrapper::pop_default_button_style();
             ImGui::EndPopup();
         }
         ImGui::PopStyleVar(4);
@@ -2019,11 +2023,13 @@ void GLGizmoMeasure::on_render_input_window(float x, float y, float bottom_limit
 
 	// ORCA: Move Restart selection to bottom to improve UI consistency and reduce window height
 	m_imgui->disabled_begin(!m_selected_features.first.feature.has_value());
+		ImGuiWrapper::push_default_button_style(); // ORCA match button style
         if (m_imgui->button(_L("Restart selection"))) {
             m_selected_features.reset();
             m_selected_sphere_raycasters.clear();
             m_imgui->set_requires_extra_frame();
         }
+		ImGuiWrapper::pop_default_button_style(); // ORCA match button style
     m_imgui->disabled_end();
 
     if (last_feature != m_curr_feature || last_mode != m_mode || last_selected_features != m_selected_features) {

@@ -437,7 +437,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
     float window_width = minimal_slider_width + slider_offset + slider_icon_width;
     const int max_filament_items_per_line = 8;
     const float empty_button_width = m_imgui->calc_button_size("").x;
-    const float filament_item_width = empty_button_width + m_imgui->scaled(1.5f);
+    const int filament_item_width = empty_button_width + m_imgui->scaled(1.5f);
 
     window_width = std::max(window_width, total_text_max);
     window_width = std::max(window_width, buttons_width);
@@ -607,7 +607,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
         bool btn_clicked = ImGui::BBLButton(into_u8(btn_name).c_str(), tab_size);
 
         ImGui::PopStyleVar(3);
-        ImGui::PopStyleColor(3);
+        ImGui::PopStyleColor(4);
 
         if (btn_clicked && m_current_tool != tool_ids[i]) {
             m_current_tool = tool_ids[i];
@@ -653,11 +653,13 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
             m_imgui->text(m_desc.at("clipping_of_view"));
         }
         else {
+            ImGuiWrapper::push_default_button_style(); // ORCA match button style
             if (m_imgui->button(m_desc.at("reset_direction"))) {
                 wxGetApp().CallAfter([this]() {
                     m_c->object_clipper()->set_position_by_ratio(-1., false);
                     });
             }
+            ImGuiWrapper::pop_default_button_style();
         }
 
         auto clp_dist = float(m_c->object_clipper()->get_position());
@@ -684,11 +686,13 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
             m_imgui->text(m_desc.at("clipping_of_view"));
         }
         else {
+            ImGuiWrapper::push_default_button_style(); // ORCA match button style
             if (m_imgui->button(m_desc.at("reset_direction"))) {
                 wxGetApp().CallAfter([this]() {
                     m_c->object_clipper()->set_position_by_ratio(-1., false);
                     });
             }
+            ImGuiWrapper::pop_default_button_style(); // ORCA match button style
         }
 
         auto clp_dist = float(m_c->object_clipper()->get_position());
@@ -744,11 +748,13 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
             m_imgui->text(m_desc.at("clipping_of_view"));
         }
         else {
+            ImGuiWrapper::push_default_button_style(); // ORCA match button style
             if (m_imgui->button(m_desc.at("reset_direction"))) {
                 wxGetApp().CallAfter([this]() {
                     m_c->object_clipper()->set_position_by_ratio(-1., false);
                     });
             }
+            ImGuiWrapper::pop_default_button_style(); // ORCA match button style
         }
 
         auto clp_dist = float(m_c->object_clipper()->get_position());
@@ -788,11 +794,13 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
             m_imgui->text(m_desc.at("clipping_of_view"));
         }
         else {
+            ImGuiWrapper::push_default_button_style(); // ORCA match button style
             if (m_imgui->button(m_desc.at("reset_direction"))) {
                 wxGetApp().CallAfter([this]() {
                     m_c->object_clipper()->set_position_by_ratio(-1., false);
                     });
             }
+            ImGuiWrapper::pop_default_button_style(); // ORCA match button style
         }
 
         auto clp_dist = float(m_c->object_clipper()->get_position());
@@ -860,6 +868,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
     ImGui::SameLine();
 
     if (m_current_tool == ImGui::GapFillIcon) {
+        ImGuiWrapper::push_confirm_button_style(); // ORCA match button style
         if (m_imgui->button(m_desc.at("perform"))) {
             Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Gap fill", UndoRedo::SnapshotType::GizmoAction);
 
@@ -871,10 +880,12 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
             update_model_object();
             m_parent.set_as_dirty();
         }
+        ImGuiWrapper::pop_confirm_button_style(); // ORCA match button style
 
         ImGui::SameLine();
     }
 
+	ImGuiWrapper::push_default_button_style(); // ORCA match button style
     if (m_imgui->button(m_desc.at("remove_all"))) {
         Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Reset selection", UndoRedo::SnapshotType::GizmoAction);
         ModelObject *        mo  = m_c->selection_info()->model_object();
@@ -889,6 +900,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
         update_model_object();
         m_parent.set_as_dirty();
     }
+    ImGuiWrapper::pop_default_button_style(); // ORCA match button style
     //ImGui::PopStyleVar(2);
     GizmoImguiEnd();
 

@@ -387,13 +387,13 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
     ImGui::SameLine();
 
     m_imgui->disabled_begin(is_cancelling);
-    m_imgui->push_cancel_button_style();
+    m_imgui->push_default_button_style(); // ORCA use cancel button style on only critical operations
     if (m_imgui->bbl_button(_L("Cancel"))) {
         close();
     }
     else if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled) && is_cancelling)
         ImGui::SetTooltip("%s", _u8L("Operation already cancelling. Please wait few seconds.").c_str());
-    m_imgui->pop_cancel_button_style();
+    m_imgui->pop_default_button_style();
     m_imgui->disabled_end(); // state cancelling
 
     ImGui::PopStyleVar(3);

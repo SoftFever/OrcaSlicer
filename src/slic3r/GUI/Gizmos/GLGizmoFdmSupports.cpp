@@ -331,7 +331,7 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
         bool btn_clicked = ImGui::BBLButton(into_u8(btn_name).c_str(), tab_size);
         
         ImGui::PopStyleVar(3);
-        ImGui::PopStyleColor(3);
+        ImGui::PopStyleColor(4);
 
         if (btn_clicked && m_current_tool != tool_ids[i]) {
             m_current_tool = tool_ids[i];
@@ -481,11 +481,13 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
             m_imgui->text(m_desc.at("clipping_of_view"));
         }
         else {
+            ImGuiWrapper::push_default_button_style(); // ORCA match button style
             if (m_imgui->button(m_desc.at("reset_direction"))) {
                 wxGetApp().CallAfter([this]() {
                         m_c->object_clipper()->set_position_by_ratio(-1., false);
                     });
             }
+            ImGuiWrapper::pop_default_button_style();
         }
 
         auto clp_dist = float(m_c->object_clipper()->get_position());
@@ -517,6 +519,7 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
 
     // Perform button is for gap fill
     if (m_current_tool == ImGui::GapFillIcon) {
+        ImGuiWrapper::push_confirm_button_style(); // ORCA match button style
         if (m_imgui->button(m_desc.at("perform"))) {
             Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Reset selection", UndoRedo::SnapshotType::GizmoAction);
 
@@ -528,10 +531,12 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
             update_model_object();
             m_parent.set_as_dirty();
         }
+        ImGuiWrapper::pop_confirm_button_style();
     }
 
     ImGui::SameLine();
 
+    ImGuiWrapper::push_default_button_style(); // ORCA match button style
     if (m_imgui->button(m_desc.at("remove_all"))) {
         Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Reset selection", UndoRedo::SnapshotType::GizmoAction);
         ModelObject *        mo  = m_c->selection_info()->model_object();
@@ -546,6 +551,8 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
         update_model_object();
         m_parent.set_as_dirty();
     }
+    ImGuiWrapper::pop_default_button_style();
+
     //ImGui::PopStyleVar(2);
 
     GizmoImguiEnd();

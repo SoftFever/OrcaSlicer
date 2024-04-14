@@ -65,18 +65,18 @@ PhysicalPrinterDialog::PhysicalPrinterDialog(wxWindow* parent) :
     label_top->SetFont(::Label::Body_13);
     label_top->SetForegroundColour(wxColour(38,46,48));
 
-    m_input_area = new RoundedRectangle(this, wxColor("#DBDBDB"), wxPoint(0, 0), wxSize(-1, -1), 4, 1); // ORCA match border radius and draw at full width
+    m_input_area = new RoundedRectangle(this, wxColor("#DBDBDB"), wxPoint(0, 0), wxDefaultSize, 4, 1); // ORCA match border radius and draw at full width
     m_input_area->SetMinSize(wxSize(FromDIP(360), FromDIP(32)));
 
     wxBoxSizer *input_sizer_h = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer *input_sizer_v  = new wxBoxSizer(wxVERTICAL);
 
-    m_input_ctrl = new wxTextCtrl(m_input_area, -1, from_u8(preset_name), wxDefaultPosition, wxDefaultSize, 0 | wxBORDER_NONE);
+    m_input_ctrl = new wxTextCtrl(m_input_area, -1, from_u8(preset_name), wxDefaultPosition, wxSize(FromDIP(360), -1), 0 | wxBORDER_NONE);
     m_input_ctrl->SetBackgroundColour(wxColour(255, 255, 255));
     m_input_ctrl->Bind(wxEVT_TEXT, [this](wxCommandEvent &) { update(); });
 
 
-    input_sizer_v->Add(m_input_ctrl, 1, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(6)); // ORCA match margins
+    input_sizer_v->Add(m_input_ctrl, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(6)); // ORCA match margins
     input_sizer_h->Add(input_sizer_v, 0, wxALIGN_CENTER, 0);
 
     m_input_area->SetSizer(input_sizer_h);

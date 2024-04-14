@@ -512,7 +512,10 @@ bool GLGizmoCut3D::render_cut_mode_combo()
     ImGui::AlignTextToFramePadding();
     ImGuiWrapper::push_combo_style(m_parent.get_scale());
     int selection_idx = int(m_mode);
-    const bool is_changed = m_imgui->combo(_u8L("Mode"), m_modes, selection_idx, 0, m_label_width, m_control_width);
+	//bool ImGuiWrapper::combo(const std::string& label, const std::vector<std::string>& options, int& selection, ImGuiComboFlags flags/* = 0*/, float label_width/* = 0.0f*/, float item_width/* = 0.0f*/)
+
+    const bool is_changed = render_combo(_u8L("Mode"), m_modes, selection_idx);
+    //if (render_combo(m_labels_map["Style"], m_connector_styles, m_connector_style))
     ImGuiWrapper::pop_combo_style();
 
     if (is_changed) {
@@ -700,12 +703,13 @@ bool GLGizmoCut3D::render_reset_button(const std::string& label_id, const std::s
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, {1, style.ItemSpacing.y});
 
     ImGui::PushStyleColor(ImGuiCol_Button, {0.25f, 0.25f, 0.25f, 0.0f});
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, {0.4f, 0.4f, 0.4f, 1.0f});
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, {0.4f, 0.4f, 0.4f, 0.0f});
     ImGui::PushStyleColor(ImGuiCol_ButtonActive, {0.4f, 0.4f, 0.4f, 1.0f});
+    ImGui::PushStyleColor(ImGuiCol_Border, {0.f, 0.f, 0.f, 0.f}); // ORCA hide border
 
     const bool revert = m_imgui->button(wxString(ImGui::RevertBtn) + "##" + label_id);
 
-    ImGui::PopStyleColor(3);
+    ImGui::PopStyleColor(4);
 
     if (ImGui::IsItemHovered())
         m_imgui->tooltip(tooltip.c_str(), ImGui::GetFontSize() * 20.0f);
@@ -2352,18 +2356,23 @@ void GLGizmoCut3D::render_connectors_input_window(CutConnectors &connectors, flo
     //float f_scale = m_parent.get_gizmos_manager().get_layout_scale();
     //ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6.0f, 4.0f * f_scale)); // ORCA: Dont change paddings or spacings. its already controlled by toolbar style
 
+	ImGuiWrapper::push_confirm_button_style(); // ORCA match button style
     ImGui::SameLine();
     if (m_imgui->button(_L("Confirm connectors"))) {
         unselect_all_connectors();
         set_connectors_editing(false);
     }
+    ImGuiWrapper::pop_confirm_button_style(); // ORCA match button style
 
-    ImGui::SameLine(m_label_width + m_editing_window_width - m_imgui->calc_text_size(_L("Cancel")).x - m_imgui->get_style_scaling() * 8);
+    //ImGui::SameLine(m_label_width + m_editing_window_width - m_imgui->calc_text_size(_L("Cancel")).x - m_imgui->get_style_scaling() * 8);
+    ImGui::SameLine(); // ORCA dont add extra space
 
+	ImGuiWrapper::push_default_button_style(); // ORCA match button style
     if (m_imgui->button(_L("Cancel"))) {
         reset_connectors();
         set_connectors_editing(false);
     }
+    ImGuiWrapper::pop_default_button_style(); // ORCA match button style
 
     //ImGui::PopStyleVar(2);
 }
@@ -2483,8 +2492,10 @@ void GLGizmoCut3D::render_flip_plane_button(bool disable_pred /*=false*/)
         ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetColorU32(ImGuiCol_ButtonHovered));
 
     m_imgui->disabled_begin(disable_pred);
+		ImGuiWrapper::push_default_button_style(); // ORCA match button style
         if (m_imgui->button(_L("Flip cut plane")))
             flip_cut_plane();
+        ImGuiWrapper::pop_default_button_style(); // ORCA match button style
     m_imgui->disabled_end();
 
     if (m_hover_id == CutPlane)
@@ -2706,19 +2717,23 @@ void GLGizmoCut3D::render_cut_plane_input_window(CutConnectors &connectors, floa
             add_vertical_scaled_interval(0.75f);
 
             m_imgui->disabled_begin(!m_keep_upper || !m_keep_lower || m_keep_as_parts || (m_part_selection.valid() && m_part_selection.is_one_object()));
-                if (m_imgui->button(has_connectors ? _L("Edit connectors") : _L("Add connectors")))
+				ImGuiWrapper::push_default_button_style(); // ORCA match button style
+				if (m_imgui->button(has_connectors ? _L("Edit connectors") : _L("Add connectors")))
                     set_connectors_editing(true);
+                ImGuiWrapper::pop_default_button_style(); // ORCA match button style
             m_imgui->disabled_end();
 
             ImGui::SameLine(1.5f * m_control_width);
 
             m_imgui->disabled_begin(is_cut_plane_init && !has_connectors);
                 act_name = _u8L("Reset cut");
+				ImGuiWrapper::push_default_button_style(); // ORCA match button style
                 if (m_imgui->button(act_name, _u8L("Reset cutting plane and remove connectors"))) {
                     Plater::TakeSnapshot snapshot(wxGetApp().plater(), act_name, UndoRedo::SnapshotType::GizmoAction);
                     reset_cut_plane();
                     reset_connectors();
                 }
+                ImGuiWrapper::pop_default_button_style(); // ORCA match button style
             m_imgui->disabled_end();
         }
         else if (mode == CutMode::cutTongueAndGroove) {
@@ -2752,8 +2767,9 @@ void GLGizmoCut3D::render_cut_plane_input_window(CutConnectors &connectors, floa
             bool keep = true;
 
             ImGui::AlignTextToFramePadding();
-            render_color_marker(marker_size, ImGuiWrapper::to_ImU32(suffix == "##upper" ? UPPER_PART_COLOR : LOWER_PART_COLOR));
-            m_imgui->text(label);
+            //render_color_marker(marker_size, ImGuiWrapper::to_ImU32(suffix == "##upper" ? UPPER_PART_COLOR : LOWER_PART_COLOR));
+            //m_imgui->text(label);
+            m_imgui->text_colored(ImGuiWrapper::to_ImVec4((suffix == "##upper" ? UPPER_PART_COLOR : LOWER_PART_COLOR)), label);
 
             ImGui::SameLine(h_shift);
 
@@ -2796,8 +2812,10 @@ void GLGizmoCut3D::render_cut_plane_input_window(CutConnectors &connectors, floa
 
     ImGui::SameLine();
     m_imgui->disabled_begin(!can_perform_cut());
+		ImGuiWrapper::push_confirm_button_style(); // ORCA match button style
         if(m_imgui->button(_L("Perform cut")))
             perform_cut(m_parent.get_selection());
+        ImGuiWrapper::pop_confirm_button_style(); // ORCA match button style
     m_imgui->disabled_end();
 
     //ImGui::PopStyleVar(2);

@@ -2284,7 +2284,7 @@ void DiffPresetDialog::on_sys_color_changed()
 #ifdef _WIN32
     wxGetApp().UpdateAllStaticTextDarkUI(this);
     wxGetApp().UpdateDarkUI(m_show_all_presets);
-    wxGetApp().UpdateDVCDarkUI(m_tree);
+    wxGetApp().UpdateDVCDarkUI(m_tree, true);
 #endif
 
     for (auto preset_combos : m_preset_combos) {

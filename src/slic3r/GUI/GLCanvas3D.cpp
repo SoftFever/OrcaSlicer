@@ -238,19 +238,17 @@ void GLCanvas3D::LayersEditing::render_variable_layer_height_dialog(const GLCanv
     imgui.set_next_window_pos(x, canvas.m_main_toolbar.get_height(), ImGuiCond_Always, 0.0f, 0.0f);
 
     imgui.push_toolbar_style(canvas.get_scale());
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6.0f * canvas.get_scale(), 4.0f * canvas.get_scale()));
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6.0f * canvas.get_scale(), 10.0f * canvas.get_scale()));
+    //ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6.0f * canvas.get_scale(), 4.0f * canvas.get_scale())); // ORCA DOnt change padding or spacing
+    //ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6.0f * canvas.get_scale(), 10.0f * canvas.get_scale()));
     imgui.begin(_L("Variable layer height"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
     const float sliders_width = imgui.scaled(7.0f);
     const float input_box_width = 1.5 * imgui.get_slider_icon_size().x;
 
-    if (imgui.button(_L("Adaptive")))
-        wxPostEvent((wxEvtHandler*)canvas.get_wxglcanvas(), Event<float>(EVT_GLCANVAS_ADAPTIVE_LAYER_HEIGHT_PROFILE, m_adaptive_quality));
-    ImGui::SameLine();
+	//ImGui::SameLine();
     static float text_align = ImGui::GetCursorPosX();
     ImGui::AlignTextToFramePadding();
-    text_align = std::max(text_align, ImGui::GetCursorPosX());
-    ImGui::SetCursorPosX(text_align);
+    //text_align = std::max(text_align, ImGui::GetCursorPosX());
+    //ImGui::SetCursorPosX(text_align);
     imgui.text(_L("Quality / Speed"));
     if (ImGui::IsItemHovered()) {
         //ImGui::BeginTooltip();
@@ -263,52 +261,53 @@ void GLCanvas3D::LayersEditing::render_variable_layer_height_dialog(const GLCanv
     m_adaptive_quality = std::clamp(m_adaptive_quality, 0.0f, 1.f);
     slider_align = std::max(slider_align, ImGui::GetCursorPosX());
     ImGui::SetCursorPosX(slider_align);
-    imgui.bbl_slider_float_style("##adaptive_slider", &m_adaptive_quality, 0.0f, 1.f, "%.2f");
-    ImGui::SameLine();
-    static float input_align = ImGui::GetCursorPosX();
-    ImGui::PushItemWidth(input_box_width);
-    input_align = std::max(input_align, ImGui::GetCursorPosX());
-    ImGui::SetCursorPosX(input_align);
-    ImGui::BBLDragFloat("##adaptive_input", &m_adaptive_quality, 0.05f, 0.0f, 0.0f, "%.2f");
+    imgui.slider_float("##adaptive_slider", &m_adaptive_quality, 0.0f, 1.f, "%.2f");
+    //ImGui::SameLine();
+    //static float input_align = ImGui::GetCursorPosX();
+    //ImGui::PushItemWidth(input_box_width);
+    //input_align = std::max(input_align, ImGui::GetCursorPosX());
+    //ImGui::SetCursorPosX(input_align);
+    //ImGui::BBLDragFloat("##adaptive_input", &m_adaptive_quality, 0.05f, 0.0f, 0.0f, "%.2f");
 
-    if (imgui.button(_L("Smooth")))
-        wxPostEvent((wxEvtHandler*)canvas.get_wxglcanvas(), HeightProfileSmoothEvent(EVT_GLCANVAS_SMOOTH_LAYER_HEIGHT_PROFILE, m_smooth_params));
-    ImGui::SameLine();
-    text_align = std::max(text_align, ImGui::GetCursorPosX());
-    ImGui::SetCursorPosX(text_align);
+	//ImGui::SameLine();
+    //text_align = std::max(text_align, ImGui::GetCursorPosX());
+    //ImGui::SetCursorPosX(text_align);
     ImGui::AlignTextToFramePadding();
-    imgui.text(_L("Radius"));
+    imgui.text(_L("Smooth Radius")); // ORCA NEEDTRANSLATION
     ImGui::SameLine();
     slider_align = std::max(slider_align, ImGui::GetCursorPosX());
     ImGui::SetCursorPosX(slider_align);
     ImGui::PushItemWidth(sliders_width);
-    int radius = (int)m_smooth_params.radius;
+    float radius = (int)m_smooth_params.radius;
     int v_min = 1, v_max = 10;
-    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
-    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(238 / 255.0f, 238 / 255.0f, 238 / 255.0f, 0.00f));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(238 / 255.0f, 238 / 255.0f, 238 / 255.0f, 0.00f));
-    ImGui::PushStyleColor(ImGuiCol_SliderGrab, ImVec4(0.81f, 0.81f, 0.81f, 1.0f));
-    ImGui::PushStyleColor(ImGuiCol_SliderGrabActive, ImVec4(0.00f, 0.59f, 0.53f, 1.00f));
-    if(ImGui::BBLSliderScalar("##radius_slider", ImGuiDataType_S32, &radius, &v_min, &v_max)){
-        radius = std::clamp(radius, 1, 10);
-        m_smooth_params.radius = (unsigned int)radius;
+    //ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
+    //ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(238 / 255.0f, 238 / 255.0f, 238 / 255.0f, 0.00f));
+    //ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(238 / 255.0f, 238 / 255.0f, 238 / 255.0f, 0.00f));
+    //ImGui::PushStyleColor(ImGuiCol_SliderGrab, ImVec4(0.81f, 0.81f, 0.81f, 1.0f));
+    //ImGui::PushStyleColor(ImGuiCol_SliderGrabActive, ImVec4(0.00f, 0.59f, 0.53f, 1.00f));
+	// ORCA match slider style
+    if (imgui.slider_float("##radius_slider", &radius, v_min, v_max, "%1.0f")) { 
+        //radius = std::clamp(radius, 1, 10); // ORCA slider already uses clamp
+        m_smooth_params.radius = (int) radius;
     }
-    ImGui::PopStyleColor(4);
-    ImGui::PopStyleVar();
-    ImGui::SameLine();
-    input_align = std::max(input_align, ImGui::GetCursorPosX());
-    ImGui::SetCursorPosX(input_align);
-    ImGui::PushItemWidth(input_box_width);
-    ImGui::PushStyleColor(ImGuiCol_BorderActive, ImVec4(0.00f, 0.59f, 0.53f, 1.00f));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(0.00f, 0.59f, 0.53f, 0.00f));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0.00f, 0.59f, 0.53f, 0.00f));
-    ImGui::BBLDragScalar("##radius_input", ImGuiDataType_S32, &radius, 1, &v_min, &v_max);
-    ImGui::PopStyleColor(3);
+    //ImGui::PopStyleColor(4);
+    //ImGui::PopStyleVar();
+    //ImGui::SameLine();
+    //input_align = std::max(input_align, ImGui::GetCursorPosX());
+    //ImGui::SetCursorPosX(input_align);
+    //ImGui::PushItemWidth(input_box_width);
+    //ImGui::PushStyleColor(ImGuiCol_BorderActive, ImVec4(0.00f, 0.59f, 0.53f, 1.00f));
+    //ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(0.00f, 0.59f, 0.53f, 0.00f));
+    //ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0.00f, 0.59f, 0.53f, 0.00f));
+    //ImGui::BBLDragScalar("##radius_input", ImGuiDataType_S32, &radius, 1, &v_min, &v_max);
+    //ImGui::PopStyleColor(3);
 
-    imgui.bbl_checkbox("##keep_min", m_smooth_params.keep_min);
-    ImGui::SameLine();
-    ImGui::AlignTextToFramePadding();
-    imgui.text(_L("Keep min"));
+    //imgui.bbl_checkbox("##keep_min", m_smooth_params.keep_min);
+    //ImGui::SameLine();
+    //ImGui::AlignTextToFramePadding();
+    //imgui.text(_L("Keep min"));
+
+	imgui.bbl_checkbox(_L("Keep min"), m_smooth_params.keep_min); // ORCA use default method for checkboxes
 
     ImGui::Separator();
 
@@ -322,12 +321,19 @@ void GLCanvas3D::LayersEditing::render_variable_layer_height_dialog(const GLCanv
     };
     show_tooltip_information(canvas, captions_texts, x, get_cur_y);
     ImGui::SameLine();
+    ImGuiWrapper::push_default_button_style(); // ORCA match button style
+	if (imgui.button(_L("Adaptive")))
+        wxPostEvent((wxEvtHandler*)canvas.get_wxglcanvas(), Event<float>(EVT_GLCANVAS_ADAPTIVE_LAYER_HEIGHT_PROFILE, m_adaptive_quality));
+    ImGui::SameLine();
+    if (imgui.button(_L("Smooth")))
+        wxPostEvent((wxEvtHandler*)canvas.get_wxglcanvas(), HeightProfileSmoothEvent(EVT_GLCANVAS_SMOOTH_LAYER_HEIGHT_PROFILE, m_smooth_params));
+    ImGui::SameLine();
     if (imgui.button(_L("Reset")))
         wxPostEvent((wxEvtHandler*)canvas.get_wxglcanvas(), SimpleEvent(EVT_GLCANVAS_RESET_LAYER_HEIGHT_PROFILE));
-
+    ImGuiWrapper::pop_default_button_style(); // ORCA match button style
     GLCanvas3D::LayersEditing::s_overlay_window_width = ImGui::GetWindowSize().x;
     imgui.end();
-    ImGui::PopStyleVar(2);
+    //ImGui::PopStyleVar(2);
     imgui.pop_toolbar_style();
 }
 
@@ -5467,20 +5473,23 @@ bool GLCanvas3D::_render_arrange_menu(float left, float right, float bottom, flo
 
     ImGui::AlignTextToFramePadding();
     imgui->text(_L("Spacing"));
-    ImGui::SameLine(1.2 * cursor_slider_left);
-    ImGui::PushItemWidth(window_width - slider_icon_width);
-    bool b_Spacing = imgui->bbl_slider_float_style("##Spacing", &settings.distance, dist_min, 100.0f, "%5.2f") || dist_min > settings.distance;
-    ImGui::SameLine(window_width - slider_icon_width + 1.3 * cursor_slider_left);
-    ImGui::PushItemWidth(1.5 * slider_icon_width);
-    bool b_spacing_input = ImGui::BBLDragFloat("##spacing_input", &settings.distance, 0.05f, 0.0f, 0.0f, "%.2f");
-    if (b_Spacing || b_spacing_input)
+    //ImGui::SameLine(1.2 * cursor_slider_left);
+    ImGui::SameLine(); // ORCA use default spacing
+    ImGui::PushItemWidth(minimal_slider_width + 3 * slider_icon_width); // ORCA use slider wider
+	// ORCA Match slider style
+    bool b_Spacing = imgui->slider_float("##Spacing", &settings.distance, dist_min, 100.0f, "%5.2f") || dist_min > settings.distance;
+    //ImGui::SameLine(window_width - slider_icon_width + 1.3 * cursor_slider_left);
+    //ImGui::PushItemWidth(1.5 * slider_icon_width);
+    //bool b_spacing_input = ImGui::BBLDragFloat("##spacing_input", &settings.distance, 0.05f, 0.0f, 0.0f, "%.2f");
+    
+    if (b_Spacing)
     {
         settings.distance = std::max(dist_min, settings.distance);
         settings_out.distance = settings.distance;
         appcfg->set("arrange", dist_key.c_str(), float_to_string_decimal_point(settings_out.distance));
         settings_changed = true;
     }
-    ImGui::Separator();
+    //ImGui::Separator(); ORCA no need for separator
     if (imgui->bbl_checkbox(_L("Auto rotate for arrangement"), settings.enable_rotation)) {
         settings_out.enable_rotation = settings.enable_rotation;
         appcfg->set("arrange", rot_key.c_str(), settings_out.enable_rotation);
@@ -5525,13 +5534,16 @@ bool GLCanvas3D::_render_arrange_menu(float left, float right, float bottom, flo
 
     ImGui::Separator();
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(15.0f, 10.0f));
+    ImGuiWrapper::push_confirm_button_style(); // ORCA match button styles
     if (imgui->button(_L("Arrange"))) {
         wxGetApp().plater()->set_prepare_state(Job::PREPARE_STATE_DEFAULT);
         wxGetApp().plater()->arrange();
     }
+    ImGuiWrapper::pop_confirm_button_style();
 
     ImGui::SameLine();
 
+	ImGuiWrapper::push_default_button_style(); // ORCA match button styles
     if (imgui->button(_L("Reset"))) {
         settings_out = ArrangeSettings{};
         settings_out.distance = std::max(dist_min, settings_out.distance);
@@ -5549,6 +5561,7 @@ bool GLCanvas3D::_render_arrange_menu(float left, float right, float bottom, flo
         appcfg->set("arrange", align_to_y_axis_key, settings_out.align_to_y_axis ? "1" : "0");
         settings_changed = true;
     }
+    ImGuiWrapper::pop_default_button_style(); // ORCA match button styles
     ImGui::PopStyleVar(1);
     imgui->end();
 
@@ -6303,6 +6316,7 @@ bool GLCanvas3D::_init_main_toolbar()
     item.icon_filename = m_is_dark ? "toolbar_variable_layer_height_dark.svg" : "toolbar_variable_layer_height.svg";
     item.tooltip = _utf8(L("Variable layer height"));
     item.sprite_id++;
+    item.left.toggable        = true; // ORCA Closes popup if other toolbar icon clicked, but still 
     item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_LAYERSEDITING)); };
     item.visibility_callback = [this]()->bool {
         bool res = current_printer_technology() == ptFFF;
@@ -7988,12 +8002,14 @@ void GLCanvas3D::_render_return_toolbar() const
     ImVec4 tint_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
     ImVec2 margin = ImVec2(10.0f, 5.0f);
 
+	ImGuiWrapper::push_default_button_style(); // ORCA match button style
     if (ImGui::ImageTextButton(real_size,_utf8(L("return")).c_str(), m_return_toolbar.get_return_texture_id(), button_icon_size, uv0, uv1, -1, bg_col, tint_col, margin)) {
         if (m_canvas != nullptr)
             wxPostEvent(m_canvas, SimpleEvent(EVT_GLVIEWTOOLBAR_3D));
         const_cast<GLGizmosManager*>(&m_gizmos)->reset_all_states();
         wxGetApp().plater()->get_view3D_canvas3D()->get_gizmos_manager().reset_all_states();
     }
+    ImGuiWrapper::pop_default_button_style(); // ORCA match button style
     ImGui::PopStyleColor(5);
     ImGui::PopStyleVar(1);
 
@@ -8231,36 +8247,42 @@ void GLCanvas3D::_render_assemble_control() const
             imgui->text(_L("Section View"));
         }
         else {
+            ImGuiWrapper::push_default_button_style(); // ORCA match button Style
             if (imgui->button(_L("Reset direction"))) {
                 wxGetApp().CallAfter([this]() {
                     m_gizmos.m_assemble_view_data->model_objects_clipper()->set_position(-1., false);
                     });
             }
+            ImGuiWrapper::pop_default_button_style(); // ORCA match button Style
         }
 
         ImGui::SameLine(window_padding.x + text_size_x + item_spacing);
-        ImGui::PushItemWidth(slider_width);
-        bool view_slider_changed = imgui->bbl_slider_float_style("##clp_dist", &clp_dist, 0.f, 1.f, "%.2f", 1.0f, true);
+        ImGui::PushItemWidth(slider_width + value_size + item_spacing * 2);
+		//ORCA match slider style
+        bool view_slider_changed = imgui->slider_float("##clp_dist", &clp_dist, 0.f, 1.f, "%.2f", 1.0f, true);
 
-        ImGui::SameLine(window_padding.x + text_size_x + slider_width + item_spacing * 2);
-        ImGui::PushItemWidth(value_size);
-        bool view_input_changed = ImGui::BBLDragFloat("##clp_dist_input", &clp_dist, 0.05f, 0.0f, 0.0f, "%.2f");
+        //ImGui::SameLine(window_padding.x + text_size_x + slider_width + item_spacing * 2);
+        //ImGui::PushItemWidth(value_size);
+        //bool view_input_changed = ImGui::BBLDragFloat("##clp_dist_input", &clp_dist, 0.05f, 0.0f, 0.0f, "%.2f");
 
-        if (view_slider_changed || view_input_changed)
+        if (view_slider_changed)
             m_gizmos.m_assemble_view_data->model_objects_clipper()->set_position(clp_dist, true);
     }
 
     {
-        ImGui::SameLine(window_padding.x + text_size_x + slider_width + item_spacing * 6 + value_size);
+        //ImGui::SameLine(window_padding.x + text_size_x + slider_width + item_spacing * 6 + value_size);
+        ImGui::SameLine(0, item_spacing * 2); // ORCA add spacing after end of previous element
         imgui->text(_L("Explosion Ratio"));
 
-        ImGui::SameLine(window_padding.x + 2 * text_size_x + slider_width + item_spacing * 7 + value_size);
-        ImGui::PushItemWidth(slider_width);
-        bool explosion_slider_changed = imgui->bbl_slider_float_style("##ratio_slider", &m_explosion_ratio, 1.0f, 3.0f, "%1.2f");
+        //ImGui::SameLine(window_padding.x + 2 * text_size_x + slider_width + item_spacing * 7 + value_size);
+        ImGui::SameLine(); // ORCA Use default item spacing
+        ImGui::PushItemWidth(slider_width + value_size + item_spacing * 2);
+        // ORCA match slider style
+        bool explosion_slider_changed = imgui->slider_float("##ratio_slider", &m_explosion_ratio, 1.0f, 3.0f, "%1.2f");
 
-        ImGui::SameLine(window_padding.x + 2 * text_size_x + 2 * slider_width + item_spacing * 8 + value_size);
-        ImGui::PushItemWidth(value_size);
-        bool explosion_input_changed = ImGui::BBLDragFloat("##ratio_input", &m_explosion_ratio, 0.1f, 1.0f, 3.0f, "%1.2f");
+        //ImGui::SameLine(window_padding.x + 2 * text_size_x + 2 * slider_width + item_spacing * 8 + value_size);
+        //ImGui::PushItemWidth(value_size);
+        //bool explosion_input_changed = ImGui::BBLDragFloat("##ratio_input", &m_explosion_ratio, 0.1f, 1.0f, 3.0f, "%1.2f");
     }
 
     imgui->end();
@@ -8300,7 +8322,8 @@ void GLCanvas3D::_render_assemble_info() const
     ImGui::PopFont();
     float margin = 10.0f * get_scale();
     imgui->set_next_window_pos(canvas_w - margin, canvas_h - margin, ImGuiCond_Always, 1.0f, 1.0f);
-    ImGuiWrapper::push_toolbar_style(get_scale());
+    ImGuiWrapper::push_common_window_style(get_scale()); // ORCA use window style for popups with title
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowTitleAlign, ImVec2(0.5f, 0.5f)); // ORCA center titlebar text
     imgui->begin(_L("Assembly Info"), ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
     font->Scale = origScale;
     ImGui::PushFont(font);
@@ -8310,13 +8333,18 @@ void GLCanvas3D::_render_assemble_info() const
     double size1 = m_selection.get_bounding_box().size()(1);
     double size2 = m_selection.get_bounding_box().size()(2);
     if (!m_selection.is_empty()) {
-        ImGui::Text(_L("Volume:").ToUTF8()); ImGui::SameLine(caption_max);
+		//ORCA use all with new line to reduce window size. This will prevent overlapping with slider bar while window width is low
+        ImGui::Text(_L("Volume:").ToUTF8());
+		//ImGui::SameLine(caption_max); 
         ImGui::Text("%.2f", size0 * size1 * size2);
-        ImGui::Text(_L("Size:").ToUTF8()); ImGui::SameLine(caption_max);
+        ImGui::Dummy(ImVec2(0,2)); // ORCA add a little spacing between them for seperation
+        ImGui::Text(_L("Size:").ToUTF8());
+		//ImGui::SameLine(caption_max);
         ImGui::Text("%.2f x %.2f x %.2f", size0, size1, size2);
     }
     imgui->end();
-    ImGuiWrapper::pop_toolbar_style();
+    ImGui::PopStyleVar(1);
+    ImGuiWrapper::pop_common_window_style();
 }
 
 #if ENABLE_SHOW_CAMERA_TARGET
