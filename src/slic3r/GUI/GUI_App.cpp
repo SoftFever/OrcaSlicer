@@ -417,7 +417,7 @@ private:
             // dynamically get the version to display
             version         = GUI_App::format_display_version();//version = _L("V") + " " + GUI_App::format_display_version();
 
-            based_on_text   = _L("Based on") + "Prusa Slicer & Bamboo Studio";
+            based_on_text   = _L("Based on ") + "Prusa Slicer & Bamboo Studio";
 
             // credits infornation
             credits = "";
