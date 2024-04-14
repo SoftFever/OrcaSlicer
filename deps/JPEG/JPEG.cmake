@@ -1,4 +1,4 @@
-if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+if(LINUX)
     if (JPEG_VERSION STREQUAL "6")
         message("Using Jpeg Lib 62")
         set(jpeg_flag "")

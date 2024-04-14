@@ -4,7 +4,7 @@ else()
     set(library_build_shared "0")
 endif()
 
-if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+if(LINUX)
     set(_ft_disable_zlib "-D FT_DISABLE_ZLIB=FALSE")
 else()
     set(_ft_disable_zlib "-D FT_DISABLE_ZLIB=TRUE")

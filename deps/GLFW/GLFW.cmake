@@ -6,7 +6,7 @@ else()
     set(_build_static ON)
 endif()
 
-if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+if(LINUX)
     set(_glfw_use_wayland "-DGLFW_USE_WAYLAND=ON")
 else()
     set(_glfw_use_wayland "-DGLFW_USE_WAYLAND=FF")

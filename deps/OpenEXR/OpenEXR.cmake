@@ -30,7 +30,7 @@ if (APPLE AND IS_CROSS_COMPILE)
     )
 else()
 
-if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+if (LINUX)
     set(_patch_cmd ${PATCH_CMD} ${CMAKE_CURRENT_LIST_DIR}/0001-OpenEXR-GCC13.patch)
 else ()
     set(_patch_cmd "")

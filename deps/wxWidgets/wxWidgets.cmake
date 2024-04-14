@@ -4,7 +4,7 @@ set(_wx_git_tag v${_wx_version})
 set(_wx_toolkit "")
 set(_wx_private_font "-DwxUSE_PRIVATE_FONTS=1")
 
-if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+if(LINUX)
     set(_gtk_ver 2)
 
     if (DEP_WX_GTK3)
@@ -27,7 +27,7 @@ else ()
     set(_patch_cmd test -f WXWIDGETS_PATCHED || ${PATCH_CMD} ${_wx_orcaslicer_patch} && touch WXWIDGETS_PATCHED)
 endif ()
 
-if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+if (LINUX)
     set(_patch_cmd ${PATCH_CMD} ${_wx_orcaslicer_patch})
 endif ()
 
