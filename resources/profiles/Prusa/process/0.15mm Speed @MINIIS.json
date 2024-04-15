@@ -1,0 +1,18 @@
+{
+  "type": "process",
+  "setting_id": "GP004",
+  "name": "0.15mm Speed @MINIIS",
+  "from": "system",
+  "instantiation": "true",
+  "inherits": "process_speed_miniis",
+  "layer_height": "0.12",
+  "initial_layer_print_height": "0.15",
+  "top_shell_thickness": "0.7",
+  "top_shell_layers": "5",
+  "bottom_shell_thickness": "0.5",
+  "bottom_shell_layers": "4",
+  "compatible_printers": [
+    "Prusa MINIIS 0.4 nozzle",
+    "Prusa MINIIS 0.25 nozzle"
+  ]
+}
