@@ -587,6 +587,7 @@ private:
 
     // BBS
     int             filaments_cnt() const;
+    PrintSequence   global_print_sequence() const;
 
     std::vector<Tab *>      tabs_list;
     std::vector<Tab *>      model_tabs_list;

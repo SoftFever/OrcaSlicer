@@ -291,6 +291,8 @@ static constexpr const char* LOCK_ATTR = "locked";
 static constexpr const char* BED_TYPE_ATTR = "bed_type";
 static constexpr const char* PRINT_SEQUENCE_ATTR = "print_sequence";
 static constexpr const char* FIRST_LAYER_PRINT_SEQUENCE_ATTR = "first_layer_print_sequence";
+static constexpr const char* OTHER_LAYERS_PRINT_SEQUENCE_ATTR = "other_layers_print_sequence";
+static constexpr const char* OTHER_LAYERS_PRINT_SEQUENCE_NUMS_ATTR = "other_layers_print_sequence_nums";
 static constexpr const char* SPIRAL_VASE_MODE = "spiral_mode";
 static constexpr const char* GCODE_FILE_ATTR = "gcode_file";
 static constexpr const char* THUMBNAIL_FILE_ATTR = "thumbnail_file";
@@ -1491,6 +1493,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             plate->is_label_object_enabled = it->second->is_label_object_enabled;
             plate->skipped_objects = it->second->skipped_objects;
             plate->slice_filaments_info = it->second->slice_filaments_info;
+            plate->printer_model_id = it->second->printer_model_id;
+            plate->nozzle_diameters = it->second->nozzle_diameters;
             plate->warnings = it->second->warnings;
             plate->thumbnail_file = it->second->thumbnail_file;
             if (plate->thumbnail_file.empty()) {
@@ -4096,6 +4100,19 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 };
                 m_curr_plater->config.set_key_value("first_layer_print_sequence", new ConfigOptionInts(get_vector_from_string(value)));
             }
+            else if (key == OTHER_LAYERS_PRINT_SEQUENCE_ATTR) {
+                auto get_vector_from_string = [](const std::string &str) -> std::vector<int> {
+                    std::stringstream stream(str);
+                    int               value;
+                    std::vector<int>  results;
+                    while (stream >> value) { results.push_back(value); }
+                    return results;
+                };
+                m_curr_plater->config.set_key_value("other_layers_print_sequence", new ConfigOptionInts(get_vector_from_string(value)));
+            }
+            else if (key == OTHER_LAYERS_PRINT_SEQUENCE_NUMS_ATTR) {
+                m_curr_plater->config.set_key_value("other_layers_print_sequence_nums", new ConfigOptionInt(stoi(value)));
+            }
             else if (key == SPIRAL_VASE_MODE) {
                 bool spiral_mode = false;
                 std::istringstream(value) >> std::boolalpha >> spiral_mode;
@@ -4184,6 +4201,16 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             {
                 if (m_curr_plater)
                     std::istringstream(value) >> std::boolalpha >> m_curr_plater->is_label_object_enabled;
+            }
+            else if (key == PRINTER_MODEL_ID_ATTR)
+            {
+                if (m_curr_plater)
+                    m_curr_plater->printer_model_id = value;
+            }
+            else if (key == NOZZLE_DIAMETERS_ATTR)
+            {
+                if (m_curr_plater)
+                    m_curr_plater->nozzle_diameters = value;
             }
         }
 
@@ -7415,6 +7442,24 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                     stream << "\"/>\n";
                 }
 
+
+                ConfigOptionInts *other_layers_print_sequence_opt = plate_data->config.option<ConfigOptionInts>("other_layers_print_sequence");
+                if (other_layers_print_sequence_opt != nullptr) {
+                    stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << OTHER_LAYERS_PRINT_SEQUENCE_ATTR << "\" " << VALUE_ATTR << "=\"";
+                    const std::vector<int> &values = other_layers_print_sequence_opt->values;
+                    for (int i = 0; i < values.size(); ++i) {
+                        stream << values[i];
+                        if (i != (values.size() - 1))
+                            stream << " ";
+                    }
+                    stream << "\"/>\n";
+                }
+
+                const ConfigOptionInt *sequence_nums_opt = dynamic_cast<const ConfigOptionInt *>(plate_data->config.option("other_layers_print_sequence_nums"));
+                if (sequence_nums_opt != nullptr) {
+                    stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << OTHER_LAYERS_PRINT_SEQUENCE_NUMS_ATTR << "\" " << VALUE_ATTR << "=\"" << sequence_nums_opt->getInt() << "\"/>\n";
+                }
+
                 ConfigOption* spiral_mode_opt = plate_data->config.option("spiral_mode");
                 if (spiral_mode_opt)
                     stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << SPIRAL_VASE_MODE << "\" " << VALUE_ATTR << "=\"" << spiral_mode_opt->getBool() << "\"/>\n";
@@ -7780,18 +7825,22 @@ bool _BBS_3MF_Exporter::_add_auxiliary_dir_to_archive(mz_zip_archive &archive, c
     int root_dir_len = dir.string().length() + 1;
     //boost file access
     while (!directories.empty()) {
-        boost::filesystem::directory_iterator iterator(directories.front());
+        boost::system::error_code ec;
+        boost::filesystem::directory_iterator iterator(directories.front(), ec);
         directories.pop_front();
-        for (auto &dir_entry : iterator)
+        if (ec) continue;
+        for (; iterator != end(iterator); iterator.increment(ec))
         {
+            if (ec) break;
+            auto dir_entry = *iterator;
             std::string src_file;
             std::string dst_in_3mf;
-            if (boost::filesystem::is_directory(dir_entry.path()))
+            if (boost::filesystem::is_directory(dir_entry.path(), ec))
             {
                 directories.push_back(dir_entry.path());
                 continue;
             }
-            if (boost::filesystem::is_regular_file(dir_entry.path()) && !m_skip_auxiliary)
+            if (boost::filesystem::is_regular_file(dir_entry.path(), ec) && !m_skip_auxiliary)
             {
                 src_file = dir_entry.path().string();
                 dst_in_3mf = dir_entry.path().string();

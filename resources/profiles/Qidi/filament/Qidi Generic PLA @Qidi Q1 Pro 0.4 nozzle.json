@@ -8,9 +8,9 @@
     "filament_settings_id": [
         "Qidi Generic PLA @Qidi Q1 Pro 0.4 nozzle"
     ],
-    "from": "User",
+    "from": "system",
     "full_fan_speed_layer": [
-        "3"
+        "0"
     ],
     "hot_plate_temp": [
         "60"
@@ -22,7 +22,7 @@
     "is_custom_defined": "0",
     "name": "Qidi Generic PLA @Qidi Q1 Pro 0.4 nozzle",
     "nozzle_temperature": [
-        "220"
+        "210"
     ],
     "slow_down_min_speed": [
         "20"
