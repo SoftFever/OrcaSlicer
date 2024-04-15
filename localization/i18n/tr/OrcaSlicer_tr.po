@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-15 00:10+0800\n"
+"POT-Creation-Date: 2024-04-15 22:59+0800\n"
 "PO-Revision-Date: 2024-04-14 16:06+0300\n"
 "Last-Translator: Olcay ÖREN\n"
 "Language-Team: \n"
@@ -254,6 +254,9 @@ msgstr "Döndürmeyi Sıfırla"
 
 msgid "World coordinates"
 msgstr "Dünya koordinatları"
+
+msgid "Object coordinates"
+msgstr ""
 
 msgid "°"
 msgstr "°"

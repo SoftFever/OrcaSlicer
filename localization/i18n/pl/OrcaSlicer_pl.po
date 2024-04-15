@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OrcaSlicer 2.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-15 00:10+0800\n"
+"POT-Creation-Date: 2024-04-15 22:59+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Krzysztof Morga <tlumaczeniebs@gmail.com>\n"
 "Language-Team: \n"
@@ -255,6 +255,9 @@ msgstr "Zresetuj obrót"
 
 msgid "World coordinates"
 msgstr "Współrzędne"
+
+msgid "Object coordinates"
+msgstr ""
 
 msgid "°"
 msgstr "°"
