@@ -78,6 +78,8 @@ namespace GUI {
 
 #define DISABLE_UNDO_SYS
 
+static const std::vector<std::string> plate_keys = { "curr_bed_type", "first_layer_print_sequence", "first_layer_sequence_choice", "other_layers_print_sequence", "other_layers_sequence_choice", "print_sequence", "spiral_mode"};
+
 void Tab::Highlighter::set_timer_owner(wxEvtHandler* owner, int timerid/* = wxID_ANY*/)
 {
     m_timer.SetOwner(owner, timerid);
@@ -1608,6 +1610,42 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         }
     }
 
+
+    // -1 means caculate all
+    auto update_flush_volume = [](int idx = -1) {
+        if (idx < 0) {
+            size_t filament_size = wxGetApp().plater()->get_extruder_colors_from_plater_config().size();
+            for (size_t i = 0; i < filament_size; ++i)
+                wxGetApp().plater()->sidebar().auto_calc_flushing_volumes(i);
+        }
+        else
+            wxGetApp().plater()->sidebar().auto_calc_flushing_volumes(idx);
+        };
+
+
+    string opt_key_without_idx = opt_key.substr(0, opt_key.find('#'));
+
+    if (opt_key_without_idx == "long_retractions_when_cut") {
+        unsigned char activate = boost::any_cast<unsigned char>(value);
+        if (activate == 1) {
+            MessageDialog dialog(wxGetApp().plater(),
+                _L("Experimental feature: Retracting and cutting off the filament at a greater distance during filament changes to minimize flush."
+                    "Although it can notably reduce flush,  it may also elevate the risk of nozzle clogs or other printing complications."), "", wxICON_WARNING | wxOK);
+            dialog.ShowModal();
+        }
+    }
+
+    if (opt_key == "filament_long_retractions_when_cut"){
+        unsigned char activate = boost::any_cast<unsigned char>(value);
+        if (activate == 1) {
+            MessageDialog dialog(wxGetApp().plater(), 
+            _L("Experimental feature: Retracting and cutting off the filament at a greater distance during filament changes to minimize flush."
+            "Although it can notably reduce flush, it may also elevate the risk of nozzle clogs or other printing complications.Please use with the latest printer firmware."), "", wxICON_WARNING | wxOK);
+            dialog.ShowModal();
+        }
+    }
+
+
     // BBS
 #if 0
     if (opt_key == "extruders_count")
@@ -2005,6 +2043,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("hole_to_polyhole");
         optgroup->append_single_option_line("hole_to_polyhole_threshold");
         optgroup->append_single_option_line("hole_to_polyhole_twisted");
+        optgroup->append_single_option_line("precise_z_height");
 
         optgroup = page->new_optgroup(L("Ironing"), L"param_ironing");
         optgroup->append_single_option_line("ironing_type", "parameter/ironing");
@@ -2389,7 +2428,7 @@ void TabPrint::update()
         m_config_manipulation.initialize_support_material_overhangs_queried(is_user_and_saved_preset && support_material_overhangs_queried);
     }
 
-    m_config_manipulation.update_print_fff_config(m_config, m_type < Preset::TYPE_COUNT);
+    m_config_manipulation.update_print_fff_config(m_config, m_type < Preset::TYPE_COUNT, m_type == Preset::TYPE_PLATE);
 
     update_description_lines();
     //BBS: GUI refactor
@@ -2504,6 +2543,9 @@ void TabPrintModel::update_model_config()
         return;
     }
     m_config->apply(*m_parent_tab->m_config);
+    if (m_type != Preset::TYPE_PLATE) {
+        m_config->apply_only(*wxGetApp().plate_tab->get_config(), plate_keys);
+    }
     m_null_keys.clear();
     if (!m_object_configs.empty()) {
         DynamicPrintConfig const & global_config= *m_config;
@@ -2545,12 +2587,18 @@ void TabPrintModel::update_model_config()
                     }
                 }
                 if (!plate_config.has("first_layer_print_sequence")) {
-                    // same as global
-                    m_config->set_key_value("first_layer_sequence_choice", new ConfigOptionEnum<FirstLayerSeq>(flsAuto));
+                    m_config->set_key_value("first_layer_sequence_choice", new ConfigOptionEnum<LayerSeq>(flsAuto));
                 }
                 else {
                     replace(m_all_keys.begin(), m_all_keys.end(), std::string("first_layer_print_sequence"), std::string("first_layer_sequence_choice"));
-                    m_config->set_key_value("first_layer_sequence_choice", new ConfigOptionEnum<FirstLayerSeq>(flsCutomize));
+                    m_config->set_key_value("first_layer_sequence_choice", new ConfigOptionEnum<LayerSeq>(flsCutomize));
+                }
+                if (!plate_config.has("other_layers_print_sequence")) {
+                    m_config->set_key_value("other_layers_sequence_choice", new ConfigOptionEnum<LayerSeq>(flsAuto));
+                }
+                else {
+                    replace(m_all_keys.begin(), m_all_keys.end(), std::string("other_layers_print_sequence"), std::string("other_layers_sequence_choice"));
+                    m_config->set_key_value("other_layers_sequence_choice", new ConfigOptionEnum<LayerSeq>(flsCutomize));
                 }
                 notify_changed(plate_item.first);
             }
@@ -2676,7 +2724,6 @@ void TabPrintModel::update_custom_dirty()
 }
 
 //BBS: GUI refactor
-static const std::vector<std::string> plate_keys = { "curr_bed_type", "first_layer_print_sequence", "first_layer_sequence_choice", "print_sequence"/*, "spiral_mode"*/};
 TabPrintPlate::TabPrintPlate(ParamsPanel* parent) :
     TabPrintModel(parent, plate_keys)
 {
@@ -2698,14 +2745,17 @@ void TabPrintPlate::build()
     }
     m_config->option("first_layer_sequence_choice", true);
     m_config->option("first_layer_print_sequence", true);
+    m_config->option("other_layers_print_sequence", true);
+    m_config->option("other_layers_sequence_choice", true);
 
     auto page = add_options_page(L("Plate Settings"), "empty");
     auto optgroup = page->new_optgroup("");
     optgroup->append_single_option_line("curr_bed_type");
     optgroup->append_single_option_line("print_sequence");
+    optgroup->append_single_option_line("spiral_mode");
     optgroup->append_single_option_line("first_layer_sequence_choice");
-    // hidden
-    //optgroup->append_single_option_line("spiral_mode");
+    optgroup->append_single_option_line("other_layers_sequence_choice");
+
     for (auto& line : const_cast<std::vector<Line>&>(optgroup->get_lines())) {
         line.undo_to_sys = true;
     }
@@ -2753,6 +2803,8 @@ void TabPrintPlate::on_value_change(const std::string& opt_key, const boost::any
                 plate->set_print_seq(PrintSequence::ByDefault);
             if (k == "first_layer_sequence_choice")
                 plate->set_first_layer_print_sequence({});
+            if (k == "other_layers_sequence_choice")
+                plate->set_other_layers_print_sequence({});
             if (k == "spiral_mode")
                 plate->set_spiral_vase_mode(false, true);
         }
@@ -2764,7 +2816,8 @@ void TabPrintPlate::on_value_change(const std::string& opt_key, const boost::any
             auto plate = dynamic_cast<PartPlate*>(plate_item.first);
             BedType bed_type;
             PrintSequence print_seq;
-            FirstLayerSeq first_layer_seq_choice;
+            LayerSeq first_layer_seq_choice;
+            LayerSeq other_layer_seq_choice;
             if (k == "curr_bed_type") {
                 bed_type = m_config->opt_enum<BedType>("curr_bed_type");
                 plate->set_bed_type(BedType(bed_type));
@@ -2774,11 +2827,11 @@ void TabPrintPlate::on_value_change(const std::string& opt_key, const boost::any
                 plate->set_print_seq(print_seq);
             }
             if (k == "first_layer_sequence_choice") {
-                first_layer_seq_choice = m_config->opt_enum<FirstLayerSeq>("first_layer_sequence_choice");
-                if (first_layer_seq_choice == FirstLayerSeq::flsAuto) {
+                first_layer_seq_choice = m_config->opt_enum<LayerSeq>("first_layer_sequence_choice");
+                if (first_layer_seq_choice == LayerSeq::flsAuto) {
                     plate->set_first_layer_print_sequence({});
                 }
-                else if (first_layer_seq_choice == FirstLayerSeq::flsCutomize) {
+                else if (first_layer_seq_choice == LayerSeq::flsCutomize) {
                     const DynamicPrintConfig& plate_config = plate_item.second->get();
                     if (!plate_config.has("first_layer_print_sequence")) {
                         std::vector<int> initial_sequence;
@@ -2789,9 +2842,30 @@ void TabPrintPlate::on_value_change(const std::string& opt_key, const boost::any
                     }
                     wxCommandEvent evt(EVT_OPEN_PLATESETTINGSDIALOG);
                     evt.SetInt(plate->get_index());
-                    evt.SetString("only_first_layer_sequence");
+                    evt.SetString("only_layer_sequence");
                     evt.SetEventObject(wxGetApp().plater());
-                    //wxGetApp().plater()->GetEventHandler()->ProcessEvent(evt);
+                    wxPostEvent(wxGetApp().plater(), evt);
+                }
+            }
+            if (k == "other_layers_sequence_choice") {
+                other_layer_seq_choice = m_config->opt_enum<LayerSeq>("other_layers_sequence_choice");
+                if (other_layer_seq_choice == LayerSeq::flsAuto) {
+                    plate->set_other_layers_print_sequence({});
+                }
+                else if (other_layer_seq_choice == LayerSeq::flsCutomize) {
+                    const DynamicPrintConfig& plate_config = plate_item.second->get();
+                    if (!plate_config.has("other_layers_print_sequence")) {
+                        std::vector<int> initial_sequence;
+                        for (int i = 0; i < wxGetApp().filaments_cnt(); i++) {
+                            initial_sequence.push_back(i + 1);
+                        }
+                        std::vector<LayerPrintSequence> initial_layer_sequence{ std::make_pair(std::make_pair(2, INT_MAX), initial_sequence) };
+                        plate->set_other_layers_print_sequence(initial_layer_sequence);
+                    }
+                    wxCommandEvent evt(EVT_OPEN_PLATESETTINGSDIALOG);
+                    evt.SetInt(plate->get_index());
+                    evt.SetString("only_layer_sequence");
+                    evt.SetEventObject(wxGetApp().plater());
                     wxPostEvent(wxGetApp().plater(), evt);
                 }
             }
@@ -2832,8 +2906,11 @@ void TabPrintPlate::update_custom_dirty()
     for (auto k : m_null_keys) 
         m_options_list[k] = 0;
     for (auto k : m_all_keys) {
-        if (k == "first_layer_sequence_choice") {
-            if (m_config->opt_enum<FirstLayerSeq>("first_layer_sequence_choice") != FirstLayerSeq::flsAuto) {
+        if (k == "first_layer_sequence_choice" || k == "other_layers_sequence_choice") {
+            if (m_config->opt_enum<LayerSeq>("first_layer_sequence_choice") != LayerSeq::flsAuto) {
+                m_options_list[k] &= ~osInitValue;
+            }
+            if (m_config->opt_enum<LayerSeq>("other_layers_sequence_choice") != LayerSeq::flsAuto) {
                 m_options_list[k] &= ~osInitValue;
             }
         }
@@ -3035,6 +3112,8 @@ void TabFilament::add_filament_overrides_page()
                                         //BBS
                                         "filament_wipe_distance",
                                         "filament_retract_before_wipe",
+                                        "filament_long_retractions_when_cut",
+                                        "filament_retraction_distances_when_cut"
                                         //SoftFever
                                         // "filament_seam_gap"
                                      })
@@ -3072,6 +3151,8 @@ void TabFilament::update_filament_overrides_page()
                                             //BBS
                                             "filament_wipe_distance",
                                             "filament_retract_before_wipe",
+                                            "filament_long_retractions_when_cut",
+                                            "filament_retraction_distances_when_cut"
                                             //SoftFever
                                             // "filament_seam_gap"
                                         };
@@ -3090,8 +3171,23 @@ void TabFilament::update_filament_overrides_page()
         m_overrides_options[opt_key]->SetValue(is_checked);
 
         Field* field = optgroup->get_fieldc(opt_key, extruder_idx);
-        if (field != nullptr)
-            field->toggle(is_checked);
+        if (field != nullptr) {
+            if (opt_key == "filament_long_retractions_when_cut") {
+                int machine_enabled_level = wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionInt>("enable_long_retraction_when_cut")->value;
+                bool machine_enabled = machine_enabled_level == LongRectrationLevel::EnableFilament;
+                toggle_line(opt_key, machine_enabled);
+                field->toggle(is_checked && machine_enabled);
+            }
+            else if (opt_key == "filament_retraction_distances_when_cut") {
+                int machine_enabled_level = wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionInt>("enable_long_retraction_when_cut")->value;
+                bool machine_enabled = machine_enabled_level == LongRectrationLevel::EnableFilament;
+                bool filament_enabled = m_config->option<ConfigOptionBools>("filament_long_retractions_when_cut")->values[extruder_idx] == 1;
+                toggle_line(opt_key, filament_enabled && machine_enabled);
+                field->toggle(is_checked && filament_enabled && machine_enabled);
+            }
+            else
+                field->toggle(is_checked);
+        }
     }
 }
 
@@ -3129,6 +3225,16 @@ void TabFilament::build()
         line.append_option(optgroup->get_option("nozzle_temperature_range_low"));
         line.append_option(optgroup->get_option("nozzle_temperature_range_high"));
         optgroup->append_line(line);
+
+        optgroup->m_on_change = [this, optgroup](t_config_option_key opt_key, boost::any value) {
+            DynamicPrintConfig &filament_config = wxGetApp().preset_bundle->filaments.get_edited_preset().config;
+
+            update_dirty();
+            if (!m_postpone_update_ui && (opt_key == "nozzle_temperature_range_low" || opt_key == "nozzle_temperature_range_high")) {
+                m_config_manipulation.check_nozzle_recommended_temperature_range(&filament_config);
+            }
+            on_value_change(opt_key, value);
+        };
 
 
         optgroup = page->new_optgroup(L("Print chamber temperature"), L"param_chamber_temp");
@@ -4033,6 +4139,9 @@ if (is_marlin_flavor)
             optgroup = page->new_optgroup(L("Retraction when switching material"), L"param_retraction", -1, true);
             optgroup->append_single_option_line("retract_length_toolchange", "", extruder_idx);
             optgroup->append_single_option_line("retract_restart_extra_toolchange", "", extruder_idx);
+            // do not display this params now
+            optgroup->append_single_option_line("long_retractions_when_cut", "", extruder_idx);
+            optgroup->append_single_option_line("retraction_distances_when_cut", "", extruder_idx);
 
 #if 0
             //optgroup = page->new_optgroup(L("Preview"), -1, true);
@@ -4274,6 +4383,10 @@ void TabPrinter::toggle_options()
 
         bool toolchange_retraction = m_config->opt_float("retract_length_toolchange", i) > 0;
         toggle_option("retract_restart_extra_toolchange", have_multiple_extruders && toolchange_retraction, i);
+
+        toggle_option("long_retractions_when_cut", !use_firmware_retraction && m_config->opt_int("enable_long_retraction_when_cut"),i);
+        toggle_line("retraction_distances_when_cut#0", m_config->opt_bool("long_retractions_when_cut", i));
+        //toggle_option("retraction_distances_when_cut", m_config->opt_bool("long_retractions_when_cut",i),i);
     }
 
     if (m_active_page->title() == L("Motion ability")) {
@@ -4659,8 +4772,8 @@ bool Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
 
     BOOST_LOG_TRIVIAL(info) << boost::format("before delete action, canceled %1%, delete_current %2%") %canceled %delete_current;
     bool        delete_third_printer = false;
-    std::vector<Preset> filament_presets;
-    std::vector<Preset> process_presets;
+    std::deque<Preset> filament_presets;
+    std::deque<Preset> process_presets;
     if (! canceled && delete_current) {
         // Delete the file and select some other reasonable preset.
         // It does not matter which preset will be made active as the preset will be re-selected from the preset_name variable.
@@ -4673,10 +4786,22 @@ bool Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
             if (m_preset_bundle && m_presets->get_preset_base(current_preset) == &current_preset && printer_tab && !current_preset.is_system) {
                 delete_third_printer = true;
                 for (const Preset &preset : m_preset_bundle->filaments.get_presets()) {
-                    if (preset.is_compatible && !preset.is_default) { filament_presets.push_back(preset); }
+                    if (preset.is_compatible && !preset.is_default) {
+                        if (preset.inherits() != "") 
+                            filament_presets.push_front(preset);
+                        else
+                            filament_presets.push_back(preset);
+                        if (!preset.setting_id.empty()) { m_preset_bundle->filaments.set_sync_info_and_save(preset.name, preset.setting_id, "delete", 0); }
+                    }
                 }
                 for (const Preset &preset : m_preset_bundle->prints.get_presets()) {
-                    if (preset.is_compatible && !preset.is_default) { process_presets.push_back(preset); }
+                    if (preset.is_compatible && !preset.is_default) {
+                        if (preset.inherits() != "")
+                            process_presets.push_front(preset);
+                        else
+                            process_presets.push_back(preset);
+                        if (!preset.setting_id.empty()) { m_preset_bundle->filaments.set_sync_info_and_save(preset.name, preset.setting_id, "delete", 0); }
+                    }
                 }
             }
             if (!current_preset.setting_id.empty()) {
@@ -4771,7 +4896,6 @@ bool Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
 
                 for (const Preset &preset : filament_presets) {
                     if (!preset.setting_id.empty()) {
-                        preset_bundle->filaments.set_sync_info_and_save(preset.name, preset.setting_id, "delete", 0);
                         wxGetApp().delete_preset_from_cloud(preset.setting_id);
                     }
                     BOOST_LOG_TRIVIAL(info) << "delete filament preset = " << preset.name << ", setting_id = " << preset.setting_id;
@@ -4780,7 +4904,6 @@ bool Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
 
                 for (const Preset &preset : process_presets) {
                     if (!preset.setting_id.empty()) {
-                        preset_bundle->prints.set_sync_info_and_save(preset.name, preset.setting_id, "delete", 0);
                         wxGetApp().delete_preset_from_cloud(preset.setting_id);
                     }
                     BOOST_LOG_TRIVIAL(info) << "delete print preset = " << preset.name << ", setting_id = " << preset.setting_id;
@@ -4871,12 +4994,12 @@ void Tab::clear_pages()
 {
     // invalidated highlighter, if any exists
     m_highlighter.invalidate();
-    //BBS: clear page in Parent
-    //m_page_sizer->Clear(true);
-    m_parent->clear_page();
     // clear pages from the controlls
     for (auto p : m_pages)
         p->clear();
+    //BBS: clear page in Parent
+    //m_page_sizer->Clear(true);
+    m_parent->clear_page();
 
     // nulling pointers
     m_parent_preset_description_line = nullptr;

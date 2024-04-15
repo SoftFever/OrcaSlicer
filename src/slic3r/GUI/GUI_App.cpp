@@ -149,6 +149,40 @@ namespace GUI {
 
 class MainFrame;
 
+void start_ping_test()
+{
+    wxArrayString output;
+    wxExecute("ping www.amazon.com", output, wxEXEC_NODISABLE);
+
+    wxString output_i;
+    std::string output_temp;
+
+    for (int i = 0; i < output.size(); i++) {
+        output_i = output[i].To8BitData();
+        output_temp = output_i.ToStdString(wxConvUTF8);
+        BOOST_LOG_TRIVIAL(info) << "ping amazon:" << output_temp;
+
+    }
+    wxExecute("ping www.apple.com", output, wxEXEC_NODISABLE);
+    for (int i = 0; i < output.size(); i++) {
+        output_i = output[i].To8BitData();
+        output_temp = output_i.ToStdString(wxConvUTF8);
+        BOOST_LOG_TRIVIAL(info) << "ping www.apple.com:" << output_temp;
+    }
+    wxExecute("ping www.bambulab.com", output, wxEXEC_NODISABLE);
+    for (int i = 0; i < output.size(); i++) {
+        output_i = output[i].To8BitData();
+        output_temp = output_i.ToStdString(wxConvUTF8);
+        BOOST_LOG_TRIVIAL(info) << "ping bambulab:" << output_temp;
+    }
+    //Get GateWay IP
+    wxExecute("ping 192.168.0.1", output, wxEXEC_NODISABLE);
+    for (int i = 0; i < output.size(); i++) {
+        output_i = output[i].To8BitData();
+        output_temp = output_i.ToStdString(wxConvUTF8);
+        BOOST_LOG_TRIVIAL(info) << "ping 192.168.0.1:" << output_temp;
+    }
+}
 
 std::string VersionInfo::convert_full_version(std::string short_version)
 {
@@ -474,9 +508,11 @@ static const FileWildcards file_wildcards_by_type[FT_SIZE] = {
     /* FT_3MF */     { "3MF files"sv,       { ".3mf"sv } },
     /* FT_GCODE */   { "G-code files"sv,    { ".gcode"sv, ".3mf"sv } },
 #ifdef __APPLE__
-    /* FT_MODEL */   { "Supported files"sv,     { ".3mf"sv, ".stl"sv, ".stp"sv, ".step"sv, ".svg"sv, ".amf"sv, ".obj"sv , ".usd"sv, ".usda"sv, ".usdc"sv, ".usdz"sv, ".abc"sv, ".ply"sv} },
+    /* FT_MODEL */
+    {"Supported files"sv, {".3mf"sv, ".stl"sv, ".oltp"sv, ".stp"sv, ".step"sv, ".svg"sv, ".amf"sv, ".obj"sv, ".usd"sv, ".usda"sv, ".usdc"sv, ".usdz"sv, ".abc"sv, ".ply"sv}},
 #else
-    /* FT_MODEL */   {"Supported files"sv,  {".3mf"sv, ".stl"sv, ".stp"sv, ".step"sv, ".svg"sv, ".amf"sv, ".obj"sv }},
+    /* FT_MODEL */
+    {"Supported files"sv, {".3mf"sv, ".stl"sv, ".oltp"sv, ".stp"sv, ".step"sv, ".svg"sv, ".amf"sv, ".obj"sv}},
 #endif
     /* FT_PROJECT */ { "Project files"sv,   { ".3mf"sv} },
     /* FT_GALLERY */ { "Known files"sv,     { ".stl"sv, ".obj"sv } },
@@ -993,8 +1029,7 @@ void GUI_App::post_init()
         });
 
 
-    std::string filaments_blacklist_config_file = Slic3r::resources_dir() + "/printers/filaments_blacklist.json";
-    DeviceManager::load_filaments_blacklist_config(encode_path(filaments_blacklist_config_file.c_str()));
+    DeviceManager::load_filaments_blacklist_config();
 
     // remove old log files over LOG_FILES_MAX_NUM
     std::string log_addr = data_dir();
@@ -1935,7 +1970,7 @@ std::map<std::string, std::string> GUI_App::get_extra_header()
     extra_headers.insert(std::make_pair("X-BBL-OS-Version", os_version));
     if (app_config)
         extra_headers.insert(std::make_pair("X-BBL-Device-ID", app_config->get("slicer_uuid")));
-    extra_headers.insert(std::make_pair("X-BBL-Language", convert_studio_language_to_api(app_config->get("language"))));
+    extra_headers.insert(std::make_pair("X-BBL-Language", convert_studio_language_to_api(into_u8(current_language_code_safe()))));
     return extra_headers;
 }
 
@@ -2113,9 +2148,6 @@ bool GUI_App::on_init_inner()
         for (auto d : dialogStack)
             d->EndModal(wxID_ABORT);
     });
-
-    std::map<std::string, std::string> extra_headers = get_extra_header();
-    Slic3r::Http::set_extra_headers(extra_headers);
 
     // Verify resources path
     const wxString resources_dir = from_u8(Slic3r::resources_dir());
@@ -2379,6 +2411,10 @@ bool GUI_App::on_init_inner()
 
     Bind(EVT_SHOW_IP_DIALOG, &GUI_App::show_ip_address_enter_dialog_handler, this);
 
+
+    std::map<std::string, std::string> extra_headers = get_extra_header();
+    Slic3r::Http::set_extra_headers(extra_headers);
+
     copy_network_if_available();
     on_init_network();
 
@@ -2555,7 +2591,7 @@ void GUI_App::copy_network_if_available()
 {
     if (app_config->get("update_network_plugin") != "true")
         return;
-    std::string network_library, player_library, network_library_dst, player_library_dst;
+    std::string network_library, player_library, live555_library, network_library_dst, player_library_dst, live555_library_dst;
     std::string data_dir_str = data_dir();
     boost::filesystem::path data_dir_path(data_dir_str);
     auto plugin_folder = data_dir_path / "plugins";
@@ -2563,19 +2599,25 @@ void GUI_App::copy_network_if_available()
     std::string changelog_file = cache_folder.string() + "/network_plugins.json";
 #if defined(_MSC_VER) || defined(_WIN32)
     network_library = cache_folder.string() + "/bambu_networking.dll";
-    player_library = cache_folder.string() + "/BambuSource.dll";
+    player_library      = cache_folder.string() + "/BambuSource.dll";
+    live555_library     = cache_folder.string() + "/live555.dll";
     network_library_dst = plugin_folder.string() + "/bambu_networking.dll";
-    player_library_dst = plugin_folder.string() + "/BambuSource.dll";
+    player_library_dst  = plugin_folder.string() + "/BambuSource.dll";
+    live555_library_dst = plugin_folder.string() + "/live555.dll";
 #elif defined(__WXMAC__)
     network_library = cache_folder.string() + "/libbambu_networking.dylib";
     player_library = cache_folder.string() + "/libBambuSource.dylib";
+    live555_library = cache_folder.string() + "/liblive555.dylib";
     network_library_dst = plugin_folder.string() + "/libbambu_networking.dylib";
     player_library_dst = plugin_folder.string() + "/libBambuSource.dylib";
+    live555_library_dst = plugin_folder.string() + "/liblive555.dylib";
 #else
     network_library = cache_folder.string() + "/libbambu_networking.so";
-    player_library = cache_folder.string() + "/libBambuSource.so";
+    player_library      = cache_folder.string() + "/libBambuSource.so";
+    live555_library     = cache_folder.string() + "/liblive555.so";
     network_library_dst = plugin_folder.string() + "/libbambu_networking.so";
-    player_library_dst = plugin_folder.string() + "/libBambuSource.so";
+    player_library_dst  = plugin_folder.string() + "/libBambuSource.so";
+    live555_library_dst = plugin_folder.string() + "/liblive555.so";
 #endif
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< ": checking network_library " << network_library << ", player_library " << player_library;
@@ -2608,6 +2650,19 @@ void GUI_App::copy_network_if_available()
         fs::permissions(player_library_dst, perms);
         fs::remove(player_library);
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< ": Copying player library from" << player_library << " to " << player_library_dst<<" successfully.";
+    }
+
+    if (boost::filesystem::exists(live555_library)) {
+        CopyFileResult cfr = copy_file(live555_library, live555_library_dst, error_message, false);
+        if (cfr != CopyFileResult::SUCCESS) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": Copying failed(" << cfr << "): " << error_message;
+            return;
+        }
+
+        static constexpr const auto perms = fs::owner_read | fs::owner_write | fs::group_read | fs::others_read;
+        fs::permissions(live555_library_dst, perms);
+        fs::remove(live555_library);
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< ": Copying live555 library from" << live555_library << " to " << live555_library_dst<<" successfully.";
     }
     if (boost::filesystem::exists(changelog_file))
         fs::remove(changelog_file);
@@ -3136,7 +3191,10 @@ void GUI_App::check_printer_presets()
 #endif
 }
 
-void GUI_App::recreate_GUI(const wxString& msg_name)
+void switch_window_pools();
+void release_window_pools();
+
+void GUI_App::recreate_GUI(const wxString &msg_name)
 {
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "recreate_GUI enter";
     m_is_recreating_gui = true;
@@ -3144,12 +3202,18 @@ void GUI_App::recreate_GUI(const wxString& msg_name)
     update_http_extra_header();
 
     mainframe->shutdown();
-
     ProgressDialog dlg(msg_name, msg_name, 100, nullptr, wxPD_AUTO_HIDE);
     dlg.Pulse();
     dlg.Update(10, _L("Rebuild") + dots);
 
     MainFrame *old_main_frame = mainframe;
+    struct ClientData : wxClientData
+    {
+        ~ClientData() { release_window_pools(); }
+    };
+    old_main_frame->SetClientObject(new ClientData);
+
+    switch_window_pools();
     mainframe = new MainFrame();
     if (is_editor())
         // hide settings tabs after first Layout
@@ -3218,6 +3282,7 @@ void GUI_App::ShowUserGuide() {
 if (res) {
             load_current_presets();
             update_publish_status();
+            mainframe->refresh_plugin_tips();
             // BBS: remove SLA related message
         }
     } catch (std::exception &e) {
@@ -5934,6 +5999,15 @@ int GUI_App::filaments_cnt() const
     return preset_bundle->filament_presets.size();
 }
 
+PrintSequence GUI_App::global_print_sequence() const
+{
+    PrintSequence global_print_seq = PrintSequence::ByDefault;
+    auto curr_preset_config = preset_bundle->prints.get_edited_preset().config;
+    if (curr_preset_config.has("print_sequence"))
+        global_print_seq = curr_preset_config.option<ConfigOptionEnum<PrintSequence>>("print_sequence")->value;
+    return global_print_seq;
+}
+
 wxString GUI_App::current_language_code_safe() const
 {
 	// Translate the language code to a code, for which Prusa Research maintains translations.
@@ -5952,6 +6026,7 @@ wxString GUI_App::current_language_code_safe() const
 		{ "uk", 	"uk_UA", },
 		{ "zh", 	"zh_CN", },
 		{ "ru", 	"ru_RU", },
+        { "tr", 	"tr_TR", },
 	};
 	wxString language_code = this->current_language_code().BeforeFirst('_');
 	auto it = mapping.find(language_code);
@@ -6007,6 +6082,7 @@ bool GUI_App::run_wizard(ConfigWizard::RunReason reason, ConfigWizard::StartPage
     if (res) {
         load_current_presets();
         update_publish_status();
+        mainframe->refresh_plugin_tips();
         // BBS: remove SLA related message
     }
 

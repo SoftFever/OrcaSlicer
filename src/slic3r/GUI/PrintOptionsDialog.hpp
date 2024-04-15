@@ -18,6 +18,27 @@
 
 namespace Slic3r { namespace GUI {
 
+class PrinterPartsDialog : public DPIDialog
+{
+protected:
+    MachineObject* obj{ nullptr };
+    ComboBox* nozzle_type_checkbox;
+    ComboBox* nozzle_diameter_checkbox;
+    std::string last_nozzle_type;
+    std::map<int, std::string> nozzle_type_map;
+    std::map<int, float> nozzle_stainless_diameter_map;
+    std::map<int, float> nozzle_hard_diameter_map;
+public:
+    PrinterPartsDialog(wxWindow* parent);
+    ~PrinterPartsDialog();
+    void set_nozzle_type(wxCommandEvent& evt);
+    void set_nozzle_diameter(wxCommandEvent& evt);
+    void on_dpi_changed(const wxRect& suggested_rect) override;
+    void update_machine_obj(MachineObject* obj_);
+    bool Show(bool show) override;
+};
+ 
+
 class PrintOptionsDialog : public DPIDialog
 {
 protected:

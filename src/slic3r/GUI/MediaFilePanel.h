@@ -69,6 +69,7 @@ private:
     ::StaticBox *m_manage_panel        = nullptr;
     ::Button *   m_button_delete     = nullptr;
     ::Button *m_button_download = nullptr;
+    ::Button *m_button_refresh = nullptr;
     ::Button *m_button_management = nullptr;
 
     ImageGrid * m_image_grid   = nullptr;
@@ -81,10 +82,13 @@ private:
     std::string m_lan_passwd;
     std::string m_dev_ver;
     bool        m_lan_mode      = false;
+    bool        m_sdcard_exist  = false;
     bool        m_local_support = false;
     bool        m_remote_support = false;
     bool        m_model_download_support = false;
+    bool        m_device_busy  = false;
     bool        m_waiting_enable = false;
+    bool        m_waiting_support = false;
 
     int m_last_mode = 0;
     int m_last_type = 0;
