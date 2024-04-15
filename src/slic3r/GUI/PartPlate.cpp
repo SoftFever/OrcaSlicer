@@ -282,11 +282,7 @@ PrintSequence PartPlate::get_print_seq() const
 
 PrintSequence PartPlate::get_real_print_seq(bool* plate_same_as_global) const
 {
-	PrintSequence global_print_seq = PrintSequence::ByDefault;
-	auto curr_preset_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
-	if (curr_preset_config.has("print_sequence"))
-		global_print_seq = curr_preset_config.option<ConfigOptionEnum<PrintSequence>>("print_sequence")->value;
-
+	PrintSequence global_print_seq = wxGetApp().global_print_sequence();
     PrintSequence curr_plate_seq = get_print_seq();
     if (curr_plate_seq == PrintSequence::ByDefault) {
 		curr_plate_seq = global_print_seq;
@@ -323,8 +319,20 @@ void PartPlate::set_spiral_vase_mode(bool spiral_mode, bool as_global)
 	std::string key = "spiral_mode";
 	if (as_global)
 		m_config.erase(key);
-	else
-		m_config.set_key_value(key, new ConfigOptionBool(spiral_mode));
+	else {
+		if (spiral_mode) {
+			if (get_spiral_vase_mode())
+				return;
+			// Secondary confirmation
+			auto answer = static_cast<TabPrintPlate*>(wxGetApp().plate_tab)->show_spiral_mode_settings_dialog(false);
+			if (answer == wxID_YES) {
+				m_config.set_key_value(key, new ConfigOptionBool(true));
+				set_vase_mode_related_object_config();
+			}
+		}
+		else
+			m_config.set_key_value(key, new ConfigOptionBool(false));
+	}
 }
 
 bool PartPlate::valid_instance(int obj_id, int instance_id)
@@ -1020,16 +1028,17 @@ void PartPlate::render_icons(bool bottom, bool only_name, int hover_id)
 			else
                 render_icon_texture(m_plate_name_edit_icon.model, m_partplate_list->m_plate_name_edit_texture);
 
-            if (m_partplate_list->render_plate_settings) {
+			if (m_partplate_list->render_plate_settings) {
+				bool has_plate_settings = get_bed_type() != BedType::btDefault || get_print_seq() != PrintSequence::ByDefault || !get_first_layer_print_sequence().empty() || !get_other_layers_print_sequence().empty() || has_spiral_mode_config();
                 if (hover_id == 5) {
-                    if (get_bed_type() == BedType::btDefault && get_print_seq() == PrintSequence::ByDefault && get_first_layer_print_sequence().empty())
+                    if (!has_plate_settings)
                         render_icon_texture(m_plate_settings_icon.model, m_partplate_list->m_plate_settings_hovered_texture);
                     else
                         render_icon_texture(m_plate_settings_icon.model, m_partplate_list->m_plate_settings_changed_hovered_texture);
 
                     show_tooltip(_u8L("Customize current plate"));
                 } else {
-                    if (get_bed_type() == BedType::btDefault && get_print_seq() == PrintSequence::ByDefault && get_first_layer_print_sequence().empty())
+                    if (!has_plate_settings)
                         render_icon_texture(m_plate_settings_icon.model, m_partplate_list->m_plate_settings_texture);
                     else
                         render_icon_texture(m_plate_settings_icon.model, m_partplate_list->m_plate_settings_changed_texture);
@@ -1569,11 +1578,19 @@ std::vector<int> PartPlate::get_used_extruders()
 	if (!result)
 		return used_extruders;
 
+	std::set<int> used_extruders_set;
 	PrintEstimatedStatistics& ps = result->print_statistics;
-	for (auto it = ps.volumes_per_extruder.begin(); it != ps.volumes_per_extruder.end(); it++) {
-		used_extruders.push_back(it->first + 1);
-	}
-	return used_extruders;
+	// model usage
+	for (const auto&item:ps.volumes_per_extruder)
+		used_extruders_set.emplace(item.first + 1);
+	// support usage
+	for (const auto&item:ps.support_volumes_per_extruder)
+		used_extruders_set.emplace(item.first + 1);
+	// wipe tower usage
+	for (const auto&item:ps.wipe_tower_volumes_per_extruder)
+		used_extruders_set.emplace(item.first + 1);
+
+	return std::vector(used_extruders_set.begin(), used_extruders_set.end());
 }
 
 Vec3d PartPlate::estimate_wipe_tower_size(const DynamicPrintConfig & config, const double w, const double d, int plate_extruder_size, bool use_global_objects) const
@@ -1900,6 +1917,16 @@ bool PartPlate::is_valid_gcode_file()
 	return true;
 }
 
+ModelObjectPtrs PartPlate::get_objects_on_this_plate() {
+    ModelObjectPtrs objects_ptr;
+    int obj_id;
+    for (auto it = obj_to_instance_set.begin(); it != obj_to_instance_set.end(); it++) {
+        obj_id = it->first;
+        objects_ptr.push_back(m_model->objects[obj_id]);
+    }
+    return objects_ptr;
+}
+
 ModelInstance* PartPlate::get_instance(int obj_id, int instance_id)
 {
 	if (!contain_instance(obj_id, instance_id))
@@ -1969,13 +1996,10 @@ bool PartPlate::check_outside(int obj_id, int instance_id, BoundingBoxf3* boundi
 	ModelInstance* instance = object->instances[instance_id];
 
 	BoundingBoxf3 instance_box = bounding_box? *bounding_box: object->instance_convex_hull_bounding_box(instance_id);
-    Vec3d up_point = m_bounding_box.max + Vec3d(Slic3r::BuildVolume::SceneEpsilon, Slic3r::BuildVolume::SceneEpsilon,
-                                                m_origin.z() + m_height + Slic3r::BuildVolume::SceneEpsilon);
-    Vec3d low_point = m_bounding_box.min + Vec3d(-Slic3r::BuildVolume::SceneEpsilon, -Slic3r::BuildVolume::SceneEpsilon,
-                                                 m_origin.z() - Slic3r::BuildVolume::SceneEpsilon);
-    Polygon hull = instance->convex_hull_2d();
-    if (instance_box.max.z() > low_point.z()) low_point.z() +=  instance_box.min.z(); // not considering outsize if sinking
-	BoundingBoxf3 plate_box(low_point, up_point);
+	Polygon hull = instance->convex_hull_2d();
+	BoundingBoxf3 plate_box = get_plate_box();
+	if (instance_box.max.z() > plate_box.min.z())
+		plate_box.min.z() += instance_box.min.z(); // not considering outsize if sinking
 
 	if (plate_box.contains(instance_box))
 	{
@@ -2018,15 +2042,7 @@ bool PartPlate::intersect_instance(int obj_id, int instance_id, BoundingBoxf3* b
 		ModelObject* object = m_model->objects[obj_id];
 		ModelInstance* instance = object->instances[instance_id];
 		BoundingBoxf3 instance_box = bounding_box? *bounding_box: object->instance_convex_hull_bounding_box(instance_id);
-        Vec3d up_point =
-            m_bounding_box.max + Vec3d(Slic3r::BuildVolume::SceneEpsilon, Slic3r::BuildVolume::SceneEpsilon,
-                                       m_origin.z() + m_height + Slic3r::BuildVolume::SceneEpsilon);
-        Vec3d low_point =
-            m_bounding_box.min + Vec3d(-Slic3r::BuildVolume::SceneEpsilon, -Slic3r::BuildVolume::SceneEpsilon,
-                                       m_origin.z() - Slic3r::BuildVolume::SceneEpsilon);
-		BoundingBoxf3 plate_box(low_point, up_point);
-
-		result = plate_box.intersects(instance_box);
+		result = get_plate_box().intersects(instance_box);
 	}
 	else
 	{
@@ -2069,7 +2085,7 @@ int PartPlate::add_instance(int obj_id, int instance_id, bool move_position, Bou
 	ModelInstance* instance = object->instances[instance_id];
 	std::pair<int, int> pair(obj_id, instance_id);
 
-	obj_to_instance_set.insert(pair);
+    obj_to_instance_set.insert(pair);
 
 	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": plate_id %1%, add instance obj_id %2%, instance_id %3%, move_position %4%") % m_plate_index % obj_id % instance_id % move_position;
 
@@ -2265,6 +2281,43 @@ void PartPlate::update_object_index(int obj_idx_removed, int obj_idx_max)
 	instance_outside_set.clear();
 	instance_outside_set = temp_set;
 
+}
+
+void PartPlate::set_vase_mode_related_object_config(int obj_id) {
+	ModelObjectPtrs obj_ptrs;
+	if (obj_id != -1) {
+		ModelObject* object = m_model->objects[obj_id];
+		obj_ptrs.push_back(object);
+	}
+	else
+		obj_ptrs = get_objects_on_this_plate();
+
+	DynamicPrintConfig* global_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
+	DynamicPrintConfig new_conf;
+	new_conf.set_key_value("wall_loops", new ConfigOptionInt(1));
+	new_conf.set_key_value("top_shell_layers", new ConfigOptionInt(0));
+	new_conf.set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
+	new_conf.set_key_value("enable_support", new ConfigOptionBool(false));
+	new_conf.set_key_value("enforce_support_layers", new ConfigOptionInt(0));
+	new_conf.set_key_value("detect_thin_wall", new ConfigOptionBool(false));
+	new_conf.set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(tlTraditional));
+	new_conf.set_key_value("overhang_reverse", new ConfigOptionBool(false));
+	new_conf.set_key_value("wall_direction", new ConfigOptionEnum<WallDirection>(WallDirection::Auto));
+	auto applying_keys = global_config->diff(new_conf);
+
+	for (ModelObject* object : obj_ptrs) {
+		ModelConfigObject& config = object->config;
+
+		for (auto opt_key : applying_keys) {
+			config.set_key_value(opt_key, new_conf.option(opt_key)->clone());
+		}
+
+		applying_keys = config.get().diff(new_conf);
+		for (auto opt_key : applying_keys) {
+			config.set_key_value(opt_key, new_conf.option(opt_key)->clone());
+		}
+	}
+	//wxGetApp().obj_list()->update_selections();
 }
 
 int PartPlate::printable_instance_size()
@@ -2512,7 +2565,7 @@ void PartPlate::generate_exclude_polygon(ExPolygon &exclude_polygon)
 bool PartPlate::set_shape(const Pointfs& shape, const Pointfs& exclude_areas, Vec2d position, float height_to_lid, float height_to_rod)
 {
 	Pointfs new_shape, new_exclude_areas;
-
+	m_raw_shape = shape;
 	for (const Vec2d& p : shape) {
 		new_shape.push_back(Vec2d(p.x() + position.x(), p.y() + position.y()));
 	}
@@ -2889,6 +2942,20 @@ std::vector<int> PartPlate::get_first_layer_print_sequence() const
         return std::vector<int>();
 }
 
+std::vector<LayerPrintSequence> PartPlate::get_other_layers_print_sequence() const
+{
+	const ConfigOptionInts* other_layers_print_sequence_op = m_config.option<ConfigOptionInts>("other_layers_print_sequence");
+	const ConfigOptionInt* other_layers_print_sequence_nums_op = m_config.option<ConfigOptionInt>("other_layers_print_sequence_nums");
+	if (other_layers_print_sequence_op && other_layers_print_sequence_nums_op) {
+		const std::vector<int>& print_sequence = other_layers_print_sequence_op->values;
+		int sequence_nums = other_layers_print_sequence_nums_op->value;
+		auto other_layers_seqs = Slic3r::get_other_layers_print_sequence(sequence_nums, print_sequence);
+		return other_layers_seqs;
+	}
+	else
+		return {};
+}
+
 void PartPlate::set_first_layer_print_sequence(const std::vector<int>& sorted_filaments)
 {
     if (sorted_filaments.size() > 0) {
@@ -2908,8 +2975,52 @@ void PartPlate::set_first_layer_print_sequence(const std::vector<int>& sorted_fi
 	}
 }
 
+void PartPlate::set_other_layers_print_sequence(const std::vector<LayerPrintSequence>& layer_seq_list)
+{
+	if (layer_seq_list.empty()) {
+		m_config.erase("other_layers_print_sequence");
+		m_config.erase("other_layers_print_sequence_nums");
+		return;
+	}
+
+	int sequence_nums;
+	std::vector<int> other_layers_seqs;
+	Slic3r::get_other_layers_print_sequence(layer_seq_list, sequence_nums, other_layers_seqs);
+	ConfigOptionInts* other_layers_print_sequence_op = m_config.option<ConfigOptionInts>("other_layers_print_sequence");
+	ConfigOptionInt* other_layers_print_sequence_nums_op = m_config.option<ConfigOptionInt>("other_layers_print_sequence_nums");
+	if (other_layers_print_sequence_op)
+		other_layers_print_sequence_op->values = other_layers_seqs;
+	else
+		m_config.set_key_value("other_layers_print_sequence", new ConfigOptionInts(other_layers_seqs));
+	if (other_layers_print_sequence_nums_op)
+		other_layers_print_sequence_nums_op->value = sequence_nums;
+	else
+		m_config.set_key_value("other_layers_print_sequence_nums", new ConfigOptionInt(sequence_nums));
+}
+
 void PartPlate::update_first_layer_print_sequence(size_t filament_nums)
 {
+	auto other_layers_seqs = get_other_layers_print_sequence();
+	if (!other_layers_seqs.empty()) {
+		bool need_update_data = false;
+		for (auto& other_layers_seq : other_layers_seqs) {
+			std::vector<int>& orders = other_layers_seq.second;
+			if (orders.size() > filament_nums) {
+				orders.erase(std::remove_if(orders.begin(), orders.end(), [filament_nums](int n) { return n > filament_nums; }), orders.end());
+				need_update_data = true;
+			}
+			if (orders.size() < filament_nums) {
+				for (size_t extruder_id = orders.size(); extruder_id < filament_nums; ++extruder_id) {
+					orders.push_back(extruder_id + 1);
+					need_update_data = true;
+				}
+			}
+		}
+		if (need_update_data)
+			set_other_layers_print_sequence(other_layers_seqs);
+	}
+
+
     ConfigOptionInts * op_print_sequence_1st = m_config.option<ConfigOptionInts>("first_layer_print_sequence");
     if (!op_print_sequence_1st) {
 		return;
@@ -3957,7 +4068,7 @@ int PartPlateList::find_instance_belongs(int obj_id, int instance_id)
 
 //notify instance's update, need to refresh the instance in plates
 //newly added or modified
-int PartPlateList::notify_instance_update(int obj_id, int instance_id)
+int PartPlateList::notify_instance_update(int obj_id, int instance_id, bool is_new)
 {
 	int ret = 0, index;
 	PartPlate* plate = NULL;
@@ -4028,6 +4139,21 @@ int PartPlateList::notify_instance_update(int obj_id, int instance_id)
 		}
 	}
 
+	auto is_object_config_compatible_with_spiral_vase = [](ModelObject* object) {
+		const DynamicPrintConfig& config = object->config.get();
+		if (config.has("wall_loops") && config.opt_int("wall_loops") == 1 &&
+			config.has("top_shell_layers") && config.opt_int("top_shell_layers") == 0 &&
+			config.has("sparse_infill_density") && config.option<ConfigOptionPercent>("sparse_infill_density")->value == 0 &&
+			config.has("enable_support") && !config.opt_bool("enable_support") &&
+			config.has("enforce_support_layers") && config.opt_int("enforce_support_layers") == 0 &&
+			config.has("ensure_vertical_shell_thickness") && config.opt_bool("ensure_vertical_shell_thickness") &&
+			config.has("detect_thin_wall") && !config.opt_bool("detect_thin_wall") &&
+			config.has("timelapse_type") && config.opt_enum<TimelapseType>("timelapse_type") == TimelapseType::tlTraditional)
+			return true;
+		else
+			return false;
+	};
+
 	//try to find a new plate
 	for (unsigned int i = 0; i < (unsigned int)m_plate_list.size(); ++i)
 	{
@@ -4038,6 +4164,20 @@ int PartPlateList::notify_instance_update(int obj_id, int instance_id)
 		{
 			//found a new plate, add it to plate
 			plate->add_instance(obj_id, instance_id, false, &boundingbox);
+			
+			// spiral mode, update object setting
+			if (plate->config()->has("spiral_mode") && plate->config()->opt_bool("spiral_mode") && !is_object_config_compatible_with_spiral_vase(object)) {
+				if (!is_new) {
+					auto answer = static_cast<TabPrintPlate*>(wxGetApp().plate_tab)->show_spiral_mode_settings_dialog(true);
+					if (answer == wxID_YES) {
+						plate->set_vase_mode_related_object_config(obj_id);
+					}
+				}
+				else {
+					plate->set_vase_mode_related_object_config(obj_id);
+				}
+			}
+
 			plate->update_slice_result_valid_state();
 			plate->thumbnail_data.reset();
 			plate->top_thumbnail_data.reset();

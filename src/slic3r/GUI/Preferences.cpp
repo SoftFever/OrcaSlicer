@@ -849,6 +849,8 @@ PreferencesDialog::PreferencesDialog(wxWindow *parent, wxWindowID id, const wxSt
                 std::string value;
                 value = wxGetApp().app_config->get("auto_calculate");
                 j["auto_flushing"] = value;
+                value = wxGetApp().app_config->get("auto_calculate_when_filament_change");
+                j["auto_calculate_when_filament_change"] = value;
                 agent->track_event("preferences_changed", j.dump());
             }
         } catch(...) {}
@@ -1013,6 +1015,7 @@ wxWindow* PreferencesDialog::create_general_page()
     auto item_hints = create_item_checkbox(_L("Show \"Tip of the day\" notification after start"), page, _L("If enabled, useful hints are displayed at startup."), 50, "show_hints");
 
     auto item_calc_mode = create_item_checkbox(_L("Flushing volumes: Auto-calculate everytime the color changed."), page, _L("If enabled, auto-calculate everytime the color changed."), 50, "auto_calculate");
+    auto item_calc_in_long_retract = create_item_checkbox(_L("Flushing volumes: Auto-calculate every time when the filament is changed."), page, _L("If enabled, auto-calculate every time when filament is changed"), 50, "auto_calculate_when_filament_change");
     auto item_remember_printer_config = create_item_checkbox(_L("Remember printer configuration"), page, _L("If enabled, Orca will remember and switch filament/process configuration for each printer automatically."), 50, "remember_printer_config");
     auto title_presets = create_item_title(_L("Presets"), page, _L("Presets"));
     auto title_network = create_item_title(_L("Network"), page, _L("Network"));
@@ -1077,6 +1080,7 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(reverse_mouse_zoom, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_show_splash_screen, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_hints, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(item_calc_in_long_retract, 0, wxTOP, FromDIP(3));
     sizer_page->Add(title_presets, 0, wxTOP | wxEXPAND, FromDIP(20));
     sizer_page->Add(item_calc_mode, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_user_sync, 0, wxTOP, FromDIP(3));

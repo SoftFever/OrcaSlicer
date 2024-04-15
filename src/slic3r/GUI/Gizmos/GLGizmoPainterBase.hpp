@@ -356,10 +356,15 @@ private:
         ObjectID object_id;
         int instance_idx{ -1 };
     };
-    mutable CutContours m_cut_contours;
-
+    mutable std::vector<CutContours> m_cut_contours;
+    mutable int                      m_volumes_index = 0;
+    mutable float       m_cursor_z{0};
+    mutable double      m_height_start_z_in_imgui{0};
+    mutable bool        m_is_set_height_start_z_by_imgui{false};
+    mutable Vec2i       m_height_start_pos{0, 0};
+    mutable bool        m_is_cursor_in_imgui{false};
     BoundingBoxf3 bounding_box() const;
-    void update_contours(const TriangleMesh& vol_mesh, float cursor_z, float max_z, float min_z) const;
+    void update_contours(int i, const TriangleMesh& vol_mesh, float cursor_z, float max_z, float min_z) const;
 
 protected:
     void on_set_state() override;

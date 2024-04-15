@@ -34,7 +34,7 @@
 		"0.8"
 	],
 	"retract_length_toolchange": [
-		"10"
+		"2"
 	],
 	"deretraction_speed": [
 		"0"
@@ -43,6 +43,6 @@
 	"change_filament_gcode": "",
 	"machine_pause_gcode": "M0",
 	"default_filament_profile": [
-		"QIDI PLA Rapido"
+		"Qidi Generic PLA"
 	]
 }

@@ -8,9 +8,6 @@
     "fan_min_speed": [
         "25"
     ],
-    "fan_max_speed": [
-        "90"
-    ],
     "compatible_printers": [
         "Bambu Lab X1 Carbon 0.6 nozzle",
         "Bambu Lab X1 Carbon 0.8 nozzle",

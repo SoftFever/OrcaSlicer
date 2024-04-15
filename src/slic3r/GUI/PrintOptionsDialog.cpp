@@ -385,4 +385,185 @@ bool PrintOptionsDialog::Show(bool show)
     return DPIDialog::Show(show);
 }
 
+PrinterPartsDialog::PrinterPartsDialog(wxWindow* parent)
+: DPIDialog(parent, wxID_ANY, _L("Printer Parts"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
+{
+    nozzle_type_map[0] = "hardened_steel";
+    nozzle_type_map[1] = "stainless_steel";
+
+    nozzle_stainless_diameter_map[0] = 0.2;
+    nozzle_stainless_diameter_map[1] = 0.4;
+
+    nozzle_hard_diameter_map[0] = 0.4;
+    nozzle_hard_diameter_map[1] = 0.6;
+    nozzle_hard_diameter_map[2] = 0.8;
+
+    SetBackgroundColour(*wxWHITE);
+    wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
+    
+
+    auto m_line = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
+    m_line->SetBackgroundColour(wxColour(166, 169, 170));
+    
+    //nozzle type
+    wxBoxSizer* line_sizer_nozzle_type = new wxBoxSizer(wxHORIZONTAL);
+
+    auto nozzle_type  = new Label(this, _L("Nozzle Type"));
+    nozzle_type->SetFont(Label::Body_14);
+    nozzle_type->SetMinSize(wxSize(FromDIP(180), -1));
+    nozzle_type->SetMaxSize(wxSize(FromDIP(180), -1));
+    nozzle_type->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
+    nozzle_type->Wrap(-1);
+
+    nozzle_type_checkbox = new ComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(140), -1), 0, NULL, wxCB_READONLY);
+    nozzle_type_checkbox->Append(_L("Stainless Steel"));
+    nozzle_type_checkbox->Append(_L("Hardened Steel"));
+    nozzle_type_checkbox->SetSelection(0);
+
+    
+    line_sizer_nozzle_type->Add(nozzle_type, 0, wxALIGN_CENTER, 5);
+    line_sizer_nozzle_type->Add(0, 0, 1, wxEXPAND, 5);
+    line_sizer_nozzle_type->Add(nozzle_type_checkbox, 0, wxALIGN_CENTER, 5);
+
+
+    //nozzle diameter
+    wxBoxSizer* line_sizer_nozzle_diameter = new wxBoxSizer(wxHORIZONTAL);
+    auto nozzle_diameter = new Label(this, _L("Nozzle Diameter"));
+    nozzle_diameter->SetFont(Label::Body_14);
+    nozzle_diameter->SetMinSize(wxSize(FromDIP(180), -1));
+    nozzle_diameter->SetMaxSize(wxSize(FromDIP(180), -1));
+    nozzle_diameter->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
+    nozzle_diameter->Wrap(-1);
+
+    nozzle_diameter_checkbox = new ComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(140), -1), 0, NULL, wxCB_READONLY);
+ 
+
+    line_sizer_nozzle_diameter->Add(nozzle_diameter, 0, wxALIGN_CENTER, 5);
+    line_sizer_nozzle_diameter->Add(0, 0, 1, wxEXPAND, 5);
+    line_sizer_nozzle_diameter->Add(nozzle_diameter_checkbox, 0, wxALIGN_CENTER, 5);
+
+    sizer->Add(m_line, 0, wxEXPAND, 0);
+    sizer->Add(0, 0, 0, wxTOP, FromDIP(24));
+    sizer->Add(line_sizer_nozzle_type, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, FromDIP(18));
+    sizer->Add(0, 0, 0, wxTOP, FromDIP(20));
+    sizer->Add(line_sizer_nozzle_diameter, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, FromDIP(18));
+    sizer->Add(0, 0, 0, wxTOP, FromDIP(24));
+
+
+    nozzle_type_checkbox->Connect( wxEVT_COMBOBOX, wxCommandEventHandler(PrinterPartsDialog::set_nozzle_type), NULL, this );
+    nozzle_diameter_checkbox->Connect( wxEVT_COMBOBOX, wxCommandEventHandler(PrinterPartsDialog::set_nozzle_diameter), NULL, this );
+
+    SetSizer(sizer);
+    Layout();
+    Fit();
+    wxGetApp().UpdateDlgDarkUI(this);
+}
+
+PrinterPartsDialog::~PrinterPartsDialog()
+{
+    nozzle_type_checkbox->Disconnect(wxEVT_COMBOBOX, wxCommandEventHandler(PrinterPartsDialog::set_nozzle_type), NULL, this);
+    nozzle_diameter_checkbox->Disconnect(wxEVT_COMBOBOX, wxCommandEventHandler(PrinterPartsDialog::set_nozzle_diameter), NULL, this);
+}
+
+void PrinterPartsDialog::set_nozzle_type(wxCommandEvent& evt)
+{
+    auto type = nozzle_type_map[nozzle_type_checkbox->GetSelection()];
+
+    if (type == last_nozzle_type) {
+        return;
+    }
+
+    std::map<int, float> diameter_list;
+    if (type == "hardened_steel") {
+        diameter_list = nozzle_hard_diameter_map;
+    }
+    else if (type == "stainless_steel") {
+        diameter_list = nozzle_stainless_diameter_map;
+    }
+
+    nozzle_diameter_checkbox->Clear();
+    for (int i = 0; i < diameter_list.size(); i++)
+    {
+        nozzle_diameter_checkbox->Append(wxString::Format(_L("%.1f"), diameter_list[i]));
+    }
+    nozzle_diameter_checkbox->SetSelection(0);
+    last_nozzle_type = type;
+    set_nozzle_diameter(evt);
+}
+
+void PrinterPartsDialog::set_nozzle_diameter(wxCommandEvent& evt)
+{
+    if (obj) {
+        try
+        {
+            auto nozzle_type = nozzle_type_map[nozzle_type_checkbox->GetSelection()];
+            auto nozzle_diameter = std::stof(nozzle_diameter_checkbox->GetStringSelection().ToStdString());
+            nozzle_diameter = round(nozzle_diameter * 10) / 10;
+            
+            obj->nozzle_diameter = nozzle_diameter;
+            obj->nozzle_type = nozzle_type;
+
+            obj->command_set_printer_nozzle(nozzle_type, nozzle_diameter);
+        }
+        catch (...) {}
+    }
+}
+
+void PrinterPartsDialog::on_dpi_changed(const wxRect& suggested_rect)
+{
+     Fit();
+}
+
+void PrinterPartsDialog::update_machine_obj(MachineObject* obj_)
+{
+    obj = obj_;
+}
+
+bool PrinterPartsDialog::Show(bool show)
+{
+    if (show) {
+        wxGetApp().UpdateDlgDarkUI(this);
+        CentreOnParent();
+
+        auto type = obj->nozzle_type;
+        auto diameter = round(obj->nozzle_diameter * 10) / 10;
+
+        nozzle_type_checkbox->Clear();
+        nozzle_diameter_checkbox->Clear();
+
+        if (type.empty()) {
+            nozzle_type_checkbox->Disable();
+            nozzle_diameter_checkbox->Disable();
+            return DPIDialog::Show(show);
+        }
+
+        last_nozzle_type = type;
+
+        for (int i=0; i < nozzle_type_map.size(); i++)
+        {
+            nozzle_type_checkbox->Append( nozzle_type_map[i] );
+            if (nozzle_type_map[i] == type) {
+                nozzle_type_checkbox->SetSelection(i);
+            }
+        }
+
+        std::map<int, float> diameter_list;
+        if (type == "hardened_steel") {
+            diameter_list = nozzle_hard_diameter_map;
+        }
+        else if (type == "stainless_steel") {
+            diameter_list = nozzle_stainless_diameter_map;
+        }
+
+        for (int i = 0; i < diameter_list.size(); i++)
+        {
+            nozzle_diameter_checkbox->Append( wxString::Format(_L("%.1f"), diameter_list[i]));
+            if (diameter_list[i] == diameter) {
+                nozzle_diameter_checkbox->SetSelection(i);
+            }
+        }
+    }
+    return DPIDialog::Show(show);
+}
+
 }} // namespace Slic3r::GUI

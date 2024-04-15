@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-29 21:10+0800\n"
+"POT-Creation-Date: 2024-04-15 22:59+0800\n"
 "PO-Revision-Date: 2023-09-30 15:15+0200\n"
 "Last-Translator: René Mošner <Renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -259,6 +259,9 @@ msgstr "Výchozí Natočení"
 
 msgid "World coordinates"
 msgstr "Světové souřadnice"
+
+msgid "Object coordinates"
+msgstr ""
 
 msgid "°"
 msgstr "°"
@@ -1771,8 +1774,8 @@ msgstr "Výchozí"
 msgid "Filament %d"
 msgstr "Filament %d"
 
-msgid "active"
-msgstr "aktivní"
+msgid "current"
+msgstr "proud"
 
 msgid "Scale to build volume"
 msgstr "Škálovat na sestavení objemu"
@@ -1947,9 +1950,6 @@ msgstr "Změnit Filament"
 
 msgid "Set Filament for selected items"
 msgstr "Nastavit Filament pro vybrané položky"
-
-msgid "current"
-msgstr "proud"
 
 msgid "Unlock"
 msgstr "Odemknout"
@@ -2286,9 +2286,6 @@ msgstr "Zadejte vlastní G-kód použitý na aktuální vrstvě:"
 
 msgid "Jump to Layer"
 msgstr "Přejít na vrstvu"
-
-msgid "Jump to layer"
-msgstr "Přeskočit do vrstvy"
 
 msgid "Please enter the layer number"
 msgstr "Zadejte prosím číslo vrstvy"
@@ -2922,36 +2919,15 @@ msgstr "Zakázat AMS"
 msgid "Print with the filament mounted on the back of chassis"
 msgstr "Tisk s filamentem namontovaným na zadní straně podvozku"
 
-msgid "Cabin humidity"
-msgstr "Vlhkost v kabině"
+msgid "Current Cabin humidity"
+msgstr ""
 
 msgid ""
-"Green means that AMS humidity is normal, orange represent humidity is high, "
-"red represent humidity is too high.(Hygrometer: lower the better.)"
+"Please change the desiccant when it is too wet. The indicator may not "
+"represent accurately in following cases : when the lid is open or the "
+"desiccant pack is changed. it take hours to absorb the moisture, low "
+"temperatures also slow down the process."
 msgstr ""
-"Zelená znamená, že vlhkost AMS je normální, oranžová znamená vlhkost vysokou "
-"Červená znamená, že vlhkost je příliš vysoká. (Vlhkoměr: čím nižší, tím "
-"lepší.)"
-
-msgid "Desiccant status"
-msgstr "Stav vysoušedla"
-
-msgid ""
-"A desiccant status lower than two bars indicates that desiccant may be "
-"inactive. Please change the desiccant.(The bars: higher the better.)"
-msgstr ""
-"Stav vysoušedla nižší než dva pruhy znamená, že vysoušedlo může být "
-"neaktivní. Vyměňte prosím vysoušedlo. (Čáry: čím vyšší, tím lepší.)"
-
-msgid ""
-"Note: When the lid is open or the desiccant pack is changed, it can take "
-"hours or a night to absorb the moisture. Low temperatures also slow down the "
-"process. During this time, the indicator may not represent the chamber "
-"accurately."
-msgstr ""
-"Poznámka: Když je víko otevřené nebo je vyměněno balení vysoušedla, může to "
-"trvat hodiny nebo noc absorbovat vlhkost. Nízké teploty také zpomalují "
-"proces. Během této doby indikátor nemusí představovat komoru přesně."
 
 msgid ""
 "Config which AMS slot should be used for a filament used in the print job"
@@ -3010,6 +2986,12 @@ msgstr ""
 "(Aktuálně podporuje automatické doplňování spotřebního materiálu stejné "
 "značky, typu materiálu a barvy)"
 
+msgid "DRY"
+msgstr ""
+
+msgid "WET"
+msgstr ""
+
 msgid "AMS Settings"
 msgstr "Nastavení AMS"
 
@@ -3024,11 +3006,9 @@ msgstr ""
 "Lab. To trvá asi 20 sekund."
 
 msgid ""
-"Note: if new filament is inserted during  printing, the AMS will not "
+"Note: if a new filament is inserted during  printing, the AMS will not "
 "automatically read any information until printing is completed."
 msgstr ""
-"Poznámka: Pokud se během tisku vloží nový filament, AMS nebude automaticky "
-"číst všechny informace, dokud tisk neskončí."
 
 msgid ""
 "When inserting a new filament, the AMS will not automatically read its "
@@ -3148,6 +3128,12 @@ msgstr "Plovoucí rezervovaný operand"
 msgid "Stack overflow"
 msgstr "Přetečení zásobníku"
 
+msgid "Running post-processing scripts"
+msgstr "Vykonávají se postprodukční skripty"
+
+msgid "Successfully executed post-processing script"
+msgstr ""
+
 msgid "Unknown error when export G-code."
 msgstr "Neznámá chyba při exportu G-kódu."
 
@@ -3160,13 +3146,6 @@ msgstr ""
 "Soubor gkód se nepodařilo uložit.\n"
 "Chybová zpráva: %1%.\n"
 "Zdrojový soubor %2%."
-
-#, boost-format
-msgid "Succeed to export G-code to %1%"
-msgstr "Úspěšný export G-kódu do %1%"
-
-msgid "Running post-processing scripts"
-msgstr "Vykonávají se postprodukční skripty"
 
 msgid "Copying of the temporary G-code to the output G-code failed"
 msgstr "Kopírování dočasného G-kódu do výstupního G-kódu selhalo"
@@ -3247,6 +3226,19 @@ msgstr "Vyberte STL soubor, ze kterého chcete importovat model podložky:"
 
 msgid "Bed Shape"
 msgstr "Tvar Podložky"
+
+msgid ""
+"The recommended minimum temperature is less than 190 degree or the "
+"recommended maximum temperature is greater than 300 degree.\n"
+msgstr ""
+
+msgid ""
+"The recommended minimum temperature cannot be higher than the recommended "
+"maximum temperature.\n"
+msgstr ""
+
+msgid "Please check.\n"
+msgstr ""
 
 msgid ""
 "Nozzle may be blocked when the temperature is out of recommended range.\n"
@@ -3334,26 +3326,6 @@ msgstr ""
 "Hodnota bude resetována na 0."
 
 msgid ""
-"Spiral mode only works when wall loops is 1, support is disabled, top shell "
-"layers is 0, sparse infill density is 0 and timelapse type is traditional."
-msgstr ""
-"Spirálový režim funguje pouze tehdy, když je 1 smyčka na stěně, podpěry jsou "
-"deaktivovány, horní skořepina vrstvy jsou 0, hustota vnitřní výplně je 0 a "
-"typ časosběru je tradiční."
-
-msgid " But machines with I3 structure will not generate timelapse videos."
-msgstr " Ale stroje s I3 strukturou nevytvářejí časosběrná videa."
-
-msgid ""
-"Change these settings automatically? \n"
-"Yes - Change these settings and enable spiral mode automatically\n"
-"No  - Give up using spiral mode this time"
-msgstr ""
-"Změnit tato nastavení automaticky? \n"
-"Ano - Změňte tato nastavení a povolte režim spirála/váza automaticky\n"
-"Ne - zrušit povolení spirálového režimu"
-
-msgid ""
 "Alternate extra wall does't work well when ensure vertical shell thickness "
 "is set to All. "
 msgstr ""
@@ -3411,6 +3383,26 @@ msgid ""
 "seam_slope_start_height need to be smaller than layer_height.\n"
 "Reset to 0."
 msgstr ""
+
+msgid ""
+"Spiral mode only works when wall loops is 1, support is disabled, top shell "
+"layers is 0, sparse infill density is 0 and timelapse type is traditional."
+msgstr ""
+"Spirálový režim funguje pouze tehdy, když je 1 smyčka na stěně, podpěry jsou "
+"deaktivovány, horní skořepina vrstvy jsou 0, hustota vnitřní výplně je 0 a "
+"typ časosběru je tradiční."
+
+msgid " But machines with I3 structure will not generate timelapse videos."
+msgstr " Ale stroje s I3 strukturou nevytvářejí časosběrná videa."
+
+msgid ""
+"Change these settings automatically? \n"
+"Yes - Change these settings and enable spiral mode automatically\n"
+"No  - Give up using spiral mode this time"
+msgstr ""
+"Změnit tato nastavení automaticky? \n"
+"Ano - Změňte tato nastavení a povolte režim spirála/váza automaticky\n"
+"Ne - zrušit povolení spirálového režimu"
 
 msgid "Auto bed leveling"
 msgstr "Automatické vyrovnávání podložky"
@@ -3700,6 +3692,10 @@ msgstr "Hodnota %s je mimo rozsah, pokračovat?"
 msgid "Parameter validation"
 msgstr "Validace parametru"
 
+#, c-format, boost-format
+msgid "Value %s is out of range. The valid range is from %d to %d."
+msgstr ""
+
 msgid "Value is out of range."
 msgstr "Hodnota je mimo rozsah."
 
@@ -3780,11 +3776,11 @@ msgstr "Displej"
 msgid "Flushed"
 msgstr "Čištění"
 
-msgid "Total"
-msgstr "Celkem"
-
 msgid "Tower"
 msgstr ""
+
+msgid "Total"
+msgstr "Celkem"
 
 msgid "Total Estimation"
 msgstr "Celkový odhad"
@@ -3888,6 +3884,12 @@ msgstr "Časový odhad"
 msgid "Normal mode"
 msgstr "Normální režim"
 
+msgid "Total Filament"
+msgstr ""
+
+msgid "Model Filament"
+msgstr ""
+
 msgid "Prepare time"
 msgstr "Čas přípravy"
 
@@ -3980,6 +3982,9 @@ msgstr "Volby uspořádání"
 
 msgid "Spacing"
 msgstr "Vzdálenost"
+
+msgid "0 means auto spacing."
+msgstr ""
 
 msgid "Auto rotate for arrangement"
 msgstr "Automatické otočení pro uspořádání"
@@ -4126,6 +4131,9 @@ msgstr "Monitorování automatického nahrávání"
 
 msgid "Go Live"
 msgstr "Přejít naživo"
+
+msgid "Liveview Retry"
+msgstr ""
 
 msgid "Resolution"
 msgstr "Rozlišení"
@@ -4642,42 +4650,49 @@ msgstr ""
 msgid "Synchronization"
 msgstr "Synchronizace"
 
-msgid "Initialize failed (No Device)!"
-msgstr "Inicializace se nezdařila (žádné zařízení)!"
-
-msgid "Initialize failed (Device connection not ready)!"
-msgstr "Inicializace se nezdařila (Připojení zařízení není připraveno)!"
-
-msgid "Initialize failed (No Camera Device)!"
-msgstr "Inicializace se nezdařila (žádné kamerové zařízení)!"
-
-msgid "Printer is busy downloading, Please wait for the downloading to finish."
+msgid "The device cannot handle more conversations. Please retry later."
 msgstr ""
-"Tiskárna je zaneprázdněna stahováním, počkejte prosím na dokončení stahování."
 
-msgid "Initialize failed (Not supported on the current printer version)!"
+msgid "Player is malfunctioning. Please reinstall the system player."
 msgstr ""
-"Inicializace se nezdařila (Není podporováno ve stávající verzi tiskárny)!"
 
-msgid "Initialize failed (Not accessible in LAN-only mode)!"
-msgstr "Inicializace se nezdařila (není přístupné v režimu pouze LAN)!"
+msgid "The player is not loaded, please click \"play\" button to retry."
+msgstr ""
 
-msgid "Initialize failed (Missing LAN ip of printer)!"
-msgstr "Inicializace se nezdařila (chybějící LAN IP tiskárny)!"
+msgid "Please confirm if the printer is connected."
+msgstr ""
+
+msgid ""
+"The printer is currently busy downloading. Please try again after it "
+"finishes."
+msgstr ""
+
+msgid "Printer camera is malfunctioning."
+msgstr ""
+
+msgid "Problem occured. Please update the printer firmware and try again."
+msgstr ""
+
+msgid ""
+"LAN Only Liveview is off. Please turn on the liveview on printer screen."
+msgstr ""
+
+msgid "Please enter the IP of printer to connect."
+msgstr ""
 
 msgid "Initializing..."
 msgstr "Inicializace..."
 
-#, c-format, boost-format
-msgid "Initialize failed (%s)!"
-msgstr "Inicializace se nezdařila (%s)!"
+msgid "Connection Failed. Please check the network and try again"
+msgstr ""
 
-msgid "Network unreachable"
-msgstr "Nedostupná síť"
+msgid ""
+"Please check the network and try again, You can restart or update the "
+"printer if the issue persists."
+msgstr ""
 
-#, c-format, boost-format
-msgid "Stopped [%d]!"
-msgstr "Zastaveno [%d]!"
+msgid "The printer has been logged out and cannot connect."
+msgstr ""
 
 msgid "Stopped."
 msgstr "Zastaveno."
@@ -4708,15 +4723,14 @@ msgstr ""
 msgid "Virtual camera initialize failed (%s)!"
 msgstr "Inicializace virtuální kamery selhala (%s)!"
 
+msgid "Network unreachable"
+msgstr "Nedostupná síť"
+
 msgid "Information"
 msgstr "Informace"
 
 msgid "Playing..."
 msgstr "Hraje..."
-
-#, c-format, boost-format
-msgid "Load failed [%d]!"
-msgstr "Načítání selhalo [%d]!"
 
 msgid "Loading..."
 msgstr "Načítání..."
@@ -4769,6 +4783,12 @@ msgstr "Vybrat"
 msgid "Batch manage files."
 msgstr "Dávková správa souborů."
 
+msgid "Refresh"
+msgstr "Obnovit"
+
+msgid "Reload file list from printer."
+msgstr ""
+
 msgid "No printers."
 msgstr "Žádné tiskárny."
 
@@ -4779,13 +4799,32 @@ msgstr "Spojení selhalo [%d]!"
 msgid "Loading file list..."
 msgstr "Načítání seznamu souborů..."
 
-#, c-format, boost-format
-msgid "No files [%d]"
-msgstr "Žádné soubory [%d]"
+msgid "No files"
+msgstr ""
+
+msgid "Load failed"
+msgstr ""
+
+msgid "Initialize failed (Device connection not ready)!"
+msgstr "Inicializace se nezdařila (Připojení zařízení není připraveno)!"
+
+msgid ""
+"Browsing file in SD card is not supported in current firmware. Please update "
+"the printer firmware."
+msgstr ""
+
+msgid "Initialize failed (Storage unavailable, insert SD card.)!"
+msgstr ""
+
+msgid "LAN Connection Failed (Failed to view sdcard)"
+msgstr ""
+
+msgid "Browsing file in SD card is not supported in LAN Only Mode."
+msgstr ""
 
 #, c-format, boost-format
-msgid "Load failed [%d]"
-msgstr "Načítání selhalo [%d]"
+msgid "Initialize failed (%s)!"
+msgstr "Inicializace se nezdařila (%s)!"
 
 #, c-format, boost-format
 msgid "You are going to delete %u file from printer. Are you sure to continue?"
@@ -4810,11 +4849,11 @@ msgstr "Smazat soubor"
 msgid "Fetching model infomations ..."
 msgstr "Načítání informací o modelu ..."
 
-msgid "Failed to fetching model infomations from printer."
-msgstr "Nepodařilo se načíst informace o modelu z tiskárny."
+msgid "Failed to fetch model information from printer."
+msgstr ""
 
-msgid "Failed to parse model infomations."
-msgstr "Nepodařilo se zpracovat informace o modelu."
+msgid "Failed to parse model information."
+msgstr ""
 
 msgid ""
 "The .gcode.3mf file contains no G-code data.Please slice it with Orca Slicer "
@@ -4826,6 +4865,12 @@ msgstr ""
 #, c-format, boost-format
 msgid "File '%s' was lost! Please download it again."
 msgstr "Soubor '%s' byl ztracen! Stáhněte si jej prosím znovu."
+
+#, c-format, boost-format
+msgid ""
+"File: %s\n"
+"Title: %s\n"
+msgstr ""
 
 msgid "Download waiting..."
 msgstr "Čekání na stahování..."
@@ -4843,13 +4888,17 @@ msgstr "Stahování dokončeno"
 msgid "Downloading %d%%..."
 msgstr "Stahování %d%%..."
 
-msgid "Connection lost. Please retry."
+msgid ""
+"Reconnecting the printer, the operation cannot be completed immediately, "
+"please try again later."
 msgstr ""
 
-msgid "The device cannot handle more conversations. Please retry later."
+msgid ""
+"Over 4 studio/handy are using remote access, you can close some and try "
+"again."
 msgstr ""
 
-msgid "File not exists."
+msgid "File does not exist."
 msgstr ""
 
 msgid "File checksum error. Please retry."
@@ -4954,6 +5003,9 @@ msgstr ""
 
 msgid "Control"
 msgstr "Ovládání"
+
+msgid "Printer Parts"
+msgstr ""
 
 msgid "Print Options"
 msgstr "Možnosti tisku"
@@ -5192,6 +5244,36 @@ msgstr "%s informace"
 msgid "Skip"
 msgstr "Přeskočit"
 
+msgid "Newer 3mf version"
+msgstr "Novější verze 3mf"
+
+msgid ""
+"The 3mf file version is in Beta and it is newer than the current Bambu "
+"Studio version."
+msgstr ""
+
+msgid "If you would like to try Bambu Studio Beta, you may click to"
+msgstr ""
+
+msgid "Download Beta Version"
+msgstr ""
+
+msgid "The 3mf file version is newer than the current Bambu Studio version."
+msgstr ""
+
+msgid ""
+"Update your Bambu Studio could enable all functionality in the 3mf file."
+msgstr ""
+
+msgid "Current Version: "
+msgstr ""
+
+msgid "Latest Version: "
+msgstr ""
+
+msgid "Not for now"
+msgstr ""
+
 msgid "3D Mouse disconnected."
 msgstr "3D myš odpojena."
 
@@ -5378,6 +5460,19 @@ msgid "Allow Prompt Sound"
 msgstr "Povolit zvuky upozornění"
 
 msgid "Filament Tangle Detect"
+msgstr ""
+
+msgid "Nozzle Type"
+msgstr ""
+
+msgid "Stainless Steel"
+msgstr ""
+
+msgid "Hardened Steel"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%.1f"
 msgstr ""
 
 msgid "Global"
@@ -5588,9 +5683,6 @@ msgstr ""
 
 msgid "You'd better upgrade your software.\n"
 msgstr "Měli byste aktualizovat software.\n"
-
-msgid "Newer 3mf version"
-msgstr "Novější verze 3mf"
 
 #, c-format, boost-format
 msgid ""
@@ -5913,10 +6005,24 @@ msgstr ""
 
 msgid ""
 "Unable to perform boolean operation on model meshes. Only positive parts "
-"will be exported."
+"will be kept. You may fix the meshes and try agian."
 msgstr ""
-"Nelze provést logickou operaci nad mashí modelů. Budou exportovány pouze "
-"kladné části."
+
+#, boost-format
+msgid "Reason: part \"%1%\" is empty."
+msgstr ""
+
+#, boost-format
+msgid "Reason: part \"%1%\" does not bound a volume."
+msgstr ""
+
+#, boost-format
+msgid "Reason: part \"%1%\" has self intersection."
+msgstr ""
+
+#, boost-format
+msgid "Reason: \"%1%\" and another part have no intersection."
+msgstr ""
 
 msgid ""
 "Are you sure you want to store original SVGs with their local paths into the "
@@ -6093,6 +6199,18 @@ msgstr ""
 msgid "Set the page opened on startup."
 msgstr ""
 
+msgid "Touchpad"
+msgstr ""
+
+msgid "Camera style"
+msgstr ""
+
+msgid ""
+"Select camera navigation style.\n"
+"Default: LMB+move for rotation, RMB/MMB+move for panning.\n"
+"Touchpad: Alt+move for rotation, Shift+move for panning."
+msgstr ""
+
 msgid "Zoom to mouse position"
 msgstr "Přiblížit na pozici myši"
 
@@ -6108,6 +6226,12 @@ msgid "If enabled, use free camera. If not enabled, use constrained camera."
 msgstr ""
 "Pokud je povoleno, použijte volnou kameru. Pokud není povoleno, použijte "
 "omezenou kameru."
+
+msgid "Reverse mouse zoom"
+msgstr ""
+
+msgid "If enabled, reverses the direction of zoom with mouse wheel."
+msgstr ""
 
 msgid "Show splash screen"
 msgstr ""
@@ -6125,6 +6249,21 @@ msgid "Flushing volumes: Auto-calculate everytime the color changed."
 msgstr ""
 
 msgid "If enabled, auto-calculate everytime the color changed."
+msgstr ""
+
+msgid ""
+"Flushing volumes: Auto-calculate every time when the filament is changed."
+msgstr ""
+
+msgid "If enabled, auto-calculate every time when filament is changed"
+msgstr ""
+
+msgid "Remember printer configuration"
+msgstr ""
+
+msgid ""
+"If enabled, Orca will remember and switch filament/process configuration for "
+"each printer automatically."
 msgstr ""
 
 msgid "Network"
@@ -6349,6 +6488,18 @@ msgstr "Nekompatibilní"
 msgid "The selected preset is null!"
 msgstr "Vybrané přednastavení je nula!"
 
+msgid "End"
+msgstr ""
+
+msgid "Customize"
+msgstr "Přizpůsobit"
+
+msgid "Other layer filament sequence"
+msgstr ""
+
+msgid "Please input layer value (>= 2)."
+msgstr ""
+
 msgid "Plate name"
 msgstr "Název Podložky"
 
@@ -6358,8 +6509,14 @@ msgstr "Stejné jako globální tisková sekvence"
 msgid "Print sequence"
 msgstr "Tisková sekvence"
 
-msgid "Customize"
-msgstr "Přizpůsobit"
+msgid "Same as Global"
+msgstr ""
+
+msgid "Disable"
+msgstr ""
+
+msgid "Spiral vase"
+msgstr "Spirálová váza"
 
 msgid "First layer filament sequence"
 msgstr "Sekvence filamentu první vrstvy"
@@ -6542,9 +6699,6 @@ msgstr ""
 msgid "Send print job to"
 msgstr "Odeslat tiskovou úlohu na"
 
-msgid "Refresh"
-msgstr "Obnovit"
-
 msgid "Bed Leveling"
 msgstr "Vyrovnání podložky"
 
@@ -6638,9 +6792,11 @@ msgstr ""
 msgid "An SD card needs to be inserted before printing."
 msgstr "Před tiskem je třeba vložit SD kartu."
 
-msgid "The selected printer is incompatible with the chosen printer presets."
+#, c-format, boost-format
+msgid ""
+"The selected printer (%s) is incompatible with the chosen printer profile in "
+"the slicer (%s)."
 msgstr ""
-"Vybraná tiskárna není kompatibilní s vybranými přednastaveními tiskárny."
 
 msgid "An SD card needs to be inserted to record timelapse."
 msgstr "Pro záznam časosběru je třeba vložit SD kartu."
@@ -6701,24 +6857,24 @@ msgid "nozzle memorized: %.1f %s"
 msgstr ""
 
 msgid ""
-"Your nozzle diameter in preset is not consistent with memorized nozzle "
-"diameter. Did you change your nozzle lately?"
+"Your nozzle diameter in sliced file is not consistent with memorized nozzle. "
+"If you changed your nozzle lately, please go to Device > Printer Parts to "
+"change settings."
 msgstr ""
 
 #, c-format, boost-format
-msgid "*Printing %s material with %s may cause nozzle damage"
+msgid ""
+"Printing high temperature material(%s material) with %s may cause nozzle "
+"damage"
+msgstr ""
+
+msgid "Please fix the error above, otherwise printing cannot continue."
 msgstr ""
 
 msgid ""
 "Please click the confirm button if you still want to proceed with printing."
 msgstr ""
 "Pokud stále chcete pokračovat v tisku, klikněte prosím na tlačítko Potvrdit."
-
-msgid "Hardened Steel"
-msgstr ""
-
-msgid "Stainless Steel"
-msgstr ""
 
 msgid ""
 "Connecting to the printer. Unable to cancel during the connection process."
@@ -6751,6 +6907,10 @@ msgstr "Odeslat do tiskárny SD kartu"
 
 msgid "Cannot send the print task when the upgrade is in progress"
 msgstr "Nelze odeslat tiskovou úlohu, když probíhá aktualizace"
+
+msgid "The selected printer is incompatible with the chosen printer presets."
+msgstr ""
+"Vybraná tiskárna není kompatibilní s vybranými přednastaveními tiskárny."
 
 msgid "An SD card needs to be inserted before send to printer SD card."
 msgstr "Před odesláním na SD kartu do tiskárny je třeba vložit SD kartu."
@@ -6978,6 +7138,20 @@ msgid "Adjust"
 msgstr ""
 
 msgid "Ignore"
+msgstr ""
+
+msgid ""
+"Experimental feature: Retracting and cutting off the filament at a greater "
+"distance during filament changes to minimize flush.Although it can notably "
+"reduce flush,  it may also elevate the risk of nozzle clogs or other "
+"printing complications."
+msgstr ""
+
+msgid ""
+"Experimental feature: Retracting and cutting off the filament at a greater "
+"distance during filament changes to minimize flush.Although it can notably "
+"reduce flush, it may also elevate the risk of nozzle clogs or other printing "
+"complications.Please use with the latest printer firmware."
 msgstr ""
 
 msgid ""
@@ -7399,23 +7573,26 @@ msgstr "Nedefinováno"
 msgid "Unsaved Changes"
 msgstr "Neuložené změny"
 
-msgid "Transfer or discard changes"
-msgstr "Zahodit nebo ponechat změny"
+msgid "Actions For Unsaved Changes"
+msgstr ""
 
-msgid "Old Value"
-msgstr "Stará hodnota"
+msgid "Preset Value"
+msgstr ""
 
-msgid "New Value"
-msgstr "Nová hodnota"
+msgid "Modified Value"
+msgstr ""
 
-msgid "Transfer"
-msgstr "Přenést"
+msgid "Transfer Modified Value"
+msgstr ""
 
 msgid "Don't save"
 msgstr "Neukládat"
 
-msgid "Discard"
-msgstr "Zahodit"
+msgid "Use Preset Value"
+msgstr ""
+
+msgid "Save Modified Value"
+msgstr ""
 
 msgid "Click the right mouse button to display the full text."
 msgstr "Kliknutím pravým tlačítkem myši zobrazíte celý text."
@@ -7472,23 +7649,34 @@ msgstr ""
 "následující neuložené změny:"
 
 #, boost-format
-msgid ""
-"You have changed some settings of preset \"%1%\". \n"
-"Would you like to keep these changed settings (new value) after switching "
-"preset?"
+msgid "You have changed some settings of preset \"%1%\". "
 msgstr ""
-"Změnili jste některá nastavení předvolby \"%1%\" . \n"
-"Přejete si po přepnutí zachovat tato změněná nastavení (nová "
-"hodnota)přednastavení?"
 
 msgid ""
-"You have changed some preset settings. \n"
-"Would you like to keep these changed settings (new value) after switching "
-"preset?"
+"\n"
+"Would you like to save these changed settings(modified value)?"
 msgstr ""
-"Změnili jste některá přednastavená nastavení. \n"
-"Přejete si po přepnutí zachovat tato změněná nastavení (nová "
-"hodnota)přednastavení?"
+
+msgid ""
+"\n"
+"Would you like to keep these changed settings(modified value) after "
+"switching preset?"
+msgstr ""
+
+msgid ""
+"You have previously modified your settings and are about to overwrite them "
+"with new ones."
+msgstr ""
+
+msgid ""
+"\n"
+"Do you want to keep your current modified settings, or use preset settings?"
+msgstr ""
+
+msgid ""
+"\n"
+"Do you want to save your current modified settings?"
+msgstr ""
 
 msgid "Extruders count"
 msgstr "Počet extruderů"
@@ -7505,6 +7693,9 @@ msgstr "Zobrazit všechna přednastavení (včetně nekompatibilních)"
 msgid "Select presets to compare"
 msgstr "Zvolte přednastavení k porovnání"
 
+msgid "Transfer"
+msgstr "Přenést"
+
 msgid ""
 "You can only transfer to current active profile because it has been modified."
 msgstr ""
@@ -7519,7 +7710,7 @@ msgid "Transfer values from left to right"
 msgstr ""
 
 msgid ""
-"If enabled, this dialog can be used for transver selected values from left "
+"If enabled, this dialog can be used for transfer selected values from left "
 "to right preset."
 msgstr ""
 
@@ -7982,6 +8173,9 @@ msgstr ""
 
 msgid "Done"
 msgstr "Hotovo"
+
+msgid "resume"
+msgstr ""
 
 msgid "Confirm and Update Nozzle"
 msgstr ""
@@ -8843,6 +9037,15 @@ msgstr "Engineering Podložka"
 msgid "First layer print sequence"
 msgstr "Sekvence tisku první vrstvy"
 
+msgid "Other layers print sequence"
+msgstr ""
+
+msgid "The number of other layers print sequence"
+msgstr ""
+
+msgid "Other layers filament sequence"
+msgstr ""
+
 msgid "This G-code is inserted at every layer change before lifting z"
 msgstr "Tento G-kód se vkládá při každé změně vrstvy před zvednutím z"
 
@@ -9619,6 +9822,12 @@ msgstr ""
 "Poloměr vůle kolem extruderu. Používá se pro zamezení kolizi při tisku "
 "vedlejších objektů."
 
+msgid "Nozzle height"
+msgstr ""
+
+msgid "The height of nozzle tip."
+msgstr ""
+
 msgid "Bed mesh min"
 msgstr ""
 
@@ -10327,6 +10536,15 @@ msgid ""
 msgstr ""
 "Rychlost vyplňování mezery. Mezera má obvykle nepravidelnou šířku extruze a "
 "měla by být vytištěna pomaleji"
+
+msgid "Precise Z height"
+msgstr ""
+
+msgid ""
+"Enable this to get precise z height of object after slicing. It will get the "
+"precise object height by fine-tuning the layer heights of the last few "
+"layers. Note that this is an experimental parameter."
+msgstr ""
 
 msgid "Arc fitting"
 msgstr "Přizpůsobení oblouku"
@@ -11217,6 +11435,24 @@ msgstr ""
 "Některé množství materiálu v extruderu je staženo zpět, aby se zabránilo "
 "slizu při dlouhém pohybu. Nastavte nulu, abyste zablokovali retrakce"
 
+msgid "Long retraction when cut(experimental)"
+msgstr ""
+
+msgid ""
+"Experimental feature.Retracting and cutting off the filament at a longer "
+"distance during changes to minimize purge.While this reduces flush "
+"significantly, it may also raise the risk of nozzle clogs or other printing "
+"problems."
+msgstr ""
+
+msgid "Retraction distance when cut"
+msgstr ""
+
+msgid ""
+"Experimental feature.Retraction length before cutting off during filament "
+"change"
+msgstr ""
+
 msgid "Z hop when retract"
 msgstr "Z hop při retrakci"
 
@@ -11591,9 +11827,6 @@ msgstr ""
 
 msgid "Speed of internal solid infill, not the top and bottom surface"
 msgstr "Rychlost vnitřní plné výplně, nikoli horní a spodní plochy"
-
-msgid "Spiral vase"
-msgstr "Spirálová váza"
 
 msgid ""
 "Spiralize smooths out the z moves of the outer contour. And turns a solid "
@@ -13082,12 +13315,6 @@ msgstr "Průtok"
 msgid "Max Volumetric Speed"
 msgstr "Maximální objemová rychlost"
 
-msgid "Please enter the name you want to save to printer."
-msgstr "Zadejte název, který chcete uložit do tiskárny."
-
-msgid "The name cannot exceed 40 characters."
-msgstr "Název nemůže překročit 40 znaků."
-
 #, c-format, boost-format
 msgid ""
 "Please input valid values:\n"
@@ -13338,6 +13565,12 @@ msgstr ""
 msgid "Failed"
 msgstr "Selhalo"
 
+msgid "Please enter the name you want to save to printer."
+msgstr "Zadejte název, který chcete uložit do tiskárny."
+
+msgid "The name cannot exceed 40 characters."
+msgstr "Název nemůže překročit 40 znaků."
+
 msgid ""
 "Only one of the results with the same name will be saved. Are you sure you "
 "want to overrides the other results?"
@@ -13438,9 +13671,6 @@ msgstr "Parametry tisku"
 msgid "- ℃"
 msgstr "- ℃"
 
-msgid " ℃"
-msgstr " ℃"
-
 msgid "Plate Type"
 msgstr "Typ Podložky"
 
@@ -13506,6 +13736,9 @@ msgstr "Do objemové rychlosti"
 msgid "Flow Dynamics Calibration Result"
 msgstr "Výsledek kalibrace dynamiky průtoku"
 
+msgid "New"
+msgstr ""
+
 msgid "No History Result"
 msgstr "Žádný historický výsledek"
 
@@ -13520,6 +13753,22 @@ msgstr "Akce"
 
 msgid "Edit Flow Dynamics Calibration"
 msgstr "Upravit kalibraci dynamiky průtoku"
+
+msgid "New Flow Dynamics Calibration"
+msgstr ""
+
+msgid "Ok"
+msgstr ""
+
+msgid "The filament must be selected."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"There is already a historical calibration result with the same name: %s. "
+"Only one of the results with the same name is saved. Are you sure you want "
+"to override the historical result?"
+msgstr ""
 
 msgid "Network lookup"
 msgstr "Vyhledávání v síti"
@@ -13903,6 +14152,13 @@ msgid ""
 "You have not selected a printer or preset yet. Please select at least one."
 msgstr ""
 
+#, c-format, boost-format
+msgid ""
+"The Filament name %s you created already exists. \n"
+"If you continue creating, the preset created will be displayed with its full "
+"name. Do you want to continue?"
+msgstr ""
+
 msgid "Some existing presets have failed to be created, as follows:\n"
 msgstr ""
 
@@ -14094,8 +14350,17 @@ msgstr ""
 msgid ""
 "Please go to filament setting to edit your presets if you need.\n"
 "Please note that nozzle temperature, hot bed temperature, and maximum "
-"volumetric speed have a significant impact on printing quality. Please set "
+"volumetric speed has a significant impact on printing quality. Please set "
 "them carefully."
+msgstr ""
+
+msgid ""
+"\n"
+"\n"
+"Studio has detected that your user presets synchronization function is not "
+"enabled, which may result in unsuccessful Filament settings on the Device "
+"page. \n"
+"Click \"Sync user presets\" to enable the synchronization function."
 msgstr ""
 
 msgid "Printer Setting"
@@ -14186,6 +14451,9 @@ msgstr ""
 msgid "Please select a type you want to export"
 msgstr ""
 
+msgid "Failed to create temporary folder, please try Export Configs again."
+msgstr ""
+
 msgid "Edit Filament"
 msgstr ""
 
@@ -14255,6 +14523,15 @@ msgid "Collapse"
 msgstr ""
 
 msgid "Daily Tips"
+msgstr ""
+
+msgid ""
+"Your nozzle diameter in preset is not consistent with memorized nozzle "
+"diameter. Did you change your nozzle lately?"
+msgstr ""
+
+#, c-format, boost-format
+msgid "*Printing %s material with %s may cause nozzle damage"
 msgstr ""
 
 msgid "Need select printer"
@@ -14823,6 +15100,139 @@ msgid ""
 "ABS, appropriately increasing the heatbed temperature can reduce the "
 "probability of warping."
 msgstr ""
+
+#~ msgid "active"
+#~ msgstr "aktivní"
+
+#~ msgid "Jump to layer"
+#~ msgstr "Přeskočit do vrstvy"
+
+#~ msgid "Cabin humidity"
+#~ msgstr "Vlhkost v kabině"
+
+#~ msgid ""
+#~ "Green means that AMS humidity is normal, orange represent humidity is "
+#~ "high, red represent humidity is too high.(Hygrometer: lower the better.)"
+#~ msgstr ""
+#~ "Zelená znamená, že vlhkost AMS je normální, oranžová znamená vlhkost "
+#~ "vysokou Červená znamená, že vlhkost je příliš vysoká. (Vlhkoměr: čím "
+#~ "nižší, tím lepší.)"
+
+#~ msgid "Desiccant status"
+#~ msgstr "Stav vysoušedla"
+
+#~ msgid ""
+#~ "A desiccant status lower than two bars indicates that desiccant may be "
+#~ "inactive. Please change the desiccant.(The bars: higher the better.)"
+#~ msgstr ""
+#~ "Stav vysoušedla nižší než dva pruhy znamená, že vysoušedlo může být "
+#~ "neaktivní. Vyměňte prosím vysoušedlo. (Čáry: čím vyšší, tím lepší.)"
+
+#~ msgid ""
+#~ "Note: When the lid is open or the desiccant pack is changed, it can take "
+#~ "hours or a night to absorb the moisture. Low temperatures also slow down "
+#~ "the process. During this time, the indicator may not represent the "
+#~ "chamber accurately."
+#~ msgstr ""
+#~ "Poznámka: Když je víko otevřené nebo je vyměněno balení vysoušedla, může "
+#~ "to trvat hodiny nebo noc absorbovat vlhkost. Nízké teploty také zpomalují "
+#~ "proces. Během této doby indikátor nemusí představovat komoru přesně."
+
+#~ msgid ""
+#~ "Note: if new filament is inserted during  printing, the AMS will not "
+#~ "automatically read any information until printing is completed."
+#~ msgstr ""
+#~ "Poznámka: Pokud se během tisku vloží nový filament, AMS nebude "
+#~ "automaticky číst všechny informace, dokud tisk neskončí."
+
+#, boost-format
+#~ msgid "Succeed to export G-code to %1%"
+#~ msgstr "Úspěšný export G-kódu do %1%"
+
+#~ msgid "Initialize failed (No Device)!"
+#~ msgstr "Inicializace se nezdařila (žádné zařízení)!"
+
+#~ msgid "Initialize failed (No Camera Device)!"
+#~ msgstr "Inicializace se nezdařila (žádné kamerové zařízení)!"
+
+#~ msgid ""
+#~ "Printer is busy downloading, Please wait for the downloading to finish."
+#~ msgstr ""
+#~ "Tiskárna je zaneprázdněna stahováním, počkejte prosím na dokončení "
+#~ "stahování."
+
+#~ msgid "Initialize failed (Not supported on the current printer version)!"
+#~ msgstr ""
+#~ "Inicializace se nezdařila (Není podporováno ve stávající verzi tiskárny)!"
+
+#~ msgid "Initialize failed (Not accessible in LAN-only mode)!"
+#~ msgstr "Inicializace se nezdařila (není přístupné v režimu pouze LAN)!"
+
+#~ msgid "Initialize failed (Missing LAN ip of printer)!"
+#~ msgstr "Inicializace se nezdařila (chybějící LAN IP tiskárny)!"
+
+#, c-format, boost-format
+#~ msgid "Stopped [%d]!"
+#~ msgstr "Zastaveno [%d]!"
+
+#, c-format, boost-format
+#~ msgid "Load failed [%d]!"
+#~ msgstr "Načítání selhalo [%d]!"
+
+#, c-format, boost-format
+#~ msgid "No files [%d]"
+#~ msgstr "Žádné soubory [%d]"
+
+#, c-format, boost-format
+#~ msgid "Load failed [%d]"
+#~ msgstr "Načítání selhalo [%d]"
+
+#~ msgid "Failed to fetching model infomations from printer."
+#~ msgstr "Nepodařilo se načíst informace o modelu z tiskárny."
+
+#~ msgid "Failed to parse model infomations."
+#~ msgstr "Nepodařilo se zpracovat informace o modelu."
+
+#~ msgid ""
+#~ "Unable to perform boolean operation on model meshes. Only positive parts "
+#~ "will be exported."
+#~ msgstr ""
+#~ "Nelze provést logickou operaci nad mashí modelů. Budou exportovány pouze "
+#~ "kladné části."
+
+#~ msgid "Transfer or discard changes"
+#~ msgstr "Zahodit nebo ponechat změny"
+
+#~ msgid "Old Value"
+#~ msgstr "Stará hodnota"
+
+#~ msgid "New Value"
+#~ msgstr "Nová hodnota"
+
+#~ msgid "Discard"
+#~ msgstr "Zahodit"
+
+#, boost-format
+#~ msgid ""
+#~ "You have changed some settings of preset \"%1%\". \n"
+#~ "Would you like to keep these changed settings (new value) after switching "
+#~ "preset?"
+#~ msgstr ""
+#~ "Změnili jste některá nastavení předvolby \"%1%\" . \n"
+#~ "Přejete si po přepnutí zachovat tato změněná nastavení (nová "
+#~ "hodnota)přednastavení?"
+
+#~ msgid ""
+#~ "You have changed some preset settings. \n"
+#~ "Would you like to keep these changed settings (new value) after switching "
+#~ "preset?"
+#~ msgstr ""
+#~ "Změnili jste některá přednastavená nastavení. \n"
+#~ "Přejete si po přepnutí zachovat tato změněná nastavení (nová "
+#~ "hodnota)přednastavení?"
+
+#~ msgid " ℃"
+#~ msgstr " ℃"
 
 #~ msgid ""
 #~ "Add solid infill near sloping surfaces to guarantee the vertical shell "

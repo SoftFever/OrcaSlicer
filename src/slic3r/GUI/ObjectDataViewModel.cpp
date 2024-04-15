@@ -1532,7 +1532,10 @@ void ObjectDataViewModel::assembly_name(ObjectDataViewModelNode* item, wxString 
     auto type = this->GetItemType(wxDataViewItem(item));
     if (type != itPlate) {
         wxString str = name + ":" + item->GetName();
-        assembly_name_list.push_back(std::make_pair(item, str));
+        assembly_name_list.push_back(std::make_tuple(item, str, str));
+    }
+    else {
+        assembly_name_list.push_back(std::make_tuple(item, name, name));
     }
     for (size_t i = 0; i < item->GetChildCount(); ++i) {
         wxString str_name = name + ":" + item->GetName();
@@ -1552,18 +1555,27 @@ void ObjectDataViewModel::search_object(wxString search_text)
         search_found_list.clear();
         search_text = search_text.MakeLower();
 
-        for (auto pair : assembly_name_list) {
-            wxString need_str = pair.second.AfterFirst(':');
-            need_str = need_str.MakeLower();
-            size_t pos = need_str.find(search_text);
-            if ( pos != wxString::npos) {
-                size_t len = search_text.length();
-                size_t before_size = pair.second.BeforeFirst(':').length();
-                wxString new_search_str = "<b>" + pair.second.Mid(before_size + pos + 1, len) + "</b>";
-                wxString new_str = pair.second.Mid(0, before_size + pos + 1) + new_search_str + pair.second.Mid(before_size + pos + len + 1, wxString::npos);
+        for (const auto& [model_node, name, tip] : assembly_name_list) {
+            wxString sub_str = name;
+            sub_str = sub_str.MakeLower();
 
-                search_found_list.push_back(std::make_pair(pair.first, new_str));
+            wxString new_str = "";
+            size_t search_text_len = search_text.length();
+            size_t curr_str_len = 0;
+            size_t pos = sub_str.find(search_text);
+            while (pos != wxString::npos) {
+                wxString new_search_str = "<b>" + name.Mid(curr_str_len + pos, search_text_len) + "</b>";
+                new_str += name.Mid(curr_str_len, pos) + new_search_str;
+                curr_str_len += search_text_len + pos;
+                sub_str = sub_str.substr(pos + search_text_len);
+                pos = sub_str.find(search_text);
             }
+
+            if (curr_str_len > 0 && curr_str_len < name.length()) {
+                new_str += name.substr(curr_str_len);
+            }
+            if (!new_str.empty())
+                search_found_list.push_back(std::tuple(model_node, new_str, tip));
         }
     }
 }

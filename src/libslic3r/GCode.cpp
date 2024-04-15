@@ -639,6 +639,8 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         }
 
         gcodegen.placeholder_parser().set("current_extruder", new_extruder_id);
+        gcodegen.placeholder_parser().set("retraction_distance_when_cut", gcodegen.m_config.retraction_distances_when_cut.get_at(new_extruder_id));
+        gcodegen.placeholder_parser().set("long_retraction_when_cut", gcodegen.m_config.long_retractions_when_cut.get_at(new_extruder_id));
 
         // Process the start filament gcode.
         std::string        start_filament_gcode_str;
@@ -1425,8 +1427,21 @@ namespace DoExport {
             total_cost          += weight * extruder->filament_cost() * 0.001;
         }
 
-        total_cost += config.time_cost.getFloat() * (normal_print_time/3600.0);
-        
+        for (auto volume : result.print_statistics.support_volumes_per_extruder) {
+            total_extruded_volume += volume.second;
+
+            size_t extruder_id = volume.first;
+            auto extruder = std::find_if(extruders.begin(), extruders.end(), [extruder_id](const Extruder& extr) {return extr.id() == extruder_id; });
+            if (extruder == extruders.end())
+                continue;
+
+            double s = PI * sqr(0.5* extruder->filament_diameter());
+            double weight = volume.second * extruder->filament_density() * 0.001;
+            total_used_filament += volume.second/s;
+            total_weight        += weight;
+            total_cost          += weight * extruder->filament_cost() * 0.001;
+        }
+
         print_statistics.total_extruded_volume = total_extruded_volume;
         print_statistics.total_used_filament   = total_used_filament;
         print_statistics.total_weight          = total_weight;
@@ -1613,6 +1628,15 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
     m_processor.result().timelapse_warning_code = m_timelapse_warning_code;
     m_processor.result().support_traditional_timelapse = m_support_traditional_timelapse;
 
+    bool activate_long_retraction_when_cut = false;
+    for (const auto& extruder : m_writer.extruders())
+        activate_long_retraction_when_cut |= (
+            m_config.long_retractions_when_cut.get_at(extruder.id()) 
+         && m_config.retraction_distances_when_cut.get_at(extruder.id()) > 0
+            );
+
+    m_processor.result().long_retraction_when_cut = activate_long_retraction_when_cut;
+   
     {   //BBS:check bed and filament compatible
         const ConfigOptionDef *bed_type_def = print_config_def.get("curr_bed_type");
         assert(bed_type_def != nullptr);
@@ -2275,6 +2299,12 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     this->placeholder_parser().set("initial_no_support_tool", initial_non_support_extruder_id);
     this->placeholder_parser().set("initial_no_support_extruder", initial_non_support_extruder_id);
     this->placeholder_parser().set("current_extruder", initial_extruder_id);
+    //set the key for compatibilty
+    this->placeholder_parser().set("retraction_distance_when_cut", m_config.retraction_distances_when_cut.get_at(initial_extruder_id));
+    this->placeholder_parser().set("long_retraction_when_cut", m_config.long_retractions_when_cut.get_at(initial_extruder_id));
+
+    this->placeholder_parser().set("retraction_distances_when_cut", new ConfigOptionFloats(m_config.retraction_distances_when_cut));
+    this->placeholder_parser().set("long_retractions_when_cut",new ConfigOptionBools(m_config.long_retractions_when_cut));
     //Set variable for total layer count so it can be used in custom gcode.
     this->placeholder_parser().set("total_layer_count", m_layer_count);
     // Useful for sequential prints.
@@ -2295,6 +2325,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
     {
         BoundingBoxf bbox_bed(print.config().printable_area.values);
+        Vec2f plate_offset = m_writer.get_xy_offset();
         this->placeholder_parser().set("print_bed_min", new ConfigOptionFloats({ bbox_bed.min.x(), bbox_bed.min.y()}));
         this->placeholder_parser().set("print_bed_max", new ConfigOptionFloats({ bbox_bed.max.x(), bbox_bed.max.y()}));
         this->placeholder_parser().set("print_bed_size", new ConfigOptionFloats({ bbox_bed.size().x(), bbox_bed.size().y() }));
@@ -2322,12 +2353,37 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                 pts->values.emplace_back(print.translate_to_print_space(pt));
             bbox = BoundingBoxf((pts->values));
         }
-        BoundingBoxf bbox_head_wrap_zone (print.config().head_wrap_detect_zone.values);
         this->placeholder_parser().set("first_layer_print_convex_hull", pts.release());
         this->placeholder_parser().set("first_layer_print_min", new ConfigOptionFloats({bbox.min.x(), bbox.min.y()}));
         this->placeholder_parser().set("first_layer_print_max", new ConfigOptionFloats({bbox.max.x(), bbox.max.y()}));
         this->placeholder_parser().set("first_layer_print_size", new ConfigOptionFloats({ bbox.size().x(), bbox.size().y() }));
-        this->placeholder_parser().set("in_head_wrap_detect_zone",bbox_head_wrap_zone.overlap(bbox));
+
+        {  
+            // use first layer convex_hull union with each object's bbox to check whether in head detect zone
+            Polygons object_projections;
+            for (auto& obj : print.objects()) {
+                for (auto& instance : obj->instances()) {
+                    const auto& bbox = instance.get_bounding_box();
+                    Point min_p{ coord_t(scale_(bbox.min.x())),coord_t(scale_(bbox.min.y())) };
+                    Point max_p{ coord_t(scale_(bbox.max.x())),coord_t(scale_(bbox.max.y())) };
+                    Polygon instance_projection = {
+                        {min_p.x(),min_p.y()},
+                        {max_p.x(),min_p.y()},
+                        {max_p.x(),max_p.y()},
+                        {min_p.x(),max_p.y()}
+                    };
+                    object_projections.emplace_back(std::move(instance_projection));
+                }
+            }
+            object_projections.emplace_back(print.first_layer_convex_hull());
+
+            Polygons project_polys = union_(object_projections);
+            Polygon  head_wrap_detect_zone;
+            for (auto& point : print.config().head_wrap_detect_zone.values)
+                head_wrap_detect_zone.append(scale_(point).cast<coord_t>() + scale_(plate_offset).cast<coord_t>());
+
+            this->placeholder_parser().set("in_head_wrap_detect_zone", !intersection_pl(project_polys, {head_wrap_detect_zone}).empty());
+        }
 
         BoundingBoxf mesh_bbox(m_config.bed_mesh_min, m_config.bed_mesh_max);
         auto         mesh_margin = m_config.adaptive_bed_mesh_margin.value;
@@ -4705,6 +4761,7 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
 
         // Calculate the sloped loop
         ExtrusionLoopSloped new_loop(paths, seam_gap, slope_min_length, slope_max_segment_length, start_slope_ratio, loop.loop_role());
+        new_loop.clip_slope(seam_gap);
 
         // Then extrude it
         for (const auto& p : new_loop.get_all_paths()) {
@@ -4985,6 +5042,30 @@ static std::map<int, std::string> overhang_speed_key_map =
     {5, "bridge_speed"},
 };
 
+double GCode::get_overhang_degree_corr_speed(float normal_speed, double path_degree) {
+
+    //BBS: protection: overhang degree is float, make sure it not excess degree range
+    if (path_degree <= 0)
+        return normal_speed;
+
+    if (path_degree >= 5 )
+        return m_config.get_abs_value(overhang_speed_key_map[5].c_str());
+
+    int lower_degree_bound = int(path_degree);
+    if (path_degree==lower_degree_bound)
+        return m_config.get_abs_value(overhang_speed_key_map[lower_degree_bound].c_str());
+    int upper_degree_bound = lower_degree_bound + 1;
+
+    double lower_speed_bound = lower_degree_bound == 0 ? normal_speed : m_config.get_abs_value(overhang_speed_key_map[lower_degree_bound].c_str());
+    double upper_speed_bound = upper_degree_bound == 0 ? normal_speed : m_config.get_abs_value(overhang_speed_key_map[upper_degree_bound].c_str());
+
+    lower_speed_bound = lower_speed_bound == 0 ? normal_speed : lower_speed_bound;
+    upper_speed_bound = upper_speed_bound == 0 ? normal_speed : upper_speed_bound;
+
+    double speed_out = lower_speed_bound + (upper_speed_bound - lower_speed_bound) * (path_degree - lower_degree_bound);
+    return speed_out;
+}
+
 std::string GCode::_extrude(const ExtrusionPath &path, std::string description, double speed)
 {
     std::string gcode;
@@ -5092,12 +5173,11 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
 
     // set speed
     if (speed == -1) {
-        int overhang_degree = path.get_overhang_degree();
         if (path.role() == erPerimeter) {
             speed = m_config.get_abs_value("inner_wall_speed");
-            if (m_config.overhang_speed_classic.value && m_config.enable_overhang_speed.value && overhang_degree > 0 &&
-                overhang_degree <= 5) {
-                double new_speed = m_config.get_abs_value(overhang_speed_key_map[overhang_degree].c_str());
+            if (m_config.overhang_speed_classic.value && m_config.enable_overhang_speed.value) {
+                double new_speed = 0;
+                new_speed = get_overhang_degree_corr_speed(speed, path.overhang_degree);
                 speed = new_speed == 0.0 ? speed : new_speed;
             }
 
@@ -5106,9 +5186,9 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             }
         } else if (path.role() == erExternalPerimeter) {
             speed = m_config.get_abs_value("outer_wall_speed");
-            if (m_config.overhang_speed_classic.value && m_config.enable_overhang_speed.value &&
-                overhang_degree > 0 && overhang_degree <= 5) {
-                double new_speed = m_config.get_abs_value(overhang_speed_key_map[overhang_degree].c_str());
+            if (m_config.overhang_speed_classic.value && m_config.enable_overhang_speed.value ) {
+                double new_speed = 0;
+                new_speed = get_overhang_degree_corr_speed(speed, path.overhang_degree);
                 speed = new_speed == 0.0 ? speed : new_speed;
             }
             if (sloped) {
@@ -5405,6 +5485,8 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                 for (const Line& line : path.polyline.lines()) {
                     std::string tempDescription = description;
                     const double line_length = line.length() * SCALING_FACTOR;
+                    if (line_length < EPSILON)
+                        continue;
                     path_length += line_length;
                     auto dE = e_per_mm * line_length;
                     if (m_small_area_infill_flow_compensator && m_config.small_area_infill_flow_compensation.value) {
@@ -5444,6 +5526,8 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                         for (size_t point_index = start_index + 1; point_index < end_index + 1; point_index++) {
                             const Line line = Line(path.polyline.points[point_index - 1], path.polyline.points[point_index]);
                             const double line_length = line.length() * SCALING_FACTOR;
+                            if (line_length < EPSILON)
+                                continue;
                             auto dE = e_per_mm * line_length;
                             if (m_small_area_infill_flow_compensator  && m_config.small_area_infill_flow_compensation.value) {
                                 auto oldE = dE;
@@ -5464,6 +5548,8 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                     case EMovePathType::Arc_move_ccw: {
                         const ArcSegment& arc = fitting_result[fitting_index].arc_data;
                         const double arc_length = fitting_result[fitting_index].arc_data.length * SCALING_FACTOR;
+                        if (arc_length < EPSILON)
+                            continue;
                         const Vec2d center_offset = this->point_to_gcode(arc.center) - this->point_to_gcode(arc.start_point);
                         auto dE = e_per_mm * arc_length;
                         if (m_small_area_infill_flow_compensator && m_config.small_area_infill_flow_compensation.value) {
@@ -5545,6 +5631,8 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             }
 
             const double line_length = (p - prev).norm();
+            if(line_length < EPSILON)
+                continue;
             path_length += line_length;
             double new_speed = pre_processed_point.speed * 60.0;
             if (last_set_speed != new_speed) {
@@ -5971,6 +6059,8 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z, bool b
     // if we are running a single-extruder setup, just set the extruder and return nothing
     if (!m_writer.multiple_extruders) {
         this->placeholder_parser().set("current_extruder", extruder_id);
+        this->placeholder_parser().set("retraction_distance_when_cut", m_config.retraction_distances_when_cut.get_at(extruder_id));
+        this->placeholder_parser().set("long_retraction_when_cut", m_config.long_retractions_when_cut.get_at(extruder_id));
 
         std::string gcode;
         // Append the filament start G-code.
@@ -6162,6 +6252,8 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z, bool b
     }
 
     this->placeholder_parser().set("current_extruder", extruder_id);
+    this->placeholder_parser().set("retraction_distance_when_cut", m_config.retraction_distances_when_cut.get_at(extruder_id));
+    this->placeholder_parser().set("long_retraction_when_cut", m_config.long_retractions_when_cut.get_at(extruder_id));
 
     // Append the filament start G-code.
     const std::string &filament_start_gcode = m_config.filament_start_gcode.get_at(extruder_id);

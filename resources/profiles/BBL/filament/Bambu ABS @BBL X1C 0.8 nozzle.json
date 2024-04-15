@@ -5,11 +5,17 @@
     "from": "system",
     "setting_id": "GFSB00_01",
     "instantiation": "true",
+    "fan_max_speed": [
+        "60"
+    ],
     "filament_max_volumetric_speed": [
         "18"
     ],
     "nozzle_temperature": [
         "260"
+    ],
+    "slow_down_layer_time": [
+        "12"
     ],
     "slow_down_min_speed": [
         "10"

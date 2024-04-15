@@ -57,6 +57,7 @@ GLGizmosManager::GLGizmosManager(GLCanvas3D& parent)
     //BBS: GUI refactor: add object manipulation in gizmo
     , m_object_manipulation(parent)
 {
+    m_timer_set_color.Bind(wxEVT_TIMER, &GLGizmosManager::on_set_color_timer, this);
 }
 
 std::vector<size_t> GLGizmosManager::get_selectable_idxs() const
@@ -805,7 +806,7 @@ bool GLGizmosManager::on_char(wxKeyEvent& evt)
 
 bool GLGizmosManager::on_key(wxKeyEvent& evt)
 {
-    const int keyCode = evt.GetKeyCode();
+    int keyCode = evt.GetKeyCode();
     bool processed = false;
 
     if (evt.GetEventType() == wxEVT_KEY_UP) {
@@ -887,8 +888,21 @@ bool GLGizmosManager::on_key(wxKeyEvent& evt)
         else if (m_current == MmuSegmentation) {
             GLGizmoMmuSegmentation* mmu_seg = dynamic_cast<GLGizmoMmuSegmentation*>(get_current());
             if (mmu_seg != nullptr) {
-                if (keyCode > '0' && keyCode <= '9') {
-                    processed = mmu_seg->on_number_key_down(keyCode - '0');
+                if (keyCode >= WXK_NUMPAD0 && keyCode <= WXK_NUMPAD9) {
+                    keyCode = keyCode- WXK_NUMPAD0+'0';
+                }
+                if (keyCode >= '0' && keyCode <= '9') {
+                    if (keyCode == '1' && !m_timer_set_color.IsRunning()) {
+                        m_timer_set_color.StartOnce(500);
+                        processed = true;
+                    }
+                    else if (keyCode < '7' && m_timer_set_color.IsRunning()) {
+                        processed = mmu_seg->on_number_key_down(keyCode - '0'+10);
+                        m_timer_set_color.Stop();
+                    }
+                    else {
+                        processed = mmu_seg->on_number_key_down(keyCode - '0');
+                    }
                 }
                 else if (keyCode == 'F' || keyCode == 'T' || keyCode == 'S' || keyCode == 'C' || keyCode == 'H' || keyCode == 'G') {
                     processed = mmu_seg->on_key_down_select_tool_type(keyCode);
@@ -931,6 +945,15 @@ bool GLGizmosManager::on_key(wxKeyEvent& evt)
         m_parent.set_as_dirty();
 
     return processed;
+}
+
+void GLGizmosManager::on_set_color_timer(wxTimerEvent& evt)
+{
+    if (m_current == MmuSegmentation) {
+        GLGizmoMmuSegmentation* mmu_seg = dynamic_cast<GLGizmoMmuSegmentation*>(get_current());
+        mmu_seg->on_number_key_down(1);
+        m_parent.set_as_dirty();
+    }
 }
 
 void GLGizmosManager::update_after_undo_redo(const UndoRedo::Snapshot& snapshot)

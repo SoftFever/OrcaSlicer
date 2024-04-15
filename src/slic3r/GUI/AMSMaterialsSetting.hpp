@@ -166,7 +166,7 @@ protected:
     wxStaticBitmap *    bitmap_min_degree;
     Button *            m_button_reset;
     Button *            m_button_confirm;
-    wxStaticText*       m_tip_readonly;
+    Label*              m_tip_readonly;
     Button *            m_button_close;
     wxColourData *      m_clrData;
 

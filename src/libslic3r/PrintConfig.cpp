@@ -370,11 +370,11 @@ static const t_config_enum_values s_keys_map_BedType = {
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(BedType)
 
 // BBS
-static const t_config_enum_values s_keys_map_FirstLayerSeq = {
+static const t_config_enum_values s_keys_map_LayerSeq = {
     { "Auto",              flsAuto },
     { "Customize",         flsCutomize },
 };
-CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(FirstLayerSeq)
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(LayerSeq)
 
 static t_config_enum_values s_keys_map_NozzleType {
     { "undefine",       int(NozzleType::ntUndefine) },
@@ -770,16 +770,37 @@ void PrintConfigDef::init_fff_params()
     def->max        = 16;
     def->set_default_value(new ConfigOptionInts{0});
 
+    def        = this->add("other_layers_print_sequence", coInts);
+    def->label = L("Other layers print sequence");
+    def->min   = 0;
+    def->max   = 16;
+    def->set_default_value(new ConfigOptionInts{0});
+
+    def        = this->add("other_layers_print_sequence_nums", coInt);
+    def->label = L("The number of other layers print sequence");
+    def->set_default_value(new ConfigOptionInt{0});
+
     def = this->add("first_layer_sequence_choice", coEnum);
     def->category = L("Quality");
     def->label = L("First layer filament sequence");
-    def->enum_keys_map = &ConfigOptionEnum<FirstLayerSeq>::get_enum_values();
+    def->enum_keys_map = &ConfigOptionEnum<LayerSeq>::get_enum_values();
     def->enum_values.push_back("Auto");
     def->enum_values.push_back("Customize");
     def->enum_labels.push_back(L("Auto"));
     def->enum_labels.push_back(L("Customize"));
     def->mode = comSimple;
-    def->set_default_value(new ConfigOptionEnum<FirstLayerSeq>(flsAuto));
+    def->set_default_value(new ConfigOptionEnum<LayerSeq>(flsAuto));
+
+    def = this->add("other_layers_sequence_choice", coEnum);
+    def->category = L("Quality");
+    def->label = L("Other layers filament sequence");
+    def->enum_keys_map = &ConfigOptionEnum<LayerSeq>::get_enum_values();
+    def->enum_values.push_back("Auto");
+    def->enum_values.push_back("Customize");
+    def->enum_labels.push_back(L("Auto"));
+    def->enum_labels.push_back(L("Customize"));
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionEnum<LayerSeq>(flsAuto));
 
     def = this->add("before_layer_change_gcode", coString);
     def->label = L("Before layer change G-code");
@@ -1584,6 +1605,14 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(40));
+
+    def = this->add("nozzle_height", coFloat);
+    def->label = L("Nozzle height");
+    def->tooltip = L("The height of nozzle tip.");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->mode = comDevelop;
+    def->set_default_value(new ConfigOptionFloat(4));
 
     def          = this->add("bed_mesh_min", coPoint);
     def->label   = L("Bed mesh min");
@@ -2403,6 +2432,15 @@ def = this->add("filament_loading_speed", coFloats);
     def->min = 1;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(30));
+
+    // BBS
+    def          = this->add("precise_z_height", coBool);
+    def->label   = L("Precise Z height");
+    def->tooltip = L("Enable this to get precise z height of object after slicing. "
+                     "It will get the precise object height by fine-tuning the layer heights of the last few layers. "
+                     "Note that this is an experimental parameter.");
+    def->mode    = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(0));
 
     // BBS
     def = this->add("enable_arc_fitting", coBool);
@@ -3406,6 +3444,25 @@ def = this->add("filament_loading_speed", coFloats);
     def->sidetext = L("mm");
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionFloats { 0.8 });
+
+    def = this->add("enable_long_retraction_when_cut",coInt);
+    def->mode = comDevelop;
+    def->set_default_value(new ConfigOptionInt {0});
+
+    def = this->add("long_retractions_when_cut", coBools);
+    def->label = L("Long retraction when cut(experimental)");
+    def->tooltip = L("Experimental feature.Retracting and cutting off the filament at a longer distance during changes to minimize purge."
+                     "While this reduces flush significantly, it may also raise the risk of nozzle clogs or other printing problems.");
+    def->mode = comDevelop;
+    def->set_default_value(new ConfigOptionBools {false});
+
+    def = this->add("retraction_distances_when_cut",coFloats);
+    def->label = L("Retraction distance when cut");
+    def->tooltip = L("Experimental feature.Retraction length before cutting off during filament change");
+    def->mode = comDevelop;
+    def->min = 10;
+    def->max = 18;
+    def->set_default_value(new ConfigOptionFloats {18});
 
     def = this->add("retract_length_toolchange", coFloats);
     def->label = L("Length");
@@ -4949,7 +5006,10 @@ def = this->add("filament_loading_speed", coFloats);
         // bools
         "retract_when_changing_layer", "wipe",
         // percents
-        "retract_before_wipe"}) {
+        "retract_before_wipe",
+        "long_retractions_when_cut",
+        "retraction_distances_when_cut"
+        }) {
         auto it_opt = options.find(opt_key);
         assert(it_opt != options.end());
         def = this->add_nullable(std::string("filament_") + opt_key, it_opt->second.type);
@@ -4960,9 +5020,13 @@ def = this->add("filament_loading_speed", coFloats);
         def->enum_keys_map = it_opt->second.enum_keys_map;
         def->enum_labels   = it_opt->second.enum_labels;
         def->enum_values   = it_opt->second.enum_values;
+        def->min        = it_opt->second.min;
+        def->max        = it_opt->second.max;
         //BBS: shown specific filament retract config because we hide the machine retract into comDevelop mode
         if ((strcmp(opt_key, "retraction_length") == 0) ||
-            (strcmp(opt_key, "z_hop") == 0))
+            (strcmp(opt_key, "z_hop") == 0)||
+            (strcmp(opt_key, "long_retractions_when_cut") == 0)||
+            (strcmp(opt_key, "retraction_distances_when_cut") == 0))
             def->mode       = comSimple;
         else
             def->mode       = comAdvanced;
@@ -4993,17 +5057,19 @@ void PrintConfigDef::init_extruder_option_keys()
         "retraction_length", "z_hop", "z_hop_types", "retract_lift_above", "retract_lift_below", "retract_lift_enforce", "retraction_speed", "deretraction_speed",
         "retract_before_wipe", "retract_restart_extra", "retraction_minimum_travel", "wipe", "wipe_distance",
         "retract_when_changing_layer", "retract_length_toolchange", "retract_restart_extra_toolchange", "extruder_colour",
-        "default_filament_profile"
+        "default_filament_profile","retraction_distances_when_cut","long_retractions_when_cut"
     };
 
     m_extruder_retract_keys = {
         "deretraction_speed",
+        "long_retractions_when_cut",
         "retract_before_wipe",
         "retract_lift_above",
         "retract_lift_below",
         "retract_lift_enforce",
         "retract_restart_extra",
         "retract_when_changing_layer",
+        "retraction_distances_when_cut",
         "retraction_length",
         "retraction_minimum_travel",
         "retraction_speed",
@@ -5022,17 +5088,19 @@ void PrintConfigDef::init_filament_option_keys()
         "retraction_length", "z_hop", "z_hop_types", "retract_lift_above", "retract_lift_below", "retract_lift_enforce", "retraction_speed", "deretraction_speed",
         "retract_before_wipe", "retract_restart_extra", "retraction_minimum_travel", "wipe", "wipe_distance",
         "retract_when_changing_layer", "retract_length_toolchange", "retract_restart_extra_toolchange", "filament_colour",
-        "default_filament_profile"/*,"filament_seam_gap"*/
+        "default_filament_profile","retraction_distances_when_cut","long_retractions_when_cut"/*,"filament_seam_gap"*/
     };
 
     m_filament_retract_keys = {
         "deretraction_speed",
+        "long_retractions_when_cut",
         "retract_before_wipe",
         "retract_lift_above",
         "retract_lift_below",
         "retract_lift_enforce",
         "retract_restart_extra",
         "retract_when_changing_layer",
+        "retraction_distances_when_cut",
         "retraction_length",
         "retraction_minimum_travel",
         "retraction_speed",
@@ -5812,7 +5880,8 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         "remove_freq_sweep", "remove_bed_leveling", "remove_extrusion_calibration",
         "support_transition_line_width", "support_transition_speed", "bed_temperature", "bed_temperature_initial_layer",
         "can_switch_nozzle_type", "can_add_auxiliary_fan", "extra_flush_volume", "spaghetti_detector", "adaptive_layer_height",
-        "z_hop_type", "z_lift_type", "bed_temperature_difference",
+        "z_hop_type", "z_lift_type", "bed_temperature_difference","long_retraction_when_cut",
+        "retraction_distance_when_cut",
         "extruder_type",
         "internal_bridge_support_thickness","extruder_clearance_max_radius", "top_area_threshold", "reduce_wall_solid_infill"
     };
@@ -6307,6 +6376,8 @@ std::map<std::string, std::string> validate(const FullPrintConfig &cfg, bool und
     if (cfg.extruder_clearance_height_to_lid <= 0) {
         error_message.emplace("extruder_clearance_height_to_lid", L("invalid value ") + std::to_string(cfg.extruder_clearance_height_to_lid));
     }
+    if (cfg.nozzle_height <= 0)
+        error_message.emplace("nozzle_height", L("invalid value ") + std::to_string(cfg.nozzle_height));
 
     // --extrusion-multiplier
     for (double em : cfg.filament_flow_ratio.values)
@@ -6868,6 +6939,12 @@ CLIMiscConfigDef::CLIMiscConfigDef()
     def->tooltip = "MakerLab version to generate this 3mf";
     def->cli_params = "version";
     def->set_default_value(new ConfigOptionString());
+
+    def = this->add("allow_newer_file", coBool);
+    def->label = "Allow 3mf with newer version to be sliced";
+    def->tooltip = "Allow 3mf with newer version to be sliced";
+    def->cli_params = "option";
+    def->set_default_value(new  ConfigOptionBool(false));
 }
 
 const CLIActionsConfigDef    cli_actions_config_def;

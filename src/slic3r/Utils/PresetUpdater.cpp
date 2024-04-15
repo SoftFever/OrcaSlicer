@@ -204,6 +204,7 @@ struct PresetUpdater::priv
         std::string              version;
         std::string              description;
         std::string              url;
+        bool                     force{false};
         std::string              cache_root;
         std::vector<std::string> sub_caches;
     };
@@ -222,7 +223,7 @@ struct PresetUpdater::priv
     void sync_tooltip(std::string http_url, std::string language);
     void sync_plugins(std::string http_url, std::string plugin_version);
     void sync_printer_config(std::string http_url);
-    bool get_cached_plugins_version(std::string &cached_version);
+    bool get_cached_plugins_version(std::string &cached_version, bool& force);
 
 	//BBS: refine preset update logic
 	bool install_bundles_rsrc(std::vector<std::string> bundles, bool snapshot) const;
@@ -516,6 +517,7 @@ void PresetUpdater::priv::sync_resources(std::string http_url, std::map<std::str
                             std::string url;
                             std::string resource;
                             std::string description;
+                            bool force_upgrade = false;
                             for (auto sub_iter = iter.value().begin(); sub_iter != iter.value().end(); sub_iter++) {
                                 if (boost::iequals(sub_iter.key(), "type")) {
                                     resource = sub_iter.value();
@@ -527,10 +529,13 @@ void PresetUpdater::priv::sync_resources(std::string http_url, std::map<std::str
                                 } else if (boost::iequals(sub_iter.key(), "url")) {
                                     url = sub_iter.value();
                                 }
+                                else if (boost::iequals(sub_iter.key(), "force_update")) {
+                                    force_upgrade = sub_iter.value();
+                                }
                             }
-                            BOOST_LOG_TRIVIAL(info) << "[Orca Updater]: get type " << resource << ", version " << version << ", url " << url;
+                            BOOST_LOG_TRIVIAL(info) << "[Orca Updater]: get type " << resource << ", version " << version << ", url " << url<<", force_update "<<force_upgrade;
 
-                            resource_list.emplace(resource, Resource{version, description, url});
+                            resource_list.emplace(resource, Resource{version, description, url, force_upgrade});
                         }
                     }
                 } else {
@@ -618,6 +623,7 @@ void PresetUpdater::priv::sync_resources(std::string http_url, std::map<std::str
                 //record the headers
                 j["version"] = resource_update->second.version;
                 j["description"] = resource_update->second.description;
+                j["force"] = resource_update->second.force;
 
                 boost::nowide::ofstream c;
                 c.open(changelog_file, std::ios::out | std::ios::trunc);
@@ -770,8 +776,8 @@ void PresetUpdater::priv::sync_tooltip(std::string http_url, std::string languag
         } catch (...) {}
         std::map<std::string, Resource> resources
         {
-            {"slicer/tooltip/common", { common_version, "", "", (cache_root / "common").string() }},
-            {"slicer/tooltip/" + language, { language_version, "", "", (cache_root / language).string() }}
+            {"slicer/tooltip/common", { common_version, "", "", false, (cache_root / "common").string() }},
+            {"slicer/tooltip/" + language, { language_version, "", "", false, (cache_root / language).string() }}
         };
         sync_resources(http_url, resources);
         for (auto &r : resources) {
@@ -787,27 +793,31 @@ void PresetUpdater::priv::sync_tooltip(std::string http_url, std::string languag
 }
 
 // return true means there are plugins files
-bool PresetUpdater::priv::get_cached_plugins_version(std::string& cached_version)
+bool PresetUpdater::priv::get_cached_plugins_version(std::string& cached_version, bool &force)
 {
     std::string data_dir_str = data_dir();
     boost::filesystem::path data_dir_path(data_dir_str);
     auto cache_folder = data_dir_path / "ota";
-    std::string network_library, player_library;
+    std::string network_library, player_library, live555_library;
     bool has_plugins = false;
 
 #if defined(_MSC_VER) || defined(_WIN32)
     network_library = cache_folder.string() + "/bambu_networking.dll";
-    player_library = cache_folder.string() + "/BambuSource.dll";
+    player_library  = cache_folder.string() + "/BambuSource.dll";
+    live555_library = cache_folder.string() + "/live555.dll";
 #elif defined(__WXMAC__)
     network_library = cache_folder.string() + "/libbambu_networking.dylib";
-    player_library = cache_folder.string() + "/libBambuSource.dylib";
+    player_library  = cache_folder.string() + "/libBambuSource.dylib";
+    live555_library = cache_folder.string() + "/liblive555.dylib";
 #else
     network_library = cache_folder.string() + "/libbambu_networking.so";
-    player_library = cache_folder.string() + "/libBambuSource.so";
+    player_library  = cache_folder.string() + "/libBambuSource.so";
+    live555_library = cache_folder.string() + "/liblive555.so";
 #endif
 
     if (boost::filesystem::exists(network_library)
-        && boost::filesystem::exists(player_library))
+        && boost::filesystem::exists(player_library)
+        && boost::filesystem::exists(live555_library))
     {
         std::string changelog_file = cache_folder.string() + "/network_plugins.json";
         has_plugins = true;
@@ -817,6 +827,7 @@ bool PresetUpdater::priv::get_cached_plugins_version(std::string& cached_version
             ifs >> j;
 
             cached_version = j["version"];
+            force = j["force"];
         }
         catch(nlohmann::detail::parse_error &err) {
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": parse "<<changelog_file<<" got a nlohmann::detail::parse_error, reason = " << err.what();
@@ -837,7 +848,8 @@ void PresetUpdater::priv::sync_plugins(std::string http_url, std::string plugin_
     std::string using_version = curr_version.substr(0, 9) + "00";
 
     std::string cached_version;
-    get_cached_plugins_version(cached_version);
+    bool force_upgrade = false;
+    get_cached_plugins_version(cached_version, force_upgrade);
     if (!cached_version.empty()) {
         bool need_delete_cache = false;
         Semver current_semver = curr_version;
@@ -869,13 +881,16 @@ void PresetUpdater::priv::sync_plugins(std::string http_url, std::string plugin_
 
 #if defined(_MSC_VER) || defined(_WIN32)
             auto network_library = cache_folder / "bambu_networking.dll";
-            auto player_library = cache_folder / "BambuSource.dll";
+            auto player_library  = cache_folder / "BambuSource.dll";
+            auto live555_library  = cache_folder / "live555.dll";
 #elif defined(__WXMAC__)
             auto network_library = cache_folder / "libbambu_networking.dylib";
             auto player_library = cache_folder / "libBambuSource.dylib";
+            auto live555_library = cache_folder / "liblive555.dylib";
 #else
             auto network_library = cache_folder / "libbambu_networking.so";
             auto player_library = cache_folder / "libBambuSource.so";
+            auto live555_library = cache_folder / "liblive555.so";
 #endif
             auto changelog_file = cache_folder / "network_plugins.json";
 
@@ -899,6 +914,16 @@ void PresetUpdater::priv::sync_plugins(std::string http_url, std::string plugin_
                     BOOST_LOG_TRIVIAL(error) << "Failed  removing the plugins file " << player_library.string();
                 }
             }
+            if (boost::filesystem::exists(live555_library))
+            {
+
+                BOOST_LOG_TRIVIAL(info) << "[remove_old_networking_plugins] remove the file " << live555_library.string();
+                try {
+                    fs::remove(live555_library);
+                } catch (...) {
+                    BOOST_LOG_TRIVIAL(error) << "Failed  removing the plugins file " << live555_library.string();
+                }
+            }
             if (boost::filesystem::exists(changelog_file))
             {
 
@@ -915,7 +940,7 @@ void PresetUpdater::priv::sync_plugins(std::string http_url, std::string plugin_
     try {
         std::map<std::string, Resource> resources
         {
-            {"slicer/plugins/cloud", { using_version, "", "", cache_path.string(), {"plugins"}}}
+            {"slicer/plugins/cloud", { using_version, "", "", false, cache_path.string(), {"plugins"}}}
         };
         sync_resources(http_url, resources, true, plugin_version, "network_plugins.json");
     }
@@ -923,10 +948,18 @@ void PresetUpdater::priv::sync_plugins(std::string http_url, std::string plugin_
         BOOST_LOG_TRIVIAL(warning) << format("[Orca Updater] sync_plugins: %1%", e.what());
     }
 
-    bool result = get_cached_plugins_version(cached_version);
+    bool result = get_cached_plugins_version(cached_version, force_upgrade);
     if (result) {
-        BOOST_LOG_TRIVIAL(info) << format("[Orca Updater] found new plugins: %1%, prompt to update", cached_version);
-        GUI::wxGetApp().plater()->get_notification_manager()->push_notification(GUI::NotificationType::BBLPluginUpdateAvailable);
+        BOOST_LOG_TRIVIAL(info) << format("[Orca Updater] found new plugins: %1%, prompt to update, force_upgrade %2%", cached_version, force_upgrade);
+        if (force_upgrade) {
+            auto app_config = GUI::wxGetApp().app_config;
+            if (!app_config)
+                GUI::wxGetApp().plater()->get_notification_manager()->push_notification(GUI::NotificationType::BBLPluginUpdateAvailable);
+            else
+                app_config->set("update_network_plugin", "true");
+        }
+        else
+            GUI::wxGetApp().plater()->get_notification_manager()->push_notification(GUI::NotificationType::BBLPluginUpdateAvailable);
     }
 }
 
@@ -978,7 +1011,7 @@ void PresetUpdater::priv::sync_printer_config(std::string http_url)
     }
 
     try {
-        std::map<std::string, Resource> resources{{"slicer/printer/bbl", {using_version, "", "", cache_folder.string()}}};
+        std::map<std::string, Resource> resources{{"slicer/printer/bbl", {using_version, "", "", false, cache_folder.string()}}};
         sync_resources(http_url, resources, false, cached_version, "printer.json");
     } catch (std::exception &e) {
         BOOST_LOG_TRIVIAL(warning) << format("[Orca Updater] sync_printer_config: %1%", e.what());
@@ -1197,10 +1230,10 @@ Updates PresetUpdater::priv::get_config_updates(const Semver &old_slic3r_version
                     version.config_version = cache_ver;
                     version.comment        = description;
 
-                    updates.updates.emplace_back(std::move(file_path), std::move(path_in_vendor.string()), std::move(version), vendor_name,
-                                                 changelog, "", force_update, false);
-                    updates.updates.emplace_back(cache_profile_path / vendor_name, vendor_path / vendor_name, Version(), vendor_name, "",
-                                                 "", force_update, true);
+                        updates.updates.emplace_back(std::move(file_path), std::move(path_in_vendor.string()), std::move(version), vendor_name, changelog, "", force_update, false);
+
+                        //BBS: add directory support
+                        updates.updates.emplace_back(cache_path / vendor_name, vendor_path / vendor_name, Version(), vendor_name, "", "", force_update, true);
                 }
             }
         }
