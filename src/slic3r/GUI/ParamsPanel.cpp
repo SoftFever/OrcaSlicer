@@ -34,7 +34,7 @@ TipsDialog::TipsDialog(wxWindow *parent, const wxString &title, const wxString &
     wxBoxSizer *m_sizer_main = new wxBoxSizer(wxVERTICAL);
 
     m_top_line = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
-    m_top_line->SetBackgroundColour(wxColour(166, 169, 170));
+    m_top_line->SetBackgroundColour(wxColour("#A6A9AA"));
 
     m_sizer_main->Add(m_top_line, 0, wxEXPAND, 0);
 
@@ -43,8 +43,8 @@ TipsDialog::TipsDialog(wxWindow *parent, const wxString &title, const wxString &
     m_msg = new wxStaticText(this, wxID_ANY, description, wxDefaultPosition, wxDefaultSize, 0);
     m_msg->Wrap(-1);
     m_msg->SetFont(::Label::Body_13);
-    m_msg->SetForegroundColour(wxColour(107, 107, 107));
-    m_msg->SetBackgroundColour(wxColour(255, 255, 255));
+    m_msg->SetForegroundColour(wxColour("#6B6B6B"));
+    m_msg->SetBackgroundColour(wxColour("#FFFFFF"));
 
     m_sizer_main->Add(m_msg, 1, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(40));
 
@@ -90,7 +90,7 @@ wxBoxSizer *TipsDialog::create_item_checkbox(wxString title, wxWindow *parent, w
     m_sizer_checkbox->Add(0, 0, 0, wxEXPAND | wxLEFT, 8);
 
     auto checkbox_title = new wxStaticText(parent, wxID_ANY, title, wxDefaultPosition, wxSize(-1, -1), 0);
-    checkbox_title->SetForegroundColour(wxColour(144, 144, 144));
+    checkbox_title->SetForegroundColour(wxColour("#909090"));
     checkbox_title->SetFont(::Label::Body_13);
     checkbox_title->Wrap(-1);
     m_sizer_checkbox->Add(checkbox_title, 0, wxALIGN_CENTER | wxALL, 3);

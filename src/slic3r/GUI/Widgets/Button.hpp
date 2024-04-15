@@ -48,10 +48,9 @@ public:
 	void SetContentAlignment(const wxString& side);
 
 	void SetStyleAlert(const wxFont& font);
-
     void SetStyleConfirm(const wxFont& font);
-
     void SetStyleDefault(const wxFont& font);
+    void SetStyleDisabled(const wxFont& font);
     
     void SetTextColor(StateColor const &color);
 

@@ -301,7 +301,7 @@ void Tab::create_preset_tab()
     m_search_input->SetBackgroundColour(wxColour(238, 238, 238));
     m_search_input->SetCornerRadius(0); // ORCA: fixes marks on corners
     m_search_input->SetForegroundColour(wxColour(43, 52, 54));
-    m_search_input->SetFont(wxGetApp().bold_font());
+    m_search_input->SetFont(Label::Body_13); // Match font size
     m_search_input->SetIcon(*Slic3r::GUI::BitmapCache().load_svg("param_search", 0, 0)); // ORCA: Add serach icon to search box
 
     search_sizer->Add(new wxWindow(m_search_item, wxID_ANY, wxDefaultPosition, wxSize(0, 0)), 0, wxEXPAND,0);

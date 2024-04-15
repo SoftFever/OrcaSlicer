@@ -21,11 +21,13 @@ StepCtrlBase::StepCtrlBase(wxWindow *      parent,
                    long            style)
     : StaticBox(parent, id, pos, size, style)
     , font_tip(Label::Body_14)
-    , clr_bar(0xACACAC)
-    , clr_step(0xACACAC)
-    , clr_text(std::make_pair(0x009688, (int) StateColor::Checked), 
-            std::make_pair(0x6B6B6B, (int) StateColor::Normal))
-    , clr_tip(0x828280)
+    , clr_bar(wxColour("#ACACAC"))
+    , clr_step(wxColour("#ACACAC"))
+    , clr_text(
+		std::make_pair(wxColour("#009688"), (int) StateColor::Checked), 
+        std::make_pair(wxColour("#6B6B6B"), (int) StateColor::Normal)
+	)
+    , clr_tip(wxColour("#828280"))
 {
     SetFont(Label::Body_14);
     border_color     = StateColor(*wxLIGHT_GREY);

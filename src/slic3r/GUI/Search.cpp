@@ -492,19 +492,19 @@ void SearchItem::OnPaint(wxPaintEvent &event)
 
 void SearchItem::on_mouse_enter(wxMouseEvent &evt)
 {
-    SetBackgroundColour(StateColor::darkModeColorFor(wxColour(238, 238, 238)));
+    SetBackgroundColour(StateColor::darkModeColorFor(wxColour("#BFE1DE"))); //ORCA: Search list hover background color
     Refresh();
 }
 
 void SearchItem::on_mouse_leave(wxMouseEvent &evt)
 {
-    SetBackgroundColour(StateColor::darkModeColorFor(wxColour(255, 255, 255)));
+    SetBackgroundColour(StateColor::darkModeColorFor(wxColour("#FFFFFF")));
     Refresh();
 }
 
 void SearchItem::on_mouse_left_down(wxMouseEvent &evt)
 {
-    SetBackgroundColour(StateColor::darkModeColorFor(wxColour(228, 228, 228)));
+    SetBackgroundColour(StateColor::darkModeColorFor(wxColour("#BFE1DE"))); //ORCA: Search list hover background color
     Refresh();
 }
 

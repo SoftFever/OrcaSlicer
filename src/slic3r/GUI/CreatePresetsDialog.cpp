@@ -1815,7 +1815,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_hot_bed_stl_item(wxWindow *parent)
 
     m_button_bed_stl = new Button(parent, _L("Load...")); // ORCA: Printer Settings > SetUp already uses like this. also this will match width of 2 bottons
     m_button_bed_stl->Bind(wxEVT_BUTTON, ([this](wxCommandEvent &e) { load_model_stl(); }));
-    m_button_bed_stl->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_button_bed_stl->SetMinSize(wxSize(FromDIP(80), FromDIP(26)));
     m_button_bed_stl->SetStyleDefault(Label::Body_13); // ORCA: Match Button Style
     hot_bed_stl_sizer->Add(m_button_bed_stl, 0, wxEXPAND | wxALL, 0);
 

@@ -359,7 +359,8 @@ struct Sidebar::priv
     ScalableButton* m_filament_icon = nullptr;
     Button * m_flushing_volume_btn = nullptr;
     ScalableButton * del_btn = nullptr;
-    wxSearchCtrl* m_search_bar = nullptr;
+    TextInput* m_search_bar = nullptr;
+	StaticBox* m_search_item = nullptr;
     Search::SearchObjectDialog* dia = nullptr;
 
     // BBS printer config
@@ -433,7 +434,8 @@ void Sidebar::priv::on_search_update()
 {
     m_object_list->assembly_plate_object_name();
     
-    wxString search_text = m_search_bar->GetValue();
+	wxTextCtrl* text_ctrl = m_search_bar->GetTextCtrl();
+    wxString search_text = text_ctrl->GetValue();
     m_object_list->GetModel()->search_object(search_text);
     dia->update_list();
 }
@@ -960,33 +962,103 @@ Sidebar::Sidebar(Plater *parent)
     //add project content
     p->sizer_params = new wxBoxSizer(wxVERTICAL);
 
-    p->m_search_bar = new wxSearchCtrl(p->scrolled, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
-    p->m_search_bar->ShowSearchButton(true);
-    p->m_search_bar->ShowCancelButton(true);
-    p->m_search_bar->SetDescriptiveText(_L("Search plate, object and part."));
+    //p->m_search_bar = new wxSearchCtrl(p->scrolled, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
+    //p->m_search_bar->ShowSearchButton(true);
+    //p->m_search_bar->ShowCancelButton(true);
+    //p->m_search_bar->SetDescriptiveText(_L("Search plate, object and part."));
 
-    p->m_search_bar->Bind(wxEVT_SET_FOCUS, [this](wxFocusEvent&) {
-        this->p->on_search_update();
-        wxPoint pos = this->p->m_search_bar->ClientToScreen(wxPoint(0, 0));
-        pos.y += this->p->m_search_bar->GetRect().height;
-        p->dia->SetPosition(pos);
-        p->dia->Popup();
-        });
+	//p->m_search_bar->Bind(wxEVT_SET_FOCUS, [this](wxFocusEvent&) {
+    //    this->p->on_search_update();
+    //    wxPoint pos = this->p->m_search_bar->ClientToScreen(wxPoint(0, 0));
+    //    pos.y += this->p->m_search_bar->GetRect().height;
+    //    p->dia->SetPosition(pos);
+    //    p->dia->Popup();
+    //});
+    //p->m_search_bar->Bind(wxEVT_COMMAND_TEXT_UPDATED, [this](wxCommandEvent&) { this->p->on_search_update(); });
+    //p->m_search_bar->Bind(wxEVT_KILL_FOCUS, [this](wxFocusEvent& e) {
+    //    p->dia->Dismiss();
+    //    e.Skip();
+    //});
+
+	// ORCA: Update search box to modern style
+    // NEEDFIX hover color for border not working
+    // NEEDFIX Caret fortext input not visible
+    // NEEDFIX popup closes itself on second click on input
+	// NEEDFIX search list appears after Ctrl + F shortcut even process > objects not selected
+	p->m_search_item = new StaticBox(p->scrolled);
+    StateColor box_colour(std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
+    StateColor box_border_colour(
+		std::pair<wxColour, int>(wxColour("#CECECE"), StateColor::Normal),
+		std::pair<wxColour, int>(wxColour("#009688"), StateColor::Hovered),
+		std::pair<wxColour, int>(wxColour("#009688"), StateColor::Focused) // ORCA: Use orca as border color while showing search input box to indicate its focused
+	);
+	StateColor text_colour(
+		std::pair<wxColour, int>(wxColour("#909090"), StateColor::Normal),
+		std::pair<wxColour, int>(wxColour("#262E30"), StateColor::Focused) // ORCA: Use orca as border color while showing search input box to indicate its focused
+	);
+	
+    p->m_search_item->SetBackgroundColor(box_colour);
+    p->m_search_item->SetBorderColor(box_border_colour);
+    p->m_search_item->SetCornerRadius(4); // ORCA: Match style
+
+	p->m_search_bar = new TextInput(p->m_search_item, wxEmptyString, wxEmptyString, "", wxDefaultPosition, wxDefaultSize, 0 | wxBORDER_NONE);
+    p->m_search_bar->SetCornerRadius(0); // ORCA: fixes marks on corners
+    p->m_search_bar->SetTextColor(text_colour);
+    p->m_search_bar->SetIcon(*Slic3r::GUI::BitmapCache().load_svg("param_search", 0, 0)); // ORCA: Add search icon to search box
+
+    wxTextCtrl* text_ctrl = p->m_search_bar->GetTextCtrl();
+    //text_ctrl->SetForegroundColour(wxColour("#909090"));
+    text_ctrl->SetValue(_L("Search plate, object and part."));
+    text_ctrl->SetFont(Label::Body_13); // Match font size
+    text_ctrl->SetSize(wxSize(-1, FromDIP(16))); // Centers text vertically
+
+	p->m_search_item->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
+        wxTextCtrl* text_ctrl = p->m_search_bar->GetTextCtrl();
+        p->m_search_bar->SetFocus();
+    });
     p->m_search_bar->Bind(wxEVT_COMMAND_TEXT_UPDATED, [this](wxCommandEvent&) {
         this->p->on_search_update();
-        });
-    p->m_search_bar->Bind(wxEVT_KILL_FOCUS, [this](wxFocusEvent& e) {
+    });
+    text_ctrl->Bind(wxEVT_SET_FOCUS, [this](wxFocusEvent&) {
+        wxTextCtrl* text_ctrl = p->m_search_bar->GetTextCtrl();
+        text_ctrl->SetValue("");
+        //p->m_search_bar->SetTextColor(wxColour("#262E30"));
+        //text_ctrl->SetForegroundColour(wxColour("#262E30"));
+        p->m_search_item->SetBorderColor(wxColour("#009688"));
+        this->p->on_search_update();
+		p->m_search_bar->Rescale();
+        wxPoint pos = this->p->m_search_item->ClientToScreen(wxPoint(0, 0));
+        pos.y += this->p->m_search_item->GetRect().GetHeight();
+        p->dia->SetPosition(pos);
+        p->dia->Popup();
+    });
+    text_ctrl->Bind(wxEVT_KILL_FOCUS, [this](wxFocusEvent& e) {
         p->dia->Dismiss();
+        wxTextCtrl* text_ctrl = p->m_search_bar->GetTextCtrl();
+        text_ctrl->SetValue(_L("Search plate, object and part."));
+        //p->m_search_bar->SetTextColor(wxColour("#909090"));
+        //text_ctrl->SetForegroundColour(wxColour("#909090"));
+        p->m_search_item->SetBorderColor(wxColour("#CECECE"));
+        p->m_search_bar->Rescale();
         e.Skip();
-        });
+    });
+
+	auto search_sizer = new wxBoxSizer(wxHORIZONTAL);
+    search_sizer->Add(new wxWindow(p->m_search_item, wxID_ANY, wxDefaultPosition, wxSize(0, 0)), 0, wxEXPAND, 0);
+    search_sizer->Add(p->m_search_bar, 1, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
+
+	p->m_search_item->SetSizer(search_sizer);
+    p->m_search_item->Layout();
+    search_sizer->Fit(p->m_search_item);
+	p->m_search_item->Hide();
 
     p->m_object_list = new ObjectList(p->scrolled);
 
-    p->sizer_params->Add(p->m_search_bar, 0, wxALL | wxEXPAND, 0);
+    p->sizer_params->Add(p->m_search_item, 0, wxEXPAND | wxALL, FromDIP(12));
     p->sizer_params->Add(p->m_object_list, 1, wxEXPAND | wxTOP, 0);
     scrolled_sizer->Add(p->sizer_params, 2, wxEXPAND | wxLEFT, 0);
     p->m_object_list->Hide();
-    p->m_search_bar->Hide();
+    //p->m_search_bar->Hide();
     // Frequently Object Settings
     p->object_settings = new ObjectSettings(p->scrolled);
 
@@ -1815,7 +1887,8 @@ void Sidebar::update_ui_from_settings()
 
 bool Sidebar::show_object_list(bool show) const
 {
-    p->m_search_bar->Show(show);
+    //p->m_search_bar->Show(show);
+    p->m_search_item->Show(show);
     if (!p->m_object_list->Show(show))
         return false;
     if (!show)

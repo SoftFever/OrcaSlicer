@@ -21,14 +21,26 @@ END_EVENT_TABLE()
  */
 
 SpinInput::SpinInput()
-    : label_color(std::make_pair(0x909090, (int) StateColor::Disabled), std::make_pair(0x6B6B6B, (int) StateColor::Normal))
-    , text_color(std::make_pair(0x909090, (int) StateColor::Disabled), std::make_pair(0x262E30, (int) StateColor::Normal))
+    : label_color(
+		std::make_pair(wxColour("#ACACAC"), (int) StateColor::Disabled),
+		std::make_pair(wxColour("#6B6B6B"), (int) StateColor::Normal)
+	)
+    , text_color(
+		std::make_pair(wxColour("#ACACAC"), (int) StateColor::Disabled),
+		std::make_pair(wxColour("#262E30"), (int) StateColor::Normal)
+	)
 {
     radius = 0;
     border_width     = 1;
-    border_color     = StateColor(std::make_pair(0xDBDBDB, (int) StateColor::Disabled), std::make_pair(0x009688, (int) StateColor::Hovered),
-                              std::make_pair(0xDBDBDB, (int) StateColor::Normal));
-    background_color = StateColor(std::make_pair(0xF0F0F1, (int) StateColor::Disabled), std::make_pair(*wxWHITE, (int) StateColor::Normal));
+    border_color     = StateColor(
+		std::make_pair(wxColour("#DBDBDB"), (int) StateColor::Disabled),
+		std::make_pair(wxColour("#009688"), (int) StateColor::Hovered),
+		std::make_pair(wxColour("#DBDBDB"), (int) StateColor::Normal)
+	);
+    background_color = StateColor(
+		std::make_pair(wxColour("#F0F0F1"), (int) StateColor::Disabled),
+		std::make_pair(wxColour("#FFFFFF"), (int) StateColor::Normal)
+	);
 }
 
 
@@ -225,7 +237,7 @@ void SpinInput::messureSize()
 Button *SpinInput::createButton(bool inc)
 {
     auto btn = new Button(this, "", inc ? "spin_inc" : "spin_dec", wxBORDER_NONE, 6);
-    btn->SetCornerRadius(0);
+    btn->SetCornerRadius(FromDIP(2));
     btn->DisableFocusFromKeyboard();
     btn->Bind(wxEVT_LEFT_DOWN, [=](auto &e) {
         delta = inc ? 1 : -1;

@@ -35,12 +35,16 @@ DropDown::DropDown(std::vector<wxString> &texts,
     : texts(texts)
     , icons(icons)
     , state_handler(this)
-    , border_color(0xDBDBDB)
-    , text_color(0x363636)
-    , selector_border_color(std::make_pair(0x009688, (int) StateColor::Hovered),
-        std::make_pair(*wxWHITE, (int) StateColor::Normal))
-    , selector_background_color(std::make_pair(0xBFE1DE, (int) StateColor::Checked), // ORCA: orca color with %25 opacity on white. previous color EDFAF2 is green
-        std::make_pair(*wxWHITE, (int) StateColor::Normal))
+    , border_color(wxColour("#DBDBDB"))
+    , text_color(wxColour("#262E30")) // Match color
+    , selector_border_color(
+		std::make_pair(wxColour("#009688"), (int) StateColor::Hovered),
+        std::make_pair(wxColour("#FFFFFF"), (int) StateColor::Normal)
+	)
+    , selector_background_color(
+		std::make_pair(wxColour("#BFE1DE"), (int) StateColor::Checked), // ORCA: orca color with %25 opacity on white. previous color EDFAF2 is green
+        std::make_pair(wxColour("#FFFFFF"), (int) StateColor::Normal)
+	)
 {
 }
 

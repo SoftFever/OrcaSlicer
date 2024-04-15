@@ -20,14 +20,27 @@ END_EVENT_TABLE()
 
 
 TempInput::TempInput()
-    : label_color(std::make_pair(wxColour(0xAC,0xAC,0xAC), (int) StateColor::Disabled),std::make_pair(0x323A3C, (int) StateColor::Normal))
-    , text_color(std::make_pair(wxColour(0xAC,0xAC,0xAC), (int) StateColor::Disabled), std::make_pair(0x6B6B6B, (int) StateColor::Normal))
+    : label_color(
+		std::make_pair(wxColour("#ACACAC"), (int) StateColor::Disabled),
+		std::make_pair(wxColour("#323A3C"), (int) StateColor::Normal)
+	)
+    , text_color(
+		std::make_pair(wxColour("#ACACAC"), (int) StateColor::Disabled),
+		std::make_pair(wxColour("#6B6B6B"), (int) StateColor::Normal)
+	)
 {
     hover  = false;
     radius = 0;
-    border_color = StateColor(std::make_pair(*wxWHITE, (int) StateColor::Disabled), std::make_pair(0x009688, (int) StateColor::Focused), std::make_pair(0x009688, (int) StateColor::Hovered),
-                 std::make_pair(*wxWHITE, (int) StateColor::Normal));
-    background_color = StateColor(std::make_pair(*wxWHITE, (int) StateColor::Disabled), std::make_pair(*wxWHITE, (int) StateColor::Normal));
+    border_color = StateColor(
+		std::make_pair(wxColour("#FFFFFF"), (int) StateColor::Disabled),
+		std::make_pair(wxColour("#009688"), (int) StateColor::Focused),
+		std::make_pair(wxColour("#009688"), (int) StateColor::Hovered),
+        std::make_pair(wxColour("#FFFFFF"), (int) StateColor::Normal)
+	);
+    background_color = StateColor(
+		std::make_pair(wxColour("#FFFFFF"), (int) StateColor::Disabled),
+		std::make_pair(wxColour("#FFFFFF"), (int) StateColor::Normal)
+	);
     SetFont(Label::Body_12);
 }
 

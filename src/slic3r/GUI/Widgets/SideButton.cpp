@@ -26,23 +26,21 @@ SideButton::SideButton(wxWindow* parent, wxString text, wxString icon, long stly
     icon_offset = 0;
     text_orientation = HO_Left;
     
-
-
-    border_color.append(0x6B6B6B, StateColor::Disabled);
-    border_color.append(wxColour(0, 137, 123), StateColor::Pressed);
-    border_color.append(wxColour(38, 166, 154), StateColor::Hovered);
-    border_color.append(0x009688, StateColor::Normal);
+    border_color.append(wxColour("#62696B"), StateColor::Disabled);
+    border_color.append(wxColour("#00897B"), StateColor::Pressed);
+    border_color.append(wxColour("#26A69A"), StateColor::Hovered);
+    border_color.append(wxColour("#009688"), StateColor::Normal);
     border_color.setTakeFocusedAsHovered(false);
 
-    text_color.append(0xACACAC, StateColor::Disabled);
-    text_color.append(0xFEFEFE, StateColor::Pressed);
-    text_color.append(0xFEFEFE, StateColor::Hovered);
-    text_color.append(0xFEFEFE, StateColor::Normal);
+    text_color.append(wxColour("#B1B4B5"), StateColor::Disabled);
+    text_color.append(wxColour("#FEFEFE"), StateColor::Pressed);
+    text_color.append(wxColour("#FEFEFE"), StateColor::Hovered);
+    text_color.append(wxColour("#FEFEFE"), StateColor::Normal);
 
-    background_color.append(0x6B6B6B, StateColor::Disabled);
-    background_color.append(wxColour(0, 137, 123), StateColor::Pressed);
-    background_color.append(wxColour(38, 166, 154), StateColor::Hovered);
-    background_color.append(0x009688, StateColor::Normal);
+    background_color.append(wxColour("#62696B"), StateColor::Disabled);
+    background_color.append(wxColour("#00897b"), StateColor::Pressed);
+    background_color.append(wxColour("#26A69A"), StateColor::Hovered);
+    background_color.append(wxColour("#009688"), StateColor::Normal);
     background_color.setTakeFocusedAsHovered(false);
 
     SetBottomColour(wxColour("#3B4446"));
@@ -207,8 +205,6 @@ void SideButton::dorender(wxDC& dc, wxDC& text_dc)
 
     dc.SetPen(wxPen(border_color.colorForStates(states)));
     int pen_width = dc.GetPen().GetWidth();
-
-	int radius = FromDIP(4); // ORCA: use less radius to match button style
     
     // draw icon style
     if (icon.bmp().IsOk()) {

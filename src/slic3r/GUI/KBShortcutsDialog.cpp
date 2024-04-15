@@ -29,18 +29,18 @@ KBShortcutsDialog::KBShortcutsDialog()
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
     this->SetSizeHints(wxDefaultSize, wxDefaultSize);
-    this->SetBackgroundColour(wxColour(255, 255, 255));
+    this->SetBackgroundColour(wxColour("#FFFFFF"));
 
     wxBoxSizer *m_sizer_top = new wxBoxSizer(wxVERTICAL);
 
     auto m_top_line = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
-    m_top_line->SetBackgroundColour(wxColour(166, 169, 170));
+    m_top_line->SetBackgroundColour(wxColour("#A6A9AA"));
 
     m_sizer_top->Add(m_top_line, 0, wxEXPAND, 0);
     m_sizer_body = new wxBoxSizer(wxHORIZONTAL);
 
     m_panel_selects = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
-    m_panel_selects->SetBackgroundColour(wxColour(248, 248, 248));
+    m_panel_selects->SetBackgroundColour(wxColour("#F2F2F2"));
     wxBoxSizer *m_sizer_left = new wxBoxSizer(wxVERTICAL);
 
     m_sizer_left->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(20));
@@ -95,17 +95,19 @@ void KBShortcutsDialog::OnSelectTabel(wxCommandEvent &event)
     while (i != m_hash_selector.end()) {
         Select *sel = i->second;
         if (id == sel->m_index) {
-            sel->m_tab_button->SetBackgroundColour(StateColor::darkModeColorFor(wxColour("#FFFFFF")));
-            sel->m_tab_text->SetBackgroundColour(StateColor::darkModeColorFor(wxColour("#FFFFFF")));
-            sel->m_tab_text->SetFont(::Label::Head_13);
+            sel->m_tab_button->SetBackgroundColour(StateColor::darkModeColorFor(wxColour("#009688"))); // ORCA use orca color for selected tab
+            sel->m_tab_text->SetBackgroundColour(StateColor::darkModeColorFor(wxColour("#009688")));
+            sel->m_tab_text->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#FEFEFE")));
+            //sel->m_tab_text->SetFont(::Label::Head_13); // ORCA no need to use bold font
             sel->m_tab_button->Refresh();
             sel->m_tab_text->Refresh();
 
             m_simplebook->SetSelection(id);
         } else {
-            sel->m_tab_button->SetBackgroundColour(StateColor::darkModeColorFor(wxColour("#F8F8F8")));
-            sel->m_tab_text->SetBackgroundColour(StateColor::darkModeColorFor(wxColour("#F8F8F8")));
-            sel->m_tab_text->SetFont(::Label::Body_13);
+            sel->m_tab_button->SetBackgroundColour(StateColor::darkModeColorFor(wxColour("#F2F2F2")));
+            sel->m_tab_text->SetBackgroundColour(StateColor::darkModeColorFor(wxColour("#F2F2F2")));
+            sel->m_tab_text->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#262E30")));
+            //sel->m_tab_text->SetFont(::Label::Body_13);
             sel->m_tab_button->Refresh();
             sel->m_tab_text->Refresh();
         }
@@ -124,7 +126,7 @@ wxWindow *KBShortcutsDialog::create_button(int id, wxString text)
 
     auto stext = new wxStaticText(tab_button, wxID_ANY, text, wxDefaultPosition, wxDefaultSize, 0);
     stext->SetFont(::Label::Body_13);
-    stext->SetForegroundColour(wxColour(38, 46, 48));
+    //stext->SetForegroundColour(wxColour("#262E30"));
     stext->Wrap(-1);
     sizer->Add(stext, 1, wxALIGN_CENTER, 0);
 
@@ -346,13 +348,13 @@ wxPanel* KBShortcutsDialog::create_page(wxWindow* parent, const ShortcutsItem& s
     for (int i = 0; i < items_count; ++i) {
         const auto &[shortcut, description] = shortcuts.second[i];
         auto key                            = new wxStaticText(scrollable_panel, wxID_ANY, _(shortcut));
-        key->SetForegroundColour(wxColour(50, 58, 61));
+        key->SetForegroundColour(wxColour("#323A3D"));
         key->SetFont(bold_font);
         grid_sizer->Add(key, 0, wxALIGN_CENTRE_VERTICAL);
 
         auto desc = new wxStaticText(scrollable_panel, wxID_ANY, _(description));
         desc->SetFont(font);
-        desc->SetForegroundColour(wxColour(50, 58, 61));
+        desc->SetForegroundColour(wxColour("#323A3D"));
         desc->Wrap(FromDIP(600));
         grid_sizer->Add(desc, 0, wxALIGN_CENTRE_VERTICAL);
     }

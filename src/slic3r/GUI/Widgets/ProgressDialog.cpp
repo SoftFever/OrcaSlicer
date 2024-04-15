@@ -155,7 +155,7 @@ bool ProgressDialog::Create(const wxString &title, const wxString &message, int 
     wxBoxSizer *m_sizer_main = new wxBoxSizer(wxVERTICAL);
 
     m_top_line = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0);
-    m_top_line->SetBackgroundColour(wxColour(166, 169, 170));
+    m_top_line->SetBackgroundColour(wxColour("#A6A9AA"));
 
     m_sizer_main->Add(m_top_line, 0, wxEXPAND, 0);
     m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(24));
@@ -241,9 +241,10 @@ bool ProgressDialog::Create(const wxString &title, const wxString &message, int 
 
     if (HasPDFlag(wxPD_CAN_ABORT)) {
         m_button_cancel = new Button(this, _L("Cancel"));
-        m_button_cancel->SetTextColor(PROGRESSDIALOG_GREY_700);
+        m_button_cancel->SetStyleDefault(Label::Body_14);
+        //m_button_cancel->SetTextColor(PROGRESSDIALOG_GREY_700);
         m_button_cancel->SetMinSize(PROGRESSDIALOG_CANCEL_BUTTON_SIZE);
-        m_button_cancel->SetCornerRadius(PROGRESSDIALOG_CANCEL_BUTTON_SIZE.y / 2);
+        //m_button_cancel->SetCornerRadius(PROGRESSDIALOG_CANCEL_BUTTON_SIZE.y / 2);
         m_button_cancel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &event) {
             if (m_state == Finished) {
                 event.Skip();
