@@ -1,5 +1,10 @@
 # TODO: Create a hash of the dependency folders and check if they have been updated
 
+if (CLEAN_DEPS)
+    message(STATUS "Cleaning dependencies")
+    file(REMOVE_RECURSE ${DEP_BUILD_DIR})
+endif ()
+
 set (_output_quiet "")
 if (BUILD_DEPS_QUIET)
     set (_output_quiet OUTPUT_QUIET)

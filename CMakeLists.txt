@@ -36,6 +36,8 @@ option(SLIC3R_ASAN                  "Enable ASan on Clang and GCC" 0)
 option(SLIC3R_BUILD_SANDBOXES       "Build development sandboxes" OFF)
 option(SLIC3R_BUILD_TESTS           "Build unit tests" OFF)
 option(ORCA_TOOLS                   "Build Orca tools" OFF)
+option(BUILD_DEPS                   "Build dependencies" OFF)
+option(CLEAN_DEPS                   "Clean build directory dependencies (only cleans if also building deps)" OFF)
 # If SLIC3R_FHS is enabled, forcibly disable desktop integration during runtime.
 CMAKE_DEPENDENT_OPTION(SLIC3R_DESKTOP_INTEGRATION "Allow performing desktop integration during runtime" 1 "NOT SLIC3R_FHS" 0)
 
@@ -53,6 +55,7 @@ file(TO_NATIVE_PATH "${SLIC3R_RESOURCES_DIR}" SLIC3R_RESOURCES_DIR_WIN)
 
 get_filename_component(BIN_DIR_NAME ${CMAKE_BINARY_DIR} NAME)
 message(STATUS "CMAKE_BINARY_DIR: ${BIN_DIR_NAME}")
+set(BIN_DIR_NAME ${BIN_DIR_NAME} CACHE STRING "" FORCE)
 
 # Set the default build type to Release if not specified and not using multi-config generators.
 if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)

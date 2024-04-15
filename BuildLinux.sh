@@ -39,7 +39,8 @@ function usage() {
     echo "   and then './BuildLinux.sh -dsi'"
 }
 
-unset name
+PRESET="linux-release"
+BUILD_DEPS="0"
 while getopts ":1bcdghirsu" opt; do
   case ${opt} in
     1 )
@@ -47,6 +48,7 @@ while getopts ":1bcdghirsu" opt; do
         ;;
     b )
         BUILD_DEBUG="1"
+        PRESET="linux-debug"
         ;;
     c )
         CLEAN_BUILD=1
@@ -62,7 +64,7 @@ while getopts ":1bcdghirsu" opt; do
         ;;
     r )
 	    SKIP_RAM_CHECK="1"
-	;;
+	      ;;
     s )
         BUILD_ORCA="1"
         ;;
@@ -107,74 +109,40 @@ then
     check_available_memory_and_disk
 fi
 
-if [[ -n "${BUILD_DEPS}" ]]
+if [[ -n "${CLEAN_BUILD}" ]]
 then
-    echo "Configuring dependencies..."
-    BUILD_ARGS="-DDEP_WX_GTK3=ON"
-    if [[ -n "${CLEAN_BUILD}" ]]
-    then
-        rm -fr deps/build
-    fi
-    if [ ! -d "deps/build" ]
-    then
-        mkdir deps/build
-    fi
-    if [[ -n "${BUILD_DEBUG}" ]]
-    then
-        BUILD_ARGS="${BUILD_ARGS} -DCMAKE_BUILD_TYPE=Debug"
-    fi
-
-    echo "cmake -S deps -B deps/build -G Ninja ${BUILD_ARGS}"
-    cmake -S deps -B deps/build -G Ninja ${BUILD_ARGS}
-    cmake --build deps/build
+  CONFIG_ARGS="--fresh"
 fi
 
+cmake --preset ${PRESET} -DBUILD_DEPS=${BUILD_DEPS} -DCLEAN_DEPS=${CLEAN_BUILD} ${CONFIG_ARGS}
 
 if [[ -n "${BUILD_ORCA}" ]]
 then
-    echo "Configuring OrcaSlicer..."
     if [[ -n "${CLEAN_BUILD}" ]]
     then
-        rm -fr build
+      echo "Cleaning OrcaSlicer ..."
+      cmake --build --preset ${PRESET} --target clean
     fi
-    BUILD_ARGS=""
-    if [[ -n "${FOUND_GTK3_DEV}" ]]
-    then
-        BUILD_ARGS="-DSLIC3R_GTK=3"
-    fi
-    if [[ -n "${BUILD_DEBUG}" ]]
-    then
-        BUILD_ARGS="${BUILD_ARGS} -DCMAKE_BUILD_TYPE=Debug -DBBL_INTERNAL_TESTING=1"
-    else
-        BUILD_ARGS="${BUILD_ARGS} -DBBL_RELEASE_TO_PUBLIC=1 -DBBL_INTERNAL_TESTING=0"
-    fi
-    echo -e "cmake -S . -B build -G Ninja -DCMAKE_PREFIX_PATH="${PWD}/deps/build/destdir/usr/local" -DSLIC3R_STATIC=1 ${BUILD_ARGS}"
-    cmake -S . -B build -G Ninja \
-        -DCMAKE_PREFIX_PATH="${PWD}/deps/build/destdir/usr/local" \
-        -DSLIC3R_STATIC=1 \
-        -DORCA_TOOLS=ON \
-        ${BUILD_ARGS}
-    echo "done"
     echo "Building OrcaSlicer ..."
-    cmake --build build --target OrcaSlicer
+    cmake --build --preset ${PRESET}
     echo "Building OrcaSlicer_profile_validator .."
-    cmake --build build --target OrcaSlicer_profile_validator
+    cmake --build ${BIN_DIR_NAME} --target OrcaSlicer_profile_validator
     ./run_gettext.sh
-    echo "done"
 fi
 
-if [[ -e ${ROOT}/build/src/BuildLinuxImage.sh ]]; then
-# Give proper permissions to script
-chmod 755 ${ROOT}/build/src/BuildLinuxImage.sh
+# get the build directory's name from the cmake cache
+BUILD_DIR_NAME=$(cmake --preset ${PRESET} -LA -N | grep BIN_DIR_NAME | cut -d "=" -f2)
 
-echo "[9/9] Generating Linux app..."
-    pushd build
+if [[ -e ${ROOT}/${BUILD_DIR_NAME}/src/BuildLinuxImage.sh ]]; then
+# Give proper permissions to script
+chmod 755 ${ROOT}/${BUILD_DIR_NAME}/src/BuildLinuxImage.sh
+
+    pushd ${BUILD_DIR_NAME} # cmake exported env variable
         if [[ -n "${BUILD_IMAGE}" ]]
         then
-            ${ROOT}/build/src/BuildLinuxImage.sh -i
+            ${ROOT}/${BUILD_DIR_NAME}/src/BuildLinuxImage.sh -i
         else
-            ${ROOT}/build/src/BuildLinuxImage.sh
+            ${ROOT}/${BUILD_DIR_NAME}/src/BuildLinuxImage.sh
         fi
     popd
-echo "done"
 fi
