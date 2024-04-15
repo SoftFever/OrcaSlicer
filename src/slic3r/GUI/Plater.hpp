@@ -72,6 +72,7 @@ class Ams;
 
 using ModelInstancePtrs = std::vector<ModelInstance*>;
 
+
 namespace UndoRedo {
     class Stack;
     enum class SnapshotType : unsigned char;
@@ -342,6 +343,7 @@ public:
     //BBS: add no_slice logic
     void select_view_3D(const std::string& name, bool no_slice = true);
 
+    void reload_paint_after_background_process_apply();
     bool is_preview_shown() const;
     bool is_preview_loaded() const;
     bool is_view3D_shown() const;
@@ -536,6 +538,8 @@ public:
     void split_object();
     void split_volume();
     void optimize_rotation();
+    // find all empty cells on the plate and won't overlap with exclusion areas
+    static std::vector<Vec2f> get_empty_cells(const Vec2f step);
 
     //BBS:
     void fill_color(int extruder_id);
@@ -823,6 +827,7 @@ private:
     bool m_was_scheduled;
 };
 
+std::vector<int> get_min_flush_volumes();
 } // namespace GUI
 } // namespace Slic3r
 

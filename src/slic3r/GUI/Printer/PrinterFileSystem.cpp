@@ -45,9 +45,9 @@ wxDEFINE_EVENT(EVT_FILE_CALLBACK, wxCommandEvent);
 static wxBitmap default_thumbnail;
 
 static std::map<int, std::string> error_messages = {
-    {PrinterFileSystem::ERROR_PIPE, L("Connection lost. Please retry.")},
-    {PrinterFileSystem::ERROR_RES_BUSY, L("The device cannot handle more conversations. Please retry later.")},
-    {PrinterFileSystem::FILE_NO_EXIST, L("File not exists.")},
+    {PrinterFileSystem::ERROR_PIPE, L("Reconnecting the printer, the operation cannot be completed immediately, please try again later.")},
+    {PrinterFileSystem::ERROR_RES_BUSY, L("Over 4 studio/handy are using remote access, you can close some and try again.")},
+    {PrinterFileSystem::FILE_NO_EXIST, L("File does not exist.")},
     {PrinterFileSystem::FILE_CHECK_ERR, L("File checksum error. Please retry.")},
     {PrinterFileSystem::FILE_TYPE_ERR, L("Not supported on the current printer version.")},
     {PrinterFileSystem::STORAGE_UNAVAILABLE, L("Storage unavailable, insert SD card.")}
@@ -203,6 +203,7 @@ void PrinterFileSystem::ListAllFiles()
         }
         BuildGroups();
         UpdateGroupSelect();
+        m_last_error = 0;
         m_status = Status::ListReady;
         SendChangedEvent(EVT_STATUS_CHANGED, m_status);
         SendChangedEvent(EVT_FILE_CHANGED);
@@ -357,6 +358,13 @@ void PrinterFileSystem::FetchModel(size_t index, std::function<void(int, std::st
         [this, file_data, callback](int result, Void const &) {
             if (result == CONTINUE) return;
             m_task_flags &= ~FF_FETCH_MODEL;
+            if (result != 0) {
+                auto iter = error_messages.find(result);
+                if (iter != error_messages.end())     
+                    *file_data = _u8L(iter->second.c_str());
+                else
+                    file_data->clear();
+            }
             callback(result, *file_data);
         });
 }
@@ -376,7 +384,7 @@ size_t PrinterFileSystem::GetCount() const
 
 int PrinterFileSystem::File::DownloadProgress() const { return download ? download->progress : !local_path.empty() ? 100 : -2; }
 
-std::string PrinterFileSystem::File::Title() const { return Metadata("Title", name); }
+std::string PrinterFileSystem::File::Title() const { return Metadata("Title", ""); }
 
 std::string PrinterFileSystem::File::Metadata(std::string const &key, std::string const &dflt) const
 {
@@ -981,7 +989,7 @@ void PrinterFileSystem::FileRemoved(std::pair<FileType, std::string> type, size_
                 m_group_flags.erase(m_group_flags.begin() + index2);
         }
     }
-    m_file_list.erase(file_index.first.begin() + index);
+    file_index.first.erase(file_index.first.begin() + index);
 }
 
 struct CallbackEvent : wxCommandEvent
@@ -1025,10 +1033,7 @@ void PrinterFileSystem::DumpLog(void * thiz, int, tchar const *msg)
 boost::uint32_t PrinterFileSystem::SendRequest(int type, json const &req, callback_t2 const &callback)
 {
     if (m_session.tunnel == nullptr) {
-        {
-            boost::unique_lock l(m_mutex);
-            m_cond.notify_all();
-        }
+        Retry();
         callback(ERROR_PIPE, json(), nullptr);
         return 0;
     }
@@ -1223,7 +1228,7 @@ void PrinterFileSystem::Reconnect(boost::unique_lock<boost::mutex> &l, int resul
     if (m_session.tunnel) {
         auto tunnel = m_session.tunnel;
         m_session.tunnel = nullptr;
-        wxLogMessage("PrinterFileSystem::Reconnect close");
+        wxLogMessage("PrinterFileSystem::Reconnect close %d", result);
         l.unlock();
         Bambu_Close(tunnel);
         Bambu_Destroy(tunnel);
@@ -1258,6 +1263,8 @@ void PrinterFileSystem::Reconnect(boost::unique_lock<boost::mutex> &l, int resul
         if (url.size() < 2) {
             wxLogMessage("PrinterFileSystem::Reconnect Initialize failed: %s", wxString::FromUTF8(url));
             m_last_error = atoi(url.c_str());
+            if (m_last_error == 0)
+                m_stopped = true;
         } else {
             wxLogMessage("PrinterFileSystem::Reconnect Initialized: %s", Slic3r::GUI::hide_passwd(wxString::FromUTF8(url), {"authkey=", "passwd="}));
             l.unlock();
@@ -1271,7 +1278,11 @@ void PrinterFileSystem::Reconnect(boost::unique_lock<boost::mutex> &l, int resul
                 ret = Bambu_Open(tunnel);
             }
             if (ret == 0)
-                ret = Bambu_StartStream(tunnel, false);
+                do {
+                    ret = Bambu_StartStreamEx 
+                        ? Bambu_StartStreamEx(tunnel, CTRL_TYPE)
+                        : Bambu_StartStream(tunnel, false);
+                } while (ret == Bambu_would_block);
             l.lock();
             if (ret == 0) {
                 m_session.tunnel = tunnel;
@@ -1352,6 +1363,7 @@ StaticBambuLib &StaticBambuLib::get()
     GET_FUNC(Bambu_Create);
     GET_FUNC(Bambu_Open);
     GET_FUNC(Bambu_StartStream);
+    GET_FUNC(Bambu_StartStreamEx);
     GET_FUNC(Bambu_GetStreamCount);
     GET_FUNC(Bambu_GetStreamInfo);
     GET_FUNC(Bambu_SendMessage);

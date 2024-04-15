@@ -238,12 +238,13 @@ void BackgroundSlicingProcess::process_fff()
 		//BBS: add plate index into render params
 		m_temp_output_path = this->get_current_plate()->get_tmp_gcode_path();
 		m_fff_print->export_gcode(m_temp_output_path, m_gcode_result, [this](const ThumbnailsParams& params) { return this->render_thumbnails(params); });
+		finalize_gcode();
 		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": export gcode finished");
 	}
 	if (this->set_step_started(bspsGCodeFinalize)) {
 	    if (! m_export_path.empty()) {
 			wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, new wxCommandEvent(m_event_export_began_id));
-			finalize_gcode();
+			export_gcode();
 	    } else if (! m_upload_job.empty()) {
 			wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, new wxCommandEvent(m_event_export_began_id));
 			prepare_upload();
@@ -767,32 +768,24 @@ bool BackgroundSlicingProcess::invalidate_all_steps()
 	return m_step_state.invalidate_all([this](){ this->stop_internal(); });
 }
 
+//Call post-processing script for the last step during slicing
+void BackgroundSlicingProcess::finalize_gcode()
+{
+    m_print->set_status(95, _utf8(L("Running post-processing scripts")));
+
+    run_post_process_scripts(m_temp_output_path, false, "File", m_temp_output_path, m_fff_print->full_print_config());
+
+    m_print->set_status(100, _utf8(L("Successfully executed post-processing script")));
+}
+
 // G-code is generated in m_temp_output_path.
 // Optionally run a post-processing script on a copy of m_temp_output_path.
 // Copy the final G-code to target location (possibly a SD card, if it is a removable media, then verify that the file was written without an error).
-void BackgroundSlicingProcess::finalize_gcode()
+void BackgroundSlicingProcess::export_gcode()
 {
-	//BBS: don't support running user-defined post-processing scripts
-	//m_print->set_status(95, _utf8(L("Running post-processing scripts")));
-
 	// Perform the final post-processing of the export path by applying the print statistics over the file name.
 	std::string export_path = m_fff_print->print_statistics().finalize_output_path(m_export_path);
 	std::string output_path = m_temp_output_path;
-
-	// Both output_path and export_path ar in-out parameters.
-	// If post processed, output_path will differ from m_temp_output_path as run_post_process_scripts() will make a copy of the G-code to not
-	// collide with the G-code viewer memory mapping of the unprocessed G-code. G-code viewer maps unprocessed G-code, because m_gcode_result
-	// is calculated for the unprocessed G-code and it references lines in the memory mapped G-code file by line numbers.
-	// export_path may be changed by the post-processing script as well if the post processing script decides so, see GH #6042.
-	bool post_processed = run_post_process_scripts(output_path, true, "File", export_path, m_fff_print->full_print_config());
-	auto remove_post_processed_temp_file = [post_processed, &output_path]() {
-		if (post_processed)
-			try {
-				boost::filesystem::remove(output_path);
-			} catch (const std::exception &ex) {
-				BOOST_LOG_TRIVIAL(error) << "Failed to remove temp file " << output_path << ": " << ex.what();
-			}
-	};
 
 	//FIXME localize the messages
 	std::string error_message;
@@ -800,11 +793,9 @@ void BackgroundSlicingProcess::finalize_gcode()
 	try
 	{
 		copy_ret_val = copy_file(output_path, export_path, error_message, m_export_path_on_removable_media);
-		remove_post_processed_temp_file();
 	}
 	catch (...)
 	{
-		remove_post_processed_temp_file();
 		throw Slic3r::ExportError(_utf8(L("Unknown error when export G-code.")));
 	}
 	switch (copy_ret_val) {
@@ -840,7 +831,6 @@ void BackgroundSlicingProcess::finalize_gcode()
 	// BBS: to be checked. Whether use export_path or output_path.
 	gcode_add_line_number(export_path, m_fff_print->full_print_config());
 
-	m_print->set_status(100, (boost::format(_utf8(L("Succeed to export G-code to %1%"))) % export_path).str());
 }
 
 // A print host upload job has been scheduled, enqueue it to the printhost job queue

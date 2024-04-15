@@ -69,11 +69,12 @@ public:
     void    toggle_line(const std::string& field_key, const bool toggle);
 
     // FFF print
-    void    update_print_fff_config(DynamicPrintConfig* config, const bool is_global_config = false);
+    void    update_print_fff_config(DynamicPrintConfig* config, const bool is_global_config = false, const bool is_plate_config = false);
     void    toggle_print_fff_options(DynamicPrintConfig* config, const bool is_global_config = false);
     void    apply_null_fff_config(DynamicPrintConfig *config, std::vector<std::string> const &keys, std::map<ObjectBase*, ModelConfig*> const & configs);
 
     //BBS: FFF filament nozzle temperature range
+    void    check_nozzle_recommended_temperature_range(DynamicPrintConfig *config);
     void    check_nozzle_temperature_range(DynamicPrintConfig* config);
     void    check_nozzle_temperature_initial_layer_range(DynamicPrintConfig* config);
     void    check_filament_max_volumetric_speed(DynamicPrintConfig *config);
@@ -89,10 +90,10 @@ public:
         m_is_initialized_support_material_overhangs_queried = true;
         m_support_material_overhangs_queried = queried;
     }
+    int    show_spiral_mode_settings_dialog(bool is_object_config = false);
 
 private:
-    std::vector<int> get_temperature_range_by_filament_type(const std::string &filament_type);
-
+    bool get_temperature_range(DynamicPrintConfig *config, int &range_low, int &range_high);
 };
 
 } // GUI

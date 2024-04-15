@@ -95,11 +95,13 @@ private:
     bool m_user_triggered = false;
     int m_failed_retry = 0;
     int m_failed_code = 0;
+    std::vector<double> m_stat;
     std::set<int> m_last_failed_codes;
     wxDateTime    m_last_user_play;
     wxDateTime    m_next_retry;
 
     ::Button *m_button_play;
+    ::Label * m_label_stat;
     ::Label * m_label_status;
 };
 

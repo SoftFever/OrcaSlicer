@@ -224,21 +224,21 @@ bool TriangleMesh::from_stl(stl_file& stl, bool repair)
     return true;
 }
 
-bool TriangleMesh::ReadSTLFile(const char* input_file, bool repair, ImportstlProgressFn stlFn)
-{ 
+bool TriangleMesh::ReadSTLFile(const char *input_file, bool repair, ImportstlProgressFn stlFn, int custom_header_length)
+{
     stl_file stl;
-    if (! stl_open(&stl, input_file, stlFn))
+    if (!stl_open(&stl, input_file, stlFn, custom_header_length))
         return false;
     return from_stl(stl, repair);
 }
 
 bool TriangleMesh::write_ascii(const char* output_file)
-{ 
+{
     return its_write_stl_ascii(output_file, "", this->its);
 }
 
 bool TriangleMesh::write_binary(const char* output_file)
-{ 
+{
     return its_write_stl_binary(output_file, "", this->its);
 }
 
