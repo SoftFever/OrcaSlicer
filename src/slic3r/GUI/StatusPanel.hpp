@@ -17,6 +17,7 @@
 #include "MediaPlayCtrl.h"
 #include "AMSSetting.hpp"
 #include "Calibration.hpp"
+#include "CalibrationWizardPage.hpp"
 #include "PrintOptionsDialog.hpp"
 #include "AMSMaterialsSetting.hpp"
 #include "ExtrusionCalibration.hpp"
@@ -58,6 +59,7 @@ enum CameraTimelapseStatus {
 enum PrintingTaskType {
     PRINGINT,
     CALIBRATION,
+    NOT_CLEAR
 };
 
 struct ScoreData
@@ -212,7 +214,7 @@ public:
     void show_error_msg(wxString msg);
     void reset_printing_value();
     void msw_rescale();
-    
+
 public:
     void enable_pause_resume_button(bool enable, std::string type);
     void enable_abort_button(bool enable);
@@ -390,6 +392,7 @@ protected:
     wxStaticText*   m_staticText_calibration_caption;
     wxStaticText*   m_staticText_calibration_caption_top;
     wxStaticText*   m_calibration_text;
+    Button*         m_parts_btn;
     Button*         m_options_btn;
     Button*         m_calibration_btn;
     StepIndicator*  m_calibration_flow;
@@ -463,6 +466,7 @@ protected:
     std::shared_ptr<CameraPopup> m_camera_popup;
     std::set<int> rated_model_id;
     AMSSetting *m_ams_setting_dlg{nullptr};
+    PrinterPartsDialog*  print_parts_dlg { nullptr };
     PrintOptionsDialog*  print_options_dlg { nullptr };
     CalibrationDialog*   calibration_dlg {nullptr};
     AMSMaterialsSetting *m_filament_setting_dlg{nullptr};
@@ -504,6 +508,11 @@ protected:
     std::vector<Button *>       m_buttons;
     int last_status;
     ScoreData *m_score_data;
+    wxBitmap* calib_bitmap = nullptr;
+    CalibMode m_calib_mode;
+    CalibrationMethod m_calib_method;
+    int cali_stage;
+    PrintingTaskType m_current_print_mode = PrintingTaskType::NOT_CLEAR;
 
     void init_scaled_buttons();
     void create_tasklist_info();
@@ -572,6 +581,7 @@ protected:
     void on_auto_leveling(wxCommandEvent &event);
     void on_xyz_abs(wxCommandEvent &event);
 
+    void on_show_parts_options(wxCommandEvent& event);
     /* print options */
     void on_show_print_options(wxCommandEvent &event);
 
@@ -591,9 +601,11 @@ protected:
     void update_temp_ctrl(MachineObject *obj);
     void update_misc_ctrl(MachineObject *obj);
     void update_ams(MachineObject* obj);
+    void update_ams_insert_material(MachineObject* obj);
     void update_extruder_status(MachineObject* obj);
     void update_ams_control_state(bool is_curr_tray_selected);
     void update_cali(MachineObject* obj);
+    void update_calib_bitmap();
 
     void reset_printing_values();
     void on_webrequest_state(wxWebRequestEvent &evt);

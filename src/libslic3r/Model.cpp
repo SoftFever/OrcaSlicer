@@ -104,6 +104,7 @@ Model& Model::assign_copy(const Model &rhs)
     this->design_info = rhs.design_info;
     this->model_info = rhs.model_info;
     this->stl_design_id = rhs.stl_design_id;
+    this->stl_design_country = rhs.stl_design_country;
     this->profile_info = rhs.profile_info;
 
     this->mk_name = rhs.mk_name;
@@ -138,6 +139,7 @@ Model& Model::assign_copy(Model &&rhs)
     //BBS: add auxiliary path logic
     // BBS: backup, all in one temp dir
     this->stl_design_id = rhs.stl_design_id;
+    this->stl_design_country = rhs.stl_design_country;
     this->mk_name = rhs.mk_name;
     this->mk_version = rhs.mk_version;
     this->backup_path = std::move(rhs.backup_path);
@@ -217,6 +219,8 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
         result = load_step(input_file.c_str(), &model, is_cb_cancel, stepFn, stepIsUtf8Fn);
     else if (boost::algorithm::iends_with(input_file, ".stl"))
         result = load_stl(input_file.c_str(), &model, nullptr, stlFn);
+    else if (boost::algorithm::iends_with(input_file, ".oltp"))
+        result = load_stl(input_file.c_str(), &model, nullptr, stlFn,256);
     else if (boost::algorithm::iends_with(input_file, ".obj"))
         result = load_obj(input_file.c_str(), &model, message);
     else if (boost::algorithm::iends_with(input_file, ".svg"))
@@ -954,6 +958,7 @@ void Model::load_from(Model& model)
     next_object_backup_id = model.next_object_backup_id;
     design_info = model.design_info;
     stl_design_id = model.stl_design_id;
+    stl_design_country = model.stl_design_country;
     model_info  = model.model_info;
     profile_info  = model.profile_info;
     mk_name = model.mk_name;
@@ -1509,12 +1514,15 @@ BoundingBoxf3 ModelObject::instance_bounding_box(const ModelInstance &instance, 
 //BBS: add convex bounding box
 BoundingBoxf3 ModelObject::instance_convex_hull_bounding_box(size_t instance_idx, bool dont_translate) const
 {
+    return instance_convex_hull_bounding_box(this->instances[instance_idx], dont_translate);
+}
+
+BoundingBoxf3 ModelObject::instance_convex_hull_bounding_box(const ModelInstance* instance, bool dont_translate) const
+{
     BoundingBoxf3 bb;
-    const Transform3d& inst_matrix = dont_translate ?
-        this->instances[instance_idx]->get_transformation().get_matrix_no_offset() :
-        this->instances[instance_idx]->get_transformation().get_matrix();
-    for (ModelVolume *v : this->volumes)
-    {
+    const Transform3d inst_matrix = dont_translate ? instance->get_transformation().get_matrix_no_offset() :
+                                                     instance->get_transformation().get_matrix();
+    for (ModelVolume* v : this->volumes) {
         if (v->is_model_part())
             bb.merge(v->get_convex_hull().transformed_bounding_box(inst_matrix * v->get_matrix()));
     }
