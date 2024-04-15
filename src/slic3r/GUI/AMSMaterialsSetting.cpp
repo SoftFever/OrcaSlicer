@@ -13,6 +13,13 @@ namespace Slic3r { namespace GUI {
 
 wxDEFINE_EVENT(EVT_SELECTED_COLOR, wxCommandEvent);
 
+static std::string float_to_string_with_precision(float value, int precision = 3)
+{
+    std::stringstream stream;
+    stream << std::fixed << std::setprecision(precision) << value;
+    return stream.str();
+}
+
 AMSMaterialsSetting::AMSMaterialsSetting(wxWindow *parent, wxWindowID id) 
     : DPIDialog(parent, id, _L("AMS Materials Setting"), wxDefaultPosition, wxDefaultSize, wxBORDER_NONE)
     , m_color_picker_popup(ColorPickerPopup(this))
@@ -922,8 +929,8 @@ void AMSMaterialsSetting::on_select_cali_result(wxCommandEvent &evt)
 {
     m_pa_cali_select_id = evt.GetSelection();
     if (m_pa_cali_select_id >= 0) {
-        m_input_k_val->GetTextCtrl()->SetValue(std::to_string(m_pa_profile_items[m_pa_cali_select_id].k_value));
-        m_input_n_val->GetTextCtrl()->SetValue(std::to_string(m_pa_profile_items[m_pa_cali_select_id].n_coef));
+        m_input_k_val->GetTextCtrl()->SetValue(float_to_string_with_precision(m_pa_profile_items[m_pa_cali_select_id].k_value));
+        m_input_n_val->GetTextCtrl()->SetValue(float_to_string_with_precision(m_pa_profile_items[m_pa_cali_select_id].n_coef));
     }
     else{
         m_input_k_val->GetTextCtrl()->SetValue(std::to_string(0.00));
@@ -1012,6 +1019,8 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
         m_button_confirm->SetBorderColor(wxColour(0x90, 0x90, 0x90));
         m_comboBox_cali_result->Clear();
         m_comboBox_cali_result->SetValue(wxEmptyString);
+        m_input_k_val->GetTextCtrl()->SetValue(wxEmptyString);
+        m_input_n_val->GetTextCtrl()->SetValue(wxEmptyString);
         return;
     }
     else {
@@ -1076,8 +1085,8 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
         }
         
         if (cali_select_idx >= 0) {
-            m_input_k_val->GetTextCtrl()->SetValue(std::to_string(m_pa_profile_items[cali_select_idx].k_value));
-            m_input_n_val->GetTextCtrl()->SetValue(std::to_string(m_pa_profile_items[cali_select_idx].n_coef));
+            m_input_k_val->GetTextCtrl()->SetValue(float_to_string_with_precision(m_pa_profile_items[cali_select_idx].k_value));
+            m_input_n_val->GetTextCtrl()->SetValue(float_to_string_with_precision(m_pa_profile_items[cali_select_idx].n_coef));
         }
     }
     else {
