@@ -24,6 +24,27 @@
   "pressure_advance": [
       "0.03"
   ],
+  "max_fan_speed":[
+    "40"
+],
+"min_fan_speed":[
+    "20"
+],
+"hot_plate_temp_initial_layer" : [
+  "80"
+],
+"hot_plate_temp" : [
+"80"
+],
+"slow_down_layer_time": [
+"15"
+],
+"filament_density":[
+"1.21"
+],
+"filament_flow_ratio": [
+"0.96"
+],
 	"compatible_printers": [
       "Qidi X-Plus 0.4 nozzle",
       "Qidi X-Max 0.4 nozzle",
@@ -41,7 +62,6 @@
   "Qidi X-CF Pro 0.8 nozzle",
 "Qidi X-Smart 3 0.8 nozzle",
 "Qidi X-Plus 3 0.8 nozzle",
-"Qidi X-Max 3 0.8 nozzle",
-"Qidi Q1 Pro 0.6 nozzle"
+"Qidi X-Max 3 0.8 nozzle"
 	]
 }
