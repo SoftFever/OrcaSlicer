@@ -1211,7 +1211,7 @@ void Choice::BUILD()
             && m_list == nullptr) {
         m_is_editable = true;
         static Builder<choice_ctrl> builder1;
-        temp = builder1.build(m_parent, wxID_ANY, wxString(""), wxDefaultPosition, wxDefaultSize, 0, nullptr, wxTE_PROCESS_ENTER);
+        temp = builder1.build(m_parent, wxID_ANY, wxString(""), wxDefaultPosition, size, 0, nullptr, wxTE_PROCESS_ENTER);
     }
     else {
 #ifdef UNDEIFNED__WXOSX__ // __WXOSX__ // BBS
@@ -1224,10 +1224,10 @@ void Choice::BUILD()
         temp->Create(m_parent, wxID_ANY, wxString(""), wxDefaultPosition, size, 0, nullptr);
 #else
         static Builder<choice_ctrl> builder2;
-        temp = builder2.build(m_parent, wxID_ANY, wxString(""), wxDefaultPosition, wxDefaultSize, 0, nullptr, wxCB_READONLY);
+        temp = builder2.build(m_parent, wxID_ANY, wxString(""), wxDefaultPosition, size, 0, nullptr, wxCB_READONLY);
 #endif //__WXOSX__
     }
-    temp->SetSize(size);
+    // temp->SetSize(size);
     temp->Clear();
     temp->GetDropDown().SetUseContentWidth(true);
     if (parent_is_custom_ctrl && m_opt.height < 0)
