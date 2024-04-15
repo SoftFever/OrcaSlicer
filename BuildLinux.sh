@@ -121,10 +121,6 @@ then
     fi
     if [[ -n "${BUILD_DEBUG}" ]]
     then
-        # have to build deps with debug & release or the cmake won't find everything it needs
-        mkdir deps/build/release
-        cmake -S deps -B deps/build/release -G Ninja -DDESTDIR="../destdir" ${BUILD_ARGS}
-        cmake --build deps/build/release
         BUILD_ARGS="${BUILD_ARGS} -DCMAKE_BUILD_TYPE=Debug"
     fi
 
