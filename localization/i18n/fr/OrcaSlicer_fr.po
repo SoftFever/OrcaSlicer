@@ -8042,7 +8042,7 @@ msgid "Transfer values from left to right"
 msgstr "Transférer les valeurs de gauche à droite"
 
 msgid ""
-"If enabled, this dialog can be used for transver selected values from left "
+"If enabled, this dialog can be used for transfer selected values from left "
 "to right preset."
 msgstr ""
 "Si elle est activée, cette boîte de dialogue peut être utilisée pour "

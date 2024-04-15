@@ -7781,7 +7781,7 @@ msgid "Transfer values from left to right"
 msgstr "Değerleri soldan sağa aktarın"
 
 msgid ""
-"If enabled, this dialog can be used for transver selected values from left "
+"If enabled, this dialog can be used for transfer selected values from left "
 "to right preset."
 msgstr ""
 "Etkinleştirilirse, bu iletişim kutusu seçilen değerleri soldan sağa ön ayara "

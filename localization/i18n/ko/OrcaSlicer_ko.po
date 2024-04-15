@@ -7649,7 +7649,7 @@ msgid "Transfer values from left to right"
 msgstr "왼쪽에서 오른쪽으로 값 전송"
 
 msgid ""
-"If enabled, this dialog can be used for transver selected values from left "
+"If enabled, this dialog can be used for transfer selected values from left "
 "to right preset."
 msgstr ""
 "이 대화 상자를 활성화하면 선택한 값을 왼쪽에서 오른쪽으로 사전 설정으로 변환"

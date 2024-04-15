@@ -7900,7 +7900,7 @@ msgid "Transfer values from left to right"
 msgstr "Перенос значений слева направо"
 
 msgid ""
-"If enabled, this dialog can be used for transver selected values from left "
+"If enabled, this dialog can be used for transfer selected values from left "
 "to right preset."
 msgstr ""
 "Если включено, это диалоговое окно можно использовать для переноса выбранных "

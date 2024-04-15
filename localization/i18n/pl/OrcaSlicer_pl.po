@@ -7845,7 +7845,7 @@ msgid "Transfer values from left to right"
 msgstr "Przenieś wartości z lewej do prawej"
 
 msgid ""
-"If enabled, this dialog can be used for transver selected values from left "
+"If enabled, this dialog can be used for transfer selected values from left "
 "to right preset."
 msgstr ""
 "Jeśli ta opcja jest aktywowana, to okno dialogowe może być używane do "
