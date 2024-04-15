@@ -34,7 +34,7 @@
 	"min_layer_height": ["0.08"],
 	"printer_settings_id": "Creality",
 	"retraction_minimum_travel": ["2"],
-	"retract_before_wipe": ["70%"],
+	"retract_before_wipe": ["0%"],
 	"retraction_length": ["0.5"],
 	"retract_length_toolchange": ["1"],
 	"retraction_speed": ["40"],
