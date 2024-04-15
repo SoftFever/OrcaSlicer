@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-29 21:10+0800\n"
+"POT-Creation-Date: 2024-04-15 22:59+0800\n"
 "PO-Revision-Date: 2023-04-01 13:21+0800\n"
 "Last-Translator: SoftFever <softfeverever@gmail.com>\n"
 "Language-Team: \n"
@@ -256,6 +256,9 @@ msgstr "重置旋转"
 
 msgid "World coordinates"
 msgstr "世界坐标"
+
+msgid "Object coordinates"
+msgstr "物体坐标"
 
 msgid "°"
 msgstr "°"
@@ -1740,8 +1743,8 @@ msgstr "缺省"
 msgid "Filament %d"
 msgstr "耗材丝%d"
 
-msgid "active"
-msgstr "活动的"
+msgid "current"
+msgstr "当前"
 
 msgid "Scale to build volume"
 msgstr "缩放到构建空间大小"
@@ -1916,9 +1919,6 @@ msgstr "更换耗材丝"
 
 msgid "Set Filament for selected items"
 msgstr "设置所选项的耗材丝"
-
-msgid "current"
-msgstr "当前"
 
 msgid "Unlock"
 msgstr "解锁"
@@ -2232,9 +2232,6 @@ msgid "Enter Custom G-code used on current layer:"
 msgstr "输入当前层上使用的自定义G-code："
 
 msgid "Jump to Layer"
-msgstr "跳转到层"
-
-msgid "Jump to layer"
 msgstr "跳转到层"
 
 msgid "Please enter the layer number"
@@ -2837,31 +2834,15 @@ msgstr "不启用AMS"
 msgid "Print with the filament mounted on the back of chassis"
 msgstr "使用机箱背后挂载的材料打印"
 
-msgid "Cabin humidity"
-msgstr "舱内湿度"
-
-msgid ""
-"Green means that AMS humidity is normal, orange represent humidity is high, "
-"red represent humidity is too high.(Hygrometer: lower the better.)"
+msgid "Current Cabin humidity"
 msgstr ""
-"绿色表示 AMS 湿度正常，橙色表示湿度高，红色表示湿度过高。(湿度计：越低越好。)"
-
-msgid "Desiccant status"
-msgstr "干燥剂状态"
 
 msgid ""
-"A desiccant status lower than two bars indicates that desiccant may be "
-"inactive. Please change the desiccant.(The bars: higher the better.)"
-msgstr "干燥剂状态低于两格表示干燥剂可能不活跃。请更换干燥剂。(杠：越高越好)。"
-
-msgid ""
-"Note: When the lid is open or the desiccant pack is changed, it can take "
-"hours or a night to absorb the moisture. Low temperatures also slow down the "
-"process. During this time, the indicator may not represent the chamber "
-"accurately."
+"Please change the desiccant when it is too wet. The indicator may not "
+"represent accurately in following cases : when the lid is open or the "
+"desiccant pack is changed. it take hours to absorb the moisture, low "
+"temperatures also slow down the process."
 msgstr ""
-"注意：当盖子打开或更换干燥剂包装时，可能需要数小时或一晚才能吸收水分，低温也"
-"会减慢这一过程。在此期间，指示器的数值可能并不准确。"
 
 msgid ""
 "Config which AMS slot should be used for a filament used in the print job"
@@ -2912,6 +2893,12 @@ msgstr ""
 "如果AMS中有两卷相同的耗材，则自动补给启用。\n"
 "（目前支持品牌、材料种类、颜色相同的耗材的自动补给）"
 
+msgid "DRY"
+msgstr ""
+
+msgid "WET"
+msgstr ""
+
 msgid "AMS Settings"
 msgstr "AMS 设置"
 
@@ -2926,11 +2913,9 @@ msgstr ""
 "秒。"
 
 msgid ""
-"Note: if new filament is inserted during  printing, the AMS will not "
+"Note: if a new filament is inserted during  printing, the AMS will not "
 "automatically read any information until printing is completed."
 msgstr ""
-"注意：如果是在打印过程中插入新的耗材丝，AMS会在打印结束后自动读取此耗材丝信"
-"息。"
 
 msgid ""
 "When inserting a new filament, the AMS will not automatically read its "
@@ -3040,6 +3025,12 @@ msgstr "浮点保留操作数"
 msgid "Stack overflow"
 msgstr "栈溢出"
 
+msgid "Running post-processing scripts"
+msgstr "运行后处理脚本"
+
+msgid "Successfully executed post-processing script"
+msgstr ""
+
 msgid "Unknown error when export G-code."
 msgstr "导出G-code文件发生未知错误。"
 
@@ -3052,13 +3043,6 @@ msgstr ""
 "无法保存Gcode文件。\n"
 "错误信息：%1%。\n"
 "源文件 %2%."
-
-#, boost-format
-msgid "Succeed to export G-code to %1%"
-msgstr "成功导出G-code至 %1%"
-
-msgid "Running post-processing scripts"
-msgstr "运行后处理脚本"
 
 msgid "Copying of the temporary G-code to the output G-code failed"
 msgstr "将临时 G 代码复制到输出 G 代码失败"
@@ -3131,6 +3115,19 @@ msgstr "选择 STL 文件来导入床模型:"
 
 msgid "Bed Shape"
 msgstr "热床形状"
+
+msgid ""
+"The recommended minimum temperature is less than 190 degree or the "
+"recommended maximum temperature is greater than 300 degree.\n"
+msgstr ""
+
+msgid ""
+"The recommended minimum temperature cannot be higher than the recommended "
+"maximum temperature.\n"
+msgstr ""
+
+msgid "Please check.\n"
+msgstr ""
 
 msgid ""
 "Nozzle may be blocked when the temperature is out of recommended range.\n"
@@ -3209,25 +3206,6 @@ msgstr ""
 "这个数值将被重置为0。"
 
 msgid ""
-"Spiral mode only works when wall loops is 1, support is disabled, top shell "
-"layers is 0, sparse infill density is 0 and timelapse type is traditional."
-msgstr ""
-"旋转模式只能在外墙层数为1，关闭支撑，顶层层数为0，稀疏填充密度为0，传统延时摄"
-"影时有效。"
-
-msgid " But machines with I3 structure will not generate timelapse videos."
-msgstr "但是使用I3结构的机器将不会生成延时视频。"
-
-msgid ""
-"Change these settings automatically? \n"
-"Yes - Change these settings and enable spiral mode automatically\n"
-"No  - Give up using spiral mode this time"
-msgstr ""
-"自动调整这些设置？\n"
-"是 - 自动调整这些设置并开启旋转模式\n"
-"否 - 暂不使用旋转模式"
-
-msgid ""
 "Alternate extra wall does't work well when ensure vertical shell thickness "
 "is set to All. "
 msgstr "“交替添加额外”与“确保垂直外壳厚度”的”全部“选项不兼容。"
@@ -3287,6 +3265,25 @@ msgid ""
 msgstr ""
 "seam_slope_start_height需要小于layer_height。\n"
 "重置为0。"
+
+msgid ""
+"Spiral mode only works when wall loops is 1, support is disabled, top shell "
+"layers is 0, sparse infill density is 0 and timelapse type is traditional."
+msgstr ""
+"旋转模式只能在外墙层数为1，关闭支撑，顶层层数为0，稀疏填充密度为0，传统延时摄"
+"影时有效。"
+
+msgid " But machines with I3 structure will not generate timelapse videos."
+msgstr "但是使用I3结构的机器将不会生成延时视频。"
+
+msgid ""
+"Change these settings automatically? \n"
+"Yes - Change these settings and enable spiral mode automatically\n"
+"No  - Give up using spiral mode this time"
+msgstr ""
+"自动调整这些设置？\n"
+"是 - 自动调整这些设置并开启旋转模式\n"
+"否 - 暂不使用旋转模式"
 
 msgid "Auto bed leveling"
 msgstr "自动热床调平"
@@ -3569,6 +3566,10 @@ msgstr "值 %s 越界，是否继续？"
 msgid "Parameter validation"
 msgstr "参数验证"
 
+#, c-format, boost-format
+msgid "Value %s is out of range. The valid range is from %d to %d."
+msgstr ""
+
 msgid "Value is out of range."
 msgstr "值越界。"
 
@@ -3649,11 +3650,11 @@ msgstr "显示"
 msgid "Flushed"
 msgstr "冲刷"
 
-msgid "Total"
-msgstr "总计"
-
 msgid "Tower"
 msgstr "擦料塔"
+
+msgid "Total"
+msgstr "总计"
 
 msgid "Total Estimation"
 msgstr "总预估"
@@ -3757,6 +3758,12 @@ msgstr "时间预估"
 msgid "Normal mode"
 msgstr "普通模式"
 
+msgid "Total Filament"
+msgstr ""
+
+msgid "Model Filament"
+msgstr ""
+
 msgid "Prepare time"
 msgstr "准备时间"
 
@@ -3850,6 +3857,9 @@ msgstr "自动摆放选项"
 
 msgid "Spacing"
 msgstr "间距"
+
+msgid "0 means auto spacing."
+msgstr ""
 
 msgid "Auto rotate for arrangement"
 msgstr "自动旋转以优化自动摆放效果"
@@ -3994,6 +4004,9 @@ msgstr "监控录像"
 
 msgid "Go Live"
 msgstr "开启直播"
+
+msgid "Liveview Retry"
+msgstr ""
 
 msgid "Resolution"
 msgstr "分辨率"
@@ -4501,40 +4514,49 @@ msgstr ""
 msgid "Synchronization"
 msgstr "同步"
 
-msgid "Initialize failed (No Device)!"
-msgstr "初始化失败（没有设备）！"
+msgid "The device cannot handle more conversations. Please retry later."
+msgstr "设备无法处理更多的对话。请稍后重试。"
 
-msgid "Initialize failed (Device connection not ready)!"
-msgstr "初始化失败（设备未连接）"
+msgid "Player is malfunctioning. Please reinstall the system player."
+msgstr ""
 
-msgid "Initialize failed (No Camera Device)!"
-msgstr "初始化失败（没有摄像头）"
+msgid "The player is not loaded, please click \"play\" button to retry."
+msgstr ""
 
-msgid "Printer is busy downloading, Please wait for the downloading to finish."
-msgstr "打印机正忙于下载，请等待下载完成。"
+msgid "Please confirm if the printer is connected."
+msgstr ""
 
-msgid "Initialize failed (Not supported on the current printer version)!"
-msgstr "初始化失败（当前打印机的版本不支持）！"
+msgid ""
+"The printer is currently busy downloading. Please try again after it "
+"finishes."
+msgstr ""
 
-msgid "Initialize failed (Not accessible in LAN-only mode)!"
-msgstr "初始化失败（在局域网模式中不可访问）！"
+msgid "Printer camera is malfunctioning."
+msgstr ""
 
-msgid "Initialize failed (Missing LAN ip of printer)!"
-msgstr "初始化失败（未找到打印机的局域网地址）！"
+msgid "Problem occured. Please update the printer firmware and try again."
+msgstr ""
+
+msgid ""
+"LAN Only Liveview is off. Please turn on the liveview on printer screen."
+msgstr ""
+
+msgid "Please enter the IP of printer to connect."
+msgstr ""
 
 msgid "Initializing..."
 msgstr "正在初始化……"
 
-#, c-format, boost-format
-msgid "Initialize failed (%s)!"
-msgstr "初始化失败（%s）!"
+msgid "Connection Failed. Please check the network and try again"
+msgstr ""
 
-msgid "Network unreachable"
-msgstr "网络不可访问"
+msgid ""
+"Please check the network and try again, You can restart or update the "
+"printer if the issue persists."
+msgstr ""
 
-#, c-format, boost-format
-msgid "Stopped [%d]!"
-msgstr "已停止 [%d]!"
+msgid "The printer has been logged out and cannot connect."
+msgstr ""
 
 msgid "Stopped."
 msgstr "已经停止。"
@@ -4563,15 +4585,14 @@ msgstr ""
 msgid "Virtual camera initialize failed (%s)!"
 msgstr "虚拟摄像头初始化失败(%s)！"
 
+msgid "Network unreachable"
+msgstr "网络不可访问"
+
 msgid "Information"
 msgstr "信息"
 
 msgid "Playing..."
 msgstr "正在播放中……"
-
-#, c-format, boost-format
-msgid "Load failed [%d]!"
-msgstr "加载失败 [%d]！"
 
 msgid "Loading..."
 msgstr "正在加载视频……"
@@ -4624,6 +4645,12 @@ msgstr "选择"
 msgid "Batch manage files."
 msgstr "批量管理文件"
 
+msgid "Refresh"
+msgstr "刷新"
+
+msgid "Reload file list from printer."
+msgstr ""
+
 msgid "No printers."
 msgstr "未选择打印机"
 
@@ -4634,13 +4661,32 @@ msgstr "连接失败 [%d]！"
 msgid "Loading file list..."
 msgstr "加载文件列表..."
 
-#, c-format, boost-format
-msgid "No files [%d]"
-msgstr "文件列表为空[%d]"
+msgid "No files"
+msgstr ""
+
+msgid "Load failed"
+msgstr ""
+
+msgid "Initialize failed (Device connection not ready)!"
+msgstr "初始化失败（设备未连接）"
+
+msgid ""
+"Browsing file in SD card is not supported in current firmware. Please update "
+"the printer firmware."
+msgstr ""
+
+msgid "Initialize failed (Storage unavailable, insert SD card.)!"
+msgstr ""
+
+msgid "LAN Connection Failed (Failed to view sdcard)"
+msgstr ""
+
+msgid "Browsing file in SD card is not supported in LAN Only Mode."
+msgstr ""
 
 #, c-format, boost-format
-msgid "Load failed [%d]"
-msgstr "加载失败 [%d]"
+msgid "Initialize failed (%s)!"
+msgstr "初始化失败（%s）!"
 
 #, c-format, boost-format
 msgid "You are going to delete %u file from printer. Are you sure to continue?"
@@ -4661,11 +4707,11 @@ msgstr "删除文件"
 msgid "Fetching model infomations ..."
 msgstr "正在获取模型信息..."
 
-msgid "Failed to fetching model infomations from printer."
-msgstr "无法从打印机获取模型信息。"
+msgid "Failed to fetch model information from printer."
+msgstr ""
 
-msgid "Failed to parse model infomations."
-msgstr "解析模型信息失败。"
+msgid "Failed to parse model information."
+msgstr ""
 
 msgid ""
 "The .gcode.3mf file contains no G-code data.Please slice it with Orca Slicer "
@@ -4677,6 +4723,12 @@ msgstr ""
 #, c-format, boost-format
 msgid "File '%s' was lost! Please download it again."
 msgstr "文件%s丢失，请重新下载。"
+
+#, c-format, boost-format
+msgid ""
+"File: %s\n"
+"Title: %s\n"
+msgstr ""
 
 msgid "Download waiting..."
 msgstr "等待下载中..."
@@ -4694,14 +4746,18 @@ msgstr "下载完成"
 msgid "Downloading %d%%..."
 msgstr "下载中 %d%%..."
 
-msgid "Connection lost. Please retry."
-msgstr "连接丢失。请重试。"
+msgid ""
+"Reconnecting the printer, the operation cannot be completed immediately, "
+"please try again later."
+msgstr ""
 
-msgid "The device cannot handle more conversations. Please retry later."
-msgstr "设备无法处理更多的对话。请稍后重试。"
+msgid ""
+"Over 4 studio/handy are using remote access, you can close some and try "
+"again."
+msgstr ""
 
-msgid "File not exists."
-msgstr "文件不存在"
+msgid "File does not exist."
+msgstr ""
 
 msgid "File checksum error. Please retry."
 msgstr "文件校验和错误。请重试。"
@@ -4803,6 +4859,9 @@ msgstr ""
 
 msgid "Control"
 msgstr "控制"
+
+msgid "Printer Parts"
+msgstr ""
 
 msgid "Print Options"
 msgstr "打印选项"
@@ -5033,6 +5092,36 @@ msgstr "%s 信息"
 msgid "Skip"
 msgstr "跳过"
 
+msgid "Newer 3mf version"
+msgstr "较新的3mf版本"
+
+msgid ""
+"The 3mf file version is in Beta and it is newer than the current Bambu "
+"Studio version."
+msgstr ""
+
+msgid "If you would like to try Bambu Studio Beta, you may click to"
+msgstr ""
+
+msgid "Download Beta Version"
+msgstr ""
+
+msgid "The 3mf file version is newer than the current Bambu Studio version."
+msgstr ""
+
+msgid ""
+"Update your Bambu Studio could enable all functionality in the 3mf file."
+msgstr ""
+
+msgid "Current Version: "
+msgstr ""
+
+msgid "Latest Version: "
+msgstr ""
+
+msgid "Not for now"
+msgstr ""
+
 msgid "3D Mouse disconnected."
 msgstr "3D鼠标断连。"
 
@@ -5209,6 +5298,19 @@ msgstr "允许提示音"
 
 msgid "Filament Tangle Detect"
 msgstr "缠料检测"
+
+msgid "Nozzle Type"
+msgstr ""
+
+msgid "Stainless Steel"
+msgstr "不锈钢"
+
+msgid "Hardened Steel"
+msgstr "硬化钢"
+
+#, c-format, boost-format
+msgid "%.1f"
+msgstr ""
 
 msgid "Global"
 msgstr "全局"
@@ -5400,9 +5502,6 @@ msgstr "该3mf的版本%s比%s的版本%s新，发现以下参数键值无法识
 
 msgid "You'd better upgrade your software.\n"
 msgstr "建议升级您的软件版本。\n"
-
-msgid "Newer 3mf version"
-msgstr "较新的3mf版本"
 
 #, c-format, boost-format
 msgid ""
@@ -5712,8 +5811,24 @@ msgstr "文件%s已经发送到打印机的存储空间，可以在打印机上�
 
 msgid ""
 "Unable to perform boolean operation on model meshes. Only positive parts "
-"will be exported."
-msgstr "无法对模型网格执行布尔运算。只有正面部分将被导出。"
+"will be kept. You may fix the meshes and try agian."
+msgstr ""
+
+#, boost-format
+msgid "Reason: part \"%1%\" is empty."
+msgstr ""
+
+#, boost-format
+msgid "Reason: part \"%1%\" does not bound a volume."
+msgstr ""
+
+#, boost-format
+msgid "Reason: part \"%1%\" has self intersection."
+msgstr ""
+
+#, boost-format
+msgid "Reason: \"%1%\" and another part have no intersection."
+msgstr ""
 
 msgid ""
 "Are you sure you want to store original SVGs with their local paths into the "
@@ -5887,6 +6002,18 @@ msgstr ""
 msgid "Set the page opened on startup."
 msgstr ""
 
+msgid "Touchpad"
+msgstr ""
+
+msgid "Camera style"
+msgstr ""
+
+msgid ""
+"Select camera navigation style.\n"
+"Default: LMB+move for rotation, RMB/MMB+move for panning.\n"
+"Touchpad: Alt+move for rotation, Shift+move for panning."
+msgstr ""
+
 msgid "Zoom to mouse position"
 msgstr "放大到鼠标位置"
 
@@ -5900,6 +6027,12 @@ msgstr "使用自由视角"
 
 msgid "If enabled, use free camera. If not enabled, use constrained camera."
 msgstr "如果启用，使用自由视角。如果未启用，使用约束视角。"
+
+msgid "Reverse mouse zoom"
+msgstr ""
+
+msgid "If enabled, reverses the direction of zoom with mouse wheel."
+msgstr ""
 
 msgid "Show splash screen"
 msgstr "显示启动画面"
@@ -5918,6 +6051,21 @@ msgstr "冲刷体积：每一次更换颜色时自动计算。"
 
 msgid "If enabled, auto-calculate everytime the color changed."
 msgstr "如果启用，会在每一次更换颜色时自动计算。"
+
+msgid ""
+"Flushing volumes: Auto-calculate every time when the filament is changed."
+msgstr ""
+
+msgid "If enabled, auto-calculate every time when filament is changed"
+msgstr ""
+
+msgid "Remember printer configuration"
+msgstr ""
+
+msgid ""
+"If enabled, Orca will remember and switch filament/process configuration for "
+"each printer automatically."
+msgstr ""
 
 msgid "Network"
 msgstr "网络"
@@ -6133,6 +6281,18 @@ msgstr "不兼容的预设"
 msgid "The selected preset is null!"
 msgstr "选择的预设为空！"
 
+msgid "End"
+msgstr ""
+
+msgid "Customize"
+msgstr "自定义"
+
+msgid "Other layer filament sequence"
+msgstr ""
+
+msgid "Please input layer value (>= 2)."
+msgstr ""
+
 msgid "Plate name"
 msgstr "盘名称"
 
@@ -6142,8 +6302,14 @@ msgstr "跟随全局打印顺序"
 msgid "Print sequence"
 msgstr "打印顺序"
 
-msgid "Customize"
-msgstr "自定义"
+msgid "Same as Global"
+msgstr ""
+
+msgid "Disable"
+msgstr ""
+
+msgid "Spiral vase"
+msgstr "旋转花瓶"
 
 msgid "First layer filament sequence"
 msgstr "首层耗材打印顺序"
@@ -6325,9 +6491,6 @@ msgstr ""
 msgid "Send print job to"
 msgstr "发送打印任务至"
 
-msgid "Refresh"
-msgstr "刷新"
-
 msgid "Bed Leveling"
 msgstr "热床调平"
 
@@ -6415,8 +6578,11 @@ msgstr ""
 msgid "An SD card needs to be inserted before printing."
 msgstr "请在发起打印前插入SD卡"
 
-msgid "The selected printer is incompatible with the chosen printer presets."
-msgstr "所选打印机与选择的打印机预设不兼容。"
+#, c-format, boost-format
+msgid ""
+"The selected printer (%s) is incompatible with the chosen printer profile in "
+"the slicer (%s)."
+msgstr ""
 
 msgid "An SD card needs to be inserted to record timelapse."
 msgstr "开启延迟摄影功能需要插入SD卡"
@@ -6472,23 +6638,23 @@ msgid "nozzle memorized: %.1f %s"
 msgstr "记忆中的喷嘴：%.1f %s"
 
 msgid ""
-"Your nozzle diameter in preset is not consistent with memorized nozzle "
-"diameter. Did you change your nozzle lately?"
-msgstr "预设中的喷嘴直径与记忆的喷嘴直径不一致。您最近更换了喷嘴吗？"
+"Your nozzle diameter in sliced file is not consistent with memorized nozzle. "
+"If you changed your nozzle lately, please go to Device > Printer Parts to "
+"change settings."
+msgstr ""
 
 #, c-format, boost-format
-msgid "*Printing %s material with %s may cause nozzle damage"
-msgstr "*使用 %s 材料和 %s 打印可能会导致喷嘴损坏"
+msgid ""
+"Printing high temperature material(%s material) with %s may cause nozzle "
+"damage"
+msgstr ""
+
+msgid "Please fix the error above, otherwise printing cannot continue."
+msgstr ""
 
 msgid ""
 "Please click the confirm button if you still want to proceed with printing."
 msgstr "如果您仍然想继续打印，请单击“确定”按钮。"
-
-msgid "Hardened Steel"
-msgstr "硬化钢"
-
-msgid "Stainless Steel"
-msgstr "不锈钢"
 
 msgid ""
 "Connecting to the printer. Unable to cancel during the connection process."
@@ -6519,6 +6685,9 @@ msgstr "发送到打印机的SD卡"
 
 msgid "Cannot send the print task when the upgrade is in progress"
 msgstr "设备升级中，无法发送打印任务"
+
+msgid "The selected printer is incompatible with the chosen printer presets."
+msgstr "所选打印机与选择的打印机预设不兼容。"
 
 msgid "An SD card needs to be inserted before send to printer SD card."
 msgstr "发送到打印机需要插入SD卡"
@@ -6734,6 +6903,20 @@ msgstr "调整"
 
 msgid "Ignore"
 msgstr "忽略"
+
+msgid ""
+"Experimental feature: Retracting and cutting off the filament at a greater "
+"distance during filament changes to minimize flush.Although it can notably "
+"reduce flush,  it may also elevate the risk of nozzle clogs or other "
+"printing complications."
+msgstr ""
+
+msgid ""
+"Experimental feature: Retracting and cutting off the filament at a greater "
+"distance during filament changes to minimize flush.Although it can notably "
+"reduce flush, it may also elevate the risk of nozzle clogs or other printing "
+"complications.Please use with the latest printer firmware."
+msgstr ""
 
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
@@ -7128,23 +7311,26 @@ msgstr "未定义"
 msgid "Unsaved Changes"
 msgstr "未保存的更改"
 
-msgid "Transfer or discard changes"
-msgstr "放弃或保留更改"
+msgid "Actions For Unsaved Changes"
+msgstr ""
 
-msgid "Old Value"
-msgstr "旧值"
+msgid "Preset Value"
+msgstr ""
 
-msgid "New Value"
-msgstr "新值"
+msgid "Modified Value"
+msgstr ""
 
-msgid "Transfer"
-msgstr "迁移"
+msgid "Transfer Modified Value"
+msgstr ""
 
 msgid "Don't save"
 msgstr "不保存"
 
-msgid "Discard"
-msgstr "放弃"
+msgid "Use Preset Value"
+msgstr ""
+
+msgid "Save Modified Value"
+msgstr ""
 
 msgid "Click the right mouse button to display the full text."
 msgstr "单击鼠标右键显示全文。"
@@ -7197,17 +7383,34 @@ msgid ""
 msgstr "预设“%1%”和新的工艺预设不兼容，并且它包含以下未保存的修改："
 
 #, boost-format
-msgid ""
-"You have changed some settings of preset \"%1%\". \n"
-"Would you like to keep these changed settings (new value) after switching "
-"preset?"
-msgstr "您已经更改了预设 \"%1%\"，是否在切换后要保留这些更改的预设参数？"
+msgid "You have changed some settings of preset \"%1%\". "
+msgstr ""
 
 msgid ""
-"You have changed some preset settings. \n"
-"Would you like to keep these changed settings (new value) after switching "
-"preset?"
-msgstr "您已经更改了预设参数，是否在切换后要保留这些更改的预设参数？"
+"\n"
+"Would you like to save these changed settings(modified value)?"
+msgstr ""
+
+msgid ""
+"\n"
+"Would you like to keep these changed settings(modified value) after "
+"switching preset?"
+msgstr ""
+
+msgid ""
+"You have previously modified your settings and are about to overwrite them "
+"with new ones."
+msgstr ""
+
+msgid ""
+"\n"
+"Do you want to keep your current modified settings, or use preset settings?"
+msgstr ""
+
+msgid ""
+"\n"
+"Do you want to save your current modified settings?"
+msgstr ""
 
 msgid "Extruders count"
 msgstr "挤出机数量"
@@ -7224,6 +7427,9 @@ msgstr "显示所有预设(包括不兼容的)"
 msgid "Select presets to compare"
 msgstr "选择要比较的预设"
 
+msgid "Transfer"
+msgstr "迁移"
+
 msgid ""
 "You can only transfer to current active profile because it has been modified."
 msgstr ""
@@ -7238,7 +7444,7 @@ msgid "Transfer values from left to right"
 msgstr ""
 
 msgid ""
-"If enabled, this dialog can be used for transver selected values from left "
+"If enabled, this dialog can be used for transfer selected values from left "
 "to right preset."
 msgstr ""
 
@@ -7695,6 +7901,9 @@ msgstr "跳过本版本"
 
 msgid "Done"
 msgstr "完成"
+
+msgid "resume"
+msgstr ""
 
 msgid "Confirm and Update Nozzle"
 msgstr "确认并更新喷嘴"
@@ -8492,6 +8701,15 @@ msgstr "工程材料热床"
 msgid "First layer print sequence"
 msgstr "第一层打印顺序"
 
+msgid "Other layers print sequence"
+msgstr ""
+
+msgid "The number of other layers print sequence"
+msgstr ""
+
+msgid "Other layers filament sequence"
+msgstr ""
+
 msgid "This G-code is inserted at every layer change before lifting z"
 msgstr "在每次换层抬升z高度之前插入这段G-code"
 
@@ -9285,6 +9503,12 @@ msgid ""
 "printing."
 msgstr "挤出机四周的避让半径。用于在逐件打印中避免碰撞。"
 
+msgid "Nozzle height"
+msgstr ""
+
+msgid "The height of nozzle tip."
+msgstr ""
+
 msgid "Bed mesh min"
 msgstr "网床最小点"
 
@@ -9936,6 +10160,15 @@ msgid ""
 "Speed of gap infill. Gap usually has irregular line width and should be "
 "printed more slowly"
 msgstr "填缝的速度。缝隙通常有不一致的线宽，应改用较慢速度打印。"
+
+msgid "Precise Z height"
+msgstr ""
+
+msgid ""
+"Enable this to get precise z height of object after slicing. It will get the "
+"precise object height by fine-tuning the layer heights of the last few "
+"layers. Note that this is an experimental parameter."
+msgstr ""
 
 msgid "Arc fitting"
 msgstr "圆弧拟合"
@@ -10751,6 +10984,24 @@ msgstr ""
 "挤出机中的一些材料会被拉回特定长度，避免空驶较长时材料渗出。设置为0表示关闭回"
 "抽。"
 
+msgid "Long retraction when cut(experimental)"
+msgstr ""
+
+msgid ""
+"Experimental feature.Retracting and cutting off the filament at a longer "
+"distance during changes to minimize purge.While this reduces flush "
+"significantly, it may also raise the risk of nozzle clogs or other printing "
+"problems."
+msgstr ""
+
+msgid "Retraction distance when cut"
+msgstr ""
+
+msgid ""
+"Experimental feature.Retraction length before cutting off during filament "
+"change"
+msgstr ""
+
 msgid "Z hop when retract"
 msgstr "回抽时抬升Z"
 
@@ -11108,9 +11359,6 @@ msgstr "内部实心填充的线宽。如果以%表示，它将基于喷嘴直�
 
 msgid "Speed of internal solid infill, not the top and bottom surface"
 msgstr "内部实心填充的速度，不是顶面和底面。"
-
-msgid "Spiral vase"
-msgstr "旋转花瓶"
 
 msgid ""
 "Spiralize smooths out the z moves of the outer contour. And turns a solid "
@@ -12503,12 +12751,6 @@ msgstr "流量比例"
 msgid "Max Volumetric Speed"
 msgstr "最大容积速度"
 
-msgid "Please enter the name you want to save to printer."
-msgstr "请输入要保存到打印机的名称。"
-
-msgid "The name cannot exceed 40 characters."
-msgstr "名称不能超过40个字符。"
-
 #, c-format, boost-format
 msgid ""
 "Please input valid values:\n"
@@ -12733,6 +12975,12 @@ msgstr "*我们建议您在名称中添加品牌、材料、类型，甚至湿�
 msgid "Failed"
 msgstr "失败"
 
+msgid "Please enter the name you want to save to printer."
+msgstr "请输入要保存到打印机的名称。"
+
+msgid "The name cannot exceed 40 characters."
+msgstr "名称不能超过40个字符。"
+
 msgid ""
 "Only one of the results with the same name will be saved. Are you sure you "
 "want to overrides the other results?"
@@ -12828,9 +13076,6 @@ msgstr "打印参数"
 msgid "- ℃"
 msgstr ""
 
-msgid " ℃"
-msgstr ""
-
 msgid "Plate Type"
 msgstr "热床类型"
 
@@ -12895,6 +13140,9 @@ msgstr "至体积速度"
 msgid "Flow Dynamics Calibration Result"
 msgstr "动态流量校准结果"
 
+msgid "New"
+msgstr ""
+
 msgid "No History Result"
 msgstr "无历史结果"
 
@@ -12909,6 +13157,22 @@ msgstr "操作"
 
 msgid "Edit Flow Dynamics Calibration"
 msgstr "编辑动态流量校准"
+
+msgid "New Flow Dynamics Calibration"
+msgstr ""
+
+msgid "Ok"
+msgstr ""
+
+msgid "The filament must be selected."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"There is already a historical calibration result with the same name: %s. "
+"Only one of the results with the same name is saved. Are you sure you want "
+"to override the historical result?"
+msgstr ""
 
 msgid "Network lookup"
 msgstr "搜索网络"
@@ -13290,6 +13554,13 @@ msgid ""
 "You have not selected a printer or preset yet. Please select at least one."
 msgstr "您还没有选择打印机或预设。请至少选择一个。"
 
+#, c-format, boost-format
+msgid ""
+"The Filament name %s you created already exists. \n"
+"If you continue creating, the preset created will be displayed with its full "
+"name. Do you want to continue?"
+msgstr ""
+
 msgid "Some existing presets have failed to be created, as follows:\n"
 msgstr "以下一些现有预设未能成功创建：\n"
 
@@ -13487,11 +13758,18 @@ msgstr "材料已创建"
 msgid ""
 "Please go to filament setting to edit your presets if you need.\n"
 "Please note that nozzle temperature, hot bed temperature, and maximum "
-"volumetric speed have a significant impact on printing quality. Please set "
+"volumetric speed has a significant impact on printing quality. Please set "
 "them carefully."
 msgstr ""
-"如果需要，请转到灯丝设置以编辑您的预设。\n"
-"请注意喷嘴温度、热床温度和最大体积流量对打印质量有重大影响。请小心设置它们。"
+
+msgid ""
+"\n"
+"\n"
+"Studio has detected that your user presets synchronization function is not "
+"enabled, which may result in unsuccessful Filament settings on the Device "
+"page. \n"
+"Click \"Sync user presets\" to enable the synchronization function."
+msgstr ""
 
 msgid "Printer Setting"
 msgstr "打印机设置"
@@ -13593,6 +13871,9 @@ msgstr "请至少选择一种打印机或耗材丝。"
 msgid "Please select a type you want to export"
 msgstr "请选择一个你想导出的类型"
 
+msgid "Failed to create temporary folder, please try Export Configs again."
+msgstr ""
+
 msgid "Edit Filament"
 msgstr "编辑材料"
 
@@ -13664,6 +13945,15 @@ msgstr "收起"
 
 msgid "Daily Tips"
 msgstr "每日贴士"
+
+msgid ""
+"Your nozzle diameter in preset is not consistent with memorized nozzle "
+"diameter. Did you change your nozzle lately?"
+msgstr "预设中的喷嘴直径与记忆的喷嘴直径不一致。您最近更换了喷嘴吗？"
+
+#, c-format, boost-format
+msgid "*Printing %s material with %s may cause nozzle damage"
+msgstr "*使用 %s 材料和 %s 打印可能会导致喷嘴损坏"
 
 msgid "Need select printer"
 msgstr "需要选择打印机"
@@ -14241,6 +14531,138 @@ msgid ""
 msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
+
+#~ msgid "active"
+#~ msgstr "活动的"
+
+#~ msgid "Jump to layer"
+#~ msgstr "跳转到层"
+
+#~ msgid "Cabin humidity"
+#~ msgstr "舱内湿度"
+
+#~ msgid ""
+#~ "Green means that AMS humidity is normal, orange represent humidity is "
+#~ "high, red represent humidity is too high.(Hygrometer: lower the better.)"
+#~ msgstr ""
+#~ "绿色表示 AMS 湿度正常，橙色表示湿度高，红色表示湿度过高。(湿度计：越低越"
+#~ "好。)"
+
+#~ msgid "Desiccant status"
+#~ msgstr "干燥剂状态"
+
+#~ msgid ""
+#~ "A desiccant status lower than two bars indicates that desiccant may be "
+#~ "inactive. Please change the desiccant.(The bars: higher the better.)"
+#~ msgstr ""
+#~ "干燥剂状态低于两格表示干燥剂可能不活跃。请更换干燥剂。(杠：越高越好)。"
+
+#~ msgid ""
+#~ "Note: When the lid is open or the desiccant pack is changed, it can take "
+#~ "hours or a night to absorb the moisture. Low temperatures also slow down "
+#~ "the process. During this time, the indicator may not represent the "
+#~ "chamber accurately."
+#~ msgstr ""
+#~ "注意：当盖子打开或更换干燥剂包装时，可能需要数小时或一晚才能吸收水分，低温"
+#~ "也会减慢这一过程。在此期间，指示器的数值可能并不准确。"
+
+#~ msgid ""
+#~ "Note: if new filament is inserted during  printing, the AMS will not "
+#~ "automatically read any information until printing is completed."
+#~ msgstr ""
+#~ "注意：如果是在打印过程中插入新的耗材丝，AMS会在打印结束后自动读取此耗材丝"
+#~ "信息。"
+
+#, boost-format
+#~ msgid "Succeed to export G-code to %1%"
+#~ msgstr "成功导出G-code至 %1%"
+
+#~ msgid "Initialize failed (No Device)!"
+#~ msgstr "初始化失败（没有设备）！"
+
+#~ msgid "Initialize failed (No Camera Device)!"
+#~ msgstr "初始化失败（没有摄像头）"
+
+#~ msgid ""
+#~ "Printer is busy downloading, Please wait for the downloading to finish."
+#~ msgstr "打印机正忙于下载，请等待下载完成。"
+
+#~ msgid "Initialize failed (Not supported on the current printer version)!"
+#~ msgstr "初始化失败（当前打印机的版本不支持）！"
+
+#~ msgid "Initialize failed (Not accessible in LAN-only mode)!"
+#~ msgstr "初始化失败（在局域网模式中不可访问）！"
+
+#~ msgid "Initialize failed (Missing LAN ip of printer)!"
+#~ msgstr "初始化失败（未找到打印机的局域网地址）！"
+
+#, c-format, boost-format
+#~ msgid "Stopped [%d]!"
+#~ msgstr "已停止 [%d]!"
+
+#, c-format, boost-format
+#~ msgid "Load failed [%d]!"
+#~ msgstr "加载失败 [%d]！"
+
+#, c-format, boost-format
+#~ msgid "No files [%d]"
+#~ msgstr "文件列表为空[%d]"
+
+#, c-format, boost-format
+#~ msgid "Load failed [%d]"
+#~ msgstr "加载失败 [%d]"
+
+#~ msgid "Failed to fetching model infomations from printer."
+#~ msgstr "无法从打印机获取模型信息。"
+
+#~ msgid "Failed to parse model infomations."
+#~ msgstr "解析模型信息失败。"
+
+#~ msgid "Connection lost. Please retry."
+#~ msgstr "连接丢失。请重试。"
+
+#~ msgid "File not exists."
+#~ msgstr "文件不存在"
+
+#~ msgid ""
+#~ "Unable to perform boolean operation on model meshes. Only positive parts "
+#~ "will be exported."
+#~ msgstr "无法对模型网格执行布尔运算。只有正面部分将被导出。"
+
+#~ msgid "Transfer or discard changes"
+#~ msgstr "放弃或保留更改"
+
+#~ msgid "Old Value"
+#~ msgstr "旧值"
+
+#~ msgid "New Value"
+#~ msgstr "新值"
+
+#~ msgid "Discard"
+#~ msgstr "放弃"
+
+#, boost-format
+#~ msgid ""
+#~ "You have changed some settings of preset \"%1%\". \n"
+#~ "Would you like to keep these changed settings (new value) after switching "
+#~ "preset?"
+#~ msgstr "您已经更改了预设 \"%1%\"，是否在切换后要保留这些更改的预设参数？"
+
+#~ msgid ""
+#~ "You have changed some preset settings. \n"
+#~ "Would you like to keep these changed settings (new value) after switching "
+#~ "preset?"
+#~ msgstr "您已经更改了预设参数，是否在切换后要保留这些更改的预设参数？"
+
+#~ msgid ""
+#~ "Please go to filament setting to edit your presets if you need.\n"
+#~ "Please note that nozzle temperature, hot bed temperature, and maximum "
+#~ "volumetric speed have a significant impact on printing quality. Please "
+#~ "set them carefully."
+#~ msgstr ""
+#~ "如果需要，请转到灯丝设置以编辑您的预设。\n"
+#~ "请注意喷嘴温度、热床温度和最大体积流量对打印质量有重大影响。请小心设置它"
+#~ "们。"
 
 #~ msgid "Studio Version:"
 #~ msgstr "Studio 版本："
