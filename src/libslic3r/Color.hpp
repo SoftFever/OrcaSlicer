@@ -91,8 +91,10 @@ public:
 	bool operator != (const ColorRGBA& other) const { return !operator==(other); }
 	bool operator < (const ColorRGBA& other) const;
 	bool operator > (const ColorRGBA& other) const;
+    float  operator[](int i) const { return m_data[i]; }
+    float& operator[](int i) { return m_data[i]; }
 
-	ColorRGBA operator + (const ColorRGBA& other) const;
+    ColorRGBA operator + (const ColorRGBA& other) const;
 	ColorRGBA operator * (float value) const;
 
 	const float* const data() const { return m_data.data(); }
