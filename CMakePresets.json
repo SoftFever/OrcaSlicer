@@ -24,6 +24,14 @@
       ]
     },
     {
+      "name": "linux-debug",
+      "displayName": "Linux Debug Configure",
+      "inherits": [
+        "linux-base",
+        "base-debug"
+      ]
+    },
+    {
       "name": "macos-x64-release",
       "displayName": "macOS x64 Release Configure",
       "inherits": [
@@ -84,6 +92,12 @@
       "displayName": "Linux RelWithDebInfo Build",
       "inherits": "linux-base-build",
       "configurePreset": "linux-relwithdebinfo"
+    },
+    {
+      "name": "linux-debug",
+      "displayName": "Linux Debug Build",
+      "inherits": "linux-base-build",
+      "configurePreset": "linux-debug"
     },
     {
       "name": "macos-x64-release",

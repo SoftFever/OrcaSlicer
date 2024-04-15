@@ -11,7 +11,8 @@
       },
       "generator": "Ninja",
       "cacheVariables":{
-        "SLIC3R_STATIC": "ON"
+        "SLIC3R_STATIC": "ON",
+        "ORCA_TOOLS": "ON"
       }
     }
   ],
