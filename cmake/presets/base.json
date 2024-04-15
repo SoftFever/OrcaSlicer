@@ -7,7 +7,6 @@
       "binaryDir": "${sourceDir}/build",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "BBL_RELEASE_TO_PUBLIC": "1",
         "CMAKE_INSTALL_PREFIX": "./OrcaSlicer"
       }
     },
