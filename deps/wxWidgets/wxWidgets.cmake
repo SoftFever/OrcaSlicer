@@ -27,10 +27,6 @@ else ()
     set(_patch_cmd test -f WXWIDGETS_PATCHED || ${PATCH_CMD} ${_wx_orcaslicer_patch} && touch WXWIDGETS_PATCHED)
 endif ()
 
-if (LINUX)
-    set(_patch_cmd ${PATCH_CMD} ${_wx_orcaslicer_patch})
-endif ()
-
 # Note: for anybody wanting to switch to tarball fetching - this won't just work as
 # git apply expects a git repo. Either git init empty repo, or change patching method.
 # if (WIN32)
