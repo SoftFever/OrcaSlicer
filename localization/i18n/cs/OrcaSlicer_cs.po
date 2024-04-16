@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-15 00:10+0800\n"
+"POT-Creation-Date: 2024-04-15 22:59+0800\n"
 "PO-Revision-Date: 2023-09-30 15:15+0200\n"
 "Last-Translator: René Mošner <Renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -259,6 +259,9 @@ msgstr "Výchozí Natočení"
 
 msgid "World coordinates"
 msgstr "Světové souřadnice"
+
+msgid "Object coordinates"
+msgstr ""
 
 msgid "°"
 msgstr "°"
@@ -7707,7 +7710,7 @@ msgid "Transfer values from left to right"
 msgstr ""
 
 msgid ""
-"If enabled, this dialog can be used for transver selected values from left "
+"If enabled, this dialog can be used for transfer selected values from left "
 "to right preset."
 msgstr ""
 

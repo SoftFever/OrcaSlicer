@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-15 00:10+0800\n"
+"POT-Creation-Date: 2024-04-15 22:59+0800\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -251,6 +251,9 @@ msgstr "Rotatie herstellen"
 
 msgid "World coordinates"
 msgstr "Wereldcoördinaten"
+
+msgid "Object coordinates"
+msgstr ""
 
 msgid "°"
 msgstr "°"
@@ -7701,7 +7704,7 @@ msgid "Transfer values from left to right"
 msgstr ""
 
 msgid ""
-"If enabled, this dialog can be used for transver selected values from left "
+"If enabled, this dialog can be used for transfer selected values from left "
 "to right preset."
 msgstr ""
 
