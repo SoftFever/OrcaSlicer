@@ -827,7 +827,7 @@ private:
     bool m_was_scheduled;
 };
 
-std::vector<int> get_min_flush_volumes();
+std::vector<int> get_min_flush_volumes(const DynamicPrintConfig& full_config);
 } // namespace GUI
 } // namespace Slic3r
 

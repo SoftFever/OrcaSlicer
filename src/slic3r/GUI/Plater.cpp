@@ -431,7 +431,7 @@ void Sidebar::priv::show_preset_comboboxes()
 void Sidebar::priv::on_search_update()
 {
     m_object_list->assembly_plate_object_name();
-    
+
     wxString search_text = m_search_bar->GetValue();
     m_object_list->GetModel()->search_object(search_text);
     dia->update_list();
@@ -491,37 +491,63 @@ void Sidebar::priv::hide_rich_tip(wxButton* btn)
 }
 #endif
 
-std::vector<int> get_min_flush_volumes()
+std::vector<int> get_min_flush_volumes(const DynamicPrintConfig& full_config)
 {
     std::vector<int>extra_flush_volumes;
-    const auto& full_config = wxGetApp().preset_bundle->full_config();
-    auto& printer_config = wxGetApp().preset_bundle->printers.get_edited_preset().config;
+    //const auto& full_config = wxGetApp().preset_bundle->full_config();
+    //auto& printer_config = wxGetApp().preset_bundle->printers.get_edited_preset().config;
 
-    ConfigOption* nozzle_volume_opt = printer_config.option("nozzle_volume");
+    const ConfigOption* nozzle_volume_opt = full_config.option("nozzle_volume");
     int nozzle_volume_val = nozzle_volume_opt ? (int)nozzle_volume_opt->getFloat() : 0;
 
-    int machine_enabled_level = printer_config.option<ConfigOptionInt>("enable_long_retraction_when_cut")->value;
-    bool machine_activated = printer_config.option<ConfigOptionBools>("long_retractions_when_cut")->values[0] == 1;
+    const ConfigOptionInt* enable_long_retraction_when_cut_opt = full_config.option<ConfigOptionInt>("enable_long_retraction_when_cut");
+    int machine_enabled_level = 0;
+    if (enable_long_retraction_when_cut_opt) {
+        machine_enabled_level = enable_long_retraction_when_cut_opt->value;
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": get enable_long_retraction_when_cut from config, value=%1%")%machine_enabled_level;
+    }
+    const ConfigOptionBools* long_retractions_when_cut_opt = full_config.option<ConfigOptionBools>("long_retractions_when_cut");
+    bool machine_activated = false;
+    if (long_retractions_when_cut_opt) {
+        machine_activated = long_retractions_when_cut_opt->values[0] == 1;
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": get long_retractions_when_cut from config, value=%1%, activated=%2%")%long_retractions_when_cut_opt->values[0] %machine_activated;
+    }
 
-    auto filament_retraction_distance_when_cut = full_config.option<ConfigOptionFloats>("filament_retraction_distances_when_cut");
-    auto printer_retraction_distance_when_cut = full_config.option<ConfigOptionFloats>("retraction_distances_when_cut");
-    auto filament_long_retractions_when_cut = full_config.option<ConfigOptionBools>("filament_long_retractions_when_cut");
+    size_t filament_size = full_config.option<ConfigOptionFloats>("filament_diameter")->values.size();
+    std::vector<double> filament_retraction_distance_when_cut(filament_size, 18.0f), printer_retraction_distance_when_cut(filament_size, 18.0f);
+    std::vector<unsigned char> filament_long_retractions_when_cut(filament_size, 0);
+    const ConfigOptionFloats* filament_retraction_distances_when_cut_opt = full_config.option<ConfigOptionFloats>("filament_retraction_distances_when_cut");
+    if (filament_retraction_distances_when_cut_opt) {
+        filament_retraction_distance_when_cut = filament_retraction_distances_when_cut_opt->values;
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": get filament_retraction_distance_when_cut from config, size=%1%, values=%2%")%filament_retraction_distance_when_cut.size() %filament_retraction_distances_when_cut_opt->serialize();
+    }
 
-    size_t filament_size = filament_retraction_distance_when_cut->values.size();
+    const ConfigOptionFloats* printer_retraction_distance_when_cut_opt = full_config.option<ConfigOptionFloats>("retraction_distances_when_cut");
+    if (printer_retraction_distance_when_cut_opt) {
+        printer_retraction_distance_when_cut = printer_retraction_distance_when_cut_opt->values;
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": get retraction_distances_when_cut from config, size=%1%, values=%2%")%printer_retraction_distance_when_cut.size() %printer_retraction_distance_when_cut_opt->serialize();
+    }
+
+    const ConfigOptionBools* filament_long_retractions_when_cut_opt = full_config.option<ConfigOptionBools>("filament_long_retractions_when_cut");
+    if (filament_long_retractions_when_cut_opt) {
+        filament_long_retractions_when_cut = filament_long_retractions_when_cut_opt->values;
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": get filament_long_retractions_when_cut from config, size=%1%, values=%2%")%filament_long_retractions_when_cut.size() %filament_long_retractions_when_cut_opt->serialize();
+    }
+
     for (size_t idx = 0; idx < filament_size; ++idx) {
         int extra_flush_volume = nozzle_volume_val;
-        int retract_length = machine_enabled_level && machine_activated ? printer_retraction_distance_when_cut->values[0] : 0;
+        int retract_length = machine_enabled_level && machine_activated ? printer_retraction_distance_when_cut[0] : 0;
 
-        char filament_activated = filament_long_retractions_when_cut->values[idx];
-        double filament_retract_length = filament_retraction_distance_when_cut->values[idx];
+        unsigned char filament_activated = filament_long_retractions_when_cut[idx];
+        double filament_retract_length = filament_retraction_distance_when_cut[idx];
 
         if (filament_activated == 0)
             retract_length = 0;
         else if (filament_activated == 1 && machine_enabled_level == LongRectrationLevel::EnableFilament) {
             if (!std::isnan(filament_retract_length))
-                retract_length = (int)filament_retraction_distance_when_cut->values[idx];
+                retract_length = (int)filament_retraction_distance_when_cut[idx];
             else
-                retract_length = printer_retraction_distance_when_cut->values[0];
+                retract_length = printer_retraction_distance_when_cut[0];
         }
 
         extra_flush_volume -= PI * 1.75 * 1.75 / 4 * retract_length;
@@ -849,7 +875,8 @@ Sidebar::Sidebar(Plater *parent)
             float flush_multiplier = flush_multi_opt ? flush_multi_opt->getFloat() : 1.f;
 
             const std::vector<std::string> extruder_colours = wxGetApp().plater()->get_extruder_colors_from_plater_config();
-            const auto& extra_flush_volumes = get_min_flush_volumes();
+            const auto& full_config = wxGetApp().preset_bundle->full_config();
+            const auto& extra_flush_volumes = get_min_flush_volumes(full_config);
             WipingDialog dlg(parent, cast<float>(init_matrix), cast<float>(init_extruders), extruder_colours, extra_flush_volumes, flush_multiplier);
             if (dlg.ShowModal() == wxID_OK) {
                 std::vector<float> matrix = dlg.get_matrix();
@@ -1266,7 +1293,7 @@ void Sidebar::update_presets(Preset::Type preset_type)
             if (preset) {
                 if (preset->is_compatible) preset_bundle.set_filament_preset(0, name);
             }
-            
+
         }
 
         for (size_t i = 0; i < filament_cnt; i++)
@@ -1894,13 +1921,14 @@ void Sidebar::auto_calc_flushing_volumes(const int modify_id)
     auto& preset_bundle = wxGetApp().preset_bundle;
     auto& project_config = preset_bundle->project_config;
     auto& printer_config = preset_bundle->printers.get_edited_preset().config;
+    const auto& full_config = wxGetApp().preset_bundle->full_config();
     auto& ams_multi_color_filament = preset_bundle->ams_multi_color_filment;
     auto& ams_filament_list = preset_bundle->filament_ams_list;
 
     const std::vector<double>& init_matrix = (project_config.option<ConfigOptionFloats>("flush_volumes_matrix"))->values;
     const std::vector<double>& init_extruders = (project_config.option<ConfigOptionFloats>("flush_volumes_vector"))->values;
 
-    const std::vector<int>&   min_flush_volumes= get_min_flush_volumes();
+    const std::vector<int>&   min_flush_volumes= get_min_flush_volumes(full_config);
 
     ConfigOptionFloat* flush_multi_opt = project_config.option<ConfigOptionFloat>("flush_multiplier");
     float flush_multiplier = flush_multi_opt ? flush_multi_opt->getFloat() : 1.f;
@@ -8628,7 +8656,7 @@ int Plater::new_project(bool skip_confirm, bool silent, const wxString& project_
 void Plater::load_project(wxString const& filename2,
     wxString const& originfile)
 {
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "filename is: " << filename2 << "and originfile is: " << originfile; 
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "filename is: " << filename2 << "and originfile is: " << originfile;
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__;
     auto filename = filename2;
     auto check = [&filename, this] (bool yes_or_no) {
@@ -8702,13 +8730,13 @@ void Plater::load_project(wxString const& filename2,
         if (load_restore && originfile.IsEmpty()) {
         p->set_project_name(_L("Untitled"));
         }
-            
+
     } else {
         if (using_exported_file()) {
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " using ecported set project filename: " << filename;
             p->set_project_filename(filename);
         }
-            
+
     }
 
     // BBS set default 3D view and direction after loading project
@@ -8869,6 +8897,14 @@ void Plater::import_model_id(wxString download_info)
         {
             vecFiles.clear();
             wxString extension = fs::path(filename.wx_str()).extension().c_str();
+
+
+            //check file suffix
+            if (!extension.Contains(".3mf")) {
+                msg = _L("Download failed, unknown file format.");
+                return;
+            }
+
             auto name = filename.substr(0, filename.length() - extension.length() - 1);
 
             for (const auto& iter : boost::filesystem::directory_iterator(target_path))
@@ -8916,17 +8952,35 @@ void Plater::import_model_id(wxString download_info)
         fs::path tmp_path = target_path;
         tmp_path += format(".%1%", ".download");
 
-
+        auto filesize = 0;
+        bool size_limit = false;
         auto http = Http::get(download_url.ToStdString());
 
         while (cont && retry_count < max_retries) {
             retry_count++;
-            http.on_progress([&percent, &cont, &msg](Http::Progress progress, bool& cancel) {
+            http.on_progress([&percent, &cont, &msg, &filesize, &size_limit](Http::Progress progress, bool& cancel) {
+
                     if (!cont) cancel = true;
                     if (progress.dltotal != 0) {
+
+                        if (filesize == 0) {
+                            filesize = progress.dltotal;
+                            double megabytes = static_cast<double>(progress.dltotal) / (1024 * 1024);
+                            //The maximum size of a 3mf file is 500mb
+                            if (megabytes > 500) {
+                                cont = false;
+                                size_limit = true;
+                            }
+                        }
                         percent = progress.dlnow * 100 / progress.dltotal;
                     }
-                    msg = wxString::Format(_L("Project downloaded %d%%"), percent);
+
+                    if (size_limit) {
+                        msg = _L("Download failed, File size exception.");
+                    }
+                    else {
+                        msg = wxString::Format(_L("Project downloaded %d%%"), percent);
+                    }
                 })
                 .on_error([&msg, &cont, &retry_count, max_retries](std::string body, std::string error, unsigned http_status) {
                     (void)body;
@@ -8936,7 +8990,7 @@ void Plater::import_model_id(wxString download_info)
                         error);
 
                     if (retry_count == max_retries) {
-                        msg = _L("Importing to Orca Slicer failed. Please download the file and manually import it.");
+                        msg = _L("Importing to Bambu Studio failed. Please download the file and manually import it.");
                         cont = false;
                     }
                 })
@@ -8985,7 +9039,7 @@ void Plater::import_model_id(wxString download_info)
         }
 
         // show save new project
-        p->set_project_filename(filename);
+        p->set_project_filename(target_path.wstring());
         p->notification_manager->push_import_finished_notification(target_path.string(), target_path.parent_path().string(), false);
     }
     else {
@@ -8997,7 +9051,6 @@ void Plater::import_model_id(wxString download_info)
         return;
     }
 }
-
 //BBS download project by project id
 void Plater::download_project(const wxString& project_id)
 {
@@ -9757,7 +9810,7 @@ void Plater::load_gcode(const wxString& filename)
     } else {
         set_project_filename(filename);
     }
-        
+
 }
 
 void Plater::reload_gcode_from_disk()

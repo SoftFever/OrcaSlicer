@@ -2624,7 +2624,7 @@ int CLI::run(int argc, char **argv)
             //set multiplier to 1?
             m_print_config.option<ConfigOptionFloat>("flush_multiplier", true)->set(new ConfigOptionFloat(1.f));
 
-            const std::vector<int>& min_flush_volumes = Slic3r::GUI::get_min_flush_volumes();
+            const std::vector<int>& min_flush_volumes = Slic3r::GUI::get_min_flush_volumes(m_print_config);
 
             if (filament_is_support->size() != project_filament_count)
             {
