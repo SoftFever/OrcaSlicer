@@ -92,13 +92,12 @@ jobs:
             libgstreamer1.0-dev libgstreamer-plugins-good1.0-dev libgstreamer-plugins-base1.0-dev \
             gstreamer1.0-plugins-bad libosmesa6-dev wget sudo autoconf curl libunwind-dev texinfo
             mkdir -p ${{ github.workspace }}/deps/build
-            mkdir -p ${{ github.workspace }}/deps/build/destdir
+            mkdir -p ${{ github.workspace }}/deps/build/OrcaSlicer_dep
             sudo ./BuildLinux.sh -ur
             sudo chown $USER -R ./
             ./BuildLinux.sh -dr
             cd deps/build
-            tar -czvf OrcaSlicer_dep_ubuntu_$(date +"%Y%m%d").tar.gz destdir
-
+            tar -czvf OrcaSlicer_dep_ubuntu_$(date +"%Y%m%d").tar.gz OrcaSlicer_dep
 
       # Upload Artifacts
       - name: Upload Mac ${{ inputs.arch }} artifacts
