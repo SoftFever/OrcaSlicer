@@ -4,6 +4,7 @@
 	"name": "MM hqs SF 0.4 nozzle",
 	"from": "system",
 	"instantiation": "true",
+	"gcode_flavor": "marlin2",
 	"inherits": "fdm_machine_common",
 	"printer_model": "MM hqs SF",
 	"default_print_profile": "0.10mm Fine @MM hqs SF",
