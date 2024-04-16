@@ -7,10 +7,10 @@
     "instantiation": "true",
     "inherits": "fdm_filament_abs",
     "filament_flow_ratio": [
-        "0.926"
+        "0.95"
     ],
     "filament_max_volumetric_speed": [
-        "20"
+        "22"
     ],
     "enable_pressure_advance": [
         "1"
@@ -18,8 +18,20 @@
     "pressure_advance": [
         "0.021"
     ],
-    "filament_start_gcode": [
-        "; filament start gcode\n{if  (bed_temperature[current_extruder] >90)||(bed_temperature_initial_layer[current_extruder] >90)}M106 P3 S0\n{elsif(bed_temperature[current_extruder] >70)||(bed_temperature_initial_layer[current_extruder] >70)}M106 P3 S153\n{elsif(bed_temperature[current_extruder] >35)||(bed_temperature_initial_layer[current_extruder] >35)}M106 P3 S255\n{endif}"
+    "max_fan_speed":[
+        "80"
+    ],
+    "min_fan_speed":[
+        "20"
+    ],
+    "overhang_fan_speed": [
+        "100"
+    ],
+    "filament_density":[
+        "1.05"
+    ],
+    "chamber_temperature": [
+        "55"
     ],
 	"compatible_printers": [
         "Qidi X-Plus 0.4 nozzle",
@@ -34,5 +46,6 @@
 		"Qidi X-Smart 3 0.6 nozzle",
 		"Qidi X-Plus 3 0.6 nozzle",
 		"Qidi X-Max 3 0.6 nozzle"
+
 	]
 }

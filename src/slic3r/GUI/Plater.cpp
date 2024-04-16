@@ -491,6 +491,45 @@ void Sidebar::priv::hide_rich_tip(wxButton* btn)
 }
 #endif
 
+std::vector<int> get_min_flush_volumes()
+{
+    std::vector<int>extra_flush_volumes;
+    const auto& full_config = wxGetApp().preset_bundle->full_config();
+    auto& printer_config = wxGetApp().preset_bundle->printers.get_edited_preset().config;
+
+    ConfigOption* nozzle_volume_opt = printer_config.option("nozzle_volume");
+    int nozzle_volume_val = nozzle_volume_opt ? (int)nozzle_volume_opt->getFloat() : 0;
+
+    int machine_enabled_level = printer_config.option<ConfigOptionInt>("enable_long_retraction_when_cut")->value;
+    bool machine_activated = printer_config.option<ConfigOptionBools>("long_retractions_when_cut")->values[0] == 1;
+
+    auto filament_retraction_distance_when_cut = full_config.option<ConfigOptionFloats>("filament_retraction_distances_when_cut");
+    auto printer_retraction_distance_when_cut = full_config.option<ConfigOptionFloats>("retraction_distances_when_cut");
+    auto filament_long_retractions_when_cut = full_config.option<ConfigOptionBools>("filament_long_retractions_when_cut");
+
+    size_t filament_size = filament_retraction_distance_when_cut->values.size();
+    for (size_t idx = 0; idx < filament_size; ++idx) {
+        int extra_flush_volume = nozzle_volume_val;
+        int retract_length = machine_enabled_level && machine_activated ? printer_retraction_distance_when_cut->values[0] : 0;
+
+        char filament_activated = filament_long_retractions_when_cut->values[idx];
+        double filament_retract_length = filament_retraction_distance_when_cut->values[idx];
+
+        if (filament_activated == 0)
+            retract_length = 0;
+        else if (filament_activated == 1 && machine_enabled_level == LongRectrationLevel::EnableFilament) {
+            if (!std::isnan(filament_retract_length))
+                retract_length = (int)filament_retraction_distance_when_cut->values[idx];
+            else
+                retract_length = printer_retraction_distance_when_cut->values[0];
+        }
+
+        extra_flush_volume -= PI * 1.75 * 1.75 / 4 * retract_length;
+        extra_flush_volumes.emplace_back(extra_flush_volume);
+    }
+    return extra_flush_volumes;
+}
+
 // Sidebar / public
 
 static struct DynamicFilamentList : DynamicList
@@ -804,18 +843,14 @@ Sidebar::Sidebar(Plater *parent)
     p->m_flushing_volume_btn->Bind(wxEVT_BUTTON, ([parent](wxCommandEvent &e)
         {
             auto& project_config = wxGetApp().preset_bundle->project_config;
-            auto& printer_config = wxGetApp().preset_bundle->printers.get_edited_preset().config;
             const std::vector<double>& init_matrix = (project_config.option<ConfigOptionFloats>("flush_volumes_matrix"))->values;
             const std::vector<double>& init_extruders = (project_config.option<ConfigOptionFloats>("flush_volumes_vector"))->values;
-            ConfigOption* extra_flush_volume_opt = printer_config.option("nozzle_volume");
-            int extra_flush_volume = extra_flush_volume_opt ? (int)extra_flush_volume_opt->getFloat() : 0;
             ConfigOptionFloat* flush_multi_opt = project_config.option<ConfigOptionFloat>("flush_multiplier");
             float flush_multiplier = flush_multi_opt ? flush_multi_opt->getFloat() : 1.f;
 
             const std::vector<std::string> extruder_colours = wxGetApp().plater()->get_extruder_colors_from_plater_config();
-
-            WipingDialog dlg(parent, cast<float>(init_matrix), cast<float>(init_extruders), extruder_colours, extra_flush_volume, flush_multiplier);
-
+            const auto& extra_flush_volumes = get_min_flush_volumes();
+            WipingDialog dlg(parent, cast<float>(init_matrix), cast<float>(init_extruders), extruder_colours, extra_flush_volumes, flush_multiplier);
             if (dlg.ShowModal() == wxID_OK) {
                 std::vector<float> matrix = dlg.get_matrix();
                 std::vector<float> extruders = dlg.get_extruders();
@@ -1864,12 +1899,12 @@ void Sidebar::auto_calc_flushing_volumes(const int modify_id)
 
     const std::vector<double>& init_matrix = (project_config.option<ConfigOptionFloats>("flush_volumes_matrix"))->values;
     const std::vector<double>& init_extruders = (project_config.option<ConfigOptionFloats>("flush_volumes_vector"))->values;
-    ConfigOption* extra_flush_volume_opt = printer_config.option("nozzle_volume");
-    int extra_flush_volume = extra_flush_volume_opt ? (int)extra_flush_volume_opt->getFloat() : 0;
+
+    const std::vector<int>&   min_flush_volumes= get_min_flush_volumes();
+
     ConfigOptionFloat* flush_multi_opt = project_config.option<ConfigOptionFloat>("flush_multiplier");
     float flush_multiplier = flush_multi_opt ? flush_multi_opt->getFloat() : 1.f;
     std::vector<double> matrix = init_matrix;
-    int m_min_flush_volume = extra_flush_volume;
     int m_max_flush_volume = Slic3r::g_max_flush_volume;
     unsigned int m_number_of_extruders = (int)(sqrt(init_matrix.size()) + 0.001);
 
@@ -1896,12 +1931,10 @@ void Sidebar::auto_calc_flushing_volumes(const int modify_id)
 
     if (modify_id >= 0 && modify_id < multi_colours.size()) {
         for (int i = 0; i < multi_colours.size(); ++i) {
-
-            Slic3r::FlushVolCalculator calculator(m_min_flush_volume, m_max_flush_volume);
-
             // from to modify
             int from_idx = i;
             if (from_idx != modify_id) {
+                Slic3r::FlushVolCalculator calculator(min_flush_volumes[from_idx], m_max_flush_volume);
                 int flushing_volume = 0;
                 bool is_from_support = is_support_filament(from_idx);
                 bool is_to_support = is_support_filament(modify_id);
@@ -1926,6 +1959,7 @@ void Sidebar::auto_calc_flushing_volumes(const int modify_id)
             // modify to to
             int to_idx = i;
             if (to_idx != modify_id) {
+                Slic3r::FlushVolCalculator calculator(min_flush_volumes[modify_id], m_max_flush_volume);
                 bool is_from_support = is_support_filament(modify_id);
                 bool is_to_support = is_support_filament(to_idx);
                 int flushing_volume = 0;
@@ -2592,7 +2626,8 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     //BBS: add bed_exclude_area
     , config(Slic3r::DynamicPrintConfig::new_from_defaults_keys({
         "printable_area", "bed_exclude_area", "bed_custom_texture", "bed_custom_model", "print_sequence",
-        "extruder_clearance_radius", "extruder_clearance_height_to_lid", "extruder_clearance_height_to_rod", "skirt_loops", "skirt_speed", "skirt_distance",
+        "extruder_clearance_radius", "extruder_clearance_height_to_lid", "extruder_clearance_height_to_rod",
+		"nozzle_height", "skirt_loops", "skirt_speed", "skirt_distance",
         "brim_width", "brim_object_gap", "brim_type", "nozzle_diameter", "single_extruder_multi_material", "preferred_orientation",
         "enable_prime_tower", "wipe_tower_x", "wipe_tower_y", "prime_tower_width", "prime_tower_brim_width", "prime_volume",
         "extruder_colour", "filament_colour", "material_colour", "printable_height", "printer_model", "printer_technology",
@@ -2855,6 +2890,16 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         //preview_canvas->Bind(EVT_GLTOOLBAR_PRINT_PLATE, &priv::on_action_print_plate, this);
         //preview_canvas->Bind(EVT_GLTOOLBAR_PRINT_ALL, &priv::on_action_print_all, this);
         //review_canvas->Bind(EVT_GLTOOLBAR_EXPORT_GCODE, &priv::on_action_export_gcode, this);
+        view3D_canvas->Bind(EVT_GLCANVAS_SWITCH_TO_OBJECT, [main_frame](SimpleEvent&) {
+                if (main_frame->m_param_panel) {
+                    main_frame->m_param_panel->switch_to_object(false);
+                }
+            });
+        view3D_canvas->Bind(EVT_GLCANVAS_SWITCH_TO_GLOBAL, [main_frame](SimpleEvent&) {
+                if (main_frame->m_param_panel) {
+                    main_frame->m_param_panel->switch_to_global();
+                }
+            });
     }
     view3D_canvas->Bind(EVT_GLCANVAS_UPDATE_BED_SHAPE, [q](SimpleEvent&) { q->set_bed_shape(); });
 
@@ -3349,52 +3394,69 @@ BoundingBox Plater::priv::scaled_bed_shape_bb() const
     return printable_area.bounding_box();
 }
 
-std::string read_binary_stl(const std::string& filename) {
-    std::string model_id;
-    std::ifstream file(filename, std::ios::binary);
+
+void read_binary_stl(const std::string& filename, std::string& model_id, std::string& code) {
+    std::ifstream file( encode_path(filename.c_str()), std::ios::binary);
     if (!file) {
-        return model_id;
+        return;
     }
 
-    try{
+    try {
         // Read the first 80 bytes
         char data[80];
         file.read(data, 80);
         if (!file) {
             file.close();
-            return model_id;
+            return;
         }
 
         if (data[0] == '\0' || data[0] == ' ') {
             file.close();
-            return model_id;
+            return;
         }
 
         char magic[2] = { data[0], data[1] };
         if (magic[0] != 'M' || magic[1] != 'W') {
             file.close();
-            return model_id;
+            return;
         }
 
         if (data[2] != ' ') {
             file.close();
-            return model_id;
+            return;
         }
 
         char protocol_version[3] = { data[3], data[4], data[5] };
 
-        //version 
-        if (protocol_version[0] == '1' && protocol_version[1] == '.' && protocol_version[2] == '0') {
-            model_id = std::string(&data[7], &data[80]);
+        //version
+        if (protocol_version[0] != '1' || protocol_version[1] != '.' || protocol_version[2] != '0') {
+            file.close();
+            return;
         }
 
+        std::vector<char*> tokens;
+        std::istringstream iss(data);
+        std::string token;
+        while (std::getline(iss, token, ' ')) {
+            char* tokenPtr = new char[token.length() + 1];
+            std::strcpy(tokenPtr, token.c_str());
+            tokens.push_back(tokenPtr);
+        }
+
+        //model id
+        if (tokens.size() < 4) {
+            file.close();
+            return;
+        }
+
+        model_id = tokens[2];
+        code = tokens[3];
         file.close();
     }
-    catch (...){
+    catch (...) {
     }
-    return model_id;
+    return;
 }
-
 
 // BBS: backup & restore
 std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_files, LoadStrategy strategy, bool ask_multi)
@@ -3438,6 +3500,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
     std::vector<size_t> obj_idxs;
 
     std::string  designer_model_id;
+    std::string  designer_country_code;
 
     int answer_convert_from_meters          = wxOK_DEFAULT;
     int answer_convert_from_imperial_units  = wxOK_DEFAULT;
@@ -3881,9 +3944,11 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
                 model = Slic3r::Model::read_from_file(
                     path.string(), nullptr, nullptr, strategy, &plate_data, &project_presets, &is_xxx, &file_version, nullptr,
-                    [this, &dlg, real_filename, &progress_percent, &file_percent, INPUT_FILES_RATIO, total_files, i, &designer_model_id](int current, int total, bool &cancel, std::string &mode_id)
+                    [this, &dlg, real_filename, &progress_percent, &file_percent, INPUT_FILES_RATIO, total_files, i, &designer_model_id, &designer_country_code](int current, int total, bool &cancel, std::string &mode_id, std::string &code)
                     {
                             designer_model_id = mode_id;
+                            designer_country_code = code;
+
                             bool     cont = true;
                             float percent_float = (100.0f * (float)i / (float)total_files) + INPUT_FILES_RATIO * 100.0f * ((float)current / (float)total) / (float)total_files;
                             BOOST_LOG_TRIVIAL(trace) << "load_stl_file: percent(float)=" << percent_float << ", curr = " << current << ", total = " << total;
@@ -3910,7 +3975,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
 
                 if (designer_model_id.empty() && boost::algorithm::iends_with(path.string(), ".stl")) {
-                    designer_model_id = read_binary_stl(path.string());
+                    read_binary_stl(path.string(), designer_model_id, designer_country_code);
                 }
 
                 if (type_any_amf && is_xxx) imperial_units = true;
@@ -4080,10 +4145,11 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                 q->model().load_from(model);
                 load_auxiliary_files();
             }
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", before load_model_objects, count %1%")%model.objects.size();
             auto loaded_idxs = load_model_objects(model.objects, is_project_file);
             obj_idxs.insert(obj_idxs.end(), loaded_idxs.begin(), loaded_idxs.end());
 
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format("import 3mf IMPORT_LOAD_MODEL_OBJECTS \n");
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", finished load_model_objects");
             wxString msg = wxString::Format(_L("Loading file: %s"), from_path(real_filename));
             dlg_cont     = dlg.Update(progress_percent, msg);
             if (!dlg_cont) {
@@ -4095,7 +4161,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
             for (const ModelObject *model_object : model.objects) {
                 new_model->add_object(*model_object);
 
-                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format("import 3mf IMPORT_ADD_MODEL_OBJECTS \n");
+                BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":" << __LINE__ << boost::format(", added object %1%")%model_object->name;
                 wxString msg = wxString::Format(_L("Loading file: %s"), from_path(real_filename));
                 dlg_cont     = dlg.Update(progress_percent, msg);
                 if (!dlg_cont) {
@@ -4213,9 +4279,16 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
         obj_idxs, model.objects, *notification_manager);
 
     //set designer_model_id
-    if (!designer_model_id.empty() && q->model().stl_design_id.empty()) {
-        q->model().stl_design_id = designer_model_id;
-    }
+    q->model().stl_design_id = designer_model_id;
+    q->model().stl_design_country = designer_country_code;
+    //if (!designer_model_id.empty() && q->model().stl_design_id.empty() && !designer_country_code.empty()) {
+    //    q->model().stl_design_id = designer_model_id;
+    //    q->model().stl_design_country = designer_country_code;
+    //}
+    //else {
+    //    q->model().stl_design_id = "";
+    //    q->model().stl_design_country = "";
+    //}
 
     if (tolal_model_count <= 0 && !q->m_exported_file) {
         dlg.Hide();
@@ -4309,6 +4382,7 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& mode
         }
     }
 
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", loaded objects, begin to auto placement");
 #ifdef AUTOPLACEMENT_ON_LOAD
 #if 0
     // FIXME distance should be a config value /////////////////////////////////
@@ -4353,9 +4427,19 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& mode
     //        _L("Object too large?"));
     //}
 
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", finished auto placement, before add_objects_to_list");
     notification_manager->close_notification_of_type(NotificationType::UpdatedItemsInfo);
-    wxGetApp().obj_list()->add_objects_to_list(obj_idxs);
 
+    if (obj_idxs.size() > 1) {
+        std::vector<size_t> obj_idxs_1 (obj_idxs.begin(), obj_idxs.end() - 1);
+
+        wxGetApp().obj_list()->add_objects_to_list(obj_idxs_1, false);
+        wxGetApp().obj_list()->add_object_to_list(obj_idxs[obj_idxs.size() - 1]);
+    }
+    else
+        wxGetApp().obj_list()->add_objects_to_list(obj_idxs);
+
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", after add_objects_to_list");
     update();
     // Update InfoItems in ObjectList after update() to use of a correct value of the GLCanvas3D::is_sinking(),
     // which is updated after a view3D->reload_scene(false, flags & (unsigned int)UpdateParams::FORCE_FULL_SCREEN_REFRESH) call
@@ -4388,7 +4472,14 @@ fs::path Plater::priv::get_export_file_path(GUI::FileType file_type)
     if (file_type == FT_3MF)
         // for 3mf take the path from the project filename, if any
         output_file = into_path(get_project_filename(".3mf"));
-
+    else if (file_type == FT_STL) {
+        if (obj_idx > 0 && obj_idx < this->model.objects.size() && selection.is_single_full_object()) {
+            output_file = this->model.objects[obj_idx]->get_export_filename();
+        }
+        else {
+            output_file = into_path(get_project_name());
+        }
+    }
     //bbs  name the project using the part name
     if (output_file.empty()) {
         if (get_project_name() != _L("Untitled")) {
@@ -4540,7 +4631,11 @@ void Plater::priv::selection_changed()
     }
 
     // forces a frame render to update the view (to avoid a missed update if, for example, the context menu appears)
-    view3D->render();
+    if (get_current_canvas3D()->get_canvas_type() == GLCanvas3D::CanvasAssembleView) {
+        assemble_view->render();
+    } else {
+        view3D->render();
+    }
 }
 
 void Plater::priv::object_list_changed()
@@ -4964,6 +5059,12 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
             return_state |= UPDATE_BACKGROUND_PROCESS_REFRESH_SCENE;
 
         notification_manager->set_slicing_progress_hidden();
+    }
+    else {
+        if (preview && preview->get_reload_paint_after_background_process_apply()) {
+            preview->set_reload_paint_after_background_process_apply(false);
+            preview->reload_print();
+        }
     }
 
     if ((invalidated != Print::APPLY_STATUS_UNCHANGED || force_validation) && ! background_process.empty()) {
@@ -5919,17 +6020,18 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
         };
 
     //BBS: add the collapse logic
-    if (panel == view3D || panel == preview) {
-        this->enable_sidebar(!q->only_gcode_mode());
-    }
-    if (panel == preview && q->only_gcode_mode()) {
-        preview->get_canvas3d()->enable_select_plate_toolbar(false);
-    }
-    else if (panel == preview && q->using_exported_file() && (q->m_valid_plates_count <= 1)) {
-        preview->get_canvas3d()->enable_select_plate_toolbar(false);
+    if (panel == preview) {
+        if (q->only_gcode_mode()) {
+            this->sidebar->collapse(true);
+            preview->get_canvas3d()->enable_select_plate_toolbar(false);
+        } else if (q->using_exported_file() && (q->m_valid_plates_count <= 1)) {
+            preview->get_canvas3d()->enable_select_plate_toolbar(false);
+        } else {
+            preview->get_canvas3d()->enable_select_plate_toolbar(true);
+        }
     }
     else {
-        preview->get_canvas3d()->enable_select_plate_toolbar(true);
+        preview->get_canvas3d()->enable_select_plate_toolbar(false);
     }
 
     if (current_panel == panel)
@@ -6001,6 +6103,18 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
             preview->get_canvas3d()->unbind_event_handlers();
         else if (old_panel == assemble_view)
             assemble_view->get_canvas3d()->unbind_event_handlers();
+
+            GLCanvas3D* assemble_canvas = assemble_view->get_canvas3d();
+            Selection::IndicesList select_idxs = assemble_canvas->get_selection().get_volume_idxs();
+            Selection& view3d_selection = view3D->get_canvas3d()->get_selection();
+            view3d_selection.clear();
+            for (unsigned int idx : select_idxs) {
+                auto v = assemble_canvas->get_selection().get_volume(idx);
+                auto real_idx = view3d_selection.query_real_volume_idx_from_other_view(v->object_idx(), v->instance_idx(), v->volume_idx());
+                if (real_idx >= 0) {
+                    view3d_selection.add(real_idx, false);
+                }
+            }
 
         view3D->get_canvas3d()->bind_event_handlers();
 
@@ -6079,6 +6193,20 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
 
         assemble_view->get_canvas3d()->bind_event_handlers();
         assemble_view->reload_scene(true);
+
+        if (old_panel == view3D) {
+            GLCanvas3D* view3D_canvas = view3D->get_canvas3d();
+            Selection::IndicesList select_idxs = view3D_canvas->get_selection().get_volume_idxs();
+            Selection& assemble_selection = assemble_view->get_canvas3d()->get_selection();
+            assemble_selection.clear();
+            for (unsigned int idx : select_idxs) {
+                auto v        = view3D_canvas->get_selection().get_volume(idx);
+                auto real_idx = assemble_selection.query_real_volume_idx_from_other_view(v->object_idx(), v->instance_idx(), v->volume_idx());
+                if (real_idx >= 0) {
+                    assemble_selection.add(real_idx, false);
+                }
+            }
+        }
 
         // BBS set default view and zoom
         if (first_enter_assemble) {
@@ -6260,6 +6388,12 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
 
             view3D->deselect_all();
         }
+#if 0   // do not toggle auto calc when change printer
+        // update flush matrix
+        size_t filament_size = wxGetApp().plater()->get_extruder_colors_from_plater_config().size();
+        for (size_t idx = 0; idx < filament_size; ++idx)
+            wxGetApp().plater()->sidebar().auto_calc_flushing_volumes(idx);
+#endif
     }
 
 #ifdef __WXMSW__
@@ -6268,6 +6402,10 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
     // So, set the focus to the combobox explicitly
     combo->SetFocus();
 #endif
+    if (preset_type == Preset::TYPE_FILAMENT && wxGetApp().app_config->get("auto_calculate_when_filament_change") == "true") {
+        wxGetApp().plater()->sidebar().auto_calc_flushing_volumes(idx);
+    }
+
     // BBS: log modify of filament selection
     Slic3r::put_other_changes();
 
@@ -7007,13 +7145,14 @@ void Plater::priv::on_filament_color_changed(wxCommandEvent &event)
     //q->update_all_plate_thumbnails(true);
     //q->get_preview_canvas3D()->update_plate_thumbnails();
     int modify_id = event.GetInt();
-    if (wxGetApp().app_config->get("auto_calculate") == "true") {
-        sidebar->auto_calc_flushing_volumes(modify_id);
-    }
 
     auto& ams_multi_color_filment = wxGetApp().preset_bundle->ams_multi_color_filment;
     if (modify_id >= 0 && modify_id < ams_multi_color_filment.size())
         ams_multi_color_filment[modify_id].clear();
+
+    if (wxGetApp().app_config->get("auto_calculate") == "true") {
+        sidebar->auto_calc_flushing_volumes(modify_id);
+    }
 }
 
 void Plater::priv::install_network_plugin(wxCommandEvent &event)
@@ -10026,7 +10165,7 @@ void ProjectDropDialog::on_dpi_changed(const wxRect& suggested_rect)
 //BBS: remove GCodeViewer as seperate APP logic
 bool Plater::load_files(const wxArrayString& filenames)
 {
-    const std::regex pattern_drop(".*[.](stp|step|stl|obj|amf|3mf|svg)", std::regex::icase);
+    const std::regex pattern_drop(".*[.](stp|step|stl|oltp|obj|amf|3mf|svg)", std::regex::icase);
     const std::regex pattern_gcode_drop(".*[.](gcode|g)", std::regex::icase);
 
     std::vector<fs::path> normal_paths;
@@ -10341,6 +10480,10 @@ void Plater::select_view(const std::string& direction) { p->select_view(directio
 
 //BBS: add no_slice logic
 void Plater::select_view_3D(const std::string& name, bool no_slice) { p->select_view_3D(name, no_slice); }
+
+void Plater::reload_paint_after_background_process_apply() {
+    p->preview->set_reload_paint_after_background_process_apply(true);
+}
 
 bool Plater::is_preview_shown() const { return p->is_preview_shown(); }
 bool Plater::is_preview_loaded() const { return p->is_preview_loaded(); }
@@ -10863,12 +11006,24 @@ TriangleMesh Plater::combine_mesh_fff(const ModelObject& mo, int instance_id, st
     csgmesh.reserve(2 * mo.volumes.size());
     bool has_splitable_volume = csg::model_to_csgmesh(mo, Transform3d::Identity(), std::back_inserter(csgmesh),
         csg::mpartsPositive | csg::mpartsNegative);
-
-    if (csg::check_csgmesh_booleans(Range{ std::begin(csgmesh), std::end(csgmesh) }) == csgmesh.end()) {
+        
+    std::string fail_msg = _u8L("Unable to perform boolean operation on model meshes. "
+        "Only positive parts will be kept. You may fix the meshes and try agian.");
+    if (auto fail_reason_name = csg::check_csgmesh_booleans(Range{ std::begin(csgmesh), std::end(csgmesh) }); std::get<0>(fail_reason_name) != csg::BooleanFailReason::OK) {
+        std::string name = std::get<1>(fail_reason_name);
+        std::map<csg::BooleanFailReason, std::string> fail_reasons = {
+            {csg::BooleanFailReason::OK, "OK"},
+            {csg::BooleanFailReason::MeshEmpty, Slic3r::format( _u8L("Reason: part \"%1%\" is empty."), name)},
+            {csg::BooleanFailReason::NotBoundAVolume, Slic3r::format(_u8L("Reason: part \"%1%\" does not bound a volume."), name)},
+            {csg::BooleanFailReason::SelfIntersect, Slic3r::format(_u8L("Reason: part \"%1%\" has self intersection."), name)},
+            {csg::BooleanFailReason::NoIntersection, Slic3r::format(_u8L("Reason: \"%1%\" and another part have no intersection."), name)} };
+        fail_msg += " " + fail_reasons[std::get<0>(fail_reason_name)];
+    }
+    else {
         try {
             MeshBoolean::mcut::McutMeshPtr meshPtr = csg::perform_csgmesh_booleans_mcut(Range{ std::begin(csgmesh), std::end(csgmesh) });
             mesh = MeshBoolean::mcut::mcut_to_triangle_mesh(*meshPtr);
-            }
+        }
         catch (...) {}
 #if 0
         // if mcut fails, try again with CGAL
@@ -10884,8 +11039,7 @@ TriangleMesh Plater::combine_mesh_fff(const ModelObject& mo, int instance_id, st
 
     if (mesh.empty()) {
         if (notify_func)
-            notify_func(_u8L("Unable to perform boolean operation on model meshes. "
-                "Only positive parts will be exported."));
+            notify_func(fail_msg);
 
         for (const ModelVolume* v : mo.volumes)
             if (v->is_model_part()) {
@@ -12616,6 +12770,38 @@ void Plater::clone_selection()
     selection.clone(res);
 }
 
+std::vector<Vec2f> Plater::get_empty_cells(const Vec2f step)
+{
+    PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
+    BoundingBoxf3 build_volume = plate->get_build_volume();
+    Vec2d vmin(build_volume.min.x(), build_volume.min.y()), vmax(build_volume.max.x(), build_volume.max.y());
+    BoundingBoxf bbox(vmin, vmax);
+    std::vector<Vec2f> cells;
+    auto min_x = step(0)/2;// start_point.x() - step(0) * int((start_point.x() - bbox.min.x()) / step(0));
+    auto min_y = step(1)/2;// start_point.y() - step(1) * int((start_point.y() - bbox.min.y()) / step(1));
+    auto& exclude_box3s = plate->get_exclude_areas();
+    std::vector<BoundingBoxf> exclude_boxs;
+    for (auto& box : exclude_box3s) {
+        Vec2d vmin(box.min.x(), box.min.y()), vmax(box.max.x(), box.max.y());
+        exclude_boxs.emplace_back(vmin, vmax);
+    }
+    for (float x = min_x + bbox.min.x(); x < bbox.max.x() - step(0) / 2; x += step(0))
+        for (float y = min_y + bbox.min.y(); y < bbox.max.y() - step(1) / 2; y += step(1)) {
+            bool in_exclude = false;
+            BoundingBoxf cell(Vec2d(x - step(0) / 2, y - step(1) / 2), Vec2d(x + step(0) / 2, y + step(1) / 2));
+            for (auto& box : exclude_boxs) {
+                if (box.overlap(cell)) {
+                    in_exclude = true;
+                    break;
+                }
+            }
+            if(in_exclude)
+                continue;
+            cells.emplace_back(x, y);
+        }
+    return cells;
+}
+
 void Plater::search(bool plater_is_active, Preset::Type type, wxWindow *tag, TextInput *etag, wxWindow *stag)
 {
     if (plater_is_active) {
@@ -12936,7 +13122,7 @@ void Plater::validate_current_plate(bool& model_fits, bool& validate_error)
 
 void Plater::open_platesettings_dialog(wxCommandEvent& evt) {
     int plate_index = evt.GetInt();
-    PlateSettingsDialog dlg(this, _L("Plate Settings"), evt.GetString() == "only_first_layer_sequence");
+    PlateSettingsDialog dlg(this, _L("Plate Settings"), evt.GetString() == "only_layer_sequence");
     PartPlate* curr_plate = p->partplate_list.get_curr_plate();
     dlg.sync_bed_type(curr_plate->get_bed_type());
 
@@ -12952,6 +13138,13 @@ void Plater::open_platesettings_dialog(wxCommandEvent& evt) {
         dlg.sync_first_layer_print_seq(0);
     else
         dlg.sync_first_layer_print_seq(1, curr_plate->get_first_layer_print_sequence());
+
+    auto other_layers_print_seq = curr_plate->get_other_layers_print_sequence();
+    if (other_layers_print_seq.empty())
+        dlg.sync_other_layers_print_seq(0, {});
+    else {
+        dlg.sync_other_layers_print_seq(1, curr_plate->get_other_layers_print_sequence());
+    }
 
     dlg.sync_spiral_mode(curr_plate->get_spiral_vase_mode(), !curr_plate->has_spiral_mode_config());
 
@@ -12970,6 +13163,11 @@ void Plater::open_platesettings_dialog(wxCommandEvent& evt) {
             curr_plate->set_first_layer_print_sequence(dlg.get_first_layer_print_seq());
         else
             curr_plate->set_first_layer_print_sequence({});
+
+        if (dlg.get_other_layers_print_seq_choice() != 0)
+            curr_plate->set_other_layers_print_sequence(dlg.get_other_layers_print_seq_infos());
+        else
+            curr_plate->set_other_layers_print_sequence({});
 
         int ps_sel = dlg.get_print_seq_choice();
         if (ps_sel != 0)
@@ -13348,13 +13546,13 @@ void Plater::post_process_string_object_exception(StringObjectException &err)
                             filament_name = filament_it->alias;
                         } else {
                             auto preset = preset_bundle->filaments.get_preset_base(*filament_it);
-                            if (!preset->alias.empty()) {
+                            if (preset && !preset->alias.empty()) {
                                 filament_name = preset->alias;
                             } else {
                                 char target = '@';
-                                size_t pos = preset->name.find(target);
+                                size_t pos    = filament_name.find(target);
                                 if (pos != std::string::npos) {
-                                    filament_name = preset->name.substr(0, pos - 1);
+                                    filament_name = filament_name.substr(0, pos - 1);
                                 }
                             }
                         }

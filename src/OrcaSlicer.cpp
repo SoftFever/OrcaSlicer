@@ -80,6 +80,7 @@ using namespace nlohmann;
 #include "slic3r/GUI/OpenGLManager.hpp"
 #include "slic3r/GUI/GLCanvas3D.hpp"
 #include "slic3r/GUI/Camera.hpp"
+#include "slic3r/GUI/Plater.hpp"
 #include <GLFW/glfw3.h>
 
 #ifdef __WXGTK__
@@ -124,6 +125,7 @@ std::map<int, std::string> cli_errors = {
     {CLI_OBJECT_ARRANGE_FAILED, "An error occurred when auto-arranging object(s)."},
     {CLI_OBJECT_ORIENT_FAILED, "An error occurred when auto-orienting object(s)."},
     {CLI_MODIFIED_PARAMS_TO_PRINTER, "Found modified parameter in printer preset in the 3mf file, which should not be changed."},
+        {CLI_FILE_VERSION_NOT_SUPPORTED, "Unsupported 3MF version. Please make sure the 3MF file was created with the official version of Bambu Studio, not a beta version."},
     {CLI_NO_SUITABLE_OBJECTS, "One of the plate is empty or has no object fully inside it. Please check that the 3mf contains no empty plate in Orca Slicer before uploading."},
     {CLI_VALIDATE_ERROR, "There are some incorrect slicing parameters in the 3mf. Please verify the slicing of all plates in Orca Slicer before uploading."},
     {CLI_OBJECTS_PARTLY_INSIDE, "Some objects are located over the boundary of the heated bed."},
@@ -889,6 +891,8 @@ int CLI::run(int argc, char **argv)
     // instruct the window manager to fall back to X server mode.
     ::setenv("GDK_BACKEND", "x11", /* replace */ true);
 
+    ::setenv("WEBKIT_DISABLE_COMPOSITING_MODE", "1", /* replace */ false);
+
     // Also on Linux, we need to tell Xlib that we will be using threads,
     // lest we crash when we fire up GStreamer.
     XInitThreads();
@@ -1028,7 +1032,7 @@ int CLI::run(int argc, char **argv)
     int arrange_option;
     int plate_to_slice = 0, filament_count = 0, duplicate_count = 0, real_duplicate_count = 0;
     bool first_file = true, is_bbl_3mf = false, need_arrange = true, has_thumbnails = false, up_config_to_date = false, normative_check = true, duplicate_single_object = false, use_first_fila_as_default = false, minimum_save = false, enable_timelapse = false;
-    bool allow_rotations = true, skip_modified_gcodes = false, avoid_extrusion_cali_region = false;
+    bool allow_rotations = true, skip_modified_gcodes = false, avoid_extrusion_cali_region = false, skip_useless_pick = false, allow_newer_file = false;
     Semver file_version;
     std::map<size_t, bool> orients_requirement;
     std::vector<Preset*> project_presets;
@@ -1072,6 +1076,14 @@ int CLI::run(int argc, char **argv)
     ConfigOptionBool* skip_modified_gcodes_option = m_config.option<ConfigOptionBool>("skip_modified_gcodes");
     if (skip_modified_gcodes_option)
         skip_modified_gcodes = skip_modified_gcodes_option->value;
+
+    ConfigOptionBool* skip_useless_picks_option = m_config.option<ConfigOptionBool>("skip_useless_pick");
+    if (skip_useless_picks_option)
+        skip_useless_pick = skip_useless_picks_option->value;
+
+    ConfigOptionBool* allow_newer_file_option = m_config.option<ConfigOptionBool>("allow_newer_file");
+    if (allow_newer_file_option)
+        allow_newer_file = allow_newer_file_option->value;
 
     ConfigOptionBool* avoid_extrusion_cali_region_option = m_config.option<ConfigOptionBool>("avoid_extrusion_cali_region");
     if (avoid_extrusion_cali_region_option)
@@ -1124,8 +1136,8 @@ int CLI::run(int argc, char **argv)
     const std::vector<int>  clone_objects  = m_config.option<ConfigOptionInts>("clone_objects", true)->values;
     //when load objects from stl/obj, the total used filaments set
     std::set<int> used_filament_set;
-    BOOST_LOG_TRIVIAL(info) << boost::format("allow_multicolor_oneplate %1%, allow_rotations %2% skip_modified_gcodes %3% avoid_extrusion_cali_region %4% loaded_filament_ids size %5%, clone_objects size %6%")
-        %allow_multicolor_oneplate %allow_rotations %skip_modified_gcodes %avoid_extrusion_cali_region %loaded_filament_ids.size() %clone_objects.size();
+    BOOST_LOG_TRIVIAL(info) << boost::format("allow_multicolor_oneplate %1%, allow_rotations %2% skip_modified_gcodes %3% avoid_extrusion_cali_region %4% loaded_filament_ids size %5%, clone_objects size %6%, skip_useless_pick %7%, allow_newer_file %8%")
+        %allow_multicolor_oneplate %allow_rotations %skip_modified_gcodes %avoid_extrusion_cali_region %loaded_filament_ids.size() %clone_objects.size() %skip_useless_pick %allow_newer_file;
     if (clone_objects.size() > 0)
     {
         if (clone_objects.size() != m_input_files.size())
@@ -1223,6 +1235,12 @@ int CLI::run(int argc, char **argv)
                         BOOST_LOG_TRIVIAL(info) << "object "<<o->name <<", id :" << o->id().id << ", from bbl 3mf\n";
                     }*/
 
+                    Semver cli_ver = *Semver::parse(SLIC3R_VERSION);
+                    if (!allow_newer_file && ((cli_ver.maj() != file_version.maj()) || (cli_ver.min() < file_version.min()))){
+                        BOOST_LOG_TRIVIAL(error) << boost::format("Version Check: File Version %1% not supported by current cli version %2%")%file_version.to_string() %SLIC3R_VERSION;
+                        record_exit_reson(outfile_dir, CLI_FILE_VERSION_NOT_SUPPORTED, 0, cli_errors[CLI_FILE_VERSION_NOT_SUPPORTED], sliced_info);
+                        flush_and_exit(CLI_FILE_VERSION_NOT_SUPPORTED);
+                    }
                     Semver old_version(1, 5, 9), old_version2(1, 5, 9);
                     if ((file_version < old_version) && !config.empty()) {
                         translate_old = true;
@@ -2605,8 +2623,8 @@ int CLI::run(int argc, char **argv)
             //flush_vol_vector.resize(project_filament_count);
             //set multiplier to 1?
             m_print_config.option<ConfigOptionFloat>("flush_multiplier", true)->set(new ConfigOptionFloat(1.f));
-            ConfigOption* extra_flush_volume_opt = m_print_config.option("nozzle_volume");
-            int extra_flush_volume = extra_flush_volume_opt ? (int)extra_flush_volume_opt->getFloat() : 0;
+
+            const std::vector<int>& min_flush_volumes = Slic3r::GUI::get_min_flush_volumes();
 
             if (filament_is_support->size() != project_filament_count)
             {
@@ -2615,9 +2633,13 @@ int CLI::run(int argc, char **argv)
                 flush_and_exit(CLI_CONFIG_FILE_ERROR);
             }
 
-            BOOST_LOG_TRIVIAL(info) << boost::format("extra_flush_volume: %1%")%extra_flush_volume;
-            BOOST_LOG_TRIVIAL(info) << boost::format("filament_is_support: %1%")%filament_is_support->serialize();
-            BOOST_LOG_TRIVIAL(info) << boost::format("flush_volumes_matrix before computing: %1%")%m_print_config.option<ConfigOptionFloats>("flush_volumes_matrix")->serialize();
+            {
+                std::ostringstream volumes_str;
+                std::copy(min_flush_volumes.begin(), min_flush_volumes.end(), std::ostream_iterator<int>(volumes_str, ","));
+                BOOST_LOG_TRIVIAL(info) << boost::format("extra_flush_volume: %1%") % volumes_str.str();
+                BOOST_LOG_TRIVIAL(info) << boost::format("filament_is_support: %1%") % filament_is_support->serialize();
+                BOOST_LOG_TRIVIAL(info) << boost::format("flush_volumes_matrix before computing: %1%") % m_print_config.option<ConfigOptionFloats>("flush_volumes_matrix")->serialize();
+            }
             for (int from_idx = 0; from_idx < project_filament_count; from_idx++) {
                 const std::string& from_color = project_filament_colors[from_idx];
                 unsigned char from_rgb[4] = {};
@@ -2641,7 +2663,7 @@ int CLI::run(int argc, char **argv)
                             //BOOST_LOG_TRIVIAL(info) << boost::format("src_rgba {%1%,%2%,%3%,%4%} dst_rgba {%5%,%6%,%7%,%8%}")%(unsigned int)(from_rgb[0]) %(unsigned int)(from_rgb[1]) %(unsigned int)(from_rgb[2]) %(unsigned int)(from_rgb[3])
                             //       %(unsigned int)(to_rgb[0]) %(unsigned int)(to_rgb[1]) %(unsigned int)(to_rgb[2]) %(unsigned int)(to_rgb[3]);
 
-                            Slic3r::FlushVolCalculator calculator(extra_flush_volume, Slic3r::g_max_flush_volume);
+                            Slic3r::FlushVolCalculator calculator(min_flush_volumes[from_idx], Slic3r::g_max_flush_volume);
 
                             flushing_volume = calculator.calc_flush_vol(from_rgb[3], from_rgb[0], from_rgb[1], from_rgb[2], to_rgb[3], to_rgb[0], to_rgb[1], to_rgb[2]);
                             if (is_from_support) {
@@ -3540,6 +3562,7 @@ int CLI::run(int argc, char **argv)
             bool finished_arrange = false, first_run = true;
             Slic3r::GUI::PartPlate* cur_plate = nullptr;
             int low_duplicate_count = 0, up_duplicate_count = duplicate_count, arrange_count = 0;
+            float orig_wipe_x = 0.f, orig_wipe_y = 0.f;
 
             if (duplicate_count > 0) {
                 original_model = model;
@@ -3566,8 +3589,22 @@ int CLI::run(int argc, char **argv)
                         unprintable.clear();
                         locked_aps.clear();
                     }
-                    else
+                    else {
                         first_run = false;
+                        if (plate_to_slice > 0) {
+                            ConfigOptionFloats* wipe_x_option = m_print_config.option<ConfigOptionFloats>("wipe_tower_x");
+                            ConfigOptionFloats* wipe_y_option = m_print_config.option<ConfigOptionFloats>("wipe_tower_y");
+
+                            if (wipe_x_option && (wipe_x_option->size() > (plate_to_slice-1))) {
+                                orig_wipe_x = wipe_x_option->get_at(plate_to_slice-1);
+                                BOOST_LOG_TRIVIAL(info) << boost::format("%1%, plate_to_slice %2%, orig_wipe_x=%3%")%__LINE__%plate_to_slice%orig_wipe_x;
+                            }
+                            if (wipe_y_option && (wipe_y_option->size() > (plate_to_slice-1))) {
+                                orig_wipe_y = wipe_y_option->get_at(plate_to_slice-1);
+                                BOOST_LOG_TRIVIAL(info) << boost::format("%1%, plate_to_slice %2%, orig_wipe_y=%3%")%__LINE__%plate_to_slice%orig_wipe_y;
+                            }
+                        }
+                    }
 
                     cur_plate = (Slic3r::GUI::PartPlate *)partplate_list.get_plate(plate_to_slice-1);
                     cur_plate->duplicate_all_instance(duplicate_count, need_skip, skip_maps);
@@ -4000,11 +4037,22 @@ int CLI::run(int argc, char **argv)
                         if (duplicate_count == 0)
                         {
                             //restore to the original
-                            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": restore to the original model and plates");
+                            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": restore to the original model and plates, orig_wipe_x %1%, orig_wipe_y %2%")%orig_wipe_x %orig_wipe_y;
                             finished_arrange = true;
                             model = original_model;
                             partplate_list.load_from_3mf_structure(plate_data_src);
                             partplate_list.reset_size(current_printable_width, current_printable_depth, current_printable_height, true, true);
+                            if ((orig_wipe_x > 0.f) && (orig_wipe_y > 0.f))
+                            {
+                                ConfigOptionFloat wt_x_opt(orig_wipe_x);
+                                ConfigOptionFloat wt_y_opt(orig_wipe_y);
+                                ConfigOptionFloats* wipe_x_option = m_print_config.option<ConfigOptionFloats>("wipe_tower_x", true);
+                                ConfigOptionFloats* wipe_y_option = m_print_config.option<ConfigOptionFloats>("wipe_tower_y", true);
+
+                                wipe_x_option->set_at(&wt_x_opt, plate_to_slice-1, 0);
+                                wipe_y_option->set_at(&wt_y_opt, plate_to_slice-1, 0);
+                                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": restore wipe_tower position to {%1%, %2%}")%orig_wipe_x %orig_wipe_y;
+                            }
                             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": exit arrange process");
                         }
                         continue;
@@ -4013,7 +4061,7 @@ int CLI::run(int argc, char **argv)
                     if (duplicate_single_object)
                     {
                         if (real_duplicate_count <= 1) {
-                            BOOST_LOG_TRIVIAL(warning) << "no object can be placed under single object mode, restore to the original model and plates also" << std::endl;
+                            BOOST_LOG_TRIVIAL(warning) << boost::format("no object can be placed under single object mode, restore to the original model and plates also, orig_wipe_x %1%, orig_wipe_y %2%")%orig_wipe_x %orig_wipe_y;
                             //record_exit_reson(outfile_dir, CLI_OBJECT_ARRANGE_FAILED, 0, cli_errors[CLI_OBJECT_ARRANGE_FAILED], sliced_info);
                             //flush_and_exit(CLI_OBJECT_ARRANGE_FAILED);
                             finished_arrange = true;
@@ -4021,6 +4069,17 @@ int CLI::run(int argc, char **argv)
                             partplate_list.load_from_3mf_structure(plate_data_src);
                             partplate_list.reset_size(current_printable_width, current_printable_depth, current_printable_height, true, true);
                             duplicate_count = 0;
+                            if ((orig_wipe_x > 0.f) && (orig_wipe_y > 0.f))
+                            {
+                                ConfigOptionFloat wt_x_opt(orig_wipe_x);
+                                ConfigOptionFloat wt_y_opt(orig_wipe_y);
+                                ConfigOptionFloats* wipe_x_option = m_print_config.option<ConfigOptionFloats>("wipe_tower_x", true);
+                                ConfigOptionFloats* wipe_y_option = m_print_config.option<ConfigOptionFloats>("wipe_tower_y", true);
+
+                                wipe_x_option->set_at(&wt_x_opt, plate_to_slice-1, 0);
+                                wipe_y_option->set_at(&wt_y_opt, plate_to_slice-1, 0);
+                                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": restore wipe_tower position to {%1%, %2%}")%orig_wipe_x %orig_wipe_y;
+                            }
                             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": exit arrange process");
                             continue;
                         }

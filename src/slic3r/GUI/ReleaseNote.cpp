@@ -30,6 +30,7 @@ namespace Slic3r { namespace GUI {
 wxDEFINE_EVENT(EVT_SECONDARY_CHECK_CONFIRM, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SECONDARY_CHECK_CANCEL, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SECONDARY_CHECK_DONE, wxCommandEvent);
+wxDEFINE_EVENT(EVT_SECONDARY_CHECK_RESUME, wxCommandEvent);
 wxDEFINE_EVENT(EVT_CHECKBOX_CHANGE, wxCommandEvent);
 wxDEFINE_EVENT(EVT_ENTER_IP_ADDRESS, wxCommandEvent);
 wxDEFINE_EVENT(EVT_CLOSE_IPADDRESS_DLG, wxCommandEvent);
@@ -649,6 +650,21 @@ SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent, wxWindowID id, cons
             e.Skip();
         });
 
+    m_button_resume = new Button(this, _L("resume"));
+    m_button_resume->SetBackgroundColor(btn_bg_white);
+    m_button_resume->SetBorderColor(wxColour(38, 46, 48));
+    m_button_resume->SetFont(Label::Body_12);
+    m_button_resume->SetSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_button_resume->SetMinSize(wxSize(-1, FromDIP(24)));
+    m_button_resume->SetMaxSize(wxSize(-1, FromDIP(24)));
+    m_button_resume->SetCornerRadius(FromDIP(12));
+
+    m_button_resume->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
+        post_event(wxCommandEvent(EVT_SECONDARY_CHECK_RESUME));
+        e.Skip();
+        });
+    m_button_resume->Hide();
+
     if (btn_style == CONFIRM_AND_CANCEL) {
         m_button_cancel->Show();
         m_button_fn->Hide();
@@ -673,6 +689,7 @@ SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent, wxWindowID id, cons
     }
 
     sizer_button->AddStretchSpacer();
+    sizer_button->Add(m_button_resume, 0, wxALL, FromDIP(5));
     sizer_button->Add(m_button_retry, 0, wxALL, FromDIP(5));
     sizer_button->Add(m_button_fn, 0, wxALL, FromDIP(5));
     sizer_button->Add(m_button_ok, 0, wxALL, FromDIP(5));
@@ -776,26 +793,39 @@ void SecondaryCheckDialog::update_title_style(wxString title, SecondaryCheckDial
         m_button_cancel->Show();
         m_button_fn->Hide();
         m_button_retry->Hide();
+        m_button_resume->Hide();
     }
     else if (style == CONFIRM_AND_DONE) {
         m_button_cancel->Hide();
         m_button_fn->Show();
         m_button_retry->Hide();
+        m_button_resume->Hide();
     }
     else if (style == CONFIRM_AND_RETRY) {
         m_button_retry->Show();
         m_button_cancel->Hide();
         m_button_fn->Hide();
+        m_button_resume->Hide();
     }
     else if (style == DONE_AND_RETRY) {
         m_button_retry->Show();
         m_button_fn->Show();
         m_button_cancel->Hide();
+        m_button_resume->Hide();
+    }
+    else if(style == CONFIRM_AND_RESUME)
+    {
+        m_button_retry->Hide();
+        m_button_fn->Hide();
+        m_button_cancel->Hide();
+        m_button_resume->Show();
     }
     else {
         m_button_retry->Hide();
         m_button_cancel->Hide();
         m_button_fn->Hide();
+        m_button_resume->Hide();
+
     }
 
 
@@ -965,16 +995,46 @@ void ConfirmBeforeSendDialog::update_text(wxString text)
         sizer_text_release_note->Add(bottom_blank_sizer, 0, wxALIGN_CENTER | wxALL, FromDIP(5));
         m_vebview_release_note->SetSizer(sizer_text_release_note);
     }
-    m_staticText_release_note->SetMaxSize(wxSize(FromDIP(330), -1));
-    m_staticText_release_note->SetMinSize(wxSize(FromDIP(330), -1));
+    m_staticText_release_note->SetMaxSize(wxSize(FromDIP(380), -1));
+    m_staticText_release_note->SetMinSize(wxSize(FromDIP(380), -1));
     m_staticText_release_note->SetLabelText(text);
     m_vebview_release_note->Layout();
 
     auto text_size = m_staticText_release_note->GetBestSize();
-    if (text_size.y < FromDIP(360))
-        m_vebview_release_note->SetMinSize(wxSize(FromDIP(360), text_size.y + FromDIP(25)));
+    if (text_size.y < FromDIP(380))
+        m_vebview_release_note->SetMinSize(wxSize(FromDIP(400), text_size.y + FromDIP(25)));
     else {
-        m_vebview_release_note->SetMinSize(wxSize(FromDIP(360), FromDIP(360)));
+        m_vebview_release_note->SetMinSize(wxSize(FromDIP(400), FromDIP(380)));
+    }
+
+    Layout();
+    Fit();
+}
+
+void ConfirmBeforeSendDialog::update_text(std::vector<ConfirmBeforeSendInfo> texts)
+{
+    wxBoxSizer* sizer_text_release_note = new wxBoxSizer(wxVERTICAL);
+    m_vebview_release_note->SetSizer(sizer_text_release_note);
+
+    auto height = 0;
+    for (auto text : texts) {
+        auto label_item = new Label(m_vebview_release_note, text.text, LB_AUTO_WRAP);
+        if (text.level == ConfirmBeforeSendInfo::InfoLevel::Warning) {
+            label_item->SetForegroundColour(wxColour(0xFF, 0x6F, 0x00));
+        }
+        label_item->SetMaxSize(wxSize(FromDIP(380), -1));
+        label_item->SetMinSize(wxSize(FromDIP(380), -1));
+        label_item->Wrap(FromDIP(380));
+        label_item->Layout();
+        sizer_text_release_note->Add(label_item, 0, wxALIGN_CENTER | wxALL, FromDIP(3));
+        height += label_item->GetSize().y;
+    }
+    
+    m_vebview_release_note->Layout();
+    if (height < FromDIP(380))
+        m_vebview_release_note->SetMinSize(wxSize(FromDIP(400), height + FromDIP(25)));
+    else {
+        m_vebview_release_note->SetMinSize(wxSize(FromDIP(400), FromDIP(380)));
     }
 
     Layout();
@@ -1035,10 +1095,36 @@ void ConfirmBeforeSendDialog::on_dpi_changed(const wxRect& suggested_rect)
     rescale();
 }
 
-void ConfirmBeforeSendDialog::show_update_nozzle_button()
+void ConfirmBeforeSendDialog::show_update_nozzle_button(bool show)
 {
-    m_button_update_nozzle->Show(true);
+    m_button_update_nozzle->Show(show);
     Layout();
+}
+
+void ConfirmBeforeSendDialog::hide_button_ok()
+{
+    m_button_ok->Hide();
+}
+
+void ConfirmBeforeSendDialog::edit_cancel_button_txt(wxString txt)
+{
+    m_button_cancel->SetLabel(txt);
+}
+
+void ConfirmBeforeSendDialog::disable_button_ok()
+{
+    m_button_ok->Disable();
+    m_button_ok->SetBackgroundColor(wxColour(0x90, 0x90, 0x90));
+    m_button_ok->SetBorderColor(wxColour(0x90, 0x90, 0x90));
+}
+
+void ConfirmBeforeSendDialog::enable_button_ok()
+{
+    m_button_ok->Enable();
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+        std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
+    m_button_ok->SetBackgroundColor(btn_bg_green);
+    m_button_ok->SetBorderColor(btn_bg_green);
 }
 
 void ConfirmBeforeSendDialog::rescale()
