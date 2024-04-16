@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OrcaSlicer 2.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-16 13:22+0200\n"
+"POT-Creation-Date: 2024-04-16 16:45+0200\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Krzysztof Morga <tlumaczeniebs@gmail.com>\n"
 "Language-Team: \n"
@@ -5369,13 +5369,13 @@ msgstr ""
 "Wersja pliku 3MF jest w wersji Beta i jest nowsza niż obecna wersja "
 "OrcaSlicer."
 
-msgid "If you would like to try Bambu Studio Beta, you may click to"
+msgid "If you would like to try Orca Slicer Beta, you may click to"
 msgstr "Jeśli chciałbyś wypróbować OrcaSlicer Beta, możesz kliknąć tutaj."
 
 msgid "Download Beta Version"
 msgstr "Pobierz wersje Beta"
 
-msgid "The 3mf file version is newer than the current Bambu Studio version."
+msgid "The 3mf file version is newer than the current Orca Slicer version."
 msgstr "Wersja pliku 3MF jest nowsza niż obecna w wersji OrcaSlicer."
 
 msgid "Update your Orca Slicer could enable all functionality in the 3mf file."
@@ -15943,6 +15943,12 @@ msgstr ""
 "Czy wiesz, że podczas drukowania filamentami podatnymi na odkształcenia, "
 "takimi jak ABS, odpowiednie zwiększenie temperatury podgrzewanej płyty może "
 "zmniejszyć prawdopodobieństwo odkształceń."
+
+#~ msgid "If you would like to try Bambu Studio Beta, you may click to"
+#~ msgstr "Jeśli chciałbyś wypróbować OrcaSlicer Beta, możesz kliknąć tutaj."
+
+#~ msgid "The 3mf file version is newer than the current Bambu Studio version."
+#~ msgstr "Wersja pliku 3MF jest nowsza niż obecna w wersji OrcaSlicer."
 
 #~ msgid "active"
 #~ msgstr "aktywny"
