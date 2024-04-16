@@ -43,7 +43,7 @@ function usage() {
 PRESET="linux-release"
 BUILD_DEPS="0"
 FORCE_BUILD_DEPS="0"
-while getopts ":1bcdghirsu" opt; do
+while getopts ":1bcfdghirsu" opt; do
   case ${opt} in
     1 )
         export CMAKE_BUILD_PARALLEL_LEVEL=1
