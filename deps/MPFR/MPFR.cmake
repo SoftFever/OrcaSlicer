@@ -30,10 +30,10 @@ else ()
         URL_HASH SHA256=b9df93635b20e4089c29623b19420c4ac848a1b29df1cfd59f26cab0d2666aa0
         DOWNLOAD_DIR ${DEP_DOWNLOAD_DIR}/MPFR
         BUILD_IN_SOURCE ON
-        CONFIGURE_COMMAND autoreconf -f -i && 
-                          env "CFLAGS=${_gmp_ccflags}" "CXXFLAGS=${_gmp_ccflags}" ./configure ${_cross_compile_arg} --prefix=${DESTDIR}/usr/local --enable-shared=no --enable-static=yes --with-gmp=${DESTDIR}/usr/local ${_gmp_build_tgt}
-        BUILD_COMMAND make -j
-        INSTALL_COMMAND make install
+        CONFIGURE_COMMAND autoreconf -f -i &&
+                        env "CFLAGS=${_gmp_ccflags}" "CXXFLAGS=${_gmp_ccflags}" ./configure ${_cross_compile_arg} --prefix=${DESTDIR}/usr/local --enable-shared=no --enable-static=yes --enable-silent-rules --with-gmp=${DESTDIR}/usr/local ${_gmp_build_tgt}
+        BUILD_COMMAND make -j -s
+        INSTALL_COMMAND make -s install
         DEPENDS dep_GMP
     )
 endif ()
