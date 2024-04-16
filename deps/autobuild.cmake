@@ -1,8 +1,69 @@
-# TODO: Create a hash of the dependency folders and check if they have been updated
-
 if (CLEAN_DEPS)
-    message(STATUS "Cleaning dependencies")
+    message(STATUS "Cleaning dependencies and rebuilding")
     file(REMOVE_RECURSE ${DEP_BUILD_DIR})
+endif ()
+
+find_package(Git REQUIRED QUIET)
+set(_needs_build FALSE)
+
+# if there is already info about the last build, read it
+if (EXISTS ${DEP_BUILD_DIR}/DEPS_BUILD_INFO.info)
+    file(STRINGS ${DEP_BUILD_DIR}/DEPS_BUILD_INFO.info HASH_LIST)
+    if (HASH_LIST)
+        list(GET HASH_LIST 1 _parsed_last_commit)
+        list(GET HASH_LIST 2 _parsed_last_uncommitted_md5)
+    endif ()
+else ()
+    message(STATUS "No previous build info found")
+endif ()
+
+# get the diff of the dependencies folder
+execute_process(
+        COMMAND ${GIT_EXECUTABLE} --no-pager diff -w deps
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        OUTPUT_VARIABLE _cmd_deps_diff
+        RESULT_VARIABLE _cmd_deps_diff_res
+)
+
+# get the hash of the last commit to the dependencies folder
+execute_process(
+        COMMAND ${GIT_EXECUTABLE} log -1 --pretty=format:%H deps
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        OUTPUT_VARIABLE _cmd_last_commit
+        RESULT_VARIABLE _cmd_last_commit_res
+)
+
+# check for errors while running the commands
+if (NOT _cmd_deps_diff_res EQUAL 0)
+    message(FATAL_ERROR "Failed to get status for deps")
+elseif (NOT _cmd_last_commit_res EQUAL 0)
+    message(FATAL_ERROR "Failed to get last commit date for deps")
+endif ()
+
+# check the results and determine if a build is needed
+if (NOT _parsed_last_commit STREQUAL _cmd_last_commit)
+    message(STATUS "Last commit for deps has changed")
+    set(_needs_build TRUE)
+endif ()
+if (NOT _cmd_deps_diff STREQUAL "")
+    string(MD5 _deps_diff_md5 "${_cmd_deps_diff}")
+    if (NOT _parsed_last_uncommitted_md5 STREQUAL _deps_diff_md5)
+        message(STATUS "Uncommitted changes made to deps folder")
+        set(_needs_build TRUE)
+    endif ()
+#else ()
+#    set(_deps_diff_md5 "0")
+endif ()
+
+if (_needs_build)
+    message(STATUS "Dependencies have been updated. Rebuilding")
+elseif (NOT EXISTS ${DEP_BUILD_DIR})
+    if (NOT CLEAN_DEPS)
+        message(STATUS "Build directory for dependencies does not exist. Rebuilding")
+    endif ()
+else ()
+    message(STATUS "Dependencies are up to date. Skipping build")
+    return()
 endif ()
 
 set (_output_quiet "")
@@ -83,5 +144,9 @@ else ()
     endif ()
 endif ()
 
-#list(APPEND CMAKE_PREFIX_PATH ${_build_dir}/destdir/usr/local)
-#set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH}" CACHE STRING "")
+# write current commit info to file
+message(STATUS "Writing deps build status to ${DEP_BUILD_DIR}/DEPS_BUILD_INFO.info")
+file(WRITE ${DEP_BUILD_DIR}/DEPS_BUILD_INFO.info
+        "This file is used to determine if dependencies need to be rebuilt. Do not edit\n"
+        "${_cmd_last_commit}\n"
+        "${_deps_diff_md5}\n")
