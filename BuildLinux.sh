@@ -25,11 +25,12 @@ function check_available_memory_and_disk() {
 }
 
 function usage() {
-    echo "Usage: ./BuildLinux.sh [-1][-b][-c][-d][-i][-r][-s][-u]"
+    echo "Usage: ./BuildLinux.sh [-1][-b][-c][-f][-d][-i][-r][-s][-u]"
     echo "   -1: limit builds to 1 core (where possible)"
     echo "   -b: build in debug mode"
     echo "   -c: force a clean build"
-    echo "   -d: build deps (optional)"
+    echo "   -f: force a deps build (even if they are already built)"
+    echo "   -d: build deps (if needed)"
     echo "   -h: this help output"
     echo "   -i: Generate appimage (optional)"
     echo "   -r: skip ram and disk checks (low ram compiling)"
@@ -41,6 +42,7 @@ function usage() {
 
 PRESET="linux-release"
 BUILD_DEPS="0"
+FORCE_BUILD_DEPS="0"
 while getopts ":1bcdghirsu" opt; do
   case ${opt} in
     1 )
@@ -53,6 +55,9 @@ while getopts ":1bcdghirsu" opt; do
     c )
         CLEAN_BUILD=1
         ;;
+    f )
+        FORCE_BUILD_DEPS="1"
+        ;;
     d )
         BUILD_DEPS="1"
         ;;
@@ -63,7 +68,7 @@ while getopts ":1bcdghirsu" opt; do
         BUILD_IMAGE="1"
         ;;
     r )
-	    SKIP_RAM_CHECK="1"
+	      SKIP_RAM_CHECK="1"
 	      ;;
     s )
         BUILD_ORCA="1"
@@ -114,7 +119,7 @@ then
   CONFIG_ARGS="--fresh"
 fi
 
-cmake --preset ${PRESET} -DBUILD_DEPS=${BUILD_DEPS} -DCLEAN_DEPS=${CLEAN_BUILD} ${CONFIG_ARGS}
+cmake --preset ${PRESET} -DBUILD_DEPS=${BUILD_DEPS} -DCLEAN_DEPS=${CLEAN_BUILD} -DFORCE_DEPS=${FORCE_BUILD_DEPS} ${CONFIG_ARGS}
 
 if [[ -n "${BUILD_ORCA}" ]]
 then

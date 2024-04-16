@@ -1,10 +1,12 @@
 if (CLEAN_DEPS)
     message(STATUS "Cleaning dependencies and rebuilding")
     file(REMOVE_RECURSE ${DEP_BUILD_DIR})
+elseif (FORCE_DEPS)
+    message(STATUS "Forcing rebuild of dependencies")
+    set(_needs_build TRUE)
 endif ()
 
 find_package(Git REQUIRED QUIET)
-set(_needs_build FALSE)
 
 # if there is already info about the last build, read it
 if (EXISTS ${DEP_BUILD_DIR}/DEPS_BUILD_INFO.info)
