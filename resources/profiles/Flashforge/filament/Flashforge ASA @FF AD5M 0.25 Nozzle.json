@@ -1,7 +1,7 @@
 {
     "type": "filament",
     "name": "Flashforge ASA @FF AD5M 0.25 Nozzle",
-    "inherits": "Flashforge ASA @FF AD5M",
+    "inherits": "Flashforge Generic ASA",
     "from": "system",
     "setting_id": "GFSA04_05",
     "instantiation": "true",
