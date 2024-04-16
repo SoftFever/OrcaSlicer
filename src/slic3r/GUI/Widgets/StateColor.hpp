@@ -9,7 +9,7 @@ class StateColor
 {
 public:
     enum State {
-        Normal = 0, 
+        Normal = 0,
         Enabled = 1,
         Checked = 2,
         Focused = 4,
