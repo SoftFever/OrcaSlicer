@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.13)
 
+message(STATUS "CMake version: ${CMAKE_VERSION}")
+
 project(OrcaSlicer)
 
 include("version.inc")
