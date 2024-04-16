@@ -85,6 +85,10 @@
 			"sub_path": "machine/Creality Ender-6.json"
 		},
 		{
+			"name": "Creality Sermoon V1",
+			"sub_path": "machine/Creality Sermoon V1.json"
+		},
+		{
 			"name": "Creality K1",
 			"sub_path": "machine/Creality K1.json"
 		},
@@ -815,6 +819,18 @@
 			"sub_path": "process/0.56mm SuperChunky @Creality CR-6 0.8.json"
 		},
 		{
+			"name": "0.16mm Optimal @Creality Sermoon V1",
+			"sub_path": "process/0.16mm Optimal @Creality Sermoon V1.json"
+		},
+		{
+			"name": "0.20mm Standard @Creality Sermoon V1",
+			"sub_path": "process/0.20mm Standard @Creality Sermoon V1.json"
+		},
+		{
+			"name": "0.28mm Standard @Creality Sermoon V1",
+			"sub_path": "process/0.28mm Standard @Creality Sermoon V1.json"
+		},
+		{
 			"name": "0.24mm Optimal @Creality K1 (0.6 nozzle)",
 			"sub_path": "process/0.24mm Optimal @Creality K1 (0.6 nozzle).json"
 		},
@@ -1249,6 +1265,10 @@
 		{
 			"name": "Creality Ender-5 S1 0.4 nozzle",
 			"sub_path": "machine/Creality Ender-5 S1 0.4 nozzle.json"
+		},
+		{
+			"name": "Creality Sermoon V1 0.4 nozzle",
+			"sub_path": "machine/Creality Sermoon V1 0.4 nozzle.json"
 		},
 		{
 			"name": "Creality K1 (0.4 nozzle)",
