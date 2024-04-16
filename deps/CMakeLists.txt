@@ -27,6 +27,8 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_VERSION VERSION_LESS "3.25")
     set(LINUX ON CACHE BOOL "" FORCE)
 endif ()
 
+set(CMAKE_WARN_DEPRECATED OFF CACHE BOOL "") # Disable deprecation warnings from dependencies built using old CMake versions
+
 if (APPLE)
     # if CMAKE_OSX_DEPLOYMENT_TARGET is not set, set it to 11.3
     if (NOT CMAKE_OSX_DEPLOYMENT_TARGET)
