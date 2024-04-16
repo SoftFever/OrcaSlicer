@@ -1,7 +1,7 @@
 {
 	"type": "process",
 	"setting_id": "GP004",
-	"name": "0.20mm Standard Fast @MM hqs sf",
+	"name": "0.20mm Standard Fast @MM hqs SF",
 	"from": "system",
 	"inherits": "fdm_process_common",
 	"instantiation": "true",
@@ -112,6 +112,6 @@
     "travel_acceleration": "10000",
     "travel_speed": "300",
 	"compatible_printers": [
-		"MM hqs sf 0.4 nozzle"
+		"MM hqs SF 0.4 nozzle"
 	]
 }
