@@ -51,8 +51,6 @@ if (NOT _cmd_deps_diff STREQUAL "")
         message(STATUS "Uncommitted changes made to deps folder")
         set(_needs_build TRUE)
     endif ()
-#else ()
-#    set(_deps_diff_md5 "0")
 endif ()
 
 if (_needs_build)
