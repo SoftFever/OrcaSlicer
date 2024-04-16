@@ -133,6 +133,7 @@ enum ManualPaCaliMethod {
     PA_PATTERN,
 };
 
+
 struct RatingInfo {
     bool        request_successful;
     int         http_code;
@@ -289,6 +290,7 @@ public:
     unsigned        reserved;
     HMSMessageLevel msg_level = HMS_UNKNOWN;
     int             msg_code = 0;
+    bool            already_read = false;
     bool parse_hms_info(unsigned attr, unsigned code);
     std::string get_long_error_code();
 
@@ -622,6 +624,7 @@ public:
     std::vector<CaliPresetInfo> selected_cali_preset;
     float                      cache_flow_ratio { 0.0 };
     bool                       cali_finished = true;
+    FlowRatioCalibrationType   flow_ratio_calibration_type = FlowRatioCalibrationType::COMPLETE_CALIBRATION;
 
     ManualPaCaliMethod         manual_pa_cali_method = ManualPaCaliMethod::PA_LINE;
     bool                       has_get_pa_calib_tab{ false };
@@ -694,6 +697,7 @@ public:
     std::string tutk_state;
     enum LiveviewLocal {
         LVL_None,
+        LVL_Disable,
         LVL_Local, 
         LVL_Rtsps,
         LVL_Rtsp
@@ -703,6 +707,8 @@ public:
     bool        file_remote{false};
     bool        file_model_download{false};
     bool        virtual_camera{false};
+
+    int nozzle_setting_hold_count = 0;
 
     bool xcam_ai_monitoring{ false };
     int  xcam_ai_monitoring_hold_count = 0;
@@ -1026,11 +1032,13 @@ public:
     static bool        get_printer_is_enclosed(std::string type_str);
     static std::vector<std::string> get_resolution_supported(std::string type_str);
     static std::vector<std::string> get_compatible_machine(std::string type_str);
-    static bool load_filaments_blacklist_config(std::string config_file);
+    static bool load_filaments_blacklist_config();
     static void check_filaments_in_blacklist(std::string tag_vendor, std::string tag_type, bool& in_blacklist, std::string& ac, std::string& info);
     static std::string load_gcode(std::string type_str, std::string gcode_file);
 };
 
+// change the opacity
+void change_the_opacity(wxColour& colour);
 } // namespace Slic3r
 
 #endif //  slic3r_DeviceManager_hpp_

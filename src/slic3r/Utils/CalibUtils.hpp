@@ -63,6 +63,7 @@ public:
     static int get_selected_calib_idx(const std::vector<PACalibResult> &pa_calib_values, int cali_idx);
     static bool get_pa_k_n_value_by_cali_idx(const MachineObject* obj, int cali_idx, float& out_k, float& out_n);
 
+    static bool validate_input_name(wxString name);
     static bool validate_input_k_value(wxString k_text, float* output_value);
     static bool validate_input_flow_ratio(wxString flow_ratio, float* output_value);
 
