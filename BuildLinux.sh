@@ -99,14 +99,6 @@ then
     exit 1
 fi
 
-echo "Changing date in version..."
-{
-    # change date in version
-    sed -i "s/+UNKNOWN/_$(date '+%F')/" version.inc
-}
-echo "done"
-
-
 if ! [[ -n "${SKIP_RAM_CHECK}" ]]
 then
     check_available_memory_and_disk
