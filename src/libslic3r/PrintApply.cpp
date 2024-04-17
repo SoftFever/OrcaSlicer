@@ -235,11 +235,16 @@ static t_config_option_keys print_config_diffs(
             bool overriden = opt_new->overriden_by(opt_new_filament);
             if (overriden || *opt_old != *opt_new) {
                 auto opt_copy = opt_new->clone();
-                opt_copy->apply_override(opt_new_filament);
+                if (!((opt_key == "long_retractions_when_cut" || opt_key == "retraction_distances_when_cut")
+                    && new_full_config.option<ConfigOptionInt>("enable_long_retraction_when_cut")->value != LongRectrationLevel::EnableFilament)) // ugly code, remove it later if firmware supports
+                    opt_copy->apply_override(opt_new_filament);
                 bool changed = *opt_old != *opt_copy;
                 if (changed)
                     print_diff.emplace_back(opt_key);
                 if (changed || overriden) {
+                    if ((opt_key == "long_retractions_when_cut" || opt_key == "retraction_distances_when_cut")
+                        && new_full_config.option<ConfigOptionInt>("enable_long_retraction_when_cut")->value != LongRectrationLevel::EnableFilament)
+                        continue;
                     // filament_overrides will be applied to the placeholder parser, which layers these parameters over full_print_config.
                     filament_overrides.set_key_value(opt_key, opt_copy);
                 } else

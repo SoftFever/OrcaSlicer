@@ -22,6 +22,7 @@
 #include "GLModel.hpp"
 #include "3DBed.hpp"
 #include "MeshUtils.hpp"
+#include "libslic3r/ParameterUtils.hpp"
 
 class GLUquadric;
 typedef class GLUquadric GLUquadricObject;
@@ -116,6 +117,7 @@ private:
 
     friend class PartPlateList;
 
+    Pointfs m_raw_shape;
     Pointfs m_shape;
     Pointfs m_exclude_area;
     BoundingBoxf3 m_bounding_box;
@@ -291,6 +293,7 @@ public:
     // BBS
     Vec2d get_size() const { return Vec2d(m_width, m_depth); }
     ModelObjectPtrs get_objects() { return m_model->objects; }
+    ModelObjectPtrs get_objects_on_this_plate();
     ModelInstance* get_instance(int obj_id, int instance_id);
 
     Vec3d get_origin() { return m_origin; }
@@ -335,6 +338,9 @@ public:
     //update object's index caused by original object deleted
     void update_object_index(int obj_idx_removed, int obj_idx_max);
 
+    // set objects configs when enabling spiral vase mode.
+    void set_vase_mode_related_object_config(int obj_id = -1);
+
     //whether it is empty
     bool empty() { return obj_to_instance_set.empty(); }
 
@@ -362,10 +368,18 @@ public:
     void set_hover_id(int id) { m_hover_id = id; }
     const BoundingBoxf3& get_bounding_box(bool extended = false) { return extended ? m_extended_bounding_box : m_bounding_box; }
     const BoundingBox get_bounding_box_crd();
+    BoundingBoxf3 get_plate_box() {return get_build_volume();}
     BoundingBoxf3 get_build_volume()
     {
-        Vec3d up_point = m_bounding_box.max + Vec3d(0, 0, m_origin.z() + m_height);
-        Vec3d low_point = m_bounding_box.min + Vec3d(0, 0, m_origin.z());
+        auto  eps=Slic3r::BuildVolume::SceneEpsilon;
+        Vec3d up_point = Vec3d(m_origin.x() + m_width + eps, m_origin.y() + m_depth + eps, m_origin.z() + m_height + eps);
+        Vec3d low_point  = Vec3d(m_origin.x() - eps, m_origin.y() - eps, m_origin.z() - eps);
+        if (m_raw_shape.size() > 0) {
+            up_point.x() += m_raw_shape[0].x();
+            up_point.y() += m_raw_shape[0].y();
+            low_point.x() += m_raw_shape[0].x();
+            low_point.y() += m_raw_shape[0].y();
+        }
         BoundingBoxf3 plate_box(low_point, up_point);
         return plate_box;
     }
@@ -460,7 +474,9 @@ public:
     int load_pattern_box_data(std::string filename);
 
     std::vector<int> get_first_layer_print_sequence() const;
+    std::vector<LayerPrintSequence> get_other_layers_print_sequence() const;
     void set_first_layer_print_sequence(const std::vector<int> &sorted_filaments);
+    void set_other_layers_print_sequence(const std::vector<LayerPrintSequence>& layer_seq_list);
     void update_first_layer_print_sequence(size_t filament_nums);
 
     void print() const;
@@ -733,7 +749,7 @@ public:
     int find_instance_belongs(int obj_id, int instance_id);
 
     //notify instance's update, need to refresh the instance in plates
-    int notify_instance_update(int obj_id, int instance_id);
+    int notify_instance_update(int obj_id, int instance_id, bool is_new = false);
 
     //notify instance is removed
     int notify_instance_removed(int obj_id, int instance_id);
