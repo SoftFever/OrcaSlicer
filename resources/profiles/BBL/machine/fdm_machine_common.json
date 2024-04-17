@@ -12,6 +12,7 @@
     "deretraction_speed": [
         "40"
     ],
+    "enable_long_retraction_when_cut" : "0",
     "extruder_colour": [
         "#FCE94F"
     ],
@@ -20,6 +21,9 @@
     ],
     "gcode_flavor": "marlin",
     "silent_mode": "0",
+    "long_retractions_when_cut": [
+        "1"
+    ],
     "machine_max_acceleration_e": [
         "5000"
     ],
@@ -87,6 +91,9 @@
     ],
     "retract_when_changing_layer": [
         "1"
+    ],
+    "retraction_distances_when_cut": [
+        "18"
     ],
     "retraction_length": [
         "5"

@@ -21,7 +21,7 @@
         "Bambu PLA Basic @BBL X1"
     ],
     "default_print_profile": "0.20mm Standard @BBL P1P",
-    "enable_long_retraction_when_cut" : "1",
+    "enable_long_retraction_when_cut" : "2",
     "extruder_offset": [
         "0x2"
     ],
