@@ -129,16 +129,20 @@
     "slow_down_layer_time": [
         "8"
     ],
-    "filament_start_gcode": [
-        "; filament start gcode\n{if  (bed_temperature[current_extruder] >90)||(bed_temperature_initial_layer[current_extruder] >90)}M106 P3 S0\n{elsif(bed_temperature[current_extruder] >70)||(bed_temperature_initial_layer[current_extruder] >70)}M106 P3 S153\n{elsif(bed_temperature[current_extruder] >35)||(bed_temperature_initial_layer[current_extruder] >35)}M106 P3 S255\n{endif}"
-    ],
-    "filament_end_gcode": [
-        "; filament end gcode \nM106 P3 S0"
-    ],
     "nozzle_temperature": [
         "200"
     ],
     "temperature_vitrification": [
         "100"
-    ]
+    ],
+    "during_print_exhaust_fan_speed":[
+         "100"
+    ],
+    "activate_air_filtration":[
+        "1"
+    ],
+    "activate_chamber_temp_control": [
+        "0"
+    ],
+    "compatible_printers": []
 }

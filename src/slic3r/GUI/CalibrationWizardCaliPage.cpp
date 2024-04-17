@@ -21,6 +21,7 @@ CalibrationCaliPage::CalibrationCaliPage(wxWindow* parent, CalibMode cali_mode, 
     create_page(this);
 
     this->SetSizer(m_top_sizer);
+    Layout();
     m_top_sizer->Fit(this);
 }
 
@@ -63,8 +64,6 @@ void CalibrationCaliPage::create_page(wxWindow* parent)
 
     m_printing_panel->get_pause_resume_button()->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(CalibrationCaliPage::on_subtask_pause_resume), NULL, this);
     m_printing_panel->get_abort_button()->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(CalibrationCaliPage::on_subtask_abort), NULL, this);
-
-    Layout();
 }
 
 void CalibrationCaliPage::on_subtask_pause_resume(wxCommandEvent& event)
@@ -395,6 +394,7 @@ void CalibrationCaliPage::update_subtask(MachineObject* obj)
     }
 
     this->Layout();
+    this->Fit();
 }
 
 void CalibrationCaliPage::update_basic_print_data(bool def, float weight, int prediction)
@@ -424,6 +424,7 @@ void CalibrationCaliPage::reset_printing_values()
     m_printing_panel->update_layers_num(true, wxString::Format(_L("Layer: %s"), NA_STR));
     update_basic_print_data(false);
     this->Layout();
+    this->Fit();
 }
 
 void CalibrationCaliPage::on_device_connected(MachineObject* obj)

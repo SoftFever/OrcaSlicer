@@ -57,7 +57,7 @@ jobs:
           $ref = "${{ github.ref }}"
           $eventName = "${{ github.event_name }}"
           $prNumber = "${{ github.event.number }}"
-      
+
           if ($eventName -eq 'pull_request') {
               $ver = "PR" + $prNumber
           } else {
@@ -67,12 +67,12 @@ jobs:
               }
               $ver = "V$ver"
           }
-      
+
           echo "ver=$ver" | Out-File -Append -FilePath $env:GITHUB_ENV -Encoding utf8
           echo "date=$date" | Out-File -Append -FilePath $env:GITHUB_ENV -Encoding utf8
           echo "date: ${{ env.date }} version: ${{ env.ver }}"
         shell: pwsh
-        
+
 #   Mac
       - name: Install tools mac
         if: inputs.os == 'macos-12'
@@ -134,11 +134,11 @@ jobs:
         if: github.ref == 'refs/heads/main' && inputs.os == 'macos-12'
         uses: WebFreak001/deploy-nightly@v3.1.0
         with:
-          upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label} 
-          release_id: 137995723 
+          upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label}
+          release_id: 137995723
           asset_path: ${{ github.workspace }}/OrcaSlicer_Mac_${{inputs.arch}}_${{ env.ver }}.dmg
           asset_name: OrcaSlicer_Mac_${{inputs.arch}}_${{ env.ver }}.dmg
-          asset_content_type: application/octet-stream 
+          asset_content_type: application/octet-stream
           max_releases: 1 # optional, if there are more releases than this matching the asset_name, the oldest ones are going to be deleted
 
 # Windows
@@ -174,7 +174,7 @@ jobs:
         working-directory: ${{ github.workspace }}/build/src/Release
         shell: cmd
         run: '"C:/Program Files/7-Zip/7z.exe" a -m0=lzma2 -mx9 Debug_PDB_${{ env.ver }}_for_developers_only.7z  *.pdb'
-          
+
       - name: Upload artifacts Win zip
         if: inputs.os == 'windows-latest'
         uses: actions/upload-artifact@v4
@@ -200,23 +200,23 @@ jobs:
         if: github.ref == 'refs/heads/main' && inputs.os == 'windows-latest'
         uses: WebFreak001/deploy-nightly@v3.1.0
         with:
-          upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label} 
-          release_id: 137995723 
+          upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label}
+          release_id: 137995723
           asset_path: ${{ github.workspace }}/build/OrcaSlicer_Windows_${{ env.ver }}_portable.zip
           asset_name: OrcaSlicer_Windows_${{ env.ver }}_portable.zip
-          asset_content_type: application/x-zip-compressed 
-          max_releases: 1 
+          asset_content_type: application/x-zip-compressed
+          max_releases: 1
 
       - name: Deploy Windows release installer
         if: github.ref == 'refs/heads/main' && inputs.os == 'windows-latest'
         uses: WebFreak001/deploy-nightly@v3.1.0
         with:
-          upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label} 
-          release_id: 137995723 
+          upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label}
+          release_id: 137995723
           asset_path: ${{ github.workspace }}/build/OrcaSlicer_Windows_Installer_${{ env.ver }}.exe
           asset_name: OrcaSlicer_Windows_Installer_${{ env.ver }}.exe
           asset_content_type: application/x-msdownload
-          max_releases: 1 
+          max_releases: 1
 
 # Ubuntu
       - name: Install dependencies
@@ -257,30 +257,30 @@ jobs:
           zip -r orca_custom_preset_tests.zip user/
 
       - name: Upload artifacts Ubuntu
-        if: inputs.os == 'ubuntu-20.04'
+        if: ${{ ! env.ACT && inputs.os == 'ubuntu-20.04' }}
         uses: actions/upload-artifact@v4
         with:
           name: OrcaSlicer_Linux_${{ env.ver }}
           path: './build/OrcaSlicer_Linux_${{ env.ver }}.AppImage'
 
       - name: Deploy Ubuntu release
-        if: github.ref == 'refs/heads/main' && inputs.os == 'ubuntu-20.04'
+        if: ${{ ! env.ACT && github.ref == 'refs/heads/main' && inputs.os == 'ubuntu-20.04' }}
         uses: WebFreak001/deploy-nightly@v3.1.0
         with:
-          upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label} 
-          release_id: 137995723 
+          upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label}
+          release_id: 137995723
           asset_path: ./build/OrcaSlicer_Linux_${{ env.ver }}.AppImage
           asset_name: OrcaSlicer_Linux_${{ env.ver }}.AppImage
           asset_content_type: application/octet-stream
           max_releases: 1 # optional, if there are more releases than this matching the asset_name, the oldest ones are going to be deleted
 
       - name: Deploy orca_custom_preset_tests
-        if: github.ref == 'refs/heads/main' && inputs.os == 'ubuntu-20.04'
+        if: ${{ ! env.ACT && github.ref == 'refs/heads/main' && inputs.os == 'ubuntu-20.04' }}
         uses: WebFreak001/deploy-nightly@v3.1.0
         with:
-          upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label} 
-          release_id: 137995723 
+          upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label}
+          release_id: 137995723
           asset_path: ${{ github.workspace }}/resources/profiles/orca_custom_preset_tests.zip
           asset_name: orca_custom_preset_tests.zip
           asset_content_type: application/octet-stream
-          max_releases: 1 
+          max_releases: 1

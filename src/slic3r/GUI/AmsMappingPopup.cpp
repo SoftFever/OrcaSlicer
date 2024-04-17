@@ -58,11 +58,13 @@ void MaterialItem::msw_rescale() {
     m_transparent_mitem  = ScalableBitmap(this, "transparent_material_item", FromDIP(32));
 }
 
-void MaterialItem::set_ams_info(wxColour col, wxString txt)
+void MaterialItem::set_ams_info(wxColour col, wxString txt, int ctype, std::vector<wxColour> cols)
 {
     auto need_refresh = false;
+    if (m_ams_cols != cols) { m_ams_cols = cols; need_refresh = true; }
+    if (m_ams_ctype != ctype) { m_ams_ctype = ctype; need_refresh = true; }
     if (m_ams_coloul != col) { m_ams_coloul = col; need_refresh = true;}
-    if (m_ams_name != txt) {m_ams_name   = txt;need_refresh = true;}
+    if (m_ams_name != txt) { m_ams_name = txt; need_refresh = true; }
     if (need_refresh) { Refresh();}
 }
 
@@ -140,13 +142,10 @@ void MaterialItem::render(wxDC &dc)
 
     auto mcolor = m_material_coloul;
     auto acolor = m_ams_coloul;
+    change_the_opacity(acolor);
     if (!IsEnabled()) {
         mcolor = wxColour(0x90, 0x90, 0x90);
         acolor = wxColour(0x90, 0x90, 0x90);
-    }
-    else {
-        mcolor = m_material_coloul;
-        acolor = m_ams_coloul;
     }
 
     // materials name
@@ -183,8 +182,10 @@ void MaterialItem::render(wxDC &dc)
 
 void MaterialItem::doRender(wxDC &dc) 
 {
+    wxSize size = GetSize();
     auto mcolor = m_material_coloul;
     auto acolor = m_ams_coloul;
+    change_the_opacity(acolor);
 
     if (mcolor.Alpha() == 0 || acolor.Alpha() == 0) {
         dc.DrawBitmap(m_transparent_mitem.bmp(), FromDIP(1), FromDIP(1));
@@ -194,10 +195,6 @@ void MaterialItem::doRender(wxDC &dc)
         mcolor = wxColour(0x90, 0x90, 0x90);
         acolor = wxColour(0x90, 0x90, 0x90);
     }
-    else {
-        mcolor = m_material_coloul;
-        acolor = m_ams_coloul;
-    }
 
     //top
     dc.SetPen(*wxTRANSPARENT_PEN);
@@ -205,18 +202,48 @@ void MaterialItem::doRender(wxDC &dc)
     dc.DrawRoundedRectangle(FromDIP(1), FromDIP(1), MATERIAL_ITEM_REAL_SIZE.x, FromDIP(18), 5);
     
     //bottom
-    dc.SetPen(*wxTRANSPARENT_PEN);
-    dc.SetBrush(wxBrush(wxColour(acolor)));
-    dc.DrawRoundedRectangle(FromDIP(1), FromDIP(18), MATERIAL_ITEM_REAL_SIZE.x, FromDIP(16), 5);
+    if (m_ams_cols.size() > 1) {
+        int left = FromDIP(1);
+        int gwidth = std::round(MATERIAL_ITEM_REAL_SIZE.x / (m_ams_cols.size() - 1));
+        //gradient
+        if (m_ams_ctype == 0) {
+            for (int i = 0; i < m_ams_cols.size() - 1; i++) {
+                auto rect = wxRect(left, FromDIP(18), MATERIAL_ITEM_REAL_SIZE.x, FromDIP(16));
+                dc.GradientFillLinear(rect, m_ams_cols[i], m_ams_cols[i + 1], wxEAST);
+                left += gwidth;
+            }
+        }
+        else {
+            int cols_size = m_ams_cols.size();
+            for (int i = 0; i < cols_size; i++) {
+                dc.SetBrush(wxBrush(m_ams_cols[i]));
+                float x = left + ((float)MATERIAL_ITEM_REAL_SIZE.x) * i / cols_size;
+                if (i != cols_size - 1) {
+                    dc.DrawRoundedRectangle(x, FromDIP(18), ((float)MATERIAL_ITEM_REAL_SIZE.x) / cols_size + FromDIP(3), FromDIP(16), 3);
+                }
+                else {
+                    dc.DrawRoundedRectangle(x, FromDIP(18), ((float)MATERIAL_ITEM_REAL_SIZE.x) / cols_size , FromDIP(16), 3);
+                }
+            }
+ 
+        }
+    }
+    else {
+        
+        dc.SetPen(*wxTRANSPARENT_PEN);
+        dc.SetBrush(wxBrush(wxColour(acolor)));
+        dc.DrawRoundedRectangle(FromDIP(1), FromDIP(18), MATERIAL_ITEM_REAL_SIZE.x, FromDIP(16), 5);
+        ////middle
 
-    ////middle
+        dc.SetPen(*wxTRANSPARENT_PEN);
+        dc.SetBrush(wxBrush(acolor));
+        dc.DrawRectangle(FromDIP(1), FromDIP(18), MATERIAL_ITEM_REAL_SIZE.x, FromDIP(8));
+    }
     dc.SetPen(*wxTRANSPARENT_PEN);
     dc.SetBrush(wxBrush(mcolor));
     dc.DrawRectangle(FromDIP(1), FromDIP(11), MATERIAL_ITEM_REAL_SIZE.x, FromDIP(8));
 
-    dc.SetPen(*wxTRANSPARENT_PEN);
-    dc.SetBrush(wxBrush(acolor));
-    dc.DrawRectangle(FromDIP(1), FromDIP(18), MATERIAL_ITEM_REAL_SIZE.x, FromDIP(8));
+
 
     ////border
 #if __APPLE__
@@ -247,10 +274,10 @@ void MaterialItem::doRender(wxDC &dc)
     //arrow
     if ( (acolor.Red() > 160 && acolor.Green() > 160 && acolor.Blue() > 160) &&
         (acolor.Red() < 180 && acolor.Green() < 180 && acolor.Blue() < 180)) {
-        dc.DrawBitmap(m_arraw_bitmap_white.bmp(), GetSize().x - m_arraw_bitmap_white.GetBmpSize().x - FromDIP(7),  GetSize().y - m_arraw_bitmap_white.GetBmpSize().y);
+        dc.DrawBitmap(m_arraw_bitmap_white.bmp(), size.x - m_arraw_bitmap_white.GetBmpSize().x - FromDIP(7), size.y - m_arraw_bitmap_white.GetBmpSize().y);
     }
     else {
-        dc.DrawBitmap(m_arraw_bitmap_gray.bmp(), GetSize().x - m_arraw_bitmap_gray.GetBmpSize().x - FromDIP(7),  GetSize().y - m_arraw_bitmap_gray.GetBmpSize().y);
+        dc.DrawBitmap(m_arraw_bitmap_gray.bmp(), size.x - m_arraw_bitmap_gray.GetBmpSize().x - FromDIP(7), size.y - m_arraw_bitmap_gray.GetBmpSize().y);
     }
 
     
@@ -437,6 +464,10 @@ void AmsMapingPopup::update_ams_data(std::map<std::string, Ams*> amsList)
                     td.colour = AmsTray::decode_color(tray_data->color);
                     td.name   = tray_data->get_display_filament_type();
                     td.filament_type = tray_data->get_filament_type();
+                    td.ctype = tray_data->ctype;
+                    for (auto col : tray_data->cols) {
+                        td.material_cols.push_back(AmsTray::decode_color(col));
+                    }
                 }
             }
 
@@ -518,7 +549,7 @@ void AmsMapingPopup::add_ams_mapping(std::vector<TrayData> tray_data, wxWindow* 
         m_mapping_item_list.push_back(m_mapping_item);
 
         if (tray_data[i].type == NORMAL) {
-            if (is_match_material(tray_data[i].filament_type)) { 
+            if (is_match_material(tray_data[i].filament_type)) {
                 m_mapping_item->set_data(tray_data[i].colour, tray_data[i].name, tray_data[i]);
             } else {
                 m_mapping_item->set_data(wxColour(0xEE,0xEE,0xEE), tray_data[i].name, tray_data[i], true);
@@ -673,14 +704,38 @@ void MappingItem::set_data(wxColour colour, wxString name, TrayData data, bool u
 
 void MappingItem::doRender(wxDC &dc)
 {
-    dc.SetPen(m_coloul);
-    dc.SetBrush(wxBrush(m_coloul));
+    wxSize size = GetSize();
+    wxColour color = m_coloul;
+    change_the_opacity(color);
 
-    if (m_coloul.Alpha() == 0) {
-       dc.DrawBitmap( m_transparent_mapping_item.bmp(), 0, (GetSize().y - MAPPING_ITEM_REAL_SIZE.y) / 2);
+    dc.SetPen(color);
+    dc.SetBrush(wxBrush(color));
+
+    if (m_tray_data.material_cols.size() > 1) {
+        int left = 0;
+        int gwidth = std::round(MAPPING_ITEM_REAL_SIZE.x / (m_tray_data.material_cols.size() - 1));
+        //gradient
+        if (m_tray_data.ctype == 0) {
+            for (int i = 0; i < m_tray_data.material_cols.size() - 1; i++) {
+                auto rect = wxRect(left, (size.y - MAPPING_ITEM_REAL_SIZE.y) / 2, MAPPING_ITEM_REAL_SIZE.x, MAPPING_ITEM_REAL_SIZE.y);
+                dc.GradientFillLinear(rect, m_tray_data.material_cols[i], m_tray_data.material_cols[i + 1], wxEAST);
+                left += gwidth;
+            }
+        }
+        else {
+            int cols_size = m_tray_data.material_cols.size();
+            for (int i = 0; i < cols_size; i++) {
+                dc.SetBrush(wxBrush(m_tray_data.material_cols[i]));
+                float x = (float)MAPPING_ITEM_REAL_SIZE.x * i / cols_size;
+                dc.DrawRectangle(x, (size.y - MAPPING_ITEM_REAL_SIZE.y) / 2, (float)MAPPING_ITEM_REAL_SIZE.x / cols_size, MAPPING_ITEM_REAL_SIZE.y);
+            }
+        }
+    }
+    else if (color.Alpha() == 0) {
+       dc.DrawBitmap( m_transparent_mapping_item.bmp(), 0, (size.y - MAPPING_ITEM_REAL_SIZE.y) / 2);
     }
     else {
-        dc.DrawRectangle(0, (GetSize().y - MAPPING_ITEM_REAL_SIZE.y) / 2, MAPPING_ITEM_REAL_SIZE.x, MAPPING_ITEM_REAL_SIZE.y);
+        dc.DrawRectangle(0, (size.y - MAPPING_ITEM_REAL_SIZE.y) / 2, MAPPING_ITEM_REAL_SIZE.x, MAPPING_ITEM_REAL_SIZE.y);
     }
 
 
@@ -689,11 +744,11 @@ void MappingItem::doRender(wxDC &dc)
     dc.SetPen(side_colour);
     dc.SetBrush(wxBrush(side_colour));
 #ifdef __APPLE__
-    dc.DrawRectangle(0, 0, FromDIP(4), GetSize().y);
-    dc.DrawRectangle(GetSize().x - FromDIP(4), 0, FromDIP(4), GetSize().y);
+    dc.DrawRectangle(0, 0, FromDIP(4), size.y);
+    dc.DrawRectangle(size.x - FromDIP(4), 0, FromDIP(4), size.y);
 #else
-    dc.DrawRectangle(0, 0, FromDIP(4), GetSize().y);
-    dc.DrawRectangle(GetSize().x - FromDIP(4), 0, FromDIP(4), GetSize().y);
+    dc.DrawRectangle(0, 0, FromDIP(4), size.y);
+    dc.DrawRectangle(size.x - FromDIP(4), 0, FromDIP(4), size.y);
 #endif // __APPLE__
 }
 
@@ -806,98 +861,52 @@ AmsHumidityTipPopup::AmsHumidityTipPopup(wxWindow* parent)
 {
     SetBackgroundColour(*wxWHITE);
 
-    wxBoxSizer* main_sizer;
-    main_sizer = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer* main_sizer = new wxBoxSizer(wxVERTICAL);
 
+    close_img = ScalableBitmap(this, "hum_popup_close", 24);
 
-    main_sizer->Add(0, 0, 0, wxTOP, 28);
+    m_staticText = new Label(this, _L("Current Cabin humidity"));
+    m_staticText->SetFont(::Label::Head_24);
 
-    wxBoxSizer* m_sizer_body;
-    m_sizer_body = new wxBoxSizer(wxHORIZONTAL);
+    humidity_level_list = new AmsHumidityLevelList(this);
+    curr_humidity_img = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("hum_level1_light", this, 132), wxDefaultPosition, wxSize(FromDIP(132), FromDIP(132)), 0);
 
-    m_img = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("ams_humidity_tips", this, 125), wxDefaultPosition, wxSize(FromDIP(125), FromDIP(145)), 0);
-
-    m_sizer_body->Add(m_img, 0, wxEXPAND | wxALL, 2);
-
-
-    m_sizer_body->Add(0, 0, 0, wxEXPAND | wxLEFT, FromDIP(18));
-
-    wxBoxSizer* m_sizer_tips = new wxBoxSizer(wxVERTICAL);
-
-    m_staticText1 = new Label(this, _L("Cabin humidity"));
-    m_staticText1->SetFont(::Label::Head_13);
+    m_staticText_note = new Label(this, _L("Please change the desiccant when it is too wet. The indicator may not represent accurately in following cases : when the lid is open or the desiccant pack is changed. it take hours to absorb the moisture, low temperatures also slow down the process."));
+    m_staticText_note->SetMinSize(wxSize(FromDIP(680), -1));
+    m_staticText_note->SetMaxSize(wxSize(FromDIP(680), -1));
+    m_staticText_note->Wrap(FromDIP(680));
    
 
-    m_staticText2 = new Label(this, _L("Green means that AMS humidity is normal, orange represent humidity is high, red represent humidity is too high.(Hygrometer: lower the better.)"));
-    m_staticText2->SetFont(::Label::Body_13);
-    m_staticText2->SetSize(wxSize(FromDIP(357), -1));
-    m_staticText2->SetMinSize(wxSize(FromDIP(357), -1));
-    m_staticText2->SetMaxSize(wxSize(FromDIP(357), -1));
-    m_staticText2->Wrap(FromDIP(357));
-    
-
-    m_staticText3 = new Label(this, _L("Desiccant status"));
-    m_staticText3->SetFont(::Label::Head_13);
-  
-
-    m_staticText4 = new Label(this, _L("A desiccant status lower than two bars indicates that desiccant may be inactive. Please change the desiccant.(The bars: higher the better.)"));
-    m_staticText4->SetFont(::Label::Body_13);
-    m_staticText4->SetSize(wxSize(FromDIP(357), -1));
-    m_staticText4->SetMinSize(wxSize(FromDIP(357), -1));
-    m_staticText4->SetMaxSize(wxSize(FromDIP(357), -1));
-    m_staticText4->Wrap(FromDIP(357));
-
-    m_sizer_tips->Add(m_staticText1, 0, wxLEFT|wxRIGHT, 3);
-    m_sizer_tips->Add(0,0,0,wxTOP,2);
-    m_sizer_tips->Add(m_staticText2, 0, wxLEFT|wxRIGHT, 3);
-    m_sizer_tips->Add(0,0,0,wxTOP,8);
-    m_sizer_tips->Add(m_staticText3, 0, wxLEFT|wxRIGHT, 3);
-    m_sizer_tips->Add(0,0,0,wxTOP,2);
-    m_sizer_tips->Add(m_staticText4, 0, wxLEFT|wxRIGHT, 3);
-
-
-    m_sizer_body->Add(m_sizer_tips, 0, wxEXPAND, 0);
-
-
-    main_sizer->Add(m_sizer_body, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
-
-    m_staticText_note = new Label(this, _L("Note: When the lid is open or the desiccant pack is changed, it can take hours or a night to absorb the moisture. Low temperatures also slow down the process. During this time, the indicator may not represent the chamber accurately."));
-    m_staticText4->SetFont(::Label::Body_13);
-    m_staticText_note->SetMinSize(wxSize(FromDIP(523), -1));
-    m_staticText_note->SetMaxSize(wxSize(FromDIP(523), -1));
-    m_staticText_note->Wrap(FromDIP(523));
-    main_sizer->Add(m_staticText_note, 0, wxALL | wxLEFT | wxRIGHT, 22);
-
-    m_button_confirm = new Button(this, _L("OK"));
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Pressed), std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
-    m_button_confirm->SetBackgroundColor(btn_bg_green);
-    m_button_confirm->SetBorderColor(wxColour(0, 150, 136));
-    m_button_confirm->SetTextColor(wxColour(0xFFFFFE));
-    m_button_confirm->SetSize(wxSize(FromDIP(72), FromDIP(24)));
-    m_button_confirm->SetMinSize(wxSize(FromDIP(72), FromDIP(24)));
-    m_button_confirm->SetCornerRadius(FromDIP(12));
-
-
-    m_button_confirm->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
-         Dismiss();
-    });
-
     Bind(wxEVT_LEFT_UP, [this](auto& e) {
+
+        auto rect = ClientToScreen(wxPoint(0, 0));
+
+        auto close_left     = rect.x + GetSize().x - close_img.GetBmpWidth() - FromDIP(38);
+        auto close_right    = close_left + close_img.GetBmpWidth();
+        auto close_top      = rect.y + FromDIP(24);
+        auto close_bottom   = close_top + close_img.GetBmpHeight();
+
         auto mouse_pos = ClientToScreen(e.GetPosition());
-        auto rect = m_button_confirm->ClientToScreen(wxPoint(0, 0));
-        if (mouse_pos.x > rect.x && mouse_pos.y > rect.y
-            && mouse_pos.x < (rect.x + m_button_confirm->GetSize().x)
-            && mouse_pos.y < (rect.y + m_button_confirm->GetSize().y)) 
+        if (mouse_pos.x > close_left 
+            && mouse_pos.y > close_top
+            && mouse_pos.x < close_right
+            && mouse_pos.y < close_bottom
+            )
         {
             Dismiss();
         }
-    });
-    main_sizer->Add(m_button_confirm, 0, wxALIGN_CENTER | wxALL, 0);
+        });
 
-
-    main_sizer->Add(0, 0, 0, wxEXPAND | wxTOP, 18);
-
-
+    main_sizer->Add(0, 0, 0, wxTOP, FromDIP(24));
+    main_sizer->Add(m_staticText, 0, wxALIGN_CENTER, 0);
+    main_sizer->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(28));
+    main_sizer->Add(curr_humidity_img, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, FromDIP(35));
+    main_sizer->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(15));
+    main_sizer->Add(humidity_level_list, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, FromDIP(35));
+    main_sizer->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(6));
+    main_sizer->Add(m_staticText_note, 0, wxALIGN_CENTER, 0);
+    main_sizer->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(5));
+    main_sizer->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(25));
     SetSizer(main_sizer);
     Layout();
     Fit();
@@ -909,15 +918,57 @@ AmsHumidityTipPopup::AmsHumidityTipPopup(wxWindow* parent)
 void AmsHumidityTipPopup::paintEvent(wxPaintEvent& evt)
 {
     wxPaintDC dc(this);
-    dc.SetPen(wxColour(0xAC, 0xAC, 0xAC));
-    dc.SetBrush(*wxTRANSPARENT_BRUSH);
-    dc.DrawRoundedRectangle(0, 0, GetSize().x, GetSize().y, 0);
+    render(dc);
 }
 
 void AmsHumidityTipPopup::OnDismiss() {}
 
 bool AmsHumidityTipPopup::ProcessLeftDown(wxMouseEvent& event) {
     return PopupWindow::ProcessLeftDown(event);
+}
+
+void AmsHumidityTipPopup::set_humidity_level(int level)
+{
+    current_humidity_level = level;
+    if (current_humidity_level<= 0) {return;}
+
+    std::string mode_string = wxGetApp().dark_mode()?"_dark":"_light";
+
+    curr_humidity_img->SetBitmap(create_scaled_bitmap("hum_level" + std::to_string(current_humidity_level) + mode_string, this, 132));
+    curr_humidity_img->Refresh();
+    curr_humidity_img->Update();
+}
+
+void AmsHumidityTipPopup::render(wxDC& dc)
+{
+#ifdef __WXMSW__
+    wxSize     size = GetSize();
+    wxMemoryDC memdc;
+    wxBitmap   bmp(size.x, size.y);
+    memdc.SelectObject(bmp);
+    memdc.Blit({ 0, 0 }, size, &dc, { 0, 0 });
+
+    {
+        wxGCDC dc2(memdc);
+        doRender(dc2);
+    }
+
+    memdc.SelectObject(wxNullBitmap);
+    dc.DrawBitmap(bmp, 0, 0);
+#else
+    doRender(dc);
+#endif
+}
+
+void AmsHumidityTipPopup::doRender(wxDC& dc)
+{
+    //close
+    dc.DrawBitmap(close_img.bmp(), GetSize().x - close_img.GetBmpWidth() - FromDIP(38), FromDIP(24));
+
+    //background
+    dc.SetPen(wxColour(0xAC, 0xAC, 0xAC));
+    dc.SetBrush(*wxTRANSPARENT_BRUSH);
+    dc.DrawRoundedRectangle(0, 0, GetSize().x, GetSize().y, 0);
 }
 
 AmsTutorialPopup::AmsTutorialPopup(wxWindow* parent)
@@ -1507,7 +1558,11 @@ void AmsRMGroup::doRender(wxDC& dc)
 
         int x = size.x / 2;
         int y = size.y / 2;
-        int radius = size.x / 2 - FromDIP(2);
+        int radius;
+        if (wxGetApp().dark_mode())
+            radius = size.x / 2 - int(size.x * 0.02);
+        else
+            radius = size.x / 2;
         endAngle += ev_angle;
 
  
@@ -1587,6 +1642,92 @@ void AmsRMGroup::doRender(wxDC& dc)
     dc.SetFont(Label::Body_13);
     text_size = dc.GetTextExtent(m_group_index);
     dc.DrawText(m_group_index, (size.x - text_size.x) / 2, (size.y - text_size.y) / 2 + FromDIP(10));
+}
+
+AmsHumidityLevelList::AmsHumidityLevelList(wxWindow* parent)
+ : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
+{
+#ifdef __WINDOWS__
+    SetDoubleBuffered(true);
+#endif //__WINDOWS__
+
+    SetSize(wxSize(FromDIP(680), FromDIP(104)));
+    SetMinSize(wxSize(FromDIP(680), FromDIP(104)));
+    SetMaxSize(wxSize(FromDIP(680), FromDIP(104)));
+    SetBackgroundColour(*wxWHITE);
+
+    background_img = ScalableBitmap(this, "humidity_list_background", 104);
+
+    for (int i = 5; i > 0; i--) {
+        hum_level_img_light.push_back(ScalableBitmap(this, ("hum_level" + std::to_string(i) + "_light"), 54));
+        hum_level_img_dark.push_back(ScalableBitmap(this, ("hum_level" + std::to_string(i) + "_dark"), 54));
+    }
+
+    Bind(wxEVT_PAINT, &AmsHumidityLevelList::paintEvent, this);
+    wxGetApp().UpdateDarkUI(this);
+}
+
+void AmsHumidityLevelList::msw_rescale()
+{
+
+}
+
+void AmsHumidityLevelList::paintEvent(wxPaintEvent& evt)
+{
+    wxPaintDC dc(this);
+    render(dc);
+}
+
+void AmsHumidityLevelList::render(wxDC& dc)
+{
+#ifdef __WXMSW__
+    wxSize     size = GetSize();
+    wxMemoryDC memdc;
+    wxBitmap   bmp(size.x, size.y);
+    memdc.SelectObject(bmp);
+    memdc.Blit({ 0, 0 }, size, &dc, { 0, 0 });
+
+    {
+        wxGCDC dc2(memdc);
+        doRender(dc2);
+    }
+
+    memdc.SelectObject(wxNullBitmap);
+    dc.DrawBitmap(bmp, 0, 0);
+#else
+    doRender(dc);
+#endif
+}
+
+void AmsHumidityLevelList::doRender(wxDC& dc)
+{
+    dc.DrawBitmap(background_img.bmp(), 0,0);
+
+    auto width_center = GetSize().x / 2;
+    auto left = width_center - FromDIP(27) - FromDIP(46) * 2 - FromDIP(54) * 2;
+
+
+    //dry / wet
+    dc.SetTextForeground(wxColour(0x989898));
+    dc.SetFont(::Label::Head_20);
+
+    auto font_top = GetSize().y - dc.GetTextExtent(_L("DRY")).GetHeight();
+    dc.DrawText(_L("DRY"), wxPoint(FromDIP(38), font_top / 2));
+    dc.DrawText(_L("WET"), wxPoint(( GetSize().x - FromDIP(38) -  dc.GetTextExtent(_L("DRY")).GetWidth()), font_top / 2));
+
+
+    //level list
+    
+    for (int i = 0; i < hum_level_img_light.size(); i++) {
+        if (wxGetApp().dark_mode()) {
+            dc.DrawBitmap(hum_level_img_dark[i].bmp(), left, (GetSize().y - FromDIP(54)) / 2);
+        }
+        else {
+             dc.DrawBitmap(hum_level_img_light[i].bmp(), left, (GetSize().y - FromDIP(54)) / 2);
+        }
+        
+        left += FromDIP(46) + FromDIP(54);
+    }
 }
 
 }} // namespace Slic3r::GUI
