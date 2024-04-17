@@ -791,7 +791,8 @@ static int construct_assemble_list(std::vector<assemble_plate_info_t> &assemble_
             else if (boost::algorithm::iends_with(assemble_object.path, ".obj"))
             {
                 std::string message;
-                bool result = load_obj(path_str, &mesh, message);
+                ObjInfo  obj_info;
+                bool    result = load_obj(path_str, &mesh, obj_info, message);
                 if (!result) {
                     BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": failed to read a valid mesh from obj file %1%, plate index %2%, object index %3%, error %4%") % assemble_object.path % (index + 1) % (obj_index + 1) % message;
                     return CLI_DATA_FILE_ERROR;
