@@ -699,6 +699,9 @@ void ObjectList::update_filament_values_for_items(const size_t filaments_count)
 
 void ObjectList::update_plate_values_for_items()
 {
+#ifdef __WXOSX__
+    AssociateModel(nullptr);
+#endif
     PartPlateList& list = wxGetApp().plater()->get_partplate_list();
     for (size_t i = 0; i < m_objects->size(); ++i)
     {
@@ -724,6 +727,9 @@ void ObjectList::update_plate_values_for_items()
         Expand(item);
         Select(item);
     }
+#ifdef __WXOSX__
+    AssociateModel(m_objects_model);
+#endif
 }
 
 // BBS
@@ -3627,7 +3633,7 @@ void ObjectList::add_object_to_list(size_t obj_idx, bool call_selection_changed,
     //BBS start add obj_idx for debug
     PartPlateList& list = wxGetApp().plater()->get_partplate_list();
     if (notify_partplate) {
-        list.notify_instance_update(obj_idx, 0);
+        list.notify_instance_update(obj_idx, 0, true);
     }
     //int plate_idx = list.find_instance_belongs(obj_idx, 0);
     //std::string item_name_str = (boost::format("[P%1%][O%2%]%3%") % plate_idx % std::to_string(obj_idx) % model_object->name).str();
@@ -3869,16 +3875,10 @@ void ObjectList::update_lock_icons_for_model()
 
 void ObjectList::delete_all_objects_from_list()
 {
-#ifdef __WXOSX__
-    AssociateModel(nullptr);
-#endif
     m_prevent_list_events = true;
     reload_all_plates();
     m_prevent_list_events = false;
     part_selection_changed();
-#ifdef __WXOSX__
-    AssociateModel(m_objects_model);
-#endif
 }
 
 void ObjectList::increase_object_instances(const size_t obj_idx, const size_t num)
@@ -5697,6 +5697,9 @@ void ObjectList::on_plate_deleted(int plate_idx)
 void ObjectList::reload_all_plates(bool notify_partplate)
 {
     m_prevent_canvas_selection_update = true;
+#ifdef __WXOSX__
+    AssociateModel(nullptr);
+#endif
 
     // Unselect all objects before deleting them, so that no change of selection is emitted during deletion.
 
@@ -5726,6 +5729,9 @@ void ObjectList::reload_all_plates(bool notify_partplate)
 
     update_selections();
 
+#ifdef __WXOSX__
+    AssociateModel(m_objects_model);
+#endif
     m_prevent_canvas_selection_update = false;
 
     // update scene
@@ -5853,6 +5859,7 @@ void ObjectList::toggle_printable_state()
 
     // update scene
     wxGetApp().plater()->update();
+    wxGetApp().plater()->reload_paint_after_background_process_apply();
 }
 
 ModelObject* ObjectList::object(const int obj_idx) const
