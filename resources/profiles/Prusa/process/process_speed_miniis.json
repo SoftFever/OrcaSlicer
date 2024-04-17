@@ -17,6 +17,5 @@
   "outer_wall_acceleration": "2000",
   "bridge_acceleration": "1500",
   "internal_solid_infill_acceleration": "4000",
-  "overhang_1_4_speed": "60",
-  "sparse_infill_pattern": "cubic"
+  "overhang_1_4_speed": "60"
 }

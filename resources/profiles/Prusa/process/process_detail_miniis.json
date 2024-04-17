@@ -22,6 +22,5 @@
   "outer_wall_acceleration": "1000",
   "bridge_acceleration": "1000",
   "internal_solid_infill_acceleration": "2000",
-  "travel_acceleration": "3000",
-  "sparse_infill_pattern": "cubic"  
+  "travel_acceleration": "3000"
 }
