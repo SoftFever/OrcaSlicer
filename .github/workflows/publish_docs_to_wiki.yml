@@ -16,6 +16,7 @@ env:
 
 jobs:
   publish_docs_to_wiki:
+    if: ${{ !env.ACT }} # Skip if using `act`
     name: Publish docs to Wiki
     runs-on: ubuntu-latest
     steps:  
