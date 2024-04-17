@@ -121,6 +121,9 @@ fi
 
 cmake --preset ${PRESET} -DBUILD_DEPS=${BUILD_DEPS} -DCLEAN_DEPS=${CLEAN_BUILD} -DFORCE_DEPS=${FORCE_BUILD_DEPS} ${CONFIG_ARGS}
 
+# get the build directory's name from the cmake cache
+BUILD_DIR_NAME=$(cmake --preset ${PRESET} -LA -N | grep BIN_DIR_NAME | cut -d "=" -f2)
+
 if [[ -n "${BUILD_ORCA}" ]]
 then
     if [[ -n "${CLEAN_BUILD}" ]]
@@ -131,12 +134,9 @@ then
     echo "Building OrcaSlicer ..."
     cmake --build --preset ${PRESET}
     echo "Building OrcaSlicer_profile_validator .."
-    cmake --build ${BIN_DIR_NAME} --target OrcaSlicer_profile_validator
+    cmake --build ${BUILD_DIR_NAME} --target OrcaSlicer_profile_validator
     ./run_gettext.sh
 fi
-
-# get the build directory's name from the cmake cache
-BUILD_DIR_NAME=$(cmake --preset ${PRESET} -LA -N | grep BIN_DIR_NAME | cut -d "=" -f2)
 
 if [[ -e ${ROOT}/${BUILD_DIR_NAME}/src/BuildLinuxImage.sh ]]; then
 # Give proper permissions to script
