@@ -5,8 +5,14 @@
     "from": "system",
     "setting_id": "GFSB00_00",
     "instantiation": "true",
+    "fan_max_speed": [
+        "60"
+    ],
     "filament_max_volumetric_speed": [
         "2"
+    ],
+    "slow_down_layer_time": [
+        "12"
     ],
     "compatible_printers": [
         "Bambu Lab X1 Carbon 0.2 nozzle",

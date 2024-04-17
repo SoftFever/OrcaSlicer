@@ -65,7 +65,10 @@ struct SurfaceFillParams
 
 	// Index of this entry in a linear vector.
     size_t 			idx = 0;
-
+	// infill speed settings
+	float			sparse_infill_speed = 0;
+	float			top_surface_speed = 0;
+	float			solid_infill_speed = 0;
 
 	bool operator<(const SurfaceFillParams &rhs) const {
 #define RETURN_COMPARE_NON_EQUAL(KEY) if (this->KEY < rhs.KEY) return true; if (this->KEY > rhs.KEY) return false;
@@ -89,6 +92,10 @@ struct SurfaceFillParams
 		RETURN_COMPARE_NON_EQUAL(flow.nozzle_diameter());
 		RETURN_COMPARE_NON_EQUAL_TYPED(unsigned, bridge);
 		RETURN_COMPARE_NON_EQUAL_TYPED(unsigned, extrusion_role);
+		RETURN_COMPARE_NON_EQUAL(sparse_infill_speed);
+		RETURN_COMPARE_NON_EQUAL(top_surface_speed);
+		RETURN_COMPARE_NON_EQUAL(solid_infill_speed);
+
 		return false;
 	}
 
@@ -105,7 +112,10 @@ struct SurfaceFillParams
 				this->anchor_length  	== rhs.anchor_length    &&
 				this->anchor_length_max == rhs.anchor_length_max &&
 				this->flow 				== rhs.flow 			&&
-				this->extrusion_role	== rhs.extrusion_role;
+				this->extrusion_role	== rhs.extrusion_role	&&
+				this->sparse_infill_speed	== rhs.sparse_infill_speed &&
+				this->top_surface_speed		== rhs.top_surface_speed &&
+				this->solid_infill_speed	== rhs.solid_infill_speed;
 	}
 };
 
@@ -490,7 +500,15 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 					//Orca: enable thick bridge based on config
 					layerm.bridging_flow(extrusion_role, is_thick_bridge) :
 					layerm.flow(extrusion_role, (surface.thickness == -1) ? layer.height : surface.thickness);
-
+				// record speed params
+                if (!params.bridge) {
+                    if (params.extrusion_role == erInternalInfill)
+                        params.sparse_infill_speed = region_config.sparse_infill_speed;
+                    else if (params.extrusion_role == erTopSolidInfill)
+                        params.top_surface_speed = region_config.top_surface_speed;
+                    else if (params.extrusion_role == erSolidInfill)
+                        params.solid_infill_speed = region_config.internal_solid_infill_speed;
+                }
 				// Calculate flow spacing for infill pattern generation.
 		        if (surface.is_solid() || is_bridge) {
 		            params.spacing = params.flow.spacing();

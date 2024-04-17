@@ -198,7 +198,7 @@ void TempInput::Warning(bool warn, WarningType type)
 
             wxBoxSizer *sizer_body = new wxBoxSizer(wxVERTICAL);
 
-            auto body = new wxPanel(wdialog, wxID_ANY, wxDefaultPosition, {this->GetSize().x - 4, -1}, wxTAB_TRAVERSAL);
+            auto body = new wxPanel(wdialog, wxID_ANY, wxDefaultPosition, {FromDIP(260), -1}, wxTAB_TRAVERSAL);
             body->SetBackgroundColour(wxColour(0xFFFFFF));
 
 
