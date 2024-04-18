@@ -127,15 +127,22 @@ bool load_obj(const char *path, TriangleMesh *meshptr, ObjInfo& obj_info, std::s
                 RGBA face_color;
                 auto set_face_color = [&uvs, &data, &mtl_data, &obj_info, &face_color](int face_index, const std::string mtl_name) {
                     if (mtl_data.new_mtl_unmap.find(mtl_name) != mtl_data.new_mtl_unmap.end()) {
+                        bool is_merge_ka_kd = true;
                         for (size_t n = 0; n < 3; n++) {
                             if (float(mtl_data.new_mtl_unmap[mtl_name]->Ka[n] + mtl_data.new_mtl_unmap[mtl_name]->Kd[n]) > 1.0) {
-                                face_color[n] = std::clamp(float(mtl_data.new_mtl_unmap[mtl_name]->Kd[n]), 0.f, 1.f);
-                            }
-                            else {
-                                face_color[n] = std::clamp(float(mtl_data.new_mtl_unmap[mtl_name]->Ka[n] + mtl_data.new_mtl_unmap[mtl_name]->Kd[n]), 0.f, 1.f);
+                                is_merge_ka_kd=false;
+                                break;
                             }
                         }
-                        face_color[3] = 1.0; // default alpha
+                        for (size_t n = 0; n < 3; n++) {
+                            if (is_merge_ka_kd) {
+                                face_color[n] = std::clamp(float(mtl_data.new_mtl_unmap[mtl_name]->Ka[n] + mtl_data.new_mtl_unmap[mtl_name]->Kd[n]), 0.f, 1.f);
+                            }
+                            else {
+                                face_color[n] = std::clamp(float(mtl_data.new_mtl_unmap[mtl_name]->Kd[n]), 0.f, 1.f);
+                            }
+                        }
+                        face_color[3] = mtl_data.new_mtl_unmap[mtl_name]->Tr; // alpha
                         if (mtl_data.new_mtl_unmap[mtl_name]->map_Kd.size() > 0) {
                             auto png_name       = mtl_data.new_mtl_unmap[mtl_name]->map_Kd;
                             obj_info.has_uv_png = true;

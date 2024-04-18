@@ -501,31 +501,37 @@ static bool        mtl_parseline(const char *line, MtlData &data)
             break;
         }
         case 'T': {
-            if (*(line++) != 'f')
-				return false;
-            EATWS();
-            char * endptr = 0;
-            double x      = strtod(line, &endptr);
-            if (endptr == 0 || (*endptr != ' ' && *endptr != '\t'))
-				return false;
-            line = endptr;
-            EATWS();
-            double y = strtod(line, &endptr);
-            if (endptr == 0 || (*endptr != ' ' && *endptr != '\t'))
-				return false;
-            line = endptr;
-            EATWS();
-            double z = strtod(line, &endptr);
-            if (endptr == 0 || (*endptr != ' ' && *endptr != '\t' && *endptr != 0))
-				return false;
-            line = endptr;
-            EATWS();
-            if (data.new_mtl_unmap.find(cur_mtl_name) != data.new_mtl_unmap.end()) {
-				data.new_mtl_unmap[cur_mtl_name]->Tf[0] = x;
-                data.new_mtl_unmap[cur_mtl_name]->Tf[1] = y;
-                data.new_mtl_unmap[cur_mtl_name]->Tf[2] = z;
-			}
-            break;
+            char cur_char = *(line++);
+            if (cur_char == 'r') {
+                EATWS();
+                char * endptr = 0;
+                double tr     = strtod(line, &endptr);
+                if (data.new_mtl_unmap.find(cur_mtl_name) != data.new_mtl_unmap.end()) {
+                    data.new_mtl_unmap[cur_mtl_name]->Tr = (float) tr;
+                }
+                break;
+            } else if (cur_char == 'f') {
+                EATWS();
+                char * endptr = 0;
+                double x      = strtod(line, &endptr);
+                if (endptr == 0 || (*endptr != ' ' && *endptr != '\t')) return false;
+                line = endptr;
+                EATWS();
+                double y = strtod(line, &endptr);
+                if (endptr == 0 || (*endptr != ' ' && *endptr != '\t')) return false;
+                line = endptr;
+                EATWS();
+                double z = strtod(line, &endptr);
+                if (endptr == 0 || (*endptr != ' ' && *endptr != '\t' && *endptr != 0)) return false;
+                line = endptr;
+                EATWS();
+                if (data.new_mtl_unmap.find(cur_mtl_name) != data.new_mtl_unmap.end()) {
+                    data.new_mtl_unmap[cur_mtl_name]->Tf[0] = x;
+                    data.new_mtl_unmap[cur_mtl_name]->Tf[1] = y;
+                    data.new_mtl_unmap[cur_mtl_name]->Tf[2] = z;
+                }
+                break;
+            }
         }
     }
     return true;

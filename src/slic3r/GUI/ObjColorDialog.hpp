@@ -51,6 +51,7 @@ private:
     void deal_add_btn();
     void deal_reset_btn();
     void deal_algo(char cluster_number,bool redraw_ui =false);
+    void deal_default_strategy();
 private:
     //view ui
     wxScrolledWindow *        m_scrolledWindow = nullptr;

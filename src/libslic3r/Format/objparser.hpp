@@ -37,6 +37,7 @@ struct ObjNewMtl
     float       Ni;
     float       d;
     float       illum;
+    float       Tr{1.0f}; //    Transmission
     std::array<float, 3>  Tf;
     std::array<float, 3>  Ka;
     std::array<float, 3>  Kd;

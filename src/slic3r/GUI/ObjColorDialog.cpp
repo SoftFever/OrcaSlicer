@@ -25,11 +25,11 @@ int OBJCOLOR_ITEM_WIDTH() { return objcolor_scale(30); }
 static const wxColour g_text_color = wxColour(107, 107, 107, 255);
 const int HEADER_BORDER  = 5;
 const int CONTENT_BORDER = 3;
-const int PANEL_WIDTH = 320;
-const int COLOR_LABEL_WIDTH = 150;
+const int PANEL_WIDTH = 370;
+const int COLOR_LABEL_WIDTH = 180;
 #define ICON_SIZE               wxSize(FromDIP(16), FromDIP(16))
-#define MIN_OBJCOLOR_DIALOG_WIDTH FromDIP(530)
-#define FIX_SCROLL_HEIGTH  FromDIP(400)
+#define MIN_OBJCOLOR_DIALOG_WIDTH FromDIP(400)
+#define FIX_SCROLL_HEIGTH         FromDIP(400)
 #define BTN_SIZE                wxSize(FromDIP(58), FromDIP(24))
 #define BTN_GAP                 FromDIP(20)
 
@@ -257,22 +257,10 @@ ObjColorPanel::ObjColorPanel(wxWindow *                       parent,
     // BBS: for tunning flush volumes
     {
         //color cluster results
-        wxBoxSizer *  cluster_sizer          = new wxBoxSizer(wxHORIZONTAL);
-        wxStaticText *color_cluster_result_title = new wxStaticText(m_page_simple, wxID_ANY, _L("Recommend number of colors:"));
-        color_cluster_result_title->SetFont(Label::Head_14);
-        cluster_sizer->Add(color_cluster_result_title, 0, wxALIGN_CENTER | wxALL, 0);
-        cluster_sizer->AddSpacer(FromDIP(5));
-
-        wxStaticText *color_cluster_result_value = new wxStaticText(m_page_simple, wxID_ANY, std::to_string(m_color_num_recommend).c_str());
-        color_cluster_result_value->SetFont(Label::Head_14);
-        cluster_sizer->Add(color_cluster_result_value, 0, wxALIGN_CENTER | wxALL, 0);
-        cluster_sizer->AddSpacer(FromDIP(20));
-
         wxBoxSizer *  specify_cluster_sizer               = new wxBoxSizer(wxHORIZONTAL);
         wxStaticText *specify_color_cluster_title = new wxStaticText(m_page_simple, wxID_ANY, _L("Specify number of colors:"));
         specify_color_cluster_title->SetFont(Label::Head_14);
-        specify_cluster_sizer->Add(specify_color_cluster_title, 0, wxALIGN_CENTER | wxALL, 0);
-        specify_cluster_sizer->AddSpacer(FromDIP(5));
+        specify_cluster_sizer->Add(specify_color_cluster_title, 0, wxALIGN_CENTER | wxALL, FromDIP(5));
 
         m_color_cluster_num_by_user_ebox = new wxTextCtrl(m_page_simple, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(25), -1), wxTE_PROCESS_ENTER);
         if (m_color_num_recommend == 1) {
@@ -322,10 +310,27 @@ ObjColorPanel::ObjColorPanel(wxWindow *                       parent,
                 e.Skip();
             });
         }
+        specify_cluster_sizer->AddSpacer(FromDIP(2));
         specify_cluster_sizer->Add(m_color_cluster_num_by_user_ebox, 0, wxALIGN_CENTER | wxALL, 0);
+        specify_cluster_sizer->AddSpacer(FromDIP(15));
+        wxStaticText *recommend_color_cluster_title = new wxStaticText(m_page_simple, wxID_ANY, "(" + std::to_string(m_color_num_recommend) + " " + _L("Recommended ") + ")");
+        specify_cluster_sizer->Add(recommend_color_cluster_title, 0, wxALIGN_CENTER | wxALL, 0);
 
-        m_sizer_simple->Add(cluster_sizer, 0, wxEXPAND | wxLEFT, FromDIP(20));
         m_sizer_simple->Add(specify_cluster_sizer, 0, wxEXPAND | wxLEFT, FromDIP(20));
+
+        wxBoxSizer *  current_filaments_title_sizer  = new wxBoxSizer(wxHORIZONTAL);
+        wxStaticText *current_filaments_title = new wxStaticText(m_page_simple, wxID_ANY, _L("Current filament colors:"));
+        current_filaments_title->SetFont(Label::Head_14);
+        current_filaments_title_sizer->Add(current_filaments_title, 0, wxALIGN_CENTER | wxALL, FromDIP(5));
+        m_sizer_simple->Add(current_filaments_title_sizer, 0, wxEXPAND | wxLEFT, FromDIP(20));
+
+        wxBoxSizer *  current_filaments_sizer = new wxBoxSizer(wxHORIZONTAL);
+        current_filaments_sizer->AddSpacer(FromDIP(10));
+        for (size_t i = 0; i < m_colours.size(); i++) {
+            auto extruder_icon_sizer = create_extruder_icon_and_rgba_sizer(m_page_simple, i, m_colours[i]);
+            current_filaments_sizer->Add(extruder_icon_sizer, 0, wxALIGN_CENTER | wxALIGN_CENTER_VERTICAL, FromDIP(10));
+        }
+        m_sizer_simple->Add(current_filaments_sizer, 0, wxEXPAND | wxLEFT, FromDIP(20));
         //colors table
         m_scrolledWindow = new wxScrolledWindow(m_page_simple,wxID_ANY,wxDefaultPosition,wxDefaultSize,wxSB_VERTICAL);
         m_sizer_simple->Add(m_scrolledWindow, 0, wxEXPAND | wxALL, FromDIP(5));
@@ -333,6 +338,7 @@ ObjColorPanel::ObjColorPanel(wxWindow *                       parent,
         //buttons
         wxBoxSizer *quick_set_sizer = new wxBoxSizer(wxHORIZONTAL);
         wxStaticText *quick_set_title = new wxStaticText(m_page_simple, wxID_ANY, _L("Quick set:"));
+        quick_set_title->SetFont(Label::Head_12);
         quick_set_sizer->Add(quick_set_title, 0, wxALIGN_CENTER | wxALL, 0);
         quick_set_sizer->AddSpacer(FromDIP(10));
 
@@ -354,6 +360,7 @@ ObjColorPanel::ObjColorPanel(wxWindow *                       parent,
 
         m_sizer_simple->AddSpacer(10);
     }
+    deal_default_strategy();
     //page_simple//page_advanced
     m_sizer = new wxBoxSizer(wxVERTICAL);
     m_sizer->Add(m_page_simple, 0, wxEXPAND, 0);
@@ -413,7 +420,8 @@ wxBoxSizer *ObjColorPanel::create_approximate_match_btn_sizer(wxWindow *parent)
     StateColor calc_btn_bd(std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
     StateColor calc_btn_text(std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Normal));
     //create btn
-    m_quick_approximate_match_btn = new Button(parent, _L("Approximate match"));
+    m_quick_approximate_match_btn = new Button(parent, _L("Color match"));
+    m_quick_approximate_match_btn->SetToolTip(_L("Approximate color matching."));
     auto cur_btn         = m_quick_approximate_match_btn;
     cur_btn->SetFont(Label::Body_13);
     cur_btn->SetMinSize(wxSize(FromDIP(60), FromDIP(20)));
@@ -437,7 +445,8 @@ wxBoxSizer *ObjColorPanel::create_add_btn_sizer(wxWindow *parent)
     StateColor calc_btn_bd(std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
     StateColor calc_btn_text(std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Normal));
     // create btn
-    m_quick_add_btn = new Button(parent, _L("Add"));
+    m_quick_add_btn = new Button(parent, _L("Append"));
+    m_quick_add_btn->SetToolTip(_L("Add consumable extruder after existing extruders."));
     auto cur_btn    = m_quick_add_btn;
     cur_btn->SetFont(Label::Body_13);
     cur_btn->SetMinSize(wxSize(FromDIP(60), FromDIP(20)));
@@ -462,6 +471,7 @@ wxBoxSizer *ObjColorPanel::create_reset_btn_sizer(wxWindow *parent)
     StateColor calc_btn_text(std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Normal));
     // create btn
     m_quick_reset_btn = new Button(parent, _L("Reset"));
+    m_quick_add_btn->SetToolTip(_L("Reset mapped extruders."));
     auto cur_btn      = m_quick_reset_btn;
     cur_btn->SetFont(Label::Body_13);
     cur_btn->SetMinSize(wxSize(FromDIP(60), FromDIP(20)));
@@ -484,14 +494,9 @@ wxBoxSizer *ObjColorPanel::create_extruder_icon_and_rgba_sizer(wxWindow *parent,
     icon->SetBitmap(*get_extruder_color_icon(color.GetAsString(wxC2S_HTML_SYNTAX).ToStdString(), std::to_string(id + 1), FromDIP(16), FromDIP(16)));
     icon->SetCanFocus(false);
     m_extruder_icon_list.emplace_back(icon);
-    icon_sizer->Add(icon, 0, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 0); // wxALIGN_CENTER_VERTICAL | wxTOP | wxBOTTOM
-    icon_sizer->AddSpacer(FromDIP(10));
+    icon_sizer->Add(icon, 0, wxALIGN_CENTER | wxALIGN_CENTER_VERTICAL, FromDIP(10)); // wxALIGN_CENTER_VERTICAL | wxTOP | wxBOTTOM
 
-    std::string message = get_color_str(color);
-    wxStaticText *rgba_title = new wxStaticText(parent, wxID_ANY, message.c_str()); 
-    rgba_title->SetMinSize(wxSize(FromDIP(COLOR_LABEL_WIDTH), -1));
-    rgba_title->SetMaxSize(wxSize(FromDIP(COLOR_LABEL_WIDTH), -1));
-    icon_sizer->Add(rgba_title, 0, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 0);
+    icon_sizer->AddSpacer(FromDIP(5));
     return icon_sizer;
 }
 
@@ -604,30 +609,19 @@ void ObjColorPanel::redraw_part_table() {
             int      id                       = i;
             wxPanel *row_panel = new wxPanel(m_scrolledWindow);
             row_panel->SetBackgroundColour((i+1) % 2 == 0 ? *wxWHITE : wxColour(238, 238, 238));
-            auto row_sizer = new wxBoxSizer(wxHORIZONTAL);
+            auto row_sizer = new wxGridSizer(1, 2, 1, 3);
             row_panel->SetSizer(row_sizer);
 
-            wxPanel *son_row_panel = new wxPanel(row_panel);
-            son_row_panel->SetMinSize(wxSize(FromDIP(PANEL_WIDTH), -1));
-            son_row_panel->SetMaxSize(wxSize(FromDIP(PANEL_WIDTH), -1));
-            son_row_panel->SetBackgroundColour((i + 1) % 2 == 0 ? *wxWHITE : wxColour(238, 238, 238));
-            auto son_row_sizer = new wxGridSizer(1, 2, 1, 3);
-            son_row_panel->SetSizer(son_row_sizer);
+            row_panel->SetMinSize(wxSize(FromDIP(PANEL_WIDTH), -1));
+            row_panel->SetMaxSize(wxSize(FromDIP(PANEL_WIDTH), -1));
 
-            auto cluster_color_icon_sizer = create_color_icon_and_rgba_sizer(son_row_panel, id, m_cluster_colours[id]);
-            son_row_sizer->Add(cluster_color_icon_sizer, 0, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, FromDIP(CONTENT_BORDER));
+            auto cluster_color_icon_sizer = create_color_icon_and_rgba_sizer(row_panel, id, m_cluster_colours[id]);
+            row_sizer->Add(cluster_color_icon_sizer, 0, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, FromDIP(CONTENT_BORDER));
             // result_combox
-            create_result_button_sizer(son_row_panel, id);
-            son_row_sizer->Add(m_result_icon_list[id]->bitmap_combox, 0, wxALIGN_CENTER | wxALIGN_CENTER_VERTICAL, 0);
-            row_sizer->Add(son_row_panel, 0, wxALIGN_LEFT | wxALL, 0);
-            // extruder_icon
-            if (id < m_colours.size()) {
-                auto extruder_icon_sizer = create_extruder_icon_and_rgba_sizer(row_panel, id, m_colours[id]);
-                row_sizer->Add(extruder_icon_sizer, 0, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, FromDIP(CONTENT_BORDER));
-            } else {
-                row_sizer->Add(new wxStaticText(row_panel, wxID_ANY, ""), 0, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, FromDIP(CONTENT_BORDER));
-            }
-            m_row_sizer_list.emplace_back(son_row_sizer);
+            create_result_button_sizer(row_panel, id);
+            row_sizer->Add(m_result_icon_list[id]->bitmap_combox, 0, wxALIGN_CENTER | wxALIGN_CENTER_VERTICAL, 0);
+
+            m_row_sizer_list.emplace_back(row_sizer);
             m_gridsizer->Add(row_panel, 0, wxALIGN_LEFT | wxALL, FromDIP(HEADER_BORDER));
         }
         m_gridsizer->Layout();
@@ -642,61 +636,47 @@ void ObjColorPanel::redraw_part_table() {
 void ObjColorPanel::draw_table()
 {
     auto row                = std::max(m_cluster_colours.size(), m_colours.size()) + 1;
-    m_gridsizer             = new wxGridSizer(row, 1, 3, 3); //(int rows, int cols, int vgap, int hgap );
+    m_gridsizer             = new wxGridSizer(row, 1, 1, 3); //(int rows, int cols, int vgap, int hgap );
 
     m_color_cluster_icon_list.clear();
     m_extruder_icon_list.clear();
+    float row_height ;
     for (size_t ii = 0; ii < row; ii++) {
         wxPanel *row_panel = new wxPanel(m_scrolledWindow);
         row_panel->SetBackgroundColour(ii % 2 == 0 ? *wxWHITE : wxColour(238, 238, 238));
-        auto row_sizer = new wxBoxSizer(wxHORIZONTAL);
+        auto row_sizer = new wxGridSizer(1, 2, 1, 5);
         row_panel->SetSizer(row_sizer);
 
-        wxPanel *son_row_panel = new wxPanel(row_panel);
-        son_row_panel->SetMinSize(wxSize(FromDIP(PANEL_WIDTH), -1));
-        son_row_panel->SetMaxSize(wxSize(FromDIP(PANEL_WIDTH), -1));
-        son_row_panel->SetBackgroundColour(ii % 2 == 0 ? *wxWHITE : wxColour(238, 238, 238));
-        auto son_row_sizer = new wxGridSizer(1, 2, 1, 3);
-        son_row_panel->SetSizer(son_row_sizer);
+        row_panel->SetMinSize(wxSize(FromDIP(PANEL_WIDTH), -1));
+        row_panel->SetMaxSize(wxSize(FromDIP(PANEL_WIDTH), -1));
         if (ii == 0) {
-            wxStaticText *colors_left_title = new wxStaticText(son_row_panel, wxID_ANY, _L("Cluster colors"));
+            wxStaticText *colors_left_title = new wxStaticText(row_panel, wxID_ANY, _L("Cluster colors"));
             colors_left_title->SetFont(Label::Head_14);
-            son_row_sizer->Add(colors_left_title, 0, wxALIGN_LEFT | wxALL, FromDIP(HEADER_BORDER));
+            row_sizer->Add(colors_left_title, 0, wxALIGN_CENTER | wxALL, FromDIP(HEADER_BORDER));
 
-            wxStaticText *colors_middle_title = new wxStaticText(son_row_panel, wxID_ANY, _L("Map Filament"));
+            wxStaticText *colors_middle_title = new wxStaticText(row_panel, wxID_ANY, _L("Map Filament"));
             colors_middle_title->SetFont(Label::Head_14);
-            son_row_sizer->Add(colors_middle_title, 0, wxALIGN_CENTER | wxALL, FromDIP(HEADER_BORDER));
-            row_sizer->Add(son_row_panel, 0, wxALIGN_LEFT | wxALL, 0);
-
-            wxStaticText *colors_right_title = new wxStaticText(row_panel, wxID_ANY, _L("Current filament colors"));
-            colors_right_title->SetFont(Label::Head_14);
-            row_sizer->Add(colors_right_title, 0, wxALIGN_LEFT | wxALL, FromDIP(HEADER_BORDER));
+            row_sizer->Add(colors_middle_title, 0, wxALIGN_CENTER | wxALL, FromDIP(HEADER_BORDER));
         } else {
             int id = ii - 1;
             if (id < m_cluster_colours.size()) {
-                auto cluster_color_icon_sizer = create_color_icon_and_rgba_sizer(son_row_panel, id, m_cluster_colours[id]);
-                son_row_sizer->Add(cluster_color_icon_sizer, 0, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, FromDIP(CONTENT_BORDER));
+                auto cluster_color_icon_sizer = create_color_icon_and_rgba_sizer(row_panel, id, m_cluster_colours[id]);
+                row_sizer->Add(cluster_color_icon_sizer, 0, wxALIGN_CENTER | wxALIGN_CENTER_VERTICAL, FromDIP(CONTENT_BORDER));
                 // result_combox
-                create_result_button_sizer(son_row_panel, id);
-                son_row_sizer->Add(m_result_icon_list[id]->bitmap_combox, 0, wxALIGN_CENTER | wxALIGN_CENTER_VERTICAL, FromDIP(CONTENT_BORDER));
-            }
-            row_sizer->Add(son_row_panel, 0, wxALIGN_LEFT | wxALL, 0);
-            // extruder_icon
-            if (id < m_colours.size()) {
-                auto extruder_icon_sizer = create_extruder_icon_and_rgba_sizer(row_panel, id, m_colours[id]);
-                row_sizer->Add(extruder_icon_sizer, 0, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, FromDIP(CONTENT_BORDER));
-            } else {
-                row_sizer->Add(new wxStaticText(row_panel, wxID_ANY, ""), 0, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, FromDIP(CONTENT_BORDER));
+                create_result_button_sizer(row_panel, id);
+                row_sizer->Add(m_result_icon_list[id]->bitmap_combox, 0, wxALIGN_CENTER | wxALIGN_CENTER_VERTICAL, FromDIP(CONTENT_BORDER));
             }
         }
+        row_height = row_panel->GetSize().GetHeight();
         if (ii>=1) {
-            m_row_sizer_list.emplace_back(son_row_sizer);
+            m_row_sizer_list.emplace_back(row_sizer);
         }
         m_gridsizer->Add(row_panel, 0, wxALIGN_LEFT | wxALL, FromDIP(HEADER_BORDER));
     }
     m_scrolledWindow->SetSizer(m_gridsizer);
-    int totalHeight = m_gridsizer->GetMinSize().y;
+    int totalHeight = row_height *(row+1);
     m_scrolledWindow->SetVirtualSize(MIN_OBJCOLOR_DIALOG_WIDTH, totalHeight);
+    auto look = FIX_SCROLL_HEIGTH;
     if (totalHeight > FIX_SCROLL_HEIGTH) {
         m_scrolledWindow->SetMinSize(wxSize(MIN_OBJCOLOR_DIALOG_WIDTH, FIX_SCROLL_HEIGTH));
         m_scrolledWindow->SetMaxSize(wxSize(MIN_OBJCOLOR_DIALOG_WIDTH, FIX_SCROLL_HEIGTH));
@@ -735,6 +715,13 @@ void ObjColorPanel::deal_algo(char cluster_number, bool redraw_ui)
     if (redraw_ui) {
         redraw_part_table();
     }
+}
+
+void ObjColorPanel::deal_default_strategy()
+{
+    deal_add_btn();
+    deal_approximate_match_btn();
+    m_warning_text->SetLabelText(_L("Note:The color has been selected, you can choose OK \n to continue or manually adjust it."));
 }
 
 void ObjColorPanel::deal_add_btn()
@@ -796,6 +783,7 @@ void ObjColorPanel::create_result_button_sizer(wxWindow *parent, int id)
 wxBoxSizer *ObjColorPanel::create_color_icon_and_rgba_sizer(wxWindow *parent, int id, const wxColour& color)
 {
     auto      icon_sizer = new wxBoxSizer(wxHORIZONTAL);
+    icon_sizer->AddSpacer(FromDIP(40));
     wxButton *icon       = new wxButton(parent, wxID_ANY, {}, wxDefaultPosition, ICON_SIZE, wxBORDER_NONE | wxBU_AUTODRAW);
     icon->SetBitmap(*get_extruder_color_icon(color.GetAsString(wxC2S_HTML_SYNTAX).ToStdString(), std::to_string(id + 1), FromDIP(16), FromDIP(16)));
     icon->SetCanFocus(false);
