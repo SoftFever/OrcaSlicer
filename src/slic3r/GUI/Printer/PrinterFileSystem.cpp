@@ -46,7 +46,7 @@ static wxBitmap default_thumbnail;
 
 static std::map<int, std::string> error_messages = {
     {PrinterFileSystem::ERROR_PIPE, L("Reconnecting the printer, the operation cannot be completed immediately, please try again later.")},
-    {PrinterFileSystem::ERROR_RES_BUSY, L("Over 4 studio/handy are using remote access, you can close some and try again.")},
+    {PrinterFileSystem::ERROR_RES_BUSY, L("Over 4 systems/handy are using remote access, you can close some and try again.")},
     {PrinterFileSystem::FILE_NO_EXIST, L("File does not exist.")},
     {PrinterFileSystem::FILE_CHECK_ERR, L("File checksum error. Please retry.")},
     {PrinterFileSystem::FILE_TYPE_ERR, L("Not supported on the current printer version.")},
