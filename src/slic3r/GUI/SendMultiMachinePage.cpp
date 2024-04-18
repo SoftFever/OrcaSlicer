@@ -351,12 +351,12 @@ void SendMultiMachinePage::refresh_user_device()
     for (auto it = user_machine.begin(); it != user_machine.end(); ++it) {
         SendDeviceItem* di = new SendDeviceItem(scroll_macine_list, it->second);
         if (m_device_items.find(it->first) != m_device_items.end()) {
-            m_device_items[it->first]->update_item(di);
-            di->Destroy();
+            auto item = m_device_items[it->first];
+            if (item->state_selected == 1 && di->state_printable <= 2)
+                di->state_selected = item->state_selected;
+            item->Destroy();
         }
-        else {
-            m_device_items.emplace(std::make_pair(it->first, di));
-        }
+        m_device_items[it->first] = di;
 
         //update state
         if (task_manager) {
@@ -632,7 +632,7 @@ void SendMultiMachinePage::on_send(wxCommandEvent& event)
     for (auto it = m_device_items.begin(); it != m_device_items.end(); ++it) {
         auto obj = it->second->get_obj();
 
-        if (obj && obj->is_online() && !obj->can_abort() && !obj->is_in_upgrading() && it->second->get_state_selected() == 1) {
+        if (obj && obj->is_online() && !obj->can_abort() && !obj->is_in_upgrading() && it->second->get_state_selected() == 1 && it->second->state_printable <= 2) {
 
             BBL::PrintParams params = request_params(obj);
             print_params.push_back(params);
