@@ -46,6 +46,8 @@ ImageGrid::ImageGrid(wxWindow * parent)
     , m_model_time_icon(this, "model_time", 14)
     , m_model_weight_icon(this, "model_weight", 14)
 {
+    m_cell_size.Set(396, 228);
+
     SetBackgroundStyle(wxBG_STYLE_PAINT);
     SetBackgroundColour(0xEEEEEE);
     SetFont(Label::Head_20);
@@ -293,9 +295,16 @@ void ImageGrid::mouseMoved(wxMouseEvent& event)
     if (hit != std::make_pair(m_hit_type, m_hit_item)) {
         m_hit_type = hit.first;
         m_hit_item = hit.second;
-        if (hit.first == HIT_ITEM)
-            SetToolTip(from_u8(m_file_sys->GetFile(hit.second).Title()));
-        else
+        if (hit.first == HIT_ITEM) {
+            SetToolTip({});
+            auto & file = m_file_sys->GetFile(hit.second);
+            if (auto title = file.Title(); !title.empty()) {
+                auto tip = wxString::Format(_L("File: %s\nTitle: %s\n"), from_u8(file.name), from_u8(title));
+                SetToolTip(tip);
+            } else {
+                SetToolTip(from_u8(file.name));
+            }
+        } else
             SetToolTip({});
         Refresh();
     }
@@ -732,7 +741,17 @@ void Slic3r::GUI::ImageGrid::renderText(wxDC &dc, wxString const &text, wxRect c
     dc.SetTextForeground(m_buttonTextColor.colorForStatesNoDark(states));
     wxRect rc({0, 0}, dc.GetTextExtent(text));
     rc = rc.CenterIn(rect);
-    dc.DrawText(text, rc.GetTopLeft());
+    float fontScale = float(rect.width - 8) / rc.width;
+    if (fontScale < 1) {
+        auto font = dc.GetFont();
+        dc.SetFont(font.Scaled(fontScale));
+        wxRect rc({0, 0}, dc.GetTextExtent(text));
+        rc = rc.CenterIn(rect);
+        dc.DrawText(text, rc.GetTopLeft());
+        dc.SetFont(font);
+    } else {
+        dc.DrawText(text, rc.GetTopLeft());
+    }
 }
 
 void Slic3r::GUI::ImageGrid::renderText2(wxDC &dc, wxString text, wxRect const &rect)

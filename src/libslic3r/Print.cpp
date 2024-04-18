@@ -125,6 +125,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "extruder_clearance_height_to_rod",
         "extruder_clearance_height_to_lid",
         "extruder_clearance_radius",
+        "nozzle_height",
         "extruder_colour",
         "extruder_offset",
         "filament_flow_ratio",
@@ -213,6 +214,12 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "activate_chamber_temp_control",
         "manual_filament_change",
         "disable_m73",
+        "use_firmware_retraction",
+        "enable_long_retraction_when_cut",
+        "long_retractions_when_cut",
+        "retraction_distances_when_cut",
+        "filament_long_retractions_when_cut",
+        "filament_retraction_distances_when_cut"
     };
 
     static std::unordered_set<std::string> steps_ignore;
@@ -244,6 +251,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "nozzle_diameter"
             || opt_key == "filament_shrink"
             || opt_key == "resolution"
+            || opt_key == "precise_z_height"
             // Spiral Vase forces different kind of slicing than the normal model:
             // In Spiral Vase mode, holes are closed and only the largest area contour is kept at each layer.
             // Therefore toggling the Spiral Vase on / off requires complete reslicing.
@@ -280,6 +288,8 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "prime_tower_width"
             || opt_key == "prime_tower_brim_width"
             || opt_key == "first_layer_print_sequence"
+            || opt_key == "other_layers_print_sequence"
+            || opt_key == "other_layers_print_sequence_nums" 
             || opt_key == "wipe_tower_bridging"
             || opt_key == "wipe_tower_no_sparse_layers"
             || opt_key == "flush_volumes_matrix"
@@ -460,8 +470,8 @@ std::vector<unsigned int> Print::extruders(bool conside_custom_gcode) const
     if (conside_custom_gcode) {
         //BBS
         int num_extruders = m_config.filament_colour.size();
-        for (auto plate_data : m_model.plates_custom_gcodes) {
-            for (auto item : plate_data.second.gcodes) {
+        if (m_model.plates_custom_gcodes.find(m_model.curr_plate_index) != m_model.plates_custom_gcodes.end()) {
+            for (auto item : m_model.plates_custom_gcodes.at(m_model.curr_plate_index).gcodes) {
                 if (item.type == CustomGCode::Type::ToolChange && item.extruder <= num_extruders)
                     extruders.push_back((unsigned int)(item.extruder - 1));
             }
@@ -576,6 +586,11 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
             polygons->clear();
         std::vector<size_t> intersecting_idxs;
 
+        bool all_objects_are_short = print.is_all_objects_are_short();
+        // Shrink the extruder_clearance_radius a tiny bit, so that if the object arrangement algorithm placed the objects
+        // exactly by satisfying the extruder_clearance_radius, this test will not trigger collision.
+        float obj_distance = all_objects_are_short ? scale_(0.5*MAX_OUTER_NOZZLE_DIAMETER-0.1) : scale_(0.5*print.config().extruder_clearance_radius.value-0.1);
+
         for (const PrintObject *print_object : print.objects()) {
             assert(! print_object->model_object()->instances.empty());
             assert(! print_object->instances().empty());
@@ -601,11 +616,7 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
             // Now we check that no instance of convex_hull intersects any of the previously checked object instances.
             for (const PrintInstance &instance : print_object->instances()) {
                 Polygon convex_hull_no_offset = convex_hull0, convex_hull;
-                auto tmp = offset(convex_hull_no_offset,
-                        // Shrink the extruder_clearance_radius a tiny bit, so that if the object arrangement algorithm placed the objects
-                        // exactly by satisfying the extruder_clearance_radius, this test will not trigger collision.
-                        float(scale_(0.5 * print.config().extruder_clearance_radius.value - 0.1)),
-                        jtRound, scale_(0.1));
+                auto tmp = offset(convex_hull_no_offset, obj_distance, jtRound, scale_(0.1));
                 if (!tmp.empty()) { // tmp may be empty due to clipper's bug, see STUDIO-2452
                     convex_hull = tmp.front();
                     // instance.shift is a position of a centered object, while model object may not be centered.
@@ -840,7 +851,7 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
                     break;
                 }
             }
-            if (height < inst->print_object->height())
+            if (height < inst->print_object->max_z())
                 too_tall_instances[inst] = std::make_pair(print_instance_with_bounding_box[k].hull_polygon, unscaled<double>(height));
         }
 
@@ -1088,7 +1099,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
 
     if (m_config.spiral_mode) {
         size_t total_copies_count = 0;
-        for (const PrintObject *object : m_objects)
+        for (const PrintObject* object : m_objects)
             total_copies_count += object->instances().size();
         // #4043
         if (total_copies_count > 1 && m_config.print_sequence != PrintSequence::ByObject)
@@ -1117,7 +1128,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
     for (size_t print_object_idx = 0; print_object_idx < m_objects.size(); ++ print_object_idx) {
         const PrintObject &print_object = *m_objects[print_object_idx];
         //FIXME It is quite expensive to generate object layers just to get the print height!
-        if (auto layers = generate_object_layers(print_object.slicing_parameters(), layer_height_profile(print_object_idx));
+        if (auto layers = generate_object_layers(print_object.slicing_parameters(), layer_height_profile(print_object_idx), print_object.config().precise_z_height.value);
             ! layers.empty() && layers.back() > this->config().printable_height + EPSILON) {
             return
                 // Test whether the last slicing plane is below or above the print volume.
@@ -1220,6 +1231,13 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
 
             // BBS: remove obsolete logics and _L()
             if (has_custom_layering) {
+                std::vector<std::vector<coordf_t>> layer_z_series;
+                layer_z_series.assign(m_objects.size(), std::vector<coordf_t>());
+               
+                for (size_t idx_object = 0; idx_object < m_objects.size(); ++idx_object) {
+                    layer_z_series[idx_object] = generate_object_layers(m_objects[idx_object]->slicing_parameters(), layer_height_profiles[idx_object], m_objects[idx_object]->config().precise_z_height.value);
+                }
+
                 for (size_t idx_object = 0; idx_object < m_objects.size(); ++idx_object) {
                     if (idx_object == tallest_object_idx) continue;
                     // Check that the layer height profiles are equal. This will happen when one object is
@@ -2472,7 +2490,8 @@ int Print::get_hrc_by_nozzle_type(const NozzleType&type)
     static std::map<std::string, int>nozzle_type_to_hrc;
     if (nozzle_type_to_hrc.empty()) {
         fs::path file_path = fs::path(resources_dir()) / "info" / "nozzle_info.json";
-        std::ifstream in(file_path.string());
+        boost::nowide::ifstream in(file_path.string());
+        //std::ifstream in(file_path.string());
         json j;
         try {
             j = json::parse(in);

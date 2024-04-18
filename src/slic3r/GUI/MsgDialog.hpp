@@ -1,7 +1,3 @@
-///|/ Copyright (c) Prusa Research 2018 - 2022 Oleksandra Iushchenko @YuSanka, Lukáš Matěna @lukasmatena, David Kocík @kocikdav, Lukáš Hejl @hejllukas, Vojtěch Bubník @bubnikv, Vojtěch Král @vojtechkral
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 #ifndef slic3r_MsgDialog_hpp_
 #define slic3r_MsgDialog_hpp_
 
@@ -20,6 +16,7 @@
 #include "Widgets/TextInput.hpp"
 #include "BBLStatusBar.hpp"
 #include "BBLStatusBarSend.hpp"
+#include "libslic3r/Semver.hpp"
 
 class wxBoxSizer;
 class wxCheckBox;
@@ -389,6 +386,27 @@ private:
     wxString      msg;
     Button *      m_del_btn    = nullptr;
     Button *      m_cancel_btn = nullptr;
+    wxStaticText *m_msg_text   = nullptr;
+};
+
+class Newer3mfVersionDialog : public DPIDialog
+{
+public:
+    Newer3mfVersionDialog(wxWindow *parent, const Semver* file_version, const Semver* cloud_version, wxString new_keys);
+    ~Newer3mfVersionDialog(){};
+    virtual void on_dpi_changed(const wxRect &suggested_rect){};
+
+private:
+    wxBoxSizer *get_msg_sizer();
+    wxBoxSizer *get_btn_sizer();
+
+
+private:
+    const Semver *m_file_version;
+    const Semver *m_cloud_version;
+    wxString      m_new_keys;
+    Button *      m_update_btn = nullptr;
+    Button *      m_later_btn  = nullptr;
     wxStaticText *m_msg_text   = nullptr;
 };
 
