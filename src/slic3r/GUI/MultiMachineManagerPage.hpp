@@ -58,6 +58,8 @@ public:
     void on_timer(wxTimerEvent& event);
     void clear_page();
 
+    void page_num_enter_evt();
+
 private:
     std::vector<ObjState>          m_state_objs;
     std::vector<MultiMachineItem*> m_device_items;
@@ -99,6 +101,8 @@ private:
     wxBoxSizer*                 m_page_sizer{ nullptr };
     wxPanel*                    m_flipping_panel{ nullptr };
     wxTimer*                    m_flipping_timer{ nullptr };
+    TextInput*                  m_page_num_input{ nullptr };
+    Button*                     m_page_num_enter{ nullptr };
 };
 
 } // namespace GUI

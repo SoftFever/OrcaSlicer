@@ -140,6 +140,9 @@ public:
     void resume_all(wxCommandEvent& evt);
     void stop_all(wxCommandEvent& evt);
 
+    void enable_buttons(bool enable);
+    void page_num_enter_evt();
+
 private:
     SortItem                    m_sort;
     bool                        device_name_big{ true };
@@ -163,36 +166,39 @@ private:
     int                         m_count_page_item{ 10 };
     bool                        prev{ false };
     bool                        next{ false };
-    Button* btn_last_page{ nullptr };
-    Button* btn_next_page{ nullptr };
-    wxStaticText* st_page_number{ nullptr };
-    wxBoxSizer* m_flipping_page_sizer{ nullptr };
-    wxBoxSizer* m_page_sizer{ nullptr };
-    wxPanel* m_flipping_panel{ nullptr };
-    wxTimer* m_flipping_timer{ nullptr };
+    Button*                     btn_last_page{ nullptr };
+    Button*                     btn_next_page{ nullptr };
+    wxStaticText*               st_page_number{ nullptr };
+    wxBoxSizer*                 m_flipping_page_sizer{ nullptr };
+    wxBoxSizer*                 m_page_sizer{ nullptr };
+    wxPanel*                    m_flipping_panel{ nullptr };
+    wxTimer*                    m_flipping_timer{ nullptr };
+    TextInput*                  m_page_num_input{ nullptr };
+    Button*                     m_page_num_enter{ nullptr };
 
     // table head
-    wxPanel* m_table_head_panel{ nullptr };
-    wxBoxSizer* m_table_head_sizer{ nullptr };
-    CheckBox* m_select_checkbox{ nullptr };
-    Button* m_task_name{ nullptr };
-    Button* m_printer_name{ nullptr };
-    Button* m_status{ nullptr };
-    Button* m_info{ nullptr };
-    Button* m_send_time{ nullptr };
-    Button* m_action{ nullptr };
+    wxPanel*                    m_table_head_panel{ nullptr };
+    wxBoxSizer*                 m_table_head_sizer{ nullptr };
+    CheckBox*                   m_select_checkbox{ nullptr };
+    Button*                     m_task_name{ nullptr };
+    Button*                     m_printer_name{ nullptr };
+    Button*                     m_status{ nullptr };
+    Button*                     m_info{ nullptr };
+    Button*                     m_send_time{ nullptr };
+    Button*                     m_action{ nullptr };
 
     // ctrl button for all
     int                         m_sel_number;
-    wxPanel* m_ctrl_btn_panel{ nullptr };
-    wxBoxSizer* m_btn_sizer{ nullptr };
-    Button* btn_pause_all{ nullptr };
-    Button* btn_continue_all{ nullptr };
-    Button* btn_stop_all{ nullptr };
-    wxStaticText* m_sel_text{ nullptr };
+    wxPanel*                    m_ctrl_btn_panel{ nullptr };
+    wxBoxSizer*                 m_btn_sizer{ nullptr };
+    Button*                     btn_pause_all{ nullptr };
+    Button*                     btn_continue_all{ nullptr };
+    Button*                     btn_stop_all{ nullptr };
+    wxStaticText*               m_sel_text{ nullptr };
 
     // tip when no device
-    wxStaticText* m_tip_text{ nullptr };
+    wxStaticText*               m_tip_text{ nullptr };
+    wxStaticText*               m_loading_text{ nullptr };
 };
 
 

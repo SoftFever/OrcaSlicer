@@ -272,6 +272,7 @@ SendMultiMachinePage::SendMultiMachinePage(Plater* plater)
     auto line_top = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
     line_top->SetBackgroundColour(wxColour(166, 169, 170));
     main_sizer->Add(line_top, 0, wxEXPAND, 0);
+    main_sizer->AddSpacer(FromDIP(10));
 
     m_main_scroll = new ScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL);
     m_main_scroll->SetBackgroundColour(*wxWHITE);
@@ -285,7 +286,7 @@ SendMultiMachinePage::SendMultiMachinePage(Plater* plater)
     m_main_scroll->Fit();
     m_main_scroll->Centre(wxBOTH);
 
-    main_sizer->Add(m_main_scroll, 1, wxEXPAND, FromDIP(5));
+    main_sizer->Add(m_main_scroll, 1, wxEXPAND);
 
     SetSizer(main_sizer);
     Layout();
@@ -644,7 +645,7 @@ void SendMultiMachinePage::on_send(wxCommandEvent& event)
        try
        {
            if (app_config->get("sending_interval").empty()) {
-               app_config->set("sending_interval", "60");
+               app_config->set("sending_interval", "1");
                app_config->save();
            }
 
@@ -757,7 +758,7 @@ wxBoxSizer* SendMultiMachinePage::create_item_input(wxString str_before, wxStrin
     wxTextValidator validator(wxFILTER_DIGITS);
     input->GetTextCtrl()->SetValidator(validator);
 
-    auto second_title = new wxStaticText(parent, wxID_ANY, str_after, wxDefaultPosition, wxDefaultSize, 0);
+    auto second_title = new wxStaticText(parent, wxID_ANY, str_after, wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END);
     second_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
     second_title->SetFont(::Label::Body_13);
     second_title->SetToolTip(tooltip);
@@ -1079,8 +1080,8 @@ wxPanel* SendMultiMachinePage::create_page()
     m_printer_name->SetBackgroundColor(head_bg);
     m_printer_name->SetCornerRadius(0);
     m_printer_name->SetFont(TABLE_HEAD_FONT);
-    m_printer_name->SetMinSize(wxSize(FromDIP(SEND_LEFT_DEV_NAME), FromDIP(DEVICE_ITEM_MAX_HEIGHT)));
-    m_printer_name->SetMaxSize(wxSize(FromDIP(SEND_LEFT_DEV_NAME), FromDIP(DEVICE_ITEM_MAX_HEIGHT)));
+    m_printer_name->SetMinSize(wxSize(FromDIP(SEND_LEFT_DEV_NAME), FromDIP(SEND_ITEM_MAX_HEIGHT)));
+    m_printer_name->SetMaxSize(wxSize(FromDIP(SEND_LEFT_DEV_NAME), FromDIP(SEND_ITEM_MAX_HEIGHT)));
     m_printer_name->SetCenter(false);
     m_printer_name->Bind(wxEVT_ENTER_WINDOW, [&](wxMouseEvent& evt) {
         SetCursor(wxCURSOR_HAND);
@@ -1101,8 +1102,8 @@ wxPanel* SendMultiMachinePage::create_page()
     m_device_status->SetBackgroundColor(head_bg);
     m_device_status->SetFont(TABLE_HEAD_FONT);
     m_device_status->SetCornerRadius(0);
-    m_device_status->SetMinSize(wxSize(FromDIP(SEND_LEFT_DEV_STATUS), FromDIP(DEVICE_ITEM_MAX_HEIGHT)));
-    m_device_status->SetMaxSize(wxSize(FromDIP(SEND_LEFT_DEV_STATUS), FromDIP(DEVICE_ITEM_MAX_HEIGHT)));
+    m_device_status->SetMinSize(wxSize(FromDIP(SEND_LEFT_DEV_STATUS), FromDIP(SEND_ITEM_MAX_HEIGHT)));
+    m_device_status->SetMaxSize(wxSize(FromDIP(SEND_LEFT_DEV_STATUS), FromDIP(SEND_ITEM_MAX_HEIGHT)));
     m_device_status->SetCenter(false);
     m_device_status->Bind(wxEVT_ENTER_WINDOW, [&](wxMouseEvent& evt) {
         SetCursor(wxCURSOR_HAND);
@@ -1144,8 +1145,8 @@ wxPanel* SendMultiMachinePage::create_page()
     m_ams->SetBackgroundColor(head_bg);
     m_ams->SetCornerRadius(0);
     m_ams->SetFont(TABLE_HEAD_FONT);
-    m_ams->SetMinSize(wxSize(FromDIP(TASK_LEFT_SEND_TIME), FromDIP(DEVICE_ITEM_MAX_HEIGHT)));
-    m_ams->SetMaxSize(wxSize(FromDIP(TASK_LEFT_SEND_TIME), FromDIP(DEVICE_ITEM_MAX_HEIGHT)));
+    m_ams->SetMinSize(wxSize(FromDIP(TASK_LEFT_SEND_TIME), FromDIP(SEND_ITEM_MAX_HEIGHT)));
+    m_ams->SetMaxSize(wxSize(FromDIP(TASK_LEFT_SEND_TIME), FromDIP(SEND_ITEM_MAX_HEIGHT)));
     m_ams->SetCenter(false);
     m_ams->Bind(wxEVT_ENTER_WINDOW, [&](wxMouseEvent& evt) {
         SetCursor(wxCURSOR_HAND);
@@ -1165,8 +1166,8 @@ wxPanel* SendMultiMachinePage::create_page()
     m_refresh_button->SetBackgroundColor(head_bg);
     m_refresh_button->SetCornerRadius(0);
     m_refresh_button->SetFont(TABLE_HEAD_FONT);
-    m_refresh_button->SetMinSize(wxSize(FromDIP(50), FromDIP(DEVICE_ITEM_MAX_HEIGHT)));
-    m_refresh_button->SetMaxSize(wxSize(FromDIP(50), FromDIP(DEVICE_ITEM_MAX_HEIGHT)));
+    m_refresh_button->SetMinSize(wxSize(FromDIP(50), FromDIP(SEND_ITEM_MAX_HEIGHT)));
+    m_refresh_button->SetMaxSize(wxSize(FromDIP(50), FromDIP(SEND_ITEM_MAX_HEIGHT)));
     m_refresh_button->Bind(wxEVT_ENTER_WINDOW, [&](wxMouseEvent& evt) {
         SetCursor(wxCURSOR_HAND);
     });
@@ -1190,11 +1191,11 @@ wxPanel* SendMultiMachinePage::create_page()
     m_tip_text->SetFont(::Label::Head_24);
     m_tip_text->Wrap(-1);
 
-    scroll_macine_list = new wxScrolledWindow(main_page, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(800), 300), wxHSCROLL | wxVSCROLL);
+    scroll_macine_list = new wxScrolledWindow(main_page, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(800), FromDIP(300)), wxHSCROLL | wxVSCROLL);
     scroll_macine_list->SetBackgroundColour(*wxWHITE);
     scroll_macine_list->SetScrollRate(5, 5);
-    scroll_macine_list->SetMinSize(wxSize(FromDIP(DEVICE_ITEM_MAX_WIDTH), 10 * FromDIP(DEVICE_ITEM_MAX_HEIGHT)));
-    scroll_macine_list->SetMaxSize(wxSize(FromDIP(DEVICE_ITEM_MAX_WIDTH), 10 * FromDIP(DEVICE_ITEM_MAX_HEIGHT)));
+    scroll_macine_list->SetMinSize(wxSize(FromDIP(DEVICE_ITEM_MAX_WIDTH), 10 * FromDIP(SEND_ITEM_MAX_HEIGHT)));
+    scroll_macine_list->SetMaxSize(wxSize(FromDIP(DEVICE_ITEM_MAX_WIDTH), 10 * FromDIP(SEND_ITEM_MAX_HEIGHT)));
 
     sizer_machine_list = new wxBoxSizer(wxVERTICAL);
     scroll_macine_list->SetSizer(sizer_machine_list);
@@ -1212,8 +1213,10 @@ wxPanel* SendMultiMachinePage::create_page()
     wxBoxSizer* item_timelapse = create_item_checkbox(_("Timelapse"), main_page, "", 50, "timelapse");
     wxBoxSizer* item_flow_dy_ca = create_item_checkbox(_("Flow Dynamic Calibration"), main_page, "", 50, "flow_cali");
     sizer->Add(title_print_option, 0, wxEXPAND, 0);
-    sizer->Add(item_bed_level, 0, wxLEFT, FromDIP(20));
-    sizer->Add(item_timelapse, 0, wxLEFT, FromDIP(20));
+    wxBoxSizer* options_sizer_v = new wxBoxSizer(wxHORIZONTAL);
+    options_sizer_v->Add(item_bed_level, 0, wxLEFT, 0);
+    options_sizer_v->Add(item_timelapse, 0, wxLEFT, FromDIP(100));
+    sizer->Add(options_sizer_v, 0, wxLEFT, FromDIP(20));
     sizer->Add(item_flow_dy_ca, 0, wxLEFT, FromDIP(20));
     sizer->AddSpacer(FromDIP(10));
 
@@ -1244,11 +1247,10 @@ wxPanel* SendMultiMachinePage::create_page()
     //m_button_send->SetBackgroundColor(wxColour(0x90, 0x90, 0x90));
     //m_button_send->SetBorderColor(wxColour(0x90, 0x90, 0x90));
     sizer->Add(m_button_send, 0, wxALIGN_CENTER, 0);
-    sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
 
     main_page->SetSizer(sizer);
     main_page->Layout();
-
+    main_page->Fit();
     return main_page;
 }
 

@@ -375,6 +375,11 @@ MultiMachineManagerPage::MultiMachineManagerPage(wxWindow* parent)
     m_machine_list->Layout();
 
     // add flipping page
+    StateColor ctrl_bg(
+        std::pair<wxColour, int>(CTRL_BUTTON_PRESSEN_COLOUR, StateColor::Pressed),
+        std::pair<wxColour, int>(CTRL_BUTTON_NORMAL_COLOUR, StateColor::Normal)
+    );
+
     m_flipping_panel = new wxPanel(m_main_panel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
     m_flipping_panel->SetMinSize(wxSize(FromDIP(DEVICE_ITEM_MAX_WIDTH), -1));
     m_flipping_panel->SetMaxSize(wxSize(FromDIP(DEVICE_ITEM_MAX_WIDTH), -1));
@@ -382,11 +387,14 @@ MultiMachineManagerPage::MultiMachineManagerPage(wxWindow* parent)
 
     m_flipping_page_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_page_sizer = new wxBoxSizer(wxVERTICAL);
-    btn_last_page = new Button(m_flipping_panel, "", "go_last_plate", 0, ICON_SIZE);
-    btn_last_page->SetMinSize(wxSize(ICON_SIZE, ICON_SIZE));
-    btn_last_page->SetMaxSize(wxSize(ICON_SIZE, ICON_SIZE));
+    btn_last_page = new Button(m_flipping_panel, "", "go_last_plate", 0, FromDIP(20));
+    btn_last_page->SetMinSize(wxSize(FromDIP(20), FromDIP(20)));
+    btn_last_page->SetMaxSize(wxSize(FromDIP(20), FromDIP(20)));
     btn_last_page->SetBackgroundColor(head_bg);
     btn_last_page->Bind(wxEVT_LEFT_DOWN, [&](wxMouseEvent& evt) {
+        evt.Skip();
+        if (m_current_page == 0)
+            return;
         btn_last_page->Enable(false);
         btn_next_page->Enable(false);
         start_timer();
@@ -395,26 +403,51 @@ MultiMachineManagerPage::MultiMachineManagerPage(wxWindow* parent)
             m_current_page = 0;
         refresh_user_device();
         update_page_number();
-        });
-    btn_next_page = new Button(m_flipping_panel, "", "go_next_plate", 0, ICON_SIZE);
-    btn_next_page->SetMinSize(wxSize(ICON_SIZE, ICON_SIZE));
-    btn_next_page->SetMaxSize(wxSize(ICON_SIZE, ICON_SIZE));
+    });
+    st_page_number = new wxStaticText(m_flipping_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize);
+    btn_next_page = new Button(m_flipping_panel, "", "go_next_plate", 0, FromDIP(20));
+    btn_next_page->SetMinSize(wxSize(FromDIP(20), FromDIP(20)));
+    btn_next_page->SetMaxSize(wxSize(FromDIP(20), FromDIP(20)));
     btn_next_page->SetBackgroundColor(head_bg);
     btn_next_page->Bind(wxEVT_LEFT_DOWN, [&](wxMouseEvent& evt) {
+        evt.Skip();
+        if (m_current_page == m_total_page - 1)
+            return;
         btn_last_page->Enable(false);
         btn_next_page->Enable(false);
         start_timer();
         m_current_page++;
-        if (m_current_page > m_total_count)
-            m_current_page = m_total_count;
+        if (m_current_page > m_total_page - 1)
+            m_current_page = m_total_page - 1;
         refresh_user_device();
         update_page_number();
-        });
-    st_page_number = new wxStaticText(m_flipping_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize);
+    });
+   
+    m_page_num_input = new ::TextInput(m_flipping_panel, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(50), -1), wxTE_PROCESS_ENTER);
+    StateColor input_bg(std::pair<wxColour, int>(wxColour("#F0F0F1"), StateColor::Disabled), std::pair<wxColour, int>(*wxWHITE, StateColor::Enabled));
+    m_page_num_input->SetBackgroundColor(input_bg);
+    m_page_num_input->GetTextCtrl()->SetValue("1");
+    wxTextValidator validator(wxFILTER_DIGITS);
+    m_page_num_input->GetTextCtrl()->SetValidator(validator);
+    m_page_num_input->GetTextCtrl()->Bind(wxEVT_TEXT_ENTER, [&](wxCommandEvent& e) {
+        page_num_enter_evt();
+    });
+
+    m_page_num_enter = new Button(m_flipping_panel, _("Go"));
+    m_page_num_enter->SetMinSize(wxSize(FromDIP(25), FromDIP(25)));
+    m_page_num_enter->SetMaxSize(wxSize(FromDIP(25), FromDIP(25)));
+    m_page_num_enter->SetBackgroundColor(ctrl_bg);
+    m_page_num_enter->SetCornerRadius(FromDIP(5));
+    m_page_num_enter->Bind(wxEVT_LEFT_DOWN, [&](wxMouseEvent& evt) {
+        page_num_enter_evt();
+    });
+
     m_flipping_page_sizer->Add(0, 0, 1, wxEXPAND, 0);
     m_flipping_page_sizer->Add(btn_last_page, 0, wxALIGN_CENTER, 0);
-    m_flipping_page_sizer->Add(st_page_number, 0, wxALIGN_CENTER, 0);
-    m_flipping_page_sizer->Add(btn_next_page, 0, wxALIGN_CENTER, 0);
+    m_flipping_page_sizer->Add(st_page_number, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(5));
+    m_flipping_page_sizer->Add(btn_next_page, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(5));
+    m_flipping_page_sizer->Add(m_page_num_input, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(20));
+    m_flipping_page_sizer->Add(m_page_num_enter, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(5));
     m_page_sizer->Add(m_flipping_page_sizer, 0, wxALIGN_CENTER_HORIZONTAL, FromDIP(5));
     m_flipping_panel->SetSizer(m_page_sizer);
     m_flipping_panel->Layout();
@@ -582,9 +615,6 @@ void MultiMachineManagerPage::update_page_number()
 
     wxString number = wxString(std::to_string(m_current_page + 1)) + " / " + wxString(std::to_string(m_total_page));
     st_page_number->SetLabel(number);
-
-    m_current_page <= 0 ? btn_last_page->Enable(false) : btn_last_page->Enable(true);
-    m_current_page >= (m_total_page - 1) ? btn_next_page->Enable(false) : btn_next_page->Enable(true);
 }
 
 void MultiMachineManagerPage::on_timer(wxTimerEvent& event)
@@ -599,6 +629,25 @@ void MultiMachineManagerPage::on_timer(wxTimerEvent& event)
 void MultiMachineManagerPage::clear_page()
 {
 
+}
+
+void MultiMachineManagerPage::page_num_enter_evt()
+{
+    btn_last_page->Enable(false);
+    btn_next_page->Enable(false);
+    start_timer();
+    auto value = m_page_num_input->GetTextCtrl()->GetValue();
+    long page_num = 0;
+    if (value.ToLong(&page_num)) {
+        if (page_num > m_total_page)
+            m_current_page = m_total_page - 1;
+        else if (page_num < 1)
+            m_current_page = 0;
+        else
+            m_current_page = page_num - 1;
+    }
+    refresh_user_device();
+    update_page_number();
 }
 
 } // namespace GUI

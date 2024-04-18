@@ -10,7 +10,7 @@ namespace GUI {
 
 
 #define  DEVICE_ITEM_MAX_WIDTH 900
-#define  SEND_ITEM_MAX_HEIGHT 40
+#define  SEND_ITEM_MAX_HEIGHT 30
 #define  DEVICE_ITEM_MAX_HEIGHT 50
 
 #define TABLE_HEAR_NORMAL_COLOUR    wxColour(238, 238, 238)

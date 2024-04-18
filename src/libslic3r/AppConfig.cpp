@@ -362,7 +362,7 @@ void AppConfig::set_defaults()
     }
 
     if (get("sending_interval").empty()) {
-        set("sending_interval", "60");
+        set("sending_interval", "1");
     }
 
     if (get("max_send").empty()) {

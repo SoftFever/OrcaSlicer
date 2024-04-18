@@ -862,6 +862,11 @@ CloudTaskManagerPage::CloudTaskManagerPage(wxWindow* parent)
         std::pair<wxColour, int>(TABLE_HEAR_NORMAL_COLOUR, StateColor::Normal)
     );
 
+    StateColor ctrl_bg(
+        std::pair<wxColour, int>(CTRL_BUTTON_PRESSEN_COLOUR, StateColor::Pressed),
+        std::pair<wxColour, int>(CTRL_BUTTON_NORMAL_COLOUR, StateColor::Normal)
+    );
+
     m_table_head_panel = new wxPanel(m_main_panel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
     m_table_head_panel->SetMinSize(wxSize(FromDIP(CLOUD_TASK_ITEM_MAX_WIDTH), -1));
     m_table_head_panel->SetMaxSize(wxSize(FromDIP(CLOUD_TASK_ITEM_MAX_WIDTH), -1));
@@ -991,6 +996,15 @@ CloudTaskManagerPage::CloudTaskManagerPage(wxWindow* parent)
     m_tip_text->SetFont(::Label::Head_24);
     m_tip_text->Wrap(-1);
 
+    m_loading_text = new wxStaticText(m_main_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER);
+    m_loading_text->SetMinSize(wxSize(FromDIP(CLOUD_TASK_ITEM_MAX_WIDTH), -1));
+    m_loading_text->SetMaxSize(wxSize(FromDIP(CLOUD_TASK_ITEM_MAX_WIDTH), -1));
+    m_loading_text->SetLabel(_L("Loading..."));
+    m_loading_text->SetForegroundColour(wxColour(50, 58, 61));
+    m_loading_text->SetFont(::Label::Head_24);
+    m_loading_text->Wrap(-1);
+    m_loading_text->Show(false);
+
     m_task_list = new wxScrolledWindow(m_main_panel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
     m_task_list->SetBackgroundColour(*wxWHITE);
     m_task_list->SetScrollRate(0, 5);
@@ -1005,6 +1019,7 @@ CloudTaskManagerPage::CloudTaskManagerPage(wxWindow* parent)
     m_main_sizer->AddSpacer(FromDIP(50));
     m_main_sizer->Add(m_table_head_panel, 0, wxALIGN_CENTER_HORIZONTAL, 0);
     m_main_sizer->Add(m_tip_text, 0, wxALIGN_CENTER_HORIZONTAL | wxTOP, FromDIP(50));
+    m_main_sizer->Add(m_loading_text, 0, wxALIGN_CENTER_HORIZONTAL | wxTOP, FromDIP(50));
     m_main_sizer->Add(m_task_list, 0, wxALIGN_CENTER_HORIZONTAL, 0);
     m_main_sizer->AddSpacer(FromDIP(5));
 
@@ -1016,49 +1031,76 @@ CloudTaskManagerPage::CloudTaskManagerPage(wxWindow* parent)
 
     m_flipping_page_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_page_sizer = new wxBoxSizer(wxVERTICAL);
-    btn_last_page = new Button(m_flipping_panel, "", "go_last_plate", 0, ICON_SIZE);
-    btn_last_page->SetMinSize(wxSize(ICON_SIZE, ICON_SIZE));
-    btn_last_page->SetMaxSize(wxSize(ICON_SIZE, ICON_SIZE));
+    btn_last_page = new Button(m_flipping_panel, "", "go_last_plate", wxBORDER_NONE, FromDIP(20));
+    btn_last_page->SetMinSize(wxSize(FromDIP(20), FromDIP(20)));
+    btn_last_page->SetMaxSize(wxSize(FromDIP(20), FromDIP(20)));
     btn_last_page->SetBackgroundColor(head_bg);
-    btn_last_page->Bind(wxEVT_LEFT_DOWN, [&](wxMouseEvent& evt) {
-        btn_last_page->Enable(false);
-        btn_next_page->Enable(false);
+    btn_last_page->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [&](auto& evt) {
+        evt.Skip();
+        if (m_current_page == 0)
+            return;
+        enable_buttons(false);
         start_timer();
         m_current_page--;
         if (m_current_page < 0)
             m_current_page = 0;
         refresh_user_device();
         update_page_number();
-    });
-    btn_next_page = new Button(m_flipping_panel, "", "go_next_plate", 0, ICON_SIZE);
-    btn_next_page->SetMinSize(wxSize(ICON_SIZE, ICON_SIZE));
-    btn_next_page->SetMaxSize(wxSize(ICON_SIZE, ICON_SIZE));
-    btn_next_page->SetBackgroundColor(head_bg);
-    btn_next_page->Bind(wxEVT_LEFT_DOWN, [&](wxMouseEvent& evt) {
-        btn_last_page->Enable(false);
-        btn_next_page->Enable(false);
-        start_timer();
-        m_current_page++;
-        if (m_current_page > m_total_count)
-            m_current_page = m_total_count;
-        refresh_user_device();
-        update_page_number();
+        /*m_sizer_task_list->Clear(false);
+        m_loading_text->Show(true);
+        Layout();*/
     });
     st_page_number = new wxStaticText(m_flipping_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize);
+    btn_next_page = new Button(m_flipping_panel, "", "go_next_plate", wxBORDER_NONE, FromDIP(20));
+    btn_next_page->SetMinSize(wxSize(FromDIP(20), FromDIP(20)));
+    btn_next_page->SetMaxSize(wxSize(FromDIP(20), FromDIP(20)));
+    btn_next_page->SetBackgroundColor(head_bg);
+    btn_next_page->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [&](auto& evt) {
+        evt.Skip();
+        if (m_current_page == m_total_page - 1)
+            return;
+        enable_buttons(false);
+        start_timer();
+        m_current_page++;
+        if (m_current_page > m_total_page - 1)
+            m_current_page = m_total_count - 1;
+        refresh_user_device();
+        update_page_number();
+        /*m_sizer_task_list->Clear(false);
+        m_loading_text->Show(true);
+        Layout();*/
+    });
+
+    m_page_num_input = new ::TextInput(m_flipping_panel, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(50), -1), wxTE_PROCESS_ENTER);
+    StateColor input_bg(std::pair<wxColour, int>(wxColour("#F0F0F1"), StateColor::Disabled), std::pair<wxColour, int>(*wxWHITE, StateColor::Enabled));
+    m_page_num_input->SetBackgroundColor(input_bg);
+    m_page_num_input->GetTextCtrl()->SetValue("1");
+    wxTextValidator validator(wxFILTER_DIGITS);
+    m_page_num_input->GetTextCtrl()->SetValidator(validator);
+    m_page_num_input->GetTextCtrl()->Bind(wxEVT_TEXT_ENTER, [&](wxCommandEvent& e) {
+        page_num_enter_evt();
+    });
+
+    m_page_num_enter = new Button(m_flipping_panel, _("Go"));
+    m_page_num_enter->SetMinSize(wxSize(FromDIP(25), FromDIP(25)));
+    m_page_num_enter->SetMaxSize(wxSize(FromDIP(25), FromDIP(25)));
+    m_page_num_enter->SetBackgroundColor(ctrl_bg);
+    m_page_num_enter->SetCornerRadius(FromDIP(5));
+    m_page_num_enter->Bind(wxEVT_LEFT_DOWN, [&](wxMouseEvent& evt) {
+        page_num_enter_evt();
+    });
+
     m_flipping_page_sizer->Add(0, 0, 1, wxEXPAND, 0);
     m_flipping_page_sizer->Add(btn_last_page, 0, wxALIGN_CENTER, 0);
-    m_flipping_page_sizer->Add(st_page_number, 0, wxALIGN_CENTER, 0);
-    m_flipping_page_sizer->Add(btn_next_page, 0, wxALIGN_CENTER, 0);
+    m_flipping_page_sizer->Add(st_page_number, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(5));
+    m_flipping_page_sizer->Add(btn_next_page, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(5));
+    m_flipping_page_sizer->Add(m_page_num_input, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(20));
+    m_flipping_page_sizer->Add(m_page_num_enter, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(5));
     m_flipping_page_sizer->Add(0, 0, 1, wxEXPAND, 0);
     m_page_sizer->Add(m_flipping_page_sizer, 0, wxALIGN_CENTER_HORIZONTAL, FromDIP(5));
     m_flipping_panel->SetSizer(m_page_sizer);
     m_flipping_panel->Layout();
     m_main_sizer->Add(m_flipping_panel, 0, wxALIGN_CENTER_HORIZONTAL, 0);
-
-    StateColor ctrl_bg(
-        std::pair<wxColour, int>(CTRL_BUTTON_PRESSEN_COLOUR, StateColor::Pressed),
-        std::pair<wxColour, int>(CTRL_BUTTON_NORMAL_COLOUR, StateColor::Normal)
-    );
 
     m_ctrl_btn_panel = new wxPanel(m_main_panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     m_ctrl_btn_panel->SetBackgroundColour(*wxWHITE);
@@ -1164,13 +1206,13 @@ void CloudTaskManagerPage::refresh_user_device(bool clear)
                 mtitem->state_cloud_task = 2;
             }
 
-            if (m_task_items.find(mtitem->m_job_id) != m_task_items.end()) {
-                MultiTaskItem* item = m_task_items[mtitem->m_job_id];
+            if (m_task_items.find(it->first) != m_task_items.end()) {
+                MultiTaskItem* item = m_task_items[it->first];
                 mtitem->state_selected = item->state_selected;
                 item->Destroy();
             }
 
-            m_task_items[mtitem->m_job_id] = mtitem;
+            m_task_items[it->first] = mtitem;
             mtitem->update_info();
             task_temps.push_back(mtitem);
             subscribe_list.push_back(mtitem->m_dev_id);
@@ -1282,9 +1324,6 @@ void CloudTaskManagerPage::update_page_number()
 
     wxString number = wxString(std::to_string(m_current_page + 1)) + " / " + wxString(std::to_string(m_total_page));
     st_page_number->SetLabel(number);
-
-    m_current_page <= 0 ? btn_last_page->Enable(false) : btn_last_page->Enable(true);
-    m_current_page >= (m_total_page - 1) ? btn_next_page->Enable(false) : btn_next_page->Enable(true);
 }
 
 void CloudTaskManagerPage::start_timer()
@@ -1304,10 +1343,8 @@ void CloudTaskManagerPage::start_timer()
 void CloudTaskManagerPage::on_timer(wxTimerEvent& event)
 {
     m_flipping_timer->Stop();
-    if (btn_last_page)
-        btn_last_page->Enable(true);
-    if (btn_next_page)
-        btn_next_page->Enable(true);
+    enable_buttons(true);
+    update_page_number();
 }
 
 void CloudTaskManagerPage::pause_all(wxCommandEvent& evt)
@@ -1335,6 +1372,36 @@ void CloudTaskManagerPage::stop_all(wxCommandEvent& evt)
             it->second->onStop();
         }
     }
+}
+
+void CloudTaskManagerPage::enable_buttons(bool enable)
+{
+    btn_last_page->Enable(enable);
+    btn_next_page->Enable(enable);
+    btn_pause_all->Enable(enable);
+    btn_continue_all->Enable(enable);
+    btn_stop_all->Enable(enable);
+}
+
+void CloudTaskManagerPage::page_num_enter_evt()
+{
+    enable_buttons(false);
+    start_timer();
+    auto value = m_page_num_input->GetTextCtrl()->GetValue();
+    long page_num = 0;
+    if (value.ToLong(&page_num)) {
+        if (page_num > m_total_page)
+            m_current_page = m_total_page - 1;
+        else if (page_num < 1)
+            m_current_page = 0;
+        else
+            m_current_page = page_num - 1;
+    }
+    refresh_user_device();
+    update_page_number();
+    /*m_sizer_task_list->Clear(false);
+    m_loading_text->Show(true);
+    Layout();*/
 }
 
 } // namespace GUI
