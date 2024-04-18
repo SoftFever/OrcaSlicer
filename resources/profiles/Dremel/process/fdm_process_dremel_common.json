@@ -2,7 +2,7 @@
     "type": "process",
     "name": "fdm_process_dremel_common",
     "from": "system",
-    "instantiation": "false",
+    "instantiation": "true",
     "inherits": "fdm_process_common",
     "adaptive_layer_height": "0",
     "reduce_crossing_wall": "0",
