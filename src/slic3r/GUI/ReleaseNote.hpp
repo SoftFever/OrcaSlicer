@@ -47,7 +47,11 @@ wxDECLARE_EVENT(EVT_SECONDARY_CHECK_CANCEL, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SECONDARY_CHECK_RETRY, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SECONDARY_CHECK_DONE, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SECONDARY_CHECK_RESUME, wxCommandEvent);
+wxDECLARE_EVENT(EVT_PRINT_ERROR_STOP, wxCommandEvent);
 wxDECLARE_EVENT(EVT_UPDATE_NOZZLE, wxCommandEvent);
+wxDECLARE_EVENT(EVT_LOAD_VAMS_TRAY, wxCommandEvent);
+wxDECLARE_EVENT(EVT_JUMP_TO_HMS, wxCommandEvent);
+wxDECLARE_EVENT(EVT_JUMP_TO_LIVEVIEW, wxCommandEvent);
 
 class ReleaseNoteDialog : public DPIDialog
 {
@@ -159,6 +163,57 @@ public:
     std::string show_again_config_text = "";
 };
 
+class PrintErrorDialog : public DPIFrame
+{
+private:
+    wxWindow* event_parent{ nullptr };
+public:
+    enum PrintErrorButton {
+        RESUME_PRINTING = 2,
+        RESUME_PRINTING_DEFECTS = 3,
+        RESUME_PRINTING_PROBELM_SOLVED = 4,
+        STOP_PRINTING = 5,
+        CHECK_ASSISTANT = 6,
+        FILAMENT_EXTRUDED = 7,
+        RETRY_FILAMENT_EXTRUDED = 8,
+        CONTINUE = 9,
+        LOAD_VIRTUAL_TRAY = 10,
+        OK_BUTTON = 11,
+        FILAMENT_LOAD_RESUME,
+        JUMP_TO_LIVEVIEW,
+        ERROR_BUTTON_COUNT
+    };
+    PrintErrorDialog(
+        wxWindow* parent,
+        wxWindowID      id = wxID_ANY,
+        const wxString& title = wxEmptyString,
+        const wxPoint& pos = wxDefaultPosition,
+        const wxSize& size = wxDefaultSize,
+        long            style = wxCLOSE_BOX | wxCAPTION
+    );
+    void update_text_image(wxString text, wxString image_url);
+    void on_show();
+    void on_hide();
+    void update_title_style(wxString title, std::vector<int> style, wxWindow* parent = nullptr);
+    void post_event(wxCommandEvent&& event);
+    void rescale();
+    ~PrintErrorDialog();
+    void on_dpi_changed(const wxRect& suggested_rect);
+    void msw_rescale();
+    void init_button(PrintErrorButton style, wxString buton_text);
+    void init_button_list();
+    void on_webrequest_state(wxWebRequestEvent& evt);
+
+    StateColor btn_bg_white;
+    wxWebRequest web_request;
+    wxStaticBitmap* m_error_prompt_pic_static;
+    Label* m_staticText_release_note{ nullptr };
+    wxBoxSizer* m_sizer_main;
+    wxBoxSizer* m_sizer_button;
+    wxScrolledWindow* m_vebview_release_note{ nullptr };
+    std::map<int, Button*> m_button_list;
+    std::vector<int> m_used_button;
+};
 
 struct ConfirmBeforeSendInfo
 {

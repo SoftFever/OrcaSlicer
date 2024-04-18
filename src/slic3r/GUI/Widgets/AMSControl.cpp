@@ -2542,7 +2542,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     wxBoxSizer *m_sizer_button = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *m_sizer_button_area = new wxBoxSizer(wxHORIZONTAL);
 
-    m_button_extruder_feed = new Button(m_button_area, _L("Load Filament"));
+    m_button_extruder_feed = new Button(m_button_area, _L("Load"));
     m_button_extruder_feed->SetFont(Label::Body_13);
 
     m_button_extruder_feed->SetBackgroundColor(btn_bg_green);
@@ -2559,7 +2559,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     if (wxGetApp().app_config->get("language") == "sv_SE") m_button_extruder_feed->SetFont(Label::Body_9);
     if (wxGetApp().app_config->get("language") == "cs_CZ") m_button_extruder_feed->SetFont(Label::Body_9);
 
-    m_button_extruder_back = new Button(m_button_area, _L("Unload Filament"));
+    m_button_extruder_back = new Button(m_button_area, _L("Unload"));
     m_button_extruder_back->SetBackgroundColor(btn_bg_white);
     m_button_extruder_back->SetBorderColor(btn_bd_white);
     m_button_extruder_back->SetTextColor(btn_text_white);
