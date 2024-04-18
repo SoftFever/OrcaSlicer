@@ -851,15 +851,17 @@ void GCodeProcessor::UsedFilaments::process_support_cache(GCodeProcessor* proces
 
 void GCodeProcessor::UsedFilaments::update_flush_per_filament(size_t extrude_id, float flush_volume)
 {
-    if (flush_per_filament.find(extrude_id) != flush_per_filament.end())
-        flush_per_filament[extrude_id] += flush_volume;
-    else
-        flush_per_filament[extrude_id] = flush_volume;
+    if (flush_volume != 0.f) {
+        if (flush_per_filament.find(extrude_id) != flush_per_filament.end())
+            flush_per_filament[extrude_id] += flush_volume;
+        else
+            flush_per_filament[extrude_id] = flush_volume;
 
-    if (total_volumes_per_extruder.find(extrude_id) != total_volumes_per_extruder.end())
-        total_volumes_per_extruder[extrude_id] += flush_volume;
-    else
-        total_volumes_per_extruder[extrude_id] = flush_volume;
+        if (total_volumes_per_extruder.find(extrude_id) != total_volumes_per_extruder.end())
+            total_volumes_per_extruder[extrude_id] += flush_volume;
+        else
+            total_volumes_per_extruder[extrude_id] = flush_volume;
+    }
 }
 
 void GCodeProcessor::UsedFilaments::process_role_cache(GCodeProcessor* processor)
