@@ -561,6 +561,10 @@ set(SLIC3R_GUI_SOURCES
     GUI/Jobs/OAuthJob.hpp
     Utils/SimplyPrint.cpp
     Utils/SimplyPrint.hpp
+	Utils/FontConfigHelp.cpp
+	Utils/FontConfigHelp.hpp
+	Utils/FontUtils.cpp
+	Utils/FontUtils.hpp
 )
 
 if (WIN32)
