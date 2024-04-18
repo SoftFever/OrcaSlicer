@@ -38,25 +38,26 @@ BBLStatusBarSend::BBLStatusBarSend(wxWindow *parent, int id)
 
     //StateColor btn_bd_white(std::pair<wxColour, int>(*wxWHITE, StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
 
-    StateColor btn_bt_white(std::pair<wxColour, int>(wxColour(0x90, 0x90, 0x90), StateColor::Disabled),
-        std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed),
-        std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
-        std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
+    //StateColor btn_bt_white(std::pair<wxColour, int>(wxColour(0x90, 0x90, 0x90), StateColor::Disabled),
+    //    std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed),
+    //    std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
+    //    std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
 
-    StateColor btn_bd_white(std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Disabled),
-        std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
+    //StateColor btn_bd_white(std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Disabled),
+    //    std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
 
 
-    StateColor btn_txt_white(std::pair<wxColour, int>(wxColour("#FFFFFE"), StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Normal));
+    //StateColor btn_txt_white(std::pair<wxColour, int>(wxColour("#FFFFFE"), StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Normal));
 
     m_cancelbutton = new Button(m_self, _L("Cancel"));
     m_cancelbutton->SetSize(wxSize(m_self->FromDIP(58), m_self->FromDIP(22)));
     m_cancelbutton->SetMinSize(wxSize(m_self->FromDIP(58), m_self->FromDIP(22)));
     m_cancelbutton->SetMaxSize(wxSize(m_self->FromDIP(58), m_self->FromDIP(22)));
-    m_cancelbutton->SetBackgroundColor(btn_bt_white);
-    m_cancelbutton->SetBorderColor(btn_bd_white);
-    m_cancelbutton->SetTextColor(btn_txt_white);
-    m_cancelbutton->SetCornerRadius(m_self->FromDIP(12));
+    m_cancelbutton->SetStyleDefault(Label::Body_14); // ORCA match style
+    //m_cancelbutton->SetBackgroundColor(btn_bt_white);
+    //m_cancelbutton->SetBorderColor(btn_bd_white);
+    //m_cancelbutton->SetTextColor(btn_txt_white);
+    //m_cancelbutton->SetCornerRadius(m_self->FromDIP(12));
     m_cancelbutton->Bind(wxEVT_BUTTON, 
         [this](wxCommandEvent &evt) {
         m_was_cancelled = true;

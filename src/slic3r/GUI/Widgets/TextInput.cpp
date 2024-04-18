@@ -116,7 +116,7 @@ void TextInput::SetIcon(const wxString &icon)
 {
     if (this->icon.name() == icon.ToStdString())
         return;
-    this->icon = ScalableBitmap(this, icon.ToStdString(), 16);
+    this->icon = ScalableBitmap(this, icon.ToStdString(), 0); // ORCA: 0 gets icon size from file
     Rescale();
 }
 
@@ -210,6 +210,7 @@ void TextInput::render(wxDC& dc)
     int states = state_handler.states();
     wxSize size = GetSize();
     bool   align_right = GetWindowStyle() & wxRIGHT;
+    int    right_margin; // ORCA: calculate magin for right side
     // start draw
     wxPoint pt = {1, 0}; // ORCA: Start drawing at 0 for icons
     if (icon.bmp().IsOk()) {
@@ -219,16 +220,18 @@ void TextInput::render(wxDC& dc)
         pt.x += szIcon.x + 0;
     } else {
         pt.x += 5; // ORCA: Add left margin to text if there is no icon
+        right_margin = 5;
     }
     auto text = wxWindow::GetLabel();
     if (!text.IsEmpty()) {
         if (icon.bmp().IsOk()) {
             pt.x += 3; // ORCA: Add left margin to text if there is an icon
+            right_margin = 3;
 		}
         wxSize textSize = text_ctrl->GetSize();
         if (align_right) {
-            if (pt.x + labelSize.x > size.x)
-                text = wxControl::Ellipsize(text, dc, wxELLIPSIZE_END, size.x - pt.x);
+            if (pt.x + labelSize.x + right_margin > size.x)
+                text = wxControl::Ellipsize(text, dc, wxELLIPSIZE_END, size.x - pt.x - right_margin);
             pt.y = (size.y - labelSize.y) / 2;
         } else {
             pt.x += textSize.x;

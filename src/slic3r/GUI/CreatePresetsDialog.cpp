@@ -2477,7 +2477,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_page2_btns_item(wxWindow *parent)
 
     m_button_create = new Button(parent, _L("Create"));
     m_button_create->SetStyleConfirm(Label::Body_12); // ORCA: Match Button Style
-    m_button_create->SetMinSize(wxSize(FromDIP(60), FromDIP(26)));
+    m_button_create->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
     bSizer_button->Add(m_button_create, 0, wxRIGHT, FromDIP(10));
 
     m_button_create->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
@@ -3196,7 +3196,7 @@ CreatePresetSuccessfulDialog::CreatePresetSuccessfulDialog(wxWindow *parent, con
     if (PRINTER == create_success_type || sync_user_preset_need_enabled) {
         m_button_cancel = new Button(this, _L("Cancel"));
         m_button_cancel->SetStyleDefault(Label::Body_12); // ORCA: Match Button Style
-        m_button_cancel->SetMinSize(wxSize(FromDIP(60), FromDIP(26)));
+        m_button_cancel->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
         btn_sizer->Add(m_button_cancel, 0, wxRIGHT, FromDIP(10));
         m_button_cancel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { EndModal(wxID_CANCEL); });
     }
