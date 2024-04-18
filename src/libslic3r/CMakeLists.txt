@@ -194,9 +194,12 @@ set(lisbslic3r_sources
     Geometry/Curves.hpp
     Geometry/MedialAxis.cpp
     Geometry/MedialAxis.hpp
+	Geometry/Voronoi.cpp
     Geometry/Voronoi.hpp
     Geometry/VoronoiOffset.cpp
     Geometry/VoronoiOffset.hpp
+	Geometry/VoronoiUtils.hpp
+    Geometry/VoronoiUtils.cpp
     Geometry/VoronoiUtilsCgal.cpp
     Geometry/VoronoiUtilsCgal.hpp
     Geometry/VoronoiVisualUtils.hpp
@@ -238,6 +241,8 @@ set(lisbslic3r_sources
     NSVGUtils.hpp
     ObjectID.cpp
     ObjectID.hpp
+	ParameterUtils.cpp
+    ParameterUtils.hpp
     PerimeterGenerator.cpp
     PerimeterGenerator.hpp
     PlaceholderParser.cpp
@@ -431,8 +436,6 @@ set(lisbslic3r_sources
     Arachne/utils/PolygonsSegmentIndex.hpp
     Arachne/utils/PolylineStitcher.hpp
     Arachne/utils/PolylineStitcher.cpp
-    Arachne/utils/VoronoiUtils.hpp
-    Arachne/utils/VoronoiUtils.cpp
     Arachne/SkeletalTrapezoidation.hpp
     Arachne/SkeletalTrapezoidation.cpp
     Arachne/SkeletalTrapezoidationEdge.hpp

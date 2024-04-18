@@ -25,6 +25,8 @@ protected:
     void enbale_action_buttons(bool enable);
     float get_nozzle_value();
 
+    void on_click_new_button(wxCommandEvent &event);
+
     wxPanel*                   m_history_data_panel;
     ComboBox*                  m_comboBox_nozzle_dia;
     Label*              m_tips;
@@ -53,6 +55,38 @@ protected:
 
     TextInput* m_name_value{ nullptr };
     TextInput* m_k_value{ nullptr };
+};
+
+class NewCalibrationHistoryDialog : public DPIDialog
+{
+public:
+    NewCalibrationHistoryDialog(wxWindow *parent, const std::vector<PACalibResult> history_results);
+    ~NewCalibrationHistoryDialog(){};
+    void on_dpi_changed(const wxRect &suggested_rect) override{};
+
+protected:
+    virtual void on_ok(wxCommandEvent &event);
+    virtual void on_cancel(wxCommandEvent &event);
+
+
+    wxArrayString get_all_filaments(const MachineObject *obj);
+
+protected:
+    PACalibResult m_new_result;
+    std::vector<PACalibResult> m_history_results;
+
+    TextInput *m_name_value{nullptr};
+    TextInput *m_k_value{nullptr};
+
+    ComboBox *m_comboBox_nozzle_diameter;
+    ComboBox *m_comboBox_filament;
+
+    struct FilamentInfos
+    {
+        std::string filament_id;
+        std::string setting_id;
+    };
+    std::map<std::string, FilamentInfos> map_filament_items;
 };
 
 } // namespace GUI

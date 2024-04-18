@@ -27,13 +27,13 @@
         "245x245",
         "208x245"
     ],
-	"printable_height": "245",
+	"printable_height": "240",
 	"nozzle_type": "hardened_steel",
 	"max_layer_height": [
-		"0.3"
+		"0.28"
 	],
 	"min_layer_height": [
-		"0.07"
+		"0.08"
 	],
 	"printer_settings_id": "Qidi",
 	"retraction_minimum_travel": [
@@ -43,7 +43,7 @@
 		"0.8"
 	],
 	"retract_length_toolchange": [
-		"10"
+		"2"
 	],
 	"deretraction_speed": [
 		"0"
@@ -65,6 +65,6 @@
     "machine_start_gcode": "PRINT_START BED=[first_layer_bed_temperature] HOTEND=[first_layer_temperature] CHAMBER=[chamber_temperature]\nM83\nG4 P3000\nG0 X{max((min(print_bed_max[0], first_layer_print_min[0] + 80) - 85),0)} Y{max((min(print_bed_max[1], first_layer_print_min[1] + 80) - 85),0)} Z5 F6000\nG0 Z[first_layer_height] F600\nG1 E3 F1800\nG1 X{(min(print_bed_max[0], first_layer_print_min[0] + 80))} E{85 * 0.5 * first_layer_height * nozzle_diameter[0]} F3000\nG1 Y{max((min(print_bed_max[1], first_layer_print_min[1] + 80) - 85),0) + 2} E{2 * 0.5 * first_layer_height * nozzle_diameter[0]} F3000\nG1 X{max((min(print_bed_max[0], first_layer_print_min[0] + 80) - 85),0)} E{85 * 0.5 * first_layer_height * nozzle_diameter[0]} F3000\nG1 Y{max((min(print_bed_max[1], first_layer_print_min[1] + 80) - 85),0) + 85} E{83 * 0.5 * first_layer_height * nozzle_diameter[0]} F3000\nG1 X{max((min(print_bed_max[0], first_layer_print_min[0] + 80) - 85),0) + 2} E{2 * 0.5 * first_layer_height * nozzle_diameter[0]} F3000\nG1 Y{max((min(print_bed_max[1], first_layer_print_min[1] + 80) - 85),0) + 3} E{82 * 0.5 * first_layer_height * nozzle_diameter[0]} F3000\nG1 X{max((min(print_bed_max[0], first_layer_print_min[0] + 80) - 85),0) + 3} Z0\nG1 X{max((min(print_bed_max[0], first_layer_print_min[0] + 80) - 85),0) + 6}\nG1 Z1 F600",
     "thumbnails_format": "PNG",
 	"default_filament_profile": [
-		"QIDI PLA Rapido"
+		"Qidi Generic PLA @Qidi Q1 Pro 0.4 nozzle"
 	]
 }
