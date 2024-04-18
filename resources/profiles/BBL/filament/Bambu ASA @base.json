@@ -5,28 +5,31 @@
     "from": "system",
     "filament_id": "GFB01",
     "instantiation": "false",
-    "filament_density": [
-        "1.05"
+    "fan_max_speed": [
+        "35"
     ],
     "filament_cost": [
         "31.99"
     ],
-    "nozzle_temperature_initial_layer": [
-        "270"
-    ],
-    "nozzle_temperature": [
-        "270"
+    "filament_density": [
+        "1.05"
     ],
     "filament_flow_ratio": [
         "0.95"
-    ],
-    "fan_max_speed": [
-        "50"
     ],
     "filament_max_volumetric_speed": [
         "18"
     ],
     "filament_vendor": [
         "Bambu Lab"
+    ],
+    "nozzle_temperature": [
+        "270"
+    ],
+    "nozzle_temperature_initial_layer": [
+        "270"
+    ],
+    "slow_down_layer_time": [
+        "12"
     ]
 }

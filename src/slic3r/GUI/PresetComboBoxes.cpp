@@ -625,6 +625,37 @@ bool PresetComboBox::selection_is_changed_according_to_physical_printers()
     return true;
 }
 
+void PlaterPresetComboBox::save_custom_color_to_config(const std::vector<std::string>& colors)
+{
+    auto set_colors = [](std::map<std::string, std::string> &data, const std::vector<std::string> &colors) {
+        for (size_t i = 0; i < colors.size(); i++) {
+            data[std::to_string(10 + i)] = colors[i]; //for map sort:10 begin
+        }
+    };
+    if (colors.size() > 0) {
+        if (!wxGetApp().app_config->has_section("custom_color_list")) {
+            std::map<std::string, std::string> data;
+            set_colors(data,colors);
+            wxGetApp().app_config->set_section("custom_color_list", data);
+        } else {
+            auto data        = wxGetApp().app_config->get_section("custom_color_list");
+            auto data_modify = const_cast<std::map<std::string, std::string> *>(&data);
+            set_colors(*data_modify, colors);
+            wxGetApp().app_config->set_section("custom_color_list", *data_modify);
+        }
+    }
+}
+
+std::vector<std::string> PlaterPresetComboBox::get_custom_color_from_config() {
+    std::vector<std::string> colors;
+    if (wxGetApp().app_config->has_section("custom_color_list")) {
+        auto data = wxGetApp().app_config->get_section("custom_color_list");
+        for (auto iter : data) {
+            colors.push_back(iter.second);
+        }
+    }
+    return colors;
+}
 // ---------------------------------
 // ***  PlaterPresetComboBox  ***
 // ---------------------------------
@@ -673,13 +704,35 @@ PlaterPresetComboBox::PlaterPresetComboBox(wxWindow *parent, Preset::Type preset
             m_clrData.SetColour(clr_picker->GetBackgroundColour());
             m_clrData.SetChooseFull(true);
             m_clrData.SetChooseAlpha(false);
-
+            auto color_to_string   = [](const wxColour& color) { 
+                std::string str = std::to_string(color.Red()) + "," + std::to_string(color.Green()) + "," + std::to_string(color.Blue()) + "," + std::to_string(color.Alpha());
+                return str;
+            };
+            auto string_to_wxColor = [](const std::string& str) { 
+                wxColour color;
+                std::vector<std::string> result;
+                boost::split(result, str, boost::is_any_of(","));
+                if (result.size() == 4) { 
+                     color = wxColour(std::stoi(result[0]), std::stoi(result[1]), std::stoi(result[2]), std::stoi(result[3]));
+                }
+                return color;
+            };
+            std::vector<std::string> colors=get_custom_color_from_config();
+            for (int i = 0; i < colors.size(); i++) { 
+                 m_clrData.SetCustomColour(i, string_to_wxColor(colors[i]));
+            }
             wxColourDialog dialog(this, &m_clrData);
             dialog.SetTitle(_L("Please choose the filament colour"));
             if ( dialog.ShowModal() == wxID_OK )
             {
                 m_clrData = dialog.GetColourData();
-
+                const int custom_color_count = 15;
+                if (colors.size() != custom_color_count) { 
+                    colors.resize(custom_color_count); }
+                for (int i = 0; i < custom_color_count; i++) { 
+                    colors[i] = color_to_string(m_clrData.GetCustomColour(i));
+                }
+                save_custom_color_to_config(colors);
                 // get current color
                 DynamicPrintConfig* cfg = &wxGetApp().preset_bundle->project_config;
                 auto colors = static_cast<ConfigOptionStrings*>(cfg->option("filament_colour")->clone());

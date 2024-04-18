@@ -1123,10 +1123,8 @@ bool GLGizmoText::update_text_positions(const std::vector<std::string>& texts)
     Polygons polys = union_(temp_polys);
 
     auto point_in_line_rectange = [](const Line &line, const Point &point, double& distance) {
-        distance = abs((point.x() - line.a.x()) * (line.b.y() - line.a.y()) - (line.b.x() - line.a.x()) * (point.y() - line.a.y()));
-        bool   in_rectange = (std::min(line.a.x(), line.b.x()) - 1000) <= point.x() && point.x() <= (std::max(line.a.x(), line.b.x()) + 1000) &&
-                           (std::min(line.a.y(), line.b.y()) - 1000) <= point.y() && point.y() <= (std::max(line.a.y(), line.b.y()) + 1000);
-        return in_rectange;
+        distance = line.distance_to(point);
+        return distance < line.length() / 2;
     };
 
     int            index     = 0;
