@@ -12,13 +12,21 @@ wxDEFINE_EVENT(EVT_MULTI_CLOUD_TASK_SELECTED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_MULTI_LOCAL_TASK_SELECTED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_MULTI_DEVICE_SELECTED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_MULTI_DEVICE_VIEW, wxCommandEvent);
+wxDEFINE_EVENT(EVT_MULTI_REFRESH, wxCommandEvent);
 
 DeviceItem::DeviceItem(wxWindow* parent,  MachineObject* obj)
     : wxWindow(parent, wxID_ANY)
     , obj_(obj)
 {
     sync_state();
+    Bind(EVT_MULTI_REFRESH, &DeviceItem::on_refresh, this);
 }
+
+void DeviceItem::on_refresh(wxCommandEvent& evt)
+{
+    Refresh();
+}
+
 void DeviceItem::sync_state()
 {
     if (obj_) {
@@ -38,15 +46,16 @@ void DeviceItem::sync_state()
         else if (obj_->is_in_printing()) {
             state_printable = 3;
         }
-        else if (obj_->is_in_upgrading()) {
-            state_printable = 4;
-        }
         else {
             state_printable = 6;
         }
 
         if (is_blocking_printing(obj_)) {
             state_printable = 5;
+        }
+
+        if (obj_->is_in_upgrading()) {
+            state_printable = 4;
         }
 
         state_enable_ams = obj_->ams_exist_bits;

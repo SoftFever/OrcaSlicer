@@ -40,6 +40,7 @@ public:
     DeviceItem(wxWindow* parent, MachineObject* obj);
     ~DeviceItem() {};
 
+    void on_refresh(wxCommandEvent& evt);
     void sync_state();
     wxString get_state_printable();
     wxString get_state_device();
@@ -111,6 +112,7 @@ wxDECLARE_EVENT(EVT_MULTI_DEVICE_SELECTED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_MULTI_DEVICE_VIEW, wxCommandEvent);
 wxDECLARE_EVENT(EVT_MULTI_CLOUD_TASK_SELECTED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_MULTI_LOCAL_TASK_SELECTED, wxCommandEvent);
+wxDECLARE_EVENT(EVT_MULTI_REFRESH, wxCommandEvent);
 
 } // namespace GUI
 } // namespace Slic3r

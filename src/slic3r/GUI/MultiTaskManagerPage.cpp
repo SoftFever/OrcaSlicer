@@ -25,7 +25,7 @@ MultiTaskItem::MultiTaskItem(wxWindow* parent, MachineObject* obj, int type)
     Bind(wxEVT_MOTION, &MultiTaskItem::OnMove, this);
     Bind(EVT_MULTI_DEVICE_SELECTED, &MultiTaskItem::OnSelectedDevice, this);
 
-    m_bitmap_check_disable = ScalableBitmap(this, "check_off", 18);
+    m_bitmap_check_disable = ScalableBitmap(this, "check_off_disabled", 18);
     m_bitmap_check_off = ScalableBitmap(this, "check_off_focused", 18);
     m_bitmap_check_on = ScalableBitmap(this, "check_on", 18);
 
@@ -774,10 +774,11 @@ void LocalTaskManagerPage::refresh_user_device(bool clear)
             task_state_info->set_state_changed_fn([this, mtitem](TaskState state, int percent) {
                 mtitem->state_local_task = state;
                 if (state == TaskState::TS_SEND_COMPLETED) {
+
                     mtitem->m_send_time = mtitem->task_obj->get_sent_time();
-                    CallAfter([mtitem]() {
-                        mtitem->Refresh();
-                    });
+                    wxCommandEvent event(EVT_MULTI_REFRESH);
+                    event.SetEventObject(mtitem);
+                    wxPostEvent(mtitem, event);
                 }
                 mtitem->m_sending_percent = percent;
             });
@@ -876,7 +877,7 @@ CloudTaskManagerPage::CloudTaskManagerPage(wxWindow* parent)
     m_select_checkbox = new CheckBox(m_table_head_panel, wxID_ANY);
     m_select_checkbox->SetMinSize(wxSize(FromDIP(TASK_LEFT_PRINTABLE), FromDIP(DEVICE_ITEM_MAX_HEIGHT)));
     m_select_checkbox->SetMaxSize(wxSize(FromDIP(TASK_LEFT_PRINTABLE), FromDIP(DEVICE_ITEM_MAX_HEIGHT)));
-    m_table_head_sizer->AddSpacer(FromDIP(TASK_LEFT_PADDING_LEFT));
+    //m_table_head_sizer->AddSpacer(FromDIP(TASK_LEFT_PADDING_LEFT));
     m_table_head_sizer->Add(m_select_checkbox, 0, wxALIGN_CENTER_VERTICAL, 0);
 
     m_select_checkbox->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent& e) {

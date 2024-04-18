@@ -29,7 +29,7 @@ SendDeviceItem::SendDeviceItem(wxWindow* parent,  MachineObject* obj)
     : DeviceItem(parent, obj)
 {
     SetBackgroundColour(*wxWHITE);
-    m_bitmap_check_disable = ScalableBitmap(this, "check_off", 18);
+    m_bitmap_check_disable = ScalableBitmap(this, "check_off_disabled", 18);
     m_bitmap_check_off = ScalableBitmap(this, "check_off_focused", 18);
     m_bitmap_check_on = ScalableBitmap(this, "check_on", 18);
 
@@ -912,6 +912,7 @@ void SendMultiMachinePage::on_set_finish_mapping(wxCommandEvent& evt)
             }
             iter++;
         }
+
     }
 }
 
@@ -1313,6 +1314,7 @@ void SendMultiMachinePage::sync_ams_list()
         if (extruder >= materials.size() || extruder < 0 || extruder >= display_materials.size()) continue;
 
         MaterialItem* item = new MaterialItem(m_main_page, colour_rgb, _L(display_materials[extruder]));
+        item->set_ams_info(wxColour("#CECECE"), "A1", 0, std::vector<wxColour>());
         m_ams_list_sizer->Add(item, 0, wxALL, FromDIP(4));
 
         item->Bind(wxEVT_LEFT_UP, [this, item, materials, extruder](wxMouseEvent& e) {});
@@ -1355,10 +1357,12 @@ void SendMultiMachinePage::sync_ams_list()
         if (extruder < materials.size() && extruder >= 0) {
             FilamentInfo info;
             info.id = extruder;
+            info.tray_id = 0;
             info.type = materials[extruder];
             info.brand = brands[extruder];
             info.filament_id = m_filaments_id[extruder];
-            info.color = wxString::Format("#%02X%02X%02X%02X", colour_rgb.Red(), colour_rgb.Green(), colour_rgb.Blue(), colour_rgb.Alpha()).ToStdString();
+            //info.color = wxString::Format("#%02X%02X%02X%02X", colour_rgb.Red(), colour_rgb.Green(), colour_rgb.Blue(), colour_rgb.Alpha()).ToStdString();
+            info.color = "#CECECEFF";
             m_filaments.push_back(info);
             m_ams_mapping_result.push_back(info);
         }
