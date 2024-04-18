@@ -164,6 +164,8 @@ public:
     PlaterPresetComboBox(wxWindow *parent, Preset::Type preset_type);
     ~PlaterPresetComboBox();
 
+    void save_custom_color_to_config(const std::vector<std::string> &colors);
+    std::vector<std::string> get_custom_color_from_config();
     ScalableButton* edit_btn { nullptr };
 
     // BBS

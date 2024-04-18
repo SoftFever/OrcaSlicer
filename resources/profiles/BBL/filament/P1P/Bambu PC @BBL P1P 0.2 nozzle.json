@@ -29,6 +29,9 @@
     "reduce_fan_stop_start_freq": [
         "0"
     ],
+    "slow_down_layer_time": [
+        "12"
+    ],
     "textured_plate_temp": [
         "100"
     ],

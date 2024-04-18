@@ -22,6 +22,7 @@ namespace Slic3r {
 #define BED_TEMP_TOO_HIGH_THAN_FILAMENT                             "bed_temperature_too_high_than_filament"
 #define NOT_SUPPORT_TRADITIONAL_TIMELAPSE                           "not_support_traditional_timelapse"
 #define NOT_GENERATE_TIMELAPSE                                      "not_generate_timelapse"
+#define LONG_RETRACTION_WHEN_CUT                                    "activate_long_retraction_when_cut"
 
     enum class EMoveType : unsigned char
     {
@@ -74,6 +75,7 @@ namespace Slic3r {
         std::vector<double>                                 volumes_per_color_change;
         std::map<size_t, double>                            volumes_per_extruder;
         std::map<size_t, double>                            wipe_tower_volumes_per_extruder;
+        std::map<size_t, double>                            support_volumes_per_extruder;
         //BBS: the flush amount of every filament
         std::map<size_t, double>                            flush_per_filament;
         std::map<ExtrusionRole, std::pair<double, double>>  used_filaments_per_role;
@@ -195,6 +197,8 @@ namespace Slic3r {
         bool toolpath_outside;
         //BBS: add object_label_enabled
         bool label_object_enabled;
+        //BBS : extra retraction when change filament,experiment func
+        bool long_retraction_when_cut {0};
         int timelapse_warning_code {0};
         bool support_traditional_timelapse{true};
         float printable_height;
@@ -231,6 +235,7 @@ namespace Slic3r {
             bed_exclude_area = other.bed_exclude_area;
             toolpath_outside = other.toolpath_outside;
             label_object_enabled = other.label_object_enabled;
+            long_retraction_when_cut = other.long_retraction_when_cut;
             timelapse_warning_code = other.timelapse_warning_code;
             printable_height = other.printable_height;
             settings_ids = other.settings_ids;
@@ -500,6 +505,9 @@ namespace Slic3r {
             double wipe_tower_cache;
             std::map<size_t, double>wipe_tower_volume_per_extruder;
 
+            double support_volume_cache;
+            std::map<size_t, double>support_volume_per_extruder;
+
             //BBS: the flush amount of every filament
             std::map<size_t, double> flush_per_filament;
 
@@ -508,12 +516,15 @@ namespace Slic3r {
 
             void reset();
 
+            void increase_support_caches(double extruded_volume);
             void increase_model_caches(double extruded_volume);
             void increase_wipe_tower_caches(double extruded_volume);
 
             void process_color_change_cache();
             void process_model_cache(GCodeProcessor* processor);
             void process_wipe_tower_cache(GCodeProcessor* processor);
+            void process_support_cache(GCodeProcessor* processor);
+
             void update_flush_per_filament(size_t extrude_id, float flush_length);
             void process_role_cache(GCodeProcessor* processor);
             void process_caches(GCodeProcessor* processor);
