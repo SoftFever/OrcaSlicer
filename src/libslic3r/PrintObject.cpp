@@ -2339,7 +2339,7 @@ void PrintObject::bridge_over_infill()
         // Check it the infill that require a fixed infill angle.
         switch (dominant_pattern) {
         case ip3DHoneycomb:
-        case ipFlippingLine:
+        case ipCrossHatch:
             return (infill_direction + 45.0) * 2.0 * M_PI / 360.;
         default: break;
         }

@@ -2,14 +2,14 @@
 #include "../ShortestPath.hpp"
 #include "../Surface.hpp"
 
-#include "FillFlippingLine.hpp"
+#include "FillCrossHatch.hpp"
 
 namespace Slic3r {
 
-// FlipLines Infill: Enhances 3D Printing Speed & Reduces Noise
-// FlipLines, as its name hints, alternates line direction by 90 degrees every few layers to improve adhesion.
+// CrossHatch Infill: Enhances 3D Printing Speed & Reduces Noise
+// CrossHatch, as its name hints, alternates line direction by 90 degrees every few layers to improve adhesion.
 // It introduces transform layers between direction shifts for better line cohesion, which fixes the weakness of line infill.
-// The transform technique is inspired by David Eccles, improved 3D honeycomb but also a more flexible implementation.
+// The transform technique is inspired by David Eccles, improved 3D honeycomb but we made a more flexible implementation.
 // This method notably increases printing speed, meeting the demands of modern high-speed 3D printers, and reduces noise for most layers.
 // By Bambu Lab
 
@@ -22,15 +22,6 @@ namespace Slic3r {
  *            \     /
  *             o---o
  *   p1   p2  p3   p4
- *
- *   // X1 = progress * (1/8) * period
- *   // X2 = ( (1/2 - progress) * (1/8) ) * period
- *   // X3 = X1 + (1/2) * period
- *   // X4 = ( (1 - progress) * (1/8) ) * period
- *   // Y1 = X1
- *   // Y2 = X1
- *   // Y3 = -X1
- *   // Y4 = -X1
  */
 
 static Pointfs generate_one_cycle(double progress, coordf_t period)
@@ -38,10 +29,10 @@ static Pointfs generate_one_cycle(double progress, coordf_t period)
     Pointfs out;
     double  offset = progress * 1. / 8. * period;
     out.reserve(4);
-    out.push_back(Vec2d(offset, offset));
-    out.push_back(Vec2d(0.5 * period - offset, offset));
-    out.push_back(Vec2d(0.5 * period + offset, -offset));
-    out.push_back(Vec2d(1. * period - offset, -offset));
+    out.push_back(Vec2d(0.25 * period - offset, offset));
+    out.push_back(Vec2d(0.25 * period + offset, offset));
+    out.push_back(Vec2d(0.75 * period - offset, -offset));
+    out.push_back(Vec2d(0.75 * period + offset, -offset));
     return out;
 }
 
@@ -154,8 +145,9 @@ static Polylines generate_repeat_pattern(int direction, coordf_t grid_size, coor
 static Polylines generate_infill_layers(coordf_t z_height, double repeat_ratio, coordf_t grid_size, coordf_t width, coordf_t height)
 {
     Polylines result;
-    coordf_t  trans_layer_size  = grid_size * 0.3;          // upper.
+    coordf_t  trans_layer_size  = grid_size * 0.4;          // upper.
     coordf_t  repeat_layer_size = grid_size * repeat_ratio; // lower.
+    z_height                    += repeat_layer_size / 2;   // offset to improve first few layer strength
     coordf_t  period            = trans_layer_size + repeat_layer_size;
     coordf_t  remains           = z_height - std::floor(z_height / period) * period;
     coordf_t  trans_z           = remains - repeat_layer_size; // put repeat layer first.
@@ -174,15 +166,15 @@ static Polylines generate_infill_layers(coordf_t z_height, double repeat_ratio, 
 
         // split the progress to forward and backward, with a opposite direction.
         if (progress < 0.5)
-            result = generate_transform_pattern(progress * 2, direction, grid_size, width, height);
+            result = generate_transform_pattern((progress + 0.1) * 2, direction, grid_size, width, height); // increase overlapping.
         else
-            result = generate_transform_pattern((1 - progress) * 2, -1 * direction, grid_size, width, height);
+            result = generate_transform_pattern((1.1 - progress) * 2, -1 * direction, grid_size, width, height);
     }
 
     return result;
 }
 
-void FillFlippingLine ::_fill_surface_single(
+void FillCrossHatch ::_fill_surface_single(
     const FillParams &params, unsigned int thickness_layers, const std::pair<float, Point> &direction, ExPolygon expolygon, Polylines &polylines_out)
 {
     // rotate angle

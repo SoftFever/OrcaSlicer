@@ -1,5 +1,5 @@
-#ifndef slic3r_FillFlippingLines_hpp_
-#define slic3r_FillFlippingLines_hpp_
+#ifndef slic3r_FillCrossHatch_hpp_
+#define slic3r_FillCrossHatch_hpp_
 
 #include <map>
 
@@ -9,11 +9,11 @@
 
 namespace Slic3r {
 
-class FillFlippingLine : public Fill
+class FillCrossHatch : public Fill
 {
 public:
-    Fill *clone() const override { return new FillFlippingLine(*this); };
-    ~FillFlippingLine() override {}
+    Fill *clone() const override { return new FillCrossHatch(*this); };
+    ~FillCrossHatch() override {}
 
 protected:
 	void _fill_surface_single(
@@ -26,4 +26,4 @@ protected:
 
 } // namespace Slic3r
 
-#endif // slic3r_FillFlippingLines_hpp_
+#endif // slic3r_FillCrossHatch_hpp_
