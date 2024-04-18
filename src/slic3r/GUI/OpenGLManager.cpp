@@ -351,7 +351,7 @@ wxGLCanvas* OpenGLManager::create_wxglcanvas(wxWindow& parent)
         //BBS: turn on stencil buffer for outline
         WX_GL_STENCIL_SIZE,     8,
         WX_GL_SAMPLE_BUFFERS, 	GL_TRUE,
-        WX_GL_SAMPLES, 			4,
+        WX_GL_SAMPLES,          can_multisample() ? 4 : 0,
         0
     };
 
@@ -360,9 +360,6 @@ wxGLCanvas* OpenGLManager::create_wxglcanvas(wxWindow& parent)
 //        // debug output
 //        std::cout << "Multisample " << (can_multisample() ? "enabled" : "disabled") << std::endl;
     }
-
-    if (! can_multisample())
-        attribList[12] = 0;
 
     return new wxGLCanvas(&parent, wxID_ANY, attribList, wxDefaultPosition, wxDefaultSize, wxWANTS_CHARS);
 }
