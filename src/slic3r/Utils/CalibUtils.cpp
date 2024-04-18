@@ -9,6 +9,7 @@
 #include "libslic3r/Model.hpp"
 #include "slic3r/GUI/Jobs/BoostThreadWorker.hpp"
 #include "slic3r/GUI/Jobs/PlaterWorker.hpp"
+#include "../GUI/MsgDialog.hpp"
 
 
 namespace Slic3r {
@@ -182,6 +183,24 @@ CalibMode CalibUtils::get_calib_mode_by_name(const std::string name, int& cali_s
     else if (name == "retration_tower_calib_mode")
         return CalibMode::Calib_Retraction_tower;
     return CalibMode::Calib_None;
+}
+
+bool CalibUtils::validate_input_name(wxString name)
+{
+    if (name.Length() > 40) {
+        MessageDialog msg_dlg(nullptr, _L("The name cannot exceed 40 characters."), wxEmptyString, wxICON_WARNING | wxOK);
+        msg_dlg.ShowModal();
+        return false;
+    }
+
+    name.erase(std::remove(name.begin(), name.end(), L' '), name.end());
+    if (name.IsEmpty()) {
+        MessageDialog msg_dlg(nullptr, _L("The name cannot be empty."), wxEmptyString, wxICON_WARNING | wxOK);
+        msg_dlg.ShowModal();
+        return false;
+    }
+
+    return true;
 }
 
 bool CalibUtils::validate_input_k_value(wxString k_text, float* output_value)
