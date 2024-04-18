@@ -6,7 +6,6 @@
   "instantiation": "true",
   "inherits": "process_speed_miniis",
   "compatible_printers": [
-    "Prusa MINIIS 0.4 nozzle",
-    "Prusa MINIIS 0.6 nozzle"
+    "Prusa MINIIS 0.4 nozzle"
   ]
 }

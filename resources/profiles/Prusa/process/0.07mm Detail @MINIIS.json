@@ -11,6 +11,8 @@
   "top_shell_layers": "10",
   "bottom_shell_thickness": "0.5",
   "bottom_shell_layers": "8",
+  "bridge_speed": "30",
+  "internal_solid_infill_speed": "140",
   "compatible_printers": [
     "Prusa MINIIS 0.25 nozzle"
   ]
