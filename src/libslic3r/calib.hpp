@@ -34,11 +34,6 @@ struct Calib_Params
     CalibMode mode;
 };
 
-enum FlowRatioCalibrationType {
-    COMPLETE_CALIBRATION = 0,
-    FINE_CALIBRATION,
-};
-
 class X1CCalibInfos
 {
 public:
@@ -83,7 +78,6 @@ struct PrinterCaliInfo
     bool                        cali_finished = true;
     float                       cache_flow_ratio;
     std::vector<CaliPresetInfo> selected_presets;
-    FlowRatioCalibrationType    cache_flow_rate_calibration_type = FlowRatioCalibrationType::COMPLETE_CALIBRATION;
 };
 
 class PACalibResult

@@ -201,12 +201,12 @@ indexed_triangle_set cgal_to_indexed_triangle_set(const _Mesh &cgalmesh)
     const auto &vertices = cgalmesh.vertices();
     int vsize = int(vertices.size());
 
-    for (auto &vi : vertices) {
+    for (const auto &vi : vertices) {
         auto &v = cgalmesh.point(vi); // Don't ask...
         its.vertices.emplace_back(to_vec3f(v));
     }
 
-    for (auto &face : faces) {
+    for (const auto &face : faces) {
         auto vtc = cgalmesh.vertices_around_face(cgalmesh.halfedge(face));
 
         int i = 0;
@@ -782,7 +782,7 @@ void do_boolean(McutMesh& srcMesh, const McutMesh& cutMesh, const std::string& b
             auto src_part = triangle_mesh_to_mcut(src_parts[i]);
             for (size_t j = 0; j < cut_parts.size(); j++) {
                 auto cut_part = triangle_mesh_to_mcut(cut_parts[j]);
-                do_boolean_single(*src_part, *cut_part, boolean_opts);
+                bool success = do_boolean_single(*src_part, *cut_part, boolean_opts);
             }
             TriangleMesh tri_part = mcut_to_triangle_mesh(*src_part);
             its_merge(all_its, tri_part.its);
@@ -811,9 +811,7 @@ void make_boolean(const TriangleMesh &src_mesh, const TriangleMesh &cut_mesh, st
     triangle_mesh_to_mcut(cut_mesh, cutMesh);
     //dst_mesh = make_boolean(srcMesh, cutMesh, boolean_opts);
     do_boolean(srcMesh, cutMesh, boolean_opts);
-    TriangleMesh tri_src = mcut_to_triangle_mesh(srcMesh);
-    if (!tri_src.empty())
-        dst_mesh.push_back(std::move(tri_src));
+    dst_mesh.push_back(mcut_to_triangle_mesh(srcMesh));
 }
 
 } // namespace mcut

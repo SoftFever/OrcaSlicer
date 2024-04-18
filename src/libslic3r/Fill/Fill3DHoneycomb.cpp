@@ -186,18 +186,15 @@ static Polylines makeGrid(coordf_t z, coordf_t gridSize, coordf_t boundWidth, co
 // dont_adjust       [avoid filling space evenly]
 // monotonic         [fill strictly left to right]
 // complete          [complete each loop]
-
+  
 void Fill3DHoneycomb::_fill_surface_single(
-    const FillParams                &params,
+    const FillParams                &params, 
     unsigned int                     thickness_layers,
-    const std::pair<float, Point>   &direction,
+    const std::pair<float, Point>   &direction, 
     ExPolygon                        expolygon,
     Polylines                       &polylines_out)
 {
     // no rotation is supported for this infill pattern
-    // Support infill angle 
-    auto infill_angle   = float(this->angle);
-    if (std::abs(infill_angle) >= EPSILON) expolygon.rotate(-infill_angle);
     BoundingBox bb = expolygon.contour.bounding_box();
 
     // Note: with equally-scaled X/Y/Z, the pattern will create a vertically-stretched
@@ -219,7 +216,7 @@ void Fill3DHoneycomb::_fill_surface_single(
     // Z scale is adjusted to make the layer patterns consistent / symmetric
     // This means that the resultant infill won't be an ideal truncated octahedron,
     // but it should look better than the equivalent quantised version
-
+    
     coordf_t layerHeight = scale_(thickness_layers);
     // ceiling to an integer value of layers per Z
     // (with a little nudge in case it's close to perfect)
@@ -251,7 +248,7 @@ void Fill3DHoneycomb::_fill_surface_single(
     // (a module is 2*$gridSize since one $gridSize half-module is 
     // growing while the other $gridSize half-module is shrinking)
     bb.merge(align_to_grid(bb.min, Point(gridSize*4, gridSize*4)));
-
+    
     // generate pattern
     Polylines polylines =
       makeGrid(
@@ -260,7 +257,7 @@ void Fill3DHoneycomb::_fill_surface_single(
 	       bb.size()(0),
 	       bb.size()(1),
 	       !params.dont_adjust);
-
+    
     // move pattern in place
     for (Polyline &pl : polylines){
       pl.translate(bb.min);
@@ -269,21 +266,11 @@ void Fill3DHoneycomb::_fill_surface_single(
     // clip pattern to boundaries, chain the clipped polylines
     polylines = intersection_pl(polylines, to_polygons(expolygon));
 
-    // copy from fliplines
-    if (!polylines.empty()) {
-        int infill_start_idx = polylines_out.size(); // only rotate what belongs to us.
-        // connect lines
-        if (params.dont_connect() || polylines.size() <= 1)
+    // connect lines if needed
+    if (params.dont_connect() || polylines.size() <= 1)
         append(polylines_out, chain_polylines(std::move(polylines)));
-        else
+    else
         this->connect_infill(std::move(polylines), expolygon, polylines_out, this->spacing, params);
-
-        // rotate back
-        if (std::abs(infill_angle) >= EPSILON) {
-          for (auto it = polylines_out.begin() + infill_start_idx; it != polylines_out.end(); ++it) 
-            it->rotate(infill_angle);
-        }
-    }
 }
 
 } // namespace Slic3r

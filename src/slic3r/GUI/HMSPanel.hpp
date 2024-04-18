@@ -16,7 +16,6 @@ class HMSNotifyItem : public wxPanel
 {
     HMSItem &   m_hms_item;
     std::string m_url;
-    std::string long_error_code;
 
     wxPanel *       m_panel_hms;
     wxStaticBitmap *m_bitmap_notify;
@@ -40,7 +39,6 @@ public:
      void msw_rescale() {}
 };
 
-
 class HMSPanel : public wxPanel
 {
 protected:
@@ -52,7 +50,6 @@ protected:
     void append_hms_panel(HMSItem &item);
     void delete_hms_panels();
 
-    
 public:
     HMSPanel(wxWindow *parent, wxWindowID id = wxID_ANY, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize, long style = wxTAB_TRAVERSAL);
     ~HMSPanel();
@@ -65,13 +62,8 @@ public:
 
     void show_status(int status);
 
-    void clear_hms_tag();
-
     MachineObject *obj { nullptr };
-    std::map<std::string, HMSItem>    temp_hms_list;
 };
-
-wxDECLARE_EVENT(EVT_ALREADY_READ_HMS, wxCommandEvent);
 
 }
 }

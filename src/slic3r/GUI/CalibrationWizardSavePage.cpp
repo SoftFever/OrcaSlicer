@@ -552,8 +552,16 @@ bool CaliPASaveManualPanel::get_result(PACalibResult& out_result) {
     }
 
     wxString name = m_save_name_input->GetTextCtrl()->GetValue();
-    if (!CalibUtils::validate_input_name(name))
+    if (name.IsEmpty()) {
+        MessageDialog msg_dlg(nullptr, _L("Please enter the name you want to save to printer."), wxEmptyString, wxICON_WARNING | wxOK);
+        msg_dlg.ShowModal();
         return false;
+    }
+    else if (name.Length() > 40) {
+        MessageDialog msg_dlg(nullptr, _L("The name cannot exceed 40 characters."), wxEmptyString, wxICON_WARNING | wxOK);
+        msg_dlg.ShowModal();
+        return false;
+    }
 
     out_result.k_value = k;
     out_result.name = into_u8(name);
@@ -866,11 +874,11 @@ void CalibrationPASavePage::show_panels(CalibrationMethod method, const PrinterS
         }
         m_p1p_panel->Show(false);
     }
-    else if (curr_obj->cali_version >= 0) {
+    else if (printer_ser == PrinterSeries::SERIES_P1P) {
         m_auto_panel->Show(false);
-        m_manual_panel->set_pa_cali_method(curr_obj->manual_pa_cali_method);
-        m_manual_panel->Show();
-        m_p1p_panel->Show(false);
+        m_manual_panel->Show(false);
+        m_p1p_panel->set_pa_cali_method(curr_obj->manual_pa_cali_method);
+        m_p1p_panel->Show();
     } else {
         m_auto_panel->Show(false);
         m_manual_panel->Show(false);

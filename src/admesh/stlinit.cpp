@@ -45,9 +45,8 @@ extern void stl_internal_reverse_quads(char *buf, size_t cnt);
 
 const int LOAD_STL_UNIT_NUM           = 5;
 static std::string model_id           = "";
-static std::string country_code       = "";
 
-static FILE *stl_open_count_facets(stl_file *stl, const char *file, unsigned int custom_header_length)
+static FILE* stl_open_count_facets(stl_file *stl, const char *file) 
 {
   	// Open the file in binary mode first.
   	FILE *fp = boost::nowide::fopen(file, "rb");
@@ -60,8 +59,7 @@ static FILE *stl_open_count_facets(stl_file *stl, const char *file, unsigned int
   	long file_size = ftell(fp);
 
   	// Check for binary or ASCII file.
-    int header_size = custom_header_length + NUM_FACET_SIZE;
-    fseek(fp, header_size, SEEK_SET);
+  	fseek(fp, HEADER_SIZE, SEEK_SET);
 	unsigned char chtest[128];
   	if (! fread(chtest, sizeof(chtest), 1, fp)) {
 		BOOST_LOG_TRIVIAL(error) << "stl_open_count_facets: The input is an empty file: " << file;
@@ -83,16 +81,16 @@ static FILE *stl_open_count_facets(stl_file *stl, const char *file, unsigned int
   	// If the .STL file is binary, then do the following:
   	if (stl->stats.type == binary) {
     	// Test if the STL file has the right size.
-        if (((file_size - header_size) % SIZEOF_STL_FACET != 0) || (file_size < STL_MIN_FILE_SIZE)) {
+    	if (((file_size - HEADER_SIZE) % SIZEOF_STL_FACET != 0) || (file_size < STL_MIN_FILE_SIZE)) {
 			BOOST_LOG_TRIVIAL(error) << "stl_open_count_facets: The file " << file << " has the wrong size.";
       		fclose(fp);
       		return nullptr;
     	}
-        num_facets = (file_size - header_size) / SIZEOF_STL_FACET;
+    	num_facets = (file_size - HEADER_SIZE) / SIZEOF_STL_FACET;
 
     	// Read the header.
-        if (fread(stl->stats.header.data(), custom_header_length, 1, fp) > custom_header_length -1)
-            stl->stats.header[custom_header_length] = '\0';
+    	if (fread(stl->stats.header, LABEL_SIZE, 1, fp) > 79)
+      		stl->stats.header[80] = '\0';
 
     	// Read the int following the header.  This should contain # of facets.
 	  	uint32_t header_num_facets;
@@ -136,9 +134,9 @@ static FILE *stl_open_count_facets(stl_file *stl, const char *file, unsigned int
     
     	// Get the header.
 		int i = 0;
-    	for (; i < custom_header_length && (stl->stats.header[i] = getc(fp)) != '\n'; ++ i) ;
+    	for (; i < 80 && (stl->stats.header[i] = getc(fp)) != '\n'; ++ i) ;
     	stl->stats.header[i] = '\0'; // Lose the '\n'
-        stl->stats.header[custom_header_length] = '\0';
+    	stl->stats.header[80] = '\0';
 
     	num_facets = num_lines / ASCII_LINES_PER_FACET;
   	}
@@ -151,13 +149,10 @@ static FILE *stl_open_count_facets(stl_file *stl, const char *file, unsigned int
 /* Reads the contents of the file pointed to by fp into the stl structure,
    starting at facet first_facet.  The second argument says if it's our first
    time running this for the stl and therefore we should reset our max and min stats. */
-static bool stl_read(stl_file *stl, FILE *fp, int first_facet, bool first, ImportstlProgressFn stlFn, int custom_header_length)
+static bool stl_read(stl_file *stl, FILE *fp, int first_facet, bool first, ImportstlProgressFn stlFn)
 {
     if (stl->stats.type == binary) {
-        int header_size = custom_header_length + NUM_FACET_SIZE;
-        fseek(fp, header_size, SEEK_SET);
-        model_id = "";
-        country_code = "";
+        fseek(fp, HEADER_SIZE, SEEK_SET);
     }
 	else {
         rewind(fp);
@@ -170,22 +165,18 @@ static bool stl_read(stl_file *stl, FILE *fp, int first_facet, bool first, Impor
                     // Extract the value after "MW"
                     char version_str[16];
                     char model_id_str[128]; 
-                    char country_code_str[16];
-                    int num_values = sscanf(mw_position + 3, "%s %s %s", version_str, model_id_str, country_code_str);
-                    if (num_values == 3) {
+                    int num_values = sscanf(mw_position + 3, "%s %s", version_str, model_id_str);
+                    if (num_values == 2) {
                         if (strcmp(version_str, "1.0") == 0) {
                             model_id = model_id_str;
-                            country_code = country_code_str;
                         }
                     }
                     else {
                         model_id = "";
-                        country_code = "";
                     }
                 }
                 else {
                     model_id = "";  // No MW format found
-                    country_code = "";
                 }
             }
         }
@@ -204,7 +195,7 @@ static bool stl_read(stl_file *stl, FILE *fp, int first_facet, bool first, Impor
         if ((i % unit) == 0) {
             bool cb_cancel = false;
             if (stlFn) {
-                stlFn(i, facets_num, cb_cancel, model_id, country_code);
+                stlFn(i, facets_num, cb_cancel, model_id);
                 if (cb_cancel)
                     return false;
             }
@@ -302,24 +293,20 @@ static bool stl_read(stl_file *stl, FILE *fp, int first_facet, bool first, Impor
   	return true;
 }
 
-bool stl_open(stl_file *stl, const char *file, ImportstlProgressFn stlFn, int custom_header_length)
+bool stl_open(stl_file *stl, const char *file, ImportstlProgressFn stlFn)
 {
-    if (custom_header_length < LABEL_SIZE) { 
-        custom_header_length = LABEL_SIZE;
-    }
     Slic3r::CNumericLocalesSetter locales_setter;
 	stl->clear();
-    stl->stats.reset_header(custom_header_length);
-    FILE *fp = stl_open_count_facets(stl, file, custom_header_length);
+	FILE *fp = stl_open_count_facets(stl, file);
 	if (fp == nullptr)
 		return false;
 	stl_allocate(stl);
-    bool result = stl_read(stl, fp, 0, true, stlFn, custom_header_length);
+	bool result = stl_read(stl, fp, 0, true, stlFn);
   	fclose(fp);
   	return result;
 }
 
-void stl_allocate(stl_file *stl)
+void stl_allocate(stl_file *stl) 
 {
   	//  Allocate memory for the entire .STL file.
   	stl->facet_start.assign(stl->stats.number_of_facets, stl_facet());
@@ -327,7 +314,7 @@ void stl_allocate(stl_file *stl)
   	stl->neighbors_start.assign(stl->stats.number_of_facets, stl_neighbors());
 }
 
-void stl_reallocate(stl_file *stl)
+void stl_reallocate(stl_file *stl) 
 {
 	stl->facet_start.resize(stl->stats.number_of_facets);
 	stl->neighbors_start.resize(stl->stats.number_of_facets);

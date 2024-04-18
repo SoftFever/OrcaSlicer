@@ -21,8 +21,6 @@ public:
 };
 #endif
 
-wxDEFINE_EVENT(EVT_MEDIA_CTRL_STAT, wxCommandEvent);
-
 wxMediaCtrl2::wxMediaCtrl2(wxWindow *parent)
 {
 #ifdef __WIN32__
@@ -59,8 +57,7 @@ void wxMediaCtrl2::Load(wxURI url)
 {
 #ifdef __WIN32__
     if (m_imp == nullptr) {
-        static bool notified = false;
-        if (!notified) CallAfter([] {
+        CallAfter([] {
             auto res = wxMessageBox(_L("Windows Media Player is required for this task! Do you want to enable 'Windows Media Player' for your operation system?"), _L("Error"), wxOK | wxCANCEL);
             if (res == wxOK) {
                 wxString url = IsWindows10OrGreater() 
@@ -221,10 +218,7 @@ wxSize wxMediaCtrl2::GetVideoSize() const
     // "Loading...".  Fake it out for now.
     return m_loaded ? wxSize(1280, 720) : wxSize{};
 #else
-    wxSize size = m_imp ? m_imp->GetVideoSize() : wxSize(0, 0);
-    if (size.GetWidth() > 0)
-        const_cast<wxSize&>(m_video_size) = size;
-    return size;
+    return m_imp ? m_imp->GetVideoSize() : wxSize(0, 0);
 #endif
 }
 
@@ -249,11 +243,6 @@ WXLRESULT wxMediaCtrl2::MSWWindowProc(WXUINT   nMsg,
                     if (msg.SubString(n + 1, msg.Length() - 2).ToLong(&val))
                         m_error = (int) val;
                 }
-            } else if (msg.Contains("stat_log")) {
-                wxCommandEvent evt(EVT_MEDIA_CTRL_STAT);
-                evt.SetEventObject(this);
-                evt.SetString(msg.Mid(msg.Find(' ') + 1));
-                wxPostEvent(this, evt);
             }
         }
         BOOST_LOG_TRIVIAL(trace) << msg.ToUTF8().data();

@@ -542,7 +542,8 @@ DeleteConfirmDialog::~DeleteConfirmDialog() {}
 
 void DeleteConfirmDialog::on_dpi_changed(const wxRect &suggested_rect) {}
 
-
+/*
+<<<<<<< HEAD
 Newer3mfVersionDialog::Newer3mfVersionDialog(wxWindow *parent, const Semver *file_version, const Semver *cloud_version, wxString new_keys)
     : DPIDialog(parent ? parent : nullptr, wxID_ANY, wxString(SLIC3R_APP_FULL_NAME " - ") + _L("Newer 3mf version"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
     , m_file_version(file_version)
@@ -663,6 +664,8 @@ wxBoxSizer *Newer3mfVersionDialog::get_btn_sizer()
     return horizontal_sizer;
 }
 
+=======
+*/
 } // namespace GUI
 
 } // namespace Slic3r

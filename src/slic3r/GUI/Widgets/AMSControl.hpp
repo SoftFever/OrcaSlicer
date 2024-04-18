@@ -385,7 +385,11 @@ public:
     wxColour                     m_road_color;
     void                         Update(AMSinfo amsinfo, Caninfo info, int canindex, int maxcan);
 
-    std::vector<ScalableBitmap> ams_humidity_img;
+    ScalableBitmap ams_humidity_0;
+    ScalableBitmap ams_humidity_1;
+    ScalableBitmap ams_humidity_2;
+    ScalableBitmap ams_humidity_3;
+    ScalableBitmap ams_humidity_4;
 
    
     int      m_humidity = { 0 };

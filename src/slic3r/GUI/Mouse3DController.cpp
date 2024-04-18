@@ -146,13 +146,11 @@ static std::string format_device_string(int vid, int pid)
 static std::string detect_attached_device()
 {
     std::string ret;
+
     // Initialize the hidapi library
     int res = hid_init();
     if (res != 0)
         BOOST_LOG_TRIVIAL(error) << "Unable to initialize hidapi library";
-    else if (wxGetApp().app_config->get("skip_3dmouse_detect") == "true") {
-        BOOST_LOG_TRIVIAL(info) << "do not detect 3d Mouse";
-    }
     else {
         // Enumerates devices
         hid_device_info* devices = hid_enumerate(0, 0);
@@ -929,7 +927,7 @@ void Mouse3DController::run()
 
 bool Mouse3DController::connect_device()
 {
-    if (m_stop || wxGetApp().app_config->get("skip_3dmouse_detect") == "true")
+    if (m_stop)
     	return false;
 
     {
