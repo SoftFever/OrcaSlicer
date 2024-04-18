@@ -14,5 +14,17 @@
   "default_print_profile": "0.12mm Standard @MINIIS",
   "nozzle_diameter": [
       "0.25"
+  ],
+  "max_layer_height": [
+    "0.15"
+  ],
+  "min_layer_height": [
+    "0.05"
+  ],
+  "retraction_length": [
+    "2.5"
+  ],
+  "retraction_minimum_travel": [
+    "1.0"
   ]
 }

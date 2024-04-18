@@ -89,6 +89,9 @@
   "retraction_speed": [
     "70"
   ],
+  "deretraction_speed": [
+    "40"
+  ],
   "z_hop": [
     "0.2"
   ],

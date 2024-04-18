@@ -14,5 +14,20 @@
   "default_print_profile": "0.40mm Standard @MINIIS",
   "nozzle_diameter": [
       "0.8"
-  ]
+  ],
+  "max_layer_height": [
+    "0.55"
+  ],
+  "min_layer_height": [
+    "0.2"
+  ] ,
+  "retraction_length": [
+    "2.8"
+  ],
+  "retraction_speed": [
+    "45"
+  ],
+  "deretraction_speed": [
+    "20"
+]
 }
