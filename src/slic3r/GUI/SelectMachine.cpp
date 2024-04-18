@@ -398,11 +398,41 @@ SelectMachinePopup::SelectMachinePopup(wxWindow *parent)
     auto other_title      = create_title_panel(_L("Other Device"));
     m_sizer_other_devices = new wxBoxSizer(wxVERTICAL);
 
+
+    wxWindow* m_panel_ping_code = new wxWindow(m_scrolledWindow, wxID_ANY, wxDefaultPosition, SELECT_MACHINE_ITEM_SIZE, wxTAB_TRAVERSAL);
+    m_panel_ping_code->SetBackgroundColour(*wxWHITE);
+
+    wxBoxSizer* sizer_ping_code = new wxBoxSizer(wxHORIZONTAL);
+
+    m_img_ping_code = new wxStaticBitmap(m_panel_ping_code, wxID_ANY, create_scaled_bitmap("bind_device_ping_code", this, 10), wxDefaultPosition, wxSize(FromDIP(10), FromDIP(10)), 0);
+    m_img_ping_code->SetBackgroundColour(*wxWHITE);
+
+    m_ping_code_text = new Label(m_panel_ping_code, _L("Bind with Pin Code"));
+    m_ping_code_text->SetFont(::Label::Head_13);
+    m_ping_code_text->SetForegroundColour(wxColour(38, 46, 48));
+    m_ping_code_text->SetBackgroundColour(*wxWHITE);
+
+    m_panel_ping_code->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
+        wxGetApp().popup_ping_bind_dialog();
+    });
+
+    m_ping_code_text->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
+        wxGetApp().popup_ping_bind_dialog();
+    });
+
+
+    sizer_ping_code->Add(m_img_ping_code, 0, wxEXPAND, 0);
+    sizer_ping_code->Add(0, 0, 0, wxLEFT, FromDIP(7));
+    sizer_ping_code->Add(m_ping_code_text, 0, wxALIGN_CENTER, 0);
+
+    m_panel_ping_code->SetSizer(sizer_ping_code);
+    m_panel_ping_code->Layout();
+
     m_sizxer_scrolledWindow->Add(own_title, 0, wxEXPAND | wxLEFT, FromDIP(15));
     m_sizxer_scrolledWindow->Add(m_sizer_my_devices, 0, wxEXPAND, 0);
+    m_sizxer_scrolledWindow->Add(m_panel_ping_code, 0, wxEXPAND | wxLEFT, FromDIP(8));
     m_sizxer_scrolledWindow->Add(other_title, 0, wxEXPAND | wxLEFT, FromDIP(15));
     m_sizxer_scrolledWindow->Add(m_sizer_other_devices, 0, wxEXPAND, 0);
-
 
     m_sizer_main->Add(m_scrolledWindow, 0, wxALL | wxEXPAND, FromDIP(2));
 

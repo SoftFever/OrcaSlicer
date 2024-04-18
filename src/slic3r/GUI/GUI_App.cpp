@@ -3,6 +3,7 @@
 #include "GUI_Init.hpp"
 #include "GUI_ObjectList.hpp"
 #include "GUI_Factories.hpp"
+#include "slic3r/GUI/UserManager.hpp"
 #include "slic3r/GUI/TaskManager.hpp"
 #include "format.hpp"
 #include "libslic3r_version.h"
@@ -1756,6 +1757,25 @@ void GUI_App::init_networking_callbacks()
 
         m_agent->set_on_message_fn(message_arrive_fn);
 
+        auto user_message_arrive_fn = [this](std::string user_id, std::string msg) {
+            if (m_is_closing) {
+                return;
+            }
+            CallAfter([this, user_id, msg] {
+                if (m_is_closing)
+                    return;
+
+                //check user
+                if (user_id == m_agent->get_user_id()) {
+                    this->m_user_manager->parse_json(msg);
+                }
+
+            });
+        };
+
+        m_agent->set_on_user_message_fn(user_message_arrive_fn);
+
+
         auto lan_message_arrive_fn = [this](std::string dev_id, std::string msg) {
             if (m_is_closing) {
                 return;
@@ -2086,6 +2106,11 @@ int GUI_App::OnExit()
     if (m_device_manager) {
         delete m_device_manager;
         m_device_manager = nullptr;
+    }
+
+    if (m_user_manager) {
+        delete m_user_manager;
+        m_user_manager = nullptr;
     }
 
     if (m_agent) {
@@ -2759,6 +2784,11 @@ __retry:
         else
             m_device_manager->set_agent(m_agent);
 
+        if (!m_user_manager)
+            m_user_manager = new Slic3r::UserManager(m_agent);
+        else
+            m_user_manager->set_agent(m_agent);
+
         if (this->is_enable_multi_machine()) {
             if (!m_task_manager) {
                 m_task_manager = new Slic3r::TaskManager(m_agent);
@@ -2799,6 +2829,9 @@ __retry:
 
         if (!m_device_manager)
             m_device_manager = new Slic3r::DeviceManager();
+
+        if (!m_user_manager)
+            m_user_manager = new Slic3r::UserManager();
     }
 
     return true;
@@ -6070,6 +6103,24 @@ std::string GUI_App::url_decode(std::string value) {
 std::string GUI_App::url_encode(std::string value) {
     return Http::url_encode(value);
 }
+
+void GUI_App::popup_ping_bind_dialog()
+{
+    if (m_ping_code_binding_dialog == nullptr) {
+        m_ping_code_binding_dialog = new PingCodeBindDialog();
+        m_ping_code_binding_dialog->ShowModal();
+    }
+}
+
+void GUI_App::remove_ping_bind_dialog()
+{
+    if (m_ping_code_binding_dialog != nullptr) {
+        m_ping_code_binding_dialog->Destroy();
+        delete m_mall_publish_dialog;
+        m_ping_code_binding_dialog = nullptr;
+    }
+}
+
 
 void GUI_App::remove_mall_system_dialog()
 {

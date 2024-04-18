@@ -20,6 +20,7 @@
 #include "slic3r/Utils/NetworkAgent.hpp"
 #include "slic3r/GUI/WebViewDialog.hpp"
 #include "slic3r/GUI/WebUserLoginDialog.hpp"
+#include "slic3r/GUI/BindDialog.hpp"
 #include "slic3r/GUI/HMS.hpp"
 #include "slic3r/GUI/Jobs/UpgradeNetworkJob.hpp"
 #include "slic3r/GUI/HttpServer.hpp"
@@ -56,6 +57,7 @@ class PresetBundle;
 class PresetUpdater;
 class ModelObject;
 class Model;
+class UserManager;
 class DeviceManager;
 class NetworkAgent;
 class TaskManager;
@@ -76,6 +78,7 @@ struct GUI_InitParams;
 class ParamsDialog;
 class HMSQuery;
 class ModelMallDialog;
+class PingCodeBindDialog;
 
 
 enum FileType
@@ -275,6 +278,7 @@ private:
     //BBS
     bool m_is_closing {false};
     Slic3r::DeviceManager* m_device_manager { nullptr };
+    Slic3r::UserManager* m_user_manager { nullptr };
     Slic3r::TaskManager* m_task_manager { nullptr };
     NetworkAgent* m_agent { nullptr };
     std::vector<std::string> need_delete_presets;   // store setting ids of preset
@@ -560,6 +564,7 @@ private:
     std::string         m_mall_model_download_url;
     std::string         m_mall_model_download_name;
     ModelMallDialog*    m_mall_publish_dialog{ nullptr };
+    PingCodeBindDialog* m_ping_code_binding_dialog{ nullptr };
 
     void            set_download_model_url(std::string url) {m_mall_model_download_url = url;}
     void            set_download_model_name(std::string name) {m_mall_model_download_name = name;}
@@ -577,6 +582,9 @@ private:
     char            from_hex(char ch);
     std::string     url_encode(std::string value);
     std::string     url_decode(std::string value);
+
+    void            popup_ping_bind_dialog();
+    void            remove_ping_bind_dialog();
 
     // Parameters extracted from the command line to be passed to GUI after initialization.
     GUI_InitParams* init_params { nullptr };
