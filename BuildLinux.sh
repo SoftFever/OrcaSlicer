@@ -133,29 +133,31 @@ fi
 
 if [[ -n "${BUILD_ORCA}" ]]
 then
-    echo "Configuring OrcaSlicer..."
     if [[ -n "${CLEAN_BUILD}" ]]
     then
         rm -fr build
     fi
-    BUILD_ARGS=""
-    if [[ -n "${FOUND_GTK3_DEV}" ]]
-    then
-        BUILD_ARGS="-DSLIC3R_GTK=3"
+    if [[ ! -f build/ninja.build ]]; then
+        echo "Configuring OrcaSlicer..."
+        BUILD_ARGS=""
+        if [[ -n "${FOUND_GTK3_DEV}" ]]
+        then
+            BUILD_ARGS="-DSLIC3R_GTK=3"
+        fi
+        if [[ -n "${BUILD_DEBUG}" ]]
+        then
+            BUILD_ARGS="${BUILD_ARGS} -DCMAKE_BUILD_TYPE=Debug -DBBL_INTERNAL_TESTING=1"
+        else
+            BUILD_ARGS="${BUILD_ARGS} -DBBL_RELEASE_TO_PUBLIC=1 -DBBL_INTERNAL_TESTING=0"
+        fi
+        echo -e "cmake -S . -B build -G Ninja -DCMAKE_PREFIX_PATH="${PWD}/deps/build/destdir/usr/local" -DSLIC3R_STATIC=1 -DORCA_TOOLS=ON ${BUILD_ARGS}"
+        cmake -S . -B build -G Ninja \
+            -DCMAKE_PREFIX_PATH="${PWD}/deps/build/destdir/usr/local" \
+            -DSLIC3R_STATIC=1 \
+            -DORCA_TOOLS=ON \
+            ${BUILD_ARGS}
+        echo "done"
     fi
-    if [[ -n "${BUILD_DEBUG}" ]]
-    then
-        BUILD_ARGS="${BUILD_ARGS} -DCMAKE_BUILD_TYPE=Debug -DBBL_INTERNAL_TESTING=1"
-    else
-        BUILD_ARGS="${BUILD_ARGS} -DBBL_RELEASE_TO_PUBLIC=1 -DBBL_INTERNAL_TESTING=0"
-    fi
-    echo -e "cmake -S . -B build -G Ninja -DCMAKE_PREFIX_PATH="${PWD}/deps/build/destdir/usr/local" -DSLIC3R_STATIC=1 -DORCA_TOOLS=ON ${BUILD_ARGS}"
-    cmake -S . -B build -G Ninja \
-        -DCMAKE_PREFIX_PATH="${PWD}/deps/build/destdir/usr/local" \
-        -DSLIC3R_STATIC=1 \
-        -DORCA_TOOLS=ON \
-        ${BUILD_ARGS}
-    echo "done"
     echo "Building OrcaSlicer ..."
     cmake --build build --target OrcaSlicer
     echo "Building OrcaSlicer_profile_validator .."
