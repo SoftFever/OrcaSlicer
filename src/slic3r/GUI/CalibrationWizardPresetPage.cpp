@@ -35,16 +35,16 @@ void CaliPresetCaliStagePanel::create_panel(wxWindow* parent)
 
     m_complete_radioBox = new wxRadioButton(parent, wxID_ANY, _L("Complete Calibration"));
     m_complete_radioBox->SetForegroundColour(*wxBLACK);
+    
     m_complete_radioBox->SetValue(true);
     m_stage = CALI_MANUAL_STAGE_1;
     m_top_sizer->Add(m_complete_radioBox);
     m_top_sizer->AddSpacer(FromDIP(10));
-
     m_fine_radioBox = new wxRadioButton(parent, wxID_ANY, _L("Fine Calibration based on flow ratio"));
     m_fine_radioBox->SetForegroundColour(*wxBLACK);
     m_top_sizer->Add(m_fine_radioBox);
 
-    auto input_panel = new wxPanel(parent);
+    input_panel = new wxPanel(parent);
     input_panel->Hide();
     auto input_sizer = new wxBoxSizer(wxHORIZONTAL);
     input_panel->SetSizer(input_sizer);
@@ -58,15 +58,16 @@ void CaliPresetCaliStagePanel::create_panel(wxWindow* parent)
     m_top_sizer->Add(input_panel);
 
     m_top_sizer->AddSpacer(PRESET_GAP);
-
     // events
-    m_complete_radioBox->Bind(wxEVT_RADIOBUTTON, [this, input_panel](auto& e) {
+    m_complete_radioBox->Bind(wxEVT_RADIOBUTTON, [this](auto& e) {
+        m_stage_panel_parent->get_current_object()->flow_ratio_calibration_type = COMPLETE_CALIBRATION;
         input_panel->Show(false);
         m_stage = CALI_MANUAL_STAGE_1;
         GetParent()->Layout();
         GetParent()->Fit();
         });
-    m_fine_radioBox->Bind(wxEVT_RADIOBUTTON, [this, input_panel](auto& e) {
+    m_fine_radioBox->Bind(wxEVT_RADIOBUTTON, [this](auto& e) {
+        m_stage_panel_parent->get_current_object()->flow_ratio_calibration_type = FINE_CALIBRATION;
         input_panel->Show();
         m_stage = CALI_MANUAL_STAGE_2;
         GetParent()->Layout();
@@ -125,6 +126,21 @@ void CaliPresetCaliStagePanel::set_flow_ratio_value(float flow_ratio)
 {
     flow_ratio_input->GetTextCtrl()->SetValue(wxString::Format("%.2f", flow_ratio));
     m_flow_ratio_value = flow_ratio;
+}
+
+void CaliPresetCaliStagePanel::set_flow_ratio_calibration_type(FlowRatioCalibrationType type) {
+    if (type == COMPLETE_CALIBRATION) {
+        m_complete_radioBox->SetValue(true);
+        m_stage = CaliPresetStage::CALI_MANUAL_STAGE_1;
+        input_panel->Hide();
+    }
+    else if (type == FINE_CALIBRATION) {
+        m_fine_radioBox->SetValue(true);
+        m_stage = CaliPresetStage::CALI_MANUAL_STAGE_2;
+        input_panel->Show();
+    }
+    GetParent()->Layout();
+    GetParent()->Fit();
 }
 
 CaliComboBox::CaliComboBox(wxWindow* parent,
@@ -285,7 +301,6 @@ void CaliPresetCustomRangePanel::create_panel(wxWindow* parent)
 {
     wxBoxSizer* horiz_sizer;
     horiz_sizer = new wxBoxSizer(wxHORIZONTAL);
-
     for (size_t i = 0; i < m_input_value_nums; ++i) {
         if (i > 0) {
             horiz_sizer->Add(FromDIP(10), 0, 0, wxEXPAND, 0);
@@ -299,6 +314,38 @@ void CaliPresetCustomRangePanel::create_panel(wxWindow* parent)
         item_sizer->Add(m_title_texts[i], 0, wxALL, 0);
         m_value_inputs[i] = new TextInput(parent, wxEmptyString, _L("\u2103"), "", wxDefaultPosition, CALIBRATION_FROM_TO_INPUT_SIZE, 0);
         m_value_inputs[i]->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
+        m_value_inputs[i]->GetTextCtrl()->Bind(wxEVT_TEXT, [this, i](wxCommandEvent& event) {
+            std::string number = m_value_inputs[i]->GetTextCtrl()->GetValue().ToStdString();
+            std::string decimal_point;
+            std::string expression = "^[-+]?[0-9]+([,.][0-9]+)?$";
+            std::regex decimalRegex(expression);
+            int decimal_number;
+            if (std::regex_match(number, decimalRegex)) {
+                std::smatch match;
+                if (std::regex_search(number, match, decimalRegex)) {
+                    std::string decimalPart = match[1].str();
+                    if (decimalPart != "")
+                        decimal_number = decimalPart.length() - 1;
+                    else
+                        decimal_number = 0;
+                }
+                int max_decimal_length;
+                if (i <= 1)
+                    max_decimal_length = 3;
+                else if (i >= 2)
+                    max_decimal_length = 4;
+                if (decimal_number > max_decimal_length) {
+                    int allowed_length = number.length() - decimal_number + max_decimal_length;
+                    number = number.substr(0, allowed_length);
+                    m_value_inputs[i]->GetTextCtrl()->SetValue(number);
+                    m_value_inputs[i]->GetTextCtrl()->SetInsertionPointEnd();
+                }
+            }
+            // input is not a number, invalid.
+            else
+                BOOST_LOG_TRIVIAL(trace) << "The K input string is not a valid number when calibrating. ";
+
+            });
         item_sizer->Add(m_value_inputs[i], 0, wxALL, 0);
         horiz_sizer->Add(item_sizer, 0, wxEXPAND, 0);
     }
@@ -390,10 +437,8 @@ void CaliPresetTipsPanel::set_params(int nozzle_temp, int bed_temp, float max_vo
     wxString text_nozzle_temp = wxString::Format("%d", nozzle_temp);
     m_nozzle_temp->GetTextCtrl()->SetValue(text_nozzle_temp);
 
-    wxString bed_temp_text = wxString::Format("%d", bed_temp);
-    if (bed_temp == 0)
-        bed_temp_text = "-";
-    m_bed_temp->SetLabel(bed_temp_text + _L(" \u2103"));
+    std::string bed_temp_text = bed_temp==0 ? "-": std::to_string(bed_temp);
+    m_bed_temp->SetLabel(wxString::FromUTF8(bed_temp_text + "°C"));
 
     wxString flow_val_text = wxString::Format("%0.2f", max_volumetric);
     m_max_volumetric_speed->GetTextCtrl()->SetValue(flow_val_text);
@@ -676,6 +721,7 @@ void CalibrationPresetPage::create_page(wxWindow* parent)
     m_top_sizer->Add(m_step_panel, 0, wxEXPAND, 0);
 
     m_cali_stage_panel = new CaliPresetCaliStagePanel(parent);
+    m_cali_stage_panel->set_parent(this);
     m_top_sizer->Add(m_cali_stage_panel, 0);
 
     m_selection_panel = new wxPanel(parent);
@@ -1040,11 +1086,6 @@ void CalibrationPresetPage::update_plate_type_collection(CalibrationMethod metho
     const ConfigOptionDef* bed_type_def = print_config_def.get("curr_bed_type");
     if (bed_type_def && bed_type_def->enum_keys_map) {
         for (int i = 0; i < bed_type_def->enum_labels.size(); i++) {
-            if(btDefault + 1 + i == btPTE) {
-                if (method == CalibrationMethod::CALI_METHOD_AUTO) {
-                    continue;
-                }
-            }
             m_comboBox_bed_type->AppendString(_L(bed_type_def->enum_labels[i]));
         }
         m_comboBox_bed_type->SetSelection(0);
@@ -1458,6 +1499,8 @@ void CalibrationPresetPage::init_with_machine(MachineObject* obj)
 {
     if (!obj) return;
 
+    //set flow ratio calibration type
+    m_cali_stage_panel->set_flow_ratio_calibration_type(obj->flow_ratio_calibration_type);
     // set nozzle value from machine
     bool nozzle_is_set = false;
     for (int i = 0; i < NOZZLE_LIST_COUNT; i++) {
@@ -1482,8 +1525,8 @@ void CalibrationPresetPage::init_with_machine(MachineObject* obj)
     }
 
     // set bed type collection from machine
-    if (m_cali_mode == CalibMode::Calib_PA_Line)
-        update_plate_type_collection(m_cali_method);
+    //if (m_cali_mode == CalibMode::Calib_PA_Line)
+    //    update_plate_type_collection(m_cali_method);
 
     // init default for filament source
     // TODO if user change ams/ext, need to update

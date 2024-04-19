@@ -161,18 +161,23 @@ void CalibrationPAStartPage::on_device_connected(MachineObject* obj)
             m_action_panel->bind_button(CaliPageActionType::CALI_ACTION_MANUAL_CALI, false);
             m_action_panel->bind_button(CaliPageActionType::CALI_ACTION_AUTO_CALI, false);
         }
+
+        // is support auto cali
+        bool is_support_pa_auto = (obj->home_flag >> 16 & 1) == 1;
+        if (!is_support_pa_auto) {
+            m_action_panel->show_button(CaliPageActionType::CALI_ACTION_AUTO_CALI, false);
+        }
     }
     else if (obj->get_printer_series() == PrinterSeries::SERIES_P1P || obj->get_printer_arch() == PrinterArch::ARCH_I3) {
-        m_action_panel->show_button(CaliPageActionType::CALI_ACTION_MANAGE_RESULT, false);
+        if (obj->cali_version >= 0) {
+            m_action_panel->show_button(CaliPageActionType::CALI_ACTION_MANAGE_RESULT, true);
+            m_action_panel->bind_button(CaliPageActionType::CALI_ACTION_MANAGE_RESULT, false);
+        }
+        else
+            m_action_panel->show_button(CaliPageActionType::CALI_ACTION_MANAGE_RESULT, false);
         m_action_panel->show_button(CaliPageActionType::CALI_ACTION_AUTO_CALI, false);
         m_action_panel->show_button(CaliPageActionType::CALI_ACTION_MANUAL_CALI, true);
         m_action_panel->bind_button(CaliPageActionType::CALI_ACTION_MANUAL_CALI, false);
-    }
-
-    //is support auto cali
-    bool is_support_pa_auto = (obj->home_flag >> 16 & 1) == 1;
-    if (!is_support_pa_auto) {
-        m_action_panel->show_button(CaliPageActionType::CALI_ACTION_AUTO_CALI, false);
     }
 }
 

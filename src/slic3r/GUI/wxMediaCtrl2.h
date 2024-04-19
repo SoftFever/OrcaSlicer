@@ -11,6 +11,8 @@
 #include "wx/uri.h"
 #include "wx/mediactrl.h"
 
+wxDECLARE_EVENT(EVT_MEDIA_CTRL_STAT, wxCommandEvent);
+
 #ifdef __WXMAC__
 
 class wxMediaCtrl2 : public wxWindow
@@ -47,7 +49,8 @@ private:
     void create_player();
     void * m_player = nullptr;
     wxMediaState m_state = wxMEDIASTATE_STOPPED;
-    int m_error = 0;
+    int          m_error  = 0;
+    wxSize       m_video_size{16, 9};
 };
 
 #else
@@ -84,6 +87,7 @@ private:
     wxString m_idle_image;
     int      m_error = 0;
     bool     m_loaded = false;
+    wxSize   m_video_size{16, 9};
 };
 
 #endif
