@@ -362,11 +362,11 @@ void AppConfig::set_defaults()
     }
 
     if (get("sending_interval").empty()) {
-        set("sending_interval", "1");
+        set("sending_interval", "5");
     }
 
     if (get("max_send").empty()) {
-        set("max_send", "10");
+        set("max_send", "3");
     }
 
 // #if BBL_RELEASE_TO_PUBLIC
