@@ -93,14 +93,14 @@ PingCodeBindDialog::PingCodeBindDialog(Plater* plater /*= nullptr*/)
     request_bind_panel->SetBackgroundColour(*wxWHITE);
     binding_panel->SetBackgroundColour(*wxWHITE);
 
-    m_status_text = new Label(request_bind_panel, _L("Please Find the ping code in Account page on printer screen,\n and type in the ping code below."));
+    m_status_text = new Label(request_bind_panel, _L("Please Find the Pin Code in Account page on printer screen,\n and type in the Pin Code below."));
     m_status_text->SetBackgroundColour(*wxWHITE);
     m_status_text->SetFont(Label::Body_14);
     m_status_text->SetMaxSize(wxSize(FromDIP(440), -1));
     m_status_text->Wrap(FromDIP(440));
     m_status_text->SetForegroundColour(wxColour(38, 46, 48));
 
-    m_link_show_ping_code_wiki = new wxStaticText(request_bind_panel, wxID_ANY, _L("Can't find pin code?"));
+    m_link_show_ping_code_wiki = new wxStaticText(request_bind_panel, wxID_ANY, _L("Can't find Pin Code?"));
     m_link_show_ping_code_wiki->SetFont(Label::Body_14);
     m_link_show_ping_code_wiki->SetBackgroundColour(*wxWHITE);
     m_link_show_ping_code_wiki->SetForegroundColour(wxColour(31, 142, 234));
@@ -205,14 +205,6 @@ PingCodeBindDialog::PingCodeBindDialog(Plater* plater /*= nullptr*/)
     m_button_close->SetCornerRadius(FromDIP(12));
     m_sizer_binding_button->Add(m_button_close, 0, wxALIGN_CENTER, 0);
 
-    m_button_close->Bind(wxEVT_BUTTON, [this](auto& e) {
-        wxGetApp().remove_ping_bind_dialog();
-    });
-
-    this->Bind(wxEVT_CLOSE_WINDOW, [this](auto& e) {
-        wxGetApp().remove_ping_bind_dialog();
-    });
-
     auto sizer_binding = new wxBoxSizer(wxVERTICAL);
     sizer_binding->Add(0, 0, 0, wxTOP, FromDIP(80));
     sizer_binding->Add(m_loading_txt, 0, wxALIGN_CENTER, 0);
@@ -294,7 +286,7 @@ void PingCodeBindDialog::on_bind_printer(wxCommandEvent& event)
         auto result = agent->ping_bind(ping_code.ToStdString());
 
         if(result < 0){
-            MessageDialog msg_wingow(nullptr, _L("Log in failed. Please check the pin code."), "", wxAPPLY | wxOK);
+            MessageDialog msg_wingow(nullptr, _L("Log in failed. Please check the Pin Code."), "", wxAPPLY | wxOK);
             msg_wingow.ShowModal();
             return;
         }
@@ -304,7 +296,7 @@ void PingCodeBindDialog::on_bind_printer(wxCommandEvent& event)
 
 void PingCodeBindDialog::on_cancel(wxCommandEvent& event) 
 {
-    wxGetApp().remove_ping_bind_dialog();
+    EndModal(wxCLOSE);
 }
 
 void PingCodeBindDialog::on_dpi_changed(const wxRect& suggested_rect)
@@ -313,6 +305,7 @@ void PingCodeBindDialog::on_dpi_changed(const wxRect& suggested_rect)
     Fit();
     Refresh();
 }
+
 
 PingCodeBindDialog::~PingCodeBindDialog() {
     m_button_bind->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(PingCodeBindDialog::on_bind_printer), NULL, this);

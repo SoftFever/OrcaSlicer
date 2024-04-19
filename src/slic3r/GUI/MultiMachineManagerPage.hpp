@@ -10,7 +10,7 @@ namespace GUI {
 #define DEVICE_LEFT_PADDING_LEFT 15
 #define DEVICE_LEFT_DEV_NAME 180
 #define DEVICE_LEFT_PRO_NAME 180
-#define DEVICE_LEFT_PRO_INFO 250
+#define DEVICE_LEFT_PRO_INFO 280
 
 class MultiMachineItem : public DeviceItem
 {

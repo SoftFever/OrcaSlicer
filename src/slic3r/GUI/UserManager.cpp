@@ -56,9 +56,9 @@ int UserManager::parse_json(std::string payload)
                         if (!dev) {return -1;}
 
                         if (GUI::wxGetApp().m_ping_code_binding_dialog && GUI::wxGetApp().m_ping_code_binding_dialog->IsShown()) {
+                            GUI::wxGetApp().m_ping_code_binding_dialog->EndModal(wxCLOSE);
                             GUI::MessageDialog msgdialog(nullptr, _L("Log in successful."), "", wxAPPLY | wxOK);
                             msgdialog.ShowModal();
-                            GUI::wxGetApp().remove_ping_bind_dialog();
                         }
                         dev->update_user_machine_list_info();
                         dev->set_selected_machine(dev_id);

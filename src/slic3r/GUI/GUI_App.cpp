@@ -6109,6 +6109,7 @@ void GUI_App::popup_ping_bind_dialog()
     if (m_ping_code_binding_dialog == nullptr) {
         m_ping_code_binding_dialog = new PingCodeBindDialog();
         m_ping_code_binding_dialog->ShowModal();
+        remove_ping_bind_dialog();
     }
 }
 
