@@ -441,7 +441,7 @@ MultiMachineManagerPage::MultiMachineManagerPage(wxWindow* parent)
     m_page_num_enter->SetMaxSize(wxSize(FromDIP(25), FromDIP(25)));
     m_page_num_enter->SetBackgroundColor(ctrl_bg);
     m_page_num_enter->SetCornerRadius(FromDIP(5));
-    m_page_num_enter->Bind(wxEVT_LEFT_DOWN, [&](wxMouseEvent& evt) {
+    m_page_num_enter->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [&](auto& evt) {
         page_num_enter_evt();
     });
 

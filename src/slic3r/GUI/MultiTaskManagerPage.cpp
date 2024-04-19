@@ -785,7 +785,8 @@ void LocalTaskManagerPage::refresh_user_device(bool clear)
 
             if (m_task_items.find(it->first) != m_task_items.end()) {
                 MultiTaskItem* item = m_task_items[it->first];
-                mtitem->state_selected = item->state_selected;
+                if (item->state_selected == 1 && mtitem->state_local_task < 2)
+                    mtitem->state_selected = item->state_selected;
                 item->Destroy();
             }
 
@@ -838,7 +839,7 @@ bool LocalTaskManagerPage::Show(bool show)
 void LocalTaskManagerPage::cancel_all(wxCommandEvent& evt)
 {
     for (auto it = m_task_items.begin(); it != m_task_items.end(); it++) {
-        if (it->second->m_button_cancel->IsShown() && (it->second->get_state_selected()  == 1)) {
+        if (it->second->m_button_cancel->IsShown() && (it->second->get_state_selected()  == 1) && it->second->state_local_task < 2) {
             it->second->onCancel();
         }
     }
@@ -1064,7 +1065,7 @@ CloudTaskManagerPage::CloudTaskManagerPage(wxWindow* parent)
         start_timer();
         m_current_page++;
         if (m_current_page > m_total_page - 1)
-            m_current_page = m_total_count - 1;
+            m_current_page = m_total_page - 1;
         refresh_user_device();
         update_page_number();
         /*m_sizer_task_list->Clear(false);
@@ -1087,7 +1088,7 @@ CloudTaskManagerPage::CloudTaskManagerPage(wxWindow* parent)
     m_page_num_enter->SetMaxSize(wxSize(FromDIP(25), FromDIP(25)));
     m_page_num_enter->SetBackgroundColor(ctrl_bg);
     m_page_num_enter->SetCornerRadius(FromDIP(5));
-    m_page_num_enter->Bind(wxEVT_LEFT_DOWN, [&](wxMouseEvent& evt) {
+    m_page_num_enter->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [&](auto& evt) {
         page_num_enter_evt();
     });
 
@@ -1209,7 +1210,8 @@ void CloudTaskManagerPage::refresh_user_device(bool clear)
 
             if (m_task_items.find(it->first) != m_task_items.end()) {
                 MultiTaskItem* item = m_task_items[it->first];
-                mtitem->state_selected = item->state_selected;
+                if (item->state_selected == 1 && mtitem->state_cloud_task == 0)
+                    mtitem->state_selected = item->state_selected;
                 item->Destroy();
             }
 
@@ -1351,7 +1353,7 @@ void CloudTaskManagerPage::on_timer(wxTimerEvent& event)
 void CloudTaskManagerPage::pause_all(wxCommandEvent& evt)
 {
     for (auto it = m_task_items.begin(); it != m_task_items.end(); it++) {
-        if (it->second->m_button_pause->IsShown() && (it->second->get_state_selected()  == 1)) {
+        if (it->second->m_button_pause->IsShown() && (it->second->get_state_selected()  == 1) && it->second->state_cloud_task == 0) {
             it->second->onPause();
         }
     }
@@ -1360,7 +1362,7 @@ void CloudTaskManagerPage::pause_all(wxCommandEvent& evt)
 void CloudTaskManagerPage::resume_all(wxCommandEvent& evt)
 {
     for (auto it = m_task_items.begin(); it != m_task_items.end(); it++) {
-        if (it->second->m_button_resume->IsShown() && (it->second->get_state_selected()  == 1)) {
+        if (it->second->m_button_resume->IsShown() && (it->second->get_state_selected()  == 1) && it->second->state_cloud_task == 0) {
             it->second->onResume();
         }
     }
@@ -1369,7 +1371,7 @@ void CloudTaskManagerPage::resume_all(wxCommandEvent& evt)
 void CloudTaskManagerPage::stop_all(wxCommandEvent& evt)
 {
     for (auto it = m_task_items.begin(); it != m_task_items.end(); it++) {
-        if (it->second->m_button_stop->IsShown() && (it->second->get_state_selected()  == 1)) {
+        if (it->second->m_button_stop->IsShown() && (it->second->get_state_selected()  == 1) && it->second->state_cloud_task == 0) {
             it->second->onStop();
         }
     }
