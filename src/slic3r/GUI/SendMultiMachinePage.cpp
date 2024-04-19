@@ -401,9 +401,9 @@ BBL::PrintParams SendMultiMachinePage::request_params(MachineObject* obj)
     BBL::PrintParams params;
 
     //get all setting
-    bool bed_leveling = app_config->get("bed_leveling") == "1" ? true : false;
-    bool flow_cali = app_config->get("flow_cali") == "1" ? true : false;
-    bool timelapse = app_config->get("timelapse") == "1" ? true : false;
+    bool bed_leveling = app_config->get("print", "bed_leveling") == "1" ? true : false;
+    bool flow_cali = app_config->get("print", "flow_cali") == "1" ? true : false;
+    bool timelapse = app_config->get("print", "timelapse") == "1" ? true : false;
     auto use_ams = false;
 
     AmsRadioSelectorList::Node* node = m_radio_group.GetFirst();
