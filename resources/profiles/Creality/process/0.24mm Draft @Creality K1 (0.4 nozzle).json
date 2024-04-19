@@ -13,7 +13,7 @@
     "bottom_shell_thickness": "0",
     "bridge_flow": "1",
     "bridge_speed": "50",
-    "internal_bridge_speed" : "150%",
+    "internal_bridge_speed": "150%",
     "brim_width": "5",
     "brim_object_gap": "0.1",
     "compatible_printers": [
@@ -91,7 +91,7 @@
     "support_interface_top_layers": "2",
     "support_interface_bottom_layers": "2",
     "support_interface_spacing": "0.5",
-    "support_expansion":    "0",
+    "support_expansion": "0",
     "support_interface_speed": "80",
     "support_base_pattern": "default",
     "support_base_pattern_spacing": "2.5",
