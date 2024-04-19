@@ -992,12 +992,17 @@ wxPanel* SendMultiMachinePage::create_page()
     m_text_sizer = new wxBoxSizer(wxVERTICAL);
     m_text_sizer->Add(m_rename_switch_panel, 0, wxALIGN_CENTER_HORIZONTAL, 0);
 
-    m_thumbnail_panel = new ThumbnailPanel(m_title_panel);
+    m_panel_image = new wxPanel(m_title_panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+    m_image_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_thumbnail_panel = new ThumbnailPanel(m_panel_image);
     m_thumbnail_panel->SetSize(wxSize(THUMBNAIL_SIZE, THUMBNAIL_SIZE));
     m_thumbnail_panel->SetMinSize(wxSize(THUMBNAIL_SIZE, THUMBNAIL_SIZE));
     m_thumbnail_panel->SetMaxSize(wxSize(THUMBNAIL_SIZE, THUMBNAIL_SIZE));
     m_thumbnail_panel->SetBackgroundColour(*wxRED);
-    m_title_sizer->Add(m_thumbnail_panel, 0, wxLEFT, 0);
+    m_image_sizer->Add(m_thumbnail_panel, 0, wxALIGN_CENTER, 0);
+    m_panel_image->SetSizer(m_image_sizer);
+    m_panel_image->Layout();
+    m_title_sizer->Add(m_panel_image, 0, wxLEFT, 0);
 
     wxBoxSizer* m_sizer_basic = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer* m_sizer_basic_time = new wxBoxSizer(wxHORIZONTAL);
