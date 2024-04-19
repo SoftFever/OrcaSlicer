@@ -4184,7 +4184,7 @@ void GCodeViewer::render_all_plates_stats(const std::vector<const GCodeProcessor
             for (size_t extruder_id : plate_extruders) {
                 extruder_id -= 1;
                 if (plate_print_statistics.model_volumes_per_extruder.find(extruder_id) == plate_print_statistics.model_volumes_per_extruder.end())
-                    flushed_volume_of_extruders_all_plates[extruder_id] += 0;
+                    model_volume_of_extruders_all_plates[extruder_id] += 0;
                 else {
                     double model_volume = plate_print_statistics.model_volumes_per_extruder.at(extruder_id);
                     model_volume_of_extruders_all_plates[extruder_id] += model_volume;
