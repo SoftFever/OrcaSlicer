@@ -325,8 +325,16 @@ std::map<std::string, TaskStateInfo> TaskManager::get_task_list(int curr_page, i
                 BOOST_LOG_TRIVIAL(trace) << "task_manager: get_task_list task count =" << j["hits"].size();
                 for (auto& hit : j["hits"]) {
                     TaskStateInfo task_info;
-                    if (hit.contains("title"))
-                        task_info.set_task_name(hit["title"].get<std::string>());
+                    int64_t design_id = 0;
+                    if (hit.contains("designId")) {
+                        design_id = hit["designId"].get<int64_t>();
+                    }
+                    if (design_id > 0 && hit.contains("designTitle")) {
+                        task_info.set_task_name(hit["designTitle"].get<std::string>());
+                    } else {
+                        if (hit.contains("title"))
+                            task_info.set_task_name(hit["title"].get<std::string>());
+                    }
                     if (hit.contains("deviceName"))
                         task_info.set_device_name(hit["deviceName"].get<std::string>());
                     if (hit.contains("deviceId"))
