@@ -5,7 +5,7 @@
     "name": "Qidi Generic PETG @Qidi Q1 Pro 0.2 nozzle",
     "from": "system",
     "instantiation": "true",
-    "inherits": "fdm_filament_pet",
+    "inherits": "Qidi Generic PETG",
 	"reduce_fan_stop_start_freq": [
         "1"
     ],
@@ -16,7 +16,7 @@
         "30"
     ],
     "overhang_fan_speed": [
-        "90"
+        "100"
     ],
     "overhang_fan_threshold": [
         "25%"
@@ -28,10 +28,10 @@
         "10"
     ],
     "slow_down_min_speed": [
-        "10"
+        "20"
     ],
     "slow_down_layer_time": [
-        "8"
+        "12"
     ],
     "filament_flow_ratio": [
         "0.95"
