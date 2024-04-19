@@ -2265,12 +2265,8 @@ void StatusPanel::update_error_message()
                 used_button.emplace_back(PrintErrorDialog::PrintErrorButton::JUMP_TO_LIVEVIEW);
             if (!error_msg.IsEmpty()) {
                 wxDateTime now = wxDateTime::Now();
-                wxString show_time;
-#if !BBL_RELEASE_TO_PUBLIC
-                show_time = now.Format("%Y-%m-%d %H:%M:%S");
-#else
-                show_time = now.Format("%H:%M:%S");
-#endif
+                wxString show_time = wxString::Format("%d%02d%02d", now.GetDay(), now.GetHour(), now.GetMinute());
+
                 error_msg = wxString::Format("%s\n[%s %s]",
                     error_msg,
                     print_error_str, show_time);

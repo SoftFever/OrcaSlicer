@@ -983,7 +983,6 @@ void PrintErrorDialog::update_text_image(wxString text, wxString image_url)
     m_staticText_release_note->SetMaxSize(wxSize(FromDIP(300), -1));
     m_staticText_release_note->SetMinSize(wxSize(FromDIP(300), -1));
     m_staticText_release_note->SetLabelText(text);
-    //m_staticText_release_note->SetForegroundColour(wxColour("#5C5C5C"));
     m_vebview_release_note->Layout();
 
     auto text_size = m_staticText_release_note->GetBestSize();
@@ -1068,67 +1067,60 @@ void PrintErrorDialog::init_button_list() {
     
     init_button(RESUME_PRINTING, _L("Resume Printing"));
     m_button_list[RESUME_PRINTING]->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
-        wxCommandEvent evt(EVT_SECONDARY_CHECK_RETRY, GetId());
-        e.SetEventObject(this);
-        GetEventHandler()->ProcessEvent(evt);
-        this->on_hide();
-        });
+        post_event(wxCommandEvent(EVT_SECONDARY_CHECK_RESUME));
+        e.Skip();
+    });
 
     init_button(RESUME_PRINTING_DEFECTS, _L("Resume Printing(defects acceptable)"));
     m_button_list[RESUME_PRINTING_DEFECTS]->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
-        wxCommandEvent evt(EVT_SECONDARY_CHECK_RETRY, GetId());
-        e.SetEventObject(this);
-        GetEventHandler()->ProcessEvent(evt);
-        this->on_hide();
-        });
+        post_event(wxCommandEvent(EVT_SECONDARY_CHECK_RESUME));
+        e.Skip();
+    });
 
 
     init_button(RESUME_PRINTING_PROBELM_SOLVED, _L("Resume Printing(problem solved)"));
     m_button_list[RESUME_PRINTING_PROBELM_SOLVED]->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
-        //load filament and resume printing
-        wxCommandEvent evt(EVT_SECONDARY_CHECK_RETRY, GetId());
-        e.SetEventObject(this);
-        GetEventHandler()->ProcessEvent(evt);
-        this->on_hide();
-        });
+        post_event(wxCommandEvent(EVT_SECONDARY_CHECK_RESUME));
+        e.Skip();
+    });
 
     init_button(STOP_PRINTING, _L("Stop Printing"));
     m_button_list[STOP_PRINTING]->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
         post_event(wxCommandEvent(EVT_PRINT_ERROR_STOP));
         e.Skip();
-        });
+    });
 
     init_button(CHECK_ASSISTANT, _L("Check Assistant"));
     m_button_list[CHECK_ASSISTANT]->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
         post_event(wxCommandEvent(EVT_JUMP_TO_HMS));
         this->on_hide();
-        });
+    });
 
     init_button(FILAMENT_EXTRUDED, _L("Filament Extruded, Continue"));
     m_button_list[FILAMENT_EXTRUDED]->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
         post_event(wxCommandEvent(EVT_SECONDARY_CHECK_DONE));
         e.Skip();
-        });
+    });
 
-    init_button(RETRY_FILAMENT_EXTRUDED, _L("Not Extruded Yet,Retry"));
+    init_button(RETRY_FILAMENT_EXTRUDED, _L("Not Extruded Yet, Retry"));
     m_button_list[RETRY_FILAMENT_EXTRUDED]->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
         wxCommandEvent evt(EVT_SECONDARY_CHECK_RETRY, GetId());
         e.SetEventObject(this);
         GetEventHandler()->ProcessEvent(evt);
         this->on_hide();
-        });
+    });
 
     init_button(CONTINUE, _L("Finished, Continue"));
     m_button_list[CONTINUE]->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
         post_event(wxCommandEvent(EVT_SECONDARY_CHECK_DONE));
         e.Skip();
-        });
-    
+    });
+
     init_button(LOAD_VIRTUAL_TRAY, _L("Load Filament"));
     m_button_list[LOAD_VIRTUAL_TRAY]->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
         post_event(wxCommandEvent(EVT_LOAD_VAMS_TRAY));
         e.Skip();
-        });
+    });
 
     init_button(OK_BUTTON, _L("OK"));
     m_button_list[OK_BUTTON]->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
@@ -1136,7 +1128,7 @@ void PrintErrorDialog::init_button_list() {
         e.SetEventObject(this);
         GetEventHandler()->ProcessEvent(evt);
         this->on_hide();
-        });
+    });
 
     init_button(FILAMENT_LOAD_RESUME, _L("Filament Loaded, Resume"));
     m_button_list[FILAMENT_LOAD_RESUME]->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
