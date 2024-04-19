@@ -150,7 +150,7 @@ public:
     void start();
     void stop();
 
-    std::map<std::string, TaskStateInfo*> get_local_task_list();
+    std::map<int, TaskStateInfo*> get_local_task_list();
 
     /* curr_page is start with 0 */
     std::map<std::string, TaskStateInfo> get_task_list(int curr_page, int page_count, int& total);

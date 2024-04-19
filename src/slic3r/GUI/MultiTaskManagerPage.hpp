@@ -88,7 +88,7 @@ public:
 
 private:
     SortItem                    m_sort;
-    std::map<std::string, MultiTaskItem*> m_task_items;
+    std::map<int, MultiTaskItem*> m_task_items;
     bool                        device_name_big{ true };
     bool                        device_state_big{ true };
     bool                        device_send_time{ true };

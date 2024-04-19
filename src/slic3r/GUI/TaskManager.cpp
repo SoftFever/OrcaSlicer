@@ -284,9 +284,9 @@ void TaskManager::stop()
         m_scedule_thread.join();
 }
 
-std::map<std::string, TaskStateInfo*> TaskManager::get_local_task_list()
+std::map<int, TaskStateInfo*> TaskManager::get_local_task_list()
 {
-    std::map<std::string, TaskStateInfo*> out;
+    std::map<int, TaskStateInfo*> out;
     m_map_mutex.lock();
     for (auto it = m_cache_map.begin(); it != m_cache_map.end(); it++) {
         for (auto iter = (*it).tasks.begin(); iter != (*it).tasks.end(); iter++) {
@@ -295,7 +295,7 @@ std::map<std::string, TaskStateInfo*> TaskManager::get_local_task_list()
                 || (*iter)->state() == TaskState::TS_SEND_CANCELED
                 || (*iter)->state() == TaskState::TS_SEND_COMPLETED
                 || (*iter)->state() == TaskState::TS_SEND_FAILED) {
-                out.insert(std::make_pair(std::to_string((*iter)->task_info_id), *iter));
+                out.insert(std::make_pair((*iter)->task_info_id, *iter));
             }
         }
     }

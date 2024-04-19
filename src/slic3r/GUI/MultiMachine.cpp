@@ -216,6 +216,9 @@ std::vector<DeviceItem*> selected_machines(const std::vector<DeviceItem*>& dev_i
 
 SortItem::SortItem()
 {
+    sort_map.emplace(std::make_pair(SortRule::SR_None, [this](const DeviceItem* d1, const DeviceItem* d2) {
+        return d1->state_dev_name > d2->state_dev_name;
+    }));
     sort_map.emplace(std::make_pair(SortRule::SR_DEV_NAME, [this](const DeviceItem* d1, const DeviceItem* d2) {
         return this->big ? d1->state_dev_name > d2->state_dev_name : d1->state_dev_name < d2->state_dev_name;
     }));

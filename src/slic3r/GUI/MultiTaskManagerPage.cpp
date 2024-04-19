@@ -553,7 +553,6 @@ LocalTaskManagerPage::LocalTaskManagerPage(wxWindow* parent)
     m_select_checkbox = new CheckBox(m_table_head_panel, wxID_ANY);
     m_select_checkbox->SetMinSize(wxSize(FromDIP(TASK_LEFT_PRINTABLE), FromDIP(DEVICE_ITEM_MAX_HEIGHT)));
     m_select_checkbox->SetMaxSize(wxSize(FromDIP(TASK_LEFT_PRINTABLE), FromDIP(DEVICE_ITEM_MAX_HEIGHT)));
-    m_table_head_sizer->AddSpacer(FromDIP(TASK_LEFT_PADDING_LEFT));
     m_table_head_sizer->Add(m_select_checkbox, 0, wxALIGN_CENTER_VERTICAL, 0);
 
     m_select_checkbox->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent& e) {
@@ -756,8 +755,8 @@ void LocalTaskManagerPage::refresh_user_device(bool clear)
     auto task_manager = wxGetApp().getTaskManager();
     if (task_manager) {
         auto m_task_obj_list = task_manager->get_local_task_list();
-        
-        for (auto it = m_task_obj_list.begin(); it != m_task_obj_list.end(); it++) {
+
+        for (auto it = m_task_obj_list.rbegin(); it != m_task_obj_list.rend(); ++it) {
 
             TaskStateInfo* task_state_info = it->second;
 
@@ -794,7 +793,7 @@ void LocalTaskManagerPage::refresh_user_device(bool clear)
             task_temps.push_back(mtitem);
         }
 
-        if (m_sort.rule != SortItem::SortRule::SR_None) {
+        if (m_sort.rule != SortItem::SortRule::SR_None && m_sort.rule != SortItem::SortRule::SR_SEND_TIME) {
             std::sort(task_temps.begin(), task_temps.end(), m_sort.get_call_back());
         }
 
