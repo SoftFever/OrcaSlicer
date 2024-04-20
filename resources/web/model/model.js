@@ -206,6 +206,12 @@ function ShowModelInfo( pModel )
 	let sLicence=pModel.license.toUpperCase();
 	let sModelDesc=decodeURIComponent(pModel.description);
 	
+	if( pModel.hasOwnProperty('model_id') )
+	{
+		let m_id=pModel['model_id']+'';
+		UpdateModelID( m_id.trim() );
+	}
+	
 	SendWXDebugInfo("Model Name:  "+sModelName);
 	
 	$('#ModelName').html(sModelName);

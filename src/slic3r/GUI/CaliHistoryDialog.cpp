@@ -14,6 +14,7 @@ namespace GUI {
   
 #define HISTORY_WINDOW_SIZE                wxSize(FromDIP(700), FromDIP(600))
 #define EDIT_HISTORY_DIALOG_INPUT_SIZE     wxSize(FromDIP(160), FromDIP(24))
+#define NEW_HISTORY_DIALOG_INPUT_SIZE      wxSize(FromDIP(250), FromDIP(24))
 #define HISTORY_WINDOW_ITEMS_COUNT         5
 static const wxString k_tips = "Please input a valid value (K in 0~0.3)";
 
@@ -70,6 +71,21 @@ HistoryWindow::HistoryWindow(wxWindow* parent, const std::vector<PACalibResult>&
 
     auto scroll_sizer = new wxBoxSizer(wxVERTICAL);
     scroll_window->SetSizer(scroll_sizer);
+
+    Button *   mew_btn = new Button(scroll_window, _L("New"));
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+                            std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
+    mew_btn->SetBackgroundColour(*wxWHITE);
+    mew_btn->SetBackgroundColor(btn_bg_green);
+    mew_btn->SetBorderColor(wxColour(0, 174, 66));
+    mew_btn->SetTextColor(wxColour("#FFFFFE"));
+    mew_btn->SetMinSize(wxSize(FromDIP(100), FromDIP(24)));
+    mew_btn->SetMaxSize(wxSize(FromDIP(100), FromDIP(24)));
+    mew_btn->SetCornerRadius(FromDIP(12));
+    mew_btn->Bind(wxEVT_BUTTON, &HistoryWindow::on_click_new_button, this);
+
+    scroll_sizer->Add(mew_btn, 0, wxLEFT, FromDIP(20));
+    scroll_sizer->AddSpacer(FromDIP(15));
 
     wxPanel* comboBox_panel = new wxPanel(scroll_window);
     comboBox_panel->SetBackgroundColour(wxColour(238, 238, 238));
@@ -346,6 +362,11 @@ float HistoryWindow::get_nozzle_value()
     return nozzle_value;
 }
 
+void HistoryWindow::on_click_new_button(wxCommandEvent& event)
+{
+    NewCalibrationHistoryDialog dlg(this, m_calib_results_history);
+    dlg.ShowModal();
+}
 
 EditCalibrationHistoryDialog::EditCalibrationHistoryDialog(wxWindow* parent, const PACalibResult& result)
     : DPIDialog(parent, wxID_ANY, _L("Edit Flow Dynamics Calibration"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE)
@@ -434,13 +455,9 @@ PACalibResult EditCalibrationHistoryDialog::get_result() {
 
 void EditCalibrationHistoryDialog::on_save(wxCommandEvent& event) {
     wxString name = m_name_value->GetTextCtrl()->GetValue();
-    if (name.IsEmpty())
+    if (!CalibUtils::validate_input_name(name))
         return;
-    if (name.Length() > 40) {
-        MessageDialog msg_dlg(nullptr, _L("The name cannot exceed 40 characters."), wxEmptyString, wxICON_WARNING | wxOK);
-        msg_dlg.ShowModal();
-        return;
-    }
+
     m_new_result.name = m_name_value->GetTextCtrl()->GetValue().ToUTF8().data();
     
     float k = 0.0f;
@@ -463,6 +480,256 @@ void EditCalibrationHistoryDialog::on_cancel(wxCommandEvent& event) {
 
 void EditCalibrationHistoryDialog::on_dpi_changed(const wxRect& suggested_rect)
 {
+}
+
+wxArrayString NewCalibrationHistoryDialog::get_all_filaments(const MachineObject *obj)
+{
+    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+
+    wxArrayString         filament_items;
+    std::set<std::string> filament_id_set;
+    std::set<std::string> printer_names;
+    std::ostringstream    stream;
+    stream << std::fixed << std::setprecision(1) << obj->nozzle_diameter;
+    std::string nozzle_diameter_str = stream.str();
+
+    for (auto printer_it = preset_bundle->printers.begin(); printer_it != preset_bundle->printers.end(); printer_it++) {
+        // filter by system preset
+        if (!printer_it->is_system)
+            continue;
+        // get printer_model
+        ConfigOption *      printer_model_opt = printer_it->config.option("printer_model");
+        ConfigOptionString *printer_model_str = dynamic_cast<ConfigOptionString *>(printer_model_opt);
+        if (!printer_model_str)
+            continue;
+
+        // use printer_model as printer type
+        if (printer_model_str->value != MachineObject::get_preset_printer_model_name(obj->printer_type))
+            continue;
+
+        if (printer_it->name.find(nozzle_diameter_str) != std::string::npos)
+            printer_names.insert(printer_it->name);
+    }
+
+    if (preset_bundle) {
+        BOOST_LOG_TRIVIAL(trace) << "system_preset_bundle filament number=" << preset_bundle->filaments.size();
+        for (auto filament_it = preset_bundle->filaments.begin(); filament_it != preset_bundle->filaments.end(); filament_it++) {
+            // filter by system preset
+            Preset &preset = *filament_it;
+            /*The situation where the user preset is not displayed is as follows:
+                1. Not a root preset
+                2. Not system preset and the printer firmware does not support user preset */
+            if (preset_bundle->filaments.get_preset_base(*filament_it) != &preset || (!filament_it->is_system && ! obj->is_support_user_preset)) { continue; }
+
+            ConfigOption *       printer_opt  = filament_it->config.option("compatible_printers");
+            ConfigOptionStrings *printer_strs = dynamic_cast<ConfigOptionStrings *>(printer_opt);
+            for (auto printer_str : printer_strs->values) {
+                if (printer_names.find(printer_str) != printer_names.end()) {
+                    if (filament_id_set.find(filament_it->filament_id) != filament_id_set.end()) {
+                        continue;
+                    } else {
+                        filament_id_set.insert(filament_it->filament_id);
+                        // name matched
+                        if (filament_it->is_system) {
+                            filament_items.push_back(filament_it->alias);
+                            FilamentInfos filament_infos;
+                            filament_infos.filament_id             = filament_it->filament_id;
+                            filament_infos.setting_id              = filament_it->setting_id;
+                            map_filament_items[filament_it->alias] = filament_infos;
+                        } else {
+                            char   target = '@';
+                            size_t pos    = filament_it->name.find(target);
+                            if (pos != std::string::npos) {
+                                std::string user_preset_alias    = filament_it->name.substr(0, pos - 1);
+                                wxString    wx_user_preset_alias = wxString(user_preset_alias.c_str(), wxConvUTF8);
+                                user_preset_alias                = wx_user_preset_alias.ToStdString();
+
+                                filament_items.push_back(user_preset_alias);
+                                FilamentInfos filament_infos;
+                                filament_infos.filament_id            = filament_it->filament_id;
+                                filament_infos.setting_id             = filament_it->setting_id;
+                                map_filament_items[user_preset_alias] = filament_infos;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return filament_items;
+}
+
+NewCalibrationHistoryDialog::NewCalibrationHistoryDialog(wxWindow *parent, const std::vector<PACalibResult> history_results)
+    : DPIDialog(parent, wxID_ANY, _L("New Flow Dynamics Calibration"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE)
+    , m_history_results(history_results)
+{
+    Slic3r::DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev)
+        return;
+    MachineObject *obj = dev->get_selected_machine();
+    if (!obj)
+        return;
+
+    this->SetBackgroundColour(*wxWHITE);
+    auto main_sizer = new wxBoxSizer(wxVERTICAL);
+
+    auto top_panel = new wxPanel(this);
+    top_panel->SetBackgroundColour(*wxWHITE);
+    auto panel_sizer = new wxBoxSizer(wxVERTICAL);
+    top_panel->SetSizer(panel_sizer);
+
+    auto flex_sizer = new wxFlexGridSizer(0, 2, FromDIP(15), FromDIP(30));
+    flex_sizer->SetFlexibleDirection(wxBOTH);
+    flex_sizer->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);
+
+    Label *name_title = new Label(top_panel, _L("Name"));
+    m_name_value      = new TextInput(top_panel, "", "", "", wxDefaultPosition, NEW_HISTORY_DIALOG_INPUT_SIZE, wxTE_PROCESS_ENTER);
+
+    // Name
+    flex_sizer->Add(name_title);
+    flex_sizer->Add(m_name_value);
+
+    Label *  preset_name_title = new Label(top_panel, _L("Filament"));
+    m_comboBox_filament = new ::ComboBox(top_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, NEW_HISTORY_DIALOG_INPUT_SIZE, 0, nullptr, wxCB_READONLY);
+
+    wxArrayString filament_items = get_all_filaments(obj);
+    m_comboBox_filament->Set(filament_items);
+    m_comboBox_filament->SetSelection(-1);
+
+    // Filament
+    flex_sizer->Add(preset_name_title);
+    flex_sizer->Add(m_comboBox_filament);
+
+    Label *nozzle_diameter_title = new Label(top_panel, _L("Nozzle Diameter"));
+    m_comboBox_nozzle_diameter = new ::ComboBox(top_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, NEW_HISTORY_DIALOG_INPUT_SIZE, 0, nullptr, wxCB_READONLY);
+    static std::array<float, 4> nozzle_diameter_list = {0.2f, 0.4f, 0.6f, 0.8f};
+    for (int i = 0; i < nozzle_diameter_list.size(); i++) {
+        m_comboBox_nozzle_diameter->AppendString(wxString::Format("%1.1f mm", nozzle_diameter_list[i]));
+        if (abs(obj->nozzle_diameter - nozzle_diameter_list[i]) < 1e-3) {
+            m_comboBox_nozzle_diameter->SetSelection(i);
+        }
+    }
+    
+    // Nozzle Diameter
+    flex_sizer->Add(nozzle_diameter_title);
+    flex_sizer->Add(m_comboBox_nozzle_diameter);
+
+    Label *k_title = new Label(top_panel, _L("Factor K"));
+    auto   k_str   = wxString::Format("%.3f", m_new_result.k_value);
+    m_k_value      = new TextInput(top_panel, k_str, "", "", wxDefaultPosition, NEW_HISTORY_DIALOG_INPUT_SIZE, wxTE_PROCESS_ENTER);
+    
+    // Factor K
+    flex_sizer->Add(k_title);
+    flex_sizer->Add(m_k_value);
+
+    panel_sizer->Add(flex_sizer);
+
+    panel_sizer->AddSpacer(FromDIP(25));
+
+    auto       btn_sizer = new wxBoxSizer(wxHORIZONTAL);
+    Button *   ok_btn  = new Button(top_panel, _L("Ok"));
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+                            std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
+    ok_btn->SetBackgroundColour(*wxWHITE);
+    ok_btn->SetBackgroundColor(btn_bg_green);
+    ok_btn->SetBorderColor(wxColour(0, 174, 66));
+    ok_btn->SetTextColor(wxColour("#FFFFFE"));
+    ok_btn->SetMinSize(wxSize(-1, FromDIP(24)));
+    ok_btn->SetCornerRadius(FromDIP(12));
+    Button *cancel_btn = new Button(top_panel, _L("Cancel"));
+    cancel_btn->SetBackgroundColour(*wxWHITE);
+    cancel_btn->SetMinSize(wxSize(-1, FromDIP(24)));
+    cancel_btn->SetCornerRadius(FromDIP(12));
+    ok_btn->Bind(wxEVT_BUTTON, &NewCalibrationHistoryDialog::on_ok, this);
+    cancel_btn->Bind(wxEVT_BUTTON, &NewCalibrationHistoryDialog::on_cancel, this);
+    btn_sizer->AddStretchSpacer();
+    btn_sizer->Add(ok_btn);
+    btn_sizer->AddSpacer(FromDIP(20));
+    btn_sizer->Add(cancel_btn);
+    panel_sizer->Add(btn_sizer, 0, wxEXPAND, 0);
+
+    main_sizer->Add(top_panel, 1, wxEXPAND | wxALL, FromDIP(20));
+
+    SetSizer(main_sizer);
+    Layout();
+    Fit();
+    CenterOnParent();
+
+    wxGetApp().UpdateDlgDarkUI(this);
+}
+
+void NewCalibrationHistoryDialog::on_ok(wxCommandEvent &event)
+{
+    wxString name = m_name_value->GetTextCtrl()->GetValue();
+    if (!CalibUtils::validate_input_name(name))
+        return;
+
+    float k = 0.0f;
+    if (!CalibUtils::validate_input_k_value(m_k_value->GetTextCtrl()->GetValue(), &k)) {
+        MessageDialog msg_dlg(nullptr, _L(k_tips), wxEmptyString, wxICON_WARNING | wxOK);
+        msg_dlg.ShowModal();
+        return;
+    }
+    wxString k_str = wxString::Format("%.3f", k);
+    m_k_value->GetTextCtrl()->SetValue(k_str);
+
+    double   nozzle_value     = 0.0;
+    wxString nozzle_value_str = m_comboBox_nozzle_diameter->GetValue();
+    nozzle_value_str.ToDouble(&nozzle_value);
+
+    std::string filament_name = m_comboBox_filament->GetValue().ToStdString();
+    if (filament_name.empty()) {
+        MessageDialog msg_dlg(nullptr, _L("The filament must be selected."), wxEmptyString, wxICON_WARNING | wxOK);
+        msg_dlg.ShowModal();
+        return;
+    }
+
+    auto filament_item = map_filament_items[m_comboBox_filament->GetValue().ToStdString()];
+    std::string filament_id   = filament_item.filament_id;
+    std::string setting_id    = filament_item.setting_id;
+
+    m_new_result.name = name.ToUTF8().data();
+    m_new_result.k_value  = k;
+    m_new_result.tray_id = -1;
+    m_new_result.cali_idx = -1;
+    
+    m_new_result.nozzle_diameter = nozzle_value;
+    m_new_result.filament_id = filament_id;
+    m_new_result.setting_id = setting_id;
+
+    // Check for duplicate names from history
+    {
+        struct PACalibResult
+        {
+            size_t operator()(const std::pair<std::string, std::string> &item) const
+            {
+                return std::hash<string>()(item.first) * std::hash<string>()(item.second);
+            }
+        };
+        std::unordered_set<std::pair<std::string, std::string>, PACalibResult> set;
+        set.insert({m_new_result.name, m_new_result.filament_id});
+
+        for (auto &result : m_history_results) {
+            if (!set.insert({result.name, result.filament_id}).second) {
+                MessageDialog msg_dlg(nullptr,
+                                      wxString::Format(_L("There is already a historical calibration result with the same name: %s. Only one of the results with the same name "
+                                                          "is saved. Are you sure you want to override the historical result?"),
+                                                       result.name),
+                                      wxEmptyString, wxICON_WARNING | wxYES_NO);
+                if (msg_dlg.ShowModal() != wxID_YES)
+                    return;
+            }
+        }
+    }
+
+    CalibUtils::set_PA_calib_result({m_new_result}, true);
+
+    EndModal(wxID_OK);
+}
+
+void NewCalibrationHistoryDialog::on_cancel(wxCommandEvent &event)
+{
+    EndModal(wxID_CANCEL);
 }
 
 } // namespace GUI
