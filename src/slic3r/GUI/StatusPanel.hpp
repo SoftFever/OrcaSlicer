@@ -452,6 +452,7 @@ public:
     wxBoxSizer *create_settings_group(wxWindow *parent);
 
     void show_ams_group(bool show = true);
+    MediaPlayCtrl* get_media_play_ctrl() {return m_media_play_ctrl;};
 };
 
 
