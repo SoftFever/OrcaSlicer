@@ -6019,10 +6019,12 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
             preview->set_as_dirty();
         };
 
-    //BBS: add the collapse logic
+    // Add sidebar and toolbar collapse logic
+    if (panel == view3D || panel == preview) {
+        this->enable_sidebar(!q->only_gcode_mode());
+    }
     if (panel == preview) {
         if (q->only_gcode_mode()) {
-            this->sidebar->collapse(true);
             preview->get_canvas3d()->enable_select_plate_toolbar(false);
         } else if (q->using_exported_file() && (q->m_valid_plates_count <= 1)) {
             preview->get_canvas3d()->enable_select_plate_toolbar(false);
@@ -8517,6 +8519,7 @@ Plater::Plater(wxWindow *parent, MainFrame *main_frame)
 {
     // Initialization performed in the private c-tor
     enable_wireframe(true);
+    m_only_gcode = false;
 }
 
 bool Plater::Show(bool show)
