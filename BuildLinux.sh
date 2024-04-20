@@ -139,11 +139,7 @@ then
     fi
     if [[ ! -f build/ninja.build ]]; then
         echo "Configuring OrcaSlicer..."
-        BUILD_ARGS=""
-        if [[ -n "${FOUND_GTK3_DEV}" ]]
-        then
-            BUILD_ARGS="-DSLIC3R_GTK=3"
-        fi
+        BUILD_ARGS="-DSLIC3R_GTK=3 -DSLIC3R_PCH=0"
         if [[ -n "${BUILD_DEBUG}" ]]
         then
             BUILD_ARGS="${BUILD_ARGS} -DCMAKE_BUILD_TYPE=Debug -DBBL_INTERNAL_TESTING=1"

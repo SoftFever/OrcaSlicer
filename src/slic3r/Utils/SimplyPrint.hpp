@@ -3,6 +3,9 @@
 
 #include "PrintHost.hpp"
 #include "slic3r/GUI/Jobs/OAuthJob.hpp"
+#include "boost/filesystem.hpp"
+#include "boost/nowide/fstream.hpp"
+#include "boost/nowide/cstdio.hpp"
 
 namespace Slic3r {
 

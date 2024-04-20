@@ -6,6 +6,7 @@
 #include "wx/notifmsg.h"
 #include "wx/settings.h"
 #include "wx/webview.h"
+#include "wx/display.h"
 
 #if wxUSE_WEBVIEW_IE
 #include "wx/msw/webview_ie.h"

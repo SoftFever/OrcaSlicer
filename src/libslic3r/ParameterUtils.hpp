@@ -1,6 +1,7 @@
 #ifndef slic3r_Parameter_Utils_hpp_
 #define slic3r_Parameter_Utils_hpp_
 
+#include <cassert>
 #include <vector>
 #include <map>
 
