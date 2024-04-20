@@ -265,10 +265,10 @@ private:
 
     std::unique_ptr<ImGuiWrapper> m_imgui;
     std::unique_ptr<PrintHostJobQueue> m_printhost_job_queue;
-	//std::unique_ptr <OtherInstanceMessageHandler> m_other_instance_message_handler;
-    //std::unique_ptr <wxSingleInstanceChecker> m_single_instance_checker;
-    //std::string m_instance_hash_string;
-	//size_t m_instance_hash_int;
+	std::unique_ptr <OtherInstanceMessageHandler> m_other_instance_message_handler;
+    std::unique_ptr <wxSingleInstanceChecker> m_single_instance_checker;
+    std::string m_instance_hash_string;
+	    size_t m_instance_hash_int;
 
     //BBS
     bool m_is_closing {false};
@@ -594,13 +594,13 @@ private:
     Tab*                    plate_tab;
 
 	RemovableDriveManager* removable_drive_manager() { return m_removable_drive_manager.get(); }
-	//OtherInstanceMessageHandler* other_instance_message_handler() { return m_other_instance_message_handler.get(); }
-    //wxSingleInstanceChecker* single_instance_checker() {return m_single_instance_checker.get();}
+	OtherInstanceMessageHandler* other_instance_message_handler() { return m_other_instance_message_handler.get(); }
+    wxSingleInstanceChecker* single_instance_checker() {return m_single_instance_checker.get();}
 
-	//void        init_single_instance_checker(const std::string &name, const std::string &path);
-	//void        set_instance_hash (const size_t hash) { m_instance_hash_int = hash; m_instance_hash_string = std::to_string(hash); }
-    //std::string get_instance_hash_string ()           { return m_instance_hash_string; }
-	//size_t      get_instance_hash_int ()              { return m_instance_hash_int; }
+	void        init_single_instance_checker(const std::string &name, const std::string &path);
+	void        set_instance_hash (const size_t hash) { m_instance_hash_int = hash; m_instance_hash_string = std::to_string(hash); }
+    std::string get_instance_hash_string ()           { return m_instance_hash_string; }
+	size_t      get_instance_hash_int ()              { return m_instance_hash_int; }
 
     ImGuiWrapper* imgui() { return m_imgui.get(); }
 
@@ -625,7 +625,7 @@ private:
     int  GetSingleChoiceIndex(const wxString& message, const wxString& caption, const wxArrayString& choices, int initialSelection);
 
 #ifdef __WXMSW__
-    // extend is stl/3mf/gcode/step etc
+    // extend is stl/3mf/gcode/step etc 
     void            associate_files(std::wstring extend);
     void            disassociate_files(std::wstring extend);
 #endif // __WXMSW__
