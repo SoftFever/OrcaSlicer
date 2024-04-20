@@ -1,6 +1,7 @@
 #ifndef slic3r_Http_App_hpp_
 #define slic3r_Http_App_hpp_
 
+#include <set>
 #include <iostream>
 #include <mutex>
 #include <stack>

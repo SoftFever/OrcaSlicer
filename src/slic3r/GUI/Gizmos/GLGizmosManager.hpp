@@ -11,6 +11,7 @@
 #include "slic3r/GUI/Gizmos/GLGizmosCommon.hpp"
 //BBS: GUI refactor: add object manipulation
 #include "slic3r/GUI/Gizmos/GizmoObjectManipulation.hpp"
+#include "wx/timer.h"
 
 #include "libslic3r/ObjectID.hpp"
 

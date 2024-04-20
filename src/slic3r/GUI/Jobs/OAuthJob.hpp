@@ -3,6 +3,9 @@
 
 #include "Job.hpp"
 #include "slic3r/GUI/HttpServer.hpp"
+#include "boost/log/trivial.hpp"
+#include "boost/algorithm/string/predicate.hpp"
+#include <thread>
 
 namespace Slic3r {
 namespace GUI {
