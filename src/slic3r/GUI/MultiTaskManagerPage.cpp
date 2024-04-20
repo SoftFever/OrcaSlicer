@@ -256,7 +256,7 @@ void MultiTaskItem::OnLeftDown(wxMouseEvent& evt)
         mouse_pos.y > item.y &&
         mouse_pos.y < (item.y + DEVICE_ITEM_MAX_HEIGHT)) {
 
-        if (m_task_type == 0 && state_local_task == 1) {
+        if (m_task_type == 0 && state_local_task <= 1) {
             post_event(wxCommandEvent(EVT_MULTI_DEVICE_SELECTED));
         }
         else if (m_task_type == 1 && state_cloud_task == 0) {
