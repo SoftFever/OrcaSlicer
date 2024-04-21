@@ -689,15 +689,15 @@ static void register_win32_device_notification_event()
         return false;
     });
 
-	//wxWindow::MSWRegisterMessageHandler(WM_COPYDATA, [](wxWindow* win, WXUINT /* nMsg */, WXWPARAM wParam, WXLPARAM lParam) {
-	//	COPYDATASTRUCT* copy_data_structure = { 0 };
-	//	copy_data_structure = (COPYDATASTRUCT*)lParam;
-	//	if (copy_data_structure->dwData == 1) {
-	//		LPCWSTR arguments = (LPCWSTR)copy_data_structure->lpData;
-	//		Slic3r::GUI::wxGetApp().other_instance_message_handler()->handle_message(boost::nowide::narrow(arguments));
-	//	}
-	//	return true;
-	//	});
+	wxWindow::MSWRegisterMessageHandler(WM_COPYDATA, [](wxWindow* win, WXUINT /* nMsg */, WXWPARAM wParam, WXLPARAM lParam) {
+		COPYDATASTRUCT* copy_data_structure = { 0 };
+		copy_data_structure = (COPYDATASTRUCT*)lParam;
+		if (copy_data_structure->dwData == 1) {
+			LPCWSTR arguments = (LPCWSTR)copy_data_structure->lpData;
+			Slic3r::GUI::wxGetApp().other_instance_message_handler()->handle_message(boost::nowide::narrow(arguments));
+		}
+		return true;
+		});
 }
 #endif // WIN32
 
@@ -1065,10 +1065,10 @@ void GUI_App::post_init()
     }
     BOOST_LOG_TRIVIAL(info) << "finished post_init";
 //BBS: remove the single instance currently
-/*#ifdef _WIN32
+#ifdef _WIN32
     // Sets window property to mainframe so other instances can indentify it.
     OtherInstanceMessageHandler::init_windows_properties(mainframe, m_instance_hash_int);
-#endif //WIN32*/
+#endif //WIN32
 }
 
 wxDEFINE_EVENT(EVT_ENTER_FORCE_UPGRADE, wxCommandEvent);
@@ -1086,7 +1086,7 @@ GUI_App::GUI_App()
     , m_em_unit(10)
     , m_imgui(new ImGuiWrapper())
 	, m_removable_drive_manager(std::make_unique<RemovableDriveManager>())
-	//, m_other_instance_message_handler(std::make_unique<OtherInstanceMessageHandler>())
+	, m_other_instance_message_handler(std::make_unique<OtherInstanceMessageHandler>())
 {
 	//app config initializes early becasuse it is used in instance checking in OrcaSlicer.cpp
     this->init_app_config();
@@ -2029,11 +2029,11 @@ std::string GUI_App::get_local_models_path()
     return local_path;
 }
 
-/*void GUI_App::init_single_instance_checker(const std::string &name, const std::string &path)
+void GUI_App::init_single_instance_checker(const std::string &name, const std::string &path)
 {
     BOOST_LOG_TRIVIAL(debug) << "init wx instance checker " << name << " "<< path;
     m_single_instance_checker = std::make_unique<wxSingleInstanceChecker>(boost::nowide::widen(name), boost::nowide::widen(path));
-}*/
+}
 
 bool GUI_App::OnInit()
 {
@@ -2510,9 +2510,9 @@ bool GUI_App::on_init_inner()
 
     update_mode(); // update view mode after fix of the object_list size
 
-//#ifdef __APPLE__
-//    other_instance_message_handler()->bring_instance_forward();
-//#endif //__APPLE__
+#ifdef __APPLE__
+   other_instance_message_handler()->bring_instance_forward();
+#endif //__APPLE__
 
     Bind(EVT_HTTP_ERROR, &GUI_App::on_http_error, this);
 
@@ -5737,7 +5737,8 @@ void GUI_App::MacOpenURL(const wxString& url)
 // wxWidgets override to get an event on open files.
 void GUI_App::MacOpenFiles(const wxArrayString &fileNames)
 {
-    if (m_post_initialized) {
+    bool single_instance = app_config->get("app", "single_instance") == "true";
+    if (m_post_initialized && !single_instance) {
         bool has3mf = false;
         std::vector<wxString> names;
         for (auto & n : fileNames) {
