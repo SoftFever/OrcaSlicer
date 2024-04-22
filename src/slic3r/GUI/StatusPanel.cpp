@@ -84,7 +84,8 @@ static std::vector<std::string> message_containing_retry{
     "07FF 8011",
     "07FF 8012",
     "07FF 8013",
-    "12FF 8007"
+    "12FF 8007",
+    "1200 8006"
 };
 
 static std::vector<std::string> message_containing_done{
@@ -2254,18 +2255,18 @@ void StatusPanel::update_error_message()
             ::sprintf(buf, "%08X", obj->print_error);
             std::string print_error_str = std::string(buf);
             if (print_error_str.size() > 4) {
-                print_error_str.insert(4, "-");
+                print_error_str.insert(4, " ");
             }
 
             wxString error_msg = wxGetApp().get_hms_query()->query_print_error_msg(obj->print_error);
             std::vector<int> used_button;
             wxString error_image_url = wxGetApp().get_hms_query()->query_print_error_url_action(obj->print_error,obj->dev_id, used_button);
             // special case
-            if (print_error_str == "0300-8003" || print_error_str == "0300-8002" || print_error_str == "0300-800A")
+            if (print_error_str == "0300 8003" || print_error_str == "0300 8002" || print_error_str == "0300 800A")
                 used_button.emplace_back(PrintErrorDialog::PrintErrorButton::JUMP_TO_LIVEVIEW);
             if (!error_msg.IsEmpty()) {
                 wxDateTime now = wxDateTime::Now();
-                wxString show_time = wxString::Format("%d%02d%02d", now.GetDay(), now.GetHour(), now.GetMinute());
+                wxString show_time = now.Format("%Y-%m-%d %H:%M:%S");
 
                 error_msg = wxString::Format("%s\n[%s %s]",
                     error_msg,
