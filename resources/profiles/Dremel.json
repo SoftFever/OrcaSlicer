@@ -85,6 +85,10 @@
 			"sub_path": "filament/fdm_filament_common.json"
 		},
 		{
+			"name": "fdm_filament_pla",
+			"sub_path": "filament/fdm_filament_pla.json"
+		},
+		{
 			"name": "Dremel Generic PLA @3D20 all",
 			"sub_path": "filament/Dremel Generic PLA @3D20 all.json"
 		},
