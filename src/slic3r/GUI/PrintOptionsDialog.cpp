@@ -169,7 +169,7 @@ void PrintOptionsDialog::update_options(MachineObject* obj_)
         m_cb_filament_tangle->Hide();
         line6->Hide();
     }
-    if (obj_->is_support_nozzle_blob_detection) {
+    if (false/*obj_->is_support_nozzle_blob_detection*/) {
         text_nozzle_blob->Show();
         m_cb_nozzle_blob->Show();
         text_nozzle_blob_caption->Show();
@@ -371,6 +371,11 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     line7 = new StaticLine(parent, false);
     line7->SetLineColour(STATIC_BOX_LINE_COL);
     sizer->Add(line7, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
+
+    text_nozzle_blob->Hide();
+    m_cb_nozzle_blob->Hide();
+    text_nozzle_blob_caption->Hide();
+    line7->Hide();
 
     ai_monitoring_level_list->Connect( wxEVT_COMBOBOX, wxCommandEventHandler(PrintOptionsDialog::set_ai_monitor_sensitivity), NULL, this );
 

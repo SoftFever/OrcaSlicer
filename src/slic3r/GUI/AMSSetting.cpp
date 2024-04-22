@@ -222,6 +222,9 @@ void AMSSetting::create()
     m_sizer_air_print_inline->Add(m_tip_air_print_line, 0, wxEXPAND, 0);
     m_sizer_air_print_tip->Add(m_sizer_air_print_inline, 1, wxALIGN_CENTER, 0);
 
+    m_checkbox_air_print->Hide();
+    m_title_air_print->Hide();
+    m_tip_air_print_line->Hide();
 
 
     // panel img
@@ -374,7 +377,7 @@ void AMSSetting::update_switch_filament(bool selected)
 
 void AMSSetting::update_air_printing_detection(bool selected)
 {
-    if (obj->is_support_air_print_detection) {
+    if (false/*obj->is_support_air_print_detection*/) {
         m_checkbox_air_print->Show();
         m_title_air_print->Show();
         m_tip_air_print_line->Show();
