@@ -4,7 +4,7 @@
   "name": "Dremel 3D20 0.4 nozzle",
   "from": "system",
   "instantiation": "true",
-  "inherits": "fdm_creality_common",
+  "inherits": "fdm_dremel_common",
   "printer_model": "Dremel 3D20",
   "printer_variant": "0.4",
   "printer_structure": "HBOT",
