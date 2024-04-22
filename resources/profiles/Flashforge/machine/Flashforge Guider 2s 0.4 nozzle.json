@@ -16,6 +16,7 @@
 		"280x250",
 		"0x250"
 	],
+	"extruder_offset": [ "-20", "10" ],
 	"printable_height": "300",
 	"auxiliary_fan": "1",
 	"machine_max_acceleration_e": [ "5000", "5000" ],
@@ -55,8 +56,5 @@
 		"140x110"
 	],
 	"wipe_distance": "2",
-	"extruder_clearance_radius": [ "76" ],
-	"extruder_clearance_height_to_rod": [ "27" ],
-	"extruder_clearance_height_to_lid": [ "150" ],
 	"nozzle_type": "undefined"
 }
