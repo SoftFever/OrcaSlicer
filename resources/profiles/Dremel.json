@@ -19,12 +19,12 @@
 	],
 	"process_list": [
 		{
-			"name": "fdm_process_dremel_common",
-			"sub_path": "process/fdm_process_dremel_common.json"
-		},
-		{
 			"name": "fdm_process_common",
 			"sub_path": "process/fdm_process_common.json"
+		},
+		{
+			"name": "fdm_process_dremel_common",
+			"sub_path": "process/fdm_process_dremel_common.json"
 		},
 		{
 			"name": ".05mm Super Detail @Dremel 3D40 0.4",
