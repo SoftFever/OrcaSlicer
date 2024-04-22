@@ -10,10 +10,40 @@
         "1.35"
     ],
     "filament_flow_ratio": [
-      "1.08"
+      "1.15"
     ],
     "filament_start_gcode": [
       "M900 K0 ; Filament gcode"
+    ],
+    "hot_plate_temp" : [
+      "50"
+    ],
+    "hot_plate_temp_initial_layer" : [
+      "50"
+    ],
+    "filament_type": [
+      "FLEX"
+    ],
+    "nozzle_temperature_initial_layer": [
+      "220"
+    ],
+    "nozzle_temperature": [
+      "210"
+    ],
+    "filament_retraction_length": [
+      "3"
+    ],
+    "filament_retraction_speed": [
+      "40"
+    ],
+    "filament_deretraction_speed": [
+      "16"
+    ],
+    "filament_retraction_minimum_travel": [
+      "6"
+    ],
+    "filament_wipe": [
+      "1"
     ],
     "compatible_printers": [
       "Prusa MINIIS 0.4 nozzle",
