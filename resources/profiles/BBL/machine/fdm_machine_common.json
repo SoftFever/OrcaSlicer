@@ -22,7 +22,7 @@
     "gcode_flavor": "marlin",
     "silent_mode": "0",
     "long_retractions_when_cut": [
-        "1"
+        "0"
     ],
     "machine_max_acceleration_e": [
         "5000"
