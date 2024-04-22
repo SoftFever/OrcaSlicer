@@ -17,7 +17,9 @@
     "2"
   ],
   "compatible_printers": [
-    "Flashforge Adventurer 5M Pro 0.4 Nozzle"
+    "Flashforge Adventurer 5M Pro 0.4 Nozzle",
+    "Flashforge Adventurer 5M Pro 0.6 Nozzle",
+    "Flashforge Adventurer 5M Pro 0.8 Nozzle"	
   ],
   "compatible_printers_condition": "",
   "compatible_prints": [],
