@@ -56,6 +56,7 @@ private:
     TextInput* m_text_input_single_code[PING_CODE_LENGTH];
     Button* m_button_bind;
     Button* m_button_cancel;
+    Button* m_button_close;
     wxSimplebook* m_simplebook;
     wxPanel* request_bind_panel;
     wxPanel* binding_panel;
@@ -78,6 +79,7 @@ public:
     PingCodeBindDialog(Plater* plater = nullptr);
     ~PingCodeBindDialog();
 
+    void     on_key_input(wxKeyEvent& evt);
     void     on_text_changed(wxCommandEvent& event);
     void     on_key_backspace(wxKeyEvent& event);
     void     on_cancel(wxCommandEvent& event);

@@ -129,6 +129,7 @@ PingCodeBindDialog::PingCodeBindDialog(Plater* plater /*= nullptr*/)
         m_text_input_single_code[i]->GetTextCtrl()->SetMaxLength(1);
         m_text_input_single_code[i]->GetTextCtrl()->Bind(wxEVT_TEXT, &PingCodeBindDialog::on_text_changed, this);
         m_text_input_single_code[i]->GetTextCtrl()->Bind(wxEVT_KEY_DOWN, &PingCodeBindDialog::on_key_backspace, this);
+        m_text_input_single_code[i]->GetTextCtrl()->Bind(wxEVT_CHAR, &PingCodeBindDialog::on_key_input, this);
         ping_code_input->Add(m_text_input_single_code[i], 0, wxALL, FromDIP(5));
     }
 
@@ -196,7 +197,7 @@ PingCodeBindDialog::PingCodeBindDialog(Plater* plater /*= nullptr*/)
     wxBoxSizer* m_sizer_binding_button = new wxBoxSizer(wxHORIZONTAL);
     m_sizer_binding_button->Add(0, 0, 1, wxEXPAND, 5);
 
-    auto m_button_close = new Button(binding_panel, _L("Close"));
+    m_button_close = new Button(binding_panel, _L("Close"));
     m_button_close->SetBackgroundColor(btn_bg_white);
     m_button_close->SetBorderColor(BIND_DIALOG_GREY900);
     m_button_close->SetSize(BIND_DIALOG_BUTTON_SIZE);
@@ -229,8 +230,24 @@ PingCodeBindDialog::PingCodeBindDialog(Plater* plater /*= nullptr*/)
 
     m_button_bind->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(PingCodeBindDialog::on_bind_printer), NULL, this);
     m_button_cancel->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(PingCodeBindDialog::on_cancel), NULL, this);
+    m_button_close->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(PingCodeBindDialog::on_cancel), NULL, this);
 
     m_simplebook->SetSelection(0);
+}
+
+void PingCodeBindDialog::on_key_input(wxKeyEvent& evt)
+{
+    int keyCode = evt.GetKeyCode();
+
+    if (keyCode == WXK_BACK  || (keyCode >= '0' && keyCode <= '9') || (keyCode >= 'a' && keyCode <= 'z') || (keyCode >= 'A' && keyCode <= 'Z'))
+    {
+        evt.Skip(); 
+    }
+    else
+    {
+        wxBell(); 
+        return;
+    }
 }
 
 void PingCodeBindDialog::on_text_changed(wxCommandEvent& event) {
@@ -248,9 +265,24 @@ void PingCodeBindDialog::on_text_changed(wxCommandEvent& event) {
         if (idx < PING_CODE_LENGTH-1) {
             m_text_input_single_code[idx + 1]->SetFocus(); 
         }
-        else if (idx == PING_CODE_LENGTH - 1) {
+
+        auto has_empty = false;
+        for (int i = 0; i < PING_CODE_LENGTH; i++) {
+            if (m_text_input_single_code[i]->GetTextCtrl()->GetValue().ToStdString().empty()) {
+                has_empty = true;
+            }
+        }
+
+        if (has_empty) {
+            m_button_bind->Enable(false);
+        }
+        else {
             m_button_bind->Enable(true);
         }
+
+        /*if (idx == PING_CODE_LENGTH - 1) {
+            m_button_bind->Enable(true);
+        }*/
     }
 
 }
@@ -266,9 +298,11 @@ void PingCodeBindDialog::on_key_backspace(wxKeyEvent& event)
         }
     }
     
-    if (event.GetKeyCode() == WXK_BACK && idx > 0) {
-        m_text_input_single_code[idx - 1]->SetFocus(); 
-        m_button_bind->Enable(false);
+    if (event.GetKeyCode() == WXK_BACK && idx >= 0) {
+        CallAfter([this, idx]() {
+            m_text_input_single_code[idx - 1]->SetFocus();
+            m_button_bind->Enable(false);
+        });
     }
     event.Skip();
 }
@@ -310,6 +344,7 @@ void PingCodeBindDialog::on_dpi_changed(const wxRect& suggested_rect)
 PingCodeBindDialog::~PingCodeBindDialog() {
     m_button_bind->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(PingCodeBindDialog::on_bind_printer), NULL, this);
     m_button_cancel->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(PingCodeBindDialog::on_cancel), NULL, this);
+    m_button_close->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(PingCodeBindDialog::on_cancel), NULL, this);
 }
 
  BindMachineDialog::BindMachineDialog(Plater *plater /*= nullptr*/)
