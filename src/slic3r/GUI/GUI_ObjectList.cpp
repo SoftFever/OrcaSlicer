@@ -5698,9 +5698,6 @@ void ObjectList::on_plate_deleted(int plate_idx)
 void ObjectList::reload_all_plates(bool notify_partplate)
 {
     m_prevent_canvas_selection_update = true;
-#ifdef __WXOSX__
-    AssociateModel(nullptr);
-#endif
 
     // Unselect all objects before deleting them, so that no change of selection is emitted during deletion.
 
@@ -5730,9 +5727,6 @@ void ObjectList::reload_all_plates(bool notify_partplate)
 
     update_selections();
 
-#ifdef __WXOSX__
-    AssociateModel(m_objects_model);
-#endif
     m_prevent_canvas_selection_update = false;
 
     // update scene
