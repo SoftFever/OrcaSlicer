@@ -2421,6 +2421,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->label = L("Filter out tiny gaps");
     def->category = L("Layers and Perimeters");
     def->tooltip = L("Filter out gaps smaller than the threshold specified");
+    def->sidetext = L("mm");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0));
     

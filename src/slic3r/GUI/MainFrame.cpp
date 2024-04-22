@@ -114,12 +114,12 @@ public:
     OrcaSlicerTaskBarIcon(wxTaskBarIconType iconType = wxTBI_DEFAULT_TYPE) : wxTaskBarIcon(iconType) {}
     wxMenu *CreatePopupMenu() override {
         wxMenu *menu = new wxMenu;
-        //if (wxGetApp().app_config->get("single_instance") == "false") {
+        if (wxGetApp().app_config->get("single_instance") == "false") {
             // Only allow opening a new PrusaSlicer instance on OSX if "single_instance" is disabled,
             // as starting new instances would interfere with the locking mechanism of "single_instance" support.
             append_menu_item(menu, wxID_ANY, _L("New Window"), _L("Open a new window"),
             [](wxCommandEvent&) { start_new_slicer(); }, "", nullptr);
-        //}
+        }
 //        append_menu_item(menu, wxID_ANY, _L("G-code Viewer") + dots, _L("Open G-code Viewer"),
 //            [](wxCommandEvent&) { start_new_gcodeviewer_open_file(); }, "", nullptr);
         return menu;
@@ -885,7 +885,7 @@ void MainFrame::shutdown()
     // Stop the background thread of the removable drive manager, so that no new updates will be sent to the Plater.
     //wxGetApp().removable_drive_manager()->shutdown();
 	//stop listening for messages from other instances
-	//wxGetApp().other_instance_message_handler()->shutdown(this);
+	wxGetApp().other_instance_message_handler()->shutdown(this);
     // Save the slic3r.ini.Usually the ini file is saved from "on idle" callback,
     // but in rare cases it may not have been called yet.
     if(wxGetApp().app_config->dirty())
@@ -2186,7 +2186,7 @@ void MainFrame::init_menubar_as_editor()
         // New Window
         append_menu_item(fileMenu, wxID_ANY, _L("New Window"), _L("Start a new window"),
                          [](wxCommandEvent&) { start_new_slicer(); }, "", nullptr,
-                         []{ return true; }, this);
+                         [this] { return m_plater != nullptr && wxGetApp().app_config->get("app", "single_instance") == "false"; }, this);
 #endif
         // New Project
         append_menu_item(fileMenu, wxID_ANY, _L("New Project") + "\t" + ctrl + "N", _L("Start a new project"),
