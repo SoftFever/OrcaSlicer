@@ -4,7 +4,7 @@
 	"name": "Dremel Generic PLA @3D40 all",
 	"from": "system",
 	"instantiation": "true",
-	"inherits": "fdm_filament_pla",
+	"inherits": "Dremel Generic PLA",
 	"filament_max_volumetric_speed": ["9"],
 	"slow_down_layer_time": ["10"],
     "filament_retraction_length": [
