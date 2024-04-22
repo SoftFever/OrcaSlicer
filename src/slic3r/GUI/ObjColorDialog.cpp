@@ -714,6 +714,7 @@ void ObjColorPanel::deal_algo(char cluster_number, bool redraw_ui)
     //redraw ui
     if (redraw_ui) {
         redraw_part_table();
+        deal_default_strategy();
     }
 }
 
