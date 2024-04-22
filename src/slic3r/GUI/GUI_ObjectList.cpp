@@ -1347,6 +1347,7 @@ void ObjectList::show_context_menu(const bool evt_context_menu)
                 const ModelVolume *volume = object(obj_idx)->volumes[vol_idx];
 
                 menu = volume->is_text() ? plater->text_part_menu() :
+			volume->is_svg() ? plater->svg_part_menu() : // ORCA fixes missing "Edit SVG" item for Add/Negative/Modifier SVG objects in object list
                     plater->part_menu();
             }
             else
@@ -5697,9 +5698,6 @@ void ObjectList::on_plate_deleted(int plate_idx)
 void ObjectList::reload_all_plates(bool notify_partplate)
 {
     m_prevent_canvas_selection_update = true;
-#ifdef __WXOSX__
-    AssociateModel(nullptr);
-#endif
 
     // Unselect all objects before deleting them, so that no change of selection is emitted during deletion.
 
@@ -5729,9 +5727,6 @@ void ObjectList::reload_all_plates(bool notify_partplate)
 
     update_selections();
 
-#ifdef __WXOSX__
-    AssociateModel(m_objects_model);
-#endif
     m_prevent_canvas_selection_update = false;
 
     // update scene
