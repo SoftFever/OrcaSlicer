@@ -99,6 +99,7 @@ class MainFrame : public DPIFrame
     wxMenuBar*  m_menubar{ nullptr };
     //wxMenu* publishMenu{ nullptr };
     wxMenu *    m_calib_menu{nullptr};
+    bool        enable_multi_machine{ false };
 
 #if 0
     wxMenuItem* m_menu_item_repeat { nullptr }; // doesn't used now
