@@ -145,6 +145,8 @@ class GLGizmoCut3D : public GLGizmoBase
 
     float m_label_width{ 0.f };
     float m_control_width{ 200.f };
+    int m_icon_width;
+    int m_revert_offset;
     double m_editing_window_width;
     bool  m_imperial_units{ false };
 
@@ -346,6 +348,7 @@ private:
     void render_connect_mode_radio_button(CutConnectorMode mode);
     bool render_reset_button(const std::string& label_id, const std::string& tooltip) const;
     bool render_connect_type_radio_button(CutConnectorType type);
+    bool render_connect_style_radio_button(CutConnectorStyle style);
     bool is_outside_of_cut_contour(size_t idx, const CutConnectors& connectors, const Vec3d cur_pos);
     bool is_conflict_for_connector(size_t idx, const CutConnectors& connectors, const Vec3d cur_pos);
     void render_connectors();

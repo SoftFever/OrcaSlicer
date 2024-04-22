@@ -2154,7 +2154,7 @@ bool ImGui::BBLBeginCombo(const char *label, const char *preview_value, ImGuiCom
     const ImVec2 label_size = CalcTextSize(label, NULL, true);
     const float  expected_w = CalcItemWidth();
     const float  w  = (flags & ImGuiComboFlags_NoPreview) ? arrow_size : expected_w;
-    const ImRect frame_bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(w - arrow_size * 2, label_size.y + style.FramePadding.y * 2));
+    const ImRect frame_bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(w, label_size.y + style.FramePadding.y * 2));
     const ImRect total_bb(frame_bb.Min, frame_bb.Max + ImVec2(label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f, 0.0f));
     ItemSize(total_bb, style.FramePadding.y);
     if (!ItemAdd(total_bb, id, &frame_bb)) return false;
@@ -7383,15 +7383,6 @@ bool ImGui::BBLSelectable(const char *label, bool selected, ImGuiSelectableFlags
     const bool was_selected = selected;
     bool       hovered, held;
     bool       pressed = ButtonBehavior(bb, id, &hovered, &held, button_flags);
-    if (hovered || g.ActiveId == id) {
-        ImGui::PushStyleColor(ImGuiCol_Border, GetColorU32(ImVec4(0.f, 0.59f, 0.53f, 0.5f))); // ORCA: Use orca color for border on hovered item
-        if(arrow_size == 0) {
-            RenderFrameBorder(bb.Min, ImVec2(bb.Max.x - style.WindowPadding.x, bb.Max.y), style.FrameRounding);
-        } else {
-            RenderFrameBorder(ImVec2(bb.Min.x + style.WindowPadding.x,bb.Min.y), ImVec2(bb.Max.x - style.WindowPadding.x,bb.Max.y), style.FrameRounding);
-        }
-        ImGui::PopStyleColor(1);
-    }
     // Update NavId when clicking or when Hovering (this doesn't happen on most widgets), so navigation can be resumed with gamepad/keyboard
     if (pressed || (hovered && (flags & ImGuiSelectableFlags_SetNavIdOnHover))) {
         if (!g.NavDisableMouseHover && g.NavWindow == window && g.NavLayer == window->DC.NavLayerCurrent) {
@@ -7410,13 +7401,25 @@ bool ImGui::BBLSelectable(const char *label, bool selected, ImGuiSelectableFlags
     // Render
     if (held && (flags & ImGuiSelectableFlags_DrawHoveredWhenHeld)) hovered = true;
     if (hovered || selected) {
-        ImU32 col = selected ? GetColorU32(ImGuiCol_HeaderActive) : GetColorU32(ImVec4(0.f, 0.f, 0.f, 0.f)); // ORCA: Use transparent background on hovered item
+        ImU32 col = selected ? GetColorU32(ImGuiCol_HeaderActive) : GetColorU32(ImGuiCol_Header); // ORCA: Use transparent background on hovered item
         if(arrow_size == 0) {
             RenderFrame(bb.Min, ImVec2(bb.Max.x - style.WindowPadding.x, bb.Max.y), col, false, 0.0f);
         } else {
             RenderFrame(ImVec2(bb.Min.x + style.WindowPadding.x, bb.Min.y), ImVec2(bb.Max.x - style.WindowPadding.x, bb.Max.y), col, false, 0.0f);
         }
-        RenderNavHighlight(bb, id, ImGuiNavHighlightFlags_TypeThin | ImGuiNavHighlightFlags_NoRounding);
+		RenderNavHighlight(bb, id, ImGuiNavHighlightFlags_TypeThin | ImGuiNavHighlightFlags_NoRounding);
+    }
+
+	// ORCA Draw highlight border after drawing background otherwise it will now shown
+    if (hovered || g.ActiveId == id) {
+        ImGui::PushStyleColor(ImGuiCol_Border, GetColorU32(ImGuiCol_BorderActive)); // ORCA: Use orca color for border if item hovered
+        if (arrow_size == 0) {
+            RenderFrameBorder(bb.Min, ImVec2(bb.Max.x - style.WindowPadding.x, bb.Max.y), style.FrameRounding);
+        } else {
+            RenderFrameBorder(ImVec2(bb.Min.x + style.WindowPadding.x, bb.Min.y), ImVec2(bb.Max.x - style.WindowPadding.x, bb.Max.y),
+                              style.FrameRounding);
+        }
+        ImGui::PopStyleColor(1);
     }
 
     if (span_all_columns && window->DC.CurrentColumns)

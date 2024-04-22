@@ -1732,7 +1732,7 @@ void GLGizmoEmboss::draw_font_list_line()
 void GLGizmoEmboss::draw_font_list()
 {
     ImGuiWrapper::push_combo_style(m_gui_cfg->screen_scale);
-    //ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f)); // ORCA: Moved this to push_combo_style
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
     //ImGui::PushStyleVar(ImGuiStyleVar_PopupRounding, 2.0f * m_gui_cfg->screen_scale);
 
     wxString tooltip_name = "";
@@ -1856,7 +1856,7 @@ void GLGizmoEmboss::draw_font_list()
         ImGui::SetTooltip("Open dialog for choose from fonts.");
 #endif //  ALLOW_ADD_FONT_BY_OS_SELECTOR
     
-    //ImGui::PopStyleVar(2);
+    ImGui::PopStyleVar(1);
     ImGuiWrapper::pop_combo_style();
 
     if (!tooltip_name.IsEmpty())
@@ -3762,7 +3762,7 @@ GuiCfg create_gui_configuration()
 
 	cfg.combo_box_undo_offset = cfg.combo_box_offset - cfg.icon_width - space;
 
-	cfg.combo_box_width_style = 2 * cfg.input_width;
+	cfg.combo_box_width_style = 2 * cfg.input_width - (cfg.icon_width + space) * 2;
 
     cfg.combo_box_width_font  = 2 * cfg.input_width + (cfg.icon_width + space) * 2;
 

@@ -46,7 +46,7 @@ static std::map<wxColour, wxColour> gDarkColors{
     {"#DFDFDF", "#3E3E45"}, // ORCA: Button bg color
     {"#D4D4D4", "#4D4D54"}, // ORCA: Button hover bg color
     {"#F2F3F2", "#CCCDCC"}, // ORCA: Toggle Normal Thumb
-    {"#BFE1DE", "#223C3C"},	// ORCA: ORCA color with %25 opacity
+    {"#BFE1DE", "#223C3C"},	// ORCA: ORCA color with %25 opacity > Dropdown selected item background color
     {"#62696B", "#3E3E45"}, // ORCA: Topbar > Split button > disabled background
     {"#B1B4B5", "#A3A3A6"}, // ORCA: Topbar > Split button > disabled foreground
     {"#FEFEFE", "#EFEFF0"}, // ORCA: Confirm Button text | Text on ORCA color 

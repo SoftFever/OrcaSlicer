@@ -119,6 +119,15 @@ static const std::map<const wchar_t, std::string> font_icons = {
 	{ImGui::MeshBooleanDifferenceDark,   "mesh_boolean_difference_dark"      },
 	{ImGui::MeshBooleanIntersectionDark, "mesh_boolean_intersection_dark"    },
     {ImGui::MeshBooleanUnionDark,		 "mesh_boolean_union_dark"			},
+
+	{ImGui::CutTriangle,				"cut_triangle"},
+	{ImGui::CutSquare,					"cut_square"				},
+	{ImGui::CutHexagon,					"cut_hexagon"			},
+    {ImGui::CutCircle,					"cut_circle"		},
+	{ImGui::CutTriangleDark,			"cut_triangle_dark"      },
+	{ImGui::CutSquareDark,				"cut_square_dark"    },
+    {ImGui::CutHexagonDark,				"cut_hexagon_dark"			},
+	{ImGui::CutCircleDark,				"cut_circle_dark"      }
 };
 static const std::map<const wchar_t, std::string> font_icons_large = {
     {ImGui::CloseNotifButton        , "notification_close"              },
@@ -2628,7 +2637,7 @@ void ImGuiWrapper::push_button_disable_style() {
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered,	to_ImVec4(decode_color_to_float_array("#3E3E45")));
         ImGui::PushStyleColor(ImGuiCol_ButtonActive,	to_ImVec4(decode_color_to_float_array("#3E3E45")));
         ImGui::PushStyleColor(ImGuiCol_Border,			to_ImVec4(decode_color_to_float_array("#3E3E45")));
-        ImGui::PushStyleColor(ImGuiCol_Text,			to_ImVec4(decode_color_to_float_array("#54545A")));
+        ImGui::PushStyleColor(ImGuiCol_Text,			to_ImVec4(decode_color_to_float_array("#65656A")));
     }
     else {
         ImGui::PushStyleColor(ImGuiCol_Button,			to_ImVec4(decode_color_to_float_array("#DFDFDF")));
@@ -2645,32 +2654,36 @@ void ImGuiWrapper::pop_button_disable_style() {
 
 void ImGuiWrapper::push_combo_style(const float scale)
 {
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f)); // ORCA: Remove Paddings from dropdown menus
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(3.0f, 6.0f) * scale); // ORCA: Remove Paddings from dropdown menus
     ImGui::PushStyleVar(ImGuiStyleVar_PopupRounding, 2.0f * scale); // ORCA: Match with combo box
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4.0f * scale);
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f * scale);
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(10.0f, 5.0f) * scale); // ORCA: Use less vertical spacing
-    ImGui::PushStyleColor(ImGuiCol_BorderActive, to_ImVec4(to_rgba(ColorRGB::ORCA(), 0.5f)));
-    ImGui::PushStyleColor(ImGuiCol_HeaderHovered, to_ImVec4(to_rgba(ColorRGB::ORCA(), 0.5f)));
-    ImGui::PushStyleColor(ImGuiCol_HeaderActive, COL_ORCA);
     ImGui::PushStyleColor(ImGuiCol_Header, COL_ORCA);
     ImGui::PushStyleColor(ImGuiCol_Button, {1.00f, 1.00f, 1.00f, 0.0f});
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, to_ImVec4(to_rgba(ColorRGB::ORCA(), 0.1f))); // ORCA: Match style with other components
 
 	// ORCA: Only use different values in statements
     if (m_is_dark_mode) {
-        ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BG_DARK);
-        ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, ImGuiWrapper::COL_WINDOW_BG_DARK);
+		ImGui::PushStyleColor(ImGuiCol_BorderActive,	to_ImVec4(decode_color_to_float_array("#00675b"))); // ORCA used for hovered item border on dropdown menu
+        ImGui::PushStyleColor(ImGuiCol_HeaderHovered,	to_ImVec4(decode_color_to_float_array("#223C3C")));
+		ImGui::PushStyleColor(ImGuiCol_Header,			ImGuiWrapper::COL_WINDOW_BG_DARK); // ORCA used for unselected item on dropdown menu
+        ImGui::PushStyleColor(ImGuiCol_HeaderActive,	to_ImVec4(decode_color_to_float_array("#223C3C"))); // ORCA used for selected item on dropdown menu
+		ImGui::PushStyleColor(ImGuiCol_PopupBg,			ImGuiWrapper::COL_WINDOW_BG_DARK);
+        ImGui::PushStyleColor(ImGuiCol_ScrollbarBg,		ImGuiWrapper::COL_WINDOW_BG_DARK);
     } else {
-        ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BG);
-        ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, ImGuiWrapper::COL_WINDOW_BG);
+		ImGui::PushStyleColor(ImGuiCol_BorderActive,	to_ImVec4(decode_color_to_float_array("#009688"))); // ORCA used for hovered item border on dropdown menu
+        ImGui::PushStyleColor(ImGuiCol_HeaderHovered,	to_ImVec4(decode_color_to_float_array("#BFE1DE")));
+		ImGui::PushStyleColor(ImGuiCol_Header,			ImGuiWrapper::COL_WINDOW_BG); // ORCA used for unselected item on dropdown menu
+        ImGui::PushStyleColor(ImGuiCol_HeaderActive,	to_ImVec4(decode_color_to_float_array("#BFE1DE"))); // ORCA used for selected item on dropdown menu
+        ImGui::PushStyleColor(ImGuiCol_PopupBg,			ImGuiWrapper::COL_WINDOW_BG);
+        ImGui::PushStyleColor(ImGuiCol_ScrollbarBg,		ImGuiWrapper::COL_WINDOW_BG);
     }
 }
 
 void ImGuiWrapper::pop_combo_style()
 {
-    ImGui::PopStyleVar(5);
-    ImGui::PopStyleColor(8);
+    ImGui::PopStyleVar(4);
+    ImGui::PopStyleColor(9);
 }
 
 void ImGuiWrapper::push_radio_style()
