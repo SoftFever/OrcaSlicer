@@ -538,6 +538,8 @@ void PrinterPartsDialog::set_nozzle_type(wxCommandEvent& evt)
         nozzle_diameter_checkbox->Append(wxString::Format(_L("%.1f"), diameter_list[i]));
     }
     nozzle_diameter_checkbox->SetSelection(0);
+
+
     last_nozzle_type = type;
     set_nozzle_diameter(evt);
 }
@@ -577,7 +579,11 @@ bool PrinterPartsDialog::Show(bool show)
         CentreOnParent();
 
         auto type = obj->nozzle_type;
-        auto diameter = round(obj->nozzle_diameter * 10) / 10;
+        auto diameter = 0.4f;
+
+        if (obj->nozzle_diameter > 0) {
+            diameter = round(obj->nozzle_diameter * 10) / 10;
+        }
 
         nozzle_type_checkbox->Clear();
         nozzle_diameter_checkbox->Clear();
