@@ -254,16 +254,32 @@ public:
         // Vector of triangles and its indexes to the bitstream.
         std::vector<TriangleBitStreamMapping> triangles_to_split;
         // Bit stream containing splitting information.
-        std::vector<bool> bitstream;
+        std::vector<bool>                     bitstream;
+        // Array indicating which triangle state types are used (encoded inside bitstream).
+        std::vector<bool>                     used_states { std::vector<bool>(static_cast<size_t>(EnforcerBlockerType::ExtruderMax), false) };
 
         TriangleSplittingData() = default;
 
-        friend bool operator==(const TriangleSplittingData &lhs, const TriangleSplittingData &rhs) { return lhs.triangles_to_split == rhs.triangles_to_split && lhs.bitstream == rhs.bitstream; }
+        friend bool operator==(const TriangleSplittingData &lhs, const TriangleSplittingData &rhs) {
+            return lhs.triangles_to_split == rhs.triangles_to_split
+                && lhs.bitstream          == rhs.bitstream
+                && lhs.used_states        == rhs.used_states;
+        }
+
         friend bool operator!=(const TriangleSplittingData &lhs, const TriangleSplittingData &rhs) { return !(lhs == rhs); }
+
+        // Reset all used states before they are recomputed based on the bitstream.
+        void reset_used_states() {
+            used_states.resize(static_cast<size_t>(EnforcerBlockerType::ExtruderMax), false);
+            std::fill(used_states.begin(), used_states.end(), false);
+        }
+
+        // Update used states based on the bitstream. It just iterated over the bitstream from the bitstream_start_idx till the end.
+        void update_used_states(size_t bitstream_start_idx);
 
     private:
         friend class cereal::access;
-        template<class Archive> void serialize(Archive &ar) { ar(triangles_to_split, bitstream); }
+        template<class Archive> void serialize(Archive &ar) { ar(triangles_to_split, bitstream, used_states); }
     };
 
     std::pair<std::vector<Vec3i32>, std::vector<Vec3i32>> precompute_all_neighbors() const;
@@ -334,6 +350,9 @@ public:
     void deserialize(const TriangleSplittingData& data,
                      bool                         needs_reset = true,
                      EnforcerBlockerType          max_ebt     = EnforcerBlockerType::ExtruderMax);
+
+    // Extract all used facet states from the given TriangleSplittingData.
+    static std::vector<EnforcerBlockerType> extract_used_facet_states(const TriangleSplittingData &data);
 
     // For all triangles, remove the flag indicating that the triangle was selected by seed fill.
     void seed_fill_unselect_all_triangles();

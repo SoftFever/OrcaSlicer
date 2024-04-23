@@ -1665,6 +1665,9 @@ TriangleSelector::TriangleSplittingData TriangleSelector::serialize() const {
             } else {
                 // In case this is leaf, we better save information about its state.
                 int n = int(tr.get_state());
+                if (n < static_cast<size_t>(EnforcerBlockerType::ExtruderMax))
+                    data.used_states[n] = true;
+
                 if (n >= 3) {
                     assert(n <= 16);
                     if (n <= 16) {
@@ -1807,6 +1810,39 @@ void TriangleSelector::deserialize(const TriangleSplittingData& data, bool needs
             if (parents.empty())
                 break;
         }
+    }
+}
+
+void TriangleSelector::TriangleSplittingData::update_used_states(const size_t bitstream_start_idx) {
+    assert(bitstream_start_idx < this->bitstream.size());
+    assert(!this->bitstream.empty() && this->bitstream.size() != bitstream_start_idx);
+    assert((this->bitstream.size() - bitstream_start_idx) % 4 == 0);
+
+    if (this->bitstream.empty() || this->bitstream.size() == bitstream_start_idx)
+        return;
+
+    size_t nibble_idx = bitstream_start_idx;
+
+    auto read_next_nibble = [&data_bitstream = std::as_const(this->bitstream), &nibble_idx]() -> uint8_t {
+        assert(nibble_idx + 3 < data_bitstream.size());
+        uint8_t code = 0;
+        for (size_t bit_idx = 0; bit_idx < 4; ++bit_idx)
+            code |= data_bitstream[nibble_idx++] << bit_idx;
+        return code;
+    };
+
+    while (nibble_idx < this->bitstream.size()) {
+        const uint8_t code = read_next_nibble();
+
+        if (const bool is_split = (code & 0b11) != 0; is_split)
+            continue;
+
+        const uint8_t facet_state = (code & 0b1100) == 0b1100 ? read_next_nibble() + 3 : code >> 2;
+        assert(facet_state < this->used_states.size());
+        if (facet_state >= this->used_states.size())
+            continue;
+
+        this->used_states[facet_state] = true;
     }
 }
 

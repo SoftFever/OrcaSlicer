@@ -3344,6 +3344,7 @@ void FacetsAnnotation::set_triangle_from_string(int triangle_id, const std::stri
     assert(m_data.triangles_to_split.empty() || m_data.triangles_to_split.back().triangle_idx < triangle_id);
     m_data.triangles_to_split.emplace_back(triangle_id, int(m_data.bitstream.size()));
 
+    const size_t bitstream_start_idx = m_data.bitstream.size();
     for (auto it = str.crbegin(); it != str.crend(); ++it) {
         const char ch = *it;
         int dec = 0;
@@ -3355,9 +3356,11 @@ void FacetsAnnotation::set_triangle_from_string(int triangle_id, const std::stri
             assert(false);
 
         // Convert to binary and append into code.
-        for (int i=0; i<4; ++i)
+        for (int i = 0; i < 4; ++i)
             m_data.bitstream.insert(m_data.bitstream.end(), bool(dec & (1 << i)));
     }
+
+    m_data.update_used_states(bitstream_start_idx);
 }
 
 bool FacetsAnnotation::equals(const FacetsAnnotation &other) const
