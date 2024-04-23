@@ -1217,7 +1217,11 @@ void CloudTaskManagerPage::refresh_user_device(bool clear)
             m_task_items[it->first] = mtitem;
             mtitem->update_info();
             task_temps.push_back(mtitem);
-            subscribe_list.push_back(mtitem->m_dev_id);
+
+            auto find_it = std::find(subscribe_list.begin(), subscribe_list.end(), mtitem->m_dev_id);
+            if (find_it == subscribe_list.end()) {
+                subscribe_list.push_back(mtitem->m_dev_id);
+            }
         }
 
         dev->subscribe_device_list(subscribe_list);
