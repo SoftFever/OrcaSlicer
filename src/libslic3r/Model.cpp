@@ -257,16 +257,13 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
                         result = obj_import_face_color_deal(face_filament_ids, first_extruder_id, &model);
                     }
                 }
-            } else if (obj_info.has_uv_png && obj_info.uvs.size() > 0) {
+            } /*else if (obj_info.has_uv_png && obj_info.uvs.size() > 0) {
                 boost::filesystem::path full_path(input_file);
                 std::string             obj_directory = full_path.parent_path().string();
                 obj_info.obj_dircetory = obj_directory;
                 result = false;
                 message = _L("Importing obj with png function is developing.");
-            } else {
-                result  = false;
-                message = _L("Importing obj occurred an unknown error.");
-            }
+            }*/
         }
     }
     else if (boost::algorithm::iends_with(input_file, ".svg"))
