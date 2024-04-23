@@ -1,0 +1,29 @@
+{
+  "type": "process",
+  "setting_id": "GP004",
+  "name": "0.12mm Speed @MINIIS",
+  "from": "system",
+  "instantiation": "true",
+  "inherits": "process_detail_miniis",
+  "layer_height": "0.12",
+  "initial_layer_print_height": "0.2",
+  "top_shell_thickness": "0.7",
+  "top_shell_layers": "9",
+  "bottom_shell_thickness": "0.5",
+  "bottom_shell_layers": "6",
+  "outer_wall_speed": "120",
+  "inner_wall_speed": "120",
+  "small_perimeter_speed": "120",
+  "sparse_infill_speed": "100",
+  "internal_solid_infill_speed": "140",
+  "top_surface_speed": "60",
+  "gap_infill_speed": "50",
+  "bridge_speed": "25",
+  "support_speed": "70",
+  "overhang_1_4_speed": "60",
+  "internal_solid_infill_acceleration": "2500",
+  "sparse_infill_acceleration": "2500",
+  "compatible_printers": [
+    "Prusa MINIIS 0.25 nozzle"
+  ]
+}
