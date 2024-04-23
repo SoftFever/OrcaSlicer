@@ -27,6 +27,8 @@ struct ObjUseMtl
 {
 	int			vertexIdxFirst;
     int         vertexIdxEnd{-1};
+    int         face_start;
+    int         face_end{-1};
 	std::string name;
 };
 

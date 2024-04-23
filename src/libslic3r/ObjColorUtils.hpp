@@ -57,16 +57,19 @@ public:
         convert_color_space(flatten_image8UC3, image8UC3, color_space);
 
         cv::Mat image32FC3(image8UC3.rows, 1, CV_32FC3);
-        for (int i = 0; i < image8UC3.rows; i++) image32FC3.at<cv::Vec3f>(i, 0) = image8UC3.at<cv::Vec3b>(i, 0);
+        for (int i = 0; i < image8UC3.rows; i++)
+            image32FC3.at<cv::Vec3f>(i, 0) = image8UC3.at<cv::Vec3b>(i, 0);
 
-        int best_cluster = 1, cur_score = 0, best_score = 100;
+        int best_cluster = 1;
+        double cur_score, best_score = 100;
         int max_cluster = ori_colors.size();
         num_cluster     = fmin(num_cluster, max_cluster);
         if (num_cluster < 1) {
             cur_score  = kmeans(image32FC3, 1, this->m_flatten_labels, cv::TermCriteria(cv::TermCriteria::EPS + cv::TermCriteria::COUNT, 300, 0.5), 3, cv::KMEANS_PP_CENTERS);
             best_score = cur_score;
             for (int cur_cluster = 2; cur_cluster < 16; cur_cluster++) {
-                if (cur_cluster > max_cluster) break;
+                if (cur_cluster > max_cluster)
+                    break;
                 cur_score    = kmeans(image32FC3, cur_cluster, this->m_flatten_labels, cv::TermCriteria(cv::TermCriteria::EPS + cv::TermCriteria::COUNT, 300, 0.5), 3,
                                    cv::KMEANS_PP_CENTERS);
                 best_cluster = cur_score < best_score ? cur_cluster : best_cluster;
@@ -79,7 +82,8 @@ public:
         kmeans(image32FC3, best_cluster, this->m_flatten_labels, cv::TermCriteria(cv::TermCriteria::EPS + cv::TermCriteria::COUNT, 300, 0.5), 3, cv::KMEANS_PP_CENTERS,
                centers32FC3);
         this->m_centers8UC3 = cv::Mat(best_cluster, 1, CV_8UC3);
-        for (int i = 0; i < best_cluster; i++) this->m_centers8UC3.at<cv::Vec3b>(i) = centers32FC3.at<cv::Vec3f>(i);
+        for (int i = 0; i < best_cluster; i++)
+            this->m_centers8UC3.at<cv::Vec3b>(i) = centers32FC3.at<cv::Vec3f>(i);
 
         convert_color_space(this->m_centers8UC3, this->m_centers8UC3, color_space, true);
 

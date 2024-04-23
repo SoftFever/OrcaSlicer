@@ -251,6 +251,24 @@ static bool obj_parseline(const char *line, ObjData &data)
 			data.vertices.push_back(vertex);
 			EATWS();
 		}
+        if (data.usemtls.size() > 0) {
+			data.usemtls.back().vertexIdxEnd = (int) data.vertices.size();
+		}
+        if (data.usemtls.size() > 0) {
+            int face_index_count = 0;
+            for (int i = data.vertices.size() - 1; i >= 0; i--) {
+                if (data.vertices[i].coordIdx == -1) {
+					break;
+				}
+                face_index_count++;
+            }
+            if (face_index_count == 3) {//tri
+                data.usemtls.back().face_end++;
+			} else if (face_index_count == 4) {//quad
+                data.usemtls.back().face_end++;
+                data.usemtls.back().face_end++;
+			}
+        }
 		vertex.coordIdx			= -1;
 		vertex.normalIdx		= -1;
 		vertex.textureCoordIdx	= -1;
@@ -289,6 +307,16 @@ static bool obj_parseline(const char *line, ObjData &data)
         usemtl.vertexIdxFirst = (int)data.vertices.size();
         usemtl.name = line;
 		data.usemtls.push_back(usemtl);
+        if (data.usemtls.size() == 1) {
+            data.usemtls.back().face_start = 0;
+		}
+		else {//>=2
+            auto count       = data.usemtls.size();
+            auto& last_usemtl = data.usemtls[count-1];
+            auto& last_last_usemtl  = data.usemtls[count - 2];
+            last_usemtl.face_start = last_last_usemtl.face_end + 1;
+		}
+        data.usemtls.back().face_end = data.usemtls.back().face_start - 1;
 		break;
 	}
 	case 'o':

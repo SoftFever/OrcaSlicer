@@ -165,12 +165,7 @@ bool load_obj(const char *path, TriangleMesh *meshptr, ObjInfo& obj_info, std::s
                     } else {
                         for (size_t k = 0; k < data.usemtls.size(); k++) {
                             auto mtl = data.usemtls[k];
-                            if (mtl.vertexIdxEnd == -1 && face_index >= (mtl.vertexIdxFirst / ONE_FACE_SIZE)) {
-                                set_face_color(face_index, data.usemtls[k].name);
-                                break;
-                            } else if (mtl.vertexIdxEnd != -1 &&
-                                face_index >= (mtl.vertexIdxFirst / ONE_FACE_SIZE)
-                                && face_index < (mtl.vertexIdxEnd / ONE_FACE_SIZE)) {
+                            if (face_index >= mtl.face_start && face_index <= mtl.face_end) {
                                 set_face_color(face_index, data.usemtls[k].name);
                                 break;
                             }
