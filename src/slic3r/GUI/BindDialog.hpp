@@ -69,7 +69,7 @@ private:
     wxHyperlinkCtrl* m_link_network_state{ nullptr };
     wxString        m_result_info;
     wxString        m_result_extra;
-    wxString        m_ping_code_wiki="www.bambulab.com";
+    wxString        m_ping_code_wiki;
     bool            m_show_error_info_state = true;
 
     int             m_result_code;

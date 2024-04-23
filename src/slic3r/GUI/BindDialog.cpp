@@ -109,6 +109,7 @@ PingCodeBindDialog::PingCodeBindDialog(Plater* plater /*= nullptr*/)
     m_link_show_ping_code_wiki->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_ARROW); });
 
     m_link_show_ping_code_wiki->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
+        m_ping_code_wiki = "https://wiki.bambulab.com/en/bambu-studio/manual/pin-code";
         wxLaunchDefaultBrowser(m_ping_code_wiki);
     });
 
