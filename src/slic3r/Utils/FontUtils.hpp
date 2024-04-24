@@ -3,6 +3,7 @@
 #include <memory>
 #include <vector>
 #include <assert.h>
+#include <wx/font.h>
 
 namespace Slic3r {
 
