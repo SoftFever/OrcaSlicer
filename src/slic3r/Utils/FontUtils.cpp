@@ -1,6 +1,7 @@
 #include "FontUtils.hpp"
 #include "imgui/imstb_truetype.h"
 #include "libslic3r/Utils.hpp"
+#include <boost/log/trivial.hpp>
 
 #if defined(__APPLE__)
 #include <CoreText/CTFont.h>
