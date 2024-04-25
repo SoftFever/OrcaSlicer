@@ -857,7 +857,9 @@ std::string CoolingBuffer::apply_layer_cooldown(
         }
         else if (line->type & CoolingLine::TYPE_EXTRUDE_END) {
             // Just remove this comment.
-        } else if (line->type & (CoolingLine::TYPE_ADJUSTABLE | CoolingLine::TYPE_EXTERNAL_PERIMETER | CoolingLine::TYPE_WIPE | CoolingLine::TYPE_HAS_F)) {
+        } else if(line->type & (CoolingLine::TYPE_EXTERNAL_PERIMETER )){
+                
+        } else if (line->type & (CoolingLine::TYPE_ADJUSTABLE  | CoolingLine::TYPE_WIPE | CoolingLine::TYPE_HAS_F)) {
             // Find the start of a comment, or roll to the end of line.
             const char *end = line_start;
             for (; end < line_end && *end != ';'; ++ end);
