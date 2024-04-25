@@ -97,9 +97,7 @@
 	"retract_before_wipe": [
 		"100%"
 	],
-	"role_based_wipe_speed": [
-		"0"
-	],
+	"role_based_wipe_speed": "0",
 	"retraction_length": [
 		"0.5"
 	],
