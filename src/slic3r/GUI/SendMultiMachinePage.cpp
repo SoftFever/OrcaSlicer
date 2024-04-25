@@ -403,6 +403,7 @@ void SendMultiMachinePage::refresh_user_device()
         }
     }
     m_tip_text->Show(m_device_items.empty());
+    m_button_add->Show(m_device_items.empty());
     sizer_machine_list->Layout();
     Layout();
     Fit();
@@ -1206,10 +1207,32 @@ wxPanel* SendMultiMachinePage::create_page()
     m_tip_text = new wxStaticText(main_page, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER);
     m_tip_text->SetMinSize(wxSize(FromDIP(DEVICE_ITEM_MAX_WIDTH), -1));
     m_tip_text->SetMaxSize(wxSize(FromDIP(DEVICE_ITEM_MAX_WIDTH), -1));
-    m_tip_text->SetLabel(_L("Unconnected device"));
+    m_tip_text->SetLabel(_L("Please select the devices you would like to manage here (up to 6 devices)"));
     m_tip_text->SetForegroundColour(DESIGN_GRAY800_COLOR);
-    m_tip_text->SetFont(::Label::Head_24);
+    m_tip_text->SetFont(::Label::Head_20);
     m_tip_text->Wrap(-1);
+
+    auto m_btn_bg_enable = StateColor(
+        std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
+        std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+        std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal)
+    );
+
+    m_button_add = new Button(main_page, _L("Add"));
+    m_button_add->SetBackgroundColor(m_btn_bg_enable);
+    m_button_add->SetBorderColor(m_btn_bg_enable);
+    m_button_add->SetTextColor(*wxWHITE);
+    m_button_add->SetFont(Label::Body_12);
+    m_button_add->SetCornerRadius(6);
+    m_button_add->SetMinSize(wxSize(FromDIP(90), FromDIP(36)));
+    m_button_add->SetMaxSize(wxSize(FromDIP(90), FromDIP(36)));
+
+    m_button_add->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
+        MultiMachinePickPage dlg;
+        dlg.ShowModal();
+        refresh_user_device();
+        evt.Skip();
+    });
 
     scroll_macine_list = new wxScrolledWindow(main_page, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(800), FromDIP(300)), wxHSCROLL | wxVSCROLL);
     scroll_macine_list->SetBackgroundColour(*wxWHITE);
@@ -1224,6 +1247,7 @@ wxPanel* SendMultiMachinePage::create_page()
     sizer->Add(title_select_printer, 0, wxEXPAND, 0);
     sizer->Add(m_table_head_panel, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(40));
     sizer->Add(m_tip_text, 0, wxALIGN_CENTER_HORIZONTAL | wxTOP, FromDIP(100));
+    sizer->Add(m_button_add, 0, wxALIGN_CENTER_HORIZONTAL | wxTOP, FromDIP(20));
     sizer->Add(scroll_macine_list, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(40));
     sizer->AddSpacer(FromDIP(10));
 

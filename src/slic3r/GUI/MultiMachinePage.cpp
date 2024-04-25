@@ -465,6 +465,7 @@ bool MultiMachinePickPage::Show(bool show)
 {
     if (show) {
         refresh_user_device();
+        update_selected_count();
         //m_refresh_timer->Stop();
         //m_refresh_timer->SetOwner(this);
         //m_refresh_timer->Start(4000);

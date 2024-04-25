@@ -87,6 +87,7 @@ private:
 
     // tip when no device
     wxStaticText*           m_tip_text{ nullptr };
+    Button*                 m_button_add{ nullptr };
 
     // Flipping pages
     int                         m_current_page{ 0 };

@@ -280,12 +280,18 @@ MultiMachineManagerPage::MultiMachineManagerPage(wxWindow* parent)
     );
 
     //edit prints
+    auto m_btn_bg_enable = StateColor(
+        std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
+        std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+        std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal)
+    );
+
+
     StateColor clean_bg(std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Disabled), std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed),
         std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered), std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Enabled),
         std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal));
     StateColor clean_bd(std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
     StateColor clean_text(std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
-
 
     auto sizer_button_printer = new wxBoxSizer(wxHORIZONTAL);
     sizer_button_printer->SetMinSize(wxSize(FromDIP(DEVICE_ITEM_MAX_WIDTH), -1));
@@ -295,8 +301,8 @@ MultiMachineManagerPage::MultiMachineManagerPage(wxWindow* parent)
     m_button_edit->SetTextColor(clean_text);
     m_button_edit->SetFont(Label::Body_12);
     m_button_edit->SetCornerRadius(6);
-    m_button_edit->SetMinSize(wxSize(FromDIP(90), FromDIP(40)));
-    m_button_edit->SetMaxSize(wxSize(FromDIP(90), FromDIP(40)));
+    m_button_edit->SetMinSize(wxSize(FromDIP(90), FromDIP(36)));
+    m_button_edit->SetMaxSize(wxSize(FromDIP(90), FromDIP(36)));
 
     m_button_edit->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         MultiMachinePickPage dlg;
@@ -391,10 +397,26 @@ MultiMachineManagerPage::MultiMachineManagerPage(wxWindow* parent)
     m_tip_text = new wxStaticText(m_main_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER);
     m_tip_text->SetMinSize(wxSize(FromDIP(DEVICE_ITEM_MAX_WIDTH), -1));
     m_tip_text->SetMaxSize(wxSize(FromDIP(DEVICE_ITEM_MAX_WIDTH), -1));
-    m_tip_text->SetLabel(_L("Unconnected device"));
+    m_tip_text->SetLabel(_L("Please select the devices you would like to manage here (up to 6 devices)"));
     m_tip_text->SetForegroundColour(wxColour(50, 58, 61));
-    m_tip_text->SetFont(::Label::Head_24);
+    m_tip_text->SetFont(::Label::Head_20);
     m_tip_text->Wrap(-1);
+
+    m_button_add = new Button(m_main_panel, _L("Add"));
+    m_button_add->SetBackgroundColor(m_btn_bg_enable);
+    m_button_add->SetBorderColor(m_btn_bg_enable);
+    m_button_add->SetTextColor(*wxWHITE);
+    m_button_add->SetFont(Label::Body_12);
+    m_button_add->SetCornerRadius(6);
+    m_button_add->SetMinSize(wxSize(FromDIP(90), FromDIP(36)));
+    m_button_add->SetMaxSize(wxSize(FromDIP(90), FromDIP(36)));
+
+    m_button_add->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
+        MultiMachinePickPage dlg;
+        dlg.ShowModal();
+        refresh_user_device();
+        evt.Skip();
+    });
 
     m_machine_list = new wxScrolledWindow(m_main_panel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
     m_machine_list->SetBackgroundColour(*wxWHITE);
@@ -484,10 +506,12 @@ MultiMachineManagerPage::MultiMachineManagerPage(wxWindow* parent)
     m_flipping_panel->SetSizer(m_page_sizer);
     m_flipping_panel->Layout();
 
-    m_main_sizer->AddSpacer(FromDIP(50));
+    m_main_sizer->AddSpacer(FromDIP(16));
     m_main_sizer->Add(sizer_button_printer, 0, wxALIGN_CENTER_HORIZONTAL, 0);
+     m_main_sizer->AddSpacer(FromDIP(5));
     m_main_sizer->Add(m_table_head_panel, 0, wxALIGN_CENTER_HORIZONTAL, 0);
     m_main_sizer->Add(m_tip_text, 0, wxALIGN_CENTER_HORIZONTAL | wxTOP, FromDIP(50));
+    m_main_sizer->Add(m_button_add, 0, wxALIGN_CENTER_HORIZONTAL | wxTOP, FromDIP(16));
     m_main_sizer->Add(m_machine_list, 0, wxALIGN_CENTER_HORIZONTAL, 0);
     m_main_sizer->Add(m_flipping_panel, 0, wxALIGN_CENTER_HORIZONTAL, 0);
     m_main_panel->SetSizer(m_main_sizer);
@@ -566,6 +590,8 @@ void MultiMachineManagerPage::refresh_user_device(bool clear)
     dev->subscribe_device_list(subscribe_list);
 
     m_tip_text->Show(m_device_items.empty());
+    m_button_add->Show(m_device_items.empty());
+
     update_page_number();
     m_flipping_panel->Show(m_total_page > 1);
     m_sizer_machine_list->Layout();

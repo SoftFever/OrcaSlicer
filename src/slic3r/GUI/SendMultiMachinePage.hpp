@@ -159,6 +159,7 @@ private:
 
     // tip when no device
     wxStaticText*                       m_tip_text{ nullptr };
+    Button*                             m_button_add{ nullptr };
 
 public:
     SendMultiMachinePage(Plater* plater = nullptr);
