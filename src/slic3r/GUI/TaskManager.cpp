@@ -2,10 +2,13 @@
 
 #include "libslic3r/Thread.hpp"
 #include "nlohmann/json.hpp"
+#include "MainFrame.hpp"
+#include "GUI_App.hpp"
 
 using namespace nlohmann;
 
 namespace Slic3r {
+wxDEFINE_EVENT(EVT_MULTI_SEND_LIMIT, wxCommandEvent);
 
 int TaskManager::MaxSendingAtSameTime = 5;
 int TaskManager::SendingInterval = 180;
@@ -75,6 +78,17 @@ TaskStateInfo::TaskStateInfo(BBL::PrintParams param)
         return m_cancel;
     };
     update_status_fn = [this](int stage, int code, std::string msg) {
+
+        if (stage == PrintingStageLimit)
+        {
+            //limit
+            //wxCommandEvent event(EVT_MULTI_SEND_LIMIT);
+            //wxPostEvent(this, event);
+            GUI::wxGetApp().mainframe->CallAfter([]() {
+                GUI::wxGetApp().show_dialog("The printing task exceeds the limit, supporting a maximum of 6 printers.");
+            });
+        }
+
         const int StagePercentPoint[(int)PrintingStageFinished + 1] = {
                 10,    // PrintingStageCreate
                 25,    // PrintingStageUpload

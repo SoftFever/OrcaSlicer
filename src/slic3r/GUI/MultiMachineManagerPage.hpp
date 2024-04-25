@@ -10,7 +10,7 @@ namespace GUI {
 #define DEVICE_LEFT_PADDING_LEFT 15
 #define DEVICE_LEFT_DEV_NAME 180
 #define DEVICE_LEFT_PRO_NAME 180
-#define DEVICE_LEFT_PRO_INFO 280
+#define DEVICE_LEFT_PRO_INFO 320
 
 class MultiMachineItem : public DeviceItem
 {
@@ -67,6 +67,8 @@ private:
     bool                    device_dev_name_big{ true };
     bool                    device_state_big{ true };
 
+
+    Button*                 m_button_edit{nullptr};
     wxBoxSizer*             page_sizer{ nullptr };
     wxPanel*                m_main_panel{ nullptr };
     wxBoxSizer*             m_main_sizer{nullptr};

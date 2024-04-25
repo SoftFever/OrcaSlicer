@@ -279,6 +279,35 @@ MultiMachineManagerPage::MultiMachineManagerPage(wxWindow* parent)
         std::pair<wxColour, int>(TABLE_HEAR_NORMAL_COLOUR, StateColor::Normal)
     );
 
+    //edit prints
+    StateColor clean_bg(std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Disabled), std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed),
+        std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered), std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Enabled),
+        std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal));
+    StateColor clean_bd(std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
+    StateColor clean_text(std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
+
+
+    auto sizer_button_printer = new wxBoxSizer(wxHORIZONTAL);
+    sizer_button_printer->SetMinSize(wxSize(FromDIP(DEVICE_ITEM_MAX_WIDTH), -1));
+    m_button_edit = new Button(m_main_panel, _L("Edit Printers"));
+    m_button_edit->SetBackgroundColor(clean_bg);
+    m_button_edit->SetBorderColor(clean_bd);
+    m_button_edit->SetTextColor(clean_text);
+    m_button_edit->SetFont(Label::Body_12);
+    m_button_edit->SetCornerRadius(6);
+    m_button_edit->SetMinSize(wxSize(FromDIP(90), FromDIP(40)));
+    m_button_edit->SetMaxSize(wxSize(FromDIP(90), FromDIP(40)));
+
+    m_button_edit->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
+        MultiMachinePickPage dlg;
+        dlg.ShowModal();
+        refresh_user_device();
+        evt.Skip();
+    });
+
+    sizer_button_printer->Add( 0, 0, 1, wxEXPAND, 5 );
+    sizer_button_printer->Add(m_button_edit, 0, wxALIGN_CENTER, 0);
+
     m_table_head_panel = new wxPanel(m_main_panel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
     m_table_head_panel->SetMinSize(wxSize(FromDIP(DEVICE_ITEM_MAX_WIDTH), -1));
     m_table_head_panel->SetMaxSize(wxSize(FromDIP(DEVICE_ITEM_MAX_WIDTH), -1));
@@ -456,6 +485,7 @@ MultiMachineManagerPage::MultiMachineManagerPage(wxWindow* parent)
     m_flipping_panel->Layout();
 
     m_main_sizer->AddSpacer(FromDIP(50));
+    m_main_sizer->Add(sizer_button_printer, 0, wxALIGN_CENTER_HORIZONTAL, 0);
     m_main_sizer->Add(m_table_head_panel, 0, wxALIGN_CENTER_HORIZONTAL, 0);
     m_main_sizer->Add(m_tip_text, 0, wxALIGN_CENTER_HORIZONTAL | wxTOP, FromDIP(50));
     m_main_sizer->Add(m_machine_list, 0, wxALIGN_CENTER_HORIZONTAL, 0);
@@ -490,7 +520,19 @@ void MultiMachineManagerPage::refresh_user_device(bool clear)
     Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev) return;
 
-    auto user_machine = dev->get_my_cloud_machine_list();
+    auto all_machine = dev->get_my_cloud_machine_list();
+    auto user_machine = std::map<std::string, MachineObject*>();
+
+    //selected machine
+    for (int i = 0; i < PICK_DEVICE_MAX; i++) {
+        auto dev_id = wxGetApp().app_config->get("multi_devices", std::to_string(i));
+
+        if (all_machine.count(dev_id) > 0) {
+            user_machine[dev_id] = all_machine[dev_id];
+        }
+    }
+
+
     m_total_count = user_machine.size();
 
     m_state_objs.clear();

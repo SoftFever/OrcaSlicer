@@ -136,7 +136,7 @@ public:
     bool need_schedule(std::chrono::system_clock::time_point last, TaskStateInfo* task);
 };
 
-class TaskManager
+class TaskManager 
 {
 public:
     static int MaxSendingAtSameTime;
@@ -175,6 +175,7 @@ private:
 };
 
 
+wxDECLARE_EVENT(EVT_MULTI_SEND_LIMIT, wxCommandEvent);
 } // namespace Slic3r
 
 #endif

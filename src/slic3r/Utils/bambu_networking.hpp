@@ -147,6 +147,7 @@ enum SendingPrintJobStage {
     PrintingStageWaitPrinter = 5,
     PrintingStageFinished = 6,
     PrintingStageERROR = 7,
+    PrintingStageLimit = 8,
 };
 
 enum PublishingStage {

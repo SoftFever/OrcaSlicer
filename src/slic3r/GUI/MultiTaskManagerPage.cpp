@@ -751,7 +751,18 @@ void LocalTaskManagerPage::refresh_user_device(bool clear)
     std::vector<std::string> subscribe_list;
     std::vector<MultiTaskItem*> task_temps;
 
-    auto user_machine = dev->get_my_cloud_machine_list();
+    auto all_machine = dev->get_my_cloud_machine_list();
+    auto user_machine = std::map<std::string, MachineObject*>();
+
+    //selected machine
+    for (int i = 0; i < PICK_DEVICE_MAX; i++) {
+        auto dev_id = wxGetApp().app_config->get("multi_devices", std::to_string(i));
+
+        if (all_machine.count(dev_id) > 0) {
+            user_machine[dev_id] = all_machine[dev_id];
+        }
+    }
+
     auto task_manager = wxGetApp().getTaskManager();
     if (task_manager) {
         auto m_task_obj_list = task_manager->get_local_task_list();
@@ -1174,7 +1185,18 @@ void CloudTaskManagerPage::refresh_user_device(bool clear)
     std::vector<MultiTaskItem*> task_temps;
     std::vector<std::string> subscribe_list;
 
-    auto user_machine = dev->get_my_cloud_machine_list();
+    auto all_machine = dev->get_my_cloud_machine_list();
+    auto user_machine = std::map<std::string, MachineObject*>();
+
+    //selected machine
+    for (int i = 0; i < PICK_DEVICE_MAX; i++) {
+        auto dev_id = wxGetApp().app_config->get("multi_devices", std::to_string(i));
+
+        if (all_machine.count(dev_id) > 0) {
+            user_machine[dev_id] = all_machine[dev_id];
+        }
+    }
+
     auto task_manager = wxGetApp().getTaskManager();
     if (task_manager) {
         auto m_task_obj_list = task_manager->get_task_list(m_current_page, m_count_page_item, m_total_count);
