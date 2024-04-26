@@ -482,6 +482,7 @@ public:
 
     //BBS: add instance convex hull bounding box
     BoundingBoxf3 instance_convex_hull_bounding_box(size_t instance_idx, bool dont_translate = false) const;
+    BoundingBoxf3 instance_convex_hull_bounding_box(const ModelInstance* instance, bool dont_translate = false) const;
 
     // Calculate 2D convex hull of of a projection of the transformed printable volumes into the XY plane.
     // This method is cheap in that it does not make any unnecessary copy of the volume meshes.
@@ -1510,6 +1511,7 @@ public:
 
     // DesignInfo of Model
     std::string stl_design_id;
+    std::string stl_design_country;
     std::shared_ptr<ModelDesignInfo> design_info = nullptr;
     std::shared_ptr<ModelInfo> model_info = nullptr;
     std::shared_ptr<ModelProfileInfo> profile_info = nullptr;

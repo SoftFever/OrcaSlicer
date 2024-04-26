@@ -43,6 +43,7 @@ TabButton::TabButton(wxWindow *parent, wxString text, ScalableBitmap &bmp, long 
 bool TabButton::Create(wxWindow *parent, wxString text, ScalableBitmap &bmp, long style, int iconSize)
 {
     StaticBox::Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, style);
+    newtag_img = ScalableBitmap(this, "monitor_hms_new",7);
     state_handler.attach({&text_color, &border_color});
     state_handler.update_binds();
     //BBS set default font
@@ -169,10 +170,17 @@ void TabButton::render(wxDC &dc)
         dc.DrawText(text, pt);
     }
 
-    if (icon.bmp().IsOk()) {
-        pt.x = size.x - icon.GetBmpWidth() - paddingSize.y;
-        pt.y = (size.y - icon.GetBmpHeight()) / 2;
-        dc.DrawBitmap(icon.bmp(), pt);
+    wxBitmap showimg = icon.bmp();
+    int offset_left = 0;
+    if (show_new_tag) {
+        showimg = newtag_img.bmp();
+        offset_left = FromDIP(4);
+    }
+
+    if (showimg.IsOk()) {
+        pt.x = size.x - showimg.GetWidth() - paddingSize.y - offset_left;
+        pt.y = (size.y - showimg.GetHeight()) / 2;
+        dc.DrawBitmap(showimg, pt);
     }
 }
 

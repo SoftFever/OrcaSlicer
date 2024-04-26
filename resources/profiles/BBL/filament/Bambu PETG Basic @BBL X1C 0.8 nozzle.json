@@ -11,6 +11,12 @@
     "fan_min_speed": [
         "20"
     ],
+    "filament_long_retractions_when_cut": [
+        "1"
+    ],
+    "filament_retraction_distances_when_cut": [
+        "18"
+    ],
     "filament_max_volumetric_speed": [
         "16"
     ],

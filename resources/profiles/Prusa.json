@@ -1,12 +1,16 @@
 {
     "name": "Prusa",
-    "version": "02.00.01.00",
+    "version": "02.00.02.00",
     "force_update": "0",
     "description": "Prusa configurations",
     "machine_model_list": [
         {
             "name": "MK4IS",
             "sub_path": "machine/Prusa MK4.json"
+        },
+        {
+            "name": "MINIIS",
+            "sub_path": "machine/Prusa MINIIS.json"
         },
         {
             "name": "MK3S",
@@ -27,13 +31,37 @@
             "sub_path": "process/process_common_mk4.json"
         },
         {
+            "name": "process_common_miniis",
+            "sub_path": "process/process_common_miniis.json"
+        },
+        {
+            "name": "process_speed_miniis",
+            "sub_path": "process/process_speed_miniis.json"
+        },
+        {
+            "name": "process_detail_miniis",
+            "sub_path": "process/process_detail_miniis.json"
+        },
+        {
             "name": "process_common_mk3",
             "sub_path": "process/process_common_mk3.json"
         },
         {
+            "name": "0.20mm Standard @MINI 0.25",
+            "sub_path": "process/0.20mm Standard @MINI 0.25.json"
+        },
+        {
             "name": "0.20mm Standard @MINI",
             "sub_path": "process/0.20mm Standard @MINI.json"
-        },		
+        },
+        {
+            "name": "0.20mm Standard @MINI 0.6",
+            "sub_path": "process/0.20mm Standard @MINI 0.6.json"
+        },
+        {
+            "name": "0.20mm Standard @MINI 0.8",
+            "sub_path": "process/0.20mm Standard @MINI 0.8.json"
+        },
         {
             "name": "0.05mm UltraDetail @MK3S 0.25",
             "sub_path": "process/0.05mm UltraDetail @MK3S 0.25.json"
@@ -134,6 +162,76 @@
         },
         {
 
+            "name": "0.05mm Detail @MINIIS",
+            "sub_path": "process/0.05mm Detail @MINIIS.json"
+        },
+        {
+
+            "name": "0.07mm Detail @MINIIS",
+            "sub_path": "process/0.07mm Detail @MINIIS.json"
+        },
+        {
+
+            "name": "0.10mm Speed @MINIIS",
+            "sub_path": "process/0.10mm Speed @MINIIS.json"
+        },
+        {
+
+            "name": "0.12mm Speed @MINIIS",
+            "sub_path": "process/0.12mm Speed @MINIIS.json"
+        },
+        {
+
+            "name": "0.12mm Standard @MINIIS",
+            "sub_path": "process/0.12mm Standard @MINIIS.json"
+        },
+        {
+
+            "name": "0.15mm Standard @MINIIS",
+            "sub_path": "process/0.15mm Standard @MINIIS.json"
+        },
+        {
+
+            "name": "0.15mm Speed @MINIIS",
+            "sub_path": "process/0.15mm Speed @MINIIS.json"
+        },
+        {
+
+            "name": "0.20mm Standard @MINIIS",
+            "sub_path": "process/0.20mm Standard @MINIIS.json"
+        },
+        {
+
+            "name": "0.20mm Speed @MINIIS",
+            "sub_path": "process/0.20mm Speed @MINIIS.json"
+        },     
+        {
+
+            "name": "0.25mm Standard @MINIIS",
+            "sub_path": "process/0.25mm Standard @MINIIS.json"
+        },
+        {
+
+            "name": "0.25mm Speed @MINIIS",
+            "sub_path": "process/0.25mm Speed @MINIIS.json"
+        },
+        {
+
+            "name": "0.30mm Detail @MINIIS",
+            "sub_path": "process/0.30mm Detail @MINIIS.json"
+        },
+        {
+
+            "name": "0.35mm Standard @MINIIS",
+            "sub_path": "process/0.35mm Standard @MINIIS.json"
+        }, 
+        {
+
+            "name": "0.40mm Standard @MINIIS",
+            "sub_path": "process/0.40mm Standard @MINIIS.json"
+        },      
+        {
+
             "name": "0.24mm Standard @MK4",
             "sub_path": "process/0.24mm Standard @MK4.json"
         },
@@ -204,6 +302,10 @@
             "sub_path": "filament/Prusa Generic PLA @MK4.json"
         },
         {
+            "name": "Prusa Generic PLA @MINIIS",
+            "sub_path": "filament/Prusa Generic PLA @MINIIS.json"
+        },
+        {
             "name": "Prusa Generic PLA-CF",
             "sub_path": "filament/Prusa Generic PLA-CF.json"
         },
@@ -216,12 +318,20 @@
             "sub_path": "filament/Prusa Generic PETG @MK4.json"
         },
         {
+            "name": "Prusa Generic PETG @MINIIS",
+            "sub_path": "filament/Prusa Generic PETG @MINIIS.json"
+        },
+        {
             "name": "Prusa Generic ABS",
             "sub_path": "filament/Prusa Generic ABS.json"
         },
         {
             "name": "Prusa Generic ABS @MK4",
             "sub_path": "filament/Prusa Generic ABS @MK4.json"
+        },
+        {
+            "name": "Prusa Generic ABS @MINIIS",
+            "sub_path": "filament/Prusa Generic ABS @MINIIS.json"
         },
         {
             "name": "Prusa Generic TPU",
@@ -232,12 +342,20 @@
             "sub_path": "filament/Prusa Generic TPU @MK4.json"
         },
         {
+            "name": "Prusa Generic TPU @MINIIS",
+            "sub_path": "filament/Prusa Generic TPU @MINIIS.json"
+        },
+        {
             "name": "Prusa Generic ASA",
             "sub_path": "filament/Prusa Generic ASA.json"
         },
         {
             "name": "Prusa Generic ASA @MK4",
             "sub_path": "filament/Prusa Generic ASA @MK4.json"
+        },
+        {
+            "name": "Prusa Generic ASA @MINIIS",
+            "sub_path": "filament/Prusa Generic ASA @MINIIS.json"
         },
         {
             "name": "Prusa Generic PC",
@@ -286,6 +404,22 @@
             "sub_path": "machine/Prusa MK4 0.4 nozzle.json"
         },
         {
+            "name": "Prusa MINIIS 0.4 nozzle",
+            "sub_path": "machine/Prusa MINIIS 0.4 nozzle.json"
+        },
+        {
+            "name": "Prusa MINIIS 0.25 nozzle",
+            "sub_path": "machine/Prusa MINIIS 0.25 nozzle.json"
+        },
+        {
+            "name": "Prusa MINIIS 0.6 nozzle",
+            "sub_path": "machine/Prusa MINIIS 0.6 nozzle.json"
+        },
+        {
+            "name": "Prusa MINIIS 0.8 nozzle",
+            "sub_path": "machine/Prusa MINIIS 0.8 nozzle.json"
+        },
+        {
             "name": "Prusa MK4 0.6 nozzle",
             "sub_path": "machine/Prusa MK4 0.6 nozzle.json"
         },
@@ -294,8 +428,20 @@
             "sub_path": "machine/Prusa MK4 0.8 nozzle.json"
         },
         {
+            "name": "Prusa MINI 0.25 nozzle",
+            "sub_path": "machine/Prusa MINI 0.25 nozzle.json"
+        },
+        {
             "name": "Prusa MINI 0.4 nozzle",
             "sub_path": "machine/Prusa MINI 0.4 nozzle.json"
+        },
+        {
+            "name": "Prusa MINI 0.6 nozzle",
+            "sub_path": "machine/Prusa MINI 0.6 nozzle.json"
+        },
+        {
+            "name": "Prusa MINI 0.8 nozzle",
+            "sub_path": "machine/Prusa MINI 0.8 nozzle.json"
         }
     ]
 }

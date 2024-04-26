@@ -114,12 +114,12 @@ public:
     OrcaSlicerTaskBarIcon(wxTaskBarIconType iconType = wxTBI_DEFAULT_TYPE) : wxTaskBarIcon(iconType) {}
     wxMenu *CreatePopupMenu() override {
         wxMenu *menu = new wxMenu;
-        //if (wxGetApp().app_config->get("single_instance") == "false") {
+        if (wxGetApp().app_config->get("single_instance") == "false") {
             // Only allow opening a new PrusaSlicer instance on OSX if "single_instance" is disabled,
             // as starting new instances would interfere with the locking mechanism of "single_instance" support.
             append_menu_item(menu, wxID_ANY, _L("New Window"), _L("Open a new window"),
             [](wxCommandEvent&) { start_new_slicer(); }, "", nullptr);
-        //}
+        }
 //        append_menu_item(menu, wxID_ANY, _L("G-code Viewer") + dots, _L("Open G-code Viewer"),
 //            [](wxCommandEvent&) { start_new_gcodeviewer_open_file(); }, "", nullptr);
         return menu;
@@ -589,6 +589,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
         {
             PreferencesDialog dlg(this);
             dlg.ShowModal();
+            plater()->get_current_canvas3D()->force_set_focus();
 #if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
             if (dlg.seq_top_layer_only_changed() || dlg.seq_seq_top_gcode_indices_changed())
 #else
@@ -884,7 +885,7 @@ void MainFrame::shutdown()
     // Stop the background thread of the removable drive manager, so that no new updates will be sent to the Plater.
     //wxGetApp().removable_drive_manager()->shutdown();
 	//stop listening for messages from other instances
-	//wxGetApp().other_instance_message_handler()->shutdown(this);
+	wxGetApp().other_instance_message_handler()->shutdown(this);
     // Save the slic3r.ini.Usually the ini file is saved from "on idle" callback,
     // but in rare cases it may not have been called yet.
     if(wxGetApp().app_config->dirty())
@@ -1080,7 +1081,7 @@ void MainFrame::init_tabpanel() {
     
     m_project = new ProjectPanel(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
     m_project->SetBackgroundColour(*wxWHITE);
-    m_tabpanel->AddPage(m_project, _L("Project"), std::string("tab_auxiliary_avtice"), std::string("tab_auxiliary_avtice"), false);
+    m_tabpanel->AddPage(m_project, _L("Project"), std::string("tab_auxiliary_active"), std::string("tab_auxiliary_active"), false);
 
     m_calibration = new CalibrationPanel(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
     m_calibration->SetBackgroundColour(*wxWHITE);
@@ -2179,7 +2180,7 @@ void MainFrame::init_menubar_as_editor()
         // New Window
         append_menu_item(fileMenu, wxID_ANY, _L("New Window"), _L("Start a new window"),
                          [](wxCommandEvent&) { start_new_slicer(); }, "", nullptr,
-                         []{ return true; }, this);
+                         [this] { return m_plater != nullptr && wxGetApp().app_config->get("app", "single_instance") == "false"; }, this);
 #endif
         // New Project
         append_menu_item(fileMenu, wxID_ANY, _L("New Project") + "\t" + ctrl + "N", _L("Start a new project"),
@@ -2703,6 +2704,7 @@ void MainFrame::init_menubar_as_editor()
         [this](wxCommandEvent &) {
             PreferencesDialog dlg(this);
             dlg.ShowModal();
+            plater()->get_current_canvas3D()->force_set_focus();
 #if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
             if (dlg.seq_top_layer_only_changed() || dlg.seq_seq_top_gcode_indices_changed())
 #else
@@ -2729,6 +2731,7 @@ void MainFrame::init_menubar_as_editor()
         [this](wxCommandEvent &) {
             PreferencesDialog dlg(this);
             dlg.ShowModal();
+            plater()->get_current_canvas3D()->force_set_focus();
 #if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
             if (dlg.seq_top_layer_only_changed() || dlg.seq_seq_top_gcode_indices_changed())
 #else
