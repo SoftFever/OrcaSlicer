@@ -258,7 +258,7 @@ msgid "World coordinates"
 msgstr "Coordenadas cartesianas"
 
 msgid "Object coordinates"
-msgstr ""
+msgstr "Coordenadas del objeto"
 
 msgid "°"
 msgstr "°"
@@ -2987,7 +2987,7 @@ msgid "Print with the filament mounted on the back of chassis"
 msgstr "Imprimir con el filamento montado en la parte posterior del chasis"
 
 msgid "Current Cabin humidity"
-msgstr ""
+msgstr "Humedad actual de la cabina"
 
 msgid ""
 "Please change the desiccant when it is too wet. The indicator may not "
@@ -2995,6 +2995,10 @@ msgid ""
 "desiccant pack is changed. it take hours to absorb the moisture, low "
 "temperatures also slow down the process."
 msgstr ""
+"Cambie el desecante cuando esté demasiado húmedo. El indicador puede no ser "
+"preciso en los siguientes casos: cuando la tapa está abierta o se cambia el "
+"paquete de desecante. tarda horas en absorber la humedad, las bajas "
+"temperaturas también ralentizan el proceso."
 
 msgid ""
 "Config which AMS slot should be used for a filament used in the print job"
@@ -3055,10 +3059,10 @@ msgstr ""
 "marca, tipo de material y color)."
 
 msgid "DRY"
-msgstr ""
+msgstr "SECO"
 
 msgid "WET"
-msgstr ""
+msgstr "HÚMEDO"
 
 msgid "AMS Settings"
 msgstr "Ajustes del AMS"
