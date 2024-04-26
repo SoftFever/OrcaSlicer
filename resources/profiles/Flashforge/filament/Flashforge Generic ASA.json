@@ -17,11 +17,7 @@
     "2"
   ],
   "compatible_printers": [
-    "Flashforge Adventurer 5M Pro 0.4 Nozzle",
-    "Flashforge Guider 2s 0.3 nozzle",
-    "Flashforge Guider 2s 0.4 nozzle",
-    "Flashforge Guider 2s 0.6 nozzle",
-    "Flashforge Guider 2s 0.8 nozzle"
+    "Flashforge Adventurer 5M Pro 0.4 Nozzle"
   ],
   "compatible_printers_condition": "",
   "compatible_prints": [],
