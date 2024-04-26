@@ -125,6 +125,7 @@ wxWindow *KBShortcutsDialog::create_button(int id, wxString text)
     auto stext = new wxStaticText(tab_button, wxID_ANY, text, wxDefaultPosition, wxDefaultSize, 0);
     stext->SetFont(::Label::Body_13);
     stext->SetForegroundColour(wxColour(38, 46, 48));
+    stext->SetMinSize(wxSize(FromDIP(100), -1));
     stext->Wrap(-1);
     sizer->Add(stext, 1, wxALIGN_CENTER, 0);
 
@@ -345,15 +346,17 @@ wxPanel* KBShortcutsDialog::create_page(wxWindow* parent, const ShortcutsItem& s
 
     for (int i = 0; i < items_count; ++i) {
         const auto &[shortcut, description] = shortcuts.second[i];
-        auto key                            = new wxStaticText(scrollable_panel, wxID_ANY, _(shortcut));
+        auto key = new wxStaticText(scrollable_panel, wxID_ANY, _(shortcut));
         key->SetForegroundColour(wxColour(50, 58, 61));
+        key->SetMinSize(wxSize(FromDIP(100), -1));
         key->SetFont(bold_font);
         grid_sizer->Add(key, 0, wxALIGN_CENTRE_VERTICAL);
 
         auto desc = new wxStaticText(scrollable_panel, wxID_ANY, _(description));
         desc->SetFont(font);
         desc->SetForegroundColour(wxColour(50, 58, 61));
-        desc->Wrap(FromDIP(600));
+        desc->SetMinSize(wxSize(FromDIP(700), -1));
+        desc->Wrap(FromDIP(700));
         grid_sizer->Add(desc, 0, wxALIGN_CENTRE_VERTICAL);
     }
 
