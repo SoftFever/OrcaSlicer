@@ -59,6 +59,7 @@
   ],
   "compatible_printers": [
     "Flashforge Adventurer 3 Series 0.4 Nozzle",
-    "Flashforge Adventurer 3 Series 0.6 Nozzle"
+    "Flashforge Adventurer 3 Series 0.6 Nozzle",
+    "Flashforge Guider 2s 0.4 nozzle"
   ]
 }
