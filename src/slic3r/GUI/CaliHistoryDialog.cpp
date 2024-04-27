@@ -55,9 +55,10 @@ static wxString get_preset_name_by_filament_id(std::string filament_id)
     return preset_name;
 }
 
-HistoryWindow::HistoryWindow(wxWindow* parent, const std::vector<PACalibResult>& calib_results_history)
+HistoryWindow::HistoryWindow(wxWindow* parent, const std::vector<PACalibResult>& calib_results_history, bool& show)
     : DPIDialog(parent, wxID_ANY, _L("Flow Dynamics Calibration Result"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE)
     , m_calib_results_history(calib_results_history)
+    , m_show_history_dialog(show)
 {
     this->SetBackgroundColour(*wxWHITE);
     auto main_sizer = new wxBoxSizer(wxVERTICAL);
@@ -138,11 +139,14 @@ HistoryWindow::HistoryWindow(wxWindow* parent, const std::vector<PACalibResult>&
     m_refresh_timer->SetOwner(this);
     m_refresh_timer->Start(200);
     Bind(wxEVT_TIMER, &HistoryWindow::on_timer, this);
+
+    m_show_history_dialog = true;
 }
 
 HistoryWindow::~HistoryWindow()
 {
     m_refresh_timer->Stop();
+    m_show_history_dialog = false;
 }
 
 void HistoryWindow::sync_history_result(MachineObject* obj)
@@ -566,7 +570,7 @@ wxArrayString NewCalibrationHistoryDialog::get_all_filaments(const MachineObject
 }
 
 NewCalibrationHistoryDialog::NewCalibrationHistoryDialog(wxWindow *parent, const std::vector<PACalibResult> history_results)
-    : DPIDialog(parent, wxID_ANY, _L("New Flow Dynamics Calibration"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE)
+    : DPIDialog(parent, wxID_ANY, _L("New Flow Dynamic Calibration"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE)
     , m_history_results(history_results)
 {
     Slic3r::DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
@@ -575,6 +579,8 @@ NewCalibrationHistoryDialog::NewCalibrationHistoryDialog(wxWindow *parent, const
     MachineObject *obj = dev->get_selected_machine();
     if (!obj)
         return;
+
+    curr_obj = obj;
 
     this->SetBackgroundColour(*wxWHITE);
     auto main_sizer = new wxBoxSizer(wxVERTICAL);
@@ -709,13 +715,14 @@ void NewCalibrationHistoryDialog::on_ok(wxCommandEvent &event)
             return item.name == m_new_result.name && item.filament_id == m_new_result.filament_id;
         });
 
-        if (iter != curr_obj->pa_calib_tab.end()) {
+        if (iter != m_history_results.end()) {
             MessageDialog msg_dlg(nullptr,
                                   wxString::Format(_L("There is already a historical calibration result with the same name: %s. Only one of the results with the same name "
                                                       "is saved. Are you sure you want to override the historical result?"),
                                                    m_new_result.name),
                                   wxEmptyString, wxICON_WARNING | wxYES_NO);
-            if (msg_dlg.ShowModal() != wxID_YES) return;
+            if (msg_dlg.ShowModal() != wxID_YES)
+                return;
         }
     }
 

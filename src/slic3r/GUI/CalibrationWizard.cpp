@@ -430,7 +430,7 @@ void PressureAdvanceWizard::on_cali_action(wxCommandEvent& evt)
 {
     CaliPageActionType action = static_cast<CaliPageActionType>(evt.GetInt());
     if (action == CaliPageActionType::CALI_ACTION_MANAGE_RESULT) {
-        HistoryWindow history_dialog(this, m_calib_results_history);
+        HistoryWindow history_dialog(this, m_calib_results_history, m_show_result_dialog);
         history_dialog.on_device_connected(curr_obj);
         history_dialog.ShowModal();
     }
@@ -473,9 +473,11 @@ void PressureAdvanceWizard::update(MachineObject* obj)
 
     CalibrationWizard::update(obj);
 
-    if (obj->cali_version != -1 && obj->cali_version != cali_version) {
-        cali_version = obj->cali_version;
-        CalibUtils::emit_get_PA_calib_info(obj->nozzle_diameter, "");
+    if (!m_show_result_dialog) {
+        if (obj->cali_version != -1 && obj->cali_version != cali_version) {
+            cali_version = obj->cali_version;
+            CalibUtils::emit_get_PA_calib_info(obj->nozzle_diameter, "");
+        }
     }
 }
 
@@ -1063,7 +1065,13 @@ void FlowRateWizard::on_cali_start(CaliPresetStage stage, float cali_value, Flow
             calib_info.filament_prest = temp_filament_preset;
 
             if (cali_stage > 0) {
-                CalibUtils::calib_flowrate(cali_stage, calib_info, wx_err_string);
+                if (!CalibUtils::calib_flowrate(cali_stage, calib_info, wx_err_string)) {
+                    if (!wx_err_string.empty()) {
+                        MessageDialog msg_dlg(nullptr, wx_err_string, wxEmptyString, wxICON_WARNING | wxOK);
+                        msg_dlg.ShowModal();
+                    }
+                    return;
+                }
             }
             else {
                 wx_err_string = _L("Internal Error") + wxString(": Invalid calibration stage");
