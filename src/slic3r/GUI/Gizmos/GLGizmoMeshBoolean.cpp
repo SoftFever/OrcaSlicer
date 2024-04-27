@@ -211,7 +211,7 @@ void GLGizmoMeshBoolean::on_render_input_window(float x, float y, float bottom_l
 	*/
 
 	// ORCA match tab style
-	auto tab_button = [this](const wchar_t icon, bool selected, ImVec2 size, ImVec2 tab_padding, std::string& tooltip) {
+    auto tab_button = [this](const wchar_t icon, bool selected, ImVec2 size, ImVec2 tab_padding, const std::string& tooltip) {
 
 		std::string  str_label = std::string("");
         std::wstring btn_name  = icon + boost::nowide::widen(str_label);
