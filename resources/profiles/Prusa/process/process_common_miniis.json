@@ -50,5 +50,6 @@
   "enable_arc_fitting": "1",
   "support_speed": "100",
   "precise_outer_wall": "1",
-  "overhang_reverse": "1"
+  "overhang_reverse": "1",
+  "wall_sequence": "inner-outer-inner wall"
 }

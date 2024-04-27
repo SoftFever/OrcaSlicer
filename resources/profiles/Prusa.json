@@ -204,7 +204,11 @@
 
             "name": "0.20mm Speed @MINIIS",
             "sub_path": "process/0.20mm Speed @MINIIS.json"
-        },     
+        },
+        {
+        "name": "0.20mm Speed @MINIIS 0.6",
+        "sub_path": "process/0.20mm Speed @MINIIS 0.6.json"
+        },   
         {
 
             "name": "0.25mm Standard @MINIIS",
