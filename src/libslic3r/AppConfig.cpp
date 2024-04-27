@@ -186,6 +186,8 @@ void AppConfig::set_defaults()
     if (get("show_hints").empty())
         set_bool("show_hints", true);
 //#endif
+    if (get("enable_multi_machine").empty())
+        set_bool("enable_multi_machine", false);
 
     if (get("show_gcode_window").empty())
         set_bool("show_gcode_window", true);
@@ -357,6 +359,14 @@ void AppConfig::set_defaults()
 
     if (get("curr_bed_type").empty()) {
         set("curr_bed_type", "1");
+    }
+
+    if (get("sending_interval").empty()) {
+        set("sending_interval", "60");
+    }
+
+    if (get("max_send").empty()) {
+        set("max_send", "10");
     }
 
 // #if BBL_RELEASE_TO_PUBLIC

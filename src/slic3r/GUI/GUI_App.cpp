@@ -3,6 +3,7 @@
 #include "GUI_Init.hpp"
 #include "GUI_ObjectList.hpp"
 #include "GUI_Factories.hpp"
+#include "slic3r/GUI/TaskManager.hpp"
 #include "format.hpp"
 #include "libslic3r_version.h"
 
@@ -151,6 +152,7 @@ class MainFrame;
 
 void start_ping_test()
 {
+    return;
     wxArrayString output;
     wxExecute("ping www.amazon.com", output, wxEXEC_NODISABLE);
 
@@ -1599,6 +1601,22 @@ void GUI_App::init_networking_callbacks()
                     return;
                 BOOST_LOG_TRIVIAL(trace) << "static: server connected";
                 m_agent->set_user_selected_machine(m_agent->get_user_selected_machine());
+                    if (this->is_enable_multi_machine()) {
+                        auto evt = new wxCommandEvent(EVT_UPDATE_MACHINE_LIST);
+                        wxQueueEvent(this, evt);
+                    }
+                    m_agent->set_user_selected_machine(m_agent->get_user_selected_machine());
+                    //subscribe device
+                    if (m_agent->is_user_login()) {
+                        m_agent->start_device_subscribe();
+                        /* resubscribe the cache dev list */
+                        if (this->is_enable_multi_machine()) {
+                            DeviceManager* dev = this->getDeviceManager();
+                            if (dev && !dev->subscribe_list_cache.empty()) {
+                                dev->subscribe_device_list(dev->subscribe_list_cache);
+                            }
+                        }
+                    }
                 });
             });
 
@@ -1618,7 +1636,9 @@ void GUI_App::init_networking_callbacks()
                     obj->command_get_version();
                     obj->erase_user_access_code();
                     obj->command_get_access_code();
-                    GUI::wxGetApp().sidebar().load_ams_list(obj->dev_id, obj);
+                    if (!is_enable_multi_machine()) {
+                        GUI::wxGetApp().sidebar().load_ams_list(obj->dev_id, obj);
+                    }
                 }
                 });
             });
@@ -1714,11 +1734,21 @@ void GUI_App::init_networking_callbacks()
                 MachineObject* obj = this->m_device_manager->get_user_machine(dev_id);
                 if (obj) {
                     obj->is_ams_need_update = false;
-                    obj->parse_json(msg);
 
                     auto sel = this->m_device_manager->get_selected_machine();
-                    if ((sel == obj || sel == nullptr) && obj->is_ams_need_update) {
-                        GUI::wxGetApp().sidebar().load_ams_list(obj->dev_id, obj);
+
+                    if (sel && sel->dev_id == dev_id) {
+                        obj->parse_json(msg);
+                    }
+                    else {
+                        obj->parse_json(msg, true);
+                    }
+                    
+
+                    if (!this->is_enable_multi_machine()) {
+                        if ((sel == obj || sel == nullptr) && obj->is_ams_need_update) {
+                            GUI::wxGetApp().sidebar().load_ams_list(obj->dev_id, obj);
+                        }
                     }
                 }
             });
@@ -1740,10 +1770,14 @@ void GUI_App::init_networking_callbacks()
                 }
 
                 if (obj) {
-                    obj->parse_json(msg);
+                    obj->parse_json(msg, DeviceManager::key_field_only);
                     if (this->m_device_manager->get_selected_machine() == obj && obj->is_ams_need_update) {
                         GUI::wxGetApp().sidebar().load_ams_list(obj->dev_id, obj);
                     }
+                }
+                obj = m_device_manager->get_local_machine(dev_id);
+                if (obj) {
+                    obj->parse_json(msg, DeviceManager::key_field_only);
                 }
                 });
         };
@@ -2402,6 +2436,7 @@ bool GUI_App::on_init_inner()
     preset_bundle->set_default_suppressed(true);
 
     Bind(EVT_SET_SELECTED_MACHINE, &GUI_App::on_set_selected_machine, this);
+    Bind(EVT_UPDATE_MACHINE_LIST, &GUI_App::on_update_machine_list, this);
     Bind(EVT_USER_LOGIN, &GUI_App::on_user_login, this);
     Bind(EVT_USER_LOGIN_HANDLE, &GUI_App::on_user_login_handle, this);
     Bind(EVT_CHECK_PRIVACY_VER, &GUI_App::on_check_privacy_update, this);
@@ -2724,6 +2759,17 @@ __retry:
         else
             m_device_manager->set_agent(m_agent);
 
+        if (this->is_enable_multi_machine()) {
+            if (!m_task_manager) {
+                m_task_manager = new Slic3r::TaskManager(m_agent);
+                m_task_manager->start();
+            }
+            m_agent->enable_multi_machine(true);
+            DeviceManager::EnableMultiMachine = true;
+        } else {
+            m_agent->enable_multi_machine(false);
+            DeviceManager::EnableMultiMachine = false;
+        }
 
         //BBS set config dir
         if (m_agent) {
@@ -3794,6 +3840,21 @@ std::string GUI_App::handle_web_request(std::string cmd)
                 if (path.has_value()) {
                     wxLaunchDefaultBrowser(path.value());
                 }
+            } 
+            else if (command_str.compare("homepage_makerlab_get") == 0) {
+                //if (mainframe->m_webview) { mainframe->m_webview->SendMakerlabList(); }
+            }
+            else if (command_str.compare("makerworld_model_open") == 0) 
+            {
+                if (root.get_child_optional("model") != boost::none) {
+                    pt::ptree                    data_node = root.get_child("model");
+                    boost::optional<std::string> path      = data_node.get_optional<std::string>("url");
+                    if (path.has_value()) 
+                    { 
+                        wxString realurl = from_u8(url_decode(path.value()));
+                        wxGetApp().request_model_download(realurl);
+                    }
+                }
             }
         }
     }
@@ -3947,9 +4008,17 @@ void GUI_App::enable_user_preset_folder(bool enable)
 void GUI_App::on_set_selected_machine(wxCommandEvent &evt)
 {
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-    if (!dev || m_agent) return;
+    if (dev) {
+        dev->set_selected_machine(m_agent->get_user_selected_machine());
+    }
+}
 
-    dev->set_selected_machine(m_agent->get_user_selected_machine());
+void GUI_App::on_update_machine_list(wxCommandEvent &evt)
+{
+    /* DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+     if (dev) {
+         dev->add_user_subscribe();
+     }*/
 }
 
 void GUI_App::on_user_login_handle(wxCommandEvent &evt)
@@ -4408,6 +4477,26 @@ void GUI_App::show_dialog(wxString msg)
         evt->SetString(msg);
         GUI::wxGetApp().QueueEvent(evt);
         m_info_dialog_content = msg;
+    }
+}
+
+void  GUI_App::push_notification(wxString msg, wxString title, UserNotificationStyle style)
+{
+    if (!this->is_enable_multi_machine()) {
+        if (style == UserNotificationStyle::UNS_NORMAL) {
+            if (m_info_dialog_content.empty()) {
+                wxCommandEvent* evt = new wxCommandEvent(EVT_SHOW_DIALOG);
+                evt->SetString(msg);
+                GUI::wxGetApp().QueueEvent(evt);
+                m_info_dialog_content = msg;
+            }
+        }
+        else if (style == UserNotificationStyle::UNS_WARNING_CONFIRM) {
+            GUI::wxGetApp().CallAfter([msg, title] {
+                GUI::MessageDialog msg_dlg(nullptr, msg, title, wxICON_WARNING | wxOK);
+                msg_dlg.ShowModal();
+            });
+        }
     }
 }
 

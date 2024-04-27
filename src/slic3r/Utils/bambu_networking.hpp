@@ -193,6 +193,7 @@ struct PrintParams {
     std::string     origin_model_id;
     std::string     print_type;
     std::string     dst_file;
+    std::string     dev_name;
 
     /* access options */
     std::string     dev_ip;
@@ -210,6 +211,14 @@ struct PrintParams {
     bool            task_use_ams;
     std::string     task_bed_type;
     std::string     extra_options;
+};
+
+struct TaskQueryParams
+{
+    std::string dev_id;
+    int status = 0;
+    int offset = 0;
+    int limit = 20;
 };
 
 struct PublishParams {
