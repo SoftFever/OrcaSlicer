@@ -117,7 +117,10 @@ wxDECLARE_EVENT(EVT_GLCANVAS_COLOR_MODE_CHANGED,   SimpleEvent);
 wxDECLARE_EVENT(EVT_PRINT_FROM_SDCARD_VIEW,   SimpleEvent);
 wxDECLARE_EVENT(EVT_CREATE_FILAMENT, SimpleEvent);
 wxDECLARE_EVENT(EVT_MODIFY_FILAMENT, SimpleEvent);
-
+wxDECLARE_EVENT(EVT_ADD_FILAMENT, SimpleEvent);
+wxDECLARE_EVENT(EVT_DEL_FILAMENT, SimpleEvent);
+using ColorEvent = Event<wxColour>;
+wxDECLARE_EVENT(EVT_ADD_CUSTOM_FILAMENT, ColorEvent);
 const wxString DEFAULT_PROJECT_NAME = "Untitled";
 
 class Sidebar : public wxPanel
@@ -153,6 +156,9 @@ public:
     void jump_to_option(const std::string& opt_key, Preset::Type type, const std::wstring& category);
     // BBS. Add on_filaments_change() method.
     void on_filaments_change(size_t num_filaments);
+    void add_filament();
+    void delete_filament();
+    void add_custom_filament(wxColour new_col);
     // BBS
     void on_bed_type_change(BedType bed_type);
     void load_ams_list(std::string const & device, MachineObject* obj);
@@ -827,7 +833,7 @@ private:
     bool m_was_scheduled;
 };
 
-std::vector<int> get_min_flush_volumes();
+std::vector<int> get_min_flush_volumes(const DynamicPrintConfig& full_config);
 } // namespace GUI
 } // namespace Slic3r
 
