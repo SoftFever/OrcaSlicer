@@ -689,15 +689,15 @@ static void register_win32_device_notification_event()
         return false;
     });
 
-	//wxWindow::MSWRegisterMessageHandler(WM_COPYDATA, [](wxWindow* win, WXUINT /* nMsg */, WXWPARAM wParam, WXLPARAM lParam) {
-	//	COPYDATASTRUCT* copy_data_structure = { 0 };
-	//	copy_data_structure = (COPYDATASTRUCT*)lParam;
-	//	if (copy_data_structure->dwData == 1) {
-	//		LPCWSTR arguments = (LPCWSTR)copy_data_structure->lpData;
-	//		Slic3r::GUI::wxGetApp().other_instance_message_handler()->handle_message(boost::nowide::narrow(arguments));
-	//	}
-	//	return true;
-	//	});
+	wxWindow::MSWRegisterMessageHandler(WM_COPYDATA, [](wxWindow* win, WXUINT /* nMsg */, WXWPARAM wParam, WXLPARAM lParam) {
+		COPYDATASTRUCT* copy_data_structure = { 0 };
+		copy_data_structure = (COPYDATASTRUCT*)lParam;
+		if (copy_data_structure->dwData == 1) {
+			LPCWSTR arguments = (LPCWSTR)copy_data_structure->lpData;
+			Slic3r::GUI::wxGetApp().other_instance_message_handler()->handle_message(boost::nowide::narrow(arguments));
+		}
+		return true;
+		});
 }
 #endif // WIN32
 
@@ -959,7 +959,7 @@ void GUI_App::post_init()
 
     if (app_config->get("stealth_mode") == "false")
         hms_query = new HMSQuery();
-    
+
     m_show_gcode_window = app_config->get_bool("show_gcode_window");
     if (m_networking_need_update) {
         //updating networking
@@ -1065,10 +1065,10 @@ void GUI_App::post_init()
     }
     BOOST_LOG_TRIVIAL(info) << "finished post_init";
 //BBS: remove the single instance currently
-/*#ifdef _WIN32
+#ifdef _WIN32
     // Sets window property to mainframe so other instances can indentify it.
     OtherInstanceMessageHandler::init_windows_properties(mainframe, m_instance_hash_int);
-#endif //WIN32*/
+#endif //WIN32
 }
 
 wxDEFINE_EVENT(EVT_ENTER_FORCE_UPGRADE, wxCommandEvent);
@@ -1086,7 +1086,7 @@ GUI_App::GUI_App()
     , m_em_unit(10)
     , m_imgui(new ImGuiWrapper())
 	, m_removable_drive_manager(std::make_unique<RemovableDriveManager>())
-	//, m_other_instance_message_handler(std::make_unique<OtherInstanceMessageHandler>())
+	, m_other_instance_message_handler(std::make_unique<OtherInstanceMessageHandler>())
 {
 	//app config initializes early becasuse it is used in instance checking in OrcaSlicer.cpp
     this->init_app_config();
@@ -2029,11 +2029,11 @@ std::string GUI_App::get_local_models_path()
     return local_path;
 }
 
-/*void GUI_App::init_single_instance_checker(const std::string &name, const std::string &path)
+void GUI_App::init_single_instance_checker(const std::string &name, const std::string &path)
 {
     BOOST_LOG_TRIVIAL(debug) << "init wx instance checker " << name << " "<< path;
     m_single_instance_checker = std::make_unique<wxSingleInstanceChecker>(boost::nowide::widen(name), boost::nowide::widen(path));
-}*/
+}
 
 bool GUI_App::OnInit()
 {
@@ -2273,9 +2273,7 @@ bool GUI_App::on_init_inner()
         BOOST_LOG_TRIVIAL(info) << "begin to show the splash screen...";
         //BBS use BBL splashScreen
         scrn = new SplashScreen(bmp, wxSPLASH_CENTRE_ON_SCREEN | wxSPLASH_TIMEOUT, 1500, splashscreen_pos);
-#ifndef __linux__
         wxYield();
-#endif
         scrn->SetText(_L("Loading configuration")+ dots);
     }
 
@@ -2510,9 +2508,9 @@ bool GUI_App::on_init_inner()
 
     update_mode(); // update view mode after fix of the object_list size
 
-//#ifdef __APPLE__
-//    other_instance_message_handler()->bring_instance_forward();
-//#endif //__APPLE__
+#ifdef __APPLE__
+   other_instance_message_handler()->bring_instance_forward();
+#endif //__APPLE__
 
     Bind(EVT_HTTP_ERROR, &GUI_App::on_http_error, this);
 
@@ -2809,7 +2807,7 @@ void GUI_App::init_label_colours()
     m_color_label_modified = is_dark_mode ? wxColour("#F1754E") : wxColour("#F1754E");
     m_color_label_sys      = is_dark_mode ? wxColour("#B2B3B5") : wxColour("#363636");
 
-#ifdef _WIN32
+#if defined(_WIN32) || defined(__linux__) || defined(__APPLE__)
     m_color_label_default           = is_dark_mode ? wxColour(250, 250, 250) : m_color_label_sys; // wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
     m_color_highlight_label_default = is_dark_mode ? wxColour(230, 230, 230): wxSystemSettings::GetColour(/*wxSYS_COLOUR_HIGHLIGHTTEXT*/wxSYS_COLOUR_WINDOWTEXT);
     m_color_highlight_default       = is_dark_mode ? wxColour(78, 78, 78)   : wxSystemSettings::GetColour(wxSYS_COLOUR_3DLIGHT);
@@ -2922,22 +2920,38 @@ void GUI_App::UpdateDarkUI(wxWindow* window, bool highlited/* = false*/, bool ju
 
     /*if (m_is_dark_mode != dark_mode() )
         m_is_dark_mode = dark_mode();*/
-    
 
     if (m_is_dark_mode) {
-        auto original_col = window->GetBackgroundColour();
-        auto bg_col = StateColor::darkModeColorFor(original_col);
 
-        if (bg_col != original_col) {
+        auto orig_col = window->GetBackgroundColour();
+        auto bg_col = StateColor::darkModeColorFor(orig_col);
+        // there are cases where the background color of an item is bright, specifically:
+        // * the background color of a button: #009688  -- 73
+        if (bg_col != orig_col) {
             window->SetBackgroundColour(bg_col);
         }
 
-        original_col = window->GetForegroundColour();
-        auto fg_col = StateColor::darkModeColorFor(original_col);
+        orig_col = window->GetForegroundColour();
+        auto fg_col = StateColor::darkModeColorFor(orig_col);
+        auto fg_l = StateColor::GetLightness(fg_col);
 
-        if (fg_col != original_col) {
-            window->SetForegroundColour(fg_col);
+        auto color_difference = StateColor::GetColorDifference(bg_col, fg_col);
+
+        // fallback and sanity check with LAB
+        // color difference of less than 2 or 3 is not normally visible, and even less than 30-40 doesn't stand out
+        if (color_difference < 10) {
+            fg_col = StateColor::SetLightness(fg_col, 90);
         }
+        // some of the stock colors have a lightness of ~49
+        if (fg_l < 45) {
+            fg_col = StateColor::SetLightness(fg_col, 70);
+        }
+        // at this point it shouldn't be possible that fg_col is the same as bg_col, but let's be safe
+        if (fg_col == bg_col) {
+            fg_col = StateColor::SetLightness(fg_col, 70);
+        }
+
+        window->SetForegroundColour(fg_col);
     }
     else {
         auto original_col = window->GetBackgroundColour();
@@ -3893,7 +3907,7 @@ void GUI_App::on_http_error(wxCommandEvent &evt)
         MessageDialog msg_dlg(nullptr, _L("The version of Orca Slicer is too low and needs to be updated to the latest version before it can be used normally"), "", wxAPPLY | wxOK);
         if (msg_dlg.ShowModal() == wxOK) {
         }
-       
+
     }
 
     // request login
@@ -5737,7 +5751,8 @@ void GUI_App::MacOpenURL(const wxString& url)
 // wxWidgets override to get an event on open files.
 void GUI_App::MacOpenFiles(const wxArrayString &fileNames)
 {
-    if (m_post_initialized) {
+    bool single_instance = app_config->get("app", "single_instance") == "true";
+    if (m_post_initialized && !single_instance) {
         bool has3mf = false;
         std::vector<wxString> names;
         for (auto & n : fileNames) {
