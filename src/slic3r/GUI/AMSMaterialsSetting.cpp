@@ -8,12 +8,19 @@
 #include <wx/colordlg.h>
 #include <wx/dcgraph.h>
 #include "CalibUtils.hpp"
-
+#include "../Utils/ColorSpaceConvert.hpp"
 namespace Slic3r { namespace GUI {
 
 wxDEFINE_EVENT(EVT_SELECTED_COLOR, wxCommandEvent);
 
-AMSMaterialsSetting::AMSMaterialsSetting(wxWindow *parent, wxWindowID id) 
+static std::string float_to_string_with_precision(float value, int precision = 3)
+{
+    std::stringstream stream;
+    stream << std::fixed << std::setprecision(precision) << value;
+    return stream.str();
+}
+
+AMSMaterialsSetting::AMSMaterialsSetting(wxWindow *parent, wxWindowID id)
     : DPIDialog(parent, id, _L("AMS Materials Setting"), wxDefaultPosition, wxDefaultSize, wxBORDER_NONE)
     , m_color_picker_popup(ColorPickerPopup(this))
 {
@@ -280,6 +287,14 @@ void AMSMaterialsSetting::create_panel_kn(wxWindow* parent)
     m_ratio_text = new wxStaticText(parent, wxID_ANY, _L("Factors of Flow Dynamics Calibration"));
     m_ratio_text->SetForegroundColour(wxColour(50, 58, 61));
     m_ratio_text->SetFont(Label::Head_14);
+
+    m_ratio_text->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_HAND); });
+    m_ratio_text->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_ARROW); });
+
+    m_ratio_text->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
+        wxLaunchDefaultBrowser(wxT("https://wiki.bambulab.com/en/software/bambu-studio/calibration_pa"));
+    });
+
 
     wxBoxSizer *m_sizer_cali_resutl = new wxBoxSizer(wxHORIZONTAL);
     // pa profile
@@ -750,6 +765,16 @@ bool AMSMaterialsSetting::Show(bool show)
         m_input_nozzle_min->GetTextCtrl()->SetSize(wxSize(-1, FromDIP(20)));
         //m_clr_picker->set_color(m_clr_picker->GetParent()->GetBackgroundColour());
 
+        /*if (obj && (obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI) || obj->is_high_printer_type())) {
+            m_ratio_text->Show();
+            m_k_param->Show();
+            m_input_k_val->Show();
+        }
+        else {
+            m_ratio_text->Hide();
+            m_k_param->Hide();
+            m_input_k_val->Hide();
+        }*/
         m_ratio_text->Show();
         m_k_param->Show();
         m_input_k_val->Show();
@@ -922,8 +947,8 @@ void AMSMaterialsSetting::on_select_cali_result(wxCommandEvent &evt)
 {
     m_pa_cali_select_id = evt.GetSelection();
     if (m_pa_cali_select_id >= 0) {
-        m_input_k_val->GetTextCtrl()->SetValue(std::to_string(m_pa_profile_items[m_pa_cali_select_id].k_value));
-        m_input_n_val->GetTextCtrl()->SetValue(std::to_string(m_pa_profile_items[m_pa_cali_select_id].n_coef));
+        m_input_k_val->GetTextCtrl()->SetValue(float_to_string_with_precision(m_pa_profile_items[m_pa_cali_select_id].k_value));
+        m_input_n_val->GetTextCtrl()->SetValue(float_to_string_with_precision(m_pa_profile_items[m_pa_cali_select_id].n_coef));
     }
     else{
         m_input_k_val->GetTextCtrl()->SetValue(std::to_string(0.00));
@@ -1012,6 +1037,8 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
         m_button_confirm->SetBorderColor(wxColour(0x90, 0x90, 0x90));
         m_comboBox_cali_result->Clear();
         m_comboBox_cali_result->SetValue(wxEmptyString);
+        m_input_k_val->GetTextCtrl()->SetValue(wxEmptyString);
+        m_input_n_val->GetTextCtrl()->SetValue(wxEmptyString);
         return;
     }
     else {
@@ -1076,8 +1103,8 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
         }
         
         if (cali_select_idx >= 0) {
-            m_input_k_val->GetTextCtrl()->SetValue(std::to_string(m_pa_profile_items[cali_select_idx].k_value));
-            m_input_n_val->GetTextCtrl()->SetValue(std::to_string(m_pa_profile_items[cali_select_idx].n_coef));
+            m_input_k_val->GetTextCtrl()->SetValue(float_to_string_with_precision(m_pa_profile_items[cali_select_idx].k_value));
+            m_input_n_val->GetTextCtrl()->SetValue(float_to_string_with_precision(m_pa_profile_items[cali_select_idx].n_coef));
         }
     }
     else {
@@ -1121,7 +1148,6 @@ ColorPicker::ColorPicker(wxWindow* parent, wxWindowID id, const wxPoint& pos /*=
 
     m_bitmap_border = create_scaled_bitmap("color_picker_border", nullptr, 25);
     m_bitmap_border_dark = create_scaled_bitmap("color_picker_border_dark", nullptr, 25);
-    m_bitmap_transparent_def = create_scaled_bitmap("transparent_color_picker", nullptr, 25);
     m_bitmap_transparent = create_scaled_bitmap("transparent_color_picker", nullptr, 25);
 }
 
@@ -1185,12 +1211,12 @@ void ColorPicker::doRender(wxDC& dc)
     if (m_selected) radius -= FromDIP(1);
 
     if (alpha == 0) {
-        dc.DrawBitmap(m_bitmap_transparent_def, 0, 0);
+        dc.DrawBitmap(m_bitmap_transparent, 0, 0);
     }
     else if (alpha != 254 && alpha != 255) {
         if (transparent_changed) {
             std::string rgb = (m_colour.GetAsString(wxC2S_HTML_SYNTAX)).ToStdString();
-            if (rgb.size() == 9) {
+            if (rgb.size() == 8) {
                 //delete alpha value
                 rgb = rgb.substr(0, rgb.size() - 2);
             }
@@ -1201,8 +1227,8 @@ void ColorPicker::doRender(wxDC& dc)
             replace.push_back(fill_replace);
             m_bitmap_transparent = ScalableBitmap(this, "transparent_color_picker", 25, false, false, true, replace).bmp();
             transparent_changed = false;
+            dc.DrawBitmap(m_bitmap_transparent, 0, 0);
         }
-        dc.DrawBitmap(m_bitmap_transparent, 0, 0);
     }
     else {
         dc.SetPen(wxPen(m_colour));
@@ -1439,11 +1465,22 @@ ColorPickerPopup::ColorPickerPopup(wxWindow* parent)
 
 void ColorPickerPopup::on_custom_clr_picker(wxMouseEvent& event)
 {
+    std::vector<std::string> colors = wxGetApp().app_config->get_custom_color_from_config();
+    for (int i = 0; i < colors.size(); i++) {
+        m_clrData->SetCustomColour(i, string_to_wxColor(colors[i]));
+    }
     auto clr_dialog = new wxColourDialog(nullptr, m_clrData);
     wxColour picker_color;
 
     if (clr_dialog->ShowModal() == wxID_OK) {
         m_clrData = &(clr_dialog->GetColourData());
+        if (colors.size() != CUSTOM_COLOR_COUNT) {
+            colors.resize(CUSTOM_COLOR_COUNT);
+        }
+        for (int i = 0; i < CUSTOM_COLOR_COUNT; i++) {
+            colors[i] = color_to_string(m_clrData->GetCustomColour(i));
+        }
+        wxGetApp().app_config->save_custom_color_to_config(colors);
 
         picker_color = wxColour(
             m_clrData->GetColour().Red(),

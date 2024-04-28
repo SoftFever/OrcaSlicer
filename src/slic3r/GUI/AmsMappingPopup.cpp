@@ -412,6 +412,48 @@ void AmsMapingPopup::on_left_down(wxMouseEvent &evt)
     }
 }
 
+void AmsMapingPopup::update_ams_data_multi_machines()
+{
+    m_has_unmatch_filament = false;
+    for (auto& ams_container : m_amsmapping_container_list) {
+        ams_container->Hide();
+    }
+
+    for (wxWindow* mitem : m_mapping_item_list) {
+        mitem->Destroy();
+        mitem = nullptr;
+    }
+    m_mapping_item_list.clear();
+
+    if (m_amsmapping_container_sizer_list.size() > 0) {
+        for (wxBoxSizer* siz : m_amsmapping_container_sizer_list) {
+            siz->Clear(true);
+        }
+    }
+
+    int m_amsmapping_container_list_index = 0;
+    std::vector<TrayData> tray_datas;
+
+    for (int i = 0; i < 4; ++i) {
+        TrayData td;
+        td.id = i;
+        td.type = EMPTY;
+        td.colour = wxColour(166, 169, 170);
+        td.name = "";
+        td.filament_type = "";
+        td.ctype = 0;
+        tray_datas.push_back(td);
+    }
+
+    m_amsmapping_container_list[m_amsmapping_container_list_index]->Show();
+    add_ams_mapping(tray_datas, m_amsmapping_container_list[m_amsmapping_container_list_index], m_amsmapping_container_sizer_list[m_amsmapping_container_list_index]);
+
+    m_warning_text->Show(m_has_unmatch_filament);
+
+    Layout();
+    Fit();
+}
+
 void AmsMapingPopup::update_ams_data(std::map<std::string, Ams*> amsList) 
 { 
     m_has_unmatch_filament = false;

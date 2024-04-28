@@ -2333,8 +2333,16 @@ void PrintObject::bridge_over_infill()
     };
 
     // LAMBDA do determine optimal bridging angle
-    auto determine_bridging_angle = [](const Polygons &bridged_area, const Lines &anchors, InfillPattern dominant_pattern) {
+    auto determine_bridging_angle = [](const Polygons &bridged_area, const Lines &anchors, InfillPattern dominant_pattern, double infill_direction) {
         AABBTreeLines::LinesDistancer<Line> lines_tree(anchors);
+
+        // Check it the infill that require a fixed infill angle.
+        switch (dominant_pattern) {
+        case ip3DHoneycomb:
+        case ipCrossHatch:
+            return (infill_direction + 45.0) * 2.0 * M_PI / 360.;
+        default: break;
+        }
 
         std::map<double, int> counted_directions;
         for (const Polygon &p : bridged_area) {
@@ -2715,11 +2723,12 @@ void PrintObject::bridge_over_infill()
                     double bridging_angle = 0;
                     if (!anchors.empty()) {
                         bridging_angle = determine_bridging_angle(area_to_be_bridge, to_lines(anchors),
-                                                                  candidate.region->region().config().sparse_infill_pattern.value);
+                                                                  candidate.region->region().config().sparse_infill_pattern.value,
+                                                                  candidate.region->region().config().infill_direction.value);
                     } else {
                         // use expansion boundaries as anchors.
                         // Also, use Infill pattern that is neutral for angle determination, since there are no infill lines.
-                        bridging_angle = determine_bridging_angle(area_to_be_bridge, to_lines(boundary_plines), InfillPattern::ipLine);
+                        bridging_angle = determine_bridging_angle(area_to_be_bridge, to_lines(boundary_plines), InfillPattern::ipLine, 0);
                     }
 
                     boundary_plines.insert(boundary_plines.end(), anchors.begin(), anchors.end());

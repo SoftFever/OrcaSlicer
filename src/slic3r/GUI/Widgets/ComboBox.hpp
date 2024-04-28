@@ -10,6 +10,7 @@
 class ComboBox : public wxWindowWithItems<TextInput, wxItemContainer>
 {
     std::vector<wxString>         texts;
+    std::vector<wxString>         tips;
     std::vector<wxBitmap>         icons;
     std::vector<void *>           datas;
     std::vector<wxClientDataType> types;
@@ -59,9 +60,13 @@ public:
     wxString GetString(unsigned int n) const override;
     void     SetString(unsigned int n, wxString const &value) override;
 
+    wxString GetItemTooltip(unsigned int n) const;
+    void     SetItemTooltip(unsigned int n, wxString const &value);
+
     wxBitmap GetItemBitmap(unsigned int n);
     void     SetItemBitmap(unsigned int n, wxBitmap const &bitmap);
     bool     is_drop_down(){return drop_down;}
+    void     DeleteOneItem(unsigned int pos) { DoDeleteOneItem(pos); }
 protected:
     virtual int  DoInsertItems(const wxArrayStringsAdapter &items,
                                unsigned int                 pos,
