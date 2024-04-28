@@ -19,7 +19,6 @@
 #include <wx/webrequest.h>
 #include <wx/hyperlink.h>
 #include "wxExtensions.hpp"
-#include "Plater.hpp"
 #include "Widgets/StepCtrl.hpp"
 #include "Widgets/ProgressDialog.hpp"
 #include "Widgets/Button.hpp"
@@ -38,7 +37,7 @@
 #define PING_CODE_LENGTH 6
 
 namespace Slic3r { namespace GUI {
-
+class Plater;
 struct MemoryStruct
 {
     char * memory;
