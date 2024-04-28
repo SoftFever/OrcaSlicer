@@ -28,6 +28,11 @@
 #include "BBLStatusBar.hpp"
 #include "BBLStatusBarBind.hpp"
 #include "Jobs/Worker.hpp"
+#include "GUI_Utils.hpp"
+#include "Widgets/TextInput.hpp"
+#include "Jobs/PrintJob.hpp"
+#include "Jobs/SendJob.hpp"
+#include "DeviceManager.hpp"
 
 #define BIND_DIALOG_GREY200 wxColour(248, 248, 248)
 #define BIND_DIALOG_GREY800 wxColour(50, 58, 61)
