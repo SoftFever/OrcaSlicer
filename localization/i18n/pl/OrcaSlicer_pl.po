@@ -3325,7 +3325,7 @@ msgid ""
 msgstr ""
 "Dysza może zostać zablokowana, gdy temperatura wykracza poza zalecany "
 "zakres.\n"
-"Upewnij się, czy temperatura jest odpowiednia do drukowania.\n"
+"Upewnij się, czy temperatura do druku jest odpowiednia.\n"
 "\n"
 
 #, c-format, boost-format
@@ -5580,7 +5580,7 @@ msgid "Filament Tangle Detect"
 msgstr "Wykrywanie splątanych filamentów"
 
 msgid "Nozzle Clumping Detection"
-msgstr "Wykrywanie \"zalepienie\" dyszy"
+msgstr "Wykrywanie \"zalepienia\" się dyszy"
 
 msgid "Check if the nozzle is clumping by filament or other foreign objects."
 msgstr ""
@@ -7180,7 +7180,7 @@ msgstr ""
 "i wprowadź go poniżej."
 
 msgid "Can't find Pin Code?"
-msgstr "Nie możesz znaleźć kodu PIN?"
+msgstr "Nie możesz odszukać kodu PIN?"
 
 msgid "Pin Code"
 msgstr "Kod PIN"
