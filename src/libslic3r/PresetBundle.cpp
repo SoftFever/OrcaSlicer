@@ -361,7 +361,8 @@ bool PresetBundle::use_bbl_device_tab() {
     }
 
     const auto cfg = printers.get_edited_preset().config;
-    return !cfg.opt_bool("bbl_use_print_host_webui");
+    // Use bbl device tab if printhost webui url is not set 
+    return cfg.opt_string("print_host_webui").empty();
 }
 
 //BBS: load project embedded presets

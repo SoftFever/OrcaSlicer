@@ -573,13 +573,6 @@ void PrintConfigDef::init_common_params()
     def->cli = ConfigOptionDef::nocli;
     def->set_default_value(new ConfigOptionString(""));
 
-    def = this->add("bbl_use_print_host_webui", coBool);
-    def->label   = L("View print host webui in Device tab");
-    def->tooltip = L("Replace the BambuLab's device tab with print host webui");
-    def->mode = comAdvanced;
-    def->cli = ConfigOptionDef::nocli;
-    def->set_default_value(new ConfigOptionBool(false));
-
     def = this->add("simplyprint_post_upload_action", coEnum);
     def->label = L("Send exported prints to SimplyPrint in");
     def->tooltip = L("After uploading the print to SimplyPrint, whether open the SimplyPrint panel in external browser or directly in the device tab");
