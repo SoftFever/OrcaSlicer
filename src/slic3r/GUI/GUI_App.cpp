@@ -2273,7 +2273,9 @@ bool GUI_App::on_init_inner()
         BOOST_LOG_TRIVIAL(info) << "begin to show the splash screen...";
         //BBS use BBL splashScreen
         scrn = new SplashScreen(bmp, wxSPLASH_CENTRE_ON_SCREEN | wxSPLASH_TIMEOUT, 1500, splashscreen_pos);
+#ifndef __linux__
         wxYield();
+#endif
         scrn->SetText(_L("Loading configuration")+ dots);
     }
 
