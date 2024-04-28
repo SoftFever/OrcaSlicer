@@ -1256,6 +1256,38 @@ bool AppConfig::is_engineering_region(){
     return false;
 }
 
+void AppConfig::save_custom_color_to_config(const std::vector<std::string> &colors)
+{
+    auto set_colors = [](std::map<std::string, std::string> &data, const std::vector<std::string> &colors) {
+        for (size_t i = 0; i < colors.size(); i++) {
+            data[std::to_string(10 + i)] = colors[i]; // for map sort:10 begin
+        }
+    };
+    if (colors.size() > 0) {
+        if (!has_section("custom_color_list")) {
+            std::map<std::string, std::string> data;
+            set_colors(data, colors);
+            set_section("custom_color_list", data);
+        } else {
+            auto data        = get_section("custom_color_list");
+            auto data_modify = const_cast<std::map<std::string, std::string> *>(&data);
+            set_colors(*data_modify, colors);
+            set_section("custom_color_list", *data_modify);
+        }
+    }
+}
+
+std::vector<std::string> AppConfig::get_custom_color_from_config()
+{
+    std::vector<std::string> colors;
+    if (has_section("custom_color_list")) {
+        auto data = get_section("custom_color_list");
+        for (auto iter : data) {
+            colors.push_back(iter.second);
+        }
+    }
+    return colors;
+}
 
 void AppConfig::reset_selections()
 {

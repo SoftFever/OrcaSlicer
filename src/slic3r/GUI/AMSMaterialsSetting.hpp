@@ -5,8 +5,8 @@
 #include "wxExtensions.hpp"
 #include "GUI_Utils.hpp"
 #include "DeviceManager.hpp"
-#include "wx/colourdata.h"
 #include "wx/clrpicker.h"
+#include "wx/colourdata.h"
 #include "Widgets/RadioBox.hpp"
 #include "Widgets/Button.hpp"
 #include "Widgets/RoundedRectangle.hpp"
@@ -36,7 +36,6 @@ public:
     wxBitmap        m_bitmap_border;
     wxBitmap        m_bitmap_border_dark;
     wxBitmap        m_bitmap_transparent;
-    wxBitmap        m_bitmap_transparent_def; //default transparent material
 
     wxColour        m_colour;
     std::vector<wxColour>        m_cols;

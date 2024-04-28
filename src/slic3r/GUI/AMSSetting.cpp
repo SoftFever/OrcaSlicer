@@ -324,6 +324,9 @@ void AMSSetting::update_insert_material_read_mode(bool selected, std::string ver
 
 void AMSSetting::update_ams_img(std::string ams_icon_str)
 {
+    if (wxGetApp().dark_mode()&& ams_icon_str=="extra_icon") {
+        ams_icon_str += "_dark";
+    }
     m_am_img->SetBitmap(create_scaled_bitmap(ams_icon_str, nullptr, 126));
 }
 
