@@ -39,7 +39,7 @@ orcaslicer_add_cmake_project(
     GIT_SHALLOW ON
     # URL ${_wx_tarball_url}
     # URL_HASH SHA256=${_wx_tarball_hash}
-    PATCH_COMMAND ${_patch_cmd}
+    # PATCH_COMMAND ${_patch_cmd}
     DEPENDS ${PNG_PKG} ${ZLIB_PKG} ${EXPAT_PKG} dep_TIFF dep_JPEG
     CMAKE_ARGS
         -DwxBUILD_PRECOMP=ON
