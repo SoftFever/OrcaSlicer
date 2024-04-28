@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-16 16:45+0200\n"
+"POT-Creation-Date: 2024-04-28 18:11+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Heiko Liebscher <hliebschergmail.com>\n"
 "Language-Team: \n"
@@ -2441,10 +2441,10 @@ msgstr "Automatisch nachfüllen"
 msgid "AMS not connected"
 msgstr "AMS nicht verbunden"
 
-msgid "Load Filament"
-msgstr "Laden"
+msgid "Load"
+msgstr ""
 
-msgid "Unload Filament"
+msgid "Unload"
 msgstr "Entladen"
 
 msgid "Ext Spool"
@@ -2462,7 +2462,7 @@ msgstr "Wiederholen"
 msgid "Calibrating AMS..."
 msgstr "AMS kalibrieren..."
 
-msgid "A problem occured during calibration. Click to view the solution."
+msgid "A problem occurred during calibration. Click to view the solution."
 msgstr ""
 "Während der Kalibrierung ist ein Problem aufgetreten. Klicken Sie hier, um "
 "die Lösung zu sehen."
@@ -2505,10 +2505,8 @@ msgstr "Neues Filament holen"
 
 msgid ""
 "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically "
-"load or unload filiament."
+"load or unload filaments."
 msgstr ""
-"Wählen Sie einen AMS-Slot und drücken Sie dann \"Laden\" oder \"Entladen\", "
-"um automatisch Filament zu laden oder zu entladen."
 
 msgid "Edit"
 msgstr "Bearbeiten"
@@ -3146,6 +3144,14 @@ msgstr ""
 "AMS wechselt automatisch zu einer anderen Spule mit denselben "
 "Filamenteigenschaften, wenn das aktuelle Filament leer ist."
 
+msgid "Air Printing Detection"
+msgstr ""
+
+msgid ""
+"Detects clogging and filament grinding, halting printing immediately to "
+"conserve time and filament."
+msgstr ""
+
 msgid "File"
 msgstr "Datei"
 
@@ -3628,18 +3634,6 @@ msgstr "Pause bei Fehler der ersten Schicht"
 
 msgid "Nozzle clog pause"
 msgstr "Pause bei Düsenverstopfung"
-
-msgid "MC"
-msgstr "MC"
-
-msgid "MainBoard"
-msgstr "Mainboard"
-
-msgid "TH"
-msgstr "TH"
-
-msgid "XCam"
-msgstr "XCam"
 
 msgid "Unknown"
 msgstr "Unbekannt"
@@ -4182,7 +4176,7 @@ msgstr "Volumen:"
 msgid "Size:"
 msgstr "Größe:"
 
-#, boost-format
+#, c-format, boost-format
 msgid ""
 "Conflicts of gcode paths have been found at layer %d, z = %.2lf mm. Please "
 "separate the conflicted objects farther (%s <-> %s)."
@@ -4325,6 +4319,9 @@ msgstr "Vorschau"
 msgid "Device"
 msgstr "Gerät"
 
+msgid "Multi-device"
+msgstr ""
+
 msgid "Project"
 msgstr "Projekt"
 
@@ -4365,6 +4362,9 @@ msgstr "Alle Platten drucken"
 
 msgid "Send all"
 msgstr "Sende alle"
+
+msgid "Send to Multi-device"
+msgstr ""
 
 msgid "Keyboard Shortcuts"
 msgstr "Tastaturkürzel"
@@ -5193,9 +5193,6 @@ msgstr "Cham"
 msgid "Bed"
 msgstr "Druckbett"
 
-msgid "Unload"
-msgstr "Entladen"
-
 msgid "Debug Info"
 msgstr "Debug-Informationen"
 
@@ -5384,9 +5381,6 @@ msgstr "Status"
 
 msgid "Update"
 msgstr "Update"
-
-msgid "HMS"
-msgstr "HMS"
 
 msgid "Don't show again"
 msgstr "Nicht erneut anzeigen"
@@ -5636,6 +5630,12 @@ msgstr "Erlaube akustische Signale"
 
 msgid "Filament Tangle Detect"
 msgstr "Filamentverwicklung erkannt"
+
+msgid "Nozzle Clumping Detection"
+msgstr ""
+
+msgid "Check if the nozzle is clumping by filament or other foreign objects."
+msgstr ""
 
 msgid "Nozzle Type"
 msgstr "Düsentyp"
@@ -6107,19 +6107,23 @@ msgstr "Modell importieren"
 msgid "prepare 3mf file..."
 msgstr "3mf-Datei vorbereiten…"
 
+msgid "Download failed, unknown file format."
+msgstr ""
+
 msgid "downloading project ..."
 msgstr "Projekt wird heruntergeladen..."
+
+msgid "Download failed, File size exception."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Project downloaded %d%%"
 msgstr "Projekt heruntergeladen %d%%"
 
 msgid ""
-"Importing to Orca Slicer failed. Please download the file and manually "
+"Importing to Bambu Studio failed. Please download the file and manually "
 "import it."
 msgstr ""
-"Der Import in Orca Slicer ist fehlgeschlagen. Bitte laden Sie die Datei "
-"manuell herunter und importieren Sie sie."
 
 msgid "Import SLA archive"
 msgstr "SLA-Archiv importieren"
@@ -6395,6 +6399,21 @@ msgstr "Imperial"
 msgid "Units"
 msgstr "Einheiten"
 
+msgid "Allow only one OrcaSlicer instance"
+msgstr ""
+
+msgid ""
+"On OSX there is always only one instance of app running by default. However "
+"it is allowed to run multiple instances of same app from the command line. "
+"In such case this settings will allow only one instance."
+msgstr ""
+
+msgid ""
+"If this is enabled, when starting OrcaSlicer and another instance of the "
+"same OrcaSlicer is already running, that instance will be reactivated "
+"instead."
+msgstr ""
+
 msgid "Home"
 msgstr "Startseite"
 
@@ -6475,6 +6494,14 @@ msgid ""
 msgstr ""
 "Wenn aktiviert, merkt sich Orca die Filament-/Prozesskonfiguration für jeden "
 "Drucker und wechselt automatisch."
+
+msgid "Multi-device Management(Take effect after restarting Studio)."
+msgstr ""
+
+msgid ""
+"With this option enabled, you can send a task to multiple devices at the "
+"same time and manage multiple devices."
+msgstr ""
 
 msgid "Network"
 msgstr "Netzwerk"
@@ -7052,8 +7079,8 @@ msgstr ""
 msgid ""
 "Timelapse is not supported because Print sequence is set to \"By object\"."
 msgstr ""
-"Zeitraffer wird nicht unterstützt, da die Druckreihenfolge auf \"Nach "
-"Objekt\" eingestellt ist."
+"Zeitraffer wird nicht unterstützt, da die Druckreihenfolge auf \"Nach Objekt"
+"\" eingestellt ist."
 
 msgid "Errors"
 msgstr "Fehler"
@@ -7138,6 +7165,9 @@ msgstr "Automatische Flusskalibrierung mit Micro Lidar"
 msgid "Modifying the device name"
 msgstr "Den Gerätenamen ändern"
 
+msgid "Bind with Pin Code"
+msgstr ""
+
 msgid "Send to Printer SD card"
 msgstr "An MicroSD-Karte des Druckers senden"
 
@@ -7193,6 +7223,26 @@ msgstr "Zeitüberschreitung beim Empfang des Anmeldeberichts"
 
 msgid "Unknown Failure"
 msgstr "Unbekannter Fehler"
+
+msgid ""
+"Please Find the Pin Code in Account page on printer screen,\n"
+" and type in the Pin Code below."
+msgstr ""
+
+msgid "Can't find Pin Code?"
+msgstr ""
+
+msgid "Pin Code"
+msgstr ""
+
+msgid "Binding..."
+msgstr ""
+
+msgid "Please confirm on the printer screen"
+msgstr ""
+
+msgid "Log in failed. Please check the Pin Code."
+msgstr ""
 
 msgid "Log in printer"
 msgstr "Drucker anmelden"
@@ -7428,13 +7478,13 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "Wenn Sie einen Zeitraffer ohne Werkzeugkopf aufnehmen, wird empfohlen, einen "
 "\"Timelapse Wischturm\" hinzuzufügen, indem Sie mit der rechten Maustaste "
-"auf die leere Position der Bauplatte klicken und \"Primitiv hinzufügen\"-"
-">\"Timelapse Wischturm\" wählen."
+"auf die leere Position der Bauplatte klicken und \"Primitiv hinzufügen\"->"
+"\"Timelapse Wischturm\" wählen."
 
 msgid "Line width"
 msgstr "Breite der Linie"
@@ -8485,6 +8535,39 @@ msgstr "Erledigt"
 
 msgid "resume"
 msgstr "Fortsetzen"
+
+msgid "Resume Printing"
+msgstr ""
+
+msgid "Resume Printing(defects acceptable)"
+msgstr ""
+
+msgid "Resume Printing(problem solved)"
+msgstr ""
+
+msgid "Stop Printing"
+msgstr ""
+
+msgid "Check Assistant"
+msgstr ""
+
+msgid "Filament Extruded, Continue"
+msgstr ""
+
+msgid "Not Extruded Yet, Retry"
+msgstr ""
+
+msgid "Finished, Continue"
+msgstr ""
+
+msgid "Load Filament"
+msgstr "Laden"
+
+msgid "Filament Loaded, Resume"
+msgstr ""
+
+msgid "View Liveview"
+msgstr ""
 
 msgid "Confirm and Update Nozzle"
 msgstr "Bestätigen und Düse aktualisieren"
@@ -10821,6 +10904,9 @@ msgstr "Kubisch Stützen"
 msgid "Lightning"
 msgstr "Blitz"
 
+msgid "Cross Hatch"
+msgstr ""
+
 msgid "Sparse infill anchor length"
 msgstr "Länge des Infill-Ankers"
 
@@ -11031,13 +11117,13 @@ msgstr "Volle Lüfterdrehzahl ab Schicht"
 
 msgid ""
 "Fan speed will be ramped up linearly from zero at layer "
-"\"close_fan_the_first_x_layers\" to maximum at layer "
-"\"full_fan_speed_layer\". \"full_fan_speed_layer\" will be ignored if lower "
-"than \"close_fan_the_first_x_layers\", in which case the fan will be running "
-"at maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
+"\"close_fan_the_first_x_layers\" to maximum at layer \"full_fan_speed_layer"
+"\". \"full_fan_speed_layer\" will be ignored if lower than "
+"\"close_fan_the_first_x_layers\", in which case the fan will be running at "
+"maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
 msgstr ""
-"Die Lüftergeschwindigkeit wird linear von Null bei der "
-"Schicht\"close_fan_the_first_x_layers\" auf das Maximum bei der Schicht "
+"Die Lüftergeschwindigkeit wird linear von Null bei der Schicht"
+"\"close_fan_the_first_x_layers\" auf das Maximum bei der Schicht "
 "\"full_fan_speed_layer\" erhöht. \"full_fan_speed_layer\" wird ignoriert, "
 "wenn es niedriger ist als \"close_fan_the_first_x_layers\",in diesem Fall "
 "läuft der Lüfter bei Schicht \"close_fan_the_first_x_layers\"+ 1 mit maximal "
@@ -14037,6 +14123,9 @@ msgstr "Abgebrochen"
 msgid "load_obj: failed to parse"
 msgstr "load_obj: konnte nicht analysiert werden"
 
+msgid "load mtl in obj: failed to parse"
+msgstr ""
+
 msgid "The file contains polygons with more than 4 vertices."
 msgstr "Die Datei enthält Polygone mit mehr als 4 Eckpunkten."
 
@@ -14165,6 +14254,14 @@ msgstr "Bitte wählen Sie das Filament zur Kalibrierung aus."
 msgid "The input value size must be 3."
 msgstr "Die Eingabewertgröße muss 3 sein."
 
+msgid ""
+"This machine type can only hold 16 history results per nozzle. You can "
+"delete the existing historical results and then start calibration. Or you "
+"can continue the calibration, but you cannot create new calibration "
+"historical results. \n"
+"Do you still want to continue the calibration?"
+msgstr ""
+
 msgid "Connecting to printer..."
 msgstr "Verbindung zum Drucker wird hergestellt..."
 
@@ -14173,6 +14270,22 @@ msgstr "Das fehlgeschlagene Testergebnis wurde verworfen."
 
 msgid "Flow Dynamics Calibration result has been saved to the printer"
 msgstr "Flussdynamik-Kalibrierungsergebnis wurde auf dem Drucker gespeichert"
+
+#, c-format, boost-format
+msgid ""
+"There is already a historical calibration result with the same name: %s. "
+"Only one of the results with the same name is saved. Are you sure you want "
+"to override the historical result?"
+msgstr ""
+"Es gibt bereits ein historisches Kalibrierungsergebnis mit dem gleichen "
+"Namen: %s. Nur eines der Ergebnisse mit dem gleichen Namen wird gespeichert. "
+"Sind Sie sicher, dass Sie das historische Ergebnis überschreiben möchten?"
+
+#, c-format, boost-format
+msgid ""
+"This machine type can only hold %d history results per nozzle. This result "
+"will not be saved."
+msgstr ""
 
 msgid "Internal Error"
 msgstr "Interner Fehler"
@@ -14484,9 +14597,6 @@ msgstr ""
 msgid "Printing Parameters"
 msgstr "Druckparameter"
 
-msgid "- ℃"
-msgstr "- ℃"
-
 msgid "Plate Type"
 msgstr "Druckbetttyp"
 
@@ -14535,12 +14645,6 @@ msgstr "bis zum k Wert"
 msgid "Step value"
 msgstr "Schrittweite"
 
-msgid "0.5"
-msgstr "0,5"
-
-msgid "0.005"
-msgstr "0,005"
-
 msgid "The nozzle diameter has been synchronized from the printer Settings"
 msgstr "Der Düsendurchmesser wurde aus den Druckereinstellungen synchronisiert"
 
@@ -14568,27 +14672,21 @@ msgstr "Erneuern der historischen Flussdynamik-Kalibrierungsdatensätze"
 msgid "Action"
 msgstr "Aktivität"
 
+#, c-format, boost-format
+msgid "This machine type can only hold %d history results per nozzle."
+msgstr ""
+
 msgid "Edit Flow Dynamics Calibration"
 msgstr "Ändern der Flussdynamik-Kalibrierung"
 
-msgid "New Flow Dynamics Calibration"
-msgstr "Neue Flussdynamik-Kalibrierung"
+msgid "New Flow Dynamic Calibration"
+msgstr ""
 
 msgid "Ok"
 msgstr "Ok"
 
 msgid "The filament must be selected."
 msgstr "Das Filament muss ausgewählt werden."
-
-#, c-format, boost-format
-msgid ""
-"There is already a historical calibration result with the same name: %s. "
-"Only one of the results with the same name is saved. Are you sure you want "
-"to override the historical result?"
-msgstr ""
-"Es gibt bereits ein historisches Kalibrierungsergebnis mit dem gleichen "
-"Namen: %s. Nur eines der Ergebnisse mit dem gleichen Namen wird gespeichert. "
-"Sind Sie sicher, dass Sie das historische Ergebnis überschreiben möchten?"
 
 msgid "Network lookup"
 msgstr "Netzwerk durchsuchen"
@@ -15013,8 +15111,8 @@ msgstr ""
 "Möchten Sie es überschreiben?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you "
-"selected\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
 "To add preset for more printers, Please go to printer selection"
 msgstr ""
 "Wir würden die Voreinstellungen als \"Hersteller Typ Seriennummer @Drucker, "
@@ -15655,6 +15753,175 @@ msgstr ""
 "Nachrichtentext: \"%1%\"\n"
 "Fehler: \"%2%\""
 
+msgid ""
+"It has a small layer height, and results in almost negligible layer lines "
+"and high printing quality. It is suitable for most general printing cases."
+msgstr ""
+
+msgid ""
+"Compared with the default profile of a 0.2 mm nozzle, it has lower speeds "
+"and acceleration, and the sparse infill pattern is Gyroid. So, it results in "
+"much higher printing quality, but a much longer printing time."
+msgstr ""
+
+msgid ""
+"Compared with the default profile of a 0.2 mm nozzle, it has a slightly "
+"bigger layer height, and results in almost negligible layer lines, and "
+"slightly shorter printing time."
+msgstr ""
+
+msgid ""
+"Compared with the default profile of a 0.2 mm nozzle, it has a bigger layer "
+"height, and results in slightly visible layer lines, but shorter printing "
+"time."
+msgstr ""
+
+msgid ""
+"Compared with the default profile of a 0.2 mm nozzle, it has a smaller layer "
+"height, and results in almost invisible layer lines and higher printing "
+"quality, but shorter printing time."
+msgstr ""
+
+msgid ""
+"Compared with the default profile of a 0.2 mm nozzle, it has a smaller layer "
+"lines, lower speeds and acceleration, and the sparse infill pattern is "
+"Gyroid. So, it results in almost invisible layer lines and much higher "
+"printing quality, but much longer printing time."
+msgstr ""
+
+msgid ""
+"Compared with the default profile of 0.2 mm nozzle, it has a smaller layer "
+"height, and results in minimal layer lines and higher printing quality, but "
+"shorter printing time."
+msgstr ""
+
+msgid ""
+"Compared with the default profile of a 0.2 mm nozzle, it has a smaller layer "
+"lines, lower speeds and acceleration, and the sparse infill pattern is "
+"Gyroid. So, it results in minimal layer lines and much higher printing "
+"quality, but much longer printing time."
+msgstr ""
+
+msgid ""
+"It has a general layer height, and results in general layer lines and "
+"printing quality. It is suitable for most general printing cases."
+msgstr ""
+
+msgid ""
+"Compared with the default profile of a 0.4 mm nozzle, it has more wall loops "
+"and a higher sparse infill density. So, it results in higher strength of the "
+"prints, but more filament consumption and longer printing time."
+msgstr ""
+
+msgid ""
+"Compared with the default profile of a 0.4 mm nozzle, it has a bigger layer "
+"height, and results in more apparent layer lines and lower printing quality, "
+"but slightly shorter printing time."
+msgstr ""
+
+msgid ""
+"Compared with the default profile of a 0.4 mm nozzle, it has a bigger layer "
+"height, and results in more apparent layer lines and lower printing quality, "
+"but shorter printing time."
+msgstr ""
+
+msgid ""
+"Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer "
+"height, and results in less apparent layer lines and higher printing "
+"quality, but longer printing time."
+msgstr ""
+
+msgid ""
+"Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer "
+"height, lower speeds and acceleration, and the sparse infill pattern is "
+"Gyroid. So, it results in less apparent layer lines and much higher printing "
+"quality, but much longer printing time."
+msgstr ""
+
+msgid ""
+"Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer "
+"height, and results in almost negligible layer lines and higher printing "
+"quality, but longer printing time."
+msgstr ""
+
+msgid ""
+"Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer "
+"height, lower speeds and acceleration, and the sparse infill pattern is "
+"Gyroid. So, it results in almost negligible layer lines and much higher "
+"printing quality, but much longer printing time."
+msgstr ""
+
+msgid ""
+"Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer "
+"height, and results in almost negligible layer lines and longer printing "
+"time."
+msgstr ""
+
+msgid ""
+"It has a big layer height, and results in apparent layer lines and ordinary "
+"printing quality and printing time."
+msgstr ""
+
+msgid ""
+"Compared with the default profile of a 0.6 mm nozzle, it has more wall loops "
+"and a higher sparse infill density. So, it results in higher strength of the "
+"prints, but more filament consumption and longer printing time."
+msgstr ""
+
+msgid ""
+"Compared with the default profile of a 0.6 mm nozzle, it has a bigger layer "
+"height, and results in more apparent layer lines and lower printing quality, "
+"but shorter printing time in some printing cases."
+msgstr ""
+
+msgid ""
+"Compared with the default profile of a 0.6 mm nozzle, it has a bigger layer "
+"height, and results in much more apparent layer lines and much lower "
+"printing quality, but shorter printing time in some printing cases."
+msgstr ""
+
+msgid ""
+"Compared with the default profile of a 0.6 mm nozzle, it has a smaller layer "
+"height, and results in less apparent layer lines and slight higher printing "
+"quality, but longer printing time."
+msgstr ""
+
+msgid ""
+"Compared with the default profile of a 0.6 mm nozzle, it has a smaller layer "
+"height, and results in less apparent layer lines and higher printing "
+"quality, but longer printing time."
+msgstr ""
+
+msgid ""
+"It has a very big layer height, and results in very apparent layer lines, "
+"low printing quality and general printing time."
+msgstr ""
+
+msgid ""
+"Compared with the default profile of a 0.8 mm nozzle, it has a bigger layer "
+"height, and results in very apparent layer lines and much lower printing "
+"quality, but shorter printing time in some printing cases."
+msgstr ""
+
+msgid ""
+"Compared with the default profile of a 0.8 mm nozzle, it has a much bigger "
+"layer height, and results in extremely apparent layer lines and much lower "
+"printing quality, but much shorter printing time in some printing cases."
+msgstr ""
+
+msgid ""
+"Compared with the default profile of a 0.8 mm nozzle, it has a slightly "
+"smaller layer height, and results in slightly less but still apparent layer "
+"lines and slightly higher printing quality, but longer printing time in some "
+"printing cases."
+msgstr ""
+
+msgid ""
+"Compared with the default profile of a 0.8 mm nozzle, it has a smaller layer "
+"height, and results in less but still apparent layer lines and slightly "
+"higher printing quality, but longer printing time in some printing cases."
+msgstr ""
+
 msgid "Connected to Obico successfully!"
 msgstr "Erfolgreich mit Obico verbunden!"
 
@@ -16097,6 +16364,50 @@ msgstr ""
 "wie z.B. ABS, durch eine entsprechende Erhöhung der Heizbetttemperatur die "
 "Wahrscheinlichkeit von Verwerfungen verringert werden kann."
 
+#~ msgid "Unload Filament"
+#~ msgstr "Entladen"
+
+#~ msgid ""
+#~ "Choose an AMS slot then press \"Load\" or \"Unload\" button to "
+#~ "automatically load or unload filiament."
+#~ msgstr ""
+#~ "Wählen Sie einen AMS-Slot und drücken Sie dann \"Laden\" oder \"Entladen"
+#~ "\", um automatisch Filament zu laden oder zu entladen."
+
+#~ msgid "MC"
+#~ msgstr "MC"
+
+#~ msgid "MainBoard"
+#~ msgstr "Mainboard"
+
+#~ msgid "TH"
+#~ msgstr "TH"
+
+#~ msgid "XCam"
+#~ msgstr "XCam"
+
+#~ msgid "HMS"
+#~ msgstr "HMS"
+
+#~ msgid ""
+#~ "Importing to Orca Slicer failed. Please download the file and manually "
+#~ "import it."
+#~ msgstr ""
+#~ "Der Import in Orca Slicer ist fehlgeschlagen. Bitte laden Sie die Datei "
+#~ "manuell herunter und importieren Sie sie."
+
+#~ msgid "- ℃"
+#~ msgstr "- ℃"
+
+#~ msgid "0.5"
+#~ msgstr "0,5"
+
+#~ msgid "0.005"
+#~ msgstr "0,005"
+
+#~ msgid "New Flow Dynamics Calibration"
+#~ msgstr "Neue Flussdynamik-Kalibrierung"
+
 #~ msgid ""
 #~ "The 3mf file version is in Beta and it is newer than the current "
 #~ "OrcaSlicer version."
@@ -16403,8 +16714,8 @@ msgstr ""
 #~ msgstr "Keine dünnen Schichten (EXPERIMENTELL)"
 
 #~ msgid ""
-#~ "We would rename the presets as \"Vendor Type Serial @printer you "
-#~ "selected\". \n"
+#~ "We would rename the presets as \"Vendor Type Serial @printer you selected"
+#~ "\". \n"
 #~ "To add preset for more prinetrs, Please go to printer selection"
 #~ msgstr ""
 #~ "Wir würden die Voreinstellungen als \"Hersteller Typ Seriennummer "

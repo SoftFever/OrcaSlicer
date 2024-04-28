@@ -32,6 +32,7 @@
 #include "FillLightning.hpp"
 // BBS: new infill pattern header
 #include "FillConcentricInternal.hpp"
+#include "FillCrossHatch.hpp"
 
 // #define INFILL_DEBUG_OUTPUT
 
@@ -51,6 +52,7 @@ Fill* Fill::new_from_type(const InfillPattern type)
     case ipGyroid:              return new FillGyroid();
     case ipRectilinear:         return new FillRectilinear();
     case ipAlignedRectilinear:  return new FillAlignedRectilinear();
+    case ipCrossHatch:          return new FillCrossHatch();
     case ipMonotonic:           return new FillMonotonic();
     case ipLine:                return new FillLine();
     case ipGrid:                return new FillGrid();

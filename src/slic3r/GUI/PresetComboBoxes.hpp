@@ -2,9 +2,9 @@
 #define slic3r_PresetComboBoxes_hpp_
 
 //#include <wx/bmpcbox.h>
+#include <wx/colourdata.h>
 #include <wx/gdicmn.h>
 #include <wx/clrpicker.h>
-#include <wx/colourdata.h>
 
 #include "libslic3r/Preset.hpp"
 #include "wxExtensions.hpp"
@@ -164,8 +164,6 @@ public:
     PlaterPresetComboBox(wxWindow *parent, Preset::Type preset_type);
     ~PlaterPresetComboBox();
 
-    void save_custom_color_to_config(const std::vector<std::string> &colors);
-    std::vector<std::string> get_custom_color_from_config();
     ScalableButton* edit_btn { nullptr };
 
     // BBS

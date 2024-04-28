@@ -120,7 +120,7 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
     m_button_management->SetTextColorNormal(*wxWHITE);
     m_button_management->Enable(false);
     m_button_refresh->SetBorderWidth(0);
-    m_button_refresh->SetBackgroundColorNormal(wxColor("#00AE42"));
+    m_button_refresh->SetBackgroundColorNormal(wxColor("#009688"));
     m_button_refresh->SetTextColorNormal(*wxWHITE);
     m_button_refresh->Enable(false);
 

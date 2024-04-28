@@ -979,7 +979,8 @@ TriangleMesh create_default_mesh()
     std::string  path = Slic3r::resources_dir() + "/data/embossed_text.obj";
     TriangleMesh triangle_mesh;
     std::string  message;
-    if (!load_obj(path.c_str(), &triangle_mesh, message)) {
+    ObjInfo                 obj_info;
+    if (!load_obj(path.c_str(), &triangle_mesh, obj_info, message)) {
         // when can't load mesh use cube
         return TriangleMesh(its_make_cube(36., 4., 2.5));
     }
