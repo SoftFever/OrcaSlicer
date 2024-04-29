@@ -99,6 +99,11 @@ void LinesBucketQueue::emplace_back_bucket(ExtrusionLayers &&els, const void *ob
     }
 }
 
+void LinesBucketQueue::reserve(size_t count)
+{
+    line_buckets.reserve(count);
+}
+
 // remove lowest and get the current bottom z
 float LinesBucketQueue::getCurrBottomZ()
 {
@@ -215,6 +220,14 @@ ConflictResultOpt ConflictChecker::find_inter_of_lines_in_diff_objs(PrintObjectP
 {
     if (objs.size() <= 1 && !wtdptr) { return {}; }
     LinesBucketQueue conflictQueue;
+
+    // Calculate the number of required entries in the conflict queue
+    // One slot is used for the FakeWipeTower and 2 slots for each object
+    size_t requiredCount = 2*objs.size() + (wtdptr.has_value() ? 1 : 0);
+    // Reserve the required count to guarantee that pointers inside LinesBucketQueue::line_buckets
+    // are stable while we append the entries
+    conflictQueue.reserve(requiredCount);
+
     if (wtdptr.has_value()) { // wipe tower at 0 by default
         auto            wtpaths = wtdptr.value()->getFakeExtrusionPathsFromWipeTower();
         ExtrusionLayers wtels;
