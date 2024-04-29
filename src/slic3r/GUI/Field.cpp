@@ -525,28 +525,17 @@ void release_window_pools()
 template<typename T>
 struct Builder
 {
-    Builder()
-    {
-        pool_ = new std::deque<wxWindow*>;
-        spools.push_back(&pool_);
-    }
-
     template<typename... Args>
     T *build(wxWindow * p, Args ...args)
     {
-        if (pool_->empty()) {
-            auto t = new T(p, args...);
-            t->SetClientData(pool_);
-            return t;
-        }
-        auto t = dynamic_cast<T*>(pool_->front());
-        pool_->pop_front();
-        t->Reparent(p);
-        t->Enable();
-        t->Show();
-        return t;
+        return new T(p, args...);
     }
-    std::deque<wxWindow*>* pool_;
+
+    //nothing is currently calling this
+    void release(wxWindow *p)
+    {
+        delete p;
+    }
 };
 
 struct wxEventFunctorRef
@@ -665,12 +654,11 @@ void TextCtrl::BUILD() {
     static Builder<wxTextCtrl> builder1;
     static Builder<::TextInput> builder2;
     auto temp = m_opt.multiline
-        ? (wxWindow*)builder1.build(m_parent, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE)
-        : builder2.build(m_parent, "", "", "", wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
+        ? (wxWindow*)builder1.build(m_parent, wxID_ANY, "", wxDefaultPosition, size, wxTE_MULTILINE)
+        : builder2.build(m_parent, "", "", "", wxDefaultPosition, size, wxTE_PROCESS_ENTER);
     temp->SetLabel(_L(m_opt.sidetext));
 	auto text_ctrl = m_opt.multiline ? (wxTextCtrl *)temp : ((TextInput *) temp)->GetTextCtrl();
     text_ctrl->SetLabel(text_value);
-    temp->SetSize(size);
     m_combine_side_text = !m_opt.multiline;
     if (parent_is_custom_ctrl && m_opt.height < 0)
         opt_height = (double) text_ctrl->GetSize().GetHeight() / m_em_unit;
