@@ -1,8 +1,8 @@
 {
     "type": "filament",
-    "filament_id": "GFL99_2",
+    "filament_id": "GFL99_3",
     "setting_id": "GFSA04",
-    "name": "Prusa Generic PLA @MINIIS",
+    "name": "Prusa Generic PLA @MINIIS 0.6",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pla",
@@ -13,13 +13,12 @@
         "14"
     ],
     "slow_down_layer_time": [
-        "10"
+        "12"
     ],
     "filament_start_gcode": [
         "M572 S{if nozzle_diameter[0]==0.6}0.17{elsif nozzle_diameter[0]==0.8}0.12{elsif nozzle_diameter[0]==0.4}0.27{elsif nozzle_diameter[0]==0.25}0.85{else}0{endif}"    
     ],
     "compatible_printers": [
-      "Prusa MINIIS 0.4 nozzle",
-      "Prusa MINIIS 0.25 nozzle"
+      "Prusa MINIIS 0.6 nozzle"
     ]
 }
