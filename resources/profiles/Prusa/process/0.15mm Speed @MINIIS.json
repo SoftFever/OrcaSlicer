@@ -6,7 +6,7 @@
   "instantiation": "true",
   "inherits": "process_detail_miniis",
   "layer_height": "0.15",
-  "initial_layer_print_height": "0.15",
+  "initial_layer_print_height": "0.20",
   "top_shell_thickness": "0.7",
   "top_shell_layers": "5",
   "bottom_shell_thickness": "0.5",
