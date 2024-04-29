@@ -8,5 +8,5 @@
 	"bed_model": "flashforge_adventurer3_series_buildplate_model.STL",
 	"bed_texture": "flashforge_adventurer3_buildplate_texture.png",
 	"hotend_model": "",
-	"default_materials": "Flashforge ABS;Flashforge PETG;Flashforge PLA"
+	"default_materials": "Flashforge Generic ABS @FF AD3;Flashforge Generic PETG @FF AD3;Flashforge Generic PLA @FF AD3"
 }

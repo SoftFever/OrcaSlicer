@@ -15,7 +15,7 @@
   "change_filament_gcode": "; change filament start\n{if total_toolchanges == 0 and current_extruder == 1}\nM104 S0 T0\n{elsif total_toolchanges > 0 and current_extruder == 0}\nM104 S{nozzle_temperature[0]}\n{if layer_z == initial_layer_print_height}\nT1\nM109 S{nozzle_temperature_initial_layer[1]} T1\n{else}\nT1\nM109 S{nozzle_temperature[1]} T1\n{endif}\n{elsif total_toolchanges > 0 and current_extruder == 1}\nM104 S{nozzle_temperature[1]}\n{if layer_z == initial_layer_print_height}\nT0\nM109 S{nozzle_temperature_initial_layer[0]} T0\n{else}\nT0\nM109 S{nozzle_temperature[0]} T0\n{endif}\n{endif}\n",
   "cooling_tube_length": "0",
   "cooling_tube_retraction": "0",
-	"default_filament_profile": [ "Flashforge Generic PLA @G3U" ],
+	"default_filament_profile": [ "Flashforge Generic PLA @FF G3U" ],
   "default_print_profile": "0.20mm Standard @Flashforge G3U 0.4 Nozzle",
   "deretraction_speed": [
     "35"

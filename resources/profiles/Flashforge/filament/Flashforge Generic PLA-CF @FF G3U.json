@@ -11,7 +11,7 @@
     "0"
   ],
   "additional_cooling_fan_speed": [
-    "0"
+    "100"
   ],
   "chamber_temperature": [
     "0"
@@ -29,10 +29,10 @@
     "80"
   ],
   "cool_plate_temp": [
-    "85"
+    "60"
   ],
   "cool_plate_temp_initial_layer": [
-    "85"
+    "55"
   ],
   "default_filament_colour": [
     ""
@@ -47,19 +47,19 @@
     "1"
   ],
   "eng_plate_temp": [
-    "85"
+    "60"
   ],
   "eng_plate_temp_initial_layer": [
-    "85"
+    "55"
   ],
   "fan_cooling_layer_time": [
-    "30"
+    "100"
   ],
   "fan_max_speed": [
-    "30"
+    "100"
   ],
   "fan_min_speed": [
-    "10"
+    "50"
   ],
   "filament_cooling_final_speed": [
     "3.4"
@@ -71,10 +71,10 @@
     "4"
   ],
   "filament_cost": [
-    "300"
+    "20"
   ],
   "filament_density": [
-    "1.27"
+    "1.24"
   ],
   "filament_deretraction_speed": [
     "nil"
@@ -86,7 +86,7 @@
     "; filament end gcode\n"
   ],
   "filament_flow_ratio": [
-    "0.97"
+    "1.02"
   ],
   "filament_is_support": [
     "0"
@@ -101,7 +101,7 @@
     "3"
   ],
   "filament_max_volumetric_speed": [
-    "18"
+    "20"
   ],
   "filament_minimal_purge_on_wipe_tower": [
     "5"
@@ -149,7 +149,7 @@
     "nil"
   ],
   "filament_settings_id": [
-    "FusRock Generic PET-CF"
+    "Flashforge Generic PLA-CF @FF G3U"
   ],
   "filament_shrink": [
     "100%"
@@ -158,13 +158,13 @@
     "0"
   ],
   "filament_start_gcode": [
-    "; filament start gcode"
+    "; filament start gcode\n"
   ],
   "filament_toolchange_delay": [
     "0"
   ],
   "filament_type": [
-    "PET-CF"
+    "PLA-CF"
   ],
   "filament_unload_time": [
     "0"
@@ -194,33 +194,33 @@
     "0"
   ],
   "hot_plate_temp": [
-    "75"
+    "50"
   ],
   "hot_plate_temp_initial_layer": [
-    "80"
+    "55"
   ],
-  "inherits": "Flashforge Generic PETG",
-  "name": "FusRock Generic PET-CF",
+  "inherits": "Flashforge Generic PLA",
+  "name": "Flashforge Generic PLA-CF @FF G3U",
   "nozzle_temperature": [
-    "290"
+    "210"
   ],
   "nozzle_temperature_initial_layer": [
-    "290"
+    "215"
   ],
   "nozzle_temperature_range_high": [
-    "300"
+    "230"
   ],
   "nozzle_temperature_range_low": [
-    "280"
+    "200"
   ],
   "overhang_fan_speed": [
-    "30"
+    "100"
   ],
   "overhang_fan_threshold": [
-    "25%"
+    "50%"
   ],
   "pressure_advance": [
-    "0.03"
+    "0.026"
   ],
   "reduce_fan_stop_start_freq": [
     "1"
@@ -232,22 +232,22 @@
     "1"
   ],
   "slow_down_layer_time": [
-    "8"
+    "6"
   ],
   "slow_down_min_speed": [
     "20"
   ],
   "support_material_interface_fan_speed": [
-    "30"
+    "100"
   ],
   "temperature_vitrification": [
-    "90"
+    "60"
   ],
   "textured_plate_temp": [
-    "85"
+    "60"
   ],
   "textured_plate_temp_initial_layer": [
-    "85"
+    "55"
   ],
   "version": "1.9.0.2"
 }

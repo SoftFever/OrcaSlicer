@@ -11,7 +11,7 @@
     "0"
   ],
   "additional_cooling_fan_speed": [
-    "0"
+    "50"
   ],
   "chamber_temperature": [
     "0"
@@ -56,10 +56,10 @@
     "30"
   ],
   "fan_max_speed": [
-    "30"
+    "90"
   ],
   "fan_min_speed": [
-    "10"
+    "40"
   ],
   "filament_cooling_final_speed": [
     "3.4"
@@ -71,7 +71,7 @@
     "4"
   ],
   "filament_cost": [
-    "300"
+    "30"
   ],
   "filament_density": [
     "1.27"
@@ -101,7 +101,7 @@
     "3"
   ],
   "filament_max_volumetric_speed": [
-    "18"
+    "12"
   ],
   "filament_minimal_purge_on_wipe_tower": [
     "5"
@@ -149,7 +149,7 @@
     "nil"
   ],
   "filament_settings_id": [
-    "FusRock Generic PET-CF"
+    "Flashforge Generic PETG @FF G3U"
   ],
   "filament_shrink": [
     "100%"
@@ -164,7 +164,7 @@
     "0"
   ],
   "filament_type": [
-    "PET-CF"
+    "PETG"
   ],
   "filament_unload_time": [
     "0"
@@ -197,30 +197,30 @@
     "75"
   ],
   "hot_plate_temp_initial_layer": [
-    "80"
+    "75"
   ],
   "inherits": "Flashforge Generic PETG",
-  "name": "FusRock Generic PET-CF",
+  "name": "Flashforge Generic PETG @FF G3U",
   "nozzle_temperature": [
-    "290"
+    "250"
   ],
   "nozzle_temperature_initial_layer": [
-    "290"
+    "250"
   ],
   "nozzle_temperature_range_high": [
-    "300"
+    "260"
   ],
   "nozzle_temperature_range_low": [
-    "280"
+    "230"
   ],
   "overhang_fan_speed": [
-    "30"
+    "80"
   ],
   "overhang_fan_threshold": [
     "25%"
   ],
   "pressure_advance": [
-    "0.03"
+    "0.036"
   ],
   "reduce_fan_stop_start_freq": [
     "1"
@@ -238,10 +238,10 @@
     "20"
   ],
   "support_material_interface_fan_speed": [
-    "30"
+    "90"
   ],
   "temperature_vitrification": [
-    "90"
+    "70"
   ],
   "textured_plate_temp": [
     "85"

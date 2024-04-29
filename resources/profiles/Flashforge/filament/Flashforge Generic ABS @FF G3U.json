@@ -11,13 +11,13 @@
         "0"
     ],
     "additional_cooling_fan_speed": [
-        "50"
+        "0"
     ],
     "chamber_temperature": [
         "0"
     ],
     "close_fan_the_first_x_layers": [
-        "1"
+        "2"
     ],
   "compatible_printers": [
     "Flashforge Guider 3 Ultra 0.4 Nozzle"
@@ -29,10 +29,10 @@
         "80"
     ],
     "cool_plate_temp": [
-        "60"
+        "80"
     ],
     "cool_plate_temp_initial_layer": [
-        "55"
+        "80"
     ],
     "default_filament_colour": [
         ""
@@ -47,19 +47,19 @@
         "1"
     ],
     "eng_plate_temp": [
-        "60"
-    ],
-    "eng_plate_temp_initial_layer": [
-        "55"
-    ],
-    "fan_cooling_layer_time": [
-        "100"
-    ],
-    "fan_max_speed": [
         "80"
     ],
+    "eng_plate_temp_initial_layer": [
+        "80"
+    ],
+    "fan_cooling_layer_time": [
+        "30"
+    ],
+    "fan_max_speed": [
+        "30"
+    ],
     "fan_min_speed": [
-        "50"
+        "10"
     ],
     "filament_cooling_final_speed": [
         "3.4"
@@ -74,7 +74,7 @@
         "20"
     ],
     "filament_density": [
-        "1.2"
+        "1.04"
     ],
     "filament_deretraction_speed": [
         "nil"
@@ -86,10 +86,10 @@
         "; filament end gcode\n"
     ],
     "filament_flow_ratio": [
-        "1"
+        "1.03"
     ],
     "filament_is_support": [
-        "1"
+        "0"
     ],
     "filament_load_time": [
         "0"
@@ -101,7 +101,7 @@
         "3"
     ],
     "filament_max_volumetric_speed": [
-        "5"
+        "15"
     ],
     "filament_minimal_purge_on_wipe_tower": [
         "5"
@@ -149,7 +149,7 @@
         "nil"
     ],
     "filament_settings_id": [
-        "Polymaker Generic S1"
+        "Flashforge Generic ABS @G3U"
     ],
     "filament_shrink": [
         "100%"
@@ -158,22 +158,22 @@
         "0"
     ],
     "filament_start_gcode": [
-        "; filament start gcode"
+        "; filament start gcode\n"
     ],
     "filament_toolchange_delay": [
         "0"
     ],
     "filament_type": [
-        "PA"
+        "ABS"
     ],
     "filament_unload_time": [
         "0"
     ],
     "filament_unloading_speed": [
-        "30"
+        "35"
     ],
     "filament_unloading_speed_start": [
-        "35"
+        "40"
     ],
     "filament_vendor": [
         "Generic"
@@ -194,33 +194,33 @@
         "0"
     ],
     "hot_plate_temp": [
-        "50"
+        "105"
     ],
     "hot_plate_temp_initial_layer": [
-        "55"
+        "105"
     ],
-    "inherits": "Flashforge Generic PLA",
-    "name": "Polymaker Generic S1",
+    "inherits": "Flashforge Generic ABS",
+    "name": "Flashforge Generic ABS @G3U",
     "nozzle_temperature": [
-        "220"
-    ],
-    "nozzle_temperature_initial_layer": [
-        "220"
-    ],
-    "nozzle_temperature_range_high": [
         "230"
     ],
+    "nozzle_temperature_initial_layer": [
+        "235"
+    ],
+    "nozzle_temperature_range_high": [
+        "260"
+    ],
     "nozzle_temperature_range_low": [
-        "200"
+        "220"
     ],
     "overhang_fan_speed": [
-        "80"
+        "50"
     ],
     "overhang_fan_threshold": [
-        "50%"
+        "25%"
     ],
     "pressure_advance": [
-        "0.025"
+        "0.036"
     ],
     "reduce_fan_stop_start_freq": [
         "1"
@@ -232,22 +232,22 @@
         "1"
     ],
     "slow_down_layer_time": [
-        "16"
+        "8"
     ],
     "slow_down_min_speed": [
-        "5"
+        "20"
     ],
     "support_material_interface_fan_speed": [
-        "60"
+        "40"
     ],
     "temperature_vitrification": [
-        "60"
+        "100"
     ],
     "textured_plate_temp": [
-        "60"
+        "80"
     ],
     "textured_plate_temp_initial_layer": [
-        "55"
+        "80"
     ],
     "version": "1.9.0.2"
 }
