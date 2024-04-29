@@ -67,10 +67,10 @@ private:
     static bool get_stream_url(std::string *url = nullptr);
 
 private:
-    static constexpr wxMediaState MEDIASTATE_IDLE = (wxMediaState) 3;
-    static constexpr wxMediaState MEDIASTATE_INITIALIZING = (wxMediaState) 4;
-    static constexpr wxMediaState MEDIASTATE_LOADING = (wxMediaState) 5;
-    static constexpr wxMediaState MEDIASTATE_BUFFERING = (wxMediaState) 6;
+    static const wxMediaState MEDIASTATE_IDLE = (wxMediaState) 3;
+    static const wxMediaState MEDIASTATE_INITIALIZING = (wxMediaState) 4;
+    static const wxMediaState MEDIASTATE_LOADING = (wxMediaState) 5;
+    static const wxMediaState MEDIASTATE_BUFFERING = (wxMediaState) 6;
 
     wxMediaCtrl2 * m_media_ctrl;
     wxMediaState m_last_state = MEDIASTATE_IDLE;
