@@ -546,6 +546,13 @@ void MediaPlayCtrl::msw_rescale() {
     m_button_play->Rescale(); 
 }
 
+void MediaPlayCtrl::jump_to_play()
+{
+    if (m_last_state != MEDIASTATE_IDLE)
+        return;
+    TogglePlay();
+}
+
 void MediaPlayCtrl::onStateChanged(wxMediaEvent &event)
 {
     auto last_state = m_last_state;
