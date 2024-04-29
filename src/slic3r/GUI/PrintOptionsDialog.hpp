@@ -49,6 +49,7 @@ protected:
     CheckBox* m_cb_auto_recovery;
     CheckBox* m_cb_sup_sound;
     CheckBox* m_cb_filament_tangle;
+    CheckBox* m_cb_nozzle_blob;
     wxStaticText* text_first_layer;
     wxStaticText* text_ai_monitoring;
     wxStaticText* text_ai_monitoring_caption;
@@ -58,12 +59,15 @@ protected:
     wxStaticText* text_auto_recovery;
     wxStaticText* text_sup_sound;
     wxStaticText* text_filament_tangle;
+    wxStaticText* text_nozzle_blob;
+    wxStaticText* text_nozzle_blob_caption;
     StaticLine* line1;
     StaticLine* line2;
     StaticLine* line3;
     StaticLine* line4;
     StaticLine* line5;
     StaticLine* line6;
+    StaticLine* line7;
     wxBoxSizer* create_settings_group(wxWindow* parent);
 
     bool print_halt = false;
