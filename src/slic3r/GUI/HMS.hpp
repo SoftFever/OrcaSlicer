@@ -16,23 +16,30 @@ namespace Slic3r {
 namespace GUI {
 
 #define HMS_INFO_FILE	"hms.json"
+#define QUERY_HMS_INFO	"query_hms_info"
+#define QUERY_HMS_ACTION	"query_hms_action"
 
 class HMSQuery {
 protected:
-	json m_hms_json;
-	int download_hms_info();
-	int load_from_local(std::string& version_info);
-	int save_to_local(std::string lang);
-	std::string get_hms_file(std::string lang);
-	wxString _query_hms_msg(std::string long_error_code, std::string lang_code = "en");
-	wxString _query_error_msg(std::string long_error_code, std::string lang_code = "en");
+	json m_hms_info_json;
+	json m_hms_action_json;
+	int download_hms_related(std::string hms_type,json* receive_json);
+    int load_from_local(std::string& version_info, std::string hms_type, json* load_json);
+	int save_to_local(std::string lang, std::string hms_type,json save_json);
+    std::string get_hms_file(std::string hms_type, std::string lang = std::string("en"));
+	wxString _query_hms_msg(std::string long_error_code, std::string lang_code = std::string("en"));
+	wxString _query_error_msg(std::string long_error_code, std::string lang_code = std::string("en"));
+    wxString _query_error_url_action(std::string long_error_code, std::string dev_id, std::vector<int>& button_action);
 public:
 	HMSQuery() {}
 	int check_hms_info();
 	wxString query_hms_msg(std::string long_error_code);
 	wxString query_print_error_msg(int print_error);
+    wxString query_print_error_url_action(int print_error, std::string dev_id, std::vector<int>& button_action);
 	static std::string hms_language_code();
 	static std::string build_query_params(std::string& lang);
+
+    bool save_local = false;
 };
 
 int get_hms_info_version(std::string &version);

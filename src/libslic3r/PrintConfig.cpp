@@ -160,7 +160,8 @@ static t_config_enum_values s_keys_map_InfillPattern {
     { "archimedeanchords",  ipArchimedeanChords },
     { "octagramspiral",     ipOctagramSpiral },
     { "supportcubic",       ipSupportCubic },
-    { "lightning",          ipLightning }
+    { "lightning",          ipLightning },
+    { "crosshatch",         ipCrossHatch}
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(InfillPattern)
 
@@ -2049,6 +2050,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->enum_values.push_back("octagramspiral");
     def->enum_values.push_back("supportcubic");
     def->enum_values.push_back("lightning");
+    def->enum_values.push_back("crosshatch");
     def->enum_labels.push_back(L("Concentric"));
     def->enum_labels.push_back(L("Rectilinear"));
     def->enum_labels.push_back(L("Grid"));
@@ -2066,6 +2068,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->enum_labels.push_back(L("Octagram Spiral"));
     def->enum_labels.push_back(L("Support Cubic"));
     def->enum_labels.push_back(L("Lightning"));
+    def->enum_labels.push_back(L("Cross Hatch"));
     def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipCubic));
 
     auto def_infill_anchor_min = def = this->add("infill_anchor", coFloatOrPercent);
