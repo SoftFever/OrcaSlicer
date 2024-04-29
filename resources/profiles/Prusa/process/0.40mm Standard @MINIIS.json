@@ -22,6 +22,15 @@
   "top_surface_speed": "35",
   "gap_infill_speed": "35",
   "travel_speed": "300",
+  "default_acceleration": "2000",
+  "initial_layer_acceleration": "500",
+  "top_surface_acceleration": "1000",
+  "travel_acceleration": "4000",
+  "sparse_infill_acceleration": "4000",
+  "internal_solid_infill_acceleration": "3000",
+  "inner_wall_acceleration": "2000",
+  "outer_wall_acceleration": "1500",
+  "bridge_acceleration": "1000",
   "compatible_printers": [
     "Prusa MINIIS 0.8 nozzle"
   ]
