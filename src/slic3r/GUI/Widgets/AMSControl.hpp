@@ -299,7 +299,6 @@ public:
     Caninfo      m_info;
     MachineObject* m_obj = {nullptr};
     int          m_can_index = 0;
-    bool         transparent_changed = { false };
     AMSModel     m_ams_model;
 
     void         Update(Caninfo info, bool refresh = true);
@@ -324,7 +323,6 @@ protected:
     ScalableBitmap  m_bitmap_readonly;
     ScalableBitmap  m_bitmap_readonly_light;
     ScalableBitmap  m_bitmap_transparent;
-    ScalableBitmap  m_bitmap_transparent_def;
 
     ScalableBitmap  m_bitmap_extra_tray_left;
     ScalableBitmap  m_bitmap_extra_tray_right;
@@ -341,7 +339,7 @@ protected:
     bool            m_hover           = {false};
     bool            m_show_kn         = {false};
     bool            m_support_cali    = {false};
-    
+    bool            transparent_changed     = {false};
 
     double   m_radius = {4};
     wxColour m_border_color;

@@ -33,11 +33,13 @@ public:
     void          update_starting_read_mode(bool selected);
     void          update_remain_mode(bool selected);
     void          update_switch_filament(bool selected);
+    void          update_air_printing_detection(bool selected);
     void          on_select_ok(wxMouseEvent& event);
     void          on_insert_material_read(wxCommandEvent &event);
     void          on_starting_read(wxCommandEvent &event);
     void          on_remain(wxCommandEvent& event);
     void          on_switch_filament(wxCommandEvent& event);
+    void          on_air_print_detect(wxCommandEvent& event);
     wxString      append_title(wxString text);
     wxStaticText *append_text(wxString text);
     MachineObject *obj{nullptr};
@@ -69,6 +71,10 @@ protected:
     CheckBox* m_checkbox_switch_filament;
     wxStaticText* m_title_switch_filament;
     Label* m_tip_switch_filament_line1;
+
+    CheckBox* m_checkbox_air_print;
+    wxStaticText* m_title_air_print;
+    Label* m_tip_air_print_line;
 
     wxStaticText *m_tip_ams_img;
     Button *     m_button_auto_demarcate;
