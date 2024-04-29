@@ -19,6 +19,8 @@
   "gap_infill_speed": "60",
   "support_speed": "80",
   "overhang_1_4_speed": "45",
+  "travel_speed": "300",
+  "internal_solid_infill_acceleration": "3000",
   "compatible_printers": [
     "Prusa MINIIS 0.6 nozzle"
   ]

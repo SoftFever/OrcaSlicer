@@ -1,16 +1,10 @@
 {
   "type": "process",
   "setting_id": "GP004",
-  "name": "0.20mm Speed @MINIIS 0.6",
+  "name": "0.20mm Standard @MINIIS 0.6",
   "from": "system",
   "instantiation": "true",
-  "inherits": "process_speed_miniis",
-  "compatible_printers": [
-    "Prusa MINIIS 0.6 nozzle"
-  ],
-  "outer_wall_speed": "115",
-  "inner_wall_speed": "115",
-  "small_perimeter_speed": "115",
+  "inherits": "process_common_miniis",
   "sparse_infill_speed": "120",
   "internal_solid_infill_speed": "100",
   "top_surface_speed": "70",
@@ -23,5 +17,8 @@
   "outer_wall_acceleration": "2000",
   "bridge_acceleration": "1500",
   "internal_solid_infill_acceleration": "3000",
-  "overhang_1_4_speed": "45"
+  "overhang_1_4_speed": "45",
+  "compatible_printers": [
+    "Prusa MINIIS 0.6 nozzle"
+  ]
 }

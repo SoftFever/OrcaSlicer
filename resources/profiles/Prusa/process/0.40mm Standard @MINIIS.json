@@ -21,6 +21,7 @@
   "internal_solid_infill_speed": "40",
   "top_surface_speed": "35",
   "gap_infill_speed": "35",
+  "travel_speed": "300",
   "compatible_printers": [
     "Prusa MINIIS 0.8 nozzle"
   ]
