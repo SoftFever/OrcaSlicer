@@ -924,29 +924,6 @@ void MainFrame::show_publish_button(bool show)
     // Layout();
 }
 
-void MainFrame::show_calibration_button(bool show)
-{
-// #ifdef __APPLE__
-//     bool shown = m_menubar->FindMenu(_L("Calibration")) != wxNOT_FOUND;
-//     if (shown == show)
-//         ;
-//     else if (show)
-//         m_menubar->Insert(3, m_calib_menu, wxString::Format("&%s", _L("Calibration")));
-//     else
-//         m_menubar->Remove(3);
-// #else
-//     topbar()->ShowCalibrationButton(show);
-// #endif
-    show = !show;
-    auto shown2 = m_tabpanel->FindPage(m_calibration) != wxNOT_FOUND;
-    if (shown2 == show)
-        ;
-    else if (show)
-        m_tabpanel->InsertPage(tpCalibration, m_calibration, _L("Calibration"), std::string("tab_monitor_active"), std::string("tab_monitor_active"), false);
-    else
-        m_tabpanel->RemovePage(tpCalibration);
-}
-
 void MainFrame::update_title_colour_after_set_title()
 {
 #ifdef __APPLE__
@@ -1111,36 +1088,76 @@ void MainFrame::init_tabpanel() {
 
 // SoftFever
 void MainFrame::show_device(bool bBBLPrinter) {
-  if (m_tabpanel->GetPage(tpMonitor) != m_monitor &&
-      m_tabpanel->GetPage(tpMonitor) != m_printer_view) {
-    BOOST_LOG_TRIVIAL(error) << "Failed to find device tab";
-    return;
-  }
-  if (bBBLPrinter) {
-    if (m_tabpanel->GetPage(tpMonitor) != m_monitor) {
-      m_printer_view->Hide();
-            m_monitor->Show(true);
-      m_tabpanel->RemovePage(tpMonitor);
-      m_tabpanel->InsertPage(tpMonitor, m_monitor, _L("Device"),
-                             std::string("tab_monitor_active"),
-                             std::string("tab_monitor_active"));
-      //m_tabpanel->SetSelection(tp3DEditor);
-    }
-  } else {
-    if (m_tabpanel->GetPage(tpMonitor) != m_printer_view) {
-      m_printer_view->Show();
+    auto idx = -1;
+    if (bBBLPrinter) {
+        if (m_tabpanel->FindPage(m_monitor) != wxNOT_FOUND)
+            return;
+        // Remove printer view
+        if ((idx = m_tabpanel->FindPage(m_printer_view)) != wxNOT_FOUND) {
+            m_printer_view->Show(false);
+            m_tabpanel->RemovePage(idx);
+        }
+
+        // Create/insert monitor page
+        if (!m_monitor) {
+            m_monitor = new MonitorPanel(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+            m_monitor->SetBackgroundColour(*wxWHITE);
+        }
+        m_monitor->Show(false);
+        m_tabpanel->InsertPage(tpMonitor, m_monitor, _L("Device"), std::string("tab_monitor_active"), std::string("tab_monitor_active"));
+
+        if (wxGetApp().is_enable_multi_machine()) {
+            if (!m_multi_machine) {
+                m_multi_machine = new MultiMachinePage(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+                m_multi_machine->SetBackgroundColour(*wxWHITE);
+            }
+            // TODO: change the bitmap
+            m_multi_machine->Show(false);
+            m_tabpanel->InsertPage(tpMultiDevice, m_multi_machine, _L("Multi-device"), std::string("tab_multi_active"),
+                                   std::string("tab_multi_active"), false);
+        }
+        if (!m_calibration) {
+            m_calibration = new CalibrationPanel(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+            m_calibration->SetBackgroundColour(*wxWHITE);
+        }
+        m_calibration->Show(false);
+        m_tabpanel->InsertPage(tpCalibration, m_calibration, _L("Calibration"), std::string("tab_calibration_active"),
+                               std::string("tab_calibration_active"), false);
+
+#ifdef _MSW_DARK_MODE
+        wxGetApp().UpdateDarkUIWin(this);
+#endif // _MSW_DARK_MODE
+
+    } else {
+        if (m_tabpanel->FindPage(m_printer_view) != wxNOT_FOUND)
+            return;
+
+        if ((idx = m_tabpanel->FindPage(m_calibration)) != wxNOT_FOUND) {
+            m_calibration->Show(false);
+            m_tabpanel->RemovePage(idx);
+        }
+        if ((idx = m_tabpanel->FindPage(m_multi_machine)) != wxNOT_FOUND) {
+            m_multi_machine->Show(false);
+            m_tabpanel->RemovePage(idx);
+        }
+        if ((idx = m_tabpanel->FindPage(m_monitor)) != wxNOT_FOUND) {
             m_monitor->Show(false);
-      m_tabpanel->RemovePage(tpMonitor);
-      m_tabpanel->InsertPage(tpMonitor, m_printer_view, _L("Device"),
-                          std::string("tab_monitor_active"),
-                          std::string("tab_monitor_active"));
-      //m_tabpanel->SetSelection(tp3DEditor);
+            m_tabpanel->RemovePage(idx);
+        }
+        if (m_printer_view == nullptr) {
+            m_printer_view = new PrinterWebView(m_tabpanel);
+            Bind(EVT_LOAD_PRINTER_URL, [this](LoadPrinterViewEvent& evt) {
+                wxString url = evt.GetString();
+                wxString key = evt.GetAPIkey();
+                // select_tab(MainFrame::tpMonitor);
+                m_printer_view->load_url(url, key);
+            });
+        }
+        m_printer_view->Show(false);
+        m_tabpanel->InsertPage(tpMonitor, m_printer_view, _L("Device"), std::string("tab_monitor_active"),
+                               std::string("tab_monitor_active"));
     }
-  }
-
-
 }
-
 
 bool MainFrame::preview_only_hint()
 {
@@ -2012,9 +2029,12 @@ void MainFrame::on_dpi_changed(const wxRect& suggested_rect)
     //if (m_layout != ESettingsLayout::Dlg) // Do not update tabs if the Settings are in the separated dialog
     m_param_panel->msw_rescale();
     m_project->msw_rescale();
-    m_monitor->msw_rescale();
-    m_multi_machine->msw_rescale();
-    m_calibration->msw_rescale();
+    if(m_monitor)
+        m_monitor->msw_rescale();
+    if(m_multi_machine)
+        m_multi_machine->msw_rescale();
+    if(m_calibration)
+        m_calibration->msw_rescale();
 
     // BBS
 #if 0
@@ -2072,8 +2092,10 @@ void MainFrame::on_sys_color_changed()
 
     // update Plater
     wxGetApp().plater()->sys_color_changed();
-    m_monitor->on_sys_color_changed();
-    m_calibration->on_sys_color_changed();
+    if(m_monitor)
+        m_monitor->on_sys_color_changed();
+    if(m_calibration)
+        m_calibration->on_sys_color_changed();
     // update Tabs
     for (auto tab : wxGetApp().tabs_list)
         tab->sys_color_changed();
@@ -3321,12 +3343,16 @@ void MainFrame::select_tab(wxPanel* panel)
 //BBS
 void MainFrame::jump_to_monitor(std::string dev_id)
 {
+    if(!m_monitor)
+        return;
     m_tabpanel->SetSelection(tpMonitor);
     ((MonitorPanel*)m_monitor)->select_machine(dev_id);
 }
 
 void MainFrame::jump_to_multipage()
 {
+    if(!m_multi_machine)
+        return;
     m_tabpanel->SetSelection(tpMultiDevice);
     ((MultiMachinePage*)m_multi_machine)->jump_to_send_page();
 }
