@@ -1580,14 +1580,7 @@ std::vector<int> PartPlate::get_used_extruders()
 
 	std::set<int> used_extruders_set;
 	PrintEstimatedStatistics& ps = result->print_statistics;
-	// model usage
-	for (const auto&item:ps.volumes_per_extruder)
-		used_extruders_set.emplace(item.first + 1);
-	// support usage
-	for (const auto&item:ps.support_volumes_per_extruder)
-		used_extruders_set.emplace(item.first + 1);
-	// wipe tower usage
-	for (const auto&item:ps.wipe_tower_volumes_per_extruder)
+	for (const auto& item : ps.total_volumes_per_extruder)
 		used_extruders_set.emplace(item.first + 1);
 
 	return std::vector(used_extruders_set.begin(), used_extruders_set.end());

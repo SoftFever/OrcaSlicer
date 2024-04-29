@@ -7,9 +7,9 @@
 #include "../../Utils/NetworkAgent.hpp"
 #include "../BitmapCache.hpp"
 
+#include <boost/algorithm/hex.hpp>
 #include <boost/endian/conversion.hpp>
 #include <boost/log/trivial.hpp>
-#include <boost/algorithm/hex.hpp>
 #include <boost/uuid/detail/md5.hpp>
 #include <boost/regex.hpp>
 
@@ -1139,8 +1139,7 @@ void PrinterFileSystem::RecvMessageThread()
         if (n == 0) {
             HandleResponse(l, sample);
         } else if (n == Bambu_stream_end) {
-            if (m_status == ListSyncing)
-                m_stopped = true;
+            m_stopped = true;
             Reconnect(l, m_status == ListSyncing ? ERROR_RES_BUSY : ERROR_PIPE);
         } else if (n == Bambu_would_block) {
             m_cond.timed_wait(l, boost::posix_time::milliseconds(m_messages.empty() && m_callbacks.empty() ? 1000 : 20));
@@ -1219,10 +1218,6 @@ void PrinterFileSystem::HandleResponse(boost::unique_lock<boost::mutex> &l, Bamb
     }
 }
 
-namespace Slic3r { namespace GUI {
-    extern wxString hide_passwd(wxString url, std::vector<wxString> const &passwords);
-}}
-
 void PrinterFileSystem::Reconnect(boost::unique_lock<boost::mutex> &l, int result)
 {
     if (m_session.tunnel) {
@@ -1266,7 +1261,7 @@ void PrinterFileSystem::Reconnect(boost::unique_lock<boost::mutex> &l, int resul
             if (m_last_error == 0)
                 m_stopped = true;
         } else {
-            wxLogMessage("PrinterFileSystem::Reconnect Initialized: %s", Slic3r::GUI::hide_passwd(wxString::FromUTF8(url), {"authkey=", "passwd="}));
+            wxLogInfo("PrinterFileSystem::Reconnect Initialized: %s", wxString::FromUTF8(url));
             l.unlock();
             m_status = Status::Connecting;
             wxLogMessage("PrinterFileSystem::Reconnect Connecting");
@@ -1288,6 +1283,9 @@ void PrinterFileSystem::Reconnect(boost::unique_lock<boost::mutex> &l, int resul
                 m_session.tunnel = tunnel;
                 wxLogMessage("PrinterFileSystem::Reconnect Connected");
                 break;
+            } else if (ret == 1) {
+                m_stopped = true;
+                ret = ERROR_RES_BUSY;
             }
             if (tunnel) {
                 Bambu_Close(tunnel);
