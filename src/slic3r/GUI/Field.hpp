@@ -5,6 +5,7 @@
 #ifndef WX_PRECOMP
     #include <wx/wx.h>
 #endif
+#include <wx/colourdata.h>
 
 #include <memory>
 #include <cstdint>
