@@ -1490,6 +1490,17 @@ void MenuFactory::create_plate_menu()
         },
         m_parent);
 
+    // reload all objects on current plate
+    append_menu_item(
+        menu, wxID_ANY, _L("Reload All"), _L("reload all from disk"),
+        [](wxCommandEvent&) {
+            PartPlate* plate = plater()->get_partplate_list().get_selected_plate();
+            assert(plate);
+            plater()->set_prepare_state(Job::PREPARE_STATE_MENU);
+            plater()->reload_all_from_disk();
+        },
+        "", nullptr, []() { return !plater()->get_partplate_list().get_selected_plate()->get_objects().empty(); }, m_parent);
+
     // orient objects on current plate
     append_menu_item(menu, wxID_ANY, _L("Auto Rotate"), _L("auto rotate current plate"),
         [](wxCommandEvent&) {

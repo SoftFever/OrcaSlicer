@@ -1200,9 +1200,7 @@ void Sidebar::update_all_preset_comboboxes()
     bool is_bbl_vendor = preset_bundle.is_bbl_vendor();
     const bool use_bbl_network = preset_bundle.use_bbl_network();
 
-    // Orca:: show device tab based on vendor type
     auto p_mainframe = wxGetApp().mainframe;
-    p_mainframe->show_device(use_bbl_network);
     auto cfg = preset_bundle.printers.get_edited_preset().config;
 
     if (use_bbl_network) {
@@ -1268,7 +1266,9 @@ void Sidebar::update_all_preset_comboboxes()
     if (p->combo_printer)
         p->combo_printer->update();
 
-    p_mainframe->m_tabpanel->SetSelection(p_mainframe->m_tabpanel->GetSelection());
+    // Orca:: show device tab based on vendor type
+    p_mainframe->show_device(use_bbl_network);
+    p_mainframe->select_tab(MainFrame::tp3DEditor);
 }
 
 void Sidebar::update_presets(Preset::Type preset_type)
@@ -1337,9 +1337,6 @@ void Sidebar::update_presets(Preset::Type preset_type)
         }
 
         Preset& printer_preset = wxGetApp().preset_bundle->printers.get_edited_preset();
-        bool isBBL = preset_bundle.use_bbl_network();
-        wxGetApp().mainframe->show_calibration_button(!isBBL);
-
         if (auto printer_structure_opt = printer_preset.config.option<ConfigOptionEnum<PrinterStructure>>("printer_structure")) {
             wxGetApp().plater()->get_current_canvas3D()->get_arrange_settings().align_to_y_axis = (printer_structure_opt->value == PrinterStructure::psI3);
         }
@@ -7084,7 +7081,7 @@ void Plater::priv::on_tab_selection_changing(wxBookCtrlEvent& e)
         if (new_sel == MainFrame::tpMonitor && wxGetApp().preset_bundle != nullptr) {
             auto     cfg = wxGetApp().preset_bundle->printers.get_edited_preset().config;
             wxString url = cfg.opt_string("print_host_webui").empty() ? cfg.opt_string("print_host") : cfg.opt_string("print_host_webui");
-            if (url.empty()) {
+            if (main_frame->m_printer_view && url.empty()) {
                 // It's missing_connection page, reload so that we can replay the gif image
                 main_frame->m_printer_view->reload();
             }
