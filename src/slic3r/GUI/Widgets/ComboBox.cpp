@@ -39,7 +39,7 @@ ComboBox::ComboBox(wxWindow *parent,
                    int             n,
                    const wxString  choices[],
                    long            style)
-    : drop(texts, icons)
+    : drop(texts, tips, icons)
 {
     if (style & wxCB_READONLY)
         style |= wxRIGHT;
@@ -156,6 +156,7 @@ int ComboBox::Append(const wxString &item,
                      void *          clientData)
 {
     texts.push_back(item);
+    tips.push_back(wxString{});
     icons.push_back(bitmap);
     datas.push_back(clientData);
     types.push_back(wxClientData_None);
@@ -167,6 +168,7 @@ void ComboBox::DoClear()
 {
     SetIcon("drop_down");
     texts.clear();
+    tips.clear();
     icons.clear();
     datas.clear();
     types.clear();
@@ -177,6 +179,7 @@ void ComboBox::DoDeleteOneItem(unsigned int pos)
 {
     if (pos >= texts.size()) return;
     texts.erase(texts.begin() + pos);
+    tips.erase(tips.begin() + pos);
     icons.erase(icons.begin() + pos);
     datas.erase(datas.begin() + pos);
     types.erase(types.begin() + pos);
@@ -198,6 +201,18 @@ void ComboBox::SetString(unsigned int n, wxString const &value)
     if (n == drop.GetSelection()) SetLabel(value);
 }
 
+wxString ComboBox::GetItemTooltip(unsigned int n) const
+{
+    if (n >= texts.size()) return wxString();
+    return tips[n];
+}
+
+void ComboBox::SetItemTooltip(unsigned int n, wxString const &value) {
+    if (n >= texts.size()) return;
+    tips[n] = value;
+    if (n == drop.GetSelection()) drop.SetToolTip(value);
+}
+
 wxBitmap ComboBox::GetItemBitmap(unsigned int n) { return icons[n]; }
 
 void ComboBox::SetItemBitmap(unsigned int n, wxBitmap const &bitmap)
@@ -215,6 +230,7 @@ int ComboBox::DoInsertItems(const wxArrayStringsAdapter &items,
     if (pos > texts.size()) return -1;
     for (int i = 0; i < items.GetCount(); ++i) {
         texts.insert(texts.begin() + pos, items[i]);
+        tips.insert(tips.begin() + pos, wxString{});
         icons.insert(icons.begin() + pos, wxNullBitmap);
         datas.insert(datas.begin() + pos, clientData ? clientData[i] : NULL);
         types.insert(types.begin() + pos, type);

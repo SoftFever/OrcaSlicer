@@ -159,6 +159,7 @@ src/slic3r/Utils/FlashAir.cpp
 src/slic3r/Utils/MKS.cpp
 src/slic3r/Utils/OctoPrint.cpp
 src/slic3r/Utils/Repetier.cpp
+src/slic3r/Utils/ProfileDescription.hpp
 src/slic3r/Utils/Obico.cpp
 src/slic3r/Utils/SimplyPrint.cpp
 src/slic3r/Utils/Flashforge.cpp
