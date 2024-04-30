@@ -57,7 +57,8 @@ ComboBox::ComboBox(wxWindow *parent,
         TextInput::SetBackgroundColor(StateColor(std::make_pair(0xF0F0F1, (int) StateColor::Disabled),
             std::make_pair(0xEDFAF2, (int) StateColor::Focused),
             std::make_pair(*wxWHITE, (int) StateColor::Normal)));
-        TextInput::SetLabelColor(StateColor(std::make_pair(0x909090, (int) StateColor::Disabled),
+        TextInput::SetLabelColor(StateColor(
+            std::make_pair(wxColour("#ACACAC"), (int) StateColor::Disabled), // ORCA: Use same color for disabled text on combo boxes
             std::make_pair(0x262E30, (int) StateColor::Normal)));
     }
     if (auto scroll = GetScrollParent(this))
