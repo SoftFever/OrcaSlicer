@@ -1937,9 +1937,6 @@ void GUI_App::init_app_config()
         if (!boost::filesystem::exists(data_dir_path)){
             boost::filesystem::create_directory(data_dir_path);
         }
-
-        // Change current dirtory of application
-        chdir(encode_path((Slic3r::data_dir() + "/log").c_str()).c_str());
     } else {
         m_datadir_redefined = true;
     }
@@ -1950,7 +1947,7 @@ void GUI_App::init_app_config()
     std::stringstream buf;
     buf << std::put_time(now_time, "debug_%a_%b_%d_%H_%M_%S_");
     buf << get_current_pid() << ".log";
-    std::string log_filename = buf.str();
+    std::string log_filename = Slic3r::data_dir() + "/log/" + buf.str();
 #if !BBL_RELEASE_TO_PUBLIC
     set_log_path_and_level(log_filename, 5);
 #else
