@@ -4175,36 +4175,34 @@ def = this->add("filament_loading_speed", coFloats);
     def->set_default_value(new ConfigOptionInt(0));
 
     auto support_interface_top_layers = def = this->add("support_interface_top_layers", coInt);
-    // ORCA use this as spin box
-    //def->gui_type = ConfigOptionDef::GUIType::i_enum_open;
+    def->gui_type = ConfigOptionDef::GUIType::i_enum_open;
     def->label = L("Top interface layers");
     def->category = L("Support");
     def->tooltip = L("Number of top interface layers");
     def->sidetext = L("layers");
     def->min = 0;
-    //def->enum_values.push_back("0");
-    //def->enum_values.push_back("1");
-    //def->enum_values.push_back("2");
-    //def->enum_values.push_back("3");
-    //def->enum_labels.push_back("0");
-    //def->enum_labels.push_back("1");
-    //def->enum_labels.push_back("2");
-    //def->enum_labels.push_back("3");
+    def->enum_values.push_back("0");
+    def->enum_values.push_back("1");
+    def->enum_values.push_back("2");
+    def->enum_values.push_back("3");
+    def->enum_labels.push_back("0");
+    def->enum_labels.push_back("1");
+    def->enum_labels.push_back("2");
+    def->enum_labels.push_back("3");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInt(3));
 
     def = this->add("support_interface_bottom_layers", coInt);
-    // ORCA use this as spin box
-    //def->gui_type = ConfigOptionDef::GUIType::i_enum_open;
+    def->gui_type = ConfigOptionDef::GUIType::i_enum_open;
     def->label = L("Bottom interface layers");
     def->category = L("Support");
     def->tooltip = L("Number of bottom interface layers");
     def->sidetext = L("layers");
     def->min = -1;
-    //def->enum_values.push_back("-1");
-    //append(def->enum_values, support_interface_top_layers->enum_values);
-    //def->enum_labels.push_back(L("Same as top"));
-    //append(def->enum_labels, support_interface_top_layers->enum_labels);
+    def->enum_values.push_back("-1");
+    append(def->enum_values, support_interface_top_layers->enum_values);
+    def->enum_labels.push_back(L("Same as top"));
+    append(def->enum_labels, support_interface_top_layers->enum_labels);
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInt(0));
 
