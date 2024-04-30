@@ -13,7 +13,7 @@ static std::map<wxColour, wxColour> gDarkColors{
     {"#262E30", "#EFEFF0"},
     {"#2C2C2E", "#B3B3B4"},
     {"#6B6B6B", "#818183"},
-    {"#ACACAC", "#54545A"},
+    {"#ACACAC", "#65656A"}, // rgb(172, 172, 172)	Disabled Text | Dimmed Elements // ORCA updated color for dark mode with slightly darker color
     {"#EEEEEE", "#4C4C55"},
     {"#E8E8E8", "#3E3E45"},
     {"#323A3D", "#E5E5E4"},
