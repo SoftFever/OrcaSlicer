@@ -33,7 +33,7 @@ static std::map<wxColour, wxColour> gDarkColors{
     {"#FEFFFF", "#242428"},
     {"#A6A9AA", "#2D2D29"},
     {"#363636", "#B2B3B5"},
-    {"#F0F0F1", "#404040"},
+    {"#F0F0F1", "#333337"}, // rgb(240, 240, 241)	Disabled element background // ORCA Used better background color for dark mode
     {"#9E9E9E", "#53545A"},
     {"#D7E8DE", "#1F2B27"},
     {"#2B3436", "#808080"},
