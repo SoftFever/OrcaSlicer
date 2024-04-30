@@ -103,6 +103,7 @@
 	"enable_prime_tower": "0",
 	"wipe_tower_no_sparse_layers": "0",
 	"role_based_wipe_speed" : "0",
+	"wipe_speed": "200",
 	"prime_tower_width": "60",
 	"xy_hole_compensation": "0",
 	"xy_contour_compensation": "0",
