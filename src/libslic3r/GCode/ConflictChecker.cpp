@@ -90,9 +90,14 @@ void LinesBucketQueue::emplace_back_bucket(ExtrusionLayers &&els, const void *ob
 {
     auto oldSize = line_buckets.capacity();
     line_buckets.emplace_back(std::move(els), objPtr, offset);
-    line_bucket_ptr_queue.push(&line_buckets.back());
     auto newSize = line_buckets.capacity();
-    if (oldSize != newSize) { // pointers change
+    // Since line_bucket_ptr_queue is storing pointers into line_buckets,
+    // we need to handle the case where the capacity changes since that makes
+    // the existing pointers invalid
+    if (oldSize == newSize) {
+        line_bucket_ptr_queue.push(&line_buckets.back());
+    }
+    else { // pointers change, create a new queue from scratch
         decltype(line_bucket_ptr_queue) newQueue;
         for (LinesBucket &bucket : line_buckets) { newQueue.push(&bucket); }
         std::swap(line_bucket_ptr_queue, newQueue);
@@ -220,13 +225,6 @@ ConflictResultOpt ConflictChecker::find_inter_of_lines_in_diff_objs(PrintObjectP
 {
     if (objs.size() <= 1 && !wtdptr) { return {}; }
     LinesBucketQueue conflictQueue;
-
-    // Calculate the number of required entries in the conflict queue
-    // One slot is used for the FakeWipeTower and 2 slots for each object
-    size_t requiredCount = 2*objs.size() + (wtdptr.has_value() ? 1 : 0);
-    // Reserve the required count to guarantee that pointers inside LinesBucketQueue::line_buckets
-    // are stable while we append the entries
-    conflictQueue.reserve(requiredCount);
 
     if (wtdptr.has_value()) { // wipe tower at 0 by default
         auto            wtpaths = wtdptr.value()->getFakeExtrusionPathsFromWipeTower();
