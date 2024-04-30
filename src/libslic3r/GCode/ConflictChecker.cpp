@@ -104,11 +104,6 @@ void LinesBucketQueue::emplace_back_bucket(ExtrusionLayers &&els, const void *ob
     }
 }
 
-void LinesBucketQueue::reserve(size_t count)
-{
-    line_buckets.reserve(count);
-}
-
 // remove lowest and get the current bottom z
 float LinesBucketQueue::getCurrBottomZ()
 {

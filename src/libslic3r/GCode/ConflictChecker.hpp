@@ -114,7 +114,6 @@ public:
 
 public:
     void        emplace_back_bucket(ExtrusionLayers &&els, const void *objPtr, Point offset);
-    void        reserve(size_t count);
     bool        valid() const { return line_bucket_ptr_queue.empty() == false; }
     float       getCurrBottomZ();
     LineWithIDs getCurLines() const;
