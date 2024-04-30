@@ -476,6 +476,8 @@ set(CGAL_DO_NOT_WARN_ABOUT_CMAKE_BUILD_TYPE ON CACHE BOOL "" FORCE)
 cmake_policy(PUSH)
 cmake_policy(SET CMP0011 NEW)
 find_package(CGAL REQUIRED)
+# OpenCV depends on Eigen3, but does not use find_package to find it.
+find_package(Eigen3 CONFIG)
 find_package(OpenCV REQUIRED core)
 cmake_policy(POP)
 
