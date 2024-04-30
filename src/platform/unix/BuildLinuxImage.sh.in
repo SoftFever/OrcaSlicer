@@ -21,11 +21,8 @@ echo -n "[9/9] Generating Linux app..."
     if [ -d "package" ]
     then
         rm -rf package/*
-        rm -rf package/.* 2&>/dev/null
-    else
-        mkdir package
     fi
-    mkdir package/bin
+    mkdir -p package/bin
 
     # copy Resources
     cp -Rf ../resources package/resources
@@ -33,15 +30,49 @@ echo -n "[9/9] Generating Linux app..."
     # remove unneeded po from resources
     ## find package/resources/localization -name "*.po" -type f -delete ## FIXME: DD - do we need this?
 
+    # Copy dynamic libraries
+    HOST_DEPS=(
+        libjpeg.so*
+        libwebp.so*
+        libwoff2dec.so*
+        libwoff2common.so*
+        libharfbuzz-icu.so*
+        libsoup-2.4.so*
+        libhyphen.so*
+        libspnav.so*
+        libatomic.so*
+        webkit2gtk-4.*
+        libicudata.so*
+        libicui18n.so*
+        libicuuc.so*
+        libjavascriptcoregtk-4.*
+        libwebkit2gtk-4.*
+    )
+
+    mkdir -p package/lib/x86_64-linux-gnu
+    for dep in "${HOST_DEPS[@]}"
+    do
+        libpath=$(ldd src/orca-slicer | awk "/${dep}/{print \$3}")
+        cp -aL $libpath  package/lib/x86_64-linux-gnu/
+    done
+
+    # Copy webkit binaries we've built against.
+    cp -aL /usr/lib/x86_64-linux-gnu/webkit2gtk-4.* package/lib/x86_64-linux-gnu/
+    find package/lib/ -name 'libwebkit*' -type f -exec sed -i -e "s|/usr|././|g" '{}' \;
+
     # create bin
 cat << EOF >@SLIC3R_APP_CMD@
 #!/bin/bash
 DIR=\$(readlink -f "\$0" | xargs dirname)
-export LD_LIBRARY_PATH="\$DIR/bin"
+export LD_LIBRARY_PATH="\$DIR/bin:\$DIR/lib/x86_64-linux-gnu"
 
 # FIXME: OrcaSlicer segfault workarounds
 # 1) OrcaSlicer will segfault on systems where locale info is not as expected (i.e. Holo-ISO arch-based distro)
 export LC_ALL=C
+
+# WORKAROUND: change CWD to appimage root, so webkit would be
+#             able to start itself using relative path
+cd \$DIR
 
 exec "\$DIR/bin/@SLIC3R_APP_CMD@" "\$@"
 EOF
