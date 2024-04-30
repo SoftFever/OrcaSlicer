@@ -106,6 +106,10 @@ int TabCtrl::AppendItem(const wxString &item,
     btn->SetBackgroundColor(StateColor());
     btn->SetCornerRadius(0);
     btn->SetPaddingSize({TAB_BUTTON_PADDING});
+    wxClientDC dc(this); // ORCA calculate tab width from bold font to prevent tab movements on tab change
+    dc.SetFont(this->bold);
+    btn->SetMinSize(wxSize(dc.GetTextExtent(item).x + TAB_BUTTON_PADDING_X * 2, btn->GetSize().GetHeight()));
+    dc.Clear();
     btns.push_back(btn);
     if (btns.size() > 1)
         sizer->GetItem(sizer->GetItemCount() - 1)->SetMinSize({0, 0});
