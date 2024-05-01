@@ -3163,7 +3163,7 @@ void GLGizmoEmboss::init_icons()
         "make_unbold.svg",   
         "search.svg",
         "open.svg", 
-        "exclamation.svg",   
+        "obj_warning.svg",  // ORCA: use obj_warning instead exclamation. exclamation is not compatible with low res
         "lock_closed.svg",  // lock,
         "lock_closed_f.svg",// lock_bold,
         "lock_open.svg",    // unlock,
