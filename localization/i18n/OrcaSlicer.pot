@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-28 18:11+0800\n"
+"POT-Creation-Date: 2024-05-01 00:42+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1885,6 +1885,12 @@ msgstr ""
 msgid "arrange current plate"
 msgstr ""
 
+msgid "Reload All"
+msgstr ""
+
+msgid "reload all from disk"
+msgstr ""
+
 msgid "Auto Rotate"
 msgstr ""
 
@@ -3014,6 +3020,45 @@ msgid "Running post-processing scripts"
 msgstr ""
 
 msgid "Successfully executed post-processing script"
+msgstr ""
+
+msgid "Unknown error occured during exporting G-code."
+msgstr ""
+
+#, possible-boost-format
+msgid ""
+"Copying of the temporary G-code to the output G-code failed. Maybe the SD "
+"card is write locked?\n"
+"Error message: %1%"
+msgstr ""
+
+#, possible-boost-format
+msgid ""
+"Copying of the temporary G-code to the output G-code failed. There might be "
+"problem with target device, please try exporting again or using different "
+"device. The corrupted output G-code is at %1%.tmp."
+msgstr ""
+
+#, possible-boost-format
+msgid ""
+"Renaming of the G-code after copying to the selected destination folder has "
+"failed. Current path is %1%.tmp. Please try exporting again."
+msgstr ""
+
+#, possible-boost-format
+msgid ""
+"Copying of the temporary G-code has finished but the original code at %1% "
+"couldn't be opened during copy check. The output G-code is at %2%.tmp."
+msgstr ""
+
+#, possible-boost-format
+msgid ""
+"Copying of the temporary G-code has finished but the exported code couldn't "
+"be opened during copy check. The output G-code is at %1%.tmp."
+msgstr ""
+
+#, possible-boost-format
+msgid "G-code file exported to %1%"
 msgstr ""
 
 msgid "Unknown error when export G-code."
@@ -7200,25 +7245,22 @@ msgstr ""
 msgid "Unsaved Changes"
 msgstr ""
 
-msgid "Actions For Unsaved Changes"
+msgid "Transfer or discard changes"
 msgstr ""
 
-msgid "Preset Value"
+msgid "Old Value"
 msgstr ""
 
-msgid "Modified Value"
+msgid "New Value"
 msgstr ""
 
-msgid "Transfer Modified Value"
+msgid "Transfer"
 msgstr ""
 
 msgid "Don't save"
 msgstr ""
 
-msgid "Use Preset Value"
-msgstr ""
-
-msgid "Save Modified Value"
+msgid "Discard"
 msgstr ""
 
 msgid "Click the right mouse button to display the full text."
@@ -7273,28 +7315,22 @@ msgstr ""
 
 msgid ""
 "\n"
-"Would you like to save these changed settings(modified value)?"
+"You can save or discard the preset values you have modified."
 msgstr ""
 
 msgid ""
 "\n"
-"Would you like to keep these changed settings(modified value) after "
-"switching preset?"
+"You can save or discard the preset values you have modified, or choose to "
+"transfer the values you have modified to the new preset."
 msgstr ""
 
-msgid ""
-"You have previously modified your settings and are about to overwrite them "
-"with new ones."
-msgstr ""
-
-msgid ""
-"\n"
-"Do you want to keep your current modified settings, or use preset settings?"
+msgid "You have previously modified your settings."
 msgstr ""
 
 msgid ""
 "\n"
-"Do you want to save your current modified settings?"
+"You can discard the preset values you have modified, or choose to transfer "
+"the modified values to the new project"
 msgstr ""
 
 msgid "Extruders count"
@@ -7310,9 +7346,6 @@ msgid "Show all presets (including incompatible)"
 msgstr ""
 
 msgid "Select presets to compare"
-msgstr ""
-
-msgid "Transfer"
 msgstr ""
 
 msgid ""
