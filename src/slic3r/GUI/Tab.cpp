@@ -3244,13 +3244,13 @@ void TabFilament::build()
         optgroup->append_separator();
 
 
-        optgroup = page->new_optgroup(L("Print temperature"), L"param_temperature");
+        optgroup = page->new_optgroup(L("Print temperature"), L"param_extruder_temp");
         line = { L("Nozzle"), L("Nozzle temperature when printing") };
         line.append_option(optgroup->get_option("nozzle_temperature_initial_layer"));
         line.append_option(optgroup->get_option("nozzle_temperature"));
         optgroup->append_line(line);
 
-        optgroup = page->new_optgroup(L("Bed temperature"), L"param_temperature");
+        optgroup = page->new_optgroup(L("Bed temperature"), L"param_bed_temp");
         line = { L("Cool plate"), L("Bed temperature when cool plate is installed. Value 0 means the filament does not support to print on the Cool Plate") };
         line.append_option(optgroup->get_option("cool_plate_temp_initial_layer"));
         line.append_option(optgroup->get_option("cool_plate_temp"));
@@ -3320,11 +3320,11 @@ void TabFilament::build()
         //    return description_line_widget(parent, &m_cooling_description_line);
         //};
         //optgroup->append_line(line);
-        optgroup = page->new_optgroup(L("Cooling for specific layer"), L"param_cooling");
+        optgroup = page->new_optgroup(L("Cooling for specific layer"), L"param_cooling_specific_layer");
         optgroup->append_single_option_line("close_fan_the_first_x_layers", "auto-cooling");
         optgroup->append_single_option_line("full_fan_speed_layer");
 
-        optgroup = page->new_optgroup(L("Part cooling fan"), L"param_cooling_fan");
+        optgroup = page->new_optgroup(L("Part cooling fan"), L"param_cooling_part_fan");
         line = { L("Min fan speed threshold"), L("Part cooling fan speed will start to run at min speed when the estimated layer time is no longer than the layer time in setting. When layer time is shorter than threshold, fan speed is interpolated between the minimum and maximum fan speed according to layer printing time") };
         line.label_path = "auto-cooling";
         line.append_option(optgroup->get_option("fan_min_speed"));
@@ -3344,10 +3344,10 @@ void TabFilament::build()
         optgroup->append_single_option_line("overhang_fan_speed", "auto-cooling");
         optgroup->append_single_option_line("support_material_interface_fan_speed");
 
-        optgroup = page->new_optgroup(L("Auxiliary part cooling fan"), L"param_cooling_fan");
+        optgroup = page->new_optgroup(L("Auxiliary part cooling fan"), L"param_cooling_aux_fan");
         optgroup->append_single_option_line("additional_cooling_fan_speed", "auxiliary-fan");
 
-        optgroup = page->new_optgroup(L("Exhaust fan"),L"param_cooling_fan");
+        optgroup = page->new_optgroup(L("Exhaust fan"),L"param_cooling_exhaust");
 
         optgroup->append_single_option_line("activate_air_filtration", "air-filtration");
 
@@ -3390,10 +3390,10 @@ void TabFilament::build()
         optgroup->append_single_option_line(option);
 
     page = add_options_page(L("Multimaterial"), "advanced");
-        optgroup = page->new_optgroup(L("Wipe tower parameters"));
+        optgroup = page->new_optgroup(L("Wipe tower parameters"), "param_tower");
         optgroup->append_single_option_line("filament_minimal_purge_on_wipe_tower");
 
-        optgroup = page->new_optgroup(L("Toolchange parameters with single extruder MM printers"));
+        optgroup = page->new_optgroup(L("Toolchange parameters with single extruder MM printers"), "param_toolchange");
         optgroup->append_single_option_line("filament_loading_speed_start", "semm");
         optgroup->append_single_option_line("filament_loading_speed", "semm");
         optgroup->append_single_option_line("filament_unloading_speed_start", "semm");
