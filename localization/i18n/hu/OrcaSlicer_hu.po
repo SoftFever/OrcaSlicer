@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-28 18:11+0800\n"
+"POT-Creation-Date: 2024-05-01 00:42+0800\n"
 "Language: hu\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1897,6 +1897,12 @@ msgstr "Elrendezés"
 msgid "arrange current plate"
 msgstr "aktuális tálca elrendezése"
 
+msgid "Reload All"
+msgstr ""
+
+msgid "reload all from disk"
+msgstr ""
+
 msgid "Auto Rotate"
 msgstr "Automatikus forgatás"
 
@@ -3120,6 +3126,45 @@ msgid "Running post-processing scripts"
 msgstr "Utófeldolgozási szkriptek futtatása"
 
 msgid "Successfully executed post-processing script"
+msgstr ""
+
+msgid "Unknown error occured during exporting G-code."
+msgstr ""
+
+#, boost-format
+msgid ""
+"Copying of the temporary G-code to the output G-code failed. Maybe the SD "
+"card is write locked?\n"
+"Error message: %1%"
+msgstr ""
+
+#, boost-format
+msgid ""
+"Copying of the temporary G-code to the output G-code failed. There might be "
+"problem with target device, please try exporting again or using different "
+"device. The corrupted output G-code is at %1%.tmp."
+msgstr ""
+
+#, boost-format
+msgid ""
+"Renaming of the G-code after copying to the selected destination folder has "
+"failed. Current path is %1%.tmp. Please try exporting again."
+msgstr ""
+
+#, boost-format
+msgid ""
+"Copying of the temporary G-code has finished but the original code at %1% "
+"couldn't be opened during copy check. The output G-code is at %2%.tmp."
+msgstr ""
+
+#, boost-format
+msgid ""
+"Copying of the temporary G-code has finished but the exported code couldn't "
+"be opened during copy check. The output G-code is at %1%.tmp."
+msgstr ""
+
+#, boost-format
+msgid "G-code file exported to %1%"
 msgstr ""
 
 msgid "Unknown error when export G-code."
@@ -7546,26 +7591,23 @@ msgstr "Nincs meghatározva"
 msgid "Unsaved Changes"
 msgstr "mentetlen változások"
 
-msgid "Actions For Unsaved Changes"
-msgstr ""
+msgid "Transfer or discard changes"
+msgstr "Változások elvetése vagy megtartása"
 
-msgid "Preset Value"
-msgstr ""
+msgid "Old Value"
+msgstr "Régi érték"
 
-msgid "Modified Value"
-msgstr ""
+msgid "New Value"
+msgstr "Új érték"
 
-msgid "Transfer Modified Value"
-msgstr ""
+msgid "Transfer"
+msgstr "Átvitel"
 
 msgid "Don't save"
 msgstr "Ne mentsd"
 
-msgid "Use Preset Value"
-msgstr ""
-
-msgid "Save Modified Value"
-msgstr ""
+msgid "Discard"
+msgstr "Elvetés"
 
 msgid "Click the right mouse button to display the full text."
 msgstr "Kattints a jobb egérgombbal a teljes szöveg megjelenítéséhez."
@@ -7628,28 +7670,22 @@ msgstr ""
 
 msgid ""
 "\n"
-"Would you like to save these changed settings(modified value)?"
+"You can save or discard the preset values you have modified."
 msgstr ""
 
 msgid ""
 "\n"
-"Would you like to keep these changed settings(modified value) after "
-"switching preset?"
+"You can save or discard the preset values you have modified, or choose to "
+"transfer the values you have modified to the new preset."
 msgstr ""
 
-msgid ""
-"You have previously modified your settings and are about to overwrite them "
-"with new ones."
-msgstr ""
-
-msgid ""
-"\n"
-"Do you want to keep your current modified settings, or use preset settings?"
+msgid "You have previously modified your settings."
 msgstr ""
 
 msgid ""
 "\n"
-"Do you want to save your current modified settings?"
+"You can discard the preset values you have modified, or choose to transfer "
+"the modified values to the new project"
 msgstr ""
 
 msgid "Extruders count"
@@ -7666,9 +7702,6 @@ msgstr "Minden beállítás megjelenítése (beleértve az inkompatibiliseket is
 
 msgid "Select presets to compare"
 msgstr "Select presets to compare"
-
-msgid "Transfer"
-msgstr "Átvitel"
 
 msgid ""
 "You can only transfer to current active profile because it has been modified."
@@ -15011,18 +15044,6 @@ msgstr ""
 #~ msgstr ""
 #~ "Unable to perform boolean operation on model meshes. Only positive parts "
 #~ "will be exported."
-
-#~ msgid "Transfer or discard changes"
-#~ msgstr "Változások elvetése vagy megtartása"
-
-#~ msgid "Old Value"
-#~ msgstr "Régi érték"
-
-#~ msgid "New Value"
-#~ msgstr "Új érték"
-
-#~ msgid "Discard"
-#~ msgstr "Elvetés"
 
 #, boost-format
 #~ msgid ""
