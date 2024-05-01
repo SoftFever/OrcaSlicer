@@ -2802,10 +2802,10 @@ msgstr ""
 "Sıcaklık"
 
 msgid "max"
-msgstr "maks"
+msgstr "maksimum"
 
 msgid "min"
-msgstr "min"
+msgstr "minimum"
 
 #, boost-format
 msgid "The input value should be greater than %1% and less than %2%"
@@ -3240,7 +3240,7 @@ msgstr ""
 "Sırasını Yazdır"
 
 msgid "Origin"
-msgstr "Menşei"
+msgstr "Konum"
 
 msgid "Size in X and Y of the rectangular plate."
 msgstr "Dikdörtgen plakanın X ve Y boyutları."
@@ -11601,7 +11601,7 @@ msgstr ""
 "etkinleştirin. G-code komut: M106 P2 S(0-255)"
 
 msgid "Min"
-msgstr "Min"
+msgstr "Minimum"
 
 msgid ""
 "The lowest printable layer height for extruder. Used tp limits the minimum "
