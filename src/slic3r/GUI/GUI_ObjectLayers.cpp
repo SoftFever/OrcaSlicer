@@ -31,8 +31,8 @@ ObjectLayers::ObjectLayers(wxWindow* parent) :
     m_og->sizer->Clear(true);
     m_og->sizer->Add(m_grid_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, wxOSX ? 0 : 5);
 
-    m_bmp_delete    = ScalableBitmap(parent, "delete_filament"/*"cross"*/);
-    m_bmp_add       = ScalableBitmap(parent, "add_filament");
+    m_bmp_delete    = ScalableBitmap(parent, "delete");
+    m_bmp_add       = ScalableBitmap(parent, "add");
 }
 
 void ObjectLayers::select_editor(LayerRangeEditor* editor, const bool is_last_edited_range)
