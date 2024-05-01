@@ -137,7 +137,7 @@ enum class IconType : unsigned {
     change_file,
     bake,
     save,
-    obj_warning,
+    exclamation,
     lock,
     unlock,
     reflection_x,
@@ -175,10 +175,6 @@ struct GuiCfg
 
     // offset for checbox for lock up vector
     float lock_offset = 0.f;
-
-	// offset for revert icon
-    float revert_offset = 0.f;
-
     // Only translations needed for calc GUI size
     struct Translations
     {
@@ -401,7 +397,7 @@ IconManager::VIcons init_icons(IconManager &mng, const GuiCfg &cfg)
         "open.svg",          // changhe_file
         "burn.svg",          // bake
         "save.svg",          // save
-        "obj_warning.svg",   // warning
+        "exclamation.svg",   // exclamation
         "lock_closed.svg",   // lock
         "lock_open.svg",     // unlock
         "reflection_x.svg",  // reflection_x
@@ -429,10 +425,10 @@ bool draw_clickable(const IconManager::VIcons &icons, IconType type)
     return clickable(get_icon(icons, type, IconState::activable), get_icon(icons, type, IconState::hovered));
 }
 
-bool reset_button(const IconManager::VIcons &icons, int offset)
+bool reset_button(const IconManager::VIcons &icons)
 {
-    //float reset_offset = ImGui::GetStyle().WindowPadding.x;
-    ImGui::SameLine(offset);
+    float reset_offset = ImGui::GetStyle().WindowPadding.x;
+    ImGui::SameLine(reset_offset);
 
     // from GLGizmoCut
     //std::string label_id = "neco";
@@ -440,12 +436,7 @@ bool reset_button(const IconManager::VIcons &icons, int offset)
     //btn_label += ImGui::RevertButton;
     //return ImGui::Button((btn_label + "##" + label_id).c_str());
 
-	// ORCA: Always use revert icon color with orange
-	return clickable(
-		get_icon(icons, IconType::reset_value, IconState::hovered),
-        get_icon(icons, IconType::reset_value, IconState::hovered)
-	);
-    //return draw_clickable(icons, IconType::reset_value);
+    return draw_clickable(icons, IconType::reset_value);
 }
 
 } // namespace 
@@ -458,7 +449,7 @@ void GLGizmoSVG::on_render_input_window(float x, float y, float bottom_limit)
 
     // Orca
     ImGuiWrapper::push_toolbar_style(m_parent.get_scale());
-    //ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4.0, 5.0) * screen_scale); // ORCA: Moved this style to push_toolbar_style to prevent different paddings on different gizmos
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4.0, 5.0) * screen_scale);
     ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarSize, 4.0f * screen_scale);
 
     // Configuration creation
@@ -515,7 +506,7 @@ void GLGizmoSVG::on_render_input_window(float x, float y, float bottom_limit)
     GizmoImguiEnd();
 
     // Orca
-    ImGui::PopStyleVar(1);
+    ImGui::PopStyleVar(2);
     ImGuiWrapper::pop_toolbar_style();
 }
 
@@ -1349,20 +1340,19 @@ void GLGizmoSVG::draw_window()
     // Is SVG baked?
     if (m_volume == nullptr) return;
 
-    //ImGui::Separator();
+    ImGui::Separator();
 
-    //ImGui::Indent(m_gui_cfg->icon_width);
+    ImGui::Indent(m_gui_cfg->icon_width);
     draw_depth();
     draw_size();
-    if (!m_volume->is_the_only_one_part()) { // ORCA show surface features only when available
-		draw_use_surface();
-        draw_distance();
-    }
+    draw_use_surface();
+
+    draw_distance();
     draw_rotation();
     draw_mirroring();
     draw_face_the_camera();
 
-    //ImGui::Unindent(m_gui_cfg->icon_width);  
+    ImGui::Unindent(m_gui_cfg->icon_width);  
 
     if (!m_volume->is_the_only_one_part()) {
         ImGui::Separator();
@@ -1371,14 +1361,12 @@ void GLGizmoSVG::draw_window()
 }
 
 void GLGizmoSVG::draw_face_the_camera(){
-    ImGuiWrapper::push_default_button_style(); // ORCA match button style
     if (ImGui::Button(_u8L("Face the camera").c_str())) {
         const Camera &cam = wxGetApp().plater()->get_camera();
         auto wanted_up_limit = (m_keep_up) ? std::optional<double>(UP_LIMIT) : std::optional<double>{};
         if (face_selected_volume_to_camera(cam, m_parent, wanted_up_limit))
             volume_transformation_changed();
     }
-    ImGuiWrapper::pop_default_button_style(); // ORCA match button style
 }
 
 void GLGizmoSVG::draw_preview(){
@@ -1447,15 +1435,11 @@ void GLGizmoSVG::draw_filename(){
             // TRN - Preview of filename after clear local filepath.
             m_filename_preview = _u8L("Unknown filename");
         
-        //m_filename_preview = ImGuiWrapper::trunc(m_filename_preview, m_gui_cfg->input_width);
-        m_filename_preview = ImGuiWrapper::trunc(m_filename_preview, m_gui_cfg->input_offset + m_gui_cfg->input_width - m_gui_cfg->icon_width * 4); // Match size with combo box
+        m_filename_preview = ImGuiWrapper::trunc(m_filename_preview, m_gui_cfg->input_width);
     }
 
-	ImGui::NewLine(); // Make sure it switched to new line
-
     if (!m_shape_warnings.empty()){
-        ImGui::SameLine(m_gui_cfg->input_offset + m_gui_cfg->input_width - m_gui_cfg->icon_width - ImGui::GetStyle().ItemSpacing.x); // Place it in combo box
-        draw(get_icon(m_icons, IconType::obj_warning, IconState::hovered));
+        draw(get_icon(m_icons, IconType::exclamation, IconState::hovered));
         if (ImGui::IsItemHovered()) {
             std::string tooltip;
             for (const std::string &w: m_shape_warnings){
@@ -1467,29 +1451,30 @@ void GLGizmoSVG::draw_filename(){
             }
             m_imgui->tooltip(tooltip, m_gui_cfg->max_tooltip_width);
         }
+        ImGui::SameLine();
     }
 
     // Remove space between filename and gray suffix ".svg"
-    //ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
-    //ImGui::AlignTextToFramePadding();
-    //ImGui::Text("%s", m_filename_preview.c_str());
-    //bool is_hovered = ImGui::IsItemHovered();
-    //ImGui::SameLine();
-    //m_imgui->text_colored(ImGuiWrapper::COL_GREY_LIGHT, ".svg");
-    //ImGui::PopStyleVar(); // ImGuiStyleVar_ItemSpacing 
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+    ImGui::AlignTextToFramePadding();
+    ImGui::Text("%s", m_filename_preview.c_str());
+    bool is_hovered = ImGui::IsItemHovered();
+    ImGui::SameLine();
+    m_imgui->text_colored(ImGuiWrapper::COL_GREY_LIGHT, ".svg");
+    ImGui::PopStyleVar(); // ImGuiStyleVar_ItemSpacing 
 
-    //is_hovered |= ImGui::IsItemHovered();
-    //if (is_hovered) {
-    //    std::string tooltip = GUI::format(_L("SVG file path is \"%1%\""), svg.path);
-    //    m_imgui->tooltip(tooltip, m_gui_cfg->max_tooltip_width);
-    //}
+    is_hovered |= ImGui::IsItemHovered();
+    if (is_hovered) {
+        std::string tooltip = GUI::format(_L("SVG file path is \"%1%\""), svg.path);
+        m_imgui->tooltip(tooltip, m_gui_cfg->max_tooltip_width);
+    }
 
     bool file_changed = false;
 
     // Re-Load button
     bool can_reload = !m_volume_shape.svg_file->path.empty();
     if (can_reload) {
-        ImGui::SameLine(m_gui_cfg->input_offset + m_gui_cfg->input_width + ImGui::GetStyle().ItemSpacing.x / 2);
+        ImGui::SameLine();
         if (draw_clickable(m_icons, IconType::refresh)) {
             if (!boost::filesystem::exists(m_volume_shape.svg_file->path)) {
                 m_volume_shape.svg_file->path.clear();
@@ -1501,11 +1486,10 @@ void GLGizmoSVG::draw_filename(){
     }
 
     std::string tooltip = "";
-    //ImGuiComboFlags flags = ImGuiComboFlags_PopupAlignLeft;
-    ImGui::SameLine(ImGui::GetStyle().WindowPadding.x);
-    ImGui::SetNextItemWidth(m_gui_cfg->input_offset + m_gui_cfg->input_width - ImGui::GetStyle().WindowPadding.x); // Match width
+    ImGuiComboFlags flags = ImGuiComboFlags_PopupAlignLeft | ImGuiComboFlags_NoPreview;
+    ImGui::SameLine();
     ImGuiWrapper::push_combo_style(m_parent.get_scale());
-    if (ImGui::BBLBeginCombo("##file_options", m_filename_preview.c_str(), 0)) { // ORCA render file name in combo box
+    if (ImGui::BeginCombo("##file_options", nullptr, flags)) {
         ScopeGuard combo_sg([]() { ImGui::EndCombo(); });
 
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {ImGui::GetStyle().FramePadding.x, 0});
@@ -1624,9 +1608,6 @@ void GLGizmoSVG::draw_filename(){
         //    ImGui::SetTooltip("%s", _u8L("Save only used path as '.svg' file").c_str());
         //}
         ImGui::PopStyleVar(1);
-    } else if (ImGui::IsItemHovered()) {
-        std::string tooltip = GUI::format(_L("SVG file path is \"%1%\""), svg.path);
-        m_imgui->tooltip(tooltip, m_gui_cfg->max_tooltip_width);
     }
     ImGuiWrapper::pop_combo_style();
     if (!tooltip.empty())
@@ -1684,15 +1665,8 @@ void GLGizmoSVG::draw_depth()
 
 void GLGizmoSVG::draw_size() 
 {
-    bool can_reset = m_scale_width.has_value() || m_scale_height.has_value();
-
     ImGui::AlignTextToFramePadding();
-    const std::string& font_text = m_gui_cfg->translations.size;
-    if (can_reset)
-        ImGuiWrapper::text_colored(ImGuiWrapper::COL_ORCA_ORANGE, font_text); // ORCA: Use orange color for text if value edited
-    else
-        ImGuiWrapper::text(font_text);
-
+    ImGuiWrapper::text(m_gui_cfg->translations.size);
     if (ImGui::IsItemHovered()){
         size_t count_points = 0;
         for (const auto &s : m_volume_shape.shapes_with_ids)
@@ -1786,7 +1760,7 @@ void GLGizmoSVG::draw_size()
     }
 
     // Lock on ratio m_keep_ratio
-    ImGui::SameLine(ImGui::CalcTextSize(_u8L("Size").c_str()).x + m_gui_cfg->icon_width * 1.5f);  // ORCA draw icon next to text
+    ImGui::SameLine(m_gui_cfg->lock_offset);
     const IconManager::Icon &icon       = get_icon(m_icons, m_keep_ratio ? IconType::lock : IconType::unlock, IconState::activable);
     const IconManager::Icon &icon_hover = get_icon(m_icons, m_keep_ratio ? IconType::lock : IconType::unlock, IconState::hovered);
     if (button(icon, icon_hover, icon))
@@ -1796,8 +1770,9 @@ void GLGizmoSVG::draw_size()
     
 
     // reset button
+    bool can_reset = m_scale_width.has_value() || m_scale_height.has_value();
     if (can_reset) {
-        if (reset_button(m_icons, m_gui_cfg->revert_offset)) { // ORCA move revert button to next of title
+        if (reset_button(m_icons)) {
             new_relative_scale = Vec3d(1./m_scale_width.value_or(1.f), 1./m_scale_height.value_or(1.f), 1.);
             make_snap = true;
         } else if (ImGui::IsItemHovered())
@@ -1863,12 +1838,7 @@ void GLGizmoSVG::draw_distance()
     ScopeGuard sg([imgui = m_imgui]() { imgui->disabled_end(); });
 
     ImGui::AlignTextToFramePadding();
-    const std::string& font_text = m_gui_cfg->translations.distance;
-    if (m_distance.has_value())
-        ImGuiWrapper::text_colored(ImGuiWrapper::COL_ORCA_ORANGE, font_text); // ORCA: Use orange color for text if value edited
-    else
-        ImGuiWrapper::text(font_text);
-
+    ImGuiWrapper::text(m_gui_cfg->translations.distance);
     ImGui::SameLine(m_gui_cfg->input_offset);
     ImGui::SetNextItemWidth(m_gui_cfg->input_width);
 
@@ -1893,9 +1863,9 @@ void GLGizmoSVG::draw_distance()
             is_moved = true;
     }
     bool is_stop_sliding = m_imgui->get_last_slider_status().deactivated_after_edit;
-    bool is_reseted      = false;
+    bool is_reseted = false;
     if (m_distance.has_value()) {
-        if (reset_button(m_icons, m_gui_cfg->revert_offset)) { // ORCA move revert button to next of title
+        if (reset_button(m_icons)) {
             m_distance.reset();
             is_reseted = true;
         } else if (ImGui::IsItemHovered())
@@ -1911,12 +1881,7 @@ void GLGizmoSVG::draw_distance()
 void GLGizmoSVG::draw_rotation()
 {
     ImGui::AlignTextToFramePadding();
-    const std::string& font_text = m_gui_cfg->translations.rotation;
-    if (m_angle.has_value())
-        ImGuiWrapper::text_colored(ImGuiWrapper::COL_ORCA_ORANGE, font_text); // ORCA: Use orange color for text if value edited
-    else
-        ImGuiWrapper::text(font_text);
-
+    ImGuiWrapper::text(m_gui_cfg->translations.rotation);
     ImGui::SameLine(m_gui_cfg->input_offset);
     ImGui::SetNextItemWidth(m_gui_cfg->input_width);
 
@@ -1947,7 +1912,7 @@ void GLGizmoSVG::draw_rotation()
     // Reset button
     bool is_reseted = false;
     if (m_angle.has_value()) {
-        if (reset_button(m_icons, m_gui_cfg->revert_offset)) { // ORCA move revert button to next of title
+        if (reset_button(m_icons)) {
             do_local_z_rotate(m_parent.get_selection(), -(*m_angle));
             m_angle.reset();
 
@@ -1966,7 +1931,7 @@ void GLGizmoSVG::draw_rotation()
 
     // Keep up - lock button icon
     if (!m_volume->is_the_only_one_part()) {
-        ImGui::SameLine(ImGui::CalcTextSize(_u8L("Rotation").c_str()).x + m_gui_cfg->icon_width * 1.5f); // ORCA draw icon near of text
+        ImGui::SameLine(m_gui_cfg->lock_offset);
         const IconManager::Icon &icon       = get_icon(m_icons, m_keep_up ? IconType::lock : IconType::unlock, IconState::activable);
         const IconManager::Icon &icon_hover = get_icon(m_icons, m_keep_up ? IconType::lock : IconType::unlock, IconState::hovered);
         if (button(icon, icon_hover, icon))
@@ -2028,8 +1993,6 @@ void GLGizmoSVG::draw_model_type()
     } else {
         ImGui::Text("%s", title.c_str());
     }
-
-	ImGui::SameLine(); // ORCA use radio buttons and title on same line to reduce window height
 
     std::optional<ModelVolumeType> new_type;
     ModelVolumeType modifier = ModelVolumeType::PARAMETER_MODIFIER;
@@ -2183,14 +2146,12 @@ GuiCfg create_gui_configuration() {
 
     const ImGuiStyle &style = ImGui::GetStyle();
     cfg.input_offset = style.WindowPadding.x + max_tr_width + space + cfg.icon_width;
-	cfg.revert_offset = cfg.input_offset - cfg.icon_width - space;
     cfg.lock_offset = cfg.input_offset - (cfg.icon_width + 2 * space);
 
     ImVec2 letter_m_size = ImGui::CalcTextSize("M");
     const float count_letter_M_in_input = 12.f;
     cfg.input_width = letter_m_size.x * count_letter_M_in_input;
-    //cfg.texture_max_size_px = std::round((cfg.input_width + cfg.input_offset + cfg.icon_width + space)/8) * 8;
-    cfg.texture_max_size_px = std::round(cfg.input_offset + cfg.input_width); //ORCA match width with UI elements
+    cfg.texture_max_size_px = std::round((cfg.input_width + cfg.input_offset + cfg.icon_width + space)/8) * 8;
 
     cfg.max_tooltip_width = ImGui::GetFontSize() * 20.0f;
 

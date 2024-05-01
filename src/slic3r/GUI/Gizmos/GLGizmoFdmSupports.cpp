@@ -284,56 +284,28 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
         icons = { ImGui::CircleButtonIcon, ImGui::SphereButtonIcon, ImGui::FillButtonIcon, ImGui::GapFillIcon };
 
     std::array<wxString, 4> tool_tips = { _L("Circle"), _L("Sphere"), _L("Fill"), _L("Gap Fill") };
-
-    // ORCA Tab UI Component
-    // Used variables for generation of tabs to making integration easier
-    // It can be converted a function
-
-    int    tab_count         = icons.size();
-    ImVec2 tab_icon_size     = ImVec2{16, 16};
-    ImVec2 tab_padding       = ImVec2{8, 6};
-    ImVec2 tab_size          = ImVec2{tab_icon_size.x + tab_padding.x * 2, tab_icon_size.y + tab_padding.y * 2};
-    int    tab_frame_padding = 2;
-    int    tab_rounding      = 4;
-    ImVec2 tab_frame_offset =
-    ImVec2{-2, -7}; // use -7 for y if it has title. use -2 to align buttons instead of frame while using left aligned layout
-
-    ImVec2 post = ImGui::GetCursorScreenPos();
-    ImDrawList* draw_list = ImGui::GetWindowDrawList();
-    draw_list->AddRectFilled(
-        {post.x + tab_frame_offset.x, post.y + tab_frame_offset.y},
-        {post.x + (tab_count * tab_size.x) + (tab_frame_padding * 2) + tab_frame_offset.x, post.y + tab_size.y + (tab_frame_padding * 2) + tab_frame_offset.y},
-        ImGui::GetColorU32(ImGuiCol_FrameBgActive, 1.0f),
-        tab_frame_padding + tab_rounding
-    );
-    ImGui::SetCursorScreenPos({post.x + tab_frame_offset.x + tab_frame_padding, post.y + tab_frame_offset.y + tab_frame_padding});
-
     for (int i = 0; i < tool_ids.size(); i++) {
         std::string  str_label = std::string("##");
         std::wstring btn_name = icons[i] + boost::nowide::widen(str_label);
 
-        if (i != 0) ImGui::SameLine(0, 0); // Place them without spacing
+        if (i != 0) ImGui::SameLine((empty_button_width + m_imgui->scaled(1.75f)) * i + m_imgui->scaled(1.3f));
 
         ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0);
-        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, tab_padding); // ORCA: Made icons bigger to make them easier to click
-        ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, tab_rounding); // ORCA: increased radius to match button shape with Filament color buttons
-        ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetColorU32(ImGuiCol_CheckMark)); // ORCA: Fixes icon without colors while using Light theme
-		ImGui::PushStyleColor(ImGuiCol_Button, 
-			m_current_tool == tool_ids[i] 
-			? ImVec4(0.f, 0.59f, 0.53f, 0.25f)  // ORCA: ORCA color with opacity
-			: ImVec4(0.f, 0.f, 0.f, 0.f)		// ORCA: Transparent color
-		);
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, 
-			m_current_tool == tool_ids[i] 
-			? ImVec4(0.f, 0.59f, 0.53f, 0.35f)  // ORCA: ORCA color with opacity
-			: ImVec4(0.5f, 0.5f, 0.5f, 0.2f)    // ORCA: Slightly visible grey. works with both dark and light theme
-		);
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.f, 0.59f, 0.53f, 0.5f)); // ORCA: ORCA color with opacity
-
-        bool btn_clicked = ImGui::BBLButton(into_u8(btn_name).c_str(), tab_size);
-        
-        ImGui::PopStyleVar(3);
-        ImGui::PopStyleColor(4);
+        if (m_current_tool == tool_ids[i]) {
+            ImGui::PushStyleColor(ImGuiCol_Button, m_is_dark_mode ? ImVec4(43 / 255.0f, 64 / 255.0f, 54 / 255.0f, 1.00f) : ImVec4(0.86f, 0.99f, 0.91f, 1.00f)); // r, g, b, a
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, m_is_dark_mode ? ImVec4(43 / 255.0f, 64 / 255.0f, 54 / 255.0f, 1.00f) : ImVec4(0.86f, 0.99f, 0.91f, 1.00f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, m_is_dark_mode ? ImVec4(43 / 255.0f, 64 / 255.0f, 54 / 255.0f, 1.00f) : ImVec4(0.86f, 0.99f, 0.91f, 1.00f));
+            ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
+            ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0);
+            ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 1.0);
+        }
+        bool btn_clicked = ImGui::Button(into_u8(btn_name).c_str());
+        if (m_current_tool == tool_ids[i])
+        {
+            ImGui::PopStyleColor(4);
+            ImGui::PopStyleVar(2);
+        }
+        ImGui::PopStyleVar(1);
 
         if (btn_clicked && m_current_tool != tool_ids[i]) {
             m_current_tool = tool_ids[i];
@@ -365,16 +337,11 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
         ImGui::AlignTextToFramePadding();
         m_imgui->text(m_desc.at("cursor_size"));
         ImGui::SameLine(sliders_left_width);
-        //ImGui::PushItemWidth(sliders_width);
-        //m_imgui->bbl_slider_float_style("##cursor_radius", &m_cursor_radius, CursorRadiusMin, CursorRadiusMax, "%.2f", 1.0f, true);
-        //ImGui::SameLine(drag_left_width);
-        //ImGui::PushItemWidth(1.5 * slider_icon_width);
-        //ImGui::BBLDragFloat("##cursor_radius_input", &m_cursor_radius, 0.05f, 0.0f, 0.0f, "%.2f");
-
-		// ORCA: Use same slider style to improve UI consistency
-        ImGui::PushItemWidth(sliders_width + slider_icon_width);
-        m_imgui->slider_float("##cursor_radius", &m_cursor_radius, CursorRadiusMin, CursorRadiusMax, "%.2f", 1.0f, true);
-
+        ImGui::PushItemWidth(sliders_width);
+        m_imgui->bbl_slider_float_style("##cursor_radius", &m_cursor_radius, CursorRadiusMin, CursorRadiusMax, "%.2f", 1.0f, true);
+        ImGui::SameLine(drag_left_width);
+        ImGui::PushItemWidth(1.5 * slider_icon_width);
+        ImGui::BBLDragFloat("##cursor_radius_input", &m_cursor_radius, 0.05f, 0.0f, 0.0f, "%.2f");
     } else if (m_current_tool == ImGui::SphereButtonIcon) {
         m_cursor_type = TriangleSelector::CursorType::SPHERE;
         m_tool_type = ToolType::BRUSH;
@@ -382,16 +349,11 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
         ImGui::AlignTextToFramePadding();
         m_imgui->text(m_desc.at("cursor_size"));
         ImGui::SameLine(sliders_left_width);
-        //ImGui::PushItemWidth(sliders_width);
-        //m_imgui->bbl_slider_float_style("##cursor_radius", &m_cursor_radius, CursorRadiusMin, CursorRadiusMax, "%.2f", 1.0f, true);
-        //ImGui::SameLine(drag_left_width);
-        //ImGui::PushItemWidth(1.5 * slider_icon_width);
-        //ImGui::BBLDragFloat("##cursor_radius_input", &m_cursor_radius, 0.05f, 0.0f, 0.0f, "%.2f");
-
-		// ORCA: Use same slider style to improve UI consistency
-        ImGui::PushItemWidth(sliders_width + slider_icon_width);
-        m_imgui->slider_float("##cursor_radius", &m_cursor_radius, CursorRadiusMin, CursorRadiusMax, "%.2f", 1.0f, true);
-
+        ImGui::PushItemWidth(sliders_width);
+        m_imgui->bbl_slider_float_style("##cursor_radius", &m_cursor_radius, CursorRadiusMin, CursorRadiusMax, "%.2f", 1.0f, true);
+        ImGui::SameLine(drag_left_width);
+        ImGui::PushItemWidth(1.5 * slider_icon_width);
+        ImGui::BBLDragFloat("##cursor_radius_input", &m_cursor_radius, 0.05f, 0.0f, 0.0f, "%.2f");
     } else if (m_current_tool == ImGui::FillButtonIcon) {
         m_cursor_type = TriangleSelector::CursorType::POINTER;
         m_tool_type = ToolType::SMART_FILL;
@@ -400,24 +362,15 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
         m_imgui->text(m_desc.at("smart_fill_angle"));
         std::string format_str = std::string("%.f") + I18N::translate_utf8("", "Face angle threshold, placed after the number with no whitespace in between.");
         ImGui::SameLine(sliders_left_width);
-        //ImGui::PushItemWidth(sliders_width);
-        //if (m_imgui->bbl_slider_float_style("##smart_fill_angle", &m_smart_fill_angle, SmartFillAngleMin, SmartFillAngleMax, format_str.data(), 1.0f, true))
-        //    for (auto& triangle_selector : m_triangle_selectors) {
-        //        triangle_selector->seed_fill_unselect_all_triangles();
-        //        triangle_selector->request_update_render_data();
-        //    }
-        //ImGui::SameLine(drag_left_width);
-        //ImGui::PushItemWidth(1.5 * slider_icon_width);
-        //ImGui::BBLDragFloat("##smart_fill_angle_input", &m_smart_fill_angle, 0.05f, 0.0f, 0.0f, "%.2f");
-
-		// ORCA: Use same slider style to improve UI consistency
-        ImGui::PushItemWidth(sliders_width + slider_icon_width);
-        if (m_imgui->slider_float("##smart_fill_angle", &m_smart_fill_angle, SmartFillAngleMin, SmartFillAngleMax, format_str.data(), 1.0f, true))
-           for (auto& triangle_selector : m_triangle_selectors) {
-               triangle_selector->seed_fill_unselect_all_triangles();
-               triangle_selector->request_update_render_data();
-           }
-
+        ImGui::PushItemWidth(sliders_width);
+        if (m_imgui->bbl_slider_float_style("##smart_fill_angle", &m_smart_fill_angle, SmartFillAngleMin, SmartFillAngleMax, format_str.data(), 1.0f, true))
+            for (auto& triangle_selector : m_triangle_selectors) {
+                triangle_selector->seed_fill_unselect_all_triangles();
+                triangle_selector->request_update_render_data();
+            }
+        ImGui::SameLine(drag_left_width);
+        ImGui::PushItemWidth(1.5 * slider_icon_width);
+        ImGui::BBLDragFloat("##smart_fill_angle_input", &m_smart_fill_angle, 0.05f, 0.0f, 0.0f, "%.2f");
     } else if (m_current_tool == ImGui::GapFillIcon) {
         m_tool_type = ToolType::GAP_FILL;
         m_cursor_type = TriangleSelector::CursorType::POINTER;
@@ -425,16 +378,12 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
         ImGui::AlignTextToFramePadding();
         m_imgui->text(m_desc["gap_area"]);
         ImGui::SameLine(sliders_left_width);
-        //ImGui::PushItemWidth(sliders_width);
+        ImGui::PushItemWidth(sliders_width);
         std::string format_str = std::string("%.2f") + I18N::translate_utf8("", "Triangle patch area threshold,""triangle patch will be merged to neighbor if its area is less than threshold");
-        //m_imgui->bbl_slider_float_style("##gap_area", &TriangleSelectorPatch::gap_area, TriangleSelectorPatch::GapAreaMin, TriangleSelectorPatch::GapAreaMax, format_str.data(), 1.0f, true);
-        //ImGui::SameLine(drag_left_width);
-        //ImGui::PushItemWidth(1.5 * slider_icon_width);
-        //ImGui::BBLDragFloat("##gap_area_input", &TriangleSelectorPatch::gap_area, 0.05f, 0.0f, 0.0f, "%.2f");
-
-		// ORCA: Use same slider style to improve UI consistency
-        ImGui::PushItemWidth(sliders_width + slider_icon_width);
-        m_imgui->slider_float("##gap_area", &TriangleSelectorPatch::gap_area, TriangleSelectorPatch::GapAreaMin, TriangleSelectorPatch::GapAreaMax, format_str.data(), 1.0f, true);
+        m_imgui->bbl_slider_float_style("##gap_area", &TriangleSelectorPatch::gap_area, TriangleSelectorPatch::GapAreaMin, TriangleSelectorPatch::GapAreaMax, format_str.data(), 1.0f, true);
+        ImGui::SameLine(drag_left_width);
+        ImGui::PushItemWidth(1.5 * slider_icon_width);
+        ImGui::BBLDragFloat("##gap_area_input", &TriangleSelectorPatch::gap_area, 0.05f, 0.0f, 0.0f, "%.2f");
     }
 
     float position_before_text_y = ImGui::GetCursorPos().y;
@@ -450,11 +399,9 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     ImGui::SetCursorPosY(slider_start_position_y);
 
     std::string format_str = std::string("%.f");
-    //ImGui::PushItemWidth(sliders_width);
-    ImGui::PushItemWidth(sliders_width + slider_icon_width);
+    ImGui::PushItemWidth(sliders_width);
     wxString tooltip = _L("Highlight faces according to overhang angle.");
-    //if (m_imgui->bbl_slider_float_style("##angle_threshold_deg", &m_highlight_by_angle_threshold_deg, 0.f, 90.f, format_str.data(), 1.0f, true, tooltip)) {
-	if (m_imgui->slider_float("##angle_threshold_deg", &m_highlight_by_angle_threshold_deg, 0.f, 90.f, format_str.data(), 1.0f, true, tooltip)) {
+    if (m_imgui->bbl_slider_float_style("##angle_threshold_deg", &m_highlight_by_angle_threshold_deg, 0.f, 90.f, format_str.data(), 1.0f, true, tooltip)) {
         m_parent.set_slope_normal_angle(90.f - m_highlight_by_angle_threshold_deg);
         if (!m_parent.is_using_slope()) {
             m_parent.use_slope(true);
@@ -472,9 +419,9 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
         }
         ImGui::EndTooltip();
     }
-    //ImGui::SameLine(drag_left_width);
-    //ImGui::PushItemWidth(1.5 * slider_icon_width);
-    //ImGui::BBLDragFloat("##angle_threshold_deg_input", &m_highlight_by_angle_threshold_deg, 0.05f, 0.0f, 0.0f, "%.2f");
+    ImGui::SameLine(drag_left_width);
+    ImGui::PushItemWidth(1.5 * slider_icon_width);
+    ImGui::BBLDragFloat("##angle_threshold_deg_input", &m_highlight_by_angle_threshold_deg, 0.05f, 0.0f, 0.0f, "%.2f");
 
     if (m_current_tool != ImGui::GapFillIcon) {
         ImGui::Separator();
@@ -483,45 +430,37 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
             m_imgui->text(m_desc.at("clipping_of_view"));
         }
         else {
-            ImGuiWrapper::push_default_button_style(); // ORCA match button style
             if (m_imgui->button(m_desc.at("reset_direction"))) {
                 wxGetApp().CallAfter([this]() {
                         m_c->object_clipper()->set_position_by_ratio(-1., false);
                     });
             }
-            ImGuiWrapper::pop_default_button_style();
         }
 
         auto clp_dist = float(m_c->object_clipper()->get_position());
         ImGui::SameLine(sliders_left_width);
-        //ImGui::PushItemWidth(sliders_width);
-        //bool b_bbl_slider_float = m_imgui->bbl_slider_float_style("##clp_dist", &clp_dist, 0.f, 1.f, "%.2f", 1.0f, true);
+        ImGui::PushItemWidth(sliders_width);
+        bool b_bbl_slider_float = m_imgui->bbl_slider_float_style("##clp_dist", &clp_dist, 0.f, 1.f, "%.2f", 1.0f, true);
 
-        //ImGui::SameLine(drag_left_width);
-        //ImGui::PushItemWidth(1.5 * slider_icon_width);
-        //bool b_drag_input = ImGui::BBLDragFloat("##clp_dist_input", &clp_dist, 0.05f, 0.0f, 0.0f, "%.2f");
+        ImGui::SameLine(drag_left_width);
+        ImGui::PushItemWidth(1.5 * slider_icon_width);
+        bool b_drag_input = ImGui::BBLDragFloat("##clp_dist_input", &clp_dist, 0.05f, 0.0f, 0.0f, "%.2f");
 
-        //if (b_bbl_slider_float || b_drag_input) m_c->object_clipper()->set_position_by_ratio(clp_dist, true);
-
-		// ORCA: Use same slider style to improve UI consistency
-        ImGui::PushItemWidth(sliders_width + slider_icon_width);
-        bool b_bbl_slider_float = m_imgui->slider_float("##clp_dist", &clp_dist, 0.f, 1.f, "%.2f", 1.0f, true);
-		if (b_bbl_slider_float) m_c->object_clipper()->set_position_by_ratio(clp_dist, true);
+        if (b_bbl_slider_float || b_drag_input) m_c->object_clipper()->set_position_by_ratio(clp_dist, true);
     }
 
     ImGui::Separator();
-    //ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6.0f, 10.0f)); // ORCA: Dont change paddings or spacings. its already controlled by toolbar style
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6.0f, 10.0f));
     float get_cur_y = ImGui::GetContentRegionMax().y + ImGui::GetFrameHeight() + y;
     show_tooltip_information(caption_max, x, get_cur_y);
 
-    //float f_scale =m_parent.get_gizmos_manager().get_layout_scale();
-    //ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6.0f, 4.0f * f_scale)); // ORCA: Dont change paddings or spacings. its already controlled by toolbar style
+    float f_scale =m_parent.get_gizmos_manager().get_layout_scale();
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6.0f, 4.0f * f_scale));
 
     ImGui::SameLine();
 
     // Perform button is for gap fill
     if (m_current_tool == ImGui::GapFillIcon) {
-        ImGuiWrapper::push_confirm_button_style(); // ORCA match button style
         if (m_imgui->button(m_desc.at("perform"))) {
             Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Reset selection", UndoRedo::SnapshotType::GizmoAction);
 
@@ -533,12 +472,10 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
             update_model_object();
             m_parent.set_as_dirty();
         }
-        ImGuiWrapper::pop_confirm_button_style();
     }
 
     ImGui::SameLine();
 
-    ImGuiWrapper::push_default_button_style(); // ORCA match button style
     if (m_imgui->button(m_desc.at("remove_all"))) {
         Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Reset selection", UndoRedo::SnapshotType::GizmoAction);
         ModelObject *        mo  = m_c->selection_info()->model_object();
@@ -553,9 +490,7 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
         update_model_object();
         m_parent.set_as_dirty();
     }
-    ImGuiWrapper::pop_default_button_style();
-
-    //ImGui::PopStyleVar(2);
+    ImGui::PopStyleVar(2);
 
     GizmoImguiEnd();
 
@@ -582,11 +517,10 @@ void GLGizmoFdmSupports::show_tooltip_information(float caption_max, float x, fl
 
     caption_max += m_imgui->calc_text_size(std::string_view{": "}).x + 15.f;
 
-    // float font_size = ImGui::GetFontSize();
-    //  ImVec2 button_size = ImVec2(font_size * 1.8, font_size * 1.3); // ORCA: Dont use font size to resize
-    ImVec2 button_size = ImVec2(25, 25); // ORCA: Use exact resolution will prevent blur on icon
+    float font_size = ImGui::GetFontSize();
+    ImVec2 button_size = ImVec2(font_size * 1.8, font_size * 1.3);
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {0, 0}); // ORCA: remove paddings
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 0, ImGui::GetStyle().FramePadding.y });
     ImGui::ImageButton3(normal_id, hover_id, button_size);
 
     if (ImGui::IsItemHovered()) {

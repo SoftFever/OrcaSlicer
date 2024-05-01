@@ -1359,28 +1359,14 @@ bool ImGui::BBLCheckbox(const char *label, bool *v)
     const ImGuiID     id         = window->GetID(label);
     const ImVec2      label_size = CalcTextSize(label, NULL, true);
 
-    const float square_sz = GetFrameHeight();
+    const float square_sz = GetFrameHeight() * 0.78;
     const ImVec2 pos       = window->DC.CursorPos;
-	float offset = 5.0f; // ORCA: Adds margin to inside to make it smaller. alternatively style.ItemInnerSpacing.x can be use
-    const ImRect check_bb(// ORCA: Reduce size of frame
-        ImVec2(
-			pos.x, // ORCA: Align to left
-			pos.y + offset
-		),
-        ImVec2(
-			pos.x + square_sz - offset * 2,
-			pos.y + square_sz - offset
-		)
-	); 
     const ImRect total_bb(pos, pos + ImVec2(square_sz + (label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f), label_size.y + style.FramePadding.y * 2.0f));
     ItemSize(total_bb, style.FramePadding.y);
     if (!ItemAdd(total_bb, id)) {
         IMGUI_TEST_ENGINE_ITEM_INFO(id, label, window->DC.LastItemStatusFlags | ImGuiItemStatusFlags_Checkable | (*v ? ImGuiItemStatusFlags_Checked : 0));
         return false;
     }
-
-	// ORCA: Replaced square_sz below with square_in to reduce size of checkboxes
-	int square_in = square_sz * 0.55;
 
     bool hovered, held;
     bool pressed = ButtonBehavior(total_bb, id, &hovered, &held);
@@ -1389,34 +1375,23 @@ bool ImGui::BBLCheckbox(const char *label, bool *v)
         MarkItemEdited(id);
     }
 
+    const ImRect check_bb(ImVec2(pos.x, pos.y + style.ItemInnerSpacing.x * 0.5), pos + ImVec2(square_sz, square_sz + style.ItemInnerSpacing.x * 0.5));
     RenderNavHighlight(total_bb, id);
-    //RenderFrame(check_bb.Min, check_bb.Max,GetColorU32((held && hovered) ? ImGuiCol_FrameBgActive : hovered ? ImGuiCol_FrameBgHovered : ImGuiCol_FrameBg), true, style.FrameRounding);
-	RenderFrame(check_bb.Min, check_bb.Max, GetColorU32(ImGuiCol_FrameBg),true, style.FrameRounding); // ORCA: Dont use hover effects on background
-
-	if (hovered || held || pressed) // ORCA: Add border color while hover 
-        GetForegroundDrawList()->AddRect(
-			check_bb.Min,
-			check_bb.Max,
-            ColorConvertFloat4ToU32(ImVec4(0.f, 0.59f, 0.53f, 0.5f)),
-            style.FrameRounding,
-			0,
-			style.FrameBorderSize
-		);
-
+    RenderFrame(check_bb.Min, check_bb.Max,
+                GetColorU32((held && hovered) ? ImGuiCol_FrameBgActive :
+                            hovered           ? ImGuiCol_FrameBgHovered :
+                                                ImGuiCol_FrameBg),
+                true, style.FrameRounding);
     ImU32 check_col   = GetColorU32(ImGuiCol_CheckMark);
     bool  mixed_value = (g.CurrentItemFlags & ImGuiItemFlags_MixedValue) != 0;
-    float size = round(check_bb.Max.x - check_bb.Min.x); // ORCA: use button width instead using ratio with frame height
-	float br = style.FrameBorderSize * 2;
     if (mixed_value) {
         // Undocumented tristate/mixed/indeterminate checkbox (#2644)
         // This may seem awkwardly designed because the aim is to make ImGuiItemFlags_MixedValue supported by all widgets (not just checkbox)
-        //ImVec2 pad(ImMax(1.0f, IM_FLOOR(square_in / 3.6f)), ImMax(1.0f, IM_FLOOR(square_in / 3.6f)));
-		//window->DrawList->AddRectFilled(check_bb.Min + pad, check_bb.Max - pad, check_col, style.FrameRounding);
-        window->DrawList->AddRectFilled(check_bb.Min + ImVec2(br, br), check_bb.Max - ImVec2(br, br), check_col, style.FrameRounding);
+        ImVec2 pad(ImMax(1.0f, IM_FLOOR(square_sz / 3.6f)), ImMax(1.0f, IM_FLOOR(square_sz / 3.6f)));
+        window->DrawList->AddRectFilled(check_bb.Min + pad, check_bb.Max - pad, check_col, style.FrameRounding);
     } else if (*v) {
-        //const float pad = ImMax(1.0f, IM_FLOOR(square_in / 6.0f));
-		//RenderCheckMark(window->DrawList, check_bb.Min + ImVec2(pad, pad), check_col, square_sz - pad * 2.0f);
-        RenderCheckMark(window->DrawList, check_bb.Min + ImVec2(br, br), check_col, size - br * 2);
+        const float pad = ImMax(1.0f, IM_FLOOR(square_sz / 6.0f));
+        RenderCheckMark(window->DrawList, check_bb.Min + ImVec2(pad, pad), check_col, square_sz - pad * 2.0f);
     }
 
     ImVec2 label_pos = ImVec2(check_bb.Max.x + style.ItemInnerSpacing.x, check_bb.Min.y);
@@ -1543,21 +1518,19 @@ bool ImGui::RadioButton(const char* label, bool active)
     const ImGuiStyle& style = g.Style;
     const ImGuiID id = window->GetID(label);
     const ImVec2 label_size = CalcTextSize(label, NULL, true);
-	
 
     const float square_sz = GetFrameHeight();
     const ImVec2 pos = window->DC.CursorPos;
-	float check_offset = 3.0f; // ORCA: Adds margin to inside to make it smaller. alternatively style.ItemInnerSpacing.x can be use
-    const ImRect check_bb(pos + ImVec2(check_offset, check_offset), pos + ImVec2(square_sz - check_offset, square_sz - check_offset)); // ORCA: Reduce size of Circles o
+    const ImRect check_bb(pos, pos + ImVec2(square_sz, square_sz));
     const ImRect total_bb(pos, pos + ImVec2(square_sz + (label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f), label_size.y + style.FramePadding.y * 2.0f));
     ItemSize(total_bb, style.FramePadding.y);
     if (!ItemAdd(total_bb, id))
         return false;
 
     ImVec2 center = check_bb.GetCenter();
-    center.x = IM_ROUND(center.x) - check_offset - 1.0f; // ORCA: Align radio button to left
+    center.x = IM_ROUND(center.x);
     center.y = IM_ROUND(center.y);
-    const float radius = (check_bb.GetWidth() - 1.0f) * 0.5f; // ORCA: Use reduced frame for diameter instead total frame
+    const float radius = (square_sz - 1.0f) * 0.5f;
 
     bool hovered, held;
     bool pressed = ButtonBehavior(total_bb, id, &hovered, &held);
@@ -1565,21 +1538,20 @@ bool ImGui::RadioButton(const char* label, bool active)
         MarkItemEdited(id);
 
     RenderNavHighlight(total_bb, id);
-    //window->DrawList->AddCircleFilled(center, radius, GetColorU32((held && hovered) ? ImGuiCol_FrameBgActive : hovered ? ImGuiCol_FrameBgHovered : ImGuiCol_FrameBg), 16);
-    window->DrawList->AddCircleFilled(center, radius, GetColorU32(ImGuiCol_FrameBg), 16); // ORCA: Don't use hover effects for fill color
+    window->DrawList->AddCircleFilled(center, radius, GetColorU32((held && hovered) ? ImGuiCol_FrameBgActive : hovered ? ImGuiCol_FrameBgHovered : ImGuiCol_FrameBg), 16);
     if (active)
     {
-        const float pad = ImMax(1.0f, IM_FLOOR(square_sz / 8.0f)); // ORCA: Use bigger radius
+        const float pad = ImMax(1.0f, IM_FLOOR(square_sz / 6.0f));
         window->DrawList->AddCircleFilled(center, radius - pad, GetColorU32(ImGuiCol_CheckMark), 16);
     }
 
     if (style.FrameBorderSize > 0.0f)
     {
         window->DrawList->AddCircle(center + ImVec2(1, 1), radius, GetColorU32(ImGuiCol_BorderShadow), 16, style.FrameBorderSize);
-        window->DrawList->AddCircle(center, radius, GetColorU32((hovered || held) ? ImGuiCol_BorderActive : ImGuiCol_Border), 16, style.FrameBorderSize); // ORCA: Use active botder color while hover
+        window->DrawList->AddCircle(center, radius, GetColorU32(ImGuiCol_Border), 16, style.FrameBorderSize);
     }
 
-    ImVec2 label_pos = ImVec2(check_bb.Max.x + style.ItemInnerSpacing.x, total_bb.Min.y + style.FramePadding.y); // ORCA: Use total frame for vertical instead radio button frame
+    ImVec2 label_pos = ImVec2(check_bb.Max.x + style.ItemInnerSpacing.x, check_bb.Min.y + style.FramePadding.y);
     if (g.LogEnabled)
         LogRenderedText(&label_pos, active ? "(x)" : "( )");
     if (label_size.x > 0.0f)
@@ -2154,7 +2126,7 @@ bool ImGui::BBLBeginCombo(const char *label, const char *preview_value, ImGuiCom
     const ImVec2 label_size = CalcTextSize(label, NULL, true);
     const float  expected_w = CalcItemWidth();
     const float  w  = (flags & ImGuiComboFlags_NoPreview) ? arrow_size : expected_w;
-    const ImRect frame_bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(w, label_size.y + style.FramePadding.y * 2));
+    const ImRect frame_bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(w - arrow_size * 2, label_size.y + style.FramePadding.y * 2));
     const ImRect total_bb(frame_bb.Min, frame_bb.Max + ImVec2(label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f, 0.0f));
     ItemSize(total_bb, style.FramePadding.y);
     if (!ItemAdd(total_bb, id, &frame_bb)) return false;
@@ -2162,22 +2134,24 @@ bool ImGui::BBLBeginCombo(const char *label, const char *preview_value, ImGuiCom
     bool hovered, held;
     bool pressed = ButtonBehavior(frame_bb, id, &hovered, &held);
 
-	ImGui::PushStyleColor(ImGuiCol_Border, ImGui::GetStyleColorVec4((hovered || g.ActiveId == id) ? ImGuiCol_BorderActive : ImGuiCol_Border)); // ORCA: added border highlighting while hover
+    bool push_color_count = 0;
+    if (hovered || g.ActiveId == id) {
+        ImGui::PushStyleColor(ImGuiCol_Border, GetColorU32(ImGuiCol_BorderActive));
+        push_color_count = 1;
+    }
 
     const ImGuiID popup_id = ImHashStr("##ComboPopup", 0, id);
     bool popup_open = IsPopupOpen(popup_id, ImGuiPopupFlags_None);
 
-    const ImU32 frame_col = GetColorU32(ImGuiCol_FrameBg); // ORCA: Dont use background higlighting
+    const ImU32 frame_col = GetColorU32(hovered ? ImGuiCol_FrameBgHovered : ImGuiCol_FrameBg);
     const float value_x2 = ImMax(frame_bb.Min.x, frame_bb.Max.x - arrow_size);
     RenderNavHighlight(frame_bb, id);
     if (!(flags & ImGuiComboFlags_NoArrowButton)) {
-        ImU32 bg_col   = GetColorU32(ImGuiCol_FrameBg); // ORCA: No need to use popup_open or background higlighting
+        ImU32 bg_col   = GetColorU32((popup_open || hovered) ? ImGuiCol_ButtonHovered : ImGuiCol_Button);
         ImU32 text_col = GetColorU32(ImGuiCol_Text);
         window->DrawList->AddRectFilled(frame_bb.Min, ImVec2(frame_bb.Min.x + arrow_size, frame_bb.Max.y), bg_col, style.FrameRounding,(w <= arrow_size) ? ImDrawFlags_RoundCornersAll : ImDrawFlags_RoundCornersLeft);
         if (value_x2 + arrow_size - style.FramePadding.x <= frame_bb.Max.x)
-			//BBLRenderArrow(window->DrawList, ImVec2(frame_bb.Min.x + style.FramePadding.y, frame_bb.Min.y + style.FramePadding.y), text_col, ImGuiDir_Down, 1.0f);
-            // ORCA: Use same spacing after arrow with bbl_combo_with_filter to align text start points on combo boxes
-			BBLRenderArrow(window->DrawList, ImVec2(frame_bb.Min.x + ImMax(0.0f, (arrow_size - g.FontSize) * 0.5f), frame_bb.Min.y + style.FramePadding.y), text_col, ImGuiDir_Down, 1.0f);
+            BBLRenderArrow(window->DrawList, ImVec2(frame_bb.Min.x + style.FramePadding.y, frame_bb.Min.y + style.FramePadding.y), text_col, ImGuiDir_Down, 1.0f);
     }
     if (!(flags & ImGuiComboFlags_NoPreview))
         window->DrawList->AddRectFilled(ImVec2(frame_bb.Min.x + arrow_size, frame_bb.Min.y), frame_bb.Max, frame_col, style.FrameRounding,(flags & ImGuiComboFlags_NoArrowButton) ? ImDrawFlags_RoundCornersAll : ImDrawFlags_RoundCornersRight);
@@ -2194,7 +2168,7 @@ bool ImGui::BBLBeginCombo(const char *label, const char *preview_value, ImGuiCom
         OpenPopupEx(popup_id, ImGuiPopupFlags_None);
         popup_open = true;
     }
-    ImGui::PopStyleColor(1);
+     if (push_color_count > 0) { ImGui::PopStyleColor(push_color_count); }
     if (!popup_open) return false;
 
     if (has_window_size_constraint) {
@@ -2233,10 +2207,12 @@ bool ImGui::BBLBeginCombo(const char *label, const char *preview_value, ImGuiCom
 
     // We don't use BeginPopupEx() solely because we have a custom name string, which we could make an argument to BeginPopupEx()
     ImGuiWindowFlags window_flags = ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_Popup | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
-                                    ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysUseWindowPadding; // ORCA: Added ImGuiWindowFlags_AlwaysUseWindowPadding to ensure its using windows padding. This will remove paddings from dropdown menu
+                                    ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoMove;
 
-    // Horizontally align ourselves with the framed text    
+    // Horizontally align ourselves with the framed text
+    PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(style.FramePadding.x, style.WindowPadding.y));
     bool ret = Begin(name, NULL, window_flags);
+    PopStyleVar();
     if (!ret) {
         EndPopup();
         IM_ASSERT(0); // This should never happen as we tested for IsPopupOpen() above
@@ -3602,7 +3578,6 @@ bool ImGui::SliderScalar(const char* label, ImGuiDataType data_type, void* p_dat
     const ImGuiStyle& style = g.Style;
     const ImGuiID id = window->GetID(label);
     const float w = CalcItemWidth();
-	const float h = GetFrameHeight();
 
     const ImVec2 label_size = CalcTextSize(label, NULL, true);
     const ImRect frame_bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(w, label_size.y + style.FramePadding.y * 2.0f));
@@ -3644,40 +3619,20 @@ bool ImGui::SliderScalar(const char* label, ImGuiDataType data_type, void* p_dat
         return TempInputScalar(frame_bb, id, label, data_type, p_data, format, is_clamp_input ? p_min : NULL, is_clamp_input ? p_max : NULL);
     }
 
-	// Draw frame
-	// ORCA: Draw frame after thumb to get grab_rounding
-    ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.f, 0.59f, 0.53f, 0.f));         // ORCA: Change Background color
-    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(0.f, 0.59f, 0.53f, 0.0f)); // ORCA: Change Background color
-    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0.f, 0.59f, 0.53f, 0.1f));  // ORCA: Change Background color
-    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4);  //h / 2                       // ORCA: Change Background color
-    ImGui::PushStyleColor(ImGuiCol_Border, (hovered || temp_input_is_active)  ? ImVec4(0.f, 0.59f, 0.53f, 0.5f) : GetStyleColorVec4(ImGuiCol_Border)); // ORCA: Change Background color
+    // Draw frame
     const ImU32 frame_col = GetColorU32(g.ActiveId == id ? ImGuiCol_FrameBgActive : g.HoveredId == id ? ImGuiCol_FrameBgHovered : ImGuiCol_FrameBg);
     RenderNavHighlight(frame_bb, id);
     RenderFrame(frame_bb.Min, frame_bb.Max, frame_col, true, g.Style.FrameRounding);
-    ImGui::PopStyleColor(4);
-    ImGui::PopStyleVar(1);
 
     // Slider behavior
     ImRect grab_bb;
-    ImGui::PushStyleVar(ImGuiStyleVar_GrabMinSize, h - style.FramePadding.x); // ORCA: Use Width and height at same value for thumb
     const bool value_changed = SliderBehavior(frame_bb, id, data_type, p_data, p_min, p_max, format, flags, &grab_bb);
     if (value_changed)
         MarkItemEdited(id);
 
     // Render grab
-    // ORCA: Used style.FrameBorderSize to reduce size of thumb
-    // ORCA: Used slider height for rounding
-    float grab_offset;
-    grab_offset = style.FrameBorderSize * 2;
-    grab_bb.Min = grab_bb.Min + ImVec2(grab_offset, grab_offset);
-    grab_bb.Max = grab_bb.Max - ImVec2(grab_offset, grab_offset);
-    ImGui::PushStyleColor(ImGuiCol_SliderGrab, ImVec4(0.f, 0.59f, 0.53f, 0.5f));		// ORCA: Change Thumb color
-    ImGui::PushStyleColor(ImGuiCol_SliderGrabActive, ImVec4(0.f, 0.59f, 0.53f, 0.75f)); // ORCA: Change Thumb color
-    ImGui::PushStyleVar(ImGuiStyleVar_GrabRounding, 2); //h - grab_offset / 2
     if (grab_bb.Max.x > grab_bb.Min.x)
-		window->DrawList->AddRectFilled(grab_bb.Min, grab_bb.Max, GetColorU32(g.ActiveId == id ? ImGuiCol_SliderGrabActive : ImGuiCol_SliderGrab), style.GrabRounding); 
-    ImGui::PopStyleVar(2);
-    ImGui::PopStyleColor(2);
+        window->DrawList->AddRectFilled(grab_bb.Min, grab_bb.Max, GetColorU32(g.ActiveId == id ? ImGuiCol_SliderGrabActive : ImGuiCol_SliderGrab), style.GrabRounding);
 
     // Display value using user-provided display format so user can add prefix/suffix/decorations to the value.
     char value_buf[64];
@@ -4306,50 +4261,28 @@ bool ImGui::InputScalar(const char* label, ImGuiDataType data_type, void* p_data
 
         BeginGroup(); // The only purpose of the group here is to allow the caller to query item data e.g. IsItemActive()
         PushID(label);
-        // SetNextItemWidth(ImMax(1.0f, CalcItemWidth() - (button_size + style.ItemInnerSpacing.x) * 2));
-        SetNextItemWidth(ImMax(1.0f, CalcItemWidth())); // ORCA: Use input size with full width istead of excluding button sizes
-		PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(style.FramePadding.x + 4,style.FramePadding.y)); // ORCA: give input box extra padding horizontally
-        int input_width = CalcItemWidth(); // ORCA: Calculate input size
+        SetNextItemWidth(ImMax(1.0f, CalcItemWidth() - (button_size + style.ItemInnerSpacing.x) * 2));
         if (InputText("", buf, IM_ARRAYSIZE(buf), flags)) // PushId(label) + "" gives us the expected ID from outside point of view
             value_changed = DataTypeApplyOpFromText(buf, g.InputTextState.InitialTextA.Data, data_type, p_data, format);
-        else if (IsItemHovered() || IsItemActive() || IsItemFocused()) // ORCA: Add border color while hover 
-            GetForegroundDrawList()->AddRect(
-				GetItemRectMin(),
-				GetItemRectMax(),
-                ColorConvertFloat4ToU32(ImVec4(0.f, 0.59f, 0.53f, 0.5f)),
-                style.FrameRounding,
-				0,
-				style.FrameBorderSize
-			);
-        PopStyleVar();
 
         // Step buttons
         const ImVec2 backup_frame_padding = style.FramePadding;
         style.FramePadding.x = style.FramePadding.y;
         ImGuiButtonFlags button_flags = ImGuiButtonFlags_Repeat | ImGuiButtonFlags_DontClosePopups;
-        
-        PushStyleColor(ImGuiCol_Button, ImVec4(0.f, 0.f, 0.f, 0.f));				// ORCA: Hide button decoration
-        PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.f, 0.59f, 0.53f, 0.35f));   // ORCA: Add hover effects
-        PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.f, 0.59f, 0.53f, 0.5f));		// ORCA: Add hover effects
-        PushStyleColor(ImGuiCol_Border, ImVec4(0.f, 0.f, 0.f, 0.f));				// ORCA: Hide button decoration
-        SetItemAllowOverlap(); // ORCA: allow item to click
         if (flags & ImGuiInputTextFlags_ReadOnly)
             button_flags |= ImGuiButtonFlags_Disabled;
-
-		// ORCA: NEEDFIX repeat not working on buttons while holding. not working on original source too
-        SameLine(input_width - button_size * 2); // ORCA: Move Inc/Dec buttons to inside of input box
+        SameLine(0, style.ItemInnerSpacing.x);
         if (ButtonEx("-", ImVec2(button_size, button_size), button_flags))
         {
             DataTypeApplyOp(data_type, '-', p_data, p_data, g.IO.KeyCtrl && p_step_fast ? p_step_fast : p_step);
             value_changed = true;
         }
-        SameLine(0,0); // ORCA: Place button without spacing
+        SameLine(0, style.ItemInnerSpacing.x);
         if (ButtonEx("+", ImVec2(button_size, button_size), button_flags))
         {
             DataTypeApplyOp(data_type, '+', p_data, p_data, g.IO.KeyCtrl && p_step_fast ? p_step_fast : p_step);
             value_changed = true;
         }
-        PopStyleColor(4);
 
         const char* label_end = FindRenderedTextEnd(label);
         if (label != label_end)
@@ -6317,10 +6250,7 @@ bool ImGui::ColorButton(const char* desc_id, const ImVec4& col, ImGuiColorEditFl
         size.x = default_size;
     if (size.y == 0.0f)
         size.y = default_size;
-    //const ImRect bb(window->DC.CursorPos, window->DC.CursorPos + size);
-    //  make sure all values int otherwise borders and rectangles will pixelated
-    const ImRect bb(ImVec2(round(window->DC.CursorPos.x), round(window->DC.CursorPos.y)),
-                    ImVec2(round(window->DC.CursorPos.x + size.x), round(window->DC.CursorPos.y + size.y)));
+    const ImRect bb(window->DC.CursorPos, window->DC.CursorPos + size);
     ItemSize(bb, (size.y >= default_size) ? g.Style.FramePadding.y : 0.0f);
     if (!ItemAdd(bb, id))
         return false;
@@ -6336,14 +6266,14 @@ bool ImGui::ColorButton(const char* desc_id, const ImVec4& col, ImGuiColorEditFl
         ColorConvertHSVtoRGB(col_rgb.x, col_rgb.y, col_rgb.z, col_rgb.x, col_rgb.y, col_rgb.z);
 
     ImVec4 col_rgb_without_alpha(col_rgb.x, col_rgb.y, col_rgb.z, 1.0f);
-    int grid_step = ImMin(size.x, size.y) / 2.99f;
-    int    rounding  = ImMin(g.Style.FrameRounding, grid_step * 0.5f);
+    float grid_step = ImMin(size.x, size.y) / 2.99f;
+    float rounding = ImMin(g.Style.FrameRounding, grid_step * 0.5f);
     ImRect bb_inner = bb;
     float off = 0.0f;
     // BBS
     //if ((flags & ImGuiColorEditFlags_NoBorder) == 0)
     {
-        off = -2.f; // The border (using Col_FrameBg) tends to look off when color is near-opaque and rounding is enabled. This offset seemed like a good middle ground to reduce those artifacts.
+        off = -2.5f; // The border (using Col_FrameBg) tends to look off when color is near-opaque and rounding is enabled. This offset seemed like a good middle ground to reduce those artifacts.
         bb_inner.Expand(off);
     }
     if ((flags & ImGuiColorEditFlags_AlphaPreviewHalf) && col_rgb.w < 1.0f)
@@ -6367,10 +6297,10 @@ bool ImGui::ColorButton(const char* desc_id, const ImVec4& col, ImGuiColorEditFl
         if (g.Style.FrameBorderSize > 0.0f)
             RenderFrameBorder(bb.Min, bb.Max, rounding);
         else
-        #ifdef __APPLE__ // requires testing on macOS. int numbers not giving perfect results for line widht with even numbers 
-           window->DrawList->AddRect(bb.Min - ImVec2(1.5f, 1.5f), bb.Max + ImVec2(1.5f, 1.5f), GetColorU32(ImGuiCol_FrameBg), rounding * 2,NULL,2.0f);; // Color button are often in need of some sort of border
+        #ifdef __APPLE__
+           window->DrawList->AddRect(bb.Min - ImVec2(3, 3), bb.Max + ImVec2(3, 3), GetColorU32(ImGuiCol_FrameBg), rounding * 2,NULL,4.0f);; // Color button are often in need of some sort of border
         #else
-            window->DrawList->AddRect(bb.Min - ImVec2(1.5f, 1.5f), bb.Max + ImVec2(1.5f, 1.5f), GetColorU32(ImGuiCol_FrameBg), rounding * 2,NULL,2.0f); // Color button are often in need of some sort of border
+            window->DrawList->AddRect(bb.Min - ImVec2(2, 2), bb.Max + ImVec2(2, 2), GetColorU32(ImGuiCol_FrameBg), rounding * 2,NULL,3.0f); // Color button are often in need of some sort of border
         #endif
     }
 
@@ -7383,6 +7313,15 @@ bool ImGui::BBLSelectable(const char *label, bool selected, ImGuiSelectableFlags
     const bool was_selected = selected;
     bool       hovered, held;
     bool       pressed = ButtonBehavior(bb, id, &hovered, &held, button_flags);
+    if (hovered || g.ActiveId == id) {
+        ImGui::PushStyleColor(ImGuiCol_Border, GetColorU32(ImGuiCol_BorderActive));
+        if(arrow_size == 0) {
+            RenderFrameBorder(bb.Min, ImVec2(bb.Max.x - style.WindowPadding.x, bb.Max.y), style.FrameRounding);
+        } else {
+            RenderFrameBorder(ImVec2(bb.Min.x + style.WindowPadding.x,bb.Min.y), ImVec2(bb.Max.x - style.WindowPadding.x,bb.Max.y), style.FrameRounding);
+        }
+        ImGui::PopStyleColor(1);
+    }
     // Update NavId when clicking or when Hovering (this doesn't happen on most widgets), so navigation can be resumed with gamepad/keyboard
     if (pressed || (hovered && (flags & ImGuiSelectableFlags_SetNavIdOnHover))) {
         if (!g.NavDisableMouseHover && g.NavWindow == window && g.NavLayer == window->DC.NavLayerCurrent) {
@@ -7401,25 +7340,13 @@ bool ImGui::BBLSelectable(const char *label, bool selected, ImGuiSelectableFlags
     // Render
     if (held && (flags & ImGuiSelectableFlags_DrawHoveredWhenHeld)) hovered = true;
     if (hovered || selected) {
-        ImU32 col = selected ? GetColorU32(ImGuiCol_HeaderActive) : GetColorU32(ImGuiCol_Header); // ORCA: Use transparent background on hovered item
+        const ImU32 col = GetColorU32((held && hovered) ? ImGuiCol_HeaderActive : hovered ? ImGuiCol_HeaderHovered : ImGuiCol_Header);
         if(arrow_size == 0) {
             RenderFrame(bb.Min, ImVec2(bb.Max.x - style.WindowPadding.x, bb.Max.y), col, false, 0.0f);
         } else {
             RenderFrame(ImVec2(bb.Min.x + style.WindowPadding.x, bb.Min.y), ImVec2(bb.Max.x - style.WindowPadding.x, bb.Max.y), col, false, 0.0f);
         }
-		RenderNavHighlight(bb, id, ImGuiNavHighlightFlags_TypeThin | ImGuiNavHighlightFlags_NoRounding);
-    }
-
-	// ORCA Draw highlight border after drawing background otherwise it will now shown
-    if (hovered || g.ActiveId == id) {
-        ImGui::PushStyleColor(ImGuiCol_Border, GetColorU32(ImGuiCol_BorderActive)); // ORCA: Use orca color for border if item hovered
-        if (arrow_size == 0) {
-            RenderFrameBorder(bb.Min, ImVec2(bb.Max.x - style.WindowPadding.x, bb.Max.y), style.FrameRounding);
-        } else {
-            RenderFrameBorder(ImVec2(bb.Min.x + style.WindowPadding.x, bb.Min.y), ImVec2(bb.Max.x - style.WindowPadding.x, bb.Max.y),
-                              style.FrameRounding);
-        }
-        ImGui::PopStyleColor(1);
+        RenderNavHighlight(bb, id, ImGuiNavHighlightFlags_TypeThin | ImGuiNavHighlightFlags_NoRounding);
     }
 
     if (span_all_columns && window->DC.CurrentColumns)

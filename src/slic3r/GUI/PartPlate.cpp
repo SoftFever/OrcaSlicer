@@ -1580,14 +1580,7 @@ std::vector<int> PartPlate::get_used_extruders()
 
 	std::set<int> used_extruders_set;
 	PrintEstimatedStatistics& ps = result->print_statistics;
-	// model usage
-	for (const auto&item:ps.volumes_per_extruder)
-		used_extruders_set.emplace(item.first + 1);
-	// support usage
-	for (const auto&item:ps.support_volumes_per_extruder)
-		used_extruders_set.emplace(item.first + 1);
-	// wipe tower usage
-	for (const auto&item:ps.wipe_tower_volumes_per_extruder)
+	for (const auto& item : ps.total_volumes_per_extruder)
 		used_extruders_set.emplace(item.first + 1);
 
 	return std::vector(used_extruders_set.begin(), used_extruders_set.end());
@@ -1830,7 +1823,7 @@ void PartPlate::generate_plate_name_texture()
 
 	auto* font = &Label::Head_32;
 
-	wxColour foreground("#009688"); // ORCA: use orca color for plate name
+	wxColour foreground(0xf2, 0x75, 0x4e, 0xff);
     if (!m_name_texture.generate_from_text_string(text.ToUTF8().data(), *font, *wxBLACK, foreground))
 		BOOST_LOG_TRIVIAL(error) << "PartPlate::generate_plate_name_texture(): generate_from_text_string() failed";
     auto bed_ext = get_extents(m_shape);
@@ -3323,7 +3316,7 @@ void PartPlateList::generate_icon_textures()
 			else
 				file_name = std::to_string(i+1);
 
-			wxColour foreground("#009688"); // ORCA: Use orca color for plate number text
+			wxColour foreground(0xf2, 0x75, 0x4e, 0xff);
 			if (!m_idx_textures[i].generate_from_text_string(file_name, *font, *wxBLACK, foreground)) {
 				BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":load file %1% failed") % file_name;
 			}

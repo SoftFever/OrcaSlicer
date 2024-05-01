@@ -19,26 +19,16 @@ END_EVENT_TABLE()
  */
 
 TextInput::TextInput()
-    : label_color(
-		std::make_pair(wxColour("#ACACAC"), (int) StateColor::Disabled),
-        std::make_pair(wxColour("#6B6B6B"), (int) StateColor::Normal)
-	)
-    , text_color(
-		std::make_pair(wxColour("#ACACAC"), (int) StateColor::Disabled),
-		std::make_pair(wxColour("#262E30"), (int) StateColor::Normal)
-	)
+    : label_color(std::make_pair(0x909090, (int) StateColor::Disabled),
+                 std::make_pair(0x6B6B6B, (int) StateColor::Normal))
+    , text_color(std::make_pair(0x909090, (int) StateColor::Disabled),
+                 std::make_pair(0x262E30, (int) StateColor::Normal))
 {
     radius = 0;
     border_width = 1;
-    border_color = StateColor(
-		std::make_pair(wxColour("#DBDBDB"), (int) StateColor::Disabled),
-		std::make_pair(wxColour("#009688"), (int) StateColor::Hovered),
-		std::make_pair(wxColour("#DBDBDB"), (int) StateColor::Normal)
-	);
-    background_color = StateColor(
-		std::make_pair(wxColour("#F0F0F1"), (int) StateColor::Disabled),
-		std::make_pair(wxColour("#FFFFFF"), (int) StateColor::Normal)
-	);
+    border_color = StateColor(std::make_pair(0xDBDBDB, (int) StateColor::Disabled), std::make_pair(0x009688, (int) StateColor::Hovered),
+                              std::make_pair(0xDBDBDB, (int) StateColor::Normal));
+    background_color = StateColor(std::make_pair(0xF0F0F1, (int) StateColor::Disabled), std::make_pair(*wxWHITE, (int) StateColor::Normal));
     SetFont(Label::Body_12);
 }
 
@@ -87,7 +77,7 @@ void TextInput::Create(wxWindow *     parent,
     });
     text_ctrl->Bind(wxEVT_RIGHT_DOWN, [this](auto &e) {}); // disable context menu
     if (!icon.IsEmpty()) {
-        this->icon = ScalableBitmap(this, icon.ToStdString(), 0); // ORCA: 0 gets icon size from file
+        this->icon = ScalableBitmap(this, icon.ToStdString(), 16);
     }
     messureSize();
 }
@@ -116,7 +106,7 @@ void TextInput::SetIcon(const wxString &icon)
 {
     if (this->icon.name() == icon.ToStdString())
         return;
-    this->icon = ScalableBitmap(this, icon.ToStdString(), 0); // ORCA: 0 gets icon size from file
+    this->icon = ScalableBitmap(this, icon.ToStdString(), 16);
     Rescale();
 }
 
@@ -210,28 +200,20 @@ void TextInput::render(wxDC& dc)
     int states = state_handler.states();
     wxSize size = GetSize();
     bool   align_right = GetWindowStyle() & wxRIGHT;
-    int    right_margin; // ORCA: calculate magin for right side
     // start draw
-    wxPoint pt = {1, 0}; // ORCA: Start drawing at 0 for icons
+    wxPoint pt = {5, 0};
     if (icon.bmp().IsOk()) {
         wxSize szIcon = icon.GetBmpSize();
         pt.y = (size.y - szIcon.y) / 2;
         dc.DrawBitmap(icon.bmp(), pt);
         pt.x += szIcon.x + 0;
-    } else {
-        pt.x += 5; // ORCA: Add left margin to text if there is no icon
-        right_margin = 5;
     }
     auto text = wxWindow::GetLabel();
     if (!text.IsEmpty()) {
-        if (icon.bmp().IsOk()) {
-            pt.x += 3; // ORCA: Add left margin to text if there is an icon
-            right_margin = 3;
-		}
         wxSize textSize = text_ctrl->GetSize();
         if (align_right) {
-            if (pt.x + labelSize.x + right_margin > size.x)
-                text = wxControl::Ellipsize(text, dc, wxELLIPSIZE_END, size.x - pt.x - right_margin);
+            if (pt.x + labelSize.x > size.x)
+                text = wxControl::Ellipsize(text, dc, wxELLIPSIZE_END, size.x - pt.x);
             pt.y = (size.y - labelSize.y) / 2;
         } else {
             pt.x += textSize.x;

@@ -22,9 +22,8 @@ StaticBox::StaticBox()
     , radius(8)
 {
     border_color = StateColor(
-        std::make_pair(wxColour("#F0F0F1"), (int) StateColor::Disabled), 
-        std::make_pair(wxColour("#303A3C"), (int) StateColor::Normal)
-	);
+        std::make_pair(0xF0F0F1, (int) StateColor::Disabled), 
+        std::make_pair(0x303A3C, (int) StateColor::Normal));
 }
 
 StaticBox::StaticBox(wxWindow* parent,
@@ -41,7 +40,6 @@ bool StaticBox::Create(wxWindow* parent, wxWindowID id, const wxPoint& pos, cons
     if (style & wxBORDER_NONE)
         border_width = 0;
     wxWindow::Create(parent, id, pos, size, style);
-    this->SetCornerRadius(FromDIP(4)); // ORCA: use all static boxes with corner radius to match style
     state_handler.attach({&border_color, &background_color, &background_color2});
     state_handler.update_binds();
     SetBackgroundColour(GetParentBackgroundColor(parent));

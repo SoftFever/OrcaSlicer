@@ -158,12 +158,45 @@ Button* MsgDialog::add_button(wxWindowID btn_id, bool set_focus /*= false*/, con
         btn->SetMinSize(MSG_DIALOG_LONGER_BUTTON_SIZE);
     }
     
+    btn->SetCornerRadius(FromDIP(12));
+    StateColor btn_bg_green(
+        std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
+        std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
+        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal)
+    );
+
+    StateColor btn_bd_green(
+        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal)
+    );
+
+    StateColor btn_text_green(
+        std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Normal)
+    );
+
+    StateColor btn_bg_white(
+        std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed),
+        std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
+        std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal)
+    );
+
+    StateColor btn_bd_white(
+        std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Normal)
+    );
+
+    StateColor btn_text_white(
+        std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Normal)
+    );
+
     if (btn_id == wxID_OK || btn_id == wxID_YES) {
-        btn->SetStyleConfirm(Label::Body_14);
+        btn->SetBackgroundColor(btn_bg_green);
+        btn->SetBorderColor(btn_bd_green);
+        btn->SetTextColor(btn_text_green);
     }
 
     if (btn_id == wxID_CANCEL || btn_id == wxID_NO) {
-        btn->SetStyleDefault(Label::Body_14);
+        btn->SetBackgroundColor(btn_bg_white);
+        btn->SetBorderColor(btn_bd_white);
+        btn->SetTextColor(btn_text_white);
     }
 
     if (set_focus)
@@ -474,14 +507,24 @@ DeleteConfirmDialog::DeleteConfirmDialog(wxWindow *parent, const wxString &title
     StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
                             std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
     m_cancel_btn = new Button(this, _L("Cancel"));
-    m_cancel_btn->SetStyleDefault(Label::Body_12);
-    m_cancel_btn->SetMinSize(wxSize(FromDIP(60), FromDIP(26)));
+    m_cancel_btn->SetBackgroundColor(btn_bg_white);
+    m_cancel_btn->SetBorderColor(*wxBLACK);
+    m_cancel_btn->SetTextColor(wxColour(*wxBLACK));
+    m_cancel_btn->SetFont(Label::Body_12);
+    m_cancel_btn->SetSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_cancel_btn->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_cancel_btn->SetCornerRadius(FromDIP(12));
     bSizer_button->Add(m_cancel_btn, 0, wxRIGHT | wxBOTTOM, FromDIP(10));
 
 
     m_del_btn = new Button(this, _L("Delete"));
-    m_del_btn->SetStyleAlert(Label::Body_12); // ORCA: match button style
-    m_del_btn->SetMinSize(wxSize(FromDIP(60), FromDIP(26)));
+    m_del_btn->SetBackgroundColor(*wxRED);
+    m_del_btn->SetBorderColor(*wxWHITE);
+    m_del_btn->SetTextColor(wxColour(0xFFFFFE));
+    m_del_btn->SetFont(Label::Body_12);
+    m_del_btn->SetSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_del_btn->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_del_btn->SetCornerRadius(FromDIP(12));
     bSizer_button->Add(m_del_btn, 0, wxRIGHT | wxBOTTOM, FromDIP(10));
 
     m_main_sizer->Add(bSizer_button, 0, wxEXPAND, 0);
@@ -507,7 +550,7 @@ Newer3mfVersionDialog::Newer3mfVersionDialog(wxWindow *parent, const Semver *fil
     , m_new_keys(new_keys)
 {
     this->SetBackgroundColour(*wxWHITE);
-    std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
+    std::string icon_path = (boost::format("%1%/images/OrcaSlicerTitle.ico") % resources_dir()).str();
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
     wxBoxSizer *main_sizer = new wxBoxSizer(wxVERTICAL);
@@ -571,8 +614,8 @@ wxBoxSizer *Newer3mfVersionDialog::get_btn_sizer()
 {
     wxBoxSizer *horizontal_sizer = new wxBoxSizer(wxHORIZONTAL);
     horizontal_sizer->Add(0, 0, 1, wxEXPAND, 0);
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
+                            std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
     StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
                             std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
     bool       file_version_newer = (*m_file_version) > (*m_cloud_version);

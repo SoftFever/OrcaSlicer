@@ -810,7 +810,7 @@ UnsavedChangesDialog::UnsavedChangesDialog(Preset::Type type, PresetCollection *
     : m_new_selected_preset_name(new_selected_preset)
     , DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe),
                 wxID_ANY,
-                _L("Actions For Unsaved Changes"),
+                _L("Transfer or discard changes"),
                 wxDefaultPosition,
                 wxDefaultSize,
                 wxCAPTION | wxCLOSE_BOX)
@@ -896,7 +896,7 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_
     wxBoxSizer *top_title_oldv = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *top_title_oldv_h = new wxBoxSizer(wxHORIZONTAL);
 
-    static_oldv_title = new wxStaticText(m_panel_oldv, wxID_ANY, _L("Preset Value"), wxDefaultPosition, wxDefaultSize, 0);
+    static_oldv_title = new wxStaticText(m_panel_oldv, wxID_ANY, _L("Old Value"), wxDefaultPosition, wxDefaultSize, 0);
     static_oldv_title->SetFont(::Label::Body_13);
     static_oldv_title->Wrap(-1);
     static_oldv_title->SetForegroundColour(*wxWHITE);
@@ -915,7 +915,7 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_
     wxBoxSizer *top_title_newv = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *top_title_newv_h = new wxBoxSizer(wxHORIZONTAL);
 
-    static_newv_title = new wxStaticText(m_panel_newv, wxID_ANY, _L("Modified Value"), wxDefaultPosition, wxDefaultSize, 0);
+    static_newv_title = new wxStaticText(m_panel_newv, wxID_ANY, _L("New Value"), wxDefaultPosition, wxDefaultSize, 0);
     static_newv_title->SetFont(::Label::Body_13);
     static_newv_title->Wrap(-1);
     static_newv_title->SetForegroundColour(*wxWHITE);
@@ -970,22 +970,25 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_
     m_sizer_button->Add(0, 0, 1, 0, 0);
 
      // Add Buttons
-    //wxFont      btn_font = this->GetFont().Scaled(1.4f);
+    wxFont      btn_font = this->GetFont().Scaled(1.4f);
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
+                            std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
 
-    auto add_btn = [this, m_sizer_button, dependent_presets](Button **btn, int &btn_id, const std::string &icon_name, Action close_act, const wxString &label,
+    auto add_btn = [this, m_sizer_button, btn_font, dependent_presets, btn_bg_green](Button **btn, int &btn_id, const std::string &icon_name, Action close_act, const wxString &label,
                                                                               bool focus, bool process_enable = true) {
         *btn = new Button(this, _L(label));
 
         if (focus) {
-            (*btn)->SetStyleConfirm(Label::Body_14); // ORCA match button style
+            (*btn)->SetBackgroundColor(btn_bg_green);
+            (*btn)->SetBorderColor(wxColour(0, 150, 136));
+            (*btn)->SetTextColor(wxColour("#FFFFFE"));
         } else {
-            (*btn)->SetStyleDefault(Label::Body_14); // ORCA match button style
+            (*btn)->SetTextColor(wxColour(107, 107, 107));
         }
 
         //(*btn)->SetMinSize(UNSAVE_CHANGE_DIALOG_BUTTON_SIZE);
-        //(*btn)->SetMinSize(wxSize(-1,-1));
-        (*btn)->SetSize(wxSize(-1, FromDIP(26)));    // ORCA Match Height
-        (*btn)->SetMinSize(wxSize(-1, FromDIP(26))); // ORCA Match Height
+        (*btn)->SetMinSize(wxSize(-1,-1));
+        (*btn)->SetCornerRadius(FromDIP(12));
 
         (*btn)->Bind(wxEVT_BUTTON, [this, close_act, dependent_presets](wxEvent &) {
             bool save_names_and_types = close_act == Action::Save || (close_act == Action::Transfer && ActionButtons::KEEP & m_buttons);
@@ -1008,19 +1011,19 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_
         if (dependent_presets && switched_presets && (type == dependent_presets->type() ?
             dependent_presets->get_edited_preset().printer_technology() == dependent_presets->find_preset(new_selected_preset)->printer_technology() :
             switched_presets->get_edited_preset().printer_technology() == switched_presets->find_preset(new_selected_preset)->printer_technology()))
-            add_btn(&m_transfer_btn, m_move_btn_id, "menu_paste", Action::Transfer, /*switched_presets->get_edited_preset().name == new_selected_preset ? */_L("Transfer Modified Value"), true);
+            add_btn(&m_transfer_btn, m_move_btn_id, "menu_paste", Action::Transfer, switched_presets->get_edited_preset().name == new_selected_preset ? _L("Transfer") : _L("Transfer"), true);
     }
     if (!m_transfer_btn && (ActionButtons::KEEP & m_buttons))
-        add_btn(&m_transfer_btn, m_move_btn_id, "menu_paste", Action::Transfer, _L("Transfer Modified Value"), true);
+        add_btn(&m_transfer_btn, m_move_btn_id, "menu_paste", Action::Transfer, _L("Transfer"), true);
 
     { // "Don't save" / "Discard" button
         std::string btn_icon    = (ActionButtons::DONT_SAVE & m_buttons) ? "" : (dependent_presets || (ActionButtons::KEEP & m_buttons)) ? "blank_16" : "exit";
-        wxString    btn_label = (ActionButtons::DONT_SAVE & m_buttons) ? _L("Don't save") : _L("Use Preset Value");
+        wxString    btn_label   = (ActionButtons::DONT_SAVE & m_buttons) ? _L("Don't save") : _L("Discard");
         add_btn(&m_discard_btn, m_continue_btn_id, btn_icon, Action::Discard, btn_label, false);
     }
 
     // "Save" button
-    if (ActionButtons::SAVE & m_buttons) add_btn(&m_save_btn, m_save_btn_id, "save", Action::Save, _L("Save Modified Value"), false);
+    if (ActionButtons::SAVE & m_buttons) add_btn(&m_save_btn, m_save_btn_id, "save", Action::Save, _L("Save"), false);
 
     /* ScalableButton *cancel_btn = new ScalableButton(this, wxID_CANCEL, "cross", _L("Cancel"), wxDefaultSize, wxDefaultPosition, wxBORDER_DEFAULT, true, 24);
       buttons->Add(cancel_btn, 1, wxLEFT | wxRIGHT, 5);
@@ -1426,18 +1429,18 @@ void UnsavedChangesDialog::update(Preset::Type type, PresetCollection* dependent
     if (dependent_presets) {
         action_msg = format_wxstr(_L("You have changed some settings of preset \"%1%\". "), dependent_presets->get_edited_preset().name);
         if (!m_transfer_btn) {
-            action_msg += _L("\nWould you like to save these changed settings(modified value)?");
+            action_msg += _L("\nYou can save or discard the preset values you have modified.");
         } else {
-            action_msg += _L("\nWould you like to keep these changed settings(modified value) after switching preset?");
+            action_msg += _L("\nYou can save or discard the preset values you have modified, or choose to transfer the values you have modified to the new preset.");
         }
     } else {
-        action_msg = _L("You have previously modified your settings and are about to overwrite them with new ones.");
+        action_msg = _L("You have previously modified your settings.");
         if (m_transfer_btn)
-            action_msg += _L("\nDo you want to keep your current modified settings, or use preset settings?");
+            action_msg += _L("\nYou can discard the preset values you have modified, or choose to transfer the modified values to the new project");
         else
-            action_msg += _L("\nDo you want to save your current modified settings?");
+            action_msg += _L("\nYou can save or discard the preset values you have modified.");
     }
-        
+
     m_action_line->SetLabel(action_msg);
 
     update_tree(type, presets);
@@ -1530,7 +1533,6 @@ void UnsavedChangesDialog::update_list()
                      text_left->SetFont(::Label::Head_13);
                      text_left->Wrap(-1);
                      text_left->SetForegroundColour(GREY700);
-                     text_left->SetForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_INFOTEXT));
 
                      sizer_left_v->Add(text_left, 0, wxLEFT, 37);
 
@@ -1559,7 +1561,6 @@ void UnsavedChangesDialog::update_list()
                 text_left->SetFont(::Label::Body_13);
                 text_left->Wrap(-1);
                 text_left->SetForegroundColour(GREY700);
-                text_left->SetForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_INFOTEXT));
 
                 sizer_left_v->Add(text_left, 0, wxLEFT, 51 );
 
@@ -1937,7 +1938,11 @@ std::array<Preset::Type, 3> DiffPresetDialog::types_list() const
 
 void DiffPresetDialog::create_buttons()
 {
-    //wxFont font = this->GetFont().Scaled(1.4f);
+    wxFont font = this->GetFont().Scaled(1.4f);
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Disabled),
+                            std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
+                            std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
+                            std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
     m_buttons   = new wxBoxSizer(wxHORIZONTAL);
 
     auto show_in_bottom_info = [this](const wxString& ext_line, wxEvent* e = nullptr) {
@@ -1949,9 +1954,11 @@ void DiffPresetDialog::create_buttons()
 
     // Transfer 
     m_transfer_btn = new Button(this, L("Transfer"));
-    m_transfer_btn->SetStyleDefault(Label::Body_14); // ORCA Match Style
-    m_transfer_btn->SetSize(wxSize(-1, FromDIP(26)));    // ORCA Match Height
-    m_transfer_btn->SetMinSize(wxSize(-1, FromDIP(26))); // ORCA Match Height
+    m_transfer_btn->SetBackgroundColor(btn_bg_green);
+    m_transfer_btn->SetBorderColor(wxColour(0, 150, 136));
+    m_transfer_btn->SetTextColor(wxColour("#FFFFFE"));
+    m_transfer_btn->SetMinSize(wxSize(-1, -1));
+    m_transfer_btn->SetCornerRadius(FromDIP(12));
 
     m_transfer_btn->Bind(wxEVT_BUTTON, [this](wxEvent&) { button_event(Action::Transfer);});
 
@@ -1987,16 +1994,16 @@ void DiffPresetDialog::create_buttons()
 
     // Cancel
     m_cancel_btn = new Button(this, L("Cancel"));
-    m_cancel_btn->SetStyleDefault(Label::Body_14);     // ORCA Match Style
-    m_cancel_btn->SetSize(wxSize(-1, FromDIP(26))); // ORCA Match Height
-    m_cancel_btn->SetMinSize(wxSize(-1, FromDIP(26))); // ORCA Match Height
+    m_cancel_btn->SetTextColor(wxColour(107, 107, 107));
+    m_cancel_btn->SetMinSize(wxSize(-1, -1));
+    m_cancel_btn->SetCornerRadius(FromDIP(12));
 
     m_cancel_btn->Bind(wxEVT_BUTTON, [this](wxEvent&) { button_event(Action::Discard);});
 
     for (Button* btn : { m_transfer_btn, m_cancel_btn }) {
         btn->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent& e) { update_bottom_info(); Layout(); e.Skip(); });
         m_buttons->Add(btn, 1, wxLEFT, 5);
-        //btn->SetFont(font);
+        btn->SetFont(font);
     }
 
     m_buttons->Show(false);
@@ -2243,7 +2250,7 @@ void DiffPresetDialog::update_tree()
             Search::Option option = searcher.get_option(opt_key, get_full_label(opt_key, left_config), type);
             if (option.opt_key() != opt_key) {
                 // temporary solution, just for testing
-                m_tree->Append(opt_key, type, "Undef category", "Undef group", opt_key, left_val, right_val, "undefined");
+                m_tree->Append(opt_key, type, "Undef category", "Undef group", opt_key, left_val, right_val, "question");
                 // When founded option isn't the correct one.
                 // It can be for dirty_options: "default_print_profile", "printer_model", "printer_settings_id",
                 // because of they don't exist in searcher
@@ -2302,7 +2309,7 @@ void DiffPresetDialog::on_sys_color_changed()
 #ifdef _WIN32
     wxGetApp().UpdateAllStaticTextDarkUI(this);
     wxGetApp().UpdateDarkUI(m_show_all_presets);
-    wxGetApp().UpdateDVCDarkUI(m_tree, true);
+    wxGetApp().UpdateDVCDarkUI(m_tree);
 #endif
 
     for (auto preset_combos : m_preset_combos) {

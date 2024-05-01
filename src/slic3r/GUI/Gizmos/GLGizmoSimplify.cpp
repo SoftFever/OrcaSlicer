@@ -257,18 +257,12 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
 
     ImGui::Separator();
 
-	bool radio_detail = !m_configuration.use_count;
-    bool radio_count  = m_configuration.use_count;
-    float radio_space = ImGui::GetStyle().ItemInnerSpacing.x;
-
-	ImGuiWrapper::push_radio_style();
-    if (ImGui::RadioButton("##detail", radio_detail)) {           // ORCA: Use same radio button type with other gizmos 
-        m_configuration.use_count = false;
+    if (m_imgui->bbl_radio_button("##use_error", !m_configuration.use_count)) {
+        m_configuration.use_count = !m_configuration.use_count;
         start_process = true;
     }
-    ImGuiWrapper::pop_radio_style();
 
-    ImGui::SameLine(0,radio_space); // ORCA: Place text with spacing on regular radio button
+    ImGui::SameLine();
     m_imgui->disabled_begin(m_configuration.use_count);
     ImGui::Text("%s", tr_detail_level.c_str());
     std::vector<std::string> reduce_captions = {
@@ -284,8 +278,8 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
     ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.81f, 0.81f, 0.81f, 1.00f));
     ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(0.81f, 0.81f, 0.81f, 1.00f));
     ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0.81f, 0.81f, 0.81f, 1.00f));
-    ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::COL_ORCA); // ORCA Updated slider color 
-    ImGui::PushStyleColor(ImGuiCol_SliderGrab, ImGuiWrapper::COL_ORCA); // ORCA updated slider color
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
+    ImGui::PushStyleColor(ImGuiCol_SliderGrab, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
 
     if (m_imgui->bbl_sliderin("##ReductionLevel", &reduction, 0, 4, reduce_captions[reduction].c_str())) {
         if (reduction < 0) reduction = 0;
@@ -302,14 +296,12 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
     ImGui::PopStyleColor(5);
     m_imgui->disabled_end(); // !use_count
 
-	ImGuiWrapper::push_radio_style();
-    if (ImGui::RadioButton("##count", radio_count)) {    // ORCA: Use same radio button type with other gizmos 
-        m_configuration.use_count = true;
+    if (m_imgui->bbl_radio_button("##use_count", m_configuration.use_count)) {
+        m_configuration.use_count = !m_configuration.use_count;
         start_process = true;
     }
-    ImGuiWrapper::pop_radio_style();
 
-    ImGui::SameLine(0, radio_space); // ORCA: Place text with spacing on regular radio button
+    ImGui::SameLine();
 
     // show preview result triangle count (percent)
     if (!m_configuration.use_count) {
@@ -343,7 +335,7 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
     ImGui::BBLDragFloat("##decimate_ratio_input", &m_configuration.decimate_ratio, 0.05f, 0.0f, 0.0f, "%.2f%%");
 
     ImGui::NewLine();
-    ImGui::SameLine(bottom_left_width); // ORCA: Align with slider
+    ImGui::SameLine(bottom_left_width + space_size);
     ImGui::Text(_u8L("%d triangles").c_str(), m_configuration.wanted_count);
     m_imgui->disabled_end(); // use_count
 
@@ -387,13 +379,13 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
     ImGui::SameLine();
 
     m_imgui->disabled_begin(is_cancelling);
-    m_imgui->push_default_button_style(); // ORCA use cancel button style on only critical operations
+    m_imgui->push_cancel_button_style();
     if (m_imgui->bbl_button(_L("Cancel"))) {
         close();
     }
     else if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled) && is_cancelling)
         ImGui::SetTooltip("%s", _u8L("Operation already cancelling. Please wait few seconds.").c_str());
-    m_imgui->pop_default_button_style();
+    m_imgui->pop_cancel_button_style();
     m_imgui->disabled_end(); // state cancelling
 
     ImGui::PopStyleVar(3);

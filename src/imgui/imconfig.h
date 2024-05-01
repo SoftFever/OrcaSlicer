@@ -201,38 +201,15 @@ namespace ImGui
     const wchar_t BlockNotifErrorIcon        = 0x0835;
     const wchar_t ClipboardBtnDarkIcon       = 0x0836;
 
-    const wchar_t PrevArrowBtnIcon         = 0x0837; 
-    const wchar_t PrevArrowHoverBtnIcon    = 0x0838; 
-    const wchar_t NextArrowBtnIcon         = 0x0839;
-    const wchar_t NextArrowHoverBtnIcon    = 0x0840;
-    const wchar_t OpenArrowIcon            = 0x0841;
-    const wchar_t CollapseArrowIcon        = 0x0842;
-    const wchar_t ExpandArrowIcon          = 0x0843;
-    const wchar_t CompleteIcon             = 0x0844;
+    const wchar_t PrevArrowBtnIcon         = 0x0836; 
+    const wchar_t PrevArrowHoverBtnIcon    = 0x0837; 
+    const wchar_t NextArrowBtnIcon         = 0x0838;
+    const wchar_t NextArrowHoverBtnIcon    = 0x0839;
+    const wchar_t OpenArrowIcon            = 0x0840;
+    const wchar_t CollapseArrowIcon        = 0x0841;
+    const wchar_t ExpandArrowIcon          = 0x0842;
+    const wchar_t CompleteIcon             = 0x0843;
 
-	// ORCA
-	const wchar_t MeasureEditBtnIcon		= 0x0845;
-
-	const wchar_t MeshBooleanA				= 0x0846;
-    const wchar_t MeshBooleanB				= 0x0847;
-    const wchar_t MeshBooleanKeep			= 0x0848;
-    const wchar_t MeshBooleanSubtract		= 0x0849;
-    const wchar_t MeshBooleanUnion			= 0x0850;
-    const wchar_t MeshBooleanDifference     = 0x0851;
-    const wchar_t MeshBooleanIntersection   = 0x0852;
-    const wchar_t MeshBooleanUnionDark          = 0x0853;
-    const wchar_t MeshBooleanDifferenceDark     = 0x0854;
-    const wchar_t MeshBooleanIntersectionDark   = 0x0855;
-
-	const wchar_t CutTriangle				= 0x0856;
-    const wchar_t CutSquare					= 0x0857;
-    const wchar_t CutHexagon				= 0x0858;
-    const wchar_t CutCircle					= 0x0859;
-    const wchar_t CutTriangleDark           = 0x0860;
-    const wchar_t CutSquareDark             = 0x0861;
-    const wchar_t CutHexagonDark            = 0x0862;
-    const wchar_t CutCircleDark             = 0x0863;
-
-    //    void MyFunction(const char* name, const MyMatrix44& v);
+//    void MyFunction(const char* name, const MyMatrix44& v);
 }
 

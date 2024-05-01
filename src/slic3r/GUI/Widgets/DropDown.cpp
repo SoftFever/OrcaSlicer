@@ -31,28 +31,27 @@ END_EVENT_TABLE()
  */
 
 DropDown::DropDown(std::vector<wxString> &texts,
+                   std::vector<wxString> &tips,
                    std::vector<wxBitmap> &icons)
     : texts(texts)
+    , tips(tips)
     , icons(icons)
     , state_handler(this)
-    , border_color(wxColour("#DBDBDB"))
-    , text_color(wxColour("#262E30")) // Match color
-    , selector_border_color(
-		std::make_pair(wxColour("#009688"), (int) StateColor::Hovered),
-        std::make_pair(wxColour("#FFFFFF"), (int) StateColor::Normal)
-	)
-    , selector_background_color(
-		std::make_pair(wxColour("#BFE1DE"), (int) StateColor::Checked), // ORCA: orca color with %25 opacity on white. previous color EDFAF2 is green
-        std::make_pair(wxColour("#FFFFFF"), (int) StateColor::Normal)
-	)
+    , border_color(0xDBDBDB)
+    , text_color(0x363636)
+    , selector_border_color(std::make_pair(0x009688, (int) StateColor::Hovered),
+        std::make_pair(*wxWHITE, (int) StateColor::Normal))
+    , selector_background_color(std::make_pair(0xEDFAF2, (int) StateColor::Checked),
+        std::make_pair(*wxWHITE, (int) StateColor::Normal))
 {
 }
 
 DropDown::DropDown(wxWindow *             parent,
                    std::vector<wxString> &texts,
+                   std::vector<wxString> &tips,
                    std::vector<wxBitmap> &icons,
                    long           style)
-    : DropDown(texts, icons)
+    : DropDown(texts, tips, icons)
 {
     Create(parent, style);
 }
@@ -232,9 +231,9 @@ void DropDown::render(wxDC &dc)
             if (selection == hover_item)
                 dc.SetBrush(wxBrush(selector_background_color.colorForStates(states | StateColor::Checked)));
             dc.SetPen(wxPen(selector_border_color.colorForStates(states)));
-            rcContent.Deflate(1, 0); // ORCA Use full width
+            rcContent.Deflate(4, 1);
             dc.DrawRectangle(rcContent);
-            rcContent.Inflate(1, 0);
+            rcContent.Inflate(4, 1);
         }
         rcContent.y = offset.y;
     }
@@ -243,10 +242,10 @@ void DropDown::render(wxDC &dc)
         rcContent.y += rowSize.y * selection;
         if (rcContent.GetBottom() > 0 && rcContent.y < size.y) {
             dc.SetBrush(wxBrush(selector_background_color.colorForStates(states | StateColor::Checked)));
-            dc.SetPen(wxPen(selector_background_color.colorForStates(states | StateColor::Checked)));
-            rcContent.Deflate(1, 0); // ORCA Use full width
+            dc.SetPen(wxPen(selector_background_color.colorForStates(states)));
+            rcContent.Deflate(4, 1);
             dc.DrawRectangle(rcContent);
-            rcContent.Inflate(1, 0);
+            rcContent.Inflate(4, 1);
         }
         rcContent.y = offset.y;
     }
@@ -268,21 +267,20 @@ void DropDown::render(wxDC &dc)
     }
 
     // draw check icon
-    rcContent.x += 1;
-    rcContent.width -= 1;
-	// ORCA don't use checkmarks to save horizontal spacing
-    //if (check_bitmap.bmp().IsOk()) {
-    //    auto szBmp = check_bitmap.GetBmpSize();
-    //    if (selection >= 0) {
-    //        wxPoint pt = rcContent.GetLeftTop();
-    //        pt.y += (rcContent.height - szBmp.y) / 2;
-    //        pt.y += rowSize.y * selection;
-    //        if (pt.y + szBmp.y > 0 && pt.y < size.y)
-    //            dc.DrawBitmap(check_bitmap.bmp(), pt);
-    //    }
-    //    rcContent.x += szBmp.x + 5;
-    //    rcContent.width -= szBmp.x + 5;
-    //}
+    rcContent.x += 5;
+    rcContent.width -= 5;
+    if (check_bitmap.bmp().IsOk()) {
+        auto szBmp = check_bitmap.GetBmpSize();
+        if (selection >= 0) {
+            wxPoint pt = rcContent.GetLeftTop();
+            pt.y += (rcContent.height - szBmp.y) / 2;
+            pt.y += rowSize.y * selection;
+            if (pt.y + szBmp.y > 0 && pt.y < size.y)
+                dc.DrawBitmap(check_bitmap.bmp(), pt);
+        }
+        rcContent.x += szBmp.x + 5;
+        rcContent.width -= szBmp.x + 5;
+    }
     // draw texts & icons
     dc.SetTextForeground(text_color.colorForStates(states));
     for (int i = 0; i < texts.size(); ++i) {
@@ -299,21 +297,19 @@ void DropDown::render(wxDC &dc)
                 pt.y += (rcContent.height - size2.y) / 2;
                 dc.DrawBitmap(icon, pt);
             }
-            pt.x += iconSize.x + 3; // ORCA match spacing with combo box
+            pt.x += iconSize.x + 5;
             pt.y = rcContent.y;
         } else if (icon.IsOk()) {
             pt.y += (rcContent.height - size2.y) / 2;
             dc.DrawBitmap(icon, pt);
-            pt.x += size2.x + 3; // ORCA match spacing with combo box
+            pt.x += size2.x + 5;
             pt.y = rcContent.y;
         }
         auto text = texts[i];
         if (!text_off && !text.IsEmpty()) {
-            if (!(iconSize.x > 0 || icon.IsOk()))
-                pt.x += 5; // ORCA Add spacing to text if there is no icon
             wxSize tSize = dc.GetMultiLineTextExtent(text);
             if (pt.x + tSize.x > rcContent.GetRight()) {
-                if (i == hover_item)
+                if (i == hover_item && tips[i].IsEmpty())
                     SetToolTip(text);
                 text = wxControl::Ellipsize(text, dc, wxELLIPSIZE_END,
                                             rcContent.GetRight() - pt.x);
@@ -346,11 +342,10 @@ void DropDown::messureSize()
     if (!align_icon) iconSize.x = 0;
     wxSize szContent = textSize;
     szContent.x += 10;
-    // ORCA don't use checkmarks to save horizontal spacing
-    //if (check_bitmap.bmp().IsOk()) {
-    //    auto szBmp = check_bitmap.GetBmpSize();
-    //    szContent.x += szBmp.x + 5;
-    //}
+    if (check_bitmap.bmp().IsOk()) {
+        auto szBmp = check_bitmap.GetBmpSize();
+        szContent.x += szBmp.x + 5;
+    }
     if (iconSize.x > 0) szContent.x += iconSize.x + (text_off ? 0 : 5);
     if (iconSize.y > szContent.y) szContent.y = iconSize.y;
     szContent.y += 10;
@@ -381,10 +376,10 @@ void DropDown::messureSize()
 void DropDown::autoPosition()
 {
     messureSize();
-    wxPoint pos = GetParent()->ClientToScreen(wxPoint(0,0));
+    wxPoint pos = GetParent()->ClientToScreen(wxPoint(0, -6));
     wxPoint old = GetPosition();
     wxSize size = GetSize();
-    Position(pos, {0, GetParent()->GetSize().y});
+    Position(pos, {0, GetParent()->GetSize().y + 12});
     if (old != GetPosition()) {
         size = rowSize;
         size.y *= std::min((size_t)15, texts.size());
@@ -467,7 +462,7 @@ void DropDown::mouseMove(wxMouseEvent &event)
         if (hover >= (int) texts.size()) hover = -1;
         if (hover == hover_item) return;
         hover_item = hover;
-        SetToolTip("");
+        if (hover >= 0) SetToolTip(tips[hover]);
     }
     paintNow();
 }
@@ -490,7 +485,7 @@ void DropDown::mouseWheelMoved(wxMouseEvent &event)
     if (hover >= (int) texts.size()) hover = -1;
     if (hover != hover_item) {
         hover_item = hover;
-        if (hover >= 0) SetToolTip(texts[hover]);
+        if (hover >= 0) SetToolTip(tips[hover]);
     }
     paintNow();
 }

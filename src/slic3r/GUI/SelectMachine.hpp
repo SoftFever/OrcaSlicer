@@ -199,15 +199,36 @@ protected:
 #define SELECT_MACHINE_GREY900 wxColour(38, 46, 48)
 #define SELECT_MACHINE_GREY600 wxColour(144,144,144)
 #define SELECT_MACHINE_GREY400 wxColour(206, 206, 206)
-#define SELECT_MACHINE_BRAND wxColour("#009688") // ORCA color
+#define SELECT_MACHINE_BRAND wxColour(0, 150, 136)
 #define SELECT_MACHINE_REMIND wxColour(255,111,0)
-#define SELECT_MACHINE_LIGHT_GREEN wxColour("#BFE1DE") // ORCA: ORCA color with %25 opacity 
+#define SELECT_MACHINE_LIGHT_GREEN wxColour(219, 253, 231)
 
 class MachinePanel
 {
 public:
     wxString mIndex;
     MachineObjectPanel *mPanel;
+};
+
+class PinCodePanel : public wxPanel
+{
+public:
+    PinCodePanel(wxWindow* parent,
+        wxWindowID      winid = wxID_ANY,
+        const wxPoint& pos = wxDefaultPosition,
+        const wxSize& size = wxDefaultSize);
+    ~PinCodePanel() {};
+
+    ScalableBitmap       m_bitmap;
+    bool           m_hover{false};
+
+    void OnPaint(wxPaintEvent& event);
+    void render(wxDC& dc);
+    void doRender(wxDC& dc);
+
+    void on_mouse_enter(wxMouseEvent& evt);
+    void on_mouse_leave(wxMouseEvent& evt);
+    void on_mouse_left_up(wxMouseEvent& evt);
 };
 
 
@@ -232,8 +253,11 @@ public:
 private:
     int                               m_my_devices_count{0};
     int                               m_other_devices_count{0};
+    PinCodePanel*                     m_panel_ping_code{nullptr};
     wxWindow*                         m_placeholder_panel{nullptr};
     wxHyperlinkCtrl*                  m_hyperlink{nullptr};
+    Label*                            m_ping_code_text{nullptr};
+    wxStaticBitmap*                   m_img_ping_code{nullptr};
     wxBoxSizer *                      m_sizer_body{nullptr};
     wxBoxSizer *                      m_sizer_my_devices{nullptr};
     wxBoxSizer *                      m_sizer_other_devices{nullptr};

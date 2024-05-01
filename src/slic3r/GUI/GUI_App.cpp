@@ -3,6 +3,8 @@
 #include "GUI_Init.hpp"
 #include "GUI_ObjectList.hpp"
 #include "GUI_Factories.hpp"
+#include "slic3r/GUI/UserManager.hpp"
+#include "slic3r/GUI/TaskManager.hpp"
 #include "format.hpp"
 #include "libslic3r_version.h"
 
@@ -151,6 +153,7 @@ class MainFrame;
 
 void start_ping_test()
 {
+    return;
     wxArrayString output;
     wxExecute("ping www.amazon.com", output, wxEXEC_NODISABLE);
 
@@ -271,13 +274,8 @@ public:
 
         // init constant texts and scale fonts
         m_constant_text.init(Label::Body_16);
-
-		float f_scale = m_scale * 2;
-
-        //scale_font(m_constant_text.title_font,			f_scale);
-        scale_font(m_constant_text.version_font,		f_scale);
-        scale_font(m_constant_text.based_on_text_font,	f_scale);
-        scale_font(m_constant_text.credits_font,		f_scale);
+        scale_font(m_constant_text.title_font, 2.0f);
+        scale_font(m_constant_text.version_font, 1.2f);
 
         // this font will be used for the action string
         m_action_font = m_constant_text.credits_font;
@@ -296,8 +294,7 @@ public:
             wxMemoryDC memDC;
             memDC.SelectObject(bitmap);
             memDC.SetFont(m_action_font);
-            //memDC.SetTextForeground(StateColor::darkModeColorFor(wxColour(144, 144, 144)));
-            memDC.SetTextForeground(wxColor("#949494"));
+            memDC.SetTextForeground(StateColor::darkModeColorFor(wxColour(144, 144, 144)));
             int width = bitmap.GetWidth();
             int text_height = memDC.GetTextExtent(text).GetHeight();
             int text_width = memDC.GetTextExtent(text).GetWidth();
@@ -318,49 +315,51 @@ public:
         if (!bmp.IsOk())
             return;
 
-		bool is_dark = wxGetApp().app_config->get("dark_color_mode") == "1";
-
         // use a memory DC to draw directly onto the bitmap
-        wxMemoryDC memDC(bmp);
+        wxMemoryDC memDc(bmp);
+
+        int top_margin = FromDIP(75 * m_scale);
+        int width = bmp.GetWidth();
+
+        // draw title and version
+        int text_padding = FromDIP(3 * m_scale);
+        memDc.SetFont(m_constant_text.title_font);
+        int title_height = memDc.GetTextExtent(m_constant_text.title).GetHeight();
+        int title_width = memDc.GetTextExtent(m_constant_text.title).GetWidth();
+        memDc.SetFont(m_constant_text.version_font);
+        int version_height = memDc.GetTextExtent(m_constant_text.version).GetHeight();
+        int version_width = memDc.GetTextExtent(m_constant_text.version).GetWidth();
+        int split_width = (width + title_width - version_width) / 2;
+        wxRect title_rect(wxPoint(0, top_margin), wxPoint(split_width - text_padding, top_margin + title_height));
+        memDc.SetTextForeground(StateColor::darkModeColorFor(wxColour(38, 46, 48)));
+        memDc.SetFont(m_constant_text.title_font);
+        memDc.DrawLabel(m_constant_text.title, title_rect, wxALIGN_RIGHT | wxALIGN_BOTTOM);
+        //BBS align bottom of title and version text
+        wxRect version_rect(wxPoint(split_width + text_padding, top_margin), wxPoint(width, top_margin + title_height - text_padding));
+        memDc.SetFont(m_constant_text.version_font);
+        memDc.SetTextForeground(StateColor::darkModeColorFor(wxColor(134, 134, 134)));
+        memDc.DrawLabel(m_constant_text.version, version_rect, wxALIGN_LEFT | wxALIGN_BOTTOM);
+
+        auto bs_version = wxString::Format("Based on BambuStudio and PrusaSlicer").ToStdString();
+        memDc.SetFont(Label::Body_12);
+        wxSize text_rect = memDc.GetTextExtent(bs_version);
+        int start_x = (title_rect.GetLeft() + version_rect.GetRight()) / 2 - text_rect.GetWidth()/2;
+        int start_y = version_rect.GetBottom() + 10;
+        wxRect internal_sign_rect(wxPoint(start_x, start_y), wxSize(text_rect));
+        memDc.DrawLabel(bs_version, internal_sign_rect, wxALIGN_RIGHT);
 
         // load bitmap for logo
         BitmapCache bmp_cache;
-        int         logo_height = FromDIP(480 * m_scale);
-        int         logo_width  = FromDIP(480 * m_scale);
-        wxBitmap    logo_bmp      = *bmp_cache.load_svg(is_dark ? "splash_logo_dark" : "splash_logo", logo_width, logo_height);
-        memDC.DrawBitmap(logo_bmp, 0, 0, true);
+        int logo_margin = FromDIP(72 * m_scale);
+        int logo_size = FromDIP(122 * m_scale);
+        int logo_width = FromDIP(94 * m_scale);
+        wxBitmap logo_bmp = *bmp_cache.load_svg("splash_logo", logo_size, logo_size);
+        int logo_y = top_margin + title_rect.GetHeight() + logo_margin;
+        memDc.DrawBitmap(logo_bmp, (width - logo_width) / 2, logo_y, true);
 
-        memDC.SetTextForeground(wxColor("#949494"));
-
-        // Version Number
-        memDC.SetFont(m_constant_text.version_font);
-        int version_height = memDC.GetTextExtent(m_constant_text.version).GetHeight();
-        int version_width  = memDC.GetTextExtent(m_constant_text.version).GetWidth();
-        memDC.DrawLabel(
-            m_constant_text.version,
-            wxRect(
-                wxPoint(0, round(logo_height * 0.61)), // TOPLEFT
-                wxPoint(logo_width, round(logo_height * 0.61) + version_width)
-            ),
-            wxALIGN_CENTER
-        );
-
-        // Based on Text
-        memDC.SetFont(m_constant_text.based_on_text_font);
-        int based_on_height = memDC.GetTextExtent(m_constant_text.based_on_text).GetHeight();
-        int based_on_width  = memDC.GetTextExtent(m_constant_text.based_on_text).GetWidth();
-        memDC.DrawLabel(
-            m_constant_text.based_on_text,
-            wxRect(
-                wxPoint(0, logo_height - based_on_height - logo_height / 30),
-                wxPoint(logo_width, logo_height - logo_height / 30)
-            ),
-            wxALIGN_CENTER
-        );
-
-		// calculate position for the dynamic text
-		m_action_line_y_position = round(logo_height * 0.82);
-
+        // calculate position for the dynamic text
+        int text_margin = FromDIP(80 * m_scale);
+        m_action_line_y_position = logo_y + logo_size + text_margin;
     }
 
     static wxBitmap MakeBitmap()
@@ -433,33 +432,28 @@ private:
 
     struct ConstantText
     {
-        //wxString title;
+        wxString title;
         wxString version;
         wxString credits;
-        wxString based_on_text;
 
-        //wxFont   title_font;
+        wxFont   title_font;
         wxFont   version_font;
-        wxFont   based_on_text_font;
         wxFont   credits_font;
 
         void init(wxFont init_font)
         {
             // title
-            //title = wxGetApp().is_editor() ? SLIC3R_APP_FULL_NAME : GCODEVIEWER_APP_NAME;
+            title = wxGetApp().is_editor() ? SLIC3R_APP_FULL_NAME : GCODEVIEWER_APP_NAME;
 
             // dynamically get the version to display
-            version         = GUI_App::format_display_version();//version = _L("V") + " " + GUI_App::format_display_version();
-
-            based_on_text   = _L("Based on ") + "Prusa Slicer & Bamboo Studio";
+            version = _L("V") + " " + GUI_App::format_display_version();
 
             // credits infornation
             credits = "";
 
-            //title_font          = Label::Head_10;
-            version_font        = Label::Body_13;
-            based_on_text_font  = Label::Body_8;
-            credits_font        = Label::Body_8;
+            title_font = Label::Head_16;
+            version_font = Label::Body_16;
+            credits_font = init_font;
         }
     }
     m_constant_text;
@@ -968,7 +962,7 @@ void GUI_App::post_init()
 
     if (app_config->get("stealth_mode") == "false")
         hms_query = new HMSQuery();
-    
+
     m_show_gcode_window = app_config->get_bool("show_gcode_window");
     if (m_networking_need_update) {
         //updating networking
@@ -1608,6 +1602,22 @@ void GUI_App::init_networking_callbacks()
                     return;
                 BOOST_LOG_TRIVIAL(trace) << "static: server connected";
                 m_agent->set_user_selected_machine(m_agent->get_user_selected_machine());
+                    if (this->is_enable_multi_machine()) {
+                        auto evt = new wxCommandEvent(EVT_UPDATE_MACHINE_LIST);
+                        wxQueueEvent(this, evt);
+                    }
+                    m_agent->set_user_selected_machine(m_agent->get_user_selected_machine());
+                    //subscribe device
+                    if (m_agent->is_user_login()) {
+                        m_agent->start_device_subscribe();
+                        /* resubscribe the cache dev list */
+                        if (this->is_enable_multi_machine()) {
+                            DeviceManager* dev = this->getDeviceManager();
+                            if (dev && !dev->subscribe_list_cache.empty()) {
+                                dev->subscribe_device_list(dev->subscribe_list_cache);
+                            }
+                        }
+                    }
                 });
             });
 
@@ -1627,7 +1637,9 @@ void GUI_App::init_networking_callbacks()
                     obj->command_get_version();
                     obj->erase_user_access_code();
                     obj->command_get_access_code();
-                    GUI::wxGetApp().sidebar().load_ams_list(obj->dev_id, obj);
+                    if (!is_enable_multi_machine()) {
+                        GUI::wxGetApp().sidebar().load_ams_list(obj->dev_id, obj);
+                    }
                 }
                 });
             });
@@ -1723,17 +1735,46 @@ void GUI_App::init_networking_callbacks()
                 MachineObject* obj = this->m_device_manager->get_user_machine(dev_id);
                 if (obj) {
                     obj->is_ams_need_update = false;
-                    obj->parse_json(msg);
 
                     auto sel = this->m_device_manager->get_selected_machine();
-                    if ((sel == obj || sel == nullptr) && obj->is_ams_need_update) {
-                        GUI::wxGetApp().sidebar().load_ams_list(obj->dev_id, obj);
+
+                    if (sel && sel->dev_id == dev_id) {
+                        obj->parse_json(msg);
+                    }
+                    else {
+                        obj->parse_json(msg, true);
+                    }
+                    
+
+                    if (!this->is_enable_multi_machine()) {
+                        if ((sel == obj || sel == nullptr) && obj->is_ams_need_update) {
+                            GUI::wxGetApp().sidebar().load_ams_list(obj->dev_id, obj);
+                        }
                     }
                 }
             });
         };
 
         m_agent->set_on_message_fn(message_arrive_fn);
+
+        auto user_message_arrive_fn = [this](std::string user_id, std::string msg) {
+            if (m_is_closing) {
+                return;
+            }
+            CallAfter([this, user_id, msg] {
+                if (m_is_closing)
+                    return;
+
+                //check user
+                if (user_id == m_agent->get_user_id()) {
+                    this->m_user_manager->parse_json(msg);
+                }
+
+            });
+        };
+
+        m_agent->set_on_user_message_fn(user_message_arrive_fn);
+
 
         auto lan_message_arrive_fn = [this](std::string dev_id, std::string msg) {
             if (m_is_closing) {
@@ -1749,10 +1790,14 @@ void GUI_App::init_networking_callbacks()
                 }
 
                 if (obj) {
-                    obj->parse_json(msg);
+                    obj->parse_json(msg, DeviceManager::key_field_only);
                     if (this->m_device_manager->get_selected_machine() == obj && obj->is_ams_need_update) {
                         GUI::wxGetApp().sidebar().load_ams_list(obj->dev_id, obj);
                     }
+                }
+                obj = m_device_manager->get_local_machine(dev_id);
+                if (obj) {
+                    obj->parse_json(msg, DeviceManager::key_field_only);
                 }
                 });
         };
@@ -2061,6 +2106,11 @@ int GUI_App::OnExit()
     if (m_device_manager) {
         delete m_device_manager;
         m_device_manager = nullptr;
+    }
+
+    if (m_user_manager) {
+        delete m_user_manager;
+        m_user_manager = nullptr;
     }
 
     if (m_agent) {
@@ -2411,6 +2461,7 @@ bool GUI_App::on_init_inner()
     preset_bundle->set_default_suppressed(true);
 
     Bind(EVT_SET_SELECTED_MACHINE, &GUI_App::on_set_selected_machine, this);
+    Bind(EVT_UPDATE_MACHINE_LIST, &GUI_App::on_update_machine_list, this);
     Bind(EVT_USER_LOGIN, &GUI_App::on_user_login, this);
     Bind(EVT_USER_LOGIN_HANDLE, &GUI_App::on_user_login_handle, this);
     Bind(EVT_CHECK_PRIVACY_VER, &GUI_App::on_check_privacy_update, this);
@@ -2733,6 +2784,22 @@ __retry:
         else
             m_device_manager->set_agent(m_agent);
 
+        if (!m_user_manager)
+            m_user_manager = new Slic3r::UserManager(m_agent);
+        else
+            m_user_manager->set_agent(m_agent);
+
+        if (this->is_enable_multi_machine()) {
+            if (!m_task_manager) {
+                m_task_manager = new Slic3r::TaskManager(m_agent);
+                m_task_manager->start();
+            }
+            m_agent->enable_multi_machine(true);
+            DeviceManager::EnableMultiMachine = true;
+        } else {
+            m_agent->enable_multi_machine(false);
+            DeviceManager::EnableMultiMachine = false;
+        }
 
         //BBS set config dir
         if (m_agent) {
@@ -2762,6 +2829,9 @@ __retry:
 
         if (!m_device_manager)
             m_device_manager = new Slic3r::DeviceManager();
+
+        if (!m_user_manager)
+            m_user_manager = new Slic3r::UserManager();
     }
 
     return true;
@@ -2816,11 +2886,10 @@ void GUI_App::init_label_colours()
     m_color_label_modified = is_dark_mode ? wxColour("#F1754E") : wxColour("#F1754E");
     m_color_label_sys      = is_dark_mode ? wxColour("#B2B3B5") : wxColour("#363636");
 
-#ifdef _WIN32
+#if defined(_WIN32) || defined(__linux__) || defined(__APPLE__)
     m_color_label_default           = is_dark_mode ? wxColour(250, 250, 250) : m_color_label_sys; // wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
     m_color_highlight_label_default = is_dark_mode ? wxColour(230, 230, 230): wxSystemSettings::GetColour(/*wxSYS_COLOUR_HIGHLIGHTTEXT*/wxSYS_COLOUR_WINDOWTEXT);
-    //m_color_highlight_default       = is_dark_mode ? wxColour(78, 78, 78)   : wxSystemSettings::GetColour(wxSYS_COLOUR_3DLIGHT);
-    m_color_highlight_default       = is_dark_mode ? wxColour("#333337") : wxColour("#F2F2F2");
+    m_color_highlight_default       = is_dark_mode ? wxColour(78, 78, 78)   : wxSystemSettings::GetColour(wxSYS_COLOUR_3DLIGHT);
     m_color_hovered_btn_label       = is_dark_mode ? wxColour(255, 255, 254) : wxColour(0,0,0);
     m_color_default_btn_label       = is_dark_mode ? wxColour(255, 255, 254): wxColour(0,0,0);
     m_color_selected_btn_bg         = is_dark_mode ? wxColour(84, 84, 91)   : wxColour(206, 206, 206);
@@ -2930,22 +2999,38 @@ void GUI_App::UpdateDarkUI(wxWindow* window, bool highlited/* = false*/, bool ju
 
     /*if (m_is_dark_mode != dark_mode() )
         m_is_dark_mode = dark_mode();*/
-    
 
     if (m_is_dark_mode) {
-        auto original_col = window->GetBackgroundColour();
-        auto bg_col = StateColor::darkModeColorFor(original_col);
 
-        if (bg_col != original_col) {
+        auto orig_col = window->GetBackgroundColour();
+        auto bg_col = StateColor::darkModeColorFor(orig_col);
+        // there are cases where the background color of an item is bright, specifically:
+        // * the background color of a button: #009688  -- 73
+        if (bg_col != orig_col) {
             window->SetBackgroundColour(bg_col);
         }
 
-        original_col = window->GetForegroundColour();
-        auto fg_col = StateColor::darkModeColorFor(original_col);
+        orig_col = window->GetForegroundColour();
+        auto fg_col = StateColor::darkModeColorFor(orig_col);
+        auto fg_l = StateColor::GetLightness(fg_col);
 
-        if (fg_col != original_col) {
-            window->SetForegroundColour(fg_col);
+        auto color_difference = StateColor::GetColorDifference(bg_col, fg_col);
+
+        // fallback and sanity check with LAB
+        // color difference of less than 2 or 3 is not normally visible, and even less than 30-40 doesn't stand out
+        if (color_difference < 10) {
+            fg_col = StateColor::SetLightness(fg_col, 90);
         }
+        // some of the stock colors have a lightness of ~49
+        if (fg_l < 45) {
+            fg_col = StateColor::SetLightness(fg_col, 70);
+        }
+        // at this point it shouldn't be possible that fg_col is the same as bg_col, but let's be safe
+        if (fg_col == bg_col) {
+            fg_col = StateColor::SetLightness(fg_col, 70);
+        }
+
+        window->SetForegroundColour(fg_col);
     }
     else {
         auto original_col = window->GetBackgroundColour();
@@ -3788,6 +3873,21 @@ std::string GUI_App::handle_web_request(std::string cmd)
                 if (path.has_value()) {
                     wxLaunchDefaultBrowser(path.value());
                 }
+            } 
+            else if (command_str.compare("homepage_makerlab_get") == 0) {
+                //if (mainframe->m_webview) { mainframe->m_webview->SendMakerlabList(); }
+            }
+            else if (command_str.compare("makerworld_model_open") == 0) 
+            {
+                if (root.get_child_optional("model") != boost::none) {
+                    pt::ptree                    data_node = root.get_child("model");
+                    boost::optional<std::string> path      = data_node.get_optional<std::string>("url");
+                    if (path.has_value()) 
+                    { 
+                        wxString realurl = from_u8(url_decode(path.value()));
+                        wxGetApp().request_model_download(realurl);
+                    }
+                }
             }
         }
     }
@@ -3901,7 +4001,7 @@ void GUI_App::on_http_error(wxCommandEvent &evt)
         MessageDialog msg_dlg(nullptr, _L("The version of Orca Slicer is too low and needs to be updated to the latest version before it can be used normally"), "", wxAPPLY | wxOK);
         if (msg_dlg.ShowModal() == wxOK) {
         }
-       
+
     }
 
     // request login
@@ -3941,9 +4041,17 @@ void GUI_App::enable_user_preset_folder(bool enable)
 void GUI_App::on_set_selected_machine(wxCommandEvent &evt)
 {
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-    if (!dev || m_agent) return;
+    if (dev) {
+        dev->set_selected_machine(m_agent->get_user_selected_machine());
+    }
+}
 
-    dev->set_selected_machine(m_agent->get_user_selected_machine());
+void GUI_App::on_update_machine_list(wxCommandEvent &evt)
+{
+    /* DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+     if (dev) {
+         dev->add_user_subscribe();
+     }*/
 }
 
 void GUI_App::on_user_login_handle(wxCommandEvent &evt)
@@ -4377,6 +4485,24 @@ std::string GUI_App::format_display_version()
     return version_display;
 }
 
+std::string GUI_App::format_IP(const std::string& ip)
+{
+    std::string format_ip = ip;
+    size_t pos_st = 0;
+    size_t pos_en = 0;
+
+    for (int i = 0; i < 2; i++) {
+        pos_en = format_ip.find('.', pos_st + 1);
+        if (pos_en == std::string::npos) {
+            return ip;
+        }
+        format_ip.replace(pos_st, pos_en - pos_st, "***");
+        pos_st = pos_en + 1;
+    }
+
+    return format_ip;
+}
+
 void GUI_App::show_dialog(wxString msg)
 {
     if (m_info_dialog_content.empty()) {
@@ -4384,6 +4510,26 @@ void GUI_App::show_dialog(wxString msg)
         evt->SetString(msg);
         GUI::wxGetApp().QueueEvent(evt);
         m_info_dialog_content = msg;
+    }
+}
+
+void  GUI_App::push_notification(wxString msg, wxString title, UserNotificationStyle style)
+{
+    if (!this->is_enable_multi_machine()) {
+        if (style == UserNotificationStyle::UNS_NORMAL) {
+            if (m_info_dialog_content.empty()) {
+                wxCommandEvent* evt = new wxCommandEvent(EVT_SHOW_DIALOG);
+                evt->SetString(msg);
+                GUI::wxGetApp().QueueEvent(evt);
+                m_info_dialog_content = msg;
+            }
+        }
+        else if (style == UserNotificationStyle::UNS_WARNING_CONFIRM) {
+            GUI::wxGetApp().CallAfter([msg, title] {
+                GUI::MessageDialog msg_dlg(nullptr, msg, title, wxICON_WARNING | wxOK);
+                msg_dlg.ShowModal();
+            });
+        }
     }
 }
 
@@ -5957,6 +6103,25 @@ std::string GUI_App::url_decode(std::string value) {
 std::string GUI_App::url_encode(std::string value) {
     return Http::url_encode(value);
 }
+
+void GUI_App::popup_ping_bind_dialog()
+{
+    if (m_ping_code_binding_dialog == nullptr) {
+        m_ping_code_binding_dialog = new PingCodeBindDialog();
+        m_ping_code_binding_dialog->ShowModal();
+        remove_ping_bind_dialog();
+    }
+}
+
+void GUI_App::remove_ping_bind_dialog()
+{
+    if (m_ping_code_binding_dialog != nullptr) {
+        m_ping_code_binding_dialog->Destroy();
+        delete m_mall_publish_dialog;
+        m_ping_code_binding_dialog = nullptr;
+    }
+}
+
 
 void GUI_App::remove_mall_system_dialog()
 {

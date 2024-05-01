@@ -73,7 +73,7 @@ EditGCodeDialog::EditGCodeDialog(wxWindow* parent, const std::string& key, const
     wxGetApp().UpdateDarkUI(m_params_list);
     param_sizer->Add(m_params_list, 0, wxEXPAND | wxALL, border);
 
-    m_add_btn = new ScalableButton(this, wxID_ANY, "add");
+    m_add_btn = new ScalableButton(this, wxID_ANY, "add_copies");
     m_add_btn->SetToolTip(_L("Add selected placeholder to G-code"));
 
     m_gcode_editor = new wxTextCtrl(this, wxID_ANY, value, wxDefaultPosition, wxSize(em * 75, em * 70), wxTE_MULTILINE
@@ -215,7 +215,7 @@ void EditGCodeDialog::init_params_list(const std::string& custom_gcode_name)
         // Add timestamp subgroup
 
         if (!cgp_timestamps_config_def.empty()) {
-            wxDataViewItem dimensions = m_params_list->AppendGroup(_L("Timestamps"), "custom-gcode_time");
+            wxDataViewItem dimensions = m_params_list->AppendGroup(_L("Timestamps"), "print-time");
             for (const auto& [opt_key, def] : cgp_timestamps_config_def.options)
                 m_params_list->AppendParam(dimensions, get_type(opt_key, def), opt_key);
         }
@@ -271,15 +271,7 @@ wxDataViewItem EditGCodeDialog::add_presets_placeholders()
     auto init_from_tab = [this, full_config](wxDataViewItem parent, Tab* tab, const set<string>& preset_keys){
         set extra_keys(preset_keys);
         for (const auto& page : tab->m_pages) {
-            // Pulls icons from tab images for subgroups, images on tabs already hidden
-            std::string icon_name = "empty";
-            for (const auto& icons_list : tab->m_icon_index) {
-                if (icons_list.second == page->iconID()) {
-                    icon_name = icons_list.first;
-                    break;
-                }
-            }
-            wxDataViewItem        subgroup = m_params_list->AppendSubGroup(parent, page->title(), icon_name);
+            wxDataViewItem subgroup = m_params_list->AppendSubGroup(parent, page->title(), "empty");
             std::set<std::string> opt_keys;
             for (const auto& optgroup : page->m_optgroups)
                 for (const auto& opt : optgroup->opt_map())
@@ -298,7 +290,7 @@ wxDataViewItem EditGCodeDialog::add_presets_placeholders()
 
     wxDataViewItem group = m_params_list->AppendGroup(_L("Presets"), "cog");
 
-    wxDataViewItem print = m_params_list->AppendSubGroup(group, _L("Print settings"), "process");
+    wxDataViewItem print = m_params_list->AppendSubGroup(group, _L("Print settings"), "cog");
     init_from_tab(print, tab_print, print_options);
 
     wxDataViewItem material = m_params_list->AppendSubGroup(group, _(is_fff ? L("Filament settings") : L("SLA Materials settings")), is_fff ? "filament" : "resin");
@@ -445,10 +437,56 @@ wxBoxSizer* EditGCodeDialog::create_btn_sizer(long flags)
     auto btn_sizer = new wxBoxSizer(wxHORIZONTAL);
     btn_sizer->AddStretchSpacer();
 
+    StateColor ok_btn_bg(
+        std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
+        std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
+        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal)
+    );
+
+    StateColor ok_btn_bd(
+        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal)
+    );
+
+    StateColor ok_btn_text(
+        std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Normal)
+    );
+
+    StateColor cancel_btn_bg(
+        std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed),
+        std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
+        std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal)
+    );
+
+    StateColor cancel_btn_bd_(
+        std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Normal)
+    );
+
+    StateColor cancel_btn_text(
+        std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Normal)
+    );
+
+
+    StateColor calc_btn_bg(
+        std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
+        std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
+        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal)
+    );
+
+    StateColor calc_btn_bd(
+        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal)
+    );
+
+    StateColor calc_btn_text(
+        std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Normal)
+    );
+
     if (flags & wxOK) {
         Button* ok_btn = new Button(this, _L("OK"));
         ok_btn->SetMinSize(BTN_SIZE);
-        ok_btn->SetStyleConfirm(Label::Body_14); // ORCA match button style
+        ok_btn->SetCornerRadius(FromDIP(12));
+        ok_btn->SetBackgroundColor(ok_btn_bg);
+        ok_btn->SetBorderColor(ok_btn_bd);
+        ok_btn->SetTextColor(ok_btn_text);
         ok_btn->SetFocus();
         ok_btn->SetId(wxID_OK);
         btn_sizer->Add(ok_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, BTN_GAP);
@@ -457,7 +495,10 @@ wxBoxSizer* EditGCodeDialog::create_btn_sizer(long flags)
     if (flags & wxCANCEL) {
         Button* cancel_btn = new Button(this, _L("Cancel"));
         cancel_btn->SetMinSize(BTN_SIZE);
-        cancel_btn->SetStyleDefault(Label::Body_14); // ORCA match button style
+        cancel_btn->SetCornerRadius(FromDIP(12));
+        cancel_btn->SetBackgroundColor(cancel_btn_bg);
+        cancel_btn->SetBorderColor(cancel_btn_bd_);
+        cancel_btn->SetTextColor(cancel_btn_text);
         cancel_btn->SetId(wxID_CANCEL);
         btn_sizer->Add(cancel_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, BTN_GAP / 2);
         m_button_list[wxCANCEL] = cancel_btn;

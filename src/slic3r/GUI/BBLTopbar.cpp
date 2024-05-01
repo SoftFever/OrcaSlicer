@@ -132,38 +132,31 @@ void BBLTopbarArt::DrawButton(wxDC& dc, wxWindow* wnd, const wxAuiToolBarItem& i
 
     if (!(item.GetState() & wxAUI_BUTTON_STATE_DISABLED))
     {
-        // ORCA: Changes
-        // Used same color for border and fill color for more modern look
-
-        const wxColour& OrcaColor = wxColour(0, 150, 136, 1);
-
         if (item.GetState() & wxAUI_BUTTON_STATE_PRESSED)
         {
-            dc.SetPen(wxPen(OrcaColor.ChangeLightness(75)));
-            dc.SetBrush(wxBrush(OrcaColor.ChangeLightness(75)));
-            dc.DrawRoundedRectangle(rect,2);
+            dc.SetPen(wxPen(m_highlightColour));
+            dc.SetBrush(wxBrush(m_highlightColour.ChangeLightness(20)));
+            dc.DrawRectangle(rect);
         }
         else if ((item.GetState() & wxAUI_BUTTON_STATE_HOVER) || item.IsSticky())
         {
-            dc.SetPen(wxPen(OrcaColor.ChangeLightness(75)));
-            dc.SetBrush(wxBrush(OrcaColor.ChangeLightness(75)));
+            dc.SetPen(wxPen(m_highlightColour));
+            dc.SetBrush(wxBrush(m_highlightColour.ChangeLightness(40)));
 
             // draw an even lighter background for checked item hovers (since
             // the hover background is the same color as the check background)
-            if (item.GetState() & wxAUI_BUTTON_STATE_CHECKED) {
-                dc.SetPen(wxPen(OrcaColor.ChangeLightness(75)));
-                dc.SetBrush(wxBrush(OrcaColor.ChangeLightness(75)));
-            }
+            if (item.GetState() & wxAUI_BUTTON_STATE_CHECKED)
+                dc.SetBrush(wxBrush(m_highlightColour.ChangeLightness(50)));
 
-            dc.DrawRoundedRectangle(rect, 2);
+            dc.DrawRectangle(rect);
         }
         else if (item.GetState() & wxAUI_BUTTON_STATE_CHECKED)
         {
             // it's important to put this code in an else statement after the
             // hover, otherwise hovers won't draw properly for checked items
-            dc.SetPen(wxPen(OrcaColor.ChangeLightness(75)));
-            dc.SetBrush(wxBrush(OrcaColor.ChangeLightness(75)));
-            dc.DrawRoundedRectangle(rect, 2);
+            dc.SetPen(wxPen(m_highlightColour));
+            dc.SetBrush(wxBrush(m_highlightColour.ChangeLightness(40)));
+            dc.DrawRectangle(rect);
         }
     }
 
@@ -216,19 +209,16 @@ void BBLTopbar::Init(wxFrame* parent)
     logo_item->SetHoverBitmap(logo_bitmap);
     logo_item->SetActive(false);*/
 
-    //wxBitmap file_bitmap = create_scaled_bitmap("topbar_file", nullptr, TOPBAR_ICON_SIZE);
-    //m_file_menu_item = this->AddTool(ID_TOP_FILE_MENU, _L("File"), file_bitmap, wxEmptyString, wxITEM_NORMAL);
-    wxBitmap empty_icon = create_scaled_bitmap("topbar_blank", nullptr, 1);
-    m_file_menu_item    = this->AddTool(ID_TOP_FILE_MENU, _L("File"), empty_icon, wxEmptyString, wxITEM_NORMAL);
+    wxBitmap file_bitmap = create_scaled_bitmap("topbar_file", nullptr, TOPBAR_ICON_SIZE);
+    m_file_menu_item = this->AddTool(ID_TOP_FILE_MENU, _L("File"), file_bitmap, wxEmptyString, wxITEM_NORMAL);
 
     this->SetForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_HIGHLIGHTTEXT));
 
     this->AddSpacer(FromDIP(5));
 
-    //wxBitmap dropdown_bitmap = create_scaled_bitmap("topbar_dropdown", nullptr, TOPBAR_ICON_SIZE);
-    //m_dropdown_menu_item = this->AddTool(ID_TOP_DROPDOWN_MENU, "", dropdown_bitmap, wxEmptyString);
-
-    m_dropdown_menu_item = this->AddTool(ID_TOP_DROPDOWN_MENU, _L("More"), empty_icon, wxEmptyString, wxITEM_NORMAL);
+    wxBitmap dropdown_bitmap = create_scaled_bitmap("topbar_dropdown", nullptr, TOPBAR_ICON_SIZE);
+    m_dropdown_menu_item = this->AddTool(ID_TOP_DROPDOWN_MENU, "",
+        dropdown_bitmap, wxEmptyString);
 
     this->AddSpacer(FromDIP(5));
     this->AddSeparator();
@@ -482,11 +472,11 @@ void BBLTopbar::Rescale() {
     /*item = this->FindTool(ID_LOGO);
     item->SetBitmap(create_scaled_bitmap("topbar_logo", nullptr, TOPBAR_ICON_SIZE));*/
 
-    //item = this->FindTool(ID_TOP_FILE_MENU);
-    //item->SetBitmap(create_scaled_bitmap("topbar_file", this, TOPBAR_ICON_SIZE));
+    item = this->FindTool(ID_TOP_FILE_MENU);
+    item->SetBitmap(create_scaled_bitmap("topbar_file", this, TOPBAR_ICON_SIZE));
 
-    //item = this->FindTool(ID_TOP_DROPDOWN_MENU);
-    //item->SetBitmap(create_scaled_bitmap("topbar_dropdown", this, TOPBAR_ICON_SIZE));
+    item = this->FindTool(ID_TOP_DROPDOWN_MENU);
+    item->SetBitmap(create_scaled_bitmap("topbar_dropdown", this, TOPBAR_ICON_SIZE));
 
     //item = this->FindTool(wxID_OPEN);
     //item->SetBitmap(create_scaled_bitmap("topbar_open", nullptr, TOPBAR_ICON_SIZE));

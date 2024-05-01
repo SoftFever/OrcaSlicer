@@ -200,197 +200,145 @@ void GLGizmoMeshBoolean::on_render_input_window(float x, float y, float bottom_l
     GizmoImguiSetNextWIndowPos(x, y, ImGuiCond_Always, 0.0f, 0.0f);
     GizmoImguiBegin("MeshBoolean", ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
 
-	/*
     const int max_tab_length = 2 * ImGui::GetStyle().FramePadding.x + std::max(ImGui::CalcTextSize(_u8L("Union").c_str()).x,
         std::max(ImGui::CalcTextSize(_u8L("Difference").c_str()).x, ImGui::CalcTextSize(_u8L("Intersection").c_str()).x));
-	const int max_cap_length = ImGui::GetStyle().WindowPadding.x + ImGui::GetStyle().ItemSpacing.x +
+    const int max_cap_length = ImGui::GetStyle().WindowPadding.x + ImGui::GetStyle().ItemSpacing.x +
                                std::max({ImGui::CalcTextSize(_u8L("Source Volume").c_str()).x,
                                          ImGui::CalcTextSize(_u8L("Tool Volume").c_str()).x,
                                          ImGui::CalcTextSize(_u8L("Subtract from").c_str()).x,
                                          ImGui::CalcTextSize(_u8L("Subtract with").c_str()).x});
-	*/
 
-	// ORCA match tab style
-    auto tab_button = [this](const wchar_t icon, bool selected, ImVec2 size, ImVec2 tab_padding, const std::string& tooltip) {
+    const int select_btn_length = 2 * ImGui::GetStyle().FramePadding.x + std::max(ImGui::CalcTextSize(("1 " + _u8L("selected")).c_str()).x, ImGui::CalcTextSize(_u8L("Select").c_str()).x);
 
-		std::string  str_label = std::string("");
-        std::wstring btn_name  = icon + boost::nowide::widen(str_label);
+    auto selectable = [this](const std::string& label, bool selected, const ImVec2& size_arg) {
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0,0 });
 
-        ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0);
-        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, tab_padding);
-		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4); // ORCA: increased radius to match button shape with Filament color buttons
-		ImGui::PushStyleColor(ImGuiCol_Button, 
-			selected
-			? ImVec4(0.f, 0.59f, 0.53f, 0.25f)  // ORCA: ORCA color with opacity
-			: ImVec4(0.f, 0.f, 0.f, 0.f)		// ORCA: Transparent color
-		);
-		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, 
-			selected 
-			? ImVec4(0.f, 0.59f, 0.53f, 0.35f)  // ORCA: ORCA color with opacity
-			: ImVec4(0.5f, 0.5f, 0.5f, 0.2f)    // ORCA: Slightly visible grey. works with both dark and light theme
-		);
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.f, 0.59f, 0.53f, 0.5f)); // ORCA: ORCA color with opacity
+        ImGuiWindow* window = ImGui::GetCurrentWindow();
+        const ImVec2 label_size = ImGui::CalcTextSize(label.c_str(), NULL, true);
+        ImVec2 pos = window->DC.CursorPos;
+        ImVec2 size = ImGui::CalcItemSize(size_arg, label_size.x + ImGui::GetStyle().FramePadding.x * 2.0f, label_size.y + ImGui::GetStyle().FramePadding.y * 2.0f);
+        bool hovered = ImGui::IsMouseHoveringRect(pos, pos + size);
 
-        bool res = ImGui::BBLButton(into_u8(btn_name).c_str(), size);
-        if (ImGui::IsItemHovered()) {
-            m_imgui->tooltip(tooltip, 999);
+        if (selected || hovered) {
+            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.0f));
+            ImGui::PushStyleColor(ImGuiCol_Button, { 0, 150.0f / 255.0f, 136.0f / 255.0f, 1.0f });
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, { 0, 150.0f / 255.0f, 136.0f / 255.0f, 1.0f });
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, { 0, 150.0f / 255.0f, 136.0f / 255.0f, 1.0f });
         }
-        ImGui::PopStyleColor(3);
-        ImGui::PopStyleVar(3);
-        return res;
-    };
+        else {
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, { 0, 150.0f / 255.0f, 136.0f / 255.0f, 1.0f });
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, { 0, 150.0f / 255.0f, 136.0f / 255.0f, 1.0f });
+        }
 
-	auto selectable = [this](const std::string& label, bool selected) {
+        bool res = ImGui::Button(label.c_str(), size_arg);
 
-		if (selected)
-            ImGuiWrapper::push_confirm_button_style(); // ORCA Match button style
-		else
-            ImGuiWrapper::push_default_button_style(); // ORCA Match button style
+        if (selected || hovered) {
+            ImGui::PopStyleColor(4);
+        }
+        else {
+            ImGui::PopStyleColor(2);
+        }
 
-		const int btn_width = std::max(ImGui::CalcTextSize(("1 " + _u8L("selected")).c_str()).x, ImGui::CalcTextSize(_u8L("Select").c_str()).x) + ImGui::GetStyle().FramePadding.x * 2;
-        const int btn_height = ImGui::CalcTextSize(label.c_str(), NULL, true).y + ImGui::GetStyle().FramePadding.y * 2; 
-
-        bool res = ImGui::Button(label.c_str(), ImVec2(btn_width, btn_height));
-
-		if (selected)
-            ImGuiWrapper::pop_confirm_button_style(); // ORCA Match button style
-		else
-            ImGuiWrapper::pop_default_button_style(); // ORCA Match button style
-        return res;
-    };
-
-    auto operate_button = [this](const wxString &label, bool enable) {
-		ImGuiWrapper::push_confirm_button_style(); 
-        if (!enable) ImGuiWrapper::push_button_disable_style();
-        bool res = m_imgui->button(label.c_str());
-        if (!enable) ImGuiWrapper::pop_button_disable_style();
-        ImGuiWrapper::pop_confirm_button_style();
-        return res;
-    };
-
-	auto type_icon = [this](const wchar_t icon) {
-        const ImGuiStyle& style = ImGui::GetStyle();
-		ImGui::PushStyleColor(ImGuiCol_Button, {0.f, 0.f, 0.f, 0.f});
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, {0.f, 0.f, 0.f, 0.f});
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, {0.f, 0.f, 0.f, 0.f});
-        ImGui::PushStyleColor(ImGuiCol_Border, {0.f, 0.f, 0.f, 0.f});
-        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {0, style.FramePadding.y});
-        bool res = ImGui::Button(into_u8(icon).c_str());
-        ImGui::PopStyleColor(4);
         ImGui::PopStyleVar(1);
         return res;
     };
 
-	ImDrawList* draw_list = ImGui::GetWindowDrawList();
-    const ImGuiStyle& style = ImGui::GetStyle();
-    int window_width = ImGui::GetWindowSize().x - style.WindowPadding.x * 2;
-    ImVec2 post = ImGui::GetCursorScreenPos();
-	int     tab_count           = 3;
-    ImVec2  tab_icon_size       = ImVec2{16, 16};
-    ImVec2  tab_padding         = ImVec2{8, 6};
-    ImVec2  tab_size            = ImVec2{tab_icon_size.x + tab_padding.x * 2, tab_icon_size.y + tab_padding.y * 2};
-    int     tab_frame_padding   = 2;
-    int     tab_rounding        = 4;
-    ImVec2  tab_frame_offset    = ImVec2{0,0}; // use -7 for y if it has title. use -2 to align buttons instead of frame while using left aligned layout
+    auto operate_button = [this](const wxString &label, bool enable) {
+        if (!enable) {
+            ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+            if (m_is_dark_mode) {
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(39.0f / 255.0f, 39.0f / 255.0f, 39.0f / 255.0f, 1.0f));
+                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(108.0f / 255.0f, 108.0f / 255.0f, 108.0f / 255.0f, 1.0f));
+            }
+            else {
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(230.0f / 255.0f, 230.0f / 255.0f, 230.0f / 255.0f, 1.0f));
+                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(163.0f / 255.0f, 163.0f / 255.0f, 163.0f / 255.0f, 1.0f));
+            }
+        }
 
-	int offset = (window_width - (tab_size.x * tab_count + tab_frame_padding * 2)) / 2; // ORCA center tabs horizontally
+        bool res = m_imgui->button(label.c_str());
 
-	draw_list->AddRectFilled(
-        {post.x + offset + tab_frame_offset.x, post.y + tab_frame_offset.y},
-        {post.x + offset + (tab_count * tab_size.x) + (tab_frame_padding * 2) + tab_frame_offset.x, post.y + tab_size.y + (tab_frame_padding * 2) + tab_frame_offset.y},
-        ImGui::GetColorU32(ImGuiCol_FrameBgActive, 1.0f),
-        tab_frame_padding + tab_rounding
-    );
-    ImGui::SetCursorScreenPos({post.x + offset + tab_frame_offset.x + tab_frame_padding, post.y + tab_frame_offset.y + tab_frame_padding});
+        if (!enable) {
+            ImGui::PopItemFlag();
+            ImGui::PopStyleColor(2);
+        }
+        return res;
+    };
 
-    if (tab_button(
-		m_is_dark_mode ? ImGui::MeshBooleanUnionDark : ImGui::MeshBooleanUnion, 
-		m_operation_mode == MeshBooleanOperation::Union,
-        tab_size,
-		tab_padding,
-        _u8L("Union")
-	)){
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0);
+    if (selectable(_u8L("Union"), m_operation_mode == MeshBooleanOperation::Union, ImVec2(max_tab_length, 0.0f))) {
         m_operation_mode = MeshBooleanOperation::Union;
     }
     ImGui::SameLine(0, 0);
-    if (tab_button(
-		m_is_dark_mode ? ImGui::MeshBooleanDifferenceDark : ImGui::MeshBooleanDifference,
-		m_operation_mode == MeshBooleanOperation::Difference,
-		tab_size,
-		tab_padding,
-		_u8L("Difference")
-	)){
+    if (selectable(_u8L("Difference"), m_operation_mode == MeshBooleanOperation::Difference, ImVec2(max_tab_length, 0.0f))) {
         m_operation_mode = MeshBooleanOperation::Difference;
     }
     ImGui::SameLine(0, 0);
-    if (tab_button(
-		m_is_dark_mode ? ImGui::MeshBooleanIntersectionDark : ImGui::MeshBooleanIntersection,
-		m_operation_mode == MeshBooleanOperation::Intersection,
-		tab_size,
-		tab_padding,
-		_u8L("Intersection")
-	)){
+    if (selectable(_u8L("Intersection"), m_operation_mode == MeshBooleanOperation::Intersection, ImVec2(max_tab_length, 0.0f))) {
         m_operation_mode = MeshBooleanOperation::Intersection;
     }
+    ImGui::PopStyleVar();
 
-    bool cond   = m_operation_mode == MeshBooleanOperation::Difference;
-    auto type_a = type_icon(cond ? ImGui::MeshBooleanKeep : ImGui::MeshBooleanA);
-    if (ImGui::IsItemHovered()) {
-        m_imgui->tooltip(cond ? _u8L("Subtract from") : _u8L("Part 1"),999);
-    }
-    ImGui::SameLine();
+    ImGui::AlignTextToFramePadding();
+    std::string cap_str1 = m_operation_mode != MeshBooleanOperation::Difference ? _u8L("Part 1") : _u8L("Subtract from");
+    m_imgui->text(cap_str1);
+    ImGui::SameLine(max_cap_length);
     std::string select_src_str = m_src.mv ? "1 " + _u8L("selected") : _u8L("Select");
     select_src_str += "##select_source_volume";
-    if (selectable(select_src_str, m_selecting_state == MeshBooleanSelectingState::SelectSource))
+    ImGui::PushItemWidth(select_btn_length);
+    if (selectable(select_src_str, m_selecting_state == MeshBooleanSelectingState::SelectSource, ImVec2(select_btn_length, 0)))
         m_selecting_state = MeshBooleanSelectingState::SelectSource;
+    ImGui::PopItemWidth();
     if (m_src.mv) {
-        ImGui::SameLine(0,4); // ORCA place delete button before text
+        ImGui::SameLine();
+        ImGui::AlignTextToFramePadding();
+        m_imgui->text(m_src.mv->name);
+
+        ImGui::SameLine();
         ImGui::PushStyleColor(ImGuiCol_Button, { 0, 0, 0, 0 });
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImGui::GetStyleColorVec4(ImGuiCol_Button));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGui::GetStyleColorVec4(ImGuiCol_Button));
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGui::GetStyleColorVec4(ImGuiCol_Button));
         ImGui::PushStyleColor(ImGuiCol_Border, { 0, 0, 0, 0 });
         if (ImGui::Button((into_u8(ImGui::TextSearchCloseIcon) + "##src").c_str(), {18, 18}))
         {
             m_src.reset();
         }
-        ImGui::PopStyleColor(4);
-    }
-    if (m_src.mv) { // ORCA use with separate condition otherwise it will crash
-        ImGui::SameLine();
-        ImGui::AlignTextToFramePadding();
-        m_imgui->text(m_src.mv->name);
+        ImGui::PopStyleColor(5);
     }
 
-	type_icon(m_operation_mode == MeshBooleanOperation::Difference ? ImGui::MeshBooleanSubtract : ImGui::MeshBooleanB);
-    if (ImGui::IsItemHovered()) {
-        m_imgui->tooltip(cond ? _u8L("Subtract with") : _u8L("Part 2"), 999);
-    }
-    ImGui::SameLine();
+    ImGui::AlignTextToFramePadding();
+    std::string cap_str2 = m_operation_mode != MeshBooleanOperation::Difference ? _u8L("Part 2") : _u8L("Subtract with");
+    m_imgui->text(cap_str2);
+    ImGui::SameLine(max_cap_length);
     std::string select_tool_str = m_tool.mv ? "1 " + _u8L("selected") : _u8L("Select");
     select_tool_str += "##select_tool_volume";
-    if (selectable(select_tool_str, m_selecting_state == MeshBooleanSelectingState::SelectTool))
+    ImGui::PushItemWidth(select_btn_length);
+    if (selectable(select_tool_str, m_selecting_state == MeshBooleanSelectingState::SelectTool, ImVec2(select_btn_length, 0)))
         m_selecting_state = MeshBooleanSelectingState::SelectTool;
+    ImGui::PopItemWidth();
     if (m_tool.mv) {
-        ImGui::SameLine(0,4); // ORCA place delete button before text
-        ImGui::PushStyleColor(ImGuiCol_Button, {0, 0, 0, 0});
+        ImGui::SameLine();
+        ImGui::AlignTextToFramePadding();
+        m_imgui->text(m_tool.mv->name);
+
+        ImGui::SameLine();
+        ImGui::PushStyleColor(ImGuiCol_Button, { 0, 0, 0, 0 });
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImGui::GetStyleColorVec4(ImGuiCol_Button));
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGui::GetStyleColorVec4(ImGuiCol_Button));
-        ImGui::PushStyleColor(ImGuiCol_Border, {0, 0, 0, 0});
-        if (ImGui::Button((into_u8(ImGui::TextSearchCloseIcon) + "tool").c_str(), {18, 18})) {
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGui::GetStyleColorVec4(ImGuiCol_Button));
+        ImGui::PushStyleColor(ImGuiCol_Border, { 0, 0, 0, 0 });
+        if (ImGui::Button((into_u8(ImGui::TextSearchCloseIcon) + "tool").c_str(), {18, 18}))
+        {
             m_tool.reset();
         }
-        ImGui::PopStyleColor(4);
-    }
-    if (m_tool.mv) { // ORCA use with separate condition otherwise it will crash
-		ImGui::SameLine();
-		ImGui::AlignTextToFramePadding();
-		m_imgui->text(m_tool.mv->name);
+        ImGui::PopStyleColor(5);
     }
 
     bool enable_button = m_src.mv && m_tool.mv;
     if (m_operation_mode == MeshBooleanOperation::Union)
     {
-        if (operate_button(_L("Apply") + "##btn", enable_button)) { // ORCA use same button name to reduce size changes switching between modes
+        if (operate_button(_L("Union") + "##btn", enable_button)) {
             TriangleMesh temp_src_mesh = m_src.mv->mesh();
             temp_src_mesh.transform(m_src.trafo);
             TriangleMesh temp_tool_mesh = m_tool.mv->mesh();
@@ -407,7 +355,8 @@ void GLGizmoMeshBoolean::on_render_input_window(float x, float y, float bottom_l
         }
     }
     else if (m_operation_mode == MeshBooleanOperation::Difference) {
-        if (operate_button(_L("Apply") + "##btn", enable_button)) { // ORCA use same button name to reduce size changes switching between modes
+        m_imgui->bbl_checkbox(_L("Delete input"), m_diff_delete_input);
+        if (operate_button(_L("Difference") + "##btn", enable_button)) {
             TriangleMesh temp_src_mesh = m_src.mv->mesh();
             temp_src_mesh.transform(m_src.trafo);
             TriangleMesh temp_tool_mesh = m_tool.mv->mesh();
@@ -422,11 +371,10 @@ void GLGizmoMeshBoolean::on_render_input_window(float x, float y, float bottom_l
                 wxGetApp().notification_manager()->push_plater_warning_notification(warning_text);
             }
         }
-        ImGui::SameLine();
-        m_imgui->bbl_checkbox(_L("Delete input"), m_diff_delete_input); // ORCA Use at same line to reduce window size
     }
     else if (m_operation_mode == MeshBooleanOperation::Intersection){
-        if (operate_button(_L("Apply") + "##btn", enable_button)) { // ORCA use same button name to reduce size changes switching between modes
+        m_imgui->bbl_checkbox(_L("Delete input"), m_inter_delete_input);
+        if (operate_button(_L("Intersection") + "##btn", enable_button)) {
             TriangleMesh temp_src_mesh = m_src.mv->mesh();
             temp_src_mesh.transform(m_src.trafo);
             TriangleMesh temp_tool_mesh = m_tool.mv->mesh();
@@ -441,8 +389,6 @@ void GLGizmoMeshBoolean::on_render_input_window(float x, float y, float bottom_l
                 wxGetApp().notification_manager()->push_plater_warning_notification(warning_text);
             }
         }
-        ImGui::SameLine();
-		m_imgui->bbl_checkbox(_L("Delete input"), m_inter_delete_input); // ORCA Use at same line to reduce window size
     }
 
     float win_w = ImGui::GetWindowWidth();

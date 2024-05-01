@@ -160,7 +160,8 @@ static t_config_enum_values s_keys_map_InfillPattern {
     { "archimedeanchords",  ipArchimedeanChords },
     { "octagramspiral",     ipOctagramSpiral },
     { "supportcubic",       ipSupportCubic },
-    { "lightning",          ipLightning }
+    { "lightning",          ipLightning },
+    { "crosshatch",         ipCrossHatch}
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(InfillPattern)
 
@@ -814,7 +815,6 @@ void PrintConfigDef::init_fff_params()
     def = this->add("bottom_shell_layers", coInt);
     def->label = L("Bottom shell layers");
     def->category = L("Strength");
-    def->sidetext = L("layers"); // ORCA add side text
     def->tooltip =  L("This is the number of solid layers of bottom shell, including the bottom "
                       "surface layer. When the thickness calculated by this value is thinner "
                       "than bottom shell thickness, the bottom shell layers will be increased");
@@ -917,7 +917,6 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Quality");
     def->tooltip = L("Decrease this value slightly(for example 0.9) to reduce the amount of material for bridge, "
                      "to improve sag");
-    def->sidetext = L("x"); // ORCA add side text
     def->min = 0;
     def->max = 2.0;
     def->mode = comAdvanced;
@@ -927,7 +926,6 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Internal bridge flow ratio");
     def->category = L("Quality");
     def->tooltip = L("This value governs the thickness of the internal bridge layer. This is the first layer over sparse infill. Decrease this value slightly (for example 0.9) to improve surface quality over sparse infill.");
-    def->sidetext = L("x"); // ORCA add side text
     def->min = 0;
     def->max = 2.0;
     def->mode = comAdvanced;
@@ -938,7 +936,6 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Advanced");
     def->tooltip = L("This factor affects the amount of material for top solid infill. "
                    "You can decrease it slightly to have smooth surface finish");
-    def->sidetext = L("x"); // ORCA add side text
     def->min = 0;
     def->max = 2;
     def->mode = comAdvanced;
@@ -948,7 +945,6 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Bottom surface flow ratio");
     def->category = L("Advanced");
     def->tooltip = L("This factor affects the amount of material for bottom solid infill");
-    def->sidetext = L("x"); // ORCA add side text
     def->min = 0;
     def->max = 2;
     def->mode = comAdvanced;
@@ -1647,8 +1643,7 @@ void PrintConfigDef::init_fff_params()
     def          = this->add("adaptive_bed_mesh_margin", coFloat);
     def->label   = L("Mesh margin");
     def->tooltip = L("This option determines the additional distance by which the adaptive bed mesh area should be expanded in the XY directions.");
-    def->sidetext = L("mm"); // ORCA add side text
-    def->mode     = comAdvanced;
+    def->mode    = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0));
 
     def = this->add("extruder_colour", coStrings);
@@ -1675,7 +1670,6 @@ void PrintConfigDef::init_fff_params()
                      "This setting changes all extrusion flow of this filament in gcode proportionally. "
                      "Recommended value range is between 0.95 and 1.05. "
                      "Maybe you can tune this value to get nice flat surface when there has slight overflow or underflow");
-    def->sidetext = L("x"); // ORCA add side text
     def->max = 2;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats { 1. });
@@ -1686,7 +1680,6 @@ void PrintConfigDef::init_fff_params()
                      "This setting changes all extrusion flow of this filament in gcode proportionally. "
                      "Recommended value range is between 0.95 and 1.05. "
                      "Maybe you can tune this value to get nice flat surface when there has slight overflow or underflow");
-    def->sidetext = L("x"); // ORCA add side text
     def->mode = comAdvanced;
     def->max = 2;
     def->min = 0.01;
@@ -1988,8 +1981,7 @@ def = this->add("filament_loading_speed", coFloats);
     def = this->add("temperature_vitrification", coInts);
     def->label = L("Softening temperature");
     def->tooltip = L("The material softens at this temperature, so when the bed temperature is equal to or greater than it, it's highly recommended to open the front door and/or remove the upper glass to avoid cloggings.");
-    def->sidetext = L("°C"); // ORCA add side text
-    def->mode     = comSimple;
+    def->mode = comSimple;
     def->set_default_value(new ConfigOptionInts{ 100 });
 
     def = this->add("filament_cost", coFloats);
@@ -2058,6 +2050,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->enum_values.push_back("octagramspiral");
     def->enum_values.push_back("supportcubic");
     def->enum_values.push_back("lightning");
+    def->enum_values.push_back("crosshatch");
     def->enum_labels.push_back(L("Concentric"));
     def->enum_labels.push_back(L("Rectilinear"));
     def->enum_labels.push_back(L("Grid"));
@@ -2075,6 +2068,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->enum_labels.push_back(L("Octagram Spiral"));
     def->enum_labels.push_back(L("Support Cubic"));
     def->enum_labels.push_back(L("Lightning"));
+    def->enum_labels.push_back(L("Cross Hatch"));
     def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipCubic));
 
     auto def_infill_anchor_min = def = this->add("infill_anchor", coFloatOrPercent);
@@ -2088,22 +2082,19 @@ def = this->add("filament_loading_speed", coFloats);
     def->sidetext = L("mm or %");
     def->ratio_over = "sparse_infill_line_width";
     def->max_literal = 1000;
-	// ORCA: Don't combine value box and bombo boxes together. current UI design not allows this.
-	// ORCA: NEEDFIX > Adding an icon to next of value box for pre defined values might be better choose
-    //def->gui_type = ConfigOptionDef::GUIType::f_enum_open;
-    //def->enum_values.push_back("0");
-    //def->enum_values.push_back("1");
-    //def->enum_values.push_back("2");
-    //def->enum_values.push_back("5");
-    //def->enum_values.push_back("10");
-    //def->enum_values.push_back("1000");
-    //def->enum_labels.push_back(L("0 (no open anchors)"));
-    //def->enum_labels.push_back("1 mm");
-    //def->enum_labels.push_back("2 mm");
-    //def->enum_labels.push_back("5 mm");
-    //def->enum_labels.push_back("10 mm");
-    //def->enum_labels.push_back(L("1000 (unlimited)"));
-    
+    def->gui_type = ConfigOptionDef::GUIType::f_enum_open;
+    def->enum_values.push_back("0");
+    def->enum_values.push_back("1");
+    def->enum_values.push_back("2");
+    def->enum_values.push_back("5");
+    def->enum_values.push_back("10");
+    def->enum_values.push_back("1000");
+    def->enum_labels.push_back(L("0 (no open anchors)"));
+    def->enum_labels.push_back("1 mm");
+    def->enum_labels.push_back("2 mm");
+    def->enum_labels.push_back("5 mm");
+    def->enum_labels.push_back("10 mm");
+    def->enum_labels.push_back(L("1000 (unlimited)"));
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatOrPercent(400, true));
 
@@ -2117,15 +2108,15 @@ def = this->add("filament_loading_speed", coFloats);
                      "\nIf set to 0, the old algorithm for infill connection will be used, it should create the same result as with 1000 & 0.");
     def->sidetext    = def_infill_anchor_min->sidetext;
     def->ratio_over  = def_infill_anchor_min->ratio_over;
-    //def->gui_type    = def_infill_anchor_min->gui_type;
-    //def->enum_values = def_infill_anchor_min->enum_values;
+    def->gui_type    = def_infill_anchor_min->gui_type;
+    def->enum_values = def_infill_anchor_min->enum_values;
     def->max_literal = def_infill_anchor_min->max_literal;
-    //def->enum_labels.push_back(L("0 (Simple connect)"));
-    // def->enum_labels.push_back("1 mm");
-    // def->enum_labels.push_back("2 mm");
-    // def->enum_labels.push_back("5 mm");
-    // def->enum_labels.push_back("10 mm");
-    // def->enum_labels.push_back(L("1000 (unlimited)"));
+    def->enum_labels.push_back(L("0 (Simple connect)"));
+    def->enum_labels.push_back("1 mm");
+    def->enum_labels.push_back("2 mm");
+    def->enum_labels.push_back("5 mm");
+    def->enum_labels.push_back("10 mm");
+    def->enum_labels.push_back(L("1000 (unlimited)"));
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatOrPercent(20, false));
     
@@ -2335,7 +2326,6 @@ def = this->add("filament_loading_speed", coFloats);
     def->tooltip = L("The first few layers are printed slower than normal. "
                      "The speed is gradually increased in a linear fashion over the specified number of layers.");
     def->category = L("Speed");
-    def->sidetext = L("layers"); // ORCA add side text
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInt(0));
@@ -2355,7 +2345,6 @@ def = this->add("filament_loading_speed", coFloats);
                   "to maximum at layer \"full_fan_speed_layer\". "
                   "\"full_fan_speed_layer\" will be ignored if lower than \"close_fan_the_first_x_layers\", in which case "
                   "the fan will be running at maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1.");
-    def->sidetext = L("layers"); // ORCA add side text
     def->min = 0;
     def->max = 1000;
     def->mode = comAdvanced;
@@ -3689,7 +3678,6 @@ def = this->add("filament_loading_speed", coFloats);
     def = this->add("scarf_joint_flow_ratio", coFloat);
     def->label = L("Scarf joint flow ratio");
     def->tooltip = L("This factor affects the amount of material for scarf joints.");
-    def->sidetext = L("x"); // ORCA add side text
     def->mode = comDevelop;
     def->max = 2;
     def->set_default_value(new ConfigOptionFloat(1));
@@ -4175,38 +4163,34 @@ def = this->add("filament_loading_speed", coFloats);
     def->set_default_value(new ConfigOptionInt(0));
 
     auto support_interface_top_layers = def = this->add("support_interface_top_layers", coInt);
-    //def->gui_type = ConfigOptionDef::GUIType::i_enum_open;
+    def->gui_type = ConfigOptionDef::GUIType::i_enum_open;
     def->label = L("Top interface layers");
     def->category = L("Support");
     def->tooltip = L("Number of top interface layers");
     def->sidetext = L("layers");
     def->min = 0;
-    // ORCA: Don't combine value box and bombo boxes together. current UI design not allows this.
-    // ORCA: NEEDFIX > Adding an icon to next of value box for pre defined values might be better choose
-    //def->enum_values.push_back("0");
-    //def->enum_values.push_back("1");
-    //def->enum_values.push_back("2");
-    // def->enum_values.push_back("3");
-    // def->enum_labels.push_back("0");
-    // def->enum_labels.push_back("1");
-    // def->enum_labels.push_back("2");
-    // def->enum_labels.push_back("3");
+    def->enum_values.push_back("0");
+    def->enum_values.push_back("1");
+    def->enum_values.push_back("2");
+    def->enum_values.push_back("3");
+    def->enum_labels.push_back("0");
+    def->enum_labels.push_back("1");
+    def->enum_labels.push_back("2");
+    def->enum_labels.push_back("3");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInt(3));
 
     def = this->add("support_interface_bottom_layers", coInt);
-    //def->gui_type = ConfigOptionDef::GUIType::i_enum_open;
+    def->gui_type = ConfigOptionDef::GUIType::i_enum_open;
     def->label = L("Bottom interface layers");
     def->category = L("Support");
     def->tooltip = L("Number of bottom interface layers");
     def->sidetext = L("layers");
     def->min = -1;
-    // ORCA: Don't combine value box and bombo boxes together. current UI design not allows this.
-    // ORCA: NEEDFIX > Adding an icon to next of value box for pre defined values might be better choose
-    //def->enum_values.push_back("-1");
-    //append(def->enum_values, support_interface_top_layers->enum_values);
-    //def->enum_labels.push_back(L("Same as top"));
-    //append(def->enum_labels, support_interface_top_layers->enum_labels);
+    def->enum_values.push_back("-1");
+    append(def->enum_values, support_interface_top_layers->enum_values);
+    def->enum_labels.push_back(L("Same as top"));
+    append(def->enum_labels, support_interface_top_layers->enum_labels);
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInt(0));
 
@@ -4243,7 +4227,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->category = L("Support");
     def->tooltip = L("Line pattern of support");
     def->enum_keys_map = &ConfigOptionEnum<SupportMaterialPattern>::get_enum_values();
-    def->enum_values.push_back("default-pattern"); // ORCA: use new icon (param_default-pattern) for auto / default
+    def->enum_values.push_back("default");
     def->enum_values.push_back("rectilinear");
     def->enum_values.push_back("rectilinear-grid");
     def->enum_values.push_back("honeycomb");
@@ -4265,7 +4249,7 @@ def = this->add("filament_loading_speed", coFloats);
                      "Default pattern for non-soluble support interface is Rectilinear, "
                      "while default pattern for soluble support interface is Concentric");
     def->enum_keys_map = &ConfigOptionEnum<SupportMaterialInterfacePattern>::get_enum_values();
-    def->enum_values.push_back("default-pattern"); // ORCA: use new icon (param_default-pattern) for auto / default
+    def->enum_values.push_back("auto");
     def->enum_values.push_back("rectilinear");
     def->enum_values.push_back("concentric");
     def->enum_values.push_back("rectilinear_interlaced");
@@ -4606,7 +4590,6 @@ def = this->add("filament_loading_speed", coFloats);
     def = this->add("top_shell_layers", coInt);
     def->label = L("Top shell layers");
     def->category = L("Strength");
-    def->sidetext = L("layers"); // ORCA add side text
     def->tooltip = L("This is the number of solid layers of top shell, including the top "
                      "surface layer. When the thickness calculated by this value is thinner "
                      "than top shell thickness, the top shell layers will be increased");
@@ -4970,7 +4953,7 @@ def = this->add("filament_loading_speed", coFloats);
     "NOTE: Bottom and top surfaces will not be affected by this value to prevent visual gaps on the ouside of the model. "
     "Adjust 'One wall threshold' in the Advanced settings below to adjust the sensitivity of what is considered a top-surface. "
     "'One wall threshold' is only visibile if this setting is set above the default value of 0.5, or if single-wall top surfaces is enabled.");
-    def->sidetext = L("mm"); // ORCA add side text
+    def->sidetext = "";
     def->mode = comAdvanced;
     def->min = 0.0;
     def->max = 25.0;
