@@ -4071,7 +4071,7 @@ if (is_marlin_flavor)
         auto page = add_options_page(page_name, "custom-gcode_extruder", true); // ORCA: icon only visible on placeholders
         m_pages.insert(m_pages.begin() + n_before_extruders + extruder_idx, page);
 
-            auto optgroup = page->new_optgroup(L("Size"), L"param_extruder_size", 1, true);
+            auto optgroup = page->new_optgroup(L("Size"), L"param_extruder_size", -1, true);
             optgroup->append_single_option_line("nozzle_diameter", "", extruder_idx);
 
             optgroup->m_on_change = [this, extruder_idx](const t_config_option_key& opt_key, boost::any value)
@@ -4110,15 +4110,15 @@ if (is_marlin_flavor)
                 update();
             };
 
-            optgroup = page->new_optgroup(L("Layer height limits"), L"param_layer_height", 1, true);
+            optgroup = page->new_optgroup(L("Layer height limits"), L"param_layer_height", -1, true);
             optgroup->append_single_option_line("min_layer_height", "", extruder_idx);
             optgroup->append_single_option_line("max_layer_height", "", extruder_idx);
 
-            optgroup = page->new_optgroup(L("Position"), L"param_retraction", 1, true);
+            optgroup = page->new_optgroup(L("Position"), L"param_position", -1, true);
             optgroup->append_single_option_line("extruder_offset", "", extruder_idx);
 
             //BBS: don't show retract related config menu in machine page
-            optgroup = page->new_optgroup(L("Retraction"), L"param_position");
+            optgroup = page->new_optgroup(L("Retraction"), L"param_retraction");
             optgroup->append_single_option_line("retraction_length", "", extruder_idx);
             optgroup->append_single_option_line("retract_restart_extra", "", extruder_idx);
             optgroup->append_single_option_line("z_hop", "", extruder_idx);
@@ -4131,12 +4131,12 @@ if (is_marlin_flavor)
             optgroup->append_single_option_line("wipe_distance", "", extruder_idx);
             optgroup->append_single_option_line("retract_before_wipe", "", extruder_idx);
 
-            optgroup = page->new_optgroup(L("Lift Z Enforcement"), L"param_extruder_lift_enforcement", 1, true);
+            optgroup = page->new_optgroup(L("Lift Z Enforcement"), L"param_extruder_lift_enforcement", -1, true);
             optgroup->append_single_option_line("retract_lift_above", "", extruder_idx);
             optgroup->append_single_option_line("retract_lift_below", "", extruder_idx);
             optgroup->append_single_option_line("retract_lift_enforce", "", extruder_idx);
 
-            optgroup = page->new_optgroup(L("Retraction when switching material"), L"param_retraction_material_change", 1, true);
+            optgroup = page->new_optgroup(L("Retraction when switching material"), L"param_retraction_material_change", -1, true);
             optgroup->append_single_option_line("retract_length_toolchange", "", extruder_idx);
             optgroup->append_single_option_line("retract_restart_extra_toolchange", "", extruder_idx);
             // do not display this params now
@@ -5971,7 +5971,7 @@ bool Page::set_value(const t_config_option_key &opt_key, const boost::any &value
 ConfigOptionsGroupShp Page::new_optgroup(const wxString &title, const wxString &icon, int noncommon_label_width /*= -1*/, bool is_extruder_og /* false */)
 {
     //! config_ have to be "right"
-    ConfigOptionsGroupShp optgroup = is_extruder_og ? std::make_shared<ExtruderOptionsGroup>(m_parent, title, m_config, true)
+    ConfigOptionsGroupShp optgroup  = is_extruder_og ? std::make_shared<ExtruderOptionsGroup>(m_parent, title, icon, m_config, true) // ORCA: add support for icons
         : std::make_shared<ConfigOptionsGroup>(m_parent, title, icon, m_config, true);
     optgroup->split_multi_line     = this->m_split_multi_line;
     optgroup->option_label_at_right = this->m_option_label_at_right;
