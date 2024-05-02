@@ -50,6 +50,9 @@ public:
         m_gcode_flavor(flavor),
         m_filpar(filament_parameters)
         {
+            // ORCA: This class is only used by non BBL printers, so set the parameter appropriately.
+            // This fixes an issue where the wipe tower was using BBL tags resulting in statistics for purging in the purge tower not being displayed.
+            GCodeProcessor::s_IsBBLPrinter = false;
             // adds tag for analyzer:
             std::ostringstream str;
             str << ";" << GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Height) << m_layer_height << "\n"; // don't rely on GCodeAnalyzer knowing the layer height - it knows nothing at priming
@@ -803,9 +806,11 @@ WipeTower::ToolChangeResult WipeTower2::tool_change(size_t tool)
 				"; CP TOOLCHANGE START\n")
 		.comment_with_value(" toolchange #", m_num_tool_changes + 1); // the number is zero-based
 
-    if (tool != (unsigned)(-1))
+    if (tool != (unsigned)(-1)){
         writer.append(std::string("; material : " + (m_current_tool < m_filpar.size() ? m_filpar[m_current_tool].material : "(NONE)") + " -> " + m_filpar[tool].material + "\n").c_str())
-              .append(";--------------------\n");
+            .append(";--------------------\n");
+        writer.append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Wipe_Tower_Start) + "\n");
+    }
 
     writer.speed_override_backup();
 	writer.speed_override(100);
@@ -825,6 +830,7 @@ WipeTower::ToolChangeResult WipeTower2::tool_change(size_t tool)
         toolchange_Load(writer, cleaning_box);
         writer.travel(writer.x(), writer.y()-m_perimeter_width); // cooling and loading were done a bit down the road
         toolchange_Wipe(writer, cleaning_box, wipe_volume);     // Wipe the newly loaded filament until the end of the assigned wipe area.
+        writer.append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Wipe_Tower_End) + "\n");
         ++ m_num_tool_changes;
     } else
         toolchange_Unload(writer, cleaning_box, m_filpar[m_current_tool].material, m_filpar[m_current_tool].temperature);
