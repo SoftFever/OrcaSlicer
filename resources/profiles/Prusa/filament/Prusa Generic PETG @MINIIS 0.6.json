@@ -51,9 +51,13 @@
     "filament_max_volumetric_speed": [
         "9"
     ],
-    "filament_start_gcode": [
-        "M572 S{if nozzle_diameter[0]==0.6}0.22{elsif nozzle_diameter[0]==0.8}0.15{elsif nozzle_diameter[0]==0.4}0.36{elsif nozzle_diameter[0]==0.25}1.02{else}0{endif}"
+    "enable_pressure_advance": [
+        "1"
     ],
+    "pressure_advance": [
+        "0.22"
+    ],
+
     "compatible_printers": [
         "Prusa MINIIS 0.6 nozzle"
       ]

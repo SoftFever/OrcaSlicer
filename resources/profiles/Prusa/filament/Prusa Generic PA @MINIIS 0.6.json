@@ -1,25 +1,28 @@
 {
     "type": "filament",
-    "filament_id": "GFL99_3",
+    "filament_id": "GFN99_2",
     "setting_id": "GFSA04",
-    "name": "Prusa Generic PLA @MINIIS 0.6",
+    "name": "Prusa Generic PA @MINIIS 0.6",
     "from": "system",
     "instantiation": "true",
-    "inherits": "fdm_filament_pla",
+    "inherits": "fdm_filament_pa",
     "filament_flow_ratio": [
         "1"
     ],
-    "filament_max_volumetric_speed": [
-        "14"
+    "nozzle_temperature_initial_layer": [
+        "280"
     ],
-    "slow_down_layer_time": [
-        "12"
+    "nozzle_temperature": [
+        "280"
+    ],
+    "filament_max_volumetric_speed": [
+        "8"
     ],
     "enable_pressure_advance": [
         "1"
     ],
     "pressure_advance": [
-        "0.17"
+        "0.1"
     ],
 
     "compatible_printers": [

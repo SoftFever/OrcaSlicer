@@ -12,9 +12,6 @@
     "filament_flow_ratio": [
       "1.15"
     ],
-    "filament_start_gcode": [
-      "M900 K0 ; Filament gcode"
-    ],
     "hot_plate_temp" : [
       "50"
     ],
@@ -83,6 +80,9 @@
   ],
   "support_material_interface_fan_speed": [
       "-1"
+  ],
+  "pressure_advance": [
+    "0"
   ],
     "compatible_printers": [
       "Prusa MINIIS 0.4 nozzle",

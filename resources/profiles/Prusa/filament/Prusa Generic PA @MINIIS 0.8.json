@@ -1,14 +1,11 @@
 {
     "type": "filament",
-    "filament_id": "GFN98_1",
+    "filament_id": "GFN99_3",
     "setting_id": "GFSA04",
-    "name": "Prusa Generic PA-CF @MINIIS",
+    "name": "Prusa Generic PA @MINIIS 0.8",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pa",
-    "filament_type": [
-        "PA-CF"
-    ],
     "filament_flow_ratio": [
         "1"
     ],
@@ -18,17 +15,17 @@
     "nozzle_temperature": [
         "280"
     ],
-    "filament_max_volumetric_speed": [
-        "8"
+    "pressure_advance": [
+        "0.07"
     ],
     "enable_pressure_advance": [
         "1"
     ],
-    "pressure_advance": [
-        "0.36"
+    "filament_max_volumetric_speed": [
+        "8"
     ],
 
     "compatible_printers": [
-      "Prusa MINIIS 0.4 nozzle"
+      "Prusa MINIIS 0.8 nozzle"
     ]
 }
