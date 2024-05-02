@@ -8,18 +8,18 @@
   "printer_model": "Flying Bear S1",
   "auxiliary_fan": "1",
   "bed_exclude_area": [
-      "0x0"
+    "0x0"
   ],
   "before_layer_change_gcode": ";BEFORE_LAYER_CHANGE\n;[layer_z]\nG92 E0",
   "change_filament_gcode": "",
   "cooling_tube_length": "5",
   "cooling_tube_retraction": "91.5",
   "default_filament_profile": [
-      "FlyingBear PLA @S1"
+    "Flying Bear PLA @S1"
   ],
   "default_print_profile": "0.20mm Standard @FlyingBear S1",
   "deretraction_speed": [
-      "30"
+    "30"
   ],
   "enable_filament_ramming": "1",
   "extra_loading_move": "-2",
@@ -27,10 +27,10 @@
   "extruder_clearance_height_to_rod": "69",
   "extruder_clearance_radius": "49",
   "extruder_colour": [
-      "#FCE94F"
+    "#FCE94F"
   ],
   "extruder_offset": [
-      "0x0"
+    "0x0"
   ],
   "fan_kickstart": "0",
   "fan_speedup_overhangs": "1",

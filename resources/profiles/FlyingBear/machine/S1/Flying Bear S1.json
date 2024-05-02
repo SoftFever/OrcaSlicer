@@ -8,5 +8,5 @@
     "bed_model": "Flying_Bear_S1_bed.stl",
     "bed_texture": "Flying_Bear_S1_texture.png",
     "hotend_model": "",
-    "default_materials": "FlyingBear Generic ABS;FlyingBear Generic PA-CF;FlyingBear Generic PC;FlyingBear Generic PETG;FlyingBear Generic PLA;InFlyingBearfiMech Generic TPU"
+    "default_materials": "Flying Bear Generic ABS;Flying Bear Generic PA-CF;Flying Bear Generic PC;Flying Bear Generic PETG;Flying Bear Generic PLA;InFlyingBearfiMech Generic TPU"
 }
