@@ -1,9 +1,1 @@
-<svg width="29" height="29" xmlns="http://www.w3.org/2000/svg" fill="none">
-
- <g>
-  <title>Layer 1</title>
-  <circle id="svg_1" fill-opacity="0.3" fill="black" r="14.043" cy="14.0664" cx="14.6973"/>
-  <path id="svg_2" stroke-linejoin="round" stroke-linecap="round" stroke="#CECECE" d="m8.4082,7.77734l12.5781,12.57816"/>
-  <path id="svg_3" stroke-linejoin="round" stroke-linecap="round" stroke="#CECECE" d="m20.9863,7.77734l-12.5781,12.57816"/>
- </g>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><circle cx="9.5" cy="9.5" r="8.5" style="fill:#54545a"/><path d="M9.5,1.5a8,8,0,1,1-8,8,8.009,8.009,0,0,1,8-8m0-1a9,9,0,1,0,9,9,9,9,0,0,0-9-9Z" style="fill:#54545a"/><line x1="4.5" y1="4.5" x2="14.5" y2="14.5" style="fill:none;stroke:#cecece;stroke-linecap:round;stroke-linejoin:round"/><line x1="14.5" y1="4.5" x2="4.5" y2="14.5" style="fill:none;stroke:#cecece;stroke-linecap:round;stroke-linejoin:round"/></svg>
