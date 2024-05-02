@@ -2,7 +2,7 @@
     "type": "filament",
     "filament_id": "GFL99",
     "setting_id": "GFSA04",
-    "name": "FlyingBear PLA Hyper",
+    "name": "Flying Bear PLA Hyper",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pla_Hyper",
@@ -22,6 +22,6 @@
         "0.02"
     ],
     "compatible_printers": [
-      "FlyingBear Reborn3 0.4 nozzle"
+      "Flying Bear Reborn 2 0.4 nozzle"
     ]
 }

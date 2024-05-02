@@ -1,16 +1,16 @@
 {
     "type": "filament",
-    "filament_id": "GFB99",
+    "filament_id": "GFC99",
     "setting_id": "GFSA04",
-    "name": "FlyingBear ABS @S1",
+    "name": "Flying Bear PC @S1",
     "from": "system",
     "instantiation": "true",
-    "inherits": "fdm_filament_abs @S1",
+    "inherits": "fdm_filament_pc @S1",
+    "filament_max_volumetric_speed": [
+        "12"
+    ],
     "filament_flow_ratio": [
         "0.94"
-    ],
-    "filament_max_volumetric_speed": [
-        "15"
     ],
     "enable_pressure_advance": [
         "1"
@@ -18,10 +18,7 @@
     "pressure_advance": [
         "0.058"
     ],
-    "filament_retraction_length": [
-        "0.8"
-    ],
     "compatible_printers": [
-      "FlyingBear S1 0.4 nozzle"
+      "Flying Bear S1 0.4 nozzle"
     ]
-}
+ }

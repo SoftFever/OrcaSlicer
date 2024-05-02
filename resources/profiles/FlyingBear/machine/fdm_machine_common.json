@@ -5,9 +5,7 @@
     "instantiation": "false",
     "printer_technology": "FFF",
     "gcode_flavor": "klipper",
-
     "auxiliary_fan": "0",
-
     "bed_exclude_area": [
         "0x0"
     ],
@@ -36,11 +34,7 @@
     "fan_kickstart": "0",
     "fan_speedup_overhangs": "1",
     "fan_speedup_time": "0",
-
-
     "high_current_on_filament_swap": "0",
-
- 
     "layer_change_gcode": ";AFTER_LAYER_CHANGE\n;[layer_z]",
     "machine_end_gcode": "PRINT_END",
     "machine_load_filament_time": "0",
@@ -120,8 +114,6 @@
     "min_layer_height": [
         "0.08"
     ],
-
-
     "nozzle_hrc": "0",
     "nozzle_type": "brass",
     "nozzle_volume": "151.32",

@@ -1,12 +1,12 @@
 {
     "type": "machine_model",
-    "name": "FlyingBear Reborn3",
-    "model_id": "FlyingBear Reborn3",
+    "name": "Flying Bear Reborn 2",
+    "model_id": "Flying Bear Reborn 2",
     "nozzle_diameter": "0.4",
     "machine_tech": "FFF",
     "family": "FlyingBearDesign",
-    "bed_model": "FlyingBear Reborn3-bed.stl",
-    "bed_texture": "FlyingBear Reborn3-texture.png",
+    "bed_model": "Flying_Bear_Reborn2-bed.stl",
+    "bed_texture": "Flying_Bear_Reborn2-texture.png",
     "hotend_model": "",
     "default_materials": "FlyingBear Generic ABS;FlyingBear Generic PA-CF;FlyingBear Generic PC;FlyingBear Generic PETG;FlyingBear Generic PLA;FlyingBear Generic TPU"
 }
