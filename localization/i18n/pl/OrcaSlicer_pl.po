@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OrcaSlicer 2.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-28 18:11+0800\n"
+"POT-Creation-Date: 2024-05-01 00:42+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Krzysztof Morga <tlumaczeniebs@gmail.com>\n"
 "Language-Team: \n"
@@ -1950,6 +1950,12 @@ msgstr "Ustaw"
 msgid "arrange current plate"
 msgstr "ustaw bieżącą płytę"
 
+msgid "Reload All"
+msgstr "Przeładuj wszystko"
+
+msgid "reload all from disk"
+msgstr "Przeładuj z dysku"
+
 msgid "Auto Rotate"
 msgstr "Automatyczna rotacja"
 
@@ -3210,6 +3216,60 @@ msgstr "Uruchamianie skryptu post-procesingu"
 
 msgid "Successfully executed post-processing script"
 msgstr "Pomyślnie wykonano skrypt post-processingu"
+
+msgid "Unknown error occured during exporting G-code."
+msgstr "Nieznany błąd podczas eksportowania kodu G."
+
+#, boost-format
+msgid ""
+"Copying of the temporary G-code to the output G-code failed. Maybe the SD "
+"card is write locked?\n"
+"Error message: %1%"
+msgstr ""
+"Kopiowanie tymczasowego G-code do wyjściowego pliku G-code nie powiodło się. "
+"Być może karta SD jest zablokowana do zapisu?\n"
+"Komunikat błędu: %1%"
+
+#, boost-format
+msgid ""
+"Copying of the temporary G-code to the output G-code failed. There might be "
+"problem with target device, please try exporting again or using different "
+"device. The corrupted output G-code is at %1%.tmp."
+msgstr ""
+"Kopiowanie tymczasowego G-code do wyjściowego pliku G-code nie powiodło się. "
+"Może być problem z urządzeniem docelowym, spróbuj ponownie wyeksportować lub "
+"użyć innego urządzenia. Uszkodzony plik wyjściowego G-code znajduje się w "
+"pliku %1%.tmp."
+
+#, boost-format
+msgid ""
+"Renaming of the G-code after copying to the selected destination folder has "
+"failed. Current path is %1%.tmp. Please try exporting again."
+msgstr ""
+"Zmiana nazwy G-code po skopiowaniu pliku do folderu docelowego nie powiodła "
+"się. Bieżąca ścieżka to %1%.tmp. Spróbuj ponownie go wyeksportować."
+
+#, boost-format
+msgid ""
+"Copying of the temporary G-code has finished but the original code at %1% "
+"couldn't be opened during copy check. The output G-code is at %2%.tmp."
+msgstr ""
+"Kopiowanie tymczasowego G-code zakończono, ale oryginalny G-code w "
+"lokalizacji %1% nie mógł być otwarty podczas sprawdzania kopii. Wygenerowany "
+"G-code znajduje się w lokalizacji %2%.tmp."
+
+#, boost-format
+msgid ""
+"Copying of the temporary G-code has finished but the exported code couldn't "
+"be opened during copy check. The output G-code is at %1%.tmp."
+msgstr ""
+"Kopiowanie tymczasowego G-code zakończono, ale wyeksportowany G-code nie "
+"mógł być otwarty podczas sprawdzania kopii. Wygenerowany G-code znajduje się "
+"w lokalizacji %1%.tmp."
+
+#, boost-format
+msgid "G-code file exported to %1%"
+msgstr "Plik G-code został wyeksportowany do %1%"
 
 msgid "Unknown error when export G-code."
 msgstr "Nieznany błąd podczas eksportowania kodu G."
@@ -7841,26 +7901,23 @@ msgstr "Niezdefiniowany"
 msgid "Unsaved Changes"
 msgstr "Niezapisane zmiany"
 
-msgid "Actions For Unsaved Changes"
-msgstr "Działania dotyczące niezapisanych zmian"
+msgid "Transfer or discard changes"
+msgstr "Przenieść lub odrzucić zmiany"
 
-msgid "Preset Value"
-msgstr "Wartość domyślna"
+msgid "Old Value"
+msgstr "Stara wartość"
 
-msgid "Modified Value"
-msgstr "Zmieniona wartość"
+msgid "New Value"
+msgstr "Nowa wartość"
 
-msgid "Transfer Modified Value"
-msgstr "Przenieś zmienioną wartość"
+msgid "Transfer"
+msgstr "Przenieś"
 
 msgid "Don't save"
 msgstr "Nie zapisuj"
 
-msgid "Use Preset Value"
-msgstr "Użyj wartości domyślnej"
-
-msgid "Save Modified Value"
-msgstr "Zapisz zmienione wartości"
+msgid "Discard"
+msgstr "Odrzuć"
 
 msgid "Click the right mouse button to display the full text."
 msgstr "Kliknij prawym przyciskiem myszy, aby wyświetlić pełny tekst."
@@ -7922,41 +7979,31 @@ msgstr "Zmieniono niektóre ustawienia profilu \"%1%\"."
 
 msgid ""
 "\n"
-"Would you like to save these changed settings(modified value)?"
+"You can save or discard the preset values you have modified."
 msgstr ""
 "\n"
-"Czy chciałbyś zapisać te zmienione ustawienia (zmodyfikowaną wartość)?"
+"Możesz zapisać lub odrzucić zmienione wartości w profilu."
 
 msgid ""
 "\n"
-"Would you like to keep these changed settings(modified value) after "
-"switching preset?"
+"You can save or discard the preset values you have modified, or choose to "
+"transfer the values you have modified to the new preset."
 msgstr ""
 "\n"
-"\n"
-"Czy chciałbyś zachować te zmienione ustawienia (zmodyfikowaną wartość) po "
-"przełączeniu profilu?"
+"Możesz zapisać lub odrzucić zmodyfikowane wartości profilu, lub kontynuować "
+"ich używanie w nowym profilu."
 
-msgid ""
-"You have previously modified your settings and are about to overwrite them "
-"with new ones."
-msgstr ""
-"Wcześniej zmodyfikowałeś swoje ustawienia i masz zamiar nadpisać je nowymi."
+msgid "You have previously modified your settings."
+msgstr "Wcześniej zmodyfikowałeś swoje ustawienia."
 
 msgid ""
 "\n"
-"Do you want to keep your current modified settings, or use preset settings?"
+"You can discard the preset values you have modified, or choose to transfer "
+"the modified values to the new project"
 msgstr ""
 "\n"
-"Czy chcesz zachować obecnie zmienione ustawienia, czy może chcesz użyć "
-"ustawień domyślnych?"
-
-msgid ""
-"\n"
-"Do you want to save your current modified settings?"
-msgstr ""
-"\n"
-"Czy chcesz zapisać obecnie zmodyfikowane ustawienia?"
+"Możesz zapisać lub odrzucić zmodyfikowane wartości w profilu, lub "
+"kontynuować ich używanie w nowym profilu"
 
 msgid "Extruders count"
 msgstr "Liczba extruderów"
@@ -7972,9 +8019,6 @@ msgstr "Pokaż wszystkie profile (łącznie z niekompatybilnymi)"
 
 msgid "Select presets to compare"
 msgstr "Wybierz profile do porównania"
-
-msgid "Transfer"
-msgstr "Przenieś"
 
 msgid ""
 "You can only transfer to current active profile because it has been modified."
@@ -16338,6 +16382,64 @@ msgstr ""
 "takimi jak ABS, odpowiednie zwiększenie temperatury podgrzewanej płyty może "
 "zmniejszyć prawdopodobieństwo odkształceń."
 
+#~ msgid "Actions For Unsaved Changes"
+#~ msgstr "Działania dotyczące niezapisanych zmian"
+
+#~ msgid "Preset Value"
+#~ msgstr "Wartość domyślna"
+
+#~ msgid "Modified Value"
+#~ msgstr "Zmieniona wartość"
+
+#~ msgid "Transfer Modified Value"
+#~ msgstr "Przenieś zmienioną wartość"
+
+#~ msgid "Use Preset Value"
+#~ msgstr "Użyj wartości domyślnej"
+
+#~ msgid "Save Modified Value"
+#~ msgstr "Zapisz zmienione wartości"
+
+#~ msgid ""
+#~ "\n"
+#~ "Would you like to save these changed settings(modified value)?"
+#~ msgstr ""
+#~ "\n"
+#~ "Czy chciałbyś zapisać te zmienione ustawienia (zmodyfikowaną wartość)?"
+
+#~ msgid ""
+#~ "\n"
+#~ "Would you like to keep these changed settings(modified value) after "
+#~ "switching preset?"
+#~ msgstr ""
+#~ "\n"
+#~ "\n"
+#~ "Czy chciałbyś zachować te zmienione ustawienia (zmodyfikowaną wartość) po "
+#~ "przełączeniu profilu?"
+
+#~ msgid ""
+#~ "You have previously modified your settings and are about to overwrite "
+#~ "them with new ones."
+#~ msgstr ""
+#~ "Wcześniej zmodyfikowałeś swoje ustawienia i masz zamiar nadpisać je "
+#~ "nowymi."
+
+#~ msgid ""
+#~ "\n"
+#~ "Do you want to keep your current modified settings, or use preset "
+#~ "settings?"
+#~ msgstr ""
+#~ "\n"
+#~ "Czy chcesz zachować obecnie zmienione ustawienia, czy może chcesz użyć "
+#~ "ustawień domyślnych?"
+
+#~ msgid ""
+#~ "\n"
+#~ "Do you want to save your current modified settings?"
+#~ msgstr ""
+#~ "\n"
+#~ "Czy chcesz zapisać obecnie zmodyfikowane ustawienia?"
+
 #~ msgid "Unload Filament"
 #~ msgstr "Wyładuj"
 
@@ -16476,18 +16578,6 @@ msgstr ""
 #~ msgstr ""
 #~ "Nie można wykonywać operacji boolowskich na siatkach modeli. Eksportowane "
 #~ "będą tylko części dodatnie."
-
-#~ msgid "Transfer or discard changes"
-#~ msgstr "Przenieść lub odrzucić zmiany"
-
-#~ msgid "Old Value"
-#~ msgstr "Stara wartość"
-
-#~ msgid "New Value"
-#~ msgstr "Nowa wartość"
-
-#~ msgid "Discard"
-#~ msgstr "Odrzuć"
 
 #, boost-format
 #~ msgid ""
