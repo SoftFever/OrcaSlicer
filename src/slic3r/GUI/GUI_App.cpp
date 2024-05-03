@@ -277,7 +277,7 @@ public:
 
 		// ORCA scale all fonts with monitor scale
         scale_font(m_constant_text.version_font,	m_scale * 2);
-        scale_font(m_constant_text.based_on_font,	m_scale * 2);
+        scale_font(m_constant_text.based_on_font,	m_scale * 1.5f);
         scale_font(m_constant_text.credits_font,	m_scale * 2);
 
         // this font will be used for the action string
@@ -342,7 +342,7 @@ public:
         memDc.DrawLabel(m_constant_text.version, version_rect, wxALIGN_CENTER);
 
         // Dynamic Text
-        m_action_line_y_position = int(height * 0.82);
+        m_action_line_y_position = int(height * 0.83);
 
 		// Based on Text
         memDc.SetFont(m_constant_text.based_on_font);
