@@ -7,7 +7,7 @@
     "instantiation": "true",
     "inherits": "fdm_filament_pc",
     "filament_max_volumetric_speed": [
-        "12"
+        "7"
     ],
     "filament_flow_ratio": [
         "1"
