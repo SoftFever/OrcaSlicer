@@ -7,10 +7,10 @@
     "instantiation": "true",
     "inherits": "fdm_filament_pc",
     "filament_max_volumetric_speed": [
-        "7"
+        "12"
     ],
     "filament_flow_ratio": [
-        "1"
+        "0.94"
     ],
     "eng_plate_temp" : [
         "100"
