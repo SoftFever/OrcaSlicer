@@ -6194,6 +6194,7 @@ msgid ""
 "import it."
 msgstr ""
 "Der Import in Orca Slicer ist fehlgeschlagen. Bitte laden Sie die Datei "
+"herunter und importieren Sie sie manuell."
 
 msgid "Import SLA archive"
 msgstr "SLA-Archiv importieren"
