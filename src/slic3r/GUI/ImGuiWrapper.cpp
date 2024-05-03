@@ -2892,8 +2892,8 @@ void ImGuiWrapper::init_style()
     set_color(ImGuiCol_HeaderActive, COL_BLUE_LIGHT);
 
     // Slider
-    set_color(ImGuiCol_SliderGrab, COL_BLUE_LIGHT);
-    set_color(ImGuiCol_SliderGrabActive, COL_BLUE_LIGHT);
+    set_color(ImGuiCol_SliderGrab,			to_ImVec4(to_rgba(ColorRGB::ORCA(), 0.50f))); // ORCA Use orca color for slider thumbs 
+    set_color(ImGuiCol_SliderGrabActive,	to_ImVec4(to_rgba(ColorRGB::ORCA(), 0.75f))); // ORCA Use orca color for slider thumbs 
 
     // Separator
     set_color(ImGuiCol_Separator, COL_BLUE_LIGHT);
