@@ -14,9 +14,9 @@
     "cooling_tube_length": "5",
     "cooling_tube_retraction": "91.5",
     "default_filament_profile": [
-        "FlyingBear Generic PLA"
+        "Flying Bear Generic PLA"
     ],
-    "default_print_profile": "0.20mm Standard @FlyingBear Reborn3",
+    "default_print_profile": "0.20mm Standard @Flying Bear Reborn 2",
     "deretraction_speed": [
         "30"
     ],
@@ -132,7 +132,7 @@
     "printable_height": "350",
     "printer_model": "Generic Klipper Printer",
     "printer_notes": "",
-    "printer_settings_id": "FlyingBear Reborn3 0.4 nozzle",
+    "printer_settings_id": "Flying Bear Reborn 2 0.4 nozzle",
     "printer_technology": "FFF",
     "printer_variant": "0.4",
     "printhost_apikey": "",

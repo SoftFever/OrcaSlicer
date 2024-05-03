@@ -92,7 +92,7 @@
             "name": "fdm_filament_pa",
             "sub_path": "filament/fdm_filament_pa.json"
         },
-		        {
+		{
             "name": "Flying Bear Generic PLA",
             "sub_path": "filament/Flying Bear Generic PLA.json"
         },
@@ -116,7 +116,6 @@
             "name": "Flying Bear Generic PA-CF",
             "sub_path": "filament/Flying Bear Generic PA-CF.json"
         },
-
         {
             "name": "fdm_filament_pla_Hyper",
             "sub_path": "filament/fdm_filament_pla_Hyper.json"
