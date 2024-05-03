@@ -469,6 +469,22 @@
             "sub_path": "filament/Prusa Generic PVA.json"
         },
         {
+            "name": "Prusa Generic PVA @MINIIS",
+            "sub_path": "filament/Prusa Generic PVA.json"
+        },
+        {
+            "name": "Prusa Generic PVA @MINIIS 0.25",
+            "sub_path": "filament/Prusa Generic PVA.json"
+        },
+        {
+            "name": "Prusa Generic PVA @MINIIS 0.6",
+            "sub_path": "filament/Prusa Generic PVA.json"
+        },
+        {
+            "name": "Prusa Generic PVA @MINIIS 0.8",
+            "sub_path": "filament/Prusa Generic PVA.json"
+        },
+        {
             "name": "Prusa Generic PA",
             "sub_path": "filament/Prusa Generic PA.json"
         },
