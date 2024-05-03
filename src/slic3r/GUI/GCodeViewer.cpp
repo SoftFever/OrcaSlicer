@@ -545,9 +545,9 @@ void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, f
         return ret;
     };
 
-    static const ImVec4 LINE_NUMBER_COLOR    = { 0.5f, 0.5f, 0.5f, 1.0f }; // ORCA use slightly darker grey compared to comment color for line numbers
-    static const ImVec4 SELECTION_RECT_COLOR = ImGuiWrapper::COL_ORCA; // ORCA use orca color for selection rectangle
-    static const ImVec4 COMMAND_COLOR        = ImGuiWrapper::COL_ORCA; // ORCA use orca color for commands
+    static const ImVec4 LINE_NUMBER_COLOR    = ImGuiWrapper::COL_ORANGE_LIGHT;
+    static const ImVec4 SELECTION_RECT_COLOR = ImGuiWrapper::COL_ORANGE_DARK;
+    static const ImVec4 COMMAND_COLOR        = {0.8f, 0.8f, 0.0f, 1.0f};
     static const ImVec4 PARAMETERS_COLOR     = { 1.0f, 1.0f, 1.0f, 1.0f };
     static const ImVec4 COMMENT_COLOR        = { 0.7f, 0.7f, 0.7f, 1.0f };
 
