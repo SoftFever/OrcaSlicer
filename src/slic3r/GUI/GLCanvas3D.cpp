@@ -7948,7 +7948,9 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
             ImGui::PushStyleColor(ImGuiCol_Border, button_active);
         }
         else {
-            if (ImGui::IsMouseHoveringRect(button_pos, button_pos + button_size)) {
+            // Translate window pos to abs pos, also account for the window scrolling
+            auto hover_rect = button_pos + ImGui::GetWindowPos() - ImGui::GetCurrentWindow()->Scroll;
+            if (ImGui::IsMouseHoveringRect(hover_rect, hover_rect + button_size)) {
                 ImGui::PushStyleColor(ImGuiCol_Border, button_hover);
             }
             else {
