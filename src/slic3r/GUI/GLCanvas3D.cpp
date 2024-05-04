@@ -7804,7 +7804,7 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
     //use white text as the background switch to black
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
     ImGui::PushStyleColor(ImGuiCol_WindowBg, window_bg);
-    ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, window_bg);
+    ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, ImVec4(0.f, 0.f, 0.f, 0.f)); // ORCA using background color with opacity creates a second color. This prevents secondary color 
     ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabActive, scroll_col);
     ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabHovered, scroll_col);
     ImGui::PushStyleColor(ImGuiCol_ScrollbarGrab, scroll_col);
