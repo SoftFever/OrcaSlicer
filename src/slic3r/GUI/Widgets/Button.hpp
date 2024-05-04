@@ -17,6 +17,7 @@ class Button : public StaticBox
     bool pressedDown = false;
     bool m_selected  = true;
     bool canFocus  = true;
+    bool isCenter = true;
 
     static const int buttonWidth = 200;
     static const int buttonHeight = 50;
@@ -53,6 +54,8 @@ public:
     void SetValue(bool state);
 
     bool GetValue() const;
+
+    void SetCenter(bool isCenter);
 
     void Rescale();
 

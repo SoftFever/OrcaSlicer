@@ -5,6 +5,7 @@
     "from": "system",
     "setting_id": "GP009",
     "instantiation": "true",
+    "description": "It has a very big layer height, and results in very apparent layer lines, low printing quality and general printing time.",
     "elefant_foot_compensation": "0.15",
     "compatible_printers": [
         "Bambu Lab X1 Carbon 0.8 nozzle",

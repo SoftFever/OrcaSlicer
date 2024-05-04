@@ -30,12 +30,17 @@ namespace Slic3r { namespace GUI {
 wxDEFINE_EVENT(EVT_SECONDARY_CHECK_CONFIRM, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SECONDARY_CHECK_CANCEL, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SECONDARY_CHECK_DONE, wxCommandEvent);
+wxDEFINE_EVENT(EVT_SECONDARY_CHECK_RESUME, wxCommandEvent);
+wxDEFINE_EVENT(EVT_LOAD_VAMS_TRAY, wxCommandEvent);
 wxDEFINE_EVENT(EVT_CHECKBOX_CHANGE, wxCommandEvent);
 wxDEFINE_EVENT(EVT_ENTER_IP_ADDRESS, wxCommandEvent);
 wxDEFINE_EVENT(EVT_CLOSE_IPADDRESS_DLG, wxCommandEvent);
 wxDEFINE_EVENT(EVT_CHECK_IP_ADDRESS_FAILED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SECONDARY_CHECK_RETRY, wxCommandEvent);
+wxDEFINE_EVENT(EVT_PRINT_ERROR_STOP, wxCommandEvent);
 wxDEFINE_EVENT(EVT_UPDATE_NOZZLE, wxCommandEvent);
+wxDEFINE_EVENT(EVT_JUMP_TO_HMS, wxCommandEvent);
+wxDEFINE_EVENT(EVT_JUMP_TO_LIVEVIEW, wxCommandEvent);
 
 ReleaseNoteDialog::ReleaseNoteDialog(Plater *plater /*= nullptr*/)
     : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, _L("Release Note"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
@@ -649,6 +654,21 @@ SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent, wxWindowID id, cons
             e.Skip();
         });
 
+    m_button_resume = new Button(this, _L("resume"));
+    m_button_resume->SetBackgroundColor(btn_bg_white);
+    m_button_resume->SetBorderColor(wxColour(38, 46, 48));
+    m_button_resume->SetFont(Label::Body_12);
+    m_button_resume->SetSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_button_resume->SetMinSize(wxSize(-1, FromDIP(24)));
+    m_button_resume->SetMaxSize(wxSize(-1, FromDIP(24)));
+    m_button_resume->SetCornerRadius(FromDIP(12));
+
+    m_button_resume->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
+        post_event(wxCommandEvent(EVT_SECONDARY_CHECK_RESUME));
+        e.Skip();
+        });
+    m_button_resume->Hide();
+
     if (btn_style == CONFIRM_AND_CANCEL) {
         m_button_cancel->Show();
         m_button_fn->Hide();
@@ -673,6 +693,7 @@ SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent, wxWindowID id, cons
     }
 
     sizer_button->AddStretchSpacer();
+    sizer_button->Add(m_button_resume, 0, wxALL, FromDIP(5));
     sizer_button->Add(m_button_retry, 0, wxALL, FromDIP(5));
     sizer_button->Add(m_button_fn, 0, wxALL, FromDIP(5));
     sizer_button->Add(m_button_ok, 0, wxALL, FromDIP(5));
@@ -776,26 +797,39 @@ void SecondaryCheckDialog::update_title_style(wxString title, SecondaryCheckDial
         m_button_cancel->Show();
         m_button_fn->Hide();
         m_button_retry->Hide();
+        m_button_resume->Hide();
     }
     else if (style == CONFIRM_AND_DONE) {
         m_button_cancel->Hide();
         m_button_fn->Show();
         m_button_retry->Hide();
+        m_button_resume->Hide();
     }
     else if (style == CONFIRM_AND_RETRY) {
         m_button_retry->Show();
         m_button_cancel->Hide();
         m_button_fn->Hide();
+        m_button_resume->Hide();
     }
     else if (style == DONE_AND_RETRY) {
         m_button_retry->Show();
         m_button_fn->Show();
         m_button_cancel->Hide();
+        m_button_resume->Hide();
+    }
+    else if(style == CONFIRM_AND_RESUME)
+    {
+        m_button_retry->Hide();
+        m_button_fn->Hide();
+        m_button_cancel->Hide();
+        m_button_resume->Show();
     }
     else {
         m_button_retry->Hide();
         m_button_cancel->Hide();
         m_button_fn->Hide();
+        m_button_resume->Hide();
+
     }
 
 
@@ -828,6 +862,306 @@ void SecondaryCheckDialog::rescale()
 {
     m_button_ok->Rescale();
     m_button_cancel->Rescale();
+}
+
+PrintErrorDialog::PrintErrorDialog(wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style)
+    :DPIFrame(parent, id, title, pos, size, style)
+{
+    std::string icon_path = (boost::format("%1%/images/OrcaSlicerTitle.ico") % resources_dir()).str();
+    SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
+    SetBackgroundColour(*wxWHITE);
+
+    btn_bg_white = StateColor(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
+        std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
+
+    m_sizer_main = new wxBoxSizer(wxVERTICAL);
+    auto        m_line_top = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(350), 1));
+    m_line_top->SetBackgroundColour(wxColour(166, 169, 170));
+    m_sizer_main->Add(m_line_top, 0, wxEXPAND, 0);
+    m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(5));
+
+    wxBoxSizer* m_sizer_right = new wxBoxSizer(wxVERTICAL);
+
+    m_sizer_right->Add(0, 0, 1, wxTOP, FromDIP(5));
+
+    m_vebview_release_note = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL);
+    m_vebview_release_note->SetScrollRate(0, 5);
+    m_vebview_release_note->SetBackgroundColour(*wxWHITE);
+    m_vebview_release_note->SetMinSize(wxSize(FromDIP(320), FromDIP(250)));
+    m_sizer_right->Add(m_vebview_release_note, 0, wxEXPAND | wxRIGHT | wxLEFT, FromDIP(15));
+
+    m_error_prompt_pic_static = new wxStaticBitmap(m_vebview_release_note, wxID_ANY, wxBitmap(), wxDefaultPosition, wxSize(FromDIP(300), FromDIP(180)));
+
+    auto bottom_sizer = new wxBoxSizer(wxVERTICAL);
+    m_sizer_button = new wxBoxSizer(wxVERTICAL);
+
+    bottom_sizer->Add(m_sizer_button, 0, wxEXPAND | wxRIGHT | wxLEFT, 0);
+
+    m_sizer_right->Add(bottom_sizer, 0, wxEXPAND | wxRIGHT | wxLEFT, FromDIP(15));
+    m_sizer_right->Add(0, 0, 0, wxTOP, FromDIP(10));
+
+    m_sizer_main->Add(m_sizer_right, 0, wxBOTTOM | wxEXPAND, FromDIP(5));
+
+    Bind(wxEVT_CLOSE_WINDOW, [this](auto& e) {this->on_hide(); });
+    Bind(wxEVT_ACTIVATE, [this](auto& e) { if (!e.GetActive()) this->RequestUserAttention(wxUSER_ATTENTION_ERROR); });
+    Bind(wxEVT_WEBREQUEST_STATE, &PrintErrorDialog::on_webrequest_state, this);
+
+
+    SetSizer(m_sizer_main);
+    Layout();
+    m_sizer_main->Fit(this);
+
+    init_button_list();
+
+    CenterOnParent();
+    wxGetApp().UpdateFrameDarkUI(this);
+}
+
+void PrintErrorDialog::post_event(wxCommandEvent&& event)
+{
+    if (event_parent) {
+        event.SetString("");
+        event.SetEventObject(event_parent);
+        wxPostEvent(event_parent, event);
+        event.Skip();
+    }
+}
+
+void PrintErrorDialog::on_webrequest_state(wxWebRequestEvent& evt)
+{
+    BOOST_LOG_TRIVIAL(trace) << "monitor: monitor_panel web request state = " << evt.GetState();
+    switch (evt.GetState()) {
+    case wxWebRequest::State_Completed: {
+            wxImage img(*evt.GetResponse().GetStream());
+            wxImage resize_img = img.Scale(FromDIP(320), FromDIP(180), wxIMAGE_QUALITY_HIGH);
+            wxBitmap error_prompt_pic = resize_img;
+            m_error_prompt_pic_static->SetBitmap(error_prompt_pic);
+            Layout();
+            Fit();
+
+        break;
+    }
+    case wxWebRequest::State_Failed:
+    case wxWebRequest::State_Cancelled:
+    case wxWebRequest::State_Unauthorized: {
+        m_error_prompt_pic_static->SetBitmap(wxBitmap());
+        break;
+    }
+    case wxWebRequest::State_Active:
+    case wxWebRequest::State_Idle: break;
+    default: break;
+    }
+}
+
+void PrintErrorDialog::update_text_image(wxString text, wxString image_url)
+{
+    //if (!m_sizer_text_release_note) {
+    //    m_sizer_text_release_note = new wxBoxSizer(wxVERTICAL);
+    //}
+    wxBoxSizer* sizer_text_release_note = new wxBoxSizer(wxVERTICAL);
+
+    
+    if (!m_staticText_release_note) {
+        m_staticText_release_note = new Label(m_vebview_release_note, text, LB_AUTO_WRAP);
+        sizer_text_release_note->Add(m_error_prompt_pic_static, 0, wxALIGN_CENTER, FromDIP(5));
+        sizer_text_release_note->Add(m_staticText_release_note, 0, wxALIGN_CENTER , FromDIP(5));
+        m_vebview_release_note->SetSizer(sizer_text_release_note);
+    }
+    if (!image_url.empty()) {
+        web_request = wxWebSession::GetDefault().CreateRequest(this, image_url);
+        BOOST_LOG_TRIVIAL(trace) << "monitor: create new webrequest, state = " << web_request.GetState() << ", url = " << image_url;
+        if (web_request.GetState() == wxWebRequest::State_Idle)
+            web_request.Start();
+        BOOST_LOG_TRIVIAL(trace) << "monitor: start new webrequest, state = " << web_request.GetState() << ", url = " << image_url;
+        m_error_prompt_pic_static->Show();
+
+    }
+    else {
+        m_error_prompt_pic_static->Hide();
+    }
+    sizer_text_release_note->Layout();
+    m_staticText_release_note->SetMaxSize(wxSize(FromDIP(300), -1));
+    m_staticText_release_note->SetMinSize(wxSize(FromDIP(300), -1));
+    m_staticText_release_note->SetLabelText(text);
+    m_vebview_release_note->Layout();
+
+    auto text_size = m_staticText_release_note->GetBestSize();
+    if (text_size.y < FromDIP(360))
+        if (!image_url.empty()) {
+            m_vebview_release_note->SetMinSize(wxSize(FromDIP(320), text_size.y + FromDIP(220)));
+        }
+        else {
+            m_vebview_release_note->SetMinSize(wxSize(FromDIP(320), text_size.y + FromDIP(25)));
+        }
+    else {
+        m_vebview_release_note->SetMinSize(wxSize(FromDIP(320), FromDIP(340)));
+    }
+
+    Layout();
+    Fit();
+}
+
+void PrintErrorDialog::on_show()
+{
+    wxGetApp().UpdateFrameDarkUI(this);
+
+    this->Show();
+    this->Raise();
+}
+
+void PrintErrorDialog::on_hide()
+{
+    //m_sizer_button->Clear();
+    //m_sizer_button->Layout();
+    //m_used_button.clear();
+    this->Hide();
+    if (web_request.IsOk() && web_request.GetState() == wxWebRequest::State_Active) {
+        BOOST_LOG_TRIVIAL(info) << "web_request: cancelled";
+        web_request.Cancel();
+    }
+    m_error_prompt_pic_static->SetBitmap(wxBitmap());
+
+    if (wxGetApp().mainframe != nullptr) {
+        wxGetApp().mainframe->Show();
+        wxGetApp().mainframe->Raise();
+    }
+}
+
+void PrintErrorDialog::update_title_style(wxString title, std::vector<int> button_style, wxWindow* parent)
+{
+    SetTitle(title);
+    event_parent = parent;
+    for (int used_button_id : m_used_button) {
+        if (m_button_list.find(used_button_id) != m_button_list.end()) {
+            m_button_list[used_button_id]->Hide();
+        }
+    }
+    m_sizer_button->Clear();
+    m_used_button = button_style;
+    for (int button_id : button_style) {
+        if (m_button_list.find(button_id) != m_button_list.end()) {
+            m_sizer_button->Add(m_button_list[button_id], 0, wxALL, FromDIP(5));
+            m_button_list[button_id]->Show();
+        }
+    }
+    Layout();
+    Fit();
+
+}
+
+void PrintErrorDialog::init_button(PrintErrorButton style,wxString buton_text) {
+    Button* print_error_button = new Button(this, buton_text);
+    print_error_button->SetBackgroundColor(btn_bg_white);
+    print_error_button->SetBorderColor(wxColour(38, 46, 48));
+    print_error_button->SetFont(Label::Body_14);
+    print_error_button->SetSize(wxSize(FromDIP(300), FromDIP(30)));
+    print_error_button->SetMinSize(wxSize(FromDIP(300), FromDIP(30)));
+    print_error_button->SetMaxSize(wxSize(-1, FromDIP(30)));
+    print_error_button->SetCornerRadius(FromDIP(5));
+    print_error_button->Hide();
+    m_button_list[style] = print_error_button;
+
+}
+
+void PrintErrorDialog::init_button_list() {
+    
+    init_button(RESUME_PRINTING, _L("Resume Printing"));
+    m_button_list[RESUME_PRINTING]->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
+        post_event(wxCommandEvent(EVT_SECONDARY_CHECK_RESUME));
+        e.Skip();
+    });
+
+    init_button(RESUME_PRINTING_DEFECTS, _L("Resume Printing(defects acceptable)"));
+    m_button_list[RESUME_PRINTING_DEFECTS]->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
+        post_event(wxCommandEvent(EVT_SECONDARY_CHECK_RESUME));
+        e.Skip();
+    });
+
+
+    init_button(RESUME_PRINTING_PROBELM_SOLVED, _L("Resume Printing(problem solved)"));
+    m_button_list[RESUME_PRINTING_PROBELM_SOLVED]->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
+        post_event(wxCommandEvent(EVT_SECONDARY_CHECK_RESUME));
+        e.Skip();
+    });
+
+    init_button(STOP_PRINTING, _L("Stop Printing"));
+    m_button_list[STOP_PRINTING]->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
+        post_event(wxCommandEvent(EVT_PRINT_ERROR_STOP));
+        e.Skip();
+    });
+
+    init_button(CHECK_ASSISTANT, _L("Check Assistant"));
+    m_button_list[CHECK_ASSISTANT]->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
+        post_event(wxCommandEvent(EVT_JUMP_TO_HMS));
+        this->on_hide();
+    });
+
+    init_button(FILAMENT_EXTRUDED, _L("Filament Extruded, Continue"));
+    m_button_list[FILAMENT_EXTRUDED]->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
+        post_event(wxCommandEvent(EVT_SECONDARY_CHECK_DONE));
+        e.Skip();
+    });
+
+    init_button(RETRY_FILAMENT_EXTRUDED, _L("Not Extruded Yet, Retry"));
+    m_button_list[RETRY_FILAMENT_EXTRUDED]->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
+        wxCommandEvent evt(EVT_SECONDARY_CHECK_RETRY, GetId());
+        e.SetEventObject(this);
+        GetEventHandler()->ProcessEvent(evt);
+        this->on_hide();
+    });
+
+    init_button(CONTINUE, _L("Finished, Continue"));
+    m_button_list[CONTINUE]->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
+        post_event(wxCommandEvent(EVT_SECONDARY_CHECK_DONE));
+        e.Skip();
+    });
+
+    init_button(LOAD_VIRTUAL_TRAY, _L("Load Filament"));
+    m_button_list[LOAD_VIRTUAL_TRAY]->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
+        post_event(wxCommandEvent(EVT_LOAD_VAMS_TRAY));
+        e.Skip();
+    });
+
+    init_button(OK_BUTTON, _L("OK"));
+    m_button_list[OK_BUTTON]->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
+        wxCommandEvent evt(EVT_SECONDARY_CHECK_CONFIRM, GetId());
+        e.SetEventObject(this);
+        GetEventHandler()->ProcessEvent(evt);
+        this->on_hide();
+    });
+
+    init_button(FILAMENT_LOAD_RESUME, _L("Filament Loaded, Resume"));
+    m_button_list[FILAMENT_LOAD_RESUME]->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
+        post_event(wxCommandEvent(EVT_SECONDARY_CHECK_RESUME));
+        e.Skip();
+    });
+
+    init_button(JUMP_TO_LIVEVIEW, _L("View Liveview"));
+    m_button_list[JUMP_TO_LIVEVIEW]->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
+        post_event(wxCommandEvent(EVT_JUMP_TO_LIVEVIEW));
+        e.Skip();
+    });
+}
+
+PrintErrorDialog::~PrintErrorDialog()
+{
+
+}
+
+void PrintErrorDialog::on_dpi_changed(const wxRect& suggested_rect)
+{
+    rescale();
+}
+
+void PrintErrorDialog::msw_rescale() {
+    wxGetApp().UpdateFrameDarkUI(this);
+    Refresh();
+}
+
+void PrintErrorDialog::rescale()
+{
+    for(auto used_button:m_used_button)
+        m_button_list[used_button]->Rescale();
 }
 
 ConfirmBeforeSendDialog::ConfirmBeforeSendDialog(wxWindow* parent, wxWindowID id, const wxString& title, enum ButtonStyle btn_style, const wxPoint& pos, const wxSize& size, long style, bool not_show_again_check)
@@ -965,16 +1299,46 @@ void ConfirmBeforeSendDialog::update_text(wxString text)
         sizer_text_release_note->Add(bottom_blank_sizer, 0, wxALIGN_CENTER | wxALL, FromDIP(5));
         m_vebview_release_note->SetSizer(sizer_text_release_note);
     }
-    m_staticText_release_note->SetMaxSize(wxSize(FromDIP(330), -1));
-    m_staticText_release_note->SetMinSize(wxSize(FromDIP(330), -1));
+    m_staticText_release_note->SetMaxSize(wxSize(FromDIP(380), -1));
+    m_staticText_release_note->SetMinSize(wxSize(FromDIP(380), -1));
     m_staticText_release_note->SetLabelText(text);
     m_vebview_release_note->Layout();
 
     auto text_size = m_staticText_release_note->GetBestSize();
-    if (text_size.y < FromDIP(360))
-        m_vebview_release_note->SetMinSize(wxSize(FromDIP(360), text_size.y + FromDIP(25)));
+    if (text_size.y < FromDIP(380))
+        m_vebview_release_note->SetMinSize(wxSize(FromDIP(400), text_size.y + FromDIP(25)));
     else {
-        m_vebview_release_note->SetMinSize(wxSize(FromDIP(360), FromDIP(360)));
+        m_vebview_release_note->SetMinSize(wxSize(FromDIP(400), FromDIP(380)));
+    }
+
+    Layout();
+    Fit();
+}
+
+void ConfirmBeforeSendDialog::update_text(std::vector<ConfirmBeforeSendInfo> texts)
+{
+    wxBoxSizer* sizer_text_release_note = new wxBoxSizer(wxVERTICAL);
+    m_vebview_release_note->SetSizer(sizer_text_release_note);
+
+    auto height = 0;
+    for (auto text : texts) {
+        auto label_item = new Label(m_vebview_release_note, text.text, LB_AUTO_WRAP);
+        if (text.level == ConfirmBeforeSendInfo::InfoLevel::Warning) {
+            label_item->SetForegroundColour(wxColour(0xFF, 0x6F, 0x00));
+        }
+        label_item->SetMaxSize(wxSize(FromDIP(380), -1));
+        label_item->SetMinSize(wxSize(FromDIP(380), -1));
+        label_item->Wrap(FromDIP(380));
+        label_item->Layout();
+        sizer_text_release_note->Add(label_item, 0, wxALIGN_CENTER | wxALL, FromDIP(3));
+        height += label_item->GetSize().y;
+    }
+    
+    m_vebview_release_note->Layout();
+    if (height < FromDIP(380))
+        m_vebview_release_note->SetMinSize(wxSize(FromDIP(400), height + FromDIP(25)));
+    else {
+        m_vebview_release_note->SetMinSize(wxSize(FromDIP(400), FromDIP(380)));
     }
 
     Layout();
@@ -1035,10 +1399,36 @@ void ConfirmBeforeSendDialog::on_dpi_changed(const wxRect& suggested_rect)
     rescale();
 }
 
-void ConfirmBeforeSendDialog::show_update_nozzle_button()
+void ConfirmBeforeSendDialog::show_update_nozzle_button(bool show)
 {
-    m_button_update_nozzle->Show(true);
+    m_button_update_nozzle->Show(show);
     Layout();
+}
+
+void ConfirmBeforeSendDialog::hide_button_ok()
+{
+    m_button_ok->Hide();
+}
+
+void ConfirmBeforeSendDialog::edit_cancel_button_txt(wxString txt)
+{
+    m_button_cancel->SetLabel(txt);
+}
+
+void ConfirmBeforeSendDialog::disable_button_ok()
+{
+    m_button_ok->Disable();
+    m_button_ok->SetBackgroundColor(wxColour(0x90, 0x90, 0x90));
+    m_button_ok->SetBorderColor(wxColour(0x90, 0x90, 0x90));
+}
+
+void ConfirmBeforeSendDialog::enable_button_ok()
+{
+    m_button_ok->Enable();
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
+        std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
+    m_button_ok->SetBackgroundColor(btn_bg_green);
+    m_button_ok->SetBorderColor(btn_bg_green);
 }
 
 void ConfirmBeforeSendDialog::rescale()

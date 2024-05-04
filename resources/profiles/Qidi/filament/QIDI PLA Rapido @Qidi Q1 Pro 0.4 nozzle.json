@@ -23,7 +23,7 @@
     "filament_settings_id": [
         "QIDI PLA Rapido @Qidi Q1 Pro 0.4 nozzle"
     ],
-    "from": "User",
+    "from": "system",
     "full_fan_speed_layer": [
         "3"
     ],
@@ -37,7 +37,7 @@
     "is_custom_defined": "0",
     "name": "QIDI PLA Rapido @Qidi Q1 Pro 0.4 nozzle",
     "nozzle_temperature": [
-        "220"
+        "210"
     ],
     "pressure_advance": [
         "0.042"

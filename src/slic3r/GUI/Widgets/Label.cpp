@@ -114,7 +114,11 @@ public:
     void Wrap(wxWindow *win, const wxString &text, int widthMax)
     {
         const wxClientDC dc(win);
+        Wrap(dc, text, widthMax);
+    }
 
+    void Wrap(wxDC const & dc, const wxString &text, int widthMax)
+    {
         const wxArrayString ls = wxSplit(text, '\n', '\0');
         for (wxArrayString::const_iterator i = ls.begin(); i != ls.end(); ++i) {
             wxString line = *i;
@@ -218,6 +222,12 @@ private:
 class wxLabelWrapper2 : public wxTextWrapper2
 {
 public:
+    void WrapLabel(wxDC const & dc, wxString const & label, int widthMax)
+    {
+        m_text.clear();
+        Wrap(dc, label, widthMax);
+    }
+
     void WrapLabel(wxWindow *text, wxString const & label, int widthMax)
     {
         m_text.clear();
@@ -238,27 +248,9 @@ private:
 
 wxSize Label::split_lines(wxDC &dc, int width, const wxString &text, wxString &multiline_text)
 {
-    multiline_text = text;
-    if (width > 0 && dc.GetTextExtent(text).x > width) {
-        size_t start   = 0;
-        while (true) {
-            size_t idx = size_t(-1);
-            for (size_t i = start; i < multiline_text.Len(); i++) {
-                if (multiline_text[i] == ' ') {
-                    if (dc.GetTextExtent(multiline_text.SubString(start, i)).x < width)
-                        idx = i;
-                    else {
-                        if (idx == size_t(-1)) idx = i;
-                        break;
-                    }
-                }
-            }
-            if (idx == size_t(-1)) break;
-            multiline_text[idx] = '\n';
-            start               = idx + 1;
-            if (dc.GetTextExtent(multiline_text.Mid(start)).x < width) break;
-        }
-    }
+    wxLabelWrapper2 wrap;
+    wrap.Wrap(dc, text, width);
+    multiline_text = wrap.GetText();
     return dc.GetMultiLineTextExtent(multiline_text);
 }
 

@@ -57,6 +57,7 @@ GLGizmosManager::GLGizmosManager(GLCanvas3D& parent)
     //BBS: GUI refactor: add object manipulation in gizmo
     , m_object_manipulation(parent)
 {
+    m_timer_set_color.Bind(wxEVT_TIMER, &GLGizmosManager::on_set_color_timer, this);
 }
 
 std::vector<size_t> GLGizmosManager::get_selectable_idxs() const
@@ -199,9 +200,9 @@ bool GLGizmosManager::init()
     m_gizmos.emplace_back(new GLGizmoMeshBoolean(m_parent, m_is_dark ? "toolbar_meshboolean_dark.svg" : "toolbar_meshboolean.svg", EType::MeshBoolean));
     m_gizmos.emplace_back(new GLGizmoFdmSupports(m_parent, m_is_dark ? "toolbar_support_dark.svg" : "toolbar_support.svg", EType::FdmSupports));
     m_gizmos.emplace_back(new GLGizmoSeam(m_parent, m_is_dark ? "toolbar_seam_dark.svg" : "toolbar_seam.svg", EType::Seam));
+    m_gizmos.emplace_back(new GLGizmoMmuSegmentation(m_parent, m_is_dark ? "mmu_segmentation_dark.svg" : "mmu_segmentation.svg", EType::MmuSegmentation));
     m_gizmos.emplace_back(new GLGizmoEmboss(m_parent, m_is_dark ? "toolbar_text_dark.svg" : "toolbar_text.svg", EType::Emboss));
     m_gizmos.emplace_back(new GLGizmoSVG(m_parent));
-    m_gizmos.emplace_back(new GLGizmoMmuSegmentation(m_parent, m_is_dark ? "mmu_segmentation_dark.svg" : "mmu_segmentation.svg", EType::MmuSegmentation));
     m_gizmos.emplace_back(new GLGizmoMeasure(m_parent, m_is_dark ? "toolbar_measure_dark.svg" : "toolbar_measure.svg", EType::Measure));
     m_gizmos.emplace_back(new GLGizmoSimplify(m_parent, "reduce_triangles.svg", EType::Simplify));
     //m_gizmos.emplace_back(new GLGizmoSlaSupports(m_parent, "sla_supports.svg", sprite_id++));
@@ -805,7 +806,7 @@ bool GLGizmosManager::on_char(wxKeyEvent& evt)
 
 bool GLGizmosManager::on_key(wxKeyEvent& evt)
 {
-    const int keyCode = evt.GetKeyCode();
+    int keyCode = evt.GetKeyCode();
     bool processed = false;
 
     if (evt.GetEventType() == wxEVT_KEY_UP) {
@@ -887,8 +888,21 @@ bool GLGizmosManager::on_key(wxKeyEvent& evt)
         else if (m_current == MmuSegmentation) {
             GLGizmoMmuSegmentation* mmu_seg = dynamic_cast<GLGizmoMmuSegmentation*>(get_current());
             if (mmu_seg != nullptr) {
-                if (keyCode > '0' && keyCode <= '9') {
-                    processed = mmu_seg->on_number_key_down(keyCode - '0');
+                if (keyCode >= WXK_NUMPAD0 && keyCode <= WXK_NUMPAD9) {
+                    keyCode = keyCode- WXK_NUMPAD0+'0';
+                }
+                if (keyCode >= '0' && keyCode <= '9') {
+                    if (keyCode == '1' && !m_timer_set_color.IsRunning()) {
+                        m_timer_set_color.StartOnce(500);
+                        processed = true;
+                    }
+                    else if (keyCode < '7' && m_timer_set_color.IsRunning()) {
+                        processed = mmu_seg->on_number_key_down(keyCode - '0'+10);
+                        m_timer_set_color.Stop();
+                    }
+                    else {
+                        processed = mmu_seg->on_number_key_down(keyCode - '0');
+                    }
                 }
                 else if (keyCode == 'F' || keyCode == 'T' || keyCode == 'S' || keyCode == 'C' || keyCode == 'H' || keyCode == 'G') {
                     processed = mmu_seg->on_key_down_select_tool_type(keyCode);
@@ -931,6 +945,15 @@ bool GLGizmosManager::on_key(wxKeyEvent& evt)
         m_parent.set_as_dirty();
 
     return processed;
+}
+
+void GLGizmosManager::on_set_color_timer(wxTimerEvent& evt)
+{
+    if (m_current == MmuSegmentation) {
+        GLGizmoMmuSegmentation* mmu_seg = dynamic_cast<GLGizmoMmuSegmentation*>(get_current());
+        mmu_seg->on_number_key_down(1);
+        m_parent.set_as_dirty();
+    }
 }
 
 void GLGizmosManager::update_after_undo_redo(const UndoRedo::Snapshot& snapshot)
