@@ -2009,7 +2009,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->cli = ConfigOptionDef::nocli;
 
     def = this->add("infill_direction", coFloat);
-    def->label = L("Infill direction");
+    def->label = L("Sparse infill direction");
     def->category = L("Strength");
     def->tooltip = L("Angle for sparse infill pattern, which controls the start or main direction of line");
     def->sidetext = L("°");
@@ -2017,6 +2017,17 @@ def = this->add("filament_loading_speed", coFloats);
     def->max = 360;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(45));
+
+    def = this->add("solid_infill_direction", coFloat);
+    def->label = L("Solid infill direction");
+    def->category = L("Strength");
+    def->tooltip = L("Angle for solid infill pattern, which controls the start or main direction of line");
+    def->sidetext = L("°");
+    def->min = 0;
+    def->max = 360;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(45));
+
 
     def = this->add("sparse_infill_density", coPercent);
     def->label = L("Sparse infill density");

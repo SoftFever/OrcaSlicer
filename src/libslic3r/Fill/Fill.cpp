@@ -491,9 +491,11 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
                     }
                 }
                 params.bridge_angle = float(surface.bridge_angle);
-		        params.angle 		= float(Geometry::deg2rad(region_config.infill_direction.value));
-		        
-		        // Calculate the actual flow we'll be using for this infill.
+                params.angle        = float(Geometry::deg2rad(params.extrusion_role == erInternalInfill ?
+                                                                  region_config.infill_direction :
+                                                                  region_config.solid_infill_direction.value));
+
+                // Calculate the actual flow we'll be using for this infill.
 		        params.bridge = is_bridge || Fill::use_bridge_flow(params.pattern);
                 const bool is_thick_bridge = surface.is_bridge() && (surface.is_internal_bridge() ? object_config.thick_internal_bridges : object_config.thick_bridges);
 				params.flow   = params.bridge ?
@@ -647,8 +649,8 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
                 else
                     params.pattern 		 = ipRectilinear;
 	            params.density 		 = 100.f;
-		        params.extrusion_role = erInternalInfill;
-		        params.angle 		= float(Geometry::deg2rad(layerm.region().config().infill_direction.value));
+		        params.extrusion_role = erSolidInfill;
+		        params.angle 		= float(Geometry::deg2rad(layerm.region().config().solid_infill_direction.value));
 		        // calculate the actual flow we'll be using for this infill
 				params.flow = layerm.flow(frSolidInfill);
 		        params.spacing = params.flow.spacing();	        
