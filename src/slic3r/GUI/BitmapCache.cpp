@@ -323,7 +323,7 @@ wxBitmap* BitmapCache::load_svg(const std::string &bitmap_name, unsigned target_
 
     // map of color replaces
     std::map<std::string, std::string> replaces;
-replaces["\"#0x00AE42\""] = "\"#009688\"";
+    replaces["\"#0x00AE42\""] = "\"#009688\"";
     replaces["\"#00FF00\""] = "\"#52c7b8\"";
     if (dark_mode) {
         replaces["\"#262E30\""] = "\"#EFEFF0\"";
@@ -334,7 +334,7 @@ replaces["\"#0x00AE42\""] = "\"#009688\"";
         replaces["\"#6B6B6B\""] = "\"#818182\"";
         replaces["\"#909090\""] = "\"#FFFFFF\"";
         replaces["\"#00FF00\""] = "\"#FF0000\"";
-replaces["\"#009688\""] = "\"#00675b\"";
+        replaces["\"#009688\""] = "\"#00675b\"";
     }
     //if (!new_color.empty())
     //    replaces["\"#ED6B21\""] = "\"" + new_color + "\"";

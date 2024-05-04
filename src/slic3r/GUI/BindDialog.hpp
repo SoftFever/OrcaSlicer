@@ -19,7 +19,6 @@
 #include <wx/webrequest.h>
 #include <wx/hyperlink.h>
 #include "wxExtensions.hpp"
-#include "Plater.hpp"
 #include "Widgets/StepCtrl.hpp"
 #include "Widgets/ProgressDialog.hpp"
 #include "Widgets/Button.hpp"
@@ -29,20 +28,67 @@
 #include "BBLStatusBar.hpp"
 #include "BBLStatusBarBind.hpp"
 #include "Jobs/Worker.hpp"
+#include "GUI_Utils.hpp"
+#include "Widgets/TextInput.hpp"
+#include "Jobs/PrintJob.hpp"
+#include "Jobs/SendJob.hpp"
+#include "DeviceManager.hpp"
 
 #define BIND_DIALOG_GREY200 wxColour(248, 248, 248)
 #define BIND_DIALOG_GREY800 wxColour(50, 58, 61)
 #define BIND_DIALOG_GREY900 wxColour(38, 46, 48)
 #define BIND_DIALOG_BUTTON_SIZE wxSize(FromDIP(68), FromDIP(24))
 #define BIND_DIALOG_BUTTON_PANEL_SIZE wxSize(FromDIP(450), FromDIP(30))
+#define PING_CODE_LENGTH 6
 
 namespace Slic3r { namespace GUI {
-
+class Plater;
 struct MemoryStruct
 {
     char * memory;
     size_t read_pos;
     size_t size;
+};
+
+class PingCodeBindDialog : public DPIDialog
+{
+private:
+
+    Label* m_status_text;
+    wxStaticText* m_text_input_title;
+    wxStaticText* m_link_show_ping_code_wiki;
+    TextInput* m_text_input_single_code[PING_CODE_LENGTH];
+    Button* m_button_bind;
+    Button* m_button_cancel;
+    Button* m_button_close;
+    wxSimplebook* m_simplebook;
+    wxPanel* request_bind_panel;
+    wxPanel* binding_panel;
+
+    wxScrolledWindow* m_sw_bind_failed_info;
+    Label* m_bind_failed_info;
+    Label* m_st_txt_error_code{ nullptr };
+    Label* m_st_txt_error_desc{ nullptr };
+    Label* m_st_txt_extra_info{ nullptr };
+    wxHyperlinkCtrl* m_link_network_state{ nullptr };
+    wxString        m_result_info;
+    wxString        m_result_extra;
+    wxString        m_ping_code_wiki;
+    bool            m_show_error_info_state = true;
+
+    int             m_result_code;
+    std::shared_ptr<BBLStatusBarBind> m_status_bar;
+
+public:
+    PingCodeBindDialog(Plater* plater = nullptr);
+    ~PingCodeBindDialog();
+
+    void     on_key_input(wxKeyEvent& evt);
+    void     on_text_changed(wxCommandEvent& event);
+    void     on_key_backspace(wxKeyEvent& event);
+    void     on_cancel(wxCommandEvent& event);
+    void     on_bind_printer(wxCommandEvent& event);
+    void     on_dpi_changed(const wxRect& suggested_rect) override;
 };
 
 class BindMachineDialog : public DPIDialog

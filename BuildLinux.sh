@@ -5,7 +5,7 @@ export ROOT=$(dirname $(readlink -f ${0}))
 set -e # exit on first error
 
 function check_available_memory_and_disk() {
-    FREE_MEM_GB=$(free -g -t | grep 'Mem:' | rev | cut -d" " -f1 | rev)
+    FREE_MEM_GB=$(free -g -t | grep 'Mem' | rev | cut -d" " -f1 | rev)
     MIN_MEM_GB=10
 
     FREE_DISK_KB=$(df -k . | tail -1 | awk '{print $4}')
