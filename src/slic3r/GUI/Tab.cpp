@@ -2130,6 +2130,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("infill_wall_overlap");
         optgroup->append_single_option_line("infill_direction");
         optgroup->append_single_option_line("solid_infill_direction");
+        optgroup->append_single_option_line("rotate_solid_infill_direction");
         optgroup->append_single_option_line("bridge_angle");
         optgroup->append_single_option_line("minimum_sparse_infill_area");
         optgroup->append_single_option_line("infill_combination");

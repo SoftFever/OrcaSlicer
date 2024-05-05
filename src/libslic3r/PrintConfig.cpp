@@ -2028,6 +2028,12 @@ def = this->add("filament_loading_speed", coFloats);
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(45));
 
+    def = this->add("rotate_solid_infill_direction", coBool);
+    def->label = L("Rotate solid infill direction");
+    def->category = L("Strength");
+    def->tooltip = L("Rotate the solid infill direction by 90° for each layer.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(true));
 
     def = this->add("sparse_infill_density", coPercent);
     def->label = L("Sparse infill density");
