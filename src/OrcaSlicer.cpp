@@ -879,6 +879,63 @@ static int construct_assemble_list(std::vector<assemble_plate_info_t> &assemble_
     return ret;
 }
 
+std::string get_glVender()  {
+    int code;
+    const char* description;
+
+    int ret = glfwInit();
+    if (ret == GLFW_FALSE) {
+        code = glfwGetError(&description);
+        std::cerr << "Failed to initialize GLFW: " << code;
+        if (description)
+            std::cerr << ": " << description;
+        std::cerr << std::endl;
+        abort();
+    }
+    std::cout << "GLFW initialized." << std::endl;
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+    glfwWindowHint(GLFW_RED_BITS, 8);
+    glfwWindowHint(GLFW_GREEN_BITS, 8);
+    glfwWindowHint(GLFW_BLUE_BITS, 8);
+    glfwWindowHint(GLFW_ALPHA_BITS, 8);
+    glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
+    glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_NATIVE_CONTEXT_API);
+    std::cout << "GLFW window hints set." << std::endl;
+    GLFWwindow* window = glfwCreateWindow(640, 480, "base_window", NULL, NULL);
+    std::cout << "GLFW window created." << std::endl;
+    if (window == NULL)
+    {
+        code = glfwGetError(&description);
+        std::cerr << "Failed to create GLFW window: " << code;
+        if (description)
+            std::cerr << ": " << description;
+        std::cerr << std::endl;
+        abort();
+    }
+    glfwMakeContextCurrent(window);
+    std::cout << "GLFW context set." << std::endl;
+    // get gl vendor
+    const GLubyte* glVendor = glGetString(GL_VENDOR);
+    if (glVendor == NULL) {
+        code = glfwGetError(&description);
+        std::cerr << "Failed to get GL vendor, code: " << code << std::endl;
+        if (description)
+            std::cerr << ", description: " << description;
+        std::cerr << std::endl;
+        abort();
+    }
+    std::string glVendorString = reinterpret_cast<const char*>(glVendor);
+    std::cout << "glVendor: " << glVendorString << std::endl;
+    const char* glRenderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
+    std::cout << "glRenderer: " << glRenderer << std::endl;
+    const char* glVersion = reinterpret_cast<const char*>(glGetString(GL_VERSION));
+    std::cout << "glVersion: " << glVersion << std::endl;
+    glfwDestroyWindow(window);
+    return glVendorString;
+}
+
 int CLI::run(int argc, char **argv)
 {
     // Mark the main thread for the debugger and for runtime checks.
@@ -891,6 +948,12 @@ int CLI::run(int argc, char **argv)
     // startup if gtk3 is used. This env var has to be set explicitly to
     // instruct the window manager to fall back to X server mode.
     ::setenv("GDK_BACKEND", "x11", /* replace */ true);
+
+    std::string glvendor = get_glVender();
+    if (glvendor == "NVIDIA Corporation") {
+        // this is needed on nvidia systems to show the Home and Project tabs
+        ::setenv("WEBKIT_DISABLE_DMABUF_RENDERER", "1", /* replace */ true);
+    }
 
     // Also on Linux, we need to tell Xlib that we will be using threads,
     // lest we crash when we fire up GStreamer.
