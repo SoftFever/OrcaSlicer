@@ -94,6 +94,8 @@ public:
     coordf_t    overlap;
     // in radians, ccw, 0 = East
     float       angle;
+    // Orca: enable angle shifting for layer change
+    bool        rotate_angle{ true };
     // In scaled coordinates. Maximum lenght of a perimeter segment connecting two infill lines.
     // Used by the FillRectilinear2, FillGrid2, FillTriangles, FillStars and FillCubic.
     // If left to zero, the links will not be limited.
@@ -150,6 +152,7 @@ protected:
         overlap(0.),
         // Initial angle is undefined.
         angle(FLT_MAX),
+        rotate_angle(true),
         link_max_length(0),
         loop_clipping(0),
         // The initial bounding box is empty, therefore undefined.
@@ -171,7 +174,7 @@ protected:
         ExPolygon                      expolygon,
         ThickPolylines& thick_polylines_out) {}
 
-    virtual float _layer_angle(size_t idx) const { return (idx & 1) ? float(M_PI/2.) : 0; }
+    virtual float _layer_angle(size_t idx) const { return (rotate_angle && (idx & 1)) ? float(M_PI/2.) : 0; }
 
     virtual std::pair<float, Point> _infill_direction(const Surface *surface) const;
     
