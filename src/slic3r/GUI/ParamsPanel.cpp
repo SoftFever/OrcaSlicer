@@ -18,6 +18,13 @@
 #include "Widgets/Button.hpp"
 #include "GUI_Factories.hpp"
 
+// ORCA
+// Always use Left margins while managing spacings to keep thing aligned
+// Spacers cannot be hidden with conditions so dont use them with statements
+#define margin_titlebar	(wxWindowBase::FromDIP(8))  // Left and Right margins for titlebars
+#define margin_content	(wxWindowBase::FromDIP(12)) // Content should has more margin compared to titlebar for visual seperation
+#define spacing_icon	(wxWindowBase::FromDIP(10))  // Spacing between icons
+#define spacing_element	(wxWindowBase::FromDIP(5))  // Use this if button/text is near of input / combobox element
 
 namespace Slic3r {
 namespace GUI {
@@ -360,9 +367,9 @@ void ParamsPanel::create_layout()
 
     if (m_top_panel) {
         m_mode_sizer = new wxBoxSizer( wxHORIZONTAL );
-        m_mode_sizer->AddSpacer(FromDIP(11));
+        m_mode_sizer->AddSpacer(margin_titlebar);
         m_mode_sizer->Add(m_process_icon, 0, wxALIGN_CENTER);
-        m_mode_sizer->AddSpacer(FromDIP(11));
+        m_mode_sizer->AddSpacer(margin_titlebar);
         m_mode_sizer->Add( m_title_label, 0, wxALIGN_CENTER );
         m_mode_sizer->AddStretchSpacer(2);
         m_mode_sizer->Add(m_mode_region, 0, wxALIGN_CENTER);
@@ -370,14 +377,14 @@ void ParamsPanel::create_layout()
         m_mode_sizer->Add(m_tips_arrow, 0, wxALIGN_CENTER);
         m_mode_sizer->AddStretchSpacer(8);
         m_mode_sizer->Add( m_title_view, 0, wxALIGN_CENTER );
-        m_mode_sizer->AddSpacer(FromDIP(2));
+        m_mode_sizer->AddSpacer(spacing_element);
         m_mode_sizer->Add(m_mode_view, 0, wxALIGN_CENTER);
-        m_mode_sizer->AddStretchSpacer(2);
+        m_mode_sizer->AddSpacer(spacing_icon);
         m_mode_sizer->Add(m_setting_btn, 0, wxALIGN_CENTER);
-        m_mode_sizer->AddSpacer(FromDIP(2));
+        m_mode_sizer->AddSpacer(spacing_icon);
         m_mode_sizer->Add(m_compare_btn, 0, wxALIGN_CENTER);
 
-        m_mode_sizer->AddSpacer(FromDIP(8));
+        m_mode_sizer->AddSpacer(margin_titlebar);
         //m_mode_sizer->Add( m_search_btn, 0, wxALIGN_CENTER );
         //m_mode_sizer->AddSpacer(16);
         m_mode_sizer->SetMinSize(-1, FromDIP(30));
