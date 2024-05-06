@@ -943,8 +943,15 @@ template<class Bin> void remove_large_items(std::vector<Item> &items, Bin &&bin)
 
 template<class S> Radians min_area_boundingbox_rotation(const S &sh)
 {
-    return minAreaBoundingBox<S, TCompute<S>, boost::rational<LargeInt>>(sh)
-        .angleToX();
+    try {
+        return minAreaBoundingBox<S, TCompute<S>, boost::rational<LargeInt>>(sh)
+            .angleToX();
+    }
+    catch (const std::exception& e) {
+        // min_area_boundingbox_rotation may throw exception of dividing 0 if the object is already perfectly aligned to X
+        BOOST_LOG_TRIVIAL(error) << "arranging min_area_boundingbox_rotation fails, msg=" << e.what();
+        return 0.0;
+    }
 }
 
 template<class S>
