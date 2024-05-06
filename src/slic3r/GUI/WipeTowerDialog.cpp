@@ -581,21 +581,18 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
 
         auto on_apply_text_modify = [this](wxEvent& e) {
             wxString str = m_flush_multiplier_ebox->GetValue();
-            str.Replace(",", ".");
-            double  multiplier = 1.f;
-            if (str.ToDouble(&multiplier)) {
-                if (multiplier < g_min_flush_multiplier || multiplier > g_max_flush_multiplier) {
-                    str = wxString::Format(("%.2f"), multiplier < g_min_flush_multiplier ? g_min_flush_multiplier : g_max_flush_multiplier);
-                    m_flush_multiplier_ebox->SetValue(str);
-                    MessageDialog dlg(nullptr,
-                        wxString::Format(_L("The multiplier should be in range [%.2f, %.2f]."), g_min_flush_multiplier, g_max_flush_multiplier),
-                        _L("Warning"), wxICON_WARNING | wxOK);
-                    dlg.ShowModal();
-                }
-                for (unsigned int i = 0; i < m_number_of_extruders; ++i) {
-                    for (unsigned int j = 0; j < m_number_of_extruders; ++j) {
-                        edit_boxes[i][j]->SetValue(to_string(int(m_matrix[m_number_of_extruders * j + i] * multiplier)));
-                    }
+            float      multiplier = wxAtof(str);
+            if (multiplier < g_min_flush_multiplier || multiplier > g_max_flush_multiplier) {
+                str = wxString::Format(("%.2f"), multiplier < g_min_flush_multiplier ? g_min_flush_multiplier : g_max_flush_multiplier);
+                m_flush_multiplier_ebox->SetValue(str);
+                MessageDialog dlg(nullptr,
+                    wxString::Format(_L("The multiplier should be in range [%.2f, %.2f]."), g_min_flush_multiplier, g_max_flush_multiplier),
+                    _L("Warning"), wxICON_WARNING | wxOK);
+                dlg.ShowModal();
+            }
+            for (unsigned int i = 0; i < m_number_of_extruders; ++i) {
+                for (unsigned int j = 0; j < m_number_of_extruders; ++j) {
+                    edit_boxes[i][j]->SetValue(to_string(int(m_matrix[m_number_of_extruders * j + i] * multiplier)));
                 }
             }
 
@@ -610,9 +607,7 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
         param_sizer->Add(flush_multiplier_title, 0, wxALIGN_CENTER | wxALL, 0);
         param_sizer->AddSpacer(FromDIP(5));
         m_flush_multiplier_ebox = new wxTextCtrl(m_page_advanced, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(50), -1), wxTE_PROCESS_ENTER);
-        char flush_multi_str[32] = { 0 };
-        snprintf(flush_multi_str, sizeof(flush_multi_str), "%.2f", flush_multiplier);
-        m_flush_multiplier_ebox->SetValue(flush_multi_str);
+        m_flush_multiplier_ebox->SetValue(wxString::Format(("%.2f"), flush_multiplier));
         m_flush_multiplier_ebox->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
         param_sizer->Add(m_flush_multiplier_ebox, 0, wxALIGN_CENTER | wxALL, 0);
         param_sizer->AddStretchSpacer(1);
@@ -622,13 +617,10 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
         m_flush_multiplier_ebox->Bind(wxEVT_KILL_FOCUS, on_apply_text_modify);
         m_flush_multiplier_ebox->Bind(wxEVT_COMMAND_TEXT_UPDATED, [this](wxCommandEvent&) {
             wxString str = m_flush_multiplier_ebox->GetValue();
-            str.Replace(",", ".");
-            double multiplier = 1.f;
-            if (str.ToDouble(&multiplier)) {
-                if (multiplier < g_min_flush_multiplier || multiplier > g_max_flush_multiplier) {
-                    str = wxString::Format(("%.2f"), multiplier < g_min_flush_multiplier ? g_min_flush_multiplier : g_max_flush_multiplier);
-                    m_flush_multiplier_ebox->SetValue(str);
-                }
+            float multiplier = wxAtof(str);
+            if (multiplier < g_min_flush_multiplier || multiplier > g_max_flush_multiplier) {
+                str = wxString::Format(("%.2f"), multiplier < g_min_flush_multiplier ? g_min_flush_multiplier : g_max_flush_multiplier);
+                m_flush_multiplier_ebox->SetValue(str);
             }
             m_flush_multiplier_ebox->SetInsertionPointEnd();
         });
