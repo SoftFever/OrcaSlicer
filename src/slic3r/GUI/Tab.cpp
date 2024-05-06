@@ -2129,6 +2129,8 @@ void TabPrint::build()
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced");
         optgroup->append_single_option_line("infill_wall_overlap");
         optgroup->append_single_option_line("infill_direction");
+        optgroup->append_single_option_line("solid_infill_direction");
+        optgroup->append_single_option_line("rotate_solid_infill_direction");
         optgroup->append_single_option_line("bridge_angle");
         optgroup->append_single_option_line("minimum_sparse_infill_area");
         optgroup->append_single_option_line("infill_combination");
@@ -4994,12 +4996,12 @@ void Tab::clear_pages()
 {
     // invalidated highlighter, if any exists
     m_highlighter.invalidate();
-    // clear pages from the controlls
-    for (auto p : m_pages)
-        p->clear();
     //BBS: clear page in Parent
     //m_page_sizer->Clear(true);
     m_parent->clear_page();
+    // clear pages from the controlls
+    for (auto p : m_pages)
+        p->clear();
 
     // nulling pointers
     m_parent_preset_description_line = nullptr;
