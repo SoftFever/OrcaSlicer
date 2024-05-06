@@ -27,7 +27,7 @@
 	"enable_arc_fitting": "1",
 	"outer_wall_line_width": "0.42",
 	"wall_infill_order": "inner wall/outer wall/infill",
-	"line_width": "0.42",
+	"line_width": "0.45",
 	"infill_direction": "45",
 	"sparse_infill_density": "15%",
 	"sparse_infill_pattern": "grid",
@@ -93,9 +93,9 @@
 	"top_shell_thickness": "0.8",
 	"initial_layer_speed": "50",
 	"initial_layer_infill_speed": "105",
-	"outer_wall_speed": "250",
+	"outer_wall_speed": "200",
 	"inner_wall_speed": "300",
-	"internal_solid_infill_speed": "250",
+	"internal_solid_infill_speed": "300",
 	"top_surface_speed": "250",
 	"gap_infill_speed": "200",
 	"sparse_infill_speed": "300",
@@ -114,6 +114,7 @@
 	"top_surface_jerk": "7",
 	"initial_layer_jerk": "7",
 	"travel_jerk": "7",
+	"accel_to_decel_enable": "0",
 	"compatible_printers": [
 		"Creality Ender-3 V3 KE 0.4 nozzle"
 	]
