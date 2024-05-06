@@ -314,7 +314,12 @@ if (NOT TIFF_FOUND)
     set(TIFF_PKG "dep_TIFF")
 endif()
 
-include(wxWidgets/wxWidgets.cmake)
+# flatpak builds wxwidgets separately 
+set(WXWIDGETS_PKG "")
+if (NOT FLATPAK)
+    include(wxWidgets/wxWidgets.cmake)
+    set(WXWIDGETS_PKG "dep_wxWidgets")
+endif()
 
 set(FREETYPE_PKG "")
 find_package(Freetype)
@@ -332,7 +337,7 @@ set(_dep_list
     dep_TBB
     ${OPENSSL_PKG}
     ${CURL_PKG}
-    dep_wxWidgets
+    ${WXWIDGETS_PKG}
     dep_Cereal
     dep_NLopt
     dep_OpenVDB

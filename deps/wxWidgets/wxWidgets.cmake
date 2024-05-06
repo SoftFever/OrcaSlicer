@@ -30,7 +30,12 @@ endif ()
 #     set(_wx_tarball_url https://github.com/wxWidgets/wxWidgets/releases/download/${_wx_git_tag}/wxWidgets-${_wx_version}.tar.bz2)
 #     set(_wx_tarball_hash d7b3666de33aa5c10ea41bb9405c40326e1aeb74ee725bb88f90f1d50270a224)
 # endif()
+# What does work is concatenating the patches and then piping them into `patch -p1`.
 
+# Another note: The flatpak build builds wxwidgets separately due to CI size constraints.
+# ANY CHANGES MADE IN HERE MUST ALSO BE REFLECTED IN `flatpak/io.github.SoftFever.OrcaSlicer.yml`.
+# ** THIS INCLUDES BUILD ARGS. **
+# ...if you can find a way around this, be my guest.
 orcaslicer_add_cmake_project(
     wxWidgets
     GIT_REPOSITORY "https://github.com/SoftFever/Orca-deps-wxWidgets"
@@ -39,7 +44,6 @@ orcaslicer_add_cmake_project(
     # URL ${_wx_tarball_url}
     # URL_HASH SHA256=${_wx_tarball_hash}
     # PATCH_COMMAND ${_patch_cmd}
-    DEPENDS ${PNG_PKG} ${ZLIB_PKG} ${EXPAT_PKG} dep_TIFF dep_JPEG
     DEPENDS ${PNG_PKG} ${ZLIB_PKG} ${EXPAT_PKG} ${TIFF_PKG} ${JPEG_PKG}
     CMAKE_ARGS
         -DwxBUILD_PRECOMP=ON
