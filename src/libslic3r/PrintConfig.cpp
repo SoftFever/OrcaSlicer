@@ -160,7 +160,8 @@ static t_config_enum_values s_keys_map_InfillPattern {
     { "archimedeanchords",  ipArchimedeanChords },
     { "octagramspiral",     ipOctagramSpiral },
     { "supportcubic",       ipSupportCubic },
-    { "lightning",          ipLightning }
+    { "lightning",          ipLightning },
+    { "crosshatch",         ipCrossHatch}
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(InfillPattern)
 
@@ -2008,7 +2009,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->cli = ConfigOptionDef::nocli;
 
     def = this->add("infill_direction", coFloat);
-    def->label = L("Infill direction");
+    def->label = L("Sparse infill direction");
     def->category = L("Strength");
     def->tooltip = L("Angle for sparse infill pattern, which controls the start or main direction of line");
     def->sidetext = L("°");
@@ -2016,6 +2017,23 @@ def = this->add("filament_loading_speed", coFloats);
     def->max = 360;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(45));
+
+    def = this->add("solid_infill_direction", coFloat);
+    def->label = L("Solid infill direction");
+    def->category = L("Strength");
+    def->tooltip = L("Angle for solid infill pattern, which controls the start or main direction of line");
+    def->sidetext = L("°");
+    def->min = 0;
+    def->max = 360;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(45));
+
+    def = this->add("rotate_solid_infill_direction", coBool);
+    def->label = L("Rotate solid infill direction");
+    def->category = L("Strength");
+    def->tooltip = L("Rotate the solid infill direction by 90° for each layer.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(true));
 
     def = this->add("sparse_infill_density", coPercent);
     def->label = L("Sparse infill density");
@@ -2049,6 +2067,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->enum_values.push_back("octagramspiral");
     def->enum_values.push_back("supportcubic");
     def->enum_values.push_back("lightning");
+    def->enum_values.push_back("crosshatch");
     def->enum_labels.push_back(L("Concentric"));
     def->enum_labels.push_back(L("Rectilinear"));
     def->enum_labels.push_back(L("Grid"));
@@ -2066,6 +2085,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->enum_labels.push_back(L("Octagram Spiral"));
     def->enum_labels.push_back(L("Support Cubic"));
     def->enum_labels.push_back(L("Lightning"));
+    def->enum_labels.push_back(L("Cross Hatch"));
     def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipCubic));
 
     auto def_infill_anchor_min = def = this->add("infill_anchor", coFloatOrPercent);
