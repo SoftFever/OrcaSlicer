@@ -113,37 +113,38 @@ modules:
         url: https://github.com/SoftFever/Orca-deps-wxWidgets
         branch: master
         config-opts:
-          - -DwxBUILD_PRECOMP=ON
-          - -DwxBUILD_TOOLKIT=gtk3
-          - -DCMAKE_DEBUG_POSTFIX:STRING=
-          - -DwxBUILD_DEBUG_LEVEL=0
-          - -DwxBUILD_SAMPLES=OFF
-          - -DwxBUILD_SHARED=ON
-          - -DwxUSE_MEDIACTRL=ON
-          - -DwxUSE_DETECT_SM=OFF
-          - -DwxUSE_UNICODE=ON
-          - -DwxUSE_PRIVATE_FONTS=1
-          - -DwxUSE_OPENGL=ON
-          - -DwxUSE_WEBREQUEST=ON
-          - -DwxUSE_WEBVIEW=ON
-          - -DwxUSE_WEBVIEW_EDGE=OFF
-          - -DwxUSE_WEBVIEW_IE=OFF
-          - -DwxUSE_REGEX=builtin
-          - -DwxUSE_LIBXPM=builtin
-          - -DwxUSE_LIBSDL=OFF
-          - -DwxUSE_XTEST=OFF
-          - -DwxUSE_STC=OFF
-          - -DwxUSE_AUI=ON
-          - -DwxUSE_LIBPNG=sys
-          - -DwxUSE_ZLIB=sys
-          - -DwxUSE_LIBJPEG=sys
-          - -DwxUSE_LIBTIFF=sys
-          - -DwxUSE_NANOSVG=OFF
-          - -DwxUSE_EXPAT=sys
-          - -DBUILD_SHARED_LIBS:BOOL=ON
-          - -DCMAKE_INSTALL_PREFIX:STRING=/app
-          - -DCMAKE_INSTALL_LIBDIR=/app/lib
-          - -DCMAKE_PREFIX_PATH=/app
+          - "-DwxBUILD_PRECOMP=ON"
+          - "-DwxBUILD_TOOLKIT=gtk3"
+          - "-DCMAKE_DEBUG_POSTFIX:STRING="
+          - "-DwxBUILD_DEBUG_LEVEL=0"
+          - "-DwxBUILD_SAMPLES=OFF"
+          - "-DwxBUILD_SHARED=ON"
+          - "-DwxUSE_MEDIACTRL=ON"
+          - "-DwxUSE_DETECT_SM=OFF"
+          - "-DwxUSE_UNICODE=ON"
+          - "-DwxUSE_PRIVATE_FONTS=ON"
+          - "-DwxUSE_OPENGL=ON"
+          - "-DwxUSE_WEBREQUEST=ON"
+          - "-DwxUSE_WEBVIEW=ON"
+          - "-DwxUSE_WEBVIEW_EDGE=OFF"
+          - "-DwxUSE_WEBVIEW_IE=OFF"
+          - "-DwxUSE_REGEX=builtin"
+          - "-DwxUSE_LIBXPM=builtin"
+          - "-DwxUSE_LIBSDL=OFF"
+          - "-DwxUSE_XTEST=OFF"
+          - "-DwxUSE_STC=OFF"
+          - "-DwxUSE_AUI=ON"
+          - "-DwxUSE_LIBPNG=sys"
+          - "-DwxUSE_ZLIB=sys"
+          - "-DwxUSE_LIBJPEG=sys"
+          - "-DwxUSE_LIBTIFF=sys"
+          - "-DwxUSE_NANOSVG=OFF"
+          - "-DwxUSE_EXPAT=sys"
+          - "-DBUILD_SHARED_LIBS:BOOL=ON"
+          - "-DCMAKE_INSTALL_PREFIX:STRING=/app"
+          - "-DCMAKE_INSTALL_LIBDIR=/app/lib"
+          - "-DCMAKE_PREFIX_PATH=/app"
+          - "-DCMAKE_BUILD_TYPE=Release"
     cleanup:
       - "*.la"
       - "*.a"
