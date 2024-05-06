@@ -11,10 +11,10 @@
 	"nozzle_diameter": [ "0.4" ],
 	"printer_variant": "0.4",
 	"printable_area": [
-		"0x0",
-		"280x0",
-		"280x250",
-		"0x250"
+		"-156x-125",
+        "124x-125",
+        "124x125",
+        "-156x125"
 	],
 	"extruder_offset": [ "-20", "10" ],
 	"printable_height": "300",
