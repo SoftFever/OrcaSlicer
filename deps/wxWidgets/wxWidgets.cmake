@@ -20,15 +20,6 @@ else ()
     set(_wx_edge "-DwxUSE_WEBVIEW_EDGE=OFF")
 endif ()
 
-set(_wx_orcaslicer_patch "${CMAKE_CURRENT_LIST_DIR}/0001-wx-3.1.5-patch-for-Orca.patch")
-if (MSVC)
-    set(_patch_cmd if not exist WXWIDGETS_PATCHED ( patch --verbose -p1 -l -i ${_wx_orcaslicer_patch} && type nul > WXWIDGETS_PATCHED ) )
-elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    set(_patch_cmd test -f WXWIDGETS_PATCHED || cat ${_wx_orcaslicer_patch} ${CMAKE_CURRENT_LIST_DIR}/0001-Add-support-for-building-WebView-with-libwebkit2gtk-.patch | patch --verbose -p1 -l && touch WXWIDGETS_PATCHED)
-else ()
-    set(_patch_cmd test -f WXWIDGETS_PATCHED || patch --verbose -p1 -l -i ${_wx_orcaslicer_patch} && touch WXWIDGETS_PATCHED)
-endif ()
-
 # Note: for anybody wanting to switch to tarball fetching - this won't just work as
 # git apply expects a git repo. Either git init empty repo, or change patching method.
 # if (WIN32)
@@ -42,9 +33,13 @@ endif ()
 
 orcaslicer_add_cmake_project(
     wxWidgets
-    URL "https://github.com/wxWidgets/wxWidgets/archive/refs/tags/v3.1.5.tar.gz"
-    URL_HASH SHA256=e8fd5f9fbff864562aa4d9c094f898c97f5e1274c90f25beb0bfd5cb61319dea
-    PATCH_COMMAND ${_patch_cmd}
+    GIT_REPOSITORY "https://github.com/SoftFever/Orca-deps-wxWidgets"
+    # GIT_TAG ${_wx_git_tag}
+    GIT_SHALLOW ON
+    # URL ${_wx_tarball_url}
+    # URL_HASH SHA256=${_wx_tarball_hash}
+    # PATCH_COMMAND ${_patch_cmd}
+    DEPENDS ${PNG_PKG} ${ZLIB_PKG} ${EXPAT_PKG} dep_TIFF dep_JPEG
     DEPENDS ${PNG_PKG} ${ZLIB_PKG} ${EXPAT_PKG} ${TIFF_PKG} ${JPEG_PKG}
     CMAKE_ARGS
         -DwxBUILD_PRECOMP=ON

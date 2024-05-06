@@ -13,6 +13,7 @@
 #include <wx/textdlg.h>
 
 #include <wx/wx.h>
+#include <wx/display.h>
 #include <wx/fileconf.h>
 #include <wx/file.h>
 #include <wx/wfstream.h>
@@ -1061,11 +1062,11 @@ int GuideFrame::LoadProfile()
         //intptr_t    handle;
         //_finddata_t findData;
 
-        //handle = _findfirst(TargetFolderSearch.mb_str(), &findData); // 查找目录中的第一个文件
+        //handle = _findfirst(TargetFolderSearch.mb_str(), &findData); // ???????????
         //if (handle == -1) { return -1; }
 
         //do {
-        //    if (findData.attrib & _A_SUBDIR && strcmp(findData.name, ".") == 0 && strcmp(findData.name, "..") == 0) // 是否是子目录并且不为"."或".."
+        //    if (findData.attrib & _A_SUBDIR && strcmp(findData.name, ".") == 0 && strcmp(findData.name, "..") == 0) // ??????????"."?".."
         //    {
         //        // cout << findData.name << "\t<dir>\n";
         //    } else {
@@ -1073,11 +1074,12 @@ int GuideFrame::LoadProfile()
         //        LoadProfileFamily(strVendor, TargetFolder + findData.name);
         //    }
 
-        //} while (_findnext(handle, &findData) == 0); // 查找目录中的下一个文件
+        //} while (_findnext(handle, &findData) == 0); // ???????????
 
         // BBS: change directories by design
         //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(",  will load config from %1%.") % bbl_bundle_path;
         m_ProfileJson             = json::parse("{}");
+        //m_ProfileJson["configpath"] = Slic3r::data_dir();
         m_ProfileJson["model"]    = json::array();
         m_ProfileJson["machine"]  = json::object();
         m_ProfileJson["filament"] = json::object();
@@ -1098,11 +1100,11 @@ int GuideFrame::LoadProfile()
         // intptr_t    handle;
         //_finddata_t findData;
 
-        //handle = _findfirst((bbl_bundle_path / "*.json").make_preferred().string().c_str(), &findData); // 查找目录中的第一个文件
+        //handle = _findfirst((bbl_bundle_path / "*.json").make_preferred().string().c_str(), &findData); // ???????????
         // if (handle == -1) { return -1; }
 
         // do {
-        //    if (findData.attrib & _A_SUBDIR && strcmp(findData.name, ".") == 0 && strcmp(findData.name, "..") == 0) // 是否是子目录并且不为"."或".."
+        //    if (findData.attrib & _A_SUBDIR && strcmp(findData.name, ".") == 0 && strcmp(findData.name, "..") == 0) // ??????????"."?".."
         //    {
         //        // cout << findData.name << "\t<dir>\n";
         //    } else {
@@ -1110,7 +1112,7 @@ int GuideFrame::LoadProfile()
         //        LoadProfileFamily(w2s(strVendor), vendor_dir.make_preferred().string() + "\\"+ findData.name);
         //    }
 
-        //} while (_findnext(handle, &findData) == 0); // 查找目录中的下一个文件
+        //} while (_findnext(handle, &findData) == 0); // ???????????
 
 
         //load BBL bundle from user data path
@@ -1124,9 +1126,10 @@ int GuideFrame::LoadProfile()
             } else {
                 //cout << "is a file" << endl;
                 //cout << iter->path().string() << endl;
+
                 wxString strVendor = from_u8(iter->path().string()).BeforeLast('.');
                 strVendor          = strVendor.AfterLast( '\\');
-                strVendor          = strVendor.AfterLast('/');
+                strVendor          = strVendor.AfterLast('\/');
                 wxString strExtension = from_u8(iter->path().string()).AfterLast('.').Lower();
 
                 if (w2s(strVendor) == PresetBundle::BBL_BUNDLE && strExtension.CmpNoCase("json") == 0)
@@ -1145,7 +1148,7 @@ int GuideFrame::LoadProfile()
                 //cout << iter->path().string() << endl;
                 wxString strVendor = from_u8(iter->path().string()).BeforeLast('.');
                 strVendor          = strVendor.AfterLast( '\\');
-                strVendor          = strVendor.AfterLast('/');
+                strVendor          = strVendor.AfterLast('\/');
                 wxString strExtension = from_u8(iter->path().string()).AfterLast('.').Lower();
 
                 if (w2s(strVendor) != PresetBundle::BBL_BUNDLE && strExtension.CmpNoCase("json")==0)
@@ -1545,7 +1548,7 @@ int GuideFrame::LoadProfileFamily(std::string strVendor, std::string strFilePath
                 json pm = json::parse(contents);
                 
                 std::string strInstant = pm["instantiation"];
-                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "Load Filament:" << s1 << ",Path:" << sub_file << ",instantiation：" << strInstant;
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "Load Filament:" << s1 << ",Path:" << sub_file << ",instantiation?" << strInstant;
 
                 if (strInstant == "true") {
                     std::string sV;
@@ -1639,7 +1642,7 @@ std::string GuideFrame::w2s(wxString sSrc)
 
 void GuideFrame::GetStardardFilePath(std::string &FilePath) {
     StrReplace(FilePath, "\\", w2s(wxString::Format("%c", boost::filesystem::path::preferred_separator)));
-    StrReplace(FilePath, "/", w2s(wxString::Format("%c", boost::filesystem::path::preferred_separator)));
+    StrReplace(FilePath, "\/", w2s(wxString::Format("%c", boost::filesystem::path::preferred_separator)));
 }
 
 bool GuideFrame::LoadFile(std::string jPath, std::string &sContent)

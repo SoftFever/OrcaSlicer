@@ -148,11 +148,15 @@ public:
 	void update_side_panel();
     void show_status(int status);
 
+    std::string get_string_from_tab(PrinterTab tab);
+
     MachineObject *obj { nullptr };
     std::string last_conn_type = "undedefined";
 
     void stop_update() {update_flag = false;};
     void start_update() {update_flag = true;};
+
+    void jump_to_HMS(wxCommandEvent& e);
 };
 
 
