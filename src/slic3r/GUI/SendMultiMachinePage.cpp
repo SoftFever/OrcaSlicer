@@ -322,7 +322,38 @@ void SendMultiMachinePage::prepare(int plate_idx)
 
 void SendMultiMachinePage::on_dpi_changed(const wxRect& suggested_rect)
 {
+    m_select_checkbox->Rescale();
+    m_printer_name->Rescale();
+    m_printer_name->SetMinSize(wxSize(FromDIP(SEND_LEFT_DEV_NAME), FromDIP(SEND_ITEM_MAX_HEIGHT)));
+    m_printer_name->SetMaxSize(wxSize(FromDIP(SEND_LEFT_DEV_NAME), FromDIP(SEND_ITEM_MAX_HEIGHT)));
+    m_device_status->Rescale();
+    m_device_status->SetMinSize(wxSize(FromDIP(SEND_LEFT_DEV_STATUS), FromDIP(SEND_ITEM_MAX_HEIGHT)));
+    m_device_status->SetMaxSize(wxSize(FromDIP(SEND_LEFT_DEV_STATUS), FromDIP(SEND_ITEM_MAX_HEIGHT)));
+    m_ams->Rescale();
+    m_ams->SetMinSize(wxSize(FromDIP(TASK_LEFT_SEND_TIME), FromDIP(SEND_ITEM_MAX_HEIGHT)));
+    m_ams->SetMaxSize(wxSize(FromDIP(TASK_LEFT_SEND_TIME), FromDIP(SEND_ITEM_MAX_HEIGHT)));
+    m_refresh_button->Rescale();
+    m_refresh_button->SetMinSize(wxSize(FromDIP(50), FromDIP(SEND_ITEM_MAX_HEIGHT)));
+    m_refresh_button->SetMaxSize(wxSize(FromDIP(50), FromDIP(SEND_ITEM_MAX_HEIGHT)));
+    m_rename_button->msw_rescale();
+    print_time->msw_rescale();
+    print_weight->msw_rescale();
+    timeimg->SetBitmap(print_time->bmp());
+    weightimg->SetBitmap(print_weight->bmp());
+    m_button_add->Rescale();
+    m_button_add->SetMinSize(wxSize(FromDIP(90), FromDIP(36)));
+    m_button_add->SetMaxSize(wxSize(FromDIP(90), FromDIP(36)));
+    m_button_send->Rescale();
+    m_button_send->SetMinSize(wxSize(FromDIP(120), FromDIP(40)));
+    m_button_send->SetMinSize(wxSize(FromDIP(120), FromDIP(40)));
 
+    for (auto it = m_device_items.begin(); it != m_device_items.end(); ++it) {
+        it->second->Refresh();
+    }
+
+    Fit();
+    Layout();
+    Refresh();
 }
 
 void SendMultiMachinePage::on_sys_color_changed()
@@ -943,15 +974,18 @@ wxPanel* SendMultiMachinePage::create_page()
     m_title_sizer = new wxBoxSizer(wxHORIZONTAL);
 
     m_rename_switch_panel = new wxSimplebook(m_title_panel);
+    m_rename_switch_panel->SetMinSize(wxSize(FromDIP(240), FromDIP(25)));
+    m_rename_switch_panel->SetMaxSize(wxSize(FromDIP(240), FromDIP(25)));
 
     m_rename_normal_panel = new wxPanel(m_rename_switch_panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     m_rename_normal_panel->SetBackgroundColour(*wxWHITE);
     rename_sizer_v = new wxBoxSizer(wxVERTICAL);
     rename_sizer_h = new wxBoxSizer(wxHORIZONTAL);
 
-    m_task_name = new wxStaticText(m_rename_normal_panel, wxID_ANY, wxT("MyLabel"), wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END);
+    m_task_name = new wxStaticText(m_rename_normal_panel, wxID_ANY, wxT("MyLabel"), wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END | wxALIGN_CENTRE);
     m_task_name->SetFont(::Label::Body_13);
-    m_task_name->SetMaxSize(wxSize(FromDIP(390), -1));
+    m_task_name->SetMinSize(wxSize(FromDIP(200), -1));
+    m_task_name->SetMaxSize(wxSize(FromDIP(200), -1));
     m_rename_button = new ScalableButton(m_rename_normal_panel, wxID_ANY, "ams_editable");
     m_rename_button->SetBackgroundColour(*wxWHITE);
     rename_sizer_h->Add(m_task_name, 0, wxALIGN_CENTER, 0);
