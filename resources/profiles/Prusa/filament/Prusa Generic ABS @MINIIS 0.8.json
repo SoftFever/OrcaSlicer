@@ -9,6 +9,24 @@
     "filament_flow_ratio": [
         "1"
     ],
+    "cool_plate_temp" : [
+        "100"
+    ],
+    "eng_plate_temp" : [
+        "100"
+    ],
+    "hot_plate_temp" : [
+        "100"
+    ],
+    "cool_plate_temp_initial_layer" : [
+        "100"
+    ],
+    "eng_plate_temp_initial_layer" : [
+        "100"
+    ],
+    "hot_plate_temp_initial_layer" : [
+        "100"
+    ],
     "filament_max_volumetric_speed": [
         "10"
     ],
