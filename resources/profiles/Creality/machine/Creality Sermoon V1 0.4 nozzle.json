@@ -63,6 +63,9 @@
     "64x64",
     "400x400"
   ],
+  "extruder_clearance_height_to_lid": "125",
+  "extruder_clearance_height_to_rod": "40",
+  "extruder_clearance_radius": "50",
   "printable_height": "165",
   "change_filament_gcode": "; S1 Pause For Filament change\nM125",
   "nozzle_type": "brass",
