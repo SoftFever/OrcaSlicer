@@ -2354,7 +2354,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         int  probe_count_y = std::max(3, (int) std::ceil(mesh_bbox.size().y() / probe_dist_y));
         auto bed_mesh_algo = "bicubic";
         int min_points = 4; // bicubic needs 4 probe points per axis
-        if (probe_count_x * probe_count_y <= 6) { // lagrange needs up to a total of 6 mesh points
+        if (std::max(probe_count_x, probe_count_y) <= 6) { // lagrange needs up to a total of 6 mesh points
             bed_mesh_algo = "lagrange";
             min_points = 3;
         }
