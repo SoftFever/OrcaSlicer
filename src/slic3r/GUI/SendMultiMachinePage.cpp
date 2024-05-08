@@ -685,6 +685,13 @@ void SendMultiMachinePage::on_send(wxCommandEvent& event)
         }
     }
 
+
+    if (print_params.size() <= 0) {
+        MessageDialog msg_wingow(nullptr, _L("There is no device available to send printing."), "", wxICON_WARNING | wxOK);
+        msg_wingow.ShowModal();
+        return;
+    }
+
     if (wxGetApp().getTaskManager()) {
        TaskSettings settings;
 
@@ -703,6 +710,15 @@ void SendMultiMachinePage::on_send(wxCommandEvent& event)
 
            settings.sending_interval = std::stoi(app_config->get("sending_interval")) * 60;
            settings.max_sending_at_same_time = std::stoi(app_config->get("max_send"));
+
+           if (settings.max_sending_at_same_time <= 0) {
+               MessageDialog msg_wingow(nullptr, _L("The number of printers in use simultaneously cannot be equal to 0."), "", wxICON_WARNING | wxOK);
+               msg_wingow.ShowModal();
+               return;
+           }
+
+
+
            wxGetApp().getTaskManager()->start_print(print_params, &settings);
        }
        catch (...)
