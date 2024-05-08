@@ -1,6 +1,3 @@
-set(_wx_version 3.1.5)
-set(_wx_git_tag v${_wx_version})
-
 set(_wx_toolkit "")
 set(_wx_private_font "-DwxUSE_PRIVATE_FONTS=1")
 
@@ -20,6 +17,7 @@ else ()
     set(_wx_edge "-DwxUSE_WEBVIEW_EDGE=OFF")
 endif ()
 
+
 # Note: for anybody wanting to switch to tarball fetching - this won't just work as
 # git apply expects a git repo. Either git init empty repo, or change patching method.
 # if (WIN32)
@@ -36,15 +34,22 @@ endif ()
 # ANY CHANGES MADE IN HERE MUST ALSO BE REFLECTED IN `flatpak/io.github.SoftFever.OrcaSlicer.yml`.
 # ** THIS INCLUDES BUILD ARGS. **
 # ...if you can find a way around this, be my guest.
+
+
 orcaslicer_add_cmake_project(
     wxWidgets
     GIT_REPOSITORY "https://github.com/SoftFever/Orca-deps-wxWidgets"
-    # GIT_TAG ${_wx_git_tag}
     GIT_SHALLOW ON
+
     # URL ${_wx_tarball_url}
     # URL_HASH SHA256=${_wx_tarball_hash}
     # PATCH_COMMAND ${_patch_cmd}
     DEPENDS ${PNG_PKG} ${ZLIB_PKG} ${EXPAT_PKG} ${TIFF_PKG} ${JPEG_PKG}
+
+
+
+
+
     CMAKE_ARGS
         -DwxBUILD_PRECOMP=ON
         ${_wx_toolkit}
