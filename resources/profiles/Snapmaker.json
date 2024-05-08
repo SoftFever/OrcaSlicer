@@ -525,10 +525,6 @@
       "sub_path": "filament/PolyTerra PLA @0.2 nozzle.json"
     },
     {
-      "name": "Snapmaker PVA @base",
-      "sub_path": "filament/Snapmaker PVA @base.json"
-    },
-    {
       "name": "Snapmaker TPU @base",
       "sub_path": "filament/Snapmaker TPU @base.json"
     },
