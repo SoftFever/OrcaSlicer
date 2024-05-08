@@ -8,9 +8,6 @@
   "compatible_printers": [
     "Snapmaker J1 (0.8 nozzle)"
   ],
-  "filament_max_volumetric_speed": [
-    "16"
-  ],
   "fan_max_speed": [
     "60"
   ],

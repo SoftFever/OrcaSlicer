@@ -5,17 +5,29 @@
   "name": "Snapmaker J1 ABS @base",
   "filament_id": "1223824394",
   "inherits": "fdm_filament_abs",
+  "filament_end_gcode": [
+    "M104 S{temperature_vitrification[current_extruder]} ;standby T{current_extruder}"
+  ],
+  "hot_plate_temp": [
+    "110"
+  ],
+  "hot_plate_temp_initial_layer": [
+    "105"
+  ],
   "overhang_fan_speed": [
-    "29"
+    "22"
   ],
   "filament_flow_ratio": [
     "0.95"
   ],
   "filament_max_volumetric_speed": [
-    "18"
+    "9.6"
   ],
   "fan_max_speed": [
-    "29"
+    "22"
+  ],
+  "fan_min_speed": [
+    "22"
   ],
   "pressure_advance": [
     "0.02"

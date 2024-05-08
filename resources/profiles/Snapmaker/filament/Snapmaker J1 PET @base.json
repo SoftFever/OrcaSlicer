@@ -5,6 +5,9 @@
   "name": "Snapmaker J1 PET @base",
   "filament_id": "1009481135",
   "inherits": "fdm_filament_pet",
+  "filament_end_gcode": [
+    "M104 S{temperature_vitrification[current_extruder]} ;standby T{current_extruder}"
+  ],
   "overhang_fan_speed": [
     "40"
   ],

@@ -4,8 +4,7 @@
   "instantiation": "false",
   "name": "fdm_a250_qs",
   "inherits": "fdm_a250",
-  "bed_texture": "Snapmaker A250 QSKit_texture.svg",
-  "printable_height": "220",
+  "printable_height": "215",
   "printer_notes": "PRINTER_MODEL_SNAPMAKER_A250\nPRINTER_MODEL_SNAPMAKER_A250_QUICKSWAPKIT\n",
   "bed_exclude_area": [
     "0x235",

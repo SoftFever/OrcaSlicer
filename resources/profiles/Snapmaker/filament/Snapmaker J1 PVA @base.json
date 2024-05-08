@@ -5,6 +5,9 @@
   "name": "Snapmaker J1 PVA @base",
   "filament_id": "4227461134",
   "inherits": "fdm_filament_pva",
+  "filament_end_gcode": [
+    "M104 S{temperature_vitrification[current_extruder]} ;standby T{current_extruder}"
+  ],
   "slow_down_layer_time": [
     "8"
   ]

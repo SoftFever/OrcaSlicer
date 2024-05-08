@@ -70,7 +70,7 @@
     "0"
   ],
   "filament_minimal_purge_on_wipe_tower": [
-    "3"
+    "0"
   ],
   "filament_retraction_minimum_travel": [
     "nil"
@@ -169,21 +169,21 @@
     "0.04"
   ],
   "cool_plate_temp": [
-    "60"
+    "0"
   ],
   "eng_plate_temp": [
-    "60"
+    "0"
   ],
   "textured_plate_temp": [
-    "60"
+    "0"
   ],
   "cool_plate_temp_initial_layer": [
-    "60"
+    "0"
   ],
   "eng_plate_temp_initial_layer": [
-    "60"
+    "0"
   ],
   "textured_plate_temp_initial_layer": [
-    "60"
+    "0"
   ]
 }

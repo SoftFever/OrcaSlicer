@@ -55,24 +55,6 @@
   "slow_down_layer_time": [
     "7"
   ],
-  "cool_plate_temp": [
-    "50"
-  ],
-  "eng_plate_temp": [
-    "50"
-  ],
-  "textured_plate_temp": [
-    "50"
-  ],
-  "cool_plate_temp_initial_layer": [
-    "50"
-  ],
-  "eng_plate_temp_initial_layer": [
-    "50"
-  ],
-  "textured_plate_temp_initial_layer": [
-    "50"
-  ],
   "default_filament_colour": [
     "#D9DFE3"
   ],

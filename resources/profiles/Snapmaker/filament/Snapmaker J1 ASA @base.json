@@ -5,8 +5,17 @@
   "name": "Snapmaker J1 ASA @base",
   "filament_id": "144877656",
   "inherits": "fdm_filament_asa",
+  "hot_plate_temp": [
+    "110"
+  ],
+  "hot_plate_temp_initial_layer": [
+    "100"
+  ],
   "overhang_fan_speed": [
     "20"
+  ],
+  "filament_max_volumetric_speed": [
+    "9.6"
   ],
   "fan_max_speed": [
     "20"

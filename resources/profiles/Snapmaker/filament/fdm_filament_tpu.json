@@ -32,7 +32,7 @@
     "1.24"
   ],
   "filament_deretraction_speed": [
-    "20"
+    "25"
   ],
   "filament_max_volumetric_speed": [
     "2.8"
@@ -41,7 +41,7 @@
     "0"
   ],
   "filament_retraction_length": [
-    "0.6"
+    "0.5"
   ],
   "filament_z_hop": [
     "0"
@@ -50,7 +50,7 @@
     "Normal Lift"
   ],
   "filament_retraction_speed": [
-    "20"
+    "25"
   ],
   "nozzle_temperature_initial_layer": [
     "240"

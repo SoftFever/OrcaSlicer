@@ -8,10 +8,10 @@
     "40"
   ],
   "hot_plate_temp": [
-    "90"
+    "95"
   ],
   "hot_plate_temp_initial_layer": [
-    "85"
+    "90"
   ],
   "overhang_fan_threshold": [
     "0%"
@@ -69,24 +69,6 @@
   ],
   "slow_down_layer_time": [
     "20"
-  ],
-  "cool_plate_temp": [
-    "90"
-  ],
-  "eng_plate_temp": [
-    "90"
-  ],
-  "textured_plate_temp": [
-    "90"
-  ],
-  "cool_plate_temp_initial_layer": [
-    "85"
-  ],
-  "eng_plate_temp_initial_layer": [
-    "85"
-  ],
-  "textured_plate_temp_initial_layer": [
-    "85"
   ],
   "default_filament_colour": [
     "#3D3C39"

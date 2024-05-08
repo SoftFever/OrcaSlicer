@@ -4,12 +4,11 @@
   "instantiation": "false",
   "name": "fdm_a350_dual_qs",
   "inherits": "fdm_a350_dual",
-  "bed_texture": "Snapmaker A350 QSKit_texture.svg",
-  "printable_height": "300",
+  "printable_height": "270",
   "printer_notes": "PRINTER_MODEL_SNAPMAKER_A350_DUAL\nPRINTER_MODEL_SNAPMAKER_A350_DUAL_QUICKSWAPKIT\n",
   "bed_exclude_area": [
-    "0x335",
-    "320x335",
+    "0x315",
+    "320x315",
     "320x350",
     "0x350"
   ]

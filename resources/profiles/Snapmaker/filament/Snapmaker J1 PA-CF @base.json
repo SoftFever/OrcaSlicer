@@ -5,6 +5,9 @@
   "name": "Snapmaker J1 PA-CF @base",
   "filament_id": "1210173120",
   "inherits": "fdm_filament_pa",
+  "filament_end_gcode": [
+    "M104 S{temperature_vitrification[current_extruder]} ;standby T{current_extruder}"
+  ],
   "overhang_fan_speed": [
     "55"
   ],
