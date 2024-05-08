@@ -158,7 +158,6 @@
   "flush_into_infill": "0",
   "flush_into_support": "1",
   "flush_into_objects": "0",
-  "flush_multiplier": "0.05",
   "slicing_mode": "regular",
   "print_sequence": "by layer",
   "spiral_mode": "0",
