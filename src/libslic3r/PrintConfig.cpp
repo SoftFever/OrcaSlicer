@@ -4757,6 +4757,18 @@ def = this->add("filament_loading_speed", coFloats);
     def->min = 100.;
     def->max = 300.;
     def->set_default_value(new ConfigOptionPercent(100.));
+    
+    def = this->add("wipe_tower_max_purge_speed", coFloat);
+    def->label = L("Maximum print speed when purging");
+    def->tooltip = L("The maximum print speed when purging in the wipe tower. If the sparse infill speed "
+                     "or calculated speed from the filament max volumetric speed is lower, the lowest speed will be used instead.\n"
+                     "Increasing this speed may affect the tower's stability, as purging can be performed over "
+                     "sparse layers. Before increasing this parameter beyond the default of 90mm/sec, make sure your printer can reliably "
+                     "bridge at the increased speeds.");
+    def->sidetext = L("mm/s");
+    def->mode = comAdvanced;
+    def->min = 10;
+    def->set_default_value(new ConfigOptionFloat(90.));
 
     def = this->add("wipe_tower_extruder", coInt);
     def->label = L("Wipe tower extruder");
