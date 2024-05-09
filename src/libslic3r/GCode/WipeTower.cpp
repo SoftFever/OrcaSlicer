@@ -76,6 +76,9 @@ public:
         m_gcode_flavor(flavor),
         m_filpar(filament_parameters)
         {
+            // ORCA: This class is only used by BBL printers, so set the parameter appropriately.
+            // This fixes an issue where the wipe tower was using BBL tags resulting in statistics for purging in the purge tower not being displayed.
+            GCodeProcessor::s_IsBBLPrinter = true;
             // adds tag for analyzer:
             std::ostringstream str;
             str << ";" << GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Height) << std::to_string(m_layer_height) << "\n"; // don't rely on GCodeAnalyzer knowing the layer height - it knows nothing at priming
