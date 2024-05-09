@@ -77,6 +77,7 @@ CalibrationPAStartPage::CalibrationPAStartPage(wxWindow* parent, wxWindowID id, 
     create_page(this);
 
     this->SetSizer(m_top_sizer);
+    Layout();
     m_top_sizer->Fit(this);
 }
 
@@ -200,6 +201,7 @@ CalibrationFlowRateStartPage::CalibrationFlowRateStartPage(wxWindow* parent, wxW
     create_page(this);
 
     this->SetSizer(m_top_sizer);
+    Layout();
     m_top_sizer->Fit(this);
 }
 
@@ -332,6 +334,7 @@ CalibrationMaxVolumetricSpeedStartPage::CalibrationMaxVolumetricSpeedStartPage(w
     create_page(this);
 
     this->SetSizer(m_top_sizer);
+    Layout();
     m_top_sizer->Fit(this);
 }
 
