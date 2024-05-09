@@ -83,6 +83,7 @@ wxString get_thumbnails_string(const std::vector<Vec2d>& values)
     return ret_str;
 }
 
+
 Field::~Field()
 {
 	if (m_on_kill_focus)
@@ -93,6 +94,11 @@ Field::~Field()
 		m_back_to_initial_value = nullptr;
 	if (m_back_to_sys_value)
 		m_back_to_sys_value = nullptr;
+	if (getWindow()) {
+		wxWindow* win = getWindow();
+		win->Destroy();
+		win = nullptr;
+	}
 }
 
 void Field::PostInitialize()
@@ -158,7 +164,7 @@ void Field::PostInitialize()
 		    }
 
 		    evt.Skip();
-	    }, getWindow()->GetId());
+	    });
     }
 }
 
@@ -503,101 +509,6 @@ void Field::sys_color_changed()
 #endif
 }
 
-std::vector<std::deque<wxWindow *>**> spools;
-std::vector<std::deque<wxWindow *>*> spools2;
-
-void switch_window_pools()
-{
-    for (auto p : spools) {
-        spools2.push_back(*p);
-        *p = new std::deque<wxWindow*>;
-    }
-}
-
-void release_window_pools()
-{
-    for (auto p : spools2) {
-        delete p;
-    }
-    spools2.clear();
-}
-
-template<typename T>
-struct Builder
-{
-    Builder()
-    {
-        pool_ = new std::deque<wxWindow*>;
-        spools.push_back(&pool_);
-    }
-
-    template<typename... Args>
-    T *build(wxWindow * p, Args ...args)
-    {
-        if (pool_->empty()) {
-            auto t = new T(p, args...);
-            t->SetClientData(pool_);
-            return t;
-        }
-        auto t = dynamic_cast<T*>(pool_->front());
-        pool_->pop_front();
-        t->Reparent(p);
-        t->Enable();
-        t->Show();
-        return t;
-    }
-    std::deque<wxWindow*>* pool_;
-};
-
-struct wxEventFunctorRef
-{
-    wxEventFunctor * func;
-};
-
-wxEventFunctor & wxMakeEventFunctor(const int, wxEventFunctorRef func)
-{
-    return *func.func;
-}
-
-struct myEvtHandler : wxEvtHandler
-{
-    void UnbindAll()
-    {
-        size_t cookie;
-        for (wxDynamicEventTableEntry *entry = GetFirstDynamicEntry(cookie);
-                entry;
-                entry = GetNextDynamicEntry(cookie)) {
-            // In Field, All Bind has id, but for TextInput, ComboBox, SpinInput, all not
-            if (entry->m_id != wxID_ANY && entry->m_lastId == wxID_ANY)
-                Unbind(entry->m_eventType,
-                    wxEventFunctorRef{entry->m_fn}, 
-                    entry->m_id, 
-                    entry->m_lastId, 
-                    entry->m_callbackUserData);
-            //DoUnbind(entry->m_id, entry->m_lastId, entry->m_eventType, *entry->m_fn, entry->m_callbackUserData);
-        }
-    }
-};
-
-static void unbind_events(wxEvtHandler *h)
-{
-    static_cast<myEvtHandler *>(h)->UnbindAll();
-}
-
-void free_window(wxWindow *win)
-{
-    unbind_events(win);
-    for (auto c : win->GetChildren())
-        if (dynamic_cast<wxTextCtrl*>(c))
-            unbind_events(c);
-    win->Hide();
-    if (auto sizer = win->GetContainingSizer())
-        sizer->Clear();
-    win->Reparent(wxGetApp().mainframe);
-    if (win->GetClientData())
-        reinterpret_cast<std::deque<wxWindow *>*>(win->GetClientData())->push_back(win);
-}
-
 template<class T>
 bool is_defined_input_value(wxWindow* win, const ConfigOptionType& type)
 {
@@ -662,15 +573,10 @@ void TextCtrl::BUILD() {
 
 	// BBS: new param ui style
     // const long style = m_opt.multiline ? wxTE_MULTILINE : wxTE_PROCESS_ENTER/*0*/;
-    static Builder<wxTextCtrl> builder1;
-    static Builder<::TextInput> builder2;
     auto temp = m_opt.multiline
-        ? (wxWindow*)builder1.build(m_parent, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE)
-        : builder2.build(m_parent, "", "", "", wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
-    temp->SetLabel(_L(m_opt.sidetext));
+        ? (wxWindow *) new wxTextCtrl(m_parent, wxID_ANY, text_value, wxDefaultPosition, size, wxTE_MULTILINE)
+        : new ::TextInput(m_parent, text_value, _L(m_opt.sidetext), "", wxDefaultPosition, size, wxTE_PROCESS_ENTER);
 	auto text_ctrl = m_opt.multiline ? (wxTextCtrl *)temp : ((TextInput *) temp)->GetTextCtrl();
-    text_ctrl->SetLabel(text_value);
-    temp->SetSize(size);
     m_combine_side_text = !m_opt.multiline;
     if (parent_is_custom_ctrl && m_opt.height < 0)
         opt_height = (double) text_ctrl->GetSize().GetHeight() / m_em_unit;
@@ -733,7 +639,7 @@ void TextCtrl::BUILD() {
         if (!bEnterPressed)
             propagate_value();
 	}), temp->GetId());
-        /*
+/*
 	// select all text using Ctrl+A
 	temp->Bind(wxEVT_CHAR, ([temp](wxKeyEvent& event)
 	{
@@ -902,8 +808,7 @@ void CheckBox::BUILD() {
     m_last_meaningful_value = static_cast<unsigned char>(check_value);
 
 	// BBS: use ::CheckBox
-    static Builder<::CheckBox> builder;
-	auto temp = builder.build(m_parent); 
+	auto temp = new ::CheckBox(m_parent); 
 	if (!wxOSX) temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
 	//temp->SetBackgroundColour(*wxWHITE);
 	temp->SetValue(check_value);
@@ -1022,14 +927,8 @@ void SpinCtrl::BUILD() {
     ? 0 : m_opt.min;
 	const int max_val = m_opt.max < 2147483647 ? m_opt.max : 2147483647;
 
-    static Builder<SpinInput> builder;
-	auto temp = builder.build(m_parent, "", "", wxDefaultPosition, wxDefaultSize,
-		wxSP_ARROW_KEYS);
-    temp->SetSize(size);
-    temp->SetLabel(_L(m_opt.sidetext));
-    temp->GetTextCtrl()->SetLabel(text_value);
-    temp->SetRange(min_val, max_val);
-    temp->SetValue(default_value);
+	auto temp = new SpinInput(m_parent, text_value, _L(m_opt.sidetext), wxDefaultPosition, size,
+		wxSP_ARROW_KEYS, min_val, max_val, default_value);
     m_combine_side_text = true;
 #ifdef __WXGTK3__
 	wxSize best_sz = temp->GetBestSize();
@@ -1052,7 +951,7 @@ void SpinCtrl::BUILD() {
         }
 
         propagate_value();
-	}), temp->GetId());
+	}));
 
     temp->Bind(wxEVT_SPINCTRL, ([this](wxCommandEvent e) {  propagate_value();  }), temp->GetId()); 
     
@@ -1204,15 +1103,14 @@ void Choice::BUILD()
     if (m_opt.nullable)
         m_last_meaningful_value = dynamic_cast<ConfigOptionEnumsGenericNullable const *>(m_opt.default_value.get())->get_at(0);
 
-    choice_ctrl *              temp;
+	choice_ctrl* temp;
     auto         dynamic_list = dynamic_lists.find(m_opt.opt_key);
     if (dynamic_list != dynamic_lists.end())
         m_list = dynamic_list->second;
     if (m_opt.gui_type != ConfigOptionDef::GUIType::undefined && m_opt.gui_type != ConfigOptionDef::GUIType::select_open 
             && m_list == nullptr) {
         m_is_editable = true;
-        static Builder<choice_ctrl> builder1;
-        temp = builder1.build(m_parent, wxID_ANY, wxString(""), wxDefaultPosition, size, 0, nullptr, wxTE_PROCESS_ENTER);
+        temp = new choice_ctrl(m_parent, wxID_ANY, wxString(""), wxDefaultPosition, size, 0, nullptr, wxTE_PROCESS_ENTER);
     }
     else {
 #ifdef UNDEIFNED__WXOSX__ // __WXOSX__ // BBS
@@ -1224,12 +1122,9 @@ void Choice::BUILD()
         temp->SetTextCtrlStyle(wxTE_READONLY);
         temp->Create(m_parent, wxID_ANY, wxString(""), wxDefaultPosition, size, 0, nullptr);
 #else
-        static Builder<choice_ctrl> builder2;
-        temp = builder2.build(m_parent, wxID_ANY, wxString(""), wxDefaultPosition, size, 0, nullptr, wxCB_READONLY);
+        temp = new choice_ctrl(m_parent, wxID_ANY, wxString(""), wxDefaultPosition, size, 0, nullptr, wxCB_READONLY);
 #endif //__WXOSX__
     }
-    // temp->SetSize(size);
-    temp->Clear();
     temp->GetDropDown().SetUseContentWidth(true);
     if (parent_is_custom_ctrl && m_opt.height < 0)
         opt_height = (double) temp->GetTextCtrl()->GetSize().GetHeight() / m_em_unit;
@@ -1282,9 +1177,9 @@ void Choice::BUILD()
             e.StopPropagation();
         else
             e.Skip();
-        }, temp->GetId());
-    temp->Bind(wxEVT_COMBOBOX_DROPDOWN, [this](wxCommandEvent&) { m_is_dropped = true; }, temp->GetId());
-    temp->Bind(wxEVT_COMBOBOX_CLOSEUP,  [this](wxCommandEvent&) { m_is_dropped = false; }, temp->GetId());
+        });
+    temp->Bind(wxEVT_COMBOBOX_DROPDOWN, [this](wxCommandEvent&) { m_is_dropped = true; });
+    temp->Bind(wxEVT_COMBOBOX_CLOSEUP,  [this](wxCommandEvent&) { m_is_dropped = false; });
 
     temp->Bind(wxEVT_COMBOBOX,          [this](wxCommandEvent&) { on_change_field(); }, temp->GetId());
 
@@ -1293,12 +1188,12 @@ void Choice::BUILD()
             e.Skip();
             if (!bEnterPressed)
                 propagate_value();
-        }, temp->GetId() );
+        } );
 
         temp->Bind(wxEVT_TEXT_ENTER, [this](wxEvent& e) {
             EnterPressed enter(this);
             propagate_value();
-        }, temp->GetId() );
+        } );
     }
 
 	temp->SetToolTip(get_tooltip_text(temp->GetValue()));
