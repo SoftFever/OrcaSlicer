@@ -7733,24 +7733,26 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
                     m_sel_plate_toolbar.m_items[i]->slice_state = IMToolbarItem::SliceState::SLICED;
                 else
                     m_sel_plate_toolbar.m_items[i]->slice_state = IMToolbarItem::SliceState::SLICE_FAILED;
-                continue;
             }
-            if (plate_list.get_plate(i)->get_slicing_percent() < 0.0f)
-                m_sel_plate_toolbar.m_items[i]->slice_state = IMToolbarItem::SliceState::UNSLICED;
-            else
-                m_sel_plate_toolbar.m_items[i]->slice_state = IMToolbarItem::SliceState::SLICING;
+            else {
+                if (!plate_list.get_plate(i)->can_slice())
+                    m_sel_plate_toolbar.m_items[i]->slice_state = IMToolbarItem::SliceState::SLICE_FAILED;
+                else {
+                    if (plate_list.get_plate(i)->get_slicing_percent() < 0.0f)
+                        m_sel_plate_toolbar.m_items[i]->slice_state = IMToolbarItem::SliceState::UNSLICED;
+                    else
+                        m_sel_plate_toolbar.m_items[i]->slice_state = IMToolbarItem::SliceState::SLICING;
+                }
+            }
         }
     }
     if (m_sel_plate_toolbar.show_stats_item) {
         all_plates_stats_item->percent = 0.0f;
 
         size_t sliced_plates_cnt = 0;
-        bool slice_failed = false;
         for (auto plate : plate_list.get_nonempty_plate_list()) {
             if (plate->is_slice_result_valid() && plate->is_slice_result_ready_for_print())
                 sliced_plates_cnt++;
-            if (plate->is_slice_result_valid() && !plate->is_slice_result_ready_for_print())
-                slice_failed = true;
         }
         all_plates_stats_item->percent = (float)(sliced_plates_cnt) / (float)(plate_list.get_nonempty_plate_list().size()) * 100.0f;
 
@@ -7761,8 +7763,13 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
         else if (all_plates_stats_item->percent < 100.0f)
             all_plates_stats_item->slice_state = IMToolbarItem::SliceState::SLICING;
 
-        if (slice_failed)
-            all_plates_stats_item->slice_state = IMToolbarItem::SliceState::SLICE_FAILED;
+        for (auto toolbar_item : m_sel_plate_toolbar.m_items) {
+            if(toolbar_item->slice_state == IMToolbarItem::SliceState::SLICE_FAILED) {
+                all_plates_stats_item->slice_state = IMToolbarItem::SliceState::SLICE_FAILED;
+                all_plates_stats_item->selected = false;
+                break;
+            }
+        }
 
         // Changing parameters does not invalid all plates, need extra logic to validate
         bool gcode_result_valid = true;
