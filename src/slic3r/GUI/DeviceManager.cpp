@@ -3510,6 +3510,9 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                     }
                                 }
                             }
+                            else {
+                                nozzle_type = "";
+                            }
                         }
                         catch (...) {
                             ;
