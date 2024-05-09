@@ -2137,6 +2137,13 @@ void GLCanvas3D::deselect_all()
     post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
 }
 
+void GLCanvas3D::exit_gizmo() {
+    if (m_gizmos.get_current_type() != GLGizmosManager::Undefined) {
+        m_gizmos.reset_all_states();
+        m_gizmos.update_data();
+    }
+}
+
 void GLCanvas3D::set_selected_visible(bool visible)
 {
     for (unsigned int i : m_selection.get_volume_idxs()) {
