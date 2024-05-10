@@ -558,8 +558,12 @@ void ObjectDataViewModel::UpdateBitmapForNode(ObjectDataViewModelNode *node)
         std::vector<wxBitmap> bmps;
         if (node->has_warning_icon())
             bmps.emplace_back(node->warning_icon_name() == WarningIcon ? m_warning_bmp : m_warning_manifold_bmp);
+        if (node->has_warning_icon() && node->has_lock()) // ORCA: Condition > Cut/Connector and Warning // Add spacing between icons if there are multiple
+            bmps.emplace_back(create_scaled_bitmap("dot", nullptr, int(wxGetApp().em_unit() / 10) * 4));	
         if (node->has_lock())
             bmps.emplace_back(m_lock_bmp);
+        if (node->has_lock() && is_volume_node || node->has_warning_icon() && is_volume_node) // ORCA: Condition > Cut/Connector and Volume or Warning and Volume // Add spacing between icons if there are multiple
+            bmps.emplace_back(create_scaled_bitmap("dot", nullptr, int(wxGetApp().em_unit() / 10) * 4));
         if (is_volume_node)
             bmps.emplace_back(
                 node->is_text_volume() ? m_text_volume_bmps[vol_type] :
