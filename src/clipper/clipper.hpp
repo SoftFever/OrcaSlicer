@@ -80,7 +80,7 @@ enum PolyFillType { pftEvenOdd, pftNonZero, pftPositive, pftNegative };
 // If defined, Clipper will work with 32bit signed int coordinates to reduce memory
 // consumption and to speed up exact orientation predicate calculation.
 // In that case, coordinates and their differences (vectors of the coordinates) have to fit int32_t.
-#define CLIPPERLIB_INT32
+// #define CLIPPERLIB_INT32
 
 // Point coordinate type
 #ifdef CLIPPERLIB_INT32

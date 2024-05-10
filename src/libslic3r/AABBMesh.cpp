@@ -122,7 +122,7 @@ const std::vector<Vec3f>& AABBMesh::vertices() const
 
 
 
-const std::vector<Vec3i>& AABBMesh::indices()  const
+const std::vector<Vec3i32>& AABBMesh::indices()  const
 {
     return m_tm->indices;
 }
@@ -136,7 +136,7 @@ const Vec3f& AABBMesh::vertices(size_t idx) const
 
 
 
-const Vec3i& AABBMesh::indices(size_t idx) const
+const Vec3i32& AABBMesh::indices(size_t idx) const
 {
     return m_tm->indices[idx];
 }

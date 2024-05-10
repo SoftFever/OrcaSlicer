@@ -114,7 +114,7 @@ void MeasuringImpl::update_planes()
     const size_t             num_of_facets = m_its.indices.size();
     m_face_to_plane.resize(num_of_facets, size_t(-1));
     const std::vector<Vec3f> face_normals = its_face_normals(m_its);
-    const std::vector<Vec3i> face_neighbors = its_face_neighbors(m_its);
+    const std::vector<Vec3i32> face_neighbors = its_face_neighbors(m_its);
     std::vector<int>         facet_queue(num_of_facets, 0);
     int                      facet_queue_cnt = 0;
     const stl_normal*        normal_ptr      = nullptr;
@@ -149,7 +149,7 @@ void MeasuringImpl::update_planes()
             int facet_idx = facet_queue[-- facet_queue_cnt];
             const stl_normal& this_normal = face_normals[facet_idx];
             if (is_same_normal(this_normal, *normal_ptr)) {
-//                const Vec3i& face = m_its.indices[facet_idx];
+//                const Vec3i32& face = m_its.indices[facet_idx];
 
                 m_face_to_plane[facet_idx] = m_planes.size() - 1;
                 m_planes.back().facets.emplace_back(facet_idx);

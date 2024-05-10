@@ -87,10 +87,10 @@ struct HashEdge {
 	bool load_nearby(const stl_file *stl, const stl_vertex &a, const stl_vertex &b, float tolerance)
 	{
 		// Index of a grid cell spaced by tolerance.
-		typedef Eigen::Matrix<int32_t,  3, 1, Eigen::DontAlign> Vec3i;
-		Vec3i vertex1 = ((a - stl->stats.min) / tolerance).cast<int32_t>();
-		Vec3i vertex2 = ((b - stl->stats.min) / tolerance).cast<int32_t>();
-		static_assert(sizeof(Vec3i) == 12, "size of Vec3i incorrect");
+		typedef Eigen::Matrix<int32_t,  3, 1, Eigen::DontAlign> Vec3i32;
+		Vec3i32 vertex1 = ((a - stl->stats.min) / tolerance).cast<int32_t>();
+		Vec3i32 vertex2 = ((b - stl->stats.min) / tolerance).cast<int32_t>();
+		static_assert(sizeof(Vec3i32) == 12, "size of Vec3i32 incorrect");
 
 		if (vertex1 == vertex2)
 			// Both vertices hash to the same value

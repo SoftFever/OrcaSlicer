@@ -571,7 +571,7 @@ bool GLGizmosManager::gizmos_toolbar_on_mouse(const wxMouseEvent &mouse_event) {
     static MouseCapture mc;
 
     // wxCoord == int --> wx/types.h
-    Vec2i mouse_coord(mouse_event.GetX(), mouse_event.GetY());
+    Vec2i32 mouse_coord(mouse_event.GetX(), mouse_event.GetY());
     Vec2d mouse_pos = mouse_coord.cast<double>();
 
     EType gizmo = get_gizmo_from_mouse(mouse_pos);

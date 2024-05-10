@@ -87,7 +87,7 @@ bool GLGizmoMeshBoolean::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
 bool GLGizmoMeshBoolean::on_mouse(const wxMouseEvent &mouse_event)
 {
     // wxCoord == int --> wx/types.h
-    Vec2i mouse_coord(mouse_event.GetX(), mouse_event.GetY());
+    Vec2i32 mouse_coord(mouse_event.GetX(), mouse_event.GetY());
     Vec2d mouse_pos = mouse_coord.cast<double>();
 
     // when control is down we allow scene pan and rotation even when clicking

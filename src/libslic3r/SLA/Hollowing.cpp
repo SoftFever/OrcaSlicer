@@ -365,7 +365,7 @@ double get_distance(const Vec3f &p, const Interior &interior)
 // part of that mesh and the vertices it consists of.
 enum { NEW_FACE = -1};
 struct DivFace {
-    Vec3i indx;
+    Vec3i32 indx;
     std::array<Vec3f, 3> verts;
     long faceid = NEW_FACE;
     long parent = NEW_FACE;
@@ -511,7 +511,7 @@ void remove_inside_triangles(TriangleMesh &mesh, const Interior &interior,
     interior.reset_accessor();
 
     exec_policy::for_each(size_t(0), faces.size(), [&] (size_t face_idx) {
-        const Vec3i &face = faces[face_idx];
+        const Vec3i32 &face = faces[face_idx];
 
         // If the triangle is excluded, we need to keep it.
         if (is_excluded(face_idx))
@@ -532,7 +532,7 @@ void remove_inside_triangles(TriangleMesh &mesh, const Interior &interior,
 
     }, exec_policy::max_concurreny());
 
-    auto new_faces = reserve_vector<Vec3i>(faces.size() +
+    auto new_faces = reserve_vector<Vec3i32>(faces.size() +
                                            mesh_mods.new_triangles.size());
 
     for (size_t face_idx = 0; face_idx < faces.size(); ++face_idx) {

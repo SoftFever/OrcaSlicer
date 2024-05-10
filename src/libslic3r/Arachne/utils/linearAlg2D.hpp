@@ -32,7 +32,7 @@ inline static bool isInsideCorner(const Point &a, const Point &b, const Point &c
     //
 
     auto normal = [](const Point &p0, coord_t len) -> Point {
-        int64_t _len = p0.cast<int64_t>().norm();
+        int64_t _len = p0.norm();
         if (_len < 1)
             return {len, 0};
         return (p0.cast<int64_t>() * int64_t(len) / _len).cast<coord_t>();

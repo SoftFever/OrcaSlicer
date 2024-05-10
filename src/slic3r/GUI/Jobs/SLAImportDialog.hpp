@@ -84,7 +84,7 @@ public:
         return Sel(std::min(int(Sel::modelOnly), std::max(0, sel)));
     }
 
-    Vec2i get_marchsq_windowsize() const override
+    Vec2i32 get_marchsq_windowsize() const override
     {
         enum { Accurate, Balanced, Fast };
 

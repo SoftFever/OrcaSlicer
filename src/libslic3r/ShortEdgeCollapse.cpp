@@ -33,7 +33,7 @@ void its_short_edge_collpase(indexed_triangle_set &mesh, size_t target_triangle_
     // if face is removed, mark it here
     std::vector<bool> face_removal_flags(mesh.indices.size(), false);
 
-    std::vector<Vec3i> triangles_neighbors = its_face_neighbors_par(mesh);
+    std::vector<Vec3i32> triangles_neighbors = its_face_neighbors_par(mesh);
 
     // now compute vertices dot product - this is used during edge collapse,
     // to determine which vertex to remove and which to keep;  We try to keep the one with larger angle, because it defines the shape "more".
@@ -46,7 +46,7 @@ void its_short_edge_collpase(indexed_triangle_set &mesh, size_t target_triangle_
         std::vector<Vec3f> vertex_normals = NormalUtils::create_normals(mesh);
 
         for (size_t face_idx = 0; face_idx < mesh.indices.size(); ++face_idx) {
-            Vec3i t = mesh.indices[face_idx];
+            Vec3i32 t = mesh.indices[face_idx];
             Vec3f n = face_normals[face_idx];
             min_vertex_dot_product[t[0]] = std::min(min_vertex_dot_product[t[0]], n.dot(vertex_normals[t[0]]));
             min_vertex_dot_product[t[1]] = std::min(min_vertex_dot_product[t[1]], n.dot(vertex_normals[t[1]]));
@@ -60,7 +60,7 @@ void its_short_edge_collpase(indexed_triangle_set &mesh, size_t target_triangle_
             return;
         }
         face_removal_flags[face_idx] = true;
-        Vec3i neighbors = triangles_neighbors[face_idx];
+        Vec3i32 neighbors = triangles_neighbors[face_idx];
         int n_a = neighbors[0] != other_face_idx ? neighbors[0] : neighbors[1];
         int n_b = neighbors[2] != other_face_idx ? neighbors[2] : neighbors[1];
         if (n_a > 0)
@@ -157,10 +157,10 @@ void its_short_edge_collpase(indexed_triangle_set &mesh, size_t target_triangle_
     //Extract the result mesh
     std::unordered_map<size_t, size_t> final_vertices_mapping;
     std::vector<Vec3f> final_vertices;
-    std::vector<Vec3i> final_indices;
+    std::vector<Vec3i32> final_indices;
     final_indices.reserve(face_indices.size());
     for (size_t idx : face_indices) {
-        Vec3i final_face;
+        Vec3i32 final_face;
         for (size_t i = 0; i < 3; ++i) {
             final_face[i] = get_final_index(mesh.indices[idx][i]);
         }

@@ -99,8 +99,8 @@ class TriangleMesh
 {
 public:
     TriangleMesh() = default;
-    TriangleMesh(const std::vector<Vec3f> &vertices, const std::vector<Vec3i> &faces);
-    TriangleMesh(std::vector<Vec3f> &&vertices, const std::vector<Vec3i> &&faces);
+    TriangleMesh(const std::vector<Vec3f> &vertices, const std::vector<Vec3i32> &faces);
+    TriangleMesh(std::vector<Vec3f> &&vertices, const std::vector<Vec3i32> &&faces);
     explicit TriangleMesh(const indexed_triangle_set &M);
     explicit TriangleMesh(indexed_triangle_set &&M, const RepairedMeshErrors& repaired_errors = RepairedMeshErrors());
     void clear() { this->its.clear(); this->m_stats.clear(); }
@@ -201,15 +201,15 @@ private:
 // Map from a face edge to a unique edge identifier or -1 if no neighbor exists.
 // Two neighbor faces share a unique edge identifier even if they are flipped.
 // Used for chaining slice lines into polygons.
-std::vector<Vec3i> its_face_edge_ids(const indexed_triangle_set &its);
-std::vector<Vec3i> its_face_edge_ids(const indexed_triangle_set &its, std::function<void()> throw_on_cancel_callback);
-std::vector<Vec3i> its_face_edge_ids(const indexed_triangle_set &its, const std::vector<bool> &face_mask);
+std::vector<Vec3i32> its_face_edge_ids(const indexed_triangle_set &its);
+std::vector<Vec3i32> its_face_edge_ids(const indexed_triangle_set &its, std::function<void()> throw_on_cancel_callback);
+std::vector<Vec3i32> its_face_edge_ids(const indexed_triangle_set &its, const std::vector<bool> &face_mask);
 // Having the face neighbors available, assign unique edge IDs to face edges for chaining of polygons over slices.
-std::vector<Vec3i> its_face_edge_ids(const indexed_triangle_set &its, std::vector<Vec3i> &face_neighbors, bool assign_unbound_edges = false, int *num_edges = nullptr);
+std::vector<Vec3i32> its_face_edge_ids(const indexed_triangle_set &its, std::vector<Vec3i32> &face_neighbors, bool assign_unbound_edges = false, int *num_edges = nullptr);
 
 // Create index that gives neighbor faces for each face. Ignores face orientations.
-std::vector<Vec3i> its_face_neighbors(const indexed_triangle_set &its);
-std::vector<Vec3i> its_face_neighbors_par(const indexed_triangle_set &its);
+std::vector<Vec3i32> its_face_neighbors(const indexed_triangle_set &its);
+std::vector<Vec3i32> its_face_neighbors_par(const indexed_triangle_set &its);
 
 // After applying a transformation with negative determinant, flip the faces to keep the transformed mesh volume positive.
 void its_flip_triangles(indexed_triangle_set &its);
@@ -230,18 +230,18 @@ bool its_store_triangle(const indexed_triangle_set &its, const char *obj_filenam
 bool its_store_triangles(const indexed_triangle_set &its, const char *obj_filename, const std::vector<size_t>& triangles);
 
 std::vector<indexed_triangle_set> its_split(const indexed_triangle_set &its);
-std::vector<indexed_triangle_set> its_split(const indexed_triangle_set &its, std::vector<Vec3i> &face_neighbors);
+std::vector<indexed_triangle_set> its_split(const indexed_triangle_set &its, std::vector<Vec3i32> &face_neighbors);
 
 // Number of disconnected patches (faces are connected if they share an edge, shared edge defined with 2 shared vertex indices).
 size_t its_number_of_patches(const indexed_triangle_set &its);
-size_t its_number_of_patches(const indexed_triangle_set &its, const std::vector<Vec3i> &face_neighbors);
+size_t its_number_of_patches(const indexed_triangle_set &its, const std::vector<Vec3i32> &face_neighbors);
 // Same as its_number_of_patches(its) > 1, but faster.
 bool its_is_splittable(const indexed_triangle_set &its);
-bool its_is_splittable(const indexed_triangle_set &its, const std::vector<Vec3i> &face_neighbors);
+bool its_is_splittable(const indexed_triangle_set &its, const std::vector<Vec3i32> &face_neighbors);
 
 // Calculate number of unconnected face edges. There should be no unconnected edge in a manifold mesh.
 size_t its_num_open_edges(const indexed_triangle_set &its);
-size_t its_num_open_edges(const std::vector<Vec3i> &face_neighbors);
+size_t its_num_open_edges(const std::vector<Vec3i32> &face_neighbors);
 
 // Shrink the vectors of its.vertices and its.faces to a minimum size by reallocating the two vectors.
 void its_shrink_to_fit(indexed_triangle_set &its);
@@ -262,14 +262,14 @@ inline int its_triangle_vertex_index(const stl_triangle_vertex_indices &triangle
            vertex_idx == triangle_indices[2] ? 2 : -1;
 }
 
-inline Vec2i its_triangle_edge(const stl_triangle_vertex_indices &triangle_indices, int edge_idx)
+inline Vec2i32 its_triangle_edge(const stl_triangle_vertex_indices &triangle_indices, int edge_idx)
 {
     int next_edge_idx = (edge_idx == 2) ? 0 : edge_idx + 1;
     return { triangle_indices[edge_idx], triangle_indices[next_edge_idx] };
 }
 
 // Index of an edge inside triangle.
-inline int its_triangle_edge_index(const stl_triangle_vertex_indices &triangle_indices, const Vec2i &triangle_edge)
+inline int its_triangle_edge_index(const stl_triangle_vertex_indices &triangle_indices, const Vec2i32 &triangle_edge)
 {
     return triangle_edge(0) == triangle_indices[0] && triangle_edge(1) == triangle_indices[1] ? 0 :
            triangle_edge(0) == triangle_indices[1] && triangle_edge(1) == triangle_indices[2] ? 1 :

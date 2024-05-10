@@ -447,7 +447,7 @@ bool GLGizmoText::gizmo_event(SLAGizmoEventType action, const Vec2d &mouse_posit
 bool GLGizmoText::on_mouse(const wxMouseEvent &mouse_event)
 {
     // wxCoord == int --> wx/types.h
-    Vec2i mouse_coord(mouse_event.GetX(), mouse_event.GetY());
+    Vec2i32 mouse_coord(mouse_event.GetX(), mouse_event.GetY());
     Vec2d mouse_pos = mouse_coord.cast<double>();
     bool control_down           = mouse_event.CmdDown();
 

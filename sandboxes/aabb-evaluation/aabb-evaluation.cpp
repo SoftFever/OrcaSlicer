@@ -95,7 +95,7 @@ void profile(const TriangleMesh &mesh)
     Eigen::MatrixXd occlusion_output1;
     {
         std::vector<Vec3d> vertices;
-        std::vector<Vec3i> triangles;
+        std::vector<Vec3i32> triangles;
         for (int i = 0; i < V.rows(); ++ i)
             vertices.emplace_back(V.row(i).transpose());
         for (int i = 0; i < F.rows(); ++ i)

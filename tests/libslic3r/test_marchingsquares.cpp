@@ -84,13 +84,13 @@ static ExPolygons circle_with_hole(double r, Point center = {0, 0}) {
     return {poly};
 }
 
-static const Vec2i W4x4 = {4, 4};
-static const Vec2i W2x2 = {2, 2};
+static const Vec2i32 W4x4 = {4, 4};
+static const Vec2i32 W2x2 = {2, 2};
 
 template<class Rst>
 static void test_expolys(Rst &&             rst,
                          const ExPolygons & ref,
-                         Vec2i window,
+                         Vec2i32 window,
                          const std::string &name = "test")
 {
     for (const ExPolygon &expoly : ref) rst.draw(expoly);

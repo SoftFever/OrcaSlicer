@@ -26,6 +26,7 @@
 #include "../Polygon.hpp"
 #include "../Polyline.hpp"
 #include "../MutablePolygon.hpp"
+#include "libslic3r.h"
 
 #include <cassert>
 #include <chrono>
@@ -771,7 +772,7 @@ static std::optional<std::pair<Point, size_t>> polyline_sample_next_point_at_dis
     Polygons collision_trimmed_buffer;
     auto collision_trimmed = [&collision_trimmed_buffer, &collision, &ret, distance]() -> const Polygons& {
         if (collision_trimmed_buffer.empty() && ! collision.empty())
-            collision_trimmed_buffer = ClipperUtils::clip_clipper_polygons_with_subject_bbox(collision, get_extents(ret).inflated(std::max(0, distance) + SCALED_EPSILON));
+            collision_trimmed_buffer = ClipperUtils::clip_clipper_polygons_with_subject_bbox(collision, get_extents(ret).inflated(std::max((coord_t)0, distance) + SCALED_EPSILON));
         return collision_trimmed_buffer;
     };
 
@@ -970,7 +971,7 @@ private:
     std::vector<SupportElements>                       &move_bounds;
 
     // Temps
-    static constexpr const auto                         m_base_radius = scaled<int>(0.01);
+    static constexpr const auto                         m_base_radius = scaled<coord_t>(0.01);
     const Polygon                                       m_base_circle { make_circle(m_base_radius, SUPPORT_TREE_CIRCLE_RESOLUTION) };
     
     // Mutexes, guards

@@ -64,9 +64,9 @@ public:
     inline double ground_level_offset() const { return m_gnd_offset; }
     
     const std::vector<Vec3f>& vertices() const;
-    const std::vector<Vec3i>& indices()  const;
+    const std::vector<Vec3i32>& indices()  const;
     const Vec3f& vertices(size_t idx) const;
-    const Vec3i& indices(size_t idx) const;
+    const Vec3i32& indices(size_t idx) const;
     
     // Result of a raycast
     class hit_result {

@@ -14,7 +14,7 @@
 namespace Slic3r {
 
 template<class ExPolicy>
-std::vector<Vec3i> create_face_neighbors_index(ExPolicy &&ex, const indexed_triangle_set &its);
+std::vector<Vec3i32> create_face_neighbors_index(ExPolicy &&ex, const indexed_triangle_set &its);
 
 namespace meshsplit_detail {
 
@@ -26,7 +26,7 @@ template<class Its, class Enable = void> struct ItsWithNeighborsIndex_ {
 
 // Define a default neighbors index for indexed_triangle_set
 template<> struct ItsWithNeighborsIndex_<indexed_triangle_set> {
-    using Index = std::vector<Vec3i>;
+    using Index = std::vector<Vec3i32>;
     static const indexed_triangle_set &get_its(const indexed_triangle_set &its) noexcept { return its; }
     static Index get_index(const indexed_triangle_set &its) noexcept
     {
@@ -161,7 +161,7 @@ void its_split(const Its &m, OutputIt out_it)
         // Assign the facets to the new mesh.
         for (size_t face_id : facets) {
             const auto &face = its.indices[face_id];
-            Vec3i       new_face;
+            Vec3i32       new_face;
             for (size_t v = 0; v < 3; ++v) {
                 auto vi = face(v);
 
@@ -221,7 +221,7 @@ size_t its_number_of_patches(const Its &m)
 }
 
 template<class ExPolicy>
-std::vector<Vec3i> create_face_neighbors_index(ExPolicy &&ex, const indexed_triangle_set &its)
+std::vector<Vec3i32> create_face_neighbors_index(ExPolicy &&ex, const indexed_triangle_set &its)
 {
     const std::vector<stl_triangle_vertex_indices> &indices = its.indices;
 
@@ -231,14 +231,14 @@ std::vector<Vec3i> create_face_neighbors_index(ExPolicy &&ex, const indexed_tria
 
     auto               vertex_triangles = VertexFaceIndex{its};
     static constexpr int no_value         = -1;
-    std::vector<Vec3i> neighbors(indices.size(),
-                                 Vec3i(no_value, no_value, no_value));
+    std::vector<Vec3i32> neighbors(indices.size(),
+                                 Vec3i32(no_value, no_value, no_value));
 
     //for (int face_idx = 0; face_idx < indices.size(); face_idx++) {
     execution::for_each(ex, size_t(0), indices.size(),
         [&neighbors, &indices, &vertex_triangles] (size_t face_idx)
         {
-            Vec3i& neighbor = neighbors[face_idx];
+            Vec3i32& neighbor = neighbors[face_idx];
             const stl_triangle_vertex_indices & triangle_indices = indices[face_idx];
             for (int edge_index = 0; edge_index < 3; ++edge_index) {
                 // check if done
@@ -246,7 +246,7 @@ std::vector<Vec3i> create_face_neighbors_index(ExPolicy &&ex, const indexed_tria
                 if (neighbor_edge != no_value)
                     // This edge already has a neighbor assigned.
                     continue;
-                Vec2i edge_indices = its_triangle_edge(triangle_indices, edge_index);
+                Vec2i32 edge_indices = its_triangle_edge(triangle_indices, edge_index);
                 // IMPROVE: use same vector for 2 sides of triangle
                 for (const size_t other_face : vertex_triangles[edge_indices[0]]) {
                     if (other_face <= face_idx) continue;

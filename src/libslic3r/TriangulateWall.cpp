@@ -75,16 +75,16 @@ namespace Slic3r {
 //        offring->init(imin);
 //    }
     
-//    void emplace_indices(std::vector<Vec3i> &indices)
+//    void emplace_indices(std::vector<Vec3i32> &indices)
 //    {
-//        Vec3i tr{int(onring->pos().first), int(onring->pos().second),
+//        Vec3i32 tr{int(onring->pos().first), int(onring->pos().second),
 //                 int(offring->pos().first)};
 //        if (onring->is_lower()) std::swap(tr(0), tr(1));
 //        indices.emplace_back(tr);
 //    }
     
 //public:
-//    void run(std::vector<Vec3i> &indices)
+//    void run(std::vector<Vec3i32> &indices)
 //    {
 //        synchronize_rings();
         

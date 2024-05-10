@@ -50,14 +50,14 @@ TriangleMesh::ReadFromPerl(vertices, facets)
                 out_vertices.push_back(Slic3r::Vec3f(SvNV(*av_fetch(vertex_av, 0, 0)), SvNV(*av_fetch(vertex_av, 1, 0)), SvNV(*av_fetch(vertex_av, 2, 0))));
             }
         }
-        std::vector<Slic3r::Vec3i> out_indices;
+        std::vector<Slic3r::Vec3i32> out_indices;
         {
             AV* facets_av = (AV*)SvRV(facets);
             int number_of_facets = av_len(facets_av) + 1;
             out_indices.reserve(number_of_facets);
             for (int i = 0; i < number_of_facets; ++ i) {
                 AV* facet_av = (AV*)SvRV(*av_fetch(facets_av, i, 0));
-                out_indices.push_back(Slic3r::Vec3i(SvIV(*av_fetch(facet_av, 0, 0)), SvIV(*av_fetch(facet_av, 1, 0)), SvIV(*av_fetch(facet_av, 2, 0))));
+                out_indices.push_back(Slic3r::Vec3i32(SvIV(*av_fetch(facet_av, 0, 0)), SvIV(*av_fetch(facet_av, 1, 0)), SvIV(*av_fetch(facet_av, 2, 0))));
             }
         }
         *THIS = TriangleMesh(std::move(out_vertices), std::move(out_indices));

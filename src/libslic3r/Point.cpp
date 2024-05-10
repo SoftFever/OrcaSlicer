@@ -76,9 +76,9 @@ void Point::rotate(double angle, const Point &center)
  */
 double Point::ccw(const Point &p1, const Point &p2) const
 {
-    static_assert(sizeof(coord_t) == 4, "Point::ccw() requires a 32 bit coord_t");
-    return cross2((p2 - p1).cast<int64_t>(), (*this - p1).cast<int64_t>());
-//    return cross2((p2 - p1).cast<double>(), (*this - p1).cast<double>());
+    // static_assert(sizeof(coord_t) == 4, "Point::ccw() requires a 32 bit coord_t");
+    // return cross2((p2 - p1).cast<int64_t>(), (*this - p1).cast<int64_t>());
+   return cross2((p2 - p1).cast<double>(), (*this - p1).cast<double>());
 }
 
 double Point::ccw(const Line &line) const

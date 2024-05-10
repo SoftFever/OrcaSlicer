@@ -33,7 +33,7 @@ template<class Fn> void foreach_vertex(ExPolygon &poly, Fn &&fn)
         for (auto &p : h.points) fn(p);
 }
 
-ExPolygons raster_to_polygons(const RasterGrayscaleAA &rst, Vec2i windowsize)
+ExPolygons raster_to_polygons(const RasterGrayscaleAA &rst, Vec2i32 windowsize)
 {    
     size_t rows = rst.resolution().height_px, cols = rst.resolution().width_px;
     

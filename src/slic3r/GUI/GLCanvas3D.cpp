@@ -8721,7 +8721,7 @@ Vec3d GLCanvas3D::_mouse_to_3d(const Point& mouse_pos, float* z)
     }
     else {
         const Camera& camera = wxGetApp().plater()->get_camera();
-        const Vec4i viewport(camera.get_viewport().data());
+        const Vec4i32 viewport(camera.get_viewport().data());
         Vec3d out;
         igl::unproject(Vec3d(mouse_pos.x(), viewport[3] - mouse_pos.y(), *z), camera.get_view_matrix().matrix(), camera.get_projection_matrix().matrix(), viewport, out);
         return out;

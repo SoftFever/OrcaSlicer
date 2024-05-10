@@ -31,7 +31,7 @@ class AABBMesh {
 
     std::unique_ptr<AABBImpl> m_aabb;
     VertexFaceIndex m_vfidx;    // vertex-face index
-    std::vector<Vec3i> m_fnidx; // face-neighbor index
+    std::vector<Vec3i32> m_fnidx; // face-neighbor index
 
 #ifdef SLIC3R_HOLE_RAYCASTER
     // This holds a copy of holes in the mesh. Initialized externally
@@ -57,9 +57,9 @@ public:
     ~AABBMesh();
 
     const std::vector<Vec3f>& vertices() const;
-    const std::vector<Vec3i>& indices()  const;
+    const std::vector<Vec3i32>& indices()  const;
     const Vec3f& vertices(size_t idx) const;
-    const Vec3i& indices(size_t idx) const;
+    const Vec3i32& indices(size_t idx) const;
 
     // Result of a raycast
     class hit_result {
@@ -133,7 +133,7 @@ public:
     const indexed_triangle_set * get_triangle_mesh() const { return m_tm; }
 
     const VertexFaceIndex &vertex_face_index() const { return m_vfidx; }
-    const std::vector<Vec3i> &face_neighbor_index() const { return m_fnidx; }
+    const std::vector<Vec3i32> &face_neighbor_index() const { return m_fnidx; }
 };
 
 

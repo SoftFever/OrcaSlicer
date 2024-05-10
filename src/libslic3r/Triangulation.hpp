@@ -21,7 +21,7 @@ public:
     // define oriented connection of 2 vertices(defined by its index)
     using HalfEdge  = std::pair<uint32_t, uint32_t>;
     using HalfEdges = std::vector<HalfEdge>;
-    using Indices   = std::vector<Vec3i>;
+    using Indices   = std::vector<Vec3i32>;
 
     /// <summary>
     /// Connect points by triangulation to create filled surface by triangles

@@ -658,7 +658,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         struct Geometry
         {
             std::vector<Vec3f> vertices;
-            std::vector<Vec3i> triangles;
+            std::vector<Vec3i32> triangles;
             std::vector<std::string> custom_supports;
             std::vector<std::string> custom_seam;
             std::vector<std::string> mmu_segmentation;
@@ -4608,7 +4608,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 //    add_error("found no trianges in the object " + std::to_string(sub_object->id));
                 //    return false;
                 //}
-                for (const Vec3i& face : its.indices) {
+                for (const Vec3i32& face : its.indices) {
                     for (const int tri_id : face) {
                         if (tri_id < 0 || tri_id >= int(sub_object->geometry.vertices.size())) {
                             add_error("invalid vertex id in object " + std::to_string(sub_object->id));
@@ -4783,7 +4783,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             {
                 int min_id = its.indices.front()[0];
                 int max_id = min_id;
-                for (const Vec3i& face : its.indices) {
+                for (const Vec3i32& face : its.indices) {
                     for (const int tri_id : face) {
                         if (tri_id < 0 || tri_id >= int(geometry.vertices.size())) {
                             add_error("Found invalid vertex id");
@@ -4803,7 +4803,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 }
 
                 // rebase indices to the current vertices list
-                for (Vec3i& face : its.indices)
+                for (Vec3i32& face : its.indices)
                     for (int& tri_id : face)
                         tri_id -= min_id;
             }
@@ -6850,7 +6850,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
             for (int i = 0; i < int(its.indices.size()); ++ i) {
                 {
-                    const Vec3i &idx = its.indices[i];
+                    const Vec3i32 &idx = its.indices[i];
                     char *ptr = buf;
                     boost::spirit::karma::generate(ptr, boost::spirit::lit("     <") << TRIANGLE_TAG <<
                         " v1=\"" << boost::spirit::int_ <<

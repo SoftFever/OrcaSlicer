@@ -170,7 +170,7 @@ public:
     /// </summary>
     /// <param name="max_size">Maximal width and height of one style texture</param>
     /// <param name="text">Text to render by style</param>
-    void init_style_images(const Vec2i& max_size, const std::string &text);
+    void init_style_images(const Vec2i32& max_size, const std::string &text);
     void free_style_images();
     
     // access to all managed font styles
@@ -295,7 +295,7 @@ private:
         // Keep styles to render
         Items styles;
         // Maximal width and height in pixels of image
-        Vec2i max_size;
+        Vec2i32 max_size;
         // Text to render
         std::string text;
 
