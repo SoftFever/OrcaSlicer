@@ -3646,6 +3646,10 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                             m_moves_slider->SetHigherValue(new_pos);
                             // BBS set as dirty, update in render_gcode()
                             m_moves_slider->set_as_dirty();
+                        } else if (keyCode == WXK_HOME || keyCode == WXK_END) {
+                            const int new_pos = keyCode == WXK_HOME ? m_moves_slider->GetMinValue() : m_moves_slider->GetMaxValue();
+                            m_moves_slider->SetHigherValue(new_pos);
+                            m_moves_slider->set_as_dirty();
                         }
                         m_dirty = true;
                     }

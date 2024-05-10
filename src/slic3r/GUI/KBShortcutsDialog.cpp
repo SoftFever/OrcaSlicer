@@ -313,8 +313,8 @@ void KBShortcutsDialog::fill_shortcuts()
 		    {L("Ctrl+Any arrow"), L("Move slider 5x faster")},
 		    {L("Ctrl+Mouse wheel"), L("Move slider 5x faster")},
        #endif
-
-        
+        { L("Home"),        L("Horizontal slider - Move to start position")},
+        { L("End"),         L("Horizontal slider - Move to last position")},
     };
     m_full_shortcuts.push_back({ { _L("Preview"), "" }, preview_shortcuts });
 }
