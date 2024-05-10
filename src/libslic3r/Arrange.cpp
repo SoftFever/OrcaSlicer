@@ -1,6 +1,7 @@
 #include "Arrange.hpp"
 #include "Print.hpp"
 #include "BoundingBox.hpp"
+#include "libslic3r.h"
 
 #include <libnest2d/backends/libslic3r/geometries.hpp>
 #include <libnest2d/optimizers/nlopt/subplex.hpp>
@@ -337,8 +338,8 @@ static double fixed_overfit_topright_sliding(const std::tuple<double, Box> &resu
     Box pilebb = std::get<1>(result);
 
     auto shift = binbb.maxCorner() - pilebb.maxCorner();
-    shift.x() = std::max(0, shift.x()); // do not allow left shift
-    shift.y() = std::max(0, shift.y()); // do not allow bottom shift
+    shift.x() = std::max((coord_t)0, shift.x()); // do not allow left shift
+    shift.y() = std::max((coord_t)0, shift.y()); // do not allow bottom shift
     pilebb.minCorner() += shift;
     pilebb.maxCorner() += shift;
 
