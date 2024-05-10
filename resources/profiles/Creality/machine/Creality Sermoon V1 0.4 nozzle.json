@@ -60,11 +60,14 @@
   "print_host_webui": "10.0.0.51",
   "gcode_flavor": "marlin",
   "thumbnails": [
-    "32x32",
+    "64x64",
     "400x400"
   ],
+  "extruder_clearance_height_to_lid": "125",
+  "extruder_clearance_height_to_rod": "40",
+  "extruder_clearance_radius": "50",
   "printable_height": "165",
   "change_filament_gcode": "; S1 Pause For Filament change\nM125",
-  "nozzle_type": "undefine",
+  "nozzle_type": "brass",
   "auxiliary_fan": "1"
 }
