@@ -589,9 +589,16 @@ bool PrinterPartsDialog::Show(bool show)
         nozzle_diameter_checkbox->Clear();
 
         if (type.empty()) {
+            nozzle_type_checkbox->SetValue(wxEmptyString);
+            nozzle_diameter_checkbox->SetValue(wxEmptyString);
+
             nozzle_type_checkbox->Disable();
             nozzle_diameter_checkbox->Disable();
             return DPIDialog::Show(show);
+        }
+        else {
+            nozzle_type_checkbox->Enable();
+            nozzle_diameter_checkbox->Enable();
         }
 
         last_nozzle_type = type;
