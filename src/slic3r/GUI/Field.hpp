@@ -11,6 +11,7 @@
 #include <functional>
 #include <boost/any.hpp>
 
+#include <wx/colourdata.h>
 #include <wx/spinctrl.h>
 #include <wx/bmpcbox.h>
 #include <wx/clrpicker.h>
