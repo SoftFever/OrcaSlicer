@@ -1252,7 +1252,7 @@ void MenuFactory::create_default_menu()
         []() {return true; }, m_parent);
     // ORCA: Add Model
     append_menu_item(&m_default_menu, wxID_ANY, _L("Add Model"), "",
-        [](wxCommandEvent&) { plater()->add_file(); }, "menu_add_part", &m_default_menu,
+        [](wxCommandEvent&) { plater()->add_file(); }, "", &m_default_menu,
         []() {return wxGetApp().plater()->can_add_model(); }, m_parent);
 #endif
 
@@ -1558,7 +1558,7 @@ void MenuFactory::create_plate_menu()
     // ORCA: Add Model
     append_menu_item(menu, wxID_ANY, _L("Add Model"), "",
         [](wxCommandEvent&) { plater()->add_file(); }, "menu_add_part", menu,
-        []() {  return wxGetApp().plater()->can_add_model(); }, m_parent);
+        []() {return wxGetApp().plater()->can_add_model(); }, m_parent);
 #else
     append_submenu(menu, sub_menu_primitives, wxID_ANY, _L("Add Primitive"), "", "",
         []() {return true; }, m_parent);
@@ -1567,7 +1567,7 @@ void MenuFactory::create_plate_menu()
     // ORCA: Add Model
     append_menu_item(menu, wxID_ANY, _L("Add Model"), "",
         [](wxCommandEvent&) { plater()->add_file(); }, "", menu,
-        []() {  return wxGetApp().plater()->can_add_model(); }, m_parent);
+        []() {return wxGetApp().plater()->can_add_model(); }, m_parent);
 #endif
 
 
