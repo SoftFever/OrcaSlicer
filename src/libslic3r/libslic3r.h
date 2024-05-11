@@ -40,7 +40,7 @@
 using coord_t = int32_t;
 #else
 //FIXME At least FillRectilinear2 and std::boost Voronoi require coord_t to be 32bit.
-typedef int64_t coord_t;
+using coord_t = int64_t;
 #endif
 
 using coordf_t = double;
