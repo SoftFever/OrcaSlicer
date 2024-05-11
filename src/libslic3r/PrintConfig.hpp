@@ -894,6 +894,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionInt,                  sparse_infill_filament))
     ((ConfigOptionFloatOrPercent,       sparse_infill_line_width))
     ((ConfigOptionPercent,              infill_wall_overlap))
+    ((ConfigOptionPercent,              top_bottom_infill_wall_overlap))
     ((ConfigOptionFloat,                sparse_infill_speed))
     //BBS
     ((ConfigOptionBool, infill_combination))
@@ -1240,6 +1241,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     // Orca: mmu support
     ((ConfigOptionFloat,              wipe_tower_cone_angle))
     ((ConfigOptionPercent,            wipe_tower_extra_spacing))
+    ((ConfigOptionFloat,                wipe_tower_max_purge_speed))
     ((ConfigOptionInt,                wipe_tower_extruder))
     ((ConfigOptionFloats,             wiping_volumes_extruders))
 
