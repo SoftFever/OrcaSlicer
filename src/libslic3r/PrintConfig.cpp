@@ -2009,7 +2009,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->cli = ConfigOptionDef::nocli;
 
     def = this->add("infill_direction", coFloat);
-    def->label = L("Infill direction");
+    def->label = L("Sparse infill direction");
     def->category = L("Strength");
     def->tooltip = L("Angle for sparse infill pattern, which controls the start or main direction of line");
     def->sidetext = L("°");
@@ -2017,6 +2017,23 @@ def = this->add("filament_loading_speed", coFloats);
     def->max = 360;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(45));
+
+    def = this->add("solid_infill_direction", coFloat);
+    def->label = L("Solid infill direction");
+    def->category = L("Strength");
+    def->tooltip = L("Angle for solid infill pattern, which controls the start or main direction of line");
+    def->sidetext = L("°");
+    def->min = 0;
+    def->max = 360;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(45));
+
+    def = this->add("rotate_solid_infill_direction", coBool);
+    def->label = L("Rotate solid infill direction");
+    def->category = L("Strength");
+    def->tooltip = L("Rotate the solid infill direction by 90° for each layer.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(true));
 
     def = this->add("sparse_infill_density", coPercent);
     def->label = L("Sparse infill density");
@@ -2663,11 +2680,20 @@ def = this->add("filament_loading_speed", coFloats);
     def = this->add("infill_wall_overlap", coPercent);
     def->label = L("Infill/Wall overlap");
     def->category = L("Strength");
-    def->tooltip = L("Infill area is enlarged slightly to overlap with wall for better bonding. The percentage value is relative to line width of sparse infill");
+    def->tooltip = L("Infill area is enlarged slightly to overlap with wall for better bonding. The percentage value is relative to line width of sparse infill. Set this value to ~10-15% to minimize potential over extrusion and accumulation of material resulting in rough top surfaces.");
     def->sidetext = L("%");
     def->ratio_over = "inner_wall_line_width";
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionPercent(15));
+    
+    def = this->add("top_bottom_infill_wall_overlap", coPercent);
+    def->label = L("Top/Bottom solid infill/wall overlap");
+    def->category = L("Strength");
+    def->tooltip = L("Top solid infill area is enlarged slightly to overlap with wall for better bonding and to minimize the appearance of pinholes where the top infill meets the walls. A value of 25-30% is a good starting point, minimising the appearance of pinholes. The percentage value is relative to line width of sparse infill");
+    def->sidetext = L("%");
+    def->ratio_over = "inner_wall_line_width";
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionPercent(25));
 
     def = this->add("sparse_infill_speed", coFloat);
     def->label = L("Sparse infill");
@@ -4740,6 +4766,18 @@ def = this->add("filament_loading_speed", coFloats);
     def->min = 100.;
     def->max = 300.;
     def->set_default_value(new ConfigOptionPercent(100.));
+    
+    def = this->add("wipe_tower_max_purge_speed", coFloat);
+    def->label = L("Maximum print speed when purging");
+    def->tooltip = L("The maximum print speed when purging in the wipe tower. If the sparse infill speed "
+                     "or calculated speed from the filament max volumetric speed is lower, the lowest speed will be used instead.\n"
+                     "Increasing this speed may affect the tower's stability, as purging can be performed over "
+                     "sparse layers. Before increasing this parameter beyond the default of 90mm/sec, make sure your printer can reliably "
+                     "bridge at the increased speeds.");
+    def->sidetext = L("mm/s");
+    def->mode = comAdvanced;
+    def->min = 10;
+    def->set_default_value(new ConfigOptionFloat(90.));
 
     def = this->add("wipe_tower_extruder", coInt);
     def->label = L("Wipe tower extruder");

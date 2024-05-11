@@ -319,6 +319,8 @@ void Tab::create_preset_tab()
         if (m_presets_choice) m_presets_choice->Show();
 
         m_btn_save_preset->Show();
+	m_btn_delete_preset->Show(); // ORCA: fixes delete preset button visible while search box focused
+        m_undo_btn->Show();          // ORCA: fixes revert preset button visible while search box focused
         m_btn_search->Show();
         m_search_item->Hide();
 
@@ -347,6 +349,8 @@ void Tab::create_preset_tab()
              m_presets_choice->Hide();
 
          m_btn_save_preset->Hide();
+	 m_btn_delete_preset->Hide(); // ORCA: fixes delete preset button visible while search box focused
+         m_undo_btn->Hide();          // ORCA: fixes revert preset button visible while search box focused
          m_btn_search->Hide();
          m_search_item->Show();
 
@@ -2116,6 +2120,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("bottom_surface_pattern", "fill-patterns#Infill of the top surface and bottom surface");
         optgroup->append_single_option_line("bottom_shell_layers");
         optgroup->append_single_option_line("bottom_shell_thickness");
+        optgroup->append_single_option_line("top_bottom_infill_wall_overlap");
 
         optgroup = page->new_optgroup(L("Infill"), L"param_infill");
         optgroup->append_single_option_line("sparse_infill_density");
@@ -2125,10 +2130,12 @@ void TabPrint::build()
         optgroup->append_single_option_line("internal_solid_infill_pattern");
         optgroup->append_single_option_line("gap_fill_target");
         optgroup->append_single_option_line("filter_out_gap_fill");
+        optgroup->append_single_option_line("infill_wall_overlap");
 
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced");
-        optgroup->append_single_option_line("infill_wall_overlap");
         optgroup->append_single_option_line("infill_direction");
+        optgroup->append_single_option_line("solid_infill_direction");
+        optgroup->append_single_option_line("rotate_solid_infill_direction");
         optgroup->append_single_option_line("bridge_angle");
         optgroup->append_single_option_line("minimum_sparse_infill_area");
         optgroup->append_single_option_line("infill_combination");
@@ -2281,6 +2288,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("wipe_tower_bridging");
         optgroup->append_single_option_line("wipe_tower_cone_angle");
         optgroup->append_single_option_line("wipe_tower_extra_spacing");
+        optgroup->append_single_option_line("wipe_tower_max_purge_speed");
         optgroup->append_single_option_line("wipe_tower_no_sparse_layers");
         // optgroup->append_single_option_line("single_extruder_multi_material_priming");
 
@@ -4994,12 +5002,12 @@ void Tab::clear_pages()
 {
     // invalidated highlighter, if any exists
     m_highlighter.invalidate();
-    // clear pages from the controlls
-    for (auto p : m_pages)
-        p->clear();
     //BBS: clear page in Parent
     //m_page_sizer->Clear(true);
     m_parent->clear_page();
+    // clear pages from the controlls
+    for (auto p : m_pages)
+        p->clear();
 
     // nulling pointers
     m_parent_preset_description_line = nullptr;
