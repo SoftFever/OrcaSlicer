@@ -97,6 +97,7 @@ PrintObject::PrintObject(Print* print, ModelObject* model_object, const Transfor
 	// snug height and an approximate bounding box in XY.
     BoundingBoxf3  bbox        = model_object->raw_bounding_box();
     Vec3d 		   bbox_center = bbox.center();
+    
 	// We may need to rotate the bbox / bbox_center from the original instance to the current instance.
 	double z_diff = Geometry::rotation_diff_z(model_object->instances.front()->get_rotation(), instances.front().model_instance->get_rotation());
 	if (std::abs(z_diff) > EPSILON) {
@@ -109,7 +110,7 @@ PrintObject::PrintObject(Print* print, ModelObject* model_object, const Transfor
     m_center_offset = Point::new_scale(bbox_center.x(), bbox_center.y());
     // Size of the transformed mesh. This bounding may not be snug in XY plane, but it is snug in Z.
     m_size = (bbox.size() * (1. / SCALING_FACTOR)).cast<coord_t>();
-    m_size.z() = coord_t(model_object->max_z() * (1. / SCALING_FACTOR));
+    m_max_z = scaled(model_object->instance_bounding_box(0).max(2));
 
     this->set_instances(std::move(instances));
 }
@@ -925,6 +926,7 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "initial_layer_line_width"
             || opt_key == "inner_wall_line_width"
             || opt_key == "infill_wall_overlap"
+            || opt_key == "top_bottom_infill_wall_overlap"
             || opt_key == "seam_gap"
             || opt_key == "role_based_wipe_speed"
             || opt_key == "wipe_on_loops"
@@ -1071,6 +1073,8 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "solid_infill_filament"
             || opt_key == "sparse_infill_line_width"
             || opt_key == "infill_direction"
+            || opt_key == "solid_infill_direction"
+            || opt_key == "rotate_solid_infill_direction"
             || opt_key == "ensure_vertical_shell_thickness"
             || opt_key == "bridge_angle"
             //BBS
@@ -1982,7 +1986,7 @@ void PrintObject::discover_vertical_shells()
 #ifdef DEBUG_BRIDGE_OVER_INFILL
 template<typename T> void debug_draw(std::string name, const T& a, const T& b, const T& c, const T& d)
 {
-    std::vector<std::string> colors = {"red", "green", "blue", "orange"};
+        std::vector<std::string> colors = {"red", "green", "blue", "orange"};
     BoundingBox              bbox   = get_extents(a);
     bbox.merge(get_extents(b));
     bbox.merge(get_extents(c));
@@ -2332,8 +2336,16 @@ void PrintObject::bridge_over_infill()
     };
 
     // LAMBDA do determine optimal bridging angle
-    auto determine_bridging_angle = [](const Polygons &bridged_area, const Lines &anchors, InfillPattern dominant_pattern) {
+    auto determine_bridging_angle = [](const Polygons &bridged_area, const Lines &anchors, InfillPattern dominant_pattern, double infill_direction) {
         AABBTreeLines::LinesDistancer<Line> lines_tree(anchors);
+
+        // Check it the infill that require a fixed infill angle.
+        switch (dominant_pattern) {
+        case ip3DHoneycomb:
+        case ipCrossHatch:
+            return (infill_direction + 45.0) * 2.0 * M_PI / 360.;
+        default: break;
+        }
 
         std::map<double, int> counted_directions;
         for (const Polygon &p : bridged_area) {
@@ -2656,7 +2668,10 @@ void PrintObject::bridge_over_infill()
                 Polygons lightning_area;
                 Polygons expansion_area;
                 Polygons total_fill_area;
+                Polygons total_top_area;
                 for (const LayerRegion *region : layer->regions()) {
+                    Polygons top_polys = to_polygons(region->fill_surfaces.filter_by_types({stTop}));
+                    total_top_area.insert(total_top_area.end(), top_polys.begin(), top_polys.end());
                     Polygons internal_polys = to_polygons(region->fill_surfaces.filter_by_types({stInternal, stInternalSolid}));
                     expansion_area.insert(expansion_area.end(), internal_polys.begin(), internal_polys.end());
                     Polygons fill_polys = to_polygons(region->fill_expolygons);
@@ -2711,11 +2726,12 @@ void PrintObject::bridge_over_infill()
                     double bridging_angle = 0;
                     if (!anchors.empty()) {
                         bridging_angle = determine_bridging_angle(area_to_be_bridge, to_lines(anchors),
-                                                                  candidate.region->region().config().sparse_infill_pattern.value);
+                                                                  candidate.region->region().config().sparse_infill_pattern.value,
+                                                                  candidate.region->region().config().infill_direction.value);
                     } else {
                         // use expansion boundaries as anchors.
                         // Also, use Infill pattern that is neutral for angle determination, since there are no infill lines.
-                        bridging_angle = determine_bridging_angle(area_to_be_bridge, to_lines(boundary_plines), InfillPattern::ipLine);
+                        bridging_angle = determine_bridging_angle(area_to_be_bridge, to_lines(boundary_plines), InfillPattern::ipLine, 0);
                     }
 
                     boundary_plines.insert(boundary_plines.end(), anchors.begin(), anchors.end());
@@ -2746,6 +2762,7 @@ void PrintObject::bridge_over_infill()
                     bridging_area          = closing(bridging_area, flow.scaled_spacing());
                     bridging_area          = intersection(bridging_area, limiting_area);
                     bridging_area          = intersection(bridging_area, total_fill_area);
+                    bridging_area          = diff(bridging_area, total_top_area);
                     expansion_area         = diff(expansion_area, bridging_area);
 
 #ifdef DEBUG_BRIDGE_OVER_INFILL

@@ -39,6 +39,7 @@
     "reduce_infill_retraction": "1",
     "filename_format": "{input_filename_base}_{layer_height}mm_{filament_type[initial_tool]}_{printer_model}_{print_time}.gcode",
     "detect_overhang_wall": "1",
+    "slowdown_for_curled_perimeters": "1",
     "overhang_1_4_speed": "0",
     "overhang_2_4_speed": "50",
     "overhang_3_4_speed": "30",
@@ -102,6 +103,5 @@
     "internal_solid_infill_speed": "150",
     "top_surface_speed": "50",
     "gap_infill_speed": "30",
-    "travel_speed": "200",
-    "prime_tower_width": "60"
+    "travel_speed": "200"
 }

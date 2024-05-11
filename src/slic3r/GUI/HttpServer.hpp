@@ -28,6 +28,7 @@ class http_headers
 
     std::map<std::string, std::string> headers;
 
+    friend class session;
 public:
     std::string get_url() { return url; }
 

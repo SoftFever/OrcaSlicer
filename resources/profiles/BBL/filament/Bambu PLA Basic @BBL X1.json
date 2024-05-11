@@ -8,6 +8,12 @@
     "filament_max_volumetric_speed": [
         "21"
     ],
+    "filament_long_retractions_when_cut": [
+        "1"
+    ],
+    "filament_retraction_distances_when_cut": [
+        "18"
+    ],
     "slow_down_layer_time": [
         "8"
     ],

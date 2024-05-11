@@ -1,11 +1,11 @@
 {
-	"type": "process",
-	"setting_id": "GP004",
-	"name": "0.40mm Standard @Creality K1Max (0.8 nozzle)",
-	"from": "system",
-	"inherits": "fdm_process_common_klipper",
-	"instantiation": "true",
-	"adaptive_layer_height": "0",
+    "type": "process",
+    "setting_id": "GP004",
+    "name": "0.40mm Standard @Creality K1Max (0.8 nozzle)",
+    "from": "system",
+    "inherits": "fdm_process_common_klipper",
+    "instantiation": "true",
+    "adaptive_layer_height": "0",
     "reduce_crossing_wall": "0",
     "max_travel_detour_distance": "0",
     "bottom_surface_pattern": "monotonic",
@@ -61,6 +61,9 @@
     "print_settings_id": "",
     "raft_layers": "0",
     "seam_position": "aligned",
+    "seam_slope_conditional": "1",
+    "seam_slope_inner_walls": "1",
+    "seam_slope_entire_loop": "1",
     "skirt_distance": "2",
     "skirt_height": "1",
     "skirt_loops": "0",
@@ -84,7 +87,7 @@
     "support_interface_top_layers": "2",
     "support_interface_bottom_layers": "2",
     "support_interface_spacing": "0.5",
-	"support_expansion":	"0",
+    "support_expansion": "0",
     "support_interface_speed": "80",
     "support_base_pattern": "default",
     "support_base_pattern_spacing": "2.5",
@@ -109,7 +112,7 @@
     "xy_hole_compensation": "0",
     "xy_contour_compensation": "0",
     "gcode_label_objects": "0",
-	"compatible_printers": [
-		"Creality K1 Max (0.8 nozzle)"
-	]
+    "compatible_printers": [
+        "Creality K1 Max (0.8 nozzle)"
+    ]
 }

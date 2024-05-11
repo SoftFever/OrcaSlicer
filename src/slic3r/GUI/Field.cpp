@@ -28,6 +28,7 @@
 #include "Widgets/ComboBox.hpp"
 #include "Widgets/TextCtrl.h"
 
+#include "../Utils/ColorSpaceConvert.hpp"
 #ifdef __WXOSX__
 #define wxOSX true
 #else
@@ -133,6 +134,8 @@ void Field::PostInitialize()
     if (getWindow()) {
         if (m_opt.readonly) { 
             this->disable();
+        } else {
+            this->enable();
         }
 		getWindow()->Bind(wxEVT_KEY_UP, [](wxKeyEvent& evt) {
 		    if ((evt.GetModifiers() & wxMOD_CONTROL) != 0) {
@@ -302,12 +305,28 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
                     m_value.clear();
                     break;
                 }
+                std::string opt_key_without_idx = m_opt_id.substr(0, m_opt_id.find('#'));
                 if (m_opt_id == "filament_flow_ratio") {
                     if (m_value.empty() || boost::any_cast<double>(m_value) != val) {
                         wxString msg_text = format_wxstr(_L("Value %s is out of range, continue?"), str);
 //                        wxMessageDialog dialog(m_parent, msg_text, _L("Parameter validation") + ": " + m_opt_id, wxICON_WARNING | wxYES | wxNO);
                         WarningDialog dialog(m_parent, msg_text, _L("Parameter validation") + ": " + m_opt_id, wxYES | wxNO);
                         if (dialog.ShowModal() == wxID_NO) {
+                            if (m_value.empty()) {
+                                if (m_opt.min > val) val = m_opt.min;
+                                if (val > m_opt.max) val = m_opt.max;
+                            }
+                            else
+                                val = boost::any_cast<double>(m_value);
+                            set_value(double_to_string(val), true);
+                        }
+                    }
+                }
+                else if(m_opt_id == "filament_retraction_distances_when_cut" || opt_key_without_idx == "retraction_distances_when_cut"){
+                    if (m_value.empty() || boost::any_cast<double>(m_value) != val) {
+                        wxString msg_text = format_wxstr(_L("Value %s is out of range. The valid range is from %d to %d."), str, m_opt.min, m_opt.max);
+                        WarningDialog dialog(m_parent, msg_text, _L("Parameter validation") + ": " + m_opt_id, wxYES);
+                        if (dialog.ShowModal()) {
                             if (m_value.empty()) {
                                 if (m_opt.min > val) val = m_opt.min;
                                 if (val > m_opt.max) val = m_opt.max;
@@ -1581,6 +1600,7 @@ void ColourPicker::BUILD()
     if (parent_is_custom_ctrl && m_opt.height < 0)
         opt_height = (double)temp->GetSize().GetHeight() / m_em_unit;
     temp->SetFont(Slic3r::GUI::wxGetApp().normal_font());
+    convert_to_picker_widget(temp);
     if (!wxOSX) temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
 
 	wxGetApp().UpdateDarkUI(temp->GetPickerCtrl());
@@ -1637,6 +1657,7 @@ void ColourPicker::set_value(const boost::any& value, bool change_event)
 
 boost::any& ColourPicker::get_value()
 {
+    save_colors_to_config();
 	auto colour = static_cast<wxColourPickerCtrl*>(window)->GetColour();
     if (colour == wxTransparentColour)
         m_value = std::string("");
@@ -1672,6 +1693,44 @@ void ColourPicker::sys_color_changed()
 	if (wxWindow* win = this->getWindow())
 		if (wxColourPickerCtrl* picker = dynamic_cast<wxColourPickerCtrl*>(win))
 			wxGetApp().UpdateDarkUI(picker->GetPickerCtrl(), true);
+#endif
+}
+
+void ColourPicker::on_button_click(wxCommandEvent &event) {
+#if !defined(__linux__) && !defined(__LINUX__)
+    if (m_clrData) {
+        std::vector<std::string> colors = wxGetApp().app_config->get_custom_color_from_config();
+        for (int i = 0; i < colors.size(); i++) {
+            m_clrData->SetCustomColour(i, string_to_wxColor(colors[i]));
+        }
+    }
+    m_picker_widget->OnButtonClick(event);
+#endif
+}
+
+void ColourPicker::convert_to_picker_widget(wxColourPickerCtrl *widget)
+{
+#if !defined(__linux__) && !defined(__LINUX__)
+    m_picker_widget = dynamic_cast<wxColourPickerWidget*>(widget->GetPickerCtrl());
+    if (m_picker_widget) {
+        m_picker_widget->Bind(wxEVT_BUTTON, &ColourPicker::on_button_click, this);
+        m_clrData = m_picker_widget->GetColourData();
+    }
+#endif
+}
+
+void ColourPicker::save_colors_to_config() {
+#if !defined(__linux__) && !defined(__LINUX__)
+    if (m_clrData) {
+        std::vector<std::string> colors;
+        if (colors.size() != CUSTOM_COLOR_COUNT) {
+            colors.resize(CUSTOM_COLOR_COUNT);
+        }
+        for (int i = 0; i < CUSTOM_COLOR_COUNT; i++) {
+            colors[i] = color_to_string(m_clrData->GetCustomColour(i));
+        }
+        wxGetApp().app_config->save_custom_color_to_config(colors);
+    }
 #endif
 }
 
