@@ -85,9 +85,9 @@ public:
         MeshBoolean,
         FdmSupports,
         Seam,
+        MmuSegmentation,
         Emboss,
         Svg,
-        MmuSegmentation,
         Measure,
         Simplify,
         //SlaSupports,
@@ -141,6 +141,10 @@ private:
     std::string m_tooltip;
     bool m_serializing;
     std::unique_ptr<CommonGizmosDataPool> m_common_gizmos_data;
+
+    //When there are more than 9 colors, shortcut key coloring
+    wxTimer m_timer_set_color;
+    void on_set_color_timer(wxTimerEvent& evt);
 
     // key MENU_ICON_NAME, value = ImtextureID
     std::map<int, void*> icon_list;

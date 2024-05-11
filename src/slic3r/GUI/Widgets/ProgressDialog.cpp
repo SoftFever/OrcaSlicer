@@ -100,12 +100,14 @@ wxString ProgressDialog::FormatString(wxString title)
                 break;
             }
         }
-
         // set mode
         if (m_mode == 0) {
             m_simplebook->SetSelection(0);
             m_msg->SetLabel(title);
         } else {
+            wxSize content_size = m_msg->GetTextExtent(title);
+            int resized_height = (int(content_size.x / PROGRESSDIALOG_GAUGE_SIZE.x) + 1) * content_size.y;
+            set_panel_height(resized_height);
             m_simplebook->SetSelection(1);
             m_msg_2line->SetLabel(title);
         }
@@ -188,7 +190,7 @@ bool ProgressDialog::Create(const wxString &title, const wxString &message, int 
         m_msg_2line->Wrap(PROGRESSDIALOG_SIMPLEBOOK_SIZE.x);
         m_msg_2line->SetFont(::Label::Body_13);
         m_msg_2line->SetForegroundColour(PROGRESSDIALOG_GREY_700);
-        m_msg_2line->SetMaxSize(PROGRESSDIALOG_SIMPLEBOOK_SIZE);
+        m_msg_2line->SetMaxSize(wxSize(PROGRESSDIALOG_SIMPLEBOOK_SIZE.x, -1));
         sizer_2line->Add(m_msg_2line, 1, wxALL, 0);
         m_panel_2line->SetSizer(sizer_2line);
         m_panel_2line->Layout();
@@ -682,6 +684,15 @@ void ProgressDialog::SetRange(int maximum)
     m_gauge->SetRange(maximum);
 
     SetMaximum(maximum);
+}
+
+void ProgressDialog::set_panel_height(int height) {
+    m_simplebook->SetSize(wxSize(PROGRESSDIALOG_SIMPLEBOOK_SIZE.x, height));
+    m_simplebook->SetMinSize(wxSize(PROGRESSDIALOG_SIMPLEBOOK_SIZE.x, height));
+    m_panel_2line->SetSize(wxSize(PROGRESSDIALOG_SIMPLEBOOK_SIZE.x, height));
+    m_panel_2line->SetMinSize(wxSize(PROGRESSDIALOG_SIMPLEBOOK_SIZE.x, height));
+    m_msg_2line->SetSize(wxSize(PROGRESSDIALOG_SIMPLEBOOK_SIZE.x, height));
+    m_msg_2line->SetMinSize(wxSize(PROGRESSDIALOG_SIMPLEBOOK_SIZE.x, height));
 }
 
 void ProgressDialog::SetMaximum(int maximum)

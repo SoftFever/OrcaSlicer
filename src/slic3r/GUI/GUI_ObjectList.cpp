@@ -699,6 +699,9 @@ void ObjectList::update_filament_values_for_items(const size_t filaments_count)
 
 void ObjectList::update_plate_values_for_items()
 {
+#ifdef __WXOSX__
+    AssociateModel(nullptr);
+#endif
     PartPlateList& list = wxGetApp().plater()->get_partplate_list();
     for (size_t i = 0; i < m_objects->size(); ++i)
     {
@@ -724,6 +727,9 @@ void ObjectList::update_plate_values_for_items()
         Expand(item);
         Select(item);
     }
+#ifdef __WXOSX__
+    AssociateModel(m_objects_model);
+#endif
 }
 
 // BBS
@@ -1341,6 +1347,7 @@ void ObjectList::show_context_menu(const bool evt_context_menu)
                 const ModelVolume *volume = object(obj_idx)->volumes[vol_idx];
 
                 menu = volume->is_text() ? plater->text_part_menu() :
+			volume->is_svg() ? plater->svg_part_menu() : // ORCA fixes missing "Edit SVG" item for Add/Negative/Modifier SVG objects in object list
                     plater->part_menu();
             }
             else
@@ -3627,7 +3634,7 @@ void ObjectList::add_object_to_list(size_t obj_idx, bool call_selection_changed,
     //BBS start add obj_idx for debug
     PartPlateList& list = wxGetApp().plater()->get_partplate_list();
     if (notify_partplate) {
-        list.notify_instance_update(obj_idx, 0);
+        list.notify_instance_update(obj_idx, 0, true);
     }
     //int plate_idx = list.find_instance_belongs(obj_idx, 0);
     //std::string item_name_str = (boost::format("[P%1%][O%2%]%3%") % plate_idx % std::to_string(obj_idx) % model_object->name).str();
@@ -3869,16 +3876,10 @@ void ObjectList::update_lock_icons_for_model()
 
 void ObjectList::delete_all_objects_from_list()
 {
-#ifdef __WXOSX__
-    AssociateModel(nullptr);
-#endif
     m_prevent_list_events = true;
     reload_all_plates();
     m_prevent_list_events = false;
     part_selection_changed();
-#ifdef __WXOSX__
-    AssociateModel(m_objects_model);
-#endif
 }
 
 void ObjectList::increase_object_instances(const size_t obj_idx, const size_t num)
@@ -5024,8 +5025,17 @@ void ObjectList::change_part_type()
         }
     }
 
-    const wxString names[] = { _L("Part"), _L("Negative Part"), _L("Modifier"), _L("Support Blocker"), _L("Support Enforcer") };
-    SingleChoiceDialog dlg(_L("Type:"), _L("Choose part type"), wxArrayString(5, names), int(type));
+    // ORCA: Fix crash when changing type of svg / text modifier
+    wxArrayString names;
+    names.Add(_L("Part"));
+    names.Add(_L("Negative Part"));
+    names.Add(_L("Modifier"));
+    if (!volume->is_svg() && !volume->is_text()) {
+        names.Add(_L("Support Blocker"));
+        names.Add(_L("Support Enforcer"));
+    }
+
+    SingleChoiceDialog dlg(_L("Type:"), _L("Choose part type"), names, int(type));
     auto new_type = ModelVolumeType(dlg.GetSingleChoiceIndex());
 
 	if (new_type == type || new_type == ModelVolumeType::INVALID)
@@ -5853,6 +5863,7 @@ void ObjectList::toggle_printable_state()
 
     // update scene
     wxGetApp().plater()->update();
+    wxGetApp().plater()->reload_paint_after_background_process_apply();
 }
 
 ModelObject* ObjectList::object(const int obj_idx) const
