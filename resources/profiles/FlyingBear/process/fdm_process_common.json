@@ -84,7 +84,7 @@
 	"max_travel_detour_distance": "0",
 	"min_bead_width": "85%",
 	"min_feature_size": "25%",
-	"min_width_top_surface": "300%",
+	"min_width_top_surface": "100%",
 	"minimum_sparse_infill_area": "15",
 	"notes": "",
 	"only_one_wall_first_layer": "0",
