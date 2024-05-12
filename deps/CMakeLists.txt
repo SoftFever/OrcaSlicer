@@ -290,13 +290,24 @@ include(CGAL/CGAL.cmake)
 
 include(NLopt/NLopt.cmake)
 
+
+# I *think* 1.1 is used for *just* md5 hashing?
+# 3.1 has everything in the right place, but the md5 funcs used are deprecated
+# a grep across the repo shows it is used for other things 
+set(OPENSSL_PKG "")
+find_package(OpenSSL 1.1...<3.2)
+if(NOT OPENSSL_FOUND)
+    include(OpenSSL/OpenSSL.cmake)
+    set(OPENSSL_PKG dep_OpenSSL)
+endif()
+
 set(CURL_PKG "")
 find_package(CURL)
-if (NOT CURL_FOUND)
-    message(WARNING "no curl package found, building openssl and curl")
-    include(OpenSSL/OpenSSL.cmake)
+# we don't want to load a "wrong" openssl when loading curl
+# so, just don't even bother 
+# ...i think this is how it works? change if wrong
+if (NOT OPENSSL_FOUND OR NOT CURL_FOUND)
     include(CURL/CURL.cmake)
-    set(OPENSSL_PKG dep_OpenSSL)
     set(CURL_PKG dep_CURL)
 endif ()
 

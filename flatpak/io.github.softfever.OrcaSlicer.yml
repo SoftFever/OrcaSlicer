@@ -296,7 +296,7 @@ modules:
           -DBBL_RELEASE_TO_PUBLIC=1 \
           -DCMAKE_PREFIX_PATH=/app \
           -DCMAKE_INSTALL_PREFIX=/app
-        CXXFLAGS=-std=gnu++20 cmake --build . --verbose --target install -j$FLATPAK_BUILDER_N_JOBS
+        CXXFLAGS=-std=gnu++20 cmake --build . --target install -j$FLATPAK_BUILDER_N_JOBS
 
     cleanup:
       - /include
