@@ -408,7 +408,7 @@ void LayerRegion::process_external_surfaces(const Layer *lower_layer, const Poly
     float                           expansion_bottom        = expansion_top;
     float                           expansion_bottom_bridge = expansion_top;
     // Expand by waves of expansion_step size (expansion_step is scaled), but with no more steps than max_nr_expansion_steps.
-    static constexpr const float    expansion_step          = scaled<float>(0.1);
+    const auto expansion_step = scaled<float>(0.1);
     // Don't take more than max_nr_steps for small expansion_step.
     static constexpr const size_t   max_nr_expansion_steps  = 5;
     // Radius (with added epsilon) to absorb empty regions emering from regularization of ensuring, viz  const float narrow_ensure_vertical_wall_thickness_region_radius = 0.5f * 0.65f * min_perimeter_infill_spacing;

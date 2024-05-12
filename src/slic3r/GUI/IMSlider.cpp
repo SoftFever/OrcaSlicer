@@ -11,8 +11,10 @@ namespace Slic3r {
 
 namespace GUI {
 
-constexpr double min_delta_area = scale_(scale_(25));  // equal to 25 mm2
-constexpr double miscalculation = scale_(scale_(1));   // equal to 1 mm2
+// equal to 25 mm2
+inline double min_delta_area() { return scale_(scale_(25)); }
+// equal to 1 mm2
+inline double miscalculation() { return scale_(scale_(1)); }
 
 static const float  LEFT_MARGIN       = 13.0f + 100.0f;  // avoid thumbnail toolbar
 static const float  HORIZONTAL_SLIDER_WINDOW_HEIGHT  = 64.0f;
@@ -33,7 +35,7 @@ static ImVec4 m_tick_rect;
 
 bool equivalent_areas(const double& bottom_area, const double& top_area)
 {
-    return fabs(bottom_area - top_area) <= miscalculation;
+    return fabs(bottom_area - top_area) <= miscalculation();
 }
 
 bool check_color_change(PrintObject *object, size_t frst_layer_id, size_t layers_cnt, bool check_overhangs, std::function<bool(Layer *)> break_condition)
@@ -50,7 +52,7 @@ bool check_color_change(PrintObject *object, size_t frst_layer_id, size_t layers
 
         // Check percent of the area decrease.
         // This value have to be more than min_delta_area and more then 10%
-        if ((prev_area - cur_area > min_delta_area) && (cur_area / prev_area < 0.9)) {
+        if ((prev_area - cur_area > min_delta_area()) && (cur_area / prev_area < 0.9)) {
             detected = true;
             if (break_condition(layer)) break;
         }

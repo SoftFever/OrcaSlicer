@@ -452,7 +452,7 @@ private:
 
 static constexpr const bool polygons_strictly_simple = false;
 
-static constexpr const auto tiny_area_threshold = sqr(scaled<double>(0.001));
+inline double tiny_area_threshold() { return sqr(scaled<double>(0.001)); }
 
 void tree_supports_show_error(std::string_view message, bool critical);
 

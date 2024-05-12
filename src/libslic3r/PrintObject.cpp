@@ -3151,7 +3151,7 @@ void PrintObject::clip_fill_surfaces()
         }
         // Merge the new overhangs, find new internal infill.
         polygons_append(upper_internal, std::move(overhangs));
-        static constexpr const auto closing_radius = scaled<float>(2.f);
+        const auto closing_radius = scaled<float>(2.f);
         upper_internal = intersection(
             // Regularize the overhang regions, so that the infill areas will not become excessively jagged.
             smooth_outward(

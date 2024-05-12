@@ -1832,7 +1832,7 @@ static void make_expolygons(const Polygons &loops, const float closing_radius, c
 static inline Transform3f make_trafo_for_slicing(const Transform3d &trafo)
 {
     auto t = trafo;
-    static constexpr const double s = 1. / SCALING_FACTOR;
+    const double s = 1. / SCALING_FACTOR;
     t.prescale(Vec3d(s, s, 1.));
     return t.cast<float>();
 }
@@ -1846,7 +1846,7 @@ static std::vector<stl_vertex> transform_mesh_vertices_for_slicing(const indexed
 {
     // Copy and scale vertices in XY, don't scale in Z.
     // Possibly apply the transformation.
-    static constexpr const double   s = 1. / SCALING_FACTOR;
+    const double   s = 1. / SCALING_FACTOR;
     std::vector<stl_vertex>         out(mesh.vertices);
     if (is_identity(trafo)) {
         // Identity.

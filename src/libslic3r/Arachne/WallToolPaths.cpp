@@ -261,7 +261,7 @@ void fixSelfIntersections(const coord_t epsilon, Polygons &thiss)
 
     // Points too close to line segments should be moved a little away from those line segments, but less than epsilon,
     //   so at least half-epsilon distance between points can still be guaranteed.
-    constexpr coord_t grid_size  = scaled<coord_t>(2.);
+    const coord_t grid_size  = scaled<coord_t>(2.);
     auto              query_grid = createLocToLineGrid(thiss, grid_size);
 
     const auto    move_dist         = std::max<int64_t>(2L, half_epsilon - 2);
@@ -473,11 +473,11 @@ const std::vector<VariableWidthLines> &WallToolPaths::generate()
     if (this->inset_count < 1)
         return toolpaths;
 
-    const coord_t smallest_segment = Slic3r::Arachne::meshfix_maximum_resolution;
-    const coord_t allowed_distance = Slic3r::Arachne::meshfix_maximum_deviation;
+    const coord_t smallest_segment = Slic3r::Arachne::meshfix_maximum_resolution();
+    const coord_t allowed_distance = Slic3r::Arachne::meshfix_maximum_deviation();
     const coord_t epsilon_offset = (allowed_distance / 2) - 1;
     const double  transitioning_angle = Geometry::deg2rad(m_params.wall_transition_angle);
-    constexpr coord_t discretization_step_size = scaled<coord_t>(0.8);
+    const coord_t discretization_step_size = scaled<coord_t>(0.8);
 
     // Simplify outline for boost::voronoi consumption. Absolutely no self intersections or near-self intersections allowed:
     // TODO: Open question: Does this indeed fix all (or all-but-one-in-a-million) cases for manifold but otherwise possibly complex polygons?
@@ -692,9 +692,9 @@ void WallToolPaths::simplifyToolPaths(std::vector<VariableWidthLines> &toolpaths
 {
     for (size_t toolpaths_idx = 0; toolpaths_idx < toolpaths.size(); ++toolpaths_idx)
     {
-        const int64_t maximum_resolution = Slic3r::Arachne::meshfix_maximum_resolution;
-        const int64_t maximum_deviation = Slic3r::Arachne::meshfix_maximum_deviation;
-        const int64_t maximum_extrusion_area_deviation = Slic3r::Arachne::meshfix_maximum_extrusion_area_deviation; // unit: μm²
+        const int64_t maximum_resolution = Slic3r::Arachne::meshfix_maximum_resolution();
+        const int64_t maximum_deviation = Slic3r::Arachne::meshfix_maximum_deviation();
+        const int64_t maximum_extrusion_area_deviation = Slic3r::Arachne::meshfix_maximum_extrusion_area_deviation(); // unit: μm²
         for (auto& line : toolpaths[toolpaths_idx])
         {
             line.simplify(maximum_resolution * maximum_resolution, maximum_deviation * maximum_deviation, maximum_extrusion_area_deviation);

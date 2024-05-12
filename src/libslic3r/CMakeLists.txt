@@ -211,6 +211,7 @@ set(lisbslic3r_sources
     Layer.hpp
     LayerRegion.cpp
     libslic3r.h
+    libslic3r.cpp
     Line.cpp
     Line.hpp
     BlacklistedLibraryCheck.cpp
