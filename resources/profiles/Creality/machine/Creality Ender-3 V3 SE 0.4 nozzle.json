@@ -32,8 +32,8 @@
 		"2500"
 	],
 	"machine_max_acceleration_retracting": [
-		"2500",
-		"2500"
+		"500",
+		"500"
 	],
 	"machine_max_acceleration_travel": [
 		"2500",
@@ -102,7 +102,7 @@
 		"1"
 	],
 	"retraction_speed": [
-		"30"
+		"40"
 	],
 	"deretraction_speed": [
 		"30"
