@@ -72,8 +72,10 @@ orcaslicer_add_cmake_project(CURL
     ${_curl_platform_flags}
 )
 
-# (openssl may or may not exist)
-add_dependencies(dep_CURL ${OPENSSL_PKG})
+if(NOT OPENSSL_FOUND)
+  # (openssl may or may not be built)
+  add_dependencies(dep_CURL ${OPENSSL_PKG})
+endif()
 
 if (MSVC)
     add_debug_dep(dep_CURL)
