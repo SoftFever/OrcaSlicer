@@ -341,7 +341,6 @@ endif()
 
 include(OCCT/OCCT.cmake)
 include(OpenCV/OpenCV.cmake)
-include(FREETYPE/FREETYPE.cmake)
 
 set(_dep_list
     dep_Boost
