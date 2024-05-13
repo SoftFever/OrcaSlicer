@@ -3831,6 +3831,16 @@ def = this->add("filament_loading_speed", coFloats);
     def->sidetext = L("mm/s");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(50.0));
+    
+    def = this->add("min_skirt_length", coFloat);
+    def->label = L("Skirt minimum extrusion length");
+    def->full_label = L("Skirt minimum extrusion length");
+    def->tooltip = L("Minimum filament extrusion length in mm when printing the skirt. Zero means this feature is disabled.\n\n"
+                     "Using a non zero value is useful if the printer is set up to print without a prime line.");
+    def->min = 0;
+    def->sidetext = L("mm");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0.0));
 
     def = this->add("slow_down_layer_time", coFloats);
     def->label = L("Layer time");
