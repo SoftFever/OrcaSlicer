@@ -26,7 +26,7 @@ orcaslicer_add_cmake_project(OpenCV
        -DBUILD_ZLIB=OFF
        -DWITH_1394=OFF
        -DWITH_CUDA=OFF
-       -DWITH_EIGEN=ON
+       -DWITH_EIGEN=OFF
        ${_use_IPP}
        -DWITH_ITT=OFF
        -DWITH_FFMPEG=OFF
