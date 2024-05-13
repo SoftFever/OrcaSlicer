@@ -17,7 +17,7 @@
 		"0x220"
 	],
 	"printable_height": "250",
-	"nozzle_type": "undefined",
+	"nozzle_type": "undefine",
 	"auxiliary_fan": "0",
 	"machine_max_acceleration_extruding": [
 		"2500",

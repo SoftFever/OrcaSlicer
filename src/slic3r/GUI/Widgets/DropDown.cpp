@@ -31,24 +31,27 @@ END_EVENT_TABLE()
  */
 
 DropDown::DropDown(std::vector<wxString> &texts,
+                   std::vector<wxString> &tips,
                    std::vector<wxBitmap> &icons)
     : texts(texts)
+    , tips(tips)
     , icons(icons)
     , state_handler(this)
     , border_color(0xDBDBDB)
     , text_color(0x363636)
     , selector_border_color(std::make_pair(0x009688, (int) StateColor::Hovered),
         std::make_pair(*wxWHITE, (int) StateColor::Normal))
-    , selector_background_color(std::make_pair(0xEDFAF2, (int) StateColor::Checked),
+    , selector_background_color(std::make_pair(0xBFE1DE, (int) StateColor::Checked), // ORCA updated background color for checked item
         std::make_pair(*wxWHITE, (int) StateColor::Normal))
 {
 }
 
 DropDown::DropDown(wxWindow *             parent,
                    std::vector<wxString> &texts,
+                   std::vector<wxString> &tips,
                    std::vector<wxBitmap> &icons,
                    long           style)
-    : DropDown(texts, icons)
+    : DropDown(texts, tips, icons)
 {
     Create(parent, style);
 }
@@ -306,7 +309,7 @@ void DropDown::render(wxDC &dc)
         if (!text_off && !text.IsEmpty()) {
             wxSize tSize = dc.GetMultiLineTextExtent(text);
             if (pt.x + tSize.x > rcContent.GetRight()) {
-                if (i == hover_item)
+                if (i == hover_item && tips[i].IsEmpty())
                     SetToolTip(text);
                 text = wxControl::Ellipsize(text, dc, wxELLIPSIZE_END,
                                             rcContent.GetRight() - pt.x);
@@ -459,7 +462,7 @@ void DropDown::mouseMove(wxMouseEvent &event)
         if (hover >= (int) texts.size()) hover = -1;
         if (hover == hover_item) return;
         hover_item = hover;
-        SetToolTip("");
+        if (hover >= 0) SetToolTip(tips[hover]);
     }
     paintNow();
 }
@@ -482,7 +485,7 @@ void DropDown::mouseWheelMoved(wxMouseEvent &event)
     if (hover >= (int) texts.size()) hover = -1;
     if (hover != hover_item) {
         hover_item = hover;
-        if (hover >= 0) SetToolTip(texts[hover]);
+        if (hover >= 0) SetToolTip(tips[hover]);
     }
     paintNow();
 }

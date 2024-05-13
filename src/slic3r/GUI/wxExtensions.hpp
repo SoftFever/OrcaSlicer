@@ -57,7 +57,7 @@ wxBitmap create_menu_bitmap(const std::string& bmp_name);
 
 // BBS: support resize by fill border
 #if 1
-wxBitmap create_scaled_bitmap(const std::string& bmp_name, wxWindow *win = nullptr, 
+wxBitmap create_scaled_bitmap(const std::string& bmp_name, wxWindow *win = nullptr,
     const int px_cnt = 16, const bool grayscale = false,
     const std::string& new_color = std::string(), // color witch will used instead of orange
     const bool menu_bitmap = false, const bool resize = false,
@@ -75,7 +75,6 @@ wxBitmap create_scaled_bitmap(const std::string& bmp_name, wxWindow *win = nullp
 wxBitmap* get_default_extruder_color_icon(bool thin_icon = false);
 std::vector<wxBitmap *> get_extruder_color_icons(bool thin_icon = false);
 wxBitmap * get_extruder_color_icon(std::string color, std::string label, int icon_width, int icon_height);
-
 namespace Slic3r {
 namespace GUI {
 class BitmapComboBox;
