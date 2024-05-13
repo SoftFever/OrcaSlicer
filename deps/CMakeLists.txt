@@ -256,7 +256,8 @@ if (NOT ZLIB_FOUND)
 endif ()
 set(PNG_PKG "")
 find_package(PNG)
-if (NOT PNG_FOUND) 
+# weirdly, aarch64 osx fails to resolve symbols for png and jpeg.
+if (NOT PNG_FOUND OR APPLE) 
     include(PNG/PNG.cmake)
     set(PNG_PKG dep_PNG)
 endif ()
@@ -313,14 +314,16 @@ endif ()
 
 set(JPEG_PKG "")
 find_package(JPEG)
-if (NOT JPEG_FOUND)
+# see png for the APPLE here
+if (NOT JPEG_FOUND OR APPLE)
     include(JPEG/JPEG.cmake)
     set(JPEG_PKG dep_JPEG)
 endif()
 
 set(TIFF_PKG "")
 find_package(TIFF)
-if (NOT TIFF_FOUND)
+# see png for the APPLE here
+if (NOT TIFF_FOUND OR APPLE)
     include(TIFF/TIFF.cmake)
     set(TIFF_PKG "dep_TIFF")
 endif()
