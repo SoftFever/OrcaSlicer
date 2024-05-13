@@ -209,16 +209,17 @@ void BBLTopbar::Init(wxFrame* parent)
     logo_item->SetHoverBitmap(logo_bitmap);
     logo_item->SetActive(false);*/
 
-    wxBitmap file_bitmap = create_scaled_bitmap("topbar_file", nullptr, TOPBAR_ICON_SIZE);
-    m_file_menu_item = this->AddTool(ID_TOP_FILE_MENU, _L("File"), file_bitmap, wxEmptyString, wxITEM_NORMAL);
+    //wxBitmap file_bitmap = create_scaled_bitmap("topbar_file", nullptr, TOPBAR_ICON_SIZE);
+    // ORCA remove icon from dropdown menu buttons to show them like part of menu bar. Space will center text
+    m_file_menu_item = this->AddTool(ID_TOP_FILE_MENU, " " + _L("File"), NULL, wxEmptyString, wxITEM_NORMAL);
 
     this->SetForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_HIGHLIGHTTEXT));
 
     this->AddSpacer(FromDIP(5));
 
-    wxBitmap dropdown_bitmap = create_scaled_bitmap("topbar_dropdown", nullptr, TOPBAR_ICON_SIZE);
-    m_dropdown_menu_item = this->AddTool(ID_TOP_DROPDOWN_MENU, "",
-        dropdown_bitmap, wxEmptyString);
+    //wxBitmap dropdown_bitmap = create_scaled_bitmap("topbar_dropdown", nullptr, TOPBAR_ICON_SIZE);
+    // ORCA remove icon from dropdown menu buttons to show them like part of menu bar. Space will center text
+    m_dropdown_menu_item = this->AddTool(ID_TOP_DROPDOWN_MENU, " " + _L("More"), NULL, wxEmptyString, wxITEM_NORMAL);
 
     this->AddSpacer(FromDIP(5));
     this->AddSeparator();
