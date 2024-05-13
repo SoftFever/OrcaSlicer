@@ -13,6 +13,10 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 3.4.4\n"
+<<<<<<< HEAD
+=======
+"X-Generator: Poedit 3.4.2\n"
+>>>>>>> 53eb0d309 (Update OrcaSlicer_es.po)
 
 msgid "Supports Painting"
 msgstr "Pintar Soportes"
@@ -258,7 +262,11 @@ msgid "World coordinates"
 msgstr "Coordenadas cartesianas"
 
 msgid "Object coordinates"
+<<<<<<< HEAD
 msgstr "Coordenadas del objeto"
+=======
+msgstr "Coordenadas de objeto"
+>>>>>>> 53eb0d309 (Update OrcaSlicer_es.po)
 
 msgid "°"
 msgstr "°"
@@ -1991,7 +1999,11 @@ msgid "Reload All"
 msgstr "Recargar todo"
 
 msgid "reload all from disk"
+<<<<<<< HEAD
 msgstr "Recargar todo desde disco"
+=======
+msgstr "Recargar desde el disco"
+>>>>>>> 53eb0d309 (Update OrcaSlicer_es.po)
 
 msgid "Auto Rotate"
 msgstr "Rotación Automática"
@@ -2461,7 +2473,11 @@ msgid "AMS not connected"
 msgstr "AMS no conectado"
 
 msgid "Load"
+<<<<<<< HEAD
 msgstr "Carga"
+=======
+msgstr "Cargar"
+>>>>>>> 53eb0d309 (Update OrcaSlicer_es.po)
 
 msgid "Unload"
 msgstr "Descarga"
@@ -3014,7 +3030,11 @@ msgid "Print with the filament mounted on the back of chassis"
 msgstr "Imprimir con el filamento montado en la parte posterior del chasis"
 
 msgid "Current Cabin humidity"
+<<<<<<< HEAD
 msgstr "Humedad actual de la cabina"
+=======
+msgstr "Humedad de cabina actual"
+>>>>>>> 53eb0d309 (Update OrcaSlicer_es.po)
 
 msgid ""
 "Please change the desiccant when it is too wet. The indicator may not "
@@ -3022,10 +3042,17 @@ msgid ""
 "desiccant pack is changed. it take hours to absorb the moisture, low "
 "temperatures also slow down the process."
 msgstr ""
+<<<<<<< HEAD
 "Cambie el desecante cuando esté demasiado húmedo. El indicador puede no ser "
 "preciso en los siguientes casos: cuando la tapa está abierta o se cambia el "
 "paquete de desecante, tarda horas en absorber la humedad, las bajas "
 "temperaturas también ralentizan el proceso."
+=======
+"Cambie el desecante cuando esté demasiado húmedo. El indicador puede no "
+"representar con precisión en los siguientes casos: cuando la tapa está "
+"abierta o se cambia el paquete de desecante. tarda horas en absorber la "
+"humedad, las bajas temperaturas también ralentizan el proceso."
+>>>>>>> 53eb0d309 (Update OrcaSlicer_es.po)
 
 msgid ""
 "Config which AMS slot should be used for a filament used in the print job"
@@ -3108,8 +3135,13 @@ msgid ""
 "Note: if a new filament is inserted during  printing, the AMS will not "
 "automatically read any information until printing is completed."
 msgstr ""
+<<<<<<< HEAD
 "Nota: si se inserta un nuevo filamento durante la impresión, el AMS no leerá "
 "automáticamente ninguna información hasta que finalice la impresión."
+=======
+"Nota: si el nuevo filamento se inserta durante la impresión, el AMS no leerá "
+"automáticamente ninguna información hasta que la impresión esté completa."
+>>>>>>> 53eb0d309 (Update OrcaSlicer_es.po)
 
 msgid ""
 "When inserting a new filament, the AMS will not automatically read its "
@@ -3162,14 +3194,23 @@ msgstr ""
 "automáticamente cuando el filamento se termine"
 
 msgid "Air Printing Detection"
+<<<<<<< HEAD
 msgstr "Air Printing Detection"
+=======
+msgstr "Detección de Impresión Aérea"
+>>>>>>> 53eb0d309 (Update OrcaSlicer_es.po)
 
 msgid ""
 "Detects clogging and filament grinding, halting printing immediately to "
 "conserve time and filament."
 msgstr ""
+<<<<<<< HEAD
 "Detects clogging and filament grinding, halting printing immediately to "
 "conserve time and filament."
+=======
+"Detecta el atasco y la trituración del filamento, deteniendo la impresión "
+"inmediatamente para ahorrar tiempo y filamento."
+>>>>>>> 53eb0d309 (Update OrcaSlicer_es.po)
 
 msgid "File"
 msgstr "Archivo"
@@ -3248,10 +3289,17 @@ msgid "Running post-processing scripts"
 msgstr "Ejecutando scripts de post-procesado"
 
 msgid "Successfully executed post-processing script"
+<<<<<<< HEAD
 msgstr "Successfully executed post-processing script"
 
 msgid "Unknown error occured during exporting G-code."
 msgstr "Se produjo un error desconocido durante la exportación del código G."
+=======
+msgstr "Script de postprocesamiento ejecutado correctamente"
+
+msgid "Unknown error occured during exporting G-code."
+msgstr "Se ha producido un error desconocido al exportar el G-Code"
+>>>>>>> 53eb0d309 (Update OrcaSlicer_es.po)
 
 #, boost-format
 msgid ""
@@ -3259,9 +3307,14 @@ msgid ""
 "card is write locked?\n"
 "Error message: %1%"
 msgstr ""
+<<<<<<< HEAD
 "Error al copiar el código G temporal en el código G de salida. ¿Quizás la "
 "tarjeta SD está bloqueada contra escritura?\n"
 "Mensaje de error: %1%"
+=======
+"La copia del G-Code temporal al de salida ha fallado. ¿Puede que la tarjeta "
+"SD esté bloqueada? Mensaje de error: %1%"
+>>>>>>> 53eb0d309 (Update OrcaSlicer_es.po)
 
 #, boost-format
 msgid ""
@@ -3269,9 +3322,16 @@ msgid ""
 "problem with target device, please try exporting again or using different "
 "device. The corrupted output G-code is at %1%.tmp."
 msgstr ""
+<<<<<<< HEAD
 "La copia del código G temporal al código G de salida ha fallado. Puede haber "
 "un problema con el dispositivo de destino, intenta exportar nuevamente o usa "
 "un dispositivo diferente. El código G de salida dañado está en %1%.tmp."
+=======
+"La copia del G-Code temporal al de salida ha fallado. Puede haber un "
+"problema con el dispositivo de destino, por favor, intente exportar de nuevo "
+"o utilizar un dispositivo diferente. El G-Code de salida dañado está en %1%."
+"tmp."
+>>>>>>> 53eb0d309 (Update OrcaSlicer_es.po)
 
 #, boost-format
 msgid ""
@@ -14198,10 +14258,18 @@ msgstr ""
 "\n"
 "NOTA: Las superficies inferior y superior no se verán afectadas por este "
 "valor para evitar huecos visuales en el exterior del modelo. Ajuste \"Umbral "
+<<<<<<< HEAD
 "de una pared\" en la configuración avanzada para ajustar la sensibilidad de "
 "lo que se considera una superficie superior. El \"Umbral de una pared\" sólo "
 "es visible si este valor es superior al valor predeterminado de 0,5, o si "
 "las superficies superiores de una sola pared están activadas."
+=======
+"de una perímetro\" en la configuración avanzada para ajustar la sensibilidad "
+"de lo que se considera una superficie superior. El \"Umbral de una "
+"perímetro\" sólo es visible si este valor es superior al valor "
+"predeterminado de 0,5, o si las superficies superiores de una soel perímetro "
+"están activadas."
+>>>>>>> 53eb0d309 (Update OrcaSlicer_es.po)
 
 msgid "First layer minimum wall width"
 msgstr "Ancho mínimo del perímetro de la primera capa"
