@@ -2267,13 +2267,15 @@ void TabPrint::build()
         optgroup->append_single_option_line("tree_support_brim_width");
         
     page = add_options_page(L("Others"), "advanced");
-        optgroup = page->new_optgroup(L("Bed adhension"), L"param_adhension");
+        optgroup = page->new_optgroup(L("Skirt"), L"param_adhension");
         optgroup->append_single_option_line("skirt_loops");
         optgroup->append_single_option_line("min_skirt_length");
         optgroup->append_single_option_line("skirt_distance");
         optgroup->append_single_option_line("skirt_height");
         optgroup->append_single_option_line("skirt_speed");
         optgroup->append_single_option_line("draft_shield");
+        
+        optgroup = page->new_optgroup(L("Brim"), L"param_adhension");
         optgroup->append_single_option_line("brim_type", "auto-brim");
         optgroup->append_single_option_line("brim_width", "auto-brim#manual");
         optgroup->append_single_option_line("brim_object_gap", "auto-brim#brim-object-gap");
