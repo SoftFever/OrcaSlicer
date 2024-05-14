@@ -614,7 +614,6 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SLIC3R_GUI_SOURCES})
 encoding_check(libslic3r_gui)
 
 target_link_libraries(libslic3r_gui libslic3r cereal::cereal imgui imguizmo minilzo GLEW::GLEW OpenGL::GL hidapi ${wxWidgets_LIBRARIES} glfw libcurl OpenSSL::SSL OpenSSL::Crypto)
-#target_link_libraries(libslic3r_gui libslic3r cereal imgui minilzo GLEW::GLEW OpenGL::GL hidapi libcurl OpenSSL::SSL OpenSSL::Crypto ${wxWidgets_LIBRARIES} glfw)
 
 if (MSVC)
     target_link_libraries(libslic3r_gui Setupapi.lib)
@@ -659,7 +658,9 @@ endif ()
 if (UNIX AND NOT APPLE)
     find_package(GTK${SLIC3R_GTK} REQUIRED)
     if (FLATPAK)
-    find_package(X11 REQUIRED)
+        # I don't know why this is needed, but for whatever reason slic3r isn't
+        # linking to X11 and webkit2gtk. force it.
+        find_package(X11 REQUIRED)
         find_package(PkgConfig REQUIRED)
         pkg_check_modules(webkit2gtk REQUIRED webkit2gtk-4.1)
         target_link_libraries (libslic3r_gui ${X11_LIBRARIES} ${webkit2gtk_LIBRARIES})
@@ -671,7 +672,7 @@ if (UNIX AND NOT APPLE)
     # We add GStreamer for bambu:/// support.
     pkg_check_modules(GSTREAMER REQUIRED gstreamer-1.0)
     pkg_check_modules(GST_BASE REQUIRED gstreamer-base-1.0)
-    target_link_libraries(libslic3r_gui ${GSTREAMER_LIBRARIES} ${GST_BASE_LIBRARIES} )
+    target_link_libraries(libslic3r_gui ${GSTREAMER_LIBRARIES} ${GST_BASE_LIBRARIES})
     target_include_directories(libslic3r_gui PRIVATE ${GSTREAMER_INCLUDE_DIRS} ${GST_BASE_INCLUDE_DIRS})
 endif ()
 

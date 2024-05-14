@@ -417,33 +417,8 @@ function(slic3r_remap_configs targets from_Cfg to_Cfg)
     endif()
 endfunction()
 
-#if(TARGET Boost::system)
-#    message(STATUS "Boost::boost exists")
-#    target_link_libraries(boost_headeronly INTERFACE Boost::boost)
-#
-#    # Only from cmake 3.12
-#    # list(TRANSFORM _boost_components PREPEND Boost:: OUTPUT_VARIABLE _boost_targets)
-#    
-#    set(_boost_components "system;filesystem;thread;log;locale;regex;chrono;atomic;date_time;iostreams;program_options")
-#    set(_boost_targets "")
-#    foreach(comp ${_boost_components})
-#        list(APPEND _boost_targets "Boost::${comp}")
-#    endforeach()
-#
-#    target_link_libraries(boost_libs INTERFACE
-#        boost_headeronly # includes the custom compile definitions as well
-#        ${_boost_targets}
-#        )
-#    slic3r_remap_configs("${_boost_targets}" RelWithDebInfo Release)
-#else()
-#    target_include_directories(boost_headeronly INTERFACE ${Boost_INCLUDE_DIRS})
-#    target_link_libraries(boost_libs INTERFACE boost_headeronly ${Boost_LIBRARIES})
-#endif()
-# TODO TODO REMOVE ABOVE, THIS IS JUST TESTING CI
 target_include_directories(boost_headeronly INTERFACE ${Boost_INCLUDE_DIRS})
 target_link_libraries(boost_libs INTERFACE boost_headeronly ${Boost_LIBRARIES})
-
-
 
 # Find and configure intel-tbb
 if(SLIC3R_STATIC)

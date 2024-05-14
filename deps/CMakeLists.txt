@@ -41,9 +41,8 @@ if (NPROC EQUAL 0)
 endif ()
 
 set(DESTDIR "${CMAKE_CURRENT_BINARY_DIR}/destdir" CACHE PATH "Destination directory")
-set(REMOVE_DESTDIR_POSTPEND FALSE CACHE BOOL "Used in flatpak to remove the '/usr/local' ending in destdir")
 set(DEP_DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR}/../DL_CACHE CACHE PATH "Path for downloaded source packages.")
-set(FLATPAK FALSE CACHE BOOL "Toggles various build settings for flatpak, like /usr/local in DESTDIR")
+set(FLATPAK FALSE CACHE BOOL "Toggles various build settings for flatpak, like /usr/local in DESTDIR or not building wxwidgets")
 if (NOT FLATPAK)
     set(DESTDIR "${DESTDIR}/usr/local/")
 endif()
@@ -88,14 +87,14 @@ endif ()
 # Slic3r compiles with a different version which will cause runtime errors.
 # option(DEP_BUILD_IGL_STATIC "Build IGL as a static library. Might cause link errors and increase binary size." OFF)
 
-message(STATUS "OrcaSlicer deps DESTDIR: ${_INTDESTDIR}")
+message(STATUS "OrcaSlicer deps DESTDIR: ${DESTDIR}")
 message(STATUS "OrcaSlicer dowload dir for source packages: ${DEP_DOWNLOAD_DIR}")
 message(STATUS "OrcaSlicer deps debug build: ${DEP_DEBUG}")
 
 find_package(Git REQUIRED)
 
 # The default command line for patching. Only works for newer 
-set(PATCH_CMD ${GIT_EXECUTABLE} apply --apply --verbose --ignore-space-change --whitespace=fix)
+set(PATCH_CMD ${GIT_EXECUTABLE} apply --verbose --ignore-space-change --whitespace=fix)
 
 if (NOT _is_multi AND NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
@@ -147,7 +146,11 @@ if (NOT IS_CROSS_COMPILE OR NOT APPLE)
        INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install --config Release
     )
 elseif(FLATPAK)
-    # TODO: maybe use shared libs for size reduction
+    # the only reason this is here is because of the HACK at the bottom for ci
+    #
+    # note for future devs: shared libs may actually create a size reduction
+    # but orcaslicer_deps tends to get really funny regarding linking after that (notably boost)
+    # so, as much as I would like to use that, it's not happening
     ExternalProject_Add(
         dep_${projectname}
         EXCLUDE_FROM_ALL    ON
@@ -171,7 +174,8 @@ elseif(FLATPAK)
        BUILD_COMMAND ${CMAKE_COMMAND} --build . --config Release -- ${_build_j}
        INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install --config Release
        # HACK: save space after each compile job, because CI
-       # note: for whatever reason cmake changes directory after this, so just keep only the folders
+       # reasoning: cmake changes directory after this command, so just keep only the folders
+       # so that it can navigate out
        COMMAND find "${CMAKE_BINARY_DIR}/dep_${projectname}-prefix/" -type f -delete
     )
 else()
@@ -239,6 +243,7 @@ endif()
 
 if(FLATPAK)
     # flatpak bundles some deps with the layer, so attempt to find them first
+    # also, yes, this reduces CI by not needing to vendor certain deps
     find_package(ZLIB)
     find_package(PNG)
     find_package(EXPAT)
@@ -246,18 +251,17 @@ if(FLATPAK)
     find_package(JPEG)
     find_package(TIFF)
     find_package(Freetype)
+    find_package(OpenSSL 1.1...<3.2)
+    find_package(CURL)
 endif()
 
 set(ZLIB_PKG "")
-find_package(ZLIB)
 if (NOT ZLIB_FOUND) 
     include(ZLIB/ZLIB.cmake)
     set(ZLIB_PKG dep_ZLIB)
 endif ()
 set(PNG_PKG "")
-find_package(PNG)
-# weirdly, aarch64 osx fails to resolve symbols for png and jpeg.
-if (NOT PNG_FOUND OR APPLE) 
+if (NOT PNG_FOUND) 
     include(PNG/PNG.cmake)
     set(PNG_PKG dep_PNG)
 endif ()
@@ -294,36 +298,31 @@ include(NLopt/NLopt.cmake)
 
 # I *think* 1.1 is used for *just* md5 hashing?
 # 3.1 has everything in the right place, but the md5 funcs used are deprecated
-# a grep across the repo shows it is used for other things 
+# a grep across the repo shows it is used for other things
+# TODO: update openssl and everything that uses <openssl/md5.h> 
 set(OPENSSL_PKG "")
-find_package(OpenSSL 1.1...<3.2)
-if(NOT OPENSSL_FOUND OR MSVC)
+if(NOT OPENSSL_FOUND)
     include(OpenSSL/OpenSSL.cmake)
     set(OPENSSL_PKG dep_OpenSSL)
 endif()
 
-set(CURL_PKG "")
-find_package(CURL)
 # we don't want to load a "wrong" openssl when loading curl
 # so, just don't even bother 
 # ...i think this is how it works? change if wrong
+set(CURL_PKG "")
 if (NOT OPENSSL_FOUND OR NOT CURL_FOUND)
     include(CURL/CURL.cmake)
     set(CURL_PKG dep_CURL)
 endif ()
 
 set(JPEG_PKG "")
-find_package(JPEG)
-# see png for the APPLE here
-if (NOT JPEG_FOUND OR APPLE)
+if (NOT JPEG_FOUND)
     include(JPEG/JPEG.cmake)
     set(JPEG_PKG dep_JPEG)
 endif()
 
 set(TIFF_PKG "")
-find_package(TIFF)
-# see png for the APPLE here
-if (NOT TIFF_FOUND OR APPLE)
+if (NOT TIFF_FOUND)
     include(TIFF/TIFF.cmake)
     set(TIFF_PKG "dep_TIFF")
 endif()
@@ -336,8 +335,7 @@ if (NOT FLATPAK)
 endif()
 
 set(FREETYPE_PKG "")
-find_package(Freetype)
-if(NOT FREETYPE_FOUND OR APPLE)
+if(NOT FREETYPE_FOUND)
     include(FREETYPE/FREETYPE.cmake)
     set(FREETYPE_PKG "dep_FREETYPE") 
 endif()
