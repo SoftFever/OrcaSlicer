@@ -9,7 +9,7 @@
     "M104 S{temperature_vitrification[current_extruder]} ;standby T{current_extruder}"
   ],
   "overhang_fan_speed": [
-    "60"
+    "35"
   ],
   "filament_density": [
     "1.25"
@@ -27,7 +27,7 @@
     "178"
   ],
   "fan_max_speed": [
-    "40"
+    "30"
   ],
   "fan_min_speed": [
     "10"

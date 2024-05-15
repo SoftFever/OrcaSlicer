@@ -1,0 +1,8 @@
+{
+  "type": "filament",
+  "from": "system",
+  "instantiation": "true",
+  "name": "Snapmaker PET @Dual",
+  "setting_id": "145337790",
+  "inherits": "Snapmaker Dual PET @base"
+}

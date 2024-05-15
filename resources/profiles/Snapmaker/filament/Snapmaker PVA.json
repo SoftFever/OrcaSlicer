@@ -1,0 +1,8 @@
+{
+  "type": "filament",
+  "from": "system",
+  "instantiation": "true",
+  "name": "Snapmaker PVA",
+  "setting_id": "3741816734",
+  "inherits": "Snapmaker PVA @base"
+}

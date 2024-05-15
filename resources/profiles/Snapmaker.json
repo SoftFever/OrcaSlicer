@@ -525,6 +525,18 @@
       "sub_path": "filament/PolyTerra PLA @0.2 nozzle.json"
     },
     {
+      "name": "Snapmaker PVA @base",
+      "sub_path": "filament/Snapmaker PVA @base.json"
+    },
+    {
+      "name": "Snapmaker PVA",
+      "sub_path": "filament/Snapmaker PVA.json"
+    },
+    {
+      "name": "Snapmaker PVA @0.2 nozzle",
+      "sub_path": "filament/Snapmaker PVA @0.2 nozzle.json"
+    },
+    {
       "name": "Snapmaker TPU @base",
       "sub_path": "filament/Snapmaker TPU @base.json"
     },
@@ -787,6 +799,10 @@
     {
       "name": "Snapmaker Dual PET @base",
       "sub_path": "filament/Snapmaker Dual PET @base.json"
+    },
+    {
+      "name": "Snapmaker PET @Dual",
+      "sub_path": "filament/Snapmaker PET @Dual.json"
     },
     {
       "name": "Snapmaker Dual PET",
