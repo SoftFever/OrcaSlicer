@@ -304,6 +304,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "slow_down_layers"
             || opt_key == "wipe_tower_cone_angle"
             || opt_key == "wipe_tower_extra_spacing"
+            || opt_key == "wipe_tower_max_purge_speed"
             || opt_key == "wipe_tower_extruder"
             || opt_key == "wiping_volumes_extruders"
             || opt_key == "enable_filament_ramming"
