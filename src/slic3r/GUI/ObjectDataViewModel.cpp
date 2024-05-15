@@ -558,13 +558,11 @@ void ObjectDataViewModel::UpdateBitmapForNode(ObjectDataViewModelNode *node)
         std::vector<wxBitmap> bmps;
         if (node->has_warning_icon())
             bmps.emplace_back(node->warning_icon_name() == WarningIcon ? m_warning_bmp : m_warning_manifold_bmp);
-        // ORCA: Add spacing between icons if there are multiple // Condition > Cut/Connector and Warning
-        if (node->has_warning_icon() && node->has_lock())
+        if (node->has_warning_icon() && node->has_lock()) // ORCA: Add spacing between icons if there are multiple
             bmps.emplace_back(create_scaled_bitmap("dot", nullptr, int(wxGetApp().em_unit() / 10) * 4));
         if (node->has_lock())
             bmps.emplace_back(m_lock_bmp);
-        // ORCA: Add spacing between icons if there are multiple // Condition > (Cut/Connector and Volume) or (Warning and Volume)
-        if ((node->has_lock() && is_volume_node) || (node->has_warning_icon() && is_volume_node))
+        if (is_volume_node && (node->has_lock() || node->has_warning_icon())) // ORCA: Add spacing between icons if there are multiple
             bmps.emplace_back(create_scaled_bitmap("dot", nullptr, int(wxGetApp().em_unit() / 10) * 4));
         if (is_volume_node)
             bmps.emplace_back(
