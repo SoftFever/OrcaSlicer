@@ -79,16 +79,16 @@ class Triangulator {
         offring->init(imin);
     }
 
-    void emplace_indices(std::vector<Vec3i> &indices)
+    void emplace_indices(std::vector<Vec3i32> &indices)
     {
-        Vec3i tr{int(onring->pos().first), int(onring->pos().second),
+        Vec3i32 tr{int(onring->pos().first), int(onring->pos().second),
                  int(offring->pos().first)};
         if (onring->is_lower()) std::swap(tr(0), tr(1));
         indices.emplace_back(tr);
     }
 
 public:
-    void run(std::vector<Vec3i> &indices)
+    void run(std::vector<Vec3i32> &indices)
     {
         synchronize_rings();
 
@@ -138,7 +138,7 @@ void triangulate_wall(std::vector<Vec<3, Sc>> &pts,
     t.run(ind);
 }
 
-//using Wall = std::pair<std::vector<Vec3d>, std::vector<Vec3i>>;
+//using Wall = std::pair<std::vector<Vec3d>, std::vector<Vec3i32>>;
 
 //Wall triangulate_wall(
 //    const Polygon &       lower,
