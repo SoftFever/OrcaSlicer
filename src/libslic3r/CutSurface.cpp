@@ -706,7 +706,7 @@ using IsOnSides = std::vector<std::array<bool, 4>>;
 /// <param name="t">Triangle</param>
 /// <param name="is_on_sides">Flag is vertex index out of plane</param>
 /// <returns>True when triangle is out of one of plane</returns>
-bool is_all_on_one_side(const Vec3i &t, const IsOnSides& is_on_sides);
+bool is_all_on_one_side(const Vec3i32 &t, const IsOnSides& is_on_sides);
 
 } // namespace priv
 
@@ -718,7 +718,7 @@ bool priv::is_out_of(const Vec3d &v, const PointNormal &point_normal)
     return signed_distance > 1e-5;
 };
 
-bool priv::is_all_on_one_side(const Vec3i &t, const IsOnSides& is_on_sides) {
+bool priv::is_all_on_one_side(const Vec3i32 &t, const IsOnSides& is_on_sides) {
     for (size_t side = 0; side < 4; side++) {
         bool result = true;
         for (auto vi : t) {
@@ -1891,7 +1891,7 @@ uint32_t priv::get_closest_point_index(const SearchData &sd,
         const Polygon   &poly  = (id.polygon_index == 0) ?
                                            shape.contour :
                                            shape.holes[id.polygon_index - 1];
-        Vec2i p_ = p.cast<int>();
+        auto p_ = p.cast<coord_t>();
         return p_ == poly[id.point_index];
     };
 
@@ -3559,7 +3559,7 @@ SurfaceCut priv::patch2cut(SurfacePatch &patch)
         assert(mesh.next(mesh.next(mesh.next(hi))) == hi);
 
         // triangle indicies
-        Vec3i ti;
+        Vec3i32 ti;
         size_t i = 0;
         for (VI vi : { mesh.source(hi), 
                        mesh.target(hi), 
@@ -3742,7 +3742,7 @@ indexed_triangle_set priv::create_indexed_triangle_set(
         HI hi_end = hi;
 
         int   ti = 0;
-        Vec3i t;
+        Vec3i32 t;
 
         do {
             VI   vi  = mesh.source(hi);
@@ -3802,8 +3802,8 @@ void priv::store(const CutAOIs &aois, const CutMesh &mesh, const std::string &di
             size_t bi2 = its.vertices.size();
             its.vertices.push_back(b + dir);
 
-            its.indices.push_back(Vec3i(ai, ai2, bi));
-            its.indices.push_back(Vec3i(ai2, bi2, bi));
+            its.indices.push_back(Vec3i32(ai, ai2, bi));
+            its.indices.push_back(Vec3i32(ai2, bi2, bi));
         }
         return its;    
     };
@@ -4002,8 +4002,8 @@ indexed_triangle_set priv::create_contour_its(
         size_t bi2 = result.vertices.size();
         result.vertices.push_back(b + dir);
 
-        result.indices.push_back(Vec3i(ai, bi, ai2));
-        result.indices.push_back(Vec3i(ai2, bi, bi2));
+        result.indices.push_back(Vec3i32(ai, bi, ai2));
+        result.indices.push_back(Vec3i32(ai2, bi, bi2));
         prev_vi = vi;
     }
     return result;

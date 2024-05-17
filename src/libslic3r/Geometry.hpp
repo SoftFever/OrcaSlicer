@@ -48,14 +48,24 @@ enum Orientation
 // As the points are limited to 30 bits + signum,
 // the temporaries u, v, w are limited to 61 bits + signum,
 // and d is limited to 63 bits + signum and we are good.
-static inline Orientation orient(const Point &a, const Point &b, const Point &c)
-{
-    static_assert(sizeof(coord_t) * 2 == sizeof(int64_t), "orient works with 32 bit coordinates");
-    int64_t u = int64_t(b.x()) * int64_t(c.y()) - int64_t(b.y()) * int64_t(c.x());
-    int64_t v = int64_t(a.x()) * int64_t(c.y()) - int64_t(a.y()) * int64_t(c.x());
-    int64_t w = int64_t(a.x()) * int64_t(b.y()) - int64_t(a.y()) * int64_t(b.x());
-    int64_t d = u - v + w;
-    return (d > 0) ? ORIENTATION_CCW : ((d == 0) ? ORIENTATION_COLINEAR : ORIENTATION_CW);
+//note: now coord_t is int64_t, so the algorithm is now adjusted to fallback to double is too big.
+static inline Orientation orient(const Point &a, const Point &b, const Point &c) {
+    //static_assert(sizeof(coord_t) * 2 == sizeof(int64_t), "orient works with 32 bit coordinates");
+    // BOOST_STATIC_ASSERT(sizeof(coord_t) == sizeof(int64_t));
+    if (a.x() <= 0xffffffff && b.x() <= 0xffffffff && c.x() <= 0xffffffff &&
+        a.y() <= 0xffffffff && b.y() <= 0xffffffff && c.y() <= 0xffffffff) {
+        int64_t u = int64_t(b(0)) * int64_t(c(1)) - int64_t(b(1)) * int64_t(c(0));
+        int64_t v = int64_t(a(0)) * int64_t(c(1)) - int64_t(a(1)) * int64_t(c(0));
+        int64_t w = int64_t(a(0)) * int64_t(b(1)) - int64_t(a(1)) * int64_t(b(0));
+        int64_t d = u - v + w;
+        return (d > 0) ? ORIENTATION_CCW : ((d == 0) ? ORIENTATION_COLINEAR : ORIENTATION_CW);
+    } else {
+        double u = double(b(0)) * double(c(1)) - double(b(1)) * double(c(0));
+        double v = double(a(0)) * double(c(1)) - double(a(1)) * double(c(0));
+        double w = double(a(0)) * double(b(1)) - double(a(1)) * double(b(0));
+        double d = u - v + w;
+        return (d > 0) ? ORIENTATION_CCW : ((d == 0) ? ORIENTATION_COLINEAR : ORIENTATION_CW);
+    }
 }
 
 // Return orientation of the polygon by checking orientation of the left bottom corner of the polygon
