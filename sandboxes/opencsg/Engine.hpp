@@ -358,7 +358,7 @@ private:
 class Display : public Scene::Listener
 {
 protected:
-    Vec2i m_size;
+    Vec2i32 m_size;
     bool m_initialized = false;
     
     std::shared_ptr<Camera>  m_camera;
@@ -379,7 +379,7 @@ public:
     virtual void swap_buffers() = 0;
     virtual void set_active(long width, long height);
     virtual void set_screen_size(long width, long height);
-    Vec2i get_screen_size() const { return m_size; }
+    Vec2i32 get_screen_size() const { return m_size; }
     
     virtual void repaint();
     
@@ -438,7 +438,7 @@ class Controller : public std::enable_shared_from_this<Controller>,
                    public Scene::Listener
 {
     long m_wheel_pos = 0;
-    Vec2i m_mouse_pos, m_mouse_pos_rprev, m_mouse_pos_lprev;
+    Vec2i32 m_mouse_pos, m_mouse_pos_rprev, m_mouse_pos_lprev;
     bool m_left_btn = false, m_right_btn = false;
 
     std::shared_ptr<Scene>           m_scene;

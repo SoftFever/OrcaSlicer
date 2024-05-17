@@ -976,7 +976,7 @@ bool CalibUtils::process_and_store_3mf(Model *model, const DynamicPrintConfig &f
     double  print_height  = full_config.opt_float("printable_height");
     double  current_width = bedfs[2].x() - bedfs[0].x();
     double  current_depth = bedfs[2].y() - bedfs[0].y();
-    Vec3i   plate_size;
+    Vec3i32   plate_size;
     plate_size[0] = bedfs[2].x() - bedfs[0].x();
     plate_size[1] = bedfs[2].y() - bedfs[0].y();
     plate_size[2] = print_height;
