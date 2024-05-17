@@ -133,7 +133,7 @@ static inline void check_self_intersections(const ExPolygon &expoly, const std::
 #endif // TREE_SUPPORT_SHOW_ERRORS_WIN32
 }
 
-static constexpr const auto tiny_area_threshold = sqr(scaled<double>(0.001));
+// static constexpr const auto tiny_area_threshold = sqr(scaled<double>(0.001));
 
 static std::vector<std::pair<TreeSupportSettings, std::vector<size_t>>> group_meshes(const Print &print, const std::vector<size_t> &print_object_ids)
 {

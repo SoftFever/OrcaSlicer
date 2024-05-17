@@ -910,7 +910,7 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
 bool GLGizmoPainterBase::on_mouse(const wxMouseEvent &mouse_event)
 {
     // wxCoord == int --> wx/types.h
-    Vec2i mouse_coord(mouse_event.GetX(), mouse_event.GetY());
+    Vec2i32 mouse_coord(mouse_event.GetX(), mouse_event.GetY());
     Vec2d mouse_pos = mouse_coord.cast<double>();
 
     if (mouse_event.Moving()) {
@@ -1365,11 +1365,11 @@ void TriangleSelectorPatch::update_triangles_per_patch()
 
     bool using_wireframe = (m_need_wireframe && wxGetApp().plater()->is_wireframe_enabled() && wxGetApp().plater()->is_show_wireframe()) ? true : false; 
 
-    auto get_all_touching_triangles = [this](int facet_idx, const Vec3i& neighbors, const Vec3i& neighbors_propagated) -> std::vector<int> {
+    auto get_all_touching_triangles = [this](int facet_idx, const Vec3i32& neighbors, const Vec3i32& neighbors_propagated) -> std::vector<int> {
         assert(facet_idx != -1 && facet_idx < int(m_triangles.size()));
         assert(this->verify_triangle_neighbors(m_triangles[facet_idx], neighbors));
         std::vector<int> touching_triangles;
-        Vec3i            vertices = { m_triangles[facet_idx].verts_idxs[0], m_triangles[facet_idx].verts_idxs[1], m_triangles[facet_idx].verts_idxs[2] };
+        Vec3i32            vertices = { m_triangles[facet_idx].verts_idxs[0], m_triangles[facet_idx].verts_idxs[1], m_triangles[facet_idx].verts_idxs[2] };
         append_touching_subtriangles(neighbors(0), vertices(1), vertices(0), touching_triangles);
         append_touching_subtriangles(neighbors(1), vertices(2), vertices(1), touching_triangles);
         append_touching_subtriangles(neighbors(2), vertices(0), vertices(2), touching_triangles);
@@ -1745,14 +1745,14 @@ void TriangleSelectorGUI::update_paint_contour()
     m_paint_contour.reset();
 
     GLModel::Geometry init_data;
-    const std::vector<Vec2i> contour_edges = this->get_seed_fill_contour();
+    const std::vector<Vec2i32> contour_edges = this->get_seed_fill_contour();
     init_data.format = { GLModel::Geometry::EPrimitiveType::Lines, GLModel::Geometry::EVertexLayout::P3 };
     init_data.reserve_vertices(2 * contour_edges.size());
     init_data.reserve_indices(2 * contour_edges.size());
     init_data.color = ColorRGBA::WHITE();
     // vertices + indices
     unsigned int vertices_count = 0;
-    for (const Vec2i& edge : contour_edges) {
+    for (const Vec2i32& edge : contour_edges) {
         init_data.add_vertex(m_vertices[edge(0)].v);
         init_data.add_vertex(m_vertices[edge(1)].v);
         vertices_count += 2;

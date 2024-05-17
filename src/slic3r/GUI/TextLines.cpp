@@ -209,10 +209,10 @@ GLModel::Geometry create_geometry(const TextLines &lines, float radius, bool is_
 
     if (is_mirrored) {
         // change order of indices
-        for (Vec3i t : its.indices)
+        for (Vec3i32 t : its.indices)
             geometry.add_triangle(t[0], t[2], t[1]);
     } else {
-        for (Vec3i t : its.indices)
+        for (Vec3i32 t : its.indices)
             geometry.add_triangle(t[0], t[1], t[2]);
     }
     return geometry;    
