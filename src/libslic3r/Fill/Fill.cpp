@@ -24,6 +24,7 @@
 #include "FillLightning.hpp"
 #include "FillConcentricInternal.hpp"
 #include "FillConcentric.hpp"
+#include "libslic3r.h"
 
 namespace Slic3r {
 
@@ -336,7 +337,7 @@ void split_solid_surface(size_t layer_id, const SurfaceFill &fill, ExPolygons &n
                                                       squared_distance_limit_reconnection) {
                             traced_poly.lows.push_back(candidates_begin->a);
                         } else {
-                            traced_poly.lows.push_back(traced_poly.lows.back() + Point{scaled_spacing / 2, 0});
+                            traced_poly.lows.push_back(traced_poly.lows.back() + Point{scaled_spacing / 2, coord_t(0)});
                             traced_poly.lows.push_back(candidates_begin->a - Point{scaled_spacing / 2, 0});
                             traced_poly.lows.push_back(candidates_begin->a);
                         }

@@ -523,7 +523,7 @@ void PrintConfigDef::init_common_params()
     def->tooltip = L("Maximum printable height which is limited by mechanism of printer");
     def->sidetext = L("mm");
     def->min = 0;
-    def->max = 2000;
+    def->max = 214700;
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionFloat(100.0));
 

@@ -488,7 +488,7 @@ namespace {
 
 Vec2d mouse_position(const wxMouseEvent &mouse_event){
     // wxCoord == int --> wx/types.h
-    Vec2i mouse_coord(mouse_event.GetX(), mouse_event.GetY());
+    Vec2i32 mouse_coord(mouse_event.GetX(), mouse_event.GetY());
     return mouse_coord.cast<double>();
 }
 
@@ -542,7 +542,7 @@ bool start_dragging(const Vec2d                &mouse_pos,
     // zero point of volume in world coordinate system
     Vec3d volume_center = to_world.translation();
     // screen coordinate of volume center
-    Vec2i coor                           = CameraUtils::project(camera, volume_center);
+    auto coor                           = CameraUtils::project(camera, volume_center);
     Vec2d mouse_offset                   = coor.cast<double>() - mouse_pos;
     Vec2d mouse_offset_without_sla_shift = mouse_offset;
     if (double sla_shift = gl_volume.get_sla_shift_z(); !is_approx(sla_shift, 0.)) {
