@@ -1,8 +1,8 @@
 {
     "type": "filament",
-    "filament_id": "GFL99_2",
+    "filament_id": "GFL99_5",
     "setting_id": "GFSA04",
-    "name": "Prusa Generic PLA @MINIIS",
+    "name": "Prusa Generic PLA @MINIIS 0.25",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pla",
@@ -19,10 +19,10 @@
         "1"
     ],
     "pressure_advance": [
-        "0.27"
+        "0.85"
     ],
 
     "compatible_printers": [
-      "Prusa MINIIS 0.4 nozzle"
+      "Prusa MINIIS 0.25 nozzle"
     ]
 }

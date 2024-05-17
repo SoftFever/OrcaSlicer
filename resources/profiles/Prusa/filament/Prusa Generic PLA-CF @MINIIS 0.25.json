@@ -1,16 +1,19 @@
 {
     "type": "filament",
-    "filament_id": "GFL99_2",
+    "filament_id": "GFL98_5",
     "setting_id": "GFSA04",
-    "name": "Prusa Generic PLA @MINIIS",
+    "name": "Prusa Generic PLA-CF @MINIIS 0.25",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pla",
     "filament_flow_ratio": [
         "1"
     ],
+    "filament_type": [
+        "PLA-CF"
+    ],
     "filament_max_volumetric_speed": [
-        "14"
+        "12"
     ],
     "slow_down_layer_time": [
         "10"
@@ -19,10 +22,10 @@
         "1"
     ],
     "pressure_advance": [
-        "0.27"
+        "0.85"
     ],
 
     "compatible_printers": [
-      "Prusa MINIIS 0.4 nozzle"
+        "Prusa MINIIS 0.25 nozzle"
     ]
 }

@@ -1,8 +1,8 @@
 {
     "type": "filament",
-    "filament_id": "GFG99_2",
+    "filament_id": "GFG99_4",
     "setting_id": "GFSA04",
-    "name": "Prusa Generic PETG @MINIIS",
+    "name": "Prusa Generic PETG @MINIIS 0.8",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pet",
@@ -31,7 +31,7 @@
         "10"
     ],
     "slow_down_layer_time": [
-        "10"
+        "20"
     ],
     "filament_flow_ratio": [
         "1"
@@ -55,10 +55,10 @@
         "1"
     ],
     "pressure_advance": [
-        "0.4"
+        "0.15"
     ],
 
     "compatible_printers": [
-        "Prusa MINIIS 0.4 nozzle"
+        "Prusa MINIIS 0.8 nozzle"
       ]
 }

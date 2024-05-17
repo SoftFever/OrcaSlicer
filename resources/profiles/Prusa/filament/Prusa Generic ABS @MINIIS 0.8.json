@@ -1,8 +1,8 @@
 {
     "type": "filament",
-    "filament_id": "GFB99_2",
+    "filament_id": "GFB99_4",
     "setting_id": "GFSA04",
-    "name": "Prusa Generic ABS @MINIIS",
+    "name": "Prusa Generic ABS @MINIIS 0.8",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_abs",
@@ -43,10 +43,10 @@
         "1"
     ],
     "pressure_advance": [
-        "0.19"
+        "0.07"
     ],
 
     "compatible_printers": [
-        "Prusa MINIIS 0.4 nozzle"
+        "Prusa MINIIS 0.8 nozzle"
       ]
 }
