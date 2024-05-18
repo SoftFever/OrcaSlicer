@@ -5,6 +5,9 @@
   "name": "Snapmaker J1 PLA @base",
   "filament_id": "377675245",
   "inherits": "fdm_filament_pla",
+  "filament_end_gcode": [
+    "M104 S{temperature_vitrification[current_extruder]} ;standby T{current_extruder}"
+  ],
   "filament_retraction_length": [
     "nil"
   ],

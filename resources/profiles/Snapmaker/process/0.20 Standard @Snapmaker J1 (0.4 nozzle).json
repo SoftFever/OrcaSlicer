@@ -8,14 +8,5 @@
   "compatible_printers": [
     "Snapmaker J1 (0.4 nozzle)"
   ],
-  "elefant_foot_compensation": "0.15",
-  "outer_wall_speed": "140",
-  "inner_wall_speed": "240",
-  "sparse_infill_speed": "300",
-  "internal_solid_infill_speed": "240",
-  "top_surface_speed": "140",
-  "gap_infill_speed": "240",
-  "overhang_1_4_speed": "60",
-  "overhang_2_4_speed": "30",
-  "overhang_3_4_speed": "10"
+  "elefant_foot_compensation": "0.15"
 }
