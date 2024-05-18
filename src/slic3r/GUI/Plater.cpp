@@ -7779,8 +7779,8 @@ bool Plater::priv::init_collapse_toolbar()
     collapse_toolbar.set_layout_type(GLToolbar::Layout::Vertical);
     collapse_toolbar.set_horizontal_orientation(GLToolbar::Layout::HO_Right);
     collapse_toolbar.set_vertical_orientation(GLToolbar::Layout::VO_Top);
-    collapse_toolbar.set_border(5.0f);
-    collapse_toolbar.set_separator_size(5);
+    collapse_toolbar.set_border(4.0f);
+    collapse_toolbar.set_separator_size(4);
     collapse_toolbar.set_gap_size(2);
 
     collapse_toolbar.del_all_item();
