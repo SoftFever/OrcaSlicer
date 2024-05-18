@@ -63,18 +63,10 @@ wxString ESP3D::get_test_failed_msg(wxString& msg) const
 bool ESP3D::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, ErrorFn error_fn, InfoFn info_fn) const
 {
     bool res = false;
-
-    //auto upload_cmd = get_upload_url(upload_data.upload_path.string());
-    //BOOST_LOG_TRIVIAL(info) << boost::format("ESP3D: Uploading file %1%, filepath: %2%, print: %3%, command: %4%") % upload_data.source_path %
-    //                               upload_data.upload_path % (upload_data.post_action == PrintHostPostUploadAction::StartPrint) %
-    //                               upload_cmd;
-    
     auto http = Http::post(std::move((boost::format("http://%1%/upload_serial") % m_host).str()));
-
-
-    http.form_add_file("file", upload_data.source_path, "pa.gco")
+    http.form_add_file("file", upload_data.source_path, get_short_name(upload_data.upload_path.string()))
     .on_complete([&](std::string body, unsigned status) {
-            /*
+            
             BOOST_LOG_TRIVIAL(debug) << boost::format("ESP3D: File uploaded: HTTP %1%: %2%") % status % body;
 
             int err_code = get_err_code_from_body(body);
@@ -84,19 +76,18 @@ bool ESP3D::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, ErrorFn 
                 res = false;
             } else if (upload_data.post_action == PrintHostPostUploadAction::StartPrint) {
                 wxString errormsg;
-                res = start_print(errormsg, upload_data.upload_path.string());
+                res = start_print(errormsg, get_short_name(upload_data.upload_path.string()));
                 if (!res) {
                     error_fn(std::move(errormsg));
                 }
-            }
-            */
+            }  
         })
         .on_error([&](std::string body, std::string error, unsigned status) {
-    /*
+    
             BOOST_LOG_TRIVIAL(error) << boost::format("ESP3D: Error uploading file: %1%, HTTP %2%, body: `%3%`") % error % status % body;
             error_fn(format_error(body, error, status));
             res = false;
-    */
+    
         })
         .on_progress([&](Http::Progress progress, bool& cancel) {
             prorgess_fn(std::move(progress), cancel);
@@ -118,38 +109,28 @@ std::string ESP3D::get_upload_url(const std::string& filename) const
 
 bool ESP3D::start_print(wxString& msg, const std::string& filename) const
 {
-    return false;
-    // ESP3D only accepts 8.3 filenames else it crashes marlin
-    std::string             legacyname = "";
-    boost::filesystem::path p(filename);
-    std::string             stem      = p.stem().string();      // Get the filename without extension
-    std::string             extension = p.extension().string(); // Get the extension including the dot
-    if (!extension.empty() && extension[0] == '.') {
-        extension = extension.substr(1);
-    }
-    stem      = stem.substr(0, 8);
-    extension = extension.substr(0, 3);
-    if (!extension.empty()) {
-        legacyname = stem + "." + extension;
-    } else {
-        legacyname = stem;
-    }
     // For some reason printer firmware does not want to respond on gcode commands immediately after file upload.
     // So we just introduce artificial delay to workaround it.
     // TODO: Inspect reasons
     std::this_thread::sleep_for(std::chrono::milliseconds(1500));
 
-    Utils::TCPConsole            console(m_host, m_console_port);
-    Slic3r::Utils::SerialMessage s(std::string("M23 ") + filename, Slic3r::Utils::Command);
-    console.enqueue_cmd(s);
-    s.message = "M24";
-    console.enqueue_cmd(s);
-
-    bool ret = console.run_queue();
-
-    if (!ret)
-        msg = wxString::FromUTF8(console.error_message().c_str());
-
+    bool ret  = false;
+    auto http_sel = Http::get((boost::format("http://%1%/command?plain=%2% %3%") % m_host % "M23" % filename).str());
+    http_sel.on_complete([&](std::string body, unsigned status) {
+            auto http_start = Http::get((boost::format("http://%1%/command?plain=%2%") % m_host % "M24").str());
+            http_start.on_complete([&](std::string body, unsigned status) {
+                    ret = true;
+                }).on_error([&](std::string body, std::string error, unsigned status) {
+                    ret = false;
+                    msg = (wxString::FromUTF8(error));
+                })
+                .perform_sync();
+        })
+        .on_error([&](std::string body, std::string error, unsigned status) {
+            ret = false;
+            msg = (wxString::FromUTF8(error));
+        })
+        .perform_sync();
     return ret;
 }
 
@@ -160,6 +141,25 @@ int ESP3D::get_err_code_from_body(const std::string& body) const
     pt::read_json(iss, root);
 
     return root.get<int>("err", 0);
+}
+
+    // ESP3D only accepts 8.3 filenames else it crashes marlin and other undefined behaviour
+std::string ESP3D::get_short_name(const std::string& filename) const { 
+    std::string             shortname = "";
+    boost::filesystem::path p(filename);
+    std::string             stem      = p.stem().string();  
+    std::string             extension = p.extension().string();
+    if (!extension.empty() && extension[0] == '.') {
+        extension = extension.substr(1);
+    }
+    stem      = stem.substr(0, 8);
+    extension = extension.substr(0, 3);
+    if (!extension.empty()) {
+        shortname = stem + "." + extension;
+    } else {
+        shortname = stem;
+    }
+    return shortname;
 }
 
 } // namespace Slic3r
