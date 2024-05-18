@@ -126,25 +126,13 @@ std::string ESP3D::get_upload_url(const std::string& filename) const
     return (boost::format("http://%1%/upload_serial") % m_host).str();
 }
 
+
+//look at flashforge.cpp for nicer url stuff
 bool ESP3D::start_print(wxString& msg, const std::string& filename) const
 {
-
-   
-    
-    // For some reason printer firmware does not want to respond on gcode commands immediately after file upload.
-    // So we just introduce artificial delay to workaround it.
-    // TODO: Inspect reasons
-    //std::this_thread::sleep_for(std::chrono::milliseconds(1500));
-
     bool ret  = false;
-    //msg           = (wxString::FromUTF8("starting pruint now"));
-    //return ret;
-
-   // msg = (wxString::FromUTF8((boost::format("http://%1%/command?plain=%2% %3%") % m_host % "M23" % filename).str()));
-    //return false;
-   // auto select   = (boost::format("http://%1%/command?plain=M23 "+filename) % m_host).str();
     auto http_sel = Http::get("http://"+m_host+"/command?plain=M23%20"+filename);
-   
+
     http_sel.on_complete([&](std::string body, unsigned status) { 
          Http::get((boost::format("http://%1%/command?plain=%2%") % m_host % "M24").str()).perform_sync();
             ret = false;
