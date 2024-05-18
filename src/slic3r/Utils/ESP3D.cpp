@@ -39,13 +39,16 @@ const char* ESP3D::get_name() const { return "ESP3D"; }
 
 bool ESP3D::test(wxString& msg) const
 {
-    Utils::TCPConsole            console(m_host, m_console_port);
-    Slic3r::Utils::SerialMessage s("M105", Slic3r::Utils::Command);
-    console.enqueue_cmd(s);
-    bool ret = console.run_queue();
-
-    if (!ret)
-        msg = wxString::FromUTF8(console.error_message().c_str());
+    bool ret = false;
+    auto http = Http::get((boost::format("http://%1%/command?plain=%2%") % m_host % "M105").str());
+    http.on_complete([&](std::string body, unsigned status) {
+            ret = true;
+            msg = get_test_ok_msg();
+        })
+        .on_error([&](std::string body, std::string error, unsigned status) {
+            ret = false;
+            msg = get_test_failed_msg( wxString::FromUTF8( error));
+        }).perform_sync();
 
     return ret;
 }
@@ -66,8 +69,9 @@ bool ESP3D::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, ErrorFn 
                                    upload_data.upload_path % (upload_data.post_action == PrintHostPostUploadAction::StartPrint) %
                                    upload_cmd;
 
-    auto http = Http::post(std::move(upload_cmd));
-    http.set_post_body(upload_data.source_path);
+    auto http = Http::post((boost::format("http://%1%/upload_serial") % m_host).str());
+    http.form_add_file("file", upload_data.source_path, "test.gco");
+  
 
     http.on_complete([&](std::string body, unsigned status) {
             BOOST_LOG_TRIVIAL(debug) << boost::format("ESP3D: File uploaded: HTTP %1%: %2%") % status % body;
@@ -105,11 +109,27 @@ bool ESP3D::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, ErrorFn 
 
 std::string ESP3D::get_upload_url(const std::string& filename) const
 {
-    return (boost::format("http://%1%/upload_serial?X-Filename=%2%") % m_host % Http::url_encode(filename)).str();
+    return (boost::format("http://%1%/upload_serial") % m_host).str();
 }
 
 bool ESP3D::start_print(wxString& msg, const std::string& filename) const
 {
+    return false;
+    // ESP3D only accepts 8.3 filenames else it crashes marlin
+    std::string             legacyname = "";
+    boost::filesystem::path p(filename);
+    std::string             stem      = p.stem().string();      // Get the filename without extension
+    std::string             extension = p.extension().string(); // Get the extension including the dot
+    if (!extension.empty() && extension[0] == '.') {
+        extension = extension.substr(1);
+    }
+    stem      = stem.substr(0, 8);
+    extension = extension.substr(0, 3);
+    if (!extension.empty()) {
+        legacyname = stem + "." + extension;
+    } else {
+        legacyname = stem;
+    }
     // For some reason printer firmware does not want to respond on gcode commands immediately after file upload.
     // So we just introduce artificial delay to workaround it.
     // TODO: Inspect reasons
