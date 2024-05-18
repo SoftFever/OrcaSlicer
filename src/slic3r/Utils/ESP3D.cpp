@@ -49,7 +49,6 @@ bool ESP3D::test(wxString& msg) const
             ret = false;
             msg = get_test_failed_msg( wxString::FromUTF8( error));
         }).perform_sync();
-
     return ret;
 }
 
@@ -62,14 +61,26 @@ wxString ESP3D::get_test_failed_msg(wxString& msg) const
 
 bool ESP3D::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, ErrorFn error_fn, InfoFn info_fn) const
 {
+    std::string short_name = get_short_name(upload_data.upload_path.string());
     bool res = false;
     auto http = Http::post(std::move((boost::format("http://%1%/upload_serial") % m_host).str()));
-    http.form_add_file("file", upload_data.source_path, get_short_name(upload_data.upload_path.string()))
+    http.header("Connection", "keep-alive")
+    .form_add_file("file", upload_data.source_path, short_name)
     .on_complete([&](std::string body, unsigned status) {
             
+        if (upload_data.post_action == PrintHostPostUploadAction::StartPrint) {
+                wxString errormsg;
+                res = start_print(errormsg, short_name);
+                if (!res) {
+                    error_fn(std::move(errormsg));
+                }
+            }
+
+        //error_fn(wxString::FromUTF8(body));
+            /*
             BOOST_LOG_TRIVIAL(debug) << boost::format("ESP3D: File uploaded: HTTP %1%: %2%") % status % body;
 
-            int err_code = get_err_code_from_body(body);
+            //int err_code = get_err_code_from_body(body);
             if (err_code != 0) {
                 BOOST_LOG_TRIVIAL(error) << boost::format("ESP3D: Request completed but error code was received: %1%") % err_code;
                 error_fn(format_error(body, L("Unknown error occured"), 0));
@@ -81,6 +92,8 @@ bool ESP3D::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, ErrorFn 
                     error_fn(std::move(errormsg));
                 }
             }  
+            */
+            
         })
         .on_error([&](std::string body, std::string error, unsigned status) {
     
@@ -90,7 +103,13 @@ bool ESP3D::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, ErrorFn 
     
         })
         .on_progress([&](Http::Progress progress, bool& cancel) {
-            prorgess_fn(std::move(progress), cancel);
+            //workaround:
+            //progress bar disappears before .on_complete
+            //ESP3D can be super slow so the user could close slicer before upload completes & M24 is sent because no progress bar
+            //M24 can only be sent after .on_complete
+            Http::Progress prog = std::move(progress);
+            prog.ulnow -= 1;
+            prorgess_fn(std::move(prog), cancel);
             if (cancel) {
                 // Upload was canceled
                 BOOST_LOG_TRIVIAL(info) << "ESP3D: Upload canceled";
@@ -109,28 +128,45 @@ std::string ESP3D::get_upload_url(const std::string& filename) const
 
 bool ESP3D::start_print(wxString& msg, const std::string& filename) const
 {
+
+   
+    
     // For some reason printer firmware does not want to respond on gcode commands immediately after file upload.
     // So we just introduce artificial delay to workaround it.
     // TODO: Inspect reasons
-    std::this_thread::sleep_for(std::chrono::milliseconds(1500));
+    //std::this_thread::sleep_for(std::chrono::milliseconds(1500));
 
     bool ret  = false;
-    auto http_sel = Http::get((boost::format("http://%1%/command?plain=%2% %3%") % m_host % "M23" % filename).str());
-    http_sel.on_complete([&](std::string body, unsigned status) {
-            auto http_start = Http::get((boost::format("http://%1%/command?plain=%2%") % m_host % "M24").str());
-            http_start.on_complete([&](std::string body, unsigned status) {
-                    ret = true;
-                }).on_error([&](std::string body, std::string error, unsigned status) {
-                    ret = false;
-                    msg = (wxString::FromUTF8(error));
-                })
-                .perform_sync();
+    //msg           = (wxString::FromUTF8("starting pruint now"));
+    //return ret;
+
+   // msg = (wxString::FromUTF8((boost::format("http://%1%/command?plain=%2% %3%") % m_host % "M23" % filename).str()));
+    //return false;
+   // auto select   = (boost::format("http://%1%/command?plain=M23 "+filename) % m_host).str();
+    auto http_sel = Http::get("http://"+m_host+"/command?plain=M23%20"+filename);
+   
+    http_sel.on_complete([&](std::string body, unsigned status) { 
+         Http::get((boost::format("http://%1%/command?plain=%2%") % m_host % "M24").str()).perform_sync();
+            ret = false;
+            msg = (wxString::FromUTF8(body));
         })
         .on_error([&](std::string body, std::string error, unsigned status) {
             ret = false;
             msg = (wxString::FromUTF8(error));
         })
         .perform_sync();
+
+        if (!ret)
+        return ret;
+        
+    auto http_start = Http::get((boost::format("http://%1%/command?plain=%2%") % m_host % "M24").str());
+    http_start.on_complete([&](std::string body, unsigned status) { ret = true; })
+        .on_error([&](std::string body, std::string error, unsigned status) {
+            ret = false;
+            msg = (wxString::FromUTF8(error));
+        })
+        .perform_sync();
+        
     return ret;
 }
 
