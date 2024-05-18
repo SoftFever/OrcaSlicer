@@ -86,7 +86,7 @@ void ComboBox::SetSelection(int n)
     drop.SetSelection(n);
     SetLabel(drop.GetValue());
     if (drop.selection >= 0 && drop.iconSize.y > 0)
-        icons[drop.selection].IsNull() ? SetIcon("drop_down") : SetIcon(icons[drop.selection]); // ORCA fixes combo boxes without arrows
+        SetIcon(icons[drop.selection].IsNull() ? create_scaled_bitmap("drop_down", nullptr, 16): icons[drop.selection]); // ORCA fix combo boxes without arrows
 }
 void ComboBox::SelectAndNotify(int n) { 
     SetSelection(n);
@@ -109,7 +109,7 @@ void ComboBox::SetValue(const wxString &value)
     drop.SetValue(value);
     SetLabel(value);
     if (drop.selection >= 0 && drop.iconSize.y > 0)
-        icons[drop.selection].IsNull() ? SetIcon("drop_down") : SetIcon(icons[drop.selection]); // ORCA fixes combo boxes without arrows
+        SetIcon(icons[drop.selection].IsNull() ? create_scaled_bitmap("drop_down", nullptr, 16): icons[drop.selection]); // ORCA fix combo boxes without arrows
 }
 
 void ComboBox::SetLabel(const wxString &value)
