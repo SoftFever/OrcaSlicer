@@ -62,18 +62,19 @@ wxString ESP3D::get_test_failed_msg(wxString& msg) const
 
 bool ESP3D::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, ErrorFn error_fn, InfoFn info_fn) const
 {
-    bool res = true;
+    bool res = false;
 
-    auto upload_cmd = get_upload_url(upload_data.upload_path.string());
-    BOOST_LOG_TRIVIAL(info) << boost::format("ESP3D: Uploading file %1%, filepath: %2%, print: %3%, command: %4%") % upload_data.source_path %
-                                   upload_data.upload_path % (upload_data.post_action == PrintHostPostUploadAction::StartPrint) %
-                                   upload_cmd;
+    //auto upload_cmd = get_upload_url(upload_data.upload_path.string());
+    //BOOST_LOG_TRIVIAL(info) << boost::format("ESP3D: Uploading file %1%, filepath: %2%, print: %3%, command: %4%") % upload_data.source_path %
+    //                               upload_data.upload_path % (upload_data.post_action == PrintHostPostUploadAction::StartPrint) %
+    //                               upload_cmd;
+    
+    auto http = Http::post(std::move((boost::format("http://%1%/upload_serial") % m_host).str()));
 
-    auto http = Http::post((boost::format("http://%1%/upload_serial") % m_host).str());
-    http.form_add_file("file", upload_data.source_path, "test.gco");
-  
 
-    http.on_complete([&](std::string body, unsigned status) {
+    http.form_add_file("file", upload_data.source_path, "pa.gco")
+    .on_complete([&](std::string body, unsigned status) {
+            /*
             BOOST_LOG_TRIVIAL(debug) << boost::format("ESP3D: File uploaded: HTTP %1%: %2%") % status % body;
 
             int err_code = get_err_code_from_body(body);
@@ -88,11 +89,14 @@ bool ESP3D::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, ErrorFn 
                     error_fn(std::move(errormsg));
                 }
             }
+            */
         })
         .on_error([&](std::string body, std::string error, unsigned status) {
+    /*
             BOOST_LOG_TRIVIAL(error) << boost::format("ESP3D: Error uploading file: %1%, HTTP %2%, body: `%3%`") % error % status % body;
             error_fn(format_error(body, error, status));
             res = false;
+    */
         })
         .on_progress([&](Http::Progress progress, bool& cancel) {
             prorgess_fn(std::move(progress), cancel);
@@ -103,7 +107,7 @@ bool ESP3D::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, ErrorFn 
             }
         })
         .perform_sync();
-
+        
     return res;
 }
 
