@@ -1,10 +1,1 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- Generator: Adobe Illustrator 24.1.1, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
-<svg version="1.1" baseProfile="basic"
-	 id="minimalize_window" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns:svg="http://www.w3.org/2000/svg"
-	 xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 100 100"
-	 xml:space="preserve">
-<circle fill="#EEEEEE" cx="50" cy="50" r="47.7"/>
-<path fill="#ACACAC" d="M81.6,53.4c1.9,0,3.4-1.5,3.4-3.4s-1.5-3.4-3.4-3.4l-61,0.1c-1.9,0-3.4,1.5-3.4,3.4c0,1,0.4,1.8,1,2.4
-	c0.6,0.6,1.4,1,2.4,1L81.6,53.4z"/>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"><rect x="2" width="13" height="13" rx="2" style="fill:#e9e9e9"/><line x1="11.5" y1="6.5" x2="5.5" y2="6.5" style="fill:none;stroke:#009688;stroke-linecap:square;stroke-linejoin:round"/></svg>

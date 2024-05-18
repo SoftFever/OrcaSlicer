@@ -193,7 +193,7 @@ public:
 	}
 
 	wxString	GetCheckBoxText()	const { return m_checkBoxText; }
-	bool		IsCheckBoxChecked() const { return m_checkBoxValue; }
+	bool		IsCheckBoxChecked() const;
 
 // This part o fcode isported from the "wx\msgdlg.h"
 	using wxMD = wxMessageDialogBase;

@@ -26,6 +26,7 @@
 #include "../Polygon.hpp"
 #include "../Polyline.hpp"
 #include "../MutablePolygon.hpp"
+#include "libslic3r.h"
 
 #include <cassert>
 #include <chrono>
@@ -473,7 +474,7 @@ static std::optional<std::pair<Point, size_t>> polyline_sample_next_point_at_dis
 {
     const double                dist2  = sqr(dist);
     const auto                  dist2i = int64_t(dist2);
-    static constexpr const auto eps    = scaled<double>(0.01);
+    const auto eps    = scaled<double>(0.01);
 
     for (size_t i = start_idx + 1; i < polyline.size(); ++ i) {
         const Point p1 = polyline[i];
@@ -771,7 +772,7 @@ static std::optional<std::pair<Point, size_t>> polyline_sample_next_point_at_dis
     Polygons collision_trimmed_buffer;
     auto collision_trimmed = [&collision_trimmed_buffer, &collision, &ret, distance]() -> const Polygons& {
         if (collision_trimmed_buffer.empty() && ! collision.empty())
-            collision_trimmed_buffer = ClipperUtils::clip_clipper_polygons_with_subject_bbox(collision, get_extents(ret).inflated(std::max(0, distance) + SCALED_EPSILON));
+            collision_trimmed_buffer = ClipperUtils::clip_clipper_polygons_with_subject_bbox(collision, get_extents(ret).inflated(std::max((coord_t)0, distance) + SCALED_EPSILON));
         return collision_trimmed_buffer;
     };
 
@@ -835,6 +836,9 @@ public:
     {
         m_already_inserted.assign(num_support_layers, {});
         this->min_xy_dist = this->config.xy_distance > this->config.xy_min_distance;
+        m_base_radius = scaled<coord_t>(0.01);
+        m_base_circle = Polygon{ make_circle(m_base_radius, SUPPORT_TREE_CIRCLE_RESOLUTION) };
+
     }
     const TreeModelVolumes                             &volumes;
     // Radius of the tree tip is large enough to be covered by an interface.
@@ -970,8 +974,8 @@ private:
     std::vector<SupportElements>                       &move_bounds;
 
     // Temps
-    static constexpr const auto                         m_base_radius = scaled<int>(0.01);
-    const Polygon                                       m_base_circle { make_circle(m_base_radius, SUPPORT_TREE_CIRCLE_RESOLUTION) };
+    coord_t m_base_radius;
+    Polygon                                       m_base_circle;
     
     // Mutexes, guards
     std::mutex                                          m_mutex_movebounds;
@@ -1566,6 +1570,7 @@ static Point move_inside_if_outside(const Polygons &polygons, Point from, int di
         current_elem.effective_radius_height += 1;
     coord_t radius = support_element_collision_radius(config, current_elem);
 
+    const auto _tiny_area_threshold = tiny_area_threshold();
     if (settings.move) {
         increased = relevant_offset;
         if (overspeed > 0) {
@@ -1586,7 +1591,7 @@ static Point move_inside_if_outside(const Polygons &polygons, Point from, int di
 
     if (mergelayer || current_elem.to_buildplate) {
         to_bp_data = safe_union(diff_clipped(increased, volumes.getAvoidance(radius, layer_idx - 1, settings.type, false, settings.use_min_distance)));
-        if (! current_elem.to_buildplate && area(to_bp_data) > tiny_area_threshold) {
+        if (! current_elem.to_buildplate && area(to_bp_data) > _tiny_area_threshold) {
             // mostly happening in the tip, but with merges one should check every time, just to be sure.
             current_elem.to_buildplate = true; // sometimes nodes that can reach the buildplate are marked as cant reach, tainting subtrees. This corrects it.
             BOOST_LOG_TRIVIAL(debug) << "Corrected taint leading to a wrong to model value on layer " << layer_idx - 1 << " targeting " << 
@@ -1598,7 +1603,7 @@ static Point move_inside_if_outside(const Polygons &polygons, Point from, int di
             to_model_data = safe_union(diff_clipped(increased, volumes.getAvoidance(radius, layer_idx - 1, settings.type, true, settings.use_min_distance)));
 
         if (!current_elem.to_model_gracious) {
-            if (mergelayer && area(to_model_data) >= tiny_area_threshold) {
+            if (mergelayer && area(to_model_data) >= _tiny_area_threshold) {
                 current_elem.to_model_gracious = true;
                 BOOST_LOG_TRIVIAL(debug) << "Corrected taint leading to a wrong non gracious value on layer " << layer_idx - 1 << " targeting " << 
                     current_elem.target_height << " with radius " << radius;
@@ -1610,7 +1615,7 @@ static Point move_inside_if_outside(const Polygons &polygons, Point from, int di
 
     check_layer_data = current_elem.to_buildplate ? to_bp_data : to_model_data;
 
-    if (settings.increase_radius && area(check_layer_data) > tiny_area_threshold) {
+    if (settings.increase_radius && area(check_layer_data) > _tiny_area_threshold) {
         auto validWithRadius = [&](coord_t next_radius) {
             if (volumes.ceilRadius(next_radius, settings.use_min_distance) <= volumes.ceilRadius(radius, settings.use_min_distance))
                 return true;
@@ -1626,7 +1631,7 @@ static Point move_inside_if_outside(const Polygons &polygons, Point from, int di
                         volumes.getAvoidance(next_radius, layer_idx - 1, settings.type, true, settings.use_min_distance) :
                         volumes.getCollision(next_radius, layer_idx - 1, settings.use_min_distance));
             Polygons check_layer_data_2 = current_elem.to_buildplate ? to_bp_data_2 : to_model_data_2;
-            return area(check_layer_data_2) > tiny_area_threshold;
+            return area(check_layer_data_2) > _tiny_area_threshold;
         };
         coord_t ceil_radius_before = volumes.ceilRadius(radius, settings.use_min_distance);
 
@@ -1669,7 +1674,7 @@ static Point move_inside_if_outside(const Polygons &polygons, Point from, int di
                         volumes.getCollision(radius, layer_idx - 1, settings.use_min_distance)
                 ));
             check_layer_data = current_elem.to_buildplate ? to_bp_data : to_model_data;
-            if (area(check_layer_data) < tiny_area_threshold) {
+            if (area(check_layer_data) < _tiny_area_threshold) {
                 BOOST_LOG_TRIVIAL(error) << "Lost area by doing catch up from " << ceil_radius_before << " to radius " << 
                     volumes.ceilRadius(support_element_collision_radius(config, current_elem), settings.use_min_distance);
                 tree_supports_show_error("Area lost catching up radius. May not cause visible malformation."sv, true);
@@ -1677,7 +1682,7 @@ static Point move_inside_if_outside(const Polygons &polygons, Point from, int di
         }
     }
 
-    return area(check_layer_data) > tiny_area_threshold ? std::optional<SupportElementState>(current_elem) : std::optional<SupportElementState>();
+    return area(check_layer_data) > _tiny_area_threshold ? std::optional<SupportElementState>(current_elem) : std::optional<SupportElementState>();
 }
 
 struct SupportElementInfluenceAreas {
@@ -2146,13 +2151,14 @@ static bool merge_influence_areas_two_elements(
         merging_to_bp ? smaller_rad.areas.to_bp_areas : smaller_rad.areas.to_model_areas,
         merging_to_bp ? bigger_rad.areas.to_bp_areas : bigger_rad.areas.to_model_areas);
 
+    const auto _tiny_area_threshold = tiny_area_threshold();
     // dont use empty as a line is not empty, but for this use-case it very well may be (and would be one layer down as union does not keep lines)
     // check if the overlap is large enough (Small ares tend to attract rounding errors in clipper). 
-    if (area(intersect) <= tiny_area_threshold)
+    if (area(intersect) <= _tiny_area_threshold)
         return false;
 
     // While 0.025 was guessed as enough, i did not have reason to change it.
-    if (area(offset(intersect, scaled<float>(-0.025), jtMiter, 1.2)) <= tiny_area_threshold)
+    if (area(offset(intersect, scaled<float>(-0.025), jtMiter, 1.2)) <= _tiny_area_threshold)
         return false;
 
 #ifdef TREES_MERGE_RATHER_LATER
@@ -2416,6 +2422,7 @@ static void create_layer_pathing(const TreeModelVolumes &volumes, const TreeSupp
 
     LayerIndex last_merge_layer_idx = move_bounds.size();
     bool new_element = false;
+    const auto _tiny_area_threshold = tiny_area_threshold();
 
     // Ensures at least one merge operation per 3mm height, 50 layers, 1 mm movement of slow speed or 5mm movement of fast speed (whatever is lowest). Values were guessed.
     size_t max_merge_every_x_layers = std::min(std::min(5000 / (std::max(config.maximum_move_distance, coord_t(100))), 1000 / std::max(config.maximum_move_distance_slow, coord_t(20))), 3000 / config.layer_height);
@@ -2446,12 +2453,12 @@ static void create_layer_pathing(const TreeModelVolumes &volumes, const TreeSupp
             // Place already fully constructed elements to the output, remove them from influence_areas.
             SupportElements &this_layer = move_bounds[layer_idx - 1];
             influence_areas.erase(std::remove_if(influence_areas.begin(), influence_areas.end(),
-                [&this_layer, layer_idx](SupportElementMerging &elem) {
+                [&this_layer, &_tiny_area_threshold, layer_idx](SupportElementMerging &elem) {
                     if (elem.areas.influence_areas.empty())
                         // This area was removed completely due to collisions.
                         return true;
                     if (elem.areas.to_bp_areas.empty() && elem.areas.to_model_areas.empty()) {
-                        if (area(elem.areas.influence_areas) < tiny_area_threshold) {
+                        if (area(elem.areas.influence_areas) < _tiny_area_threshold) {
                             BOOST_LOG_TRIVIAL(error) << "Insert Error of Influence area bypass on layer " << layer_idx - 1;
                             tree_supports_show_error("Insert error of area after bypassing merge.\n"sv, true);
                         }
@@ -2484,7 +2491,7 @@ static void create_layer_pathing(const TreeModelVolumes &volumes, const TreeSupp
             for (SupportElementMerging &elem : influence_areas)
                 if (! elem.areas.influence_areas.empty()) {
                     Polygons new_area = safe_union(elem.areas.influence_areas);
-                    if (area(new_area) < tiny_area_threshold) {
+                    if (area(new_area) < _tiny_area_threshold) {
                         BOOST_LOG_TRIVIAL(error) << "Insert Error of Influence area on layer " << layer_idx - 1 << ". Origin of " << elem.parents.size() << " areas. Was to bp " << elem.state.to_buildplate;
                         tree_supports_show_error("Insert error of area after merge.\n"sv, true);
                     }
@@ -3049,6 +3056,7 @@ static void drop_non_gracious_areas(
     std::vector<Polygons>                                       &support_layer_storage,
     std::function<void()>                                        throw_on_cancel)
 {
+    const auto _tiny_area_threshold = tiny_area_threshold();
     std::vector<std::vector<std::pair<LayerIndex, Polygons>>> dropped_down_areas(linear_data.size());
     tbb::parallel_for(tbb::blocked_range<size_t>(0, linear_data.size()),
         [&](const tbb::blocked_range<size_t> &range) {
@@ -3057,7 +3065,7 @@ static void drop_non_gracious_areas(
             if (const DrawArea &draw_element = linear_data[idx]; ! draw_element.element->state.to_model_gracious && draw_element.child_element == nullptr) {
                 Polygons rest_support;
                 const LayerIndex layer_idx_first = draw_element.element->state.layer_idx - 1;
-                for (LayerIndex layer_idx = layer_idx_first; area(rest_support) > tiny_area_threshold && layer_idx >= 0; -- layer_idx) {
+                for (LayerIndex layer_idx = layer_idx_first; area(rest_support) > _tiny_area_threshold && layer_idx >= 0; -- layer_idx) {
                     rest_support = diff_clipped(layer_idx == layer_idx_first ? draw_element.polygons : rest_support, volumes.getCollision(0, layer_idx, false));
                     dropped_down_areas[idx].emplace_back(layer_idx, rest_support);
                 }

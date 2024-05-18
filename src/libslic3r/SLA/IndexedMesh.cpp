@@ -116,7 +116,7 @@ const std::vector<Vec3f>& IndexedMesh::vertices() const
 
 
 
-const std::vector<Vec3i>& IndexedMesh::indices()  const
+const std::vector<Vec3i32>& IndexedMesh::indices()  const
 {
     return m_tm->indices;
 }
@@ -130,7 +130,7 @@ const Vec3f& IndexedMesh::vertices(size_t idx) const
 
 
 
-const Vec3i& IndexedMesh::indices(size_t idx) const
+const Vec3i32& IndexedMesh::indices(size_t idx) const
 {
     return m_tm->indices[idx];
 }
@@ -394,7 +394,7 @@ PointSet normals(const PointSet& points,
             if (ic >= 0) { // The point is right on a vertex of the triangle
                 for (size_t n = 0; n < mesh.indices().size(); ++n) {
                     thr();
-                    Vec3i ni = mesh.indices(n);
+                    Vec3i32 ni = mesh.indices(n);
                     if ((ni(X) == ic || ni(Y) == ic || ni(Z) == ic))
                         neigh.emplace_back(n);
                 }
@@ -402,7 +402,7 @@ PointSet normals(const PointSet& points,
                 // now get all the neigboring triangles
                 for (size_t n = 0; n < mesh.indices().size(); ++n) {
                     thr();
-                    Vec3i ni = mesh.indices(n);
+                    Vec3i32 ni = mesh.indices(n);
                     if ((ni(X) == ia || ni(Y) == ia || ni(Z) == ia) &&
                         (ni(X) == ib || ni(Y) == ib || ni(Z) == ib))
                         neigh.emplace_back(n);

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OrcaSlicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-28 18:11+0800\n"
+"POT-Creation-Date: 2024-05-01 00:42+0800\n"
 "PO-Revision-Date: 2024-04-16 11:17-0300\n"
 "Last-Translator: \n"
 "Language-Team: Portuguese, Brazilian\n"
@@ -1958,6 +1958,12 @@ msgstr "Organizar"
 msgid "arrange current plate"
 msgstr "organizar mesa atual"
 
+msgid "Reload All"
+msgstr ""
+
+msgid "reload all from disk"
+msgstr ""
+
 msgid "Auto Rotate"
 msgstr "Auto-orientação"
 
@@ -3204,6 +3210,45 @@ msgstr "Executando scripts de pós-processamento"
 
 msgid "Successfully executed post-processing script"
 msgstr "Script de pós-processamento executado com êxito"
+
+msgid "Unknown error occured during exporting G-code."
+msgstr ""
+
+#, boost-format
+msgid ""
+"Copying of the temporary G-code to the output G-code failed. Maybe the SD "
+"card is write locked?\n"
+"Error message: %1%"
+msgstr ""
+
+#, boost-format
+msgid ""
+"Copying of the temporary G-code to the output G-code failed. There might be "
+"problem with target device, please try exporting again or using different "
+"device. The corrupted output G-code is at %1%.tmp."
+msgstr ""
+
+#, boost-format
+msgid ""
+"Renaming of the G-code after copying to the selected destination folder has "
+"failed. Current path is %1%.tmp. Please try exporting again."
+msgstr ""
+
+#, boost-format
+msgid ""
+"Copying of the temporary G-code has finished but the original code at %1% "
+"couldn't be opened during copy check. The output G-code is at %2%.tmp."
+msgstr ""
+
+#, boost-format
+msgid ""
+"Copying of the temporary G-code has finished but the exported code couldn't "
+"be opened during copy check. The output G-code is at %1%.tmp."
+msgstr ""
+
+#, boost-format
+msgid "G-code file exported to %1%"
+msgstr ""
 
 msgid "Unknown error when export G-code."
 msgstr "Erro desconhecido ao exportar G-Code."
@@ -7816,26 +7861,23 @@ msgstr "Indefinido"
 msgid "Unsaved Changes"
 msgstr "Alterações não salvas"
 
-msgid "Actions For Unsaved Changes"
-msgstr "Ações para Alterações Não Salvas"
+msgid "Transfer or discard changes"
+msgstr ""
 
-msgid "Preset Value"
-msgstr "Valor Predefinido"
+msgid "Old Value"
+msgstr ""
 
-msgid "Modified Value"
-msgstr "Valor Modificado"
+msgid "New Value"
+msgstr ""
 
-msgid "Transfer Modified Value"
-msgstr "Transferir Valor Modificado"
+msgid "Transfer"
+msgstr "Transferir"
 
 msgid "Don't save"
 msgstr "Não salvar"
 
-msgid "Use Preset Value"
-msgstr "Usar Valor Predefinido"
-
-msgid "Save Modified Value"
-msgstr "Salvar Valor Modificado"
+msgid "Discard"
+msgstr ""
 
 msgid "Click the right mouse button to display the full text."
 msgstr "Clique com o botão direito do mouse para exibir o texto completo."
@@ -7897,41 +7939,23 @@ msgstr "Você alterou algumas configurações do preset \"%1%\". "
 
 msgid ""
 "\n"
-"Would you like to save these changed settings(modified value)?"
+"You can save or discard the preset values you have modified."
 msgstr ""
-"\n"
-"Você gostaria de salvar estas configurações alteradas (valor modificado)?"
 
 msgid ""
 "\n"
-"Would you like to keep these changed settings(modified value) after "
-"switching preset?"
+"You can save or discard the preset values you have modified, or choose to "
+"transfer the values you have modified to the new preset."
 msgstr ""
-"\n"
-"Você gostaria de manter estas configurações alteradas (valores modificados) "
-"após mudar o preset?"
 
-msgid ""
-"You have previously modified your settings and are about to overwrite them "
-"with new ones."
+msgid "You have previously modified your settings."
 msgstr ""
-"Você modificou suas configurações anteriormente e está prestes a substituí-"
-"las por novas."
 
 msgid ""
 "\n"
-"Do you want to keep your current modified settings, or use preset settings?"
+"You can discard the preset values you have modified, or choose to transfer "
+"the modified values to the new project"
 msgstr ""
-"\n"
-"Você quer manter suas configurações atuais modificadas ou usar as "
-"configurações predefinidas?"
-
-msgid ""
-"\n"
-"Do you want to save your current modified settings?"
-msgstr ""
-"\n"
-"Você quer salvar suas configurações atuais modificadas?"
 
 msgid "Extruders count"
 msgstr "Número de extrusoras"
@@ -7947,9 +7971,6 @@ msgstr "Mostrar todos os perfis (incluindo os incompatíveis)"
 
 msgid "Select presets to compare"
 msgstr "Selecione os perfis para comparar"
-
-msgid "Transfer"
-msgstr "Transferir"
 
 msgid ""
 "You can only transfer to current active profile because it has been modified."
@@ -16194,6 +16215,63 @@ msgstr ""
 "Você sabia que ao imprimir materiais propensos ao empenamento, como ABS, "
 "aumentar adequadamente a temperatura da mesa aquecida pode reduzir a "
 "probabilidade de empenamento?"
+
+#~ msgid "Actions For Unsaved Changes"
+#~ msgstr "Ações para Alterações Não Salvas"
+
+#~ msgid "Preset Value"
+#~ msgstr "Valor Predefinido"
+
+#~ msgid "Modified Value"
+#~ msgstr "Valor Modificado"
+
+#~ msgid "Transfer Modified Value"
+#~ msgstr "Transferir Valor Modificado"
+
+#~ msgid "Use Preset Value"
+#~ msgstr "Usar Valor Predefinido"
+
+#~ msgid "Save Modified Value"
+#~ msgstr "Salvar Valor Modificado"
+
+#~ msgid ""
+#~ "\n"
+#~ "Would you like to save these changed settings(modified value)?"
+#~ msgstr ""
+#~ "\n"
+#~ "Você gostaria de salvar estas configurações alteradas (valor modificado)?"
+
+#~ msgid ""
+#~ "\n"
+#~ "Would you like to keep these changed settings(modified value) after "
+#~ "switching preset?"
+#~ msgstr ""
+#~ "\n"
+#~ "Você gostaria de manter estas configurações alteradas (valores "
+#~ "modificados) após mudar o preset?"
+
+#~ msgid ""
+#~ "You have previously modified your settings and are about to overwrite "
+#~ "them with new ones."
+#~ msgstr ""
+#~ "Você modificou suas configurações anteriormente e está prestes a "
+#~ "substituí-las por novas."
+
+#~ msgid ""
+#~ "\n"
+#~ "Do you want to keep your current modified settings, or use preset "
+#~ "settings?"
+#~ msgstr ""
+#~ "\n"
+#~ "Você quer manter suas configurações atuais modificadas ou usar as "
+#~ "configurações predefinidas?"
+
+#~ msgid ""
+#~ "\n"
+#~ "Do you want to save your current modified settings?"
+#~ msgstr ""
+#~ "\n"
+#~ "Você quer salvar suas configurações atuais modificadas?"
 
 #~ msgid "Unload Filament"
 #~ msgstr "Descarregar Filamento"

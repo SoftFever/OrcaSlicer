@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-28 18:11+0800\n"
+"POT-Creation-Date: 2024-05-01 00:42+0800\n"
 "PO-Revision-Date: 2023-11-06 14:37+0800\n"
 "Last-Translator: ablegods <ablegods@gmail.com>\n"
 "Language-Team: \n"
@@ -1947,6 +1947,12 @@ msgstr "自動擺放"
 msgid "arrange current plate"
 msgstr "在列印板執行自動擺放"
 
+msgid "Reload All"
+msgstr ""
+
+msgid "reload all from disk"
+msgstr ""
+
 msgid "Auto Rotate"
 msgstr "自動旋轉方向"
 
@@ -3159,6 +3165,45 @@ msgid "Running post-processing scripts"
 msgstr "執行後處理腳本"
 
 msgid "Successfully executed post-processing script"
+msgstr ""
+
+msgid "Unknown error occured during exporting G-code."
+msgstr ""
+
+#, boost-format
+msgid ""
+"Copying of the temporary G-code to the output G-code failed. Maybe the SD "
+"card is write locked?\n"
+"Error message: %1%"
+msgstr ""
+
+#, boost-format
+msgid ""
+"Copying of the temporary G-code to the output G-code failed. There might be "
+"problem with target device, please try exporting again or using different "
+"device. The corrupted output G-code is at %1%.tmp."
+msgstr ""
+
+#, boost-format
+msgid ""
+"Renaming of the G-code after copying to the selected destination folder has "
+"failed. Current path is %1%.tmp. Please try exporting again."
+msgstr ""
+
+#, boost-format
+msgid ""
+"Copying of the temporary G-code has finished but the original code at %1% "
+"couldn't be opened during copy check. The output G-code is at %2%.tmp."
+msgstr ""
+
+#, boost-format
+msgid ""
+"Copying of the temporary G-code has finished but the exported code couldn't "
+"be opened during copy check. The output G-code is at %1%.tmp."
+msgstr ""
+
+#, boost-format
+msgid "G-code file exported to %1%"
 msgstr ""
 
 msgid "Unknown error when export G-code."
@@ -7710,26 +7755,23 @@ msgstr "未定義"
 msgid "Unsaved Changes"
 msgstr "未儲存的更改"
 
-msgid "Actions For Unsaved Changes"
-msgstr ""
+msgid "Transfer or discard changes"
+msgstr "放棄或保留更改"
 
-msgid "Preset Value"
-msgstr ""
+msgid "Old Value"
+msgstr "舊值"
 
-msgid "Modified Value"
-msgstr ""
+msgid "New Value"
+msgstr "新值"
 
-msgid "Transfer Modified Value"
-msgstr ""
+msgid "Transfer"
+msgstr "遷移"
 
 msgid "Don't save"
 msgstr "不儲存"
 
-msgid "Use Preset Value"
-msgstr ""
-
-msgid "Save Modified Value"
-msgstr ""
+msgid "Discard"
+msgstr "放棄"
 
 msgid "Click the right mouse button to display the full text."
 msgstr "單擊滑鼠右鍵顯示全文。"
@@ -7787,28 +7829,22 @@ msgstr ""
 
 msgid ""
 "\n"
-"Would you like to save these changed settings(modified value)?"
+"You can save or discard the preset values you have modified."
 msgstr ""
 
 msgid ""
 "\n"
-"Would you like to keep these changed settings(modified value) after "
-"switching preset?"
+"You can save or discard the preset values you have modified, or choose to "
+"transfer the values you have modified to the new preset."
 msgstr ""
 
-msgid ""
-"You have previously modified your settings and are about to overwrite them "
-"with new ones."
-msgstr ""
-
-msgid ""
-"\n"
-"Do you want to keep your current modified settings, or use preset settings?"
+msgid "You have previously modified your settings."
 msgstr ""
 
 msgid ""
 "\n"
-"Do you want to save your current modified settings?"
+"You can discard the preset values you have modified, or choose to transfer "
+"the modified values to the new project"
 msgstr ""
 
 msgid "Extruders count"
@@ -7827,9 +7863,6 @@ msgstr "顯示所有預設（包括不相容的）"
 
 msgid "Select presets to compare"
 msgstr "選擇要比較的預設"
-
-msgid "Transfer"
-msgstr "遷移"
 
 msgid ""
 "You can only transfer to current active profile because it has been modified."
@@ -15365,18 +15398,6 @@ msgstr ""
 #~ "Unable to perform boolean operation on model meshes. Only positive parts "
 #~ "will be exported."
 #~ msgstr "無法對模型網格執行布林運算。只有正面部分將被導出。"
-
-#~ msgid "Transfer or discard changes"
-#~ msgstr "放棄或保留更改"
-
-#~ msgid "Old Value"
-#~ msgstr "舊值"
-
-#~ msgid "New Value"
-#~ msgstr "新值"
-
-#~ msgid "Discard"
-#~ msgstr "放棄"
 
 #, boost-format
 #~ msgid ""

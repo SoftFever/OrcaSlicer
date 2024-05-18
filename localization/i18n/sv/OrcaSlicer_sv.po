@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-28 18:11+0800\n"
+"POT-Creation-Date: 2024-05-01 00:42+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1892,6 +1892,12 @@ msgstr "Arrangera"
 msgid "arrange current plate"
 msgstr "Arrangera plattan"
 
+msgid "Reload All"
+msgstr ""
+
+msgid "reload all from disk"
+msgstr ""
+
 msgid "Auto Rotate"
 msgstr "Auto Rotera"
 
@@ -3108,6 +3114,45 @@ msgid "Running post-processing scripts"
 msgstr "Kör efterbearbetnings skript"
 
 msgid "Successfully executed post-processing script"
+msgstr ""
+
+msgid "Unknown error occured during exporting G-code."
+msgstr ""
+
+#, boost-format
+msgid ""
+"Copying of the temporary G-code to the output G-code failed. Maybe the SD "
+"card is write locked?\n"
+"Error message: %1%"
+msgstr ""
+
+#, boost-format
+msgid ""
+"Copying of the temporary G-code to the output G-code failed. There might be "
+"problem with target device, please try exporting again or using different "
+"device. The corrupted output G-code is at %1%.tmp."
+msgstr ""
+
+#, boost-format
+msgid ""
+"Renaming of the G-code after copying to the selected destination folder has "
+"failed. Current path is %1%.tmp. Please try exporting again."
+msgstr ""
+
+#, boost-format
+msgid ""
+"Copying of the temporary G-code has finished but the original code at %1% "
+"couldn't be opened during copy check. The output G-code is at %2%.tmp."
+msgstr ""
+
+#, boost-format
+msgid ""
+"Copying of the temporary G-code has finished but the exported code couldn't "
+"be opened during copy check. The output G-code is at %1%.tmp."
+msgstr ""
+
+#, boost-format
+msgid "G-code file exported to %1%"
 msgstr ""
 
 msgid "Unknown error when export G-code."
@@ -7527,26 +7572,23 @@ msgstr "Oidentifierad"
 msgid "Unsaved Changes"
 msgstr "Ej sparade ändringar"
 
-msgid "Actions For Unsaved Changes"
-msgstr ""
+msgid "Transfer or discard changes"
+msgstr "Överge eller Behåll ändringar"
 
-msgid "Preset Value"
-msgstr ""
+msgid "Old Value"
+msgstr "Gammalt värde"
 
-msgid "Modified Value"
-msgstr ""
+msgid "New Value"
+msgstr "Nytt värde"
 
-msgid "Transfer Modified Value"
-msgstr ""
+msgid "Transfer"
+msgstr "Överför"
 
 msgid "Don't save"
 msgstr "Spara inte"
 
-msgid "Use Preset Value"
-msgstr ""
-
-msgid "Save Modified Value"
-msgstr ""
+msgid "Discard"
+msgstr "Överge"
 
 msgid "Click the right mouse button to display the full text."
 msgstr "Högerklicka för att se hela texten."
@@ -7608,28 +7650,22 @@ msgstr ""
 
 msgid ""
 "\n"
-"Would you like to save these changed settings(modified value)?"
+"You can save or discard the preset values you have modified."
 msgstr ""
 
 msgid ""
 "\n"
-"Would you like to keep these changed settings(modified value) after "
-"switching preset?"
+"You can save or discard the preset values you have modified, or choose to "
+"transfer the values you have modified to the new preset."
 msgstr ""
 
-msgid ""
-"You have previously modified your settings and are about to overwrite them "
-"with new ones."
-msgstr ""
-
-msgid ""
-"\n"
-"Do you want to keep your current modified settings, or use preset settings?"
+msgid "You have previously modified your settings."
 msgstr ""
 
 msgid ""
 "\n"
-"Do you want to save your current modified settings?"
+"You can discard the preset values you have modified, or choose to transfer "
+"the modified values to the new project"
 msgstr ""
 
 msgid "Extruders count"
@@ -7646,9 +7682,6 @@ msgstr "Visa alla inställningar (inklusive inkompatibla)"
 
 msgid "Select presets to compare"
 msgstr "Välj förinställningar att jämföra"
-
-msgid "Transfer"
-msgstr "Överför"
 
 msgid ""
 "You can only transfer to current active profile because it has been modified."
@@ -14937,18 +14970,6 @@ msgstr ""
 #~ msgstr ""
 #~ "Det går inte att utföra booleska operationer på modell mesh. Endast "
 #~ "positiva delar kommer att exporteras."
-
-#~ msgid "Transfer or discard changes"
-#~ msgstr "Överge eller Behåll ändringar"
-
-#~ msgid "Old Value"
-#~ msgstr "Gammalt värde"
-
-#~ msgid "New Value"
-#~ msgstr "Nytt värde"
-
-#~ msgid "Discard"
-#~ msgstr "Överge"
 
 #, boost-format
 #~ msgid ""
