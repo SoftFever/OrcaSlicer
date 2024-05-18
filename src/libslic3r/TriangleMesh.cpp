@@ -63,17 +63,17 @@ static void fill_initial_stats(const indexed_triangle_set &its, TriangleMeshStat
     out.volume              = its_volume(its);
     update_bounding_box(its, out);
 
-    const std::vector<Vec3i> face_neighbors = its_face_neighbors(its);
+    const std::vector<Vec3i32> face_neighbors = its_face_neighbors(its);
     out.number_of_parts = its_number_of_patches(its, face_neighbors);
     out.open_edges      = its_num_open_edges(face_neighbors);
 }
 
-TriangleMesh::TriangleMesh(const std::vector<Vec3f> &vertices, const std::vector<Vec3i> &faces) : its { faces, vertices }
+TriangleMesh::TriangleMesh(const std::vector<Vec3f> &vertices, const std::vector<Vec3i32> &faces) : its { faces, vertices }
 {
     fill_initial_stats(this->its, m_stats);
 }
 
-TriangleMesh::TriangleMesh(std::vector<Vec3f> &&vertices, const std::vector<Vec3i> &&faces) : its { std::move(faces), std::move(vertices) }
+TriangleMesh::TriangleMesh(std::vector<Vec3f> &&vertices, const std::vector<Vec3i32> &&faces) : its { std::move(faces), std::move(vertices) }
 {
     fill_initial_stats(this->its, m_stats);
 }
@@ -578,9 +578,9 @@ static std::vector<EdgeToFace> create_edge_map(
 // Map from a face edge to a unique edge identifier or -1 if no neighbor exists.
 // Two neighbor faces share a unique edge identifier even if they are flipped.
 template<typename FaceFilter, typename ThrowOnCancelCallback>
-static inline std::vector<Vec3i> its_face_edge_ids_impl(const indexed_triangle_set &its, FaceFilter face_filter, ThrowOnCancelCallback throw_on_cancel)
+static inline std::vector<Vec3i32> its_face_edge_ids_impl(const indexed_triangle_set &its, FaceFilter face_filter, ThrowOnCancelCallback throw_on_cancel)
 {
-    std::vector<Vec3i> out(its.indices.size(), Vec3i(-1, -1, -1));
+    std::vector<Vec3i32> out(its.indices.size(), Vec3i32(-1, -1, -1));
 
     std::vector<EdgeToFace> edges_map = create_edge_map(its, face_filter, throw_on_cancel);
 
@@ -628,36 +628,36 @@ static inline std::vector<Vec3i> its_face_edge_ids_impl(const indexed_triangle_s
     return out;
 }
 
-std::vector<Vec3i> its_face_edge_ids(const indexed_triangle_set &its)
+std::vector<Vec3i32> its_face_edge_ids(const indexed_triangle_set &its)
 {
     return its_face_edge_ids_impl(its, [](const uint32_t){ return true; }, [](){});
 }
 
-std::vector<Vec3i> its_face_edge_ids(const indexed_triangle_set &its, std::function<void()> throw_on_cancel_callback)
+std::vector<Vec3i32> its_face_edge_ids(const indexed_triangle_set &its, std::function<void()> throw_on_cancel_callback)
 {
     return its_face_edge_ids_impl(its, [](const uint32_t){ return true; }, throw_on_cancel_callback);
 }
 
-std::vector<Vec3i> its_face_edge_ids(const indexed_triangle_set &its, const std::vector<bool> &face_mask)
+std::vector<Vec3i32> its_face_edge_ids(const indexed_triangle_set &its, const std::vector<bool> &face_mask)
 {
     return its_face_edge_ids_impl(its, [&face_mask](const uint32_t idx){ return face_mask[idx]; }, [](){});
 }
 
 // Having the face neighbors available, assign unique edge IDs to face edges for chaining of polygons over slices.
-std::vector<Vec3i> its_face_edge_ids(const indexed_triangle_set &its, std::vector<Vec3i> &face_neighbors, bool assign_unbound_edges, int *num_edges)
+std::vector<Vec3i32> its_face_edge_ids(const indexed_triangle_set &its, std::vector<Vec3i32> &face_neighbors, bool assign_unbound_edges, int *num_edges)
 {
     // out elements are not initialized!
-    std::vector<Vec3i> out(face_neighbors.size());
+    std::vector<Vec3i32> out(face_neighbors.size());
     int last_edge_id = 0;
     for (int i = 0; i < int(face_neighbors.size()); ++ i) {
         const stl_triangle_vertex_indices   &triangle  = its.indices[i];
-        const Vec3i                         &neighbors = face_neighbors[i];
+        const Vec3i32                         &neighbors = face_neighbors[i];
         for (int j = 0; j < 3; ++ j) {
             int n = neighbors[j];
             if (n > i) {
                 const stl_triangle_vertex_indices &triangle2 = its.indices[n];
                 int   edge_id = last_edge_id ++;
-                Vec2i edge    = its_triangle_edge(triangle, j);
+                Vec2i32 edge    = its_triangle_edge(triangle, j);
                 // First find an edge with opposite orientation.
                 std::swap(edge(0), edge(1));
                 int   k       = its_triangle_edge_index(triangle2, edge);
@@ -804,7 +804,7 @@ bool its_store_triangle(const indexed_triangle_set &its,
                         size_t                      triangle_index)
 {
     if (its.indices.size() <= triangle_index) return false;
-    Vec3i                t = its.indices[triangle_index];
+    Vec3i32                t = its.indices[triangle_index];
     indexed_triangle_set its2;
     its2.indices  = {{0, 1, 2}};
     its2.vertices = {its.vertices[t[0]], its.vertices[t[1]],
@@ -822,8 +822,8 @@ bool its_store_triangles(const indexed_triangle_set &its,
     std::map<size_t, size_t> vertex_map;
     for (auto ti : triangles) {
         if (its.indices.size() <= ti) return false;
-        Vec3i t = its.indices[ti];
-        Vec3i new_t;
+        Vec3i32 t = its.indices[ti];
+        Vec3i32 new_t;
         for (size_t i = 0; i < 3; ++i) {
             size_t vi = t[i];
             auto   it = vertex_map.find(vi);
@@ -1301,7 +1301,7 @@ indexed_triangle_set its_make_snap(double r, double h, float space_proportion, f
 indexed_triangle_set its_convex_hull(const std::vector<Vec3f> &pts)
 {
     std::vector<Vec3f>  dst_vertices;
-    std::vector<Vec3i>  dst_facets;
+    std::vector<Vec3i32>  dst_facets;
 
     if (! pts.empty()) {
         // The qhull call:
@@ -1337,7 +1337,7 @@ indexed_triangle_set its_convex_hull(const std::vector<Vec3f> &pts)
     #endif // NDEBUG
         for (const orgQhull::QhullFacet &facet : qhull.facetList()) {
             // Collect face vertices first, allocate unique vertices in dst_vertices based on QHull's vertex ID.
-            Vec3i  indices;
+            Vec3i32  indices;
             int    cnt = 0;
             for (const orgQhull::QhullVertex vertex : facet.vertices()) {
                 int id = vertex.id();
@@ -1397,7 +1397,7 @@ void its_merge(indexed_triangle_set &A, const indexed_triangle_set &B)
     A.indices.insert(A.indices.end(), B.indices.begin(), B.indices.end());
 
     for(size_t n = N_f; n < A.indices.size(); n++)
-        A.indices[n] += Vec3i{N, N, N};
+        A.indices[n] += Vec3i32{N, N, N};
 }
 
 void its_merge(indexed_triangle_set &A, const std::vector<Vec3f> &triangles)
@@ -1466,7 +1466,7 @@ size_t its_number_of_patches(const indexed_triangle_set &its)
 {
     return its_number_of_patches<>(its);
 }
-size_t its_number_of_patches(const indexed_triangle_set &its, const std::vector<Vec3i> &face_neighbors)
+size_t its_number_of_patches(const indexed_triangle_set &its, const std::vector<Vec3i32> &face_neighbors)
 {
     return its_number_of_patches<>(ItsNeighborsWrapper{ its, face_neighbors });
 }
@@ -1476,15 +1476,15 @@ bool its_is_splittable(const indexed_triangle_set &its)
 {
     return its_is_splittable<>(its);
 }
-bool its_is_splittable(const indexed_triangle_set &its, const std::vector<Vec3i> &face_neighbors)
+bool its_is_splittable(const indexed_triangle_set &its, const std::vector<Vec3i32> &face_neighbors)
 {
     return its_is_splittable<>(ItsNeighborsWrapper{ its, face_neighbors });
 }
 
-size_t its_num_open_edges(const std::vector<Vec3i> &face_neighbors)
+size_t its_num_open_edges(const std::vector<Vec3i32> &face_neighbors)
 {
     size_t num_open_edges = 0;
-    for (Vec3i neighbors : face_neighbors)
+    for (Vec3i32 neighbors : face_neighbors)
         for (int n : neighbors)
             if (n < 0)
                 ++ num_open_edges;
@@ -1521,12 +1521,12 @@ void VertexFaceIndex::create(const indexed_triangle_set &its)
     m_vertex_to_face_start.front() = 0;
 }
 
-std::vector<Vec3i> its_face_neighbors(const indexed_triangle_set &its)
+std::vector<Vec3i32> its_face_neighbors(const indexed_triangle_set &its)
 {
     return create_face_neighbors_index(ex_seq, its);
 }
 
-std::vector<Vec3i> its_face_neighbors_par(const indexed_triangle_set &its)
+std::vector<Vec3i32> its_face_neighbors_par(const indexed_triangle_set &its)
 {
     return create_face_neighbors_index(ex_tbb, its);
 }

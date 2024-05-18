@@ -5,12 +5,21 @@
   "from": "system",
   "instantiation": "true",
   "inherits": "process_detail_miniis",
+  "line_width": "0.9",
+  "inner_wall_line_width": "0.9",
+  "outer_wall_line_width": "0.9",
+  "top_surface_line_width": "0.7",
+  "sparse_infill_line_width": "0.9",
+  "initial_layer_line_width": "1",
+  "internal_solid_infill_line_width": "0.9",
+  "support_line_width": "0.65",
   "layer_height": "0.3",
   "initial_layer_print_height": "0.2",
   "top_shell_thickness": "0.7",
   "top_shell_layers": "3",
   "bottom_shell_thickness": "0.5",
   "bottom_shell_layers": "2",
+  "travel_speed": "300",
   "compatible_printers": [
     "Prusa MINIIS 0.8 nozzle"
   ]

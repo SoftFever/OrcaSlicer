@@ -692,12 +692,12 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
     float unsafe_dist = scale_(print_config.extruder_clearance_max_radius.value - print_config.extruder_clearance_radius.value);
     struct VecHash
     {
-        size_t operator()(const Vec2i &n1) const
+        size_t operator()(const Vec2i32 &n1) const
         {
             return std::hash<coord_t>()(int(n1(0) * 100 + 100)) + std::hash<coord_t>()(int(n1(1) * 100 + 100)) * 101;
         }
     };
-    std::unordered_set<Vec2i, VecHash> left_right_pair; // pairs in this vector must strictly obey the left-right order
+    std::unordered_set<Vec2i32, VecHash> left_right_pair; // pairs in this vector must strictly obey the left-right order
     for (size_t i = 0; i < print_instance_with_bounding_box.size();i++) {
         auto &inst         = print_instance_with_bounding_box[i];
         inst.index         = i;
