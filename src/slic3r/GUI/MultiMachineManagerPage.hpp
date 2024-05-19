@@ -60,6 +60,8 @@ public:
 
     void page_num_enter_evt();
 
+    void msw_rescale();
+
 private:
     std::vector<ObjState>          m_state_objs;
     std::vector<MultiMachineItem*> m_device_items;
