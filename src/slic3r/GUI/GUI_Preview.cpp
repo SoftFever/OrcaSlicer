@@ -154,6 +154,12 @@ void View3D::deselect_all()
         m_canvas->deselect_all();
 }
 
+void View3D::exit_gizmo()
+{
+    if (m_canvas != nullptr)
+        m_canvas->exit_gizmo();
+}
+
 void View3D::delete_selected()
 {
     if (m_canvas != nullptr)

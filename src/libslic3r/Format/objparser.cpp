@@ -237,7 +237,7 @@ static bool obj_parseline(const char *line, ObjData &data)
 				}
 			}
 			if (vertex.coordIdx < 0)
-                vertex.coordIdx += (int)data.coordinates.size() / 4;
+                vertex.coordIdx += (int) data.coordinates.size() / OBJ_VERTEX_LENGTH;
             else
 				-- vertex.coordIdx;
 			if (vertex.normalIdx < 0)
@@ -604,9 +604,6 @@ bool objparse(const char *path, ObjData &data)
     	BOOST_LOG_TRIVIAL(error) << "ObjParser: Out of memory";
 	}
 	::fclose(pFile);
-
-	// printf("vertices: %d\r\n", data.vertices.size() / 4);
-	// printf("coords: %d\r\n", data.coordinates.size());
 	return true;
 }
 
@@ -646,9 +643,6 @@ bool mtlparse(const char *path, MtlData &data)
         BOOST_LOG_TRIVIAL(error) << "MtlParser: Out of memory";
     }
     ::fclose(pFile);
-
-    // printf("vertices: %d\r\n", data.vertices.size() / 4);
-    // printf("coords: %d\r\n", data.coordinates.size());
     return true;
 }
 
