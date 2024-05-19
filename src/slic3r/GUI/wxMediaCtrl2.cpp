@@ -58,6 +58,7 @@ wxMediaCtrl2::wxMediaCtrl2(wxWindow *parent)
 void wxMediaCtrl2::Load(wxURI url)
 {
 #ifdef __WIN32__
+    InvalidateBestSize();
     if (m_imp == nullptr) {
         static bool notified = false;
         if (!notified) CallAfter([] {

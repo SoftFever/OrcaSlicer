@@ -46,7 +46,7 @@ static wxBitmap default_thumbnail;
 
 static std::map<int, std::string> error_messages = {
     {PrinterFileSystem::ERROR_PIPE, L("Reconnecting the printer, the operation cannot be completed immediately, please try again later.")},
-    {PrinterFileSystem::ERROR_RES_BUSY, L("Over 4 systems/handy are using remote access, you can close some and try again.")},
+    {PrinterFileSystem::ERROR_RES_BUSY, L("The device cannot handle more conversations. Please retry later.")},
     {PrinterFileSystem::FILE_NO_EXIST, L("File does not exist.")},
     {PrinterFileSystem::FILE_CHECK_ERR, L("File checksum error. Please retry.")},
     {PrinterFileSystem::FILE_TYPE_ERR, L("Not supported on the current printer version.")},
@@ -73,7 +73,7 @@ PrinterFileSystem::PrinterFileSystem()
     wxString path = "D:\\work\\pic\\";
     for (int i = 0; i < 10; ++i) {
         auto name = wxString::Format(L"gcode-%02d.3mf", i + 1);
-        m_file_list.push_back({name.ToUTF8().data(), "", time.GetTicks(), 26937, i < 5 ? FF_DOWNLOAD : 0, default_thumbnail, i * 34 - 35});
+        m_file_list.push_back({name.ToUTF8().data(), "", time.GetTicks(), 26937, i < 5 ? FF_DOWNLOAD : 0, default_thumbnail});
         std::ifstream ifs((path + name).ToUTF8().data(), std::ios::binary);
         if (ifs)
             ParseThumbnail(m_file_list.back(), ifs);
@@ -84,7 +84,7 @@ PrinterFileSystem::PrinterFileSystem()
     for (int i = 0; i < 100; ++i) {
         auto name = wxString::Format(L"img-%03d.jpg", i + 1);
         wxImage im(path + name);
-        m_file_list.push_back({name.ToUTF8().data(), "", time.GetTicks(), 26937, i < 20 ? FF_DOWNLOAD : 0, i > 3 ? im : default_thumbnail, i * 10 - 40 - 1});
+        m_file_list.push_back({name.ToUTF8().data(), "", time.GetTicks(), 26937, i < 20 ? FF_DOWNLOAD : 0, i > 3 ? im : default_thumbnail});
         time.Add(wxDateSpan::Days(-1));
     }
     m_file_list[0].thumbnail = default_thumbnail;
@@ -958,13 +958,13 @@ void PrinterFileSystem::FileRemoved(std::pair<FileType, std::string> type, size_
     if (file_index.second == size_t(-1))
         return;
     if (&file_index.first == &m_file_list) {
-        auto removeFromGroup = [](std::vector<size_t> &group, size_t index, int total) {
+        auto removeFromGroup = [](std::vector<size_t> &group, size_t index, size_t total) {
             for (auto iter = group.begin(); iter != group.end(); ++iter) {
                 size_t index2 = -1;
                 if (*iter < index) continue;
                 if (*iter == index) {
                     auto iter2 = iter + 1;
-                    if (iter2 == group.end() ? index == total - 1 : *iter2 == index + 1) {
+                    if (index + 1 == (iter2 == group.end() ? total : *iter2)) {
                         index2 = std::distance(group.begin(), iter);
                     }
                     ++iter;
@@ -978,11 +978,11 @@ void PrinterFileSystem::FileRemoved(std::pair<FileType, std::string> type, size_
         };
         size_t index2 = removeFromGroup(m_group_month, index, m_file_list.size());
         if (index2 < m_group_month.size()) {
-            int index3 = removeFromGroup(m_group_year, index, m_group_month.size());
+            int index3 = removeFromGroup(m_group_year, index2, m_group_month.size());
             if (index3 < m_group_year.size()) {
                 m_group_year.erase(m_group_year.begin() + index3);
                 if (m_group_mode == G_YEAR)
-                    m_group_flags.erase(m_group_flags.begin() + index2);
+                    m_group_flags.erase(m_group_flags.begin() + index3);
             }
             m_group_month.erase(m_group_month.begin() + index2);
             if (m_group_mode == G_MONTH)
@@ -1295,7 +1295,7 @@ void PrinterFileSystem::Reconnect(boost::unique_lock<boost::mutex> &l, int resul
         }
         wxLogMessage("PrinterFileSystem::Reconnect Failed");
         m_status = Status::Failed;
-        SendChangedEvent(EVT_STATUS_CHANGED, m_status, "", url.size() < 2 ? 1 : 0);
+        SendChangedEvent(EVT_STATUS_CHANGED, m_status, "", url.size() < 2 ? 1 : m_last_error);
         m_cond.timed_wait(l, boost::posix_time::seconds(10));
     }
     m_status = Status::ListSyncing;

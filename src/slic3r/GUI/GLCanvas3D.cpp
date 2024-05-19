@@ -2137,6 +2137,13 @@ void GLCanvas3D::deselect_all()
     post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
 }
 
+void GLCanvas3D::exit_gizmo() {
+    if (m_gizmos.get_current_type() != GLGizmosManager::Undefined) {
+        m_gizmos.reset_all_states();
+        m_gizmos.update_data();
+    }
+}
+
 void GLCanvas3D::set_selected_visible(bool visible)
 {
     for (unsigned int i : m_selection.get_volume_idxs()) {
@@ -6292,8 +6299,8 @@ bool GLCanvas3D::_init_main_toolbar()
     //BBS: main toolbar is at the top and left, we don't need the rounded-corner effect at the right side and the top side
     m_main_toolbar.set_horizontal_orientation(GLToolbar::Layout::HO_Right);
     m_main_toolbar.set_vertical_orientation(GLToolbar::Layout::VO_Top);
-    m_main_toolbar.set_border(5.0f);
-    m_main_toolbar.set_separator_size(5);
+    m_main_toolbar.set_border(4.0f);
+    m_main_toolbar.set_separator_size(4);
     m_main_toolbar.set_gap_size(4);
 
     m_main_toolbar.del_all_item();
@@ -6483,7 +6490,7 @@ bool GLCanvas3D::_init_assemble_view_toolbar()
     //BBS: assemble toolbar is at the top and right, we don't need the rounded-corner effect at the left side and the top side
     m_assemble_view_toolbar.set_horizontal_orientation(GLToolbar::Layout::HO_Left);
     m_assemble_view_toolbar.set_vertical_orientation(GLToolbar::Layout::VO_Top);
-    m_assemble_view_toolbar.set_border(5.0f);
+    m_assemble_view_toolbar.set_border(4.0f);
     m_assemble_view_toolbar.set_separator_size(10);
     m_assemble_view_toolbar.set_gap_size(4);
 
@@ -6540,7 +6547,7 @@ bool GLCanvas3D::_init_separator_toolbar()
     //BBS: assemble toolbar is at the top and right, we don't need the rounded-corner effect at the left side and the top side
     m_separator_toolbar.set_horizontal_orientation(GLToolbar::Layout::HO_Left);
     m_separator_toolbar.set_vertical_orientation(GLToolbar::Layout::VO_Top);
-    m_separator_toolbar.set_border(5.0f);
+    m_separator_toolbar.set_border(4.0f);
 
     m_separator_toolbar.del_all_item();
 
@@ -7383,8 +7390,11 @@ void GLCanvas3D::_check_and_update_toolbar_icon_scale()
     Size cnv_size = get_canvas_size();
 
     //BBS: GUI refactor: GLToolbar
-    float size = GLToolbar::Default_Icons_Size * scale;
-    //float main_size = GLGizmosManager::Default_Icons_Size * scale;
+    int size_i = int(GLToolbar::Default_Icons_Size * scale);
+    // force even size
+    if (size_i % 2 != 0)
+        size_i -= 1;
+    float size   = size_i;
 
     // Set current size for all top toolbars. It will be used for next calculations
 #if ENABLE_RETINA_GL
@@ -7401,7 +7411,7 @@ void GLCanvas3D::_check_and_update_toolbar_icon_scale()
     m_gizmos.set_overlay_scale(sc);
 #else
     //BBS: GUI refactor: GLToolbar
-    m_main_toolbar.set_icons_size(GLGizmosManager::Default_Icons_Size * scale);
+    m_main_toolbar.set_icons_size(size);
     m_assemble_view_toolbar.set_icons_size(size);
     m_separator_toolbar.set_icons_size(size);
     collapse_toolbar.set_icons_size(size / 2.0);
@@ -7662,7 +7672,7 @@ void GLCanvas3D::_render_gizmos_overlay()
     }
 }
 
-float GLCanvas3D::get_main_toolbar_offset() const
+int GLCanvas3D::get_main_toolbar_offset() const
 {
     const float cnv_width              = get_canvas_size().get_width();
     const float collapse_toolbar_width = get_collapse_toolbar_width() * 2;
@@ -7723,24 +7733,26 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
                     m_sel_plate_toolbar.m_items[i]->slice_state = IMToolbarItem::SliceState::SLICED;
                 else
                     m_sel_plate_toolbar.m_items[i]->slice_state = IMToolbarItem::SliceState::SLICE_FAILED;
-                continue;
             }
-            if (plate_list.get_plate(i)->get_slicing_percent() < 0.0f)
-                m_sel_plate_toolbar.m_items[i]->slice_state = IMToolbarItem::SliceState::UNSLICED;
-            else
-                m_sel_plate_toolbar.m_items[i]->slice_state = IMToolbarItem::SliceState::SLICING;
+            else {
+                if (!plate_list.get_plate(i)->can_slice())
+                    m_sel_plate_toolbar.m_items[i]->slice_state = IMToolbarItem::SliceState::SLICE_FAILED;
+                else {
+                    if (plate_list.get_plate(i)->get_slicing_percent() < 0.0f)
+                        m_sel_plate_toolbar.m_items[i]->slice_state = IMToolbarItem::SliceState::UNSLICED;
+                    else
+                        m_sel_plate_toolbar.m_items[i]->slice_state = IMToolbarItem::SliceState::SLICING;
+                }
+            }
         }
     }
     if (m_sel_plate_toolbar.show_stats_item) {
         all_plates_stats_item->percent = 0.0f;
 
         size_t sliced_plates_cnt = 0;
-        bool slice_failed = false;
         for (auto plate : plate_list.get_nonempty_plate_list()) {
             if (plate->is_slice_result_valid() && plate->is_slice_result_ready_for_print())
                 sliced_plates_cnt++;
-            if (plate->is_slice_result_valid() && !plate->is_slice_result_ready_for_print())
-                slice_failed = true;
         }
         all_plates_stats_item->percent = (float)(sliced_plates_cnt) / (float)(plate_list.get_nonempty_plate_list().size()) * 100.0f;
 
@@ -7751,8 +7763,13 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
         else if (all_plates_stats_item->percent < 100.0f)
             all_plates_stats_item->slice_state = IMToolbarItem::SliceState::SLICING;
 
-        if (slice_failed)
-            all_plates_stats_item->slice_state = IMToolbarItem::SliceState::SLICE_FAILED;
+        for (auto toolbar_item : m_sel_plate_toolbar.m_items) {
+            if(toolbar_item->slice_state == IMToolbarItem::SliceState::SLICE_FAILED) {
+                all_plates_stats_item->slice_state = IMToolbarItem::SliceState::SLICE_FAILED;
+                all_plates_stats_item->selected = false;
+                break;
+            }
+        }
 
         // Changing parameters does not invalid all plates, need extra logic to validate
         bool gcode_result_valid = true;

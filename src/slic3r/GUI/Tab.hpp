@@ -104,6 +104,7 @@ public:
 	void		reload_config();
     void        update_visibility(ConfigOptionMode mode, bool update_contolls_visibility);
     void        activate(ConfigOptionMode mode, std::function<void()> throw_if_canceled);
+    void        deactivate();
     void        clear();
     void        msw_rescale();
     void        sys_color_changed();
