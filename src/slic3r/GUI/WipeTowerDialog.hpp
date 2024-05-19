@@ -61,12 +61,7 @@ public:
         if (m_flush_multiplier_ebox == nullptr)
             return 1.f;
 
-        wxString str = m_flush_multiplier_ebox->GetValue();
-        str.Replace(",", ".");
-        double multiplier = 1.f;
-        str.ToDouble(&multiplier);
-
-        return multiplier;
+        return wxAtof(m_flush_multiplier_ebox->GetValue());
     }
 
 private:

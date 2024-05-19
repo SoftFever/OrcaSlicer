@@ -16,10 +16,12 @@ void CalibrationStartPage::create_when(wxWindow* parent, wxString title, wxStrin
     m_when_title = new Label(this, title);
     m_when_title->SetFont(Label::Head_14);
     m_when_title->Wrap(CALIBRATION_START_PAGE_TEXT_MAX_LENGTH);
+    m_when_title->SetMinSize({CALIBRATION_START_PAGE_TEXT_MAX_LENGTH, -1});
 
     m_when_content = new Label(this, content);;
     m_when_content->SetFont(Label::Body_14);
     m_when_content->Wrap(CALIBRATION_START_PAGE_TEXT_MAX_LENGTH);
+    m_when_content->SetMinSize({CALIBRATION_START_PAGE_TEXT_MAX_LENGTH, -1});
 }
 
 void CalibrationStartPage::create_about(wxWindow* parent, wxString title, wxString content)
@@ -27,10 +29,12 @@ void CalibrationStartPage::create_about(wxWindow* parent, wxString title, wxStri
     m_about_title = new Label(this, title);
     m_about_title->SetFont(Label::Head_14);
     m_about_title->Wrap(CALIBRATION_START_PAGE_TEXT_MAX_LENGTH);
+    m_about_title->SetMinSize({CALIBRATION_START_PAGE_TEXT_MAX_LENGTH, -1});
 
     m_about_content = new Label(this, content);
     m_about_content->SetFont(Label::Body_14);
     m_about_content->Wrap(CALIBRATION_START_PAGE_TEXT_MAX_LENGTH);
+    m_about_content->SetMinSize({CALIBRATION_START_PAGE_TEXT_MAX_LENGTH, -1});
 }
 
 void CalibrationStartPage::create_bitmap(wxWindow* parent, const wxBitmap& before_img, const wxBitmap& after_img)
@@ -77,6 +81,7 @@ CalibrationPAStartPage::CalibrationPAStartPage(wxWindow* parent, wxWindowID id, 
     create_page(this);
 
     this->SetSizer(m_top_sizer);
+    Layout();
     m_top_sizer->Fit(this);
 }
 
@@ -124,8 +129,8 @@ void CalibrationPAStartPage::create_page(wxWindow* parent)
 
 #ifdef __linux__
     wxGetApp().CallAfter([this]() {
-        m_when_content->SetMinSize(m_when_content->GetSize() + wxSize{ 0, wxWindow::GetCharHeight() / 2 });
-        m_about_content->SetMinSize(m_about_content->GetSize() + wxSize{ 0, wxWindow::GetCharHeight() / 2 });
+        m_when_content->SetMinSize(m_when_content->GetSize() + wxSize{ 0, wxWindow::GetCharHeight() });
+        m_about_content->SetMinSize(m_about_content->GetSize() + wxSize{ 0, wxWindow::GetCharHeight() });
         Layout();
         Fit();
         });
@@ -200,6 +205,7 @@ CalibrationFlowRateStartPage::CalibrationFlowRateStartPage(wxWindow* parent, wxW
     create_page(this);
 
     this->SetSizer(m_top_sizer);
+    Layout();
     m_top_sizer->Fit(this);
 }
 
@@ -231,6 +237,7 @@ void CalibrationFlowRateStartPage::create_page(wxWindow* parent)
     auto extra_text = new Label(parent, _L("In addition, Flow Rate Calibration is crucial for foaming materials like LW-PLA used in RC planes. These materials expand greatly when heated, and calibration provides a useful reference flow rate."));
     extra_text->SetFont(Label::Body_14);
     extra_text->Wrap(CALIBRATION_START_PAGE_TEXT_MAX_LENGTH);
+    extra_text->SetMinSize({CALIBRATION_START_PAGE_TEXT_MAX_LENGTH, -1});
     m_top_sizer->Add(extra_text);
     m_top_sizer->AddSpacer(PRESET_GAP);
 
@@ -245,6 +252,7 @@ void CalibrationFlowRateStartPage::create_page(wxWindow* parent)
     auto auto_cali_title = new Label(parent, _L("Auto-Calibration"));
     auto_cali_title->SetFont(Label::Head_14);
     auto_cali_title->Wrap(CALIBRATION_START_PAGE_TEXT_MAX_LENGTH);
+    auto_cali_title->SetMinSize({CALIBRATION_START_PAGE_TEXT_MAX_LENGTH, -1});
 
     auto auto_cali_content = new Label(this, 
         _L("Auto Flow Rate Calibration utilizes Bambu Lab's Micro-Lidar technology, directly measuring the calibration patterns. However, please be advised that the efficacy and accuracy of this method may be compromised with specific types of materials. Particularly, filaments that are transparent or semi-transparent, sparkling-particled, or have a high-reflective finish may not be suitable for this calibration and can produce less-than-desirable results.\
@@ -252,6 +260,7 @@ void CalibrationFlowRateStartPage::create_page(wxWindow* parent)
 \n\nCaution: Flow Rate Calibration is an advanced process, to be attempted only by those who fully understand its purpose and implications. Incorrect usage can lead to sub-par prints or printer damage. Please make sure to carefully read and understand the process before doing it."));
     auto_cali_content->SetFont(Label::Body_14);
     auto_cali_content->Wrap(CALIBRATION_START_PAGE_TEXT_MAX_LENGTH);
+    auto_cali_content->SetMinSize({CALIBRATION_START_PAGE_TEXT_MAX_LENGTH, -1});
 
     m_top_sizer->Add(auto_cali_title);
     m_top_sizer->Add(auto_cali_content);
@@ -262,9 +271,10 @@ void CalibrationFlowRateStartPage::create_page(wxWindow* parent)
     m_top_sizer->Add(m_action_panel, 0, wxEXPAND, 0);
 
 #ifdef __linux__
-    wxGetApp().CallAfter([this, auto_cali_content]() {
-        m_when_content->SetMinSize(m_when_content->GetSize() + wxSize{ 0, wxWindow::GetCharHeight() / 2 });
-        auto_cali_content->SetMinSize(auto_cali_content->GetSize() + wxSize{ 0, wxWindow::GetCharHeight() / 2 });
+    wxGetApp().CallAfter([this, auto_cali_content, extra_text]() {
+        m_when_content->SetMinSize(m_when_content->GetSize() + wxSize{ 0, wxWindow::GetCharHeight() });
+        auto_cali_content->SetMinSize(auto_cali_content->GetSize() + wxSize{ 0, wxWindow::GetCharHeight() });
+        extra_text->SetMinSize(extra_text->GetSize() + wxSize{ 0, wxWindow::GetCharHeight() });
         Layout();
         Fit();
         });
@@ -332,6 +342,7 @@ CalibrationMaxVolumetricSpeedStartPage::CalibrationMaxVolumetricSpeedStartPage(w
     create_page(this);
 
     this->SetSizer(m_top_sizer);
+    Layout();
     m_top_sizer->Fit(this);
 }
 
