@@ -13,9 +13,6 @@ namespace RasterizationImpl {
 using IndexPair = std::pair<int64_t, int64_t>;
 using Grids     = std::vector<IndexPair>;
 
-inline constexpr int64_t RasteXDistance = scale_(1);
-inline constexpr int64_t RasteYDistance = scale_(1);
-
 inline IndexPair point_map_grid_index(const Point &pt, int64_t xdist, int64_t ydist)
 {
     auto x = pt.x() / xdist;
@@ -25,7 +22,7 @@ inline IndexPair point_map_grid_index(const Point &pt, int64_t xdist, int64_t yd
 
 inline bool nearly_equal(const Point &p1, const Point &p2) { return std::abs(p1.x() - p2.x()) < SCALED_EPSILON && std::abs(p1.y() - p2.y()) < SCALED_EPSILON; }
 
-inline Grids line_rasterization(const Line &line, int64_t xdist = RasteXDistance, int64_t ydist = RasteYDistance)
+inline Grids line_rasterization(const Line &line, int64_t xdist = scale_(1), int64_t ydist = scale_(1))
 {
     Grids     res;
     Point     rayStart     = line.a;
