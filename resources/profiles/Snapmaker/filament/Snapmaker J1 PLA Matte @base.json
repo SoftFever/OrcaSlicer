@@ -5,11 +5,14 @@
   "name": "Snapmaker J1 PLA Matte @base",
   "filament_id": "1192769348",
   "inherits": "fdm_filament_pla",
+  "filament_end_gcode": [
+    "M104 S{temperature_vitrification[current_extruder]} ;standby T{current_extruder}"
+  ],
   "filament_density": [
     "1.32"
   ],
   "filament_max_volumetric_speed": [
-    "19"
+    "9.6"
   ],
   "nozzle_temperature_initial_layer": [
     "215"
