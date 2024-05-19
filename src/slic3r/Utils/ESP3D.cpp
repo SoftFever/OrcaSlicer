@@ -88,7 +88,7 @@ bool ESP3D::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, ErrorFn 
         .on_progress([&](Http::Progress progress, bool& cancel) {
             // workaround:
             // progress bar disappears before .on_complete
-            // ESP3D can be super slow so the user could close slicer before upload completes & M24 is sent because no progress bar
+            // ESP3D can be super slow, the user could close slicer before upload completes & M24 is sent because no progress bar
             // M24 can only be sent after .on_complete
             Http::Progress prog = std::move(progress);
             prog.ulnow -= 1;
@@ -108,8 +108,7 @@ bool ESP3D::start_print(wxString& msg, const std::string& filename) const
 {
     // For some reason printer firmware does not want to respond on gcode commands immediately after file upload.
     // So we just introduce artificial delay to workaround it.
-    // ESP3D also locks the serial during SD transfer, this is "safety time™"
-    // TODO: Inspect reasons
+    // ESP3D also locks the serial during SD transfer, this is safer
     std::this_thread::sleep_for(std::chrono::milliseconds(1500));
 
     bool ret         = false;
