@@ -32,10 +32,10 @@ private:
     std::string m_host;
     std::string m_console_port;
 
-    std::string get_upload_url(const std::string& filename) const;
     bool        start_print(wxString& msg, const std::string& filename) const;
     int         get_err_code_from_body(const std::string& body) const;
     std::string get_short_name(const std::string& filename) const;
+    std::string format_command(const std::string& path, const std::string& arg, const std::string& val) const;
 };
 
 } // namespace Slic3r
