@@ -183,7 +183,7 @@ struct FaceHash {
         return ret;
     }
 
-    static std::string facekey(const Vec3i &face, const std::vector<Vec3f> &vertices)
+    static std::string facekey(const Vec3i32 &face, const std::vector<Vec3f> &vertices)
     {
         // Scale to integer to avoid floating points
         std::array<Vec<3, int64_t>, 3> pts = {
@@ -204,7 +204,7 @@ struct FaceHash {
 
     FaceHash (const indexed_triangle_set &its): facehash(its.indices.size())
     {
-        for (const Vec3i &face : its.indices)
+        for (const Vec3i32 &face : its.indices)
             facehash.insert(facekey(face, its.vertices));
     }
 
@@ -231,7 +231,7 @@ static std::vector<bool> create_exclude_mask(
 
     VertexFaceIndex neighbor_index{its};
 
-    auto exclude_neighbors = [&neighbor_index, &exclude_mask](const Vec3i &face)
+    auto exclude_neighbors = [&neighbor_index, &exclude_mask](const Vec3i32 &face)
     {
         for (int i = 0; i < 3; ++i) {
             const auto &neighbors_range = neighbor_index[face(i)];
