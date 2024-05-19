@@ -7,7 +7,7 @@
     "inherits": "fdm_dremel_common",
     "printer_model": "Dremel 3D40",
     "printer_variant": "0.4",
-    "printer_structure": "HBOT",
+    "printer_structure": "Hbot",
     "gcode_flavor": "marlin",
     "default_filament_profile": [
       "Dremel Generic PLA @3D40 all"

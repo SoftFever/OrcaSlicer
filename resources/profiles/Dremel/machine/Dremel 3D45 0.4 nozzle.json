@@ -7,7 +7,7 @@
     "inherits": "fdm_dremel_common",
     "printer_model": "Dremel 3D45",
     "printer_variant": "0.4",
-    "printer_structure": "HBOT",
+    "printer_structure": "Hbot",
     "printer_settings_id": "Dremel",
     "gcode_flavor": "marlin",
     "default_filament_profile": [
