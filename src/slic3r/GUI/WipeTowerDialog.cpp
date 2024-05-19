@@ -581,7 +581,6 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
 
         auto on_apply_text_modify = [this](wxEvent& e) {
             wxString str = m_flush_multiplier_ebox->GetValue();
-            str.Replace(".", ",");
             float multiplier = wxAtof(str);
             if (multiplier < g_min_flush_multiplier || multiplier > g_max_flush_multiplier) {
                 str = wxString::Format(("%.2f"), multiplier < g_min_flush_multiplier ? g_min_flush_multiplier : g_max_flush_multiplier);
@@ -618,7 +617,6 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
         m_flush_multiplier_ebox->Bind(wxEVT_KILL_FOCUS, on_apply_text_modify);
         m_flush_multiplier_ebox->Bind(wxEVT_COMMAND_TEXT_UPDATED, [this](wxCommandEvent&) {
             wxString str = m_flush_multiplier_ebox->GetValue();
-            str.Replace(".", ",");
             float multiplier = wxAtof(str);
             if (multiplier < g_min_flush_multiplier || multiplier > g_max_flush_multiplier) {
                 str = wxString::Format(("%.2f"), multiplier < g_min_flush_multiplier ? g_min_flush_multiplier : g_max_flush_multiplier);
