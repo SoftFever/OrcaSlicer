@@ -2217,7 +2217,7 @@ ImVec2 ImGuiWrapper::suggest_location(const ImVec2 &dialog_size,
                  offseted_center.y() + diff_norm.y() * move_size.y());
 
     // move offset close to center
-    Points window_polygon = {offset.cast<int>(),
+    Points window_polygon = {offset.cast<coord_t>(),
                              Point(offset.x(), offset.y() + dialog_size.y),
                              Point(offset.x() + dialog_size.x,
                                    offset.y() + dialog_size.y),
@@ -2227,12 +2227,12 @@ ImVec2 ImGuiWrapper::suggest_location(const ImVec2 &dialog_size,
 
     double allowed_space = 10; // in px
     double allowed_space_sq = allowed_space * allowed_space;
-    Vec2d  move_vec         = (center - (offset.cast<int>() + half_dialog_size))
+    Vec2d  move_vec         = (center - (offset.cast<coord_t>() + half_dialog_size))
                          .cast<double>();    
     Vec2d result_move(0, 0);
     do {
         move_vec             = move_vec / 2.;
-        Point  move_point    = (move_vec + result_move).cast<int>();
+        Point  move_point    = (move_vec + result_move).cast<coord_t>();
         Points moved_polygon = window_polygon; // copy
         for (Point &p : moved_polygon) p += move_point;
         if (Slic3r::intersection(interest, Polygon(moved_polygon)).empty())

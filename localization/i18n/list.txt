@@ -53,6 +53,11 @@ src/slic3r/GUI/BBLTopbar.cpp
 src/slic3r/GUI/DownloadProgressDialog.cpp
 src/slic3r/GUI/RecenterDialog.cpp
 src/slic3r/GUI/BackgroundSlicingProcess.cpp
+src/slic3r/GUI/MultiMachinePage.cpp
+src/slic3r/GUI/MultiMachineManagerPage.cpp
+src/slic3r/GUI/MultiMachine.cpp
+src/slic3r/GUI/MultiTaskManagerPage.cpp
+src/slic3r/GUI/SendMultiMachinePage.cpp
 src/slic3r/GUI/BedShapeDialog.cpp
 src/slic3r/GUI/BedShapeDialog.hpp
 src/slic3r/GUI/ConfigManipulation.cpp

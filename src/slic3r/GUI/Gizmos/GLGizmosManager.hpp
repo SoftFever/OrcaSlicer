@@ -102,10 +102,10 @@ private:
     {
         float scale{ 1.0f };
         float icons_size{ Default_Icons_Size };
-        float border{ 5.0f };
-        float gap_y{ 5.0f };
+        float border{ 4.0f };
+        float gap_y{ 4.0f };
         //BBS: GUI refactor: to support top layout
-        float gap_x{ 5.0f };
+        float gap_x{ 4.0f };
         float stride_x() const { return icons_size + gap_x;}
         float scaled_gap_x() const { return scale * gap_x; }
         float scaled_stride_x() const { return scale * stride_x(); }
