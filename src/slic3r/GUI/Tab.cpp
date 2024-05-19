@@ -1172,8 +1172,10 @@ void Tab::load_config(const DynamicPrintConfig& config)
 // Reload current $self->{config} (aka $self->{presets}->edited_preset->config) into the UI fields.
 void Tab::reload_config()
 {
-    if (m_active_page)
-        m_active_page->reload_config();
+    //if (m_active_page)
+    //    m_active_page->reload_config();
+    for (auto page : m_pages)
+        page->reload_config();
 }
 
 void Tab::update_mode()
