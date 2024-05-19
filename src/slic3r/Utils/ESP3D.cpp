@@ -49,7 +49,7 @@ bool ESP3D::test(wxString& msg) const
         })
         .on_error([&](std::string body, std::string error, unsigned status) {
             ret = false;
-            msg = get_test_failed_msg(wxString::FromUTF8(error));
+            msg = format_error(body , error, status);
         })
         .perform_sync();
     return ret;
