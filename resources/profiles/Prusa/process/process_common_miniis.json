@@ -49,6 +49,7 @@
   "infill_wall_overlap": "10%",
   "enable_arc_fitting": "1",
   "support_speed": "100",
+  "support_style": "snug",
   "precise_outer_wall": "1",
   "overhang_reverse": "1"
 }
