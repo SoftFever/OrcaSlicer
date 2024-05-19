@@ -24,7 +24,7 @@
 	"top_surface_acceleration": "5000",
 	"bridge_no_support": "0",
 	"draft_shield": "disabled",
-	"elefant_foot_compensation": "0",
+	"elefant_foot_compensation": "0.1",
 	"outer_wall_line_width": "0.42",
 	"wall_infill_order": "inner wall/outer wall/infill",
 	"line_width": "0.45",
