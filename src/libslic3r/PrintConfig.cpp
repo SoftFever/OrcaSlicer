@@ -3817,7 +3817,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->enum_labels.push_back("Disabled");
     def->enum_labels.push_back("Limited");
     def->enum_labels.push_back("Enabled");
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<DraftShield>(dsDisabled));
 
     def = this->add("skirt_loops", coInt);
