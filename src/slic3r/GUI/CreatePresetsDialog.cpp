@@ -3300,7 +3300,7 @@ void CreatePresetSuccessfulDialog::on_dpi_changed(const wxRect &suggested_rect) 
 }
 
 ExportConfigsDialog::ExportConfigsDialog(wxWindow *parent)
-    : DPIDialog(parent ? parent : nullptr, wxID_ANY, _L("Export Configs"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
+    : DPIDialog(parent ? parent : nullptr, wxID_ANY, _L("Export Preset Bundle"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
 {
     m_exprot_type.preset_bundle   = _L("Printer config bundle(.orca_printer)");
     m_exprot_type.filament_bundle = _L("Filament bundle(.orca_filament)");
