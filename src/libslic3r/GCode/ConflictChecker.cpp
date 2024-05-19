@@ -90,9 +90,14 @@ void LinesBucketQueue::emplace_back_bucket(ExtrusionLayers &&els, const void *ob
 {
     auto oldSize = line_buckets.capacity();
     line_buckets.emplace_back(std::move(els), objPtr, offset);
-    line_bucket_ptr_queue.push(&line_buckets.back());
     auto newSize = line_buckets.capacity();
-    if (oldSize != newSize) { // pointers change
+    // Since line_bucket_ptr_queue is storing pointers into line_buckets,
+    // we need to handle the case where the capacity changes since that makes
+    // the existing pointers invalid
+    if (oldSize == newSize) {
+        line_bucket_ptr_queue.push(&line_buckets.back());
+    }
+    else { // pointers change, create a new queue from scratch
         decltype(line_bucket_ptr_queue) newQueue;
         for (LinesBucket &bucket : line_buckets) { newQueue.push(&bucket); }
         std::swap(line_bucket_ptr_queue, newQueue);
@@ -215,6 +220,7 @@ ConflictResultOpt ConflictChecker::find_inter_of_lines_in_diff_objs(PrintObjectP
 {
     if (objs.size() <= 1 && !wtdptr) { return {}; }
     LinesBucketQueue conflictQueue;
+
     if (wtdptr.has_value()) { // wipe tower at 0 by default
         auto            wtpaths = wtdptr.value()->getFakeExtrusionPathsFromWipeTower();
         ExtrusionLayers wtels;
