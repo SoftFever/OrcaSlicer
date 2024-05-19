@@ -5065,8 +5065,11 @@ std::vector<Vec2f> GLCanvas3D::get_empty_cells(const Vec2f start_point, const Ve
     Vec2d vmin(build_volume.min.x(), build_volume.min.y()), vmax(build_volume.max.x(), build_volume.max.y());
     BoundingBoxf bbox(vmin, vmax);
     std::vector<Vec2f> cells;
+    std::vector<Vec2f> cells_ret;
     auto min_x = start_point.x() - step(0) * int((start_point.x() - bbox.min.x()) / step(0));
     auto min_y = start_point.y() - step(1) * int((start_point.y() - bbox.min.y()) / step(1));
+    cells.reserve(((bbox.max.x() - min_x) / step(0)) * ((bbox.max.y() - min_y) / step(1)));
+    cells_ret.reserve(cells.size());
     for (float x = min_x; x < bbox.max.x() - step(0) / 2; x += step(0))
         for (float y = min_y; y < bbox.max.y() - step(1) / 2; y += step(1))
         {
@@ -5093,10 +5096,10 @@ std::vector<Vec2f> GLCanvas3D::get_empty_cells(const Vec2f start_point, const Ve
 
             for (auto it = cells.begin(); it != cells.end(); )
             {
-                if (inst_hull_2d.contains(Point(scale_(it->x()), scale_(it->y()))))
-                    it = cells.erase(it);
-                else
-                    it++;
+                if (!inst_hull_2d.contains(Point(scale_(it->x()), scale_(it->y()))))
+                    cells_ret.push_back(*it);
+
+                it++;
             }
         }
     }
@@ -5106,8 +5109,8 @@ std::vector<Vec2f> GLCanvas3D::get_empty_cells(const Vec2f start_point, const Ve
         start(0) = bbox.center()(0);
         start(1) = bbox.center()(1);
     }
-    std::sort(cells.begin(), cells.end(), [start](const Vec2f& cell1, const Vec2f& cell2) {return (cell1 - start).norm() < (cell2 - start).norm(); });
-    return cells;
+    std::sort(cells_ret.begin(), cells_ret.end(), [start](const Vec2f& cell1, const Vec2f& cell2) {return (cell1 - start).norm() < (cell2 - start).norm(); });
+    return cells_ret;
 }
 
 Vec2f GLCanvas3D::get_nearest_empty_cell(const Vec2f start_point, const Vec2f step)
@@ -6289,8 +6292,8 @@ bool GLCanvas3D::_init_main_toolbar()
     //BBS: main toolbar is at the top and left, we don't need the rounded-corner effect at the right side and the top side
     m_main_toolbar.set_horizontal_orientation(GLToolbar::Layout::HO_Right);
     m_main_toolbar.set_vertical_orientation(GLToolbar::Layout::VO_Top);
-    m_main_toolbar.set_border(5.0f);
-    m_main_toolbar.set_separator_size(5);
+    m_main_toolbar.set_border(4.0f);
+    m_main_toolbar.set_separator_size(4);
     m_main_toolbar.set_gap_size(4);
 
     m_main_toolbar.del_all_item();
@@ -6387,6 +6390,7 @@ bool GLCanvas3D::_init_main_toolbar()
     item.icon_filename = m_is_dark ? "toolbar_variable_layer_height_dark.svg" : "toolbar_variable_layer_height.svg";
     item.tooltip = _utf8(L("Variable layer height"));
     item.sprite_id++;
+    item.left.toggable = true; // ORCA Closes popup if other toolbar icon clicked and it allows closing popup when clicked its button
     item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_LAYERSEDITING)); };
     item.visibility_callback = [this]()->bool {
         bool res = current_printer_technology() == ptFFF;
@@ -6479,7 +6483,7 @@ bool GLCanvas3D::_init_assemble_view_toolbar()
     //BBS: assemble toolbar is at the top and right, we don't need the rounded-corner effect at the left side and the top side
     m_assemble_view_toolbar.set_horizontal_orientation(GLToolbar::Layout::HO_Left);
     m_assemble_view_toolbar.set_vertical_orientation(GLToolbar::Layout::VO_Top);
-    m_assemble_view_toolbar.set_border(5.0f);
+    m_assemble_view_toolbar.set_border(4.0f);
     m_assemble_view_toolbar.set_separator_size(10);
     m_assemble_view_toolbar.set_gap_size(4);
 
@@ -6536,7 +6540,7 @@ bool GLCanvas3D::_init_separator_toolbar()
     //BBS: assemble toolbar is at the top and right, we don't need the rounded-corner effect at the left side and the top side
     m_separator_toolbar.set_horizontal_orientation(GLToolbar::Layout::HO_Left);
     m_separator_toolbar.set_vertical_orientation(GLToolbar::Layout::VO_Top);
-    m_separator_toolbar.set_border(5.0f);
+    m_separator_toolbar.set_border(4.0f);
 
     m_separator_toolbar.del_all_item();
 
@@ -7379,8 +7383,11 @@ void GLCanvas3D::_check_and_update_toolbar_icon_scale()
     Size cnv_size = get_canvas_size();
 
     //BBS: GUI refactor: GLToolbar
-    float size = GLToolbar::Default_Icons_Size * scale;
-    //float main_size = GLGizmosManager::Default_Icons_Size * scale;
+    int size_i = int(GLToolbar::Default_Icons_Size * scale);
+    // force even size
+    if (size_i % 2 != 0)
+        size_i -= 1;
+    float size   = size_i;
 
     // Set current size for all top toolbars. It will be used for next calculations
 #if ENABLE_RETINA_GL
@@ -7397,7 +7404,7 @@ void GLCanvas3D::_check_and_update_toolbar_icon_scale()
     m_gizmos.set_overlay_scale(sc);
 #else
     //BBS: GUI refactor: GLToolbar
-    m_main_toolbar.set_icons_size(GLGizmosManager::Default_Icons_Size * scale);
+    m_main_toolbar.set_icons_size(size);
     m_assemble_view_toolbar.set_icons_size(size);
     m_separator_toolbar.set_icons_size(size);
     collapse_toolbar.set_icons_size(size / 2.0);
@@ -7658,7 +7665,7 @@ void GLCanvas3D::_render_gizmos_overlay()
     }
 }
 
-float GLCanvas3D::get_main_toolbar_offset() const
+int GLCanvas3D::get_main_toolbar_offset() const
 {
     const float cnv_width              = get_canvas_size().get_width();
     const float collapse_toolbar_width = get_collapse_toolbar_width() * 2;
@@ -7789,22 +7796,34 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
     float margin_size = 4.0f * f_scale;
     float button_margin = frame_padding;
 
+    const float y_offset = is_collapse_toolbar_on_left() ? (get_collapse_toolbar_height() + 5) : 0;
+    // Make sure the window does not overlap the 3d navigator
+    auto window_height_max = canvas_h - y_offset;
+    if (wxGetApp().show_3d_navigator()) {
+        float sc = get_scale();
+#ifdef WIN32
+        const int dpi = get_dpi_for_window(wxGetApp().GetTopWindow());
+        sc *= (float) dpi / (float) DPI_DEFAULT;
+#endif // WIN32
+        window_height_max -= (128 * sc + 5);
+    }
+
     ImGuiWrapper& imgui = *wxGetApp().imgui();
     int item_count = m_sel_plate_toolbar.m_items.size() + (m_sel_plate_toolbar.show_stats_item ? 1 : 0);
-    bool show_scroll = item_count * (button_height + frame_padding * 2.0f + button_margin) - button_margin + 22.0f * f_scale > canvas_h ? true: false;
+    bool show_scroll = item_count * (button_height + frame_padding * 2.0f + button_margin) - button_margin + 22.0f * f_scale > window_height_max ? true: false;
     show_scroll = m_sel_plate_toolbar.is_display_scrollbar && show_scroll;
-    float window_height = std::min(item_count * (button_height + (frame_padding + margin_size) * 2.0f + button_margin) - button_margin + 28.0f * f_scale, canvas_h);
+    float window_height = std::min(item_count * (button_height + (frame_padding + margin_size) * 2.0f + button_margin) - button_margin + 28.0f * f_scale, window_height_max);
     float window_width = m_sel_plate_toolbar.icon_width + margin_size * 2 + (show_scroll ? 28.0f * f_scale : 20.0f * f_scale);
 
     ImVec4 window_bg = ImVec4(0.82f, 0.82f, 0.82f, 0.5f);
-    ImVec4 button_active = ImVec4(0.12f, 0.56f, 0.92, 1.0f);
+    ImVec4 button_active = ImGuiWrapper::COL_ORCA; // ORCA: Use orca color for selected sliced plate border 
     ImVec4 button_hover = ImVec4(0.67f, 0.67f, 0.67, 1.0f);
     ImVec4 scroll_col = ImVec4(0.77f, 0.77f, 0.77f, 1.0f);
     //ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.f, 0.f, 0.f, 1.0f));
     //use white text as the background switch to black
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
     ImGui::PushStyleColor(ImGuiCol_WindowBg, window_bg);
-    ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, window_bg);
+    ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, ImVec4(0.f, 0.f, 0.f, 0.f)); // ORCA using background color with opacity creates a second color. This prevents secondary color 
     ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabActive, scroll_col);
     ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabHovered, scroll_col);
     ImGui::PushStyleColor(ImGuiCol_ScrollbarGrab, scroll_col);
@@ -7816,7 +7835,6 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 4.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 3.0f);
 
-    const float y_offset = is_collapse_toolbar_on_left() ? (get_collapse_toolbar_height() + 5) : 0;
     imgui.set_next_window_pos(canvas_w * 0, canvas_h * 0 + y_offset, ImGuiCond_Always, 0, 0);
     imgui.set_next_window_size(window_width, window_height, ImGuiCond_Always);
 
@@ -7859,12 +7877,12 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
         ImTextureID btn_texture_id;
         if (all_plates_stats_item->slice_state == IMToolbarItem::SliceState::UNSLICED || all_plates_stats_item->slice_state == IMToolbarItem::SliceState::SLICING || all_plates_stats_item->slice_state == IMToolbarItem::SliceState::SLICE_FAILED)
         {
-            text_clr = ImVec4(0, 174.0f / 255.0f, 66.0f / 255.0f, 0.2f);
+            text_clr       = ImVec4(0.0f, 150.f / 255.0f, 136.0f / 255, 0.2f); // ORCA: All plates slicing NOT complete - Text color
             btn_texture_id = (ImTextureID)(intptr_t)(all_plates_stats_item->image_texture_transparent.get_id());
         }
         else
         {
-            text_clr = ImVec4(0, 174.0f / 255.0f, 66.0f / 255.0f, 1);
+            text_clr       = ImGuiWrapper::COL_ORCA; // ORCA: All plates slicing complete - Text color
             btn_texture_id = (ImTextureID)(intptr_t)(all_plates_stats_item->image_texture.get_id());
         }
 
@@ -7888,25 +7906,25 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
         if (all_plates_stats_item->slice_state == IMToolbarItem::SliceState::UNSLICED) {
             ImVec2 size = ImVec2(button_width, button_height);
             ImVec2 end_pos = ImVec2(start_pos.x + size.x, start_pos.y + size.y);
-            ImGui::GetForegroundDrawList()->AddRectFilled(start_pos, end_pos, IM_COL32(0, 0, 0, 80));
+            ImGui::GetWindowDrawList()->AddRectFilled(start_pos, end_pos, IM_COL32(0, 0, 0, 80));
         }
         else if (all_plates_stats_item->slice_state == IMToolbarItem::SliceState::SLICING) {
             ImVec2 size = ImVec2(button_width, button_height * all_plates_stats_item->percent / 100.0f);
             ImVec2 rect_start_pos = ImVec2(start_pos.x, start_pos.y + size.y);
             ImVec2 rect_end_pos = ImVec2(start_pos.x + button_width, start_pos.y + button_height);
-            ImGui::GetForegroundDrawList()->AddRectFilled(start_pos, rect_end_pos, IM_COL32(0, 0, 0, 10));
-            ImGui::GetForegroundDrawList()->AddRectFilled(rect_start_pos, rect_end_pos, IM_COL32(0, 0, 0, 80));
+            ImGui::GetWindowDrawList()->AddRectFilled(start_pos, rect_end_pos, IM_COL32(0, 0, 0, 10));
+            ImGui::GetWindowDrawList()->AddRectFilled(rect_start_pos, rect_end_pos, IM_COL32(0, 0, 0, 80));
         }
         else if (all_plates_stats_item->slice_state == IMToolbarItem::SliceState::SLICE_FAILED) {
             ImVec2 size = ImVec2(button_width, button_height);
             ImVec2 end_pos = ImVec2(start_pos.x + size.x, start_pos.y + size.y);
-            ImGui::GetForegroundDrawList()->AddRectFilled(start_pos, end_pos, IM_COL32(40, 1, 1, 64));
-            ImGui::GetForegroundDrawList()->AddRect(start_pos, end_pos, IM_COL32(208, 27, 27, 255), 0.0f, 0, 1.0f);
+            ImGui::GetWindowDrawList()->AddRectFilled(start_pos, end_pos, IM_COL32(40, 1, 1, 64));
+            ImGui::GetWindowDrawList()->AddRect(start_pos, end_pos, IM_COL32(208, 27, 27, 255), 0.0f, 0, 1.0f);
         }
         else if (all_plates_stats_item->slice_state == IMToolbarItem::SliceState::SLICED) {
             ImVec2 size = ImVec2(button_width, button_height);
             ImVec2 end_pos = ImVec2(start_pos.x + size.x, start_pos.y + size.y);
-            ImGui::GetForegroundDrawList()->AddRectFilled(start_pos, end_pos, IM_COL32(0, 0, 0, 10));
+            ImGui::GetWindowDrawList()->AddRectFilled(start_pos, end_pos, IM_COL32(0, 0, 0, 10));
         }
 
         // draw text
@@ -7948,7 +7966,9 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
             ImGui::PushStyleColor(ImGuiCol_Border, button_active);
         }
         else {
-            if (ImGui::IsMouseHoveringRect(button_pos, button_pos + button_size)) {
+            // Translate window pos to abs pos, also account for the window scrolling
+            auto hover_rect = button_pos + ImGui::GetWindowPos() - ImGui::GetCurrentWindow()->Scroll;
+            if (ImGui::IsMouseHoveringRect(hover_rect, hover_rect + button_size)) {
                 ImGui::PushStyleColor(ImGuiCol_Border, button_hover);
             }
             else {
@@ -7974,22 +7994,22 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
         if (item->slice_state == IMToolbarItem::SliceState::UNSLICED) {
             ImVec2 size = ImVec2(button_width, button_height);
             ImVec2 end_pos = ImVec2(start_pos.x + size.x, start_pos.y + size.y);
-            ImGui::GetForegroundDrawList()->AddRectFilled(start_pos, end_pos, IM_COL32(0, 0, 0, 80));
+            ImGui::GetWindowDrawList()->AddRectFilled(start_pos, end_pos, IM_COL32(0, 0, 0, 80));
         } else if (item->slice_state == IMToolbarItem::SliceState::SLICING) {
             ImVec2 size = ImVec2(button_width, button_height * item->percent / 100.0f);
             ImVec2 rect_start_pos = ImVec2(start_pos.x, start_pos.y + size.y);
             ImVec2 rect_end_pos = ImVec2(start_pos.x + button_width, start_pos.y + button_height);
-            ImGui::GetForegroundDrawList()->AddRectFilled(start_pos, rect_end_pos, IM_COL32(0, 0, 0, 10));
-            ImGui::GetForegroundDrawList()->AddRectFilled(rect_start_pos, rect_end_pos, IM_COL32(0, 0, 0, 80));
+            ImGui::GetWindowDrawList()->AddRectFilled(start_pos, rect_end_pos, IM_COL32(0, 0, 0, 10));
+            ImGui::GetWindowDrawList()->AddRectFilled(rect_start_pos, rect_end_pos, IM_COL32(0, 0, 0, 80));
         } else if (item->slice_state == IMToolbarItem::SliceState::SLICE_FAILED) {
             ImVec2 size    = ImVec2(button_width, button_height);
             ImVec2 end_pos = ImVec2(start_pos.x + size.x, start_pos.y + size.y);
-            ImGui::GetForegroundDrawList()->AddRectFilled(start_pos, end_pos, IM_COL32(40, 1, 1, 64));
-            ImGui::GetForegroundDrawList()->AddRect(start_pos, end_pos, IM_COL32(208, 27, 27, 255), 0.0f, 0, 1.0f);
+            ImGui::GetWindowDrawList()->AddRectFilled(start_pos, end_pos, IM_COL32(40, 1, 1, 64));
+            ImGui::GetWindowDrawList()->AddRect(start_pos, end_pos, IM_COL32(208, 27, 27, 255), 0.0f, 0, 1.0f);
         } else if (item->slice_state == IMToolbarItem::SliceState::SLICED) {
             ImVec2 size = ImVec2(button_width, button_height);
             ImVec2 end_pos = ImVec2(start_pos.x + size.x, start_pos.y + size.y);
-            ImGui::GetForegroundDrawList()->AddRectFilled(start_pos, end_pos, IM_COL32(0, 0, 0, 10));
+            ImGui::GetWindowDrawList()->AddRectFilled(start_pos, end_pos, IM_COL32(0, 0, 0, 10));
         }
 
         // draw text
@@ -8385,7 +8405,7 @@ void GLCanvas3D::_render_assemble_info() const
     ImGui::PopFont();
     float margin = 10.0f * get_scale();
     imgui->set_next_window_pos(canvas_w - margin, canvas_h - margin, ImGuiCond_Always, 1.0f, 1.0f);
-    ImGuiWrapper::push_toolbar_style(get_scale());
+    ImGuiWrapper::push_common_window_style(get_scale()); // ORCA use window style for popups with title
     imgui->begin(_L("Assembly Info"), ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
     font->Scale = origScale;
     ImGui::PushFont(font);
@@ -8401,7 +8421,7 @@ void GLCanvas3D::_render_assemble_info() const
         ImGui::Text("%.2f x %.2f x %.2f", size0, size1, size2);
     }
     imgui->end();
-    ImGuiWrapper::pop_toolbar_style();
+    ImGuiWrapper::pop_common_window_style();
 }
 
 #if ENABLE_SHOW_CAMERA_TARGET
@@ -8707,7 +8727,7 @@ Vec3d GLCanvas3D::_mouse_to_3d(const Point& mouse_pos, float* z)
     }
     else {
         const Camera& camera = wxGetApp().plater()->get_camera();
-        const Vec4i viewport(camera.get_viewport().data());
+        const Vec4i32 viewport(camera.get_viewport().data());
         Vec3d out;
         igl::unproject(Vec3d(mouse_pos.x(), viewport[3] - mouse_pos.y(), *z), camera.get_view_matrix().matrix(), camera.get_projection_matrix().matrix(), viewport, out);
         return out;

@@ -165,7 +165,7 @@ Triangulation::Indices Triangulation::triangulate(const Points    &points,
     };
 
 #ifdef VISUALIZE_TRIANGULATION
-    std::vector<Vec3i> indices2;
+    std::vector<Vec3i32> indices2;
     indices2.reserve(num_faces);
     for (CDT::Face_handle fh : faces)
         if (inside(fh)) indices2.emplace_back(fh->vertex(0)->info(), fh->vertex(1)->info(), fh->vertex(2)->info());
@@ -196,7 +196,7 @@ Triangulation::Indices Triangulation::triangulate(const Points    &points,
         }
     }
 
-    std::vector<Vec3i> indices;
+    std::vector<Vec3i32> indices;
     indices.reserve(num_faces);
     for (CDT::Face_handle fh : faces)
         if (inside(fh))
@@ -257,7 +257,7 @@ Triangulation::Indices Triangulation::triangulate(const ExPolygons &expolygons){
         changes2[changes[i]] = i;
 
     // convert indices into expolygons indicies
-    for (Vec3i &t : indices) 
+    for (Vec3i32 &t : indices) 
         for (size_t ti = 0; ti < 3; ti++) t[ti] = changes2[t[ti]];
     
     return indices;

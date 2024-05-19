@@ -163,7 +163,7 @@ static FacetSliceType slice_facet(
     // 3 vertices of the triangle, XY scaled. Z scaled or unscaled (same as slice_z).
     const stl_vertex                    *vertices,
     const stl_triangle_vertex_indices   &indices,
-    const Vec3i                         &edge_ids,
+    const Vec3i32                         &edge_ids,
     const int                            idx_vertex_lowest,
     const bool                           horizontal,
     IntersectionLine                    &line_out)
@@ -330,7 +330,7 @@ static FacetSliceType slice_facet_for_cut_mesh(
     // 3 vertices of the triangle, XY scaled. Z scaled or unscaled (same as slice_z).
     const stl_vertex *                 vertices,
     const stl_triangle_vertex_indices &indices,
-    const Vec3i &                      edge_ids,
+    const Vec3i32 &                      edge_ids,
     const int                          idx_vertex_lowest,
     const bool                         horizontal,
     IntersectionLine &                 line_out)
@@ -482,7 +482,7 @@ void slice_facet_at_zs(
     const std::vector<Vec3f>                         &mesh_vertices,
     const TransformVertex                            &transform_vertex_fn,
     const stl_triangle_vertex_indices                &indices,
-    const Vec3i                                      &edge_ids,
+    const Vec3i32                                      &edge_ids,
     // Scaled or unscaled zs. If vertices have their zs scaled or transform_vertex_fn scales them, then zs have to be scaled as well.
     const std::vector<float>                         &zs,
     std::vector<IntersectionLines>                   &lines,
@@ -516,7 +516,7 @@ static inline std::vector<IntersectionLines> slice_make_lines(
     const std::vector<stl_vertex>                   &vertices,
     const TransformVertex                           &transform_vertex_fn,
     const std::vector<stl_triangle_vertex_indices>  &indices,
-    const std::vector<Vec3i>                        &face_edge_ids,
+    const std::vector<Vec3i32>                        &face_edge_ids,
     const std::vector<float>                        &zs,
     const ThrowOnCancel                              throw_on_cancel_fn)
 {
@@ -540,14 +540,14 @@ static inline IntersectionLines slice_make_lines(
     const std::vector<stl_vertex>                   &mesh_vertices,
     const TransformVertex                           &transform_vertex_fn,
     const std::vector<stl_triangle_vertex_indices>  &mesh_faces,
-    const std::vector<Vec3i>                        &face_edge_ids,
+    const std::vector<Vec3i32>                        &face_edge_ids,
     const float                                      plane_z, 
     FaceFilter                                       face_filter)
 {
     IntersectionLines lines;
     for (int face_idx = 0; face_idx < int(mesh_faces.size()); ++ face_idx)
         if (face_filter(face_idx)) {
-            const Vec3i &indices = mesh_faces[face_idx];
+            const Vec3i32 &indices = mesh_faces[face_idx];
             stl_vertex vertices[3] { transform_vertex_fn(mesh_vertices[indices(0)]), transform_vertex_fn(mesh_vertices[indices(1)]), transform_vertex_fn(mesh_vertices[indices(2)]) };
             // find facet extents
             const float min_z = fminf(vertices[0].z(), fminf(vertices[1].z(), vertices[2].z()));
@@ -593,8 +593,8 @@ void slice_facet_with_slabs(
     const std::vector<Vec3f>                         &mesh_vertices,
     const std::vector<stl_triangle_vertex_indices>   &mesh_triangles,
     const size_t                                      facet_idx,
-    const Vec3i                                      &facet_neighbors,
-    const Vec3i                                      &facet_edge_ids,
+    const Vec3i32                                      &facet_neighbors,
+    const Vec3i32                                      &facet_edge_ids,
     // Increase edge_ids at the top plane of the slab edges by num_edges to allow chaining
     // from bottom plane of the slab to the top plane of the slab and vice versa.
     const int                                         num_edges,
@@ -915,8 +915,8 @@ template<typename ThrowOnCancel>
 inline std::pair<SlabLines, SlabLines> slice_slabs_make_lines(
     const std::vector<stl_vertex>                   &vertices,
     const std::vector<stl_triangle_vertex_indices>  &indices,
-    const std::vector<Vec3i>                        &face_neighbors,
-    const std::vector<Vec3i>                        &face_edge_ids,
+    const std::vector<Vec3i32>                        &face_neighbors,
+    const std::vector<Vec3i32>                        &face_edge_ids,
     // Total number of edges. All face_edge_ids are lower than num_edges.
     // num_edges will be used to distinguish between intersections with the top and bottom plane.
     const int                                        num_edges,
@@ -949,9 +949,9 @@ inline std::pair<SlabLines, SlabLines> slice_slabs_make_lines(
                 if ((face_idx & 0x0ffff) == 0)
                     throw_on_cancel_fn();
                 FaceOrientation fo       = face_orientation[face_idx];
-                Vec3i           edge_ids = face_edge_ids[face_idx];
+                Vec3i32           edge_ids = face_edge_ids[face_idx];
                 if (top && (fo == FaceOrientation::Up || fo == FaceOrientation::Degenerate)) {
-                    Vec3i neighbors = face_neighbors[face_idx];
+                    Vec3i32 neighbors = face_neighbors[face_idx];
                     // Reset neighborship of this triangle in case the other triangle is oriented backwards from this one.
                     for (int i = 0; i < 3; ++ i)
                         if (neighbors(i) != -1) {
@@ -963,7 +963,7 @@ inline std::pair<SlabLines, SlabLines> slice_slabs_make_lines(
                 }
                 // BBS: add vertical faces option
                 if (bottom && (fo == FaceOrientation::Down || fo == FaceOrientation::Degenerate)) {
-                    Vec3i neighbors = face_neighbors[face_idx];
+                    Vec3i32 neighbors = face_neighbors[face_idx];
                     // Reset neighborship of this triangle in case the other triangle is oriented backwards from this one.
                     for (int i = 0; i < 3; ++ i)
                         if (neighbors(i) != -1) {
@@ -1832,7 +1832,7 @@ static void make_expolygons(const Polygons &loops, const float closing_radius, c
 static inline Transform3f make_trafo_for_slicing(const Transform3d &trafo)
 {
     auto t = trafo;
-    static constexpr const double s = 1. / SCALING_FACTOR;
+    const double s = 1. / SCALING_FACTOR;
     t.prescale(Vec3d(s, s, 1.));
     return t.cast<float>();
 }
@@ -1846,7 +1846,7 @@ static std::vector<stl_vertex> transform_mesh_vertices_for_slicing(const indexed
 {
     // Copy and scale vertices in XY, don't scale in Z.
     // Possibly apply the transformation.
-    static constexpr const double   s = 1. / SCALING_FACTOR;
+    const double   s = 1. / SCALING_FACTOR;
     std::vector<stl_vertex>         out(mesh.vertices);
     if (is_identity(trafo)) {
         // Identity.
@@ -1882,7 +1882,7 @@ std::vector<Polygons> slice_mesh(
         // Instead of edge identifiers, one shall use a sorted pair of edge vertex indices.
         // However facets_edges assigns a single edge ID to two triangles only, thus when factoring facets_edges out, one will have
         // to make sure that no code relies on it.
-        std::vector<Vec3i> face_edge_ids = its_face_edge_ids(mesh);
+        std::vector<Vec3i32> face_edge_ids = its_face_edge_ids(mesh);
         if (zs.size() <= 1) {
             // It likely is not worthwile to copy the vertices. Apply the transformation in place.
             if (is_identity(params.trafo)) {
@@ -1977,14 +1977,14 @@ Polygons slice_mesh(
 
             // 2) Mark faces crossing the plane.
             for (size_t i = 0; i < mesh.indices.size(); ++ i) {
-                const Vec3i &face = mesh.indices[i];
+                const Vec3i32 &face = mesh.indices[i];
                 int sides[3] = { vertex_side[face(0)], vertex_side[face(1)], vertex_side[face(2)] };
                 face_mask[i] = sides[0] * sides[1] <= 0 || sides[1] * sides[2] <= 0 || sides[0] * sides[2] <= 0;
             }
         }
 
         // 3) Calculate face neighbors for just the faces in face_mask.
-        std::vector<Vec3i> face_edge_ids = its_face_edge_ids(mesh, face_mask);
+        std::vector<Vec3i32> face_edge_ids = its_face_edge_ids(mesh, face_mask);
 
         // 4) Slice "face_mask" triangles, collect line segments.
         // It likely is not worthwile to copy the vertices. Apply the transformation in place.
@@ -2141,9 +2141,9 @@ void slice_mesh_slabs(
         face_orientation[&tri - mesh.indices.data()] = fo;
     }
 
-    std::vector<Vec3i> face_neighbors = its_face_neighbors_par(mesh);
+    std::vector<Vec3i32> face_neighbors = its_face_neighbors_par(mesh);
     int                num_edges;
-    std::vector<Vec3i> face_edge_ids  = its_face_edge_ids(mesh, face_neighbors, true, &num_edges);
+    std::vector<Vec3i32> face_edge_ids  = its_face_edge_ids(mesh, face_neighbors, true, &num_edges);
     std::pair<SlabLines, SlabLines> lines = slice_slabs_make_lines(
         vertices_transformed, mesh.indices, face_neighbors, face_edge_ids, num_edges, face_orientation, zs, 
         out_top != nullptr, out_bottom != nullptr, throw_on_cancel);
@@ -2346,7 +2346,7 @@ void cut_mesh(const indexed_triangle_set& mesh, float z, indexed_triangle_set* u
     // To triangulate the caps after slicing.
     IntersectionLines  upper_lines, lower_lines;
     std::vector<int>   upper_slice_vertices, lower_slice_vertices;
-    std::vector<Vec3i> facets_edge_ids = its_face_edge_ids(mesh);
+    std::vector<Vec3i32> facets_edge_ids = its_face_edge_ids(mesh);
     std::map<int, Vec3f *> section_vertices_map;
 
     for (int facet_idx = 0; facet_idx < int(mesh.indices.size()); ++ facet_idx) {
