@@ -163,7 +163,6 @@ std::string HMSQuery::hms_language_code()
     std::string lang_code = wxGetApp().app_config->get_language_code();
     if (lang_code.compare("uk") == 0
         || lang_code.compare("cs") == 0
-	|| lang_code.compare("pl") == 0
         || lang_code.compare("ru") == 0) {
         BOOST_LOG_TRIVIAL(info) << "HMS: using english for lang_code = " << lang_code;
         return "en";

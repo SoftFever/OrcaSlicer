@@ -238,16 +238,6 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
                     if (vertex_filament_ids.size() > 0) {
                         result = obj_import_vertex_color_deal(vertex_filament_ids, first_extruder_id, & model);
                     }
-                } else { // test //todo delete
-                    vertex_filament_ids.push_back(2);
-                    vertex_filament_ids.push_back(3);
-                    vertex_filament_ids.push_back(4);
-                    vertex_filament_ids.push_back(1); // 4
-                    vertex_filament_ids.push_back(1);
-                    vertex_filament_ids.push_back(1);
-                    vertex_filament_ids.push_back(1);
-                    vertex_filament_ids.push_back(1); // 8
-                    result = obj_import_vertex_color_deal(vertex_filament_ids, first_extruder_id, &model);
                 }
             } else if (obj_info.face_colors.size() > 0 && obj_info.has_uv_png == false) { // mtl file
                 std::vector<unsigned char> face_filament_ids;
