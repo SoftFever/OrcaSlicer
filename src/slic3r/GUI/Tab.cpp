@@ -5202,10 +5202,6 @@ bool Tab::tree_sel_change_delayed(wxCommandEvent& event)
     if (m_active_page == page)
         return false;
 
-    if (m_active_page != nullptr) {
-        m_active_page->deactivate();
-    }
-
     m_active_page = page;
 
     auto throw_if_canceled = std::function<void()>([this](){
@@ -5223,6 +5219,8 @@ bool Tab::tree_sel_change_delayed(wxCommandEvent& event)
 
     try {
         m_page_view->Freeze();
+        // clear pages from the controls
+        clear_pages();
         throw_if_canceled();
 
         //BBS: GUI refactor
@@ -5925,13 +5923,6 @@ void Page::activate(ConfigOptionMode mode, std::function<void()> throw_if_cancel
         }
     });
 #endif
-}
-
-void Page::deactivate()
-{
-    for (auto group : m_optgroups) {
-        group->Hide();
-    }
 }
 
 void Page::clear()
