@@ -850,7 +850,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Top and bottom surfaces"));
     def->enum_labels.push_back(L("Nowhere"));
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionEnum<GapFillTarget>(gftEverywhere));
+    def->set_default_value(new ConfigOptionEnum<GapFillTarget>(gftNowhere));
     
 
     def = this->add("enable_overhang_bridge_fan", coBools);
@@ -3538,7 +3538,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->enum_labels.push_back(L("Slope"));
     def->enum_labels.push_back(L("Spiral"));
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionEnumsGeneric{ ZHopType::zhtNormal });
+    def->set_default_value(new ConfigOptionEnumsGeneric{ ZHopType::zhtSlope });
 
     def = this->add("retract_lift_above", coFloats);
     def->label = L("Only lift Z above");
