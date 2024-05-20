@@ -2852,6 +2852,7 @@ void GLCanvas3D::load_gcode_preview(const GCodeProcessorResult& gcode_result, co
     m_gcode_viewer.init(wxGetApp().get_mode(), wxGetApp().preset_bundle);
     m_gcode_viewer.load(gcode_result, *this->fff_print(), wxGetApp().plater()->build_volume(), exclude_bounding_box,
         wxGetApp().get_mode(), only_gcode);
+    m_gcode_viewer.get_moves_slider()->SetHigherValue(m_gcode_viewer.get_moves_slider()->GetMaxValue());
 
     if (wxGetApp().is_editor()) {
         //BBS: always load shell at preview, do this in load_shells
@@ -3609,51 +3610,44 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                     if (m_canvas_type == CanvasPreview) {
                         IMSlider *m_layers_slider = get_gcode_viewer().get_layers_slider();
                         IMSlider *m_moves_slider  = get_gcode_viewer().get_moves_slider();
-                        if (evt.CmdDown() || evt.ShiftDown()) {
-                            if (evt.GetKeyCode() == 'G') {
-                                m_layers_slider->show_go_to_layer(true);
-                            }
-                            IMSlider *m_layers_slider = get_gcode_viewer().get_layers_slider();
-                            IMSlider *m_moves_slider  = get_gcode_viewer().get_moves_slider();
-                            if (keyCode == WXK_UP || keyCode == WXK_DOWN) {
-                                int new_pos;
-                                if (m_layers_slider->GetSelection() == ssHigher) {
-                                    new_pos = keyCode == WXK_UP ? m_layers_slider->GetHigherValue() + 5 : m_layers_slider->GetHigherValue() - 5;
-                                    m_layers_slider->SetHigherValue(new_pos);
-                                }
-                                else if (m_layers_slider->GetSelection() == ssLower) {
-                                    new_pos = keyCode == WXK_UP ? m_layers_slider->GetLowerValue() + 5 : m_layers_slider->GetLowerValue() - 5;
-                                    m_layers_slider->SetLowerValue(new_pos);
-                                }
-                                if (m_layers_slider->is_one_layer()) m_layers_slider->SetLowerValue(m_layers_slider->GetHigherValue());
-                                // BBS set as dirty, update in render_gcode()
-                                m_layers_slider->set_as_dirty();
-                            } else if (keyCode == WXK_LEFT || keyCode == WXK_RIGHT) {
-                                const int new_pos = keyCode == WXK_RIGHT ? m_moves_slider->GetHigherValue() + 5 : m_moves_slider->GetHigherValue() - 5;
-                                m_moves_slider->SetHigherValue(new_pos);
-                                // BBS set as dirty, update in render_gcode()
-                                m_moves_slider->set_as_dirty();
-                            }
+                        int increment = (evt.CmdDown() || evt.ShiftDown()) ? 5 : 1;
+                        if ((evt.CmdDown() || evt.ShiftDown()) && evt.GetKeyCode() == 'G') {
+                            m_layers_slider->show_go_to_layer(true);
                         }
                         else if (keyCode == WXK_UP || keyCode == WXK_DOWN) {
                             int new_pos;
                             if (m_layers_slider->GetSelection() == ssHigher) {
-                                new_pos = keyCode == WXK_UP ? m_layers_slider->GetHigherValue() + 1 : m_layers_slider->GetHigherValue() - 1;
+                                new_pos = keyCode == WXK_UP ? m_layers_slider->GetHigherValue() + increment : m_layers_slider->GetHigherValue() - increment;
                                 m_layers_slider->SetHigherValue(new_pos);
+                                m_moves_slider->SetHigherValue(m_moves_slider->GetMaxValue());
                             }
                             else if (m_layers_slider->GetSelection() == ssLower) {
-                                new_pos = keyCode == WXK_UP ? m_layers_slider->GetLowerValue() + 1 : m_layers_slider->GetLowerValue() - 1;
+                                new_pos = keyCode == WXK_UP ? m_layers_slider->GetLowerValue() + increment : m_layers_slider->GetLowerValue() - increment;
                                 m_layers_slider->SetLowerValue(new_pos);
                             }
-                            if (m_layers_slider->is_one_layer()) m_layers_slider->SetLowerValue(m_layers_slider->GetHigherValue());
-                            // BBS set as dirty, update in render_gcode()
-                            m_layers_slider->set_as_dirty();
-                        } else if (keyCode == WXK_LEFT || keyCode == WXK_RIGHT) {
-                            const int new_pos = keyCode == WXK_RIGHT ? m_moves_slider->GetHigherValue() + 1 : m_moves_slider->GetHigherValue() - 1;
+                        } else if (keyCode == WXK_LEFT) {
+                            if (m_moves_slider->GetHigherValue() == m_moves_slider->GetMinValue() && (m_layers_slider->GetHigherValue() > m_layers_slider->GetMinValue())) {
+                                m_layers_slider->SetHigherValue(m_layers_slider->GetHigherValue() - 1);
+                                m_moves_slider->SetHigherValue(m_moves_slider->GetMaxValue());
+                            } else {
+                                m_moves_slider->SetHigherValue(m_moves_slider->GetHigherValue() - increment);
+                            }
+                        } else if (keyCode == WXK_RIGHT) {
+                            if (m_moves_slider->GetHigherValue() == m_moves_slider->GetMaxValue() && (m_layers_slider->GetHigherValue() < m_layers_slider->GetMaxValue())) {
+                                m_layers_slider->SetHigherValue(m_layers_slider->GetHigherValue() + 1);
+                                m_moves_slider->SetHigherValue(m_moves_slider->GetMinValue());
+                            } else {
+                                m_moves_slider->SetHigherValue(m_moves_slider->GetHigherValue() + increment);
+                            }
+                        } else if (keyCode == WXK_HOME || keyCode == WXK_END) {
+                            const int new_pos = keyCode == WXK_HOME ? m_moves_slider->GetMinValue() : m_moves_slider->GetMaxValue();
                             m_moves_slider->SetHigherValue(new_pos);
-                            // BBS set as dirty, update in render_gcode()
                             m_moves_slider->set_as_dirty();
                         }
+
+                        if (m_layers_slider->is_dirty() && m_layers_slider->is_one_layer())
+                            m_layers_slider->SetLowerValue(m_layers_slider->GetHigherValue());
+
                         m_dirty = true;
                     }
                 }

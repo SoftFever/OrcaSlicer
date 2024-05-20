@@ -2267,12 +2267,15 @@ void TabPrint::build()
         optgroup->append_single_option_line("tree_support_brim_width");
         
     page = add_options_page(L("Others"), "custom-gcode_other"); // ORCA: icon only visible on placeholders
-        optgroup = page->new_optgroup(L("Bed adhension"), L"param_adhension");
+        optgroup = page->new_optgroup(L("Skirt"), L"param_skirt");
         optgroup->append_single_option_line("skirt_loops");
+        optgroup->append_single_option_line("min_skirt_length");
         optgroup->append_single_option_line("skirt_distance");
         optgroup->append_single_option_line("skirt_height");
         optgroup->append_single_option_line("skirt_speed");
-        //optgroup->append_single_option_line("draft_shield");
+        optgroup->append_single_option_line("draft_shield");
+        
+        optgroup = page->new_optgroup(L("Brim"), L"param_adhension");
         optgroup->append_single_option_line("brim_type", "auto-brim");
         optgroup->append_single_option_line("brim_width", "auto-brim#manual");
         optgroup->append_single_option_line("brim_object_gap", "auto-brim#brim-object-gap");
@@ -5199,10 +5202,6 @@ bool Tab::tree_sel_change_delayed(wxCommandEvent& event)
     if (m_active_page == page)
         return false;
 
-    if (m_active_page != nullptr) {
-        m_active_page->deactivate();
-    }
-
     m_active_page = page;
 
     auto throw_if_canceled = std::function<void()>([this](){
@@ -5220,6 +5219,8 @@ bool Tab::tree_sel_change_delayed(wxCommandEvent& event)
 
     try {
         m_page_view->Freeze();
+        // clear pages from the controls
+        clear_pages();
         throw_if_canceled();
 
         //BBS: GUI refactor
@@ -5922,13 +5923,6 @@ void Page::activate(ConfigOptionMode mode, std::function<void()> throw_if_cancel
         }
     });
 #endif
-}
-
-void Page::deactivate()
-{
-    for (auto group : m_optgroups) {
-        group->Hide();
-    }
 }
 
 void Page::clear()
