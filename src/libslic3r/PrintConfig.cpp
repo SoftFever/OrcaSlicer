@@ -2456,7 +2456,11 @@ def = this->add("filament_loading_speed", coFloats);
     def = this->add("enable_arc_fitting", coBool);
     def->label = L("Arc fitting");
     def->tooltip = L("Enable this to get a G-code file which has G2 and G3 moves. "
-                     "And the fitting tolerance is same with resolution");
+                     "The fitting tolerance is same as the resolution. \n\n"
+                     "Note: For klipper machines, this option is recomended to be disabled. Klipper does not benefit from "
+                     "arc commands as these are split again into line segments by the firmware. This results in a reduction "
+                     "in surface quality as line segments are converted to arcs by the slicer and then back to line segments "
+                     "by the firmware.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(0));
     // BBS

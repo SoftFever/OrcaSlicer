@@ -144,8 +144,6 @@ private:
     wxPanel*                            m_title_panel{ nullptr };
     wxBoxSizer*                         m_title_sizer{ nullptr };
     wxBoxSizer*                         m_text_sizer{ nullptr };
-    ScalableBitmap*                     m_print_time{ nullptr };
-    wxStaticBitmap*                     m_time_img{ nullptr };
     wxStaticText*                       m_stext_time{ nullptr };
     wxStaticText*                       m_stext_weight{ nullptr };
     wxStaticBitmap*                     timeimg{ nullptr };
