@@ -424,6 +424,9 @@ void PresetComboBox::msw_rescale()
     m_bitmapIncompatible.msw_rescale();
     m_bitmapCompatible.msw_rescale();
 
+    if (edit_btn != nullptr)
+        edit_btn->msw_rescale();
+
     // parameters for an icon's drawing
     fill_width_height();
 
