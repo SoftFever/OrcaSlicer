@@ -640,27 +640,24 @@ protected:
             score += lambda4 * hasRowHeightConflict + lambda4 * hasLidHeightConflict;
         }
         else {
+            int valid_items_cnt = 0;
+            double height_score = 0;
             for (int i = 0; i < m_items.size(); i++) {
                 Item& p = m_items[i];
-                if (p.is_virt_object) {
-                    // Better not put items above wipe tower
-                    if (p.is_wipe_tower) {
-                        if (ibb.maxCorner().y() > p.boundingBox().maxCorner().y())
-                            score += 1;
-                        else if(m_pilebb.defined)
-                            score += norm(pl::distance(ibb.center(), m_pilebb.center()));
-                    }
-                    else
-                        continue;
-                } else {
+                if (!p.is_virt_object) {
+                    valid_items_cnt++;
                     // 高度接近的件尽量摆到一起
-                    score += (1- std::abs(item.height - p.height) / params.printable_height)
+                    height_score += (1- std::abs(item.height - p.height) / params.printable_height)
                         * norm(pl::distance(ibb.center(), p.boundingBox().center()));
                     //score += LARGE_COST_TO_REJECT * (item.bed_temp - p.bed_temp != 0);
-                    if (!Print::is_filaments_compatible({ item.filament_temp_type,p.filament_temp_type }))
+                    if (!Print::is_filaments_compatible({ item.filament_temp_type,p.filament_temp_type })) {
                         score += LARGE_COST_TO_REJECT;
+                        break;
+                    }
                 }
             }
+            if (valid_items_cnt > 0)
+                score += height_score / valid_items_cnt;
         }
 
         std::set<int> extruder_ids;
@@ -682,9 +679,11 @@ protected:
         }
         // for layered printing, we want extruder change as few as possible
         // this has very weak effect, CAN NOT use a large weight
+        int last_extruder_cnt = extruder_ids.size();
         extruder_ids.insert(item.extrude_ids.begin(), item.extrude_ids.end());
+        int new_extruder_cnt= extruder_ids.size();
         if (!params.is_seq_print) {
-            score += 1 * std::max(0, ((int) extruder_ids.size() - 1));
+            score += 1 * (new_extruder_cnt-last_extruder_cnt);
         }
 
         return std::make_tuple(score, fullbb);
@@ -943,8 +942,15 @@ template<class Bin> void remove_large_items(std::vector<Item> &items, Bin &&bin)
 
 template<class S> Radians min_area_boundingbox_rotation(const S &sh)
 {
-    return minAreaBoundingBox<S, TCompute<S>, boost::rational<LargeInt>>(sh)
-        .angleToX();
+    try {
+        return minAreaBoundingBox<S, TCompute<S>, boost::rational<LargeInt>>(sh)
+            .angleToX();
+    }
+    catch (const std::exception& e) {
+        // min_area_boundingbox_rotation may throw exception of dividing 0 if the object is already perfectly aligned to X
+        BOOST_LOG_TRIVIAL(error) << "arranging min_area_boundingbox_rotation fails, msg=" << e.what();
+        return 0.0;
+    }
 }
 
 template<class S>

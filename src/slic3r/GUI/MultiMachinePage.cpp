@@ -40,6 +40,17 @@ void MultiMachinePage::on_sys_color_changed()
 
 void MultiMachinePage::msw_rescale()
 {
+    m_tabpanel->Rescale();
+    if (m_local_task_manager)
+        m_local_task_manager->msw_rescale();
+    if (m_cloud_task_manager)
+        m_cloud_task_manager->msw_rescale();
+    if (m_machine_manager)
+        m_machine_manager->msw_rescale();
+
+    this->Fit();
+    this->Layout();
+    this->Refresh();
 }
 
 bool MultiMachinePage::Show(bool show)

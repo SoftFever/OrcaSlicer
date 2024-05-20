@@ -21,7 +21,6 @@
     "bridge_no_support": "0",
     "draft_shield": "disabled",
     "elefant_foot_compensation": "0.15",
-    "enable_arc_fitting": "1",
     "outer_wall_line_width": "0.82",
     "outer_wall_speed": "120",
     "outer_wall_acceleration": "5000",
