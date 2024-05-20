@@ -738,7 +738,7 @@ Sidebar::Sidebar(Plater *parent)
         vsizer_printer->AddSpacer(FromDIP(16));
         hsizer_printer->Add(combo_printer, 1, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(12)); // Content Margin
         hsizer_printer->Add(edit_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(5)); // Element Spacing
-        //hsizer_printer->Add(FromDIP(8), 0, 0, 0, 0); // Dont use spacer if icon will hide. spacer will left when icon was hidden
+        //hsizer_printer->Add(FromDIP(8), 0, 0, 0, 0);
         hsizer_printer->Add(connection_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(10)); // Icon Spacing
         hsizer_printer->AddSpacer(FromDIP(12)); // Content Margin
         vsizer_printer->Add(hsizer_printer, 0, wxEXPAND, 0);
@@ -1009,8 +1009,7 @@ Sidebar::Sidebar(Plater *parent)
     combobox->edit_btn = edit_btn;
 
     combo_and_btn_sizer->Add(edit_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(3)); // Element Spacing (5 - 2 (from combo box))
-    combo_and_btn_sizer->AddSpacer(FromDIP(6)); // Content Margin Right - Use half size if multiple filaments exist
-    combo_and_btn_sizer->AddSpacer(FromDIP(6))->Show(p->combos_filament[1] != NULL); //  Use full margin if only one filaments exist
+    combo_and_btn_sizer->AddSpacer(FromDIP(12)); // Content Margin
 
     p->combos_filament[0]->set_filament_idx(0);
     p->sizer_filaments->GetItem((size_t)0)->GetSizer()->Add(combo_and_btn_sizer, 1, wxEXPAND);
@@ -1122,7 +1121,8 @@ void Sidebar::init_filament_combo(PlaterPresetComboBox **combo, const int filame
 
     // BBS:  filament double columns
     int em = wxGetApp().em_unit();
-    combo_and_btn_sizer->AddSpacer(FromDIP(filament_idx % 2 ? 6 : 12)); // Content Margin or Middle Spacing. Adds Content Margin for left column combo box or Half of it if right column combo box
+    if ((filament_idx % 2) == 0) // Dont add right column item. this one create equal spacing on left, right & middle
+        combo_and_btn_sizer->AddSpacer(FromDIP((filament_idx % 2) == 0 ? 12 : 3)); // Content Margin
     (*combo)->clr_picker->SetLabel(wxString::Format("%d", filament_idx + 1));
     combo_and_btn_sizer->Add((*combo)->clr_picker, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(3)); // Element Spacing (5 - 2 (from combo box))
     combo_and_btn_sizer->Add(*combo, 1, wxALL | wxEXPAND, FromDIP(2))->SetMinSize({-1, FromDIP(30)});
@@ -1155,7 +1155,7 @@ void Sidebar::init_filament_combo(PlaterPresetComboBox **combo, const int filame
 
     combo_and_btn_sizer->Add(edit_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(3)); // Element Spacing (5 - 2 (from combo box))
 
-    combo_and_btn_sizer->AddSpacer(FromDIP(filament_idx % 2 ? 12 : 6)); // Content Margin or Middle Spacing. Adds Content Margin for right column combo box or Half of it if left column combo box
+    combo_and_btn_sizer->AddSpacer(FromDIP(12)); // Content Margin
 
     // BBS:  filament double columns
     auto side = filament_idx % 2;
