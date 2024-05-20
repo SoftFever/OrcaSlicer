@@ -1439,7 +1439,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Moderate"));
     def->enum_labels.push_back(L("All"));
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionEnum<EnsureVerticalShellThickness>(EnsureVerticalShellThickness::evstAll));
+    def->set_default_value(new ConfigOptionEnum<EnsureVerticalShellThickness>(EnsureVerticalShellThickness::evstModerate));
     
     auto def_top_fill_pattern = def = this->add("top_surface_pattern", coEnum);
     def->label = L("Top surface pattern");
