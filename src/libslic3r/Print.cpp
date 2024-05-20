@@ -76,7 +76,8 @@ PrintRegion::PrintRegion(const PrintRegionConfig &config) : PrintRegion(config, 
 PrintRegion::PrintRegion(PrintRegionConfig &&config) : PrintRegion(std::move(config), config.hash()) {}
 
 //BBS
-float Print::min_skirt_length = 0;
+// ORCA: Now this is a parameter
+//float Print::min_skirt_length = 0;
 
 void Print::clear()
 {
@@ -239,6 +240,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
                opt_key == "skirt_loops"
             || opt_key == "skirt_speed"
             || opt_key == "skirt_height"
+            || opt_key == "min_skirt_length"
             || opt_key == "draft_shield"
             || opt_key == "skirt_distance"
             || opt_key == "ooze_prevention"
@@ -2331,15 +2333,15 @@ void Print::_make_skirt()
             )));
         eloop.paths.back().polyline = loop.split_at_first_point();
         m_skirt.append(eloop);
-        if (Print::min_skirt_length > 0) {
+        if (m_config.min_skirt_length.value > 0) {
             // The skirt length is limited. Sum the total amount of filament length extruded, in mm.
             extruded_length[extruder_idx] += unscale<double>(loop.length()) * extruders_e_per_mm[extruder_idx];
-            if (extruded_length[extruder_idx] < Print::min_skirt_length) {
+            if (extruded_length[extruder_idx] < m_config.min_skirt_length.value) {
                 // Not extruded enough yet with the current extruder. Add another loop.
                 if (i == 1)
                     ++ i;
             } else {
-                assert(extruded_length[extruder_idx] >= Print::min_skirt_length);
+                assert(extruded_length[extruder_idx] >= m_config.min_skirt_length.value);
                 // Enough extruded with the current extruder. Extrude with the next one,
                 // until the prescribed number of skirt loops is extruded.
                 if (extruder_idx + 1 < extruders.size())
