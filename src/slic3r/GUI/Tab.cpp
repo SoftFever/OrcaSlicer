@@ -73,14 +73,6 @@
 	#include <commctrl.h>
 #endif // WIN32
 
-// ORCA
-// Always use Left margins while managing spacings to keep thing aligned
-// Spacers cannot be hidden with conditions so dont use them with statements
-#define margin_titlebar	(wxWindowBase::FromDIP(8))  // Left and Right margins for titlebars
-#define margin_content	(wxWindowBase::FromDIP(12)) // Content should has more margin compared to titlebar for visual seperation
-#define spacing_icon	(wxWindowBase::FromDIP(10))  // Spacing between icons
-#define spacing_element	(wxWindowBase::FromDIP(5))  // Use this if button/text is near of input / combobox element
-
 namespace Slic3r {
 namespace GUI {
 
@@ -383,11 +375,11 @@ void Tab::create_preset_tab()
     m_main_sizer = new wxBoxSizer( wxVERTICAL );
     m_top_sizer = new wxBoxSizer( wxHORIZONTAL );
 
-    m_top_sizer->Add(m_undo_btn, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, margin_content);
+    m_top_sizer->Add(m_undo_btn, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(12)); // Content Margin
     // BBS: model config
     if (m_presets_choice) {
         m_presets_choice->Reparent(m_top_panel);
-        m_top_sizer->Add(m_presets_choice, 1, wxLEFT | wxALIGN_CENTER_VERTICAL, spacing_element);
+        m_top_sizer->Add(m_presets_choice, 1, wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(5)); // Element Spacing
     } else {
         m_top_sizer->AddSpacer(10);
         m_top_sizer->AddStretchSpacer(1);
@@ -395,13 +387,13 @@ void Tab::create_preset_tab()
 
     const float scale_factor = /*wxGetApp().*/em_unit(this)*0.1;// GetContentScaleFactor();
 #ifndef DISABLE_UNDO_SYS
-    m_top_sizer->Add(m_undo_to_sys_btn, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, spacing_icon);
+    m_top_sizer->Add(m_undo_to_sys_btn, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(10)); // Icon spacing
     //m_top_sizer->AddSpacer(8); // dont add spacers with condition because they will not remove back after condition returns false. use left/right margin instead
 #endif
-    m_top_sizer->Add(m_btn_save_preset, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, spacing_element);
-    m_top_sizer->Add(m_btn_delete_preset, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, spacing_icon);
-    m_top_sizer->Add(m_btn_search, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, spacing_icon);
-    m_top_sizer->Add(m_search_item, 1, wxALIGN_CENTER_VERTICAL, 0);
+    m_top_sizer->Add(m_btn_save_preset, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(5)); // Element Spacing
+    m_top_sizer->Add(m_btn_delete_preset, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(10)); // Icon Spacing
+    m_top_sizer->Add(m_btn_search, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(10)); // Icon Spacing
+    m_top_sizer->Add(m_search_item, 1, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(12)); // Content Margin
 
     if (dynamic_cast<TabPrint*>(this) == nullptr) {
         m_static_title = new Label(m_top_panel, Label::Body_12, _L("Advance"));
@@ -410,13 +402,13 @@ void Tab::create_preset_tab()
         m_static_title->Bind(wxEVT_LEFT_UP, [this](auto& e) {
             restore_last_select_item();
         });
-        m_top_sizer->Add(m_static_title, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, spacing_icon);
+        m_top_sizer->Add(m_static_title, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(10)); // Icon Spacing
         m_mode_view = new SwitchButton(m_top_panel, wxID_ABOUT);
-        m_top_sizer->AddSpacer(spacing_element);
+        m_top_sizer->AddSpacer(FromDIP(5)); // Element Spacing
         m_top_sizer->Add( m_mode_view, 0, wxALIGN_CENTER_VERTICAL);
     }
 
-    m_top_sizer->AddSpacer(margin_content); // Right margin
+    m_top_sizer->AddSpacer(FromDIP(12)); // Content Margin
 
     m_top_sizer->SetMinSize(-1, 3 * m_em_unit);
     m_top_panel->SetSizer(m_top_sizer);
