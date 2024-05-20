@@ -15,13 +15,7 @@
   "top_shell_thickness": "0.6",
   "bridge_flow": "1",
   "support_threshold_angle": "20",
-  "initial_layer_infill_speed": "60",
-  "inner_wall_speed": "230",
-  "internal_solid_infill_speed": "230",
-  "sparse_infill_speed": "120",
-  "top_surface_speed": "120",
-  "gap_infill_speed": "160",
-  "overhang_1_4_speed": "60",
-  "overhang_2_4_speed": "30",
-  "overhang_3_4_speed": "10"
+  "initial_layer_infill_speed": "80",
+  "inner_wall_speed": "145",
+  "internal_solid_infill_speed": "150"
 }

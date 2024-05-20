@@ -1268,7 +1268,7 @@ void Sidebar::update_all_preset_comboboxes()
 
     // Orca:: show device tab based on vendor type
     p_mainframe->show_device(use_bbl_network);
-    p_mainframe->select_tab(MainFrame::tp3DEditor);
+    p_mainframe->m_tabpanel->SetSelection(p_mainframe->m_tabpanel->GetSelection());
 }
 
 void Sidebar::update_presets(Preset::Type preset_type)
@@ -2372,6 +2372,7 @@ struct Plater::priv
 
     void select_all();
     void deselect_all();
+    void exit_gizmo();
     void remove(size_t obj_idx);
     bool delete_object_from_model(size_t obj_idx, bool refresh_immediately = true); //BBS
     void delete_all_objects_from_model();
@@ -2697,7 +2698,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     , config(Slic3r::DynamicPrintConfig::new_from_defaults_keys({
         "printable_area", "bed_exclude_area", "bed_custom_texture", "bed_custom_model", "print_sequence",
         "extruder_clearance_radius", "extruder_clearance_height_to_lid", "extruder_clearance_height_to_rod",
-		"nozzle_height", "skirt_loops", "skirt_speed", "skirt_distance",
+		"nozzle_height", "skirt_loops", "skirt_speed","min_skirt_length", "skirt_distance",
         "brim_width", "brim_object_gap", "brim_type", "nozzle_diameter", "single_extruder_multi_material", "preferred_orientation",
         "enable_prime_tower", "wipe_tower_x", "wipe_tower_y", "prime_tower_width", "prime_tower_brim_width", "prime_volume",
         "extruder_colour", "filament_colour", "material_colour", "printable_height", "printer_model", "printer_technology",
@@ -3926,6 +3927,16 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
                         //always load config
                         {
+                            // BBS: save the wipe tower pos in file here, will be used later
+                            ConfigOptionFloats* wipe_tower_x_opt = config.opt<ConfigOptionFloats>("wipe_tower_x");
+                            ConfigOptionFloats* wipe_tower_y_opt = config.opt<ConfigOptionFloats>("wipe_tower_y");
+                            std::optional<ConfigOptionFloats>file_wipe_tower_x;
+                            std::optional<ConfigOptionFloats>file_wipe_tower_y;
+                            if (wipe_tower_x_opt)
+                                file_wipe_tower_x = *wipe_tower_x_opt;
+                            if (wipe_tower_y_opt)
+                                file_wipe_tower_y = *wipe_tower_y_opt;
+
                             preset_bundle->load_config_model(filename.string(), std::move(config), file_version);
 
                             ConfigOption* bed_type_opt = preset_bundle->project_config.option("curr_bed_type");
@@ -4001,6 +4012,17 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             // when for extruder colors are used filament colors
                             q->on_filaments_change(preset_bundle->filament_presets.size());
                             is_project_file = true;
+
+                            //BBS: rewrite wipe tower pos stored in 3mf file , the code above should be seriously reconsidered
+                            {
+                                DynamicConfig& proj_cfg = wxGetApp().preset_bundle->project_config;
+                                ConfigOptionFloats* wipe_tower_x = proj_cfg.opt<ConfigOptionFloats>("wipe_tower_x");
+                                ConfigOptionFloats* wipe_tower_y = proj_cfg.opt<ConfigOptionFloats>("wipe_tower_y");
+                                if (file_wipe_tower_x)
+                                    *wipe_tower_x = *file_wipe_tower_x;
+                                if (file_wipe_tower_y)
+                                    *wipe_tower_y = *file_wipe_tower_y;
+                            }
                         }
                     }
                     if (!silence) wxGetApp().app_config->update_config_dir(path.parent_path().string());
@@ -4049,9 +4071,18 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             cancel        = !cont;
                     },
                     [](int isUtf8StepFile) {
-                        if (!isUtf8StepFile)
-                            Slic3r::GUI::show_info(nullptr, _L("Name of components inside step file is not UTF8 format!") + "\n\n" + _L("The name may show garbage characters!"),
-                                                   _L("Attention!"));
+                            if (!isUtf8StepFile) {
+                                const auto no_warn = wxGetApp().app_config->get_bool("step_not_utf8_no_warn");
+                                if (!no_warn) {
+                                    MessageDialog dlg(nullptr, _L("Name of components inside step file is not UTF8 format!") + "\n\n" + _L("The name may show garbage characters!"),
+                                                      wxString(SLIC3R_APP_FULL_NAME " - ") + _L("Attention!"), wxOK | wxICON_INFORMATION);
+                                    dlg.show_dsa_button(_L("Remember my choice."));
+                                    dlg.ShowModal();
+                                    if (dlg.get_checkbox_state()) {
+                                        wxGetApp().app_config->set_bool("step_not_utf8_no_warn", true);
+                                    }
+                                }
+                            }
                         },
                     nullptr, 0, obj_color_fun);
 
@@ -4760,6 +4791,11 @@ void Plater::priv::select_all()
 void Plater::priv::deselect_all()
 {
     view3D->deselect_all();
+}
+
+void Plater::priv::exit_gizmo()
+{
+    view3D->exit_gizmo();
 }
 
 void Plater::priv::remove(size_t obj_idx)
@@ -5961,7 +5997,8 @@ void Plater::priv::reload_from_disk()
     for (auto [src, dest] : replace_paths) {
         for (auto [obj_idx, vol_idx] : selected_volumes) {
             if (boost::algorithm::iequals(model.objects[obj_idx]->volumes[vol_idx]->source.input_file, src.string()))
-                replace_volume_with_stl(obj_idx, vol_idx, dest, "");
+                // When an error occurs, either the dest parsing error occurs, or the number of objects in the dest is greater than 1 and cannot be replaced, and cannot be replaced in this loop.
+                if (!replace_volume_with_stl(obj_idx, vol_idx, dest, "")) break;
         }
     }
 #else
@@ -7770,8 +7807,8 @@ bool Plater::priv::init_collapse_toolbar()
     collapse_toolbar.set_layout_type(GLToolbar::Layout::Vertical);
     collapse_toolbar.set_horizontal_orientation(GLToolbar::Layout::HO_Right);
     collapse_toolbar.set_vertical_orientation(GLToolbar::Layout::VO_Top);
-    collapse_toolbar.set_border(5.0f);
-    collapse_toolbar.set_separator_size(5);
+    collapse_toolbar.set_border(4.0f);
+    collapse_toolbar.set_separator_size(4);
     collapse_toolbar.set_gap_size(2);
 
     collapse_toolbar.del_all_item();
@@ -7972,6 +8009,13 @@ bool Plater::priv::show_publish_dlg(bool show)
 //BBS: add bed exclude area
 void Plater::priv::set_bed_shape(const Pointfs& shape, const Pointfs& exclude_areas, const double printable_height, const std::string& custom_texture, const std::string& custom_model, bool force_as_custom)
 {
+    //Orca: reduce resolution for large bed printer
+    BoundingBoxf bed_size = get_extents(shape);
+    if (bed_size.size().maxCoeff() <= LARGE_BED_THRESHOLD)
+        SCALING_FACTOR = SCALING_FACTOR_INTERNAL;
+    else
+        SCALING_FACTOR = SCALING_FACTOR_INTERNAL_LARGE_PRINTER;
+
     //BBS: add shape position
     Vec2d shape_position = partplate_list.get_current_shape_position();
     bool new_shape = bed.set_shape(shape, printable_height, custom_model, force_as_custom, shape_position);
@@ -9065,7 +9109,7 @@ void Plater::import_model_id(wxString download_info)
                         error);
 
                     if (retry_count == max_retries) {
-                        msg = _L("Importing to Bambu Studio failed. Please download the file and manually import it.");
+                        msg = _L("Importing to Orca Slicer failed. Please download the file and manually import it.");
                         cont = false;
                     }
                 })
@@ -10643,6 +10687,7 @@ void Plater::remove_curr_plate_all() { p->remove_curr_plate_all(); }
 
 void Plater::select_all() { p->select_all(); }
 void Plater::deselect_all() { p->deselect_all(); }
+void Plater::exit_gizmo() { p->exit_gizmo(); }
 
 void Plater::remove(size_t obj_idx) { p->remove(obj_idx); }
 void Plater::reset(bool apply_presets_change) { p->reset(apply_presets_change); }
@@ -11987,7 +12032,7 @@ int Plater::start_next_slice()
         this->p->view3D->reload_scene(false);
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": update_background_process returns %1%")%state;
-    if (p->partplate_list.get_curr_plate()->is_apply_result_invalid()) {
+    if (!p->partplate_list.get_curr_plate()->can_slice()) {
         p->process_completed_with_error = p->partplate_list.get_curr_plate_index();
         BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": found invalidated apply in update_background_process.");
         return -1;

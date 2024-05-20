@@ -8,5 +8,5 @@
     "bed_model": "miniis_bed.stl",
     "bed_texture": "miniis.svg",
     "hotend_model": "",
-    "default_materials": "Prusa Generic PLA-CF;Prusa Generic PC;Prusa Generic PVA;Prusa Generic PA;Prusa Generic PA-CF;Prusa Generic ABS @MINIIS;Prusa Generic PLA @MINIIS;Prusa Generic PETG @MINIIS;Prusa Generic TPU @MINIIS;Prusa Generic ASA @MINIIS;"
+    "default_materials": "Prusa Generic PLA-CF @MINIIS;Prusa Generic PC @MINIIS;Prusa Generic PVA @MINIIS;Prusa Generic PA @MINIIS;Prusa Generic PA-CF @MINIIS;Prusa Generic ABS @MINIIS;Prusa Generic PLA @MINIIS;Prusa Generic PLA @MINIIS 0.6;Prusa Generic PLA @MINIIS 0.8;Prusa Generic PETG @MINIIS;Prusa Generic PETG @MINIIS 0.6;Prusa Generic PETG @MINIIS 0.8;Prusa Generic TPU @MINIIS;Prusa Generic ASA @MINIIS;"
 }

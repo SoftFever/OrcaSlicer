@@ -27,7 +27,8 @@ public:
         cv::Mat image8UC3;
         convert_color_space(flatten_image8UC3, image8UC3, color_space);
         cv::Mat image32FC3(image8UC3.rows, 1, CV_32FC3);
-        for (int i = 0; i < image8UC3.rows; i++) image32FC3.at<cv::Vec3f>(i, 0) = image8UC3.at<cv::Vec3b>(i, 0);
+        for (int i = 0; i < image8UC3.rows; i++)
+            image32FC3.at<cv::Vec3f>(i, 0) = image8UC3.at<cv::Vec3b>(i, 0);
 
         apply(image32FC3, num_cluster, color_space);
         repalce_centers_aplha(ori_image, new_image);
@@ -43,16 +44,25 @@ public:
 
         convert_color_space(this->m_centers8UC3, this->m_centers8UC3, color_space, true);
     }
-
     void apply(const std::vector<std::array<float, 4>> &ori_colors,
                std::vector<std::array<float, 4>> &      cluster_results,
                std::vector<int> &                       labels,
                int                                      num_cluster = -1,
+               int                                      max_cluster = 15,
                int                                      color_space = 2)
     {
         // 0~255
         cv::Mat flatten_image8UC3 = flatten_vector(ori_colors);
 
+        this->apply(flatten_image8UC3, cluster_results, labels, num_cluster, max_cluster, color_space);
+    }
+    void apply(const cv::Mat &                    flatten_image8UC3,
+               std::vector<std::array<float, 4>> &cluster_results,
+               std::vector<int> &                 labels,
+               int                                num_cluster = -1,
+               int                                max_cluster = 15,
+               int                                color_space = 2)
+    {
         cv::Mat image8UC3;
         convert_color_space(flatten_image8UC3, image8UC3, color_space);
 
@@ -60,41 +70,102 @@ public:
         for (int i = 0; i < image8UC3.rows; i++)
             image32FC3.at<cv::Vec3f>(i, 0) = image8UC3.at<cv::Vec3b>(i, 0);
 
-        int best_cluster = 1;
-        double cur_score, best_score = 100;
-        int max_cluster = ori_colors.size();
-        num_cluster     = fmin(num_cluster, max_cluster);
+        int    best_cluster = 1;
+        double cur_score = 0, best_score = 100;
+        num_cluster = fmin(num_cluster, max_cluster);
         if (num_cluster < 1) {
-            cur_score  = kmeans(image32FC3, 1, this->m_flatten_labels, cv::TermCriteria(cv::TermCriteria::EPS + cv::TermCriteria::COUNT, 300, 0.5), 3, cv::KMEANS_PP_CENTERS);
+            if (!this->more_than_request(image8UC3, max_cluster)) max_cluster = compute_num_colors(image8UC3);
+            num_cluster = fmin(num_cluster, max_cluster);
+            cur_score  = cv::kmeans(image32FC3, 1, this->m_flatten_labels, cv::TermCriteria(cv::TermCriteria::EPS + cv::TermCriteria::COUNT, 300, 0.5), 3, cv::KMEANS_PP_CENTERS);
             best_score = cur_score;
-            for (int cur_cluster = 2; cur_cluster < 16; cur_cluster++) {
-                if (cur_cluster > max_cluster)
+
+            for (int cur_cluster = 2; cur_cluster < max_cluster + 1; cur_cluster++) {
+                cv::Mat centers32FC3;
+                cur_score = cv::kmeans(image32FC3, cur_cluster, this->m_flatten_labels, cv::TermCriteria(cv::TermCriteria::EPS + cv::TermCriteria::COUNT, 300, 0.5), 3,
+                                       cv::KMEANS_PP_CENTERS, centers32FC3);
+                if (this->repeat_center(cur_cluster, centers32FC3, color_space))
                     break;
-                cur_score    = kmeans(image32FC3, cur_cluster, this->m_flatten_labels, cv::TermCriteria(cv::TermCriteria::EPS + cv::TermCriteria::COUNT, 300, 0.5), 3,
-                                   cv::KMEANS_PP_CENTERS);
                 best_cluster = cur_score < best_score ? cur_cluster : best_cluster;
                 best_score   = cur_score < best_score ? cur_score : best_score;
             }
-        } else
+        } else if (this->more_than_request(image8UC3, num_cluster))
             best_cluster = num_cluster;
+        else {
+            best_cluster = compute_num_colors(image8UC3);
+            std::cout << "num of image color is " << best_cluster << ", less than custom number " << num_cluster << std::endl;
+        }
 
         cv::Mat centers32FC3;
-        kmeans(image32FC3, best_cluster, this->m_flatten_labels, cv::TermCriteria(cv::TermCriteria::EPS + cv::TermCriteria::COUNT, 300, 0.5), 3, cv::KMEANS_PP_CENTERS,
-               centers32FC3);
+        cv::kmeans(image32FC3, best_cluster, this->m_flatten_labels, cv::TermCriteria(cv::TermCriteria::EPS + cv::TermCriteria::COUNT, 300, 0.5), 3, cv::KMEANS_PP_CENTERS,
+                   centers32FC3);
         this->m_centers8UC3 = cv::Mat(best_cluster, 1, CV_8UC3);
-        for (int i = 0; i < best_cluster; i++)
-            this->m_centers8UC3.at<cv::Vec3b>(i) = centers32FC3.at<cv::Vec3f>(i);
-
+        for (int i = 0; i < best_cluster; i++) {
+            auto center                          = centers32FC3.row(i);
+            this->m_centers8UC3.at<cv::Vec3b>(i) = {uchar(center.at<float>(0)), uchar(center.at<float>(1)), uchar(center.at<float>(2))};
+        }
         convert_color_space(this->m_centers8UC3, this->m_centers8UC3, color_space, true);
 
         cluster_results.clear();
         labels.clear();
-        for (int i = 0; i < ori_colors.size(); i++)
+        for (int i = 0; i < flatten_image8UC3.rows; i++)
             labels.emplace_back(this->m_flatten_labels.at<int>(i, 0));
         for (int i = 0; i < best_cluster; i++) {
             cv::Vec3f center = this->m_centers8UC3.at<cv::Vec3b>(i, 0);
             cluster_results.emplace_back(std::array<float, 4>{center[0] / 255.f, center[1] / 255.f, center[2] / 255.f, 1.f});
         }
+    }
+
+    bool more_than_request(const cv::Mat &image8UC3, int target_num)
+    {
+        std::vector<cv::Vec3b> uniqueImage;
+        cv::Vec3b              cur_color;
+        for (int i = 0; i < image8UC3.rows; i++) {
+            cur_color = image8UC3.at<cv::Vec3b>(i, 0);
+            if (!is_in(cur_color, uniqueImage)) {
+                uniqueImage.emplace_back(cur_color);
+                if (uniqueImage.size() >= target_num) return true;
+            }
+        }
+        return false;
+    }
+
+    int compute_num_colors(const cv::Mat &image8UC3)
+    {
+        std::vector<cv::Vec3b> uniqueImage;
+        cv::Vec3b              cur_color;
+        for (int i = 0; i < image8UC3.rows; i++) {
+            cur_color = image8UC3.at<cv::Vec3b>(i, 0);
+            if (!is_in(cur_color, uniqueImage)) uniqueImage.emplace_back(cur_color);
+        }
+
+        return uniqueImage.size();
+    }
+
+    bool is_in(const cv::Vec3b &cur_color, const std::vector<cv::Vec3b> &uniqueImage)
+    {
+        for (auto &color : uniqueImage)
+            if (cur_color[0] == color[0] && cur_color[1] == color[1] && cur_color[2] == color[2]) return true;
+        return false;
+    }
+
+    bool repeat_center(int cur_cluster, const cv::Mat &centers32FC3, int color_space)
+    {
+        cv::Mat centers8UC3 = cv::Mat(cur_cluster, 1, CV_8UC3);
+        for (int i = 0; i < cur_cluster; i++) {
+            auto center = centers32FC3.row(i);
+            centers8UC3.at<cv::Vec3b>(i) = {uchar(center.at<float>(0)), uchar(center.at<float>(1)), uchar(center.at<float>(2))};
+        }
+        convert_color_space(centers8UC3, centers8UC3, color_space, true);
+        std::vector<cv::Vec3b> unique_centers;
+        cv::Vec3b              cur_center;
+        for (int i = 0; i < cur_cluster; i++) {
+            cur_center = centers8UC3.at<cv::Vec3b>(i, 0);
+            if (!is_in(cur_center, unique_centers))
+                unique_centers.emplace_back(cur_center);
+            else
+                return true;
+        }
+        return false;
     }
 
     void replace_centers(cv::Mat &ori_image, cv::Mat &new_image)
@@ -126,7 +197,7 @@ public:
         }
     }
 
-    void convert_color_space(cv::Mat &ori_image, cv::Mat &image, int color_space, bool reverse = false)
+    void convert_color_space(const cv::Mat &ori_image, cv::Mat &image, int color_space, bool reverse = false)
     {
         switch (color_space) {
         case 0: image = ori_image; break;
