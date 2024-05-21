@@ -5,6 +5,7 @@
     "from": "system",
     "setting_id": "GP114",
     "instantiation": "true",
+    "description": "Compared with the default profile of a 0.2 mm nozzle, it has lower speeds and acceleration, and the sparse infill pattern is Gyroid. So, it results in much higher printing quality, but a much longer printing time.",
     "default_acceleration": "4000",
     "elefant_foot_compensation": "0.075",
     "initial_layer_infill_speed": "28",

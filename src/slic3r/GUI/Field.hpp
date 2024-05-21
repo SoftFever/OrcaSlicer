@@ -481,6 +481,14 @@ public:
     void			enable() override { dynamic_cast<wxColourPickerCtrl*>(window)->Enable(); }
     void			disable() override{ dynamic_cast<wxColourPickerCtrl*>(window)->Disable(); }
 	wxWindow*		getWindow() override { return window; }
+
+private:
+    void convert_to_picker_widget(wxColourPickerCtrl *widget);
+    void on_button_click(wxCommandEvent &WXUNUSED(ev));
+    void save_colors_to_config();
+private:
+    wxColourData*  m_clrData{nullptr};
+    wxColourPickerWidget* m_picker_widget{nullptr};
 };
 
 class PointCtrl : public Field {

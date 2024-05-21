@@ -84,6 +84,7 @@ struct CurlGlobalInit
 std::unique_ptr<CurlGlobalInit> CurlGlobalInit::instance;
 
 std::map<std::string, std::string> extra_headers;
+std::mutex g_mutex;
 
 struct Http::priv
 {
@@ -476,6 +477,7 @@ void Http::priv::http_perform()
 
 Http::Http(const std::string &url) : p(new priv(url)) {
 
+    std::lock_guard<std::mutex> l(g_mutex);
 	for (auto it = extra_headers.begin(); it != extra_headers.end(); it++)
 		this->header(it->first, it->second);
 }
@@ -752,6 +754,7 @@ Http Http::del(std::string url)
 
 void Http::set_extra_headers(std::map<std::string, std::string> headers)
 {
+    std::lock_guard<std::mutex> l(g_mutex);
 	extra_headers.swap(headers);
 }
 

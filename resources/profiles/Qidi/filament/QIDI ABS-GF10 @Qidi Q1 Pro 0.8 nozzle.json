@@ -20,7 +20,7 @@
     "filament_settings_id": [
         "QIDI ABS-GF10 @Qidi Q1 Pro 0.8 nozzle"
     ],
-    "from": "User",
+    "from": "system",
     "hot_plate_temp": [
         "100"
     ],

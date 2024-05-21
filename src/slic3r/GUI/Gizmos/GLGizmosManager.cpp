@@ -57,6 +57,7 @@ GLGizmosManager::GLGizmosManager(GLCanvas3D& parent)
     //BBS: GUI refactor: add object manipulation in gizmo
     , m_object_manipulation(parent)
 {
+    m_timer_set_color.Bind(wxEVT_TIMER, &GLGizmosManager::on_set_color_timer, this);
 }
 
 std::vector<size_t> GLGizmosManager::get_selectable_idxs() const
@@ -243,12 +244,12 @@ bool GLGizmosManager::init_icon_textures()
     else
         return false;
 
-    if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/toolbar_tooltip.svg", 30, 22, texture_id))
+    if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/toolbar_tooltip.svg", 25, 25, texture_id)) // ORCA: Use same resolution with gizmos to prevent blur on icon
         icon_list.insert(std::make_pair((int)IC_TOOLBAR_TOOLTIP, texture_id));
     else
         return false;
 
-    if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/toolbar_tooltip_hover.svg", 30, 22, texture_id))
+    if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/toolbar_tooltip_hover.svg", 25, 25, texture_id)) // ORCA: Use same resolution with gizmos to prevent blur on icon
         icon_list.insert(std::make_pair((int)IC_TOOLBAR_TOOLTIP_HOVER, texture_id));
     else
         return false;
@@ -570,7 +571,7 @@ bool GLGizmosManager::gizmos_toolbar_on_mouse(const wxMouseEvent &mouse_event) {
     static MouseCapture mc;
 
     // wxCoord == int --> wx/types.h
-    Vec2i mouse_coord(mouse_event.GetX(), mouse_event.GetY());
+    Vec2i32 mouse_coord(mouse_event.GetX(), mouse_event.GetY());
     Vec2d mouse_pos = mouse_coord.cast<double>();
 
     EType gizmo = get_gizmo_from_mouse(mouse_pos);
@@ -805,7 +806,7 @@ bool GLGizmosManager::on_char(wxKeyEvent& evt)
 
 bool GLGizmosManager::on_key(wxKeyEvent& evt)
 {
-    const int keyCode = evt.GetKeyCode();
+    int keyCode = evt.GetKeyCode();
     bool processed = false;
 
     if (evt.GetEventType() == wxEVT_KEY_UP) {
@@ -887,8 +888,21 @@ bool GLGizmosManager::on_key(wxKeyEvent& evt)
         else if (m_current == MmuSegmentation) {
             GLGizmoMmuSegmentation* mmu_seg = dynamic_cast<GLGizmoMmuSegmentation*>(get_current());
             if (mmu_seg != nullptr) {
-                if (keyCode > '0' && keyCode <= '9') {
-                    processed = mmu_seg->on_number_key_down(keyCode - '0');
+                if (keyCode >= WXK_NUMPAD0 && keyCode <= WXK_NUMPAD9) {
+                    keyCode = keyCode- WXK_NUMPAD0+'0';
+                }
+                if (keyCode >= '0' && keyCode <= '9') {
+                    if (keyCode == '1' && !m_timer_set_color.IsRunning()) {
+                        m_timer_set_color.StartOnce(500);
+                        processed = true;
+                    }
+                    else if (keyCode < '7' && m_timer_set_color.IsRunning()) {
+                        processed = mmu_seg->on_number_key_down(keyCode - '0'+10);
+                        m_timer_set_color.Stop();
+                    }
+                    else {
+                        processed = mmu_seg->on_number_key_down(keyCode - '0');
+                    }
                 }
                 else if (keyCode == 'F' || keyCode == 'T' || keyCode == 'S' || keyCode == 'C' || keyCode == 'H' || keyCode == 'G') {
                     processed = mmu_seg->on_key_down_select_tool_type(keyCode);
@@ -931,6 +945,15 @@ bool GLGizmosManager::on_key(wxKeyEvent& evt)
         m_parent.set_as_dirty();
 
     return processed;
+}
+
+void GLGizmosManager::on_set_color_timer(wxTimerEvent& evt)
+{
+    if (m_current == MmuSegmentation) {
+        GLGizmoMmuSegmentation* mmu_seg = dynamic_cast<GLGizmoMmuSegmentation*>(get_current());
+        mmu_seg->on_number_key_down(1);
+        m_parent.set_as_dirty();
+    }
 }
 
 void GLGizmosManager::update_after_undo_redo(const UndoRedo::Snapshot& snapshot)
@@ -1078,10 +1101,10 @@ void GLGizmosManager::do_render_overlay() const
         //float space_width = GLGizmosManager::Default_Icons_Size * wxGetApp().toolbar_icon_scale();
         //float zoomed_top_x = 0.5f *(cnv_w + main_toolbar_width - 2 * space_width - width) * inv_zoom;
 
-        float main_toolbar_left = -0.5f * cnv_w + m_parent.get_main_toolbar_offset();
+        int main_toolbar_left = -cnv_w + m_parent.get_main_toolbar_offset() * 2;
         //float zoomed_top_x = 0.5f *(main_toolbar_width + collapse_width - width - assemble_view_width) * inv_zoom;
-        top_x = main_toolbar_left + main_toolbar_width + separator_width / 2;
-        top_x = top_x * inv_cnv_w * 2;
+        top_x = main_toolbar_left + main_toolbar_width * 2 + separator_width;
+        top_x = top_x * inv_cnv_w;
     }
     float top_y = 1.0f;
 

@@ -113,6 +113,12 @@ void TabButtonsListCtrl::SetSelection(int sel)
     Refresh();
 }
 
+void TabButtonsListCtrl::showNewTag(int sel, bool tag)
+{
+    m_pageButtons[sel]->ShowNewTag(tag);
+    Refresh();
+}
+
 bool TabButtonsListCtrl::InsertPage(size_t n, const wxString &text, bool bSelect /* = false*/, const std::string &bmp_name /* = ""*/)
 {
     TabButton *btn = new TabButton(this, text, m_arrow_img, wxNO_BORDER);

@@ -4,28 +4,5 @@
   "instantiation": "true",
   "name": "Snapmaker PET @Dual",
   "setting_id": "145337790",
-  "inherits": "Snapmaker PET @base",
-  "compatible_printers": [
-    "Snapmaker A250 Dual (0.4 nozzle)",
-    "Snapmaker A250 Dual (0.6 nozzle)",
-    "Snapmaker A250 Dual (0.8 nozzle)",
-    "Snapmaker A350 Dual (0.4 nozzle)",
-    "Snapmaker A350 Dual (0.6 nozzle)",
-    "Snapmaker A350 Dual (0.8 nozzle)",
-    "Snapmaker A250 Dual QSKit (0.4 nozzle)",
-    "Snapmaker A250 Dual QSKit (0.6 nozzle)",
-    "Snapmaker A250 Dual QSKit (0.8 nozzle)",
-    "Snapmaker A350 Dual QSKit (0.4 nozzle)",
-    "Snapmaker A350 Dual QSKit (0.6 nozzle)",
-    "Snapmaker A350 Dual QSKit (0.8 nozzle)"
-  ],
-  "overhang_fan_speed": [
-    "40"
-  ],
-  "fan_max_speed": [
-    "55"
-  ],
-  "fan_min_speed": [
-    "20"
-  ]
+  "inherits": "Snapmaker Dual PET @base"
 }

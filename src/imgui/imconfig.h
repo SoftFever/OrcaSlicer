@@ -201,14 +201,14 @@ namespace ImGui
     const wchar_t BlockNotifErrorIcon        = 0x0835;
     const wchar_t ClipboardBtnDarkIcon       = 0x0836;
 
-    const wchar_t PrevArrowBtnIcon         = 0x0836; 
-    const wchar_t PrevArrowHoverBtnIcon    = 0x0837; 
-    const wchar_t NextArrowBtnIcon         = 0x0838;
-    const wchar_t NextArrowHoverBtnIcon    = 0x0839;
-    const wchar_t OpenArrowIcon            = 0x0840;
-    const wchar_t CollapseArrowIcon        = 0x0841;
-    const wchar_t ExpandArrowIcon          = 0x0842;
-    const wchar_t CompleteIcon             = 0x0843;
+    const wchar_t PrevArrowBtnIcon         = 0x0837; 
+    const wchar_t PrevArrowHoverBtnIcon    = 0x0838; 
+    const wchar_t NextArrowBtnIcon         = 0x0839;
+    const wchar_t NextArrowHoverBtnIcon    = 0x0840;
+    const wchar_t OpenArrowIcon            = 0x0841;
+    const wchar_t CollapseArrowIcon        = 0x0842;
+    const wchar_t ExpandArrowIcon          = 0x0843;
+    const wchar_t CompleteIcon             = 0x0844;
 
     // Orca
     const wchar_t PlayButton           = 0x0850;

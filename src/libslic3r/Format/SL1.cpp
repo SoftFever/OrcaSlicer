@@ -303,7 +303,7 @@ ConfigSubstitutions import_sla_archive(const std::string &zipfname, DynamicPrint
 // function return if the archive did not contain any profile.
 ConfigSubstitutions import_sla_archive(
     const std::string &      zipfname,
-    Vec2i                    windowsize,
+    Vec2i32                    windowsize,
     indexed_triangle_set &           out,
     DynamicPrintConfig &     profile_out,
     std::function<bool(int)> progr)

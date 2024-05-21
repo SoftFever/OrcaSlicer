@@ -150,7 +150,7 @@ public:
 
     // returns true if the camera z axis (forward) is pointing in the negative direction of the world z axis
     bool is_looking_downward() const { return get_dir_forward().dot(Vec3d::UnitZ()) < 0.0; }
-
+    bool is_looking_front() const { return abs(get_dir_up().dot(Vec3d::UnitZ())-1) < 0.001; }
     // forces camera right vector to be parallel to XY plane
     void recover_from_free_camera() {
         if (std::abs(get_dir_right()(2)) > EPSILON)

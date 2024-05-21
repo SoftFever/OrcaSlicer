@@ -14,7 +14,7 @@
     "filament_settings_id": [
         "QIDI PETG Tough @Qidi Q1 Pro 0.2 nozzle"
     ],
-    "from": "User",
+    "from": "system",
     "hot_plate_temp_initial_layer": [
         "80"
     ],

@@ -1862,10 +1862,13 @@ bool GLGizmoAdvancedCut::render_slider_double_input(const std::string &label, fl
     // slider_with + item_in_gap + first_input_width + item_out_gap + slider_with + item_in_gap + second_input_width
     double slider_with          = 0.24 * m_editing_window_width; // m_control_width * 0.35;
     double item_in_gap          = 0.01 * m_editing_window_width;
-    double item_out_gap         = 0.01 * m_editing_window_width;
-    double first_input_width    = 0.29  * m_editing_window_width;
-    double second_input_width   = 0.29  * m_editing_window_width;
-
+    double item_out_gap         = 0.04 * m_editing_window_width;
+    double first_input_width    = 0.37  * m_editing_window_width;
+    double second_input_width   = 0.37  * m_editing_window_width;
+#ifdef __APPLE__
+    first_input_width = 0.5 * m_editing_window_width;
+    second_input_width   = 0.5  * m_editing_window_width;
+#endif
     ImGui::AlignTextToFramePadding();
     m_imgui->text(label);
     ImGui::SameLine(m_label_width);

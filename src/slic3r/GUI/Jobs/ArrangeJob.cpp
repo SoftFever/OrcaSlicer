@@ -96,6 +96,7 @@ void ArrangeJob::clear_input()
     m_unprintable.clear();
     m_locked.clear();
     m_unarranged.clear();
+    m_uncompatible_plates.clear();
     m_selected.reserve(count + 1 /* for optional wti */);
     m_unselected.reserve(count + 1 /* for optional wti */);
     m_unprintable.reserve(cunprint /* for optional wti */);
@@ -189,9 +190,19 @@ void ArrangeJob::prepare_selected() {
 }
 
 void ArrangeJob::prepare_all() {
-    PartPlateList& plate_list = m_plater->get_partplate_list();
-
     clear_input();
+
+    PartPlateList& plate_list = m_plater->get_partplate_list();    
+    for (size_t i = 0; i < plate_list.get_plate_count(); i++) {
+        PartPlate* plate = plate_list.get_plate(i);
+        bool same_as_global_print_seq = true;
+        plate->get_real_print_seq(&same_as_global_print_seq);
+        if (plate->is_locked() == false && !same_as_global_print_seq) {
+            plate->lock(true);
+            m_uncompatible_plates.push_back(i);
+        }
+    }
+
 
     Model &model = m_plater->model();
     bool selected_is_locked = false;
@@ -492,20 +503,21 @@ void ArrangeJob::prepare()
 void ArrangeJob::check_unprintable()
 {
     for (auto it = m_selected.begin(); it != m_selected.end();) {
-        if (it->poly.area() < 0.001)
+        if (it->poly.area() < 0.001 || it->height>params.printable_height)
         {
 #if SAVE_ARRANGE_POLY
-            SVG svg("SVG/arrange_unprintable_"+it->name+".svg", get_extents(it->poly));
+            SVG svg(data_dir() + "/SVG/arrange_unprintable_"+it->name+".svg", get_extents(it->poly));
             if (svg.is_opened())
                 svg.draw_outline(it->poly);
 #endif
-
+            if (it->poly.area() < 0.001) {
+                auto msg = (boost::format(
+                    _utf8("Object %s has zero size and can't be arranged."))
+                    % _utf8(it->name)).str();
+                m_plater->get_notification_manager()->push_notification(NotificationType::BBLPlateInfo,
+                    NotificationManager::NotificationLevel::WarningNotificationLevel, msg);
+            }
             m_unprintable.push_back(*it);
-            auto msg = (boost::format(
-                _utf8("Object %s has zero size and can't be arranged."))
-                % _utf8(it->name)).str();
-            m_plater->get_notification_manager()->push_notification(NotificationType::BBLPlateInfo,
-                                NotificationManager::NotificationLevel::WarningNotificationLevel, msg);
             it = m_selected.erase(it);
         }
         else
@@ -571,8 +583,6 @@ void ArrangeJob::process(Ctl &ctl)
         for (auto item : m_unselected)
             BOOST_LOG_TRIVIAL(debug) << item.name << ", bed: " << item.bed_idx << ", trans: " << item.translation.transpose();
     }
-
-    arrangement::arrange(m_unprintable, {}, bedpts, params);
 
     // put unpackable items to m_unprintable so they goes outside
     bool we_have_unpackable_items = false;
@@ -717,6 +727,10 @@ void ArrangeJob::finalize(bool canceled, std::exception_ptr &eptr) {
         plate_list.rebuild_plates_after_arrangement(!only_on_partplate, true);
     }
 
+    // unlock the plates we just locked
+    for (int i : m_uncompatible_plates)
+        plate_list.get_plate(i)->lock(false);
+
     // BBS: update slice context and gcode result.
     m_plater->update_slicing_context_to_current_partplate();
 
@@ -761,6 +775,7 @@ arrangement::ArrangeParams init_arrange_params(Plater *p)
     params.cleareance_radius                   = print_config.extruder_clearance_radius.value;
     params.printable_height                    = print_config.printable_height.value;
     params.allow_rotations                     = settings.enable_rotation;
+    params.nozzle_height                       = print.config().nozzle_height.value;
     params.align_center                        = print_config.best_object_pos.value;
     params.allow_multi_materials_on_same_plate = settings.allow_multi_materials_on_same_plate;
     params.avoid_extrusion_cali_region         = settings.avoid_extrusion_cali_region;
@@ -780,7 +795,6 @@ arrangement::ArrangeParams init_arrange_params(Plater *p)
     }
 
     if (params.is_seq_print) {
-        params.min_obj_distance = std::max(params.min_obj_distance, scaled(params.cleareance_radius + 0.001)); // +0.001mm to avoid clearance check fail due to rounding error
         params.bed_shrink_x = BED_SHRINK_SEQ_PRINT;
         params.bed_shrink_y = BED_SHRINK_SEQ_PRINT;
     }

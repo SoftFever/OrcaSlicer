@@ -274,7 +274,7 @@ std::string GLGizmoCut3D::get_tooltip() const
 
 bool GLGizmoCut3D::on_mouse(const wxMouseEvent &mouse_event)
 {
-    Vec2i mouse_coord(mouse_event.GetX(), mouse_event.GetY());
+    Vec2i32 mouse_coord(mouse_event.GetX(), mouse_event.GetY());
     Vec2d mouse_pos = mouse_coord.cast<double>();
 
     if (mouse_event.ShiftDown() && mouse_event.LeftDown())
@@ -2963,10 +2963,10 @@ void GLGizmoCut3D::show_tooltip_information(float x, float y)
 
     caption_max += m_imgui->calc_text_size(std::string_view{": "}).x + 35.f;
 
-    float  font_size   = ImGui::GetFontSize();
-    ImVec2 button_size = ImVec2(font_size * 1.8, font_size * 1.3);
+    float  scale       = m_parent.get_scale();
+    ImVec2 button_size = ImVec2(25 * scale, 25 * scale); // ORCA: Use exact resolution will prevent blur on icon
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {0, ImGui::GetStyle().FramePadding.y});
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {0, 0}); // ORCA: Dont add padding
     ImGui::ImageButton3(normal_id, hover_id, button_size);
 
     if (ImGui::IsItemHovered()) {

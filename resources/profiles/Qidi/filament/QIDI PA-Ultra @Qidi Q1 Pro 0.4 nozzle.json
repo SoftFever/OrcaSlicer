@@ -14,12 +14,12 @@
     "filament_settings_id": [
         "QIDI PA-Ultra @Qidi Q1 Pro 0.4 nozzle"
     ],
-    "from": "User",
+    "from": "system",
     "hot_plate_temp": [
-        "100"
+        "80"
     ],
     "hot_plate_temp_initial_layer": [
-        "100"
+        "80"
     ],
     "inherits": "QIDI PA-Ultra",
     "is_custom_defined": "0",

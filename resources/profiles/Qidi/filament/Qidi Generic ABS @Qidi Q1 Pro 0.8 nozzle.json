@@ -5,9 +5,9 @@
     "name": "Qidi Generic ABS @Qidi Q1 Pro 0.8 nozzle",
     "from": "system",
     "instantiation": "true",
-    "inherits": "fdm_filament_abs",
+    "inherits": "Qidi Generic ABS",
     "filament_flow_ratio": [
-        "0.926"
+        "0.95"
     ],
     "enable_pressure_advance": [
         "1"
@@ -17,9 +17,6 @@
     ],
     "filament_max_volumetric_speed": [
         "24.5"
-    ],
-    "filament_start_gcode": [
-        "; filament start gcode\n{if  (bed_temperature[current_extruder] >90)||(bed_temperature_initial_layer[current_extruder] >90)}M106 P3 S0\n{elsif(bed_temperature[current_extruder] >70)||(bed_temperature_initial_layer[current_extruder] >70)}M106 P3 S153\n{elsif(bed_temperature[current_extruder] >35)||(bed_temperature_initial_layer[current_extruder] >35)}M106 P3 S255\n{endif}"
     ],
 	"compatible_printers": [
 		"Qidi Q1 Pro 0.8 nozzle"

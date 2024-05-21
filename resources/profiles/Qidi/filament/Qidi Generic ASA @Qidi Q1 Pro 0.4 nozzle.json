@@ -17,12 +17,12 @@
     "filament_settings_id": [
         "Qidi Generic ASA @Qidi Q1 Pro 0.4 nozzle"
     ],
-    "from": "User",
+    "from": "system",
     "inherits": "Qidi Generic ASA",
     "is_custom_defined": "0",
     "name": "Qidi Generic ASA @Qidi Q1 Pro 0.4 nozzle",
     "nozzle_temperature": [
-        "255"
+        "270"
     ],
     "nozzle_temperature_initial_layer": [
         "250"

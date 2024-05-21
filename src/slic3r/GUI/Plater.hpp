@@ -72,6 +72,7 @@ class Ams;
 
 using ModelInstancePtrs = std::vector<ModelInstance*>;
 
+
 namespace UndoRedo {
     class Stack;
     enum class SnapshotType : unsigned char;
@@ -116,7 +117,10 @@ wxDECLARE_EVENT(EVT_GLCANVAS_COLOR_MODE_CHANGED,   SimpleEvent);
 wxDECLARE_EVENT(EVT_PRINT_FROM_SDCARD_VIEW,   SimpleEvent);
 wxDECLARE_EVENT(EVT_CREATE_FILAMENT, SimpleEvent);
 wxDECLARE_EVENT(EVT_MODIFY_FILAMENT, SimpleEvent);
-
+wxDECLARE_EVENT(EVT_ADD_FILAMENT, SimpleEvent);
+wxDECLARE_EVENT(EVT_DEL_FILAMENT, SimpleEvent);
+using ColorEvent = Event<wxColour>;
+wxDECLARE_EVENT(EVT_ADD_CUSTOM_FILAMENT, ColorEvent);
 const wxString DEFAULT_PROJECT_NAME = "Untitled";
 
 class Sidebar : public wxPanel
@@ -152,6 +156,9 @@ public:
     void jump_to_option(const std::string& opt_key, Preset::Type type, const std::wstring& category);
     // BBS. Add on_filaments_change() method.
     void on_filaments_change(size_t num_filaments);
+    void add_filament();
+    void delete_filament();
+    void add_custom_filament(wxColour new_col);
     // BBS
     void on_bed_type_change(BedType bed_type);
     void load_ams_list(std::string const & device, MachineObject* obj);
@@ -345,6 +352,7 @@ public:
     //BBS: add no_slice logic
     void select_view_3D(const std::string& name, bool no_slice = true);
 
+    void reload_paint_after_background_process_apply();
     bool is_preview_shown() const;
     bool is_preview_loaded() const;
     bool is_view3D_shown() const;
@@ -373,6 +381,7 @@ public:
 
     void select_all();
     void deselect_all();
+    void exit_gizmo();
     void remove(size_t obj_idx);
     void reset(bool apply_presets_change = false);
     void reset_with_confirm();
@@ -539,6 +548,8 @@ public:
     void split_object();
     void split_volume();
     void optimize_rotation();
+    // find all empty cells on the plate and won't overlap with exclusion areas
+    static std::vector<Vec2f> get_empty_cells(const Vec2f step);
 
     //BBS:
     void fill_color(int extruder_id);
@@ -826,6 +837,7 @@ private:
     bool m_was_scheduled;
 };
 
+std::vector<int> get_min_flush_volumes(const DynamicPrintConfig& full_config);
 } // namespace GUI
 } // namespace Slic3r
 
