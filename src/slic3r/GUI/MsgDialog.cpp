@@ -228,7 +228,7 @@ void MsgDialog::apply_style(long style)
     if (style & wxCANCEL)   add_button(wxID_CANCEL, false, _L("Cancel"));
 
     logo->SetBitmap( create_scaled_bitmap(style & wxAPPLY        ? "completed" :
-                                          style & wxICON_WARNING        ? "obj_warning" :
+                                          style & wxICON_WARNING        ? "exclamation" : // ORCA "exclamation" used for dialogs "obj_warning" used for 16x16 areas
                                           style & wxICON_INFORMATION    ? "info"        :
                                           style & wxICON_QUESTION       ? "question"    : "OrcaSlicer", this, 64, style & wxICON_ERROR));
 }
