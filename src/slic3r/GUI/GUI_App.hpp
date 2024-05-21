@@ -650,6 +650,7 @@ private:
     // extend is stl/3mf/gcode/step etc 
     void            associate_files(std::wstring extend);
     void            disassociate_files(std::wstring extend);
+    bool            check_url_association(std::wstring url_prefix, std::wstring& reg_bin);
     void            associate_url(std::wstring url_prefix);
     void            disassociate_url(std::wstring url_prefix);
 #endif // __WXMSW__

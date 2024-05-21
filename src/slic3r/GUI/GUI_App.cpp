@@ -821,7 +821,8 @@ void GUI_App::post_init()
             (boost::starts_with(this->init_params->input_files.front(), "orcaslicer://open") ||
              boost::starts_with(this->init_params->input_files.front(), "prusaslicer://open"))) {
 
-            if (boost::starts_with(this->init_params->input_files.front(), "prusaslicer://open")) {
+            if (boost::starts_with(this->init_params->input_files.front(), "orcaslicer://open")||
+             boost::starts_with(this->init_params->input_files.front(), "prusaslicer://open")) {
                 switch_to_3d = true;
                 start_download(this->init_params->input_files.front());
             } else if (vector<string> input_str_arr = split_str(this->init_params->input_files.front(), "orcaslicer://open/?file="); input_str_arr.size() > 1) {
@@ -2371,10 +2372,8 @@ bool GUI_App::on_init_inner()
             associate_files(L"step");
             associate_files(L"stp");
         }
-        // Orca: add PS url functionality
-        if (app_config->get_bool("ps_url_registered")) {
-            associate_url(L"prusaslicer");
-        }
+        associate_url(L"orcaslicer");
+
         if (app_config->get("associate_gcode") == "true")
             associate_files(L"gcode");
 #endif // __WXMSW__
@@ -5533,10 +5532,7 @@ void GUI_App::open_preferences(size_t open_on_tab, const std::string& highlight_
                 associate_files(L"step");
                 associate_files(L"stp");
             }
-            // Orca: add PS url functionality
-            if (app_config->get_bool("ps_url_registered")) {
-                associate_url(L"prusaslicer");
-            }
+            associate_url(L"orcaslicer");
         }
         else {
             if (app_config->get("associate_gcode") == "true")
@@ -6631,10 +6627,30 @@ void GUI_App::disassociate_files(std::wstring extend)
        ::SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, nullptr, nullptr);
 }
 
+bool GUI_App::check_url_association(std::wstring url_prefix, std::wstring& reg_bin)
+{
+    reg_bin = L"";
+#ifdef WIN32
+    wxRegKey key_full(wxRegKey::HKCU, "Software\\Classes\\" + url_prefix + "\\shell\\open\\command");
+    if (!key_full.Exists()) {
+        return false;
+    }
+    reg_bin = key_full.QueryDefaultValue().ToStdWstring();
+
+    boost::filesystem::path binary_path(boost::filesystem::canonical(boost::dll::program_location()));
+    // wxString    wbinary       = wxString::FromUTF8(binary_path.string());
+    // std::string binary_string = (boost::format("%1%") % wbinary).str();
+    std::wstring key_string = L"\"" + binary_path.wstring() + L"\" L\"%1\"";
+    // return boost::iequals(key_string,(boost::format("%1%") % reg_bin).str());
+    return key_string == reg_bin;
+#else
+    return false;
+#endif // WIN32
+}
+
 void GUI_App::associate_url(std::wstring url_prefix)
 {
-    // Registry key creation for "prusaslicer://" URL
-
+#ifdef WIN32
     boost::filesystem::path binary_path(boost::filesystem::canonical(boost::dll::program_location()));
     // the path to binary needs to be correctly saved in string with respect to localized characters
     wxString wbinary = wxString::FromUTF8(binary_path.string());
@@ -6654,15 +6670,18 @@ void GUI_App::associate_url(std::wstring url_prefix)
         key_full.Create(false);
     }
     key_full = key_string;
+#endif // WIN32
 }
 
 void GUI_App::disassociate_url(std::wstring url_prefix)
 {
+#ifdef WIN32
     wxRegKey key_full(wxRegKey::HKCU, "Software\\Classes\\" + url_prefix + "\\shell\\open\\command");
     if (!key_full.Exists()) {
         return;
     }
     key_full = "";
+#endif // WIN32
 }
 
 #endif // __WXMSW__

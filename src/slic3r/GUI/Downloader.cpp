@@ -135,13 +135,6 @@ void Downloader::start_download(const std::string& full_url)
 {
 	assert(m_initialized);
 
-    // Orca: check if url is registered
-    if (!wxGetApp().app_config->has("ps_url_registered") || !wxGetApp().app_config->get_bool("ps_url_registered")) {
-        BOOST_LOG_TRIVIAL(error) << "PrusaSlicer links are not enabled. Download aborted: " << full_url;
-        show_error(nullptr, "PrusaSlicer links are not enabled in preferences. Download aborted.");
-        return;
-    }
-
     // Orca: Move to the 3D view
     MainFrame* mainframe = wxGetApp().mainframe;
     Plater* plater = wxGetApp().plater();
@@ -155,7 +148,7 @@ void Downloader::start_download(const std::string& full_url)
 
     // Orca: Replace PS workaround for "mysterious slash" with a more dynamic approach
     // Windows seems to have fixed the issue and this provides backwards compatability for those it still affects
-    boost::regex re(R"(^prusaslicer:\/\/open[\/]?\?file=)", boost::regbase::icase);
+	boost::regex re(R"(^(orcaslicer|prusaslicer):\/\/open[\/]?\?file=)", boost::regbase::icase);
     boost::smatch results;
 
 	if (!boost::regex_search(full_url, results, re)) {
@@ -168,14 +161,16 @@ void Downloader::start_download(const std::string& full_url)
 	}
     size_t id = get_next_id();
     std::string escaped_url = FileGet::escape_url(full_url.substr(results.length()));
-	if (!boost::starts_with(escaped_url, "https://") || !FileGet::is_subdomain(escaped_url, "printables.com")) {
-		std::string msg = format(_L("Download won't start. Download URL doesn't point to https://printables.com : %1%"), escaped_url);
-		BOOST_LOG_TRIVIAL(error) << msg;
-		NotificationManager* ntf_mngr = wxGetApp().notification_manager();
-		ntf_mngr->push_notification(NotificationType::CustomNotification, NotificationManager::NotificationLevel::ErrorNotificationLevel,
-                                    "Download failed. Download URL doesn't point to https://printables.com.");
-		return;
-	}
+	// Orca:: any website that supports orcaslicer://open/?file= can be downloaded
+	
+	// if (!boost::starts_with(escaped_url, "https://") || !FileGet::is_subdomain(escaped_url, "printables.com")) {
+	// 	std::string msg = format(_L("Download won't start. Download URL doesn't point to https://printables.com : %1%"), escaped_url);
+	// 	BOOST_LOG_TRIVIAL(error) << msg;
+	// 	NotificationManager* ntf_mngr = wxGetApp().notification_manager();
+	// 	ntf_mngr->push_notification(NotificationType::CustomNotification, NotificationManager::NotificationLevel::ErrorNotificationLevel,
+    //                                 "Download failed. Download URL doesn't point to https://printables.com.");
+	// 	return;
+	// }
 	
 	std::string text(escaped_url);
     m_downloads.emplace_back(std::make_unique<Download>(id, std::move(escaped_url), this, m_dest_folder));

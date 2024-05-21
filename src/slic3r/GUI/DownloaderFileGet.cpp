@@ -201,125 +201,125 @@ void FileGet::priv::get_perform()
 		return;
 	}
 
-	std:: string range_string = std::to_string(m_written) + "-";
+		std:: string range_string = std::to_string(m_written) + "-";
 
-	size_t written_previously = m_written;
-	size_t written_this_session = 0;
-	Http::get(m_url)
-		.size_limit(DOWNLOAD_SIZE_LIMIT) //more?
+		size_t written_previously = m_written;
+		size_t written_this_session = 0;
+		Http::get(m_url)
+			.size_limit(DOWNLOAD_SIZE_LIMIT) //more?
 		.set_range(range_string)
-		.on_progress([&](Http::Progress progress, bool& cancel) {
-			// to prevent multiple calls into following ifs (m_cancel / m_pause)
-			if (m_stopped){
-				cancel = true;
-				return;
-			}
-			if (m_cancel) {
-				m_stopped = true;
-				fclose(file);
-				// remove canceled file
-				std::remove(m_tmp_path.string().c_str());
-				m_written = 0;
-				cancel = true;
-				wxCommandEvent* evt = new wxCommandEvent(EVT_DWNLDR_FILE_CANCELED);
-				evt->SetInt(m_id);
-				m_evt_handler->QueueEvent(evt);
-				return;
-				// TODO: send canceled event?
-			}		
-			if (m_pause) {
-				m_stopped = true;
-				fclose(file);
-				cancel = true;
-				if (m_written == 0)
+			.on_progress([&](Http::Progress progress, bool& cancel) {
+				// to prevent multiple calls into following ifs (m_cancel / m_pause)
+				if (m_stopped){
+					cancel = true;
+					return;
+				}
+				if (m_cancel) {
+					m_stopped = true;
+					fclose(file);
+					// remove canceled file
 					std::remove(m_tmp_path.string().c_str());
-				wxCommandEvent* evt = new wxCommandEvent(EVT_DWNLDR_FILE_PAUSED);
+					m_written = 0;
+					cancel = true;
+					wxCommandEvent* evt = new wxCommandEvent(EVT_DWNLDR_FILE_CANCELED);
+					evt->SetInt(m_id);
+					m_evt_handler->QueueEvent(evt);
+					return;
+					// TODO: send canceled event?
+				}		
+				if (m_pause) {
+					m_stopped = true;
+					fclose(file);
+					cancel = true;
+					if (m_written == 0)
+						std::remove(m_tmp_path.string().c_str());
+					wxCommandEvent* evt = new wxCommandEvent(EVT_DWNLDR_FILE_PAUSED);
+					evt->SetInt(m_id);
+					m_evt_handler->QueueEvent(evt);
+					return;
+				}
+				
+				if (m_absolute_size < progress.dltotal) {
+					m_absolute_size = progress.dltotal;
+				}
+
+				if (progress.dlnow != 0) {
+				if (progress.dlnow - written_this_session > DOWNLOAD_MAX_CHUNK_SIZE || progress.dlnow == progress.dltotal) {
+						try
+						{
+							std::string part_for_write = progress.buffer.substr(written_this_session, progress.dlnow);
+							fwrite(part_for_write.c_str(), 1, part_for_write.size(), file);
+						}
+						catch (const std::exception& e)
+						{
+							// fclose(file); do it?
+							wxCommandEvent* evt = new wxCommandEvent(EVT_DWNLDR_FILE_ERROR);
+							evt->SetString(e.what());
+							evt->SetInt(m_id);
+							m_evt_handler->QueueEvent(evt);
+							cancel = true;
+							return;
+						}
+						written_this_session = progress.dlnow;
+						m_written = written_previously + written_this_session;
+					}
+					wxCommandEvent* evt = new wxCommandEvent(EVT_DWNLDR_FILE_PROGRESS);
+					int             percent_total = m_absolute_size == 0 ? 0 : (written_previously + progress.dlnow) * 100 / m_absolute_size;
+					evt->SetString(std::to_string(percent_total));
+					evt->SetInt(m_id);
+					m_evt_handler->QueueEvent(evt);
+				}
+				
+			})
+			.on_error([&](std::string body, std::string error, unsigned http_status) {
+				if (file != NULL)
+					fclose(file);
+				wxCommandEvent* evt = new wxCommandEvent(EVT_DWNLDR_FILE_ERROR);
+				if (!error.empty())
+					evt->SetString(GUI::from_u8(error));
+				else
+					evt->SetString(GUI::from_u8(body));
 				evt->SetInt(m_id);
 				m_evt_handler->QueueEvent(evt);
-				return;
-			}
-			
-			if (m_absolute_size < progress.dltotal) {
-				m_absolute_size = progress.dltotal;
-			}
+			})
+			.on_complete([&](std::string body, unsigned /* http_status */) {
 
-			if (progress.dlnow != 0) {
-				if (progress.dlnow - written_this_session > DOWNLOAD_MAX_CHUNK_SIZE || progress.dlnow == progress.dltotal) {
-					try
+				// TODO: perform a body size check
+				// 
+				//size_t body_size = body.size();
+				//if (body_size != expected_size) {
+				//	return;
+				//}
+				try
+				{
+					/*
+					if (m_written < body.size())
 					{
-						std::string part_for_write = progress.buffer.substr(written_this_session, progress.dlnow);
+						// this code should never be entered. As there should be on_progress call after last bit downloaded.
+						std::string part_for_write = body.substr(m_written);
 						fwrite(part_for_write.c_str(), 1, part_for_write.size(), file);
 					}
-					catch (const std::exception& e)
-					{
-						// fclose(file); do it?
-						wxCommandEvent* evt = new wxCommandEvent(EVT_DWNLDR_FILE_ERROR);
-						evt->SetString(e.what());
-						evt->SetInt(m_id);
-						m_evt_handler->QueueEvent(evt);
-						cancel = true;
-						return;
-					}
-					written_this_session = progress.dlnow;
-					m_written = written_previously + written_this_session;
+					*/
+					fclose(file);
+					boost::filesystem::rename(m_tmp_path, dest_path);
 				}
-				wxCommandEvent* evt = new wxCommandEvent(EVT_DWNLDR_FILE_PROGRESS);
-				int percent_total = (written_previously + progress.dlnow) * 100 / m_absolute_size;
-				evt->SetString(std::to_string(percent_total));
-				evt->SetInt(m_id);
-				m_evt_handler->QueueEvent(evt);
-			}
-			
-		})
-		.on_error([&](std::string body, std::string error, unsigned http_status) {
-			if (file != NULL)
-				fclose(file);
-			wxCommandEvent* evt = new wxCommandEvent(EVT_DWNLDR_FILE_ERROR);
-			if (!error.empty())
-				evt->SetString(GUI::from_u8(error));
-			else
-				evt->SetString(GUI::from_u8(body));
-			evt->SetInt(m_id);
-			m_evt_handler->QueueEvent(evt);
-		})
-		.on_complete([&](std::string body, unsigned /* http_status */) {
-
-			// TODO: perform a body size check
-			// 
-			//size_t body_size = body.size();
-			//if (body_size != expected_size) {
-			//	return;
-			//}
-			try
-			{
-				/*
-				if (m_written < body.size())
+				catch (const std::exception& /*e*/)
 				{
-					// this code should never be entered. As there should be on_progress call after last bit downloaded.
-					std::string part_for_write = body.substr(m_written);
-					fwrite(part_for_write.c_str(), 1, part_for_write.size(), file);
+					//TODO: report?
+					//error_message = GUI::format("Failed to write and move %1% to %2%", tmp_path, dest_path);
+					wxCommandEvent* evt = new wxCommandEvent(EVT_DWNLDR_FILE_ERROR);
+					evt->SetString("Failed to write and move.");
+					evt->SetInt(m_id);
+					m_evt_handler->QueueEvent(evt);
+					return;
 				}
-				*/
-				fclose(file);
-				boost::filesystem::rename(m_tmp_path, dest_path);
-			}
-			catch (const std::exception& /*e*/)
-			{
-				//TODO: report?
-				//error_message = GUI::format("Failed to write and move %1% to %2%", tmp_path, dest_path);
-				wxCommandEvent* evt = new wxCommandEvent(EVT_DWNLDR_FILE_ERROR);
-				evt->SetString("Failed to write and move.");
+
+				wxCommandEvent* evt = new wxCommandEvent(EVT_DWNLDR_FILE_COMPLETE);
+				evt->SetString(dest_path.wstring());
 				evt->SetInt(m_id);
 				m_evt_handler->QueueEvent(evt);
-				return;
-			}
-
-			wxCommandEvent* evt = new wxCommandEvent(EVT_DWNLDR_FILE_COMPLETE);
-			evt->SetString(dest_path.wstring());
-			evt->SetInt(m_id);
-			m_evt_handler->QueueEvent(evt);
-		})
-		.perform_sync();
+			})
+			.perform_sync();
 
 }
 
