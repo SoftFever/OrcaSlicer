@@ -850,7 +850,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Top and bottom surfaces"));
     def->enum_labels.push_back(L("Nowhere"));
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionEnum<GapFillTarget>(gftEverywhere));
+    def->set_default_value(new ConfigOptionEnum<GapFillTarget>(gftNowhere));
     
 
     def = this->add("enable_overhang_bridge_fan", coBools);
@@ -1439,7 +1439,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Moderate"));
     def->enum_labels.push_back(L("All"));
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionEnum<EnsureVerticalShellThickness>(EnsureVerticalShellThickness::evstAll));
+    def->set_default_value(new ConfigOptionEnum<EnsureVerticalShellThickness>(EnsureVerticalShellThickness::evstModerate));
     
     auto def_top_fill_pattern = def = this->add("top_surface_pattern", coEnum);
     def->label = L("Top surface pattern");
@@ -1462,7 +1462,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Hilbert Curve"));
     def->enum_labels.push_back(L("Archimedean Chords"));
     def->enum_labels.push_back(L("Octagram Spiral"));
-    def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipMonotonic));
+    def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipMonotonicLine));
 
     def = this->add("bottom_surface_pattern", coEnum);
     def->label = L("Bottom surface pattern");
@@ -3538,7 +3538,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->enum_labels.push_back(L("Slope"));
     def->enum_labels.push_back(L("Spiral"));
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionEnumsGeneric{ ZHopType::zhtNormal });
+    def->set_default_value(new ConfigOptionEnumsGeneric{ ZHopType::zhtSlope });
 
     def = this->add("retract_lift_above", coFloats);
     def->label = L("Only lift Z above");
@@ -3816,9 +3816,9 @@ def = this->add("filament_loading_speed", coFloats);
     def->enum_values.push_back("disabled");
     def->enum_values.push_back("limited");
     def->enum_values.push_back("enabled");
-    def->enum_labels.push_back("Disabled");
-    def->enum_labels.push_back("Limited");
-    def->enum_labels.push_back("Enabled");
+    def->enum_labels.push_back(L("Disabled"));
+    def->enum_labels.push_back(L("Limited"));
+    def->enum_labels.push_back(L("Enabled"));
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<DraftShield>(dsDisabled));
 

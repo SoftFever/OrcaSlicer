@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-21 00:29+0800\n"
+"POT-Creation-Date: 2024-05-20 22:45+0200\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Heiko Liebscher <hliebschergmail.com>\n"
 "Language-Team: \n"
@@ -12845,6 +12845,12 @@ msgstr ""
 "Überschneidungen kommen. Um dies zu
 "vermeiden, erhöhen Sie den Wert der Umrandungsdistanz."
 
+
+msgid "Limited"
+msgstr ""
+
+msgid "Enabled"
+msgstr ""
 
 msgid "Skirt loops"
 msgstr "Anzahl Umrandungsringe"
