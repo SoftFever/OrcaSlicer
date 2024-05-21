@@ -1138,7 +1138,7 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(item_associate_3mf, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_associate_stl, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_associate_step, 0, wxTOP, FromDIP(3));
-    sizer_page->Add(register_url_prusaslicer, 0, wxTOP | wxEXPAND, FromDIP(20));
+    sizer_page->Add(associate_url_prusaslicer, 0, wxTOP | wxEXPAND, FromDIP(20));
 #endif // _WIN32
     // auto item_title_modelmall = sizer_page->Add(title_modelmall, 0, wxTOP | wxEXPAND, FromDIP(20));
     // auto item_item_modelmall = sizer_page->Add(item_modelmall, 0, wxTOP, FromDIP(3));
