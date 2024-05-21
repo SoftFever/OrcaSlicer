@@ -654,7 +654,7 @@ void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper,
     ImGui::BBLInputDouble(label_values[0][2], &display_position[2], 0.0f, 0.0f, "%.2f");
     ImGui::SameLine(caption_max + (++index_unit) * unit_size + (++index) * space_size);
     imgui_wrapper->text(this->m_new_unit_string);
-
+    bool is_avoid_one_update{false};
     if (bbl_checkbox(_L("Object coordinates"), m_use_object_cs)) {
         if (m_use_object_cs) {
             set_coordinates_type(ECoordinatesType::Instance);
@@ -663,17 +663,17 @@ void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper,
             set_coordinates_type(ECoordinatesType::World);
         }
         UpdateAndShow(true);
-        return;//avoid update(current_active_id, "position", original_position
+        is_avoid_one_update = true;//avoid update(current_active_id, "position", original_position
     }
 
-    for (int i = 0;i<display_position.size();i++)
-    {
-        if (display_position[i] > MAX_NUM)display_position[i] = MAX_NUM;
-        if (display_position[i] < -MAX_NUM)display_position[i] = -MAX_NUM;
+    if (!is_avoid_one_update) {
+        for (int i = 0; i < display_position.size(); i++) {
+            if (display_position[i] > MAX_NUM) display_position[i] = MAX_NUM;
+            if (display_position[i] < -MAX_NUM) display_position[i] = -MAX_NUM;
+        }
+        m_buffered_position = display_position;
+        update(current_active_id, "position", original_position, m_buffered_position);
     }
-
-    m_buffered_position = display_position;
-    update(current_active_id, "position", original_position, m_buffered_position);
     // the init position values are not zero, won't add reset button
 
     // send focus to m_glcanvas
