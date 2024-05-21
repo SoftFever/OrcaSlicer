@@ -12842,9 +12842,8 @@ msgstr ""
 "\n"
 "Hinweis: Mit dem aktiven Luftzug-Schutz wird die Umrandung in der "
 "Umrandungsdistanz vom Objekt gedruckt. Daher kann es bei aktiven Rändern zu "
-"Überschneidungen kommen. Um dies zu
-"vermeiden, erhöhen Sie den Wert der Umrandungsdistanz."
-
+"Überschneidungen kommen. Um dies zu vermeiden, erhöhen Sie den Wert der"
+"Umrandungsdistanz. \n"
 
 msgid "Limited"
 msgstr "Begrenzt"
