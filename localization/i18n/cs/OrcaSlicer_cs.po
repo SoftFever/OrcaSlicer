@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-01 00:42+0800\n"
+"POT-Creation-Date: 2024-05-20 22:45+0200\n"
 "PO-Revision-Date: 2023-09-30 15:15+0200\n"
 "Last-Translator: René Mošner <Renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -1867,6 +1867,9 @@ msgstr "Přidat Primitivní"
 msgid "Add Handy models"
 msgstr ""
 
+msgid "Add Models"
+msgstr "Přidat modely"
+
 msgid "Show Labels"
 msgstr "Zobrazit štítky"
 
@@ -2362,7 +2365,7 @@ msgstr "Nepodařilo se připojit k tiskárně"
 msgid "Connection to printer failed"
 msgstr "Připojení k tiskárně selhalo"
 
-msgid "Please check the network connection of the printer and Studio."
+msgid "Please check the network connection of the printer and Orca."
 msgstr "Prosím, zkontrolujte síťové připojení tiskárny a Studia."
 
 msgid "Connecting..."
@@ -2715,14 +2718,8 @@ msgstr "Orca Slicer je licencován pod "
 msgid "GNU Affero General Public License, version 3"
 msgstr "GNU Affero General Public License, verze 3"
 
-msgid ""
-"Orca Slicer is based on BambuStudio by Bambulab, which is from PrusaSlicer "
-"by Prusa Research.  PrusaSlicer is from Slic3r by Alessandro Ranellucci and "
-"the RepRap community"
+msgid "Orca Slicer is based on PrusaSlicer and BambuStudio"
 msgstr ""
-"Orca Slicer je založen na BambuStudio od Bambulab, které je od PrusaSlicer "
-"od Prusa Research. PrusaSlicer je od Slic3r od Alessandra Ranellucciho a "
-"komunita RepRap"
 
 msgid "Libraries"
 msgstr "Knihovny"
@@ -3206,6 +3203,210 @@ msgid "Scheduling upload to `%1%`. See Window -> Print Host Upload Queue"
 msgstr ""
 "Plánování nahrávání do `%1%`. Viz Okno -> Fronta nahrávaní do tiskového "
 "serveru"
+
+msgid "Device"
+msgstr "Zařízení"
+
+msgid "Task Sending"
+msgstr ""
+
+msgid "Task Sent"
+msgstr ""
+
+msgid "Edit multiple printers"
+msgstr ""
+
+msgid "Select connected printetrs (0/6)"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Select Connected Printetrs (%d/6)"
+msgstr ""
+
+#, c-format, boost-format
+msgid "The maximum number of printers that can be selected is %d"
+msgstr ""
+
+msgid "Offline"
+msgstr "Offline"
+
+msgid "No task"
+msgstr ""
+
+msgid "View"
+msgstr "Zobrazení"
+
+msgid "N/A"
+msgstr "N/A"
+
+msgid "Edit Printers"
+msgstr ""
+
+msgid "Device Name"
+msgstr ""
+
+msgid "Task Name"
+msgstr ""
+
+msgid "Device Status"
+msgstr ""
+
+msgid "Actions"
+msgstr ""
+
+msgid ""
+"Please select the devices you would like to manage here (up to 6 devices)"
+msgstr ""
+
+msgid "Add"
+msgstr "Přidat"
+
+msgid "Idle"
+msgstr "Nečinný"
+
+msgid "Printing"
+msgstr "Tisk"
+
+msgid "Upgrading"
+msgstr ""
+
+msgid "Incompatible"
+msgstr "Nekompatibilní"
+
+msgid "syncing"
+msgstr ""
+
+msgid "Printing Finish"
+msgstr ""
+
+msgid "Printing Failed"
+msgstr ""
+
+msgid "PrintingPause"
+msgstr ""
+
+msgid "Prepare"
+msgstr "Připravit"
+
+msgid "Slicing"
+msgstr "Slicování"
+
+msgid "Pending"
+msgstr ""
+
+msgid "Sending"
+msgstr ""
+
+msgid "Sending Finish"
+msgstr ""
+
+msgid "Sending Cancel"
+msgstr ""
+
+msgid "Sending Failed"
+msgstr ""
+
+msgid "Print Success"
+msgstr ""
+
+msgid "Print Failed"
+msgstr ""
+
+msgid "Removed"
+msgstr ""
+
+msgid "Resume"
+msgstr "Pokračovat"
+
+msgid "Stop"
+msgstr "Zastavit"
+
+msgid "Task Status"
+msgstr ""
+
+msgid "Sent Time"
+msgstr ""
+
+msgid "There are no tasks to be sent!"
+msgstr ""
+
+msgid "No historical tasks!"
+msgstr ""
+
+msgid "Loading..."
+msgstr "Načítání..."
+
+msgid "No AMS"
+msgstr ""
+
+msgid "Send to Multi-device"
+msgstr ""
+
+msgid "Preparing print job"
+msgstr "Příprava tiskové úlohy"
+
+msgid "Abnormal print file data. Please slice again"
+msgstr "Abnormální data tiskového souboru. Prosím znovu slicovat"
+
+msgid "There is no device available to send printing."
+msgstr ""
+
+msgid "The number of printers in use simultaneously cannot be equal to 0."
+msgstr ""
+
+msgid "Use External Spool"
+msgstr ""
+
+msgid "Use AMS"
+msgstr ""
+
+msgid "Select Printers"
+msgstr ""
+
+msgid "Ams Status"
+msgstr ""
+
+msgid "Printing Options"
+msgstr ""
+
+msgid "Send Options"
+msgstr ""
+
+msgid "Send"
+msgstr "Odeslat"
+
+msgid ""
+"printers at the same time.(It depends on how many devices can undergo "
+"heating at the same time.)"
+msgstr ""
+
+msgid "Wait"
+msgstr ""
+
+msgid ""
+"minute each batch.(It depends on how long it takes to complete the heating.)"
+msgstr ""
+
+msgid "Name is invalid;"
+msgstr "Jméno je neplatné;"
+
+msgid "illegal characters:"
+msgstr "nepovolené znaky:"
+
+msgid "illegal suffix:"
+msgstr "nelegální přípona:"
+
+msgid "The name is not allowed to be empty."
+msgstr "Název nesmí být prázdný."
+
+msgid "The name is not allowed to start with space character."
+msgstr "Název nesmí začínat mezerou."
+
+msgid "The name is not allowed to end with space character."
+msgstr "Název nesmí končit mezerou."
+
+msgid "The name length exceeds the limit."
+msgstr "Délka názvu překračuje limit."
 
 msgid "Origin"
 msgstr "Počátek"
@@ -3717,9 +3918,6 @@ msgstr "Nastavení tiskárny"
 msgid "parameter name"
 msgstr "název parametru"
 
-msgid "N/A"
-msgstr "N/A"
-
 #, c-format, boost-format
 msgid "%s can't be percentage"
 msgstr "%s nemůže být procento"
@@ -4037,9 +4235,6 @@ msgstr "Vyhněte se oblasti kalibrace extruze"
 msgid "Align to Y axis"
 msgstr "Zarovnat podle osy Y"
 
-msgid "Add"
-msgstr "Přidat"
-
 msgid "Add plate"
 msgstr "Přidat Podložku"
 
@@ -4226,14 +4421,8 @@ msgstr "Uzavření aplikace, zatímco některé přednastavení jsou upraveny."
 msgid "Logging"
 msgstr "Protokolování"
 
-msgid "Prepare"
-msgstr "Připravit"
-
 msgid "Preview"
 msgstr "Náhled"
-
-msgid "Device"
-msgstr "Zařízení"
 
 msgid "Multi-device"
 msgstr ""
@@ -4262,9 +4451,6 @@ msgstr "Slicuj Vše"
 msgid "Export G-code file"
 msgstr "Exportovat soubor s G-kódem"
 
-msgid "Send"
-msgstr "Odeslat"
-
 msgid "Export plate sliced file"
 msgstr "Exportovat soubor slicované na podložce"
 
@@ -4276,9 +4462,6 @@ msgstr "Vytisknout vše"
 
 msgid "Send all"
 msgstr "Odeslat vše"
-
-msgid "Send to Multi-device"
-msgstr ""
 
 msgid "Keyboard Shortcuts"
 msgstr "Klávesové zkratky"
@@ -4421,8 +4604,8 @@ msgstr "Exportovat G-kód"
 msgid "Export current plate as G-code"
 msgstr "Exportovat stávající plochu do G-kód"
 
-msgid "Export &Configs"
-msgstr "Exportovat &konfigurace"
+msgid "Export Preset Bundle"
+msgstr ""
 
 msgid "Export current configuration to files"
 msgstr "Exportovat aktuální konfiguraci do souborů"
@@ -4523,9 +4706,6 @@ msgstr "Zobrazit zvýraznění převisů objektu ve 3D scéně"
 msgid "Preferences"
 msgstr "Nastavení"
 
-msgid "View"
-msgstr "Zobrazení"
-
 msgid "Help"
 msgstr "Nápověda"
 
@@ -4592,10 +4772,10 @@ msgstr "Exportovat &Trasy extruderu jako OBJ"
 msgid "Export toolpaths as OBJ"
 msgstr "Exportovat trasy extruderu jako OBJ"
 
-msgid "Open &Studio"
+msgid "Open &Slicer"
 msgstr "Otevřít &Studio"
 
-msgid "Open Studio"
+msgid "Open Slicer"
 msgstr "Otevřít Studio"
 
 msgid "&Quit"
@@ -4777,9 +4957,6 @@ msgstr "Informace"
 msgid "Playing..."
 msgstr "Hraje..."
 
-msgid "Loading..."
-msgstr "Načítání..."
-
 msgid "Year"
 msgstr "Rok"
 
@@ -4938,11 +5115,6 @@ msgid ""
 "please try again later."
 msgstr ""
 
-msgid ""
-"Over 4 systems/handy are using remote access, you can close some and try "
-"again."
-msgstr ""
-
 msgid "File does not exist."
 msgstr ""
 
@@ -5000,12 +5172,6 @@ msgstr "Obrátit osu Rotace"
 
 msgid "Printing Progress"
 msgstr "Průběh tisku"
-
-msgid "Resume"
-msgstr "Pokračovat"
-
-msgid "Stop"
-msgstr "Zastavit"
 
 msgid "0"
 msgstr "0"
@@ -5770,6 +5936,9 @@ msgstr "Názvy součástí v souboru kroku nejsou ve formátu UTF8!"
 msgid "The name may show garbage characters!"
 msgstr "Kvůli nepodporovanému kódování textu se mohou objevit nesmyslné znaky!"
 
+msgid "Remember my choice."
+msgstr "Zapamatovat si mou volbu."
+
 #, boost-format
 msgid "Failed loading file \"%1%\". An invalid configuration was found."
 msgstr ""
@@ -5895,9 +6064,6 @@ msgstr "Nelze znovu načíst:"
 msgid "Error during reload"
 msgstr "Chyba při opětovném načtení souboru"
 
-msgid "Slicing"
-msgstr "Slicování"
-
 msgid "There are warnings after slicing models:"
 msgstr "Po slicování modelů jsou varování:"
 
@@ -5971,9 +6137,10 @@ msgid "Project downloaded %d%%"
 msgstr "Projekt stažen %d%%"
 
 msgid ""
-"Importing to Bambu Studio failed. Please download the file and manually "
+"Importing to Orca Slicer failed. Please download the file and manually "
 "import it."
 msgstr ""
+"Import do Orca Sliceru selhal. Stáhněte soubor a proveďte jeho ruční import."
 
 msgid "Import SLA archive"
 msgstr ""
@@ -6011,17 +6178,11 @@ msgstr "Soubory G-kódu a modely nelze načíst společně!"
 msgid "Can not add models when in preview mode!"
 msgstr "Nelze přidat modely v režimu náhledu!"
 
-msgid "Add Models"
-msgstr "Přidat modely"
-
 msgid "All objects will be removed, continue?"
 msgstr "Všechny objekty budou odebrány, pokračovat?"
 
 msgid "The current project has unsaved changes, save it before continue?"
 msgstr "Aktuální projekt má neuložené změny, uložit je před pokračováním?"
-
-msgid "Remember my choice."
-msgstr "Zapamatovat si mou volbu."
 
 msgid "Number of copies:"
 msgstr "Počet kopií:"
@@ -6224,6 +6385,11 @@ msgstr "Región přihlášení"
 msgid "Stealth Mode"
 msgstr "Tajný Režim"
 
+msgid ""
+"This stops the transmission of data to Bambu's cloud services. Users who "
+"don't use BBL machines or use LAN mode only can safely turn on this function."
+msgstr ""
+
 msgid "Enable network plugin"
 msgstr ""
 
@@ -6330,7 +6496,7 @@ msgid ""
 "each printer automatically."
 msgstr ""
 
-msgid "Multi-device Management(Take effect after restarting Studio)."
+msgid "Multi-device Management(Take effect after restarting Orca)."
 msgstr ""
 
 msgid ""
@@ -6554,9 +6720,6 @@ msgstr ""
 msgid "Create printer"
 msgstr ""
 
-msgid "Incompatible"
-msgstr "Nekompatibilní"
-
 msgid "The selected preset is null!"
 msgstr "Vybrané přednastavení je nula!"
 
@@ -6651,15 +6814,6 @@ msgstr "Uživatelská předvolba"
 msgid "Preset Inside Project"
 msgstr "Projekt uvnitř přednastavení"
 
-msgid "Name is invalid;"
-msgstr "Jméno je neplatné;"
-
-msgid "illegal characters:"
-msgstr "nepovolené znaky:"
-
-msgid "illegal suffix:"
-msgstr "nelegální přípona:"
-
 msgid "Name is unavailable."
 msgstr "Jméno není k dispozici."
 
@@ -6677,15 +6831,6 @@ msgstr ""
 
 msgid "Please note that saving action will replace this preset"
 msgstr "Upozorňujeme, že akce uložení nahradí toto přednastavení"
-
-msgid "The name is not allowed to be empty."
-msgstr "Název nesmí být prázdný."
-
-msgid "The name is not allowed to start with space character."
-msgstr "Název nesmí začínat mezerou."
-
-msgid "The name is not allowed to end with space character."
-msgstr "Název nesmí končit mezerou."
 
 msgid "The name cannot be the same as a preset alias name."
 msgstr "Název se nesmí shodovat s názvem aliasem přednastavení."
@@ -6743,9 +6888,6 @@ msgstr "Nemohu najít moje zařízení?"
 
 msgid "Log out successful."
 msgstr "Odhlášení proběhlo úspěšně."
-
-msgid "Offline"
-msgstr "Offline"
 
 msgid "Busy"
 msgstr "Zaneprázdněn"
@@ -6951,15 +7093,6 @@ msgstr ""
 msgid ""
 "Connecting to the printer. Unable to cancel during the connection process."
 msgstr "Připojování k tiskárně. Nelze zrušit během procesu připojování."
-
-msgid "Preparing print job"
-msgstr "Příprava tiskové úlohy"
-
-msgid "Abnormal print file data. Please slice again"
-msgstr "Abnormální data tiskového souboru. Prosím znovu slicovat"
-
-msgid "The name length exceeds the limit."
-msgstr "Délka názvu překračuje limit."
 
 msgid ""
 "Caution to use! Flow calibration on Textured PEI Plate may fail due to the "
@@ -7328,6 +7461,9 @@ msgstr "Filament na podpěry"
 
 msgid "Tree supports"
 msgstr "Stromové podpěry"
+
+msgid "Skirt"
+msgstr "Obrys"
 
 msgid "Prime tower"
 msgstr "Čistící věž"
@@ -8228,6 +8364,12 @@ msgstr "Posunout posuvník 5x rychleji"
 msgid "Shift+Mouse wheel"
 msgstr "Shift+kolečko myši"
 
+msgid "Horizontal slider - Move to start position"
+msgstr ""
+
+msgid "Horizontal slider - Move to last position"
+msgstr ""
+
 msgid "Release Note"
 msgstr "Poznámka k vydání"
 
@@ -8349,12 +8491,6 @@ msgstr "Verze:"
 msgid "Update firmware"
 msgstr "Aktualizovat firmware"
 
-msgid "Printing"
-msgstr "Tisk"
-
-msgid "Idle"
-msgstr "Nečinný"
-
 msgid "Beta version"
 msgstr ""
 
@@ -8389,7 +8525,7 @@ msgstr ""
 msgid ""
 "The firmware version is abnormal. Repairing and updating are required before "
 "printing. Do you want to update now? You can also update later on printer or "
-"update next time starting the studio."
+"update next time starting Orca."
 msgstr ""
 "Verze firmwaru je abnormální. Oprava a aktualizace jsou nutné před tisk. "
 "Chcete provést aktualizaci nyní? Aktualizaci můžete provést také později na "
@@ -8527,9 +8663,6 @@ msgstr "Vnitřní most"
 
 msgid "Gap infill"
 msgstr "Výplň mezery"
-
-msgid "Skirt"
-msgstr "Obrys"
 
 msgid "Support interface"
 msgstr "Kontaktní vrstva podpěr"
@@ -10322,14 +10455,28 @@ msgstr "Výrobce filamentu. Pouze pro zobrazení"
 msgid "(Undefined)"
 msgstr "(Nedefinováno)"
 
-msgid "Infill direction"
-msgstr "Směr výplně"
+msgid "Sparse infill direction"
+msgstr ""
 
 msgid ""
 "Angle for sparse infill pattern, which controls the start or main direction "
 "of line"
 msgstr ""
 "Úhel pro vzor vnitřní výplně, který řídí začátek nebo hlavní směr linky"
+
+msgid "Solid infill direction"
+msgstr ""
+
+msgid ""
+"Angle for solid infill pattern, which controls the start or main direction "
+"of line"
+msgstr ""
+
+msgid "Rotate solid infill direction"
+msgstr ""
+
+msgid "Rotate the solid infill direction by 90° for each layer."
+msgstr ""
 
 msgid "Sparse infill density"
 msgstr "Hustota vnitřní výplně"
@@ -10669,11 +10816,15 @@ msgid "Arc fitting"
 msgstr "Přizpůsobení oblouku"
 
 msgid ""
-"Enable this to get a G-code file which has G2 and G3 moves. And the fitting "
-"tolerance is same with resolution"
+"Enable this to get a G-code file which has G2 and G3 moves. The fitting "
+"tolerance is same as the resolution. \n"
+"\n"
+"Note: For klipper machines, this option is recomended to be disabled. "
+"Klipper does not benefit from arc commands as these are split again into "
+"line segments by the firmware. This results in a reduction in surface "
+"quality as line segments are converted to arcs by the slicer and then back "
+"to line segments by the firmware."
 msgstr ""
-"Povolte toto, abyste získali soubor G-kódu, který má pohyby G2 a G3. A "
-"tolerance montáže je stejná s rozlišením"
 
 msgid "Add line number"
 msgstr "Přidat číslo řádku"
@@ -10903,12 +11054,25 @@ msgstr ""
 msgid "Infill/Wall overlap"
 msgstr "Výplň/Přesah stěny"
 
+#, no-c-format, no-boost-format
 msgid ""
 "Infill area is enlarged slightly to overlap with wall for better bonding. "
-"The percentage value is relative to line width of sparse infill"
+"The percentage value is relative to line width of sparse infill. Set this "
+"value to ~10-15% to minimize potential over extrusion and accumulation of "
+"material resulting in rough top surfaces."
 msgstr ""
-"Oblast výplně je mírně zvětšena, aby se překrývala se stěnou pro lepší "
-"lepení. Procentuální hodnota je vztažena k šířce extruze vnitřní výplně"
+
+msgid "Top/Bottom solid infill/wall overlap"
+msgstr ""
+
+#, no-c-format, no-boost-format
+msgid ""
+"Top solid infill area is enlarged slightly to overlap with wall for better "
+"bonding and to minimize the appearance of pinholes where the top infill "
+"meets the walls. A value of 25-30% is a good starting point, minimising the "
+"appearance of pinholes. The percentage value is relative to line width of "
+"sparse infill"
+msgstr ""
 
 msgid "Speed of internal sparse infill"
 msgstr "Rychlost vnitřní výplně"
@@ -11906,6 +12070,29 @@ msgstr "Výška obrysu"
 msgid "How many layers of skirt. Usually only one layer"
 msgstr "Kolik vrstev Obrysu. Obvykle pouze jedna vrstva"
 
+msgid "Draft shield"
+msgstr ""
+
+msgid ""
+"A draft shield is useful to protect an ABS or ASA print from warping and "
+"detaching from print bed due to wind draft. It is usually needed only with "
+"open frame printers, i.e. without an enclosure. \n"
+"\n"
+"Options:\n"
+"Enabled = skirt is as tall as the highest printed object.\n"
+"Limited = skirt is as tall as specified by skirt height.\n"
+"\n"
+"Note: With the draft shield active, the skirt will be printed at skirt "
+"distance from the object. Therefore, if brims are active it may intersect "
+"with them. To avoid this, increase the skirt distance value.\n"
+msgstr ""
+
+msgid "Limited"
+msgstr ""
+
+msgid "Enabled"
+msgstr ""
+
 msgid "Skirt loops"
 msgstr "Obrysové smyčky"
 
@@ -11918,6 +12105,17 @@ msgstr "Rychlost obrysu"
 msgid "Speed of skirt, in mm/s. Zero means use default layer extrusion speed."
 msgstr ""
 "Rychlost obrysu, v mm/s. Nula znamená použít výchozí rychlost vrstvy extruze."
+
+msgid "Skirt minimum extrusion length"
+msgstr ""
+
+msgid ""
+"Minimum filament extrusion length in mm when printing the skirt. Zero means "
+"this feature is disabled.\n"
+"\n"
+"Using a non zero value is useful if the printer is set up to print without a "
+"prime line."
+msgstr ""
 
 msgid ""
 "The printing speed in exported gcode will be slowed down, when the estimated "
@@ -12652,6 +12850,19 @@ msgstr "Rozteč čistících linek v čistící věži"
 
 msgid "Spacing of purge lines on the wipe tower."
 msgstr "Rozteč čistících linek v čistící věži."
+
+msgid "Maximum print speed when purging"
+msgstr ""
+
+msgid ""
+"The maximum print speed when purging in the wipe tower. If the sparse infill "
+"speed or calculated speed from the filament max volumetric speed is lower, "
+"the lowest speed will be used instead.\n"
+"Increasing this speed may affect the tower's stability, as purging can be "
+"performed over sparse layers. Before increasing this parameter beyond the "
+"default of 90mm/sec, make sure your printer can reliably bridge at the "
+"increased speeds."
+msgstr ""
 
 msgid "Wipe tower extruder"
 msgstr "Extruder čistící věže"
@@ -14488,16 +14699,13 @@ msgstr ""
 msgid ""
 "\n"
 "\n"
-"Studio has detected that your user presets synchronization function is not "
+"Orca has detected that your user presets synchronization function is not "
 "enabled, which may result in unsuccessful Filament settings on the Device "
 "page. \n"
 "Click \"Sync user presets\" to enable the synchronization function."
 msgstr ""
 
 msgid "Printer Setting"
-msgstr ""
-
-msgid "Export Configs"
 msgstr ""
 
 msgid "Printer config bundle(.orca_printer)"
@@ -15401,6 +15609,35 @@ msgid ""
 "probability of warping."
 msgstr ""
 
+#~ msgid ""
+#~ "Orca Slicer is based on BambuStudio by Bambulab, which is from "
+#~ "PrusaSlicer by Prusa Research.  PrusaSlicer is from Slic3r by Alessandro "
+#~ "Ranellucci and the RepRap community"
+#~ msgstr ""
+#~ "Orca Slicer je založen na BambuStudio od Bambulab, které je od "
+#~ "PrusaSlicer od Prusa Research. PrusaSlicer je od Slic3r od Alessandra "
+#~ "Ranellucciho a komunita RepRap"
+
+#~ msgid "Export &Configs"
+#~ msgstr "Exportovat &konfigurace"
+
+#~ msgid "Infill direction"
+#~ msgstr "Směr výplně"
+
+#~ msgid ""
+#~ "Enable this to get a G-code file which has G2 and G3 moves. And the "
+#~ "fitting tolerance is same with resolution"
+#~ msgstr ""
+#~ "Povolte toto, abyste získali soubor G-kódu, který má pohyby G2 a G3. A "
+#~ "tolerance montáže je stejná s rozlišením"
+
+#~ msgid ""
+#~ "Infill area is enlarged slightly to overlap with wall for better bonding. "
+#~ "The percentage value is relative to line width of sparse infill"
+#~ msgstr ""
+#~ "Oblast výplně je mírně zvětšena, aby se překrývala se stěnou pro lepší "
+#~ "lepení. Procentuální hodnota je vztažena k šířce extruze vnitřní výplně"
+
 #~ msgid "Unload Filament"
 #~ msgstr "Vysunout Filament"
 
@@ -15425,13 +15662,6 @@ msgstr ""
 
 #~ msgid "HMS"
 #~ msgstr "HMS"
-
-#~ msgid ""
-#~ "Importing to Orca Slicer failed. Please download the file and manually "
-#~ "import it."
-#~ msgstr ""
-#~ "Import do Orca Sliceru selhal. Stáhněte soubor a proveďte jeho ruční "
-#~ "import."
 
 #~ msgid "- ℃"
 #~ msgstr "- ℃"

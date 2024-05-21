@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-01 00:42+0800\n"
+"POT-Creation-Date: 2024-05-20 22:45+0200\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1834,6 +1834,9 @@ msgstr "プリミティブを追加"
 msgid "Add Handy models"
 msgstr ""
 
+msgid "Add Models"
+msgstr "モデルを追加"
+
 msgid "Show Labels"
 msgstr "ラベルを表示"
 
@@ -2315,8 +2318,8 @@ msgstr "プリンターへ接続できませんでした"
 msgid "Connection to printer failed"
 msgstr "Connection to printer failed"
 
-msgid "Please check the network connection of the printer and Studio."
-msgstr "Please check the network connection of the printer and Studio."
+msgid "Please check the network connection of the printer and Orca."
+msgstr "Please check the network connection of the printer and Orca."
 
 msgid "Connecting..."
 msgstr "接続中…"
@@ -2663,10 +2666,7 @@ msgstr "Orca Slicerのライセンス"
 msgid "GNU Affero General Public License, version 3"
 msgstr "GNU Affero General Public License, version 3"
 
-msgid ""
-"Orca Slicer is based on BambuStudio by Bambulab, which is from PrusaSlicer "
-"by Prusa Research.  PrusaSlicer is from Slic3r by Alessandro Ranellucci and "
-"the RepRap community"
+msgid "Orca Slicer is based on PrusaSlicer and BambuStudio"
 msgstr ""
 
 msgid "Libraries"
@@ -3129,6 +3129,210 @@ msgid "Scheduling upload to `%1%`. See Window -> Print Host Upload Queue"
 msgstr ""
 "%1%にタスクをスケジューリングしました、詳細は「ウインドウ→タスクキュー」にて"
 "ご確認ください。"
+
+msgid "Device"
+msgstr "デバイス"
+
+msgid "Task Sending"
+msgstr ""
+
+msgid "Task Sent"
+msgstr ""
+
+msgid "Edit multiple printers"
+msgstr ""
+
+msgid "Select connected printetrs (0/6)"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Select Connected Printetrs (%d/6)"
+msgstr ""
+
+#, c-format, boost-format
+msgid "The maximum number of printers that can be selected is %d"
+msgstr ""
+
+msgid "Offline"
+msgstr "オフライン"
+
+msgid "No task"
+msgstr ""
+
+msgid "View"
+msgstr "表示"
+
+msgid "N/A"
+msgstr "N/A"
+
+msgid "Edit Printers"
+msgstr ""
+
+msgid "Device Name"
+msgstr ""
+
+msgid "Task Name"
+msgstr ""
+
+msgid "Device Status"
+msgstr ""
+
+msgid "Actions"
+msgstr ""
+
+msgid ""
+"Please select the devices you would like to manage here (up to 6 devices)"
+msgstr ""
+
+msgid "Add"
+msgstr "追加"
+
+msgid "Idle"
+msgstr "待機中"
+
+msgid "Printing"
+msgstr "造形中"
+
+msgid "Upgrading"
+msgstr ""
+
+msgid "Incompatible"
+msgstr "Incompatible"
+
+msgid "syncing"
+msgstr ""
+
+msgid "Printing Finish"
+msgstr ""
+
+msgid "Printing Failed"
+msgstr ""
+
+msgid "PrintingPause"
+msgstr ""
+
+msgid "Prepare"
+msgstr "準備"
+
+msgid "Slicing"
+msgstr "スライス中"
+
+msgid "Pending"
+msgstr ""
+
+msgid "Sending"
+msgstr ""
+
+msgid "Sending Finish"
+msgstr ""
+
+msgid "Sending Cancel"
+msgstr ""
+
+msgid "Sending Failed"
+msgstr ""
+
+msgid "Print Success"
+msgstr ""
+
+msgid "Print Failed"
+msgstr ""
+
+msgid "Removed"
+msgstr ""
+
+msgid "Resume"
+msgstr "再開"
+
+msgid "Stop"
+msgstr "中止"
+
+msgid "Task Status"
+msgstr ""
+
+msgid "Sent Time"
+msgstr ""
+
+msgid "There are no tasks to be sent!"
+msgstr ""
+
+msgid "No historical tasks!"
+msgstr ""
+
+msgid "Loading..."
+msgstr "読込み中"
+
+msgid "No AMS"
+msgstr ""
+
+msgid "Send to Multi-device"
+msgstr ""
+
+msgid "Preparing print job"
+msgstr "造形タスクを準備"
+
+msgid "Abnormal print file data. Please slice again"
+msgstr "ファイルに異常があります、もう一度スライスしてください"
+
+msgid "There is no device available to send printing."
+msgstr ""
+
+msgid "The number of printers in use simultaneously cannot be equal to 0."
+msgstr ""
+
+msgid "Use External Spool"
+msgstr ""
+
+msgid "Use AMS"
+msgstr ""
+
+msgid "Select Printers"
+msgstr ""
+
+msgid "Ams Status"
+msgstr ""
+
+msgid "Printing Options"
+msgstr ""
+
+msgid "Send Options"
+msgstr ""
+
+msgid "Send"
+msgstr "送信"
+
+msgid ""
+"printers at the same time.(It depends on how many devices can undergo "
+"heating at the same time.)"
+msgstr ""
+
+msgid "Wait"
+msgstr ""
+
+msgid ""
+"minute each batch.(It depends on how long it takes to complete the heating.)"
+msgstr ""
+
+msgid "Name is invalid;"
+msgstr "名称が無効です"
+
+msgid "illegal characters:"
+msgstr "無効な文字:"
+
+msgid "illegal suffix:"
+msgstr "無効なサフィックス"
+
+msgid "The name is not allowed to be empty."
+msgstr "「名前」が空です"
+
+msgid "The name is not allowed to start with space character."
+msgstr "名前の先頭にスペースを入れないでください"
+
+msgid "The name is not allowed to end with space character."
+msgstr "名前の最後にスペースを入れないでください"
+
+msgid "The name length exceeds the limit."
+msgstr "The name length exceeds the limit."
 
 msgid "Origin"
 msgstr "原点"
@@ -3604,9 +3808,6 @@ msgstr "プリンター設定"
 msgid "parameter name"
 msgstr "パラメータ名"
 
-msgid "N/A"
-msgstr "N/A"
-
 #, c-format, boost-format
 msgid "%s can't be percentage"
 msgstr "%s をパーセンテージにすることはできません"
@@ -3923,9 +4124,6 @@ msgstr "押出しキャリブレーション領域を避ける"
 msgid "Align to Y axis"
 msgstr ""
 
-msgid "Add"
-msgstr "追加"
-
 msgid "Add plate"
 msgstr "プレートを追加"
 
@@ -4107,14 +4305,8 @@ msgstr "プリセットが変更されたが終了します"
 msgid "Logging"
 msgstr "ログ"
 
-msgid "Prepare"
-msgstr "準備"
-
 msgid "Preview"
 msgstr "プレビュー"
-
-msgid "Device"
-msgstr "デバイス"
 
 msgid "Multi-device"
 msgstr ""
@@ -4143,9 +4335,6 @@ msgstr "スライス (全プレート)"
 msgid "Export G-code file"
 msgstr "G-codeをエクスポート"
 
-msgid "Send"
-msgstr "送信"
-
 msgid "Export plate sliced file"
 msgstr "エクスポート"
 
@@ -4157,9 +4346,6 @@ msgstr "造形開始 (全プレート)"
 
 msgid "Send all"
 msgstr "送信 (全プレート)"
-
-msgid "Send to Multi-device"
-msgstr ""
 
 msgid "Keyboard Shortcuts"
 msgstr "ショートカット"
@@ -4302,8 +4488,8 @@ msgstr "G-codeをエクスポート"
 msgid "Export current plate as G-code"
 msgstr "現在のプレートをG-codeでエクスポート"
 
-msgid "Export &Configs"
-msgstr "構成データ"
+msgid "Export Preset Bundle"
+msgstr ""
 
 msgid "Export current configuration to files"
 msgstr "現在の構成をエクスポート"
@@ -4404,9 +4590,6 @@ msgstr "Show object overhang highlight in 3D scene"
 msgid "Preferences"
 msgstr "設定"
 
-msgid "View"
-msgstr "表示"
-
 msgid "Help"
 msgstr "ヘルプ"
 
@@ -4473,10 +4656,10 @@ msgstr "Export &Toolpaths as OBJ"
 msgid "Export toolpaths as OBJ"
 msgstr "Export toolpaths as OBJ"
 
-msgid "Open &Studio"
+msgid "Open &Slicer"
 msgstr "Studioを開く"
 
-msgid "Open Studio"
+msgid "Open Slicer"
 msgstr "Studioを開く"
 
 msgid "&Quit"
@@ -4644,9 +4827,6 @@ msgstr "情報"
 msgid "Playing..."
 msgstr "再生中..."
 
-msgid "Loading..."
-msgstr "読込み中"
-
 msgid "Year"
 msgstr "年"
 
@@ -4799,11 +4979,6 @@ msgid ""
 "please try again later."
 msgstr ""
 
-msgid ""
-"Over 4 systems/handy are using remote access, you can close some and try "
-"again."
-msgstr ""
-
 msgid "File does not exist."
 msgstr ""
 
@@ -4861,12 +5036,6 @@ msgstr ""
 
 msgid "Printing Progress"
 msgstr "進捗"
-
-msgid "Resume"
-msgstr "再開"
-
-msgid "Stop"
-msgstr "中止"
 
 msgid "0"
 msgstr "0"
@@ -5592,6 +5761,9 @@ msgstr "ファイルのエンコーディング方式はUTF8形式ではあり�
 msgid "The name may show garbage characters!"
 msgstr "文字化けがあるようです、ご確認ください"
 
+msgid "Remember my choice."
+msgstr "Remember my choice."
+
 #, boost-format
 msgid "Failed loading file \"%1%\". An invalid configuration was found."
 msgstr "ファイル %1% を読み込めませんでした。"
@@ -5714,9 +5886,6 @@ msgstr ""
 msgid "Error during reload"
 msgstr ""
 
-msgid "Slicing"
-msgstr "スライス中"
-
 msgid "There are warnings after slicing models:"
 msgstr "スライスの警告:"
 
@@ -5789,7 +5958,7 @@ msgid "Project downloaded %d%%"
 msgstr "プロジェクトをダウンロード %d%%"
 
 msgid ""
-"Importing to Bambu Studio failed. Please download the file and manually "
+"Importing to Orca Slicer failed. Please download the file and manually "
 "import it."
 msgstr ""
 
@@ -5829,18 +5998,12 @@ msgstr "G-codeファイルとモデルを一緒にロードできません"
 msgid "Can not add models when in preview mode!"
 msgstr "プレビューモードではモデルを追加できません"
 
-msgid "Add Models"
-msgstr "モデルを追加"
-
 msgid "All objects will be removed, continue?"
 msgstr "すべてのオブジェクトが削除されます。続行しますか?"
 
 msgid "The current project has unsaved changes, save it before continue?"
 msgstr ""
 "現在のプロジェクトには未保存の変更があります。続行する前に保存しますか?"
-
-msgid "Remember my choice."
-msgstr "Remember my choice."
 
 msgid "Number of copies:"
 msgstr "複製数"
@@ -6041,6 +6204,11 @@ msgstr "地域"
 msgid "Stealth Mode"
 msgstr ""
 
+msgid ""
+"This stops the transmission of data to Bambu's cloud services. Users who "
+"don't use BBL machines or use LAN mode only can safely turn on this function."
+msgstr ""
+
 msgid "Enable network plugin"
 msgstr ""
 
@@ -6147,7 +6315,7 @@ msgid ""
 "each printer automatically."
 msgstr ""
 
-msgid "Multi-device Management(Take effect after restarting Studio)."
+msgid "Multi-device Management(Take effect after restarting Orca)."
 msgstr ""
 
 msgid ""
@@ -6365,9 +6533,6 @@ msgstr ""
 msgid "Create printer"
 msgstr ""
 
-msgid "Incompatible"
-msgstr "Incompatible"
-
 msgid "The selected preset is null!"
 msgstr ""
 
@@ -6462,15 +6627,6 @@ msgstr "ユーザープリセット"
 msgid "Preset Inside Project"
 msgstr "プロジェクト プリセット"
 
-msgid "Name is invalid;"
-msgstr "名称が無効です"
-
-msgid "illegal characters:"
-msgstr "無効な文字:"
-
-msgid "illegal suffix:"
-msgstr "無効なサフィックス"
-
 msgid "Name is unavailable."
 msgstr "名称は使用できません"
 
@@ -6487,15 +6643,6 @@ msgstr "プリセット\"%1%\"は既に存在し、また互換性がありま�
 
 msgid "Please note that saving action will replace this preset"
 msgstr "注意：現在のプリセットを上書きされます。"
-
-msgid "The name is not allowed to be empty."
-msgstr "「名前」が空です"
-
-msgid "The name is not allowed to start with space character."
-msgstr "名前の先頭にスペースを入れないでください"
-
-msgid "The name is not allowed to end with space character."
-msgstr "名前の最後にスペースを入れないでください"
 
 msgid "The name cannot be the same as a preset alias name."
 msgstr "プリセット名と同じの為、設定できません。"
@@ -6553,9 +6700,6 @@ msgstr "デバイスが見つからない？"
 
 msgid "Log out successful."
 msgstr "サインアウトしました"
-
-msgid "Offline"
-msgstr "オフライン"
 
 msgid "Busy"
 msgstr "ビジー状態"
@@ -6745,15 +6889,6 @@ msgstr ""
 msgid ""
 "Connecting to the printer. Unable to cancel during the connection process."
 msgstr ""
-
-msgid "Preparing print job"
-msgstr "造形タスクを準備"
-
-msgid "Abnormal print file data. Please slice again"
-msgstr "ファイルに異常があります、もう一度スライスしてください"
-
-msgid "The name length exceeds the limit."
-msgstr "The name length exceeds the limit."
 
 msgid ""
 "Caution to use! Flow calibration on Textured PEI Plate may fail due to the "
@@ -7112,6 +7247,9 @@ msgid "Support filament"
 msgstr "サポート用フィラメント"
 
 msgid "Tree supports"
+msgstr ""
+
+msgid "Skirt"
 msgstr ""
 
 msgid "Prime tower"
@@ -7972,6 +8110,12 @@ msgstr "5x"
 msgid "Shift+Mouse wheel"
 msgstr "Shift + マウスホイール"
 
+msgid "Horizontal slider - Move to start position"
+msgstr ""
+
+msgid "Horizontal slider - Move to last position"
+msgstr ""
+
 msgid "Release Note"
 msgstr "リリースノート"
 
@@ -8090,12 +8234,6 @@ msgstr "バージョン"
 msgid "Update firmware"
 msgstr "ファームウェアを更新"
 
-msgid "Printing"
-msgstr "造形中"
-
-msgid "Idle"
-msgstr "待機中"
-
 msgid "Beta version"
 msgstr ""
 
@@ -8129,7 +8267,7 @@ msgstr ""
 msgid ""
 "The firmware version is abnormal. Repairing and updating are required before "
 "printing. Do you want to update now? You can also update later on printer or "
-"update next time starting the studio."
+"update next time starting Orca."
 msgstr ""
 "ファームウェアのバージョンに異常があります。印刷する前に修復と更新が必要で"
 "す。今すぐ更新しますか？"
@@ -8263,9 +8401,6 @@ msgstr ""
 
 msgid "Gap infill"
 msgstr "隙間インフィル"
-
-msgid "Skirt"
-msgstr ""
 
 msgid "Support interface"
 msgstr "サポート接触面"
@@ -9911,13 +10046,27 @@ msgstr ""
 msgid "(Undefined)"
 msgstr "(未定義)"
 
-msgid "Infill direction"
-msgstr "インフィル方向"
+msgid "Sparse infill direction"
+msgstr ""
 
 msgid ""
 "Angle for sparse infill pattern, which controls the start or main direction "
 "of line"
 msgstr "スパース インフィル パターンの角度です"
+
+msgid "Solid infill direction"
+msgstr ""
+
+msgid ""
+"Angle for solid infill pattern, which controls the start or main direction "
+"of line"
+msgstr ""
+
+msgid "Rotate solid infill direction"
+msgstr ""
+
+msgid "Rotate the solid infill direction by 90° for each layer."
+msgstr ""
 
 msgid "Sparse infill density"
 msgstr "充填密度"
@@ -10214,9 +10363,15 @@ msgid "Arc fitting"
 msgstr "曲線フィッティング"
 
 msgid ""
-"Enable this to get a G-code file which has G2 and G3 moves. And the fitting "
-"tolerance is same with resolution"
-msgstr "この設定で出力のG-codeファイルにG2/G3コードを有効します。"
+"Enable this to get a G-code file which has G2 and G3 moves. The fitting "
+"tolerance is same as the resolution. \n"
+"\n"
+"Note: For klipper machines, this option is recomended to be disabled. "
+"Klipper does not benefit from arc commands as these are split again into "
+"line segments by the firmware. This results in a reduction in surface "
+"quality as line segments are converted to arcs by the slicer and then back "
+"to line segments by the firmware."
+msgstr ""
 
 msgid "Add line number"
 msgstr "行番号を追加"
@@ -10409,12 +10564,25 @@ msgstr ""
 msgid "Infill/Wall overlap"
 msgstr "インフィル/壁面 オーバーラップ"
 
+#, no-c-format, no-boost-format
 msgid ""
 "Infill area is enlarged slightly to overlap with wall for better bonding. "
-"The percentage value is relative to line width of sparse infill"
+"The percentage value is relative to line width of sparse infill. Set this "
+"value to ~10-15% to minimize potential over extrusion and accumulation of "
+"material resulting in rough top surfaces."
 msgstr ""
-"インフィルの領域を少し壁面を重ねるために拡大します。これにより壁面との接着性"
-"が向上させます。値はスパース インフィルの線幅の割合です。"
+
+msgid "Top/Bottom solid infill/wall overlap"
+msgstr ""
+
+#, no-c-format, no-boost-format
+msgid ""
+"Top solid infill area is enlarged slightly to overlap with wall for better "
+"bonding and to minimize the appearance of pinholes where the top infill "
+"meets the walls. A value of 25-30% is a good starting point, minimising the "
+"appearance of pinholes. The percentage value is relative to line width of "
+"sparse infill"
+msgstr ""
 
 msgid "Speed of internal sparse infill"
 msgstr "スパース インフィルの造形速度です。"
@@ -11302,6 +11470,29 @@ msgstr "Skirt height"
 msgid "How many layers of skirt. Usually only one layer"
 msgstr "Number of skirt layers: usually only one"
 
+msgid "Draft shield"
+msgstr ""
+
+msgid ""
+"A draft shield is useful to protect an ABS or ASA print from warping and "
+"detaching from print bed due to wind draft. It is usually needed only with "
+"open frame printers, i.e. without an enclosure. \n"
+"\n"
+"Options:\n"
+"Enabled = skirt is as tall as the highest printed object.\n"
+"Limited = skirt is as tall as specified by skirt height.\n"
+"\n"
+"Note: With the draft shield active, the skirt will be printed at skirt "
+"distance from the object. Therefore, if brims are active it may intersect "
+"with them. To avoid this, increase the skirt distance value.\n"
+msgstr ""
+
+msgid "Limited"
+msgstr ""
+
+msgid "Enabled"
+msgstr ""
+
 msgid "Skirt loops"
 msgstr "スカートのループ数"
 
@@ -11312,6 +11503,17 @@ msgid "Skirt speed"
 msgstr ""
 
 msgid "Speed of skirt, in mm/s. Zero means use default layer extrusion speed."
+msgstr ""
+
+msgid "Skirt minimum extrusion length"
+msgstr ""
+
+msgid ""
+"Minimum filament extrusion length in mm when printing the skirt. Zero means "
+"this feature is disabled.\n"
+"\n"
+"Using a non zero value is useful if the printer is set up to print without a "
+"prime line."
 msgstr ""
 
 msgid ""
@@ -11968,6 +12170,19 @@ msgid "Wipe tower purge lines spacing"
 msgstr ""
 
 msgid "Spacing of purge lines on the wipe tower."
+msgstr ""
+
+msgid "Maximum print speed when purging"
+msgstr ""
+
+msgid ""
+"The maximum print speed when purging in the wipe tower. If the sparse infill "
+"speed or calculated speed from the filament max volumetric speed is lower, "
+"the lowest speed will be used instead.\n"
+"Increasing this speed may affect the tower's stability, as purging can be "
+"performed over sparse layers. Before increasing this parameter beyond the "
+"default of 90mm/sec, make sure your printer can reliably bridge at the "
+"increased speeds."
 msgstr ""
 
 msgid "Wipe tower extruder"
@@ -13664,16 +13879,13 @@ msgstr ""
 msgid ""
 "\n"
 "\n"
-"Studio has detected that your user presets synchronization function is not "
+"Orca has detected that your user presets synchronization function is not "
 "enabled, which may result in unsuccessful Filament settings on the Device "
 "page. \n"
 "Click \"Sync user presets\" to enable the synchronization function."
 msgstr ""
 
 msgid "Printer Setting"
-msgstr ""
-
-msgid "Export Configs"
 msgstr ""
 
 msgid "Printer config bundle(.orca_printer)"
@@ -14537,6 +14749,24 @@ msgid ""
 "ABS, appropriately increasing the heatbed temperature can reduce the "
 "probability of warping."
 msgstr ""
+
+#~ msgid "Export &Configs"
+#~ msgstr "構成データ"
+
+#~ msgid "Infill direction"
+#~ msgstr "インフィル方向"
+
+#~ msgid ""
+#~ "Enable this to get a G-code file which has G2 and G3 moves. And the "
+#~ "fitting tolerance is same with resolution"
+#~ msgstr "この設定で出力のG-codeファイルにG2/G3コードを有効します。"
+
+#~ msgid ""
+#~ "Infill area is enlarged slightly to overlap with wall for better bonding. "
+#~ "The percentage value is relative to line width of sparse infill"
+#~ msgstr ""
+#~ "インフィルの領域を少し壁面を重ねるために拡大します。これにより壁面との接着"
+#~ "性が向上させます。値はスパース インフィルの線幅の割合です。"
 
 #~ msgid "Unload Filament"
 #~ msgstr "アンロード"

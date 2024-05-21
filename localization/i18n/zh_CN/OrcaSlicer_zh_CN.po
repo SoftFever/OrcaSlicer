@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-01 00:42+0800\n"
+"POT-Creation-Date: 2024-05-20 22:45+0200\n"
 "PO-Revision-Date: 2023-04-01 13:21+0800\n"
 "Last-Translator: SoftFever <softfeverever@gmail.com>\n"
 "Language-Team: \n"
@@ -1836,6 +1836,9 @@ msgstr "添加标准模型"
 msgid "Add Handy models"
 msgstr "添加实用模型"
 
+msgid "Add Models"
+msgstr "添加模型"
+
 msgid "Show Labels"
 msgstr "显示标签"
 
@@ -2309,7 +2312,7 @@ msgstr "无法连接打印机"
 msgid "Connection to printer failed"
 msgstr "连接打印机失败"
 
-msgid "Please check the network connection of the printer and Studio."
+msgid "Please check the network connection of the printer and Orca."
 msgstr "请检查打印机和工作室的网络连接"
 
 msgid "Connecting..."
@@ -2642,10 +2645,7 @@ msgstr "逆戟鲸是在"
 msgid "GNU Affero General Public License, version 3"
 msgstr "GNU Affero 通用公共许可证，版本 3下授权的"
 
-msgid ""
-"Orca Slicer is based on BambuStudio by Bambulab, which is from PrusaSlicer "
-"by Prusa Research.  PrusaSlicer is from Slic3r by Alessandro Ranellucci and "
-"the RepRap community"
+msgid "Orca Slicer is based on PrusaSlicer and BambuStudio"
 msgstr ""
 
 msgid "Libraries"
@@ -3103,6 +3103,210 @@ msgstr "将临时 G 代码复制到输出 G 代码失败"
 #, boost-format
 msgid "Scheduling upload to `%1%`. See Window -> Print Host Upload Queue"
 msgstr "计划上传到 `%1%`。请参阅窗口-> 打印主机上传队列"
+
+msgid "Device"
+msgstr "设备"
+
+msgid "Task Sending"
+msgstr ""
+
+msgid "Task Sent"
+msgstr ""
+
+msgid "Edit multiple printers"
+msgstr ""
+
+msgid "Select connected printetrs (0/6)"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Select Connected Printetrs (%d/6)"
+msgstr ""
+
+#, c-format, boost-format
+msgid "The maximum number of printers that can be selected is %d"
+msgstr ""
+
+msgid "Offline"
+msgstr "离线"
+
+msgid "No task"
+msgstr ""
+
+msgid "View"
+msgstr "视图"
+
+msgid "N/A"
+msgstr "N/A"
+
+msgid "Edit Printers"
+msgstr ""
+
+msgid "Device Name"
+msgstr ""
+
+msgid "Task Name"
+msgstr ""
+
+msgid "Device Status"
+msgstr ""
+
+msgid "Actions"
+msgstr ""
+
+msgid ""
+"Please select the devices you would like to manage here (up to 6 devices)"
+msgstr ""
+
+msgid "Add"
+msgstr "添加"
+
+msgid "Idle"
+msgstr "空闲"
+
+msgid "Printing"
+msgstr "打印中"
+
+msgid "Upgrading"
+msgstr ""
+
+msgid "Incompatible"
+msgstr "不兼容的预设"
+
+msgid "syncing"
+msgstr ""
+
+msgid "Printing Finish"
+msgstr ""
+
+msgid "Printing Failed"
+msgstr ""
+
+msgid "PrintingPause"
+msgstr ""
+
+msgid "Prepare"
+msgstr "准备"
+
+msgid "Slicing"
+msgstr "正在切片"
+
+msgid "Pending"
+msgstr ""
+
+msgid "Sending"
+msgstr ""
+
+msgid "Sending Finish"
+msgstr ""
+
+msgid "Sending Cancel"
+msgstr ""
+
+msgid "Sending Failed"
+msgstr ""
+
+msgid "Print Success"
+msgstr ""
+
+msgid "Print Failed"
+msgstr ""
+
+msgid "Removed"
+msgstr ""
+
+msgid "Resume"
+msgstr "继续"
+
+msgid "Stop"
+msgstr "停止"
+
+msgid "Task Status"
+msgstr ""
+
+msgid "Sent Time"
+msgstr ""
+
+msgid "There are no tasks to be sent!"
+msgstr ""
+
+msgid "No historical tasks!"
+msgstr ""
+
+msgid "Loading..."
+msgstr "正在加载视频……"
+
+msgid "No AMS"
+msgstr ""
+
+msgid "Send to Multi-device"
+msgstr ""
+
+msgid "Preparing print job"
+msgstr "正在准备打印任务"
+
+msgid "Abnormal print file data. Please slice again"
+msgstr "打印文件数据异常，请重新切片"
+
+msgid "There is no device available to send printing."
+msgstr ""
+
+msgid "The number of printers in use simultaneously cannot be equal to 0."
+msgstr ""
+
+msgid "Use External Spool"
+msgstr ""
+
+msgid "Use AMS"
+msgstr ""
+
+msgid "Select Printers"
+msgstr ""
+
+msgid "Ams Status"
+msgstr ""
+
+msgid "Printing Options"
+msgstr ""
+
+msgid "Send Options"
+msgstr ""
+
+msgid "Send"
+msgstr "发送"
+
+msgid ""
+"printers at the same time.(It depends on how many devices can undergo "
+"heating at the same time.)"
+msgstr ""
+
+msgid "Wait"
+msgstr ""
+
+msgid ""
+"minute each batch.(It depends on how long it takes to complete the heating.)"
+msgstr ""
+
+msgid "Name is invalid;"
+msgstr "无效名称；"
+
+msgid "illegal characters:"
+msgstr "非法字符："
+
+msgid "illegal suffix:"
+msgstr "非法后缀："
+
+msgid "The name is not allowed to be empty."
+msgstr "名称不允许为空。"
+
+msgid "The name is not allowed to start with space character."
+msgstr "名称不允许以空格开头。"
+
+msgid "The name is not allowed to end with space character."
+msgstr "名称不允许以空格结尾。"
+
+msgid "The name length exceeds the limit."
+msgstr "名称长度超过限制。"
 
 msgid "Origin"
 msgstr "原点"
@@ -3593,9 +3797,6 @@ msgstr "打印机设置"
 msgid "parameter name"
 msgstr "参数名称"
 
-msgid "N/A"
-msgstr "N/A"
-
 #, c-format, boost-format
 msgid "%s can't be percentage"
 msgstr "%s 不可以是百分比"
@@ -3914,9 +4115,6 @@ msgstr "避开挤出标定区域"
 msgid "Align to Y axis"
 msgstr "对齐到Y轴"
 
-msgid "Add"
-msgstr "添加"
-
 msgid "Add plate"
 msgstr "添加新盘"
 
@@ -4101,14 +4299,8 @@ msgstr "正在关闭应用程序，部分预设已修改。"
 msgid "Logging"
 msgstr "日志"
 
-msgid "Prepare"
-msgstr "准备"
-
 msgid "Preview"
 msgstr "预览"
-
-msgid "Device"
-msgstr "设备"
 
 msgid "Multi-device"
 msgstr ""
@@ -4137,9 +4329,6 @@ msgstr "切片所有盘"
 msgid "Export G-code file"
 msgstr "导出G-code文件"
 
-msgid "Send"
-msgstr "发送"
-
 msgid "Export plate sliced file"
 msgstr "导出单盘切片文件"
 
@@ -4151,9 +4340,6 @@ msgstr "打印所有盘"
 
 msgid "Send all"
 msgstr "发送所有盘"
-
-msgid "Send to Multi-device"
-msgstr ""
 
 msgid "Keyboard Shortcuts"
 msgstr "快捷键"
@@ -4296,8 +4482,8 @@ msgstr "导出 G-code"
 msgid "Export current plate as G-code"
 msgstr "导出当前盘的G-code"
 
-msgid "Export &Configs"
-msgstr "导出预设"
+msgid "Export Preset Bundle"
+msgstr ""
 
 msgid "Export current configuration to files"
 msgstr "导出当前选择的预设"
@@ -4398,9 +4584,6 @@ msgstr "在3D场景中显示悬空高亮"
 msgid "Preferences"
 msgstr "偏好设置"
 
-msgid "View"
-msgstr "视图"
-
 msgid "Help"
 msgstr "帮助"
 
@@ -4468,10 +4651,10 @@ msgstr "将工具路径导出为OBJ格式"
 msgid "Export toolpaths as OBJ"
 msgstr "将工具路径导出为OBJ格式"
 
-msgid "Open &Studio"
+msgid "Open &Slicer"
 msgstr "打开 Studio"
 
-msgid "Open Studio"
+msgid "Open Slicer"
 msgstr "打开 Studio"
 
 msgid "&Quit"
@@ -4641,9 +4824,6 @@ msgstr "信息"
 msgid "Playing..."
 msgstr "正在播放中……"
 
-msgid "Loading..."
-msgstr "正在加载视频……"
-
 msgid "Year"
 msgstr "年"
 
@@ -4798,11 +4978,6 @@ msgid ""
 "please try again later."
 msgstr ""
 
-msgid ""
-"Over 4 systems/handy are using remote access, you can close some and try "
-"again."
-msgstr ""
-
 msgid "File does not exist."
 msgstr ""
 
@@ -4860,12 +5035,6 @@ msgstr "反转纵轴，横滚轴"
 
 msgid "Printing Progress"
 msgstr "打印进度"
-
-msgid "Resume"
-msgstr "继续"
-
-msgid "Stop"
-msgstr "停止"
 
 msgid "0"
 msgstr ""
@@ -5589,6 +5758,9 @@ msgstr "step 文件中的部件名称包含非UTF8格式的字符！"
 msgid "The name may show garbage characters!"
 msgstr "此名称可能显示乱码字符！"
 
+msgid "Remember my choice."
+msgstr "记住我的选择。"
+
 #, boost-format
 msgid "Failed loading file \"%1%\". An invalid configuration was found."
 msgstr "加载文件“%1%”失败。发现无效配置。"
@@ -5711,9 +5883,6 @@ msgstr "无法重新加载："
 msgid "Error during reload"
 msgstr "重新加载时发生错误"
 
-msgid "Slicing"
-msgstr "正在切片"
-
 msgid "There are warnings after slicing models:"
 msgstr "模型切片警告："
 
@@ -5782,7 +5951,7 @@ msgid "Project downloaded %d%%"
 msgstr "项目已下载%d%%"
 
 msgid ""
-"Importing to Bambu Studio failed. Please download the file and manually "
+"Importing to Orca Slicer failed. Please download the file and manually "
 "import it."
 msgstr ""
 
@@ -5822,17 +5991,11 @@ msgstr "G-code文件不能和模型一起加载"
 msgid "Can not add models when in preview mode!"
 msgstr "在预览模式不允许添加模型"
 
-msgid "Add Models"
-msgstr "添加模型"
-
 msgid "All objects will be removed, continue?"
 msgstr "即将删除所有对象，是否继续？"
 
 msgid "The current project has unsaved changes, save it before continue?"
 msgstr "当前项目包含未保存的修改，是否先保存？"
-
-msgid "Remember my choice."
-msgstr "记住我的选择。"
 
 msgid "Number of copies:"
 msgstr "克隆数量："
@@ -6030,6 +6193,11 @@ msgstr "登录区域"
 msgid "Stealth Mode"
 msgstr "局域网模式"
 
+msgid ""
+"This stops the transmission of data to Bambu's cloud services. Users who "
+"don't use BBL machines or use LAN mode only can safely turn on this function."
+msgstr ""
+
 msgid "Enable network plugin"
 msgstr "启用网络插件"
 
@@ -6134,7 +6302,7 @@ msgid ""
 "each printer automatically."
 msgstr ""
 
-msgid "Multi-device Management(Take effect after restarting Studio)."
+msgid "Multi-device Management(Take effect after restarting Orca)."
 msgstr ""
 
 msgid ""
@@ -6350,9 +6518,6 @@ msgstr "选择/移除打印机（系统预设）"
 msgid "Create printer"
 msgstr "创建打印机"
 
-msgid "Incompatible"
-msgstr "不兼容的预设"
-
 msgid "The selected preset is null!"
 msgstr "选择的预设为空！"
 
@@ -6447,15 +6612,6 @@ msgstr "用户预设"
 msgid "Preset Inside Project"
 msgstr "项目预设"
 
-msgid "Name is invalid;"
-msgstr "无效名称；"
-
-msgid "illegal characters:"
-msgstr "非法字符："
-
-msgid "illegal suffix:"
-msgstr "非法后缀："
-
 msgid "Name is unavailable."
 msgstr "名称不可用。"
 
@@ -6472,15 +6628,6 @@ msgstr "预设“%1%”已存在，并且和当前打印机不兼容。"
 
 msgid "Please note that saving action will replace this preset"
 msgstr "请注意这个预设会在保存过程中被替换"
-
-msgid "The name is not allowed to be empty."
-msgstr "名称不允许为空。"
-
-msgid "The name is not allowed to start with space character."
-msgstr "名称不允许以空格开头。"
-
-msgid "The name is not allowed to end with space character."
-msgstr "名称不允许以空格结尾。"
 
 msgid "The name cannot be the same as a preset alias name."
 msgstr "名称不能和一个预设的别名相同。"
@@ -6538,9 +6685,6 @@ msgstr "无法找到我的设备？"
 
 msgid "Log out successful."
 msgstr "登出成功。"
-
-msgid "Offline"
-msgstr "离线"
 
 msgid "Busy"
 msgstr "忙碌"
@@ -6734,15 +6878,6 @@ msgstr "如果您仍然想继续打印，请单击“确定”按钮。"
 msgid ""
 "Connecting to the printer. Unable to cancel during the connection process."
 msgstr "正在连接打印机。连接过程中无法取消。"
-
-msgid "Preparing print job"
-msgstr "正在准备打印任务"
-
-msgid "Abnormal print file data. Please slice again"
-msgstr "打印文件数据异常，请重新切片"
-
-msgid "The name length exceeds the limit."
-msgstr "名称长度超过限制。"
 
 msgid ""
 "Caution to use! Flow calibration on Textured PEI Plate may fail due to the "
@@ -7092,6 +7227,9 @@ msgstr "支撑耗材"
 
 msgid "Tree supports"
 msgstr "树状支撑"
+
+msgid "Skirt"
+msgstr "裙边"
 
 msgid "Prime tower"
 msgstr "擦拭塔"
@@ -7961,6 +8099,12 @@ msgstr "5倍速移动滑动条"
 msgid "Shift+Mouse wheel"
 msgstr "Shift+鼠标滚轮"
 
+msgid "Horizontal slider - Move to start position"
+msgstr ""
+
+msgid "Horizontal slider - Move to last position"
+msgstr ""
+
 msgid "Release Note"
 msgstr "更新说明"
 
@@ -8079,12 +8223,6 @@ msgstr "版本："
 msgid "Update firmware"
 msgstr "更新固件"
 
-msgid "Printing"
-msgstr "打印中"
-
-msgid "Idle"
-msgstr "空闲"
-
 msgid "Beta version"
 msgstr ""
 
@@ -8116,7 +8254,7 @@ msgstr ""
 msgid ""
 "The firmware version is abnormal. Repairing and updating are required before "
 "printing. Do you want to update now? You can also update later on printer or "
-"update next time starting the studio."
+"update next time starting Orca."
 msgstr ""
 "当前固件版本异常，需要进行修复升级，否则无法继续打印。你想现在就开始升级吗？"
 "你也可以稍后在打印机上升级，或者下一次启动studio再升级。"
@@ -8249,9 +8387,6 @@ msgstr "内部搭桥"
 
 msgid "Gap infill"
 msgstr "填缝"
-
-msgid "Skirt"
-msgstr "裙边"
 
 msgid "Support interface"
 msgstr "支撑面"
@@ -9983,13 +10118,27 @@ msgstr "打印耗材的供应商。仅用于展示。"
 msgid "(Undefined)"
 msgstr "（未定义）"
 
-msgid "Infill direction"
-msgstr "填充方向"
+msgid "Sparse infill direction"
+msgstr ""
 
 msgid ""
 "Angle for sparse infill pattern, which controls the start or main direction "
 "of line"
 msgstr "稀疏填充图案的角度，决定走线的开始或整体方向。"
+
+msgid "Solid infill direction"
+msgstr ""
+
+msgid ""
+"Angle for solid infill pattern, which controls the start or main direction "
+"of line"
+msgstr ""
+
+msgid "Rotate solid infill direction"
+msgstr ""
+
+msgid "Rotate the solid infill direction by 90° for each layer."
+msgstr ""
 
 msgid "Sparse infill density"
 msgstr "稀疏填充密度"
@@ -10296,10 +10445,15 @@ msgid "Arc fitting"
 msgstr "圆弧拟合"
 
 msgid ""
-"Enable this to get a G-code file which has G2 and G3 moves. And the fitting "
-"tolerance is same with resolution"
+"Enable this to get a G-code file which has G2 and G3 moves. The fitting "
+"tolerance is same as the resolution. \n"
+"\n"
+"Note: For klipper machines, this option is recomended to be disabled. "
+"Klipper does not benefit from arc commands as these are split again into "
+"line segments by the firmware. This results in a reduction in surface "
+"quality as line segments are converted to arcs by the slicer and then back "
+"to line segments by the firmware."
 msgstr ""
-"打开这个设置，导出的G-code将包含G2 G3指令。圆弧拟合的容许值和精度相同。"
 
 msgid "Add line number"
 msgstr "标注行号"
@@ -10500,12 +10654,25 @@ msgstr "内部稀疏填充的线宽。如果以%表示，它将基于喷嘴直�
 msgid "Infill/Wall overlap"
 msgstr "填充/墙 重叠"
 
+#, no-c-format, no-boost-format
 msgid ""
 "Infill area is enlarged slightly to overlap with wall for better bonding. "
-"The percentage value is relative to line width of sparse infill"
+"The percentage value is relative to line width of sparse infill. Set this "
+"value to ~10-15% to minimize potential over extrusion and accumulation of "
+"material resulting in rough top surfaces."
 msgstr ""
-"填充区域被轻微扩大，并和外墙产生重叠，进而产生更好的粘接。表示为相对稀疏填充"
-"的线宽的百分比。"
+
+msgid "Top/Bottom solid infill/wall overlap"
+msgstr ""
+
+#, no-c-format, no-boost-format
+msgid ""
+"Top solid infill area is enlarged slightly to overlap with wall for better "
+"bonding and to minimize the appearance of pinholes where the top infill "
+"meets the walls. A value of 25-30% is a good starting point, minimising the "
+"appearance of pinholes. The percentage value is relative to line width of "
+"sparse infill"
+msgstr ""
 
 msgid "Speed of internal sparse infill"
 msgstr "内部稀疏填充的打印速度"
@@ -11448,6 +11615,29 @@ msgstr "Skirt高度"
 msgid "How many layers of skirt. Usually only one layer"
 msgstr "skirt有多少层。通常只有一层"
 
+msgid "Draft shield"
+msgstr ""
+
+msgid ""
+"A draft shield is useful to protect an ABS or ASA print from warping and "
+"detaching from print bed due to wind draft. It is usually needed only with "
+"open frame printers, i.e. without an enclosure. \n"
+"\n"
+"Options:\n"
+"Enabled = skirt is as tall as the highest printed object.\n"
+"Limited = skirt is as tall as specified by skirt height.\n"
+"\n"
+"Note: With the draft shield active, the skirt will be printed at skirt "
+"distance from the object. Therefore, if brims are active it may intersect "
+"with them. To avoid this, increase the skirt distance value.\n"
+msgstr ""
+
+msgid "Limited"
+msgstr ""
+
+msgid "Enabled"
+msgstr ""
+
 msgid "Skirt loops"
 msgstr "Skirt圈数"
 
@@ -11459,6 +11649,17 @@ msgstr "Skirt速度"
 
 msgid "Speed of skirt, in mm/s. Zero means use default layer extrusion speed."
 msgstr "skirt速度，单位为mm/s。0表示使用默认的层挤出速度。"
+
+msgid "Skirt minimum extrusion length"
+msgstr ""
+
+msgid ""
+"Minimum filament extrusion length in mm when printing the skirt. Zero means "
+"this feature is disabled.\n"
+"\n"
+"Using a non zero value is useful if the printer is set up to print without a "
+"prime line."
+msgstr ""
 
 msgid ""
 "The printing speed in exported gcode will be slowed down, when the estimated "
@@ -12123,6 +12324,19 @@ msgstr "擦拭塔冲刷线间距"
 
 msgid "Spacing of purge lines on the wipe tower."
 msgstr "擦拭塔上冲刷线的间距"
+
+msgid "Maximum print speed when purging"
+msgstr ""
+
+msgid ""
+"The maximum print speed when purging in the wipe tower. If the sparse infill "
+"speed or calculated speed from the filament max volumetric speed is lower, "
+"the lowest speed will be used instead.\n"
+"Increasing this speed may affect the tower's stability, as purging can be "
+"performed over sparse layers. Before increasing this parameter beyond the "
+"default of 90mm/sec, make sure your printer can reliably bridge at the "
+"increased speeds."
+msgstr ""
 
 msgid "Wipe tower extruder"
 msgstr "擦拭塔挤出机"
@@ -13899,7 +14113,7 @@ msgstr ""
 msgid ""
 "\n"
 "\n"
-"Studio has detected that your user presets synchronization function is not "
+"Orca has detected that your user presets synchronization function is not "
 "enabled, which may result in unsuccessful Filament settings on the Device "
 "page. \n"
 "Click \"Sync user presets\" to enable the synchronization function."
@@ -13907,9 +14121,6 @@ msgstr ""
 
 msgid "Printer Setting"
 msgstr "打印机设置"
-
-msgid "Export Configs"
-msgstr "导出预设"
 
 msgid "Printer config bundle(.orca_printer)"
 msgstr "打印机预设集(.orca_printer)"
@@ -14834,6 +15045,28 @@ msgid ""
 msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
+
+#~ msgid "Export &Configs"
+#~ msgstr "导出预设"
+
+#~ msgid "Infill direction"
+#~ msgstr "填充方向"
+
+#~ msgid ""
+#~ "Enable this to get a G-code file which has G2 and G3 moves. And the "
+#~ "fitting tolerance is same with resolution"
+#~ msgstr ""
+#~ "打开这个设置，导出的G-code将包含G2 G3指令。圆弧拟合的容许值和精度相同。"
+
+#~ msgid ""
+#~ "Infill area is enlarged slightly to overlap with wall for better bonding. "
+#~ "The percentage value is relative to line width of sparse infill"
+#~ msgstr ""
+#~ "填充区域被轻微扩大，并和外墙产生重叠，进而产生更好的粘接。表示为相对稀疏填"
+#~ "充的线宽的百分比。"
+
+#~ msgid "Export Configs"
+#~ msgstr "导出预设"
 
 #~ msgid "Unload Filament"
 #~ msgstr "退料"
