@@ -12847,10 +12847,10 @@ msgstr ""
 
 
 msgid "Limited"
-msgstr ""
+msgstr "Begrenzt"
 
 msgid "Enabled"
-msgstr ""
+msgstr "Aktiviert"
 
 msgid "Skirt loops"
 msgstr "Anzahl Umrandungsringe"
