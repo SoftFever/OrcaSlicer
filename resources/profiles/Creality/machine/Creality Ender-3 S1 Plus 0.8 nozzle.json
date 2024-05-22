@@ -12,9 +12,10 @@
 	"nozzle_diameter": [
 		"0.8"
 	],
+	"bed_shape": "rectangular",
 	"printable_area": [
 		"0x0",
-		"3000x0",
+		"300x0",
 		"300x300",
 		"0x300"
 	],
@@ -101,9 +102,6 @@
 	],
 	"deretraction_speed": [
 		"45"
-	],
-	"z_hop": [
-		"0"
 	],
 	"single_extruder_multi_material": "1",
 	"change_filament_gcode": "M600",
