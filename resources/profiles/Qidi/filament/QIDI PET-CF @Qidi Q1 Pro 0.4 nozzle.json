@@ -14,7 +14,7 @@
     "filament_settings_id": [
         "QIDI PET-CF @Qidi Q1 Pro 0.4 nozzle"
     ],
-    "from": "User",
+    "from": "system",
     "inherits": "QIDI PET-CF",
     "is_custom_defined": "0",
     "name": "QIDI PET-CF @Qidi Q1 Pro 0.4 nozzle",
@@ -25,10 +25,10 @@
         "280"
     ],
     "overhang_fan_speed": [
-        "50"
+        "100"
     ],
     "pressure_advance": [
-        "0.032"
+        "0.01"
     ],
     "slow_down_layer_time": [
         "5"

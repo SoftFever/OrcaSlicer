@@ -18,7 +18,7 @@ public:
     virtual ~SLAImportJobView() = default;
 
     virtual Sel         get_selection() const          = 0;
-    virtual Vec2i       get_marchsq_windowsize() const = 0;
+    virtual Vec2i32       get_marchsq_windowsize() const = 0;
     virtual std::string get_path() const               = 0;
 };
 

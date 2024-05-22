@@ -5,6 +5,7 @@
     "from": "system",
     "setting_id": "GP036",
     "instantiation": "true",
+    "description": "Compared with the default profile of a 0.6 mm nozzle, it has more wall loops and a higher sparse infill density. So, it results in higher strength of the prints, but more filament consumption and longer printing time.",
     "elefant_foot_compensation": "0.15",
     "sparse_infill_density": "25%",
     "wall_loops": "4",

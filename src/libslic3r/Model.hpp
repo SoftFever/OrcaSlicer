@@ -35,6 +35,7 @@
 #include "Format/STEP.hpp"
 //BBS: add stl
 #include "Format/STL.hpp"
+#include "Format/OBJ.hpp"
 
 #include <map>
 #include <memory>
@@ -482,6 +483,7 @@ public:
 
     //BBS: add instance convex hull bounding box
     BoundingBoxf3 instance_convex_hull_bounding_box(size_t instance_idx, bool dont_translate = false) const;
+    BoundingBoxf3 instance_convex_hull_bounding_box(const ModelInstance* instance, bool dont_translate = false) const;
 
     // Calculate 2D convex hull of of a projection of the transformed printable volumes into the XY plane.
     // This method is cheap in that it does not make any unnecessary copy of the volume meshes.
@@ -1510,6 +1512,7 @@ public:
 
     // DesignInfo of Model
     std::string stl_design_id;
+    std::string stl_design_country;
     std::shared_ptr<ModelDesignInfo> design_info = nullptr;
     std::shared_ptr<ModelInfo> model_info = nullptr;
     std::shared_ptr<ModelProfileInfo> profile_info = nullptr;
@@ -1562,8 +1565,16 @@ public:
         DynamicPrintConfig* config = nullptr, ConfigSubstitutionContext* config_substitutions = nullptr,
         LoadStrategy options = LoadStrategy::AddDefaultInstances, PlateDataPtrs* plate_data = nullptr,
         std::vector<Preset*>* project_presets = nullptr, bool* is_xxx = nullptr, Semver* file_version = nullptr, Import3mfProgressFn proFn = nullptr,
-        ImportstlProgressFn stlFn = nullptr, ImportStepProgressFn stepFn = nullptr, StepIsUtf8Fn stepIsUtf8Fn = nullptr, BBLProject* project = nullptr, int plate_id = 0);
+                                ImportstlProgressFn        stlFn                = nullptr,
+                                ImportStepProgressFn       stepFn               = nullptr,
+                                StepIsUtf8Fn               stepIsUtf8Fn         = nullptr,
+                                BBLProject *               project              = nullptr,
+                                int                        plate_id             = 0,
+                                ObjImportColorFn           objFn                = nullptr
+                                );
     // BBS
+    static bool    obj_import_vertex_color_deal(const std::vector<unsigned char> &vertex_filament_ids, const unsigned char &first_extruder_id, Model *model);
+    static bool    obj_import_face_color_deal(const std::vector<unsigned char> &face_filament_ids, const unsigned char &first_extruder_id, Model *model);
     static double findMaxSpeed(const ModelObject* object);
     static double getThermalLength(const ModelVolume* modelVolumePtr);
     static double getThermalLength(const std::vector<ModelVolume*> modelVolumePtrs);

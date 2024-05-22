@@ -26,6 +26,7 @@ public:
         const std::string_view  comment() const
             { size_t pos = m_raw.find(';'); return (pos == std::string::npos) ? std::string_view() : std::string_view(m_raw).substr(pos + 1); }
 
+        void  clear() { m_raw.clear(); }
         bool  has(Axis axis) const { return (m_mask & (1 << int(axis))) != 0; }
         float value(Axis axis) const { return m_axis[axis]; }
         bool  has(char axis) const;

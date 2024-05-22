@@ -267,7 +267,7 @@ void GizmoObjectManipulation::change_position_value(int axis, double value)
     TransformationType trafo_type;
     trafo_type.set_relative();
     if (selection.requires_local_axes()) {
-        trafo_type.set_local();
+        trafo_type.set_instance();
     }
     selection.translate(position - m_cache.position, trafo_type);
     m_glcanvas.do_move(L("Set Position"));
@@ -588,7 +588,12 @@ void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper,
 
     float space_size    = imgui_wrapper->get_style_scaling() * 8;
     float position_size = imgui_wrapper->calc_text_size(_L("Position")).x + space_size;
-    float World_size    = imgui_wrapper->calc_text_size(_L("World coordinates")).x + space_size;
+    auto position_title = _L("World coordinates");
+    Selection& selection = m_glcanvas.get_selection();
+    if(selection.is_single_modifier() || selection.is_single_volume())
+        position_title = _L("Object coordinates");
+
+    float World_size    = imgui_wrapper->calc_text_size(position_title).x + space_size;
     float caption_max   = std::max(position_size, World_size) + 2 * space_size;
     float end_text_size = imgui_wrapper->calc_text_size(this->m_new_unit_string).x;
 
@@ -609,7 +614,7 @@ void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper,
     ImGui::AlignTextToFramePadding();
     unsigned int current_active_id = ImGui::GetActiveID();
     ImGui::PushItemWidth(caption_max);
-    imgui_wrapper->text(_L("World coordinates"));
+    imgui_wrapper->text(position_title);
     ImGui::SameLine(caption_max + index * space_size);
     ImGui::PushItemWidth(unit_size);
     ImGui::TextAlignCenter("X");

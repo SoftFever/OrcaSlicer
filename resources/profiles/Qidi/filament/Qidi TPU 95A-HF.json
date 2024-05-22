@@ -7,7 +7,7 @@
     "instantiation": "true",
     "inherits": "fdm_filament_tpu",
     "filament_max_volumetric_speed": [
-        "6"
+        "4"
     ],
     "enable_pressure_advance": [
         "1"

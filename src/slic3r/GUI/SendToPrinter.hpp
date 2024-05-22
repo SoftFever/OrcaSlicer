@@ -50,7 +50,7 @@ private:
 
 	int									m_print_plate_idx;
     int									m_current_filament_id;
-    int                                 m_print_error_code;
+    int                                 m_print_error_code = 0;
     int									timeout_count = 0;
     bool								m_is_in_sending_mode{ false };
     bool								m_is_rename_mode{ false };

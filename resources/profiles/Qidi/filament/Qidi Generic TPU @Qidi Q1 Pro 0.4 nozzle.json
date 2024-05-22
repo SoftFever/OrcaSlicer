@@ -11,7 +11,7 @@
     "filament_settings_id": [
         "Qidi Generic TPU @Qidi Q1 Pro 0.4 nozzle"
     ],
-    "from": "User",
+    "from": "system",
     "inherits": "Qidi Generic TPU",
     "is_custom_defined": "0",
     "name": "Qidi Generic TPU @Qidi Q1 Pro 0.4 nozzle",
@@ -19,7 +19,7 @@
         "230"
     ],
     "nozzle_temperature_initial_layer": [
-        "220"
+        "230"
     ],
 
         "compatible_printers": [

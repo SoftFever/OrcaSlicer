@@ -5,6 +5,9 @@
   "name": "Snapmaker J1 PLA-CF @base",
   "filament_id": "3806593857",
   "inherits": "fdm_filament_pla",
+  "filament_end_gcode": [
+    "M104 S{temperature_vitrification[current_extruder]} ;standby T{current_extruder}"
+  ],
   "required_nozzle_HRC": [
     "40"
   ],
@@ -28,24 +31,6 @@
   ],
   "temperature_vitrification": [
     "150"
-  ],
-  "cool_plate_temp": [
-    "55"
-  ],
-  "eng_plate_temp": [
-    "55"
-  ],
-  "textured_plate_temp": [
-    "55"
-  ],
-  "cool_plate_temp_initial_layer": [
-    "55"
-  ],
-  "eng_plate_temp_initial_layer": [
-    "55"
-  ],
-  "textured_plate_temp_initial_layer": [
-    "55"
   ],
   "default_filament_colour": [
     "#3D3C39"
