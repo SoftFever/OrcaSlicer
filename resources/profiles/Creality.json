@@ -1,6 +1,6 @@
 {
     "name": "Creality",
-    "version": "02.00.02.00",
+    "version": "02.01.00.00",
     "force_update": "0",
     "description": "Creality configurations",
     "machine_model_list": [
@@ -279,6 +279,22 @@
             "sub_path": "process/0.12mm Fine @Creality CR10Max.json"
         },
         {
+			"name": "0.12mm Fine @Creality CR10SE 0.2",
+			"sub_path": "process/0.12mm Fine @Creality CR10SE 0.2.json"
+		},
+		{
+			"name": "0.12mm Fine @Creality CR10SE 0.4",
+			"sub_path": "process/0.12mm Fine @Creality CR10SE 0.4.json"
+		},
+		{
+			"name": "0.12mm Fine @Creality CR10SE 0.6",
+			"sub_path": "process/0.12mm Fine @Creality CR10SE 0.6.json"
+		},
+		{
+			"name": "0.12mm Fine @Creality CR10SE 0.8",
+			"sub_path": "process/0.12mm Fine @Creality CR10SE 0.8.json"
+		},
+        {
             "name": "0.12mm Detail @Creality CR-6 0.2",
             "sub_path": "process/0.12mm Detail @Creality CR-6 0.2.json"
         },
@@ -357,6 +373,22 @@
         {
             "name": "0.15mm Optimal @Creality CR10Max",
             "sub_path": "process/0.15mm Optimal @Creality CR10Max.json"
+        },
+        {
+			"name": "0.16mm Optimal @Creality CR10SE 0.2",
+			"sub_path": "process/0.16mm Optimal @Creality CR10SE 0.2.json"
+		},
+		{
+			"name": "0.16mm Optimal @Creality CR10SE 0.4",
+			"sub_path": "process/0.16mm Optimal @Creality CR10SE 0.4.json"
+		},
+		{
+			"name": "0.16mm Optimal @Creality CR10SE 0.6",
+			"sub_path": "process/0.16mm Optimal @Creality CR10SE 0.6.json"
+		},
+		{
+			"name": "0.16mm Optimal @Creality CR10SE 0.8",
+			"sub_path": "process/0.16mm Optimal @Creality CR10SE 0.8.json"
         },
         {
             "name": "0.15mm Optimal @Creality Ender3V2",
@@ -669,6 +701,22 @@
         {
             "name": "0.24mm Draft @Creality CR10Max",
             "sub_path": "process/0.24mm Draft @Creality CR10Max.json"
+        },
+        {
+			"name": "0.24mm Draft @Creality CR10SE 0.2",
+			"sub_path": "process/0.24mm Draft @Creality CR10SE 0.2.json"
+		},
+		{
+			"name": "0.24mm Draft @Creality CR10SE 0.4",
+			"sub_path": "process/0.24mm Draft @Creality CR10SE 0.4.json"
+		},
+		{
+			"name": "0.24mm Draft @Creality CR10SE 0.6",
+			"sub_path": "process/0.24mm Draft @Creality CR10SE 0.6.json"
+		},
+		{
+			"name": "0.24mm Draft @Creality CR10SE 0.8",
+			"sub_path": "process/0.24mm Draft @Creality CR10SE 0.8.json"
         },
         {
             "name": "0.24mm Draft @Creality CR-6 0.4",
