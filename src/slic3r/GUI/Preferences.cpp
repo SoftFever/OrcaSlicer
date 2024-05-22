@@ -1067,6 +1067,8 @@ wxWindow* PreferencesDialog::create_general_page()
                                                         _L("If enabled, sets OrcaSlicer as default application to open .stl files"), 50, "associate_stl");
     auto item_associate_step = create_item_checkbox(_L("Associate .step/.stp files to OrcaSlicer"), page,
                                                          _L("If enabled, sets OrcaSlicer as default application to open .step files"), 50, "associate_step");
+#endif // _WIN32
+#if !defined(__APPLE__)
 
                                                          
     std::wstring reg_bin;
@@ -1075,7 +1077,7 @@ wxWindow* PreferencesDialog::create_general_page()
                                                        reg_bin.empty() ? _L("Not associated to any application") : reg_bin,
                                                        _L("Associate OrcaSlicer with prusaslicer:// links so that Orca can open PrusaSlicer links from Printable.com"),
                                                        []() { wxGetApp().associate_url(L"prusaslicer"); });
-#endif // _WIN32
+#endif
 
     // auto title_modelmall = create_item_title(_L("Online Models"), page, _L("Online Models"));
     // auto item_backup = create_item_switch(_L("Backup switch"), page, _L("Backup switch"), "units");
@@ -1138,8 +1140,10 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(item_associate_3mf, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_associate_stl, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_associate_step, 0, wxTOP, FromDIP(3));
-    sizer_page->Add(associate_url_prusaslicer, 0, wxTOP | wxEXPAND, FromDIP(20));
 #endif // _WIN32
+#if !defined(__APPLE__)
+    sizer_page->Add(associate_url_prusaslicer, 0, wxTOP | wxEXPAND, FromDIP(20));
+#endif
     // auto item_title_modelmall = sizer_page->Add(title_modelmall, 0, wxTOP | wxEXPAND, FromDIP(20));
     // auto item_item_modelmall = sizer_page->Add(item_modelmall, 0, wxTOP, FromDIP(3));
     // auto update_modelmall = [this, item_title_modelmall, item_item_modelmall] (wxEvent & e) {

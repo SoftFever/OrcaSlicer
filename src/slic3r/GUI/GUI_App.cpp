@@ -6573,9 +6573,11 @@ static bool del_win_registry(HKEY hkeyHive, const wchar_t *pszVar, const wchar_t
     return false;
 }
 
+#endif // __WXMSW__
 
 void GUI_App::associate_files(std::wstring extend)
 {
+#ifdef WIN32
     wchar_t app_path[MAX_PATH];
     ::GetModuleFileNameW(nullptr, app_path, sizeof(app_path));
 
@@ -6595,10 +6597,12 @@ void GUI_App::associate_files(std::wstring extend)
     if (is_new)
         // notify Windows only when any of the values gets changed
         ::SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, nullptr, nullptr);
+#endif // WIN32
 }
 
 void GUI_App::disassociate_files(std::wstring extend)
 {
+#ifdef WIN32
     wchar_t app_path[MAX_PATH];
     ::GetModuleFileNameW(nullptr, app_path, sizeof(app_path));
 
@@ -6625,6 +6629,7 @@ void GUI_App::disassociate_files(std::wstring extend)
 
     if (is_new)
        ::SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, nullptr, nullptr);
+#endif // WIN32
 }
 
 bool GUI_App::check_url_association(std::wstring url_prefix, std::wstring& reg_bin)
@@ -6670,6 +6675,8 @@ void GUI_App::associate_url(std::wstring url_prefix)
         key_full.Create(false);
     }
     key_full = key_string;
+#elif defined(__linux__) && defined(SLIC3R_DESKTOP_INTEGRATION) 
+    DesktopIntegrationDialog::perform_downloader_desktop_integration();
 #endif // WIN32
 }
 
@@ -6684,7 +6691,6 @@ void GUI_App::disassociate_url(std::wstring url_prefix)
 #endif // WIN32
 }
 
-#endif // __WXMSW__
 
 void GUI_App::start_download(std::string url)
 {
