@@ -588,15 +588,9 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
         if (evt.CmdDown() && evt.GetKeyCode() == 'P')
 #endif
         {
-            PreferencesDialog dlg(this);
-            dlg.ShowModal();
+            // Orca: Use GUI_App::open_preferences instead of direct call so windows associations are updated on exit
+            wxGetApp().open_preferences();
             plater()->get_current_canvas3D()->force_set_focus();
-#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
-            if (dlg.seq_top_layer_only_changed() || dlg.seq_seq_top_gcode_indices_changed())
-#else
-            if (dlg.seq_top_layer_only_changed())
-#endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
-                plater()->refresh_print();
             return;
         }
 
@@ -2314,6 +2308,9 @@ void MainFrame::init_menubar_as_editor()
             [this](wxCommandEvent&) { if (m_plater) { m_plater->add_model(); } }, "", nullptr,
             [this](){return can_add_models(); }, this);
 #endif
+        append_menu_item(import_menu, wxID_ANY, _L("Import Zip Archive") + dots, _L("Load models contained within a zip archive"),
+            [this](wxCommandEvent&) { if (m_plater) m_plater->import_zip_archive(); }, "menu_import", nullptr,
+            [this]() { return can_add_models(); });
         append_menu_item(import_menu, wxID_ANY, _L("Import Configs") + dots /*+ "\tCtrl+I"*/, _L("Load configs"),
             [this](wxCommandEvent&) { load_config_file(); }, "menu_import", nullptr,
             [this](){return true; }, this);
@@ -2787,15 +2784,9 @@ void MainFrame::init_menubar_as_editor()
     append_menu_item(
         m_topbar->GetTopMenu(), wxID_ANY, _L("Preferences") + "\t" + ctrl + "P", "",
         [this](wxCommandEvent &) {
-            PreferencesDialog dlg(this);
-            dlg.ShowModal();
+            // Orca: Use GUI_App::open_preferences instead of direct call so windows associations are updated on exit
+            wxGetApp().open_preferences();
             plater()->get_current_canvas3D()->force_set_focus();
-#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
-            if (dlg.seq_top_layer_only_changed() || dlg.seq_seq_top_gcode_indices_changed())
-#else
-            if (dlg.seq_top_layer_only_changed())
-#endif
-                plater()->refresh_print();
         },
         "", nullptr, []() { return true; }, this);
     //m_topbar->AddDropDownMenuItem(preference_item);

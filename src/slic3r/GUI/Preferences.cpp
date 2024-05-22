@@ -1088,6 +1088,8 @@ wxWindow* PreferencesDialog::create_general_page()
     //downloads
     auto title_downloads = create_item_title(_L("Downloads"), page, _L("Downloads"));
     auto item_downloads = create_item_downloads(page,50,"download_path");
+    auto ps_download_url_registered = create_item_checkbox(_L("Allow downloads from Printables.com"), page,
+                                                           _L("Allow downloads from Printables.com"), 50, "ps_url_registered");
 
     //dark mode
 #ifdef _WIN32
@@ -1150,6 +1152,7 @@ wxWindow* PreferencesDialog::create_general_page()
 
     sizer_page->Add(title_downloads, 0, wxTOP| wxEXPAND, FromDIP(20));
     sizer_page->Add(item_downloads, 0, wxEXPAND, FromDIP(3));
+    sizer_page->Add(ps_download_url_registered, 0, wxTOP | wxEXPAND, FromDIP(20));
 
 #ifdef _WIN32
     sizer_page->Add(title_darkmode, 0, wxTOP | wxEXPAND, FromDIP(20));
