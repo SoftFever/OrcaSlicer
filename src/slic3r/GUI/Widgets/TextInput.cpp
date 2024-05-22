@@ -102,14 +102,6 @@ void TextInput::SetIcon(const wxBitmap &icon)
     Rescale();
 }
 
-void TextInput::SetIcon(const wxString &icon)
-{
-    if (this->icon.name() == icon.ToStdString())
-        return;
-    this->icon = ScalableBitmap(this, icon.ToStdString(), 16);
-    Rescale();
-}
-
 void TextInput::SetLabelColor(StateColor const &color)
 {
     label_color = color;

@@ -7,6 +7,7 @@
 #include "slic3r/GUI/TaskManager.hpp"
 #include "format.hpp"
 #include "libslic3r_version.h"
+#include "Downloader.hpp"
 
 // Localization headers: include libslic3r version first so everything in this file
 // uses the slic3r/GUI version (the macros will take precedence over the functions).
@@ -346,7 +347,7 @@ public:
 
 		// Based on Text
         memDc.SetFont(m_constant_text.based_on_font);
-        auto bs_version = wxString::Format("Based on BambuStudio and PrusaSlicer").ToStdString();
+        auto bs_version = wxString::Format("Based on PrusaSlicer and BambuStudio").ToStdString();
         wxSize based_on_ext = memDc.GetTextExtent(bs_version);
         wxRect based_on_rect(
 			wxPoint(0, height - based_on_ext.GetHeight() * 2),
@@ -512,6 +513,7 @@ static const FileWildcards file_wildcards_by_type[FT_SIZE] = {
     /* FT_MODEL */
     {"Supported files"sv, {".3mf"sv, ".stl"sv, ".oltp"sv, ".stp"sv, ".step"sv, ".svg"sv, ".amf"sv, ".obj"sv}},
 #endif
+    /* FT_ZIP */     { "ZIP files"sv,       { ".zip"sv } },
     /* FT_PROJECT */ { "Project files"sv,   { ".3mf"sv} },
     /* FT_GALLERY */ { "Known files"sv,     { ".stl"sv, ".obj"sv } },
 
@@ -811,18 +813,26 @@ void GUI_App::post_init()
 
 
         if (this->init_params->input_files.size() == 1 &&
-            boost::starts_with(this->init_params->input_files.front(), "orcaslicer://open")) {
-            auto input_str_arr = split_str(this->init_params->input_files.front(), "orcaslicer://open/?file=");
+            (boost::starts_with(this->init_params->input_files.front(), "orcaslicer://open") ||
+             boost::starts_with(this->init_params->input_files.front(), "prusaslicer://open"))) {
 
-            std::string download_origin_url;
-            for (auto input_str:input_str_arr) {
-                if (!input_str.empty()) download_origin_url = input_str;
-            }
+            if (boost::starts_with(this->init_params->input_files.front(), "orcaslicer://open")||
+             boost::starts_with(this->init_params->input_files.front(), "prusaslicer://open")) {
+                switch_to_3d = true;
+                start_download(this->init_params->input_files.front());
+            } else if (vector<string> input_str_arr = split_str(this->init_params->input_files.front(), "orcaslicer://open/?file="); input_str_arr.size() > 1) {
+                std::string download_origin_url;
+                for (auto input_str : input_str_arr) {
+                    if (!input_str.empty())
+                        download_origin_url = input_str;
+                }
 
-            std::string download_file_url = url_decode(download_origin_url);
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << download_file_url;
-            if (!download_file_url.empty() && ( boost::starts_with(download_file_url, "http://") ||  boost::starts_with(download_file_url, "https://")) ) {
-                request_model_download(download_origin_url);
+                std::string download_file_url = url_decode(download_origin_url);
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << download_file_url;
+                if (!download_file_url.empty() &&
+                    (boost::starts_with(download_file_url, "http://") || boost::starts_with(download_file_url, "https://"))) {
+                    request_model_download(download_file_url);
+                }
             }
             m_open_method = "makerworld";
         }
@@ -1084,6 +1094,7 @@ GUI_App::GUI_App()
     , m_em_unit(10)
     , m_imgui(new ImGuiWrapper())
 	, m_removable_drive_manager(std::make_unique<RemovableDriveManager>())
+    , m_downloader(std::make_unique<Downloader>())
 	, m_other_instance_message_handler(std::make_unique<OtherInstanceMessageHandler>())
 {
 	//app config initializes early becasuse it is used in instance checking in OrcaSlicer.cpp
@@ -1416,13 +1427,17 @@ int GUI_App::install_plugin(std::string name, std::string package_name, InstallP
                     mz_bool res = mz_zip_reader_extract_to_file(&archive, stat.m_file_index, dest_zip_file.c_str(), 0);
                     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", extract  %1% from plugin zip %2%\n") % dest_file % stat.m_filename;
                     if (res == 0) {
-                        mz_zip_error zip_error = mz_zip_get_last_error(&archive);
-                        BOOST_LOG_TRIVIAL(error) << "[install_plugin]Archive read error:" << mz_zip_get_error_string(zip_error) << std::endl;
-                        close_zip_reader(&archive);
-                        if (pro_fn) {
-                            pro_fn(InstallStatusUnzipFailed, 0, cancel);
+#ifdef WIN32
+                        std::wstring new_dest_zip_file = boost::locale::conv::utf_to_utf<wchar_t>(dest_path.generic_string());
+                        res                            = mz_zip_reader_extract_to_file_w(&archive, stat.m_file_index, new_dest_zip_file.c_str(), 0);
+#endif
+                        if (res == 0) {
+                            mz_zip_error zip_error = mz_zip_get_last_error(&archive);
+                            BOOST_LOG_TRIVIAL(error) << "[install_plugin]Archive read error:" << mz_zip_get_error_string(zip_error) << std::endl;
+                            close_zip_reader(&archive);
+                            if (pro_fn) { pro_fn(InstallStatusUnzipFailed, 0, cancel); }
+                            return InstallStatusUnzipFailed;
                         }
-                        return InstallStatusUnzipFailed;
                     }
                     else {
                         if (pro_fn) {
@@ -2352,6 +2367,8 @@ bool GUI_App::on_init_inner()
             associate_files(L"step");
             associate_files(L"stp");
         }
+        associate_url(L"orcaslicer");
+
         if (app_config->get("associate_gcode") == "true")
             associate_files(L"gcode");
 #endif // __WXMSW__
@@ -3279,10 +3296,7 @@ void GUI_App::check_printer_presets()
 #endif
 }
 
-void switch_window_pools();
-void release_window_pools();
-
-void GUI_App::recreate_GUI(const wxString &msg_name)
+void GUI_App::recreate_GUI(const wxString& msg_name)
 {
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "recreate_GUI enter";
     m_is_recreating_gui = true;
@@ -3290,18 +3304,12 @@ void GUI_App::recreate_GUI(const wxString &msg_name)
     update_http_extra_header();
 
     mainframe->shutdown();
+
     ProgressDialog dlg(msg_name, msg_name, 100, nullptr, wxPD_AUTO_HIDE);
     dlg.Pulse();
     dlg.Update(10, _L("Rebuild") + dots);
 
     MainFrame *old_main_frame = mainframe;
-    struct ClientData : wxClientData
-    {
-        ~ClientData() { release_window_pools(); }
-    };
-    old_main_frame->SetClientObject(new ClientData);
-
-    switch_window_pools();
     mainframe = new MainFrame();
     if (is_editor())
         // hide settings tabs after first Layout
@@ -3574,6 +3582,17 @@ void GUI_App::import_model(wxWindow *parent, wxArrayString& input_files) const
 
     if (dialog.ShowModal() == wxID_OK)
         dialog.GetPaths(input_files);
+}
+
+void GUI_App::import_zip(wxWindow* parent, wxString& input_file) const
+{
+    wxFileDialog dialog(parent ? parent : GetTopWindow(),
+                        _L("Choose ZIP file") + ":",
+                        from_u8(app_config->get_last_dir()), "",
+                        file_wildcards(FT_ZIP), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+
+    if (dialog.ShowModal() == wxID_OK)
+        input_file = dialog.GetPath();
 }
 
 void GUI_App::load_gcode(wxWindow* parent, wxString& input_file) const
@@ -5508,6 +5527,7 @@ void GUI_App::open_preferences(size_t open_on_tab, const std::string& highlight_
                 associate_files(L"step");
                 associate_files(L"stp");
             }
+            associate_url(L"orcaslicer");
         }
         else {
             if (app_config->get("associate_gcode") == "true")
@@ -5861,7 +5881,10 @@ void GUI_App::MacOpenURL(const wxString& url)
 {
     BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << "get mac url " << url;
 
-    if (!url.empty() && boost::starts_with(url, "orcasliceropen://")) {
+    if (url.empty())
+        return;
+
+    if (boost::starts_with(url, "orcasliceropen://")) {
         auto input_str_arr = split_str(url.ToStdString(), "orcasliceropen://");
 
         std::string download_origin_url;
@@ -5880,7 +5903,8 @@ void GUI_App::MacOpenURL(const wxString& url)
                 m_download_file_url = download_file_url;
             }
         }
-    }
+    } else if (boost::starts_with(url, "prusasliceropen://"))
+        start_download(boost::nowide::narrow(url));
 }
 
 // wxWidgets override to get an event on open files.
@@ -6002,6 +6026,11 @@ ParamsDialog* GUI_App::params_dialog()
 Model& GUI_App::model()
 {
     return plater_->model();
+}
+
+Downloader* GUI_App::downloader()
+{
+    return m_downloader.get();
 }
 
 void GUI_App::load_url(wxString url)
@@ -6539,9 +6568,11 @@ static bool del_win_registry(HKEY hkeyHive, const wchar_t *pszVar, const wchar_t
     return false;
 }
 
+#endif // __WXMSW__
 
 void GUI_App::associate_files(std::wstring extend)
 {
+#ifdef WIN32
     wchar_t app_path[MAX_PATH];
     ::GetModuleFileNameW(nullptr, app_path, sizeof(app_path));
 
@@ -6561,10 +6592,12 @@ void GUI_App::associate_files(std::wstring extend)
     if (is_new)
         // notify Windows only when any of the values gets changed
         ::SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, nullptr, nullptr);
+#endif // WIN32
 }
 
 void GUI_App::disassociate_files(std::wstring extend)
 {
+#ifdef WIN32
     wchar_t app_path[MAX_PATH];
     ::GetModuleFileNameW(nullptr, app_path, sizeof(app_path));
 
@@ -6591,10 +6624,86 @@ void GUI_App::disassociate_files(std::wstring extend)
 
     if (is_new)
        ::SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, nullptr, nullptr);
+#endif // WIN32
+}
+
+bool GUI_App::check_url_association(std::wstring url_prefix, std::wstring& reg_bin)
+{
+    reg_bin = L"";
+#ifdef WIN32
+    wxRegKey key_full(wxRegKey::HKCU, "Software\\Classes\\" + url_prefix + "\\shell\\open\\command");
+    if (!key_full.Exists()) {
+        return false;
+    }
+    reg_bin = key_full.QueryDefaultValue().ToStdWstring();
+
+    boost::filesystem::path binary_path(boost::filesystem::canonical(boost::dll::program_location()));
+    // wxString    wbinary       = wxString::FromUTF8(binary_path.string());
+    // std::string binary_string = (boost::format("%1%") % wbinary).str();
+    std::wstring key_string = L"\"" + binary_path.wstring() + L"\" L\"%1\"";
+    // return boost::iequals(key_string,(boost::format("%1%") % reg_bin).str());
+    return key_string == reg_bin;
+#else
+    return false;
+#endif // WIN32
+}
+
+void GUI_App::associate_url(std::wstring url_prefix)
+{
+#ifdef WIN32
+    boost::filesystem::path binary_path(boost::filesystem::canonical(boost::dll::program_location()));
+    // the path to binary needs to be correctly saved in string with respect to localized characters
+    wxString wbinary = wxString::FromUTF8(binary_path.string());
+    std::string binary_string = (boost::format("%1%") % wbinary).str();
+    BOOST_LOG_TRIVIAL(info) << "Downloader registration: Path of binary: " << binary_string;
+
+    std::string key_string = "\"" + binary_string + "\" \"%1\"";
+
+    wxRegKey key_first(wxRegKey::HKCU, "Software\\Classes\\" + url_prefix);
+    wxRegKey key_full(wxRegKey::HKCU, "Software\\Classes\\" + url_prefix + "\\shell\\open\\command");
+    if (!key_first.Exists()) {
+        key_first.Create(false);
+    }
+    key_first.SetValue("URL Protocol", "");
+
+    if (!key_full.Exists()) {
+        key_full.Create(false);
+    }
+    key_full = key_string;
+#elif defined(__linux__) && defined(SLIC3R_DESKTOP_INTEGRATION) 
+    DesktopIntegrationDialog::perform_downloader_desktop_integration();
+#endif // WIN32
+}
+
+void GUI_App::disassociate_url(std::wstring url_prefix)
+{
+#ifdef WIN32
+    wxRegKey key_full(wxRegKey::HKCU, "Software\\Classes\\" + url_prefix + "\\shell\\open\\command");
+    if (!key_full.Exists()) {
+        return;
+    }
+    key_full = "";
+#endif // WIN32
 }
 
 
-#endif // __WXMSW__
+void GUI_App::start_download(std::string url)
+{
+    if (!plater_) {
+        BOOST_LOG_TRIVIAL(error) << "Could not start URL download: plater is nullptr.";
+        return;
+    }
+    //lets always init so if the download dest folder was changed, new dest is used
+    boost::filesystem::path dest_folder(app_config->get("download_path"));
+    if (dest_folder.empty() || !boost::filesystem::is_directory(dest_folder)) {
+        std::string msg = _u8L("Could not start URL download. Destination folder is not set. Please choose destination folder in Configuration Wizard.");
+        BOOST_LOG_TRIVIAL(error) << msg;
+        show_error(nullptr, msg);
+        return;
+    }
+    m_downloader->init(dest_folder);
+    m_downloader->start_download(url);
+}
 
 bool is_support_filament(int extruder_id)
 {

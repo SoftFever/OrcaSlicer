@@ -721,5 +721,47 @@ void MultiMachineManagerPage::page_num_enter_evt()
     update_page_number();
 }
 
+void MultiMachineManagerPage::msw_rescale()
+{
+    m_printer_name->Rescale();
+    m_printer_name->SetMinSize(wxSize(FromDIP(DEVICE_LEFT_DEV_NAME), FromDIP(DEVICE_ITEM_MAX_HEIGHT)));
+    m_printer_name->SetMaxSize(wxSize(FromDIP(DEVICE_LEFT_DEV_NAME), FromDIP(DEVICE_ITEM_MAX_HEIGHT)));
+    m_task_name->Rescale();
+    m_task_name->SetMinSize(wxSize(FromDIP(DEVICE_LEFT_DEV_NAME), FromDIP(DEVICE_ITEM_MAX_HEIGHT)));
+    m_task_name->SetMaxSize(wxSize(FromDIP(DEVICE_LEFT_DEV_NAME), FromDIP(DEVICE_ITEM_MAX_HEIGHT)));
+    m_status->Rescale();
+    m_status->SetMinSize(wxSize(FromDIP(DEVICE_LEFT_PRO_INFO), FromDIP(DEVICE_ITEM_MAX_HEIGHT)));
+    m_status->SetMaxSize(wxSize(FromDIP(DEVICE_LEFT_PRO_INFO), FromDIP(DEVICE_ITEM_MAX_HEIGHT)));
+    m_action->Rescale();
+    m_action->SetMinSize(wxSize(FromDIP(DEVICE_LEFT_PRO_NAME), FromDIP(DEVICE_ITEM_MAX_HEIGHT)));
+    m_action->SetMaxSize(wxSize(FromDIP(DEVICE_LEFT_PRO_NAME), FromDIP(DEVICE_ITEM_MAX_HEIGHT)));
+    m_button_add->Rescale();
+    m_button_add->SetMinSize(wxSize(FromDIP(90), FromDIP(36)));
+    m_button_add->SetMaxSize(wxSize(FromDIP(90), FromDIP(36)));
+
+    btn_last_page->Rescale();
+    btn_last_page->SetMinSize(wxSize(FromDIP(20), FromDIP(20)));
+    btn_last_page->SetMaxSize(wxSize(FromDIP(20), FromDIP(20)));
+    btn_next_page->Rescale();
+    btn_next_page->SetMinSize(wxSize(FromDIP(20), FromDIP(20)));
+    btn_next_page->SetMaxSize(wxSize(FromDIP(20), FromDIP(20)));
+    m_page_num_enter->Rescale();
+    m_page_num_enter->SetMinSize(wxSize(FromDIP(25), FromDIP(25)));
+    m_page_num_enter->SetMaxSize(wxSize(FromDIP(25), FromDIP(25)));
+
+    m_button_edit->Rescale();
+    m_button_edit->SetMinSize(wxSize(FromDIP(90), FromDIP(36)));
+    m_button_edit->SetMaxSize(wxSize(FromDIP(90), FromDIP(36)));
+
+
+    for (const auto& item : m_device_items) {
+        item->Refresh();
+    }
+
+    Fit();
+    Layout();
+    Refresh();
+}
+
 } // namespace GUI
 } // namespace Slic3r

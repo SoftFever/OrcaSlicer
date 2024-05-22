@@ -850,9 +850,9 @@ public:
     //BBS: add part plate related logic
     void select_plate();
     //BBS: GUI refactor: GLToolbar&&gizmo
-    float get_main_toolbar_offset() const;
-    float get_main_toolbar_height() const { return m_main_toolbar.get_height(); }
-    float get_main_toolbar_width() const { return m_main_toolbar.get_width(); }
+    int get_main_toolbar_offset() const;
+    int get_main_toolbar_height() const { return m_main_toolbar.get_height(); }
+    int get_main_toolbar_width() const { return m_main_toolbar.get_width(); }
     float get_assemble_view_toolbar_width() const { return m_assemble_view_toolbar.get_width(); }
     float get_assemble_view_toolbar_height() const { return m_assemble_view_toolbar.get_height(); }
     float get_assembly_paint_toolbar_width() const { return m_paint_toolbar_width; }
@@ -905,6 +905,7 @@ public:
 
     void select_all();
     void deselect_all();
+    void exit_gizmo();
     void set_selected_visible(bool visible);
     void delete_selected();
     void ensure_on_bed(unsigned int object_idx, bool allow_negative_z);

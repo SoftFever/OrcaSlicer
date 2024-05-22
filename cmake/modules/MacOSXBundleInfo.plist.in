@@ -26,6 +26,8 @@
 	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>${MACOSX_BUNDLE_BUNDLE_VERSION}</string>
+	<key>ATSApplicationFontsPath</key>
+  	<string>fonts/</string>
   <key>CFBundleURLTypes</key>
   <array>
     <dict>
@@ -34,6 +36,7 @@
       <key>CFBundleURLSchemes</key>
       <array>
         <string>orcasliceropen</string>
+        <string>orcaslicer</string>
       </array>
     </dict>
   </array>

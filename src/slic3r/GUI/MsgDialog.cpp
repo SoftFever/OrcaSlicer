@@ -228,7 +228,7 @@ void MsgDialog::apply_style(long style)
     if (style & wxCANCEL)   add_button(wxID_CANCEL, false, _L("Cancel"));
 
     logo->SetBitmap( create_scaled_bitmap(style & wxAPPLY        ? "completed" :
-                                          style & wxICON_WARNING        ? "obj_warning" :
+                                          style & wxICON_WARNING        ? "exclamation" : // ORCA "exclamation" used for dialogs "obj_warning" used for 16x16 areas
                                           style & wxICON_INFORMATION    ? "info"        :
                                           style & wxICON_QUESTION       ? "question"    : "OrcaSlicer", this, 64, style & wxICON_ERROR));
 }
@@ -383,25 +383,26 @@ RichMessageDialog::RichMessageDialog(wxWindow* parent,
     : MsgDialog(parent, caption.IsEmpty() ? wxString::Format(_L("%s info"), SLIC3R_APP_FULL_NAME) : caption, wxEmptyString, style)
 {
     add_msg_content(this, content_sizer, message);
-
-    m_checkBox = new wxCheckBox(this, wxID_ANY, m_checkBoxText);
-    wxGetApp().UpdateDarkUI(m_checkBox);
-    m_checkBox->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent&) { m_checkBoxValue = m_checkBox->GetValue(); });
-
-    btn_sizer->Insert(0, m_checkBox, wxALIGN_CENTER_VERTICAL);
-
     finalize();
 }
 
 int RichMessageDialog::ShowModal()
 {
-    if (m_checkBoxText.IsEmpty())
-        m_checkBox->Hide();
-    else
-        m_checkBox->SetLabelText(m_checkBoxText);
+    if (!m_checkBoxText.IsEmpty()) {
+        show_dsa_button(m_checkBoxText);
+        m_checkbox_dsa->SetValue(m_checkBoxValue);
+    }
     Layout();
 
     return wxDialog::ShowModal();
+}
+
+bool RichMessageDialog::IsCheckBoxChecked() const
+{
+    if (m_checkbox_dsa)
+        return m_checkbox_dsa->GetValue();
+
+    return m_checkBoxValue;
 }
 #endif
 

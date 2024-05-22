@@ -2352,11 +2352,17 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         auto probe_dist_y  = std::max(1., m_config.bed_mesh_probe_distance.value.y());
         int  probe_count_x = std::max(3, (int) std::ceil(mesh_bbox.size().x() / probe_dist_x));
         int  probe_count_y = std::max(3, (int) std::ceil(mesh_bbox.size().y() / probe_dist_y));
-        this->placeholder_parser().set("bed_mesh_probe_count", new ConfigOptionInts({probe_count_x, probe_count_y}));
         auto bed_mesh_algo = "bicubic";
-        if (probe_count_x < 4 || probe_count_y < 4) {
+        if (probe_count_x * probe_count_y <= 6) { // lagrange needs up to a total of 6 mesh points
             bed_mesh_algo = "lagrange";
         }
+        else
+            if(print.config().gcode_flavor == gcfKlipper){
+              // bicubic needs 4 probe points per axis
+              probe_count_x = std::max(probe_count_x,4);
+              probe_count_y = std::max(probe_count_y,4);
+            }
+        this->placeholder_parser().set("bed_mesh_probe_count", new ConfigOptionInts({probe_count_x, probe_count_y}));
         this->placeholder_parser().set("bed_mesh_algo", bed_mesh_algo);
         // get center without wipe tower
         BoundingBoxf bbox_wo_wt; // bounding box without wipe tower
@@ -3446,13 +3452,15 @@ namespace Skirt {
         size_t lines_per_extruder = (n_loops + n_tools - 1) / n_tools;
 
         // BBS. Extrude skirt with first extruder if min_skirt_length is zero
-        const PrintConfig &config = print.config();
-        if (Print::min_skirt_length < EPSILON) {
+        //ORCA: Always extrude skirt with first extruder, independantly of if the minimum skirt length is zero or not. The code below
+        // is left as a placeholder for when a multiextruder support is implemented. Then we will need to extrude the skirt loops for each extruder.
+        //const PrintConfig &config = print.config();
+        //if (config.min_skirt_length.value < EPSILON) {
             skirt_loops_per_extruder_out[layer_tools.extruders.front()] = std::pair<size_t, size_t>(0, n_loops);
-        } else {
-            for (size_t i = 0; i < n_loops; i += lines_per_extruder)
-                skirt_loops_per_extruder_out[layer_tools.extruders[i / lines_per_extruder]] = std::pair<size_t, size_t>(i, std::min(i + lines_per_extruder, n_loops));
-        }
+        //} else {
+        //    for (size_t i = 0; i < n_loops; i += lines_per_extruder)
+        //        skirt_loops_per_extruder_out[layer_tools.extruders[i / lines_per_extruder]] = std::pair<size_t, size_t>(i, std::min(i + lines_per_extruder, n_loops));
+        //}
     }
 
     static std::map<unsigned int, std::pair<size_t, size_t>> make_skirt_loops_per_extruder_1st_layer(
