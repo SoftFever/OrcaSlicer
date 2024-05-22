@@ -43,8 +43,8 @@ void ObjectDataViewModelNode::init_container()
 #endif  //__WXGTK__
 }
 
-static constexpr char LayerRootIcon[]   = "blank";
-static constexpr char LayerIcon[]       = "blank";
+static constexpr char LayerRootIcon[]   = "height_range_modifier";
+static constexpr char LayerIcon[]       = "height_range_layer";
 static constexpr char WarningIcon[]     = "obj_warning";
 static constexpr char WarningManifoldIcon[] = "obj_warning";
 static constexpr char LockIcon[]            = "cut_";
@@ -232,7 +232,7 @@ void ObjectDataViewModelNode::set_color_icon(bool enable)
         return;
     m_color_enable = enable;
     if ((m_type & itObject) && enable)
-        m_color_icon = create_scaled_bitmap("mmu_segmentation");
+        m_color_icon = create_scaled_bitmap("objlist_color_painting");
     else
         m_color_icon = create_scaled_bitmap("dot");
 }
@@ -243,7 +243,7 @@ void ObjectDataViewModelNode::set_support_icon(bool enable)
         return;
     m_support_enable = enable;
     if ((m_type & itObject) && enable)
-        m_support_icon = create_scaled_bitmap("toolbar_support");
+        m_support_icon = create_scaled_bitmap("objlist_support_painting");
     else
         m_support_icon = create_scaled_bitmap("dot");
 }
@@ -558,13 +558,19 @@ void ObjectDataViewModel::UpdateBitmapForNode(ObjectDataViewModelNode *node)
         std::vector<wxBitmap> bmps;
         if (node->has_warning_icon())
             bmps.emplace_back(node->warning_icon_name() == WarningIcon ? m_warning_bmp : m_warning_manifold_bmp);
-        if (node->has_lock())
+        if (node->has_lock()) {
+            if (!bmps.empty()) // ORCA: Add spacing between icons if there are multiple
+                bmps.emplace_back(create_scaled_bitmap("dot", nullptr, int(wxGetApp().em_unit() / 10) * 4));
             bmps.emplace_back(m_lock_bmp);
-        if (is_volume_node)
+        }
+        if (is_volume_node) {
+            if (!bmps.empty()) // ORCA: Add spacing between icons if there are multiple
+                bmps.emplace_back(create_scaled_bitmap("dot", nullptr, int(wxGetApp().em_unit() / 10) * 4));
             bmps.emplace_back(
                 node->is_text_volume() ? m_text_volume_bmps[vol_type] :
                 node->is_svg_volume() ? m_svg_volume_bmps[vol_type] : 
                 m_volume_bmps[vol_type]);
+        }
         bmp = m_bitmap_cache->insert(scaled_bitmap_name, bmps);
     }
 

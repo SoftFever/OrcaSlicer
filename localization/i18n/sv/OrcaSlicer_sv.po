@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-01 00:42+0800\n"
+"POT-Creation-Date: 2024-05-20 22:45+0200\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1841,6 +1841,9 @@ msgstr "Lägg till Primitiv"
 msgid "Add Handy models"
 msgstr ""
 
+msgid "Add Models"
+msgstr "Lägg till modeller"
+
 msgid "Show Labels"
 msgstr "Visa Etiketter"
 
@@ -2336,7 +2339,7 @@ msgstr "Uppkoppling till printern misslyckades"
 msgid "Connection to printer failed"
 msgstr "Anslutning till skrivaren misslyckades"
 
-msgid "Please check the network connection of the printer and Studio."
+msgid "Please check the network connection of the printer and Orca."
 msgstr "Kontrollera nätverksanslutningen för skrivaren och Studio."
 
 msgid "Connecting..."
@@ -2690,10 +2693,7 @@ msgstr "Orca Slicer är licensierad under "
 msgid "GNU Affero General Public License, version 3"
 msgstr "GNU Affero General Public License, version 3"
 
-msgid ""
-"Orca Slicer is based on BambuStudio by Bambulab, which is from PrusaSlicer "
-"by Prusa Research.  PrusaSlicer is from Slic3r by Alessandro Ranellucci and "
-"the RepRap community"
+msgid "Orca Slicer is based on PrusaSlicer and BambuStudio"
 msgstr ""
 
 msgid "Libraries"
@@ -3176,6 +3176,210 @@ msgid "Scheduling upload to `%1%`. See Window -> Print Host Upload Queue"
 msgstr ""
 "Planerar uppladdning till `%1%`. Se fönster -> Kö för uppladdning av "
 "utskriftsvärd"
+
+msgid "Device"
+msgstr "Enhet"
+
+msgid "Task Sending"
+msgstr ""
+
+msgid "Task Sent"
+msgstr ""
+
+msgid "Edit multiple printers"
+msgstr ""
+
+msgid "Select connected printetrs (0/6)"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Select Connected Printetrs (%d/6)"
+msgstr ""
+
+#, c-format, boost-format
+msgid "The maximum number of printers that can be selected is %d"
+msgstr ""
+
+msgid "Offline"
+msgstr "Offline"
+
+msgid "No task"
+msgstr ""
+
+msgid "View"
+msgstr "Vy"
+
+msgid "N/A"
+msgstr "N/A"
+
+msgid "Edit Printers"
+msgstr ""
+
+msgid "Device Name"
+msgstr ""
+
+msgid "Task Name"
+msgstr ""
+
+msgid "Device Status"
+msgstr ""
+
+msgid "Actions"
+msgstr ""
+
+msgid ""
+"Please select the devices you would like to manage here (up to 6 devices)"
+msgstr ""
+
+msgid "Add"
+msgstr "Lägg till"
+
+msgid "Idle"
+msgstr "Inaktiv"
+
+msgid "Printing"
+msgstr "Utskrift pågår"
+
+msgid "Upgrading"
+msgstr ""
+
+msgid "Incompatible"
+msgstr "Inkompatibel"
+
+msgid "syncing"
+msgstr ""
+
+msgid "Printing Finish"
+msgstr ""
+
+msgid "Printing Failed"
+msgstr ""
+
+msgid "PrintingPause"
+msgstr ""
+
+msgid "Prepare"
+msgstr "Förbered"
+
+msgid "Slicing"
+msgstr "Bereder"
+
+msgid "Pending"
+msgstr ""
+
+msgid "Sending"
+msgstr ""
+
+msgid "Sending Finish"
+msgstr ""
+
+msgid "Sending Cancel"
+msgstr ""
+
+msgid "Sending Failed"
+msgstr ""
+
+msgid "Print Success"
+msgstr ""
+
+msgid "Print Failed"
+msgstr ""
+
+msgid "Removed"
+msgstr ""
+
+msgid "Resume"
+msgstr "Återuppta"
+
+msgid "Stop"
+msgstr "Stopp"
+
+msgid "Task Status"
+msgstr ""
+
+msgid "Sent Time"
+msgstr ""
+
+msgid "There are no tasks to be sent!"
+msgstr ""
+
+msgid "No historical tasks!"
+msgstr ""
+
+msgid "Loading..."
+msgstr "Laddar..."
+
+msgid "No AMS"
+msgstr ""
+
+msgid "Send to Multi-device"
+msgstr ""
+
+msgid "Preparing print job"
+msgstr "Förbereder utskriftsjobb"
+
+msgid "Abnormal print file data. Please slice again"
+msgstr "Onormal utskrifts fil data. Vänligen bered igen"
+
+msgid "There is no device available to send printing."
+msgstr ""
+
+msgid "The number of printers in use simultaneously cannot be equal to 0."
+msgstr ""
+
+msgid "Use External Spool"
+msgstr ""
+
+msgid "Use AMS"
+msgstr ""
+
+msgid "Select Printers"
+msgstr ""
+
+msgid "Ams Status"
+msgstr ""
+
+msgid "Printing Options"
+msgstr ""
+
+msgid "Send Options"
+msgstr ""
+
+msgid "Send"
+msgstr "Skicka"
+
+msgid ""
+"printers at the same time.(It depends on how many devices can undergo "
+"heating at the same time.)"
+msgstr ""
+
+msgid "Wait"
+msgstr ""
+
+msgid ""
+"minute each batch.(It depends on how long it takes to complete the heating.)"
+msgstr ""
+
+msgid "Name is invalid;"
+msgstr "Namnet är ogiltligt;"
+
+msgid "illegal characters:"
+msgstr "Ogiltliga tecken:"
+
+msgid "illegal suffix:"
+msgstr "Ogiltlig ändelse:"
+
+msgid "The name is not allowed to be empty."
+msgstr "Namn fältet får inte vara tomt."
+
+msgid "The name is not allowed to start with space character."
+msgstr "Namnet får inte börja med mellanrum."
+
+msgid "The name is not allowed to end with space character."
+msgstr "Namnet får inte avslutas med mellanrum."
+
+msgid "The name length exceeds the limit."
+msgstr "Namnlängden överskrider gränsen."
 
 msgid "Origin"
 msgstr "Ursprung"
@@ -3670,9 +3874,6 @@ msgstr "Skrivarens inställningar"
 msgid "parameter name"
 msgstr "Parameter namn"
 
-msgid "N/A"
-msgstr "N/A"
-
 #, c-format, boost-format
 msgid "%s can't be percentage"
 msgstr "%s kan inte vara procent"
@@ -3990,9 +4191,6 @@ msgstr "Undvik kalibrerings området"
 msgid "Align to Y axis"
 msgstr ""
 
-msgid "Add"
-msgstr "Lägg till"
-
 msgid "Add plate"
 msgstr "Lägg till byggplata"
 
@@ -4177,14 +4375,8 @@ msgstr "Stänger Begäran medans vissa inställningar ändrats."
 msgid "Logging"
 msgstr "Loggar"
 
-msgid "Prepare"
-msgstr "Förbered"
-
 msgid "Preview"
 msgstr "Förhandsvisning"
-
-msgid "Device"
-msgstr "Enhet"
 
 msgid "Multi-device"
 msgstr ""
@@ -4213,9 +4405,6 @@ msgstr "Bered allt"
 msgid "Export G-code file"
 msgstr "Exportera G-kod filen"
 
-msgid "Send"
-msgstr "Skicka"
-
 msgid "Export plate sliced file"
 msgstr "Exportera byggplattans beredda fil"
 
@@ -4227,9 +4416,6 @@ msgstr "Skriv ut allt"
 
 msgid "Send all"
 msgstr "Skicka alla"
-
-msgid "Send to Multi-device"
-msgstr ""
 
 msgid "Keyboard Shortcuts"
 msgstr "Kortkommando"
@@ -4372,8 +4558,8 @@ msgstr "Exportera G-kod"
 msgid "Export current plate as G-code"
 msgstr "Exportera aktuell byggplatta som G-kod"
 
-msgid "Export &Configs"
-msgstr "Exportera konfiguration"
+msgid "Export Preset Bundle"
+msgstr ""
 
 msgid "Export current configuration to files"
 msgstr "Exportera aktuell konfiguration till filer"
@@ -4474,9 +4660,6 @@ msgstr "Visa objektets överhäng i 3D-scen"
 msgid "Preferences"
 msgstr "Inställningar"
 
-msgid "View"
-msgstr "Vy"
-
 msgid "Help"
 msgstr "Hjälp"
 
@@ -4543,10 +4726,10 @@ msgstr "Exportera &Toolpaths som OBJ"
 msgid "Export toolpaths as OBJ"
 msgstr "Exportera toolpaths som OBJ"
 
-msgid "Open &Studio"
+msgid "Open &Slicer"
 msgstr "Öppna &Studio"
 
-msgid "Open Studio"
+msgid "Open Slicer"
 msgstr "Öppna Studio"
 
 msgid "&Quit"
@@ -4720,9 +4903,6 @@ msgstr "information"
 msgid "Playing..."
 msgstr "Spelar..."
 
-msgid "Loading..."
-msgstr "Laddar..."
-
 msgid "Year"
 msgstr "År"
 
@@ -4876,11 +5056,6 @@ msgid ""
 "please try again later."
 msgstr ""
 
-msgid ""
-"Over 4 systems/handy are using remote access, you can close some and try "
-"again."
-msgstr ""
-
 msgid "File does not exist."
 msgstr ""
 
@@ -4938,12 +5113,6 @@ msgstr ""
 
 msgid "Printing Progress"
 msgstr "Utskriftsförlopp"
-
-msgid "Resume"
-msgstr "Återuppta"
-
-msgid "Stop"
-msgstr "Stopp"
 
 msgid "0"
 msgstr "0"
@@ -5678,6 +5847,9 @@ msgstr "Komponent namnet i step filen är inte UTF8 format!"
 msgid "The name may show garbage characters!"
 msgstr "På grund av textkodning som inte stöds så kan skräptecken visas!"
 
+msgid "Remember my choice."
+msgstr "Kom ihåg mitt val."
+
 #, boost-format
 msgid "Failed loading file \"%1%\". An invalid configuration was found."
 msgstr ""
@@ -5803,9 +5975,6 @@ msgstr ""
 msgid "Error during reload"
 msgstr ""
 
-msgid "Slicing"
-msgstr "Bereder"
-
 msgid "There are warnings after slicing models:"
 msgstr "Varningar efter beredning:"
 
@@ -5881,7 +6050,7 @@ msgid "Project downloaded %d%%"
 msgstr "Projektet har laddats ned %d%%"
 
 msgid ""
-"Importing to Bambu Studio failed. Please download the file and manually "
+"Importing to Orca Slicer failed. Please download the file and manually "
 "import it."
 msgstr ""
 
@@ -5921,17 +6090,11 @@ msgstr "G-kod filer och modeller kan inte laddas tillsammans!!"
 msgid "Can not add models when in preview mode!"
 msgstr "Det gick inte att lägga till modeller i förhandsvisningsläge"
 
-msgid "Add Models"
-msgstr "Lägg till modeller"
-
 msgid "All objects will be removed, continue?"
 msgstr "Alla objekt kommer att raderas, fortsätta?"
 
 msgid "The current project has unsaved changes, save it before continue?"
 msgstr "Nuvarande projekt har ej sparade ändringar, spara innan du går vidare?"
-
-msgid "Remember my choice."
-msgstr "Kom ihåg mitt val."
 
 msgid "Number of copies:"
 msgstr "Antal kopior:"
@@ -6131,6 +6294,11 @@ msgstr "Logga in Region"
 msgid "Stealth Mode"
 msgstr ""
 
+msgid ""
+"This stops the transmission of data to Bambu's cloud services. Users who "
+"don't use BBL machines or use LAN mode only can safely turn on this function."
+msgstr ""
+
 msgid "Enable network plugin"
 msgstr ""
 
@@ -6237,7 +6405,7 @@ msgid ""
 "each printer automatically."
 msgstr ""
 
-msgid "Multi-device Management(Take effect after restarting Studio)."
+msgid "Multi-device Management(Take effect after restarting Orca)."
 msgstr ""
 
 msgid ""
@@ -6457,9 +6625,6 @@ msgstr ""
 msgid "Create printer"
 msgstr ""
 
-msgid "Incompatible"
-msgstr "Inkompatibel"
-
 msgid "The selected preset is null!"
 msgstr ""
 
@@ -6554,15 +6719,6 @@ msgstr "Användar förinställning"
 msgid "Preset Inside Project"
 msgstr "Projekt förinställning"
 
-msgid "Name is invalid;"
-msgstr "Namnet är ogiltligt;"
-
-msgid "illegal characters:"
-msgstr "Ogiltliga tecken:"
-
-msgid "illegal suffix:"
-msgstr "Ogiltlig ändelse:"
-
 msgid "Name is unavailable."
 msgstr "Namnet ej tillgängligt."
 
@@ -6582,15 +6738,6 @@ msgid "Please note that saving action will replace this preset"
 msgstr ""
 "Observera att om du sparar kommer den aktuella förinställningen att skrivas "
 "över"
-
-msgid "The name is not allowed to be empty."
-msgstr "Namn fältet får inte vara tomt."
-
-msgid "The name is not allowed to start with space character."
-msgstr "Namnet får inte börja med mellanrum."
-
-msgid "The name is not allowed to end with space character."
-msgstr "Namnet får inte avslutas med mellanrum."
 
 msgid "The name cannot be the same as a preset alias name."
 msgstr "Namnet får inte vara samma som förinställt namn."
@@ -6648,9 +6795,6 @@ msgstr "Hittar du inte enheter?"
 
 msgid "Log out successful."
 msgstr "Utloggning lyckades."
-
-msgid "Offline"
-msgstr "Offline"
 
 msgid "Busy"
 msgstr "Upptagen"
@@ -6859,15 +7003,6 @@ msgstr ""
 msgid ""
 "Connecting to the printer. Unable to cancel during the connection process."
 msgstr ""
-
-msgid "Preparing print job"
-msgstr "Förbereder utskriftsjobb"
-
-msgid "Abnormal print file data. Please slice again"
-msgstr "Onormal utskrifts fil data. Vänligen bered igen"
-
-msgid "The name length exceeds the limit."
-msgstr "Namnlängden överskrider gränsen."
 
 msgid ""
 "Caution to use! Flow calibration on Textured PEI Plate may fail due to the "
@@ -7236,6 +7371,9 @@ msgid "Support filament"
 msgstr "Support filament"
 
 msgid "Tree supports"
+msgstr ""
+
+msgid "Skirt"
 msgstr ""
 
 msgid "Prime tower"
@@ -8122,6 +8260,12 @@ msgstr "Flytta reglage 5x snabbare"
 msgid "Shift+Mouse wheel"
 msgstr "Shift+Mushjulet"
 
+msgid "Horizontal slider - Move to start position"
+msgstr ""
+
+msgid "Horizontal slider - Move to last position"
+msgstr ""
+
 msgid "Release Note"
 msgstr "Meddelande om utgåvan"
 
@@ -8242,12 +8386,6 @@ msgstr "Version:"
 msgid "Update firmware"
 msgstr "Uppdatera programvara"
 
-msgid "Printing"
-msgstr "Utskrift pågår"
-
-msgid "Idle"
-msgstr "Inaktiv"
-
 msgid "Beta version"
 msgstr ""
 
@@ -8282,7 +8420,7 @@ msgstr ""
 msgid ""
 "The firmware version is abnormal. Repairing and updating are required before "
 "printing. Do you want to update now? You can also update later on printer or "
-"update next time starting the studio."
+"update next time starting Orca."
 msgstr ""
 "Firmware versionen är onormal. Reparation och uppdatering krävs före "
 "utskrift. Vill du uppdatera nu? Du kan också uppdatera senare på skrivaren "
@@ -8420,9 +8558,6 @@ msgstr ""
 
 msgid "Gap infill"
 msgstr "Mellanrums ifyllnad"
-
-msgid "Skirt"
-msgstr ""
 
 msgid "Support interface"
 msgstr "Support kontaktyta"
@@ -10113,8 +10248,8 @@ msgstr ""
 msgid "(Undefined)"
 msgstr "(Oidentifierad)"
 
-msgid "Infill direction"
-msgstr "Ifyllnads riktning"
+msgid "Sparse infill direction"
+msgstr ""
 
 msgid ""
 "Angle for sparse infill pattern, which controls the start or main direction "
@@ -10122,6 +10257,20 @@ msgid ""
 msgstr ""
 "Vinkeln för sparsam ifyllnads mönster, som styr start- eller huvudriktningen "
 "för linjer"
+
+msgid "Solid infill direction"
+msgstr ""
+
+msgid ""
+"Angle for solid infill pattern, which controls the start or main direction "
+"of line"
+msgstr ""
+
+msgid "Rotate solid infill direction"
+msgstr ""
+
+msgid "Rotate the solid infill direction by 90° for each layer."
+msgstr ""
 
 msgid "Sparse infill density"
 msgstr "Sparsam ifyllnads densitet"
@@ -10427,11 +10576,15 @@ msgid "Arc fitting"
 msgstr "Arc passning"
 
 msgid ""
-"Enable this to get a G-code file which has G2 and G3 moves. And the fitting "
-"tolerance is same with resolution"
+"Enable this to get a G-code file which has G2 and G3 moves. The fitting "
+"tolerance is same as the resolution. \n"
+"\n"
+"Note: For klipper machines, this option is recomended to be disabled. "
+"Klipper does not benefit from arc commands as these are split again into "
+"line segments by the firmware. This results in a reduction in surface "
+"quality as line segments are converted to arcs by the slicer and then back "
+"to line segments by the firmware."
 msgstr ""
-"Aktivera detta för att få en G-kod med G2 och G3 drag. Passnings toleransen "
-"är densamma som upplösningen"
 
 msgid "Add line number"
 msgstr "Lägg till rad nummer"
@@ -10630,13 +10783,25 @@ msgstr ""
 msgid "Infill/Wall overlap"
 msgstr "Ifyllnad/Vägg överlapp"
 
+#, no-c-format, no-boost-format
 msgid ""
 "Infill area is enlarged slightly to overlap with wall for better bonding. "
-"The percentage value is relative to line width of sparse infill"
+"The percentage value is relative to line width of sparse infill. Set this "
+"value to ~10-15% to minimize potential over extrusion and accumulation of "
+"material resulting in rough top surfaces."
 msgstr ""
-"Detta gör att ifyllnads området kan förstoras något för att överlappa "
-"väggarna för bättre vidhäftning.Det procentuella värdet är i förhållande "
-"till linjebredden för sparsam ifyllnad"
+
+msgid "Top/Bottom solid infill/wall overlap"
+msgstr ""
+
+#, no-c-format, no-boost-format
+msgid ""
+"Top solid infill area is enlarged slightly to overlap with wall for better "
+"bonding and to minimize the appearance of pinholes where the top infill "
+"meets the walls. A value of 25-30% is a good starting point, minimising the "
+"appearance of pinholes. The percentage value is relative to line width of "
+"sparse infill"
+msgstr ""
 
 msgid "Speed of internal sparse infill"
 msgstr "Hastighet för sparsam ifyllnad"
@@ -11544,6 +11709,29 @@ msgstr "Skirt höjd"
 msgid "How many layers of skirt. Usually only one layer"
 msgstr "Antal skirt lager: vanligtvis bara en"
 
+msgid "Draft shield"
+msgstr ""
+
+msgid ""
+"A draft shield is useful to protect an ABS or ASA print from warping and "
+"detaching from print bed due to wind draft. It is usually needed only with "
+"open frame printers, i.e. without an enclosure. \n"
+"\n"
+"Options:\n"
+"Enabled = skirt is as tall as the highest printed object.\n"
+"Limited = skirt is as tall as specified by skirt height.\n"
+"\n"
+"Note: With the draft shield active, the skirt will be printed at skirt "
+"distance from the object. Therefore, if brims are active it may intersect "
+"with them. To avoid this, increase the skirt distance value.\n"
+msgstr ""
+
+msgid "Limited"
+msgstr ""
+
+msgid "Enabled"
+msgstr ""
+
 msgid "Skirt loops"
 msgstr "Skirt varv"
 
@@ -11554,6 +11742,17 @@ msgid "Skirt speed"
 msgstr ""
 
 msgid "Speed of skirt, in mm/s. Zero means use default layer extrusion speed."
+msgstr ""
+
+msgid "Skirt minimum extrusion length"
+msgstr ""
+
+msgid ""
+"Minimum filament extrusion length in mm when printing the skirt. Zero means "
+"this feature is disabled.\n"
+"\n"
+"Using a non zero value is useful if the printer is set up to print without a "
+"prime line."
 msgstr ""
 
 msgid ""
@@ -12240,6 +12439,19 @@ msgid "Wipe tower purge lines spacing"
 msgstr ""
 
 msgid "Spacing of purge lines on the wipe tower."
+msgstr ""
+
+msgid "Maximum print speed when purging"
+msgstr ""
+
+msgid ""
+"The maximum print speed when purging in the wipe tower. If the sparse infill "
+"speed or calculated speed from the filament max volumetric speed is lower, "
+"the lowest speed will be used instead.\n"
+"Increasing this speed may affect the tower's stability, as purging can be "
+"performed over sparse layers. Before increasing this parameter beyond the "
+"default of 90mm/sec, make sure your printer can reliably bridge at the "
+"increased speeds."
 msgstr ""
 
 msgid "Wipe tower extruder"
@@ -13954,16 +14166,13 @@ msgstr ""
 msgid ""
 "\n"
 "\n"
-"Studio has detected that your user presets synchronization function is not "
+"Orca has detected that your user presets synchronization function is not "
 "enabled, which may result in unsuccessful Filament settings on the Device "
 "page. \n"
 "Click \"Sync user presets\" to enable the synchronization function."
 msgstr ""
 
 msgid "Printer Setting"
-msgstr ""
-
-msgid "Export Configs"
 msgstr ""
 
 msgid "Printer config bundle(.orca_printer)"
@@ -14849,6 +15058,27 @@ msgid ""
 "ABS, appropriately increasing the heatbed temperature can reduce the "
 "probability of warping."
 msgstr ""
+
+#~ msgid "Export &Configs"
+#~ msgstr "Exportera konfiguration"
+
+#~ msgid "Infill direction"
+#~ msgstr "Ifyllnads riktning"
+
+#~ msgid ""
+#~ "Enable this to get a G-code file which has G2 and G3 moves. And the "
+#~ "fitting tolerance is same with resolution"
+#~ msgstr ""
+#~ "Aktivera detta för att få en G-kod med G2 och G3 drag. Passnings "
+#~ "toleransen är densamma som upplösningen"
+
+#~ msgid ""
+#~ "Infill area is enlarged slightly to overlap with wall for better bonding. "
+#~ "The percentage value is relative to line width of sparse infill"
+#~ msgstr ""
+#~ "Detta gör att ifyllnads området kan förstoras något för att överlappa "
+#~ "väggarna för bättre vidhäftning.Det procentuella värdet är i förhållande "
+#~ "till linjebredden för sparsam ifyllnad"
 
 #~ msgid "Unload Filament"
 #~ msgstr "Mata ut"

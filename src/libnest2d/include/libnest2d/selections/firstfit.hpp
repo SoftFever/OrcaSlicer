@@ -119,9 +119,9 @@ public:
                 for(; j < placers.size() && !was_packed && !cancelled(); j++) {
                     result = placers[j].pack(*it, rem(it, store_));
                     score = result.score();
-                    score_all_plates = std::accumulate(placers.begin(), placers.begin() + j, score,
-                        [](double sum, const Placer& elem) { return sum + elem.score(); });
-                    if (this->unfitindicator_) this->unfitindicator_(it->get().name + " bed_id="+std::to_string(j) + ",score=" + std::to_string(score));
+                    score_all_plates = score;
+                    for (int i = 0; i < placers.size(); i++) { score_all_plates += placers[i].score();}
+                    if (this->unfitindicator_) this->unfitindicator_(it->get().name + " bed_id="+std::to_string(j) + ",score=" + std::to_string(score)+", score_all_plates="+std::to_string(score_all_plates));
 
                     if(score >= 0 && score < LARGE_COST_TO_REJECT) {
                         if (bed_id_firstfit == -1) {
