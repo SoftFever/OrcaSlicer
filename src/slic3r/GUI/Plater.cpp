@@ -3175,6 +3175,15 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         wxGetApp().mainframe->Raise();
         this->q->load_files(input_files);
     });
+    
+    this->q->Bind(EVT_START_DOWNLOAD_OTHER_INSTANCE, [](StartDownloadOtherInstanceEvent& evt) {
+        BOOST_LOG_TRIVIAL(trace) << "Received url from other instance event.";
+        wxGetApp().mainframe->Raise();
+        for (size_t i = 0; i < evt.data.size(); ++i) {
+            wxGetApp().start_download(evt.data[i]);
+        }
+       
+    });
     this->q->Bind(EVT_INSTANCE_GO_TO_FRONT, [this](InstanceGoToFrontEvent &) {
         bring_instance_forward();
     });

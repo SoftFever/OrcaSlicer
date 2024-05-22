@@ -531,7 +531,7 @@ void DesktopIntegrationDialog::perform_downloader_desktop_integration()
 
     std::string desktop_file_downloader = GUI::format(
         "[Desktop Entry]\n"
-        "Name=PrusaSlicer URL Protocol%1%\n"
+        "Name=OrcaSlicer URL Protocol%1%\n"
         "Exec=\"%2%\" %%u\n"
         "Terminal=false\n"
         "Type=Application\n"
@@ -541,12 +541,12 @@ void DesktopIntegrationDialog::perform_downloader_desktop_integration()
         , name_suffix, excutable_path);
 
     // desktop file for downloader as part of main app
-    std::string desktop_path = GUI::format("%1%/applications/PrusaSlicerURLProtocol%2%.desktop", target_dir_desktop, version_suffix);
+    std::string desktop_path = GUI::format("%1%/applications/OrcaSlicerURLProtocol%2%.desktop", target_dir_desktop, version_suffix);
     if (create_desktop_file(desktop_path, desktop_file_downloader)) {
         // save path to desktop file
         app_config->set("desktop_integration_URL_path", desktop_path);
         // finish registration on mime type
-        std::string command = GUI::format("xdg-mime default PrusaSlicerURLProtocol%1%.desktop x-scheme-handler/prusaslicer", version_suffix);
+        std::string command = GUI::format("xdg-mime default OrcaSlicerURLProtocol%1%.desktop x-scheme-handler/prusaslicer", version_suffix);
         BOOST_LOG_TRIVIAL(debug) << "system command: " << command;
         int r = system(command.c_str());
         BOOST_LOG_TRIVIAL(debug) << "system result: " << r;
@@ -558,16 +558,16 @@ void DesktopIntegrationDialog::perform_downloader_desktop_integration()
         if (contains_path_dir(target_candidates[i], "applications")) {
             target_dir_desktop = target_candidates[i];
             // Write slicer desktop file
-            std::string path = GUI::format("%1%/applications/PrusaSlicerURLProtocol%2%.desktop", target_dir_desktop, version_suffix);
+            std::string path = GUI::format("%1%/applications/OrcaSlicerURLProtocol%2%.desktop", target_dir_desktop, version_suffix);
             if (create_desktop_file(path, desktop_file_downloader)) {
                 app_config->set("desktop_integration_URL_path", path);
                 candidate_found = true;
-                BOOST_LOG_TRIVIAL(debug) << "PrusaSlicerURLProtocol.desktop file installation success.";
+                BOOST_LOG_TRIVIAL(debug) << "OrcaSlicerURLProtocol.desktop file installation success.";
                 break;
             }
             else {
                 // write failed - try another path
-                BOOST_LOG_TRIVIAL(debug) << "Attempt to PrusaSlicerURLProtocol.desktop file installation failed. failed path: " << target_candidates[i];
+                BOOST_LOG_TRIVIAL(debug) << "Attempt to OrcaSlicerURLProtocol.desktop file installation failed. failed path: " << target_candidates[i];
                 target_dir_desktop.clear();
             }
         }
@@ -578,7 +578,7 @@ void DesktopIntegrationDialog::perform_downloader_desktop_integration()
         create_path(boost::nowide::narrow(wxFileName::GetHomeDir()), ".local/share/applications");
         // create desktop file
         target_dir_desktop = GUI::format("%1%/.local/share", wxFileName::GetHomeDir());
-        std::string path = GUI::format("%1%/applications/PrusaSlicerURLProtocol%2%.desktop", target_dir_desktop, version_suffix);
+        std::string path = GUI::format("%1%/applications/OrcaSlicerURLProtocol%2%.desktop", target_dir_desktop, version_suffix);
         if (contains_path_dir(target_dir_desktop, "applications")) {
             if (!create_desktop_file(path, desktop_file_downloader)) {
                 // Desktop file not written - end desktop integration
@@ -602,7 +602,7 @@ void DesktopIntegrationDialog::perform_downloader_desktop_integration()
     }
 
     // finish registration on mime type
-    std::string command = GUI::format("xdg-mime default PrusaSlicerURLProtocol%1%.desktop x-scheme-handler/prusaslicer", version_suffix);
+    std::string command = GUI::format("xdg-mime default OrcaSlicerURLProtocol%1%.desktop x-scheme-handler/prusaslicer", version_suffix);
     BOOST_LOG_TRIVIAL(debug) << "system command: " << command;
     int r = system(command.c_str());
     BOOST_LOG_TRIVIAL(debug) << "system result: " << r;

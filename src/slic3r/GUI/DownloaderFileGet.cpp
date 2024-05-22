@@ -201,12 +201,12 @@ void FileGet::priv::get_perform()
 		return;
 	}
 
-	std:: string range_string = std::to_string(m_written) + "-";
+		std:: string range_string = std::to_string(m_written) + "-";
 
-	size_t written_previously = m_written;
-	size_t written_this_session = 0;
-	Http::get(m_url)
-		.size_limit(DOWNLOAD_SIZE_LIMIT) //more?
+		size_t written_previously = m_written;
+		size_t written_this_session = 0;
+		Http::get(m_url)
+			.size_limit(DOWNLOAD_SIZE_LIMIT) //more?
 		.set_range(range_string)
 		.on_progress([&](Http::Progress progress, bool& cancel) {
 			// to prevent multiple calls into following ifs (m_cancel / m_pause)
@@ -244,7 +244,7 @@ void FileGet::priv::get_perform()
 			}
 
 			if (progress.dlnow != 0) {
-				if (progress.dlnow - written_this_session > DOWNLOAD_MAX_CHUNK_SIZE || progress.dlnow == progress.dltotal) {
+			if (progress.dlnow - written_this_session > DOWNLOAD_MAX_CHUNK_SIZE || progress.dlnow == progress.dltotal) {
 					try
 					{
 						std::string part_for_write = progress.buffer.substr(written_this_session, progress.dlnow);
@@ -264,7 +264,7 @@ void FileGet::priv::get_perform()
 					m_written = written_previously + written_this_session;
 				}
 				wxCommandEvent* evt = new wxCommandEvent(EVT_DWNLDR_FILE_PROGRESS);
-				int percent_total = (written_previously + progress.dlnow) * 100 / m_absolute_size;
+				int             percent_total = m_absolute_size == 0 ? 0 : (written_previously + progress.dlnow) * 100 / m_absolute_size;
 				evt->SetString(std::to_string(percent_total));
 				evt->SetInt(m_id);
 				m_evt_handler->QueueEvent(evt);

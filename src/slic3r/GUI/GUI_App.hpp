@@ -646,13 +646,12 @@ private:
     bool is_glsl_version_greater_or_equal_to(unsigned int major, unsigned int minor) const { return m_opengl_mgr.get_gl_info().is_glsl_version_greater_or_equal_to(major, minor); }
     int  GetSingleChoiceIndex(const wxString& message, const wxString& caption, const wxArrayString& choices, int initialSelection);
 
-#ifdef __WXMSW__
     // extend is stl/3mf/gcode/step etc 
     void            associate_files(std::wstring extend);
     void            disassociate_files(std::wstring extend);
+    bool            check_url_association(std::wstring url_prefix, std::wstring& reg_bin);
     void            associate_url(std::wstring url_prefix);
     void            disassociate_url(std::wstring url_prefix);
-#endif // __WXMSW__
 
     // URL download - PrusaSlicer gets system call to open prusaslicer:// URL which should contain address of download
     void            start_download(std::string url);
