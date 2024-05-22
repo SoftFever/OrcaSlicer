@@ -2791,7 +2791,7 @@ msgid "GNU Affero General Public License, version 3"
 msgstr "GNU Affero General Public License, Version 3"
 
 msgid "Orca Slicer is based on PrusaSlicer and BambuStudio"
-msgstr ""
+msgstr "Orca Slicer basiert auf PrusaSlicer und BambuStudio"
 
 msgid "Libraries"
 msgstr "Bibliotheken"
@@ -3321,30 +3321,30 @@ msgid "Device"
 msgstr "Gerät"
 
 msgid "Task Sending"
-msgstr ""
+msgstr "Aufgabe senden"
 
 msgid "Task Sent"
-msgstr ""
+msgstr "Aufgabe gesendet"
 
 msgid "Edit multiple printers"
-msgstr ""
+msgstr "Mehrere Drucker bearbeiten"
 
 msgid "Select connected printetrs (0/6)"
-msgstr ""
+msgstr "Wählen die verbundenen Drucker (0/6)"
 
 #, c-format, boost-format
 msgid "Select Connected Printetrs (%d/6)"
-msgstr ""
+msgstr "Wählen die verbundenen Drucker (%d/6)"
 
 #, c-format, boost-format
 msgid "The maximum number of printers that can be selected is %d"
-msgstr ""
+msgstr "Die maximale Anzahl von Druckern, die ausgewählt werden können, beträgt %d"
 
 msgid "Offline"
 msgstr "Offline"
 
 msgid "No task"
-msgstr ""
+msgstr "Keine Aufgabe"
 
 msgid "View"
 msgstr "Ansicht"
@@ -3353,23 +3353,24 @@ msgid "N/A"
 msgstr "N/A"
 
 msgid "Edit Printers"
-msgstr ""
+msgstr "Drucker bearbeiten"
 
 msgid "Device Name"
-msgstr ""
+msgstr "Gerätename"
 
 msgid "Task Name"
-msgstr ""
+msgstr "Aufgabenname"
 
 msgid "Device Status"
-msgstr ""
+msgstr "Gerätestatus"
 
 msgid "Actions"
-msgstr ""
+msgstr "Aktionen"
 
 msgid ""
 "Please select the devices you would like to manage here (up to 6 devices)"
 msgstr ""
+"Wählen Sie hier die Geräte aus, die Sie verwalten möchten (bis zu 6 Geräte)"
 
 msgid "Add"
 msgstr "Hinzufügen"
@@ -3381,22 +3382,22 @@ msgid "Printing"
 msgstr "Drucken"
 
 msgid "Upgrading"
-msgstr ""
+msgstr "Aktualisieren"
 
 msgid "Incompatible"
 msgstr "Inkompatibel"
 
 msgid "syncing"
-msgstr ""
+msgstr "synchronisieren"
 
 msgid "Printing Finish"
-msgstr ""
+msgstr "Druck beendet"
 
 msgid "Printing Failed"
-msgstr ""
+msgstr "Druck fehlgeschlagen"
 
 msgid "PrintingPause"
-msgstr ""
+msgstr "Druckpause"
 
 msgid "Prepare"
 msgstr "Vorbereiten"
@@ -3405,28 +3406,28 @@ msgid "Slicing"
 msgstr "Slicen"
 
 msgid "Pending"
-msgstr ""
+msgstr "Ausstehend"
 
 msgid "Sending"
-msgstr ""
+msgstr "Sende"
 
 msgid "Sending Finish"
-msgstr ""
+msgstr "Senden beendet"
 
 msgid "Sending Cancel"
-msgstr ""
+msgstr "Senden abbrechen"
 
 msgid "Sending Failed"
-msgstr ""
+msgstr "Senden fehlgeschlagen"
 
 msgid "Print Success"
-msgstr ""
+msgstr "Druck erfolgreich"
 
 msgid "Print Failed"
-msgstr ""
+msgstr "Druck fehlgeschlagen"
 
 msgid "Removed"
-msgstr ""
+msgstr "Entfernt"
 
 msgid "Resume"
 msgstr "Fortsetzen"
@@ -3435,22 +3436,22 @@ msgid "Stop"
 msgstr "Stop"
 
 msgid "Task Status"
-msgstr ""
+msgstr "Aufgabenstatus"
 
 msgid "Sent Time"
-msgstr ""
+msgstr "Sende Zeit"
 
 msgid "There are no tasks to be sent!"
-msgstr ""
+msgstr "Es gibt keine Aufgaben, die gesendet werden sollen!"
 
 msgid "No historical tasks!"
-msgstr ""
+msgstr "Keine historischen Aufgaben!"
 
 msgid "Loading..."
 msgstr "Laden..."
 
 msgid "No AMS"
-msgstr ""
+msgstr "Kein AMS"
 
 msgid "Send to Multi-device"
 msgstr "An Multi-Gerät senden"
@@ -3462,28 +3463,28 @@ msgid "Abnormal print file data. Please slice again"
 msgstr "Fehlerhafte Daten in der Druckdatei. Bitte slicen Sie erneut"
 
 msgid "There is no device available to send printing."
-msgstr ""
+msgstr "Es ist kein Gerät verfügbar, um den Druck zu senden."
 
 msgid "The number of printers in use simultaneously cannot be equal to 0."
-msgstr ""
+msgstr "Die Anzahl der gleichzeitig verwendeten Drucker darf nicht gleich 0 sein."
 
 msgid "Use External Spool"
-msgstr ""
+msgstr "Externe Spule verwenden"
 
 msgid "Use AMS"
-msgstr ""
+msgstr "AMS verwenden"
 
 msgid "Select Printers"
-msgstr ""
+msgstr "Drucker auswählen"
 
 msgid "Ams Status"
-msgstr ""
+msgstr "AMS-Status"
 
 msgid "Printing Options"
-msgstr ""
+msgstr "Druckoptionen"
 
 msgid "Send Options"
-msgstr ""
+msgstr "Senden-Optionen"
 
 msgid "Send"
 msgstr "Senden"
@@ -3492,13 +3493,17 @@ msgid ""
 "printers at the same time.(It depends on how many devices can undergo "
 "heating at the same time.)"
 msgstr ""
+"Drucker gleichzeitig drucken.(Es hängt davon ab, wie viele Geräte gleichzeitig "
+"erhitzt werden können.)"
 
 msgid "Wait"
-msgstr ""
+msgstr "Warten"
 
 msgid ""
 "minute each batch.(It depends on how long it takes to complete the heating.)"
 msgstr ""
+"Minute pro Charge.(Es hängt davon ab, wie lange es dauert, die Erhitzung "
+"abzuschließen.)"
 
 msgid "Name is invalid;"
 msgstr "Der Name ist ungültig;"
@@ -4757,7 +4762,7 @@ msgid "Export current plate as G-code"
 msgstr "Aktuelle Druckplatte als G-Code exportieren"
 
 msgid "Export Preset Bundle"
-msgstr ""
+msgstr "Preset-Bundle exportieren"
 
 msgid "Export current configuration to files"
 msgstr "Aktuelle Konfiguration in Dateien exportieren"
@@ -6623,6 +6628,9 @@ msgid ""
 "This stops the transmission of data to Bambu's cloud services. Users who "
 "don't use BBL machines or use LAN mode only can safely turn on this function."
 msgstr ""
+"Dies stoppt die Übertragung von Daten an die Cloud-Dienste von Bambu. "
+"Benutzer, die keine BBL-Maschinen verwenden oder nur den LAN-Modus verwenden, "    
+"können diese Funktion sicher aktivieren."
 
 msgid "Enable network plugin"
 msgstr "Netzwerk-Plugin aktivieren"
@@ -8711,10 +8719,10 @@ msgid "Shift+Mouse wheel"
 msgstr "Umschalt+Mausrad"
 
 msgid "Horizontal slider - Move to start position"
-msgstr ""
+msgstr "Horizontaler Schieberegler - Zur Startposition bewegen"
 
 msgid "Horizontal slider - Move to last position"
-msgstr ""
+msgstr "Horizontaler Schieberegler - Zur letzten Position bewegen"
 
 msgid "Release Note"
 msgstr "Hinweis zur Veröffentlichung"
@@ -11054,7 +11062,7 @@ msgid "(Undefined)"
 msgstr "(undefiniert)"
 
 msgid "Sparse infill direction"
-msgstr ""
+msgstr "Richtung des einfachereren Fülling"
 
 msgid ""
 "Angle for sparse infill pattern, which controls the start or main direction "
@@ -11062,18 +11070,20 @@ msgid ""
 msgstr "Winkel des Füllmusters, das die Richtung der Linien bestimmt."
 
 msgid "Solid infill direction"
-msgstr ""
+msgstr "Richtung des massiven Füllmusters"
 
 msgid ""
 "Angle for solid infill pattern, which controls the start or main direction "
 "of line"
 msgstr ""
+"Winkel des massiven Füllmusters, der die Start- oder Hauptrichtung der Linie "
+"steuert."
 
 msgid "Rotate solid infill direction"
-msgstr ""
+msgstr "Massives Füllmuster drehen"
 
 msgid "Rotate the solid infill direction by 90° for each layer."
-msgstr ""
+msgstr "Drehe das massive Füllmuster um 90° für jede Schicht."
 
 msgid "Sparse infill density"
 msgstr "Fülldichte"
@@ -11445,6 +11455,14 @@ msgid ""
 "quality as line segments are converted to arcs by the slicer and then back "
 "to line segments by the firmware."
 msgstr ""
+"Aktivieren Sie diese Option, um eine G-Code-Datei zu erhalten, die G2- und "
+"G3-Bewegungen enthält. Die Passungstoleranz entspricht der Auflösung. \n"
+"\n"
+"Hinweis: Für Klipper-Maschinen wird empfohlen, diese Option zu deaktivieren. "
+"Klipper profitiert nicht von Bogenbefehlen, da diese von der Firmware wieder "
+"in Linienabschnitte aufgeteilt werden. Dies führt zu einer Verringerung der "
+"Oberflächenqualität, da Linienabschnitte vom Slicer in Bögen umgewandelt und "
+"dann von der Firmware wieder in Linienabschnitte umgewandelt werden."
 
 msgid "Add line number"
 msgstr "Liniennummer hinzufügen"
@@ -11686,6 +11704,11 @@ msgid ""
 "value to ~10-15% to minimize potential over extrusion and accumulation of "
 "material resulting in rough top surfaces."
 msgstr ""
+"Die Füllfläche wird leicht vergrößert, um mit der Wand zu überlappen und "
+"eine bessere Haftung zu gewährleisten. Der Prozentwert bezieht sich auf die "
+"Linienbreite der spärlichen Füllung. Setzen Sie diesen Wert auf ~10-15%, um "
+"eine mögliche Überextrusion und Materialansammlung zu minimieren, die zu "
+"rauen Oberflächen führen kann."
 
 msgid "Top/Bottom solid infill/wall overlap"
 msgstr ""
@@ -11698,6 +11721,12 @@ msgid ""
 "appearance of pinholes. The percentage value is relative to line width of "
 "sparse infill"
 msgstr ""
+"Der obere massive Füllbereich wird leicht vergrößert, um mit der Wand zu "
+"überlappen und eine bessere Haftung zu gewährleisten und das Auftreten von "
+"Pinholes zu minimieren, wo die obere Füllung auf die Wände trifft. Ein Wert "
+"von 25-30% ist ein guter Ausgangspunkt, um das Auftreten von Pinholes zu "
+"minimieren. Der Prozentwert bezieht sich auf die Linienbreite der spärlichen "
+"Füllung."
 
 msgid "Speed of internal sparse infill"
 msgstr "Geschwindigkeit der inneren Füllung"
@@ -12788,7 +12817,7 @@ msgid "How many layers of skirt. Usually only one layer"
 msgstr "Wie viele Schichten des Skirts. Normalerweise nur eine Schicht."
 
 msgid "Draft shield"
-msgstr ""
+msgstr "Luftzug-Schutz"
 
 msgid ""
 "A draft shield is useful to protect an ABS or ASA print from warping and "
@@ -12803,12 +12832,24 @@ msgid ""
 "distance from the object. Therefore, if brims are active it may intersect "
 "with them. To avoid this, increase the skirt distance value.\n"
 msgstr ""
+"Ein Luftzugs-Schutz ist nützlich, um einen ABS- oder ASA-Druck vor Verzug "
+"und Ablösen vom Druckbett aufgrund von Luftzug zu schützen. Er wird normalerweise "
+"nur bei offenen Druckern benötigt, d.h. ohne Gehäuse. \n"
+"\n"
+"Optionen:\n"
+"Aktiviert = Umrandung ist so hoch wie das höchste gedruckte Objekt.\n"
+"Begrenzt = Umrandung ist so hoch wie durch die Höhe der Umrandung angegeben.\n"
+"\n"
+"Hinweis: Mit dem aktiven Luftzug-Schutz wird die Umrandung in der "
+"Umrandungsdistanz vom Objekt gedruckt. Daher kann es bei aktiven Rändern zu "
+"Überschneidungen kommen. Um dies zu vermeiden, erhöhen Sie den Wert der"
+"Umrandungsdistanz. \n"
 
 msgid "Limited"
-msgstr ""
+msgstr "Begrenzt"
 
 msgid "Enabled"
-msgstr ""
+msgstr "Aktiviert"
 
 msgid "Skirt loops"
 msgstr "Anzahl Umrandungsringe"
@@ -12826,7 +12867,7 @@ msgstr ""
 "Schichtextrusionsgeschwindigkeit."
 
 msgid "Skirt minimum extrusion length"
-msgstr ""
+msgstr "Minimale Extrusionslänge der Umrandung"
 
 msgid ""
 "Minimum filament extrusion length in mm when printing the skirt. Zero means "
@@ -12835,6 +12876,11 @@ msgid ""
 "Using a non zero value is useful if the printer is set up to print without a "
 "prime line."
 msgstr ""
+"Minimale Filamentextrusionslänge in mm beim Drucken der Umrandung. Null "
+"bedeutet, dass diese Funktion deaktiviert ist.\n"
+"\n"
+"Die Verwendung eines Werts ungleich Null ist nützlich, wenn der Drucker so "
+"eingestellt ist, dass er ohne eine Primelinie druckt."
 
 msgid ""
 "The printing speed in exported gcode will be slowed down, when the estimated "
@@ -13619,7 +13665,7 @@ msgid "Spacing of purge lines on the wipe tower."
 msgstr "Abstand der Reinigungsturmpurges."
 
 msgid "Maximum print speed when purging"
-msgstr ""
+msgstr "Maximale Druckgeschwindigkeit beim Reinigen"
 
 msgid ""
 "The maximum print speed when purging in the wipe tower. If the sparse infill "
@@ -13630,6 +13676,14 @@ msgid ""
 "default of 90mm/sec, make sure your printer can reliably bridge at the "
 "increased speeds."
 msgstr ""
+"Die maximale Druckgeschwindigkeit beim Reinigen im Reinigungsturm. Wenn die "
+"Geschwindigkeit des dünnen Infill oder die berechnete Geschwindigkeit aus "
+"der maximalen Volumengeschwindigkeit des Filaments niedriger ist, wird die "
+"niedrigste Geschwindigkeit verwendet.\n"
+"Das Erhöhen dieser Geschwindigkeit kann die Stabilität des Turms beeinträchtigen, "
+"da das Reinigen über dünnen Schichten erfolgen kann. Bevor Sie diesen Parameter "
+"über den Standardwert von 90 mm/s erhöhen, stellen Sie sicher, dass Ihr Drucker "
+"die erhöhten Geschwindigkeiten zuverlässig überbrücken kann."
 
 msgid "Wipe tower extruder"
 msgstr "Reinigungsturm-Extruder"

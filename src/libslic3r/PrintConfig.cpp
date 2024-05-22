@@ -103,6 +103,7 @@ static t_config_enum_values s_keys_map_PrintHostType {
     { "astrobox",       htAstroBox },
     { "repetier",       htRepetier },
     { "mks",            htMKS },
+    { "esp3d",          htESP3D },
     { "obico",          htObico },
     { "flashforge",     htFlashforge },
     { "simplyprint",    htSimplyPrint },
@@ -3148,6 +3149,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->enum_values.push_back("astrobox");
     def->enum_values.push_back("repetier");
     def->enum_values.push_back("mks");
+    def->enum_values.push_back("esp3d");
     def->enum_values.push_back("obico");
     def->enum_values.push_back("flashforge");
     def->enum_values.push_back("simplyprint");
@@ -3159,6 +3161,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->enum_labels.push_back("AstroBox");
     def->enum_labels.push_back("Repetier");
     def->enum_labels.push_back("MKS");
+    def->enum_labels.push_back("ESP3D");
     def->enum_labels.push_back("Obico");
     def->enum_labels.push_back("Flashforge");
     def->enum_labels.push_back("SimplyPrint");
@@ -4786,12 +4789,13 @@ def = this->add("filament_loading_speed", coFloats);
     def->set_default_value(new ConfigOptionPercent(100.));
     
     def = this->add("wipe_tower_max_purge_speed", coFloat);
-    def->label = L("Maximum print speed when purging");
-    def->tooltip = L("The maximum print speed when purging in the wipe tower. If the sparse infill speed "
-                     "or calculated speed from the filament max volumetric speed is lower, the lowest speed will be used instead.\n"
-                     "Increasing this speed may affect the tower's stability, as purging can be performed over "
-                     "sparse layers. Before increasing this parameter beyond the default of 90mm/sec, make sure your printer can reliably "
-                     "bridge at the increased speeds.");
+    def->label = L("Maximum wipe tower print speed");
+    def->tooltip = L("The maximum print speed when purging in the wipe tower and printing the wipe tower sparse layers. "
+                     "When purging, if the sparse infill speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n\n"
+                     "When printing the sparse layers, if the internal perimeter speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n\n"
+                     "Increasing this speed may affect the tower's stability as well as increase the force with which the nozzle collides with any blobs that may have formed on the wipe tower.\n\n"
+                     "Before increasing this parameter beyond the default of 90mm/sec, make sure your printer can reliably bridge at the increased speeds and that ooze when tool changing is well controlled.\n\n"
+                     "For the wipe tower external perimeters the internal perimeter speed is used regardless of this setting.");
     def->sidetext = L("mm/s");
     def->mode = comAdvanced;
     def->min = 10;
