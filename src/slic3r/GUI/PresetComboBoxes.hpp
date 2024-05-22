@@ -38,8 +38,6 @@ public:
     PresetComboBox(wxWindow* parent, Preset::Type preset_type, const wxSize& size = wxDefaultSize, PresetBundle* preset_bundle = nullptr);
     ~PresetComboBox();
 
-    ScalableButton* edit_btn{nullptr};
-
 	enum LabelItemType {
 		LABEL_ITEM_PHYSICAL_PRINTER = 0xffffff01,
 		LABEL_ITEM_DISABLED,
