@@ -59,7 +59,7 @@
 	"skirt_height": "2",
 	"skirt_loops": "2",
 	"minimum_sparse_infill_area": "10",
-	"internal_solid_infill_line_width": "0",
+	"internal_solid_infill_line_width": "0.45",
 	"spiral_mode": "0",
 	"standby_temperature_delta": "-5",
 	"enable_support": "0",
