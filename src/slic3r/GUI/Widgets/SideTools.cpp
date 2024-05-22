@@ -504,7 +504,7 @@ void SideTools::show_status(int status)
             m_hyperlink->SetLabel(_L("Failed to connect to the printer"));
             update_connect_err_info(BAMBU_NETWORK_ERR_CONNECTION_TO_PRINTER_FAILED,
                 _L("Connection to printer failed"),
-                _L("Please check the network connection of the printer and Studio."));
+                _L("Please check the network connection of the printer and Orca."));
         }
 
         m_hyperlink->Show();

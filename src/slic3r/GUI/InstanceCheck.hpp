@@ -43,7 +43,9 @@ class MainFrame;
 #endif // __linux__
 
 using LoadFromOtherInstanceEvent = Event<std::vector<boost::filesystem::path>>;
+using StartDownloadOtherInstanceEvent = Event<std::vector<std::string>>;
 wxDECLARE_EVENT(EVT_LOAD_MODEL_OTHER_INSTANCE, LoadFromOtherInstanceEvent);
+wxDECLARE_EVENT(EVT_START_DOWNLOAD_OTHER_INSTANCE, StartDownloadOtherInstanceEvent);
 
 using InstanceGoToFrontEvent = SimpleEvent;
 wxDECLARE_EVENT(EVT_INSTANCE_GO_TO_FRONT, InstanceGoToFrontEvent);
