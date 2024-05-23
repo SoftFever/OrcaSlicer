@@ -7,18 +7,24 @@
     "instantiation": "true",
     "inherits": "fdm_filament_pla",
     "filament_flow_ratio": [
-        "0.98"
+        "0.92"
+    ],
+    "enable_pressure_advance": [
+        "1"
+    ],
+    "pressure_advance": [
+        "0.02"
     ],
     "nozzle_temperature_initial_layer":[
-        "210"
+        "225"
     ],
     "nozzle_temperature":[
-        "205"
+        "220"
     ],
     "hot_plate_temp_initial_layer":["50"],
     "hot_plate_temp":["50"],
     "filament_max_volumetric_speed": [
-        "30"
+        "18"
     ],
     "fan_max_speed":[
         "60"
@@ -31,6 +37,7 @@
     ],
     "compatible_printers": [
         "Peopoly Magneto X 0.4 nozzle",
+        "Peopoly Magneto X 0.6 nozzle",
         "Peopoly Magneto X 0.8 nozzle"
     ]
 }
