@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OrcaSlicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-01 00:42+0800\n"
+"POT-Creation-Date: 2024-05-23 23:36+0800\n"
 "PO-Revision-Date: 2024-04-16 11:17-0300\n"
 "Last-Translator: \n"
 "Language-Team: Portuguese, Brazilian\n"
@@ -1397,9 +1397,6 @@ msgstr ""
 "O arquivo de configuração \"%1%\" foi carregado, mas alguns valores não "
 "foram reconhecidos."
 
-msgid "V"
-msgstr "V"
-
 msgid ""
 "OrcaSlicer will terminate because of running out of memory.It may be a bug. "
 "It will be appreciated if you report the issue to our team."
@@ -1509,6 +1506,9 @@ msgstr "Escolha um ou mais arquivos (3mf/step/stl/svg/obj/amf/usd*/abc/ply):"
 msgid "Choose one or more files (3mf/step/stl/svg/obj/amf):"
 msgstr "Escolha um ou mais arquivos (3mf/step/stl/svg/obj/amf):"
 
+msgid "Choose ZIP file"
+msgstr ""
+
 msgid "Choose one file (gcode/3mf):"
 msgstr "Escolha um arquivo (gcode/3mf):"
 
@@ -1579,6 +1579,11 @@ msgstr "Envios em andamento"
 
 msgid "Select a G-code file:"
 msgstr "Selecione um arquivo G-code:"
+
+msgid ""
+"Could not start URL download. Destination folder is not set. Please choose "
+"destination folder in Configuration Wizard."
+msgstr ""
 
 msgid "Import File"
 msgstr "Importar Arquivo"
@@ -1905,6 +1910,9 @@ msgstr "Adicionar Primitivo"
 
 msgid "Add Handy models"
 msgstr "Adicionar Modelos Úteis"
+
+msgid "Add Models"
+msgstr "Adicionar Modelos"
 
 msgid "Show Labels"
 msgstr "Mostrar Etiquetas"
@@ -2400,7 +2408,7 @@ msgstr "Falha ao conectar à impressora"
 msgid "Connection to printer failed"
 msgstr "Falha na conexão com a impressora"
 
-msgid "Please check the network connection of the printer and Studio."
+msgid "Please check the network connection of the printer and Orca."
 msgstr "Por favor, verifique a conexão de rede da impressora e do Studio."
 
 msgid "Connecting..."
@@ -2761,14 +2769,8 @@ msgstr "O Orca Slicer é licenciado sob "
 msgid "GNU Affero General Public License, version 3"
 msgstr "Licença Pública Geral Affero GNU, versão 3"
 
-msgid ""
-"Orca Slicer is based on BambuStudio by Bambulab, which is from PrusaSlicer "
-"by Prusa Research.  PrusaSlicer is from Slic3r by Alessandro Ranellucci and "
-"the RepRap community"
+msgid "Orca Slicer is based on PrusaSlicer and BambuStudio"
 msgstr ""
-"O Orca Slicer é baseado no BambuStudio da Bambulab, que é derivado do "
-"PrusaSlicer da Prusa Research. O PrusaSlicer vem do Slic3r de Alessandro "
-"Ranellucci e da comunidade RepRap"
 
 msgid "Libraries"
 msgstr "Bibliotecas"
@@ -3271,6 +3273,219 @@ msgid "Scheduling upload to `%1%`. See Window -> Print Host Upload Queue"
 msgstr ""
 "Agendando o envio para `%1%`. Veja Janela -> Fila de Envio do Anfitrião de "
 "Impressão"
+
+msgid "Device"
+msgstr "Dispositivo"
+
+msgid "Task Sending"
+msgstr ""
+
+msgid "Task Sent"
+msgstr ""
+
+msgid "Edit multiple printers"
+msgstr ""
+
+msgid "Select connected printetrs (0/6)"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Select Connected Printetrs (%d/6)"
+msgstr ""
+
+#, c-format, boost-format
+msgid "The maximum number of printers that can be selected is %d"
+msgstr ""
+
+msgid "Offline"
+msgstr "Desconectado"
+
+msgid "No task"
+msgstr ""
+
+msgid "View"
+msgstr "Visualizar"
+
+msgid "N/A"
+msgstr "N/D"
+
+msgid "Edit Printers"
+msgstr ""
+
+msgid "Device Name"
+msgstr ""
+
+msgid "Task Name"
+msgstr ""
+
+msgid "Device Status"
+msgstr ""
+
+msgid "Actions"
+msgstr ""
+
+msgid ""
+"Please select the devices you would like to manage here (up to 6 devices)"
+msgstr ""
+
+msgid "Add"
+msgstr "Adicionar"
+
+msgid "Idle"
+msgstr "Inativo"
+
+msgid "Printing"
+msgstr "Imprimindo"
+
+msgid "Upgrading"
+msgstr ""
+
+msgid "Incompatible"
+msgstr "Incompatível"
+
+msgid "syncing"
+msgstr ""
+
+msgid "Printing Finish"
+msgstr ""
+
+msgid "Printing Failed"
+msgstr ""
+
+msgid "PrintingPause"
+msgstr ""
+
+msgid "Prepare"
+msgstr "Preparar"
+
+msgid "Slicing"
+msgstr "Fatiando"
+
+msgid "Pending"
+msgstr ""
+
+msgid "Sending"
+msgstr ""
+
+msgid "Sending Finish"
+msgstr ""
+
+msgid "Sending Cancel"
+msgstr ""
+
+msgid "Sending Failed"
+msgstr ""
+
+msgid "Print Success"
+msgstr ""
+
+msgid "Print Failed"
+msgstr ""
+
+msgid "Removed"
+msgstr ""
+
+msgid "Resume"
+msgstr "Continuar"
+
+msgid "Stop"
+msgstr "Parar"
+
+msgid "Task Status"
+msgstr ""
+
+msgid "Sent Time"
+msgstr ""
+
+msgid "There are no tasks to be sent!"
+msgstr ""
+
+msgid "No historical tasks!"
+msgstr ""
+
+msgid "Loading..."
+msgstr "Carregando..."
+
+msgid "No AMS"
+msgstr ""
+
+msgid "Send to Multi-device"
+msgstr ""
+
+msgid "Preparing print job"
+msgstr "Preparando trabalho de impressão"
+
+msgid "Abnormal print file data. Please slice again"
+msgstr "Dados de arquivo de impressão anormais. Por favor, fatie novamente"
+
+msgid "There is no device available to send printing."
+msgstr ""
+
+msgid "The number of printers in use simultaneously cannot be equal to 0."
+msgstr ""
+
+msgid "Use External Spool"
+msgstr ""
+
+msgid "Use AMS"
+msgstr ""
+
+msgid "Select Printers"
+msgstr ""
+
+msgid "Ams Status"
+msgstr ""
+
+msgid "Printing Options"
+msgstr ""
+
+msgid "Bed Leveling"
+msgstr "Nivelamento da mesa"
+
+msgid "Timelapse"
+msgstr "Timelapse"
+
+msgid "Flow Dynamic Calibration"
+msgstr ""
+
+msgid "Send Options"
+msgstr ""
+
+msgid "Send"
+msgstr "Enviar"
+
+msgid ""
+"printers at the same time.(It depends on how many devices can undergo "
+"heating at the same time.)"
+msgstr ""
+
+msgid "Wait"
+msgstr ""
+
+msgid ""
+"minute each batch.(It depends on how long it takes to complete the heating.)"
+msgstr ""
+
+msgid "Name is invalid;"
+msgstr "O nome é inválido;"
+
+msgid "illegal characters:"
+msgstr "caracteres ilegais:"
+
+msgid "illegal suffix:"
+msgstr "sufixo ilegal:"
+
+msgid "The name is not allowed to be empty."
+msgstr "O nome não pode ficar vazio."
+
+msgid "The name is not allowed to start with space character."
+msgstr "O nome não pode começar com um espaço."
+
+msgid "The name is not allowed to end with space character."
+msgstr "O nome não pode terminar com um espaço."
+
+msgid "The name length exceeds the limit."
+msgstr "O comprimento do nome excede o limite."
 
 msgid "Origin"
 msgstr "Origem"
@@ -3803,9 +4018,6 @@ msgstr "Configurações da Impressora"
 msgid "parameter name"
 msgstr "nome do parâmetro"
 
-msgid "N/A"
-msgstr "N/D"
-
 #, c-format, boost-format
 msgid "%s can't be percentage"
 msgstr "%s não pode ser percentagem"
@@ -4123,9 +4335,6 @@ msgstr "Evitar a região de calibração da extrusão"
 msgid "Align to Y axis"
 msgstr "Alinhar com o eixo Y"
 
-msgid "Add"
-msgstr "Adicionar"
-
 msgid "Add plate"
 msgstr "Adicionar mesa"
 
@@ -4312,14 +4521,8 @@ msgstr "Fechando o aplicativo enquanto alguns perfis estão sendo modificados."
 msgid "Logging"
 msgstr "Registro"
 
-msgid "Prepare"
-msgstr "Preparar"
-
 msgid "Preview"
 msgstr "Pré-visualizar"
-
-msgid "Device"
-msgstr "Dispositivo"
 
 msgid "Multi-device"
 msgstr ""
@@ -4348,9 +4551,6 @@ msgstr "Fatiar Tudo"
 msgid "Export G-code file"
 msgstr "Exportar arquivo G-code"
 
-msgid "Send"
-msgstr "Enviar"
-
 msgid "Export plate sliced file"
 msgstr "Exportar arquivo de mesa fatiada"
 
@@ -4362,9 +4562,6 @@ msgstr "Imprimir tudo"
 
 msgid "Send all"
 msgstr "Enviar tudo"
-
-msgid "Send to Multi-device"
-msgstr ""
 
 msgid "Keyboard Shortcuts"
 msgstr "Atalhos de Teclado"
@@ -4474,6 +4671,12 @@ msgstr "Importar 3MF/STL/STEP/SVG/OBJ/AMF"
 msgid "Load a model"
 msgstr "Carregar um modelo"
 
+msgid "Import Zip Archive"
+msgstr ""
+
+msgid "Load models contained within a zip archive"
+msgstr ""
+
 msgid "Import Configs"
 msgstr "Importar Configurações"
 
@@ -4507,8 +4710,8 @@ msgstr "Exportar G-code"
 msgid "Export current plate as G-code"
 msgstr "Exportar a mesa atual como G-code"
 
-msgid "Export &Configs"
-msgstr "Exportar &Configurações"
+msgid "Export Preset Bundle"
+msgstr ""
 
 msgid "Export current configuration to files"
 msgstr "Exportar configuração atual para arquivos"
@@ -4609,9 +4812,6 @@ msgstr "Mostrar destaque de sobrecarga de objeto na cena 3D"
 msgid "Preferences"
 msgstr "Preferências"
 
-msgid "View"
-msgstr "Visualizar"
-
 msgid "Help"
 msgstr "Ajuda"
 
@@ -4678,10 +4878,10 @@ msgstr "Exportar &Trilhas de Ferramentas como OBJ"
 msgid "Export toolpaths as OBJ"
 msgstr "Exportar trilhas de ferramentas como OBJ"
 
-msgid "Open &Studio"
+msgid "Open &Slicer"
 msgstr "Abrir &Estúdio"
 
-msgid "Open Studio"
+msgid "Open Slicer"
 msgstr "Abrir Estúdio"
 
 msgid "&Quit"
@@ -4877,9 +5077,6 @@ msgstr "Informação"
 msgid "Playing..."
 msgstr "Reproduzindo..."
 
-msgid "Loading..."
-msgstr "Carregando..."
-
 msgid "Year"
 msgstr "Ano"
 
@@ -4897,9 +5094,6 @@ msgstr "Agrupar arquivos por mês, mais recentes primeiro."
 
 msgid "Show all files, recent first."
 msgstr "Mostrar todos os arquivos, mais recentes primeiro."
-
-msgid "Timelapse"
-msgstr "Timelapse"
 
 msgid "Switch to timelapse files."
 msgstr "Mudar para arquivos de timelapse."
@@ -5045,11 +5239,6 @@ msgstr ""
 "Reconectando a impressora, a operação não pôde ser concluída imediatamente, "
 "por favor, tente novamente mais tarde."
 
-msgid ""
-"Over 4 systems/handy are using remote access, you can close some and try "
-"again."
-msgstr ""
-
 msgid "File does not exist."
 msgstr "O arquivo não existe."
 
@@ -5107,12 +5296,6 @@ msgstr "Inverter eixo de rotação"
 
 msgid "Printing Progress"
 msgstr "Progresso da Impressão"
-
-msgid "Resume"
-msgstr "Continuar"
-
-msgid "Stop"
-msgstr "Parar"
 
 msgid "0"
 msgstr "0"
@@ -5495,11 +5678,11 @@ msgstr[1] "%1$d objetos foram carregados como peças do objeto cortado"
 msgid "ERROR"
 msgstr "ERRO"
 
-msgid "CANCELED"
-msgstr "CANCELADO"
-
 msgid "COMPLETED"
 msgstr "CONCLUÍDO"
+
+msgid "CANCELED"
+msgstr "CANCELADO"
 
 msgid "Cancel upload"
 msgstr "Cancelar envio"
@@ -5888,6 +6071,9 @@ msgstr ""
 msgid "The name may show garbage characters!"
 msgstr "O nome pode exibir caracteres inválidos!"
 
+msgid "Remember my choice."
+msgstr "Lembrar minha escolha."
+
 #, boost-format
 msgid "Failed loading file \"%1%\". An invalid configuration was found."
 msgstr ""
@@ -6017,9 +6203,6 @@ msgstr "Não é possível recarregar:"
 msgid "Error during reload"
 msgstr "Erro durante a recarga"
 
-msgid "Slicing"
-msgstr "Fatiando"
-
 msgid "There are warnings after slicing models:"
 msgstr "Existem avisos após o fatiamento dos modelos:"
 
@@ -6095,9 +6278,11 @@ msgid "Project downloaded %d%%"
 msgstr "Projeto baixado %d%%"
 
 msgid ""
-"Importing to Bambu Studio failed. Please download the file and manually "
+"Importing to Orca Slicer failed. Please download the file and manually "
 "import it."
 msgstr ""
+"A importação para o Orca Slicer falhou. Por favor, baixe o arquivo e importe "
+"manualmente."
 
 msgid "Import SLA archive"
 msgstr "Importar arquivo SLA"
@@ -6110,6 +6295,20 @@ msgstr "não contém código G válido."
 
 msgid "Error occurs while loading G-code file"
 msgstr "Erro ocorreu ao carregar o arquivo de código G"
+
+#. TRN %1% is archive path
+#, boost-format
+msgid "Loading of a ZIP archive on path %1% has failed."
+msgstr ""
+
+#. TRN: First argument = path to file, second argument = error description
+#, boost-format
+msgid "Failed to unzip file to %1%: %2%"
+msgstr ""
+
+#, boost-format
+msgid "Failed to find unzipped file at %1%. Unzipping of file has failed."
+msgstr ""
 
 msgid "Drop project file"
 msgstr "Solte o arquivo do projeto"
@@ -6135,17 +6334,11 @@ msgstr "Arquivos de G-code não podem ser carregados junto com modelos!"
 msgid "Can not add models when in preview mode!"
 msgstr "Não é possível adicionar modelos no modo de visualização!"
 
-msgid "Add Models"
-msgstr "Adicionar Modelos"
-
 msgid "All objects will be removed, continue?"
 msgstr "Todos os objetos serão removidos, continuar?"
 
 msgid "The current project has unsaved changes, save it before continue?"
 msgstr "O projeto atual tem alterações não salvas, salvar antes de continuar?"
-
-msgid "Remember my choice."
-msgstr "Lembrar minha escolha."
 
 msgid "Number of copies:"
 msgstr "Número de cópias:"
@@ -6358,6 +6551,11 @@ msgstr "Região de Login"
 msgid "Stealth Mode"
 msgstr "Modo Oculto"
 
+msgid ""
+"This stops the transmission of data to Bambu's cloud services. Users who "
+"don't use BBL machines or use LAN mode only can safely turn on this function."
+msgstr ""
+
 msgid "Enable network plugin"
 msgstr "Ativar plugin de rede"
 
@@ -6470,7 +6668,7 @@ msgstr ""
 "Se ativo, Orca vai lembrar e alternar a configuração de filamento/processo "
 "para cada impressora automaticamente."
 
-msgid "Multi-device Management(Take effect after restarting Studio)."
+msgid "Multi-device Management(Take effect after restarting Orca)."
 msgstr ""
 
 msgid ""
@@ -6521,6 +6719,20 @@ msgid "If enabled, sets OrcaSlicer as default application to open .step files"
 msgstr ""
 "Se ativado, define OrcaSlicer como aplicativo padrão para abrir arquivos ."
 "step"
+
+msgid "Current association: "
+msgstr ""
+
+msgid "Associate prusaslicer://"
+msgstr ""
+
+msgid "Not associated to any application"
+msgstr ""
+
+msgid ""
+"Associate OrcaSlicer with prusaslicer:// links so that Orca can open "
+"PrusaSlicer links from Printable.com"
+msgstr ""
 
 msgid "Maximum recent projects"
 msgstr "Máximo de projetos recentes"
@@ -6693,9 +6905,6 @@ msgstr "Selecionar/Remover impressoras (presets do sistema)"
 msgid "Create printer"
 msgstr "Criar impressora"
 
-msgid "Incompatible"
-msgstr "Incompatível"
-
 msgid "The selected preset is null!"
 msgstr "O preset selecionada é nulo!"
 
@@ -6791,15 +7000,6 @@ msgstr "Preset do usuário"
 msgid "Preset Inside Project"
 msgstr "Preset dentro do projeto"
 
-msgid "Name is invalid;"
-msgstr "O nome é inválido;"
-
-msgid "illegal characters:"
-msgstr "caracteres ilegais:"
-
-msgid "illegal suffix:"
-msgstr "sufixo ilegal:"
-
 msgid "Name is unavailable."
 msgstr "O nome não está disponível."
 
@@ -6816,15 +7016,6 @@ msgstr "O perfil \"%1%\" já existe e é incompatível com a impressora atual."
 
 msgid "Please note that saving action will replace this preset"
 msgstr "Por favor, note que a ação de salvar substituirá este perfil"
-
-msgid "The name is not allowed to be empty."
-msgstr "O nome não pode ficar vazio."
-
-msgid "The name is not allowed to start with space character."
-msgstr "O nome não pode começar com um espaço."
-
-msgid "The name is not allowed to end with space character."
-msgstr "O nome não pode terminar com um espaço."
 
 msgid "The name cannot be the same as a preset alias name."
 msgstr "O nome não pode ser o mesmo que um nome de alias de perfil."
@@ -6883,9 +7074,6 @@ msgstr "Não consegue encontrar meus dispositivos?"
 msgid "Log out successful."
 msgstr "Sessão encerrada com sucesso."
 
-msgid "Offline"
-msgstr "Desconectado"
-
 msgid "Busy"
 msgstr "Ocupado"
 
@@ -6909,9 +7097,6 @@ msgstr "Mesa Texturizada PEI Bambu"
 
 msgid "Send print job to"
 msgstr "Enviar trabalho de impressão para"
-
-msgid "Bed Leveling"
-msgstr "Nivelamento da mesa"
 
 msgid "Flow Dynamics Calibration"
 msgstr "Calibração de Dinâmica de Fluxo"
@@ -7110,15 +7295,6 @@ msgid ""
 msgstr ""
 "Conectando à impressora. Não é possível cancelar durante o processo de "
 "conexão."
-
-msgid "Preparing print job"
-msgstr "Preparando trabalho de impressão"
-
-msgid "Abnormal print file data. Please slice again"
-msgstr "Dados de arquivo de impressão anormais. Por favor, fatie novamente"
-
-msgid "The name length exceeds the limit."
-msgstr "O comprimento do nome excede o limite."
 
 msgid ""
 "Caution to use! Flow calibration on Textured PEI Plate may fail due to the "
@@ -7518,6 +7694,9 @@ msgstr "Filamento de suporte"
 
 msgid "Tree supports"
 msgstr "Suportes de árvore"
+
+msgid "Skirt"
+msgstr "Saia"
 
 msgid "Prime tower"
 msgstr "Torre de purga"
@@ -8431,6 +8610,12 @@ msgstr "Mover o controle deslizante 5 vezes mais rápido"
 msgid "Shift+Mouse wheel"
 msgstr "Shift+Roda do mouse"
 
+msgid "Horizontal slider - Move to start position"
+msgstr ""
+
+msgid "Horizontal slider - Move to last position"
+msgstr ""
+
 msgid "Release Note"
 msgstr "Nota de lançamento"
 
@@ -8556,12 +8741,6 @@ msgstr "Versão:"
 msgid "Update firmware"
 msgstr "Atualizar firmware"
 
-msgid "Printing"
-msgstr "Imprimindo"
-
-msgid "Idle"
-msgstr "Inativo"
-
 msgid "Beta version"
 msgstr "Versão beta"
 
@@ -8596,7 +8775,7 @@ msgstr ""
 msgid ""
 "The firmware version is abnormal. Repairing and updating are required before "
 "printing. Do you want to update now? You can also update later on printer or "
-"update next time starting the studio."
+"update next time starting Orca."
 msgstr ""
 "A versão do firmware está anormal. É necessário reparar e atualizar antes de "
 "imprimir. Deseja atualizar agora? Você também pode atualizar mais tarde na "
@@ -8737,9 +8916,6 @@ msgstr "Ponte interna"
 
 msgid "Gap infill"
 msgstr "Preenchimento de vão"
-
-msgid "Skirt"
-msgstr "Saia"
 
 msgid "Support interface"
 msgstr "Interface de suporte"
@@ -10759,8 +10935,8 @@ msgstr "Fornecedor do filamento. Apenas para mostrar"
 msgid "(Undefined)"
 msgstr "(Indefinido)"
 
-msgid "Infill direction"
-msgstr "Direção de preenchimento"
+msgid "Sparse infill direction"
+msgstr ""
 
 msgid ""
 "Angle for sparse infill pattern, which controls the start or main direction "
@@ -10768,6 +10944,20 @@ msgid ""
 msgstr ""
 "Ângulo para o padrão de preenchimento não sólido, que controla o início ou a "
 "direção principal da linha"
+
+msgid "Solid infill direction"
+msgstr ""
+
+msgid ""
+"Angle for solid infill pattern, which controls the start or main direction "
+"of line"
+msgstr ""
+
+msgid "Rotate solid infill direction"
+msgstr ""
+
+msgid "Rotate the solid infill direction by 90° for each layer."
+msgstr ""
 
 msgid "Sparse infill density"
 msgstr "Densidade do preenchimento"
@@ -11127,11 +11317,15 @@ msgid "Arc fitting"
 msgstr "Ajuste de arco (Arc fitting)"
 
 msgid ""
-"Enable this to get a G-code file which has G2 and G3 moves. And the fitting "
-"tolerance is same with resolution"
+"Enable this to get a G-code file which has G2 and G3 moves. The fitting "
+"tolerance is same as the resolution. \n"
+"\n"
+"Note: For klipper machines, this option is recomended to be disabled. "
+"Klipper does not benefit from arc commands as these are split again into "
+"line segments by the firmware. This results in a reduction in surface "
+"quality as line segments are converted to arcs by the slicer and then back "
+"to line segments by the firmware."
 msgstr ""
-"Habilitar isso para obter um arquivo G-code que tenha movimentos G2 e G3. E "
-"a tolerância de ajuste é a mesma que a resolução"
 
 msgid "Add line number"
 msgstr "Adicionar número da linha"
@@ -11367,13 +11561,25 @@ msgstr ""
 msgid "Infill/Wall overlap"
 msgstr "Sobreposição de preenchimento/perímetro"
 
+#, no-c-format, no-boost-format
 msgid ""
 "Infill area is enlarged slightly to overlap with wall for better bonding. "
-"The percentage value is relative to line width of sparse infill"
+"The percentage value is relative to line width of sparse infill. Set this "
+"value to ~10-15% to minimize potential over extrusion and accumulation of "
+"material resulting in rough top surfaces."
 msgstr ""
-"A área de preenchimento é ligeiramente ampliada para se sobrepor ao "
-"perímetro para melhor aderência. O valor percentual é relativo à largura da "
-"linha do preenchimento não sólido"
+
+msgid "Top/Bottom solid infill/wall overlap"
+msgstr ""
+
+#, no-c-format, no-boost-format
+msgid ""
+"Top solid infill area is enlarged slightly to overlap with wall for better "
+"bonding and to minimize the appearance of pinholes where the top infill "
+"meets the walls. A value of 25-30% is a good starting point, minimising the "
+"appearance of pinholes. The percentage value is relative to line width of "
+"sparse infill"
+msgstr ""
 
 msgid "Speed of internal sparse infill"
 msgstr "Velocidade do preenchimento"
@@ -12459,6 +12665,29 @@ msgstr "Altura da saia"
 msgid "How many layers of skirt. Usually only one layer"
 msgstr "Quantas camadas de saia. Geralmente apenas uma camada"
 
+msgid "Draft shield"
+msgstr ""
+
+msgid ""
+"A draft shield is useful to protect an ABS or ASA print from warping and "
+"detaching from print bed due to wind draft. It is usually needed only with "
+"open frame printers, i.e. without an enclosure. \n"
+"\n"
+"Options:\n"
+"Enabled = skirt is as tall as the highest printed object.\n"
+"Limited = skirt is as tall as specified by skirt height.\n"
+"\n"
+"Note: With the draft shield active, the skirt will be printed at skirt "
+"distance from the object. Therefore, if brims are active it may intersect "
+"with them. To avoid this, increase the skirt distance value.\n"
+msgstr ""
+
+msgid "Limited"
+msgstr ""
+
+msgid "Enabled"
+msgstr ""
+
 msgid "Skirt loops"
 msgstr "Voltas da saia"
 
@@ -12472,6 +12701,17 @@ msgid "Speed of skirt, in mm/s. Zero means use default layer extrusion speed."
 msgstr ""
 "Velocidade da saia, em mm/s. Zero significa usar a velocidade padrão de "
 "extrusão da camada."
+
+msgid "Skirt minimum extrusion length"
+msgstr ""
+
+msgid ""
+"Minimum filament extrusion length in mm when printing the skirt. Zero means "
+"this feature is disabled.\n"
+"\n"
+"Using a non zero value is useful if the printer is set up to print without a "
+"prime line."
+msgstr ""
 
 msgid ""
 "The printing speed in exported gcode will be slowed down, when the estimated "
@@ -13241,6 +13481,31 @@ msgstr "Espaçamento das linhas de purga da torre de limpeza"
 
 msgid "Spacing of purge lines on the wipe tower."
 msgstr "Espaçamento das linhas de purga na torre de limpeza."
+
+msgid "Maximum wipe tower print speed"
+msgstr ""
+
+msgid ""
+"The maximum print speed when purging in the wipe tower and printing the wipe "
+"tower sparse layers. When purging, if the sparse infill speed or calculated "
+"speed from the filament max volumetric speed is lower, the lowest will be "
+"used instead.\n"
+"\n"
+"When printing the sparse layers, if the internal perimeter speed or "
+"calculated speed from the filament max volumetric speed is lower, the lowest "
+"will be used instead.\n"
+"\n"
+"Increasing this speed may affect the tower's stability as well as increase "
+"the force with which the nozzle collides with any blobs that may have formed "
+"on the wipe tower.\n"
+"\n"
+"Before increasing this parameter beyond the default of 90mm/sec, make sure "
+"your printer can reliably bridge at the increased speeds and that ooze when "
+"tool changing is well controlled.\n"
+"\n"
+"For the wipe tower external perimeters the internal perimeter speed is used "
+"regardless of this setting."
+msgstr ""
 
 msgid "Wipe tower extruder"
 msgstr "Extrusor da torre de limpeza"
@@ -15196,7 +15461,7 @@ msgstr ""
 msgid ""
 "\n"
 "\n"
-"Studio has detected that your user presets synchronization function is not "
+"Orca has detected that your user presets synchronization function is not "
 "enabled, which may result in unsuccessful Filament settings on the Device "
 "page. \n"
 "Click \"Sync user presets\" to enable the synchronization function."
@@ -15211,9 +15476,6 @@ msgstr ""
 
 msgid "Printer Setting"
 msgstr "Configuração da Impressora"
-
-msgid "Export Configs"
-msgstr "Exportar Configurações"
 
 msgid "Printer config bundle(.orca_printer)"
 msgstr "Pacote de configuração da impressora (.orca_printer)"
@@ -16216,6 +16478,42 @@ msgstr ""
 "aumentar adequadamente a temperatura da mesa aquecida pode reduzir a "
 "probabilidade de empenamento?"
 
+#~ msgid "V"
+#~ msgstr "V"
+
+#~ msgid ""
+#~ "Orca Slicer is based on BambuStudio by Bambulab, which is from "
+#~ "PrusaSlicer by Prusa Research.  PrusaSlicer is from Slic3r by Alessandro "
+#~ "Ranellucci and the RepRap community"
+#~ msgstr ""
+#~ "O Orca Slicer é baseado no BambuStudio da Bambulab, que é derivado do "
+#~ "PrusaSlicer da Prusa Research. O PrusaSlicer vem do Slic3r de Alessandro "
+#~ "Ranellucci e da comunidade RepRap"
+
+#~ msgid "Export &Configs"
+#~ msgstr "Exportar &Configurações"
+
+#~ msgid "Infill direction"
+#~ msgstr "Direção de preenchimento"
+
+#~ msgid ""
+#~ "Enable this to get a G-code file which has G2 and G3 moves. And the "
+#~ "fitting tolerance is same with resolution"
+#~ msgstr ""
+#~ "Habilitar isso para obter um arquivo G-code que tenha movimentos G2 e G3. "
+#~ "E a tolerância de ajuste é a mesma que a resolução"
+
+#~ msgid ""
+#~ "Infill area is enlarged slightly to overlap with wall for better bonding. "
+#~ "The percentage value is relative to line width of sparse infill"
+#~ msgstr ""
+#~ "A área de preenchimento é ligeiramente ampliada para se sobrepor ao "
+#~ "perímetro para melhor aderência. O valor percentual é relativo à largura "
+#~ "da linha do preenchimento não sólido"
+
+#~ msgid "Export Configs"
+#~ msgstr "Exportar Configurações"
+
 #~ msgid "Actions For Unsaved Changes"
 #~ msgstr "Ações para Alterações Não Salvas"
 
@@ -16317,13 +16615,6 @@ msgstr ""
 #~ msgstr ""
 #~ "Atualizar seu Bambu Studio pode habilitar todas as funcionalidades do "
 #~ "arquivo 3mf."
-
-#~ msgid ""
-#~ "Importing to Orca Slicer failed. Please download the file and manually "
-#~ "import it."
-#~ msgstr ""
-#~ "A importação para o Orca Slicer falhou. Por favor, baixe o arquivo e "
-#~ "importe manualmente."
 
 #~ msgid "- ℃"
 #~ msgstr "- °C"

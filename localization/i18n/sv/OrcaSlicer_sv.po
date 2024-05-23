@@ -1,14 +1,15 @@
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-01 00:42+0800\n"
+"POT-Creation-Date: 2024-05-23 23:36+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Localazy (https://localazy.com)\n"
 "Plural-Forms: nplurals=2; plural=(n==1) ? 0 : 1;\n"
+"X-Generator: Localazy (https://localazy.com)\n"
 
 msgid "Supports Painting"
 msgstr "Färgläggning av Support"
@@ -150,7 +151,7 @@ msgid "Height range"
 msgstr "Höjd intervall"
 
 msgid "Alt + Shift + Enter"
-msgstr ""
+msgstr "Alt + Skift + Enter"
 
 msgid "Toggle Wireframe"
 msgstr "Växla Wireframe"
@@ -165,10 +166,10 @@ msgid "Height Range"
 msgstr "Höjd intervall"
 
 msgid "Vertical"
-msgstr ""
+msgstr "Vertikal"
 
 msgid "Horizontal"
-msgstr ""
+msgstr "Horisontell"
 
 msgid "Remove painted color"
 msgstr "Ta bort färgläggning"
@@ -269,16 +270,16 @@ msgid "uniform scale"
 msgstr "enhetlig skala"
 
 msgid "Planar"
-msgstr ""
+msgstr "Platt"
 
 msgid "Dovetail"
-msgstr ""
+msgstr "Laxstjärt"
 
 msgid "Auto"
 msgstr "Auto"
 
 msgid "Manual"
-msgstr ""
+msgstr "Manuell"
 
 msgid "Plug"
 msgstr "Kontakt"
@@ -287,7 +288,7 @@ msgid "Dowel"
 msgstr "Plugg"
 
 msgid "Snap"
-msgstr ""
+msgstr "Fäst"
 
 msgid "Prism"
 msgstr ""
@@ -302,7 +303,7 @@ msgid "Hexagon"
 msgstr "Hexagon"
 
 msgid "Keep orientation"
-msgstr ""
+msgstr "Behåll orienteringen"
 
 msgid "Place on cut"
 msgstr "Placera på snitt"
@@ -326,19 +327,19 @@ msgstr "Form"
 #. Size in emboss direction
 #. TRN - Input label. Be short as possible
 msgid "Depth"
-msgstr ""
+msgstr "Djup"
 
 msgid "Groove"
-msgstr ""
+msgstr "Spår"
 
 msgid "Width"
 msgstr "Bredd"
 
 msgid "Flap Angle"
-msgstr ""
+msgstr "Vinkel på klaff"
 
 msgid "Groove Angle"
-msgstr ""
+msgstr "Spårvinkel"
 
 msgid "Part"
 msgstr "Del"
@@ -361,7 +362,7 @@ msgid "Move cut plane"
 msgstr ""
 
 msgid "Mode"
-msgstr ""
+msgstr "Läge"
 
 msgid "Change cut mode"
 msgstr ""
@@ -409,7 +410,7 @@ msgid "Remove connectors"
 msgstr "Ta bort kontakterna"
 
 msgid "Bulge"
-msgstr ""
+msgstr "Utbuktning"
 
 msgid "Bulge proportion related to radius"
 msgstr ""
@@ -518,7 +519,7 @@ msgid "Cut by Plane"
 msgstr ""
 
 msgid "non-manifold edges be caused by cut tool, do you want to fix it now?"
-msgstr ""
+msgstr "Icke-mångsidiga kanter orsakade av skärverktyg: vill du fixa det nu?"
 
 msgid "Repairing model object"
 msgstr "Reparerar modell objektet"
@@ -616,13 +617,13 @@ msgid "Remove selection"
 msgstr "Ta bort val"
 
 msgid "Entering Seam painting"
-msgstr ""
+msgstr "Inmatning söm målning"
 
 msgid "Leaving Seam painting"
-msgstr ""
+msgstr "Lämnar söm målning"
 
 msgid "Paint-on seam editing"
-msgstr ""
+msgstr "Redigering av måla på sömmen"
 
 #. TRN - Input label. Be short as possible
 #. Select look of letter shape
@@ -761,7 +762,7 @@ msgstr ""
 
 msgctxt "EmbossOperation"
 msgid "Cut"
-msgstr ""
+msgstr "Beskär"
 
 msgid "Click to change part type into negative volume."
 msgstr ""
@@ -903,19 +904,19 @@ msgstr ""
 
 msgctxt "Alignment"
 msgid "Left"
-msgstr ""
+msgstr "Vänster"
 
 msgctxt "Alignment"
 msgid "Center"
-msgstr ""
+msgstr "Center"
 
 msgctxt "Alignment"
 msgid "Right"
-msgstr ""
+msgstr "Höger"
 
 msgctxt "Alignment"
 msgid "Top"
-msgstr ""
+msgstr "Topplager"
 
 msgctxt "Alignment"
 msgid "Middle"
@@ -923,7 +924,7 @@ msgstr ""
 
 msgctxt "Alignment"
 msgid "Bottom"
-msgstr ""
+msgstr "Bottenlager"
 
 msgid "Revert alignment."
 msgstr ""
@@ -1235,43 +1236,43 @@ msgid "SVG file does NOT contain a single path to be embossed (%1%)."
 msgstr ""
 
 msgid "Vertex"
-msgstr ""
+msgstr "Vertex"
 
 msgid "Edge"
-msgstr ""
+msgstr "Edge"
 
 msgid "Plane"
-msgstr ""
+msgstr "Plane"
 
 msgid "Point on edge"
-msgstr ""
+msgstr "Point on edge"
 
 msgid "Point on circle"
-msgstr ""
+msgstr "Point on circle"
 
 msgid "Point on plane"
-msgstr ""
+msgstr "Point on plane"
 
 msgid "Center of edge"
-msgstr ""
+msgstr "Center of edge"
 
 msgid "Center of circle"
-msgstr ""
+msgstr "Center of circle"
 
 msgid "ShiftLeft mouse button"
 msgstr ""
 
 msgid "Select feature"
-msgstr ""
+msgstr "Select feature"
 
 msgid "Select point"
-msgstr ""
+msgstr "Select point"
 
 msgid "Delete"
 msgstr "Radera"
 
 msgid "Restart selection"
-msgstr ""
+msgstr "Restart selection"
 
 msgid "Esc"
 msgstr "Esc"
@@ -1280,14 +1281,14 @@ msgid "Unselect"
 msgstr ""
 
 msgid "Measure"
-msgstr ""
+msgstr "Measure"
 
 msgid "Edit to scale"
-msgstr ""
+msgstr "Edit to scale"
 
 msgctxt "Verb"
 msgid "Scale"
-msgstr ""
+msgstr "Skala"
 
 msgid "None"
 msgstr "Ingen"
@@ -1299,22 +1300,22 @@ msgid "Length"
 msgstr "Längd"
 
 msgid "Selection"
-msgstr ""
+msgstr "Selection"
 
 msgid "Copy to clipboard"
 msgstr "Kopiera till urklipp"
 
 msgid "Perpendicular distance"
-msgstr ""
+msgstr "Perpendicular distance"
 
 msgid "Distance"
-msgstr ""
+msgstr "Distance"
 
 msgid "Direct distance"
-msgstr ""
+msgstr "Direct distance"
 
 msgid "Distance XYZ"
-msgstr ""
+msgstr "Distance XYZ"
 
 msgid "Ctrl+"
 msgstr "Ctrl +"
@@ -1352,9 +1353,6 @@ msgid ""
 "Configuration file \"%1%\" was loaded, but some values were not recognized."
 msgstr ""
 "Konfigurations fil “%1%” har laddats, men vissa värden känns inte igen."
-
-msgid "V"
-msgstr "V"
 
 msgid ""
 "OrcaSlicer will terminate because of running out of memory.It may be a bug. "
@@ -1448,10 +1446,13 @@ msgid "Choose one file (3mf):"
 msgstr "Välj en fil (3mf):"
 
 msgid "Choose one or more files (3mf/step/stl/svg/obj/amf/usd*/abc/ply):"
-msgstr ""
+msgstr "Välj en eller flera filer (3mf/step/stl/svg/obj/amf/usd*/abc/ply):"
 
 msgid "Choose one or more files (3mf/step/stl/svg/obj/amf):"
 msgstr "Välj en eller flera filer (3mf/step/stl/svg/obj/amf):"
+
+msgid "Choose ZIP file"
+msgstr ""
 
 msgid "Choose one file (gcode/3mf):"
 msgstr ""
@@ -1490,9 +1491,11 @@ msgid ""
 "The number of user presets cached in the cloud has exceeded the upper limit, "
 "newly created user presets can only be used locally."
 msgstr ""
+"Antalet användar inställningar som cachats i molnet har överskridit den övre "
+"gränsen, nyskapade användar inställningar kan endast användas lokalt."
 
 msgid "Sync user presets"
-msgstr ""
+msgstr "Synkronisera användar inställningar"
 
 msgid "Loading user preset"
 msgstr "Laddar användarens förinställning"
@@ -1520,6 +1523,11 @@ msgstr "Pågående uppladdningar"
 
 msgid "Select a G-code file:"
 msgstr "Välj en G-kod fil:"
+
+msgid ""
+"Could not start URL download. Destination folder is not set. Please choose "
+"destination folder in Configuration Wizard."
+msgstr ""
 
 msgid "Import File"
 msgstr "Importera fil"
@@ -1655,16 +1663,16 @@ msgid "Cone"
 msgstr "Kon"
 
 msgid "Disc"
-msgstr ""
+msgstr "Skiva"
 
 msgid "Torus"
-msgstr ""
+msgstr "Torus"
 
 msgid "Orca Cube"
 msgstr ""
 
 msgid "3DBenchy"
-msgstr ""
+msgstr "3DBenchy"
 
 msgid "Autodesk FDM Test"
 msgstr ""
@@ -1718,10 +1726,10 @@ msgid "Fix model"
 msgstr "Fixa modell"
 
 msgid "Export as one STL"
-msgstr ""
+msgstr "Exportera som en STL"
 
 msgid "Export as STLs"
-msgstr ""
+msgstr "Exportera som STL"
 
 msgid "Reload from disk"
 msgstr "Ladda om från disk"
@@ -1794,10 +1802,10 @@ msgid "Assemble the selected objects to an object with single part"
 msgstr "Montera de valda objekten till ett objekt med en enda del"
 
 msgid "Mesh boolean"
-msgstr ""
+msgstr "Mesh boolean"
 
 msgid "Mesh boolean operations including union and subtraction"
-msgstr ""
+msgstr "Mesh boolean operationer inklusive union och subtraktion"
 
 msgid "Along X axis"
 msgstr "Längs med X Axis"
@@ -1840,6 +1848,9 @@ msgstr "Lägg till Primitiv"
 
 msgid "Add Handy models"
 msgstr ""
+
+msgid "Add Models"
+msgstr "Lägg till modeller"
 
 msgid "Show Labels"
 msgstr "Visa Etiketter"
@@ -1938,7 +1949,7 @@ msgid "Lock"
 msgstr "Lås"
 
 msgid "Edit Plate Name"
-msgstr ""
+msgstr "Redigera plattans namn"
 
 msgid "Name"
 msgstr "Namn"
@@ -1998,7 +2009,7 @@ msgid "Error!"
 msgstr "Fel!"
 
 msgid "Failed to get the model data in the current file."
-msgstr ""
+msgstr "Det gick inte att hämta modelldata i den aktuella filen."
 
 msgid "Generic"
 msgstr "Allmän"
@@ -2244,7 +2255,7 @@ msgid "Pause"
 msgstr "Paus"
 
 msgid "Template"
-msgstr ""
+msgstr "Mall"
 
 msgid "Custom"
 msgstr "Custom"
@@ -2295,7 +2306,7 @@ msgid "Change filament at the beginning of this layer."
 msgstr "Byt filament i början av detta lager."
 
 msgid "Delete Pause"
-msgstr ""
+msgstr "Ta bort paus"
 
 msgid "Delete Custom Template"
 msgstr "Radera anpassad mall"
@@ -2313,7 +2324,7 @@ msgid "No printer"
 msgstr "Ingen skrivare"
 
 msgid "..."
-msgstr ""
+msgstr "..."
 
 msgid "Failed to connect to the server"
 msgstr "Uppkoppling till servern misslyckades"
@@ -2336,7 +2347,7 @@ msgstr "Uppkoppling till printern misslyckades"
 msgid "Connection to printer failed"
 msgstr "Anslutning till skrivaren misslyckades"
 
-msgid "Please check the network connection of the printer and Studio."
+msgid "Please check the network connection of the printer and Orca."
 msgstr "Kontrollera nätverksanslutningen för skrivaren och Studio."
 
 msgid "Connecting..."
@@ -2346,7 +2357,7 @@ msgid "?"
 msgstr " ?"
 
 msgid "/"
-msgstr ""
+msgstr "/"
 
 msgid "Empty"
 msgstr "Tom"
@@ -2355,13 +2366,13 @@ msgid "AMS"
 msgstr "AMS"
 
 msgid "Auto Refill"
-msgstr ""
+msgstr "Auto Refill"
 
 msgid "AMS not connected"
 msgstr "AMS ej ansluten"
 
 msgid "Load"
-msgstr ""
+msgstr "Load"
 
 msgid "Unload"
 msgstr "Mata ut"
@@ -2391,7 +2402,7 @@ msgid "Cancel calibration"
 msgstr "Avbryt kalibrering"
 
 msgid "Idling..."
-msgstr ""
+msgstr "Tomgång..."
 
 msgid "Heat the nozzle"
 msgstr "Värm upp nozzle"
@@ -2409,13 +2420,13 @@ msgid "Purge old filament"
 msgstr "Rensa gammalt filament"
 
 msgid "Feed Filament"
-msgstr ""
+msgstr "Mata filament"
 
 msgid "Confirm extruded"
-msgstr ""
+msgstr "Bekräfta extruderad"
 
 msgid "Check filament location"
-msgstr ""
+msgstr "Kontrollera filamentets placering"
 
 msgid "Grab new filament"
 msgstr "Ta ett nytt filament"
@@ -2424,6 +2435,8 @@ msgid ""
 "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically "
 "load or unload filaments."
 msgstr ""
+"Välj ett AMS fack och tryck sedan på knappen \"Ladda\" eller \"Mata ut\" för "
+"att automatiskt ladda eller mata ut filament."
 
 msgid "Edit"
 msgstr "Redigera"
@@ -2502,7 +2515,7 @@ msgid "Orienting canceled."
 msgstr ""
 
 msgid "Filling"
-msgstr ""
+msgstr "Fyllnad"
 
 msgid "Bed filling canceled."
 msgstr "Byggplattans fyllning avbruten."
@@ -2588,7 +2601,7 @@ msgid "Sending print job through cloud service"
 msgstr "Skicka utskriftsjobb via molntjänst"
 
 msgid "Print task sending times out."
-msgstr ""
+msgstr "Timeout för sändning av utskriftsuppgift."
 
 msgid "Service Unavailable"
 msgstr "Tjänsten är inte tillgänglig"
@@ -2606,7 +2619,7 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the next page in %ss"
-msgstr ""
+msgstr "Skickat. Hoppar automatiskt till nästa sida in%s s"
 
 msgid "An SD card needs to be inserted before printing via LAN."
 msgstr "Ett Micro SD-kort måste sättas i innan utskrift via LAN."
@@ -2690,10 +2703,7 @@ msgstr "Orca Slicer är licensierad under "
 msgid "GNU Affero General Public License, version 3"
 msgstr "GNU Affero General Public License, version 3"
 
-msgid ""
-"Orca Slicer is based on BambuStudio by Bambulab, which is from PrusaSlicer "
-"by Prusa Research.  PrusaSlicer is from Slic3r by Alessandro Ranellucci and "
-"the RepRap community"
+msgid "Orca Slicer is based on PrusaSlicer and BambuStudio"
 msgstr ""
 
 msgid "Libraries"
@@ -2769,10 +2779,10 @@ msgid "Setting AMS slot information while printing is not supported"
 msgstr "Inställning av AMS-facks information under utskrift stöds inte"
 
 msgid "Factors of Flow Dynamics Calibration"
-msgstr ""
+msgstr "Faktorer för kalibrering av flödesdynamik"
 
 msgid "PA Profile"
-msgstr ""
+msgstr "PA profil"
 
 msgid "Factor K"
 msgstr "Faktor K"
@@ -2790,10 +2800,10 @@ msgid "You need to select the material type and color first."
 msgstr "Du måste först välja materialtyp och färg."
 
 msgid "Please input a valid value (K in 0~0.3)"
-msgstr ""
+msgstr "Ange ett giltigt värde (K i 0~0.3)"
 
 msgid "Please input a valid value (K in 0~0.3, N in 0.6~2.0)"
-msgstr ""
+msgstr "Ange ett giltigt värde (K i 0~0.3, N i 0.6~2.0)"
 
 msgid "Other Color"
 msgstr "Annan färg"
@@ -2900,7 +2910,7 @@ msgid "Print with the filament mounted on the back of chassis"
 msgstr "Skriv ut med filament på en extern spole"
 
 msgid "Current Cabin humidity"
-msgstr ""
+msgstr "Current Cabin humidity"
 
 msgid ""
 "Please change the desiccant when it is too wet. The indicator may not "
@@ -2908,6 +2918,10 @@ msgid ""
 "desiccant pack is changed. it take hours to absorb the moisture, low "
 "temperatures also slow down the process."
 msgstr ""
+"Please change the desiccant when it is too wet. The indicator may not "
+"represent accurately in following cases: when the lid is open or the "
+"desiccant pack is changed. It takes a few hours to absorb the moisture, and "
+"low temperatures also slow down the process."
 
 msgid ""
 "Config which AMS slot should be used for a filament used in the print job"
@@ -2940,16 +2954,19 @@ msgid ""
 "When the current material run out, the printer will continue to print in the "
 "following order."
 msgstr ""
+"När det aktuella materialet tar slut, fortsätter printern att skriva ut "
+"material i följande ordning."
 
 msgid "Group"
 msgstr "Grupp"
 
 msgid "The printer does not currently support auto refill."
-msgstr ""
+msgstr "Printern stöder för närvarande inte automatisk påfyllning."
 
 msgid ""
 "AMS filament backup is not enabled, please enable it in the AMS settings."
 msgstr ""
+"AMS filament backup is not enabled; please enable it in the AMS settings."
 
 msgid ""
 "If there are two identical filaments in AMS, AMS filament backup will be "
@@ -2957,12 +2974,16 @@ msgid ""
 "(Currently supporting automatic supply of consumables with the same brand, "
 "material type, and color)"
 msgstr ""
+"If there are two identical filaments in an AMS, AMS filament backup will be "
+"enabled. \n"
+"(This currently supports automatic supply of consumables with the same "
+"brand, material type, and color)"
 
 msgid "DRY"
-msgstr ""
+msgstr "DRY"
 
 msgid "WET"
-msgstr ""
+msgstr "WET"
 
 msgid "AMS Settings"
 msgstr "AMS Inställningar"
@@ -2981,6 +3002,8 @@ msgid ""
 "Note: if a new filament is inserted during  printing, the AMS will not "
 "automatically read any information until printing is completed."
 msgstr ""
+"Obs:  Om ett nytt filament sätts in under utskriften kommer AMS inte att "
+"automatiskt läsa av någon information förrän utskriften är klar."
 
 msgid ""
 "When inserting a new filament, the AMS will not automatically read its "
@@ -3032,12 +3055,14 @@ msgstr ""
 "när det aktuella filamentet tar slut."
 
 msgid "Air Printing Detection"
-msgstr ""
+msgstr "Air Printing Detection"
 
 msgid ""
 "Detects clogging and filament grinding, halting printing immediately to "
 "conserve time and filament."
 msgstr ""
+"Detects clogging and filament grinding, halting printing immediately to "
+"conserve time and filament."
 
 msgid "File"
 msgstr "Fil"
@@ -3114,7 +3139,7 @@ msgid "Running post-processing scripts"
 msgstr "Kör efterbearbetnings skript"
 
 msgid "Successfully executed post-processing script"
-msgstr ""
+msgstr "Successfully executed post-processing script"
 
 msgid "Unknown error occured during exporting G-code."
 msgstr ""
@@ -3176,6 +3201,222 @@ msgid "Scheduling upload to `%1%`. See Window -> Print Host Upload Queue"
 msgstr ""
 "Planerar uppladdning till `%1%`. Se fönster -> Kö för uppladdning av "
 "utskriftsvärd"
+
+msgid "Device"
+msgstr "Enhet"
+
+msgid "Task Sending"
+msgstr "Task Sending"
+
+msgid "Task Sent"
+msgstr "Task Sent"
+
+msgid "Edit multiple printers"
+msgstr ""
+
+msgid "Select connected printetrs (0/6)"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Select Connected Printetrs (%d/6)"
+msgstr ""
+
+#, c-format, boost-format
+msgid "The maximum number of printers that can be selected is %d"
+msgstr ""
+
+msgid "Offline"
+msgstr "Offline"
+
+msgid "No task"
+msgstr "No task"
+
+msgid "View"
+msgstr "Vy"
+
+msgid "N/A"
+msgstr "N/A"
+
+msgid "Edit Printers"
+msgstr ""
+
+msgid "Device Name"
+msgstr "Device Name"
+
+msgid "Task Name"
+msgstr "Task Name"
+
+msgid "Device Status"
+msgstr "Device Status"
+
+msgid "Actions"
+msgstr "Actions"
+
+msgid ""
+"Please select the devices you would like to manage here (up to 6 devices)"
+msgstr ""
+
+msgid "Add"
+msgstr "Lägg till"
+
+msgid "Idle"
+msgstr "Inaktiv"
+
+msgid "Printing"
+msgstr "Utskrift pågår"
+
+msgid "Upgrading"
+msgstr ""
+
+msgid "Incompatible"
+msgstr "Inkompatibel"
+
+msgid "syncing"
+msgstr ""
+
+msgid "Printing Finish"
+msgstr ""
+
+msgid "Printing Failed"
+msgstr ""
+
+msgid "PrintingPause"
+msgstr ""
+
+msgid "Prepare"
+msgstr "Förbered"
+
+msgid "Slicing"
+msgstr "Bereder"
+
+msgid "Pending"
+msgstr ""
+
+msgid "Sending"
+msgstr "Skickar"
+
+msgid "Sending Finish"
+msgstr ""
+
+msgid "Sending Cancel"
+msgstr ""
+
+msgid "Sending Failed"
+msgstr ""
+
+msgid "Print Success"
+msgstr ""
+
+msgid "Print Failed"
+msgstr ""
+
+msgid "Removed"
+msgstr ""
+
+msgid "Resume"
+msgstr "Återuppta"
+
+msgid "Stop"
+msgstr "Stopp"
+
+msgid "Task Status"
+msgstr "Task Status"
+
+msgid "Sent Time"
+msgstr "Sent Time"
+
+msgid "There are no tasks to be sent!"
+msgstr "There are no tasks to be sent!"
+
+msgid "No historical tasks!"
+msgstr "No historical tasks!"
+
+msgid "Loading..."
+msgstr "Laddar..."
+
+msgid "No AMS"
+msgstr "No AMS"
+
+msgid "Send to Multi-device"
+msgstr "Send to Multi-device"
+
+msgid "Preparing print job"
+msgstr "Förbereder utskriftsjobb"
+
+msgid "Abnormal print file data. Please slice again"
+msgstr "Onormal utskrifts fil data. Vänligen bered igen"
+
+msgid "There is no device available to send printing."
+msgstr ""
+
+msgid "The number of printers in use simultaneously cannot be equal to 0."
+msgstr ""
+
+msgid "Use External Spool"
+msgstr "Use External Spool"
+
+msgid "Use AMS"
+msgstr "Use AMS"
+
+msgid "Select Printers"
+msgstr "Select Printers"
+
+msgid "Ams Status"
+msgstr "AMS Status"
+
+msgid "Printing Options"
+msgstr "Printing Options"
+
+msgid "Bed Leveling"
+msgstr "Justering av Byggplattan"
+
+msgid "Timelapse"
+msgstr "Timelapse"
+
+msgid "Flow Dynamic Calibration"
+msgstr ""
+
+msgid "Send Options"
+msgstr "Send Options"
+
+msgid "Send"
+msgstr "Skicka"
+
+msgid ""
+"printers at the same time.(It depends on how many devices can undergo "
+"heating at the same time.)"
+msgstr ""
+"printers at the same time. (It depends on how many devices can undergo "
+"heating at the same time.)"
+
+msgid "Wait"
+msgstr "Wait"
+
+msgid ""
+"minute each batch.(It depends on how long it takes to complete the heating.)"
+msgstr ""
+"minute each batch. (It depends on how long it takes to complete heating.)"
+
+msgid "Name is invalid;"
+msgstr "Namnet är ogiltligt;"
+
+msgid "illegal characters:"
+msgstr "Ogiltliga tecken:"
+
+msgid "illegal suffix:"
+msgstr "Ogiltlig ändelse:"
+
+msgid "The name is not allowed to be empty."
+msgstr "Namn fältet får inte vara tomt."
+
+msgid "The name is not allowed to start with space character."
+msgstr "Namnet får inte börja med mellanrum."
+
+msgid "The name is not allowed to end with space character."
+msgstr "Namnet får inte avslutas med mellanrum."
+
+msgid "The name length exceeds the limit."
+msgstr "Namnlängden överskrider gränsen."
 
 msgid "Origin"
 msgstr "Ursprung"
@@ -3251,14 +3492,18 @@ msgid ""
 "The recommended minimum temperature is less than 190 degree or the "
 "recommended maximum temperature is greater than 300 degree.\n"
 msgstr ""
+"Den rekommenderade lägsta temperaturen är lägre än 190 grader eller den "
+"rekommenderade max temperaturen är högre än 300 grader.\n"
 
 msgid ""
 "The recommended minimum temperature cannot be higher than the recommended "
 "maximum temperature.\n"
 msgstr ""
+"The recommended minimum temperature cannot be higher than the recommended "
+"maximum temperature.\n"
 
 msgid "Please check.\n"
-msgstr ""
+msgstr "Kontrollera.\n"
 
 msgid ""
 "Nozzle may be blocked when the temperature is out of recommended range.\n"
@@ -3290,6 +3535,9 @@ msgid ""
 "it may result in material softening and clogging.The maximum safe "
 "temperature for the material is %d"
 msgstr ""
+"Current chamber temperature is higher than the material's safe temperature; "
+"this may result in material softening and nozzle clogs.The maximum safe "
+"temperature for the material is %d"
 
 msgid ""
 "Too small layer height.\n"
@@ -3409,7 +3657,7 @@ msgstr ""
 "skalets lager är 0, gles ifyllnad är 0 och timelapse typen är traditionell."
 
 msgid " But machines with I3 structure will not generate timelapse videos."
-msgstr ""
+msgstr " Maskiner med I3-struktur kan dock inte generera timelapse videor."
 
 msgid ""
 "Change these settings automatically? \n"
@@ -3484,46 +3732,46 @@ msgid "Paused due to heat bed temperature malfunction"
 msgstr "Pausad på grund av fel i byggplattans temperatur"
 
 msgid "Filament unloading"
-msgstr ""
+msgstr "Utmatar filament"
 
 msgid "Skip step pause"
-msgstr ""
+msgstr "Hoppa över steg paus"
 
 msgid "Filament loading"
-msgstr ""
+msgstr "Laddning av filament"
 
 msgid "Motor noise calibration"
-msgstr ""
+msgstr "Kalibrering av motorljud"
 
 msgid "Paused due to AMS lost"
-msgstr ""
+msgstr "Pausad på grund av att AMS förlorats"
 
 msgid "Paused due to low speed of the heat break fan"
-msgstr ""
+msgstr "Pausad på grund av låg hastighet på heat break fläkten"
 
 msgid "Paused due to chamber temperature control error"
-msgstr ""
+msgstr "Pausad på grund av fel i styrningen av kammar temperaturen"
 
 msgid "Cooling chamber"
-msgstr ""
+msgstr "Kyler kammare"
 
 msgid "Paused by the Gcode inserted by user"
-msgstr ""
+msgstr "Pausad av G-koden som infogats av användaren"
 
 msgid "Motor noise showoff"
-msgstr ""
+msgstr "Uppvisning av motorljud"
 
 msgid "Nozzle filament covered detected pause"
-msgstr ""
+msgstr "Filament på nozzel upptäckt paus"
 
 msgid "Cutter error pause"
-msgstr ""
+msgstr "Fel på skärare paus"
 
 msgid "First layer error pause"
-msgstr ""
+msgstr "Fel på första lagret paus"
 
 msgid "Nozzle clog pause"
-msgstr ""
+msgstr "Stopp i nozzel paus"
 
 msgid "Unknown"
 msgstr "Okänd"
@@ -3554,18 +3802,27 @@ msgid ""
 "45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/"
 "TPU) is not allowed to be loaded."
 msgstr ""
+"The current chamber temperature or the target chamber temperature exceeds "
+"45℃. In order to avoid extruder clogging, low temperature filament (PLA/PETG/"
+"TPU) is not allowed to be loaded."
 
 msgid ""
 "Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order to "
 "avoid extruder clogging,it is not allowed to set the chamber temperature "
 "above 45℃."
 msgstr ""
+"Low temperature filament (PLA/PETG/TPU) is loaded in the extruder. In order "
+"to avoid extruder clogging, it is not allowed to set the chamber temperature "
+"above 45℃."
 
 msgid ""
 "When you set the chamber temperature below 40℃, the chamber temperature "
 "control will not be activated. And the target chamber temperature will "
 "automatically be set to 0℃."
 msgstr ""
+"When you set the chamber temperature below 40℃, the chamber temperature "
+"control will not be activated, and the target chamber temperature will "
+"automatically be set to 0℃."
 
 msgid "Failed to start printing job"
 msgstr "Det gick inte att starta utskriftsjobbet"
@@ -3573,34 +3830,39 @@ msgstr "Det gick inte att starta utskriftsjobbet"
 msgid ""
 "This calibration does not support the currently selected nozzle diameter"
 msgstr ""
+"Denna kalibrering stöder inte den för tillfället valda nozzle diametern"
 
 msgid "Current flowrate cali param is invalid"
-msgstr ""
+msgstr "Aktuell flödeshastighets kalibrerings parameter är ogiltig"
 
 msgid "Selected diameter and machine diameter do not match"
-msgstr ""
+msgstr "Vald diameter och maskinens diameter stämmer inte överens"
 
 msgid "Failed to generate cali gcode"
-msgstr ""
+msgstr "Misslyckades med att generera cali G kod"
 
 msgid "Calibration error"
-msgstr ""
+msgstr "Fel vid kalibrering"
 
 msgid "TPU is not supported by AMS."
-msgstr ""
+msgstr "TPU stöds inte av AMS."
 
 msgid "Bambu PET-CF/PA6-CF is not supported by AMS."
-msgstr ""
+msgstr "Bambu PET-CF/PA6-CF stöds inte av AMS."
 
 msgid ""
 "Damp PVA will become flexible and get stuck inside AMS,please take care to "
 "dry it before use."
 msgstr ""
+"Fuktig PVA blir flexibel och fastnar i AMS, var noga med att torka den väl "
+"före användning."
 
 msgid ""
 "CF/GF filaments are hard and brittle, It's easy to break or get stuck in "
 "AMS, please use with caution."
 msgstr ""
+"CF/GF-trådar är hårda och spröda, så de kan lätt gå sönder eller fastna i en "
+"AMS; använd dem med försiktighet."
 
 msgid "default"
 msgstr "standard"
@@ -3670,9 +3932,6 @@ msgstr "Skrivarens inställningar"
 msgid "parameter name"
 msgstr "Parameter namn"
 
-msgid "N/A"
-msgstr "N/A"
-
 #, c-format, boost-format
 msgid "%s can't be percentage"
 msgstr "%s kan inte vara procent"
@@ -3686,7 +3945,7 @@ msgstr "Parameter validering"
 
 #, c-format, boost-format
 msgid "Value %s is out of range. The valid range is from %d to %d."
-msgstr ""
+msgstr "Value %s is out of range. The valid range is from %d to %d."
 
 msgid "Value is out of range."
 msgstr "Värdet är utanför intervallet."
@@ -3769,7 +4028,7 @@ msgid "Flushed"
 msgstr "Rensad"
 
 msgid "Tower"
-msgstr ""
+msgstr "Tower"
 
 msgid "Total"
 msgstr "Totalt"
@@ -3781,7 +4040,7 @@ msgid "Total time"
 msgstr "Total tid"
 
 msgid "Total cost"
-msgstr ""
+msgstr "Total cost"
 
 msgid "up to"
 msgstr "upp till"
@@ -3877,10 +4136,10 @@ msgid "Normal mode"
 msgstr "Normalt läge"
 
 msgid "Total Filament"
-msgstr ""
+msgstr "Total Filament"
 
 msgid "Model Filament"
-msgstr ""
+msgstr "Model Filament"
 
 msgid "Prepare time"
 msgstr "Förbered tid"
@@ -3976,7 +4235,7 @@ msgid "Spacing"
 msgstr "Mellanrum"
 
 msgid "0 means auto spacing."
-msgstr ""
+msgstr "0 means auto spacing."
 
 msgid "Auto rotate for arrangement"
 msgstr "Auto rotera  för arrangemang"
@@ -3988,10 +4247,7 @@ msgid "Avoid extrusion calibration region"
 msgstr "Undvik kalibrerings området"
 
 msgid "Align to Y axis"
-msgstr ""
-
-msgid "Add"
-msgstr "Lägg till"
+msgstr "Justera mot Y-axeln"
 
 msgid "Add plate"
 msgstr "Lägg till byggplata"
@@ -4057,7 +4313,7 @@ msgid "An object is layed over the boundary of plate."
 msgstr "Ett objekt är placerad över byggplattans begränsningar."
 
 msgid "A G-code path goes beyond the max print height."
-msgstr ""
+msgstr "En G-kod bana går utöver den maximala utskriftshöjden."
 
 msgid "A G-code path goes beyond the boundary of plate."
 msgstr "En G-kod väg passerar över byggplattans begränsningar."
@@ -4084,10 +4340,10 @@ msgid "Bed leveling"
 msgstr "Justering av Byggplattan"
 
 msgid "Vibration compensation"
-msgstr ""
+msgstr "Vibrations kompensation"
 
 msgid "Motor noise cancellation"
-msgstr ""
+msgstr "Brusreducering av motorer"
 
 msgid "Calibration program"
 msgstr "Kalibrerings program"
@@ -4114,7 +4370,7 @@ msgid "Calibrating"
 msgstr "Kalibrerar"
 
 msgid "No step selected"
-msgstr ""
+msgstr "Inget steg valt"
 
 msgid "Auto-record Monitoring"
 msgstr "Automatisk inspelning av övervakning"
@@ -4123,7 +4379,7 @@ msgid "Go Live"
 msgstr "Sänd live"
 
 msgid "Liveview Retry"
-msgstr ""
+msgstr "Försök igen med Liveview"
 
 msgid "Resolution"
 msgstr "Upplösning"
@@ -4177,17 +4433,11 @@ msgstr "Stänger Begäran medans vissa inställningar ändrats."
 msgid "Logging"
 msgstr "Loggar"
 
-msgid "Prepare"
-msgstr "Förbered"
-
 msgid "Preview"
 msgstr "Förhandsvisning"
 
-msgid "Device"
-msgstr "Enhet"
-
 msgid "Multi-device"
-msgstr ""
+msgstr "Multi-device"
 
 msgid "Project"
 msgstr "Projekt"
@@ -4213,9 +4463,6 @@ msgstr "Bered allt"
 msgid "Export G-code file"
 msgstr "Exportera G-kod filen"
 
-msgid "Send"
-msgstr "Skicka"
-
 msgid "Export plate sliced file"
 msgstr "Exportera byggplattans beredda fil"
 
@@ -4227,9 +4474,6 @@ msgstr "Skriv ut allt"
 
 msgid "Send all"
 msgstr "Skicka alla"
-
-msgid "Send to Multi-device"
-msgstr ""
 
 msgid "Keyboard Shortcuts"
 msgstr "Kortkommando"
@@ -4339,6 +4583,12 @@ msgstr "Importera 3MF/STL/STEP/SVG/OBJ/AMF"
 msgid "Load a model"
 msgstr "Ladda modell"
 
+msgid "Import Zip Archive"
+msgstr ""
+
+msgid "Load models contained within a zip archive"
+msgstr ""
+
 msgid "Import Configs"
 msgstr "Importera konfiguration"
 
@@ -4349,10 +4599,10 @@ msgid "Import"
 msgstr "Importera"
 
 msgid "Export all objects as one STL"
-msgstr ""
+msgstr "Exportera alla objekt som en STL"
 
 msgid "Export all objects as STLs"
-msgstr ""
+msgstr "Exportera alla objekt som STL"
 
 msgid "Export Generic 3MF"
 msgstr "Exportera generisk 3mf"
@@ -4372,8 +4622,8 @@ msgstr "Exportera G-kod"
 msgid "Export current plate as G-code"
 msgstr "Exportera aktuell byggplatta som G-kod"
 
-msgid "Export &Configs"
-msgstr "Exportera konfiguration"
+msgid "Export Preset Bundle"
+msgstr ""
 
 msgid "Export current configuration to files"
 msgstr "Exportera aktuell konfiguration till filer"
@@ -4474,56 +4724,53 @@ msgstr "Visa objektets överhäng i 3D-scen"
 msgid "Preferences"
 msgstr "Inställningar"
 
-msgid "View"
-msgstr "Vy"
-
 msgid "Help"
 msgstr "Hjälp"
 
 msgid "Temperature Calibration"
-msgstr ""
+msgstr "Kalibrering av temperatur"
 
 msgid "Pass 1"
-msgstr ""
+msgstr "Pass 1"
 
 msgid "Flow rate test - Pass 1"
-msgstr ""
+msgstr "Test av flödeshastighet - Godkänt 1"
 
 msgid "Pass 2"
-msgstr ""
+msgstr "Pass 2"
 
 msgid "Flow rate test - Pass 2"
-msgstr ""
+msgstr "Test av flödeshastighet - Godkänt 2"
 
 msgid "Flow rate"
-msgstr ""
+msgstr "Flödeshastighet"
 
 msgid "Pressure advance"
-msgstr ""
+msgstr "Pressure advance"
 
 msgid "Retraction test"
-msgstr ""
+msgstr "Retraction test"
 
 msgid "Orca Tolerance Test"
-msgstr ""
+msgstr "Orca Tolerance Test"
 
 msgid "Max flowrate"
-msgstr ""
+msgstr "Max flödes hastighet"
 
 msgid "VFA"
-msgstr ""
+msgstr "VFA"
 
 msgid "More..."
-msgstr ""
+msgstr "Mer..."
 
 msgid "Tutorial"
-msgstr ""
+msgstr "Guide"
 
 msgid "Calibration help"
-msgstr ""
+msgstr "Hjälp med kalibrering"
 
 msgid "More calibrations"
-msgstr ""
+msgstr "Fler kalibreringar"
 
 msgid "&Open G-code"
 msgstr "&Öppna G-kod"
@@ -4543,10 +4790,10 @@ msgstr "Exportera &Toolpaths som OBJ"
 msgid "Export toolpaths as OBJ"
 msgstr "Exportera toolpaths som OBJ"
 
-msgid "Open &Studio"
+msgid "Open &Slicer"
 msgstr "Öppna &Studio"
 
-msgid "Open Studio"
+msgid "Open Slicer"
 msgstr "Öppna Studio"
 
 msgid "&Quit"
@@ -4639,48 +4886,55 @@ msgid "Synchronization"
 msgstr "Synkronisering"
 
 msgid "The device cannot handle more conversations. Please retry later."
-msgstr ""
+msgstr "Enhetenen kan inte hantera fler konversationer. Försök igen senare."
 
 msgid "Player is malfunctioning. Please reinstall the system player."
 msgstr ""
+"Spelaren fungerar inte som den ska. Vänligen installera om system spelaren."
 
 msgid "The player is not loaded, please click \"play\" button to retry."
 msgstr ""
+"Spelaren är inte laddad; klicka på \"play\" knappen för att försöka igen."
 
 msgid "Please confirm if the printer is connected."
-msgstr ""
+msgstr "Kontrollera om printern är ansluten."
 
 msgid ""
 "The printer is currently busy downloading. Please try again after it "
 "finishes."
 msgstr ""
+"Printern är upptagen med att ladda ner. Vänta tills nedladdningen är klar."
 
 msgid "Printer camera is malfunctioning."
-msgstr ""
+msgstr "Printerns kamera fungerar inte som den ska."
 
 msgid "Problem occured. Please update the printer firmware and try again."
 msgstr ""
+"Ett problem har uppstått. Uppdatera printerns programvara och försök igen."
 
 msgid ""
 "LAN Only Liveview is off. Please turn on the liveview on printer screen."
 msgstr ""
+"LAN Only Liveview is off. Please turn on the liveview on printer screen."
 
 msgid "Please enter the IP of printer to connect."
-msgstr ""
+msgstr "Ange printerns IP för att ansluta."
 
 msgid "Initializing..."
 msgstr "Startar..."
 
 msgid "Connection Failed. Please check the network and try again"
-msgstr ""
+msgstr "Anslutningen misslyckades. Kontrollera nätverket och försök igen"
 
 msgid ""
 "Please check the network and try again, You can restart or update the "
 "printer if the issue persists."
 msgstr ""
+"Kontrollera nätverket och försök igen. Du kan starta om eller uppdatera "
+"skrivaren om problemet kvarstår."
 
 msgid "The printer has been logged out and cannot connect."
-msgstr ""
+msgstr "Printern har loggats ut och kan inte anslutas."
 
 msgid "Stopped."
 msgstr "Avbruten."
@@ -4720,9 +4974,6 @@ msgstr "information"
 msgid "Playing..."
 msgstr "Spelar..."
 
-msgid "Loading..."
-msgstr "Laddar..."
-
 msgid "Year"
 msgstr "År"
 
@@ -4740,9 +4991,6 @@ msgstr "Gruppera filer efter månad, senaste först."
 
 msgid "Show all files, recent first."
 msgstr "Visa alla filer, de senaste först."
-
-msgid "Timelapse"
-msgstr "Timelapse"
 
 msgid "Switch to timelapse files."
 msgstr "Växla till timelapse filer."
@@ -4775,7 +5023,7 @@ msgid "Refresh"
 msgstr "Uppdatera"
 
 msgid "Reload file list from printer."
-msgstr ""
+msgstr "Reload file list from printer."
 
 msgid "No printers."
 msgstr "Ingen printer."
@@ -4788,10 +5036,10 @@ msgid "Loading file list..."
 msgstr "Laddar fil lista..."
 
 msgid "No files"
-msgstr ""
+msgstr "Inga filer"
 
 msgid "Load failed"
-msgstr ""
+msgstr "Load failed"
 
 msgid "Initialize failed (Device connection not ready)!"
 msgstr "Initieringen misslyckades (Enhets anslutningen är inte klar)!"
@@ -4800,15 +5048,17 @@ msgid ""
 "Browsing file in SD card is not supported in current firmware. Please update "
 "the printer firmware."
 msgstr ""
+"Browsing file in SD card is not supported in current firmware. Please update "
+"the printer firmware."
 
 msgid "Initialize failed (Storage unavailable, insert SD card.)!"
 msgstr ""
 
 msgid "LAN Connection Failed (Failed to view sdcard)"
-msgstr ""
+msgstr "LAN Connection Failed (Failed to view sdcard)"
 
 msgid "Browsing file in SD card is not supported in LAN Only Mode."
-msgstr ""
+msgstr "Browsing file in SD card is not supported in LAN Only Mode."
 
 #, c-format, boost-format
 msgid "Initialize failed (%s)!"
@@ -4835,10 +5085,10 @@ msgid "Fetching model infomations ..."
 msgstr "Hämtar information om modellen..."
 
 msgid "Failed to fetch model information from printer."
-msgstr ""
+msgstr "Det gick inte att hämta modellinformation från printern."
 
 msgid "Failed to parse model information."
-msgstr ""
+msgstr "Det gick inte att analysera modellinformation"
 
 msgid ""
 "The .gcode.3mf file contains no G-code data.Please slice it with Orca Slicer "
@@ -4854,6 +5104,8 @@ msgid ""
 "File: %s\n"
 "Title: %s\n"
 msgstr ""
+"File: %s\n"
+"Title: %s\n"
 
 msgid "Download waiting..."
 msgstr "Nedladdning väntar..."
@@ -4875,27 +5127,24 @@ msgid ""
 "Reconnecting the printer, the operation cannot be completed immediately, "
 "please try again later."
 msgstr ""
-
-msgid ""
-"Over 4 systems/handy are using remote access, you can close some and try "
-"again."
-msgstr ""
+"Reconnecting the printer, the operation cannot be completed immediately, "
+"please try again later."
 
 msgid "File does not exist."
-msgstr ""
+msgstr "Filen finns inte."
 
 msgid "File checksum error. Please retry."
-msgstr ""
+msgstr "Fel på filens kontrollsumma. Vänligen försök igen."
 
 msgid "Not supported on the current printer version."
-msgstr ""
+msgstr "Stöds inte av den aktuella skrivarversionen."
 
 msgid "Storage unavailable, insert SD card."
-msgstr ""
+msgstr "Lagring saknas, sätt i SD-kort."
 
 #, c-format, boost-format
 msgid "Error code: %d"
-msgstr ""
+msgstr "Felkod: %d"
 
 msgid "Speed:"
 msgstr "Hastighet:"
@@ -4939,12 +5188,6 @@ msgstr ""
 msgid "Printing Progress"
 msgstr "Utskriftsförlopp"
 
-msgid "Resume"
-msgstr "Återuppta"
-
-msgid "Stop"
-msgstr "Stopp"
-
 msgid "0"
 msgstr "0"
 
@@ -4958,17 +5201,21 @@ msgid ""
 "You have completed printing the mall model, \n"
 "but the synchronization of rating information has failed."
 msgstr ""
+"You have completed printing the mall model, \n"
+"but synchronizing rating information has failed."
 
 msgid "How do you like this printing file?"
-msgstr ""
+msgstr "Vad tycker du om den här utskriftsfilen?"
 
 msgid ""
 "(The model has already been rated. Your rating will overwrite the previous "
 "rating.)"
 msgstr ""
+"(Modellen har redan betygsatts. Ditt betyg kommer att skriva över det "
+"tidigare betyget.)"
 
 msgid "Rate"
-msgstr ""
+msgstr "Betygsätt"
 
 msgid "Camera"
 msgstr "Kamera"
@@ -4986,7 +5233,7 @@ msgid "Control"
 msgstr "Kontroll"
 
 msgid "Printer Parts"
-msgstr ""
+msgstr "Printer Parts"
 
 msgid "Print Options"
 msgstr "Utskriftsalternativ"
@@ -5043,6 +5290,7 @@ msgid ""
 "Please heat the nozzle to above 170 degree before loading or unloading "
 "filament."
 msgstr ""
+"Värm nozzeln till över 170 grader innan du laddar eller matar ut filament."
 
 msgid "Still unload"
 msgstr "Matar ut fortfarande"
@@ -5079,95 +5327,108 @@ msgid "Can't start this without SD card."
 msgstr "Kan inte starta utan MicroSD-kort."
 
 msgid "Rate the Print Profile"
-msgstr ""
+msgstr "Betygsätt utskriftsprofil"
 
 msgid "Comment"
-msgstr ""
+msgstr "Kommentera"
 
 msgid "Rate this print"
-msgstr ""
+msgstr "Betygsätt denna utskrift"
 
 msgid "Add Photo"
-msgstr ""
+msgstr "Lägg till en bild"
 
 msgid "Delete Photo"
-msgstr ""
+msgstr "Ta bort foto"
 
 msgid "Submit"
-msgstr ""
+msgstr "Skicka in"
 
 msgid "Please click on the star first."
-msgstr ""
+msgstr "Klicka på stjärnan först."
 
 msgid "InFo"
-msgstr ""
+msgstr "Info"
 
 msgid "Get oss config failed."
-msgstr ""
+msgstr "Hämta konfigurationen för oss misslyckades."
 
 msgid "Upload Pictrues"
-msgstr ""
+msgstr "Upload Pictures"
 
 msgid "Number of images successfully uploaded"
-msgstr ""
+msgstr "Antal bilder som laddats upp framgångsrikt"
 
 msgid " upload failed"
-msgstr ""
+msgstr " uppladdning misslyckades"
 
 msgid " upload config prase failed\n"
-msgstr ""
+msgstr " uppladdning av konfiguration misslyckades\n"
 
 msgid " No corresponding storage bucket\n"
-msgstr ""
+msgstr " Ingen motsvarande lagrings plats\n"
 
 msgid " can not be opened\n"
-msgstr ""
+msgstr " cannot be opened\n"
 
 msgid ""
 "The following issues occurred during the process of uploading images. Do you "
 "want to ignore them?\n"
 "\n"
 msgstr ""
+"Följande problem uppstod under uppladdningen av bilder. Vill du ignorera "
+"dem?\n"
+"\n"
 
 msgid "info"
 msgstr "info"
 
 msgid "Synchronizing the printing results. Please retry a few seconds later."
-msgstr ""
+msgstr "Synkroniserar utskriftsresultaten. Försök igen om några sekunder."
 
 msgid "Upload failed\n"
-msgstr ""
+msgstr "Uppladdningen misslyckades\n"
 
 msgid "obtaining instance_id failed\n"
-msgstr ""
+msgstr "det gick inte att få instance_id\n"
 
 msgid ""
 "Your comment result cannot be uploaded due to some reasons. As follows:\n"
 "\n"
 "  error code: "
 msgstr ""
+"Your comment result cannot be uploaded due to the following reasons:\n"
+"\n"
+"  error code: "
 
 msgid "error message: "
-msgstr ""
+msgstr "felmeddelande: "
 
 msgid ""
 "\n"
 "\n"
 "Would you like to redirect to the webpage for rating?"
 msgstr ""
+"\n"
+"\n"
+"Would you like to redirect to the webpage to give a rating?"
 
 msgid ""
 "Some of your images failed to upload. Would you like to redirect to the "
 "webpage for rating?"
 msgstr ""
+"Några av dina bilder kunde inte laddas upp. Vill du bli omdirigerad till "
+"webbsidan för betygsättning?"
 
 msgid "You can select up to 16 images."
-msgstr ""
+msgstr "Du kan välja upp till 16 bilder."
 
 msgid ""
 "At least one successful print record of this print profile is required \n"
 "to give a positive rating(4 or 5stars)."
 msgstr ""
+"At least one successful print record of this print profile is required \n"
+"to give a positive rating (4 or 5 stars)."
 
 msgid "Status"
 msgstr "Status"
@@ -5217,7 +5478,7 @@ msgid "If you would like to try Orca Slicer Beta, you may click to"
 msgstr ""
 
 msgid "Download Beta Version"
-msgstr ""
+msgstr "Ladda ner betaversion"
 
 msgid "The 3mf file version is newer than the current Orca Slicer version."
 msgstr ""
@@ -5226,13 +5487,13 @@ msgid "Update your Orca Slicer could enable all functionality in the 3mf file."
 msgstr ""
 
 msgid "Current Version: "
-msgstr ""
+msgstr "Aktuell version: "
 
 msgid "Latest Version: "
-msgstr ""
+msgstr "Senaste versionen: "
 
 msgid "Not for now"
-msgstr ""
+msgstr "Not for now"
 
 msgid "3D Mouse disconnected."
 msgstr "3D mus bortkopplad."
@@ -5259,10 +5520,10 @@ msgid "Details"
 msgstr "Detaljer"
 
 msgid "New printer config available."
-msgstr ""
+msgstr "Ny printer konfiguration tillgänglig."
 
 msgid "Wiki"
-msgstr ""
+msgstr "Wiki"
 
 msgid "Undo integration failed."
 msgstr "Återställande av integrationen misslyckades."
@@ -5303,11 +5564,11 @@ msgstr[1] ""
 msgid "ERROR"
 msgstr "FEL"
 
-msgid "CANCELED"
-msgstr "Avbruten"
-
 msgid "COMPLETED"
 msgstr "Klar"
+
+msgid "CANCELED"
+msgstr "Avbruten"
 
 msgid "Cancel upload"
 msgstr "Avbryt uppladdning"
@@ -5325,10 +5586,10 @@ msgid "Export successfully."
 msgstr "Exportering lyckades"
 
 msgid "Model file downloaded."
-msgstr ""
+msgstr "Modellfil nedladdad."
 
 msgid "Serious warning:"
-msgstr ""
+msgstr "Allvarlig varning:"
 
 msgid " (Repair)"
 msgstr " (Reparera)"
@@ -5414,29 +5675,29 @@ msgid "Auto-recovery from step loss"
 msgstr "Automatisk återhämtning vid stegförlust"
 
 msgid "Allow Prompt Sound"
-msgstr ""
+msgstr "Tillåt Prompt Ljud"
 
 msgid "Filament Tangle Detect"
-msgstr ""
+msgstr "Filament Tangle Detection"
 
 msgid "Nozzle Clumping Detection"
-msgstr ""
+msgstr "Nozzle Clumping Detection"
 
 msgid "Check if the nozzle is clumping by filament or other foreign objects."
-msgstr ""
+msgstr "Check if the nozzle is clumping by filament or other foreign objects."
 
 msgid "Nozzle Type"
-msgstr ""
+msgstr "Nozzle Type"
 
 msgid "Stainless Steel"
-msgstr ""
+msgstr "Rostfritt stål"
 
 msgid "Hardened Steel"
-msgstr ""
+msgstr "Härdat stål"
 
 #, c-format, boost-format
 msgid "%.1f"
-msgstr ""
+msgstr "%.1f"
 
 msgid "Global"
 msgstr "Global"
@@ -5527,7 +5788,7 @@ msgid "Set filaments to use"
 msgstr "Ställ in filament som ska användas"
 
 msgid "Search plate, object and part."
-msgstr ""
+msgstr "Sök platta, objekt och del."
 
 msgid ""
 "No AMS filaments. Please select a printer in 'Device' page to load AMS info."
@@ -5594,6 +5855,9 @@ msgid ""
 "clogged when printing this filament in a closed enclosure. Please open the "
 "front door and/or remove the upper glass."
 msgstr ""
+"The current heatbed temperature is relatively high. The nozzle may clog when "
+"printing this filament in a closed environment. Please open the front door "
+"and/or remove the upper glass."
 
 msgid ""
 "The nozzle hardness required by the filament is higher than the default "
@@ -5608,6 +5872,8 @@ msgid ""
 "Enabling traditional timelapse photography may cause surface imperfections. "
 "It is recommended to change to smooth mode."
 msgstr ""
+"Aktivering av traditionell timelapse fotografering kan orsaka ojämnheter i "
+"ytan. Det rekommenderas att ändra till jämnt läge."
 
 msgid "Expand sidebar"
 msgstr ""
@@ -5651,32 +5917,39 @@ msgid "Please correct them in the param tabs"
 msgstr "Vänligen korrigera dem i Parameter flikarna"
 
 msgid "The 3mf has following modified G-codes in filament or printer presets:"
-msgstr ""
+msgstr "The 3mf has following modified G-code in filament or printer presets:"
 
 msgid ""
 "Please confirm that these modified G-codes are safe to prevent any damage to "
 "the machine!"
 msgstr ""
+"Bekräfta att dessa modifierade G-koder är säkra för att förhindra skador på "
+"maskinen!"
 
 msgid "Modified G-codes"
-msgstr ""
+msgstr "Modified G-code"
 
 msgid "The 3mf has following customized filament or printer presets:"
-msgstr ""
+msgstr "3mf har följande anpassade filament eller inställningar för printern:"
 
 msgid ""
 "Please confirm that the G-codes within these presets are safe to prevent any "
 "damage to the machine!"
 msgstr ""
+"Bekräfta att G-koderna i dessa inställningar är säkra för att förhindra "
+"skador på maskinen!"
 
 msgid "Customized Preset"
-msgstr ""
+msgstr "Anpassad inställning"
 
 msgid "Name of components inside step file is not UTF8 format!"
 msgstr "Komponent namnet i step filen är inte UTF8 format!"
 
 msgid "The name may show garbage characters!"
 msgstr "På grund av textkodning som inte stöds så kan skräptecken visas!"
+
+msgid "Remember my choice."
+msgstr "Kom ihåg mitt val."
 
 #, boost-format
 msgid "Failed loading file \"%1%\". An invalid configuration was found."
@@ -5735,22 +6008,24 @@ msgid "Export STL file:"
 msgstr "Exportera STL-fil:"
 
 msgid "Export AMF file:"
-msgstr ""
+msgstr "Exportera AMF-fil:"
 
 msgid "Save file as:"
 msgstr "Spara fil som:"
 
 msgid "Export OBJ file:"
-msgstr ""
+msgstr "Exportera OBJ-fil:"
 
 #, c-format, boost-format
 msgid ""
 "The file %s already exists\n"
 "Do you want to replace it?"
 msgstr ""
+"The file %s already exists.\n"
+"Do you want to replace it?"
 
 msgid "Comfirm Save As"
-msgstr ""
+msgstr "Bekräfta Spara som"
 
 msgid "Delete object which is a part of cut object"
 msgstr "Radera objekt som är en del av det utskurna objektet"
@@ -5771,13 +6046,13 @@ msgid "Another export job is running."
 msgstr "En annan exportering pågår."
 
 msgid "Unable to replace with more than one volume"
-msgstr ""
+msgstr "Går inte att ersätta med mer än en volym"
 
 msgid "Error during replace"
 msgstr "Fel vid byte"
 
 msgid "Replace from:"
-msgstr ""
+msgstr "Ersätt från:"
 
 msgid "Select a new file"
 msgstr "Välj en ny fil"
@@ -5789,22 +6064,19 @@ msgid "Please select a file"
 msgstr "Välj en fil"
 
 msgid "Do you want to replace it"
-msgstr ""
+msgstr "Do you want to replace it?"
 
 msgid "Message"
-msgstr ""
+msgstr "Meddelande"
 
 msgid "Reload from:"
-msgstr ""
+msgstr "Ladda om från:"
 
 msgid "Unable to reload:"
-msgstr ""
+msgstr "Det gick inte att ladda om:"
 
 msgid "Error during reload"
-msgstr ""
-
-msgid "Slicing"
-msgstr "Bereder"
+msgstr "Fel vid omladdning"
 
 msgid "There are warnings after slicing models:"
 msgstr "Varningar efter beredning:"
@@ -5868,20 +6140,20 @@ msgid "prepare 3mf file..."
 msgstr "förbereder 3mf-filen..."
 
 msgid "Download failed, unknown file format."
-msgstr ""
+msgstr "Download failed; unknown file format."
 
 msgid "downloading project ..."
 msgstr "laddar ner projekt ..."
 
 msgid "Download failed, File size exception."
-msgstr ""
+msgstr "Download failed; File size exception."
 
 #, c-format, boost-format
 msgid "Project downloaded %d%%"
 msgstr "Projektet har laddats ned %d%%"
 
 msgid ""
-"Importing to Bambu Studio failed. Please download the file and manually "
+"Importing to Orca Slicer failed. Please download the file and manually "
 "import it."
 msgstr ""
 
@@ -5896,6 +6168,20 @@ msgstr "Innehåller ingen giltlig G-kod."
 
 msgid "Error occurs while loading G-code file"
 msgstr "Fel uppstod vid laddningen av G-kod"
+
+#. TRN %1% is archive path
+#, boost-format
+msgid "Loading of a ZIP archive on path %1% has failed."
+msgstr ""
+
+#. TRN: First argument = path to file, second argument = error description
+#, boost-format
+msgid "Failed to unzip file to %1%: %2%"
+msgstr ""
+
+#, boost-format
+msgid "Failed to find unzipped file at %1%. Unzipping of file has failed."
+msgstr ""
 
 msgid "Drop project file"
 msgstr "Släpp projekt filen"
@@ -5921,17 +6207,11 @@ msgstr "G-kod filer och modeller kan inte laddas tillsammans!!"
 msgid "Can not add models when in preview mode!"
 msgstr "Det gick inte att lägga till modeller i förhandsvisningsläge"
 
-msgid "Add Models"
-msgstr "Lägg till modeller"
-
 msgid "All objects will be removed, continue?"
 msgstr "Alla objekt kommer att raderas, fortsätta?"
 
 msgid "The current project has unsaved changes, save it before continue?"
 msgstr "Nuvarande projekt har ej sparade ändringar, spara innan du går vidare?"
-
-msgid "Remember my choice."
-msgstr "Kom ihåg mitt val."
 
 msgid "Number of copies:"
 msgstr "Antal kopior:"
@@ -5943,13 +6223,13 @@ msgid "Save G-code file as:"
 msgstr "Spara G-kod som:"
 
 msgid "Save SLA file as:"
-msgstr ""
+msgstr "Spara SLA fil som:"
 
 msgid "The provided file name is not valid."
-msgstr ""
+msgstr "Det angivna filnamnet är inte giltigt."
 
 msgid "The following characters are not allowed by a FAT file system:"
-msgstr ""
+msgstr "Följande tecken är inte tillåtna i ett FAT-fil system:"
 
 msgid "Save Sliced file as:"
 msgstr "Spara beredningen som:"
@@ -5966,22 +6246,24 @@ msgid ""
 "Unable to perform boolean operation on model meshes. Only positive parts "
 "will be kept. You may fix the meshes and try agian."
 msgstr ""
+"Unable to perform boolean operation on model meshes. Only positive parts "
+"will be kept. You may fix the meshes and try agian."
 
 #, boost-format
 msgid "Reason: part \"%1%\" is empty."
-msgstr ""
+msgstr "Reason: part \"%1%\" is empty."
 
 #, boost-format
 msgid "Reason: part \"%1%\" does not bound a volume."
-msgstr ""
+msgstr "Reason: part \"%1%\" does not bound a volume."
 
 #, boost-format
 msgid "Reason: part \"%1%\" has self intersection."
-msgstr ""
+msgstr "Reason: part \"%1%\" has self intersection."
 
 #, boost-format
 msgid "Reason: \"%1%\" and another part have no intersection."
-msgstr ""
+msgstr "Reason: \"%1%\" and another part have no intersection."
 
 msgid ""
 "Are you sure you want to store original SVGs with their local paths into the "
@@ -6029,7 +6311,7 @@ msgstr "Antal för tillfället valda delar: %1%\n"
 
 #, boost-format
 msgid "Number of currently selected objects: %1%\n"
-msgstr ""
+msgstr "Antal för närvarande markerade objekt: %1%\n"
 
 #, boost-format
 msgid "Part name: %1%\n"
@@ -6131,6 +6413,11 @@ msgstr "Logga in Region"
 msgid "Stealth Mode"
 msgstr ""
 
+msgid ""
+"This stops the transmission of data to Bambu's cloud services. Users who "
+"don't use BBL machines or use LAN mode only can safely turn on this function."
+msgstr ""
+
 msgid "Enable network plugin"
 msgstr ""
 
@@ -6154,6 +6441,9 @@ msgid ""
 "it is allowed to run multiple instances of same app from the command line. "
 "In such case this settings will allow only one instance."
 msgstr ""
+"På OSX körs alltid bara en instans av appen som standard. Det är dock "
+"tillåtet att köra flera instanser av samma app från kommandoraden. I sådana "
+"fall tillåter denna inställning endast en instans."
 
 msgid ""
 "If this is enabled, when starting OrcaSlicer and another instance of the "
@@ -6217,17 +6507,17 @@ msgid "If enabled, useful hints are displayed at startup."
 msgstr "Om aktiverad visas användbara tips vid start."
 
 msgid "Flushing volumes: Auto-calculate everytime the color changed."
-msgstr ""
+msgstr "Rensnings volymer: Beräkna automatiskt varje gång färgen ändras."
 
 msgid "If enabled, auto-calculate everytime the color changed."
-msgstr ""
+msgstr "Om aktiverat, beräkna automatiskt varje gång färgen ändras."
 
 msgid ""
 "Flushing volumes: Auto-calculate every time when the filament is changed."
-msgstr ""
+msgstr "Flushing volumes: Auto-calculate every time the filament is changed."
 
 msgid "If enabled, auto-calculate every time when filament is changed"
-msgstr ""
+msgstr "If enabled, auto-calculate every time filament is changed"
 
 msgid "Remember printer configuration"
 msgstr ""
@@ -6237,13 +6527,15 @@ msgid ""
 "each printer automatically."
 msgstr ""
 
-msgid "Multi-device Management(Take effect after restarting Studio)."
+msgid "Multi-device Management(Take effect after restarting Orca)."
 msgstr ""
 
 msgid ""
 "With this option enabled, you can send a task to multiple devices at the "
 "same time and manage multiple devices."
 msgstr ""
+"With this option enabled, you can send a task to multiple devices at the "
+"same time and manage multiple devices."
 
 msgid "Network"
 msgstr ""
@@ -6286,6 +6578,20 @@ msgstr "Associera .step/.stp-filer till OrcaSlicer"
 msgid "If enabled, sets OrcaSlicer as default application to open .step files"
 msgstr "Om aktiverad, väljs Orca Slicer som standard att öppna .step filer"
 
+msgid "Current association: "
+msgstr ""
+
+msgid "Associate prusaslicer://"
+msgstr ""
+
+msgid "Not associated to any application"
+msgstr ""
+
+msgid ""
+"Associate OrcaSlicer with prusaslicer:// links so that Orca can open "
+"PrusaSlicer links from Printable.com"
+msgstr ""
+
 msgid "Maximum recent projects"
 msgstr "Maximalt antal nyligen genomförda projekt"
 
@@ -6296,7 +6602,7 @@ msgid "Clear my choice on the unsaved projects."
 msgstr "Rensa mitt val för de osparade projekten."
 
 msgid "No warnings when loading 3MF with modified G-codes"
-msgstr ""
+msgstr "No warnings when loading 3MF with modified G-code"
 
 msgid "Auto-Backup"
 msgstr "Auto Säkerhetskopiera"
@@ -6452,28 +6758,25 @@ msgid "Add/Remove materials"
 msgstr "Lägg till/Ta bort material"
 
 msgid "Select/Remove printers(system presets)"
-msgstr ""
+msgstr "Välj/ta bort printer(systemet inställningar)"
 
 msgid "Create printer"
-msgstr ""
-
-msgid "Incompatible"
-msgstr "Inkompatibel"
+msgstr "Skapa printer"
 
 msgid "The selected preset is null!"
-msgstr ""
+msgstr "Den valda förinställningen är noll!"
 
 msgid "End"
-msgstr ""
+msgstr "End"
 
 msgid "Customize"
-msgstr ""
+msgstr "Anpassa"
 
 msgid "Other layer filament sequence"
-msgstr ""
+msgstr "Other layer filament sequence"
 
 msgid "Please input layer value (>= 2)."
-msgstr ""
+msgstr "Please input layer value (>= 2)."
 
 msgid "Plate name"
 msgstr "Plattans namn"
@@ -6485,16 +6788,16 @@ msgid "Print sequence"
 msgstr "Utskrifts sekvens"
 
 msgid "Same as Global"
-msgstr ""
+msgstr "Same as Global"
 
 msgid "Disable"
-msgstr ""
+msgstr "Disable"
 
 msgid "Spiral vase"
 msgstr "Spiral vas"
 
 msgid "First layer filament sequence"
-msgstr ""
+msgstr "Första lagrets filament sekvens"
 
 msgid "Same as Global Plate Type"
 msgstr "Samma som Global Bed Type"
@@ -6554,15 +6857,6 @@ msgstr "Användar förinställning"
 msgid "Preset Inside Project"
 msgstr "Projekt förinställning"
 
-msgid "Name is invalid;"
-msgstr "Namnet är ogiltligt;"
-
-msgid "illegal characters:"
-msgstr "Ogiltliga tecken:"
-
-msgid "illegal suffix:"
-msgstr "Ogiltlig ändelse:"
-
 msgid "Name is unavailable."
 msgstr "Namnet ej tillgängligt."
 
@@ -6582,15 +6876,6 @@ msgid "Please note that saving action will replace this preset"
 msgstr ""
 "Observera att om du sparar kommer den aktuella förinställningen att skrivas "
 "över"
-
-msgid "The name is not allowed to be empty."
-msgstr "Namn fältet får inte vara tomt."
-
-msgid "The name is not allowed to start with space character."
-msgstr "Namnet får inte börja med mellanrum."
-
-msgid "The name is not allowed to end with space character."
-msgstr "Namnet får inte avslutas med mellanrum."
 
 msgid "The name cannot be the same as a preset alias name."
 msgstr "Namnet får inte vara samma som förinställt namn."
@@ -6629,7 +6914,7 @@ msgid "(LAN)"
 msgstr "(LAN)"
 
 msgid "Search"
-msgstr ""
+msgstr "Sök"
 
 msgid "My Device"
 msgstr "Min Enhet"
@@ -6649,9 +6934,6 @@ msgstr "Hittar du inte enheter?"
 msgid "Log out successful."
 msgstr "Utloggning lyckades."
 
-msgid "Offline"
-msgstr "Offline"
-
 msgid "Busy"
 msgstr "Upptagen"
 
@@ -6668,7 +6950,7 @@ msgid "Bambu Smooth PEI Plate"
 msgstr ""
 
 msgid "High temperature Plate"
-msgstr ""
+msgstr "Högtemperatur platta"
 
 msgid "Bambu Textured PEI Plate"
 msgstr ""
@@ -6676,14 +6958,11 @@ msgstr ""
 msgid "Send print job to"
 msgstr "Skicka utskriftsjobb till"
 
-msgid "Bed Leveling"
-msgstr "Justering av Byggplattan"
-
 msgid "Flow Dynamics Calibration"
-msgstr ""
+msgstr "Kalibrering av flödesdynamik"
 
 msgid "Click here if you can't connect to the printer"
-msgstr ""
+msgstr "Klicka här om du inte kan ansluta till printern"
 
 msgid "send completed"
 msgstr "Skicka komplett"
@@ -6778,6 +7057,8 @@ msgid ""
 "The selected printer (%s) is incompatible with the chosen printer profile in "
 "the slicer (%s)."
 msgstr ""
+"The selected printer (%s) is incompatible with the chosen printer profile in "
+"the slicer (%s)."
 
 msgid "An SD card needs to be inserted to record timelapse."
 msgstr "Ett Micro SD-kort måste sättas i för att spela in en timelapse."
@@ -6799,10 +7080,14 @@ msgid ""
 "When enable spiral vase mode, machines with I3 structure will not generate "
 "timelapse videos."
 msgstr ""
+"When spiral vase mode is enabled, machines with I3 structure will not "
+"generate timelapse videos."
 
 msgid ""
 "Timelapse is not supported because Print sequence is set to \"By object\"."
 msgstr ""
+"Timelapse stöds inte eftersom utskrifts sekvensen är inställd på \"Per objekt"
+"\"."
 
 msgid "Errors"
 msgstr "Fel"
@@ -6830,26 +7115,31 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "nozzle in preset: %s %s"
-msgstr ""
+msgstr "nozzel i inställning: %s %s"
 
 #, c-format, boost-format
 msgid "nozzle memorized: %.1f %s"
-msgstr ""
+msgstr "nozzel memorerat: %.1f %s"
 
 msgid ""
 "Your nozzle diameter in sliced file is not consistent with memorized nozzle. "
 "If you changed your nozzle lately, please go to Device > Printer Parts to "
 "change settings."
 msgstr ""
+"Your nozzle diameter in sliced file is not consistent with the saved nozzle. "
+"If you changed your nozzle lately, please go to Device > Printer Parts to "
+"change settings."
 
 #, c-format, boost-format
 msgid ""
 "Printing high temperature material(%s material) with %s may cause nozzle "
 "damage"
 msgstr ""
+"Printing high temperature material(%s material) with %s may cause nozzle "
+"damage"
 
 msgid "Please fix the error above, otherwise printing cannot continue."
-msgstr ""
+msgstr "Please fix the error above, otherwise printing cannot continue."
 
 msgid ""
 "Please click the confirm button if you still want to proceed with printing."
@@ -6859,29 +7149,24 @@ msgstr ""
 msgid ""
 "Connecting to the printer. Unable to cancel during the connection process."
 msgstr ""
-
-msgid "Preparing print job"
-msgstr "Förbereder utskriftsjobb"
-
-msgid "Abnormal print file data. Please slice again"
-msgstr "Onormal utskrifts fil data. Vänligen bered igen"
-
-msgid "The name length exceeds the limit."
-msgstr "Namnlängden överskrider gränsen."
+"Ansluter till skrivaren. Det går inte att avbryta under anslutnings "
+"processen."
 
 msgid ""
 "Caution to use! Flow calibration on Textured PEI Plate may fail due to the "
 "scattered surface."
 msgstr ""
+"Varning! Flödes kalibrering på texturerade PEI plattor kan misslyckas på "
+"grund av ytan."
 
 msgid "Automatic flow calibration using Micro Lidar"
-msgstr ""
+msgstr "Automatic flow calibration using the Micro Lidar"
 
 msgid "Modifying the device name"
 msgstr "Ändra enhetens namn"
 
 msgid "Bind with Pin Code"
-msgstr ""
+msgstr "Bind with Pin Code"
 
 msgid "Send to Printer SD card"
 msgstr "Skicka till skrivarens MicroSD-kort"
@@ -6891,6 +7176,7 @@ msgstr "Det går inte att skicka utskriftsuppgiften när uppgraderingen pågår"
 
 msgid "The selected printer is incompatible with the chosen printer presets."
 msgstr ""
+"Den valda skrivaren är inte kompatibel med de valda skrivar inställningarna."
 
 msgid "An SD card needs to be inserted before send to printer SD card."
 msgstr "Ett MicroSD-kort måste sättas i innan du skickar till skrivaren."
@@ -6905,7 +7191,7 @@ msgid "Slice ok."
 msgstr "Beredning klar."
 
 msgid "View all Daily tips"
-msgstr ""
+msgstr "Visa alla dagliga tips"
 
 msgid "Failed to create socket"
 msgstr "Det gick inte att skapa uttaget"
@@ -6938,21 +7224,23 @@ msgid ""
 "Please Find the Pin Code in Account page on printer screen,\n"
 " and type in the Pin Code below."
 msgstr ""
+"Please Find the Pin Code in Account page on printer screen,\n"
+" and type in the Pin Code below."
 
 msgid "Can't find Pin Code?"
-msgstr ""
+msgstr "Can't find Pin Code?"
 
 msgid "Pin Code"
-msgstr ""
+msgstr "Pin Code"
 
 msgid "Binding..."
-msgstr ""
+msgstr "Binding..."
 
 msgid "Please confirm on the printer screen"
-msgstr ""
+msgstr "Please confirm on the printer screen"
 
 msgid "Log in failed. Please check the Pin Code."
-msgstr ""
+msgstr "Log in failed. Please check the Pin Code."
 
 msgid "Log in printer"
 msgstr "Logga in skrivare"
@@ -7075,7 +7363,7 @@ msgstr ""
 "utan prime tower. Vill du aktivera prime tower?"
 
 msgid "Still print by object?"
-msgstr ""
+msgstr "Fortfarande utskrift per objekt?"
 
 msgid ""
 "We have added an experimental style \"Tree Slim\" that features smaller "
@@ -7134,15 +7422,17 @@ msgid ""
 "Layer height exceeds the limit in Printer Settings -> Extruder -> Layer "
 "height limits ,this may cause printing quality issues."
 msgstr ""
+"Lagerhöjden överskrider gränsen i Skrivarinställningar -> Extruder -> "
+"Lagerhöjds gränser, detta kan orsaka problem med utskriftskvaliteten."
 
 msgid "Adjust to the set range automatically? \n"
-msgstr ""
+msgstr "Justera automatiskt till det inställda området? \n"
 
 msgid "Adjust"
-msgstr ""
+msgstr "Justera"
 
 msgid "Ignore"
-msgstr ""
+msgstr "Ignorera"
 
 msgid ""
 "Experimental feature: Retracting and cutting off the filament at a greater "
@@ -7150,6 +7440,10 @@ msgid ""
 "reduce flush,  it may also elevate the risk of nozzle clogs or other "
 "printing complications."
 msgstr ""
+"Experimental feature: Retracting and cutting off the filament at a greater "
+"distance during filament changes to minimize flush. Although it can notably "
+"reduce flush,  it may also elevate the risk of nozzle clogs or other "
+"printing complications."
 
 msgid ""
 "Experimental feature: Retracting and cutting off the filament at a greater "
@@ -7157,6 +7451,10 @@ msgid ""
 "reduce flush, it may also elevate the risk of nozzle clogs or other printing "
 "complications.Please use with the latest printer firmware."
 msgstr ""
+"Experimental feature: Retracting and cutting off the filament at a greater "
+"distance during filament changes to minimize flush. Although it can notably "
+"reduce flush, it may also elevate the risk of nozzle clogs or other printing "
+"complications. Please use with the latest printer firmware."
 
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
@@ -7227,7 +7525,7 @@ msgid "Acceleration"
 msgstr "Acceleration"
 
 msgid "Jerk(XY)"
-msgstr ""
+msgstr "Jerk(XY)"
 
 msgid "Raft"
 msgstr "Raft"
@@ -7236,6 +7534,9 @@ msgid "Support filament"
 msgstr "Support filament"
 
 msgid "Tree supports"
+msgstr ""
+
+msgid "Skirt"
 msgstr ""
 
 msgid "Prime tower"
@@ -7251,7 +7552,7 @@ msgid "Post-processing Scripts"
 msgstr "Skript för efterbehandling"
 
 msgid "Notes"
-msgstr ""
+msgstr "Notes"
 
 msgid "Frequent"
 msgstr "Återkommande"
@@ -7327,13 +7628,16 @@ msgstr ""
 "värde på 0 betyder att filamentet inte stöder utskrift på Engineering Plate."
 
 msgid "Smooth PEI Plate / High Temp Plate"
-msgstr ""
+msgstr "Slät PEI platta / Högtemperaturs platta"
 
 msgid ""
 "Bed temperature when Smooth PEI Plate/High temperature plate is installed. "
 "Value 0 means the filament does not support to print on the Smooth PEI Plate/"
 "High Temp Plate"
 msgstr ""
+"Bäddtemperatur när slät PEI-platta/Högtemperatur platta är installerad. "
+"Värde 0 betyder att filamentet inte stöder utskrift på den släta PEI-plattan/"
+"högtemperaturplattan"
 
 msgid "Textured PEI Plate"
 msgstr "Texturerad PEI-platta"
@@ -7385,13 +7689,13 @@ msgid "Auxiliary part cooling fan"
 msgstr "Extra del kylnings fläkt"
 
 msgid "Exhaust fan"
-msgstr ""
+msgstr "Utsugs fläkt"
 
 msgid "During print"
-msgstr ""
+msgstr "Under utskrift"
 
 msgid "Complete print"
-msgstr ""
+msgstr "Komplett utskrift"
 
 msgid "Filament start G-code"
 msgstr "Filament start G-kod"
@@ -7442,7 +7746,7 @@ msgid "Machine end G-code"
 msgstr "Maskin stop G-kod"
 
 msgid "Printing by object G-code"
-msgstr ""
+msgstr "Utskrift efter objekt G kod"
 
 msgid "Before layer change G-code"
 msgstr "Före lagerskifte G-kod"
@@ -7451,7 +7755,7 @@ msgid "Layer change G-code"
 msgstr "Lagerskifte G-kod"
 
 msgid "Time lapse G-code"
-msgstr ""
+msgstr "Time lapse G-kod"
 
 msgid "Change filament G-code"
 msgstr "Byta filament G-kod"
@@ -7503,9 +7807,12 @@ msgid ""
 "\n"
 "Shall I disable it in order to enable Firmware Retraction?"
 msgstr ""
+"The Wipe option is not available when using the Firmware Retraction mode.\n"
+"\n"
+"Disable it in order to enable Firmware Retraction?"
 
 msgid "Firmware Retraction"
-msgstr ""
+msgstr "Firmware Retraktion"
 
 msgid "Detached"
 msgstr "Fristående"
@@ -7515,9 +7822,11 @@ msgid ""
 "%d Filament Preset and %d Process Preset is attached to this printer. Those "
 "presets would be deleted if the printer is deleted."
 msgstr ""
+"%d Filament inställning och %d Process inställning är kopplade till denna "
+"printer. Dessa inställningar raderas om printern raderas."
 
 msgid "Presets inherited by other presets can not be deleted!"
-msgstr ""
+msgstr "Inställningar som ärvts av andra inställningar kan inte raderas!"
 
 msgid "The following presets inherit this preset."
 msgid_plural "The following preset inherits this preset."
@@ -7543,6 +7852,9 @@ msgid ""
 "If the preset corresponds to a filament currently in use on your printer, "
 "please reset the filament information for that slot."
 msgstr ""
+"Är du säker på att du vill radera den valda inställningen? \n"
+"Om inställningen motsvarar ett filament som för närvarande används på din "
+"skrivare, vänligen återställ filament informationen för den platsen."
 
 #, boost-format
 msgid "Are you sure to %1% the selected preset?"
@@ -7646,12 +7958,14 @@ msgstr ""
 
 #, boost-format
 msgid "You have changed some settings of preset \"%1%\". "
-msgstr ""
+msgstr "You have changed some settings of preset \"%1%\". "
 
 msgid ""
 "\n"
 "You can save or discard the preset values you have modified."
 msgstr ""
+"\n"
+"You can save or discard the preset values you have modified."
 
 msgid ""
 "\n"
@@ -7660,7 +7974,7 @@ msgid ""
 msgstr ""
 
 msgid "You have previously modified your settings."
-msgstr ""
+msgstr "You have previously modified your settings."
 
 msgid ""
 "\n"
@@ -7814,7 +8128,7 @@ msgid "Auto-Calc"
 msgstr "Autoberäkna"
 
 msgid "Re-calculate"
-msgstr ""
+msgstr "Utför beräkningen igen"
 
 msgid "Flushing volumes for filament change"
 msgstr "Rensnings volym för filament byte"
@@ -7854,10 +8168,10 @@ msgid "To"
 msgstr "Till"
 
 msgid "Bambu Network plug-in not detected."
-msgstr ""
+msgstr "Bambu Network plug-in hittades inte."
 
 msgid "Click here to download it."
-msgstr ""
+msgstr "Klicka här för att ladda ner den."
 
 msgid "Login"
 msgstr "Logga in"
@@ -7890,7 +8204,7 @@ msgid "Show/Hide 3Dconnexion devices settings dialog"
 msgstr "Visa/Dölj 3Dconnexion enheternas inställnings dialogruta"
 
 msgid "Switch table page"
-msgstr ""
+msgstr "Byt tabellsida"
 
 msgid "Show keyboard shortcuts list"
 msgstr "Visa tangentbordets genvägs lista"
@@ -8122,6 +8436,12 @@ msgstr "Flytta reglage 5x snabbare"
 msgid "Shift+Mouse wheel"
 msgstr "Shift+Mushjulet"
 
+msgid "Horizontal slider - Move to start position"
+msgstr ""
+
+msgid "Horizontal slider - Move to last position"
+msgstr ""
+
 msgid "Release Note"
 msgstr "Meddelande om utgåvan"
 
@@ -8146,49 +8466,49 @@ msgid "New version of Orca Slicer"
 msgstr "Ny version av Orca Slicer"
 
 msgid "Skip this Version"
-msgstr ""
+msgstr "Hoppa över denna version"
 
 msgid "Done"
 msgstr "Klar"
 
 msgid "resume"
-msgstr ""
+msgstr "resume"
 
 msgid "Resume Printing"
-msgstr ""
+msgstr "Resume Printing"
 
 msgid "Resume Printing(defects acceptable)"
-msgstr ""
+msgstr "Resume Printing (defects acceptable)"
 
 msgid "Resume Printing(problem solved)"
-msgstr ""
+msgstr "Resume Printing (problem solved)"
 
 msgid "Stop Printing"
-msgstr ""
+msgstr "Stop Printing"
 
 msgid "Check Assistant"
-msgstr ""
+msgstr "Check Assistant"
 
 msgid "Filament Extruded, Continue"
-msgstr ""
+msgstr "Filament Extruded, Continue"
 
 msgid "Not Extruded Yet, Retry"
-msgstr ""
+msgstr "Not Extruded Yet, Retry"
 
 msgid "Finished, Continue"
-msgstr ""
+msgstr "Finished, Continue"
 
 msgid "Load Filament"
 msgstr "Ladda Filament"
 
 msgid "Filament Loaded, Resume"
-msgstr ""
+msgstr "Filament Loaded, Resume"
 
 msgid "View Liveview"
-msgstr ""
+msgstr "View Liveview"
 
 msgid "Confirm and Update Nozzle"
-msgstr ""
+msgstr "Bekräfta och uppdatera nozzeln"
 
 msgid "LAN Connection Failed (Sending print file)"
 msgstr "LAN-anslutning misslyckades (skickar utskriftsfil)"
@@ -8214,21 +8534,23 @@ msgid "Where to find your printer's IP and Access Code?"
 msgstr "Var hittar du skrivarens IP- och åtkomstkod?"
 
 msgid "Step 3: Ping the IP address to check for packet loss and latency."
-msgstr ""
+msgstr "Steg 3: Pinga IP-adressen för att kontrollera paketförlust och latens."
 
 msgid "Test"
-msgstr ""
+msgstr "Test"
 
 msgid "IP and Access Code Verified! You may close the window"
-msgstr ""
+msgstr "IP- och åtkomstkoder verifierade! Du kan stänga fönstret"
 
 msgid "Connection failed, please double check IP and Access Code"
-msgstr ""
+msgstr "Anslutningen misslyckades, kontrollera IP och åtkomstkod"
 
 msgid ""
 "Connection failed! If your IP and Access Code is correct, \n"
 "please move to step 3 for troubleshooting network issues"
 msgstr ""
+"Anslutningen misslyckades! Om din IP-adress och åtkomstkod är korrekta, \n"
+"gå vidare till steg 3 för felsökning av nätverksproblem"
 
 msgid "Model:"
 msgstr "Modell:"
@@ -8242,14 +8564,8 @@ msgstr "Version:"
 msgid "Update firmware"
 msgstr "Uppdatera programvara"
 
-msgid "Printing"
-msgstr "Utskrift pågår"
-
-msgid "Idle"
-msgstr "Inaktiv"
-
 msgid "Beta version"
-msgstr ""
+msgstr "Betaversion"
 
 msgid "Latest version"
 msgstr "Senaste version"
@@ -8282,7 +8598,7 @@ msgstr ""
 msgid ""
 "The firmware version is abnormal. Repairing and updating are required before "
 "printing. Do you want to update now? You can also update later on printer or "
-"update next time starting the studio."
+"update next time starting Orca."
 msgstr ""
 "Firmware versionen är onormal. Reparation och uppdatering krävs före "
 "utskrift. Vill du uppdatera nu? Du kan också uppdatera senare på skrivaren "
@@ -8420,9 +8736,6 @@ msgstr ""
 
 msgid "Gap infill"
 msgstr "Mellanrums ifyllnad"
-
-msgid "Skirt"
-msgstr ""
 
 msgid "Support interface"
 msgstr "Support kontaktyta"
@@ -8613,26 +8926,33 @@ msgid ""
 msgstr ""
 
 msgid "Variable layer height is not supported with Organic supports."
-msgstr ""
+msgstr "Variabel lagerhöjd stöds inte med organiska support."
 
 msgid ""
 "Different nozzle diameters and different filament diameters is not allowed "
 "when prime tower is enabled."
 msgstr ""
+"Olika nozzel diametrar och olika filament diametrar är inte tillåtna när "
+"prime tower är aktiverat."
 
 msgid ""
 "The Wipe Tower is currently only supported with the relative extruder "
 "addressing (use_relative_e_distances=1)."
 msgstr ""
+"Wipe Tower stöds för närvarande endast med relativ extruder adressering "
+"(use_relative_e_distances=1)."
 
 msgid ""
 "Ooze prevention is currently not supported with the prime tower enabled."
 msgstr ""
+"Förebyggande av läckage stöds för närvarande inte med prime tower aktiverat."
 
 msgid ""
 "The prime tower is currently only supported for the Marlin, RepRap/Sprinter, "
 "RepRapFirmware and Repetier G-code flavors."
 msgstr ""
+"Prime Tower stöds för närvarande endast för G-kods varianterna Marlin, "
+"RepRap/Sprinter, RepRapFirmware och Repetier."
 
 msgid "The prime tower is not supported in \"By object\" print."
 msgstr "Ett Prime Torn stöds inte i \"Per objekt\" utskrift."
@@ -8853,11 +9173,13 @@ msgstr ""
 "format: https://username:password@your-octopi-address/"
 
 msgid "Device UI"
-msgstr ""
+msgstr "Enhetens gränssnitt"
 
 msgid ""
 "Specify the URL of your device user interface if it's not same as print_host"
 msgstr ""
+"Ange webbadressen till enhetens användar gränssnitt om den inte är densamma "
+"som printer värd"
 
 msgid "API Key / Password"
 msgstr "API Nyckel/Lösenord"
@@ -9015,16 +9337,16 @@ msgid "Engineering Plate"
 msgstr "Engineering Plate"
 
 msgid "First layer print sequence"
-msgstr ""
+msgstr "Första lagrets utskrifts ordning"
 
 msgid "Other layers print sequence"
-msgstr ""
+msgstr "Other layers print sequence"
 
 msgid "The number of other layers print sequence"
-msgstr ""
+msgstr "The number of other layers print sequence"
 
 msgid "Other layers filament sequence"
-msgstr ""
+msgstr "Other layers filament sequence"
 
 msgid "This G-code is inserted at every layer change before lifting z"
 msgstr "Denna G-kod används för varje lager innan Z axis lyfts"
@@ -9155,12 +9477,14 @@ msgid ""
 msgstr ""
 
 msgid "Top surface flow ratio"
-msgstr ""
+msgstr "Flödesförhållande för övre ytan"
 
 msgid ""
 "This factor affects the amount of material for top solid infill. You can "
 "decrease it slightly to have smooth surface finish"
 msgstr ""
+"Denna faktor påverkar mängden material för den övre solida fyllningen. Du "
+"kan minska den något för att få en jämn ytfinish."
 
 msgid "Bottom surface flow ratio"
 msgstr ""
@@ -9304,7 +9628,7 @@ msgid ""
 msgstr ""
 
 msgid "mm/s or %"
-msgstr ""
+msgstr "mm/s eller %."
 
 msgid "External"
 msgstr ""
@@ -9446,7 +9770,7 @@ msgid "Default process profile when switch to this machine profile"
 msgstr "Standard process profil vid byte till denna maskinens profil"
 
 msgid "Activate air filtration"
-msgstr ""
+msgstr "Activate air filtration"
 
 msgid "Activate for better air filtration. G-code command: M106 P3 S(0-255)"
 msgstr ""
@@ -9458,6 +9782,8 @@ msgid ""
 "Speed of exhaust fan during printing.This speed will overwrite the speed in "
 "filament custom gcode"
 msgstr ""
+"Hastighet för frånlufts fläkt under utskrift. Denna hastighet kommer att "
+"åsidosätta hastigheten i filament anpassad g-kod"
 
 msgid "Speed of exhaust fan after printing completes"
 msgstr ""
@@ -9564,12 +9890,14 @@ msgid "End G-code when finish the whole printing"
 msgstr "Lägg till slut G-kod när utskriften har avslutas"
 
 msgid "Between Object Gcode"
-msgstr ""
+msgstr "Mellan objekt G kod"
 
 msgid ""
 "Insert Gcode between objects. This parameter will only come into effect when "
 "you print your models object by object"
 msgstr ""
+"Infoga G-kod mellan objekt. Denna parameter träder i kraft först när du "
+"skriver ut dina modeller objekt för objekt."
 
 msgid "End G-code when finish the printing of this filament"
 msgstr "Lägg till slut G-kod när utskriften har avslutas med detta filament"
@@ -9631,7 +9959,7 @@ msgid "Line pattern of bottom surface infill, not bridge infill"
 msgstr "Botten ytans ifyllnads linjemönster, inte bridge/brygg ifyllnad"
 
 msgid "Internal solid infill pattern"
-msgstr ""
+msgstr "Invändigt mönster för fyllning av solida ytor"
 
 msgid ""
 "Line pattern of internal solid infill. if the detect narrow internal solid "
@@ -9651,7 +9979,7 @@ msgstr ""
 "hastigheten på inner vägg för att uppnå bättre kvalitet."
 
 msgid "Small perimeters"
-msgstr ""
+msgstr "Små perimetrar"
 
 msgid ""
 "This separate setting will affect the speed of perimeters having radius <= "
@@ -9666,6 +9994,8 @@ msgstr ""
 msgid ""
 "This sets the threshold for small perimeter length. Default threshold is 0mm"
 msgstr ""
+"Detta ställer in tröskelvärdet för liten perimeterlängd. Standardgränsen är "
+"0mm"
 
 msgid "Walls printing order"
 msgstr ""
@@ -9705,7 +10035,7 @@ msgid "Inner/Outer/Inner"
 msgstr ""
 
 msgid "Print infill first"
-msgstr ""
+msgstr "Printa fyllningen först"
 
 msgid ""
 "Order of wall/infill. When the tickbox is unchecked the walls are printed "
@@ -9766,10 +10096,10 @@ msgstr ""
 "utskrift av flera objekt."
 
 msgid "Nozzle height"
-msgstr ""
+msgstr "Nozzel höjd"
 
 msgid "The height of nozzle tip."
-msgstr ""
+msgstr "Höjden på nozzel spetsen."
 
 msgid "Bed mesh min"
 msgstr ""
@@ -9841,7 +10171,7 @@ msgstr ""
 "fin flat yta när visst överflöde eller underflöde finns"
 
 msgid "Enable pressure advance"
-msgstr ""
+msgstr "Aktivera pressure advance"
 
 msgid ""
 "Enable pressure advance, auto calibration result will be overwriten once "
@@ -9886,10 +10216,10 @@ msgid "Default filament color"
 msgstr "Standard filament färg"
 
 msgid "Filament notes"
-msgstr ""
+msgstr "Filament notes"
 
 msgid "You can put your notes regarding the filament here."
-msgstr ""
+msgstr "You can put your notes regarding the filament here."
 
 msgid "Required nozzle HRC"
 msgstr "HRC nozzle krävs"
@@ -10087,13 +10417,16 @@ msgstr ""
 "gränssnittet"
 
 msgid "Softening temperature"
-msgstr ""
+msgstr "Mjuknings temperatur"
 
 msgid ""
 "The material softens at this temperature, so when the bed temperature is "
 "equal to or greater than it, it's highly recommended to open the front door "
 "and/or remove the upper glass to avoid cloggings."
 msgstr ""
+"The material softens at this temperature, so when the bed temperature is "
+"equal to or greater than this, it's highly recommended to open the front "
+"door and/or remove the upper glass to avoid clogs."
 
 msgid "Price"
 msgstr "Pris"
@@ -10105,16 +10438,16 @@ msgid "money/kg"
 msgstr "pris/kg"
 
 msgid "Vendor"
-msgstr ""
+msgstr "Leverantör"
 
 msgid "Vendor of filament. For show only"
-msgstr ""
+msgstr "Försäljare av filament. Endast för visning"
 
 msgid "(Undefined)"
 msgstr "(Oidentifierad)"
 
-msgid "Infill direction"
-msgstr "Ifyllnads riktning"
+msgid "Sparse infill direction"
+msgstr ""
 
 msgid ""
 "Angle for sparse infill pattern, which controls the start or main direction "
@@ -10122,6 +10455,20 @@ msgid ""
 msgstr ""
 "Vinkeln för sparsam ifyllnads mönster, som styr start- eller huvudriktningen "
 "för linjer"
+
+msgid "Solid infill direction"
+msgstr ""
+
+msgid ""
+"Angle for solid infill pattern, which controls the start or main direction "
+"of line"
+msgstr ""
+
+msgid "Rotate solid infill direction"
+msgstr ""
+
+msgid "Rotate the solid infill direction by 90° for each layer."
+msgstr ""
 
 msgid "Sparse infill density"
 msgstr "Sparsam ifyllnads densitet"
@@ -10169,7 +10516,7 @@ msgid "Lightning"
 msgstr "Blixt"
 
 msgid "Cross Hatch"
-msgstr ""
+msgstr "Cross Hatch"
 
 msgid "Sparse infill anchor length"
 msgstr ""
@@ -10237,12 +10584,14 @@ msgid ""
 msgstr ""
 
 msgid "mm/s² or %"
-msgstr ""
+msgstr "mm/s² or %"
 
 msgid ""
 "Acceleration of sparse infill. If the value is expressed as a percentage (e."
 "g. 100%), it will be calculated based on the default acceleration."
 msgstr ""
+"Acceleration av gles utfyllnad. Om värdet uttrycks som en procentsats (t.ex. "
+"100%) kommer det att beräknas baserat på standard accelerationen."
 
 msgid ""
 "Acceleration of internal solid infill. If the value is expressed as a "
@@ -10258,13 +10607,13 @@ msgstr ""
 "objektets fäste på byggplattan"
 
 msgid "Enable accel_to_decel"
-msgstr ""
+msgstr "Aktivera accel_to_decel"
 
 msgid "Klipper's max_accel_to_decel will be adjusted automatically"
-msgstr ""
+msgstr "Klippers max_accel_to_decel kommer att justeras automatiskt"
 
 msgid "accel_to_decel"
-msgstr ""
+msgstr "accel_to_decel"
 
 #, c-format, boost-format
 msgid ""
@@ -10272,10 +10621,10 @@ msgid ""
 msgstr ""
 
 msgid "Jerk of outer walls"
-msgstr ""
+msgstr "Jerk ytterväggar"
 
 msgid "Jerk of inner walls"
-msgstr ""
+msgstr "Jerk innerväggar"
 
 msgid "Jerk for top surface"
 msgstr ""
@@ -10399,7 +10748,7 @@ msgid "Whether to apply fuzzy skin on the first layer"
 msgstr ""
 
 msgid "Filter out tiny gaps"
-msgstr ""
+msgstr "Filtrera bort små luckor"
 
 msgid "Layers and Perimeters"
 msgstr "Lager och perimetrar"
@@ -10415,23 +10764,30 @@ msgstr ""
 "linjebredd och bör skrivas ut långsammare"
 
 msgid "Precise Z height"
-msgstr ""
+msgstr "Precise Z height"
 
 msgid ""
 "Enable this to get precise z height of object after slicing. It will get the "
 "precise object height by fine-tuning the layer heights of the last few "
 "layers. Note that this is an experimental parameter."
 msgstr ""
+"Enable this to get precise z height of object after slicing. It will get the "
+"precise object height by fine-tuning the layer heights of the last few "
+"layers. Note that this is an experimental parameter."
 
 msgid "Arc fitting"
 msgstr "Arc passning"
 
 msgid ""
-"Enable this to get a G-code file which has G2 and G3 moves. And the fitting "
-"tolerance is same with resolution"
+"Enable this to get a G-code file which has G2 and G3 moves. The fitting "
+"tolerance is same as the resolution. \n"
+"\n"
+"Note: For klipper machines, this option is recomended to be disabled. "
+"Klipper does not benefit from arc commands as these are split again into "
+"line segments by the firmware. This results in a reduction in surface "
+"quality as line segments are converted to arcs by the slicer and then back "
+"to line segments by the firmware."
 msgstr ""
-"Aktivera detta för att få en G-kod med G2 och G3 drag. Passnings toleransen "
-"är densamma som upplösningen"
 
 msgid "Add line number"
 msgstr "Lägg till rad nummer"
@@ -10486,10 +10842,10 @@ msgid "HRC"
 msgstr "HRC"
 
 msgid "Printer structure"
-msgstr ""
+msgstr "Printerns struktur"
 
 msgid "The physical arrangement and components of a printing device"
-msgstr ""
+msgstr "Den fysiska utformningen och komponenterna i en utskriftsenhet"
 
 msgid "CoreXY"
 msgstr ""
@@ -10504,10 +10860,12 @@ msgid "Delta"
 msgstr ""
 
 msgid "Best object position"
-msgstr ""
+msgstr "Bästa position för objektet"
 
 msgid "Best auto arranging position in range [0,1] w.r.t. bed shape."
 msgstr ""
+"Bästa automatiska arrangemangs position i intervallet [0,1] w.r.t. bäddens "
+"form."
 
 msgid ""
 "Enable this option if machine has auxiliary part cooling fan. G-code "
@@ -10553,7 +10911,7 @@ msgid "money/h"
 msgstr ""
 
 msgid "Support control chamber temperature"
-msgstr ""
+msgstr "Stöd för kontroll av kammarens temperatur"
 
 msgid ""
 "This option is enabled if machine support controlling chamber temperature\n"
@@ -10561,7 +10919,7 @@ msgid ""
 msgstr ""
 
 msgid "Support air filtration"
-msgstr ""
+msgstr "Stödjer luftfiltrering"
 
 msgid ""
 "Enable this if printer support air filtration\n"
@@ -10594,7 +10952,7 @@ msgid ""
 msgstr ""
 
 msgid "Exclude objects"
-msgstr ""
+msgstr "Exkludera objekt"
 
 msgid "Enable this option to add EXCLUDE OBJECT command in g-code"
 msgstr ""
@@ -10630,37 +10988,55 @@ msgstr ""
 msgid "Infill/Wall overlap"
 msgstr "Ifyllnad/Vägg överlapp"
 
+#, no-c-format, no-boost-format
 msgid ""
 "Infill area is enlarged slightly to overlap with wall for better bonding. "
-"The percentage value is relative to line width of sparse infill"
+"The percentage value is relative to line width of sparse infill. Set this "
+"value to ~10-15% to minimize potential over extrusion and accumulation of "
+"material resulting in rough top surfaces."
 msgstr ""
-"Detta gör att ifyllnads området kan förstoras något för att överlappa "
-"väggarna för bättre vidhäftning.Det procentuella värdet är i förhållande "
-"till linjebredden för sparsam ifyllnad"
+
+msgid "Top/Bottom solid infill/wall overlap"
+msgstr ""
+
+#, no-c-format, no-boost-format
+msgid ""
+"Top solid infill area is enlarged slightly to overlap with wall for better "
+"bonding and to minimize the appearance of pinholes where the top infill "
+"meets the walls. A value of 25-30% is a good starting point, minimising the "
+"appearance of pinholes. The percentage value is relative to line width of "
+"sparse infill"
+msgstr ""
 
 msgid "Speed of internal sparse infill"
 msgstr "Hastighet för sparsam ifyllnad"
 
 msgid "Interface shells"
-msgstr ""
+msgstr "Interface shells"
 
 msgid ""
 "Force the generation of solid shells between adjacent materials/volumes. "
 "Useful for multi-extruder prints with translucent materials or manual "
 "soluble support material"
 msgstr ""
+"Force the generation of solid shells between adjacent materials/volumes. "
+"Useful for multi-extruder prints with translucent materials or manual "
+"soluble support material"
 
 msgid "Maximum width of a segmented region"
-msgstr ""
+msgstr "Maximal bredd för en segmenterad region"
 
 msgid "Maximum width of a segmented region. Zero disables this feature."
 msgstr ""
+"Maximum width of a segmented region. A value of 0 disables this feature."
 
 msgid "Interlocking depth of a segmented region"
-msgstr ""
+msgstr "Sammanhängande djup i en segmenterad region"
 
 msgid "Interlocking depth of a segmented region. Zero disables this feature."
 msgstr ""
+"Sammankopplingsdjup för en segmenterad region. Noll inaktiverar denna "
+"funktion."
 
 msgid "Ironing Type"
 msgstr "Stryknings typ"
@@ -11136,10 +11512,10 @@ msgid ""
 msgstr ""
 
 msgid "Printer notes"
-msgstr ""
+msgstr "Printer notes"
 
 msgid "You can put your notes regarding the printer here."
-msgstr ""
+msgstr "You can put your notes regarding the printer here."
 
 msgid "Raft contact Z distance"
 msgstr "Raft kontakt Z avstånd"
@@ -11223,7 +11599,7 @@ msgstr ""
 "långa förflyttningar. Sätt på 0 för att inaktivera retraktion"
 
 msgid "Long retraction when cut(experimental)"
-msgstr ""
+msgstr "Long retraction when cut (experimental)"
 
 msgid ""
 "Experimental feature.Retracting and cutting off the filament at a longer "
@@ -11231,14 +11607,20 @@ msgid ""
 "significantly, it may also raise the risk of nozzle clogs or other printing "
 "problems."
 msgstr ""
+"Experimental feature: Retracting and cutting off the filament at a longer "
+"distance during changes to minimize purge.While this reduces flush "
+"significantly, it may also raise the risk of nozzle clogs or other printing "
+"problems."
 
 msgid "Retraction distance when cut"
-msgstr ""
+msgstr "Retraction distance when cut"
 
 msgid ""
 "Experimental feature.Retraction length before cutting off during filament "
 "change"
 msgstr ""
+"Experimental feature. Retraction length before cutting off during filament "
+"change"
 
 msgid "Z hop when retract"
 msgstr "Z hopp vid retraktion"
@@ -11254,20 +11636,24 @@ msgstr ""
 "strängning"
 
 msgid "Z hop lower boundary"
-msgstr ""
+msgstr "Z hopp nedre gräns"
 
 msgid ""
 "Z hop will only come into effect when Z is above this value and is below the "
 "parameter: \"Z hop upper boundary\""
 msgstr ""
+"Z hop kommer endast att träda i kraft när Z är över detta värde och är under "
+"parametern: \"Övre gräns för Z-hopp\""
 
 msgid "Z hop upper boundary"
-msgstr ""
+msgstr "Z hopp övre gräns"
 
 msgid ""
 "If this value is positive, Z hop will only come into effect when Z is above "
 "the parameter: \"Z hop lower boundary\" and is below this value"
 msgstr ""
+"Om detta värde är positivt kommer Z hop endast att träda i kraft när Z är "
+"över parametern: \"Z hop nedre gräns\" och är under detta värde"
 
 msgid "Z hop type"
 msgstr ""
@@ -11315,7 +11701,7 @@ msgid "Top and Bottom"
 msgstr ""
 
 msgid "Extra length on restart"
-msgstr ""
+msgstr "Extra längd vid omstart"
 
 msgid ""
 "When the retraction is compensated after the travel move, the extruder will "
@@ -11345,7 +11731,7 @@ msgstr ""
 "retraktionen"
 
 msgid "Use firmware retraction"
-msgstr ""
+msgstr "Använd firmware retraktion"
 
 msgid ""
 "This experimental setting uses G10 and G11 commands to have the firmware "
@@ -11389,7 +11775,7 @@ msgid ""
 msgstr ""
 
 msgid "Seam gap"
-msgstr ""
+msgstr "Sömmens mellanrum"
 
 msgid ""
 "In order to reduce the visibility of the seam in a closed loop extrusion, "
@@ -11403,17 +11789,20 @@ msgstr ""
 
 msgid "Use scarf joint to minimize seam visibility and increase seam strength."
 msgstr ""
+"Use scarf joint to minimize seam visibility and increase seam strength."
 
 msgid "Conditional scarf joint"
-msgstr ""
+msgstr "Conditional scarf joint"
 
 msgid ""
 "Apply scarf joints only to smooth perimeters where traditional seams do not "
 "conceal the seams at sharp corners effectively."
 msgstr ""
+"Apply scarf joints only to smooth perimeters where traditional seams do not "
+"conceal the seams at sharp corners effectively."
 
 msgid "Conditional angle threshold"
-msgstr ""
+msgstr "Conditional angle threshold"
 
 msgid ""
 "This option sets the threshold angle for applying a conditional scarf joint "
@@ -11456,39 +11845,44 @@ msgid "This factor affects the amount of material for scarf joints."
 msgstr ""
 
 msgid "Scarf start height"
-msgstr ""
+msgstr "Scarf start height"
 
 msgid ""
 "Start height of the scarf.\n"
 "This amount can be specified in millimeters or as a percentage of the "
 "current layer height. The default value for this parameter is 0."
 msgstr ""
+"Start height of the scarf.\n"
+"This amount can be specified in millimeters or as a percentage of the "
+"current layer height. The default value for this parameter is 0."
 
 msgid "Scarf around entire wall"
-msgstr ""
+msgstr "Scarf around entire wall"
 
 msgid "The scarf extends to the entire length of the wall."
-msgstr ""
+msgstr "The scarf extends to the entire length of the wall."
 
 msgid "Scarf length"
-msgstr ""
+msgstr "Scarf length"
 
 msgid ""
 "Length of the scarf. Setting this parameter to zero effectively disables the "
 "scarf."
 msgstr ""
+"Length of the scarf. Setting this parameter to zero effectively disables the "
+"scarf."
 
 msgid "Scarf steps"
-msgstr ""
+msgstr "Scarf steps"
 
 msgid "Minimum number of segments of each scarf."
-msgstr ""
+msgstr "Minimum number of segments of each scarf."
 
 msgid "Scarf joint for inner walls"
-msgstr ""
+msgstr "Scarf joint for inner walls"
 
 msgid "Use scarf joint for inner walls as well."
-msgstr ""
+msgstr "Use scarf joint for inner walls as well."
 
 msgid "Role base wipe speed"
 msgstr ""
@@ -11523,7 +11917,7 @@ msgid ""
 msgstr ""
 
 msgid "Wipe speed"
-msgstr ""
+msgstr "Hastighet för avtorkning"
 
 msgid ""
 "The wipe speed is determined by the speed setting specified in this "
@@ -11531,6 +11925,10 @@ msgid ""
 "be calculated based on the travel speed setting above.The default value for "
 "this parameter is 80%"
 msgstr ""
+"Torkhastigheten bestäms av den hastighetsinställning som anges i denna "
+"konfiguration. Om värdet uttrycks i procent (t.ex. 80%), kommer det att "
+"beräknas baserat på inställningen för förflyttnings hastigheten ovan. "
+"Standardvärdet för denna parameter är 80%"
 
 msgid "Skirt distance"
 msgstr "Skirt avstånd"
@@ -11544,6 +11942,29 @@ msgstr "Skirt höjd"
 msgid "How many layers of skirt. Usually only one layer"
 msgstr "Antal skirt lager: vanligtvis bara en"
 
+msgid "Draft shield"
+msgstr ""
+
+msgid ""
+"A draft shield is useful to protect an ABS or ASA print from warping and "
+"detaching from print bed due to wind draft. It is usually needed only with "
+"open frame printers, i.e. without an enclosure. \n"
+"\n"
+"Options:\n"
+"Enabled = skirt is as tall as the highest printed object.\n"
+"Limited = skirt is as tall as specified by skirt height.\n"
+"\n"
+"Note: With the draft shield active, the skirt will be printed at skirt "
+"distance from the object. Therefore, if brims are active it may intersect "
+"with them. To avoid this, increase the skirt distance value.\n"
+msgstr ""
+
+msgid "Limited"
+msgstr ""
+
+msgid "Enabled"
+msgstr ""
+
 msgid "Skirt loops"
 msgstr "Skirt varv"
 
@@ -11554,6 +11975,17 @@ msgid "Skirt speed"
 msgstr ""
 
 msgid "Speed of skirt, in mm/s. Zero means use default layer extrusion speed."
+msgstr ""
+
+msgid "Skirt minimum extrusion length"
+msgstr ""
+
+msgid ""
+"Minimum filament extrusion length in mm when printing the skirt. Zero means "
+"this feature is disabled.\n"
+"\n"
+"Using a non zero value is useful if the printer is set up to print without a "
+"prime line."
 msgstr ""
 
 msgid ""
@@ -11592,20 +12024,24 @@ msgstr ""
 "solida bottenlager. Den slutgiltligt genererade modellen har ingen söm"
 
 msgid "Smooth Spiral"
-msgstr ""
+msgstr "Smooth Spiral"
 
 msgid ""
 "Smooth Spiral smoothes out X and Y moves as wellresulting in no visible seam "
 "at all, even in the XY directions on walls that are not vertical"
 msgstr ""
+"Smooth Spiral smoothes out X and Y moves as wellresulting in no visible seam "
+"at all, even in the XY directions on walls that are not vertical"
 
 msgid "Max XY Smoothing"
-msgstr ""
+msgstr "Max XY Smoothing"
 
 msgid ""
 "Maximum distance to move points in XY to try to achieve a smooth spiralIf "
 "expressed as a %, it will be computed over nozzle diameter"
 msgstr ""
+"Maximum distance to move points in XY to try to achieve a smooth spiral. If "
+"expressed as a %, it will be computed over nozzle diameter"
 
 msgid ""
 "If smooth or traditional mode is selected, a timelapse video will be "
@@ -11784,10 +12220,10 @@ msgstr ""
 "utskjutande detaljer etc."
 
 msgid "Remove small overhangs"
-msgstr ""
+msgstr "Ta bort små överhäng"
 
 msgid "Remove small overhangs that possibly need no supports."
-msgstr ""
+msgstr "Ta bort små överhäng som eventuellt inte behöver stöd."
 
 msgid "Top Z distance"
 msgstr "Topp Z-distans"
@@ -11813,11 +12249,13 @@ msgstr ""
 "specifik filament för support, och nuvarande filament används"
 
 msgid "Avoid interface filament for base"
-msgstr ""
+msgstr "Undvik gränssnitts filament för basen"
 
 msgid ""
 "Avoid using support interface filament to print support base if possible."
 msgstr ""
+"Undvik om möjligt att använda filament för stöd gränssnitt för att skriva ut "
+"stödbasen."
 
 msgid ""
 "Line width of support. If expressed as a %, it will be computed over the "
@@ -11854,10 +12292,10 @@ msgid "Bottom interface layers"
 msgstr "Botten gränssnitts lager"
 
 msgid "Number of bottom interface layers"
-msgstr ""
+msgstr "Antal nedre gränsyte skikt"
 
 msgid "Same as top"
-msgstr ""
+msgstr "Samma som toppen"
 
 msgid "Top interface spacing"
 msgstr "Topp gränssnitts avstånd"
@@ -12063,10 +12501,10 @@ msgid ""
 msgstr ""
 
 msgid "Support wall loops"
-msgstr ""
+msgstr "Vägg support"
 
 msgid "This setting specify the count of walls around support"
-msgstr ""
+msgstr "Denna inställning anger antalet väggar runt supporten"
 
 msgid "Tree support with infill"
 msgstr "Tree support med ifyllnad"
@@ -12088,7 +12526,7 @@ msgid ""
 msgstr ""
 
 msgid "Chamber temperature"
-msgstr ""
+msgstr "Kammarens temperatur"
 
 msgid ""
 "Higher chamber temperature can help suppress or reduce warping and "
@@ -12099,6 +12537,12 @@ msgid ""
 "high to avoid cloggings, so 0 which stands for turning off is highly "
 "recommended"
 msgstr ""
+"Higher chamber temperature can help suppress or reduce warping and "
+"potentially lead to higher interlayer bonding strength for high temperature "
+"materials like ABS, ASA, PC, PA and so on. At the same time, the air "
+"filtration of ABS and ASA will get worse.While for PLA, PETG, TPU, PVA and "
+"other low temperature materials, the actual chamber temperature should not "
+"be high to avoid clogs, so 0 (turned off) is highly recommended."
 
 msgid "Nozzle temperature for layers after the initial one"
 msgstr "Nozzel temperatur efter första lager"
@@ -12242,6 +12686,31 @@ msgstr ""
 msgid "Spacing of purge lines on the wipe tower."
 msgstr ""
 
+msgid "Maximum wipe tower print speed"
+msgstr ""
+
+msgid ""
+"The maximum print speed when purging in the wipe tower and printing the wipe "
+"tower sparse layers. When purging, if the sparse infill speed or calculated "
+"speed from the filament max volumetric speed is lower, the lowest will be "
+"used instead.\n"
+"\n"
+"When printing the sparse layers, if the internal perimeter speed or "
+"calculated speed from the filament max volumetric speed is lower, the lowest "
+"will be used instead.\n"
+"\n"
+"Increasing this speed may affect the tower's stability as well as increase "
+"the force with which the nozzle collides with any blobs that may have formed "
+"on the wipe tower.\n"
+"\n"
+"Before increasing this parameter beyond the default of 90mm/sec, make sure "
+"your printer can reliably bridge at the increased speeds and that ooze when "
+"tool changing is well controlled.\n"
+"\n"
+"For the wipe tower external perimeters the internal perimeter speed is used "
+"regardless of this setting."
+msgstr ""
+
 msgid "Wipe tower extruder"
 msgstr ""
 
@@ -12367,7 +12836,7 @@ msgid ""
 msgstr ""
 
 msgid "Use relative E distances"
-msgstr ""
+msgstr "Använd relativa E avstånd"
 
 msgid ""
 "Relative extrusion is recommended when using \"label_objects\" option.Some "
@@ -12926,7 +13395,7 @@ msgid "load_obj: failed to parse"
 msgstr "load_obj: misslyckades med att analysera"
 
 msgid "load mtl in obj: failed to parse"
-msgstr ""
+msgstr "load mtl in obj: failed to parse"
 
 msgid "The file contains polygons with more than 4 vertices."
 msgstr "Filen innehåller polygoner med fler än 4 hörn."
@@ -12941,67 +13410,71 @@ msgid "This OBJ file couldn't be read because it's empty."
 msgstr "Denna OBJ fil kunde inte läsas eftersom den är tom."
 
 msgid "Flow Rate Calibration"
-msgstr ""
+msgstr "Kalibrering av flödeshastighet"
 
 msgid "Max Volumetric Speed Calibration"
-msgstr ""
+msgstr "Max volymetrisk hastighets kalibrering"
 
 msgid "Manage Result"
-msgstr ""
+msgstr "Hantera resultat"
 
 msgid "Manual Calibration"
-msgstr ""
+msgstr "Manuell kalibrering"
 
 msgid "Result can be read by human eyes."
-msgstr ""
+msgstr "Resultatet kan läsas av mänskliga ögon."
 
 msgid "Auto-Calibration"
-msgstr ""
+msgstr "Auto-Calibration"
 
 msgid "We would use Lidar to read the calibration result"
-msgstr ""
+msgstr "Vi vill använda Lidar för att läsa av kalibrerings resultatet"
 
 msgid "Prev"
-msgstr ""
+msgstr "Föregående"
 
 msgid "Recalibration"
-msgstr ""
+msgstr "Omkalibrering"
 
 msgid "Calibrate"
-msgstr ""
+msgstr "Kalibrera"
 
 msgid "Finish"
 msgstr "Slutför"
 
 msgid "How to use calibration result?"
-msgstr ""
+msgstr "Hur kan jag använda kalibreringsresultaten?"
 
 msgid ""
 "You could change the Flow Dynamics Calibration Factor in material editing"
 msgstr ""
+"Du kan ändra kalibreringsfaktorn för flödesdynamik i material redigeringen"
 
 msgid ""
 "The current firmware version of the printer does not support calibration.\n"
 "Please upgrade the printer firmware."
 msgstr ""
+"Den aktuella versionen av printerns inbyggda programvara stöder inte "
+"kalibrering.\n"
+"Vänligen uppdatera printerns programvara."
 
 msgid "Calibration not supported"
-msgstr ""
+msgstr "Kalibrering stöds inte"
 
 msgid "Error desc"
-msgstr ""
+msgstr "Fel desc"
 
 msgid "Extra info"
-msgstr ""
+msgstr "Extra info"
 
 msgid "Flow Dynamics"
-msgstr ""
+msgstr "Flödesdynamik"
 
 msgid "Flow Rate"
-msgstr ""
+msgstr "Flödeshastighet"
 
 msgid "Max Volumetric Speed"
-msgstr ""
+msgstr "Max volymetrisk hastighet"
 
 #, c-format, boost-format
 msgid ""
@@ -13011,38 +13484,45 @@ msgid ""
 "End value: > Start value\n"
 "Value step: >= %.3f)"
 msgstr ""
+"Vänligen ange giltiga värden:\n"
+"Startvärde: &gt;= %.1f\n"
+"Slutvärde: &lt;= %.1f\n"
+"Slutvärde: &gt; Startvärde\n"
+"Värde steg: &gt;= %.3f)"
 
 msgid "The name cannot be empty."
-msgstr ""
+msgstr "Namnet får inte vara tomt."
 
 #, c-format, boost-format
 msgid "The selected preset: %s is not found."
-msgstr ""
+msgstr "Den valda inställningen: %s hittades inte."
 
 msgid "The name cannot be the same as the system preset name."
-msgstr ""
+msgstr "Namnet får inte vara detsamma som systemets förinställda namn."
 
 msgid "The name is the same as another existing preset name"
-msgstr ""
+msgstr "Namnet är detsamma som ett annat befintligt förinställt namn"
 
 msgid "create new preset failed."
-msgstr ""
+msgstr "skapande av ny inställning misslyckades."
 
 msgid ""
 "Are you sure to cancel the current calibration and return to the home page?"
 msgstr ""
+"Are you sure you want to cancel the current calibration and return to the "
+"home page?"
 
 msgid "No Printer Connected!"
-msgstr ""
+msgstr "Ingen skrivare ansluten!"
 
 msgid "Printer is not connected yet."
-msgstr ""
+msgstr "Printern är inte ansluten ännu."
 
 msgid "Please select filament to calibrate."
-msgstr ""
+msgstr "Välj filament för kalibrering."
 
 msgid "The input value size must be 3."
-msgstr ""
+msgstr "Storleken på ingångsvärdet måste vara 3."
 
 msgid ""
 "This machine type can only hold 16 history results per nozzle. You can "
@@ -13051,15 +13531,20 @@ msgid ""
 "historical results. \n"
 "Do you still want to continue the calibration?"
 msgstr ""
+"This machine type can only hold 16 historical results per nozzle. You can "
+"delete the existing historical results and then start calibration. Or you "
+"can continue the calibration, but you cannot create new calibration "
+"historical results. \n"
+"Do you still want to continue the calibration?"
 
 msgid "Connecting to printer..."
-msgstr ""
+msgstr "Ansluter till skrivaren..."
 
 msgid "The failed test result has been dropped."
-msgstr ""
+msgstr "Det misslyckade testresultatet har tagits bort."
 
 msgid "Flow Dynamics Calibration result has been saved to the printer"
-msgstr ""
+msgstr "Flödesdynamik kalibrerings resultaten har sparats på printern."
 
 #, c-format, boost-format
 msgid ""
@@ -13067,27 +13552,35 @@ msgid ""
 "Only one of the results with the same name is saved. Are you sure you want "
 "to override the historical result?"
 msgstr ""
+"Det finns redan ett tidigare kalibreringsresultat med samma namn: %s. Endast "
+"ett resultat med ett namn sparas. Är du säker på att du vill skriva över det "
+"tidigare resultatet?"
 
 #, c-format, boost-format
 msgid ""
 "This machine type can only hold %d history results per nozzle. This result "
 "will not be saved."
 msgstr ""
+"This machine type can only hold %d historical results per nozzle. This "
+"result will not be saved."
 
 msgid "Internal Error"
-msgstr ""
+msgstr "Internt fel"
 
 msgid "Please select at least one filament for calibration"
-msgstr ""
+msgstr "Välj minst ett filament för kalibrering"
 
 msgid "Flow rate calibration result has been saved to preset"
 msgstr ""
+"Resultat för kalibrering av flödeshastigheten har sparats till inställningen."
 
 msgid "Max volumetric speed calibration result has been saved to preset"
 msgstr ""
+"Max volymetrisk hastighets kalibrerings resultat har sparats till "
+"förinställningen"
 
 msgid "When do you need Flow Dynamics Calibration"
-msgstr ""
+msgstr "När behöver du kalibrering av flödes dynamik"
 
 msgid ""
 "We now have added the auto-calibration for different filaments, which is "
@@ -13099,9 +13592,17 @@ msgid ""
 "3. If the max volumetric speed or print temperature is changed in the "
 "filament setting."
 msgstr ""
+"Vi har nu lagt till automatisk kalibrering för olika filament, vilket är "
+"helt automatiserat och resultatet sparas i printern för framtida användning. "
+"Du behöver bara göra kalibreringen i följande begränsade fall:\n"
+"1. Om du introducerar ett nytt filament av olika märken/modeller eller om "
+"filamentet är fuktigt;\n"
+"2. Om nozzeln är utsliten eller ersatt med ett nytt;\n"
+"3. Om max volymhastighet eller utskriftstemperatur ändras i filament "
+"inställningen."
 
 msgid "About this calibration"
-msgstr ""
+msgstr "Om denna kalibrering"
 
 msgid ""
 "Please find the details of Flow Dynamics Calibration from our wiki.\n"
@@ -13122,9 +13623,28 @@ msgid ""
 "cause the result not exactly the same in each calibration. We are still "
 "investigating the root cause to do improvements with new updates."
 msgstr ""
+"Information om Flow Dynamics Calibration finns i vår wiki.\n"
+"\n"
+"Vanligtvis är kalibreringen onödig. När du startar en utskrift i en färg/"
+"material, med alternativet \"flödesdynamisk kalibrering\" markerat i "
+"startmenyn, kommer skrivaren att följa det gamla sättet, kalibrera "
+"filamentet före utskriften; När du startar en utskrift i flera färger/"
+"material kommer skrivaren att använda standard kompensations parametern för "
+"filamentet vid varje filamentbyte, vilket ger ett bra resultat i de flesta "
+"fall.\n"
+"\n"
+"Observera att det finns några fall som gör att kalibreringsresultatet inte "
+"blir tillförlitligt: använd en strukturplatta för att göra kalibreringen; "
+"byggplattan har inte bra vidhäftning (tvätta byggplattan eller applicera "
+"lim!) ...Du kan hitta mer från vår wiki.\n"
+"\n"
+"Kalibreringsresultaten har cirka 10 procent fel i vårt test, vilket kan "
+"orsaka att resultatet inte är exakt detsamma i varje kalibrering. Vi "
+"undersöker fortfarande grundorsaken för att kunna göra förbättringar med nya "
+"uppdateringar."
 
 msgid "When to use Flow Rate Calibration"
-msgstr ""
+msgstr "När ska man använda kalibrering av flödes hastighet?"
 
 msgid ""
 "After using Flow Dynamics Calibration, there might still be some extrusion "
@@ -13137,12 +13657,24 @@ msgid ""
 "4. Weak Structural Integrity: Prints break easily or don't seem as sturdy as "
 "they should be."
 msgstr ""
+"After using Flow Dynamics Calibration, there might still be some extrusion "
+"issues, such as:\n"
+"1. Over-Extrusion: Excess material on your printed object, forming blobs or "
+"zits, or the layers seem thicker than expected and not uniform.\n"
+"2. Under-Extrusion: Very thin layers, weak infill strength, or gaps in the "
+"top layer of the model, even when printing slowly.\n"
+"3. Poor Surface Quality: The surface of your prints seems rough or uneven.\n"
+"4. Weak Structural Integrity: Prints break easily or don't seem as sturdy as "
+"they should be."
 
 msgid ""
 "In addition, Flow Rate Calibration is crucial for foaming materials like LW-"
 "PLA used in RC planes. These materials expand greatly when heated, and "
 "calibration provides a useful reference flow rate."
 msgstr ""
+"Dessutom är flödeshastighets kalibrering avgörande för skummande material "
+"som LW-PLA som används i RC-plan. Dessa material expanderar kraftigt vid "
+"uppvärmning, och kalibrering ger en användbar referens flödeshastighet."
 
 msgid ""
 "Flow Rate Calibration measures the ratio of expected to actual extrusion "
@@ -13152,6 +13684,13 @@ msgid ""
 "you still see the listed defects after you have done other calibrations. For "
 "more details, please check out the wiki article."
 msgstr ""
+"Flödeskalibrering mäter förhållandet mellan förväntade och faktiska "
+"extruderings volymer. Standardinställningen fungerar bra med Bambu Lab "
+"printers och officiella filament eftersom de är förkalibrerade och "
+"finjusterade. För ett vanligt filament behöver du vanligtvis inte utföra en "
+"flödeshastighets kalibrering om du inte fortfarande ser de listade "
+"defekterna efter att du har gjort andra kalibreringar. För mer information, "
+"se vår wiki-artikel."
 
 msgid ""
 "Auto Flow Rate Calibration utilizes Bambu Lab's Micro-Lidar technology, "
@@ -13171,48 +13710,71 @@ msgid ""
 "can lead to sub-par prints or printer damage. Please make sure to carefully "
 "read and understand the process before doing it."
 msgstr ""
+"Auto Flow Rate Calibration utilizes Bambu Lab's Micro-Lidar technology, "
+"directly measuring the calibration patterns. However, please be advised that "
+"the efficacy and accuracy of this method may be compromised with specific "
+"types of materials. Particularly, filaments that are transparent or semi-"
+"transparent, sparkling-particled, or have a high-reflective finish may not "
+"be suitable for this calibration and can produce less-than-desirable "
+"results.\n"
+"\n"
+"The calibration results may vary between each calibration or filament. We "
+"are still improving the accuracy and compatibility of this calibration "
+"through firmware updates over time.\n"
+"\n"
+"Caution: Flow Rate Calibration is an advanced process, to be attempted only "
+"by those who fully understand its purpose and implications. Incorrect usage "
+"can lead to sub-par prints or printer damage. Please make sure to carefully "
+"read and understand the process before performing it."
 
 msgid "When you need Max Volumetric Speed Calibration"
-msgstr ""
+msgstr "När du behöver kalibrering av maximal volymhastighet"
 
 msgid "Over-extrusion or under extrusion"
-msgstr ""
+msgstr "Över extrudering eller under extrudering"
 
 msgid "Max Volumetric Speed calibration is recommended when you print with:"
 msgstr ""
+"Max volymetrisk hastighets kalibrering rekommenderas när du skriver ut med:"
 
 msgid "material with significant thermal shrinkage/expansion, such as..."
-msgstr ""
+msgstr "material med betydande termisk krympning/expansion, t.ex...."
 
 msgid "materials with inaccurate filament diameter"
-msgstr ""
+msgstr "material med felaktig filament diameter"
 
 msgid "We found the best Flow Dynamics Calibration Factor"
-msgstr ""
+msgstr "Vi hittade den bästa Flödes dynamiska kalibrerings faktorn"
 
 msgid ""
 "Part of the calibration failed! You may clean the plate and retry. The "
 "failed test result would be dropped."
 msgstr ""
+"En del av kalibreringen misslyckades! Det kan hjälpa att rengöra plattan och "
+"försöka igen. Det misslyckade testresultatet kommer att raderas."
 
 msgid ""
 "*We recommend you to add brand, materia, type, and even humidity level in "
 "the Name"
 msgstr ""
+"*Vi rekommenderar att du lägger till varumärke, material, typ och till och "
+"med fuktighetsnivå i namnet"
 
 msgid "Failed"
 msgstr "Misslyckades"
 
 msgid "Please enter the name you want to save to printer."
-msgstr ""
+msgstr "Ange det namn som du vill spara på skrivaren."
 
 msgid "The name cannot exceed 40 characters."
-msgstr ""
+msgstr "Namnet får inte innehålla mer än 40 tecken."
 
 msgid ""
 "Only one of the results with the same name will be saved. Are you sure you "
 "want to overrides the other results?"
 msgstr ""
+"Endast ett av resultaten med samma namn kommer att sparas. Är du säker på "
+"att du vill ersätta de andra resultaten?"
 
 #, c-format, boost-format
 msgid ""
@@ -13220,188 +13782,197 @@ msgid ""
 "Only one of the results with the same name is saved. Are you sure you want "
 "to overrides the historical result?"
 msgstr ""
+"Det finns redan ett tidigare kalibreringsresultat med samma namn: %s. Endast "
+"ett av resultaten med samma namn sparas. Är du säker på att du vill ersätta "
+"det tidigare resultatet?"
 
 msgid "Please find the best line on your plate"
-msgstr ""
+msgstr "Hitta den bästa linjen på din platta."
 
 msgid "Please find the cornor with perfect degree of extrusion"
-msgstr ""
+msgstr "Hitta hörnet med den perfekta graden av extrudering"
 
 msgid "Input Value"
-msgstr ""
+msgstr "Ingångsvärde"
 
 msgid "Save to Filament Preset"
-msgstr ""
+msgstr "Spara till inställningar för filament"
 
 msgid "Preset"
-msgstr ""
+msgstr "Förinställd"
 
 msgid "Record Factor"
-msgstr ""
+msgstr "Inspelnings faktor"
 
 msgid "We found the best flow ratio for you"
-msgstr ""
+msgstr "Vi hittade det bästa flödesförhållandet för dig"
 
 msgid "Flow Ratio"
-msgstr ""
+msgstr "Flödes förhållande"
 
 msgid "Please input a valid value (0.0 < flow ratio < 2.0)"
-msgstr ""
+msgstr "Ange ett giltigt värde (0.0 < flödesförhållande < 2.0) "
 
 msgid "Please enter the name of the preset you want to save."
-msgstr ""
+msgstr "Ange namnet på den förinställning som du vill spara."
 
 msgid "Calibration1"
-msgstr ""
+msgstr "Kalibrering1"
 
 msgid "Calibration2"
-msgstr ""
+msgstr "Kalibrering2"
 
 msgid "Please find the best object on your plate"
-msgstr ""
+msgstr "Hitta det bästa objektet på din platta."
 
 msgid "Fill in the value above the block with smoothest top surface"
-msgstr ""
+msgstr "Fyll i värdet från blocket med jämnast toppyta"
 
 msgid "Skip Calibration2"
-msgstr ""
+msgstr "Hoppa över kalibrering2"
 
 #, c-format, boost-format
 msgid "flow ratio : %s "
-msgstr ""
+msgstr "flödes förhållande: %s "
 
 msgid "Please choose a block with smoothest top surface"
-msgstr ""
+msgstr "Välj det block som har den jämnaste toppytan."
 
 msgid "Please choose a block with smoothest top surface."
-msgstr ""
+msgstr "Välj det block som har den jämnaste toppytan."
 
 msgid "Please input a valid value (0 <= Max Volumetric Speed <= 60)"
-msgstr ""
+msgstr "Ange ett giltigt värde (0 <= Max volym hastighet <= 60)"
 
 msgid "Calibration Type"
-msgstr ""
+msgstr "Typ av kalibrering"
 
 msgid "Complete Calibration"
-msgstr ""
+msgstr "Fullständig kalibrering"
 
 msgid "Fine Calibration based on flow ratio"
-msgstr ""
+msgstr "Fin kalibrering baserad på flödesförhållande"
 
 msgid "Title"
-msgstr ""
+msgstr "Titel"
 
 msgid ""
 "A test model will be printed. Please clear the build plate and place it back "
 "to the hot bed before calibration."
 msgstr ""
+"En testmodell kommer att skrivas ut. Ta bort byggplattan och placera "
+"tillbaka den på bädden före kalibrering."
 
 msgid "Printing Parameters"
-msgstr ""
+msgstr "Parametrar för utskrift"
 
 msgid "Plate Type"
 msgstr "Typ av byggplatta"
 
 msgid "filament position"
-msgstr ""
+msgstr "Filament position"
 
 msgid "External Spool"
-msgstr ""
+msgstr "Extern spole"
 
 msgid "Filament For Calibration"
-msgstr ""
+msgstr "Filament för kalibrering"
 
 msgid ""
 "Tips for calibration material: \n"
 "- Materials that can share same hot bed temperature\n"
 "- Different filament brand and family(Brand = Bambu, Family = Basic, Matte)"
 msgstr ""
+"Tips för kalibreringsmaterial:\n"
+"- Material som kan ha samma temperatur på den varma bädden\n"
+"- Olika filament märken och -familjer (märke = Bambu, familj = Basic, Matte, "
+"etc.)"
 
 msgid "Pattern"
-msgstr ""
+msgstr "Mönster"
 
 msgid "Method"
-msgstr ""
+msgstr "Metod"
 
 #, c-format, boost-format
 msgid "%s is not compatible with %s"
-msgstr ""
+msgstr "%s är inte kompatibel med %s"
 
 msgid "TPU is not supported for Flow Dynamics Auto-Calibration."
-msgstr ""
+msgstr "TPU stöds inte för automatisk kalibrering av flödesdynamik."
 
 msgid "Connecting to printer"
-msgstr ""
+msgstr "Ansluter till skrivaren"
 
 msgid "From k Value"
-msgstr ""
+msgstr "Från k Värde"
 
 msgid "To k Value"
-msgstr ""
+msgstr "Till k Värde"
 
 msgid "Step value"
 msgstr ""
 
 msgid "The nozzle diameter has been synchronized from the printer Settings"
-msgstr ""
+msgstr "Nozzle diametern har synkroniserats från printer inställningarna."
 
 msgid "From Volumetric Speed"
-msgstr ""
+msgstr "Från volymetrisk hastighet"
 
 msgid "To Volumetric Speed"
-msgstr ""
+msgstr "Till volymetrisk hastighet"
 
 msgid "Flow Dynamics Calibration Result"
-msgstr ""
+msgstr "Resultat för kalibrering av flödesdynamik"
 
 msgid "New"
-msgstr ""
+msgstr "New"
 
 msgid "No History Result"
-msgstr ""
+msgstr "Inget historikresultat"
 
 msgid "Success to get history result"
-msgstr ""
+msgstr "Lyckades med att få historiskt resultat"
 
 msgid "Refreshing the historical Flow Dynamics Calibration records"
-msgstr ""
+msgstr "Uppdatering av tidigare kalibreringsposter för flödesdynamik"
 
 msgid "Action"
-msgstr ""
+msgstr "Åtgärd"
 
 #, c-format, boost-format
 msgid "This machine type can only hold %d history results per nozzle."
-msgstr ""
+msgstr "This machine type can only hold %d historical results per nozzle."
 
 msgid "Edit Flow Dynamics Calibration"
-msgstr ""
+msgstr "Redigera kalibrering av flödesdynamik"
 
 msgid "New Flow Dynamic Calibration"
-msgstr ""
+msgstr "New Flow Dynamic Calibration"
 
 msgid "Ok"
-msgstr ""
+msgstr "Ok"
 
 msgid "The filament must be selected."
-msgstr ""
+msgstr "The filament must be selected."
 
 msgid "Network lookup"
-msgstr ""
+msgstr "Nätverks sökning"
 
 msgid "Address"
-msgstr ""
+msgstr "Address"
 
 msgid "Hostname"
-msgstr ""
+msgstr "Värdnamn"
 
 msgid "Service name"
-msgstr ""
+msgstr "Tjänstens namn"
 
 msgid "OctoPrint version"
-msgstr ""
+msgstr "OctoPrint version"
 
 msgid "Searching for devices"
-msgstr ""
+msgstr "Söker efter enheter"
 
 msgid "Finished"
 msgstr "Färdig"
@@ -13416,37 +13987,37 @@ msgid ""
 msgstr ""
 
 msgid "PA Calibration"
-msgstr ""
+msgstr "PA kalibrering"
 
 msgid "DDE"
 msgstr ""
 
 msgid "Bowden"
-msgstr ""
+msgstr "Bowden"
 
 msgid "Extruder type"
 msgstr ""
 
 msgid "PA Tower"
-msgstr ""
+msgstr "PA torn"
 
 msgid "PA Line"
-msgstr ""
+msgstr "PA linje"
 
 msgid "PA Pattern"
-msgstr ""
+msgstr "PA mönster"
 
 msgid "Start PA: "
-msgstr ""
+msgstr "Starta PA: "
 
 msgid "End PA: "
-msgstr ""
+msgstr "Slut PA: "
 
 msgid "PA step: "
-msgstr ""
+msgstr "PA steg: "
 
 msgid "Print numbers"
-msgstr ""
+msgstr "Skriv ut nummer"
 
 msgid ""
 "Please input valid values:\n"
@@ -13454,39 +14025,43 @@ msgid ""
 "End PA: > Start PA\n"
 "PA step: >= 0.001)"
 msgstr ""
+"Vänligen ange giltiga värden:\n"
+"Start PA: >= 0.0\n"
+"Slut PA: > Start PA\n"
+"PA steg: >= 0.001)"
 
 msgid "Temperature calibration"
-msgstr ""
+msgstr "Kalibrering av temperatur"
 
 msgid "PLA"
-msgstr ""
+msgstr "PLA"
 
 msgid "ABS/ASA"
-msgstr ""
+msgstr "ABS/ASA"
 
 msgid "PETG"
-msgstr ""
+msgstr "PETG"
 
 msgid "TPU"
-msgstr ""
+msgstr "TPU"
 
 msgid "PA-CF"
-msgstr ""
+msgstr "PA-CF"
 
 msgid "PET-CF"
-msgstr ""
+msgstr "PET-CF"
 
 msgid "Filament type"
-msgstr ""
+msgstr "Filament typ"
 
 msgid "Start temp: "
-msgstr ""
+msgstr "Start temp: "
 
 msgid "End temp: "
-msgstr ""
+msgstr "Slut temp: "
 
 msgid "Temp step: "
-msgstr ""
+msgstr "Temp steg: "
 
 msgid ""
 "Please input valid values:\n"
@@ -13496,16 +14071,16 @@ msgid ""
 msgstr ""
 
 msgid "Max volumetric speed test"
-msgstr ""
+msgstr "Max volymetrisk hastighets test"
 
 msgid "Start volumetric speed: "
-msgstr ""
+msgstr "Start volymetrisk hastighet: "
 
 msgid "End volumetric speed: "
-msgstr ""
+msgstr "Slut volymetrisk hastighet: "
 
 msgid "step: "
-msgstr ""
+msgstr "steg: "
 
 msgid ""
 "Please input valid values:\n"
@@ -13515,13 +14090,13 @@ msgid ""
 msgstr ""
 
 msgid "VFA test"
-msgstr ""
+msgstr "VFA test"
 
 msgid "Start speed: "
-msgstr ""
+msgstr "Start hastighet: "
 
 msgid "End speed: "
-msgstr ""
+msgstr "Sluthastighet: "
 
 msgid ""
 "Please input valid values:\n"
@@ -13531,129 +14106,129 @@ msgid ""
 msgstr ""
 
 msgid "Start retraction length: "
-msgstr ""
+msgstr "Starta retraktion längd: "
 
 msgid "End retraction length: "
-msgstr ""
+msgstr "Slutets indragnings längd: "
 
 msgid "mm/mm"
-msgstr ""
+msgstr "mm/mm"
 
 msgid "Send G-Code to printer host"
 msgstr ""
 
 msgid "Upload to Printer Host with the following filename:"
-msgstr ""
+msgstr "Ladda upp till Printer Host med följande filnamn:"
 
 msgid "Use forward slashes ( / ) as a directory separator if needed."
-msgstr ""
+msgstr "Använd snedstreck ( / ) som katalog avgränsare om det behövs."
 
 msgid "Upload to storage"
 msgstr ""
 
 #, c-format, boost-format
 msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
-msgstr ""
+msgstr "Filnamnet slutar inte med \"%s\". Vill du fortsätta?"
 
 msgid "Upload"
-msgstr ""
+msgstr "Ladda upp"
 
 msgid "Print host upload queue"
-msgstr ""
+msgstr "Utskriftsvärdens uppladdnings kö"
 
 msgid "ID"
-msgstr ""
+msgstr "ID"
 
 msgid "Progress"
-msgstr ""
+msgstr "Förlopp"
 
 msgid "Host"
-msgstr ""
+msgstr "Värd"
 
 msgctxt "OfFile"
 msgid "Size"
-msgstr ""
+msgstr "Storlek"
 
 msgid "Filename"
-msgstr ""
+msgstr "Filnamn"
 
 msgid "Cancel selected"
-msgstr ""
+msgstr "Avbryt vald"
 
 msgid "Show error message"
-msgstr ""
+msgstr "Visa felmeddelande"
 
 msgid "Enqueued"
-msgstr ""
+msgstr "I kö"
 
 msgid "Uploading"
 msgstr "Laddar upp"
 
 msgid "Cancelling"
-msgstr ""
+msgstr "Avbryter"
 
 msgid "Error uploading to print host"
 msgstr ""
 
 msgid "Unable to perform boolean operation on selected parts"
-msgstr ""
+msgstr "Kan inte utföra boolean operationer på valda delar"
 
 msgid "Mesh Boolean"
-msgstr ""
+msgstr "Mesh Boolean"
 
 msgid "Union"
-msgstr ""
+msgstr "Union"
 
 msgid "Difference"
-msgstr ""
+msgstr "Skillnad"
 
 msgid "Intersection"
-msgstr ""
+msgstr "Korsning"
 
 msgid "Source Volume"
-msgstr ""
+msgstr "Source Volym"
 
 msgid "Tool Volume"
-msgstr ""
+msgstr "Verktygets volym"
 
 msgid "Subtract from"
-msgstr ""
+msgstr "Subtrahera från"
 
 msgid "Subtract with"
-msgstr ""
+msgstr "Subtrahera med"
 
 msgid "selected"
-msgstr ""
+msgstr "vald"
 
 msgid "Part 1"
-msgstr ""
+msgstr "Del 1"
 
 msgid "Part 2"
-msgstr ""
+msgstr "Del 2"
 
 msgid "Delete input"
-msgstr ""
+msgstr "Ta bort inmatning"
 
 msgid "Network Test"
-msgstr ""
+msgstr "Nätverkstest"
 
 msgid "Start Test Multi-Thread"
-msgstr ""
+msgstr "Börja testa flera trådar"
 
 msgid "Start Test Single-Thread"
-msgstr ""
+msgstr "Starta testet med en tråd"
 
 msgid "Export Log"
-msgstr ""
+msgstr "Exportera logg"
 
 msgid "OrcaSlicer Version:"
 msgstr ""
 
 msgid "System Version:"
-msgstr ""
+msgstr "Systemversion:"
 
 msgid "DNS Server:"
-msgstr ""
+msgstr "DNS server:"
 
 msgid "Test OrcaSlicer(GitHub)"
 msgstr ""
@@ -13662,92 +14237,98 @@ msgid "Test OrcaSlicer(GitHub):"
 msgstr ""
 
 msgid "Test Bing.com"
-msgstr ""
+msgstr "Test Bing.com"
 
 msgid "Test bing.com:"
-msgstr ""
+msgstr "Test bing.com:"
 
 msgid "Log Info"
-msgstr ""
+msgstr "Info om logg"
 
 msgid "Select filament preset"
-msgstr ""
+msgstr "Välj filament inställning"
 
 msgid "Create Filament"
-msgstr ""
+msgstr "Skapa filament"
 
 msgid "Create Based on Current Filament"
-msgstr ""
+msgstr "Skapa baserat på aktuellt filament"
 
 msgid "Copy Current Filament Preset "
-msgstr ""
+msgstr "Kopiera aktuell filament inställning "
 
 msgid "Basic Information"
-msgstr ""
+msgstr "Grundläggande information"
 
 msgid "Add Filament Preset under this filament"
-msgstr ""
+msgstr "Lägg till filament inställningar för detta filament"
 
 msgid "We could create the filament presets for your following printer:"
-msgstr ""
+msgstr "Vi kan skapa filament inställningar för följande printer:"
 
 msgid "Select Vendor"
-msgstr ""
+msgstr "Välj leverantör"
 
 msgid "Input Custom Vendor"
-msgstr ""
+msgstr "Ange anpassad leverantör"
 
 msgid "Can't find vendor I want"
-msgstr ""
+msgstr "Kan inte hitta den leverantör jag vill ha"
 
 msgid "Select Type"
-msgstr ""
+msgstr "Välj typ"
 
 msgid "Select Filament Preset"
-msgstr ""
+msgstr "Välj filament inställning"
 
 msgid "Serial"
-msgstr ""
+msgstr "Serienummer"
 
 msgid "e.g. Basic, Matte, Silk, Marble"
-msgstr ""
+msgstr "t.ex. Basic, Matt, Silke, Marmor"
 
 msgid "Filament Preset"
-msgstr ""
+msgstr "Filament inställning"
 
 msgid "Create"
-msgstr ""
+msgstr "Skapa"
 
 msgid "Vendor is not selected, please reselect vendor."
-msgstr ""
+msgstr "Vendor is not selected; please reselect vendor."
 
 msgid "Custom vendor is not input, please input custom vendor."
-msgstr ""
+msgstr "Custom vendor missing; please input custom vendor."
 
 msgid ""
 "\"Bambu\" or \"Generic\" can not be used as a Vendor for custom filaments."
 msgstr ""
+"\"Bambu\" eller \"Generic\" kan inte användas som leverantör för anpassade "
+"filament."
 
 msgid "Filament type is not selected, please reselect type."
-msgstr ""
+msgstr "Filament typ är inte vald, vänligen välj typ igen."
 
 msgid "Filament serial is not inputed, please input serial."
-msgstr ""
+msgstr "Filament serial missing; please input serial."
 
 msgid ""
 "There may be escape characters in the vendor or serial input of filament. "
 "Please delete and re-enter."
 msgstr ""
+"There may be disallowed characters in the vendor or serial input of the "
+"filament. Please delete and re-enter."
 
 msgid "All inputs in the custom vendor or serial are spaces. Please re-enter."
 msgstr ""
+"Alla inmatningar i den anpassade leverantören eller serien är mellanslag. "
+"Vänligen ange på nytt."
 
 msgid "The vendor can not be a number. Please re-enter."
-msgstr ""
+msgstr "The vendor can not be a number; please re-enter."
 
 msgid ""
 "You have not selected a printer or preset yet. Please select at least one."
-msgstr ""
+msgstr "Du har ännu inte valt någon printer eller inställning. Välj minst en."
 
 #, c-format, boost-format
 msgid ""
@@ -13755,14 +14336,19 @@ msgid ""
 "If you continue creating, the preset created will be displayed with its full "
 "name. Do you want to continue?"
 msgstr ""
+"Filamentnamnet %s som du skapade finns redan. \n"
+"Om du fortsätter kommer den skapade inställningen att visas med sitt "
+"fullständiga namn. Vill du fortsätta?"
 
 msgid "Some existing presets have failed to be created, as follows:\n"
-msgstr ""
+msgstr "Vissa befintliga inställningar har inte skapats, enligt följande:\n"
 
 msgid ""
 "\n"
 "Do you want to rewrite it?"
 msgstr ""
+"\n"
+"Vill du skriva om det?"
 
 msgid ""
 "We would rename the presets as \"Vendor Type Serial @printer you selected"
@@ -13771,46 +14357,46 @@ msgid ""
 msgstr ""
 
 msgid "Create Printer/Nozzle"
-msgstr ""
+msgstr "Skapa Printer/Nozzel"
 
 msgid "Create Printer"
-msgstr ""
+msgstr "Skapa printer"
 
 msgid "Create Nozzle for Existing Printer"
-msgstr ""
+msgstr "Skapa nozzel för befintlig skrivare"
 
 msgid "Create from Template"
-msgstr ""
+msgstr "Skapa från mall"
 
 msgid "Create Based on Current Printer"
-msgstr ""
+msgstr "Skapa baserat på aktuell printer"
 
 msgid "Import Preset"
-msgstr ""
+msgstr "Importera inställning"
 
 msgid "Create Type"
-msgstr ""
+msgstr "Skapa typ"
 
 msgid "The model is not fond, place reselect vendor."
-msgstr ""
+msgstr "The model was not found; please reselect vendor."
 
 msgid "Select Model"
-msgstr ""
+msgstr "Välj modell"
 
 msgid "Select Printer"
-msgstr ""
+msgstr "Välj Printer"
 
 msgid "Input Custom Model"
-msgstr ""
+msgstr "Mata in anpassad modell"
 
 msgid "Can't find my printer model"
-msgstr ""
+msgstr "Kan inte hitta min printer modell"
 
 msgid "Rectangle"
-msgstr ""
+msgstr "Rektangel"
 
 msgid "Printable Space"
-msgstr ""
+msgstr "Utskriftsbar yta"
 
 msgid "X"
 msgstr ""
@@ -13819,66 +14405,70 @@ msgid "Y"
 msgstr ""
 
 msgid "Hot Bed STL"
-msgstr ""
+msgstr "Värmeplatta STL"
 
 msgid "Load stl"
-msgstr ""
+msgstr "Ladda stl"
 
 msgid "Hot Bed SVG"
-msgstr ""
+msgstr "Värmeplatta SVG"
 
 msgid "Load svg"
-msgstr ""
+msgstr "Ladda svg"
 
 msgid "Max Print Height"
-msgstr ""
+msgstr "Max utskriftshöjd"
 
 #, c-format, boost-format
 msgid "The file exceeds %d MB, please import again."
-msgstr ""
+msgstr "Filen överstiger %d MB, vänligen importera igen."
 
 msgid "Exception in obtaining file size, please import again."
-msgstr ""
+msgstr "Undantag vid erhållande av filstorlek, vänligen importera igen."
 
 msgid "Preset path is not find, please reselect vendor."
-msgstr ""
+msgstr "Inställd sökväg hittades inte; vänligen välj leverantör igen."
 
 msgid "The printer model was not found, please reselect."
-msgstr ""
+msgstr "Printer modellen hittades inte, välj igen."
 
 msgid "The nozzle diameter is not fond, place reselect."
-msgstr ""
+msgstr "The nozzle diameter was not found; please reselect."
 
 msgid "The printer preset is not fond, place reselect."
-msgstr ""
+msgstr "The printer preset was not found; please reselect."
 
 msgid "Printer Preset"
-msgstr ""
+msgstr "Printer inställningar"
 
 msgid "Filament Preset Template"
-msgstr ""
+msgstr "Filament inställnings mall"
 
 msgid "Deselect All"
-msgstr ""
+msgstr "Avmarkera alla"
 
 msgid "Process Preset Template"
-msgstr ""
+msgstr "Mall för process inställning"
 
 msgid "Back Page 1"
-msgstr ""
+msgstr "Tillbaka Sida 1"
 
 msgid ""
 "You have not yet chosen which printer preset to create based on. Please "
 "choose the vendor and model of the printer"
 msgstr ""
+"Du har ännu inte valt vilken printer inställning du vill skapa baserat på. "
+"Välj leverantör och modell för printern"
 
 msgid ""
 "You have entered an illegal input in the printable area section on the first "
 "page. Please check before creating it."
 msgstr ""
+"Du har angett ett otillåtet tecken i det utskrivbara området på första "
+"sidan. Använd endast siffror."
 
 msgid "The custom printer or model is not inputed, place input."
-msgstr ""
+msgstr "The custom printer or model missing; please input."
 
 msgid ""
 "The printer preset you created already has a preset with the same name. Do "
@@ -13889,60 +14479,75 @@ msgid ""
 "reserve.\n"
 "\tCancel: Do not create a preset, return to the creation interface."
 msgstr ""
+"The printer preset you created already has a preset with the same name. Do "
+"you want to overwrite it?\n"
+"\tYes: Overwrite the printer preset with the same name, and filament and "
+"process presets with the same preset name will be recreated \n"
+"and filament and process presets without the same preset name will be "
+"reserved.\n"
+"\tCancel: Do not create a preset; return to the creation interface."
 
 msgid "You need to select at least one filament preset."
-msgstr ""
+msgstr "Du måste välja minst en inställning för filament."
 
 msgid "You need to select at least one process preset."
-msgstr ""
+msgstr "Du måste välja minst en process inställning."
 
 msgid "Create filament presets failed. As follows:\n"
-msgstr ""
+msgstr "Skapa inställningar för filament misslyckades. Enligt följande:\n"
 
 msgid "Create process presets failed. As follows:\n"
-msgstr ""
+msgstr "Skapa process inställningar misslyckades. Enligt följande:\n"
 
 msgid "Vendor is not find, please reselect."
-msgstr ""
+msgstr "Leverantören hittades inte; välj igen."
 
 msgid "Current vendor has no models, please reselect."
-msgstr ""
+msgstr "Nuvarande leverantör har inga modeller, vänligen välj om."
 
 msgid ""
 "You have not selected the vendor and model or inputed the custom vendor and "
 "model."
 msgstr ""
+"Du har inte valt leverantör och modell eller angett anpassad leverantör och "
+"modell."
 
 msgid ""
 "There may be escape characters in the custom printer vendor or model. Please "
 "delete and re-enter."
 msgstr ""
+"Det kan finnas escape tecken i den anpassade printerns leverantör eller "
+"modell. Vänligen radera och ange igen."
 
 msgid ""
 "All inputs in the custom printer vendor or model are spaces. Please re-enter."
 msgstr ""
+"Alla inmatningar i den anpassade printer leverantören eller modellen är "
+"mellanslag. Vänligen ange på nytt."
 
 msgid "Please check bed printable shape and origin input."
-msgstr ""
+msgstr "Kontrollera byggplattans utskrivbara form och ursprungs inmatning."
 
 msgid ""
 "You have not yet selected the printer to replace the nozzle, please choose."
 msgstr ""
+"Du har ännu inte valt vilken printer som nozzeln ska bytas ut på; välj en "
+"printer."
 
 msgid "Create Printer Successful"
-msgstr ""
+msgstr "Skapa Printer lyckades"
 
 msgid "Create Filament Successful"
-msgstr ""
+msgstr "Filament Created Successfully"
 
 msgid "Printer Created"
-msgstr ""
+msgstr "Printer skapad"
 
 msgid "Please go to printer settings to edit your presets"
-msgstr ""
+msgstr "Gå till printer inställningar för att redigera dina inställningar"
 
 msgid "Filament Created"
-msgstr ""
+msgstr "Filament skapad"
 
 msgid ""
 "Please go to filament setting to edit your presets if you need.\n"
@@ -13950,21 +14555,23 @@ msgid ""
 "volumetric speed has a significant impact on printing quality. Please set "
 "them carefully."
 msgstr ""
+"Gå till filament inställningar för att redigera dina inställningar om du "
+"behöver.\n"
+"Observera att nozzel temperatur, värmebädds temperatur och maximal "
+"volymhastighet alla har en betydande inverkan på utskriftskvaliteten. Ställ "
+"in dem noggrant."
 
 msgid ""
 "\n"
 "\n"
-"Studio has detected that your user presets synchronization function is not "
+"Orca has detected that your user presets synchronization function is not "
 "enabled, which may result in unsuccessful Filament settings on the Device "
 "page. \n"
 "Click \"Sync user presets\" to enable the synchronization function."
 msgstr ""
 
 msgid "Printer Setting"
-msgstr ""
-
-msgid "Export Configs"
-msgstr ""
+msgstr "Printer inställningar"
 
 msgid "Printer config bundle(.orca_printer)"
 msgstr ""
@@ -13973,31 +14580,31 @@ msgid "Filament bundle(.orca_filament)"
 msgstr ""
 
 msgid "Printer presets(.zip)"
-msgstr ""
+msgstr "Printer inställningar(.zip)"
 
 msgid "Filament presets(.zip)"
-msgstr ""
+msgstr "Filament inställningar (.zip)"
 
 msgid "Process presets(.zip)"
-msgstr ""
+msgstr "Process inställningar(.zip)"
 
 msgid "initialize fail"
-msgstr ""
+msgstr "initialisering misslyckad"
 
 msgid "add file fail"
-msgstr ""
+msgstr "lägg till fil misslyckas"
 
 msgid "add bundle structure file fail"
-msgstr ""
+msgstr "lägg till filstrukturs paket misslyckades"
 
 msgid "finalize fail"
-msgstr ""
+msgstr "slutför misslyckande"
 
 msgid "open zip written fail"
-msgstr ""
+msgstr "öppna zip skripten misslyckades"
 
 msgid "Export successful"
-msgstr ""
+msgstr "Export lyckades"
 
 #, c-format, boost-format
 msgid ""
@@ -14006,6 +14613,10 @@ msgid ""
 "If not, a time suffix will be added, and you can modify the name after "
 "creation."
 msgstr ""
+"The '%s' folder already exists in the current directory. Do you want to "
+"clear it and rebuild it?\n"
+"If not, a time suffix will be added, and you can modify the name after "
+"creation."
 
 msgid ""
 "Printer and all the filament&&process presets that belongs to the printer. \n"
@@ -14016,54 +14627,68 @@ msgid ""
 "User's fillment preset set. \n"
 "Can be shared with others."
 msgstr ""
+"Användarens inställning för filament. \n"
+"Kan delas med andra."
 
 msgid ""
 "Only display printer names with changes to printer, filament, and process "
 "presets."
 msgstr ""
+"Endast printer med ändringar av inställningar för printer, filament och "
+"process visas."
 
 msgid "Only display the filament names with changes to filament presets."
-msgstr ""
+msgstr "Visa endast filament namnen vid ändringar av filament inställningar."
 
 msgid ""
 "Only printer names with user printer presets will be displayed, and each "
 "preset you choose will be exported as a zip."
 msgstr ""
+"Endast printer namn med inställningar för printer visas, och varje "
+"inställning du väljer exporteras som zip-fil."
 
 msgid ""
 "Only the filament names with user filament presets will be displayed, \n"
 "and all user filament presets in each filament name you select will be "
 "exported as a zip."
 msgstr ""
+"Endast filament namn med inställningar för användar filament visas, \n"
+"och alla inställningar för användar filament i varje filament namn du väljer "
+"exporteras som en zip-fil."
 
 msgid ""
 "Only printer names with changed process presets will be displayed, \n"
 "and all user process presets in each printer name you select will be "
 "exported as a zip."
 msgstr ""
+"Endast printer namn med ändrade process inställningar visas, \n"
+"och alla användarprocess inställningar i varje printer namn som du väljer "
+"exporteras som zip-fil."
 
 msgid "Please select at least one printer or filament."
-msgstr ""
+msgstr "Välj minst en printer eller ett filament."
 
 msgid "Please select a type you want to export"
-msgstr ""
+msgstr "Välj en inställningstyp som du vill exportera"
 
 msgid "Failed to create temporary folder, please try Export Configs again."
-msgstr ""
+msgstr "Failed to create temporary folder, please try Export Configs again."
 
 msgid "Edit Filament"
-msgstr ""
+msgstr "Redigera filament"
 
 msgid "Filament presets under this filament"
-msgstr ""
+msgstr "Filament inställningar för detta filament"
 
 msgid ""
 "Note: If the only preset under this filament is deleted, the filament will "
 "be deleted after exiting the dialog."
 msgstr ""
+"Observera: Om den enda inställningen under detta filament raderas, kommer "
+"filamentet att raderas efter att dialogen har avslutats."
 
 msgid "Presets inherited by other presets can not be deleted"
-msgstr ""
+msgstr "Inställningar som ärvts av andra inställningar kan inte raderas"
 
 msgid "The following presets inherits this preset."
 msgid_plural "The following preset inherits this preset."
@@ -14071,190 +14696,207 @@ msgstr[0] ""
 msgstr[1] ""
 
 msgid "Delete Preset"
-msgstr ""
+msgstr "Ta bort inställning"
 
 msgid "Are you sure to delete the selected preset?"
-msgstr ""
+msgstr "Är du säker på att du vill radera den valda inställningen?"
 
 msgid "Delete preset"
-msgstr ""
+msgstr "Ta bort inställning"
 
 msgid "+ Add Preset"
-msgstr ""
+msgstr "+ Lägg till inställning"
 
 msgid "Delete Filament"
-msgstr ""
+msgstr "Ta bort filament"
 
 msgid ""
 "All the filament presets belong to this filament would be deleted. \n"
 "If you are using this filament on your printer, please reset the filament "
 "information for that slot."
 msgstr ""
+"Alla filament inställningar som hör till detta filament kommer att "
+"raderas. \n"
+"Om du använder detta filament i din printer, vänligen återställ filament "
+"informationen för den platsen."
 
 msgid "Delete filament"
-msgstr ""
+msgstr "Ta bort filament"
 
 msgid "Add Preset"
-msgstr ""
+msgstr "Lägg till inställning"
 
 msgid "Add preset for new printer"
-msgstr ""
+msgstr "Lägg till inställningar för ny skrivare"
 
 msgid "Copy preset from filament"
-msgstr ""
+msgstr "Kopiera inställning från filament"
 
 msgid "The filament choice not find filament preset, please reselect it"
-msgstr ""
+msgstr "Filament valet hittar inte filament inställningen, välj det igen"
 
 msgid "[Delete Required]"
-msgstr ""
+msgstr "[Radera krävs]"
 
 msgid "Edit Preset"
-msgstr ""
+msgstr "Redigera inställningar"
 
 msgid "For more information, please check out Wiki"
-msgstr ""
+msgstr "For more information, please check out our Wiki"
 
 msgid "Collapse"
-msgstr ""
+msgstr "Komprimera"
 
 msgid "Daily Tips"
-msgstr ""
+msgstr "Dagliga tips"
 
 msgid ""
 "Your nozzle diameter in preset is not consistent with memorized nozzle "
 "diameter. Did you change your nozzle lately?"
 msgstr ""
+"Your nozzle diameter in preset is not consistent with the saved nozzle "
+"diameter. Have you changed your nozzle?"
 
 #, c-format, boost-format
 msgid "*Printing %s material with %s may cause nozzle damage"
-msgstr ""
+msgstr "*Utskrift av %s material med %s kan orsaka skador på nozzeln"
 
 msgid "Need select printer"
-msgstr ""
+msgstr "Välj printer"
 
 msgid "The start, end or step is not valid value."
-msgstr ""
+msgstr "Start, slut eller steg är inte giltigt värde."
 
 msgid ""
 "Unable to calibrate: maybe because the set calibration value range is too "
 "large, or the step is too small"
 msgstr ""
+"Går inte att kalibrera: kan bero på att det inställda kalibreringsvärdet är "
+"för stort, eller att steget är för litet"
 
 msgid "Physical Printer"
-msgstr ""
+msgstr "Fysisk printer"
 
 msgid "Print Host upload"
-msgstr ""
+msgstr "Uppladdning utskriftsvärd"
 
 msgid "Could not get a valid Printer Host reference"
-msgstr ""
+msgstr "Det gick inte att hämta en giltig printer värdreferens"
 
 msgid "Success!"
-msgstr ""
+msgstr "Lyckades!"
 
 msgid "Are you sure to log out?"
 msgstr ""
 
 msgid "Refresh Printers"
-msgstr ""
+msgstr "Uppdatera skrivare"
 
 msgid ""
 "HTTPS CA file is optional. It is only needed if you use HTTPS with a self-"
 "signed certificate."
 msgstr ""
+"HTTPS CA-filen är valfri. Den behövs bara om du använder HTTPS med ett "
+"självsignerat certifikat."
 
 msgid "Certificate files (*.crt, *.pem)|*.crt;*.pem|All files|*.*"
-msgstr ""
+msgstr "Certifikatfiler (*.crt, *.pem)|*.crt;*.pem|Alla filer|*.*"
 
 msgid "Open CA certificate file"
-msgstr ""
+msgstr "Öppna CA-certifikatfilen"
 
 #, c-format, boost-format
 msgid ""
 "On this system, %s uses HTTPS certificates from the system Certificate Store "
 "or Keychain."
 msgstr ""
+"På det här systemet använder %s HTTPS-certifikat från systemets "
+"Certifikatarkiv eller Keyring."
 
 msgid ""
 "To use a custom CA file, please import your CA file into Certificate Store / "
 "Keychain."
 msgstr ""
+"Om du vill använda en anpassad CA-fil importerar du CA-filen till "
+"Certificate Store/Keychain."
 
 msgid "Login/Test"
 msgstr ""
 
 msgid "Connection to printers connected via the print host failed."
 msgstr ""
+"Anslutningen till printrar som är anslutna via printer värden misslyckades."
 
 #, c-format, boost-format
 msgid "Mismatched type of print host: %s"
-msgstr ""
+msgstr "Felaktig typ av utskriftsvärd: %s"
 
 msgid "Connection to AstroBox works correctly."
-msgstr ""
+msgstr "Connection to AstroBox is working correctly."
 
 msgid "Could not connect to AstroBox"
-msgstr ""
+msgstr "Kunde inte ansluta till AstroBox"
 
 msgid "Note: AstroBox version at least 1.1.0 is required."
-msgstr ""
+msgstr "Note: AstroBox version 1.1.0 or higher is required."
 
 msgid "Connection to Duet works correctly."
-msgstr ""
+msgstr "Connection to Duet is working correctly."
 
 msgid "Could not connect to Duet"
-msgstr ""
+msgstr "Kunde inte ansluta till Duet"
 
 msgid "Unknown error occured"
-msgstr ""
+msgstr "Okänt fel uppstod"
 
 msgid "Wrong password"
-msgstr ""
+msgstr "Fel lösenord"
 
 msgid "Could not get resources to create a new connection"
-msgstr ""
+msgstr "Det gick inte att hämta resurser för att skapa en ny anslutning"
 
 msgid "Upload not enabled on FlashAir card."
-msgstr ""
+msgstr "Uppladdning inte aktiverad på FlashAir kort."
 
 msgid "Connection to FlashAir works correctly and upload is enabled."
-msgstr ""
+msgstr "Connection to FlashAir is working correctly and upload is enabled."
 
 msgid "Could not connect to FlashAir"
-msgstr ""
+msgstr "Kunde inte ansluta till FlashAir"
 
 msgid ""
 "Note: FlashAir with firmware 2.00.02 or newer and activated upload function "
 "is required."
 msgstr ""
+"Obs: FlashAir med firmware 2.00.02 eller nyare och aktiverad "
+"uppladdningsfunktion krävs."
 
 msgid "Connection to MKS works correctly."
-msgstr ""
+msgstr "Connection to MKS is working correctly."
 
 msgid "Could not connect to MKS"
-msgstr ""
+msgstr "Kunde inte ansluta till MKS"
 
 msgid "Connection to OctoPrint works correctly."
-msgstr ""
+msgstr "Connection to OctoPrint is working correctly."
 
 msgid "Could not connect to OctoPrint"
-msgstr ""
+msgstr "Kunde inte ansluta till OctoPrint"
 
 msgid "Note: OctoPrint version at least 1.1.0 is required."
-msgstr ""
+msgstr "Note: OctoPrint version 1.1.0 or higher is required."
 
 msgid "Connection to Prusa SL1 / SL1S works correctly."
-msgstr ""
+msgstr "Connection to Prusa SL1 / SL1S is working correctly."
 
 msgid "Could not connect to Prusa SLA"
-msgstr ""
+msgstr "Kunde inte ansluta till Prusa SLA"
 
 msgid "Connection to PrusaLink works correctly."
-msgstr ""
+msgstr "Connection to PrusaLink is working correctly."
 
 msgid "Could not connect to PrusaLink"
-msgstr ""
+msgstr "Kunde inte ansluta till PrusaLink"
 
 msgid "Storages found"
 msgstr ""
@@ -14281,19 +14923,21 @@ msgid "Could not connect to Prusa Connect"
 msgstr ""
 
 msgid "Connection to Repetier works correctly."
-msgstr ""
+msgstr "Connection to Repetier is working correctly."
 
 msgid "Could not connect to Repetier"
-msgstr ""
+msgstr "Kunde inte ansluta till Repetier"
 
 msgid "Note: Repetier version at least 0.90.0 is required."
-msgstr ""
+msgstr "Note: Repetier version 0.90.0 or higher is required."
 
 #, boost-format
 msgid ""
 "HTTP status: %1%\n"
 "Message body: \"%2%\""
 msgstr ""
+"HTTP-status: %1%\n"
+"Meddelandets kropp: \"%2%\""
 
 #, boost-format
 msgid ""
@@ -14301,6 +14945,9 @@ msgid ""
 "Message body: \"%1%\"\n"
 "Error: \"%2%\""
 msgstr ""
+"Parsning av värdsvaret misslyckades.\n"
+"Meddelandetext: \"%1%\"\n"
+"Fel: \"%2%\""
 
 #, boost-format
 msgid ""
@@ -14308,35 +14955,51 @@ msgid ""
 "Message body: \"%1%\"\n"
 "Error: \"%2%\""
 msgstr ""
+"Uppräkning av värdprintern misslyckades.\n"
+"Meddelandets huvuddel: \"%1%\"\n"
+"Felmeddelande: \"%2%\""
 
 msgid ""
 "It has a small layer height, and results in almost negligible layer lines "
 "and high printing quality. It is suitable for most general printing cases."
 msgstr ""
+"It has a small layer height, and results in almost negligible layer lines "
+"and high print quality. It is suitable for most general printing cases."
 
 msgid ""
 "Compared with the default profile of a 0.2 mm nozzle, it has lower speeds "
 "and acceleration, and the sparse infill pattern is Gyroid. So, it results in "
 "much higher printing quality, but a much longer printing time."
 msgstr ""
+"Compared with the default profile of a 0.2 mm nozzle, it has lower speeds "
+"and acceleration, and the sparse infill pattern is Gyroid. This results in "
+"much higher print quality but a much longer print time."
 
 msgid ""
 "Compared with the default profile of a 0.2 mm nozzle, it has a slightly "
 "bigger layer height, and results in almost negligible layer lines, and "
 "slightly shorter printing time."
 msgstr ""
+"Compared with the default profile of a 0.2 mm nozzle, it has a slightly "
+"bigger layer height. This results in almost negligible layer lines and "
+"slightly longer print time."
 
 msgid ""
 "Compared with the default profile of a 0.2 mm nozzle, it has a bigger layer "
 "height, and results in slightly visible layer lines, but shorter printing "
 "time."
 msgstr ""
+"Compared with the default profile of a 0.2 mm nozzle, it has a bigger layer "
+"height. This results in slightly visible layer lines but shorter print time."
 
 msgid ""
 "Compared with the default profile of a 0.2 mm nozzle, it has a smaller layer "
 "height, and results in almost invisible layer lines and higher printing "
 "quality, but shorter printing time."
 msgstr ""
+"Compared with the default profile of a 0.2 mm nozzle, it has a smaller layer "
+"height. This results in almost invisible layer lines and higher print "
+"quality but longer print time."
 
 msgid ""
 "Compared with the default profile of a 0.2 mm nozzle, it has a smaller layer "
@@ -14344,12 +15007,19 @@ msgid ""
 "Gyroid. So, it results in almost invisible layer lines and much higher "
 "printing quality, but much longer printing time."
 msgstr ""
+"Compared with the default profile of a 0.2 mm nozzle, it has a smaller layer "
+"lines, lower speeds and acceleration, and the sparse infill pattern is "
+"Gyroid. This results in almost invisible layer lines and much higher print "
+"quality but much longer print time."
 
 msgid ""
 "Compared with the default profile of 0.2 mm nozzle, it has a smaller layer "
 "height, and results in minimal layer lines and higher printing quality, but "
 "shorter printing time."
 msgstr ""
+"Compared with the default profile of 0.2 mm nozzle, it has a smaller layer "
+"height. This results in minimal layer lines and higher print quality but "
+"longer print time."
 
 msgid ""
 "Compared with the default profile of a 0.2 mm nozzle, it has a smaller layer "
@@ -14357,35 +15027,53 @@ msgid ""
 "Gyroid. So, it results in minimal layer lines and much higher printing "
 "quality, but much longer printing time."
 msgstr ""
+"Compared with the default profile of a 0.2 mm nozzle, it has a smaller layer "
+"lines, lower speeds and acceleration, and the sparse infill pattern is "
+"Gyroid. This results in minimal layer lines and much higher print quality "
+"but much longer print time."
 
 msgid ""
 "It has a general layer height, and results in general layer lines and "
 "printing quality. It is suitable for most general printing cases."
 msgstr ""
+"It has a normal layer height, and results in average layer lines and print "
+"quality. It is suitable for most printing cases."
 
 msgid ""
 "Compared with the default profile of a 0.4 mm nozzle, it has more wall loops "
 "and a higher sparse infill density. So, it results in higher strength of the "
 "prints, but more filament consumption and longer printing time."
 msgstr ""
+"Compared with the default profile of a 0.4 mm nozzle, it has more wall loops "
+"and a higher sparse infill density. This results in higher print strength "
+"but more filament consumption and longer print time."
 
 msgid ""
 "Compared with the default profile of a 0.4 mm nozzle, it has a bigger layer "
 "height, and results in more apparent layer lines and lower printing quality, "
 "but slightly shorter printing time."
 msgstr ""
+"Compared with the default profile of a 0.4 mm nozzle, it has a bigger layer "
+"height. This results in more apparent layer lines and lower print quality "
+"but slightly shorter print time."
 
 msgid ""
 "Compared with the default profile of a 0.4 mm nozzle, it has a bigger layer "
 "height, and results in more apparent layer lines and lower printing quality, "
 "but shorter printing time."
 msgstr ""
+"Compared with the default profile of a 0.4 mm nozzle, it has a bigger layer "
+"height. This results in more apparent layer lines and lower print quality "
+"but shorter print time."
 
 msgid ""
 "Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer "
 "height, and results in less apparent layer lines and higher printing "
 "quality, but longer printing time."
 msgstr ""
+"Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer "
+"height. This results in less apparent layer lines and higher print quality "
+"but longer print time."
 
 msgid ""
 "Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer "
@@ -14393,12 +15081,19 @@ msgid ""
 "Gyroid. So, it results in less apparent layer lines and much higher printing "
 "quality, but much longer printing time."
 msgstr ""
+"Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer "
+"height, lower speeds and acceleration, and the sparse infill pattern is "
+"Gyroid. This results in less apparent layer lines and much higher print "
+"quality but much longer print time."
 
 msgid ""
 "Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer "
 "height, and results in almost negligible layer lines and higher printing "
 "quality, but longer printing time."
 msgstr ""
+"Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer "
+"height. This results in almost negligible layer lines and higher print "
+"quality but longer print time."
 
 msgid ""
 "Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer "
@@ -14406,64 +15101,95 @@ msgid ""
 "Gyroid. So, it results in almost negligible layer lines and much higher "
 "printing quality, but much longer printing time."
 msgstr ""
+"Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer "
+"height, lower speeds and acceleration, and the sparse infill pattern is "
+"Gyroid. This results in almost negligible layer lines and much higher print "
+"quality but much longer print time."
 
 msgid ""
 "Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer "
 "height, and results in almost negligible layer lines and longer printing "
 "time."
 msgstr ""
+"Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer "
+"height. This results in almost negligible layer lines and longer print time."
 
 msgid ""
 "It has a big layer height, and results in apparent layer lines and ordinary "
 "printing quality and printing time."
 msgstr ""
+"It has a big layer height, and results in apparent layer lines and ordinary "
+"printing quality and printing time."
 
 msgid ""
 "Compared with the default profile of a 0.6 mm nozzle, it has more wall loops "
 "and a higher sparse infill density. So, it results in higher strength of the "
 "prints, but more filament consumption and longer printing time."
 msgstr ""
+"Compared with the default profile of a 0.6 mm nozzle, it has more wall loops "
+"and a higher sparse infill density. This results in higher print strength "
+"but more filament consumption and longer print time."
 
 msgid ""
 "Compared with the default profile of a 0.6 mm nozzle, it has a bigger layer "
 "height, and results in more apparent layer lines and lower printing quality, "
 "but shorter printing time in some printing cases."
 msgstr ""
+"Compared with the default profile of a 0.6 mm nozzle, it has a bigger layer "
+"height. This results in more apparent layer lines and lower print quality "
+"but shorter print time in some cases."
 
 msgid ""
 "Compared with the default profile of a 0.6 mm nozzle, it has a bigger layer "
 "height, and results in much more apparent layer lines and much lower "
 "printing quality, but shorter printing time in some printing cases."
 msgstr ""
+"Compared with the default profile of a 0.6 mm nozzle, it has a bigger layer "
+"height. This results in much more apparent layer lines and much lower print "
+"quality, but shorter print time in some cases."
 
 msgid ""
 "Compared with the default profile of a 0.6 mm nozzle, it has a smaller layer "
 "height, and results in less apparent layer lines and slight higher printing "
 "quality, but longer printing time."
 msgstr ""
+"Compared with the default profile of a 0.6 mm nozzle, it has a smaller layer "
+"height. This results in less apparent layer lines and slightly higher print "
+"quality but longer print time."
 
 msgid ""
 "Compared with the default profile of a 0.6 mm nozzle, it has a smaller layer "
 "height, and results in less apparent layer lines and higher printing "
 "quality, but longer printing time."
 msgstr ""
+"Compared with the default profile of a 0.6 mm nozzle, it has a smaller layer "
+"height. This results in less apparent layer lines and higher print quality "
+"but longer print time."
 
 msgid ""
 "It has a very big layer height, and results in very apparent layer lines, "
 "low printing quality and general printing time."
 msgstr ""
+"It has a very big layer height, and results in very apparent layer lines, "
+"low print quality and shorter printing time."
 
 msgid ""
 "Compared with the default profile of a 0.8 mm nozzle, it has a bigger layer "
 "height, and results in very apparent layer lines and much lower printing "
 "quality, but shorter printing time in some printing cases."
 msgstr ""
+"Compared with the default profile of a 0.8 mm nozzle, it has a bigger layer "
+"height. This results in very apparent layer lines and much lower print "
+"quality but shorter print time in some cases."
 
 msgid ""
 "Compared with the default profile of a 0.8 mm nozzle, it has a much bigger "
 "layer height, and results in extremely apparent layer lines and much lower "
 "printing quality, but much shorter printing time in some printing cases."
 msgstr ""
+"Compared with the default profile of a 0.8 mm nozzle, it has a much bigger "
+"layer height. This results in extremely apparent layer lines and much lower "
+"print quality but much shorter print time in some cases."
 
 msgid ""
 "Compared with the default profile of a 0.8 mm nozzle, it has a slightly "
@@ -14471,12 +15197,18 @@ msgid ""
 "lines and slightly higher printing quality, but longer printing time in some "
 "printing cases."
 msgstr ""
+"Compared with the default profile of a 0.8 mm nozzle, it has a slightly "
+"smaller layer height. This results in slightly less but still apparent layer "
+"lines and slightly higher print quality, but longer print time in some cases."
 
 msgid ""
 "Compared with the default profile of a 0.8 mm nozzle, it has a smaller layer "
 "height, and results in less but still apparent layer lines and slightly "
 "higher printing quality, but longer printing time in some printing cases."
 msgstr ""
+"Compared with the default profile of a 0.8 mm nozzle, it has a smaller layer "
+"height. This results in less but still apparent layer lines and slightly "
+"higher print quality, but longer print time in some cases."
 
 msgid "Connected to Obico successfully!"
 msgstr ""
@@ -14602,6 +15334,9 @@ msgid ""
 "Did you know that you can fix a corrupted 3D model to avoid a lot of slicing "
 "problems on the Windows system?"
 msgstr ""
+"Fixa modell\n"
+"Visste du att du kan fixa en skadad 3D-modell för att undvika en hel del "
+"berednings problem i Windows-systemet?"
 
 #: resources/data/hints.ini: [hint:Timelapse]
 msgid ""
@@ -14841,6 +15576,10 @@ msgid ""
 "extruder/hotend clogging when printing lower temperature filament with a "
 "higher enclosure temperature. More info about this in the Wiki."
 msgstr ""
+"När behöver du skriva ut med printer dörren öppen?\n"
+"Visste du att en öppen printer dörr kan minska risken för igensättning av "
+"extruder/hotend vid utskrift av filament med lägre temperatur och högre "
+"kapslingstemperatur? Det finns mer information om detta i Wiki."
 
 #: resources/data/hints.ini: [hint:Avoid warping]
 msgid ""
@@ -14849,6 +15588,34 @@ msgid ""
 "ABS, appropriately increasing the heatbed temperature can reduce the "
 "probability of warping."
 msgstr ""
+"Undvik vridning\n"
+"Visste du att när du skriver ut material som är benägna att vrida, såsom "
+"ABS, kan en lämplig ökning av värmebäddens temperatur minska sannolikheten "
+"för vridning."
+
+#~ msgid "V"
+#~ msgstr "V"
+
+#~ msgid "Export &Configs"
+#~ msgstr "Exportera konfiguration"
+
+#~ msgid "Infill direction"
+#~ msgstr "Ifyllnads riktning"
+
+#~ msgid ""
+#~ "Enable this to get a G-code file which has G2 and G3 moves. And the "
+#~ "fitting tolerance is same with resolution"
+#~ msgstr ""
+#~ "Aktivera detta för att få en G-kod med G2 och G3 drag. Passnings "
+#~ "toleransen är densamma som upplösningen"
+
+#~ msgid ""
+#~ "Infill area is enlarged slightly to overlap with wall for better bonding. "
+#~ "The percentage value is relative to line width of sparse infill"
+#~ msgstr ""
+#~ "Detta gör att ifyllnads området kan förstoras något för att överlappa "
+#~ "väggarna för bättre vidhäftning.Det procentuella värdet är i förhållande "
+#~ "till linjebredden för sparsam ifyllnad"
 
 #~ msgid "Unload Filament"
 #~ msgstr "Mata ut"

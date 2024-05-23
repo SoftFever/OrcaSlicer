@@ -29,6 +29,9 @@ public:
 	static void perform_desktop_integration();
 	// Deletes Desktop files and icons for both PrusaSlicer and GcodeViewer at paths stored in App Config.
 	static void undo_desktop_intgration();
+	
+	static void perform_downloader_desktop_integration();
+	static void undo_downloader_registration();
 private:
 
 };

@@ -24,6 +24,7 @@
 #include "FillLightning.hpp"
 #include "FillConcentricInternal.hpp"
 #include "FillConcentric.hpp"
+#include "libslic3r.h"
 
 namespace Slic3r {
 
@@ -77,7 +78,7 @@ struct SurfaceFillParams
 #define RETURN_COMPARE_NON_EQUAL_TYPED(TYPE, KEY) if (TYPE(this->KEY) < TYPE(rhs.KEY)) return true; if (TYPE(this->KEY) > TYPE(rhs.KEY)) return false;
 
 		// Sort first by decreasing bridging angle, so that the bridges are processed with priority when trimming one layer by the other.
-		if (this->bridge_angle > rhs.bridge_angle) return true; 
+		if (this->bridge_angle > rhs.bridge_angle) return true;
 		if (this->bridge_angle < rhs.bridge_angle) return false;
 
 		RETURN_COMPARE_NON_EQUAL(extruder);
@@ -185,9 +186,9 @@ void split_solid_surface(size_t layer_id, const SurfaceFill &fill, ExPolygons &n
         Polygons inner_area = intersection(filled_area, opening(filled_area, 2 * scaled_spacing, 3 * scaled_spacing));
 
         inner_area = shrink(inner_area, scaled_spacing * 0.5 - scaled<double>(fill.params.overlap));
-		
+
         AABBTreeLines::LinesDistancer<Line> area_walls{to_lines(inner_area)};
-		
+
         const size_t      n_vlines = (bb.max.x() - bb.min.x() + scaled_spacing - 1) / scaled_spacing;
         std::vector<Line> vertical_lines(n_vlines);
         coord_t           y_min = bb.min.y();
@@ -202,7 +203,7 @@ void split_solid_surface(size_t layer_id, const SurfaceFill &fill, ExPolygons &n
             vertical_lines.back().a = Point{coord_t(bb.min.x() + n_vlines * double(scaled_spacing) + scaled_spacing * 0.5), y_min};
             vertical_lines.back().b = Point{vertical_lines.back().a.x(), y_max};
         }
-		
+
         std::vector<std::vector<Line>> polygon_sections(n_vlines);
 
         for (size_t i = 0; i < n_vlines; i++) {
@@ -227,7 +228,7 @@ void split_solid_surface(size_t layer_id, const SurfaceFill &fill, ExPolygons &n
             bool                             neighbours_explored = false;
             std::vector<std::pair<int, int>> neighbours{};
         };
-		
+
         coord_t length_filter     = scale_(4);
         size_t  skips_allowed     = 2;
         size_t  min_removal_conut = 5;
@@ -300,7 +301,7 @@ void split_solid_surface(size_t layer_id, const SurfaceFill &fill, ExPolygons &n
             std::sort(polygon_sections[section_idx].begin(), polygon_sections[section_idx].end(),
                       [](const Line &a, const Line &b) { return a.a.y() < b.b.y(); });
         }
-		
+
         Polygons reconstructed_area{};
         // reconstruct polygon from polygon sections
         {
@@ -336,7 +337,7 @@ void split_solid_surface(size_t layer_id, const SurfaceFill &fill, ExPolygons &n
                                                       squared_distance_limit_reconnection) {
                             traced_poly.lows.push_back(candidates_begin->a);
                         } else {
-                            traced_poly.lows.push_back(traced_poly.lows.back() + Point{scaled_spacing / 2, 0});
+                            traced_poly.lows.push_back(traced_poly.lows.back() + Point{scaled_spacing / 2, coord_t(0)});
                             traced_poly.lows.push_back(candidates_begin->a - Point{scaled_spacing / 2, 0});
                             traced_poly.lows.push_back(candidates_begin->a);
                         }
@@ -495,10 +496,13 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
                     }
                 }
                 params.bridge_angle = float(surface.bridge_angle);
-                params.angle        = float(Geometry::deg2rad(params.extrusion_role == erInternalInfill ?
-                                                                  region_config.infill_direction :
-                                                                  region_config.solid_infill_direction.value));
-                params.rotate_angle = (params.extrusion_role != erInternalInfill) && region_config.rotate_solid_infill_direction;
+                if (params.extrusion_role == erInternalInfill) {
+                    params.angle = float(Geometry::deg2rad(region_config.infill_direction.value));
+                    params.rotate_angle = (params.pattern == ipRectilinear);
+                } else {
+                    params.angle = float(Geometry::deg2rad(region_config.solid_infill_direction.value));
+                    params.rotate_angle = region_config.rotate_solid_infill_direction;
+                }
 
                 // Calculate the actual flow we'll be using for this infill.
 		        params.bridge = is_bridge || Fill::use_bridge_flow(params.pattern);
@@ -659,7 +663,7 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
                 params.rotate_angle  = layerm.region().config().rotate_solid_infill_direction;
 		        // calculate the actual flow we'll be using for this infill
 				params.flow = layerm.flow(frSolidInfill);
-		        params.spacing = params.flow.spacing();	        
+		        params.spacing = params.flow.spacing();
 				surface_fills.emplace_back(params);
 				surface_fills.back().surface.surface_type = stInternalSolid;
 				surface_fills.back().surface.thickness = layer.height;
@@ -727,7 +731,7 @@ void export_group_fills_to_svg(const char *path, const std::vector<SurfaceFill> 
         for (const auto &expoly : fill.expolygons)
             svg.draw(expoly, surface_type_to_color_name(fill.surface.surface_type), transparency);
     export_surface_type_legend_to_svg(svg, legend_pos);
-    svg.Close(); 
+    svg.Close();
 }
 #endif
 
@@ -993,7 +997,7 @@ void Layer::make_ironing()
 		// ironing flowrate (5% percent)
 		// ironing speed (10 mm/sec)
 
-		// Kisslicer: 
+		// Kisslicer:
 		// iron off, Sweep, Group
 		// ironing speed: 15 mm/sec
 
@@ -1013,7 +1017,7 @@ void Layer::make_ironing()
 			const PrintRegionConfig &config = layerm->region().config();
 			if (config.ironing_type != IroningType::NoIroning &&
 				(config.ironing_type == IroningType::AllSolid ||
-				 	(config.top_shell_layers > 0 && 
+				 	(config.top_shell_layers > 0 &&
 						(config.ironing_type == IroningType::TopSurfaces ||
 					 	(config.ironing_type == IroningType::TopmostOnly && layerm->layer()->upper_layer == nullptr))))) {
 				if (config.wall_filament == config.solid_infill_filament || config.wall_loops == 0) {

@@ -11,6 +11,7 @@
 #include "libslic3r/Model.hpp"
 #include "libslic3r/CSGMesh/SliceCSGMesh.hpp"
 
+#include "libslic3r/libslic3r.h"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/Camera.hpp"
@@ -355,8 +356,8 @@ void MeshClipper::recalculate_triangles()
 
             // To prevent overflow after scaling, downscale the input if needed:
             double extra_scale = 1.;
-            int32_t limit = int32_t(std::min(std::numeric_limits<coord_t>::max() / (2. * std::max(1., scale_x)), std::numeric_limits<coord_t>::max() / (2. * std::max(1., scale_y))));
-            int32_t max_coord = 0;
+            coord_t limit = coord_t(std::min(std::numeric_limits<coord_t>::max() / (2. * std::max(1., scale_x)), std::numeric_limits<coord_t>::max() / (2. * std::max(1., scale_y))));
+            coord_t max_coord = 0;
             for (const Point& pt : exp.contour)
                 max_coord = std::max(max_coord, std::max(std::abs(pt.x()), std::abs(pt.y())));
             if (max_coord + m_contour_width >= limit)

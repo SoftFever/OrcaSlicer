@@ -1,14 +1,15 @@
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-01 00:42+0800\n"
+"POT-Creation-Date: 2024-05-23 23:36+0800\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Localazy (https://localazy.com)\n"
 "Plural-Forms: nplurals=2; plural=(n==1) ? 0 : 1;\n"
+"X-Generator: Localazy (https://localazy.com)\n"
 
 msgid "Supports Painting"
 msgstr "Ondersteuning (Support) tekenen"
@@ -150,7 +151,7 @@ msgid "Height range"
 msgstr "Hoogtebereik"
 
 msgid "Alt + Shift + Enter"
-msgstr ""
+msgstr "Alt + Shift + Enter"
 
 msgid "Toggle Wireframe"
 msgstr "Schakel draadmodel in of uit"
@@ -165,10 +166,10 @@ msgid "Height Range"
 msgstr "Hoogtebereik"
 
 msgid "Vertical"
-msgstr ""
+msgstr "Verticaal"
 
 msgid "Horizontal"
-msgstr ""
+msgstr "Horizontaal"
 
 msgid "Remove painted color"
 msgstr "Geschilderd kleur verwijderen"
@@ -269,16 +270,16 @@ msgid "uniform scale"
 msgstr "Uniform schalen"
 
 msgid "Planar"
-msgstr ""
+msgstr "Planair"
 
 msgid "Dovetail"
-msgstr ""
+msgstr "Zwaluwstaart"
 
 msgid "Auto"
 msgstr "Automatisch"
 
 msgid "Manual"
-msgstr ""
+msgstr "Handmatig"
 
 msgid "Plug"
 msgstr "Plug"
@@ -287,7 +288,7 @@ msgid "Dowel"
 msgstr "Deuvel"
 
 msgid "Snap"
-msgstr ""
+msgstr "Snap"
 
 msgid "Prism"
 msgstr ""
@@ -302,7 +303,7 @@ msgid "Hexagon"
 msgstr "Zeskant"
 
 msgid "Keep orientation"
-msgstr ""
+msgstr "Oriëntatie behouden"
 
 msgid "Place on cut"
 msgstr "Op kniplijn plaatsen"
@@ -326,19 +327,19 @@ msgstr "Vorm"
 #. Size in emboss direction
 #. TRN - Input label. Be short as possible
 msgid "Depth"
-msgstr ""
+msgstr "Diepte"
 
 msgid "Groove"
-msgstr ""
+msgstr "Groef"
 
 msgid "Width"
 msgstr "Breedte"
 
 msgid "Flap Angle"
-msgstr ""
+msgstr "Klephoek"
 
 msgid "Groove Angle"
-msgstr ""
+msgstr "Groefhoek"
 
 msgid "Part"
 msgstr "Onderdeel"
@@ -361,7 +362,7 @@ msgid "Move cut plane"
 msgstr ""
 
 msgid "Mode"
-msgstr ""
+msgstr "Modus"
 
 msgid "Change cut mode"
 msgstr ""
@@ -409,7 +410,7 @@ msgid "Remove connectors"
 msgstr "Verbindingen verwijderen"
 
 msgid "Bulge"
-msgstr ""
+msgstr "Uitstulping"
 
 msgid "Bulge proportion related to radius"
 msgstr ""
@@ -519,6 +520,8 @@ msgstr ""
 
 msgid "non-manifold edges be caused by cut tool, do you want to fix it now?"
 msgstr ""
+"Niet-gevormde randen worden veroorzaakt door snijgereedschap: wil je dit nu "
+"herstellen?"
 
 msgid "Repairing model object"
 msgstr "Model object repareren"
@@ -618,13 +621,13 @@ msgid "Remove selection"
 msgstr "Selectie verwijderen"
 
 msgid "Entering Seam painting"
-msgstr ""
+msgstr "Naad schilderen invoeren"
 
 msgid "Leaving Seam painting"
-msgstr ""
+msgstr "Naad schilderen verlaten"
 
 msgid "Paint-on seam editing"
-msgstr ""
+msgstr "Paint-on naadbewerking"
 
 #. TRN - Input label. Be short as possible
 #. Select look of letter shape
@@ -763,7 +766,7 @@ msgstr ""
 
 msgctxt "EmbossOperation"
 msgid "Cut"
-msgstr ""
+msgstr "Knippen"
 
 msgid "Click to change part type into negative volume."
 msgstr ""
@@ -905,19 +908,19 @@ msgstr ""
 
 msgctxt "Alignment"
 msgid "Left"
-msgstr ""
+msgstr "Links"
 
 msgctxt "Alignment"
 msgid "Center"
-msgstr ""
+msgstr "Centreren"
 
 msgctxt "Alignment"
 msgid "Right"
-msgstr ""
+msgstr "Rechts"
 
 msgctxt "Alignment"
 msgid "Top"
-msgstr ""
+msgstr "Bovenste"
 
 msgctxt "Alignment"
 msgid "Middle"
@@ -925,7 +928,7 @@ msgstr ""
 
 msgctxt "Alignment"
 msgid "Bottom"
-msgstr ""
+msgstr "Onderste"
 
 msgid "Revert alignment."
 msgstr ""
@@ -1237,43 +1240,43 @@ msgid "SVG file does NOT contain a single path to be embossed (%1%)."
 msgstr ""
 
 msgid "Vertex"
-msgstr ""
+msgstr "Vertex"
 
 msgid "Edge"
-msgstr ""
+msgstr "Rand"
 
 msgid "Plane"
-msgstr ""
+msgstr "Vlak"
 
 msgid "Point on edge"
-msgstr ""
+msgstr "Punt op rand"
 
 msgid "Point on circle"
-msgstr ""
+msgstr "Punt op cirkel"
 
 msgid "Point on plane"
-msgstr ""
+msgstr "Punt op vlak"
 
 msgid "Center of edge"
-msgstr ""
+msgstr "Midden van rand"
 
 msgid "Center of circle"
-msgstr ""
+msgstr "Middelpunt van cirkel"
 
 msgid "ShiftLeft mouse button"
 msgstr ""
 
 msgid "Select feature"
-msgstr ""
+msgstr "Functie selecteren"
 
 msgid "Select point"
-msgstr ""
+msgstr "Kies punt"
 
 msgid "Delete"
 msgstr "Verwijderen"
 
 msgid "Restart selection"
-msgstr ""
+msgstr "Selectie herstarten"
 
 msgid "Esc"
 msgstr "Esc"
@@ -1282,14 +1285,14 @@ msgid "Unselect"
 msgstr ""
 
 msgid "Measure"
-msgstr ""
+msgstr "Maatregel"
 
 msgid "Edit to scale"
-msgstr ""
+msgstr "Op schaal bewerken"
 
 msgctxt "Verb"
 msgid "Scale"
-msgstr ""
+msgstr "Schalen"
 
 msgid "None"
 msgstr "Geen"
@@ -1301,22 +1304,22 @@ msgid "Length"
 msgstr "Lengte"
 
 msgid "Selection"
-msgstr ""
+msgstr "Selectie"
 
 msgid "Copy to clipboard"
 msgstr "Kopieer naar klembord"
 
 msgid "Perpendicular distance"
-msgstr ""
+msgstr "Perpendicular distance"
 
 msgid "Distance"
-msgstr ""
+msgstr "Distance"
 
 msgid "Direct distance"
-msgstr ""
+msgstr "Direct distance"
 
 msgid "Distance XYZ"
-msgstr ""
+msgstr "Distance XYZ"
 
 msgid "Ctrl+"
 msgstr "Ctrl+"
@@ -1357,9 +1360,6 @@ msgid ""
 msgstr ""
 "Configuratiebestand “%1%” werd geladen, maar sommige waarden werden niet "
 "herkend."
-
-msgid "V"
-msgstr "V"
 
 msgid ""
 "OrcaSlicer will terminate because of running out of memory.It may be a bug. "
@@ -1466,6 +1466,9 @@ msgstr "Kies één of meer bestanden (3mf/step/stl/svg/obj/amf/usd*/abc/ply):"
 msgid "Choose one or more files (3mf/step/stl/svg/obj/amf):"
 msgstr "Kies één of meer bestanden (3mf/step/stl/svg/obj/amf):"
 
+msgid "Choose ZIP file"
+msgstr ""
+
 msgid "Choose one file (gcode/3mf):"
 msgstr "Kies één bestand (gcode/3mf):"
 
@@ -1502,9 +1505,12 @@ msgid ""
 "The number of user presets cached in the cloud has exceeded the upper limit, "
 "newly created user presets can only be used locally."
 msgstr ""
+"Het aantal gebruikersvoorinstellingen dat in de cloud is opgeslagen, heeft "
+"de bovengrens overschreden. Nieuw gemaakte gebruikersvoorinstellingen kunnen "
+"alleen lokaal worden gebruikt."
 
 msgid "Sync user presets"
-msgstr ""
+msgstr "Synchroniseer gebruikersvoorinstellingen"
 
 msgid "Loading user preset"
 msgstr "Voorinstelling voor gebruiker laden"
@@ -1532,6 +1538,11 @@ msgstr "Lopende uploads"
 
 msgid "Select a G-code file:"
 msgstr "Selecteer een G-code bestand:"
+
+msgid ""
+"Could not start URL download. Destination folder is not set. Please choose "
+"destination folder in Configuration Wizard."
+msgstr ""
 
 msgid "Import File"
 msgstr "Importeer bestand"
@@ -1667,10 +1678,10 @@ msgid "Cone"
 msgstr "Kegel"
 
 msgid "Disc"
-msgstr ""
+msgstr "Schijf"
 
 msgid "Torus"
-msgstr ""
+msgstr "Torus"
 
 msgid "Orca Cube"
 msgstr "Orca-kubus"
@@ -1729,10 +1740,10 @@ msgid "Fix model"
 msgstr "Repareer model"
 
 msgid "Export as one STL"
-msgstr ""
+msgstr "Exporteren als één STL"
 
 msgid "Export as STLs"
-msgstr ""
+msgstr "Exporteren als STL's"
 
 msgid "Reload from disk"
 msgstr "Opnieuw laden vanaf schijf"
@@ -1853,6 +1864,9 @@ msgstr "Primitief toevoegen"
 
 msgid "Add Handy models"
 msgstr ""
+
+msgid "Add Models"
+msgstr "Modellen toevoegen"
 
 msgid "Show Labels"
 msgstr "Toon labels"
@@ -2268,7 +2282,7 @@ msgid "Pause"
 msgstr "Pauze"
 
 msgid "Template"
-msgstr ""
+msgstr "Sjabloon"
 
 msgid "Custom"
 msgstr "Aangepast"
@@ -2319,7 +2333,7 @@ msgid "Change filament at the beginning of this layer."
 msgstr "Change filament at the beginning of this layer."
 
 msgid "Delete Pause"
-msgstr ""
+msgstr "Pauze verwijderen"
 
 msgid "Delete Custom Template"
 msgstr "Delete Custom Template"
@@ -2337,7 +2351,7 @@ msgid "No printer"
 msgstr "Geen printer"
 
 msgid "..."
-msgstr ""
+msgstr "..."
 
 msgid "Failed to connect to the server"
 msgstr "Verbinding maken met de server is mislukt"
@@ -2360,8 +2374,8 @@ msgstr "Verbinding maken met de printer is mislukt"
 msgid "Connection to printer failed"
 msgstr "Connection to printer failed"
 
-msgid "Please check the network connection of the printer and Studio."
-msgstr "Please check the network connection of the printer and Studio."
+msgid "Please check the network connection of the printer and Orca."
+msgstr "Please check the network connection of the printer and Orca."
 
 msgid "Connecting..."
 msgstr "Verbinden..."
@@ -2370,7 +2384,7 @@ msgid "?"
 msgstr " ?"
 
 msgid "/"
-msgstr ""
+msgstr "/"
 
 msgid "Empty"
 msgstr "Leeg"
@@ -2379,13 +2393,13 @@ msgid "AMS"
 msgstr "AMS"
 
 msgid "Auto Refill"
-msgstr ""
+msgstr "Auto Refill"
 
 msgid "AMS not connected"
 msgstr "AMS niet aangesloten"
 
 msgid "Load"
-msgstr ""
+msgstr "Load"
 
 msgid "Unload"
 msgstr "Lossen"
@@ -2417,7 +2431,7 @@ msgid "Cancel calibration"
 msgstr "Kalibreren afbreken"
 
 msgid "Idling..."
-msgstr ""
+msgstr "Inactief..."
 
 msgid "Heat the nozzle"
 msgstr "Verwarm de nozzle"
@@ -2435,13 +2449,13 @@ msgid "Purge old filament"
 msgstr "Oud filament verwijderen"
 
 msgid "Feed Filament"
-msgstr ""
+msgstr "Voer filament in"
 
 msgid "Confirm extruded"
-msgstr ""
+msgstr "Bevestig geëxtrudeerd"
 
 msgid "Check filament location"
-msgstr ""
+msgstr "Controleer de positie van het filament"
 
 msgid "Grab new filament"
 msgstr "Grab new filament"
@@ -2450,6 +2464,8 @@ msgid ""
 "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically "
 "load or unload filaments."
 msgstr ""
+"Kies een AMS-sleuf en druk op de knop \"Laden\" of \"Lossen\" om automatisch "
+"filament te laden of te ontladen."
 
 msgid "Edit"
 msgstr "Bewerken"
@@ -2529,7 +2545,7 @@ msgid "Orienting canceled."
 msgstr ""
 
 msgid "Filling"
-msgstr ""
+msgstr "Vullen"
 
 msgid "Bed filling canceled."
 msgstr "Bed filling canceled."
@@ -2613,7 +2629,7 @@ msgid "Sending print job through cloud service"
 msgstr "Printopdracht verzenden via cloud service"
 
 msgid "Print task sending times out."
-msgstr ""
+msgstr "Het verzenden van de printtaak loopt uit."
 
 msgid "Service Unavailable"
 msgstr "Service niet beschikbaar"
@@ -2631,6 +2647,7 @@ msgstr "Succesvol verzonden. Springt automatisch naar de apparaatpagina in %ss"
 #, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the next page in %ss"
 msgstr ""
+"Succesvol verzonden. Springt automatisch naar de volgende pagina in %ss"
 
 msgid "An SD card needs to be inserted before printing via LAN."
 msgstr ""
@@ -2717,10 +2734,7 @@ msgstr "Orca Slicer is gelicentieerd onder "
 msgid "GNU Affero General Public License, version 3"
 msgstr "GNU Affero Algemene Openbare Licentie, versie 3"
 
-msgid ""
-"Orca Slicer is based on BambuStudio by Bambulab, which is from PrusaSlicer "
-"by Prusa Research.  PrusaSlicer is from Slic3r by Alessandro Ranellucci and "
-"the RepRap community"
+msgid "Orca Slicer is based on PrusaSlicer and BambuStudio"
 msgstr ""
 
 msgid "Libraries"
@@ -2799,10 +2813,10 @@ msgstr ""
 "ondersteund."
 
 msgid "Factors of Flow Dynamics Calibration"
-msgstr ""
+msgstr "Factoren van Flow Dynamics Calibration"
 
 msgid "PA Profile"
-msgstr ""
+msgstr "PA-profiel"
 
 msgid "Factor K"
 msgstr "Factor K"
@@ -2820,10 +2834,10 @@ msgid "You need to select the material type and color first."
 msgstr "You need to select the material type and color first."
 
 msgid "Please input a valid value (K in 0~0.3)"
-msgstr ""
+msgstr "Voer een geldige waarde in (K in 0~0.3)"
 
 msgid "Please input a valid value (K in 0~0.3, N in 0.6~2.0)"
-msgstr ""
+msgstr "Voer een geldige waarde in (K in 0~0,3, N in 0,6~2,0)"
 
 msgid "Other Color"
 msgstr "Other Color"
@@ -2931,7 +2945,7 @@ msgid "Print with the filament mounted on the back of chassis"
 msgstr "Print met filament op een externe spoel"
 
 msgid "Current Cabin humidity"
-msgstr ""
+msgstr "Current Cabin humidity"
 
 msgid ""
 "Please change the desiccant when it is too wet. The indicator may not "
@@ -2939,6 +2953,10 @@ msgid ""
 "desiccant pack is changed. it take hours to absorb the moisture, low "
 "temperatures also slow down the process."
 msgstr ""
+"Please change the desiccant when it is too wet. The indicator may not "
+"represent accurately in following cases: when the lid is open or the "
+"desiccant pack is changed. It takes a few hours to absorb the moisture, and "
+"low temperatures also slow down the process."
 
 msgid ""
 "Config which AMS slot should be used for a filament used in the print job"
@@ -2971,16 +2989,19 @@ msgid ""
 "When the current material run out, the printer will continue to print in the "
 "following order."
 msgstr ""
+"Als het huidige materiaal op is, gaat de printer verder met afdrukken in de "
+"volgende volgorde."
 
 msgid "Group"
 msgstr "Group"
 
 msgid "The printer does not currently support auto refill."
-msgstr ""
+msgstr "De printer ondersteunt automatisch bijvullen momenteel niet."
 
 msgid ""
 "AMS filament backup is not enabled, please enable it in the AMS settings."
 msgstr ""
+"AMS filament backup is not enabled; please enable it in the AMS settings."
 
 msgid ""
 "If there are two identical filaments in AMS, AMS filament backup will be "
@@ -2988,12 +3009,16 @@ msgid ""
 "(Currently supporting automatic supply of consumables with the same brand, "
 "material type, and color)"
 msgstr ""
+"If there are two identical filaments in an AMS, AMS filament backup will be "
+"enabled. \n"
+"(This currently supports automatic supply of consumables with the same "
+"brand, material type, and color)"
 
 msgid "DRY"
-msgstr ""
+msgstr "DRY"
 
 msgid "WET"
-msgstr ""
+msgstr "WET"
 
 msgid "AMS Settings"
 msgstr "AMS Instellingen"
@@ -3012,6 +3037,8 @@ msgid ""
 "Note: if a new filament is inserted during  printing, the AMS will not "
 "automatically read any information until printing is completed."
 msgstr ""
+"Opmerking: als er tijdens het printen een nieuw filament wordt geplaatst, "
+"zal het AMS niet automatisch informatie lezen totdat het printen is voltooid."
 
 msgid ""
 "When inserting a new filament, the AMS will not automatically read its "
@@ -3064,12 +3091,14 @@ msgstr ""
 "eigenschappen wanneer het huidige filament op is."
 
 msgid "Air Printing Detection"
-msgstr ""
+msgstr "Air Printing Detection"
 
 msgid ""
 "Detects clogging and filament grinding, halting printing immediately to "
 "conserve time and filament."
 msgstr ""
+"Detects clogging and filament grinding, halting printing immediately to "
+"conserve time and filament."
 
 msgid "File"
 msgstr "Bestand"
@@ -3148,7 +3177,7 @@ msgid "Running post-processing scripts"
 msgstr "Het uitvoeren van post-processing scripts"
 
 msgid "Successfully executed post-processing script"
-msgstr ""
+msgstr "Successfully executed post-processing script"
 
 msgid "Unknown error occured during exporting G-code."
 msgstr ""
@@ -3209,6 +3238,222 @@ msgstr ""
 #, boost-format
 msgid "Scheduling upload to `%1%`. See Window -> Print Host Upload Queue"
 msgstr "Upload inplannen in `%1%`. Zie Venster -> Print Host Upload Queue"
+
+msgid "Device"
+msgstr "Apparaat"
+
+msgid "Task Sending"
+msgstr "Task Sending"
+
+msgid "Task Sent"
+msgstr "Task Sent"
+
+msgid "Edit multiple printers"
+msgstr ""
+
+msgid "Select connected printetrs (0/6)"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Select Connected Printetrs (%d/6)"
+msgstr ""
+
+#, c-format, boost-format
+msgid "The maximum number of printers that can be selected is %d"
+msgstr ""
+
+msgid "Offline"
+msgstr "Offline"
+
+msgid "No task"
+msgstr "No task"
+
+msgid "View"
+msgstr "Weergave"
+
+msgid "N/A"
+msgstr "N/B"
+
+msgid "Edit Printers"
+msgstr ""
+
+msgid "Device Name"
+msgstr "Device Name"
+
+msgid "Task Name"
+msgstr "Task Name"
+
+msgid "Device Status"
+msgstr "Device Status"
+
+msgid "Actions"
+msgstr "Actions"
+
+msgid ""
+"Please select the devices you would like to manage here (up to 6 devices)"
+msgstr ""
+
+msgid "Add"
+msgstr "Toevoegen"
+
+msgid "Idle"
+msgstr "Inactief"
+
+msgid "Printing"
+msgstr "Printen"
+
+msgid "Upgrading"
+msgstr ""
+
+msgid "Incompatible"
+msgstr "Incompatible"
+
+msgid "syncing"
+msgstr ""
+
+msgid "Printing Finish"
+msgstr ""
+
+msgid "Printing Failed"
+msgstr ""
+
+msgid "PrintingPause"
+msgstr ""
+
+msgid "Prepare"
+msgstr "Voorbereiden"
+
+msgid "Slicing"
+msgstr "Slicen"
+
+msgid "Pending"
+msgstr ""
+
+msgid "Sending"
+msgstr "Verzenden"
+
+msgid "Sending Finish"
+msgstr ""
+
+msgid "Sending Cancel"
+msgstr ""
+
+msgid "Sending Failed"
+msgstr ""
+
+msgid "Print Success"
+msgstr ""
+
+msgid "Print Failed"
+msgstr ""
+
+msgid "Removed"
+msgstr ""
+
+msgid "Resume"
+msgstr "Hervatten"
+
+msgid "Stop"
+msgstr "Stop"
+
+msgid "Task Status"
+msgstr "Task Status"
+
+msgid "Sent Time"
+msgstr "Sent Time"
+
+msgid "There are no tasks to be sent!"
+msgstr "There are no tasks to be sent!"
+
+msgid "No historical tasks!"
+msgstr "No historical tasks!"
+
+msgid "Loading..."
+msgstr "Laden..."
+
+msgid "No AMS"
+msgstr "No AMS"
+
+msgid "Send to Multi-device"
+msgstr "Send to Multi-device"
+
+msgid "Preparing print job"
+msgstr "Print opdracht voorbereiden"
+
+msgid "Abnormal print file data. Please slice again"
+msgstr "Abnormale printbestand. Slice opnieuw"
+
+msgid "There is no device available to send printing."
+msgstr ""
+
+msgid "The number of printers in use simultaneously cannot be equal to 0."
+msgstr ""
+
+msgid "Use External Spool"
+msgstr "Use External Spool"
+
+msgid "Use AMS"
+msgstr "Use AMS"
+
+msgid "Select Printers"
+msgstr "Select Printers"
+
+msgid "Ams Status"
+msgstr "AMS Status"
+
+msgid "Printing Options"
+msgstr "Printing Options"
+
+msgid "Bed Leveling"
+msgstr "Bed leveling"
+
+msgid "Timelapse"
+msgstr "Timelapse"
+
+msgid "Flow Dynamic Calibration"
+msgstr ""
+
+msgid "Send Options"
+msgstr "Send Options"
+
+msgid "Send"
+msgstr "Versturen"
+
+msgid ""
+"printers at the same time.(It depends on how many devices can undergo "
+"heating at the same time.)"
+msgstr ""
+"printers at the same time. (It depends on how many devices can undergo "
+"heating at the same time.)"
+
+msgid "Wait"
+msgstr "Wait"
+
+msgid ""
+"minute each batch.(It depends on how long it takes to complete the heating.)"
+msgstr ""
+"minute each batch. (It depends on how long it takes to complete heating.)"
+
+msgid "Name is invalid;"
+msgstr "Naam is ongeldig;"
+
+msgid "illegal characters:"
+msgstr "Niet toegestande karakters:"
+
+msgid "illegal suffix:"
+msgstr "Ongeldig achtervoegsel:"
+
+msgid "The name is not allowed to be empty."
+msgstr "Het is niet toegestaand om de naam leeg te laten."
+
+msgid "The name is not allowed to start with space character."
+msgstr "Het is niet toegestaan om een naam met een spatie te laten beginnen."
+
+msgid "The name is not allowed to end with space character."
+msgstr "Het is niet toegestaan om een naam met een spatie te laten eindigen."
+
+msgid "The name length exceeds the limit."
+msgstr "The name length exceeds the limit."
 
 msgid "Origin"
 msgstr "Begin"
@@ -3287,14 +3532,18 @@ msgid ""
 "The recommended minimum temperature is less than 190 degree or the "
 "recommended maximum temperature is greater than 300 degree.\n"
 msgstr ""
+"De aanbevolen minimumtemperatuur is lager dan 190 graden of de aanbevolen "
+"maximumtemperatuur is hoger dan 300 graden.\n"
 
 msgid ""
 "The recommended minimum temperature cannot be higher than the recommended "
 "maximum temperature.\n"
 msgstr ""
+"The recommended minimum temperature cannot be higher than the recommended "
+"maximum temperature.\n"
 
 msgid "Please check.\n"
-msgstr ""
+msgstr "Controleer het.\n"
 
 msgid ""
 "Nozzle may be blocked when the temperature is out of recommended range.\n"
@@ -3327,6 +3576,9 @@ msgid ""
 "it may result in material softening and clogging.The maximum safe "
 "temperature for the material is %d"
 msgstr ""
+"Current chamber temperature is higher than the material's safe temperature; "
+"this may result in material softening and nozzle clogs.The maximum safe "
+"temperature for the material is %d"
 
 msgid ""
 "Too small layer height.\n"
@@ -3449,7 +3701,7 @@ msgstr ""
 "layers is 0, sparse infill density is 0 and timelapse type is traditional."
 
 msgid " But machines with I3 structure will not generate timelapse videos."
-msgstr ""
+msgstr " Maar machines met een I3-structuur genereren geen timelapsevideo's."
 
 msgid ""
 "Change these settings automatically? \n"
@@ -3524,46 +3776,47 @@ msgid "Paused due to heat bed temperature malfunction"
 msgstr "Onderbroken vanwege storing in de temperatuur van het printbed"
 
 msgid "Filament unloading"
-msgstr ""
+msgstr "Lossen van filament"
 
 msgid "Skip step pause"
-msgstr ""
+msgstr "Stappauze overslaan"
 
 msgid "Filament loading"
-msgstr ""
+msgstr "Filament bezig met laden"
 
 msgid "Motor noise calibration"
-msgstr ""
+msgstr "Kalibratie van motorgeluid"
 
 msgid "Paused due to AMS lost"
-msgstr ""
+msgstr "Gepauzeerd wegens verlies van AMS"
 
 msgid "Paused due to low speed of the heat break fan"
 msgstr ""
+"Gepauzeerd vanwege lage snelheid van de ventilator voor warmteonderbreking"
 
 msgid "Paused due to chamber temperature control error"
-msgstr ""
+msgstr "Gepauzeerd vanwege een fout in de temperatuurregeling van de kamer"
 
 msgid "Cooling chamber"
-msgstr ""
+msgstr "Koelkamer"
 
 msgid "Paused by the Gcode inserted by user"
-msgstr ""
+msgstr "Gepauzeerd door de Gcode ingevoegd door gebruiker"
 
 msgid "Motor noise showoff"
-msgstr ""
+msgstr "Motorgeluid showoff"
 
 msgid "Nozzle filament covered detected pause"
-msgstr ""
+msgstr "Nozzle filament bedekt gedetecteerde pauze"
 
 msgid "Cutter error pause"
-msgstr ""
+msgstr "Pauze bij snijfout"
 
 msgid "First layer error pause"
-msgstr ""
+msgstr "Eerste laag foutpauze"
 
 msgid "Nozzle clog pause"
-msgstr ""
+msgstr "Pauze bij verstopping van het mondstuk"
 
 msgid "Unknown"
 msgstr "Onbekend"
@@ -3594,18 +3847,27 @@ msgid ""
 "45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/"
 "TPU) is not allowed to be loaded."
 msgstr ""
+"The current chamber temperature or the target chamber temperature exceeds "
+"45℃. In order to avoid extruder clogging, low temperature filament (PLA/PETG/"
+"TPU) is not allowed to be loaded."
 
 msgid ""
 "Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order to "
 "avoid extruder clogging,it is not allowed to set the chamber temperature "
 "above 45℃."
 msgstr ""
+"Low temperature filament (PLA/PETG/TPU) is loaded in the extruder. In order "
+"to avoid extruder clogging, it is not allowed to set the chamber temperature "
+"above 45℃."
 
 msgid ""
 "When you set the chamber temperature below 40℃, the chamber temperature "
 "control will not be activated. And the target chamber temperature will "
 "automatically be set to 0℃."
 msgstr ""
+"When you set the chamber temperature below 40℃, the chamber temperature "
+"control will not be activated, and the target chamber temperature will "
+"automatically be set to 0℃."
 
 msgid "Failed to start printing job"
 msgstr "Het starten van de printopdracht is mislukt"
@@ -3613,34 +3875,39 @@ msgstr "Het starten van de printopdracht is mislukt"
 msgid ""
 "This calibration does not support the currently selected nozzle diameter"
 msgstr ""
+"Deze kalibratie ondersteunt de momenteel geselecteerde mondstukdiameter niet"
 
 msgid "Current flowrate cali param is invalid"
-msgstr ""
+msgstr "Huidige stroomsnelheid cali param is ongeldig"
 
 msgid "Selected diameter and machine diameter do not match"
-msgstr ""
+msgstr "Geselecteerde diameter en machinediameter komen niet overeen"
 
 msgid "Failed to generate cali gcode"
-msgstr ""
+msgstr "Cali gcode niet gegenereerd"
 
 msgid "Calibration error"
-msgstr ""
+msgstr "Kalibratiefout"
 
 msgid "TPU is not supported by AMS."
-msgstr ""
+msgstr "TPU wordt niet ondersteund door AMS."
 
 msgid "Bambu PET-CF/PA6-CF is not supported by AMS."
-msgstr ""
+msgstr "Bambu PET-CF/PA6-CF wordt niet ondersteund door AMS."
 
 msgid ""
 "Damp PVA will become flexible and get stuck inside AMS,please take care to "
 "dry it before use."
 msgstr ""
+"Vochtige PVA zal flexibel worden en vast komen te zitten in de AMS, zorg er "
+"dus voor dat je het droogt voor gebruik."
 
 msgid ""
 "CF/GF filaments are hard and brittle, It's easy to break or get stuck in "
 "AMS, please use with caution."
 msgstr ""
+"CF/GF-filamenten zijn hard en bros. Ze kunnen gemakkelijk breken of vast "
+"komen te zitten in AMS."
 
 msgid "default"
 msgstr "Standaard"
@@ -3710,9 +3977,6 @@ msgstr "Printer instellingen"
 msgid "parameter name"
 msgstr "parameternaam"
 
-msgid "N/A"
-msgstr "N/B"
-
 #, c-format, boost-format
 msgid "%s can't be percentage"
 msgstr "%s kan geen percentage zijn"
@@ -3726,7 +3990,7 @@ msgstr "Parametervalidatie"
 
 #, c-format, boost-format
 msgid "Value %s is out of range. The valid range is from %d to %d."
-msgstr ""
+msgstr "Value %s is out of range. The valid range is from %d to %d."
 
 msgid "Value is out of range."
 msgstr "Waarde is buiten het bereik."
@@ -3809,7 +4073,7 @@ msgid "Flushed"
 msgstr "Flushed"
 
 msgid "Tower"
-msgstr ""
+msgstr "Toren"
 
 msgid "Total"
 msgstr "Totaal"
@@ -3821,7 +4085,7 @@ msgid "Total time"
 msgstr "Totale tijd"
 
 msgid "Total cost"
-msgstr ""
+msgstr "Total cost"
 
 msgid "up to"
 msgstr "tot"
@@ -3917,10 +4181,10 @@ msgid "Normal mode"
 msgstr "Normale modus"
 
 msgid "Total Filament"
-msgstr ""
+msgstr "Total Filament"
 
 msgid "Model Filament"
-msgstr ""
+msgstr "Model Filament"
 
 msgid "Prepare time"
 msgstr "Voorbereidingstijd"
@@ -4016,7 +4280,7 @@ msgid "Spacing"
 msgstr "Uitlijning"
 
 msgid "0 means auto spacing."
-msgstr ""
+msgstr "0 means auto spacing."
 
 msgid "Auto rotate for arrangement"
 msgstr "Automatisch roteren voor rankschikking"
@@ -4028,10 +4292,7 @@ msgid "Avoid extrusion calibration region"
 msgstr "Vermijd het extrusie kalibratie gebied"
 
 msgid "Align to Y axis"
-msgstr ""
-
-msgid "Add"
-msgstr "Toevoegen"
+msgstr "Uitlijnen op Y-as"
 
 msgid "Add plate"
 msgstr "Printbed toevoegen"
@@ -4097,7 +4358,7 @@ msgid "An object is layed over the boundary of plate."
 msgstr "Er bevind zich een object buiten de grenzen van de printplaat."
 
 msgid "A G-code path goes beyond the max print height."
-msgstr ""
+msgstr "Een G-codepad gaat verder dan de maximale printhoogte."
 
 msgid "A G-code path goes beyond the boundary of plate."
 msgstr "Een G-code pad treedt buiten de grenzen van de printplaat."
@@ -4125,10 +4386,10 @@ msgid "Bed leveling"
 msgstr "Bed leveling"
 
 msgid "Vibration compensation"
-msgstr ""
+msgstr "Trillingscompensatie"
 
 msgid "Motor noise cancellation"
-msgstr ""
+msgstr "Motorruisonderdrukking"
 
 msgid "Calibration program"
 msgstr "Kalibratie programma"
@@ -4155,7 +4416,7 @@ msgid "Calibrating"
 msgstr "Kalibreren"
 
 msgid "No step selected"
-msgstr ""
+msgstr "Geen stap geselecteerd"
 
 msgid "Auto-record Monitoring"
 msgstr "Automatische opnamebewaking"
@@ -4164,7 +4425,7 @@ msgid "Go Live"
 msgstr "Live gaan"
 
 msgid "Liveview Retry"
-msgstr ""
+msgstr "Liveweergave opnieuw proberen"
 
 msgid "Resolution"
 msgstr "Resolutie"
@@ -4218,17 +4479,11 @@ msgstr "Applicatie sluiten terwijl sommige voorinstellingen zijn gewijzigd."
 msgid "Logging"
 msgstr "Vastleggen"
 
-msgid "Prepare"
-msgstr "Voorbereiden"
-
 msgid "Preview"
 msgstr "Voorvertoning"
 
-msgid "Device"
-msgstr "Apparaat"
-
 msgid "Multi-device"
-msgstr ""
+msgstr "Multi-device"
 
 msgid "Project"
 msgstr "Project"
@@ -4254,9 +4509,6 @@ msgstr "Alles slicen"
 msgid "Export G-code file"
 msgstr "G-codebestand exporteren"
 
-msgid "Send"
-msgstr "Versturen"
-
 msgid "Export plate sliced file"
 msgstr "Exporteer plate sliced bestand"
 
@@ -4268,9 +4520,6 @@ msgstr "Print alles"
 
 msgid "Send all"
 msgstr "Alles verzenden"
-
-msgid "Send to Multi-device"
-msgstr ""
 
 msgid "Keyboard Shortcuts"
 msgstr "Sneltoesten"
@@ -4380,6 +4629,12 @@ msgstr "3MF/STL/STEP/SVG/OBJ/AMF importeren"
 msgid "Load a model"
 msgstr "Laad een model"
 
+msgid "Import Zip Archive"
+msgstr ""
+
+msgid "Load models contained within a zip archive"
+msgstr ""
+
 msgid "Import Configs"
 msgstr "Importeer configuratie"
 
@@ -4390,10 +4645,10 @@ msgid "Import"
 msgstr "Importeren"
 
 msgid "Export all objects as one STL"
-msgstr ""
+msgstr "Alle objecten exporteren als één STL"
 
 msgid "Export all objects as STLs"
-msgstr ""
+msgstr "Alle objecten exporteren als STL's"
 
 msgid "Export Generic 3MF"
 msgstr "Generiek 3MF exporteren"
@@ -4413,8 +4668,8 @@ msgstr "Exporteer G-code"
 msgid "Export current plate as G-code"
 msgstr "Exporteer de huidige plaat als G-code"
 
-msgid "Export &Configs"
-msgstr "Export &Configs"
+msgid "Export Preset Bundle"
+msgstr ""
 
 msgid "Export current configuration to files"
 msgstr "Huidige configuratie exporteren naar bestanden"
@@ -4515,56 +4770,53 @@ msgstr "Show object overhang highlight in 3D scene"
 msgid "Preferences"
 msgstr "Voorkeuren"
 
-msgid "View"
-msgstr "Weergave"
-
 msgid "Help"
 msgstr "Help"
 
 msgid "Temperature Calibration"
-msgstr ""
+msgstr "Temperatuurkalibratie"
 
 msgid "Pass 1"
-msgstr ""
+msgstr "Fase 1"
 
 msgid "Flow rate test - Pass 1"
-msgstr ""
+msgstr "Stroomsnelheidstest - Fase 1"
 
 msgid "Pass 2"
-msgstr ""
+msgstr "Fase 2"
 
 msgid "Flow rate test - Pass 2"
-msgstr ""
+msgstr "Stroomsnelheidstest - Fase 2"
 
 msgid "Flow rate"
-msgstr ""
+msgstr "Flowrate"
 
 msgid "Pressure advance"
-msgstr ""
+msgstr "Drukverhoging"
 
 msgid "Retraction test"
-msgstr ""
+msgstr "Retractietest"
 
 msgid "Orca Tolerance Test"
-msgstr ""
+msgstr "Orca Tolerance Test"
 
 msgid "Max flowrate"
-msgstr ""
+msgstr "Max flowrate"
 
 msgid "VFA"
-msgstr ""
+msgstr "VFA"
 
 msgid "More..."
-msgstr ""
+msgstr "Meer..."
 
 msgid "Tutorial"
-msgstr ""
+msgstr "Tutorial"
 
 msgid "Calibration help"
-msgstr ""
+msgstr "Hulp bij kalibratie"
 
 msgid "More calibrations"
-msgstr ""
+msgstr "Meer kalibraties"
 
 msgid "&Open G-code"
 msgstr "&Open G-code"
@@ -4584,10 +4836,10 @@ msgstr "Exporteer &Toolpaths als OBJ"
 msgid "Export toolpaths as OBJ"
 msgstr "Toolpaths exporteren als OBJ"
 
-msgid "Open &Studio"
+msgid "Open &Slicer"
 msgstr "Open & Studio"
 
-msgid "Open Studio"
+msgid "Open Slicer"
 msgstr "Studio openen"
 
 msgid "&Quit"
@@ -4680,48 +4932,57 @@ msgid "Synchronization"
 msgstr "Synchronisatie"
 
 msgid "The device cannot handle more conversations. Please retry later."
-msgstr ""
+msgstr "Het apparaat kan niet meer gesprekken aan. Probeer het later opnieuw."
 
 msgid "Player is malfunctioning. Please reinstall the system player."
-msgstr ""
+msgstr "De speler werkt niet goed. Installeer de systeemspeler opnieuw."
 
 msgid "The player is not loaded, please click \"play\" button to retry."
 msgstr ""
+"De speler is niet geladen; klik op de \"play\" knop om het opnieuw te "
+"proberen."
 
 msgid "Please confirm if the printer is connected."
-msgstr ""
+msgstr "Controleer of de printer is aangesloten."
 
 msgid ""
 "The printer is currently busy downloading. Please try again after it "
 "finishes."
 msgstr ""
+"De printer is momenteel bezig met downloaden. Probeer het opnieuw nadat het "
+"is voltooid."
 
 msgid "Printer camera is malfunctioning."
-msgstr ""
+msgstr "De printercamera werkt niet goed."
 
 msgid "Problem occured. Please update the printer firmware and try again."
 msgstr ""
+"Er heeft zich een probleem voorgedaan. Werk de printerfirmware bij en "
+"probeer het opnieuw."
 
 msgid ""
 "LAN Only Liveview is off. Please turn on the liveview on printer screen."
 msgstr ""
+"LAN Only Liveview is off. Please turn on the liveview on printer screen."
 
 msgid "Please enter the IP of printer to connect."
-msgstr ""
+msgstr "Voer het IP-adres in van de printer waarmee u verbinding wilt maken."
 
 msgid "Initializing..."
 msgstr "Initialiseren..."
 
 msgid "Connection Failed. Please check the network and try again"
-msgstr ""
+msgstr "Verbinding mislukt. Controleer het netwerk en probeer het opnieuw"
 
 msgid ""
 "Please check the network and try again, You can restart or update the "
 "printer if the issue persists."
 msgstr ""
+"Controleer het netwerk en probeer het opnieuw. U kunt de printer opnieuw "
+"opstarten of bijwerken als het probleem zich blijft voordoen."
 
 msgid "The printer has been logged out and cannot connect."
-msgstr ""
+msgstr "De printer is afgemeld en kan geen verbinding maken."
 
 msgid "Stopped."
 msgstr "Gestopt."
@@ -4761,9 +5022,6 @@ msgstr "Informatie"
 msgid "Playing..."
 msgstr "Afspelen..."
 
-msgid "Loading..."
-msgstr "Laden..."
-
 msgid "Year"
 msgstr "Jaar"
 
@@ -4781,9 +5039,6 @@ msgstr "Groepeer bestanden per maand, recent eerst."
 
 msgid "Show all files, recent first."
 msgstr "Toon alle bestanden, recentste eerst."
-
-msgid "Timelapse"
-msgstr "Timelapse"
 
 msgid "Switch to timelapse files."
 msgstr "Schakel over naar timelapse bestanden."
@@ -4816,7 +5071,7 @@ msgid "Refresh"
 msgstr "Vernieuwen"
 
 msgid "Reload file list from printer."
-msgstr ""
+msgstr "Reload file list from printer."
 
 msgid "No printers."
 msgstr "Geen printers"
@@ -4829,10 +5084,10 @@ msgid "Loading file list..."
 msgstr "Bestandslijst laden..."
 
 msgid "No files"
-msgstr ""
+msgstr "Geen bestanden"
 
 msgid "Load failed"
-msgstr ""
+msgstr "Load failed"
 
 msgid "Initialize failed (Device connection not ready)!"
 msgstr "Initialization failed (Device connection not ready)!"
@@ -4841,15 +5096,17 @@ msgid ""
 "Browsing file in SD card is not supported in current firmware. Please update "
 "the printer firmware."
 msgstr ""
+"Browsing file in SD card is not supported in current firmware. Please update "
+"the printer firmware."
 
 msgid "Initialize failed (Storage unavailable, insert SD card.)!"
 msgstr ""
 
 msgid "LAN Connection Failed (Failed to view sdcard)"
-msgstr ""
+msgstr "LAN Connection Failed (Failed to view sdcard)"
 
 msgid "Browsing file in SD card is not supported in LAN Only Mode."
-msgstr ""
+msgstr "Browsing file in SD card is not supported in LAN Only Mode."
 
 #, c-format, boost-format
 msgid "Initialize failed (%s)!"
@@ -4876,10 +5133,10 @@ msgid "Fetching model infomations ..."
 msgstr "Fetching model information..."
 
 msgid "Failed to fetch model information from printer."
-msgstr ""
+msgstr "Mislukt bij het ophalen van modelgegevens van de printer."
 
 msgid "Failed to parse model information."
-msgstr ""
+msgstr "Mislukt bij het parsen van modelinformatie."
 
 msgid ""
 "The .gcode.3mf file contains no G-code data.Please slice it with Orca Slicer "
@@ -4895,6 +5152,8 @@ msgid ""
 "File: %s\n"
 "Title: %s\n"
 msgstr ""
+"File: %s\n"
+"Title: %s\n"
 
 msgid "Download waiting..."
 msgstr "Download wacht..."
@@ -4916,27 +5175,24 @@ msgid ""
 "Reconnecting the printer, the operation cannot be completed immediately, "
 "please try again later."
 msgstr ""
-
-msgid ""
-"Over 4 systems/handy are using remote access, you can close some and try "
-"again."
-msgstr ""
+"Reconnecting the printer, the operation cannot be completed immediately, "
+"please try again later."
 
 msgid "File does not exist."
-msgstr ""
+msgstr "Bestand bestaat niet."
 
 msgid "File checksum error. Please retry."
-msgstr ""
+msgstr "Fout in bestandscontrolesom. Probeer opnieuw."
 
 msgid "Not supported on the current printer version."
-msgstr ""
+msgstr "Niet ondersteund op de huidige printerversie."
 
 msgid "Storage unavailable, insert SD card."
-msgstr ""
+msgstr "Opslagruimte niet beschikbaar, Micro SD-kaart plaatsen."
 
 #, c-format, boost-format
 msgid "Error code: %d"
-msgstr ""
+msgstr "Foutcode: %d"
 
 msgid "Speed:"
 msgstr "Snelheid"
@@ -4980,12 +5236,6 @@ msgstr ""
 msgid "Printing Progress"
 msgstr "Print voortgang"
 
-msgid "Resume"
-msgstr "Hervatten"
-
-msgid "Stop"
-msgstr "Stop"
-
 msgid "0"
 msgstr "0"
 
@@ -4999,17 +5249,21 @@ msgid ""
 "You have completed printing the mall model, \n"
 "but the synchronization of rating information has failed."
 msgstr ""
+"You have completed printing the mall model, \n"
+"but synchronizing rating information has failed."
 
 msgid "How do you like this printing file?"
-msgstr ""
+msgstr "Wat vind je van dit afdrukbestand?"
 
 msgid ""
 "(The model has already been rated. Your rating will overwrite the previous "
 "rating.)"
 msgstr ""
+"(Het model is al beoordeeld. Uw beoordeling overschrijft de vorige "
+"beoordeling)."
 
 msgid "Rate"
-msgstr ""
+msgstr "Tarief"
 
 msgid "Camera"
 msgstr "Camera"
@@ -5027,7 +5281,7 @@ msgid "Control"
 msgstr "Besturing"
 
 msgid "Printer Parts"
-msgstr ""
+msgstr "Printer Parts"
 
 msgid "Print Options"
 msgstr "Print Opties"
@@ -5084,6 +5338,8 @@ msgid ""
 "Please heat the nozzle to above 170 degree before loading or unloading "
 "filament."
 msgstr ""
+"Verwarm het mondstuk tot boven de 170 graden voordat u filament laadt of "
+"lost."
 
 msgid "Still unload"
 msgstr "Nog steeds aan het ontladen"
@@ -5120,95 +5376,110 @@ msgid "Can't start this without SD card."
 msgstr "Kan niet starten zonder microSD-kaart."
 
 msgid "Rate the Print Profile"
-msgstr ""
+msgstr "Beoordeel het printprofiel"
 
 msgid "Comment"
-msgstr ""
+msgstr "Opmerking"
 
 msgid "Rate this print"
-msgstr ""
+msgstr "Beoordeel deze print"
 
 msgid "Add Photo"
-msgstr ""
+msgstr "Foto toevoegen"
 
 msgid "Delete Photo"
-msgstr ""
+msgstr "Foto verwijderen"
 
 msgid "Submit"
-msgstr ""
+msgstr "Indienen"
 
 msgid "Please click on the star first."
-msgstr ""
+msgstr "Klik eerst op de ster."
 
 msgid "InFo"
-msgstr ""
+msgstr "Informatie"
 
 msgid "Get oss config failed."
-msgstr ""
+msgstr "Het ophalen van de oss-configuratie is mislukt."
 
 msgid "Upload Pictrues"
-msgstr ""
+msgstr "Upload Pictures"
 
 msgid "Number of images successfully uploaded"
-msgstr ""
+msgstr "Aantal afbeeldingen succesvol geüpload"
 
 msgid " upload failed"
-msgstr ""
+msgstr "uploaden mislukt"
 
 msgid " upload config prase failed\n"
-msgstr ""
+msgstr " upload config prase mislukt\n"
 
 msgid " No corresponding storage bucket\n"
-msgstr ""
+msgstr " Geen bijbehorende opslag bucket\n"
 
 msgid " can not be opened\n"
-msgstr ""
+msgstr " cannot be opened\n"
 
 msgid ""
 "The following issues occurred during the process of uploading images. Do you "
 "want to ignore them?\n"
 "\n"
 msgstr ""
+"De volgende problemen deden zich voor tijdens het uploaden van afbeeldingen. "
+"Wil je ze negeren?\n"
+"\n"
 
 msgid "info"
 msgstr "Informatie"
 
 msgid "Synchronizing the printing results. Please retry a few seconds later."
 msgstr ""
+"De afdrukresultaten worden gesynchroniseerd. Probeer het een paar seconden "
+"later opnieuw."
 
 msgid "Upload failed\n"
-msgstr ""
+msgstr "Uploaden mislukt\n"
 
 msgid "obtaining instance_id failed\n"
-msgstr ""
+msgstr "het verkrijgen van instance_id is mislukt\n"
 
 msgid ""
 "Your comment result cannot be uploaded due to some reasons. As follows:\n"
 "\n"
 "  error code: "
 msgstr ""
+"Your comment result cannot be uploaded due to the following reasons:\n"
+"\n"
+"  error code: "
 
 msgid "error message: "
-msgstr ""
+msgstr "foutmelding: "
 
 msgid ""
 "\n"
 "\n"
 "Would you like to redirect to the webpage for rating?"
 msgstr ""
+"\n"
+"\n"
+"Would you like to redirect to the webpage to give a rating?"
 
 msgid ""
 "Some of your images failed to upload. Would you like to redirect to the "
 "webpage for rating?"
 msgstr ""
+"Sommige afbeeldingen zijn niet geüpload. Wilt u doorverwijzen naar de "
+"webpagina voor beoordeling?"
 
 msgid "You can select up to 16 images."
-msgstr ""
+msgstr "Je kunt tot 16 afbeeldingen selecteren."
 
 msgid ""
 "At least one successful print record of this print profile is required \n"
 "to give a positive rating(4 or 5stars)."
 msgstr ""
+"At least one successful print record of this print profile is required \n"
+"to give a positive rating (4 or 5 stars)."
 
 msgid "Status"
 msgstr "Status"
@@ -5258,7 +5529,7 @@ msgid "If you would like to try Orca Slicer Beta, you may click to"
 msgstr ""
 
 msgid "Download Beta Version"
-msgstr ""
+msgstr "Beta-versie downloaden"
 
 msgid "The 3mf file version is newer than the current Orca Slicer version."
 msgstr ""
@@ -5267,13 +5538,13 @@ msgid "Update your Orca Slicer could enable all functionality in the 3mf file."
 msgstr ""
 
 msgid "Current Version: "
-msgstr ""
+msgstr "Huidige versie:"
 
 msgid "Latest Version: "
-msgstr ""
+msgstr "Laatste versie:"
 
 msgid "Not for now"
-msgstr ""
+msgstr "Not for now"
 
 msgid "3D Mouse disconnected."
 msgstr "3D-muis losgekoppeld."
@@ -5300,10 +5571,10 @@ msgid "Details"
 msgstr "Détails"
 
 msgid "New printer config available."
-msgstr ""
+msgstr "Nieuwe printerconfiguratie beschikbaar."
 
 msgid "Wiki"
-msgstr ""
+msgstr "Wiki"
 
 msgid "Undo integration failed."
 msgstr "Het ongedaan maken van de integratie is mislukt."
@@ -5352,11 +5623,11 @@ msgstr[1] ""
 msgid "ERROR"
 msgstr "Fout"
 
-msgid "CANCELED"
-msgstr "GEANNULEERD"
-
 msgid "COMPLETED"
 msgstr "VOLTOOID"
+
+msgid "CANCELED"
+msgstr "GEANNULEERD"
 
 msgid "Cancel upload"
 msgstr "Upload annuleren"
@@ -5374,10 +5645,10 @@ msgid "Export successfully."
 msgstr "Succesvol geëxporteerd"
 
 msgid "Model file downloaded."
-msgstr ""
+msgstr "Modelbestand gedownload."
 
 msgid "Serious warning:"
-msgstr ""
+msgstr "Ernstige waarschuwing:"
 
 msgid " (Repair)"
 msgstr " (Repareren)"
@@ -5465,29 +5736,29 @@ msgid "Auto-recovery from step loss"
 msgstr "Automatisch herstel na stapverlies"
 
 msgid "Allow Prompt Sound"
-msgstr ""
+msgstr "Promptgeluid toestaan"
 
 msgid "Filament Tangle Detect"
-msgstr ""
+msgstr "Filament Tangle Detection"
 
 msgid "Nozzle Clumping Detection"
-msgstr ""
+msgstr "Nozzle Clumping Detection"
 
 msgid "Check if the nozzle is clumping by filament or other foreign objects."
-msgstr ""
+msgstr "Check if the nozzle is clumping by filament or other foreign objects."
 
 msgid "Nozzle Type"
-msgstr ""
+msgstr "Nozzle Type"
 
 msgid "Stainless Steel"
-msgstr ""
+msgstr "Roestvrij staal"
 
 msgid "Hardened Steel"
-msgstr ""
+msgstr "Gehard staal"
 
 #, c-format, boost-format
 msgid "%.1f"
-msgstr ""
+msgstr "%.1f"
 
 msgid "Global"
 msgstr "Globale"
@@ -5578,7 +5849,7 @@ msgid "Set filaments to use"
 msgstr "Stel filamenten in om te gebruiken"
 
 msgid "Search plate, object and part."
-msgstr ""
+msgstr "Zoek plaat, object en onderdeel."
 
 msgid ""
 "No AMS filaments. Please select a printer in 'Device' page to load AMS info."
@@ -5648,6 +5919,9 @@ msgid ""
 "clogged when printing this filament in a closed enclosure. Please open the "
 "front door and/or remove the upper glass."
 msgstr ""
+"The current heatbed temperature is relatively high. The nozzle may clog when "
+"printing this filament in a closed environment. Please open the front door "
+"and/or remove the upper glass."
 
 msgid ""
 "The nozzle hardness required by the filament is higher than the default "
@@ -5662,6 +5936,9 @@ msgid ""
 "Enabling traditional timelapse photography may cause surface imperfections. "
 "It is recommended to change to smooth mode."
 msgstr ""
+"Het inschakelen van traditionele timelapse-fotografie kan oneffenheden in "
+"het oppervlak veroorzaken. Het wordt aanbevolen om over te schakelen naar de "
+"vloeiende modus."
 
 msgid "Expand sidebar"
 msgstr ""
@@ -5706,26 +5983,32 @@ msgid "Please correct them in the param tabs"
 msgstr "Please correct them in the Param tabs"
 
 msgid "The 3mf has following modified G-codes in filament or printer presets:"
-msgstr ""
+msgstr "The 3mf has following modified G-code in filament or printer presets:"
 
 msgid ""
 "Please confirm that these modified G-codes are safe to prevent any damage to "
 "the machine!"
 msgstr ""
+"Controleer of deze aangepaste G-codes veilig zijn om schade aan de machine "
+"te voorkomen!"
 
 msgid "Modified G-codes"
-msgstr ""
+msgstr "Modified G-code"
 
 msgid "The 3mf has following customized filament or printer presets:"
 msgstr ""
+"De 3mf heeft de volgende aangepaste voorinstellingen voor filament of "
+"printer:"
 
 msgid ""
 "Please confirm that the G-codes within these presets are safe to prevent any "
 "damage to the machine!"
 msgstr ""
+"Controleer of de G-codes in deze presets veilig zijn om schade aan de "
+"machine te voorkomen!"
 
 msgid "Customized Preset"
-msgstr ""
+msgstr "Aangepaste voorinstelling"
 
 msgid "Name of components inside step file is not UTF8 format!"
 msgstr "Naam van componenten in step-bestand is niet UTF8-formaat!"
@@ -5734,6 +6017,9 @@ msgid "The name may show garbage characters!"
 msgstr ""
 "Vanwege niet-ondersteunde tekstcodering kunnen er onjuiste tekens "
 "verschijnen!"
+
+msgid "Remember my choice."
+msgstr "Remember my choice."
 
 #, boost-format
 msgid "Failed loading file \"%1%\". An invalid configuration was found."
@@ -5795,22 +6081,24 @@ msgid "Export STL file:"
 msgstr "Exporteer STL bestand:"
 
 msgid "Export AMF file:"
-msgstr ""
+msgstr "AMF-bestand exporteren:"
 
 msgid "Save file as:"
 msgstr "Bewaar bestand als:"
 
 msgid "Export OBJ file:"
-msgstr ""
+msgstr "OBJ-bestand exporteren:"
 
 #, c-format, boost-format
 msgid ""
 "The file %s already exists\n"
 "Do you want to replace it?"
 msgstr ""
+"The file %s already exists.\n"
+"Do you want to replace it?"
 
 msgid "Comfirm Save As"
-msgstr ""
+msgstr "Opslaan als bevestigen"
 
 msgid "Delete object which is a part of cut object"
 msgstr "Delete object which is a part of cut object"
@@ -5831,13 +6119,13 @@ msgid "Another export job is running."
 msgstr "Er is reeds een export taak actief."
 
 msgid "Unable to replace with more than one volume"
-msgstr ""
+msgstr "Kan niet worden vervangen door meer dan één volume"
 
 msgid "Error during replace"
 msgstr "Fout tijdens vervanging"
 
 msgid "Replace from:"
-msgstr ""
+msgstr "Vervangen van:"
 
 msgid "Select a new file"
 msgstr "Selecteer een nieuw bestand"
@@ -5849,22 +6137,19 @@ msgid "Please select a file"
 msgstr "Selecteer een bestand"
 
 msgid "Do you want to replace it"
-msgstr ""
+msgstr "Do you want to replace it?"
 
 msgid "Message"
-msgstr ""
+msgstr "Bericht"
 
 msgid "Reload from:"
-msgstr ""
+msgstr "Herladen vanaf:"
 
 msgid "Unable to reload:"
-msgstr ""
+msgstr "Kan niet herladen:"
 
 msgid "Error during reload"
-msgstr ""
-
-msgid "Slicing"
-msgstr "Slicen"
+msgstr "Fout tijdens herladen"
 
 msgid "There are warnings after slicing models:"
 msgstr "Er zijn waarschuwingen na het slicen van modellen:"
@@ -5929,20 +6214,20 @@ msgid "prepare 3mf file..."
 msgstr "voorbereiden van 3mf bestand..."
 
 msgid "Download failed, unknown file format."
-msgstr ""
+msgstr "Download failed; unknown file format."
 
 msgid "downloading project ..."
 msgstr "project downloaden..."
 
 msgid "Download failed, File size exception."
-msgstr ""
+msgstr "Download failed; File size exception."
 
 #, c-format, boost-format
 msgid "Project downloaded %d%%"
 msgstr "Project %d%% gedownload"
 
 msgid ""
-"Importing to Bambu Studio failed. Please download the file and manually "
+"Importing to Orca Slicer failed. Please download the file and manually "
 "import it."
 msgstr ""
 
@@ -5957,6 +6242,20 @@ msgstr "Bevat geen geldige Gcode"
 
 msgid "Error occurs while loading G-code file"
 msgstr "Er is een fout opgetreden tijdens het laden van het G-codebestand."
+
+#. TRN %1% is archive path
+#, boost-format
+msgid "Loading of a ZIP archive on path %1% has failed."
+msgstr ""
+
+#. TRN: First argument = path to file, second argument = error description
+#, boost-format
+msgid "Failed to unzip file to %1%: %2%"
+msgstr ""
+
+#, boost-format
+msgid "Failed to find unzipped file at %1%. Unzipping of file has failed."
+msgstr ""
 
 msgid "Drop project file"
 msgstr "Projectbestand neerzetten"
@@ -5982,9 +6281,6 @@ msgstr "G-Code bestanden en modellen kunnen niet tegelijk geladen worden!"
 msgid "Can not add models when in preview mode!"
 msgstr "Modellen kunnen niet worden toegevoegd in voorbeeldmodus"
 
-msgid "Add Models"
-msgstr "Modellen toevoegen"
-
 msgid "All objects will be removed, continue?"
 msgstr "Alle objecten zullen verwijderd worden, doorgaan?"
 
@@ -5992,9 +6288,6 @@ msgid "The current project has unsaved changes, save it before continue?"
 msgstr ""
 "Het huidige project heeft niet-opgeslagen wijzigingen. Wilt u eerst opslaan "
 "voordat u verder gaat?"
-
-msgid "Remember my choice."
-msgstr "Remember my choice."
 
 msgid "Number of copies:"
 msgstr "Aantal kopieën:"
@@ -6006,13 +6299,13 @@ msgid "Save G-code file as:"
 msgstr "Bewaar G-code bestand als:"
 
 msgid "Save SLA file as:"
-msgstr ""
+msgstr "SLA-bestand opslaan als:"
 
 msgid "The provided file name is not valid."
-msgstr ""
+msgstr "De opgegeven bestandsnaam is ongeldig."
 
 msgid "The following characters are not allowed by a FAT file system:"
-msgstr ""
+msgstr "De volgende tekens zijn niet toegestaan in een FAT-bestandssysteem:"
 
 msgid "Save Sliced file as:"
 msgstr "Bewaar het geslicede bestand als:"
@@ -6029,22 +6322,24 @@ msgid ""
 "Unable to perform boolean operation on model meshes. Only positive parts "
 "will be kept. You may fix the meshes and try agian."
 msgstr ""
+"Unable to perform boolean operation on model meshes. Only positive parts "
+"will be kept. You may fix the meshes and try agian."
 
 #, boost-format
 msgid "Reason: part \"%1%\" is empty."
-msgstr ""
+msgstr "Reason: part \"%1%\" is empty."
 
 #, boost-format
 msgid "Reason: part \"%1%\" does not bound a volume."
-msgstr ""
+msgstr "Reason: part \"%1%\" does not bound a volume."
 
 #, boost-format
 msgid "Reason: part \"%1%\" has self intersection."
-msgstr ""
+msgstr "Reason: part \"%1%\" has self intersection."
 
 #, boost-format
 msgid "Reason: \"%1%\" and another part have no intersection."
-msgstr ""
+msgstr "Reason: \"%1%\" and another part have no intersection."
 
 msgid ""
 "Are you sure you want to store original SVGs with their local paths into the "
@@ -6094,7 +6389,7 @@ msgstr "Number of currently selected parts: %1%\n"
 
 #, boost-format
 msgid "Number of currently selected objects: %1%\n"
-msgstr ""
+msgstr "Aantal momenteel geselecteerde objecten: %1%\n"
 
 #, boost-format
 msgid "Part name: %1%\n"
@@ -6199,6 +6494,11 @@ msgstr "Inlogregio"
 msgid "Stealth Mode"
 msgstr ""
 
+msgid ""
+"This stops the transmission of data to Bambu's cloud services. Users who "
+"don't use BBL machines or use LAN mode only can safely turn on this function."
+msgstr ""
+
 msgid "Enable network plugin"
 msgstr ""
 
@@ -6222,6 +6522,10 @@ msgid ""
 "it is allowed to run multiple instances of same app from the command line. "
 "In such case this settings will allow only one instance."
 msgstr ""
+"Op OSX is er standaard altijd maar één instantie van een app actief. Het is "
+"echter toegestaan om meerdere instanties van dezelfde app uit te voeren "
+"vanaf de opdrachtregel. In dat geval staat deze instelling slechts één "
+"instantie toe."
 
 msgid ""
 "If this is enabled, when starting OrcaSlicer and another instance of the "
@@ -6287,16 +6591,19 @@ msgstr ""
 
 msgid "Flushing volumes: Auto-calculate everytime the color changed."
 msgstr ""
+"Spoelvolumes: Automatisch berekenen telkens wanneer de kleur verandert."
 
 msgid "If enabled, auto-calculate everytime the color changed."
 msgstr ""
+"Als deze optie is ingeschakeld, wordt elke keer dat de kleur verandert "
+"automatisch berekend."
 
 msgid ""
 "Flushing volumes: Auto-calculate every time when the filament is changed."
-msgstr ""
+msgstr "Flushing volumes: Auto-calculate every time the filament is changed."
 
 msgid "If enabled, auto-calculate every time when filament is changed"
-msgstr ""
+msgstr "If enabled, auto-calculate every time filament is changed"
 
 msgid "Remember printer configuration"
 msgstr ""
@@ -6306,13 +6613,15 @@ msgid ""
 "each printer automatically."
 msgstr ""
 
-msgid "Multi-device Management(Take effect after restarting Studio)."
+msgid "Multi-device Management(Take effect after restarting Orca)."
 msgstr ""
 
 msgid ""
 "With this option enabled, you can send a task to multiple devices at the "
 "same time and manage multiple devices."
 msgstr ""
+"With this option enabled, you can send a task to multiple devices at the "
+"same time and manage multiple devices."
 
 msgid "Network"
 msgstr ""
@@ -6361,6 +6670,20 @@ msgstr ""
 "Indien ingeschakeld, wordt Orca Slicer ingesteld als de standaardtoepassing "
 "om .step-bestanden te openen"
 
+msgid "Current association: "
+msgstr ""
+
+msgid "Associate prusaslicer://"
+msgstr ""
+
+msgid "Not associated to any application"
+msgstr ""
+
+msgid ""
+"Associate OrcaSlicer with prusaslicer:// links so that Orca can open "
+"PrusaSlicer links from Printable.com"
+msgstr ""
+
 msgid "Maximum recent projects"
 msgstr "Maximum recent projects"
 
@@ -6371,7 +6694,7 @@ msgid "Clear my choice on the unsaved projects."
 msgstr "Clear my choice on the unsaved projects."
 
 msgid "No warnings when loading 3MF with modified G-codes"
-msgstr ""
+msgstr "No warnings when loading 3MF with modified G-code"
 
 msgid "Auto-Backup"
 msgstr "Automatisch backup maken"
@@ -6527,28 +6850,25 @@ msgid "Add/Remove materials"
 msgstr "Materialen toevoegen/verwijderen"
 
 msgid "Select/Remove printers(system presets)"
-msgstr ""
+msgstr "Printers selecteren/verwijderen (systeemvoorinstellingen)"
 
 msgid "Create printer"
-msgstr ""
-
-msgid "Incompatible"
-msgstr "Incompatible"
+msgstr "Printer maken"
 
 msgid "The selected preset is null!"
-msgstr ""
+msgstr "De geselecteerde preset is nul!"
 
 msgid "End"
-msgstr ""
+msgstr "End"
 
 msgid "Customize"
-msgstr ""
+msgstr "Aanpassen"
 
 msgid "Other layer filament sequence"
-msgstr ""
+msgstr "Other layer filament sequence"
 
 msgid "Please input layer value (>= 2)."
-msgstr ""
+msgstr "Please input layer value (>= 2)."
 
 msgid "Plate name"
 msgstr "Plate name"
@@ -6560,16 +6880,16 @@ msgid "Print sequence"
 msgstr "Afdrukvolgorde"
 
 msgid "Same as Global"
-msgstr ""
+msgstr "Same as Global"
 
 msgid "Disable"
-msgstr ""
+msgstr "Disable"
 
 msgid "Spiral vase"
 msgstr "Spiraalvaas"
 
 msgid "First layer filament sequence"
-msgstr ""
+msgstr "Eerste laag filamentvolgorde"
 
 msgid "Same as Global Plate Type"
 msgstr "Same as Global Plate Type"
@@ -6632,15 +6952,6 @@ msgstr "Gebruikersvoorinstelling"
 msgid "Preset Inside Project"
 msgstr "Voorinstelling Project Inside"
 
-msgid "Name is invalid;"
-msgstr "Naam is ongeldig;"
-
-msgid "illegal characters:"
-msgstr "Niet toegestande karakters:"
-
-msgid "illegal suffix:"
-msgstr "Ongeldig achtervoegsel:"
-
 msgid "Name is unavailable."
 msgstr "Naam is niet beschikbaar."
 
@@ -6659,15 +6970,6 @@ msgstr ""
 
 msgid "Please note that saving action will replace this preset"
 msgstr "Let er aub op dat opslaan de voorinstelling zal overschrijven"
-
-msgid "The name is not allowed to be empty."
-msgstr "Het is niet toegestaand om de naam leeg te laten."
-
-msgid "The name is not allowed to start with space character."
-msgstr "Het is niet toegestaan om een naam met een spatie te laten beginnen."
-
-msgid "The name is not allowed to end with space character."
-msgstr "Het is niet toegestaan om een naam met een spatie te laten eindigen."
 
 msgid "The name cannot be the same as a preset alias name."
 msgstr ""
@@ -6709,7 +7011,7 @@ msgid "(LAN)"
 msgstr "(LAN)"
 
 msgid "Search"
-msgstr ""
+msgstr "Zoeken"
 
 msgid "My Device"
 msgstr "Mijn apparaat"
@@ -6729,9 +7031,6 @@ msgstr "Kun je geen apparaten vinden?"
 msgid "Log out successful."
 msgstr "Uitloggen gelukt."
 
-msgid "Offline"
-msgstr "Offline"
-
 msgid "Busy"
 msgstr "Bezet"
 
@@ -6748,7 +7047,7 @@ msgid "Bambu Smooth PEI Plate"
 msgstr ""
 
 msgid "High temperature Plate"
-msgstr ""
+msgstr "Plaat op hoge temperatuur"
 
 msgid "Bambu Textured PEI Plate"
 msgstr ""
@@ -6756,14 +7055,11 @@ msgstr ""
 msgid "Send print job to"
 msgstr "Stuur de printtaak naar"
 
-msgid "Bed Leveling"
-msgstr "Bed leveling"
-
 msgid "Flow Dynamics Calibration"
-msgstr ""
+msgstr "Kalibratie van Flow Dynamics"
 
 msgid "Click here if you can't connect to the printer"
-msgstr ""
+msgstr "Klik hier als je geen verbinding kunt maken met de printer"
 
 msgid "send completed"
 msgstr "Versturen gelukt"
@@ -6859,6 +7155,8 @@ msgid ""
 "The selected printer (%s) is incompatible with the chosen printer profile in "
 "the slicer (%s)."
 msgstr ""
+"The selected printer (%s) is incompatible with the chosen printer profile in "
+"the slicer (%s)."
 
 msgid "An SD card needs to be inserted to record timelapse."
 msgstr ""
@@ -6882,10 +7180,14 @@ msgid ""
 "When enable spiral vase mode, machines with I3 structure will not generate "
 "timelapse videos."
 msgstr ""
+"When spiral vase mode is enabled, machines with I3 structure will not "
+"generate timelapse videos."
 
 msgid ""
 "Timelapse is not supported because Print sequence is set to \"By object\"."
 msgstr ""
+"Timelapse wordt niet ondersteund omdat Afdruksequentie is ingesteld op \"Per "
+"object\"."
 
 msgid "Errors"
 msgstr "Fouten"
@@ -6913,26 +7215,31 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "nozzle in preset: %s %s"
-msgstr ""
+msgstr "mondstuk in voorinstelling: %s %s"
 
 #, c-format, boost-format
 msgid "nozzle memorized: %.1f %s"
-msgstr ""
+msgstr "mondstuk onthouden: %.1f %s"
 
 msgid ""
 "Your nozzle diameter in sliced file is not consistent with memorized nozzle. "
 "If you changed your nozzle lately, please go to Device > Printer Parts to "
 "change settings."
 msgstr ""
+"Your nozzle diameter in sliced file is not consistent with the saved nozzle. "
+"If you changed your nozzle lately, please go to Device > Printer Parts to "
+"change settings."
 
 #, c-format, boost-format
 msgid ""
 "Printing high temperature material(%s material) with %s may cause nozzle "
 "damage"
 msgstr ""
+"Printing high temperature material(%s material) with %s may cause nozzle "
+"damage"
 
 msgid "Please fix the error above, otherwise printing cannot continue."
-msgstr ""
+msgstr "Please fix the error above, otherwise printing cannot continue."
 
 msgid ""
 "Please click the confirm button if you still want to proceed with printing."
@@ -6942,29 +7249,23 @@ msgstr ""
 msgid ""
 "Connecting to the printer. Unable to cancel during the connection process."
 msgstr ""
-
-msgid "Preparing print job"
-msgstr "Print opdracht voorbereiden"
-
-msgid "Abnormal print file data. Please slice again"
-msgstr "Abnormale printbestand. Slice opnieuw"
-
-msgid "The name length exceeds the limit."
-msgstr "The name length exceeds the limit."
+"Aansluiten op de printer. Kan niet annuleren tijdens het verbindingsproces."
 
 msgid ""
 "Caution to use! Flow calibration on Textured PEI Plate may fail due to the "
 "scattered surface."
 msgstr ""
+"Let op bij gebruik! Flowkalibratie op de PEI-plaat met structuur kan "
+"mislukken vanwege het verstrooide oppervlak."
 
 msgid "Automatic flow calibration using Micro Lidar"
-msgstr ""
+msgstr "Automatic flow calibration using the Micro Lidar"
 
 msgid "Modifying the device name"
 msgstr "De naam van het apparaat wijzigen"
 
 msgid "Bind with Pin Code"
-msgstr ""
+msgstr "Bind with Pin Code"
 
 msgid "Send to Printer SD card"
 msgstr "Verzenden naar de MicroSD-kaart in de printer"
@@ -6974,6 +7275,8 @@ msgstr "Kan de printtaak niet verzenden wanneer de upgrade wordt uitgevoerd"
 
 msgid "The selected printer is incompatible with the chosen printer presets."
 msgstr ""
+"De geselecteerde printer is niet compatibel met de gekozen "
+"printervoorinstellingen."
 
 msgid "An SD card needs to be inserted before send to printer SD card."
 msgstr ""
@@ -6991,7 +7294,7 @@ msgid "Slice ok."
 msgstr "Slice gelukt"
 
 msgid "View all Daily tips"
-msgstr ""
+msgstr "Bekijk alle dagelijkse tips"
 
 msgid "Failed to create socket"
 msgstr "Failed to create socket"
@@ -7024,21 +7327,23 @@ msgid ""
 "Please Find the Pin Code in Account page on printer screen,\n"
 " and type in the Pin Code below."
 msgstr ""
+"Please Find the Pin Code in Account page on printer screen,\n"
+" and type in the Pin Code below."
 
 msgid "Can't find Pin Code?"
-msgstr ""
+msgstr "Can't find Pin Code?"
 
 msgid "Pin Code"
-msgstr ""
+msgstr "Pin Code"
 
 msgid "Binding..."
-msgstr ""
+msgstr "Binding..."
 
 msgid "Please confirm on the printer screen"
-msgstr ""
+msgstr "Please confirm on the printer screen"
 
 msgid "Log in failed. Please check the Pin Code."
-msgstr ""
+msgstr "Log in failed. Please check the Pin Code."
 
 msgid "Log in printer"
 msgstr "Inloggen op printer"
@@ -7162,7 +7467,7 @@ msgstr ""
 "inschakelen?"
 
 msgid "Still print by object?"
-msgstr ""
+msgstr "Print je nog steeds per object?"
 
 msgid ""
 "We have added an experimental style \"Tree Slim\" that features smaller "
@@ -7221,15 +7526,17 @@ msgid ""
 "Layer height exceeds the limit in Printer Settings -> Extruder -> Layer "
 "height limits ,this may cause printing quality issues."
 msgstr ""
+"De laaghoogte overschrijdt de limiet in Printerinstellingen -> Extruder -> "
+"Laaghoogtelimieten, dit kan problemen met de afdrukkwaliteit veroorzaken."
 
 msgid "Adjust to the set range automatically? \n"
-msgstr ""
+msgstr "Automatisch aanpassen aan het ingestelde bereik? \n"
 
 msgid "Adjust"
-msgstr ""
+msgstr "Aanpassen"
 
 msgid "Ignore"
-msgstr ""
+msgstr "Negeer"
 
 msgid ""
 "Experimental feature: Retracting and cutting off the filament at a greater "
@@ -7237,6 +7544,10 @@ msgid ""
 "reduce flush,  it may also elevate the risk of nozzle clogs or other "
 "printing complications."
 msgstr ""
+"Experimental feature: Retracting and cutting off the filament at a greater "
+"distance during filament changes to minimize flush. Although it can notably "
+"reduce flush,  it may also elevate the risk of nozzle clogs or other "
+"printing complications."
 
 msgid ""
 "Experimental feature: Retracting and cutting off the filament at a greater "
@@ -7244,6 +7555,10 @@ msgid ""
 "reduce flush, it may also elevate the risk of nozzle clogs or other printing "
 "complications.Please use with the latest printer firmware."
 msgstr ""
+"Experimental feature: Retracting and cutting off the filament at a greater "
+"distance during filament changes to minimize flush. Although it can notably "
+"reduce flush, it may also elevate the risk of nozzle clogs or other printing "
+"complications. Please use with the latest printer firmware."
 
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
@@ -7315,7 +7630,7 @@ msgid "Acceleration"
 msgstr "Versnelling"
 
 msgid "Jerk(XY)"
-msgstr ""
+msgstr "Jerk(XY)"
 
 msgid "Raft"
 msgstr "Vlot"
@@ -7324,6 +7639,9 @@ msgid "Support filament"
 msgstr "Support filament"
 
 msgid "Tree supports"
+msgstr ""
+
+msgid "Skirt"
 msgstr ""
 
 msgid "Prime tower"
@@ -7339,7 +7657,7 @@ msgid "Post-processing Scripts"
 msgstr "Post-processing Scripts"
 
 msgid "Notes"
-msgstr ""
+msgstr "Notes"
 
 msgid "Frequent"
 msgstr "Veelgebruikt"
@@ -7416,13 +7734,16 @@ msgstr ""
 "niet ondersteunt."
 
 msgid "Smooth PEI Plate / High Temp Plate"
-msgstr ""
+msgstr "Gladde PEI Plaat / Hoge Temp Plaat"
 
 msgid ""
 "Bed temperature when Smooth PEI Plate/High temperature plate is installed. "
 "Value 0 means the filament does not support to print on the Smooth PEI Plate/"
 "High Temp Plate"
 msgstr ""
+"Bedtemperatuur wanneer gladde PEI-plaat/hoge temperatuurplaat is "
+"geïnstalleerd. Waarde 0 betekent dat het filament niet geschikt is voor "
+"afdrukken op de gladde PEI-plaat/hoge temperatuurplaat."
 
 msgid "Textured PEI Plate"
 msgstr "PEI plaat met structuur"
@@ -7476,13 +7797,13 @@ msgid "Auxiliary part cooling fan"
 msgstr "Extra koel ventilator"
 
 msgid "Exhaust fan"
-msgstr ""
+msgstr "Uitlaatventilator"
 
 msgid "During print"
-msgstr ""
+msgstr "Tijdens het afdrukken"
 
 msgid "Complete print"
-msgstr ""
+msgstr "Afdruk compleet"
 
 msgid "Filament start G-code"
 msgstr "Filament start G-code"
@@ -7533,7 +7854,7 @@ msgid "Machine end G-code"
 msgstr "Machine einde G-code"
 
 msgid "Printing by object G-code"
-msgstr ""
+msgstr "Afdrukken met object G-code"
 
 msgid "Before layer change G-code"
 msgstr "G-Code voor de laag wijziging"
@@ -7542,7 +7863,7 @@ msgid "Layer change G-code"
 msgstr "G-code laag wijzigen"
 
 msgid "Time lapse G-code"
-msgstr ""
+msgstr "Time-lapse G-code"
 
 msgid "Change filament G-code"
 msgstr "Filament G-code aanpassen"
@@ -7594,9 +7915,12 @@ msgid ""
 "\n"
 "Shall I disable it in order to enable Firmware Retraction?"
 msgstr ""
+"The Wipe option is not available when using the Firmware Retraction mode.\n"
+"\n"
+"Disable it in order to enable Firmware Retraction?"
 
 msgid "Firmware Retraction"
-msgstr ""
+msgstr "Firmware intrekken"
 
 msgid "Detached"
 msgstr "Losgemaakt"
@@ -7606,9 +7930,12 @@ msgid ""
 "%d Filament Preset and %d Process Preset is attached to this printer. Those "
 "presets would be deleted if the printer is deleted."
 msgstr ""
+"%d Filament Preset en %d Process Preset zijn gekoppeld aan deze printer. "
+"Deze voorinstellingen worden verwijderd als de printer wordt verwijderd."
 
 msgid "Presets inherited by other presets can not be deleted!"
 msgstr ""
+"Presets die door andere presets worden geërfd, kunnen niet worden verwijderd!"
 
 msgid "The following presets inherit this preset."
 msgid_plural "The following preset inherits this preset."
@@ -7630,6 +7957,9 @@ msgid ""
 "If the preset corresponds to a filament currently in use on your printer, "
 "please reset the filament information for that slot."
 msgstr ""
+"Weet je zeker dat je de geselecteerde preset wilt verwijderen? \n"
+"Als de voorinstelling overeenkomt met een filament dat momenteel in gebruik "
+"is op je printer, reset dan de filamentinformatie voor die sleuf."
 
 #, boost-format
 msgid "Are you sure to %1% the selected preset?"
@@ -7737,12 +8067,14 @@ msgstr ""
 
 #, boost-format
 msgid "You have changed some settings of preset \"%1%\". "
-msgstr ""
+msgstr "You have changed some settings of preset \"%1%\". "
 
 msgid ""
 "\n"
 "You can save or discard the preset values you have modified."
 msgstr ""
+"\n"
+"You can save or discard the preset values you have modified."
 
 msgid ""
 "\n"
@@ -7751,7 +8083,7 @@ msgid ""
 msgstr ""
 
 msgid "You have previously modified your settings."
-msgstr ""
+msgstr "You have previously modified your settings."
 
 msgid ""
 "\n"
@@ -7907,7 +8239,7 @@ msgid "Auto-Calc"
 msgstr "Automatisch berekenen"
 
 msgid "Re-calculate"
-msgstr ""
+msgstr "Herbereken"
 
 msgid "Flushing volumes for filament change"
 msgstr "Volumes reinigen voor filament wijziging"
@@ -7948,10 +8280,10 @@ msgid "To"
 msgstr "Naar"
 
 msgid "Bambu Network plug-in not detected."
-msgstr ""
+msgstr "Bambu Network-plug-in niet gedetecteerd."
 
 msgid "Click here to download it."
-msgstr ""
+msgstr "Klik hier om het te downloaden."
 
 msgid "Login"
 msgstr "Inloggen"
@@ -7986,7 +8318,7 @@ msgstr ""
 "verbergen"
 
 msgid "Switch table page"
-msgstr ""
+msgstr "Schakeltabel pagina"
 
 msgid "Show keyboard shortcuts list"
 msgstr "Toon lijst met sneltoetsen"
@@ -8222,6 +8554,12 @@ msgstr "Schuifregelaar 5x sneller verplaatsen"
 msgid "Shift+Mouse wheel"
 msgstr "Shift+Muiswiel"
 
+msgid "Horizontal slider - Move to start position"
+msgstr ""
+
+msgid "Horizontal slider - Move to last position"
+msgstr ""
+
 msgid "Release Note"
 msgstr "Release-opmerkingen"
 
@@ -8247,49 +8585,49 @@ msgid "New version of Orca Slicer"
 msgstr "Nieuwe versie van Orca Slicer"
 
 msgid "Skip this Version"
-msgstr ""
+msgstr "Deze versie overslaan"
 
 msgid "Done"
 msgstr "Done"
 
 msgid "resume"
-msgstr ""
+msgstr "resume"
 
 msgid "Resume Printing"
-msgstr ""
+msgstr "Resume Printing"
 
 msgid "Resume Printing(defects acceptable)"
-msgstr ""
+msgstr "Resume Printing (defects acceptable)"
 
 msgid "Resume Printing(problem solved)"
-msgstr ""
+msgstr "Resume Printing (problem solved)"
 
 msgid "Stop Printing"
-msgstr ""
+msgstr "Stop Printing"
 
 msgid "Check Assistant"
-msgstr ""
+msgstr "Check Assistant"
 
 msgid "Filament Extruded, Continue"
-msgstr ""
+msgstr "Filament Extruded, Continue"
 
 msgid "Not Extruded Yet, Retry"
-msgstr ""
+msgstr "Not Extruded Yet, Retry"
 
 msgid "Finished, Continue"
-msgstr ""
+msgstr "Finished, Continue"
 
 msgid "Load Filament"
 msgstr "Filament laden"
 
 msgid "Filament Loaded, Resume"
-msgstr ""
+msgstr "Filament Loaded, Resume"
 
 msgid "View Liveview"
-msgstr ""
+msgstr "View Liveview"
 
 msgid "Confirm and Update Nozzle"
-msgstr ""
+msgstr "Bevestig en update het mondstuk"
 
 msgid "LAN Connection Failed (Sending print file)"
 msgstr "LAN-verbinding mislukt (verzenden afdrukbestand)"
@@ -8318,20 +8656,23 @@ msgstr "Waar vind je het IP-adres en de toegangscode van je printer?"
 
 msgid "Step 3: Ping the IP address to check for packet loss and latency."
 msgstr ""
+"Stap 3: Ping het IP-adres om te controleren op pakketverlies en latentie."
 
 msgid "Test"
-msgstr ""
+msgstr "Test"
 
 msgid "IP and Access Code Verified! You may close the window"
-msgstr ""
+msgstr "IP en toegangscode geverifieerd! U kunt het venster sluiten"
 
 msgid "Connection failed, please double check IP and Access Code"
-msgstr ""
+msgstr "Verbinding mislukt, controleer IP en toegangscode opnieuw"
 
 msgid ""
 "Connection failed! If your IP and Access Code is correct, \n"
 "please move to step 3 for troubleshooting network issues"
 msgstr ""
+"Verbinding mislukt! Als uw IP-adres en toegangscode correct zijn, \n"
+"ga dan naar stap 3 voor het oplossen van netwerkproblemen"
 
 msgid "Model:"
 msgstr "Model:"
@@ -8345,14 +8686,8 @@ msgstr "Versie"
 msgid "Update firmware"
 msgstr "Firmware bijwerken"
 
-msgid "Printing"
-msgstr "Printen"
-
-msgid "Idle"
-msgstr "Inactief"
-
 msgid "Beta version"
-msgstr ""
+msgstr "Beta versie"
 
 msgid "Latest version"
 msgstr "Nieuwste versie"
@@ -8385,7 +8720,7 @@ msgstr ""
 msgid ""
 "The firmware version is abnormal. Repairing and updating are required before "
 "printing. Do you want to update now? You can also update later on printer or "
-"update next time starting the studio."
+"update next time starting Orca."
 msgstr ""
 "De firmwareversie is abnormaal. Repareren en bijwerken is vereist voor het "
 "afdrukken. Wil je nu updaten? Je kunt ook later op de printer updaten of "
@@ -8527,9 +8862,6 @@ msgstr ""
 
 msgid "Gap infill"
 msgstr "Gat opvulling"
-
-msgid "Skirt"
-msgstr ""
 
 msgid "Support interface"
 msgstr "Support interface"
@@ -8730,26 +9062,34 @@ msgid ""
 msgstr ""
 
 msgid "Variable layer height is not supported with Organic supports."
-msgstr ""
+msgstr "Variabele laaghoogte wordt niet ondersteund met organische steunen."
 
 msgid ""
 "Different nozzle diameters and different filament diameters is not allowed "
 "when prime tower is enabled."
 msgstr ""
+"Verschillende mondstukdiameters en verschillende filamentdiameters zijn niet "
+"toegestaan als de prime-toren is ingeschakeld."
 
 msgid ""
 "The Wipe Tower is currently only supported with the relative extruder "
 "addressing (use_relative_e_distances=1)."
 msgstr ""
+"De Wipe Tower wordt momenteel alleen ondersteund met de relatieve "
+"extruderadressering (use_relative_e_distances=1)."
 
 msgid ""
 "Ooze prevention is currently not supported with the prime tower enabled."
 msgstr ""
+"Ooze-preventie wordt momenteel niet ondersteund als de prime tower is "
+"ingeschakeld."
 
 msgid ""
 "The prime tower is currently only supported for the Marlin, RepRap/Sprinter, "
 "RepRapFirmware and Repetier G-code flavors."
 msgstr ""
+"De prime tower wordt momenteel alleen ondersteund voor de Marlin, RepRap/"
+"Sprinter, RepRapFirmware en Repetier G-code smaken."
 
 msgid "The prime tower is not supported in \"By object\" print."
 msgstr "Een prime-toren wordt niet ondersteund bij het \"per object\" printen."
@@ -8982,11 +9322,13 @@ msgstr ""
 "address/"
 
 msgid "Device UI"
-msgstr ""
+msgstr "UI van het apparaat"
 
 msgid ""
 "Specify the URL of your device user interface if it's not same as print_host"
 msgstr ""
+"Geef de URL op van de gebruikersinterface van uw apparaat als deze niet "
+"hetzelfde is als print_host"
 
 msgid "API Key / Password"
 msgstr "API sleutel / wachtwoord"
@@ -9148,16 +9490,16 @@ msgid "Engineering Plate"
 msgstr "Engineering plate (technisch printbed)"
 
 msgid "First layer print sequence"
-msgstr ""
+msgstr "Afdrukvolgorde van de eerste laag"
 
 msgid "Other layers print sequence"
-msgstr ""
+msgstr "Other layers print sequence"
 
 msgid "The number of other layers print sequence"
-msgstr ""
+msgstr "The number of other layers print sequence"
 
 msgid "Other layers filament sequence"
-msgstr ""
+msgstr "Other layers filament sequence"
 
 msgid "This G-code is inserted at every layer change before lifting z"
 msgstr ""
@@ -9291,12 +9633,14 @@ msgid ""
 msgstr ""
 
 msgid "Top surface flow ratio"
-msgstr ""
+msgstr "Flowratio bovenoppervlak"
 
 msgid ""
 "This factor affects the amount of material for top solid infill. You can "
 "decrease it slightly to have smooth surface finish"
 msgstr ""
+"Deze factor beïnvloedt de hoeveelheid materiaal voor de bovenste vaste "
+"vulling. Je kunt het iets verminderen om een glad oppervlak te krijgen."
 
 msgid "Bottom surface flow ratio"
 msgstr ""
@@ -9441,7 +9785,7 @@ msgid ""
 msgstr ""
 
 msgid "mm/s or %"
-msgstr ""
+msgstr "mm/s of %"
 
 msgid "External"
 msgstr ""
@@ -9586,7 +9930,7 @@ msgid "Default process profile when switch to this machine profile"
 msgstr "Standaard procesprofiel bij het overschakelen naar dit machineprofiel"
 
 msgid "Activate air filtration"
-msgstr ""
+msgstr "Activate air filtration"
 
 msgid "Activate for better air filtration. G-code command: M106 P3 S(0-255)"
 msgstr ""
@@ -9598,6 +9942,8 @@ msgid ""
 "Speed of exhaust fan during printing.This speed will overwrite the speed in "
 "filament custom gcode"
 msgstr ""
+"Snelheid van de afzuigventilator tijdens het printen. Deze snelheid "
+"overschrijft de snelheid in de aangepaste g-code van het filament."
 
 msgid "Speed of exhaust fan after printing completes"
 msgstr ""
@@ -9706,12 +10052,14 @@ msgid "End G-code when finish the whole printing"
 msgstr "Voeg een eind G-code toe bij het afwerken van de hele print."
 
 msgid "Between Object Gcode"
-msgstr ""
+msgstr "Tussen object Gcode"
 
 msgid ""
 "Insert Gcode between objects. This parameter will only come into effect when "
 "you print your models object by object"
 msgstr ""
+"Gcode invoegen tussen objecten. Deze parameter wordt alleen actief wanneer u "
+"uw modellen object voor object afdrukt."
 
 msgid "End G-code when finish the printing of this filament"
 msgstr ""
@@ -9777,7 +10125,7 @@ msgstr ""
 "maar niet van de vulling van de brug."
 
 msgid "Internal solid infill pattern"
-msgstr ""
+msgstr "Intern massief invulpatroon"
 
 msgid ""
 "Line pattern of internal solid infill. if the detect narrow internal solid "
@@ -9797,7 +10145,7 @@ msgstr ""
 "langzamer geprint dan de binnenste wanden om een betere kwaliteit te krijgen."
 
 msgid "Small perimeters"
-msgstr ""
+msgstr "Kleine omtrek"
 
 msgid ""
 "This separate setting will affect the speed of perimeters having radius <= "
@@ -9812,6 +10160,7 @@ msgstr ""
 msgid ""
 "This sets the threshold for small perimeter length. Default threshold is 0mm"
 msgstr ""
+"Dit stelt de drempel voor kleine omtreklengte in. De standaarddrempel is 0 mm"
 
 msgid "Walls printing order"
 msgstr ""
@@ -9851,7 +10200,7 @@ msgid "Inner/Outer/Inner"
 msgstr ""
 
 msgid "Print infill first"
-msgstr ""
+msgstr "Eerst infill afdrukken"
 
 msgid ""
 "Order of wall/infill. When the tickbox is unchecked the walls are printed "
@@ -9912,10 +10261,10 @@ msgstr ""
 "printen per object."
 
 msgid "Nozzle height"
-msgstr ""
+msgstr "Hoogte van het mondstuk"
 
 msgid "The height of nozzle tip."
-msgstr ""
+msgstr "De hoogte van de mondstukpunt."
 
 msgid "Bed mesh min"
 msgstr ""
@@ -9988,7 +10337,7 @@ msgstr ""
 "lichte over- of onderflow is."
 
 msgid "Enable pressure advance"
-msgstr ""
+msgstr "Pressure advance inschakelen"
 
 msgid ""
 "Enable pressure advance, auto calibration result will be overwriten once "
@@ -10034,10 +10383,10 @@ msgid "Default filament color"
 msgstr "Standaard filamentkleur"
 
 msgid "Filament notes"
-msgstr ""
+msgstr "Filament notes"
 
 msgid "You can put your notes regarding the filament here."
-msgstr ""
+msgstr "You can put your notes regarding the filament here."
 
 msgid "Required nozzle HRC"
 msgstr "Vereiste nozzle HRC"
@@ -10237,13 +10586,16 @@ msgstr ""
 "drukken."
 
 msgid "Softening temperature"
-msgstr ""
+msgstr "Verzachtingstemperatuur"
 
 msgid ""
 "The material softens at this temperature, so when the bed temperature is "
 "equal to or greater than it, it's highly recommended to open the front door "
 "and/or remove the upper glass to avoid cloggings."
 msgstr ""
+"The material softens at this temperature, so when the bed temperature is "
+"equal to or greater than this, it's highly recommended to open the front "
+"door and/or remove the upper glass to avoid clogs."
 
 msgid "Price"
 msgstr "Prijs"
@@ -10255,16 +10607,16 @@ msgid "money/kg"
 msgstr "Prijs per KG"
 
 msgid "Vendor"
-msgstr ""
+msgstr "Leverancier"
 
 msgid "Vendor of filament. For show only"
-msgstr ""
+msgstr "Verkoper van filament. Alleen voor show"
 
 msgid "(Undefined)"
 msgstr "(niet gedefinieerd)"
 
-msgid "Infill direction"
-msgstr "Vulling (infill) richting"
+msgid "Sparse infill direction"
+msgstr ""
 
 msgid ""
 "Angle for sparse infill pattern, which controls the start or main direction "
@@ -10272,6 +10624,20 @@ msgid ""
 msgstr ""
 "Dit is de hoek voor een dun opvulpatroon, dat het begin of de hoofdrichting "
 "van de lijnen bepaalt."
+
+msgid "Solid infill direction"
+msgstr ""
+
+msgid ""
+"Angle for solid infill pattern, which controls the start or main direction "
+"of line"
+msgstr ""
+
+msgid "Rotate solid infill direction"
+msgstr ""
+
+msgid "Rotate the solid infill direction by 90° for each layer."
+msgstr ""
 
 msgid "Sparse infill density"
 msgstr "Vulling percentage"
@@ -10319,7 +10685,7 @@ msgid "Lightning"
 msgstr "Lightning"
 
 msgid "Cross Hatch"
-msgstr ""
+msgstr "Cross Hatch"
 
 msgid "Sparse infill anchor length"
 msgstr ""
@@ -10388,12 +10754,15 @@ msgid ""
 msgstr ""
 
 msgid "mm/s² or %"
-msgstr ""
+msgstr "mm/s² or %"
 
 msgid ""
 "Acceleration of sparse infill. If the value is expressed as a percentage (e."
 "g. 100%), it will be calculated based on the default acceleration."
 msgstr ""
+"Versnelling van de schaarse invulling. Als de waarde wordt uitgedrukt als "
+"een percentage (bijvoorbeeld 100%), wordt deze berekend op basis van de "
+"standaardversnelling."
 
 msgid ""
 "Acceleration of internal solid infill. If the value is expressed as a "
@@ -10409,13 +10778,13 @@ msgstr ""
 "kan de hechting van de bouwplaat verbeteren."
 
 msgid "Enable accel_to_decel"
-msgstr ""
+msgstr "Accel_to_decel inschakelen"
 
 msgid "Klipper's max_accel_to_decel will be adjusted automatically"
-msgstr ""
+msgstr "De max_accel_to_decel van Klipper wordt automatisch aangepast"
 
 msgid "accel_to_decel"
-msgstr ""
+msgstr "accel_to_decel"
 
 #, c-format, boost-format
 msgid ""
@@ -10423,10 +10792,10 @@ msgid ""
 msgstr ""
 
 msgid "Jerk of outer walls"
-msgstr ""
+msgstr "Jerk van de buitenwand"
 
 msgid "Jerk of inner walls"
-msgstr ""
+msgstr "Jerk van de binnenwand"
 
 msgid "Jerk for top surface"
 msgstr ""
@@ -10553,7 +10922,7 @@ msgid "Whether to apply fuzzy skin on the first layer"
 msgstr ""
 
 msgid "Filter out tiny gaps"
-msgstr ""
+msgstr "Kleine openingen wegfilteren"
 
 msgid "Layers and Perimeters"
 msgstr "Lagen en perimeters"
@@ -10569,23 +10938,30 @@ msgstr ""
 "een onregelmatige lijndikte en moeten daarom langzamer worden afgedrukt."
 
 msgid "Precise Z height"
-msgstr ""
+msgstr "Precise Z height"
 
 msgid ""
 "Enable this to get precise z height of object after slicing. It will get the "
 "precise object height by fine-tuning the layer heights of the last few "
 "layers. Note that this is an experimental parameter."
 msgstr ""
+"Enable this to get precise z height of object after slicing. It will get the "
+"precise object height by fine-tuning the layer heights of the last few "
+"layers. Note that this is an experimental parameter."
 
 msgid "Arc fitting"
 msgstr "Boog montage"
 
 msgid ""
-"Enable this to get a G-code file which has G2 and G3 moves. And the fitting "
-"tolerance is same with resolution"
+"Enable this to get a G-code file which has G2 and G3 moves. The fitting "
+"tolerance is same as the resolution. \n"
+"\n"
+"Note: For klipper machines, this option is recomended to be disabled. "
+"Klipper does not benefit from arc commands as these are split again into "
+"line segments by the firmware. This results in a reduction in surface "
+"quality as line segments are converted to arcs by the slicer and then back "
+"to line segments by the firmware."
 msgstr ""
-"Schakel dit in om een G-codebestand te krijgen met G2- en G3-bewegingen. De "
-"pastolerantie is gelijk aan de resolutie."
 
 msgid "Add line number"
 msgstr "Lijn hoogte toevoegen"
@@ -10641,10 +11017,10 @@ msgid "HRC"
 msgstr "HRC"
 
 msgid "Printer structure"
-msgstr ""
+msgstr "Printerstructuur"
 
 msgid "The physical arrangement and components of a printing device"
-msgstr ""
+msgstr "De fysieke opstelling en onderdelen van een afdrukapparaat"
 
 msgid "CoreXY"
 msgstr ""
@@ -10659,10 +11035,12 @@ msgid "Delta"
 msgstr ""
 
 msgid "Best object position"
-msgstr ""
+msgstr "Beste objectpositie"
 
 msgid "Best auto arranging position in range [0,1] w.r.t. bed shape."
 msgstr ""
+"Beste automatisch schikkende positie in het bereik [0,1] met betrekking tot "
+"de bedvorm."
 
 msgid ""
 "Enable this option if machine has auxiliary part cooling fan. G-code "
@@ -10708,7 +11086,7 @@ msgid "money/h"
 msgstr ""
 
 msgid "Support control chamber temperature"
-msgstr ""
+msgstr "Ondersteuning voor het regelen van de kamertemperatuur"
 
 msgid ""
 "This option is enabled if machine support controlling chamber temperature\n"
@@ -10716,7 +11094,7 @@ msgid ""
 msgstr ""
 
 msgid "Support air filtration"
-msgstr ""
+msgstr "Ondersteun luchtfiltratie"
 
 msgid ""
 "Enable this if printer support air filtration\n"
@@ -10749,7 +11127,7 @@ msgid ""
 msgstr ""
 
 msgid "Exclude objects"
-msgstr ""
+msgstr "Objecten uitsluiten"
 
 msgid "Enable this option to add EXCLUDE OBJECT command in g-code"
 msgstr ""
@@ -10785,37 +11163,54 @@ msgstr ""
 msgid "Infill/Wall overlap"
 msgstr "Vulling (infill)/wand overlap"
 
+#, no-c-format, no-boost-format
 msgid ""
 "Infill area is enlarged slightly to overlap with wall for better bonding. "
-"The percentage value is relative to line width of sparse infill"
+"The percentage value is relative to line width of sparse infill. Set this "
+"value to ~10-15% to minimize potential over extrusion and accumulation of "
+"material resulting in rough top surfaces."
 msgstr ""
-"Hierdoor kan het opvulgebied (infill) iets worden vergroot om de wanden te "
-"overlappen voor een betere hechting. De procentuele waarde is relatief ten "
-"opzichte van de lijndikte van de opvulling."
+
+msgid "Top/Bottom solid infill/wall overlap"
+msgstr ""
+
+#, no-c-format, no-boost-format
+msgid ""
+"Top solid infill area is enlarged slightly to overlap with wall for better "
+"bonding and to minimize the appearance of pinholes where the top infill "
+"meets the walls. A value of 25-30% is a good starting point, minimising the "
+"appearance of pinholes. The percentage value is relative to line width of "
+"sparse infill"
+msgstr ""
 
 msgid "Speed of internal sparse infill"
 msgstr "Dit is de snelheid voor de dunne vulling (infill)"
 
 msgid "Interface shells"
-msgstr ""
+msgstr "Interface shells"
 
 msgid ""
 "Force the generation of solid shells between adjacent materials/volumes. "
 "Useful for multi-extruder prints with translucent materials or manual "
 "soluble support material"
 msgstr ""
+"Force the generation of solid shells between adjacent materials/volumes. "
+"Useful for multi-extruder prints with translucent materials or manual "
+"soluble support material"
 
 msgid "Maximum width of a segmented region"
-msgstr ""
+msgstr "Maximale breedte van een gesegmenteerd gebied"
 
 msgid "Maximum width of a segmented region. Zero disables this feature."
 msgstr ""
+"Maximum width of a segmented region. A value of 0 disables this feature."
 
 msgid "Interlocking depth of a segmented region"
-msgstr ""
+msgstr "Insluitdiepte van een gesegmenteerde regio"
 
 msgid "Interlocking depth of a segmented region. Zero disables this feature."
 msgstr ""
+"Insluitdiepte van een gesegmenteerd gebied. Nul schakelt deze functie uit."
 
 msgid "Ironing Type"
 msgstr "Strijk type"
@@ -11298,10 +11693,10 @@ msgid ""
 msgstr ""
 
 msgid "Printer notes"
-msgstr ""
+msgstr "Printer notes"
 
 msgid "You can put your notes regarding the printer here."
-msgstr ""
+msgstr "You can put your notes regarding the printer here."
 
 msgid "Raft contact Z distance"
 msgstr "Vlot (raft) contact Z afstand:"
@@ -11390,7 +11785,7 @@ msgstr ""
 "terugtrekken (retraction) uit te schakelen."
 
 msgid "Long retraction when cut(experimental)"
-msgstr ""
+msgstr "Long retraction when cut (experimental)"
 
 msgid ""
 "Experimental feature.Retracting and cutting off the filament at a longer "
@@ -11398,14 +11793,20 @@ msgid ""
 "significantly, it may also raise the risk of nozzle clogs or other printing "
 "problems."
 msgstr ""
+"Experimental feature: Retracting and cutting off the filament at a longer "
+"distance during changes to minimize purge.While this reduces flush "
+"significantly, it may also raise the risk of nozzle clogs or other printing "
+"problems."
 
 msgid "Retraction distance when cut"
-msgstr ""
+msgstr "Retraction distance when cut"
 
 msgid ""
 "Experimental feature.Retraction length before cutting off during filament "
 "change"
 msgstr ""
+"Experimental feature. Retraction length before cutting off during filament "
+"change"
 
 msgid "Z hop when retract"
 msgstr "Z hop tijdens terugtrekken (retraction)"
@@ -11421,20 +11822,24 @@ msgstr ""
 "op te tillen kan stringing voorkomen."
 
 msgid "Z hop lower boundary"
-msgstr ""
+msgstr "Z hop ondergrens"
 
 msgid ""
 "Z hop will only come into effect when Z is above this value and is below the "
 "parameter: \"Z hop upper boundary\""
 msgstr ""
+"Z hop treedt alleen in werking wanneer Z boven deze waarde ligt en onder de "
+"parameter: \"Z hop bovengrens\"."
 
 msgid "Z hop upper boundary"
-msgstr ""
+msgstr "Z hop bovengrens"
 
 msgid ""
 "If this value is positive, Z hop will only come into effect when Z is above "
 "the parameter: \"Z hop lower boundary\" and is below this value"
 msgstr ""
+"Als deze waarde positief is, treedt Z hop alleen in werking als Z boven de "
+"parameter ligt: \"Z hop ondergrens\" en onder deze waarde ligt"
 
 msgid "Z hop type"
 msgstr ""
@@ -11482,7 +11887,7 @@ msgid "Top and Bottom"
 msgstr ""
 
 msgid "Extra length on restart"
-msgstr ""
+msgstr "Extra lengte bij herstart"
 
 msgid ""
 "When the retraction is compensated after the travel move, the extruder will "
@@ -11512,7 +11917,7 @@ msgstr ""
 "dezelfde snelheid heeft als het intrekken (retraction)."
 
 msgid "Use firmware retraction"
-msgstr ""
+msgstr "Gebruik firmware retractie"
 
 msgid ""
 "This experimental setting uses G10 and G11 commands to have the firmware "
@@ -11556,7 +11961,7 @@ msgid ""
 msgstr ""
 
 msgid "Seam gap"
-msgstr ""
+msgstr "Naadopening"
 
 msgid ""
 "In order to reduce the visibility of the seam in a closed loop extrusion, "
@@ -11570,17 +11975,20 @@ msgstr ""
 
 msgid "Use scarf joint to minimize seam visibility and increase seam strength."
 msgstr ""
+"Use scarf joint to minimize seam visibility and increase seam strength."
 
 msgid "Conditional scarf joint"
-msgstr ""
+msgstr "Conditional scarf joint"
 
 msgid ""
 "Apply scarf joints only to smooth perimeters where traditional seams do not "
 "conceal the seams at sharp corners effectively."
 msgstr ""
+"Apply scarf joints only to smooth perimeters where traditional seams do not "
+"conceal the seams at sharp corners effectively."
 
 msgid "Conditional angle threshold"
-msgstr ""
+msgstr "Conditional angle threshold"
 
 msgid ""
 "This option sets the threshold angle for applying a conditional scarf joint "
@@ -11623,39 +12031,44 @@ msgid "This factor affects the amount of material for scarf joints."
 msgstr ""
 
 msgid "Scarf start height"
-msgstr ""
+msgstr "Scarf start height"
 
 msgid ""
 "Start height of the scarf.\n"
 "This amount can be specified in millimeters or as a percentage of the "
 "current layer height. The default value for this parameter is 0."
 msgstr ""
+"Start height of the scarf.\n"
+"This amount can be specified in millimeters or as a percentage of the "
+"current layer height. The default value for this parameter is 0."
 
 msgid "Scarf around entire wall"
-msgstr ""
+msgstr "Scarf around entire wall"
 
 msgid "The scarf extends to the entire length of the wall."
-msgstr ""
+msgstr "The scarf extends to the entire length of the wall."
 
 msgid "Scarf length"
-msgstr ""
+msgstr "Scarf length"
 
 msgid ""
 "Length of the scarf. Setting this parameter to zero effectively disables the "
 "scarf."
 msgstr ""
+"Length of the scarf. Setting this parameter to zero effectively disables the "
+"scarf."
 
 msgid "Scarf steps"
-msgstr ""
+msgstr "Scarf steps"
 
 msgid "Minimum number of segments of each scarf."
-msgstr ""
+msgstr "Minimum number of segments of each scarf."
 
 msgid "Scarf joint for inner walls"
-msgstr ""
+msgstr "Scarf joint for inner walls"
 
 msgid "Use scarf joint for inner walls as well."
-msgstr ""
+msgstr "Use scarf joint for inner walls as well."
 
 msgid "Role base wipe speed"
 msgstr ""
@@ -11690,7 +12103,7 @@ msgid ""
 msgstr ""
 
 msgid "Wipe speed"
-msgstr ""
+msgstr "Veegsnelheid"
 
 msgid ""
 "The wipe speed is determined by the speed setting specified in this "
@@ -11698,6 +12111,10 @@ msgid ""
 "be calculated based on the travel speed setting above.The default value for "
 "this parameter is 80%"
 msgstr ""
+"De veegsnelheid wordt bepaald door de snelheidsinstelling die in deze "
+"configuratie is opgegeven.Als de waarde wordt uitgedrukt als percentage "
+"(bijv. 80%), wordt deze berekend op basis van de bovenstaande instelling van "
+"de rijsnelheid.De standaardwaarde voor deze parameter is 80%."
 
 msgid "Skirt distance"
 msgstr "Rand (skirt) afstand"
@@ -11711,6 +12128,29 @@ msgstr "Skirt height"
 msgid "How many layers of skirt. Usually only one layer"
 msgstr "Number of skirt layers: usually only one"
 
+msgid "Draft shield"
+msgstr ""
+
+msgid ""
+"A draft shield is useful to protect an ABS or ASA print from warping and "
+"detaching from print bed due to wind draft. It is usually needed only with "
+"open frame printers, i.e. without an enclosure. \n"
+"\n"
+"Options:\n"
+"Enabled = skirt is as tall as the highest printed object.\n"
+"Limited = skirt is as tall as specified by skirt height.\n"
+"\n"
+"Note: With the draft shield active, the skirt will be printed at skirt "
+"distance from the object. Therefore, if brims are active it may intersect "
+"with them. To avoid this, increase the skirt distance value.\n"
+msgstr ""
+
+msgid "Limited"
+msgstr ""
+
+msgid "Enabled"
+msgstr ""
+
 msgid "Skirt loops"
 msgstr "Rand (skirt) lussen"
 
@@ -11723,6 +12163,17 @@ msgid "Skirt speed"
 msgstr ""
 
 msgid "Speed of skirt, in mm/s. Zero means use default layer extrusion speed."
+msgstr ""
+
+msgid "Skirt minimum extrusion length"
+msgstr ""
+
+msgid ""
+"Minimum filament extrusion length in mm when printing the skirt. Zero means "
+"this feature is disabled.\n"
+"\n"
+"Using a non zero value is useful if the printer is set up to print without a "
+"prime line."
 msgstr ""
 
 msgid ""
@@ -11763,20 +12214,24 @@ msgstr ""
 "met solide onderlagen. Het uiteindelijke gegenereerde model heeft geen naad."
 
 msgid "Smooth Spiral"
-msgstr ""
+msgstr "Smooth Spiral"
 
 msgid ""
 "Smooth Spiral smoothes out X and Y moves as wellresulting in no visible seam "
 "at all, even in the XY directions on walls that are not vertical"
 msgstr ""
+"Smooth Spiral smoothes out X and Y moves as wellresulting in no visible seam "
+"at all, even in the XY directions on walls that are not vertical"
 
 msgid "Max XY Smoothing"
-msgstr ""
+msgstr "Max XY Smoothing"
 
 msgid ""
 "Maximum distance to move points in XY to try to achieve a smooth spiralIf "
 "expressed as a %, it will be computed over nozzle diameter"
 msgstr ""
+"Maximum distance to move points in XY to try to achieve a smooth spiral. If "
+"expressed as a %, it will be computed over nozzle diameter"
 
 msgid ""
 "If smooth or traditional mode is selected, a timelapse video will be "
@@ -11957,10 +12412,10 @@ msgstr ""
 "cantilever, etc."
 
 msgid "Remove small overhangs"
-msgstr ""
+msgstr "Kleine uitsteeksels verwijderen"
 
 msgid "Remove small overhangs that possibly need no supports."
-msgstr ""
+msgstr "Verwijder kleine overstekken die mogelijk geen steun nodig hebben."
 
 msgid "Top Z distance"
 msgstr "Top Z afstand"
@@ -11987,11 +12442,13 @@ msgstr ""
 "huidige filament wordt gebruikt."
 
 msgid "Avoid interface filament for base"
-msgstr ""
+msgstr "Vermijd interfacedraad voor basis"
 
 msgid ""
 "Avoid using support interface filament to print support base if possible."
 msgstr ""
+"Gebruik indien mogelijk geen filament voor de steuninterface om de "
+"steunbasis te printen."
 
 msgid ""
 "Line width of support. If expressed as a %, it will be computed over the "
@@ -12028,10 +12485,10 @@ msgid "Bottom interface layers"
 msgstr "Onderste interfacelagen"
 
 msgid "Number of bottom interface layers"
-msgstr ""
+msgstr "Aantal onderste interfacelagen"
 
 msgid "Same as top"
-msgstr ""
+msgstr "Hetzelfde als boven"
 
 msgid "Top interface spacing"
 msgstr "Bovenste interface-afstand"
@@ -12243,10 +12700,10 @@ msgid ""
 msgstr ""
 
 msgid "Support wall loops"
-msgstr ""
+msgstr "Steunmuurlussen"
 
 msgid "This setting specify the count of walls around support"
-msgstr ""
+msgstr "Deze instelling specificeert het aantal muren rond de ondersteuning"
 
 msgid "Tree support with infill"
 msgstr "Tree support met vulling"
@@ -12268,7 +12725,7 @@ msgid ""
 msgstr ""
 
 msgid "Chamber temperature"
-msgstr ""
+msgstr "Kamertemperatuur"
 
 msgid ""
 "Higher chamber temperature can help suppress or reduce warping and "
@@ -12279,6 +12736,12 @@ msgid ""
 "high to avoid cloggings, so 0 which stands for turning off is highly "
 "recommended"
 msgstr ""
+"Higher chamber temperature can help suppress or reduce warping and "
+"potentially lead to higher interlayer bonding strength for high temperature "
+"materials like ABS, ASA, PC, PA and so on. At the same time, the air "
+"filtration of ABS and ASA will get worse.While for PLA, PETG, TPU, PVA and "
+"other low temperature materials, the actual chamber temperature should not "
+"be high to avoid clogs, so 0 (turned off) is highly recommended."
 
 msgid "Nozzle temperature for layers after the initial one"
 msgstr "Nozzle temperatuur voor de lagen na de eerstse laag"
@@ -12427,6 +12890,31 @@ msgstr ""
 msgid "Spacing of purge lines on the wipe tower."
 msgstr ""
 
+msgid "Maximum wipe tower print speed"
+msgstr ""
+
+msgid ""
+"The maximum print speed when purging in the wipe tower and printing the wipe "
+"tower sparse layers. When purging, if the sparse infill speed or calculated "
+"speed from the filament max volumetric speed is lower, the lowest will be "
+"used instead.\n"
+"\n"
+"When printing the sparse layers, if the internal perimeter speed or "
+"calculated speed from the filament max volumetric speed is lower, the lowest "
+"will be used instead.\n"
+"\n"
+"Increasing this speed may affect the tower's stability as well as increase "
+"the force with which the nozzle collides with any blobs that may have formed "
+"on the wipe tower.\n"
+"\n"
+"Before increasing this parameter beyond the default of 90mm/sec, make sure "
+"your printer can reliably bridge at the increased speeds and that ooze when "
+"tool changing is well controlled.\n"
+"\n"
+"For the wipe tower external perimeters the internal perimeter speed is used "
+"regardless of this setting."
+msgstr ""
+
 msgid "Wipe tower extruder"
 msgstr ""
 
@@ -12554,7 +13042,7 @@ msgid ""
 msgstr ""
 
 msgid "Use relative E distances"
-msgstr ""
+msgstr "Relatieve E-afstanden gebruiken"
 
 msgid ""
 "Relative extrusion is recommended when using \"label_objects\" option.Some "
@@ -13113,7 +13601,7 @@ msgid "load_obj: failed to parse"
 msgstr "load_obj: failed to parse"
 
 msgid "load mtl in obj: failed to parse"
-msgstr ""
+msgstr "load mtl in obj: failed to parse"
 
 msgid "The file contains polygons with more than 4 vertices."
 msgstr "The file contains polygons with more than 4 vertices."
@@ -13128,67 +13616,71 @@ msgid "This OBJ file couldn't be read because it's empty."
 msgstr "This OBJ file couldn't be read because it's empty."
 
 msgid "Flow Rate Calibration"
-msgstr ""
+msgstr "Flow Rate kalibratie"
 
 msgid "Max Volumetric Speed Calibration"
-msgstr ""
+msgstr "Kalibratie van maximale volumetrische snelheid"
 
 msgid "Manage Result"
-msgstr ""
+msgstr "Resultaat beheren"
 
 msgid "Manual Calibration"
-msgstr ""
+msgstr "Handmatige kalibratie"
 
 msgid "Result can be read by human eyes."
-msgstr ""
+msgstr "Het resultaat kan door mensenogen worden gelezen."
 
 msgid "Auto-Calibration"
-msgstr ""
+msgstr "Auto-Calibration"
 
 msgid "We would use Lidar to read the calibration result"
-msgstr ""
+msgstr "We zouden Lidar gebruiken om het kalibratieresultaat af te lezen"
 
 msgid "Prev"
-msgstr ""
+msgstr "Vorige"
 
 msgid "Recalibration"
-msgstr ""
+msgstr "Herkalibratie"
 
 msgid "Calibrate"
-msgstr ""
+msgstr "Kalibreren"
 
 msgid "Finish"
 msgstr "Klaar"
 
 msgid "How to use calibration result?"
-msgstr ""
+msgstr "Hoe kan ik kalibratieresultaten gebruiken?"
 
 msgid ""
 "You could change the Flow Dynamics Calibration Factor in material editing"
 msgstr ""
+"Je kunt de kalibratiefactor van de stromingsdynamica wijzigen bij het "
+"bewerken van materialen"
 
 msgid ""
 "The current firmware version of the printer does not support calibration.\n"
 "Please upgrade the printer firmware."
 msgstr ""
+"De huidige firmwareversie van de printer ondersteunt geen kalibratie.\n"
+"Voer een upgrade van de printerfirmware uit."
 
 msgid "Calibration not supported"
-msgstr ""
+msgstr "Kalibratie wordt niet ondersteund"
 
 msgid "Error desc"
-msgstr ""
+msgstr "Fout beschrijving"
 
 msgid "Extra info"
-msgstr ""
+msgstr "Extra informatie"
 
 msgid "Flow Dynamics"
-msgstr ""
+msgstr "Flowdynamiek"
 
 msgid "Flow Rate"
-msgstr ""
+msgstr "Flow Rate"
 
 msgid "Max Volumetric Speed"
-msgstr ""
+msgstr "Maximale volumetrische snelheid"
 
 #, c-format, boost-format
 msgid ""
@@ -13198,38 +13690,46 @@ msgid ""
 "End value: > Start value\n"
 "Value step: >= %.3f)"
 msgstr ""
+"Voer geldige waarden in:\n"
+"Startwaarde: >= %.1f\n"
+"Eindwaarde: <= %.1f\n"
+"Eindwaarde: > Startwaarde\n"
+"Waarde stap: >= %.3f)"
 
 msgid "The name cannot be empty."
-msgstr ""
+msgstr "De naam mag niet leeg zijn."
 
 #, c-format, boost-format
 msgid "The selected preset: %s is not found."
-msgstr ""
+msgstr "De geselecteerde preset: %s is niet gevonden."
 
 msgid "The name cannot be the same as the system preset name."
 msgstr ""
+"De naam mag niet hetzelfde zijn als de naam van de systeemvoorinstelling."
 
 msgid "The name is the same as another existing preset name"
-msgstr ""
+msgstr "De naam is hetzelfde als een andere bestaande presetnaam"
 
 msgid "create new preset failed."
-msgstr ""
+msgstr "nieuwe voorinstelling maken mislukt."
 
 msgid ""
 "Are you sure to cancel the current calibration and return to the home page?"
 msgstr ""
+"Are you sure you want to cancel the current calibration and return to the "
+"home page?"
 
 msgid "No Printer Connected!"
-msgstr ""
+msgstr "Geen printer aangesloten!"
 
 msgid "Printer is not connected yet."
-msgstr ""
+msgstr "Printer is nog niet aangesloten."
 
 msgid "Please select filament to calibrate."
-msgstr ""
+msgstr "Selecteer het filament dat u wilt kalibreren."
 
 msgid "The input value size must be 3."
-msgstr ""
+msgstr "De grootte van de invoerwaarde moet 3 zijn."
 
 msgid ""
 "This machine type can only hold 16 history results per nozzle. You can "
@@ -13238,15 +13738,20 @@ msgid ""
 "historical results. \n"
 "Do you still want to continue the calibration?"
 msgstr ""
+"This machine type can only hold 16 historical results per nozzle. You can "
+"delete the existing historical results and then start calibration. Or you "
+"can continue the calibration, but you cannot create new calibration "
+"historical results. \n"
+"Do you still want to continue the calibration?"
 
 msgid "Connecting to printer..."
-msgstr ""
+msgstr "Aansluiten op de printer..."
 
 msgid "The failed test result has been dropped."
-msgstr ""
+msgstr "Het mislukte testresultaat is verwijderd."
 
 msgid "Flow Dynamics Calibration result has been saved to the printer"
-msgstr ""
+msgstr "Flow Dynamics kalibratieresultaat is opgeslagen in de printer"
 
 #, c-format, boost-format
 msgid ""
@@ -13254,27 +13759,36 @@ msgid ""
 "Only one of the results with the same name is saved. Are you sure you want "
 "to override the historical result?"
 msgstr ""
+"Er is al een eerder kalibratieresultaat met dezelfde naam: %s. Er wordt maar "
+"één resultaat met een naam opgeslagen. Weet je zeker dat je het vorige "
+"resultaat wilt overschrijven?"
 
 #, c-format, boost-format
 msgid ""
 "This machine type can only hold %d history results per nozzle. This result "
 "will not be saved."
 msgstr ""
+"This machine type can only hold %d historical results per nozzle. This "
+"result will not be saved."
 
 msgid "Internal Error"
-msgstr ""
+msgstr "Interne fout"
 
 msgid "Please select at least one filament for calibration"
-msgstr ""
+msgstr "Selecteer ten minste één filament voor kalibratie"
 
 msgid "Flow rate calibration result has been saved to preset"
 msgstr ""
+"Het resultaat van de debietkalibratie is opgeslagen in een "
+"voorkeursinstelling."
 
 msgid "Max volumetric speed calibration result has been saved to preset"
 msgstr ""
+"Het kalibratieresultaat van de maximale volumetrische snelheid is opgeslagen "
+"in de vooraf ingestelde waarde"
 
 msgid "When do you need Flow Dynamics Calibration"
-msgstr ""
+msgstr "Wanneer heb je een Flow Dynamics-kalibratie nodig?"
 
 msgid ""
 "We now have added the auto-calibration for different filaments, which is "
@@ -13286,9 +13800,18 @@ msgid ""
 "3. If the max volumetric speed or print temperature is changed in the "
 "filament setting."
 msgstr ""
+"We hebben nu de automatische kalibratie voor verschillende filamenten "
+"toegevoegd. Deze is volledig geautomatiseerd en het resultaat wordt "
+"opgeslagen in de printer voor toekomstig gebruik. Je hoeft de kalibratie "
+"alleen uit te voeren in de volgende beperkte gevallen:\n"
+"1. Als je een nieuw filament van een ander merk/model introduceert of als "
+"het filament vochtig is;\n"
+"2. Als de spuitmond versleten is of vervangen is door een nieuwe;\n"
+"3. Als de maximale volumetrische snelheid of printtemperatuur is gewijzigd "
+"in de filamentinstelling."
 
 msgid "About this calibration"
-msgstr ""
+msgstr "Over deze kalibratie"
 
 msgid ""
 "Please find the details of Flow Dynamics Calibration from our wiki.\n"
@@ -13309,9 +13832,28 @@ msgid ""
 "cause the result not exactly the same in each calibration. We are still "
 "investigating the root cause to do improvements with new updates."
 msgstr ""
+"De details van Flow Dynamics Calibration vindt u op onze wiki.\n"
+"\n"
+"Meestal is kalibratie niet nodig. Als je een print met één kleur/materiaal "
+"start en de optie \"kalibratie van de stroomdynamica\" is aangevinkt in het "
+"startmenu van de printer, dan zal de printer de oude manier volgen en het "
+"filament kalibreren voor het printen; als je een print met meerdere kleuren/"
+"materialen start, dan zal de printer de standaard compensatieparameter voor "
+"het filament gebruiken tijdens elke filamentwissel, wat in de meeste "
+"gevallen een goed resultaat zal opleveren.\n"
+"\n"
+"Let op: er zijn een paar gevallen waardoor het kalibratieresultaat niet "
+"betrouwbaar is: als je een textuurplaat gebruikt om de kalibratie uit te "
+"voeren; als de bouwplaat geen goede hechting heeft (was de bouwplaat of "
+"breng lijm aan!) ...Je kunt meer informatie vinden op onze wiki.\n"
+"\n"
+"De kalibratieresultaten hebben ongeveer 10 procent jitter in onze test, "
+"waardoor het resultaat niet bij elke kalibratie precies hetzelfde is. We "
+"onderzoeken nog steeds de oorzaak om verbeteringen aan te brengen met nieuwe "
+"updates."
 
 msgid "When to use Flow Rate Calibration"
-msgstr ""
+msgstr "Wanneer moet u Flow Rate kalibratie gebruiken"
 
 msgid ""
 "After using Flow Dynamics Calibration, there might still be some extrusion "
@@ -13324,12 +13866,24 @@ msgid ""
 "4. Weak Structural Integrity: Prints break easily or don't seem as sturdy as "
 "they should be."
 msgstr ""
+"After using Flow Dynamics Calibration, there might still be some extrusion "
+"issues, such as:\n"
+"1. Over-Extrusion: Excess material on your printed object, forming blobs or "
+"zits, or the layers seem thicker than expected and not uniform.\n"
+"2. Under-Extrusion: Very thin layers, weak infill strength, or gaps in the "
+"top layer of the model, even when printing slowly.\n"
+"3. Poor Surface Quality: The surface of your prints seems rough or uneven.\n"
+"4. Weak Structural Integrity: Prints break easily or don't seem as sturdy as "
+"they should be."
 
 msgid ""
 "In addition, Flow Rate Calibration is crucial for foaming materials like LW-"
 "PLA used in RC planes. These materials expand greatly when heated, and "
 "calibration provides a useful reference flow rate."
 msgstr ""
+"Bovendien is Flow Rate kalibratie cruciaal voor schuimmaterialen zoals LW-"
+"PLA die worden gebruikt in RC-vliegtuigen. Deze materialen zetten sterk uit "
+"bij verhitting, en kalibratie levert een bruikbare referentiestroom op."
 
 msgid ""
 "Flow Rate Calibration measures the ratio of expected to actual extrusion "
@@ -13339,6 +13893,13 @@ msgid ""
 "you still see the listed defects after you have done other calibrations. For "
 "more details, please check out the wiki article."
 msgstr ""
+"Flow Rate Calibration meet de verhouding tussen verwachte en werkelijke "
+"extrusievolumes. De standaardinstelling werkt goed in Bambu Lab printers en "
+"officiële filamenten, omdat deze vooraf zijn gekalibreerd en afgestemd. Voor "
+"een normaal filament is het meestal niet nodig om een kalibratie van de "
+"stroomsnelheid uit te voeren, tenzij je nog steeds de genoemde defecten ziet "
+"nadat je andere kalibraties hebt uitgevoerd. Kijk voor meer informatie in "
+"het wiki-artikel."
 
 msgid ""
 "Auto Flow Rate Calibration utilizes Bambu Lab's Micro-Lidar technology, "
@@ -13358,48 +13919,72 @@ msgid ""
 "can lead to sub-par prints or printer damage. Please make sure to carefully "
 "read and understand the process before doing it."
 msgstr ""
+"Auto Flow Rate Calibration utilizes Bambu Lab's Micro-Lidar technology, "
+"directly measuring the calibration patterns. However, please be advised that "
+"the efficacy and accuracy of this method may be compromised with specific "
+"types of materials. Particularly, filaments that are transparent or semi-"
+"transparent, sparkling-particled, or have a high-reflective finish may not "
+"be suitable for this calibration and can produce less-than-desirable "
+"results.\n"
+"\n"
+"The calibration results may vary between each calibration or filament. We "
+"are still improving the accuracy and compatibility of this calibration "
+"through firmware updates over time.\n"
+"\n"
+"Caution: Flow Rate Calibration is an advanced process, to be attempted only "
+"by those who fully understand its purpose and implications. Incorrect usage "
+"can lead to sub-par prints or printer damage. Please make sure to carefully "
+"read and understand the process before performing it."
 
 msgid "When you need Max Volumetric Speed Calibration"
-msgstr ""
+msgstr "Wanneer u maximale volumetrische snelheidskalibratie nodig hebt"
 
 msgid "Over-extrusion or under extrusion"
-msgstr ""
+msgstr "Over-extrusie of onderextrusie"
 
 msgid "Max Volumetric Speed calibration is recommended when you print with:"
 msgstr ""
+"Kalibratie van de maximale volumetrische snelheid wordt aanbevolen wanneer "
+"je afdrukt met:"
 
 msgid "material with significant thermal shrinkage/expansion, such as..."
-msgstr ""
+msgstr "materiaal met aanzienlijke thermische krimp/uitzetting, zoals..."
 
 msgid "materials with inaccurate filament diameter"
-msgstr ""
+msgstr "materialen met een onnauwkeurige filamentdiameter"
 
 msgid "We found the best Flow Dynamics Calibration Factor"
-msgstr ""
+msgstr "We hebben de beste Flow Dynamics kalibratiefactor gevonden"
 
 msgid ""
 "Part of the calibration failed! You may clean the plate and retry. The "
 "failed test result would be dropped."
 msgstr ""
+"Een deel van de kalibratie is mislukt! U kunt de plaat schoonmaken en het "
+"opnieuw proberen. Het mislukte testresultaat komt te vervallen."
 
 msgid ""
 "*We recommend you to add brand, materia, type, and even humidity level in "
 "the Name"
 msgstr ""
+"*We raden je aan om merk, materiaal, type en zelfs vochtigheidsgraad toe te "
+"voegen in de Naam."
 
 msgid "Failed"
 msgstr "Mislukt"
 
 msgid "Please enter the name you want to save to printer."
-msgstr ""
+msgstr "Voer de naam in die u op de printer wilt opslaan."
 
 msgid "The name cannot exceed 40 characters."
-msgstr ""
+msgstr "De naam mag niet langer zijn dan 40 tekens."
 
 msgid ""
 "Only one of the results with the same name will be saved. Are you sure you "
 "want to overrides the other results?"
 msgstr ""
+"Slechts één van de resultaten met dezelfde naam wordt opgeslagen. Weet je "
+"zeker dat je de andere resultaten wilt vervangen?"
 
 #, c-format, boost-format
 msgid ""
@@ -13407,188 +13992,199 @@ msgid ""
 "Only one of the results with the same name is saved. Are you sure you want "
 "to overrides the historical result?"
 msgstr ""
+"Er is al een eerder kalibratieresultaat met dezelfde naam: %s. Slechts één "
+"van de resultaten met dezelfde naam wordt opgeslagen. Weet je zeker dat je "
+"het vorige resultaat wilt vervangen?"
 
 msgid "Please find the best line on your plate"
-msgstr ""
+msgstr "Zoek de beste regel op je bord"
 
 msgid "Please find the cornor with perfect degree of extrusion"
-msgstr ""
+msgstr "Zoek de hoek met de perfecte extrusiegraad"
 
 msgid "Input Value"
-msgstr ""
+msgstr "Invoerwaarde"
 
 msgid "Save to Filament Preset"
-msgstr ""
+msgstr "Opslaan in filamentvoorinstellingen"
 
 msgid "Preset"
-msgstr ""
+msgstr "Voorinstelling"
 
 msgid "Record Factor"
-msgstr ""
+msgstr "Recordfactor"
 
 msgid "We found the best flow ratio for you"
-msgstr ""
+msgstr "We hebben de beste stroomverhouding voor je gevonden"
 
 msgid "Flow Ratio"
-msgstr ""
+msgstr "Flow ratio"
 
 msgid "Please input a valid value (0.0 < flow ratio < 2.0)"
-msgstr ""
+msgstr "Voer een geldige waarde in (0,0 < flow ratio < 2,0)"
 
 msgid "Please enter the name of the preset you want to save."
-msgstr ""
+msgstr "Voer de naam in van de voorinstelling die u wilt opslaan."
 
 msgid "Calibration1"
-msgstr ""
+msgstr "Kalibratie 1"
 
 msgid "Calibration2"
-msgstr ""
+msgstr "Kalibratie 2"
 
 msgid "Please find the best object on your plate"
-msgstr ""
+msgstr "Zoek het beste voorwerp op je bord"
 
 msgid "Fill in the value above the block with smoothest top surface"
-msgstr ""
+msgstr "Vul de waarde boven het blok in met het gladste bovenvlak"
 
 msgid "Skip Calibration2"
-msgstr ""
+msgstr "Kalibratie overslaan2"
 
 #, c-format, boost-format
 msgid "flow ratio : %s "
-msgstr ""
+msgstr "Stroomverhouding : %s "
 
 msgid "Please choose a block with smoothest top surface"
-msgstr ""
+msgstr "Kies een blok met de gladste bovenkant"
 
 msgid "Please choose a block with smoothest top surface."
-msgstr ""
+msgstr "Kies een blok met de gladste bovenkant."
 
 msgid "Please input a valid value (0 <= Max Volumetric Speed <= 60)"
 msgstr ""
+"Voer een geldige waarde in (0 <= maximale volumetrische snelheid <= 60)"
 
 msgid "Calibration Type"
-msgstr ""
+msgstr "Kalibratietype"
 
 msgid "Complete Calibration"
-msgstr ""
+msgstr "Volledige kalibratie"
 
 msgid "Fine Calibration based on flow ratio"
-msgstr ""
+msgstr "Fijne kalibratie op basis van flow ratio"
 
 msgid "Title"
-msgstr ""
+msgstr "Titel"
 
 msgid ""
 "A test model will be printed. Please clear the build plate and place it back "
 "to the hot bed before calibration."
 msgstr ""
+"Er wordt een testmodel geprint. Maak de bouwplaat vrij en plaats deze terug "
+"op het hotbed voordat je gaat kalibreren."
 
 msgid "Printing Parameters"
-msgstr ""
+msgstr "Afdrukparameters"
 
 msgid "Plate Type"
 msgstr "Plate Type"
 
 msgid "filament position"
-msgstr ""
+msgstr "filament positie"
 
 msgid "External Spool"
-msgstr ""
+msgstr "Externe spoel"
 
 msgid "Filament For Calibration"
-msgstr ""
+msgstr "Filament voor kalibratie"
 
 msgid ""
 "Tips for calibration material: \n"
 "- Materials that can share same hot bed temperature\n"
 "- Different filament brand and family(Brand = Bambu, Family = Basic, Matte)"
 msgstr ""
+"Tips voor kalibratiemateriaal: \n"
+"- Materialen die dezelfde warmbedtemperatuur kunnen delen\n"
+"- Verschillende filamentmerken en -families (Merk = Bambu, Familie = Basis, "
+"Mat)"
 
 msgid "Pattern"
-msgstr ""
+msgstr "Patroon"
 
 msgid "Method"
-msgstr ""
+msgstr "Methode"
 
 #, c-format, boost-format
 msgid "%s is not compatible with %s"
-msgstr ""
+msgstr "%s is niet compatibel met %s"
 
 msgid "TPU is not supported for Flow Dynamics Auto-Calibration."
-msgstr ""
+msgstr "TPU wordt niet ondersteund voor automatische Flow Dynamics-kalibratie."
 
 msgid "Connecting to printer"
-msgstr ""
+msgstr "Verbinding maken met printer"
 
 msgid "From k Value"
-msgstr ""
+msgstr "Van k Waarde"
 
 msgid "To k Value"
-msgstr ""
+msgstr "Naar k Waarde"
 
 msgid "Step value"
 msgstr ""
 
 msgid "The nozzle diameter has been synchronized from the printer Settings"
 msgstr ""
+"De diameter van het mondstuk is gesynchroniseerd met de printerinstellingen."
 
 msgid "From Volumetric Speed"
-msgstr ""
+msgstr "Van Volumetric Speed"
 
 msgid "To Volumetric Speed"
-msgstr ""
+msgstr "Naar volumetrische snelheid"
 
 msgid "Flow Dynamics Calibration Result"
-msgstr ""
+msgstr "Kalibratieresultaat van Flow Dynamics"
 
 msgid "New"
-msgstr ""
+msgstr "New"
 
 msgid "No History Result"
-msgstr ""
+msgstr "Geen geschiedenisresultaat"
 
 msgid "Success to get history result"
-msgstr ""
+msgstr "Succes om geschiedenisresultaat te krijgen"
 
 msgid "Refreshing the historical Flow Dynamics Calibration records"
-msgstr ""
+msgstr "De vorige Flow Dynamics kalibratierecords vernieuwen"
 
 msgid "Action"
-msgstr ""
+msgstr "Actie"
 
 #, c-format, boost-format
 msgid "This machine type can only hold %d history results per nozzle."
-msgstr ""
+msgstr "This machine type can only hold %d historical results per nozzle."
 
 msgid "Edit Flow Dynamics Calibration"
-msgstr ""
+msgstr "Flow Dynamics-kalibratie bewerken"
 
 msgid "New Flow Dynamic Calibration"
-msgstr ""
+msgstr "New Flow Dynamic Calibration"
 
 msgid "Ok"
-msgstr ""
+msgstr "Ok"
 
 msgid "The filament must be selected."
-msgstr ""
+msgstr "The filament must be selected."
 
 msgid "Network lookup"
-msgstr ""
+msgstr "Netwerk opzoeken"
 
 msgid "Address"
-msgstr ""
+msgstr "Address"
 
 msgid "Hostname"
-msgstr ""
+msgstr "Hostnaam"
 
 msgid "Service name"
-msgstr ""
+msgstr "Servicenaam"
 
 msgid "OctoPrint version"
-msgstr ""
+msgstr "OctoPrint-versie"
 
 msgid "Searching for devices"
-msgstr ""
+msgstr "Zoeken naar apparaten"
 
 msgid "Finished"
 msgstr "Voltooid"
@@ -13603,37 +14199,37 @@ msgid ""
 msgstr ""
 
 msgid "PA Calibration"
-msgstr ""
+msgstr "PA-kalibratie"
 
 msgid "DDE"
 msgstr ""
 
 msgid "Bowden"
-msgstr ""
+msgstr "Bowden"
 
 msgid "Extruder type"
 msgstr ""
 
 msgid "PA Tower"
-msgstr ""
+msgstr "PA-toren"
 
 msgid "PA Line"
-msgstr ""
+msgstr "PA-lijn"
 
 msgid "PA Pattern"
-msgstr ""
+msgstr "PA-patroon"
 
 msgid "Start PA: "
-msgstr ""
+msgstr "Start PA:"
 
 msgid "End PA: "
-msgstr ""
+msgstr "PA beëindigen: "
 
 msgid "PA step: "
-msgstr ""
+msgstr "PA-stap:"
 
 msgid "Print numbers"
-msgstr ""
+msgstr "Cijfers afdrukken"
 
 msgid ""
 "Please input valid values:\n"
@@ -13641,39 +14237,43 @@ msgid ""
 "End PA: > Start PA\n"
 "PA step: >= 0.001)"
 msgstr ""
+"Voer geldige waarden in:\n"
+"PA starten: >= 0,0\n"
+"PA beëindigen: > PA starten\n"
+"PA-stap: >= 0,001)"
 
 msgid "Temperature calibration"
-msgstr ""
+msgstr "Temperatuurkalibratie"
 
 msgid "PLA"
-msgstr ""
+msgstr "PLA"
 
 msgid "ABS/ASA"
-msgstr ""
+msgstr "ABS/ASA"
 
 msgid "PETG"
-msgstr ""
+msgstr "PETG"
 
 msgid "TPU"
-msgstr ""
+msgstr "TPU"
 
 msgid "PA-CF"
-msgstr ""
+msgstr "PA-CF"
 
 msgid "PET-CF"
-msgstr ""
+msgstr "PET-CF"
 
 msgid "Filament type"
-msgstr ""
+msgstr "Filamenttype"
 
 msgid "Start temp: "
-msgstr ""
+msgstr "Starttemp:"
 
 msgid "End temp: "
-msgstr ""
+msgstr "Eindtemp:"
 
 msgid "Temp step: "
-msgstr ""
+msgstr "Temp stap:"
 
 msgid ""
 "Please input valid values:\n"
@@ -13683,16 +14283,16 @@ msgid ""
 msgstr ""
 
 msgid "Max volumetric speed test"
-msgstr ""
+msgstr "Max. volumetrische snelheidstest"
 
 msgid "Start volumetric speed: "
-msgstr ""
+msgstr "Volumetrische snelheid starten:"
 
 msgid "End volumetric speed: "
-msgstr ""
+msgstr "Volumetrische eindsnelheid:"
 
 msgid "step: "
-msgstr ""
+msgstr "stap:"
 
 msgid ""
 "Please input valid values:\n"
@@ -13702,13 +14302,13 @@ msgid ""
 msgstr ""
 
 msgid "VFA test"
-msgstr ""
+msgstr "VFA-test"
 
 msgid "Start speed: "
-msgstr ""
+msgstr "Startsnelheid:"
 
 msgid "End speed: "
-msgstr ""
+msgstr "Eindsnelheid:"
 
 msgid ""
 "Please input valid values:\n"
@@ -13718,129 +14318,130 @@ msgid ""
 msgstr ""
 
 msgid "Start retraction length: "
-msgstr ""
+msgstr "Begin terugtreklengte:"
 
 msgid "End retraction length: "
-msgstr ""
+msgstr "Beëindig terugtreklengte: "
 
 msgid "mm/mm"
-msgstr ""
+msgstr "mm/mm"
 
 msgid "Send G-Code to printer host"
 msgstr ""
 
 msgid "Upload to Printer Host with the following filename:"
-msgstr ""
+msgstr "Uploaden naar Printer Host met de volgende bestandsnaam:"
 
 msgid "Use forward slashes ( / ) as a directory separator if needed."
 msgstr ""
+"Gebruik indien nodig schuine strepen (/) als scheidingsteken voor mappen."
 
 msgid "Upload to storage"
 msgstr ""
 
 #, c-format, boost-format
 msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
-msgstr ""
+msgstr "De bestandsnaam van de upload eindigt niet op \"%s\". Wilt u doorgaan?"
 
 msgid "Upload"
-msgstr ""
+msgstr "Uploaden"
 
 msgid "Print host upload queue"
-msgstr ""
+msgstr "Uploadwachtrij van de host afdrukken"
 
 msgid "ID"
-msgstr ""
+msgstr "ID"
 
 msgid "Progress"
-msgstr ""
+msgstr "Voortgang"
 
 msgid "Host"
-msgstr ""
+msgstr "Host"
 
 msgctxt "OfFile"
 msgid "Size"
-msgstr ""
+msgstr "Maat"
 
 msgid "Filename"
-msgstr ""
+msgstr "Bestandsnaam"
 
 msgid "Cancel selected"
-msgstr ""
+msgstr "Annuleer geselecteerde"
 
 msgid "Show error message"
-msgstr ""
+msgstr "Foutmelding tonen"
 
 msgid "Enqueued"
-msgstr ""
+msgstr "In de wachtrij"
 
 msgid "Uploading"
 msgstr "Uploaden"
 
 msgid "Cancelling"
-msgstr ""
+msgstr "Annuleren"
 
 msgid "Error uploading to print host"
 msgstr ""
 
 msgid "Unable to perform boolean operation on selected parts"
-msgstr ""
+msgstr "Kan geen booleaanse bewerking uitvoeren op geselecteerde onderdelen"
 
 msgid "Mesh Boolean"
-msgstr ""
+msgstr "Mesh booleaans"
 
 msgid "Union"
-msgstr ""
+msgstr "Unie"
 
 msgid "Difference"
-msgstr ""
+msgstr "Verschil"
 
 msgid "Intersection"
-msgstr ""
+msgstr "Kruising"
 
 msgid "Source Volume"
-msgstr ""
+msgstr "Bronvolume"
 
 msgid "Tool Volume"
-msgstr ""
+msgstr "Gereedschapsvolume"
 
 msgid "Subtract from"
-msgstr ""
+msgstr "Aftrekken van"
 
 msgid "Subtract with"
-msgstr ""
+msgstr "Aftrekken met"
 
 msgid "selected"
-msgstr ""
+msgstr "geselecteerd"
 
 msgid "Part 1"
-msgstr ""
+msgstr "Deel 1"
 
 msgid "Part 2"
-msgstr ""
+msgstr "Deel 2"
 
 msgid "Delete input"
-msgstr ""
+msgstr "Invoer verwijderen"
 
 msgid "Network Test"
-msgstr ""
+msgstr "Netwerktest"
 
 msgid "Start Test Multi-Thread"
-msgstr ""
+msgstr "Multi-thread test starten"
 
 msgid "Start Test Single-Thread"
-msgstr ""
+msgstr "Test Single-Thread starten"
 
 msgid "Export Log"
-msgstr ""
+msgstr "Logboek exporteren"
 
 msgid "OrcaSlicer Version:"
 msgstr ""
 
 msgid "System Version:"
-msgstr ""
+msgstr "Systeemversie:"
 
 msgid "DNS Server:"
-msgstr ""
+msgstr "DNS-server:"
 
 msgid "Test OrcaSlicer(GitHub)"
 msgstr ""
@@ -13849,92 +14450,99 @@ msgid "Test OrcaSlicer(GitHub):"
 msgstr ""
 
 msgid "Test Bing.com"
-msgstr ""
+msgstr "Test Bing.com"
 
 msgid "Test bing.com:"
-msgstr ""
+msgstr "Test bing.com:"
 
 msgid "Log Info"
-msgstr ""
+msgstr "Log-informatie"
 
 msgid "Select filament preset"
-msgstr ""
+msgstr "Selecteer voorinstelling gloeidraad"
 
 msgid "Create Filament"
-msgstr ""
+msgstr "Draad maken"
 
 msgid "Create Based on Current Filament"
-msgstr ""
+msgstr "Creëer op basis van huidig filament"
 
 msgid "Copy Current Filament Preset "
-msgstr ""
+msgstr "Kopieer de huidige filamentvoorinstelling "
 
 msgid "Basic Information"
-msgstr ""
+msgstr "Basisinformatie"
 
 msgid "Add Filament Preset under this filament"
-msgstr ""
+msgstr "Voeg Filament Preset toe onder dit filament"
 
 msgid "We could create the filament presets for your following printer:"
-msgstr ""
+msgstr "We kunnen de filament presets maken voor uw volgende printer:"
 
 msgid "Select Vendor"
-msgstr ""
+msgstr "Selecteer leverancier"
 
 msgid "Input Custom Vendor"
-msgstr ""
+msgstr "Aangepaste leverancier invoeren"
 
 msgid "Can't find vendor I want"
-msgstr ""
+msgstr "Kan de leverancier die ik wil niet vinden"
 
 msgid "Select Type"
-msgstr ""
+msgstr "Selecteer type"
 
 msgid "Select Filament Preset"
-msgstr ""
+msgstr "Selecteer filament preset"
 
 msgid "Serial"
-msgstr ""
+msgstr "Serieel"
 
 msgid "e.g. Basic, Matte, Silk, Marble"
-msgstr ""
+msgstr "bijv. Basic, Mat, Zijde, Marmer"
 
 msgid "Filament Preset"
-msgstr ""
+msgstr "Filament voorinstelling"
 
 msgid "Create"
-msgstr ""
+msgstr "Creëren"
 
 msgid "Vendor is not selected, please reselect vendor."
-msgstr ""
+msgstr "Vendor is not selected; please reselect vendor."
 
 msgid "Custom vendor is not input, please input custom vendor."
-msgstr ""
+msgstr "Custom vendor missing; please input custom vendor."
 
 msgid ""
 "\"Bambu\" or \"Generic\" can not be used as a Vendor for custom filaments."
 msgstr ""
+"\"Bambu\" of \"Generic\" kan niet worden gebruikt als leverancier voor "
+"aangepaste filamenten."
 
 msgid "Filament type is not selected, please reselect type."
-msgstr ""
+msgstr "Het type draad is niet geselecteerd, selecteer het type opnieuw."
 
 msgid "Filament serial is not inputed, please input serial."
-msgstr ""
+msgstr "Filament serial missing; please input serial."
 
 msgid ""
 "There may be escape characters in the vendor or serial input of filament. "
 "Please delete and re-enter."
 msgstr ""
+"There may be disallowed characters in the vendor or serial input of the "
+"filament. Please delete and re-enter."
 
 msgid "All inputs in the custom vendor or serial are spaces. Please re-enter."
 msgstr ""
+"Alle ingangen in de aangepaste verkoper of serie zijn spaties. Voer opnieuw "
+"in."
 
 msgid "The vendor can not be a number. Please re-enter."
-msgstr ""
+msgstr "The vendor can not be a number; please re-enter."
 
 msgid ""
 "You have not selected a printer or preset yet. Please select at least one."
 msgstr ""
+"Je hebt nog geen printer of preset geselecteerd. Selecteer er ten minste één."
 
 #, c-format, boost-format
 msgid ""
@@ -13942,14 +14550,19 @@ msgid ""
 "If you continue creating, the preset created will be displayed with its full "
 "name. Do you want to continue?"
 msgstr ""
+"De filamentnaam %s die je hebt gemaakt, bestaat al. \n"
+"Als u doorgaat, wordt de gemaakte voorinstelling weergegeven met de "
+"volledige naam. Wilt u doorgaan?"
 
 msgid "Some existing presets have failed to be created, as follows:\n"
-msgstr ""
+msgstr "Sommige bestaande presets zijn niet aangemaakt, als volgt:\n"
 
 msgid ""
 "\n"
 "Do you want to rewrite it?"
 msgstr ""
+"\n"
+"Wil je het herschrijven?"
 
 msgid ""
 "We would rename the presets as \"Vendor Type Serial @printer you selected"
@@ -13958,46 +14571,46 @@ msgid ""
 msgstr ""
 
 msgid "Create Printer/Nozzle"
-msgstr ""
+msgstr "Printer/mondstuk maken"
 
 msgid "Create Printer"
-msgstr ""
+msgstr "Printer maken"
 
 msgid "Create Nozzle for Existing Printer"
-msgstr ""
+msgstr "Mondstuk maken voor bestaande printer"
 
 msgid "Create from Template"
-msgstr ""
+msgstr "Maken op basis van sjabloon"
 
 msgid "Create Based on Current Printer"
-msgstr ""
+msgstr "Aanmaken op basis van huidige printer"
 
 msgid "Import Preset"
-msgstr ""
+msgstr "Preset importeren"
 
 msgid "Create Type"
-msgstr ""
+msgstr "Type maken"
 
 msgid "The model is not fond, place reselect vendor."
-msgstr ""
+msgstr "The model was not found; please reselect vendor."
 
 msgid "Select Model"
-msgstr ""
+msgstr "Model kiezen"
 
 msgid "Select Printer"
-msgstr ""
+msgstr "Selecteer printer"
 
 msgid "Input Custom Model"
-msgstr ""
+msgstr "Invoer aangepast model"
 
 msgid "Can't find my printer model"
-msgstr ""
+msgstr "Kan mijn printermodel niet vinden"
 
 msgid "Rectangle"
-msgstr ""
+msgstr "Rechthoek"
 
 msgid "Printable Space"
-msgstr ""
+msgstr "Printbare ruimte"
 
 msgid "X"
 msgstr ""
@@ -14006,66 +14619,70 @@ msgid "Y"
 msgstr ""
 
 msgid "Hot Bed STL"
-msgstr ""
+msgstr "Warm bed STL"
 
 msgid "Load stl"
-msgstr ""
+msgstr "Stl laden"
 
 msgid "Hot Bed SVG"
-msgstr ""
+msgstr "Warm bed SVG"
 
 msgid "Load svg"
-msgstr ""
+msgstr "svg laden"
 
 msgid "Max Print Height"
-msgstr ""
+msgstr "Max. afdrukhoogte"
 
 #, c-format, boost-format
 msgid "The file exceeds %d MB, please import again."
-msgstr ""
+msgstr "Het bestand is groter dan %d MB, importeer opnieuw."
 
 msgid "Exception in obtaining file size, please import again."
-msgstr ""
+msgstr "Uitzondering in het verkrijgen van bestandsgrootte, importeer opnieuw."
 
 msgid "Preset path is not find, please reselect vendor."
-msgstr ""
+msgstr "Preset-pad niet gevonden; selecteer leverancier opnieuw."
 
 msgid "The printer model was not found, please reselect."
-msgstr ""
+msgstr "Het printermodel is niet gevonden, selecteer opnieuw."
 
 msgid "The nozzle diameter is not fond, place reselect."
-msgstr ""
+msgstr "The nozzle diameter was not found; please reselect."
 
 msgid "The printer preset is not fond, place reselect."
-msgstr ""
+msgstr "The printer preset was not found; please reselect."
 
 msgid "Printer Preset"
-msgstr ""
+msgstr "Vooraf ingestelde printer"
 
 msgid "Filament Preset Template"
-msgstr ""
+msgstr "Filament vooraf ingestelde sjabloon"
 
 msgid "Deselect All"
-msgstr ""
+msgstr "Alles deselecteren"
 
 msgid "Process Preset Template"
-msgstr ""
+msgstr "Vooraf ingesteld proces sjabloon"
 
 msgid "Back Page 1"
-msgstr ""
+msgstr "Terug Pagina 1"
 
 msgid ""
 "You have not yet chosen which printer preset to create based on. Please "
 "choose the vendor and model of the printer"
 msgstr ""
+"Je hebt nog niet gekozen op basis van welke preset je de printer wilt maken. "
+"Kies de leverancier en het model van de printer"
 
 msgid ""
 "You have entered an illegal input in the printable area section on the first "
 "page. Please check before creating it."
 msgstr ""
+"U hebt een niet toegestaan teken ingevoerd in het gedeelte van het "
+"afdrukbare gebied op de eerste pagina. Gebruik alleen cijfers."
 
 msgid "The custom printer or model is not inputed, place input."
-msgstr ""
+msgstr "The custom printer or model missing; please input."
 
 msgid ""
 "The printer preset you created already has a preset with the same name. Do "
@@ -14076,60 +14693,75 @@ msgid ""
 "reserve.\n"
 "\tCancel: Do not create a preset, return to the creation interface."
 msgstr ""
+"The printer preset you created already has a preset with the same name. Do "
+"you want to overwrite it?\n"
+"\tYes: Overwrite the printer preset with the same name, and filament and "
+"process presets with the same preset name will be recreated \n"
+"and filament and process presets without the same preset name will be "
+"reserved.\n"
+"\tCancel: Do not create a preset; return to the creation interface."
 
 msgid "You need to select at least one filament preset."
-msgstr ""
+msgstr "U moet ten minste één filamentvoorinstelling selecteren."
 
 msgid "You need to select at least one process preset."
-msgstr ""
+msgstr "Je moet minstens één procesvoorinstelling selecteren."
 
 msgid "Create filament presets failed. As follows:\n"
-msgstr ""
+msgstr "Voorinstellingen voor filament maken mislukt. Als volgt:\n"
 
 msgid "Create process presets failed. As follows:\n"
-msgstr ""
+msgstr "Procesvoorinstellingen maken mislukt. Als volgt:\n"
 
 msgid "Vendor is not find, please reselect."
-msgstr ""
+msgstr "Leverancier is niet gevonden; selecteer opnieuw."
 
 msgid "Current vendor has no models, please reselect."
-msgstr ""
+msgstr "De huidige leverancier heeft geen modellen. Selecteer opnieuw."
 
 msgid ""
 "You have not selected the vendor and model or inputed the custom vendor and "
 "model."
 msgstr ""
+"U hebt de verkoper en het model niet geselecteerd of de aangepaste verkoper "
+"en het aangepaste model niet ingevoerd."
 
 msgid ""
 "There may be escape characters in the custom printer vendor or model. Please "
 "delete and re-enter."
 msgstr ""
+"Er kunnen escape-tekens staan in de aangepaste printerverkoper of het "
+"aangepaste printermodel. Verwijder ze en voer ze opnieuw in."
 
 msgid ""
 "All inputs in the custom printer vendor or model are spaces. Please re-enter."
 msgstr ""
+"Alle invoer in de aangepaste printerverkoper of het aangepaste printermodel "
+"zijn spaties. Voer opnieuw in."
 
 msgid "Please check bed printable shape and origin input."
-msgstr ""
+msgstr "Controleer de bedrukbare vorm en oorsprongsinvoer."
 
 msgid ""
 "You have not yet selected the printer to replace the nozzle, please choose."
 msgstr ""
+"Je hebt de printer waarvoor je het mondstuk wilt vervangen nog niet "
+"geselecteerd; kies een printer."
 
 msgid "Create Printer Successful"
-msgstr ""
+msgstr "Printer succesvol maken"
 
 msgid "Create Filament Successful"
-msgstr ""
+msgstr "Filament Created Successfully"
 
 msgid "Printer Created"
-msgstr ""
+msgstr "Printer gemaakt"
 
 msgid "Please go to printer settings to edit your presets"
-msgstr ""
+msgstr "Ga naar printerinstellingen om je voorinstellingen te bewerken"
 
 msgid "Filament Created"
-msgstr ""
+msgstr "Aangemaakt filament"
 
 msgid ""
 "Please go to filament setting to edit your presets if you need.\n"
@@ -14137,21 +14769,23 @@ msgid ""
 "volumetric speed has a significant impact on printing quality. Please set "
 "them carefully."
 msgstr ""
+"Ga naar filamentinstellingen om uw voorinstellingen te bewerken als dat "
+"nodig is.\n"
+"Houd er rekening mee dat de spuitmondtemperatuur, warmbedtemperatuur en "
+"maximale volumetrische snelheid elk een aanzienlijke invloed hebben op de "
+"printkwaliteit. Stel ze daarom zorgvuldig in."
 
 msgid ""
 "\n"
 "\n"
-"Studio has detected that your user presets synchronization function is not "
+"Orca has detected that your user presets synchronization function is not "
 "enabled, which may result in unsuccessful Filament settings on the Device "
 "page. \n"
 "Click \"Sync user presets\" to enable the synchronization function."
 msgstr ""
 
 msgid "Printer Setting"
-msgstr ""
-
-msgid "Export Configs"
-msgstr ""
+msgstr "Printerinstelling"
 
 msgid "Printer config bundle(.orca_printer)"
 msgstr ""
@@ -14160,31 +14794,31 @@ msgid "Filament bundle(.orca_filament)"
 msgstr ""
 
 msgid "Printer presets(.zip)"
-msgstr ""
+msgstr "Printer presets(.zip)"
 
 msgid "Filament presets(.zip)"
-msgstr ""
+msgstr "Filament presets(.zip)"
 
 msgid "Process presets(.zip)"
-msgstr ""
+msgstr "Proces presets(.zip)"
 
 msgid "initialize fail"
-msgstr ""
+msgstr "initialiseren mislukt"
 
 msgid "add file fail"
-msgstr ""
+msgstr "Bestand toevoegen mislukt"
 
 msgid "add bundle structure file fail"
-msgstr ""
+msgstr "bundle structuurbestand toevoegen mislukt"
 
 msgid "finalize fail"
-msgstr ""
+msgstr "afronden mislukt"
 
 msgid "open zip written fail"
-msgstr ""
+msgstr "open zip geschreven mislukt"
 
 msgid "Export successful"
-msgstr ""
+msgstr "Export succesvol"
 
 #, c-format, boost-format
 msgid ""
@@ -14193,6 +14827,10 @@ msgid ""
 "If not, a time suffix will be added, and you can modify the name after "
 "creation."
 msgstr ""
+"The '%s' folder already exists in the current directory. Do you want to "
+"clear it and rebuild it?\n"
+"If not, a time suffix will be added, and you can modify the name after "
+"creation."
 
 msgid ""
 "Printer and all the filament&&process presets that belongs to the printer. \n"
@@ -14203,54 +14841,69 @@ msgid ""
 "User's fillment preset set. \n"
 "Can be shared with others."
 msgstr ""
+"Ingestelde preset vullingsset van de gebruiker.\n"
+"Kan worden gedeeld met anderen."
 
 msgid ""
 "Only display printer names with changes to printer, filament, and process "
 "presets."
 msgstr ""
+"Alleen printers met wijzigingen in printer-, filament- en proces presets "
+"worden weergegeven."
 
 msgid "Only display the filament names with changes to filament presets."
-msgstr ""
+msgstr "Geef alleen de filamentnamen weer met wijzigingen in filament presets."
 
 msgid ""
 "Only printer names with user printer presets will be displayed, and each "
 "preset you choose will be exported as a zip."
 msgstr ""
+"Alleen printernamen met gebruikersprinter presets worden weergegeven en elke "
+"preset die je kiest, wordt als zip geëxporteerd."
 
 msgid ""
 "Only the filament names with user filament presets will be displayed, \n"
 "and all user filament presets in each filament name you select will be "
 "exported as a zip."
 msgstr ""
+"Alleen de filamentnamen met gebruikers presets worden weergegeven, \n"
+"en alle gebruikers presets in elke filamentnaam die u selecteert, worden "
+"geëxporteerd als zip-bestand."
 
 msgid ""
 "Only printer names with changed process presets will be displayed, \n"
 "and all user process presets in each printer name you select will be "
 "exported as a zip."
 msgstr ""
+"Alleen printernamen met gewijzigde proces presets worden weergegeven, \n"
+"en alle gebruikersproces presets in elke printernaam die u selecteert, "
+"worden als zip geëxporteerd."
 
 msgid "Please select at least one printer or filament."
-msgstr ""
+msgstr "Selecteer ten minste één printer of filament."
 
 msgid "Please select a type you want to export"
-msgstr ""
+msgstr "Selecteer het type preset dat je wilt exporteren"
 
 msgid "Failed to create temporary folder, please try Export Configs again."
-msgstr ""
+msgstr "Failed to create temporary folder, please try Export Configs again."
 
 msgid "Edit Filament"
-msgstr ""
+msgstr "Bewerk filament"
 
 msgid "Filament presets under this filament"
-msgstr ""
+msgstr "Presets onder deze gloeidraad"
 
 msgid ""
 "Note: If the only preset under this filament is deleted, the filament will "
 "be deleted after exiting the dialog."
 msgstr ""
+"Opmerking: Als de enige preset onder deze gloeidraad wordt verwijderd, wordt "
+"de gloeidraad verwijderd na het verlaten van het dialoogvenster."
 
 msgid "Presets inherited by other presets can not be deleted"
 msgstr ""
+"Presets die door andere presets worden geërfd, kunnen niet worden verwijderd"
 
 msgid "The following presets inherits this preset."
 msgid_plural "The following preset inherits this preset."
@@ -14258,190 +14911,206 @@ msgstr[0] ""
 msgstr[1] ""
 
 msgid "Delete Preset"
-msgstr ""
+msgstr "Preset verwijderen"
 
 msgid "Are you sure to delete the selected preset?"
-msgstr ""
+msgstr "Weet je zeker dat je de geselecteerde preset wilt verwijderen?"
 
 msgid "Delete preset"
-msgstr ""
+msgstr "Preset verwijderen"
 
 msgid "+ Add Preset"
-msgstr ""
+msgstr "+ Preset toevoegen"
 
 msgid "Delete Filament"
-msgstr ""
+msgstr "Draad verwijderen"
 
 msgid ""
 "All the filament presets belong to this filament would be deleted. \n"
 "If you are using this filament on your printer, please reset the filament "
 "information for that slot."
 msgstr ""
+"Alle presets van het filament die bij dit filament horen, worden "
+"verwijderd. \n"
+"Als u dit filament gebruikt in uw printer, reset dan de filamentinformatie "
+"voor die sleuf."
 
 msgid "Delete filament"
-msgstr ""
+msgstr "Draad verwijderen"
 
 msgid "Add Preset"
-msgstr ""
+msgstr "Preset toevoegen"
 
 msgid "Add preset for new printer"
-msgstr ""
+msgstr "Preset toevoegen voor nieuwe printer"
 
 msgid "Copy preset from filament"
-msgstr ""
+msgstr "Kopieer preset van filament"
 
 msgid "The filament choice not find filament preset, please reselect it"
-msgstr ""
+msgstr "De filamentkeuze vindt geen filament preset, selecteer deze opnieuw"
 
 msgid "[Delete Required]"
-msgstr ""
+msgstr "[Verwijderen vereist]"
 
 msgid "Edit Preset"
-msgstr ""
+msgstr "Preset bewerken"
 
 msgid "For more information, please check out Wiki"
-msgstr ""
+msgstr "For more information, please check out our Wiki"
 
 msgid "Collapse"
-msgstr ""
+msgstr "Instorten"
 
 msgid "Daily Tips"
-msgstr ""
+msgstr "Dagelijkse tips"
 
 msgid ""
 "Your nozzle diameter in preset is not consistent with memorized nozzle "
 "diameter. Did you change your nozzle lately?"
 msgstr ""
+"Your nozzle diameter in preset is not consistent with the saved nozzle "
+"diameter. Have you changed your nozzle?"
 
 #, c-format, boost-format
 msgid "*Printing %s material with %s may cause nozzle damage"
-msgstr ""
+msgstr "*Afdrukken%s materiaal mee%s kan schade aan het mondstuk veroorzaken"
 
 msgid "Need select printer"
-msgstr ""
+msgstr "Printer selecteren"
 
 msgid "The start, end or step is not valid value."
-msgstr ""
+msgstr "Het begin, einde of stap is geen geldige waarde."
 
 msgid ""
 "Unable to calibrate: maybe because the set calibration value range is too "
 "large, or the step is too small"
 msgstr ""
+"Kan niet kalibreren: misschien omdat het bereik van de ingestelde "
+"kalibratiewaarde te groot is, of omdat de stap te klein is"
 
 msgid "Physical Printer"
-msgstr ""
+msgstr "Fysieke printer"
 
 msgid "Print Host upload"
-msgstr ""
+msgstr "Host-upload afdrukken"
 
 msgid "Could not get a valid Printer Host reference"
-msgstr ""
+msgstr "Kon geen geldige printerhostreferentie krijgen"
 
 msgid "Success!"
-msgstr ""
+msgstr "Succes!"
 
 msgid "Are you sure to log out?"
 msgstr ""
 
 msgid "Refresh Printers"
-msgstr ""
+msgstr "Printers vernieuwen"
 
 msgid ""
 "HTTPS CA file is optional. It is only needed if you use HTTPS with a self-"
 "signed certificate."
 msgstr ""
+"HTTPS CA-bestand is optioneel. Het is alleen nodig als je HTTPS gebruikt met "
+"een zelfondertekend certificaat."
 
 msgid "Certificate files (*.crt, *.pem)|*.crt;*.pem|All files|*.*"
-msgstr ""
+msgstr "Certificaatbestanden (*.crt, *.pem)|*.crt;*.pem|Alle bestanden|*.*"
 
 msgid "Open CA certificate file"
-msgstr ""
+msgstr "Open CA-certificaatbestand"
 
 #, c-format, boost-format
 msgid ""
 "On this system, %s uses HTTPS certificates from the system Certificate Store "
 "or Keychain."
 msgstr ""
+"Op dit systeem gebruikt %s HTTPS-certificaten uit de "
+"systeemcertificaatopslag of de sleutelhanger."
 
 msgid ""
 "To use a custom CA file, please import your CA file into Certificate Store / "
 "Keychain."
 msgstr ""
+"Om een aangepast CA-bestand te gebruiken, importeert u uw CA-bestand in "
+"Certificate Store / Keychain."
 
 msgid "Login/Test"
 msgstr ""
 
 msgid "Connection to printers connected via the print host failed."
-msgstr ""
+msgstr "Verbinding met printers aangesloten via de printhost mislukt."
 
 #, c-format, boost-format
 msgid "Mismatched type of print host: %s"
-msgstr ""
+msgstr "Verkeerd type afdrukhost: %s"
 
 msgid "Connection to AstroBox works correctly."
-msgstr ""
+msgstr "Connection to AstroBox is working correctly."
 
 msgid "Could not connect to AstroBox"
-msgstr ""
+msgstr "Kan geen verbinding maken met AstroBox"
 
 msgid "Note: AstroBox version at least 1.1.0 is required."
-msgstr ""
+msgstr "Note: AstroBox version 1.1.0 or higher is required."
 
 msgid "Connection to Duet works correctly."
-msgstr ""
+msgstr "Connection to Duet is working correctly."
 
 msgid "Could not connect to Duet"
-msgstr ""
+msgstr "Kan geen verbinding maken met Duet"
 
 msgid "Unknown error occured"
-msgstr ""
+msgstr "Onbekende fout opgetreden"
 
 msgid "Wrong password"
-msgstr ""
+msgstr "Verkeerd wachtwoord."
 
 msgid "Could not get resources to create a new connection"
-msgstr ""
+msgstr "Kan geen bronnen krijgen om een nieuwe verbinding te maken"
 
 msgid "Upload not enabled on FlashAir card."
-msgstr ""
+msgstr "Uploaden niet ingeschakeld op FlashAir-kaart."
 
 msgid "Connection to FlashAir works correctly and upload is enabled."
-msgstr ""
+msgstr "Connection to FlashAir is working correctly and upload is enabled."
 
 msgid "Could not connect to FlashAir"
-msgstr ""
+msgstr "Kan geen verbinding maken met FlashAir"
 
 msgid ""
 "Note: FlashAir with firmware 2.00.02 or newer and activated upload function "
 "is required."
 msgstr ""
+"Opmerking: FlashAir met firmware 2.00.02 of nieuwer en geactiveerde "
+"uploadfunctie is vereist."
 
 msgid "Connection to MKS works correctly."
-msgstr ""
+msgstr "Connection to MKS is working correctly."
 
 msgid "Could not connect to MKS"
-msgstr ""
+msgstr "Kan geen verbinding maken met MKS"
 
 msgid "Connection to OctoPrint works correctly."
-msgstr ""
+msgstr "Connection to OctoPrint is working correctly."
 
 msgid "Could not connect to OctoPrint"
-msgstr ""
+msgstr "Kan geen verbinding maken met OctoPrint"
 
 msgid "Note: OctoPrint version at least 1.1.0 is required."
-msgstr ""
+msgstr "Note: OctoPrint version 1.1.0 or higher is required."
 
 msgid "Connection to Prusa SL1 / SL1S works correctly."
-msgstr ""
+msgstr "Connection to Prusa SL1 / SL1S is working correctly."
 
 msgid "Could not connect to Prusa SLA"
-msgstr ""
+msgstr "Kan geen verbinding maken met Prusa SLA"
 
 msgid "Connection to PrusaLink works correctly."
-msgstr ""
+msgstr "Connection to PrusaLink is working correctly."
 
 msgid "Could not connect to PrusaLink"
-msgstr ""
+msgstr "Kan geen verbinding maken met PrusaLink"
 
 msgid "Storages found"
 msgstr ""
@@ -14468,19 +15137,21 @@ msgid "Could not connect to Prusa Connect"
 msgstr ""
 
 msgid "Connection to Repetier works correctly."
-msgstr ""
+msgstr "Connection to Repetier is working correctly."
 
 msgid "Could not connect to Repetier"
-msgstr ""
+msgstr "Kan geen verbinding maken met Repetier"
 
 msgid "Note: Repetier version at least 0.90.0 is required."
-msgstr ""
+msgstr "Note: Repetier version 0.90.0 or higher is required."
 
 #, boost-format
 msgid ""
 "HTTP status: %1%\n"
 "Message body: \"%2%\""
 msgstr ""
+"HTTP-status: %1%\n"
+"Bericht: \"%2%\""
 
 #, boost-format
 msgid ""
@@ -14488,6 +15159,9 @@ msgid ""
 "Message body: \"%1%\"\n"
 "Error: \"%2%\""
 msgstr ""
+"Parsing van hostrespons mislukt.\n"
+"Inhoud bericht: \"%1%\"\n"
+"Fout: \"%2%\""
 
 #, boost-format
 msgid ""
@@ -14495,35 +15169,51 @@ msgid ""
 "Message body: \"%1%\"\n"
 "Error: \"%2%\""
 msgstr ""
+"Opsomming van hostprinters mislukt.\n"
+"Inhoud bericht: \"%1%\"\n"
+"Fout: \"%2%\""
 
 msgid ""
 "It has a small layer height, and results in almost negligible layer lines "
 "and high printing quality. It is suitable for most general printing cases."
 msgstr ""
+"It has a small layer height, and results in almost negligible layer lines "
+"and high print quality. It is suitable for most general printing cases."
 
 msgid ""
 "Compared with the default profile of a 0.2 mm nozzle, it has lower speeds "
 "and acceleration, and the sparse infill pattern is Gyroid. So, it results in "
 "much higher printing quality, but a much longer printing time."
 msgstr ""
+"Compared with the default profile of a 0.2 mm nozzle, it has lower speeds "
+"and acceleration, and the sparse infill pattern is Gyroid. This results in "
+"much higher print quality but a much longer print time."
 
 msgid ""
 "Compared with the default profile of a 0.2 mm nozzle, it has a slightly "
 "bigger layer height, and results in almost negligible layer lines, and "
 "slightly shorter printing time."
 msgstr ""
+"Compared with the default profile of a 0.2 mm nozzle, it has a slightly "
+"bigger layer height. This results in almost negligible layer lines and "
+"slightly longer print time."
 
 msgid ""
 "Compared with the default profile of a 0.2 mm nozzle, it has a bigger layer "
 "height, and results in slightly visible layer lines, but shorter printing "
 "time."
 msgstr ""
+"Compared with the default profile of a 0.2 mm nozzle, it has a bigger layer "
+"height. This results in slightly visible layer lines but shorter print time."
 
 msgid ""
 "Compared with the default profile of a 0.2 mm nozzle, it has a smaller layer "
 "height, and results in almost invisible layer lines and higher printing "
 "quality, but shorter printing time."
 msgstr ""
+"Compared with the default profile of a 0.2 mm nozzle, it has a smaller layer "
+"height. This results in almost invisible layer lines and higher print "
+"quality but longer print time."
 
 msgid ""
 "Compared with the default profile of a 0.2 mm nozzle, it has a smaller layer "
@@ -14531,12 +15221,19 @@ msgid ""
 "Gyroid. So, it results in almost invisible layer lines and much higher "
 "printing quality, but much longer printing time."
 msgstr ""
+"Compared with the default profile of a 0.2 mm nozzle, it has a smaller layer "
+"lines, lower speeds and acceleration, and the sparse infill pattern is "
+"Gyroid. This results in almost invisible layer lines and much higher print "
+"quality but much longer print time."
 
 msgid ""
 "Compared with the default profile of 0.2 mm nozzle, it has a smaller layer "
 "height, and results in minimal layer lines and higher printing quality, but "
 "shorter printing time."
 msgstr ""
+"Compared with the default profile of 0.2 mm nozzle, it has a smaller layer "
+"height. This results in minimal layer lines and higher print quality but "
+"longer print time."
 
 msgid ""
 "Compared with the default profile of a 0.2 mm nozzle, it has a smaller layer "
@@ -14544,35 +15241,53 @@ msgid ""
 "Gyroid. So, it results in minimal layer lines and much higher printing "
 "quality, but much longer printing time."
 msgstr ""
+"Compared with the default profile of a 0.2 mm nozzle, it has a smaller layer "
+"lines, lower speeds and acceleration, and the sparse infill pattern is "
+"Gyroid. This results in minimal layer lines and much higher print quality "
+"but much longer print time."
 
 msgid ""
 "It has a general layer height, and results in general layer lines and "
 "printing quality. It is suitable for most general printing cases."
 msgstr ""
+"It has a normal layer height, and results in average layer lines and print "
+"quality. It is suitable for most printing cases."
 
 msgid ""
 "Compared with the default profile of a 0.4 mm nozzle, it has more wall loops "
 "and a higher sparse infill density. So, it results in higher strength of the "
 "prints, but more filament consumption and longer printing time."
 msgstr ""
+"Compared with the default profile of a 0.4 mm nozzle, it has more wall loops "
+"and a higher sparse infill density. This results in higher print strength "
+"but more filament consumption and longer print time."
 
 msgid ""
 "Compared with the default profile of a 0.4 mm nozzle, it has a bigger layer "
 "height, and results in more apparent layer lines and lower printing quality, "
 "but slightly shorter printing time."
 msgstr ""
+"Compared with the default profile of a 0.4 mm nozzle, it has a bigger layer "
+"height. This results in more apparent layer lines and lower print quality "
+"but slightly shorter print time."
 
 msgid ""
 "Compared with the default profile of a 0.4 mm nozzle, it has a bigger layer "
 "height, and results in more apparent layer lines and lower printing quality, "
 "but shorter printing time."
 msgstr ""
+"Compared with the default profile of a 0.4 mm nozzle, it has a bigger layer "
+"height. This results in more apparent layer lines and lower print quality "
+"but shorter print time."
 
 msgid ""
 "Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer "
 "height, and results in less apparent layer lines and higher printing "
 "quality, but longer printing time."
 msgstr ""
+"Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer "
+"height. This results in less apparent layer lines and higher print quality "
+"but longer print time."
 
 msgid ""
 "Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer "
@@ -14580,12 +15295,19 @@ msgid ""
 "Gyroid. So, it results in less apparent layer lines and much higher printing "
 "quality, but much longer printing time."
 msgstr ""
+"Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer "
+"height, lower speeds and acceleration, and the sparse infill pattern is "
+"Gyroid. This results in less apparent layer lines and much higher print "
+"quality but much longer print time."
 
 msgid ""
 "Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer "
 "height, and results in almost negligible layer lines and higher printing "
 "quality, but longer printing time."
 msgstr ""
+"Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer "
+"height. This results in almost negligible layer lines and higher print "
+"quality but longer print time."
 
 msgid ""
 "Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer "
@@ -14593,64 +15315,95 @@ msgid ""
 "Gyroid. So, it results in almost negligible layer lines and much higher "
 "printing quality, but much longer printing time."
 msgstr ""
+"Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer "
+"height, lower speeds and acceleration, and the sparse infill pattern is "
+"Gyroid. This results in almost negligible layer lines and much higher print "
+"quality but much longer print time."
 
 msgid ""
 "Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer "
 "height, and results in almost negligible layer lines and longer printing "
 "time."
 msgstr ""
+"Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer "
+"height. This results in almost negligible layer lines and longer print time."
 
 msgid ""
 "It has a big layer height, and results in apparent layer lines and ordinary "
 "printing quality and printing time."
 msgstr ""
+"It has a big layer height, and results in apparent layer lines and ordinary "
+"printing quality and printing time."
 
 msgid ""
 "Compared with the default profile of a 0.6 mm nozzle, it has more wall loops "
 "and a higher sparse infill density. So, it results in higher strength of the "
 "prints, but more filament consumption and longer printing time."
 msgstr ""
+"Compared with the default profile of a 0.6 mm nozzle, it has more wall loops "
+"and a higher sparse infill density. This results in higher print strength "
+"but more filament consumption and longer print time."
 
 msgid ""
 "Compared with the default profile of a 0.6 mm nozzle, it has a bigger layer "
 "height, and results in more apparent layer lines and lower printing quality, "
 "but shorter printing time in some printing cases."
 msgstr ""
+"Compared with the default profile of a 0.6 mm nozzle, it has a bigger layer "
+"height. This results in more apparent layer lines and lower print quality "
+"but shorter print time in some cases."
 
 msgid ""
 "Compared with the default profile of a 0.6 mm nozzle, it has a bigger layer "
 "height, and results in much more apparent layer lines and much lower "
 "printing quality, but shorter printing time in some printing cases."
 msgstr ""
+"Compared with the default profile of a 0.6 mm nozzle, it has a bigger layer "
+"height. This results in much more apparent layer lines and much lower print "
+"quality, but shorter print time in some cases."
 
 msgid ""
 "Compared with the default profile of a 0.6 mm nozzle, it has a smaller layer "
 "height, and results in less apparent layer lines and slight higher printing "
 "quality, but longer printing time."
 msgstr ""
+"Compared with the default profile of a 0.6 mm nozzle, it has a smaller layer "
+"height. This results in less apparent layer lines and slightly higher print "
+"quality but longer print time."
 
 msgid ""
 "Compared with the default profile of a 0.6 mm nozzle, it has a smaller layer "
 "height, and results in less apparent layer lines and higher printing "
 "quality, but longer printing time."
 msgstr ""
+"Compared with the default profile of a 0.6 mm nozzle, it has a smaller layer "
+"height. This results in less apparent layer lines and higher print quality "
+"but longer print time."
 
 msgid ""
 "It has a very big layer height, and results in very apparent layer lines, "
 "low printing quality and general printing time."
 msgstr ""
+"It has a very big layer height, and results in very apparent layer lines, "
+"low print quality and shorter printing time."
 
 msgid ""
 "Compared with the default profile of a 0.8 mm nozzle, it has a bigger layer "
 "height, and results in very apparent layer lines and much lower printing "
 "quality, but shorter printing time in some printing cases."
 msgstr ""
+"Compared with the default profile of a 0.8 mm nozzle, it has a bigger layer "
+"height. This results in very apparent layer lines and much lower print "
+"quality but shorter print time in some cases."
 
 msgid ""
 "Compared with the default profile of a 0.8 mm nozzle, it has a much bigger "
 "layer height, and results in extremely apparent layer lines and much lower "
 "printing quality, but much shorter printing time in some printing cases."
 msgstr ""
+"Compared with the default profile of a 0.8 mm nozzle, it has a much bigger "
+"layer height. This results in extremely apparent layer lines and much lower "
+"print quality but much shorter print time in some cases."
 
 msgid ""
 "Compared with the default profile of a 0.8 mm nozzle, it has a slightly "
@@ -14658,12 +15411,18 @@ msgid ""
 "lines and slightly higher printing quality, but longer printing time in some "
 "printing cases."
 msgstr ""
+"Compared with the default profile of a 0.8 mm nozzle, it has a slightly "
+"smaller layer height. This results in slightly less but still apparent layer "
+"lines and slightly higher print quality, but longer print time in some cases."
 
 msgid ""
 "Compared with the default profile of a 0.8 mm nozzle, it has a smaller layer "
 "height, and results in less but still apparent layer lines and slightly "
 "higher printing quality, but longer printing time in some printing cases."
 msgstr ""
+"Compared with the default profile of a 0.8 mm nozzle, it has a smaller layer "
+"height. This results in less but still apparent layer lines and slightly "
+"higher print quality, but longer print time in some cases."
 
 msgid "Connected to Obico successfully!"
 msgstr ""
@@ -14789,6 +15548,9 @@ msgid ""
 "Did you know that you can fix a corrupted 3D model to avoid a lot of slicing "
 "problems on the Windows system?"
 msgstr ""
+"Model repareren\n"
+"Wist je dat je een beschadigd 3D-model kunt repareren om veel snijproblemen "
+"op het Windows-systeem te voorkomen?"
 
 #: resources/data/hints.ini: [hint:Timelapse]
 msgid ""
@@ -15028,6 +15790,11 @@ msgid ""
 "extruder/hotend clogging when printing lower temperature filament with a "
 "higher enclosure temperature. More info about this in the Wiki."
 msgstr ""
+"Wanneer moet u printen met de printerdeur open?\n"
+"Wist je dat het openen van de printerdeur de kans op verstopping van de "
+"extruder/hotend kan verminderen bij het printen van filament met een lagere "
+"temperatuur en een hogere omgevingstemperatuur? Er staat meer informatie "
+"hierover in de Wiki."
 
 #: resources/data/hints.ini: [hint:Avoid warping]
 msgid ""
@@ -15036,6 +15803,34 @@ msgid ""
 "ABS, appropriately increasing the heatbed temperature can reduce the "
 "probability of warping."
 msgstr ""
+"Kromtrekken voorkomen\n"
+"Wist je dat bij het printen van materialen die gevoelig zijn voor "
+"kromtrekken, zoals ABS, een juiste verhoging van de temperatuur van het "
+"warmtebed de kans op kromtrekken kan verkleinen?"
+
+#~ msgid "V"
+#~ msgstr "V"
+
+#~ msgid "Export &Configs"
+#~ msgstr "Export &Configs"
+
+#~ msgid "Infill direction"
+#~ msgstr "Vulling (infill) richting"
+
+#~ msgid ""
+#~ "Enable this to get a G-code file which has G2 and G3 moves. And the "
+#~ "fitting tolerance is same with resolution"
+#~ msgstr ""
+#~ "Schakel dit in om een G-codebestand te krijgen met G2- en G3-bewegingen. "
+#~ "De pastolerantie is gelijk aan de resolutie."
+
+#~ msgid ""
+#~ "Infill area is enlarged slightly to overlap with wall for better bonding. "
+#~ "The percentage value is relative to line width of sparse infill"
+#~ msgstr ""
+#~ "Hierdoor kan het opvulgebied (infill) iets worden vergroot om de wanden "
+#~ "te overlappen voor een betere hechting. De procentuele waarde is relatief "
+#~ "ten opzichte van de lijndikte van de opvulling."
 
 #~ msgid "Unload Filament"
 #~ msgstr "Lossen"

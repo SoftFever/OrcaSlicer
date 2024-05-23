@@ -87,7 +87,7 @@
 	"tree_support_branch_angle": "40",
 	"tree_support_wall_count": "2",
 	"detect_thin_wall": "1",
-	"top_surface_pattern": "monotonic",
+	"top_surface_pattern": "monotonicline",
 	"top_surface_line_width": "0.42",
 	"top_shell_layers": "5",
 	"top_shell_thickness": "0.8",
@@ -105,13 +105,6 @@
 	"prime_tower_width": "60",
 	"xy_hole_compensation": "0",
 	"xy_contour_compensation": "0",
-	"default_jerk": "8",
-	"outer_wall_jerk": "20",
-	"inner_wall_jerk": "20",
-	"infill_jerk": "20",
-	"top_surface_jerk": "20",
-	"initial_layer_jerk": "8",
-	"travel_jerk": "8",
 	"compatible_printers": [
 		"Creality Ender-3 V3 SE 0.4 nozzle"
 	]
