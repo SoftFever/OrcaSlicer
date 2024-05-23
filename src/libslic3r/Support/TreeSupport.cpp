@@ -1910,9 +1910,8 @@ void TreeSupport::draw_circles(const std::vector<std::vector<SupportNode*>>& con
                     continue;
                 }
 
-                SupportNode* first_node = curr_layer_nodes.front();
-                ts_layer->print_z = first_node->print_z;
-                ts_layer->height = first_node->height;
+                ts_layer->print_z = m_ts_data->layer_heights[layer_nr].print_z;
+                ts_layer->height = m_ts_data->layer_heights[layer_nr].height;
                 if (ts_layer->height < EPSILON) {
                     continue;
                 }
@@ -2951,20 +2950,11 @@ std::vector<LayerHeightData> TreeSupport::plan_layer_heights(std::vector<std::ve
         // Keep first layer still
         layer_heights[0] = { m_object->get_layer(0)->print_z, m_object->get_layer(0)->height, 0 };
         // Collect top contact layers
-        coordf_t print_z = layer_heights[0].print_z;
         for (int layer_nr = 1; layer_nr < contact_nodes.size(); layer_nr++) {
             if (!contact_nodes[layer_nr].empty()) {
                 bounds.push_back(layer_nr);
                 layer_heights[layer_nr].print_z = contact_nodes[layer_nr].front()->print_z;
                 layer_heights[layer_nr].height = contact_nodes[layer_nr].front()->height;
-                if (layer_heights[layer_nr].bottom_z() - print_z < m_slicing_params.min_layer_height) {
-                    layer_heights[layer_nr].height = layer_heights[layer_nr].print_z - print_z;
-                    for (auto& node : contact_nodes[layer_nr]) {
-                        node->height = layer_heights[layer_nr].height;
-                    }
-                }
-                print_z = layer_heights[layer_nr].print_z;
-
                 BOOST_LOG_TRIVIAL(trace) << "plan_layer_heights0 print_z, height, layer_nr: " << layer_heights[layer_nr].print_z << " " << layer_heights[layer_nr].height << "   "
                     << layer_nr;
             }
@@ -3008,34 +2998,23 @@ std::vector<LayerHeightData> TreeSupport::plan_layer_heights(std::vector<std::ve
 
         // fill in next_layer_nr
         int i = layer_heights.size() - 1, j = i;
-        for (; j >= 0; i = j) {
+        for (; i >= 0; i--) {
             if (layer_heights[i].height < EPSILON) {
-                j--;
                 continue;
             }
             for (j = i - 1; j >= 0; j--) {
-                if (layer_heights[j].height > EPSILON) {
+                if (layer_heights[j].height > EPSILON && layer_heights[j].print_z<layer_heights[i].bottom_z()+EPSILON) {
                     layer_heights[i].next_layer_nr = j;
+                    if(layer_heights[i].bottom_z()- layer_heights[j].print_z>0.01)  // there is a gap more than 0.01mm, increase the top z distance to fill the gap
+                        layer_heights[i].height = layer_heights[i].print_z - layer_heights[j].print_z;
                     break;
                 }
             }
         }
-
-        for (i = 0; i < layer_heights.size(); i++) {
-            // there might be gap between layers due to non-integer interfaces
-            if (size_t next_layer_nr = layer_heights[i].next_layer_nr;
-                next_layer_nr > 0 && layer_heights[i].height + EPSILON < layer_heights[i].print_z - layer_heights[next_layer_nr].print_z) {
-                layer_heights[i].height = layer_heights[i].print_z - layer_heights[next_layer_nr].print_z;
-            }
-            
-        }
     }
 
-    // update interfaces' height
+    // log layer_heights
     for (size_t i = 0; i < layer_heights.size(); i++) {
-        for (auto& node : contact_nodes[i]) {
-            node->height = layer_heights[i].height;
-        }
         if (layer_heights[i].height > EPSILON)
             BOOST_LOG_TRIVIAL(trace) << "plan_layer_heights print_z, height, lower_layer_nr->layer_nr: " << layer_heights[i].print_z << " " << layer_heights[i].height << "   "
             << layer_heights[i].next_layer_nr << "->" << i;
