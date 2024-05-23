@@ -372,7 +372,7 @@ void ParamsPanel::create_layout()
         m_mode_sizer->Add( m_title_view, 0, wxALIGN_CENTER );
         m_mode_sizer->AddSpacer(FromDIP(5)); // Element Spacing
         m_mode_sizer->Add(m_mode_view, 0, wxALIGN_CENTER);
-        m_mode_sizer->AddSpacer(FromDIP(10)); // Icon Spacing
+        m_mode_sizer->AddStretchSpacer(2);
         m_mode_sizer->Add(m_setting_btn, 0, wxALIGN_CENTER);
         m_mode_sizer->AddSpacer(FromDIP(10)); // Icon Spacing
         m_mode_sizer->Add(m_compare_btn, 0, wxALIGN_CENTER);
