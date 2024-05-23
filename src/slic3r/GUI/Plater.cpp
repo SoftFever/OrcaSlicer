@@ -740,7 +740,7 @@ Sidebar::Sidebar(Plater *parent)
         vsizer_printer->AddSpacer(FromDIP(16));
         hsizer_printer->Add(combo_printer, 1, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(12)); // Content Margin
         hsizer_printer->Add(edit_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(5)); // Element Spacing
-        //hsizer_printer->Add(FromDIP(8), 0, 0, 0, 0);
+        //hsizer_printer->Add(FromDIP(8), 0, 0, 0, 0); // Space will not hidden if connection button not visible and this creates unequal spacing
         hsizer_printer->Add(connection_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(10)); // Icon Spacing
         hsizer_printer->AddSpacer(FromDIP(12)); // Content Margin
         vsizer_printer->Add(hsizer_printer, 0, wxEXPAND, 0);
