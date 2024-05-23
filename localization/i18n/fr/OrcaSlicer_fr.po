@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-20 22:45+0200\n"
+"POT-Creation-Date: 2024-05-23 23:36+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: Guislain Cyril, Thomas Lété\n"
@@ -158,7 +158,7 @@ msgid "Height range"
 msgstr "Plage de hauteur"
 
 msgid "Alt + Shift + Enter"
-msgstr ""
+msgstr "Alt + Shift + Entrée"
 
 msgid "Toggle Wireframe"
 msgstr "Activer Maillage"
@@ -374,7 +374,7 @@ msgid "Move cut plane"
 msgstr "Déplacer le plan de coupe"
 
 msgid "Mode"
-msgstr ""
+msgstr "Mode"
 
 msgid "Change cut mode"
 msgstr "Changer le mode de coupe"
@@ -1361,13 +1361,13 @@ msgid "Perpendicular distance"
 msgstr "Distance perpendiculaire"
 
 msgid "Distance"
-msgstr ""
+msgstr "Distance"
 
 msgid "Direct distance"
 msgstr "Distance directe"
 
 msgid "Distance XYZ"
-msgstr ""
+msgstr "Distance XYZ"
 
 msgid "Ctrl+"
 msgstr "Ctrl+"
@@ -1410,9 +1410,6 @@ msgid ""
 msgstr ""
 "Le fichier de configuration \"%1%\" a été chargé, mais certaines valeurs "
 "n'ont pas été reconnues."
-
-msgid "V"
-msgstr "V"
 
 msgid ""
 "OrcaSlicer will terminate because of running out of memory.It may be a bug. "
@@ -1527,6 +1524,9 @@ msgstr ""
 msgid "Choose one or more files (3mf/step/stl/svg/obj/amf):"
 msgstr "Choisissez un ou plusieurs fichiers (3mf/step/stl/svg/obj/amf) :"
 
+msgid "Choose ZIP file"
+msgstr ""
+
 msgid "Choose one file (gcode/3mf):"
 msgstr "Choisissez un fichier (gcode/3mf):"
 
@@ -1598,6 +1598,11 @@ msgstr "Téléversements en cours"
 
 msgid "Select a G-code file:"
 msgstr "Sélectionnez un fichier G-code :"
+
+msgid ""
+"Could not start URL download. Destination folder is not set. Please choose "
+"destination folder in Configuration Wizard."
+msgstr ""
 
 msgid "Import File"
 msgstr "Importer un Fichier"
@@ -3367,7 +3372,7 @@ msgid "Device Status"
 msgstr "État de l’appareil"
 
 msgid "Actions"
-msgstr ""
+msgstr "Actions"
 
 msgid ""
 "Please select the devices you would like to manage here (up to 6 devices)"
@@ -3486,6 +3491,15 @@ msgstr "Statut de l’AMS"
 
 msgid "Printing Options"
 msgstr "Options d’impression"
+
+msgid "Bed Leveling"
+msgstr "Mise à niveau du plateau"
+
+msgid "Timelapse"
+msgstr "Timelapse"
+
+msgid "Flow Dynamic Calibration"
+msgstr ""
 
 msgid "Send Options"
 msgstr "Options d’envoi"
@@ -4717,6 +4731,12 @@ msgstr "Importer des fichiers 3MF/STL/STEP/SVG/OBJ/AMF"
 msgid "Load a model"
 msgstr "Charger un modèle"
 
+msgid "Import Zip Archive"
+msgstr ""
+
+msgid "Load models contained within a zip archive"
+msgstr ""
+
 msgid "Import Configs"
 msgstr "Importer des Configs"
 
@@ -5142,9 +5162,6 @@ msgstr "Regroupez les fichiers par mois, les plus récents en premier."
 
 msgid "Show all files, recent first."
 msgstr "Afficher tous les fichiers, les plus récents en premier."
-
-msgid "Timelapse"
-msgstr "Timelapse"
 
 msgid "Switch to timelapse files."
 msgstr "Passez aux fichiers timelapse."
@@ -5739,11 +5756,11 @@ msgstr[1] "%1$d objets ont été chargés en tant que partie de l’objet coupé
 msgid "ERROR"
 msgstr "ERREUR"
 
-msgid "CANCELED"
-msgstr "Annulé"
-
 msgid "COMPLETED"
 msgstr "Terminé"
+
+msgid "CANCELED"
+msgstr "Annulé"
 
 msgid "Cancel upload"
 msgstr "Annuler le téléversement"
@@ -5874,7 +5891,7 @@ msgstr "Acier trempé"
 
 #, c-format, boost-format
 msgid "%.1f"
-msgstr ""
+msgstr "%.1f"
 
 msgid "Global"
 msgstr "Global"
@@ -6365,6 +6382,20 @@ msgstr "ne contient pas de G-code valide."
 msgid "Error occurs while loading G-code file"
 msgstr "Une erreur se produit lors du chargement du fichier G-code"
 
+#. TRN %1% is archive path
+#, boost-format
+msgid "Loading of a ZIP archive on path %1% has failed."
+msgstr ""
+
+#. TRN: First argument = path to file, second argument = error description
+#, boost-format
+msgid "Failed to unzip file to %1%: %2%"
+msgstr ""
+
+#, boost-format
+msgid "Failed to find unzipped file at %1%. Unzipping of file has failed."
+msgstr ""
+
 msgid "Drop project file"
 msgstr "Déposer le fichier de projet"
 
@@ -6811,6 +6842,20 @@ msgstr ""
 "Si activé, définit Orca Slicer comme application par défaut pour ouvrir les "
 "fichiers .step/.stp"
 
+msgid "Current association: "
+msgstr ""
+
+msgid "Associate prusaslicer://"
+msgstr ""
+
+msgid "Not associated to any application"
+msgstr ""
+
+msgid ""
+"Associate OrcaSlicer with prusaslicer:// links so that Orca can open "
+"PrusaSlicer links from Printable.com"
+msgstr ""
+
 msgid "Maximum recent projects"
 msgstr "Projets récents maximum"
 
@@ -7181,9 +7226,6 @@ msgstr "Bambu Textured PEI Plate"
 
 msgid "Send print job to"
 msgstr "Envoyer le travail d'impression à"
-
-msgid "Bed Leveling"
-msgstr "Mise à niveau du plateau"
 
 msgid "Flow Dynamics Calibration"
 msgstr "Calibration du débit"
@@ -13730,26 +13772,30 @@ msgstr "Espacement des lignes de purge de la tour d’essuyage"
 msgid "Spacing of purge lines on the wipe tower."
 msgstr "Espacement des lignes de purge sur la tour d’essuyage."
 
-msgid "Maximum print speed when purging"
-msgstr "Vitesse d’impression maximale lors de la purge"
+msgid "Maximum wipe tower print speed"
+msgstr ""
 
 msgid ""
-"The maximum print speed when purging in the wipe tower. If the sparse infill "
-"speed or calculated speed from the filament max volumetric speed is lower, "
-"the lowest speed will be used instead.\n"
-"Increasing this speed may affect the tower's stability, as purging can be "
-"performed over sparse layers. Before increasing this parameter beyond the "
-"default of 90mm/sec, make sure your printer can reliably bridge at the "
-"increased speeds."
+"The maximum print speed when purging in the wipe tower and printing the wipe "
+"tower sparse layers. When purging, if the sparse infill speed or calculated "
+"speed from the filament max volumetric speed is lower, the lowest will be "
+"used instead.\n"
+"\n"
+"When printing the sparse layers, if the internal perimeter speed or "
+"calculated speed from the filament max volumetric speed is lower, the lowest "
+"will be used instead.\n"
+"\n"
+"Increasing this speed may affect the tower's stability as well as increase "
+"the force with which the nozzle collides with any blobs that may have formed "
+"on the wipe tower.\n"
+"\n"
+"Before increasing this parameter beyond the default of 90mm/sec, make sure "
+"your printer can reliably bridge at the increased speeds and that ooze when "
+"tool changing is well controlled.\n"
+"\n"
+"For the wipe tower external perimeters the internal perimeter speed is used "
+"regardless of this setting."
 msgstr ""
-"Vitesse d’impression maximale lors de la purge dans la tour d’essuyage. Si "
-"la vitesse de remplissage ou la vitesse calculée à partir de la vitesse "
-"volumétrique maximale du filament est inférieure, c’est la vitesse la plus "
-"basse qui sera utilisée.\n"
-"L’augmentation de cette vitesse peut affecter la stabilité de la tour, car "
-"la purge peut être effectuée sur des couches peu épaisses. Avant d’augmenter "
-"ce paramètre au-delà de la valeur par défaut de 90 mm/sec, assurez-vous que "
-"votre imprimante peut effectuer un pontage fiable aux vitesses accrues."
 
 msgid "Wipe tower extruder"
 msgstr "Extrudeur de tour d’essuyage"
@@ -15119,7 +15165,7 @@ msgid "New Flow Dynamic Calibration"
 msgstr "Nouveau calibrage dynamique du débit"
 
 msgid "Ok"
-msgstr ""
+msgstr "Ok"
 
 msgid "The filament must be selected."
 msgstr "Le filament doit être sélectionné."
@@ -15595,7 +15641,7 @@ msgid "Can't find my printer model"
 msgstr "Impossible de trouver le modèle de mon imprimante"
 
 msgid "Rectangle"
-msgstr ""
+msgstr "Rectangle"
 
 msgid "Printable Space"
 msgstr "Espace imprimable"
@@ -16920,6 +16966,31 @@ msgstr ""
 "Saviez-vous que lors de l’impression de matériaux susceptibles de se "
 "déformer, tels que l’ABS, une augmentation appropriée de la température du "
 "plateau chauffant peut réduire la probabilité de déformation."
+
+#~ msgid "V"
+#~ msgstr "V"
+
+#~ msgid "Maximum print speed when purging"
+#~ msgstr "Vitesse d’impression maximale lors de la purge"
+
+#~ msgid ""
+#~ "The maximum print speed when purging in the wipe tower. If the sparse "
+#~ "infill speed or calculated speed from the filament max volumetric speed "
+#~ "is lower, the lowest speed will be used instead.\n"
+#~ "Increasing this speed may affect the tower's stability, as purging can be "
+#~ "performed over sparse layers. Before increasing this parameter beyond the "
+#~ "default of 90mm/sec, make sure your printer can reliably bridge at the "
+#~ "increased speeds."
+#~ msgstr ""
+#~ "Vitesse d’impression maximale lors de la purge dans la tour d’essuyage. "
+#~ "Si la vitesse de remplissage ou la vitesse calculée à partir de la "
+#~ "vitesse volumétrique maximale du filament est inférieure, c’est la "
+#~ "vitesse la plus basse qui sera utilisée.\n"
+#~ "L’augmentation de cette vitesse peut affecter la stabilité de la tour, "
+#~ "car la purge peut être effectuée sur des couches peu épaisses. Avant "
+#~ "d’augmenter ce paramètre au-delà de la valeur par défaut de 90 mm/sec, "
+#~ "assurez-vous que votre imprimante peut effectuer un pontage fiable aux "
+#~ "vitesses accrues."
 
 #~ msgid ""
 #~ "Orca Slicer is based on BambuStudio by Bambulab, which is from "
