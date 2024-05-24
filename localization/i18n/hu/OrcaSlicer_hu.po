@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-23 23:36+0800\n"
+"POT-Creation-Date: 2024-05-24 23:26+0800\n"
 "Language: hu\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -100,7 +100,7 @@ msgid "Support Generated"
 msgstr "Támasz legenerálva"
 
 msgid "Gizmo-Place on Face"
-msgstr ""
+msgstr "Gizmo- Felület Tárgyasztalra Illesztése"
 
 msgid "Lay on face"
 msgstr "Felületre fektetés"
@@ -181,13 +181,13 @@ msgid "Move"
 msgstr "Mozgatás"
 
 msgid "Gizmo-Move"
-msgstr ""
+msgstr "Gizmo-Mozgatása"
 
 msgid "Rotate"
 msgstr "Forgatás"
 
 msgid "Gizmo-Rotate"
-msgstr ""
+msgstr "Gizmo-Forgatása"
 
 msgid "Optimize orientation"
 msgstr "Orientáció optimalizálása"
@@ -199,7 +199,7 @@ msgid "Scale"
 msgstr "Átméretezés"
 
 msgid "Gizmo-Scale"
-msgstr ""
+msgstr "Gizmo-Skála"
 
 msgid "Error: Please close all toolbar menus first"
 msgstr "Hiba: Kérjük, először zárd be az összes eszköztár menüt"
@@ -515,7 +515,7 @@ msgid "Connector"
 msgstr "Connector"
 
 msgid "Cut by Plane"
-msgstr ""
+msgstr "Vágás Síkkal"
 
 msgid "non-manifold edges be caused by cut tool, do you want to fix it now?"
 msgstr "A vágás után hibás élek keletkeztek, szeretnéd most javítani őket?"
@@ -672,7 +672,7 @@ msgid "Text move"
 msgstr ""
 
 msgid "Set Mirror"
-msgstr ""
+msgstr "Tükrözés beállítása"
 
 msgid "Embossed text"
 msgstr ""
@@ -708,7 +708,7 @@ msgid "First font"
 msgstr ""
 
 msgid "Default font"
-msgstr ""
+msgstr "Az alapértelmezett nyomtató"
 
 msgid "Advanced"
 msgstr "Haladó"
@@ -759,7 +759,7 @@ msgid "Click to change text into object part."
 msgstr ""
 
 msgid "You can't change a type of the last solid part of the object."
-msgstr ""
+msgstr "Az objektum utolsó tömör részének típusát nem lehet megváltoztatni."
 
 msgctxt "EmbossOperation"
 msgid "Cut"
@@ -1020,7 +1020,7 @@ msgstr ""
 #. TRN - Input label. Be short as possible
 #. Align Top|Middle|Bottom and Left|Center|Right
 msgid "Alignment"
-msgstr ""
+msgstr "Balra igazítsd"
 
 #. TRN - Input label. Be short as possible
 msgid "Char gap"
@@ -1076,7 +1076,7 @@ msgid "SVG actions"
 msgstr ""
 
 msgid "SVG"
-msgstr ""
+msgstr "SVG"
 
 #, boost-format
 msgid "Opacity (%1%)"
@@ -1163,7 +1163,7 @@ msgid "Bake into model as uneditable part"
 msgstr ""
 
 msgid "Save as"
-msgstr ""
+msgstr "Mentés Másként"
 
 msgid "Save SVG file"
 msgstr ""
@@ -1189,7 +1189,7 @@ msgid "Lock/unlock the aspect ratio of the SVG."
 msgstr ""
 
 msgid "Reset scale"
-msgstr ""
+msgstr "Skála visszaállítása"
 
 msgid "Distance of the center of the SVG to the model surface."
 msgstr ""
@@ -1198,16 +1198,16 @@ msgid "Reset distance"
 msgstr ""
 
 msgid "Reset rotation"
-msgstr ""
+msgstr "Forgatás visszaállítása"
 
 msgid "Lock/unlock rotation angle when dragging above the surface."
 msgstr ""
 
 msgid "Mirror vertically"
-msgstr ""
+msgstr "Tükrözés függőlegesen"
 
 msgid "Mirror horizontally"
-msgstr ""
+msgstr "Tükrözés vízszintesen"
 
 #. TRN: This is the name of the action that shows in undo/redo stack (changing part type from SVG to something else).
 msgid "Change SVG Type"
@@ -2537,13 +2537,13 @@ msgid "Bed filling done."
 msgstr "Bed filling done."
 
 msgid "Searching for optimal orientation"
-msgstr ""
+msgstr "Az optimális tájolás keresése"
 
 msgid "Orientation search canceled."
-msgstr ""
+msgstr "Tájolás keresés visszavonva."
 
 msgid "Orientation found."
-msgstr ""
+msgstr "Tájolás megtalálva."
 
 msgid "Logging in"
 msgstr "Bejelentkezés"
@@ -3158,7 +3158,7 @@ msgid "Successfully executed post-processing script"
 msgstr "Successfully executed post-processing script"
 
 msgid "Unknown error occured during exporting G-code."
-msgstr ""
+msgstr "Ismeretlen hiba történt a G-kód exportálása közben."
 
 #, boost-format
 msgid ""
@@ -3166,6 +3166,9 @@ msgid ""
 "card is write locked?\n"
 "Error message: %1%"
 msgstr ""
+"Az ideiglenes G-kód másolása a kimeneti G-kódba nem sikerült. Lehet, hogy az "
+"SD kártya írásvédett?\n"
+"Hibaüzenet: %1%"
 
 #, boost-format
 msgid ""
@@ -3173,28 +3176,37 @@ msgid ""
 "problem with target device, please try exporting again or using different "
 "device. The corrupted output G-code is at %1%.tmp."
 msgstr ""
+"Az ideiglenes G-kód másolása a kimeneti G-kódba nem sikerült. Probléma lehet "
+"a céleszközzel. Kérjük, próbálkozzon újra az exportálással, vagy használjon "
+"másik eszközt. A sérült kimeneti G-kód %1%.tmp."
 
 #, boost-format
 msgid ""
 "Renaming of the G-code after copying to the selected destination folder has "
 "failed. Current path is %1%.tmp. Please try exporting again."
 msgstr ""
+"A G-kód átnevezése a kiválasztott célmappába másolás után nem sikerült. A "
+"jelenlegi elérési út %1%.tmp. Kérjük, próbálja meg újra az exportálást."
 
 #, boost-format
 msgid ""
 "Copying of the temporary G-code has finished but the original code at %1% "
 "couldn't be opened during copy check. The output G-code is at %2%.tmp."
 msgstr ""
+"Az ideiglenes G-kód másolása befejeződött, de az eredeti, %1% kódot nem "
+"lehetett megnyitni a másolásellenőrzés során. A kimeneti G-kód %2%.tmp."
 
 #, boost-format
 msgid ""
 "Copying of the temporary G-code has finished but the exported code couldn't "
 "be opened during copy check. The output G-code is at %1%.tmp."
 msgstr ""
+"Az ideiglenes G-kód másolása befejeződött, de az exportált kódot nem "
+"lehetett megnyitni a másolásellenőrzés során. A kimeneti G-kód %1%.tmp."
 
 #, boost-format
 msgid "G-code file exported to %1%"
-msgstr ""
+msgstr "G-kód fájl exportálva ide: %1%"
 
 msgid "Unknown error when export G-code."
 msgstr "Ismeretlen hiba a G-kód exportálásakor."
@@ -3920,7 +3932,7 @@ msgid "Dimensions"
 msgstr ""
 
 msgid "Temperatures"
-msgstr ""
+msgstr "Hőmérséklet(ek)"
 
 msgid "Timestamps"
 msgstr ""
@@ -5896,10 +5908,10 @@ msgstr ""
 "hogy válts a sima módra."
 
 msgid "Expand sidebar"
-msgstr ""
+msgstr "Az oldalsáv kibontása"
 
 msgid "Collapse sidebar"
-msgstr ""
+msgstr "&Az oldalsáv összecsukása"
 
 #, c-format, boost-format
 msgid "Loading file: %s"
@@ -6178,7 +6190,7 @@ msgid ""
 msgstr ""
 
 msgid "Import SLA archive"
-msgstr ""
+msgstr "SLA archívum importálása"
 
 msgid "The selected file"
 msgstr "A kiválasztott fájl"
@@ -6299,7 +6311,7 @@ msgid "Is the printer ready? Is the print sheet in place, empty and clean?"
 msgstr ""
 
 msgid "Upload and Print"
-msgstr ""
+msgstr "Feltöltés és Nyomtatás"
 
 msgid ""
 "Print By Object: \n"
@@ -6476,7 +6488,7 @@ msgid ""
 msgstr ""
 
 msgid "Home"
-msgstr ""
+msgstr "Haza"
 
 msgid "Default Page"
 msgstr ""
@@ -6507,10 +6519,12 @@ msgstr ""
 "2D window center."
 
 msgid "Use free camera"
-msgstr ""
+msgstr "Szabad kamera használata"
 
 msgid "If enabled, use free camera. If not enabled, use constrained camera."
 msgstr ""
+"Ha engedélyezve van, szabad kamerát használ. Ha nincs engedélyezve, akkor "
+"kötött kamerát használ."
 
 msgid "Reverse mouse zoom"
 msgstr ""
@@ -6519,7 +6533,7 @@ msgid "If enabled, reverses the direction of zoom with mouse wheel."
 msgstr ""
 
 msgid "Show splash screen"
-msgstr ""
+msgstr "Splash screen meglenítése"
 
 msgid "Show the splash screen during startup."
 msgstr ""
@@ -7570,7 +7584,7 @@ msgid "Tree supports"
 msgstr ""
 
 msgid "Skirt"
-msgstr ""
+msgstr "Szoknya"
 
 msgid "Prime tower"
 msgstr "Törlő torony"
@@ -7742,13 +7756,14 @@ msgid "Multimaterial"
 msgstr ""
 
 msgid "Wipe tower parameters"
-msgstr ""
+msgstr "Törlőtorony paraméterek"
 
 msgid "Toolchange parameters with single extruder MM printers"
 msgstr ""
+"Szerszámváltási paraméterek egy extruderes Több Anyagos (MM) nyomtatónál"
 
 msgid "Ramming settings"
-msgstr ""
+msgstr "Tömörítési beállítások"
 
 msgid "Toolchange parameters with multi extruder MM printers"
 msgstr ""
@@ -7823,10 +7838,10 @@ msgid "Single extruder multimaterial setup"
 msgstr ""
 
 msgid "Wipe tower"
-msgstr ""
+msgstr "Törlőtorony"
 
 msgid "Single extruder multimaterial parameters"
-msgstr ""
+msgstr "Egyetlen extruder többanyagú paraméterei"
 
 msgid "Layer height limits"
 msgstr "Rétegmagasság limitek"
@@ -8126,7 +8141,7 @@ msgid "The configuration is up to date."
 msgstr "A konfiguráció naprakész."
 
 msgid "Ramming customization"
-msgstr ""
+msgstr "Tömörítés testreszabása"
 
 msgid ""
 "Ramming denotes the rapid extrusion just before a tool change in a single-"
@@ -8139,21 +8154,31 @@ msgid ""
 "This is an expert-level setting, incorrect adjustment will likely lead to "
 "jams, extruder wheel grinding into filament etc."
 msgstr ""
+"A tömörítés az egy extruderes Többféle Anyaggal (MM) dolgozó nyomtatókban a "
+"szerszámcsere előtti gyors extrudálást jelenti. Célja, hogy megfelelően "
+"alakítsa a visszahúzott filament végét, hogy az ne akadályozza az új "
+"filament betöltését, és később újra betölthető legyen. Ez a fázis fontos, és "
+"a különböző anyagok különböző extrudálási sebességet igényelhetnek a "
+"megfelelő forma eléréséhez. Ezért a tömörítés során alkalmazott extrudálási "
+"sebességek állíthatóak.\n"
+"\n"
+"Ez egy szakértői szintű beállítás, a helytelen beállítás elakadásokhoz, az "
+"extruder kerék filamentbe marásához stb. vezethet."
 
 msgid "Total ramming time"
-msgstr ""
+msgstr "Teljes tömörítési idő"
 
 msgid "s"
 msgstr "mp"
 
 msgid "Total rammed volume"
-msgstr ""
+msgstr "Teljes tömörített térfogat"
 
 msgid "Ramming line width"
-msgstr ""
+msgstr "Tömörítési vonal szélessége"
 
 msgid "Ramming line spacing"
-msgstr ""
+msgstr "Tömörítési vonal térköze"
 
 msgid "Auto-Calc"
 msgstr "Automatikus számítás"
@@ -8391,10 +8416,10 @@ msgid "Gizmo Text emboss / engrave"
 msgstr ""
 
 msgid "Zoom in"
-msgstr ""
+msgstr "Zoom közelítés"
 
 msgid "Zoom out"
-msgstr ""
+msgstr "Zoom távolítás"
 
 msgid "Switch between Prepare/Preview"
 msgstr ""
@@ -9460,7 +9485,7 @@ msgid ""
 msgstr ""
 
 msgid "Everywhere"
-msgstr ""
+msgstr "Mindenhol"
 
 msgid "Top and bottom surfaces"
 msgstr ""
@@ -9934,7 +9959,7 @@ msgid ""
 msgstr ""
 
 msgid "Disabled"
-msgstr ""
+msgstr "Letiltva"
 
 msgid "Limited filtering"
 msgstr ""
@@ -10353,54 +10378,61 @@ msgid ""
 msgstr ""
 
 msgid "Loading speed"
-msgstr ""
+msgstr "Betöltési sebesség"
 
 msgid "Speed used for loading the filament on the wipe tower."
-msgstr ""
+msgstr "A filament törlőtoronyra való betöltéséhez használt sebesség."
 
 msgid "Loading speed at the start"
-msgstr ""
+msgstr "Betöltési sebesség kezdéskor"
 
 msgid "Speed used at the very beginning of loading phase."
-msgstr ""
+msgstr "A betöltési fázis legelején használt sebesség."
 
 msgid "Unloading speed"
-msgstr ""
+msgstr "Kiürítési sebesség"
 
 msgid ""
 "Speed used for unloading the filament on the wipe tower (does not affect  "
 "initial part of unloading just after ramming)."
 msgstr ""
+"A filament törlőtoronynál való kiürítéséhez használt sebesség (nem "
+"befolyásolja a kiürítés kezdeti részét közvetlenül a tömörítés után)."
 
 msgid "Unloading speed at the start"
-msgstr ""
+msgstr "Kiürítési sebesség kezdéskor"
 
 msgid ""
 "Speed used for unloading the tip of the filament immediately after ramming."
-msgstr ""
+msgstr "A filament kiürítésének sebessége közvetlenül a tömörítés után."
 
 msgid "Delay after unloading"
-msgstr ""
+msgstr "Várakozás a kiürítés után"
 
 msgid ""
 "Time to wait after the filament is unloaded. May help to get reliable "
 "toolchanges with flexible materials that may need more time to shrink to "
 "original dimensions."
 msgstr ""
+"A várakozási idő az filament kiürítése után. Segíthet megbízható "
+"szerszámcserét elérni rugalmas anyagok esetén, amelyeknek több időre lehet "
+"szükségük ahhoz, hogy az eredeti méretükre zsugorodjanak."
 
 msgid "Number of cooling moves"
-msgstr ""
+msgstr "Hűtési lépések száma"
 
 msgid ""
 "Filament is cooled by being moved back and forth in the cooling tubes. "
 "Specify desired number of these moves."
 msgstr ""
+"A filament hűtése úgy történik, hogy oda-vissza mozgatják a hűtőcsőben. Adja "
+"meg a kívánt lépések számát."
 
 msgid "Speed of the first cooling move"
-msgstr ""
+msgstr "Az első hűtési lépés sebessége"
 
 msgid "Cooling moves are gradually accelerating beginning at this speed."
-msgstr ""
+msgstr "A hűtési lépések fokozatosan felgyorsulnak ettől a sebességtől kezdve."
 
 msgid "Minimal purge on wipe tower"
 msgstr "Minimális tisztítás a törlőtoronyban"
@@ -10414,30 +10446,39 @@ msgid ""
 msgstr ""
 
 msgid "Speed of the last cooling move"
-msgstr ""
+msgstr "Az utolsó hűtési lépés sebessége"
 
 msgid "Cooling moves are gradually accelerating towards this speed."
-msgstr ""
+msgstr "A hűtési lépések fokozatosan felgyorsulnak erre a sebességre."
 
 msgid ""
 "Time for the printer firmware (or the Multi Material Unit 2.0) to load a new "
 "filament during a tool change (when executing the T code). This time is "
 "added to the total print time by the G-code time estimator."
 msgstr ""
+"Az az idő, amíg a nyomtató vezérlő szoftvere (vagy a Multi Material Unit "
+"2.0) új filamentet tölt be a szerszámcsere során (a T kód végrehajtásakor). "
+"Ezt az időt a G-kód időbecslő hozzáadja a teljes nyomtatási időhöz."
 
 msgid "Ramming parameters"
-msgstr ""
+msgstr "Tömörítési paraméterek"
 
 msgid ""
 "This string is edited by RammingDialog and contains ramming specific "
 "parameters."
 msgstr ""
+"Ez a karakterlánc a TömörítésPárbeszéd ablakban szerkeszthető, és a "
+"tömörítéssel kapcsolatos paramétereket tartalmaz."
 
 msgid ""
 "Time for the printer firmware (or the Multi Material Unit 2.0) to unload a "
 "filament during a tool change (when executing the T code). This time is "
 "added to the total print time by the G-code time estimator."
 msgstr ""
+"Az az idő, amíg a nyomtató vezérlő szoftvere (vagy a Multi Material Unit "
+"2.0) az előző Filamenet kiüríti a szerszámcsere során (a T kód "
+"végrehajtásakor). Ezt az időt a G-kód időbecslő hozzáadja a teljes "
+"nyomtatási időhöz."
 
 msgid "Enable ramming for multitool setups"
 msgstr ""
@@ -10616,7 +10657,7 @@ msgid "1000 (unlimited)"
 msgstr "1000 (unlimited)"
 
 msgid "Maximum length of the infill anchor"
-msgstr ""
+msgstr "A kitöltőhorgony maximális hossza"
 
 msgid ""
 "Connect an infill line to an internal perimeter with a short segment of an "
@@ -11018,7 +11059,7 @@ msgid "Enable this option if you want to use multiple bed types"
 msgstr ""
 
 msgid "Label objects"
-msgstr ""
+msgstr "Objektumok címkézése"
 
 msgid ""
 "Enable this to add comments into the G-Code labeling print moves with what "
@@ -11034,13 +11075,17 @@ msgid "Enable this option to add EXCLUDE OBJECT command in g-code"
 msgstr ""
 
 msgid "Verbose G-code"
-msgstr ""
+msgstr "Bővebb G-kód"
 
 msgid ""
 "Enable this to get a commented G-code file, with each line explained by a "
 "descriptive text. If you print from SD card, the additional weight of the "
 "file could make your firmware slow down."
 msgstr ""
+"Ha engedélyezi ezt a funkciót, akkor egy kommentezett G-kód fájlt kap, "
+"amelynek minden egyes sorát egy leíró szöveg magyarázza. Ha SD-kártyáról "
+"nyomtat, a fájl nagyobb mérete miatt a nyomtató vezérlő szoftvere "
+"lelassulhat."
 
 msgid "Infill combination"
 msgstr "Kitöltés összevonása"
@@ -11377,7 +11422,7 @@ msgid ""
 msgstr ""
 
 msgid "mm³/s²"
-msgstr ""
+msgstr "mm³/s²"
 
 msgid "Smoothing segment length"
 msgstr ""
@@ -11431,12 +11476,14 @@ msgid "Diameter of nozzle"
 msgstr "Fúvóka átmérője"
 
 msgid "Configuration notes"
-msgstr ""
+msgstr "Konfiguráció megjegyzések"
 
 msgid ""
 "You can put here your personal notes. This text will be added to the G-code "
 "header comments."
 msgstr ""
+"Itt elhelyezheti személyes jegyzeteit. Ez a szöveg hozzá lesz fűzve a G-kód "
+"fejlécének megjegyzéseihez."
 
 msgid "Host Type"
 msgstr "Host típusa"
@@ -11455,36 +11502,43 @@ msgid "Volume of nozzle between the cutter and the end of nozzle"
 msgstr "A fúvóka térfogata a filamentvágó és a fúvóka vége között"
 
 msgid "Cooling tube position"
-msgstr ""
+msgstr "Hűtőcső helyzete"
 
 msgid "Distance of the center-point of the cooling tube from the extruder tip."
-msgstr ""
+msgstr "A hűtőcső középpontjának távolsága az extruder csúcsától."
 
 msgid "Cooling tube length"
-msgstr ""
+msgstr "Hűtőcső hossza"
 
 msgid "Length of the cooling tube to limit space for cooling moves inside it."
 msgstr ""
+"A hűtőcső hossza, ami limitálja a hűtéshez használható helyet annak a "
+"belsejében."
 
 msgid "High extruder current on filament swap"
-msgstr ""
+msgstr "Magas extruderáram a szálcserénél"
 
 msgid ""
 "It may be beneficial to increase the extruder motor current during the "
 "filament exchange sequence to allow for rapid ramming feed rates and to "
 "overcome resistance when loading a filament with an ugly shaped tip."
 msgstr ""
+"Előnyös lehet az extrudermotor áramának növelése a filamentcsere során, hogy "
+"elérhetővé tegye a tömörítéshez szükséges magas előtolási sebességet és az "
+"ellenállás leküzdését deformált hegyű filament betöltésekor."
 
 msgid "Filament parking position"
-msgstr ""
+msgstr "Filament parkolási pozíció"
 
 msgid ""
 "Distance of the extruder tip from the position where the filament is parked "
 "when unloaded. This should match the value in printer firmware."
 msgstr ""
+"Az extruder hegyének távolsága attól a helyzettől, ahol a szál betöltetlenül "
+"parkol. Ennek meg kell egyeznie a nyomtató firmware-ében megadott értékkel."
 
 msgid "Extra loading distance"
-msgstr ""
+msgstr "Extra betöltési hossz"
 
 msgid ""
 "When set to zero, the distance the filament is moved from parking position "
@@ -11492,6 +11546,10 @@ msgid ""
 "positive, it is loaded further,  if negative, the loading move is shorter "
 "than unloading."
 msgstr ""
+"Ha nullára van állítva, akkor a filamentet a betöltés során a "
+"parkolóhelyzetből pontosan ugyanannyira kerül előtolásra, mint amennyire a "
+"kiürítéskor vissza lett húzva. Ha pozitív, akkor tovább töltődik, ha "
+"negatív, akkor a betöltési mozgás rövidebb, mint a kiürítési."
 
 msgid "Start end points"
 msgstr "Kezdő- és végpontok"
@@ -11744,7 +11802,7 @@ msgid "Spiral"
 msgstr "Spirál"
 
 msgid "Only lift Z above"
-msgstr ""
+msgstr "Z emelés csak efelett"
 
 msgid ""
 "If you set this to a positive value, Z lift will only take place above the "
@@ -11752,7 +11810,7 @@ msgid ""
 msgstr ""
 
 msgid "Only lift Z below"
-msgstr ""
+msgstr "Z emelés csak ezalatt"
 
 msgid ""
 "If you set this to a positive value, Z lift will only take place below the "
@@ -11786,11 +11844,16 @@ msgid ""
 "When the retraction is compensated after the travel move, the extruder will "
 "push this additional amount of filament. This setting is rarely needed."
 msgstr ""
+"Amikor a visszahúzás kompenzálásra kerül utazási mozgás után, az extruder "
+"ezt a további szálmennyiséget nyomja előre. Erre a beállításra ritkán van "
+"szükség."
 
 msgid ""
 "When the retraction is compensated after changing tool, the extruder will "
 "push this additional amount of filament."
 msgstr ""
+"Amikor a visszahúzás kompenzálásra kerül szerszámváltás után, az extruder "
+"ezt a további szálmennyiséget nyomja előre."
 
 msgid "Retraction Speed"
 msgstr "Visszahúzás sebessége"
@@ -12021,7 +12084,7 @@ msgid "How many layers of skirt. Usually only one layer"
 msgstr "Number of skirt layers: usually only one"
 
 msgid "Draft shield"
-msgstr ""
+msgstr "Huzatvédő"
 
 msgid ""
 "A draft shield is useful to protect an ABS or ASA print from warping and "
@@ -12038,10 +12101,10 @@ msgid ""
 msgstr ""
 
 msgid "Limited"
-msgstr ""
+msgstr "Korlátozott"
 
 msgid "Enabled"
-msgstr ""
+msgstr "Engedélyezve"
 
 msgid "Skirt loops"
 msgstr "Szoknya hurkok száma"
@@ -12164,7 +12227,7 @@ msgid "Start G-code when start the printing of this filament"
 msgstr "Kezdő G-kód a filament nyomtatásának megkezdésekor"
 
 msgid "Single Extruder Multi Material"
-msgstr ""
+msgstr "Egyetlen Extruder Többféle Anyag"
 
 msgid "Use single nozzle to print multi filament"
 msgstr ""
@@ -12198,14 +12261,20 @@ msgid ""
 "print the wipe tower. User is responsible for ensuring there is no collision "
 "with the print."
 msgstr ""
+"Ha engedélyezve van, akkor törlőtorony nem kerül kinyomtatásra "
+"szerszámváltás nélküli rétegeken. A szerszámcserével rendelkező rétegeken az "
+"extruder az aktuális magasság alá süllyed a törlőtorony nyomtatásához. A "
+"felhasználó felelős azért, hogy ez ne okozzon ütközést a nyomtatás során."
 
 msgid "Prime all printing extruders"
-msgstr ""
+msgstr "Az összes nyomtató extruder előkészítése"
 
 msgid ""
 "If enabled, all printing extruders will be primed at the front edge of the "
 "print bed at the start of the print."
 msgstr ""
+"Ha engedélyezve van, akkor a nyomtatás kezdetén az összes nyomtató extruder "
+"előkészítésre kerül a tárgyasztal elülső szélénél."
 
 msgid "Slice gap closing radius"
 msgstr "Szeletelési hézag lezárási sugara"
@@ -12240,7 +12309,7 @@ msgid "Close holes"
 msgstr "Hézagok lezárása"
 
 msgid "Z offset"
-msgstr ""
+msgstr "Z ofszet"
 
 msgid ""
 "This value will be added (or subtracted) from all the Z coordinates in the "
@@ -12248,6 +12317,11 @@ msgid ""
 "example, if your endstop zero actually leaves the nozzle 0.3mm far from the "
 "print bed, set this to -0.3 (or fix your endstop)."
 msgstr ""
+"Ez az érték hozzáadódik (vagy kivonásra kerül) az összes Z koordinátához a "
+"kimeneti G-kódban. A Z tengely végállás pozíciójának kompenzálására szolgál: "
+"például ha a végállás nullája valójában 0,3 mm-re hagyja a fúvókát a "
+"tárgyasztal felett, akkor állítsa ezt az értéke -0,3-ra (vagy javítsa meg a "
+"végállást)."
 
 msgid "Enable support"
 msgstr "Támasz engedélyezése"
@@ -12760,10 +12834,10 @@ msgid "Width of prime tower"
 msgstr "Ez a törlő torony szélessége."
 
 msgid "Wipe tower rotation angle"
-msgstr ""
+msgstr "Törlőtorony forgatási szöge"
 
 msgid "Wipe tower rotation angle with respect to x-axis."
-msgstr ""
+msgstr "Törlőtorony forgatási szöge az x-tengelyhez képest."
 
 msgid "Stabilization cone apex angle"
 msgstr ""
@@ -12852,10 +12926,10 @@ msgstr ""
 "akkor működik, ha a törlőtorony engedélyezve van."
 
 msgid "Maximal bridging distance"
-msgstr ""
+msgstr "Maximális áthidalási távolság"
 
 msgid "Maximal distance between supports on sparse infill sections."
-msgstr ""
+msgstr "A támaszok közötti maximális távolság a ritkás kitöltésű részeken."
 
 msgid "X-Y hole compensation"
 msgstr "X-Y furatkompenzáció"
@@ -12914,7 +12988,7 @@ msgid "Rotate the polyhole every layer."
 msgstr ""
 
 msgid "G-code thumbnails"
-msgstr ""
+msgstr "G-kód miniatűrök"
 
 msgid ""
 "Picture sizes to be stored into a .gcode and .sl1 / .sl1s files, in the "
@@ -13101,7 +13175,7 @@ msgid "Do not run any validity checks, such as gcode path conflicts check."
 msgstr "Do not run any validity checks, such as G-code path conflicts check."
 
 msgid "Ensure on bed"
-msgstr ""
+msgstr "Ágyra igazítás"
 
 msgid ""
 "Lift the object above the bed when it is partially below. Disabled by default"
@@ -13114,22 +13188,25 @@ msgid "Orient options: 0-disable, 1-enable, others-auto"
 msgstr ""
 
 msgid "Rotation angle around the Z axis in degrees."
-msgstr ""
+msgstr "Az Z tengely körüli forgatási szög fokban."
 
 msgid "Rotate around Y"
-msgstr ""
+msgstr "Forgatás Y körül"
 
 msgid "Rotation angle around the Y axis in degrees."
-msgstr ""
+msgstr "Az Y tengely körüli forgatási szög fokban."
 
 msgid "Data directory"
-msgstr ""
+msgstr "Adatkönyvtár"
 
 msgid ""
 "Load and store settings at the given directory. This is useful for "
 "maintaining different profiles or including configurations from a network "
 "storage."
 msgstr ""
+"A beállítások betöltése és tárolása a megadott könyvtárban. Ez hasznos a "
+"különböző profilok karbantartásához vagy a hálózaton tárolt konfigurációk "
+"beviteléhez."
 
 msgid "Load custom gcode"
 msgstr ""
@@ -14205,7 +14282,7 @@ msgid "mm/mm"
 msgstr "mm/mm"
 
 msgid "Send G-Code to printer host"
-msgstr ""
+msgstr "G-kód küldése a nyomtató gazdagépének"
 
 msgid "Upload to Printer Host with the following filename:"
 msgstr "Feltöltés a nyomtatóra a következő fájlnévvel:"

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-23 23:36+0800\n"
+"POT-Creation-Date: 2024-05-24 23:26+0800\n"
 "PO-Revision-Date: 2023-08-10 20:25-0400\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -108,7 +108,7 @@ msgid "Support Generated"
 msgstr "Генерація підтримки"
 
 msgid "Gizmo-Place on Face"
-msgstr ""
+msgstr "Gizmo \"Поверхнею на стіл\""
 
 msgid "Lay on face"
 msgstr "Покласти в обличчя"
@@ -190,13 +190,13 @@ msgid "Move"
 msgstr "Перемістити"
 
 msgid "Gizmo-Move"
-msgstr ""
+msgstr "Gizmo переміщення"
 
 msgid "Rotate"
 msgstr "Повернути"
 
 msgid "Gizmo-Rotate"
-msgstr ""
+msgstr "Gizmo обертання"
 
 msgid "Optimize orientation"
 msgstr "Оптимізувати орієнтацію"
@@ -208,7 +208,7 @@ msgid "Scale"
 msgstr "Масштаб"
 
 msgid "Gizmo-Scale"
-msgstr ""
+msgstr "Gizmo масштабування"
 
 msgid "Error: Please close all toolbar menus first"
 msgstr "Помилка: будь ласка, спочатку закрийте все меню панелі інструментів"
@@ -526,7 +526,7 @@ msgid "Connector"
 msgstr "З'єднувач"
 
 msgid "Cut by Plane"
-msgstr ""
+msgstr "Вирізати площиною"
 
 msgid "non-manifold edges be caused by cut tool, do you want to fix it now?"
 msgstr ""
@@ -682,7 +682,7 @@ msgid "Text move"
 msgstr ""
 
 msgid "Set Mirror"
-msgstr ""
+msgstr "Встановити віддзеркалення"
 
 msgid "Embossed text"
 msgstr ""
@@ -718,7 +718,7 @@ msgid "First font"
 msgstr ""
 
 msgid "Default font"
-msgstr ""
+msgstr "Типовий шрифт"
 
 msgid "Advanced"
 msgstr "Додатково"
@@ -769,7 +769,7 @@ msgid "Click to change text into object part."
 msgstr ""
 
 msgid "You can't change a type of the last solid part of the object."
-msgstr ""
+msgstr "Ви не можете змінити тип останньої твердої частини об’єкта."
 
 msgctxt "EmbossOperation"
 msgid "Cut"
@@ -1030,7 +1030,7 @@ msgstr ""
 #. TRN - Input label. Be short as possible
 #. Align Top|Middle|Bottom and Left|Center|Right
 msgid "Alignment"
-msgstr ""
+msgstr "Вирівнювання"
 
 #. TRN - Input label. Be short as possible
 msgid "Char gap"
@@ -1086,7 +1086,7 @@ msgid "SVG actions"
 msgstr ""
 
 msgid "SVG"
-msgstr ""
+msgstr "SVG"
 
 #, boost-format
 msgid "Opacity (%1%)"
@@ -1173,7 +1173,7 @@ msgid "Bake into model as uneditable part"
 msgstr ""
 
 msgid "Save as"
-msgstr ""
+msgstr "Зберегти як"
 
 msgid "Save SVG file"
 msgstr ""
@@ -1199,7 +1199,7 @@ msgid "Lock/unlock the aspect ratio of the SVG."
 msgstr ""
 
 msgid "Reset scale"
-msgstr ""
+msgstr "Скинути масштаб"
 
 msgid "Distance of the center of the SVG to the model surface."
 msgstr ""
@@ -1208,16 +1208,16 @@ msgid "Reset distance"
 msgstr ""
 
 msgid "Reset rotation"
-msgstr ""
+msgstr "Скинути обертання"
 
 msgid "Lock/unlock rotation angle when dragging above the surface."
 msgstr ""
 
 msgid "Mirror vertically"
-msgstr ""
+msgstr "Віддзеркалити вертикально"
 
 msgid "Mirror horizontally"
-msgstr ""
+msgstr "Віддзеркалити горизонтально"
 
 #. TRN: This is the name of the action that shows in undo/redo stack (changing part type from SVG to something else).
 msgid "Change SVG Type"
@@ -2547,13 +2547,13 @@ msgid "Bed filling done."
 msgstr "Заповнення ліжка виконане."
 
 msgid "Searching for optimal orientation"
-msgstr ""
+msgstr "Пошук оптимальної орієнтації"
 
 msgid "Orientation search canceled."
-msgstr ""
+msgstr "Пошук орієнтації скасовано."
 
 msgid "Orientation found."
-msgstr ""
+msgstr "Орієнтація знайдена."
 
 msgid "Logging in"
 msgstr "Вхід до системи"
@@ -3178,7 +3178,7 @@ msgid "Successfully executed post-processing script"
 msgstr "Скрипт післяобробки успішно виконаний"
 
 msgid "Unknown error occured during exporting G-code."
-msgstr ""
+msgstr "Під час експорту G-коду сталася невідома помилка."
 
 #, boost-format
 msgid ""
@@ -3186,6 +3186,9 @@ msgid ""
 "card is write locked?\n"
 "Error message: %1%"
 msgstr ""
+"Не вдалося скопіювати тимчасовий G-код у вихідний G-код. Можливо, SD-карта "
+"заблокована?\n"
+"Повідомлення про помилку: %1%"
 
 #, boost-format
 msgid ""
@@ -3193,28 +3196,37 @@ msgid ""
 "problem with target device, please try exporting again or using different "
 "device. The corrupted output G-code is at %1%.tmp."
 msgstr ""
+"Не вдалося скопіювати тимчасовий G-код у вихідний G-код. Можливо, проблема з "
+"цільовим пристроєм, спробуйте експортувати ще раз або використати інший "
+"пристрій. Пошкоджений вихідний G-код - %1% .tmp."
 
 #, boost-format
 msgid ""
 "Renaming of the G-code after copying to the selected destination folder has "
 "failed. Current path is %1%.tmp. Please try exporting again."
 msgstr ""
+"Не вдалося перейменувати G-код після копіювання у вибрану папку призначення. "
+"Поточний шлях - %1%.tmp. Спробуйте експортувати ще раз."
 
 #, boost-format
 msgid ""
 "Copying of the temporary G-code has finished but the original code at %1% "
 "couldn't be opened during copy check. The output G-code is at %2%.tmp."
 msgstr ""
+"Копіювання тимчасового G-коду закінчено, але оригінальний код на рівні %1% "
+"не вдалося відкрити під час перевірки копії. Вихідний G-код - %2% .tmp."
 
 #, boost-format
 msgid ""
 "Copying of the temporary G-code has finished but the exported code couldn't "
 "be opened during copy check. The output G-code is at %1%.tmp."
 msgstr ""
+"Копіювання тимчасового G-коду завершено, але експортований код не вдалося "
+"відкрити під час перевірки копії. Вихідний G-код - %1% .tmp."
 
 #, boost-format
 msgid "G-code file exported to %1%"
-msgstr ""
+msgstr "Файл G-коду експортується до %1%"
 
 msgid "Unknown error when export G-code."
 msgstr "Невідома помилка під час експорту G-коду."
@@ -3942,7 +3954,7 @@ msgid "Dimensions"
 msgstr ""
 
 msgid "Temperatures"
-msgstr ""
+msgstr "Температури"
 
 msgid "Timestamps"
 msgstr ""
@@ -5946,10 +5958,10 @@ msgstr ""
 "поверхні. Рекомендується перейти в режим згладжування."
 
 msgid "Expand sidebar"
-msgstr ""
+msgstr "Розгорнути бічну панель"
 
 msgid "Collapse sidebar"
-msgstr ""
+msgstr "Згорнути бічну панель"
 
 #, c-format, boost-format
 msgid "Loading file: %s"
@@ -6229,7 +6241,7 @@ msgid ""
 msgstr ""
 
 msgid "Import SLA archive"
-msgstr ""
+msgstr "Імпорт SLА-архіву"
 
 msgid "The selected file"
 msgstr "Вибраний файл"
@@ -6529,7 +6541,7 @@ msgid ""
 msgstr ""
 
 msgid "Home"
-msgstr ""
+msgstr "Домівка"
 
 msgid "Default Page"
 msgstr ""
@@ -6559,10 +6571,12 @@ msgstr ""
 "Наблизьтеся до положення покажчика миші у 3D-виді, а не до центру 2D вікна."
 
 msgid "Use free camera"
-msgstr ""
+msgstr "Використовувати вільну камеру"
 
 msgid "If enabled, use free camera. If not enabled, use constrained camera."
 msgstr ""
+"Якщо увімкнено, використовуватиметься вільна камера. Якщо вимкнено, "
+"використовуватиметься камера з обмеженими можливостями."
 
 msgid "Reverse mouse zoom"
 msgstr ""
@@ -6571,7 +6585,7 @@ msgid "If enabled, reverses the direction of zoom with mouse wheel."
 msgstr ""
 
 msgid "Show splash screen"
-msgstr ""
+msgstr "Показувати заставку"
 
 msgid "Show the splash screen during startup."
 msgstr ""
@@ -6619,7 +6633,7 @@ msgstr ""
 "одночасно та керувати декількома пристроями."
 
 msgid "Network"
-msgstr ""
+msgstr "Мережа"
 
 msgid "Auto sync user presets(Printer/Filament/Process)"
 msgstr ""
@@ -7620,7 +7634,7 @@ msgid "Tree supports"
 msgstr ""
 
 msgid "Skirt"
-msgstr ""
+msgstr "Плінтус"
 
 msgid "Prime tower"
 msgstr "Вежа Очищення"
@@ -7793,13 +7807,13 @@ msgid "Multimaterial"
 msgstr ""
 
 msgid "Wipe tower parameters"
-msgstr ""
+msgstr "Параметри вежі витирання"
 
 msgid "Toolchange parameters with single extruder MM printers"
-msgstr ""
+msgstr "Параметри зміни інструменту в одно-екструдерному ММ-принтері"
 
 msgid "Ramming settings"
-msgstr ""
+msgstr "Налаштування раммінгу"
 
 msgid "Toolchange parameters with multi extruder MM printers"
 msgstr ""
@@ -7874,10 +7888,10 @@ msgid "Single extruder multimaterial setup"
 msgstr ""
 
 msgid "Wipe tower"
-msgstr ""
+msgstr "Вежа витирання"
 
 msgid "Single extruder multimaterial parameters"
-msgstr ""
+msgstr "Параметри екструдеру в багато-екструдерному принтері"
 
 msgid "Layer height limits"
 msgstr "Обмеження висоти шару"
@@ -8179,7 +8193,7 @@ msgid "The configuration is up to date."
 msgstr "Конфігурація є актуальною."
 
 msgid "Ramming customization"
-msgstr ""
+msgstr "Налаштування раммінгу"
 
 msgid ""
 "Ramming denotes the rapid extrusion just before a tool change in a single-"
@@ -8192,21 +8206,30 @@ msgid ""
 "This is an expert-level setting, incorrect adjustment will likely lead to "
 "jams, extruder wheel grinding into filament etc."
 msgstr ""
+"Раммінг означає швидке екструдування безпосередньо перед заміною інструменту "
+"в одно-екструдерному принтері ММ. Його мета полягає у правильній формі кінця "
+"виведеного філаменту, щоб вона не заважала вставці нового філаменту і може "
+"бути знову встановлений пізніше. Ця фаза є важливою, і різні матеріали "
+"можуть вимагати різної швидкості екструзії для отримання гарної форми. З "
+"цієї причини швидкість екструдування під час раммінгу регулюється.\n"
+"\n"
+"Це налаштування на рівні експерта, неправильне регулювання, ймовірно, "
+"призведе до заклинювання, подрібнення екструдерного колеса до філаменту тощо."
 
 msgid "Total ramming time"
-msgstr ""
+msgstr "Загальний час швидкої екструзії"
 
 msgid "s"
 msgstr "c"
 
 msgid "Total rammed volume"
-msgstr ""
+msgstr "Загальний обсяг швидкої екструзії"
 
 msgid "Ramming line width"
-msgstr ""
+msgstr "Ширина ліній раммінгу"
 
 msgid "Ramming line spacing"
-msgstr ""
+msgstr "Проміжки між лініями раммінгу"
 
 msgid "Auto-Calc"
 msgstr "Автокалькулятор"
@@ -8444,10 +8467,10 @@ msgid "Gizmo Text emboss / engrave"
 msgstr ""
 
 msgid "Zoom in"
-msgstr ""
+msgstr "Приблизити"
 
 msgid "Zoom out"
-msgstr ""
+msgstr "Віддалити"
 
 msgid "Switch between Prepare/Preview"
 msgstr "Переключення між Підготовка/Попередній перегляд"
@@ -9493,7 +9516,7 @@ msgid ""
 msgstr ""
 
 msgid "Everywhere"
-msgstr ""
+msgstr "Всюди"
 
 msgid "Top and bottom surfaces"
 msgstr ""
@@ -10397,54 +10420,65 @@ msgid ""
 msgstr ""
 
 msgid "Loading speed"
-msgstr ""
+msgstr "Швидкість заведення"
 
 msgid "Speed used for loading the filament on the wipe tower."
 msgstr ""
+"Швидкість, що використовується для заведення філаменту на вежі витирання."
 
 msgid "Loading speed at the start"
-msgstr ""
+msgstr "Швидкість заведення на старті"
 
 msgid "Speed used at the very beginning of loading phase."
-msgstr ""
+msgstr "Швидкість, що використовується на самому початку фази заведення."
 
 msgid "Unloading speed"
-msgstr ""
+msgstr "Швидкість виведення"
 
 msgid ""
 "Speed used for unloading the filament on the wipe tower (does not affect  "
 "initial part of unloading just after ramming)."
 msgstr ""
+"Швидкість, яка використовується для виведення філаменту на вежі витирання "
+"(не впливає на початкову частину виведення безпосередньо після раммінгу)."
 
 msgid "Unloading speed at the start"
-msgstr ""
+msgstr "Швидкість виведення на старті"
 
 msgid ""
 "Speed used for unloading the tip of the filament immediately after ramming."
 msgstr ""
+"Швидкість, яка використовується для виведення кінчику філаменту "
+"безпосередньо після раммінгу."
 
 msgid "Delay after unloading"
-msgstr ""
+msgstr "Затримка після виведення"
 
 msgid ""
 "Time to wait after the filament is unloaded. May help to get reliable "
 "toolchanges with flexible materials that may need more time to shrink to "
 "original dimensions."
 msgstr ""
+"Час очікування після виведення філаменту. Може допомогти отримати надійну "
+"заміну інструменту для гнучких матеріалів, яким може знадобитися більше "
+"часу, щоб зменшитись до початкових розмірів."
 
 msgid "Number of cooling moves"
-msgstr ""
+msgstr "Кількість охолоджуючих рухів"
 
 msgid ""
 "Filament is cooled by being moved back and forth in the cooling tubes. "
 "Specify desired number of these moves."
 msgstr ""
+"Філамент охолоджується шляхом переміщення вперед-назад у охолоджувальних "
+"трубках. Вкажіть бажану кількість цих рухів."
 
 msgid "Speed of the first cooling move"
-msgstr ""
+msgstr "Швидкість першого охолоджуючого руху"
 
 msgid "Cooling moves are gradually accelerating beginning at this speed."
 msgstr ""
+"Охолоджувальні рухи поступово прискорюються, починаючи з цієї швидкості."
 
 msgid "Minimal purge on wipe tower"
 msgstr "Мінімальне продування на очисній вежі"
@@ -10464,30 +10498,38 @@ msgstr ""
 "послідовне заповненняабо видавлювання об'єкта, що витрачається."
 
 msgid "Speed of the last cooling move"
-msgstr ""
+msgstr "Швидкість останнього охолоджуючого руху"
 
 msgid "Cooling moves are gradually accelerating towards this speed."
-msgstr ""
+msgstr "Охолоджувальні рухи поступово прискорюються до цієї швидкості."
 
 msgid ""
 "Time for the printer firmware (or the Multi Material Unit 2.0) to load a new "
 "filament during a tool change (when executing the T code). This time is "
 "added to the total print time by the G-code time estimator."
 msgstr ""
+"Час для прошивки принтера (або Multi Material Unit 2.0), щоб завести новий "
+"філамент під час заміни інструменту (під час виконання коду Т). Цей час "
+"додається до загального часу друку за допомогою оцінювача часу G-коду."
 
 msgid "Ramming parameters"
-msgstr ""
+msgstr "Параметри раммінгу"
 
 msgid ""
 "This string is edited by RammingDialog and contains ramming specific "
 "parameters."
 msgstr ""
+"Цей рядок відредаговано у діалогу налаштувань раммінгу та містить певні "
+"параметри раммінгу."
 
 msgid ""
 "Time for the printer firmware (or the Multi Material Unit 2.0) to unload a "
 "filament during a tool change (when executing the T code). This time is "
 "added to the total print time by the G-code time estimator."
 msgstr ""
+"Час для прошивки принтера (або Multi Material Unit 2.0), щоб вивести "
+"філамент під час заміни інструменту (під час виконання коду Т). Цей час "
+"додається до загального часу друку за допомогою оцінювача часу G-коду."
 
 msgid "Enable ramming for multitool setups"
 msgstr ""
@@ -11485,7 +11527,7 @@ msgid ""
 msgstr ""
 
 msgid "mm³/s²"
-msgstr ""
+msgstr "мм³/с²"
 
 msgid "Smoothing segment length"
 msgstr ""
@@ -11538,12 +11580,14 @@ msgid "Diameter of nozzle"
 msgstr "Діаметр сопла"
 
 msgid "Configuration notes"
-msgstr ""
+msgstr "Примітки до конфігурації"
 
 msgid ""
 "You can put here your personal notes. This text will be added to the G-code "
 "header comments."
 msgstr ""
+"Ви можете додати тут свої особисті примітки. Цей текст буде додано до "
+"коментарів заголовка G-коду."
 
 msgid "Host Type"
 msgstr "Тип хоста"
@@ -11562,36 +11606,44 @@ msgid "Volume of nozzle between the cutter and the end of nozzle"
 msgstr "Об'єм сопла між різцем та кінцем сопла"
 
 msgid "Cooling tube position"
-msgstr ""
+msgstr "Позиція охолоджувальної трубки"
 
 msgid "Distance of the center-point of the cooling tube from the extruder tip."
 msgstr ""
+"Відстань центральної точки охолоджувальної трубки від наконечника екструдера."
 
 msgid "Cooling tube length"
-msgstr ""
+msgstr "Довжина охолоджувальної трубки"
 
 msgid "Length of the cooling tube to limit space for cooling moves inside it."
 msgstr ""
+"Довжина охолоджувальної трубки для обмеження простору для охолоджуючих рухів "
+"всередині неї."
 
 msgid "High extruder current on filament swap"
-msgstr ""
+msgstr "Звищення струму екструдера на заміні філамента"
 
 msgid ""
 "It may be beneficial to increase the extruder motor current during the "
 "filament exchange sequence to allow for rapid ramming feed rates and to "
 "overcome resistance when loading a filament with an ugly shaped tip."
 msgstr ""
+"Може бути корисно збільшити струм двигуна екструдера під час заміни "
+"філаменту, щоб забезпечити швидкий раммінг та подолати опір при заведенні "
+"філаменту з кінчиком потворної форми."
 
 msgid "Filament parking position"
-msgstr ""
+msgstr "Позиція паркування філаменту"
 
 msgid ""
 "Distance of the extruder tip from the position where the filament is parked "
 "when unloaded. This should match the value in printer firmware."
 msgstr ""
+"Відстань наконечника екструдера від місця паркування філаменту при "
+"виведенні. Це має відповідати значенню в мікропрограмі принтера."
 
 msgid "Extra loading distance"
-msgstr ""
+msgstr "Додаткова відстань заведення"
 
 msgid ""
 "When set to zero, the distance the filament is moved from parking position "
@@ -11599,6 +11651,10 @@ msgid ""
 "positive, it is loaded further,  if negative, the loading move is shorter "
 "than unloading."
 msgstr ""
+"Якщо встановлено на нуль, відстань, на яку філамент переміщується з "
+"положення стоянки під час заведення, є точно такою ж, як і при переміщенні "
+"назад під час виведення. Якщо позитивне, воно заводеться далі, якщо "
+"негативне, рух заведення коротший, ніж виведення."
 
 msgid "Start end points"
 msgstr "Початкові кінцеві точки"
@@ -12158,7 +12214,7 @@ msgid "How many layers of skirt. Usually only one layer"
 msgstr "Скільки шарів спідниці. Зазвичай лише один шар"
 
 msgid "Draft shield"
-msgstr ""
+msgstr "Чорновий щит"
 
 msgid ""
 "A draft shield is useful to protect an ABS or ASA print from warping and "
@@ -12297,7 +12353,7 @@ msgid "Start G-code when start the printing of this filament"
 msgstr "Стартовий G-code при запуску друку цим філаментом"
 
 msgid "Single Extruder Multi Material"
-msgstr ""
+msgstr "Мульти-матеріальний (ММ) друк з одним екструдером"
 
 msgid "Use single nozzle to print multi filament"
 msgstr ""
@@ -12331,14 +12387,20 @@ msgid ""
 "print the wipe tower. User is responsible for ensuring there is no collision "
 "with the print."
 msgstr ""
+"Якщо увімкнено, вежа витирання не друкується на шарах без змін інструментів. "
+"На шарах із зміною інструменту екструдер рухатиметься вниз, щоб надрукувати "
+"вежу витирання. Користувач несе відповідальність за те, щоб не було "
+"зіткнення з друком."
 
 msgid "Prime all printing extruders"
-msgstr ""
+msgstr "Підготовка всіх друкуючих екструдерів"
 
 msgid ""
 "If enabled, all printing extruders will be primed at the front edge of the "
 "print bed at the start of the print."
 msgstr ""
+"Якщо увімкнено, усі друкуючі екструдери будуть отестовані на передньому краї "
+"друкарського столу перед початком друку."
 
 msgid "Slice gap closing radius"
 msgstr "Радіус закриття пробілів під час нарізування"
@@ -12373,7 +12435,7 @@ msgid "Close holes"
 msgstr "Закрити отвори"
 
 msgid "Z offset"
-msgstr ""
+msgstr "Зміщення Z"
 
 msgid ""
 "This value will be added (or subtracted) from all the Z coordinates in the "
@@ -12381,6 +12443,10 @@ msgid ""
 "example, if your endstop zero actually leaves the nozzle 0.3mm far from the "
 "print bed, set this to -0.3 (or fix your endstop)."
 msgstr ""
+"Це значення буде додано/вилучено до/з усіх координат Z у вихідному G-коді. "
+"Воно використовується для зрівноваження поганої кінцевої позиції Z: "
+"наприклад, якщо ваш кінцевий нуль фактично залишає сопло на 0,3 мм від "
+"полотна друку, встановіть його на значення -0,3 (або виправте ваш endstop)."
 
 msgid "Enable support"
 msgstr "Увімкнути підтримку"
@@ -12890,10 +12956,10 @@ msgid "Width of prime tower"
 msgstr "Ширина основної вежі"
 
 msgid "Wipe tower rotation angle"
-msgstr ""
+msgstr "Кут повороту вежі витирання"
 
 msgid "Wipe tower rotation angle with respect to x-axis."
-msgstr ""
+msgstr "Кут повороту вежі витирання за віссю Х."
 
 msgid "Stabilization cone apex angle"
 msgstr ""
@@ -12983,10 +13049,10 @@ msgstr ""
 "включена первиннавежа."
 
 msgid "Maximal bridging distance"
-msgstr ""
+msgstr "Максимальна мостова відстань"
 
 msgid "Maximal distance between supports on sparse infill sections."
-msgstr ""
+msgstr "Максимальна відстань між підтримками на рідкісних ділянках заповнення."
 
 msgid "X-Y hole compensation"
 msgstr "Компенсація отвору XY"
@@ -13248,13 +13314,13 @@ msgid "Orient options: 0-disable, 1-enable, others-auto"
 msgstr ""
 
 msgid "Rotation angle around the Z axis in degrees."
-msgstr ""
+msgstr "Кут обертання навколо осі Z у градусах."
 
 msgid "Rotate around Y"
-msgstr ""
+msgstr "Обертати навколо осі Y"
 
 msgid "Rotation angle around the Y axis in degrees."
-msgstr ""
+msgstr "Кут обертання навколо осі Y у градусах."
 
 msgid "Data directory"
 msgstr "Каталог даних"
@@ -14356,7 +14422,7 @@ msgid "mm/mm"
 msgstr "мм/мм"
 
 msgid "Send G-Code to printer host"
-msgstr ""
+msgstr "Надіслання G-коду на хост друку"
 
 msgid "Upload to Printer Host with the following filename:"
 msgstr "Завантажити на хост принтера з наступним іменем файлу:"
