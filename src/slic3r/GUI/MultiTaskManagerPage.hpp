@@ -85,6 +85,7 @@ public:
     void refresh_user_device(bool clear = false);
     bool Show(bool show);
     void cancel_all(wxCommandEvent& evt);
+    void msw_rescale();
 
 private:
     SortItem                    m_sort;
@@ -142,6 +143,8 @@ public:
 
     void enable_buttons(bool enable);
     void page_num_enter_evt();
+
+    void msw_rescale();
 
 private:
     SortItem                    m_sort;

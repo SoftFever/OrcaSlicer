@@ -215,7 +215,7 @@ void EditGCodeDialog::init_params_list(const std::string& custom_gcode_name)
         // Add timestamp subgroup
 
         if (!cgp_timestamps_config_def.empty()) {
-            wxDataViewItem dimensions = m_params_list->AppendGroup(_L("Timestamps"), "print-time");
+            wxDataViewItem dimensions = m_params_list->AppendGroup(_L("Timestamps"), "custom-gcode_time");
             for (const auto& [opt_key, def] : cgp_timestamps_config_def.options)
                 m_params_list->AppendParam(dimensions, get_type(opt_key, def), opt_key);
         }
@@ -271,7 +271,16 @@ wxDataViewItem EditGCodeDialog::add_presets_placeholders()
     auto init_from_tab = [this, full_config](wxDataViewItem parent, Tab* tab, const set<string>& preset_keys){
         set extra_keys(preset_keys);
         for (const auto& page : tab->m_pages) {
-            wxDataViewItem subgroup = m_params_list->AppendSubGroup(parent, page->title(), "empty");
+            // ORCA: Pull icons from tabs for subgroups, icons are hidden on tabs
+            std::string icon_name = "empty"; // use empty icon if not defined
+            for (const auto& icons_list : tab->m_icon_index) {
+                if (icons_list.second == page->iconID()) {
+                    icon_name = icons_list.first;
+                    break;
+                }
+            }
+            wxDataViewItem subgroup = m_params_list->AppendSubGroup(parent, page->title(), icon_name); // Use icon instead empty icon
+
             std::set<std::string> opt_keys;
             for (const auto& optgroup : page->m_optgroups)
                 for (const auto& opt : optgroup->opt_map())
@@ -290,7 +299,7 @@ wxDataViewItem EditGCodeDialog::add_presets_placeholders()
 
     wxDataViewItem group = m_params_list->AppendGroup(_L("Presets"), "cog");
 
-    wxDataViewItem print = m_params_list->AppendSubGroup(group, _L("Print settings"), "cog");
+    wxDataViewItem print = m_params_list->AppendSubGroup(group, _L("Print settings"), "process");
     init_from_tab(print, tab_print, print_options);
 
     wxDataViewItem material = m_params_list->AppendSubGroup(group, _(is_fff ? L("Filament settings") : L("SLA Materials settings")), is_fff ? "filament" : "resin");

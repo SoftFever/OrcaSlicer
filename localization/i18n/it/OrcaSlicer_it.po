@@ -1,8 +1,9 @@
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-01 00:42+0800\n"
+"POT-Creation-Date: 2024-05-23 23:36+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1405,9 +1406,6 @@ msgstr ""
 "Il file di configurazione \"%1%\" è stato caricato, ma alcuni valori non "
 "sono stati riconosciuti."
 
-msgid "V"
-msgstr "V"
-
 msgid ""
 "OrcaSlicer will terminate because of running out of memory.It may be a bug. "
 "It will be appreciated if you report the issue to our team."
@@ -1516,6 +1514,9 @@ msgstr "Scegli uno o più file (3mf/step/stl/svg/obj/amf/usd*/abc/ply):"
 msgid "Choose one or more files (3mf/step/stl/svg/obj/amf):"
 msgstr "Scegli uno o più file (3mf/step/stl/svg/obj/amf):"
 
+msgid "Choose ZIP file"
+msgstr ""
+
 msgid "Choose one file (gcode/3mf):"
 msgstr "Scegli file (gcode/3mf):"
 
@@ -1585,6 +1586,11 @@ msgstr "Caricamenti in corso"
 
 msgid "Select a G-code file:"
 msgstr "Seleziona file G-code:"
+
+msgid ""
+"Could not start URL download. Destination folder is not set. Please choose "
+"destination folder in Configuration Wizard."
+msgstr ""
 
 msgid "Import File"
 msgstr "Importa File"
@@ -1910,6 +1916,9 @@ msgstr "Aggiungi primitiva"
 
 msgid "Add Handy models"
 msgstr "Aggiungi modelli Handy"
+
+msgid "Add Models"
+msgstr "Aggiungi modelli"
 
 msgid "Show Labels"
 msgstr "Mostra Etichette"
@@ -2413,7 +2422,7 @@ msgstr "Impossibile connettersi alla stampante"
 msgid "Connection to printer failed"
 msgstr "Connessione stampante fallita"
 
-msgid "Please check the network connection of the printer and Studio."
+msgid "Please check the network connection of the printer and Orca."
 msgstr "Controlla la connessione di rete della stampante e di Studio."
 
 msgid "Connecting..."
@@ -2438,7 +2447,7 @@ msgid "AMS not connected"
 msgstr "AMS non collegato"
 
 msgid "Load"
-msgstr ""
+msgstr "Load"
 
 msgid "Unload"
 msgstr "Scarica"
@@ -2503,6 +2512,8 @@ msgid ""
 "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically "
 "load or unload filaments."
 msgstr ""
+"Scegliere uno slot AMS, quindi premi il pulsante \"Carica\" o \"Scarica\" "
+"per caricare o scaricare automaticamente il filamento."
 
 msgid "Edit"
 msgstr "Modifica"
@@ -2772,14 +2783,8 @@ msgstr "Orca Slicer è concesso in licenza con "
 msgid "GNU Affero General Public License, version 3"
 msgstr "GNU Affero General Public License, versione 3"
 
-msgid ""
-"Orca Slicer is based on BambuStudio by Bambulab, which is from PrusaSlicer "
-"by Prusa Research.  PrusaSlicer is from Slic3r by Alessandro Ranellucci and "
-"the RepRap community"
+msgid "Orca Slicer is based on PrusaSlicer and BambuStudio"
 msgstr ""
-"Orca Slicer è basato su BambuStudio di Bambulab, che è di PrusaSlicer di "
-"Prusa Research.  PrusaSlicer è di Slic3r di Alessandro Ranellucci e della "
-"comunità RepRap"
 
 msgid "Libraries"
 msgstr "Librerie"
@@ -2989,7 +2994,7 @@ msgid "Print with the filament mounted on the back of chassis"
 msgstr "Stampa filamento con bobina esterna"
 
 msgid "Current Cabin humidity"
-msgstr ""
+msgstr "Current Cabin humidity"
 
 msgid ""
 "Please change the desiccant when it is too wet. The indicator may not "
@@ -2997,6 +3002,10 @@ msgid ""
 "desiccant pack is changed. it take hours to absorb the moisture, low "
 "temperatures also slow down the process."
 msgstr ""
+"Please change the desiccant when it is too wet. The indicator may not "
+"represent accurately in following cases: when the lid is open or the "
+"desiccant pack is changed. It takes a few hours to absorb the moisture, and "
+"low temperatures also slow down the process."
 
 msgid ""
 "Config which AMS slot should be used for a filament used in the print job"
@@ -3056,10 +3065,10 @@ msgstr ""
 "stesso marchio, tipo di materiale e colore)"
 
 msgid "DRY"
-msgstr ""
+msgstr "DRY"
 
 msgid "WET"
-msgstr ""
+msgstr "WET"
 
 msgid "AMS Settings"
 msgstr "Impostazioni AMS"
@@ -3079,6 +3088,8 @@ msgid ""
 "Note: if a new filament is inserted during  printing, the AMS will not "
 "automatically read any information until printing is completed."
 msgstr ""
+"Nota: se durante la stampa viene inserito un nuovo filamento, l'AMS non "
+"leggerà automaticamente alcuna informazione fino al termine della stampa."
 
 msgid ""
 "When inserting a new filament, the AMS will not automatically read its "
@@ -3131,12 +3142,14 @@ msgstr ""
 "quando il filamento corrente si esaurisce"
 
 msgid "Air Printing Detection"
-msgstr ""
+msgstr "Air Printing Detection"
 
 msgid ""
 "Detects clogging and filament grinding, halting printing immediately to "
 "conserve time and filament."
 msgstr ""
+"Detects clogging and filament grinding, halting printing immediately to "
+"conserve time and filament."
 
 msgid "File"
 msgstr "File"
@@ -3216,7 +3229,7 @@ msgid "Running post-processing scripts"
 msgstr "Esecuzione script di post-elaborazione"
 
 msgid "Successfully executed post-processing script"
-msgstr ""
+msgstr "Successfully executed post-processing script"
 
 msgid "Unknown error occured during exporting G-code."
 msgstr ""
@@ -3278,6 +3291,222 @@ msgid "Scheduling upload to `%1%`. See Window -> Print Host Upload Queue"
 msgstr ""
 "Programmazione del caricamento su `%1%`. Vedere finestra -> Coda di "
 "caricamento Host di Stampa"
+
+msgid "Device"
+msgstr "Dispositivo"
+
+msgid "Task Sending"
+msgstr "Task Sending"
+
+msgid "Task Sent"
+msgstr "Task Sent"
+
+msgid "Edit multiple printers"
+msgstr ""
+
+msgid "Select connected printetrs (0/6)"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Select Connected Printetrs (%d/6)"
+msgstr ""
+
+#, c-format, boost-format
+msgid "The maximum number of printers that can be selected is %d"
+msgstr ""
+
+msgid "Offline"
+msgstr "Offline"
+
+msgid "No task"
+msgstr "No task"
+
+msgid "View"
+msgstr "Vista"
+
+msgid "N/A"
+msgstr "N/D"
+
+msgid "Edit Printers"
+msgstr ""
+
+msgid "Device Name"
+msgstr "Device Name"
+
+msgid "Task Name"
+msgstr "Task Name"
+
+msgid "Device Status"
+msgstr "Device Status"
+
+msgid "Actions"
+msgstr "Actions"
+
+msgid ""
+"Please select the devices you would like to manage here (up to 6 devices)"
+msgstr ""
+
+msgid "Add"
+msgstr "Aggiungi"
+
+msgid "Idle"
+msgstr "Inattivo"
+
+msgid "Printing"
+msgstr "Stampa"
+
+msgid "Upgrading"
+msgstr ""
+
+msgid "Incompatible"
+msgstr "Non compatibile"
+
+msgid "syncing"
+msgstr ""
+
+msgid "Printing Finish"
+msgstr ""
+
+msgid "Printing Failed"
+msgstr ""
+
+msgid "PrintingPause"
+msgstr ""
+
+msgid "Prepare"
+msgstr "Prepara"
+
+msgid "Slicing"
+msgstr "Slicing"
+
+msgid "Pending"
+msgstr ""
+
+msgid "Sending"
+msgstr "Invio…"
+
+msgid "Sending Finish"
+msgstr ""
+
+msgid "Sending Cancel"
+msgstr ""
+
+msgid "Sending Failed"
+msgstr ""
+
+msgid "Print Success"
+msgstr ""
+
+msgid "Print Failed"
+msgstr ""
+
+msgid "Removed"
+msgstr ""
+
+msgid "Resume"
+msgstr "Continua"
+
+msgid "Stop"
+msgstr "Ferma"
+
+msgid "Task Status"
+msgstr "Task Status"
+
+msgid "Sent Time"
+msgstr "Sent Time"
+
+msgid "There are no tasks to be sent!"
+msgstr "There are no tasks to be sent!"
+
+msgid "No historical tasks!"
+msgstr "No historical tasks!"
+
+msgid "Loading..."
+msgstr "Caricamento…"
+
+msgid "No AMS"
+msgstr "No AMS"
+
+msgid "Send to Multi-device"
+msgstr "Send to Multi-device"
+
+msgid "Preparing print job"
+msgstr "Preparazione lavoro di stampa"
+
+msgid "Abnormal print file data. Please slice again"
+msgstr "Dati file di stampa anormali. Eseguire nuovamente l'elaborazione"
+
+msgid "There is no device available to send printing."
+msgstr ""
+
+msgid "The number of printers in use simultaneously cannot be equal to 0."
+msgstr ""
+
+msgid "Use External Spool"
+msgstr "Use External Spool"
+
+msgid "Use AMS"
+msgstr "Use AMS"
+
+msgid "Select Printers"
+msgstr "Select Printers"
+
+msgid "Ams Status"
+msgstr "AMS Status"
+
+msgid "Printing Options"
+msgstr "Printing Options"
+
+msgid "Bed Leveling"
+msgstr "Livellamento piano"
+
+msgid "Timelapse"
+msgstr "Timelapse"
+
+msgid "Flow Dynamic Calibration"
+msgstr ""
+
+msgid "Send Options"
+msgstr "Send Options"
+
+msgid "Send"
+msgstr "Invia"
+
+msgid ""
+"printers at the same time.(It depends on how many devices can undergo "
+"heating at the same time.)"
+msgstr ""
+"printers at the same time. (It depends on how many devices can undergo "
+"heating at the same time.)"
+
+msgid "Wait"
+msgstr "Wait"
+
+msgid ""
+"minute each batch.(It depends on how long it takes to complete the heating.)"
+msgstr ""
+"minute each batch. (It depends on how long it takes to complete heating.)"
+
+msgid "Name is invalid;"
+msgstr "Nome non valido;"
+
+msgid "illegal characters:"
+msgstr "Caratteri illegali:"
+
+msgid "illegal suffix:"
+msgstr "Suffisso illegale:"
+
+msgid "The name is not allowed to be empty."
+msgstr "Il campo nome non può essere vuoto."
+
+msgid "The name is not allowed to start with space character."
+msgstr "Il nome non può iniziare con uno spazio."
+
+msgid "The name is not allowed to end with space character."
+msgstr "Il nome non può terminare con uno spazio."
+
+msgid "The name length exceeds the limit."
+msgstr "La lunghezza del nome supera il limite."
 
 msgid "Origin"
 msgstr "Origine"
@@ -3354,14 +3583,18 @@ msgid ""
 "The recommended minimum temperature is less than 190 degree or the "
 "recommended maximum temperature is greater than 300 degree.\n"
 msgstr ""
+"La temperatura minima consigliata è inferiore a 190 gradi o la temperatura "
+"massima consigliata è superiore a 300 gradi.\n"
 
 msgid ""
 "The recommended minimum temperature cannot be higher than the recommended "
 "maximum temperature.\n"
 msgstr ""
+"The recommended minimum temperature cannot be higher than the recommended "
+"maximum temperature.\n"
 
 msgid "Please check.\n"
-msgstr ""
+msgstr "Controlla.\n"
 
 msgid ""
 "Nozzle may be blocked when the temperature is out of recommended range.\n"
@@ -3803,9 +4036,6 @@ msgstr "Impostazioni stampante"
 msgid "parameter name"
 msgstr "nome parametro"
 
-msgid "N/A"
-msgstr "N/D"
-
 #, c-format, boost-format
 msgid "%s can't be percentage"
 msgstr "%s non può essere una percentuale"
@@ -3819,7 +4049,7 @@ msgstr "Validazione parametri"
 
 #, c-format, boost-format
 msgid "Value %s is out of range. The valid range is from %d to %d."
-msgstr ""
+msgstr "Value %s is out of range. The valid range is from %d to %d."
 
 msgid "Value is out of range."
 msgstr "Valore fuori intervallo."
@@ -4010,10 +4240,10 @@ msgid "Normal mode"
 msgstr "Modalità normale"
 
 msgid "Total Filament"
-msgstr ""
+msgstr "Total Filament"
 
 msgid "Model Filament"
-msgstr ""
+msgstr "Model Filament"
 
 msgid "Prepare time"
 msgstr "Tempo preparazione"
@@ -4109,7 +4339,7 @@ msgid "Spacing"
 msgstr "Spaziatura"
 
 msgid "0 means auto spacing."
-msgstr ""
+msgstr "0 means auto spacing."
 
 msgid "Auto rotate for arrangement"
 msgstr "Ruota automaticamente per disporre"
@@ -4122,9 +4352,6 @@ msgstr "Evitare la regione di calibrazione dell'estrusione"
 
 msgid "Align to Y axis"
 msgstr "Allinea all'asse Y"
-
-msgid "Add"
-msgstr "Aggiungi"
 
 msgid "Add plate"
 msgstr "Aggiungi piatto"
@@ -4259,7 +4486,7 @@ msgid "Go Live"
 msgstr "Vai in diretta"
 
 msgid "Liveview Retry"
-msgstr ""
+msgstr "Riprova Liveview"
 
 msgid "Resolution"
 msgstr "Risoluzione"
@@ -4313,17 +4540,11 @@ msgstr "Chiusura dell'applicazione durante la modifica di alcuni preset."
 msgid "Logging"
 msgstr "Accesso"
 
-msgid "Prepare"
-msgstr "Prepara"
-
 msgid "Preview"
 msgstr "Anteprima"
 
-msgid "Device"
-msgstr "Dispositivo"
-
 msgid "Multi-device"
-msgstr ""
+msgstr "Multi-device"
 
 msgid "Project"
 msgstr "Progetto"
@@ -4349,9 +4570,6 @@ msgstr "Slice tutto"
 msgid "Export G-code file"
 msgstr "Esporta file G-code"
 
-msgid "Send"
-msgstr "Invia"
-
 msgid "Export plate sliced file"
 msgstr "Esporta il file del piatto elaborato"
 
@@ -4363,9 +4581,6 @@ msgstr "Stampa tutto"
 
 msgid "Send all"
 msgstr "Invia tutto"
-
-msgid "Send to Multi-device"
-msgstr ""
 
 msgid "Keyboard Shortcuts"
 msgstr "Scorciatoie Tastiera"
@@ -4475,6 +4690,12 @@ msgstr "Importa 3MF/STL/STEP/SVG/OBJ/AMF"
 msgid "Load a model"
 msgstr "Carica modello"
 
+msgid "Import Zip Archive"
+msgstr ""
+
+msgid "Load models contained within a zip archive"
+msgstr ""
+
 msgid "Import Configs"
 msgstr "Importa configurazioni"
 
@@ -4508,8 +4729,8 @@ msgstr "Esporta G-code"
 msgid "Export current plate as G-code"
 msgstr "Esporta piatto corrente come G-code"
 
-msgid "Export &Configs"
-msgstr "Esporta &Configurazioni"
+msgid "Export Preset Bundle"
+msgstr ""
 
 msgid "Export current configuration to files"
 msgstr "Esporta la configurazione corrente in file"
@@ -4610,9 +4831,6 @@ msgstr "Mostra la sporgenza dell'oggetto evidenziata nella scena 3D"
 msgid "Preferences"
 msgstr "Preferenze"
 
-msgid "View"
-msgstr "Vista"
-
 msgid "Help"
 msgstr "Aiuto"
 
@@ -4679,10 +4897,10 @@ msgstr "Esporta percorso strumen&to come OBJ"
 msgid "Export toolpaths as OBJ"
 msgstr "Esporta percorso strumento come OBJ"
 
-msgid "Open &Studio"
+msgid "Open &Slicer"
 msgstr "Aprire &Studio"
 
-msgid "Open Studio"
+msgid "Open Slicer"
 msgstr "Apri Studio"
 
 msgid "&Quit"
@@ -4790,44 +5008,48 @@ msgstr ""
 
 msgid "Player is malfunctioning. Please reinstall the system player."
 msgstr ""
+"Lettore non funzionante correttamente. Reinstallare il lettore di sistema."
 
 msgid "The player is not loaded, please click \"play\" button to retry."
-msgstr ""
+msgstr "Player non caricato; fai clic sul pulsante «play» per riprovare."
 
 msgid "Please confirm if the printer is connected."
-msgstr ""
+msgstr "Verifica che la stampante sia collegata."
 
 msgid ""
 "The printer is currently busy downloading. Please try again after it "
 "finishes."
-msgstr ""
+msgstr "La stampante è in fase di download. Attendi il completamento."
 
 msgid "Printer camera is malfunctioning."
-msgstr ""
+msgstr "La fotocamera della stampante non funziona correttamente."
 
 msgid "Problem occured. Please update the printer firmware and try again."
-msgstr ""
+msgstr "Si è verificato un problema. Aggiorna il firmware stampante e riprova."
 
 msgid ""
 "LAN Only Liveview is off. Please turn on the liveview on printer screen."
 msgstr ""
+"LAN Only Liveview is off. Please turn on the liveview on printer screen."
 
 msgid "Please enter the IP of printer to connect."
-msgstr ""
+msgstr "Inserisci l'IP stampante da connettere."
 
 msgid "Initializing..."
 msgstr "Inizializzazione ..."
 
 msgid "Connection Failed. Please check the network and try again"
-msgstr ""
+msgstr "Connessione fallita. Controlla la rete e riprova"
 
 msgid ""
 "Please check the network and try again, You can restart or update the "
 "printer if the issue persists."
 msgstr ""
+"Controlla la rete e riprova. Se il problema persiste prova ad aggiornare o "
+"riavviare la stampante."
 
 msgid "The printer has been logged out and cannot connect."
-msgstr ""
+msgstr "La stampante è stata disconnessa e non può connettersi."
 
 msgid "Stopped."
 msgstr "Interrotto."
@@ -4867,9 +5089,6 @@ msgstr "Informazione"
 msgid "Playing..."
 msgstr "Riproduzione..."
 
-msgid "Loading..."
-msgstr "Caricamento…"
-
 msgid "Year"
 msgstr "Anno"
 
@@ -4887,9 +5106,6 @@ msgstr "Raggruppa i file per mese, prima i recenti."
 
 msgid "Show all files, recent first."
 msgstr "Mostra tutti i file, prima i recenti."
-
-msgid "Timelapse"
-msgstr "Timelapse"
 
 msgid "Switch to timelapse files."
 msgstr "Passa ai file timelapse."
@@ -4922,7 +5138,7 @@ msgid "Refresh"
 msgstr "Aggiorna"
 
 msgid "Reload file list from printer."
-msgstr ""
+msgstr "Reload file list from printer."
 
 msgid "No printers."
 msgstr "Nessuna stampante."
@@ -4935,10 +5151,10 @@ msgid "Loading file list..."
 msgstr "Caricamento elenco file..."
 
 msgid "No files"
-msgstr ""
+msgstr "Nessun file"
 
 msgid "Load failed"
-msgstr ""
+msgstr "Load failed"
 
 msgid "Initialize failed (Device connection not ready)!"
 msgstr ""
@@ -4948,15 +5164,17 @@ msgid ""
 "Browsing file in SD card is not supported in current firmware. Please update "
 "the printer firmware."
 msgstr ""
+"Browsing file in SD card is not supported in current firmware. Please update "
+"the printer firmware."
 
 msgid "Initialize failed (Storage unavailable, insert SD card.)!"
 msgstr ""
 
 msgid "LAN Connection Failed (Failed to view sdcard)"
-msgstr ""
+msgstr "LAN Connection Failed (Failed to view sdcard)"
 
 msgid "Browsing file in SD card is not supported in LAN Only Mode."
-msgstr ""
+msgstr "Browsing file in SD card is not supported in LAN Only Mode."
 
 #, c-format, boost-format
 msgid "Initialize failed (%s)!"
@@ -4985,10 +5203,10 @@ msgid "Fetching model infomations ..."
 msgstr "Recupero informazioni del modello..."
 
 msgid "Failed to fetch model information from printer."
-msgstr ""
+msgstr "Impossibile recuperare le informazioni del modello dalla stampante."
 
 msgid "Failed to parse model information."
-msgstr ""
+msgstr "Impossibile analizzare le informazioni del modello"
 
 msgid ""
 "The .gcode.3mf file contains no G-code data.Please slice it with Orca Slicer "
@@ -5006,6 +5224,8 @@ msgid ""
 "File: %s\n"
 "Title: %s\n"
 msgstr ""
+"File: %s\n"
+"Title: %s\n"
 
 msgid "Download waiting..."
 msgstr "Download in attesa..."
@@ -5027,14 +5247,11 @@ msgid ""
 "Reconnecting the printer, the operation cannot be completed immediately, "
 "please try again later."
 msgstr ""
-
-msgid ""
-"Over 4 systems/handy are using remote access, you can close some and try "
-"again."
-msgstr ""
+"Reconnecting the printer, the operation cannot be completed immediately, "
+"please try again later."
 
 msgid "File does not exist."
-msgstr ""
+msgstr "Il file non esiste"
 
 msgid "File checksum error. Please retry."
 msgstr "Errore di checksum del file. Si prega di riprovare."
@@ -5091,12 +5308,6 @@ msgstr "Inverti asse di rollio"
 msgid "Printing Progress"
 msgstr "Avanzamento della stampa"
 
-msgid "Resume"
-msgstr "Continua"
-
-msgid "Stop"
-msgstr "Ferma"
-
 msgid "0"
 msgstr "0"
 
@@ -5143,7 +5354,7 @@ msgid "Control"
 msgstr "Controllo"
 
 msgid "Printer Parts"
-msgstr ""
+msgstr "Printer Parts"
 
 msgid "Print Options"
 msgstr "Opzioni stampa"
@@ -5391,7 +5602,7 @@ msgid "If you would like to try Orca Slicer Beta, you may click to"
 msgstr ""
 
 msgid "Download Beta Version"
-msgstr ""
+msgstr "Scarica la versione beta"
 
 msgid "The 3mf file version is newer than the current Orca Slicer version."
 msgstr ""
@@ -5400,13 +5611,13 @@ msgid "Update your Orca Slicer could enable all functionality in the 3mf file."
 msgstr ""
 
 msgid "Current Version: "
-msgstr ""
+msgstr "Versione corrente:"
 
 msgid "Latest Version: "
-msgstr ""
+msgstr "Ultima versione: "
 
 msgid "Not for now"
-msgstr ""
+msgstr "Not for now"
 
 msgid "3D Mouse disconnected."
 msgstr "Mouse 3D disconnesso."
@@ -5477,11 +5688,11 @@ msgstr[1] "%1$d oggetti sono stati caricati come parti di un oggetto tagliato"
 msgid "ERROR"
 msgstr "ERRORE"
 
-msgid "CANCELED"
-msgstr "ANNULLATO"
-
 msgid "COMPLETED"
 msgstr "COMPLETATO"
+
+msgid "CANCELED"
+msgstr "ANNULLATO"
 
 msgid "Cancel upload"
 msgstr "Annulla caricamento"
@@ -5595,13 +5806,13 @@ msgid "Filament Tangle Detect"
 msgstr "Rilevamento del groviglio del filamento"
 
 msgid "Nozzle Clumping Detection"
-msgstr ""
+msgstr "Nozzle Clumping Detection"
 
 msgid "Check if the nozzle is clumping by filament or other foreign objects."
-msgstr ""
+msgstr "Check if the nozzle is clumping by filament or other foreign objects."
 
 msgid "Nozzle Type"
-msgstr ""
+msgstr "Nozzle Type"
 
 msgid "Stainless Steel"
 msgstr "Acciaio inox"
@@ -5611,7 +5822,7 @@ msgstr "Acciaio temprato"
 
 #, c-format, boost-format
 msgid "%.1f"
-msgstr ""
+msgstr "%.1f"
 
 msgid "Global"
 msgstr "Globale"
@@ -5876,6 +6087,9 @@ msgstr ""
 "A causa di una codifica del testo non supportata, potrebbero apparire "
 "caratteri inutili!"
 
+msgid "Remember my choice."
+msgstr "Ricorda la mia scelta."
+
 #, boost-format
 msgid "Failed loading file \"%1%\". An invalid configuration was found."
 msgstr ""
@@ -6003,9 +6217,6 @@ msgstr "Impossibile ricaricare:"
 msgid "Error during reload"
 msgstr "Errore durante il ri-caricamento"
 
-msgid "Slicing"
-msgstr "Slicing"
-
 msgid "There are warnings after slicing models:"
 msgstr "Ci sono avvisi dopo aver elaborato i modelli:"
 
@@ -6067,22 +6278,24 @@ msgid "prepare 3mf file..."
 msgstr "preparazione file 3mf..."
 
 msgid "Download failed, unknown file format."
-msgstr ""
+msgstr "Download failed; unknown file format."
 
 msgid "downloading project ..."
 msgstr "Download progetto..."
 
 msgid "Download failed, File size exception."
-msgstr ""
+msgstr "Download failed; File size exception."
 
 #, c-format, boost-format
 msgid "Project downloaded %d%%"
 msgstr "Progetto scaricato %d%%"
 
 msgid ""
-"Importing to Bambu Studio failed. Please download the file and manually "
+"Importing to Orca Slicer failed. Please download the file and manually "
 "import it."
 msgstr ""
+"L'importazione di Orca Slicer non è riuscita. Si prega di scaricare il file "
+"e importarlo manualmente."
 
 msgid "Import SLA archive"
 msgstr "Importa archivio SLA"
@@ -6095,6 +6308,20 @@ msgstr "non contiene un g-code valido."
 
 msgid "Error occurs while loading G-code file"
 msgstr "Si è verificato un errore durante il caricamento del file G-code."
+
+#. TRN %1% is archive path
+#, boost-format
+msgid "Loading of a ZIP archive on path %1% has failed."
+msgstr ""
+
+#. TRN: First argument = path to file, second argument = error description
+#, boost-format
+msgid "Failed to unzip file to %1%: %2%"
+msgstr ""
+
+#, boost-format
+msgid "Failed to find unzipped file at %1%. Unzipping of file has failed."
+msgstr ""
 
 msgid "Drop project file"
 msgstr "Elimina il file di progetto"
@@ -6120,9 +6347,6 @@ msgstr "I file e i modelli G-code non possono essere caricati insieme!"
 msgid "Can not add models when in preview mode!"
 msgstr "Impossibile aggiungere modelli in modalità anteprima!"
 
-msgid "Add Models"
-msgstr "Aggiungi modelli"
-
 msgid "All objects will be removed, continue?"
 msgstr "Saranno rimossi tutti gli oggetti, continuare?"
 
@@ -6130,9 +6354,6 @@ msgid "The current project has unsaved changes, save it before continue?"
 msgstr ""
 "Il progetto corrente ha modifiche non salvate. Desideri salvarle prima di "
 "continuare?"
-
-msgid "Remember my choice."
-msgstr "Ricorda la mia scelta."
 
 msgid "Number of copies:"
 msgstr "Numero di copie:"
@@ -6167,22 +6388,24 @@ msgid ""
 "Unable to perform boolean operation on model meshes. Only positive parts "
 "will be kept. You may fix the meshes and try agian."
 msgstr ""
+"Unable to perform boolean operation on model meshes. Only positive parts "
+"will be kept. You may fix the meshes and try agian."
 
 #, boost-format
 msgid "Reason: part \"%1%\" is empty."
-msgstr ""
+msgstr "Reason: part \"%1%\" is empty."
 
 #, boost-format
 msgid "Reason: part \"%1%\" does not bound a volume."
-msgstr ""
+msgstr "Reason: part \"%1%\" does not bound a volume."
 
 #, boost-format
 msgid "Reason: part \"%1%\" has self intersection."
-msgstr ""
+msgstr "Reason: part \"%1%\" has self intersection."
 
 #, boost-format
 msgid "Reason: \"%1%\" and another part have no intersection."
-msgstr ""
+msgstr "Reason: \"%1%\" and another part have no intersection."
 
 msgid ""
 "Are you sure you want to store original SVGs with their local paths into the "
@@ -6341,6 +6564,11 @@ msgstr "Regione di accesso"
 msgid "Stealth Mode"
 msgstr "Modalità invisibile"
 
+msgid ""
+"This stops the transmission of data to Bambu's cloud services. Users who "
+"don't use BBL machines or use LAN mode only can safely turn on this function."
+msgstr ""
+
 msgid "Enable network plugin"
 msgstr "Abilita plugin di rete"
 
@@ -6364,6 +6592,10 @@ msgid ""
 "it is allowed to run multiple instances of same app from the command line. "
 "In such case this settings will allow only one instance."
 msgstr ""
+"Su OSX per impostazione predefinita c'è sempre una sola istanza dell'app in "
+"esecuzione. Tuttavia è consentito eseguire più istanze della stessa app da "
+"riga di comando. In tal caso, questa impostazione consentirà una sola "
+"istanza."
 
 msgid ""
 "If this is enabled, when starting OrcaSlicer and another instance of the "
@@ -6436,10 +6668,10 @@ msgstr "Se abilitato, calcola automaticamente ogni volta che il colore cambia."
 
 msgid ""
 "Flushing volumes: Auto-calculate every time when the filament is changed."
-msgstr ""
+msgstr "Flushing volumes: Auto-calculate every time the filament is changed."
 
 msgid "If enabled, auto-calculate every time when filament is changed"
-msgstr ""
+msgstr "If enabled, auto-calculate every time filament is changed"
 
 msgid "Remember printer configuration"
 msgstr ""
@@ -6449,13 +6681,15 @@ msgid ""
 "each printer automatically."
 msgstr ""
 
-msgid "Multi-device Management(Take effect after restarting Studio)."
+msgid "Multi-device Management(Take effect after restarting Orca)."
 msgstr ""
 
 msgid ""
 "With this option enabled, you can send a task to multiple devices at the "
 "same time and manage multiple devices."
 msgstr ""
+"With this option enabled, you can send a task to multiple devices at the "
+"same time and manage multiple devices."
 
 msgid "Network"
 msgstr "Rete"
@@ -6505,6 +6739,20 @@ msgstr ""
 "Se abilitata, imposta OrcaSlicer come applicazione predefinita per aprire "
 "\"\n"
 "\"i file .step."
+
+msgid "Current association: "
+msgstr ""
+
+msgid "Associate prusaslicer://"
+msgstr ""
+
+msgid "Not associated to any application"
+msgstr ""
+
+msgid ""
+"Associate OrcaSlicer with prusaslicer:// links so that Orca can open "
+"PrusaSlicer links from Printable.com"
+msgstr ""
 
 msgid "Maximum recent projects"
 msgstr "Numero massimo di progetti recenti"
@@ -6677,23 +6925,20 @@ msgstr "Seleziona/Rimuovi stampanti (preimpostazioni di sistema)"
 msgid "Create printer"
 msgstr "Creare una stampante"
 
-msgid "Incompatible"
-msgstr "Non compatibile"
-
 msgid "The selected preset is null!"
 msgstr "Il preset selezionato è nullo!"
 
 msgid "End"
-msgstr ""
+msgstr "End"
 
 msgid "Customize"
 msgstr "Personalizza"
 
 msgid "Other layer filament sequence"
-msgstr ""
+msgstr "Other layer filament sequence"
 
 msgid "Please input layer value (>= 2)."
-msgstr ""
+msgstr "Please input layer value (>= 2)."
 
 msgid "Plate name"
 msgstr "Nome Piatto"
@@ -6705,10 +6950,10 @@ msgid "Print sequence"
 msgstr "Sequenza di stampa"
 
 msgid "Same as Global"
-msgstr ""
+msgstr "Same as Global"
 
 msgid "Disable"
-msgstr ""
+msgstr "Disable"
 
 msgid "Spiral vase"
 msgstr "Vaso a spirale"
@@ -6776,15 +7021,6 @@ msgstr "Preset utente"
 msgid "Preset Inside Project"
 msgstr "Preset interno al Progetto"
 
-msgid "Name is invalid;"
-msgstr "Nome non valido;"
-
-msgid "illegal characters:"
-msgstr "Caratteri illegali:"
-
-msgid "illegal suffix:"
-msgstr "Suffisso illegale:"
-
 msgid "Name is unavailable."
 msgstr "Nome non disponibile."
 
@@ -6802,15 +7038,6 @@ msgstr ""
 
 msgid "Please note that saving action will replace this preset"
 msgstr "Tieni presente che il salvataggio sovrascriverà il preset corrente"
-
-msgid "The name is not allowed to be empty."
-msgstr "Il campo nome non può essere vuoto."
-
-msgid "The name is not allowed to start with space character."
-msgstr "Il nome non può iniziare con uno spazio."
-
-msgid "The name is not allowed to end with space character."
-msgstr "Il nome non può terminare con uno spazio."
 
 msgid "The name cannot be the same as a preset alias name."
 msgstr "Il nome non può essere uguale a quello di un preset."
@@ -6869,9 +7096,6 @@ msgstr "Non riesci a trovare i dispositivi?"
 msgid "Log out successful."
 msgstr "Log out riuscito."
 
-msgid "Offline"
-msgstr "Offline"
-
 msgid "Busy"
 msgstr "Occupato"
 
@@ -6895,9 +7119,6 @@ msgstr "Piastra PEI testurizzata Bambu"
 
 msgid "Send print job to"
 msgstr "Invia stampa a"
-
-msgid "Bed Leveling"
-msgstr "Livellamento piano"
 
 msgid "Flow Dynamics Calibration"
 msgstr "Calibrazione della dinamica del flusso"
@@ -6999,6 +7220,8 @@ msgid ""
 "The selected printer (%s) is incompatible with the chosen printer profile in "
 "the slicer (%s)."
 msgstr ""
+"The selected printer (%s) is incompatible with the chosen printer profile in "
+"the slicer (%s)."
 
 msgid "An SD card needs to be inserted to record timelapse."
 msgstr "È necessario inserire una scheda microSD per registrare un timelapse."
@@ -7066,15 +7289,20 @@ msgid ""
 "If you changed your nozzle lately, please go to Device > Printer Parts to "
 "change settings."
 msgstr ""
+"Your nozzle diameter in sliced file is not consistent with the saved nozzle. "
+"If you changed your nozzle lately, please go to Device > Printer Parts to "
+"change settings."
 
 #, c-format, boost-format
 msgid ""
 "Printing high temperature material(%s material) with %s may cause nozzle "
 "damage"
 msgstr ""
+"Printing high temperature material(%s material) with %s may cause nozzle "
+"damage"
 
 msgid "Please fix the error above, otherwise printing cannot continue."
-msgstr ""
+msgstr "Please fix the error above, otherwise printing cannot continue."
 
 msgid ""
 "Please click the confirm button if you still want to proceed with printing."
@@ -7086,15 +7314,6 @@ msgid ""
 msgstr ""
 "Collegamento alla stampante. Impossibile annullare durante il processo di "
 "connessione."
-
-msgid "Preparing print job"
-msgstr "Preparazione lavoro di stampa"
-
-msgid "Abnormal print file data. Please slice again"
-msgstr "Dati file di stampa anormali. Eseguire nuovamente l'elaborazione"
-
-msgid "The name length exceeds the limit."
-msgstr "La lunghezza del nome supera il limite."
 
 msgid ""
 "Caution to use! Flow calibration on Textured PEI Plate may fail due to the "
@@ -7110,7 +7329,7 @@ msgid "Modifying the device name"
 msgstr "Modifica nome del dispositivo"
 
 msgid "Bind with Pin Code"
-msgstr ""
+msgstr "Bind with Pin Code"
 
 msgid "Send to Printer SD card"
 msgstr "Invia a microSD stampante"
@@ -7171,21 +7390,23 @@ msgid ""
 "Please Find the Pin Code in Account page on printer screen,\n"
 " and type in the Pin Code below."
 msgstr ""
+"Please Find the Pin Code in Account page on printer screen,\n"
+" and type in the Pin Code below."
 
 msgid "Can't find Pin Code?"
-msgstr ""
+msgstr "Can't find Pin Code?"
 
 msgid "Pin Code"
-msgstr ""
+msgstr "Pin Code"
 
 msgid "Binding..."
-msgstr ""
+msgstr "Binding..."
 
 msgid "Please confirm on the printer screen"
-msgstr ""
+msgstr "Please confirm on the printer screen"
 
 msgid "Log in failed. Please check the Pin Code."
-msgstr ""
+msgstr "Log in failed. Please check the Pin Code."
 
 msgid "Log in printer"
 msgstr "Log in stampante"
@@ -7394,6 +7615,10 @@ msgid ""
 "reduce flush,  it may also elevate the risk of nozzle clogs or other "
 "printing complications."
 msgstr ""
+"Experimental feature: Retracting and cutting off the filament at a greater "
+"distance during filament changes to minimize flush. Although it can notably "
+"reduce flush,  it may also elevate the risk of nozzle clogs or other "
+"printing complications."
 
 msgid ""
 "Experimental feature: Retracting and cutting off the filament at a greater "
@@ -7401,6 +7626,10 @@ msgid ""
 "reduce flush, it may also elevate the risk of nozzle clogs or other printing "
 "complications.Please use with the latest printer firmware."
 msgstr ""
+"Experimental feature: Retracting and cutting off the filament at a greater "
+"distance during filament changes to minimize flush. Although it can notably "
+"reduce flush, it may also elevate the risk of nozzle clogs or other printing "
+"complications. Please use with the latest printer firmware."
 
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
@@ -7482,6 +7711,9 @@ msgstr "Filamento per supporti"
 
 msgid "Tree supports"
 msgstr "Supporti ad albero"
+
+msgid "Skirt"
+msgstr "Skirt"
 
 msgid "Prime tower"
 msgstr "Prime tower"
@@ -7902,12 +8134,14 @@ msgstr ""
 
 #, boost-format
 msgid "You have changed some settings of preset \"%1%\". "
-msgstr ""
+msgstr "You have changed some settings of preset \"%1%\". "
 
 msgid ""
 "\n"
 "You can save or discard the preset values you have modified."
 msgstr ""
+"\n"
+"You can save or discard the preset values you have modified."
 
 msgid ""
 "\n"
@@ -7916,7 +8150,7 @@ msgid ""
 msgstr ""
 
 msgid "You have previously modified your settings."
-msgstr ""
+msgstr "You have previously modified your settings."
 
 msgid ""
 "\n"
@@ -8412,6 +8646,12 @@ msgstr "Sposta il cursore 5 volte più velocemente"
 msgid "Shift+Mouse wheel"
 msgstr "Shift+Rotella mouse"
 
+msgid "Horizontal slider - Move to start position"
+msgstr ""
+
+msgid "Horizontal slider - Move to last position"
+msgstr ""
+
 msgid "Release Note"
 msgstr "Note di aggiornamento"
 
@@ -8442,40 +8682,40 @@ msgid "Done"
 msgstr "Fine"
 
 msgid "resume"
-msgstr ""
+msgstr "resume"
 
 msgid "Resume Printing"
-msgstr ""
+msgstr "Resume Printing"
 
 msgid "Resume Printing(defects acceptable)"
-msgstr ""
+msgstr "Resume Printing (defects acceptable)"
 
 msgid "Resume Printing(problem solved)"
-msgstr ""
+msgstr "Resume Printing (problem solved)"
 
 msgid "Stop Printing"
-msgstr ""
+msgstr "Stop Printing"
 
 msgid "Check Assistant"
-msgstr ""
+msgstr "Check Assistant"
 
 msgid "Filament Extruded, Continue"
-msgstr ""
+msgstr "Filament Extruded, Continue"
 
 msgid "Not Extruded Yet, Retry"
-msgstr ""
+msgstr "Not Extruded Yet, Retry"
 
 msgid "Finished, Continue"
-msgstr ""
+msgstr "Finished, Continue"
 
 msgid "Load Filament"
 msgstr "Carica"
 
 msgid "Filament Loaded, Resume"
-msgstr ""
+msgstr "Filament Loaded, Resume"
 
 msgid "View Liveview"
-msgstr ""
+msgstr "View Liveview"
 
 msgid "Confirm and Update Nozzle"
 msgstr "Conferma e aggiorna l'ugello"
@@ -8537,12 +8777,6 @@ msgstr "Versione:"
 msgid "Update firmware"
 msgstr "Aggiorna firmware"
 
-msgid "Printing"
-msgstr "Stampa"
-
-msgid "Idle"
-msgstr "Inattivo"
-
 msgid "Beta version"
 msgstr "Versione beta"
 
@@ -8578,7 +8812,7 @@ msgstr ""
 msgid ""
 "The firmware version is abnormal. Repairing and updating are required before "
 "printing. Do you want to update now? You can also update later on printer or "
-"update next time starting the studio."
+"update next time starting Orca."
 msgstr ""
 "La versione firmware è anomala. Prima di stampare, è necessario eseguire la "
 "riparazione e l'aggiornamento. Si desidera aggiornare ora? È possibile "
@@ -8722,9 +8956,6 @@ msgstr "Ponte interno"
 
 msgid "Gap infill"
 msgstr "Riempimento gap"
-
-msgid "Skirt"
-msgstr "Skirt"
 
 msgid "Support interface"
 msgstr "Interfaccia supporto"
@@ -9401,13 +9632,13 @@ msgid "First layer print sequence"
 msgstr "Sequenza di stampa del primo strato"
 
 msgid "Other layers print sequence"
-msgstr ""
+msgstr "Other layers print sequence"
 
 msgid "The number of other layers print sequence"
-msgstr ""
+msgstr "The number of other layers print sequence"
 
 msgid "Other layers filament sequence"
-msgstr ""
+msgstr "Other layers filament sequence"
 
 msgid "This G-code is inserted at every layer change before lifting z"
 msgstr ""
@@ -10345,10 +10576,10 @@ msgstr ""
 "nella stampa per oggetto."
 
 msgid "Nozzle height"
-msgstr ""
+msgstr "Altezza nozzle"
 
 msgid "The height of nozzle tip."
-msgstr ""
+msgstr "L'altezza punta del nozzle."
 
 msgid "Bed mesh min"
 msgstr "Maglia del letto min"
@@ -10770,8 +11001,8 @@ msgstr "Venditore di filamenti. Solo per lo spettacolo"
 msgid "(Undefined)"
 msgstr "(Indefinito)"
 
-msgid "Infill direction"
-msgstr "Direzione riempimento"
+msgid "Sparse infill direction"
+msgstr ""
 
 msgid ""
 "Angle for sparse infill pattern, which controls the start or main direction "
@@ -10779,6 +11010,20 @@ msgid ""
 msgstr ""
 "Questo è l'angolo della trama di riempimento che controlla l'inizio o la "
 "direzione principale delle linee."
+
+msgid "Solid infill direction"
+msgstr ""
+
+msgid ""
+"Angle for solid infill pattern, which controls the start or main direction "
+"of line"
+msgstr ""
+
+msgid "Rotate solid infill direction"
+msgstr ""
+
+msgid "Rotate the solid infill direction by 90° for each layer."
+msgstr ""
 
 msgid "Sparse infill density"
 msgstr "Densità riempimento"
@@ -10829,7 +11074,7 @@ msgid "Lightning"
 msgstr "Lightning"
 
 msgid "Cross Hatch"
-msgstr ""
+msgstr "Cross Hatch"
 
 msgid "Sparse infill anchor length"
 msgstr "Lunghezza dell'ancora di riempimento sparsa"
@@ -11123,24 +11368,30 @@ msgstr ""
 "larghezza linea irregolare e devono essere stampate più lentamente."
 
 msgid "Precise Z height"
-msgstr ""
+msgstr "Precise Z height"
 
 msgid ""
 "Enable this to get precise z height of object after slicing. It will get the "
 "precise object height by fine-tuning the layer heights of the last few "
 "layers. Note that this is an experimental parameter."
 msgstr ""
+"Enable this to get precise z height of object after slicing. It will get the "
+"precise object height by fine-tuning the layer heights of the last few "
+"layers. Note that this is an experimental parameter."
 
 msgid "Arc fitting"
 msgstr "Arc fitting"
 
 msgid ""
-"Enable this to get a G-code file which has G2 and G3 moves. And the fitting "
-"tolerance is same with resolution"
+"Enable this to get a G-code file which has G2 and G3 moves. The fitting "
+"tolerance is same as the resolution. \n"
+"\n"
+"Note: For klipper machines, this option is recomended to be disabled. "
+"Klipper does not benefit from arc commands as these are split again into "
+"line segments by the firmware. This results in a reduction in surface "
+"quality as line segments are converted to arcs by the slicer and then back "
+"to line segments by the firmware."
 msgstr ""
-"Abilita questa funzione per ottenere un file G-code con gli spostamenti "
-"circolari in G2 e G3. La tolleranza di adattamento è la stessa della "
-"risoluzione"
 
 msgid "Add line number"
 msgstr "Aggiungi numero di riga"
@@ -11374,13 +11625,25 @@ msgstr ""
 msgid "Infill/Wall overlap"
 msgstr "Sovrapposizione riempimento/parete"
 
+#, no-c-format, no-boost-format
 msgid ""
 "Infill area is enlarged slightly to overlap with wall for better bonding. "
-"The percentage value is relative to line width of sparse infill"
+"The percentage value is relative to line width of sparse infill. Set this "
+"value to ~10-15% to minimize potential over extrusion and accumulation of "
+"material resulting in rough top surfaces."
 msgstr ""
-"Ciò consente di allargare leggermente l'area di riempimento per sovrapporla "
-"alle pareti per una migliore adesione. Il valore percentuale è relativo alla "
-"larghezza della linea del riempimento."
+
+msgid "Top/Bottom solid infill/wall overlap"
+msgstr ""
+
+#, no-c-format, no-boost-format
+msgid ""
+"Top solid infill area is enlarged slightly to overlap with wall for better "
+"bonding and to minimize the appearance of pinholes where the top infill "
+"meets the walls. A value of 25-30% is a good starting point, minimising the "
+"appearance of pinholes. The percentage value is relative to line width of "
+"sparse infill"
+msgstr ""
 
 msgid "Speed of internal sparse infill"
 msgstr "Indica la velocità del riempimento interno."
@@ -12081,7 +12344,7 @@ msgstr ""
 "retrazione."
 
 msgid "Long retraction when cut(experimental)"
-msgstr ""
+msgstr "Long retraction when cut (experimental)"
 
 msgid ""
 "Experimental feature.Retracting and cutting off the filament at a longer "
@@ -12089,14 +12352,20 @@ msgid ""
 "significantly, it may also raise the risk of nozzle clogs or other printing "
 "problems."
 msgstr ""
+"Experimental feature: Retracting and cutting off the filament at a longer "
+"distance during changes to minimize purge.While this reduces flush "
+"significantly, it may also raise the risk of nozzle clogs or other printing "
+"problems."
 
 msgid "Retraction distance when cut"
-msgstr ""
+msgstr "Retraction distance when cut"
 
 msgid ""
 "Experimental feature.Retraction length before cutting off during filament "
 "change"
 msgstr ""
+"Experimental feature. Retraction length before cutting off during filament "
+"change"
 
 msgid "Z hop when retract"
 msgstr "Z hop in fase retrazione"
@@ -12477,6 +12746,29 @@ msgstr "Altezza skirt"
 msgid "How many layers of skirt. Usually only one layer"
 msgstr "Numero di layer skirt: solitamente uno"
 
+msgid "Draft shield"
+msgstr ""
+
+msgid ""
+"A draft shield is useful to protect an ABS or ASA print from warping and "
+"detaching from print bed due to wind draft. It is usually needed only with "
+"open frame printers, i.e. without an enclosure. \n"
+"\n"
+"Options:\n"
+"Enabled = skirt is as tall as the highest printed object.\n"
+"Limited = skirt is as tall as specified by skirt height.\n"
+"\n"
+"Note: With the draft shield active, the skirt will be printed at skirt "
+"distance from the object. Therefore, if brims are active it may intersect "
+"with them. To avoid this, increase the skirt distance value.\n"
+msgstr ""
+
+msgid "Limited"
+msgstr ""
+
+msgid "Enabled"
+msgstr ""
+
 msgid "Skirt loops"
 msgstr "Anelli skirt"
 
@@ -12491,6 +12783,17 @@ msgid "Speed of skirt, in mm/s. Zero means use default layer extrusion speed."
 msgstr ""
 "Velocità del gonna, in mm/s. Zero significa utilizzare la velocità di "
 "estrusione dello strato predefinita."
+
+msgid "Skirt minimum extrusion length"
+msgstr ""
+
+msgid ""
+"Minimum filament extrusion length in mm when printing the skirt. Zero means "
+"this feature is disabled.\n"
+"\n"
+"Using a non zero value is useful if the printer is set up to print without a "
+"prime line."
+msgstr ""
 
 msgid ""
 "The printing speed in exported gcode will be slowed down, when the estimated "
@@ -13272,6 +13575,31 @@ msgstr "Spaziatura delle linee di spurgo della torre di pulitura"
 msgid "Spacing of purge lines on the wipe tower."
 msgstr "Spaziatura delle linee di spurgo sulla torre di pulitura."
 
+msgid "Maximum wipe tower print speed"
+msgstr ""
+
+msgid ""
+"The maximum print speed when purging in the wipe tower and printing the wipe "
+"tower sparse layers. When purging, if the sparse infill speed or calculated "
+"speed from the filament max volumetric speed is lower, the lowest will be "
+"used instead.\n"
+"\n"
+"When printing the sparse layers, if the internal perimeter speed or "
+"calculated speed from the filament max volumetric speed is lower, the lowest "
+"will be used instead.\n"
+"\n"
+"Increasing this speed may affect the tower's stability as well as increase "
+"the force with which the nozzle collides with any blobs that may have formed "
+"on the wipe tower.\n"
+"\n"
+"Before increasing this parameter beyond the default of 90mm/sec, make sure "
+"your printer can reliably bridge at the increased speeds and that ooze when "
+"tool changing is well controlled.\n"
+"\n"
+"For the wipe tower external perimeters the internal perimeter speed is used "
+"regardless of this setting."
+msgstr ""
+
 msgid "Wipe tower extruder"
 msgstr "Estrusore torre di pulitura"
 
@@ -14050,7 +14378,7 @@ msgid "load_obj: failed to parse"
 msgstr "load_obj: analisi non riuscita"
 
 msgid "load mtl in obj: failed to parse"
-msgstr ""
+msgstr "load mtl in obj: failed to parse"
 
 msgid "The file contains polygons with more than 4 vertices."
 msgstr "Il file contiene poligoni con più di 4 vertici."
@@ -14187,6 +14515,11 @@ msgid ""
 "historical results. \n"
 "Do you still want to continue the calibration?"
 msgstr ""
+"This machine type can only hold 16 historical results per nozzle. You can "
+"delete the existing historical results and then start calibration. Or you "
+"can continue the calibration, but you cannot create new calibration "
+"historical results. \n"
+"Do you still want to continue the calibration?"
 
 msgid "Connecting to printer..."
 msgstr "Collegamento alla stampante..."
@@ -14205,12 +14538,17 @@ msgid ""
 "Only one of the results with the same name is saved. Are you sure you want "
 "to override the historical result?"
 msgstr ""
+"C'è già un risultato di calibrazione precedente con lo stesso nome: %s. Ne "
+"può essere salvato solo uno. Sei sicuro di voler sovrascrivere il risultato "
+"precedente?"
 
 #, c-format, boost-format
 msgid ""
 "This machine type can only hold %d history results per nozzle. This result "
 "will not be saved."
 msgstr ""
+"This machine type can only hold %d historical results per nozzle. This "
+"result will not be saved."
 
 msgid "Internal Error"
 msgstr "Errore interno"
@@ -14591,7 +14929,7 @@ msgid "Flow Dynamics Calibration Result"
 msgstr "Risultato della calibrazione della dinamica del flusso"
 
 msgid "New"
-msgstr ""
+msgstr "New"
 
 msgid "No History Result"
 msgstr "Nessun risultato della cronologia"
@@ -14607,19 +14945,19 @@ msgstr "Azione"
 
 #, c-format, boost-format
 msgid "This machine type can only hold %d history results per nozzle."
-msgstr ""
+msgstr "This machine type can only hold %d historical results per nozzle."
 
 msgid "Edit Flow Dynamics Calibration"
 msgstr "Modifica calibrazione dinamica flusso (Edit Flow Dynamics)"
 
 msgid "New Flow Dynamic Calibration"
-msgstr ""
+msgstr "New Flow Dynamic Calibration"
 
 msgid "Ok"
-msgstr ""
+msgstr "Ok"
 
 msgid "The filament must be selected."
-msgstr ""
+msgstr "The filament must be selected."
 
 msgid "Network lookup"
 msgstr "Ricerca network"
@@ -15019,6 +15357,9 @@ msgid ""
 "If you continue creating, the preset created will be displayed with its full "
 "name. Do you want to continue?"
 msgstr ""
+"Il nome del filamento %s che hai creato esiste già. \n"
+"Se continui nella creazione, il preset creato verrà visualizzato con il suo "
+"nome completo. Vuoi continuare?"
 
 msgid "Some existing presets have failed to be created, as follows:\n"
 msgstr ""
@@ -15252,11 +15593,15 @@ msgid ""
 "volumetric speed has a significant impact on printing quality. Please set "
 "them carefully."
 msgstr ""
+"Se necessario, vai alle impostazioni filamento per modificare i preset.\n"
+"Tieni presente che la temperatura del nozzle, la temperatura del piano e la "
+"massima velocità volumetrica hanno ciascuna un impatto significativo sulla "
+"qualità di stampa. Impostali con attenzione."
 
 msgid ""
 "\n"
 "\n"
-"Studio has detected that your user presets synchronization function is not "
+"Orca has detected that your user presets synchronization function is not "
 "enabled, which may result in unsuccessful Filament settings on the Device "
 "page. \n"
 "Click \"Sync user presets\" to enable the synchronization function."
@@ -15264,9 +15609,6 @@ msgstr ""
 
 msgid "Printer Setting"
 msgstr "Impostazione della stampante"
-
-msgid "Export Configs"
-msgstr "Esporta &Configurazioni"
 
 msgid "Printer config bundle(.orca_printer)"
 msgstr "Bundle di configurazione della stampante (.orca_printer)"
@@ -15375,7 +15717,7 @@ msgid "Please select a type you want to export"
 msgstr "Seleziona il tipo che desideri esportare"
 
 msgid "Failed to create temporary folder, please try Export Configs again."
-msgstr ""
+msgstr "Failed to create temporary folder, please try Export Configs again."
 
 msgid "Edit Filament"
 msgstr "Modifica filamento"
@@ -15671,30 +16013,43 @@ msgid ""
 "It has a small layer height, and results in almost negligible layer lines "
 "and high printing quality. It is suitable for most general printing cases."
 msgstr ""
+"It has a small layer height, and results in almost negligible layer lines "
+"and high print quality. It is suitable for most general printing cases."
 
 msgid ""
 "Compared with the default profile of a 0.2 mm nozzle, it has lower speeds "
 "and acceleration, and the sparse infill pattern is Gyroid. So, it results in "
 "much higher printing quality, but a much longer printing time."
 msgstr ""
+"Compared with the default profile of a 0.2 mm nozzle, it has lower speeds "
+"and acceleration, and the sparse infill pattern is Gyroid. This results in "
+"much higher print quality but a much longer print time."
 
 msgid ""
 "Compared with the default profile of a 0.2 mm nozzle, it has a slightly "
 "bigger layer height, and results in almost negligible layer lines, and "
 "slightly shorter printing time."
 msgstr ""
+"Compared with the default profile of a 0.2 mm nozzle, it has a slightly "
+"bigger layer height. This results in almost negligible layer lines and "
+"slightly longer print time."
 
 msgid ""
 "Compared with the default profile of a 0.2 mm nozzle, it has a bigger layer "
 "height, and results in slightly visible layer lines, but shorter printing "
 "time."
 msgstr ""
+"Compared with the default profile of a 0.2 mm nozzle, it has a bigger layer "
+"height. This results in slightly visible layer lines but shorter print time."
 
 msgid ""
 "Compared with the default profile of a 0.2 mm nozzle, it has a smaller layer "
 "height, and results in almost invisible layer lines and higher printing "
 "quality, but shorter printing time."
 msgstr ""
+"Compared with the default profile of a 0.2 mm nozzle, it has a smaller layer "
+"height. This results in almost invisible layer lines and higher print "
+"quality but longer print time."
 
 msgid ""
 "Compared with the default profile of a 0.2 mm nozzle, it has a smaller layer "
@@ -15702,12 +16057,19 @@ msgid ""
 "Gyroid. So, it results in almost invisible layer lines and much higher "
 "printing quality, but much longer printing time."
 msgstr ""
+"Compared with the default profile of a 0.2 mm nozzle, it has a smaller layer "
+"lines, lower speeds and acceleration, and the sparse infill pattern is "
+"Gyroid. This results in almost invisible layer lines and much higher print "
+"quality but much longer print time."
 
 msgid ""
 "Compared with the default profile of 0.2 mm nozzle, it has a smaller layer "
 "height, and results in minimal layer lines and higher printing quality, but "
 "shorter printing time."
 msgstr ""
+"Compared with the default profile of 0.2 mm nozzle, it has a smaller layer "
+"height. This results in minimal layer lines and higher print quality but "
+"longer print time."
 
 msgid ""
 "Compared with the default profile of a 0.2 mm nozzle, it has a smaller layer "
@@ -15715,35 +16077,53 @@ msgid ""
 "Gyroid. So, it results in minimal layer lines and much higher printing "
 "quality, but much longer printing time."
 msgstr ""
+"Compared with the default profile of a 0.2 mm nozzle, it has a smaller layer "
+"lines, lower speeds and acceleration, and the sparse infill pattern is "
+"Gyroid. This results in minimal layer lines and much higher print quality "
+"but much longer print time."
 
 msgid ""
 "It has a general layer height, and results in general layer lines and "
 "printing quality. It is suitable for most general printing cases."
 msgstr ""
+"It has a normal layer height, and results in average layer lines and print "
+"quality. It is suitable for most printing cases."
 
 msgid ""
 "Compared with the default profile of a 0.4 mm nozzle, it has more wall loops "
 "and a higher sparse infill density. So, it results in higher strength of the "
 "prints, but more filament consumption and longer printing time."
 msgstr ""
+"Compared with the default profile of a 0.4 mm nozzle, it has more wall loops "
+"and a higher sparse infill density. This results in higher print strength "
+"but more filament consumption and longer print time."
 
 msgid ""
 "Compared with the default profile of a 0.4 mm nozzle, it has a bigger layer "
 "height, and results in more apparent layer lines and lower printing quality, "
 "but slightly shorter printing time."
 msgstr ""
+"Compared with the default profile of a 0.4 mm nozzle, it has a bigger layer "
+"height. This results in more apparent layer lines and lower print quality "
+"but slightly shorter print time."
 
 msgid ""
 "Compared with the default profile of a 0.4 mm nozzle, it has a bigger layer "
 "height, and results in more apparent layer lines and lower printing quality, "
 "but shorter printing time."
 msgstr ""
+"Compared with the default profile of a 0.4 mm nozzle, it has a bigger layer "
+"height. This results in more apparent layer lines and lower print quality "
+"but shorter print time."
 
 msgid ""
 "Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer "
 "height, and results in less apparent layer lines and higher printing "
 "quality, but longer printing time."
 msgstr ""
+"Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer "
+"height. This results in less apparent layer lines and higher print quality "
+"but longer print time."
 
 msgid ""
 "Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer "
@@ -15751,12 +16131,19 @@ msgid ""
 "Gyroid. So, it results in less apparent layer lines and much higher printing "
 "quality, but much longer printing time."
 msgstr ""
+"Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer "
+"height, lower speeds and acceleration, and the sparse infill pattern is "
+"Gyroid. This results in less apparent layer lines and much higher print "
+"quality but much longer print time."
 
 msgid ""
 "Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer "
 "height, and results in almost negligible layer lines and higher printing "
 "quality, but longer printing time."
 msgstr ""
+"Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer "
+"height. This results in almost negligible layer lines and higher print "
+"quality but longer print time."
 
 msgid ""
 "Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer "
@@ -15764,64 +16151,95 @@ msgid ""
 "Gyroid. So, it results in almost negligible layer lines and much higher "
 "printing quality, but much longer printing time."
 msgstr ""
+"Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer "
+"height, lower speeds and acceleration, and the sparse infill pattern is "
+"Gyroid. This results in almost negligible layer lines and much higher print "
+"quality but much longer print time."
 
 msgid ""
 "Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer "
 "height, and results in almost negligible layer lines and longer printing "
 "time."
 msgstr ""
+"Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer "
+"height. This results in almost negligible layer lines and longer print time."
 
 msgid ""
 "It has a big layer height, and results in apparent layer lines and ordinary "
 "printing quality and printing time."
 msgstr ""
+"It has a big layer height, and results in apparent layer lines and ordinary "
+"printing quality and printing time."
 
 msgid ""
 "Compared with the default profile of a 0.6 mm nozzle, it has more wall loops "
 "and a higher sparse infill density. So, it results in higher strength of the "
 "prints, but more filament consumption and longer printing time."
 msgstr ""
+"Compared with the default profile of a 0.6 mm nozzle, it has more wall loops "
+"and a higher sparse infill density. This results in higher print strength "
+"but more filament consumption and longer print time."
 
 msgid ""
 "Compared with the default profile of a 0.6 mm nozzle, it has a bigger layer "
 "height, and results in more apparent layer lines and lower printing quality, "
 "but shorter printing time in some printing cases."
 msgstr ""
+"Compared with the default profile of a 0.6 mm nozzle, it has a bigger layer "
+"height. This results in more apparent layer lines and lower print quality "
+"but shorter print time in some cases."
 
 msgid ""
 "Compared with the default profile of a 0.6 mm nozzle, it has a bigger layer "
 "height, and results in much more apparent layer lines and much lower "
 "printing quality, but shorter printing time in some printing cases."
 msgstr ""
+"Compared with the default profile of a 0.6 mm nozzle, it has a bigger layer "
+"height. This results in much more apparent layer lines and much lower print "
+"quality, but shorter print time in some cases."
 
 msgid ""
 "Compared with the default profile of a 0.6 mm nozzle, it has a smaller layer "
 "height, and results in less apparent layer lines and slight higher printing "
 "quality, but longer printing time."
 msgstr ""
+"Compared with the default profile of a 0.6 mm nozzle, it has a smaller layer "
+"height. This results in less apparent layer lines and slightly higher print "
+"quality but longer print time."
 
 msgid ""
 "Compared with the default profile of a 0.6 mm nozzle, it has a smaller layer "
 "height, and results in less apparent layer lines and higher printing "
 "quality, but longer printing time."
 msgstr ""
+"Compared with the default profile of a 0.6 mm nozzle, it has a smaller layer "
+"height. This results in less apparent layer lines and higher print quality "
+"but longer print time."
 
 msgid ""
 "It has a very big layer height, and results in very apparent layer lines, "
 "low printing quality and general printing time."
 msgstr ""
+"It has a very big layer height, and results in very apparent layer lines, "
+"low print quality and shorter printing time."
 
 msgid ""
 "Compared with the default profile of a 0.8 mm nozzle, it has a bigger layer "
 "height, and results in very apparent layer lines and much lower printing "
 "quality, but shorter printing time in some printing cases."
 msgstr ""
+"Compared with the default profile of a 0.8 mm nozzle, it has a bigger layer "
+"height. This results in very apparent layer lines and much lower print "
+"quality but shorter print time in some cases."
 
 msgid ""
 "Compared with the default profile of a 0.8 mm nozzle, it has a much bigger "
 "layer height, and results in extremely apparent layer lines and much lower "
 "printing quality, but much shorter printing time in some printing cases."
 msgstr ""
+"Compared with the default profile of a 0.8 mm nozzle, it has a much bigger "
+"layer height. This results in extremely apparent layer lines and much lower "
+"print quality but much shorter print time in some cases."
 
 msgid ""
 "Compared with the default profile of a 0.8 mm nozzle, it has a slightly "
@@ -15829,12 +16247,18 @@ msgid ""
 "lines and slightly higher printing quality, but longer printing time in some "
 "printing cases."
 msgstr ""
+"Compared with the default profile of a 0.8 mm nozzle, it has a slightly "
+"smaller layer height. This results in slightly less but still apparent layer "
+"lines and slightly higher print quality, but longer print time in some cases."
 
 msgid ""
 "Compared with the default profile of a 0.8 mm nozzle, it has a smaller layer "
 "height, and results in less but still apparent layer lines and slightly "
 "higher printing quality, but longer printing time in some printing cases."
 msgstr ""
+"Compared with the default profile of a 0.8 mm nozzle, it has a smaller layer "
+"height. This results in less but still apparent layer lines and slightly "
+"higher print quality, but longer print time in some cases."
 
 msgid "Connected to Obico successfully!"
 msgstr ""
@@ -16265,6 +16689,43 @@ msgstr ""
 "aumentare in modo appropriato la temperatura del piano riscaldato può "
 "ridurre la probabilità di deformazione."
 
+#~ msgid "V"
+#~ msgstr "V"
+
+#~ msgid ""
+#~ "Orca Slicer is based on BambuStudio by Bambulab, which is from "
+#~ "PrusaSlicer by Prusa Research.  PrusaSlicer is from Slic3r by Alessandro "
+#~ "Ranellucci and the RepRap community"
+#~ msgstr ""
+#~ "Orca Slicer è basato su BambuStudio di Bambulab, che è di PrusaSlicer di "
+#~ "Prusa Research.  PrusaSlicer è di Slic3r di Alessandro Ranellucci e della "
+#~ "comunità RepRap"
+
+#~ msgid "Export &Configs"
+#~ msgstr "Esporta &Configurazioni"
+
+#~ msgid "Infill direction"
+#~ msgstr "Direzione riempimento"
+
+#~ msgid ""
+#~ "Enable this to get a G-code file which has G2 and G3 moves. And the "
+#~ "fitting tolerance is same with resolution"
+#~ msgstr ""
+#~ "Abilita questa funzione per ottenere un file G-code con gli spostamenti "
+#~ "circolari in G2 e G3. La tolleranza di adattamento è la stessa della "
+#~ "risoluzione"
+
+#~ msgid ""
+#~ "Infill area is enlarged slightly to overlap with wall for better bonding. "
+#~ "The percentage value is relative to line width of sparse infill"
+#~ msgstr ""
+#~ "Ciò consente di allargare leggermente l'area di riempimento per "
+#~ "sovrapporla alle pareti per una migliore adesione. Il valore percentuale "
+#~ "è relativo alla larghezza della linea del riempimento."
+
+#~ msgid "Export Configs"
+#~ msgstr "Esporta &Configurazioni"
+
 #~ msgid "Unload Filament"
 #~ msgstr "Scarica Filamento"
 
@@ -16289,13 +16750,6 @@ msgstr ""
 
 #~ msgid "HMS"
 #~ msgstr "HMS"
-
-#~ msgid ""
-#~ "Importing to Orca Slicer failed. Please download the file and manually "
-#~ "import it."
-#~ msgstr ""
-#~ "L'importazione di Orca Slicer non è riuscita. Si prega di scaricare il "
-#~ "file e importarlo manualmente."
 
 #~ msgid "- ℃"
 #~ msgstr "- °C"

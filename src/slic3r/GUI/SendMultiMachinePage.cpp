@@ -322,7 +322,38 @@ void SendMultiMachinePage::prepare(int plate_idx)
 
 void SendMultiMachinePage::on_dpi_changed(const wxRect& suggested_rect)
 {
+    m_select_checkbox->Rescale();
+    m_printer_name->Rescale();
+    m_printer_name->SetMinSize(wxSize(FromDIP(SEND_LEFT_DEV_NAME), FromDIP(SEND_ITEM_MAX_HEIGHT)));
+    m_printer_name->SetMaxSize(wxSize(FromDIP(SEND_LEFT_DEV_NAME), FromDIP(SEND_ITEM_MAX_HEIGHT)));
+    m_device_status->Rescale();
+    m_device_status->SetMinSize(wxSize(FromDIP(SEND_LEFT_DEV_STATUS), FromDIP(SEND_ITEM_MAX_HEIGHT)));
+    m_device_status->SetMaxSize(wxSize(FromDIP(SEND_LEFT_DEV_STATUS), FromDIP(SEND_ITEM_MAX_HEIGHT)));
+    m_ams->Rescale();
+    m_ams->SetMinSize(wxSize(FromDIP(TASK_LEFT_SEND_TIME), FromDIP(SEND_ITEM_MAX_HEIGHT)));
+    m_ams->SetMaxSize(wxSize(FromDIP(TASK_LEFT_SEND_TIME), FromDIP(SEND_ITEM_MAX_HEIGHT)));
+    m_refresh_button->Rescale();
+    m_refresh_button->SetMinSize(wxSize(FromDIP(50), FromDIP(SEND_ITEM_MAX_HEIGHT)));
+    m_refresh_button->SetMaxSize(wxSize(FromDIP(50), FromDIP(SEND_ITEM_MAX_HEIGHT)));
+    m_rename_button->msw_rescale();
+    print_time->msw_rescale();
+    print_weight->msw_rescale();
+    timeimg->SetBitmap(print_time->bmp());
+    weightimg->SetBitmap(print_weight->bmp());
+    m_button_add->Rescale();
+    m_button_add->SetMinSize(wxSize(FromDIP(90), FromDIP(36)));
+    m_button_add->SetMaxSize(wxSize(FromDIP(90), FromDIP(36)));
+    m_button_send->Rescale();
+    m_button_send->SetMinSize(wxSize(FromDIP(120), FromDIP(40)));
+    m_button_send->SetMinSize(wxSize(FromDIP(120), FromDIP(40)));
 
+    for (auto it = m_device_items.begin(); it != m_device_items.end(); ++it) {
+        it->second->Refresh();
+    }
+
+    Fit();
+    Layout();
+    Refresh();
 }
 
 void SendMultiMachinePage::on_sys_color_changed()
@@ -654,6 +685,13 @@ void SendMultiMachinePage::on_send(wxCommandEvent& event)
         }
     }
 
+
+    if (print_params.size() <= 0) {
+        MessageDialog msg_wingow(nullptr, _L("There is no device available to send printing."), "", wxICON_WARNING | wxOK);
+        msg_wingow.ShowModal();
+        return;
+    }
+
     if (wxGetApp().getTaskManager()) {
        TaskSettings settings;
 
@@ -672,6 +710,15 @@ void SendMultiMachinePage::on_send(wxCommandEvent& event)
 
            settings.sending_interval = std::stoi(app_config->get("sending_interval")) * 60;
            settings.max_sending_at_same_time = std::stoi(app_config->get("max_send"));
+
+           if (settings.max_sending_at_same_time <= 0) {
+               MessageDialog msg_wingow(nullptr, _L("The number of printers in use simultaneously cannot be equal to 0."), "", wxICON_WARNING | wxOK);
+               msg_wingow.ShowModal();
+               return;
+           }
+
+
+
            wxGetApp().getTaskManager()->start_print(print_params, &settings);
        }
        catch (...)
@@ -943,15 +990,18 @@ wxPanel* SendMultiMachinePage::create_page()
     m_title_sizer = new wxBoxSizer(wxHORIZONTAL);
 
     m_rename_switch_panel = new wxSimplebook(m_title_panel);
+    m_rename_switch_panel->SetMinSize(wxSize(FromDIP(240), FromDIP(25)));
+    m_rename_switch_panel->SetMaxSize(wxSize(FromDIP(240), FromDIP(25)));
 
     m_rename_normal_panel = new wxPanel(m_rename_switch_panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     m_rename_normal_panel->SetBackgroundColour(*wxWHITE);
     rename_sizer_v = new wxBoxSizer(wxVERTICAL);
     rename_sizer_h = new wxBoxSizer(wxHORIZONTAL);
 
-    m_task_name = new wxStaticText(m_rename_normal_panel, wxID_ANY, wxT("MyLabel"), wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END);
+    m_task_name = new wxStaticText(m_rename_normal_panel, wxID_ANY, wxT("MyLabel"), wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END | wxALIGN_CENTRE);
     m_task_name->SetFont(::Label::Body_13);
-    m_task_name->SetMaxSize(wxSize(FromDIP(390), -1));
+    m_task_name->SetMinSize(wxSize(FromDIP(200), -1));
+    m_task_name->SetMaxSize(wxSize(FromDIP(200), -1));
     m_rename_button = new ScalableButton(m_rename_normal_panel, wxID_ANY, "ams_editable");
     m_rename_button->SetBackgroundColour(*wxWHITE);
     rename_sizer_h->Add(m_task_name, 0, wxALIGN_CENTER, 0);
@@ -1253,9 +1303,9 @@ wxPanel* SendMultiMachinePage::create_page()
 
     // add printing options
     wxBoxSizer* title_print_option = create_item_title(_L("Printing Options"), main_page, "");
-    wxBoxSizer* item_bed_level = create_item_checkbox(_("Bed Leveling"), main_page, "", 50, "bed_leveling");
-    wxBoxSizer* item_timelapse = create_item_checkbox(_("Timelapse"), main_page, "", 50, "timelapse");
-    wxBoxSizer* item_flow_dy_ca = create_item_checkbox(_("Flow Dynamic Calibration"), main_page, "", 50, "flow_cali");
+    wxBoxSizer* item_bed_level = create_item_checkbox(_L("Bed Leveling"), main_page, "", 50, "bed_leveling");
+    wxBoxSizer* item_timelapse = create_item_checkbox(_L("Timelapse"), main_page, "", 50, "timelapse");
+    wxBoxSizer* item_flow_dy_ca = create_item_checkbox(_L("Flow Dynamic Calibration"), main_page, "", 50, "flow_cali");
     sizer->Add(title_print_option, 0, wxEXPAND, 0);
     wxBoxSizer* options_sizer_v = new wxBoxSizer(wxHORIZONTAL);
     options_sizer_v->Add(item_bed_level, 0, wxLEFT, 0);
