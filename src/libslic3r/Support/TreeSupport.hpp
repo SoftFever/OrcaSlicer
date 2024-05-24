@@ -413,7 +413,7 @@ private:
     SlicingParameters        m_slicing_params;
     // Various precomputed support parameters to be shared with external functions.
     SupportParameters   m_support_params;
-    size_t          m_raft_layers = 0;
+    size_t          m_raft_layers = 0;  // number of raft layers, including raft base, raft interface, raft gap
     size_t          m_highest_overhang_layer = 0;
     std::vector<std::vector<MinimumSpanningTree>> m_spanning_trees;
     std::vector< std::unordered_map<Line, bool, LineHash>> m_mst_line_x_layer_contour_caches;
