@@ -12,9 +12,9 @@
 	"printer_variant": "0.4",
 	"printable_area": [
 		"-140x-125",
-        "140x-125",
-        "140x125",
-        "-140x125"
+        	"140x-125",
+        	"140x125",
+        	"-140x125"
 	],
 	"printable_height": "300",
 	"extruder_offset": [ "-20", "10" ],
