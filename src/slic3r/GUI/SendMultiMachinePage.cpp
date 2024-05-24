@@ -1303,9 +1303,9 @@ wxPanel* SendMultiMachinePage::create_page()
 
     // add printing options
     wxBoxSizer* title_print_option = create_item_title(_L("Printing Options"), main_page, "");
-    wxBoxSizer* item_bed_level = create_item_checkbox(_("Bed Leveling"), main_page, "", 50, "bed_leveling");
-    wxBoxSizer* item_timelapse = create_item_checkbox(_("Timelapse"), main_page, "", 50, "timelapse");
-    wxBoxSizer* item_flow_dy_ca = create_item_checkbox(_("Flow Dynamic Calibration"), main_page, "", 50, "flow_cali");
+    wxBoxSizer* item_bed_level = create_item_checkbox(_L("Bed Leveling"), main_page, "", 50, "bed_leveling");
+    wxBoxSizer* item_timelapse = create_item_checkbox(_L("Timelapse"), main_page, "", 50, "timelapse");
+    wxBoxSizer* item_flow_dy_ca = create_item_checkbox(_L("Flow Dynamic Calibration"), main_page, "", 50, "flow_cali");
     sizer->Add(title_print_option, 0, wxEXPAND, 0);
     wxBoxSizer* options_sizer_v = new wxBoxSizer(wxHORIZONTAL);
     options_sizer_v->Add(item_bed_level, 0, wxLEFT, 0);
