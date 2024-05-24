@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-23 23:36+0800\n"
+"POT-Creation-Date: 2024-05-24 23:26+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -257,7 +257,7 @@ msgid "World coordinates"
 msgstr "Coordinate reali"
 
 msgid "Object coordinates"
-msgstr ""
+msgstr "Coordinate oggetto"
 
 msgid "°"
 msgstr "°"
@@ -1515,7 +1515,7 @@ msgid "Choose one or more files (3mf/step/stl/svg/obj/amf):"
 msgstr "Scegli uno o più file (3mf/step/stl/svg/obj/amf):"
 
 msgid "Choose ZIP file"
-msgstr ""
+msgstr "Seleziona il file ZIP"
 
 msgid "Choose one file (gcode/3mf):"
 msgstr "Scegli file (gcode/3mf):"
@@ -1591,6 +1591,9 @@ msgid ""
 "Could not start URL download. Destination folder is not set. Please choose "
 "destination folder in Configuration Wizard."
 msgstr ""
+"Impossibile avviare il download dell'URL. La cartella di destinazione non è "
+"impostata. Scegliere la cartella di destinazione nella Configurazione "
+"guidata."
 
 msgid "Import File"
 msgstr "Importa File"
@@ -3233,6 +3236,7 @@ msgstr "Successfully executed post-processing script"
 
 msgid "Unknown error occured during exporting G-code."
 msgstr ""
+"Si è verificato un errore sconosciuto durante l'esportazione del G-code."
 
 #, boost-format
 msgid ""
@@ -3240,6 +3244,9 @@ msgid ""
 "card is write locked?\n"
 "Error message: %1%"
 msgstr ""
+"Copia del G-code temporaneo sul G-code di uscita non riuscita. Forse la "
+"scheda SD è bloccata in scrittura?\n"
+"Messaggio di errore: %1%"
 
 #, boost-format
 msgid ""
@@ -3247,28 +3254,41 @@ msgid ""
 "problem with target device, please try exporting again or using different "
 "device. The corrupted output G-code is at %1%.tmp."
 msgstr ""
+"Copia del G-code temporaneo nel G-code di output non riuscita. Potrebbe "
+"esserci un problema nel dispositivo di destinazione, prova una nuova "
+"esportazione con un dispositivo diverso. Il file G-code corrotto è su %1%."
+"tmp."
 
 #, boost-format
 msgid ""
 "Renaming of the G-code after copying to the selected destination folder has "
 "failed. Current path is %1%.tmp. Please try exporting again."
 msgstr ""
+"Non è stato possibile rinominare il G-code dopo la copia nella cartella di "
+"destinazione selezionata. Il percorso corrente è %1%.tmp. Prova a esportare "
+"di nuovo."
 
 #, boost-format
 msgid ""
 "Copying of the temporary G-code has finished but the original code at %1% "
 "couldn't be opened during copy check. The output G-code is at %2%.tmp."
 msgstr ""
+"Copia del G-code temporaneo completata ma non è stato possibile aprire  il "
+"codice originale su %1% durante il controllo copia. Il G-code di output è su "
+"%2%.tmp."
 
 #, boost-format
 msgid ""
 "Copying of the temporary G-code has finished but the exported code couldn't "
 "be opened during copy check. The output G-code is at %1%.tmp."
 msgstr ""
+"Copia del G-code temporaneo completata ma non è stato possibile aprire il "
+"codice esportato durante il controllo copia. Il G-code di output è su %1%."
+"tmp."
 
 #, boost-format
 msgid "G-code file exported to %1%"
-msgstr ""
+msgstr "G-code esportato in %1%"
 
 msgid "Unknown error when export G-code."
 msgstr "Errore sconosciuto nell'esportazione del G-code."
@@ -3977,15 +3997,17 @@ msgstr "Modifica G-code personalizzato (%1%)"
 
 msgid "Built-in placeholders (Double click item to add to G-code)"
 msgstr ""
+"Placeholder incorporati (fai doppio clic sull'elemento per aggiungerlo al G-"
+"code)"
 
 msgid "Search gcode placeholders"
 msgstr ""
 
 msgid "Add selected placeholder to G-code"
-msgstr ""
+msgstr "Aggiungi il placeholder selezionato al G-code"
 
 msgid "Select placeholder"
-msgstr ""
+msgstr "Seleziona placeholder"
 
 msgid "[Global] Slicing State"
 msgstr ""
@@ -4012,11 +4034,11 @@ msgid "Temperatures"
 msgstr "Temperature"
 
 msgid "Timestamps"
-msgstr ""
+msgstr "Timestamp"
 
 #, boost-format
 msgid "Specific for %1%"
-msgstr ""
+msgstr "Specifico per %1%"
 
 msgid "Presets"
 msgstr "Preset"
@@ -6312,16 +6334,18 @@ msgstr "Si è verificato un errore durante il caricamento del file G-code."
 #. TRN %1% is archive path
 #, boost-format
 msgid "Loading of a ZIP archive on path %1% has failed."
-msgstr ""
+msgstr "Il caricamento di un archivio zip sul percorso %1% non è riuscito."
 
 #. TRN: First argument = path to file, second argument = error description
 #, boost-format
 msgid "Failed to unzip file to %1%: %2%"
-msgstr ""
+msgstr "Impossibile decomprimere il file su %1%: %2%"
 
 #, boost-format
 msgid "Failed to find unzipped file at %1%. Unzipping of file has failed."
 msgstr ""
+"Impossibile trovare il file decompresso su %1%. La decompressione del file "
+"non è riuscita."
 
 msgid "Drop project file"
 msgstr "Elimina il file di progetto"
@@ -12747,7 +12771,7 @@ msgid "How many layers of skirt. Usually only one layer"
 msgstr "Numero di layer skirt: solitamente uno"
 
 msgid "Draft shield"
-msgstr ""
+msgstr "Scudo di protezione"
 
 msgid ""
 "A draft shield is useful to protect an ABS or ASA print from warping and "
@@ -12764,10 +12788,10 @@ msgid ""
 msgstr ""
 
 msgid "Limited"
-msgstr ""
+msgstr "Limitato"
 
 msgid "Enabled"
-msgstr ""
+msgstr "Abilitato"
 
 msgid "Skirt loops"
 msgstr "Anelli skirt"

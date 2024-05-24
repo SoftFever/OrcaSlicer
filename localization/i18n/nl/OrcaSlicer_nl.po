@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-23 23:36+0800\n"
+"POT-Creation-Date: 2024-05-24 23:26+0800\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -100,7 +100,7 @@ msgid "Support Generated"
 msgstr "Ondersteuning gegenereerd"
 
 msgid "Gizmo-Place on Face"
-msgstr ""
+msgstr "Plaats op vlak"
 
 msgid "Lay on face"
 msgstr "Op deze zijde neerleggen."
@@ -182,13 +182,13 @@ msgid "Move"
 msgstr "Verplaats"
 
 msgid "Gizmo-Move"
-msgstr ""
+msgstr "Verplaatsen"
 
 msgid "Rotate"
 msgstr "Draai"
 
 msgid "Gizmo-Rotate"
-msgstr ""
+msgstr "Roteren"
 
 msgid "Optimize orientation"
 msgstr "Oriëntatie optimaliseren"
@@ -200,7 +200,7 @@ msgid "Scale"
 msgstr "Schalen"
 
 msgid "Gizmo-Scale"
-msgstr ""
+msgstr "Verschalen"
 
 msgid "Error: Please close all toolbar menus first"
 msgstr "Fout: sluit eerst alle openstaande hulpmiddelmenu's"
@@ -516,7 +516,7 @@ msgid "Connector"
 msgstr "Verbinding"
 
 msgid "Cut by Plane"
-msgstr ""
+msgstr "Snij met behulp van vlak"
 
 msgid "non-manifold edges be caused by cut tool, do you want to fix it now?"
 msgstr ""
@@ -675,7 +675,7 @@ msgid "Text move"
 msgstr ""
 
 msgid "Set Mirror"
-msgstr ""
+msgstr "Stel spiegeling in"
 
 msgid "Embossed text"
 msgstr ""
@@ -711,7 +711,7 @@ msgid "First font"
 msgstr ""
 
 msgid "Default font"
-msgstr ""
+msgstr "Standaard lettertype"
 
 msgid "Advanced"
 msgstr "Geavanceerd"
@@ -763,6 +763,7 @@ msgstr ""
 
 msgid "You can't change a type of the last solid part of the object."
 msgstr ""
+"U kunt het type van het laatste onderdeel van een object niet wijzigen."
 
 msgctxt "EmbossOperation"
 msgid "Cut"
@@ -1023,7 +1024,7 @@ msgstr ""
 #. TRN - Input label. Be short as possible
 #. Align Top|Middle|Bottom and Left|Center|Right
 msgid "Alignment"
-msgstr ""
+msgstr "Uitlijning"
 
 #. TRN - Input label. Be short as possible
 msgid "Char gap"
@@ -1079,7 +1080,7 @@ msgid "SVG actions"
 msgstr ""
 
 msgid "SVG"
-msgstr ""
+msgstr "SVG"
 
 #, boost-format
 msgid "Opacity (%1%)"
@@ -1166,7 +1167,7 @@ msgid "Bake into model as uneditable part"
 msgstr ""
 
 msgid "Save as"
-msgstr ""
+msgstr "Opslaan Als"
 
 msgid "Save SVG file"
 msgstr ""
@@ -1192,7 +1193,7 @@ msgid "Lock/unlock the aspect ratio of the SVG."
 msgstr ""
 
 msgid "Reset scale"
-msgstr ""
+msgstr "Reset verschaling"
 
 msgid "Distance of the center of the SVG to the model surface."
 msgstr ""
@@ -1201,16 +1202,16 @@ msgid "Reset distance"
 msgstr ""
 
 msgid "Reset rotation"
-msgstr ""
+msgstr "Reset rotatie"
 
 msgid "Lock/unlock rotation angle when dragging above the surface."
 msgstr ""
 
 msgid "Mirror vertically"
-msgstr ""
+msgstr "Verticaal spiegelen"
 
 msgid "Mirror horizontally"
-msgstr ""
+msgstr "Spiegel horizontaal"
 
 #. TRN: This is the name of the action that shows in undo/redo stack (changing part type from SVG to something else).
 msgid "Change SVG Type"
@@ -2554,13 +2555,13 @@ msgid "Bed filling done."
 msgstr "Bed filling done."
 
 msgid "Searching for optimal orientation"
-msgstr ""
+msgstr "Zoeken naar optimale oriëntatie"
 
 msgid "Orientation search canceled."
-msgstr ""
+msgstr "Oriëntatie zoeken geannuleerd."
 
 msgid "Orientation found."
-msgstr ""
+msgstr "Oriëntatie gevonden."
 
 msgid "Logging in"
 msgstr "Bezig met inloggen"
@@ -3180,7 +3181,7 @@ msgid "Successfully executed post-processing script"
 msgstr "Successfully executed post-processing script"
 
 msgid "Unknown error occured during exporting G-code."
-msgstr ""
+msgstr "Onbekende fout opgetreden tijdens exporteren van de G-code."
 
 #, boost-format
 msgid ""
@@ -3188,6 +3189,9 @@ msgid ""
 "card is write locked?\n"
 "Error message: %1%"
 msgstr ""
+"Fout bij het exporteren naar output-G-code. Is de SD-kaart geblokkeerd tegen "
+"schrijven?\n"
+"Foutbericht: %1%"
 
 #, boost-format
 msgid ""
@@ -3195,28 +3199,37 @@ msgid ""
 "problem with target device, please try exporting again or using different "
 "device. The corrupted output G-code is at %1%.tmp."
 msgstr ""
+"Fout bij het exporteren naar output-G-code. Het probleem ligt mogelijk bij "
+"het doelapparaat. Probeer het opnieuw te exporteren of gebruik een ander "
+"apparat. De beschadigde G-code is opgeslagen als %1%.tmp."
 
 #, boost-format
 msgid ""
 "Renaming of the G-code after copying to the selected destination folder has "
 "failed. Current path is %1%.tmp. Please try exporting again."
 msgstr ""
+"Fout bij het exporteren naar output-G-code. Hernoemen van het bestand "
+"mislukt. Huidige locatie is %1%.tmp. Probeer opnieuw te exporteren."
 
 #, boost-format
 msgid ""
 "Copying of the temporary G-code has finished but the original code at %1% "
 "couldn't be opened during copy check. The output G-code is at %2%.tmp."
 msgstr ""
+"Fout bij het exporteren naar output-G-code. Exporteren gelukt, maar kan het "
+"bestand %1% niet openen om te controleren. De output is %2%.tmp."
 
 #, boost-format
 msgid ""
 "Copying of the temporary G-code has finished but the exported code couldn't "
 "be opened during copy check. The output G-code is at %1%.tmp."
 msgstr ""
+"Fout bij het exporteren naar output-G-code. Exporteren gelukt, maar kan het "
+"bestand niet openen om te controleren. De output is %1%.tmp."
 
 #, boost-format
 msgid "G-code file exported to %1%"
-msgstr ""
+msgstr ".gcode-bestand geëxporteerd naar %1%"
 
 msgid "Unknown error when export G-code."
 msgstr "Onbekende fout tijdens het exporteren van de G-code"
@@ -3950,7 +3963,7 @@ msgid "Dimensions"
 msgstr ""
 
 msgid "Temperatures"
-msgstr ""
+msgstr "Temperaturen"
 
 msgid "Timestamps"
 msgstr ""
@@ -5941,10 +5954,10 @@ msgstr ""
 "vloeiende modus."
 
 msgid "Expand sidebar"
-msgstr ""
+msgstr "Zijbalk uitklappen"
 
 msgid "Collapse sidebar"
-msgstr ""
+msgstr "Zijbalk inklappen"
 
 #, c-format, boost-format
 msgid "Loading file: %s"
@@ -6232,7 +6245,7 @@ msgid ""
 msgstr ""
 
 msgid "Import SLA archive"
-msgstr ""
+msgstr "Importeer SLA-archief"
 
 msgid "The selected file"
 msgstr "Het geselecteerde bestand"
@@ -6354,7 +6367,7 @@ msgid "Is the printer ready? Is the print sheet in place, empty and clean?"
 msgstr ""
 
 msgid "Upload and Print"
-msgstr ""
+msgstr "Upload en print"
 
 msgid ""
 "Print By Object: \n"
@@ -6534,7 +6547,7 @@ msgid ""
 msgstr ""
 
 msgid "Home"
-msgstr ""
+msgstr "Thuis"
 
 msgid "Default Page"
 msgstr ""
@@ -6565,10 +6578,12 @@ msgstr ""
 "2D window center."
 
 msgid "Use free camera"
-msgstr ""
+msgstr "Gebruik vrij beweegbare camera"
 
 msgid "If enabled, use free camera. If not enabled, use constrained camera."
 msgstr ""
+"Als dit is ingeschakeld wordt de vrij beweegbare camera gebruikt, anders een "
+"vaste camera."
 
 msgid "Reverse mouse zoom"
 msgstr ""
@@ -6577,7 +6592,7 @@ msgid "If enabled, reverses the direction of zoom with mouse wheel."
 msgstr ""
 
 msgid "Show splash screen"
-msgstr ""
+msgstr "Toon startscherm"
 
 msgid "Show the splash screen during startup."
 msgstr ""
@@ -6624,7 +6639,7 @@ msgstr ""
 "same time and manage multiple devices."
 
 msgid "Network"
-msgstr ""
+msgstr "Netwerk"
 
 msgid "Auto sync user presets(Printer/Filament/Process)"
 msgstr ""
@@ -7642,7 +7657,7 @@ msgid "Tree supports"
 msgstr ""
 
 msgid "Skirt"
-msgstr ""
+msgstr "Skirt"
 
 msgid "Prime tower"
 msgstr "Prime toren"
@@ -7815,13 +7830,13 @@ msgid "Multimaterial"
 msgstr ""
 
 msgid "Wipe tower parameters"
-msgstr ""
+msgstr "Afveegblokparameters"
 
 msgid "Toolchange parameters with single extruder MM printers"
-msgstr ""
+msgstr "Toolwisselparameter voor multi-materialprinters met één extruder"
 
 msgid "Ramming settings"
-msgstr ""
+msgstr "Ramming-instellingen"
 
 msgid "Toolchange parameters with multi extruder MM printers"
 msgstr ""
@@ -7896,10 +7911,10 @@ msgid "Single extruder multimaterial setup"
 msgstr ""
 
 msgid "Wipe tower"
-msgstr ""
+msgstr "Afveegblok"
 
 msgid "Single extruder multimaterial parameters"
-msgstr ""
+msgstr "Parameter voor multi-material met één extruder"
 
 msgid "Layer height limits"
 msgstr "Limieten voor laaghoogte"
@@ -8206,7 +8221,7 @@ msgid "The configuration is up to date."
 msgstr "De configuratie is up to date."
 
 msgid "Ramming customization"
-msgstr ""
+msgstr "Ramming aanpassen"
 
 msgid ""
 "Ramming denotes the rapid extrusion just before a tool change in a single-"
@@ -8219,21 +8234,31 @@ msgid ""
 "This is an expert-level setting, incorrect adjustment will likely lead to "
 "jams, extruder wheel grinding into filament etc."
 msgstr ""
+"Ramming wordt gebruikt voor het snel extruderen vlak voor een toolwisseling "
+"bij multi-materialprinters met één extruder. Het doel daarvan is om het "
+"einde van het ongeladen filament goed te vormen (zodat het later weer "
+"geladen kan worden) en nieuw filament niet verhinderd wordt. Deze fase is "
+"belangrijk. Verschillende materialen vereisen verschillende "
+"extrusiesnelheden voor de juiste vorm. Daarom zijn de waarden tijdens de "
+"ramming aan te passen.\n"
+"\n"
+"Dit is een expert-level instelling. Onjuiste aanpassingen kunnen zorgen voor "
+"verstoppingen en andere problemen."
 
 msgid "Total ramming time"
-msgstr ""
+msgstr "Totale ramming-tijd"
 
 msgid "s"
 msgstr "s"
 
 msgid "Total rammed volume"
-msgstr ""
+msgstr "Totaal ramming-volume"
 
 msgid "Ramming line width"
-msgstr ""
+msgstr "Lijnbreedte voor ramming"
 
 msgid "Ramming line spacing"
-msgstr ""
+msgstr "Lijnafstand voor ramming"
 
 msgid "Auto-Calc"
 msgstr "Automatisch berekenen"
@@ -8474,10 +8499,10 @@ msgid "Gizmo Text emboss / engrave"
 msgstr ""
 
 msgid "Zoom in"
-msgstr ""
+msgstr "Zoom in"
 
 msgid "Zoom out"
-msgstr ""
+msgstr "Zoom uit"
 
 msgid "Switch between Prepare/Preview"
 msgstr ""
@@ -9171,16 +9196,23 @@ msgid ""
 "each layer to prevent loss of floating point accuracy. Add \"G92 E0\" to "
 "layer_gcode."
 msgstr ""
+"Relatieve extruderwaarden vereist het resetten van de extruderpositie op "
+"elke laag om decimale onnauwkeurigheid te voorkomen. Voeg \"G92 E0\" toe aan "
+"layer_gcode."
 
 msgid ""
 "\"G92 E0\" was found in before_layer_gcode, which is incompatible with "
 "absolute extruder addressing."
 msgstr ""
+"\"G92 E0\" gevonden in before_layer_gcode, wat niet compatibel is met "
+"absolute positionering."
 
 msgid ""
 "\"G92 E0\" was found in layer_gcode, which is incompatible with absolute "
 "extruder addressing."
 msgstr ""
+"\"G92 E0\" gevonden in layer_gcode, wat niet compatibel is met absolute "
+"positionering."
 
 #, c-format, boost-format
 msgid "Plate %d: %s does not support filament %s"
@@ -9548,7 +9580,7 @@ msgid ""
 msgstr ""
 
 msgid "Everywhere"
-msgstr ""
+msgstr "Overal"
 
 msgid "Top and bottom surfaces"
 msgstr ""
@@ -10025,7 +10057,7 @@ msgid ""
 msgstr ""
 
 msgid "Disabled"
-msgstr ""
+msgstr "Uit"
 
 msgid "Limited filtering"
 msgstr ""
@@ -10447,54 +10479,64 @@ msgid ""
 msgstr ""
 
 msgid "Loading speed"
-msgstr ""
+msgstr "Laadsnelheid"
 
 msgid "Speed used for loading the filament on the wipe tower."
-msgstr ""
+msgstr "Snelheid die gebruikt wordt voor het afveegblok."
 
 msgid "Loading speed at the start"
-msgstr ""
+msgstr "Laadsnelheid aan het begin"
 
 msgid "Speed used at the very beginning of loading phase."
-msgstr ""
+msgstr "Snelheid die gebruikt wordt aan het begin van de laadfase."
 
 msgid "Unloading speed"
-msgstr ""
+msgstr "Ontlaadsnelheid"
 
 msgid ""
 "Speed used for unloading the filament on the wipe tower (does not affect  "
 "initial part of unloading just after ramming)."
 msgstr ""
+"Snelheid die gebruikt wordt voor het ontladen van het afveegblok (heeft geen "
+"effect op het initiële onderdeel van het ontladen direct na de ramming)."
 
 msgid "Unloading speed at the start"
-msgstr ""
+msgstr "Ontlaadsnelheid in het begin"
 
 msgid ""
 "Speed used for unloading the tip of the filament immediately after ramming."
 msgstr ""
+"Snelheid die gebruikt wordt voor het ontladen van het filament direct na de "
+"ramming."
 
 msgid "Delay after unloading"
-msgstr ""
+msgstr "Vertraging na het ontladen"
 
 msgid ""
 "Time to wait after the filament is unloaded. May help to get reliable "
 "toolchanges with flexible materials that may need more time to shrink to "
 "original dimensions."
 msgstr ""
+"Wachttijd voor het ontladen van het filament. Dit kan helpen om betrouwbare "
+"toolwisselingen te krijgen met flexibele materialen die meer tijd nodig "
+"hebben om te krimpen naar de originele afmetingen."
 
 msgid "Number of cooling moves"
-msgstr ""
+msgstr "Aantal koelbewegingen"
 
 msgid ""
 "Filament is cooled by being moved back and forth in the cooling tubes. "
 "Specify desired number of these moves."
 msgstr ""
+"Het filament wordt gekoeld tijdens het terug en voorwaarts bewegen in de "
+"koelbuis. Specificeer het benodigd aantal bewegingen."
 
 msgid "Speed of the first cooling move"
-msgstr ""
+msgstr "Snelheid voor de eerste koelbeweging"
 
 msgid "Cooling moves are gradually accelerating beginning at this speed."
 msgstr ""
+"Koelbewegingen worden gelijkmatig versneld, beginnend vanaf deze snelheid."
 
 msgid "Minimal purge on wipe tower"
 msgstr "Minimale filament reiniging op de wipe tower"
@@ -10508,30 +10550,38 @@ msgid ""
 msgstr ""
 
 msgid "Speed of the last cooling move"
-msgstr ""
+msgstr "Snelheid voor de laatste koelbeweging"
 
 msgid "Cooling moves are gradually accelerating towards this speed."
-msgstr ""
+msgstr "Koelbewegingen versnellen gelijkmatig tot aan deze snelheid."
 
 msgid ""
 "Time for the printer firmware (or the Multi Material Unit 2.0) to load a new "
 "filament during a tool change (when executing the T code). This time is "
 "added to the total print time by the G-code time estimator."
 msgstr ""
+"Tijd voor de printerfirmware (of de MMU 2.0) om nieuw filament te laden "
+"tijdens een toolwissel (tijdens het uitvoeren van de T-code). Deze tijd "
+"wordt toegevoegd aan de totale printtijd in de tijdsschatting."
 
 msgid "Ramming parameters"
-msgstr ""
+msgstr "Rammingparameters"
 
 msgid ""
 "This string is edited by RammingDialog and contains ramming specific "
 "parameters."
 msgstr ""
+"Deze frase is bewerkt door het Rammingdialoog en bevat parameters voor de "
+"ramming."
 
 msgid ""
 "Time for the printer firmware (or the Multi Material Unit 2.0) to unload a "
 "filament during a tool change (when executing the T code). This time is "
 "added to the total print time by the G-code time estimator."
 msgstr ""
+"Tijd voor de printerfirmware (of de MMU 2.0) om filament te ontladen tijdens "
+"een toolwissel (tijdens het uitvoeren van de T-code). Deze tijd wordt "
+"toegevoegd aan de totale printtijd in de tijdsschatting."
 
 msgid "Enable ramming for multitool setups"
 msgstr ""
@@ -10710,7 +10760,7 @@ msgid "1000 (unlimited)"
 msgstr "1000 (unlimited)"
 
 msgid "Maximum length of the infill anchor"
-msgstr ""
+msgstr "Maximale lengte van de vullingsbevestiging"
 
 msgid ""
 "Connect an infill line to an internal perimeter with a short segment of an "
@@ -11117,7 +11167,7 @@ msgid "Enable this option if you want to use multiple bed types"
 msgstr ""
 
 msgid "Label objects"
-msgstr ""
+msgstr "Label objecten"
 
 msgid ""
 "Enable this to add comments into the G-Code labeling print moves with what "
@@ -11133,13 +11183,16 @@ msgid "Enable this option to add EXCLUDE OBJECT command in g-code"
 msgstr ""
 
 msgid "Verbose G-code"
-msgstr ""
+msgstr "Opmerkingen in G-code"
 
 msgid ""
 "Enable this to get a commented G-code file, with each line explained by a "
 "descriptive text. If you print from SD card, the additional weight of the "
 "file could make your firmware slow down."
 msgstr ""
+"Sta dit toe om een G-code met opmerkingen te genereren. Bij elk blok "
+"commando's wordt een opmerking geplaatst. Als u print vanaf een SD-kaart, "
+"kan de extra grootte van het bestand de firmware vertragen."
 
 msgid "Infill combination"
 msgstr "Vulling (infill) combinatie"
@@ -11477,7 +11530,7 @@ msgid ""
 msgstr ""
 
 msgid "mm³/s²"
-msgstr ""
+msgstr "mm³/s²"
 
 msgid "Smoothing segment length"
 msgstr ""
@@ -11530,12 +11583,14 @@ msgid "Diameter of nozzle"
 msgstr "Diameter van de nozzle"
 
 msgid "Configuration notes"
-msgstr ""
+msgstr "Configuratie-opmerkingen"
 
 msgid ""
 "You can put here your personal notes. This text will be added to the G-code "
 "header comments."
 msgstr ""
+"Hier kunt u eigen opmerkingen plaatsen. Deze tekst wordt bovenin de G-code "
+"toegevoegd."
 
 msgid "Host Type"
 msgstr "Hosttype"
@@ -11555,36 +11610,44 @@ msgstr ""
 "Volume van de nozzle tussen de filamentsnijder en het uiteinde van de nozzle"
 
 msgid "Cooling tube position"
-msgstr ""
+msgstr "Koelbuispositie"
 
 msgid "Distance of the center-point of the cooling tube from the extruder tip."
-msgstr ""
+msgstr "Afstand vanaf de nozzle tot het middelpunt van de koelbuis."
 
 msgid "Cooling tube length"
-msgstr ""
+msgstr "Koelbuislengte"
 
 msgid "Length of the cooling tube to limit space for cooling moves inside it."
 msgstr ""
+"Lengte van de koelbuis om de ruimte voor koelbewegingen daarin te beperken."
 
 msgid "High extruder current on filament swap"
-msgstr ""
+msgstr "Hoge stroomsterkte bij extruder voor filamentwissel"
 
 msgid ""
 "It may be beneficial to increase the extruder motor current during the "
 "filament exchange sequence to allow for rapid ramming feed rates and to "
 "overcome resistance when loading a filament with an ugly shaped tip."
 msgstr ""
+"Het kan nuttig zijn om de stroomsterkte van de extrudermotor te verhogen "
+"tijdens het uitvoeren van de filamentwisseling om snelle ramming mogelijk te "
+"maken en om weerstand te overwinnen tijdens het laden van filament met een "
+"misvormde kop."
 
 msgid "Filament parking position"
-msgstr ""
+msgstr "Filament parkeerpositie"
 
 msgid ""
 "Distance of the extruder tip from the position where the filament is parked "
 "when unloaded. This should match the value in printer firmware."
 msgstr ""
+"Afstand van de nozzlepunt tot de positie waar het filament wordt geparkeerd "
+"wanneer dat niet geladen is. Deze moet overeenkomen met de waarde in de "
+"firmware."
 
 msgid "Extra loading distance"
-msgstr ""
+msgstr "Extra laadafstand"
 
 msgid ""
 "When set to zero, the distance the filament is moved from parking position "
@@ -11592,6 +11655,10 @@ msgid ""
 "positive, it is loaded further,  if negative, the loading move is shorter "
 "than unloading."
 msgstr ""
+"Als dit ingesteld is op 0, zal de afstand die het filament tijdens het laden "
+"uit de parkeerpositie even groot zijn als wanneer het filament "
+"teruggetrokken wordt. Als de waarde positief is, zal het verder geladen "
+"worden. Als het negatief is, is de laadafstand dus korter."
 
 msgid "Start end points"
 msgstr "Start end points"
@@ -11851,7 +11918,7 @@ msgid "Spiral"
 msgstr "Spiraal"
 
 msgid "Only lift Z above"
-msgstr ""
+msgstr "Beweeg Z alleen omhoog boven"
 
 msgid ""
 "If you set this to a positive value, Z lift will only take place above the "
@@ -11859,7 +11926,7 @@ msgid ""
 msgstr ""
 
 msgid "Only lift Z below"
-msgstr ""
+msgstr "Beweeg Z alleen omhoog onder"
 
 msgid ""
 "If you set this to a positive value, Z lift will only take place below the "
@@ -11893,11 +11960,15 @@ msgid ""
 "When the retraction is compensated after the travel move, the extruder will "
 "push this additional amount of filament. This setting is rarely needed."
 msgstr ""
+"Als retracten wordt gecompenseerd na een beweging, wordt deze extra "
+"hoeveelheid filament geëxtrudeerd. Deze instelling is zelden van toepassing."
 
 msgid ""
 "When the retraction is compensated after changing tool, the extruder will "
 "push this additional amount of filament."
 msgstr ""
+"Als retracten wordt gecompenseerd na een toolwisseling, wordt deze extra "
+"hoeveelheid filament geëxtrudeerd."
 
 msgid "Retraction Speed"
 msgstr "Terugtrek (retraction) snelheid"
@@ -12129,7 +12200,7 @@ msgid "How many layers of skirt. Usually only one layer"
 msgstr "Number of skirt layers: usually only one"
 
 msgid "Draft shield"
-msgstr ""
+msgstr "Tochtscherm"
 
 msgid ""
 "A draft shield is useful to protect an ABS or ASA print from warping and "
@@ -12146,10 +12217,10 @@ msgid ""
 msgstr ""
 
 msgid "Limited"
-msgstr ""
+msgstr "Gelimiteerd"
 
 msgid "Enabled"
-msgstr ""
+msgstr "Aan"
 
 msgid "Skirt loops"
 msgstr "Rand (skirt) lussen"
@@ -12269,7 +12340,7 @@ msgid "Start G-code when start the printing of this filament"
 msgstr "Start G-code wanneer het printen van dit filament begint"
 
 msgid "Single Extruder Multi Material"
-msgstr ""
+msgstr "Multi-material met één extruder"
 
 msgid "Use single nozzle to print multi filament"
 msgstr ""
@@ -12303,14 +12374,20 @@ msgid ""
 "print the wipe tower. User is responsible for ensuring there is no collision "
 "with the print."
 msgstr ""
+"Het afveegblok wordt niet geprint bij lagen zonder toolwisselingen als dit "
+"is ingeschakeld. Op lagen met een toolwissel zal de extruder neerwaarts "
+"bewegen naar het afveegblok. De gebruiker is verantwoordelijk voor eventuele "
+"botsingen met de print."
 
 msgid "Prime all printing extruders"
-msgstr ""
+msgstr "Veeg alle printextruders af"
 
 msgid ""
 "If enabled, all printing extruders will be primed at the front edge of the "
 "print bed at the start of the print."
 msgstr ""
+"Alle extruders worden afgeveegd aan de voorzijde van het printbed aan het "
+"begin van de print als dit is ingeschakeld."
 
 msgid "Slice gap closing radius"
 msgstr "Sluitingsradius van de gap"
@@ -12345,7 +12422,7 @@ msgid "Close holes"
 msgstr "Gaten sluiten"
 
 msgid "Z offset"
-msgstr ""
+msgstr "Z-hoogte"
 
 msgid ""
 "This value will be added (or subtracted) from all the Z coordinates in the "
@@ -12353,6 +12430,10 @@ msgid ""
 "example, if your endstop zero actually leaves the nozzle 0.3mm far from the "
 "print bed, set this to -0.3 (or fix your endstop)."
 msgstr ""
+"Deze waarde wordt toegevoegd (of afgetrokken) van alle Z-coördinaten in de G-"
+"code. Het wordt gebruikt voor een slechte Z-eindstop positie. Als de Z-"
+"eindstop bijvoorbeeld een waarde gebruikt die 0.3mm van het printbed is, kan "
+"dit ingesteld worden op -0.3mm."
 
 msgid "Enable support"
 msgstr "Support inschakelen"
@@ -12871,10 +12952,10 @@ msgid "Width of prime tower"
 msgstr "Dit is de breedte van de prime toren."
 
 msgid "Wipe tower rotation angle"
-msgstr ""
+msgstr "Rotatie van het afveegblok"
 
 msgid "Wipe tower rotation angle with respect to x-axis."
-msgstr ""
+msgstr "Rotatie van het afveegblok ten opzichte van de X-as."
 
 msgid "Stabilization cone apex angle"
 msgstr ""
@@ -12965,10 +13046,10 @@ msgstr ""
 "kracht tenzij de prime tower is ingeschakeld."
 
 msgid "Maximal bridging distance"
-msgstr ""
+msgstr "Maximale brugafstand"
 
 msgid "Maximal distance between supports on sparse infill sections."
-msgstr ""
+msgstr "Maximale afstand tussen support op dunne vullingsdelen."
 
 msgid "X-Y hole compensation"
 msgstr "X-Y-gaten compensatie"
@@ -13026,7 +13107,7 @@ msgid "Rotate the polyhole every layer."
 msgstr ""
 
 msgid "G-code thumbnails"
-msgstr ""
+msgstr "G-code miniaturen"
 
 msgid ""
 "Picture sizes to be stored into a .gcode and .sl1 / .sl1s files, in the "
@@ -13034,12 +13115,14 @@ msgid ""
 msgstr ""
 
 msgid "Format of G-code thumbnails"
-msgstr ""
+msgstr "Bestandstype van G-code-voorbeelden"
 
 msgid ""
 "Format of G-code thumbnails: PNG for best quality, JPG for smallest size, "
 "QOI for low memory firmware"
 msgstr ""
+"Bestandstype van G-code-voorbeelden: PNG voor de beste kwaliteit, JPG voor "
+"kleinste bestand, QOI voor firmware met weinig geheugen"
 
 msgid "Use relative E distances"
 msgstr "Relatieve E-afstanden gebruiken"
@@ -13216,7 +13299,7 @@ msgid "Do not run any validity checks, such as gcode path conflicts check."
 msgstr "Do not run any validity checks, such as G-code path conflicts check."
 
 msgid "Ensure on bed"
-msgstr ""
+msgstr "Plaats op bed"
 
 msgid ""
 "Lift the object above the bed when it is partially below. Disabled by default"
@@ -13229,22 +13312,25 @@ msgid "Orient options: 0-disable, 1-enable, others-auto"
 msgstr ""
 
 msgid "Rotation angle around the Z axis in degrees."
-msgstr ""
+msgstr "Rotatiehoek rond de Z-as in graden."
 
 msgid "Rotate around Y"
-msgstr ""
+msgstr "Draai over de Y-as"
 
 msgid "Rotation angle around the Y axis in degrees."
-msgstr ""
+msgstr "Rotatiehoek rond de Y-as in graden."
 
 msgid "Data directory"
-msgstr ""
+msgstr "Bestandslocatie voor de data"
 
 msgid ""
 "Load and store settings at the given directory. This is useful for "
 "maintaining different profiles or including configurations from a network "
 "storage."
 msgstr ""
+"Laad fabrieksinstellingen en sla op. Dit is handig voor het onderhouden van "
+"verschillende profielen of het opnemen van configuraties van een "
+"netwerkopslag."
 
 msgid "Load custom gcode"
 msgstr ""
@@ -14327,7 +14413,7 @@ msgid "mm/mm"
 msgstr "mm/mm"
 
 msgid "Send G-Code to printer host"
-msgstr ""
+msgstr "Stuur G-code naar printerhost"
 
 msgid "Upload to Printer Host with the following filename:"
 msgstr "Uploaden naar Printer Host met de volgende bestandsnaam:"

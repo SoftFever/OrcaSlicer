@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OrcaSlicer V2.0.0 Official Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-23 23:36+0800\n"
+"POT-Creation-Date: 2024-05-24 23:26+0800\n"
 "PO-Revision-Date: 2024-04-12 13:49+0700\n"
 "Last-Translator: \n"
 "Language-Team: andylg@yandex.ru\n"
@@ -264,7 +264,7 @@ msgid "World coordinates"
 msgstr "Мировая СК"
 
 msgid "Object coordinates"
-msgstr ""
+msgstr "СК модели"
 
 msgid "°"
 msgstr "°"
@@ -1508,7 +1508,7 @@ msgid "Choose one or more files (3mf/step/stl/svg/obj/amf):"
 msgstr "Выберите один или несколько файлов (3mf/step/stl/svg/obj/amf):"
 
 msgid "Choose ZIP file"
-msgstr ""
+msgstr "Выберите ZIP файл"
 
 msgid "Choose one file (gcode/3mf):"
 msgstr "Выберите один файл (gcode/3mf):"
@@ -1584,6 +1584,8 @@ msgid ""
 "Could not start URL download. Destination folder is not set. Please choose "
 "destination folder in Configuration Wizard."
 msgstr ""
+"Не удалось запустить загрузку по URL-адресу. Не задана папка назначения. "
+"Пожалуйста, задайте папку назначения в мастере настройки."
 
 msgid "Import File"
 msgstr "Импорт файла"
@@ -2441,7 +2443,7 @@ msgid "AMS not connected"
 msgstr "АСПП не подключена"
 
 msgid "Load"
-msgstr ""
+msgstr "Загрузить"
 
 msgid "Unload"
 msgstr "Выгруз."
@@ -3226,7 +3228,7 @@ msgid "Successfully executed post-processing script"
 msgstr "Скрипт постобработки успешно выполнен."
 
 msgid "Unknown error occured during exporting G-code."
-msgstr ""
+msgstr "При экспорте G-кода произошла неизвестная ошибка."
 
 #, boost-format
 msgid ""
@@ -3234,6 +3236,9 @@ msgid ""
 "card is write locked?\n"
 "Error message: %1%"
 msgstr ""
+"Не удалось скопировать временный G-код в местонахождение выходного файла G-"
+"кода. Может ваша SD карта защищена от записи?\n"
+"Сообщение об ошибке: %1%"
 
 #, boost-format
 msgid ""
@@ -3241,28 +3246,39 @@ msgid ""
 "problem with target device, please try exporting again or using different "
 "device. The corrupted output G-code is at %1%.tmp."
 msgstr ""
+"Не удалось скопировать временный G-код в местонахождение выходного файла G-"
+"кода. Возможно, проблема с устройством назначения, попробуйте снова "
+"выполнить экспорт или использовать другое устройство. Повреждённый выходной "
+"файл G-кода находится в %1%.tmp."
 
 #, boost-format
 msgid ""
 "Renaming of the G-code after copying to the selected destination folder has "
 "failed. Current path is %1%.tmp. Please try exporting again."
 msgstr ""
+"Не удалось переименовать G-код после копирования в выбранную папку "
+"назначения. Текущий путь %1%.tmp. Пожалуйста, попробуйте экспортировать ещё "
+"раз."
 
 #, boost-format
 msgid ""
 "Copying of the temporary G-code has finished but the original code at %1% "
 "couldn't be opened during copy check. The output G-code is at %2%.tmp."
 msgstr ""
+"Копирование временного G-кода завершено, но исходный код в %1% не удалось "
+"открыть во время проверки копии. Выходной G-код находится в %2%.tmp."
 
 #, boost-format
 msgid ""
 "Copying of the temporary G-code has finished but the exported code couldn't "
 "be opened during copy check. The output G-code is at %1%.tmp."
 msgstr ""
+"Копирование временного G-кода завершено, но экспортированный код не удалось "
+"открыть во время проверки копии. Выходной G-код находится в %1%.tmp."
 
 #, boost-format
 msgid "G-code file exported to %1%"
-msgstr ""
+msgstr "Файл G-кода экспортирован в %1%"
 
 msgid "Unknown error when export G-code."
 msgstr "Неизвестная ошибка при экспорте G-кода."
@@ -3476,7 +3492,7 @@ msgid ""
 msgstr ""
 
 msgid "Wait"
-msgstr ""
+msgstr "Подождите"
 
 msgid ""
 "minute each batch.(It depends on how long it takes to complete the heating.)"
@@ -6332,16 +6348,16 @@ msgstr "Ошибка при загрузке файла G-кода"
 #. TRN %1% is archive path
 #, boost-format
 msgid "Loading of a ZIP archive on path %1% has failed."
-msgstr ""
+msgstr "Не удалось загрузить ZIP-архив расположенный по пути %1%."
 
 #. TRN: First argument = path to file, second argument = error description
 #, boost-format
 msgid "Failed to unzip file to %1%: %2%"
-msgstr ""
+msgstr "Не удалось разархивировать файл в %1%: %2%"
 
 #, boost-format
 msgid "Failed to find unzipped file at %1%. Unzipping of file has failed."
-msgstr ""
+msgstr "Ошибка поиска распакованного файла в %1%. Не удалось распаковать файл."
 
 msgid "Drop project file"
 msgstr "Операции с файлами проекта"
@@ -12746,7 +12762,7 @@ msgid "How many layers of skirt. Usually only one layer"
 msgstr "Количество слоёв юбки. Обычно только один слой."
 
 msgid "Draft shield"
-msgstr ""
+msgstr "Защитный кожух"
 
 msgid ""
 "A draft shield is useful to protect an ABS or ASA print from warping and "
@@ -12763,10 +12779,10 @@ msgid ""
 msgstr ""
 
 msgid "Limited"
-msgstr ""
+msgstr "Ограничено"
 
 msgid "Enabled"
-msgstr ""
+msgstr "Включено"
 
 msgid "Skirt loops"
 msgstr "Юбок вокруг модели"

@@ -2399,6 +2399,8 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         this->placeholder_parser().set("first_layer_temperature", new ConfigOptionInts(m_config.nozzle_temperature_initial_layer));
         this->placeholder_parser().set("max_print_height",new ConfigOptionInt(m_config.printable_height));
         this->placeholder_parser().set("z_offset", new ConfigOptionFloat(m_config.z_offset));
+        this->placeholder_parser().set("model_name", new ConfigOptionString(print.get_model_name()));
+        this->placeholder_parser().set("plate_number", new ConfigOptionString(print.get_plate_number_formatted()));
         this->placeholder_parser().set("plate_name", new ConfigOptionString(print.get_plate_name()));
         this->placeholder_parser().set("first_layer_height", new ConfigOptionFloat(m_config.initial_layer_print_height.value));
 

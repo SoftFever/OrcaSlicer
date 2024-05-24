@@ -1,8 +1,9 @@
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: OrcaSlicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-23 23:36+0800\n"
+"POT-Creation-Date: 2024-05-24 23:26+0800\n"
 "PO-Revision-Date: 2024-04-16 11:17-0300\n"
 "Last-Translator: \n"
 "Language-Team: Portuguese, Brazilian\n"
@@ -11,11 +12,11 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Crowdin-Project: orcaslicer-pt-br\n"
-"X-Crowdin-Project-ID: 664934\n"
-"X-Crowdin-Language: pt-BR\n"
 "X-Crowdin-File: OrcaSlicer.pot\n"
 "X-Crowdin-File-ID: 10\n"
+"X-Crowdin-Language: pt-BR\n"
+"X-Crowdin-Project: orcaslicer-pt-br\n"
+"X-Crowdin-Project-ID: 664934\n"
 "X-Generator: Poedit 3.4.2\n"
 
 msgid "Supports Painting"
@@ -2433,7 +2434,7 @@ msgid "AMS not connected"
 msgstr "AMS não conectado"
 
 msgid "Load"
-msgstr ""
+msgstr "Carregar"
 
 msgid "Unload"
 msgstr "Descarregar"
@@ -3214,7 +3215,7 @@ msgid "Successfully executed post-processing script"
 msgstr "Script de pós-processamento executado com êxito"
 
 msgid "Unknown error occured during exporting G-code."
-msgstr ""
+msgstr "Ocorreu um erro desconhecido durante a exportação do G-code."
 
 #, boost-format
 msgid ""
@@ -3222,6 +3223,9 @@ msgid ""
 "card is write locked?\n"
 "Error message: %1%"
 msgstr ""
+"Falha na cópia do G-code temporário para o G-code de saída. Talvez o cartão "
+"SD está bloqueado para escrita?\n"
+"Mensagem de erro: %1%"
 
 #, boost-format
 msgid ""
@@ -3229,28 +3233,38 @@ msgid ""
 "problem with target device, please try exporting again or using different "
 "device. The corrupted output G-code is at %1%.tmp."
 msgstr ""
+"A cópia do G-code temporário para o G-code de saída falhou. Pode haver "
+"problemas com o dispositivo de destino, por favor tente exportar novamente "
+"ou usar dispositivo diferente. O G-code de saída corrompido está em %1%.tmp."
 
 #, boost-format
 msgid ""
 "Renaming of the G-code after copying to the selected destination folder has "
 "failed. Current path is %1%.tmp. Please try exporting again."
 msgstr ""
+"A renomeação do G-code após a cópia na pasta de destino selecionada falhou. "
+"O caminho atual é %1%.tmp. Por favor, tente exportar de novo."
 
 #, boost-format
 msgid ""
 "Copying of the temporary G-code has finished but the original code at %1% "
 "couldn't be opened during copy check. The output G-code is at %2%.tmp."
 msgstr ""
+"A cópia do G-code temporário foi concluída, mas o código original em %1% não "
+"pôde ser aberto durante a verificação de cópia. O G-code de saída está em "
+"%2%.tmp."
 
 #, boost-format
 msgid ""
 "Copying of the temporary G-code has finished but the exported code couldn't "
 "be opened during copy check. The output G-code is at %1%.tmp."
 msgstr ""
+"A cópia do G-code temporário foi concluída, mas o código exportado não pôde "
+"ser aberto durante a verificação de cópia. O G-code de saída está em %1%.tmp."
 
 #, boost-format
 msgid "G-code file exported to %1%"
-msgstr ""
+msgstr "Arquivo G-code exportado para %1%"
 
 msgid "Unknown error when export G-code."
 msgstr "Erro desconhecido ao exportar G-Code."
@@ -3460,7 +3474,7 @@ msgid ""
 msgstr ""
 
 msgid "Wait"
-msgstr ""
+msgstr "Aguardar"
 
 msgid ""
 "minute each batch.(It depends on how long it takes to complete the heating.)"
@@ -6579,6 +6593,10 @@ msgid ""
 "it is allowed to run multiple instances of same app from the command line. "
 "In such case this settings will allow only one instance."
 msgstr ""
+"No OSX, sempre há apenas uma instância do aplicativo em execução por padrão. "
+"No entanto, é permitido executar várias instâncias do mesmo aplicativo a "
+"partir da linha de comando. Nesse caso, essas configurações permitirão "
+"apenas uma instância."
 
 msgid ""
 "If this is enabled, when starting OrcaSlicer and another instance of the "
@@ -8056,7 +8074,7 @@ msgid "Don't save"
 msgstr "Não salvar"
 
 msgid "Discard"
-msgstr ""
+msgstr "Descartar"
 
 msgid "Click the right mouse button to display the full text."
 msgstr "Clique com o botão direito do mouse para exibir o texto completo."
@@ -12666,7 +12684,7 @@ msgid "How many layers of skirt. Usually only one layer"
 msgstr "Quantas camadas de saia. Geralmente apenas uma camada"
 
 msgid "Draft shield"
-msgstr ""
+msgstr "Escudo de proteção"
 
 msgid ""
 "A draft shield is useful to protect an ABS or ASA print from warping and "
@@ -12683,10 +12701,10 @@ msgid ""
 msgstr ""
 
 msgid "Limited"
-msgstr ""
+msgstr "Limitado"
 
 msgid "Enabled"
-msgstr ""
+msgstr "Habilitado"
 
 msgid "Skirt loops"
 msgstr "Voltas da saia"
