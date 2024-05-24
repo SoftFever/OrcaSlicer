@@ -5019,6 +5019,17 @@ def = this->add("filament_loading_speed", coFloats);
     def->max = 25.0;
     def->set_default_value(new ConfigOptionFloat(0.5));
 
+    def = this->add("inner_wall_interlock", coInt);
+    def->label = L("Internal wall interlock");
+    def->category = L("Strength");
+    def->tooltip = L("Internal perimeter interlock percentage. If non zero, internal perimeters will be shifted inwards by this "
+                     "amount every other layer making cross-section to look like bricklayer pattern");
+    def->min = 0;
+    def->max = 50;
+    def->sidetext = L("%");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionInt(0));
+
     def = this->add("initial_layer_min_bead_width", coPercent);
     def->label = L("First layer minimum wall width");
     def->category = L("Quality");

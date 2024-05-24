@@ -9717,6 +9717,7 @@ void Plater::calib_max_vol_speed(const Calib_Params& params)
     obj_cfg.set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
     obj_cfg.set_key_value("overhang_reverse", new ConfigOptionBool(false));
     obj_cfg.set_key_value("outer_wall_line_width", new ConfigOptionFloatOrPercent(line_width, false));
+    obj_cfg.set_key_value("inner_wall_interlock", new ConfigOptionInt(0));
     obj_cfg.set_key_value("layer_height", new ConfigOptionFloat(layer_height));
     obj_cfg.set_key_value("brim_type", new ConfigOptionEnum<BrimType>(btOuterAndInner));
     obj_cfg.set_key_value("brim_width", new ConfigOptionFloat(5.0));

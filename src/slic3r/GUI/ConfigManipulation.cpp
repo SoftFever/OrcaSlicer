@@ -766,6 +766,8 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     toggle_field("seam_slope_min_length", !config->opt_bool("seam_slope_entire_loop"));
     toggle_line("scarf_angle_threshold", has_seam_slope && config->opt_bool("seam_slope_conditional"));
     toggle_line("scarf_overhang_threshold", has_seam_slope && config->opt_bool("seam_slope_conditional"));
+
+    toggle_field("inner_wall_interlock", (config->opt_int("wall_loops") > 1) && have_arachne);
 }
 
 void ConfigManipulation::update_print_sla_config(DynamicPrintConfig* config, const bool is_global_config/* = false*/)

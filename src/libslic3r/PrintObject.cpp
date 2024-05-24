@@ -1109,6 +1109,7 @@ bool PrintObject::invalidate_state_by_config_options(
             steps.emplace_back(posPrepareInfill);
         } else if (
                opt_key == "outer_wall_line_width"
+            || opt_key == "inner_wall_interlock"
             || opt_key == "wall_filament"
             || opt_key == "fuzzy_skin"
             || opt_key == "fuzzy_skin_thickness"

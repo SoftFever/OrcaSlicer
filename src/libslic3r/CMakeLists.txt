@@ -422,6 +422,8 @@ set(lisbslic3r_sources
     Arachne/BeadingStrategy/LimitedBeadingStrategy.cpp
     Arachne/BeadingStrategy/OuterWallInsetBeadingStrategy.hpp
     Arachne/BeadingStrategy/OuterWallInsetBeadingStrategy.cpp
+    Arachne/BeadingStrategy/PushInternalWallsBeadingStrategy.hpp
+    Arachne/BeadingStrategy/PushInternalWallsBeadingStrategy.cpp
     Arachne/BeadingStrategy/RedistributeBeadingStrategy.hpp
     Arachne/BeadingStrategy/RedistributeBeadingStrategy.cpp
     Arachne/BeadingStrategy/WideningBeadingStrategy.hpp

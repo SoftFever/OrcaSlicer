@@ -8,6 +8,7 @@
 #include "DistributedBeadingStrategy.hpp"
 #include "RedistributeBeadingStrategy.hpp"
 #include "OuterWallInsetBeadingStrategy.hpp"
+#include "PushInternalWallsBeadingStrategy.hpp"
 
 #include <limits>
 #include <boost/log/trivial.hpp>
@@ -28,12 +29,19 @@ BeadingStrategyPtr BeadingStrategyFactory::makeStrategy(
     const coord_t max_bead_count,
     const coord_t outer_wall_offset,
     const int inward_distributed_center_wall_count,
+    const unsigned int internal_wall_interlock,
     const double minimum_variable_line_ratio
 )
 {
     BeadingStrategyPtr ret = std::make_unique<DistributedBeadingStrategy>(preferred_bead_width_inner, preferred_transition_length, transitioning_angle, wall_split_middle_threshold, wall_add_middle_threshold, inward_distributed_center_wall_count);
     BOOST_LOG_TRIVIAL(debug) << "Applying the Redistribute meta-strategy with outer-wall width = " << preferred_bead_width_outer << ", inner-wall width = " << preferred_bead_width_inner << ".";
     ret = std::make_unique<RedistributeBeadingStrategy>(preferred_bead_width_outer, minimum_variable_line_ratio, std::move(ret));
+
+    if (internal_wall_interlock > 0)
+    {
+        BOOST_LOG_TRIVIAL(debug) << "Applying Push Internal Layer strategy with " << internal_wall_interlock << "% interlock";
+        ret = std::make_unique<PushInternalWallsBeadingStrategy>(std::move(ret), internal_wall_interlock);
+    }
 
     if (print_thin_walls) {
         BOOST_LOG_TRIVIAL(debug) << "Applying the Widening Beading meta-strategy with minimum input width " << min_feature_size << " and minimum output width " << min_bead_width << ".";

@@ -44,6 +44,8 @@ WallToolPathsParams make_paths_params(const int layer_id, const PrintObjectConfi
                 input_params.min_bead_width = min_bead_width_opt.value * 0.01 * min_nozzle_diameter;
         }
 
+        input_params.internal_wall_interlock_percent = (layer_id %2) ? print_object_config.inner_wall_interlock.value : 0;
+
         if (const auto &wall_transition_filter_deviation_opt = print_object_config.wall_transition_filter_deviation)
             input_params.wall_transition_filter_deviation = wall_transition_filter_deviation_opt.value * 0.01 * min_nozzle_diameter;
 
@@ -525,7 +527,8 @@ const std::vector<VariableWidthLines> &WallToolPaths::generate()
             wall_add_middle_threshold,
             max_bead_count,
             wall_0_inset,
-            wall_distribution_count
+            wall_distribution_count,
+            this->m_params.internal_wall_interlock_percent
         );
     const coord_t transition_filter_dist   = scaled<coord_t>(100.f);
     const coord_t allowed_filter_deviation = wall_transition_filter_deviation;

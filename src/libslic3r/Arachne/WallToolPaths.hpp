@@ -31,6 +31,7 @@ public:
     float   wall_transition_filter_deviation;
     int     wall_distribution_count;
     bool    is_top_or_bottom_layer;
+    unsigned internal_wall_interlock_percent;
 };
 
 WallToolPathsParams make_paths_params(const int layer_id, const PrintObjectConfig &print_object_config, const PrintConfig &print_config);
