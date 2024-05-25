@@ -15,11 +15,11 @@ if (APPLE AND IS_CROSS_COMPILE)
         EXCLUDE_FROM_ALL    ON
         URL https://github.com/AcademySoftwareFoundation/openexr/archive/refs/tags/v2.5.5.zip
         URL_HASH SHA256=0307a3d7e1fa1e77e9d84d7e9a8694583fbbbfd50bdc6884e2c96b8ef6b902de
-        INSTALL_DIR         ${DESTDIR}/usr/local
+        INSTALL_DIR         ${DESTDIR}
         DOWNLOAD_DIR        ${DEP_DOWNLOAD_DIR}/OpenEXR
         ${_openxr_list_sep}
         CMAKE_ARGS
-            -DCMAKE_INSTALL_PREFIX:STRING=${DESTDIR}/usr/local
+            -DCMAKE_INSTALL_PREFIX:STRING=${DESTDIR}
             -DBUILD_SHARED_LIBS:BOOL=OFF
             -DCMAKE_POSITION_INDEPENDENT_CODE=ON
             -DBUILD_TESTING=OFF 
