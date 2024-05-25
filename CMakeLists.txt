@@ -271,7 +271,16 @@ if (NOT MSVC AND ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMP
     # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=53431
     # We will turn the warning of for GCC for now:
     if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+        # GCC generates loads of -Wunknown-pragmas when compiling igl. The fix is not easy due to a bug in gcc, see
+        # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=66943 or
+        # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=53431
+        # We will turn the warning of for GCC for now:
         add_compile_options(-Wno-unknown-pragmas)
+    endif()
+
+    # Bit of a hack for flatpak building: compress the debug info with zstd to save space in CI 
+    if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 13.0)
+        add_compile_options(-gz=zstd)
     endif()
 
 endif()
@@ -382,9 +391,7 @@ endif()
 # set(Boost_COMPILER "-mgw81")
 # boost::process was introduced first in version 1.64.0,
 # boost::beast::detail::base64 was introduced first in version 1.66.0
-set(MINIMUM_BOOST_VERSION "1.66.0")
-set(_boost_components "system;filesystem;thread;log;locale;regex;chrono;atomic;date_time;iostreams;program_options")
-find_package(Boost ${MINIMUM_BOOST_VERSION} REQUIRED COMPONENTS ${_boost_components})
+find_package(Boost 1.66 REQUIRED COMPONENTS system filesystem thread log locale regex chrono atomic date_time iostreams program_options)
 
 add_library(boost_libs INTERFACE)
 add_library(boost_headeronly INTERFACE)
@@ -410,28 +417,8 @@ function(slic3r_remap_configs targets from_Cfg to_Cfg)
     endif()
 endfunction()
 
-if(TARGET Boost::system)
-    message(STATUS "Boost::boost exists")
-    target_link_libraries(boost_headeronly INTERFACE Boost::boost)
-
-    # Only from cmake 3.12
-    # list(TRANSFORM _boost_components PREPEND Boost:: OUTPUT_VARIABLE _boost_targets)
-    set(_boost_targets "")
-    foreach(comp ${_boost_components})
-        list(APPEND _boost_targets "Boost::${comp}")
-    endforeach()
-
-    target_link_libraries(boost_libs INTERFACE
-        boost_headeronly # includes the custom compile definitions as well
-        ${_boost_targets}
-        )
-    slic3r_remap_configs("${_boost_targets}" RelWithDebInfo Release)
-else()
-    target_include_directories(boost_headeronly INTERFACE ${Boost_INCLUDE_DIRS})
-    target_link_libraries(boost_libs INTERFACE boost_headeronly ${Boost_LIBRARIES})
-endif()
-
-
+target_include_directories(boost_headeronly INTERFACE ${Boost_INCLUDE_DIRS})
+target_link_libraries(boost_libs INTERFACE boost_headeronly ${Boost_LIBRARIES})
 
 # Find and configure intel-tbb
 if(SLIC3R_STATIC)
