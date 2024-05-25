@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-23 23:36+0800\n"
+"POT-Creation-Date: 2024-05-24 23:26+0800\n"
 "PO-Revision-Date: 2024-05-02 19:55+0300\n"
 "Last-Translator: Olcay ÖREN\n"
 "Language-Team: \n"
@@ -1495,7 +1495,7 @@ msgid "Choose one or more files (3mf/step/stl/svg/obj/amf):"
 msgstr "Bir veya daha fazla dosya seçin (3mf/step/stl/svg/obj/amf):"
 
 msgid "Choose ZIP file"
-msgstr ""
+msgstr "ZIP dosyasını seçin:"
 
 msgid "Choose one file (gcode/3mf):"
 msgstr "Bir dosya seçin (gcode/3mf):"
@@ -6279,6 +6279,8 @@ msgstr ""
 #, boost-format
 msgid "Failed to find unzipped file at %1%. Unzipping of file has failed."
 msgstr ""
+"%1%'de sıkıştırılmamış dosya bulunamadı. Dosyanın sıkıştırmadan çıkartılması "
+"başarısız oldu."
 
 msgid "Drop project file"
 msgstr "Proje dosyasını sürükle"
@@ -12563,7 +12565,7 @@ msgid "How many layers of skirt. Usually only one layer"
 msgstr "Etek katman sayısı. Genellikle tek katman"
 
 msgid "Draft shield"
-msgstr ""
+msgstr "Rüzgarlık"
 
 msgid ""
 "A draft shield is useful to protect an ABS or ASA print from warping and "
@@ -12580,10 +12582,10 @@ msgid ""
 msgstr ""
 
 msgid "Limited"
-msgstr ""
+msgstr "Sınırlı"
 
 msgid "Enabled"
-msgstr ""
+msgstr "Etkinleştirildi"
 
 msgid "Skirt loops"
 msgstr "Etek sayısı"
