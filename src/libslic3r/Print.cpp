@@ -2841,8 +2841,28 @@ std::string Print::output_filename(const std::string &filename_base) const
     DynamicConfig config = this->finished() ? this->print_statistics().config() : this->print_statistics().placeholders();
     config.set_key_value("num_filaments", new ConfigOptionInt((int)m_config.nozzle_diameter.size()));
     config.set_key_value("plate_name", new ConfigOptionString(get_plate_name()));
+    config.set_key_value("plate_number", new ConfigOptionString(get_plate_number_formatted()));
+    config.set_key_value("model_name", new ConfigOptionString(get_model_name()));
 
     return this->PrintBase::output_filename(m_config.filename_format.value, ".gcode", filename_base, &config);
+}
+
+std::string Print::get_model_name() const
+{
+    if (model().model_info != nullptr)
+    {
+        return model().model_info->model_name;
+    } else {
+        return "";
+    }
+}
+
+std::string Print::get_plate_number_formatted() const
+{
+    std::string plate_number = std::to_string(get_plate_index() + 1);
+    static const size_t n_zero = 2;
+
+    return std::string(n_zero - std::min(n_zero, plate_number.length()), '0') + plate_number;
 }
 
 //BBS: add gcode file preload logic

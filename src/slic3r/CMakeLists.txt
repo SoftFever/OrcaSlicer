@@ -542,6 +542,8 @@ set(SLIC3R_GUI_SOURCES
     Utils/SerialMessage.hpp
     Utils/MKS.cpp
     Utils/MKS.hpp
+    Utils/ESP3D.cpp
+    Utils/ESP3D.hpp
     Utils/WxFontUtils.cpp
     Utils/WxFontUtils.hpp
     Utils/Duet.cpp
