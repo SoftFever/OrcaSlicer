@@ -133,6 +133,7 @@ filament_vendors = [
     'SUNLU',
     'TTYT3D',
     'UltiMaker',
+    'Valment',
     'Verbatim',
     'VO3D',
     'Voxelab',

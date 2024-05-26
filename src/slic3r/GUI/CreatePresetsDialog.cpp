@@ -54,9 +54,9 @@ static const std::vector<std::string> filament_vendors =
      "OVVNYXE",                "Polymaker",              "Priline",                "Printed Solid",          "Protopasta",
      "Prusament",              "Push Plastic",           "R3D",                    "Re-pet3D",               "Recreus",
      "Regen",                  "Sain SMART",             "SliceWorx",              "Snapmaker",              "SnoLabs",
-     "Spectrum",               "SUNLU",                  "TTYT3D",                 "UltiMaker",              "Verbatim",
-     "VO3D",                   "Voxelab",                "YOOPAI",                 "Yousu",                  "Ziro",
-     "Zyltech"};
+     "Spectrum",               "SUNLU",                  "TTYT3D",                 "UltiMaker",              "Valment",
+     "Verbatim",               "VO3D",                   "Voxelab",                "YOOPAI",                 "Yousu",
+     "Ziro",                   "Zyltech"};
      
 static const std::vector<std::string> filament_types = {"PLA",    "PLA+",  "PLA Tough", "PETG",  "ABS",    "ASA",    "FLEX",         "HIPS",   "PA",     "PACF",
                                                         "NYLON",  "PVA",   "PC",        "PCABS", "PCTG",   "PCCF",   "PHA",          "PP",     "PEI",    "PET",    "PETG",
