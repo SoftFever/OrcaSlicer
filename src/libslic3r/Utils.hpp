@@ -239,6 +239,12 @@ inline bool is_thingiverse_link(const std::string& url) {
     const std::regex url_regex("(http|https)://www.thingiverse.com", std::regex_constants::icase);
     return std::regex_match(url, url_regex);
 }
+
+// sanitize a string to be used as a filename
+inline std::string sanitize_filename(const std::string &filename){
+    const std::regex special_chars("[/\\\\:*?\"<>|]");
+    return std::regex_replace(filename, special_chars, "_");
+}
 // File path / name / extension splitting utilities, working with UTF-8,
 // to be published to Perl.
 namespace PerlUtils {
