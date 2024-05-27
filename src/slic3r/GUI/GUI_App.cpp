@@ -4099,27 +4099,9 @@ void GUI_App::on_user_login_handle(wxCommandEvent &evt)
 void GUI_App::check_track_enable()
 {
     // Orca: alaways disable track event
-    return;
-    if (app_config && app_config->get("firstguide", "privacyuse") == "true") {
-        //enable track event
-        json header_json;
-        header_json["ver"] = SLIC3R_VERSION;
-        wxString os_desc = wxGetOsDescription();
-        int major = 0, minor = 0, micro = 0;
-        header_json["os"] = std::string(os_desc.ToUTF8());
-        header_json["name"] = std::string(SLIC3R_APP_NAME);
-        header_json["uuid"] = app_config->get("slicer_uuid");
-        if (m_agent) {
-            m_agent->track_enable(true);
-            m_agent->track_header(header_json.dump());
-        }
-        /* record studio start event */
-        json j;
-        j["user_mode"] = this->get_mode_str();
-        j["open_method"] = m_open_method;
-        if (m_agent) {
-            m_agent->track_event("studio_launch", j.dump());
-        }
+    if (m_agent) {
+        m_agent->track_enable(false);
+        m_agent->track_remove_files();
     }
 }
 
