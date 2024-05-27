@@ -804,63 +804,39 @@ void GUI_App::post_init()
 
     m_open_method = "double_click";
     bool switch_to_3d = false;
-    if (!this->init_params->input_files.empty()) {
 
+    if (!this->init_params->input_files.empty()) {
 
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", init with input files, size %1%, input_gcode %2%")
             %this->init_params->input_files.size() %this->init_params->input_gcode;
-
-
-
-        if (this->init_params->input_files.size() == 1 &&
-            (boost::starts_with(this->init_params->input_files.front(), "orcaslicer://open") ||
-             boost::starts_with(this->init_params->input_files.front(), "prusaslicer://open"))) {
-
-            if (boost::starts_with(this->init_params->input_files.front(), "orcaslicer://open")||
-             boost::starts_with(this->init_params->input_files.front(), "prusaslicer://open")) {
-                switch_to_3d = true;
-                start_download(this->init_params->input_files.front());
-            } else if (vector<string> input_str_arr = split_str(this->init_params->input_files.front(), "orcaslicer://open/?file="); input_str_arr.size() > 1) {
-                std::string download_origin_url;
-                for (auto input_str : input_str_arr) {
-                    if (!input_str.empty())
-                        download_origin_url = input_str;
-                }
-
-                std::string download_file_url = url_decode(download_origin_url);
-                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << download_file_url;
-                if (!download_file_url.empty() &&
-                    (boost::starts_with(download_file_url, "http://") || boost::starts_with(download_file_url, "https://"))) {
-                    request_model_download(download_file_url);
-                }
-            }
-            m_open_method = "makerworld";
-        }
-        else {
+        const auto first_url = this->init_params->input_files.front();
+        if (this->init_params->input_files.size() == 1 && is_supported_open_protocol(first_url)) {
+            switch_to_3d = true;
+            start_download(first_url);
+            m_open_method = "url";
+        } else {
             switch_to_3d = true;
             if (this->init_params->input_gcode) {
                 mainframe->select_tab(size_t(MainFrame::tp3DEditor));
                 plater_->select_view_3D("3D");
                 this->plater()->load_gcode(from_u8(this->init_params->input_files.front()));
                 m_open_method = "gcode";
-            }
-            else {
+            } else {
                 mainframe->select_tab(size_t(MainFrame::tp3DEditor));
                 plater_->select_view_3D("3D");
                 wxArrayString input_files;
-                for (auto & file : this->init_params->input_files) {
+                for (auto& file : this->init_params->input_files) {
                     input_files.push_back(wxString::FromUTF8(file));
                 }
                 this->plater()->set_project_filename(_L("Untitled"));
                 this->plater()->load_files(input_files);
                 try {
                     if (!input_files.empty()) {
-                        std::string file_path = input_files.front().ToStdString();
+                        std::string           file_path = input_files.front().ToStdString();
                         std::filesystem::path path(file_path);
                         m_open_method = "file_" + path.extension().string();
                     }
-                }
-                catch (...) {
+                } catch (...) {
                     BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ", file path exception!";
                     m_open_method = "file";
                 }
@@ -2630,10 +2606,6 @@ bool GUI_App::on_init_inner()
 #endif
             this->post_init();
 
-            if (!m_download_file_url.empty()) {
-                request_model_download(m_download_file_url);
-                m_download_file_url = "";
-            }
             update_publish_status();
         }
 
@@ -5861,32 +5833,9 @@ void GUI_App::OSXStoreOpenFiles(const wxArrayString &fileNames)
 
 void GUI_App::MacOpenURL(const wxString& url)
 {
-    BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << "get mac url " << url;
-
     if (url.empty())
         return;
-
-    if (boost::starts_with(url, "orcasliceropen://")) {
-        auto input_str_arr = split_str(url.ToStdString(), "orcasliceropen://");
-
-        std::string download_origin_url;
-        for (auto input_str : input_str_arr) {
-            if (!input_str.empty()) download_origin_url = input_str;
-        }
-
-        std::string download_file_url = url_decode(download_origin_url);
-        BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << download_file_url;
-        if (!download_file_url.empty() && (boost::starts_with(download_file_url, "http://") || boost::starts_with(download_file_url, "https://"))) {
-
-            if (m_post_initialized) {
-                request_model_download(download_file_url);
-            }
-            else {
-                m_download_file_url = download_file_url;
-            }
-        }
-    } else if (boost::starts_with(url, "orcaslicer://"))
-        start_download(boost::nowide::narrow(url));
+    start_download(boost::nowide::narrow(url));
 }
 
 // wxWidgets override to get an event on open files.
@@ -6685,6 +6634,7 @@ void GUI_App::start_download(std::string url)
     }
     m_downloader->init(dest_folder);
     m_downloader->start_download(url);
+
 }
 
 bool is_support_filament(int extruder_id)

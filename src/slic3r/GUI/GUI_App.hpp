@@ -236,8 +236,6 @@ private:
     bool            m_opengl_initialized{ false };
 #endif
 
-//import model from mall 
-    wxString       m_download_file_url;
    
 //#ifdef _WIN32
     wxColour        m_color_label_modified;
