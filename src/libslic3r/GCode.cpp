@@ -2399,6 +2399,8 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         this->placeholder_parser().set("first_layer_temperature", new ConfigOptionInts(m_config.nozzle_temperature_initial_layer));
         this->placeholder_parser().set("max_print_height",new ConfigOptionInt(m_config.printable_height));
         this->placeholder_parser().set("z_offset", new ConfigOptionFloat(m_config.z_offset));
+        this->placeholder_parser().set("model_name", new ConfigOptionString(print.get_model_name()));
+        this->placeholder_parser().set("plate_number", new ConfigOptionString(print.get_plate_number_formatted()));
         this->placeholder_parser().set("plate_name", new ConfigOptionString(print.get_plate_name()));
         this->placeholder_parser().set("first_layer_height", new ConfigOptionFloat(m_config.initial_layer_print_height.value));
 
@@ -5195,7 +5197,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             speed = m_config.get_abs_value("initial_layer_speed");
     }
     else if(m_config.slow_down_layers > 1){
-        const auto _layer = layer_id() + 1;
+        const auto _layer = layer_id();
         if (_layer > 0 && _layer < m_config.slow_down_layers) {
             const auto first_layer_speed =
                 is_perimeter(path.role())

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OrcaSlicer V2.0.0 Official Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-20 22:45+0200\n"
+"POT-Creation-Date: 2024-05-24 23:26+0800\n"
 "PO-Revision-Date: 2024-04-12 13:49+0700\n"
 "Last-Translator: \n"
 "Language-Team: andylg@yandex.ru\n"
@@ -264,7 +264,7 @@ msgid "World coordinates"
 msgstr "Мировая СК"
 
 msgid "Object coordinates"
-msgstr ""
+msgstr "СК модели"
 
 msgid "°"
 msgstr "°"
@@ -1397,9 +1397,6 @@ msgstr ""
 "Файл конфигурации \"%1%\" был загружен, но некоторые значения не были "
 "распознаны."
 
-msgid "V"
-msgstr "V"
-
 msgid ""
 "OrcaSlicer will terminate because of running out of memory.It may be a bug. "
 "It will be appreciated if you report the issue to our team."
@@ -1510,6 +1507,9 @@ msgstr ""
 msgid "Choose one or more files (3mf/step/stl/svg/obj/amf):"
 msgstr "Выберите один или несколько файлов (3mf/step/stl/svg/obj/amf):"
 
+msgid "Choose ZIP file"
+msgstr "Выберите ZIP файл"
+
 msgid "Choose one file (gcode/3mf):"
 msgstr "Выберите один файл (gcode/3mf):"
 
@@ -1579,6 +1579,13 @@ msgstr "Текущие загрузки"
 
 msgid "Select a G-code file:"
 msgstr "Выберите файл G-кода:"
+
+msgid ""
+"Could not start URL download. Destination folder is not set. Please choose "
+"destination folder in Configuration Wizard."
+msgstr ""
+"Не удалось запустить загрузку по URL-адресу. Не задана папка назначения. "
+"Пожалуйста, задайте папку назначения в мастере настройки."
 
 msgid "Import File"
 msgstr "Импорт файла"
@@ -2436,7 +2443,7 @@ msgid "AMS not connected"
 msgstr "АСПП не подключена"
 
 msgid "Load"
-msgstr ""
+msgstr "Загрузить"
 
 msgid "Unload"
 msgstr "Выгруз."
@@ -2500,6 +2507,8 @@ msgid ""
 "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically "
 "load or unload filaments."
 msgstr ""
+"Выберите слот АСПП, затем нажмите кнопку «Загрузить» или «Выгрузить» для "
+"автоматической загрузки или выгрузки прутка."
 
 msgid "Edit"
 msgstr "Правка"
@@ -2981,7 +2990,7 @@ msgid "Print with the filament mounted on the back of chassis"
 msgstr "Печать материалом, установленным на задней части корпуса."
 
 msgid "Current Cabin humidity"
-msgstr ""
+msgstr "Текущая влажность внутри АСПП"
 
 msgid ""
 "Please change the desiccant when it is too wet. The indicator may not "
@@ -2989,6 +2998,10 @@ msgid ""
 "desiccant pack is changed. it take hours to absorb the moisture, low "
 "temperatures also slow down the process."
 msgstr ""
+"Пожалуйста, замените влагопоглотитель, если он слишком влажный. Индикатор "
+"может показывать неточно в следующих случаях: при открытой крышке или замене "
+"влагопоглотителя. Для поглощения влаги требуется несколько часов. Низкая "
+"температура окружающей среды также замедляют этот процесс."
 
 msgid ""
 "Config which AMS slot should be used for a filament used in the print job"
@@ -3051,10 +3064,10 @@ msgstr ""
 "одного производителя, типа и цвета)"
 
 msgid "DRY"
-msgstr ""
+msgstr "СУХОЙ"
 
 msgid "WET"
-msgstr ""
+msgstr "ВЛАЖНЫЙ"
 
 msgid "AMS Settings"
 msgstr "Настройки АСПП"
@@ -3073,6 +3086,8 @@ msgid ""
 "Note: if a new filament is inserted during  printing, the AMS will not "
 "automatically read any information until printing is completed."
 msgstr ""
+"Примечание: если во время печати вставляется новая пластиковая нить, АСПП "
+"автоматически считает информацию о ней только по завершению печати."
 
 msgid ""
 "When inserting a new filament, the AMS will not automatically read its "
@@ -3210,10 +3225,10 @@ msgid "Running post-processing scripts"
 msgstr "Запуск скриптов постобработки"
 
 msgid "Successfully executed post-processing script"
-msgstr ""
+msgstr "Скрипт постобработки успешно выполнен."
 
 msgid "Unknown error occured during exporting G-code."
-msgstr ""
+msgstr "При экспорте G-кода произошла неизвестная ошибка."
 
 #, boost-format
 msgid ""
@@ -3221,6 +3236,9 @@ msgid ""
 "card is write locked?\n"
 "Error message: %1%"
 msgstr ""
+"Не удалось скопировать временный G-код в местонахождение выходного файла G-"
+"кода. Может ваша SD карта защищена от записи?\n"
+"Сообщение об ошибке: %1%"
 
 #, boost-format
 msgid ""
@@ -3228,28 +3246,39 @@ msgid ""
 "problem with target device, please try exporting again or using different "
 "device. The corrupted output G-code is at %1%.tmp."
 msgstr ""
+"Не удалось скопировать временный G-код в местонахождение выходного файла G-"
+"кода. Возможно, проблема с устройством назначения, попробуйте снова "
+"выполнить экспорт или использовать другое устройство. Повреждённый выходной "
+"файл G-кода находится в %1%.tmp."
 
 #, boost-format
 msgid ""
 "Renaming of the G-code after copying to the selected destination folder has "
 "failed. Current path is %1%.tmp. Please try exporting again."
 msgstr ""
+"Не удалось переименовать G-код после копирования в выбранную папку "
+"назначения. Текущий путь %1%.tmp. Пожалуйста, попробуйте экспортировать ещё "
+"раз."
 
 #, boost-format
 msgid ""
 "Copying of the temporary G-code has finished but the original code at %1% "
 "couldn't be opened during copy check. The output G-code is at %2%.tmp."
 msgstr ""
+"Копирование временного G-кода завершено, но исходный код в %1% не удалось "
+"открыть во время проверки копии. Выходной G-код находится в %2%.tmp."
 
 #, boost-format
 msgid ""
 "Copying of the temporary G-code has finished but the exported code couldn't "
 "be opened during copy check. The output G-code is at %1%.tmp."
 msgstr ""
+"Копирование временного G-кода завершено, но экспортированный код не удалось "
+"открыть во время проверки копии. Выходной G-код находится в %1%.tmp."
 
 #, boost-format
 msgid "G-code file exported to %1%"
-msgstr ""
+msgstr "Файл G-кода экспортирован в %1%"
 
 msgid "Unknown error when export G-code."
 msgstr "Неизвестная ошибка при экспорте G-кода."
@@ -3440,6 +3469,17 @@ msgstr ""
 msgid "Printing Options"
 msgstr ""
 
+msgid "Bed Leveling"
+msgstr ""
+"Выравнивание\n"
+"стола"
+
+msgid "Timelapse"
+msgstr "Таймлапсы"
+
+msgid "Flow Dynamic Calibration"
+msgstr ""
+
 msgid "Send Options"
 msgstr ""
 
@@ -3452,7 +3492,7 @@ msgid ""
 msgstr ""
 
 msgid "Wait"
-msgstr ""
+msgstr "Подождите"
 
 msgid ""
 "minute each batch.(It depends on how long it takes to complete the heating.)"
@@ -3553,14 +3593,18 @@ msgid ""
 "The recommended minimum temperature is less than 190 degree or the "
 "recommended maximum temperature is greater than 300 degree.\n"
 msgstr ""
+"Минимально рекомендуемая температура меньше 190 градусов или максимально "
+"рекомендуемая температура выше 300 градусов.\n"
 
 msgid ""
 "The recommended minimum temperature cannot be higher than the recommended "
 "maximum temperature.\n"
 msgstr ""
+"Минимально рекомендуемая температура не может быть выше максимально "
+"рекомендуемой.\n"
 
 msgid "Please check.\n"
-msgstr ""
+msgstr "Пожалуйста, проверьте.\n"
 
 msgid ""
 "Nozzle may be blocked when the temperature is out of recommended range.\n"
@@ -4025,6 +4069,8 @@ msgstr "Проверка корректности параметра"
 #, c-format, boost-format
 msgid "Value %s is out of range. The valid range is from %d to %d."
 msgstr ""
+"Значение %s выходит за пределы допустимого диапазона. Допустимый диапазон - "
+"от %d до %d."
 
 msgid "Value is out of range."
 msgstr "Введённое значение вне диапазона."
@@ -4215,10 +4261,10 @@ msgid "Normal mode"
 msgstr "Нормальный режим"
 
 msgid "Total Filament"
-msgstr ""
+msgstr "Всего использовано прутка"
 
 msgid "Model Filament"
-msgstr ""
+msgstr "Исп. прутка для моделей"
 
 msgid "Prepare time"
 msgstr "Время подготовки"
@@ -4314,7 +4360,7 @@ msgid "Spacing"
 msgstr "Интервал"
 
 msgid "0 means auto spacing."
-msgstr ""
+msgstr "0 - автоматический интервал."
 
 msgid "Auto rotate for arrangement"
 msgstr "Разрешить вращение при расстановке"
@@ -4461,7 +4507,7 @@ msgid "Go Live"
 msgstr "Запустить трансляцию"
 
 msgid "Liveview Retry"
-msgstr ""
+msgstr "Повторить попытку просмотра"
 
 msgid "Resolution"
 msgstr "Разрешение"
@@ -4665,6 +4711,12 @@ msgstr "Импортировать 3MF/STL/STEP/SVG/OBJ/AMF"
 
 msgid "Load a model"
 msgstr "Загрузка модели"
+
+msgid "Import Zip Archive"
+msgstr ""
+
+msgid "Load models contained within a zip archive"
+msgstr ""
 
 msgid "Import Configs"
 msgstr "Импортировать конфигурацию"
@@ -4976,44 +5028,59 @@ msgstr ""
 
 msgid "Player is malfunctioning. Please reinstall the system player."
 msgstr ""
+"Проигрыватель неисправен. Пожалуйста, переустановите системный проигрыватель."
 
 msgid "The player is not loaded, please click \"play\" button to retry."
 msgstr ""
+"Проигрыватель не загружается, пожалуйста, нажмите кнопку «Воспроизвести», "
+"чтобы повторить попытку."
 
 msgid "Please confirm if the printer is connected."
-msgstr ""
+msgstr "Пожалуйста, проверьте, подключен ли принтер."
 
 msgid ""
 "The printer is currently busy downloading. Please try again after it "
 "finishes."
 msgstr ""
+"Принтер в настоящее время занят загрузкой. Пожалуйста, повторите попытку "
+"после завершения.\n"
+"\n"
+"Сейчас идёт загрузка. Пожалуйста, повторите попытку после завершения."
 
 msgid "Printer camera is malfunctioning."
-msgstr ""
+msgstr "Камера принтера неисправна."
 
 msgid "Problem occured. Please update the printer firmware and try again."
 msgstr ""
+"Возникла проблема. Пожалуйста, обновите прошивку принтера и повторите "
+"попытку."
 
 msgid ""
 "LAN Only Liveview is off. Please turn on the liveview on printer screen."
 msgstr ""
+"Просмотр в реальном времени для локальной сети отключён. Пожалуйста, "
+"включите его на экране принтера."
 
 msgid "Please enter the IP of printer to connect."
-msgstr ""
+msgstr "Введите IP-адрес принтера для подключения."
 
 msgid "Initializing..."
 msgstr "Инициализация..."
 
 msgid "Connection Failed. Please check the network and try again"
 msgstr ""
+"Не удалось установить соединение. Пожалуйста, проверьте сеть и повторите "
+"попытку"
 
 msgid ""
 "Please check the network and try again, You can restart or update the "
 "printer if the issue persists."
 msgstr ""
+"Пожалуйста, проверьте сеть и повторите попытку. Если проблема не устранена, "
+"попробуйте перезагрузить или обновить принтер."
 
 msgid "The printer has been logged out and cannot connect."
-msgstr ""
+msgstr "Принтер вышел из системы и не может подключиться."
 
 msgid "Stopped."
 msgstr "Остановлено."
@@ -5073,9 +5140,6 @@ msgstr "Группировать файлы по месяцам (по убыва
 msgid "Show all files, recent first."
 msgstr "Показать все файлы (недавние первые)"
 
-msgid "Timelapse"
-msgstr "Таймлапсы"
-
 msgid "Switch to timelapse files."
 msgstr "Переключиться на файлы таймлапсов."
 
@@ -5107,7 +5171,7 @@ msgid "Refresh"
 msgstr "Обновить"
 
 msgid "Reload file list from printer."
-msgstr ""
+msgstr "Перезагрузка списка файлов с принтера."
 
 msgid "No printers."
 msgstr "Принтеры отсутствуют."
@@ -5120,10 +5184,10 @@ msgid "Loading file list..."
 msgstr "Загрузка списка файлов..."
 
 msgid "No files"
-msgstr ""
+msgstr "Файлы отсутствуют "
 
 msgid "Load failed"
-msgstr ""
+msgstr "Ошибка загрузки"
 
 msgid "Initialize failed (Device connection not ready)!"
 msgstr "Ошибка инициализации (подключённое устройство не готово)!"
@@ -5132,15 +5196,19 @@ msgid ""
 "Browsing file in SD card is not supported in current firmware. Please update "
 "the printer firmware."
 msgstr ""
+"На текущей версии прошивки просмотр файлов на SD-карте не поддерживается. "
+"Пожалуйста, обновите прошивку принтера."
 
 msgid "Initialize failed (Storage unavailable, insert SD card.)!"
 msgstr ""
 
 msgid "LAN Connection Failed (Failed to view sdcard)"
 msgstr ""
+"LAN Connection Failed (Failed to start liveview)\"\n"
+"Сбой подключения к локальной сети (не удалось просмотреть sd-карту)"
 
 msgid "Browsing file in SD card is not supported in LAN Only Mode."
-msgstr ""
+msgstr "Просмотр файлов на SD-карте не поддерживается в режиме «Только LAN»."
 
 #, c-format, boost-format
 msgid "Initialize failed (%s)!"
@@ -5174,10 +5242,10 @@ msgid "Fetching model infomations ..."
 msgstr "Извлечение информации о модели..."
 
 msgid "Failed to fetch model information from printer."
-msgstr ""
+msgstr "Не удалось получить информацию о модели с принтера."
 
 msgid "Failed to parse model information."
-msgstr ""
+msgstr "Не удалось обработать информацию о модели."
 
 msgid ""
 "The .gcode.3mf file contains no G-code data.Please slice it with Orca Slicer "
@@ -5195,6 +5263,8 @@ msgid ""
 "File: %s\n"
 "Title: %s\n"
 msgstr ""
+"Файл: %s\n"
+"Заголовок: %s\n"
 
 msgid "Download waiting..."
 msgstr "Ожидание загрузки..."
@@ -5216,9 +5286,11 @@ msgid ""
 "Reconnecting the printer, the operation cannot be completed immediately, "
 "please try again later."
 msgstr ""
+"При повторном подключении принтера операция не может быть завершена "
+"немедленно, повторите попытку позже."
 
 msgid "File does not exist."
-msgstr ""
+msgstr "Файла не существует."
 
 msgid "File checksum error. Please retry."
 msgstr "Ошибка контрольной суммы файла. Повторите попытку."
@@ -5318,7 +5390,7 @@ msgid "Control"
 msgstr "Управление"
 
 msgid "Printer Parts"
-msgstr ""
+msgstr "Части принтера"
 
 msgid "Print Options"
 msgstr "Настройки печати"
@@ -5568,7 +5640,7 @@ msgid "If you would like to try Orca Slicer Beta, you may click to"
 msgstr ""
 
 msgid "Download Beta Version"
-msgstr ""
+msgstr "Скачать бета-версию"
 
 msgid "The 3mf file version is newer than the current Orca Slicer version."
 msgstr ""
@@ -5577,13 +5649,13 @@ msgid "Update your Orca Slicer could enable all functionality in the 3mf file."
 msgstr ""
 
 msgid "Current Version: "
-msgstr ""
+msgstr "Текущая версия: "
 
 msgid "Latest Version: "
-msgstr ""
+msgstr "Последняя версия: "
 
 msgid "Not for now"
-msgstr ""
+msgstr "Не сейчас"
 
 msgid "3D Mouse disconnected."
 msgstr "3D-мышь отключена."
@@ -5657,11 +5729,11 @@ msgstr[2] "Загружена %1$d деталей, являющиеся част
 msgid "ERROR"
 msgstr "ОШИБКА"
 
-msgid "CANCELED"
-msgstr "ОТМЕНЕНО"
-
 msgid "COMPLETED"
 msgstr "ЗАВЕРШЕНО"
+
+msgid "CANCELED"
+msgstr "ОТМЕНЕНО"
 
 msgid "Cancel upload"
 msgstr "Отменить отправку"
@@ -5780,7 +5852,7 @@ msgid "Check if the nozzle is clumping by filament or other foreign objects."
 msgstr ""
 
 msgid "Nozzle Type"
-msgstr ""
+msgstr "Тип сопла"
 
 msgid "Stainless Steel"
 msgstr "Нержавеющая сталь"
@@ -5790,7 +5862,7 @@ msgstr "Закаленная сталь"
 
 #, c-format, boost-format
 msgid "%.1f"
-msgstr ""
+msgstr "%.1f"
 
 msgid "Global"
 msgstr "Общие"
@@ -6242,13 +6314,13 @@ msgid "prepare 3mf file..."
 msgstr "подготовка 3mf файла..."
 
 msgid "Download failed, unknown file format."
-msgstr ""
+msgstr "Не удалось загрузить, неизвестный формат файла."
 
 msgid "downloading project ..."
 msgstr "скачивание проекта..."
 
 msgid "Download failed, File size exception."
-msgstr ""
+msgstr "Загрузка не удалась, ошибка размера файла."
 
 #, c-format, boost-format
 msgid "Project downloaded %d%%"
@@ -6272,6 +6344,20 @@ msgstr "G-кода содержатся недопустимые данные."
 
 msgid "Error occurs while loading G-code file"
 msgstr "Ошибка при загрузке файла G-кода"
+
+#. TRN %1% is archive path
+#, boost-format
+msgid "Loading of a ZIP archive on path %1% has failed."
+msgstr "Не удалось загрузить ZIP-архив расположенный по пути %1%."
+
+#. TRN: First argument = path to file, second argument = error description
+#, boost-format
+msgid "Failed to unzip file to %1%: %2%"
+msgstr "Не удалось разархивировать файл в %1%: %2%"
+
+#, boost-format
+msgid "Failed to find unzipped file at %1%. Unzipping of file has failed."
+msgstr "Ошибка поиска распакованного файла в %1%. Не удалось распаковать файл."
 
 msgid "Drop project file"
 msgstr "Операции с файлами проекта"
@@ -6336,22 +6422,24 @@ msgid ""
 "Unable to perform boolean operation on model meshes. Only positive parts "
 "will be kept. You may fix the meshes and try agian."
 msgstr ""
+"Невозможно выполнить булеву операцию над сетками модели. Будут сохранены "
+"только положительные части. Вы можете исправить сетки и попробовать снова."
 
 #, boost-format
 msgid "Reason: part \"%1%\" is empty."
-msgstr ""
+msgstr "Причина: часть \"%1%\" пустая."
 
 #, boost-format
 msgid "Reason: part \"%1%\" does not bound a volume."
-msgstr ""
+msgstr "Причина: часть \"%1%\" не ограничивает объём."
 
 #, boost-format
 msgid "Reason: part \"%1%\" has self intersection."
-msgstr ""
+msgstr "Причина: часть \"%1%\" имеет самопересечение."
 
 #, boost-format
 msgid "Reason: \"%1%\" and another part have no intersection."
-msgstr ""
+msgstr "Причина: \"%1%\" и другая часть не пересекаются."
 
 msgid ""
 "Are you sure you want to store original SVGs with their local paths into the "
@@ -6541,6 +6629,10 @@ msgid ""
 "it is allowed to run multiple instances of same app from the command line. "
 "In such case this settings will allow only one instance."
 msgstr ""
+"В OSX по умолчанию всегда работает только один экземпляр приложения. Однако "
+"из командной строки можно запускать несколько экземпляров одного и того же "
+"приложения. В таком случае эти настройки разрешат работу только одного "
+"экземпляра."
 
 msgid ""
 "If this is enabled, when starting OrcaSlicer and another instance of the "
@@ -6619,10 +6711,12 @@ msgstr ""
 
 msgid ""
 "Flushing volumes: Auto-calculate every time when the filament is changed."
-msgstr ""
+msgstr "Объём очистки: автопересчёт при каждой смене прутка."
 
 msgid "If enabled, auto-calculate every time when filament is changed"
 msgstr ""
+"Если включено, выполняется автоматический перерасчёт объёма очистки при "
+"каждой смене прутка."
 
 msgid "Remember printer configuration"
 msgstr ""
@@ -6684,6 +6778,20 @@ msgid "If enabled, sets OrcaSlicer as default application to open .step files"
 msgstr ""
 "Если включено, назначает OrcaSlicer в качестве приложения по умолчанию для "
 "открытия .step файлов."
+
+msgid "Current association: "
+msgstr ""
+
+msgid "Associate prusaslicer://"
+msgstr ""
+
+msgid "Not associated to any application"
+msgstr ""
+
+msgid ""
+"Associate OrcaSlicer with prusaslicer:// links so that Orca can open "
+"PrusaSlicer links from Printable.com"
+msgstr ""
 
 msgid "Maximum recent projects"
 msgstr "Максимальное количество недавних проектов"
@@ -6861,16 +6969,16 @@ msgid "The selected preset is null!"
 msgstr "Выбранный профиль пуст!"
 
 msgid "End"
-msgstr ""
+msgstr "Последний"
 
 msgid "Customize"
 msgstr "Настроить"
 
 msgid "Other layer filament sequence"
-msgstr ""
+msgstr "Последовательность прутков на остальных слоях"
 
 msgid "Please input layer value (>= 2)."
-msgstr ""
+msgstr "Пожалуйста, введите значение слоя (>= 2)."
 
 msgid "Plate name"
 msgstr "Имя печатной пластины"
@@ -6882,10 +6990,10 @@ msgid "Print sequence"
 msgstr "Последовательность печати моделей"
 
 msgid "Same as Global"
-msgstr ""
+msgstr "Аналогично глобальной настройке"
 
 msgid "Disable"
-msgstr ""
+msgstr "Отключить"
 
 msgid "Spiral vase"
 msgstr "Спиральная ваза"
@@ -7054,11 +7162,6 @@ msgstr "Текстурированная PEI пластина Bambu"
 msgid "Send print job to"
 msgstr "Отправка задания на печать"
 
-msgid "Bed Leveling"
-msgstr ""
-"Выравнивание\n"
-"стола"
-
 msgid "Flow Dynamics Calibration"
 msgstr ""
 "Калибровка\n"
@@ -7165,6 +7268,8 @@ msgid ""
 "The selected printer (%s) is incompatible with the chosen printer profile in "
 "the slicer (%s)."
 msgstr ""
+"Выбранный принтер (%s) несовместим с профилем принтера (%s), выбранным в "
+"слайсере."
 
 msgid "An SD card needs to be inserted to record timelapse."
 msgstr "Для записи таймлапсов необходимо вставить SD-карту."
@@ -7231,15 +7336,22 @@ msgid ""
 "If you changed your nozzle lately, please go to Device > Printer Parts to "
 "change settings."
 msgstr ""
+"Диаметр сопла в нарезанном файле не соответствует сохранённому. Если вы "
+"недавно меняли сопло, перейдите в раздел Принтер > Части принтера, чтобы "
+"изменить настройки."
 
 #, c-format, boost-format
 msgid ""
 "Printing high temperature material(%s material) with %s may cause nozzle "
 "damage"
 msgstr ""
+"Печать высокотемпературным материалом (%s) с %s может привести к повреждению "
+"сопла"
 
 msgid "Please fix the error above, otherwise printing cannot continue."
 msgstr ""
+"Пожалуйста, устраните вышеуказанную ошибку, иначе печать не может "
+"продолжиться."
 
 msgid ""
 "Please click the confirm button if you still want to proceed with printing."
@@ -7545,6 +7657,10 @@ msgid ""
 "reduce flush,  it may also elevate the risk of nozzle clogs or other "
 "printing complications."
 msgstr ""
+"Экспериментальная функция. Втягивание и обрезка пластиковой нити на большем "
+"расстоянии во время её замены для минимизации очистки. Хотя это значительно "
+"сокращает величину очистки, это может повысить риск засорения сопла или "
+"вызвать другие проблемы при печати."
 
 msgid ""
 "Experimental feature: Retracting and cutting off the filament at a greater "
@@ -7552,6 +7668,11 @@ msgid ""
 "reduce flush, it may also elevate the risk of nozzle clogs or other printing "
 "complications.Please use with the latest printer firmware."
 msgstr ""
+"Экспериментальная функция. Втягивание и обрезка пластиковой нити на большем "
+"расстоянии во время её замены для минимизации очистки. Хотя это значительно "
+"сокращает величину очистки, это может повысить риск засорения сопла или "
+"вызвать другие проблемы при печати. Пожалуйста, используйте для принтера "
+"последнюю версию прошивки."
 
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
@@ -7937,7 +8058,8 @@ msgstr ""
 msgid "Presets inherited by other presets can not be deleted!"
 msgstr "Профили на которых основаны другие профили не могут быть удалены!"
 
-# ???The following preset inherits this preset. - Нижеуказанный профиль наследуется от текущего профиля
+# ???The following preset inherits this preset. - Нижеуказанный профиль
+# наследуется от текущего профиля
 msgid "The following presets inherit this preset."
 msgid_plural "The following preset inherits this preset."
 msgstr[0] "Профиль указанный ниже, наследуется от текущего профиля."
@@ -8064,12 +8186,14 @@ msgstr ""
 
 #, boost-format
 msgid "You have changed some settings of preset \"%1%\". "
-msgstr ""
+msgstr "Вы изменили некоторые параметры профиля \"%1%\". "
 
 msgid ""
 "\n"
 "You can save or discard the preset values you have modified."
 msgstr ""
+"\n"
+"Вы можете сохранить или сбросить изменённые вами значения профиля."
 
 msgid ""
 "\n"
@@ -8078,7 +8202,7 @@ msgid ""
 msgstr ""
 
 msgid "You have previously modified your settings."
-msgstr ""
+msgstr "Ранее вы изменили свои настройки."
 
 msgid ""
 "\n"
@@ -8599,7 +8723,7 @@ msgid "Done"
 msgstr "Готово"
 
 msgid "resume"
-msgstr ""
+msgstr "Продолжить"
 
 msgid "Resume Printing"
 msgstr ""
@@ -9544,13 +9668,13 @@ msgid "First layer print sequence"
 msgstr "Последовательность печати первого слоя"
 
 msgid "Other layers print sequence"
-msgstr ""
+msgstr "Последовательность печати других слоёв"
 
 msgid "The number of other layers print sequence"
-msgstr ""
+msgstr "Количество слоёв при последовательности печати остальных слоёв"
 
 msgid "Other layers filament sequence"
-msgstr ""
+msgstr "Последовательность прутков на остальных слоях"
 
 msgid "This G-code is inserted at every layer change before lifting z"
 msgstr ""
@@ -10009,7 +10133,8 @@ msgstr "По очереди"
 msgid "Intra-layer order"
 msgstr "Порядок печати слоёв"
 
-# ??? Указания порядка печати слоёв внутри каждого слоя, Последовательность печати слоёв внутри каждого слоя
+# ??? Указания порядка печати слоёв внутри каждого слоя, Последовательность
+# печати слоёв внутри каждого слоя
 msgid "Print order within a single layer"
 msgstr "Последовательность печати слоёв в пределах одного слоя."
 
@@ -10473,10 +10598,10 @@ msgstr ""
 "столкновений при печати отдельно стоящих моделей."
 
 msgid "Nozzle height"
-msgstr ""
+msgstr "Высота сопла"
 
 msgid "The height of nozzle tip."
-msgstr ""
+msgstr "Высота кончика сопла."
 
 msgid "Bed mesh min"
 msgstr "Мин. сетка стола"
@@ -11091,7 +11216,9 @@ msgstr ""
 "Параметр предназначен для ограничения влияния экстремальных переходов от "
 "ускорения к замедлению, типичных для коротких зигзагообразных перемещений."
 
-# ??? Ускорение к замедлению, Ускорение торможения, Скорость торможения, Скорость торможения перед поворотом, Соотношение ускорения к замедлению, Скорость движения при переходе от ускорения к замедлению и наоборот
+# ??? Ускорение к замедлению, Ускорение торможения, Скорость торможения,
+# Скорость торможения перед поворотом, Соотношение ускорения к замедлению,
+# Скорость движения при переходе от ускорения к замедлению и наоборот
 msgid "accel_to_decel"
 msgstr "Ограничение ускорение зигзагов"
 
@@ -11261,13 +11388,16 @@ msgstr ""
 "линии и должен печататься медленнее."
 
 msgid "Precise Z height"
-msgstr ""
+msgstr "Точная высота по Z"
 
 msgid ""
 "Enable this to get precise z height of object after slicing. It will get the "
 "precise object height by fine-tuning the layer heights of the last few "
 "layers. Note that this is an experimental parameter."
 msgstr ""
+"Включите этот параметр, чтобы получить точную высоту модели по оси Z после "
+"нарезки. Точная высота модели будет получена путем точной настройки высоты "
+"последних нескольких слоёв."
 
 msgid "Arc fitting"
 msgstr "Поддержка движения по дуге окружности"
@@ -12224,7 +12354,7 @@ msgstr ""
 "избежать его течи при длительном перемещении. 0 - отключение отката."
 
 msgid "Long retraction when cut(experimental)"
-msgstr ""
+msgstr "Длинное втягивания перед отрезанием прутка"
 
 msgid ""
 "Experimental feature.Retracting and cutting off the filament at a longer "
@@ -12232,14 +12362,20 @@ msgid ""
 "significantly, it may also raise the risk of nozzle clogs or other printing "
 "problems."
 msgstr ""
+"Экспериментальная функция. Втягивание и обрезка пластиковой нити на большем "
+"расстоянии во время её замены для минимизации очистки. Хотя это значительно "
+"уменьшает величину очистки, это может повысить риск засорения сопла или "
+"вызвать другие проблемы при печати."
 
 msgid "Retraction distance when cut"
-msgstr ""
+msgstr "Длина втягивания перед отрезанием прутка"
 
 msgid ""
 "Experimental feature.Retraction length before cutting off during filament "
 "change"
 msgstr ""
+"Экспериментальная функция. Длина втягивания перед отрезанием пластиковой "
+"нити при её смене."
 
 msgid "Z hop when retract"
 msgstr "Подъём оси Z при откате"
@@ -12442,8 +12578,10 @@ msgstr ""
 msgid "Conditional scarf joint"
 msgstr "Условие для клиновидного шва"
 
-# ??? Будет использоваться клиновидный шов, когда на стене нет достаточно острого угла для эффективного скрытия шва.
-# Использовать клиновидный шов только на гладких периметрах, где традиционные швы не могут быть эффективно скрыты.
+# ??? Будет использоваться клиновидный шов, когда на стене нет достаточно
+# острого угла для эффективного скрытия шва.
+# Использовать клиновидный шов только на гладких периметрах, где традиционные
+# швы не могут быть эффективно скрыты.
 msgid ""
 "Apply scarf joints only to smooth perimeters where traditional seams do not "
 "conceal the seams at sharp corners effectively."
@@ -12624,7 +12762,7 @@ msgid "How many layers of skirt. Usually only one layer"
 msgstr "Количество слоёв юбки. Обычно только один слой."
 
 msgid "Draft shield"
-msgstr ""
+msgstr "Защитный кожух"
 
 msgid ""
 "A draft shield is useful to protect an ABS or ASA print from warping and "
@@ -12641,10 +12779,10 @@ msgid ""
 msgstr ""
 
 msgid "Limited"
-msgstr ""
+msgstr "Ограничено"
 
 msgid "Enabled"
-msgstr ""
+msgstr "Включено"
 
 msgid "Skirt loops"
 msgstr "Юбок вокруг модели"
@@ -13464,17 +13602,29 @@ msgstr "Расстояние между линиями очистки черно
 msgid "Spacing of purge lines on the wipe tower."
 msgstr "Расстояние между линиями очистки на черновой башне."
 
-msgid "Maximum print speed when purging"
+msgid "Maximum wipe tower print speed"
 msgstr ""
 
 msgid ""
-"The maximum print speed when purging in the wipe tower. If the sparse infill "
-"speed or calculated speed from the filament max volumetric speed is lower, "
-"the lowest speed will be used instead.\n"
-"Increasing this speed may affect the tower's stability, as purging can be "
-"performed over sparse layers. Before increasing this parameter beyond the "
-"default of 90mm/sec, make sure your printer can reliably bridge at the "
-"increased speeds."
+"The maximum print speed when purging in the wipe tower and printing the wipe "
+"tower sparse layers. When purging, if the sparse infill speed or calculated "
+"speed from the filament max volumetric speed is lower, the lowest will be "
+"used instead.\n"
+"\n"
+"When printing the sparse layers, if the internal perimeter speed or "
+"calculated speed from the filament max volumetric speed is lower, the lowest "
+"will be used instead.\n"
+"\n"
+"Increasing this speed may affect the tower's stability as well as increase "
+"the force with which the nozzle collides with any blobs that may have formed "
+"on the wipe tower.\n"
+"\n"
+"Before increasing this parameter beyond the default of 90mm/sec, make sure "
+"your printer can reliably bridge at the increased speeds and that ooze when "
+"tool changing is well controlled.\n"
+"\n"
+"For the wipe tower external perimeters the internal perimeter speed is used "
+"regardless of this setting."
 msgstr ""
 
 msgid "Wipe tower extruder"
@@ -14403,6 +14553,8 @@ msgid ""
 "Only one of the results with the same name is saved. Are you sure you want "
 "to override the historical result?"
 msgstr ""
+"Результат калибровки с таким именем уже с существует: %s. Вы уверены, что "
+"хотите перезаписать прошлый результат?"
 
 #, c-format, boost-format
 msgid ""
@@ -14777,7 +14929,7 @@ msgid "Flow Dynamics Calibration Result"
 msgstr "Результаты калибровки динамики потока"
 
 msgid "New"
-msgstr ""
+msgstr "Новая"
 
 msgid "No History Result"
 msgstr "Журнал результатов пуст"
@@ -14799,13 +14951,13 @@ msgid "Edit Flow Dynamics Calibration"
 msgstr "Редактировать калибровку динамики потока"
 
 msgid "New Flow Dynamic Calibration"
-msgstr ""
+msgstr "Новая калибровка динамика потока"
 
 msgid "Ok"
-msgstr ""
+msgstr "Ok"
 
 msgid "The filament must be selected."
-msgstr ""
+msgstr "Выберите пластиковую нить."
 
 msgid "Network lookup"
 msgstr "Поиск по сети"
@@ -15203,6 +15355,9 @@ msgid ""
 "If you continue creating, the preset created will be displayed with its full "
 "name. Do you want to continue?"
 msgstr ""
+"Пластиковая нить с таким именем %s уже существует. \n"
+"Если продолжить создание, то созданный профиль будет отображаться с полным "
+"именем. Хотите продолжить?"
 
 msgid "Some existing presets have failed to be created, as follows:\n"
 msgstr ""
@@ -15425,6 +15580,11 @@ msgid ""
 "volumetric speed has a significant impact on printing quality. Please set "
 "them carefully."
 msgstr ""
+"При необходимости перейдите в настройку прутка для редактирования настроек "
+"профиля.\n"
+"Обратите внимание, что температура сопла, температура нагреваемого стола и "
+"максимальная объёмная скорость существенно влияют на качество печати. "
+"Пожалуйста, тщательнее подбирайте настройки."
 
 msgid ""
 "\n"
@@ -15538,6 +15698,8 @@ msgstr "Пожалуйста, выберите то, что вы хотите э
 
 msgid "Failed to create temporary folder, please try Export Configs again."
 msgstr ""
+"Не удалось создать временную папку, пожалуйста, попробуйте экспортировать "
+"конфигурации ещё раз."
 
 msgid "Edit Filament"
 msgstr "Изменение прутка"
@@ -15828,30 +15990,46 @@ msgid ""
 "It has a small layer height, and results in almost negligible layer lines "
 "and high printing quality. It is suitable for most general printing cases."
 msgstr ""
+"Стандартная высота слоя для сопла 0.2 мм. Маленькая высота слоя обеспечивает "
+"практически незаметные слои и высокое качество печати. Подходит для "
+"большинства обычных сценариев печати."
 
 msgid ""
 "Compared with the default profile of a 0.2 mm nozzle, it has lower speeds "
 "and acceleration, and the sparse infill pattern is Gyroid. So, it results in "
 "much higher printing quality, but a much longer printing time."
 msgstr ""
+"По сравнению со стандартным профилем для сопла 0.2 мм, имеет более низкие "
+"скорости и ускорения, а также задан гироидный шаблон заполнения. Это "
+"обеспечивает гораздо более высокое качество печати, но приводит к "
+"увеличивает время печати."
 
 msgid ""
 "Compared with the default profile of a 0.2 mm nozzle, it has a slightly "
 "bigger layer height, and results in almost negligible layer lines, and "
 "slightly shorter printing time."
 msgstr ""
+"По сравнению со стандартным профилем для сопла 0.2 мм, имеет немного большую "
+"высоту слоя, что обеспечивает практически незаметные слои и немного "
+"сокращает время печати."
 
 msgid ""
 "Compared with the default profile of a 0.2 mm nozzle, it has a bigger layer "
 "height, and results in slightly visible layer lines, but shorter printing "
 "time."
 msgstr ""
+"По сравнению со стандартным профилем для сопла 0.2 мм, имеет наибольшую "
+"высоту слоя, слои становятся немного более заметными, но при этом "
+"сокращается время печати."
 
 msgid ""
 "Compared with the default profile of a 0.2 mm nozzle, it has a smaller layer "
 "height, and results in almost invisible layer lines and higher printing "
 "quality, but shorter printing time."
 msgstr ""
+"По сравнению со стандартным профилем для сопла 0.2 мм, имеет меньшую высоту "
+"слоя, что обеспечивает практически незаметные слои и более высокое качество "
+"печати, но при этом увеличивается время печати."
 
 msgid ""
 "Compared with the default profile of a 0.2 mm nozzle, it has a smaller layer "
@@ -15859,12 +16037,19 @@ msgid ""
 "Gyroid. So, it results in almost invisible layer lines and much higher "
 "printing quality, but much longer printing time."
 msgstr ""
+"По сравнению со стандартным профилем для сопла 0.2 мм, имеет меньшую высоту "
+"слоя, более низкие скорости и ускорения, а также задан гироидный шаблон "
+"заполнения. Это обеспечивает практически невидимые слои и более высокое "
+"качество печати, но при этом значительно увеличивается время печати."
 
 msgid ""
 "Compared with the default profile of 0.2 mm nozzle, it has a smaller layer "
 "height, and results in minimal layer lines and higher printing quality, but "
 "shorter printing time."
 msgstr ""
+"По сравнению со стандартным профилем для сопла 0.2 мм, имеет наименьшую "
+"высоту слоя, что обеспечивает незаметные слои и гораздо более высокое "
+"качество печати, но при этом увеличивается время печати."
 
 msgid ""
 "Compared with the default profile of a 0.2 mm nozzle, it has a smaller layer "
@@ -15872,35 +16057,54 @@ msgid ""
 "Gyroid. So, it results in minimal layer lines and much higher printing "
 "quality, but much longer printing time."
 msgstr ""
+"По сравнению со стандартным профилем для сопла 0.2 мм, имеет наименьшую "
+"высоту слоя, более низкие скорости и ускорения, а также задан гироидный "
+"шаблон заполнения. Это обеспечивает незаметные слои и наилучшее качество "
+"печати, но при этом значительно увеличивается время печати."
 
 msgid ""
 "It has a general layer height, and results in general layer lines and "
 "printing quality. It is suitable for most general printing cases."
 msgstr ""
+"Стандартная высота слоя для сопла 0.4 мм, обеспечивающая нормальное качество "
+"печати, подходящее для большинства обычных сценариев печати."
 
 msgid ""
 "Compared with the default profile of a 0.4 mm nozzle, it has more wall loops "
 "and a higher sparse infill density. So, it results in higher strength of the "
 "prints, but more filament consumption and longer printing time."
 msgstr ""
+"По сравнению со стандартным профилем для сопла 0.4 мм, имеет больше "
+"периметров и более высокую плотность заполнения. Это приводит к повышению "
+"прочности напечатанного, но при этом увеличивается расход материала и время "
+"печати."
 
 msgid ""
 "Compared with the default profile of a 0.4 mm nozzle, it has a bigger layer "
 "height, and results in more apparent layer lines and lower printing quality, "
 "but slightly shorter printing time."
 msgstr ""
+"По сравнению со стандартным профилем для сопла 0.4 мм, имеет большую высоту "
+"слоя. Как результат - более заметные слои и снижение качества печати, но при "
+"этом немного сокращается время печати."
 
 msgid ""
 "Compared with the default profile of a 0.4 mm nozzle, it has a bigger layer "
 "height, and results in more apparent layer lines and lower printing quality, "
 "but shorter printing time."
 msgstr ""
+"По сравнению со стандартным профилем для сопла 0.4 мм, имеет большую высоту "
+"слоя. Как результат - более заметные слои, снижение качества печати, но при "
+"этом сокращается время печати."
 
 msgid ""
 "Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer "
 "height, and results in less apparent layer lines and higher printing "
 "quality, but longer printing time."
 msgstr ""
+"По сравнению с профилем по умолчанию для соплом 0.4 мм, имеет меньшую высоту "
+"слоя. Как результат - менее заметные слои, более высокое качество печати, но "
+"при этом увеличивается время печати."
 
 msgid ""
 "Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer "
@@ -15908,12 +16112,19 @@ msgid ""
 "Gyroid. So, it results in less apparent layer lines and much higher printing "
 "quality, but much longer printing time."
 msgstr ""
+"По сравнению с профилем по умолчанию для соплом 0.4 мм, имеет меньшую высоту "
+"слоя, более низкие скорости и ускорения, а также задан гироидный шаблон "
+"заполнения. Как результат - менее заметные слои и гораздо более высокое "
+"качество печати, но при этом заметно увеличивается время печати."
 
 msgid ""
 "Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer "
 "height, and results in almost negligible layer lines and higher printing "
 "quality, but longer printing time."
 msgstr ""
+"По сравнению с профилем по умолчанию для соплом 0.4 мм, имеет меньшую высоту "
+"слоя. Как результат - почти незначительные слои и более высокое качество "
+"печати, но при этом увеличивается время печати."
 
 msgid ""
 "Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer "
@@ -15921,64 +16132,98 @@ msgid ""
 "Gyroid. So, it results in almost negligible layer lines and much higher "
 "printing quality, but much longer printing time."
 msgstr ""
+"По сравнению с профилем по умолчанию для соплом 0.4 мм, имеет наименьшую "
+"высоту слоя, более низкие скорость и ускорение, а также задан гироидный "
+"шаблон заполнения. Как результат - почти незаметные слои и гораздо более "
+"высокое качество печати, но при этом значительно увеличивается время печати."
 
 msgid ""
 "Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer "
 "height, and results in almost negligible layer lines and longer printing "
 "time."
 msgstr ""
+"По сравнению с профилем по умолчанию для соплом 0.4 мм, имеет наименьшую "
+"высоту слоя. Как результат - почти незначительные слои, но при этом "
+"увеличивается время печати."
 
 msgid ""
 "It has a big layer height, and results in apparent layer lines and ordinary "
 "printing quality and printing time."
 msgstr ""
+"Стандартная высота слоя для сопла 0.6 мм. Большая высота слоя, как результат "
+"- видимые слои при нормальном качестве и времени печати."
 
 msgid ""
 "Compared with the default profile of a 0.6 mm nozzle, it has more wall loops "
 "and a higher sparse infill density. So, it results in higher strength of the "
 "prints, but more filament consumption and longer printing time."
 msgstr ""
+"По сравнению с профилем по умолчанию для соплом 0.6 мм, имеет больше "
+"периметров и более высокую плотность заполнения. Это приводит к повышению "
+"прочности напечатанного, но увеличивает расход материала и время печати."
 
 msgid ""
 "Compared with the default profile of a 0.6 mm nozzle, it has a bigger layer "
 "height, and results in more apparent layer lines and lower printing quality, "
 "but shorter printing time in some printing cases."
 msgstr ""
+"По сравнению с профилем по умолчанию для соплом 0.6 мм, имеет большую высоту "
+"слоя. Как результат - более заметные слои и снижение качества печати, но при "
+"этом в некоторых случаях сокращается время печати."
 
 msgid ""
 "Compared with the default profile of a 0.6 mm nozzle, it has a bigger layer "
 "height, and results in much more apparent layer lines and much lower "
 "printing quality, but shorter printing time in some printing cases."
 msgstr ""
+"По сравнению с профилем по умолчанию для соплом 0.6 мм, имеет большую высоту "
+"слоя. Как результат - более заметные слои и значительное снижение качества "
+"печати, но при этом в некоторых случаях сокращается время печати."
 
 msgid ""
 "Compared with the default profile of a 0.6 mm nozzle, it has a smaller layer "
 "height, and results in less apparent layer lines and slight higher printing "
 "quality, but longer printing time."
 msgstr ""
+"По сравнению с профилем по умолчанию для соплом 0.6 мм, имеет меньшую высоту "
+"слоя. Как результат - менее заметные слои и незначительное повышению "
+"качества печати, но при этом увеличивается время печати."
 
 msgid ""
 "Compared with the default profile of a 0.6 mm nozzle, it has a smaller layer "
 "height, and results in less apparent layer lines and higher printing "
 "quality, but longer printing time."
 msgstr ""
+"По сравнению с профилем по умолчанию для соплом 0.6 мм, имеет меньшую высоту "
+"слоя. Как результат - менее заметные слои и более высокое качество печати, "
+"но при этом увеличивается время печати."
 
 msgid ""
 "It has a very big layer height, and results in very apparent layer lines, "
 "low printing quality and general printing time."
 msgstr ""
+"Стандартная высота слоя для сопла 0.8 мм. Очень большая высота слоя, как "
+"результат - чётко видимые слои, низкое качество печати и обычное время "
+"печати."
 
 msgid ""
 "Compared with the default profile of a 0.8 mm nozzle, it has a bigger layer "
 "height, and results in very apparent layer lines and much lower printing "
 "quality, but shorter printing time in some printing cases."
 msgstr ""
+"По сравнению со стандартным профилем для сопла 0.8 мм, имеет немного большую "
+"высоту слоя. Как результат - чётко видимые слои и гораздо более низкое "
+"качество печати, но при этом в некоторых случаях сокращается время печати."
 
 msgid ""
 "Compared with the default profile of a 0.8 mm nozzle, it has a much bigger "
 "layer height, and results in extremely apparent layer lines and much lower "
 "printing quality, but much shorter printing time in some printing cases."
 msgstr ""
+"По сравнению со стандартным профилем для сопла 0.8 мм, имеет гораздо большую "
+"высоту слоя. Как результат - очень заметные слои и значительно более низкое "
+"качество печати, но при этом в некоторых случаях значительно сокращается "
+"время печати."
 
 msgid ""
 "Compared with the default profile of a 0.8 mm nozzle, it has a slightly "
@@ -15986,12 +16231,19 @@ msgid ""
 "lines and slightly higher printing quality, but longer printing time in some "
 "printing cases."
 msgstr ""
+"По сравнению со стандартным профилем для сопла 0.8 мм, имеет немного меньшую "
+"высоту слоя. Как результат - немного менее заметные слоя и немного более "
+"высокое качество печати, но при этом в некоторых случаях увеличивается время "
+"печати."
 
 msgid ""
 "Compared with the default profile of a 0.8 mm nozzle, it has a smaller layer "
 "height, and results in less but still apparent layer lines and slightly "
 "higher printing quality, but longer printing time in some printing cases."
 msgstr ""
+"По сравнению с профилем по умолчанию для сопла 0,8 мм, он имеет меньшую "
+"высоту слоя, что приводит к меньшим, но все же заметным слоям и более "
+"высокому качеству печати, и в некоторых случаях увеличению время печати."
 
 msgid "Connected to Obico successfully!"
 msgstr "Соединение с Obico успешно установлено."
@@ -16428,6 +16680,9 @@ msgstr ""
 "Знаете ли вы, что при печати материалами, склонными к короблению, таких как "
 "ABS, повышение температуры подогреваемого стола может снизить эту "
 "вероятность?"
+
+#~ msgid "V"
+#~ msgstr "V"
 
 #~ msgid ""
 #~ "Orca Slicer is based on BambuStudio by Bambulab, which is from "

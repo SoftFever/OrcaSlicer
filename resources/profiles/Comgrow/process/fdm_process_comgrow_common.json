@@ -179,7 +179,7 @@
     "top_surface_acceleration": "2000",
     "top_surface_jerk": "9",
     "top_surface_line_width": "0.4",
-    "top_surface_pattern": "monotonic",
+    "top_surface_pattern": "monotonicline",
     "top_surface_speed": "40",
     "travel_acceleration": "3000",
     "travel_jerk": "12",
