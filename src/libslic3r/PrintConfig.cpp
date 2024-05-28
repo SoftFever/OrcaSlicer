@@ -2305,6 +2305,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->min = 0;
     def->set_default_value(new ConfigOptionFloat(0.2));
 
+    // This option is obsoleted and not used anymore
     //def = this->add("adaptive_layer_height", coBool);
     //def->label = L("Adaptive layer height");
     //def->category = L("Quality");
