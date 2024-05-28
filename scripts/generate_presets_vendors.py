@@ -55,7 +55,6 @@ filament_vendors = [
     '3D BEST-Q',
     '3D Hero',
     '3D-Fuel',
-    '3D Best-Q',
     'Aceaddity',
     'AddNorth',
     'Amazon Basics',
