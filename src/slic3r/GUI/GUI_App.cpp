@@ -275,8 +275,11 @@ public:
 
         // init constant texts and scale fonts
         m_constant_text.init(Label::Body_16);
-        scale_font(m_constant_text.title_font, 2.0f);
-        scale_font(m_constant_text.version_font, 1.2f);
+
+		// ORCA scale all fonts with monitor scale
+        scale_font(m_constant_text.version_font,	m_scale * 2);
+        scale_font(m_constant_text.based_on_font,	m_scale * 1.5f);
+        scale_font(m_constant_text.credits_font,	m_scale * 2);
 
         // this font will be used for the action string
         m_action_font = m_constant_text.credits_font;
@@ -316,51 +319,41 @@ public:
         if (!bmp.IsOk())
             return;
 
+		bool is_dark = wxGetApp().app_config->get("dark_color_mode") == "1";
+
         // use a memory DC to draw directly onto the bitmap
         wxMemoryDC memDc(bmp);
-
-        int top_margin = FromDIP(75 * m_scale);
+        
         int width = bmp.GetWidth();
+		int height = bmp.GetHeight();
 
-        // draw title and version
-        int text_padding = FromDIP(3 * m_scale);
-        memDc.SetFont(m_constant_text.title_font);
-        int title_height = memDc.GetTextExtent(m_constant_text.title).GetHeight();
-        int title_width = memDc.GetTextExtent(m_constant_text.title).GetWidth();
-        memDc.SetFont(m_constant_text.version_font);
-        int version_height = memDc.GetTextExtent(m_constant_text.version).GetHeight();
-        int version_width = memDc.GetTextExtent(m_constant_text.version).GetWidth();
-        int split_width = (width + title_width - version_width) / 2;
-        wxRect title_rect(wxPoint(0, top_margin), wxPoint(split_width - text_padding, top_margin + title_height));
-        memDc.SetTextForeground(StateColor::darkModeColorFor(wxColour(38, 46, 48)));
-        memDc.SetFont(m_constant_text.title_font);
-        memDc.DrawLabel(m_constant_text.title, title_rect, wxALIGN_RIGHT | wxALIGN_BOTTOM);
-        //BBS align bottom of title and version text
-        wxRect version_rect(wxPoint(split_width + text_padding, top_margin), wxPoint(width, top_margin + title_height - text_padding));
+		// Logo
+        BitmapCache bmp_cache;
+        wxBitmap logo_bmp = *bmp_cache.load_svg(is_dark ? "splash_logo_dark" : "splash_logo", width, height);  // use with full width & height
+        memDc.DrawBitmap(logo_bmp, 0, 0, true);
+
+        // Version
         memDc.SetFont(m_constant_text.version_font);
         memDc.SetTextForeground(StateColor::darkModeColorFor(wxColor(134, 134, 134)));
-        memDc.DrawLabel(m_constant_text.version, version_rect, wxALIGN_LEFT | wxALIGN_BOTTOM);
+        wxSize version_ext = memDc.GetTextExtent(m_constant_text.version);
+        wxRect version_rect(
+			wxPoint(0, int(height * 0.70)),
+			wxPoint(width, int(height * 0.70) + version_ext.GetHeight())
+		);
+        memDc.DrawLabel(m_constant_text.version, version_rect, wxALIGN_CENTER);
 
+        // Dynamic Text
+        m_action_line_y_position = int(height * 0.83);
+
+		// Based on Text
+        memDc.SetFont(m_constant_text.based_on_font);
         auto bs_version = wxString::Format("Based on PrusaSlicer and BambuStudio").ToStdString();
-        memDc.SetFont(Label::Body_12);
-        wxSize text_rect = memDc.GetTextExtent(bs_version);
-        int start_x = (title_rect.GetLeft() + version_rect.GetRight()) / 2 - text_rect.GetWidth()/2;
-        int start_y = version_rect.GetBottom() + 10;
-        wxRect internal_sign_rect(wxPoint(start_x, start_y), wxSize(text_rect));
-        memDc.DrawLabel(bs_version, internal_sign_rect, wxALIGN_RIGHT);
-
-        // load bitmap for logo
-        BitmapCache bmp_cache;
-        int logo_margin = FromDIP(72 * m_scale);
-        int logo_size = FromDIP(122 * m_scale);
-        int logo_width = FromDIP(94 * m_scale);
-        wxBitmap logo_bmp = *bmp_cache.load_svg("splash_logo", logo_size, logo_size);
-        int logo_y = top_margin + title_rect.GetHeight() + logo_margin;
-        memDc.DrawBitmap(logo_bmp, (width - logo_width) / 2, logo_y, true);
-
-        // calculate position for the dynamic text
-        int text_margin = FromDIP(80 * m_scale);
-        m_action_line_y_position = logo_y + logo_size + text_margin;
+        wxSize based_on_ext = memDc.GetTextExtent(bs_version);
+        wxRect based_on_rect(
+			wxPoint(0, height - based_on_ext.GetHeight() * 2),
+            wxPoint(width, height - based_on_ext.GetHeight())
+		);
+        memDc.DrawLabel(bs_version, based_on_rect, wxALIGN_CENTER);
     }
 
     static wxBitmap MakeBitmap()
@@ -440,21 +433,23 @@ private:
         wxFont   title_font;
         wxFont   version_font;
         wxFont   credits_font;
+        wxFont   based_on_font;
 
         void init(wxFont init_font)
         {
             // title
-            title = wxGetApp().is_editor() ? SLIC3R_APP_FULL_NAME : GCODEVIEWER_APP_NAME;
+            //title = wxGetApp().is_editor() ? SLIC3R_APP_FULL_NAME : GCODEVIEWER_APP_NAME;
 
             // dynamically get the version to display
-            version = _L("V") + " " + GUI_App::format_display_version();
+            version = GUI_App::format_display_version();
 
             // credits infornation
             credits = "";
 
-            title_font = Label::Head_16;
-            version_font = Label::Body_16;
-            credits_font = init_font;
+            //title_font    = Label::Head_16;
+            version_font  = Label::Body_13;
+            based_on_font = Label::Body_8;
+            credits_font  = Label::Body_8;
         }
     }
     m_constant_text;
@@ -5908,7 +5903,7 @@ void GUI_App::MacOpenURL(const wxString& url)
                 m_download_file_url = download_file_url;
             }
         }
-    } else if (boost::starts_with(url, "prusasliceropen://"))
+    } else if (boost::starts_with(url, "orcaslicer://"))
         start_download(boost::nowide::narrow(url));
 }
 

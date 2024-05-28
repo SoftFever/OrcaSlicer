@@ -1498,6 +1498,7 @@ void Sidebar::sys_color_changed()
                                                                 p->combo_printer })
         combo->sys_color_changed();
 #endif
+    p->combo_printer->sys_color_changed();
     for (PlaterPresetComboBox* combo : p->combos_filament)
         combo->sys_color_changed();
 
