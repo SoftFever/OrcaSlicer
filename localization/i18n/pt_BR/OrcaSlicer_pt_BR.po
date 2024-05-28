@@ -6513,8 +6513,8 @@ msgid "nozzle in preset: %s %s"
 msgstr "bico no perfil: %s %s"
 
 #, possible-c-format, possible-boost-format
-msgid "nozzle memorized: %.1f %s"
-msgstr "bico memorizado: %.1f %s"
+msgid "nozzle memorized: %.2f %s"
+msgstr "bico memorizado: %.2f %s"
 
 msgid "Your nozzle diameter in sliced file is not consistent with memorized nozzle. If you changed your nozzle lately, please go to Device > Printer Parts to change settings."
 msgstr "Seu diâmetro de bico no arquivo fatiado não é consistente com o bico memorizado. Se você mudou seu bico recentemente, vá para Dispositivo > Partes da impressora para alterar as configurações."

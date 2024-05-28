@@ -7113,8 +7113,8 @@ msgid "nozzle in preset: %s %s"
 msgstr "미리 설정된 노즐: %s %s"
 
 #, c-format, boost-format
-msgid "nozzle memorized: %.1f %s"
-msgstr "기억된 노즐: %.1f %s"
+msgid "nozzle memorized: %.2f %s"
+msgstr "기억된 노즐: %.2f %s"
 
 msgid ""
 "Your nozzle diameter in sliced file is not consistent with memorized nozzle. "

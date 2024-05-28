@@ -137,6 +137,7 @@ filament_vendors = [
     'TTYT3D',
     'Tianse',
     'UltiMaker',
+    'Valment',
     'Verbatim',
     'VO3D',
     'Voxelab',

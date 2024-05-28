@@ -4,7 +4,7 @@ msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2024-05-24 23:26+0800\n"
-"PO-Revision-Date: 2024-05-25 04:32+0300\n"
+"PO-Revision-Date: 2024-05-26 23:42+0300\n"
 "Last-Translator: Olcay ÖREN\n"
 "Language-Team: \n"
 "Language: tr\n"
@@ -7229,8 +7229,8 @@ msgid "nozzle in preset: %s %s"
 msgstr "önceden ayarlanmış nozul: %s %s"
 
 #, c-format, boost-format
-msgid "nozzle memorized: %.1f %s"
-msgstr "hafızaya alınan nozul: %.1f %s"
+msgid "nozzle memorized: %.2f %s"
+msgstr "hafızaya alınan nozul: %.2f %s"
 
 msgid ""
 "Your nozzle diameter in sliced file is not consistent with memorized nozzle. "
@@ -11459,7 +11459,7 @@ msgstr ""
 "potansiyelini en aza indirmek için bu değeri ~%10-15’e ayarlayın."
 
 msgid "Top/Bottom solid infill/wall overlap"
-msgstr "Üst/Alt katı dolgu/duvar örtüşmesi"
+msgstr "Üst/Alt katı dolgu/Duvar örtüşmesi"
 
 #, no-c-format, no-boost-format
 msgid ""
