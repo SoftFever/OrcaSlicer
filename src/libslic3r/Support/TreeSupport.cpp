@@ -1120,18 +1120,30 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
 void TreeSupport::create_tree_support_layers()
 {
     int layer_id = 0;
-    coordf_t raft_print_z = 0.f;
-    coordf_t raft_slice_z = 0.f;
-    for (; layer_id < m_slicing_params.base_raft_layers; layer_id++) {
-        raft_print_z += m_slicing_params.base_raft_layer_height;
-        raft_slice_z = raft_print_z - m_slicing_params.base_raft_layer_height / 2;
-        m_object->add_tree_support_layer(layer_id, m_slicing_params.base_raft_layer_height, raft_print_z, raft_slice_z);
-    }
-
-    for (; layer_id < m_slicing_params.base_raft_layers + m_slicing_params.interface_raft_layers; layer_id++) {
-        raft_print_z += m_slicing_params.interface_raft_layer_height;
-        raft_slice_z = raft_print_z - m_slicing_params.interface_raft_layer_height / 2;
-        m_object->add_tree_support_layer(layer_id, m_slicing_params.base_raft_layer_height, raft_print_z, raft_slice_z);
+    if (m_raft_layers > 0) { //create raft layers
+        coordf_t raft_print_z = 0.f;
+        coordf_t raft_slice_z = 0.f;
+        {
+            // Do not add the raft contact layer, 1st layer should use first_print_layer_height
+            coordf_t height = m_slicing_params.first_print_layer_height;
+            raft_print_z += height;
+            raft_slice_z = raft_print_z - height / 2;
+            m_object->add_tree_support_layer(layer_id++, height, raft_print_z, raft_slice_z);
+        }
+        // Insert the base layers.
+        for (size_t i = 1; i < m_slicing_params.base_raft_layers; i++) {
+            coordf_t height = m_slicing_params.base_raft_layer_height;
+            raft_print_z += height;
+            raft_slice_z = raft_print_z - height / 2;
+            m_object->add_tree_support_layer(layer_id++, height, raft_print_z, raft_slice_z);
+        }
+        // Insert the interface layers.
+        for (size_t i = 0; i < m_slicing_params.interface_raft_layers; i++) {
+            coordf_t height = m_slicing_params.interface_raft_layer_height;
+            raft_print_z += height;
+            raft_slice_z = raft_print_z - height / 2;
+            m_object->add_tree_support_layer(layer_id++, height, raft_print_z, raft_slice_z);
+        }
     }
 
     for (Layer *layer : m_object->layers()) {
