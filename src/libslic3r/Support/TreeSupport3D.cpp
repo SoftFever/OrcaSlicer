@@ -7,22 +7,22 @@
 // CuraEngine is released under the terms of the AGPLv3 or higher.
 
 #include "TreeSupport3D.hpp"
-
-#include "../AABBTreeIndirect.hpp"
-#include "../BuildVolume.hpp"
-#include "../ClipperUtils.hpp"
-#include "../EdgeGrid.hpp"
-#include "../Fill/Fill.hpp"
-#include "../Layer.hpp"
-#include "../Print.hpp"
-#include "../MultiPoint.hpp"
-#include "../Polygon.hpp"
-#include "../Polyline.hpp"
-#include "../MutablePolygon.hpp"
-#include "TreeSupportCommon.hpp"
+#include "AABBTreeIndirect.hpp"
+#include "AABBTreeLines.hpp"
+#include "BuildVolume.hpp"
+#include "ClipperUtils.hpp"
+#include "EdgeGrid.hpp"
+#include "Fill/Fill.hpp"
+#include "Layer.hpp"
+#include "Print.hpp"
+#include "MultiPoint.hpp"
+#include "Polygon.hpp"
+#include "Polyline.hpp"
+#include "MutablePolygon.hpp"
 #include "SupportCommon.hpp"
+#include "TriangleMeshSlicer.hpp"
 #include "TreeSupport.hpp"
-#include "libslic3r.h"
+#include "I18N.hpp"
 
 #include <cassert>
 #include <chrono>
@@ -49,23 +49,17 @@
 #include <openvdb/tools/VolumeToSpheres.h>
 #endif // TREE_SUPPORT_ORGANIC_NUDGE_NEW
 
-// #define TREESUPPORT_DEBUG_SVG
+#ifndef _L
+#define _L(s) Slic3r::I18N::translate(s)
+#endif
+
+ //#define TREESUPPORT_DEBUG_SVG
 
 namespace Slic3r
 {
 
 namespace TreeSupport3D
 {
-
-enum class LineStatus
-{
-    INVALID,
-    TO_MODEL,
-    TO_MODEL_GRACIOUS,
-    TO_MODEL_GRACIOUS_SAFE,
-    TO_BP,
-    TO_BP_SAFE
-};
 
 using LineInformation = std::vector<std::pair<Point, LineStatus>>;
 using LineInformations = std::vector<LineInformation>;
@@ -361,6 +355,28 @@ static std::vector<std::pair<TreeSupportSettings, std::vector<size_t>>> group_me
         // The actual precalculation happens in TreeModelVolumes.
         volumes.precalculate(*print.get_object(object_ids.front()), max_layer, throw_on_cancel);
     return max_layer;
+}
+
+// picked from convert_lines_to_internal()
+[[nodiscard]] LineStatus get_avoidance_status(const Point& p, coord_t radius, LayerIndex layer_idx,
+    const TreeModelVolumes& volumes, const TreeSupportSettings& config)
+{
+    const bool min_xy_dist = config.xy_distance > config.xy_min_distance;
+
+    LineStatus type = LineStatus::INVALID;
+
+    if (!contains(volumes.getAvoidance(radius, layer_idx, TreeModelVolumes::AvoidanceType::FastSafe, false, min_xy_dist), p))
+        type = LineStatus::TO_BP_SAFE;
+    else if (!contains(volumes.getAvoidance(radius, layer_idx, TreeModelVolumes::AvoidanceType::Fast, false, min_xy_dist), p))
+        type = LineStatus::TO_BP;
+    else if (config.support_rests_on_model && !contains(volumes.getAvoidance(radius, layer_idx, TreeModelVolumes::AvoidanceType::FastSafe, true, min_xy_dist), p))
+        type = LineStatus::TO_MODEL_GRACIOUS_SAFE;
+    else if (config.support_rests_on_model && !contains(volumes.getAvoidance(radius, layer_idx, TreeModelVolumes::AvoidanceType::Fast, true, min_xy_dist), p))
+        type = LineStatus::TO_MODEL_GRACIOUS;
+    else if (config.support_rests_on_model && !contains(volumes.getCollision(radius, layer_idx, min_xy_dist), p))
+        type = LineStatus::TO_MODEL;
+
+    return type;
 }
 
 /*!
@@ -1942,7 +1958,7 @@ static void increase_areas_one_layer(
                 inc_wo_collision.clear();
                 if (!settings.no_error) { 
                     // ERROR CASE
-                    // if the area becomes for whatever reason something that clipper sees as a line, offset would stop working, so ensure that even if if wrongly would be a line, it still actually has an area that can be increased
+                    // if the area becomes for whatever reason something that clipper sees as a line, offset would stop working, so ensure that even if it would be a line wrongly, it still actually has an area that can be increased
                     Polygons lines_offset = offset(to_polylines(parent.influence_area), scaled<float>(0.005), jtMiter, 1.2);
                     Polygons base_error_area = union_(parent.influence_area, lines_offset);
                     result = increase_single_area(volumes, config, settings, layer_idx, parent, 
@@ -3321,7 +3337,7 @@ static void organic_smooth_branches_avoid_collisions(
  * \param storage The data storage where the mesh data is gotten from and
  * where the resulting support areas are stored.
  */
-static void generate_support_areas(Print &print, const BuildVolume &build_volume, const std::vector<size_t> &print_object_ids, std::function<void()> throw_on_cancel)
+static void generate_support_areas(Print &print, TreeSupport* tree_support, const BuildVolume &build_volume, const std::vector<size_t> &print_object_ids, std::function<void()> throw_on_cancel)
 {
     // Settings with the indexes of meshes that use these settings.
     std::vector<std::pair<TreeSupportSettings, std::vector<size_t>>> grouped_meshes = group_meshes(print, print_object_ids);
@@ -3985,7 +4001,7 @@ void generate_tree_support_3D(PrintObject &print_object, TreeSupport* tree_suppo
     std::transform(bedpts.begin(), bedpts.end(), std::back_inserter(bedptsf), [](const Point &p) { return unscale(p); });
     BuildVolume build_volume{ bedptsf, tree_support->m_print_config->printable_height };
 
-    TreeSupport3D::generate_support_areas(*print_object.print(), build_volume, { idx }, throw_on_cancel);
+    TreeSupport3D::generate_support_areas(*print_object.print(), tree_support, build_volume, { idx }, throw_on_cancel);
 }
 
 } // namespace Slic3r

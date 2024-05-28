@@ -1496,43 +1496,6 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         m_config_manipulation.apply(m_config, &new_conf);
     }
 
-    // BBS popup a message to ask the user to set optimum parameters for tree support
-    if (opt_key == "support_type" || opt_key == "support_style") {
-        if (is_tree_slim(m_config->opt_enum<SupportType>("support_type"), m_config->opt_enum<SupportMaterialStyle>("support_style")) &&
-            !(m_config->opt_float("support_top_z_distance") == 0 && m_config->opt_int("support_interface_top_layers") == 0 && m_config->opt_int("tree_support_wall_count") == 2)) {
-            wxString msg_text = _L("We have added an experimental style \"Tree Slim\" that features smaller support volume but weaker strength.\n"
-                                    "We recommend using it with: 0 interface layers, 0 top distance, 2 walls.");
-            msg_text += "\n\n" + _L("Change these settings automatically? \n"
-                                    "Yes - Change these settings automatically\n"
-                                    "No  - Do not change these settings for me");
-            MessageDialog      dialog(wxGetApp().plater(), msg_text, "Suggestion", wxICON_WARNING | wxYES | wxNO);
-            DynamicPrintConfig new_conf = *m_config;
-            if (dialog.ShowModal() == wxID_YES) {
-                new_conf.set_key_value("support_top_z_distance", new ConfigOptionFloat(0));
-                new_conf.set_key_value("support_interface_top_layers", new ConfigOptionInt(0));
-                new_conf.set_key_value("tree_support_wall_count", new ConfigOptionInt(2));
-                m_config_manipulation.apply(m_config, &new_conf);
-            }
-            wxGetApp().plater()->update();
-        } else if ((m_config->opt_enum<SupportType>("support_type")==stTreeAuto && (m_config->opt_enum<SupportMaterialStyle>("support_style")==smsTreeStrong || m_config->opt_enum<SupportMaterialStyle>("support_style") == smsTreeHybrid)) &&
-                   !((m_config->opt_float("support_top_z_distance") >=0.1 || is_support_filament(m_config->opt_int("support_interface_filament") - 1))
-                       && m_config->opt_int("support_interface_top_layers") >1) ) {
-            wxString msg_text = _L("For \"Tree Strong\" and \"Tree Hybrid\" styles, we recommend the following settings: at least 2 interface layers, at least 0.1mm top z distance or using support materials on interface.");
-            msg_text += "\n\n" + _L("Change these settings automatically? \n"
-                                    "Yes - Change these settings automatically\n"
-                                    "No  - Do not change these settings for me");
-            MessageDialog      dialog(wxGetApp().plater(), msg_text, "Suggestion", wxICON_WARNING | wxYES | wxNO);
-            DynamicPrintConfig new_conf = *m_config;
-            if (dialog.ShowModal() == wxID_YES) {
-                if (!is_support_filament(m_config->opt_int("support_interface_filament") - 1) && m_config->opt_float("support_top_z_distance") < 0.1)
-                    new_conf.set_key_value("support_top_z_distance", new ConfigOptionFloat(0.2));
-                new_conf.set_key_value("support_interface_top_layers", new ConfigOptionInt(2));
-                m_config_manipulation.apply(m_config, &new_conf);
-            }
-            wxGetApp().plater()->update();
-        }
-    }
-
     // BBS popup a message to ask the user to set optimum parameters for support interface if support materials are used
     if (opt_key == "support_interface_filament") {
         int interface_filament_id = m_config->opt_int("support_interface_filament") - 1; // the displayed id is based from 1, while internal id is based from 0

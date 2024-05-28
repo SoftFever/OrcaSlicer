@@ -329,22 +329,6 @@ static Polygons contours_simplified(const Vec2i32 &grid_size, const double pixel
 }
 #endif // SUPPORT_USE_AGG_RASTERIZER
 
-static  std::string get_svg_filename(std::string layer_nr_or_z, std::string tag = "bbl_ts")
-{
-    static bool rand_init = false;
-
-    if (!rand_init) {
-        srand(time(NULL));
-        rand_init = true;
-    }
-
-    int rand_num = rand() % 1000000;
-    //makedir("./SVG");
-    std::string prefix = "./SVG/";
-    std::string suffix = ".svg";
-    return prefix + tag + "_" + layer_nr_or_z /*+ "_" + std::to_string(rand_num)*/ + suffix;
-}
-
 PrintObjectSupportMaterial::PrintObjectSupportMaterial(const PrintObject *object, const SlicingParameters &slicing_params) :
     m_print_config          (&object->print()->config()),
     m_object_config         (&object->config()),
@@ -563,18 +547,6 @@ void PrintObjectSupportMaterial::generate(PrintObject &object)
                 ++layer_id;
             }
             i = j;
-        }
-    }
-#endif /* SLIC3R_DEBUG */
-
-#if 0 // #ifdef SLIC3R_DEBUG
-    // check bounds
-    std::ofstream out;
-    out.open("./SVG/ns_support_layers.txt");
-    if (out.is_open()) {
-        out << "### Support Layers ###" << std::endl;
-        for (auto& i : object.support_layers()) {
-            out << i->print_z << std::endl;
         }
     }
 #endif /* SLIC3R_DEBUG */
@@ -2245,10 +2217,6 @@ SupportGeneratorLayersPtr PrintObjectSupportMaterial::top_contact_layers(
                     layer->sharp_tails.push_back(expoly);
                     layer->sharp_tails_height.push_back( accum_height );
                     append(overhangs_per_layers[layer_nr], overhang);
-#ifdef SUPPORT_TREE_DEBUG_TO_SVG
-                    SVG svg(get_svg_filename(std::to_string(layer->print_z), "sharp_tail"), object.bounding_box());
-                    if (svg.is_opened()) svg.draw(overhang, "yellow");
-#endif
                 }
 
             }
@@ -2959,36 +2927,6 @@ SupportGeneratorLayersPtr PrintObjectSupportMaterial::raft_and_intermediate_supp
     for (size_t i = 0; i < top_contacts.size(); ++i)
         assert(top_contacts[i]->height > 0.);
 #endif /* _DEBUG */
-
-#if 0 // #ifdef SLIC3R_DEBUG
-    // check bounds
-    std::ofstream out;
-    out.open("./SVG/ns_bounds.txt");
-    if (out.is_open()) {
-        if (!top_contacts.empty()) {
-            out << "### Top Contacts ###" << std::endl;
-            for (auto& t : top_contacts) {
-                out << t->print_z << std::endl;
-            }
-        }
-        if (!bottom_contacts.empty()) {
-            out << "### Bottome Contacts ###" << std::endl;
-            for (auto& b : bottom_contacts) {
-                out << b->print_z << std::endl;
-            }
-        }
-        if (!intermediate_layers.empty()) {
-            out << "### Intermediate Layers ###" << std::endl;
-            for (auto& i : intermediate_layers) {
-                out << i->print_z << std::endl;
-            }
-        }
-        out << "### Slice Layers ###" << std::endl;
-        for (size_t j = 0; j < object.layers().size(); ++j) {
-            out << object.layers()[j]->print_z << std::endl;
-        }
-    }
-#endif /* SLIC3R_DEBUG */
     
     return intermediate_layers;
 }

@@ -5,11 +5,8 @@
 #include "../Flow.hpp"
 
 namespace Slic3r {
-
-class PrintObject;
-enum InfillPattern : int;
-
 struct SupportParameters {
+    SupportParameters() = default;
 	SupportParameters(const PrintObject &object)
     {
         const PrintConfig       &print_config   = object.print()->config();
@@ -86,20 +83,24 @@ struct SupportParameters {
                 // Object is printed with the same extruder as the support.
                 this->can_merge_support_regions = true;
         }
-        
-        double interface_spacing = object_config.support_interface_spacing.value + this->support_material_interface_flow.spacing();
-        this->interface_density  = std::min(1., this->support_material_interface_flow.spacing() / interface_spacing);
+
+
+        this->base_angle = Geometry::deg2rad(float(object_config.support_angle.value));
+        this->interface_angle = Geometry::deg2rad(float(object_config.support_angle.value + 90.));
+        this->interface_spacing = object_config.support_interface_spacing.value + this->support_material_interface_flow.spacing();
+        this->interface_density = std::min(1., this->support_material_interface_flow.spacing() / this->interface_spacing);
         double raft_interface_spacing = object_config.support_interface_spacing.value + this->raft_interface_flow.spacing();
         this->raft_interface_density = std::min(1., this->raft_interface_flow.spacing() / raft_interface_spacing);
-        double support_spacing   = object_config.support_base_pattern_spacing.value + this->support_material_flow.spacing();
-        this->support_density    = std::min(1., this->support_material_flow.spacing() / support_spacing);
+        this->support_spacing = object_config.support_base_pattern_spacing.value + this->support_material_flow.spacing();
+        this->support_density = std::min(1., this->support_material_flow.spacing() / this->support_spacing);
         if (object_config.support_interface_top_layers.value == 0) {
             // No interface layers allowed, print everything with the base support pattern.
+            this->interface_spacing = this->support_spacing;
             this->interface_density = this->support_density;
         }
 
         SupportMaterialPattern  support_pattern = object_config.support_base_pattern;
-        this->with_sheath = /*is_tree(object_config.support_type) &&*/ object_config.tree_support_wall_count > 0;
+        this->with_sheath = object_config.tree_support_wall_count > 0;
         this->base_fill_pattern =
             support_pattern == smpHoneycomb ? ipHoneycomb :
             this->support_density > 0.95 || this->with_sheath ? ipRectilinear : ipSupportBase;
@@ -115,9 +116,7 @@ struct SupportParameters {
             object_config.support_interface_pattern == smipConcentric ?
             ipConcentric :
             (this->interface_density > 0.95 ? ipRectilinear : ipSupportBase);
-        
-        this->base_angle            = Geometry::deg2rad(float(object_config.support_angle.value));
-        this->interface_angle       = Geometry::deg2rad(float(object_config.support_angle.value + 90.));
+
         this->raft_angle_1st_layer  = 0.f;
         this->raft_angle_base       = 0.f;
         this->raft_angle_interface  = 0.f;
@@ -215,11 +214,13 @@ struct SupportParameters {
 
     float    				base_angle;
     float    				interface_angle;
-
+    coordf_t 				interface_spacing;
+    coordf_t				support_expansion=0;
     // Density of the top / bottom interface and contact layers.
     coordf_t 				interface_density;
     // Density of the raft interface and contact layers.
     coordf_t 				raft_interface_density;
+    coordf_t 				support_spacing;
     // Density of the base support layers.
     coordf_t 				support_density;
     SupportMaterialStyle    support_style = smsDefault;
@@ -235,7 +236,7 @@ struct SupportParameters {
     // Shall the sparse (base) layers be printed with a single perimeter line (sheath) for robustness?
     bool                    with_sheath;
     // Branches of organic supports with area larger than this threshold will be extruded with double lines.
-    double                  tree_branch_diameter_double_wall_area_scaled;
+    double                  tree_branch_diameter_double_wall_area_scaled = 0.25 * sqr(scaled<double>(3.0)) * M_PI;;
 
     float 					raft_angle_1st_layer;
     float 					raft_angle_base;

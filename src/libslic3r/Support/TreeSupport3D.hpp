@@ -47,8 +47,6 @@ struct SlicingParameters;
 namespace TreeSupport3D
 {
 
-// The number of vertices in each circle.
-static constexpr const size_t SUPPORT_TREE_CIRCLE_RESOLUTION = 25;
 
 struct AreaIncreaseSettings
 {
