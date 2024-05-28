@@ -1064,7 +1064,6 @@ wxWindow* PreferencesDialog::create_general_page()
 
 #ifdef _WIN32
     auto title_associate_file = create_item_title(_L("Associate files to OrcaSlicer"), page, _L("Associate files to OrcaSlicer"));
-    auto title_associate_url = create_item_title(_L("Associate web links to OrcaSlicer"), page, _L("Associate URLs to OrcaSlicer"));
 
     // associate file
     auto item_associate_3mf  = create_item_checkbox(_L("Associate .3mf files to OrcaSlicer"), page,
@@ -1076,7 +1075,7 @@ wxWindow* PreferencesDialog::create_general_page()
 #endif // _WIN32
 #if !defined(__APPLE__)
 
-                                                         
+    auto title_associate_url = create_item_title(_L("Associate web links to OrcaSlicer"), page, _L("Associate URLs to OrcaSlicer"));
     std::wstring reg_bin;
     wxGetApp().check_url_association(L"prusaslicer", reg_bin);
     auto associate_url_prusaslicer = create_item_button(_L("Current association: ") + reg_bin, _L("Associate prusaslicer://"), page,
