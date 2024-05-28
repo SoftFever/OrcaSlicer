@@ -7315,8 +7315,8 @@ msgid "nozzle in preset: %s %s"
 msgstr "dysza w profilu: %s %s"
 
 #, c-format, boost-format
-msgid "nozzle memorized: %.1f %s"
-msgstr "zapamiętana dysza: %.1f %s"
+msgid "nozzle memorized: %.2f %s"
+msgstr "zapamiętana dysza: %.2f %s"
 
 msgid ""
 "Your nozzle diameter in sliced file is not consistent with memorized nozzle. "

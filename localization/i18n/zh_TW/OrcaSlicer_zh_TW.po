@@ -7195,7 +7195,7 @@ msgid "nozzle in preset: %s %s"
 msgstr ""
 
 #, c-format, boost-format
-msgid "nozzle memorized: %.1f %s"
+msgid "nozzle memorized: %.2f %s"
 msgstr ""
 
 msgid ""

@@ -7328,8 +7328,8 @@ msgid "nozzle in preset: %s %s"
 msgstr "Boquilla preestablecida: %s %s"
 
 #, c-format, boost-format
-msgid "nozzle memorized: %.1f %s"
-msgstr "Boquilla memorizada: %.1f %s"
+msgid "nozzle memorized: %.2f %s"
+msgstr "Boquilla memorizada: %.2f %s"
 
 msgid ""
 "Your nozzle diameter in sliced file is not consistent with memorized nozzle. "
