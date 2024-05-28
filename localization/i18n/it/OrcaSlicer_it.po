@@ -7305,8 +7305,8 @@ msgid "nozzle in preset: %s %s"
 msgstr "Ugello in preset: %s %s"
 
 #, c-format, boost-format
-msgid "nozzle memorized: %.1f %s"
-msgstr "ugello memorizzato: %.1f %s"
+msgid "nozzle memorized: %.2f %s"
+msgstr "ugello memorizzato: %.2f %s"
 
 msgid ""
 "Your nozzle diameter in sliced file is not consistent with memorized nozzle. "
