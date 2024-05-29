@@ -1737,8 +1737,10 @@ void ColourPicker::save_colors_to_config() {
 void PointCtrl::BUILD()
 {
 	auto temp = new wxBoxSizer(wxHORIZONTAL);
+	m_combine_side_text = true; // Prefer using side text in input box
 
-    const wxSize field_size(4 * m_em_unit, -1);
+    //const wxSize field_size(4 * m_em_unit, -1);
+    const wxSize  field_size((m_opt.width >= 0 ? m_opt.width : def_width_wider()) * m_em_unit, -1); // ORCA match width with other components
     Slic3r::Vec2d default_pt;
     if(m_opt.type == coPoints)
 	    default_pt = m_opt.get_default_value<ConfigOptionPoints>()->values.at(0);
@@ -1750,35 +1752,38 @@ void PointCtrl::BUILD()
 	wxString Y = val - int(val) == 0 ? wxString::Format(_T("%i"), int(val)) : wxNumberFormatter::ToString(val, 2, wxNumberFormatter::Style_None);
 
 	long style = wxTE_PROCESS_ENTER;
-#ifdef _WIN32
-	style |= wxBORDER_SIMPLE;
-#endif
-	x_textctrl = new ::TextCtrl(m_parent, wxID_ANY, X, wxDefaultPosition, field_size, style);
-	y_textctrl = new ::TextCtrl(m_parent, wxID_ANY, Y, wxDefaultPosition, field_size, style);
+//#ifdef _WIN32
+//	style |= wxBORDER_SIMPLE;
+//#endif
+    // ORCA add icons to point control boxes instead of using text for X / Y
+    x_input = new ::TextInput(m_parent, X, m_opt.sidetext, "inputbox_x", wxDefaultPosition, field_size, style);
+    y_input = new ::TextInput(m_parent, Y, m_opt.sidetext, "inputbox_y", wxDefaultPosition, field_size, style);
+    x_textctrl = x_input->GetTextCtrl();
+    y_textctrl = y_input->GetTextCtrl();
     if (parent_is_custom_ctrl && m_opt.height < 0)
         opt_height = (double)x_textctrl->GetSize().GetHeight() / m_em_unit;
 
-    x_textctrl->SetFont(Slic3r::GUI::wxGetApp().normal_font());
-	x_textctrl->SetBackgroundStyle(wxBG_STYLE_PAINT);
-	y_textctrl->SetFont(Slic3r::GUI::wxGetApp().normal_font());
-	y_textctrl->SetBackgroundStyle(wxBG_STYLE_PAINT);
+    x_input->SetFont(Slic3r::GUI::wxGetApp().normal_font());
+    x_input->SetBackgroundStyle(wxBG_STYLE_PAINT);
+    y_input->SetFont(Slic3r::GUI::wxGetApp().normal_font());
+    y_input->SetBackgroundStyle(wxBG_STYLE_PAINT);
 
-	auto static_text_x = new wxStaticText(m_parent, wxID_ANY, "x : ");
-	auto static_text_y = new wxStaticText(m_parent, wxID_ANY, "   y : ");
-	static_text_x->SetFont(Slic3r::GUI::wxGetApp().normal_font());
-	static_text_x->SetBackgroundStyle(wxBG_STYLE_PAINT);
-	static_text_y->SetFont(Slic3r::GUI::wxGetApp().normal_font());
-	static_text_y->SetBackgroundStyle(wxBG_STYLE_PAINT);
+	//auto static_text_x = new wxStaticText(m_parent, wxID_ANY, "x : ");
+	//auto static_text_y = new wxStaticText(m_parent, wxID_ANY, "   y : ");
+	//static_text_x->SetFont(Slic3r::GUI::wxGetApp().normal_font());
+	//static_text_x->SetBackgroundStyle(wxBG_STYLE_PAINT);
+	//static_text_y->SetFont(Slic3r::GUI::wxGetApp().normal_font());
+	//static_text_y->SetBackgroundStyle(wxBG_STYLE_PAINT);
 
-	wxGetApp().UpdateDarkUI(x_textctrl);
-	wxGetApp().UpdateDarkUI(y_textctrl);
-	wxGetApp().UpdateDarkUI(static_text_x, false, true);
-	wxGetApp().UpdateDarkUI(static_text_y, false, true);
+	wxGetApp().UpdateDarkUI(x_input);
+	wxGetApp().UpdateDarkUI(y_input);
+	//wxGetApp().UpdateDarkUI(static_text_x, false, true);
+	//wxGetApp().UpdateDarkUI(static_text_y, false, true);
 
-	temp->Add(static_text_x, 0, wxALIGN_CENTER_VERTICAL, 0);
-	temp->Add(x_textctrl);
-	temp->Add(static_text_y, 0, wxALIGN_CENTER_VERTICAL, 0);
-	temp->Add(y_textctrl);
+	//temp->Add(static_text_x, 0, wxALIGN_CENTER_VERTICAL, 0);
+	temp->Add(x_input);
+	//temp->Add(static_text_y, 0, wxALIGN_CENTER_VERTICAL, 0);
+	temp->Add(y_input);
 
     x_textctrl->Bind(wxEVT_TEXT_ENTER, ([this](wxCommandEvent e) { propagate_value(x_textctrl); }), x_textctrl->GetId());
 	y_textctrl->Bind(wxEVT_TEXT_ENTER, ([this](wxCommandEvent e) { propagate_value(y_textctrl); }), y_textctrl->GetId());
@@ -1797,16 +1802,17 @@ void PointCtrl::msw_rescale()
 {
     Field::msw_rescale();
 
-    wxSize field_size(4 * m_em_unit, -1);
+    //wxSize field_size(4 * m_em_unit, -1);
+    wxSize  field_size((m_opt.width >= 0 ? m_opt.width : def_width_wider()) * m_em_unit, -1); // ORCA match width with other components
 
     if (parent_is_custom_ctrl) {
         field_size.SetHeight(lround(opt_height * m_em_unit));
-        x_textctrl->SetSize(field_size);
-        y_textctrl->SetSize(field_size);
+        x_input->SetSize(field_size);
+        y_input->SetSize(field_size);
     }
     else {
-        x_textctrl->SetMinSize(field_size);
-        y_textctrl->SetMinSize(field_size);
+        x_input->SetMinSize(field_size);
+        y_input->SetMinSize(field_size);
     }
 }
 
