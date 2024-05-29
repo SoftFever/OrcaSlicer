@@ -78,7 +78,7 @@
   "support_interface_top_layers": "2",
   "support_on_build_plate_only": "0",
   "support_style": "grid",
-  "support_threshold_angle": "50",
+  "support_threshold_angle": "30",
   "support_type": "normal(auto)",
   "top_shell_thickness": "0.7",
   "top_surface_acceleration": "0",

@@ -40,7 +40,7 @@
     "slow_down_layers": "1",
     "sparse_infill_density": "30%",
     "sparse_infill_line_width": "0.62",
-    "sparse_infill_pattern": "triangles",
+    "sparse_infill_pattern": "crosshatch",
     "sparse_infill_speed": "300",
     "support_speed": "300",
     "top_surface_acceleration": "2000",
