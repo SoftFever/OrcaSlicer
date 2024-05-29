@@ -5370,7 +5370,7 @@ msgid "Control"
 msgstr "Sterowanie"
 
 msgid "Printer Parts"
-msgstr "Części głowicy"
+msgstr "Typ dyszy"
 
 msgid "Print Options"
 msgstr "Opcje drukowania"
@@ -7351,7 +7351,7 @@ msgid ""
 msgstr ""
 "Średnica dyszy w przetworzonym pliku nie jest zgodna z średnicą dyszy w "
 "ustawieniach. Jeśli ostatnio zmieniłeś dyszę, przejdź do opcji Urządzenie > "
-"Części głowicy, aby zmienić to ustawienie."
+"Typ dyszy, aby zmienić to ustawienie."
 
 #, c-format, boost-format
 msgid ""
