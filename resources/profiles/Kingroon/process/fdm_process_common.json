@@ -122,7 +122,7 @@
   "sparse_infill_density": "15%",
   "sparse_infill_filament": "1",
   "sparse_infill_line_width": "0.45",
-  "sparse_infill_pattern": "gyroid",
+  "sparse_infill_pattern": "crosshatch",
   "sparse_infill_speed": "100",
   "spiral_mode": "0",
   "standby_temperature_delta": "-5",

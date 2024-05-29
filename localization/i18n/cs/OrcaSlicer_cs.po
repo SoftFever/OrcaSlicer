@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-24 23:26+0800\n"
+"POT-Creation-Date: 2024-05-29 00:28+0800\n"
 "PO-Revision-Date: 2023-09-30 15:15+0200\n"
 "Last-Translator: René Mošner <Renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -6619,6 +6619,12 @@ msgstr ""
 "Pokud je povoleno, nastaví OrcaSlicer jako výchozí aplikaci pro otevírání "
 "souborů .step"
 
+msgid "Associate web links to OrcaSlicer"
+msgstr ""
+
+msgid "Associate URLs to OrcaSlicer"
+msgstr ""
+
 msgid "Current association: "
 msgstr ""
 
@@ -6629,8 +6635,24 @@ msgid "Not associated to any application"
 msgstr ""
 
 msgid ""
-"Associate OrcaSlicer with prusaslicer:// links so that Orca can open "
-"PrusaSlicer links from Printable.com"
+"Associate OrcaSlicer with prusaslicer:// links so that Orca can open models "
+"from Printable.com"
+msgstr ""
+
+msgid "Associate bambustudio://"
+msgstr ""
+
+msgid ""
+"Associate OrcaSlicer with bambustudio:// links so that Orca can open models "
+"from makerworld.com"
+msgstr ""
+
+msgid "Associate cura://"
+msgstr ""
+
+msgid ""
+"Associate OrcaSlicer with cura:// links so that Orca can open models from "
+"thingiverse.com"
 msgstr ""
 
 msgid "Maximum recent projects"
@@ -7147,7 +7169,7 @@ msgid "nozzle in preset: %s %s"
 msgstr ""
 
 #, c-format, boost-format
-msgid "nozzle memorized: %.1f %s"
+msgid "nozzle memorized: %.2f %s"
 msgstr ""
 
 msgid ""
@@ -10102,7 +10124,7 @@ msgid ""
 "Order of wall/infill. When the tickbox is unchecked the walls are printed "
 "first, which works best in most cases.\n"
 "\n"
-"Printing walls first may help with extreme overhangs as the walls have the "
+"Printing infill first may help with extreme overhangs as the walls have the "
 "neighbouring infill to adhere to. However, the infill will slighly push out "
 "the printed walls where it is attached to them, resulting in a worse "
 "external surface finish. It can also cause the infill to shine through the "
@@ -14976,6 +14998,10 @@ msgid "Collapse"
 msgstr "Sbalit"
 
 msgid "Daily Tips"
+msgstr ""
+
+#, c-format, boost-format
+msgid "nozzle memorized: %.1f %s"
 msgstr ""
 
 msgid ""
