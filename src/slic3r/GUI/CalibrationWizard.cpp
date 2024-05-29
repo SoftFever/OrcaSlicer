@@ -659,7 +659,7 @@ void PressureAdvanceWizard::on_cali_start()
             cali_page->set_pa_cali_image(int(pa_cali_method));
             curr_obj->manual_pa_cali_method = pa_cali_method;
             
-            if (curr_obj->pa_calib_tab.size() >= MAX_PA_HISTORY_RESULTS_NUMS) {
+            if (curr_obj->get_printer_series() != PrinterSeries::SERIES_X1 && curr_obj->pa_calib_tab.size() >= MAX_PA_HISTORY_RESULTS_NUMS) {
                 MessageDialog msg_dlg(nullptr, wxString::Format(_L("This machine type can only hold 16 history results per nozzle. "
                     "You can delete the existing historical results and then start calibration. "
                     "Or you can continue the calibration, but you cannot create new calibration historical results. \n"
