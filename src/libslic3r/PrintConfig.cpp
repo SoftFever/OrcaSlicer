@@ -919,7 +919,6 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Quality");
     def->tooltip = L("Decrease this value slightly(for example 0.9) to reduce the amount of material for bridge, "
                      "to improve sag");
-    def->sidetext = L("x"); // ORCA add side text
     def->min = 0;
     def->max = 2.0;
     def->mode = comAdvanced;
@@ -929,7 +928,6 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Internal bridge flow ratio");
     def->category = L("Quality");
     def->tooltip = L("This value governs the thickness of the internal bridge layer. This is the first layer over sparse infill. Decrease this value slightly (for example 0.9) to improve surface quality over sparse infill.");
-    def->sidetext = L("x"); // ORCA add side text
     def->min = 0;
     def->max = 2.0;
     def->mode = comAdvanced;
@@ -940,7 +938,6 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Advanced");
     def->tooltip = L("This factor affects the amount of material for top solid infill. "
                    "You can decrease it slightly to have smooth surface finish");
-    def->sidetext = L("x"); // ORCA add side text
     def->min = 0;
     def->max = 2;
     def->mode = comAdvanced;
@@ -950,7 +947,6 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Bottom surface flow ratio");
     def->category = L("Advanced");
     def->tooltip = L("This factor affects the amount of material for bottom solid infill");
-    def->sidetext = L("x"); // ORCA add side text
     def->min = 0;
     def->max = 2;
     def->mode = comAdvanced;
@@ -1680,7 +1676,6 @@ void PrintConfigDef::init_fff_params()
                      "This setting changes all extrusion flow of this filament in gcode proportionally. "
                      "Recommended value range is between 0.95 and 1.05. "
                      "Maybe you can tune this value to get nice flat surface when there has slight overflow or underflow");
-    def->sidetext = L("x"); // ORCA add side text
     def->max = 2;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats { 1. });
@@ -1691,7 +1686,6 @@ void PrintConfigDef::init_fff_params()
                      "This setting changes all extrusion flow of this filament in gcode proportionally. "
                      "Recommended value range is between 0.95 and 1.05. "
                      "Maybe you can tune this value to get nice flat surface when there has slight overflow or underflow");
-    def->sidetext = L("x"); // ORCA add side text
     def->mode = comAdvanced;
     def->max = 2;
     def->min = 0.01;
@@ -3727,7 +3721,6 @@ def = this->add("filament_loading_speed", coFloats);
     def = this->add("scarf_joint_flow_ratio", coFloat);
     def->label = L("Scarf joint flow ratio");
     def->tooltip = L("This factor affects the amount of material for scarf joints.");
-    def->sidetext = L("x"); // ORCA add side text
     def->mode = comDevelop;
     def->max = 2;
     def->set_default_value(new ConfigOptionFloat(1));
