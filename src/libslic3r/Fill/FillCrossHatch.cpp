@@ -193,7 +193,7 @@ void FillCrossHatch ::_fill_surface_single(
     bb.merge(align_to_grid(bb.min, Point(line_spacing * 4, line_spacing * 4)));
 
     // generate pattern
-    Polylines polylines = generate_infill_layers(scale_(this->z), 1, line_spacing, bb.size()(0), bb.size()(1));
+    Polylines polylines = generate_infill_layers(scale_(this->z), 0.4, line_spacing, bb.size()(0), bb.size()(1));
 
     // shift the pattern to the actual space
     for (Polyline &pl : polylines) { pl.translate(bb.min); }
