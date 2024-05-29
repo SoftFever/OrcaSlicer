@@ -4452,19 +4452,24 @@ def = this->add("filament_loading_speed", coFloats);
     def = this->add("tree_support_adaptive_layer_height", coBool);
     def->label = L("Adaptive layer height");
     def->category = L("Quality");
+    def->min      = 1.0;
+    def->max      = 10;
     def->tooltip = L("Enabling this option means the height of  tree support layer except the first will be automatically calculated ");
     def->set_default_value(new ConfigOptionBool(1));
     
     def = this->add("tree_support_auto_brim", coBool);
     def->label = L("Auto brim width");
     def->category = L("Quality");
+    def->min      = 1.0;
+    def->max      = 10;
     def->tooltip = L("Enabling this option means the width of the brim for tree support will be automatically calculated");
     def->set_default_value(new ConfigOptionBool(1));
     
     def = this->add("tree_support_brim_width", coFloat);
     def->label = L("Tree support brim width");
     def->category = L("Quality");
-    def->min      = 0.0;
+    def->min      = 1.0;
+    def->max      = 10;
     def->tooltip = L("Distance from tree branch to the outermost brim line");
     def->set_default_value(new ConfigOptionFloat(3));
 
@@ -4540,7 +4545,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
-    def = this->add("activate_chamber_temp_control",coBools);
+    def = this->add("activate_chamber_temp_control",coBool);
     def->label = L("Activate temperature control");
     def->tooltip = L("Enable this option for chamber temperature control. An M191 command will be added before \"machine_start_gcode\"\nG-code commands: M141/M191 S(0-255)");
     def->mode = comSimple;
