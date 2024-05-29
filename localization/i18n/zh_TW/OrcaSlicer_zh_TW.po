@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-23 23:36+0800\n"
+"POT-Creation-Date: 2024-05-29 00:28+0800\n"
 "PO-Revision-Date: 2023-11-06 14:37+0800\n"
 "Last-Translator: ablegods <ablegods@gmail.com>\n"
 "Language-Team: \n"
@@ -117,7 +117,7 @@ msgid "Support Generated"
 msgstr "已產生支撐"
 
 msgid "Gizmo-Place on Face"
-msgstr ""
+msgstr "Gizmo-放置在臉上"
 
 msgid "Lay on face"
 msgstr "選擇底面"
@@ -201,13 +201,13 @@ msgid "Move"
 msgstr "移動"
 
 msgid "Gizmo-Move"
-msgstr ""
+msgstr "Gizmo-移動"
 
 msgid "Rotate"
 msgstr "旋轉"
 
 msgid "Gizmo-Rotate"
-msgstr ""
+msgstr "Gizmo-旋轉"
 
 msgid "Optimize orientation"
 msgstr "最佳化方向"
@@ -219,13 +219,13 @@ msgid "Scale"
 msgstr "縮放"
 
 msgid "Gizmo-Scale"
-msgstr ""
+msgstr "Gizmo 比例"
 
 msgid "Error: Please close all toolbar menus first"
 msgstr "錯誤：請先關閉所有工具欄選單"
 
 msgid "in"
-msgstr ""
+msgstr "在"
 
 msgid "mm"
 msgstr "mm"
@@ -279,14 +279,14 @@ msgid "Object coordinates"
 msgstr ""
 
 msgid "°"
-msgstr ""
+msgstr "°"
 
 #. TRN - Input label. Be short as possible
 msgid "Size"
 msgstr "尺寸"
 
 msgid "%"
-msgstr ""
+msgstr "%"
 
 msgid "uniform scale"
 msgstr "等比例縮放"
@@ -353,7 +353,7 @@ msgid "Depth"
 msgstr ""
 
 msgid "Groove"
-msgstr ""
+msgstr "溝槽"
 
 msgid "Width"
 msgstr "寬度"
@@ -385,7 +385,7 @@ msgid "Move cut plane"
 msgstr ""
 
 msgid "Mode"
-msgstr ""
+msgstr "模式"
 
 msgid "Change cut mode"
 msgstr ""
@@ -539,7 +539,7 @@ msgid "Connector"
 msgstr "連接件"
 
 msgid "Cut by Plane"
-msgstr ""
+msgstr "用平面分割"
 
 msgid "non-manifold edges be caused by cut tool, do you want to fix it now?"
 msgstr ""
@@ -697,7 +697,7 @@ msgid "Text move"
 msgstr ""
 
 msgid "Set Mirror"
-msgstr ""
+msgstr "設定鏡像"
 
 msgid "Embossed text"
 msgstr ""
@@ -733,7 +733,7 @@ msgid "First font"
 msgstr ""
 
 msgid "Default font"
-msgstr ""
+msgstr "預設字型"
 
 msgid "Advanced"
 msgstr "高級"
@@ -784,11 +784,11 @@ msgid "Click to change text into object part."
 msgstr ""
 
 msgid "You can't change a type of the last solid part of the object."
-msgstr ""
+msgstr "您無法變更模型最後一個實體部分的類型。"
 
 msgctxt "EmbossOperation"
 msgid "Cut"
-msgstr ""
+msgstr "切割"
 
 msgid "Click to change part type into negative volume."
 msgstr ""
@@ -930,19 +930,19 @@ msgstr ""
 
 msgctxt "Alignment"
 msgid "Left"
-msgstr ""
+msgstr "左"
 
 msgctxt "Alignment"
 msgid "Center"
-msgstr ""
+msgstr "置中"
 
 msgctxt "Alignment"
 msgid "Right"
-msgstr ""
+msgstr "右"
 
 msgctxt "Alignment"
 msgid "Top"
-msgstr ""
+msgstr "頂部"
 
 msgctxt "Alignment"
 msgid "Middle"
@@ -950,7 +950,7 @@ msgstr ""
 
 msgctxt "Alignment"
 msgid "Bottom"
-msgstr ""
+msgstr "底部"
 
 msgid "Revert alignment."
 msgstr ""
@@ -1045,7 +1045,7 @@ msgstr ""
 #. TRN - Input label. Be short as possible
 #. Align Top|Middle|Bottom and Left|Center|Right
 msgid "Alignment"
-msgstr ""
+msgstr "對齊"
 
 #. TRN - Input label. Be short as possible
 msgid "Char gap"
@@ -1101,7 +1101,7 @@ msgid "SVG actions"
 msgstr ""
 
 msgid "SVG"
-msgstr ""
+msgstr "SVG"
 
 #, boost-format
 msgid "Opacity (%1%)"
@@ -1214,7 +1214,7 @@ msgid "Lock/unlock the aspect ratio of the SVG."
 msgstr ""
 
 msgid "Reset scale"
-msgstr ""
+msgstr "重置比例"
 
 msgid "Distance of the center of the SVG to the model surface."
 msgstr ""
@@ -1223,16 +1223,16 @@ msgid "Reset distance"
 msgstr ""
 
 msgid "Reset rotation"
-msgstr ""
+msgstr "重置旋轉"
 
 msgid "Lock/unlock rotation angle when dragging above the surface."
 msgstr ""
 
 msgid "Mirror vertically"
-msgstr ""
+msgstr "垂直鏡像"
 
 msgid "Mirror horizontally"
-msgstr ""
+msgstr "水平鏡像"
 
 #. TRN: This is the name of the action that shows in undo/redo stack (changing part type from SVG to something else).
 msgid "Change SVG Type"
@@ -1301,7 +1301,7 @@ msgid "Restart selection"
 msgstr ""
 
 msgid "Esc"
-msgstr ""
+msgstr "Esc"
 
 msgid "Unselect"
 msgstr ""
@@ -1314,7 +1314,7 @@ msgstr ""
 
 msgctxt "Verb"
 msgid "Scale"
-msgstr ""
+msgstr "縮放"
 
 msgid "None"
 msgstr "無"
@@ -1326,7 +1326,7 @@ msgid "Length"
 msgstr "長度"
 
 msgid "Selection"
-msgstr ""
+msgstr "所選項目"
 
 msgid "Copy to clipboard"
 msgstr "複製到剪貼簿"
@@ -1344,7 +1344,7 @@ msgid "Distance XYZ"
 msgstr ""
 
 msgid "Ctrl+"
-msgstr ""
+msgstr "Ctrl+"
 
 msgid "Notice"
 msgstr "通知"
@@ -1546,7 +1546,7 @@ msgid "Language"
 msgstr "語言"
 
 msgid "*"
-msgstr ""
+msgstr "*"
 
 msgid "The uploads are still ongoing"
 msgstr "正在上傳任務中"
@@ -2213,7 +2213,7 @@ msgid "Remove parameter"
 msgstr "刪除參數"
 
 msgid "to"
-msgstr ""
+msgstr "到"
 
 msgid "Remove height range"
 msgstr "移除高度範圍"
@@ -2377,7 +2377,7 @@ msgid "No printer"
 msgstr "無列印設備"
 
 msgid "..."
-msgstr ""
+msgstr "..."
 
 msgid "Failed to connect to the server"
 msgstr "無法連接伺服器"
@@ -2429,7 +2429,7 @@ msgid "AMS not connected"
 msgstr "AMS 尚未連接"
 
 msgid "Load"
-msgstr ""
+msgstr "匯入"
 
 msgid "Unload"
 msgstr "退料"
@@ -2578,13 +2578,13 @@ msgid "Bed filling done."
 msgstr "填充列印板已完成。"
 
 msgid "Searching for optimal orientation"
-msgstr ""
+msgstr "查詢最佳方向"
 
 msgid "Orientation search canceled."
-msgstr ""
+msgstr "定向搜尋已取消."
 
 msgid "Orientation found."
-msgstr ""
+msgstr "找到方向。"
 
 msgid "Logging in"
 msgstr "登入中"
@@ -3169,7 +3169,7 @@ msgid "Successfully executed post-processing script"
 msgstr ""
 
 msgid "Unknown error occured during exporting G-code."
-msgstr ""
+msgstr "匯出 G-code 期間發生未知錯誤。"
 
 #, boost-format
 msgid ""
@@ -3177,6 +3177,8 @@ msgid ""
 "card is write locked?\n"
 "Error message: %1%"
 msgstr ""
+"將臨時的 G-code 複製到輸出的 G-code 失敗 ，也許 SD 卡寫入被鎖定？\n"
+"錯誤訊息：%1%"
 
 #, boost-format
 msgid ""
@@ -3184,28 +3186,36 @@ msgid ""
 "problem with target device, please try exporting again or using different "
 "device. The corrupted output G-code is at %1%.tmp."
 msgstr ""
+"將臨時 G-code 複製到輸出 G-code 時失敗。目標設備可能存在問題，請嘗試再次匯出"
+"或使用不同的設備。損壞的G-code 已輸出為%1%.tmp。"
 
 #, boost-format
 msgid ""
 "Renaming of the G-code after copying to the selected destination folder has "
 "failed. Current path is %1%.tmp. Please try exporting again."
 msgstr ""
+"複製到選取之目標檔案夾的 G-code 重命名失敗。當前路徑為%1%.tmp。請再試看看匯"
+"出。"
 
 #, boost-format
 msgid ""
 "Copying of the temporary G-code has finished but the original code at %1% "
 "couldn't be opened during copy check. The output G-code is at %2%.tmp."
 msgstr ""
+"臨時 G-code 的 複製已完成，但原始 G-code 因%1%在複製檢查期間無法打開。輸出 G-"
+"code 為%2%.tmp。"
 
 #, boost-format
 msgid ""
 "Copying of the temporary G-code has finished but the exported code couldn't "
 "be opened during copy check. The output G-code is at %1%.tmp."
 msgstr ""
+"臨時 G-code 的複制已完成，但匯出的 G-code 無法在復製檢查過程中打開。輸出 G-"
+"code 為%1%.tmp。"
 
 #, boost-format
 msgid "G-code file exported to %1%"
-msgstr ""
+msgstr "G-code 檔案已匯出為 %1%"
 
 msgid "Unknown error when export G-code."
 msgstr "匯出 G-code 檔案發生未知錯誤。"
@@ -3415,7 +3425,7 @@ msgid ""
 msgstr ""
 
 msgid "Wait"
-msgstr ""
+msgstr "等待"
 
 msgid ""
 "minute each batch.(It depends on how long it takes to complete the heating.)"
@@ -3924,7 +3934,7 @@ msgid "Dimensions"
 msgstr ""
 
 msgid "Temperatures"
-msgstr ""
+msgstr "溫度"
 
 msgid "Timestamps"
 msgstr ""
@@ -4491,7 +4501,7 @@ msgid "Yes"
 msgstr "是"
 
 msgid "No"
-msgstr ""
+msgstr "否"
 
 msgid "will be closed before creating a new model. Do you want to continue?"
 msgstr "將會被關閉以建立新模型，是否繼續?"
@@ -5937,10 +5947,10 @@ msgid ""
 msgstr "使用傳統模式的縮時攝影可能會導致表面缺陷。建議改為平滑模式。"
 
 msgid "Expand sidebar"
-msgstr ""
+msgstr "展開側邊欄"
 
 msgid "Collapse sidebar"
-msgstr ""
+msgstr "折疊側邊欄"
 
 #, c-format, boost-format
 msgid "Loading file: %s"
@@ -6095,7 +6105,7 @@ msgid "Another export job is running."
 msgstr "有其他匯出任務正在進行中。"
 
 msgid "Unable to replace with more than one volume"
-msgstr ""
+msgstr "無法取代超過一個體積"
 
 msgid "Error during replace"
 msgstr "替換時發生錯誤"
@@ -6204,7 +6214,7 @@ msgid ""
 msgstr "匯入 Orca Slicer 失敗。 請下載該檔案並手動匯入。"
 
 msgid "Import SLA archive"
-msgstr ""
+msgstr "匯入 SLA 存檔"
 
 msgid "The selected file"
 msgstr "已選擇的檔案"
@@ -6494,6 +6504,8 @@ msgid ""
 "it is allowed to run multiple instances of same app from the command line. "
 "In such case this settings will allow only one instance."
 msgstr ""
+"在 OSX 上，預設情況下總是只有一個應用程式實例在運行。但是卻允許從命令視窗執行"
+"同一應用程式的多個實例。當您設定了這個設定後將只允許一個實例執行。"
 
 msgid ""
 "If this is enabled, when starting OrcaSlicer and another instance of the "
@@ -6585,7 +6597,7 @@ msgid ""
 msgstr ""
 
 msgid "Network"
-msgstr ""
+msgstr "網路"
 
 #, fuzzy
 msgid "Auto sync user presets(Printer/Filament/Process)"
@@ -6631,6 +6643,12 @@ msgstr "使用 Orca Slicer 打開 .step/.stp 檔案"
 msgid "If enabled, sets OrcaSlicer as default application to open .step files"
 msgstr "開啟後，將預設使用 Orca Slicer 打開 .step 檔案"
 
+msgid "Associate web links to OrcaSlicer"
+msgstr ""
+
+msgid "Associate URLs to OrcaSlicer"
+msgstr ""
+
 msgid "Current association: "
 msgstr ""
 
@@ -6641,8 +6659,24 @@ msgid "Not associated to any application"
 msgstr ""
 
 msgid ""
-"Associate OrcaSlicer with prusaslicer:// links so that Orca can open "
-"PrusaSlicer links from Printable.com"
+"Associate OrcaSlicer with prusaslicer:// links so that Orca can open models "
+"from Printable.com"
+msgstr ""
+
+msgid "Associate bambustudio://"
+msgstr ""
+
+msgid ""
+"Associate OrcaSlicer with bambustudio:// links so that Orca can open models "
+"from makerworld.com"
+msgstr ""
+
+msgid "Associate cura://"
+msgstr ""
+
+msgid ""
+"Associate OrcaSlicer with cura:// links so that Orca can open models from "
+"thingiverse.com"
 msgstr ""
 
 msgid "Maximum recent projects"
@@ -6828,7 +6862,7 @@ msgid "The selected preset is null!"
 msgstr "選擇的預設為空！"
 
 msgid "End"
-msgstr ""
+msgstr "End"
 
 msgid "Customize"
 msgstr "自訂"
@@ -6979,7 +7013,7 @@ msgid "(LAN)"
 msgstr "（區域網路）"
 
 msgid "Search"
-msgstr ""
+msgstr "搜尋"
 
 msgid "My Device"
 msgstr "我的設備"
@@ -7183,7 +7217,7 @@ msgid "nozzle in preset: %s %s"
 msgstr ""
 
 #, c-format, boost-format
-msgid "nozzle memorized: %.1f %s"
+msgid "nozzle memorized: %.2f %s"
 msgstr ""
 
 msgid ""
@@ -7487,7 +7521,7 @@ msgid "Adjust"
 msgstr ""
 
 msgid "Ignore"
-msgstr ""
+msgstr "忽略"
 
 msgid ""
 "Experimental feature: Retracting and cutting off the filament at a greater "
@@ -7586,7 +7620,7 @@ msgid "Tree supports"
 msgstr "樹狀支撐"
 
 msgid "Skirt"
-msgstr ""
+msgstr "側裙"
 
 msgid "Prime tower"
 msgstr "擦拭塔"
@@ -8437,10 +8471,10 @@ msgid "Gizmo Text emboss / engrave"
 msgstr ""
 
 msgid "Zoom in"
-msgstr ""
+msgstr "放大"
 
 msgid "Zoom out"
-msgstr ""
+msgstr "縮小"
 
 msgid "Switch between Prepare/Preview"
 msgstr "在準備/預覽模式之中切換"
@@ -9008,7 +9042,7 @@ msgstr ""
 msgid ""
 "The Wipe Tower is currently only supported with the relative extruder "
 "addressing (use_relative_e_distances=1)."
-msgstr ""
+msgstr "擦拭塔目前僅支援相對擠出機定址 (use_relative_e_distances=1)。"
 
 msgid ""
 "Ooze prevention is currently not supported with the prime tower enabled."
@@ -9305,10 +9339,10 @@ msgid "Authorization Type"
 msgstr "授權類型"
 
 msgid "API key"
-msgstr ""
+msgstr "API 金鑰"
 
 msgid "HTTP digest"
-msgstr ""
+msgstr "HTTP摘要"
 
 msgid "Avoid crossing wall"
 msgstr "避免跨越外牆"
@@ -9460,7 +9494,7 @@ msgid ""
 msgstr ""
 
 msgid "Everywhere"
-msgstr ""
+msgstr "全部"
 
 msgid "Top and bottom surfaces"
 msgstr ""
@@ -9959,7 +9993,7 @@ msgid ""
 msgstr ""
 
 msgid "Disabled"
-msgstr ""
+msgstr "停用"
 
 msgid "Limited filtering"
 msgstr ""
@@ -10140,7 +10174,7 @@ msgid ""
 "Order of wall/infill. When the tickbox is unchecked the walls are printed "
 "first, which works best in most cases.\n"
 "\n"
-"Printing walls first may help with extreme overhangs as the walls have the "
+"Printing infill first may help with extreme overhangs as the walls have the "
 "neighbouring infill to adhere to. However, the infill will slighly push out "
 "the printed walls where it is attached to them, resulting in a worse "
 "external surface finish. It can also cause the infill to shine through the "
@@ -11156,10 +11190,10 @@ msgstr ""
 "多擠出機列印"
 
 msgid "Maximum width of a segmented region"
-msgstr ""
+msgstr "分隔區域的最大寬度"
 
 msgid "Maximum width of a segmented region. Zero disables this feature."
-msgstr ""
+msgstr "分隔區域的最大寬度。零表示禁用此功能。"
 
 msgid "Interlocking depth of a segmented region"
 msgstr ""
@@ -11443,7 +11477,7 @@ msgstr ""
 "注意：此參數會停用圓弧擬合。"
 
 msgid "mm³/s²"
-msgstr ""
+msgstr "mm³/s²"
 
 msgid "Smoothing segment length"
 msgstr "平滑段長度"
@@ -12073,7 +12107,7 @@ msgid "How many layers of skirt. Usually only one layer"
 msgstr "skirt 有多少層。通常只有一層"
 
 msgid "Draft shield"
-msgstr ""
+msgstr "防風罩"
 
 msgid ""
 "A draft shield is useful to protect an ABS or ASA print from warping and "
@@ -12090,10 +12124,10 @@ msgid ""
 msgstr ""
 
 msgid "Limited"
-msgstr ""
+msgstr "有限"
 
 msgid "Enabled"
-msgstr ""
+msgstr "啟用"
 
 msgid "Skirt loops"
 msgstr "Skirt 圈數"
@@ -12409,7 +12443,7 @@ msgid "Number of bottom interface layers"
 msgstr ""
 
 msgid "Same as top"
-msgstr ""
+msgstr "與頂部相同"
 
 msgid "Top interface spacing"
 msgstr "頂部接觸面線距"
@@ -12959,7 +12993,7 @@ msgstr "G-code 縮圖的格式"
 msgid ""
 "Format of G-code thumbnails: PNG for best quality, JPG for smallest size, "
 "QOI for low memory firmware"
-msgstr ""
+msgstr "G-code 縮圖的格式：PNG 品質最佳，JPG 檔案最小，QOI 最低記憶體韌體"
 
 msgid "Use relative E distances"
 msgstr "使用相對 E 距離"
@@ -13985,7 +14019,7 @@ msgstr ""
 "-不同的線材品牌和系列（Brand = Bambu, Family = Basic, Matte）"
 
 msgid "Pattern"
-msgstr ""
+msgstr "花紋"
 
 msgid "Method"
 msgstr "方法"
@@ -14024,7 +14058,7 @@ msgid "Flow Dynamics Calibration Result"
 msgstr "動態流量校準結果"
 
 msgid "New"
-msgstr ""
+msgstr "新增"
 
 msgid "No History Result"
 msgstr "無歷史結果"
@@ -14251,10 +14285,10 @@ msgid "Print host upload queue"
 msgstr "列印主機上傳隊列"
 
 msgid "ID"
-msgstr ""
+msgstr "ID"
 
 msgid "Progress"
-msgstr ""
+msgstr "進度"
 
 msgid "Host"
 msgstr "主機"
@@ -14804,9 +14838,13 @@ msgid "For more information, please check out Wiki"
 msgstr ""
 
 msgid "Collapse"
-msgstr ""
+msgstr "摺疊"
 
 msgid "Daily Tips"
+msgstr ""
+
+#, c-format, boost-format
+msgid "nozzle memorized: %.1f %s"
 msgstr ""
 
 msgid ""
@@ -14835,10 +14873,10 @@ msgid "Physical Printer"
 msgstr "實體列印設備"
 
 msgid "Print Host upload"
-msgstr ""
+msgstr "打印主機上傳"
 
 msgid "Could not get a valid Printer Host reference"
-msgstr ""
+msgstr "無法獲得有效的打印機主機參考資料"
 
 msgid "Success!"
 msgstr "成功！"
@@ -14879,49 +14917,49 @@ msgid "Login/Test"
 msgstr ""
 
 msgid "Connection to printers connected via the print host failed."
-msgstr ""
+msgstr "經由打印主機連接的打印機連接失敗。"
 
 #, c-format, boost-format
 msgid "Mismatched type of print host: %s"
-msgstr ""
+msgstr "打印主機類型不符：%s"
 
 msgid "Connection to AstroBox works correctly."
-msgstr ""
+msgstr "與 AstroBox 的連接工作正常。"
 
 msgid "Could not connect to AstroBox"
-msgstr ""
+msgstr "無法連接到 AstroBox"
 
 msgid "Note: AstroBox version at least 1.1.0 is required."
-msgstr ""
+msgstr "注意：AstroBox 版本至少需要 1.1.0。"
 
 msgid "Connection to Duet works correctly."
-msgstr ""
+msgstr "與 Duet 的連接工作正常。"
 
 msgid "Could not connect to Duet"
-msgstr ""
+msgstr "無法連接到 Duet"
 
 msgid "Unknown error occured"
-msgstr ""
+msgstr "發生未知的錯誤"
 
 msgid "Wrong password"
-msgstr ""
+msgstr "密碼錯誤"
 
 msgid "Could not get resources to create a new connection"
-msgstr ""
+msgstr "無法取得建立新連結的資源"
 
 msgid "Upload not enabled on FlashAir card."
-msgstr ""
+msgstr "FlashAir 卡上未啟用上傳。"
 
 msgid "Connection to FlashAir works correctly and upload is enabled."
-msgstr ""
+msgstr "與 FlashAir 的連接工作正常並啟用上傳。"
 
 msgid "Could not connect to FlashAir"
-msgstr ""
+msgstr "無法連接到 FlashAir"
 
 msgid ""
 "Note: FlashAir with firmware 2.00.02 or newer and activated upload function "
 "is required."
-msgstr ""
+msgstr "注意：FlashAir 需要韌體為 2.00.02 或更新版本並啟動上傳功能。"
 
 msgid "Connection to MKS works correctly."
 msgstr ""
@@ -14930,25 +14968,25 @@ msgid "Could not connect to MKS"
 msgstr ""
 
 msgid "Connection to OctoPrint works correctly."
-msgstr ""
+msgstr "與 OctoPrint 的連接工作正常。"
 
 msgid "Could not connect to OctoPrint"
-msgstr ""
+msgstr "無法連接到 OctoPrint"
 
 msgid "Note: OctoPrint version at least 1.1.0 is required."
-msgstr ""
+msgstr "注意：OctoPrint 版本至少需要 1.1.0。"
 
 msgid "Connection to Prusa SL1 / SL1S works correctly."
-msgstr ""
+msgstr "與 Prusa SL1 / SL1S 的連接工作正常。"
 
 msgid "Could not connect to Prusa SLA"
-msgstr ""
+msgstr "無法連接到 Prusa SLA"
 
 msgid "Connection to PrusaLink works correctly."
-msgstr ""
+msgstr "與 PrusaLink 的連接工作正常。"
 
 msgid "Could not connect to PrusaLink"
-msgstr ""
+msgstr "無法連接到 PrusaLink"
 
 msgid "Storages found"
 msgstr ""
@@ -14975,19 +15013,21 @@ msgid "Could not connect to Prusa Connect"
 msgstr ""
 
 msgid "Connection to Repetier works correctly."
-msgstr ""
+msgstr "與 Repetier 的連接工作正常。"
 
 msgid "Could not connect to Repetier"
-msgstr ""
+msgstr "無法連接到 Repetier"
 
 msgid "Note: Repetier version at least 0.90.0 is required."
-msgstr ""
+msgstr "注意：Repetier 版本至少需要 0.90.0。"
 
 #, boost-format
 msgid ""
 "HTTP status: %1%\n"
 "Message body: \"%2%\""
 msgstr ""
+"HTTP 狀態：%1%\n"
+"訊息內容：“%2%”"
 
 #, boost-format
 msgid ""
@@ -14995,6 +15035,9 @@ msgid ""
 "Message body: \"%1%\"\n"
 "Error: \"%2%\""
 msgstr ""
+"主機溝通解析失敗。\n"
+"訊息內容：“%1%”\n"
+"錯誤碼：“%2%”"
 
 #, boost-format
 msgid ""
@@ -15002,6 +15045,9 @@ msgid ""
 "Message body: \"%1%\"\n"
 "Error: \"%2%\""
 msgstr ""
+"主機打印機例舉失敗。\n"
+"訊息內容：“%1%”\n"
+"錯誤碼：“%2%”"
 
 msgid ""
 "It has a small layer height, and results in almost negligible layer lines "

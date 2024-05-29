@@ -11,6 +11,7 @@
 #include <boost/asio.hpp>
 #include <boost/thread.hpp>
 #include <string>
+#include <set>
 #include <memory>
 
 #define LOCALHOST_PORT      13618

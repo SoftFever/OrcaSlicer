@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-23 23:36+0800\n"
+"POT-Creation-Date: 2024-05-29 00:28+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Carlos Fco. Caruncho Serrano <puzzlero@gmail.com>\n"
 "Language-Team: \n"
@@ -258,7 +258,7 @@ msgid "World coordinates"
 msgstr "Coordenadas cartesianas"
 
 msgid "Object coordinates"
-msgstr ""
+msgstr "Coordenadas del objeto"
 
 msgid "°"
 msgstr "°"
@@ -1524,7 +1524,7 @@ msgid "Choose one or more files (3mf/step/stl/svg/obj/amf):"
 msgstr "Elige uno o más archivos (3mf/step/stl/svg/obj/amf):"
 
 msgid "Choose ZIP file"
-msgstr ""
+msgstr "Escoger archivo ZIP"
 
 msgid "Choose one file (gcode/3mf):"
 msgstr "Elegir un archivo (gcode/3mf):"
@@ -1602,6 +1602,9 @@ msgid ""
 "Could not start URL download. Destination folder is not set. Please choose "
 "destination folder in Configuration Wizard."
 msgstr ""
+"No se pudo iniciar la descarga del URL. La carpeta de destino no se "
+"seleccionó. Por favor escoge una carpeta de destino en el Asistente de "
+"Configuración."
 
 msgid "Import File"
 msgstr "Importar Archivo"
@@ -3237,7 +3240,7 @@ msgid "Successfully executed post-processing script"
 msgstr "Successfully executed post-processing script"
 
 msgid "Unknown error occured during exporting G-code."
-msgstr ""
+msgstr "Se produjo un error desconocido durante la exportación del código G."
 
 #, boost-format
 msgid ""
@@ -3245,6 +3248,9 @@ msgid ""
 "card is write locked?\n"
 "Error message: %1%"
 msgstr ""
+"Error al copiar el código G temporal en el código G de salida. ¿Quizás la "
+"tarjeta SD está bloqueada contra escritura?\n"
+"Mensaje de error: %1%"
 
 #, boost-format
 msgid ""
@@ -3252,28 +3258,40 @@ msgid ""
 "problem with target device, please try exporting again or using different "
 "device. The corrupted output G-code is at %1%.tmp."
 msgstr ""
+"La copia del código G temporal al código G de salida ha fallado. Puede haber "
+"un problema con el dispositivo de destino, intenta exportar nuevamente o usa "
+"un dispositivo diferente. El código G de salida dañado está en %1%.tmp."
 
 #, boost-format
 msgid ""
 "Renaming of the G-code after copying to the selected destination folder has "
 "failed. Current path is %1%.tmp. Please try exporting again."
 msgstr ""
+"El cambio de nombre del código G después de copiar en la carpeta de destino "
+"seleccionada ha fallado. La ruta actual es %1%.tmp. Intenta exportar de "
+"nuevo."
 
 #, boost-format
 msgid ""
 "Copying of the temporary G-code has finished but the original code at %1% "
 "couldn't be opened during copy check. The output G-code is at %2%.tmp."
 msgstr ""
+"La copia del código G temporal ha finalizado, pero el código original en %1% "
+"no se pudo abrir durante la verificación de copia. El código G de salida "
+"está en %2%.tmp."
 
 #, boost-format
 msgid ""
 "Copying of the temporary G-code has finished but the exported code couldn't "
 "be opened during copy check. The output G-code is at %1%.tmp."
 msgstr ""
+"La copia del código G temporal ha finalizado, pero el código exportado no se "
+"pudo abrir durante la verificación de la copia. El código G de salida está "
+"en %1%.tmp."
 
 #, boost-format
 msgid "G-code file exported to %1%"
-msgstr ""
+msgstr "Archivo de código G exportado a %1%"
 
 msgid "Unknown error when export G-code."
 msgstr "Error desconocido al exportar el G-Code."
@@ -6335,16 +6353,18 @@ msgstr "Se produce un error al cargar el archivo de G-Code"
 #. TRN %1% is archive path
 #, boost-format
 msgid "Loading of a ZIP archive on path %1% has failed."
-msgstr ""
+msgstr "La carga del archivo ZIP en la ruta %1% ha fallado."
 
 #. TRN: First argument = path to file, second argument = error description
 #, boost-format
 msgid "Failed to unzip file to %1%: %2%"
-msgstr ""
+msgstr "Fallo al descomprimir el archivo en %1%: %2%"
 
 #, boost-format
 msgid "Failed to find unzipped file at %1%. Unzipping of file has failed."
 msgstr ""
+"No se ha encontrado el archivo descomprimido en %1%. No se ha podido "
+"descomprimir el archivo."
 
 msgid "Drop project file"
 msgstr "Soltar el archivo del proyecto"
@@ -6764,6 +6784,12 @@ msgstr ""
 "Si se activa, ajusta OrcaSlicer como aplicación por defecto para abrir "
 "archivos .step"
 
+msgid "Associate web links to OrcaSlicer"
+msgstr ""
+
+msgid "Associate URLs to OrcaSlicer"
+msgstr ""
+
 msgid "Current association: "
 msgstr ""
 
@@ -6774,8 +6800,24 @@ msgid "Not associated to any application"
 msgstr ""
 
 msgid ""
-"Associate OrcaSlicer with prusaslicer:// links so that Orca can open "
-"PrusaSlicer links from Printable.com"
+"Associate OrcaSlicer with prusaslicer:// links so that Orca can open models "
+"from Printable.com"
+msgstr ""
+
+msgid "Associate bambustudio://"
+msgstr ""
+
+msgid ""
+"Associate OrcaSlicer with bambustudio:// links so that Orca can open models "
+"from makerworld.com"
+msgstr ""
+
+msgid "Associate cura://"
+msgstr ""
+
+msgid ""
+"Associate OrcaSlicer with cura:// links so that Orca can open models from "
+"thingiverse.com"
 msgstr ""
 
 msgid "Maximum recent projects"
@@ -7308,8 +7350,8 @@ msgid "nozzle in preset: %s %s"
 msgstr "Boquilla preestablecida: %s %s"
 
 #, c-format, boost-format
-msgid "nozzle memorized: %.1f %s"
-msgstr "Boquilla memorizada: %.1f %s"
+msgid "nozzle memorized: %.2f %s"
+msgstr "Boquilla memorizada: %.2f %s"
 
 msgid ""
 "Your nozzle diameter in sliced file is not consistent with memorized nozzle. "
@@ -10512,22 +10554,12 @@ msgid ""
 "Order of wall/infill. When the tickbox is unchecked the walls are printed "
 "first, which works best in most cases.\n"
 "\n"
-"Printing walls first may help with extreme overhangs as the walls have the "
+"Printing infill first may help with extreme overhangs as the walls have the "
 "neighbouring infill to adhere to. However, the infill will slighly push out "
 "the printed walls where it is attached to them, resulting in a worse "
 "external surface finish. It can also cause the infill to shine through the "
 "external surfaces of the part."
 msgstr ""
-"Orden de los perímetros/relleno. Cuando la casilla no está marcada, los "
-"muros se imprimen primero, lo que funciona mejor en la mayoría de los "
-"casos.\n"
-"\n"
-"Imprimir primero los muros puede ayudar con salientes extremos ya que los "
-"muros tienen el relleno vecino al que adherirse. Sin embargo, el relleno "
-"empujará ligeramente hacia fuera los perímetros impresas donde se une a "
-"ellos, lo que resulta en un peor acabado de la superficie exterior. También "
-"puede hacer que el relleno brille a través de las superficies externas de la "
-"pieza."
 
 msgid "Wall loop direction"
 msgstr "Dirección del bucle de perímetro"
@@ -12755,7 +12787,7 @@ msgid "How many layers of skirt. Usually only one layer"
 msgstr "C capas de falda. Normalmente sólo una capa"
 
 msgid "Draft shield"
-msgstr ""
+msgstr "Escudo de protección"
 
 msgid ""
 "A draft shield is useful to protect an ABS or ASA print from warping and "
@@ -12772,10 +12804,10 @@ msgid ""
 msgstr ""
 
 msgid "Limited"
-msgstr ""
+msgstr "Limitado"
 
 msgid "Enabled"
-msgstr ""
+msgstr "Activado"
 
 msgid "Skirt loops"
 msgstr "Contorno de la falda"
@@ -15786,6 +15818,10 @@ msgstr "Colapsar"
 msgid "Daily Tips"
 msgstr "Consejos Diarios"
 
+#, c-format, boost-format
+msgid "nozzle memorized: %.1f %s"
+msgstr ""
+
 msgid ""
 "Your nozzle diameter in preset is not consistent with memorized nozzle "
 "diameter. Did you change your nozzle lately?"
@@ -16685,6 +16721,27 @@ msgstr ""
 "Sabías que al imprimir materiales propensos a la deformación como el ABS, "
 "aumentar adecuadamente la temperatura del lecho térmico puede reducir la "
 "probabilidad de deformaciones."
+
+#~ msgid ""
+#~ "Order of wall/infill. When the tickbox is unchecked the walls are printed "
+#~ "first, which works best in most cases.\n"
+#~ "\n"
+#~ "Printing walls first may help with extreme overhangs as the walls have "
+#~ "the neighbouring infill to adhere to. However, the infill will slighly "
+#~ "push out the printed walls where it is attached to them, resulting in a "
+#~ "worse external surface finish. It can also cause the infill to shine "
+#~ "through the external surfaces of the part."
+#~ msgstr ""
+#~ "Orden de los perímetros/relleno. Cuando la casilla no está marcada, los "
+#~ "muros se imprimen primero, lo que funciona mejor en la mayoría de los "
+#~ "casos.\n"
+#~ "\n"
+#~ "Imprimir primero los muros puede ayudar con salientes extremos ya que los "
+#~ "muros tienen el relleno vecino al que adherirse. Sin embargo, el relleno "
+#~ "empujará ligeramente hacia fuera los perímetros impresas donde se une a "
+#~ "ellos, lo que resulta en un peor acabado de la superficie exterior. "
+#~ "También puede hacer que el relleno brille a través de las superficies "
+#~ "externas de la pieza."
 
 #~ msgid "V"
 #~ msgstr "V"

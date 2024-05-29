@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-23 23:36+0800\n"
+"POT-Creation-Date: 2024-05-29 00:28+0800\n"
 "PO-Revision-Date: 2023-04-01 13:21+0800\n"
 "Last-Translator: SoftFever <softfeverever@gmail.com>\n"
 "Language-Team: \n"
@@ -295,7 +295,7 @@ msgid "Snap"
 msgstr "按扣"
 
 msgid "Prism"
-msgstr ""
+msgstr "棱角"
 
 msgid "Frustum"
 msgstr "锥体"
@@ -313,7 +313,7 @@ msgid "Place on cut"
 msgstr "切割面放置到热床"
 
 msgid "Flip upside down"
-msgstr ""
+msgstr "倒置"
 
 msgid "Connectors"
 msgstr "连接件"
@@ -361,9 +361,12 @@ msgid ""
 "Drag to move the cut plane\n"
 "Right-click a part to assign it to the other side"
 msgstr ""
+"单击以翻转剖切面\n"
+"拖动以移动剖切面\n"
+"在零件上单击鼠标右键以将其指定给另一侧"
 
 msgid "Move cut plane"
-msgstr ""
+msgstr "移动剖切面"
 
 msgid "Mode"
 msgstr "模式"
@@ -408,7 +411,7 @@ msgid "Cut"
 msgstr "剪切"
 
 msgid "Rotate cut plane"
-msgstr ""
+msgstr "旋转剖切面"
 
 msgid "Remove connectors"
 msgstr "删除所有连接件"
@@ -435,7 +438,7 @@ msgid "Build Volume"
 msgstr "零件体积"
 
 msgid "Flip cut plane"
-msgstr ""
+msgstr "翻转剖切面"
 
 msgid "Groove change"
 msgstr ""
@@ -451,7 +454,7 @@ msgid "Cut position"
 msgstr "切割位置"
 
 msgid "Reset cutting plane"
-msgstr ""
+msgstr "重置切割平面"
 
 msgid "Edit connectors"
 msgstr "编辑连接件"
@@ -463,7 +466,7 @@ msgid "Reset cut"
 msgstr "重置"
 
 msgid "Reset cutting plane and remove connectors"
-msgstr ""
+msgstr "重置切割平面并移除连接器"
 
 msgid "Upper part"
 msgstr "上半部分"
@@ -506,10 +509,10 @@ msgid "Some connectors are overlapped"
 msgstr "存在连接件相互重叠"
 
 msgid "Select at least one object to keep after cutting."
-msgstr ""
+msgstr "切割后至少选择一个要保留的对象。"
 
 msgid "Cut plane is placed out of object"
-msgstr ""
+msgstr "剖切面放置在对象之外"
 
 msgid "Cut plane with groove is invalid"
 msgstr ""
@@ -518,7 +521,7 @@ msgid "Connector"
 msgstr "连接件"
 
 msgid "Cut by Plane"
-msgstr ""
+msgstr "按平面切割"
 
 msgid "non-manifold edges be caused by cut tool, do you want to fix it now?"
 msgstr "因切割产生了非流形边，您是否想现在修复？"
@@ -527,10 +530,10 @@ msgid "Repairing model object"
 msgstr "修复模型对象"
 
 msgid "Cut by line"
-msgstr ""
+msgstr "按线切割"
 
 msgid "Delete connector"
-msgstr ""
+msgstr "删除连接器"
 
 msgid "Mesh name"
 msgstr "Mesh名"
@@ -673,16 +676,16 @@ msgid "Set Mirror"
 msgstr "设置镜像"
 
 msgid "Embossed text"
-msgstr ""
+msgstr "浮雕文字"
 
 msgid "Enter emboss gizmo"
-msgstr ""
+msgstr "进入浮雕小工具"
 
 msgid "Leave emboss gizmo"
-msgstr ""
+msgstr "离开浮雕小工具"
 
 msgid "Embossing actions"
-msgstr ""
+msgstr "浮雕动作"
 
 msgid "Emboss"
 msgstr "浮雕"
@@ -700,13 +703,13 @@ msgid "SWISS"
 msgstr ""
 
 msgid "MODERN"
-msgstr ""
+msgstr "现代"
 
 msgid "First font"
-msgstr ""
+msgstr "第一个字体"
 
 msgid "Default font"
-msgstr ""
+msgstr "缺省字体"
 
 msgid "Advanced"
 msgstr "高级"
@@ -714,38 +717,38 @@ msgstr "高级"
 msgid ""
 "The text cannot be written using the selected font. Please try choosing a "
 "different font."
-msgstr ""
+msgstr "无法使用所选字体书写文本。请尝试选择其他字体。"
 
 msgid "Embossed text cannot contain only white spaces."
-msgstr ""
+msgstr "浮雕文本不能只包含空格。"
 
 msgid "Text contains character glyph (represented by '?') unknown by font."
-msgstr ""
+msgstr "文本包含字体未知的字符字形（用“？”表示）。"
 
 msgid "Text input doesn't show font skew."
-msgstr ""
+msgstr "文本输入不显示字体倾斜。"
 
 msgid "Text input doesn't show font boldness."
-msgstr ""
+msgstr "文本输入不显示字体加粗。"
 
 msgid "Text input doesn't show gap between lines."
-msgstr ""
+msgstr "文本输入不显示行之间的间隙。"
 
 msgid "Too tall, diminished font height inside text input."
-msgstr ""
+msgstr "太高，文本输入中的字体高度减小。"
 
 msgid "Too small, enlarged font height inside text input."
-msgstr ""
+msgstr "文字输入里面的字体高度太小，放大了。"
 
 msgid "Text doesn't show current horizontal alignment."
 msgstr ""
 
 msgid "Revert font changes."
-msgstr ""
+msgstr "还原字体更改。"
 
 #, boost-format
 msgid "Font \"%1%\" can't be selected."
-msgstr ""
+msgstr "无法选择字体“%1%”。"
 
 msgid "Operation"
 msgstr "操作"
@@ -754,7 +757,7 @@ msgid "Join"
 msgstr "合并"
 
 msgid "Click to change text into object part."
-msgstr ""
+msgstr "单击可将文本更改为对象部分。"
 
 msgid "You can't change a type of the last solid part of the object."
 msgstr "不能更改对象的最后一个实体部分的类型。"
@@ -764,93 +767,93 @@ msgid "Cut"
 msgstr "切割"
 
 msgid "Click to change part type into negative volume."
-msgstr ""
+msgstr "单击可将零件类型更改为负体积。"
 
 msgid "Modifier"
 msgstr "修改器"
 
 msgid "Click to change part type into modifier."
-msgstr ""
+msgstr "单击可将零件类型更改为修改器。"
 
 msgid "Change Text Type"
-msgstr ""
+msgstr "更改文本类型"
 
 #, boost-format
 msgid "Rename style(%1%) for embossing text"
-msgstr ""
+msgstr "重命名浮雕文本的样式（%1%）"
 
 msgid "Name can't be empty."
-msgstr ""
+msgstr "名称不能为空。"
 
 msgid "Name has to be unique."
-msgstr ""
+msgstr "名称必须是唯一的。"
 
 msgid "OK"
 msgstr "确认"
 
 msgid "Rename style"
-msgstr ""
+msgstr "重命名样式"
 
 msgid "Rename current style."
-msgstr ""
+msgstr "重命名当前样式。"
 
 msgid "Can't rename temporary style."
-msgstr ""
+msgstr "无法重命名临时样式。"
 
 msgid "First Add style to list."
-msgstr ""
+msgstr "首先将样式添加到列表中。"
 
 #, boost-format
 msgid "Save %1% style"
-msgstr ""
+msgstr "保存%1%样式"
 
 msgid "No changes to save."
-msgstr ""
+msgstr "没有要保存的更改。"
 
 msgid "New name of style"
-msgstr ""
+msgstr "样式的新名称"
 
 msgid "Save as new style"
-msgstr ""
+msgstr "另存为新样式"
 
 msgid "Only valid font can be added to style."
-msgstr ""
+msgstr "只有有效的字体才能添加到样式中。"
 
 msgid "Add style to my list."
-msgstr ""
+msgstr "将样式添加到我的列表中。"
 
 msgid "Save as new style."
-msgstr ""
+msgstr "另存为新样式。"
 
 msgid "Remove style"
-msgstr ""
+msgstr "删除样式"
 
 msgid "Can't remove the last existing style."
-msgstr ""
+msgstr "无法删除最后一个现有样式。"
 
 #, boost-format
 msgid "Are you sure you want to permanently remove the \"%1%\" style?"
-msgstr ""
+msgstr "您确定要永久删除“%1%”样式吗？"
 
 #, boost-format
 msgid "Delete \"%1%\" style."
-msgstr ""
+msgstr "删除“%1%”样式。"
 
 #, boost-format
 msgid "Can't delete \"%1%\". It is last style."
-msgstr ""
+msgstr "无法删除“%1%”。这是最后一种风格。"
 
 #, boost-format
 msgid "Can't delete temporary style \"%1%\"."
-msgstr ""
+msgstr "无法删除临时样式“%1%”。"
 
 #, boost-format
 msgid "Modified style \"%1%\""
-msgstr ""
+msgstr "已修改样式“%1%”"
 
 #, boost-format
 msgid "Current style is \"%1%\""
-msgstr ""
+msgstr "当前样式为“%1%”"
 
 #, boost-format
 msgid ""
@@ -858,39 +861,43 @@ msgid ""
 "\n"
 "Would you like to continue anyway?"
 msgstr ""
+"将样式更改为“%1%”将放弃当前的样式修改。\n"
+"是否仍要继续？"
 
 msgid "Not valid style."
-msgstr ""
+msgstr "无效的样式。"
 
 #, boost-format
 msgid "Style \"%1%\" can't be used and will be removed from a list."
-msgstr ""
+msgstr "样式“%1%”无法使用，将从列表中删除。"
 
 msgid "Unset italic"
-msgstr ""
+msgstr "取消斜体"
 
 msgid "Set italic"
-msgstr ""
+msgstr "斜体"
 
 msgid "Unset bold"
-msgstr ""
+msgstr "取消加粗"
 
 msgid "Set bold"
-msgstr ""
+msgstr "加粗"
 
 msgid "Revert text size."
-msgstr ""
+msgstr "恢复文本大小。"
 
 msgid "Revert embossed depth."
-msgstr ""
+msgstr "还原浮雕深度。"
 
 msgid ""
 "Advanced options cannot be changed for the selected font.\n"
 "Select another font."
 msgstr ""
+"无法更改所选字体的高级选项。\n"
+"选择其他字体。"
 
 msgid "Revert using of model surface."
-msgstr ""
+msgstr "恢复使用模型曲面。"
 
 msgid "Revert Transformation per glyph."
 msgstr ""
@@ -933,49 +940,49 @@ msgid "points"
 msgstr ""
 
 msgid "Revert gap between characters"
-msgstr ""
+msgstr "恢复字间距"
 
 msgid "Distance between characters"
-msgstr ""
+msgstr "字间距"
 
 msgid "Revert gap between lines"
-msgstr ""
+msgstr "恢复行间距"
 
 msgid "Distance between lines"
-msgstr ""
+msgstr "行间距"
 
 msgid "Undo boldness"
 msgstr ""
 
 msgid "Tiny / Wide glyphs"
-msgstr ""
+msgstr "细小/宽大的字形"
 
 msgid "Undo letter's skew"
-msgstr ""
+msgstr "撤消字母的歪斜"
 
 msgid "Italic strength ratio"
-msgstr ""
+msgstr "倾斜强度比"
 
 msgid "Undo translation"
-msgstr ""
+msgstr "撤消翻译"
 
 msgid "Distance of the center of the text to the model surface."
-msgstr ""
+msgstr "文字中心到模型曲面的距离。"
 
 msgid "Undo rotation"
-msgstr ""
+msgstr "撤消旋转"
 
 msgid "Rotate text Clock-wise."
-msgstr ""
+msgstr "顺时针旋转文本。"
 
 msgid "Unlock the text's rotation when moving text along the object's surface."
-msgstr ""
+msgstr "沿对象曲面移动文本时，解除锁定文本的旋转。"
 
 msgid "Lock the text's rotation when moving text along the object's surface."
-msgstr ""
+msgstr "沿对象曲面移动文本时，锁定文本的旋转。"
 
 msgid "Select from True Type Collection."
-msgstr ""
+msgstr "从True Type集合中选择。"
 
 msgid "Set text to face camera"
 msgstr "文字面向摄像头"
@@ -988,9 +995,11 @@ msgid ""
 "Can't load exactly same font(\"%1%\"). Aplication selected a similar "
 "one(\"%2%\"). You have to specify font for enable edit text."
 msgstr ""
+"不能加载完全相同的字体(\"%1%\")。应用程序选择了一种类似的字体（\"%2%\"）。你"
+"必须为启用编辑文本指定字体。"
 
 msgid "No symbol"
-msgstr ""
+msgstr "无符号"
 
 msgid "Loading"
 msgstr "载入中"
@@ -1054,7 +1063,7 @@ msgstr "保持向上"
 #. Some Font file contain multiple fonts inside and
 #. this is numerical selector of font inside font collections
 msgid "Collection"
-msgstr ""
+msgstr "收集"
 
 #. TRN - Title in Undo/Redo stack after rotate with SVG around emboss axe
 msgid "SVG rotate"
@@ -1161,7 +1170,7 @@ msgid "Bake into model as uneditable part"
 msgstr ""
 
 msgid "Save as"
-msgstr ""
+msgstr "另存为"
 
 msgid "Save SVG file"
 msgstr ""
@@ -1202,10 +1211,10 @@ msgid "Lock/unlock rotation angle when dragging above the surface."
 msgstr ""
 
 msgid "Mirror vertically"
-msgstr ""
+msgstr "垂直镜像"
 
 msgid "Mirror horizontally"
-msgstr ""
+msgstr "水平镜像"
 
 #. TRN: This is the name of the action that shows in undo/redo stack (changing part type from SVG to something else).
 msgid "Change SVG Type"
@@ -1317,7 +1326,7 @@ msgid "Distance XYZ"
 msgstr "距离 XYZ"
 
 msgid "Ctrl+"
-msgstr ""
+msgstr "Ctrl+"
 
 msgid "Notice"
 msgstr "通知"
@@ -1452,7 +1461,7 @@ msgid "Choose one or more files (3mf/step/stl/svg/obj/amf):"
 msgstr "选择一个或多个文件（3mf/step/stl/svg/obj/amf）："
 
 msgid "Choose ZIP file"
-msgstr ""
+msgstr "选择ZIP文件"
 
 msgid "Choose one file (gcode/3mf):"
 msgstr "选择一个文件（gcode/3mf）："
@@ -1520,7 +1529,7 @@ msgstr "选择一个G-code文件："
 msgid ""
 "Could not start URL download. Destination folder is not set. Please choose "
 "destination folder in Configuration Wizard."
-msgstr ""
+msgstr "无法启动URL下载。目标文件夹没有设置。请在配置向导中选择目标文件夹。"
 
 msgid "Import File"
 msgstr "导入文件"
@@ -1611,13 +1620,13 @@ msgid "Add support enforcer"
 msgstr "添加支撑生成器"
 
 msgid "Add text"
-msgstr ""
+msgstr "添加文本"
 
 msgid "Add negative text"
-msgstr ""
+msgstr "添加负文本"
 
 msgid "Add text modifier"
-msgstr ""
+msgstr "添加文本修改器"
 
 msgid "Add SVG part"
 msgstr ""
@@ -1824,7 +1833,7 @@ msgid "Edit text"
 msgstr "编辑文字"
 
 msgid "Ability to change text, font, size, ..."
-msgstr ""
+msgstr "能够更改文本、字体、大小。。。"
 
 msgid "Edit SVG"
 msgstr "编辑SVG"
@@ -2294,7 +2303,7 @@ msgid "No printer"
 msgstr "无打印机"
 
 msgid "..."
-msgstr ""
+msgstr "..."
 
 msgid "Failed to connect to the server"
 msgstr "无法连接服务器"
@@ -3055,7 +3064,7 @@ msgid "Successfully executed post-processing script"
 msgstr "成功执行后处理脚本"
 
 msgid "Unknown error occured during exporting G-code."
-msgstr ""
+msgstr "导出 G-Code 时出现未知错误。"
 
 #, boost-format
 msgid ""
@@ -3063,6 +3072,8 @@ msgid ""
 "card is write locked?\n"
 "Error message: %1%"
 msgstr ""
+"将临时 G-Code 复制到输出 G-Code 失败。也许 SD 卡被写锁定了？\n"
+"错误消息：%1%"
 
 #, boost-format
 msgid ""
@@ -3070,24 +3081,32 @@ msgid ""
 "problem with target device, please try exporting again or using different "
 "device. The corrupted output G-code is at %1%.tmp."
 msgstr ""
+"将临时 G-Code 复制到输出 G-Code 失败。目标设备可能有问题，请再次尝试导出或使"
+"用其他设备。损坏的输出 G-Code 在 %1%.tmp。"
 
 #, boost-format
 msgid ""
 "Renaming of the G-code after copying to the selected destination folder has "
 "failed. Current path is %1%.tmp. Please try exporting again."
 msgstr ""
+"复制到所选目标文件夹后重命名 G-Code 失败。当前路径为 %1%.tmp。请再次尝试导"
+"出。"
 
 #, boost-format
 msgid ""
 "Copying of the temporary G-code has finished but the original code at %1% "
 "couldn't be opened during copy check. The output G-code is at %2%.tmp."
 msgstr ""
+"临时 G-Code 的复制已完成，但在复制检查期间无法打开位于 %1% 的原始代码。输出 "
+"G-Code 为 %2%.tmp。"
 
 #, boost-format
 msgid ""
 "Copying of the temporary G-code has finished but the exported code couldn't "
 "be opened during copy check. The output G-code is at %1%.tmp."
 msgstr ""
+"临时 G-Code 的复制已完成，但在复制检查期间无法打开导出的代码。输出 G-Code 为 "
+"%1%.tmp。"
 
 #, boost-format
 msgid "G-code file exported to %1%"
@@ -4456,7 +4475,7 @@ msgid "Save Project as"
 msgstr "项目另存为"
 
 msgid "Shift+"
-msgstr ""
+msgstr "Shift+"
 
 msgid "Save current project as"
 msgstr "项目另存为"
@@ -5715,10 +5734,10 @@ msgid ""
 msgstr "启用传统的延时摄影可能会导致表面瑕疵。建议更改为平滑模式。"
 
 msgid "Expand sidebar"
-msgstr ""
+msgstr "展开侧边栏"
 
 msgid "Collapse sidebar"
-msgstr ""
+msgstr "折叠边栏"
 
 #, c-format, boost-format
 msgid "Loading file: %s"
@@ -5977,7 +5996,7 @@ msgid ""
 msgstr ""
 
 msgid "Import SLA archive"
-msgstr ""
+msgstr "导入 SLA 存档"
 
 msgid "The selected file"
 msgstr "已选择的文件"
@@ -5991,7 +6010,7 @@ msgstr "加载G-code文件时遇到错误"
 #. TRN %1% is archive path
 #, boost-format
 msgid "Loading of a ZIP archive on path %1% has failed."
-msgstr ""
+msgstr "加载路径为%1%的ZIP档案失败。"
 
 #. TRN: First argument = path to file, second argument = error description
 #, boost-format
@@ -6000,7 +6019,7 @@ msgstr ""
 
 #, boost-format
 msgid "Failed to find unzipped file at %1%. Unzipping of file has failed."
-msgstr ""
+msgstr "未能找到位于 %1% 的解压文件。解压缩文件失败。"
 
 msgid "Drop project file"
 msgstr "项目文件操作"
@@ -6387,6 +6406,12 @@ msgstr "使用逆戟鲸打开.step/.stp文件"
 msgid "If enabled, sets OrcaSlicer as default application to open .step files"
 msgstr "开启后，将缺省使用逆戟鲸打开.step文件"
 
+msgid "Associate web links to OrcaSlicer"
+msgstr ""
+
+msgid "Associate URLs to OrcaSlicer"
+msgstr ""
+
 msgid "Current association: "
 msgstr ""
 
@@ -6397,8 +6422,24 @@ msgid "Not associated to any application"
 msgstr ""
 
 msgid ""
-"Associate OrcaSlicer with prusaslicer:// links so that Orca can open "
-"PrusaSlicer links from Printable.com"
+"Associate OrcaSlicer with prusaslicer:// links so that Orca can open models "
+"from Printable.com"
+msgstr ""
+
+msgid "Associate bambustudio://"
+msgstr ""
+
+msgid ""
+"Associate OrcaSlicer with bambustudio:// links so that Orca can open models "
+"from makerworld.com"
+msgstr ""
+
+msgid "Associate cura://"
+msgstr ""
+
+msgid ""
+"Associate OrcaSlicer with cura:// links so that Orca can open models from "
+"thingiverse.com"
 msgstr ""
 
 msgid "Maximum recent projects"
@@ -6902,8 +6943,8 @@ msgid "nozzle in preset: %s %s"
 msgstr "预设中的喷嘴：%s %s"
 
 #, c-format, boost-format
-msgid "nozzle memorized: %.1f %s"
-msgstr "记忆中的喷嘴：%.1f %s"
+msgid "nozzle memorized: %.2f %s"
+msgstr "记忆中的喷嘴：%.2f %s"
 
 msgid ""
 "Your nozzle diameter in sliced file is not consistent with memorized nozzle. "
@@ -7721,9 +7762,11 @@ msgid ""
 "Note: New modified presets will be selected in settings tabs after close "
 "this dialog."
 msgstr ""
+"将选定的选项从左边的预设转移到右边。\n"
+"注意：关闭此对话框后，新修改的预置将在设置标签中被选中。"
 
 msgid "Transfer values from left to right"
-msgstr ""
+msgstr "从左到右的转移值"
 
 msgid ""
 "If enabled, this dialog can be used for transfer selected values from left "
@@ -8077,13 +8120,13 @@ msgid "Gizmo FDM paint-on seam"
 msgstr "FDM涂装接缝"
 
 msgid "Gizmo Text emboss / engrave"
-msgstr ""
+msgstr "Gizmo文本浮雕/雕刻"
 
 msgid "Zoom in"
-msgstr ""
+msgstr "放大"
 
 msgid "Zoom out"
-msgstr ""
+msgstr "缩小"
 
 msgid "Switch between Prepare/Preview"
 msgstr "准备/预览之间的切换"
@@ -8717,16 +8760,18 @@ msgid ""
 "each layer to prevent loss of floating point accuracy. Add \"G92 E0\" to "
 "layer_gcode."
 msgstr ""
+"相对挤出机寻址要求在每层重置挤出机位置，以防止浮点精度损失。将 \"G92E0\" 添加"
+"到图层代码中。"
 
 msgid ""
 "\"G92 E0\" was found in before_layer_gcode, which is incompatible with "
 "absolute extruder addressing."
-msgstr ""
+msgstr "\"G92E0\" 出现在 before_layer_gcode 中，与绝对挤出机寻址不兼容。"
 
 msgid ""
 "\"G92 E0\" was found in layer_gcode, which is incompatible with absolute "
 "extruder addressing."
-msgstr ""
+msgstr "\"G92E0\" 出现在 layer_gcode 中，这与绝对挤出机寻址不兼容。"
 
 #, c-format, boost-format
 msgid "Plate %d: %s does not support filament %s"
@@ -9756,7 +9801,7 @@ msgid ""
 "Order of wall/infill. When the tickbox is unchecked the walls are printed "
 "first, which works best in most cases.\n"
 "\n"
-"Printing walls first may help with extreme overhangs as the walls have the "
+"Printing infill first may help with extreme overhangs as the walls have the "
 "neighbouring infill to adhere to. However, the infill will slighly push out "
 "the printed walls where it is attached to them, resulting in a worse "
 "external surface finish. It can also cause the infill to shine through the "
@@ -9764,7 +9809,7 @@ msgid ""
 msgstr ""
 "墙/填充的顺序。当未启用时，首先打印墙壁，这在大多数情况下都是最好的。\n"
 "\n"
-"首先打印墙壁可能有助于极端悬垂，因为墙壁有相邻的填充物可以粘附。但是，填充物"
+"首先打印填充可能有助于极端悬垂，因为墙壁有相邻的填充物可以粘附。但是，填充物"
 "会在附着在墙壁上的地方轻微地挤出打印的墙壁，导致外部表面质量更差。它还会导致"
 "填充物透过零件的外部表面。"
 
@@ -10177,7 +10222,7 @@ msgid "(Undefined)"
 msgstr "（未定义）"
 
 msgid "Sparse infill direction"
-msgstr ""
+msgstr "稀疏填充方向"
 
 msgid ""
 "Angle for sparse infill pattern, which controls the start or main direction "
@@ -10185,18 +10230,18 @@ msgid ""
 msgstr "稀疏填充图案的角度，决定走线的开始或整体方向。"
 
 msgid "Solid infill direction"
-msgstr ""
+msgstr "实心填充方向"
 
 msgid ""
 "Angle for solid infill pattern, which controls the start or main direction "
 "of line"
-msgstr ""
+msgstr "实心填充图案的角度，决定走线的开始或整体方向。"
 
 msgid "Rotate solid infill direction"
-msgstr ""
+msgstr "旋转实心填充方向"
 
 msgid "Rotate the solid infill direction by 90° for each layer."
-msgstr ""
+msgstr "每层都旋转实心填充方向90°。"
 
 msgid "Sparse infill density"
 msgstr "稀疏填充密度"
@@ -10723,7 +10768,7 @@ msgid ""
 msgstr ""
 
 msgid "Top/Bottom solid infill/wall overlap"
-msgstr ""
+msgstr "顶/底部实心填充/墙重叠率"
 
 #, no-c-format, no-boost-format
 msgid ""
@@ -10733,6 +10778,9 @@ msgid ""
 "appearance of pinholes. The percentage value is relative to line width of "
 "sparse infill"
 msgstr ""
+"顶部实心填充区域略微扩大，以便与墙壁重叠，以获得更好的粘合，并减少顶部填充与"
+"墙壁相接处的小孔出现。25-30%的值是一个很好的起点，可以减少小孔的出现。百分比"
+"值相对于稀疏填充的线宽"
 
 msgid "Speed of internal sparse infill"
 msgstr "内部稀疏填充的打印速度"
@@ -11033,7 +11081,7 @@ msgstr ""
 "注意：此参数禁用圆弧拟合。"
 
 msgid "mm³/s²"
-msgstr ""
+msgstr "mm³/s²"
 
 msgid "Smoothing segment length"
 msgstr "平滑段长度"
@@ -11678,7 +11726,7 @@ msgid "How many layers of skirt. Usually only one layer"
 msgstr "skirt有多少层。通常只有一层"
 
 msgid "Draft shield"
-msgstr ""
+msgstr "风挡"
 
 msgid ""
 "A draft shield is useful to protect an ABS or ASA print from warping and "
@@ -11713,7 +11761,7 @@ msgid "Speed of skirt, in mm/s. Zero means use default layer extrusion speed."
 msgstr "skirt速度，单位为mm/s。0表示使用默认的层挤出速度。"
 
 msgid "Skirt minimum extrusion length"
-msgstr ""
+msgstr "Skirt最小挤出长度"
 
 msgid ""
 "Minimum filament extrusion length in mm when printing the skirt. Zero means "
@@ -11722,6 +11770,9 @@ msgid ""
 "Using a non zero value is useful if the printer is set up to print without a "
 "prime line."
 msgstr ""
+"打印skirt时的最小挤出长度，单位为mm。0表示关闭此功能。\n"
+"\n"
+"如果打印机设置为不使用擦拭塔，使用非零值是有用的。"
 
 msgid ""
 "The printing speed in exported gcode will be slowed down, when the estimated "
@@ -11887,6 +11938,9 @@ msgid ""
 "example, if your endstop zero actually leaves the nozzle 0.3mm far from the "
 "print bed, set this to -0.3 (or fix your endstop)."
 msgstr ""
+"此值将从输出 G-Code 中的所有 Z 坐标中添加(或减去)。它用于补偿损坏的 Z 端限位"
+"器置：例如，如果限位器零实际离开喷嘴 0.3mm 远离构建板(打印床)，将其设置为 "
+"-0.3（或调整限位器）。"
 
 msgid "Enable support"
 msgstr "开启支撑"
@@ -12388,7 +12442,7 @@ msgid "Spacing of purge lines on the wipe tower."
 msgstr "擦拭塔上冲刷线的间距"
 
 msgid "Maximum wipe tower print speed"
-msgstr ""
+msgstr "擦拭塔最大打印速度"
 
 msgid ""
 "The maximum print speed when purging in the wipe tower and printing the wipe "
@@ -12411,6 +12465,19 @@ msgid ""
 "For the wipe tower external perimeters the internal perimeter speed is used "
 "regardless of this setting."
 msgstr ""
+"擦拭塔冲刷和稀疏层的最大打印速度。当冲刷时，如果稀疏填充速度或从耗材最大体积"
+"速度计算出的速度较低，则使用最低速度。\n"
+"\n"
+"当打印稀疏层时，如果内墙速度或从耗材最大体积速度计算出的速度较低，则使用最低"
+"速度。\n"
+"\n"
+"增加此速度可能会影响塔的稳定性，同时增加喷嘴与擦拭塔上可能形成的任何斑点碰撞"
+"的力。\n"
+"\n"
+"在将此参数增加到默认值90mm/sec之外之前，请确保您的打印机可以可靠地在增加的速"
+"度下桥接，并且换料时的滴漏得到了很好的控制。\n"
+"\n"
+"对于擦拭塔外墙，无论此设置如何，都使用内墙速度。"
 
 msgid "Wipe tower extruder"
 msgstr "擦拭塔挤出机"
@@ -12538,7 +12605,7 @@ msgstr "G-code缩略图的格式"
 msgid ""
 "Format of G-code thumbnails: PNG for best quality, JPG for smallest size, "
 "QOI for low memory firmware"
-msgstr ""
+msgstr "G-Code 缩略图格式: PNG 质量最佳，JPG 尺寸最小，QOI 用于低内存固件"
 
 msgid "Use relative E distances"
 msgstr "使用相对E距离"
@@ -12735,6 +12802,8 @@ msgid ""
 "maintaining different profiles or including configurations from a network "
 "storage."
 msgstr ""
+"在给定目录加载和存储设置。这对于维护不同的配置文件或包括网络存储中的配置非常"
+"有用。"
 
 msgid "Load custom gcode"
 msgstr "加载自定义G-code"
@@ -13622,13 +13691,15 @@ msgid "Finished"
 msgstr "完成"
 
 msgid "Multiple resolved IP addresses"
-msgstr ""
+msgstr "多个解析的IP地址"
 
 #, boost-format
 msgid ""
 "There are several IP addresses resolving to hostname %1%.\n"
 "Please select one that should be used."
 msgstr ""
+"有几个IP地址可以解析到主机名 %1%。\n"
+"请选择一个应该使用的地址。"
 
 msgid "PA Calibration"
 msgstr "PA校准"
@@ -13793,7 +13864,7 @@ msgid "Print host upload queue"
 msgstr "打印主机上传队列"
 
 msgid "ID"
-msgstr ""
+msgstr "ID"
 
 msgid "Progress"
 msgstr "进程"
@@ -14373,6 +14444,10 @@ msgstr "收起"
 msgid "Daily Tips"
 msgstr "每日贴士"
 
+#, c-format, boost-format
+msgid "nozzle memorized: %.1f %s"
+msgstr ""
+
 msgid ""
 "Your nozzle diameter in preset is not consistent with memorized nozzle "
 "diameter. Did you change your nozzle lately?"
@@ -14417,7 +14492,7 @@ msgid ""
 msgstr "HTTPS CA文件是可选的。只有在使用自签名证书进行HTTPS连接时才需要。"
 
 msgid "Certificate files (*.crt, *.pem)|*.crt;*.pem|All files|*.*"
-msgstr ""
+msgstr "证书文件 (*.crt,*.pem)|*.crt;*.pem|所有文件|*.*"
 
 msgid "Open CA certificate file"
 msgstr "打开CA证书文件"
@@ -14509,28 +14584,28 @@ msgid "Could not connect to PrusaLink"
 msgstr "无法连接到 PrusaLink。"
 
 msgid "Storages found"
-msgstr ""
+msgstr "已找到存储"
 
 #. TRN %1% = storage path
 #, boost-format
 msgid "%1% : read only"
-msgstr ""
+msgstr "%1%：只读"
 
 #. TRN %1% = storage path
 #, boost-format
 msgid "%1% : no free space"
-msgstr ""
+msgstr "%1%：没有可用空间"
 
 #. TRN %1% = host
 #, boost-format
 msgid "Upload has failed. There is no suitable storage found at %1%."
-msgstr ""
+msgstr "上载失败。在%1%找不到合适的存储。"
 
 msgid "Connection to Prusa Connect works correctly."
-msgstr ""
+msgstr "与Prusa Connect的连接工作正常。"
 
 msgid "Could not connect to Prusa Connect"
-msgstr ""
+msgstr "无法连接到Prusa connect"
 
 msgid "Connection to Repetier works correctly."
 msgstr "与 Repetier 的连接正常。"

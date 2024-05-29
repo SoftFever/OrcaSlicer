@@ -1543,7 +1543,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("is_infill_first",coBool);
     def->label    = L("Print infill first");
-    def->tooltip  = L("Order of wall/infill. When the tickbox is unchecked the walls are printed first, which works best in most cases.\n\nPrinting walls first may help with extreme overhangs as the walls have the neighbouring infill to adhere to. However, the infill will slighly push out the printed walls where it is attached to them, resulting in a worse external surface finish. It can also cause the infill to shine through the external surfaces of the part.");
+    def->tooltip  = L("Order of wall/infill. When the tickbox is unchecked the walls are printed first, which works best in most cases.\n\nPrinting infill first may help with extreme overhangs as the walls have the neighbouring infill to adhere to. However, the infill will slighly push out the printed walls where it is attached to them, resulting in a worse external surface finish. It can also cause the infill to shine through the external surfaces of the part.");
     def->category = L("Quality");
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionBool{false});
