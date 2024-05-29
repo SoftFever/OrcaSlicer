@@ -194,10 +194,10 @@ void FillCrossHatch ::_fill_surface_single(
     bb.merge(align_to_grid(bb.min, Point(line_spacing * 4, line_spacing * 4)));
 
     // generate pattern
-    //Orca: optimize for low density
+    //Orca: optimize the cross-hatch infill pattern to improve strength when low infill density is used.
     double repeat_ratio = 1.0;
-    if(params.density < 0.3) 
-        repeat_ratio = std::clamp(1.0-std::exp(-5*params.density),0.2,1.0);
+    if (params.density < 0.3)
+        repeat_ratio = std::clamp(1.0 - std::exp(-5 * params.density), 0.2, 1.0);
 
     Polylines polylines = generate_infill_layers(scale_(this->z), repeat_ratio, line_spacing, bb.size()(0), bb.size()(1));
 
