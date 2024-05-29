@@ -1441,7 +1441,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Moderate"));
     def->enum_labels.push_back(L("All"));
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionEnum<EnsureVerticalShellThickness>(EnsureVerticalShellThickness::evstModerate));
+    def->set_default_value(new ConfigOptionEnum<EnsureVerticalShellThickness>(EnsureVerticalShellThickness::evstAll));
     
     auto def_top_fill_pattern = def = this->add("top_surface_pattern", coEnum);
     def->label = L("Top surface pattern");
@@ -2093,7 +2093,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->enum_labels.push_back(L("Support Cubic"));
     def->enum_labels.push_back(L("Lightning"));
     def->enum_labels.push_back(L("Cross Hatch"));
-    def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipCubic));
+    def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipCrossHatch));
 
     auto def_infill_anchor_min = def = this->add("infill_anchor", coFloatOrPercent);
     def->label = L("Sparse infill anchor length");
