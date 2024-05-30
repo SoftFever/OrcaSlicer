@@ -7084,12 +7084,10 @@ void Plater::priv::on_action_del_plate(SimpleEvent&)
 //BBS: duplicate plate from toolbar
 void Plater::priv::on_action_duplicate_plate(SimpleEvent&)
 {
-    printf("Plater::priv::on_action_duplicate_plate START\n");
     if (q != nullptr) {
         // without a plate index this will duplicate the current plate only
         q->duplicate_plate();
     }
-    printf("Plater::priv::on_action_duplicate_plate END\n");
 }
 
 //BBS: GUI refactor: GLToolbar
@@ -13835,7 +13833,6 @@ void Plater::open_platesettings_dialog(wxCommandEvent& evt) {
 //BBS: select Plate by hover_id
 int Plater::select_plate_by_hover_id(int hover_id, bool right_click, bool isModidyPlateName)
 {
-    printf("Plater::select_plate_by_hover_id START\n");
     int ret;
     int action, plate_index;
 
@@ -13930,10 +13927,8 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click, bool isModi
     }
     else if ((action == 2)&&(!right_click))
     {
-        printf("before duplicate_plate call in Plater::select_plate_by_hover_id\n");
         // duplicate plate
         ret = duplicate_plate(plate_index);
-        printf("after duplicate_plate call in Plater::select_plate_by_hover_id\n");
     }
     else if ((action == 3)&&(!right_click))
     {
@@ -14018,13 +14013,11 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click, bool isModi
     }
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: return %2%")%__LINE__ % ret;
-    printf("Plater::select_plate_by_hover_id END\n");
     return ret;
 }
 
 int Plater::duplicate_plate(int plate_index)
 {
-    printf("Plater::duplicate_plate START\n");
     int index = plate_index, ret;
     if (plate_index == -1)
         index = p->partplate_list.get_curr_plate_index();
@@ -14033,7 +14026,6 @@ int Plater::duplicate_plate(int plate_index)
 
     //need to call update
     update();
-    printf("Plater::duplicate_plate END\n");
     return ret;
 }
 
