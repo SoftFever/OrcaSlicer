@@ -2,7 +2,6 @@
 #include <algorithm>
 #include <numeric>
 #include <vector>
-#include <iostream>
 #include <string>
 #include <regex>
 #include <future>
@@ -972,8 +971,6 @@ void PartPlate::show_tooltip(const std::string tooltip)
 
 void PartPlate::render_icons(bool bottom, bool only_name, int hover_id)
 {
-    printf("----\n");
-    printf("PartPlate::render_icons START\n");
 	GLShaderProgram* shader = wxGetApp().get_shader("printbed");
 	if (shader != nullptr) {
 		shader->start_using();
@@ -999,15 +996,12 @@ void PartPlate::render_icons(bool bottom, bool only_name, int hover_id)
             else
                 render_icon_texture(m_del_icon.model, m_partplate_list->m_del_texture);
 
-
-            printf("Before registering m_duplicate_icon.model\n");
             if (hover_id == 2) {
                 render_icon_texture(m_duplicate_icon.model, m_partplate_list->m_duplicate_hovered_texture);
                 show_tooltip(_u8L("Duplicate current plate with objects"));
             }
             else
                 render_icon_texture(m_duplicate_icon.model, m_partplate_list->m_duplicate_texture);
-            printf("After registering m_duplicate_icon.model\n");
 
             if (hover_id == 3) {
                 render_icon_texture(m_orient_icon.model, m_partplate_list->m_orient_hovered_texture);
@@ -1079,7 +1073,6 @@ void PartPlate::render_icons(bool bottom, bool only_name, int hover_id)
         glsafe(::glDepthMask(GL_TRUE));
         shader->stop_using();
     }
-    printf("PartPlate::render_icons END\n");
 }
 
 void PartPlate::render_only_numbers(bool bottom)
@@ -1340,7 +1333,6 @@ static void register_model_for_picking(GLCanvas3D &canvas, PickingModel &model, 
 
 void PartPlate::register_raycasters_for_picking(GLCanvas3D &canvas)
 {
-    printf("PartPlate::register_raycasters_for_picking START\n");
     register_model_for_picking(canvas, m_triangles, picking_id_component(0));
     register_model_for_picking(canvas, m_del_icon, picking_id_component(1));
     register_model_for_picking(canvas, m_duplicate_icon, picking_id_component(2));
@@ -1352,17 +1344,11 @@ void PartPlate::register_raycasters_for_picking(GLCanvas3D &canvas)
 
     canvas.remove_raycasters_for_picking(SceneRaycaster::EType::Bed, picking_id_component(7));
     register_model_for_picking(canvas, m_plate_name_edit_icon, picking_id_component(7));
-    printf("PartPlate::register_raycasters_for_picking END\n");
 }
 
 int PartPlate::picking_id_component(int idx) const
 {
-	printf("----\n");
-    printf("PartPlate::picking_id_component START\n");
 	unsigned int id = PLATE_BASE_ID - this->m_plate_index * GRABBER_COUNT - idx;
-	printf("PartPlate::picking_id_component idx: %i\n", idx);
-	printf("PartPlate::picking_id_component  id: %u\n", id);
-    printf("PartPlate::picking_id_component END\n");
 	return id;
 }
 
@@ -1871,9 +1857,9 @@ void PartPlate::generate_plate_name_texture()
         BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to generate geometry buffers for icons\n";
 
 	auto canvas = this->m_partplate_list->m_plater->get_view3D_canvas3D();
-    canvas->remove_raycasters_for_picking(SceneRaycaster::EType::Bed, picking_id_component(6));
+    canvas->remove_raycasters_for_picking(SceneRaycaster::EType::Bed, picking_id_component(7));
     calc_vertex_for_plate_name_edit_icon(&m_name_texture, 0, m_plate_name_edit_icon);
-    register_model_for_picking(*canvas, m_plate_name_edit_icon, picking_id_component(6));
+    register_model_for_picking(*canvas, m_plate_name_edit_icon, picking_id_component(7));
 }
 void PartPlate::set_plate_name(const std::string& name) 
 { 
@@ -2586,8 +2572,6 @@ void PartPlate::generate_exclude_polygon(ExPolygon &exclude_polygon)
 
 bool PartPlate::set_shape(const Pointfs& shape, const Pointfs& exclude_areas, Vec2d position, float height_to_lid, float height_to_rod)
 {
-    printf("PartPlate::set_shape START;\n");
-
 	Pointfs new_shape, new_exclude_areas;
 	m_raw_shape = shape;
 	for (const Vec2d& p : shape) {
@@ -2600,7 +2584,6 @@ bool PartPlate::set_shape(const Pointfs& shape, const Pointfs& exclude_areas, Ve
 	if ((m_shape == new_shape)&&(m_exclude_area == new_exclude_areas)
 		&&(m_height_to_lid == height_to_lid)&&(m_height_to_rod == height_to_rod)) {
 		BOOST_LOG_TRIVIAL(info) << "PartPlate same shape, skip directly";
-		printf("PartPlate::set_shape END 1;\n");
 		return false;
 	}
 
@@ -2649,27 +2632,22 @@ bool PartPlate::set_shape(const Pointfs& shape, const Pointfs& exclude_areas, Ve
 
 		//calc_vertex_for_icons_background(5, m_del_and_background_icon);
 		//calc_vertex_for_icons(4, m_del_icon);
-        printf("BEFORE calc_vertex_for_icons calls;\n");
 		calc_vertex_for_icons(0, m_del_icon);
-        printf("BEFORE calc_vertex_for_icons(1, m_duplicate_icon);\n");
-        calc_vertex_for_icons(1, m_duplicate_icon);
-        printf("AFTER calc_vertex_for_icons(1, m_duplicate_icon);\n");
-        calc_vertex_for_icons(2, m_orient_icon);
-        calc_vertex_for_icons(3, m_arrange_icon);
-        calc_vertex_for_icons(4, m_lock_icon);
-        calc_vertex_for_icons(5, m_plate_settings_icon);
+		calc_vertex_for_icons(1, m_duplicate_icon);
+		calc_vertex_for_icons(2, m_orient_icon);
+		calc_vertex_for_icons(3, m_arrange_icon);
+		calc_vertex_for_icons(4, m_lock_icon);
+		calc_vertex_for_icons(5, m_plate_settings_icon);
 		//calc_vertex_for_number(0, (m_plate_index < 9), m_plate_idx_icon);
 		calc_vertex_for_number(0, false, m_plate_idx_icon);
-        printf("AFTER calc_vertex_for_icons calls;\n");
 		if (m_plater) {
 			// calc vertex for plate name
-            generate_plate_name_texture();
+			generate_plate_name_texture();
 		}
 	}
 
 	calc_height_limit();
 
-    printf("PartPlate::set_shape END 2;\n");
 	return true;
 }
 
@@ -3209,7 +3187,6 @@ Vec2d PartPlateList::compute_shape_position(int index, int cols)
 //generate icon textures
 void PartPlateList::generate_icon_textures()
 {
-    printf("PartPlateList::generate_icon_textures START\n");
 	// use higher resolution images if graphic card and opengl version allow
 	GLint max_tex_size = OpenGLManager::get_gl_info().get_max_tex_size(), icon_size = max_tex_size / 8;
 	std::string path = resources_dir() + "/images/";
@@ -3234,23 +3211,17 @@ void PartPlateList::generate_icon_textures()
 	}
 
 	//if (m_duplicate_texture.get_id() == 0)
-    printf("BEFORE loading SVG for m_duplicate_texture\n");
 	{
 		file_name = path + (m_is_dark ? "plate_duplicate_dark.svg" : "plate_duplicate.svg");
-		// file_name = path + (m_is_dark ? "plate_close_dark.svg" : "plate_close.svg");
 		if (!m_duplicate_texture.load_from_svg_file(file_name, true, false, false, icon_size)) {
-			printf(":load file %s failed\n", file_name.c_str());
 			BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":load file %1% failed") % file_name;
 		}
 	}
-    printf("AFTER loading SVG for m_duplicate_hovered_texture\n");
 
 	//if (m_duplicate_hovered_texture.get_id() == 0)
 	{
 		file_name = path + (m_is_dark ? "plate_duplicate_hover_dark.svg" : "plate_duplicate_hover.svg");
-		// file_name = path + (m_is_dark ? "plate_close_hover_dark.svg" : "plate_close_hover.svg");
 		if (!m_duplicate_hovered_texture.load_from_svg_file(file_name, true, false, false, icon_size)) {
-			printf(":load file %s failed\n", file_name.c_str());
 			BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":load file %1% failed") % file_name;
 		}
 	}
@@ -3383,21 +3354,15 @@ void PartPlateList::generate_icon_textures()
 			}
 		}
 	}
-    printf("PartPlateList::generate_icon_textures END\n");
 }
 
 void PartPlateList::release_icon_textures()
 {
-	printf("PartPlateList::release_icon_textures START\n");
 	m_logo_texture.reset();
 	m_del_texture.reset();
 	m_del_hovered_texture.reset();
-	printf("PartPlateList::release_icon_textures before m_duplicate_texture.reset()\n");
-    m_duplicate_texture.reset();
-	printf("PartPlateList::release_icon_textures after m_duplicate_texture.reset()\n");
-	printf("PartPlateList::release_icon_textures before m_duplicate_hovered_texture.reset()\n");
-    m_duplicate_hovered_texture.reset();
-	printf("PartPlateList::release_icon_textures after m_duplicate_hovered_texture.reset()\n");
+	m_duplicate_texture.reset();
+	m_duplicate_hovered_texture.reset();
 	m_arrange_texture.reset();
 	m_arrange_hovered_texture.reset();
 	m_orient_texture.reset();
@@ -3429,7 +3394,6 @@ void PartPlateList::release_icon_textures()
 			}
 		}
 	}
-	printf("PartPlateList::release_icon_textures END\n");
 }
 
 void PartPlateList::set_default_wipe_tower_pos_for_plate(int plate_idx)
@@ -3637,7 +3601,6 @@ int PartPlateList::create_plate(bool adjust_position)
 
 int PartPlateList::duplicate_plate(int index)
 {
-	printf("PartPlateList::duplicate_plate START\n");
     // create a new plate
     int new_plate_index = create_plate(true);
     PartPlate* old_plate = NULL;
@@ -3652,7 +3615,6 @@ int PartPlateList::duplicate_plate(int index)
         // model_object_copy->name = 
     }
 
-	printf("PartPlateList::duplicate_plate END\n");
     return new_plate_index;
 }
 
@@ -4765,7 +4727,6 @@ void PartPlateList::postprocess_arrange_polygon(arrangement::ArrangePolygon& arr
 //render
 void PartPlateList::render(const Transform3d& view_matrix, const Transform3d& projection_matrix, bool bottom, bool only_current, bool only_body, int hover_id, bool render_cali)
 {
-    printf("PartPlateList::render START\n");
 	const std::lock_guard<std::mutex> local_lock(m_plates_mutex);
 	std::vector<PartPlate*>::iterator it = m_plate_list.begin();
 
@@ -4775,8 +4736,6 @@ void PartPlateList::render(const Transform3d& view_matrix, const Transform3d& pr
 		plate_hover_index = hover_id / PartPlate::GRABBER_COUNT;
 		plate_hover_action = hover_id % PartPlate::GRABBER_COUNT;
 	}
-	printf("plate_hover_index : %i\n", plate_hover_index);
-	printf("plate_hover_action: %i\n", plate_hover_action);
 
 	static bool last_dark_mode_status = m_is_dark;
 	if (m_is_dark != last_dark_mode_status) {
@@ -4802,7 +4761,6 @@ void PartPlateList::render(const Transform3d& view_matrix, const Transform3d& pr
                 (*it)->render(view_matrix, projection_matrix, bottom, only_body, false, PartPlate::HEIGHT_LIMIT_NONE, -1, render_cali);
 		}
 	}
-    printf("PartPlateList::render END\n");
 }
 
 /*int PartPlateList::select_plate_by_hover_id(int hover_id)
