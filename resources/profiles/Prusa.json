@@ -19,6 +19,10 @@
         {
             "name": "MINI",
             "sub_path": "machine/Prusa MINI.json"
+        },
+        {
+            "name": "XL",
+            "sub_path": "machine/Prusa XL.json"
         }
     ],
     "process_list": [
@@ -45,6 +49,10 @@
         {
             "name": "process_common_mk3",
             "sub_path": "process/process_common_mk3.json"
+        },
+        {
+            "name": "process_common_xl",
+            "sub_path": "process/process_common_xl.json"
         },
         {
             "name": "0.20mm Standard @MINI 0.25",
@@ -231,8 +239,6 @@
             "name": "0.20mm Speed @MINIIS 0.6",
             "sub_path": "process/0.20mm Speed @MINIIS 0.6.json"
         },
-        
-  
         {
 
             "name": "0.25mm Standard @MINIIS",
@@ -282,6 +288,10 @@
 
             "name": "0.56mm Standard @MK4",
             "sub_path": "process/0.56mm Standard @MK4.json"
+        },
+        {
+            "name": "0.20mm Speed @XL 0.4",
+            "sub_path": "process/0.20mm Speed @XL 0.4.json"
         }
     ],
     "filament_list": [
@@ -344,6 +354,10 @@
         {
             "name": "Prusa Generic PLA @MINIIS",
             "sub_path": "filament/Prusa Generic PLA @MINIIS.json"
+        },
+        {
+            "name": "Prusa Generic PLA @XL",
+            "sub_path": "filament/Prusa Generic PLA @XL.json"
         },
         {
             "name": "Prusa Generic PLA-CF",
@@ -598,6 +612,10 @@
         {
             "name": "Prusa MINI 0.8 nozzle",
             "sub_path": "machine/Prusa MINI 0.8 nozzle.json"
+        },
+        {
+            "name": "Prusa XL 0.4 nozzle",
+            "sub_path": "machine/Prusa XL 0.4 nozzle.json"
         }
     ]
 }

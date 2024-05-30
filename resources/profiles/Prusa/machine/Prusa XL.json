@@ -1,0 +1,12 @@
+{
+    "type": "machine_model",
+    "name": "Prusa XL",
+    "model_id": "XL",
+    "nozzle_diameter": "0.4",
+    "machine_tech": "FFF",
+    "family": "Prusa",
+    "bed_model": "xl_bed.stl",
+    "bed_texture": "xl.svg",
+    "hotend_model": "",
+    "default_materials": ""
+}
