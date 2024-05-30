@@ -136,6 +136,7 @@ private:
     GLModel m_height_limit_bottom;
     GLModel m_height_limit_top;
     PickingModel m_del_icon;
+    PickingModel m_duplicate_icon;
     PickingModel m_arrange_icon;
     PickingModel m_orient_icon;
     PickingModel m_lock_icon;
@@ -198,8 +199,8 @@ private:
 
 public:
     static const unsigned int PLATE_BASE_ID = 255 * 255 * 253;
-    static const unsigned int PLATE_NAME_HOVER_ID = 6;
-    static const unsigned int GRABBER_COUNT = 7;
+    static const unsigned int PLATE_NAME_HOVER_ID = 7;
+    static const unsigned int GRABBER_COUNT = 8;
 
     static ColorRGBA SELECT_COLOR;
     static ColorRGBA UNSELECT_COLOR;
@@ -546,6 +547,8 @@ class PartPlateList : public ObjectBase
     GLTexture m_logo_texture;
     GLTexture m_del_texture;
     GLTexture m_del_hovered_texture;
+    GLTexture m_duplicate_texture;
+    GLTexture m_duplicate_hovered_texture;
     GLTexture m_arrange_texture;
     GLTexture m_arrange_hovered_texture;
     GLTexture m_orient_texture;
@@ -659,6 +662,9 @@ public:
     /*basic plate operations*/
     //create an empty plate and return its index
     int create_plate(bool adjust_position = true);
+
+    // duplicate plate
+    int duplicate_plate(int index);
 
     //destroy print which has the index of print_index
     int destroy_print(int print_index);
