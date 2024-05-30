@@ -2660,8 +2660,6 @@ static ENUM enum_index_of(char const *key, char const **enum_names, int enum_cou
 
 int MachineObject::parse_json(std::string payload, bool key_field_only)
 {
-    CNumericLocalesSetter locales_setter;
-
     parse_msg_count++;
     std::chrono::system_clock::time_point clock_start = std::chrono::system_clock::now();
     this->set_online_state(true);
@@ -2676,6 +2674,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
         bool restored_json = false;
         json j;
         json j_pre = json::parse(payload);
+        CNumericLocalesSetter locales_setter;
         if (j_pre.empty()) {
             return 0;
         }
@@ -3510,6 +3509,9 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                         nozzle_type = jj["nozzle_type"].get<std::string>();
                                     }
                                 }
+                            }
+                            else {
+                                nozzle_type = "";
                             }
                         }
                         catch (...) {

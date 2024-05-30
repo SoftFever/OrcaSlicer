@@ -27,7 +27,7 @@ public:
     indexed_triangle_set mesh;
     DynamicPrintConfig   profile;
     wxString             path;
-    Vec2i                win = {2, 2};
+    Vec2i32                win = {2, 2};
     std::string          err;
     ConfigSubstitutions config_substitutions;
 

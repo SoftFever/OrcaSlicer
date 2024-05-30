@@ -210,7 +210,7 @@ indexed_triangle_set cgal_to_indexed_triangle_set(const _Mesh &cgalmesh)
         auto vtc = cgalmesh.vertices_around_face(cgalmesh.halfedge(face));
 
         int i = 0;
-        Vec3i facet;
+        Vec3i32 facet;
         for (auto v : vtc) {
             int iv = v;
             if (i > 2 || iv < 0 || iv >= vsize) { i = 0; break; }
@@ -550,7 +550,7 @@ TriangleMesh mcut_to_triangle_mesh(const McutMesh &mcutmesh)
     int faceVertexOffsetBase = 0;
 
     // for each face in CC
-    std::vector<Vec3i> faces(ccFaceCount);
+    std::vector<Vec3i32> faces(ccFaceCount);
     for (uint32_t f = 0; f < ccFaceCount; ++f) {
         int faceSize = faceSizes.at(f);
 
@@ -730,7 +730,7 @@ bool do_boolean_single(McutMesh &srcMesh, const McutMesh &cutMesh, const std::st
         int faceVertexOffsetBase = 0;
 
         // for each face in CC
-        std::vector<Vec3i> faces(ccFaceCount);
+        std::vector<Vec3i32> faces(ccFaceCount);
         for (uint32_t f = 0; f < ccFaceCount; ++f) {
             bool reverseWindingOrder = (fragmentLocation == MC_FRAGMENT_LOCATION_BELOW) && (patchLocation == MC_PATCH_LOCATION_OUTSIDE);
             int  faceSize            = faceSizes.at(f);

@@ -76,7 +76,8 @@ PrintRegion::PrintRegion(const PrintRegionConfig &config) : PrintRegion(config, 
 PrintRegion::PrintRegion(PrintRegionConfig &&config) : PrintRegion(std::move(config), config.hash()) {}
 
 //BBS
-float Print::min_skirt_length = 0;
+// ORCA: Now this is a parameter
+//float Print::min_skirt_length = 0;
 
 void Print::clear()
 {
@@ -239,6 +240,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
                opt_key == "skirt_loops"
             || opt_key == "skirt_speed"
             || opt_key == "skirt_height"
+            || opt_key == "min_skirt_length"
             || opt_key == "draft_shield"
             || opt_key == "skirt_distance"
             || opt_key == "ooze_prevention"
@@ -692,12 +694,12 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
     float unsafe_dist = scale_(print_config.extruder_clearance_max_radius.value - print_config.extruder_clearance_radius.value);
     struct VecHash
     {
-        size_t operator()(const Vec2i &n1) const
+        size_t operator()(const Vec2i32 &n1) const
         {
             return std::hash<coord_t>()(int(n1(0) * 100 + 100)) + std::hash<coord_t>()(int(n1(1) * 100 + 100)) * 101;
         }
     };
-    std::unordered_set<Vec2i, VecHash> left_right_pair; // pairs in this vector must strictly obey the left-right order
+    std::unordered_set<Vec2i32, VecHash> left_right_pair; // pairs in this vector must strictly obey the left-right order
     for (size_t i = 0; i < print_instance_with_bounding_box.size();i++) {
         auto &inst         = print_instance_with_bounding_box[i];
         inst.index         = i;
@@ -2331,15 +2333,15 @@ void Print::_make_skirt()
             )));
         eloop.paths.back().polyline = loop.split_at_first_point();
         m_skirt.append(eloop);
-        if (Print::min_skirt_length > 0) {
+        if (m_config.min_skirt_length.value > 0) {
             // The skirt length is limited. Sum the total amount of filament length extruded, in mm.
             extruded_length[extruder_idx] += unscale<double>(loop.length()) * extruders_e_per_mm[extruder_idx];
-            if (extruded_length[extruder_idx] < Print::min_skirt_length) {
+            if (extruded_length[extruder_idx] < m_config.min_skirt_length.value) {
                 // Not extruded enough yet with the current extruder. Add another loop.
                 if (i == 1)
                     ++ i;
             } else {
-                assert(extruded_length[extruder_idx] >= Print::min_skirt_length);
+                assert(extruded_length[extruder_idx] >= m_config.min_skirt_length.value);
                 // Enough extruded with the current extruder. Extrude with the next one,
                 // until the prescribed number of skirt loops is extruded.
                 if (extruder_idx + 1 < extruders.size())
@@ -2839,8 +2841,28 @@ std::string Print::output_filename(const std::string &filename_base) const
     DynamicConfig config = this->finished() ? this->print_statistics().config() : this->print_statistics().placeholders();
     config.set_key_value("num_filaments", new ConfigOptionInt((int)m_config.nozzle_diameter.size()));
     config.set_key_value("plate_name", new ConfigOptionString(get_plate_name()));
+    config.set_key_value("plate_number", new ConfigOptionString(get_plate_number_formatted()));
+    config.set_key_value("model_name", new ConfigOptionString(get_model_name()));
 
     return this->PrintBase::output_filename(m_config.filename_format.value, ".gcode", filename_base, &config);
+}
+
+std::string Print::get_model_name() const
+{
+    if (model().model_info != nullptr)
+    {
+        return model().model_info->model_name;
+    } else {
+        return "";
+    }
+}
+
+std::string Print::get_plate_number_formatted() const
+{
+    std::string plate_number = std::to_string(get_plate_index() + 1);
+    static const size_t n_zero = 2;
+
+    return std::string(n_zero - std::min(n_zero, plate_number.length()), '0') + plate_number;
 }
 
 //BBS: add gcode file preload logic

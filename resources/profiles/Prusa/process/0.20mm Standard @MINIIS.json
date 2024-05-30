@@ -6,7 +6,14 @@
   "instantiation": "true",
   "inherits": "process_common_miniis",
   "compatible_printers": [
-    "Prusa MINIIS 0.4 nozzle",
-    "Prusa MINIIS 0.6 nozzle"
-  ]
+    "Prusa MINIIS 0.4 nozzle"
+  ],
+  "line_width": "0.45",
+  "inner_wall_line_width": "0.45",
+  "outer_wall_line_width": "0.45",
+  "top_surface_line_width": "0.42",
+  "sparse_infill_line_width": "0.45",
+  "initial_layer_line_width": "0.5",
+  "internal_solid_infill_line_width": "0.45",
+  "support_line_width": "0.36"
 }
