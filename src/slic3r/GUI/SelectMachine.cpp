@@ -2335,7 +2335,7 @@ bool SelectMachineDialog::is_same_nozzle_diameters(std::string& tag_nozzle_type,
     }
 
     //nozzle_type = preset_nozzle_type;
-    nozzle_diameter = wxString::Format("%.1f", preset_nozzle_diameters).ToStdString();
+    nozzle_diameter = wxString::Format("%.2f", preset_nozzle_diameters).ToStdString();
 
     return is_same_nozzle_diameters;
 }
@@ -2573,10 +2573,9 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
     if (!obj_->nozzle_type.empty() && (m_print_type == PrintFromType::FROM_NORMAL)) {
         if (!is_same_nozzle_diameters(tag_nozzle_type, nozzle_diameter)) {
             has_slice_warnings = true;
-            is_printing_block  = true;
             
             wxString nozzle_in_preset = wxString::Format(_L("nozzle in preset: %s %s"),nozzle_diameter, "");
-            wxString nozzle_in_printer = wxString::Format(_L("nozzle memorized: %.1f %s"), obj_->nozzle_diameter, "");
+            wxString nozzle_in_printer = wxString::Format(_L("nozzle memorized: %.2f %s"), obj_->nozzle_diameter, "");
 
             confirm_text.push_back(ConfirmBeforeSendInfo(_L("Your nozzle diameter in sliced file is not consistent with memorized nozzle. If you changed your nozzle lately, please go to Device > Printer Parts to change settings.") 
                 + "\n    " + nozzle_in_preset 
