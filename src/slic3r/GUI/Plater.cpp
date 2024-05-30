@@ -2490,6 +2490,7 @@ struct Plater::priv
     void on_action_add(SimpleEvent&);
     void on_action_add_plate(SimpleEvent&);
     void on_action_del_plate(SimpleEvent&);
+    void on_action_duplicate_plate(SimpleEvent&);
     void on_action_split_objects(SimpleEvent&);
     void on_action_split_volumes(SimpleEvent&);
     void on_action_layersediting(SimpleEvent&);
@@ -2879,22 +2880,26 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         view3D_canvas->Bind(EVT_GLCANVAS_OBJECT_SELECT, &priv::on_object_select, this);
         view3D_canvas->Bind(EVT_GLCANVAS_RIGHT_CLICK, &priv::on_right_click, this);
         //BBS: add part plate related logic
+        // view3D_canvas->Bind(EVT_GLCANVAS_DUPLICATE_PLATE, [this](SimpleEvent& evt){
+        //     this->q->set_prepare_state(Job::PREPARE_STATE_DEFAULT);
+        //     this->q->duplicate_plate();
+        // });
         view3D_canvas->Bind(EVT_GLCANVAS_PLATE_RIGHT_CLICK, &priv::on_plate_right_click, this);
         view3D_canvas->Bind(EVT_GLCANVAS_REMOVE_OBJECT, [q](SimpleEvent&) { q->remove_selected(); });
         view3D_canvas->Bind(EVT_GLCANVAS_ARRANGE, [this](SimpleEvent& evt) {
-            //BBS arrage from EVT set default state.
+            //BBS arrange from EVT set default state.
             this->q->set_prepare_state(Job::PREPARE_STATE_DEFAULT);
             this->q->arrange(); });
         view3D_canvas->Bind(EVT_GLCANVAS_ARRANGE_PARTPLATE, [this](SimpleEvent& evt) {
-            //BBS arrage from EVT set default state.
+            //BBS arrange from EVT set default state.
             this->q->set_prepare_state(Job::PREPARE_STATE_MENU);
             this->q->arrange(); });
         view3D_canvas->Bind(EVT_GLCANVAS_ORIENT, [this](SimpleEvent& evt) {
-            //BBS oriant from EVT set default state.
+            //BBS orient from EVT set default state.
             this->q->set_prepare_state(Job::PREPARE_STATE_DEFAULT);
             this->q->orient(); });
         view3D_canvas->Bind(EVT_GLCANVAS_ORIENT_PARTPLATE, [this](SimpleEvent& evt) {
-            //BBS oriant from EVT set default state.
+            //BBS orient from EVT set default state.
             this->q->set_prepare_state(Job::PREPARE_STATE_MENU);
             this->q->orient(); });
         //BBS
@@ -6994,6 +6999,17 @@ void Plater::priv::on_action_del_plate(SimpleEvent&)
         //q->get_camera().select_view("topfront");
         //q->get_camera().requires_zoom_to_plate = REQUIRES_ZOOM_TO_ALL_PLATE;
     }
+}
+
+//BBS: duplicate plate from toolbar
+void Plater::priv::on_action_duplicate_plate(SimpleEvent&)
+{
+    printf("Plater::priv::on_action_duplicate_plate START\n");
+    if (q != nullptr) {
+        // without a plate index this will duplicate the current plate only
+        q->duplicate_plate();
+    }
+    printf("Plater::priv::on_action_duplicate_plate END\n");
 }
 
 //BBS: GUI refactor: GLToolbar
@@ -13619,6 +13635,7 @@ void Plater::open_platesettings_dialog(wxCommandEvent& evt) {
 //BBS: select Plate by hover_id
 int Plater::select_plate_by_hover_id(int hover_id, bool right_click, bool isModidyPlateName)
 {
+    printf("Plater::select_plate_by_hover_id START\n");
     int ret;
     int action, plate_index;
 
@@ -13713,6 +13730,13 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click, bool isModi
     }
     else if ((action == 2)&&(!right_click))
     {
+        printf("before duplicate_plate call in Plater::select_plate_by_hover_id\n");
+        // duplicate plate
+        ret = duplicate_plate(plate_index);
+        printf("after duplicate_plate call in Plater::select_plate_by_hover_id\n");
+    }
+    else if ((action == 3)&&(!right_click))
+    {
         //arrange the plate
         //take_snapshot("select_orient partplate");
         ret = select_plate(plate_index);
@@ -13727,7 +13751,7 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click, bool isModi
             ret = -1;
         }
     }
-    else if ((action == 3)&&(!right_click))
+    else if ((action == 4)&&(!right_click))
     {
         //arrange the plate
         //take_snapshot("select_arrange partplate");
@@ -13745,13 +13769,13 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click, bool isModi
             ret = -1;
         }
     }
-    else if ((action == 4)&&(!right_click))
+    else if ((action == 5)&&(!right_click))
     {
         //lock the plate
         take_snapshot("lock partplate");
         ret = p->partplate_list.lock_plate(plate_index, !p->partplate_list.is_locked(plate_index));
     }
-    else if ((action == 5)&&(!right_click))
+    else if ((action == 6)&&(!right_click))
     {
         // set the plate type
         ret = select_plate(plate_index);
@@ -13767,7 +13791,7 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click, bool isModi
             ret = -1;
         }
     }
-    else if ((action == 6) && (!right_click)) {
+    else if ((action == 7) && (!right_click)) {
         // set the plate type
         ret = select_plate(plate_index);
         if (!ret) {
@@ -13794,6 +13818,22 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click, bool isModi
     }
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: return %2%")%__LINE__ % ret;
+    printf("Plater::select_plate_by_hover_id END\n");
+    return ret;
+}
+
+int Plater::duplicate_plate(int plate_index)
+{
+    printf("Plater::duplicate_plate START\n");
+    int index = plate_index, ret;
+    if (plate_index == -1)
+        index = p->partplate_list.get_curr_plate_index();
+
+    ret = p->partplate_list.duplicate_plate(index);
+
+    //need to call update
+    update();
+    printf("Plater::duplicate_plate END\n");
     return ret;
 }
 
