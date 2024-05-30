@@ -544,15 +544,15 @@ wxMenu* MenuFactory::append_submenu_add_handy_model(wxMenu* menu, ModelVolumeTyp
                 if (file_name == L("Orca Cube"))
                     file_name = "OrcaCube_v2.3mf";
                 else if (file_name == L("3DBenchy"))
-                    file_name = "3DBenchy.stl";
+                    file_name = "3DBenchy.3mf";
                 else if (file_name == L("Autodesk FDM Test"))
-                    file_name = "ksr_fdmtest_v4.stl";
+                    file_name = "ksr_fdmtest_v4.3mf";
                 else if (file_name == L("Voron Cube"))
-                    file_name = "Voron_Design_Cube_v7.stl";
+                    file_name = "Voron_Design_Cube_v7.3mf";
                 else if (file_name == L("Stanford Bunny"))
-                    file_name = "Stanford_Bunny.stl";
+                    file_name = "Stanford_Bunny.3mf";
                 else if (file_name == L("Orca String Hell")) {
-                    file_name     = "Orca_stringhell.stl";
+                    file_name     = "Orca_stringhell.3mf";
                     is_stringhell = true;
                 } else
                     return;

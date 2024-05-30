@@ -11,7 +11,7 @@
   "inner_wall_acceleration": "800",  
   "raft_contact_distance": "0.2",  
   "sparse_infill_acceleration": "1000",  
-  "sparse_infill_pattern": "grid", 
+  "sparse_infill_pattern": "crosshatch", 
   "support_base_pattern_spacing": "2",
   "support_bottom_z_distance": "0.2",
   "support_interface_speed": "36",  
