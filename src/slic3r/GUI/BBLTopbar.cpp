@@ -217,6 +217,8 @@ void BBLTopbar::Init(wxFrame* parent)
 
     this->AddSpacer(FromDIP(5));
 
+    m_calib_item = this->AddTool(ID_CALIB, " " + _L("Calibration"), wxNullBitmap);
+
     //wxBitmap dropdown_bitmap = create_scaled_bitmap("topbar_dropdown", nullptr, TOPBAR_ICON_SIZE);
     // ORCA remove icon from dropdown menu buttons to show them like part of menu bar. Space will center text
     m_dropdown_menu_item = this->AddTool(ID_TOP_DROPDOWN_MENU, " " + _L("More"), wxNullBitmap, wxEmptyString, wxITEM_NORMAL);
@@ -247,12 +249,12 @@ void BBLTopbar::Init(wxFrame* parent)
     wxBitmap redo_inactive_bitmap = create_scaled_bitmap("topbar_redo_inactive", nullptr, TOPBAR_ICON_SIZE);
     m_redo_item->SetDisabledBitmap(redo_inactive_bitmap);
 
-    this->AddSpacer(FromDIP(10));
+    //this->AddSpacer(FromDIP(10));
 
-    wxBitmap calib_bitmap          = create_scaled_bitmap("calib_sf", nullptr, TOPBAR_ICON_SIZE);
-    wxBitmap calib_bitmap_inactive = create_scaled_bitmap("calib_sf_inactive", nullptr, TOPBAR_ICON_SIZE);
-    m_calib_item                   = this->AddTool(ID_CALIB, _L("Calibration"), calib_bitmap);
-    m_calib_item->SetDisabledBitmap(calib_bitmap_inactive);
+    //wxBitmap calib_bitmap          = create_scaled_bitmap("calib_sf", nullptr, TOPBAR_ICON_SIZE);
+    //wxBitmap calib_bitmap_inactive = create_scaled_bitmap("calib_sf_inactive", nullptr, TOPBAR_ICON_SIZE);
+    //m_calib_item                   = this->AddTool(ID_CALIB, _L("Calibration"), calib_bitmap);
+    //m_calib_item->SetDisabledBitmap(calib_bitmap_inactive);
 
     this->AddSpacer(FromDIP(10));
     this->AddStretchSpacer(1);
