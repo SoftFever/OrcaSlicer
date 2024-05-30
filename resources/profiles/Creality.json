@@ -563,6 +563,10 @@
             "sub_path": "process/0.20mm Standard @Creality CR-6 0.6.json"
         },
         {
+            "name": "0.20mm Standard @Creality Ender3",
+            "sub_path": "process/0.20mm Standard @Creality Ender3.json"
+        },
+        {
             "name": "0.20mm Standard @Creality Ender3 0.2",
             "sub_path": "process/0.20mm Standard @Creality Ender3 0.2.json"
         },
