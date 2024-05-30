@@ -1167,6 +1167,13 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, Bed3D &bed)
     load_arrange_settings();
 
     m_selection.set_volumes(&m_volumes.volumes);
+
+    m_assembly_view_desc["object_selection_caption"] = _L("Left mouse button");
+    m_assembly_view_desc["object_selection"]         = _L("object selection");
+    m_assembly_view_desc["part_selection_caption"]   = "Alt +" + _L("Left mouse button");
+    m_assembly_view_desc["part_selection"]         = _L("part selectiont");
+    m_assembly_view_desc["number_key_caption"]       = "1~16 " + _L("number keys");
+    m_assembly_view_desc["number_key"]       = _L("number keys can quickly change the color of objects");
 }
 
 GLCanvas3D::~GLCanvas3D()
@@ -8401,6 +8408,43 @@ void GLCanvas3D::_render_paint_toolbar() const
     ImGui::PopStyleColor();
 }
 
+float GLCanvas3D::_show_assembly_tooltip_information(float caption_max, float x, float y) const
+{
+    ImGuiWrapper *imgui     = wxGetApp().imgui();
+    ImTextureID normal_id = m_gizmos.get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_TOOLBAR_TOOLTIP);
+    ImTextureID hover_id  = m_gizmos.get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_TOOLBAR_TOOLTIP_HOVER);
+
+    caption_max += imgui->calc_text_size(": "sv).x + 35.f;
+
+    float  scale       = get_scale();
+    ImVec2 button_size = ImVec2(25 * scale, 25 * scale); // ORCA: Use exact resolution will prevent blur on icon
+
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {0, ImGui::GetStyle().FramePadding.y});
+    ImGui::ImageButton3(normal_id, hover_id, button_size);
+
+    if (ImGui::IsItemHovered()) {
+        ImGui::BeginTooltip2(ImVec2(x, y));
+        auto draw_text_with_caption = [this, &imgui, & caption_max](const wxString &caption, const wxString &text) {
+            imgui->text_colored(ImGuiWrapper::COL_ACTIVE, caption);
+            ImGui::SameLine(caption_max);
+            imgui->text_colored(ImGuiWrapper::COL_WINDOW_BG, text);
+        };
+
+        for (const auto &t : std::array<std::string, 3>{"object_selection", "part_selection", "number_key"}) {
+            draw_text_with_caption(m_assembly_view_desc.at(t + "_caption") + ": ", m_assembly_view_desc.at(t));
+        }
+        ImGui::EndTooltip();
+    }
+    ImGui::PopStyleVar(2);
+    auto same_line_size = button_size.x * 1.8;//with an space size
+    ImGui::SameLine(same_line_size);
+    same_line_size = imgui->calc_text_size("|"sv).x + same_line_size + imgui->calc_text_size("  "sv).x;
+    imgui->text_colored(ImGuiWrapper::COL_ACTIVE, "|");
+    ImGui::SameLine(same_line_size);
+    return same_line_size;
+}
+
 //BBS
 void GLCanvas3D::_render_assemble_control()
 {
@@ -8432,8 +8476,19 @@ void GLCanvas3D::_render_assemble_control()
     imgui->begin(_L("Assemble Control"), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
 
     ImGui::AlignTextToFramePadding();
-
-    float same_line_width = window_padding.x;
+    float tip_icon_size;
+    {
+        float caption_max = 0.f;
+        for (const auto &t : std::array<std::string, 3>{"object_selection", "part_selection", "number_key"}) {
+            caption_max = std::max(caption_max, imgui->calc_text_size(m_assembly_view_desc.at(t + "_caption")).x);
+        }
+        const ImVec2 pos = ImGui::GetCursorScreenPos();
+        const float text_y =imgui->calc_text_size(_L("part selection")).y;
+        float get_cur_x = pos.x;
+        float get_cur_y = pos.y - ImGui::GetFrameHeight() - 4 * text_y;
+        tip_icon_size =_show_assembly_tooltip_information(caption_max, get_cur_x, get_cur_y);
+    }
+    float same_line_width = tip_icon_size;
     {
         float clp_dist = m_gizmos.m_assemble_view_data->model_objects_clipper()->get_position();
         if (clp_dist == 0.f) {
