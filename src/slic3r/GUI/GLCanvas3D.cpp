@@ -5694,7 +5694,7 @@ void GLCanvas3D::_render_3d_navigator()
     const float size  = 128 * sc;
     const bool dirty = ImGuizmo::ViewManipulate(cameraView, cameraProjection, ImGuizmo::OPERATION::ROTATE, ImGuizmo::MODE::WORLD,
                                                 identityMatrix, camDistance, ImVec2(viewManipulateLeft, viewManipulateTop - size),
-                                                ImVec2(size, size), 0x10101010);
+                                                ImVec2(size, size), 0x00101010);
 
     if (dirty) {
         for (unsigned int c = 0; c < 4; ++c) {
