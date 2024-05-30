@@ -6,6 +6,9 @@
     "from": "system",
     "instantiation": "true",
     "inherits": "QIDI ASA",
+    "activate_chamber_temp_control": [
+        "0"
+    ],
     "filament_flow_ratio": [
         "0.92"
     ],
