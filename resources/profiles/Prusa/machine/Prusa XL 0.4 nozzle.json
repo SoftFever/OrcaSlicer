@@ -103,7 +103,7 @@
   "before_layer_change_gcode": ";BEFORE_LAYER_CHANGE\nG92 E0.0\n;[layer_z]",
   "change_filament_gcode": "M600\nG1 E0.3 F1500 ; prime after color change",
   "layer_change_gcode": ";AFTER_LAYER_CHANGE\n;[layer_z]",
-  "printer_notes": "Do not remove the keywords below.\nPRINTER_VENDOR_PRUSA3D\nPRINTER_MODEL_XL\nPG",
+  "printer_notes": "Don't remove the following keywords! These keywords are used in the \"compatible printer\" condition of the print and filament profiles to link the particular print and filament profiles to this printer profile.\nPRINTER_MODEL_XL\nPG",
   "scan_first_layer": "0",
   "machine_load_filament_time": "17",
   "machine_unload_filament_time": "16",
