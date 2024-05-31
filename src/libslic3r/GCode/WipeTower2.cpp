@@ -1170,7 +1170,7 @@ WipeTower::ToolChangeResult WipeTower2::finish_layer()
 	// Slow down on the 1st layer.
     // If spare layers are excluded -> if 1 or less toolchange has been done, it must be still the first layer, too. So slow down.
     bool first_layer = is_first_layer() || (m_num_tool_changes <= 1 && m_no_sparse_layers);
-    float                      feedrate      = first_layer ? m_first_layer_speed * 60.f : std::min(5400.f, m_infill_speed * 60.f);
+    float                      feedrate      = first_layer ? m_first_layer_speed * 60.f : std::min(m_wipe_tower_max_purge_speed * 60.f, m_infill_speed * 60.f);
     float current_depth = m_layer_info->depth - m_layer_info->toolchanges_depth();
     WipeTower::box_coordinates fill_box(Vec2f(m_perimeter_width, m_layer_info->depth-(current_depth-m_perimeter_width)),
                              m_wipe_tower_width - 2 * m_perimeter_width, current_depth-m_perimeter_width);

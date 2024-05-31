@@ -14,6 +14,7 @@
 
 #include "libslic3r/ObjectID.hpp"
 
+#include <wx/timer.h>
 #include <map>
 
 //BBS: GUI refactor: to support top layout

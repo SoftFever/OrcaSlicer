@@ -103,6 +103,7 @@ static t_config_enum_values s_keys_map_PrintHostType {
     { "astrobox",       htAstroBox },
     { "repetier",       htRepetier },
     { "mks",            htMKS },
+    { "esp3d",          htESP3D },
     { "obico",          htObico },
     { "flashforge",     htFlashforge },
     { "simplyprint",    htSimplyPrint },
@@ -815,6 +816,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("bottom_shell_layers", coInt);
     def->label = L("Bottom shell layers");
     def->category = L("Strength");
+    def->sidetext = L("layers"); // ORCA add side text
     def->tooltip =  L("This is the number of solid layers of bottom shell, including the bottom "
                       "surface layer. When the thickness calculated by this value is thinner "
                       "than bottom shell thickness, the bottom shell layers will be increased");
@@ -850,7 +852,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Top and bottom surfaces"));
     def->enum_labels.push_back(L("Nowhere"));
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionEnum<GapFillTarget>(gftEverywhere));
+    def->set_default_value(new ConfigOptionEnum<GapFillTarget>(gftNowhere));
     
 
     def = this->add("enable_overhang_bridge_fan", coBools);
@@ -1462,7 +1464,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Hilbert Curve"));
     def->enum_labels.push_back(L("Archimedean Chords"));
     def->enum_labels.push_back(L("Octagram Spiral"));
-    def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipMonotonic));
+    def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipMonotonicLine));
 
     def = this->add("bottom_surface_pattern", coEnum);
     def->label = L("Bottom surface pattern");
@@ -1541,7 +1543,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("is_infill_first",coBool);
     def->label    = L("Print infill first");
-    def->tooltip  = L("Order of wall/infill. When the tickbox is unchecked the walls are printed first, which works best in most cases.\n\nPrinting walls first may help with extreme overhangs as the walls have the neighbouring infill to adhere to. However, the infill will slighly push out the printed walls where it is attached to them, resulting in a worse external surface finish. It can also cause the infill to shine through the external surfaces of the part.");
+    def->tooltip  = L("Order of wall/infill. When the tickbox is unchecked the walls are printed first, which works best in most cases.\n\nPrinting infill first may help with extreme overhangs as the walls have the neighbouring infill to adhere to. However, the infill will slighly push out the printed walls where it is attached to them, resulting in a worse external surface finish. It can also cause the infill to shine through the external surfaces of the part.");
     def->category = L("Quality");
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionBool{false});
@@ -1618,6 +1620,7 @@ void PrintConfigDef::init_fff_params()
         "set appropriately. OrcaSlicer ensures that adaptive_bed_mesh_min/adaptive_bed_mesh_max values do not exceed these min/max "
         "points. This information can usually be obtained from your printer manufacturer. The default setting is (-99999, -99999), which "
         "means there are no limits, thus allowing probing across the entire bed.");
+    def->sidetext = L("mm");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionPoint(Vec2d(-99999, -99999)));
 
@@ -1629,6 +1632,7 @@ void PrintConfigDef::init_fff_params()
         "set appropriately. OrcaSlicer ensures that adaptive_bed_mesh_min/adaptive_bed_mesh_max values do not exceed these min/max "
         "points. This information can usually be obtained from your printer manufacturer. The default setting is (99999, 99999), which "
         "means there are no limits, thus allowing probing across the entire bed.");
+    def->sidetext = L("mm");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionPoint(Vec2d(99999, 99999)));
 
@@ -1637,12 +1641,14 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("This option sets the preferred distance between probe points (grid size) for the X and Y directions, with the "
                      "default being 50mm for both X and Y.");
     def->min     = 0;
+    def->sidetext = L("mm");
     def->mode    = comAdvanced;
     def->set_default_value(new ConfigOptionPoint(Vec2d(50, 50)));
 
     def          = this->add("adaptive_bed_mesh_margin", coFloat);
     def->label   = L("Mesh margin");
     def->tooltip = L("This option determines the additional distance by which the adaptive bed mesh area should be expanded in the XY directions.");
+    def->sidetext = L("mm"); // ORCA add side text
     def->mode    = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0));
 
@@ -1981,6 +1987,7 @@ def = this->add("filament_loading_speed", coFloats);
     def = this->add("temperature_vitrification", coInts);
     def->label = L("Softening temperature");
     def->tooltip = L("The material softens at this temperature, so when the bed temperature is equal to or greater than it, it's highly recommended to open the front door and/or remove the upper glass to avoid cloggings.");
+    def->sidetext = L("°C"); // ORCA add side text
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionInts{ 100 });
 
@@ -2086,7 +2093,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->enum_labels.push_back(L("Support Cubic"));
     def->enum_labels.push_back(L("Lightning"));
     def->enum_labels.push_back(L("Cross Hatch"));
-    def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipCubic));
+    def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipCrossHatch));
 
     auto def_infill_anchor_min = def = this->add("infill_anchor", coFloatOrPercent);
     def->label = L("Sparse infill anchor length");
@@ -2343,6 +2350,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->tooltip = L("The first few layers are printed slower than normal. "
                      "The speed is gradually increased in a linear fashion over the specified number of layers.");
     def->category = L("Speed");
+    def->sidetext = L("layers"); // ORCA add side text
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInt(0));
@@ -2362,6 +2370,7 @@ def = this->add("filament_loading_speed", coFloats);
                   "to maximum at layer \"full_fan_speed_layer\". "
                   "\"full_fan_speed_layer\" will be ignored if lower than \"close_fan_the_first_x_layers\", in which case "
                   "the fan will be running at maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1.");
+    def->sidetext = L("layer"); // ORCA add side text
     def->min = 0;
     def->max = 1000;
     def->mode = comAdvanced;
@@ -2684,6 +2693,7 @@ def = this->add("filament_loading_speed", coFloats);
     def = this->add("infill_wall_overlap", coPercent);
     def->label = L("Infill/Wall overlap");
     def->category = L("Strength");
+    // xgettext:no-c-format, no-boost-format
     def->tooltip = L("Infill area is enlarged slightly to overlap with wall for better bonding. The percentage value is relative to line width of sparse infill. Set this value to ~10-15% to minimize potential over extrusion and accumulation of material resulting in rough top surfaces.");
     def->sidetext = L("%");
     def->ratio_over = "inner_wall_line_width";
@@ -2693,6 +2703,7 @@ def = this->add("filament_loading_speed", coFloats);
     def = this->add("top_bottom_infill_wall_overlap", coPercent);
     def->label = L("Top/Bottom solid infill/wall overlap");
     def->category = L("Strength");
+    // xgettext:no-c-format, no-boost-format
     def->tooltip = L("Top solid infill area is enlarged slightly to overlap with wall for better bonding and to minimize the appearance of pinholes where the top infill meets the walls. A value of 25-30% is a good starting point, minimising the appearance of pinholes. The percentage value is relative to line width of sparse infill");
     def->sidetext = L("%");
     def->ratio_over = "inner_wall_line_width";
@@ -3146,6 +3157,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->enum_values.push_back("astrobox");
     def->enum_values.push_back("repetier");
     def->enum_values.push_back("mks");
+    def->enum_values.push_back("esp3d");
     def->enum_values.push_back("obico");
     def->enum_values.push_back("flashforge");
     def->enum_values.push_back("simplyprint");
@@ -3157,6 +3169,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->enum_labels.push_back("AstroBox");
     def->enum_labels.push_back("Repetier");
     def->enum_labels.push_back("MKS");
+    def->enum_labels.push_back("ESP3D");
     def->enum_labels.push_back("Obico");
     def->enum_labels.push_back("Flashforge");
     def->enum_labels.push_back("SimplyPrint");
@@ -3536,7 +3549,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->enum_labels.push_back(L("Slope"));
     def->enum_labels.push_back(L("Spiral"));
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionEnumsGeneric{ ZHopType::zhtNormal });
+    def->set_default_value(new ConfigOptionEnumsGeneric{ ZHopType::zhtSlope });
 
     def = this->add("retract_lift_above", coFloats);
     def->label = L("Only lift Z above");
@@ -3802,20 +3815,22 @@ def = this->add("filament_loading_speed", coFloats);
     def->set_default_value(new ConfigOptionInt(1));
 
     def = this->add("draft_shield", coEnum);
-    //def->label = L("Draft shield");
-    def->label = "Draft shield";
-    //def->tooltip = L("With draft shield active, the skirt will be printed skirt_distance from the object, possibly intersecting brim.\n"
-    //                 "Enabled = skirt is as tall as the highest printed object.\n"
-    //                "Limited = skirt is as tall as specified by skirt_height.\n"
-    //				 "This is useful to protect an ABS or ASA print from warping and detaching from print bed due to wind draft.");
+    def->label = L("Draft shield");
+    def->tooltip = L("A draft shield is useful to protect an ABS or ASA print from warping and detaching from print bed due to wind draft. "
+                     "It is usually needed only with open frame printers, i.e. without an enclosure. \n\n"
+                     "Options:\n"
+                     "Enabled = skirt is as tall as the highest printed object.\n"
+                     "Limited = skirt is as tall as specified by skirt height.\n\n"
+    				 "Note: With the draft shield active, the skirt will be printed at skirt distance from the object. Therefore, if brims "
+                     "are active it may intersect with them. To avoid this, increase the skirt distance value.\n");
     def->enum_keys_map = &ConfigOptionEnum<DraftShield>::get_enum_values();
     def->enum_values.push_back("disabled");
     def->enum_values.push_back("limited");
     def->enum_values.push_back("enabled");
-    def->enum_labels.push_back("Disabled");
-    def->enum_labels.push_back("Limited");
-    def->enum_labels.push_back("Enabled");
-    def->mode = comDevelop;
+    def->enum_labels.push_back(L("Disabled"));
+    def->enum_labels.push_back(L("Limited"));
+    def->enum_labels.push_back(L("Enabled"));
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<DraftShield>(dsDisabled));
 
     def = this->add("skirt_loops", coInt);
@@ -3835,6 +3850,16 @@ def = this->add("filament_loading_speed", coFloats);
     def->sidetext = L("mm/s");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(50.0));
+    
+    def = this->add("min_skirt_length", coFloat);
+    def->label = L("Skirt minimum extrusion length");
+    def->full_label = L("Skirt minimum extrusion length");
+    def->tooltip = L("Minimum filament extrusion length in mm when printing the skirt. Zero means this feature is disabled.\n\n"
+                     "Using a non zero value is useful if the printer is set up to print without a prime line.");
+    def->min = 0;
+    def->sidetext = L("mm");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0.0));
 
     def = this->add("slow_down_layer_time", coFloats);
     def->label = L("Layer time");
@@ -4620,6 +4645,7 @@ def = this->add("filament_loading_speed", coFloats);
     def = this->add("top_shell_layers", coInt);
     def->label = L("Top shell layers");
     def->category = L("Strength");
+    def->sidetext = L("layers"); // ORCA add side text
     def->tooltip = L("This is the number of solid layers of top shell, including the top "
                      "surface layer. When the thickness calculated by this value is thinner "
                      "than top shell thickness, the top shell layers will be increased");
@@ -4772,12 +4798,13 @@ def = this->add("filament_loading_speed", coFloats);
     def->set_default_value(new ConfigOptionPercent(100.));
     
     def = this->add("wipe_tower_max_purge_speed", coFloat);
-    def->label = L("Maximum print speed when purging");
-    def->tooltip = L("The maximum print speed when purging in the wipe tower. If the sparse infill speed "
-                     "or calculated speed from the filament max volumetric speed is lower, the lowest speed will be used instead.\n"
-                     "Increasing this speed may affect the tower's stability, as purging can be performed over "
-                     "sparse layers. Before increasing this parameter beyond the default of 90mm/sec, make sure your printer can reliably "
-                     "bridge at the increased speeds.");
+    def->label = L("Maximum wipe tower print speed");
+    def->tooltip = L("The maximum print speed when purging in the wipe tower and printing the wipe tower sparse layers. "
+                     "When purging, if the sparse infill speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n\n"
+                     "When printing the sparse layers, if the internal perimeter speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n\n"
+                     "Increasing this speed may affect the tower's stability as well as increase the force with which the nozzle collides with any blobs that may have formed on the wipe tower.\n\n"
+                     "Before increasing this parameter beyond the default of 90mm/sec, make sure your printer can reliably bridge at the increased speeds and that ooze when tool changing is well controlled.\n\n"
+                     "For the wipe tower external perimeters the internal perimeter speed is used regardless of this setting.");
     def->sidetext = L("mm/s");
     def->mode = comAdvanced;
     def->min = 10;
@@ -4995,7 +5022,7 @@ def = this->add("filament_loading_speed", coFloats);
     "NOTE: Bottom and top surfaces will not be affected by this value to prevent visual gaps on the ouside of the model. "
     "Adjust 'One wall threshold' in the Advanced settings below to adjust the sensitivity of what is considered a top-surface. "
     "'One wall threshold' is only visibile if this setting is set above the default value of 0.5, or if single-wall top surfaces is enabled.");
-    def->sidetext = "";
+    def->sidetext = L("mm"); // ORCA add side text
     def->mode = comAdvanced;
     def->min = 0.0;
     def->max = 25.0;

@@ -6,7 +6,7 @@
 #include "wx/cmdline.h"
 #include "wx/notifmsg.h"
 #include "wx/settings.h"
-#include "wx/webview.h"
+#include <wx/webview.h>
 
 #if wxUSE_WEBVIEW_EDGE
 #include "wx/msw/webview_edge.h"

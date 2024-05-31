@@ -37,7 +37,7 @@
     "slow_down_layers": "1",
     "sparse_infill_density": "18%",
     "sparse_infill_line_width": "0.6",
-    "sparse_infill_pattern": "line",
+    "sparse_infill_pattern": "crosshatch",
     "sparse_infill_speed": "240",
     "support_line_width": "0.6",
     "top_shell_layers": "5",
