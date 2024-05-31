@@ -7085,7 +7085,7 @@ void Plater::priv::on_action_del_plate(SimpleEvent&)
     }
 }
 
-//BBS: duplicate plate from toolbar
+// duplicate plate from toolbar
 void Plater::priv::on_action_duplicate_plate(SimpleEvent&)
 {
     if (q != nullptr) {
