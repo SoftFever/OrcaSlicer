@@ -3608,13 +3608,24 @@ int PartPlateList::duplicate_plate(int index)
     old_plate = get_plate(index);
     new_plate = get_plate(new_plate_index);
 
-    // copy the object from the original plate
-    for(int obj_id = 0; obj_id < old_plate->m_model->objects.size(); obj_id++){
-        ModelObject* model_object = old_plate->m_model->objects[obj_id];
-        ModelObject* model_object_copy = m_model->add_object(*model_object);
-        // model_object_copy->name = 
-    }
+    // get the offset between plate centers
+    Vec3d plate_to_plate_offset = new_plate->m_origin - old_plate->m_origin;
 
+    // iterate over all the objects in this plate
+    ModelObjectPtrs obj_ptrs = old_plate->get_objects_on_this_plate();
+    for (ModelObject* object : obj_ptrs){
+        // copy and move the object to the same relative position in the new plate
+        ModelObject* object_copy = m_model->add_object(*object);
+        object_copy->translate(plate_to_plate_offset);
+        int new_obj_id = new_plate->m_model->objects.size() - 1;
+        // go over the instances and pair with the object
+        for (size_t new_instance_id = 0; new_instance_id < object_copy->instances.size(); new_instance_id++){
+            new_plate->obj_to_instance_set.emplace(std::pair(new_obj_id, new_instance_id));
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": duplicate object into plate: index_pair [%1%,%2%], obj_id %3%") % new_obj_id % new_instance_id % object_copy->id().id;
+        }
+    }
+    // update the plates
+    wxGetApp().obj_list()->reload_all_plates();
     return new_plate_index;
 }
 
