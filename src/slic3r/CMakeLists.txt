@@ -111,7 +111,7 @@ set(SLIC3R_GUI_SOURCES
     GUI/GLCanvas3D.hpp
     GUI/GLCanvas3D.cpp
     GUI/SceneRaycaster.hpp
-    GUI/SceneRaycaster.cpp	
+    GUI/SceneRaycaster.cpp
     GUI/OpenGLManager.hpp
     GUI/OpenGLManager.cpp
     GUI/Selection.hpp
@@ -290,6 +290,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/ConfigManipulation.hpp
     GUI/Field.cpp
     GUI/Field.hpp
+    GUI/FileArchiveDialog.cpp
+    GUI/FileArchiveDialog.hpp
     GUI/OptionsGroup.cpp
     GUI/OptionsGroup.hpp
     GUI/OG_CustomCtrl.cpp
@@ -342,6 +344,10 @@ set(SLIC3R_GUI_SOURCES
     GUI/ConfigWizard_private.hpp
     GUI/MsgDialog.cpp
     GUI/MsgDialog.hpp
+    GUI/Downloader.hpp
+    GUI/Downloader.cpp
+    GUI/DownloaderFileGet.hpp
+    GUI/DownloaderFileGet.cpp
     GUI/DownloadProgressDialog.hpp
     GUI/DownloadProgressDialog.cpp
     GUI/UpdateDialogs.cpp
@@ -536,6 +542,8 @@ set(SLIC3R_GUI_SOURCES
     Utils/SerialMessage.hpp
     Utils/MKS.cpp
     Utils/MKS.hpp
+    Utils/ESP3D.cpp
+    Utils/ESP3D.hpp
     Utils/WxFontUtils.cpp
     Utils/WxFontUtils.hpp
     Utils/Duet.cpp
@@ -614,7 +622,6 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SLIC3R_GUI_SOURCES})
 encoding_check(libslic3r_gui)
 
 target_link_libraries(libslic3r_gui libslic3r cereal::cereal imgui imguizmo minilzo GLEW::GLEW OpenGL::GL hidapi ${wxWidgets_LIBRARIES} glfw libcurl OpenSSL::SSL OpenSSL::Crypto)
-#target_link_libraries(libslic3r_gui libslic3r cereal imgui minilzo GLEW::GLEW OpenGL::GL hidapi libcurl OpenSSL::SSL OpenSSL::Crypto ${wxWidgets_LIBRARIES} glfw)
 
 if (MSVC)
     target_link_libraries(libslic3r_gui Setupapi.lib)
@@ -658,8 +665,17 @@ endif ()
 # link these libraries.
 if (UNIX AND NOT APPLE)
     find_package(GTK${SLIC3R_GTK} REQUIRED)
+    if (FLATPAK)
+        # I don't know why this is needed, but for whatever reason slic3r isn't
+        # linking to X11 and webkit2gtk. force it.
+        find_package(X11 REQUIRED)
+        find_package(PkgConfig REQUIRED)
+        pkg_check_modules(webkit2gtk REQUIRED webkit2gtk-4.1)
+        target_link_libraries (libslic3r_gui ${X11_LIBRARIES} ${webkit2gtk_LIBRARIES})
+    endif()
     target_include_directories(libslic3r_gui PRIVATE ${GTK${SLIC3R_GTK}_INCLUDE_DIRS})
     target_link_libraries(libslic3r_gui ${GTK${SLIC3R_GTK}_LIBRARIES} fontconfig)
+
 
     # We add GStreamer for bambu:/// support.
     pkg_check_modules(GSTREAMER REQUIRED gstreamer-1.0)

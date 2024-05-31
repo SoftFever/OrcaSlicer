@@ -63,6 +63,7 @@ public:
 
     void select_all();
     void deselect_all();
+    void exit_gizmo();
     void delete_selected();
     void center_selected();
     void center_selected_plate(const int plate_idx);

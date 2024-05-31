@@ -136,6 +136,19 @@ static const std::map<const wchar_t, std::string> font_icons_large = {
     {ImGui::PrevArrowBtnIcon,             "notification_arrow_left"              },
     {ImGui::NextArrowBtnIcon,             "notification_arrow_right"             },
     {ImGui::CompleteIcon,                 "notification_slicing_complete"        },
+
+    {ImGui::PlayButton,                   "notification_play"                    },
+    {ImGui::PlayDarkButton,               "notification_play_dark"               },
+    {ImGui::PlayHoverButton,              "notification_play_hover"              },
+    {ImGui::PlayHoverDarkButton,          "notification_play_hover_dark"         },
+    {ImGui::PauseButton,                  "notification_pause"                   },
+    {ImGui::PauseDarkButton,              "notification_pause_dark"              },
+    {ImGui::PauseHoverButton,             "notification_pause_hover"             },
+    {ImGui::PauseHoverDarkButton,         "notification_pause_hover_dark"        },
+    {ImGui::OpenButton,                   "notification_open"                    },
+    {ImGui::OpenDarkButton,               "notification_open_dark"               },
+    {ImGui::OpenHoverButton,              "notification_open_hover"              },
+    {ImGui::OpenHoverDarkButton,          "notification_open_hover_dark"         },
 };
 
 static const std::map<const wchar_t, std::string> font_icons_extra_large = {

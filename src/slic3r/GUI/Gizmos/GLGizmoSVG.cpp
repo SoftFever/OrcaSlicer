@@ -397,7 +397,7 @@ IconManager::VIcons init_icons(IconManager &mng, const GuiCfg &cfg)
         "open.svg",          // changhe_file
         "burn.svg",          // bake
         "save.svg",          // save
-        "exclamation.svg",   // exclamation
+        "obj_warning.svg",   // exclamation // ORCA: use obj_warning instead exclamation. exclamation is not compatible with low res
         "lock_closed.svg",   // lock
         "lock_open.svg",     // unlock
         "reflection_x.svg",  // reflection_x
