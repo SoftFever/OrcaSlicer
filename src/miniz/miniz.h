@@ -1171,6 +1171,9 @@ mz_uint mz_zip_reader_get_extra(mz_zip_archive *pZip, mz_uint file_index, char *
 int mz_zip_reader_locate_file(mz_zip_archive *pZip, const char *pName, const char *pComment, mz_uint flags);
 int mz_zip_reader_locate_file_v2(mz_zip_archive *pZip, const char *pName, const char *pComment, mz_uint flags, mz_uint32 *file_index);
 
+/* Retrieves the filename of an archive file entry from EXTRA ID. */
+mz_uint mz_zip_reader_get_filename_from_extra(mz_zip_archive * pZip, mz_uint file_index, char* buffer, mz_uint extra_buf_size);
+
 /* Returns detailed information about an archive file entry. */
 mz_bool mz_zip_reader_file_stat(mz_zip_archive *pZip, mz_uint file_index, mz_zip_archive_file_stat *pStat);
 

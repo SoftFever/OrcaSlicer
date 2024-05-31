@@ -50,8 +50,15 @@ std::string get_host_from_url(const std::string& url_in)
             char* host;
             rc = curl_url_get(hurl, CURLUPART_HOST, &host, 0);
             if (rc == CURLUE_OK) {
-                out = host;
-                curl_free(host);
+                char* port;
+                rc = curl_url_get(hurl, CURLUPART_PORT, &port, 0);
+                if (rc == CURLUE_OK && port != nullptr) {
+                    out = std::string(host) + ":" + port;
+                    curl_free(port);
+                } else {
+                    out = host;
+                    curl_free(host);
+                }
             }
             else
                 BOOST_LOG_TRIVIAL(error) << "OctoPrint get_host_from_url: failed to get host form URL " << url;

@@ -29,16 +29,16 @@
 	<key>ATSApplicationFontsPath</key>
   	<string>fonts/</string>
   <key>CFBundleURLTypes</key>
-  <array>
-    <dict>
-      <key>CFBundleURLName</key>
-      <string>orcasliceropen url</string>
-      <key>CFBundleURLSchemes</key>
-      <array>
-        <string>orcasliceropen</string>
-      </array>
-    </dict>
-  </array>
+    <array>
+      <dict>
+        <key>CFBundleURLName</key>
+        <string>OrcaSlicer Downloads</string>
+        <key>CFBundleURLSchemes</key>
+        <array>
+          <string>orcaslicer</string>
+        </array>
+      </dict>
+    </array>
 	<key>CFBundleDocumentTypes</key>
 	<array>
 		<dict>

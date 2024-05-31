@@ -130,7 +130,7 @@
 	"sparse_infill_density": "15%",
 	"sparse_infill_filament": "1",
 	"sparse_infill_line_width": "0.45",
-	"sparse_infill_pattern": "grid",
+	"sparse_infill_pattern": "crosshatch",
 
 	"spiral_mode": "0",
 	"staggered_inner_seams": "0",
