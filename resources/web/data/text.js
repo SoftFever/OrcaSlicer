@@ -317,7 +317,7 @@ var LangText = {
     t105: "Profilautor",
     t106: "Profilbeschreibung",
     orca1: "Projektinformationen bearbeiten",
-    orca2: "Keine Model Informationen",
+    orca2: "Keine Modellinformationen",
   },
   cs_CZ: {
     t1: "Vítejte v Orca Slicer",
@@ -419,7 +419,7 @@ var LangText = {
     t105: "Autor profilu",
     t106: "Popis profilu",
     orca1: "Edit Project Info",
-    orca2: "Keine Modellinformationen",
+    orca2: "no model information",
   },
   fr_FR: {
     t1: "Bienvenue sur Orca Slicer",
