@@ -1001,7 +1001,7 @@ wxDEFINE_EVENT(EVT_GLCANVAS_PLATE_RIGHT_CLICK, RBtnPlateEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_REMOVE_OBJECT, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_ARRANGE, SimpleEvent);
 //BBS: add arrange and orient event
-// wxDEFINE_EVENT(EVT_GLCANVAS_DUPLICATE_PLATE, SimpleEvent);
+wxDEFINE_EVENT(EVT_GLCANVAS_DUPLICATE_PLATE, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_ARRANGE_PARTPLATE, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_ORIENT, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_ORIENT_PARTPLATE, SimpleEvent);
@@ -6208,6 +6208,9 @@ void GLCanvas3D::_switch_toolbars_icon_filename()
         item = m_main_toolbar.get_item("addplate");
         item->set_icon_filename(m_is_dark ? "toolbar_add_plate_dark.svg" : "toolbar_add_plate.svg");
 
+        item = m_main_toolbar.get_item("duplicateplate");
+        item->set_icon_filename(m_is_dark ? "toolbar_duplicate_plate_dark.svg" : "toolbar_duplicate_plate.svg");
+
         item = m_main_toolbar.get_item("orient");
         item->set_icon_filename(m_is_dark ? "toolbar_orient_dark.svg" : "toolbar_orient.svg");
 
@@ -6317,6 +6320,15 @@ bool GLCanvas3D::_init_main_toolbar()
     item.sprite_id++;
     item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_ADD_PLATE)); };
     item.enabling_callback = []()->bool {return wxGetApp().plater()->can_add_plate(); };
+    if (!m_main_toolbar.add_item(item))
+        return false;
+
+    item.name = "duplicateplate";
+    item.icon_filename = m_is_dark ? "toolbar_duplicate_plate_dark.svg" : "toolbar_duplicate_plate.svg";
+    item.tooltip = _utf8(L("Duplicate current plate"));
+    item.sprite_id++;
+    item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_DUPLICATE_PLATE)); };
+    item.enabling_callback = []()->bool {return wxGetApp().plater()->can_add_plate(); };  // we can use can_add_plate here...
     if (!m_main_toolbar.add_item(item))
         return false;
 

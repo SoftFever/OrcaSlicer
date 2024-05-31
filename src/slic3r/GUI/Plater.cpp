@@ -2880,10 +2880,10 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         view3D_canvas->Bind(EVT_GLCANVAS_OBJECT_SELECT, &priv::on_object_select, this);
         view3D_canvas->Bind(EVT_GLCANVAS_RIGHT_CLICK, &priv::on_right_click, this);
         //BBS: add part plate related logic
-        // view3D_canvas->Bind(EVT_GLCANVAS_DUPLICATE_PLATE, [this](SimpleEvent& evt){
-        //     this->q->set_prepare_state(Job::PREPARE_STATE_DEFAULT);
-        //     this->q->duplicate_plate();
-        // });
+        view3D_canvas->Bind(EVT_GLCANVAS_DUPLICATE_PLATE, [this](SimpleEvent& evt){
+            this->q->set_prepare_state(Job::PREPARE_STATE_DEFAULT);
+            this->q->duplicate_plate();
+        });
         view3D_canvas->Bind(EVT_GLCANVAS_PLATE_RIGHT_CLICK, &priv::on_plate_right_click, this);
         view3D_canvas->Bind(EVT_GLCANVAS_REMOVE_OBJECT, [q](SimpleEvent&) { q->remove_selected(); });
         view3D_canvas->Bind(EVT_GLCANVAS_ARRANGE, [this](SimpleEvent& evt) {
@@ -2937,6 +2937,10 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 
         view3D_canvas->Bind(EVT_GLTOOLBAR_ADD_PLATE, &priv::on_action_add_plate, this);
         view3D_canvas->Bind(EVT_GLTOOLBAR_DEL_PLATE, &priv::on_action_del_plate, this);
+        view3D_canvas->Bind(EVT_GLTOOLBAR_DUPLICATE_PLATE, [this](SimpleEvent& evt){
+            this->q->set_prepare_state(Job::PREPARE_STATE_DEFAULT);
+            this->q->duplicate_plate();
+        });
         view3D_canvas->Bind(EVT_GLTOOLBAR_ORIENT, [this](SimpleEvent&) {
             //BBS arrage from EVT set default state.
             this->q->set_prepare_state(Job::PREPARE_STATE_DEFAULT);
