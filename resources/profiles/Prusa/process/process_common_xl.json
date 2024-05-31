@@ -14,6 +14,8 @@
   "gap_fill_target": "everywhere",
   "bottom_shell_thickness": "0.5",
   "infill_anchor_max": "12",
+  "sparse_infill_pattern": "grid",
+  "sparse_infill_density": "15%",
   "fuzzy_skin_point_distance": "0.8",
   "fuzzy_skin_thickness": "0.3",
   "skirt_height": "3",
