@@ -2079,7 +2079,8 @@ DynamicPrintConfig PresetBundle::full_config_secure() const
     config.erase("printhost_cafile");    
     config.erase("printhost_user");    
     config.erase("printhost_password");    
-    config.erase("printhost_port");    
+    config.erase("printhost_port");
+    config.erase("spoolman_host");
     return config;
 }
 
