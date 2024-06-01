@@ -3699,7 +3699,6 @@ int PartPlateList::duplicate_plate(int index)
     for (ModelObject* object : obj_ptrs){
         // copy and move the object to the same relative position in the new plate
         ModelObject* object_copy = m_model->add_object(*object);
-        object_copy->translate(plate_to_plate_offset);
         int new_obj_id = new_plate->m_model->objects.size() - 1;
         // go over the instances and pair with the object
         for (size_t new_instance_id = 0; new_instance_id < object_copy->instances.size(); new_instance_id++){
@@ -3707,6 +3706,7 @@ int PartPlateList::duplicate_plate(int index)
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": duplicate object into plate: index_pair [%1%,%2%], obj_id %3%") % new_obj_id % new_instance_id % object_copy->id().id;
         }
     }
+    new_plate->translate_all_instance(plate_to_plate_offset);
     // update the plates
     wxGetApp().obj_list()->reload_all_plates();
     return new_plate_index;
