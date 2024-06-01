@@ -4544,9 +4544,7 @@ void PrintObjectSupportMaterial::generate_toolpaths(
         {
             SupportLayer &support_layer = *support_layers[support_layer_id];
             LayerCache   &layer_cache   = layer_caches[support_layer_id];
-            float         interface_angle_delta = m_object_config->support_style.value == smsSnug ?
-                (support_layer.interface_id() & 1) ? float(- M_PI / 4.) : float(+ M_PI / 4.) :
-                0;
+            float interface_angle_delta = m_object_config->support_style.value == smsSnug ? float(M_PI / 4.0) : 0;
 
             // Find polygons with the same print_z.
             MyLayerExtruded &bottom_contact_layer = layer_cache.bottom_contact_layer;
