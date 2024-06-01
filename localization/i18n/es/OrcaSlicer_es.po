@@ -3013,7 +3013,7 @@ msgid ""
 msgstr ""
 "Cambie el desecante cuando esté demasiado húmedo. El indicador puede no ser "
 "preciso en los siguientes casos: cuando la tapa está abierta o se cambia el "
-"paquete de desecante. tarda horas en absorber la humedad, las bajas "
+"paquete de desecante, tarda horas en absorber la humedad, las bajas "
 "temperaturas también ralentizan el proceso."
 
 msgid ""
