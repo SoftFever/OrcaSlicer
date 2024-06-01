@@ -673,20 +673,19 @@ TreeSupport::TreeSupport(PrintObject& object, const SlicingParameters &slicing_p
     support_type = m_object_config->support_type;
     support_style = m_object_config->support_style;
     if (support_style == smsDefault)
-        // Orca: use organic as default
-        support_style = smsOrganic;
+        support_style = smsTreeHybrid;
     SupportMaterialPattern support_pattern  = m_object_config->support_base_pattern;
-    if (support_style == smsTreeHybrid && support_pattern == smpDefault)
-        support_pattern = smpRectilinear;
-    m_support_params.base_fill_pattern =
+    if (support_style == smsTreeHybrid && support_pattern == smpDefault) support_pattern = smpRectilinear;
+    m_support_params.base_fill_pattern      = 
         support_pattern == smpLightning ? ipLightning :
         support_pattern == smpHoneycomb ? ipHoneycomb :
-        m_support_params.support_density > 0.95 || m_support_params.with_sheath ? ipRectilinear : ipSupportBase;
+                                              m_support_params.support_density > 0.95 || m_support_params.with_sheath ? ipRectilinear :
+                                                                                                                        ipSupportBase;
 
     m_support_params.interface_fill_pattern = (m_support_params.interface_density > 0.95 ? ipRectilinear : ipSupportBase);
     if (m_object_config->support_interface_pattern == smipGrid)
         m_support_params.contact_fill_pattern = ipGrid;
-    else if (m_object_config->support_interface_pattern == smipRectilinearInterlaced)
+    else if (m_object_config->support_interface_pattern == smipRectilinear)
         m_support_params.contact_fill_pattern = ipRectilinear;
     else
         m_support_params.contact_fill_pattern = (m_object_config->support_interface_pattern == smipAuto && m_slicing_params.soluble_interface) ||
@@ -1577,7 +1576,7 @@ void TreeSupport::generate_toolpaths()
                             filler_interface->angle = Geometry::deg2rad(object_config.support_angle.value);
                             fill_params.dont_sort = true;
                         }
-                        if (m_object_config->support_interface_pattern == smipRectilinearInterlaced)
+                        if (m_object_config->support_interface_pattern == smipRectilinear)
                             filler_interface->layer_id = round(area_group.dist_to_top / ts_layer->height);
                         fill_expolygons_generate_paths(ts_layer->support_fills.entities, std::move(polys), filler_interface.get(), fill_params, erSupportMaterialInterface,
                                                        m_support_material_interface_flow);

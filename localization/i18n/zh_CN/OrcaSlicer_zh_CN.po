@@ -12654,9 +12654,6 @@ msgstr "支撑主体图案"
 msgid "Line pattern of support"
 msgstr "支撑走线图案"
 
-msgid "Rectilinear grid"
-msgstr "直线网格"
-
 msgid "Hollow"
 msgstr "空心"
 
@@ -12670,9 +12667,6 @@ msgid ""
 msgstr ""
 "支撑接触面的走线图案。非可溶支撑接触面的缺省图案为直线，可溶支撑接触面的缺省"
 "图案为同心。"
-
-msgid "Rectilinear Interlaced"
-msgstr "交叠的直线"
 
 msgid "Base pattern spacing"
 msgstr "主体图案线距"

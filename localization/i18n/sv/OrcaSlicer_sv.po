@@ -12868,9 +12868,6 @@ msgstr "Botten mönster"
 msgid "Line pattern of support"
 msgstr "Supportens linje mönster"
 
-msgid "Rectilinear grid"
-msgstr "Rät linjärt nät"
-
 msgid "Hollow"
 msgstr "Ihålig"
 
@@ -12885,9 +12882,6 @@ msgstr ""
 "Linje mönster för support gränssnittsytan .Standardmönstret för olösligt "
 "(material) support gränssnittet är Räta medan standardmönstret för "
 "lösligt(material) stödgränssnittet är koncentriskt"
-
-msgid "Rectilinear Interlaced"
-msgstr "Rätlinjig sammanflätning"
 
 msgid "Base pattern spacing"
 msgstr "Basens mönster mellanrum"

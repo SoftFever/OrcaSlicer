@@ -14092,9 +14092,6 @@ msgstr "Basismuster"
 msgid "Line pattern of support"
 msgstr "Linienmuster der Stützstrukturen"
 
-msgid "Rectilinear grid"
-msgstr "Rechtwinkliges Gitter"
-
 msgid "Hollow"
 msgstr "Hohl"
 
@@ -14109,9 +14106,6 @@ msgstr ""
 "Linienmuster der Stützstruktur-Schnittstelle. Das Standardmuster für nicht "
 "lösliche Schnittstellen ist Geradlinig, während das Standardmuster für "
 "lösliche Schnittstellen konzentrisch ist."
-
-msgid "Rectilinear Interlaced"
-msgstr "Rechteckiges Wechselmuster"
 
 msgid "Base pattern spacing"
 msgstr "Abstand des Grundmusters"

@@ -13701,9 +13701,6 @@ msgstr "Patró de la base"
 msgid "Line pattern of support"
 msgstr "Patró lineal del suport"
 
-msgid "Rectilinear grid"
-msgstr "Quadrícula rectilínia"
-
 msgid "Hollow"
 msgstr "Buit"
 
@@ -13718,9 +13715,6 @@ msgstr ""
 "Patró de línia de la interfície de suport. El patró predeterminat per a la "
 "interfície de suport no soluble és Rectilini, mentre que el patró "
 "predeterminat per a la interfície de suport soluble és Concèntric"
-
-msgid "Rectilinear Interlaced"
-msgstr "Entrellaçat Rectilini"
 
 msgid "Base pattern spacing"
 msgstr "Espaiat del patró base"

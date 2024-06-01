@@ -13148,9 +13148,6 @@ msgstr "기본 패턴"
 msgid "Line pattern of support"
 msgstr "지지대 기본 패턴"
 
-msgid "Rectilinear grid"
-msgstr "직선 격자"
-
 msgid "Hollow"
 msgstr "공동"
 
@@ -13164,9 +13161,6 @@ msgid ""
 msgstr ""
 "지지대 접점의 선 패턴. 비가용성 지지대 접점의 기본 패턴은 직선인 반면 가용성 "
 "지지대 접점의 기본 패턴은 동심입니다"
-
-msgid "Rectilinear Interlaced"
-msgstr "엇갈린 직선"
 
 msgid "Base pattern spacing"
 msgstr "기본 패턴 간격"

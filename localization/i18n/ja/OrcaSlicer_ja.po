@@ -12722,9 +12722,6 @@ msgstr "基本パターン"
 msgid "Line pattern of support"
 msgstr "サポートのサターンです。"
 
-msgid "Rectilinear grid"
-msgstr "直線グリッド"
-
 msgid "Hollow"
 msgstr "中空"
 
@@ -12738,9 +12735,6 @@ msgid ""
 msgstr ""
 "サポート接触面のパターンです。非可溶性材を使用する場合はRectilinear、可溶性材"
 "を使用する場合同心です。"
-
-msgid "Rectilinear Interlaced"
-msgstr "Rectilinear Interlaced"
 
 msgid "Base pattern spacing"
 msgstr "基本パターン間隔"

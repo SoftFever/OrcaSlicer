@@ -74,7 +74,7 @@
     "support_base_pattern_spacing": "7",
     "support_bottom_z_distance": "0.7",
     "support_critical_regions_only": "0",
-    "support_interface_pattern": "rectilinear_interlaced",
+    "support_interface_pattern": "rectilinear",
     "support_interface_spacing": "2",
     "support_interface_speed": "175",
     "support_line_width": "0.56",
@@ -102,7 +102,7 @@
     "tree_support_adaptive_layer_height": "0",
     "version": "2.0.0.0",
     "wall_infill_order": "infill/inner wall/outer wall",
-    "xy_hole_compensation": "0.05",	
+    "xy_hole_compensation": "0.05",
     "xy_contour_compensation": "-0.05",
     "independent_support_layer_height": "0",
     "compatible_printers": [

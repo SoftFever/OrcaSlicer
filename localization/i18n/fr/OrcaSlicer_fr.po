@@ -14187,9 +14187,6 @@ msgstr "Motif de base"
 msgid "Line pattern of support"
 msgstr "Motif de ligne de support"
 
-msgid "Rectilinear grid"
-msgstr "Grille rectiligne"
-
 msgid "Hollow"
 msgstr "Creux"
 
@@ -14204,9 +14201,6 @@ msgstr ""
 "Modèle de ligne de l'interface de support. Le modèle par défaut pour "
 "l'interface de support non soluble est rectiligne, tandis que le modèle par "
 "défaut pour l'interface de support soluble est concentrique"
-
-msgid "Rectilinear Interlaced"
-msgstr "Rectiligne Entrelacé"
 
 msgid "Base pattern spacing"
 msgstr "Espacement du motif de base"
