@@ -217,6 +217,7 @@ class Print;
         std::vector<float> filament_densities;
         std::vector<float> filament_costs;
         std::vector<int> filament_vitrification_temperature;
+        std::vector<int>   filament_maps;
         PrintEstimatedStatistics print_statistics;
         std::vector<CustomGCode::Item> custom_gcode_per_print_z;
         std::vector<std::pair<float, std::pair<size_t, size_t>>> spiral_vase_layers;

@@ -299,7 +299,7 @@ enum class ExtruderOnlyAreaType:unsigned char {
 
 // BBS
 enum LayerSeq {
-    flsAuto, 
+    flsAuto,
     flsCustomize
 };
 
@@ -344,12 +344,6 @@ enum ZHopType {
     zhtCount
 };
 
-enum NozzleVolumeType {
-    nvtNormal = 0,
-    nvtBigTraffic,
-    nvtMaxNozzleVolumeType = nvtBigTraffic
-};
-
 enum RetractLiftEnforceType {
     rletAllSurfaces = 0,
     rletTopOnly,
@@ -370,6 +364,21 @@ enum CounterboreHoleBridgingOption {
      wtwCone,
      wtwRib
  };
+
+// BBS
+enum ExtruderType {
+    etDirectDrive = 0,
+    etBowden,
+    etMaxExtruderType = etBowden
+};
+
+enum NozzleVolumeType {
+    nvtNormal = 0,
+    nvtBigTraffic,
+    nvtMaxNozzleVolumeType = nvtBigTraffic
+};
+
+extern std::string get_extruder_variant_string(ExtruderType extruder_type, NozzleVolumeType nozzle_volume_type);
 
 static std::string bed_type_to_gcode_string(const BedType type)
 {
@@ -586,8 +595,18 @@ public:
     //BBS special case Support G/ Support W
     std::string get_filament_type(std::string &displayed_filament_type, int id = 0);
 
+    //BBS
+    bool is_using_different_extruders();
+    bool support_different_extruders(int& extruder_count);
+    int get_index_for_extruder(int extruder_id, std::string id_name, ExtruderType extruder_type, NozzleVolumeType nozzle_volume_type, std::string variant_name);
+    void update_values_to_printer_extruders(std::vector<std::string>& key_list, std::string id_name, std::string variant_name, unsigned int stride = 1, unsigned int extruder_id = 0);
+
     bool is_custom_defined();
 };
+extern std::vector<std::string> print_options_with_variant;
+extern std::vector<std::string> filament_options_with_variant;
+extern std::vector<std::string> printer_options_with_variant_1;
+extern std::vector<std::string> printer_options_with_variant_2;
 
 void handle_legacy_sla(DynamicPrintConfig &config);
 
@@ -964,6 +983,8 @@ PRINT_CONFIG_CLASS_DEFINE(
 PRINT_CONFIG_CLASS_DEFINE(
     PrintRegionConfig,
 
+    ((ConfigOptionInts,  print_extruder_id))
+    ((ConfigOptionStrings,  print_extruder_variant))
     ((ConfigOptionInt,                  bottom_shell_layers))
     ((ConfigOptionFloat,                bottom_shell_thickness))
     ((ConfigOptionFloat,                bridge_angle))
@@ -1145,8 +1166,8 @@ PRINT_CONFIG_CLASS_DEFINE(
 PRINT_CONFIG_CLASS_DEFINE(
     GCodeConfig,
 
-    ((ConfigOptionString,              before_layer_change_gcode)) 
-    ((ConfigOptionString,              printing_by_object_gcode)) 
+    ((ConfigOptionString,              before_layer_change_gcode))
+    ((ConfigOptionString,              printing_by_object_gcode))
     ((ConfigOptionFloats,              deretraction_speed))
     //BBS
     ((ConfigOptionBool,                enable_arc_fitting))
@@ -1174,6 +1195,9 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionInts,                temperature_vitrification))  //BBS
     ((ConfigOptionFloats,              filament_max_volumetric_speed))
     ((ConfigOptionInts,                required_nozzle_HRC))
+    ((ConfigOptionInts,                filament_map))
+    ((ConfigOptionInts,                filament_extruder_id))
+    ((ConfigOptionStrings,             filament_extruder_variant))
     // BBS
     ((ConfigOptionBool,                scan_first_layer))
     ((ConfigOptionPoints,              thumbnail_size))
@@ -1227,6 +1251,9 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                support_air_filtration))
     ((ConfigOptionEnum<PrinterStructure>,printer_structure))
     ((ConfigOptionBool,                support_chamber_temp_control))
+    ((ConfigOptionEnumsGeneric,        nozzle_volume_type))
+    ((ConfigOptionInts,                printer_extruder_id))
+    ((ConfigOptionStrings,             printer_extruder_variant))
 
 
     // SoftFever
@@ -1904,7 +1931,6 @@ private:
 
     static uint64_t             s_last_timestamp;
 };
-
 } // namespace Slic3r
 
 // Serialization through the Cereal library

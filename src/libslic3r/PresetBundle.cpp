@@ -2146,8 +2146,17 @@ DynamicPrintConfig PresetBundle::full_fff_config() const
     }
     different_settings.emplace_back(different_print_settings);
 
+    //BBS: update printer config related with variants
+    out.update_values_to_printer_extruders(printer_options_with_variant_1, "printer_extruder_id", "printer_extruder_variant");
+    out.update_values_to_printer_extruders(printer_options_with_variant_2, "printer_extruder_id", "printer_extruder_variant", 2);
+    //update print config related with variants
+    out.update_values_to_printer_extruders(print_options_with_variant, "print_extruder_id", "print_extruder_variant");
+
     if (num_filaments <= 1) {
-        out.apply(this->filaments.get_edited_preset().config);
+        //BBS: update filament config related with variants
+        DynamicPrintConfig filament_config = this->filaments.get_edited_preset().config;
+        filament_config.update_values_to_printer_extruders(filament_options_with_variant, "filament_extruder_id", "filament_extruder_variant", 1, this->filament_maps[0]);
+        out.apply(filament_config);
         compatible_printers_condition.emplace_back(this->filaments.get_edited_preset().compatible_printers_condition());
         compatible_prints_condition  .emplace_back(this->filaments.get_edited_preset().compatible_prints_condition());
         //BBS: add logic for settings check between different system presets
@@ -2231,6 +2240,13 @@ DynamicPrintConfig PresetBundle::full_fff_config() const
             different_settings.emplace_back(different_filament_settings);
         }
 
+        std::vector<DynamicPrintConfig> filament_temp_configs;
+        filament_temp_configs.resize(num_filaments);
+        for (size_t i = 0; i < num_filaments; ++i) {
+            filament_temp_configs[i] = *(filament_configs[i]);
+            filament_temp_configs[i].update_values_to_printer_extruders(filament_options_with_variant, "filament_extruder_id", "filament_extruder_variant", 1, this->filament_maps[i]);
+        }
+
         // loop through options and apply them to the resulting config.
         for (const t_config_option_key &key : this->filaments.default_preset().config.keys()) {
 			if (key == "compatible_prints" || key == "compatible_printers")
@@ -2239,7 +2255,7 @@ DynamicPrintConfig PresetBundle::full_fff_config() const
             ConfigOption *opt_dst = out.option(key, false);
             if (opt_dst->is_scalar()) {
                 // Get an option, do not create if it does not exist.
-                const ConfigOption *opt_src = filament_configs.front()->option(key);
+                const ConfigOption *opt_src = filament_temp_configs.front().option(key);
                 if (opt_src != nullptr)
                     opt_dst->set(opt_src);
             } else {
@@ -2249,7 +2265,7 @@ DynamicPrintConfig PresetBundle::full_fff_config() const
                     std::vector<const ConfigOption*> filament_opts(num_filaments, nullptr);
                     // Setting a vector value from all filament_configs.
                     for (size_t i = 0; i < filament_opts.size(); ++i)
-                        filament_opts[i] = filament_configs[i]->option(key);
+                        filament_opts[i] = filament_temp_configs[i].option(key);
                     opt_vec_dst->set(filament_opts);
                 }
             }
@@ -2298,6 +2314,7 @@ DynamicPrintConfig PresetBundle::full_fff_config() const
     out.option<ConfigOptionStrings>("filament_settings_id", true)->values = this->filament_presets;
     out.option<ConfigOptionString >("printer_settings_id",  true)->value  = this->printers.get_selected_preset_name();
     out.option<ConfigOptionStrings>("filament_ids", true)->values = filament_ids;
+    out.option<ConfigOptionInts>("filament_map", true)->values = this->filament_maps;
     // Serialize the collected "compatible_printers_condition" and "inherits" fields.
     // There will be 1 + num_exturders fields for "inherits" and 2 + num_extruders for "compatible_printers_condition" stored.
     // The vector will not be stored if all fields are empty strings.
