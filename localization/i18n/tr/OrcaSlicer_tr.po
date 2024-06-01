@@ -13188,9 +13188,6 @@ msgstr "Destek deseni"
 msgid "Line pattern of support"
 msgstr "Desteğin çizgi deseni"
 
-msgid "Rectilinear grid"
-msgstr "Doğrusal ızgara"
-
 msgid "Hollow"
 msgstr "Oyuk"
 
@@ -13205,9 +13202,6 @@ msgstr ""
 "Destek arayüzünün çizgi deseni. Çözünmeyen destek arayüzü için varsayılan "
 "model Doğrusaldır, çözünebilir destek arayüzü için varsayılan model ise "
 "eşmerkezlidir"
-
-msgid "Rectilinear Interlaced"
-msgstr "Doğrusal Taramalı"
 
 msgid "Base pattern spacing"
 msgstr "Destek desen aralığı"

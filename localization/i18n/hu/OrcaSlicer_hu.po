@@ -12685,9 +12685,6 @@ msgstr "Alap mintázata"
 msgid "Line pattern of support"
 msgstr "A támasz mintázata."
 
-msgid "Rectilinear grid"
-msgstr "Vonalrács"
-
 msgid "Hollow"
 msgstr "Üreges"
 
@@ -12702,9 +12699,6 @@ msgstr ""
 "A támasz érintkezési felületének vonalmintája. A nem oldható támaszfelület "
 "alapértelmezett mintázata egyenes vonalú, míg az oldható támaszfelület "
 "alapértelmezett mintázata koncentrikus"
-
-msgid "Rectilinear Interlaced"
-msgstr "Rectilinear Interlaced"
 
 msgid "Base pattern spacing"
 msgstr "Alap mintázatának térköze"

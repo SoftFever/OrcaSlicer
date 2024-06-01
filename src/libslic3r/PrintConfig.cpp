@@ -203,12 +203,12 @@ static t_config_enum_values s_keys_map_SlicingMode {
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SlicingMode)
 
 static t_config_enum_values s_keys_map_SupportMaterialPattern {
+    { "alignedrectilinear", smpAlignedRectilinear },
     { "rectilinear",        smpRectilinear },
-    { "rectilinear-grid",   smpRectilinearGrid },
     { "honeycomb",          smpHoneycomb },
     { "lightning",          smpLightning },
     { "default",            smpDefault},
-    { "hollow",               smpNone},
+    { "hollow",             smpNone},
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SupportMaterialPattern)
 
@@ -224,19 +224,19 @@ static t_config_enum_values s_keys_map_SupportMaterialStyle {
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SupportMaterialStyle)
 
 static t_config_enum_values s_keys_map_SupportMaterialInterfacePattern {
-    { "auto",           smipAuto },
-    { "rectilinear",    smipRectilinear },
-    { "concentric",     smipConcentric },
-    { "rectilinear_interlaced", smipRectilinearInterlaced},
-    { "grid",           smipGrid }
+    { "auto",               smipAuto },
+    { "rectilinear",        smipRectilinear },
+    { "concentric",         smipConcentric },
+    { "alignedrectilinear", smipAlignedRectilinear},
+    { "grid",               smipGrid }
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SupportMaterialInterfacePattern)
 
 static t_config_enum_values s_keys_map_SupportType{
     { "normal(auto)",   stNormalAuto },
-    { "tree(auto)", stTreeAuto },
+    { "tree(auto)",     stTreeAuto },
     { "normal(manual)", stNormal },
-    { "tree(manual)", stTree }
+    { "tree(manual)",   stTree }
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SupportType)
 
@@ -258,39 +258,39 @@ CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SeamScarfType)
 
 // Orca
 static t_config_enum_values s_keys_map_EnsureVerticalShellThickness{
-    { "none",           int(EnsureVerticalShellThickness::evstNone) },
-    { "ensure_critical_only",         int(EnsureVerticalShellThickness::evstCriticalOnly) },
-    { "ensure_moderate",            int(EnsureVerticalShellThickness::evstModerate) },
-    { "ensure_all",         int(EnsureVerticalShellThickness::evstAll) },
+    { "none",                 int(EnsureVerticalShellThickness::evstNone) },
+    { "ensure_critical_only", int(EnsureVerticalShellThickness::evstCriticalOnly) },
+    { "ensure_moderate",      int(EnsureVerticalShellThickness::evstModerate) },
+    { "ensure_all",           int(EnsureVerticalShellThickness::evstAll) },
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(EnsureVerticalShellThickness)
 
 // Orca
 static t_config_enum_values s_keys_map_InternalBridgeFilter {
-    { "disabled",        ibfDisabled },
-    { "limited",        ibfLimited },
-    { "nofilter",           ibfNofilter },
+    { "disabled",   ibfDisabled },
+    { "limited",    ibfLimited },
+    { "nofilter",   ibfNofilter },
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(InternalBridgeFilter)
 
 // Orca
 static t_config_enum_values s_keys_map_GapFillTarget {
-    { "everywhere",        gftEverywhere },
-    { "topbottom",        gftTopBottom },
-    { "nowhere",           gftNowhere },
+    { "everywhere", gftEverywhere },
+    { "topbottom",  gftTopBottom },
+    { "nowhere",    gftNowhere },
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(GapFillTarget)
 
 static const t_config_enum_values s_keys_map_SLADisplayOrientation = {
-    { "landscape",      sladoLandscape},
-    { "portrait",       sladoPortrait}
+    { "landscape", sladoLandscape},
+    { "portrait",  sladoPortrait}
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SLADisplayOrientation)
 
 static const t_config_enum_values s_keys_map_SLAPillarConnectionMode = {
-    {"zigzag",          slapcmZigZag},
-    {"cross",           slapcmCross},
-    {"dynamic",         slapcmDynamic}
+    {"zigzag",  slapcmZigZag},
+    {"cross",   slapcmCross},
+    {"dynamic", slapcmDynamic}
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SLAPillarConnectionMode)
 
@@ -305,8 +305,8 @@ static const t_config_enum_values s_keys_map_BrimType = {
     {"outer_only",      btOuterOnly},
     {"inner_only",      btInnerOnly},
     {"outer_and_inner", btOuterAndInner},
-    {"auto_brim", btAutoBrim},  // BBS
-    {"brim_ears", btEar},     // Orca
+    {"auto_brim",       btAutoBrim},  // BBS
+    {"brim_ears",       btEar},     // Orca
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(BrimType)
 
@@ -332,12 +332,12 @@ static const t_config_enum_values s_keys_map_ForwardCompatibilitySubstitutionRul
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(ForwardCompatibilitySubstitutionRule)
 
 static const t_config_enum_values s_keys_map_OverhangFanThreshold = {
-    { "0%",         Overhang_threshold_none },
-    { "10%",        Overhang_threshold_1_4  },
-    { "25%",        Overhang_threshold_2_4  },
-    { "50%",        Overhang_threshold_3_4  },
-    { "75%",        Overhang_threshold_4_4  },
-    { "95%",        Overhang_threshold_bridge  }
+    { "0%",  Overhang_threshold_none },
+    { "10%", Overhang_threshold_1_4  },
+    { "25%", Overhang_threshold_2_4  },
+    { "50%", Overhang_threshold_3_4  },
+    { "75%", Overhang_threshold_4_4  },
+    { "95%", Overhang_threshold_bridge  }
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(OverhangFanThreshold)
 
@@ -359,19 +359,19 @@ static const t_config_enum_values s_keys_map_LayerSeq = {
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(LayerSeq)
 
 static t_config_enum_values s_keys_map_NozzleType {
-    { "undefine",       int(NozzleType::ntUndefine) },
-    { "hardened_steel", int(NozzleType::ntHardenedSteel) },
-    { "stainless_steel",int(NozzleType::ntStainlessSteel) },
-    { "brass",          int(NozzleType::ntBrass) }
+    { "undefine",        int(NozzleType::ntUndefine) },
+    { "hardened_steel",  int(NozzleType::ntHardenedSteel) },
+    { "stainless_steel", int(NozzleType::ntStainlessSteel) },
+    { "brass",           int(NozzleType::ntBrass) }
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(NozzleType)
 
 static t_config_enum_values s_keys_map_PrinterStructure {
-    {"undefine",        int(PrinterStructure::psUndefine)},
-    {"corexy",          int(PrinterStructure::psCoreXY)},
-    {"i3",              int(PrinterStructure::psI3)},
-    {"hbot",            int(PrinterStructure::psHbot)},
-    {"delta",           int(PrinterStructure::psDelta)}
+    {"undefine",         int(PrinterStructure::psUndefine)},
+    {"corexy",           int(PrinterStructure::psCoreXY)},
+    {"i3",               int(PrinterStructure::psI3)},
+    {"hbot",             int(PrinterStructure::psHbot)},
+    {"delta",            int(PrinterStructure::psDelta)}
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(PrinterStructure)
 
@@ -382,18 +382,18 @@ static t_config_enum_values s_keys_map_PerimeterGeneratorType{
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(PerimeterGeneratorType)
 
 static const t_config_enum_values s_keys_map_ZHopType = {
-    { "Auto Lift",          zhtAuto },
-    { "Normal Lift",        zhtNormal },
-    { "Slope Lift",         zhtSlope },
-    { "Spiral Lift",        zhtSpiral }
+    { "Auto Lift",     zhtAuto },
+    { "Normal Lift",   zhtNormal },
+    { "Slope Lift",    zhtSlope },
+    { "Spiral Lift",   zhtSpiral }
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(ZHopType)
 
 static const t_config_enum_values s_keys_map_RetractLiftEnforceType = {
-    {"All Surfaces",        rletAllSurfaces},
-    {"Top Only",         rletTopOnly},
-    {"Bottom Only",      rletBottomOnly},
-    {"Top and Bottom",      rletTopAndBottom}
+    {"All Surfaces",   rletAllSurfaces},
+    {"Top Only",       rletTopOnly},
+    {"Bottom Only",    rletBottomOnly},
+    {"Top and Bottom", rletTopAndBottom}
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(RetractLiftEnforceType)
 
@@ -407,8 +407,8 @@ static const t_config_enum_values  s_keys_map_GCodeThumbnailsFormat = {
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(GCodeThumbnailsFormat)
 
 static const t_config_enum_values s_keys_map_CounterboreHoleBridgingOption{
-    { "none", chbNone },
-    { "partiallybridge", chbBridges },
+    { "none",             chbNone },
+    { "partiallybridge",  chbBridges },
     { "sacrificiallayer", chbFilled },
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(CounterboreHoleBridgingOption)
@@ -489,7 +489,7 @@ void PrintConfigDef::init_common_params()
     def->sidetext = L("layers");
     def->min      = 1;
     def->mode     = comAdvanced;
-    def->set_default_value(new ConfigOptionInt(1));	
+    def->set_default_value(new ConfigOptionInt(1));
 
     def = this->add("layer_height", coFloat);
     def->label = L("Layer height");
@@ -615,7 +615,7 @@ void PrintConfigDef::init_common_params()
     def->mode = comAdvanced;
     def->cli = ConfigOptionDef::nocli;
     def->set_default_value(new ConfigOptionEnum<AuthorizationType>(atKeyPassword));
-    
+
     // temporary workaround for compatibility with older Slicer
     {
         def = this->add("preset_name", coString);
@@ -813,7 +813,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm");
     def->min = 0;
     def->set_default_value(new ConfigOptionFloat(0.));
-    
+
     def = this->add("gap_fill_target", coEnum);
     def->label = L("Apply gap fill");
     def->category = L("Strength");
@@ -832,7 +832,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Nowhere"));
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<GapFillTarget>(gftNowhere));
-    
+
 
     def = this->add("enable_overhang_bridge_fan", coBools);
     def->label = L("Force cooling for overhang and bridge");
@@ -938,7 +938,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip  = L("Improve shell precision by adjusting outer wall spacing. This also improves layer consistency.\nNote: This setting "
                        "will only take effect if the wall sequence is configured to Inner-Outer");
     def->set_default_value(new ConfigOptionBool{false});
-    
+
     def = this->add("only_one_wall_top", coBool);
     def->label = L("Only one wall on top surfaces");
     def->category = L("Quality");
@@ -981,7 +981,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Extrude perimeters that have a part over an overhang in the reverse direction on odd layers. This alternating pattern can drastically improve steep overhangs.\n\nThis setting can also help reduce part warping due to the reduction of stresses in the part walls.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
-    
+
     def = this->add("overhang_reverse_internal_only", coBool);
     def->label = L("Reverse only internal perimeters");
     def->full_label = L("Reverse only internal perimeters");
@@ -1035,7 +1035,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Enable this option to slow printing down for different overhang degree");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool{ true });
-    
+
     def = this->add("slowdown_for_curled_perimeters", coBool);
     def->label = L("Slow down for curled perimeters");
     def->category = L("Speed");
@@ -1421,7 +1421,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("All"));
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<EnsureVerticalShellThickness>(EnsureVerticalShellThickness::evstAll));
-    
+
     auto def_top_fill_pattern = def = this->add("top_surface_pattern", coEnum);
     def->label = L("Top surface pattern");
     def->category = L("Strength");
@@ -1462,7 +1462,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_values   = def_top_fill_pattern->enum_values;
     def->enum_labels   = def_top_fill_pattern->enum_labels;
     def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipMonotonic));
-    
+
     def = this->add("outer_wall_line_width", coFloatOrPercent);
     def->label = L("Outer wall");
     def->category = L("Quality");
@@ -1955,7 +1955,7 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats { 10. });
-    
+
     def = this->add("filament_density", coFloats);
     def->label = L("Density");
     def->tooltip = L("Filament density. For statistics only");
@@ -2180,7 +2180,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("1000 (unlimited)"));
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatOrPercent(20, false));
-    
+
     def = this->add("outer_wall_acceleration", coFloat);
     def->label = L("Outer wall");
     def->tooltip = L("Acceleration of outer walls");
@@ -2261,7 +2261,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Klipper's max_accel_to_decel will be adjusted automatically");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(true));
-    
+
     def = this->add("accel_to_decel_factor", coPercent);
     def->label = L("accel_to_decel");
     def->tooltip = L("Klipper's max_accel_to_decel will be adjusted to this %% of acceleration");
@@ -2270,7 +2270,7 @@ void PrintConfigDef::init_fff_params()
     def->max = 100;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionPercent(50));
-    
+
     def = this->add("default_jerk", coFloat);
     def->label = L("Default");
     def->tooltip = L("Default");
@@ -2412,7 +2412,7 @@ void PrintConfigDef::init_fff_params()
     def->max = 1000;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInts { 0 });
-    
+
     def = this->add("support_material_interface_fan_speed", coInts);
     def->label = L("Support interface fan speed");
     def->tooltip = L("This fan speed is enforced during all support interfaces, to be able to weaken their bonding with a high fan speed."
@@ -2423,7 +2423,7 @@ void PrintConfigDef::init_fff_params()
     def->max = 100;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInts{ -1 });
-    
+
 
     def = this->add("fuzzy_skin", coEnum);
     def->label = L("Fuzzy Skin");
@@ -2476,7 +2476,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0));
-    
+
     def = this->add("gap_infill_speed", coFloat);
     def->label = L("Gap infill");
     def->category = L("Speed");
@@ -2703,7 +2703,7 @@ void PrintConfigDef::init_fff_params()
                    "slow down.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(0));
-    
+
     //BBS
     def = this->add("infill_combination", coBool);
     def->label = L("Infill combination");
@@ -2742,7 +2742,7 @@ void PrintConfigDef::init_fff_params()
     def->ratio_over = "inner_wall_line_width";
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionPercent(15));
-    
+
     def = this->add("top_bottom_infill_wall_overlap", coPercent);
     def->label = L("Top/Bottom solid infill/wall overlap");
     def->category = L("Strength");
@@ -2887,7 +2887,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Rectilinear"));
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipRectilinear));
-    
+
     def = this->add("ironing_flow", coPercent);
     def->label = L("Ironing flow");
     def->category = L("Quality");
@@ -3152,11 +3152,11 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("max_volumetric_extrusion_rate_slope", coFloat);
     def->label = L("Extrusion rate smoothing");
-    def->tooltip = L("This parameter smooths out sudden extrusion rate changes that happen when " 
+    def->tooltip = L("This parameter smooths out sudden extrusion rate changes that happen when "
     				 "the printer transitions from printing a high flow (high speed/larger width) "
     				 "extrusion to a lower flow (lower speed/smaller width) extrusion and vice versa.\n\n"
     				 "It defines the maximum rate by which the extruded volumetric flow in mm3/sec can change over time. "
-    				 "Higher values mean higher extrusion rate changes are allowed, resulting in faster speed transitions.\n\n" 
+    				 "Higher values mean higher extrusion rate changes are allowed, resulting in faster speed transitions.\n\n"
     				 "A value of 0 disables the feature. \n\n"
     				 "For a high speed, high flow direct drive printer (like the Bambu lab or Voron) this value is usually not needed. "
     				 "However it can provide some marginal benefit in certain cases where feature speeds vary greatly. For example, "
@@ -3170,7 +3170,7 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0));
-    
+
     def = this->add("max_volumetric_extrusion_rate_slope_segment_length", coInt);
     def->label = L("Smoothing segment length");
     def->tooltip = L("A lower value results in smoother extrusion rate transitions. However, this results in a significantly larger gcode file "
@@ -3269,7 +3269,7 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->cli = ConfigOptionDef::nocli;
     def->set_default_value(new ConfigOptionEnum<PrintHostType>(htOctoPrint));
-    
+
 
     def = this->add("nozzle_volume", coFloat);
     def->label = L("Nozzle volume");
@@ -3429,14 +3429,14 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->max = 1000;
     def->set_default_value(new ConfigOptionInt(2));
-    
+
     def = this->add("alternate_extra_wall", coBool);
     def->label = L("Alternate extra wall");
     def->category = L("Strength");
     def->tooltip = L("This setting adds an extra wall to every other layer. This way the infill gets wedged vertically between the walls, resulting in stronger prints. \n\nWhen this option is enabled, the ensure vertical shell thickness option needs to be disabled. \n\nUsing lightning infill together with this option is not recommended as there is limited infill to anchor the extra perimeters to.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
-    
+
     def = this->add("post_process", coStrings);
     def->label = L("Post-processing Scripts");
     def->tooltip = L("If you want to process the output G-code through custom scripts, "
@@ -3449,7 +3449,7 @@ void PrintConfigDef::init_fff_params()
     def->height = 6;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionStrings());
-    
+
     def = this->add("printer_model", coString);
     //def->label = L("Printer type");
     //def->tooltip = L("Type of the printer");
@@ -3466,7 +3466,7 @@ void PrintConfigDef::init_fff_params()
     def->height = 13;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionString(""));
-    
+
     def = this->add("printer_variant", coString);
     //def->label = L("Printer variant");
     def->label = "Printer variant";
@@ -3754,7 +3754,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("This option causes the inner seams to be shifted backwards based on their depth, forming a zigzag pattern.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
-    
+
     def = this->add("seam_gap", coFloatOrPercent);
     def->label = L("Seam gap");
     def->tooltip = L("In order to reduce the visibility of the seam in a closed loop extrusion, the loop is interrupted and shortened by a specified amount.\n"
@@ -3870,13 +3870,13 @@ void PrintConfigDef::init_fff_params()
                      "e.g. if a wipe action is executed immediately following an outer wall extrusion, the speed of the outer wall extrusion will be utilized for the wipe action.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(true));
-    
+
     def = this->add("wipe_on_loops", coBool);
     def->label = L("Wipe on loops");
     def->tooltip = L("To minimize the visibility of the seam in a closed loop extrusion, a small inward movement is executed before the extruder leaves the loop.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
-    
+
     def = this->add("wipe_before_external_loop", coBool);
     def->label = L("Wipe before external loop");
     def->tooltip = L("To minimise visibility of potential overextrusion at the start of an external perimeter when printing with "
@@ -3897,7 +3897,7 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatOrPercent(80,true));
-    
+
     def = this->add("skirt_distance", coFloat);
     def->label = L("Skirt distance");
     def->tooltip = L("Distance from skirt to brim or object");
@@ -3952,7 +3952,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm/s");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(50.0));
-    
+
     def = this->add("min_skirt_length", coFloat);
     def->label = L("Skirt minimum extrusion length");
     def->full_label = L("Skirt minimum extrusion length");
@@ -4162,7 +4162,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0));
-    
+
     def = this->add("enable_support", coBool);
     //BBS: remove material behind support
     def->label = L("Enable support");
@@ -4385,14 +4385,14 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Line pattern of support");
     def->enum_keys_map = &ConfigOptionEnum<SupportMaterialPattern>::get_enum_values();
     def->enum_values.push_back("default");
+    def->enum_values.push_back("alignedrectilinear");
     def->enum_values.push_back("rectilinear");
-    def->enum_values.push_back("rectilinear-grid");
     def->enum_values.push_back("honeycomb");
     def->enum_values.push_back("lightning");
     def->enum_values.push_back("hollow");
     def->enum_labels.push_back(L("Default"));
+    def->enum_labels.push_back(L("Aligned Rectilinear"));
     def->enum_labels.push_back(L("Rectilinear"));
-    def->enum_labels.push_back(L("Rectilinear grid"));
     def->enum_labels.push_back(L("Honeycomb"));
     def->enum_labels.push_back(L("Lightning"));
     def->enum_labels.push_back(L("Hollow"));
@@ -4409,12 +4409,12 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("auto");
     def->enum_values.push_back("rectilinear");
     def->enum_values.push_back("concentric");
-    def->enum_values.push_back("rectilinear_interlaced");
+    def->enum_values.push_back("alignedrectilinear");
     def->enum_values.push_back("grid");
     def->enum_labels.push_back(L("Default"));
     def->enum_labels.push_back(L("Rectilinear"));
     def->enum_labels.push_back(L("Concentric"));
-    def->enum_labels.push_back(L("Rectilinear Interlaced"));
+    def->enum_labels.push_back(L("Aligned Rectilinear"));
     def->enum_labels.push_back(L("Grid"));
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<SupportMaterialInterfacePattern>(smipAuto));
@@ -4563,13 +4563,13 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Quality");
     def->tooltip = L("Enabling this option means the height of  tree support layer except the first will be automatically calculated ");
     def->set_default_value(new ConfigOptionBool(1));
-    
+
     def = this->add("tree_support_auto_brim", coBool);
     def->label = L("Auto brim width");
     def->category = L("Quality");
     def->tooltip = L("Enabling this option means the width of the brim for tree support will be automatically calculated");
     def->set_default_value(new ConfigOptionBool(1));
-    
+
     def = this->add("tree_support_brim_width", coFloat);
     def->label = L("Tree support brim width");
     def->category = L("Quality");
@@ -4609,7 +4609,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloat(2.));
 
     def = this->add("tree_support_branch_diameter_angle", coFloat);
-    // TRN PrintSettings: #lmFIXME 
+    // TRN PrintSettings: #lmFIXME
     def->label = L("Branch Diameter Angle");
     def->category = L("Support");
     // TRN PrintSettings: "Organic supports" > "Branch Diameter Angle"
@@ -4898,7 +4898,7 @@ void PrintConfigDef::init_fff_params()
     def->min = 100.;
     def->max = 300.;
     def->set_default_value(new ConfigOptionPercent(100.));
-    
+
     def = this->add("wipe_tower_max_purge_speed", coFloat);
     def->label = L("Maximum wipe tower print speed");
     def->tooltip = L("The maximum print speed when purging in the wipe tower and printing the wipe tower sparse layers. "
@@ -6000,7 +6000,7 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
     }
     else if (opt_key == "sparse_infill_anchor") {
         opt_key = "infill_anchor";
-    } 
+    }
     else if (opt_key == "sparse_infill_anchor_max") {
         opt_key = "infill_anchor_max";
     }
@@ -6028,7 +6028,7 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
     static std::set<std::string> ignore = {
         "acceleration", "scale", "rotate", "duplicate", "duplicate_grid",
         "bed_size",
-        "print_center", "g0", "wipe_tower_per_color_wipe", 
+        "print_center", "g0", "wipe_tower_per_color_wipe",
         "support_sharp_tails","support_remove_small_overhangs", "support_with_sheath",
         "tree_support_collision_resolution", "tree_support_with_infill",
         "max_volumetric_speed", "max_print_speed",
@@ -6535,7 +6535,7 @@ std::map<std::string, std::string> validate(const FullPrintConfig &cfg, bool und
         for (unsigned char wipe : cfg.wipe.values)
              if (wipe)
                 error_message.emplace("use_firmware_retraction", "--use-firmware-retraction is not compatible with --wipe");
-                
+
     // --gcode-flavor
     if (! print_config_def.get("gcode_flavor")->has_enum_value(cfg.gcode_flavor.serialize())) {
         error_message.emplace("gcode_flavor", L("invalid value ") + cfg.gcode_flavor.serialize());
@@ -6570,7 +6570,7 @@ std::map<std::string, std::string> validate(const FullPrintConfig &cfg, bool und
     if (cfg.bridge_flow <= 0) {
         error_message.emplace("bridge_flow", L("invalid value ") + std::to_string(cfg.bridge_flow));
     }
-    
+
     // --bridge-flow-ratio
     if (cfg.bridge_flow <= 0) {
         error_message.emplace("internal_bridge_flow", L("invalid value ") + std::to_string(cfg.internal_bridge_flow));

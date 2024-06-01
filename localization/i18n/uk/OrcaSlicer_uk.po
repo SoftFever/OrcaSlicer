@@ -13306,9 +13306,6 @@ msgstr "Базовий шаблон"
 msgid "Line pattern of support"
 msgstr "Лінія підтримки"
 
-msgid "Rectilinear grid"
-msgstr "Прямолінійна сітка"
-
 msgid "Hollow"
 msgstr "Порожній"
 
@@ -13323,9 +13320,6 @@ msgstr ""
 "Шаблон підтримки. Шаблон за замовчуванням для нерозчинної підтримки - "
 "прямолінійний, у той час як шаблон за замовчуванням для розчинної підтримки- "
 "концентричний"
-
-msgid "Rectilinear Interlaced"
-msgstr "Прямолінійний черезрядковий"
 
 msgid "Base pattern spacing"
 msgstr "Базовий інтервал шаблону"

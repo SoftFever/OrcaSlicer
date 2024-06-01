@@ -24,7 +24,7 @@ public:
 		sltUnknown = 0,
 		// Ratft base layer, to be printed with the support material.
 		sltRaftBase,
-		// Raft interface layer, to be printed with the support interface material. 
+		// Raft interface layer, to be printed with the support interface material.
 		sltRaftInterface,
 		// Bottom contact layer placed over a top surface of an object. To be printed with a support interface material.
 		sltBottomContact,
@@ -141,14 +141,14 @@ public:
 	    coordf_t 				support_spacing;
 	    coordf_t 				support_density;
 
-	    InfillPattern           base_fill_pattern;
-	    InfillPattern           interface_fill_pattern;
+	    InfillPattern       base_fill_pattern;
+	    InfillPattern       interface_fill_pattern;
 	    InfillPattern 			contact_fill_pattern;
-	    bool                    with_sheath;
+	    bool                with_sheath;
 	};
 
 	// Layers are allocated and owned by a deque. Once a layer is allocated, it is maintained
-	// up to the end of a generate() method. The layer storage may be replaced by an allocator class in the future, 
+	// up to the end of a generate() method. The layer storage may be replaced by an allocator class in the future,
 	// which would allocate layers by multiple chunks.
 	typedef std::deque<MyLayer> 				MyLayerStorage;
 	typedef std::vector<MyLayer*> 				MyLayersPtr;
@@ -179,10 +179,10 @@ private:
 	MyLayersPtr top_contact_layers(const PrintObject &object, const std::vector<Polygons> &buildplate_covered, MyLayerStorage &layer_storage) const;
 
 	// Generate bottom contact layers supporting the top contact layers.
-	// For a soluble interface material synchronize the layer heights with the object, 
+	// For a soluble interface material synchronize the layer heights with the object,
 	// otherwise set the layer height to a bridging flow of a support interface nozzle.
 	MyLayersPtr bottom_contact_layers_and_layer_support_areas(
-		const PrintObject &object, const MyLayersPtr &top_contacts, std::vector<Polygons> &buildplate_covered, 
+		const PrintObject &object, const MyLayersPtr &top_contacts, std::vector<Polygons> &buildplate_covered,
 		MyLayerStorage &layer_storage, std::vector<Polygons> &layer_support_areas) const;
 
 	// Trim the top_contacts layers with the bottom_contacts layers if they overlap, so there would not be enough vertical space for both of them.
@@ -221,7 +221,7 @@ private:
 	    const MyLayersPtr   &top_contacts,
 	    MyLayersPtr         &intermediate_layers,
 	    MyLayerStorage      &layer_storage) const;
-	
+
 
 	// Trim support layers by an object to leave a defined gap between
 	// the support volume and the object.

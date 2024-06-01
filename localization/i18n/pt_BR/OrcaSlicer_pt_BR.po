@@ -13345,9 +13345,6 @@ msgstr "Padrão da base"
 msgid "Line pattern of support"
 msgstr "Padrão de linha de suporte"
 
-msgid "Rectilinear grid"
-msgstr "Grade reticulada"
-
 msgid "Hollow"
 msgstr "Oco"
 
@@ -13362,9 +13359,6 @@ msgstr ""
 "Padrão de linha de interface de suporte. O padrão padrão para interface de "
 "suporte não solúvel é reticulado, enquanto o padrão padrão para interface de "
 "suporte solúvel é concêntrico"
-
-msgid "Rectilinear Interlaced"
-msgstr "Reticulado Interligado"
 
 msgid "Base pattern spacing"
 msgstr "Espaçamento do padrão de base"

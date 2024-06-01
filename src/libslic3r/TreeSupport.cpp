@@ -675,7 +675,7 @@ TreeSupport::TreeSupport(PrintObject& object, const SlicingParameters &slicing_p
         support_style = smsTreeHybrid;
     SupportMaterialPattern support_pattern  = m_object_config->support_base_pattern;
     if (support_style == smsTreeHybrid && support_pattern == smpDefault) support_pattern = smpRectilinear;
-    m_support_params.base_fill_pattern      = 
+    m_support_params.base_fill_pattern      =
         support_pattern == smpLightning ? ipLightning :
         support_pattern == smpHoneycomb ? ipHoneycomb :
                                               m_support_params.support_density > 0.95 || m_support_params.with_sheath ? ipRectilinear :
@@ -684,7 +684,7 @@ TreeSupport::TreeSupport(PrintObject& object, const SlicingParameters &slicing_p
     m_support_params.interface_fill_pattern = (m_support_params.interface_density > 0.95 ? ipRectilinear : ipSupportBase);
     if (m_object_config->support_interface_pattern == smipGrid)
         m_support_params.contact_fill_pattern = ipGrid;
-    else if (m_object_config->support_interface_pattern == smipRectilinearInterlaced)
+    else if (m_object_config->support_interface_pattern == smipRectilinear)
         m_support_params.contact_fill_pattern = ipRectilinear;
     else
         m_support_params.contact_fill_pattern = (m_object_config->support_interface_pattern == smipAuto && m_slicing_params.soluble_interface) ||
@@ -834,7 +834,7 @@ void TreeSupport::detect_overhangs(bool detect_first_sharp_tail_only)
         return cluster;
     };
 
-    if (!is_tree(stype)) return;   
+    if (!is_tree(stype)) return;
 
     max_cantilever_dist = 0;
 
@@ -914,7 +914,7 @@ void TreeSupport::detect_overhangs(bool detect_first_sharp_tail_only)
                                 if (svg.is_opened()) svg.draw(overhang, "red");
 #endif
                             }
-                        }                        
+                        }
                     }
                 }
 
@@ -937,7 +937,7 @@ void TreeSupport::detect_overhangs(bool detect_first_sharp_tail_only)
                             }
                             dist_max = std::max(dist_max, dist_pt);
                         }
-                        if (dist_max > scale_(3)) {  // is cantilever if the farmost point is larger than 3mm away from base                            
+                        if (dist_max > scale_(3)) {  // is cantilever if the farmost point is larger than 3mm away from base
                             max_cantilever_dist = std::max(max_cantilever_dist, dist_max);
                             layer->cantilevers.emplace_back(poly);
                             BOOST_LOG_TRIVIAL(debug) << "found a cantilever cluster. layer_nr=" << layer_nr << dist_max;
@@ -1033,10 +1033,10 @@ void TreeSupport::detect_overhangs(bool detect_first_sharp_tail_only)
 #endif
                 }
 
-            }          
+            }
         }
     }
-    
+
     // group overhang clusters
     for (size_t layer_nr = 0; layer_nr < m_object->layer_count(); layer_nr++) {
         if (m_object->print()->canceled())
@@ -1123,7 +1123,7 @@ void TreeSupport::detect_overhangs(bool detect_first_sharp_tail_only)
 
         if (layer_nr < blockers.size()) {
             Polygons& blocker = blockers[layer_nr];
-            // Arthur: union_ is a must because after mirroring, the blocker polygons are in left-hand coordinates, ie clockwise, 
+            // Arthur: union_ is a must because after mirroring, the blocker polygons are in left-hand coordinates, ie clockwise,
             // which are not valid polygons, and will be removed by offset_ex. union_ can make these polygons right.
             ts_layer->overhang_areas = diff_ex(ts_layer->overhang_areas, offset_ex(union_(blocker), scale_(radius_sample_resolution)));
         }
@@ -1381,7 +1381,7 @@ static void make_perimeter_and_infill(ExtrusionEntitiesPtr& dst, const Print& pr
 
         if (infill_first)
             dst.insert(dst.end(), loops_entities.begin(), loops_entities.end());
-        else { // loops first            
+        else { // loops first
             loops_entities.insert(loops_entities.end(), dst.begin(), dst.end());
             dst = std::move(loops_entities);
         }
@@ -1575,7 +1575,7 @@ void TreeSupport::generate_toolpaths()
                             filler_interface->angle = Geometry::deg2rad(object_config.support_angle.value);
                             fill_params.dont_sort = true;
                         }
-                        if (m_object_config->support_interface_pattern == smipRectilinearInterlaced)
+                        if (m_object_config->support_interface_pattern == smipRectilinear)
                             filler_interface->layer_id = round(area_group.dist_to_top / ts_layer->height);
                         fill_expolygons_generate_paths(ts_layer->support_fills.entities, std::move(polys), filler_interface.get(), fill_params, erSupportMaterialInterface,
                                                        m_support_material_interface_flow);
@@ -1608,7 +1608,7 @@ void TreeSupport::generate_toolpaths()
                             make_perimeter_and_inner_brim(ts_layer->support_fills.entities, poly,
                                 layer_id > 0 ? wall_count : std::numeric_limits<size_t>::max(), flow, erSupportMaterial);
                         }
-                        
+
                     }
                 }
                 if (m_support_params.base_fill_pattern == ipLightning)
@@ -2092,7 +2092,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
 
     // Use square support if there are too many nodes per layer because circle support needs much longer time to compute
     // Hower circle support can be printed faster, so we prefer circle for fewer nodes case.
-    const bool SQUARE_SUPPORT = avg_node_per_layer > 200;    
+    const bool SQUARE_SUPPORT = avg_node_per_layer > 200;
     const int  CIRCLE_RESOLUTION = SQUARE_SUPPORT ? 4 : 100; // The number of vertices in each circle.
 
 
@@ -2513,7 +2513,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                         {
                         // if roof1 interface is inside a hole, need to expand the interface
                         for (auto& roof1 : ts_layer->roof_1st_layer) {
-                            //if (hole.contains(roof1.contour.points.front()) && hole.contains(roof1.contour.bounding_box().center())) 
+                            //if (hole.contains(roof1.contour.points.front()) && hole.contains(roof1.contour.bounding_box().center()))
                             bool is_inside_hole = std::all_of(roof1.contour.points.begin(), roof1.contour.points.end(), [&hole](Point& pt) { return hole.contains(pt); });
                             if (is_inside_hole) {
                                 Polygon hole_reoriented = hole;
@@ -2668,7 +2668,7 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
         auto& layer_contact_nodes = contact_nodes[layer_nr];
         if (layer_contact_nodes.empty())
             continue;
-        
+
         int      layer_nr_next = layer_heights[layer_nr].next_layer_nr;
         coordf_t print_z_next = layer_heights[layer_nr_next].print_z;
         coordf_t height_next = layer_heights[layer_nr_next].height;
@@ -2938,7 +2938,7 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
                     for (const Point &neighbour : neighbours) {
                         // do not move to the neighbor to be deleted
                         Node *neighbour_node = nodes_per_part[group_index][neighbour];
-                        if (to_delete.find(neighbour_node) != to_delete.end()) continue; 
+                        if (to_delete.find(neighbour_node) != to_delete.end()) continue;
 
                         Point direction = neighbour - node.position;
                         // do not move to neighbor that's too far away (即使以最大速度移动，在接触热床之前都无法汇聚)
@@ -2954,7 +2954,7 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
                         if (!is_strong)
                             sum_direction += direction * (1 / dist2_to_neighbor);
                         else
-                            sum_direction += direction;                        
+                            sum_direction += direction;
                     }
 
                     if (!is_strong)
@@ -3079,7 +3079,7 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
             }
         }
     }
-    
+
     BOOST_LOG_TRIVIAL(debug) << "after m_avoidance_cache.size()=" << m_ts_data->m_avoidance_cache.size();
 
     for (Node *node : to_free_node_set)
@@ -3170,7 +3170,7 @@ void TreeSupport::smooth_nodes(std::vector<std::vector<Node *>> &contact_nodes)
         j["linked"] = !(tree_nodes[i].pos.z() > 0.205 && tree_nodes[i].children.empty());
         jj.push_back(j);
     }
-    
+
     std::ofstream ofs("tree_nodes.json");
     ofs << jj.dump();
     ofs.close();
@@ -3305,7 +3305,7 @@ std::vector<LayerHeightData> TreeSupport::plan_layer_heights(std::vector<std::ve
                     bounds.push_back(layer_nr - i);
                     layer_heights[layer_nr - i].print_z = m_object->get_layer(layer_nr - i)->print_z;
                     layer_heights[layer_nr - i].height = m_object->get_layer(layer_nr - i)->height;
-                } 
+                }
                 else {
                     break;
                 }
@@ -3516,7 +3516,7 @@ void TreeSupport::generate_contact_points(std::vector<std::vector<TreeSupport::N
                         curr_nodes.emplace_back(contact_node);
                     }
                 }
-            } 
+            }
             if(ts_layer->overhang_types[&overhang_part] == SupportLayer::Enforced || is_slim){
                 // remove close points in Enforcers
                 // auto above_nodes = contact_nodes[layer_nr - 1];
@@ -3564,7 +3564,7 @@ void TreeSupport::generate_contact_points(std::vector<std::vector<TreeSupport::N
             mx2 += x * x;
         }
         nodes_angle = atan2(nNodes * mxy - mx * my, nNodes * mx2 - SQ(mx));
-        
+
         BOOST_LOG_TRIVIAL(info) << "avg_node_per_layer=" << avg_node_per_layer << ", nodes_angle=" << nodes_angle;
     }
 }

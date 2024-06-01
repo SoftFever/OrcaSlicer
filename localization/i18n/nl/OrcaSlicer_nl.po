@@ -12796,9 +12796,6 @@ msgstr "Basis patroon"
 msgid "Line pattern of support"
 msgstr "Dit is het lijnpatroon voor support."
 
-msgid "Rectilinear grid"
-msgstr "Rechtlijnig raster"
-
 msgid "Hollow"
 msgstr "Hol"
 
@@ -12813,9 +12810,6 @@ msgstr ""
 "Dit is het lijnpatroon voor support interfaces. Het standaardpatroon voor "
 "niet-oplosbare support interfaces is Rechtlijnig, terwijl het "
 "standaardpatroon voor oplosbare support interfaces Concentrisch is."
-
-msgid "Rectilinear Interlaced"
-msgstr "Rectilinear Interlaced"
 
 msgid "Base pattern spacing"
 msgstr "Basis patroon afstand"
