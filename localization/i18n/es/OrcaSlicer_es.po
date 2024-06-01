@@ -3050,7 +3050,7 @@ msgstr ""
 =======
 "Cambie el desecante cuando esté demasiado húmedo. El indicador puede no "
 "representar con precisión en los siguientes casos: cuando la tapa está "
-"abierta o se cambia el paquete de desecante. tarda horas en absorber la "
+"abierta o se cambia el paquete de desecante, tarda horas en absorber la "
 "humedad, las bajas temperaturas también ralentizan el proceso."
 >>>>>>> 53eb0d309 (Update OrcaSlicer_es.po)
 
