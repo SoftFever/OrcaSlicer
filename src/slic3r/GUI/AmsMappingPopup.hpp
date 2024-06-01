@@ -157,6 +157,7 @@ public:
     void         update_materials_list(std::vector<std::string> list);
     void         set_tag_texture(std::string texture);
     void         update_ams_data(std::map<std::string, Ams *> amsList);
+    void         update_ams_data_multi_machines();
     void         add_ams_mapping(std::vector<TrayData> tray_data, wxWindow* container, wxBoxSizer* sizer);
     void         set_current_filament_id(int id){m_current_filament_id = id;};
     int          get_current_filament_id(){return m_current_filament_id;};

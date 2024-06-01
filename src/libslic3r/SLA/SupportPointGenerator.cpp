@@ -439,8 +439,8 @@ static inline std::vector<Vec2f> poisson_disk_from_samples(const std::vector<Vec
     struct RawSample
     {
         Vec2f coord;
-        Vec2i cell_id;
-        RawSample(const Vec2f &crd = {}, const Vec2i &id = {}): coord{crd}, cell_id{id} {}
+        Vec2i32 cell_id;
+        RawSample(const Vec2f &crd = {}, const Vec2i32 &id = {}): coord{crd}, cell_id{id} {}
     };
 
     auto raw_samples_sorted = reserve_vector<RawSample>(raw_samples.size());
@@ -464,7 +464,7 @@ static inline std::vector<Vec2f> poisson_disk_from_samples(const std::vector<Vec
     };
 
     struct CellIDHash {
-        std::size_t operator()(const Vec2i &cell_id) const {
+        std::size_t operator()(const Vec2i32 &cell_id) const {
             return std::hash<int>()(cell_id.x()) ^ std::hash<int>()(cell_id.y() * 593);
         }
     };
@@ -472,11 +472,11 @@ static inline std::vector<Vec2f> poisson_disk_from_samples(const std::vector<Vec
     // Map from cell IDs to hash_data.  Each hash_data points to the range in raw_samples corresponding to that cell.
     // (We could just store the samples in hash_data.  This implementation is an artifact of the reference paper, which
     // is optimizing for GPU acceleration that we haven't implemented currently.)
-    typedef std::unordered_map<Vec2i, PoissonDiskGridEntry, CellIDHash> Cells;
+    typedef std::unordered_map<Vec2i32, PoissonDiskGridEntry, CellIDHash> Cells;
     Cells cells;
     {
         typename Cells::iterator last_cell_id_it;
-        Vec2i           last_cell_id(-1, -1);
+        Vec2i32           last_cell_id(-1, -1);
         for (size_t i = 0; i < raw_samples_sorted.size(); ++ i) {
             const RawSample &sample = raw_samples_sorted[i];
             if (sample.cell_id == last_cell_id) {
@@ -500,7 +500,7 @@ static inline std::vector<Vec2f> poisson_disk_from_samples(const std::vector<Vec
     for (int trial = 0; trial < max_trials; ++ trial) {
         // Create sample points for each entry in cells.
         for (auto &it : cells) {
-            const Vec2i          &cell_id   = it.first;
+            const Vec2i32          &cell_id   = it.first;
             PoissonDiskGridEntry &cell_data = it.second;
             // This cell's raw sample points start at first_sample_idx.  On trial 0, try the first one. On trial 1, try first_sample_idx + 1.
             int next_sample_idx = cell_data.first_sample_idx + trial;
@@ -513,7 +513,7 @@ static inline std::vector<Vec2f> poisson_disk_from_samples(const std::vector<Vec
             bool conflict = refuse_function(candidate.coord);
             for (int i = -1; i < 2 && ! conflict; ++ i) {
                 for (int j = -1; j < 2; ++ j) {
-                    const auto &it_neighbor = cells.find(cell_id + Vec2i(i, j));
+                    const auto &it_neighbor = cells.find(cell_id + Vec2i32(i, j));
                     if (it_neighbor != cells.end()) {
                         const PoissonDiskGridEntry &neighbor = it_neighbor->second;
                         for (int i_sample = 0; i_sample < neighbor.num_poisson_samples; ++ i_sample)

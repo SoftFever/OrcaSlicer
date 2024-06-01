@@ -547,7 +547,7 @@ void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, f
 
     static const ImVec4 LINE_NUMBER_COLOR    = ImGuiWrapper::COL_ORANGE_LIGHT;
     static const ImVec4 SELECTION_RECT_COLOR = ImGuiWrapper::COL_ORANGE_DARK;
-    static const ImVec4 COMMAND_COLOR        = { 0.8f, 0.8f, 0.0f, 1.0f };
+    static const ImVec4 COMMAND_COLOR        = {0.8f, 0.8f, 0.0f, 1.0f};
     static const ImVec4 PARAMETERS_COLOR     = { 1.0f, 1.0f, 1.0f, 1.0f };
     static const ImVec4 COMMENT_COLOR        = { 0.7f, 0.7f, 0.7f, 1.0f };
 
@@ -1732,12 +1732,14 @@ void GCodeViewer::update_moves_slider(bool set_to_max)
         ++count;
     }
 
+    bool keep_min = m_moves_slider->GetActiveValue() == m_moves_slider->GetMinValue();
+
     m_moves_slider->SetSliderValues(values);
     m_moves_slider->SetSliderAlternateValues(alternate_values);
     m_moves_slider->SetMaxValue(view.endpoints.last - view.endpoints.first);
     m_moves_slider->SetSelectionSpan(view.current.first - view.endpoints.first, view.current.last - view.endpoints.first);
     if (set_to_max)
-        m_moves_slider->SetHigherValue(m_moves_slider->GetMaxValue());
+        m_moves_slider->SetHigherValue(keep_min ? m_moves_slider->GetMinValue() : m_moves_slider->GetMaxValue());
 }
 
 void GCodeViewer::update_layers_slider_mode()
@@ -4183,10 +4185,10 @@ void GCodeViewer::render_all_plates_stats(const std::vector<const GCodeProcessor
             auto plate_extruders = plate->get_extruders(true);
             for (size_t extruder_id : plate_extruders) {
                 extruder_id -= 1;
-                if (plate_print_statistics.volumes_per_extruder.find(extruder_id) == plate_print_statistics.volumes_per_extruder.end())
-                    flushed_volume_of_extruders_all_plates[extruder_id] += 0;
+                if (plate_print_statistics.model_volumes_per_extruder.find(extruder_id) == plate_print_statistics.model_volumes_per_extruder.end())
+                    model_volume_of_extruders_all_plates[extruder_id] += 0;
                 else {
-                    double model_volume = plate_print_statistics.volumes_per_extruder.at(extruder_id);
+                    double model_volume = plate_print_statistics.model_volumes_per_extruder.at(extruder_id);
                     model_volume_of_extruders_all_plates[extruder_id] += model_volume;
                 }
                 if (plate_print_statistics.flush_per_filament.find(extruder_id) == plate_print_statistics.flush_per_filament.end())
@@ -4736,12 +4738,12 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
 
     // used filament statistics
     for (size_t extruder_id : m_extruder_ids) {
-        if (m_print_statistics.volumes_per_extruder.find(extruder_id) == m_print_statistics.volumes_per_extruder.end()) {
+        if (m_print_statistics.model_volumes_per_extruder.find(extruder_id) == m_print_statistics.model_volumes_per_extruder.end()) {
             model_used_filaments_m.push_back(0.0);
             model_used_filaments_g.push_back(0.0);
         }
         else {
-            double volume = m_print_statistics.volumes_per_extruder.at(extruder_id);
+            double volume = m_print_statistics.model_volumes_per_extruder.at(extruder_id);
             auto [model_used_filament_m, model_used_filament_g] = get_used_filament_from_volume(volume, extruder_id);
             model_used_filaments_m.push_back(model_used_filament_m);
             model_used_filaments_g.push_back(model_used_filament_g);
@@ -4862,9 +4864,9 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     {
         // calculate used filaments data
         for (size_t extruder_id : m_extruder_ids) {
-            if (m_print_statistics.volumes_per_extruder.find(extruder_id) == m_print_statistics.volumes_per_extruder.end())
+            if (m_print_statistics.model_volumes_per_extruder.find(extruder_id) == m_print_statistics.model_volumes_per_extruder.end())
                 continue;
-            double volume = m_print_statistics.volumes_per_extruder.at(extruder_id);
+            double volume = m_print_statistics.model_volumes_per_extruder.at(extruder_id);
 
             auto [model_used_filament_m, model_used_filament_g] = get_used_filament_from_volume(volume, extruder_id);
             model_used_filaments_m.push_back(model_used_filament_m);

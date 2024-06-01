@@ -5,6 +5,9 @@
   "name": "Snapmaker J1 PLA Silk @base",
   "filament_id": "1528786603",
   "inherits": "fdm_filament_pla",
+  "filament_end_gcode": [
+    "M104 S{temperature_vitrification[current_extruder]} ;standby T{current_extruder}"
+  ],
   "hot_plate_temp_initial_layer": [
     "65"
   ],

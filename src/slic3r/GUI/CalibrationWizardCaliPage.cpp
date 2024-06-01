@@ -382,7 +382,7 @@ void CalibrationCaliPage::update_subtask(MachineObject* obj)
         m_printing_panel->update_subtask_name(wxString::Format("%s", GUI::from_u8(obj->subtask_name)));
 
         if (obj->get_modeltask() && obj->get_modeltask()->design_id > 0) {
-            m_printing_panel->show_profile_info(true, wxString::FromUTF8(obj->get_modeltask()->profile_name));
+            m_printing_panel->show_profile_info(wxString::FromUTF8(obj->get_modeltask()->profile_name));
         }
         else {
             m_printing_panel->show_profile_info(false);

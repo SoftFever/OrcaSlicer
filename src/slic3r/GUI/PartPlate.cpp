@@ -468,7 +468,14 @@ void PartPlate::calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox
 
 	Polylines axes_lines, axes_lines_bolder;
 	int count = 0;
-	for (coord_t x = pp_bbox.min(0); x <= pp_bbox.max(0); x += scale_(10.0)) {
+	int step  = 10;
+	// Orca: use 500 x 500 bed size as baseline.
+    auto      grid_counts = pp_bbox.size() / ((coord_t) scale_(step * 50));
+    // if the grid is too dense, we increase the step
+    if (grid_counts.minCoeff() > 1) {
+        step = static_cast<int>(grid_counts.minCoeff() + 1) * 10;
+    }
+    for (coord_t x = pp_bbox.min(0); x <= pp_bbox.max(0); x += scale_(step)) {
 		Polyline line;
 		line.append(Point(x, pp_bbox.min(1)));
 		line.append(Point(x, pp_bbox.max(1)));
@@ -480,7 +487,7 @@ void PartPlate::calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox
 		count ++;
 	}
 	count = 0;
-	for (coord_t y = pp_bbox.min(1); y <= pp_bbox.max(1); y += scale_(10.0)) {
+	for (coord_t y = pp_bbox.min(1); y <= pp_bbox.max(1); y += scale_(step)) {
 		Polyline line;
 		line.append(Point(pp_bbox.min(0), y));
 		line.append(Point(pp_bbox.max(0), y));
@@ -1580,14 +1587,7 @@ std::vector<int> PartPlate::get_used_extruders()
 
 	std::set<int> used_extruders_set;
 	PrintEstimatedStatistics& ps = result->print_statistics;
-	// model usage
-	for (const auto&item:ps.volumes_per_extruder)
-		used_extruders_set.emplace(item.first + 1);
-	// support usage
-	for (const auto&item:ps.support_volumes_per_extruder)
-		used_extruders_set.emplace(item.first + 1);
-	// wipe tower usage
-	for (const auto&item:ps.wipe_tower_volumes_per_extruder)
+	for (const auto& item : ps.total_volumes_per_extruder)
 		used_extruders_set.emplace(item.first + 1);
 
 	return std::vector(used_extruders_set.begin(), used_extruders_set.end());

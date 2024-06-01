@@ -903,6 +903,9 @@ public:
 
 	std::string                 output_filename(const std::string &filename_base = std::string()) const override;
 
+	std::string                 get_model_name() const;
+	std::string                 get_plate_number_formatted() const;
+
     size_t                      num_print_regions() const throw() { return m_print_regions.size(); }
     const PrintRegion&          get_print_region(size_t idx) const  { return *m_print_regions[idx]; }
     const ToolOrdering&         get_tool_ordering() const { return m_wipe_tower_data.tool_ordering; }
@@ -1027,7 +1030,8 @@ private:
 
 public:
     //BBS: this was a print config and now seems to be useless so we move it to here
-    static float min_skirt_length;
+    // ORCA: parameter below is now back to being a user option (min_skirt_length)
+    //static float min_skirt_length;
 };
 
 

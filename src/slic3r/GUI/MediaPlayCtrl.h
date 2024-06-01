@@ -42,6 +42,8 @@ public:
 
     void msw_rescale();
 
+    void jump_to_play();
+
 protected:
     void onStateChanged(wxMediaEvent & event);
 

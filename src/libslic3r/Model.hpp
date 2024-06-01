@@ -35,6 +35,7 @@
 #include "Format/STEP.hpp"
 //BBS: add stl
 #include "Format/STL.hpp"
+#include "Format/OBJ.hpp"
 
 #include <map>
 #include <memory>
@@ -1564,8 +1565,16 @@ public:
         DynamicPrintConfig* config = nullptr, ConfigSubstitutionContext* config_substitutions = nullptr,
         LoadStrategy options = LoadStrategy::AddDefaultInstances, PlateDataPtrs* plate_data = nullptr,
         std::vector<Preset*>* project_presets = nullptr, bool* is_xxx = nullptr, Semver* file_version = nullptr, Import3mfProgressFn proFn = nullptr,
-        ImportstlProgressFn stlFn = nullptr, ImportStepProgressFn stepFn = nullptr, StepIsUtf8Fn stepIsUtf8Fn = nullptr, BBLProject* project = nullptr, int plate_id = 0);
+                                ImportstlProgressFn        stlFn                = nullptr,
+                                ImportStepProgressFn       stepFn               = nullptr,
+                                StepIsUtf8Fn               stepIsUtf8Fn         = nullptr,
+                                BBLProject *               project              = nullptr,
+                                int                        plate_id             = 0,
+                                ObjImportColorFn           objFn                = nullptr
+                                );
     // BBS
+    static bool    obj_import_vertex_color_deal(const std::vector<unsigned char> &vertex_filament_ids, const unsigned char &first_extruder_id, Model *model);
+    static bool    obj_import_face_color_deal(const std::vector<unsigned char> &face_filament_ids, const unsigned char &first_extruder_id, Model *model);
     static double findMaxSpeed(const ModelObject* object);
     static double getThermalLength(const ModelVolume* modelVolumePtr);
     static double getThermalLength(const std::vector<ModelVolume*> modelVolumePtrs);
