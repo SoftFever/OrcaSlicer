@@ -42,13 +42,14 @@ template<int N, class T> using Vec = Mat<N, 1, T>;
 // Vector types with a fixed point coordinate base type.
 using Vec2crd = Eigen::Matrix<coord_t,  2, 1, Eigen::DontAlign>;
 using Vec3crd = Eigen::Matrix<coord_t,  3, 1, Eigen::DontAlign>;
-using Vec2i   = Eigen::Matrix<int,      2, 1, Eigen::DontAlign>;
-using Vec3i   = Eigen::Matrix<int,      3, 1, Eigen::DontAlign>;
-using Vec4i   = Eigen::Matrix<int,      4, 1, Eigen::DontAlign>;
+// using Vec2i   = Eigen::Matrix<int,      2, 1, Eigen::DontAlign>;
+// using Vec3i   = Eigen::Matrix<int,      3, 1, Eigen::DontAlign>;
+// using Vec4i   = Eigen::Matrix<int,      4, 1, Eigen::DontAlign>;
 using Vec2i32 = Eigen::Matrix<int32_t,  2, 1, Eigen::DontAlign>;
 using Vec2i64 = Eigen::Matrix<int64_t,  2, 1, Eigen::DontAlign>;
 using Vec3i32 = Eigen::Matrix<int32_t,  3, 1, Eigen::DontAlign>;
 using Vec3i64 = Eigen::Matrix<int64_t,  3, 1, Eigen::DontAlign>;
+using Vec4i32 = Eigen::Matrix<int32_t,  4, 1, Eigen::DontAlign>;
 
 // Vector types with a double coordinate base type.
 using Vec2f   = Eigen::Matrix<float,    2, 1, Eigen::DontAlign>;
@@ -185,6 +186,8 @@ public:
     Point() : Vec2crd(0, 0) {}
     Point(int32_t x, int32_t y) : Vec2crd(coord_t(x), coord_t(y)) {}
     Point(int64_t x, int64_t y) : Vec2crd(coord_t(x), coord_t(y)) {}
+    Point(int64_t x, int32_t y) : Vec2crd(coord_t(x), coord_t(y)) {}
+    Point(int32_t x, int64_t y) : Vec2crd(coord_t(x), coord_t(y)) {}
     Point(double x, double y) : Vec2crd(coord_t(std::round(x)), coord_t(std::round(y))) {}
     Point(const Point &rhs) { *this = rhs; }
 	explicit Point(const Vec2d& rhs) : Vec2crd(coord_t(std::round(rhs.x())), coord_t(std::round(rhs.y()))) {}
@@ -652,10 +655,10 @@ namespace boost { namespace polygon {
 namespace cereal {
 //	template<class Archive> void serialize(Archive& archive, Slic3r::Vec2crd &v) { archive(v.x(), v.y()); }
 //	template<class Archive> void serialize(Archive& archive, Slic3r::Vec3crd &v) { archive(v.x(), v.y(), v.z()); }
-	template<class Archive> void serialize(Archive& archive, Slic3r::Vec2i   &v) { archive(v.x(), v.y()); }
-	template<class Archive> void serialize(Archive& archive, Slic3r::Vec3i   &v) { archive(v.x(), v.y(), v.z()); }
-//	template<class Archive> void serialize(Archive& archive, Slic3r::Vec2i64 &v) { archive(v.x(), v.y()); }
-//	template<class Archive> void serialize(Archive& archive, Slic3r::Vec3i64 &v) { archive(v.x(), v.y(), v.z()); }
+	template<class Archive> void serialize(Archive& archive, Slic3r::Vec2i32   &v) { archive(v.x(), v.y()); }
+	template<class Archive> void serialize(Archive& archive, Slic3r::Vec3i32   &v) { archive(v.x(), v.y(), v.z()); }
+	template<class Archive> void serialize(Archive& archive, Slic3r::Vec2i64 &v) { archive(v.x(), v.y()); }
+	template<class Archive> void serialize(Archive& archive, Slic3r::Vec3i64 &v) { archive(v.x(), v.y(), v.z()); }
 	template<class Archive> void serialize(Archive& archive, Slic3r::Vec2f   &v) { archive(v.x(), v.y()); }
 	template<class Archive> void serialize(Archive& archive, Slic3r::Vec3f   &v) { archive(v.x(), v.y(), v.z()); }
 	template<class Archive> void serialize(Archive& archive, Slic3r::Vec2d   &v) { archive(v.x(), v.y()); }

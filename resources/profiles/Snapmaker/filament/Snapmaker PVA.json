@@ -4,31 +4,5 @@
   "instantiation": "true",
   "name": "Snapmaker PVA",
   "setting_id": "3741816734",
-  "inherits": "Snapmaker PVA @base",
-  "compatible_printers": [
-    "Snapmaker A250 (0.4 nozzle)",
-    "Snapmaker A250 (0.6 nozzle)",
-    "Snapmaker A250 (0.8 nozzle)",
-    "Snapmaker A350 (0.4 nozzle)",
-    "Snapmaker A350 (0.6 nozzle)",
-    "Snapmaker A350 (0.8 nozzle)",
-    "Snapmaker A250 Dual (0.4 nozzle)",
-    "Snapmaker A250 Dual (0.6 nozzle)",
-    "Snapmaker A250 Dual (0.8 nozzle)",
-    "Snapmaker A350 Dual (0.4 nozzle)",
-    "Snapmaker A350 Dual (0.6 nozzle)",
-    "Snapmaker A350 Dual (0.8 nozzle)",
-    "Snapmaker A250 Dual QSKit (0.4 nozzle)",
-    "Snapmaker A250 Dual QSKit (0.6 nozzle)",
-    "Snapmaker A250 Dual QSKit (0.8 nozzle)",
-    "Snapmaker A350 Dual QSKit (0.4 nozzle)",
-    "Snapmaker A350 Dual QSKit (0.6 nozzle)",
-    "Snapmaker A350 Dual QSKit (0.8 nozzle)",
-    "Snapmaker A250 QSKit (0.4 nozzle)",
-    "Snapmaker A250 QSKit (0.6 nozzle)",
-    "Snapmaker A250 QSKit (0.8 nozzle)",
-    "Snapmaker A350 QSKit (0.4 nozzle)",
-    "Snapmaker A350 QSKit (0.6 nozzle)",
-    "Snapmaker A350 QSKit (0.8 nozzle)"
-  ]
+  "inherits": "Snapmaker PVA @base"
 }

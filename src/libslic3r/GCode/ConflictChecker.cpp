@@ -13,9 +13,6 @@ namespace RasterizationImpl {
 using IndexPair = std::pair<int64_t, int64_t>;
 using Grids     = std::vector<IndexPair>;
 
-inline constexpr int64_t RasteXDistance = scale_(1);
-inline constexpr int64_t RasteYDistance = scale_(1);
-
 inline IndexPair point_map_grid_index(const Point &pt, int64_t xdist, int64_t ydist)
 {
     auto x = pt.x() / xdist;
@@ -25,7 +22,7 @@ inline IndexPair point_map_grid_index(const Point &pt, int64_t xdist, int64_t yd
 
 inline bool nearly_equal(const Point &p1, const Point &p2) { return std::abs(p1.x() - p2.x()) < SCALED_EPSILON && std::abs(p1.y() - p2.y()) < SCALED_EPSILON; }
 
-inline Grids line_rasterization(const Line &line, int64_t xdist = RasteXDistance, int64_t ydist = RasteYDistance)
+inline Grids line_rasterization(const Line &line, int64_t xdist = scale_(1), int64_t ydist = scale_(1))
 {
     Grids     res;
     Point     rayStart     = line.a;
@@ -93,9 +90,14 @@ void LinesBucketQueue::emplace_back_bucket(ExtrusionLayers &&els, const void *ob
 {
     auto oldSize = line_buckets.capacity();
     line_buckets.emplace_back(std::move(els), objPtr, offset);
-    line_bucket_ptr_queue.push(&line_buckets.back());
     auto newSize = line_buckets.capacity();
-    if (oldSize != newSize) { // pointers change
+    // Since line_bucket_ptr_queue is storing pointers into line_buckets,
+    // we need to handle the case where the capacity changes since that makes
+    // the existing pointers invalid
+    if (oldSize == newSize) {
+        line_bucket_ptr_queue.push(&line_buckets.back());
+    }
+    else { // pointers change, create a new queue from scratch
         decltype(line_bucket_ptr_queue) newQueue;
         for (LinesBucket &bucket : line_buckets) { newQueue.push(&bucket); }
         std::swap(line_bucket_ptr_queue, newQueue);
@@ -218,6 +220,7 @@ ConflictResultOpt ConflictChecker::find_inter_of_lines_in_diff_objs(PrintObjectP
 {
     if (objs.size() <= 1 && !wtdptr) { return {}; }
     LinesBucketQueue conflictQueue;
+
     if (wtdptr.has_value()) { // wipe tower at 0 by default
         auto            wtpaths = wtdptr.value()->getFakeExtrusionPathsFromWipeTower();
         ExtrusionLayers wtels;

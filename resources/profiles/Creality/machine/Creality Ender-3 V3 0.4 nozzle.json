@@ -8,7 +8,7 @@
     "printer_model": "Creality Ender-3 V3",
     "gcode_flavor": "klipper",
 	"printer_structure": "i3",
-    "default_print_profile": "0.20mm Standard @Creality Ender3V3",
+    "default_print_profile": "0.20mm Standard @Creality Ender3 V3",
     "nozzle_diameter": [
         "0.4"
     ],

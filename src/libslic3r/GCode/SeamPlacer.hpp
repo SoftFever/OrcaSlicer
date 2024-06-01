@@ -119,7 +119,7 @@ public:
   // snapping angle - angles larger than this value will be snapped to during seam painting
   static constexpr float sharp_angle_snapping_threshold = 55.0f * float(PI) / 180.0f;
   // overhang angle for seam placement that still yields good results, in degrees, measured from vertical direction
-  static constexpr float overhang_angle_threshold = 50.0f * float(PI) / 180.0f;
+  static constexpr float overhang_angle_threshold = 45.0f * float(PI) / 180.0f;
 
   // determines angle importance compared to visibility ( neutral value is 1.0f. )
   static constexpr float angle_importance_aligned = 0.6f;

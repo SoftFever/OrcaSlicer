@@ -364,7 +364,7 @@ void Controller::on_scroll(long v, long d, MouseInput::WheelAxis /*wa*/)
 void Controller::on_moved_to(long x, long y)
 {
     if (m_left_btn) {
-        call_cameras(&Camera::rotate, (Vec2i{x, y} - m_mouse_pos).cast<float>());
+        call_cameras(&Camera::rotate, (Vec2i32{x, y} - m_mouse_pos).cast<float>());
         call(&Display::repaint, m_displays);
     }
     

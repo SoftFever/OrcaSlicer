@@ -1171,6 +1171,9 @@ mz_uint mz_zip_reader_get_extra(mz_zip_archive *pZip, mz_uint file_index, char *
 int mz_zip_reader_locate_file(mz_zip_archive *pZip, const char *pName, const char *pComment, mz_uint flags);
 int mz_zip_reader_locate_file_v2(mz_zip_archive *pZip, const char *pName, const char *pComment, mz_uint flags, mz_uint32 *file_index);
 
+/* Retrieves the filename of an archive file entry from EXTRA ID. */
+mz_uint mz_zip_reader_get_filename_from_extra(mz_zip_archive * pZip, mz_uint file_index, char* buffer, mz_uint extra_buf_size);
+
 /* Returns detailed information about an archive file entry. */
 mz_bool mz_zip_reader_file_stat(mz_zip_archive *pZip, mz_uint file_index, mz_zip_archive_file_stat *pStat);
 
@@ -1211,6 +1214,9 @@ mz_bool mz_zip_reader_extract_iter_free(mz_zip_reader_extract_iter_state* pState
 /* Extracts a archive file to a disk file and sets its last accessed and modified times. */
 /* This function only extracts files, not archive directory records. */
 mz_bool mz_zip_reader_extract_to_file(mz_zip_archive *pZip, mz_uint file_index, const char *pDst_filename, mz_uint flags);
+#ifdef WIN32
+mz_bool mz_zip_reader_extract_to_file_w(mz_zip_archive *pZip, mz_uint file_index, const wchar_t *pDst_filename, mz_uint flags);
+#endif
 mz_bool mz_zip_reader_extract_file_to_file(mz_zip_archive *pZip, const char *pArchive_filename, const char *pDst_filename, mz_uint flags);
 
 /* Extracts a archive file starting at the current position in the destination FILE stream. */

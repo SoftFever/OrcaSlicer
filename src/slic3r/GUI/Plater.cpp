@@ -156,6 +156,7 @@
 
 #include <libslic3r/CutUtils.hpp>
 #include <wx/glcanvas.h>    // Needs to be last because reasons :-/
+#include <libslic3r/miniz_extension.hpp>
 #include "WipeTowerDialog.hpp"
 #include "ObjColorDialog.hpp"
 
@@ -168,6 +169,7 @@
 #include "PlateSettingsDialog.hpp"
 #include "DailyTips.hpp"
 #include "CreatePresetsDialog.hpp"
+#include "FileArchiveDialog.hpp"
 
 using boost::optional;
 namespace fs = boost::filesystem;
@@ -1268,7 +1270,7 @@ void Sidebar::update_all_preset_comboboxes()
 
     // Orca:: show device tab based on vendor type
     p_mainframe->show_device(use_bbl_network);
-    p_mainframe->select_tab(MainFrame::tp3DEditor);
+    p_mainframe->m_tabpanel->SetSelection(p_mainframe->m_tabpanel->GetSelection());
 }
 
 void Sidebar::update_presets(Preset::Type preset_type)
@@ -1496,6 +1498,7 @@ void Sidebar::sys_color_changed()
                                                                 p->combo_printer })
         combo->sys_color_changed();
 #endif
+    p->combo_printer->sys_color_changed();
     for (PlaterPresetComboBox* combo : p->combos_filament)
         combo->sys_color_changed();
 
@@ -2372,6 +2375,7 @@ struct Plater::priv
 
     void select_all();
     void deselect_all();
+    void exit_gizmo();
     void remove(size_t obj_idx);
     bool delete_object_from_model(size_t obj_idx, bool refresh_immediately = true); //BBS
     void delete_all_objects_from_model();
@@ -2697,7 +2701,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     , config(Slic3r::DynamicPrintConfig::new_from_defaults_keys({
         "printable_area", "bed_exclude_area", "bed_custom_texture", "bed_custom_model", "print_sequence",
         "extruder_clearance_radius", "extruder_clearance_height_to_lid", "extruder_clearance_height_to_rod",
-		"nozzle_height", "skirt_loops", "skirt_speed", "skirt_distance",
+		"nozzle_height", "skirt_loops", "skirt_speed","min_skirt_length", "skirt_distance",
         "brim_width", "brim_object_gap", "brim_type", "nozzle_diameter", "single_extruder_multi_material", "preferred_orientation",
         "enable_prime_tower", "wipe_tower_x", "wipe_tower_y", "prime_tower_width", "prime_tower_brim_width", "prime_volume",
         "extruder_colour", "filament_colour", "material_colour", "printable_height", "printer_model", "printer_technology",
@@ -3171,6 +3175,15 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         }
         wxGetApp().mainframe->Raise();
         this->q->load_files(input_files);
+    });
+    
+    this->q->Bind(EVT_START_DOWNLOAD_OTHER_INSTANCE, [](StartDownloadOtherInstanceEvent& evt) {
+        BOOST_LOG_TRIVIAL(trace) << "Received url from other instance event.";
+        wxGetApp().mainframe->Raise();
+        for (size_t i = 0; i < evt.data.size(); ++i) {
+            wxGetApp().start_download(evt.data[i]);
+        }
+       
     });
     this->q->Bind(EVT_INSTANCE_GO_TO_FRONT, [this](InstanceGoToFrontEvent &) {
         bring_instance_forward();
@@ -3926,6 +3939,16 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
                         //always load config
                         {
+                            // BBS: save the wipe tower pos in file here, will be used later
+                            ConfigOptionFloats* wipe_tower_x_opt = config.opt<ConfigOptionFloats>("wipe_tower_x");
+                            ConfigOptionFloats* wipe_tower_y_opt = config.opt<ConfigOptionFloats>("wipe_tower_y");
+                            std::optional<ConfigOptionFloats>file_wipe_tower_x;
+                            std::optional<ConfigOptionFloats>file_wipe_tower_y;
+                            if (wipe_tower_x_opt)
+                                file_wipe_tower_x = *wipe_tower_x_opt;
+                            if (wipe_tower_y_opt)
+                                file_wipe_tower_y = *wipe_tower_y_opt;
+
                             preset_bundle->load_config_model(filename.string(), std::move(config), file_version);
 
                             ConfigOption* bed_type_opt = preset_bundle->project_config.option("curr_bed_type");
@@ -4001,6 +4024,17 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             // when for extruder colors are used filament colors
                             q->on_filaments_change(preset_bundle->filament_presets.size());
                             is_project_file = true;
+
+                            //BBS: rewrite wipe tower pos stored in 3mf file , the code above should be seriously reconsidered
+                            {
+                                DynamicConfig& proj_cfg = wxGetApp().preset_bundle->project_config;
+                                ConfigOptionFloats* wipe_tower_x = proj_cfg.opt<ConfigOptionFloats>("wipe_tower_x");
+                                ConfigOptionFloats* wipe_tower_y = proj_cfg.opt<ConfigOptionFloats>("wipe_tower_y");
+                                if (file_wipe_tower_x)
+                                    *wipe_tower_x = *file_wipe_tower_x;
+                                if (file_wipe_tower_y)
+                                    *wipe_tower_y = *file_wipe_tower_y;
+                            }
                         }
                     }
                     if (!silence) wxGetApp().app_config->update_config_dir(path.parent_path().string());
@@ -4049,9 +4083,18 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             cancel        = !cont;
                     },
                     [](int isUtf8StepFile) {
-                        if (!isUtf8StepFile)
-                            Slic3r::GUI::show_info(nullptr, _L("Name of components inside step file is not UTF8 format!") + "\n\n" + _L("The name may show garbage characters!"),
-                                                   _L("Attention!"));
+                            if (!isUtf8StepFile) {
+                                const auto no_warn = wxGetApp().app_config->get_bool("step_not_utf8_no_warn");
+                                if (!no_warn) {
+                                    MessageDialog dlg(nullptr, _L("Name of components inside step file is not UTF8 format!") + "\n\n" + _L("The name may show garbage characters!"),
+                                                      wxString(SLIC3R_APP_FULL_NAME " - ") + _L("Attention!"), wxOK | wxICON_INFORMATION);
+                                    dlg.show_dsa_button(_L("Remember my choice."));
+                                    dlg.ShowModal();
+                                    if (dlg.get_checkbox_state()) {
+                                        wxGetApp().app_config->set_bool("step_not_utf8_no_warn", true);
+                                    }
+                                }
+                            }
                         },
                     nullptr, 0, obj_color_fun);
 
@@ -4760,6 +4803,11 @@ void Plater::priv::select_all()
 void Plater::priv::deselect_all()
 {
     view3D->deselect_all();
+}
+
+void Plater::priv::exit_gizmo()
+{
+    view3D->exit_gizmo();
 }
 
 void Plater::priv::remove(size_t obj_idx)
@@ -5961,7 +6009,8 @@ void Plater::priv::reload_from_disk()
     for (auto [src, dest] : replace_paths) {
         for (auto [obj_idx, vol_idx] : selected_volumes) {
             if (boost::algorithm::iequals(model.objects[obj_idx]->volumes[vol_idx]->source.input_file, src.string()))
-                replace_volume_with_stl(obj_idx, vol_idx, dest, "");
+                // When an error occurs, either the dest parsing error occurs, or the number of objects in the dest is greater than 1 and cannot be replaced, and cannot be replaced in this loop.
+                if (!replace_volume_with_stl(obj_idx, vol_idx, dest, "")) break;
         }
     }
 #else
@@ -7770,8 +7819,8 @@ bool Plater::priv::init_collapse_toolbar()
     collapse_toolbar.set_layout_type(GLToolbar::Layout::Vertical);
     collapse_toolbar.set_horizontal_orientation(GLToolbar::Layout::HO_Right);
     collapse_toolbar.set_vertical_orientation(GLToolbar::Layout::VO_Top);
-    collapse_toolbar.set_border(5.0f);
-    collapse_toolbar.set_separator_size(5);
+    collapse_toolbar.set_border(4.0f);
+    collapse_toolbar.set_separator_size(4);
     collapse_toolbar.set_gap_size(2);
 
     collapse_toolbar.del_all_item();
@@ -7972,6 +8021,13 @@ bool Plater::priv::show_publish_dlg(bool show)
 //BBS: add bed exclude area
 void Plater::priv::set_bed_shape(const Pointfs& shape, const Pointfs& exclude_areas, const double printable_height, const std::string& custom_texture, const std::string& custom_model, bool force_as_custom)
 {
+    //Orca: reduce resolution for large bed printer
+    BoundingBoxf bed_size = get_extents(shape);
+    if (bed_size.size().maxCoeff() <= LARGE_BED_THRESHOLD)
+        SCALING_FACTOR = SCALING_FACTOR_INTERNAL;
+    else
+        SCALING_FACTOR = SCALING_FACTOR_INTERNAL_LARGE_PRINTER;
+
     //BBS: add shape position
     Vec2d shape_position = partplate_list.get_current_shape_position();
     bool new_shape = bed.set_shape(shape, printable_height, custom_model, force_as_custom, shape_position);
@@ -8952,8 +9008,9 @@ void Plater::import_model_id(wxString download_info)
     /* prepare project and profile */
     boost::thread import_thread = Slic3r::create_thread([&percent, &cont, &cancel, &retry_count, max_retries, &msg, &target_path, &download_ok, download_url, &filename] {
 
-        NetworkAgent* m_agent = Slic3r::GUI::wxGetApp().getAgent();
-        if (!m_agent) return;
+        // Orca: NetworkAgent is not needed and only prevents this from running
+//        NetworkAgent* m_agent = Slic3r::GUI::wxGetApp().getAgent();
+//        if (!m_agent) return;
 
         int res = 0;
         unsigned int http_code;
@@ -9065,7 +9122,7 @@ void Plater::import_model_id(wxString download_info)
                         error);
 
                     if (retry_count == max_retries) {
-                        msg = _L("Importing to Bambu Studio failed. Please download the file and manually import it.");
+                        msg = _L("Importing to Orca Slicer failed. Please download the file and manually import it.");
                         cont = false;
                     }
                 })
@@ -9104,7 +9161,11 @@ void Plater::import_model_id(wxString download_info)
     if (download_ok) {
         BOOST_LOG_TRIVIAL(trace) << "import_model_id: target_path = " << target_path.string();
         /* load project */
-        this->load_project(target_path.wstring());
+        // Orca: If download is a zip file, treat it as if file has been drag and dropped on the plater
+        if (target_path.extension() == ".zip")
+            this->load_files(wxArrayString(1, target_path.string()));
+        else
+            this->load_project(target_path.wstring());
         /*BBS set project info after load project, project info is reset in load project */
         //p->project.project_model_id = model_id;
         //p->project.project_design_id = design_id;
@@ -9774,6 +9835,19 @@ void Plater::calib_VFA(const Calib_Params& params)
     p->background_process.fff_print()->set_calib_params(params);
 }
 BuildVolume_Type Plater::get_build_volume_type() const { return p->bed.get_build_volume_type(); }
+
+void Plater::import_zip_archive()
+{
+    wxString input_file;
+    wxGetApp().import_zip(this, input_file);
+    if (input_file.empty())
+        return;
+
+    wxArrayString arr;
+    arr.Add(input_file);
+    load_files(arr);
+}
+
 void Plater::import_sl1_archive()
 {
     auto &w = get_ui_job_worker();
@@ -9957,6 +10031,186 @@ std::vector<size_t> Plater::load_files(const std::vector<std::string>& input_fil
     for (const std::string& path : input_files)
         paths.emplace_back(path);
     return p->load_files(paths, strategy, ask_multi);
+}
+
+bool Plater::preview_zip_archive(const boost::filesystem::path& archive_path)
+{
+    //std::vector<fs::path> unzipped_paths;
+    std::vector<fs::path> non_project_paths;
+    std::vector<fs::path> project_paths;
+    try
+    {
+        mz_zip_archive archive;
+        mz_zip_zero_struct(&archive);
+
+        if (!open_zip_reader(&archive, archive_path.string())) {
+            // TRN %1% is archive path
+            std::string err_msg = GUI::format(_u8L("Loading of a ZIP archive on path %1% has failed."), archive_path.string());
+            throw Slic3r::FileIOError(err_msg);
+        }
+        mz_uint num_entries = mz_zip_reader_get_num_files(&archive);
+        mz_zip_archive_file_stat stat;
+        // selected_paths contains paths and its uncompressed size. The size is used to distinguish between files with same path.
+        std::vector<std::pair<fs::path, size_t>> selected_paths;
+        FileArchiveDialog dlg(static_cast<wxWindow*>(wxGetApp().mainframe), &archive, selected_paths);
+        if (dlg.ShowModal() == wxID_OK)
+        {
+            std::string archive_path_string = archive_path.string();
+            archive_path_string = archive_path_string.substr(0, archive_path_string.size() - 4);
+            fs::path archive_dir(wxStandardPaths::Get().GetTempDir().utf8_str().data());
+
+            for (auto& path_w_size : selected_paths) {
+                const fs::path& path = path_w_size.first;
+                size_t size = path_w_size.second;
+                // find path in zip archive
+                for (mz_uint i = 0; i < num_entries; ++i) {
+                    if (mz_zip_reader_file_stat(&archive, i, &stat)) {
+                        if (size != stat.m_uncomp_size) // size must fit
+                            continue;
+                        wxString wname = boost::nowide::widen(stat.m_filename);
+                        std::string name = boost::nowide::narrow(wname);
+                        fs::path archive_path(name);
+
+                        std::string extra(1024, 0);
+                        size_t extra_size = mz_zip_reader_get_filename_from_extra(&archive, i, extra.data(), extra.size());
+                        if (extra_size > 0) {
+                            archive_path = fs::path(extra.substr(0, extra_size));
+                            name = archive_path.string();
+                        }
+
+                        if (archive_path.empty())
+                            continue;
+                        if (path != archive_path)
+                            continue;
+                        // decompressing
+                        try
+                        {
+                            std::replace(name.begin(), name.end(), '\\', '/');
+                            // rename if file exists
+                            std::string filename = path.filename().string();
+                            std::string extension = boost::filesystem::extension(path);
+                            std::string just_filename = filename.substr(0, filename.size() - extension.size());
+                            std::string final_filename = just_filename;
+
+                            size_t version = 0;
+                            while (fs::exists(archive_dir / (final_filename + extension)))
+                            {
+                                ++version;
+                                final_filename = just_filename + "(" + std::to_string(version) + ")";
+                            }
+                            filename = final_filename + extension;
+                            fs::path final_path = archive_dir / filename;
+                            std::string buffer((size_t)stat.m_uncomp_size, 0);
+                            // Decompress action. We already has correct file index in stat structure.
+                            mz_bool res = mz_zip_reader_extract_to_mem(&archive, stat.m_file_index, (void*)buffer.data(), (size_t)stat.m_uncomp_size, 0);
+                            if (res == 0) {
+                                // TRN: First argument = path to file, second argument = error description
+                                wxString error_log = GUI::format_wxstr(_L("Failed to unzip file to %1%: %2%"), final_path.string(), mz_zip_get_error_string(mz_zip_get_last_error(&archive)));
+                                BOOST_LOG_TRIVIAL(error) << error_log;
+                                show_error(nullptr, error_log);
+                                break;
+                            }
+                            // write buffer to file
+                            fs::fstream file(final_path, std::ios::out | std::ios::binary | std::ios::trunc);
+                            file.write(buffer.c_str(), buffer.size());
+                            file.close();
+                            if (!fs::exists(final_path)) {
+                                wxString error_log = GUI::format_wxstr(_L("Failed to find unzipped file at %1%. Unzipping of file has failed."), final_path.string());
+                                BOOST_LOG_TRIVIAL(error) << error_log;
+                                show_error(nullptr, error_log);
+                                break;
+                            }
+                            BOOST_LOG_TRIVIAL(info) << "Unzipped " << final_path;
+                            if (!boost::algorithm::iends_with(filename, ".3mf") && !boost::algorithm::iends_with(filename, ".amf")) {
+                                non_project_paths.emplace_back(final_path);
+                                break;
+                            }
+                            // if 3mf - read archive headers to find project file
+                            if (/*(boost::algorithm::iends_with(filename, ".3mf") && !is_project_3mf(final_path.string())) ||*/
+                                (boost::algorithm::iends_with(filename, ".amf") && !boost::algorithm::iends_with(filename, ".zip.amf"))) {
+                                non_project_paths.emplace_back(final_path);
+                                break;
+                            }
+
+                            project_paths.emplace_back(final_path);
+                            break;
+                        }
+                        catch (const std::exception& e)
+                        {
+                            // ensure the zip archive is closed and rethrow the exception
+                            close_zip_reader(&archive);
+                            throw Slic3r::FileIOError(e.what());
+                        }
+                    }
+                }
+            }
+            close_zip_reader(&archive);
+            if (non_project_paths.size() + project_paths.size() != selected_paths.size())
+                BOOST_LOG_TRIVIAL(error) << "Decompresing of archive did not retrieve all files. Expected files: "
+                                         << selected_paths.size()
+                                         << " Decopressed files: "
+                                         << non_project_paths.size() + project_paths.size();
+        } else {
+            close_zip_reader(&archive);
+            return false;
+        }
+
+    }
+    catch (const Slic3r::FileIOError& e) {
+        // zip reader should be already closed or not even opened
+        GUI::show_error(this, e.what());
+        return false;
+    }
+    // none selected
+    if (project_paths.empty() && non_project_paths.empty())
+    {
+        return false;
+    }
+
+    // 1 project file and some models - behave like drag n drop of 3mf and then load models
+    if (project_paths.size() == 1)
+    {
+        wxArrayString aux;
+        aux.Add(from_u8(project_paths.front().string()));
+        bool loaded3mf = load_files(aux);
+        load_files(non_project_paths, LoadStrategy::LoadModel);
+        boost::system::error_code ec;
+        if (loaded3mf) {
+            fs::remove(project_paths.front(), ec);
+            if (ec)
+                BOOST_LOG_TRIVIAL(error) << ec.message();
+        }
+        for (const fs::path& path : non_project_paths) {
+            // Delete file from temp file (path variable), it will stay only in app memory.
+            boost::system::error_code ec;
+            fs::remove(path, ec);
+            if (ec)
+                BOOST_LOG_TRIVIAL(error) << ec.message();
+        }
+        return true;
+    }
+
+    // load all projects and all models as geometry
+    load_files(project_paths, LoadStrategy::LoadModel);
+    load_files(non_project_paths, LoadStrategy::LoadModel);
+
+
+    for (const fs::path& path : project_paths) {
+        // Delete file from temp file (path variable), it will stay only in app memory.
+        boost::system::error_code ec;
+        fs::remove(path, ec);
+        if (ec)
+            BOOST_LOG_TRIVIAL(error) << ec.message();
+    }
+    for (const fs::path& path : non_project_paths) {
+        // Delete file from temp file (path variable), it will stay only in app memory.
+        boost::system::error_code ec;
+        fs::remove(path, ec);
+        if (ec)
+            BOOST_LOG_TRIVIAL(error) << ec.message();
+    }
+
+    return true;
 }
 
 class RadioBox;
@@ -10297,7 +10551,7 @@ void ProjectDropDialog::on_dpi_changed(const wxRect& suggested_rect)
 //BBS: remove GCodeViewer as seperate APP logic
 bool Plater::load_files(const wxArrayString& filenames)
 {
-    const std::regex pattern_drop(".*[.](stp|step|stl|oltp|obj|amf|3mf|svg)", std::regex::icase);
+    const std::regex pattern_drop(".*[.](stp|step|stl|oltp|obj|amf|3mf|svg|zip)", std::regex::icase);
     const std::regex pattern_gcode_drop(".*[.](gcode|g)", std::regex::icase);
 
     std::vector<fs::path> normal_paths;
@@ -10387,6 +10641,21 @@ bool Plater::load_files(const wxArrayString& filenames)
         }
     }
 
+    // Orca: Iters through given paths and imports files from zip then remove zip from paths
+    // returns true if zip files were found
+    auto handle_zips = [this](vector<fs::path>& paths) { // NOLINT(*-no-recursion) - Recursion is intended and should be managed properly
+        bool res = false;
+        for (auto it = paths.begin(); it != paths.end();) {
+            if (boost::algorithm::iends_with(it->string(), ".zip")) {
+                res = true;
+                preview_zip_archive(*it);
+                it = paths.erase(it);
+            } else
+                it++;
+        }
+        return res;
+    };
+
     switch (loadfiles_type) {
     case LoadFilesType::Single3MF:
         open_3mf_file(normal_paths[0]);
@@ -10394,6 +10663,7 @@ bool Plater::load_files(const wxArrayString& filenames)
 
     case LoadFilesType::SingleOther: {
         Plater::TakeSnapshot snapshot(this, snapshot_label);
+        if (handle_zips(normal_paths)) return true;
         if (load_files(normal_paths, LoadStrategy::LoadModel, false).empty()) { res = false; }
         break;
     }
@@ -10409,6 +10679,9 @@ bool Plater::load_files(const wxArrayString& filenames)
 
     case LoadFilesType::MultipleOther: {
         Plater::TakeSnapshot snapshot(this, snapshot_label);
+        if (handle_zips(normal_paths)) {
+            if (normal_paths.empty()) return true;
+        }
         if (load_files(normal_paths, LoadStrategy::LoadModel, true).empty()) { res = false; }
         break;
     }
@@ -10427,6 +10700,9 @@ bool Plater::load_files(const wxArrayString& filenames)
 
         open_3mf_file(first_file[0]);
         if (load_files(tmf_file, LoadStrategy::LoadModel).empty()) {  res = false;  }
+        if (res && handle_zips(other_file)) {
+            if (normal_paths.empty()) return true;
+        }
         if (load_files(other_file, LoadStrategy::LoadModel, false).empty()) {  res = false;  }
         break;
     default: break;
@@ -10643,6 +10919,7 @@ void Plater::remove_curr_plate_all() { p->remove_curr_plate_all(); }
 
 void Plater::select_all() { p->select_all(); }
 void Plater::deselect_all() { p->deselect_all(); }
+void Plater::exit_gizmo() { p->exit_gizmo(); }
 
 void Plater::remove(size_t obj_idx) { p->remove(obj_idx); }
 void Plater::reset(bool apply_presets_change) { p->reset(apply_presets_change); }
@@ -11987,7 +12264,7 @@ int Plater::start_next_slice()
         this->p->view3D->reload_scene(false);
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": update_background_process returns %1%")%state;
-    if (p->partplate_list.get_curr_plate()->is_apply_result_invalid()) {
+    if (!p->partplate_list.get_curr_plate()->can_slice()) {
         p->process_completed_with_error = p->partplate_list.get_curr_plate_index();
         BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": found invalidated apply in update_background_process.");
         return -1;
