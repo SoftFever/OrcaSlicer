@@ -8,6 +8,8 @@
     "inherits": "fdm_filament_pet",
     "nozzle_temperature_intial_layer": "230",
     "nozzle_temperature": "240",
+    "hot_plate_temp_initial_layer": "80",
+    "hot_plate_temp": "80",
     "full_fan_speed_layer": "5",
     "slow_down_min_speed": "15",
     "filament_flow_ratio": [
@@ -17,7 +19,7 @@
         "9"
     ],
     "slow_down_layer_time": [
-        "10"
+        "9"
     ],
     "fan_max_speed": [
         "50"

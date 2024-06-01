@@ -432,6 +432,10 @@
             "sub_path": "filament/Prusa Generic ABS @MINIIS 0.8.json"
         },
         {
+            "name": "Prusa Generic ABS @XL",
+            "sub_path": "filament/Prusa Generic ABS @XL.json"
+        },
+        {
             "name": "Prusa Generic TPU",
             "sub_path": "filament/Prusa Generic TPU.json"
         },
