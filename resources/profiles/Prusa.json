@@ -404,6 +404,10 @@
             "sub_path": "filament/Prusa Generic PETG @MINIIS 0.8.json"
         },
         {
+            "name": "Prusa Generic PETG @XL",
+            "sub_path": "filament/Prusa Generic PETG @XL.json"
+        },
+        {
             "name": "Prusa Generic ABS",
             "sub_path": "filament/Prusa Generic ABS.json"
         },
