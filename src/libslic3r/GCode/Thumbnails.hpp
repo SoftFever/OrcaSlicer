@@ -7,7 +7,6 @@
 
 #include "../Point.hpp"
 #include "../PrintConfig.hpp"
-#include "PrintConfig.hpp"
 #include "ThumbnailData.hpp"
 
 #include <vector>
@@ -15,6 +14,12 @@
 #include <string_view>
 
 #include <boost/beast/core/detail/base64.hpp>
+
+namespace Slic3r {
+    enum class ThumbnailError : int { InvalidVal, OutOfRange, InvalidExt };
+    using ThumbnailErrors = enum_bitmask<ThumbnailError>;
+    ENABLE_ENUM_BITMASK_OPERATORS(ThumbnailError);
+}
 
 namespace Slic3r::GCodeThumbnails {
 
@@ -29,6 +34,14 @@ struct CompressedImageBuffer
 std::string get_hex(const unsigned int input);
 std::string rjust(std::string input, unsigned int width, char fill_char);
 std::unique_ptr<CompressedImageBuffer> compress_thumbnail(const ThumbnailData &data, GCodeThumbnailsFormat format);
+std::string get_error_string(const ThumbnailErrors& errors);
+
+
+typedef std::vector<std::pair<GCodeThumbnailsFormat, Vec2d>> GCodeThumbnailDefinitionsList;
+using namespace std::literals;
+std::pair<GCodeThumbnailDefinitionsList, ThumbnailErrors> make_and_check_thumbnail_list(const std::string& thumbnails_string, const std::string_view def_ext = "PNG"sv);
+std::pair<GCodeThumbnailDefinitionsList, ThumbnailErrors> make_and_check_thumbnail_list(const ConfigBase &config);
+
 
 template<typename WriteToOutput, typename ThrowIfCanceledCallback>
 inline void export_thumbnails_to_file(ThumbnailsGeneratorCallback &thumbnail_cb,
@@ -87,6 +100,21 @@ inline void export_thumbnails_to_file(ThumbnailsGeneratorCallback &thumbnail_cb,
 
                 i++;
             }
+        }
+    }
+}
+
+template<typename WriteToOutput, typename ThrowIfCanceledCallback>
+inline void export_thumbnails_to_file(ThumbnailsGeneratorCallback&                                thumbnail_cb,
+                                      int                                                         plate_id,
+                                      const std::vector<std::pair<GCodeThumbnailsFormat, Vec2d>>& thumbnails_list,
+                                      WriteToOutput                                               output,
+                                      ThrowIfCanceledCallback                                     throw_if_canceled)
+{
+    // Write thumbnails using base64 encoding
+    if (thumbnail_cb != nullptr) {
+        for (const auto& [format, size] : thumbnails_list) {
+            export_thumbnails_to_file(thumbnail_cb, plate_id, {size}, format, output, throw_if_canceled);
         }
     }
 }

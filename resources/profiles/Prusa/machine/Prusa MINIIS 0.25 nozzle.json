@@ -26,5 +26,11 @@
   ],
   "retraction_minimum_travel": [
     "1.0"
-  ]
+  ],
+      "thumbnails": [
+        "16x16/QOI",
+        "220x124/QOI",
+        "200x240/QOI",
+        "640x480/PNG"
+    ]
 }

@@ -2,6 +2,7 @@
 #include "GUI_App.hpp"
 #include "I18N.hpp"
 #include "Field.hpp"
+#include "libslic3r/GCode/Thumbnails.hpp"
 #include "wxExtensions.hpp"
 #include "Plater.hpp"
 #include "MainFrame.hpp"
@@ -83,6 +84,22 @@ wxString get_thumbnails_string(const std::vector<Vec2d>& values)
     return ret_str;
 }
 
+ThumbnailErrors validate_thumbnails_string(wxString& str, const wxString& def_ext = "PNG")
+{
+    std::string input_string = into_u8(str);
+
+    str.Clear();
+
+    auto [thumbnails_list, errors] = GCodeThumbnails::make_and_check_thumbnail_list(input_string);
+    if (!thumbnails_list.empty()) {
+        const auto& extentions = ConfigOptionEnum<GCodeThumbnailsFormat>::get_enum_names();
+        for (const auto& [format, size] : thumbnails_list)
+            str += format_wxstr("%1%x%2%/%3%, ", size.x(), size.y(), extentions[int(format)]);
+        str.resize(str.Len() - 2);
+    }
+
+    return errors;
+}
 
 Field::~Field()
 {
@@ -396,6 +413,31 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
 					set_value(stVal, false); // it's no needed but can be helpful, when inputted value contained "," instead of "."
             }
         }
+        if (m_opt.opt_key == "thumbnails") {
+            wxString        str_out = str;
+            ThumbnailErrors errors  = validate_thumbnails_string(str_out);
+            if (errors != enum_bitmask<ThumbnailError>()) {
+                set_value(str_out, true);
+                wxString error_str;
+                if (errors.has(ThumbnailError::InvalidVal))
+                    error_str += format_wxstr(_L("Invalid input format. Expected vector of dimensions in the following format: \"%1%\""),
+                                              "XxY/EXT, XxY/EXT, ...");
+                if (errors.has(ThumbnailError::OutOfRange)) {
+                    if (!error_str.empty())
+                        error_str += "\n\n";
+                    error_str += _L("Input value is out of range");
+                }
+                if (errors.has(ThumbnailError::InvalidExt)) {
+                    if (!error_str.empty())
+                        error_str += "\n\n";
+                    error_str += _L("Some extension in the input is invalid");
+                }
+                show_error(m_parent, error_str);
+            } else if (str_out != str) {
+                str = str_out;
+                set_value(str, true);
+            }
+        }
 
         m_value = into_u8(str);
 		break; }
@@ -434,16 +476,16 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
         if (!str.IsEmpty()) {
             bool invalid_val = false;
             bool out_of_range_val = false;
-            wxStringTokenizer thumbnails(str, ",");
-            while (thumbnails.HasMoreTokens()) {
-                wxString token = thumbnails.GetNextToken();
+            wxStringTokenizer points(str, ",");
+            while (points.HasMoreTokens()) {
+                wxString token = points.GetNextToken();
                 double x, y;
-                wxStringTokenizer thumbnail(token, "x");
-                if (thumbnail.HasMoreTokens()) {
-                    wxString x_str = thumbnail.GetNextToken();
-                    if (x_str.ToDouble(&x) && thumbnail.HasMoreTokens()) {
-                        wxString y_str = thumbnail.GetNextToken();
-                        if (y_str.ToDouble(&y) && !thumbnail.HasMoreTokens()) {
+                wxStringTokenizer _point(token, "x");
+                if (_point.HasMoreTokens()) {
+                    wxString x_str = _point.GetNextToken();
+                    if (x_str.ToDouble(&x) && _point.HasMoreTokens()) {
+                        wxString y_str = _point.GetNextToken();
+                        if (y_str.ToDouble(&y) && !_point.HasMoreTokens()) {
                             if (m_opt_id == "bed_exclude_area") {
                                 if (0 <= x &&  0 <= y) {
                                     out_values.push_back(Vec2d(x, y));
