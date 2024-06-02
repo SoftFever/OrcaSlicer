@@ -138,6 +138,7 @@
   "auxiliary_fan": "0",
   "thumbnails": [
     "320x320/PNG",
+    "32x32/COLPIC",
     "160x160/COLPIC"
   ],
   "thumbnails_format": "PNG"

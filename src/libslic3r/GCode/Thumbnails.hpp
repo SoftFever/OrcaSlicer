@@ -44,18 +44,20 @@ std::pair<GCodeThumbnailDefinitionsList, ThumbnailErrors> make_and_check_thumbna
 
 
 template<typename WriteToOutput, typename ThrowIfCanceledCallback>
-inline void export_thumbnails_to_file(ThumbnailsGeneratorCallback &thumbnail_cb,
-                                      int                          plate_id,
-                                      const std::vector<Vec2d>    &sizes,
-                                      GCodeThumbnailsFormat        format,
-                                      WriteToOutput                output,
-                                      ThrowIfCanceledCallback      throw_if_canceled)
+inline void export_thumbnails_to_file(ThumbnailsGeneratorCallback&                                thumbnail_cb,
+                                      int                                                         plate_id,
+                                      const std::vector<std::pair<GCodeThumbnailsFormat, Vec2d>>& thumbnails_list,
+                                      WriteToOutput                                               output,
+                                      ThrowIfCanceledCallback                                     throw_if_canceled)
 {
     // Write thumbnails using base64 encoding
-    if (thumbnail_cb != nullptr) {
+    if (thumbnail_cb == nullptr)
+        return;
+    short i = 0;
+    bool first_ColPic = true;
+    for (const auto& [format, size] : thumbnails_list) {
         static constexpr const size_t max_row_length = 78;
-        ThumbnailsList                thumbnails     = thumbnail_cb(ThumbnailsParams{sizes, true, true, true, true, plate_id});
-        short                         i              = 0;
+        ThumbnailsList                thumbnails     = thumbnail_cb(ThumbnailsParams{{size}, true, true, true, true, plate_id});
         for (const ThumbnailData &data : thumbnails) {
             if (data.is_valid()) {
                 auto compressed = compress_thumbnail(data, format);
@@ -64,15 +66,16 @@ inline void export_thumbnails_to_file(ThumbnailsGeneratorCallback &thumbnail_cb,
                         // write BTT_TFT header
                         output((";" + rjust(get_hex(data.width), 4, '0') + rjust(get_hex(data.height), 4, '0') + "\r\n").c_str());
                         output((char *) compressed->data);
-                        if (i == (thumbnails.size() - 1))
+                        if (i == (thumbnails_list.size() - 1))
                             output("; bigtree thumbnail end\r\n\r\n");
                     }
                     else if (format == GCodeThumbnailsFormat::ColPic) {
-                        if (i == 0) {
+                        if (first_ColPic) {
                             output((boost::format("\n\n;gimage:%s\n\n") % reinterpret_cast<char*>(compressed->data)).str().c_str());
                         } else {
                             output((boost::format("\n\n;simage:%s\n\n") % reinterpret_cast<char*>(compressed->data)).str().c_str());
                         }
+                        first_ColPic = false;
                     } 
                     else {
                         output("; THUMBNAIL_BLOCK_START\n");
@@ -97,25 +100,9 @@ inline void export_thumbnails_to_file(ThumbnailsGeneratorCallback &thumbnail_cb,
                     }
                     throw_if_canceled();
                 }
-
-                i++;
             }
         }
-    }
-}
-
-template<typename WriteToOutput, typename ThrowIfCanceledCallback>
-inline void export_thumbnails_to_file(ThumbnailsGeneratorCallback&                                thumbnail_cb,
-                                      int                                                         plate_id,
-                                      const std::vector<std::pair<GCodeThumbnailsFormat, Vec2d>>& thumbnails_list,
-                                      WriteToOutput                                               output,
-                                      ThrowIfCanceledCallback                                     throw_if_canceled)
-{
-    // Write thumbnails using base64 encoding
-    if (thumbnail_cb != nullptr) {
-        for (const auto& [format, size] : thumbnails_list) {
-            export_thumbnails_to_file(thumbnail_cb, plate_id, {size}, format, output, throw_if_canceled);
-        }
+        i++;
     }
 }
 
