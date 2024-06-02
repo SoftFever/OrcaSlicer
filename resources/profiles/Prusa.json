@@ -360,6 +360,10 @@
             "sub_path": "filament/Prusa Generic PLA @XL.json"
         },
         {
+            "name": "Prusament PLA @XL",
+            "sub_path": "filament/Prusament PLA @XL.json"
+        },
+        {
             "name": "Prusa Generic PLA-CF",
             "sub_path": "filament/Prusa Generic PLA-CF.json"
         },
@@ -406,6 +410,10 @@
         {
             "name": "Prusa Generic PETG @XL",
             "sub_path": "filament/Prusa Generic PETG @XL.json"
+        },
+        {
+            "name": "Prusament PETG @XL",
+            "sub_path": "filament/Prusament PETG @XL.json"
         },
         {
             "name": "Prusa Generic ABS",
