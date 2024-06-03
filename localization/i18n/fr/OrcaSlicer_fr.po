@@ -3272,7 +3272,7 @@ msgid ""
 msgstr ""
 "La copie du G-code temporaire vers le G-code de sortie a échoué. Il se peut "
 "qu’il y ait un problème avec le dispositif cible, veuillez essayer "
-"d’exporter à nouveau ou d’utiliser un autre périphérique. Le code G de "
+"d’exporter à nouveau ou d’utiliser un autre périphérique. Le G-code de "
 "sortie corrompu se trouve dans %1%.tmp."
 
 #, boost-format
@@ -4019,7 +4019,7 @@ msgstr "Modifier le G-code personnalisé (%1%)"
 
 msgid "Built-in placeholders (Double click item to add to G-code)"
 msgstr ""
-"Placeholders intégrés (double-cliquez sur l’élément pour l’ajouter au code G)"
+"Placeholders intégrés (double-cliquez sur l’élément pour l’ajouter au G-code)"
 
 msgid "Search gcode placeholders"
 msgstr "Rechercher les placeholders de G-code"
@@ -4155,7 +4155,7 @@ msgid "Temperature: "
 msgstr "Température: "
 
 msgid "Loading G-codes"
-msgstr "Chargement des codes G"
+msgstr "Chargement des G-codes"
 
 msgid "Generating geometry vertex data"
 msgstr "Génération de données de sommet de géométrie"
@@ -6121,14 +6121,14 @@ msgstr "Veuillez les corriger dans les onglets de paramètres"
 
 msgid "The 3mf has following modified G-codes in filament or printer presets:"
 msgstr ""
-"Le 3mf a les codes G modifiés suivants dans le filament ou les préréglages "
+"Le 3mf a les G-codes modifiés suivants dans le filament ou les préréglages "
 "de l'imprimante :"
 
 msgid ""
 "Please confirm that these modified G-codes are safe to prevent any damage to "
 "the machine!"
 msgstr ""
-"Veuillez vous assurer que ces codes G modifiés sont sûrs afin d'éviter tout "
+"Veuillez vous assurer que ces G-codes modifiés sont sûrs afin d'éviter tout "
 "dommage à la machine !"
 
 msgid "Modified G-codes"
@@ -6142,7 +6142,7 @@ msgid ""
 "Please confirm that the G-codes within these presets are safe to prevent any "
 "damage to the machine!"
 msgstr ""
-"Veuillez vous assurer que les codes G de ces préréglages sont sûrs afin "
+"Veuillez vous assurer que les G-codes de ces préréglages sont sûrs afin "
 "d'éviter d'endommager la machine !"
 
 msgid "Customized Preset"
