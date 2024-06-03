@@ -290,6 +290,10 @@
             "sub_path": "process/0.56mm Standard @MK4.json"
         },
         {
+            "name": "0.30mm Draft @XL 0.4",
+            "sub_path": "process/0.30mm Draft @XL 0.4.json"
+        },
+        {
             "name": "0.20mm Speed @XL 0.4",
             "sub_path": "process/0.20mm Speed @XL 0.4.json"
         },
@@ -298,8 +302,8 @@
             "sub_path": "process/0.20mm Quality @XL 0.4.json"
         },
         {
-            "name": "0.30mm Draft @XL 0.4",
-            "sub_path": "process/0.30mm Draft @XL 0.4.json"
+            "name": "0.15mm Quality @XL 0.4",
+            "sub_path": "process/0.15mm Quality @XL 0.4.json"
         }
     ],
     "filament_list": [
