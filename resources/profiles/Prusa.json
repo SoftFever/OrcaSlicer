@@ -304,6 +304,10 @@
         {
             "name": "0.15mm Quality @XL 0.4",
             "sub_path": "process/0.15mm Quality @XL 0.4.json"
+        },
+        {
+            "name": "0.10mm Detail @XL 0.4",
+            "sub_path": "process/0.10mm Detail @XL 0.4.json"
         }
     ],
     "filament_list": [
