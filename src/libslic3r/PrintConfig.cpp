@@ -1951,8 +1951,6 @@ def = this->add("filament_loading_speed", coFloats);
     def->gui_type = ConfigOptionDef::GUIType::f_enum_open;
     def->gui_flags = "show_value";
     def->enum_values.push_back("PLA");
-    def->enum_values.push_back("rPLA");
-    def->enum_values.push_back("PLA+");
     def->enum_values.push_back("ABS");
     def->enum_values.push_back("ASA");
     def->enum_values.push_back("PETG");
