@@ -328,6 +328,10 @@
             "sub_path": "filament/fdm_filament_pva.json"
         },
         {
+            "name": "fdm_filament_pvb",
+            "sub_path": "filament/fdm_filament_pvb.json"
+        },
+        {
             "name": "fdm_filament_pa",
             "sub_path": "filament/fdm_filament_pa.json"
         },
@@ -518,6 +522,10 @@
         {
             "name": "Prusa Generic PVA @MINIIS 0.8",
             "sub_path": "filament/Prusa Generic PVA @MINIIS 0.8.json"
+        },
+        {
+            "name": "Prusament PVB @XL",
+            "sub_path": "filament/Prusament PVB @XL.json"
         },
         {
             "name": "Prusa Generic PA",

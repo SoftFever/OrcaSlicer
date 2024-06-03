@@ -12,7 +12,7 @@
     "hot_plate_temp": "105",
     "slow_down_min_speed": "15",
     "filament_flow_ratio": [
-        "0.95"
+        "1"
     ],
     "filament_max_volumetric_speed": [
         "12"
