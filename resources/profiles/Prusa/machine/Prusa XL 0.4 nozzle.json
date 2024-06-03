@@ -110,10 +110,10 @@
   "nozzle_type": "hardened_steel",
   "auxiliary_fan": "0",
   "thumbnails": [
-    "16x16",
-    "313x173",
-    "440x240",
-    "480x240",
-    "640x480"
+    "16x16/QOI",
+    "313x173/QOI",
+    "440x240/QOI",
+    "480x240/QOI",
+    "640x480/PNG"
   ]
 }
