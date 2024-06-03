@@ -340,6 +340,10 @@
             "sub_path": "filament/fdm_filament_pa.json"
         },
         {
+            "name": "fdm_filament_pa11cf",
+            "sub_path": "filament/fdm_filament_pa11cf.json"
+        },
+        {
             "name": "Prusa Generic PLA",
             "sub_path": "filament/Prusa Generic PLA.json"
         },
@@ -492,6 +496,10 @@
             "sub_path": "filament/Prusa Generic ASA @MINIIS 0.8.json"
         },
         {
+            "name": "Prusament ASA @XL",
+            "sub_path": "filament/Prusament ASA @XL.json"
+        },
+        {
             "name": "Prusa Generic PC",
             "sub_path": "filament/Prusa Generic PC.json"
         },
@@ -578,6 +586,10 @@
         {
             "name": "Prusa Generic PA-CF @MINIIS 0.8",
             "sub_path": "filament/Prusa Generic PA-CF @MINIIS 0.8.json"
+        },
+        {
+            "name": "Prusament PA-CF @XL",
+            "sub_path": "filament/Prusament PA-CF @XL.json"
         }
     ],
     "machine_list": [
