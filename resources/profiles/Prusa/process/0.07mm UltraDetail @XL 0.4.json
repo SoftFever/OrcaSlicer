@@ -35,6 +35,7 @@
   "sparse_infill_line_width": "0.4",
   "internal_solid_infill_line_width": "0.4",
   "support_line_width": "0.35",
+  "bridge_flow": "0.6",
   "resolution": "0.006",
   "compatible_printers": [
     "Prusa XL 0.4 nozzle"
