@@ -20,6 +20,7 @@
   "infill_anchor_max": "20",
   "raft_first_layer_expansion": "2",
   "support_top_z_distance": "0.25",
+  "support_bottom_z_distance": "0.25",
   "support_base_pattern_spacing": "2",
   "support_interface_top_layers": "2",
   "support_interface_spacing": "0.4",

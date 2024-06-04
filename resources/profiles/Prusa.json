@@ -159,135 +159,148 @@
             "sub_path": "process/0.12mm Standard @MK4.json"
         },
         {
-
             "name": "0.16mm Standard @MK4",
             "sub_path": "process/0.16mm Standard @MK4.json"
         },
         {
-
             "name": "0.20mm Standard @MK4",
             "sub_path": "process/0.20mm Standard @MK4.json"
         },
         {
-
             "name": "0.05mm Detail @MINIIS",
             "sub_path": "process/0.05mm Detail @MINIIS.json"
         },
         {
-
             "name": "0.07mm Detail @MINIIS",
             "sub_path": "process/0.07mm Detail @MINIIS.json"
         },
         {
-
             "name": "0.10mm Speed @MINIIS",
             "sub_path": "process/0.10mm Speed @MINIIS.json"
         },
         {
-
             "name": "0.12mm Speed @MINIIS",
             "sub_path": "process/0.12mm Speed @MINIIS.json"
         },
         {
-
             "name": "0.12mm Standard @MINIIS",
             "sub_path": "process/0.12mm Standard @MINIIS.json"
         },
         {
-
             "name": "0.15mm Standard @MINIIS",
             "sub_path": "process/0.15mm Standard @MINIIS.json"
         },
         {
-
             "name": "0.15mm Standard @MINIIS 0.6",
             "sub_path": "process/0.15mm Standard @MINIIS 0.6.json"
         },
         {
-
             "name": "0.15mm Standard @MINIIS 0.25",
             "sub_path": "process/0.15mm Standard @MINIIS 0.25.json"
         },
-        
         {
-
             "name": "0.15mm Speed @MINIIS",
             "sub_path": "process/0.15mm Speed @MINIIS.json"
         },
         {
-
             "name": "0.15mm Speed @MINIIS 0.25",
             "sub_path": "process/0.15mm Speed @MINIIS 0.25.json"
         },
         {
-
             "name": "0.20mm Standard @MINIIS",
             "sub_path": "process/0.20mm Standard @MINIIS.json"
         },
         {
-
             "name": "0.20mm Standard @MINIIS 0.6",
             "sub_path": "process/0.20mm Standard @MINIIS 0.6.json"
         },
         {
-
             "name": "0.20mm Speed @MINIIS",
             "sub_path": "process/0.20mm Speed @MINIIS.json"
         },
         {
-
             "name": "0.20mm Speed @MINIIS 0.6",
             "sub_path": "process/0.20mm Speed @MINIIS 0.6.json"
         },
         {
-
             "name": "0.25mm Standard @MINIIS",
             "sub_path": "process/0.25mm Standard @MINIIS.json"
         },
         {
-
             "name": "0.25mm Speed @MINIIS",
             "sub_path": "process/0.25mm Speed @MINIIS.json"
         },
         {
-
             "name": "0.30mm Detail @MINIIS",
             "sub_path": "process/0.30mm Detail @MINIIS.json"
         },
         {
-
             "name": "0.35mm Standard @MINIIS",
             "sub_path": "process/0.35mm Standard @MINIIS.json"
         }, 
         {
-
             "name": "0.40mm Standard @MINIIS",
             "sub_path": "process/0.40mm Standard @MINIIS.json"
         },      
         {
-
             "name": "0.24mm Standard @MK4",
             "sub_path": "process/0.24mm Standard @MK4.json"
         },
         {
-
             "name": "0.28mm Standard @MK4",
             "sub_path": "process/0.28mm Standard @MK4.json"
         },
         {
-
             "name": "0.32mm Standard @MK4",
             "sub_path": "process/0.32mm Standard @MK4.json"
         },
         {
-
             "name": "0.40mm Standard @MK4",
             "sub_path": "process/0.40mm Standard @MK4.json"
         },
         {
-
             "name": "0.56mm Standard @MK4",
             "sub_path": "process/0.56mm Standard @MK4.json"
+        },
+        {
+            "name": "0.15mm Speed @XL 0.25",
+            "sub_path": "process/0.15mm Speed @XL 0.25.json"
+        },
+        {
+            "name": "0.12mm Quality @XL 0.25",
+            "sub_path": "process/0.12mm Quality @XL 0.25.json"
+        },
+        {
+            "name": "0.10mm Quality @XL 0.25",
+            "sub_path": "process/0.10mm Quality @XL 0.25.json"
+        },
+        {
+            "name": "0.07mm UltraDetail @XL 0.25",
+            "sub_path": "process/0.07mm UltraDetail @XL 0.25.json"
+        },
+        {
+            "name": "0.05mm UltraDetail @XL 0.25",
+            "sub_path": "process/0.05mm UltraDetail @XL 0.25.json"
+        },
+        {
+            "name": "0.20mm Draft @XL 0.3",
+            "sub_path": "process/0.20mm Draft @XL 0.3.json"
+        },
+        {
+            "name": "0.16mm Speed @XL 0.3",
+            "sub_path": "process/0.16mm Speed @XL 0.3.json"
+        },
+        {
+            "name": "0.12mm Quality @XL 0.3",
+            "sub_path": "process/0.12mm Quality @XL 0.3.json"
+        },
+        {
+            "name": "0.08mm Detail @XL 0.3",
+            "sub_path": "process/0.08mm Detail @XL 0.3.json"
+        },
+        {
+            "name": "0.05mm UltraDetail @XL 0.3",
+            "sub_path": "process/0.05mm UltraDetail @XL 0.3.json"
         },
         {
             "name": "0.30mm Draft @XL 0.4",
@@ -600,6 +613,10 @@
             "sub_path": "filament/Prusa Generic PC @MINIIS 0.8.json"
         },
         {
+            "name": "Prusament PC Blend @XL",
+            "sub_path": "filament/Prusament PC Blend @XL.json"
+        },
+        {
             "name": "Prusament PC-CF @XL",
             "sub_path": "filament/Prusament PC-CF @XL.json"
         },
@@ -740,6 +757,14 @@
         {
             "name": "Prusa MINI 0.8 nozzle",
             "sub_path": "machine/Prusa MINI 0.8 nozzle.json"
+        },
+        {
+            "name": "Prusa XL 0.25 nozzle",
+            "sub_path": "machine/Prusa XL 0.25 nozzle.json"
+        },
+        {
+            "name": "Prusa XL 0.3 nozzle",
+            "sub_path": "machine/Prusa XL 0.3 nozzle.json"
         },
         {
             "name": "Prusa XL 0.4 nozzle",

@@ -11,6 +11,7 @@
   "top_shell_layers": "10",
   "bottom_shell_layers": "8",
   "support_top_z_distance": "0.1",
+  "support_bottom_z_distance": "0.1",
   "inner_wall_speed": "25",
   "small_perimeter_speed": "25",
   "outer_wall_speed": "25",
