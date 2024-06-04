@@ -421,6 +421,7 @@ void MediaFilePanel::modeChanged(wxCommandEvent& e1)
 }
 
 extern wxString hide_passwd(wxString url, std::vector<wxString> const &passwords);
+extern void refresh_agora_url(char const *device, char const *dev_ver, char const *channel, void *context, void (*callback)(void *context, char const *url));
 
 void MediaFilePanel::fetchUrl(boost::weak_ptr<PrinterFileSystem> wfs)
 {
@@ -480,12 +481,12 @@ void MediaFilePanel::fetchUrl(boost::weak_ptr<PrinterFileSystem> wfs)
     if (agent) {
         std::string protocols[] = {"", "\"tutk\"", "\"agora\"", "\"tutk\",\"agora\""};
         agent->get_camera_url(m_machine + "|" + m_dev_ver + "|" + protocols[m_remote_proto],
-            [this, wfs, m = m_machine, v = agent->get_version(), dv = m_dev_ver, agent](std::string url) {
+            [this, wfs, m = m_machine, v = agent->get_version(), dv = m_dev_ver](std::string url) {
             if (boost::algorithm::starts_with(url, "bambu:///")) {
                 url += "&device=" + m;
                 url += "&net_ver=" + v;
                 url += "&dev_ver=" + dv;
-                url += "&network_agent=" + boost::lexical_cast<std::string>(agent->get_network_agent());
+                url += "&refresh_url=" + boost::lexical_cast<std::string>(refresh_agora_url);
                 url += "&cli_id=" + wxGetApp().app_config->get("slicer_uuid");
                 url += "&cli_ver=" + std::string(SLIC3R_VERSION);
             }

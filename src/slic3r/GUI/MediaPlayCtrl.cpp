@@ -231,6 +231,18 @@ wxString hide_passwd(wxString url, std::vector<wxString> const &passwords)
     return url;
 }
 
+void refresh_agora_url(char const* device, char const* dev_ver, char const* channel, void* context, void (*callback)(void* context, char const* url))
+{
+    std::string device2 =device;
+    device2 += "|";
+    device2 += dev_ver;
+    device2 += "|\"agora\"|";
+    device2 += channel;
+    wxGetApp().getAgent()->get_camera_url(device2, [context, callback](std::string url) {
+        callback(context, url.c_str());
+    });
+}
+
 void MediaPlayCtrl::Play()
 {
     if (!m_next_retry.IsValid() || wxDateTime::Now() < m_next_retry)
@@ -314,12 +326,12 @@ void MediaPlayCtrl::Play()
     if (agent) {
         std::string protocols[] = {"", "\"tutk\"", "\"agora\"", "\"tutk\",\"agora\""};
         agent->get_camera_url(m_machine + "|" + m_dev_ver + "|" + protocols[m_remote_proto],
-            [this, m = m_machine, v = agent_version, dv = m_dev_ver, agent](std::string url) {
+            [this, m = m_machine, v = agent_version, dv = m_dev_ver](std::string url) {
             if (boost::algorithm::starts_with(url, "bambu:///")) {
                 url += "&device=" + into_u8(m);
                 url += "&net_ver=" + v;
                 url += "&dev_ver=" + dv;
-                url += "&network_agent=" + boost::lexical_cast<std::string>(agent->get_network_agent());
+                url += "&refresh_url=" + boost::lexical_cast<std::string>(refresh_agora_url);
                 url += "&cli_id=" + wxGetApp().app_config->get("slicer_uuid");
                 url += "&cli_ver=" + std::string(SLIC3R_VERSION);
             }
@@ -516,12 +528,12 @@ void MediaPlayCtrl::ToggleStream()
     }
     NetworkAgent *agent = wxGetApp().getAgent();
     if (!agent) return;
-    agent->get_camera_url(m_machine, [this, m = m_machine, v = agent->get_version(), dv = m_dev_ver, agent](std::string url) {
+    agent->get_camera_url(m_machine, [this, m = m_machine, v = agent->get_version(), dv = m_dev_ver](std::string url) {
         if (boost::algorithm::starts_with(url, "bambu:///")) {
             url += "&device=" + m;
             url += "&net_ver=" + v;
             url += "&dev_ver=" + dv;
-            url += "&network_agent=" + boost::lexical_cast<std::string>(agent->get_network_agent());
+            url += "&refresh_url=" + boost::lexical_cast<std::string>(refresh_agora_url);
             url += "&cli_id=" + wxGetApp().app_config->get("slicer_uuid");
             url += "&cli_ver=" + std::string(SLIC3R_VERSION);
         }
