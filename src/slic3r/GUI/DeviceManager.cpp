@@ -1381,6 +1381,10 @@ void MachineObject::parse_status(int flag)
         xcam_allow_prompt_sound = ((flag >> 17) & 0x1) != 0;
     }
 
+    if (((flag >> 18) & 0x1) != 0) {
+        is_support_prompt_sound = true;
+    }
+
     is_support_filament_tangle_detect = ((flag >> 19) & 0x1) != 0;
     if (xcam_filament_tangle_detect_count > 0)
         xcam_filament_tangle_detect_count--;
