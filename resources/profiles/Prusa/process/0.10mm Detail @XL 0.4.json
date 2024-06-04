@@ -10,6 +10,7 @@
   "wall_loops": "3",
   "top_shell_layers": "8",
   "bottom_shell_layers": "7",
+  "support_top_z_distance": "0.17",
   "inner_wall_speed": "45",
   "small_perimeter_speed": "30",
   "outer_wall_speed": "30",

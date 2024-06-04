@@ -11,6 +11,7 @@
   "bottom_shell_layers": "3",
   "infill_anchor_max": "15",
   "raft_first_layer_expansion": "2",
+  "support_top_z_distance": "0.3",
   "support_base_pattern_spacing": "2.2",
   "support_interface_top_layers": "4",
   "inner_wall_speed": "70",
