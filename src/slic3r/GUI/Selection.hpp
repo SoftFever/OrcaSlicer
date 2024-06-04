@@ -225,6 +225,7 @@ public:
     void remove_volumes(EMode mode, const std::vector<unsigned int>& volume_idxs);
 
     //BBS
+    ModelVolume *                   get_selected_single_volume(int &out_object_idx, int &out_volume_idx) const;
     void add_curr_plate();
     void add_object_from_idx(std::vector<int>& object_idxs);
     void remove_curr_plate();

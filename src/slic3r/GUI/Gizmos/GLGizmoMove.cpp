@@ -48,6 +48,7 @@ bool GLGizmoMove3D::on_mouse(const wxMouseEvent &mouse_event) {
 
 void GLGizmoMove3D::data_changed(bool is_serializing) {
     m_grabbers[2].enabled = !m_parent.get_selection().is_wipe_tower();
+    change_cs_by_selection();
 }
 
 bool GLGizmoMove3D::on_init()
@@ -81,8 +82,9 @@ bool GLGizmoMove3D::on_is_activable() const
 
 void GLGizmoMove3D::on_set_state() {
     if (get_state() == On) {
-        m_object_manipulation->set_coordinates_type(ECoordinatesType::World);
-        m_object_manipulation->set_use_object_cs(false);
+        m_last_selected_obejct_idx = -1;
+        m_last_selected_volume_idx = -1;
+        change_cs_by_selection();
     }
 }
 
@@ -249,5 +251,30 @@ double GLGizmoMove3D::calc_projection(const UpdateData& data) const
 
     return projection;
 }
+
+void GLGizmoMove3D::change_cs_by_selection() {
+    int          obejct_idx, volume_idx;
+    ModelVolume *model_volume = m_parent.get_selection().get_selected_single_volume(obejct_idx, volume_idx);
+    if (m_last_selected_obejct_idx == obejct_idx && m_last_selected_volume_idx == volume_idx) {
+        return;
+    }
+    m_last_selected_obejct_idx = obejct_idx;
+    m_last_selected_volume_idx = volume_idx;
+    if (m_parent.get_selection().is_multiple_full_instance() || m_parent.get_selection().is_single_full_instance()) {
+        m_object_manipulation->set_use_object_cs(false);
+    }
+    else if (model_volume && model_volume->is_model_part()) {
+        m_object_manipulation->set_use_object_cs(false);
+    } else {
+        m_object_manipulation->set_use_object_cs(true);
+    }
+    if (m_object_manipulation->get_use_object_cs()) {
+        m_object_manipulation->set_coordinates_type(ECoordinatesType::Instance);
+    } else {
+        m_object_manipulation->set_coordinates_type(ECoordinatesType::World);
+    }
+}
+
+
 } // namespace GUI
 } // namespace Slic3r

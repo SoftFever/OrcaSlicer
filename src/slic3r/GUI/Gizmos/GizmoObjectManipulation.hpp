@@ -109,7 +109,8 @@ public:
 
     void        set_uniform_scaling(const bool uniform_scale);
     bool        get_uniform_scaling() const { return m_uniform_scale; }
-    void        set_use_object_cs(bool flag) { m_use_object_cs = flag; }
+    void        set_use_object_cs(bool flag){ if (m_use_object_cs != flag) m_use_object_cs = flag; }
+    bool        get_use_object_cs() { return m_use_object_cs; }
     // Does the object manipulation panel work in World or Local coordinates?
     void        set_coordinates_type(ECoordinatesType type);
     ECoordinatesType get_coordinates_type() const { return m_coordinates_type; }

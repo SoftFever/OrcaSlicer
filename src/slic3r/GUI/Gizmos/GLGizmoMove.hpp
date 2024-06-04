@@ -71,6 +71,9 @@ protected:
 
 private:
     double calc_projection(const UpdateData& data) const;
+    void   change_cs_by_selection(); //cs mean Coordinate System
+private:
+    int m_last_selected_obejct_idx, m_last_selected_volume_idx;
 };
 
 
