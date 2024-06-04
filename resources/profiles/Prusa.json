@@ -332,6 +332,46 @@
         {
             "name": "0.10mm Detail @XL 0.5",
             "sub_path": "process/0.10mm Detail @XL 0.5.json"
+        },
+        {
+            "name": "0.40mm Draft @XL 0.6",
+            "sub_path": "process/0.40mm Draft @XL 0.6.json"
+        },
+        {
+            "name": "0.32mm Speed @XL 0.6",
+            "sub_path": "process/0.32mm Speed @XL 0.6.json"
+        },
+        {
+            "name": "0.32mm Quality @XL 0.6",
+            "sub_path": "process/0.32mm Quality @XL 0.6.json"
+        },
+        {
+            "name": "0.25mm Speed @XL 0.6",
+            "sub_path": "process/0.25mm Speed @XL 0.6.json"
+        },
+        {
+            "name": "0.25mm Quality @XL 0.6",
+            "sub_path": "process/0.25mm Quality @XL 0.6.json"
+        },
+        {
+            "name": "0.20mm Detail @XL 0.6",
+            "sub_path": "process/0.20mm Detail @XL 0.6.json"
+        },
+        {
+            "name": "0.15mm Detail @XL 0.6",
+            "sub_path": "process/0.15mm Detail @XL 0.6.json"
+        },
+        {
+            "name": "0.55mm Draft @XL 0.8",
+            "sub_path": "process/0.55mm Draft @XL 0.8.json"
+        },
+        {
+            "name": "0.40mm Quality @XL 0.8",
+            "sub_path": "process/0.40mm Quality @XL 0.8.json"
+        },
+        {
+            "name": "0.30mm Detail @XL 0.8",
+            "sub_path": "process/0.30mm Detail @XL 0.8.json"
         }
     ],
     "filament_list": [
@@ -708,6 +748,14 @@
         {
             "name": "Prusa XL 0.5 nozzle",
             "sub_path": "machine/Prusa XL 0.5 nozzle.json"
+        },
+        {
+            "name": "Prusa XL 0.6 nozzle",
+            "sub_path": "machine/Prusa XL 0.6 nozzle.json"
+        },
+        {
+            "name": "Prusa XL 0.8 nozzle",
+            "sub_path": "machine/Prusa XL 0.8 nozzle.json"
         }
     ]
 }

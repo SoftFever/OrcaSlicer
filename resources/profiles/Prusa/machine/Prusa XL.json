@@ -2,7 +2,7 @@
     "type": "machine_model",
     "name": "Prusa XL",
     "model_id": "XL",
-    "nozzle_diameter": "0.4;0.5",
+    "nozzle_diameter": "0.4;0.5;0.6;0.8",
     "machine_tech": "FFF",
     "family": "Prusa",
     "bed_model": "xl_bed.stl",
