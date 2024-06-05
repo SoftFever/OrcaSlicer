@@ -891,7 +891,7 @@ std::string CoolingBuffer::apply_layer_cooldown(
                 else
                     // Remove the feedrate from the G0/G1 line. The G-code line may become empty!
                     remove = true;
-            } else if (line->slowdown &&  (!(line->type & CoolingLine::TYPE_EXTERNAL_PERIMETER))) {
+            } else if (line->slowdown) {
                 // The F value will be overwritten.
                 modify = true;
             } else {
