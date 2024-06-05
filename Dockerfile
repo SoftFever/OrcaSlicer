@@ -37,6 +37,7 @@ RUN apt-get update && apt-get install  -y \
     libsoup2.4-dev \
     libssl3 \
     libssl-dev \
+    libtool \
     libudev-dev \
     libwayland-dev \
     libwebkit2gtk-4.0-dev \
@@ -67,9 +68,8 @@ WORKDIR OrcaSlicer
 RUN ./BuildLinux.sh -u
 
 # Build dependencies in ./deps
-RUN ./BuildLinux.sh -d; exit 0
+RUN ./BuildLinux.sh -d
 
-RUN apt-get install -y libcgal-dev
 # Build slic3r
 RUN ./BuildLinux.sh -s
 

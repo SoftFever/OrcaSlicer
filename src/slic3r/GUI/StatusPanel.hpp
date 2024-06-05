@@ -452,6 +452,7 @@ public:
     wxBoxSizer *create_settings_group(wxWindow *parent);
 
     void show_ams_group(bool show = true);
+    MediaPlayCtrl* get_media_play_ctrl() {return m_media_play_ctrl;};
 };
 
 
@@ -471,7 +472,8 @@ protected:
     CalibrationDialog*   calibration_dlg {nullptr};
     AMSMaterialsSetting *m_filament_setting_dlg{nullptr};
 
-    SecondaryCheckDialog* m_print_error_dlg = nullptr;
+    PrintErrorDialog* m_print_error_dlg = nullptr;
+    SecondaryCheckDialog* m_print_error_dlg_no_action = nullptr;
     SecondaryCheckDialog* abort_dlg = nullptr;
     SecondaryCheckDialog* con_load_dlg = nullptr;
     SecondaryCheckDialog* ctrl_e_hint_dlg = nullptr;
@@ -524,7 +526,7 @@ protected:
     void on_subtask_pause_resume(wxCommandEvent &event);
     void on_subtask_abort(wxCommandEvent &event);
     void on_print_error_clean(wxCommandEvent &event);
-    void show_error_message(MachineObject* obj, wxString msg, std::string print_error_str = "");
+    void show_error_message(MachineObject* obj, wxString msg, std::string print_error_str = "",wxString image_url="",std::vector<int> used_button=std::vector<int>());
     void error_info_reset();
     void show_recenter_dialog();
 
@@ -553,6 +555,7 @@ protected:
     void on_ams_load(SimpleEvent &event);
     void update_filament_step();
     void on_ams_load_curr();
+    void on_ams_load_vams(wxCommandEvent& event);
     void on_ams_unload(SimpleEvent &event);
     void on_ams_filament_backup(SimpleEvent& event);
     void on_ams_setting_click(SimpleEvent& event);

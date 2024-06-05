@@ -18,6 +18,7 @@ static const wxString NA_STR = _L("N/A");
 static const float MIN_PA_K_VALUE = 0.0;
 static const float MAX_PA_K_VALUE = 0.3;
 static const float MIN_PA_K_VALUE_STEP = 0.001;
+static const int MAX_PA_HISTORY_RESULTS_NUMS = 16;
 
 std::map<int, Preset*> get_cached_selected_filament(MachineObject* obj) {
     std::map<int, Preset*> selected_filament_map;
@@ -429,7 +430,7 @@ void PressureAdvanceWizard::on_cali_action(wxCommandEvent& evt)
 {
     CaliPageActionType action = static_cast<CaliPageActionType>(evt.GetInt());
     if (action == CaliPageActionType::CALI_ACTION_MANAGE_RESULT) {
-        HistoryWindow history_dialog(this, m_calib_results_history);
+        HistoryWindow history_dialog(this, m_calib_results_history, m_show_result_dialog);
         history_dialog.on_device_connected(curr_obj);
         history_dialog.ShowModal();
     }
@@ -467,7 +468,17 @@ void PressureAdvanceWizard::on_cali_action(wxCommandEvent& evt)
 
 void PressureAdvanceWizard::update(MachineObject* obj)
 {
+    if (!obj)
+        return;
+
     CalibrationWizard::update(obj);
+
+    if (!m_show_result_dialog) {
+        if (obj->cali_version != -1 && obj->cali_version != cali_version) {
+            cali_version = obj->cali_version;
+            CalibUtils::emit_get_PA_calib_info(obj->nozzle_diameter, "");
+        }
+    }
 }
 
 void PressureAdvanceWizard::on_device_connected(MachineObject* obj)
@@ -648,11 +659,21 @@ void PressureAdvanceWizard::on_cali_start()
             cali_page->set_pa_cali_image(int(pa_cali_method));
             curr_obj->manual_pa_cali_method = pa_cali_method;
             
-            CalibUtils::calib_generic_PA(calib_info, wx_err_string);
+            if (curr_obj->pa_calib_tab.size() >= MAX_PA_HISTORY_RESULTS_NUMS) {
+                MessageDialog msg_dlg(nullptr, wxString::Format(_L("This machine type can only hold 16 history results per nozzle. "
+                    "You can delete the existing historical results and then start calibration. "
+                    "Or you can continue the calibration, but you cannot create new calibration historical results. \n"
+                    "Do you still want to continue the calibration?"), MAX_PA_HISTORY_RESULTS_NUMS), wxEmptyString, wxICON_WARNING | wxYES | wxCANCEL);
+                if (msg_dlg.ShowModal() != wxID_YES) {
+                    return;
+                }
+            }
 
-            if (!wx_err_string.empty()) {
-                MessageDialog msg_dlg(nullptr, wx_err_string, wxEmptyString, wxICON_WARNING | wxOK);
-                msg_dlg.ShowModal();
+            if (!CalibUtils::calib_generic_PA(calib_info, wx_err_string)) {
+                if (!wx_err_string.empty()) {
+                    MessageDialog msg_dlg(nullptr, wx_err_string, wxEmptyString, wxICON_WARNING | wxOK);
+                    msg_dlg.ShowModal();
+                }
                 return;
             }
 
@@ -713,6 +734,30 @@ void PressureAdvanceWizard::on_cali_save()
                 if (!save_page->get_manual_result(new_pa_cali_result)) {
                     return;
                 }
+
+
+                auto iter = std::find_if(curr_obj->pa_calib_tab.begin(), curr_obj->pa_calib_tab.end(), [&new_pa_cali_result](const PACalibResult &item) {
+                    return item.name == new_pa_cali_result.name && item.filament_id == item.filament_id;
+                });
+                
+                if (iter != curr_obj->pa_calib_tab.end()) {
+                    MessageDialog
+                        msg_dlg(nullptr,
+                                wxString::Format(_L("There is already a historical calibration result with the same name: %s. Only one of the results with the same name "
+                                                    "is saved. Are you sure you want to override the historical result?"),
+                                                 new_pa_cali_result.name),
+                                wxEmptyString, wxICON_WARNING | wxYES_NO);
+                    if (msg_dlg.ShowModal() != wxID_YES)
+                        return;
+                }
+                else if (curr_obj->pa_calib_tab.size() >= MAX_PA_HISTORY_RESULTS_NUMS) {
+                    MessageDialog msg_dlg(nullptr,
+                                          wxString::Format(_L("This machine type can only hold %d history results per nozzle. This result will not be saved."), MAX_PA_HISTORY_RESULTS_NUMS),
+                                          wxEmptyString, wxICON_WARNING | wxOK);
+                    msg_dlg.ShowModal();
+                    return;
+                }
+
                 CalibUtils::set_PA_calib_result({new_pa_cali_result}, false);
             } else {
                 auto  save_page   = static_cast<CalibrationPASavePage *>(save_step->page);
@@ -1020,7 +1065,13 @@ void FlowRateWizard::on_cali_start(CaliPresetStage stage, float cali_value, Flow
             calib_info.filament_prest = temp_filament_preset;
 
             if (cali_stage > 0) {
-                CalibUtils::calib_flowrate(cali_stage, calib_info, wx_err_string);
+                if (!CalibUtils::calib_flowrate(cali_stage, calib_info, wx_err_string)) {
+                    if (!wx_err_string.empty()) {
+                        MessageDialog msg_dlg(nullptr, wx_err_string, wxEmptyString, wxICON_WARNING | wxOK);
+                        msg_dlg.ShowModal();
+                    }
+                    return;
+                }
             }
             else {
                 wx_err_string = _L("Internal Error") + wxString(": Invalid calibration stage");

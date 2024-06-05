@@ -20,6 +20,8 @@
 #include "fast_float/fast_float.h"
 
 #define CALI_DEBUG
+#define MINUTE_30 1800000    //ms
+#define TIME_OUT  5000       //ms
 
 namespace pt = boost::property_tree;
 
@@ -335,15 +337,15 @@ wxString HMSItem::get_module_name(ModuleID module_id)
     switch (module_id)
     {
     case MODULE_MC:
-        return _L("MC");
+        return "MC";
     case MODULE_MAINBOARD:
-        return _L("MainBoard");
+        return "MainBoard";
     case MODULE_AMS:
-        return _L("AMS");
+        return "AMS";
     case MODULE_TH:
-        return _L("TH");
+        return "TH";
     case MODULE_XCAM:
-        return _L("XCam");
+        return "XCam";
     default:
         wxString text = _L("Unknown") + wxString::Format("0x%x", (unsigned)module_id);
         return text;
@@ -452,7 +454,7 @@ void MachineObject::erase_user_access_code()
     AppConfig* config = GUI::wxGetApp().app_config;
     if (config) {
         GUI::wxGetApp().app_config->erase("user_access_code", dev_id);
-        GUI::wxGetApp().app_config->save();
+        //GUI::wxGetApp().app_config->save();
     }
 }
 
@@ -1380,7 +1382,6 @@ void MachineObject::parse_status(int flag)
     }
 
     is_support_filament_tangle_detect = ((flag >> 19) & 0x1) != 0;
-    is_support_user_preset = ((flag >> 22) & 0x1) != 0;
     if (xcam_filament_tangle_detect_count > 0)
         xcam_filament_tangle_detect_count--;
     else {
@@ -1390,6 +1391,12 @@ void MachineObject::parse_status(int flag)
     if(!is_support_motor_noise_cali){
         is_support_motor_noise_cali = ((flag >> 21) & 0x1) != 0;
     }
+
+    is_support_nozzle_blob_detection = ((flag >> 25) & 0x1) != 0;
+    nozzle_blob_detection_enabled = ((flag >> 24) & 0x1) != 0;
+
+    is_support_air_print_detection = ((flag >> 29) & 0x1) != 0;
+    ams_air_print_status = ((flag >> 28) & 0x1) != 0;
     
     if (!is_support_p1s_plus) {
         auto supported_plus = ((flag >> 27) & 0x1) != 0;
@@ -1984,6 +1991,16 @@ int MachineObject::command_set_printing_option(bool auto_recovery)
     return this->publish_json(j.dump());
 }
 
+int MachineObject::command_nozzle_blob_detect(bool nozzle_blob_detect)
+{
+    json j;
+    j["print"]["command"] = "print_option";
+    j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+    j["print"]["nozzle_blob_detect"] = nozzle_blob_detect;
+    nozzle_blob_detection_enabled = nozzle_blob_detect;
+    return this->publish_json(j.dump());
+}
+
 int MachineObject::command_set_prompt_sound(bool prompt_sound){
     json j;
     j["print"]["command"] = "print_option";
@@ -2012,6 +2029,19 @@ int MachineObject::command_ams_switch_filament(bool switch_filament)
     ams_auto_switch_filament_flag = switch_filament;
     BOOST_LOG_TRIVIAL(trace) << "command_ams_filament_settings:" << switch_filament;
     ams_print_option_count = HOLD_COUNT_MAX;
+
+    return this->publish_json(j.dump());
+}
+
+int MachineObject::command_ams_air_print_detect(bool air_print_detect)
+{
+    json j;
+    j["print"]["command"] = "print_option";
+    j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+    j["print"]["air_print_detect"] = air_print_detect;
+
+    ams_air_print_status = air_print_detect;
+    BOOST_LOG_TRIVIAL(trace) << "command_ams_air_print_detect:" << air_print_detect;
 
     return this->publish_json(j.dump());
 }
@@ -2214,6 +2244,7 @@ int MachineObject::command_start_flow_ratio_calibration(const X1CCalibInfos& cal
         j["print"]["tray_id"] = calib_data.calib_datas[0].tray_id;
         j["print"]["nozzle_diameter"] = to_string_nozzle_diameter(calib_data.calib_datas[0].nozzle_diameter);
 
+        std::string filament_ids;
         for (int i = 0; i < calib_data.calib_datas.size(); ++i) {
             j["print"]["filaments"][i]["tray_id"]              = calib_data.calib_datas[i].tray_id;
             j["print"]["filaments"][i]["bed_temp"]             = calib_data.calib_datas[i].bed_temp;
@@ -2222,6 +2253,10 @@ int MachineObject::command_start_flow_ratio_calibration(const X1CCalibInfos& cal
             j["print"]["filaments"][i]["nozzle_temp"]          = calib_data.calib_datas[i].nozzle_temp;
             j["print"]["filaments"][i]["def_flow_ratio"]       = std::to_string(calib_data.calib_datas[i].flow_rate);
             j["print"]["filaments"][i]["max_volumetric_speed"] = std::to_string(calib_data.calib_datas[i].max_volumetric_speed);
+
+            if (i > 0)
+                filament_ids += ",";
+            filament_ids += calib_data.calib_datas[i].filament_id;
         }
 
         BOOST_LOG_TRIVIAL(trace) << "flowrate_cali: " << j.dump();
@@ -2623,10 +2658,8 @@ static ENUM enum_index_of(char const *key, char const **enum_names, int enum_cou
     return defl;
 }
 
-int MachineObject::parse_json(std::string payload)
+int MachineObject::parse_json(std::string payload, bool key_field_only)
 {
-    CNumericLocalesSetter locales_setter;
-
     parse_msg_count++;
     std::chrono::system_clock::time_point clock_start = std::chrono::system_clock::now();
     this->set_online_state(true);
@@ -2641,6 +2674,7 @@ int MachineObject::parse_json(std::string payload)
         bool restored_json = false;
         json j;
         json j_pre = json::parse(payload);
+        CNumericLocalesSetter locales_setter;
         if (j_pre.empty()) {
             return 0;
         }
@@ -2701,8 +2735,79 @@ int MachineObject::parse_json(std::string payload)
         }
 
         uint64_t t_utc = j.value("t_utc", 0ULL);
-        if (t_utc > 0) 
+        if (t_utc > 0) {
             last_utc_time = std::chrono::system_clock::time_point(t_utc * 1ms);
+            std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
+            auto millisec_since_epoch = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
+            auto delay = millisec_since_epoch - t_utc;  //ms
+
+            std::string message_type = is_lan_mode_printer() ? "Local Mqtt" : is_tunnel_mqtt ? "Tunnel Mqtt" : "Cloud Mqtt";
+            if (!message_delay.empty()) {
+                const auto& [first_type, first_time_stamp, first_delay] = message_delay.front();
+                const auto& [last_type, last_time_stap, last_delay] = message_delay.back();
+
+                BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ", message delay, last time stamp: " << last_time_stap;
+                if (last_time_stap - first_time_stamp >= MINUTE_30) {
+                    // record, excluding current data
+                    int total = message_delay.size();
+                    int local_mqtt = 0;
+                    int tunnel_mqtt = 0;
+                    int cloud_mqtt = 0;
+
+                    int local_mqtt_timeout = 0;
+                    int tunnel_mqtt_timeout = 0;
+                    int cloud_mqtt_timeout = 0;
+
+                    for (const auto& [type, time_stamp, delay] : message_delay) {
+                        if (type == "Local Mqtt") {
+                            local_mqtt++;
+                            if (delay >= TIME_OUT) {
+                                local_mqtt_timeout++;
+                            }
+                        }
+                        else if (type == "Tunnel Mqtt") {
+                            tunnel_mqtt++;
+                            if (delay >= TIME_OUT) {
+                                tunnel_mqtt_timeout++;
+                            }
+                        }
+                        else if (type == "Cloud Mqtt"){
+                            cloud_mqtt++;
+                            if (delay >= TIME_OUT) {
+                                cloud_mqtt_timeout++;
+                            }
+                        }
+                    }
+
+                    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ", message delay, message total: " << total;
+                    try {
+                        if (m_agent) {
+                            json j_message;
+
+                            // Convert timestamp to time
+                            std::time_t t = time_t(last_time_stap / 1000);  //s
+                            std::tm* now_tm = std::localtime(&t);
+                            char buffer[80];
+                            std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", now_tm);
+
+                            std::string time_str = std::string(buffer);
+                            j_message["time"] = time_str;
+                            j_message["total"] = total;
+                            j_message["local_mqtt"] = std::to_string(local_mqtt_timeout) + "/" + std::to_string(local_mqtt);
+                            j_message["tunnel_mqtt"] = std::to_string(tunnel_mqtt_timeout) + "/" + std::to_string(tunnel_mqtt);
+                            j_message["cloud_mqtt"] = std::to_string(cloud_mqtt_timeout) + "/" + std::to_string(cloud_mqtt);
+
+                            m_agent->track_event("message_delay", j_message.dump());
+                        }
+                    }
+                    catch (...) {}
+
+                    message_delay.clear();
+                    message_delay.shrink_to_fit();
+                }
+            }
+            message_delay.push_back(std::make_tuple(message_type, t_utc, delay));
+        }
         else
             last_utc_time = last_update_time;
 
@@ -2778,179 +2883,181 @@ int MachineObject::parse_json(std::string payload)
                 }
             }
 
+            if (key_field_only) {
+                if (!DeviceManager::EnableMultiMachine) {
+                    if (jj.contains("support_tunnel_mqtt")) {
+                        if (jj["support_tunnel_mqtt"].is_boolean()) {
+                            is_support_tunnel_mqtt = jj["support_tunnel_mqtt"].get<bool>();
+                        }
+                    }
+                }
+            } else {
+                //supported function
+                if (jj.contains("support_chamber_temp_edit")) {
+                    if (jj["support_chamber_temp_edit"].is_boolean()) {
+                        is_support_chamber_edit = jj["support_chamber_temp_edit"].get<bool>();
+                    }
+                }
 
-            //supported function
-            if (jj.contains("support_chamber_temp_edit")) {
-                if (jj["support_chamber_temp_edit"].is_boolean()) {
-                    is_support_chamber_edit = jj["support_chamber_temp_edit"].get<bool>();
+                if (jj.contains("support_extrusion_cali")) {
+                    if (jj["support_extrusion_cali"].is_boolean()) {
+                        is_support_extrusion_cali = jj["support_extrusion_cali"].get<bool>();
+                    }
                 }
-            }
 
-            if (jj.contains("support_extrusion_cali")) {
-                if (jj["support_extrusion_cali"].is_boolean()) {
-                    is_support_extrusion_cali = jj["support_extrusion_cali"].get<bool>();
+                if (jj.contains("support_first_layer_inspect")) {
+                    if (jj["support_first_layer_inspect"].is_boolean()) {
+                        is_support_first_layer_inspect = jj["support_first_layer_inspect"].get<bool>();
+                    }
                 }
-            }
 
-            if (jj.contains("support_first_layer_inspect")) {
-                if (jj["support_first_layer_inspect"].is_boolean()) {
-                    is_support_first_layer_inspect = jj["support_first_layer_inspect"].get<bool>();
+                if (jj.contains("support_ai_monitoring")) {
+                    if (jj["support_ai_monitoring"].is_boolean()) {
+                        is_support_ai_monitoring = jj["support_ai_monitoring"].get<bool>();
+                    }
                 }
-            }
-            
-            if (jj.contains("support_ai_monitoring")) {
-                if (jj["support_ai_monitoring"].is_boolean()) {
-                    is_support_ai_monitoring = jj["support_ai_monitoring"].get<bool>();
-                }
-            }
 
-            if (jj.contains("support_lidar_calibration")) {
-                if (jj["support_lidar_calibration"].is_boolean()) {
-                    is_support_lidar_calibration = jj["support_lidar_calibration"].get<bool>();
+                if (jj.contains("support_lidar_calibration")) {
+                    if (jj["support_lidar_calibration"].is_boolean()) {
+                        is_support_lidar_calibration = jj["support_lidar_calibration"].get<bool>();
+                    }
                 }
-            }
-            
-            if (jj.contains("support_build_plate_marker_detect")) {
-                if (jj["support_build_plate_marker_detect"].is_boolean()) {
-                    is_support_build_plate_marker_detect = jj["support_build_plate_marker_detect"].get<bool>();
-                }
-            }
 
-            if (jj.contains("support_flow_calibration")) {
-                if (jj["support_flow_calibration"].is_boolean()) {
-                    is_support_flow_calibration = jj["support_flow_calibration"].get<bool>();
+                if (jj.contains("support_build_plate_marker_detect")) {
+                    if (jj["support_build_plate_marker_detect"].is_boolean()) {
+                        is_support_build_plate_marker_detect = jj["support_build_plate_marker_detect"].get<bool>();
+                    }
                 }
-            }
 
-            if (jj.contains("support_print_without_sd")) {
-                if (jj["support_print_without_sd"].is_boolean()) {
-                    is_support_print_without_sd = jj["support_print_without_sd"].get<bool>();
+                if (jj.contains("support_flow_calibration")) {
+                    if (jj["support_flow_calibration"].is_boolean()) {
+                        is_support_flow_calibration = jj["support_flow_calibration"].get<bool>();
+                    }
                 }
-            }
 
-            if (jj.contains("support_print_all")) {
-                if (jj["support_print_all"].is_boolean()) {
-                    is_support_print_all = jj["support_print_all"].get<bool>();
+                if (jj.contains("support_print_without_sd")) {
+                    if (jj["support_print_without_sd"].is_boolean()) {
+                        is_support_print_without_sd = jj["support_print_without_sd"].get<bool>();
+                    }
                 }
-            }
 
-            if (jj.contains("support_send_to_sd")) {
-                if (jj["support_send_to_sd"].is_boolean()) {
-                    is_support_send_to_sdcard = jj["support_send_to_sd"].get<bool>();
+                if (jj.contains("support_print_all")) {
+                    if (jj["support_print_all"].is_boolean()) {
+                        is_support_print_all = jj["support_print_all"].get<bool>();
+                    }
                 }
-            }
-            
-            if (jj.contains("support_aux_fan")) {
-                if (jj["support_aux_fan"].is_boolean()) {
-                    is_support_aux_fan = jj["support_aux_fan"].get<bool>();
+                if (jj.contains("support_send_to_sd")) {
+                    if (jj["support_send_to_sd"].is_boolean()) {
+                        is_support_send_to_sdcard = jj["support_send_to_sd"].get<bool>();
+                    }
                 }
-            }
-            
-            if (jj.contains("support_chamber_fan")) {
-                if (jj["support_chamber_fan"].is_boolean()) {
-                    is_support_chamber_fan = jj["support_chamber_fan"].get<bool>();
-                }
-            }
-            
-            if (jj.contains("support_filament_backup")) {
-                if (jj["support_filament_backup"].is_boolean()) {
-                    is_support_filament_backup = jj["support_filament_backup"].get<bool>();
-                }
-            }
 
-            if (jj.contains("support_update_remain")) {
-                if (jj["support_update_remain"].is_boolean()) {
-                    is_support_update_remain = jj["support_update_remain"].get<bool>();
+                if (jj.contains("support_aux_fan")) {
+                    if (jj["support_aux_fan"].is_boolean()) {
+                        is_support_aux_fan = jj["support_aux_fan"].get<bool>();
+                    }
                 }
-            }
 
-            if (jj.contains("support_auto_leveling")) {
-                if (jj["support_auto_leveling"].is_boolean()) {
-                    is_support_auto_leveling = jj["support_auto_leveling"].get<bool>();
+                if (jj.contains("support_chamber_fan")) {
+                    if (jj["support_chamber_fan"].is_boolean()) {
+                        is_support_chamber_fan = jj["support_chamber_fan"].get<bool>();
+                    }
                 }
-            }
 
-            if (jj.contains("support_auto_recovery_step_loss")) {
-                if (jj["support_auto_recovery_step_loss"].is_boolean()) {
-                    is_support_auto_recovery_step_loss = jj["support_auto_recovery_step_loss"].get<bool>();
+                if (jj.contains("support_filament_backup")) {
+                    if (jj["support_filament_backup"].is_boolean()) {
+                        is_support_filament_backup = jj["support_filament_backup"].get<bool>();
+                    }
                 }
-            }
-            
-            if (jj.contains("support_ams_humidity")) {
-                if (jj["support_ams_humidity"].is_boolean()) {
-                    is_support_ams_humidity = jj["support_ams_humidity"].get<bool>();
-                }
-            }
-            
-            if (jj.contains("support_prompt_sound")) {
-                if (jj["support_prompt_sound"].is_boolean()) {
-                    is_support_prompt_sound = jj["support_prompt_sound"].get<bool>();
-                }
-            } 
-            
-            //if (jj.contains("support_filament_tangle_detect")) {
-            //    if (jj["support_filament_tangle_detect"].is_boolean()) {
-            //        is_support_filament_tangle_detect = jj["support_filament_tangle_detect"].get<bool>();
-            //    }
-            //}
 
-            if (jj.contains("support_1080dpi")) {
-                if (jj["support_1080dpi"].is_boolean()) {
-                    is_support_1080dpi = jj["support_1080dpi"].get<bool>();
+                if (jj.contains("support_update_remain")) {
+                    if (jj["support_update_remain"].is_boolean()) {
+                        is_support_update_remain = jj["support_update_remain"].get<bool>();
+                    }
                 }
-            } 
-            
-            if (jj.contains("support_cloud_print_only")) {
-                if (jj["support_cloud_print_only"].is_boolean()) {
-                    is_support_cloud_print_only = jj["support_cloud_print_only"].get<bool>();
-                }
-            }
-            
-            if (jj.contains("support_command_ams_switch")) {
-                if (jj["support_command_ams_switch"].is_boolean()) {
-                    is_support_command_ams_switch = jj["support_command_ams_switch"].get<bool>();
-                }
-            }
-            
-            if (jj.contains("support_mqtt_alive")) {
-                if (jj["support_mqtt_alive"].is_boolean()) {
-                    is_support_mqtt_alive = jj["support_mqtt_alive"].get<bool>();
-                }
-            }
-            
-            if (jj.contains("support_tunnel_mqtt")) {
-                if (jj["support_tunnel_mqtt"].is_boolean()) {
-                    is_support_tunnel_mqtt = jj["support_tunnel_mqtt"].get<bool>();
-                }
-            }
 
-            if (jj.contains("support_motor_noise_cali")) {
-                if (jj["support_motor_noise_cali"].is_boolean()) {
-                    is_support_motor_noise_cali = jj["support_motor_noise_cali"].get<bool>();
+                if (jj.contains("support_auto_leveling")) {
+                    if (jj["support_auto_leveling"].is_boolean()) {
+                        is_support_auto_leveling = jj["support_auto_leveling"].get<bool>();
+                    }
                 }
-            }
 
-            if (jj.contains("support_timelapse")) {
-                if (jj["support_timelapse"].is_boolean()) {
-                    is_support_timelapse = jj["support_timelapse"].get<bool>();
+                if (jj.contains("support_auto_recovery_step_loss")) {
+                    if (jj["support_auto_recovery_step_loss"].is_boolean()) {
+                        is_support_auto_recovery_step_loss = jj["support_auto_recovery_step_loss"].get<bool>();
+                    }
                 }
-            }
 
-            if (jj.contains("support_user_preset")) {
-                if (jj["support_user_preset"].is_boolean()) {
-                    is_support_user_preset = jj["support_user_preset"].get<bool>();
+                if (jj.contains("support_ams_humidity")) {
+                    if (jj["support_ams_humidity"].is_boolean()) {
+                        is_support_ams_humidity = jj["support_ams_humidity"].get<bool>();
+                    }
                 }
-            }
 
-            if (jj.contains("nozzle_max_temperature")) {
-                if (jj["nozzle_max_temperature"].is_number_integer()) {
-                    nozzle_max_temperature = jj["nozzle_max_temperature"].get<int>();
+                if (jj.contains("support_prompt_sound")) {
+                    if (jj["support_prompt_sound"].is_boolean()) {
+                        is_support_prompt_sound = jj["support_prompt_sound"].get<bool>();
+                    }
                 }
-            }
 
-            if (jj.contains("bed_temperature_limit")) {
-                if (jj["bed_temperature_limit"].is_number_integer()) {
-                    bed_temperature_limit = jj["bed_temperature_limit"].get<int>();
+                //if (jj.contains("support_filament_tangle_detect")) {
+                //    if (jj["support_filament_tangle_detect"].is_boolean()) {
+                //        is_support_filament_tangle_detect = jj["support_filament_tangle_detect"].get<bool>();
+                //    }
+                //}
+
+                if (jj.contains("support_1080dpi")) {
+                    if (jj["support_1080dpi"].is_boolean()) {
+                        is_support_1080dpi = jj["support_1080dpi"].get<bool>();
+                    }
+                }
+
+                if (jj.contains("support_cloud_print_only")) {
+                    if (jj["support_cloud_print_only"].is_boolean()) {
+                        is_support_cloud_print_only = jj["support_cloud_print_only"].get<bool>();
+                    }
+                }
+
+                if (jj.contains("support_command_ams_switch")) {
+                    if (jj["support_command_ams_switch"].is_boolean()) {
+                        is_support_command_ams_switch = jj["support_command_ams_switch"].get<bool>();
+                    }
+                }
+
+                if (jj.contains("support_mqtt_alive")) {
+                    if (jj["support_mqtt_alive"].is_boolean()) {
+                        is_support_mqtt_alive = jj["support_mqtt_alive"].get<bool>();
+                    }
+                }
+
+                if (jj.contains("support_motor_noise_cali")) {
+                    if (jj["support_motor_noise_cali"].is_boolean()) {
+                        is_support_motor_noise_cali = jj["support_motor_noise_cali"].get<bool>();
+                    }
+                }
+
+                if (jj.contains("support_timelapse")) {
+                    if (jj["support_timelapse"].is_boolean()) {
+                        is_support_timelapse = jj["support_timelapse"].get<bool>();
+                    }
+                }
+
+                if (jj.contains("support_user_preset")) {
+                    if (jj["support_user_preset"].is_boolean()) {
+                        is_support_user_preset = jj["support_user_preset"].get<bool>();
+                    }
+                }
+
+                if (jj.contains("nozzle_max_temperature")) {
+                    if (jj["nozzle_max_temperature"].is_number_integer()) {
+                        nozzle_max_temperature = jj["nozzle_max_temperature"].get<int>();
+                    }
+                }
+
+                if (jj.contains("bed_temperature_limit")) {
+                    if (jj["bed_temperature_limit"].is_number_integer()) {
+                        bed_temperature_limit = jj["bed_temperature_limit"].get<int>();
+                    }
                 }
             }
 
@@ -2962,7 +3069,7 @@ int MachineObject::parse_json(std::string payload)
                         if (jj["errno"].is_number()) {
                             if (jj["errno"].get<int>() == -2) {
                                 wxString text = _L("The current chamber temperature or the target chamber temperature exceeds 45\u2103.In order to avoid extruder clogging,low temperature filament(PLA/PETG/TPU) is not allowed to be loaded.");
-                                GUI::wxGetApp().show_dialog(text);
+                                GUI::wxGetApp().push_notification(text);
                             }
                         }
                     }
@@ -2982,7 +3089,7 @@ int MachineObject::parse_json(std::string payload)
 #if __WXOSX__
                             set_ctt_dlg(text);
 #else
-                            GUI::wxGetApp().show_dialog(text);
+                            GUI::wxGetApp().push_notification(text);
 #endif
                             }
                         }
@@ -2997,21 +3104,6 @@ int MachineObject::parse_json(std::string payload)
                     // U0 firmware
                     if (jj.contains("print_type")) {
                         print_type = jj["print_type"].get<std::string>();
-                    }
-
-                    if (jj.contains("home_flag")) {
-                        home_flag = jj["home_flag"].get<int>();
-                        parse_status(home_flag);
-                    }
-                    if (jj.contains("hw_switch_state")) {
-                        hw_switch_state = jj["hw_switch_state"].get<int>();
-                    }
-
-                    if (jj.contains("mc_remaining_time")) {
-                        if (jj["mc_remaining_time"].is_string())
-                            mc_left_time = stoi(j["print"]["mc_remaining_time"].get<std::string>()) * 60;
-                        else if (jj["mc_remaining_time"].is_number_integer())
-                            mc_left_time = j["print"]["mc_remaining_time"].get<int>() * 60;
                     }
                     if (jj.contains("mc_percent")) {
                         if (jj["mc_percent"].is_string())
@@ -3033,74 +3125,69 @@ int MachineObject::parse_json(std::string payload)
                     if (jj.contains("mc_print_error_code")) {
                         if (jj["mc_print_error_code"].is_number())
                             mc_print_error_code = jj["mc_print_error_code"].get<int>();
-
                     }
-                    if (jj.contains("mc_print_line_number")) {
-                        if (jj["mc_print_line_number"].is_string() && !jj["mc_print_line_number"].is_null())
-                            mc_print_line_number = atoi(jj["mc_print_line_number"].get<std::string>().c_str());
+                    if (jj.contains("mc_remaining_time")) {
+                        if (jj["mc_remaining_time"].is_string())
+                            mc_left_time = stoi(j["print"]["mc_remaining_time"].get<std::string>()) * 60;
+                        else if (jj["mc_remaining_time"].is_number_integer())
+                            mc_left_time = j["print"]["mc_remaining_time"].get<int>() * 60;
                     }
                     if (jj.contains("print_error")) {
                         if (jj["print_error"].is_number())
                             print_error = jj["print_error"].get<int>();
                     }
-
+                    if (!key_field_only) {
+                        if (jj.contains("home_flag")) {
+                            home_flag = jj["home_flag"].get<int>();
+                            parse_status(home_flag);
+                        }
+                        if (jj.contains("hw_switch_state")) {
+                            hw_switch_state = jj["hw_switch_state"].get<int>();
+                        }
+                        if (jj.contains("mc_print_line_number")) {
+                            if (jj["mc_print_line_number"].is_string() && !jj["mc_print_line_number"].is_null())
+                                mc_print_line_number = atoi(jj["mc_print_line_number"].get<std::string>().c_str());
+                        }
+                    }
 #pragma endregion
 
 #pragma region online
-                    // parse online info
-                    try {
-                        if (jj.contains("online")) {
-                            if (jj["online"].contains("ahb")) {
-                                if (jj["online"]["ahb"].get<bool>()) {
-                                    online_ahb = true;
-                                } else {
-                                    online_ahb = false;
+                    if (!key_field_only) {
+                        // parse online info
+                        try {
+                            if (jj.contains("online")) {
+                                if (jj["online"].contains("ahb")) {
+                                    if (jj["online"]["ahb"].get<bool>()) {
+                                        online_ahb = true;
+                                    } else {
+                                        online_ahb = false;
+                                    }
+                                }
+                                if (jj["online"].contains("rfid")) {
+                                    if (jj["online"]["rfid"].get<bool>()) {
+                                        online_rfid = true;
+                                    } else {
+                                        online_rfid = false;
+                                    }
+                                }
+                                std::string str = jj.dump();
+                                if (jj["online"].contains("version")) {
+                                    online_version = jj["online"]["version"].get<int>();
+                                }
+                                if (last_online_version != online_version) {
+                                    last_online_version = online_version;
+                                    GUI::wxGetApp().CallAfter([this] {
+                                        this->command_get_version();
+                                        });
                                 }
                             }
-                            if (jj["online"].contains("rfid")) {
-                                if (jj["online"]["rfid"].get<bool>()) {
-                                    online_rfid = true;
-                                } else {
-                                    online_rfid = false;
-                                }
-                            }
-                            std::string str = jj.dump();
-                            if (jj["online"].contains("version")) {
-                                online_version = jj["online"]["version"].get<int>();
-                            }
-                            if (last_online_version != online_version) {
-                                last_online_version = online_version;
-                                GUI::wxGetApp().CallAfter([this] {
-                                    this->command_get_version();
-                                    });
-                            }
+                        } catch (...) {
+                            ;
                         }
-                    } catch (...) {
-                        ;
                     }
 #pragma endregion
 
 #pragma region print_task
-                    if (jj.contains("printer_type")) {
-                        printer_type = parse_printer_type(jj["printer_type"].get<std::string>());
-                    }
-
-                    if (jj.contains("subtask_name")) {
-                        subtask_name = jj["subtask_name"].get<std::string>();
-                    }
-                    if (jj.contains("layer_num")) {
-                        curr_layer = jj["layer_num"].get<int>();
-                    }
-                    if (jj.contains("total_layer_num")) {
-                        total_layers = jj["total_layer_num"].get<int>();
-                        if (total_layers == 0)
-                            is_support_layer_num = false;
-                        else
-                            is_support_layer_num = true;
-                    } else {
-                        is_support_layer_num = false;
-                    }
-
                     if (jj.contains("gcode_state")) {
                         this->set_print_state(jj["gcode_state"].get<std::string>());
                     }
@@ -3112,26 +3199,52 @@ int MachineObject::parse_json(std::string payload)
                         is_support_wait_sending_finish = false;
                     }
 
-                    if (jj.contains("queue_number")) {
-                        this->queue_number = jj["queue_number"].get<int>();
-                    } else {
-                        this->queue_number = 0;
+                    if (jj.contains("subtask_name")) {
+                        subtask_name = jj["subtask_name"].get<std::string>();
                     }
 
-                    if (jj.contains("task_id")) {
-                        this->task_id_ = jj["task_id"].get<std::string>();
-                    }
+                    if (!key_field_only) {
+                        if (jj.contains("printer_type")) {
+                            printer_type = parse_printer_type(jj["printer_type"].get<std::string>());
+                        }
 
-                    if (jj.contains("gcode_file"))
-                        this->m_gcode_file = jj["gcode_file"].get<std::string>();
-                    if (jj.contains("gcode_file_prepare_percent")) {
-                        std::string percent_str = jj["gcode_file_prepare_percent"].get<std::string>();
-                        if (!percent_str.empty()) {
-                            try{
-                                this->gcode_file_prepare_percent = atoi(percent_str.c_str());
-                            } catch(...) {}
+                        if (jj.contains("layer_num")) {
+                            curr_layer = jj["layer_num"].get<int>();
+                        }
+                        if (jj.contains("total_layer_num")) {
+                            total_layers = jj["total_layer_num"].get<int>();
+                            if (total_layers == 0)
+                                is_support_layer_num = false;
+                            else
+                                is_support_layer_num = true;
+                        }
+                        else {
+                            is_support_layer_num = false;
+                        }
+                        if (jj.contains("queue_number")) {
+                            this->queue_number = jj["queue_number"].get<int>();
+                        }
+                        else {
+                            this->queue_number = 0;
+                        }
+
+                        if (jj.contains("task_id")) {
+                            this->task_id_ = jj["task_id"].get<std::string>();
+                        }
+
+                        if (jj.contains("gcode_file"))
+                            this->m_gcode_file = jj["gcode_file"].get<std::string>();
+                        if (jj.contains("gcode_file_prepare_percent")) {
+                            std::string percent_str = jj["gcode_file_prepare_percent"].get<std::string>();
+                            if (!percent_str.empty()) {
+                                try {
+                                    this->gcode_file_prepare_percent = atoi(percent_str.c_str());
+                                }
+                                catch (...) {}
+                            }
                         }
                     }
+
                     if (jj.contains("project_id")
                         && jj.contains("profile_id")
                         && jj.contains("subtask_id")
@@ -3170,98 +3283,103 @@ int MachineObject::parse_json(std::string payload)
 #pragma endregion
 
 #pragma region status
-                    /* temperature */
-                    if (jj.contains("bed_temper")) {
-                        if (jj["bed_temper"].is_number()) {
-                            bed_temp = jj["bed_temper"].get<float>();
+                    if (!key_field_only) {
+                        /* temperature */
+                        if (jj.contains("bed_temper")) {
+                            if (jj["bed_temper"].is_number()) {
+                                bed_temp = jj["bed_temper"].get<float>();
+                            }
                         }
-                    }
-                    if (jj.contains("bed_target_temper")) {
-                        if (jj["bed_target_temper"].is_number()) {
-                            bed_temp_target = jj["bed_target_temper"].get<float>();
+                        if (jj.contains("bed_target_temper")) {
+                            if (jj["bed_target_temper"].is_number()) {
+                                bed_temp_target = jj["bed_target_temper"].get<float>();
+                            }
                         }
-                    }
-                    if (jj.contains("frame_temper")) {
-                        if (jj["frame_temper"].is_number()) {
-                            frame_temp = jj["frame_temper"].get<float>();
+                        if (jj.contains("frame_temper")) {
+                            if (jj["frame_temper"].is_number()) {
+                                frame_temp = jj["frame_temper"].get<float>();
+                            }
                         }
-                    }
-                    if (jj.contains("nozzle_temper")) {
-                        if (jj["nozzle_temper"].is_number()) {
-                            nozzle_temp = jj["nozzle_temper"].get<float>();
+                        if (jj.contains("nozzle_temper")) {
+                            if (jj["nozzle_temper"].is_number()) {
+                                nozzle_temp = jj["nozzle_temper"].get<float>();
+                            }
                         }
-                    }
-                    if (jj.contains("nozzle_target_temper")) {
-                        if (jj["nozzle_target_temper"].is_number()) {
-                            nozzle_temp_target = jj["nozzle_target_temper"].get<float>();
+                        if (jj.contains("nozzle_target_temper")) {
+                            if (jj["nozzle_target_temper"].is_number()) {
+                                nozzle_temp_target = jj["nozzle_target_temper"].get<float>();
+                            }
                         }
-                    }
-                    if (jj.contains("chamber_temper")) {
-                        if (jj["chamber_temper"].is_number()) {
-                            chamber_temp = jj["chamber_temper"].get<float>();
+                        if (jj.contains("chamber_temper")) {
+                            if (jj["chamber_temper"].is_number()) {
+                                chamber_temp = jj["chamber_temper"].get<float>();
+                            }
                         }
-                    }
-                    if (jj.contains("ctt")) {
-                        if (jj["ctt"].is_number()) {
-                            chamber_temp_target = jj["ctt"].get<float>();
+                        if (jj.contains("ctt")) {
+                            if (jj["ctt"].is_number()) {
+                                chamber_temp_target = jj["ctt"].get<float>();
+                            }
                         }
-                    }
-                    /* signals */
-                    if (jj.contains("link_th_state"))
-                        link_th = jj["link_th_state"].get<std::string>();
-                    if (jj.contains("link_ams_state"))
-                        link_ams = jj["link_ams_state"].get<std::string>();
-                    if (jj.contains("wifi_signal"))
-                        wifi_signal = jj["wifi_signal"].get<std::string>();
+                        /* signals */
+                        if (jj.contains("link_th_state"))
+                            link_th = jj["link_th_state"].get<std::string>();
+                        if (jj.contains("link_ams_state"))
+                            link_ams = jj["link_ams_state"].get<std::string>();
+                        if (jj.contains("wifi_signal"))
+                            wifi_signal = jj["wifi_signal"].get<std::string>();
 
-                    /* cooling */
-                    if (jj.contains("fan_gear")) {
-                        fan_gear = jj["fan_gear"].get<std::uint32_t>();
-                        big_fan2_speed = (int)((fan_gear & 0x00FF0000) >> 16);
-                        big_fan1_speed = (int)((fan_gear & 0x0000FF00) >> 8);
-                        cooling_fan_speed= (int)((fan_gear & 0x000000FF) >> 0);
-                    }
-                    else {
-                        if (jj.contains("cooling_fan_speed")) {
-                            cooling_fan_speed = stoi(jj["cooling_fan_speed"].get<std::string>());
-                            cooling_fan_speed = round( floor(cooling_fan_speed / float(1.5)) * float(25.5) );
+                        /* cooling */
+                        if (jj.contains("fan_gear")) {
+                            fan_gear = jj["fan_gear"].get<std::uint32_t>();
+                            big_fan2_speed = (int)((fan_gear & 0x00FF0000) >> 16);
+                            big_fan1_speed = (int)((fan_gear & 0x0000FF00) >> 8);
+                            cooling_fan_speed = (int)((fan_gear & 0x000000FF) >> 0);
                         }
                         else {
-                            cooling_fan_speed = 0;
+                            if (jj.contains("cooling_fan_speed")) {
+                                cooling_fan_speed = stoi(jj["cooling_fan_speed"].get<std::string>());
+                                cooling_fan_speed = round(floor(cooling_fan_speed / float(1.5)) * float(25.5));
+                            }
+                            else {
+                                cooling_fan_speed = 0;
+                            }
+
+                            if (jj.contains("big_fan1_speed")) {
+                                big_fan1_speed = stoi(jj["big_fan1_speed"].get<std::string>());
+                                big_fan1_speed = round( floor(big_fan1_speed / float(1.5)) * float(25.5) );
+                            }
+                            else {
+                                big_fan1_speed = 0;
+                            }
+
+                            if (jj.contains("big_fan2_speed")) {
+                                big_fan2_speed = stoi(jj["big_fan2_speed"].get<std::string>());
+                                big_fan2_speed = round( floor(big_fan2_speed / float(1.5)) * float(25.5) );
+                            }
+                            else {
+                                big_fan2_speed = 0;
+                            }
                         }
 
-                        if (jj.contains("big_fan1_speed")) {
-                            big_fan1_speed = stoi(jj["big_fan1_speed"].get<std::string>());
-                            big_fan1_speed = round( floor(big_fan1_speed / float(1.5)) * float(25.5) );
+                        if (jj.contains("heatbreak_fan_speed")) {
+                            heatbreak_fan_speed = stoi(jj["heatbreak_fan_speed"].get<std::string>());
                         }
-                        else {
-                            big_fan1_speed = 0;
-                        }
-
-                        if (jj.contains("big_fan2_speed")) {
-                            big_fan2_speed = stoi(jj["big_fan2_speed"].get<std::string>());
-                            big_fan2_speed = round( floor(big_fan2_speed / float(1.5)) * float(25.5) );
-                        }
-                        else {
-                            big_fan2_speed = 0;
-                        }
-                    }
-
-                    if (jj.contains("heatbreak_fan_speed")) {
-                        heatbreak_fan_speed = stoi(jj["heatbreak_fan_speed"].get<std::string>());
-                    }
                     
-                    /* parse speed */
-                    try {
-                        if (jj.contains("spd_lvl")) {
-                            printing_speed_lvl = (PrintingSpeedLevel)jj["spd_lvl"].get<int>();
+                        /* parse speed */
+                        try {
+                            if (jj.contains("spd_lvl")) {
+                                printing_speed_lvl = (PrintingSpeedLevel)jj["spd_lvl"].get<int>();
+			    }
+                            if (jj.contains("spd_mag")) {
+                                printing_speed_mag = jj["spd_mag"].get<int>();
+                            }
+                            if (jj.contains("heatbreak_fan_speed")) {
+                                heatbreak_fan_speed = stoi(jj["heatbreak_fan_speed"].get<std::string>());
+                            }
                         }
-                        if (jj.contains("spd_mag")) {
-                            printing_speed_mag = jj["spd_mag"].get<int>();
+                        catch (...) {
+                            ;
                         }
-                    }
-                    catch (...) {
-                        ;
                     }
 
                     try {
@@ -3283,115 +3401,122 @@ int MachineObject::parse_json(std::string payload)
                         ;
                     }
 
-                    /*get filam_bak*/
-                    try {
-                        if (jj.contains("filam_bak")) {
-                            is_support_show_filament_backup = true;
-                            filam_bak.clear();
-                            if (jj["filam_bak"].is_array()) {
-                                for (auto it = jj["filam_bak"].begin(); it != jj["filam_bak"].end(); it++) {
-                                    filam_bak.push_back(it.value().get<int>());
+                    if (!key_field_only) {
+                        /*get filam_bak*/
+                        try {
+                            if (jj.contains("filam_bak")) {
+                                is_support_show_filament_backup = true;
+                                filam_bak.clear();
+                                if (jj["filam_bak"].is_array()) {
+                                    for (auto it = jj["filam_bak"].begin(); it != jj["filam_bak"].end(); it++) {
+                                        filam_bak.push_back(it.value().get<int>());
+                                    }
                                 }
-                            }
-                        }
-                        else {
-                            is_support_show_filament_backup = false;
-                        }
-                    }
-                    catch (...) {
-                        ;
-                    }
-
-                    /* get fimware type */
-                    try {
-                        if (jj.contains("mess_production_state")) {
-                            if (jj["mess_production_state"].get<std::string>() == "engineer")
-                                firmware_type = PrinterFirmwareType::FIRMWARE_TYPE_ENGINEER;
-                            else if (jj["mess_production_state"].get<std::string>() == "product")
-                                firmware_type = PrinterFirmwareType::FIRMWARE_TYPE_PRODUCTION;
-                        }
-                    }
-                    catch (...) {
-                        ;
-                    }
-
-                    try {
-                        if (jj.contains("lifecycle")) {
-                            if (jj["lifecycle"].get<std::string>() == "engineer")
-                                lifecycle = PrinterFirmwareType::FIRMWARE_TYPE_ENGINEER;
-                            else if (jj["lifecycle"].get<std::string>() == "product")
-                                lifecycle = PrinterFirmwareType::FIRMWARE_TYPE_PRODUCTION;
-                        }
-                    }
-                    catch (...) {
-                        ;
-                    }
-
-                    try {
-                        if (jj.contains("lights_report") && jj["lights_report"].is_array()) {
-                            for (auto it = jj["lights_report"].begin(); it != jj["lights_report"].end(); it++) {
-                                if ((*it)["node"].get<std::string>().compare("chamber_light") == 0)
-                                    chamber_light = light_effect_parse((*it)["mode"].get<std::string>());
-                                if ((*it)["node"].get<std::string>().compare("work_light") == 0)
-                                    work_light = light_effect_parse((*it)["mode"].get<std::string>());
-                            }
-                        }
-                    }
-                    catch (...) {
-                        ;
-                    }
-                    // media
-                    try {
-                        if (jj.contains("sdcard")) {
-                            if (jj["sdcard"].get<bool>())
-                                sdcard_state = MachineObject::SdcardState::HAS_SDCARD_NORMAL;
-                            else
-                                sdcard_state = MachineObject::SdcardState::NO_SDCARD;
-                        } else {
-                            //do not check sdcard if no sdcard field
-                            sdcard_state = MachineObject::SdcardState::NO_SDCARD;
-                        }
-                    }
-                    catch (...) {
-                        ;
-                    }
-#pragma endregion
-                    try {
-                        if (jj.contains("nozzle_diameter")) {
-
-                            if (nozzle_setting_hold_count > 0) {
-                                nozzle_setting_hold_count--;
-                            } else {
-                                if (jj["nozzle_diameter"].is_number_float()) {
-                                    nozzle_diameter = jj["nozzle_diameter"].get<float>();
-                                }
-                                else if (jj["nozzle_diameter"].is_string()) {
-                                    nozzle_diameter = string_to_float(jj["nozzle_diameter"].get<std::string>());
-                                }
-                            }
-
-                            
-                        }
-                    }
-                    catch(...) {
-                        ;
-                    }
-
-                    try {
-                        if (jj.contains("nozzle_type")) {
-
-                            if (nozzle_setting_hold_count > 0) {
-                                nozzle_setting_hold_count--;
                             }
                             else {
-                                if (jj["nozzle_type"].is_string()) {
-                                    nozzle_type = jj["nozzle_type"].get<std::string>();
+                                is_support_show_filament_backup = false;
+                            }
+                        }
+                        catch (...) {
+                            ;
+                        }
+
+                        /* get fimware type */
+                        try {
+                            if (jj.contains("mess_production_state")) {
+                                if (jj["mess_production_state"].get<std::string>() == "engineer")
+                                    firmware_type = PrinterFirmwareType::FIRMWARE_TYPE_ENGINEER;
+                                else if (jj["mess_production_state"].get<std::string>() == "product")
+                                    firmware_type = PrinterFirmwareType::FIRMWARE_TYPE_PRODUCTION;
+                            }
+                        }
+                        catch (...) {
+                            ;
+                        }
+                    }
+                    if (!key_field_only) {
+                        try {
+                            if (jj.contains("lifecycle")) {
+                                if (jj["lifecycle"].get<std::string>() == "engineer")
+                                    lifecycle = PrinterFirmwareType::FIRMWARE_TYPE_ENGINEER;
+                                else if (jj["lifecycle"].get<std::string>() == "product")
+                                    lifecycle = PrinterFirmwareType::FIRMWARE_TYPE_PRODUCTION;
+                            }
+                        }
+                        catch (...) {
+                            ;
+                        }
+
+                        try {
+                            if (jj.contains("lights_report") && jj["lights_report"].is_array()) {
+                                for (auto it = jj["lights_report"].begin(); it != jj["lights_report"].end(); it++) {
+                                    if ((*it)["node"].get<std::string>().compare("chamber_light") == 0)
+                                        chamber_light = light_effect_parse((*it)["mode"].get<std::string>());
+                                    if ((*it)["node"].get<std::string>().compare("work_light") == 0)
+                                        work_light = light_effect_parse((*it)["mode"].get<std::string>());
                                 }
                             }
                         }
+                        catch (...) {
+                            ;
+                        }
+                        // media
+                        try {
+                            if (jj.contains("sdcard")) {
+                                if (jj["sdcard"].get<bool>())
+                                    sdcard_state = MachineObject::SdcardState::HAS_SDCARD_NORMAL;
+                                else
+                                    sdcard_state = MachineObject::SdcardState::NO_SDCARD;
+                            } else {
+                                //do not check sdcard if no sdcard field
+                                sdcard_state = MachineObject::SdcardState::NO_SDCARD;
+                            }
+                        }
+                        catch (...) {
+                            ;
+                        }
                     }
-                    catch (...) {
-                        ;
+#pragma endregion
+                    if (!key_field_only) {
+                        try {
+                            if (jj.contains("nozzle_diameter")) {
+                                if (nozzle_setting_hold_count > 0) {
+                                    nozzle_setting_hold_count--;
+                                } else {
+                                    if (jj["nozzle_diameter"].is_number_float()) {
+                                        nozzle_diameter = jj["nozzle_diameter"].get<float>();
+                                    }
+                                    else if (jj["nozzle_diameter"].is_string()) {
+                                        nozzle_diameter = string_to_float(jj["nozzle_diameter"].get<std::string>());
+                                    }
+                                }
+
+                            
+                            }
+                        }
+                        catch(...) {
+                            ;
+                        }
+
+                        try {
+                            if (jj.contains("nozzle_type")) {
+
+                                if (nozzle_setting_hold_count > 0) {
+                                    nozzle_setting_hold_count--;
+                                }
+                                else {
+                                    if (jj["nozzle_type"].is_string()) {
+                                        nozzle_type = jj["nozzle_type"].get<std::string>();
+                                    }
+                                }
+                            }
+                            else {
+                                nozzle_type = "";
+                            }
+                        }
+                        catch (...) {
+                            ;
+                        }
                     }
 
 #pragma region upgrade
@@ -3492,147 +3617,151 @@ int MachineObject::parse_json(std::string payload)
 #pragma endregion
 
 #pragma region  camera
-                    // parse camera info
-                    try {
-                        if (jj.contains("ipcam")) {
-                            json const & ipcam = jj["ipcam"];
-                            if (ipcam.contains("ipcam_record")) {
-                                if (camera_recording_hold_count > 0)
-                                    camera_recording_hold_count--;
-                                else {
-                                    if (ipcam["ipcam_record"].get<std::string>() == "enable") {
-                                        camera_recording_when_printing = true;
-                                    }
+                    if (!key_field_only) {
+                        // parse camera info
+                        try {
+                            if (jj.contains("ipcam")) {
+                                json const & ipcam = jj["ipcam"];
+                                if (ipcam.contains("ipcam_record")) {
+                                    if (camera_recording_hold_count > 0)
+                                        camera_recording_hold_count--;
                                     else {
-                                        camera_recording_when_printing = false;
-                                    }
-                                }
-                            }
-                            if (ipcam.contains("timelapse")) {
-                                if (camera_timelapse_hold_count > 0)
-                                    camera_timelapse_hold_count--;
-                                else {
-                                    if (ipcam["timelapse"].get<std::string>() == "enable") {
-                                        camera_timelapse = true;
-                                    }
-                                    else {
-                                        camera_timelapse = false;
-                                    }
-                                }
-                            }
-                            if (ipcam.contains("ipcam_dev")) {
-                                if (ipcam["ipcam_dev"].get<std::string>() == "1") {
-                                    has_ipcam = true;
-                                } else {
-                                    has_ipcam = false;
-                                }
-                            }
-                            if (ipcam.contains("resolution")) {
-                                if (camera_resolution_hold_count > 0)
-                                    camera_resolution_hold_count--;
-                                else {
-                                    camera_resolution = ipcam["resolution"].get<std::string>();
-                                }
-                            }
-                            if (ipcam.contains("resolution_supported")) {
-                                std::vector<std::string> resolution_supported;
-                                for (auto res : ipcam["resolution_supported"])
-                                    resolution_supported.emplace_back(res.get<std::string>());
-                                camera_resolution_supported.swap(resolution_supported);
-                            }
-                            if (ipcam.contains("liveview")) {
-                                char const *local_protos[] = {"none", "disabled", "local", "rtsps", "rtsp"};
-                                liveview_local = enum_index_of(ipcam["liveview"].value<std::string>("local", "none").c_str(), local_protos, 5, LiveviewLocal::LVL_None);
-                                liveview_remote = ipcam["liveview"].value<std::string>("remote", "disabled") == "enabled";
-                            }
-                            if (ipcam.contains("file")) {
-                                file_local     = ipcam["file"].value<std::string>("local", "disabled") == "enabled";
-                                file_remote    = ipcam["file"].value<std::string>("remote", "disabled") == "enabled";
-                                file_model_download = ipcam["file"].value<std::string>("model_download", "disabled") == "enabled";
-                            }
-                            virtual_camera = ipcam.value<std::string>("virtual_camera", "disabled") == "enabled";
-                            if (ipcam.contains("rtsp_url")) {
-                                local_rtsp_url = ipcam["rtsp_url"].get<std::string>();
-                                liveview_local = local_rtsp_url.empty() ? LVL_None : local_rtsp_url == "disable" 
-                                        ? LVL_Disable : boost::algorithm::starts_with(local_rtsp_url, "rtsps") ? LVL_Rtsps : LVL_Rtsp;
-                            }
-                            if (ipcam.contains("tutk_server")) {
-                                tutk_state = ipcam["tutk_server"].get<std::string>();
-                            }
-                        }
-                    }
-                    catch (...) {
-                        ;
-                    }
-
-                    try {
-                        if (jj.contains("xcam")) {
-                            if (xcam_ai_monitoring_hold_count > 0)
-                                xcam_ai_monitoring_hold_count--;
-                            else {
-                                if (jj["xcam"].contains("printing_monitor")) {
-                                    // new protocol
-                                    xcam_ai_monitoring = jj["xcam"]["printing_monitor"].get<bool>();
-                                } else {
-                                    // old version protocol
-                                    if (jj["xcam"].contains("spaghetti_detector")) {
-                                        xcam_ai_monitoring = jj["xcam"]["spaghetti_detector"].get<bool>();
-                                        if (jj["xcam"].contains("print_halt")) {
-                                            bool print_halt = jj["xcam"]["print_halt"].get<bool>();
-                                            if (print_halt) { xcam_ai_monitoring_sensitivity = "medium"; }
+                                        if (ipcam["ipcam_record"].get<std::string>() == "enable") {
+                                            camera_recording_when_printing = true;
+                                        }
+                                        else {
+                                            camera_recording_when_printing = false;
                                         }
                                     }
                                 }
-                                if (jj["xcam"].contains("halt_print_sensitivity")) {
-                                    xcam_ai_monitoring_sensitivity = jj["xcam"]["halt_print_sensitivity"].get<std::string>();
+                                if (ipcam.contains("timelapse")) {
+                                    if (camera_timelapse_hold_count > 0)
+                                        camera_timelapse_hold_count--;
+                                    else {
+                                        if (ipcam["timelapse"].get<std::string>() == "enable") {
+                                            camera_timelapse = true;
+                                        }
+                                        else {
+                                            camera_timelapse = false;
+                                        }
+                                    }
                                 }
-                            }
-
-                            if (xcam_first_layer_hold_count > 0)
-                                xcam_first_layer_hold_count--;
-                            else {
-                                if (jj["xcam"].contains("first_layer_inspector")) {
-                                    xcam_first_layer_inspector = jj["xcam"]["first_layer_inspector"].get<bool>();
+                                if (ipcam.contains("ipcam_dev")) {
+                                    if (ipcam["ipcam_dev"].get<std::string>() == "1") {
+                                        has_ipcam = true;
+                                    } else {
+                                        has_ipcam = false;
+                                    }
                                 }
-                            }
-
-                            if (xcam_buildplate_marker_hold_count > 0)
-                                xcam_buildplate_marker_hold_count--;
-                            else {
-                                if (jj["xcam"].contains("buildplate_marker_detector")) {
-                                    xcam_buildplate_marker_detector = jj["xcam"]["buildplate_marker_detector"].get<bool>();
-                                    is_support_build_plate_marker_detect = true;
-                                } else {
-                                    is_support_build_plate_marker_detect = false;
+                                if (ipcam.contains("resolution")) {
+                                    if (camera_resolution_hold_count > 0)
+                                        camera_resolution_hold_count--;
+                                    else {
+                                        camera_resolution = ipcam["resolution"].get<std::string>();
+                                    }
+                                }
+                                if (ipcam.contains("resolution_supported")) {
+                                    std::vector<std::string> resolution_supported;
+                                    for (auto res : ipcam["resolution_supported"])
+                                        resolution_supported.emplace_back(res.get<std::string>());
+                                    camera_resolution_supported.swap(resolution_supported);
+                                }
+                                if (ipcam.contains("liveview")) {
+                                    char const *local_protos[] = {"none", "disabled", "local", "rtsps", "rtsp"};
+                                    liveview_local = enum_index_of(ipcam["liveview"].value<std::string>("local", "none").c_str(), local_protos, 5, LiveviewLocal::LVL_None);
+                                    liveview_remote = ipcam["liveview"].value<std::string>("remote", "disabled") == "enabled";
+                                }
+                                if (ipcam.contains("file")) {
+                                    file_local     = ipcam["file"].value<std::string>("local", "disabled") == "enabled";
+                                    file_remote    = ipcam["file"].value<std::string>("remote", "disabled") == "enabled";
+                                    file_model_download = ipcam["file"].value<std::string>("model_download", "disabled") == "enabled";
+                                }
+                                virtual_camera = ipcam.value<std::string>("virtual_camera", "disabled") == "enabled";
+                                if (ipcam.contains("rtsp_url")) {
+                                    local_rtsp_url = ipcam["rtsp_url"].get<std::string>();
+                                    liveview_local = local_rtsp_url.empty() ? LVL_None : local_rtsp_url == "disable" 
+                                            ? LVL_Disable : boost::algorithm::starts_with(local_rtsp_url, "rtsps") ? LVL_Rtsps : LVL_Rtsp;
+                                }
+                                if (ipcam.contains("tutk_server")) {
+                                    tutk_state = ipcam["tutk_server"].get<std::string>();
                                 }
                             }
                         }
-                    }
-                    catch (...) {
-                        ;
+                        catch (...) {
+                            ;
+                        }
+
+                        try {
+                            if (jj.contains("xcam")) {
+                                if (xcam_ai_monitoring_hold_count > 0)
+                                    xcam_ai_monitoring_hold_count--;
+                                else {
+                                    if (jj["xcam"].contains("printing_monitor")) {
+                                        // new protocol
+                                        xcam_ai_monitoring = jj["xcam"]["printing_monitor"].get<bool>();
+                                    } else {
+                                        // old version protocol
+                                        if (jj["xcam"].contains("spaghetti_detector")) {
+                                            xcam_ai_monitoring = jj["xcam"]["spaghetti_detector"].get<bool>();
+                                            if (jj["xcam"].contains("print_halt")) {
+                                                bool print_halt = jj["xcam"]["print_halt"].get<bool>();
+                                                if (print_halt) { xcam_ai_monitoring_sensitivity = "medium"; }
+                                            }
+                                        }
+                                    }
+                                    if (jj["xcam"].contains("halt_print_sensitivity")) {
+                                        xcam_ai_monitoring_sensitivity = jj["xcam"]["halt_print_sensitivity"].get<std::string>();
+                                    }
+                                }
+
+                                if (xcam_first_layer_hold_count > 0)
+                                    xcam_first_layer_hold_count--;
+                                else {
+                                    if (jj["xcam"].contains("first_layer_inspector")) {
+                                        xcam_first_layer_inspector = jj["xcam"]["first_layer_inspector"].get<bool>();
+                                    }
+                                }
+
+                                if (xcam_buildplate_marker_hold_count > 0)
+                                    xcam_buildplate_marker_hold_count--;
+                                else {
+                                    if (jj["xcam"].contains("buildplate_marker_detector")) {
+                                        xcam_buildplate_marker_detector = jj["xcam"]["buildplate_marker_detector"].get<bool>();
+                                        is_support_build_plate_marker_detect = true;
+                                    } else {
+                                        is_support_build_plate_marker_detect = false;
+                                    }
+                                }
+                            }
+                        }
+                        catch (...) {
+                            ;
+                        }
                     }
 #pragma endregion
 
 #pragma region hms
-                    // parse hms msg
-                    try {
-                        hms_list.clear();
-                        if (jj.contains("hms")) {
-                            if (jj["hms"].is_array()) {
-                                for (auto it = jj["hms"].begin(); it != jj["hms"].end(); it++) {
-                                    HMSItem item;
-                                    if ((*it).contains("attr") && (*it).contains("code")) {
-                                        unsigned attr = (*it)["attr"].get<unsigned>();
-                                        unsigned code = (*it)["code"].get<unsigned>();
-                                        item.parse_hms_info(attr, code);
+                    if (!key_field_only) {
+                        // parse hms msg
+                        try {
+                            hms_list.clear();
+                            if (jj.contains("hms")) {
+                                if (jj["hms"].is_array()) {
+                                    for (auto it = jj["hms"].begin(); it != jj["hms"].end(); it++) {
+                                        HMSItem item;
+                                        if ((*it).contains("attr") && (*it).contains("code")) {
+                                            unsigned attr = (*it)["attr"].get<unsigned>();
+                                            unsigned code = (*it)["code"].get<unsigned>();
+                                            item.parse_hms_info(attr, code);
+                                        }
+                                        hms_list.push_back(item);
                                     }
-                                    hms_list.push_back(item);
                                 }
                             }
                         }
-                    }
-                    catch (...) {
-                        ;
+                        catch (...) {
+                            ;
+                        }
                     }
 #pragma endregion
 
@@ -3675,459 +3804,460 @@ int MachineObject::parse_json(std::string payload)
                             if (jj["ams"].contains("tray_exist_bits")) {
                                 tray_exist_bits = stol(jj["ams"]["tray_exist_bits"].get<std::string>(), nullptr, 16);
                             }
-                            if (jj["ams"].contains("tray_read_done_bits")) {
-                                tray_read_done_bits = stol(jj["ams"]["tray_read_done_bits"].get<std::string>(), nullptr, 16);
-                            }
-                            if (jj["ams"].contains("tray_reading_bits")) {
-                                tray_reading_bits = stol(jj["ams"]["tray_reading_bits"].get<std::string>(), nullptr, 16);
-                                ams_support_use_ams = true;
-                            }
-                            if (jj["ams"].contains("tray_is_bbl_bits")) {
-                                tray_is_bbl_bits = stol(jj["ams"]["tray_is_bbl_bits"].get<std::string>(), nullptr, 16);
-                            }
-                            if (jj["ams"].contains("version")) {
-                                if (jj["ams"]["version"].is_number())
-                                    ams_version = jj["ams"]["version"].get<int>();
-                            }
-                            if (jj["ams"].contains("tray_now")) {
-                                this->_parse_tray_now(jj["ams"]["tray_now"].get<std::string>());
-                            }
-                            if (jj["ams"].contains("tray_tar")) {
-                                m_tray_tar = jj["ams"]["tray_tar"].get<std::string>();
-                            }
-                            if (jj["ams"].contains("ams_rfid_status"))
-                                ams_rfid_status = jj["ams"]["ams_rfid_status"].get<int>();
-                            if (jj["ams"].contains("humidity")) {
-                                if (jj["ams"]["humidity"].is_string()) {
-                                    std::string humidity_str = jj["ams"]["humidity"].get<std::string>();
-                                    try {
-                                        ams_humidity = atoi(humidity_str.c_str());
-                                    } catch (...) {
-                                        ;
-                                    }
+                            if (!key_field_only) {
+                                if (jj["ams"].contains("tray_read_done_bits")) {
+                                    tray_read_done_bits = stol(jj["ams"]["tray_read_done_bits"].get<std::string>(), nullptr, 16);
                                 }
-                            }
-
-                            if (jj["ams"].contains("insert_flag") || jj["ams"].contains("power_on_flag")
-                                || jj["ams"].contains("calibrate_remain_flag")) {
-                                if (ams_user_setting_hold_count > 0) {
-                                    ams_user_setting_hold_count--;
-                                } else {
-                                    if (jj["ams"].contains("insert_flag")) {
-                                        ams_insert_flag = jj["ams"]["insert_flag"].get<bool>();
-                                    }
-                                    if (jj["ams"].contains("power_on_flag")) {
-                                        ams_power_on_flag = jj["ams"]["power_on_flag"].get<bool>();
-                                    }
-                                    if (jj["ams"].contains("calibrate_remain_flag")) {
-                                        ams_calibrate_remain_flag = jj["ams"]["calibrate_remain_flag"].get<bool>();
-                                    }
+                                if (jj["ams"].contains("tray_reading_bits")) {
+                                    tray_reading_bits = stol(jj["ams"]["tray_reading_bits"].get<std::string>(), nullptr, 16);
+                                    ams_support_use_ams = true;
                                 }
-                            }
-                            if (ams_exist_bits != last_ams_exist_bits
-                                || last_tray_exist_bits != last_tray_exist_bits
-                                || tray_is_bbl_bits != last_is_bbl_bits
-                                || tray_read_done_bits != last_read_done_bits
-                                || last_ams_version != ams_version) {
-                                is_ams_need_update = true;
-                            }
-                            else {
-                                is_ams_need_update = false;
-                            }
-
-                            json j_ams = jj["ams"]["ams"];
-                            std::set<std::string> ams_id_set;
-
-                            for (auto it = amsList.begin(); it != amsList.end(); it++) {
-                                ams_id_set.insert(it->first);
-                            }
-                            for (auto it = j_ams.begin(); it != j_ams.end(); it++) {
-                                if (!it->contains("id")) continue;
-                                std::string ams_id = (*it)["id"].get<std::string>();
-                                ams_id_set.erase(ams_id);
-                                Ams* curr_ams = nullptr;
-                                auto ams_it = amsList.find(ams_id);
-                                if (ams_it == amsList.end()) {
-                                    Ams* new_ams = new Ams(ams_id);
-                                    try {
-                                        if (!ams_id.empty()) {
-                                            int ams_id_int = atoi(ams_id.c_str());
-                                            new_ams->is_exists = (ams_exist_bits & (1 << ams_id_int)) != 0 ? true : false;
-                                        }
-                                    }
-                                    catch (...) {
-                                        ;
-                                    }
-                                    amsList.insert(std::make_pair(ams_id, new_ams));
-                                    // new ams added event
-                                    curr_ams = new_ams;
-                                } else {
-                                    curr_ams = ams_it->second;
+                                if (jj["ams"].contains("tray_is_bbl_bits")) {
+                                    tray_is_bbl_bits = stol(jj["ams"]["tray_is_bbl_bits"].get<std::string>(), nullptr, 16);
                                 }
-                                if (!curr_ams) continue;
-
-                                if (it->contains("humidity")) {
-                                    std::string humidity = (*it)["humidity"].get<std::string>();
-
-                                    try {
-                                        curr_ams->humidity = atoi(humidity.c_str());
-                                    }
-                                    catch (...) {
-                                        ;
-                                    }
+                                if (jj["ams"].contains("version")) {
+                                    if (jj["ams"]["version"].is_number())
+                                        ams_version = jj["ams"]["version"].get<int>();
                                 }
-                                
-
-                                if (it->contains("tray")) {
-                                    std::set<std::string> tray_id_set;
-                                    for (auto it = curr_ams->trayList.begin(); it != curr_ams->trayList.end(); it++) {
-                                        tray_id_set.insert(it->first);
-                                    }
-                                    for (auto tray_it = (*it)["tray"].begin(); tray_it != (*it)["tray"].end(); tray_it++) {
-                                        if (!tray_it->contains("id")) continue;
-                                        std::string tray_id = (*tray_it)["id"].get<std::string>();
-                                        tray_id_set.erase(tray_id);
-                                        // compare tray_list
-                                        AmsTray* curr_tray = nullptr;
-                                        auto tray_iter = curr_ams->trayList.find(tray_id);
-                                        if (tray_iter == curr_ams->trayList.end()) {
-                                            AmsTray* new_tray = new AmsTray(tray_id);
-                                            curr_ams->trayList.insert(std::make_pair(tray_id, new_tray));
-                                            curr_tray = new_tray;
-                                        }
-                                        else {
-                                            curr_tray = tray_iter->second;
-                                        }
-                                        if (!curr_tray) continue;
-
-                                        if (curr_tray->hold_count > 0) {
-                                            curr_tray->hold_count--;
-                                            continue;
-                                        }
-
-                                        curr_tray->id = (*tray_it)["id"].get<std::string>();
-                                        if (tray_it->contains("tag_uid"))
-                                            curr_tray->tag_uid          = (*tray_it)["tag_uid"].get<std::string>();
-                                        else
-                                            curr_tray->tag_uid = "0";
-                                        if (tray_it->contains("tray_info_idx") && tray_it->contains("tray_type")) {
-                                            curr_tray->setting_id       = (*tray_it)["tray_info_idx"].get<std::string>();
-                                            //std::string type            = (*tray_it)["tray_type"].get<std::string>();
-                                            std::string type = setting_id_to_type(curr_tray->setting_id, (*tray_it)["tray_type"].get<std::string>());
-                                            if (curr_tray->setting_id == "GFS00") {
-                                                curr_tray->type = "PLA-S";
-                                            }
-                                            else if (curr_tray->setting_id == "GFS01") {
-                                                curr_tray->type = "PA-S";
-                                            } else {
-                                                curr_tray->type = type;
-                                            }
-                                            if (filament_list.find(curr_tray->setting_id) == filament_list.end()) {
-                                                wxColour color = *wxWHITE;
-                                                char     col_buf[10];
-                                                sprintf(col_buf, "%02X%02X%02XFF", (int) color.Red(), (int) color.Green(), (int) color.Blue());
-                                                try {
-                                                    this->command_ams_filament_settings(std::stoi(ams_id), std::stoi(tray_id), "", "", std::string(col_buf), "", 0, 0);
-                                                    continue;
-                                                } catch (...) {
-                                                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " " << __LINE__ << " stoi error and ams_id: " << ams_id << " tray_id" << tray_id;
-                                                }
-                                            }
-                                        } else {
-                                            curr_tray->setting_id = "";
-                                            curr_tray->type       = "";
-                                        }
-                                        if (tray_it->contains("tray_sub_brands"))
-                                            curr_tray->sub_brands       = (*tray_it)["tray_sub_brands"].get<std::string>();
-                                        else
-                                            curr_tray->sub_brands = "";
-                                        if (tray_it->contains("tray_weight"))
-                                            curr_tray->weight           = (*tray_it)["tray_weight"].get<std::string>();
-                                        else
-                                            curr_tray->weight = "";
-                                        if (tray_it->contains("tray_diameter"))
-                                            curr_tray->diameter         = (*tray_it)["tray_diameter"].get<std::string>();
-                                        else
-                                            curr_tray->diameter = "";
-                                        if (tray_it->contains("tray_temp"))
-                                            curr_tray->temp             = (*tray_it)["tray_temp"].get<std::string>();
-                                        else
-                                            curr_tray->temp = "";
-                                        if (tray_it->contains("tray_time"))
-                                            curr_tray->time             = (*tray_it)["tray_time"].get<std::string>();
-                                        else
-                                            curr_tray->time = "";
-                                        if (tray_it->contains("bed_temp_type"))
-                                            curr_tray->bed_temp_type    = (*tray_it)["bed_temp_type"].get<std::string>();
-                                        else
-                                            curr_tray->bed_temp_type = "";
-                                        if (tray_it->contains("bed_temp"))
-                                            curr_tray->bed_temp         = (*tray_it)["bed_temp"].get<std::string>();
-                                        else
-                                            curr_tray->bed_temp = "";
-                                        if (tray_it->contains("tray_color")) {
-                                            auto color = (*tray_it)["tray_color"].get<std::string>();
-                                            curr_tray->update_color_from_str(color);
-                                        } else {
-                                            curr_tray->color = "";
-                                        }
-                                        if (tray_it->contains("nozzle_temp_max")) {
-                                            curr_tray->nozzle_temp_max = (*tray_it)["nozzle_temp_max"].get<std::string>();
-                                        }
-                                        else
-                                            curr_tray->nozzle_temp_max = "";
-                                        if (tray_it->contains("nozzle_temp_min"))
-                                            curr_tray->nozzle_temp_min = (*tray_it)["nozzle_temp_min"].get<std::string>();
-                                        else
-                                            curr_tray->nozzle_temp_min = "";
-                                        if (curr_tray->nozzle_temp_min != "" && curr_tray->nozzle_temp_max != "") {
-                                            try {
-                                                std::string preset_setting_id;
-                                                bool        is_equation = preset_bundle->check_filament_temp_equation_by_printer_type_and_nozzle_for_mas_tray(
-                                                    MachineObject::get_preset_printer_model_name(this->printer_type), nozzle_diameter_str, curr_tray->setting_id,
-                                                    curr_tray->tag_uid, curr_tray->nozzle_temp_min, curr_tray->nozzle_temp_max, preset_setting_id);
-                                                if (!is_equation) {
-                                                    command_ams_filament_settings(std::stoi(ams_id), std::stoi(tray_id), curr_tray->setting_id, preset_setting_id,
-                                                                                  curr_tray->color, curr_tray->type,
-                                                                                  std::stoi(curr_tray->nozzle_temp_min),
-                                                                                  std::stoi(curr_tray->nozzle_temp_max));
-                                                }
-                                            } catch (...) {
-                                                BOOST_LOG_TRIVIAL(info) << "check fail and curr_tray ams_id" << ams_id << " curr_tray tray_id"<<tray_id;
-                                            }
-                                        }
-                                        if (tray_it->contains("xcam_info"))
-                                            curr_tray->xcam_info = (*tray_it)["xcam_info"].get<std::string>();
-                                        else
-                                            curr_tray->xcam_info = "";
-                                        if (tray_it->contains("tray_uuid"))
-                                            curr_tray->uuid = (*tray_it)["tray_uuid"].get<std::string>();
-                                        else
-                                            curr_tray->uuid = "0";
-
-                                        if (tray_it->contains("ctype"))
-                                            curr_tray->ctype = (*tray_it)["ctype"].get<int>();
-                                        else
-                                            curr_tray->ctype = 0;
-                                        curr_tray->cols.clear();
-                                        if (tray_it->contains("cols")) {
-                                            if ((*tray_it)["cols"].is_array()) {
-                                                for (auto it = (*tray_it)["cols"].begin(); it != (*tray_it)["cols"].end(); it++) {
-                                                   curr_tray->cols.push_back(it.value().get<std::string>());
-                                                }
-                                            }
-                                        }
-                                 
-                                        if (tray_it->contains("remain")) {
-                                            curr_tray->remain = (*tray_it)["remain"].get<int>();
-                                        } else {
-                                            curr_tray->remain = -1;
-                                        }
-                                        int ams_id_int = 0;
-                                        int tray_id_int = 0;
+                                if (jj["ams"].contains("tray_now")) {
+                                    this->_parse_tray_now(jj["ams"]["tray_now"].get<std::string>());
+                                }
+                                if (jj["ams"].contains("tray_tar")) {
+                                    m_tray_tar = jj["ams"]["tray_tar"].get<std::string>();
+                                }
+                                if (jj["ams"].contains("ams_rfid_status"))
+                                    ams_rfid_status = jj["ams"]["ams_rfid_status"].get<int>();
+                                if (jj["ams"].contains("humidity")) {
+                                    if (jj["ams"]["humidity"].is_string()) {
+                                        std::string humidity_str = jj["ams"]["humidity"].get<std::string>();
                                         try {
-                                            if (!ams_id.empty() && !curr_tray->id.empty()) {
-                                                ams_id_int = atoi(ams_id.c_str());
-                                                tray_id_int = atoi(curr_tray->id.c_str());
-                                                curr_tray->is_exists = (tray_exist_bits & (1 << (ams_id_int * 4 + tray_id_int))) != 0 ? true : false;
+                                            ams_humidity = atoi(humidity_str.c_str());
+                                        } catch (...) {
+                                            ;
+                                        }
+                                    }
+                                }
+
+                                if (jj["ams"].contains("insert_flag") || jj["ams"].contains("power_on_flag")
+                                    || jj["ams"].contains("calibrate_remain_flag")) {
+                                    if (ams_user_setting_hold_count > 0) {
+                                        ams_user_setting_hold_count--;
+                                    } else {
+                                        if (jj["ams"].contains("insert_flag")) {
+                                            ams_insert_flag = jj["ams"]["insert_flag"].get<bool>();
+                                        }
+                                        if (jj["ams"].contains("power_on_flag")) {
+                                            ams_power_on_flag = jj["ams"]["power_on_flag"].get<bool>();
+                                        }
+                                        if (jj["ams"].contains("calibrate_remain_flag")) {
+                                            ams_calibrate_remain_flag = jj["ams"]["calibrate_remain_flag"].get<bool>();
+                                        }
+                                    }
+                                }
+                                if (ams_exist_bits != last_ams_exist_bits
+                                    || last_tray_exist_bits != last_tray_exist_bits
+                                    || tray_is_bbl_bits != last_is_bbl_bits
+                                    || tray_read_done_bits != last_read_done_bits
+                                    || last_ams_version != ams_version) {
+                                    is_ams_need_update = true;
+                                }
+                                else {
+                                    is_ams_need_update = false;
+                                }
+
+                                json j_ams = jj["ams"]["ams"];
+                                std::set<std::string> ams_id_set;
+
+                                for (auto it = amsList.begin(); it != amsList.end(); it++) {
+                                    ams_id_set.insert(it->first);
+                                }
+                                for (auto it = j_ams.begin(); it != j_ams.end(); it++) {
+                                    if (!it->contains("id")) continue;
+                                    std::string ams_id = (*it)["id"].get<std::string>();
+                                    ams_id_set.erase(ams_id);
+                                    Ams* curr_ams = nullptr;
+                                    auto ams_it = amsList.find(ams_id);
+                                    if (ams_it == amsList.end()) {
+                                        Ams* new_ams = new Ams(ams_id);
+                                        try {
+                                            if (!ams_id.empty()) {
+                                                int ams_id_int = atoi(ams_id.c_str());
+                                                new_ams->is_exists = (ams_exist_bits & (1 << ams_id_int)) != 0 ? true : false;
                                             }
                                         }
                                         catch (...) {
+                                            ;
                                         }
-                                        if (tray_it->contains("setting_id")) {
-                                            curr_tray->filament_setting_id = (*tray_it)["setting_id"].get<std::string>();
+                                        amsList.insert(std::make_pair(ams_id, new_ams));
+                                        // new ams added event
+                                        curr_ams = new_ams;
+                                    } else {
+                                        curr_ams = ams_it->second;
+                                    }
+                                    if (!curr_ams) continue;
+
+                                    if (it->contains("humidity")) {
+                                        std::string humidity = (*it)["humidity"].get<std::string>();
+
+                                        try {
+                                            curr_ams->humidity = atoi(humidity.c_str());
                                         }
-
-                                        
-                                        auto curr_time = std::chrono::system_clock::now();
-                                        auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(curr_time - extrusion_cali_set_hold_start);
-                                        if (diff.count() > HOLD_TIMEOUT || diff.count() < 0
-                                            || ams_id_int != (extrusion_cali_set_tray_id / 4)
-                                            || tray_id_int != (extrusion_cali_set_tray_id % 4)) {
-                                            if (tray_it->contains("k")) {
-                                                curr_tray->k = (*tray_it)["k"].get<float>();
-                                            }
-                                            if (tray_it->contains("n")) {
-                                                curr_tray->n = (*tray_it)["n"].get<float>();
-                                            }
-                                        }
-
-                                        std::string temp = tray_it->dump();
-
-                                        if (tray_it->contains("cali_idx")) {
-                                            curr_tray->cali_idx = (*tray_it)["cali_idx"].get<int>();
+                                        catch (...) {
+                                            ;
                                         }
                                     }
-                                    // remove not in trayList
-                                    for (auto tray_it = tray_id_set.begin(); tray_it != tray_id_set.end(); tray_it++) {
-                                        std::string tray_id = *tray_it;
-                                        auto tray = curr_ams->trayList.find(tray_id);
-                                        if (tray != curr_ams->trayList.end()) {
-                                            curr_ams->trayList.erase(tray_id);
-                                            BOOST_LOG_TRIVIAL(trace) << "parse_json: remove ams_id=" << ams_id << ", tray_id=" << tray_id;
+                                
+
+                                    if (it->contains("tray")) {
+                                        std::set<std::string> tray_id_set;
+                                        for (auto it = curr_ams->trayList.begin(); it != curr_ams->trayList.end(); it++) {
+                                            tray_id_set.insert(it->first);
+                                        }
+                                        for (auto tray_it = (*it)["tray"].begin(); tray_it != (*it)["tray"].end(); tray_it++) {
+                                            if (!tray_it->contains("id")) continue;
+                                            std::string tray_id = (*tray_it)["id"].get<std::string>();
+                                            tray_id_set.erase(tray_id);
+                                            // compare tray_list
+                                            AmsTray* curr_tray = nullptr;
+                                            auto tray_iter = curr_ams->trayList.find(tray_id);
+                                            if (tray_iter == curr_ams->trayList.end()) {
+                                                AmsTray* new_tray = new AmsTray(tray_id);
+                                                curr_ams->trayList.insert(std::make_pair(tray_id, new_tray));
+                                                curr_tray = new_tray;
+                                            }
+                                            else {
+                                                curr_tray = tray_iter->second;
+                                            }
+                                            if (!curr_tray) continue;
+
+                                            if (curr_tray->hold_count > 0) {
+                                                curr_tray->hold_count--;
+                                                continue;
+                                            }
+
+                                            curr_tray->id = (*tray_it)["id"].get<std::string>();
+                                            if (tray_it->contains("tag_uid"))
+                                                curr_tray->tag_uid          = (*tray_it)["tag_uid"].get<std::string>();
+                                            else
+                                                curr_tray->tag_uid = "0";
+                                            if (tray_it->contains("tray_info_idx") && tray_it->contains("tray_type")) {
+                                                curr_tray->setting_id       = (*tray_it)["tray_info_idx"].get<std::string>();
+                                                //std::string type            = (*tray_it)["tray_type"].get<std::string>();
+                                                std::string type = setting_id_to_type(curr_tray->setting_id, (*tray_it)["tray_type"].get<std::string>());
+                                                if (curr_tray->setting_id == "GFS00") {
+                                                    curr_tray->type = "PLA-S";
+                                                }
+                                                else if (curr_tray->setting_id == "GFS01") {
+                                                    curr_tray->type = "PA-S";
+                                                } else {
+                                                    curr_tray->type = type;
+                                                }
+                                                if (filament_list.find(curr_tray->setting_id) == filament_list.end()) {
+                                                    wxColour color = *wxWHITE;
+                                                    char     col_buf[10];
+                                                    sprintf(col_buf, "%02X%02X%02XFF", (int) color.Red(), (int) color.Green(), (int) color.Blue());
+                                                    try {
+                                                        this->command_ams_filament_settings(std::stoi(ams_id), std::stoi(tray_id), "", "", std::string(col_buf), "", 0, 0);
+                                                        continue;
+                                                    } catch (...) {
+                                                        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " " << __LINE__ << " stoi error and ams_id: " << ams_id << " tray_id" << tray_id;
+                                                    }
+                                                }
+                                            } else {
+                                                curr_tray->setting_id = "";
+                                                curr_tray->type       = "";
+                                            }
+                                            if (tray_it->contains("tray_sub_brands"))
+                                                curr_tray->sub_brands       = (*tray_it)["tray_sub_brands"].get<std::string>();
+                                            else
+                                                curr_tray->sub_brands = "";
+                                            if (tray_it->contains("tray_weight"))
+                                                curr_tray->weight           = (*tray_it)["tray_weight"].get<std::string>();
+                                            else
+                                                curr_tray->weight = "";
+                                            if (tray_it->contains("tray_diameter"))
+                                                curr_tray->diameter         = (*tray_it)["tray_diameter"].get<std::string>();
+                                            else
+                                                curr_tray->diameter = "";
+                                            if (tray_it->contains("tray_temp"))
+                                                curr_tray->temp             = (*tray_it)["tray_temp"].get<std::string>();
+                                            else
+                                                curr_tray->temp = "";
+                                            if (tray_it->contains("tray_time"))
+                                                curr_tray->time             = (*tray_it)["tray_time"].get<std::string>();
+                                            else
+                                                curr_tray->time = "";
+                                            if (tray_it->contains("bed_temp_type"))
+                                                curr_tray->bed_temp_type    = (*tray_it)["bed_temp_type"].get<std::string>();
+                                            else
+                                                curr_tray->bed_temp_type = "";
+                                            if (tray_it->contains("bed_temp"))
+                                                curr_tray->bed_temp         = (*tray_it)["bed_temp"].get<std::string>();
+                                            else
+                                                curr_tray->bed_temp = "";
+                                            if (tray_it->contains("tray_color")) {
+                                                auto color = (*tray_it)["tray_color"].get<std::string>();
+                                                curr_tray->update_color_from_str(color);
+                                            } else {
+                                                curr_tray->color = "";
+                                            }
+                                            if (tray_it->contains("nozzle_temp_max")) {
+                                                curr_tray->nozzle_temp_max = (*tray_it)["nozzle_temp_max"].get<std::string>();
+                                            }
+                                            else
+                                                curr_tray->nozzle_temp_max = "";
+                                            if (tray_it->contains("nozzle_temp_min"))
+                                                curr_tray->nozzle_temp_min = (*tray_it)["nozzle_temp_min"].get<std::string>();
+                                            else
+                                                curr_tray->nozzle_temp_min = "";
+                                            if (curr_tray->nozzle_temp_min != "" && curr_tray->nozzle_temp_max != "") {
+                                                try {
+                                                    std::string preset_setting_id;
+                                                    bool        is_equation = preset_bundle->check_filament_temp_equation_by_printer_type_and_nozzle_for_mas_tray(
+                                                        MachineObject::get_preset_printer_model_name(this->printer_type), nozzle_diameter_str, curr_tray->setting_id,
+                                                        curr_tray->tag_uid, curr_tray->nozzle_temp_min, curr_tray->nozzle_temp_max, preset_setting_id);
+                                                    if (!is_equation) {
+                                                        command_ams_filament_settings(std::stoi(ams_id), std::stoi(tray_id), curr_tray->setting_id, preset_setting_id,
+                                                                                      curr_tray->color, curr_tray->type,
+                                                                                      std::stoi(curr_tray->nozzle_temp_min),
+                                                                                      std::stoi(curr_tray->nozzle_temp_max));
+                                                    }
+                                                } catch (...) {
+                                                    BOOST_LOG_TRIVIAL(info) << "check fail and curr_tray ams_id" << ams_id << " curr_tray tray_id"<<tray_id;
+                                                }
+                                            }
+                                            if (tray_it->contains("xcam_info"))
+                                                curr_tray->xcam_info = (*tray_it)["xcam_info"].get<std::string>();
+                                            else
+                                                curr_tray->xcam_info = "";
+                                            if (tray_it->contains("tray_uuid"))
+                                                curr_tray->uuid = (*tray_it)["tray_uuid"].get<std::string>();
+                                            else
+                                                curr_tray->uuid = "0";
+
+                                            if (tray_it->contains("ctype"))
+                                                curr_tray->ctype = (*tray_it)["ctype"].get<int>();
+                                            else
+                                                curr_tray->ctype = 0;
+                                            curr_tray->cols.clear();
+                                            if (tray_it->contains("cols")) {
+                                                if ((*tray_it)["cols"].is_array()) {
+                                                    for (auto it = (*tray_it)["cols"].begin(); it != (*tray_it)["cols"].end(); it++) {
+                                                       curr_tray->cols.push_back(it.value().get<std::string>());
+                                                    }
+                                                }
+                                            }
+                                 
+                                            if (tray_it->contains("remain")) {
+                                                curr_tray->remain = (*tray_it)["remain"].get<int>();
+                                            } else {
+                                                curr_tray->remain = -1;
+                                            }
+                                            int ams_id_int = 0;
+                                            int tray_id_int = 0;
+                                            try {
+                                                if (!ams_id.empty() && !curr_tray->id.empty()) {
+                                                    ams_id_int = atoi(ams_id.c_str());
+                                                    tray_id_int = atoi(curr_tray->id.c_str());
+                                                    curr_tray->is_exists = (tray_exist_bits & (1 << (ams_id_int * 4 + tray_id_int))) != 0 ? true : false;
+                                                }
+                                            }
+                                            catch (...) {
+                                            }
+                                            if (tray_it->contains("setting_id")) {
+                                                curr_tray->filament_setting_id = (*tray_it)["setting_id"].get<std::string>();
+                                            }
+                                            auto curr_time = std::chrono::system_clock::now();
+                                            auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(curr_time - extrusion_cali_set_hold_start);
+                                            if (diff.count() > HOLD_TIMEOUT || diff.count() < 0
+                                                || ams_id_int != (extrusion_cali_set_tray_id / 4)
+                                                || tray_id_int != (extrusion_cali_set_tray_id % 4)) {
+                                                if (tray_it->contains("k")) {
+                                                    curr_tray->k = (*tray_it)["k"].get<float>();
+                                                }
+                                                if (tray_it->contains("n")) {
+                                                    curr_tray->n = (*tray_it)["n"].get<float>();
+                                                }
+                                            }
+
+                                            std::string temp = tray_it->dump();
+
+                                            if (tray_it->contains("cali_idx")) {
+                                                curr_tray->cali_idx = (*tray_it)["cali_idx"].get<int>();
+                                            }
+                                        }
+                                        // remove not in trayList
+                                        for (auto tray_it = tray_id_set.begin(); tray_it != tray_id_set.end(); tray_it++) {
+                                            std::string tray_id = *tray_it;
+                                            auto tray = curr_ams->trayList.find(tray_id);
+                                            if (tray != curr_ams->trayList.end()) {
+                                                curr_ams->trayList.erase(tray_id);
+                                                BOOST_LOG_TRIVIAL(trace) << "parse_json: remove ams_id=" << ams_id << ", tray_id=" << tray_id;
+                                            }
                                         }
                                     }
                                 }
-                            }
-                            // remove not in amsList
-                            for (auto it = ams_id_set.begin(); it != ams_id_set.end(); it++) {
-                                std::string ams_id = *it;
-                                auto ams = amsList.find(ams_id);
-                                if (ams != amsList.end()) {
-                                    BOOST_LOG_TRIVIAL(trace) << "parse_json: remove ams_id=" << ams_id;
-                                    amsList.erase(ams_id);
+                                // remove not in amsList
+                                for (auto it = ams_id_set.begin(); it != ams_id_set.end(); it++) {
+                                    std::string ams_id = *it;
+                                    auto ams = amsList.find(ams_id);
+                                    if (ams != amsList.end()) {
+                                        BOOST_LOG_TRIVIAL(trace) << "parse_json: remove ams_id=" << ams_id;
+                                        amsList.erase(ams_id);
+                                    }
                                 }
                             }
                         }
                     }
 
                     /* vitrual tray*/
-                    try {
-                        if (jj.contains("vt_tray")) {
-                            if (jj["vt_tray"].contains("id"))
-                                vt_tray.id = jj["vt_tray"]["id"].get<std::string>();
-                            auto curr_time = std::chrono::system_clock::now();
-                            auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(curr_time - extrusion_cali_set_hold_start);
-                            if (diff.count() > HOLD_TIMEOUT || diff.count() < 0
-                                || extrusion_cali_set_tray_id != VIRTUAL_TRAY_ID) {
-                                if (jj["vt_tray"].contains("k"))
-                                    vt_tray.k = jj["vt_tray"]["k"].get<float>();
-                                if (jj["vt_tray"].contains("n"))
-                                    vt_tray.n = jj["vt_tray"]["n"].get<float>();
-                            }
-                            ams_support_virtual_tray = true;
+                    if (!key_field_only) {
+                        try {
+                            if (jj.contains("vt_tray")) {
+                                if (jj["vt_tray"].contains("id"))
+                                    vt_tray.id = jj["vt_tray"]["id"].get<std::string>();
+                                auto curr_time = std::chrono::system_clock::now();
+                                auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(curr_time - extrusion_cali_set_hold_start);
+                                if (diff.count() > HOLD_TIMEOUT || diff.count() < 0
+                                    || extrusion_cali_set_tray_id != VIRTUAL_TRAY_ID) {
+                                    if (jj["vt_tray"].contains("k"))
+                                        vt_tray.k = jj["vt_tray"]["k"].get<float>();
+                                    if (jj["vt_tray"].contains("n"))
+                                        vt_tray.n = jj["vt_tray"]["n"].get<float>();
+                                }
+                                ams_support_virtual_tray = true;
 
-                            if (vt_tray.hold_count > 0) {
-                                vt_tray.hold_count--;
-                            } else {
-                                if (jj["vt_tray"].contains("tag_uid"))
-                                    vt_tray.tag_uid = jj["vt_tray"]["tag_uid"].get<std::string>();
-                                else
-                                    vt_tray.tag_uid = "0";
-                                if (jj["vt_tray"].contains("tray_info_idx") && jj["vt_tray"].contains("tray_type")) {
-                                    vt_tray.setting_id = jj["vt_tray"]["tray_info_idx"].get<std::string>();
-                                    //std::string type = jj["vt_tray"]["tray_type"].get<std::string>();
-                                    std::string type = setting_id_to_type(vt_tray.setting_id, jj["vt_tray"]["tray_type"].get<std::string>());
-                                    if (vt_tray.setting_id == "GFS00") {
-                                        vt_tray.type = "PLA-S";
-                                    }
-                                    else if (vt_tray.setting_id == "GFS01") {
-                                        vt_tray.type = "PA-S";
+                                if (vt_tray.hold_count > 0) {
+                                    vt_tray.hold_count--;
+                                } else {
+                                    if (jj["vt_tray"].contains("tag_uid"))
+                                        vt_tray.tag_uid = jj["vt_tray"]["tag_uid"].get<std::string>();
+                                    else
+                                        vt_tray.tag_uid = "0";
+                                    if (jj["vt_tray"].contains("tray_info_idx") && jj["vt_tray"].contains("tray_type")) {
+                                        vt_tray.setting_id = jj["vt_tray"]["tray_info_idx"].get<std::string>();
+                                        //std::string type = jj["vt_tray"]["tray_type"].get<std::string>();
+                                        std::string type = setting_id_to_type(vt_tray.setting_id, jj["vt_tray"]["tray_type"].get<std::string>());
+                                        if (vt_tray.setting_id == "GFS00") {
+                                            vt_tray.type = "PLA-S";
+                                        }
+                                        else if (vt_tray.setting_id == "GFS01") {
+                                            vt_tray.type = "PA-S";
+                                        }
+                                        else {
+                                            vt_tray.type = type;
+                                        }
+                                        if (filament_list.find(vt_tray.setting_id) == filament_list.end()) {
+                                            wxColour color = *wxWHITE;
+                                            char     col_buf[10];
+                                            sprintf(col_buf, "%02X%02X%02XFF", (int) color.Red(), (int) color.Green(), (int) color.Blue());
+                                            try {
+                                                BOOST_LOG_TRIVIAL(info) << "no filament_id in filament_list and reset vt_tray and the filament_id is: " << vt_tray.setting_id;
+                                                this->command_ams_filament_settings(255, std::stoi(vt_tray.id), "", "", std::string(col_buf), "", 0, 0);
+                                            } catch (...) {
+                                                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " " << __LINE__ << " stoi error and tray_id" << vt_tray.id;
+                                            }
+                                        }
                                     }
                                     else {
-                                        vt_tray.type = type;
+                                        vt_tray.setting_id = "";
+                                        vt_tray.type = "";
                                     }
-                                    if (filament_list.find(vt_tray.setting_id) == filament_list.end()) {
-                                        wxColour color = *wxWHITE;
-                                        char     col_buf[10];
-                                        sprintf(col_buf, "%02X%02X%02XFF", (int) color.Red(), (int) color.Green(), (int) color.Blue());
+                                    if (jj["vt_tray"].contains("tray_sub_brands"))
+                                        vt_tray.sub_brands = jj["vt_tray"]["tray_sub_brands"].get<std::string>();
+                                    else
+                                        vt_tray.sub_brands = "";
+                                    if (jj["vt_tray"].contains("tray_weight"))
+                                        vt_tray.weight = jj["vt_tray"]["tray_weight"].get<std::string>();
+                                    else
+                                        vt_tray.weight = "";
+                                    if (jj["vt_tray"].contains("tray_diameter"))
+                                        vt_tray.diameter = jj["vt_tray"]["tray_diameter"].get<std::string>();
+                                    else
+                                        vt_tray.diameter = "";
+                                    if (jj["vt_tray"].contains("tray_temp"))
+                                        vt_tray.temp = jj["vt_tray"]["tray_temp"].get<std::string>();
+                                    else
+                                        vt_tray.temp = "";
+                                    if (jj["vt_tray"].contains("tray_time"))
+                                        vt_tray.time = jj["vt_tray"]["tray_time"].get<std::string>();
+                                    else
+                                        vt_tray.time = "";
+                                    if (jj["vt_tray"].contains("bed_temp_type"))
+                                        vt_tray.bed_temp_type = jj["vt_tray"]["bed_temp_type"].get<std::string>();
+                                    else
+                                        vt_tray.bed_temp_type = "";
+                                    if (jj["vt_tray"].contains("bed_temp"))
+                                        vt_tray.bed_temp = jj["vt_tray"]["bed_temp"].get<std::string>();
+                                    else
+                                        vt_tray.bed_temp = "";
+                                    if (jj["vt_tray"].contains("tray_color")) {
+                                        auto color = jj["vt_tray"]["tray_color"].get<std::string>();
+                                        vt_tray.update_color_from_str(color);
+                                    } else {
+                                        vt_tray.color = "";
+                                    }
+                                    if (jj["vt_tray"].contains("nozzle_temp_max"))
+                                        vt_tray.nozzle_temp_max = jj["vt_tray"]["nozzle_temp_max"].get<std::string>();
+                                    else
+                                        vt_tray.nozzle_temp_max = "";
+                                    if (jj["vt_tray"].contains("nozzle_temp_min"))
+                                        vt_tray.nozzle_temp_min = jj["vt_tray"]["nozzle_temp_min"].get<std::string>();
+                                    else
+                                        vt_tray.nozzle_temp_min = "";
+                                    if (vt_tray.nozzle_temp_min != "" && vt_tray.nozzle_temp_max != "") {
                                         try {
-                                            BOOST_LOG_TRIVIAL(info) << "no filament_id in filament_list and reset vt_tray and the filament_id is: " << vt_tray.setting_id;
-                                            this->command_ams_filament_settings(255, std::stoi(vt_tray.id), "", "", std::string(col_buf), "", 0, 0);
-                                        } catch (...) {
-                                            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " " << __LINE__ << " stoi error and tray_id" << vt_tray.id;
+                                            std::string preset_setting_id;
+                                            bool        is_equation = preset_bundle->check_filament_temp_equation_by_printer_type_and_nozzle_for_mas_tray(
+                                                MachineObject::get_preset_printer_model_name(this->printer_type), nozzle_diameter_str, vt_tray.setting_id, vt_tray.tag_uid,
+                                                vt_tray.nozzle_temp_min, vt_tray.nozzle_temp_max, preset_setting_id);
+                                            if (!is_equation) {
+                                                command_ams_filament_settings(255, std::stoi(vt_tray.id), vt_tray.setting_id, preset_setting_id, vt_tray.color, vt_tray.type,
+                                                                              std::stoi(vt_tray.nozzle_temp_min), std::stoi(vt_tray.nozzle_temp_max));
+                                            }
                                         }
-                                    }
-                                }
-                                else {
-                                    vt_tray.setting_id = "";
-                                    vt_tray.type = "";
-                                }
-                                if (jj["vt_tray"].contains("tray_sub_brands"))
-                                    vt_tray.sub_brands = jj["vt_tray"]["tray_sub_brands"].get<std::string>();
-                                else
-                                    vt_tray.sub_brands = "";
-                                if (jj["vt_tray"].contains("tray_weight"))
-                                    vt_tray.weight = jj["vt_tray"]["tray_weight"].get<std::string>();
-                                else
-                                    vt_tray.weight = "";
-                                if (jj["vt_tray"].contains("tray_diameter"))
-                                    vt_tray.diameter = jj["vt_tray"]["tray_diameter"].get<std::string>();
-                                else
-                                    vt_tray.diameter = "";
-                                if (jj["vt_tray"].contains("tray_temp"))
-                                    vt_tray.temp = jj["vt_tray"]["tray_temp"].get<std::string>();
-                                else
-                                    vt_tray.temp = "";
-                                if (jj["vt_tray"].contains("tray_time"))
-                                    vt_tray.time = jj["vt_tray"]["tray_time"].get<std::string>();
-                                else
-                                    vt_tray.time = "";
-                                if (jj["vt_tray"].contains("bed_temp_type"))
-                                    vt_tray.bed_temp_type = jj["vt_tray"]["bed_temp_type"].get<std::string>();
-                                else
-                                    vt_tray.bed_temp_type = "";
-                                if (jj["vt_tray"].contains("bed_temp"))
-                                    vt_tray.bed_temp = jj["vt_tray"]["bed_temp"].get<std::string>();
-                                else
-                                    vt_tray.bed_temp = "";
-                                if (jj["vt_tray"].contains("tray_color")) {
-                                    auto color = jj["vt_tray"]["tray_color"].get<std::string>();
-                                    vt_tray.update_color_from_str(color);
-                                } else {
-                                    vt_tray.color = "";
-                                }
-                                if (jj["vt_tray"].contains("nozzle_temp_max"))
-                                    vt_tray.nozzle_temp_max = jj["vt_tray"]["nozzle_temp_max"].get<std::string>();
-                                else
-                                    vt_tray.nozzle_temp_max = "";
-                                if (jj["vt_tray"].contains("nozzle_temp_min"))
-                                    vt_tray.nozzle_temp_min = jj["vt_tray"]["nozzle_temp_min"].get<std::string>();
-                                else
-                                    vt_tray.nozzle_temp_min = "";
-                                if (vt_tray.nozzle_temp_min != "" && vt_tray.nozzle_temp_max != "") {
-                                    try {
-                                        std::string preset_setting_id;
-                                        bool        is_equation = preset_bundle->check_filament_temp_equation_by_printer_type_and_nozzle_for_mas_tray(
-                                            MachineObject::get_preset_printer_model_name(this->printer_type), nozzle_diameter_str, vt_tray.setting_id, vt_tray.tag_uid,
-                                            vt_tray.nozzle_temp_min, vt_tray.nozzle_temp_max, preset_setting_id);
-                                        if (!is_equation) {
-                                            command_ams_filament_settings(255, std::stoi(vt_tray.id), vt_tray.setting_id, preset_setting_id, vt_tray.color, vt_tray.type,
-                                                                          std::stoi(vt_tray.nozzle_temp_min), std::stoi(vt_tray.nozzle_temp_max));
+                                        catch(...) {
+                                            BOOST_LOG_TRIVIAL(info) << "check fail and vt_tray.id" << vt_tray.id;
                                         }
-                                    }
-                                    catch(...) {
-                                        BOOST_LOG_TRIVIAL(info) << "check fail and vt_tray.id" << vt_tray.id;
-                                    }
                                     
-                                }
-                                if (jj["vt_tray"].contains("xcam_info"))
-                                    vt_tray.xcam_info = jj["vt_tray"]["xcam_info"].get<std::string>();
-                                else
-                                    vt_tray.xcam_info = "";
-                                if (jj["vt_tray"].contains("tray_uuid"))
-                                    vt_tray.uuid = jj["vt_tray"]["tray_uuid"].get<std::string>();
-                                else
-                                    vt_tray.uuid = "0";
+                                    }
+                                    if (jj["vt_tray"].contains("xcam_info"))
+                                        vt_tray.xcam_info = jj["vt_tray"]["xcam_info"].get<std::string>();
+                                    else
+                                        vt_tray.xcam_info = "";
+                                    if (jj["vt_tray"].contains("tray_uuid"))
+                                        vt_tray.uuid = jj["vt_tray"]["tray_uuid"].get<std::string>();
+                                    else
+                                        vt_tray.uuid = "0";
 
-                                if (jj["vt_tray"].contains("cali_idx"))
-                                    vt_tray.cali_idx = jj["vt_tray"]["cali_idx"].get<int>();
-                                else
-                                    vt_tray.cali_idx = -1;
-
-                                vt_tray.cols.clear();
-                                if (jj["vt_tray"].contains("cols")) {
-                                    if (jj["vt_tray"].is_array()) {
-                                        for (auto it = jj["vt_tray"].begin(); it != jj["vt_tray"].end(); it++) {
-                                            vt_tray.cols.push_back(it.value().get<std::string>());
+                                    if (jj["vt_tray"].contains("cali_idx"))
+                                        vt_tray.cali_idx = jj["vt_tray"]["cali_idx"].get<int>();
+                                    else
+                                        vt_tray.cali_idx = -1;
+                                    vt_tray.cols.clear();
+                                    if (jj["vt_tray"].contains("cols")) {
+                                        if (jj["vt_tray"].is_array()) {
+                                            for (auto it = jj["vt_tray"].begin(); it != jj["vt_tray"].end(); it++) {
+                                                vt_tray.cols.push_back(it.value().get<std::string>());
+                                            }
                                         }
                                     }
-                                }
 
-                                if (jj["vt_tray"].contains("remain")) {
-                                    vt_tray.remain = jj["vt_tray"]["remain"].get<int>();
+                                    if (jj["vt_tray"].contains("remain")) {
+                                        vt_tray.remain = jj["vt_tray"]["remain"].get<int>();
+                                    }
+                                    else {
+                                        vt_tray.remain = -1;
+                                    }
                                 }
-                                else {
-                                    vt_tray.remain = -1;
-                                }
+                            } else {
+                                ams_support_virtual_tray = false;
+                                is_support_extrusion_cali = false;
                             }
-                        } else {
-                            ams_support_virtual_tray = false;
-                            is_support_extrusion_cali = false;
                         }
-                    }
-                    catch (...) {
-                        ;
+                        catch (...) {
+                            ;
+                        }
                     }
 #pragma endregion
 
@@ -4151,10 +4281,10 @@ int MachineObject::parse_json(std::string payload)
                         result = jj["result"].get<std::string>();
                         if (result == "FAIL") {
                             wxString text = _L("Failed to start printing job");
-                            GUI::wxGetApp().show_dialog(text);
+                            GUI::wxGetApp().push_notification(text);
                         }
                     }
-                } else if (jj["command"].get<std::string>() == "ams_filament_setting") {
+                } else if (jj["command"].get<std::string>() == "ams_filament_setting" && !key_field_only) {
                     // BBS trigger ams UI update
                     ams_version = -1;
 
@@ -4207,7 +4337,7 @@ int MachineObject::parse_json(std::string payload)
                             }
                         }
                     }
-                } else if (jj["command"].get<std::string>() == "xcam_control_set") {
+                } else if (jj["command"].get<std::string>() == "xcam_control_set" && !key_field_only) {
                     if (jj.contains("module_name")) {
                         if (jj.contains("enable") || jj.contains("control")) {
                             bool enable = false;
@@ -4267,27 +4397,24 @@ int MachineObject::parse_json(std::string payload)
                         else if (jj["result"].get<std::string>() == "fail") {
                             std::string cali_mode = jj["command"].get<std::string>();
                             std::string reason = jj["reason"].get<std::string>();
-                            GUI::wxGetApp().CallAfter([cali_mode, reason] {
-                                wxString info = "";
-                                if (reason == "invalid nozzle_diameter" || reason == "nozzle_diameter is not supported") {
-                                    info = _L("This calibration does not support the currently selected nozzle diameter");
-                                }
-                                else if (reason == "invalid handle_flowrate_cali param") {
-                                    info = _L("Current flowrate cali param is invalid");
-                                }
-                                else if (reason == "nozzle_diameter is not matched") {
-                                    info = _L("Selected diameter and machine diameter do not match");
-                                }
-                                else if (reason == "generate auto filament cali gcode failure") {
-                                    info = _L("Failed to generate cali gcode");
-                                }
-                                else {
-                                    info = reason;
-                                }
-                                GUI::MessageDialog msg_dlg(nullptr, info, _L("Calibration error"), wxICON_WARNING | wxOK);
-                                msg_dlg.ShowModal();
-                                BOOST_LOG_TRIVIAL(trace) << cali_mode << " result fail, reason = " << reason;
-                                });
+                            wxString info = "";
+                            if (reason == "invalid nozzle_diameter" || reason == "nozzle_diameter is not supported") {
+                                info = _L("This calibration does not support the currently selected nozzle diameter");
+                            }
+                            else if (reason == "invalid handle_flowrate_cali param") {
+                                info = _L("Current flowrate cali param is invalid");
+                            }
+                            else if (reason == "nozzle_diameter is not matched") {
+                                info = _L("Selected diameter and machine diameter do not match");
+                            }
+                            else if (reason == "generate auto filament cali gcode failure") {
+                                info = _L("Failed to generate cali gcode");
+                            }
+                            else {
+                                info = reason;
+                            }
+                            GUI::wxGetApp().push_notification(info, _L("Calibration error"), UserNotificationStyle::UNS_WARNING_CONFIRM);
+                            BOOST_LOG_TRIVIAL(trace) << cali_mode << " result fail, reason = " << reason;
                         }
                     }
                 } else if (jj["command"].get<std::string>() == "extrusion_cali_set") {
@@ -4490,7 +4617,7 @@ int MachineObject::parse_json(std::string payload)
                         BOOST_LOG_TRIVIAL(info) << "no pa calib result";
                     }
                 }
-                else if (jj["command"].get<std::string>() == "flowrate_get_result") {
+                else if (jj["command"].get<std::string>() == "flowrate_get_result" && !key_field_only) {
                     this->reset_flow_rate_cali_result();
 
                     get_flow_calib_result = true;
@@ -4521,44 +4648,47 @@ int MachineObject::parse_json(std::string payload)
                 }
             }
         }
-
-        try {
-            if (j.contains("camera")) {
-                if (j["camera"].contains("command")) {
-                    if (j["camera"]["command"].get<std::string>() == "ipcam_timelapse") {
-                        if (j["camera"]["control"].get<std::string>() == "enable")
-                            this->camera_timelapse = true;
-                        if (j["camera"]["control"].get<std::string>() == "disable")
-                            this->camera_timelapse = false;
-                        BOOST_LOG_TRIVIAL(info) << "ack of timelapse = " << camera_timelapse;
-                    } else if (j["camera"]["command"].get<std::string>() == "ipcam_record_set") {
-                        if (j["camera"]["control"].get<std::string>() == "enable")
-                            this->camera_recording_when_printing = true;
-                        if (j["camera"]["control"].get<std::string>() == "disable")
-                            this->camera_recording_when_printing = false;
-                        BOOST_LOG_TRIVIAL(info) << "ack of ipcam_record_set " << camera_recording_when_printing;
-                    } else if (j["camera"]["command"].get<std::string>() == "ipcam_resolution_set") {
-                        this->camera_resolution = j["camera"]["resolution"].get<std::string>();
-                        BOOST_LOG_TRIVIAL(info) << "ack of resolution = " << camera_resolution;
+        if (!key_field_only) {
+            try {
+                if (j.contains("camera")) {
+                    if (j["camera"].contains("command")) {
+                        if (j["camera"]["command"].get<std::string>() == "ipcam_timelapse") {
+                            if (j["camera"]["control"].get<std::string>() == "enable")
+                                this->camera_timelapse = true;
+                            if (j["camera"]["control"].get<std::string>() == "disable")
+                                this->camera_timelapse = false;
+                            BOOST_LOG_TRIVIAL(info) << "ack of timelapse = " << camera_timelapse;
+                        } else if (j["camera"]["command"].get<std::string>() == "ipcam_record_set") {
+                            if (j["camera"]["control"].get<std::string>() == "enable")
+                                this->camera_recording_when_printing = true;
+                            if (j["camera"]["control"].get<std::string>() == "disable")
+                                this->camera_recording_when_printing = false;
+                            BOOST_LOG_TRIVIAL(info) << "ack of ipcam_record_set " << camera_recording_when_printing;
+                        } else if (j["camera"]["command"].get<std::string>() == "ipcam_resolution_set") {
+                            this->camera_resolution = j["camera"]["resolution"].get<std::string>();
+                            BOOST_LOG_TRIVIAL(info) << "ack of resolution = " << camera_resolution;
+                        }
                     }
                 }
-            }
-        } catch (...) {}
-
-        // upgrade
-        try {
-            if (j.contains("upgrade")) {
-                if (j["upgrade"].contains("command")) {
-                    if (j["upgrade"]["command"].get<std::string>() == "upgrade_confirm") {
-                        this->upgrade_display_state = UpgradingInProgress;
-                        upgrade_display_hold_count = HOLD_COUNT_MAX;
-                        BOOST_LOG_TRIVIAL(info) << "ack of upgrade_confirm";
-                    }
-                }
-            }
+            } catch (...) {}
         }
-        catch (...) {
-            ;
+
+        if (!key_field_only) {
+            // upgrade
+            try {
+                if (j.contains("upgrade")) {
+                    if (j["upgrade"].contains("command")) {
+                        if (j["upgrade"]["command"].get<std::string>() == "upgrade_confirm") {
+                            this->upgrade_display_state = UpgradingInProgress;
+                            upgrade_display_hold_count = HOLD_COUNT_MAX;
+                            BOOST_LOG_TRIVIAL(info) << "ack of upgrade_confirm";
+                        }
+                    }
+                }
+            }
+            catch (...) {
+                ;
+            }
         }
 
         // event info
@@ -4574,19 +4704,17 @@ int MachineObject::parse_json(std::string payload)
         }
         catch (...)  {}
 
-        if (m_active_state == Active && !module_vers.empty() && check_version_valid()
+	if (!key_field_only) {
+            if (m_active_state == Active && !module_vers.empty() && check_version_valid()
                 && !is_camera_busy_off()) {
-            m_active_state = UpdateToDate;
-            parse_version_func();
-            if (is_support_tunnel_mqtt && connection_type() != "lan") {
-                m_agent->start_subscribe("tunnel");
+                m_active_state = UpdateToDate;
+                parse_version_func();
+                if (is_support_tunnel_mqtt && connection_type() != "lan") {
+                    m_agent->start_subscribe("tunnel");
+               }
+                parse_state_changed_event();
             }
-        } else if (m_active_state == UpdateToDate && is_camera_busy_off()) {
-            m_active_state = Active;
-            m_agent->stop_subscribe("tunnel");
-        }
-
-        parse_state_changed_event();
+	}
     }
     catch (...) {
         BOOST_LOG_TRIVIAL(trace) << "parse_json failed! dev_id=" << this->dev_id <<", payload = " << payload;
@@ -4930,6 +5058,24 @@ bool MachineObject::is_firmware_info_valid()
     return m_firmware_valid;
 }
 
+std::string MachineObject::get_string_from_fantype(FanType type)
+{
+    switch (type) {
+    case FanType::COOLING_FAN:
+        return "cooling_fan";
+    case FanType::BIG_COOLING_FAN:
+        return "big_cooling_fan";
+    case FanType::CHAMBER_FAN:
+        return "chamber_fan";
+    default:
+        return "";
+    }
+    return "";
+}
+
+bool DeviceManager::EnableMultiMachine = false;
+bool DeviceManager::key_field_only = false;
+
 DeviceManager::DeviceManager(NetworkAgent* agent)
 {
     m_agent = agent;
@@ -5042,12 +5188,12 @@ void DeviceManager::on_machine_alive(std::string json_str)
 
             if (obj->dev_ip.compare(dev_ip) != 0) {
                 if ( connection_name.empty() ) {
-                    BOOST_LOG_TRIVIAL(info) << "MachineObject IP changed from " << obj->dev_ip << " to " << dev_ip;
+                    BOOST_LOG_TRIVIAL(info) << "MachineObject IP changed from " << Slic3r::GUI::wxGetApp().format_IP(obj->dev_ip) << " to " << Slic3r::GUI::wxGetApp().format_IP(dev_ip);
                     obj->dev_ip = dev_ip;
                 }
                 else {
                     if ( obj->dev_connection_name.empty() || obj->dev_connection_name.compare(connection_name) == 0) {
-                        BOOST_LOG_TRIVIAL(info) << "MachineObject IP changed from " << obj->dev_ip << " to " << dev_ip << " connection_name is " << connection_name;
+                        BOOST_LOG_TRIVIAL(info) << "MachineObject IP changed from " << Slic3r::GUI::wxGetApp().format_IP(obj->dev_ip) << " to " << Slic3r::GUI::wxGetApp().format_IP(dev_ip) << " connection_name is " << connection_name;
                         if(obj->dev_connection_name.empty()){obj->dev_connection_name = connection_name;}
                         obj->dev_ip = dev_ip;
                     }
@@ -5103,7 +5249,7 @@ void DeviceManager::on_machine_alive(std::string json_str)
              }*/
 
 
-            BOOST_LOG_TRIVIAL(debug) << "SsdpDiscovery::New Machine, ip = " << dev_ip << ", printer_name= " << dev_name << ", printer_type = " << printer_type_str << ", signal = " << printer_signal;
+            BOOST_LOG_TRIVIAL(info) << "SsdpDiscovery::New Machine, ip = " << Slic3r::GUI::wxGetApp().format_IP(dev_ip) << ", printer_name= " << dev_name << ", printer_type = " << printer_type_str << ", signal = " << printer_signal;
         }
     }
     catch (...) {
@@ -5327,6 +5473,54 @@ MachineObject* DeviceManager::get_selected_machine()
     return nullptr;
 }
 
+void DeviceManager::add_user_subscribe()
+{
+    /* user machine */
+    std::vector<std::string> dev_list;
+    for (auto it = userMachineList.begin(); it != userMachineList.end(); it++) {
+        dev_list.push_back(it->first);
+        BOOST_LOG_TRIVIAL(trace) << "add_user_subscribe: " << it->first;
+    }
+    m_agent->add_subscribe(dev_list);
+}
+
+void DeviceManager::del_user_subscribe()
+{
+    /* user machine */
+    std::vector<std::string> dev_list;
+    for (auto it = userMachineList.begin(); it != userMachineList.end(); it++) {
+        dev_list.push_back(it->first);
+        BOOST_LOG_TRIVIAL(trace) << "del_user_subscribe: " << it->first;
+    }
+    m_agent->del_subscribe(dev_list);
+}
+
+void DeviceManager::subscribe_device_list(std::vector<std::string> dev_list)
+{
+    std::vector<std::string> unsub_list;
+    subscribe_list_cache.clear();
+    for (auto& it : subscribe_list_cache) {
+        if (it != selected_machine) {
+            unsub_list.push_back(it);
+            BOOST_LOG_TRIVIAL(trace) << "subscribe_device_list: unsub dev id = " << it;
+        }
+    }
+    BOOST_LOG_TRIVIAL(trace) << "subscribe_device_list: unsub_list size = " << unsub_list.size();
+
+    if (!selected_machine.empty()) {
+        subscribe_list_cache.push_back(selected_machine);
+    }
+    for (auto& it : dev_list) {
+        subscribe_list_cache.push_back(it);
+        BOOST_LOG_TRIVIAL(trace) << "subscribe_device_list: sub dev id = " << it;
+    }
+    BOOST_LOG_TRIVIAL(trace) << "subscribe_device_list: sub_list size = " << subscribe_list_cache.size();
+    if (!unsub_list.empty())
+        m_agent->del_subscribe(unsub_list);
+    if (!dev_list.empty())
+        m_agent->add_subscribe(subscribe_list_cache);
+}
+
 std::map<std::string, MachineObject*> DeviceManager::get_my_machine_list()
 {
     std::map<std::string, MachineObject*> result;
@@ -5347,6 +5541,19 @@ std::map<std::string, MachineObject*> DeviceManager::get_my_machine_list()
                 result.emplace(std::make_pair(it->first, it->second));
             }
         }
+    }
+    return result;
+}
+
+std::map<std::string, MachineObject*> DeviceManager::get_my_cloud_machine_list()
+{
+    std::map<std::string, MachineObject*> result;
+
+    for (auto it = userMachineList.begin(); it != userMachineList.end(); it++) {
+        if (!it->second)
+            continue;
+        if (!it->second->is_lan_mode_printer())
+            result.emplace(*it);
     }
     return result;
 }

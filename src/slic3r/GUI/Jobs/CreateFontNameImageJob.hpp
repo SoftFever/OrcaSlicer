@@ -11,7 +11,7 @@
 #include <wx/string.h>
 #include <wx/fontenc.h>
 #include "Job.hpp"
-#include "libslic3r/Point.hpp" // Vec2i
+#include "libslic3r/Point.hpp" // Vec2i32
 
 namespace Slic3r::GUI {
 
@@ -32,7 +32,7 @@ struct FontImageData
     size_t index;
     // Height of each text
     // And Limit for width
-    Vec2i  size; // in px
+    Vec2i32  size; // in px
 
     // bigger value create darker image
     // divide value 255

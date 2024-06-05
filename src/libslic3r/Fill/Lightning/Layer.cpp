@@ -29,7 +29,7 @@ Point GroundingLocation::p() const
 
 inline static Point to_grid_point(const Point &point, const BoundingBox &bbox)
 {
-    return (point - bbox.min) / locator_cell_size;
+    return (point - bbox.min) / locator_cell_size();
 }
 
 void Layer::fillLocator(SparseNodeGrid &tree_node_locator, const BoundingBox& current_outlines_bbox)
@@ -150,7 +150,7 @@ GroundingLocation Layer::getBestGroundingLocation
     coord_t  current_dist = getWeightedDistance(node_location, unsupported_location);
     if (current_dist >= wall_supporting_radius) { // Only reconnect tree roots to other trees if they are not already close to the outlines.
         const coord_t search_radius = std::min(current_dist, within_dist);
-        BoundingBox region(unsupported_location - Point(search_radius, search_radius), unsupported_location + Point(search_radius + locator_cell_size, search_radius + locator_cell_size));
+        BoundingBox region(unsupported_location - Point(search_radius, search_radius), unsupported_location + Point(search_radius + locator_cell_size(), search_radius + locator_cell_size()));
         region.min = to_grid_point(region.min, current_outlines_bbox);
         region.max = to_grid_point(region.max, current_outlines_bbox);
 

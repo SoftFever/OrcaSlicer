@@ -193,6 +193,40 @@ void AMSSetting::create()
     m_sizer_switch_filament_tip->Add(m_sizer_switch_filament_inline, 1, wxALIGN_CENTER, 0);
     
 
+
+    // checkbox area 5
+    wxBoxSizer* m_sizer_air_print = new wxBoxSizer(wxHORIZONTAL);
+    m_checkbox_air_print = new ::CheckBox(m_panel_body);
+    m_checkbox_air_print->Bind(wxEVT_TOGGLEBUTTON, &AMSSetting::on_air_print_detect, this);
+    m_sizer_air_print->Add(m_checkbox_air_print, 0, wxTOP, 1);
+    m_sizer_air_print->Add(0, 0, 0, wxLEFT, 12);
+    m_title_air_print = new wxStaticText(m_panel_body, wxID_ANY, _L("Air Printing Detection"), wxDefaultPosition, wxDefaultSize, 0);
+    m_title_air_print->SetFont(::Label::Head_13);
+    m_title_air_print->SetForegroundColour(AMS_SETTING_GREY800);
+    m_title_air_print->Wrap(AMS_SETTING_BODY_WIDTH);
+    m_sizer_air_print->Add(m_title_air_print, 1, wxEXPAND, 0);
+
+    wxBoxSizer* m_sizer_air_print_tip = new wxBoxSizer(wxHORIZONTAL);
+    m_sizer_air_print_tip->Add(0, 0, 0, wxLEFT, 10);
+
+    // tip line
+    auto m_sizer_air_print_inline = new wxBoxSizer(wxVERTICAL);
+
+    m_tip_air_print_line = new Label(m_panel_body,
+        _L("Detects clogging and filament grinding, halting printing immediately to conserve time and filament.")
+    );
+    m_tip_air_print_line->SetFont(::Label::Body_13);
+    m_tip_air_print_line->SetForegroundColour(AMS_SETTING_GREY700);
+    m_tip_air_print_line->SetSize(wxSize(AMS_SETTING_BODY_WIDTH, -1));
+    m_tip_air_print_line->Wrap(AMS_SETTING_BODY_WIDTH);
+    m_sizer_air_print_inline->Add(m_tip_air_print_line, 0, wxEXPAND, 0);
+    m_sizer_air_print_tip->Add(m_sizer_air_print_inline, 1, wxALIGN_CENTER, 0);
+
+    m_checkbox_air_print->Hide();
+    m_title_air_print->Hide();
+    m_tip_air_print_line->Hide();
+
+
     // panel img
     wxPanel* m_panel_img = new wxPanel(m_panel_body, wxID_ANY, wxDefaultPosition, wxDefaultSize);
     m_panel_img->SetBackgroundColour(AMS_SETTING_GREY200);
@@ -219,6 +253,11 @@ void AMSSetting::create()
     m_sizerl_body->Add(m_sizer_switch_filament, 0, wxEXPAND | wxTOP, FromDIP(8));
     m_sizerl_body->Add(0, 0, 0, wxTOP, 8);
     m_sizerl_body->Add(m_sizer_switch_filament_tip, 0, wxLEFT, 18);
+    m_sizerl_body->Add(0, 0, 0, wxTOP, 6);
+    m_sizerl_body->Add(0, 0, 0, wxTOP, FromDIP(5));
+    m_sizerl_body->Add(m_sizer_air_print, 0, wxEXPAND | wxTOP, FromDIP(8));
+    m_sizerl_body->Add(0, 0, 0, wxTOP, 8);
+    m_sizerl_body->Add(m_sizer_air_print_tip, 0, wxLEFT, 18);
     m_sizerl_body->Add(0, 0, 0, wxTOP, 6);
     m_sizerl_body->Add(0, 0, 0, wxTOP, FromDIP(5));
     m_sizerl_body->Add(m_panel_img, 1, wxEXPAND | wxALL, FromDIP(5));
@@ -285,6 +324,9 @@ void AMSSetting::update_insert_material_read_mode(bool selected, std::string ver
 
 void AMSSetting::update_ams_img(std::string ams_icon_str)
 {
+    if (wxGetApp().dark_mode()&& ams_icon_str=="extra_icon") {
+        ams_icon_str += "_dark";
+    }
     m_am_img->SetBitmap(create_scaled_bitmap(ams_icon_str, nullptr, 126));
 }
 
@@ -334,6 +376,22 @@ void AMSSetting::update_switch_filament(bool selected)
         Layout();
     }
     m_checkbox_switch_filament->SetValue(selected);
+}
+
+void AMSSetting::update_air_printing_detection(bool selected)
+{
+    if (false/*obj->is_support_air_print_detection*/) {
+        m_checkbox_air_print->Show();
+        m_title_air_print->Show();
+        m_tip_air_print_line->Show();
+    }
+    else {
+        m_checkbox_air_print->Hide();
+        m_title_air_print->Hide();
+        m_tip_air_print_line->Hide();
+    }
+    Layout();
+    m_checkbox_air_print->SetValue(selected);
 }
 
 
@@ -412,6 +470,13 @@ void AMSSetting::on_switch_filament(wxCommandEvent& event)
 {
     bool switch_filament = m_checkbox_switch_filament->GetValue();
     obj->command_ams_switch_filament(switch_filament);
+    event.Skip();
+}
+
+void AMSSetting::on_air_print_detect(wxCommandEvent& event)
+{
+    bool air_print_detect = m_checkbox_air_print->GetValue();
+    obj->command_ams_air_print_detect(air_print_detect);
     event.Skip();
 }
 

@@ -398,11 +398,14 @@ SelectMachinePopup::SelectMachinePopup(wxWindow *parent)
     auto other_title      = create_title_panel(_L("Other Device"));
     m_sizer_other_devices = new wxBoxSizer(wxVERTICAL);
 
+
+    m_panel_ping_code = new PinCodePanel(m_scrolledWindow, wxID_ANY, wxDefaultPosition, SELECT_MACHINE_ITEM_SIZE);
+
     m_sizxer_scrolledWindow->Add(own_title, 0, wxEXPAND | wxLEFT, FromDIP(15));
     m_sizxer_scrolledWindow->Add(m_sizer_my_devices, 0, wxEXPAND, 0);
+    m_sizxer_scrolledWindow->Add(m_panel_ping_code, 0, wxEXPAND, 0);
     m_sizxer_scrolledWindow->Add(other_title, 0, wxEXPAND | wxLEFT, FromDIP(15));
     m_sizxer_scrolledWindow->Add(m_sizer_other_devices, 0, wxEXPAND, 0);
-
 
     m_sizer_main->Add(m_scrolledWindow, 0, wxALL | wxEXPAND, FromDIP(2));
 
@@ -870,6 +873,17 @@ void SelectMachinePopup::OnLeftUp(wxMouseEvent &event)
                 event.SetEventObject(p->mPanel);
                 wxPostEvent(p->mPanel, event);
             }
+        }
+
+        //pin code
+        auto pc_rect = m_panel_ping_code->ClientToScreen(wxPoint(0, 0));
+        if (mouse_pos.x > pc_rect.x && mouse_pos.y > pc_rect.y && mouse_pos.x < (pc_rect.x + m_panel_ping_code->GetSize().x) && mouse_pos.y < (pc_rect.y + m_panel_ping_code->GetSize().y)) {
+            /*wxMouseEvent event(wxEVT_LEFT_UP);
+            auto         tag_pos = m_panel_ping_code->ScreenToClient(mouse_pos);
+            event.SetPosition(tag_pos);
+            event.SetEventObject(m_panel_ping_code);
+            wxPostEvent(m_panel_ping_code, event);*/
+            wxGetApp().popup_ping_bind_dialog();
         }
 
         //hyper link
@@ -2321,7 +2335,7 @@ bool SelectMachineDialog::is_same_nozzle_diameters(std::string& tag_nozzle_type,
     }
 
     //nozzle_type = preset_nozzle_type;
-    nozzle_diameter = wxString::Format("%.1f", preset_nozzle_diameters).ToStdString();
+    nozzle_diameter = wxString::Format("%.2f", preset_nozzle_diameters).ToStdString();
 
     return is_same_nozzle_diameters;
 }
@@ -2559,10 +2573,9 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
     if (!obj_->nozzle_type.empty() && (m_print_type == PrintFromType::FROM_NORMAL)) {
         if (!is_same_nozzle_diameters(tag_nozzle_type, nozzle_diameter)) {
             has_slice_warnings = true;
-            is_printing_block  = true;
             
             wxString nozzle_in_preset = wxString::Format(_L("nozzle in preset: %s %s"),nozzle_diameter, "");
-            wxString nozzle_in_printer = wxString::Format(_L("nozzle memorized: %.1f %s"), obj_->nozzle_diameter, "");
+            wxString nozzle_in_printer = wxString::Format(_L("nozzle memorized: %.2f %s"), obj_->nozzle_diameter, "");
 
             confirm_text.push_back(ConfirmBeforeSendInfo(_L("Your nozzle diameter in sliced file is not consistent with memorized nozzle. If you changed your nozzle lately, please go to Device > Printer Parts to change settings.") 
                 + "\n    " + nozzle_in_preset 
@@ -4580,5 +4593,81 @@ void EditDevNameDialog::on_edit_name(wxCommandEvent &e)
  }
 
  ThumbnailPanel::~ThumbnailPanel() {}
+
+ PinCodePanel::PinCodePanel(wxWindow* parent, wxWindowID winid /*= wxID_ANY*/, const wxPoint& pos /*= wxDefaultPosition*/, const wxSize& size /*= wxDefaultSize*/)
+ {
+     wxPanel::Create(parent, winid, pos, SELECT_MACHINE_ITEM_SIZE);
+     Bind(wxEVT_PAINT, &PinCodePanel::OnPaint, this);
+     SetSize(SELECT_MACHINE_ITEM_SIZE);
+     SetMaxSize(SELECT_MACHINE_ITEM_SIZE);
+     SetMinSize(SELECT_MACHINE_ITEM_SIZE);
+
+     m_bitmap = ScalableBitmap(this, "bind_device_ping_code",10);
+     
+     this->Bind(wxEVT_ENTER_WINDOW, &PinCodePanel::on_mouse_enter, this);
+     this->Bind(wxEVT_LEAVE_WINDOW, &PinCodePanel::on_mouse_leave, this);
+     this->Bind(wxEVT_LEFT_UP, &PinCodePanel::on_mouse_left_up, this);
+ }
+
+ void PinCodePanel::OnPaint(wxPaintEvent& event)
+ {
+     wxPaintDC dc(this);
+     render(dc);
+ }
+
+ void PinCodePanel::render(wxDC& dc)
+ {
+#ifdef __WXMSW__
+     wxSize     size = GetSize();
+     wxMemoryDC memdc;
+     wxBitmap   bmp(size.x, size.y);
+     memdc.SelectObject(bmp);
+     memdc.Blit({ 0, 0 }, size, &dc, { 0, 0 });
+
+     {
+         wxGCDC dc2(memdc);
+         doRender(dc2);
+     }
+
+     memdc.SelectObject(wxNullBitmap);
+     dc.DrawBitmap(bmp, 0, 0);
+#else
+     doRender(dc);
+#endif
+ }
+
+ void PinCodePanel::doRender(wxDC& dc)
+ {
+     auto size = GetSize();
+     dc.DrawBitmap(m_bitmap.bmp(), wxPoint(FromDIP(20), (size.y - m_bitmap.GetBmpSize().y) / 2));
+     dc.SetFont(::Label::Head_13);
+     dc.SetTextForeground(wxColour(38, 46, 48));
+     wxString txt = _L("Bind with Pin Code");
+     auto txt_size = dc.GetTextExtent(txt);
+     dc.DrawText(txt, wxPoint(FromDIP(40), (size.y - txt_size.y) / 2));
+
+     if (m_hover) {
+         dc.SetPen(SELECT_MACHINE_BRAND);
+         dc.SetBrush(*wxTRANSPARENT_BRUSH);
+         dc.DrawRectangle(0, 0, size.x, size.y);
+     }
+ }
+
+ void PinCodePanel::on_mouse_enter(wxMouseEvent& evt)
+ {
+     m_hover = true;
+     Refresh();
+ }
+
+ void PinCodePanel::on_mouse_leave(wxMouseEvent& evt)
+ {
+     m_hover = false;
+     Refresh();
+ }
+
+ void PinCodePanel::on_mouse_left_up(wxMouseEvent& evt)
+ {
+     wxGetApp().popup_ping_bind_dialog();
+ }
 
  }} // namespace Slic3r::GUI

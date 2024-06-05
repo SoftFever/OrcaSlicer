@@ -24,6 +24,7 @@
 #include <imgui/imgui_internal.h>
 #include "libslic3r/SVG.hpp"
 #include <codecvt>
+#include "wx/fontenum.h"
 
 namespace Slic3r {
 namespace GUI {
@@ -33,6 +34,119 @@ static const wxColour FONT_TEXTURE_BG = wxColour(0, 0, 0, 0);
 static const wxColour FONT_TEXTURE_FG = *wxWHITE;
 static const int FONT_SIZE = 12;
 static const float SELECTABLE_INNER_OFFSET = 8.0f;
+
+static std::vector<std::string> font_black_list = {
+#ifdef _WIN32
+    "MT Extra",
+    "Marlett",
+    "Symbol",
+    "Webdings",
+    "Wingdings",
+    "Wingdings 2",
+    "Wingdings 3",
+#endif
+};
+
+static const wxFontEncoding font_encoding = wxFontEncoding::wxFONTENCODING_SYSTEM;
+
+#ifdef _WIN32
+static bool load_hfont(void *hfont, DWORD &dwTable, DWORD &dwOffset, size_t &size, HDC hdc = nullptr)
+{
+    bool del_hdc = false;
+    if (hdc == nullptr) {
+        del_hdc = true;
+        hdc     = ::CreateCompatibleDC(NULL);
+        if (hdc == NULL) return false;
+    }
+
+    // To retrieve the data from the beginning of the file for TrueType
+    // Collection files specify 'ttcf' (0x66637474).
+    dwTable  = 0x66637474;
+    dwOffset = 0;
+
+    ::SelectObject(hdc, hfont);
+    size = ::GetFontData(hdc, dwTable, dwOffset, NULL, 0);
+    if (size == GDI_ERROR) {
+        // HFONT is NOT TTC(collection)
+        dwTable = 0;
+        size    = ::GetFontData(hdc, dwTable, dwOffset, NULL, 0);
+    }
+
+    if (size == 0 || size == GDI_ERROR) {
+        if (del_hdc) ::DeleteDC(hdc);
+        return false;
+    }
+    return true;
+}
+#endif // _WIN32
+
+bool can_load(const wxFont &font)
+{
+#ifdef _WIN32
+    DWORD  dwTable = 0, dwOffset = 0;
+    size_t size = 0;
+    void* hfont = font.GetHFONT();
+    if (!load_hfont(hfont, dwTable, dwOffset, size))
+        return false;
+    return hfont != nullptr;
+#elif defined(__APPLE__)
+    return true;
+#elif defined(__linux__)
+    return true;
+#endif
+    return false;
+}
+
+std::vector<std::string> init_face_names()
+{
+    std::vector<std::string> valid_font_names;
+    wxArrayString            facenames = wxFontEnumerator::GetFacenames(font_encoding);
+    std::vector<wxString>    bad_fonts;
+
+    // validation lambda
+    auto is_valid_font = [coding = font_encoding, bad = bad_fonts](const wxString &name) {
+        if (name.empty())
+            return false;
+
+        // vertical font start with @, we will filter it out
+        // Not sure if it is only in Windows so filtering is on all platforms
+        if (name[0] == '@')
+            return false;
+
+        // previously detected bad font
+        auto it = std::lower_bound(bad.begin(), bad.end(), name);
+        if (it != bad.end() && *it == name)
+            return false;
+
+        wxFont wx_font(wxFontInfo().FaceName(name).Encoding(coding));
+        // Faster chech if wx_font is loadable but not 100%
+        // names could contain not loadable font
+        if (!wx_font.IsOk())
+            return false;
+
+        if (!can_load(wx_font))
+            return false;
+
+        return true;
+    };
+
+    std::sort(facenames.begin(), facenames.end());
+    for (const wxString &name : facenames) {
+        if (is_valid_font(name)) {
+            valid_font_names.push_back(name.ToStdString());
+        }
+        else {
+            bad_fonts.emplace_back(name);
+        }
+    }
+    assert(std::is_sorted(bad_fonts.begin(), bad_fonts.end()));
+
+    for (auto iter = font_black_list.begin(); iter != font_black_list.end(); ++iter) {
+        valid_font_names.erase(std::remove(valid_font_names.begin(), valid_font_names.end(), *iter), valid_font_names.end());
+    }
+
+    return valid_font_names;
+}
 
 class Line_3D
 {
@@ -142,7 +256,9 @@ GLGizmoText::~GLGizmoText()
 
 bool GLGizmoText::on_init()
 {
-    m_avail_font_names = init_occt_fonts();
+    m_avail_font_names = init_face_names();
+
+    //m_avail_font_names = init_occt_fonts();
     update_font_texture();
     m_scale = m_imgui->get_font_size();
     m_shortcut_key = WXK_CONTROL_T;
@@ -331,7 +447,7 @@ bool GLGizmoText::gizmo_event(SLAGizmoEventType action, const Vec2d &mouse_posit
 bool GLGizmoText::on_mouse(const wxMouseEvent &mouse_event)
 {
     // wxCoord == int --> wx/types.h
-    Vec2i mouse_coord(mouse_event.GetX(), mouse_event.GetY());
+    Vec2i32 mouse_coord(mouse_event.GetX(), mouse_event.GetY());
     Vec2d mouse_pos = mouse_coord.cast<double>();
     bool control_down           = mouse_event.CmdDown();
 

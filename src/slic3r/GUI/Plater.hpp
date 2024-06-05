@@ -117,7 +117,10 @@ wxDECLARE_EVENT(EVT_GLCANVAS_COLOR_MODE_CHANGED,   SimpleEvent);
 wxDECLARE_EVENT(EVT_PRINT_FROM_SDCARD_VIEW,   SimpleEvent);
 wxDECLARE_EVENT(EVT_CREATE_FILAMENT, SimpleEvent);
 wxDECLARE_EVENT(EVT_MODIFY_FILAMENT, SimpleEvent);
-
+wxDECLARE_EVENT(EVT_ADD_FILAMENT, SimpleEvent);
+wxDECLARE_EVENT(EVT_DEL_FILAMENT, SimpleEvent);
+using ColorEvent = Event<wxColour>;
+wxDECLARE_EVENT(EVT_ADD_CUSTOM_FILAMENT, ColorEvent);
 const wxString DEFAULT_PROJECT_NAME = "Untitled";
 
 class Sidebar : public wxPanel
@@ -153,6 +156,9 @@ public:
     void jump_to_option(const std::string& opt_key, Preset::Type type, const std::wstring& category);
     // BBS. Add on_filaments_change() method.
     void on_filaments_change(size_t num_filaments);
+    void add_filament();
+    void delete_filament();
+    void add_custom_filament(wxColour new_col);
     // BBS
     void on_bed_type_change(BedType bed_type);
     void load_ams_list(std::string const & device, MachineObject* obj);
@@ -256,6 +262,7 @@ public:
     int  get_3mf_file_count(std::vector<fs::path> paths);
     void add_file();
     void add_model(bool imperial_units = false, std::string fname = "");
+    void import_zip_archive();
     void import_sl1_archive();
     void extract_config_from_project();
     void load_gcode();
@@ -291,6 +298,8 @@ public:
 
     static wxColour get_next_color_for_filament();
     static wxString get_slice_warning_string(GCodeProcessorResult::SliceWarning& warning);
+
+    bool preview_zip_archive(const boost::filesystem::path& archive_path);
 
     // BBS: restore
     std::vector<size_t> load_files(const std::vector<boost::filesystem::path>& input_files, LoadStrategy strategy = LoadStrategy::LoadModel | LoadStrategy::LoadConfig,  bool ask_multi = false);
@@ -372,6 +381,7 @@ public:
 
     void select_all();
     void deselect_all();
+    void exit_gizmo();
     void remove(size_t obj_idx);
     void reset(bool apply_presets_change = false);
     void reset_with_confirm();
@@ -796,7 +806,7 @@ private:
     bool m_only_gcode { false };
     bool m_exported_file { false };
     bool skip_thumbnail_invalid { false };
-    bool m_loading_project {false };
+    bool m_loading_project { false };
     std::string m_preview_only_filename;
     int m_valid_plates_count { 0 };
 
@@ -827,7 +837,7 @@ private:
     bool m_was_scheduled;
 };
 
-std::vector<int> get_min_flush_volumes();
+std::vector<int> get_min_flush_volumes(const DynamicPrintConfig& full_config);
 } // namespace GUI
 } // namespace Slic3r
 

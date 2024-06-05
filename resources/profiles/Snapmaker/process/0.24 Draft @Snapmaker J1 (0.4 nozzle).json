@@ -14,13 +14,5 @@
   "top_shell_layers": "3",
   "top_shell_thickness": "0.6",
   "support_threshold_angle": "35",
-  "initial_layer_infill_speed": "65",
-  "inner_wall_speed": "190",
-  "internal_solid_infill_speed": "190",
-  "sparse_infill_speed": "160",
-  "top_surface_speed": "160",
-  "gap_infill_speed": "160",
-  "overhang_1_4_speed": "60",
-  "overhang_2_4_speed": "30",
-  "overhang_3_4_speed": "10"
+  "initial_layer_infill_speed": "65"
 }

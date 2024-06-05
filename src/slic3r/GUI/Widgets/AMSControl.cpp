@@ -87,7 +87,7 @@ bool AMSinfo::parse_ams_info(MachineObject *obj, Ams *ams, bool remain_flag, boo
                 wxColour(255, 255, 255);
             }
 
-            if (obj->get_printer_series() == PrinterSeries::SERIES_X1 && it->second->is_tray_info_ready()) {
+            if (it->second->is_tray_info_ready() && obj->cali_version >= 0) {
                 CalibUtils::get_pa_k_n_value_by_cali_idx(obj, it->second->cali_idx, info.k, info.n);
             }
             else {
@@ -648,7 +648,6 @@ void AMSLib::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const w
     m_bitmap_readonly       = ScalableBitmap(this, "ams_readonly", 14);
     m_bitmap_readonly_light = ScalableBitmap(this, "ams_readonly_light", 14);
     m_bitmap_transparent    = ScalableBitmap(this, "transparent_ams_lib", 68);
-    m_bitmap_transparent_def    = ScalableBitmap(this, "transparent_ams_lib", 68);
 
     m_bitmap_extra_tray_left    = ScalableBitmap(this, "extra_ams_tray_left", 80);
     m_bitmap_extra_tray_right    = ScalableBitmap(this, "extra_ams_tray_right", 80);
@@ -840,7 +839,7 @@ void AMSLib::render_extra_text(wxDC& dc)
 void AMSLib::render_generic_text(wxDC &dc)
 {
     bool show_k_value = true;
-    if (m_obj && (m_obj->get_printer_series() == PrinterSeries::SERIES_X1) && (abs(m_info.k - 0) < 1e-3)) {
+    if (m_obj && (m_obj->cali_version >= 0) && (abs(m_info.k - 0) < 1e-3)) {
         show_k_value = false;
     }
 
@@ -867,7 +866,7 @@ void AMSLib::render_generic_text(wxDC &dc)
     dc.SetFont(::Label::Body_13);
     dc.SetTextForeground(temp_text_colour);
     auto alpha = m_info.material_colour.Alpha();
-    if (alpha != 0 && alpha != 255) {
+    if (alpha != 0 && alpha != 255 && alpha != 254) {
         dc.SetTextForeground(*wxBLACK);
     }
 
@@ -1116,6 +1115,9 @@ void AMSLib::render_generic_lib(wxDC &dc)
     // selected
     if (m_selected) {
         dc.SetPen(wxPen(tmp_lib_colour, 2, wxSOLID));
+        if (tmp_lib_colour.Alpha() == 0) {
+            dc.SetPen(wxPen(wxColour(tmp_lib_colour.Red(), tmp_lib_colour.Green(),tmp_lib_colour.Blue(),128), 2, wxSOLID));
+        }
         dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
         if (m_radius == 0) {
             dc.DrawRectangle(0, 0, size.x, size.y);
@@ -1147,17 +1149,37 @@ void AMSLib::render_generic_lib(wxDC &dc)
     }
 
     //draw remain
+    auto alpha = m_info.material_colour.Alpha();
     int height = size.y - FromDIP(8);
-    int curr_height = height * float(m_info.material_remain * 1.0 / 100.0); dc.SetFont(::Label::Body_13);
+    int curr_height = height * float(m_info.material_remain * 1.0 / 100.0); 
+    dc.SetFont(::Label::Body_13);
 
     int top = height - curr_height;
 
     if (curr_height >= FromDIP(6)) {
 
         //transparent
-        auto alpha = m_info.material_colour.Alpha();
+        
         if (alpha == 0) {
-            dc.DrawBitmap(m_bitmap_transparent_def.bmp(), FromDIP(4), FromDIP(4));
+            dc.DrawBitmap(m_bitmap_transparent.bmp(), FromDIP(4), FromDIP(4));
+        }
+        else if (alpha != 255 && alpha != 254) {
+            if (transparent_changed) {
+                std::string rgb = (tmp_lib_colour.GetAsString(wxC2S_HTML_SYNTAX)).ToStdString();
+                if (rgb.size() == 9) {
+                    //delete alpha value
+                    rgb = rgb.substr(0, rgb.size() - 2);
+                }
+                float alpha_f = 0.7 * tmp_lib_colour.Alpha() / 255.0;
+                std::vector<std::string> replace;
+                replace.push_back(rgb);
+                std::string fill_replace = "fill-opacity=\"" + std::to_string(alpha_f);
+                replace.push_back(fill_replace);
+                m_bitmap_transparent = ScalableBitmap(this, "transparent_ams_lib", 68, false, false, true, replace);
+                transparent_changed = false;
+                
+            }
+            dc.DrawBitmap(m_bitmap_transparent.bmp(), FromDIP(4), FromDIP(4));
         }
         //gradient
         if (m_info.material_cols.size() > 1) {
@@ -1214,34 +1236,29 @@ void AMSLib::render_generic_lib(wxDC &dc)
             }
         }
         else {
+            auto brush = dc.GetBrush();
+            if (alpha != 0 && alpha != 255 && alpha != 254) dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
 #ifdef __APPLE__
             dc.DrawRoundedRectangle(FromDIP(4), FromDIP(4) + top, size.x - FromDIP(8), curr_height, m_radius);
 #else
             dc.DrawRoundedRectangle(FromDIP(4), FromDIP(4) + top, size.x - FromDIP(8), curr_height, m_radius - 1);
-            if (alpha != 0 && alpha != 255) {
-                if (transparent_changed) {
-                    std::string rgb = (tmp_lib_colour.GetAsString(wxC2S_HTML_SYNTAX)).ToStdString();
-                    if (rgb.size() == 8) {
-                        //delete alpha value
-                        rgb= rgb.substr(0, rgb.size() - 2);
-                    }
-                    float alpha_f = 0.3 * tmp_lib_colour.Alpha() / 255.0;
-                    std::vector<std::string> replace;
-                    replace.push_back(rgb);
-                    std::string fill_replace = "fill-opacity=\"" + std::to_string(alpha_f);
-                    replace.push_back(fill_replace);
-                    m_bitmap_transparent = ScalableBitmap(this, "transparent_ams_lib", 68, false, false, true, replace);
-                    transparent_changed = false;
-                }
-                dc.DrawBitmap(m_bitmap_transparent.bmp(), FromDIP(4), FromDIP(4));
-            }
 #endif
+            dc.SetBrush(brush);
         }
     }
 
     if (top > 2) {
         if (curr_height >= FromDIP(6)) {
             dc.DrawRectangle(FromDIP(4), FromDIP(4) + top, size.x - FromDIP(8), FromDIP(2));
+            if (alpha != 255 && alpha != 254) {
+                dc.SetPen(wxPen(*wxWHITE));
+                dc.SetBrush(wxBrush(*wxWHITE));
+#ifdef __APPLE__
+                dc.DrawRoundedRectangle(FromDIP(4), FromDIP(4) , size.x - FromDIP(8), top, m_radius);
+#else
+                dc.DrawRoundedRectangle(FromDIP(4), FromDIP(4) , size.x - FromDIP(8), top, m_radius - 1);
+#endif
+            }
             if (tmp_lib_colour.Red() > 238 && tmp_lib_colour.Green() > 238 && tmp_lib_colour.Blue() > 238) {
                 dc.SetPen(wxPen(wxColour(130, 129, 128), 1, wxSOLID));
                 dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
@@ -1303,7 +1320,7 @@ void AMSLib::Update(Caninfo info, bool refresh)
     if (dev->get_selected_machine() && dev->get_selected_machine() != m_obj) {
         m_obj = dev->get_selected_machine();
     }
-    if (info.material_colour.Alpha() != 0 && info.material_colour.Alpha() != 255 && m_info.material_colour != info.material_colour) {
+    if (info.material_colour.Alpha() != 0 && info.material_colour.Alpha() != 255 && info.material_colour.Alpha() != 254 && m_info.material_colour != info.material_colour) {
         transparent_changed = true;
     }
     m_info = info;
@@ -1341,9 +1358,7 @@ bool AMSLib::Enable(bool enable) { return wxWindow::Enable(enable); }
 
 void AMSLib::msw_rescale()
 {
-    //m_bitmap_transparent.msw_rescale();
-    m_bitmap_transparent_def.msw_rescale();
-
+    m_bitmap_transparent.msw_rescale();
 }
 
 /*************************************************
@@ -2542,7 +2557,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     wxBoxSizer *m_sizer_button = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *m_sizer_button_area = new wxBoxSizer(wxHORIZONTAL);
 
-    m_button_extruder_feed = new Button(m_button_area, _L("Load Filament"));
+    m_button_extruder_feed = new Button(m_button_area, _L("Load"));
     m_button_extruder_feed->SetFont(Label::Body_13);
 
     m_button_extruder_feed->SetBackgroundColor(btn_bg_green);
@@ -2558,8 +2573,9 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     if (wxGetApp().app_config->get("language") == "ja_JP") m_button_extruder_feed->SetFont(Label::Body_9);
     if (wxGetApp().app_config->get("language") == "sv_SE") m_button_extruder_feed->SetFont(Label::Body_9);
     if (wxGetApp().app_config->get("language") == "cs_CZ") m_button_extruder_feed->SetFont(Label::Body_9);
+    if (wxGetApp().app_config->get("language") == "uk_UA") m_button_extruder_feed->SetFont(Label::Body_9);
 
-    m_button_extruder_back = new Button(m_button_area, _L("Unload Filament"));
+    m_button_extruder_back = new Button(m_button_area, _L("Unload"));
     m_button_extruder_back->SetBackgroundColor(btn_bg_white);
     m_button_extruder_back->SetBorderColor(btn_bd_white);
     m_button_extruder_back->SetTextColor(btn_text_white);
@@ -2573,6 +2589,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     if (wxGetApp().app_config->get("language") == "ja_JP") m_button_extruder_back->SetFont(Label::Body_9);
     if (wxGetApp().app_config->get("language") == "sv_SE") m_button_extruder_back->SetFont(Label::Body_9);
     if (wxGetApp().app_config->get("language") == "cs_CZ") m_button_extruder_back->SetFont(Label::Body_9);
+    if (wxGetApp().app_config->get("language") == "uk_UA") m_button_extruder_back->SetFont(Label::Body_9);
 
     m_sizer_button_area->Add(0, 0, 1, wxEXPAND, 0);
     m_sizer_button_area->Add(m_button_extruder_back, 0, wxLEFT, FromDIP(6));
@@ -2754,6 +2771,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     if (wxGetApp().app_config->get("language") == "ja_JP") m_button_guide->SetFont(Label::Body_9);
     if (wxGetApp().app_config->get("language") == "sv_SE") m_button_guide->SetFont(Label::Body_9);
     if (wxGetApp().app_config->get("language") == "cs_CZ") m_button_guide->SetFont(Label::Body_9);
+    if (wxGetApp().app_config->get("language") == "uk_UA") m_button_guide->SetFont(Label::Body_9);
 
     m_button_guide->SetCornerRadius(FromDIP(12));
     m_button_guide->SetBorderColor(btn_bd_white);
@@ -2771,6 +2789,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     if (wxGetApp().app_config->get("language") == "ja_JP") m_button_retry->SetFont(Label::Body_9);
     if (wxGetApp().app_config->get("language") == "sv_SE") m_button_retry->SetFont(Label::Body_9);
     if (wxGetApp().app_config->get("language") == "cs_CZ") m_button_retry->SetFont(Label::Body_9);
+    if (wxGetApp().app_config->get("language") == "uk_UA") m_button_retry->SetFont(Label::Body_9);
 
     m_button_retry->SetCornerRadius(FromDIP(12));
     m_button_retry->SetBorderColor(btn_bd_white);
@@ -2831,7 +2850,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     wxBoxSizer *sizer_err_calibration_v = new wxBoxSizer(wxVERTICAL);
     m_hyperlink = new wxHyperlinkCtrl(m_calibration_err_panel, wxID_ANY, wxEmptyString, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE);
     m_hyperlink->SetVisitedColour(wxColour(31, 142, 234));
-    auto m_tip_calibration_err = new wxStaticText(m_calibration_err_panel, wxID_ANY, _L("A problem occured during calibration. Click to view the solution."), wxDefaultPosition,
+    auto m_tip_calibration_err = new wxStaticText(m_calibration_err_panel, wxID_ANY, _L("A problem occurred during calibration. Click to view the solution."), wxDefaultPosition,
                                                   wxDefaultSize, 0);
     m_tip_calibration_err->SetFont(::Label::Body_14);
     m_tip_calibration_err->SetForegroundColour(AMS_CONTROL_GRAY700);
@@ -3286,7 +3305,7 @@ void AMSControl::show_vams_kn_value(bool show)
 void AMSControl::update_vams_kn_value(AmsTray tray, MachineObject* obj)
 {
     m_vams_lib->m_obj = obj;
-    if (obj->get_printer_series() == PrinterSeries::SERIES_X1) {
+    if (obj->cali_version >= 0) {
         float k_value = 0;
         float n_value = 0;
         CalibUtils::get_pa_k_n_value_by_cali_idx(obj, tray.cali_idx, k_value, n_value);
@@ -3304,10 +3323,6 @@ void AMSControl::update_vams_kn_value(AmsTray tray, MachineObject* obj)
     m_vams_info.material_name = tray.get_display_filament_type();
     m_vams_info.material_colour = tray.get_color();
     m_vams_lib->m_info.material_name = tray.get_display_filament_type();
-    auto col= tray.get_color();
-    if (col.Alpha() != 0 && col.Alpha() != 255 && col.Alpha() != 254 && m_vams_lib->m_info.material_colour != col) {
-        m_vams_lib->transparent_changed = true;
-    }
     m_vams_lib->m_info.material_colour = tray.get_color();
     m_vams_lib->Refresh();
 }
@@ -3596,7 +3611,7 @@ void AMSControl::ShowFilamentTip(bool hasams)
     m_simplebook_right->SetSelection(0);
     if (hasams) {
         m_tip_right_top->Show();
-        m_tip_load_info->SetLabelText(_L("Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filiament."));
+        m_tip_load_info->SetLabelText(_L("Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."));
     } else {
         // m_tip_load_info->SetLabelText(_L("Before loading, please make sure the filament is pushed into toolhead."));
         m_tip_right_top->Hide();

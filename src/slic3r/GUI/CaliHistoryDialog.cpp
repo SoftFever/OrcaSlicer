@@ -55,9 +55,10 @@ static wxString get_preset_name_by_filament_id(std::string filament_id)
     return preset_name;
 }
 
-HistoryWindow::HistoryWindow(wxWindow* parent, const std::vector<PACalibResult>& calib_results_history)
+HistoryWindow::HistoryWindow(wxWindow* parent, const std::vector<PACalibResult>& calib_results_history, bool& show)
     : DPIDialog(parent, wxID_ANY, _L("Flow Dynamics Calibration Result"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE)
     , m_calib_results_history(calib_results_history)
+    , m_show_history_dialog(show)
 {
     this->SetBackgroundColour(*wxWHITE);
     auto main_sizer = new wxBoxSizer(wxVERTICAL);
@@ -73,11 +74,11 @@ HistoryWindow::HistoryWindow(wxWindow* parent, const std::vector<PACalibResult>&
     scroll_window->SetSizer(scroll_sizer);
 
     Button *   mew_btn = new Button(scroll_window, _L("New"));
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
+                            std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
     mew_btn->SetBackgroundColour(*wxWHITE);
     mew_btn->SetBackgroundColor(btn_bg_green);
-    mew_btn->SetBorderColor(wxColour(0, 174, 66));
+    mew_btn->SetBorderColor(wxColour(0, 150, 136));
     mew_btn->SetTextColor(wxColour("#FFFFFE"));
     mew_btn->SetMinSize(wxSize(FromDIP(100), FromDIP(24)));
     mew_btn->SetMaxSize(wxSize(FromDIP(100), FromDIP(24)));
@@ -138,11 +139,14 @@ HistoryWindow::HistoryWindow(wxWindow* parent, const std::vector<PACalibResult>&
     m_refresh_timer->SetOwner(this);
     m_refresh_timer->Start(200);
     Bind(wxEVT_TIMER, &HistoryWindow::on_timer, this);
+
+    m_show_history_dialog = true;
 }
 
 HistoryWindow::~HistoryWindow()
 {
     m_refresh_timer->Stop();
+    m_show_history_dialog = false;
 }
 
 void HistoryWindow::sync_history_result(MachineObject* obj)
@@ -364,6 +368,12 @@ float HistoryWindow::get_nozzle_value()
 
 void HistoryWindow::on_click_new_button(wxCommandEvent& event)
 {
+    if (curr_obj && curr_obj->get_printer_series() == PrinterSeries::SERIES_P1P && m_calib_results_history.size() >= 16) {
+        MessageDialog msg_dlg(nullptr, wxString::Format(_L("This machine type can only hold %d history results per nozzle."), 16), wxEmptyString, wxICON_WARNING | wxOK);
+        msg_dlg.ShowModal();
+        return;
+    }
+
     NewCalibrationHistoryDialog dlg(this, m_calib_results_history);
     dlg.ShowModal();
 }
@@ -560,7 +570,7 @@ wxArrayString NewCalibrationHistoryDialog::get_all_filaments(const MachineObject
 }
 
 NewCalibrationHistoryDialog::NewCalibrationHistoryDialog(wxWindow *parent, const std::vector<PACalibResult> history_results)
-    : DPIDialog(parent, wxID_ANY, _L("New Flow Dynamics Calibration"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE)
+    : DPIDialog(parent, wxID_ANY, _L("New Flow Dynamic Calibration"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE)
     , m_history_results(history_results)
 {
     Slic3r::DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
@@ -569,6 +579,8 @@ NewCalibrationHistoryDialog::NewCalibrationHistoryDialog(wxWindow *parent, const
     MachineObject *obj = dev->get_selected_machine();
     if (!obj)
         return;
+
+    curr_obj = obj;
 
     this->SetBackgroundColour(*wxWHITE);
     auto main_sizer = new wxBoxSizer(wxVERTICAL);
@@ -628,11 +640,11 @@ NewCalibrationHistoryDialog::NewCalibrationHistoryDialog(wxWindow *parent, const
 
     auto       btn_sizer = new wxBoxSizer(wxHORIZONTAL);
     Button *   ok_btn  = new Button(top_panel, _L("Ok"));
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
+                            std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
     ok_btn->SetBackgroundColour(*wxWHITE);
     ok_btn->SetBackgroundColor(btn_bg_green);
-    ok_btn->SetBorderColor(wxColour(0, 174, 66));
+    ok_btn->SetBorderColor(wxColour(0, 150, 136));
     ok_btn->SetTextColor(wxColour("#FFFFFE"));
     ok_btn->SetMinSize(wxSize(-1, FromDIP(24)));
     ok_btn->SetCornerRadius(FromDIP(12));
@@ -699,26 +711,18 @@ void NewCalibrationHistoryDialog::on_ok(wxCommandEvent &event)
 
     // Check for duplicate names from history
     {
-        struct PACalibResult
-        {
-            size_t operator()(const std::pair<std::string, std::string> &item) const
-            {
-                return std::hash<string>()(item.first) * std::hash<string>()(item.second);
-            }
-        };
-        std::unordered_set<std::pair<std::string, std::string>, PACalibResult> set;
-        set.insert({m_new_result.name, m_new_result.filament_id});
+        auto iter = std::find_if(m_history_results.begin(), m_history_results.end(), [this](const PACalibResult &item) {
+            return item.name == m_new_result.name && item.filament_id == m_new_result.filament_id;
+        });
 
-        for (auto &result : m_history_results) {
-            if (!set.insert({result.name, result.filament_id}).second) {
-                MessageDialog msg_dlg(nullptr,
-                                      wxString::Format(_L("There is already a historical calibration result with the same name: %s. Only one of the results with the same name "
-                                                          "is saved. Are you sure you want to override the historical result?"),
-                                                       result.name),
-                                      wxEmptyString, wxICON_WARNING | wxYES_NO);
-                if (msg_dlg.ShowModal() != wxID_YES)
-                    return;
-            }
+        if (iter != m_history_results.end()) {
+            MessageDialog msg_dlg(nullptr,
+                                  wxString::Format(_L("There is already a historical calibration result with the same name: %s. Only one of the results with the same name "
+                                                      "is saved. Are you sure you want to override the historical result?"),
+                                                   m_new_result.name),
+                                  wxEmptyString, wxICON_WARNING | wxYES_NO);
+            if (msg_dlg.ShowModal() != wxID_YES)
+                return;
         }
     }
 

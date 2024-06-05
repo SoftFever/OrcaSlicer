@@ -4,7 +4,8 @@
 #include "ThreadSafeQueue.hpp"
 #include "slic3r/GUI/I18N.hpp"
 #include "nlohmann/json.hpp"
-
+#include <boost/algorithm/string.hpp>
+#include <thread>
 
 namespace Slic3r {
 namespace GUI {

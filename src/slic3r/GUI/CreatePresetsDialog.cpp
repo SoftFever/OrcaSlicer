@@ -37,22 +37,44 @@
 namespace Slic3r { 
 namespace GUI {
 
-static const std::vector<std::string> filament_vendors = {"Polymaker", "OVERTURE", "Kexcelled", "HATCHBOX",  "eSUN",       "SUNLU",    "Prusament", "Creality", "Protopasta",
-                                                          "Anycubic",  "Basf",     "ELEGOO",    "INLAND",    "FLASHFORGE", "AMOLEN",   "MIKA3D",    "3DXTECH",  "Duramic",
-                                                          "Priline",   "Eryone",   "3Dgunius",  "Novamaker", "Justmaker",  "Giantarm", "iProspect"};
-
-static const std::vector<std::string> filament_types = {"PLA",    "PLA+",  "PLA Tough", "PETG",  "ABS",    "ASA",    "FLEX",        "HIPS",   "PA",     "PACF",
-                                                        "NYLON",  "PVA",   "PC",        "PCABS", "PCTG",   "PCCF",   "PP",          "PEI",    "PET",    "PETG",
-                                                        "PETGCF", "PTBA",  "PTBA90A",   "PEEK",  "TPU93A", "TPU75D", "TPU",         "TPU92A", "TPU98A", "Misc",
+static const std::vector<std::string> filament_vendors = 
+    {"3Dgenius",               "3DJake",                 "3DXTECH",                "3D BEST-Q",              "3D Hero",
+     "3D-Fuel",                "Aceaddity",              "AddNorth",               "Amazon Basics",          "AMOLEN",
+     "Ankermake",              "Anycubic",               "Atomic",                 "AzureFilm",              "BASF",
+     "Bblife",                 "BCN3D",                  "Beyond Plastic",         "California Filament",    "Capricorn",
+     "CC3D",                   "colorFabb",              "Comgrow",                "Cookiecad",              "Creality",
+     "Das Filament",           "DO3D",                   "DOW",                    "DSM",                    "Duramic",
+     "ELEGOO",                 "Eryone",                 "Essentium",              "eSUN",                   "Extrudr",
+     "Fiberforce",             "Fiberlogy",              "FilaCube",               "Filamentive",            "Fillamentum",
+     "FLASHFORGE",             "Formfortura",            "Francofil",              "GEEETECH",               "Giantarm",
+     "Gizmo Dorks",            "GreenGate3D",            "HATCHBOX",               "Hello3D",                "IC3D",
+     "IEMAI",                  "IIID Max",               "INLAND",                 "iProspect",              "iSANMATE",
+     "Justmaker",              "Keene Village Plastics", "Kexcelled",              "MakerBot",               "MatterHackers",
+     "MIKA3D",                 "NinjaTek",               "Nobufil",                "Novamaker",              "OVERTURE",
+     "OVVNYXE",                "Polymaker",              "Priline",                "Printed Solid",          "Protopasta",
+     "Prusament",              "Push Plastic",           "R3D",                    "Re-pet3D",               "Recreus",
+     "Regen",                  "Sain SMART",             "SliceWorx",              "Snapmaker",              "SnoLabs",
+     "Spectrum",               "SUNLU",                  "TTYT3D",                 "UltiMaker",              "Verbatim",
+     "VO3D",                   "Voxelab",                "YOOPAI",                 "Yousu",                  "Ziro",
+     "Zyltech"};
+     
+static const std::vector<std::string> filament_types = {"PLA",    "PLA+",  "PLA Tough", "PETG",  "ABS",    "ASA",    "FLEX",         "HIPS",   "PA",     "PACF",
+                                                        "NYLON",  "PVA",   "PC",        "PCABS", "PCTG",   "PCCF",   "PHA",          "PP",     "PEI",    "PET",    "PETG",
+                                                        "PETGCF", "PTBA",  "PTBA90A",   "PEEK",  "TPU93A", "TPU75D", "TPU",          "TPU92A", "TPU98A", "Misc",
                                                         "TPE",    "GLAZE", "Nylon",     "CPE",   "METAL",  "ABST",   "Carbon Fiber"};
 
-static const std::vector<std::string> printer_vendors = {"Anycubic",  "Artillery", "BIBO",           "BIQU",     "Creality ENDER", "Creality CR", "Creality SERMOON",
-                                                         "FLSun",     "gCreate",   "Geeetech",       "INAT",     "Infinity3D",     "Jubilee",     "LNL3D",
-                                                         "LulzBot",   "MakerGear", "Original Prusa", "Papapiu",  "Print4Taste",    "RatRig",      "Rigid3D",
-                                                         "Snapmaker", "Sovol",     "TriLAB",         "Trimaker", "Ultimaker",      "Voron",       "Zonestar"};
+static const std::vector<std::string> printer_vendors = 
+    {"Anker",              "Anycubic",           "Artillery",          "Bambulab",           "BIQU",
+     "Comgrow",            "Creality",           "Custom Printer",     "Elegoo",             "Flashforge",
+     "FLSun",              "FlyingBear",         "Folgertech",         "InfiMech",           "Kingroon",
+     "Orca Arena Printer", "Peopoly",            "Prusa",              "Qidi",               "Raise3D",
+     "RatRig",             "SecKit",             "Snapmaker",          "Sovol",              "Tronxy",
+     "TwoTrees",           "UltiMaker",          "Vivedino",           "Voron",              "Voxelab",
+     "Vzbot",              "Wanhao"};
 
 static const std::unordered_map<std::string, std::vector<std::string>> printer_model_map =
-    {{"Anycubic",       {"Kossel Linear Plus", "Kossel Pulley(Linear)", "Mega Zero", "i3 Mega", "Predator"}},
+    {{"Anker",          {"Anker M5", "Anker M5 All-Metal Hot End", "Anker M5C"}},
+     {"Anycubic",       {"Kossel Linear Plus", "Kossel Pulley(Linear)", "Mega Zero", "i3 Mega", "Predator"}},
      {"Artillery",      {"sidewinder X1",   "Genius", "Hornet"}},
      {"BIBO",           {"BIBO2 Touch"}},
      {"BIQU",           {"BX"}},
@@ -93,10 +115,10 @@ static const std::unordered_map<std::string, std::vector<std::string>> printer_m
                         "Zero 120mm3",      "Switchwire"}},
      {"Zonestar",       {"Z5",              "Z6",               "Z5x",              "Z8",               "Z9"}}};
 
-static std::vector<std::string>               nozzle_diameter_vec = {"0.4", "0.2", "0.25", "0.3", "0.35", "0.5", "0.6", "0.75", "0.8", "1.0", "1.2"};
-static std::unordered_map<std::string, float> nozzle_diameter_map = {{"0.2", 0.2}, {"0.25", 0.25}, {"0.3", 0.3}, {"0.35", 0.35},
-                                                                     {"0.4", 0.4}, {"0.5", 0.5},   {"0.6", 0.6}, {"0.75", 0.75},
-                                                                     {"0.8", 0.8}, {"1.0", 1.0},   {"1.2", 1.2}};
+static std::vector<std::string>               nozzle_diameter_vec = {"0.4", "0.15", "0.2", "0.25", "0.3", "0.35", "0.5", "0.6", "0.75", "0.8", "1.0", "1.2"};
+static std::unordered_map<std::string, float> nozzle_diameter_map = {{"0.15", 0.15}, {"0.2", 0.2},   {"0.25", 0.25}, {"0.3", 0.3},
+                                                                     {"0.35", 0.35}, {"0.4", 0.4},   {"0.5", 0.5},   {"0.6", 0.6},
+                                                                     {"0.75", 0.75}, {"0.8", 0.8},   {"1.0", 1.0},   {"1.2", 1.2}};
 
 static std::set<int> cannot_input_key = {9, 10, 13, 33, 35, 36, 37, 38, 40, 41, 42, 44, 46, 47, 59, 60, 62, 63, 64, 92, 94, 95, 124, 126};
 
@@ -673,6 +695,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_vendor_item()
     for (const wxString &vendor : filament_vendors) {
         choices.push_back(vendor);
     }
+    choices.Sort();
 
     wxBoxSizer *vendor_sizer   = new wxBoxSizer(wxHORIZONTAL);
     m_filament_vendor_combobox = new ComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, NAME_OPTION_COMBOBOX_SIZE, 0, nullptr, wxCB_READONLY);
@@ -754,6 +777,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_type_item()
     for (const wxString &filament : m_system_filament_types_set) {
         filament_type.Add(filament);
     }
+    filament_type.Sort();
 
     wxBoxSizer *comboBoxSizer = new wxBoxSizer(wxVERTICAL);
     m_filament_type_combobox  = new ComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, NAME_OPTION_COMBOBOX_SIZE, 0, nullptr, wxCB_READONLY);
@@ -3221,7 +3245,7 @@ CreatePresetSuccessfulDialog::CreatePresetSuccessfulDialog(wxWindow *parent, con
         success_text = new wxStaticText(this, wxID_ANY, _L("Filament Created")); 
         wxString prompt_text = _L("Please go to filament setting to edit your presets if you need.\nPlease note that nozzle temperature, hot bed temperature, and maximum "
                                   "volumetric speed has a significant impact on printing quality. Please set them carefully.");
-        wxString sync_text = sync_user_preset_need_enabled ? _L("\n\nStudio has detected that your user presets synchronization function is not enabled, which may result in unsuccessful Filament settings on "
+        wxString sync_text = sync_user_preset_need_enabled ? _L("\n\nOrca has detected that your user presets synchronization function is not enabled, which may result in unsuccessful Filament settings on "
                    "the Device page. \nClick \"Sync user presets\" to enable the synchronization function.") : "";
         next_step_text = new wxStaticText(this, wxID_ANY, prompt_text + sync_text); 
         break;
@@ -3300,7 +3324,7 @@ void CreatePresetSuccessfulDialog::on_dpi_changed(const wxRect &suggested_rect) 
 }
 
 ExportConfigsDialog::ExportConfigsDialog(wxWindow *parent)
-    : DPIDialog(parent ? parent : nullptr, wxID_ANY, _L("Export Configs"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
+    : DPIDialog(parent ? parent : nullptr, wxID_ANY, _L("Export Preset Bundle"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
 {
     m_exprot_type.preset_bundle   = _L("Printer config bundle(.orca_printer)");
     m_exprot_type.filament_bundle = _L("Filament bundle(.orca_filament)");

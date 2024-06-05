@@ -32,6 +32,7 @@
 #include "BBLTopbar.hpp"
 #include "PrinterWebView.hpp"
 #include "calib_dlg.hpp"
+#include "MultiMachinePage.hpp"
 
 #define ENABEL_PRINT_ALL 0
 
@@ -98,6 +99,7 @@ class MainFrame : public DPIFrame
     wxMenuBar*  m_menubar{ nullptr };
     //wxMenu* publishMenu{ nullptr };
     wxMenu *    m_calib_menu{nullptr};
+    bool        enable_multi_machine{ false };
 
 #if 0
     wxMenuItem* m_menu_item_repeat { nullptr }; // doesn't used now
@@ -199,21 +201,6 @@ protected:
 #endif
 
 public:
-
-    //BBS GUI refactor
-    enum PrintSelectType
-    {
-        ePrintAll = 0,
-        ePrintPlate = 1,
-        eExportSlicedFile = 2,
-        eExportGcode = 3,
-        eSendGcode = 4,
-        eSendToPrinter = 5,
-        eSendToPrinterAll = 6,
-        eUploadGcode = 7,
-        eExportAllSlicedFile = 8
-    };
-
     MainFrame();
     ~MainFrame() = default;
 
@@ -224,10 +211,11 @@ public:
         tp3DEditor      = 1,
         tpPreview       = 2,
         tpMonitor       = 3,
-        tpProject       = 4,
-        tpCalibration   = 5,
-        tpAuxiliary     = 6,
-        toDebugTool     = 7,
+        tpMultiDevice   = 4,
+        tpProject       = 5,
+        tpCalibration   = 6,
+        tpAuxiliary     = 7,
+        toDebugTool     = 8,
     };
 
     //BBS: add slice&&print status update logic
@@ -238,6 +226,20 @@ public:
         eEventParamUpdate = 2,
         eEventSliceUpdate = 3,
         eEventPrintUpdate = 4
+    };
+
+    // BBS GUI refactor
+    enum PrintSelectType {
+        ePrintAll            = 0,
+        ePrintPlate          = 1,
+        eExportSlicedFile    = 2,
+        eExportGcode         = 3,
+        eSendGcode           = 4,
+        eSendToPrinter       = 5,
+        eSendToPrinterAll    = 6,
+        eUploadGcode         = 7,
+        eExportAllSlicedFile = 8,
+        ePrintMultiMachine   = 9
     };
 
     void update_layout();
@@ -257,7 +259,6 @@ public:
     void        set_max_recent_count(int max);
 
     void        show_publish_button(bool show);
-    void        show_calibration_button(bool show);
 
 	void        update_title_colour_after_set_title();
     void        show_option(bool show);
@@ -308,6 +309,7 @@ public:
     void        load_config(const DynamicPrintConfig& config);
     //BBS: jump to monitor
     void        jump_to_monitor(std::string dev_id = "");
+    void        jump_to_multipage();
     //BBS: hint when jump to 3Deditor under preview only mode
     bool        preview_only_hint();
     // Select tab in m_tabpanel
@@ -361,6 +363,7 @@ public:
     MonitorPanel*         m_monitor{ nullptr };
 
     //AuxiliaryPanel*       m_auxiliary{ nullptr };
+    MultiMachinePage*     m_multi_machine{ nullptr };
     ProjectPanel*         m_project{ nullptr };
 
     CalibrationPanel*     m_calibration{ nullptr };
@@ -413,6 +416,7 @@ wxDECLARE_EVENT(EVT_CHECK_PRIVACY_VER, wxCommandEvent);
 wxDECLARE_EVENT(EVT_CHECK_PRIVACY_SHOW, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SHOW_IP_DIALOG, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SET_SELECTED_MACHINE, wxCommandEvent);
+wxDECLARE_EVENT(EVT_UPDATE_MACHINE_LIST, wxCommandEvent);
 wxDECLARE_EVENT(EVT_UPDATE_PRESET_CB, SimpleEvent);
 
 
