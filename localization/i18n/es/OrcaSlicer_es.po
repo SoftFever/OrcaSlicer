@@ -9472,7 +9472,7 @@ msgid "Bed custom model"
 msgstr "Modelo personalizado de cama"
 
 msgid "Elephant foot compensation"
-msgstr "Compensación del pie de elefante"
+msgstr "Compensación del pata de elefante"
 
 msgid ""
 "Shrink the initial layer on build plate to compensate for elephant foot "
