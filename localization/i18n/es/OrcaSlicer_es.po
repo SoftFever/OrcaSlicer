@@ -11748,7 +11748,7 @@ msgstr ""
 "densidad"
 
 msgid "Speed of internal sparse infill"
-msgstr "Velocidad del relleno interno disperso"
+msgstr "Velocidad del relleno interno de baja densidad"
 
 msgid "Interface shells"
 msgstr "Cubiertas de interfaz"
