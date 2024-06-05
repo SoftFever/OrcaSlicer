@@ -562,7 +562,7 @@ target_link_libraries(libslic3r
     cereal::cereal
     libigl
     miniz
-    ${Boost_LIBRARIES}
+    boost_libs
     clipper
     nowide
     ${EXPAT_LIBRARIES}
