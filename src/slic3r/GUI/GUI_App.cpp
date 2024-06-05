@@ -2437,6 +2437,8 @@ bool GUI_App::on_init_inner()
         }
     //}
 
+    preset_bundle->update_spoolman_statistics();
+
 #ifdef WIN32
 #if !wxVERSION_EQUAL_OR_GREATER_THAN(3,1,3)
     register_win32_dpi_event();

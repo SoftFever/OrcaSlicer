@@ -6388,6 +6388,9 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
 
             view3D->deselect_all();
         }
+
+        wxGetApp().preset_bundle->update_spoolman_statistics();
+
 #if 0   // do not toggle auto calc when change printer
         // update flush matrix
         size_t filament_size = wxGetApp().plater()->get_extruder_colors_from_plater_config().size();

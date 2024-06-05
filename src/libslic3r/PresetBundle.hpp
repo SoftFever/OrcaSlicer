@@ -245,6 +245,9 @@ public:
     void                        update_compatible(PresetSelectCompatibleType select_other_print_if_incompatible, PresetSelectCompatibleType select_other_filament_if_incompatible);
     void                        update_compatible(PresetSelectCompatibleType select_other_if_incompatible) { this->update_compatible(select_other_if_incompatible, select_other_if_incompatible); }
 
+    // Update the statistics values for the visible filament profiles with spoolman enabled
+    void                        update_spoolman_statistics();
+
     // Set the is_visible flag for printer vendors, printer models and printer variants
     // based on the user configuration.
     // If the "vendor" section is missing, enable all models and variants of the particular vendor.

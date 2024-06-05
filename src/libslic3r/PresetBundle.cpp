@@ -23,7 +23,7 @@
 #include <boost/locale.hpp>
 #include <boost/log/trivial.hpp>
 #include <miniz/miniz.h>
-
+#include <slic3r/Utils/Spoolman.hpp>
 
 // Store the print/filament/printer presets into a "presets" subdirectory of the Slic3rPE config dir.
 // This breaks compatibility with the upstream Slic3r if the --datadir is used to switch between the two versions.
@@ -4155,6 +4155,16 @@ void PresetBundle::set_default_suppressed(bool default_suppressed)
     sla_prints.set_default_suppressed(default_suppressed);
     sla_materials.set_default_suppressed(default_suppressed);
     printers.set_default_suppressed(default_suppressed);
+}
+
+void PresetBundle::update_spoolman_statistics() {
+    if (printers.get_edited_preset().config.opt_bool("spoolman_enabled") && Spoolman::is_server_valid()) {
+        for (auto& item : filaments.get_visible()) {
+            if (item->is_user() && item->spoolman_enabled()) {
+                Spoolman::update_filament_preset_from_spool(item, true, true);
+            }
+        }
+    }
 }
 
 } // namespace Slic3r

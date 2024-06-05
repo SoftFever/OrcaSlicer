@@ -654,6 +654,14 @@ public:
 
     size_t          num_visible() const { return std::count_if(m_presets.begin(), m_presets.end(), [](const Preset &preset){return preset.is_visible;}); }
 
+    std::vector<Preset *> get_visible() {
+        std::vector<Preset *> ret;
+        for (auto& item : m_presets)
+            if (item.is_visible)
+                ret.emplace_back(&item);
+        return ret;
+    }
+
     // Compare the content of get_selected_preset() with get_edited_preset() configs, return true if they differ.
     bool                        current_is_dirty() const
         { return is_dirty(&this->get_edited_preset(), &this->get_selected_preset()); }
