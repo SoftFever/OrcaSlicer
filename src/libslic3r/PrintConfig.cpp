@@ -2028,7 +2028,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->tooltip = L("The spool ID of this filament profile within your Spoolman instance. This will allow automatic spool switching when "
                      "using moonraker to track spool usage and one touch updating of this filament profile from the Spoolman properties. "
                      "Setting this to a value of 0 disables its functionality.");
-    def->mode = comAdvanced;
+    def->mode = comSimple;
     def->set_default_value(new ConfigOptionInt());
     def->cli = ConfigOptionDef::nocli;
 
