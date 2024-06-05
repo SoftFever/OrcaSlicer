@@ -4,5 +4,6 @@
   "instantiation": "true",
   "name": "Snapmaker PET @Dual",
   "setting_id": "145337790",
-  "inherits": "Snapmaker Dual PET @base"
+  "inherits": "Snapmaker Dual PET @base",
+  "compatible_printers": ""
 }
