@@ -2110,6 +2110,9 @@ DynamicPrintConfig PresetBundle::full_fff_config() const
     std::vector<std::string> print_compatible_printers;
     //BBS: add logic for settings check between different system presets
     std::vector<std::string> different_settings;
+    std::vector<unsigned char> filament_spoolman_enabled;
+    std::vector<double> filament_remaining_weight;
+    std::vector<double> filament_remaining_length;
     std::string different_print_settings, different_printer_settings;
     compatible_printers_condition.emplace_back(this->prints.get_edited_preset().compatible_printers_condition());
 
@@ -2132,6 +2135,9 @@ DynamicPrintConfig PresetBundle::full_fff_config() const
         out.apply(this->filaments.get_edited_preset().config);
         compatible_printers_condition.emplace_back(this->filaments.get_edited_preset().compatible_printers_condition());
         compatible_prints_condition  .emplace_back(this->filaments.get_edited_preset().compatible_prints_condition());
+        filament_spoolman_enabled.emplace_back(this->filaments.get_edited_preset().spoolman_enabled());
+        filament_remaining_weight.emplace_back(this->filaments.get_edited_preset().spoolman_remaining_weight);
+        filament_remaining_length.emplace_back(this->filaments.get_edited_preset().spoolman_remaining_weight);
         //BBS: add logic for settings check between different system presets
         //std::string filament_inherits = this->filaments.get_edited_preset().inherits();
         std::string current_preset_name = this->filament_presets[0];
@@ -2173,6 +2179,9 @@ DynamicPrintConfig PresetBundle::full_fff_config() const
             DynamicPrintConfig &cfg_rw = *const_cast<DynamicPrintConfig*>(cfg);
             compatible_printers_condition.emplace_back(Preset::compatible_printers_condition(cfg_rw));
             compatible_prints_condition  .emplace_back(Preset::compatible_prints_condition(cfg_rw));
+            filament_spoolman_enabled.emplace_back(preset->spoolman_enabled());
+            filament_remaining_weight.emplace_back(preset->spoolman_remaining_weight);
+            filament_remaining_length.emplace_back(preset->spoolman_remaining_weight);
 
             //BBS: add logic for settings check between different system presets
             std::string filament_inherits = Preset::inherits(cfg_rw);
@@ -2272,6 +2281,10 @@ DynamicPrintConfig PresetBundle::full_fff_config() const
     out.option<ConfigOptionStrings>("filament_settings_id", true)->values = this->filament_presets;
     out.option<ConfigOptionString >("printer_settings_id",  true)->value  = this->printers.get_selected_preset_name();
     out.option<ConfigOptionStrings>("filament_ids", true)->values = filament_ids;
+    out.option<ConfigOptionBools>("filament_spoolman_enabled", true)->values = filament_spoolman_enabled;
+    out.option<ConfigOptionFloats>("filament_remaining_weight", true)->values = filament_remaining_weight;
+    out.option<ConfigOptionFloats>("filament_remaining_length", true)->values = filament_remaining_length;
+
     // Serialize the collected "compatible_printers_condition" and "inherits" fields.
     // There will be 1 + num_exturders fields for "inherits" and 2 + num_extruders for "compatible_printers_condition" stored.
     // The vector will not be stored if all fields are empty strings.

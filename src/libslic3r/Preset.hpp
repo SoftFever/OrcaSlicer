@@ -244,6 +244,16 @@ public:
     long long           updated_time{0};    //last updated time
     std::map<std::string, std::string> key_values;
 
+    // indicate if spoolman is enabled for this preset
+    bool spoolman_enabled() const { return config.opt_int("spoolman_spool_id") > 0; }
+
+    // Orca: spoolman statistics. these are not stored in the preset file
+    double spoolman_remaining_length = 0;
+    double spoolman_remaining_weight = 0;
+    double spoolman_used_length      = 0;
+    double spoolman_used_weight      = 0;
+    bool   spoolman_archived         = false;
+
     static std::string  get_type_string(Preset::Type type);
     // get string type for iot
     static std::string  get_iot_type_string(Preset::Type type);

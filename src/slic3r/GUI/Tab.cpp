@@ -3191,6 +3191,19 @@ void TabFilament::update_filament_overrides_page()
     }
 }
 
+void TabFilament::update_spoolman_statistics() {
+    Preset* selected_preset = &m_presets->get_selected_preset();
+
+    if (!selected_preset->spoolman_enabled())
+        return;
+
+    m_active_page->get_field("spoolman_remaining_weight")->set_value(double_to_string(selected_preset->spoolman_remaining_weight, 2), false);
+    m_active_page->get_field("spoolman_used_weight")->set_value(double_to_string(selected_preset->spoolman_used_weight, 2), false);
+    m_active_page->get_field("spoolman_remaining_length")->set_value(double_to_string(selected_preset->spoolman_remaining_length * 0.001, 2), false);
+    m_active_page->get_field("spoolman_used_length")->set_value(double_to_string(selected_preset->spoolman_used_length * 0.001, 2), false);
+    m_active_page->get_field("spoolman_archived")->set_value(selected_preset->spoolman_archived, false);
+}
+
 void TabFilament::build()
 {
     m_presets = &m_preset_bundle->filaments;
@@ -3404,7 +3417,7 @@ void TabFilament::build()
                     return;
                 }
                 if (!Spoolman::is_server_valid()) {
-                    show_error(parent, "Failed to get data from the Spoolman server. Make sure that the port is correct and the server is running.");
+                    show_error(this, "Failed to get data from the Spoolman server. Make sure that the port is correct and the server is running.");
                     return;
                 }
                 auto res1 = Spoolman::update_filament_preset_from_spool(&m_presets->get_edited_preset(), true, stats_only);
@@ -3413,9 +3426,7 @@ void TabFilament::build()
                 if (res1.has_failed() || res2.has_failed())
                     return;
 
-                const Preset* preset = m_presets->get_selected_preset_parent();
-                m_presets->get_selected_preset().save(preset ? &preset->config : nullptr);
-                update_dirty();
+                update_spoolman_statistics();
             };
 
             auto refresh_all_btn = new wxButton(parent, wxID_ANY, _L("Update Filament"));
@@ -3431,12 +3442,28 @@ void TabFilament::build()
         };
         optgroup->append_line(line);
 
-        optgroup = page->new_optgroup("Spool Statistics");
-        optgroup->append_single_option_line("spoolman_remaining_weight");
-        optgroup->append_single_option_line("spoolman_used_weight");
-        optgroup->append_single_option_line("spoolman_remaining_length");
-        optgroup->append_single_option_line("spoolman_used_length");
-        optgroup->append_single_option_line("spoolman_archived");
+        optgroup = page->new_optgroup(_L("Spool Statistics"));
+
+        auto build_statistics_line = [&](const std::string& key, const std::string& label,
+                                         const std::string& sidetext, const ConfigOptionType& type = coFloat) {
+            auto def = ConfigOptionDef();
+            def.opt_key = key;
+            def.label = label;
+            def.type = type;
+            def.sidetext = sidetext;
+            def.readonly = true;
+            if (type == coFloat)
+                def.set_default_value(new ConfigOptionFloat());
+            else if (type == coBool)
+                def.set_default_value(new ConfigOptionBool());
+            return optgroup->append_single_option_line(Option(def, key));
+        };
+
+        build_statistics_line("spoolman_remaining_weight", "Remaining Weight", "g");
+        build_statistics_line("spoolman_used_weight", "Used Weight", "g");
+        build_statistics_line("spoolman_remaining_length", "Remaining Length", "m");
+        build_statistics_line("spoolman_used_length", "Used Length", "m");
+        build_statistics_line("spoolman_archived", "Archived", "", coBool);
 
     page->m_should_show_fn = [&](bool current_value) {
         return m_preset_bundle->printers.get_edited_preset().config.opt_bool("spoolman_enabled");
@@ -3589,6 +3616,7 @@ void TabFilament::toggle_options()
 
     if (m_active_page->title() == L("Spoolman")) {
         toggle_line("spoolman_update", m_config->opt_int("spoolman_spool_id") > 0);
+        update_spoolman_statistics();
     }
 }
 

@@ -161,6 +161,7 @@ public:
     void update_from_server(bool recursive = false);
 
     void apply_to_config(DynamicConfig& config) const;
+    void apply_to_preset(Preset* preset, bool only_update_statistics = false) const;
 
 private:
     Spoolman* m_spoolman;

@@ -574,6 +574,7 @@ private:
     void            add_filament_overrides_page();
     void            update_filament_overrides_page();
 	void 			update_volumetric_flow_preset_hints();
+    void            update_spoolman_statistics();
 
     std::map<std::string, wxCheckBox*> m_overrides_options;
 

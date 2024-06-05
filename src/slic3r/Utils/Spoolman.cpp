@@ -16,9 +16,6 @@ template<class Type> Type get_opt(pt::ptree& data, string path) { return data.ge
 // Spoolman
 //---------------------------------
 
-static vector<string> statistics_keys = {"spoolman_remaining_weight", "spoolman_used_weight", "spoolman_remaining_length",
-                                         "spoolman_used_length", "spoolman_archived"};
-
 pt::ptree Spoolman::get_spoolman_json(const string& api_endpoint)
 {
     DynamicPrintConfig& config        = GUI::wxGetApp().preset_bundle->printers.get_edited_preset().config;
@@ -167,7 +164,7 @@ SpoolmanResult Spoolman::create_filament_preset_from_spool(const SpoolmanSpoolSh
     preset->config.apply(base_profile->config);
     preset->config.set_key_value("filament_settings_id", new ConfigOptionStrings({filament_preset_name}));
     preset->config.set("inherits", inherits, true);
-    spool->apply_to_config(preset->config);
+    spool->apply_to_preset(preset);
     preset->filament_id = get_filament_id(filament_preset_name);
     preset->version     = base_profile->version;
     preset->loaded      = true;
@@ -178,7 +175,6 @@ SpoolmanResult Spoolman::create_filament_preset_from_spool(const SpoolmanSpoolSh
 
 SpoolmanResult Spoolman::update_filament_preset_from_spool(Preset* filament_preset, bool update_from_server, bool only_update_statistics)
 {
-
     DynamicConfig  config;
     SpoolmanResult result;
     const int&     spool_id = filament_preset->config.opt_int("spoolman_spool_id");
@@ -190,8 +186,7 @@ SpoolmanResult Spoolman::update_filament_preset_from_spool(Preset* filament_pres
     SpoolmanSpoolShrPtr& spool = get_instance()->m_spools[spool_id];
     if (update_from_server)
         spool->update_from_server(!only_update_statistics);
-    spool->apply_to_config(config);
-    filament_preset->config.apply_only(config, only_update_statistics ? statistics_keys : config.keys());
+    spool->apply_to_preset(filament_preset, only_update_statistics);
     return result;
 }
 
@@ -284,12 +279,19 @@ void SpoolmanSpool::update_from_server(bool recursive)
 void SpoolmanSpool::apply_to_config(Slic3r::DynamicConfig& config) const
 {
     config.set_key_value("spoolman_spool_id", new ConfigOptionInt(id));
-    config.set_key_value("spoolman_remaining_weight", new ConfigOptionFloat(remaining_weight));
-    config.set_key_value("spoolman_used_weight", new ConfigOptionFloat(used_weight));
-    config.set_key_value("spoolman_remaining_length", new ConfigOptionFloat(remaining_length));
-    config.set_key_value("spoolman_used_length", new ConfigOptionFloat(used_length));
-    config.set_key_value("spoolman_archived", new ConfigOptionBool(archived));
     m_filament_ptr->apply_to_config(config);
+}
+
+void SpoolmanSpool::apply_to_preset(Preset* preset, bool only_update_statistics) const
+{
+    preset->spoolman_remaining_weight = remaining_weight;
+    preset->spoolman_used_weight = used_weight;
+    preset->spoolman_remaining_length = remaining_length;
+    preset->spoolman_used_length = used_length;
+    preset->spoolman_archived = archived;
+    if (only_update_statistics)
+        return;
+    this->apply_to_config(preset->config);
 }
 
 void SpoolmanSpool::update_from_json(pt::ptree json_data)
