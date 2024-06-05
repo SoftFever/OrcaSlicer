@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OrcaSlicer 2.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-29 00:28+0800\n"
+"POT-Creation-Date: 2024-06-05 22:05+0200\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Krzysztof Morga <tlumaczeniebs@gmail.com>\n"
 "Language-Team: \n"
@@ -1295,7 +1295,7 @@ msgid "Center of circle"
 msgstr "Środek okręgu"
 
 msgid "ShiftLeft mouse button"
-msgstr "Przycisk myszy ShiftLeft"
+msgstr "Shift + Lewy przycisk myszy"
 
 msgid "Select feature"
 msgstr "Wybierz funkcję"
@@ -1304,7 +1304,7 @@ msgid "Select point"
 msgstr "Wybierz punkt"
 
 msgid "Delete"
-msgstr "Usunąć"
+msgstr "Usuń"
 
 msgid "Restart selection"
 msgstr "Restartuj wybór"
@@ -1698,7 +1698,7 @@ msgid "Show"
 msgstr "Pokaż"
 
 msgid "Del"
-msgstr "Usuń"
+msgstr "Del"
 
 msgid "Delete the selected object"
 msgstr "Usuń wybrany obiekt"
@@ -3475,15 +3475,15 @@ msgstr "Kalibracja Dynamiki Przepływu"
 msgid "Send Options"
 msgstr "Opcje wysyłania"
 
-msgid "Send"
-msgstr "Wyślij"
+msgid "Send to"
+msgstr "Wyślij do"
 
 msgid ""
 "printers at the same time.(It depends on how many devices can undergo "
 "heating at the same time.)"
 msgstr ""
-"zadania druku jednocześnie. (Zależy to od liczby urządzeń, które można "
-"podgrzewać jednocześnie.)"
+"drukarek jednocześnie. (Zależy to od liczby urządzeń, które można podgrzewać "
+"jednocześnie.)"
 
 msgid "Wait"
 msgstr "Czekaj"
@@ -3492,6 +3492,9 @@ msgid ""
 "minute each batch.(It depends on how long it takes to complete the heating.)"
 msgstr ""
 "minut na każdą partię. (Zależy od tego, jak długo trwa proces nagrzewania.)"
+
+msgid "Send"
+msgstr "Wyślij"
 
 msgid "Name is invalid;"
 msgstr "Nazwa jest nieprawidłowa;"
@@ -3533,10 +3536,10 @@ msgstr ""
 "się na środku."
 
 msgid "Rectangular"
-msgstr "Prostokątna"
+msgstr "Prostokątny"
 
 msgid "Circular"
-msgstr "Okrągła"
+msgstr "Okrągły"
 
 msgid "Load shape from STL..."
 msgstr "Załaduj kształt z pliku STL..."
@@ -4067,6 +4070,20 @@ msgstr ""
 "Czy to %s%% czy %s %s?\n"
 "TAK dla %s%%,\n"
 "NIE dla %s %s."
+
+#, boost-format
+msgid ""
+"Invalid input format. Expected vector of dimensions in the following format: "
+"\"%1%\""
+msgstr ""
+"Nieprawidłowy format wejściowy. Oczekiwany jest wektor wymiarów w "
+"następującym formacie: \"%1%\""
+
+msgid "Input value is out of range"
+msgstr "Wartość wejściowa jest poza zakresem"
+
+msgid "Some extension in the input is invalid"
+msgstr "Rozszerzenie w danych wejściowych jest nieprawidłowe"
 
 #, boost-format
 msgid "Invalid format. Expected vector format: \"%1%\""
@@ -5173,7 +5190,7 @@ msgid "Load failed"
 msgstr "Błąd ładowania"
 
 msgid "Initialize failed (Device connection not ready)!"
-msgstr "Inicjalizacja nie powiodła się (Brak gotowości połączenia urządzenia)!"
+msgstr "Inicjalizacja nie powiodła się (Brak połączenia z urządzeniem)!"
 
 msgid ""
 "Browsing file in SD card is not supported in current firmware. Please update "
@@ -7954,6 +7971,14 @@ msgstr "Parametry zmiany narzędzia w drukarkach wieloekstruzyjnych MM"
 msgid "Printable space"
 msgstr "Przestrzeń do druku"
 
+#. TRN: First argument is parameter name, the second one is the value.
+#, boost-format
+msgid "Invalid value provided for parameter %1%: %2%"
+msgstr "Podano nieprawidłową wartość dla parametru%1%: %2%"
+
+msgid "G-code flavor is switched"
+msgstr "Wariant G-code został zmieniony"
+
 msgid "Cooling Fan"
 msgstr "Wentylator chłodzący"
 
@@ -7964,7 +7989,7 @@ msgid "Extruder Clearance"
 msgstr "Odstęp od extrudera"
 
 msgid "Adaptive bed mesh"
-msgstr "Adaptacjna siatka stołu"
+msgstr "Adaptacyjna siatka stołu"
 
 msgid "Accessory"
 msgstr "Akcesoria"
@@ -8422,6 +8447,44 @@ msgstr "Od"
 msgid "To"
 msgstr "Do"
 
+msgid ""
+"Windows Media Player is required for this task! Do you want to enable "
+"'Windows Media Player' for your operation system?"
+msgstr ""
+"Do wykonania tego zadania wymagany jest Windows Media Player! Czy chcesz "
+"włączyć 'Windows Media Player' dla swojego systemu operacyjnego?"
+
+msgid ""
+"BambuSource has not correctly been registered for media playing! Press Yes "
+"to re-register it. You will be promoted twice"
+msgstr ""
+"BambuSource nie został poprawnie zarejestrowany do odtwarzania mediów! "
+"Naciśnij Tak, aby ponownie go zarejestrować. Będziesz poproszony dwa razy."
+
+msgid ""
+"Missing BambuSource component registered for media playing! Please re-"
+"install BambuStutio or seek after-sales help."
+msgstr ""
+"Brakujący komponent BambuSource zarejestrowany do odtwarzania mediów! Proszę "
+"ponownie zainstalować BambuStudio lub skonsultować się z pomocą "
+"posprzedażową."
+
+msgid ""
+"Using a BambuSource from a different install, video play may not work "
+"correctly! Press Yes to fix it."
+msgstr ""
+"Jeśli używasz BambuSource z innej instalacji programu, odtwarzanie wideo "
+"może nie działać poprawnie! Naciśnij Tak, aby to naprawić."
+
+msgid ""
+"Your system is missing H.264 codecs for GStreamer, which are required to "
+"play video.  (Try installing the gstreamer1.0-plugins-bad or gstreamer1.0-"
+"libav packages, then restart Orca Slicer?)"
+msgstr ""
+"Twój system nie posiada kodeków H.264 dla GStreamer, które są wymagane do "
+"odtwarzania wideo. (Spróbuj zainstalować pakiety gstreamer1.0-plugins-bad "
+"lub gstreamer1.0-libav, a następnie zrestartuj Orca Slicer?)"
+
 msgid "Bambu Network plug-in not detected."
 msgstr "Nie wykryto wtyczki Bambu Network."
 
@@ -8747,10 +8810,10 @@ msgid "Check Assistant"
 msgstr "Sprawdź Asystenta"
 
 msgid "Filament Extruded, Continue"
-msgstr "Ekstruzja filamentu, Kontynuuj"
+msgstr "Gotowe, kontynuuj"
 
 msgid "Not Extruded Yet, Retry"
-msgstr "Jeszcze nie wydrukowano, Spróbuj ponownie"
+msgstr "Jeszcze nie wytłoczono, Spróbuj ponownie"
 
 msgid "Finished, Continue"
 msgstr "Zakończono, Kontynuuj"
@@ -11317,6 +11380,9 @@ msgstr ""
 "\"full_fan_speed_layer\". Jeśli \"full_fan_speed_layer\" jest niższa niż "
 "\"close_fan_the_first_x_layers\", to wentylator będzie pracować z maksymalną "
 "dozwoloną prędkością na warstwie \"close_fan_the_first_x_layers\" + 1."
+
+msgid "layer"
+msgstr "warstwa"
 
 msgid "Support interface fan speed"
 msgstr "Prędkość wentylatora dla warstwy łączącej podpory"
@@ -14653,7 +14719,7 @@ msgstr ""
 "\n"
 "Zazwyczaj kalibracja nie jest konieczna. Gdy rozpoczynasz druk w jednym "
 "kolorze/materiale i zaznaczasz opcję \"kalibracja dynamiki przepływu\" w "
-"menu rozpoczęcia druku. Drukarka będzie postępować w tradycyjny sposób, "
+"menu rozpoczęcia druku - drukarka będzie postępować w tradycyjny sposób, "
 "kalibrując filament przed rozpoczęciem druku. W przypadku druku w wielu "
 "kolorach/materiałach drukarka będzie używać domyślnego parametru kompensacji "
 "dla filamentu podczas każdej jego zmiany, co w większości przypadków daje "
@@ -15452,12 +15518,6 @@ msgstr "Prostokąt"
 
 msgid "Printable Space"
 msgstr "Przestrzeń do druku"
-
-msgid "X"
-msgstr "X"
-
-msgid "Y"
-msgstr "Y"
 
 msgid "Hot Bed STL"
 msgstr "Model Stołu "
@@ -16366,10 +16426,10 @@ msgid ""
 "precision and layer consistency if your model doesn't have very steep "
 "overhangs?"
 msgstr ""
-"Tryb kanapki\n"
-"Czy wiesz, że możesz użyć trybu kanapki (wewnętrzna-zewnętrzna-wewnętrzna) "
+"Tryb Sandwich\n"
+"Czy wiesz, że możesz użyć trybu sandwich (wewnętrzna-zewnętrzna-wewnętrzna) "
 "do poprawy precyzji i spójności warstw, jeśli twój model nie ma bardzo "
-"stromych występów?"
+"stromych nawisów?"
 
 #: resources/data/hints.ini: [hint:Chamber temperature]
 msgid ""
@@ -16735,6 +16795,12 @@ msgstr ""
 "Czy wiesz, że podczas drukowania filamentami podatnymi na odkształcenia, "
 "takimi jak ABS, odpowiednie zwiększenie temperatury podgrzewanej płyty może "
 "zmniejszyć prawdopodobieństwo odkształceń."
+
+#~ msgid "X"
+#~ msgstr "X"
+
+#~ msgid "Y"
+#~ msgstr "Y"
 
 #~ msgid ""
 #~ "Associate OrcaSlicer with prusaslicer:// links so that Orca can open "
@@ -17605,37 +17671,6 @@ msgstr ""
 
 #~ msgid "An error occurred loading "
 #~ msgstr "Wystąpił błąd podczas ładowania"
-
-#~ msgid ""
-#~ "Windows Media Player is required for this task! Do you want to enable "
-#~ "'Windows Media Player' for your operation system?"
-#~ msgstr ""
-#~ "Do wykonania tego zadania wymagany jest Windows Media Player! Czy chcesz "
-#~ "włączyć 'Windows Media Player' dla swojego systemu operacyjnego?"
-
-#~ msgid ""
-#~ "BambuSource has not correctly been registered for media playing! Press "
-#~ "Yes to re-register it. You will be promoted twice"
-#~ msgstr ""
-#~ "BambuSource nie został poprawnie zarejestrowany do odtwarzania mediów! "
-#~ "Naciśnij Tak, aby ponownie go zarejestrować. Będziesz poproszony dwa razy."
-
-#~ msgid ""
-#~ "Missing BambuSource component registered for media playing! Please re-"
-#~ "install BambuStutio or seek after-sales help."
-#~ msgstr ""
-#~ "Brakujący komponent BambuSource zarejestrowany do odtwarzania mediów! "
-#~ "Proszę ponownie zainstalować BambuStudio lub skonsultować się z pomocą "
-#~ "posprzedażową."
-
-#~ msgid ""
-#~ "Your system is missing H.264 codecs for GStreamer, which are required to "
-#~ "play video.  (Try installing the gstreamer1.0-plugins-bad or gstreamer1.0-"
-#~ "libav packages, then restart Orca Slicer?)"
-#~ msgstr ""
-#~ "Twój system nie posiada kodeków H.264 dla GStreamer, które są wymagane do "
-#~ "odtwarzania wideo. (Spróbuj zainstalować pakiety gstreamer1.0-plugins-bad "
-#~ "lub gstreamer1.0-libav, a następnie zrestartuj Orca Slicer?)"
 
 #~ msgid "The maximum temperature cannot exceed"
 #~ msgstr "Maksymalna temperatura nie może przekroczyć"
