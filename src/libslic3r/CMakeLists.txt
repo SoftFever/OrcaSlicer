@@ -562,7 +562,7 @@ target_link_libraries(libslic3r
     cereal::cereal
     libigl
     miniz
-    boost_libs
+    ${Boost_LIBRARIES}
     clipper
     nowide
     ${EXPAT_LIBRARIES}
@@ -582,6 +582,10 @@ target_link_libraries(libslic3r
     qoi
     opencv_world
     )
+
+if(NOT SLIC3R_STATIC)
+    target_compile_definitions(libslic3r PUBLIC BOOST_ALL_DYN_LINK)
+endif()
 
 if(NOT WIN32)
     target_link_libraries(libslic3r freetype)

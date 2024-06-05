@@ -7,6 +7,7 @@
 
 #include "../Point.hpp"
 #include "../PrintConfig.hpp"
+#include "../enum_bitmask.hpp"
 #include "ThumbnailData.hpp"
 
 #include <vector>
