@@ -23,6 +23,10 @@
         {
             "name": "XL",
             "sub_path": "machine/Prusa XL.json"
+        },
+        {
+            "name": "XLIS",
+            "sub_path": "machine/Prusa XLIS.json"
         }
     ],
     "process_list": [
@@ -385,6 +389,134 @@
         {
             "name": "0.30mm Detail @XL 0.8",
             "sub_path": "process/0.30mm Detail @XL 0.8.json"
+        },
+        {
+            "name": "0.15mm Structural @XLIS 0.25",
+            "sub_path": "process/0.15mm Structural @XLIS 0.25.json"
+        },
+        {
+            "name": "0.15mm Speed @XLIS 0.25",
+            "sub_path": "process/0.15mm Speed @XLIS 0.25.json"
+        },
+        {
+            "name": "0.12mm Structural @XLIS 0.25",
+            "sub_path": "process/0.12mm Structural @XLIS 0.25.json"
+        },
+        {
+            "name": "0.12mm Speed @XLIS 0.25",
+            "sub_path": "process/0.12mm Speed @XLIS 0.25.json"
+        },
+        {
+            "name": "0.07mm Detail @XLIS 0.25",
+            "sub_path": "process/0.07mm Detail @XLIS 0.25.json"
+        },
+        {
+            "name": "0.05mm Detail @XLIS 0.25",
+            "sub_path": "process/0.05mm Detail @XLIS 0.25.json"
+        },
+        {
+            "name": "0.20mm Speed @XLIS 0.3",
+            "sub_path": "process/0.20mm Speed @XLIS 0.3.json"
+        },
+        {
+            "name": "0.16mm Structural @XLIS 0.3",
+            "sub_path": "process/0.16mm Structural @XLIS 0.3.json"
+        },
+        {
+            "name": "0.16mm Speed @XLIS 0.3",
+            "sub_path": "process/0.16mm Speed @XLIS 0.3.json"
+        },
+        {
+            "name": "0.12mm Structural @XLIS 0.3",
+            "sub_path": "process/0.12mm Structural @XLIS 0.3.json"
+        },
+        {
+            "name": "0.25mm Structural @XLIS 0.4",
+            "sub_path": "process/0.25mm Structural @XLIS 0.4.json"
+        },
+        {
+            "name": "0.20mm Structural @XLIS 0.4",
+            "sub_path": "process/0.20mm Structural @XLIS 0.4.json"
+        },
+        {
+            "name": "0.20mm Speed @XLIS 0.4",
+            "sub_path": "process/0.20mm Speed @XLIS 0.4.json"
+        },
+        {
+            "name": "0.15mm Structural @XLIS 0.4",
+            "sub_path": "process/0.15mm Structural @XLIS 0.4.json"
+        },
+        {
+            "name": "0.15mm Speed @XLIS 0.4",
+            "sub_path": "process/0.15mm Speed @XLIS 0.4.json"
+        },
+        {
+            "name": "0.10mm FastDetail @XLIS 0.4",
+            "sub_path": "process/0.10mm FastDetail @XLIS 0.4.json"
+        },
+        {
+            "name": "0.25mm Structural @XLIS 0.5",
+            "sub_path": "process/0.25mm Structural @XLIS 0.5.json"
+        },
+        {
+            "name": "0.25mm Speed @XLIS 0.5",
+            "sub_path": "process/0.25mm Speed @XLIS 0.5.json"
+        },
+        {
+            "name": "0.20mm Structural @XLIS 0.5",
+            "sub_path": "process/0.20mm Structural @XLIS 0.5.json"
+        },
+        {
+            "name": "0.20mm Speed @XLIS 0.5",
+            "sub_path": "process/0.20mm Speed @XLIS 0.5.json"
+        },
+        {
+            "name": "0.15mm Structural @XLIS 0.5",
+            "sub_path": "process/0.15mm Structural @XLIS 0.5.json"
+        },
+        {
+            "name": "0.10mm Structural @XLIS 0.5",
+            "sub_path": "process/0.10mm Structural @XLIS 0.5.json"
+        },
+        {
+            "name": "0.32mm Structural @XLIS 0.6",
+            "sub_path": "process/0.32mm Structural @XLIS 0.6.json"
+        },
+        {
+            "name": "0.32mm Speed @XLIS 0.6",
+            "sub_path": "process/0.32mm Speed @XLIS 0.6.json"
+        },
+        {
+            "name": "0.25mm Structural @XLIS 0.6",
+            "sub_path": "process/0.25mm Structural @XLIS 0.6.json"
+        },
+        {
+            "name": "0.25mm Speed @XLIS 0.6",
+            "sub_path": "process/0.25mm Speed @XLIS 0.6.json"
+        },
+        {
+            "name": "0.20mm Structural @XLIS 0.6",
+            "sub_path": "process/0.20mm Structural @XLIS 0.6.json"
+        },
+        {
+            "name": "0.20mm Speed @XLIS 0.6",
+            "sub_path": "process/0.20mm Speed @XLIS 0.6.json"
+        },
+        {
+            "name": "0.15mm Structural @XLIS 0.6",
+            "sub_path": "process/0.15mm Structural @XLIS 0.6.json"
+        },
+        {
+            "name": "0.55mm Draft @XLIS 0.8",
+            "sub_path": "process/0.55mm Draft @XLIS 0.8.json"
+        },
+        {
+            "name": "0.40mm Quality @XLIS 0.8",
+            "sub_path": "process/0.40mm Quality @XLIS 0.8.json"
+        },
+        {
+            "name": "0.30mm Detail @XLIS 0.8",
+            "sub_path": "process/0.30mm Detail @XLIS 0.8.json"
         }
     ],
     "filament_list": [
@@ -781,6 +913,30 @@
         {
             "name": "Prusa XL 0.8 nozzle",
             "sub_path": "machine/Prusa XL 0.8 nozzle.json"
+        },
+        {
+            "name": "Prusa XLIS 0.25 nozzle",
+            "sub_path": "machine/Prusa XLIS 0.25 nozzle.json"
+        },
+        {
+            "name": "Prusa XLIS 0.3 nozzle",
+            "sub_path": "machine/Prusa XLIS 0.3 nozzle.json"
+        },
+        {
+            "name": "Prusa XLIS 0.4 nozzle",
+            "sub_path": "machine/Prusa XLIS 0.4 nozzle.json"
+        },
+        {
+            "name": "Prusa XLIS 0.5 nozzle",
+            "sub_path": "machine/Prusa XLIS 0.5 nozzle.json"
+        },
+        {
+            "name": "Prusa XLIS 0.6 nozzle",
+            "sub_path": "machine/Prusa XLIS 0.6 nozzle.json"
+        },
+        {
+            "name": "Prusa XLIS 0.8 nozzle",
+            "sub_path": "machine/Prusa XLIS 0.8 nozzle.json"
         }
     ]
 }
