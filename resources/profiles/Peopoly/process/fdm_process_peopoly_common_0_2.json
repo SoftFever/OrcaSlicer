@@ -14,6 +14,8 @@
     "support_line_width": "0.22",
     "top_surface_line_width": "0.22",
     "compatible_printers": [
-        "Peopoly Magneto X 0.4 nozzle"
+        "Peopoly Magneto X 0.4 nozzle",
+        "Peopoly Magneto X 0.6 nozzle",
+        "Peopoly Magneto X 0.8 nozzle"
     ]
 }
