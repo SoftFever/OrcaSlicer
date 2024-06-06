@@ -93,7 +93,7 @@ SpoolmanViewCtrl::SpoolmanViewCtrl(wxWindow* parent) : wxDataViewCtrl(parent, wx
     wxGetApp().UpdateDVCDarkUI(this);
 #if _WIN32
     ShowScrollbars(wxSHOW_SB_NEVER, wxSHOW_SB_DEFAULT);
-#elif
+#else
     SetScrollbar(wxHORIZONTAL, 0, 0, 0)
 #endif
 
