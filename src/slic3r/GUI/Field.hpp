@@ -23,6 +23,7 @@
 #include "GUI.hpp"
 #include "wxExtensions.hpp"
 #include "Widgets/SpinInput.hpp"
+#include "Widgets/TextInput.hpp"
 
 #ifdef __WXMSW__
 #define wxMSW true
@@ -502,6 +503,8 @@ public:
 	wxSizer*		sizer{ nullptr };
 	wxTextCtrl*		x_textctrl{ nullptr };
 	wxTextCtrl*		y_textctrl{ nullptr };
+	TextInput*      	x_input{nullptr};
+	TextInput*      	y_input{nullptr};
 
 	void			BUILD()  override;
 	bool			value_was_changed(wxTextCtrl* win);

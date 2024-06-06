@@ -746,7 +746,7 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
 }
 
 wxBoxSizer* PreferencesDialog::create_item_button(
-    wxString title, wxString title2, wxWindow* parent, wxString tooltip, wxString tooltip2, std::function<void()> onclick)
+    wxString title, wxString title2, wxWindow* parent, wxString tooltip, wxString tooltip2, std::function<void()> onclick, bool button_on_left/* = false*/)
 {
     wxBoxSizer *m_sizer_checkbox = new wxBoxSizer(wxHORIZONTAL);
 
@@ -776,8 +776,13 @@ wxBoxSizer* PreferencesDialog::create_item_button(
 
     m_button_download->Bind(wxEVT_BUTTON, [this, onclick](auto &e) { onclick(); });
 
-    m_sizer_checkbox->Add(m_staticTextPath, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
-    m_sizer_checkbox->Add(m_button_download, 0, wxALL, FromDIP(5));
+    if (button_on_left) {
+        m_sizer_checkbox->Add(m_button_download, 0, wxALL, FromDIP(5));
+        m_sizer_checkbox->Add(m_staticTextPath, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
+    } else {
+        m_sizer_checkbox->Add(m_staticTextPath, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
+        m_sizer_checkbox->Add(m_button_download, 0, wxALL, FromDIP(5));
+    }
 
     return m_sizer_checkbox;
 }
@@ -1070,13 +1075,24 @@ wxWindow* PreferencesDialog::create_general_page()
 #endif // _WIN32
 #if !defined(__APPLE__)
 
-                                                         
+    auto title_associate_url = create_item_title(_L("Associate web links to OrcaSlicer"), page, _L("Associate URLs to OrcaSlicer"));
     std::wstring reg_bin;
     wxGetApp().check_url_association(L"prusaslicer", reg_bin);
     auto associate_url_prusaslicer = create_item_button(_L("Current association: ") + reg_bin, _L("Associate prusaslicer://"), page,
                                                        reg_bin.empty() ? _L("Not associated to any application") : reg_bin,
-                                                       _L("Associate OrcaSlicer with prusaslicer:// links so that Orca can open PrusaSlicer links from Printable.com"),
-                                                       []() { wxGetApp().associate_url(L"prusaslicer"); });
+                                                       _L("Associate OrcaSlicer with prusaslicer:// links so that Orca can open models from Printable.com"),
+                                                       []() { wxGetApp().associate_url(L"prusaslicer"); }, false);
+    wxGetApp().check_url_association(L"bambustudio", reg_bin);
+    auto associate_url_bambustudio = create_item_button(_L("Current association: ") + reg_bin, _L("Associate bambustudio://"), page,
+                                                       reg_bin.empty() ? _L("Not associated to any application") : reg_bin,
+                                                       _L("Associate OrcaSlicer with bambustudio:// links so that Orca can open models from makerworld.com"),
+                                                       []() { wxGetApp().associate_url(L"bambustudio"); }, false);
+
+    wxGetApp().check_url_association(L"cura", reg_bin);
+    auto associate_url_cura = create_item_button(_L("Current association: ") + reg_bin, _L("Associate cura://"), page,
+                                                       reg_bin.empty() ? _L("Not associated to any application") : reg_bin,
+                                                       _L("Associate OrcaSlicer with cura:// links so that Orca can open models from thingiverse.com"),
+                                                       []() { wxGetApp().associate_url(L"cura"); }, false);
 #endif
 
     // auto title_modelmall = create_item_title(_L("Online Models"), page, _L("Online Models"));
@@ -1142,7 +1158,10 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(item_associate_step, 0, wxTOP, FromDIP(3));
 #endif // _WIN32
 #if !defined(__APPLE__)
-    sizer_page->Add(associate_url_prusaslicer, 0, wxTOP | wxEXPAND, FromDIP(20));
+    sizer_page->Add(title_associate_url, 0, wxTOP| wxEXPAND, FromDIP(20));
+    sizer_page->Add(associate_url_prusaslicer, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(associate_url_bambustudio, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(associate_url_cura, 0, wxTOP, FromDIP(3));
 #endif
     // auto item_title_modelmall = sizer_page->Add(title_modelmall, 0, wxTOP | wxEXPAND, FromDIP(20));
     // auto item_item_modelmall = sizer_page->Add(item_modelmall, 0, wxTOP, FromDIP(3));

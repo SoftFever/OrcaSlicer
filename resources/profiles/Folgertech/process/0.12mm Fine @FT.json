@@ -23,7 +23,7 @@
     "overhang_2_4_speed": "30",
     "overhang_3_4_speed": "10",
     "overhang_4_4_speed": "10",
-    "support_threshold_angle": "20",
+    "support_threshold_angle": "30",
     "compatible_printers": [
       "Folgertech i3 0.4 nozzle",
       "Folgertech FT-5 0.4 nozzle",

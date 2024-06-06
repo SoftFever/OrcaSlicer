@@ -60,7 +60,7 @@
     "raft_layers": "0",
     "resolution": "0.012",
     "sparse_infill_density": "15%",
-    "sparse_infill_pattern": "grid",
+    "sparse_infill_pattern": "crosshatch",
     "sparse_infill_line_width": "0.45",
     "sparse_infill_speed": "270",
     "seam_position": "aligned",

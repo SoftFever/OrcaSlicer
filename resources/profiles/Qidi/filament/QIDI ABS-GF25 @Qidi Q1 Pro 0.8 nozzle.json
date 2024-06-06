@@ -5,9 +5,6 @@
     "activate_chamber_temp_control": [
         "1"
     ],
-    "chamber_temperature": [
-        "0"
-    ],
     "fan_max_speed": [
         "20"
     ],

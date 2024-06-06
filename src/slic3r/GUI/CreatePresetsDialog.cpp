@@ -24,7 +24,7 @@
 #define FILAMENT_LIST_SIZE wxSize(FromDIP(560), FromDIP(100))
 #define FILAMENT_OPTION_SIZE wxSize(FromDIP(-1), FromDIP(30))
 #define PRESET_TEMPLATE_SIZE wxSize(FromDIP(-1), FromDIP(100))
-#define PRINTER_SPACE_SIZE wxSize(FromDIP(80), FromDIP(24))
+#define PRINTER_SPACE_SIZE wxSize(FromDIP(100), FromDIP(24)) // ORCA Match size with other components
 #define ORIGIN_TEXT_SIZE wxSize(FromDIP(10), FromDIP(24))
 #define PRINTER_PRESET_VENDOR_SIZE wxSize(FromDIP(150), FromDIP(24))
 #define PRINTER_PRESET_MODEL_SIZE wxSize(FromDIP(280), FromDIP(24))
@@ -43,19 +43,20 @@ static const std::vector<std::string> filament_vendors =
      "Ankermake",              "Anycubic",               "Atomic",                 "AzureFilm",              "BASF",
      "Bblife",                 "BCN3D",                  "Beyond Plastic",         "California Filament",    "Capricorn",
      "CC3D",                   "colorFabb",              "Comgrow",                "Cookiecad",              "Creality",
-     "Das Filament",           "DO3D",                   "DOW",                    "DSM",                    "Duramic",
-     "ELEGOO",                 "Eryone",                 "Essentium",              "eSUN",                   "Extrudr",
-     "Fiberforce",             "Fiberlogy",              "FilaCube",               "Filamentive",            "Fillamentum",
-     "FLASHFORGE",             "Formfortura",            "Francofil",              "GEEETECH",               "Giantarm",
-     "Gizmo Dorks",            "GreenGate3D",            "HATCHBOX",               "Hello3D",                "IC3D",
-     "IEMAI",                  "IIID Max",               "INLAND",                 "iProspect",              "iSANMATE",
-     "Justmaker",              "Keene Village Plastics", "Kexcelled",              "MakerBot",               "MatterHackers",
-     "MIKA3D",                 "NinjaTek",               "Nobufil",                "Novamaker",              "OVERTURE",
-     "OVVNYXE",                "Polymaker",              "Priline",                "Printed Solid",          "Protopasta",
-     "Prusament",              "Push Plastic",           "R3D",                    "Re-pet3D",               "Recreus",
-     "Regen",                  "Sain SMART",             "SliceWorx",              "Snapmaker",              "SnoLabs",
-     "Spectrum",               "SUNLU",                  "TTYT3D",                 "UltiMaker",              "Verbatim",
-     "VO3D",                   "Voxelab",                "YOOPAI",                 "Yousu",                  "Ziro",
+     "CERPRiSE",               "Das Filament",           "DO3D",                   "DOW",                    "DSM",
+     "Duramic",                "ELEGOO",                 "Eryone",                 "Essentium",              "eSUN",
+     "Extrudr",                "Fiberforce",             "Fiberlogy",              "FilaCube",               "Filamentive",
+     "Fillamentum",            "FLASHFORGE",             "Formfutura",             "Francofil",              "FilamentOne",
+     "GEEETECH",               "Giantarm",               "Gizmo Dorks",            "GreenGate3D",            "HATCHBOX",
+     "Hello3D",                "IC3D",                   "IEMAI",                  "IIID Max",               "INLAND",
+     "iProspect",              "iSANMATE",               "Justmaker",              "Keene Village Plastics", "Kexcelled",
+     "MakerBot",               "MatterHackers",          "MIKA3D",                 "NinjaTek",               "Nobufil",
+     "Novamaker",              "OVERTURE",               "OVVNYXE",                "Polymaker",              "Priline",
+     "Printed Solid",          "Protopasta",             "Prusament",              "Push Plastic",           "R3D",
+     "Re-pet3D",               "Recreus",                "Regen",                  "Sain SMART",             "SliceWorx",
+     "Snapmaker",              "SnoLabs",                "Spectrum",               "SUNLU",                  "TTYT3D",
+     "Tianse",                 "UltiMaker",              "Valment",                "Verbatim",               "VO3D",
+     "Voxelab",                "VOXELPLA",               "YOOPAI",                 "Yousu",                  "Ziro",
      "Zyltech"};
      
 static const std::vector<std::string> filament_types = {"PLA",    "PLA+",  "PLA Tough", "PETG",  "ABS",    "ASA",    "FLEX",         "HIPS",   "PA",     "PACF",
@@ -1792,26 +1793,20 @@ wxBoxSizer *CreatePrinterPresetDialog::create_bed_size_item(wxWindow *parent)
     horizontal_sizer->Add(optionSizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(10));
 
     wxBoxSizer *  length_sizer          = new wxBoxSizer(wxVERTICAL);
-    wxStaticText *static_length_text = new wxStaticText(parent, wxID_ANY, _L("X"), wxDefaultPosition, wxDefaultSize);
-    static_length_text->SetMinSize(ORIGIN_TEXT_SIZE);
-    static_length_text->SetSize(ORIGIN_TEXT_SIZE);
-    length_sizer->Add(static_length_text, 0, wxEXPAND | wxALL, 0);
+     // ORCA use icon on input box to match style with other Point fields
     horizontal_sizer->Add(length_sizer, 0, wxEXPAND | wxLEFT | wxTOP | wxALIGN_CENTER_VERTICAL, FromDIP(10));
     wxBoxSizer *length_input_sizer      = new wxBoxSizer(wxVERTICAL);
-    m_bed_size_x_input             = new TextInput(parent, "200", "mm", wxEmptyString, wxDefaultPosition, PRINTER_SPACE_SIZE, wxTE_CENTRE | wxTE_PROCESS_ENTER);
+    m_bed_size_x_input = new TextInput(parent, "200", "mm", "inputbox_x", wxDefaultPosition, PRINTER_SPACE_SIZE, wxTE_PROCESS_ENTER);
     wxTextValidator validator(wxFILTER_DIGITS);
     m_bed_size_x_input->GetTextCtrl()->SetValidator(validator);
-    length_input_sizer->Add(m_bed_size_x_input, 0, wxEXPAND | wxALL, 0);
+    length_input_sizer->Add(m_bed_size_x_input, 0, wxEXPAND | wxLEFT, FromDIP(5));
     horizontal_sizer->Add(length_input_sizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
 
     wxBoxSizer *  width_sizer      = new wxBoxSizer(wxVERTICAL);
-    wxStaticText *static_width_text = new wxStaticText(parent, wxID_ANY, _L("Y"), wxDefaultPosition, wxDefaultSize);
-    static_width_text->SetMinSize(ORIGIN_TEXT_SIZE);
-    static_width_text->SetSize(ORIGIN_TEXT_SIZE);
-    width_sizer->Add(static_width_text, 0, wxEXPAND | wxALL, 0);
+    // ORCA use icon on input box to match style with other Point fields
     horizontal_sizer->Add(width_sizer, 0, wxEXPAND | wxLEFT | wxTOP | wxALIGN_CENTER_VERTICAL, FromDIP(10));
     wxBoxSizer *width_input_sizer      = new wxBoxSizer(wxVERTICAL);
-    m_bed_size_y_input            = new TextInput(parent, "200", "mm", wxEmptyString, wxDefaultPosition, PRINTER_SPACE_SIZE, wxTE_CENTRE | wxTE_PROCESS_ENTER);
+    m_bed_size_y_input            = new TextInput(parent, "200", "mm", "inputbox_y", wxDefaultPosition, PRINTER_SPACE_SIZE, wxTE_PROCESS_ENTER);
     m_bed_size_y_input->GetTextCtrl()->SetValidator(validator);
     width_input_sizer->Add(m_bed_size_y_input, 0, wxEXPAND | wxALL, 0);
     horizontal_sizer->Add(width_input_sizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
@@ -1831,26 +1826,20 @@ wxBoxSizer *CreatePrinterPresetDialog::create_origin_item(wxWindow *parent)
     horizontal_sizer->Add(optionSizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(10));
 
     wxBoxSizer *  length_sizer       = new wxBoxSizer(wxVERTICAL);
-    wxStaticText *static_origin_x_text = new wxStaticText(parent, wxID_ANY, _L("X"), wxDefaultPosition, wxDefaultSize);
-    static_origin_x_text->SetMinSize(ORIGIN_TEXT_SIZE);
-    static_origin_x_text->SetSize(ORIGIN_TEXT_SIZE);
-    length_sizer->Add(static_origin_x_text, 0, wxEXPAND | wxALL, 0);
+    // ORCA use icon on input box to match style with other Point fields
     horizontal_sizer->Add(length_sizer, 0, wxEXPAND | wxLEFT | wxTOP | wxALIGN_CENTER_VERTICAL, FromDIP(10));
     wxBoxSizer *length_input_sizer = new wxBoxSizer(wxVERTICAL);
-    m_bed_origin_x_input           = new TextInput(parent, "0", "mm", wxEmptyString, wxDefaultPosition, PRINTER_SPACE_SIZE, wxTE_CENTRE | wxTE_PROCESS_ENTER);
+    m_bed_origin_x_input           = new TextInput(parent, "0", "mm", "inputbox_x", wxDefaultPosition, PRINTER_SPACE_SIZE, wxTE_PROCESS_ENTER);
     wxTextValidator validator(wxFILTER_DIGITS);
     m_bed_origin_x_input->GetTextCtrl()->SetValidator(validator);
-    length_input_sizer->Add(m_bed_origin_x_input, 0, wxEXPAND | wxALL, 0);
+    length_input_sizer->Add(m_bed_origin_x_input, 0, wxEXPAND | wxLEFT, FromDIP(5)); // Align with other
     horizontal_sizer->Add(length_input_sizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
 
     wxBoxSizer *  width_sizer       = new wxBoxSizer(wxVERTICAL);
-    wxStaticText *static_origin_y_text = new wxStaticText(parent, wxID_ANY, _L("Y"), wxDefaultPosition, wxDefaultSize);
-    static_origin_y_text->SetMinSize(ORIGIN_TEXT_SIZE);
-    static_origin_y_text->SetSize(ORIGIN_TEXT_SIZE);
-    width_sizer->Add(static_origin_y_text, 0, wxEXPAND | wxALL, 0);
+    // ORCA use icon on input box to match style with other Point fields
     horizontal_sizer->Add(width_sizer, 0, wxEXPAND | wxLEFT | wxTOP | wxALIGN_CENTER_VERTICAL, FromDIP(10));
     wxBoxSizer *width_input_sizer = new wxBoxSizer(wxVERTICAL);
-    m_bed_origin_y_input          = new TextInput(parent, "0", "mm", wxEmptyString, wxDefaultPosition, PRINTER_SPACE_SIZE, wxTE_CENTRE | wxTE_PROCESS_ENTER);
+    m_bed_origin_y_input          = new TextInput(parent, "0", "mm", "inputbox_y", wxDefaultPosition, PRINTER_SPACE_SIZE, wxTE_PROCESS_ENTER);
     m_bed_origin_y_input->GetTextCtrl()->SetValidator(validator);
     width_input_sizer->Add(m_bed_origin_y_input, 0, wxEXPAND | wxALL, 0);
     horizontal_sizer->Add(width_input_sizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
@@ -1943,7 +1932,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_max_print_height_item(wxWindow *pa
     horizontal_sizer->Add(optionSizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(10));
 
     wxBoxSizer *hight_input_sizer = new wxBoxSizer(wxVERTICAL);
-    m_print_height_input          = new TextInput(parent, "200", "mm", wxEmptyString, wxDefaultPosition, PRINTER_SPACE_SIZE, wxTE_CENTRE | wxTE_PROCESS_ENTER);
+    m_print_height_input          = new TextInput(parent, "200", "mm", wxEmptyString, wxDefaultPosition, PRINTER_SPACE_SIZE, wxTE_PROCESS_ENTER); // Use same alignment with all other input boxes
     wxTextValidator validator(wxFILTER_DIGITS);
     m_print_height_input->GetTextCtrl()->SetValidator(validator);
     hight_input_sizer->Add(m_print_height_input, 0, wxEXPAND | wxLEFT, FromDIP(5));
