@@ -2,25 +2,51 @@
 //  PchipInterpolator.cpp
 //  OrcaSlicer
 //
-//  Created by Ioannis Giannakas for Orca Slicer
 //
 
 #include "PchipInterpolator.hpp"
 
 /**
- * @brief Set the data points and calculate the model.
- * @param x Vector of x-coordinates (must be sorted).
- * @param y Vector of y-coordinates.
- * @throws std::invalid_argument if x and y have different sizes or fewer than 2 points.
+ * @brief Helper function to parse a string and set the data points.
+ * @param data String containing PA and speed values in the format: "pa,speed\npa2,speed2\n..."
+ * @return -1 in case of an error, 0 otherwise.
  */
-void PchipInterpolator::setData(const std::vector<double>& x, const std::vector<double>& y) {
-    if (x.size() != y.size() || x.size() < 2) {
-        throw std::invalid_argument("Input vectors must have the same size and contain at least two elements.");
+int PchipInterpolator::parseAndSetData(const std::string& data) {
+    std::vector<double> pas;
+    std::vector<double> speeds;
+
+    std::istringstream stream(data);
+    std::string line;
+
+    // Split the input string into lines
+    while (std::getline(stream, line)) {
+        std::istringstream lineStream(line);
+        std::string paStr, speedStr;
+
+        // Split each line into PA and speed values
+        if (std::getline(lineStream, paStr, ',') && std::getline(lineStream, speedStr)) {
+            try {
+                double pa = std::stod(paStr);
+                double speed = std::stod(speedStr);
+                pas.push_back(pa);
+                speeds.push_back(speed);
+            } catch (const std::invalid_argument&) {
+                return -1; // Invalid format in input data
+            } catch (const std::out_of_range&) {
+                return -1; // Out of range error in input data
+            }
+        }
     }
-    x_ = x;
-    y_ = y;
+
+    // Set the parsed data
+    if (speeds.size() != pas.size() || speeds.size() < 2) {
+        return -1; // Parsed vectors must have the same size and contain at least two elements
+    }
+    x_ = speeds;
+    y_ = pas;
     sortData(); // Sort the data points if needed
     d_ = computeDerivatives(); // Compute the derivatives needed for PCHIP interpolation
+    return 0; // Successfully parsed and set data
 }
 
 /**
@@ -80,10 +106,13 @@ std::vector<double> PchipInterpolator::computeDerivatives() const {
 /**
  * @brief Interpolate a value.
  * @param xi The x-coordinate to interpolate.
- * @return The interpolated y-coordinate.
+ * @return The interpolated y-coordinate or -1 in case of an error.
  */
 double PchipInterpolator::operator()(double xi) const {
     // Handle the case where xi is outside the range of the provided data points
+    if (x_.empty() || y_.empty() || d_.empty()) {
+        return -1; // Data has not been set
+    }
     if (xi <= x_.front()) return y_.front();
     if (xi >= x_.back()) return y_.back();
 
@@ -98,7 +127,10 @@ double PchipInterpolator::operator()(double xi) const {
     double h10 = t * (1 - t) * (1 - t);
     double h01 = t * t * (3 - 2 * t);
     double h11 = t * t * (t - 1);
-
+    
     // Interpolate the value using the Hermite cubic polynomial
-    return h00 * y_[i] + h10 * h * d_[i] + h01 * y_[i + 1] + h11 * h * d_[i + 1];
+    double interpolated_value = h00 * y_[i] + h10 * h * d_[i] + h01 * y_[i + 1] + h11 * h * d_[i + 1];
+
+    // Round the interpolated value to three decimal places
+    return std::round(interpolated_value * 1000.0) / 1000.0;
 }

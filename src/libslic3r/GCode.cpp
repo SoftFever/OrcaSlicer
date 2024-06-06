@@ -1979,18 +1979,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         m_small_area_infill_flow_compensator = make_unique<SmallAreaInfillFlowCompensator>(print.config());
     
     // Orca: Dynamic PA. Initialise interpolator
-    // Orca: Test function for the interpolator below.
-    // To be removed once function is integrated in gcode emitting process
     m_PchipInterpolator = std::make_unique<PchipInterpolator>();
-    std::vector<double> tt_speeds = {150.0, 50.0, 200.0, 100.0};
-    std::vector<double> tt_pressure_advances = {0.027, 0.036, 0.026, 0.031};
-    m_PchipInterpolator->setData(tt_speeds, tt_pressure_advances);
-    std::vector<double> tt_test_speeds = {50.0, 60.0, 75.0, 90.0, 100.0, 110.0, 125.0, 140.0, 150.0, 160.0, 175.0, 190.0, 200.0};
-    std::cout << "Predicted Pressure Advances:" << std::endl;
-    for (double speed : tt_test_speeds) {
-        double predicted_pa = (*m_PchipInterpolator)(speed);
-        std::cout << "Speed: " << speed << " mm/sec -> PA: " << predicted_pa << std::endl;
-    }
 
     file.write_format("; HEADER_BLOCK_START\n");
     // Write information on the generator.
@@ -5408,16 +5397,23 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     }
 
     if (!variable_speed) {
+        // Orca: Dynamic PA
+        // If the new print speed is different to the current print speed and the user has opted to use dynamic PA
+        // recalculate the PA value and emit it to Gcode before setting the new print speed.
+        bool need_adaptive_pa = EXTRUDER_CONFIG(adaptive_pressure_advance);
+        if(need_adaptive_pa && (std::abs(m_writer.get_current_speed()- F)>EPSILON)){
+            // get the PA calibration values from the extruder
+            std::string pa_calibration_values = EXTRUDER_CONFIG(adaptive_pressure_advance_model);
+            // parse the data and run the regression
+            int pchip_return_flag = m_PchipInterpolator->parseAndSetData(pa_calibration_values);
+            // calculate the new PA value
+            double predicted_pa = (*m_PchipInterpolator)(F/60);
+            // Check error flags and, if model did not throw an exception, set the PA value in the Gcode.
+            //std::cout << "Speed: " << F/60 << " Predicted PA: " << predicted_pa <<std::endl;
+            if((pchip_return_flag !=-1) && (predicted_pa >= 0))
+                gcode += m_writer.set_pressure_advance(predicted_pa);
+        }
         // F is mm per minute.
-        
-        // ********
-        // Orca: Dynamic PA - ToDo: intercept below set speed command to set PA as well
-        // Ensure PA is not set for travel speeds. Confirm this by setting breakpoints in this code segment
-        // and test what the code does during travel
-        // ********
-        
-        
-        
         gcode += m_writer.set_speed(F, "", comment);
         {
             if (m_enable_cooling_markers) {

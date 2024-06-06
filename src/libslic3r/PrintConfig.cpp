@@ -1706,20 +1706,22 @@ void PrintConfigDef::init_fff_params()
     
     // Orca: Adaptive pressure advance option and calibration values
     def = this->add("adaptive_pressure_advance", coBools);
-    def->label = L("Enable adaptive pressure advance");
+    def->label = L("Enable adaptive pressure advance (beta)");
     def->tooltip = L("With increasing print speeds, it has been observed that the effective PA value typically decreases. "
                      "This means that a single PA value is not 100% optimal for all features and a compromise value is usually used, "
                      "that does not cause too much bulging on slower features while also not causing gaps on faster features.\n\n"
                      "This feature aims to address this limitation by modeling the response of your printer's extrusion system depending "
                      "on the speed it is printing at. Internally it generates a fitted model that can extrapolate the needed pressure "
-                     "advance for any given print speed, which is then emmited to the printer depending on the current print speed.");
+                     "advance for any given print speed, which is then emmited to the printer depending on the current print speed.\n\n"
+                     "When enabled the pressure advance value above is overriden. However, a reasonable default value above is"
+                     "strongly recomended to act as a fallback in case the model calculations fail.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBools{ false });
 
     def = this->add("adaptive_pressure_advance_model", coStrings);
-    def->label = L("Adaptive pressure advance measurements");
+    def->label = L("Adaptive pressure advance measurements (beta)");
     def->tooltip = L("Add pairs of pressure advance values and the speed they were measured at, separated by a coma. "
-                     "One set of values per line. For example\n0.03,100;\n0.027,150; etc.\n\n"
+                     "One set of values per line. For example\n0.03,100\n0.027,150 etc.\n\n"
                      "How to calibrate:\n"
                      "1. Run the pressure advance test for at least 3 speeds per filament. It is recommended that the test is run"
                      "for at least the speed of the external perimeters, the speed of the internal perimeters and the fastest feature "
@@ -1728,11 +1730,11 @@ void PrintConfigDef::init_fff_params()
                      "the faster the speed is. If it is not, confirm that your extruder is functioning correctly"
                      "3. Enter the pairs of PA values and Speeds in the text box here and save your filament profile");
     def->mode = comAdvanced;
-    def->gui_flags = "serialized";
+    //def->gui_flags = "serialized";
     def->multiline = true;
     def->full_width = true;
     def->height = 15;
-    def->set_default_value(new ConfigOptionStrings{"0,0"});
+    def->set_default_value(new ConfigOptionStrings{"0,0\n0,0"});
 
     def = this->add("line_width", coFloatOrPercent);
     def->label = L("Default");

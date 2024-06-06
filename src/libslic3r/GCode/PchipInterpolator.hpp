@@ -2,7 +2,6 @@
 //  PchipInterpolator.hpp
 //  OrcaSlicer
 //
-//  Created by Ioannis Giannakas for Orca Slicer
 //
 
 #ifndef PCHIP_INTERPOLATOR_H
@@ -11,6 +10,8 @@
 #include <vector>
 #include <stdexcept>
 #include <algorithm>
+#include <string>
+#include <sstream>
 
 /**
  * @class PchipInterpolator
@@ -24,17 +25,16 @@ public:
     PchipInterpolator() = default;
 
     /**
-     * @brief Set the data points and calculate the model.
-     * @param x Vector of x-coordinates (must be sorted).
-     * @param y Vector of y-coordinates.
-     * @throws std::invalid_argument if x and y have different sizes or fewer than 2 points.
+     * @brief Helper function to parse a string and set the data points.
+     * @param data String containing PA and speed values in the format: "pa,speed\npa2,speed2\n..."
+     * @return -1 in case of an error, 0 otherwise.
      */
-    void setData(const std::vector<double>& x, const std::vector<double>& y);
+    int parseAndSetData(const std::string& data);
 
     /**
      * @brief Interpolate a value.
      * @param xi The x-coordinate to interpolate.
-     * @return The interpolated y-coordinate.
+     * @return The interpolated y-coordinate or -1 in case of an error.
      */
     double operator()(double xi) const;
 
