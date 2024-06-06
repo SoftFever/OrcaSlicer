@@ -1977,6 +1977,20 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
     if (m_config.small_area_infill_flow_compensation.value && !print.config().small_area_infill_flow_compensation_model.empty())
         m_small_area_infill_flow_compensator = make_unique<SmallAreaInfillFlowCompensator>(print.config());
+    
+    // Orca: Dynamic PA. Initialise interpolator
+    // Orca: Test function for the interpolator below.
+    // To be removed once function is integrated in gcode emitting process
+    m_PchipInterpolator = std::make_unique<PchipInterpolator>();
+    std::vector<double> tt_speeds = {150.0, 50.0, 200.0, 100.0};
+    std::vector<double> tt_pressure_advances = {0.027, 0.036, 0.026, 0.031};
+    m_PchipInterpolator->setData(tt_speeds, tt_pressure_advances);
+    std::vector<double> tt_test_speeds = {50.0, 60.0, 75.0, 90.0, 100.0, 110.0, 125.0, 140.0, 150.0, 160.0, 175.0, 190.0, 200.0};
+    std::cout << "Predicted Pressure Advances:" << std::endl;
+    for (double speed : tt_test_speeds) {
+        double predicted_pa = (*m_PchipInterpolator)(speed);
+        std::cout << "Speed: " << speed << " mm/sec -> PA: " << predicted_pa << std::endl;
+    }
 
     file.write_format("; HEADER_BLOCK_START\n");
     // Write information on the generator.
@@ -5395,6 +5409,15 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
 
     if (!variable_speed) {
         // F is mm per minute.
+        
+        // ********
+        // Orca: Dynamic PA - ToDo: intercept below set speed command to set PA as well
+        // Ensure PA is not set for travel speeds. Confirm this by setting breakpoints in this code segment
+        // and test what the code does during travel
+        // ********
+        
+        
+        
         gcode += m_writer.set_speed(F, "", comment);
         {
             if (m_enable_cooling_markers) {

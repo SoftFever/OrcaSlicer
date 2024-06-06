@@ -24,6 +24,8 @@
 
 #include "GCode/PressureEqualizer.hpp"
 #include "GCode/SmallAreaInfillFlowCompensator.hpp"
+// ORCA: interpolator below used for Dynamic Pressure advance
+#include "GCode/PchipInterpolator.hpp"
 
 #include <memory>
 #include <map>
@@ -544,6 +546,8 @@ private:
     std::unique_ptr<WipeTowerIntegration> m_wipe_tower;
 
     std::unique_ptr<SmallAreaInfillFlowCompensator> m_small_area_infill_flow_compensator;
+    
+    std::unique_ptr<PchipInterpolator> m_PchipInterpolator;
 
     // Heights (print_z) at which the skirt has already been extruded.
     std::vector<coordf_t>               m_skirt_done;
@@ -609,6 +613,8 @@ private:
     friend class PressureEqualizer;
     friend class Print;
     friend class SmallAreaInfillFlowCompensator;
+    // Orca: Dynamic PA feature
+    friend class PchipInterpolator;
 };
 
 std::vector<const PrintInstance*> sort_object_instances_by_model_order(const Print& print, bool init_order = false);
