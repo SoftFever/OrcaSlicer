@@ -9,6 +9,7 @@
   "layer_height": "0.15",
   "top_shell_layers": "6",
   "bottom_shell_layers": "5",
+  "raft_contact_distance": "0.15",
   "inner_wall_speed": "65",
   "small_perimeter_speed": "35",
   "outer_wall_speed": "40",

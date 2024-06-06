@@ -15,6 +15,7 @@
   "sparse_infill_density": "20%",
   "infill_anchor": "1.5",
   "raft_first_layer_expansion": "3",
+  "raft_contact_distance": "0.007",
   "support_top_z_distance": "0.07",
   "support_bottom_z_distance": "0.07",
   "support_base_pattern_spacing": "2",

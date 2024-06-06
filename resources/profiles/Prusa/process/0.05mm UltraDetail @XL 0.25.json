@@ -16,6 +16,7 @@
   "infill_anchor": "1",
   "brim_object_gap": "0",
   "raft_first_layer_expansion": "3",
+  "raft_contact_distance": "0.1",
   "support_top_z_distance": "0.07",
   "support_bottom_z_distance": "0.07",
   "support_base_pattern_spacing": "1",

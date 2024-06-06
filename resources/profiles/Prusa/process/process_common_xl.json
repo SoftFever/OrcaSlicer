@@ -25,6 +25,7 @@
   "support_threshold_angle": "45",
   "raft_first_layer_density": "80%",
   "raft_first_layer_expansion": "3",
+  "raft_contact_distance": "0.2",
   "support_type": "tree(auto)",
   "support_style": "organic",
   "support_base_pattern_spacing": "2",
