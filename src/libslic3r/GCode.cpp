@@ -5292,7 +5292,27 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     }
 
     double F = speed * 60;  // convert mm/sec to mm/min
-
+    
+    // Orca: Dynamic PA
+    // If an extrusion role change is detected, set the new PA value according to the latest speed.
+    bool need_adaptive_pa = EXTRUDER_CONFIG(adaptive_pressure_advance);
+    if (path.role() != m_last_extrusion_role && need_adaptive_pa){
+        // gcode += ";Role change\n";
+        // get the PA calibration values from the extruder
+        std::string pa_calibration_values = EXTRUDER_CONFIG(adaptive_pressure_advance_model);
+        // parse the data and run the regression
+        int pchip_return_flag = m_PchipInterpolator->parseAndSetData(pa_calibration_values);
+        // calculate the new PA value
+        double predicted_pa = (*m_PchipInterpolator)(speed);
+        // Check error flags and, if model did not throw an exception, set the PA value in the Gcode.
+        //std::cout << "Speed: " << speed << " Predicted PA: " << predicted_pa <<std::endl;
+        if((pchip_return_flag !=-1) && (predicted_pa >= 0))
+            gcode += m_writer.set_pressure_advance(predicted_pa);
+        //else{
+        //    std::cout << "Model failure!" << std::endl;
+        //}
+    }
+    
     //Orca: process custom gcode for extrusion role change
     if (path.role() != m_last_extrusion_role && !m_config.change_extrusion_role_gcode.value.empty()) {
             DynamicConfig config;
@@ -5397,22 +5417,6 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     }
 
     if (!variable_speed) {
-        // Orca: Dynamic PA
-        // If the new print speed is different to the current print speed and the user has opted to use dynamic PA
-        // recalculate the PA value and emit it to Gcode before setting the new print speed.
-        bool need_adaptive_pa = EXTRUDER_CONFIG(adaptive_pressure_advance);
-        if(need_adaptive_pa && (std::abs(m_writer.get_current_speed()- F)>EPSILON)){
-            // get the PA calibration values from the extruder
-            std::string pa_calibration_values = EXTRUDER_CONFIG(adaptive_pressure_advance_model);
-            // parse the data and run the regression
-            int pchip_return_flag = m_PchipInterpolator->parseAndSetData(pa_calibration_values);
-            // calculate the new PA value
-            double predicted_pa = (*m_PchipInterpolator)(F/60);
-            // Check error flags and, if model did not throw an exception, set the PA value in the Gcode.
-            //std::cout << "Speed: " << F/60 << " Predicted PA: " << predicted_pa <<std::endl;
-            if((pchip_return_flag !=-1) && (predicted_pa >= 0))
-                gcode += m_writer.set_pressure_advance(predicted_pa);
-        }
         // F is mm per minute.
         gcode += m_writer.set_speed(F, "", comment);
         {
