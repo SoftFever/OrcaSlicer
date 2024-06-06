@@ -23,7 +23,7 @@
         "1.27"
     ],
     "filament_max_volumetric_speed": [
-        "30"
+        "18"
     ],
     "filament_type": [
         "PETG"
@@ -35,13 +35,13 @@
         "70"
     ],
     "nozzle_temperature": [
-        "245"
+        "260"
     ],
     "nozzle_temperature_initial_layer": [
-        "255"
+        "270"
     ],
     "nozzle_temperature_range_high": [
-        "260"
+        "280"
     ],
     "nozzle_temperature_range_low": [
         "220"
