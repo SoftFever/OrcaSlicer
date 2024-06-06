@@ -3223,10 +3223,8 @@ void TabFilament::build()
         optgroup->append_single_option_line("required_nozzle_HRC");
         optgroup->append_single_option_line("default_filament_colour");
         optgroup->append_single_option_line("filament_diameter");
-        optgroup->append_single_option_line("filament_flow_ratio");
 
-        optgroup->append_single_option_line("enable_pressure_advance");
-        optgroup->append_single_option_line("pressure_advance");
+    
 
         optgroup->append_single_option_line("filament_density");
         optgroup->append_single_option_line("filament_shrink");
@@ -3248,6 +3246,22 @@ void TabFilament::build()
             on_value_change(opt_key, value);
         };
 
+        // Orca: New section to focus on flow rate and PA to declutter general section
+        optgroup = page->new_optgroup(L("Flow ratio and Pressure Advance"), L"param_information");
+        optgroup->append_single_option_line("filament_flow_ratio");
+
+        optgroup->append_single_option_line("enable_pressure_advance");
+        optgroup->append_single_option_line("pressure_advance");
+
+        // Orca: adaptive pressure advance and calibration model
+        optgroup->append_single_option_line("adaptive_pressure_advance");
+
+        option = optgroup->get_option("adaptive_pressure_advance_model");
+        option.opt.full_width = true;
+        option.opt.is_code = true;
+        option.opt.height = 15;
+        optgroup->append_single_option_line(option);
+        //
 
         optgroup = page->new_optgroup(L("Print chamber temperature"), L"param_chamber_temp");
         optgroup->append_single_option_line("chamber_temperature", "chamber-temperature");
@@ -3532,6 +3546,13 @@ void TabFilament::toggle_options()
         toggle_line("cool_plate_temp_initial_layer", support_multi_bed_types );
         toggle_line("eng_plate_temp_initial_layer", support_multi_bed_types);
         toggle_line("textured_plate_temp_initial_layer", support_multi_bed_types);
+        
+        // Orca: adaptive pressure advance and calibration model
+        // If PA is not enabled, disable adaptive pressure advance and hide the model section
+        // If adaptive PA is not enabled, hide the adaptive PA model section
+        toggle_option("adaptive_pressure_advance", pa);
+        bool has_adaptive_pa = m_config->opt_bool("adaptive_pressure_advance", 0);
+        toggle_line("adaptive_pressure_advance_model", has_adaptive_pa && pa);
 
     }
     if (m_active_page->title() == L("Setting Overrides"))
