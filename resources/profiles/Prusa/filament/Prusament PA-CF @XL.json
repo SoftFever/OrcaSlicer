@@ -5,7 +5,7 @@
     "name": "Prusament PA-CF @XL",
     "from": "system",
     "instantiation": "true",
-    "inherits": "fdm_filament_pa",
+    "inherits": "fdm_filament_pa11cf",
     "nozzle_temperature_intial_layer": "275",
     "nozzle_temperature": "285",
     "hot_plate_temp_initial_layer": "100",
