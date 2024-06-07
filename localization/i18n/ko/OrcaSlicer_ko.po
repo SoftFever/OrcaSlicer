@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-29 00:28+0800\n"
-"PO-Revision-Date: 2024-05-01 04:51+0900\n"
+"POT-Creation-Date: 2024-06-05 22:05+0200\n"
+"PO-Revision-Date: 2024-05-31 23:33+0900\n"
 "Last-Translator: Hotsolidinfill <138652683+Hotsolidinfill@users.noreply."
 "github.com>, crwusiz <crwusiz@gmail.com>\n"
 "Language-Team: \n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Poedit 3.4.2\n"
+"X-Generator: Poedit 3.4.4\n"
 
 msgid "Supports Painting"
 msgstr "지지대 칠하기"
@@ -1484,7 +1484,7 @@ msgid "Choose one or more files (3mf/step/stl/svg/obj/amf):"
 msgstr "하나 이상의 파일 선택 (3mf/step/stl/svg/obj/amf):"
 
 msgid "Choose ZIP file"
-msgstr ""
+msgstr "ZIP 파일 선택"
 
 msgid "Choose one file (gcode/3mf):"
 msgstr "하나의 파일 선택 (gcode/3mf):"
@@ -1561,6 +1561,8 @@ msgid ""
 "Could not start URL download. Destination folder is not set. Please choose "
 "destination folder in Configuration Wizard."
 msgstr ""
+"URL 다운로드를 시작할 수 없습니다. 대상 폴더가 설정되지 않았습니다. 구성 마법"
+"사에서 대상 폴더를 선택하세요."
 
 msgid "Import File"
 msgstr "파일 가져오기"
@@ -2717,7 +2719,7 @@ msgid "GNU Affero General Public License, version 3"
 msgstr "GNU Affero General Public License, version 3"
 
 msgid "Orca Slicer is based on PrusaSlicer and BambuStudio"
-msgstr ""
+msgstr "Orca Slicer는 PrusaSlicer와 BambuStudio를 기반으로 합니다"
 
 msgid "Libraries"
 msgstr "라이브러리"
@@ -3222,18 +3224,18 @@ msgid "Task Sent"
 msgstr "Task Sent"
 
 msgid "Edit multiple printers"
-msgstr ""
+msgstr "여러 프린터 편집"
 
 msgid "Select connected printetrs (0/6)"
-msgstr ""
+msgstr "연결된 프린터 선택(0/6)"
 
 #, c-format, boost-format
 msgid "Select Connected Printetrs (%d/6)"
-msgstr ""
+msgstr "연결된 프린터 (%d/6)를 선택합니다"
 
 #, c-format, boost-format
 msgid "The maximum number of printers that can be selected is %d"
-msgstr ""
+msgstr "선택할 수 있는 최대 프린터 수는 %d입니다"
 
 msgid "Offline"
 msgstr "오프라인"
@@ -3248,7 +3250,7 @@ msgid "N/A"
 msgstr "N/A"
 
 msgid "Edit Printers"
-msgstr ""
+msgstr "프린터 편집"
 
 msgid "Device Name"
 msgstr "Device Name"
@@ -3264,7 +3266,7 @@ msgstr "Actions"
 
 msgid ""
 "Please select the devices you would like to manage here (up to 6 devices)"
-msgstr ""
+msgstr "여기에서 관리할 장치를 선택하세요(최대 6개 장치)"
 
 msgid "Add"
 msgstr "추가"
@@ -3276,22 +3278,22 @@ msgid "Printing"
 msgstr "출력 중"
 
 msgid "Upgrading"
-msgstr ""
+msgstr "업그레이드 하기"
 
 msgid "Incompatible"
 msgstr "호환되지 않음"
 
 msgid "syncing"
-msgstr ""
+msgstr "동기화"
 
 msgid "Printing Finish"
-msgstr ""
+msgstr "인쇄 완료"
 
 msgid "Printing Failed"
-msgstr ""
+msgstr "인쇄 실패"
 
 msgid "PrintingPause"
-msgstr ""
+msgstr "인쇄 일시 중지"
 
 msgid "Prepare"
 msgstr "준비 하기"
@@ -3300,28 +3302,28 @@ msgid "Slicing"
 msgstr "슬라이싱"
 
 msgid "Pending"
-msgstr ""
+msgstr "대기중"
 
 msgid "Sending"
 msgstr "전송 중…"
 
 msgid "Sending Finish"
-msgstr ""
+msgstr "보내기 완료"
 
 msgid "Sending Cancel"
-msgstr ""
+msgstr "보내기 취소"
 
 msgid "Sending Failed"
-msgstr ""
+msgstr "전송 실패"
 
 msgid "Print Success"
-msgstr ""
+msgstr "인쇄 성공"
 
 msgid "Print Failed"
-msgstr ""
+msgstr "인쇄 실패"
 
 msgid "Removed"
-msgstr ""
+msgstr "삭제됨"
 
 msgid "Resume"
 msgstr "계속"
@@ -3357,10 +3359,10 @@ msgid "Abnormal print file data. Please slice again"
 msgstr "비정상적인 출력 파일 데이터입니다. 다시 슬라이스하세요"
 
 msgid "There is no device available to send printing."
-msgstr ""
+msgstr "인쇄를 전송할 수 있는 장치가 없습니다."
 
 msgid "The number of printers in use simultaneously cannot be equal to 0."
-msgstr ""
+msgstr "동시에 사용 중인 프린터의 수는 0과 같을 수 없습니다."
 
 msgid "Use External Spool"
 msgstr "Use External Spool"
@@ -3384,13 +3386,13 @@ msgid "Timelapse"
 msgstr "타임랩스"
 
 msgid "Flow Dynamic Calibration"
-msgstr ""
+msgstr "흐름 동적 보정"
 
 msgid "Send Options"
 msgstr "Send Options"
 
-msgid "Send"
-msgstr "전송"
+msgid "Send to"
+msgstr ""
 
 msgid ""
 "printers at the same time.(It depends on how many devices can undergo "
@@ -3406,6 +3408,9 @@ msgid ""
 "minute each batch.(It depends on how long it takes to complete the heating.)"
 msgstr ""
 "minute each batch. (It depends on how long it takes to complete heating.)"
+
+msgid "Send"
+msgstr "전송"
 
 msgid "Name is invalid;"
 msgstr "이름이 잘못되었습니다;"
@@ -3958,6 +3963,18 @@ msgstr ""
 "%s%% 또는 %s %s입니까?\n"
 "%s%%에 대해 예,\n"
 "%s %s에 대해 아니요."
+
+#, boost-format
+msgid ""
+"Invalid input format. Expected vector of dimensions in the following format: "
+"\"%1%\""
+msgstr ""
+
+msgid "Input value is out of range"
+msgstr ""
+
+msgid "Some extension in the input is invalid"
+msgstr ""
 
 #, boost-format
 msgid "Invalid format. Expected vector format: \"%1%\""
@@ -4584,10 +4601,10 @@ msgid "Load a model"
 msgstr "모델 불러오기"
 
 msgid "Import Zip Archive"
-msgstr ""
+msgstr "Zip 압축파일 가져오기"
 
 msgid "Load models contained within a zip archive"
-msgstr ""
+msgstr "Zip 압축파일에 포함된 모델 로드"
 
 msgid "Import Configs"
 msgstr "설정 가져오기"
@@ -4623,7 +4640,7 @@ msgid "Export current plate as G-code"
 msgstr "현재 플레이트를 G코드로 내보내기"
 
 msgid "Export Preset Bundle"
-msgstr ""
+msgstr "프리셋 번들 내보내기"
 
 msgid "Export current configuration to files"
 msgstr "현재 설정을 파일로 내보내기"
@@ -6169,16 +6186,17 @@ msgstr "G코드 파일을 로드하는 중 오류가 발생했습니다"
 #. TRN %1% is archive path
 #, boost-format
 msgid "Loading of a ZIP archive on path %1% has failed."
-msgstr ""
+msgstr "경로 %1%에 ZIP 아카이브를 로드하지 못했습니다."
 
 #. TRN: First argument = path to file, second argument = error description
 #, boost-format
 msgid "Failed to unzip file to %1%: %2%"
-msgstr ""
+msgstr "파일을 %1%으로 압축 해제하지 못했습니다: %2%"
 
 #, boost-format
 msgid "Failed to find unzipped file at %1%. Unzipping of file has failed."
 msgstr ""
+"%1%에서 압축 해제된 파일을 찾지 못했습니다. 파일 압축 해제에 실패했습니다."
 
 msgid "Drop project file"
 msgstr "드롭 프로젝트 파일"
@@ -6418,6 +6436,8 @@ msgid ""
 "This stops the transmission of data to Bambu's cloud services. Users who "
 "don't use BBL machines or use LAN mode only can safely turn on this function."
 msgstr ""
+"이 기능은 밤부의 클라우드 서비스로의 데이터 전송을 중지합니다. BBL 머신을 사"
+"용하지 않거나 LAN 모드만 사용하는 사용자는 이 기능을 안전하게 켤 수 있습니다."
 
 msgid "Enable network plugin"
 msgstr "네트워크 플러그인 사용"
@@ -6589,40 +6609,46 @@ msgstr ""
 "다"
 
 msgid "Associate web links to OrcaSlicer"
-msgstr ""
+msgstr "OrcaSlicer에 웹 링크 연결"
 
 msgid "Associate URLs to OrcaSlicer"
-msgstr ""
+msgstr "OrcaSlicer에 URL 연결"
 
 msgid "Current association: "
-msgstr ""
+msgstr "현재 연결:"
 
 msgid "Associate prusaslicer://"
-msgstr ""
+msgstr "프루사슬라이서://"
 
 msgid "Not associated to any application"
-msgstr ""
+msgstr "어떤 애플리케이션과도 연결되지 않음"
 
 msgid ""
 "Associate OrcaSlicer with prusaslicer:// links so that Orca can open models "
 "from Printable.com"
 msgstr ""
+"Orca가 Printable.com에서 모델을 열 수 있도록 OrcaSlicer를 prusaslicer:// 링크"
+"와 연결합니다."
 
 msgid "Associate bambustudio://"
-msgstr ""
+msgstr "연결 bambustudio://"
 
 msgid ""
 "Associate OrcaSlicer with bambustudio:// links so that Orca can open models "
 "from makerworld.com"
 msgstr ""
+"Orca가 makerworld.com에서 모델을 열 수 있도록 OrcaSlicer를 bambustudio:// 링"
+"크와 연결하세요."
 
 msgid "Associate cura://"
-msgstr ""
+msgstr "연결 cura://"
 
 msgid ""
 "Associate OrcaSlicer with cura:// links so that Orca can open models from "
 "thingiverse.com"
 msgstr ""
+"Orca가 thingiverse.com에서 모델을 열 수 있도록 OrcaSlicer를 cura:// 링크와 연"
+"결합니다."
 
 msgid "Maximum recent projects"
 msgstr "최근 프로젝트 최대 표시"
@@ -7715,6 +7741,14 @@ msgstr "다중 재료 프린터의 다중 압출기 툴 교체 매개변수"
 msgid "Printable space"
 msgstr "출력 가능 공간"
 
+#. TRN: First argument is parameter name, the second one is the value.
+#, boost-format
+msgid "Invalid value provided for parameter %1%: %2%"
+msgstr ""
+
+msgid "G-code flavor is switched"
+msgstr ""
+
 msgid "Cooling Fan"
 msgstr "냉각 팬"
 
@@ -8171,6 +8205,32 @@ msgstr "에서"
 msgid "To"
 msgstr "으로"
 
+msgid ""
+"Windows Media Player is required for this task! Do you want to enable "
+"'Windows Media Player' for your operation system?"
+msgstr ""
+
+msgid ""
+"BambuSource has not correctly been registered for media playing! Press Yes "
+"to re-register it. You will be promoted twice"
+msgstr ""
+
+msgid ""
+"Missing BambuSource component registered for media playing! Please re-"
+"install BambuStutio or seek after-sales help."
+msgstr ""
+
+msgid ""
+"Using a BambuSource from a different install, video play may not work "
+"correctly! Press Yes to fix it."
+msgstr ""
+
+msgid ""
+"Your system is missing H.264 codecs for GStreamer, which are required to "
+"play video.  (Try installing the gstreamer1.0-plugins-bad or gstreamer1.0-"
+"libav packages, then restart Orca Slicer?)"
+msgstr ""
+
 msgid "Bambu Network plug-in not detected."
 msgstr "뱀부 네트워크 플러그인이 감지되지 않습니다."
 
@@ -8442,10 +8502,10 @@ msgid "Shift+Mouse wheel"
 msgstr "Shift+마우스 휠"
 
 msgid "Horizontal slider - Move to start position"
-msgstr ""
+msgstr "수평 슬라이더 - 시작 위치로 이동"
 
 msgid "Horizontal slider - Move to last position"
-msgstr ""
+msgstr "수평 슬라이더 - 마지막 위치로 이동"
 
 msgid "Release Note"
 msgstr "릴리스 노트"
@@ -10177,6 +10237,13 @@ msgid ""
 "external surface finish. It can also cause the infill to shine through the "
 "external surfaces of the part."
 msgstr ""
+"벽/채우기 순서. 확인란을 선택 취소하면 벽이 먼저 인쇄되며 이는 대부분의 경우 "
+"가장 잘 작동합니다.\n"
+"\n"
+"충전재를 먼저 인쇄하면 벽에 접착할 인접 충전재가 있으므로 돌출부가 심한 경우 "
+"도움이 될 수 있습니다. 그러나 충전재는 인쇄된 벽이 부착된 부분을 약간 밀어내"
+"어 외부 표면 마감이 더 나빠집니다. 또한 충전재가 부품의 외부 표면을 통해 빛"
+"날 수도 있습니다."
 
 msgid "Wall loop direction"
 msgstr "벽 루프 방향"
@@ -10618,7 +10685,7 @@ msgid "(Undefined)"
 msgstr "(정의되지 않음)"
 
 msgid "Sparse infill direction"
-msgstr ""
+msgstr "드문 채우기 방향"
 
 msgid ""
 "Angle for sparse infill pattern, which controls the start or main direction "
@@ -10626,18 +10693,18 @@ msgid ""
 msgstr "선의 시작 또는 주 방향을 제어하는 드문 채우기 패턴에 대한 각도"
 
 msgid "Solid infill direction"
-msgstr ""
+msgstr "꽉찬 채우기 방향"
 
 msgid ""
 "Angle for solid infill pattern, which controls the start or main direction "
 "of line"
-msgstr ""
+msgstr "선의 시작 또는 기본 방향을 제어하는 ​​솔리드 채우기 패턴의 각도"
 
 msgid "Rotate solid infill direction"
-msgstr ""
+msgstr "솔리드 채우기 방향 회전"
 
 msgid "Rotate the solid infill direction by 90° for each layer."
-msgstr ""
+msgstr "각 레이어에 대해 솔리드 채우기 방향을 90° 회전합니다."
 
 msgid "Sparse infill density"
 msgstr "드문 채우기 밀도"
@@ -10890,6 +10957,9 @@ msgstr ""
 "\"close_fan_the_first_x_layers\"보다 낮으면 무시되며, 이 경우 팬은 "
 "\"close_fan_the_first_x_layers\" + 1 에서 최대 허용 속도로 가도됩니다."
 
+msgid "layer"
+msgstr ""
+
 msgid "Support interface fan speed"
 msgstr "지지대 접점 팬 속도"
 
@@ -10983,6 +11053,13 @@ msgid ""
 "quality as line segments are converted to arcs by the slicer and then back "
 "to line segments by the firmware."
 msgstr ""
+"G2 및 G3 이동이 있는 G 코드 파일을 얻으려면 이 옵션을 활성화하십시오. 피팅 공"
+"차는 분해능과 동일합니다. \n"
+"\n"
+"참고: Klipper 기계의 경우 이 옵션을 비활성화하는 것이 좋습니다. Klipper는 "
+"arc 명령이 펌웨어에 의해 라인 세그먼트로 다시 분할되므로 이점을 얻지 못합니"
+"다. 이로 인해 선 세그먼트가 슬라이서에 의해 호로 변환된 다음 펌웨어에 의해 다"
+"시 선 세그먼트로 변환되므로 표면 품질이 저하됩니다."
 
 msgid "Add line number"
 msgstr "라인 번호 추가"
@@ -11213,9 +11290,12 @@ msgid ""
 "value to ~10-15% to minimize potential over extrusion and accumulation of "
 "material resulting in rough top surfaces."
 msgstr ""
+"채우기 영역은 더 나은 접착을 위해 벽과 겹치도록 약간 확대됩니다. 백분율 값은 "
+"희박한 채우기의 선 너비를 기준으로 합니다. 거친 상단 표면을 초래하는 재료의 "
+"압출 및 축적 가능성을 최소화하려면 이 값을 ~10-15%로 설정하십시오."
 
 msgid "Top/Bottom solid infill/wall overlap"
-msgstr ""
+msgstr "상단/하단 솔리드 채우기/벽 겹침"
 
 #, no-c-format, no-boost-format
 msgid ""
@@ -11225,6 +11305,10 @@ msgid ""
 "appearance of pinholes. The percentage value is relative to line width of "
 "sparse infill"
 msgstr ""
+"상단 솔리드 채우기 영역은 더 나은 접착을 위해 벽과 겹치도록 약간 확대되고 상"
+"단 채우기가 벽과 만나는 핀홀의 모양을 최소화합니다. 25-30%의 값은 핀홀의 모양"
+"을 최소화하는 좋은 출발점입니다. 백분율 값은 희박한 채우기의 선 너비를 기준으"
+"로 합니다."
 
 msgid "Speed of internal sparse infill"
 msgstr "내부 드문 채우기 속도"
@@ -12256,7 +12340,7 @@ msgstr ""
 "사용합니다"
 
 msgid "Draft shield"
-msgstr ""
+msgstr "드래프트 쉴드"
 
 msgid ""
 "A draft shield is useful to protect an ABS or ASA print from warping and "
@@ -12271,12 +12355,23 @@ msgid ""
 "distance from the object. Therefore, if brims are active it may intersect "
 "with them. To avoid this, increase the skirt distance value.\n"
 msgstr ""
+"드래프트 쉴드는 바람으로 인해 ABS 또는 ASA 인쇄물이 뒤틀리거나 인쇄 베드에서 "
+"분리되는 것을 방지하는 데 유용합니다. 일반적으로 오픈 프레임 프린터, 즉 인클"
+"로저가 없는 경우에만 필요합니다. \n"
+"\n"
+"옵션:\n"
+"활성화됨 = 스커트가 가장 높은 인쇄물의 높이와 같습니다.\n"
+"제한됨 = 스커트가 스커트 높이에 지정된 높이만큼 높습니다.\n"
+"\n"
+"참고: 드래프트 쉴드가 활성화되면 스커트는 개체로부터 스커트 거리에 인쇄됩니"
+"다. 따라서 챙이 활성화된 경우 챙과 교차할 수 있습니다. 이를 방지하려면 스커"
+"트 거리 값을 늘리십시오.\n"
 
 msgid "Limited"
-msgstr ""
+msgstr "제한됨"
 
 msgid "Enabled"
-msgstr ""
+msgstr "활성화됨"
 
 msgid "Skirt loops"
 msgstr "스커트 루프"
@@ -12291,7 +12386,7 @@ msgid "Speed of skirt, in mm/s. Zero means use default layer extrusion speed."
 msgstr "스커트의 속도(mm/s), 0은 기본 레이어 압출 속도를 사용함을 의미합니다."
 
 msgid "Skirt minimum extrusion length"
-msgstr ""
+msgstr "스커트 최소 돌출 길이"
 
 msgid ""
 "Minimum filament extrusion length in mm when printing the skirt. Zero means "
@@ -12300,6 +12395,11 @@ msgid ""
 "Using a non zero value is useful if the printer is set up to print without a "
 "prime line."
 msgstr ""
+"스커트를 인쇄할 때 최소 필라멘트 압출 길이(mm)입니다. 0은 이 기능이 비활성화"
+"되었음을 의미합니다.\n"
+"\n"
+"프린터가 프라임 라인 없이 인쇄하도록 설정된 경우 0이 아닌 값을 사용하는 것이 "
+"유용합니다."
 
 msgid ""
 "The printing speed in exported gcode will be slowed down, when the estimated "
@@ -13021,7 +13121,7 @@ msgid "Spacing of purge lines on the wipe tower."
 msgstr "닦기 타워의 청소 선 간격입니다."
 
 msgid "Maximum wipe tower print speed"
-msgstr ""
+msgstr "최대 와이프 타워 인쇄 속도"
 
 msgid ""
 "The maximum print speed when purging in the wipe tower and printing the wipe "
@@ -13044,6 +13144,21 @@ msgid ""
 "For the wipe tower external perimeters the internal perimeter speed is used "
 "regardless of this setting."
 msgstr ""
+"와이프 타워에서 퍼징하고 와이프 타워 희박 레이어를 인쇄할 때 최대 인쇄 속도입"
+"니다. 퍼징 시 희소 충전 속도 또는 필라멘트 최대 체적 속도에서 계산된 속도가 "
+"더 낮은 경우 가장 낮은 속도가 대신 사용됩니다.\n"
+"\n"
+"희소 레이어를 인쇄할 때 내부 주변 속도 또는 필라멘트 최대 체적 속도에서 계산"
+"된 속도가 더 낮은 경우 가장 낮은 속도가 대신 사용됩니다.\n"
+"\n"
+"이 속도를 높이면 타워의 안정성에 영향을 줄 수 있을 뿐만 아니라 노즐이 와이프 "
+"타워에 형성될 수 있는 얼룩과 충돌하는 힘도 증가할 수 있습니다.\n"
+"\n"
+"이 매개변수를 기본값인 90mm/초 이상으로 늘리기 전에 프린터가 증가된 속도에서 "
+"안정적으로 브리지할 수 있고 도구 교환 시 흘러나오는 현상이 잘 제어되는지 확인"
+"하십시오.\n"
+"\n"
+"와이프 타워 외부 경계의 경우 이 설정에 관계없이 내부 경계 속도가 사용됩니다."
 
 msgid "Wipe tower extruder"
 msgstr "닦기 타워 압출기"
@@ -14766,12 +14881,6 @@ msgstr "직사각형"
 msgid "Printable Space"
 msgstr "출력 가능 공간"
 
-msgid "X"
-msgstr "X"
-
-msgid "Y"
-msgstr "Y"
-
 msgid "Hot Bed STL"
 msgstr "베드 STL"
 
@@ -15118,7 +15227,7 @@ msgstr "일일 팁"
 
 #, c-format, boost-format
 msgid "nozzle memorized: %.1f %s"
-msgstr ""
+msgstr "기억된 노즐: %.1f %s"
 
 msgid ""
 "Your nozzle diameter in preset is not consistent with memorized nozzle "
@@ -15985,6 +16094,12 @@ msgstr ""
 "뒤틀림 방지\n"
 "ABS 등 뒤틀림이 발생하기 쉬운 소재를 출력할 때, 히트베드 온도를 적절하게 높이"
 "면 뒤틀림 가능성을 줄일 수 있다는 사실을 알고 계셨나요?"
+
+#~ msgid "X"
+#~ msgstr "X"
+
+#~ msgid "Y"
+#~ msgstr "Y"
 
 #~ msgid ""
 #~ "Order of wall/infill. When the tickbox is unchecked the walls are printed "
