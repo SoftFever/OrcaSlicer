@@ -12,6 +12,7 @@
   "extruder_clearance_radius": "67",
   "extruder_clearance_height_to_rod": "21",
   "extruder_clearance_height_to_lid": "21",
+  "printer_variant": "0.8",
   "nozzle_diameter": [
     "0.8"
   ],
