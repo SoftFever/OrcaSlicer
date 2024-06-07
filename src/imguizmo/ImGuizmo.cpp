@@ -662,10 +662,18 @@ namespace IMGUIZMO_NAMESPACE
       Colors[HATCHED_AXIS_LINES]    = ImVec4(0.000f, 0.000f, 0.000f, 0.500f);
       Colors[TEXT]                  = ImVec4(1.000f, 1.000f, 1.000f, 1.000f);
       Colors[TEXT_SHADOW]           = ImVec4(0.000f, 0.000f, 0.000f, 1.000f);
+      Colors[FACE]                  = ImVec4(0.776f, 0.804f, 0.839f, 1.000f);
 
       strcpy(AxisLabels[Axis_X], "x");
       strcpy(AxisLabels[Axis_Y], "y");
       strcpy(AxisLabels[Axis_Z], "z");
+
+      strcpy(FaceLabels[FACE_BACK], "back");
+      strcpy(FaceLabels[FACE_TOP], "top");
+      strcpy(FaceLabels[FACE_RIGHT], "right");
+      strcpy(FaceLabels[FACE_FRONT], "front");
+      strcpy(FaceLabels[FACE_BOTTOM], "bottom");
+      strcpy(FaceLabels[FACE_LEFT], "left");
    }
 
    struct Context
@@ -2795,11 +2803,6 @@ namespace IMGUIZMO_NAMESPACE
        m16[15] = 1.0f;
    }
 
-
-    const char* labels[] = {
-        "Back","Top","Right","Front","Bottom","Left"
-    };
-
    bool ViewManipulate(float* view, float length, ImVec2 position, ImVec2 size, ImU32 backgroundColor)
    {
       static bool isDraging = false;
@@ -2890,7 +2893,7 @@ namespace IMGUIZMO_NAMESPACE
             const vec_t dx = directionUnary[perpXIndex];
             const vec_t dy = directionUnary[perpYIndex];
             const vec_t origin = directionUnary[normalIndex] - dx - dy;
-            ImU32 directionColor = GetColorU32(DIRECTION_X + normalIndex);
+            ImU32 faceColor = GetColorU32(FACE);
             for (int iPanel = 0; iPanel < 9; iPanel++)
             {
                vec_t boxCoord = boxOrigin + indexVectorX * float(iPanel % 3) + indexVectorY * float(iPanel / 3) + makeVect(1.f, 1.f, 1.f);
@@ -2916,7 +2919,7 @@ namespace IMGUIZMO_NAMESPACE
                // draw face with lighter color
                if (iPass)
                {
-                  gContext.mDrawList->AddConvexPolyFilled(faceCoordsScreen, 4, (directionColor | IM_COL32(0x80, 0x80, 0x80, 0x80)) | (isInside ? IM_COL32(0x08, 0x08, 0x08, 0) : 0));
+                  gContext.mDrawList->AddConvexPolyFilled(faceCoordsScreen, 4, faceColor);
                   if (boxes[boxCoordInt])
                   {
                      gContext.mDrawList->AddConvexPolyFilled(faceCoordsScreen, 4, IM_COL32(0xF0, 0xA0, 0x60, 0x80));
@@ -2940,12 +2943,12 @@ namespace IMGUIZMO_NAMESPACE
                 ImDrawList* drawList        = gContext.mDrawList;
                 ImDrawVert* vtx_write_start = drawList->_VtxWritePtr;
 
-                const auto label       = labels[iFace];
+                const auto label       = gContext.mStyle.FaceLabels[iFace];
                 ImVec2     labelSize   = ImGui::CalcTextSize(label);
                 float      scaleFactor = 2 / size.y;
                 auto       labelOrigin = labelSize * 0.5;
 
-                drawList->AddText(ImVec2(0, 0), directionColor, label);
+                drawList->AddText(ImVec2(0, 0), GetColorU32(TEXT), label);
                 ImDrawVert* vtx_write_end = drawList->_VtxWritePtr;
 
                 vec_t tdx = directionUnary[perpXIndex];
@@ -3014,7 +3017,7 @@ namespace IMGUIZMO_NAMESPACE
             if (!visible) {
                 directionColorV.w *= 0.3f;
             }
-            ImU32 directionColor = ImGui::ColorConvertFloat4ToU32(directionColorV); 
+            ImU32 directionColor = ImGui::ColorConvertFloat4ToU32(directionColorV) | IM_COL32(0x80, 0x80, 0x80, 0x00); 
             drawList->AddLine(baseSSpace, worldDirSSpace, directionColor, gContext.mStyle.TranslationLineThickness);
             
             // Arrow head begin
