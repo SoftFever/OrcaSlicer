@@ -196,7 +196,12 @@ void KBShortcutsDialog::fill_shortcuts()
             // Configuration
             { ctrl + "P", L("Preferences") },
             //3D control
+#ifdef __APPLE__
+            { ctrl + "Shift+M", L("Show/Hide 3Dconnexion devices settings dialog") },
+#else
             { ctrl + "M", L("Show/Hide 3Dconnexion devices settings dialog") },
+#endif // __APPLE
+            
             // Switch table page
             { ctrl + "Tab", L("Switch table page")},
             //DEL
