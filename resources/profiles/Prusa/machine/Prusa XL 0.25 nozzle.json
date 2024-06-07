@@ -8,7 +8,7 @@
   "gcode_flavor": "marlin2",
   "printer_model": "XL",
   "default_filament_profile": "Prusa Generic PLA @XL",
-  "default_print_profile": "",
+  "default_print_profile": "0.15mm Speed @XL 0.25",
   "extruder_clearance_radius": "67",
   "extruder_clearance_height_to_rod": "21",
   "extruder_clearance_height_to_lid": "21",
