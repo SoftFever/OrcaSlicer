@@ -6,7 +6,7 @@
   "instantiation": "true",
   "inherits": "fdm_machine_common",
   "gcode_flavor": "marlin2",
-  "printer_model": "Pursa XL",
+  "printer_model": "Pursa-XL",
   "default_filament_profile": "Prusa Generic PLA @XL",
   "default_print_profile": "0.32mm Speed @XL 0.6",
   "extruder_clearance_radius": "67",
