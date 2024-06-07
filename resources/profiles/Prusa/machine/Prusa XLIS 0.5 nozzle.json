@@ -6,7 +6,7 @@
   "instantiation": "true",
   "inherits": "fdm_machine_common",
   "gcode_flavor": "marlin2",
-  "printer_model": "XLIS",
+  "printer_model": "Pursa XLIS",
   "default_filament_profile": "Prusa Generic PLA @XL",
   "default_print_profile": "0.25mm Speed @XLIS 0.5",
   "extruder_clearance_radius": "67",
