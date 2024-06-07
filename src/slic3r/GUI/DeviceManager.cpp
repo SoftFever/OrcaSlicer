@@ -2887,7 +2887,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                 }
             }
 
-            if (key_field_only) {
+            if (!key_field_only) {
                 if (!DeviceManager::EnableMultiMachine) {
                     if (jj.contains("support_tunnel_mqtt")) {
                         if (jj["support_tunnel_mqtt"].is_boolean()) {
@@ -2895,7 +2895,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                         }
                     }
                 }
-            } else {
+
                 //supported function
                 if (jj.contains("support_chamber_temp_edit")) {
                     if (jj["support_chamber_temp_edit"].is_boolean()) {
