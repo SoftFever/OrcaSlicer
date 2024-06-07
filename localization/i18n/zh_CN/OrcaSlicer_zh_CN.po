@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-29 00:28+0800\n"
+"POT-Creation-Date: 2024-06-05 22:05+0200\n"
 "PO-Revision-Date: 2023-04-01 13:21+0800\n"
 "Last-Translator: SoftFever <softfeverever@gmail.com>\n"
 "Language-Team: \n"
@@ -3309,8 +3309,8 @@ msgstr ""
 msgid "Send Options"
 msgstr "发送选项"
 
-msgid "Send"
-msgstr "发送"
+msgid "Send to"
+msgstr ""
 
 msgid ""
 "printers at the same time.(It depends on how many devices can undergo "
@@ -3323,6 +3323,9 @@ msgstr "等待"
 msgid ""
 "minute each batch.(It depends on how long it takes to complete the heating.)"
 msgstr "分钟发送一次。（这取决于完成加热需要多长时间。）"
+
+msgid "Send"
+msgstr "发送"
 
 msgid "Name is invalid;"
 msgstr "无效名称；"
@@ -3861,6 +3864,18 @@ msgstr ""
 "%s%%还是%s %s？\n"
 "是：%s%%\n"
 "否：%s %s"
+
+#, boost-format
+msgid ""
+"Invalid input format. Expected vector of dimensions in the following format: "
+"\"%1%\""
+msgstr ""
+
+msgid "Input value is out of range"
+msgstr ""
+
+msgid "Some extension in the input is invalid"
+msgstr ""
 
 #, boost-format
 msgid "Invalid format. Expected vector format: \"%1%\""
@@ -7492,6 +7507,14 @@ msgstr "多挤出机多材料打印机的换色参数"
 msgid "Printable space"
 msgstr "可打印区域"
 
+#. TRN: First argument is parameter name, the second one is the value.
+#, boost-format
+msgid "Invalid value provided for parameter %1%: %2%"
+msgstr ""
+
+msgid "G-code flavor is switched"
+msgstr ""
+
 msgid "Cooling Fan"
 msgstr "冷却风扇"
 
@@ -7930,6 +7953,32 @@ msgstr "从"
 
 msgid "To"
 msgstr "到"
+
+msgid ""
+"Windows Media Player is required for this task! Do you want to enable "
+"'Windows Media Player' for your operation system?"
+msgstr ""
+
+msgid ""
+"BambuSource has not correctly been registered for media playing! Press Yes "
+"to re-register it. You will be promoted twice"
+msgstr ""
+
+msgid ""
+"Missing BambuSource component registered for media playing! Please re-"
+"install BambuStutio or seek after-sales help."
+msgstr ""
+
+msgid ""
+"Using a BambuSource from a different install, video play may not work "
+"correctly! Press Yes to fix it."
+msgstr ""
+
+msgid ""
+"Your system is missing H.264 codecs for GStreamer, which are required to "
+"play video.  (Try installing the gstreamer1.0-plugins-bad or gstreamer1.0-"
+"libav packages, then restart Orca Slicer?)"
+msgstr ""
 
 msgid "Bambu Network plug-in not detected."
 msgstr "未检测到Bambu网络插件。"
@@ -10474,6 +10523,9 @@ msgstr ""
 "风扇速度将从“禁用第一层”的零线性上升到“全风扇速度层”的最大。如果低于“禁用风扇"
 "第一层”，则“全风扇速度第一层”将被忽略，在这种情况下，风扇将在“禁用风扇第一"
 "层”+1层以最大允许速度运行。"
+
+msgid "layer"
+msgstr ""
 
 msgid "Support interface fan speed"
 msgstr "支撐接触面风扇"
@@ -14117,12 +14169,6 @@ msgstr "矩形"
 
 msgid "Printable Space"
 msgstr "可打印形状"
-
-msgid "X"
-msgstr ""
-
-msgid "Y"
-msgstr ""
 
 msgid "Hot Bed STL"
 msgstr "热床STL模型"

@@ -35,7 +35,7 @@
         "1.04"
     ],
     "filament_max_volumetric_speed": [
-        "35"
+        "22"
     ],
     "filament_type": [
         "ABS"
@@ -50,7 +50,7 @@
         "270"
     ],
     "nozzle_temperature_initial_layer": [
-        "260"
+        "275"
     ],
     "nozzle_temperature_range_high": [
         "280"

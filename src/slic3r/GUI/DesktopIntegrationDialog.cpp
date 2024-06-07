@@ -455,9 +455,9 @@ void DesktopIntegrationDialog::undo_desktop_intgration()
     wxGetApp().plater()->get_notification_manager()->push_notification(NotificationType::UndoDesktopIntegrationSuccess);
 }
 
-void DesktopIntegrationDialog::perform_downloader_desktop_integration()
+void DesktopIntegrationDialog::perform_downloader_desktop_integration(std::string url_prefix)
 {
-    BOOST_LOG_TRIVIAL(debug) << "performing downloader desktop integration.";
+    BOOST_LOG_TRIVIAL(debug) << "performing downloader desktop integration. " << url_prefix ;
     // Path to appimage
     const char* appimage_env = std::getenv("APPIMAGE");
     std::string excutable_path;
@@ -531,34 +531,21 @@ void DesktopIntegrationDialog::perform_downloader_desktop_integration()
 
     std::string desktop_file_downloader = GUI::format(
         "[Desktop Entry]\n"
-        "Name=OrcaSlicer URL Protocol%1%\n"
-        "Exec=\"%2%\" %%u\n"
+        "Name=OrcaSlicer URL Protocol %1% %2%\n"
+        "Exec=%3% %%u\n"
         "Terminal=false\n"
         "Type=Application\n"
-        "MimeType=x-scheme-handler/prusaslicer;\n"
+        "MimeType=x-scheme-handler/%1%;\n"
         "StartupNotify=false\n"
         "NoDisplay=true\n"
-        , name_suffix, excutable_path);
-
-    // desktop file for downloader as part of main app
-    std::string desktop_path = GUI::format("%1%/applications/OrcaSlicerURLProtocol%2%.desktop", target_dir_desktop, version_suffix);
-    if (create_desktop_file(desktop_path, desktop_file_downloader)) {
-        // save path to desktop file
-        app_config->set("desktop_integration_URL_path", desktop_path);
-        // finish registration on mime type
-        std::string command = GUI::format("xdg-mime default OrcaSlicerURLProtocol%1%.desktop x-scheme-handler/prusaslicer", version_suffix);
-        BOOST_LOG_TRIVIAL(debug) << "system command: " << command;
-        int r = system(command.c_str());
-        BOOST_LOG_TRIVIAL(debug) << "system result: " << r;
-
-    }
+        , url_prefix, name_suffix, excutable_path);
 
     bool candidate_found = false;
     for (size_t i = 0; i < target_candidates.size(); ++i) {
         if (contains_path_dir(target_candidates[i], "applications")) {
             target_dir_desktop = target_candidates[i];
             // Write slicer desktop file
-            std::string path = GUI::format("%1%/applications/OrcaSlicerURLProtocol%2%.desktop", target_dir_desktop, version_suffix);
+            std::string path = GUI::format("%1%/applications/OrcaSlicerURLProtocol-%2%%3%.desktop", target_dir_desktop, url_prefix, version_suffix);
             if (create_desktop_file(path, desktop_file_downloader)) {
                 app_config->set("desktop_integration_URL_path", path);
                 candidate_found = true;
@@ -578,7 +565,7 @@ void DesktopIntegrationDialog::perform_downloader_desktop_integration()
         create_path(boost::nowide::narrow(wxFileName::GetHomeDir()), ".local/share/applications");
         // create desktop file
         target_dir_desktop = GUI::format("%1%/.local/share", wxFileName::GetHomeDir());
-        std::string path = GUI::format("%1%/applications/OrcaSlicerURLProtocol%2%.desktop", target_dir_desktop, version_suffix);
+        std::string path = GUI::format("%1%/applications/OrcaSlicerURLProtocol-%2%%3%.desktop", target_dir_desktop, url_prefix, version_suffix);
         if (contains_path_dir(target_dir_desktop, "applications")) {
             if (!create_desktop_file(path, desktop_file_downloader)) {
                 // Desktop file not written - end desktop integration
@@ -601,8 +588,20 @@ void DesktopIntegrationDialog::perform_downloader_desktop_integration()
         return;
     }
 
+    // desktop file for downloader as part of main app
+    std::string desktop_path = GUI::format("%1%/applications/OrcaSlicerURLProtocol-%2%%3%.desktop", target_dir_desktop, url_prefix, version_suffix);
+    if (create_desktop_file(desktop_path, desktop_file_downloader)) {
+        // save path to desktop file
+        app_config->set("desktop_integration_URL_path", desktop_path);
+        // finish registration on mime type
+        std::string command = GUI::format("xdg-mime default OrcaSlicerURLProtocol-%1%%2%.desktop x-scheme-handler/%1%", url_prefix, version_suffix);
+        BOOST_LOG_TRIVIAL(debug) << "system command: " << command;
+        int r = system(command.c_str());
+        BOOST_LOG_TRIVIAL(debug) << "system result: " << r;
+    }
+
     // finish registration on mime type
-    std::string command = GUI::format("xdg-mime default OrcaSlicerURLProtocol%1%.desktop x-scheme-handler/prusaslicer", version_suffix);
+    std::string command = GUI::format("xdg-mime default OrcaSlicerURLProtocol-%1%%2%.desktop x-scheme-handler/%1%", url_prefix, version_suffix);
     BOOST_LOG_TRIVIAL(debug) << "system command: " << command;
     int r = system(command.c_str());
     BOOST_LOG_TRIVIAL(debug) << "system result: " << r;

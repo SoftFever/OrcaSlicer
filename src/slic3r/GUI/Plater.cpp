@@ -7611,9 +7611,9 @@ wxString Plater::priv::get_export_gcode_filename(const wxString& extension, bool
             }
         } else {
             if (export_all)
-                return m_project_name + from_u8(plate_index_str) + extension;
-            else
                 return m_project_name + extension;
+            else
+                return m_project_name + from_u8(plate_index_str) + extension;
         }
     } else {
         if (only_filename) {
