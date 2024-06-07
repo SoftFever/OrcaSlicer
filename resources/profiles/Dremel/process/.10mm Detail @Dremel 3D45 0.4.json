@@ -49,7 +49,7 @@
     "overhang_4_4_speed": "10",
     "only_one_wall_top": "1",
     "print_sequence": "by layer",
-    "reduce_infill_retraction": "1",
+    "reduce_infill_retraction": "0",
     "raft_first_layer_density": "100%",
     "raft_first_layer_expansion": "1.5",
     "resolution": "0.012",
