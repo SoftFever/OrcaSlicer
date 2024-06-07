@@ -548,6 +548,9 @@ private:
     std::unique_ptr<SmallAreaInfillFlowCompensator> m_small_area_infill_flow_compensator;
     
     std::unique_ptr<PchipInterpolator> m_PchipInterpolator;
+    
+    //ORCA: Dynamic PA
+    double m_last_pa = 0; ///< last PA that was calculated from the PCHIP Interpolator
 
     // Heights (print_z) at which the skirt has already been extruded.
     std::vector<coordf_t>               m_skirt_done;

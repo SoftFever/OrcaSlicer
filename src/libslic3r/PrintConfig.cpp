@@ -1717,6 +1717,16 @@ void PrintConfigDef::init_fff_params()
                      "strongly recomended to act as a fallback in case the model calculations fail.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBools{ false });
+    
+    // Orca: Adaptive pressure advance option and calibration values
+    def = this->add("adaptive_pressure_advance_overhangs", coBools);
+    def->label = L("Enable adaptive pressure advance for overhangs (beta)");
+    def->tooltip = L("Even more experimental option to enable dynamic setting of PA when features are slowed down for overahangs\n\n"
+                     "From initial testing this option appears to be introducing artefacts due to printer micro pauses when changing PA"
+                     "hence will most likely be removed before release.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBools{ false });
+    
 
     def = this->add("adaptive_pressure_advance_model", coStrings);
     def->label = L("Adaptive pressure advance measurements (beta)");
