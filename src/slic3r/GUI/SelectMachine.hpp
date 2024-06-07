@@ -530,7 +530,7 @@ public:
     void set_print_type(PrintFromType type) {m_print_type = type;};
     bool Show(bool show);
     bool do_ams_mapping(MachineObject* obj_);
-    bool get_ams_mapping_result(std::string& mapping_array_str, std::string& ams_mapping_info);
+    bool get_ams_mapping_result(std::string& mapping_array_str, std::string& mapping_array_str2, std::string& ams_mapping_info);
 
     PrintFromType get_print_type() {return m_print_type;};
     wxString    format_steel_name(std::string name);

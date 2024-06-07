@@ -1840,8 +1840,9 @@ bool SelectMachineDialog::do_ams_mapping(MachineObject *obj_)
     if (result == 0) {
         print_ams_mapping_result(m_ams_mapping_result);
         std::string ams_array;
+        std::string ams_array2;
         std::string mapping_info;
-        get_ams_mapping_result(ams_array, mapping_info);
+        get_ams_mapping_result(ams_array, ams_array2, mapping_info);
         if (ams_array.empty()) {
             reset_ams_material();
             BOOST_LOG_TRIVIAL(info) << "ams_mapping_array=[]";
@@ -1867,7 +1868,7 @@ bool SelectMachineDialog::do_ams_mapping(MachineObject *obj_)
     return true;
 }
 
-bool SelectMachineDialog::get_ams_mapping_result(std::string &mapping_array_str, std::string &ams_mapping_info)
+bool SelectMachineDialog::get_ams_mapping_result(std::string &mapping_array_str, std::string& mapping_array_str2, std::string &ams_mapping_info)
 {
     if (m_ams_mapping_result.empty())
         return false;
@@ -1884,16 +1885,27 @@ bool SelectMachineDialog::get_ams_mapping_result(std::string &mapping_array_str,
     if (invalid_count == m_ams_mapping_result.size()) {
         return false;
     } else {
-        json          j = json::array();
-        json mapping_info_json = json::array();
+
+        json mapping_v0_json    = json::array();
+        json mapping_v1_json    = json::array();
+
+        json mapping_info_json  = json::array();
 
         for (int i = 0; i < wxGetApp().preset_bundle->filament_presets.size(); i++) {
+
             int tray_id = -1;
+
+            json mapping_item_v1;
+            mapping_item_v1["ams_id"] = 0xff;
+            mapping_item_v1["slot_id"] = 0xff;
+
             json mapping_item;
             mapping_item["ams"] = tray_id;
             mapping_item["targetColor"] = "";
             mapping_item["filamentId"] = "";
             mapping_item["filamentType"] = "";
+
+            
 
             for (int k = 0; k < m_ams_mapping_result.size(); k++) {
                 if (m_ams_mapping_result[k].id == i) {
@@ -1907,12 +1919,23 @@ bool SelectMachineDialog::get_ams_mapping_result(std::string &mapping_array_str,
                     //convert #RRGGBB to RRGGBBAA
                     mapping_item["sourceColor"]     = m_filaments[k].color;
                     mapping_item["targetColor"]     = m_ams_mapping_result[k].color;
+
+
+                    /*new ams mapping data*/
+                    
+                    mapping_item_v1["ams_id"] = m_ams_mapping_result[k].ams_id;
+                    mapping_item_v1["slot_id"] = m_ams_mapping_result[k].slot_id;
                 }
             }
-            j.push_back(tray_id);
+            mapping_v0_json.push_back(tray_id);
+            mapping_v1_json.push_back(mapping_item_v1);
             mapping_info_json.push_back(mapping_item);
         }
-        mapping_array_str = j.dump();
+
+
+        mapping_array_str = mapping_v0_json.dump();
+        mapping_array_str2 = mapping_v1_json.dump();
+
         ams_mapping_info = mapping_info_json.dump();
         return valid_mapping_result;
     }
@@ -2745,9 +2768,10 @@ void SelectMachineDialog::on_send_print()
 
     // get ams_mapping_result
     std::string ams_mapping_array;
+    std::string ams_mapping_array2;
     std::string ams_mapping_info;
     if (m_checkbox_list["use_ams"]->GetValue())
-        get_ams_mapping_result(ams_mapping_array, ams_mapping_info);
+        get_ams_mapping_result(ams_mapping_array,ams_mapping_array2, ams_mapping_info);
     else {
         json mapping_info_json = json::array();
         json item;
@@ -2840,9 +2864,11 @@ void SelectMachineDialog::on_send_print()
 
     if (obj_->is_support_ams_mapping()) {
         m_print_job->task_ams_mapping = ams_mapping_array;
+        m_print_job->task_ams_mapping2= ams_mapping_array2;
         m_print_job->task_ams_mapping_info = ams_mapping_info;
     } else {
         m_print_job->task_ams_mapping = "";
+        m_print_job->task_ams_mapping2 = "";
         m_print_job->task_ams_mapping_info = "";
     }
 

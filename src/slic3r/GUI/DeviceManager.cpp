@@ -810,6 +810,9 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
     // tray_index : tray_color
     std::map<int, FilamentInfo> tray_filaments;
     for (auto ams = amsList.begin(); ams != amsList.end(); ams++) {
+
+        std::string ams_id = ams->second->id;
+
         for (auto tray = ams->second->trayList.begin(); tray != ams->second->trayList.end(); tray++) {
             int ams_id = atoi(ams->first.c_str());
             int tray_id = atoi(tray->first.c_str());
@@ -828,6 +831,11 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
                 info.filament_id = tray->second->setting_id;
                 info.ctype = tray->second->ctype;
                 info.colors = tray->second->cols;
+
+                /*for new ams mapping*/
+                info.ams_id = ams->first.c_str();
+                info.slot_id = tray->first.c_str();
+
                 tray_filaments.emplace(std::make_pair(tray_index, info));
             }
         }
@@ -835,27 +843,28 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
 
     // tray info list
     std::vector<FilamentInfo> tray_info_list;
-    for (auto it = amsList.begin(); it != amsList.end(); it++) {
-        for (int i = 0; i < 4; i++) {
+    int flament_index_id = 0;
+    for (auto ams = amsList.begin(); ams != amsList.end(); ams++) {
+        for (auto tray = ams->second->trayList.begin(); tray != ams->second->trayList.end(); tray++) {
+
             FilamentInfo info;
-            auto tray_it = it->second->trayList.find(std::to_string(i));
-            if (tray_it != it->second->trayList.end()) {
-                info.id = atoi(tray_it->first.c_str()) + atoi(it->first.c_str()) * 4;
-                info.tray_id = atoi(tray_it->first.c_str()) + atoi(it->first.c_str()) * 4;
-                info.color = tray_it->second->color;
-                info.type = tray_it->second->get_filament_type();
-                info.ctype = tray_it->second->ctype;
-                info.colors = tray_it->second->cols;
-            }
-            else {
-                info.id = -1;
-                info.tray_id = -1;
-            }
+            info.id = flament_index_id;
+            info.tray_id = flament_index_id;
+            info.color = tray->second->color;
+            info.type = tray->second->get_filament_type();
+            info.ctype = tray->second->ctype;
+            info.colors = tray->second->cols;
+
+
+            /*for new ams mapping*/
+            info.ams_id = ams->second->id;
+            info.slot_id = tray->second->id;
+
             tray_info_list.push_back(info);
+            flament_index_id++;
         }
     }
 
-    
     // is_support_ams_mapping
     if (!is_support_ams_mapping()) {
         BOOST_LOG_TRIVIAL(info) << "ams_mapping: do not support, use order mapping";
@@ -987,6 +996,11 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
                 result[picked_src_idx].filament_id = tray->second.filament_id;
                 result[picked_src_idx].ctype = tray->second.ctype;
                 result[picked_src_idx].colors = tray->second.colors;
+
+
+                /*for new ams mapping*/
+                result[picked_src_idx].ams_id = tray->second.ams_id;
+                result[picked_src_idx].slot_id = tray->second.slot_id;
             }
             else {
                 FilamentInfo info;
@@ -1028,6 +1042,10 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
                     result[i].type = tray_info_list[i].type;
                     result[i].ctype = tray_info_list[i].ctype;
                     result[i].colors = tray_info_list[i].colors;
+
+                    /*for new ams mapping*/
+                    result[i].ams_id = tray_info_list[i].ams_id;
+                    result[i].slot_id = tray_info_list[i].slot_id;
                 }
             }
         }
