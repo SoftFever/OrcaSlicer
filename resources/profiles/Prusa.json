@@ -25,7 +25,7 @@
             "sub_path": "machine/Prusa XL.json"
         },
         {
-            "name": "Pursa XLIS",
+            "name": "Pursa XL Input Shaper",
             "sub_path": "machine/Prusa XLIS.json"
         }
     ],
