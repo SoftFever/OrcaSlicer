@@ -21,11 +21,11 @@
             "sub_path": "machine/Prusa MINI.json"
         },
         {
-            "name": "XL",
+            "name": "Prusa XL",
             "sub_path": "machine/Prusa XL.json"
         },
         {
-            "name": "XLIS",
+            "name": "Pursa XLIS",
             "sub_path": "machine/Prusa XLIS.json"
         }
     ],
