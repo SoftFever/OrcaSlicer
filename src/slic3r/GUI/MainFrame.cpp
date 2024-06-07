@@ -543,7 +543,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
         if (evt.CmdDown() && (evt.GetKeyCode() == 'H')) {
             //call parent_menu hide behavior
             return;}
-        if (evt.CmdDown() && (evt.GetKeyCode() == 'M')) {
+        if (evt.CmdDown() && (!evt.ShiftDown()) && (evt.GetKeyCode() == 'M')) {
             this->Iconize();
             return;
         }
