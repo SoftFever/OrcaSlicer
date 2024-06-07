@@ -2795,6 +2795,11 @@ namespace IMGUIZMO_NAMESPACE
        m16[15] = 1.0f;
    }
 
+
+    const char* labels[] = {
+        "Back","Top","Right","Front","Bottom","Left"
+    };
+
    bool ViewManipulate(float* view, float length, ImVec2 position, ImVec2 size, ImU32 backgroundColor)
    {
       static bool isDraging = false;
@@ -2885,6 +2890,7 @@ namespace IMGUIZMO_NAMESPACE
             const vec_t dx = directionUnary[perpXIndex];
             const vec_t dy = directionUnary[perpYIndex];
             const vec_t origin = directionUnary[normalIndex] - dx - dy;
+            ImU32 directionColor = GetColorU32(DIRECTION_X + normalIndex);
             for (int iPanel = 0; iPanel < 9; iPanel++)
             {
                vec_t boxCoord = boxOrigin + indexVectorX * float(iPanel % 3) + indexVectorY * float(iPanel / 3) + makeVect(1.f, 1.f, 1.f);
@@ -2910,7 +2916,6 @@ namespace IMGUIZMO_NAMESPACE
                // draw face with lighter color
                if (iPass)
                {
-                  ImU32 directionColor = GetColorU32(DIRECTION_X + normalIndex);
                   gContext.mDrawList->AddConvexPolyFilled(faceCoordsScreen, 4, (directionColor | IM_COL32(0x80, 0x80, 0x80, 0x80)) | (isInside ? IM_COL32(0x08, 0x08, 0x08, 0) : 0));
                   if (boxes[boxCoordInt])
                   {
@@ -2928,6 +2933,53 @@ namespace IMGUIZMO_NAMESPACE
                      }
                   }
                }
+            }
+
+             if (iPass) {
+                // Draw face label
+                ImDrawList* drawList        = gContext.mDrawList;
+                ImDrawVert* vtx_write_start = drawList->_VtxWritePtr;
+
+                const auto label       = labels[iFace];
+                ImVec2     labelSize   = ImGui::CalcTextSize(label);
+                float      scaleFactor = 2 / size.y;
+                auto       labelOrigin = labelSize * 0.5;
+
+                drawList->AddText(ImVec2(0, 0), directionColor, label);
+                ImDrawVert* vtx_write_end = drawList->_VtxWritePtr;
+
+                vec_t tdx = directionUnary[perpXIndex];
+                vec_t tdy  = directionUnary[perpYIndex];
+                ImVec2 invert2 = {1, 1};
+                switch (iFace) {
+                case 0: // Back
+                    tdx = directionUnary[2];
+                    tdy = directionUnary[1];
+                    invert2 = {-1, - 1};
+                    break;
+                case 3: // Front
+                    tdx = directionUnary[2];
+                    tdy = directionUnary[1];
+                    invert2.x = -1;
+                    break;
+                case 1: // Top
+                    invert2.y = -1;
+                    break;
+                case 4: // Bottom
+                    invert2 = {-1, -1};
+                    break;
+                case 2: // Right
+                    invert2.y = -1;
+                    break;
+                case 5: // Left
+                    break;
+                }
+
+                for (auto v = vtx_write_start; v < vtx_write_end; v++) {
+                    auto  pp = ((v->pos - labelOrigin) * scaleFactor * invert2 + ImVec2{0.5, 0.5}) * 2.f;
+                    vec_t pt = tdx * pp.x + tdy * pp.y;
+                    v->pos   = worldToPos((pt + origin) * 0.5 * invert, res, position, size);
+                }
             }
          }
       }
