@@ -94,7 +94,7 @@ SpoolmanViewCtrl::SpoolmanViewCtrl(wxWindow* parent) : wxDataViewCtrl(parent, wx
 #if _WIN32
     ShowScrollbars(wxSHOW_SB_NEVER, wxSHOW_SB_DEFAULT);
 #else
-    SetScrollbar(wxHORIZONTAL, 0, 0, 0)
+    SetScrollbar(wxHORIZONTAL, 0, 0, 0);
 #endif
 
     m_model = new SpoolmanViewModel();
