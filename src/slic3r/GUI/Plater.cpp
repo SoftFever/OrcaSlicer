@@ -7611,9 +7611,9 @@ wxString Plater::priv::get_export_gcode_filename(const wxString& extension, bool
             }
         } else {
             if (export_all)
-                return m_project_name + from_u8(plate_index_str) + extension;
-            else
                 return m_project_name + extension;
+            else
+                return m_project_name + from_u8(plate_index_str) + extension;
         }
     } else {
         if (only_filename) {
@@ -9360,11 +9360,6 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
             new ConfigOptionFloat(opt.second)
         );
     }
-    print_config.set_key_value(
-        "outer_wall_speed",
-        new ConfigOptionFloat(CalibPressureAdvance::find_optimal_PA_speed(
-            wxGetApp().preset_bundle->full_config(), (fabs(print_config.get_abs_value("line_width", nozzle_diameter)) <= DBL_EPSILON)? (nozzle_diameter*1.125) : print_config.get_abs_value("line_width", nozzle_diameter),
-            print_config.get_abs_value("layer_height"), 0)));
 
     for (const auto opt : SuggestedConfigCalibPAPattern().nozzle_ratio_pairs) {
         print_config.set_key_value(
@@ -9384,6 +9379,14 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
         SuggestedConfigCalibPAPattern().brim_pair.first,
         new ConfigOptionEnum<BrimType>(SuggestedConfigCalibPAPattern().brim_pair.second)
     );
+
+    // Orca: Set the outer wall speed to the optimal speed for the test, cap it with max volumetric speed
+    print_config.set_key_value("outer_wall_speed", new ConfigOptionFloat(CalibPressureAdvance::find_optimal_PA_speed(
+                                                       wxGetApp().preset_bundle->full_config(),
+                                                       (fabs(print_config.get_abs_value("line_width", nozzle_diameter)) <= DBL_EPSILON) ?
+                                                           (nozzle_diameter * 1.125) :
+                                                           print_config.get_abs_value("line_width", nozzle_diameter),
+                                                       print_config.get_abs_value("layer_height"), 0)));
 
     wxGetApp().get_tab(Preset::TYPE_PRINT)->update_dirty();
     wxGetApp().get_tab(Preset::TYPE_FILAMENT)->update_dirty();

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OrcaSlicer V2.0.0 Official Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-29 00:28+0800\n"
+"POT-Creation-Date: 2024-06-05 22:05+0200\n"
 "PO-Revision-Date: 2024-04-12 13:49+0700\n"
 "Last-Translator: \n"
 "Language-Team: andylg@yandex.ru\n"
@@ -3483,8 +3483,8 @@ msgstr ""
 msgid "Send Options"
 msgstr ""
 
-msgid "Send"
-msgstr "Отправить G-код стола на SD-карту"
+msgid "Send to"
+msgstr ""
 
 msgid ""
 "printers at the same time.(It depends on how many devices can undergo "
@@ -3497,6 +3497,9 @@ msgstr "Подождите"
 msgid ""
 "minute each batch.(It depends on how long it takes to complete the heating.)"
 msgstr ""
+
+msgid "Send"
+msgstr "Отправить G-код стола на SD-карту"
 
 msgid "Name is invalid;"
 msgstr "Некорректное имя;"
@@ -4084,6 +4087,18 @@ msgstr ""
 "Это %s%% или %s %s?\n"
 "ДА для %s%%, \n"
 "НЕТ для %s %s."
+
+#, boost-format
+msgid ""
+"Invalid input format. Expected vector of dimensions in the following format: "
+"\"%1%\""
+msgstr ""
+
+msgid "Input value is out of range"
+msgstr ""
+
+msgid "Some extension in the input is invalid"
+msgstr ""
 
 #, boost-format
 msgid "Invalid format. Expected vector format: \"%1%\""
@@ -7972,6 +7987,14 @@ msgstr ""
 msgid "Printable space"
 msgstr "Область печати"
 
+#. TRN: First argument is parameter name, the second one is the value.
+#, boost-format
+msgid "Invalid value provided for parameter %1%: %2%"
+msgstr ""
+
+msgid "G-code flavor is switched"
+msgstr ""
+
 msgid "Cooling Fan"
 msgstr "Вентилятор обдува модели"
 
@@ -8435,6 +8458,32 @@ msgstr "С"
 
 msgid "To"
 msgstr "На"
+
+msgid ""
+"Windows Media Player is required for this task! Do you want to enable "
+"'Windows Media Player' for your operation system?"
+msgstr ""
+
+msgid ""
+"BambuSource has not correctly been registered for media playing! Press Yes "
+"to re-register it. You will be promoted twice"
+msgstr ""
+
+msgid ""
+"Missing BambuSource component registered for media playing! Please re-"
+"install BambuStutio or seek after-sales help."
+msgstr ""
+
+msgid ""
+"Using a BambuSource from a different install, video play may not work "
+"correctly! Press Yes to fix it."
+msgstr ""
+
+msgid ""
+"Your system is missing H.264 codecs for GStreamer, which are required to "
+"play video.  (Try installing the gstreamer1.0-plugins-bad or gstreamer1.0-"
+"libav packages, then restart Orca Slicer?)"
+msgstr ""
 
 msgid "Bambu Network plug-in not detected."
 msgstr "Сетевой плагин Bambu не обнаружен."
@@ -11326,6 +11375,9 @@ msgstr ""
 "значения \"close_fan_the_first_x_layers\", в этом случае вентилятор будет "
 "работать на максимально допустимой скорости на слое "
 "\"close_fan_the_first_x_layers\" + 1."
+
+msgid "layer"
+msgstr ""
 
 msgid "Support interface fan speed"
 msgstr "Скорость вентилятора на связующем слое"
@@ -15433,12 +15485,6 @@ msgstr "Прямоугольник"
 msgid "Printable Space"
 msgstr "Область печати"
 
-msgid "X"
-msgstr "X"
-
-msgid "Y"
-msgstr "Y"
-
 msgid "Hot Bed STL"
 msgstr "Модель стола"
 
@@ -16697,6 +16743,12 @@ msgstr ""
 "Знаете ли вы, что при печати материалами, склонными к короблению, таких как "
 "ABS, повышение температуры подогреваемого стола может снизить эту "
 "вероятность?"
+
+#~ msgid "X"
+#~ msgstr "X"
+
+#~ msgid "Y"
+#~ msgstr "Y"
 
 #~ msgid ""
 #~ "Order of wall/infill. When the tickbox is unchecked the walls are printed "
