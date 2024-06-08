@@ -112,6 +112,7 @@ src/slic3r/GUI/UpdateDialogs.cpp
 src/slic3r/GUI/UnsavedChangesDialog.cpp
 src/slic3r/GUI/WipeTowerDialog.cpp
 src/slic3r/GUI/wxExtensions.cpp
+src/slic3r/GUI/wxMediaCtrl2.cpp
 src/slic3r/GUI/WebUserLoginDialog.cpp
 src/slic3r/GUI/WebGuideDialog.cpp
 src/slic3r/GUI/KBShortcutsDialog.hpp
