@@ -24,7 +24,7 @@
   "machine_min_travel_rate": ["0", "0"],
   "max_layer_height": ["0.32"],
   "min_layer_height": ["0.08"],
-  "printable_height": "160",
+  "printable_height": "165",
   "extruder_clearance_radius": "65",
   "extruder_clearance_height_to_rod": "36",
   "extruder_clearance_height_to_lid": "140",
