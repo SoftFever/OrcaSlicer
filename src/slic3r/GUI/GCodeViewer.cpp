@@ -547,7 +547,7 @@ void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, f
 
     static const ImVec4 LINE_NUMBER_COLOR    = ImGuiWrapper::COL_ORANGE_LIGHT;
     static const ImVec4 SELECTION_RECT_COLOR = ImGuiWrapper::COL_ORANGE_DARK;
-    static const ImVec4 COMMAND_COLOR        = { 0.8f, 0.8f, 0.0f, 1.0f };
+    static const ImVec4 COMMAND_COLOR        = {0.8f, 0.8f, 0.0f, 1.0f};
     static const ImVec4 PARAMETERS_COLOR     = { 1.0f, 1.0f, 1.0f, 1.0f };
     static const ImVec4 COMMENT_COLOR        = { 0.7f, 0.7f, 0.7f, 1.0f };
 
@@ -1732,12 +1732,14 @@ void GCodeViewer::update_moves_slider(bool set_to_max)
         ++count;
     }
 
+    bool keep_min = m_moves_slider->GetActiveValue() == m_moves_slider->GetMinValue();
+
     m_moves_slider->SetSliderValues(values);
     m_moves_slider->SetSliderAlternateValues(alternate_values);
     m_moves_slider->SetMaxValue(view.endpoints.last - view.endpoints.first);
     m_moves_slider->SetSelectionSpan(view.current.first - view.endpoints.first, view.current.last - view.endpoints.first);
     if (set_to_max)
-        m_moves_slider->SetHigherValue(m_moves_slider->GetMaxValue());
+        m_moves_slider->SetHigherValue(keep_min ? m_moves_slider->GetMinValue() : m_moves_slider->GetMaxValue());
 }
 
 void GCodeViewer::update_layers_slider_mode()

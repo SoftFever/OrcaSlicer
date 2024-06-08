@@ -95,7 +95,7 @@
 		"2"
 	],
 	"retract_before_wipe": [
-		"0%"
+		"100%"
 	],
 	"retraction_length": [
 		"0.5"
@@ -104,10 +104,10 @@
 		"1"
 	],
 	"retraction_speed": [
-		"40"
+		"30"
 	],
 	"deretraction_speed": [
-		"40"
+		"0"
 	],
 	"z_hop": [
 		"0.2"
@@ -119,8 +119,8 @@
 	"default_filament_profile": [
 		"Creality Generic PLA @Ender-3V3-all"
 	],
-	"machine_start_gcode": "M220 S100 ;Reset Feedrate\nM221 S100 ;Reset Flowrate\n\nM140 S[bed_temperature_initial_layer_single] ;Set final bed temp\nG28 ;Home\nG92 E0 ;Reset Extruder\nG1 Z2.0 F3000 ;Move Z Axis up\nM104 S[nozzle_temperature_initial_layer] ;Set final nozzle temp\nG1 X-2.0 Y20 Z0.28 F5000.0 ;Move to start position\nM190 S[bed_temperature_initial_layer_single] ;Wait for bed temp to stabilize\nM109 S[nozzle_temperature_initial_layer] ;Wait for nozzle temp to stabilize\nG1 X-2.0 Y145.0 Z0.28 F1500.0 E15 ;Draw the first line\nG1 X-1.7 Y145.0 Z0.28 F5000.0 ;Move to side a little\nG1 X-1.7 Y30 Z0.28 F1500.0 E15 ;Draw the second line\nG92 E0 ;Reset Extruder",
-	"machine_end_gcode": "G91 ;Relative positionning\nG1 E-2 F2700 ;Retract a bit\nG1 E-2 Z0.2 F2400 ;Retract and raise Z\nG1 X5 Y5 F3000 ;Wipe out\nG1 Z20 ;Raise Z more\nG90 ;Absolute positionning\nG1 X2 Y218 F3000 ;Present print\nM106 S0 ;Turn-off fan\nM104 S0 ;Turn-off hotend\nM140 S0 ;Turn-off bed\n\nM84 X Y E ;Disable all steppers but Z",
+	"machine_start_gcode": "SET_GCODE_VARIABLE MACRO=PRINTER_PARAM VARIABLE=fan0_min VALUE=30 ;compensate for fan speed\nSET_VELOCITY_LIMIT ACCEL_TO_DECEL=2500 ;revert accel_to_decel back to 2500\nM220 S100 ;Reset Feedrate\nM221 S100 ;Reset Flowrate\n\nM140 S[bed_temperature_initial_layer_single] ;Set bed temp\nG28 X Y ;Home XY axes\nM190 S[bed_temperature_initial_layer_single] ;Wait for bed temp to stabilize\nG28 Z ;Home Z axis & load bed mesh\nBED_MESH_CALIBRATE PROBE_COUNT=6,6 ;Auto bed level\n\nM104 S[nozzle_temperature_initial_layer] ;Set nozzle temp\nG92 E0 ;Reset Extruder\nG1 X-2.0 Y20 Z0.3 F5000.0 ;Move to start position\nM109 S[nozzle_temperature_initial_layer] ;Wait for nozzle temp to stabilize\nG1 Z0.2 ;Lower nozzle to printing height\nG1 Y145.0 F1500.0 E15 ;Draw the first line\nG1 X-1.7 F5000.0 ;Move to side a little\nG1 Y30 F1500.0 E15 ;Draw the second line\nG92 E0 ;Reset Extruder",
+	"machine_end_gcode": "G91 ;Relative positionning\nG1 E-2 F2700 ;Retract a bit\nG1 E-2 Z0.2 F2400 ;Retract and raise Z\nG1 X5 Y5 F3000 ;Wipe out\nG1 Z{if max_layer_z < 50}25{else}5{endif} ;Raise Z more\nG90 ;Absolute positionning\nG1 X2 Y218 F3000 ;Present print\nM106 S0 ;Turn-off fan\nM104 S0 ;Turn-off hotend\nM140 S0 ;Turn-off bed\nM84 X Y E ;Disable all steppers but Z",
 	"scan_first_layer": "0",
 	"thumbnails": [
 		"96x96",

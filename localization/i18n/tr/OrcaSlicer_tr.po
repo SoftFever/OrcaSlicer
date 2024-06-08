@@ -1,9 +1,10 @@
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-01 00:42+0800\n"
-"PO-Revision-Date: 2024-04-16 03:39+0300\n"
+"POT-Creation-Date: 2024-06-05 22:05+0200\n"
+"PO-Revision-Date: 2024-06-02 22:13+0300\n"
 "Last-Translator: Olcay ÖREN\n"
 "Language-Team: \n"
 "Language: tr\n"
@@ -11,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n==1) ? 0 : 1;\n"
-"X-Generator: Poedit 3.4.2\n"
+"X-Generator: Poedit 3.4.4\n"
 
 msgid "Supports Painting"
 msgstr "Destek Boyama"
@@ -1017,7 +1018,7 @@ msgstr ""
 "belirtmeniz gerekir."
 
 msgid "No symbol"
-msgstr "No symbol"
+msgstr "Sembol yok"
 
 msgid "Loading"
 msgstr "Yükleniyor"
@@ -1103,13 +1104,13 @@ msgstr "SVG eylemleri"
 msgid "SVG"
 msgstr "SVG"
 
-#, fuzzy, boost-format
+#, boost-format
 msgid "Opacity (%1%)"
-msgstr "Opaklık (%1)"
+msgstr "Opaklık (%1%)"
 
-#, fuzzy, boost-format
+#, boost-format
 msgid "Color gradient (%1%)"
-msgstr "Renk gradyanı (%1)"
+msgstr "Renk gradyanı (%1%)"
 
 msgid "Undefined fill type"
 msgstr "Tanımsız dolgu türü"
@@ -1136,22 +1137,22 @@ msgstr ""
 "Son şekil, aynı koordinata sahip birden fazla noktanın kendi kendine "
 "kesişimini içerir."
 
-#, fuzzy, boost-format
+#, boost-format
 msgid "Shape is marked as invisible (%1%)."
-msgstr "Şekil görünmez (%1) olarak işaretlendi."
+msgstr "Şekil görünmez (%1%) olarak işaretlendi."
 
 #. TRN: The first placeholder is shape identifier, the second one is text describing the problem.
-#, fuzzy, boost-format
+#, boost-format
 msgid "Fill of shape (%1%) contains unsupported: %2%."
-msgstr "Şeklin dolgusu (%1) desteklenmeyenleri içeriyor: %2%."
+msgstr "Şeklin dolgusu (%1%) desteklenmeyenleri içeriyor: %2%."
 
-#, fuzzy, boost-format
+#, boost-format
 msgid "Stroke of shape (%1%) is too thin (minimal width is %2% mm)."
-msgstr "Şeklin konturu (%1) çok ince (minimum genişlik %2 mm'dir)."
+msgstr "Şeklin konturu (%1%) çok ince (minimum genişlik %2% mm'dir)."
 
-#, fuzzy, boost-format
+#, boost-format
 msgid "Stroke of shape (%1%) contains unsupported: %2%."
-msgstr "Şeklin konturu (%1) desteklenmeyenleri içeriyor: %2%."
+msgstr "Şeklin konturu (%1%) desteklenmeyenleri içeriyor: %2%."
 
 msgid "Face the camera"
 msgstr "Kameraya bak"
@@ -1204,9 +1205,9 @@ msgid "Size in emboss direction."
 msgstr "Kabartma yönünde boyut."
 
 #. TRN: The placeholder contains a number.
-#, fuzzy, boost-format
+#, boost-format
 msgid "Scale also changes amount of curve samples (%1%)"
-msgstr "Ölçek ayrıca eğri örneklerinin miktarını da değiştirir (%1)"
+msgstr "Ölçek ayrıca eğri örneklerinin miktarını da değiştirir (%1%)"
 
 msgid "Width of SVG."
 msgstr "SVG'nin genişliği."
@@ -1249,21 +1250,21 @@ msgstr "Ayna"
 msgid "Choose SVG file for emboss:"
 msgstr "Kabartma için SVG dosyasını seçin:"
 
-#, fuzzy, boost-format
+#, boost-format
 msgid "File does NOT exist (%1%)."
-msgstr "Dosya mevcut DEĞİL (%1)."
+msgstr "Dosya mevcut DEĞİL (%1%)."
 
 #, boost-format
 msgid "Filename has to end with \".svg\" but you selected %1%"
 msgstr "Dosya adının \".svg\" ile bitmesi gerekiyor ancak siz %1%'i seçtiniz"
 
-#, fuzzy, boost-format
+#, boost-format
 msgid "Nano SVG parser can't load from file (%1%)."
-msgstr "Nano SVG ayrıştırıcı dosyadan (%1) yüklenemiyor."
+msgstr "Nano SVG ayrıştırıcı dosyadan (%1%) yüklenemiyor."
 
-#, fuzzy, boost-format
+#, boost-format
 msgid "SVG file does NOT contain a single path to be embossed (%1%)."
-msgstr "SVG dosyası kabartma yapılacak tek bir yol İÇERMEZ (%1)."
+msgstr "SVG dosyası kabartma yapılacak tek bir yol İÇERMEZ (%1%)."
 
 msgid "Vertex"
 msgstr "Tepe noktası"
@@ -1299,7 +1300,7 @@ msgid "Select point"
 msgstr "Nokta seç"
 
 msgid "Delete"
-msgstr "Sil"
+msgstr "Delete"
 
 msgid "Restart selection"
 msgstr "Seçimi sıfırla"
@@ -1383,9 +1384,6 @@ msgstr "Yapılandırma paketi yüklendi ancak bazı değerler tanınamadı."
 msgid ""
 "Configuration file \"%1%\" was loaded, but some values were not recognized."
 msgstr "\"%1%\" yapılandırma dosyası yüklendi ancak bazı değerler tanınamadı."
-
-msgid "V"
-msgstr "V"
 
 msgid ""
 "OrcaSlicer will terminate because of running out of memory.It may be a bug. "
@@ -1496,6 +1494,9 @@ msgstr ""
 msgid "Choose one or more files (3mf/step/stl/svg/obj/amf):"
 msgstr "Bir veya daha fazla dosya seçin (3mf/step/stl/svg/obj/amf):"
 
+msgid "Choose ZIP file"
+msgstr "ZIP dosyasını seçin:"
+
 msgid "Choose one file (gcode/3mf):"
 msgstr "Bir dosya seçin (gcode/3mf):"
 
@@ -1565,6 +1566,13 @@ msgstr "Devam eden yüklemeler"
 
 msgid "Select a G-code file:"
 msgstr "G kodu dosyası seçin:"
+
+msgid ""
+"Could not start URL download. Destination folder is not set. Please choose "
+"destination folder in Configuration Wizard."
+msgstr ""
+"URL indirme işlemi başlatılamadı. Hedef klasör ayarlanmamış. Lütfen "
+"Yapılandırma Sihirbazı’nda hedef klasörü seçin."
 
 msgid "Import File"
 msgstr "Dosya İçe Aktar"
@@ -1891,6 +1899,9 @@ msgstr "Şekil Ekle"
 msgid "Add Handy models"
 msgstr "Pratik Modeller Ekle"
 
+msgid "Add Models"
+msgstr "Model Ekle"
+
 msgid "Show Labels"
 msgstr "Etiketleri Göster"
 
@@ -1940,19 +1951,19 @@ msgid "Arrange"
 msgstr "Hizala"
 
 msgid "arrange current plate"
-msgstr "mevcut plakayı hizala"
+msgstr "Mevcut plakayı hizala"
 
 msgid "Reload All"
-msgstr ""
+msgstr "Tümünü Yeniden Yükle"
 
 msgid "reload all from disk"
-msgstr ""
+msgstr "Hepsini diskten yeniden yükle"
 
 msgid "Auto Rotate"
 msgstr "Otomatik döndürme"
 
 msgid "auto rotate current plate"
-msgstr "geçerli plakayı otomatik döndürme"
+msgstr "Geçerli plakayı otomatik döndürme"
 
 msgid "Delete Plate"
 msgstr "Plakayı Sil"
@@ -2378,7 +2389,7 @@ msgstr "Yazıcıya bağlanılamadı"
 msgid "Connection to printer failed"
 msgstr "Yazıcıya bağlantı başarısız oldu"
 
-msgid "Please check the network connection of the printer and Studio."
+msgid "Please check the network connection of the printer and Orca."
 msgstr "Lütfen yazıcının ve Studio'nun ağ bağlantısını kontrol edin."
 
 msgid "Connecting..."
@@ -2403,7 +2414,7 @@ msgid "AMS not connected"
 msgstr "AMS bağlı değil"
 
 msgid "Load"
-msgstr ""
+msgstr "Yükle"
 
 msgid "Unload"
 msgstr "Boşalt"
@@ -2467,6 +2478,8 @@ msgid ""
 "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically "
 "load or unload filaments."
 msgstr ""
+"Bir AMS yuvası seçin ve filamentleri otomatik olarak yüklemek veya boşaltmak "
+"için “Yükle” veya “Boşalt” düğmesine basın."
 
 msgid "Edit"
 msgstr "Düzenle"
@@ -2733,14 +2746,8 @@ msgstr "Orca Dilimleyici şu lisansa sahiptir: "
 msgid "GNU Affero General Public License, version 3"
 msgstr "GNU Affero Genel Kamu Lisansı, sürüm 3"
 
-msgid ""
-"Orca Slicer is based on BambuStudio by Bambulab, which is from PrusaSlicer "
-"by Prusa Research.  PrusaSlicer is from Slic3r by Alessandro Ranellucci and "
-"the RepRap community"
-msgstr ""
-"Orca Slicer, Prusa Research'ün PrusaSlicer'ından Bambulab'ın "
-"BambuStudio'sunu temel alıyor. PrusaSlicer, Alessandro Ranellucci ve RepRap "
-"topluluğu tarafından hazırlanan Slic3r'dendir"
+msgid "Orca Slicer is based on PrusaSlicer and BambuStudio"
+msgstr "Orca Slicer, PrusaSlicer ve BambuStudio’yu temel alır"
 
 msgid "Libraries"
 msgstr "Kütüphaneler"
@@ -2802,10 +2809,10 @@ msgstr ""
 "Sıcaklık"
 
 msgid "max"
-msgstr "maks"
+msgstr "maksimum"
 
 msgid "min"
-msgstr "min"
+msgstr "minimum"
 
 #, boost-format
 msgid "The input value should be greater than %1% and less than %2%"
@@ -3092,12 +3099,14 @@ msgstr ""
 "bir makaraya devam edecektir"
 
 msgid "Air Printing Detection"
-msgstr ""
+msgstr "Hava Baskısı Algılama"
 
 msgid ""
 "Detects clogging and filament grinding, halting printing immediately to "
 "conserve time and filament."
 msgstr ""
+"Tıkanmayı ve filament taşmasını algılar, zamandan ve filamentten tasarruf "
+"etmek için yazdırmayı anında durdurur."
 
 msgid "File"
 msgstr "Dosya"
@@ -3179,7 +3188,7 @@ msgid "Successfully executed post-processing script"
 msgstr "İşlem sonrası komut dosyası başarıyla çalıştırıldı"
 
 msgid "Unknown error occured during exporting G-code."
-msgstr ""
+msgstr "G kodu dışa aktarılırken bilinmeyen bir hata oluştu."
 
 #, boost-format
 msgid ""
@@ -3187,6 +3196,9 @@ msgid ""
 "card is write locked?\n"
 "Error message: %1%"
 msgstr ""
+"Geçici G kodunun çıkış G koduna kopyalanması başarısız oldu. Belki SD kart "
+"yazma kilitlidir.\n"
+"Hata mesajı: %1%"
 
 #, boost-format
 msgid ""
@@ -3194,28 +3206,37 @@ msgid ""
 "problem with target device, please try exporting again or using different "
 "device. The corrupted output G-code is at %1%.tmp."
 msgstr ""
+"Geçici G kodunun çıkış G koduna kopyalanması başarısız oldu. Hedef cihazda "
+"sorun olabilir, lütfen tekrar dışa aktarmayı veya farklı bir cihaz "
+"kullanmayı deneyin. Bozuk çıktı G kodu %1%.tmp konumunda."
 
 #, boost-format
 msgid ""
 "Renaming of the G-code after copying to the selected destination folder has "
 "failed. Current path is %1%.tmp. Please try exporting again."
 msgstr ""
+"Seçilen hedef klasöre kopyalandıktan sonra G kodunun yeniden adlandırılması "
+"başarısız oldu. Geçerli yol: %1%.tmp. Lütfen dışa aktarmayı tekrar deneyin."
 
 #, boost-format
 msgid ""
 "Copying of the temporary G-code has finished but the original code at %1% "
 "couldn't be opened during copy check. The output G-code is at %2%.tmp."
 msgstr ""
+"Geçici G kodunun kopyalanması tamamlandı ancak %1% konumundaki orijinal kod "
+"kopyalama kontrolü sırasında açılamadı. Çıkış G kodu %2%.tmp konumundadır."
 
 #, boost-format
 msgid ""
 "Copying of the temporary G-code has finished but the exported code couldn't "
 "be opened during copy check. The output G-code is at %1%.tmp."
 msgstr ""
+"Geçici G kodunun kopyalanması tamamlandı ancak kopya kontrolü sırasında dışa "
+"aktarılan kod açılamadı. Çıkış G kodu %1%.tmp konumundadır."
 
 #, boost-format
 msgid "G-code file exported to %1%"
-msgstr ""
+msgstr "G kodu dosyası %1%’e aktarıldı"
 
 msgid "Unknown error when export G-code."
 msgstr "G kodunu dışa aktarırken bilinmeyen hata."
@@ -3239,8 +3260,228 @@ msgstr ""
 "\"%1%\" hedefine yükleme planlanıyor. Bkz. Pencere -> Ana Bilgisayar Yükleme "
 "Sırasını Yazdır"
 
+msgid "Device"
+msgstr "Cihaz"
+
+msgid "Task Sending"
+msgstr "Görev Gönderme"
+
+msgid "Task Sent"
+msgstr "Görev Gönderildi"
+
+msgid "Edit multiple printers"
+msgstr "Birden fazla yazıcıyı düzenleme"
+
+msgid "Select connected printetrs (0/6)"
+msgstr "Bağlı yazıcıları seçin (0/6)"
+
+#, c-format, boost-format
+msgid "Select Connected Printetrs (%d/6)"
+msgstr "Bağlı Yazıcıları Seçin (%d/6)"
+
+#, c-format, boost-format
+msgid "The maximum number of printers that can be selected is %d"
+msgstr "Seçilebilecek maksimum yazıcı sayısı %d'dır"
+
+msgid "Offline"
+msgstr "Çevrimdışı"
+
+msgid "No task"
+msgstr "Görev yok"
+
+msgid "View"
+msgstr "Görünüm"
+
+msgid "N/A"
+msgstr "N/A"
+
+msgid "Edit Printers"
+msgstr "Yazıcıları Düzenle"
+
+msgid "Device Name"
+msgstr "Cihaz Adı"
+
+msgid "Task Name"
+msgstr "Görev Adı"
+
+msgid "Device Status"
+msgstr "Cihaz Durumu"
+
+msgid "Actions"
+msgstr "İşlemler"
+
+msgid ""
+"Please select the devices you would like to manage here (up to 6 devices)"
+msgstr "Lütfen buradan yönetmek istediğiniz cihazları seçin (en fazla 6 cihaz)"
+
+msgid "Add"
+msgstr "Ekle"
+
+msgid "Idle"
+msgstr "Boşta"
+
+msgid "Printing"
+msgstr "Baskı"
+
+msgid "Upgrading"
+msgstr "Yükseltiliyor"
+
+msgid "Incompatible"
+msgstr "Uyumsuz"
+
+msgid "syncing"
+msgstr "Senkronize ediliyor"
+
+msgid "Printing Finish"
+msgstr "Yazdırma Bitti"
+
+msgid "Printing Failed"
+msgstr "Yazdırma Başarısız"
+
+msgid "PrintingPause"
+msgstr "Yazdırma Duraklatıldı"
+
+msgid "Prepare"
+msgstr "Hazırlık"
+
+msgid "Slicing"
+msgstr "Dilimleniyor"
+
+msgid "Pending"
+msgstr "Askıda"
+
+msgid "Sending"
+msgstr "Gönderiliyor"
+
+msgid "Sending Finish"
+msgstr "Gönderme Bitti"
+
+msgid "Sending Cancel"
+msgstr "Gönderme İptal Oldu"
+
+msgid "Sending Failed"
+msgstr "Gönderim Başarısız"
+
+msgid "Print Success"
+msgstr "Yazdırma Başarılı"
+
+msgid "Print Failed"
+msgstr "Yazdırma Başarısız"
+
+msgid "Removed"
+msgstr "Kaldırıldı"
+
+msgid "Resume"
+msgstr "Sürdür"
+
+msgid "Stop"
+msgstr "Durdur"
+
+msgid "Task Status"
+msgstr "Görev durumu"
+
+msgid "Sent Time"
+msgstr "Gönderilen Zaman"
+
+msgid "There are no tasks to be sent!"
+msgstr "Gönderilecek görev yok!"
+
+msgid "No historical tasks!"
+msgstr "Tarihi görevler yok!"
+
+msgid "Loading..."
+msgstr "Yükleniyor..."
+
+msgid "No AMS"
+msgstr "AMS Yok"
+
+msgid "Send to Multi-device"
+msgstr "Çoklu cihaza gönder"
+
+msgid "Preparing print job"
+msgstr "Yazdırma için hazırlanıyor"
+
+msgid "Abnormal print file data. Please slice again"
+msgstr "Anormal yazdırma dosyası verileri. Lütfen tekrar dilimleyin"
+
+msgid "There is no device available to send printing."
+msgstr "Baskı göndermek için kullanılabilir bir cihaz yok."
+
+msgid "The number of printers in use simultaneously cannot be equal to 0."
+msgstr "Aynı anda kullanımda olan yazıcı sayısı 0'a eşit olamaz."
+
+msgid "Use External Spool"
+msgstr "Harici Makara Kullanın"
+
+msgid "Use AMS"
+msgstr "AMS kullanın"
+
+msgid "Select Printers"
+msgstr "Yazıcıları Seçin"
+
+msgid "Ams Status"
+msgstr "Ams Durumu"
+
+msgid "Printing Options"
+msgstr "Yazdırma Seçenekleri"
+
+msgid "Bed Leveling"
+msgstr "Yatak Tesviyesi"
+
+msgid "Timelapse"
+msgstr "Timelapse"
+
+msgid "Flow Dynamic Calibration"
+msgstr "Akış Dinamik Kalibrasyonu"
+
+msgid "Send Options"
+msgstr "Gönderme Seçenekleri"
+
+msgid "Send to"
+msgstr ""
+
+msgid ""
+"printers at the same time.(It depends on how many devices can undergo "
+"heating at the same time.)"
+msgstr ""
+"aynı anda kaç yazıcının ısıtma işleminden geçebileceği, aynı anda "
+"ısıtılabilecek cihaz sayısına bağlıdır."
+
+msgid "Wait"
+msgstr "Bekleyin"
+
+msgid ""
+"minute each batch.(It depends on how long it takes to complete the heating.)"
+msgstr ""
+"her parti başına dakika. (Isıtmanın tamamlanması ne kadar sürerse buna "
+"bağlıdır.)"
+
+msgid "Send"
+msgstr "Gönder"
+
+msgid "Name is invalid;"
+msgstr "Geçersiz isim;"
+
+msgid "illegal characters:"
+msgstr "yasadışı karakterler:"
+
+msgid "illegal suffix:"
+msgstr "yasadışı sonek:"
+
+msgid "The name is not allowed to be empty."
+msgstr "Ad alanı boş bırakılamaz."
+
+msgid "The name is not allowed to start with space character."
+msgstr "Adın boşluk karakteriyle başlamasına izin verilmez."
+
+msgid "The name is not allowed to end with space character."
+msgstr "Adın boşluk karakteriyle bitmesine izin verilmez."
+
+msgid "The name length exceeds the limit."
+msgstr "Ad uzunluğu sınırı aşıyor."
+
 msgid "Origin"
-msgstr "Menşei"
+msgstr "Konum"
 
 msgid "Size in X and Y of the rectangular plate."
 msgstr "Dikdörtgen plakanın X ve Y boyutları."
@@ -3759,9 +4000,6 @@ msgstr "Yazıcı Ayarları"
 msgid "parameter name"
 msgstr "parametre adı"
 
-msgid "N/A"
-msgstr "N/A"
-
 #, c-format, boost-format
 msgid "%s can't be percentage"
 msgstr "%s yüzde olamaz"
@@ -3789,6 +4027,18 @@ msgstr ""
 "%s%% mi yoksa %s %s mi?\n"
 "%s%% için EVET,\n"
 "%s %s için HAYIR."
+
+#, boost-format
+msgid ""
+"Invalid input format. Expected vector of dimensions in the following format: "
+"\"%1%\""
+msgstr ""
+
+msgid "Input value is out of range"
+msgstr ""
+
+msgid "Some extension in the input is invalid"
+msgstr ""
 
 #, boost-format
 msgid "Invalid format. Expected vector format: \"%1%\""
@@ -4079,9 +4329,6 @@ msgstr "Ekstrüzyon kalibrasyon bölgesinden kaçın"
 msgid "Align to Y axis"
 msgstr "Y eksenine hizala"
 
-msgid "Add"
-msgstr "Ekle"
-
 msgid "Add plate"
 msgstr "Plaka ekle"
 
@@ -4268,17 +4515,11 @@ msgstr "Bazı ön ayarlar değiştirilirken Uygulama kapatılıyor."
 msgid "Logging"
 msgstr "Günlük kaydı"
 
-msgid "Prepare"
-msgstr "Hazırlık"
-
 msgid "Preview"
 msgstr "Ön İzleme"
 
-msgid "Device"
-msgstr "Yazıcı"
-
 msgid "Multi-device"
-msgstr ""
+msgstr "Çoklu cihaz"
 
 msgid "Project"
 msgstr "Proje"
@@ -4287,7 +4528,7 @@ msgid "Yes"
 msgstr "Evet"
 
 msgid "No"
-msgstr "HAYIR"
+msgstr "Hayır"
 
 msgid "will be closed before creating a new model. Do you want to continue?"
 msgstr ""
@@ -4305,9 +4546,6 @@ msgstr "Hepsini dilimle"
 msgid "Export G-code file"
 msgstr "G-kod dosyasını dışa aktar"
 
-msgid "Send"
-msgstr "Gönder"
-
 msgid "Export plate sliced file"
 msgstr "Dilimlenmiş plaka dosyasını dışa aktar"
 
@@ -4319,9 +4557,6 @@ msgstr "Tümünü yazdır"
 
 msgid "Send all"
 msgstr "Hepsini gönder"
-
-msgid "Send to Multi-device"
-msgstr ""
 
 msgid "Keyboard Shortcuts"
 msgstr "Klavye kısayolları"
@@ -4431,6 +4666,12 @@ msgstr "3MF/STL/STEP/SVG/OBJ/AMF'yi içe aktar"
 msgid "Load a model"
 msgstr "Model yükle"
 
+msgid "Import Zip Archive"
+msgstr "Zip Arşivini İçe Aktar"
+
+msgid "Load models contained within a zip archive"
+msgstr "Zip arşivindeki modelleri yükle"
+
 msgid "Import Configs"
 msgstr "Yapılandırmaları İçe Aktar"
 
@@ -4464,8 +4705,8 @@ msgstr "G-kodunu dışa aktar"
 msgid "Export current plate as G-code"
 msgstr "Geçerli plakayı G kodu olarak dışa aktar"
 
-msgid "Export &Configs"
-msgstr "Yapılandırmaları Dışa Aktar"
+msgid "Export Preset Bundle"
+msgstr "Ön Ayar Paketini Dışa Aktar"
 
 msgid "Export current configuration to files"
 msgstr "Geçerli yapılandırmayı dosyalara aktar"
@@ -4566,9 +4807,6 @@ msgstr "3B sahnede nesne çıkıntısı vurgusunu göster"
 msgid "Preferences"
 msgstr "Tercihler"
 
-msgid "View"
-msgstr "Görünüm"
-
 msgid "Help"
 msgstr "Yardım"
 
@@ -4635,10 +4873,10 @@ msgstr "&Takımyollarını OBJ olarak dışa aktar"
 msgid "Export toolpaths as OBJ"
 msgstr "Takımyollarını OBJ olarak dışa aktar"
 
-msgid "Open &Studio"
+msgid "Open &Slicer"
 msgstr "&Stüdyo'yu aç"
 
-msgid "Open Studio"
+msgid "Open Slicer"
 msgstr "Stüdyoyu Aç"
 
 msgid "&Quit"
@@ -4829,9 +5067,6 @@ msgstr "Bilgi"
 msgid "Playing..."
 msgstr "Oynatılıyor..."
 
-msgid "Loading..."
-msgstr "Yükleniyor..."
-
 msgid "Year"
 msgstr "Yıl"
 
@@ -4849,9 +5084,6 @@ msgstr "Dosyaları aya göre gruplandırın, en yenisi önce olsun."
 
 msgid "Show all files, recent first."
 msgstr "Tüm dosyaları göster, en yenisi önce."
-
-msgid "Timelapse"
-msgstr "Timelapse"
 
 msgid "Switch to timelapse files."
 msgstr "Timelapse dosyalarına geç."
@@ -4996,11 +5228,6 @@ msgstr ""
 "Yazıcıyı yeniden bağladığınızda işlem hemen tamamlanamıyor, lütfen daha "
 "sonra tekrar deneyin."
 
-msgid ""
-"Over 4 systems/handy are using remote access, you can close some and try "
-"again."
-msgstr ""
-
 msgid "File does not exist."
 msgstr "Dosya bulunmuyor."
 
@@ -5058,12 +5285,6 @@ msgstr "Silindir eksenini ters çevir"
 
 msgid "Printing Progress"
 msgstr "Yazdırma İlerlemesi"
-
-msgid "Resume"
-msgstr "Sürdür"
-
-msgid "Stop"
-msgstr "Durdur"
 
 msgid "0"
 msgstr "0"
@@ -5125,7 +5346,7 @@ msgid "Aux"
 msgstr "Yardımcı"
 
 msgid "Cham"
-msgstr "Cham"
+msgstr "Bölme"
 
 msgid "Bed"
 msgstr "Yatak"
@@ -5353,18 +5574,21 @@ msgid ""
 "The 3mf file version is in Beta and it is newer than the current OrcaSlicer  "
 "version."
 msgstr ""
+"3mf dosya sürümü Beta’dadır ve mevcut OrcaSlicer sürümünden daha yenidir."
 
 msgid "If you would like to try Orca Slicer Beta, you may click to"
-msgstr ""
+msgstr "Orca Slicer Beta’yı denemek isterseniz tıklayabilirsiniz."
 
 msgid "Download Beta Version"
 msgstr "Beta Sürümünü İndirin"
 
 msgid "The 3mf file version is newer than the current Orca Slicer version."
-msgstr ""
+msgstr "3mf dosya sürümü mevcut Orca Slicer sürümünden daha yenidir."
 
 msgid "Update your Orca Slicer could enable all functionality in the 3mf file."
 msgstr ""
+"Orca Dilimleyicinizi güncellemek, 3mf dosyasındaki tüm işlevleri "
+"etkinleştirebilir."
 
 msgid "Current Version: "
 msgstr "Şimdiki versiyonu:"
@@ -5444,11 +5668,11 @@ msgstr[1] "%1$d nesne, kesme nesnesinin parçaları olarak yüklendi"
 msgid "ERROR"
 msgstr "HATA"
 
-msgid "CANCELED"
-msgstr "İPTAL EDİLDİ"
-
 msgid "COMPLETED"
 msgstr "TAMAMLANDI"
+
+msgid "CANCELED"
+msgstr "İPTAL EDİLDİ"
 
 msgid "Cancel upload"
 msgstr "Yüklemeyi iptal et"
@@ -5562,10 +5786,12 @@ msgid "Filament Tangle Detect"
 msgstr "Filament Dolaşma Tespiti"
 
 msgid "Nozzle Clumping Detection"
-msgstr ""
+msgstr "Nozul Topaklanma Algılaması"
 
 msgid "Check if the nozzle is clumping by filament or other foreign objects."
 msgstr ""
+"Nozulun filament veya diğer yabancı cisimler nedeniyle topaklanıp "
+"topaklanmadığını kontrol edin."
 
 msgid "Nozzle Type"
 msgstr "Nozul Tipi"
@@ -5836,6 +6062,9 @@ msgstr "Adım dosyasındaki bileşenlerin adı UTF8 formatında değil!"
 msgid "The name may show garbage characters!"
 msgstr "İsimde çöp karakterler görünebilir!"
 
+msgid "Remember my choice."
+msgstr "Seçimimi hatırla."
+
 #, boost-format
 msgid "Failed loading file \"%1%\". An invalid configuration was found."
 msgstr "\"%1%\" dosyası yüklenemedi. Geçersiz bir yapılandırma bulundu."
@@ -5963,9 +6192,6 @@ msgstr "Yeniden yüklenemiyor:"
 msgid "Error during reload"
 msgstr "Yeniden yükleme sırasında hata oluştu"
 
-msgid "Slicing"
-msgstr "Dilimleniyor"
-
 msgid "There are warnings after slicing models:"
 msgstr "Modellerin dilimlenmesinden sonra uyarılar vardır:"
 
@@ -6024,22 +6250,26 @@ msgid "prepare 3mf file..."
 msgstr "3mf dosyasını hazırla..."
 
 msgid "Download failed, unknown file format."
-msgstr ""
+msgstr "İndirme başarısız oldu, dosya türü bilinmiyor."
 
 msgid "downloading project ..."
 msgstr "proje indiriliyor..."
 
 msgid "Download failed, File size exception."
-msgstr ""
+msgstr "İndirme başarısız oldu, Dosya boyutu sorunlu."
 
 #, c-format, boost-format
 msgid "Project downloaded %d%%"
-msgstr "Proje %d%% indirildi"
+msgstr ""
+"Proje %d%% indirildiBambu Studio’ya içe aktarma başarısız oldu. Lütfen "
+"dosyayı indirin ve manuel olarak içe aktarın."
 
 msgid ""
-"Importing to Bambu Studio failed. Please download the file and manually "
+"Importing to Orca Slicer failed. Please download the file and manually "
 "import it."
 msgstr ""
+"Orca Slicer'ya aktarma başarısız oldu. Lütfen dosyayı indirin ve manuel "
+"olarak İçe aktarın."
 
 msgid "Import SLA archive"
 msgstr "SLA arşivini içe aktar"
@@ -6052,6 +6282,22 @@ msgstr "geçerli gcode içermiyor."
 
 msgid "Error occurs while loading G-code file"
 msgstr "G kodu dosyası yüklenirken hata oluşuyor"
+
+#. TRN %1% is archive path
+#, boost-format
+msgid "Loading of a ZIP archive on path %1% has failed."
+msgstr "ZIP arşivinin %1% yoluna yüklenmesi başarısız oldu."
+
+#. TRN: First argument = path to file, second argument = error description
+#, boost-format
+msgid "Failed to unzip file to %1%: %2%"
+msgstr "Dosya %1% konumuna açılamadı: %2%"
+
+#, boost-format
+msgid "Failed to find unzipped file at %1%. Unzipping of file has failed."
+msgstr ""
+"%1%'de sıkıştırılmamış dosya bulunamadı. Dosyanın sıkıştırmadan çıkartılması "
+"başarısız oldu."
 
 msgid "Drop project file"
 msgstr "Proje dosyasını sürükle"
@@ -6077,9 +6323,6 @@ msgstr "G kodu dosyaları modellerle birlikte yüklenemez!"
 msgid "Can not add models when in preview mode!"
 msgstr "Önizleme modundayken model eklenemiyor!"
 
-msgid "Add Models"
-msgstr "Model Ekle"
-
 msgid "All objects will be removed, continue?"
 msgstr "Tüm nesneler kaldırılacak, devam edilsin mi?"
 
@@ -6087,9 +6330,6 @@ msgid "The current project has unsaved changes, save it before continue?"
 msgstr ""
 "Mevcut projede kaydedilmemiş değişiklikler var. Devam etmeden önce "
 "kaydedilsin mi?"
-
-msgid "Remember my choice."
-msgstr "Seçimimi hatırla."
 
 msgid "Number of copies:"
 msgstr "Kopya sayısı:"
@@ -6297,6 +6537,14 @@ msgstr "Giriş Bölgesi"
 msgid "Stealth Mode"
 msgstr "Gizli mod"
 
+msgid ""
+"This stops the transmission of data to Bambu's cloud services. Users who "
+"don't use BBL machines or use LAN mode only can safely turn on this function."
+msgstr ""
+"Bu, Bambu’nun bulut hizmetlerine veri aktarımını durdurur. BBL makinelerini "
+"kullanmayan veya yalnızca LAN modunu kullanan kullanıcılar bu işlevi güvenle "
+"açabilir."
+
 msgid "Enable network plugin"
 msgstr "Ağ eklentisini etkinleştir"
 
@@ -6313,19 +6561,26 @@ msgid "Units"
 msgstr "Birimler"
 
 msgid "Allow only one OrcaSlicer instance"
-msgstr ""
+msgstr "Yalnızca bir OrcaSlicer örneğine izin ver"
 
 msgid ""
 "On OSX there is always only one instance of app running by default. However "
 "it is allowed to run multiple instances of same app from the command line. "
 "In such case this settings will allow only one instance."
 msgstr ""
+"OSX’te her zaman varsayılan olarak çalışan tek bir uygulama örneği vardır. "
+"Ancak aynı uygulamanın birden fazla örneğinin komut satırından "
+"çalıştırılmasına izin verilir. Böyle bir durumda bu ayarlar yalnızca bir "
+"örneğe izin verecektir."
 
 msgid ""
 "If this is enabled, when starting OrcaSlicer and another instance of the "
 "same OrcaSlicer is already running, that instance will be reactivated "
 "instead."
 msgstr ""
+"Bu etkinleştirilirse, OrcaSlicer başlatıldığında ve aynı OrcaSlicer’ın başka "
+"bir örneği zaten çalışıyorken, bunun yerine bu örnek yeniden "
+"etkinleştirilecektir."
 
 msgid "Home"
 msgstr "Ana Sayfa"
@@ -6412,13 +6667,16 @@ msgstr ""
 "Etkinleştirilirse, Orca her yazıcı için filament/işlem yapılandırmasını "
 "hatırlayacak ve otomatik olarak değiştirecektir."
 
-msgid "Multi-device Management(Take effect after restarting Studio)."
+msgid "Multi-device Management(Take effect after restarting Orca)."
 msgstr ""
+"Çoklu Cihaz Yönetimi(Studio yeniden başlatıldıktan sonra geçerli olur)."
 
 msgid ""
 "With this option enabled, you can send a task to multiple devices at the "
 "same time and manage multiple devices."
 msgstr ""
+"Bu seçenek etkinleştirildiğinde, aynı anda birden fazla cihaza bir görev "
+"gönderebilir ve birden fazla cihazı yönetebilirsiniz."
 
 msgid "Network"
 msgstr "Ağ"
@@ -6464,6 +6722,42 @@ msgid "If enabled, sets OrcaSlicer as default application to open .step files"
 msgstr ""
 "Etkinleştirilirse, OrcaSlicer'ı .step dosyalarını açmak için varsayılan "
 "uygulama olarak ayarlar"
+
+msgid "Associate web links to OrcaSlicer"
+msgstr ""
+
+msgid "Associate URLs to OrcaSlicer"
+msgstr ""
+
+msgid "Current association: "
+msgstr "Mevcut dernek:"
+
+msgid "Associate prusaslicer://"
+msgstr "Ortak prusaslicer://"
+
+msgid "Not associated to any application"
+msgstr "Herhangi bir uygulamayla ilişkili değil"
+
+msgid ""
+"Associate OrcaSlicer with prusaslicer:// links so that Orca can open models "
+"from Printable.com"
+msgstr ""
+
+msgid "Associate bambustudio://"
+msgstr ""
+
+msgid ""
+"Associate OrcaSlicer with bambustudio:// links so that Orca can open models "
+"from makerworld.com"
+msgstr ""
+
+msgid "Associate cura://"
+msgstr ""
+
+msgid ""
+"Associate OrcaSlicer with cura:// links so that Orca can open models from "
+"thingiverse.com"
+msgstr ""
 
 msgid "Maximum recent projects"
 msgstr "Maksimum yeni proje"
@@ -6636,9 +6930,6 @@ msgstr "Yazıcıları Seç/Kaldır (sistem ön ayarları)"
 msgid "Create printer"
 msgstr "Yazıcı oluştur"
 
-msgid "Incompatible"
-msgstr "Uyumsuz"
-
 msgid "The selected preset is null!"
 msgstr "Seçilen ön ayar boş!"
 
@@ -6646,7 +6937,7 @@ msgid "End"
 msgstr "Son"
 
 msgid "Customize"
-msgstr "Özelleştirmek"
+msgstr "Özelleştir"
 
 msgid "Other layer filament sequence"
 msgstr "Diğer katman filament dizisi"
@@ -6667,7 +6958,7 @@ msgid "Same as Global"
 msgstr "Küresel ile aynı"
 
 msgid "Disable"
-msgstr "Devre dışı bırakmak"
+msgstr "Devre dışı bırak"
 
 msgid "Spiral vase"
 msgstr "Spiral vazo"
@@ -6676,7 +6967,7 @@ msgid "First layer filament sequence"
 msgstr "İlk katman filament dizisi"
 
 msgid "Same as Global Plate Type"
-msgstr "Global Plaka Tipi ile aynı"
+msgstr "Global plaka tipi ile aynı"
 
 msgid "Same as Global Bed Type"
 msgstr "Global Yatak Tipi ile aynı"
@@ -6688,7 +6979,7 @@ msgid "By Object"
 msgstr "Nesneye göre"
 
 msgid "Accept"
-msgstr "Kabul etmek"
+msgstr "Kabul et"
 
 msgid "Log Out"
 msgstr "Çıkış"
@@ -6733,15 +7024,6 @@ msgstr "Kullanıcı Ön Ayarı"
 msgid "Preset Inside Project"
 msgstr "Ön ayar içerisinde proje"
 
-msgid "Name is invalid;"
-msgstr "Geçersiz isim;"
-
-msgid "illegal characters:"
-msgstr "yasadışı karakterler:"
-
-msgid "illegal suffix:"
-msgstr "yasadışı sonek:"
-
 msgid "Name is unavailable."
 msgstr "Ad kullanılamıyor."
 
@@ -6758,15 +7040,6 @@ msgstr "\"%1%\" ön ayarı zaten mevcut ve mevcut yazıcıyla uyumlu değil."
 
 msgid "Please note that saving action will replace this preset"
 msgstr "Kaydetme eyleminin bu ön ayarın yerini alacağını lütfen unutmayın"
-
-msgid "The name is not allowed to be empty."
-msgstr "Ad alanı boş bırakılamaz."
-
-msgid "The name is not allowed to start with space character."
-msgstr "Adın boşluk karakteriyle başlamasına izin verilmez."
-
-msgid "The name is not allowed to end with space character."
-msgstr "Adın boşluk karakteriyle bitmesine izin verilmez."
 
 msgid "The name cannot be the same as a preset alias name."
 msgstr "Ad, önceden ayarlanmış bir takma adla aynı olamaz."
@@ -6825,9 +7098,6 @@ msgstr "Cihazlarımı bulamıyor musunuz?"
 msgid "Log out successful."
 msgstr "Çıkış Başarılı."
 
-msgid "Offline"
-msgstr "Çevrimdışı"
-
 msgid "Busy"
 msgstr "Meşgul"
 
@@ -6851,9 +7121,6 @@ msgstr "Bambu Dokulu PEI Plaka"
 
 msgid "Send print job to"
 msgstr "Yazdırma işini şuraya gönder"
-
-msgid "Bed Leveling"
-msgstr "Yatak Tesviyesi"
 
 msgid "Flow Dynamics Calibration"
 msgstr "Akış Dinamiği Kalibrasyonu"
@@ -7014,8 +7281,8 @@ msgid "nozzle in preset: %s %s"
 msgstr "önceden ayarlanmış nozul: %s %s"
 
 #, c-format, boost-format
-msgid "nozzle memorized: %.1f %s"
-msgstr "hafızaya alınan nozul: %.1f %s"
+msgid "nozzle memorized: %.2f %s"
+msgstr "hafızaya alınan nozul: %.2f %s"
 
 msgid ""
 "Your nozzle diameter in sliced file is not consistent with memorized nozzle. "
@@ -7048,15 +7315,6 @@ msgid ""
 "Connecting to the printer. Unable to cancel during the connection process."
 msgstr "Yazıcıya bağlanılıyor. Bağlantı işlemi sırasında iptal edilemiyor."
 
-msgid "Preparing print job"
-msgstr "Yazdırma için hazırlanıyor"
-
-msgid "Abnormal print file data. Please slice again"
-msgstr "Anormal yazdırma dosyası verileri. Lütfen tekrar dilimleyin"
-
-msgid "The name length exceeds the limit."
-msgstr "Ad uzunluğu sınırı aşıyor."
-
 msgid ""
 "Caution to use! Flow calibration on Textured PEI Plate may fail due to the "
 "scattered surface."
@@ -7071,7 +7329,7 @@ msgid "Modifying the device name"
 msgstr "Cihaz adını değiştir"
 
 msgid "Bind with Pin Code"
-msgstr ""
+msgstr "Pin Koduyla Bağla"
 
 msgid "Send to Printer SD card"
 msgstr "Yazıcı SD kartına gönder"
@@ -7128,21 +7386,23 @@ msgid ""
 "Please Find the Pin Code in Account page on printer screen,\n"
 " and type in the Pin Code below."
 msgstr ""
+"Lütfen yazıcı ekranındaki Hesap sayfasında Pin Kodunu bulun,\n"
+" ve aşağıya Pin Kodunu yazın."
 
 msgid "Can't find Pin Code?"
-msgstr ""
+msgstr "Pin Kodunu bulamıyor musunuz?"
 
 msgid "Pin Code"
-msgstr ""
+msgstr "Pin Kodu"
 
 msgid "Binding..."
-msgstr ""
+msgstr "Bağlanıyor…"
 
 msgid "Please confirm on the printer screen"
-msgstr ""
+msgstr "Lütfen yazıcı ekranında onaylayın"
 
 msgid "Log in failed. Please check the Pin Code."
-msgstr ""
+msgstr "Giriş başarısız oldu. Lütfen Pin Kodunu kontrol edin."
 
 msgid "Log in printer"
 msgstr "Yazıcıda oturum aç"
@@ -7445,6 +7705,9 @@ msgstr "Destek Filamenti"
 msgid "Tree supports"
 msgstr "Ağaç destekler"
 
+msgid "Skirt"
+msgstr "Etek"
+
 msgid "Prime tower"
 msgstr "Prime Kulesi"
 
@@ -7591,7 +7854,7 @@ msgstr ""
 "maksimum olacaktır"
 
 msgid "Auxiliary part cooling fan"
-msgstr "Yardımcı Parça Soğutma Fanı"
+msgstr "Yardımcı parça soğutma fanı"
 
 msgid "Exhaust fan"
 msgstr "Egzos Fanı"
@@ -7625,6 +7888,14 @@ msgstr "Çoklu Ekstruder MM Yazıcılarda Araç Değiştirme Parametreleri"
 
 msgid "Printable space"
 msgstr "Tabla Ayarı"
+
+#. TRN: First argument is parameter name, the second one is the value.
+#, boost-format
+msgid "Invalid value provided for parameter %1%: %2%"
+msgstr ""
+
+msgid "G-code flavor is switched"
+msgstr ""
 
 msgid "Cooling Fan"
 msgstr "Soğutucu Fan"
@@ -7863,21 +8134,29 @@ msgid ""
 "\n"
 "You can save or discard the preset values you have modified."
 msgstr ""
+"\n"
+"Değiştirdiğiniz ön ayar değerlerini kaydedebilir veya silebilirsiniz."
 
 msgid ""
 "\n"
 "You can save or discard the preset values you have modified, or choose to "
 "transfer the values you have modified to the new preset."
 msgstr ""
+"\n"
+"Değiştirdiğiniz ön ayar değerlerini kaydedebilir veya atabilirsiniz ya da "
+"değiştirdiğiniz değerleri yeni ön ayara aktarmayı seçebilirsiniz."
 
 msgid "You have previously modified your settings."
-msgstr ""
+msgstr "Daha önce ayarlarınızı değiştirdiniz."
 
 msgid ""
 "\n"
 "You can discard the preset values you have modified, or choose to transfer "
 "the modified values to the new project"
 msgstr ""
+"\n"
+"Değiştirdiğiniz ön ayar değerlerini atabilir veya değiştirilen değerleri "
+"yeni projeye aktarmayı seçebilirsiniz."
 
 msgid "Extruders count"
 msgstr "Ekstruder sayısı"
@@ -8080,6 +8359,32 @@ msgstr "İtibaren"
 
 msgid "To"
 msgstr "İle"
+
+msgid ""
+"Windows Media Player is required for this task! Do you want to enable "
+"'Windows Media Player' for your operation system?"
+msgstr ""
+
+msgid ""
+"BambuSource has not correctly been registered for media playing! Press Yes "
+"to re-register it. You will be promoted twice"
+msgstr ""
+
+msgid ""
+"Missing BambuSource component registered for media playing! Please re-"
+"install BambuStutio or seek after-sales help."
+msgstr ""
+
+msgid ""
+"Using a BambuSource from a different install, video play may not work "
+"correctly! Press Yes to fix it."
+msgstr ""
+
+msgid ""
+"Your system is missing H.264 codecs for GStreamer, which are required to "
+"play video.  (Try installing the gstreamer1.0-plugins-bad or gstreamer1.0-"
+"libav packages, then restart Orca Slicer?)"
+msgstr ""
 
 msgid "Bambu Network plug-in not detected."
 msgstr "Bambu Ağı eklentisi algılanmadı."
@@ -8351,6 +8656,12 @@ msgstr "Kaydırıcıyı 5 kat daha hızlı hareket ettirin"
 msgid "Shift+Mouse wheel"
 msgstr "Shift+Fare tekerleği"
 
+msgid "Horizontal slider - Move to start position"
+msgstr "Yatay kaydırıcı - Başlangıç ​​konumuna taşıyın"
+
+msgid "Horizontal slider - Move to last position"
+msgstr "Yatay kaydırıcı - Son konuma git"
+
 msgid "Release Note"
 msgstr "Sürüm notu"
 
@@ -8381,40 +8692,40 @@ msgid "Done"
 msgstr "Tamamlandı"
 
 msgid "resume"
-msgstr ""
+msgstr "Devam et"
 
 msgid "Resume Printing"
-msgstr ""
+msgstr "Yazdırmaya Devam Et"
 
 msgid "Resume Printing(defects acceptable)"
-msgstr ""
+msgstr "Yazdırmaya Devam Et (kusurlar kabul edilebilir)"
 
 msgid "Resume Printing(problem solved)"
-msgstr ""
+msgstr "Yazdırmaya Devam Et (sorun çözüldü)"
 
 msgid "Stop Printing"
-msgstr ""
+msgstr "Yazdırmayı Durdur"
 
 msgid "Check Assistant"
-msgstr ""
+msgstr "Kontrol Asistanı"
 
 msgid "Filament Extruded, Continue"
-msgstr ""
+msgstr "Filament Ekstrüde Edildi, Devam Et"
 
 msgid "Not Extruded Yet, Retry"
-msgstr ""
+msgstr "Henüz Ekstrüde Edilmedi, Tekrar Deneyin"
 
 msgid "Finished, Continue"
-msgstr ""
+msgstr "Bitti, Devam Et"
 
 msgid "Load Filament"
 msgstr "Filament Yükle"
 
 msgid "Filament Loaded, Resume"
-msgstr ""
+msgstr "Filament Yüklendi, Devam Et"
 
 msgid "View Liveview"
-msgstr ""
+msgstr "Canlı Önizlemeyi Görüntüle"
 
 msgid "Confirm and Update Nozzle"
 msgstr "Nozulu Onaylayın ve Güncelleyin"
@@ -8476,12 +8787,6 @@ msgstr "Sürüm:"
 msgid "Update firmware"
 msgstr "Ürün yazılımını güncelle"
 
-msgid "Printing"
-msgstr "Baskı"
-
-msgid "Idle"
-msgstr "Boşta"
-
 msgid "Beta version"
 msgstr "Beta sürüm"
 
@@ -8516,7 +8821,7 @@ msgstr ""
 msgid ""
 "The firmware version is abnormal. Repairing and updating are required before "
 "printing. Do you want to update now? You can also update later on printer or "
-"update next time starting the studio."
+"update next time starting Orca."
 msgstr ""
 "Ürün yazılımı sürümü anormal. Yazdırmadan önce onarım ve güncelleme "
 "yapılması gerekir. Şimdi güncellemek istiyor musunuz? Ayrıca daha sonra "
@@ -8658,9 +8963,6 @@ msgstr "İç Köprü"
 
 msgid "Gap infill"
 msgstr "Boşluk doldurma"
-
-msgid "Skirt"
-msgstr "Etek"
 
 msgid "Support interface"
 msgstr "Destek arayüzü"
@@ -10152,20 +10454,12 @@ msgid ""
 "Order of wall/infill. When the tickbox is unchecked the walls are printed "
 "first, which works best in most cases.\n"
 "\n"
-"Printing walls first may help with extreme overhangs as the walls have the "
+"Printing infill first may help with extreme overhangs as the walls have the "
 "neighbouring infill to adhere to. However, the infill will slighly push out "
 "the printed walls where it is attached to them, resulting in a worse "
 "external surface finish. It can also cause the infill to shine through the "
 "external surfaces of the part."
 msgstr ""
-"Duvar/dolgu sırası. Onay kutusunun işareti kaldırıldığında ilk olarak "
-"duvarlar yazdırılır ve bu çoğu durumda en iyi sonucu verir.\n"
-"\n"
-"Duvarların komşu dolgulara yapışması nedeniyle ilk önce duvarların basılması "
-"aşırı çıkıntılara yardımcı olabilir. Ancak dolgu, baskılı duvarları "
-"tutturulduğu yerden hafifçe dışarı doğru itecek ve bu da daha kötü bir dış "
-"yüzey kalitesine neden olacaktır. Ayrıca dolgunun parçanın dış yüzeylerinden "
-"parlamasına da neden olabilir."
 
 msgid "Wall loop direction"
 msgstr "Duvar döngüsü yönü"
@@ -10634,14 +10928,29 @@ msgstr "Filament satıcısı. Yalnızca gösteri için"
 msgid "(Undefined)"
 msgstr "(Tanımsız)"
 
-msgid "Infill direction"
-msgstr "Dolgu açısı"
+msgid "Sparse infill direction"
+msgstr "Seyrek dolgu yönü"
 
 msgid ""
 "Angle for sparse infill pattern, which controls the start or main direction "
 "of line"
 msgstr ""
 "Hattın başlangıcını veya ana yönünü kontrol eden seyrek dolgu deseni açısı"
+
+msgid "Solid infill direction"
+msgstr "Katı dolgu yönü"
+
+msgid ""
+"Angle for solid infill pattern, which controls the start or main direction "
+"of line"
+msgstr ""
+"Hattın başlangıcını veya ana yönünü kontrol eden katı dolgu deseni açısı"
+
+msgid "Rotate solid infill direction"
+msgstr "Katı dolgu yönünü döndür"
+
+msgid "Rotate the solid infill direction by 90° for each layer."
+msgstr "Katı dolgu yönünü her katman için 90° döndürün."
 
 msgid "Sparse infill density"
 msgstr "Dolgu yoğunluğu"
@@ -10691,7 +11000,7 @@ msgid "Lightning"
 msgstr "Yıldırım"
 
 msgid "Cross Hatch"
-msgstr ""
+msgstr "Çapraz çizgi"
 
 msgid "Sparse infill anchor length"
 msgstr "Dolgu uzunluğu"
@@ -10901,6 +11210,9 @@ msgstr ""
 "düşükse göz ardı edilecektir; bu durumda fan, \"close_fan_the_first_x_layers"
 "\" + 1 katmanında izin verilen maksimum hızda çalışacaktır."
 
+msgid "layer"
+msgstr ""
+
 msgid "Support interface fan speed"
 msgstr "Destekler için fan hızı"
 
@@ -10989,11 +11301,24 @@ msgid "Arc fitting"
 msgstr "Ark"
 
 msgid ""
-"Enable this to get a G-code file which has G2 and G3 moves. And the fitting "
-"tolerance is same with resolution"
+"Enable this to get a G-code file which has G2 and G3 moves. The fitting "
+"tolerance is same as the resolution. \n"
+"\n"
+"Note: For klipper machines, this option is recomended to be disabled. "
+"Klipper does not benefit from arc commands as these are split again into "
+"line segments by the firmware. This results in a reduction in surface "
+"quality as line segments are converted to arcs by the slicer and then back "
+"to line segments by the firmware."
 msgstr ""
 "G2 ve G3 hareketlerine sahip bir G kodu dosyası elde etmek için bunu "
-"etkinleştirin. Ve montaj toleransı çözünürlükle aynıdır"
+"etkinleştirin. Montaj toleransı çözünürlükle aynıdır. \n"
+"\n"
+"Not: Klipper makineler için bu seçeneğin devre dışı bırakılması önerilir. "
+"Klipper, yazılım tarafından tekrar çizgi bölümlerine bölündüğü için yay "
+"komutlarından faydalanmaz. Bu, çizgi bölümlerinin dilimleyici tarafından "
+"yaylara dönüştürülmesi ve ardından donanım yazılımı tarafından tekrar çizgi "
+"bölümlerine dönüştürülmesi nedeniyle yüzey kalitesinde bir azalmaya neden "
+"olur."
 
 msgid "Add line number"
 msgstr "Satır numarası ekle"
@@ -11224,12 +11549,34 @@ msgstr ""
 msgid "Infill/Wall overlap"
 msgstr "Dolgu/Duvar örtüşmesi"
 
+#, no-c-format, no-boost-format
 msgid ""
 "Infill area is enlarged slightly to overlap with wall for better bonding. "
-"The percentage value is relative to line width of sparse infill"
+"The percentage value is relative to line width of sparse infill. Set this "
+"value to ~10-15% to minimize potential over extrusion and accumulation of "
+"material resulting in rough top surfaces."
 msgstr ""
 "Daha iyi yapışma için dolgu alanı duvarla örtüşecek şekilde hafifçe "
-"genişletilir. Yüzde değeri seyrek dolgunun çizgi genişliğine göredir"
+"genişletilir. Yüzde değeri seyrek dolgunun çizgi genişliğine göredir. Aşırı "
+"ekstrüzyon ve pürüzlü üst yüzeylere neden olan malzeme birikmesi "
+"potansiyelini en aza indirmek için bu değeri ~%10-15’e ayarlayın."
+
+msgid "Top/Bottom solid infill/wall overlap"
+msgstr "Üst/Alt katı dolgu/Duvar örtüşmesi"
+
+#, no-c-format, no-boost-format
+msgid ""
+"Top solid infill area is enlarged slightly to overlap with wall for better "
+"bonding and to minimize the appearance of pinholes where the top infill "
+"meets the walls. A value of 25-30% is a good starting point, minimising the "
+"appearance of pinholes. The percentage value is relative to line width of "
+"sparse infill"
+msgstr ""
+"Üst katı dolgu alanı, daha iyi yapışma sağlamak ve üst dolgunun duvarlarla "
+"buluştuğu yerde küçük deliklerin görünümünü en aza indirmek için duvarla üst "
+"üste gelecek şekilde hafifçe genişletilir. %25-30’luk bir değer, iğne "
+"deliklerinin görünümünü en aza indiren iyi bir başlangıç ​​noktasıdır. Yüzde "
+"değeri seyrek dolgunun çizgi genişliğine göredir"
 
 msgid "Speed of internal sparse infill"
 msgstr "İç seyrek dolgunun hızı"
@@ -11601,7 +11948,7 @@ msgstr ""
 "etkinleştirin. G-code komut: M106 P2 S(0-255)"
 
 msgid "Min"
-msgstr "Min"
+msgstr "Minimum"
 
 msgid ""
 "The lowest printable layer height for extruder. Used tp limits the minimum "
@@ -11909,7 +12256,7 @@ msgstr ""
 "kısmı geri çekilir. Geri çekmeyi devre dışı bırakmak için sıfır ayarlayın"
 
 msgid "Long retraction when cut(experimental)"
-msgstr ""
+msgstr "Kesildiğinde uzun geri çekilme (deneysel)"
 
 msgid ""
 "Experimental feature.Retracting and cutting off the filament at a longer "
@@ -11917,14 +12264,20 @@ msgid ""
 "significantly, it may also raise the risk of nozzle clogs or other printing "
 "problems."
 msgstr ""
+"Deneysel özellik. Tasfiyeyi en aza indirmek için değişiklikler sırasında "
+"filamentin daha uzun bir mesafeden geri çekilmesi ve kesilmesi. Bu, yıkamayı "
+"önemli ölçüde azaltırken, aynı zamanda nozul tıkanması veya diğer yazdırma "
+"sorunları riskini de artırabilir."
 
 msgid "Retraction distance when cut"
-msgstr ""
+msgstr "Kesildiğinde geri çekilme mesafesi"
 
 msgid ""
 "Experimental feature.Retraction length before cutting off during filament "
 "change"
 msgstr ""
+"Deneysel özellik.Filament değişimi sırasında kesilmeden önce geri çekilme "
+"uzunluğu"
 
 msgid "Z hop when retract"
 msgstr "Geri çekme esnasında Z sıçraması"
@@ -12301,6 +12654,41 @@ msgstr "Etek yüksekliği"
 msgid "How many layers of skirt. Usually only one layer"
 msgstr "Etek katman sayısı. Genellikle tek katman"
 
+msgid "Draft shield"
+msgstr "Rüzgarlık"
+
+msgid ""
+"A draft shield is useful to protect an ABS or ASA print from warping and "
+"detaching from print bed due to wind draft. It is usually needed only with "
+"open frame printers, i.e. without an enclosure. \n"
+"\n"
+"Options:\n"
+"Enabled = skirt is as tall as the highest printed object.\n"
+"Limited = skirt is as tall as specified by skirt height.\n"
+"\n"
+"Note: With the draft shield active, the skirt will be printed at skirt "
+"distance from the object. Therefore, if brims are active it may intersect "
+"with them. To avoid this, increase the skirt distance value.\n"
+msgstr ""
+"Rüzgar taslağı nedeniyle ABS veya ASA baskının eğrilmesine ve baskı "
+"yatağından ayrılmasına karşı koruma sağlamak için bir rüzgarlık "
+"kullanışlıdır. Genellikle yalnızca açık çerçeveli, yani muhafazasız "
+"yazıcılarda gereklidir. \n"
+"\n"
+"Seçenekler:\n"
+"Etkin = etek, yazdırılan en yüksek nesne kadar uzundur.\n"
+"Sınırlı = etek, etek yüksekliğinin belirttiği kadar uzundur.\n"
+"\n"
+"Not: Rüzgarlık etkinken etek, nesneden etek mesafesinde yazdırılacaktır. Bu "
+"nedenle eğer kenarlar aktifse onlarla kesişebilir. Bunu önlemek için etek "
+"mesafesi değerini artırın.\n"
+
+msgid "Limited"
+msgstr "Sınırlı"
+
+msgid "Enabled"
+msgstr "Etkin"
+
 msgid "Skirt loops"
 msgstr "Etek sayısı"
 
@@ -12315,6 +12703,22 @@ msgid "Speed of skirt, in mm/s. Zero means use default layer extrusion speed."
 msgstr ""
 "Eteğin hızı, mm/s cinsinden. Sıfır, varsayılan katman ekstrüzyon hızının "
 "kullanılması anlamına gelir."
+
+msgid "Skirt minimum extrusion length"
+msgstr "Etek minimum ekstrüzyon uzunluğu"
+
+msgid ""
+"Minimum filament extrusion length in mm when printing the skirt. Zero means "
+"this feature is disabled.\n"
+"\n"
+"Using a non zero value is useful if the printer is set up to print without a "
+"prime line."
+msgstr ""
+"Etek yazdırılırken mm cinsinden minimum filaman ekstrüzyon uzunluğu. Sıfır, "
+"bu özelliğin devre dışı olduğu anlamına gelir.\n"
+"\n"
+"Yazıcı ana hat olmadan yazdırmak üzere ayarlanmışsa sıfır dışında bir değer "
+"kullanmak yararlı olur."
 
 msgid ""
 "The printing speed in exported gcode will be slowed down, when the estimated "
@@ -13074,6 +13478,50 @@ msgstr "Silme kulesi temizleme hatları aralığı"
 msgid "Spacing of purge lines on the wipe tower."
 msgstr "Silme kulesindeki boşaltma hatlarının aralığı."
 
+msgid "Maximum wipe tower print speed"
+msgstr "Maksimum silme kulesi yazdırma hızı"
+
+msgid ""
+"The maximum print speed when purging in the wipe tower and printing the wipe "
+"tower sparse layers. When purging, if the sparse infill speed or calculated "
+"speed from the filament max volumetric speed is lower, the lowest will be "
+"used instead.\n"
+"\n"
+"When printing the sparse layers, if the internal perimeter speed or "
+"calculated speed from the filament max volumetric speed is lower, the lowest "
+"will be used instead.\n"
+"\n"
+"Increasing this speed may affect the tower's stability as well as increase "
+"the force with which the nozzle collides with any blobs that may have formed "
+"on the wipe tower.\n"
+"\n"
+"Before increasing this parameter beyond the default of 90mm/sec, make sure "
+"your printer can reliably bridge at the increased speeds and that ooze when "
+"tool changing is well controlled.\n"
+"\n"
+"For the wipe tower external perimeters the internal perimeter speed is used "
+"regardless of this setting."
+msgstr ""
+"Silme kulesinde temizleme yaparken ve silme kulesi seyrek katmanlarını "
+"yazdırırken maksimum yazdırma hızı. Temizleme sırasında seyrek dolum hızı "
+"veya filamanın maksimum hacimsel hızından hesaplanan hız daha düşükse, bunun "
+"yerine en düşük olanı kullanılacaktır.\n"
+"\n"
+"Seyrek katmanları yazdırırken iç çevre hızı veya filamanın maksimum hacimsel "
+"hızından hesaplanan hız daha düşükse bunun yerine en düşük olanı "
+"kullanılacaktır.\n"
+"\n"
+"Bu hızın arttırılması kulenin stabilitesini etkileyebileceği gibi, nozülün "
+"silme kulesi üzerinde oluşmuş olabilecek damlacıklarla çarpışma kuvvetini de "
+"arttırabilir.\n"
+"\n"
+"Bu parametreyi varsayılan 90 mm/sn’nin üzerine çıkarmadan önce, yazıcınızın "
+"artan hızlarda güvenilir şekilde köprü kurabildiğinden ve takım değişimi iyi "
+"kontrol edildiğinde sızıntı yaptığından emin olun.\n"
+"\n"
+"Silme kulesi dış çevreleri için bu ayardan bağımsız olarak iç çevre hızı "
+"kullanılır."
+
 msgid "Wipe tower extruder"
 msgstr "Silme kulesi ekstruderi"
 
@@ -13501,7 +13949,7 @@ msgstr ""
 "Sıralı yazdırmaya özel. Şu anda yazdırılan nesnenin sıfır tabanlı dizini."
 
 msgid "Has wipe tower"
-msgstr "Has wipe tower"
+msgstr "Silme kulesi var"
 
 msgid "Whether or not wipe tower is being generated in the print."
 msgstr "Yazdırmada silme kulesinin oluşturulup oluşturulmayacağı."
@@ -13546,7 +13994,7 @@ msgid "Total toolchanges"
 msgstr "Toplam takım değişiklikleri"
 
 msgid "Number of toolchanges during the print."
-msgstr "Number of toolchanges during the print."
+msgstr "Yazdırma sırasındaki takım değişikliği sayısı."
 
 msgid "Total volume"
 msgstr "Toplam hacim"
@@ -13841,7 +14289,7 @@ msgid "load_obj: failed to parse"
 msgstr "load_obj: ayrıştırılamadı"
 
 msgid "load mtl in obj: failed to parse"
-msgstr ""
+msgstr "obj’ye mtl yükle: ayrıştırılamadı"
 
 msgid "The file contains polygons with more than 4 vertices."
 msgstr "Dosya 4'ten fazla köşesi olan çokgenler içeriyor."
@@ -13976,6 +14424,11 @@ msgid ""
 "historical results. \n"
 "Do you still want to continue the calibration?"
 msgstr ""
+"Bu makine tipi, püskürtme ucu başına yalnızca 16 geçmiş sonucu tutabilir. "
+"Mevcut geçmiş sonuçları silebilir ve ardından kalibrasyona "
+"başlayabilirsiniz. Veya kalibrasyona devam edebilirsiniz ancak yeni "
+"kalibrasyon geçmişi sonuçları oluşturamazsınız.\n"
+"Hala kalibrasyona devam etmek istiyor musunuz?"
 
 msgid "Connecting to printer..."
 msgstr "Yazıcıya bağlanılıyor..."
@@ -14001,6 +14454,8 @@ msgid ""
 "This machine type can only hold %d history results per nozzle. This result "
 "will not be saved."
 msgstr ""
+"Bu makine türü püskürtme ucu başına yalnızca %d geçmiş sonucunu tutabilir. "
+"Bu sonuç kaydedilmeyecek."
 
 msgid "Internal Error"
 msgstr "İç hata"
@@ -14377,12 +14832,13 @@ msgstr "İşlem"
 #, c-format, boost-format
 msgid "This machine type can only hold %d history results per nozzle."
 msgstr ""
+"Bu makine türü püskürtme ucu başına yalnızca %d geçmiş sonucunu tutabilir."
 
 msgid "Edit Flow Dynamics Calibration"
 msgstr "Akış Dinamiği Kalibrasyonunu Düzenle"
 
 msgid "New Flow Dynamic Calibration"
-msgstr ""
+msgstr "Yeni Akış Dinamik Kalibrasyonu"
 
 msgid "Ok"
 msgstr "Tamam"
@@ -14848,12 +15304,6 @@ msgstr "Dikdörtgen"
 msgid "Printable Space"
 msgstr "Yazdırılabilir Alan"
 
-msgid "X"
-msgstr "X"
-
-msgid "Y"
-msgstr "Y"
-
 msgid "Hot Bed STL"
 msgstr "Sıcak Yatak STL"
 
@@ -15012,7 +15462,7 @@ msgstr ""
 msgid ""
 "\n"
 "\n"
-"Studio has detected that your user presets synchronization function is not "
+"Orca has detected that your user presets synchronization function is not "
 "enabled, which may result in unsuccessful Filament settings on the Device "
 "page. \n"
 "Click \"Sync user presets\" to enable the synchronization function."
@@ -15027,9 +15477,6 @@ msgstr ""
 
 msgid "Printer Setting"
 msgstr "Yazıcı Ayarı"
-
-msgid "Export Configs"
-msgstr "Yapılandırmaları Dışa Aktar"
 
 msgid "Printer config bundle(.orca_printer)"
 msgstr "Yazıcı yapılandırma paketi(.orca_printer)"
@@ -15212,6 +15659,10 @@ msgstr "Daralt"
 
 msgid "Daily Tips"
 msgstr "Günlük İpuçları"
+
+#, c-format, boost-format
+msgid "nozzle memorized: %.1f %s"
+msgstr ""
 
 msgid ""
 "Your nozzle diameter in preset is not consistent with memorized nozzle "
@@ -15427,30 +15878,46 @@ msgid ""
 "It has a small layer height, and results in almost negligible layer lines "
 "and high printing quality. It is suitable for most general printing cases."
 msgstr ""
+"Küçük bir katman yüksekliğine sahiptir ve neredeyse ihmal edilebilir katman "
+"çizgileri ve yüksek baskı kalitesi sağlar. Çoğu genel yazdırma durumu için "
+"uygundur."
 
 msgid ""
 "Compared with the default profile of a 0.2 mm nozzle, it has lower speeds "
 "and acceleration, and the sparse infill pattern is Gyroid. So, it results in "
 "much higher printing quality, but a much longer printing time."
 msgstr ""
+"0,2 mm’lik nozülün varsayılan profiliyle karşılaştırıldığında daha düşük hız "
+"ve ivmeye sahiptir ve seyrek dolgu deseni Gyroid’dir. Böylece çok daha "
+"yüksek baskı kalitesi elde edilir, ancak çok daha uzun baskı süresi elde "
+"edilir."
 
 msgid ""
 "Compared with the default profile of a 0.2 mm nozzle, it has a slightly "
 "bigger layer height, and results in almost negligible layer lines, and "
 "slightly shorter printing time."
 msgstr ""
+"0,2 mm’lik püskürtme ucunun varsayılan profiliyle karşılaştırıldığında, "
+"biraz daha büyük katman yüksekliğine sahiptir ve neredeyse ihmal edilebilir "
+"düzeyde katman çizgileri ve biraz daha kısa yazdırma süresi sağlar."
 
 msgid ""
 "Compared with the default profile of a 0.2 mm nozzle, it has a bigger layer "
 "height, and results in slightly visible layer lines, but shorter printing "
 "time."
 msgstr ""
+"0,2 mm’lik püskürtme ucunun varsayılan profiliyle karşılaştırıldığında, daha "
+"büyük bir katman yüksekliğine sahiptir ve katman çizgilerinin hafifçe "
+"görülebilmesine karşın yazdırma süresinin daha kısa olmasına neden olur."
 
 msgid ""
 "Compared with the default profile of a 0.2 mm nozzle, it has a smaller layer "
 "height, and results in almost invisible layer lines and higher printing "
 "quality, but shorter printing time."
 msgstr ""
+"0,2 mm’lik püskürtme ucunun varsayılan profiliyle karşılaştırıldığında, "
+"katman yüksekliği daha küçüktür ve neredeyse görünmez katman çizgileri ve "
+"daha yüksek baskı kalitesi, ancak daha kısa yazdırma süresi sağlar."
 
 msgid ""
 "Compared with the default profile of a 0.2 mm nozzle, it has a smaller layer "
@@ -15458,12 +15925,20 @@ msgid ""
 "Gyroid. So, it results in almost invisible layer lines and much higher "
 "printing quality, but much longer printing time."
 msgstr ""
+"0,2 mm’lik nozulun varsayılan profiliyle karşılaştırıldığında, daha küçük "
+"katman çizgilerine, daha düşük hızlara ve ivmeye sahiptir ve seyrek dolgu "
+"deseni Gyroid’dir. Böylece neredeyse görünmez katman çizgileri ve çok daha "
+"yüksek baskı kalitesi elde edilir, ancak çok daha uzun baskı süresi elde "
+"edilir."
 
 msgid ""
 "Compared with the default profile of 0.2 mm nozzle, it has a smaller layer "
 "height, and results in minimal layer lines and higher printing quality, but "
 "shorter printing time."
 msgstr ""
+"Varsayılan 0,2 mm püskürtme ucu profiliyle karşılaştırıldığında, daha küçük "
+"katman yüksekliğine sahiptir ve minimum katman çizgileri ve daha yüksek "
+"baskı kalitesi sağlar, ancak daha kısa yazdırma süresi sağlar."
 
 msgid ""
 "Compared with the default profile of a 0.2 mm nozzle, it has a smaller layer "
@@ -15471,35 +15946,55 @@ msgid ""
 "Gyroid. So, it results in minimal layer lines and much higher printing "
 "quality, but much longer printing time."
 msgstr ""
+"0,2 mm’lik nozulun varsayılan profiliyle karşılaştırıldığında, daha küçük "
+"katman çizgilerine, daha düşük hızlara ve ivmeye sahiptir ve seyrek dolgu "
+"deseni Gyroid’dir. Böylece minimum katman çizgileri ve çok daha yüksek baskı "
+"kalitesi elde edilir, ancak çok daha uzun baskı süresi elde edilir."
 
 msgid ""
 "It has a general layer height, and results in general layer lines and "
 "printing quality. It is suitable for most general printing cases."
 msgstr ""
+"Genel bir katman yüksekliğine sahiptir ve genel katman çizgileri ve baskı "
+"kalitesiyle sonuçlanır. Çoğu genel yazdırma durumu için uygundur."
 
 msgid ""
 "Compared with the default profile of a 0.4 mm nozzle, it has more wall loops "
 "and a higher sparse infill density. So, it results in higher strength of the "
 "prints, but more filament consumption and longer printing time."
 msgstr ""
+"0,4 mm’lik nozulun varsayılan profiliyle karşılaştırıldığında, daha fazla "
+"duvar döngüsüne ve daha yüksek seyrek dolgu yoğunluğuna sahiptir. Bu, "
+"baskıların daha güçlü olmasına, ancak daha fazla filaman tüketimine ve daha "
+"uzun baskı süresine neden olur."
 
 msgid ""
 "Compared with the default profile of a 0.4 mm nozzle, it has a bigger layer "
 "height, and results in more apparent layer lines and lower printing quality, "
 "but slightly shorter printing time."
 msgstr ""
+"0,4 mm’lik püskürtme ucunun varsayılan profiliyle karşılaştırıldığında, daha "
+"büyük bir katman yüksekliğine sahiptir ve daha belirgin katman çizgileri ve "
+"daha düşük baskı kalitesi sağlar, ancak biraz daha kısa yazdırma süresi "
+"sağlar."
 
 msgid ""
 "Compared with the default profile of a 0.4 mm nozzle, it has a bigger layer "
 "height, and results in more apparent layer lines and lower printing quality, "
 "but shorter printing time."
 msgstr ""
+"0,4 mm’lik püskürtme ucunun varsayılan profiliyle karşılaştırıldığında, daha "
+"büyük bir katman yüksekliğine sahiptir ve daha belirgin katman çizgileri ve "
+"daha düşük baskı kalitesi sağlar, ancak daha kısa yazdırma süresi sağlar."
 
 msgid ""
 "Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer "
 "height, and results in less apparent layer lines and higher printing "
 "quality, but longer printing time."
 msgstr ""
+"0,4 mm’lik püskürtme ucunun varsayılan profiliyle karşılaştırıldığında, daha "
+"küçük bir katman yüksekliğine sahiptir ve daha az görünür katman çizgileri "
+"ve daha yüksek baskı kalitesi sağlar, ancak daha uzun yazdırma süresi sağlar."
 
 msgid ""
 "Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer "
@@ -15507,12 +16002,21 @@ msgid ""
 "Gyroid. So, it results in less apparent layer lines and much higher printing "
 "quality, but much longer printing time."
 msgstr ""
+"0,4 mm’lik nozülün varsayılan profiliyle karşılaştırıldığında daha küçük "
+"katman yüksekliğine, daha düşük hızlara ve ivmeye sahiptir ve seyrek dolgu "
+"deseni Gyroid’dir. Böylece daha az belirgin katman çizgileri ve çok daha "
+"yüksek baskı kalitesi elde edilir, ancak çok daha uzun yazdırma süresi elde "
+"edilir."
 
 msgid ""
 "Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer "
 "height, and results in almost negligible layer lines and higher printing "
 "quality, but longer printing time."
 msgstr ""
+"0,4 mm’lik püskürtme ucunun varsayılan profiliyle karşılaştırıldığında, "
+"katman yüksekliği daha küçüktür ve neredeyse göz ardı edilebilir katman "
+"çizgileri ve daha yüksek baskı kalitesi sağlar, ancak daha uzun yazdırma "
+"süresi sağlar."
 
 msgid ""
 "Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer "
@@ -15520,64 +16024,103 @@ msgid ""
 "Gyroid. So, it results in almost negligible layer lines and much higher "
 "printing quality, but much longer printing time."
 msgstr ""
+"0,4 mm’lik nozülün varsayılan profiliyle karşılaştırıldığında daha küçük "
+"katman yüksekliğine, daha düşük hızlara ve ivmeye sahiptir ve seyrek dolgu "
+"deseni Gyroid’dir. Böylece, neredeyse göz ardı edilebilecek düzeyde katman "
+"çizgileri ve çok daha yüksek baskı kalitesi elde edilirken, çok daha uzun "
+"baskı süresi elde edilir."
 
 msgid ""
 "Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer "
 "height, and results in almost negligible layer lines and longer printing "
 "time."
 msgstr ""
+"0,4 mm’lik püskürtme ucunun varsayılan profiliyle karşılaştırıldığında, "
+"katman yüksekliği daha küçüktür ve neredeyse göz ardı edilebilecek düzeyde "
+"katman çizgileri ve daha uzun yazdırma süresi sağlar."
 
 msgid ""
 "It has a big layer height, and results in apparent layer lines and ordinary "
 "printing quality and printing time."
 msgstr ""
+"Büyük bir katman yüksekliğine sahiptir ve belirgin katman çizgileri ile "
+"sıradan baskı kalitesi ve baskı süresi sağlar."
 
 msgid ""
 "Compared with the default profile of a 0.6 mm nozzle, it has more wall loops "
 "and a higher sparse infill density. So, it results in higher strength of the "
 "prints, but more filament consumption and longer printing time."
 msgstr ""
+"0,6 mm’lik nozulun varsayılan profiliyle karşılaştırıldığında, daha fazla "
+"duvar döngüsüne ve daha yüksek seyrek dolgu yoğunluğuna sahiptir. Bu, "
+"baskıların daha güçlü olmasına, ancak daha fazla filaman tüketimine ve daha "
+"uzun baskı süresine neden olur."
 
 msgid ""
 "Compared with the default profile of a 0.6 mm nozzle, it has a bigger layer "
 "height, and results in more apparent layer lines and lower printing quality, "
 "but shorter printing time in some printing cases."
 msgstr ""
+"0,6 mm’lik püskürtme ucunun varsayılan profiliyle karşılaştırıldığında, daha "
+"büyük bir katman yüksekliğine sahiptir ve daha belirgin katman çizgileri ve "
+"daha düşük baskı kalitesi sağlar, ancak bazı yazdırma durumlarında daha kısa "
+"yazdırma süresi sağlar."
 
 msgid ""
 "Compared with the default profile of a 0.6 mm nozzle, it has a bigger layer "
 "height, and results in much more apparent layer lines and much lower "
 "printing quality, but shorter printing time in some printing cases."
 msgstr ""
+"0,6 mm’lik püskürtme ucunun varsayılan profiliyle karşılaştırıldığında, daha "
+"büyük bir katman yüksekliğine sahiptir ve çok daha belirgin katman çizgileri "
+"ve çok daha düşük baskı kalitesi sağlar, ancak bazı yazdırma durumlarında "
+"daha kısa yazdırma süresi sağlar."
 
 msgid ""
 "Compared with the default profile of a 0.6 mm nozzle, it has a smaller layer "
 "height, and results in less apparent layer lines and slight higher printing "
 "quality, but longer printing time."
 msgstr ""
+"0,6 mm’lik püskürtme ucunun varsayılan profiliyle karşılaştırıldığında, daha "
+"küçük bir katman yüksekliğine sahiptir ve katman çizgilerinin daha az "
+"belirgin olmasına ve biraz daha yüksek baskı kalitesine, ancak daha uzun "
+"yazdırma süresine neden olur."
 
 msgid ""
 "Compared with the default profile of a 0.6 mm nozzle, it has a smaller layer "
 "height, and results in less apparent layer lines and higher printing "
 "quality, but longer printing time."
 msgstr ""
+"0,6 mm’lik püskürtme ucunun varsayılan profiliyle karşılaştırıldığında, daha "
+"küçük bir katman yüksekliğine sahiptir ve daha az görünür katman çizgileri "
+"ve daha yüksek baskı kalitesi sağlar, ancak daha uzun yazdırma süresi sağlar."
 
 msgid ""
 "It has a very big layer height, and results in very apparent layer lines, "
 "low printing quality and general printing time."
 msgstr ""
+"Çok büyük bir katman yüksekliğine sahiptir ve çok belirgin katman "
+"çizgilerine, düşük baskı kalitesine ve genel yazdırma süresine neden olur."
 
 msgid ""
 "Compared with the default profile of a 0.8 mm nozzle, it has a bigger layer "
 "height, and results in very apparent layer lines and much lower printing "
 "quality, but shorter printing time in some printing cases."
 msgstr ""
+"0,8 mm’lik püskürtme ucunun varsayılan profiliyle karşılaştırıldığında, daha "
+"büyük bir katman yüksekliğine sahiptir ve çok belirgin katman çizgileri ve "
+"çok daha düşük baskı kalitesiyle sonuçlanır, ancak bazı yazdırma "
+"durumlarında daha kısa yazdırma süresi sağlar."
 
 msgid ""
 "Compared with the default profile of a 0.8 mm nozzle, it has a much bigger "
 "layer height, and results in extremely apparent layer lines and much lower "
 "printing quality, but much shorter printing time in some printing cases."
 msgstr ""
+"0,8 mm’lik püskürtme ucunun varsayılan profiliyle karşılaştırıldığında, çok "
+"daha büyük bir katman yüksekliğine sahiptir ve son derece belirgin katman "
+"çizgileri ve çok daha düşük baskı kalitesiyle sonuçlanır, ancak bazı "
+"yazdırma durumlarında çok daha kısa yazdırma süresi sağlar."
 
 msgid ""
 "Compared with the default profile of a 0.8 mm nozzle, it has a slightly "
@@ -15585,12 +16128,20 @@ msgid ""
 "lines and slightly higher printing quality, but longer printing time in some "
 "printing cases."
 msgstr ""
+"0,8 mm’lik püskürtme ucunun varsayılan profiliyle karşılaştırıldığında, "
+"biraz daha küçük bir katman yüksekliğine sahiptir ve biraz daha az ama yine "
+"de görünür katman çizgileri ve biraz daha yüksek baskı kalitesi sağlar, "
+"ancak bazı yazdırma durumlarında daha uzun yazdırma süresi sağlar."
 
 msgid ""
 "Compared with the default profile of a 0.8 mm nozzle, it has a smaller layer "
 "height, and results in less but still apparent layer lines and slightly "
 "higher printing quality, but longer printing time in some printing cases."
 msgstr ""
+"0,8 mm’lik püskürtme ucunun varsayılan profiliyle karşılaştırıldığında, daha "
+"küçük bir katman yüksekliğine sahiptir ve daha az ama yine de görünür katman "
+"çizgileri ve biraz daha yüksek baskı kalitesi sağlar, ancak bazı yazdırma "
+"durumlarında daha uzun yazdırma süresi sağlar."
 
 msgid "Connected to Obico successfully!"
 msgstr "Obico'ya başarıyla bağlanıldı!"
@@ -16025,6 +16576,80 @@ msgstr ""
 "sıcaklığının uygun şekilde arttırılmasının bükülme olasılığını "
 "azaltabileceğini biliyor muydunuz?"
 
+#~ msgid "X"
+#~ msgstr "X"
+
+#~ msgid "Y"
+#~ msgstr "Y"
+
+#~ msgid ""
+#~ "Associate OrcaSlicer with prusaslicer:// links so that Orca can open "
+#~ "PrusaSlicer links from Printable.com"
+#~ msgstr ""
+#~ "Orca’nın Printable.com’daki PrusaSlicer bağlantılarını açabilmesi için "
+#~ "OrcaSlicer’ı prusaslicer:// bağlantılarıyla ilişkilendirin"
+
+#~ msgid ""
+#~ "Order of wall/infill. When the tickbox is unchecked the walls are printed "
+#~ "first, which works best in most cases.\n"
+#~ "\n"
+#~ "Printing walls first may help with extreme overhangs as the walls have "
+#~ "the neighbouring infill to adhere to. However, the infill will slighly "
+#~ "push out the printed walls where it is attached to them, resulting in a "
+#~ "worse external surface finish. It can also cause the infill to shine "
+#~ "through the external surfaces of the part."
+#~ msgstr ""
+#~ "Duvar/dolgu sırası. Onay kutusunun işareti kaldırıldığında ilk olarak "
+#~ "duvarlar yazdırılır ve bu çoğu durumda en iyi sonucu verir.\n"
+#~ "\n"
+#~ "Duvarların komşu dolgulara yapışması nedeniyle ilk önce duvarların "
+#~ "basılması aşırı çıkıntılara yardımcı olabilir. Ancak dolgu, baskılı "
+#~ "duvarları tutturulduğu yerden hafifçe dışarı doğru itecek ve bu da daha "
+#~ "kötü bir dış yüzey kalitesine neden olacaktır. Ayrıca dolgunun parçanın "
+#~ "dış yüzeylerinden parlamasına da neden olabilir."
+
+#~ msgid "V"
+#~ msgstr "V"
+
+#~ msgid ""
+#~ "Orca Slicer is based on BambuStudio by Bambulab, which is from "
+#~ "PrusaSlicer by Prusa Research.  PrusaSlicer is from Slic3r by Alessandro "
+#~ "Ranellucci and the RepRap community"
+#~ msgstr ""
+#~ "Orca Slicer, Prusa Research'ün PrusaSlicer'ından Bambulab'ın "
+#~ "BambuStudio'sunu temel alıyor. PrusaSlicer, Alessandro Ranellucci ve "
+#~ "RepRap topluluğu tarafından hazırlanan Slic3r'dendir"
+
+#~ msgid "Export &Configs"
+#~ msgstr "Yapılandırmaları Dışa Aktar"
+
+#~ msgid ""
+#~ "Over 4 systems/handy are using remote access, you can close some and try "
+#~ "again."
+#~ msgstr ""
+#~ "4’ten fazla sistem/kullanışlı uzaktan erişimi kullanıyor, bazılarını "
+#~ "kapatıp tekrar deneyebilirsiniz."
+
+#~ msgid "Infill direction"
+#~ msgstr "Dolgu açısı"
+
+#~ msgid ""
+#~ "Enable this to get a G-code file which has G2 and G3 moves. And the "
+#~ "fitting tolerance is same with resolution"
+#~ msgstr ""
+#~ "G2 ve G3 hareketlerine sahip bir G kodu dosyası elde etmek için bunu "
+#~ "etkinleştirin. Ve montaj toleransı çözünürlükle aynıdır"
+
+#~ msgid ""
+#~ "Infill area is enlarged slightly to overlap with wall for better bonding. "
+#~ "The percentage value is relative to line width of sparse infill"
+#~ msgstr ""
+#~ "Daha iyi yapışma için dolgu alanı duvarla örtüşecek şekilde hafifçe "
+#~ "genişletilir. Yüzde değeri seyrek dolgunun çizgi genişliğine göredir"
+
+#~ msgid "Export Configs"
+#~ msgstr "Yapılandırmaları Dışa Aktar"
+
 #~ msgid "Actions For Unsaved Changes"
 #~ msgstr "Kaydedilmemiş Değişikliklere İlişkin İşlemler"
 
@@ -16106,13 +16731,6 @@ msgstr ""
 
 #~ msgid "HMS"
 #~ msgstr "HMS"
-
-#~ msgid ""
-#~ "Importing to Orca Slicer failed. Please download the file and manually "
-#~ "import it."
-#~ msgstr ""
-#~ "Orca Slicer'ya aktarma başarısız oldu. Lütfen dosyayı indirin ve manuel "
-#~ "olarak İçe aktarın."
 
 #~ msgid "- ℃"
 #~ msgstr "- °C"
