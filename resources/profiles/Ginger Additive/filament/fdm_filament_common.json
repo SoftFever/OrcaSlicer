@@ -53,16 +53,13 @@
   "filament_retraction_length": ["nil"],
   "filament_retraction_minimum_travel": ["nil"],
   "filament_retraction_speed": ["nil"],
-  "filament_settings_id": [
-    "Generic PLA template @Ginger Additive Ginger One 1.0 nozzle"
-  ],
+  "filament_settings_id": ["Ginger Filaments Common"],
   "filament_shrink": ["100%"],
   "filament_soluble": ["0"],
   "filament_start_gcode": [
     "; filament start gcode\n{if  (bed_temperature[current_extruder] >45)||(bed_temperature_initial_layer[current_extruder] >45)}M106 P3 S255\n{elsif(bed_temperature[current_extruder] >35)||(bed_temperature_initial_layer[current_extruder] >35)}M106 P3 S180\n{endif}\n\n{if activate_air_filtration[current_extruder] && support_air_filtration}\nM106 P3 S{during_print_exhaust_fan_speed_num[current_extruder]} \n{endif}"
   ],
   "filament_toolchange_delay": ["0"],
-  "filament_type": ["PLA"],
   "filament_unload_time": ["0"],
   "filament_unloading_speed": ["90"],
   "filament_unloading_speed_start": ["100"],
@@ -76,7 +73,7 @@
   "hot_plate_temp": ["1"],
   "hot_plate_temp_initial_layer": ["60"],
   "is_custom_defined": "0",
-  "name": "Ginger Generic PLA @base",
+  "name": "fdm_filament_common",
   "nozzle_temperature": ["220"],
   "nozzle_temperature_initial_layer": ["220"],
   "nozzle_temperature_range_high": ["240"],
