@@ -4679,7 +4679,7 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
         if(discoveredTouchingLines > 1){
             // use extrude instead of travel_to_xy to trigger the unretract
             ExtrusionPath fake_path_wipe(Polyline{pt, current_point}, paths.front());
-            fake_path_wipe.mm3_per_mm = 0;
+            fake_path_wipe.set_force_no_extrusion(true);
             gcode += extrude_path(fake_path_wipe, "move inwards before retraction/seam", speed);
         }
     }
@@ -5300,19 +5300,9 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     // Orca: Dynamic PA
     // If an extrusion role change is detected, set the new PA value according to the latest speed.
     bool need_adaptive_pa = EXTRUDER_CONFIG(adaptive_pressure_advance);
-    if (path.role() != m_last_extrusion_role && need_adaptive_pa){
-        // get the PA calibration values from the extruder
-        std::string pa_calibration_values = EXTRUDER_CONFIG(adaptive_pressure_advance_model);
-        // parse the data and run the regression
-        int pchip_return_flag = m_PchipInterpolator->parseAndSetData(pa_calibration_values);
-        // calculate the new PA value
-        double predicted_pa = (*m_PchipInterpolator)(speed);
-        // Check error flags and, if model did not throw an exception, set the PA value in the Gcode.
-        if((pchip_return_flag !=-1) && (predicted_pa >= 0) && (std::abs(m_last_pa - predicted_pa)>EPSILON)){
-            gcode += m_writer.set_pressure_advance(predicted_pa);
-            m_last_pa = predicted_pa;
-        }
-    }
+    bool evaluate_adaptive_pa = false;
+    if (path.role() != m_last_extrusion_role && (need_adaptive_pa))
+        evaluate_adaptive_pa = true;
     
     //Orca: process custom gcode for extrusion role change
     if (path.role() != m_last_extrusion_role && !m_config.change_extrusion_role_gcode.value.empty()) {
@@ -5368,6 +5358,33 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         m_last_height = path.height;
         sprintf(buf, ";%s%g\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Height).c_str(), m_last_height);
         gcode += buf;
+    }
+    
+    // Orca: Dynamic PA
+    // If an extrusion role change is detected, set the new PA value according to the latest speed.
+    // DEV Notes: 
+    // This section below has one bug - as it is applied before the slowdown for layertime calculations are done (the cooling buffer execution), the speed and hence flow rate per mm
+    // and therefore the needed PA may be different to the computed one below if any layer has been slowed down due to layer time restrictions.
+    // Therefore, this section below will be removed and replaced with a GCODE Tag to enable post processor to identify when the PA needs changing, reducing parsing efforts
+    // Variables to publish to the post processor:
+    // 1) Tag to trigger a PA change (because of a role was triggered)
+    // 2) mm3_per_mm value (to then multiply by the final model print speed after slowdown for cooling is applied) and calculate the final volumetric flow rate for the feature
+    // The print speed should be the first G1 F statement after this tag is found in the GCODE.
+    // The above tags should simplify the creation of a gcode post processor
+    if (evaluate_adaptive_pa){
+        // get the PA calibration values from the extruder
+        std::string pa_calibration_values = EXTRUDER_CONFIG(adaptive_pressure_advance_model);
+        // parse the data and run the regression
+        int pchip_return_flag = m_PchipInterpolator->parseAndSetData(pa_calibration_values);
+        // calculate the new PA value based on volumetric flow speed (mm3/sec).
+        double predicted_pa = (*m_PchipInterpolator)(path.mm3_per_mm * speed);
+        // DEBUG GCODE MESSAGE
+        //gcode += ";MM3 per sec: " + std::to_string(path.mm3_per_mm * speed) + " Speed: "+std::to_string(speed) + "\n";
+        // Check error flags and, if model did not throw an exception, set the PA value in the Gcode.
+        if((pchip_return_flag !=-1) && (predicted_pa >= 0) && (std::abs(m_last_pa - predicted_pa)>EPSILON)){
+            gcode += m_writer.set_pressure_advance(predicted_pa);
+            m_last_pa = predicted_pa;
+        }
     }
 
     auto overhang_fan_threshold = EXTRUDER_CONFIG(overhang_fan_threshold);
@@ -5612,7 +5629,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             double new_speed = pre_processed_point.speed * 60.0;
             if (last_set_speed != new_speed) {
                 // ORCA: Adaptive PA for slowdown for overhangs and other variable speeds not triggered by extrusion role changes
-                need_adaptive_pa = EXTRUDER_CONFIG(adaptive_pressure_advance);
+                /*need_adaptive_pa = EXTRUDER_CONFIG(adaptive_pressure_advance);
                 bool need_adaptive_pa_overhangs = EXTRUDER_CONFIG(adaptive_pressure_advance_overhangs);
                 
                 if (need_adaptive_pa && need_adaptive_pa_overhangs){
@@ -5628,7 +5645,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                         gcode += m_writer.set_pressure_advance(predicted_pa);
                         m_last_pa = predicted_pa;
                     }
-                }
+                }*/
                 gcode += m_writer.set_speed(new_speed, "", comment);
                 last_set_speed = new_speed;
             }
