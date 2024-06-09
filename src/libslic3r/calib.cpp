@@ -37,7 +37,7 @@ double CalibPressureAdvance::e_per_mm(
     const Flow   line_flow     = Flow(line_width, layer_height, nozzle_diameter);
     const double filament_area = M_PI * std::pow(filament_diameter / 2, 2);
 
-    return line_flow.mm3_per_mm() / filament_area * print_flow_ratio;
+    return line_flow.mm3_per_mm() * print_flow_ratio / filament_area ;
 }
 
 std::string CalibPressureAdvance::convert_number_to_string(double num) const
