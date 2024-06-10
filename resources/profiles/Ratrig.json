@@ -27,6 +27,18 @@
         {
             "name": "RatRig V-Cast",
             "sub_path": "machine/RatRig V-Cast.json"
+        },
+        {
+            "name": "RatRig V-Core 4 300",
+            "sub_path": "machine/RatRig V-Core 4 300.json"
+        },
+        {
+            "name": "RatRig V-Core 4 400",
+            "sub_path": "machine/RatRig V-Core 4 400.json"
+        },
+        {
+            "name": "RatRig V-Core 4 500",
+            "sub_path": "machine/RatRig V-Core 4 500.json"
         }
     ],
     "process_list": [
@@ -61,6 +73,42 @@
         {
             "name": "0.28mm Extra Draft @RatRig",
             "sub_path": "process/0.28mm Extra Draft @RatRig.json"
+        },
+        {
+            "name": "0.30mm Big @RatRig Core V4 0.6",
+            "sub_path": "process/0.30mm Big @RatRig Core V4 0.6.json"
+        },
+        {
+            "name": "0.25mm Speed @RatRig Core V4 0.4",
+            "sub_path": "process/0.25mm Speed @RatRig Core V4 0.4.json"
+        },
+        {
+            "name": "0.25mm Speed @RatRig Core V4 0.5",
+            "sub_path": "process/0.25mm Speed @RatRig Core V4 0.5.json"
+        },
+        {
+            "name": "0.25mm Speed @RatRig Core V4 0.6",
+            "sub_path": "process/0.25mm Speed @RatRig Core V4 0.6.json"
+        },
+        {
+            "name": "0.25mm Quality Speed @RatRig Core V4 0.4",
+            "sub_path": "process/0.25mm Quality Speed @RatRig Core V4 0.4.json"
+        },
+        {
+            "name": "0.25mm Quality Speed @RatRig Core V4 0.5",
+            "sub_path": "process/0.25mm Quality Speed @RatRig Core V4 0.5.json"
+        },
+        {
+            "name": "0.25mm Quality Speed @RatRig Core V4 0.6",
+            "sub_path": "process/0.25mm Quality Speed @RatRig Core V4 0.6.json"
+        },
+        {
+            "name": "0.20mm Quality @RatRig Core V4 0.4",
+            "sub_path": "process/0.20mm Quality @RatRig Core V4 0.4.json"
+        },
+        {
+            "name": "0.20mm Quality @RatRig Core V4 0.5",
+            "sub_path": "process/0.20mm Quality @RatRig Core V4 0.5.json"
         }
     ],
     "filament_list": [
@@ -177,6 +225,42 @@
         {
             "name": "RatRig V-Cast 0.6 nozzle",
             "sub_path": "machine/RatRig V-Cast 0.6 nozzle.json"
+        },
+        {
+            "name": "RatRig V-Core 4 300 0.4 nozzle",
+            "sub_path": "machine/RatRig V-Core 4 300 0.4 nozzle.json"
+        },
+        {
+            "name": "RatRig V-Core 4 300 0.5 nozzle",
+            "sub_path": "machine/RatRig V-Core 4 300 0.5 nozzle.json"
+        },
+        {
+            "name": "RatRig V-Core 4 300 0.6 nozzle",
+            "sub_path": "RatRig V-Core 4 300 0.6 nozzle.json"
+        },
+        {
+            "name": "RatRig V-Core 4 400 0.4 nozzle",
+            "sub_path": "machine/RatRig V-Core 4 400 0.4 nozzle.json"
+        },
+        {
+            "name": "RatRig V-Core 4 400 0.5 nozzle",
+            "sub_path": "machine/RatRig V-Core 4 400 0.5 nozzle.json"
+        },
+        {
+            "name": "RatRig V-Core 4 400 0.6 nozzle",
+            "sub_path": "RatRig V-Core 4 400 0.6 nozzle.json"
+        },
+        {
+            "name": "RatRig V-Core 4 500 0.4 nozzle",
+            "sub_path": "machine/RatRig V-Core 4 500 0.4 nozzle.json"
+        },
+        {
+            "name": "RatRig V-Core 4 500 0.5 nozzle",
+            "sub_path": "machine/RatRig V-Core 4 500 0.5 nozzle.json"
+        },
+        {
+            "name": "RatRig V-Core 4 500 0.6 nozzle",
+            "sub_path": "RatRig V-Core 4 500 0.6 nozzle.json"
         }
     ]
 }
