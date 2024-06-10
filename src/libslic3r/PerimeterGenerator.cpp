@@ -34,6 +34,8 @@ static const int max_overhang_degree = overhang_sampling_number - 1;
 //we think it's small detail area and will generate smaller line width for it
 static constexpr double SMALLER_EXT_INSET_OVERLAP_TOLERANCE = 0.22;
 
+thread_local bool rand_init = false;
+
 namespace Slic3r {
 
 // Hierarchy of perimeters.
@@ -63,6 +65,14 @@ public:
 // Thanks Cura developers for this function.
 static void fuzzy_polygon(Polygon &poly, double fuzzy_skin_thickness, double fuzzy_skin_point_distance)
 {
+    if (!rand_init) {
+        // This function gets called from the thread pool, so we can't
+        // srand(time(NULL)) because every thread will likely see the same
+        // timestamp and generate the same noise profile
+        srand(std::hash<std::thread::id>()(std::this_thread::get_id()));
+        rand_init = true;
+    }
+
     const double min_dist_between_points = fuzzy_skin_point_distance * 3. / 4.; // hardcoded: the point distance may vary between 3/4 and 5/4 the supplied value
     const double range_random_point_dist = fuzzy_skin_point_distance / 2.;
     double dist_left_over = double(rand()) * (min_dist_between_points / 2) / double(RAND_MAX); // the distance to be traversed on the line before making the first new point
