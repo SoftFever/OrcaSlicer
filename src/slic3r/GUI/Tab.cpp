@@ -3255,8 +3255,6 @@ void TabFilament::build()
 
         // Orca: adaptive pressure advance and calibration model
         optgroup->append_single_option_line("adaptive_pressure_advance");
-        // ORCA: adaptive PA - hide this option for now as initial tests demonstrate adverse impact on print quality.
-        // optgroup->append_single_option_line("adaptive_pressure_advance_overhangs");
     
         option = optgroup->get_option("adaptive_pressure_advance_model");
         option.opt.full_width = true;
@@ -3553,7 +3551,6 @@ void TabFilament::toggle_options()
         // If PA is not enabled, disable adaptive pressure advance and hide the model section
         // If adaptive PA is not enabled, hide the adaptive PA model section
         toggle_option("adaptive_pressure_advance", pa);
-        toggle_option("adaptive_pressure_advance_overhangs", pa);
         bool has_adaptive_pa = m_config->opt_bool("adaptive_pressure_advance", 0);
         toggle_line("adaptive_pressure_advance_model", has_adaptive_pa && pa);
     }

@@ -1042,7 +1042,6 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloats,              pressure_advance))
     // Orca: adaptive pressure advance and calibration model
     ((ConfigOptionBools,                adaptive_pressure_advance))
-    ((ConfigOptionBools,                adaptive_pressure_advance_overhangs))
     ((ConfigOptionStrings,             adaptive_pressure_advance_model))
     //
     ((ConfigOptionFloat,               fan_kickstart))
