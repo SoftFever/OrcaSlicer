@@ -667,8 +667,6 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
 
         // SoftFever: set new PA for new filament
         if (gcodegen.config().enable_pressure_advance.get_at(new_extruder_id)) {
-            //ORCA: Reset dynamic PA on tool change
-            gcodegen.m_last_pa = 0;
             gcode += gcodegen.writer().set_pressure_advance(gcodegen.config().pressure_advance.get_at(new_extruder_id));
         }
 
@@ -857,8 +855,6 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
 
         // SoftFever: set new PA for new filament
         if (new_extruder_id != -1 && gcodegen.config().enable_pressure_advance.get_at(new_extruder_id)) {
-            //ORCA: Reset dynamic PA on tool change
-            gcodegen.m_last_pa = 0;
             gcode += gcodegen.writer().set_pressure_advance(gcodegen.config().pressure_advance.get_at(new_extruder_id));
         }
 
@@ -1982,9 +1978,6 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     if (m_config.small_area_infill_flow_compensation.value && !print.config().small_area_infill_flow_compensation_model.empty())
         m_small_area_infill_flow_compensator = make_unique<SmallAreaInfillFlowCompensator>(print.config());
     
-    // Orca: Dynamic PA. Initialise interpolator
-    m_PchipInterpolator = std::make_unique<PchipInterpolator>();
-    m_last_pa = 0; // Initialize last PA to 0
 
     file.write_format("; HEADER_BLOCK_START\n");
     // Write information on the generator.
@@ -2233,6 +2226,9 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
     m_cooling_buffer = make_unique<CoolingBuffer>(*this);
     m_cooling_buffer->set_current_extruder(initial_extruder_id);
+    
+    // Orca: Initialise AdaptivePA processor filter
+    m_pa_processor = make_unique<AdaptivePAProcessor>(*this);
 
     // Emit machine envelope limits for the Marlin firmware.
     this->print_machine_envelope(file, print);
@@ -2876,6 +2872,12 @@ void GCode::process_layers(
                 return in.gcode;
             return cooling_buffer.process_layer(std::move(in.gcode), in.layer_id, in.cooling_buffer_flush);
         });
+    const auto pa_processor_filter = tbb::make_filter<std::string, std::string>(slic3r_tbb_filtermode::serial_in_order,
+            [&pa_processor = *this->m_pa_processor](std::string in) -> std::string {
+                return pa_processor.process_layer(std::move(in));
+            }
+        );
+    
     const auto output = tbb::make_filter<std::string, void>(slic3r_tbb_filtermode::serial_in_order,
         [&output_stream](std::string s) { output_stream.write(s); }
     );
@@ -2906,9 +2908,9 @@ void GCode::process_layers(
     else if (m_spiral_vase)
     	tbb::parallel_pipeline(12, generator & spiral_mode & cooling & fan_mover & output);
     else if	(m_pressure_equalizer)
-        tbb::parallel_pipeline(12, generator & pressure_equalizer & cooling & fan_mover & output);
+        tbb::parallel_pipeline(12, generator & pressure_equalizer & cooling & fan_mover & pa_processor_filter & output);
     else
-    	tbb::parallel_pipeline(12, generator & cooling & fan_mover & output);
+    	tbb::parallel_pipeline(12, generator & cooling & fan_mover & pa_processor_filter & output);
 }
 
 // Process all layers of a single object instance (sequential mode) with a parallel pipeline:
@@ -5298,7 +5300,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
 
     double F = speed * 60;  // convert mm/sec to mm/min
     // Orca: Dynamic PA
-    // If an extrusion role change is detected, set the new PA value according to the latest speed.
+    // If an extrusion role change is detected, trigger tagging to evaluate PA in the post processing script
     bool need_adaptive_pa = EXTRUDER_CONFIG(adaptive_pressure_advance);
     bool evaluate_adaptive_pa = false;
     if (path.role() != m_last_extrusion_role && (need_adaptive_pa))
@@ -5361,30 +5363,20 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     }
     
     // Orca: Dynamic PA
-    // If an extrusion role change is detected, set the new PA value according to the latest speed.
-    // DEV Notes: 
-    // This section below has one bug - as it is applied before the slowdown for layertime calculations are done (the cooling buffer execution), the speed and hence flow rate per mm
-    // and therefore the needed PA may be different to the computed one below if any layer has been slowed down due to layer time restrictions.
-    // Therefore, this section below will be removed and replaced with a GCODE Tag to enable post processor to identify when the PA needs changing, reducing parsing efforts
-    // Variables to publish to the post processor:
-    // 1) Tag to trigger a PA change (because of a role was triggered)
-    // 2) mm3_per_mm value (to then multiply by the final model print speed after slowdown for cooling is applied) and calculate the final volumetric flow rate for the feature
+    // If an extrusion role change is detected, place a gcode comment to let the post processor know that
+    // adaptive PA needs evaluation. Variables published to the post processor:
+    // 1) Tag to trigger a PA evaluation (because a role change was identified and the user has requested dynamic PA adjustments)
+    // 2) Current extruder ID
+    // 3) mm3_per_mm value (to then multiply by the final model print speed after slowdown for cooling is applied) and
+    // calculate the final volumetric flow rate for the feature
     // The print speed should be the first G1 F statement after this tag is found in the GCODE.
-    // The above tags should simplify the creation of a gcode post processor
+    // This tag simplifies the creation of the gcode post processor
+    // while also keeping the feature decoupled from other tags.
     if (evaluate_adaptive_pa){
-        // get the PA calibration values from the extruder
-        std::string pa_calibration_values = EXTRUDER_CONFIG(adaptive_pressure_advance_model);
-        // parse the data and run the regression
-        int pchip_return_flag = m_PchipInterpolator->parseAndSetData(pa_calibration_values);
-        // calculate the new PA value based on volumetric flow speed (mm3/sec).
-        double predicted_pa = (*m_PchipInterpolator)(path.mm3_per_mm * speed);
-        // DEBUG GCODE MESSAGE
-        //gcode += ";MM3 per sec: " + std::to_string(path.mm3_per_mm * speed) + " Speed: "+std::to_string(speed) + "\n";
-        // Check error flags and, if model did not throw an exception, set the PA value in the Gcode.
-        if((pchip_return_flag !=-1) && (predicted_pa >= 0) && (std::abs(m_last_pa - predicted_pa)>EPSILON)){
-            gcode += m_writer.set_pressure_advance(predicted_pa);
-            m_last_pa = predicted_pa;
-        }
+        // Debug:
+        // sprintf(buf, ";%sT%g MM3MM:%g %g %g\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::PA_Change).c_str(),m_writer.extruder()->id() ,_mm3_per_mm, path.mm3_per_mm, e_per_mm/m_writer.extruder()->e_per_mm3());
+        sprintf(buf, ";%sT%g MM3MM:%g\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::PA_Change).c_str(),m_writer.extruder()->id() ,_mm3_per_mm);
+        gcode += buf;
     }
 
     auto overhang_fan_threshold = EXTRUDER_CONFIG(overhang_fan_threshold);
@@ -5628,24 +5620,6 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             path_length += line_length;
             double new_speed = pre_processed_point.speed * 60.0;
             if (last_set_speed != new_speed) {
-                // ORCA: Adaptive PA for slowdown for overhangs and other variable speeds not triggered by extrusion role changes
-                /*need_adaptive_pa = EXTRUDER_CONFIG(adaptive_pressure_advance);
-                bool need_adaptive_pa_overhangs = EXTRUDER_CONFIG(adaptive_pressure_advance_overhangs);
-                
-                if (need_adaptive_pa && need_adaptive_pa_overhangs){
-                    // get the PA calibration values from the extruder
-                    std::string pa_calibration_values = EXTRUDER_CONFIG(adaptive_pressure_advance_model);
-                    // parse the data and run the regression
-                    int pchip_return_flag = m_PchipInterpolator->parseAndSetData(pa_calibration_values);
-                    // calculate the new PA value
-                    double predicted_pa = (*m_PchipInterpolator)(new_speed/60);
-                    // Check error flags and compare the new PA to the one calculated at the extrusion role change.
-                    // if model did not throw an exception and if the new pa value is sufficiently different, set the PA value in the Gcode
-                    if ((pchip_return_flag !=-1) && (predicted_pa >= 0) && (std::abs(m_last_pa - predicted_pa)>EPSILON)){
-                        gcode += m_writer.set_pressure_advance(predicted_pa);
-                        m_last_pa = predicted_pa;
-                    }
-                }*/
                 gcode += m_writer.set_speed(new_speed, "", comment);
                 last_set_speed = new_speed;
             }

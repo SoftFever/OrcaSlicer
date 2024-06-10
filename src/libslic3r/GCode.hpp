@@ -24,8 +24,8 @@
 
 #include "GCode/PressureEqualizer.hpp"
 #include "GCode/SmallAreaInfillFlowCompensator.hpp"
-// ORCA: interpolator below used for Dynamic Pressure advance
-#include "GCode/PchipInterpolator.hpp"
+// ORCA: post processor below used for Dynamic Pressure advance
+#include "GCode/AdaptivePAProcessor.hpp"
 
 #include <memory>
 #include <map>
@@ -542,16 +542,13 @@ private:
     std::unique_ptr<SpiralVase>         m_spiral_vase;
 
     std::unique_ptr<PressureEqualizer>  m_pressure_equalizer;
+    
+    std::unique_ptr<AdaptivePAProcessor>      m_pa_processor;
 
     std::unique_ptr<WipeTowerIntegration> m_wipe_tower;
 
     std::unique_ptr<SmallAreaInfillFlowCompensator> m_small_area_infill_flow_compensator;
     
-    std::unique_ptr<PchipInterpolator> m_PchipInterpolator;
-    
-    //ORCA: Dynamic PA
-    double m_last_pa = 0; ///< last PA that was calculated from the PCHIP Interpolator
-
     // Heights (print_z) at which the skirt has already been extruded.
     std::vector<coordf_t>               m_skirt_done;
     // Has the brim been extruded already? Brim is being extruded only for the first object of a multi-object print.
@@ -616,8 +613,6 @@ private:
     friend class PressureEqualizer;
     friend class Print;
     friend class SmallAreaInfillFlowCompensator;
-    // Orca: Dynamic PA feature
-    friend class PchipInterpolator;
 };
 
 std::vector<const PrintInstance*> sort_object_instances_by_model_order(const Print& print, bool init_order = false);
