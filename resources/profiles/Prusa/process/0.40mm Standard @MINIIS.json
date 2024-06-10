@@ -14,7 +14,7 @@
   "internal_solid_infill_line_width": "0.9",
   "support_line_width": "0.65",
   "layer_height": "0.4",
-  "initial_layer_print_height": "0.2",
+  "initial_layer_print_height": "0.3",
   "top_shell_thickness": "1.2",
   "top_shell_layers": "4",
   "bottom_shell_thickness": "0.8",
