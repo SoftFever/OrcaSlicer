@@ -87,40 +87,76 @@
             "sub_path": "process/0.28mm Extra Draft @RatRig.json"
         },
         {
-            "name": "0.30mm Big @RatRig Core V4 0.6",
-            "sub_path": "process/0.30mm Big @RatRig Core V4 0.6.json"
+            "name": "0.30mm Big @RatRig V-Core 4 0.6",
+            "sub_path": "process/0.30mm Big @RatRig V-Core 4 0.6.json"
         },
         {
-            "name": "0.25mm Speed @RatRig Core V4 0.4",
-            "sub_path": "process/0.25mm Speed @RatRig Core V4 0.4.json"
+            "name": "0.25mm Speed @RatRig V-Core 4 0.4",
+            "sub_path": "process/0.25mm Speed @RatRig V-Core 4 0.4.json"
         },
         {
-            "name": "0.25mm Speed @RatRig Core V4 0.5",
-            "sub_path": "process/0.25mm Speed @RatRig Core V4 0.5.json"
+            "name": "0.25mm Speed @RatRig V-Core 4 0.5",
+            "sub_path": "process/0.25mm Speed @RatRig V-Core 4 0.5.json"
         },
         {
-            "name": "0.25mm Speed @RatRig Core V4 0.6",
-            "sub_path": "process/0.25mm Speed @RatRig Core V4 0.6.json"
+            "name": "0.25mm Speed @RatRig V-Core 4 0.6",
+            "sub_path": "process/0.25mm Speed @RatRig V-Core 4 0.6.json"
         },
         {
-            "name": "0.25mm Quality Speed @RatRig Core V4 0.4",
-            "sub_path": "process/0.25mm Quality Speed @RatRig Core V4 0.4.json"
+            "name": "0.25mm Quality Speed @RatRig V-Core 4 0.4",
+            "sub_path": "process/0.25mm Quality Speed @RatRig V-Core 4 0.4.json"
         },
         {
-            "name": "0.25mm Quality Speed @RatRig Core V4 0.5",
-            "sub_path": "process/0.25mm Quality Speed @RatRig Core V4 0.5.json"
+            "name": "0.25mm Quality Speed @RatRig V-Core 4 0.5",
+            "sub_path": "process/0.25mm Quality Speed @RatRig V-Core 4 0.5.json"
         },
         {
-            "name": "0.25mm Quality Speed @RatRig Core V4 0.6",
-            "sub_path": "process/0.25mm Quality Speed @RatRig Core V4 0.6.json"
+            "name": "0.25mm Quality Speed @RatRig V-Core 4 0.6",
+            "sub_path": "process/0.25mm Quality Speed @RatRig V-Core 4 0.6.json"
         },
         {
-            "name": "0.20mm Quality @RatRig Core V4 0.4",
-            "sub_path": "process/0.20mm Quality @RatRig Core V4 0.4.json"
+            "name": "0.20mm Quality @RatRig V-Core 4 0.4",
+            "sub_path": "process/0.20mm Quality @RatRig V-Core 4 0.4.json"
         },
         {
-            "name": "0.20mm Quality @RatRig Core V4 0.5",
-            "sub_path": "process/0.20mm Quality @RatRig Core V4 0.5.json"
+            "name": "0.20mm Quality @RatRig V-Core 4 0.5",
+            "sub_path": "process/0.20mm Quality @RatRig V-Core 4 0.5.json"
+        },
+        {
+            "name": "0.30mm Big @RatRig V-Core 4 HYBRID 0.6",
+            "sub_path": "process/0.30mm Big @RatRig V-Core 4 HYBRID 0.6.json"
+        },
+        {
+            "name": "0.25mm Speed @RatRig V-Core 4 HYBRID 0.4",
+            "sub_path": "process/0.25mm Speed @RatRig V-Core 4 HYBRID 0.4.json"
+        },
+        {
+            "name": "0.25mm Speed @RatRig V-Core 4 HYBRID 0.5",
+            "sub_path": "process/0.25mm Speed @RatRig V-Core 4 HYBRID 0.5.json"
+        },
+        {
+            "name": "0.25mm Speed @RatRig V-Core 4 HYBRID 0.6",
+            "sub_path": "process/0.25mm Speed @RatRig V-Core 4 HYBRID 0.6.json"
+        },
+        {
+            "name": "0.25mm Quality Speed @RatRig V-Core 4 HYBRID 0.4",
+            "sub_path": "process/0.25mm Quality Speed @RatRig V-Core 4 HYBRID 0.4.json"
+        },
+        {
+            "name": "0.25mm Quality Speed @RatRig V-Core 4 HYBRID 0.5",
+            "sub_path": "process/0.25mm Quality Speed @RatRig V-Core 4 HYBRID 0.5.json"
+        },
+        {
+            "name": "0.25mm Quality Speed @RatRig V-Core 4 HYBRID 0.6",
+            "sub_path": "process/0.25mm Quality Speed @RatRig V-Core 4 HYBRID 0.6.json"
+        },
+        {
+            "name": "0.20mm Quality @RatRig V-Core 4 HYBRID 0.4",
+            "sub_path": "process/0.20mm Quality @RatRig V-Core 4 HYBRID 0.4.json"
+        },
+        {
+            "name": "0.20mm Quality @RatRig V-Core 4 HYBRID 0.5",
+            "sub_path": "process/0.20mm Quality @RatRig V-Core 4 HYBRID 0.5.json"
         }
     ],
     "filament_list": [

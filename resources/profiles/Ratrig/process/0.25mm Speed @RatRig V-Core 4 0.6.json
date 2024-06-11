@@ -1,7 +1,7 @@
 {
     "type": "process",
     "setting_id": "GP006",
-    "name": "0.25mm Speed @RatRig Core V4 0.4",
+    "name": "0.25mm Speed @RatRig V-Core 4 0.6",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_process_ratrig_common",
@@ -53,8 +53,8 @@
     "resolution": "0.0125",
     "elefant_foot_compensation": "0.1",
     "compatible_printers": [
-        "RatRig V-Core 4 300 0.4 nozzle",
-        "RatRig V-Core 4 400 0.4 nozzle", 
-        "RatRig V-Core 4 500 0.4 nozzle"
+        "RatRig V-Core 4 300 0.6 nozzle",
+        "RatRig V-Core 4 400 0.6 nozzle", 
+        "RatRig V-Core 4 500 0.6 nozzle"
     ]
 }

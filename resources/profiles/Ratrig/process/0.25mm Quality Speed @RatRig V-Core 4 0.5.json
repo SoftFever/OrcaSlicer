@@ -1,7 +1,7 @@
 {
     "type": "process",
     "setting_id": "GP006",
-    "name": "0.25mm Quality Speed @RatRig Core V4 0.5",
+    "name": "0.25mm Quality Speed @RatRig V-Core 4 0.5",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_process_ratrig_common",
