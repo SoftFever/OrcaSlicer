@@ -39,6 +39,18 @@
         {
             "name": "RatRig V-Core 4 500",
             "sub_path": "machine/RatRig V-Core 4 500.json"
+        },
+        {
+            "name": "RatRig V-Core 4 HYBRID 300",
+            "sub_path": "machine/RatRig V-Core 4 HYBRID 300.json"
+        },
+        {
+            "name": "RatRig V-Core 4 HYBRID 400",
+            "sub_path": "machine/RatRig V-Core 4 HYBRID 400.json"
+        },
+        {
+            "name": "RatRig V-Core 4 HYBRID 500",
+            "sub_path": "machine/RatRig V-Core 4 HYBRID 500.json"
         }
     ],
     "process_list": [
@@ -261,6 +273,42 @@
         {
             "name": "RatRig V-Core 4 500 0.6 nozzle",
             "sub_path": "machine/RatRig V-Core 4 500 0.6 nozzle.json"
+        },
+        {
+            "name": "RatRig V-Core 4 HYBRID 300 0.4 nozzle",
+            "sub_path": "machine/RatRig V-Core 4 HYBRID 300 0.4 nozzle.json"
+        },
+        {
+            "name": "RatRig V-Core 4 HYBRID 300 0.5 nozzle",
+            "sub_path": "machine/RatRig V-Core 4 HYBRID 300 0.5 nozzle.json"
+        },
+        {
+            "name": "RatRig V-Core 4 HYBRID 300 0.6 nozzle",
+            "sub_path": "machine/RatRig V-Core 4 HYBRID 300 0.6 nozzle.json"
+        },
+        {
+            "name": "RatRig V-Core 4 HYBRID 400 0.4 nozzle",
+            "sub_path": "machine/RatRig V-Core 4 HYBRID 400 0.4 nozzle.json"
+        },
+        {
+            "name": "RatRig V-Core 4 HYBRID 400 0.5 nozzle",
+            "sub_path": "machine/RatRig V-Core 4 HYBRID 400 0.5 nozzle.json"
+        },
+        {
+            "name": "RatRig V-Core 4 HYBRID 400 0.6 nozzle",
+            "sub_path": "machine/RatRig V-Core 4 HYBRID 400 0.6 nozzle.json"
+        },
+        {
+            "name": "RatRig V-Core 4 HYBRID 500 0.4 nozzle",
+            "sub_path": "machine/RatRig V-Core 4 HYBRID 500 0.4 nozzle.json"
+        },
+        {
+            "name": "RatRig V-Core 4 HYBRID 500 0.5 nozzle",
+            "sub_path": "machine/RatRig V-Core 4 HYBRID 500 0.5 nozzle.json"
+        },
+        {
+            "name": "RatRig V-Core 4 HYBRID 500 0.6 nozzle",
+            "sub_path": "machine/RatRig V-Core 4 HYBRID 500 0.6 nozzle.json"
         }
     ]
 }
