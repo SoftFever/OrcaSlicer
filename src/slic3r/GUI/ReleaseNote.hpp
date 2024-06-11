@@ -46,7 +46,12 @@ wxDECLARE_EVENT(EVT_SECONDARY_CHECK_CONFIRM, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SECONDARY_CHECK_CANCEL, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SECONDARY_CHECK_RETRY, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SECONDARY_CHECK_DONE, wxCommandEvent);
+wxDECLARE_EVENT(EVT_SECONDARY_CHECK_RESUME, wxCommandEvent);
+wxDECLARE_EVENT(EVT_PRINT_ERROR_STOP, wxCommandEvent);
 wxDECLARE_EVENT(EVT_UPDATE_NOZZLE, wxCommandEvent);
+wxDECLARE_EVENT(EVT_LOAD_VAMS_TRAY, wxCommandEvent);
+wxDECLARE_EVENT(EVT_JUMP_TO_HMS, wxCommandEvent);
+wxDECLARE_EVENT(EVT_JUMP_TO_LIVEVIEW, wxCommandEvent);
 
 class ReleaseNoteDialog : public DPIDialog
 {
@@ -116,8 +121,9 @@ public:
         CONFIRM_AND_CANCEL  = 1,
         CONFIRM_AND_DONE    = 2,
         CONFIRM_AND_RETRY   = 3,
-        DONE_AND_RETRY      = 4,
-        MAX_STYLE_NUM       = 5
+        CONFIRM_AND_RESUME  = 4,
+        DONE_AND_RETRY      = 5,
+        MAX_STYLE_NUM       = 6
     };
     SecondaryCheckDialog(
         wxWindow* parent,
@@ -150,10 +156,74 @@ public:
     Button* m_button_retry { nullptr };
     Button* m_button_cancel { nullptr };
     Button* m_button_fn { nullptr };
+    Button* m_button_resume { nullptr };
     wxCheckBox* m_show_again_checkbox;
     ButtonStyle m_button_style;
     bool not_show_again = false;
     std::string show_again_config_text = "";
+};
+
+class PrintErrorDialog : public DPIFrame
+{
+private:
+    wxWindow* event_parent{ nullptr };
+public:
+    enum PrintErrorButton {
+        RESUME_PRINTING = 2,
+        RESUME_PRINTING_DEFECTS = 3,
+        RESUME_PRINTING_PROBELM_SOLVED = 4,
+        STOP_PRINTING = 5,
+        CHECK_ASSISTANT = 6,
+        FILAMENT_EXTRUDED = 7,
+        RETRY_FILAMENT_EXTRUDED = 8,
+        CONTINUE = 9,
+        LOAD_VIRTUAL_TRAY = 10,
+        OK_BUTTON = 11,
+        FILAMENT_LOAD_RESUME,
+        JUMP_TO_LIVEVIEW,
+        ERROR_BUTTON_COUNT
+    };
+    PrintErrorDialog(
+        wxWindow* parent,
+        wxWindowID      id = wxID_ANY,
+        const wxString& title = wxEmptyString,
+        const wxPoint& pos = wxDefaultPosition,
+        const wxSize& size = wxDefaultSize,
+        long            style = wxCLOSE_BOX | wxCAPTION
+    );
+    void update_text_image(wxString text, wxString image_url);
+    void on_show();
+    void on_hide();
+    void update_title_style(wxString title, std::vector<int> style, wxWindow* parent = nullptr);
+    void post_event(wxCommandEvent&& event);
+    void rescale();
+    ~PrintErrorDialog();
+    void on_dpi_changed(const wxRect& suggested_rect);
+    void msw_rescale();
+    void init_button(PrintErrorButton style, wxString buton_text);
+    void init_button_list();
+    void on_webrequest_state(wxWebRequestEvent& evt);
+
+    StateColor btn_bg_white;
+    wxWebRequest web_request;
+    wxStaticBitmap* m_error_prompt_pic_static;
+    Label* m_staticText_release_note{ nullptr };
+    wxBoxSizer* m_sizer_main;
+    wxBoxSizer* m_sizer_button;
+    wxScrolledWindow* m_vebview_release_note{ nullptr };
+    std::map<int, Button*> m_button_list;
+    std::vector<int> m_used_button;
+};
+
+struct ConfirmBeforeSendInfo
+{
+    enum InfoLevel {
+        Normal = 0,
+        Warning = 1
+    };
+    InfoLevel level;
+    wxString text;
+    ConfirmBeforeSendInfo(wxString txt, InfoLevel lev = Normal) : text(txt), level(lev) {}
 };
 
 class ConfirmBeforeSendDialog : public DPIDialog
@@ -175,12 +245,17 @@ public:
         bool not_show_again_check = false
     );
     void update_text(wxString text);
+    void update_text(std::vector<ConfirmBeforeSendInfo> texts);
     void on_show();
     void on_hide();
     void update_btn_label(wxString ok_btn_text, wxString cancel_btn_text);
     void rescale();
     void on_dpi_changed(const wxRect& suggested_rect);
-    void show_update_nozzle_button();
+    void show_update_nozzle_button(bool show = false);
+    void hide_button_ok();
+    void edit_cancel_button_txt(wxString txt);
+    void disable_button_ok();
+    void enable_button_ok();
     wxString format_text(wxString str, int warp);
 
     ~ConfirmBeforeSendDialog();

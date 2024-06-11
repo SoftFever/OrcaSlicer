@@ -28,13 +28,13 @@ jobs:
     env:
       date:
     steps:
-      
+
       # Setup the environment
       - name: Checkout
         uses: actions/checkout@v4
         with:
           lfs: 'true'
-        
+
       - name: load cached deps
         uses: actions/cache@v4
         with:
@@ -49,13 +49,13 @@ jobs:
         if: inputs.os != 'windows-latest'
         run: echo "date=$(date +'%Y%m%d')" >> $GITHUB_ENV
         shell: bash
-        
+
       - name: Get the date on Windows
         if: inputs.os == 'windows-latest'
         run: echo "date=$(Get-Date -Format 'yyyyMMdd')" | Out-File -Append -FilePath $env:GITHUB_ENV -Encoding utf8
         shell: pwsh
 
-        
+
       # Build Dependencies
       - name: Build on Windows
         if: inputs.os == 'windows-latest'
@@ -98,8 +98,8 @@ jobs:
             ./BuildLinux.sh -dr
             cd deps/build
             tar -czvf OrcaSlicer_dep_ubuntu_$(date +"%Y%m%d").tar.gz destdir
-      
-            
+
+
       # Upload Artifacts
       - name: Upload Mac ${{ inputs.arch }} artifacts
         if: inputs.os == 'macos-12'
@@ -116,12 +116,12 @@ jobs:
           path: ${{ github.workspace }}/deps/build/OrcaSlicer_dep*.zip
 
       - name: Upload Ubuntu artifacts
-        if: inputs.os == 'ubuntu-20.04'
+        if: ${{ ! env.ACT && inputs.os == 'ubuntu-20.04' }}
         uses: actions/upload-artifact@v4
         with:
           name: OrcaSlicer_dep_ubuntu_${{ env.date }}
           path: ${{ github.workspace }}/deps/build/OrcaSlicer_dep_ubuntu_*.tar.gz
-          
+
   build_orca:
     name: Build OrcaSlicer
     needs: [build_deps]
@@ -133,4 +133,3 @@ jobs:
       os: ${{ inputs.os }}
       arch: ${{ inputs.arch }}
     secrets: inherit
-        

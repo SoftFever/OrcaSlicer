@@ -57,6 +57,9 @@
     "filament_is_support": [
         "0"
     ],
+    "filament_long_retractions_when_cut": [
+        "nil"
+    ],
     "filament_max_volumetric_speed": [
         "0"
     ],
@@ -70,6 +73,9 @@
         "nil"
     ],
     "filament_retract_when_changing_layer": [
+        "nil"
+    ],
+    "filament_retraction_distances_when_cut": [
         "nil"
     ],
     "filament_retraction_length": [

@@ -50,6 +50,9 @@ public:
         m_gcode_flavor(flavor),
         m_filpar(filament_parameters)
         {
+            // ORCA: This class is only used by non BBL printers, so set the parameter appropriately.
+            // This fixes an issue where the wipe tower was using BBL tags resulting in statistics for purging in the purge tower not being displayed.
+            GCodeProcessor::s_IsBBLPrinter = false;
             // adds tag for analyzer:
             std::ostringstream str;
             str << ";" << GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Height) << m_layer_height << "\n"; // don't rely on GCodeAnalyzer knowing the layer height - it knows nothing at priming
@@ -547,7 +550,8 @@ WipeTower2::WipeTower2(const PrintConfig& config, const PrintRegionConfig& defau
     m_infill_speed(default_region_config.sparse_infill_speed),
     m_perimeter_speed(default_region_config.inner_wall_speed),
     m_current_tool(initial_tool),
-    wipe_volumes(wiping_matrix)
+    wipe_volumes(wiping_matrix),
+    m_wipe_tower_max_purge_speed(float(config.wipe_tower_max_purge_speed))
 {
     // Read absolute value of first layer speed, if given as percentage,
     // it is taken over following default. Speeds from config are not
@@ -803,9 +807,11 @@ WipeTower::ToolChangeResult WipeTower2::tool_change(size_t tool)
 				"; CP TOOLCHANGE START\n")
 		.comment_with_value(" toolchange #", m_num_tool_changes + 1); // the number is zero-based
 
-    if (tool != (unsigned)(-1))
+    if (tool != (unsigned)(-1)){
         writer.append(std::string("; material : " + (m_current_tool < m_filpar.size() ? m_filpar[m_current_tool].material : "(NONE)") + " -> " + m_filpar[tool].material + "\n").c_str())
-              .append(";--------------------\n");
+            .append(";--------------------\n");
+        writer.append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Wipe_Tower_Start) + "\n");
+    }
 
     writer.speed_override_backup();
 	writer.speed_override(100);
@@ -825,6 +831,7 @@ WipeTower::ToolChangeResult WipeTower2::tool_change(size_t tool)
         toolchange_Load(writer, cleaning_box);
         writer.travel(writer.x(), writer.y()-m_perimeter_width); // cooling and loading were done a bit down the road
         toolchange_Wipe(writer, cleaning_box, wipe_volume);     // Wipe the newly loaded filament until the end of the assigned wipe area.
+        writer.append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Wipe_Tower_End) + "\n");
         ++ m_num_tool_changes;
     } else
         toolchange_Unload(writer, cleaning_box, m_filpar[m_current_tool].material, m_filpar[m_current_tool].temperature);
@@ -1093,7 +1100,7 @@ void WipeTower2::toolchange_Wipe(
     // All the calculations in all other places take the spacing into account for all the layers.
 
 	// If spare layers are excluded->if 1 or less toolchange has been done, it must be sill the first layer, too.So slow down.
-    const float target_speed = is_first_layer() || (m_num_tool_changes <= 1 && m_no_sparse_layers) ? m_first_layer_speed * 60.f : std::min(5400.f, m_infill_speed * 60.f);
+    const float target_speed = is_first_layer() || (m_num_tool_changes <= 1 && m_no_sparse_layers) ? m_first_layer_speed * 60.f : std::min(m_wipe_tower_max_purge_speed * 60.f, m_infill_speed * 60.f);
     float wipe_speed = 0.33f * target_speed;
 
     // if there is less than 2.5*m_perimeter_width to the edge, advance straightaway (there is likely a blob anyway)
@@ -1163,7 +1170,7 @@ WipeTower::ToolChangeResult WipeTower2::finish_layer()
 	// Slow down on the 1st layer.
     // If spare layers are excluded -> if 1 or less toolchange has been done, it must be still the first layer, too. So slow down.
     bool first_layer = is_first_layer() || (m_num_tool_changes <= 1 && m_no_sparse_layers);
-    float                      feedrate      = first_layer ? m_first_layer_speed * 60.f : std::min(5400.f, m_infill_speed * 60.f);
+    float                      feedrate      = first_layer ? m_first_layer_speed * 60.f : std::min(m_wipe_tower_max_purge_speed * 60.f, m_infill_speed * 60.f);
     float current_depth = m_layer_info->depth - m_layer_info->toolchanges_depth();
     WipeTower::box_coordinates fill_box(Vec2f(m_perimeter_width, m_layer_info->depth-(current_depth-m_perimeter_width)),
                              m_wipe_tower_width - 2 * m_perimeter_width, current_depth-m_perimeter_width);

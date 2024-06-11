@@ -6,6 +6,9 @@
     "from": "system",
     "instantiation": "true",
     "inherits": "QIDI ASA",
+    "activate_chamber_temp_control": [
+        "0"
+    ],
     "filament_flow_ratio": [
         "0.92"
     ],
@@ -17,9 +20,6 @@
     ],
     "filament_max_volumetric_speed": [
         "2"
-    ],
-    "activate_chamber_temp_control": [
-        "0"
     ],
 	"compatible_printers": [
 		"Qidi Q1 Pro 0.2 nozzle"

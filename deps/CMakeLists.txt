@@ -42,6 +42,10 @@ endif ()
 
 set(DESTDIR "${CMAKE_CURRENT_BINARY_DIR}/destdir" CACHE PATH "Destination directory")
 set(DEP_DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR}/../DL_CACHE CACHE PATH "Path for downloaded source packages.")
+set(FLATPAK FALSE CACHE BOOL "Toggles various build settings for flatpak, like /usr/local in DESTDIR or not building wxwidgets")
+if (NOT FLATPAK)
+    set(DESTDIR "${DESTDIR}/usr/local/")
+endif()
 
 get_property(_is_multi GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
 
@@ -120,13 +124,13 @@ if (NOT IS_CROSS_COMPILE OR NOT APPLE)
     ExternalProject_Add(
         dep_${projectname}
         EXCLUDE_FROM_ALL    ON
-        INSTALL_DIR         ${DESTDIR}/usr/local
+        INSTALL_DIR         ${DESTDIR}
         DOWNLOAD_DIR        ${DEP_DOWNLOAD_DIR}/${projectname}
         ${_gen}
         CMAKE_ARGS
-            -DCMAKE_INSTALL_PREFIX:STRING=${DESTDIR}/usr/local
+            -DCMAKE_INSTALL_PREFIX:STRING=${DESTDIR}
             -DCMAKE_MODULE_PATH:STRING=${PROJECT_SOURCE_DIR}/../cmake/modules
-            -DCMAKE_PREFIX_PATH:STRING=${DESTDIR}/usr/local
+            -DCMAKE_PREFIX_PATH:STRING=${DESTDIR}
             -DCMAKE_DEBUG_POSTFIX:STRING=d
             -DCMAKE_C_COMPILER:STRING=${CMAKE_C_COMPILER}
             -DCMAKE_CXX_COMPILER:STRING=${CMAKE_CXX_COMPILER}
@@ -140,16 +144,26 @@ if (NOT IS_CROSS_COMPILE OR NOT APPLE)
        BUILD_COMMAND ${CMAKE_COMMAND} --build . --config Release -- ${_build_j}
        INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install --config Release
     )
-else()
+elseif(FLATPAK)
+    # the only reason this is here is because of the HACK at the bottom for ci
+    #
+    # note for future devs: shared libs may actually create a size reduction
+    # but orcaslicer_deps tends to get really funny regarding linking after that (notably boost)
+    # so, as much as I would like to use that, it's not happening
     ExternalProject_Add(
         dep_${projectname}
         EXCLUDE_FROM_ALL    ON
-        INSTALL_DIR         ${DESTDIR}/usr/local
+        INSTALL_DIR         ${DESTDIR}
         DOWNLOAD_DIR        ${DEP_DOWNLOAD_DIR}/${projectname}
         ${_gen}
         CMAKE_ARGS
-            -DCMAKE_INSTALL_PREFIX:STRING=${DESTDIR}/usr/local
-            -DCMAKE_PREFIX_PATH:STRING=${DESTDIR}/usr/local
+            -DCMAKE_INSTALL_PREFIX:STRING=${DESTDIR}
+            -DCMAKE_MODULE_PATH:STRING=${PROJECT_SOURCE_DIR}/../cmake/modules
+            -DCMAKE_PREFIX_PATH:STRING=${DESTDIR}
+            -DCMAKE_DEBUG_POSTFIX:STRING=d
+            -DCMAKE_C_COMPILER:STRING=${CMAKE_C_COMPILER}
+            -DCMAKE_CXX_COMPILER:STRING=${CMAKE_CXX_COMPILER}
+            -DCMAKE_TOOLCHAIN_FILE:STRING=${CMAKE_TOOLCHAIN_FILE}
             -DBUILD_SHARED_LIBS:BOOL=OFF
             ${_cmake_osx_arch}
             "${_configs_line}"
@@ -158,6 +172,29 @@ else()
        ${P_ARGS_UNPARSED_ARGUMENTS}
        BUILD_COMMAND ${CMAKE_COMMAND} --build . --config Release -- ${_build_j}
        INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install --config Release
+       # HACK: save space after each compile job, because CI
+       # reasoning: cmake changes directory after this command, so just keep only the folders
+       # so that it can navigate out
+       COMMAND find "${CMAKE_BINARY_DIR}/dep_${projectname}-prefix/" -type f -delete
+    )
+else()
+    ExternalProject_Add(
+        dep_${projectname}
+        EXCLUDE_FROM_ALL    ON
+        INSTALL_DIR         ${DESTDIR}
+        DOWNLOAD_DIR        ${DEP_DOWNLOAD_DIR}/${projectname}
+        ${_gen}
+        CMAKE_ARGS
+            -DCMAKE_INSTALL_PREFIX:STRING=${DESTDIR}
+            -DCMAKE_PREFIX_PATH:STRING=${DESTDIR}
+            -DBUILD_SHARED_LIBS:BOOL=OFF
+            ${_cmake_osx_arch}
+            "${_configs_line}"
+            ${DEP_CMAKE_OPTS}
+            ${P_ARGS_CMAKE_ARGS}
+       ${P_ARGS_UNPARSED_ARGUMENTS}
+       BUILD_COMMAND ${CMAKE_COMMAND} --build . --config Release -- ${_build_j}
+       INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install --config Release 
     )
 
 endif()
@@ -203,6 +240,20 @@ else()
     include("deps-linux.cmake")
 endif()
 
+if(FLATPAK)
+    # flatpak bundles some deps with the layer, so attempt to find them first
+    # also, yes, this reduces CI by not needing to vendor certain deps
+    find_package(ZLIB)
+    find_package(PNG)
+    find_package(EXPAT)
+    find_package(CURL)
+    find_package(JPEG)
+    find_package(TIFF)
+    find_package(Freetype)
+    find_package(OpenSSL 1.1...<3.2)
+    find_package(CURL)
+endif()
+
 set(ZLIB_PKG "")
 if (NOT ZLIB_FOUND) 
     include(ZLIB/ZLIB.cmake)
@@ -214,6 +265,7 @@ if (NOT PNG_FOUND)
     set(PNG_PKG dep_PNG)
 endif ()
 set(EXPAT_PKG "")
+find_package(EXPAT)
 if (NOT EXPAT_FOUND) 
     include(EXPAT/EXPAT.cmake)
     set(EXPAT_PKG dep_EXPAT)
@@ -226,6 +278,7 @@ include(Boost/Boost.cmake)
 include(Cereal/Cereal.cmake)
 include(Qhull/Qhull.cmake)
 include(GLEW/GLEW.cmake)
+
 include(GLFW/GLFW.cmake)
 include(OpenCSG/OpenCSG.cmake)
 
@@ -241,32 +294,69 @@ include(CGAL/CGAL.cmake)
 
 include(NLopt/NLopt.cmake)
 
-include(OpenSSL/OpenSSL.cmake)
 
+# I *think* 1.1 is used for *just* md5 hashing?
+# 3.1 has everything in the right place, but the md5 funcs used are deprecated
+# a grep across the repo shows it is used for other things
+# TODO: update openssl and everything that uses <openssl/md5.h> 
+set(OPENSSL_PKG "")
+if(NOT OPENSSL_FOUND)
+    include(OpenSSL/OpenSSL.cmake)
+    set(OPENSSL_PKG dep_OpenSSL)
+endif()
+
+# we don't want to load a "wrong" openssl when loading curl
+# so, just don't even bother 
+# ...i think this is how it works? change if wrong
 set(CURL_PKG "")
-if (NOT CURL_FOUND)
+if (NOT OPENSSL_FOUND OR NOT CURL_FOUND)
     include(CURL/CURL.cmake)
     set(CURL_PKG dep_CURL)
 endif ()
 
-include(JPEG/JPEG.cmake)
-include(TIFF/TIFF.cmake)
-include(wxWidgets/wxWidgets.cmake)
+set(JPEG_PKG "")
+if (NOT JPEG_FOUND)
+    include(JPEG/JPEG.cmake)
+    set(JPEG_PKG dep_JPEG)
+endif()
+
+set(TIFF_PKG "")
+if (NOT TIFF_FOUND)
+    include(TIFF/TIFF.cmake)
+    set(TIFF_PKG "dep_TIFF")
+endif()
+
+# flatpak builds wxwidgets separately 
+set(WXWIDGETS_PKG "")
+if (NOT FLATPAK)
+    include(wxWidgets/wxWidgets.cmake)
+    set(WXWIDGETS_PKG "dep_wxWidgets")
+endif()
+
+set(FREETYPE_PKG "")
+if(NOT FREETYPE_FOUND)
+    include(FREETYPE/FREETYPE.cmake)
+    set(FREETYPE_PKG "dep_FREETYPE") 
+endif()
+
 include(OCCT/OCCT.cmake)
-include(FREETYPE/FREETYPE.cmake)
+include(OpenCV/OpenCV.cmake)
 
 set(_dep_list
     dep_Boost
     dep_TBB
+    ${OPENSSL_PKG}
     ${CURL_PKG}
-    dep_wxWidgets
+    ${WXWIDGETS_PKG}
     dep_Cereal
     dep_NLopt
     dep_OpenVDB
     dep_OpenCSG
+    dep_OpenCV
     dep_CGAL
-    dep_OpenSSL
     dep_GLFW
+    dep_OCCT
+    ${FREETYPE_PKG}
     ${PNG_PKG}
     ${ZLIB_PKG}
     ${EXPAT_PKG}
@@ -280,9 +370,6 @@ else()
     # Not working, static build has different Eigen
     #list(APPEND _dep_list "dep_libigl")
 endif()
-
-list(APPEND _dep_list "dep_OCCT")
-list(APPEND _dep_list "dep_FREETYPE")
 
 add_custom_target(deps ALL DEPENDS ${_dep_list})
 

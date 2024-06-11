@@ -41,7 +41,7 @@ void stl_stats_out(stl_file *stl, FILE *file, char *input_file)
     	fprintf(file, "File type          : Binary STL file\n");
   	else
     	fprintf(file, "File type          : ASCII STL file\n");
-  	fprintf(file, "Header             : %s\n", stl->stats.header);
+  	fprintf(file, "Header             : %s\n", stl->stats.header.data());
   	fprintf(file, "============== Size ==============\n");
   	fprintf(file, "Min X = % f, Max X = % f\n", stl->stats.min(0), stl->stats.max(0));
   	fprintf(file, "Min Y = % f, Max Y = % f\n", stl->stats.min(1), stl->stats.max(1));

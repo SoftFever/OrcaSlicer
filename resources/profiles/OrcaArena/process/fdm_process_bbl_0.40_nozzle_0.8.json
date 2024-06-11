@@ -18,7 +18,7 @@
     "internal_solid_infill_line_width": "0.82",
     "support_line_width": "0.82",
     "top_surface_line_width": "0.82",
-    "top_surface_pattern": "monotonic",
+    "top_surface_pattern": "monotonicline",
     "initial_layer_speed": "35",
     "initial_layer_infill_speed": "55",
     "outer_wall_speed": "120",

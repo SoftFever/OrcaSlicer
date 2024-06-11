@@ -598,10 +598,9 @@ wxBitmap *get_extruder_color_icon(std::string color, std::string label, int icon
     return bitmap;
 }
 
-
-void apply_extruder_selector(Slic3r::GUI::BitmapComboBox** ctrl, 
+void apply_extruder_selector(Slic3r::GUI::BitmapComboBox** ctrl,
                              wxWindow* parent,
-                             const std::string& first_item/* = ""*/, 
+                             const std::string& first_item/* = ""*/,
                              wxPoint pos/* = wxDefaultPosition*/,
                              wxSize size/* = wxDefaultSize*/,
                              bool use_thin_icon/* = false*/)

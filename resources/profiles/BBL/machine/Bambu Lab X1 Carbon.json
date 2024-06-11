@@ -4,7 +4,7 @@
     "nozzle_diameter": "0.4;0.2;0.6;0.8",
     "bed_model": "bbl-3dp-X1.stl",
     "bed_texture": "bbl-3dp-logo.svg",
-    "default_bed_type": "Cool Plate",
+    "default_bed_type": "Textured PEI Plate",
     "family": "BBL-3DP",
     "machine_tech": "FFF",
     "model_id": "BL-P001",

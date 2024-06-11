@@ -139,17 +139,17 @@ public:
     
     struct PointGrid3D {
         struct GridHash {
-            std::size_t operator()(const Vec3i &cell_id) const {
+            std::size_t operator()(const Vec3i32 &cell_id) const {
                 return std::hash<int>()(cell_id.x()) ^ std::hash<int>()(cell_id.y() * 593) ^ std::hash<int>()(cell_id.z() * 7919);
             }
         };
-        typedef std::unordered_multimap<Vec3i, RichSupportPoint, GridHash> Grid;
+        typedef std::unordered_multimap<Vec3i32, RichSupportPoint, GridHash> Grid;
         
         Vec3f   cell_size;
         Grid    grid;
         
-        Vec3i cell_id(const Vec3f &pos) {
-            return Vec3i(int(floor(pos.x() / cell_size.x())),
+        Vec3i32 cell_id(const Vec3f &pos) {
+            return Vec3i32(int(floor(pos.x() / cell_size.x())),
                          int(floor(pos.y() / cell_size.y())),
                          int(floor(pos.z() / cell_size.z())));
         }
@@ -163,7 +163,7 @@ public:
         
         bool collides_with(const Vec2f &pos, float print_z, float radius) {
             Vec3f pos3d(pos.x(), pos.y(), print_z);
-            Vec3i cell = cell_id(pos3d);
+            Vec3i32 cell = cell_id(pos3d);
             std::pair<Grid::const_iterator, Grid::const_iterator> it_pair = grid.equal_range(cell);
             if (collides_with(pos3d, radius, it_pair.first, it_pair.second))
                 return true;
@@ -172,7 +172,7 @@ public:
                     for (int k = -1; k < 1; ++ k) {
                         if (i == 0 && j == 0 && k == 0)
                             continue;
-                        it_pair = grid.equal_range(cell + Vec3i(i, j, k));
+                        it_pair = grid.equal_range(cell + Vec3i32(i, j, k));
                         if (collides_with(pos3d, radius, it_pair.first, it_pair.second))
                             return true;
                     }

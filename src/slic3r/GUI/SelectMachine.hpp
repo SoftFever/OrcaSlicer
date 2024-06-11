@@ -64,6 +64,34 @@ enum PrintFromType {
     FROM_SDCARD_VIEW,
 };
 
+static int get_brightness_value(wxImage image) {
+
+    wxImage grayImage = image.ConvertToGreyscale();
+
+    int width = grayImage.GetWidth();
+    int height = grayImage.GetHeight();
+
+    int totalLuminance = 0;
+    unsigned char alpha;
+    int num_none_transparent = 0;
+    for (int y = 0; y < height; y += 2) {
+
+        for (int x = 0; x < width; x += 2) {
+
+            alpha = image.GetAlpha(x, y);
+            if (alpha != 0) {
+                wxColour pixelColor = grayImage.GetRed(x, y);
+                totalLuminance += pixelColor.Red();
+                num_none_transparent = num_none_transparent + 1;
+            }
+        }
+    }
+    if (totalLuminance <= 0 || num_none_transparent <= 0) {
+        return 0;
+    }
+    return totalLuminance / num_none_transparent;
+}
+
 class Material
 {
 public:
@@ -182,6 +210,27 @@ public:
     MachineObjectPanel *mPanel;
 };
 
+class PinCodePanel : public wxPanel
+{
+public:
+    PinCodePanel(wxWindow* parent,
+        wxWindowID      winid = wxID_ANY,
+        const wxPoint& pos = wxDefaultPosition,
+        const wxSize& size = wxDefaultSize);
+    ~PinCodePanel() {};
+
+    ScalableBitmap       m_bitmap;
+    bool           m_hover{false};
+
+    void OnPaint(wxPaintEvent& event);
+    void render(wxDC& dc);
+    void doRender(wxDC& dc);
+
+    void on_mouse_enter(wxMouseEvent& evt);
+    void on_mouse_leave(wxMouseEvent& evt);
+    void on_mouse_left_up(wxMouseEvent& evt);
+};
+
 
 class ThumbnailPanel;
 
@@ -204,8 +253,11 @@ public:
 private:
     int                               m_my_devices_count{0};
     int                               m_other_devices_count{0};
+    PinCodePanel*                     m_panel_ping_code{nullptr};
     wxWindow*                         m_placeholder_panel{nullptr};
     wxHyperlinkCtrl*                  m_hyperlink{nullptr};
+    Label*                            m_ping_code_text{nullptr};
+    wxStaticBitmap*                   m_img_ping_code{nullptr};
     wxBoxSizer *                      m_sizer_body{nullptr};
     wxBoxSizer *                      m_sizer_my_devices{nullptr};
     wxBoxSizer *                      m_sizer_other_devices{nullptr};
@@ -288,7 +340,7 @@ private:
     int                                 m_print_plate_idx{0};
     int                                 m_print_plate_total{0};
     int                                 m_timeout_count{0};
-    int                                 m_print_error_code;
+    int                                 m_print_error_code{0};
     bool                                m_is_in_sending_mode{ false };
     bool                                m_ams_mapping_res{ false };
     bool                                m_ams_mapping_valid{ false };
