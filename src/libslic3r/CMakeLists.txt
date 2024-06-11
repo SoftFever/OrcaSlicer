@@ -163,6 +163,8 @@ set(lisbslic3r_sources
     GCode/RetractWhenCrossingPerimeters.hpp
     GCode/SmallAreaInfillFlowCompensator.cpp
     GCode/SmallAreaInfillFlowCompensator.hpp
+    GCode/PchipInterpolatorHelper.cpp
+    GCode/PchipInterpolatorHelper.hpp
     GCode/PchipInterpolator.cpp
     GCode/PchipInterpolator.hpp
     GCode/AdaptivePAProcessor.cpp

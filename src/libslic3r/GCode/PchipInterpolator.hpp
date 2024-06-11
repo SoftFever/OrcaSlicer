@@ -1,58 +1,20 @@
-//
-//  PchipInterpolator.hpp
-//  OrcaSlicer
-//
-//
-
-#ifndef PCHIP_INTERPOLATOR_H
-#define PCHIP_INTERPOLATOR_H
+#ifndef PCHIPINTERPOLATOR_HPP
+#define PCHIPINTERPOLATOR_HPP
 
 #include <vector>
-#include <stdexcept>
-#include <algorithm>
 #include <string>
-#include <sstream>
+#include <map>
+#include "PchipInterpolatorHelper.hpp"
 
-/**
- * @class PchipInterpolator
- * @brief Implements Piecewise Cubic Hermite Interpolating Polynomial (PCHIP) interpolation.
- */
 class PchipInterpolator {
 public:
-    /**
-     * @brief Default constructor for PchipInterpolator.
-     */
     PchipInterpolator() = default;
-
-    /**
-     * @brief Helper function to parse a string and set the data points.
-     * @param data String containing PA and speed values in the format: "pa,speed\npa2,speed2\n..."
-     * @return -1 in case of an error, 0 otherwise.
-     */
     int parseAndSetData(const std::string& data);
-
-    /**
-     * @brief Interpolate a value.
-     * @param xi The x-coordinate to interpolate.
-     * @return The interpolated y-coordinate or -1 in case of an error.
-     */
-    double operator()(double xi) const;
+    double operator()(double flow_rate, double acceleration);
 
 private:
-    std::vector<double> x_; ///< x-coordinates of the data points
-    std::vector<double> y_; ///< y-coordinates of the data points
-    std::vector<double> d_; ///< Computed derivatives at the data points
-
-    /**
-     * @brief Compute the derivatives for PCHIP interpolation.
-     * @return A vector of derivatives.
-     */
-    std::vector<double> computeDerivatives() const;
-
-    /**
-     * @brief Sort the data points based on x-coordinates if they are not already sorted.
-     */
-    void sortData();
+    std::map<double, PchipInterpolatorHelper> flow_interpolators_; // Map each acceleration to a flow-rate-to-PA interpolator
+    std::vector<double> accelerations_; // Store unique accelerations
 };
 
-#endif // PCHIP_INTERPOLATOR_H
+#endif // PCHIPINTERPOLATOR_HPP

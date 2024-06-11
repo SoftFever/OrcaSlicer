@@ -23,7 +23,7 @@ namespace Slic3r {
 AdaptivePAProcessor::AdaptivePAProcessor(GCode &gcodegen)
     : m_gcodegen(gcodegen), m_config(gcodegen.config()), m_last_predicted_pa(0.0), m_last_feedrate(0.0), m_last_extruder_id(-1),
       m_pchipInterpolator(std::make_unique<PchipInterpolator>()),
-      m_pa_change_pattern(R"(; PA_CHANGE:T(\d+) MM3MM:([0-9]*\.[0-9]+))"),
+      m_pa_change_pattern(R"(; PA_CHANGE:T(\d+) MM3MM:([0-9]*\.[0-9]+) ACCEL:(\d+))"),
       m_g1_f_pattern(R"(G1 F([0-9]+))")
 {
     // Constructor body can be used for further initialization if necessary
@@ -44,6 +44,7 @@ std::string AdaptivePAProcessor::process_layer(std::string &&gcode) {
     std::ostringstream output;
     int current_extruder_id = m_last_extruder_id; // Initialize with the last known extruder ID
     double mm3mm_value = 0.0;
+    unsigned int accel_value = 0;
     std::string pa_change_line;
 
     // Iterate through each line of the G-code
@@ -58,6 +59,7 @@ std::string AdaptivePAProcessor::process_layer(std::string &&gcode) {
         if (std::regex_search(line, m_match, m_pa_change_pattern)) {
             int extruder_id = std::stoi(m_match[1].str());
             mm3mm_value = std::stod(m_match[2].str());
+            accel_value = std::stod(m_match[3].str());
 
             // Check if the extruder ID has changed
             bool extruder_changed = (extruder_id != m_last_extruder_id);
@@ -98,15 +100,20 @@ std::string AdaptivePAProcessor::process_layer(std::string &&gcode) {
             if (pchip_return_flag == -1) {
                 // Model failed, use fallback value from m_config
                 predicted_pa = m_config.pressure_advance.get_at(m_last_extruder_id);
-                output << "; PchipInterpolator model failed, using fallback pressure advance value\n";
+                output << "; PchipInterpolator setup failed, using fallback pressure advance value\n";
             } else {
                 // Model succeeded, calculate predicted pressure advance
-                predicted_pa = (*m_pchipInterpolator)(mm3mm_value * m_last_feedrate);
+                predicted_pa = (*m_pchipInterpolator)(mm3mm_value * m_last_feedrate,accel_value);
+                if (predicted_pa<0){
+                    predicted_pa = m_config.pressure_advance.get_at(m_last_extruder_id);
+                    output << "; PchipInterpolator interpolation failed, using fallback pressure advance value\n";
+                }
             }
 
             // Output the PA_CHANGE line and set the pressure advance immediately after
             output << pa_change_line << '\n';
             output << "; Prev PA: " << std::to_string(m_last_predicted_pa) << "New PA: " << std::to_string(predicted_pa)<<"\n";
+            output << "; Model flow speed: " << std::to_string(mm3mm_value * m_last_feedrate) << "\n";
             if (extruder_changed || std::fabs(predicted_pa - m_last_predicted_pa) > EPSILON) {
                 output << m_gcodegen.writer().set_pressure_advance(predicted_pa); // Use m_writer to set pressure advance
                 m_last_predicted_pa = predicted_pa; // Update the last predicted PA value

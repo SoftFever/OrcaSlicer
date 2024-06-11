@@ -5367,7 +5367,8 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     // adaptive PA needs evaluation. Variables published to the post processor:
     // 1) Tag to trigger a PA evaluation (because a role change was identified and the user has requested dynamic PA adjustments)
     // 2) Current extruder ID
-    // 3) mm3_per_mm value (to then multiply by the final model print speed after slowdown for cooling is applied) and
+    // 3) mm3_per_mm value (to then multiply by the final model print speed after slowdown for cooling is applied)
+    // 4) the current acceleration and
     // calculate the final volumetric flow rate for the feature
     // The print speed should be the first G1 F statement after this tag is found in the GCODE.
     // This tag simplifies the creation of the gcode post processor
@@ -5375,7 +5376,8 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     if (evaluate_adaptive_pa){
         // Debug:
         // sprintf(buf, ";%sT%g MM3MM:%g %g %g\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::PA_Change).c_str(),m_writer.extruder()->id() ,_mm3_per_mm, path.mm3_per_mm, e_per_mm/m_writer.extruder()->e_per_mm3());
-        sprintf(buf, ";%sT%g MM3MM:%g\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::PA_Change).c_str(),m_writer.extruder()->id() ,_mm3_per_mm);
+        // acceleration_i
+        sprintf(buf, ";%sT%u MM3MM:%g ACCEL:%u\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::PA_Change).c_str(),m_writer.extruder()->id() ,_mm3_per_mm,acceleration_i);
         gcode += buf;
     }
 
