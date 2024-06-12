@@ -40,6 +40,15 @@
       "RatRig V-Core 4 400 0.6 nozzle",
       "RatRig V-Core 4 500 0.4 nozzle",
       "RatRig V-Core 4 500 0.5 nozzle",
-      "RatRig V-Core 4 500 0.6 nozzle"
+      "RatRig V-Core 4 500 0.6 nozzle",
+      "RatRig V-Core 4 HYBRID 300 0.4 nozzle",
+      "RatRig V-Core 4 HYBRID 300 0.5 nozzle",
+      "RatRig V-Core 4 HYBRID 300 0.6 nozzle",
+      "RatRig V-Core 4 HYBRID 400 0.4 nozzle",
+      "RatRig V-Core 4 HYBRID 400 0.5 nozzle",
+      "RatRig V-Core 4 HYBRID 400 0.6 nozzle",
+      "RatRig V-Core 4 HYBRID 500 0.4 nozzle",
+      "RatRig V-Core 4 HYBRID 500 0.5 nozzle",
+      "RatRig V-Core 4 HYBRID 500 0.6 nozzle"
     ]
 }
