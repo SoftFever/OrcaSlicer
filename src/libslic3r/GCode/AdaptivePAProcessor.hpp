@@ -1,7 +1,7 @@
 // AdaptivePAProcessor.hpp
 // OrcaSlicer
 //
-// Header file for the AdaptivePAProcessor class, responsible for processing G-code layers with adaptive pressure advance.
+// Header file for the AdaptivePAProcessor class, responsible for processing G-code layers for the purposes of applying adaptive pressure advance.
 
 #ifndef ADAPTIVEPAPROCESSOR_H
 #define ADAPTIVEPAPROCESSOR_H
@@ -10,7 +10,7 @@
 #include <sstream>
 #include <regex>
 #include <memory>
-#include "PchipInterpolator.hpp"
+#include "AdaptivePAInterpolator.hpp"
 
 namespace Slic3r {
 
@@ -50,7 +50,7 @@ private:
     double m_last_predicted_pa; ///< Last predicted pressure advance value.
     double m_last_feedrate; ///< Last known feed rate.
     int m_last_extruder_id; ///< Last used extruder ID.
-    std::unique_ptr<PchipInterpolator> m_pchipInterpolator; ///< Interpolator for pressure advance values.
+    std::unique_ptr<AdaptivePAInterpolator> m_AdaptivePAInterpolator; ///< Interpolator for pressure advance values.
 
     std::regex m_pa_change_pattern; ///< Regular expression to detect PA_CHANGE pattern.
     std::regex m_g1_f_pattern; ///< Regular expression to detect G1 F pattern.

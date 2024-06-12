@@ -22,7 +22,7 @@ namespace Slic3r {
  */
 AdaptivePAProcessor::AdaptivePAProcessor(GCode &gcodegen)
     : m_gcodegen(gcodegen), m_config(gcodegen.config()), m_last_predicted_pa(0.0), m_last_feedrate(0.0), m_last_extruder_id(-1),
-      m_pchipInterpolator(std::make_unique<PchipInterpolator>()),
+      m_AdaptivePAInterpolator(std::make_unique<AdaptivePAInterpolator>()),
       m_pa_change_pattern(R"(; PA_CHANGE:T(\d+) MM3MM:([0-9]*\.[0-9]+) ACCEL:(\d+))"),
       m_g1_f_pattern(R"(G1 F([0-9]+))")
 {
@@ -94,7 +94,7 @@ std::string AdaptivePAProcessor::process_layer(std::string &&gcode) {
 
             // Calculate the predicted PA using the current or last known feedrate
             std::string pa_calibration_values = m_config.adaptive_pressure_advance_model.get_at(m_last_extruder_id);
-            int pchip_return_flag = m_pchipInterpolator->parseAndSetData(pa_calibration_values);
+            int pchip_return_flag = m_AdaptivePAInterpolator->parseAndSetData(pa_calibration_values);
 
             double predicted_pa;
             if (pchip_return_flag == -1) {
@@ -103,7 +103,7 @@ std::string AdaptivePAProcessor::process_layer(std::string &&gcode) {
                 output << "; PchipInterpolator setup failed, using fallback pressure advance value\n";
             } else {
                 // Model succeeded, calculate predicted pressure advance
-                predicted_pa = (*m_pchipInterpolator)(mm3mm_value * m_last_feedrate,accel_value);
+                predicted_pa = (*m_AdaptivePAInterpolator)(mm3mm_value * m_last_feedrate,accel_value);
                 if (predicted_pa<0){
                     predicted_pa = m_config.pressure_advance.get_at(m_last_extruder_id);
                     output << "; PchipInterpolator interpolation failed, using fallback pressure advance value\n";

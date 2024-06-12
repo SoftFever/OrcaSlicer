@@ -165,8 +165,8 @@ set(lisbslic3r_sources
     GCode/SmallAreaInfillFlowCompensator.hpp
     GCode/PchipInterpolatorHelper.cpp
     GCode/PchipInterpolatorHelper.hpp
-    GCode/PchipInterpolator.cpp
-    GCode/PchipInterpolator.hpp
+    GCode/AdaptivePAInterpolator.cpp
+    GCode/AdaptivePAInterpolator.hpp
     GCode/AdaptivePAProcessor.cpp
     GCode/AdaptivePAProcessor.hpp
     GCode/SpiralVase.cpp

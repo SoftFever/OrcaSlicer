@@ -1,12 +1,28 @@
+// PchipInterpolatorHelper.cpp
+// OrcaSlicer
+//
+// Implementation file for the PchipInterpolatorHelper class
+
 #include "PchipInterpolatorHelper.hpp"
 #include <stdexcept>
 #include <cmath>
 #include <algorithm>
 
+/**
+ * @brief Constructs the PCHIP interpolator with given data points.
+ * @param x The x-coordinates of the data points.
+ * @param y The y-coordinates of the data points.
+ */
 PchipInterpolatorHelper::PchipInterpolatorHelper(const std::vector<double>& x, const std::vector<double>& y) {
     setData(x, y);
 }
 
+/**
+ * @brief Sets the data points for the interpolator.
+ * @param x The x-coordinates of the data points.
+ * @param y The y-coordinates of the data points.
+ * @throw std::invalid_argument if x and y have different sizes or if they contain fewer than two points.
+ */
 void PchipInterpolatorHelper::setData(const std::vector<double>& x, const std::vector<double>& y) {
     if (x.size() != y.size() || x.size() < 2) {
         throw std::invalid_argument("Input vectors must have the same size and contain at least two points.");
@@ -17,6 +33,9 @@ void PchipInterpolatorHelper::setData(const std::vector<double>& x, const std::v
     computePCHIP();
 }
 
+/**
+ * @brief Sorts the data points by x-coordinate.
+ */
 void PchipInterpolatorHelper::sortData() {
     std::vector<std::pair<double, double>> data;
     for (size_t i = 0; i < x_.size(); ++i) {
@@ -30,6 +49,9 @@ void PchipInterpolatorHelper::sortData() {
     }
 }
 
+/**
+ * @brief Computes the PCHIP coefficients.
+ */
 void PchipInterpolatorHelper::computePCHIP() {
     size_t n = x_.size() - 1;
     h_.resize(n);
@@ -54,6 +76,9 @@ void PchipInterpolatorHelper::computePCHIP() {
     }
 }
 
+/**
+ * @brief Interpolates the value at a given point.
+ */
 double PchipInterpolatorHelper::interpolate(double xi) const {
     if (xi <= x_.front()) return y_.front();
     if (xi >= x_.back()) return y_.back();
