@@ -29,6 +29,13 @@ public:
 
     unsigned int id() const { return m_id; }
 
+    unsigned int extruder_id() const
+    {
+        //TODO: get extruder id
+        unsigned int extruder_id = -1;
+        // get matched id
+        return extruder_id;
+    }
     double extrude(double dE);
     double retract(double length, double restart_extra);
     double unretract();
