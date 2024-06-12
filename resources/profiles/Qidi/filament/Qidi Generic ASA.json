@@ -21,10 +21,10 @@
       "enable_pressure_advance": [
         "1"
     ],
-    "max_fan_speed":[
+    "fan_max_speed":[
         "50"
     ],
-    "min_fan_speed":[
+    "fan_min_speed":[
         "10"
     ],
     "pressure_advance": [
