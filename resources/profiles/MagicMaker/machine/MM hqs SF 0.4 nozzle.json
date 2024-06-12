@@ -49,7 +49,7 @@
     "extruder_clearance_height_to_lid": "100",
     "extruder_clearance_height_to_rod": "32",
     "extruder_clearance_radius": "50",
-    "machine_end_gcode": "M104 S0 ;extruder heater off\nM140 S0 ;heated bed heater off (if you have it)\nG91 ;relative positioning\nG1 E-1 F300  ;retract the filament a bit before lifting the nozzle, to release some of the pressure\nG1 Z+0.5 X-20 Y-20 F9000 ;move Z up a bit and retract filament even more\nG28 X0 Y0 ;move X/Y to min endstops, so the head is out of the way\nG1 E3 F300\nG1 E-10 F9000\nM84 ;steppers off\nG90 ;absolute positioning\nM107 ; turn off fan\nPRINT_END",
+    "machine_end_gcode": "M104 S0 ;extruder heater off\nM140 S0 ;heated bed heater off (if you have it)\nG91 ;relative positioning\nG1 E-1 F300  ;retract the filament a bit before lifting the nozzle, to release some of the pressure\nG1 Z+0.5 X-20 Y-20 F9000 ;move Z up a bit and retract filament even more\nG28 X0 Y0 ;move X/Y to min endstops, so the head is out of the way\nG1 E3 F300\nG1 E-5 F9000\nM84 ;steppers off\nG90 ;absolute positioning\nM107 ; turn off fan\nPRINT_END",
     "machine_max_acceleration_e": [
         "6000"
     ],
