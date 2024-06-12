@@ -5301,9 +5301,8 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     double F = speed * 60;  // convert mm/sec to mm/min
     // Orca: Dynamic PA
     // If an extrusion role change is detected, trigger tagging to evaluate PA in the post processing script
-    bool need_adaptive_pa = EXTRUDER_CONFIG(adaptive_pressure_advance);
     bool evaluate_adaptive_pa = false;
-    if (path.role() != m_last_extrusion_role && (need_adaptive_pa))
+    if ( (path.role() != m_last_extrusion_role) && (EXTRUDER_CONFIG(adaptive_pressure_advance)) && (EXTRUDER_CONFIG(enable_pressure_advance)))
         evaluate_adaptive_pa = true;
     
     //Orca: process custom gcode for extrusion role change
