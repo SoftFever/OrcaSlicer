@@ -177,7 +177,8 @@ void adjust_layer_height_profile(
 // The object layers are based at z=0, ignoring the raft layers.
 std::vector<coordf_t> generate_object_layers(
     const SlicingParameters     &slicing_params,
-    const std::vector<coordf_t> &layer_height_profile);
+    const std::vector<coordf_t> &layer_height_profile,
+    bool is_precise_z_height);
 
 // Check whether the layer height profile describes a fixed layer height profile.
 bool check_object_layers_fixed(

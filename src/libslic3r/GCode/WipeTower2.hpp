@@ -189,6 +189,7 @@ private:
     int    m_old_temperature    = -1;   // To keep track of what was the last temp that we set (so we don't issue the command when not neccessary)
     float  m_travel_speed       = 0.f;
 	float  m_infill_speed       = 0.f;
+    float  m_wipe_tower_max_purge_speed   = 90.f;
 	float  m_perimeter_speed    = 0.f;
     float  m_first_layer_speed  = 0.f;
     size_t m_first_layer_idx    = size_t(-1);

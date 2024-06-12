@@ -1,7 +1,7 @@
 {
     "name": "Sovol",
     "url": "",
-    "version": "02.00.02.00",
+    "version": "02.01.00.00",
     "force_update": "0",
     "description": "Sovol configurations",
     "machine_model_list": [
@@ -32,6 +32,10 @@
 		{
             "name": "Sovol SV07 Plus",
             "sub_path": "machine/Sovol SV07 Plus.json"
+        },
+		{
+            "name": "Sovol SV08",
+            "sub_path": "machine/Sovol SV08.json"
         }
     ],
     "process_list": [
@@ -94,6 +98,22 @@
 		{
             "name": "0.20mm Standard @Sovol SV07 Plus",
             "sub_path": "process/0.20mm Standard @Sovol SV07Plus.json"
+        },
+		{
+            "name": "0.10mm Standard @Sovol SV08 0.2 nozzle",
+            "sub_path": "process/0.10mm Standard @Sovol SV08 0.2 nozzle.json"
+        },
+		{
+            "name": "0.20mm Standard @Sovol SV08 0.4 nozzle",
+            "sub_path": "process/0.20mm Standard @Sovol SV08 0.4 nozzle.json"
+        },
+		{
+            "name": "0.30mm Standard @Sovol SV08 0.6 nozzle",
+            "sub_path": "process/0.30mm Standard @Sovol SV08 0.6 nozzle.json"
+        },
+		{
+            "name": "0.40mm Standard @Sovol SV08 0.8 nozzle",
+            "sub_path": "process/0.40mm Standard @Sovol SV08 0.8 nozzle.json"
         }
     ],
     "filament_list": [
@@ -114,6 +134,10 @@
             "sub_path": "filament/fdm_filament_pla.json"
         },
         {
+            "name": "fdm_filament_tpu",
+            "sub_path": "filament/fdm_filament_tpu.json"
+        },
+        {
             "name": "Sovol Generic ABS",
             "sub_path": "filament/Sovol Generic ABS.json"
         },
@@ -124,6 +148,34 @@
         {
             "name": "Sovol Generic PLA",
             "sub_path": "filament/Sovol Generic PLA.json"
+        },
+        {
+            "name": "Sovol Generic TPU",
+            "sub_path": "filament/Sovol Generic TPU.json"
+        },
+        {
+            "name": "Sovol SV07 PLA",
+            "sub_path": "filament/Sovol SV07 PLA.json"
+        },
+        {
+            "name": "Sovol SV08 PLA",
+            "sub_path": "filament/Sovol SV08 PLA.json"
+        },
+        {
+            "name": "Sovol SV08 PLA @SV08 0.2 nozzle",
+            "sub_path": "filament/Sovol SV08 PLA @SV08 0.2 nozzle.json"
+        },
+        {
+            "name": "Sovol SV08 ABS",
+            "sub_path": "filament/Sovol SV08 ABS.json"
+        },
+        {
+            "name": "Sovol SV08 PETG",
+            "sub_path": "filament/Sovol SV08 PETG.json"
+        },
+        {
+            "name": "Sovol SV08 TPU",
+            "sub_path": "filament/Sovol SV08 TPU.json"
         }
     ],
     "machine_list": [
@@ -158,6 +210,22 @@
 		{
             "name": "Sovol SV07 Plus 0.4 nozzle",
             "sub_path": "machine/Sovol SV07 Plus 0.4 nozzle.json"
+        },
+		{
+            "name": "Sovol SV08 0.2 nozzle",
+            "sub_path": "machine/Sovol SV08 0.2 nozzle.json"
+        },
+		{
+            "name": "Sovol SV08 0.4 nozzle",
+            "sub_path": "machine/Sovol SV08 0.4 nozzle.json"
+        },
+		{
+            "name": "Sovol SV08 0.6 nozzle",
+            "sub_path": "machine/Sovol SV08 0.6 nozzle.json"
+        },
+		{
+            "name": "Sovol SV08 0.8 nozzle",
+            "sub_path": "machine/Sovol SV08 0.8 nozzle.json"
         }
     ]
 }

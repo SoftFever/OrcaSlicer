@@ -14,13 +14,13 @@
 
 namespace Slic3r {
 
-bool load_stl(const char *path, Model *model, const char *object_name_in, ImportstlProgressFn stlFn)
+bool load_stl(const char *path, Model *model, const char *object_name_in, ImportstlProgressFn stlFn, int custom_header_length)
 {
     TriangleMesh mesh;
     std::string design_id;
 
-    if (! mesh.ReadSTLFile(path, true, stlFn)) {
-//    die "Failed to open $file\n" if !-e $path;
+    if (!mesh.ReadSTLFile(path, true, stlFn, custom_header_length)) {
+        //    die "Failed to open $file\n" if !-e $path;
         return false;
     }
     if (mesh.empty()) {

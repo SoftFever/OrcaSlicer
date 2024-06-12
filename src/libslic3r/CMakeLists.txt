@@ -100,6 +100,8 @@ set(lisbslic3r_sources
     Fill/FillConcentric.hpp
     Fill/FillConcentricInternal.cpp
     Fill/FillConcentricInternal.hpp
+    Fill/FillCrossHatch.cpp
+    Fill/FillCrossHatch.hpp
     Fill/FillHoneycomb.cpp
     Fill/FillHoneycomb.hpp
     Fill/FillGyroid.cpp
@@ -143,6 +145,8 @@ set(lisbslic3r_sources
     Format/SL1.cpp
 	Format/svg.hpp
     Format/svg.cpp
+    Format/ZipperArchiveImport.hpp
+    Format/ZipperArchiveImport.cpp
     GCode/ThumbnailData.cpp
     GCode/ThumbnailData.hpp
     GCode/CoolingBuffer.cpp
@@ -194,9 +198,12 @@ set(lisbslic3r_sources
     Geometry/Curves.hpp
     Geometry/MedialAxis.cpp
     Geometry/MedialAxis.hpp
+	Geometry/Voronoi.cpp
     Geometry/Voronoi.hpp
     Geometry/VoronoiOffset.cpp
     Geometry/VoronoiOffset.hpp
+	Geometry/VoronoiUtils.hpp
+    Geometry/VoronoiUtils.cpp
     Geometry/VoronoiUtilsCgal.cpp
     Geometry/VoronoiUtilsCgal.hpp
     Geometry/VoronoiVisualUtils.hpp
@@ -206,6 +213,7 @@ set(lisbslic3r_sources
     Layer.hpp
     LayerRegion.cpp
     libslic3r.h
+    libslic3r.cpp
     Line.cpp
     Line.hpp
     BlacklistedLibraryCheck.cpp
@@ -229,6 +237,7 @@ set(lisbslic3r_sources
     Arrange.cpp
     NormalUtils.cpp
     NormalUtils.hpp
+    ObjColorUtils.hpp
     Orient.hpp
     Orient.cpp
     MultiPoint.cpp
@@ -238,6 +247,8 @@ set(lisbslic3r_sources
     NSVGUtils.hpp
     ObjectID.cpp
     ObjectID.hpp
+	ParameterUtils.cpp
+    ParameterUtils.hpp
     PerimeterGenerator.cpp
     PerimeterGenerator.hpp
     PlaceholderParser.cpp
@@ -431,8 +442,6 @@ set(lisbslic3r_sources
     Arachne/utils/PolygonsSegmentIndex.hpp
     Arachne/utils/PolylineStitcher.hpp
     Arachne/utils/PolylineStitcher.cpp
-    Arachne/utils/VoronoiUtils.hpp
-    Arachne/utils/VoronoiUtils.cpp
     Arachne/SkeletalTrapezoidation.hpp
     Arachne/SkeletalTrapezoidation.cpp
     Arachne/SkeletalTrapezoidationEdge.hpp
@@ -470,6 +479,7 @@ set(CGAL_DO_NOT_WARN_ABOUT_CMAKE_BUILD_TYPE ON CACHE BOOL "" FORCE)
 cmake_policy(PUSH)
 cmake_policy(SET CMP0011 NEW)
 find_package(CGAL REQUIRED)
+find_package(OpenCV REQUIRED core)
 cmake_policy(POP)
 
 add_library(libslic3r_cgal STATIC 
@@ -570,6 +580,7 @@ target_link_libraries(libslic3r
     mcut
     JPEG::JPEG
     qoi
+    opencv_world
     )
 
 if(NOT WIN32)

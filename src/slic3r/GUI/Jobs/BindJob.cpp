@@ -124,9 +124,9 @@ void BindJob::process(Ctl &ctl)
     }
     dev->update_user_machine_list_info();
 
-    wxCommandEvent event(EVT_BIND_MACHINE_SUCCESS);
-    event.SetEventObject(m_event_handle);
-    wxPostEvent(m_event_handle, event);
+     wxCommandEvent event(EVT_BIND_MACHINE_SUCCESS);
+     event.SetEventObject(m_event_handle);
+     wxPostEvent(m_event_handle, event);
     return;
 }
 

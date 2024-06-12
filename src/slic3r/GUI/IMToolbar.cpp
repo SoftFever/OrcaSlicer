@@ -58,6 +58,13 @@ void IMToolbar::del_stats_item()
     m_all_plates_stats_item = nullptr;
 }
 
+void IMToolbar::set_enabled(bool enable)
+{
+    m_enabled = enable;
+    if (!m_enabled)
+        is_render_finish = false;
+}
+
 bool IMReturnToolbar::init()
 {
     bool compress = false;

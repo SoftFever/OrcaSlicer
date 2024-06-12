@@ -281,15 +281,42 @@ void PrintJob::process(Ctl &ctl)
         }
     }
 
+    params.stl_design_id = 0;
     if (!wxGetApp().model().stl_design_id.empty()) {
-       int stl_design_id = 0;
-        try {
-            stl_design_id = std::stoi(wxGetApp().model().stl_design_id);
+
+        auto country_code = wxGetApp().app_config->get_country_code();
+        bool match_code = false;
+
+        if (wxGetApp().model().stl_design_country == "DEV" && (country_code == "ENV_CN_DEV" || country_code == "NEW_ENV_DEV_HOST")) {
+            match_code = true;
         }
-        catch (const std::exception& e) {
-            stl_design_id = 0;
+
+        if (wxGetApp().model().stl_design_country == "QA" && (country_code == "ENV_CN_QA" || country_code == "NEW_ENV_QAT_HOST")) {
+            match_code = true;
         }
-        params.stl_design_id = stl_design_id;
+
+        if (wxGetApp().model().stl_design_country == "CN_PRE" && (country_code == "ENV_CN_PRE" || country_code == "NEW_ENV_PRE_HOST")) {
+            match_code = true;
+        }
+
+        if (wxGetApp().model().stl_design_country == "US_PRE" && country_code == "ENV_US_PRE") {
+            match_code = true;
+        }
+
+        if (country_code == wxGetApp().model().stl_design_country) {
+            match_code = true;
+        }
+
+        if (match_code) {
+            int stl_design_id = 0;
+            try {
+                stl_design_id = std::stoi(wxGetApp().model().stl_design_id);
+            }
+            catch (const std::exception& e) {
+                stl_design_id = 0;
+            }
+            params.stl_design_id = stl_design_id;
+        }
     }
 
     if (params.preset_name.empty() && m_print_type == "from_normal") { params.preset_name = wxString::Format("%s_plate_%d", m_project_name, curr_plate_idx).ToStdString(); }

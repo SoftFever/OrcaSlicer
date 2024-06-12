@@ -17,6 +17,7 @@
 #define AMS_SETTING_GREY200 wxColour(248, 248, 248)
 #define AMS_SETTING_BODY_WIDTH FromDIP(380)
 #define AMS_SETTING_BUTTON_SIZE wxSize(FromDIP(150), FromDIP(24))
+#define AMS_F1_SUPPORT_INSERTION_UPDATE_DEFAULT std::string("00.00.07.89")
 
 namespace Slic3r { namespace GUI {
 
@@ -27,16 +28,18 @@ public:
     ~AMSSetting();
     void create();
 
-    void          update_insert_material_read_mode(bool selected);
+    void          update_insert_material_read_mode(bool selected, std::string version);
     void          update_ams_img(std::string ams_icon_str);
     void          update_starting_read_mode(bool selected);
     void          update_remain_mode(bool selected);
     void          update_switch_filament(bool selected);
+    void          update_air_printing_detection(bool selected);
     void          on_select_ok(wxMouseEvent& event);
     void          on_insert_material_read(wxCommandEvent &event);
     void          on_starting_read(wxCommandEvent &event);
     void          on_remain(wxCommandEvent& event);
     void          on_switch_filament(wxCommandEvent& event);
+    void          on_air_print_detect(wxCommandEvent& event);
     wxString      append_title(wxString text);
     wxStaticText *append_text(wxString text);
     MachineObject *obj{nullptr};
@@ -49,6 +52,7 @@ protected:
 
 protected:
     wxPanel *     m_panel_body;
+    wxPanel*      m_panel_Insert_material;
     CheckBox *    m_checkbox_Insert_material_auto_read;
     wxStaticText *m_title_Insert_material_auto_read;
     Label* m_tip_Insert_material_line1;
@@ -67,6 +71,10 @@ protected:
     CheckBox* m_checkbox_switch_filament;
     wxStaticText* m_title_switch_filament;
     Label* m_tip_switch_filament_line1;
+
+    CheckBox* m_checkbox_air_print;
+    wxStaticText* m_title_air_print;
+    Label* m_tip_air_print_line;
 
     wxStaticText *m_tip_ams_img;
     Button *     m_button_auto_demarcate;

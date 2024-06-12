@@ -631,10 +631,104 @@ void adjust_layer_height_profile(
 #endif /* _DEBUG */
 }
 
+bool adjust_layer_series_to_align_object_height(const SlicingParameters &slicing_params, std::vector<coordf_t>& layer_series)
+{
+    coordf_t object_height = slicing_params.object_print_z_height();
+    if (is_approx(layer_series.back(), object_height))
+        return true;
+
+    // need at least 5 + 1(first_layer) layers to adjust the height
+    size_t layer_size = layer_series.size();
+    if (layer_size < 12)
+        return false;
+
+    std::vector<coordf_t> last_5_layers_heght;
+    for (size_t i = 0; i < 5; ++i) {
+        last_5_layers_heght.emplace_back(layer_series[layer_size - 10 + 2 * i + 1] - layer_series[layer_size - 10 + 2 * i]);
+    }
+
+    coordf_t gap = abs(layer_series.back() - object_height);
+    std::vector<bool> can_adjust(5, true); // to record whether every layer can adjust layer height
+    bool taller_than_object = layer_series.back() < object_height;
+
+    auto get_valid_size = [&can_adjust]() -> int {
+        int valid_size = 0;
+        for (auto b_adjust : can_adjust) {
+            valid_size += b_adjust ? 1 : 0;
+        }
+        return valid_size;
+    };
+
+    auto adjust_layer_height = [&slicing_params, &last_5_layers_heght, &can_adjust, &get_valid_size, &taller_than_object](coordf_t gap) -> coordf_t {
+        coordf_t delta_gap = gap / get_valid_size();
+        coordf_t remain_gap = 0;
+        for (size_t i = 0; i < last_5_layers_heght.size(); ++i) {
+            coordf_t& l_height = last_5_layers_heght[i];
+            if (taller_than_object) {
+                if (can_adjust[i] && is_approx(l_height, slicing_params.max_layer_height)) {
+                    remain_gap += delta_gap;
+                    can_adjust[i] = false;
+                    continue;
+                }
+
+                if (can_adjust[i] && l_height + delta_gap > slicing_params.max_layer_height) {
+                    remain_gap += l_height + delta_gap - slicing_params.max_layer_height;
+                    l_height      = slicing_params.max_layer_height;
+                    can_adjust[i] = false;
+                }
+                else {
+                    l_height += delta_gap;
+                }
+            }
+            else {
+                if (can_adjust[i] && is_approx(l_height, slicing_params.min_layer_height)) {
+                    remain_gap += delta_gap;
+                    can_adjust[i] = false;
+                    continue;
+                }
+
+                if (can_adjust[i] && l_height - delta_gap < slicing_params.min_layer_height) {
+                    remain_gap += slicing_params.min_layer_height + delta_gap - l_height;
+                    l_height      = slicing_params.min_layer_height;
+                    can_adjust[i] = false;
+                }
+                else {
+                    l_height -= delta_gap;
+                }
+            }
+        }
+        return remain_gap;
+    };
+
+    while (gap > 0) {
+        int valid_size = get_valid_size();
+        if (valid_size == 0) {
+            // 5 layers can not adjust z within valid layer height
+            return false;
+        }
+
+        gap = adjust_layer_height(gap);
+        if (is_approx(gap, 0.0)) {
+            // adjust succeed
+            break;
+        }
+    }
+
+    for (size_t i = 0; i < last_5_layers_heght.size(); ++i) {
+        if (i > 0) {
+            layer_series[layer_size - 10 + 2 * i] = layer_series[layer_size - 10 + 2 * i - 1];
+        }
+        layer_series[layer_size - 10 + 2 * i + 1] = layer_series[layer_size - 10 + 2 * i] + last_5_layers_heght[i];
+    }
+
+    return true;
+}
+
 // Produce object layers as pairs of low / high layer boundaries, stored into a linear vector.
 std::vector<coordf_t> generate_object_layers(
 	const SlicingParameters 	&slicing_params,
-	const std::vector<coordf_t> &layer_height_profile)
+	const std::vector<coordf_t> &layer_height_profile,
+    bool is_precise_z_height)
 {
     assert(! layer_height_profile.empty());
 
@@ -683,7 +777,8 @@ std::vector<coordf_t> generate_object_layers(
         out.push_back(print_z);
     }
 
-    //FIXME Adjust the last layer to align with the top object layer exactly?
+    if (is_precise_z_height)
+        adjust_layer_series_to_align_object_height(slicing_params, out);
     return out;
 }
 
