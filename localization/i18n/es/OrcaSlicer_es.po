@@ -5874,13 +5874,15 @@ msgid "Filament Tangle Detect"
 msgstr "Detección de Enredos de Filamentos"
 
 msgid "Nozzle Clumping Detection"
-msgstr "Nozzle Clumping Detection"
+msgstr "Detección de Atascos de Boquilla"
 
 msgid "Check if the nozzle is clumping by filament or other foreign objects."
-msgstr "Check if the nozzle is clumping by filament or other foreign objects."
+msgstr ""
+"Compruebe si la boquilla está atascada por el filamento u otros objetos "
+"extraños."
 
 msgid "Nozzle Type"
-msgstr "Nozzle Type"
+msgstr "Tipo de Boquilla"
 
 msgid "Stainless Steel"
 msgstr "Acero Inoxidable"
