@@ -435,7 +435,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         if (new_filament_id != -1 && new_filament_id != tcr.new_tool)
             throw Slic3r::InvalidArgument("Error: WipeTowerIntegration::append_tcr was asked to do a toolchange it didn't expect.");
 
-        int new_extruder_id = gcodegen.get_extruder_id(new_filament_id);
+        int new_extruder_id = get_extruder_index(new_filament_id);
         std::string gcode;
 
         // Toolchangeresult.gcode assumes the wipe tower corner is at the origin (except for priming lines)
@@ -2155,13 +2155,13 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     m_cooling_buffer = make_unique<CoolingBuffer>(*this);
     m_cooling_buffer->set_current_extruder(initial_extruder_id);
 
-    int extruder_id = get_extruder_id(initial_extruder_id);
+    int extruder_id = get_extruder_index(initial_extruder_id);
 
     // Orca: Initialise AdaptivePA processor filter
     m_pa_processor = std::make_unique<AdaptivePAProcessor>(*this, tool_ordering.all_extruders());
 
     // Emit machine envelope limits for the Marlin firmware.
-    this->print_machine_envelope(file, print);
+    this->print_machine_envelope(file, print, initial_extruder_id);
 
     // Disable fan.
     if (m_config.auxiliary_fan.value && print.config().close_fan_the_first_x_layers.get_at(initial_extruder_id)) {
@@ -6370,7 +6370,7 @@ std::string GCode::retract(bool toolchange, bool is_last_retraction, LiftType li
 
 std::string GCode::set_extruder(unsigned int filament_id, double print_z, bool by_object)
 {
-    int extruder_id = get_extruder_id(filament_id);
+    int extruder_id = get_extruder_index(filament_id);
     if (!m_writer.need_toolchange(filament_id))
         return "";
 

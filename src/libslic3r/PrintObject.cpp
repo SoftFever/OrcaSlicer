@@ -927,6 +927,7 @@ bool PrintObject::invalidate_state_by_config_options(
         } else if (opt_key == "gap_infill_speed"
             || opt_key == "filter_out_gap_fill" ) {
             // Return true if gap-fill speed has changed from zero value to non-zero or from non-zero value to zero.
+            // todo multi_extruders: Parameter migration between single and double extruder printers
             auto is_gap_fill_changed_state_due_to_speed = [&opt_key, &old_config, &new_config]() -> bool {
                 if (opt_key == "gap_infill_speed") {
                     const auto *old_gap_fill_speed = old_config.option<ConfigOptionFloat>(opt_key);

@@ -2119,6 +2119,12 @@ DynamicPrintConfig PresetBundle::full_fff_config() const
 
     // BBS
     size_t  num_filaments = this->filament_presets.size();
+
+    // todo multi_extruders: to delete
+    for (size_t i = 0; i < num_filaments; ++i) {
+        this->filament_maps.push_back(1);
+    }
+
     auto* extruder_diameter = dynamic_cast<const ConfigOptionFloats*>(out.option("nozzle_diameter"));
     // Collect the "compatible_printers_condition" and "inherits" values over all presets (print, filaments, printers) into a single vector.
     std::vector<std::string> compatible_printers_condition;

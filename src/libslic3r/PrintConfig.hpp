@@ -457,6 +457,7 @@ static std::string get_bed_temp_1st_layer_key(const BedType type)
     return "";
 }
 
+size_t get_extruder_index(unsigned int filament_id);
 #define CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(NAME) \
     template<> const t_config_enum_names& ConfigOptionEnum<NAME>::get_enum_names(); \
     template<> const t_config_enum_values& ConfigOptionEnum<NAME>::get_enum_values();

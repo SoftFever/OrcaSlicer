@@ -53,6 +53,12 @@ namespace Slic3r {
 #define L(s) (s)
 #define _(s) Slic3r::I18N::translate(s)
 
+size_t get_extruder_index(unsigned int filament_id)
+{
+    // todo multi_extruders:
+    return 0;
+}
+
 static t_config_enum_names enum_names_from_keys_map(const t_config_enum_values &enum_keys_map)
 {
     t_config_enum_names names;
@@ -7486,13 +7492,14 @@ bool DynamicPrintConfig::support_different_extruders(int& extruder_count)
         int size = nozzle_diameters_opt->size();
         extruder_count = size;
         auto extruder_variant_opt = dynamic_cast<const ConfigOptionStrings*>(this->option("extruder_variant_list"));
-        for (int index = 0; index < size; index++)
-        {
-            std::string variant = extruder_variant_opt->get_at(index);
-            std::vector<std::string> variants_list;
-            boost::split(variants_list, variant, boost::is_any_of(","), boost::token_compress_on);
-            if (!variants_list.empty())
-                variant_set.insert(variants_list.begin(), variants_list.end());
+        if (extruder_variant_opt != nullptr) {
+            for (int index = 0; index < size; index++) {
+                std::string variant = extruder_variant_opt->get_at(index);
+                std::vector<std::string> variants_list;
+                boost::split(variants_list, variant, boost::is_any_of(","), boost::token_compress_on);
+                if (!variants_list.empty())
+                    variant_set.insert(variants_list.begin(), variants_list.end());
+            }
         }
     }
 
@@ -7532,14 +7539,14 @@ void DynamicPrintConfig::update_values_to_printer_extruders(std::vector<std::str
         //apply process settings
         //auto opt_nozzle_diameters = this->option<ConfigOptionFloats>("nozzle_diameter");
         //int extruder_count = opt_nozzle_diameters->size();
-        auto opt_extruder_type = dynamic_cast<const ConfigOptionEnumsGeneric*>(this->option("extruder_type"));
-        auto opt_nozzle_volume_type = dynamic_cast<const ConfigOptionEnumsGeneric*>(this->option("nozzle_volume_type"));
+        //auto opt_extruder_type = dynamic_cast<const ConfigOptionEnumsGeneric*>(this->option("extruder_type"));
+        //auto opt_nozzle_volume_type = dynamic_cast<const ConfigOptionEnumsGeneric*>(this->option("nozzle_volume_type"));
         std::vector<int> variant_index;
 
         if (extruder_id > 0 && extruder_id < extruder_count) {
             variant_index.resize(1);
-            ExtruderType extruder_type = (ExtruderType)(opt_extruder_type->get_at(extruder_id - 1));
-            NozzleVolumeType nozzle_volume_type = (NozzleVolumeType)(opt_nozzle_volume_type->get_at(extruder_id - 1));
+            ExtruderType extruder_type = ExtruderType::etDirectDrive; // TODO:Orca hack (ExtruderType)(opt_extruder_type->get_at(extruder_id - 1));
+            NozzleVolumeType nozzle_volume_type = NozzleVolumeType::nvtNormal; // TODO:Orca hack (NozzleVolumeType)(opt_nozzle_volume_type->get_at(extruder_id - 1));
 
             //variant index
             variant_index[0] = get_index_for_extruder(extruder_id, id_name, extruder_type, nozzle_volume_type, variant_name);
@@ -7551,8 +7558,8 @@ void DynamicPrintConfig::update_values_to_printer_extruders(std::vector<std::str
 
             for (int e_index = 0; e_index < extruder_count; e_index++)
             {
-                ExtruderType extruder_type = (ExtruderType)(opt_extruder_type->get_at(e_index));
-                NozzleVolumeType nozzle_volume_type = (NozzleVolumeType)(opt_nozzle_volume_type->get_at(e_index));
+                ExtruderType extruder_type = ExtruderType::etDirectDrive; // TODO:Orca hack (ExtruderType)(opt_extruder_type->get_at(e_index));
+                NozzleVolumeType nozzle_volume_type = NozzleVolumeType::nvtNormal; // (NozzleVolumeType)(opt_nozzle_volume_type->get_at(e_index));
 
                 //variant index
                 variant_index[e_index] = get_index_for_extruder(e_index+1, id_name, extruder_type, nozzle_volume_type, variant_name);

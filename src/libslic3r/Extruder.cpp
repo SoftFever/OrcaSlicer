@@ -18,6 +18,11 @@ Extruder::Extruder(unsigned int id, GCodeConfig *config, bool share_extruder) :
     m_e_per_mm3 /= this->filament_crossection();
 }
 
+unsigned int Extruder::extruder_id() const
+{
+    return get_extruder_index(m_id);
+}
+
 double Extruder::extrude(double dE)
 {
     // BBS
