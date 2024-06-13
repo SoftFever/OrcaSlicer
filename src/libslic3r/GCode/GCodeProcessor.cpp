@@ -1736,8 +1736,27 @@ void GCodeProcessor::process_gcode_line(const GCodeReader::GCodeLine& line, bool
                     break;
                 }
                 break;
-            default:
-                break;
+            case 5:
+                switch (cmd[1]) {
+                case '1':
+                    switch (cmd[2]) {
+                    case '0':
+                        switch (cmd[3]) {
+                        case '2':
+                            switch (cmd[4]) {
+                            case '0': {
+                                process_M1020(line); // Select Tool
+                                break;
+                            }
+                            default: break;
+                            }
+                        default: break;
+                        }
+                    default: break;
+                    }
+                default: break;
+                }
+            default: break;
             }
             break;
         case 't':
@@ -3960,6 +3979,42 @@ void GCodeProcessor::process_M702(const GCodeReader::GCodeLine& line)
 void GCodeProcessor::process_T(const GCodeReader::GCodeLine& line)
 {
     process_T(line.cmd());
+}
+
+void GCodeProcessor::process_M1020(const GCodeReader::GCodeLine &line)
+{
+    if (line.raw().length() > 5) {
+        std::string filament_id = line.raw().substr(7);
+        if (filament_id.empty())
+            return;
+
+        int eid = 0;
+        eid = std::stoi(filament_id);
+        if (eid < 0 || eid > 254) {
+            // M1020-1 is a valid gcode line for RepRap Firmwares (used to deselects all tools)
+            if ((m_flavor != gcfRepRapFirmware && m_flavor != gcfRepRapSprinter) || eid != -1)
+                BOOST_LOG_TRIVIAL(error) << "Invalid M1020 command (" << line.raw() << ").";
+        } else {
+            unsigned char id = static_cast<unsigned char>(eid);
+            if (m_extruder_id != id) {
+                if (id >= m_result.extruders_count)
+                    BOOST_LOG_TRIVIAL(error) << "Invalid M1020 command (" << line.raw() << ").";
+                else {
+                    m_last_extruder_id = m_extruder_id;
+                    process_filaments(CustomGCode::ToolChange);
+                    m_extruder_id      = id;
+                    m_cp_color.current = m_extruder_colors[id];
+                    // BBS: increase filament change times
+                    m_result.lock();
+                    m_result.print_statistics.total_filamentchanges++;
+                    m_result.unlock();
+                }
+
+                // store tool change move
+                store_move_vertex(EMoveType::Tool_change);
+            }
+        }
+    }
 }
 
 void GCodeProcessor::process_T(const std::string_view command)
