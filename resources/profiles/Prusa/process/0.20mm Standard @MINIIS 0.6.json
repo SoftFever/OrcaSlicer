@@ -15,6 +15,7 @@
   "initial_layer_line_width": "0.68",
   "internal_solid_infill_line_width": "0.62",
   "support_line_width": "0.5",
+  "wall_loops": "2",
   "sparse_infill_speed": "120",
   "internal_solid_infill_speed": "100",
   "top_surface_speed": "70",

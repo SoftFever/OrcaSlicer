@@ -18,6 +18,7 @@
   "initial_layer_line_width": "0.68",
   "internal_solid_infill_line_width": "0.62",
   "support_line_width": "0.5",
+  "wall_loops": "2",
   "outer_wall_speed": "115",
   "inner_wall_speed": "115",
   "small_perimeter_speed": "115",
