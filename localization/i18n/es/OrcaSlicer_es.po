@@ -14265,11 +14265,9 @@ msgstr ""
 "las superficies superiores de una sola pared están activadas."
 =======
 "de una perímetro\" en la configuración avanzada para ajustar la sensibilidad "
-"de lo que se considera una superficie superior. El \"Umbral de una "
-"perímetro\" sólo es visible si este valor es superior al valor "
-"predeterminado de 0,5, o si las superficies superiores de una soel perímetro "
-"están activadas."
->>>>>>> 53eb0d309 (Update OrcaSlicer_es.po)
+"de lo que se considera una superficie superior. El \"Umbral de una perímetro"
+"\" sólo es visible si este valor es superior al valor predeterminado de 0,5, "
+"o si las superficies superiores de una soel perímetro están activadas."
 
 msgid "First layer minimum wall width"
 msgstr "Ancho mínimo del perímetro de la primera capa"
