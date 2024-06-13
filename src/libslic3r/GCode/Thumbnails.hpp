@@ -8,6 +8,7 @@
 #include "../Point.hpp"
 #include "../PrintConfig.hpp"
 #include "ThumbnailData.hpp"
+#include "../enum_bitmask.hpp"
 
 #include <vector>
 #include <memory>
