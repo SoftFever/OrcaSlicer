@@ -19,8 +19,11 @@
         "8"
     ],
     "compatible_printers": [
-      "MyKlipper 0.4 nozzle",
-      "MyMarlin 0.4 nozzle",
-      "MyRRF 0.4 nozzle"
+        "MyKlipper 0.4 nozzle",
+        "MyKlipper 0.2 nozzle",
+        "MyKlipper 0.6 nozzle",
+        "MyKlipper 0.8 nozzle",
+        "MyMarlin 0.4 nozzle",
+        "MyRRF 0.4 nozzle"
     ]
 }

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-29 00:28+0800\n"
+"POT-Creation-Date: 2024-06-05 22:05+0200\n"
 "PO-Revision-Date: 2024-05-23 23:00+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3473,8 +3473,8 @@ msgstr "Calibratge de Dinàmiques de Flux"
 msgid "Send Options"
 msgstr "Opcions d'Enviament"
 
-msgid "Send"
-msgstr "Enviar"
+msgid "Send to"
+msgstr ""
 
 msgid ""
 "printers at the same time.(It depends on how many devices can undergo "
@@ -3490,6 +3490,9 @@ msgid ""
 "minute each batch.(It depends on how long it takes to complete the heating.)"
 msgstr ""
 "minut cada lot. (Depèn del temps que es trigui a completar la calefacció.)"
+
+msgid "Send"
+msgstr "Enviar"
 
 msgid "Name is invalid;"
 msgstr "El nom no és vàlid;"
@@ -4074,6 +4077,18 @@ msgstr ""
 "És %s%% or %s %s?\n"
 "SÍ per %s%%. \n"
 "NO per %s %s."
+
+#, boost-format
+msgid ""
+"Invalid input format. Expected vector of dimensions in the following format: "
+"\"%1%\""
+msgstr ""
+
+msgid "Input value is out of range"
+msgstr ""
+
+msgid "Some extension in the input is invalid"
+msgstr ""
 
 #, boost-format
 msgid "Invalid format. Expected vector format: \"%1%\""
@@ -7969,6 +7984,14 @@ msgstr "Paràmetres del canvi d'eina per a impressores multi-extrusor MM"
 msgid "Printable space"
 msgstr "Espai imprimible"
 
+#. TRN: First argument is parameter name, the second one is the value.
+#, boost-format
+msgid "Invalid value provided for parameter %1%: %2%"
+msgstr ""
+
+msgid "G-code flavor is switched"
+msgstr ""
+
 msgid "Cooling Fan"
 msgstr "Ventilador de refrigeració"
 
@@ -8433,6 +8456,32 @@ msgstr "Des de"
 
 msgid "To"
 msgstr "A"
+
+msgid ""
+"Windows Media Player is required for this task! Do you want to enable "
+"'Windows Media Player' for your operation system?"
+msgstr ""
+
+msgid ""
+"BambuSource has not correctly been registered for media playing! Press Yes "
+"to re-register it. You will be promoted twice"
+msgstr ""
+
+msgid ""
+"Missing BambuSource component registered for media playing! Please re-"
+"install BambuStutio or seek after-sales help."
+msgstr ""
+
+msgid ""
+"Using a BambuSource from a different install, video play may not work "
+"correctly! Press Yes to fix it."
+msgstr ""
+
+msgid ""
+"Your system is missing H.264 codecs for GStreamer, which are required to "
+"play video.  (Try installing the gstreamer1.0-plugins-bad or gstreamer1.0-"
+"libav packages, then restart Orca Slicer?)"
+msgstr ""
 
 msgid "Bambu Network plug-in not detected."
 msgstr "No s'ha detectat el Plug-In de Xarxa Bambu."
@@ -11335,6 +11384,9 @@ msgstr ""
 "\". S'ignorarà \"full_fan_speed_layer\" si és inferior a "
 "\"close_fan_the_first_x_layers\", en aquest cas el ventilador funcionarà a "
 "la velocitat màxima permesa a la capa \"close_fan_the_first_x_layers\" + 1."
+
+msgid "layer"
+msgstr ""
 
 msgid "Support interface fan speed"
 msgstr "Velocitat del ventilador a la interfície de suport"
@@ -15513,12 +15565,6 @@ msgstr "Rectangle"
 msgid "Printable Space"
 msgstr "Espai Imprimible"
 
-msgid "X"
-msgstr "X"
-
-msgid "Y"
-msgstr "Y"
-
 msgid "Hot Bed STL"
 msgstr "STL del Llit"
 
@@ -16810,6 +16856,12 @@ msgstr ""
 "Sabíeu que quan imprimiu materials propensos a deformar-se, com ara l'ABS, "
 "augmentar adequadament la temperatura del llit pot reduir la probabilitat de "
 "deformació."
+
+#~ msgid "X"
+#~ msgstr "X"
+
+#~ msgid "Y"
+#~ msgstr "Y"
 
 #~ msgid ""
 #~ "Associate OrcaSlicer with prusaslicer:// links so that Orca can open "

@@ -24,6 +24,7 @@
 #include "Config.hpp"
 #include "I18N.hpp"
 
+#include "GCode/Thumbnails.hpp"
 #include <set>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/case_conv.hpp>
@@ -422,7 +423,7 @@ static const t_config_enum_values  s_keys_map_GCodeThumbnailsFormat = {
     { "JPG", int(GCodeThumbnailsFormat::JPG) },
     { "QOI", int(GCodeThumbnailsFormat::QOI) },
     { "BTT_TFT", int(GCodeThumbnailsFormat::BTT_TFT) },
-    { "ColPic", int(GCodeThumbnailsFormat::ColPic) }
+    { "COLPIC", int(GCodeThumbnailsFormat::ColPic) }
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(GCodeThumbnailsFormat)
 
@@ -1955,13 +1956,16 @@ def = this->add("filament_loading_speed", coFloats);
     def->enum_values.push_back("PETG");
     def->enum_values.push_back("TPU");
     def->enum_values.push_back("PC");
+    def->enum_values.push_back("PC-CF");
     def->enum_values.push_back("PA");
     def->enum_values.push_back("PA-CF");
     def->enum_values.push_back("PA6-CF");
+    def->enum_values.push_back("PA11-CF");
     def->enum_values.push_back("PLA-CF");
     def->enum_values.push_back("PET-CF");
     def->enum_values.push_back("PETG-CF");
     def->enum_values.push_back("PVA");
+    def->enum_values.push_back("PVB");
     def->enum_values.push_back("HIPS");
     def->enum_values.push_back("PLA-AERO");
     def->enum_values.push_back("PPS");
@@ -4907,12 +4911,12 @@ def = this->add("filament_loading_speed", coFloats);
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(true));
 
-    def = this->add("thumbnails", coPoints);
+    def = this->add("thumbnails", coString);
     def->label = L("G-code thumbnails");
     def->tooltip = L("Picture sizes to be stored into a .gcode and .sl1 / .sl1s files, in the following format: \"XxY, XxY, ...\"");
     def->mode = comAdvanced;
     def->gui_type = ConfigOptionDef::GUIType::one_string;
-    def->set_default_value(new ConfigOptionPoints{Vec2d(300, 300)});
+    def->set_default_value(new ConfigOptionString("48x48/PNG,300x300/PNG"));
 
     def = this->add("thumbnails_format", coEnum);
     def->label = L("Format of G-code thumbnails");
@@ -4923,7 +4927,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->enum_values.push_back("JPG");
     def->enum_values.push_back("QOI");
     def->enum_values.push_back("BTT_TFT");
-    def->enum_values.push_back("ColPic");
+    def->enum_values.push_back("COLPIC");
     def->enum_labels.push_back("PNG");
     def->enum_labels.push_back("JPG");
     def->enum_labels.push_back("QOI");
@@ -5947,6 +5951,60 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
     if (! print_config_def.has(opt_key)) {
         opt_key = "";
         return;
+    }
+}
+
+// Called after a config is loaded as a whole.
+// Perform composite conversions, for example merging multiple keys into one key.
+// Don't convert single options here, implement such conversion in PrintConfigDef::handle_legacy() instead.
+void PrintConfigDef::handle_legacy_composite(DynamicPrintConfig &config)
+{
+    if (config.has("thumbnails")) {
+        std::string extention;
+        if (config.has("thumbnails_format")) {
+            if (const ConfigOptionDef* opt = config.def()->get("thumbnails_format")) {
+                extention = opt->enum_values.at(config.option("thumbnails_format")->getInt());
+            }
+        }
+
+        std::string thumbnails_str = config.opt_string("thumbnails");
+        auto [thumbnails_list, errors] = GCodeThumbnails::make_and_check_thumbnail_list(thumbnails_str, extention);
+
+        if (errors != enum_bitmask<ThumbnailError>()) {
+            std::string error_str = "\n" + format("Invalid value provided for parameter %1%: %2%", "thumbnails", thumbnails_str);
+            error_str += GCodeThumbnails::get_error_string(errors);
+            throw BadOptionValueException(error_str);
+        }
+
+        if (!thumbnails_list.empty()) {
+            const auto& extentions = ConfigOptionEnum<GCodeThumbnailsFormat>::get_enum_names();
+            thumbnails_str.clear();
+            for (const auto& [ext, size] : thumbnails_list)
+                thumbnails_str += format("%1%x%2%/%3%, ", size.x(), size.y(), extentions[int(ext)]);
+            thumbnails_str.resize(thumbnails_str.length() - 2);
+
+            config.set_key_value("thumbnails", new ConfigOptionString(thumbnails_str));
+        }
+    }
+
+    if (config.has("wiping_volumes_matrix") && !config.has("wiping_volumes_use_custom_matrix")) {
+        // This is apparently some pre-2.7.3 config, where the wiping_volumes_matrix was always used.
+        // The 2.7.3 introduced an option to use defaults derived from config. In case the matrix
+        // contains only default values, switch it to default behaviour. The default values
+        // were zeros on the diagonal and 140 otherwise.
+        std::vector<double> matrix = config.opt<ConfigOptionFloats>("wiping_volumes_matrix")->values;
+        int num_of_extruders = int(std::sqrt(matrix.size()) + 0.5);
+        int i = -1;
+        bool custom = false;
+        for (int j = 0; j < int(matrix.size()); ++j) {
+            if (j % num_of_extruders == 0)
+                ++i;
+            if (i != j % num_of_extruders && !is_approx(matrix[j], 140.)) {
+                custom = true;
+                break;
+            }
+        }
+        config.set_key_value("wiping_volumes_use_custom_matrix", new ConfigOptionBool(custom));
     }
 }
 
