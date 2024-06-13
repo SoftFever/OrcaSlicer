@@ -5413,7 +5413,7 @@ msgid "Control"
 msgstr "Control"
 
 msgid "Printer Parts"
-msgstr "Printer Parts"
+msgstr "Partes de la Impresora"
 
 msgid "Print Options"
 msgstr "Opciones de Impresora"
@@ -5542,10 +5542,10 @@ msgid "Number of images successfully uploaded"
 msgstr "Número de imágenes cargadas satisfactoriamente"
 
 msgid " upload failed"
-msgstr " carga fallida"
+msgstr " Carga fallida"
 
 msgid " upload config prase failed\n"
-msgstr " error en la carga de configuración\n"
+msgstr " Error en la carga de configuración\n"
 
 msgid " No corresponding storage bucket\n"
 msgstr " Sin cubo de almacenamiento correspondiente\n"
@@ -5587,7 +5587,7 @@ msgstr ""
 "  código de error: "
 
 msgid "error message: "
-msgstr "mensaje de error: "
+msgstr "Mensaje de error: "
 
 msgid ""
 "\n"
@@ -12480,7 +12480,7 @@ msgstr ""
 "este umbral"
 
 msgid "Retract amount before wipe"
-msgstr "Retracta cantidad antes de limpiar"
+msgstr "Retrae cantidad antes de limpiar"
 
 msgid ""
 "The length of fast retraction before wipe, relative to retraction length"
