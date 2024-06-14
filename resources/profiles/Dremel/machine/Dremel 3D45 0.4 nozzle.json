@@ -110,7 +110,7 @@
         "40"
     ],
     "use_relative_e_distances": "0",
-    "machine_start_gcode": "G28\nG1 Z50.00 F400\nG1 F200 E3\nM132 X Y Z A\nM907 X100 Y100 Z50 A100",
+    "machine_start_gcode": "G28; home printer\nG1 Z50.00 F400; pruge line\nG1 F200 E3\nM132 X Y Z A; prepare printer\nM907 X100 Y100 Z50 A100",
     "machine_end_gcode": "M104 S0; turn off nozzle\nM140 S0; turn off bed\nG92 E1; return print head to home\nG1 E-1 F300\nG162 Z F600\nG162 X Y F2000\nM84; disable stepper motors",
     "machine_pause_gcode": "G5",
     "change_filament_gcode": "G5"
