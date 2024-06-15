@@ -15,19 +15,16 @@
 	"filament_max_volumetric_speed": [
 		"9"
 	],
-	"temperature": [
+	"nozzle_temperature": [
 		"230"
 	],
-	"first_layer_temperature": [
+	"nozzle_temperature_initial_layer": [
 		"230"
 	],
 	"filament_density": [
 		"1.25"
 	],
-	"extrusion_multiplier": [
-		"0.96"
-	],
-	"advance_pressure": [
+	"pressure_advance": [
 		"0.02"
 	],
 	

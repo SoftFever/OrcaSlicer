@@ -3,8 +3,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-29 00:28+0800\n"
-"PO-Revision-Date: 2024-05-26 23:42+0300\n"
+"POT-Creation-Date: 2024-06-05 22:05+0200\n"
+"PO-Revision-Date: 2024-06-02 22:13+0300\n"
 "Last-Translator: Olcay ÖREN\n"
 "Language-Team: \n"
 "Language: tr\n"
@@ -3437,8 +3437,8 @@ msgstr "Akış Dinamik Kalibrasyonu"
 msgid "Send Options"
 msgstr "Gönderme Seçenekleri"
 
-msgid "Send"
-msgstr "Gönder"
+msgid "Send to"
+msgstr ""
 
 msgid ""
 "printers at the same time.(It depends on how many devices can undergo "
@@ -3455,6 +3455,9 @@ msgid ""
 msgstr ""
 "her parti başına dakika. (Isıtmanın tamamlanması ne kadar sürerse buna "
 "bağlıdır.)"
+
+msgid "Send"
+msgstr "Gönder"
 
 msgid "Name is invalid;"
 msgstr "Geçersiz isim;"
@@ -4024,6 +4027,18 @@ msgstr ""
 "%s%% mi yoksa %s %s mi?\n"
 "%s%% için EVET,\n"
 "%s %s için HAYIR."
+
+#, boost-format
+msgid ""
+"Invalid input format. Expected vector of dimensions in the following format: "
+"\"%1%\""
+msgstr ""
+
+msgid "Input value is out of range"
+msgstr ""
+
+msgid "Some extension in the input is invalid"
+msgstr ""
 
 #, boost-format
 msgid "Invalid format. Expected vector format: \"%1%\""
@@ -7874,6 +7889,14 @@ msgstr "Çoklu Ekstruder MM Yazıcılarda Araç Değiştirme Parametreleri"
 msgid "Printable space"
 msgstr "Tabla Ayarı"
 
+#. TRN: First argument is parameter name, the second one is the value.
+#, boost-format
+msgid "Invalid value provided for parameter %1%: %2%"
+msgstr ""
+
+msgid "G-code flavor is switched"
+msgstr ""
+
 msgid "Cooling Fan"
 msgstr "Soğutucu Fan"
 
@@ -8336,6 +8359,32 @@ msgstr "İtibaren"
 
 msgid "To"
 msgstr "İle"
+
+msgid ""
+"Windows Media Player is required for this task! Do you want to enable "
+"'Windows Media Player' for your operation system?"
+msgstr ""
+
+msgid ""
+"BambuSource has not correctly been registered for media playing! Press Yes "
+"to re-register it. You will be promoted twice"
+msgstr ""
+
+msgid ""
+"Missing BambuSource component registered for media playing! Please re-"
+"install BambuStutio or seek after-sales help."
+msgstr ""
+
+msgid ""
+"Using a BambuSource from a different install, video play may not work "
+"correctly! Press Yes to fix it."
+msgstr ""
+
+msgid ""
+"Your system is missing H.264 codecs for GStreamer, which are required to "
+"play video.  (Try installing the gstreamer1.0-plugins-bad or gstreamer1.0-"
+"libav packages, then restart Orca Slicer?)"
+msgstr ""
 
 msgid "Bambu Network plug-in not detected."
 msgstr "Bambu Ağı eklentisi algılanmadı."
@@ -10898,10 +10947,10 @@ msgstr ""
 "Hattın başlangıcını veya ana yönünü kontrol eden katı dolgu deseni açısı"
 
 msgid "Rotate solid infill direction"
-msgstr "Rotate solid infill direction"
+msgstr "Katı dolgu yönünü döndür"
 
 msgid "Rotate the solid infill direction by 90° for each layer."
-msgstr "Rotate the solid infill direction by 90° for each layer."
+msgstr "Katı dolgu yönünü her katman için 90° döndürün."
 
 msgid "Sparse infill density"
 msgstr "Dolgu yoğunluğu"
@@ -11160,6 +11209,9 @@ msgstr ""
 "\"full_fan_speed_layer\", \"close_fan_the_first_x_layers\" değerinden "
 "düşükse göz ardı edilecektir; bu durumda fan, \"close_fan_the_first_x_layers"
 "\" + 1 katmanında izin verilen maksimum hızda çalışacaktır."
+
+msgid "layer"
+msgstr ""
 
 msgid "Support interface fan speed"
 msgstr "Destekler için fan hızı"
@@ -15252,12 +15304,6 @@ msgstr "Dikdörtgen"
 msgid "Printable Space"
 msgstr "Yazdırılabilir Alan"
 
-msgid "X"
-msgstr "X"
-
-msgid "Y"
-msgstr "Y"
-
 msgid "Hot Bed STL"
 msgstr "Sıcak Yatak STL"
 
@@ -16529,6 +16575,12 @@ msgstr ""
 "ABS gibi bükülmeye yatkın malzemelere baskı yaparken, ısıtma yatağı "
 "sıcaklığının uygun şekilde arttırılmasının bükülme olasılığını "
 "azaltabileceğini biliyor muydunuz?"
+
+#~ msgid "X"
+#~ msgstr "X"
+
+#~ msgid "Y"
+#~ msgstr "Y"
 
 #~ msgid ""
 #~ "Associate OrcaSlicer with prusaslicer:// links so that Orca can open "

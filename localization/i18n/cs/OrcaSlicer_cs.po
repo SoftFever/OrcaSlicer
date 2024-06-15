@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-29 00:28+0800\n"
+"POT-Creation-Date: 2024-06-05 22:05+0200\n"
 "PO-Revision-Date: 2023-09-30 15:15+0200\n"
 "Last-Translator: René Mošner <Renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -3416,8 +3416,8 @@ msgstr ""
 msgid "Send Options"
 msgstr ""
 
-msgid "Send"
-msgstr "Odeslat"
+msgid "Send to"
+msgstr ""
 
 msgid ""
 "printers at the same time.(It depends on how many devices can undergo "
@@ -3430,6 +3430,9 @@ msgstr "Zaneprázdněn"
 msgid ""
 "minute each batch.(It depends on how long it takes to complete the heating.)"
 msgstr ""
+
+msgid "Send"
+msgstr "Odeslat"
 
 msgid "Name is invalid;"
 msgstr "Jméno je neplatné;"
@@ -3989,6 +3992,18 @@ msgstr ""
 "Je to %s%% or %s %s?\n"
 "ANO pro %s%%, \n"
 "NE pro %s %s."
+
+#, boost-format
+msgid ""
+"Invalid input format. Expected vector of dimensions in the following format: "
+"\"%1%\""
+msgstr ""
+
+msgid "Input value is out of range"
+msgstr ""
+
+msgid "Some extension in the input is invalid"
+msgstr ""
 
 #, boost-format
 msgid "Invalid format. Expected vector format: \"%1%\""
@@ -7752,6 +7767,14 @@ msgstr "Parametry při výměně (Multi Material s více extrudery)"
 msgid "Printable space"
 msgstr "Prostor pro tisk"
 
+#. TRN: First argument is parameter name, the second one is the value.
+#, boost-format
+msgid "Invalid value provided for parameter %1%: %2%"
+msgstr ""
+
+msgid "G-code flavor is switched"
+msgstr ""
+
 msgid "Cooling Fan"
 msgstr "Ventilátor chlazení"
 
@@ -8198,6 +8221,32 @@ msgstr "Z"
 
 msgid "To"
 msgstr "Do"
+
+msgid ""
+"Windows Media Player is required for this task! Do you want to enable "
+"'Windows Media Player' for your operation system?"
+msgstr ""
+
+msgid ""
+"BambuSource has not correctly been registered for media playing! Press Yes "
+"to re-register it. You will be promoted twice"
+msgstr ""
+
+msgid ""
+"Missing BambuSource component registered for media playing! Please re-"
+"install BambuStutio or seek after-sales help."
+msgstr ""
+
+msgid ""
+"Using a BambuSource from a different install, video play may not work "
+"correctly! Press Yes to fix it."
+msgstr ""
+
+msgid ""
+"Your system is missing H.264 codecs for GStreamer, which are required to "
+"play video.  (Try installing the gstreamer1.0-plugins-bad or gstreamer1.0-"
+"libav packages, then restart Orca Slicer?)"
+msgstr ""
 
 msgid "Bambu Network plug-in not detected."
 msgstr ""
@@ -10838,6 +10887,9 @@ msgstr ""
 "Hodnota \"full_fan_speed_layer\" bude ignorována, pokud je nižší než "
 "\"close_fan_first_layers\", v takovém případě se bude ventilátor točit na "
 "maximální povolenou hodnotu ve vrstvě \"close_fan_first_layers\" + 1."
+
+msgid "layer"
+msgstr ""
 
 msgid "Support interface fan speed"
 msgstr "Rychlost ventilátoru kontaktních vrstev podpěr"
@@ -14691,12 +14743,6 @@ msgid "Rectangle"
 msgstr ""
 
 msgid "Printable Space"
-msgstr ""
-
-msgid "X"
-msgstr ""
-
-msgid "Y"
 msgstr ""
 
 msgid "Hot Bed STL"

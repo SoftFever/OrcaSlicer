@@ -1041,6 +1041,10 @@
             "sub_path": "filament/Qidi Generic PLA Silk.json"
         },
         {
+            "name": "Qidi Generic PLA Silk @Qidi Q1 Pro 0.4 nozzle",
+            "sub_path": "filament/Qidi Generic PLA Silk @Qidi Q1 Pro 0.4 nozzle.json"
+        },
+        {
             "name": "Qidi Generic PVA",
             "sub_path": "filament/Qidi Generic PVA.json"
         },
