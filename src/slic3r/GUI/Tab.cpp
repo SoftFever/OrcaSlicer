@@ -5023,12 +5023,12 @@ void Tab::clear_pages()
 {
     // invalidated highlighter, if any exists
     m_highlighter.invalidate();
-    //BBS: clear page in Parent
-    //m_page_sizer->Clear(true);
-    m_parent->clear_page();
     // clear pages from the controlls
     for (auto p : m_pages)
         p->clear();
+    //BBS: clear page in Parent
+    //m_page_sizer->Clear(true);
+    m_parent->clear_page();
 
     // nulling pointers
     m_parent_preset_description_line = nullptr;
