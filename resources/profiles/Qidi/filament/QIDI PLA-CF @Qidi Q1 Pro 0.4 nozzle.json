@@ -2,10 +2,10 @@
 "filament_id": "GFL98",
 "setting_id": "GFSL98",
 "instantiation": "true",
-    "extrusion_multiplier": [
+    "filament_flow_ratio": [
         "0.93"
     ],
-    "first_layer_temperature": [
+    "nozzle_temperature_initial_layer": [
         "220"
     ],
     "filament_max_volumetric_speed": [

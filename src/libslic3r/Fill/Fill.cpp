@@ -498,7 +498,7 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
                 params.bridge_angle = float(surface.bridge_angle);
                 if (params.extrusion_role == erInternalInfill) {
                     params.angle = float(Geometry::deg2rad(region_config.infill_direction.value));
-                    params.rotate_angle = (params.pattern == ipRectilinear);
+                    params.rotate_angle = (params.pattern == ipRectilinear || params.pattern == ipLine);
                 } else {
                     params.angle = float(Geometry::deg2rad(region_config.solid_infill_direction.value));
                     params.rotate_angle = region_config.rotate_solid_infill_direction;
