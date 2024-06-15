@@ -786,7 +786,20 @@ static float calc_color_distance(wxColour c1, wxColour c2)
     return DeltaE76(lab[0][0], lab[0][1], lab[0][2], lab[1][0], lab[1][1], lab[1][2]);
 }
 
-int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std::vector<FilamentInfo>& result, std::vector<int> exclude_id)
+void MachineObject::get_ams_colors(std::vector<wxColour> &ams_colors) {
+    ams_colors.clear();
+    ams_colors.reserve(amsList.size());
+    for (auto ams = amsList.begin(); ams != amsList.end(); ams++) {
+        for (auto tray = ams->second->trayList.begin(); tray != ams->second->trayList.end(); tray++) {
+            if (tray->second->is_tray_info_ready()) {
+                auto ams_color = AmsTray::decode_color(tray->second->color);
+                ams_colors.emplace_back(ams_color);
+            }
+        }
+    }
+}
+
+int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std::vector<FilamentInfo> &result, std::vector<int> exclude_id)
 {
     if (filaments.empty())
         return -1;
@@ -1386,6 +1399,7 @@ void MachineObject::parse_status(int flag)
     }
 
     is_support_filament_tangle_detect = ((flag >> 19) & 0x1) != 0;
+    is_support_user_preset = ((flag >> 22) & 0x1) != 0;
     if (xcam_filament_tangle_detect_count > 0)
         xcam_filament_tangle_detect_count--;
     else {
