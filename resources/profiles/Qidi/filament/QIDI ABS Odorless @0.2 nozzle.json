@@ -18,10 +18,10 @@
     "filament_max_volumetric_speed": [
         "2"
     ],
-    "max_fan_speed":[
+    "fan_max_speed":[
         "80"
     ],
-    "min_fan_speed":[
+    "fan_min_speed":[
         "10"
     ],
 	"compatible_printers": [
