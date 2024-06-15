@@ -1,7 +1,3 @@
-///|/ Copyright (c) Prusa Research 2022 Filip Sykala @Jony01
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 #ifndef slic3r_EmbossStyleManager_hpp_
 #define slic3r_EmbossStyleManager_hpp_
 
