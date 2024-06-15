@@ -1,22 +1,3 @@
-///|/ Copyright (c) Prusa Research 2018 - 2023 Vojtěch Bubník @bubnikv, Lukáš Matěna @lukasmatena, Oleksandra Iushchenko @YuSanka, Enrico Turri @enricoturri1966, Tomáš Mészáros @tamasmeszaros, David Kocík @kocikdav, Lukáš Hejl @hejllukas, Pavel Mikuš @Godrak, Filip Sykala @Jony01, Vojtěch Král @vojtechkral
-///|/ Copyright (c) 2022 Michael Kirsch
-///|/ Copyright (c) 2021 Boleslaw Ciesielski
-///|/ Copyright (c) 2019 John Drake @foxox
-///|/
-///|/ ported from lib/Slic3r/GUI/Plater.pm:
-///|/ Copyright (c) Prusa Research 2016 - 2019 Vojtěch Bubník @bubnikv, Vojtěch Král @vojtechkral, Enrico Turri @enricoturri1966, Oleksandra Iushchenko @YuSanka, Lukáš Matěna @lukasmatena, Tomáš Mészáros @tamasmeszaros
-///|/ Copyright (c) 2018 Martin Loidl @LoidlM
-///|/ Copyright (c) 2017 Matthias Gazzari @qtux
-///|/ Copyright (c) Slic3r 2012 - 2016 Alessandro Ranellucci @alranel
-///|/ Copyright (c) 2017 Joseph Lenox @lordofhyphens
-///|/ Copyright (c) 2015 Daren Schwenke
-///|/ Copyright (c) 2014 Mark Hindess
-///|/ Copyright (c) 2012 Mike Sheldrake @mesheldrake
-///|/ Copyright (c) 2012 Henrik Brix Andersen @henrikbrixandersen
-///|/ Copyright (c) 2012 Sam Wong
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 #include "Plater.hpp"
 #include "libslic3r/Config.hpp"
 #include "libslic3r_version.h"

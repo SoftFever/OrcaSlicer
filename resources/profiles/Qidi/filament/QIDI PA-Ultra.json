@@ -24,10 +24,10 @@
   "pressure_advance": [
       "0.03"
   ],
-  "max_fan_speed":[
+  "fan_max_speed":[
     "40"
 ],
-"min_fan_speed":[
+"fan_min_speed":[
     "20"
 ],
 "hot_plate_temp_initial_layer" : [
