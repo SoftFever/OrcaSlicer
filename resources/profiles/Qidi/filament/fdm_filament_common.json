@@ -144,5 +144,8 @@
     "activate_chamber_temp_control": [
         "0"
     ],
+    "enable_pressure_advance": [
+        "1"
+    ],
     "compatible_printers": []
 }

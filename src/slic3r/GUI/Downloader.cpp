@@ -1,7 +1,3 @@
-///|/ Copyright (c) Prusa Research 2023 David Kocík @kocikdav, Oleksandra Iushchenko @YuSanka
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 #include "Downloader.hpp"
 #include "GUI_App.hpp"
 #include "NotificationManager.hpp"

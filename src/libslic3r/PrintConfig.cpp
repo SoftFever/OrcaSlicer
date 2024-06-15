@@ -1,24 +1,3 @@
-///|/ Copyright (c) Prusa Research 2016 - 2023 Vojtěch Bubník @bubnikv, Lukáš Matěna @lukasmatena, Lukáš Hejl @hejllukas, Tomáš Mészáros @tamasmeszaros, Oleksandra Iushchenko @YuSanka, Pavel Mikuš @Godrak, David Kocík @kocikdav, Enrico Turri @enricoturri1966, Filip Sykala @Jony01, Vojtěch Král @vojtechkral
-///|/ Copyright (c) 2023 Pedro Lamas @PedroLamas
-///|/ Copyright (c) 2023 Mimoja @Mimoja
-///|/ Copyright (c) 2020 - 2021 Sergey Kovalev @RandoMan70
-///|/ Copyright (c) 2021 Niall Sheridan @nsheridan
-///|/ Copyright (c) 2021 Martin Budden
-///|/ Copyright (c) 2021 Ilya @xorza
-///|/ Copyright (c) 2020 Paul Arden @ardenpm
-///|/ Copyright (c) 2020 rongith
-///|/ Copyright (c) 2019 Spencer Owen @spuder
-///|/ Copyright (c) 2019 Stephan Reichhelm @stephanr
-///|/ Copyright (c) 2018 Martin Loidl @LoidlM
-///|/ Copyright (c) SuperSlicer 2018 Remi Durand @supermerill
-///|/ Copyright (c) 2016 - 2017 Joseph Lenox @lordofhyphens
-///|/ Copyright (c) Slic3r 2013 - 2016 Alessandro Ranellucci @alranel
-///|/ Copyright (c) 2016 Vanessa Ezekowitz @VanessaE
-///|/ Copyright (c) 2015 Alexander Rössler @machinekoder
-///|/ Copyright (c) 2014 Petr Ledvina @ledvinap
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 #include "PrintConfig.hpp"
 #include "ClipperUtils.hpp"
 #include "Config.hpp"
@@ -1847,7 +1826,7 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionPercents{ 100 });
 
-def = this->add("filament_loading_speed", coFloats);
+    def = this->add("filament_loading_speed", coFloats);
     def->label = L("Loading speed");
     def->tooltip = L("Speed used for loading the filament on the wipe tower.");
     def->sidetext = L("mm/s");
@@ -1986,28 +1965,41 @@ def = this->add("filament_loading_speed", coFloats);
     def->tooltip = L("The material type of filament");
     def->gui_type = ConfigOptionDef::GUIType::f_enum_open;
     def->gui_flags = "show_value";
-    def->enum_values.push_back("PLA");
+
     def->enum_values.push_back("ABS");
+    def->enum_values.push_back("ABS-GF");
     def->enum_values.push_back("ASA");
-    def->enum_values.push_back("PETG");
-    def->enum_values.push_back("TPU");
-    def->enum_values.push_back("PC");
-    def->enum_values.push_back("PC-CF");
+    def->enum_values.push_back("ASA-Aero");
+    def->enum_values.push_back("BVOH");
+    def->enum_values.push_back("EVA");
+    def->enum_values.push_back("HIPS");
     def->enum_values.push_back("PA");
     def->enum_values.push_back("PA-CF");
+    def->enum_values.push_back("PA-GF");
     def->enum_values.push_back("PA6-CF");
     def->enum_values.push_back("PA11-CF");
-    def->enum_values.push_back("PLA-CF");
+    def->enum_values.push_back("PC");
+    def->enum_values.push_back("PC-CF");
+    def->enum_values.push_back("PCTG");
+    def->enum_values.push_back("PE");
+    def->enum_values.push_back("PE-CF");
     def->enum_values.push_back("PET-CF");
+    def->enum_values.push_back("PETG");
     def->enum_values.push_back("PETG-CF");
-    def->enum_values.push_back("PVA");
-    def->enum_values.push_back("PVB");
-    def->enum_values.push_back("HIPS");
+    def->enum_values.push_back("PHA");
+    def->enum_values.push_back("PLA");
     def->enum_values.push_back("PLA-AERO");
-    def->enum_values.push_back("PPS");
-    def->enum_values.push_back("PPS-CF");
+    def->enum_values.push_back("PLA-CF");
+    def->enum_values.push_back("PP");
+    def->enum_values.push_back("PP-CF");
+    def->enum_values.push_back("PP-GF");
     def->enum_values.push_back("PPA-CF");
     def->enum_values.push_back("PPA-GF");
+    def->enum_values.push_back("PPS");
+    def->enum_values.push_back("PPS-CF");
+    def->enum_values.push_back("PVA");
+    def->enum_values.push_back("PVB");
+    def->enum_values.push_back("TPU");
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionStrings { "PLA" });
 

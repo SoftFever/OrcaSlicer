@@ -114,6 +114,10 @@
 		{
             "name": "0.40mm Standard @Sovol SV08 0.8 nozzle",
             "sub_path": "process/0.40mm Standard @Sovol SV08 0.8 nozzle.json"
+        },
+        {
+            "name": "0.20mm High-Speed @Sovol SV06",
+            "sub_path": "process/0.20mm High-Speed @Sovol SV06.json"
         }
     ],
     "filament_list": [
