@@ -2941,7 +2941,7 @@ namespace IMGUIZMO_NAMESPACE
              if (iPass) {
                 // Draw face label
                 ImDrawList* drawList        = gContext.mDrawList;
-                ImDrawVert* vtx_write_start = drawList->_VtxWritePtr;
+                int         vtx_write_start = drawList->VtxBuffer.Size;
 
                 const auto label       = gContext.mStyle.FaceLabels[iFace];
                 ImVec2     labelSize   = ImGui::CalcTextSize(label);
@@ -2978,7 +2978,7 @@ namespace IMGUIZMO_NAMESPACE
                     break;
                 }
 
-                for (auto v = vtx_write_start; v < vtx_write_end; v++) {
+                for (auto v = (drawList->VtxBuffer.Data + vtx_write_start); v < vtx_write_end; v++) {
                     auto  pp = ((v->pos - labelOrigin) * scaleFactor * invert2 + ImVec2{0.5, 0.5}) * 2.f;
                     vec_t pt = tdx * pp.x + tdy * pp.y;
                     v->pos   = worldToPos((pt + origin) * 0.5 * invert, res, position, size);
