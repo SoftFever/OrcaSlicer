@@ -815,19 +815,24 @@ bool PresetUpdater::priv::get_cached_plugins_version(std::string& cached_version
     live555_library = cache_folder.string() + "/liblive555.so";
 #endif
 
+    std::string changelog_file = cache_folder.string() + "/network_plugins.json";
     if (boost::filesystem::exists(network_library)
         && boost::filesystem::exists(player_library)
-        && boost::filesystem::exists(live555_library))
+        && boost::filesystem::exists(live555_library)
+        && boost::filesystem::exists(changelog_file))
     {
-        std::string changelog_file = cache_folder.string() + "/network_plugins.json";
         has_plugins = true;
         try {
             boost::nowide::ifstream ifs(changelog_file);
             json j;
             ifs >> j;
 
-            cached_version = j["version"];
-            force = j["force"];
+            if (j.contains("version"))
+                cached_version = j["version"];
+            if (j.contains("force"))
+                force = j["force"];
+
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< ": cached_version = "<<cached_version<<", force = " << force;
         }
         catch(nlohmann::detail::parse_error &err) {
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": parse "<<changelog_file<<" got a nlohmann::detail::parse_error, reason = " << err.what();
@@ -871,6 +876,7 @@ void PresetUpdater::priv::sync_plugins(std::string http_url, std::string plugin_
             BOOST_LOG_TRIVIAL(info) << boost::format("cached plugins version %1% not newer than current %2%")%cached_version%curr_version;
         }
         else {
+            BOOST_LOG_TRIVIAL(info) << boost::format("cached plugins version %1% newer than current %2%")%cached_version%curr_version;
             plugin_version = cached_version;
         }
 

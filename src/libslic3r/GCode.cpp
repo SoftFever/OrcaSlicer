@@ -4113,7 +4113,7 @@ LayerResult GCode::process_layer(
         }
 
         // BBS
-        if (print.config().print_sequence == PrintSequence::ByObject && prime_extruder && first_layer && extruder_id == first_extruder_id) {
+        if (print.has_skirt() && print.config().print_sequence == PrintSequence::ByObject && prime_extruder && first_layer && extruder_id == first_extruder_id) {
             for (InstanceToPrint& instance_to_print : instances_to_print) {
                 if (this->m_objSupportsWithBrim.find(instance_to_print.print_object.id()) != this->m_objSupportsWithBrim.end() &&
                     print.m_supportBrimMap.at(instance_to_print.print_object.id()).entities.size() > 0)
