@@ -3330,7 +3330,7 @@ void TabFilament::build()
         optgroup->append_line(line);
         optgroup->append_single_option_line("reduce_fan_stop_start_freq");
         optgroup->append_single_option_line("slow_down_for_layer_cooling", "auto-cooling");
-        optgroup->append_single_option_line("dont_slow_down_external_perimeters");
+        optgroup->append_single_option_line("dont_slow_down_outer_wall");
         optgroup->append_single_option_line("slow_down_min_speed");
 
         optgroup->append_single_option_line("enable_overhang_bridge_fan", "auto-cooling");
@@ -3508,7 +3508,7 @@ void TabFilament::toggle_options()
         
       // Orca: toggle dont slow down for external perimeters if
       bool has_slow_down_for_layer_cooling = m_config->opt_bool("slow_down_for_layer_cooling", 0);
-      toggle_option("dont_slow_down_external_perimeters", has_slow_down_for_layer_cooling);
+      toggle_option("dont_slow_down_outer_wall", has_slow_down_for_layer_cooling);
     }
     if (m_active_page->title() == L("Filament"))
     {

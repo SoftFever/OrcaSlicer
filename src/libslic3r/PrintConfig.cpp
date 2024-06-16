@@ -1701,8 +1701,8 @@ void PrintConfigDef::init_fff_params()
                      "at minimum speed to reduce the frequency of starting and stoping");
     def->set_default_value(new ConfigOptionBools { false });
     
-    def = this->add("dont_slow_down_external_perimeters", coBools);
-    def->label = L("Don't slow down external perimeters to meet minimum layer time");
+    def = this->add("dont_slow_down_outer_wall", coBools);
+    def->label = L("Don't slow down outer walls");
     def->tooltip = L("If enabled, this setting will ensure external perimeters are not slowed down to meet the minimum layer time. "
                      "This is particularly helpful in the below scenarios:\n\n "
                      "1. To avoid changes in shine when printing glossy filaments \n"

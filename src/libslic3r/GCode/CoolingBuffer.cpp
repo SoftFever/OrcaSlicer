@@ -223,7 +223,7 @@ struct PerExtruderAdjustments
     // Minimum print speed allowed for this extruder.
     float                       slow_down_min_speed     = 0.f;
     
-    bool                        dont_slow_down_external_perimeters = false;
+    bool                        dont_slow_down_outer_wall = false;
 
 
     // Parsed lines.
@@ -334,7 +334,7 @@ std::vector<PerExtruderAdjustments> CoolingBuffer::parse_layer_gcode(const std::
         adj.slow_down_layer_time = float(m_config.slow_down_layer_time.get_at(extruder_id));
         adj.slow_down_min_speed           = float(m_config.slow_down_min_speed.get_at(extruder_id));
         // ORCA: To enable dont slow down external perimeters feature per filament (extruder)
-        adj.dont_slow_down_external_perimeters   = m_config.dont_slow_down_external_perimeters.get_at(extruder_id);
+        adj.dont_slow_down_outer_wall   = m_config.dont_slow_down_outer_wall.get_at(extruder_id);
         map_extruder_to_per_extruder_adjustment[extruder_id] = i;
     }
 
@@ -408,7 +408,7 @@ std::vector<PerExtruderAdjustments> CoolingBuffer::parse_layer_gcode(const std::
             // ORCA: Dont slowdown external perimeters for layer time feature
             // use the adjustment pointer to ensure the value for the current extruder (filament) is used.
             bool adjust_external = true;
-            if(adjustment->dont_slow_down_external_perimeters && external_perimeter) adjust_external = false;
+            if(adjustment->dont_slow_down_outer_wall && external_perimeter) adjust_external = false;
             
             // ORCA: Dont slowdown external perimeters for layer time works by not marking the external perimeter as adjustable, 
             // hence the slowdown algorithm ignores it.
