@@ -3839,6 +3839,9 @@ int CLI::run(int argc, char **argv)
                     int plate_count = partplate_list.get_plate_count();
 
                     auto printer_structure_opt = m_print_config.option<ConfigOptionEnum<PrinterStructure>>("printer_structure");
+                    const float tower_brim_width = m_print_config.option<ConfigOptionFloat>("prime_tower_width", true)->value;
+                    const float tower_margin = WIPE_TOWER_MARGIN + tower_brim_width;
+
                     // set the default position, the same with print config(left top)
                     float x = WIPE_TOWER_DEFAULT_X_POS;
                     float y = WIPE_TOWER_DEFAULT_Y_POS;
@@ -3846,11 +3849,11 @@ int CLI::run(int argc, char **argv)
                         x = I3_WIPE_TOWER_DEFAULT_X_POS;
                         y = I3_WIPE_TOWER_DEFAULT_Y_POS;
                     }
-                    if (x < WIPE_TOWER_MARGIN) {
-                        x = WIPE_TOWER_MARGIN;
+                    if (x < tower_margin) {
+                        x = tower_margin;
                     }
-                    if (y < WIPE_TOWER_MARGIN) {
-                        y = WIPE_TOWER_MARGIN;
+                    if (y < tower_margin) {
+                        y = tower_margin;
                     }
 
                     ConfigOptionFloat wt_x_opt(x);
@@ -4091,6 +4094,8 @@ int CLI::run(int argc, char **argv)
                         int extruder_size = used_filament_set.size();
 
                         auto printer_structure_opt = m_print_config.option<ConfigOptionEnum<PrinterStructure>>("printer_structure");
+                        const float tower_brim_width      = m_print_config.option<ConfigOptionFloat>("prime_tower_width", true)->value;
+                        const float tower_margin          = WIPE_TOWER_MARGIN + tower_brim_width;
                         // set the default position, the same with print config(left top)
                         float x = WIPE_TOWER_DEFAULT_X_POS;
                         float y = WIPE_TOWER_DEFAULT_Y_POS;
@@ -4099,11 +4104,11 @@ int CLI::run(int argc, char **argv)
                             y = I3_WIPE_TOWER_DEFAULT_Y_POS;
                         }
 
-                        if (x < WIPE_TOWER_MARGIN) {
-                            x = WIPE_TOWER_MARGIN;
+                        if (x < tower_margin) {
+                            x = tower_margin;
                         }
-                        if (y < WIPE_TOWER_MARGIN) {
-                            y = WIPE_TOWER_MARGIN;
+                        if (y < tower_margin) {
+                            y = tower_margin;
                         }
                         ConfigOptionFloat wt_x_opt(x);
                         ConfigOptionFloat wt_y_opt(y);
