@@ -1037,8 +1037,8 @@ bool PrintObject::invalidate_state_by_config_options(
                opt_key == "bottom_shell_layers"
             || opt_key == "top_shell_layers") {
 
-            steps.emplace_back(posPrepareInfill);
-
+            steps.emplace_back(posSlice);
+#if (0)
             const auto *old_shell_layers = old_config.option<ConfigOptionInt>(opt_key);
             const auto *new_shell_layers = new_config.option<ConfigOptionInt>(opt_key);
             assert(old_shell_layers && new_shell_layers);
@@ -1054,6 +1054,7 @@ bool PrintObject::invalidate_state_by_config_options(
                 // Otherwise, holes in the bottom layers could be filled, as is reported in GH #5528.
                 steps.emplace_back(posSlice);
             }
+#endif
         } else if (
                opt_key == "interface_shells"
             || opt_key == "infill_combination"
