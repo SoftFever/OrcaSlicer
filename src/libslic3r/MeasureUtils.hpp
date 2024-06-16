@@ -1,7 +1,3 @@
-///|/ Copyright (c) Prusa Research 2022 Enrico Turri @enricoturri1966
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 #ifndef Slic3r_MeasureUtils_hpp_
 #define Slic3r_MeasureUtils_hpp_
 

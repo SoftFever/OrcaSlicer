@@ -1448,7 +1448,8 @@ void SelectMachineDialog::init_bind()
             if (obj->dev_id == e.GetString()) {
                 m_comboBox_printer->SetValue(obj->dev_name + "(LAN)");
             }
-        }else if(e.GetInt() == 1 && (m_print_type == PrintFromType::FROM_SDCARD_VIEW)){
+        }
+        /*else if (e.GetInt() == 1 && (m_print_type == PrintFromType::FROM_SDCARD_VIEW)) {
             on_send_print();
         }
         else if (e.GetInt() == -2 && (m_print_type == PrintFromType::FROM_SDCARD_VIEW)) {
@@ -1471,7 +1472,7 @@ void SelectMachineDialog::init_bind()
                     this->connect_printer_mqtt();
                 }
             }
-        }
+        }*/
     });
 
     m_bitmap_last_plate->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
@@ -2609,12 +2610,12 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
 
         confirm_dlg.Bind(EVT_SECONDARY_CHECK_CONFIRM, [this, &confirm_dlg](wxCommandEvent& e) {
             confirm_dlg.on_hide();
-            if (m_print_type == PrintFromType::FROM_SDCARD_VIEW) {
+           /* if (m_print_type == PrintFromType::FROM_SDCARD_VIEW) {
                 this->connect_printer_mqtt();
             }
-            else {
+            else {*/
                 this->on_send_print();
-            }
+            //}
         });
 
         //confirm_dlg.Bind(EVT_UPDATE_NOZZLE, [this, obj_, tag_nozzle_type, nozzle_diameter, &confirm_dlg](wxCommandEvent& e) {
@@ -2648,12 +2649,12 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
         confirm_dlg.on_show();
 
     } else {
-        if (m_print_type == PrintFromType::FROM_SDCARD_VIEW) {
-            this->connect_printer_mqtt();
-        }
-        else {
+        /* if (m_print_type == PrintFromType::FROM_SDCARD_VIEW) {
+             this->connect_printer_mqtt();
+         }
+         else {*/
             this->on_send_print();
-        }
+        //}
     }
 }
 
@@ -2824,7 +2825,7 @@ void SelectMachineDialog::on_send_print()
     else if(m_print_type == PrintFromType::FROM_SDCARD_VIEW){
         BOOST_LOG_TRIVIAL(info) << "print_job: m_print_type = from_sdcard_view";
         m_print_job->m_print_type = "from_sdcard_view";
-        m_print_job->connection_type = "lan";
+        //m_print_job->connection_type = "lan";
 
         try {
             m_print_job->m_print_from_sdc_plate_idx = m_required_data_plate_data_list[m_print_plate_idx]->plate_index + 1;
@@ -4333,7 +4334,7 @@ bool SelectMachineDialog::Show(bool show)
         DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
         if (dev) {
             MachineObject* obj_ = dev->get_selected_machine();
-            if (obj_ && obj_->connection_type() == "cloud" && m_print_type == FROM_SDCARD_VIEW) {
+            if (obj_ && obj_->connection_type() == "cloud" /*&& m_print_type == FROM_SDCARD_VIEW*/) {
                 if (obj_->is_connected()) {
                     obj_->disconnect();
                 }

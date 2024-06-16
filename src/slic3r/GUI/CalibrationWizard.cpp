@@ -15,8 +15,6 @@ wxDEFINE_EVENT(EVT_DEVICE_CHANGED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_CALIBRATION_JOB_FINISHED, wxCommandEvent);
 
 static const wxString NA_STR = _L("N/A");
-static const float MIN_PA_K_VALUE = 0.0;
-static const float MAX_PA_K_VALUE = 0.3;
 static const float MIN_PA_K_VALUE_STEP = 0.001;
 static const int MAX_PA_HISTORY_RESULTS_NUMS = 16;
 
@@ -310,6 +308,9 @@ void CalibrationWizard::recover_preset_info(MachineObject *obj)
 
 void CalibrationWizard::back_preset_info(MachineObject *obj, bool cali_finish, bool back_cali_flag)
 {
+    if (!obj)
+        return;
+
     PrinterCaliInfo printer_cali_info;
     printer_cali_info.dev_id           = obj->dev_id;
     printer_cali_info.cali_finished    = cali_finish;
@@ -468,10 +469,10 @@ void PressureAdvanceWizard::on_cali_action(wxCommandEvent& evt)
 
 void PressureAdvanceWizard::update(MachineObject* obj)
 {
+    CalibrationWizard::update(obj);
+
     if (!obj)
         return;
-
-    CalibrationWizard::update(obj);
 
     if (!m_show_result_dialog) {
         if (obj->cali_version != -1 && obj->cali_version != cali_version) {
@@ -659,7 +660,7 @@ void PressureAdvanceWizard::on_cali_start()
             cali_page->set_pa_cali_image(int(pa_cali_method));
             curr_obj->manual_pa_cali_method = pa_cali_method;
             
-            if (curr_obj->pa_calib_tab.size() >= MAX_PA_HISTORY_RESULTS_NUMS) {
+            if (curr_obj->get_printer_series() != PrinterSeries::SERIES_X1 && curr_obj->pa_calib_tab.size() >= MAX_PA_HISTORY_RESULTS_NUMS) {
                 MessageDialog msg_dlg(nullptr, wxString::Format(_L("This machine type can only hold 16 history results per nozzle. "
                     "You can delete the existing historical results and then start calibration. "
                     "Or you can continue the calibration, but you cannot create new calibration historical results. \n"

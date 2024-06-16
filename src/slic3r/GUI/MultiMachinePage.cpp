@@ -316,7 +316,7 @@ MultiMachinePickPage::MultiMachinePickPage(Plater* plater /*= nullptr*/)
     auto line_top = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
     line_top->SetBackgroundColour(wxColour(166, 169, 170));
     
-    m_label = new Label(this, _L("Select connected printetrs (0/6)"));
+    m_label = new Label(this, _L("Select connected printers (0/6)"));
 
     scroll_macine_list = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL);
     scroll_macine_list->SetSize(wxSize(FromDIP(400), FromDIP(10 * 30)));
@@ -372,7 +372,7 @@ void MultiMachinePickPage::update_selected_count()
     }
 
     m_selected_count = count;
-    m_label->SetLabel(wxString::Format(_L("Select Connected Printetrs (%d/6)"), m_selected_count));
+    m_label->SetLabel(wxString::Format(_L("Select Connected Printers (%d/6)"), m_selected_count));
 
     if (m_selected_count > PICK_DEVICE_MAX) {
         MessageDialog msg_wingow(nullptr, wxString::Format(_L("The maximum number of printers that can be selected is %d"), PICK_DEVICE_MAX), "", wxAPPLY | wxOK);

@@ -10,6 +10,9 @@ class ProgressIndicator;
 class Preset;
 
 namespace GUI {
+extern const float MIN_PA_K_VALUE;
+extern const float MAX_PA_K_VALUE;
+
 class CalibInfo
 {
 public:

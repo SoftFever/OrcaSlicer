@@ -249,6 +249,7 @@ namespace IMGUIZMO_NAMESPACE
       HATCHED_AXIS_LINES,
       TEXT,
       TEXT_SHADOW,
+      FACE,
       COUNT
    };
 
@@ -258,6 +259,17 @@ namespace IMGUIZMO_NAMESPACE
        Axis_Y,
        Axis_Z,
        Axis_COUNT,
+   };
+
+   enum FACES
+   {
+       FACE_BACK,
+       FACE_TOP,
+       FACE_RIGHT,
+       FACE_FRONT,
+       FACE_BOTTOM,
+       FACE_LEFT,
+       FACES_COUNT
    };
 
    struct Style
@@ -276,6 +288,7 @@ namespace IMGUIZMO_NAMESPACE
       ImVec4 Colors[COLOR::COUNT];
 
       char AxisLabels[Axis::Axis_COUNT][32];
+      char FaceLabels[FACES::FACES_COUNT][32];
    };
 
    IMGUI_API Style& GetStyle();
