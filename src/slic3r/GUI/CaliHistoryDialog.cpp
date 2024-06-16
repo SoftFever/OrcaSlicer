@@ -16,7 +16,6 @@ namespace GUI {
 #define EDIT_HISTORY_DIALOG_INPUT_SIZE     wxSize(FromDIP(160), FromDIP(24))
 #define NEW_HISTORY_DIALOG_INPUT_SIZE      wxSize(FromDIP(250), FromDIP(24))
 #define HISTORY_WINDOW_ITEMS_COUNT         5
-static const wxString k_tips = "Please input a valid value (K in 0~0.3)";
 
 static wxString get_preset_name_by_filament_id(std::string filament_id)
 {
@@ -472,7 +471,7 @@ void EditCalibrationHistoryDialog::on_save(wxCommandEvent& event) {
     
     float k = 0.0f;
     if (!CalibUtils::validate_input_k_value(m_k_value->GetTextCtrl()->GetValue(), &k)) {
-        MessageDialog msg_dlg(nullptr, _L(k_tips), wxEmptyString, wxICON_WARNING | wxOK);
+        MessageDialog msg_dlg(nullptr, wxString::Format(_L("Please input a valid value (K in %.1f~%.1f)"), MIN_PA_K_VALUE, MAX_PA_K_VALUE), wxEmptyString, wxICON_WARNING | wxOK);
         msg_dlg.ShowModal();
         return;
     }
@@ -678,7 +677,7 @@ void NewCalibrationHistoryDialog::on_ok(wxCommandEvent &event)
 
     float k = 0.0f;
     if (!CalibUtils::validate_input_k_value(m_k_value->GetTextCtrl()->GetValue(), &k)) {
-        MessageDialog msg_dlg(nullptr, _L(k_tips), wxEmptyString, wxICON_WARNING | wxOK);
+        MessageDialog msg_dlg(nullptr, wxString::Format(_L("Please input a valid value (K in %.1f~%.1f)"), MIN_PA_K_VALUE, MAX_PA_K_VALUE), wxEmptyString, wxICON_WARNING | wxOK);
         msg_dlg.ShowModal();
         return;
     }
