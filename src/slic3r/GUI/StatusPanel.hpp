@@ -206,6 +206,7 @@ private:
     ProgressBar*    m_gauge_progress;
     Label* m_error_text;
     PrintingTaskType m_type;
+    int m_brightness_value{ -1 };
 
 public:
     void init_bitmaps();
@@ -227,6 +228,7 @@ public:
     void show_priting_use_info(bool show, wxString time = wxEmptyString, wxString weight = wxEmptyString);
     void show_profile_info(bool show, wxString profile = wxEmptyString);
     void set_thumbnail_img(const wxBitmap& bmp);
+    void set_brightness_value(int value) { m_brightness_value = value; }
     void set_plate_index(int plate_idx = -1);
     void market_scoring_show();
     void market_scoring_hide();
@@ -246,7 +248,6 @@ public:
     void set_star_count_dirty(bool dirty) { m_star_count_dirty = dirty; }
     void                           set_has_reted_text(bool has_rated);
     void paint(wxPaintEvent&);
-
 };
 
 class StatusBasePanel : public wxScrolledWindow
