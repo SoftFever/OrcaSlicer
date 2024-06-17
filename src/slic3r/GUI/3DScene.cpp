@@ -66,17 +66,22 @@ void glAssertRecentCallImpl(const char* file_name, unsigned int line, const char
 // BBS
 std::vector<Slic3r::ColorRGBA> get_extruders_colors()
 {
-    Slic3r::ColorRGBA              rgba_color;
-    std::vector<std::string>       colors        = Slic3r::GUI::wxGetApp().plater()->get_extruder_colors_from_plater_config();
+    unsigned char                     rgba_color[4] = {};
+    std::vector<std::string>          colors        = Slic3r::GUI::wxGetApp().plater()->get_extruder_colors_from_plater_config();
     std::vector<Slic3r::ColorRGBA> colors_out(colors.size());
     for (const std::string &color : colors) {
-        Slic3r::decode_color(color, rgba_color);
+        Slic3r::GUI::BitmapCache::parse_color4(color, rgba_color);
         size_t color_idx      = &color - &colors.front();
-        colors_out[color_idx] = rgba_color;
+        colors_out[color_idx] = {
+            float(rgba_color[0]) / 255.f,
+            float(rgba_color[1]) / 255.f,
+            float(rgba_color[2]) / 255.f,
+            float(rgba_color[3]) / 255.f,
+        };
     }
-
     return colors_out;
 }
+
 float FullyTransparentMaterialThreshold  = 0.1f;
 float FullTransparentModdifiedToFixAlpha = 0.3f;
 float FULL_BLACK_THRESHOLD = 0.18f;
@@ -464,7 +469,7 @@ void GLVolume::render_with_outline(const Transform3d &view_model_matrix)
 }
 
 //BBS add render for simple case
-void GLVolume::simple_render(GLShaderProgram* shader, ModelObjectPtrs& model_objects, std::vector<ColorRGBA> extruder_colors)
+void GLVolume::simple_render(GLShaderProgram* shader, ModelObjectPtrs& model_objects, std::vector<ColorRGBA>& extruder_colors, bool ban_light)
 {
     if (this->is_left_handed())
         glFrontFace(GL_CW);
@@ -510,22 +515,36 @@ void GLVolume::simple_render(GLShaderProgram* shader, ModelObjectPtrs& model_obj
             if (!m.is_initialized())
                 continue;
 
-            if (idx == 0) {
-                int extruder_id = model_volume->extruder_id();
-                //to make black not too hard too see
-                ColorRGBA new_color = adjust_color_for_rendering(extruder_colors[extruder_id - 1]);
-                m.set_color(new_color);
-            }
-            else {
-                if (idx <= extruder_colors.size()) {
+            if (shader) {
+                if (idx == 0) {
+                    int extruder_id = model_volume->extruder_id();
                     //to make black not too hard too see
-                    ColorRGBA new_color = adjust_color_for_rendering(extruder_colors[idx - 1]);
+                    ColorRGBA new_color = adjust_color_for_rendering(extruder_colors[extruder_id - 1]);
+                    if (ban_light) {
+                        new_color[3] = (255 - (extruder_id - 1))/255.0f;
+                    }
                     m.set_color(new_color);
+                    // shader->set_uniform("uniform_color", new_color);
                 }
                 else {
-                    //to make black not too hard too see
-                    ColorRGBA new_color = adjust_color_for_rendering(extruder_colors[0]);
-                    m.set_color(new_color);
+                    if (idx <= extruder_colors.size()) {
+                        //to make black not too hard too see
+                        ColorRGBA new_color = adjust_color_for_rendering(extruder_colors[idx - 1]);
+                        if (ban_light) {
+                            new_color[3] = (255 - (idx - 1))/255.0f;
+                        }
+                        m.set_color(new_color);
+                        // shader->set_uniform("uniform_color", new_color);
+                    }
+                    else {
+                        //to make black not too hard too see
+                        ColorRGBA new_color = adjust_color_for_rendering(extruder_colors[0]);
+                        if (ban_light) {
+                            new_color[3] = (255 - 0) / 255.0f;
+                        }
+                        m.set_color(new_color);
+                        // shader->set_uniform("uniform_color", new_color);
+                    }
                 }
             }
             if (tverts_range == std::make_pair<size_t, size_t>(0, -1))
