@@ -445,6 +445,12 @@ protected:
     wxStaticBitmap *                    img_use_ams_tip{nullptr};
     wxStaticBitmap *                    img_ams_backup{nullptr};
     ScalableBitmap *                    enable_ams{nullptr};
+    ThumbnailData                       m_cur_input_thumbnail_data;
+    ThumbnailData                       m_cur_no_light_thumbnail_data;
+    ThumbnailData                       m_preview_thumbnail_data;//when ams map change
+    std::vector<wxColour>               m_preview_colors_in_thumbnail;
+    std::vector<wxColour>               m_cur_colors_in_thumbnail;
+    std::vector<bool>                   m_edge_pixels;
 
 public:
     SelectMachineDialog(Plater *plater = nullptr);
@@ -483,7 +489,15 @@ public:
     void on_set_finish_mapping(wxCommandEvent& evt);
     void on_print_job_cancel(wxCommandEvent& evt);
     void set_default();
-    void set_default_normal();
+    void reset_and_sync_ams_list();
+    void clone_thumbnail_data();
+    void record_edge_pixels_data();
+    wxColour adjust_color_for_render(const wxColour& color);
+    void final_deal_edge_pixels_data(ThumbnailData& data);
+    void updata_thumbnail_data_after_connected_printer();
+    void unify_deal_thumbnail_data(ThumbnailData &input_data, ThumbnailData &no_light_data);
+    void change_default_normal(int old_filament_id, wxColour temp_ams_color);
+    void set_default_normal(const ThumbnailData&);
     void set_default_from_sdcard();
     void update_page_turn_state(bool show);
     void on_timer(wxTimerEvent& event);
@@ -567,12 +581,12 @@ public:
     void OnPaint(wxPaintEvent &event);
     void PaintBackground(wxDC &dc);
     void OnEraseBackground(wxEraseEvent &event);
-    void set_thumbnail(wxImage img);
+    void set_thumbnail(wxImage &img);
     void render(wxDC &dc);
 private:
     ScalableBitmap m_background_bitmap;
     wxBitmap bitmap_with_background;
-    
+    int m_brightness_value{ -1 };
 };
 
 }} // namespace Slic3r::GUI

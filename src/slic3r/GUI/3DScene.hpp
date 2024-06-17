@@ -325,7 +325,7 @@ public:
     virtual void        render_with_outline(const Transform3d &view_model_matrix);
 
     //BBS: add simple render function for thumbnail
-    void simple_render(GLShaderProgram* shader, ModelObjectPtrs& model_objects, std::vector<ColorRGBA> extruder_colors);
+    void simple_render(GLShaderProgram* shader, ModelObjectPtrs& model_objects, std::vector<ColorRGBA>& extruder_colors, bool ban_light =false);
 
     void                set_bounding_boxes_as_dirty() {
         m_transformed_bounding_box.reset();
