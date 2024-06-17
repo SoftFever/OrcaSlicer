@@ -2642,28 +2642,10 @@ void Print::_make_wipe_tower()
 {
     m_wipe_tower_data.clear();
 
-    // Get wiping matrix to get number of extruders and convert vector<double> to vector<float>:
-    std::vector<float> flush_matrix(cast<float>(m_config.flush_volumes_matrix.values));
-
     // BBS
-    const unsigned int number_of_extruders = (unsigned int)(sqrt(flush_matrix.size()) + EPSILON);
-    // Extract purging volumes for each extruder pair:
-    std::vector<std::vector<float>> wipe_volumes;
-    for (unsigned int i = 0; i<number_of_extruders; ++i)
-        wipe_volumes.push_back(std::vector<float>(flush_matrix.begin()+i*number_of_extruders, flush_matrix.begin()+(i+1)*number_of_extruders));
+    const unsigned int number_of_extruders = (unsigned int)(m_config.filament_colour.values.size());
 
     const auto bUseWipeTower2 = is_BBL_printer() ? false : true;
-    // Orca: itertate over wipe_volumes and change the non-zero values to the prime_volume
-    if ((!m_config.purge_in_prime_tower || !m_config.single_extruder_multi_material) && !is_BBL_printer()) {
-        for (unsigned int i = 0; i < number_of_extruders; ++i) {
-            for (unsigned int j = 0; j < number_of_extruders; ++j) {
-                if (wipe_volumes[i][j] > 0) {
-                    wipe_volumes[i][j] = m_config.prime_volume;
-                }
-            }
-        }
-    }
-
     // Let the ToolOrdering class know there will be initial priming extrusions at the start of the print.
     m_wipe_tower_data.tool_ordering = ToolOrdering(*this, (unsigned int) -1, bUseWipeTower2 ? true : false);
 
@@ -2713,9 +2695,6 @@ void Print::_make_wipe_tower()
         WipeTower wipe_tower(m_config, m_plate_index, m_origin, m_config.prime_volume, m_wipe_tower_data.tool_ordering.first_extruder(),
                              m_wipe_tower_data.tool_ordering.empty() ? 0.f : m_wipe_tower_data.tool_ordering.back().print_z);
 
-        // wipe_tower.set_retract();
-        // wipe_tower.set_zhop();
-
         // Set the extruder & material properties at the wipe tower object.
         for (size_t i = 0; i < number_of_extruders; ++i)
             wipe_tower.set_extruder(i, m_config);
@@ -2727,49 +2706,119 @@ void Print::_make_wipe_tower()
         // Lets go through the wipe tower layers and determine pairs of extruder changes for each
         // to pass to wipe_tower (so that it can use it for planning the layout of the tower)
         {
+        // Get wiping matrix to get number of extruders and convert vector<double> to vector<float>:
+        bool               is_mutli_extruder = m_config.nozzle_diameter.values.size() > 1;
+        size_t nozzle_nums       = m_config.nozzle_diameter.values.size();
+        if (is_mutli_extruder) {
+            using FlushMatrix = std::vector<std::vector<float>>;
+            std::vector<FlushMatrix> multi_extruder_flush;
+            for (size_t nozzle_id = 0; nozzle_id < nozzle_nums; ++nozzle_id) {
+                std::vector<float> flush_matrix(cast<float>(get_flush_volumes_matrix(m_config.flush_volumes_matrix.values, nozzle_id, nozzle_nums)));
+                std::vector<std::vector<float>> wipe_volumes;
+                for (unsigned int i = 0; i < number_of_extruders; ++i)
+                    wipe_volumes.push_back(std::vector<float>(flush_matrix.begin() + i * number_of_extruders, flush_matrix.begin() + (i + 1) * number_of_extruders));
+
+                multi_extruder_flush.emplace_back(wipe_volumes);
+            }
+
+            // todo multi_extruders: get filament_maps
+            std::vector<int> filament_maps;
+            for (int i = 0; i <= number_of_extruders / 2; ++i) {
+                filament_maps.push_back(1);
+            }
+            for (int i = number_of_extruders / 2 + 1; i < number_of_extruders; ++i) {
+                filament_maps.push_back(2);
+            }
+
+            std::vector<unsigned int> nozzle_cur_filament_ids(nozzle_nums, -1);
+            unsigned int current_filament_id = m_wipe_tower_data.tool_ordering.first_extruder();
+            size_t cur_nozzle_id = filament_maps[current_filament_id] - 1;
+            nozzle_cur_filament_ids[cur_nozzle_id] = current_filament_id;
+
+            for (auto &layer_tools : m_wipe_tower_data.tool_ordering.layer_tools()) { // for all layers
+                if (!layer_tools.has_wipe_tower) continue;
+                bool first_layer = &layer_tools == &m_wipe_tower_data.tool_ordering.front();
+                wipe_tower.plan_toolchange((float) layer_tools.print_z, (float) layer_tools.wipe_tower_layer_height, current_filament_id, current_filament_id);
+
+                for (const auto filament_id : layer_tools.extruders) {
+                    if (filament_id == current_filament_id)
+                        continue;
+
+                    int          nozzle_id       = filament_maps[filament_id] - 1;
+                    unsigned int pre_filament_id = nozzle_cur_filament_ids[nozzle_id];
+                    if (pre_filament_id == filament_id)
+                        continue;
+
+                    float volume_to_purge = multi_extruder_flush[nozzle_id][pre_filament_id][filament_id];
+                    volume_to_purge *= m_config.flush_multiplier.get_at(nozzle_id);
+                    volume_to_purge = pre_filament_id == -1 ? 0 :
+                                          layer_tools.wiping_extrusions().mark_wiping_extrusions(*this, current_filament_id, filament_id, volume_to_purge);
+                    wipe_tower.plan_toolchange((float) layer_tools.print_z, (float) layer_tools.wipe_tower_layer_height, current_filament_id, filament_id,
+                                               m_config.prime_volume, volume_to_purge);
+                    current_filament_id                = filament_id;
+                    nozzle_cur_filament_ids[nozzle_id] = filament_id;
+                }
+                layer_tools.wiping_extrusions().ensure_perimeters_infills_order(*this);
+
+                // if enable timelapse, slice all layer
+                if (enable_timelapse_print()) {
+                    if (layer_tools.wipe_tower_partitions == 0) wipe_tower.set_last_layer_extruder_fill(false);
+                    continue;
+                }
+
+                if (&layer_tools == &m_wipe_tower_data.tool_ordering.back() || (&layer_tools + 1)->wipe_tower_partitions == 0)
+                    break;
+            }
+        }
+        else {
+            std::vector<float> flush_matrix(cast<float>(get_flush_volumes_matrix(m_config.flush_volumes_matrix.values, 0, nozzle_nums)));
+            
+            // Extract purging volumes for each extruder pair:
+            std::vector<std::vector<float>> wipe_volumes;
+            for (unsigned int i = 0; i < number_of_extruders; ++i)
+                wipe_volumes.push_back(std::vector<float>(flush_matrix.begin() + i * number_of_extruders, flush_matrix.begin() + (i + 1) * number_of_extruders));
+            
+            
             // BBS: priming logic is removed, so get the initial extruder by first_extruder()
             unsigned int current_extruder_id = m_wipe_tower_data.tool_ordering.first_extruder();
             for (auto &layer_tools : m_wipe_tower_data.tool_ordering.layer_tools()) { // for all layers
-                if (!layer_tools.has_wipe_tower)
-                    continue;
+                if (!layer_tools.has_wipe_tower) continue;
                 bool first_layer = &layer_tools == &m_wipe_tower_data.tool_ordering.front();
-                wipe_tower.plan_toolchange((float) layer_tools.print_z, (float) layer_tools.wipe_tower_layer_height, current_extruder_id,
-                                           current_extruder_id);
-
+                wipe_tower.plan_toolchange((float)layer_tools.print_z, (float)layer_tools.wipe_tower_layer_height, current_extruder_id, current_extruder_id);
+            
                 for (const auto extruder_id : layer_tools.extruders) {
                     // BBS: priming logic is removed, so no need to do toolchange for first extruder
-                    if (/*(first_layer && extruder_id == m_wipe_tower_data.tool_ordering.all_extruders().back()) || */ extruder_id !=
-                        current_extruder_id) {
+                    if (/*(first_layer && extruder_id == m_wipe_tower_data.tool_ordering.all_extruders().back()) || */extruder_id != current_extruder_id) {
                         float volume_to_purge = wipe_volumes[current_extruder_id][extruder_id];
-                        volume_to_purge *= m_config.flush_multiplier;
-
+                        volume_to_purge *= m_config.flush_multiplier.get_at(0);
+            
                         // Not all of that can be used for infill purging:
-                        // volume_to_purge -= (float)m_config.filament_minimal_purge_on_wipe_tower.get_at(extruder_id);
-
+                        //volume_to_purge -= (float)m_config.filament_minimal_purge_on_wipe_tower.get_at(extruder_id);
+            
                         // try to assign some infills/objects for the wiping:
-                        volume_to_purge = layer_tools.wiping_extrusions().mark_wiping_extrusions(*this, current_extruder_id, extruder_id,
-                                                                                                 volume_to_purge);
-
+                        volume_to_purge = layer_tools.wiping_extrusions().mark_wiping_extrusions(*this, current_extruder_id, extruder_id, volume_to_purge);
+            
                         // add back the minimal amount toforce on the wipe tower:
-                        // volume_to_purge += (float)m_config.filament_minimal_purge_on_wipe_tower.get_at(extruder_id);
-
+                        //volume_to_purge += (float)m_config.filament_minimal_purge_on_wipe_tower.get_at(extruder_id);
+            
                         // request a toolchange at the wipe tower with at least volume_to_wipe purging amount
-                        wipe_tower.plan_toolchange((float) layer_tools.print_z, (float) layer_tools.wipe_tower_layer_height,
+                        wipe_tower.plan_toolchange((float)layer_tools.print_z, (float)layer_tools.wipe_tower_layer_height,
                                                    current_extruder_id, extruder_id, m_config.prime_volume, volume_to_purge);
                         current_extruder_id = extruder_id;
                     }
                 }
                 layer_tools.wiping_extrusions().ensure_perimeters_infills_order(*this);
-
+            
                 // if enable timelapse, slice all layer
                 if (enable_timelapse_print()) {
                     if (layer_tools.wipe_tower_partitions == 0)
                         wipe_tower.set_last_layer_extruder_fill(false);
                     continue;
                 }
-
+            
                 if (&layer_tools == &m_wipe_tower_data.tool_ordering.back() || (&layer_tools + 1)->wipe_tower_partitions == 0)
                     break;
+            }
             }
         }
 
@@ -2805,6 +2854,23 @@ void Print::_make_wipe_tower()
                                                   wipe_tower.get_layer_height(), m_wipe_tower_data.depth, m_wipe_tower_data.brim_width,
                                                   {scale_(origin.x()), scale_(origin.y())});
     } else {
+        // Get wiping matrix to get number of extruders and convert vector<double> to vector<float>:
+        std::vector<float> flush_matrix(cast<float>(m_config.flush_volumes_matrix.values));
+        // Extract purging volumes for each extruder pair:
+        std::vector<std::vector<float>> wipe_volumes;
+        for (unsigned int i = 0; i<number_of_extruders; ++i)
+            wipe_volumes.push_back(std::vector<float>(flush_matrix.begin()+i*number_of_extruders, flush_matrix.begin()+(i+1)*number_of_extruders));
+
+        // Orca: itertate over wipe_volumes and change the non-zero values to the prime_volume
+        if ((!m_config.purge_in_prime_tower || !m_config.single_extruder_multi_material) && !is_BBL_printer()) {
+            for (unsigned int i = 0; i < number_of_extruders; ++i) {
+                for (unsigned int j = 0; j < number_of_extruders; ++j) {
+                    if (wipe_volumes[i][j] > 0) {
+                        wipe_volumes[i][j] = m_config.prime_volume;
+                    }
+                }
+            }
+        }
         // Initialize the wipe tower.
         WipeTower2 wipe_tower(m_config, m_default_region_config, m_plate_index, m_origin, wipe_volumes,
                               m_wipe_tower_data.tool_ordering.first_extruder());
@@ -2835,7 +2901,7 @@ void Print::_make_wipe_tower()
                         float volume_to_wipe = m_config.prime_volume;
                         if (m_config.purge_in_prime_tower && m_config.single_extruder_multi_material) {
                             volume_to_wipe = wipe_volumes[current_extruder_id][extruder_id]; // total volume to wipe after this toolchange
-                            volume_to_wipe *= m_config.flush_multiplier;
+                            volume_to_wipe *= m_config.flush_multiplier.get_at(0);
                             // Not all of that can be used for infill purging:
                             volume_to_wipe -= (float) m_config.filament_minimal_purge_on_wipe_tower.get_at(extruder_id);
 

@@ -272,6 +272,13 @@ wxBoxSizer* WipingPanel::create_calc_btn_sizer(wxWindow* parent) {
     btn_sizer->Add(calc_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(ButtonProps::WindowButtonGap()));
     calc_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { calc_flushing_volumes(); });
 
+    ComboBox *extruder_combo = new ComboBox(parent, wxID_ANY, "", wxDefaultPosition, wxSize(FromDIP(100), FromDIP(24)), 0, nullptr, wxCB_READONLY);
+    extruder_combo->AppendString(_L("extruder 1"));
+    extruder_combo->AppendString(_L("extruder 2"));
+    extruder_combo->SetSelection(0);
+    extruder_combo->Bind(wxEVT_COMBOBOX, &WipingPanel::on_select_extruder, this);
+    btn_sizer->Add(extruder_combo);
+
     return btn_sizer;
 }
 void WipingDialog::on_dpi_changed(const wxRect &suggested_rect)
@@ -289,7 +296,7 @@ void WipingDialog::on_dpi_changed(const wxRect &suggested_rect)
 
 // Parent dialog for purging volume adjustments - it fathers WipingPanel widget (that contains all controls) and a button to toggle simple/advanced mode:
 WipingDialog::WipingDialog(wxWindow* parent, const std::vector<float>& matrix, const std::vector<float>& extruders, const std::vector<std::string>& extruder_colours,
-    const std::vector<int>&extra_flush_volume, float flush_multiplier)
+    const std::vector<int>&extra_flush_volume, const std::vector<float>& flush_multiplier, size_t nozzle_nums)
     : GUI::DPIDialog(parent ? parent : static_cast<wxWindow *>(wxGetApp().mainframe),
                 wxID_ANY,
                 _(L("Flushing volumes for filament change")),
@@ -304,7 +311,7 @@ WipingDialog::WipingDialog(wxWindow* parent, const std::vector<float>& matrix, c
     this->SetMinSize(wxSize(MIN_WIPING_DIALOG_WIDTH, -1));
     
 
-    m_panel_wiping = new WipingPanel(this, matrix, extruders, extruder_colours, nullptr, extra_flush_volume, flush_multiplier);
+    m_panel_wiping = new WipingPanel(this, matrix, extruders, 0, extruder_colours, nullptr, extra_flush_volume, flush_multiplier, nozzle_nums);
 
     auto main_sizer = new wxBoxSizer(wxVERTICAL);
     main_sizer->Add(m_line_top, 0, wxEXPAND, 0);
@@ -380,19 +387,29 @@ void WipingPanel::create_panels(wxWindow* parent, const int num) {
 }
 
 // This panel contains all control widgets for both simple and advanced mode (these reside in separate sizers)
-WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, const std::vector<float>& extruders, const std::vector<std::string>& extruder_colours, Button* calc_button,
-    const std::vector<int>& extra_flush_volume, float flush_multiplier)
-: wxPanel(parent,wxID_ANY, wxDefaultPosition, wxDefaultSize/*,wxBORDER_RAISED*/)
-,m_matrix(matrix), m_min_flush_volume(extra_flush_volume), m_max_flush_volume(Slic3r::g_max_flush_volume)
+WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, const std::vector<float>& extruders, 
+    size_t                          cur_extruder_id,
+    const std::vector<std::string>& extruder_colours, Button* calc_button,
+    const std::vector<int>& extra_flush_volume, const std::vector<float>& flush_multiplier, size_t nozzle_nums)
+    : wxPanel(parent,wxID_ANY, wxDefaultPosition, wxDefaultSize/*,wxBORDER_RAISED*/)
+    , m_flush_multiplier(flush_multiplier)
+    , m_matrix(matrix)
+    , m_cur_extruder_id(cur_extruder_id)
+    , m_min_flush_volume(extra_flush_volume)
+    , m_max_flush_volume(Slic3r::g_max_flush_volume)
+    , m_nozzle_nums(nozzle_nums)
 {
-    m_number_of_extruders = (int)(sqrt(matrix.size())+0.001);
+    m_number_of_extruders = (unsigned int)extruder_colours.size();
+
+    generate_display_matrix();
+    assert(m_display_matrix.size() == extruders.size() ^ 2);
 
     for (const std::string& color : extruder_colours) {
         Slic3r::ColorRGB rgb;
         Slic3r::decode_color(color, rgb);
         m_colours.push_back(wxColor(rgb.r_uchar(), rgb.g_uchar(), rgb.b_uchar()));
     }
-    auto sizer_width = (int)((sqrt(matrix.size())) * ITEM_WIDTH() + (sqrt(matrix.size()) + 1) * HEADER_BEG_PADDING);
+    auto sizer_width = (int)((sqrt(m_display_matrix.size())) * ITEM_WIDTH() + (sqrt(m_display_matrix.size()) + 1) * HEADER_BEG_PADDING);
     sizer_width = sizer_width > MIN_WIPING_DIALOG_WIDTH ? sizer_width : MIN_WIPING_DIALOG_WIDTH;
     // Create two switched panels with their own sizers
     m_sizer_simple          = new wxBoxSizer(wxVERTICAL);
@@ -428,7 +445,7 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
                 edit_boxes[i][j]->Bind(wxEVT_SET_FOCUS, [this](wxFocusEvent&) {});
             }
             else {
-                edit_boxes[i][j]->SetValue(wxString("") << int(m_matrix[m_number_of_extruders * j + i] * flush_multiplier));
+                edit_boxes[i][j]->SetValue(wxString("") << int(m_display_matrix[m_number_of_extruders * j + i] * m_flush_multiplier[m_cur_extruder_id]));
 
                 edit_boxes[i][j]->Bind(wxEVT_TEXT, [this, i, j](wxCommandEvent& e) {
                     wxString str = edit_boxes[i][j]->GetValue();
@@ -445,7 +462,7 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
                 auto on_apply_text_modify = [this, i, j](wxEvent &e) {
                     wxString str   = edit_boxes[i][j]->GetValue();
                     int      value = wxAtoi(str);
-                    m_matrix[m_number_of_extruders * j + i] = value / get_flush_multiplier();
+                    m_display_matrix[m_number_of_extruders * j + i] = value / get_flush_multiplier();
                     this->update_warning_texts();
                     e.Skip();
                 };
@@ -521,14 +538,18 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
             if (multiplier < g_min_flush_multiplier || multiplier > g_max_flush_multiplier) {
                 str = wxString::Format(("%.2f"), multiplier < g_min_flush_multiplier ? g_min_flush_multiplier : g_max_flush_multiplier);
                 m_flush_multiplier_ebox->SetValue(str);
+                m_flush_multiplier[m_cur_extruder_id] = wxAtof(m_flush_multiplier_ebox->GetValue());
                 MessageDialog dlg(nullptr,
                     wxString::Format(_L("The multiplier should be in range [%.2f, %.2f]."), g_min_flush_multiplier, g_max_flush_multiplier),
                     _L("Warning"), wxICON_WARNING | wxOK);
                 dlg.ShowModal();
             }
+            else {
+                m_flush_multiplier[m_cur_extruder_id] = multiplier;
+            }
             for (unsigned int i = 0; i < m_number_of_extruders; ++i) {
                 for (unsigned int j = 0; j < m_number_of_extruders; ++j) {
-                    edit_boxes[i][j]->SetValue(to_string(int(m_matrix[m_number_of_extruders * j + i] * multiplier)));
+                    edit_boxes[i][j]->SetValue(to_string(int(m_display_matrix[m_number_of_extruders * j + i] * multiplier)));
                 }
             }
 
@@ -543,7 +564,7 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
         param_sizer->Add(flush_multiplier_title, 0, wxALIGN_CENTER | wxALL, 0);
         param_sizer->AddSpacer(FromDIP(5));
         m_flush_multiplier_ebox = new wxTextCtrl(m_page_advanced, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(50), -1), wxTE_PROCESS_ENTER);
-        m_flush_multiplier_ebox->SetValue(wxString::Format(("%.2f"), flush_multiplier));
+        m_flush_multiplier_ebox->SetValue(wxString::Format(("%.2f"), m_flush_multiplier[m_cur_extruder_id]));
         m_flush_multiplier_ebox->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
         param_sizer->Add(m_flush_multiplier_ebox, 0, wxALIGN_CENTER | wxALL, 0);
         param_sizer->AddStretchSpacer(1);
@@ -557,6 +578,10 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
             if (multiplier < g_min_flush_multiplier || multiplier > g_max_flush_multiplier) {
                 str = wxString::Format(("%.2f"), multiplier < g_min_flush_multiplier ? g_min_flush_multiplier : g_max_flush_multiplier);
                 m_flush_multiplier_ebox->SetValue(str);
+                m_flush_multiplier[m_cur_extruder_id] = wxAtof(m_flush_multiplier_ebox->GetValue());
+            }
+            else {
+                m_flush_multiplier[m_cur_extruder_id] = multiplier;
             }
             m_flush_multiplier_ebox->SetInsertionPointEnd();
         });
@@ -759,7 +784,7 @@ void WipingPanel::calc_flushing_volumes()
                     }
                 }
 
-                m_matrix[m_number_of_extruders * from_idx + to_idx] = flushing_volume;
+                m_display_matrix[m_number_of_extruders * from_idx + to_idx] = flushing_volume;
                 flushing_volume = int(flushing_volume * get_flush_multiplier());
                 edit_boxes[to_idx][from_idx]->SetValue(std::to_string(flushing_volume));
             }
@@ -796,7 +821,9 @@ std::vector<float> WipingPanel::read_matrix_values() {
             }
         }
     }
-    return output;
+    m_display_matrix = output;
+    back_matrix();
+    return m_matrix;
 }
 
 // Reads values from simple mode to save them for next time:
@@ -819,7 +846,46 @@ void WipingPanel::fill_in_matrix() {
     }
 }
 
+void WipingPanel::generate_display_matrix()
+{
+    m_display_matrix = get_flush_volumes_matrix(m_matrix, m_cur_extruder_id, m_nozzle_nums);
+}
 
+void WipingPanel::back_matrix()
+{
+    set_flush_volumes_matrix(m_matrix, m_display_matrix, m_cur_extruder_id, m_nozzle_nums);
+}
+
+void WipingPanel::update_table()
+{
+    for (unsigned int i = 0; i < m_number_of_extruders; ++i) {
+        for (unsigned int j = 0; j < m_number_of_extruders; ++j) {
+            if (i == j) {
+                edit_boxes[i][j]->SetValue(wxString("0"));
+                edit_boxes[i][j]->SetEditable(false);
+            } else {
+                edit_boxes[i][j]->SetValue(wxString("") << int(m_display_matrix[m_number_of_extruders * j + i] * m_flush_multiplier[m_cur_extruder_id]));
+            }
+        }
+    }
+    wxString str = wxString::Format(("%.2f"), m_flush_multiplier[m_cur_extruder_id]);
+    m_flush_multiplier_ebox->SetValue(str);
+    update_warning_texts();
+}
+
+void WipingPanel::on_select_extruder(wxCommandEvent &evt)
+{
+    ComboBox *comboBox = dynamic_cast<ComboBox *>(evt.GetEventObject());
+    if (comboBox) {
+        int      selection    = comboBox->GetSelection();
+        if (m_cur_extruder_id != selection) {
+            read_matrix_values();
+            m_cur_extruder_id = selection;
+            generate_display_matrix();
+            update_table();
+        }
+    }
+}
 
 // Function to check if simple and advanced settings are matching
 bool WipingPanel::advanced_matches_simple() {

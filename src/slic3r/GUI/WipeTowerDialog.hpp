@@ -48,8 +48,9 @@ private:
 class WipingPanel : public wxPanel {
 public:
     // BBS
-    WipingPanel(wxWindow* parent, const std::vector<float>& matrix, const std::vector<float>& extruders, const std::vector<std::string>& extruder_colours, Button* calc_button,
-        const std::vector<int>& extra_flush_volume, float flush_multiplier);
+    WipingPanel(wxWindow* parent, const std::vector<float>& matrix, const std::vector<float>& extruders, size_t cur_extruder_id,
+        const std::vector<std::string>& extruder_colours, Button* calc_button,
+        const std::vector<int>& extra_flush_volume, const std::vector<float>& flush_multiplier, size_t nozzle_nums);
     std::vector<float> read_matrix_values();
     std::vector<float> read_extruders_values();
     void toggle_advanced(bool user_action = false);
@@ -66,7 +67,13 @@ public:
         return wxAtof(m_flush_multiplier_ebox->GetValue());
     }
 
+    std::vector<float> get_flush_multiplier_vector() { return m_flush_multiplier; }
+
 private:
+    void on_select_extruder(wxCommandEvent &evt);
+    void generate_display_matrix(); // generate display_matrix frem matrix
+    void back_matrix();
+    void update_table();  // if matrix is modified update the table
     void fill_in_matrix();
     bool advanced_matches_simple();
     int calc_flushing_volume(const wxColour& from, const wxColour& to,int min_flush_volume);
@@ -97,7 +104,11 @@ private:
     wxTextCtrl* m_flush_multiplier_ebox = nullptr;
     wxStaticText* m_min_flush_label = nullptr;
 
+    std::vector<float> m_flush_multiplier;
     std::vector<float> m_matrix;
+    std::vector<float> m_display_matrix;
+    size_t             m_cur_extruder_id;
+    size_t             m_nozzle_nums;
 };
 
 
@@ -108,7 +119,7 @@ class WipingDialog : public Slic3r::GUI::DPIDialog
 {
 public:
     WipingDialog(wxWindow* parent, const std::vector<float>& matrix, const std::vector<float>& extruders, const std::vector<std::string>& extruder_colours,
-        const std::vector<int>&extra_flush_volume,float flush_multiplier);
+        const std::vector<int>&extra_flush_volume, const std::vector<float>& flush_multiplier, size_t nozzle_nums);
     std::vector<float> get_matrix() const    { return m_output_matrix; }
     std::vector<float> get_extruders() const { return m_output_extruders; }
     wxBoxSizer* create_btn_sizer(long flags);
@@ -119,6 +130,12 @@ public:
             return 1.f;
 
         return m_panel_wiping->get_flush_multiplier();
+    }
+
+    std::vector<float> get_flush_multiplier_vector() const {
+        if (m_panel_wiping == nullptr)
+            return {1.f, 1.f};
+        return m_panel_wiping->get_flush_multiplier_vector();
     }
 
     void on_dpi_changed(const wxRect &suggested_rect) override;

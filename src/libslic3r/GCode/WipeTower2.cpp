@@ -2090,7 +2090,7 @@ std::vector<std::vector<float>> WipeTower2::extract_wipe_volumes(const PrintConf
 {
     // Get wiping matrix to get number of extruders and convert vector<double> to vector<float>:
     std::vector<float> wiping_matrix(cast<float>(config.flush_volumes_matrix.values));
-    auto scale = config.flush_multiplier;
+    auto scale = config.flush_multiplier.get_at(0);
 
     // The values shall only be used when SEMM is enabled. The purging for other printers
     // is determined by filament_minimal_purge_on_wipe_tower.

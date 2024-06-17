@@ -1427,7 +1427,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
 
     // BBS: wipe tower is only used for priming
     ((ConfigOptionFloat,              prime_volume))
-    ((ConfigOptionFloat,              flush_multiplier))
+    ((ConfigOptionFloats,             flush_multiplier))
     ((ConfigOptionFloat,              z_offset))
     // BBS: project filaments
     ((ConfigOptionFloats,             filament_colour_new))
@@ -1932,6 +1932,34 @@ private:
 
     static uint64_t             s_last_timestamp;
 };
+
+// const std::vector<double> &fv_matrix:  origin matrix from json
+// size_t extruder_id: -1 means single-nozzle for old file, 0 means the 1st extruder, 1 means the 2nd extruder
+template<class T>
+static std::vector<T> get_flush_volumes_matrix(const std::vector<T> &fv_matrix, size_t extruder_id = -1, size_t nozzle_nums = 1)
+{
+    if (extruder_id != -1 && nozzle_nums != 1) {
+        return std::vector<T>(fv_matrix.begin() + size_t(fv_matrix.size() / nozzle_nums * extruder_id + EPSILON),
+                                   fv_matrix.begin() + size_t(fv_matrix.size() / nozzle_nums * (extruder_id + 1) + EPSILON));
+    }
+    return fv_matrix;
+}
+
+// std::vector<double> &out_matrix:
+// const std::vector<double> &fv_matrix: the matrix of one nozzle
+// size_t extruder_id: -1 means single-nozzle for old file, 0 means the 1st extruder, 1 means the 2nd extruder
+template<class T>
+static void set_flush_volumes_matrix(std::vector<T> &out_matrix, const std::vector<T> &fv_matrix, size_t extruder_id = -1, size_t nozzle_nums = 1)
+{
+    bool is_multi_extruder = false;
+    if (extruder_id != -1 && nozzle_nums != 1) {
+        std::copy(fv_matrix.begin(), fv_matrix.end(), out_matrix.begin() + size_t(out_matrix.size() / nozzle_nums * extruder_id + EPSILON));
+    }
+    else {
+        out_matrix = std::vector<T>(fv_matrix.begin(), fv_matrix.end());
+    }
+}
+
 } // namespace Slic3r
 
 // Serialization through the Cereal library

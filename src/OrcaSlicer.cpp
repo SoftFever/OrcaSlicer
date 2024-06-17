@@ -2813,14 +2813,8 @@ int CLI::run(int argc, char **argv)
 
             //computing
             ConfigOptionBools* filament_is_support = m_print_config.option<ConfigOptionBools>("filament_is_support", true);
-            std::vector<double>& flush_vol_matrix = m_print_config.option<ConfigOptionFloats>("flush_volumes_matrix", true)->values;
-            //std::vector<float>& flush_vol_vector = m_print_config.option<ConfigOptionFloats>("flush_volumes_vector", true)->values;
-            flush_vol_matrix.resize(project_filament_count*project_filament_count, 0.f);
-            //flush_vol_vector.resize(project_filament_count);
-            //set multiplier to 1?
-            m_print_config.option<ConfigOptionFloat>("flush_multiplier", true)->set(new ConfigOptionFloat(1.f));
 
-            const std::vector<int>& min_flush_volumes = Slic3r::GUI::get_min_flush_volumes(m_print_config);
+            const std::vector<int> &min_flush_volumes = Slic3r::GUI::get_min_flush_volumes(m_print_config, 0);
 
             if (filament_is_support->size() != project_filament_count)
             {
@@ -2836,40 +2830,50 @@ int CLI::run(int argc, char **argv)
                 BOOST_LOG_TRIVIAL(info) << boost::format("filament_is_support: %1%") % filament_is_support->serialize();
                 BOOST_LOG_TRIVIAL(info) << boost::format("flush_volumes_matrix before computing: %1%") % m_print_config.option<ConfigOptionFloats>("flush_volumes_matrix")->serialize();
             }
-            for (int from_idx = 0; from_idx < project_filament_count; from_idx++) {
-                const std::string& from_color = project_filament_colors[from_idx];
-                unsigned char from_rgb[4] = {};
-                Slic3r::GUI::BitmapCache::parse_color4(from_color, from_rgb);
-                bool is_from_support = filament_is_support->get_at(from_idx);
-                for (int to_idx = 0; to_idx < project_filament_count; to_idx++) {
-                    bool is_to_support = filament_is_support->get_at(to_idx);
-                    if (from_idx == to_idx) {
-                        flush_vol_matrix[project_filament_count*from_idx + to_idx] = 0.f;
-                    }
-                    else {
-                        int flushing_volume = 0;
-                        if (is_to_support) {
-                            flushing_volume = Slic3r::g_flush_volume_to_support;
-                        }
-                        else {
-                            const std::string& to_color = project_filament_colors[to_idx];
-                            unsigned char to_rgb[4] = {};
-                            Slic3r::GUI::BitmapCache::parse_color4(to_color, to_rgb);
-                            //BOOST_LOG_TRIVIAL(info) << boost::format("src_idx %1%, src color %2%, dst idex %3%, dst color %4%")%from_idx %from_color %to_idx %to_color;
-                            //BOOST_LOG_TRIVIAL(info) << boost::format("src_rgba {%1%,%2%,%3%,%4%} dst_rgba {%5%,%6%,%7%,%8%}")%(unsigned int)(from_rgb[0]) %(unsigned int)(from_rgb[1]) %(unsigned int)(from_rgb[2]) %(unsigned int)(from_rgb[3])
-                            //       %(unsigned int)(to_rgb[0]) %(unsigned int)(to_rgb[1]) %(unsigned int)(to_rgb[2]) %(unsigned int)(to_rgb[3]);
 
-                            Slic3r::FlushVolCalculator calculator(min_flush_volumes[from_idx], Slic3r::g_max_flush_volume);
+            size_t nozzle_nums = 1;
+            auto opt_nozzle_diameters = m_print_config.option<ConfigOptionFloats>("nozzle_diameter");
+            if (opt_nozzle_diameters != nullptr) {
+                nozzle_nums       = opt_nozzle_diameters->values.size();
+            }
 
-                            flushing_volume = calculator.calc_flush_vol(from_rgb[3], from_rgb[0], from_rgb[1], from_rgb[2], to_rgb[3], to_rgb[0], to_rgb[1], to_rgb[2]);
-                            if (is_from_support) {
-                                flushing_volume = std::max(Slic3r::g_min_flush_volume_from_support, flushing_volume);
+            std::vector<double> &flush_vol_matrix = m_print_config.option<ConfigOptionFloats>("flush_volumes_matrix", true)->values;
+            flush_vol_matrix.resize(project_filament_count * project_filament_count * nozzle_nums, 0.f);
+
+            // set multiplier to 1?
+            std::vector<double>& flush_multipliers = m_print_config.option<ConfigOptionFloats>("flush_multiplier", true)->values;
+            flush_multipliers.resize(nozzle_nums, 1.f);
+
+            for (size_t nozzle_id = 0; nozzle_id < nozzle_nums; ++nozzle_id) {
+                std::vector<double> flush_vol_mtx = get_flush_volumes_matrix(flush_vol_matrix, nozzle_id, nozzle_nums);
+                for (int from_idx = 0; from_idx < project_filament_count; from_idx++) {
+                    const std::string &from_color  = project_filament_colors[from_idx];
+                    unsigned char      from_rgb[4] = {};
+                    Slic3r::GUI::BitmapCache::parse_color4(from_color, from_rgb);
+                    bool is_from_support = filament_is_support->get_at(from_idx);
+                    for (int to_idx = 0; to_idx < project_filament_count; to_idx++) {
+                        bool is_to_support = filament_is_support->get_at(to_idx);
+                        if (from_idx == to_idx) {
+                            flush_vol_mtx[project_filament_count * from_idx + to_idx] = 0.f;
+                        } else {
+                            int flushing_volume = 0;
+                            if (is_to_support) {
+                                flushing_volume = Slic3r::g_flush_volume_to_support;
+                            } else {
+                                const std::string &to_color  = project_filament_colors[to_idx];
+                                unsigned char      to_rgb[4] = {};
+                                Slic3r::GUI::BitmapCache::parse_color4(to_color, to_rgb);
+
+                                Slic3r::FlushVolCalculator calculator(min_flush_volumes[from_idx], Slic3r::g_max_flush_volume);
+
+                                flushing_volume = calculator.calc_flush_vol(from_rgb[3], from_rgb[0], from_rgb[1], from_rgb[2], to_rgb[3], to_rgb[0], to_rgb[1], to_rgb[2]);
+                                if (is_from_support) { flushing_volume = std::max(Slic3r::g_min_flush_volume_from_support, flushing_volume); }
                             }
-                        }
 
-                        flush_vol_matrix[project_filament_count * from_idx + to_idx] = flushing_volume;
-                        //flushing_volume = int(flushing_volume * get_flush_multiplier());
+                            flush_vol_mtx[project_filament_count * from_idx + to_idx] = flushing_volume;
+                        }
                     }
+                    set_flush_volumes_matrix(flush_vol_matrix, flush_vol_mtx, nozzle_id, nozzle_nums);
                 }
             }
             BOOST_LOG_TRIVIAL(info) << boost::format("flush_volumes_matrix after computed: %1%")%m_print_config.option<ConfigOptionFloats>("flush_volumes_matrix")->serialize();

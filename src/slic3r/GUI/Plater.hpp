@@ -654,6 +654,8 @@ public:
     const Mouse3DController& get_mouse3d_controller() const;
     Mouse3DController& get_mouse3d_controller();
 
+    //BBS: update when switch muilti_extruder printer
+    void update_flush_volume_matrix(const Slic3r::DynamicPrintConfig &config, const std::string &old_model_id);
     //BBS: add bed exclude area
 	void set_bed_shape() const;
     void set_bed_shape(const Pointfs& shape, const Pointfs& exclude_area, const double printable_height, const std::string& custom_texture, const std::string& custom_model, bool force_as_custom = false) const;
@@ -841,7 +843,7 @@ private:
     bool m_was_scheduled;
 };
 
-std::vector<int> get_min_flush_volumes(const DynamicPrintConfig& full_config);
+std::vector<int> get_min_flush_volumes(const DynamicPrintConfig &full_config, size_t nozzle_id);
 } // namespace GUI
 } // namespace Slic3r
 

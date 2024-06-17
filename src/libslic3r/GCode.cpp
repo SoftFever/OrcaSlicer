@@ -3876,7 +3876,7 @@ LayerResult GCode::process_layer(
 
     // BBS: get next extruder according to flush and soluble
     auto get_next_extruder = [&](int current_extruder,const std::vector<unsigned int>&extruders) {
-        std::vector<float> flush_matrix(cast<float>(m_config.flush_volumes_matrix.values));
+        std::vector<float> flush_matrix(cast<float>(get_flush_volumes_matrix(m_config.flush_volumes_matrix.values, 0, m_config.nozzle_diameter.values.size())));
         const unsigned int number_of_extruders = (unsigned int)(sqrt(flush_matrix.size()) + EPSILON);
         // Extract purging volumes for each extruder pair:
         std::vector<std::vector<float>> wipe_volumes;
@@ -6457,8 +6457,8 @@ std::string GCode::set_extruder(unsigned int filament_id, double print_z, bool b
     //BBS: add handling for filament change in start gcode
     int previous_filament_id = -1;
     if (m_writer.extruder() != nullptr || m_start_gcode_filament != -1) {
-        std::vector<float> flush_matrix(cast<float>(m_config.flush_volumes_matrix.values));
-        const unsigned int number_of_extruders = (unsigned int)(sqrt(flush_matrix.size()) + EPSILON);
+        std::vector<float> flush_matrix(cast<float>(get_flush_volumes_matrix(m_config.flush_volumes_matrix.values, 0, m_config.nozzle_diameter.values.size())));
+        const unsigned int number_of_extruders = (unsigned int) (m_config.filament_colour.values.size()); // if is multi_extruder only use the fist extruder matrix
         if (m_writer.extruder() != nullptr)
             assert(m_writer.extruder()->id() < number_of_extruders);
         else
@@ -6472,7 +6472,7 @@ std::string GCode::set_extruder(unsigned int filament_id, double print_z, bool b
         old_filament_temp = this->on_first_layer()? m_config.nozzle_temperature_initial_layer.get_at(previous_filament_id) : m_config.nozzle_temperature.get_at(previous_filament_id);
         //Orca: always calculate wipe volume and hence provide correct flush_length, so that MMU devices with cutter and purge bin (e.g. ERCF_v2 with a filament cutter or Filametrix can take advantage of it)
         wipe_volume = flush_matrix[previous_filament_id * number_of_extruders + filament_id];
-        wipe_volume *= m_config.flush_multiplier;
+        wipe_volume *= m_config.flush_multiplier.get_at(0);  // if is multi_extruder only use the fist extruder matrix
 
         old_filament_e_feedrate = (int) (60.0 * m_config.filament_max_volumetric_speed.get_at(previous_filament_id) / filament_area);
         old_filament_e_feedrate = old_filament_e_feedrate == 0 ? 100 : old_filament_e_feedrate;

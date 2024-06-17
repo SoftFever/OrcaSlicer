@@ -197,6 +197,7 @@ private:
     void                mark_skirt_layers(const PrintConfig &config, coordf_t max_layer_height);
     void 				collect_extruder_statistics(bool prime_multi_material);
     void                reorder_extruders_for_minimum_flush_volume();
+    void                reorder_extruders_for_minimum_flush_volume_multi_extruder();
 
     // BBS
     std::vector<unsigned int> generate_first_layer_tool_order(const Print& print);

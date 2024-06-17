@@ -1631,9 +1631,9 @@ void PresetBundle::update_selections(AppConfig &config)
         project_config.option<ConfigOptionFloats>("flush_volumes_vector")->values = std::vector<double>(flush_volumes_vector.begin(), flush_volumes_vector.end());
     }
     if (config.has("app", "flush_multiplier")) {
-        std::string str_flush_multiplier = config.get("app", "flush_multiplier");
-        if (!str_flush_multiplier.empty())
-            project_config.option<ConfigOptionFloat>("flush_multiplier")->set(new ConfigOptionFloat(std::stof(str_flush_multiplier)));
+        boost::algorithm::split(matrix, config.get("app", "flush_multiplier"), boost::algorithm::is_any_of("|"));
+        auto flush_multipliers = matrix | boost::adaptors::transformed(boost::lexical_cast<double, std::string>);
+        project_config.option<ConfigOptionFloats>("flush_multiplier")->values = std::vector<double>(flush_multipliers.begin(), flush_multipliers.end());
     }
 
     // Update visibility of presets based on their compatibility with the active printer.
@@ -1738,9 +1738,9 @@ void PresetBundle::load_selections(AppConfig &config, const PresetPreferences& p
         project_config.option<ConfigOptionFloats>("flush_volumes_vector")->values = std::vector<double>(flush_volumes_vector.begin(), flush_volumes_vector.end());
     }
     if (config.has("app", "flush_multiplier")) {
-        std::string str_flush_multiplier = config.get("app", "flush_multiplier");
-        if (!str_flush_multiplier.empty())
-            project_config.option<ConfigOptionFloat>("flush_multiplier")->set(new ConfigOptionFloat(std::stof(str_flush_multiplier)));
+        boost::algorithm::split(matrix, config.get("app", "flush_multiplier"), boost::algorithm::is_any_of("|"));
+        auto flush_multipliers = matrix | boost::adaptors::transformed(boost::lexical_cast<double, std::string>);
+        project_config.option<ConfigOptionFloats>("flush_multiplier")->values = std::vector<double>(flush_multipliers.begin(), flush_multipliers.end());
     }
 
     // Update visibility of presets based on their compatibility with the active printer.
@@ -1822,8 +1822,11 @@ void PresetBundle::export_selections(AppConfig &config)
     config.set_printer_setting(printer_name, "flush_volumes_vector", flush_volumes_vector);
 
 
-    auto flush_multi_opt = project_config.option<ConfigOptionFloat>("flush_multiplier");
-    config.set("flush_multiplier", std::to_string(flush_multi_opt ? flush_multi_opt->getFloat() : 1.0f));
+    std::string flush_multiplier_str = boost::algorithm::join(project_config.option<ConfigOptionFloats>("flush_multiplier")->values |
+                                                                  boost::adaptors::transformed(static_cast<std::string (*)(double)>(std::to_string)),
+                                                              "|");
+    config.set("flush_multiplier", flush_multiplier_str);
+
     // BBS
     //config.set("presets", "sla_print",    sla_prints.get_selected_preset_name());
     //config.set("presets", "sla_material", sla_materials.get_selected_preset_name());
@@ -3200,7 +3203,9 @@ void PresetBundle::update_multi_material_filament_presets()
 
     // Now verify if flush_volumes_matrix has proper size (it is used to deduce number of extruders in wipe tower generator):
     std::vector<double> old_matrix = this->project_config.option<ConfigOptionFloats>("flush_volumes_matrix")->values;
-    size_t old_number_of_filaments = size_t(sqrt(old_matrix.size())+EPSILON);
+
+    size_t nozzle_nums = full_config().option<ConfigOptionFloats>("nozzle_diameter")->values.size();
+    size_t old_number_of_filaments = size_t(sqrt(old_matrix.size() / nozzle_nums) + EPSILON);
     if (num_filaments != old_number_of_filaments) {
         // First verify if purging volumes presets for each extruder matches number of extruders
         std::vector<double>& filaments = this->project_config.option<ConfigOptionFloats>("flush_volumes_vector")->values;
@@ -3213,16 +3218,38 @@ void PresetBundle::update_multi_material_filament_presets()
             filaments.pop_back();
         }
 
-        std::vector<double> new_matrix;
-        for (unsigned int i=0;i< num_filaments;++i)
-            for (unsigned int j=0;j< num_filaments;++j) {
-                // append the value for this pair from the old matrix (if it's there):
-                if (i < old_number_of_filaments && j < old_number_of_filaments)
-                    new_matrix.push_back(old_matrix[i* old_number_of_filaments + j]);
-                else
-                    new_matrix.push_back( i == j ? 0. : filaments[2 * i] + filaments[2 * j + 1]); // so it matches new extruder volumes
-            }
-		this->project_config.option<ConfigOptionFloats>("flush_volumes_matrix")->values = new_matrix;
+        if (nozzle_nums > 1) {
+            size_t old_matrix_size = old_number_of_filaments * old_number_of_filaments;
+            size_t new_matrix_size = num_filaments * num_filaments;
+            std::vector<double> new_matrix(new_matrix_size * nozzle_nums, 0);
+            for (unsigned int i = 0; i < num_filaments; ++i)
+                for (unsigned int j = 0; j < num_filaments; ++j) {
+                    if (i < old_number_of_filaments && j < old_number_of_filaments) {
+                        for (size_t nozzle_id = 0; nozzle_id < nozzle_nums; ++nozzle_id) {
+                            new_matrix[i * num_filaments + j + new_matrix_size * nozzle_id] = old_matrix[i * old_number_of_filaments + j + old_matrix_size * nozzle_id];
+                        }
+                    }
+                    else {
+                        for (size_t nozzle_id = 0; nozzle_id < nozzle_nums; ++nozzle_id) {
+                            new_matrix[i * num_filaments + j + new_matrix_size * nozzle_id] = (i == j ? 0. : filaments[2 * i] + filaments[2 * j + 1]);
+                        }
+                    }
+                }
+            this->project_config.option<ConfigOptionFloats>("flush_volumes_matrix")->values = new_matrix;
+        }
+        else {
+            std::vector<double> new_matrix;
+            for (unsigned int i = 0; i < num_filaments; ++i)
+                for (unsigned int j = 0; j < num_filaments; ++j) {
+                    // append the value for this pair from the old matrix (if it's there):
+                    if (i < old_number_of_filaments && j < old_number_of_filaments)
+                        new_matrix.push_back(old_matrix[i * old_number_of_filaments + j]);
+                    else
+                        new_matrix.push_back(i == j ? 0. : filaments[2 * i] + filaments[2 * j + 1]); // so it matches new extruder volumes
+                }
+            this->project_config.option<ConfigOptionFloats>("flush_volumes_matrix")->values = new_matrix;
+        }
+        
     }
 }
 
