@@ -16522,7 +16522,7 @@ msgid ""
 "prints, but more filament consumption and longer printing time."
 msgstr ""
 "En comparación con el perfil predeterminado de una boquilla de 0,6 mm, tiene "
-"más bucles de pared y una mayor relleno de baja densidad. Esto se traduce en "
+"más perímetros y una mayor relleno de baja densidad. Esto se traduce en "
 "una mayor resistencia de impresión, pero un mayor consumo de filamento y un "
 "tiempo de impresión más largo."
 
