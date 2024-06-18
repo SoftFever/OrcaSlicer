@@ -1,19 +1,3 @@
-///|/ Copyright (c) Prusa Research 2018 - 2023 Tomáš Mészáros @tamasmeszaros, Oleksandra Iushchenko @YuSanka, Enrico Turri @enricoturri1966, David Kocík @kocikdav, Lukáš Hejl @hejllukas, Vojtěch Bubník @bubnikv, Lukáš Matěna @lukasmatena, Pavel Mikuš @Godrak, Filip Sykala @Jony01, Vojtěch Král @vojtechkral
-///|/
-///|/ ported from lib/Slic3r/GUI/Plater.pm:
-///|/ Copyright (c) Prusa Research 2016 - 2019 Vojtěch Bubník @bubnikv, Vojtěch Král @vojtechkral, Enrico Turri @enricoturri1966, Oleksandra Iushchenko @YuSanka, Lukáš Matěna @lukasmatena, Tomáš Mészáros @tamasmeszaros
-///|/ Copyright (c) 2018 Martin Loidl @LoidlM
-///|/ Copyright (c) 2017 Matthias Gazzari @qtux
-///|/ Copyright (c) Slic3r 2012 - 2016 Alessandro Ranellucci @alranel
-///|/ Copyright (c) 2017 Joseph Lenox @lordofhyphens
-///|/ Copyright (c) 2015 Daren Schwenke
-///|/ Copyright (c) 2014 Mark Hindess
-///|/ Copyright (c) 2012 Mike Sheldrake @mesheldrake
-///|/ Copyright (c) 2012 Henrik Brix Andersen @henrikbrixandersen
-///|/ Copyright (c) 2012 Sam Wong
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 #ifndef slic3r_Plater_hpp_
 #define slic3r_Plater_hpp_
 
@@ -262,6 +246,7 @@ public:
     int  get_3mf_file_count(std::vector<fs::path> paths);
     void add_file();
     void add_model(bool imperial_units = false, std::string fname = "");
+    void import_zip_archive();
     void import_sl1_archive();
     void extract_config_from_project();
     void load_gcode();
@@ -297,6 +282,8 @@ public:
 
     static wxColour get_next_color_for_filament();
     static wxString get_slice_warning_string(GCodeProcessorResult::SliceWarning& warning);
+
+    bool preview_zip_archive(const boost::filesystem::path& archive_path);
 
     // BBS: restore
     std::vector<size_t> load_files(const std::vector<boost::filesystem::path>& input_files, LoadStrategy strategy = LoadStrategy::LoadModel | LoadStrategy::LoadConfig,  bool ask_multi = false);
@@ -378,6 +365,7 @@ public:
 
     void select_all();
     void deselect_all();
+    void exit_gizmo();
     void remove(size_t obj_idx);
     void reset(bool apply_presets_change = false);
     void reset_with_confirm();
@@ -802,7 +790,7 @@ private:
     bool m_only_gcode { false };
     bool m_exported_file { false };
     bool skip_thumbnail_invalid { false };
-    bool m_loading_project {false };
+    bool m_loading_project { false };
     std::string m_preview_only_filename;
     int m_valid_plates_count { 0 };
 

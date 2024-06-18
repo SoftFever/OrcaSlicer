@@ -146,8 +146,8 @@ void SideToolsPanel::doRender(wxDC &dc)
     //}
 
     if (m_none_printer) {
-        dc.SetPen(SIDE_TOOLS_BRAND);
-        dc.SetBrush(SIDE_TOOLS_BRAND);
+        dc.SetPen(StateColor::darkModeColorFor(SIDE_TOOLS_BRAND));   // ORCA: Sidebar header background color - Fix for dark mode compability
+        dc.SetBrush(StateColor::darkModeColorFor(SIDE_TOOLS_BRAND)); // ORCA: Sidebar header background color - Fix for dark mode compability
         dc.DrawRectangle(0, 0, size.x, size.y);
 
         dc.DrawBitmap(m_none_printing_img.bmp(), left, (size.y - m_none_printing_img.GetBmpSize().y) / 2);
@@ -504,7 +504,7 @@ void SideTools::show_status(int status)
             m_hyperlink->SetLabel(_L("Failed to connect to the printer"));
             update_connect_err_info(BAMBU_NETWORK_ERR_CONNECTION_TO_PRINTER_FAILED,
                 _L("Connection to printer failed"),
-                _L("Please check the network connection of the printer and Studio."));
+                _L("Please check the network connection of the printer and Orca."));
         }
 
         m_hyperlink->Show();

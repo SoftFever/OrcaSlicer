@@ -786,7 +786,20 @@ static float calc_color_distance(wxColour c1, wxColour c2)
     return DeltaE76(lab[0][0], lab[0][1], lab[0][2], lab[1][0], lab[1][1], lab[1][2]);
 }
 
-int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std::vector<FilamentInfo>& result, std::vector<int> exclude_id)
+void MachineObject::get_ams_colors(std::vector<wxColour> &ams_colors) {
+    ams_colors.clear();
+    ams_colors.reserve(amsList.size());
+    for (auto ams = amsList.begin(); ams != amsList.end(); ams++) {
+        for (auto tray = ams->second->trayList.begin(); tray != ams->second->trayList.end(); tray++) {
+            if (tray->second->is_tray_info_ready()) {
+                auto ams_color = AmsTray::decode_color(tray->second->color);
+                ams_colors.emplace_back(ams_color);
+            }
+        }
+    }
+}
+
+int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std::vector<FilamentInfo> &result, std::vector<int> exclude_id)
 {
     if (filaments.empty())
         return -1;
@@ -1379,6 +1392,10 @@ void MachineObject::parse_status(int flag)
         xcam_prompt_sound_hold_count--;
     else {
         xcam_allow_prompt_sound = ((flag >> 17) & 0x1) != 0;
+    }
+
+    if (((flag >> 18) & 0x1) != 0) {
+        is_support_prompt_sound = true;
     }
 
     is_support_filament_tangle_detect = ((flag >> 19) & 0x1) != 0;
@@ -2661,8 +2678,6 @@ static ENUM enum_index_of(char const *key, char const **enum_names, int enum_cou
 
 int MachineObject::parse_json(std::string payload, bool key_field_only)
 {
-    CNumericLocalesSetter locales_setter;
-
     parse_msg_count++;
     std::chrono::system_clock::time_point clock_start = std::chrono::system_clock::now();
     this->set_online_state(true);
@@ -2677,6 +2692,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
         bool restored_json = false;
         json j;
         json j_pre = json::parse(payload);
+        CNumericLocalesSetter locales_setter;
         if (j_pre.empty()) {
             return 0;
         }
@@ -2885,7 +2901,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                 }
             }
 
-            if (key_field_only) {
+            if (!key_field_only) {
                 if (!DeviceManager::EnableMultiMachine) {
                     if (jj.contains("support_tunnel_mqtt")) {
                         if (jj["support_tunnel_mqtt"].is_boolean()) {
@@ -2893,7 +2909,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                         }
                     }
                 }
-            } else {
+
                 //supported function
                 if (jj.contains("support_chamber_temp_edit")) {
                     if (jj["support_chamber_temp_edit"].is_boolean()) {
@@ -3511,6 +3527,9 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                         nozzle_type = jj["nozzle_type"].get<std::string>();
                                     }
                                 }
+                            }
+                            else {
+                                nozzle_type = "";
                             }
                         }
                         catch (...) {

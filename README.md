@@ -133,7 +133,7 @@ Support me
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/G2G5IP3CP)
 
 ## Some background
-OrcaSlicer is originaly forked from Bambu Studio, it was previously known as BambuStudio-SoftFever.
+OrcaSlicer is originally forked from Bambu Studio, it was previously known as BambuStudio-SoftFever.
 
 Bambu Studio is forked from [PrusaSlicer](https://github.com/prusa3d/PrusaSlicer) by Prusa Research, which is from [Slic3r](https://github.com/Slic3r/Slic3r) by Alessandro Ranellucci and the RepRap community. 
 Orca Slicer incorporates a lot of features from SuperSlicer by @supermerill

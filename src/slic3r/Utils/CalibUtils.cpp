@@ -14,6 +14,9 @@
 
 namespace Slic3r {
 namespace GUI {
+const float MIN_PA_K_VALUE = 0.0;
+const float MAX_PA_K_VALUE = 1.0;
+
 std::unique_ptr<Worker> CalibUtils::print_worker;
 wxString wxstr_temp_dir = fs::path(fs::temp_directory_path() / "calib").wstring();
 static const std::string temp_dir = wxstr_temp_dir.utf8_string();
@@ -976,7 +979,7 @@ bool CalibUtils::process_and_store_3mf(Model *model, const DynamicPrintConfig &f
     double  print_height  = full_config.opt_float("printable_height");
     double  current_width = bedfs[2].x() - bedfs[0].x();
     double  current_depth = bedfs[2].y() - bedfs[0].y();
-    Vec3i   plate_size;
+    Vec3i32   plate_size;
     plate_size[0] = bedfs[2].x() - bedfs[0].x();
     plate_size[1] = bedfs[2].y() - bedfs[0].y();
     plate_size[2] = print_height;

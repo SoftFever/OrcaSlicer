@@ -2987,6 +2987,14 @@ extern "C" {
 #include <sys/stat.h>
 
 #if defined(_MSC_VER) || defined(__MINGW64__)
+#ifdef WIN32
+static FILE *mz_wfopen(const wchar_t *pFilename, const char *pMode)
+{
+    FILE *pFile = NULL;
+    _wfopen_s(&pFile, pFilename, pMode);
+    return pFile;
+}
+#endif
 static FILE *mz_fopen(const char *pFilename, const char *pMode)
 {
     FILE *pFile = NULL;
@@ -3004,6 +3012,9 @@ static FILE *mz_freopen(const char *pPath, const char *pMode, FILE *pStream)
 #include <sys/utime.h>
 #endif
 #define MZ_FOPEN mz_fopen
+#ifdef WIN32
+#define MZ_WFOPEN mz_wfopen
+#endif
 #define MZ_FCLOSE fclose
 #define MZ_FREAD fread
 #define MZ_FWRITE fwrite
@@ -5117,9 +5128,9 @@ mz_bool mz_zip_reader_extract_to_file(mz_zip_archive *pZip, mz_uint file_index, 
         return mz_zip_set_error(pZip, MZ_ZIP_UNSUPPORTED_FEATURE);
 
     pFile = MZ_FOPEN(pDst_filename, "wb");
-    if (!pFile)
+    if (!pFile) {
         return mz_zip_set_error(pZip, MZ_ZIP_FILE_OPEN_FAILED);
-
+    }
     status = mz_zip_reader_extract_to_callback(pZip, file_index, mz_zip_file_write_callback, pFile, flags);
 
     if (MZ_FCLOSE(pFile) == EOF)
@@ -5137,6 +5148,39 @@ mz_bool mz_zip_reader_extract_to_file(mz_zip_archive *pZip, mz_uint file_index, 
 
     return status;
 }
+#ifdef WIN32
+mz_bool mz_zip_reader_extract_to_file_w(mz_zip_archive *pZip, mz_uint file_index, const wchar_t *pDst_filename, mz_uint flags)
+{
+    mz_bool                  status;
+    mz_zip_archive_file_stat file_stat;
+    MZ_FILE *                pFile;
+
+    if (!mz_zip_reader_file_stat(pZip, file_index, &file_stat))
+        return MZ_FALSE;
+
+    if ((file_stat.m_is_directory) || (!file_stat.m_is_supported))
+        return mz_zip_set_error(pZip, MZ_ZIP_UNSUPPORTED_FEATURE);
+
+    pFile = MZ_WFOPEN(pDst_filename, "w");
+    if (!pFile) {
+       return mz_zip_set_error(pZip, MZ_ZIP_FILE_OPEN_FAILED);
+    }
+    status = mz_zip_reader_extract_to_callback(pZip, file_index, mz_zip_file_write_callback, pFile, flags);
+
+    if (MZ_FCLOSE(pFile) == EOF) {
+        if (status)
+            mz_zip_set_error(pZip, MZ_ZIP_FILE_CLOSE_FAILED);
+        status = MZ_FALSE;
+    }
+
+#if !defined(MINIZ_NO_TIME) && !defined(MINIZ_NO_STDIO)
+    if (status)
+        mz_zip_set_file_times(pDst_filename, file_stat.m_time, file_stat.m_time);
+#endif
+
+    return status;
+}
+#endif
 
 mz_bool mz_zip_reader_extract_file_to_file(mz_zip_archive *pZip, const char *pArchive_filename, const char *pDst_filename, mz_uint flags)
 {
@@ -7954,6 +7998,40 @@ mz_uint mz_zip_reader_get_extra(mz_zip_archive* pZip, mz_uint file_index, char* 
         pExtra[ne] = '\0';
     }
     return ne + 1;
+}
+
+mz_uint mz_zip_reader_get_filename_from_extra(mz_zip_archive* pZip, mz_uint file_index, char* buffer, mz_uint extra_buf_size)
+{
+    if (extra_buf_size == 0)
+        return 0;
+    mz_uint nf;
+    mz_uint ne;
+    const mz_uint8* p = mz_zip_get_cdh(pZip, file_index);
+    if (!p)
+    {
+        if (extra_buf_size)
+            buffer[0] = '\0';
+        mz_zip_set_error(pZip, MZ_ZIP_INVALID_PARAMETER);
+        return 0;
+    }
+    nf = MZ_READ_LE16(p + MZ_ZIP_CDH_FILENAME_LEN_OFS);
+    ne = MZ_READ_LE16(p + MZ_ZIP_CDH_EXTRA_LEN_OFS);
+
+    int copy = 0;
+    char const* p_nf = p + MZ_ZIP_CENTRAL_DIR_HEADER_SIZE + nf;
+    char const* e = p_nf + ne + 1;
+    while (p_nf + 4 < e) {
+        mz_uint16 len = ((mz_uint16)p_nf[2]) | ((mz_uint16)p_nf[3] << 8);
+        if (p_nf[0] == '\x75' && p_nf[1] == '\x70' && len >= 5 && p_nf + 4 + len < e && p_nf[4] == '\x01') {
+            mz_uint length = MZ_MIN(len - 5, extra_buf_size - 1);
+            memcpy(buffer, p_nf + 9, length);
+            return length;
+        }
+        else {
+            p_nf += 4 + len;
+        }
+    }
+    return 0;
 }
 
 mz_bool mz_zip_reader_file_stat(mz_zip_archive *pZip, mz_uint file_index, mz_zip_archive_file_stat *pStat)

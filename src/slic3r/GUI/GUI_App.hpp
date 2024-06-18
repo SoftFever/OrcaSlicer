@@ -36,6 +36,7 @@
 #define TIMEOUT_RESPONSE            15
 
 #define BE_UNACTED_ON               0x00200001
+#define SHOW_BACKGROUND_BITMAP_PIXEL_THRESHOLD 80
 #ifndef _MSW_DARK_MODE
     #define _MSW_DARK_MODE            1
 #endif // _MSW_DARK_MODE
@@ -74,6 +75,7 @@ class ObjectLayers;
 class Plater;
 class ParamsPanel;
 class NotificationManager;
+class Downloader;
 struct GUI_InitParams;
 class ParamsDialog;
 class HMSQuery;
@@ -90,6 +92,7 @@ enum FileType
     FT_3MF,
     FT_GCODE,
     FT_MODEL,
+    FT_ZIP,
     FT_PROJECT,
     FT_GALLERY,
 
@@ -234,8 +237,6 @@ private:
     bool            m_opengl_initialized{ false };
 #endif
 
-//import model from mall 
-    wxString       m_download_file_url;
    
 //#ifdef _WIN32
     wxColour        m_color_label_modified;
@@ -274,6 +275,8 @@ private:
     std::unique_ptr <wxSingleInstanceChecker> m_single_instance_checker;
     std::string m_instance_hash_string;
 	    size_t m_instance_hash_int;
+
+    std::unique_ptr<Downloader> m_downloader;
 
     //BBS
     bool m_is_closing {false};
@@ -423,6 +426,7 @@ private:
     void            keyboard_shortcuts();
     void            load_project(wxWindow *parent, wxString& input_file) const;
     void            import_model(wxWindow *parent, wxArrayString& input_files) const;
+    void            import_zip(wxWindow* parent, wxString& input_file) const;
     void            load_gcode(wxWindow* parent, wxString& input_file) const;
 
     wxString transition_tridid(int trid_id);
@@ -559,6 +563,7 @@ private:
     ParamsDialog*        params_dialog();
     Model&      		 model();
     NotificationManager * notification_manager();
+    Downloader*          downloader();
 
 
     std::string         m_mall_model_download_url;
@@ -640,11 +645,16 @@ private:
     bool is_glsl_version_greater_or_equal_to(unsigned int major, unsigned int minor) const { return m_opengl_mgr.get_gl_info().is_glsl_version_greater_or_equal_to(major, minor); }
     int  GetSingleChoiceIndex(const wxString& message, const wxString& caption, const wxArrayString& choices, int initialSelection);
 
-#ifdef __WXMSW__
     // extend is stl/3mf/gcode/step etc 
     void            associate_files(std::wstring extend);
     void            disassociate_files(std::wstring extend);
-#endif // __WXMSW__
+    bool            check_url_association(std::wstring url_prefix, std::wstring& reg_bin);
+    void            associate_url(std::wstring url_prefix);
+    void            disassociate_url(std::wstring url_prefix);
+
+    // URL download - PrusaSlicer gets system call to open prusaslicer:// URL which should contain address of download
+    void            start_download(std::string url);
+
     std::string     get_plugin_url(std::string name, std::string country_code);
     int             download_plugin(std::string name, std::string package_name, InstallProgressFn pro_fn = nullptr, WasCancelledFn cancel_fn = nullptr);
     int             install_plugin(std::string name, std::string package_name, InstallProgressFn pro_fn = nullptr, WasCancelledFn cancel_fn = nullptr);

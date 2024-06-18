@@ -148,7 +148,7 @@ input
 	height: calc(100% - 6px);
 	display: flex;
 	align-items: center;
-	border-bottom: 6px solid #00AE42;
+	border-bottom: 6px solid #009688;
 }
 
 #Title div.TitleUnselected

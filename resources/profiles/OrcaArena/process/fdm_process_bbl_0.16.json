@@ -22,5 +22,5 @@
     "overhang_2_4_speed": "30",
     "overhang_3_4_speed": "10",
     "overhang_4_4_speed": "10",
-    "support_threshold_angle": "25"
+    "support_threshold_angle": "30"
 }
