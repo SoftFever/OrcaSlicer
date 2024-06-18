@@ -3942,11 +3942,24 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                 for (auto it = j_ams.begin(); it != j_ams.end(); it++) {
                                     if (!it->contains("id")) continue;
                                     std::string ams_id = (*it)["id"].get<std::string>();
+
+                                    int nozzle_id = 0; // Default nozzle id 
+                                    int type_id = 1;   // 0:dummy 1:ams 2:ams-lite 3:n3f 4:n3s
+
+                                    if (it->contains("nozzle")) {
+                                        nozzle_id = (*it)["nozzle"].get<int>();
+                                    }
+
+                                    if (it->contains("type")) {
+                                        type_id = (*it)["type"].get<int>();
+                                    }
+                                   
                                     ams_id_set.erase(ams_id);
                                     Ams* curr_ams = nullptr;
                                     auto ams_it = amsList.find(ams_id);
                                     if (ams_it == amsList.end()) {
-                                        Ams* new_ams = new Ams(ams_id);
+                                        Ams* new_ams = new Ams(ams_id, nozzle_id, type_id);
+
                                         try {
                                             if (!ams_id.empty()) {
                                                 int ams_id_int = atoi(ams_id.c_str());
@@ -4773,7 +4786,47 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                     }
                 }
             }
+
+            /*parse np*/
+            try
+            {
+                if (jj.contains("cfg") && jj.contains("fun") && jj.contains("aux") && jj.contains("stat")) {
+                    is_enable_np = true;
+                }
+                else {
+                    is_enable_np = false;
+                }
+
+                if (jj.contains("device")) {
+                    json const & device = jj["device"];
+                    
+                    if (device.contains("nozzle")) {
+                        json const & nozzle = device["nozzle"];
+
+                        m_np_nozzle_data = NozzleData();
+                        m_np_nozzle_data.info = nozzle["info"].get<int>();
+
+
+                        for (const auto& noz : nozzle.items()) {
+                            std::string nozzle_id = noz.key();
+                            json const & ndata = noz.value();
+
+                            Nozzle n;
+                            if (ndata.contains("info")) {n.info = ndata["info"].get<int>(); }
+                            if (ndata.contains("snow")) {n.info = ndata["snow"].get<int>(); }
+                            if (ndata.contains("spre")) {n.info = ndata["spre"].get<int>(); }
+                            if (ndata.contains("star")) {n.info = ndata["star"].get<int>(); }
+                            if (ndata.contains("stat")) {n.info = ndata["stat"].get<int>(); }
+                            if (ndata.contains("temp")) {n.info = ndata["temp"].get<int>(); }
+                            m_np_nozzle_data.nozzle[nozzle_id] = n;
+                        }
+                    }
+                }
+            }
+            catch (...)
+            {}
         }
+
         if (!key_field_only) {
             try {
                 if (j.contains("camera")) {

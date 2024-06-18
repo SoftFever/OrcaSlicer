@@ -135,6 +135,21 @@ enum ManualPaCaliMethod {
     PA_PATTERN,
 };
 
+struct Nozzle
+{
+    int info{0};
+    int snow{0};
+    int spre{0};
+    int star{0};
+    int stat{0};
+    int temp{0};
+};
+
+struct NozzleData
+{
+    std::map<std::string, Nozzle> nozzle; /*0 - main nozzle 1 - slave nozzle*/
+    int info{0};
+};
 
 struct RatingInfo {
     bool        request_successful;
@@ -226,8 +241,10 @@ public:
 
 class Ams {
 public:
-    Ams(std::string ams_id) {
+    Ams(std::string ams_id, int nozzle_id, int type_id) {
         id = ams_id;
+        nozzle = nozzle_id;
+        type = type_id;
     }
     std::string   id;
     int           humidity = 5;
@@ -235,6 +252,9 @@ public:
     bool          tray_read_opt{false};
     bool          is_exists{false};
     std::map<std::string, AmsTray*> trayList;
+
+    int           nozzle;
+    int           type{1}; //0:dummy 1:ams 2:ams-lite 3:n3f 4:n3s
 };
 
 enum PrinterFirmwareType {
@@ -330,7 +350,6 @@ private:
 
     // type, time stamp, delay
     std::vector<std::tuple<std::string, uint64_t, uint64_t>> message_delay;
-
 public:
 
     enum LIGHT_EFFECT {
@@ -484,6 +503,7 @@ public:
     /* ams properties */
     std::map<std::string, Ams*> amsList;    // key: ams[id], start with 0
     AmsTray vt_tray;                        // virtual tray
+    std::vector<AmsTray> vt_trays;          // virtual tray for new
     long  ams_exist_bits = 0;
     long  tray_exist_bits = 0;
     long  tray_is_bbl_bits = 0;
@@ -977,6 +997,10 @@ public:
     bool is_firmware_info_valid();
     std::string get_string_from_fantype(FanType type);
 
+    /*for more extruder*/
+    bool            is_enable_np{ false };
+    NozzleData      m_np_nozzle_data;
+
     /* Device Filament Check */
     std::set<std::string> m_checked_filament;
     std::string m_printer_preset_name;
@@ -985,6 +1009,7 @@ public:
     int get_flag_bits(std::string str, int start, int count = 1);
     int get_flag_bits(int num, int start, int count = 1);
     void update_printer_preset_name(const std::string &nozzle_diameter_str);
+
 };
 
 class DeviceManager
