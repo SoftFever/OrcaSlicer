@@ -86,6 +86,7 @@ struct PrintHostJob
 {
     PrintHostUpload upload_data;
     std::unique_ptr<PrintHost> printhost;
+    bool switch_to_device_tab{false};
     bool cancelled = false;
 
     PrintHostJob() {}
@@ -93,6 +94,7 @@ struct PrintHostJob
     PrintHostJob(PrintHostJob &&other)
         : upload_data(std::move(other.upload_data))
         , printhost(std::move(other.printhost))
+        , switch_to_device_tab(other.switch_to_device_tab)
         , cancelled(other.cancelled)
     {}
 
@@ -104,7 +106,8 @@ struct PrintHostJob
     PrintHostJob& operator=(PrintHostJob &&other)
     {
         upload_data = std::move(other.upload_data);
-        printhost = std::move(other.printhost);
+        printhost   = std::move(other.printhost);
+        switch_to_device_tab = other.switch_to_device_tab;
         cancelled = other.cancelled;
         return *this;
     }

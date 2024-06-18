@@ -90,12 +90,6 @@ static t_config_enum_values s_keys_map_PrintHostType {
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(PrintHostType)
 
-static t_config_enum_values s_keys_map_SimplyPrintPostUploadAction{
-    { "external", int(SimplyPrintPostUploadAction::OpenExternalBrowser) },
-    { "device",   int(SimplyPrintPostUploadAction::SwitchToDeviceTab) },
-};
-CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SimplyPrintPostUploadAction)
-
 static t_config_enum_values s_keys_map_AuthorizationType {
     { "key",            atKeyPassword },
     { "user",           atUserPassword }
@@ -554,18 +548,6 @@ void PrintConfigDef::init_common_params()
     def->mode = comAdvanced;
     def->cli = ConfigOptionDef::nocli;
     def->set_default_value(new ConfigOptionString(""));
-
-    def = this->add("simplyprint_post_upload_action", coEnum);
-    def->label = L("Send exported prints to SimplyPrint in");
-    def->tooltip = L("After uploading the print to SimplyPrint, whether open the SimplyPrint panel in external browser or directly in the device tab");
-    def->enum_keys_map = &ConfigOptionEnum<SimplyPrintPostUploadAction>::get_enum_values();
-    def->enum_values.push_back("external");
-    def->enum_values.push_back("device");
-    def->enum_labels.push_back(L("External browser"));
-    def->enum_labels.push_back(L("Device tab"));
-    def->mode = comAdvanced;
-    def->cli = ConfigOptionDef::nocli;
-    def->set_default_value(new ConfigOptionEnum<SimplyPrintPostUploadAction>(SimplyPrintPostUploadAction::OpenExternalBrowser));
 
     def = this->add("printhost_apikey", coString);
     def->label = L("API Key / Password");

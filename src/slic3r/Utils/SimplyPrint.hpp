@@ -10,7 +10,6 @@ class DynamicPrintConfig;
 class Http;
 class SimplyPrint : public PrintHost
 {
-    bool open_in_external_browser;
     std::string cred_file;
     std::map<std::string, std::string> cred;
 
