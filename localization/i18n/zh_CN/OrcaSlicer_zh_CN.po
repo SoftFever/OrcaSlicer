@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-05 22:05+0200\n"
+"POT-Creation-Date: 2024-06-16 23:01+0800\n"
 "PO-Revision-Date: 2023-04-01 13:21+0800\n"
 "Last-Translator: SoftFever <softfeverever@gmail.com>\n"
 "Language-Team: \n"
@@ -2748,11 +2748,13 @@ msgstr "您确定要清除耗材丝信息吗？"
 msgid "You need to select the material type and color first."
 msgstr "您需要先选择材料类型和颜色。"
 
-msgid "Please input a valid value (K in 0~0.3)"
-msgstr "请输入有效的数值 (K的范围为0~0.3)"
+#, c-format, boost-format
+msgid "Please input a valid value (K in %.1f~%.1f)"
+msgstr "请输入有效的数值（K的范围为%.1f~%.1f）"
 
-msgid "Please input a valid value (K in 0~0.3, N in 0.6~2.0)"
-msgstr "请输入有效的数值 (K的范围为0~0.3，N的范围为0.6~2.0)"
+#, c-format, boost-format
+msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
+msgstr "请输入有效的数值（K的范围为%.1f~%.1f，N的范围为%.1f~%.1f）"
 
 msgid "Other Color"
 msgstr "其他颜色"
@@ -3144,11 +3146,11 @@ msgstr "已发送的任务"
 msgid "Edit multiple printers"
 msgstr "编辑多个打印机"
 
-msgid "Select connected printetrs (0/6)"
+msgid "Select connected printers (0/6)"
 msgstr "选择已连接的打印机 (0/6)"
 
 #, c-format, boost-format
-msgid "Select Connected Printetrs (%d/6)"
+msgid "Select Connected Printers (%d/6)"
 msgstr "选择已连接的打印机 (%d/6)"
 
 #, c-format, boost-format
@@ -3202,16 +3204,16 @@ msgid "Incompatible"
 msgstr "不兼容的预设"
 
 msgid "syncing"
-msgstr ""
+msgstr "同步中"
 
 msgid "Printing Finish"
-msgstr ""
+msgstr "打印成功"
 
 msgid "Printing Failed"
-msgstr ""
+msgstr "打印失败"
 
-msgid "PrintingPause"
-msgstr ""
+msgid "Printing Pause"
+msgstr "打印暂停"
 
 msgid "Prepare"
 msgstr "准备"
@@ -3220,28 +3222,28 @@ msgid "Slicing"
 msgstr "正在切片"
 
 msgid "Pending"
-msgstr ""
+msgstr "等待中"
 
 msgid "Sending"
 msgstr "发送中"
 
 msgid "Sending Finish"
-msgstr ""
+msgstr "发送成功"
 
 msgid "Sending Cancel"
-msgstr ""
+msgstr "取消发送"
 
 msgid "Sending Failed"
-msgstr ""
+msgstr "发送失败"
 
 msgid "Print Success"
-msgstr ""
+msgstr "打印成功"
 
 msgid "Print Failed"
-msgstr ""
+msgstr "打印失败"
 
 msgid "Removed"
-msgstr ""
+msgstr "移除"
 
 msgid "Resume"
 msgstr "继续"
@@ -3869,10 +3871,10 @@ msgstr ""
 msgid ""
 "Invalid input format. Expected vector of dimensions in the following format: "
 "\"%1%\""
-msgstr ""
+msgstr "输入格式无效。应为以下格式的维度向量：“%1%”"
 
 msgid "Input value is out of range"
-msgstr ""
+msgstr "输入值超出范围外"
 
 msgid "Some extension in the input is invalid"
 msgstr ""
@@ -5363,19 +5365,19 @@ msgstr "较新的3mf版本"
 msgid ""
 "The 3mf file version is in Beta and it is newer than the current OrcaSlicer  "
 "version."
-msgstr ""
+msgstr "3mf文件版本处于Beta测试阶段，比当前OrcaSlicer版本更新。"
 
 msgid "If you would like to try Orca Slicer Beta, you may click to"
-msgstr ""
+msgstr "如果您想尝试Orca Slicer Beta，您可以点击"
 
 msgid "Download Beta Version"
 msgstr "下载Beta版本"
 
 msgid "The 3mf file version is newer than the current Orca Slicer version."
-msgstr ""
+msgstr "3mf文件版本比当前Orca Slicer版本更新。"
 
 msgid "Update your Orca Slicer could enable all functionality in the 3mf file."
-msgstr ""
+msgstr "更新你的Orca Slicer以启用3mf文件中的所有功能。"
 
 msgid "Current Version: "
 msgstr "当前版本："
@@ -6008,7 +6010,7 @@ msgstr "项目已下载%d%%"
 msgid ""
 "Importing to Orca Slicer failed. Please download the file and manually "
 "import it."
-msgstr ""
+msgstr "导入到Orca Slicer失败。请下载文件并手动导入。"
 
 msgid "Import SLA archive"
 msgstr "导入 SLA 存档"
@@ -6030,7 +6032,7 @@ msgstr "加载路径为%1%的ZIP档案失败。"
 #. TRN: First argument = path to file, second argument = error description
 #, boost-format
 msgid "Failed to unzip file to %1%: %2%"
-msgstr ""
+msgstr "解压文件到%1%失败：%2%"
 
 #, boost-format
 msgid "Failed to find unzipped file at %1%. Unzipping of file has failed."
@@ -6120,9 +6122,11 @@ msgid ""
 "3MF file?\n"
 "If you hit 'NO', all SVGs in the project will not be editable any more."
 msgstr ""
+"您确定要将原始SVG文件与其本地路径存储到3MF文件中吗？\n"
+"如果选择“否”，项目中的所有SVG文件将不再可编辑。"
 
 msgid "Private protection"
-msgstr ""
+msgstr "隐私保护"
 
 msgid "Is the printer ready? Is the print sheet in place, empty and clean?"
 msgstr "打印机是否就绪？打印平台是否在正确的位置、有没有异物、是否干净？"
@@ -6147,7 +6151,7 @@ msgid "Custom supports and color painting were removed before repairing."
 msgstr "自定义的支撑和涂色在模型修复之前将被清除。"
 
 msgid "Optimize Rotation"
-msgstr ""
+msgstr "优化旋转"
 
 msgid "Invalid number"
 msgstr "无效数字"
@@ -6830,9 +6834,6 @@ msgstr "发送完成"
 msgid "Error code"
 msgstr "错误代码"
 
-msgid "Printer local connection failed, please try again."
-msgstr "打印机局域网连接失败，请重试。"
-
 msgid "No login account, only printers in LAN mode are displayed"
 msgstr "未登录账号，仅显示局域网模式的打印机"
 
@@ -7220,14 +7221,18 @@ msgid ""
 "precise dimensions or is part of an assembly, it's important to double-check "
 "whether this change in geometry impacts the functionality of your print."
 msgstr ""
+"启用此选项将改变模型的形状。如果您的打印件需要精确的尺寸或是装配体的一部分，"
+"请务必仔细检查这种形状的变化是否影响了最终功能。"
 
 msgid "Are you sure you want to enable this option?"
-msgstr ""
+msgstr "您确定要启用此选项吗？"
 
 msgid ""
 "Layer height is too small.\n"
 "It will set to min_layer_height\n"
 msgstr ""
+"层高太小。\n"
+"将自动设置为min_layer_height的值\n"
 
 msgid ""
 "Layer height exceeds the limit in Printer Settings -> Extruder -> Layer "
@@ -7513,7 +7518,7 @@ msgid "Invalid value provided for parameter %1%: %2%"
 msgstr ""
 
 msgid "G-code flavor is switched"
-msgstr ""
+msgstr "G-code风格已切换"
 
 msgid "Cooling Fan"
 msgstr "冷却风扇"
@@ -7555,7 +7560,7 @@ msgid "Change filament G-code"
 msgstr "耗材丝更换G-code"
 
 msgid "Change extrusion role G-code"
-msgstr ""
+msgstr "挤出类型更换G-code"
 
 msgid "Pause G-code"
 msgstr "暂停 G-code"
@@ -7872,6 +7877,60 @@ msgstr "没有可用的更新。"
 
 msgid "The configuration is up to date."
 msgstr "当前配置已经是最新版本。"
+
+msgid "Obj file Import color"
+msgstr "Obj文件导入颜色"
+
+msgid "Specify number of colors:"
+msgstr "指定颜色数量:"
+
+#, c-format, boost-format
+msgid "The color count should be in range [%d, %d]."
+msgstr "颜色数量范围应该是[%d, %d]。"
+
+msgid "Recommended "
+msgstr "推荐"
+
+msgid "Current filament colors:"
+msgstr "当前耗材丝颜色:"
+
+msgid "Quick set:"
+msgstr "快捷设置:"
+
+msgid "Color match"
+msgstr "颜色匹配"
+
+msgid "Approximate color matching."
+msgstr "近似的颜色匹配。"
+
+msgid "Append"
+msgstr "追加"
+
+msgid "Add consumable extruder after existing extruders."
+msgstr "近似的颜色匹配。"
+
+msgid "Reset mapped extruders."
+msgstr "重置匹配的耗材丝。"
+
+msgid "Cluster colors"
+msgstr "重置匹配的耗材丝"
+
+msgid "Map Filament"
+msgstr "匹配耗材丝"
+
+msgid ""
+"Note:The color has been selected, you can choose OK \n"
+" to continue or manually adjust it."
+msgstr ""
+"注意：颜色已经选好了，您可以选中确认 \n"
+" 继续或手动修改它。"
+
+msgid ""
+"Waring:The count of newly added and \n"
+" current extruders exceeds 16."
+msgstr ""
+"警告：新增追加耗材丝数量 \n"
+" 和已有耗材丝数量超过了16."
 
 msgid "Ramming customization"
 msgstr "自定义尖端成型"
@@ -10019,6 +10078,29 @@ msgid ""
 msgstr ""
 "如果勾选这个选项，部件冷却风扇将永远不会停止，并且会至少运行在最小风扇转速值"
 "以减少风扇的启停频次"
+
+msgid "Don't slow down outer walls"
+msgstr "不减速外墙"
+
+msgid ""
+"If enabled, this setting will ensure external perimeters are not slowed down "
+"to meet the minimum layer time. This is particularly helpful in the below "
+"scenarios:\n"
+"\n"
+" 1. To avoid changes in shine when printing glossy filaments \n"
+"2. To avoid changes in external wall speed which may create slight wall "
+"artefacts that appear like z banding \n"
+"3. To avoid printing at speeds which cause VFAs (fine artefacts) on the "
+"external walls\n"
+"\n"
+msgstr ""
+"如果启用，此设置将确保外墙不会为了满足最小层时间而减速。这在以下情况下特别有帮"
+"助：\n"
+"\n"
+"1. 避免在打印光滑耗材时改变光泽\n"
+"2. 避免改变外墙速度，可能会产生轻微的墙壁伪影，看起来像z条纹\n"
+"3. 避免以会在外墙上产生VFAs（细微伪影）的速度打印\n"
+"\n"
 
 msgid "Layer time"
 msgstr "层时间"
@@ -12379,7 +12461,7 @@ msgid ""
 msgstr "换料时插入的G-code，包括T命令。"
 
 msgid "This gcode is inserted when the extrusion role is changed"
-msgstr ""
+msgstr "当挤出类型改变时会插入此G-code"
 
 msgid ""
 "Line width for top surfaces. If expressed as a %, it will be computed over "
@@ -13409,24 +13491,24 @@ msgid ""
 "printer will use the default compensation parameter for the filament during "
 "every filament switch which will have a good result in most cases.\n"
 "\n"
-"Please note there are a few cases that will make the calibration result not "
-"reliable: using a texture plate to do the calibration; the build plate does "
-"not have good adhesion (please wash the build plate or apply gluestick!) ..."
-"You can find more from our wiki.\n"
+"Please note that there are a few cases that can make the calibration results "
+"unreliable, such as insufficient adhesion on the build plate. Improving "
+"adhesion can be achieved by washing the build plate or applying glue. For "
+"more information on this topic, please refer to our Wiki.\n"
 "\n"
 "The calibration results have about 10 percent jitter in our test, which may "
 "cause the result not exactly the same in each calibration. We are still "
 "investigating the root cause to do improvements with new updates."
 msgstr ""
-"请从我们的wiki中找到流量动态校准的详细信息。\n"
+"请从我们的wiki中找到动态流量校准的详细信息。\n"
 "\n"
 "通常情况下，校准是不必要的。当您开始单色/单材料打印，并在打印开始菜单中勾选"
-"了“流量动态校准”选项时，打印机将按照旧的方式，在打印前校准丝料；当您开始多色/"
+"了“动态流量校准”选项时，打印机将按照旧的方式，在打印前校准丝料；当您开始多色/"
 "多材料打印时，打印机将在每次换丝料时使用默认的补偿参数，这在大多数情况下会产"
 "生良好的效果。\n"
 "\n"
-"请注意，有几种情况会导致校准结果不可靠：使用纹理板进行校准；建模平台粘附效果"
-"不好（请清洗建模平台或涂抹胶棒）... 您可以在我们的wiki中找到更多信息。\n"
+"有几种情况可能导致校准结果不可靠，例如打印板的的附着力不足。清洗打印板或者使"
+"用胶水可以增强打印板附着力。您可以在我们的维基上找到更多相关信息。\n"
 "\n"
 "在我们的测试中，校准结果有约10%的波动，这可能导致每次校准的结果略有不同。我们"
 "仍在调查根本原因，并通过新的更新进行改进。"
@@ -13542,23 +13624,14 @@ msgstr "名称不能超过40个字符。"
 
 msgid ""
 "Only one of the results with the same name will be saved. Are you sure you "
-"want to overrides the other results?"
+"want to override the other results?"
 msgstr "相同名称的结果只会保存一个。您确定要覆盖其他结果吗？"
-
-#, c-format, boost-format
-msgid ""
-"There is already a historical calibration result with the same name: %s. "
-"Only one of the results with the same name is saved. Are you sure you want "
-"to overrides the historical result?"
-msgstr ""
-"已经存在一个具有相同名称的历史校准结果：%s。相同名称的结果只会保存一个。您确"
-"定要覆盖历史结果吗？"
 
 msgid "Please find the best line on your plate"
 msgstr "请在您的打印板上找到最佳线条"
 
-msgid "Please find the cornor with perfect degree of extrusion"
-msgstr "请找出最佳挤出角度"
+msgid "Please find the corner with perfect degree of extrusion"
+msgstr "请找到具有完美挤出度的角落"
 
 msgid "Input Value"
 msgstr "输入值"
@@ -14492,7 +14565,7 @@ msgstr "每日贴士"
 
 #, c-format, boost-format
 msgid "nozzle memorized: %.1f %s"
-msgstr ""
+msgstr "记忆中的喷嘴：%.1f %s"
 
 msgid ""
 "Your nozzle diameter in preset is not consistent with memorized nozzle "

@@ -3330,6 +3330,7 @@ void TabFilament::build()
         optgroup->append_line(line);
         optgroup->append_single_option_line("reduce_fan_stop_start_freq");
         optgroup->append_single_option_line("slow_down_for_layer_cooling", "auto-cooling");
+        optgroup->append_single_option_line("dont_slow_down_outer_wall");
         optgroup->append_single_option_line("slow_down_min_speed");
 
         optgroup->append_single_option_line("enable_overhang_bridge_fan", "auto-cooling");
@@ -3504,6 +3505,10 @@ void TabFilament::toggle_options()
             toggle_option(el, has_enable_overhang_bridge_fan);
 
       toggle_option("additional_cooling_fan_speed", cfg.opt_bool("auxiliary_fan"));
+        
+      // Orca: toggle dont slow down for external perimeters if
+      bool has_slow_down_for_layer_cooling = m_config->opt_bool("slow_down_for_layer_cooling", 0);
+      toggle_option("dont_slow_down_outer_wall", has_slow_down_for_layer_cooling);
     }
     if (m_active_page->title() == L("Filament"))
     {
@@ -5023,12 +5028,12 @@ void Tab::clear_pages()
 {
     // invalidated highlighter, if any exists
     m_highlighter.invalidate();
-    //BBS: clear page in Parent
-    //m_page_sizer->Clear(true);
-    m_parent->clear_page();
     // clear pages from the controlls
     for (auto p : m_pages)
         p->clear();
+    //BBS: clear page in Parent
+    //m_page_sizer->Clear(true);
+    m_parent->clear_page();
 
     // nulling pointers
     m_parent_preset_description_line = nullptr;
