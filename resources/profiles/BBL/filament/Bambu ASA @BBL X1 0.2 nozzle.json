@@ -5,9 +5,6 @@
     "from": "system",
     "setting_id": "GFSB01_03",
     "instantiation": "true",
-    "fan_max_speed": [
-        "80"
-    ],
     "filament_max_volumetric_speed": [
         "2"
     ],

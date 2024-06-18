@@ -70,12 +70,13 @@ private:
     std::unordered_map<std::string, std::vector<Preset *>>           m_filament_choice_map;
     std::unordered_map<wxString, std::string>                        m_public_name_to_filament_id_map;
     std::unordered_map<std::string, Preset *>                        m_all_presets_map;
+    std::unordered_set<std::string>                                  m_system_filament_types_set;
     std::set<std::string>                                            m_visible_printers;
     CreateType                                                       m_create_type;
     Button *                                                         m_button_create                = nullptr;
     Button *                                                         m_button_cancel                = nullptr;
     ComboBox *                                                       m_filament_vendor_combobox     = nullptr;
-    ::CheckBox *                                                       m_can_not_find_vendor_checkbox = nullptr;
+    ::CheckBox *                                                     m_can_not_find_vendor_checkbox = nullptr;
     ComboBox *                                                       m_filament_type_combobox       = nullptr;
     ComboBox *                                                       m_exist_vendor_combobox        = nullptr;
     ComboBox *                                                       m_filament_preset_combobox     = nullptr;
@@ -262,6 +263,7 @@ private:
     void        on_dpi_changed(const wxRect &suggested_rect) override;
     void        show_export_result(const ExportCase &export_case);
     bool        has_check_box_selected();
+    bool        earse_preset_fields_for_safe(Preset *preset);
     std::string initial_file_path(const wxString &path, const std::string &sub_file_path);
     std::string initial_file_name(const wxString &path, const std::string file_name);
     wxBoxSizer *create_export_config_item(wxWindow *parent);
@@ -314,7 +316,6 @@ private:
     std::string                                                                       m_filament_vendor;
     std::string                                                                       m_filament_type;
     std::shared_ptr<PresetBundle>                                                     m_preset_bundle;
-    std::string                                                                       m_filamnt_type;
     ComboBox *                                                                        m_selected_printer  = nullptr;
     ComboBox *                                                                        m_selected_filament = nullptr;
     Button *                                                                          m_ok_btn            = nullptr;

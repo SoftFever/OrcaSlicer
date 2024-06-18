@@ -224,7 +224,7 @@ private:
     Vec3f cell_size;
     Vec3f origin;
     Vec3f size;
-    Vec3i cell_count;
+    Vec3i32 cell_count;
 
     std::unordered_set<size_t> taken_cells{};
 
@@ -239,16 +239,16 @@ public:
 
         origin     = min;
         size       = max - min;
-        cell_count = size.cwiseQuotient(cell_size).cast<int>() + Vec3i::Ones();
+        cell_count = size.cwiseQuotient(cell_size).cast<int>() + Vec3i32::Ones();
     }
 
-    Vec3i to_cell_coords(const Vec3f &position) const
+    Vec3i32 to_cell_coords(const Vec3f &position) const
     {
-        Vec3i cell_coords = (position - this->origin).cwiseQuotient(this->cell_size).cast<int>();
+        Vec3i32 cell_coords = (position - this->origin).cwiseQuotient(this->cell_size).cast<int>();
         return cell_coords;
     }
 
-    size_t to_cell_index(const Vec3i &cell_coords) const
+    size_t to_cell_index(const Vec3i32 &cell_coords) const
     {
 #ifdef DETAILED_DEBUG_LOGS
         assert(cell_coords.x() >= 0);
@@ -261,7 +261,7 @@ public:
         return cell_coords.z() * cell_count.x() * cell_count.y() + cell_coords.y() * cell_count.x() + cell_coords.x();
     }
 
-    Vec3f get_cell_center(const Vec3i &cell_coords) const
+    Vec3f get_cell_center(const Vec3i32 &cell_coords) const
     {
         return origin + cell_coords.cast<float>().cwiseProduct(this->cell_size) + this->cell_size.cwiseQuotient(Vec3f(2.0f, 2.0f, 2.0f));
     }

@@ -1,7 +1,3 @@
-///|/ Copyright (c) Prusa Research 2018 - 2023 Oleksandra Iushchenko @YuSanka, Lukáš Matěna @lukasmatena, Lukáš Hejl @hejllukas, Enrico Turri @enricoturri1966, David Kocík @kocikdav, Vojtěch Bubník @bubnikv, Tomáš Mészáros @tamasmeszaros, Vojtěch Král @vojtechkral
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 #ifndef slic3r_GUI_ObjectDataViewModel_hpp_
 #define slic3r_GUI_ObjectDataViewModel_hpp_
 
@@ -341,8 +337,8 @@ class ObjectDataViewModel :public wxDataViewModel
     ObjectDataViewModelNode*                    m_plate_outside;
 
     wxDataViewCtrl*                             m_ctrl { nullptr };
-    std::vector<std::pair<ObjectDataViewModelNode*, wxString>> assembly_name_list;
-    std::vector<std::pair<ObjectDataViewModelNode*, wxString>> search_found_list;
+    std::vector<std::tuple<ObjectDataViewModelNode*, wxString, wxString>> assembly_name_list;
+    std::vector<std::tuple<ObjectDataViewModelNode*, wxString, wxString>> search_found_list;
     std::map<int, int>                          m_ui_and_3d_volume_map;
 
 public:
@@ -518,9 +514,9 @@ public:
 
     void        assembly_name(ObjectDataViewModelNode* item, wxString name);
     void        assembly_name();
-    std::vector<std::pair<ObjectDataViewModelNode*, wxString>> get_assembly_name_list() { return assembly_name_list; }
+    std::vector<std::tuple<ObjectDataViewModelNode*, wxString, wxString>> get_assembly_name_list() const { return assembly_name_list; }
     void        search_object(wxString search_text);
-    std::vector<std::pair<ObjectDataViewModelNode*, wxString>> get_found_list() { return search_found_list; }
+    std::vector<std::tuple<ObjectDataViewModelNode*, wxString, wxString>> get_found_list() const { return search_found_list; }
 
     void        sys_color_changed();
 

@@ -1,7 +1,3 @@
-///|/ Copyright (c) Prusa Research 2018 - 2023 Oleksandra Iushchenko @YuSanka, Lukáš Matěna @lukasmatena, Vojtěch Bubník @bubnikv, Enrico Turri @enricoturri1966, David Kocík @kocikdav, Lukáš Hejl @hejllukas, Vojtěch Král @vojtechkral
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 #include "MsgDialog.hpp"
 
 #include <wx/settings.h>
@@ -228,7 +224,7 @@ void MsgDialog::apply_style(long style)
     if (style & wxCANCEL)   add_button(wxID_CANCEL, false, _L("Cancel"));
 
     logo->SetBitmap( create_scaled_bitmap(style & wxAPPLY        ? "completed" :
-                                          style & wxICON_WARNING        ? "obj_warning" :
+                                          style & wxICON_WARNING        ? "exclamation" : // ORCA "exclamation" used for dialogs "obj_warning" used for 16x16 areas
                                           style & wxICON_INFORMATION    ? "info"        :
                                           style & wxICON_QUESTION       ? "question"    : "OrcaSlicer", this, 64, style & wxICON_ERROR));
 }
@@ -383,25 +379,26 @@ RichMessageDialog::RichMessageDialog(wxWindow* parent,
     : MsgDialog(parent, caption.IsEmpty() ? wxString::Format(_L("%s info"), SLIC3R_APP_FULL_NAME) : caption, wxEmptyString, style)
 {
     add_msg_content(this, content_sizer, message);
-
-    m_checkBox = new wxCheckBox(this, wxID_ANY, m_checkBoxText);
-    wxGetApp().UpdateDarkUI(m_checkBox);
-    m_checkBox->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent&) { m_checkBoxValue = m_checkBox->GetValue(); });
-
-    btn_sizer->Insert(0, m_checkBox, wxALIGN_CENTER_VERTICAL);
-
     finalize();
 }
 
 int RichMessageDialog::ShowModal()
 {
-    if (m_checkBoxText.IsEmpty())
-        m_checkBox->Hide();
-    else
-        m_checkBox->SetLabelText(m_checkBoxText);
+    if (!m_checkBoxText.IsEmpty()) {
+        show_dsa_button(m_checkBoxText);
+        m_checkbox_dsa->SetValue(m_checkBoxValue);
+    }
     Layout();
 
     return wxDialog::ShowModal();
+}
+
+bool RichMessageDialog::IsCheckBoxChecked() const
+{
+    if (m_checkbox_dsa)
+        return m_checkbox_dsa->GetValue();
+
+    return m_checkBoxValue;
 }
 #endif
 
@@ -542,6 +539,126 @@ DeleteConfirmDialog::~DeleteConfirmDialog() {}
 
 void DeleteConfirmDialog::on_dpi_changed(const wxRect &suggested_rect) {}
 
+
+Newer3mfVersionDialog::Newer3mfVersionDialog(wxWindow *parent, const Semver *file_version, const Semver *cloud_version, wxString new_keys)
+    : DPIDialog(parent ? parent : nullptr, wxID_ANY, wxString(SLIC3R_APP_FULL_NAME " - ") + _L("Newer 3mf version"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
+    , m_file_version(file_version)
+    , m_cloud_version(cloud_version)
+    , m_new_keys(new_keys)
+{
+    this->SetBackgroundColour(*wxWHITE);
+    std::string icon_path = (boost::format("%1%/images/OrcaSlicerTitle.ico") % resources_dir()).str();
+    SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
+
+    wxBoxSizer *main_sizer = new wxBoxSizer(wxVERTICAL);
+    // top line
+    auto m_line_top = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
+    m_line_top->SetBackgroundColour(wxColour(0xA6, 0xa9, 0xAA));
+    main_sizer->Add(m_line_top, 0, wxEXPAND, 0);
+    main_sizer->Add(0, 0, 0, wxTOP, FromDIP(5));
+
+    wxBoxSizer *    content_sizer = new wxBoxSizer(wxHORIZONTAL);
+    wxStaticBitmap *info_bitmap   = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("info", nullptr, 60), wxDefaultPosition, wxSize(FromDIP(70), FromDIP(70)), 0);
+    wxBoxSizer *    msg_sizer     = get_msg_sizer();
+    content_sizer->Add(info_bitmap, 0, wxEXPAND | wxALL, FromDIP(5));
+    content_sizer->Add(msg_sizer, 0, wxEXPAND | wxALL, FromDIP(5));
+    main_sizer->Add(content_sizer, 0, wxEXPAND | wxALL, FromDIP(5));
+    main_sizer->Add(get_btn_sizer(), 0, wxEXPAND | wxALL, FromDIP(5));
+
+    this->SetSizer(main_sizer);
+    Layout();
+    Fit();
+    wxGetApp().UpdateDlgDarkUI(this);
+}
+
+wxBoxSizer *Newer3mfVersionDialog::get_msg_sizer()
+{
+    wxBoxSizer *vertical_sizer     = new wxBoxSizer(wxVERTICAL);
+    bool        file_version_newer = (*m_file_version) > (*m_cloud_version);
+    wxStaticText *text1;
+    wxBoxSizer *     horizontal_sizer = new wxBoxSizer(wxHORIZONTAL);
+    wxString    msg_str;
+    if (file_version_newer) { 
+        text1 = new wxStaticText(this, wxID_ANY, _L("The 3mf file version is in Beta and it is newer than the current OrcaSlicer  version."));
+        wxStaticText *   text2       = new wxStaticText(this, wxID_ANY, _L("If you would like to try Orca Slicer Beta, you may click to"));
+        wxHyperlinkCtrl *github_link = new wxHyperlinkCtrl(this, wxID_ANY, _L("Download Beta Version"), "https://github.com/bambulab/BambuStudio/releases");
+        horizontal_sizer->Add(text2, 0, wxEXPAND, 0);
+        horizontal_sizer->Add(github_link, 0, wxEXPAND | wxLEFT, 5);
+        
+    } else {
+        text1 = new wxStaticText(this, wxID_ANY, _L("The 3mf file version is newer than the current Orca Slicer version."));
+        wxStaticText *text2 = new wxStaticText(this, wxID_ANY, _L("Update your Orca Slicer could enable all functionality in the 3mf file."));
+        horizontal_sizer->Add(text2, 0, wxEXPAND, 0);
+    }
+    Semver        app_version = *(Semver::parse(SLIC3R_VERSION));
+    wxStaticText *cur_version = new wxStaticText(this, wxID_ANY, _L("Current Version: ") + app_version.to_string());
+
+    vertical_sizer->Add(text1, 0, wxEXPAND | wxTOP, FromDIP(5));
+    vertical_sizer->Add(horizontal_sizer, 0, wxEXPAND | wxTOP, FromDIP(5));
+    vertical_sizer->Add(cur_version, 0, wxEXPAND | wxTOP, FromDIP(5));
+    if (!file_version_newer) {
+        wxStaticText *latest_version = new wxStaticText(this, wxID_ANY, _L("Latest Version: ") + m_cloud_version->to_string());
+        vertical_sizer->Add(latest_version, 0, wxEXPAND | wxTOP, FromDIP(5));
+    }
+
+    wxStaticText *unrecognized_keys = new wxStaticText(this, wxID_ANY, m_new_keys);
+    vertical_sizer->Add(unrecognized_keys, 0, wxEXPAND | wxTOP, FromDIP(10));
+
+    return vertical_sizer;
+}
+
+wxBoxSizer *Newer3mfVersionDialog::get_btn_sizer()
+{
+    wxBoxSizer *horizontal_sizer = new wxBoxSizer(wxHORIZONTAL);
+    horizontal_sizer->Add(0, 0, 1, wxEXPAND, 0);
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
+                            std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
+    StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
+                            std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
+    bool       file_version_newer = (*m_file_version) > (*m_cloud_version);
+    if (!file_version_newer) {
+        m_update_btn = new Button(this, _L("Update"));
+        m_update_btn->SetBackgroundColor(btn_bg_green);
+        m_update_btn->SetBorderColor(*wxWHITE);
+        m_update_btn->SetTextColor(wxColour(0xFFFFFE));
+        m_update_btn->SetFont(Label::Body_12);
+        m_update_btn->SetSize(wxSize(FromDIP(58), FromDIP(24)));
+        m_update_btn->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
+        m_update_btn->SetCornerRadius(FromDIP(12));
+        horizontal_sizer->Add(m_update_btn, 0, wxRIGHT, FromDIP(10));
+
+        m_update_btn->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
+            EndModal(wxID_OK);
+            if (wxGetApp().app_config->has("app", "cloud_software_url")) {
+                std::string download_url = wxGetApp().app_config->get("app", "cloud_software_url");
+                wxLaunchDefaultBrowser(download_url);
+            } else {
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "Bambu Studio conf has no cloud_software_url and file_version: " << m_file_version->to_string()
+                                        << " and cloud_version: " << m_cloud_version->to_string();
+            }
+        });
+    }
+    
+    if (!file_version_newer) {
+        m_later_btn = new Button(this, _L("Not for now"));
+        m_later_btn->SetBackgroundColor(btn_bg_white);
+        m_later_btn->SetBorderColor(wxColour(38, 46, 48));
+    } else {
+        m_later_btn = new Button(this, _L("OK"));
+        m_later_btn->SetBackgroundColor(btn_bg_green);
+        m_later_btn->SetBorderColor(*wxWHITE);
+        m_later_btn->SetTextColor(wxColour(0xFFFFFE));
+    }
+    m_later_btn->SetFont(Label::Body_12);
+    m_later_btn->SetSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_later_btn->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_later_btn->SetCornerRadius(FromDIP(12));
+    horizontal_sizer->Add(m_later_btn, 0, wxRIGHT, FromDIP(10));
+    m_later_btn->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
+        EndModal(wxID_OK);
+    });
+    return horizontal_sizer;
+}
 
 } // namespace GUI
 

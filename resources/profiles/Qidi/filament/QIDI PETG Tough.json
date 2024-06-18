@@ -16,16 +16,16 @@
         "30"
     ],
     "overhang_fan_speed": [
-        "90"
+        "100"
     ],
     "overhang_fan_threshold": [
         "25%"
     ],
     "fan_max_speed": [
-        "90"
+        "40"
     ],
     "fan_min_speed": [
-        "40"
+        "10"
     ],
     "slow_down_min_speed": [
         "20"
@@ -37,13 +37,22 @@
         "0.95"
     ],
     "filament_max_volumetric_speed": [
-        "12"
+        "16"
     ],
     "enable_pressure_advance": [
         "1"
     ],
     "pressure_advance": [
-        "0.05"
+        "0.04"
+    ],
+    "hot_plate_temp_initial_layer" : [
+        "80"
+    ],
+    "hot_plate_temp" : [
+      "80"
+    ],
+    "filament_density":[
+      "1.24"
     ],
 	"compatible_printers": [
         "Qidi X-Plus 0.4 nozzle",
@@ -51,7 +60,6 @@
         "Qidi X-CF Pro 0.4 nozzle",
 		"Qidi X-Smart 3 0.4 nozzle",
 		"Qidi X-Plus 3 0.4 nozzle",
-		"Qidi X-Max 3 0.4 nozzle",
-        "Qidi Q1 Pro 0.6 nozzle"
+		"Qidi X-Max 3 0.4 nozzle"
 	]
 }

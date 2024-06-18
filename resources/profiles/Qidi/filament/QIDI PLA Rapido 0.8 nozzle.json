@@ -5,21 +5,21 @@
     "name": "QIDI PLA Rapido 0.8 nozzle",
     "from": "system",
     "instantiation": "true",
-    "inherits": "fdm_filament_pla",
+    "inherits": "QIDI PLA Rapido",
 	"filament_flow_ratio": [
         "0.98"
     ],
     "slow_down_layer_time": [
-        "5"
+        "8"
     ],
     "enable_pressure_advance": [
         "1"
     ],
     "pressure_advance": [
-        "0.031"
+        "0.008"
     ],
     "filament_max_volumetric_speed": [
-        "22"
+        "20"
     ],
 	"compatible_printers": [
         "Qidi X-Plus 0.8 nozzle",

@@ -164,13 +164,19 @@ std::string SpiralVase::process_layer(const std::string &gcode, bool last_layer)
                                 if (found && dist < max_xy_dist_for_smoothing) {
                                     // Interpolate between the point on this layer and the point on the previous layer
                                     SpiralVase::SpiralPoint target = SpiralVaseHelpers::add(SpiralVaseHelpers::scale(nearestp, 1 - factor), SpiralVaseHelpers::scale(p, factor));
-                                    line.set(reader, X, target.x);
-                                    line.set(reader, Y, target.y);
+
+                                    // Remove tiny movement
                                     // We need to figure out the distance of this new line!
                                     float modified_dist_XY = SpiralVaseHelpers::distance(last_point, target);
-                                    // Scale the extrusion amount according to change in length
-                                    line.set(reader, E, line.e() * modified_dist_XY / dist_XY, 5 /*decimal_digits*/);
-                                    last_point = target;
+                                    if (modified_dist_XY < 0.001)
+                                        line.clear();
+                                    else {
+                                        line.set(reader, X, target.x);
+                                        line.set(reader, Y, target.y);
+                                        // Scale the extrusion amount according to change in length
+                                        line.set(reader, E, line.e() * modified_dist_XY / dist_XY, 5 /*decimal_digits*/);
+                                        last_point = target;
+                                    }
                                 } else {
                                     last_point = p;
                                 }

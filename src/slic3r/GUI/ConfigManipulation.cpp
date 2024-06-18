@@ -1,7 +1,3 @@
-///|/ Copyright (c) Prusa Research 2019 - 2023 Lukáš Hejl @hejllukas, Vojtěch Bubník @bubnikv, Lukáš Matěna @lukasmatena, Oleksandra Iushchenko @YuSanka, Pavel Mikuš @Godrak, Tomáš Mészáros @tamasmeszaros
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 // #include "libslic3r/GCodeSender.hpp"
 #include "ConfigManipulation.hpp"
 #include "I18N.hpp"
@@ -56,24 +52,42 @@ void ConfigManipulation::toggle_line(const std::string& opt_key, const bool togg
         cb_toggle_line(opt_key, toggle);
 }
 
+void ConfigManipulation::check_nozzle_recommended_temperature_range(DynamicPrintConfig *config) {
+    if (is_msg_dlg_already_exist)
+        return;
+
+    int temperature_range_low, temperature_range_high;
+    if (!get_temperature_range(config, temperature_range_low, temperature_range_high)) return;
+
+    wxString msg_text;
+    bool     need_check = false;
+    if (temperature_range_low < 190 || temperature_range_high > 300) {
+        msg_text += _L("The recommended minimum temperature is less than 190 degree or the recommended maximum temperature is greater than 300 degree.\n");
+        need_check = true;
+    }
+    if (temperature_range_low > temperature_range_high) {
+        msg_text += _L("The recommended minimum temperature cannot be higher than the recommended maximum temperature.\n");
+        need_check = true;
+    }
+    if (need_check) {
+        msg_text += _L("Please check.\n");
+        MessageDialog dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxOK);
+        is_msg_dlg_already_exist = true;
+        dialog.ShowModal();
+        is_msg_dlg_already_exist = false;
+    }
+}
+
 void ConfigManipulation::check_nozzle_temperature_range(DynamicPrintConfig *config)
 {
     if (is_msg_dlg_already_exist)
         return;
 
-    int temperature_range_low = config->has("nozzle_temperature_range_low") ?
-                                config->opt_int("nozzle_temperature_range_low", (unsigned int)0) :
-                                0;
-    int temperature_range_high = config->has("nozzle_temperature_range_high") ?
-                                 config->opt_int("nozzle_temperature_range_high", (unsigned int)0) :
-                                 0;
+    int temperature_range_low, temperature_range_high;
+    if (!get_temperature_range(config, temperature_range_low, temperature_range_high)) return;
 
-    if (temperature_range_low != 0 &&
-        temperature_range_high != 0 &&
-        config->has("nozzle_temperature")) {
-        if (config->opt_int("nozzle_temperature", 0) < temperature_range_low ||
-            config->opt_int("nozzle_temperature", 0) > temperature_range_high)
-        {
+    if (config->has("nozzle_temperature")) {
+        if (config->opt_int("nozzle_temperature", 0) < temperature_range_low || config->opt_int("nozzle_temperature", 0) > temperature_range_high) {
             wxString msg_text = _(L("Nozzle may be blocked when the temperature is out of recommended range.\n"
                 "Please make sure whether to use the temperature to print.\n\n"));
             msg_text += wxString::Format(_L("Recommended nozzle temperature of this filament type is [%d, %d] degree centigrade"), temperature_range_low, temperature_range_high);
@@ -90,16 +104,10 @@ void ConfigManipulation::check_nozzle_temperature_initial_layer_range(DynamicPri
     if (is_msg_dlg_already_exist)
         return;
 
-    int temperature_range_low = config->has("nozzle_temperature_range_low") ?
-                            config->opt_int("nozzle_temperature_range_low", (unsigned int)0) :
-                            0;
-    int temperature_range_high = config->has("nozzle_temperature_range_high") ?
-                                 config->opt_int("nozzle_temperature_range_high", (unsigned int)0) :
-                                 0;
+    int temperature_range_low, temperature_range_high;
+    if (!get_temperature_range(config, temperature_range_low, temperature_range_high)) return;
 
-    if (temperature_range_low != 0 &&
-        temperature_range_high != 0 &&
-        config->has("nozzle_temperature_initial_layer")) {
+    if (config->has("nozzle_temperature_initial_layer")) {
         if (config->opt_int("nozzle_temperature_initial_layer", 0) < temperature_range_low ||
             config->opt_int("nozzle_temperature_initial_layer", 0) > temperature_range_high)
         {
@@ -161,7 +169,7 @@ void ConfigManipulation::check_chamber_temperature(DynamicPrintConfig* config)
     }
 }
 
-void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, const bool is_global_config)
+void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, const bool is_global_config, const bool is_plate_config)
 {
     // #ys_FIXME_to_delete
     //! Temporary workaround for the correct updates of the TextCtrl (like "layer_height"):
@@ -170,6 +178,8 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
     // let check if this process is already started.
     if (is_msg_dlg_already_exist)
         return;
+
+    bool is_object_config = (!is_global_config && !is_plate_config);
 
     // layer_height shouldn't be equal to zero
     auto layer_height = config->opt_float("layer_height");
@@ -273,7 +283,8 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
     double sparse_infill_density = config->option<ConfigOptionPercent>("sparse_infill_density")->value;
     auto timelapse_type = config->opt_enum<TimelapseType>("timelapse_type");
 
-    if (config->opt_bool("spiral_mode") &&
+    if (!is_plate_config &&
+        config->opt_bool("spiral_mode") &&
         ! (config->opt_int("wall_loops") == 1 &&
            config->opt_int("top_shell_layers") == 0 &&
            sparse_infill_density == 0 &&
@@ -284,24 +295,10 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
             config->opt_enum<WallDirection>("wall_direction") == WallDirection::Auto &&
             config->opt_enum<TimelapseType>("timelapse_type") == TimelapseType::tlTraditional))
     {
-        wxString msg_text = _(L("Spiral mode only works when wall loops is 1, support is disabled, top shell layers is 0, sparse infill density is 0 and timelapse type is traditional."));
-
-        auto printer_structure_opt = wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionEnum<PrinterStructure>>("printer_structure");
-        if (printer_structure_opt && printer_structure_opt->value == PrinterStructure::psI3) {
-            msg_text += _(L(" But machines with I3 structure will not generate timelapse videos."));
-        }
-
-        if (is_global_config)
-            msg_text += "\n\n" + _(L("Change these settings automatically? \n"
-                                     "Yes - Change these settings and enable spiral mode automatically\n"
-                                     "No  - Give up using spiral mode this time"));
-        MessageDialog dialog(m_msg_dlg_parent, msg_text, "",
-                               wxICON_WARNING | (is_global_config ? wxYES | wxNO : wxOK));
         DynamicPrintConfig new_conf = *config;
-        is_msg_dlg_already_exist = true;
-        auto answer = dialog.ShowModal();
+        auto answer = show_spiral_mode_settings_dialog(is_object_config);
         bool support = true;
-        if (!is_global_config || answer == wxID_YES) {
+        if (answer == wxID_YES) {
             new_conf.set_key_value("wall_loops", new ConfigOptionInt(1));
             new_conf.set_key_value("top_shell_layers", new ConfigOptionInt(0));
             new_conf.set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
@@ -549,7 +546,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
         toggle_field(el, has_solid_infill);
     
     for (auto el : { "infill_direction", "sparse_infill_line_width",
-        "sparse_infill_speed", "bridge_speed", "internal_bridge_speed", "bridge_angle" })
+        "sparse_infill_speed", "bridge_speed", "internal_bridge_speed", "bridge_angle","solid_infill_direction", "rotate_solid_infill_direction" })
         toggle_field(el, have_infill || has_solid_infill);
     
     toggle_field("top_shell_thickness", ! has_spiral_vase && has_top_solid_infill);
@@ -677,7 +674,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     
     bool purge_in_primetower = preset_bundle->printers.get_edited_preset().config.opt_bool("purge_in_prime_tower");
     
-    for (auto el : {"wipe_tower_rotation_angle", "wipe_tower_cone_angle", "wipe_tower_extra_spacing", "wipe_tower_bridging", "wipe_tower_no_sparse_layers"})
+    for (auto el : {"wipe_tower_rotation_angle", "wipe_tower_cone_angle", "wipe_tower_extra_spacing", "wipe_tower_max_purge_speed", "wipe_tower_bridging", "wipe_tower_no_sparse_layers"})
         toggle_line(el, have_prime_tower && purge_in_primetower);
     
     toggle_line("prime_volume",have_prime_tower && !purge_in_primetower);
@@ -842,6 +839,43 @@ void ConfigManipulation::toggle_print_sla_options(DynamicPrintConfig* config)
     toggle_field("pad_object_connector_width", zero_elev);
     toggle_field("pad_object_connector_penetration", zero_elev);
 }
+
+int ConfigManipulation::show_spiral_mode_settings_dialog(bool is_object_config)
+{
+    wxString msg_text = _(L("Spiral mode only works when wall loops is 1, support is disabled, top shell layers is 0, sparse infill density is 0 and timelapse type is traditional."));
+    auto printer_structure_opt = wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionEnum<PrinterStructure>>("printer_structure");
+    if (printer_structure_opt && printer_structure_opt->value == PrinterStructure::psI3) {
+        msg_text += _(L(" But machines with I3 structure will not generate timelapse videos."));
+    }
+    if (!is_object_config)
+        msg_text += "\n\n" + _(L("Change these settings automatically? \n"
+            "Yes - Change these settings and enable spiral mode automatically\n"
+            "No  - Give up using spiral mode this time"));
+
+    MessageDialog dialog(m_msg_dlg_parent, msg_text, "",
+        wxICON_WARNING | (!is_object_config ? wxYES | wxNO : wxOK));
+    is_msg_dlg_already_exist = true;
+    auto answer = dialog.ShowModal();
+    is_msg_dlg_already_exist = false;
+    if (is_object_config)
+        answer = wxID_YES;
+    return answer;
+}
+
+bool ConfigManipulation::get_temperature_range(DynamicPrintConfig *config, int &range_low, int &range_high)
+{
+    bool range_low_exist = false, range_high_exist = false;
+    if (config->has("nozzle_temperature_range_low")) {
+        range_low       = config->opt_int("nozzle_temperature_range_low", (unsigned int) 0);
+        range_low_exist       = true;
+    }
+    if (config->has("nozzle_temperature_range_high")) {
+        range_high       = config->opt_int("nozzle_temperature_range_high", (unsigned int) 0);
+        range_high_exist       = true;
+    }
+    return range_low_exist && range_high_exist;
+}
+
 
 } // GUI
 } // Slic3r

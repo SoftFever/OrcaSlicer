@@ -5,7 +5,7 @@
     "name": "QIDI PETG Tough 0.6 nozzle",
     "from": "system",
     "instantiation": "true",
-    "inherits": "fdm_filament_pet",
+    "inherits": "QIDI PETG Tough",
 	"reduce_fan_stop_start_freq": [
         "1"
     ],
@@ -16,13 +16,13 @@
         "30"
     ],
     "overhang_fan_speed": [
-        "90"
+        "100"
     ],
     "overhang_fan_threshold": [
         "25%"
     ],
     "slow_down_min_speed": [
-        "10"
+        "20"
     ],
     "slow_down_layer_time": [
         "8"
@@ -34,7 +34,7 @@
         "1"
     ],
     "pressure_advance": [
-        "0.05"
+        "0.04"
     ],
     "filament_max_volumetric_speed": [
         "16"

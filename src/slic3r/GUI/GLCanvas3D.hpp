@@ -1,8 +1,3 @@
-///|/ Copyright (c) Prusa Research 2018 - 2023 Enrico Turri @enricoturri1966, Tomáš Mészáros @tamasmeszaros, Lukáš Matěna @lukasmatena, Oleksandra Iushchenko @YuSanka, Filip Sykala @Jony01, Vojtěch Bubník @bubnikv, Lukáš Hejl @hejllukas, David Kocík @kocikdav, Vojtěch Král @vojtechkral
-///|/ Copyright (c) BambuStudio 2023 manch1n @manch1n
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 #ifndef slic3r_GLCanvas3D_hpp_
 #define slic3r_GLCanvas3D_hpp_
 
@@ -187,6 +182,8 @@ wxDECLARE_EVENT(EVT_GLCANVAS_EDIT_COLOR_CHANGE, wxKeyEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_JUMP_TO, wxKeyEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_UNDO, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_REDO, SimpleEvent);
+wxDECLARE_EVENT(EVT_GLCANVAS_SWITCH_TO_OBJECT, SimpleEvent);
+wxDECLARE_EVENT(EVT_GLCANVAS_SWITCH_TO_GLOBAL, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_COLLAPSE_SIDEBAR, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_RELOAD_FROM_DISK, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_RENDER_TIMER, wxTimerEvent/*RenderTimerEvent*/);
@@ -515,6 +512,7 @@ private:
     unsigned int m_last_w, m_last_h;
     bool m_in_render;
     wxTimer m_timer;
+    wxTimer m_timer_set_color;
     LayersEditing m_layers_editing;
     Mouse m_mouse;
     GLGizmosManager m_gizmos;
@@ -551,6 +549,8 @@ private:
 
     std::array<unsigned int, 2> m_old_size{ 0, 0 };
 
+    bool m_is_touchpad_navigation{ false };
+
     // Screen is only refreshed from the OnIdle handler if it is dirty.
     bool m_dirty;
     bool m_initialized;
@@ -564,6 +564,7 @@ private:
     bool m_multisample_allowed;
     bool m_moving;
     bool m_tab_down;
+    bool m_camera_movement;
     //BBS: add toolpath outside
     bool m_toolpath_outside{ false };
     ECursorType m_cursor_type;
@@ -604,25 +605,6 @@ private:
 
     PrinterTechnology current_printer_technology() const;
 
-    template<class Self>
-    static auto & get_arrange_settings(Self *self) {
-        PrinterTechnology ptech = self->current_printer_technology();
-
-        auto *ptr = &self->m_arrange_settings_fff;
-
-        if (ptech == ptSLA) {
-            ptr = &self->m_arrange_settings_sla;
-        } else if (ptech == ptFFF) {
-            auto co_opt = self->m_config->template option<ConfigOptionEnum<PrintSequence>>("print_sequence");
-            if (co_opt && (co_opt->value == PrintSequence::ByObject))
-                ptr = &self->m_arrange_settings_fff_seq_print;
-            else
-                ptr = &self->m_arrange_settings_fff;
-        }
-
-        return *ptr;
-    }
-
 
 
     //BBS:record key botton frequency
@@ -648,7 +630,11 @@ public:
     }
 
     void load_arrange_settings();
-    ArrangeSettings& get_arrange_settings() { return get_arrange_settings(this); }
+    ArrangeSettings& get_arrange_settings();// { return get_arrange_settings(this); }
+    ArrangeSettings& get_arrange_settings(PrintSequence print_seq) {
+        return (print_seq == PrintSequence::ByObject) ? m_arrange_settings_fff_seq_print
+            : m_arrange_settings_fff;
+    }
 
     class SequentialPrintClearance
     {
@@ -771,6 +757,7 @@ public:
     const GCodeViewer::SequentialView& get_gcode_sequential_view() const { return m_gcode_viewer.get_sequential_view(); }
     void update_gcode_sequential_view_current(unsigned int first, unsigned int last) { m_gcode_viewer.update_sequential_view_current(first, last); }
 
+    void toggle_selected_volume_visibility(bool selected_visible);
     void toggle_sla_auxiliaries_visibility(bool visible, const ModelObject* mo = nullptr, int instance_idx = -1);
     void toggle_model_objects_visibility(bool visible, const ModelObject* mo = nullptr, int instance_idx = -1, const ModelVolume* mv = nullptr);
     void update_instance_printable_state_for_object(size_t obj_idx);
@@ -858,9 +845,9 @@ public:
     //BBS: add part plate related logic
     void select_plate();
     //BBS: GUI refactor: GLToolbar&&gizmo
-    float get_main_toolbar_offset() const;
-    float get_main_toolbar_height() const { return m_main_toolbar.get_height(); }
-    float get_main_toolbar_width() const { return m_main_toolbar.get_width(); }
+    int get_main_toolbar_offset() const;
+    int get_main_toolbar_height() const { return m_main_toolbar.get_height(); }
+    int get_main_toolbar_width() const { return m_main_toolbar.get_width(); }
     float get_assemble_view_toolbar_width() const { return m_assemble_view_toolbar.get_width(); }
     float get_assemble_view_toolbar_height() const { return m_assemble_view_toolbar.get_height(); }
     float get_assembly_paint_toolbar_width() const { return m_paint_toolbar_width; }
@@ -887,20 +874,27 @@ public:
     // printable_only == false -> render also non printable volumes as grayed
     // parts_only == false -> render also sla support and pad
     void render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params,
-        Camera::EType camera_type, bool use_top_view = false, bool for_picking = false);
+                                 Camera::EType           camera_type,
+                                 bool                    use_top_view = false,
+                                 bool                    for_picking  = false,
+                                 bool                    ban_light    = false);
     void render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params,
-        const GLVolumeCollection& volumes, Camera::EType camera_type, bool use_top_view = false, bool for_picking = false);
+                                 const GLVolumeCollection &volumes,
+                                 Camera::EType             camera_type,
+                                 bool                      use_top_view = false,
+                                 bool                      for_picking  = false,
+                                 bool                      ban_light    = false);
     static void render_thumbnail_internal(ThumbnailData& thumbnail_data, const ThumbnailsParams& thumbnail_params, PartPlateList& partplate_list, ModelObjectPtrs& model_objects,
         const GLVolumeCollection& volumes, std::vector<ColorRGBA>& extruder_colors,
-        GLShaderProgram* shader, Camera::EType camera_type, bool use_top_view = false, bool for_picking = false);
+        GLShaderProgram* shader, Camera::EType camera_type, bool use_top_view = false, bool for_picking = false, bool ban_light = false);
     // render thumbnail using an off-screen framebuffer
     static void render_thumbnail_framebuffer(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params,
         PartPlateList& partplate_list, ModelObjectPtrs& model_objects, const GLVolumeCollection& volumes, std::vector<ColorRGBA>& extruder_colors,
-        GLShaderProgram* shader, Camera::EType camera_type, bool use_top_view = false, bool for_picking = false);
+        GLShaderProgram* shader, Camera::EType camera_type, bool use_top_view = false, bool for_picking = false, bool ban_light = false);
     // render thumbnail using an off-screen framebuffer when GLEW_EXT_framebuffer_object is supported
     static void render_thumbnail_framebuffer_ext(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params,
         PartPlateList& partplate_list, ModelObjectPtrs& model_objects, const GLVolumeCollection& volumes, std::vector<ColorRGBA>& extruder_colors,
-        GLShaderProgram* shader, Camera::EType camera_type, bool use_top_view = false, bool for_picking = false);
+        GLShaderProgram* shader, Camera::EType camera_type, bool use_top_view = false, bool for_picking = false, bool ban_light = false);
 
     //BBS use gcoder viewer render calibration thumbnails
     void render_calibration_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params);
@@ -913,6 +907,7 @@ public:
 
     void select_all();
     void deselect_all();
+    void exit_gizmo();
     void set_selected_visible(bool visible);
     void delete_selected();
     void ensure_on_bed(unsigned int object_idx, bool allow_negative_z);
@@ -957,11 +952,15 @@ public:
     void on_mouse_wheel(wxMouseEvent& evt);
     void on_timer(wxTimerEvent& evt);
     void on_render_timer(wxTimerEvent& evt);
+    void on_set_color_timer(wxTimerEvent& evt);
     void on_mouse(wxMouseEvent& evt);
     void on_gesture(wxGestureEvent& evt);
     void on_paint(wxPaintEvent& evt);
     void on_set_focus(wxFocusEvent& evt);
     void force_set_focus();
+
+    bool is_camera_rotate(const wxMouseEvent& evt) const;
+    bool is_camera_pan(const wxMouseEvent& evt) const;
 
     Size get_canvas_size() const;
     Vec2d get_local_mouse_position() const;
@@ -1061,6 +1060,17 @@ public:
 
     void highlight_toolbar_item(const std::string& item_name);
     void highlight_gizmo(const std::string& gizmo_name);
+
+    ArrangeSettings get_arrange_settings() const {
+        const ArrangeSettings &settings = get_arrange_settings();
+        ArrangeSettings ret = settings;
+        if (&settings == &m_arrange_settings_fff_seq_print) {
+            ret.distance = std::max(ret.distance,
+                                    float(min_object_distance(*m_config)));
+        }
+
+        return ret;
+    }
 
     // Timestamp for FPS calculation and notification fade-outs.
     static int64_t timestamp_now() {

@@ -1,8 +1,3 @@
-///|/ Copyright (c) Prusa Research 2018 - 2023 Oleksandra Iushchenko @YuSanka, David Kocík @kocikdav, Enrico Turri @enricoturri1966, Lukáš Matěna @lukasmatena, Lukáš Hejl @hejllukas, Filip Sykala @Jony01, Vojtěch Bubník @bubnikv, Tomáš Mészáros @tamasmeszaros
-///|/ Copyright (c) 2020 Henner Zeller
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 #include "../libslic3r.h"
 #include "../Exception.hpp"
 #include "../Model.hpp"
@@ -213,6 +208,7 @@ static constexpr const char* FILAMENT_TYPE_TAG = "type";
 static constexpr const char *FILAMENT_COLOR_TAG = "color";
 static constexpr const char *FILAMENT_USED_M_TAG = "used_m";
 static constexpr const char *FILAMENT_USED_G_TAG = "used_g";
+static constexpr const char *FILAMENT_TRAY_INFO_ID_TAG     = "tray_info_idx";
 
 
 static constexpr const char* CONFIG_TAG = "config";
@@ -291,9 +287,12 @@ static constexpr const char* LOCK_ATTR = "locked";
 static constexpr const char* BED_TYPE_ATTR = "bed_type";
 static constexpr const char* PRINT_SEQUENCE_ATTR = "print_sequence";
 static constexpr const char* FIRST_LAYER_PRINT_SEQUENCE_ATTR = "first_layer_print_sequence";
+static constexpr const char* OTHER_LAYERS_PRINT_SEQUENCE_ATTR = "other_layers_print_sequence";
+static constexpr const char* OTHER_LAYERS_PRINT_SEQUENCE_NUMS_ATTR = "other_layers_print_sequence_nums";
 static constexpr const char* SPIRAL_VASE_MODE = "spiral_mode";
 static constexpr const char* GCODE_FILE_ATTR = "gcode_file";
 static constexpr const char* THUMBNAIL_FILE_ATTR = "thumbnail_file";
+static constexpr const char* NO_LIGHT_THUMBNAIL_FILE_ATTR = "thumbnail_no_light_file";
 static constexpr const char* TOP_FILE_ATTR = "top_file";
 static constexpr const char* PICK_FILE_ATTR = "pick_file";
 static constexpr const char* PATTERN_FILE_ATTR = "pattern_file";
@@ -584,21 +583,14 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         return ret;
     };
 
-    for (auto it = ps.volumes_per_extruder.begin(); it != ps.volumes_per_extruder.end(); it++) {
+    for (auto it = ps.total_volumes_per_extruder.begin(); it != ps.total_volumes_per_extruder.end(); it++) {
         double volume                           = it->second;
         auto [used_filament_m, used_filament_g] = get_used_filament_from_volume(volume, it->first);
 
         FilamentInfo info;
         info.id = it->first;
-        if (ps.flush_per_filament.find(it->first) != ps.flush_per_filament.end()) {
-            volume = ps.flush_per_filament.at(it->first);
-            auto [flushed_filament_m, flushed_filament_g] = get_used_filament_from_volume(volume, it->first);
-            info.used_m = used_filament_m + flushed_filament_m;
-            info.used_g = used_filament_g + flushed_filament_g;
-        } else {
-            info.used_m = used_filament_m;
-            info.used_g = used_filament_g;
-        }
+        info.used_g = used_filament_g;
+        info.used_m = used_filament_m;
         slice_filaments_info.push_back(info);
     }
 
@@ -662,7 +654,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         struct Geometry
         {
             std::vector<Vec3f> vertices;
-            std::vector<Vec3i> triangles;
+            std::vector<Vec3i32> triangles;
             std::vector<std::string> custom_supports;
             std::vector<std::string> custom_seam;
             std::vector<std::string> mmu_segmentation;
@@ -1491,6 +1483,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             plate->is_label_object_enabled = it->second->is_label_object_enabled;
             plate->skipped_objects = it->second->skipped_objects;
             plate->slice_filaments_info = it->second->slice_filaments_info;
+            plate->printer_model_id = it->second->printer_model_id;
+            plate->nozzle_diameters = it->second->nozzle_diameters;
             plate->warnings = it->second->warnings;
             plate->thumbnail_file = it->second->thumbnail_file;
             if (plate->thumbnail_file.empty()) {
@@ -1498,6 +1492,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 boost::algorithm::replace_all(plate->thumbnail_file, ".gcode", ".png");
             }
             //plate->pattern_file = it->second->pattern_file;
+            plate->no_light_thumbnail_file = it->second->no_light_thumbnail_file;
             plate->top_file = it->second->top_file;
             plate->pick_file = it->second->pick_file.empty();
             plate->pattern_bbox_file = it->second->pattern_bbox_file.empty();
@@ -1509,7 +1504,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                     return mz_zip_reader_extract_to_mem(&archive, stat.m_file_index, pixels.data(), pixels.size(), 0);
                 });
 
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", plate %1%, thumbnail_file=%2%")%it->first %plate->thumbnail_file;
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", plate %1%, thumbnail_file=%2%, no_light_thumbnail_file=%3%")%it->first %plate->thumbnail_file %plate->no_light_thumbnail_file;
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", top_thumbnail_file=%1%, pick_thumbnail_file=%2%")%plate->top_file %plate->pick_file;
             it++;
         }
@@ -2143,13 +2138,14 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             plate_data_list[it->first-1]->warnings = it->second->warnings;
             plate_data_list[it->first-1]->thumbnail_file = (m_load_restore || it->second->thumbnail_file.empty()) ? it->second->thumbnail_file : m_backup_path + "/" + it->second->thumbnail_file;
             //plate_data_list[it->first-1]->pattern_file = (m_load_restore || it->second->pattern_file.empty()) ? it->second->pattern_file : m_backup_path + "/" + it->second->pattern_file;
+            plate_data_list[it->first-1]->no_light_thumbnail_file = (m_load_restore || it->second->no_light_thumbnail_file.empty()) ? it->second->no_light_thumbnail_file : m_backup_path + "/" + it->second->no_light_thumbnail_file;
             plate_data_list[it->first-1]->top_file = (m_load_restore || it->second->top_file.empty()) ? it->second->top_file : m_backup_path + "/" + it->second->top_file;
             plate_data_list[it->first-1]->pick_file = (m_load_restore || it->second->pick_file.empty()) ? it->second->pick_file : m_backup_path + "/" + it->second->pick_file;
             plate_data_list[it->first-1]->pattern_bbox_file = (m_load_restore || it->second->pattern_bbox_file.empty()) ? it->second->pattern_bbox_file : m_backup_path + "/" + it->second->pattern_bbox_file;
             plate_data_list[it->first-1]->config = it->second->config;
 
             current_plate_data = plate_data_list[it->first - 1];
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", plate %1%, thumbnail_file=%2%")%it->first %plate_data_list[it->first-1]->thumbnail_file;
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", plate %1%, thumbnail_file=%2%, no_light_thumbnail_file=%3%")%it->first %plate_data_list[it->first-1]->thumbnail_file %plate_data_list[it->first-1]->no_light_thumbnail_file;
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", top_thumbnail_file=%1%, pick_thumbnail_file=%2%")%plate_data_list[it->first-1]->top_file %plate_data_list[it->first-1]->pick_file;
             it++;
 
@@ -4096,6 +4092,19 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 };
                 m_curr_plater->config.set_key_value("first_layer_print_sequence", new ConfigOptionInts(get_vector_from_string(value)));
             }
+            else if (key == OTHER_LAYERS_PRINT_SEQUENCE_ATTR) {
+                auto get_vector_from_string = [](const std::string &str) -> std::vector<int> {
+                    std::stringstream stream(str);
+                    int               value;
+                    std::vector<int>  results;
+                    while (stream >> value) { results.push_back(value); }
+                    return results;
+                };
+                m_curr_plater->config.set_key_value("other_layers_print_sequence", new ConfigOptionInts(get_vector_from_string(value)));
+            }
+            else if (key == OTHER_LAYERS_PRINT_SEQUENCE_NUMS_ATTR) {
+                m_curr_plater->config.set_key_value("other_layers_print_sequence_nums", new ConfigOptionInt(stoi(value)));
+            }
             else if (key == SPIRAL_VASE_MODE) {
                 bool spiral_mode = false;
                 std::istringstream(value) >> std::boolalpha >> spiral_mode;
@@ -4108,6 +4117,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             else if (key == THUMBNAIL_FILE_ATTR)
             {
                 m_curr_plater->thumbnail_file = value;
+            }
+            else if (key == NO_LIGHT_THUMBNAIL_FILE_ATTR)
+            {
+                m_curr_plater->no_light_thumbnail_file = value;
             }
             else if (key == TOP_FILE_ATTR)
             {
@@ -4185,6 +4198,16 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 if (m_curr_plater)
                     std::istringstream(value) >> std::boolalpha >> m_curr_plater->is_label_object_enabled;
             }
+            else if (key == PRINTER_MODEL_ID_ATTR)
+            {
+                if (m_curr_plater)
+                    m_curr_plater->printer_model_id = value;
+            }
+            else if (key == NOZZLE_DIAMETERS_ATTR)
+            {
+                if (m_curr_plater)
+                    m_curr_plater->nozzle_diameters = value;
+            }
         }
 
         return true;
@@ -4204,13 +4227,14 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             std::string color = bbs_get_attribute_value_string(attributes, num_attributes, FILAMENT_COLOR_TAG);
             std::string used_m = bbs_get_attribute_value_string(attributes, num_attributes, FILAMENT_USED_M_TAG);
             std::string used_g = bbs_get_attribute_value_string(attributes, num_attributes, FILAMENT_USED_G_TAG);
-
+            std::string filament_id = bbs_get_attribute_value_string(attributes, num_attributes, FILAMENT_TRAY_INFO_ID_TAG);
             FilamentInfo filament_info;
             filament_info.id = atoi(id.c_str()) - 1;
             filament_info.type = type;
             filament_info.color = color;
             filament_info.used_m = atof(used_m.c_str());
             filament_info.used_g = atof(used_g.c_str());
+            filament_info.filament_id = filament_id;
             m_curr_plater->slice_filaments_info.push_back(filament_info);
         }
         return true;
@@ -4586,7 +4610,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 //    add_error("found no trianges in the object " + std::to_string(sub_object->id));
                 //    return false;
                 //}
-                for (const Vec3i& face : its.indices) {
+                for (const Vec3i32& face : its.indices) {
                     for (const int tri_id : face) {
                         if (tri_id < 0 || tri_id >= int(sub_object->geometry.vertices.size())) {
                             add_error("invalid vertex id in object " + std::to_string(sub_object->id));
@@ -4761,7 +4785,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             {
                 int min_id = its.indices.front()[0];
                 int max_id = min_id;
-                for (const Vec3i& face : its.indices) {
+                for (const Vec3i32& face : its.indices) {
                     for (const int tri_id : face) {
                         if (tri_id < 0 || tri_id >= int(geometry.vertices.size())) {
                             add_error("Found invalid vertex id");
@@ -4781,7 +4805,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 }
 
                 // rebase indices to the current vertices list
-                for (Vec3i& face : its.indices)
+                for (Vec3i32& face : its.indices)
                     for (int& tri_id : face)
                         tri_id -= min_id;
             }
@@ -5453,6 +5477,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             std::vector<Preset*>& project_presets,
             const DynamicPrintConfig* config,
             const std::vector<ThumbnailData*>& thumbnail_data,
+            const std::vector<ThumbnailData *>& no_light_thumbnail_data,
             const std::vector<ThumbnailData*>& top_thumbnail_data,
             const std::vector<ThumbnailData*>& pick_thumbnail_data,
             Export3mfProgressFn proFn,
@@ -5539,7 +5564,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         boost::filesystem::remove(filename + ".tmp", ec);
 
         bool result = _save_model_to_file(filename + ".tmp", *store_params.model, store_params.plate_data_list, store_params.project_presets, store_params.config,
-            store_params.thumbnail_data, store_params.top_thumbnail_data, store_params.pick_thumbnail_data, store_params.proFn,
+                                          store_params.thumbnail_data, store_params.no_light_thumbnail_data, store_params.top_thumbnail_data, store_params.pick_thumbnail_data,
+                                          store_params.proFn,
             store_params.calibration_thumbnail_data, store_params.id_bboxes, store_params.project, store_params.export_plate_idx);
         if (result) {
             boost::filesystem::rename(filename + ".tmp", filename, ec);
@@ -5615,6 +5641,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         std::vector<Preset*>& project_presets,
         const DynamicPrintConfig* config,
         const std::vector<ThumbnailData*>& thumbnail_data,
+        const std::vector<ThumbnailData*>& no_light_thumbnail_data,
         const std::vector<ThumbnailData*>& top_thumbnail_data,
         const std::vector<ThumbnailData*>& pick_thumbnail_data,
         Export3mfProgressFn proFn,
@@ -5679,12 +5706,18 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         //BBS: add thumbnail for each plate
         if (!m_skip_static) {
             std::vector<bool> thumbnail_status(plate_data_list.size(), false);
+            std::vector<bool> no_light_thumbnail_status(plate_data_list.size(), false);
             std::vector<bool> top_thumbnail_status(plate_data_list.size(), false);
             std::vector<bool> pick_thumbnail_status(plate_data_list.size(), false);
 
             if ((thumbnail_data.size() > 0)&&(thumbnail_data.size() > plate_data_list.size())) {
                 BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", thumbnail_data size %1% > plate count %2%")
                     % thumbnail_data.size() %plate_data_list.size();
+                return false;
+            }
+            if ((no_light_thumbnail_data.size() > 0) && (no_light_thumbnail_data.size() > plate_data_list.size())) {
+                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", no_light_thumbnail_data size %1% > plate count %2%") %
+                    no_light_thumbnail_data.size() % plate_data_list.size();
                 return false;
             }
             if ((top_thumbnail_data.size() > 0)&&(top_thumbnail_data.size() > plate_data_list.size())) {
@@ -5722,6 +5755,16 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 }
             }
 
+            for (unsigned int index = 0; index < no_light_thumbnail_data.size(); index++) {
+                if (no_light_thumbnail_data[index]->is_valid()) {
+                    if (!_add_thumbnail_file_to_archive(archive, *no_light_thumbnail_data[index], "Metadata/plate_no_light", index)) {
+                        return false;
+                    }
+
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(",add no light thumbnail %1%'s data into 3mf") % (index + 1);
+                    thumbnail_status[index] = true;
+                }
+            }
             // Adds the file Metadata/top_i.png and Metadata/pick_i.png
             for (unsigned int index = 0; index < top_thumbnail_data.size(); index++)
             {
@@ -5753,6 +5796,16 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
                     if (!_add_file_to_archive(archive, dst_in_3mf, plate_data->thumbnail_file)) {
                         BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", add thumbnail %1% from file %2% failed\n") % (i+1) %plate_data->thumbnail_file;
+                        return false;
+                    }
+                }
+
+                if (!no_light_thumbnail_status[i] && !plate_data->no_light_thumbnail_file.empty() && (boost::filesystem::exists(plate_data->no_light_thumbnail_file))){
+                    std::string dst_in_3mf = (boost::format("Metadata/plate_no_light_%1%.png") % (i + 1)).str();
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format(", add no light thumbnail %1% from file %2%") % (i+1) %plate_data->no_light_thumbnail_file;
+
+                    if (!_add_file_to_archive(archive, dst_in_3mf, plate_data->no_light_thumbnail_file)) {
+                        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", add no light thumbnail %1% from file %2% failed\n") % (i+1) %plate_data->no_light_thumbnail_file;
                         return false;
                     }
                 }
@@ -6828,7 +6881,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
             for (int i = 0; i < int(its.indices.size()); ++ i) {
                 {
-                    const Vec3i &idx = its.indices[i];
+                    const Vec3i32 &idx = its.indices[i];
                     char *ptr = buf;
                     boost::spirit::karma::generate(ptr, boost::spirit::lit("     <") << TRIANGLE_TAG <<
                         " v1=\"" << boost::spirit::int_ <<
@@ -7415,6 +7468,24 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                     stream << "\"/>\n";
                 }
 
+
+                ConfigOptionInts *other_layers_print_sequence_opt = plate_data->config.option<ConfigOptionInts>("other_layers_print_sequence");
+                if (other_layers_print_sequence_opt != nullptr) {
+                    stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << OTHER_LAYERS_PRINT_SEQUENCE_ATTR << "\" " << VALUE_ATTR << "=\"";
+                    const std::vector<int> &values = other_layers_print_sequence_opt->values;
+                    for (int i = 0; i < values.size(); ++i) {
+                        stream << values[i];
+                        if (i != (values.size() - 1))
+                            stream << " ";
+                    }
+                    stream << "\"/>\n";
+                }
+
+                const ConfigOptionInt *sequence_nums_opt = dynamic_cast<const ConfigOptionInt *>(plate_data->config.option("other_layers_print_sequence_nums"));
+                if (sequence_nums_opt != nullptr) {
+                    stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << OTHER_LAYERS_PRINT_SEQUENCE_NUMS_ATTR << "\" " << VALUE_ATTR << "=\"" << sequence_nums_opt->getInt() << "\"/>\n";
+                }
+
                 ConfigOption* spiral_mode_opt = plate_data->config.option("spiral_mode");
                 if (spiral_mode_opt)
                     stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << SPIRAL_VASE_MODE << "\" " << VALUE_ATTR << "=\"" << spiral_mode_opt->getBool() << "\"/>\n";
@@ -7431,6 +7502,11 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 else if (!plate_data->thumbnail_file.empty() && (boost::filesystem::exists(plate_data->thumbnail_file))){
                     std::string thumbnail_file_in_3mf = (boost::format(THUMBNAIL_FILE_FORMAT) % (plate_data->plate_index + 1)).str();
                     stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << THUMBNAIL_FILE_ATTR << "\" " << VALUE_ATTR << "=\"" << std::boolalpha << thumbnail_file_in_3mf << "\"/>\n";
+                }
+
+                if (!plate_data->no_light_thumbnail_file.empty()){
+                    std::string no_light_thumbnail_file_in_3mf = (boost::format(NO_LIGHT_THUMBNAIL_FILE_FORMAT) % (plate_data->plate_index + 1)).str();
+                    stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << NO_LIGHT_THUMBNAIL_FILE_ATTR << "\" " << VALUE_ATTR << "=\"" << std::boolalpha << no_light_thumbnail_file_in_3mf << "\"/>\n";
                 }
 
                 if (!plate_data->top_file.empty()) {
@@ -7614,6 +7690,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 for (auto it = plate_data->slice_filaments_info.begin(); it != plate_data->slice_filaments_info.end(); it++)
                 {
                     stream << "    <" << FILAMENT_TAG << " " << FILAMENT_ID_TAG << "=\"" << std::to_string(it->id + 1) << "\" "
+                           << FILAMENT_TRAY_INFO_ID_TAG <<"=\""<< it->filament_id <<"\" "
                            << FILAMENT_TYPE_TAG << "=\"" << it->type << "\" "
                            << FILAMENT_COLOR_TAG << "=\"" << it->color << "\" "
                            << FILAMENT_USED_M_TAG << "=\"" << it->used_m << "\" "
@@ -7780,18 +7857,22 @@ bool _BBS_3MF_Exporter::_add_auxiliary_dir_to_archive(mz_zip_archive &archive, c
     int root_dir_len = dir.string().length() + 1;
     //boost file access
     while (!directories.empty()) {
-        boost::filesystem::directory_iterator iterator(directories.front());
+        boost::system::error_code ec;
+        boost::filesystem::directory_iterator iterator(directories.front(), ec);
         directories.pop_front();
-        for (auto &dir_entry : iterator)
+        if (ec) continue;
+        for (; iterator != end(iterator); iterator.increment(ec))
         {
+            if (ec) break;
+            auto dir_entry = *iterator;
             std::string src_file;
             std::string dst_in_3mf;
-            if (boost::filesystem::is_directory(dir_entry.path()))
+            if (boost::filesystem::is_directory(dir_entry.path(), ec))
             {
                 directories.push_back(dir_entry.path());
                 continue;
             }
-            if (boost::filesystem::is_regular_file(dir_entry.path()) && !m_skip_auxiliary)
+            if (boost::filesystem::is_regular_file(dir_entry.path(), ec) && !m_skip_auxiliary)
             {
                 src_file = dir_entry.path().string();
                 dst_in_3mf = dir_entry.path().string();

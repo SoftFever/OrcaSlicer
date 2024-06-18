@@ -46,7 +46,7 @@
 	"ironing_speed": "15",
 	"ironing_type": "no ironing",
 	"reduce_infill_retraction": "1",
-	"filename_format": "[input_filename_base].gcode",
+	"filename_format": "{printer_model}_{input_filename_base}_{filament_type[0]}_{layer_height}_{print_time}.gcode",
 	"detect_overhang_wall": "1",
 	"overhang_1_4_speed": "0",
 	"overhang_2_4_speed": "20",

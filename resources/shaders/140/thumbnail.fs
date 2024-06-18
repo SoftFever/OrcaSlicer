@@ -1,5 +1,6 @@
 #version 140
 
+uniform bool ban_light;
 uniform vec4 uniform_color;
 uniform float emission_factor;
 
@@ -12,5 +13,9 @@ void main()
 {
     if (world_pos.z < 0.0)
         discard;
-    gl_FragColor = vec4(vec3(intensity.y) + uniform_color.rgb * (intensity.x + emission_factor), uniform_color.a);
+    if(ban_light){
+       gl_FragColor = uniform_color;
+    } else{
+       gl_FragColor = vec4(vec3(intensity.y) + uniform_color.rgb * (intensity.x + emission_factor), uniform_color.a);
+    }
 }

@@ -1,6 +1,8 @@
 #include "ColorSpaceConvert.hpp"
 
 #include <algorithm>
+#include <boost/algorithm/string.hpp>
+#include <wx/colordlg.h>
 #include <cmath>
 
 const static float param_13 = 1.0f / 3.0f;
@@ -234,3 +236,19 @@ float DeltaE76(float l1, float a1, float b1, float l2, float a2, float b2)
     return std::sqrt(std::pow((l1 - l2), 2) + std::pow((a1 - a2), 2) + std::pow((b1 - b2), 2));
 }
 
+std::string color_to_string(const wxColour &color)
+{
+    std::string str = std::to_string(color.Red()) + "," + std::to_string(color.Green()) + "," + std::to_string(color.Blue()) + "," + std::to_string(color.Alpha());
+    return str;
+}
+
+wxColour string_to_wxColor(const std::string &str)
+{
+    wxColour                 color;
+    std::vector<std::string> result;
+    boost::split(result, str, boost::is_any_of(","));
+    if (result.size() == 4) {
+        color = wxColour(std::stoi(result[0]), std::stoi(result[1]), std::stoi(result[2]), std::stoi(result[3]));
+    }
+    return color;
+};

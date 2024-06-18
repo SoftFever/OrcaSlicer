@@ -1,8 +1,3 @@
-///|/ Copyright (c) Prusa Research 2020 - 2022 Tomáš Mészáros @tamasmeszaros
-///|/ Copyright (c) 2022 ole00 @ole00
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 #ifndef SLARASTER_CPP
 #define SLARASTER_CPP
 

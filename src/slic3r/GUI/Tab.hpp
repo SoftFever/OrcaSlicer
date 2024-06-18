@@ -1,17 +1,3 @@
-///|/ Copyright (c) Prusa Research 2017 - 2023 Oleksandra Iushchenko @YuSanka, Tomáš Mészáros @tamasmeszaros, Vojtěch Bubník @bubnikv, Lukáš Matěna @lukasmatena, Enrico Turri @enricoturri1966, Vojtěch Král @vojtechkral
-///|/ Copyright (c) 2019 John Drake @foxox
-///|/ Copyright (c) 2018 Martin Loidl @LoidlM
-///|/
-///|/ ported from lib/Slic3r/GUI/Tab.pm:
-///|/ Copyright (c) Prusa Research 2016 - 2018 Vojtěch Bubník @bubnikv, Lukáš Matěna @lukasmatena
-///|/ Copyright (c) 2015 - 2017 Joseph Lenox @lordofhyphens
-///|/ Copyright (c) Slic3r 2012 - 2016 Alessandro Ranellucci @alranel
-///|/ Copyright (c) 2016 Chow Loong Jin @hyperair
-///|/ Copyright (c) 2012 QuantumConcepts
-///|/ Copyright (c) 2012 Henrik Brix Andersen @henrikbrixandersen
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 #ifndef slic3r_Tab_hpp_
 #define slic3r_Tab_hpp_
 
@@ -522,6 +508,7 @@ public:
 	~TabPrintPlate() {}
 	void build() override;
 	void reset_model_config() override;
+	int show_spiral_mode_settings_dialog(bool is_object_config) { return m_config_manipulation.show_spiral_mode_settings_dialog(is_object_config); }
 
 protected:
 	virtual void    on_value_change(const std::string& opt_key, const boost::any& value) override;

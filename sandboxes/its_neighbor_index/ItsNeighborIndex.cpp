@@ -45,7 +45,7 @@ FaceNeighborIndex its_create_neighbors_index_1(const indexed_triangle_set &its)
 
     // Go through all edges of all facets and mark the facets touching each edge
     for (size_t face_id = 0; face_id < its.indices.size(); ++face_id) {
-        const Vec3i &face = its.indices[face_id];
+        const Vec3i32 &face = its.indices[face_id];
 
         EdgeID e1 = hash(face(0), face(1)), e2 = hash(face(1), face(2)),
                e3 = hash(face(2), face(0));
@@ -59,7 +59,7 @@ FaceNeighborIndex its_create_neighbors_index_1(const indexed_triangle_set &its)
 
     // Now collect the neighbors for each facet into the final index
     for (size_t face_id = 0; face_id < its.indices.size(); ++face_id) {
-        const Vec3i &face = its.indices[face_id];
+        const Vec3i32 &face = its.indices[face_id];
 
         EdgeID e1 = hash(face(0), face(1)), e2 = hash(face(1), face(2)),
                e3 = hash(face(2), face(0));
@@ -77,9 +77,9 @@ FaceNeighborIndex its_create_neighbors_index_1(const indexed_triangle_set &its)
     return index;
 }
 
-std::vector<Vec3i> its_create_neighbors_index_2(const indexed_triangle_set &its)
+std::vector<Vec3i32> its_create_neighbors_index_2(const indexed_triangle_set &its)
 {
-    std::vector<Vec3i> out(its.indices.size(), Vec3i(-1, -1, -1));
+    std::vector<Vec3i32> out(its.indices.size(), Vec3i32(-1, -1, -1));
 
     // Create a mapping from triangle edge into face.
     struct EdgeToFace {
@@ -157,9 +157,9 @@ std::vector<Vec3i> its_create_neighbors_index_2(const indexed_triangle_set &its)
     return out;
 }
 
-std::vector<Vec3i> its_create_neighbors_index_3(const indexed_triangle_set &its)
+std::vector<Vec3i32> its_create_neighbors_index_3(const indexed_triangle_set &its)
 {
-    std::vector<Vec3i> out(its.indices.size(), Vec3i(-1, -1, -1));
+    std::vector<Vec3i32> out(its.indices.size(), Vec3i32(-1, -1, -1));
 
     // Create a mapping from triangle edge into face.
     struct EdgeToFace {
@@ -288,7 +288,7 @@ FaceNeighborIndex its_create_neighbors_index_4(const indexed_triangle_set &its)
 
     // Go through all edges of all facets and mark the facets touching each edge
     for (size_t face_id = 0; face_id < its.indices.size(); ++face_id) {
-        const Vec3i &face = its.indices[face_id];
+        const Vec3i32 &face = its.indices[face_id];
 
         EdgeID e1 = hash(face(0), face(1)), e2 = hash(face(1), face(2)),
                e3 = hash(face(2), face(0));
@@ -302,7 +302,7 @@ FaceNeighborIndex its_create_neighbors_index_4(const indexed_triangle_set &its)
 
     // Now collect the neighbors for each facet into the final index
     for (size_t face_id = 0; face_id < its.indices.size(); ++face_id) {
-        const Vec3i &face = its.indices[face_id];
+        const Vec3i32 &face = its.indices[face_id];
 
         EdgeID e1 = hash(face(0), face(1)), e2 = hash(face(1), face(2)),
                e3 = hash(face(2), face(0));
@@ -443,7 +443,7 @@ std::vector<std::array<size_t, 3>> its_create_neighbors_index_6(const indexed_tr
 
     // Go through all edges of all facets and mark the facets touching each edge
     for (size_t face_id = 0; face_id < facenum; ++face_id) {
-        const Vec3i &face = its.indices[face_id];
+        const Vec3i32 &face = its.indices[face_id];
 
         edge_map[face_id * 3] = {hash(face(0), face(1)), face_id};
         edge_map[face_id * 3 + 1] = {hash(face(1), face(2)), face_id};
@@ -503,7 +503,7 @@ std::vector<std::array<size_t, 3>> its_create_neighbors_index_7(const indexed_tr
 
     // Go through all edges of all facets and mark the facets touching each edge
     for (size_t face_id = 0; face_id < facenum; ++face_id) {
-        const Vec3i &face = its.indices[face_id];
+        const Vec3i32 &face = its.indices[face_id];
 
         edge_map[face_id * 3] = {hash(face(0), face(1)), face_id};
         edge_map[face_id * 3 + 1] = {hash(face(1), face(2)), face_id};
@@ -568,7 +568,7 @@ FaceNeighborIndex its_create_neighbors_index_8(const indexed_triangle_set &its)
 
     // Go through all edges of all facets and mark the facets touching each edge
     for (size_t face_id = 0; face_id < its.indices.size(); ++face_id) {
-        const Vec3i &face = its.indices[face_id];
+        const Vec3i32 &face = its.indices[face_id];
 
         EdgeID e1 = hash(face(0), face(1)), e2 = hash(face(1), face(2)),
                e3 = hash(face(2), face(0));
@@ -582,7 +582,7 @@ FaceNeighborIndex its_create_neighbors_index_8(const indexed_triangle_set &its)
 
     // Now collect the neighbors for each facet into the final index
     for (size_t face_id = 0; face_id < its.indices.size(); ++face_id) {
-        const Vec3i &face = its.indices[face_id];
+        const Vec3i32 &face = its.indices[face_id];
 
         EdgeID e1 = hash(face(0), face(1)), e2 = hash(face(1), face(2)),
                e3 = hash(face(2), face(0));
@@ -605,7 +605,7 @@ std::vector<Vec3crd> its_create_neighbors_index_9(const indexed_triangle_set &it
     return create_face_neighbors_index(ex_seq, its);
 }
 
-std::vector<Vec3i> its_create_neighbors_index_10(const indexed_triangle_set &its)
+std::vector<Vec3i32> its_create_neighbors_index_10(const indexed_triangle_set &its)
 {
     return create_face_neighbors_index(ex_tbb, its);
 }

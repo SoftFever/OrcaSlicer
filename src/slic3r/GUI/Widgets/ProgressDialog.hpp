@@ -14,7 +14,7 @@ class WXDLLIMPEXP_FWD_CORE wxGauge;
 class WXDLLIMPEXP_FWD_CORE wxStaticText;
 class WXDLLIMPEXP_FWD_CORE wxWindowDisabler;
 
-#define PROGRESSDIALOG_SIMPLEBOOK_SIZE wxSize(FromDIP(320), FromDIP(38))
+#define PROGRESSDIALOG_SIMPLEBOOK_SIZE wxSize(FromDIP(320),FromDIP(38))
 #define PROGRESSDIALOG_GAUGE_SIZE wxSize(FromDIP(320), FromDIP(6))
 #define PROGRESSDIALOG_CANCEL_BUTTON_SIZE wxSize(FromDIP(60), FromDIP(24))
 #define PROGRESSDIALOG_DEF_BK wxColour(255,255,255)
@@ -47,7 +47,6 @@ public:
     virtual wxString GetMessage() const;
 
     virtual void SetRange(int maximum);
-
     // Return whether "Cancel" or "Skip" button was pressed, always return
     // false if the corresponding button is not shown.
     virtual bool WasCancelled() const;
@@ -89,7 +88,6 @@ protected:
     // both this class and its derived classes that don't use m_gauge to
     // display progress.
     void SetMaximum(int maximum);
-
     // Return the labels to use for showing the elapsed/estimated/remaining
     // times respectively.
     static wxString GetElapsedLabel() { return wxGetTranslation("Elapsed time:"); }
@@ -103,6 +101,7 @@ protected:
     // Return the progress dialog style. Prefer to use HasPDFlag() if possible.
     int  GetPDStyle() const { return m_pdStyle; }
     void SetPDStyle(int pdStyle) { m_pdStyle = pdStyle; }
+    void set_panel_height(int height);
 
     // Updates estimated times from a given progress bar value and stores the
     // results in provided arguments.

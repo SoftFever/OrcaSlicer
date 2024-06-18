@@ -113,27 +113,27 @@ Thank you! :)
     <img src="SoftFever_doc\sponsor_logos\peopoly-standard-logo.png" alt="Peopoly" width="64" height="">
 </a>
 </td> 
-</tr>
-<tr>
-<td> </td>
-</tr>
-<tr>
 <td>
 <a href="https://qidi3d.com/">
     <img src="SoftFever_doc\sponsor_logos\QIDI.png" alt="QIDI" width="64" height="">
+</a>
+</td>
+<td>
+<a href="https://phrozen3d.com/">
+    <img src="SoftFever_doc\sponsor_logos\Phrozen_Logo圓_.png" alt="Phrozen Technology" width="64" height="">
 </a>
 </td>
 </tr>
 </table>
 
 ### Backers:  
-Ko-fi supporters: [Backers list](https://github.com/SoftFever/OrcaSlicer/wiki/OrcaSlicer-backers-%E2%80%90-28-Oct-2023)
+Ko-fi supporters: [Backers list](https://github.com/SoftFever/OrcaSlicer/files/14855600/sponsors.csv)
 
 Support me  
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/G2G5IP3CP)
 
 ## Some background
-OrcaSlicer is originaly forked from Bambu Studio, it was previously known as BambuStudio-SoftFever.
+OrcaSlicer is originally forked from Bambu Studio, it was previously known as BambuStudio-SoftFever.
 
 Bambu Studio is forked from [PrusaSlicer](https://github.com/prusa3d/PrusaSlicer) by Prusa Research, which is from [Slic3r](https://github.com/Slic3r/Slic3r) by Alessandro Ranellucci and the RepRap community. 
 Orca Slicer incorporates a lot of features from SuperSlicer by @supermerill

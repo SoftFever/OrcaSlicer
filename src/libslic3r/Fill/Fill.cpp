@@ -1,12 +1,3 @@
-///|/ Copyright (c) Prusa Research 2016 - 2023 Lukáš Matěna @lukasmatena, Vojtěch Bubník @bubnikv, Pavel Mikuš @Godrak, Lukáš Hejl @hejllukas
-///|/ Copyright (c) SuperSlicer 2023 Remi Durand @supermerill
-///|/ Copyright (c) 2016 Sakari Kapanen @Flannelhead
-///|/ Copyright (c) Slic3r 2011 - 2015 Alessandro Ranellucci @alranel
-///|/ Copyright (c) 2013 Mark Hindess
-///|/ Copyright (c) 2011 Michael Moon
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 #include <assert.h>
 #include <stdio.h>
 #include <memory>
@@ -18,11 +9,13 @@
 #include "../PrintConfig.hpp"
 #include "../Surface.hpp"
 
+#include "ExtrusionEntity.hpp"
 #include "FillBase.hpp"
 #include "FillRectilinear.hpp"
 #include "FillLightning.hpp"
 #include "FillConcentricInternal.hpp"
 #include "FillConcentric.hpp"
+#include "libslic3r.h"
 
 namespace Slic3r {
 
@@ -40,6 +33,7 @@ struct SurfaceFillParams
     coordf_t    	overlap = 0.;
     // Angle as provided by the region config, in radians.
     float       	angle = 0.f;
+    bool       	    rotate_angle = true;
     // Is bridging used for this fill? Bridging parameters may be used even if this->flow.bridge() is not set.
     bool 			bridge;
     // Non-negative for a bridge.
@@ -65,14 +59,17 @@ struct SurfaceFillParams
 
 	// Index of this entry in a linear vector.
     size_t 			idx = 0;
-
+	// infill speed settings
+	float			sparse_infill_speed = 0;
+	float			top_surface_speed = 0;
+	float			solid_infill_speed = 0;
 
 	bool operator<(const SurfaceFillParams &rhs) const {
 #define RETURN_COMPARE_NON_EQUAL(KEY) if (this->KEY < rhs.KEY) return true; if (this->KEY > rhs.KEY) return false;
 #define RETURN_COMPARE_NON_EQUAL_TYPED(TYPE, KEY) if (TYPE(this->KEY) < TYPE(rhs.KEY)) return true; if (TYPE(this->KEY) > TYPE(rhs.KEY)) return false;
 
 		// Sort first by decreasing bridging angle, so that the bridges are processed with priority when trimming one layer by the other.
-		if (this->bridge_angle > rhs.bridge_angle) return true; 
+		if (this->bridge_angle > rhs.bridge_angle) return true;
 		if (this->bridge_angle < rhs.bridge_angle) return false;
 
 		RETURN_COMPARE_NON_EQUAL(extruder);
@@ -80,6 +77,7 @@ struct SurfaceFillParams
 		RETURN_COMPARE_NON_EQUAL(spacing);
 		RETURN_COMPARE_NON_EQUAL(overlap);
 		RETURN_COMPARE_NON_EQUAL(angle);
+		RETURN_COMPARE_NON_EQUAL(rotate_angle);
 		RETURN_COMPARE_NON_EQUAL(density);
 //		RETURN_COMPARE_NON_EQUAL_TYPED(unsigned, dont_adjust);
 		RETURN_COMPARE_NON_EQUAL(anchor_length);
@@ -89,6 +87,10 @@ struct SurfaceFillParams
 		RETURN_COMPARE_NON_EQUAL(flow.nozzle_diameter());
 		RETURN_COMPARE_NON_EQUAL_TYPED(unsigned, bridge);
 		RETURN_COMPARE_NON_EQUAL_TYPED(unsigned, extrusion_role);
+		RETURN_COMPARE_NON_EQUAL(sparse_infill_speed);
+		RETURN_COMPARE_NON_EQUAL(top_surface_speed);
+		RETURN_COMPARE_NON_EQUAL(solid_infill_speed);
+
 		return false;
 	}
 
@@ -98,6 +100,7 @@ struct SurfaceFillParams
 				this->spacing 			== rhs.spacing 			&&
 				this->overlap 			== rhs.overlap 			&&
 				this->angle   			== rhs.angle   			&&
+				this->rotate_angle   	== rhs.rotate_angle   			&&
 				this->bridge   			== rhs.bridge   		&&
 				this->bridge_angle 		== rhs.bridge_angle		&&
 				this->density   		== rhs.density   		&&
@@ -105,7 +108,10 @@ struct SurfaceFillParams
 				this->anchor_length  	== rhs.anchor_length    &&
 				this->anchor_length_max == rhs.anchor_length_max &&
 				this->flow 				== rhs.flow 			&&
-				this->extrusion_role	== rhs.extrusion_role;
+				this->extrusion_role	== rhs.extrusion_role	&&
+				this->sparse_infill_speed	== rhs.sparse_infill_speed &&
+				this->top_surface_speed		== rhs.top_surface_speed &&
+				this->solid_infill_speed	== rhs.solid_infill_speed;
 	}
 };
 
@@ -171,9 +177,9 @@ void split_solid_surface(size_t layer_id, const SurfaceFill &fill, ExPolygons &n
         Polygons inner_area = intersection(filled_area, opening(filled_area, 2 * scaled_spacing, 3 * scaled_spacing));
 
         inner_area = shrink(inner_area, scaled_spacing * 0.5 - scaled<double>(fill.params.overlap));
-		
+
         AABBTreeLines::LinesDistancer<Line> area_walls{to_lines(inner_area)};
-		
+
         const size_t      n_vlines = (bb.max.x() - bb.min.x() + scaled_spacing - 1) / scaled_spacing;
         std::vector<Line> vertical_lines(n_vlines);
         coord_t           y_min = bb.min.y();
@@ -188,7 +194,7 @@ void split_solid_surface(size_t layer_id, const SurfaceFill &fill, ExPolygons &n
             vertical_lines.back().a = Point{coord_t(bb.min.x() + n_vlines * double(scaled_spacing) + scaled_spacing * 0.5), y_min};
             vertical_lines.back().b = Point{vertical_lines.back().a.x(), y_max};
         }
-		
+
         std::vector<std::vector<Line>> polygon_sections(n_vlines);
 
         for (size_t i = 0; i < n_vlines; i++) {
@@ -213,7 +219,7 @@ void split_solid_surface(size_t layer_id, const SurfaceFill &fill, ExPolygons &n
             bool                             neighbours_explored = false;
             std::vector<std::pair<int, int>> neighbours{};
         };
-		
+
         coord_t length_filter     = scale_(4);
         size_t  skips_allowed     = 2;
         size_t  min_removal_conut = 5;
@@ -286,7 +292,7 @@ void split_solid_surface(size_t layer_id, const SurfaceFill &fill, ExPolygons &n
             std::sort(polygon_sections[section_idx].begin(), polygon_sections[section_idx].end(),
                       [](const Line &a, const Line &b) { return a.a.y() < b.b.y(); });
         }
-		
+
         Polygons reconstructed_area{};
         // reconstruct polygon from polygon sections
         {
@@ -322,7 +328,7 @@ void split_solid_surface(size_t layer_id, const SurfaceFill &fill, ExPolygons &n
                                                       squared_distance_limit_reconnection) {
                             traced_poly.lows.push_back(candidates_begin->a);
                         } else {
-                            traced_poly.lows.push_back(traced_poly.lows.back() + Point{scaled_spacing / 2, 0});
+                            traced_poly.lows.push_back(traced_poly.lows.back() + Point{scaled_spacing / 2, coord_t(0)});
                             traced_poly.lows.push_back(candidates_begin->a - Point{scaled_spacing / 2, 0});
                             traced_poly.lows.push_back(candidates_begin->a);
                         }
@@ -481,16 +487,30 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
                     }
                 }
                 params.bridge_angle = float(surface.bridge_angle);
-		        params.angle 		= float(Geometry::deg2rad(region_config.infill_direction.value));
-		        
-		        // Calculate the actual flow we'll be using for this infill.
+                if (params.extrusion_role == erInternalInfill) {
+                    params.angle = float(Geometry::deg2rad(region_config.infill_direction.value));
+                    params.rotate_angle = (params.pattern == ipRectilinear || params.pattern == ipLine);
+                } else {
+                    params.angle = float(Geometry::deg2rad(region_config.solid_infill_direction.value));
+                    params.rotate_angle = region_config.rotate_solid_infill_direction;
+                }
+
+                // Calculate the actual flow we'll be using for this infill.
 		        params.bridge = is_bridge || Fill::use_bridge_flow(params.pattern);
                 const bool is_thick_bridge = surface.is_bridge() && (surface.is_internal_bridge() ? object_config.thick_internal_bridges : object_config.thick_bridges);
 				params.flow   = params.bridge ?
 					//Orca: enable thick bridge based on config
 					layerm.bridging_flow(extrusion_role, is_thick_bridge) :
 					layerm.flow(extrusion_role, (surface.thickness == -1) ? layer.height : surface.thickness);
-
+				// record speed params
+                if (!params.bridge) {
+                    if (params.extrusion_role == erInternalInfill)
+                        params.sparse_infill_speed = region_config.sparse_infill_speed;
+                    else if (params.extrusion_role == erTopSolidInfill)
+                        params.top_surface_speed = region_config.top_surface_speed;
+                    else if (params.extrusion_role == erSolidInfill)
+                        params.solid_infill_speed = region_config.internal_solid_infill_speed;
+                }
 				// Calculate flow spacing for infill pattern generation.
 		        if (surface.is_solid() || is_bridge) {
 		            params.spacing = params.flow.spacing();
@@ -629,11 +649,12 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
                 else
                     params.pattern 		 = ipRectilinear;
 	            params.density 		 = 100.f;
-		        params.extrusion_role = erInternalInfill;
-		        params.angle 		= float(Geometry::deg2rad(layerm.region().config().infill_direction.value));
+		        params.extrusion_role = erSolidInfill;
+		        params.angle 		= float(Geometry::deg2rad(layerm.region().config().solid_infill_direction.value));
+                params.rotate_angle  = layerm.region().config().rotate_solid_infill_direction;
 		        // calculate the actual flow we'll be using for this infill
 				params.flow = layerm.flow(frSolidInfill);
-		        params.spacing = params.flow.spacing();	        
+		        params.spacing = params.flow.spacing();
 				surface_fills.emplace_back(params);
 				surface_fills.back().surface.surface_type = stInternalSolid;
 				surface_fills.back().surface.thickness = layer.height;
@@ -701,7 +722,7 @@ void export_group_fills_to_svg(const char *path, const std::vector<SurfaceFill> 
         for (const auto &expoly : fill.expolygons)
             svg.draw(expoly, surface_type_to_color_name(fill.surface.surface_type), transparency);
     export_surface_type_legend_to_svg(svg, legend_pos);
-    svg.Close(); 
+    svg.Close();
 }
 #endif
 
@@ -734,6 +755,7 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
         f->layer_id = this->id();
         f->z 		= this->print_z;
         f->angle 	= surface_fill.params.angle;
+        f->rotate_angle = surface_fill.params.rotate_angle;
         f->adapt_fill_octree   = (surface_fill.params.pattern == ipSupportCubic) ? support_fill_octree : adaptive_fill_octree;
         f->print_config        = &this->object()->print()->config();
         f->print_object_config = &this->object()->config();
@@ -966,7 +988,7 @@ void Layer::make_ironing()
 		// ironing flowrate (5% percent)
 		// ironing speed (10 mm/sec)
 
-		// Kisslicer: 
+		// Kisslicer:
 		// iron off, Sweep, Group
 		// ironing speed: 15 mm/sec
 
@@ -986,7 +1008,7 @@ void Layer::make_ironing()
 			const PrintRegionConfig &config = layerm->region().config();
 			if (config.ironing_type != IroningType::NoIroning &&
 				(config.ironing_type == IroningType::AllSolid ||
-				 	(config.top_shell_layers > 0 && 
+				 	(config.top_shell_layers > 0 &&
 						(config.ironing_type == IroningType::TopSurfaces ||
 					 	(config.ironing_type == IroningType::TopmostOnly && layerm->layer()->upper_layer == nullptr))))) {
 				if (config.wall_filament == config.solid_infill_filament || config.wall_loops == 0) {

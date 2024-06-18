@@ -1,7 +1,3 @@
-///|/ Copyright (c) Prusa Research 2020 - 2023 Tomáš Mészáros @tamasmeszaros, David Kocík @kocikdav
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 #ifndef ARRANGEJOB_HPP
 #define ARRANGEJOB_HPP
 
@@ -28,6 +24,8 @@ class ArrangeJob : public Job
     ArrangePolygons m_selected, m_unselected, m_unprintable, m_locked;
     std::vector<ModelInstance*> m_unarranged;
     std::map<int, ArrangePolygons> m_selected_groups;   // groups of selected items for sequential printing
+    std::vector<int> m_uncompatible_plates;  // plate indices with different printing sequence than global
+
     arrangement::ArrangeParams params;
     int current_plate_index = 0;
     Polygon bed_poly;
