@@ -2,7 +2,7 @@
 #define _OBJ_COLOR_DIALOG_H_
 
 #include "GUI_Utils.hpp"
-#include "libslic3r/Color.hpp"
+#include "GuiColor.hpp"
 #include <wx/sizer.h>
 #include <wx/spinctrl.h>
 #include <wx/stattext.h>

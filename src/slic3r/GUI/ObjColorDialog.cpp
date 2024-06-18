@@ -8,7 +8,6 @@
 #include "GUI_App.hpp"
 #include "MsgDialog.hpp"
 #include "Widgets/Button.hpp"
-#include "slic3r/Utils/ColorSpaceConvert.hpp"
 #include "MainFrame.hpp"
 #include "libslic3r/Config.hpp"
 #include "BitmapComboBox.hpp"
@@ -186,24 +185,7 @@ ObjColorDialog::ObjColorDialog(wxWindow *                      parent,
 
     wxGetApp().UpdateDlgDarkUI(this);
 }
-RGBA     convert_to_rgba(const wxColour &color)
-{
-    RGBA rgba;
-    rgba[0] = std::clamp(color.Red() / 255.f, 0.f, 1.f);
-    rgba[1] = std::clamp(color.Green() / 255.f, 0.f, 1.f);
-    rgba[2] = std::clamp(color.Blue() / 255.f, 0.f, 1.f);
-    rgba[3] = std::clamp(color.Alpha() / 255.f, 0.f, 1.f);
-    return rgba;
-}
-wxColour convert_to_wxColour(const RGBA &color)
-{
-    auto     r = std::clamp((int) (color[0] * 255.f), 0, 255);
-    auto     g = std::clamp((int) (color[1] * 255.f), 0, 255);
-    auto     b = std::clamp((int) (color[2] * 255.f), 0, 255);
-    auto     a = std::clamp((int) (color[3] * 255.f), 0, 255);
-    wxColour wx_color(r,g,b,a);
-    return wx_color;
-}
+
 // This panel contains all control widgets for both simple and advanced mode (these reside in separate sizers)
 ObjColorPanel::ObjColorPanel(wxWindow *                       parent,
                              std::vector<Slic3r::RGBA>&       input_colors,
@@ -546,13 +528,6 @@ ComboBox *ObjColorPanel::CreateEditorCtrl(wxWindow *parent, int id) // wxRect la
 
 void ObjColorPanel::deal_approximate_match_btn()
 {
-    auto calc_color_distance = [](wxColour c1, wxColour c2) {
-        float lab[2][3];
-        RGB2Lab(c1.Red(), c1.Green(), c1.Blue(), &lab[0][0], &lab[0][1], &lab[0][2]);
-        RGB2Lab(c2.Red(), c2.Green(), c2.Blue(), &lab[1][0], &lab[1][1], &lab[1][2]);
-
-        return DeltaE76(lab[0][0], lab[0][1], lab[0][2], lab[1][0], lab[1][1], lab[1][2]);
-    };
     m_warning_text->SetLabelText("");
     if (m_result_icon_list.size() == 0) { return; }
     auto map_count = m_result_icon_list[0]->bitmap_combox->GetCount() -1;
@@ -707,8 +682,8 @@ void ObjColorPanel::deal_algo(char cluster_number, bool redraw_ui)
         return;
     }
     m_last_cluster_number = cluster_number;
-    QuantKMeans quant(10);
-    quant.apply(m_input_colors, m_cluster_colors_from_algo, m_cluster_labels_from_algo, (int)cluster_number);
+    obj_color_deal_algo(m_input_colors, m_cluster_colors_from_algo, m_cluster_labels_from_algo, cluster_number);
+
     m_cluster_colours.clear();
     m_cluster_colours.reserve(m_cluster_colors_from_algo.size());
     for (size_t i = 0; i < m_cluster_colors_from_algo.size(); i++) {

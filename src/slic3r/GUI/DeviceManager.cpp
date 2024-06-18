@@ -2,7 +2,7 @@
 #include "DeviceManager.hpp"
 #include "libslic3r/Time.hpp"
 #include "libslic3r/Thread.hpp"
-#include "slic3r/Utils/ColorSpaceConvert.hpp"
+#include "GuiColor.hpp"
 
 #include "GUI_App.hpp"
 #include "MsgDialog.hpp"
@@ -898,15 +898,6 @@ bool MachineObject::is_support_amx_ext_mix_mapping() {
     return true;
 }
 
-static float calc_color_distance(wxColour c1, wxColour c2)
-{
-    float lab[2][3];
-    RGB2Lab(c1.Red(), c1.Green(), c1.Blue(), &lab[0][0], &lab[0][1], &lab[0][2]);
-    RGB2Lab(c2.Red(), c2.Green(), c2.Blue(), &lab[1][0], &lab[1][1], &lab[1][2]);
-
-    return DeltaE76(lab[0][0], lab[0][1], lab[0][2], lab[1][0], lab[1][1], lab[1][2]);
-}
-
 void MachineObject::get_ams_colors(std::vector<wxColour> &ams_colors) {
     ams_colors.clear();
     ams_colors.reserve(amsList.size());
@@ -1003,7 +994,7 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
             val.tray_id = tray->second.id;
             wxColour c = wxColour(filaments[i].color);
             wxColour tray_c = AmsTray::decode_color(tray->second.color);
-            val.distance = calc_color_distance(c, tray_c);
+            val.distance = GUI::calc_color_distance(c, tray_c);
             if (filaments[i].type != tray->second.type) {
                 val.distance = 999999;
                 val.is_type_match = false;

@@ -179,6 +179,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/GLTexture.cpp
     GUI/GLToolbar.hpp
     GUI/GLToolbar.cpp
+    GUI/GuiColor.cpp
+    GUI/GuiColor.hpp
     GUI/IMToolbar.hpp
     GUI/IMToolbar.cpp
     GUI/GCodeViewer.hpp
