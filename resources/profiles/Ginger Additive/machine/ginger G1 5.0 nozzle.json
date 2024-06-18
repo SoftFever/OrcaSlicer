@@ -11,7 +11,7 @@
   "machine_max_speed_x": ["250", "200"],
   "machine_max_speed_y": ["250", "200"],
   "machine_max_speed_z": ["12", "12"],
-  "machine_start_gcode": "START_PRINT BED_TEMPERATURE=[bed_temperature_initial_layer] MATERIAL=[filament_type] KAMP_LEVELING=1 PURGE_LAYER_HEIGHT=2 PURGE_PARKING_SPEED=10000 PURGE_LENGHT=300 PURGE_SPEED=500 PURGE_MATERIAL_QUANTITY=3000\n",
+  "machine_start_gcode": "START_PRINT BED_TEMPERATURE=[bed_temperature_initial_layer] MATERIAL=[filament_type] KAMP_LEVELING=1 PURGE_LAYER_HEIGHT=2 PURGE_PARKING_SPEED=10000 PURGE_LENGHT=300 PURGE_SPEED=500 PURGE_MATERIAL_QUANTITY=3000 EXTRUDER_TEMPERATURE=[nozzle_temperature] EXTRUDER_TEMPERATURE_INITIAL_LAYER=[nozzle_temperature_initial_layer]",
   "max_layer_height": ["3.5"],
   "name": "ginger G1 5.0 nozzle",
   "nozzle_diameter": ["5.0"],
