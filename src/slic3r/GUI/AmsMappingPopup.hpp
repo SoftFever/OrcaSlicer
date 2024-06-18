@@ -40,9 +40,9 @@
 
 namespace Slic3r { namespace GUI {
 
-#define MATERIAL_ITEM_SIZE wxSize(FromDIP(64), FromDIP(34))
-#define MATERIAL_ITEM_REAL_SIZE wxSize(FromDIP(62), FromDIP(32))
-#define MAPPING_ITEM_REAL_SIZE wxSize(FromDIP(48), FromDIP(45))
+#define MATERIAL_ITEM_SIZE wxSize(FromDIP(52), FromDIP(50))
+#define MATERIAL_REC_WHEEL_SIZE wxSize(FromDIP(17), FromDIP(16))
+#define MAPPING_ITEM_REAL_SIZE wxSize(FromDIP(60), FromDIP(60))
 #define AMS_TOTAL_COUNT 4
 
 enum TrayType {
@@ -89,6 +89,7 @@ public:
     ScalableBitmap m_arraw_bitmap_gray;
     ScalableBitmap m_arraw_bitmap_white;
     ScalableBitmap m_transparent_mitem;
+    ScalableBitmap m_ams_wheel_mitem;
 
     bool m_selected {false};
     bool m_warning{false};
