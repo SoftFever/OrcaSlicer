@@ -76,5 +76,5 @@
   "xy_contour_compensation": "-0.05",
   "xy_hole_compensation": "0.1",
   "instantiation": "true",
-  "compatible_printers": ["Ginger One 1.2 nozzle"]
+  "compatible_printers": ["ginger G1 1.2 nozzle"]
 }

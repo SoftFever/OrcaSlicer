@@ -5,8 +5,8 @@
   "description": "Ginger configuration",
   "machine_model_list": [
     {
-      "name": "Ginger One",
-      "sub_path": "machine/Ginger One.json"
+      "name": "ginger G1",
+      "sub_path": "machine/ginger G1.json"
     }
   ],
   "machine_list": [
@@ -19,20 +19,20 @@
       "sub_path": "machine/ginger_one_common.json"
     },
     {
-      "name": "Ginger One 1.2 nozzle",
-      "sub_path": "machine/Ginger One 1.2 nozzle.json"
+      "name": "ginger G1 1.2 nozzle",
+      "sub_path": "machine/ginger G1 1.2 nozzle.json"
     },
     {
-      "name": "Ginger One 3.0 nozzle",
-      "sub_path": "machine/Ginger One 3.0 nozzle.json"
+      "name": "ginger G1 3.0 nozzle",
+      "sub_path": "machine/ginger G1 3.0 nozzle.json"
     },
     {
-      "name": "Ginger One 5.0 nozzle",
-      "sub_path": "machine/Ginger One 5.0 nozzle.json"
+      "name": "ginger G1 5.0 nozzle",
+      "sub_path": "machine/ginger G1 5.0 nozzle.json"
     },
     {
-      "name": "Ginger One 8.0 nozzle",
-      "sub_path": "machine/Ginger One 8.0 nozzle.json"
+      "name": "ginger G1 8.0 nozzle",
+      "sub_path": "machine/ginger G1 8.0 nozzle.json"
     }
   ],
   "process_list": [

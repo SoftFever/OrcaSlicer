@@ -22,10 +22,10 @@
   "temperature_vitrification": ["85"],
   "version": "0.1.0.0",
   "compatible_printers": [
-    "Ginger One 1.2 nozzle",
-    "Ginger One 3.0 nozzle",
-    "Ginger One 5.0 nozzle",
-    "Ginger One 8.0 nozzle"
+    "ginger G1 1.2 nozzle",
+    "ginger G1 3.0 nozzle",
+    "ginger G1 5.0 nozzle",
+    "ginger G1 8.0 nozzle"
   ],
   "instantiation": "true"
 }

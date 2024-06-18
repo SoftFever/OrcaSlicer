@@ -1,6 +1,6 @@
 {
   "type": "machine_model",
-  "name": "Ginger One",
+  "name": "ginger G1",
   "model_id": "Ginger_One",
   "nozzle_diameter": "1.2;3.0;5.0;8.0",
   "machine_tech": "FFF",
