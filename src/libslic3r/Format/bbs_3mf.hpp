@@ -21,6 +21,7 @@ struct ThumbnailData;
 
 #define GCODE_FILE_FORMAT               "Metadata/plate_%1%.gcode"
 #define THUMBNAIL_FILE_FORMAT           "Metadata/plate_%1%.png"
+#define NO_LIGHT_THUMBNAIL_FILE_FORMAT  "Metadata/plate_no_light_%1%.png"
 #define TOP_FILE_FORMAT                 "Metadata/top_%1%.png"
 #define PICK_FILE_FORMAT                "Metadata/pick_%1%.png"
 //#define PATTERN_FILE_FORMAT             "Metadata/plate_%1%_pattern_layer_0.png"
@@ -75,6 +76,7 @@ struct PlateData
     std::string     gcode_file;
     std::string     gcode_file_md5;
     std::string     thumbnail_file;
+    std::string     no_light_thumbnail_file;
     ThumbnailData   plate_thumbnail;
     std::string     top_file;
     std::string     pick_file;
@@ -213,6 +215,7 @@ struct StoreParams
     std::vector<Preset*> project_presets;
     DynamicPrintConfig* config;
     std::vector<ThumbnailData*> thumbnail_data;
+    std::vector<ThumbnailData*> no_light_thumbnail_data;
     std::vector<ThumbnailData*> top_thumbnail_data;
     std::vector<ThumbnailData*> pick_thumbnail_data;
     std::vector<ThumbnailData*> calibration_thumbnail_data;

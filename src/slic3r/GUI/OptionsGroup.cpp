@@ -532,6 +532,9 @@ bool OptionsGroup::activate(std::function<void()> throw_if_canceled/* = [](){}*/
 
 	return true;
 }
+
+void free_window(wxWindow *win);
+
 // delete all controls from the option group
 void OptionsGroup::clear(bool destroy_custom_ctrl)
 {
@@ -560,8 +563,10 @@ void OptionsGroup::clear(bool destroy_custom_ctrl)
     if (custom_ctrl) {
         for (auto const &item : m_fields) {
             wxWindow* win = item.second.get()->getWindow();
-            if (win)
+            if (win) {
+                free_window(win);
                 win = nullptr;
+            }
         }
 		//BBS: custom_ctrl already destroyed from sizer->clear(), no need to destroy here anymore
 		if (destroy_custom_ctrl)
