@@ -78,9 +78,7 @@ bool Spoolman::pull_spoolman_spools()
 {
     pt::ptree tree;
 
-    m_vendors.clear();
-    m_filaments.clear();
-    m_spools.clear();
+    this->clear();
 
     // Vendor
     tree = get_spoolman_json("vendor");
@@ -177,6 +175,10 @@ SpoolmanResult Spoolman::update_filament_preset_from_spool(Preset* filament_pres
 {
     DynamicConfig  config;
     SpoolmanResult result;
+    if (filament_preset->type != Preset::TYPE_FILAMENT) {
+        result.messages.emplace_back("Preset is not a filament preset");
+        return result;
+    }
     const int&     spool_id = filament_preset->config.opt_int("spoolman_spool_id");
     if (spool_id < 1) {
         result.messages.emplace_back(
@@ -184,6 +186,10 @@ SpoolmanResult Spoolman::update_filament_preset_from_spool(Preset* filament_pres
         return result;
     }
     SpoolmanSpoolShrPtr& spool = get_instance()->m_spools[spool_id];
+    if (!spool) {
+        result.messages.emplace_back("The spool ID does not exist in the local spool cache");
+        return result;
+    }
     if (update_from_server)
         spool->update_from_server(!only_update_statistics);
     spool->apply_to_preset(filament_preset, only_update_statistics);

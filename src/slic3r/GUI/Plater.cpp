@@ -6522,7 +6522,7 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
             view3D->deselect_all();
         }
 
-        wxGetApp().preset_bundle->update_spoolman_statistics();
+        wxGetApp().preset_bundle->update_spoolman_statistics(true);
 
 #if 0   // do not toggle auto calc when change printer
         // update flush matrix

@@ -72,6 +72,14 @@ public:
         return m_spools[spool_id];
     };
 
+    void clear()
+    {
+        m_spools.clear();
+        m_filaments.clear();
+        m_vendors.clear();
+        m_initialized = false;
+    }
+
     static Spoolman* get_instance()
     {
         if (!m_instance)

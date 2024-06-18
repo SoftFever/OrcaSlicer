@@ -246,7 +246,14 @@ public:
     std::map<std::string, std::string> key_values;
 
     // indicate if spoolman is enabled for this preset
-    bool spoolman_enabled() const { return config.opt_int("spoolman_spool_id") > 0; }
+    // works for filament and printer profiles. All other profiles return false
+    bool spoolman_enabled() const {
+        if (type == TYPE_FILAMENT)
+            return config.opt_int("spoolman_spool_id") > 0;
+        if (type == TYPE_PRINTER)
+            return config.opt_bool("spoolman_enabled");
+        return false;
+    }
 
     // Orca: spoolman statistics. these are not stored in the preset file
     double spoolman_remaining_length = 0;
