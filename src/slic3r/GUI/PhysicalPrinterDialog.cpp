@@ -702,7 +702,20 @@ void PhysicalPrinterDialog::on_dpi_changed(const wxRect& suggested_rect)
 
 void PhysicalPrinterDialog::OnOK(wxEvent& event)
 {
+    // determine if any spoolman related keys have been updated
+    bool update_spool_stats = false;
+    const vector<string>& current_dirty_options = m_presets->current_dirty_options();
+    if (!current_dirty_options.empty()) {
+        for (const auto& option_key : {"spoolman_enabled", "spoolman_host", "print_host"}) {
+            if (std::find(current_dirty_options.begin(), current_dirty_options.end(), option_key) != current_dirty_options.end()) {
+                update_spool_stats = true;
+                break;
+            }
+        }
+    }
     wxGetApp().get_tab(Preset::TYPE_PRINTER)->save_preset("", false, false, true, m_preset_name );
+    if (update_spool_stats) // only update spoolman if spoolman related keys were changed
+        wxGetApp().preset_bundle->update_spoolman_statistics(true);
     event.Skip();
 }
 
