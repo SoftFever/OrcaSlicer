@@ -13,7 +13,7 @@ static std::map<wxColour, wxColour> gDarkColors{
     {"#262E30", "#EFEFF0"}, // rgb(38, 46, 48)     Button text color | Input Text Color
     {"#2C2C2E", "#B3B3B4"}, // rgb(44, 44, 46)     ???
     {"#6B6B6B", "#818183"}, // rgb(107, 107, 107)  Disabled Text
-    {"#ACACAC", "#54545A"}, // rgb(172, 172, 172)  Disabled Text on boxes | Dimmed Elements
+    {"#ACACAC", "#65656A"}, // rgb(172, 172, 172)  Disabled Text on boxes | Dimmed Elements
     {"#EEEEEE", "#4C4C55"}, // rgb(238, 238, 238)  Separator Line | Title Line Color
     {"#E8E8E8", "#3E3E45"}, // rgb(232, 232, 232)  ???
     {"#323A3D", "#E5E5E4"}, // rgb(50, 58, 61)     Softer text color
@@ -33,7 +33,7 @@ static std::map<wxColour, wxColour> gDarkColors{
     {"#FEFFFF", "#242428"}, // rgb(254, 255, 255)  Side Tabbar bg | 
     {"#A6A9AA", "#2D2D29"}, // rgb(166, 169, 170)  Seperator color
     {"#363636", "#B2B3B5"}, // rgb(54, 54, 54)     Sidebar > Parameter Label/Title color | Sidebar tab text | Create Filament window text
-    {"#F0F0F1", "#404040"}, // rgb(240, 240, 241)  Disabled element background // ORCA Used better background color for dark mode
+    {"#F0F0F1", "#333337"}, // rgb(240, 240, 241)  Disabled element background // ORCA Used better background color for dark mode
     {"#9E9E9E", "#53545A"}, // rgb(158, 158, 158)  ???
     {"#D7E8DE", "#1F2B27"}, // rgb(215, 232, 222)  Not Used anymore // Leftover from BBS
     {"#2B3436", "#808080"}, // rgb(43, 52, 54)     Not Used anymore // Leftover from BBS. Was used as main fill color of icons
