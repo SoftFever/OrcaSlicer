@@ -6,7 +6,10 @@
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_asa",
-	"filament_max_volumetric_speed": [
+    "activate_chamber_temp_control": [
+        "0"
+    ],
+    "filament_max_volumetric_speed": [
         "16"
     ],
     "filament_flow_ratio": [
@@ -21,10 +24,10 @@
       "enable_pressure_advance": [
         "1"
     ],
-    "max_fan_speed":[
+    "fan_max_speed":[
         "50"
     ],
-    "min_fan_speed":[
+    "fan_min_speed":[
         "10"
     ],
     "pressure_advance": [

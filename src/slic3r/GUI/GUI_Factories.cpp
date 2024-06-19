@@ -1,7 +1,3 @@
-///|/ Copyright (c) Prusa Research 2021 - 2023 Enrico Turri @enricoturri1966, Lukáš Matěna @lukasmatena, Oleksandra Iushchenko @YuSanka, Pavel Mikuš @Godrak, Tomáš Mészáros @tamasmeszaros, Filip Sykala @Jony01, Vojtěch Bubník @bubnikv
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 #include "libslic3r/Config.hpp"
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/PresetBundle.hpp"
@@ -110,7 +106,7 @@ std::map<std::string, std::vector<SimpleSettingData>>  SettingsFactory::PART_CAT
     { L("Strength"), {{"wall_loops", "",1},{"top_shell_layers", L("Top Solid Layers"),1},{"top_shell_thickness", L("Top Minimum Shell Thickness"),1},
                     {"bottom_shell_layers", L("Bottom Solid Layers"),1}, {"bottom_shell_thickness", L("Bottom Minimum Shell Thickness"),1},
                     {"sparse_infill_density", "",1},{"sparse_infill_pattern", "",1},{"infill_anchor", "",1},{"infill_anchor_max", "",1},{"top_surface_pattern", "",1},{"bottom_surface_pattern", "",1}, {"internal_solid_infill_pattern", "",1},
-                    {"infill_combination", "",1}, {"infill_wall_overlap", "",1}, {"solid_infill_direction", "",1}, {"rotate_solid_infill_direction", "",1}, {"infill_direction", "",1}, {"bridge_angle", "",1}, {"minimum_sparse_infill_area", "",1}
+                    {"infill_combination", "",1}, {"infill_wall_overlap", "",1},{"top_bottom_infill_wall_overlap", "",1}, {"solid_infill_direction", "",1}, {"rotate_solid_infill_direction", "",1}, {"infill_direction", "",1}, {"bridge_angle", "",1}, {"minimum_sparse_infill_area", "",1}
                     }},
     { L("Speed"), {{"outer_wall_speed", "",1},{"inner_wall_speed", "",2},{"sparse_infill_speed", "",3},{"top_surface_speed", "",4}, {"internal_solid_infill_speed", "",5},
                     {"enable_overhang_speed", "",6}, {"overhang_speed_classic", "",6}, {"overhang_1_4_speed", "",7}, {"overhang_2_4_speed", "",8}, {"overhang_3_4_speed", "",9}, {"overhang_4_4_speed", "",10},
@@ -544,15 +540,15 @@ wxMenu* MenuFactory::append_submenu_add_handy_model(wxMenu* menu, ModelVolumeTyp
                 if (file_name == L("Orca Cube"))
                     file_name = "OrcaCube_v2.3mf";
                 else if (file_name == L("3DBenchy"))
-                    file_name = "3DBenchy.stl";
+                    file_name = "3DBenchy.3mf";
                 else if (file_name == L("Autodesk FDM Test"))
-                    file_name = "ksr_fdmtest_v4.stl";
+                    file_name = "ksr_fdmtest_v4.3mf";
                 else if (file_name == L("Voron Cube"))
-                    file_name = "Voron_Design_Cube_v7.stl";
+                    file_name = "Voron_Design_Cube_v7.3mf";
                 else if (file_name == L("Stanford Bunny"))
-                    file_name = "Stanford_Bunny.stl";
+                    file_name = "Stanford_Bunny.3mf";
                 else if (file_name == L("Orca String Hell")) {
-                    file_name     = "Orca_stringhell.stl";
+                    file_name     = "Orca_stringhell.3mf";
                     is_stringhell = true;
                 } else
                     return;
@@ -1241,11 +1237,17 @@ void MenuFactory::create_default_menu()
         []() {return true; }, m_parent);
     append_submenu(&m_default_menu, sub_menu_handy, wxID_ANY, _L("Add Handy models"), "", "menu_add_part",
         []() {return true; }, m_parent);
+    append_menu_item(&m_default_menu, wxID_ANY, _L("Add Models"), "", // ORCA: Add Models
+        [](wxCommandEvent&) { plater()->add_file(); }, "menu_add_part", &m_default_menu,
+        []() {return wxGetApp().plater()->can_add_model(); }, m_parent);
 #else
     append_submenu(&m_default_menu, sub_menu_primitives, wxID_ANY, _L("Add Primitive"), "", "",
         []() {return true; }, m_parent);
     append_submenu(&m_default_menu, sub_menu_handy, wxID_ANY, _L("Add Handy models"), "", "",
         []() {return true; }, m_parent);
+    append_menu_item(&m_default_menu, wxID_ANY, _L("Add Models"), "", // ORCA: Add Models
+        [](wxCommandEvent&) { plater()->add_file(); }, "", &m_default_menu,
+        []() {return wxGetApp().plater()->can_add_model(); }, m_parent);
 #endif
 
     m_default_menu.AppendSeparator();
@@ -1547,11 +1549,17 @@ void MenuFactory::create_plate_menu()
         []() {return true; }, m_parent);
     append_submenu(menu, sub_menu_handy, wxID_ANY, _L("Add Handy models"), "", "menu_add_part",
         []() {return true; }, m_parent);
+    append_menu_item(menu, wxID_ANY, _L("Add Models"), "", // ORCA: Add Models
+        [](wxCommandEvent&) { plater()->add_file(); }, "menu_add_part", menu,
+        []() {return wxGetApp().plater()->can_add_model(); }, m_parent);
 #else
     append_submenu(menu, sub_menu_primitives, wxID_ANY, _L("Add Primitive"), "", "",
         []() {return true; }, m_parent);
     append_submenu(menu, sub_menu_handy, wxID_ANY, _L("Add Handy models"), "", "",
         []() {return true; }, m_parent);
+    append_menu_item(menu, wxID_ANY, _L("Add Models"), "", // ORCA: Add Models
+        [](wxCommandEvent&) { plater()->add_file(); }, "", menu,
+        []() {return wxGetApp().plater()->can_add_model(); }, m_parent);
 #endif
 
 

@@ -1,8 +1,3 @@
-///|/ Copyright (c) Prusa Research 2016 - 2023 Oleksandra Iushchenko @YuSanka, Vojtěch Bubník @bubnikv, Filip Sykala @Jony01, David Kocík @kocikdav, Enrico Turri @enricoturri1966, Tomáš Mészáros @tamasmeszaros, Lukáš Matěna @lukasmatena, Vojtěch Král @vojtechkral
-///|/ Copyright (c) 2019 Sijmen Schoon
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 #ifndef slic3r_Utils_hpp_
 #define slic3r_Utils_hpp_
 
@@ -12,6 +7,7 @@
 #include <functional>
 #include <type_traits>
 #include <system_error>
+#include <regex>
 
 #include <boost/system/error_code.hpp>
 #include <boost/algorithm/string.hpp>
@@ -220,6 +216,30 @@ extern bool is_shapes_dir(const std::string& dir);
 //BBS: add json support
 extern bool is_json_file(const std::string& path);
 
+// Orca: custom protocal support utils
+inline bool is_orca_open(const std::string& url) { return boost::starts_with(url, "orcaslicer://open"); }
+inline bool is_prusaslicer_open(const std::string& url) { return boost::starts_with(url, "prusaslicer://open"); }
+inline bool is_bambustudio_open(const std::string& url) { return boost::starts_with(url, "bambustudio://open"); }
+inline bool is_cura_open(const std::string& url) { return boost::starts_with(url, "cura://open"); }
+inline bool is_supported_open_protocol(const std::string& url) { return is_orca_open(url) || is_prusaslicer_open(url) || is_bambustudio_open(url) || is_cura_open(url); }
+inline bool is_printables_link(const std::string& url) {
+    const std::regex url_regex("(http|https)://printables.com", std::regex_constants::icase);
+    return std::regex_match(url, url_regex);
+}
+inline bool is_makerworld_link(const std::string& url) {
+    const std::regex url_regex("(http|https)://makerworld.com", std::regex_constants::icase);
+    return std::regex_match(url, url_regex);
+}
+inline bool is_thingiverse_link(const std::string& url) {
+    const std::regex url_regex("(http|https)://www.thingiverse.com", std::regex_constants::icase);
+    return std::regex_match(url, url_regex);
+}
+
+// sanitize a string to be used as a filename
+inline std::string sanitize_filename(const std::string &filename){
+    const std::regex special_chars("[/\\\\:*?\"<>|]");
+    return std::regex_replace(filename, special_chars, "_");
+}
 // File path / name / extension splitting utilities, working with UTF-8,
 // to be published to Perl.
 namespace PerlUtils {

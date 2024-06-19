@@ -215,7 +215,9 @@ static inline bool overlap_in_xy(const PrintObjectRegions::BoundingBox &l, const
 static std::vector<PrintObjectRegions::LayerRangeRegions>::const_iterator layer_range_first(const std::vector<PrintObjectRegions::LayerRangeRegions> &layer_ranges, double z)
 {
     auto  it = lower_bound_by_predicate(layer_ranges.begin(), layer_ranges.end(),
-        [z](const PrintObjectRegions::LayerRangeRegions &lr) { return lr.layer_height_range.second < z; });
+        [z](const PrintObjectRegions::LayerRangeRegions &lr) {
+            return lr.layer_height_range.second < z && abs(lr.layer_height_range.second - z) > EPSILON;
+        });
     assert(it != layer_ranges.end() && it->layer_height_range.first <= z && z <= it->layer_height_range.second);
     if (z == it->layer_height_range.second)
         if (auto it_next = it; ++ it_next != layer_ranges.end() && it_next->layer_height_range.first == z)
@@ -229,7 +231,7 @@ static std::vector<PrintObjectRegions::LayerRangeRegions>::const_iterator layer_
     std::vector<PrintObjectRegions::LayerRangeRegions>::const_iterator   it,
     double                                                               z)
 {
-    for (; it->layer_height_range.second <= z; ++ it)
+    for (; it->layer_height_range.second <= z + EPSILON; ++ it)
         assert(it != layer_ranges.end());
     assert(it != layer_ranges.end() && it->layer_height_range.first <= z && z < it->layer_height_range.second);
     return it;
