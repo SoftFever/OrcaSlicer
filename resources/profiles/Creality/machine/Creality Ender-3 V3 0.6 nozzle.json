@@ -45,8 +45,8 @@
         "20000"
     ],
     "machine_max_acceleration_y": [
-        "500",
-        "500"
+        "5000",
+        "5000"
     ],
     "machine_max_acceleration_z": [
         "20000",
