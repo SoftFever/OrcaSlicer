@@ -93,7 +93,6 @@
     ],
     "printer_settings_id": "Creality",
     "retraction_minimum_travel": [
-        "1",
         "1"
     ],
     "retract_before_wipe": [
