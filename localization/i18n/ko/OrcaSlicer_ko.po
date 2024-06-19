@@ -2816,11 +2816,11 @@ msgstr "재료 유형과 색상을 먼저 선택해야 합니다."
 
 #, c-format, boost-format
 msgid "Please input a valid value (K in %.1f~%.1f)"
-msgstr ""
+msgstr "유효한 값을 입력하세요 (%.1f~%.1f 사이의 K)"
 
 #, c-format, boost-format
 msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
-msgstr ""
+msgstr "유효한 값을 입력하세요 (%.1f~%.1f 사이의 K, %.1f~%.1f 사이의 N)"
 
 msgid "Other Color"
 msgstr "기타 색상"
@@ -3229,11 +3229,11 @@ msgid "Edit multiple printers"
 msgstr "여러 프린터 편집"
 
 msgid "Select connected printers (0/6)"
-msgstr ""
+msgstr "연결된 프린터 선택 (0/6)"
 
 #, c-format, boost-format
 msgid "Select Connected Printers (%d/6)"
-msgstr ""
+msgstr "연결된 프린터 선택 (%d/6)"
 
 #, c-format, boost-format
 msgid "The maximum number of printers that can be selected is %d"
@@ -3255,16 +3255,16 @@ msgid "Edit Printers"
 msgstr "프린터 편집"
 
 msgid "Device Name"
-msgstr "Device Name"
+msgstr "장치 이름"
 
 msgid "Task Name"
-msgstr "Task Name"
+msgstr "작업 이름"
 
 msgid "Device Status"
-msgstr "Device Status"
+msgstr "장치 상태"
 
 msgid "Actions"
-msgstr "Actions"
+msgstr "동작"
 
 msgid ""
 "Please select the devices you would like to manage here (up to 6 devices)"
@@ -3295,7 +3295,7 @@ msgid "Printing Failed"
 msgstr "인쇄 실패"
 
 msgid "Printing Pause"
-msgstr ""
+msgstr "인쇄 일시중지"
 
 msgid "Prepare"
 msgstr "준비 하기"
@@ -3334,22 +3334,22 @@ msgid "Stop"
 msgstr "정지"
 
 msgid "Task Status"
-msgstr "Task Status"
+msgstr "작업 상태"
 
 msgid "Sent Time"
-msgstr "Sent Time"
+msgstr "전송한 시간"
 
 msgid "There are no tasks to be sent!"
-msgstr "There are no tasks to be sent!"
+msgstr "전송할 작업이 없습니다!"
 
 msgid "No historical tasks!"
-msgstr "No historical tasks!"
+msgstr "작업 내역이 없습니다!"
 
 msgid "Loading..."
 msgstr "로딩 중..."
 
 msgid "No AMS"
-msgstr "No AMS"
+msgstr "AMS 없음"
 
 msgid "Send to Multi-device"
 msgstr "여러 장치로 보내기"
@@ -3367,19 +3367,19 @@ msgid "The number of printers in use simultaneously cannot be equal to 0."
 msgstr "동시에 사용 중인 프린터의 수는 0과 같을 수 없습니다."
 
 msgid "Use External Spool"
-msgstr "Use External Spool"
+msgstr "외부 스풀 사용"
 
 msgid "Use AMS"
-msgstr "Use AMS"
+msgstr "AMS 사용"
 
 msgid "Select Printers"
-msgstr "Select Printers"
+msgstr "프린터 선택"
 
 msgid "Ams Status"
-msgstr "AMS Status"
+msgstr "AMS 상태"
 
 msgid "Printing Options"
-msgstr "Printing Options"
+msgstr "인쇄 옵션"
 
 msgid "Bed Leveling"
 msgstr "베드 레벨링"
@@ -3391,7 +3391,7 @@ msgid "Flow Dynamic Calibration"
 msgstr "흐름 동적 보정"
 
 msgid "Send Options"
-msgstr "Send Options"
+msgstr "전송 옵션"
 
 msgid "Send to"
 msgstr ""
@@ -3971,9 +3971,11 @@ msgid ""
 "Invalid input format. Expected vector of dimensions in the following format: "
 "\"%1%\""
 msgstr ""
+"잘못된 입력 형식. 다음과 같은 벡터 형식의 치수를 입력하십시오: "
+"\"%1%\""
 
 msgid "Input value is out of range"
-msgstr ""
+msgstr "입력된 값이 범위를 벗어납니다"
 
 msgid "Some extension in the input is invalid"
 msgstr ""
@@ -6163,8 +6165,7 @@ msgstr "다운로드에 실패했습니다. 파일 크기 예외입니다."
 #, c-format, boost-format
 msgid "Project downloaded %d%%"
 msgstr ""
-"프로젝트 다운로드 %d%%Bambu Studio로 가져오는 데 실패했습니다. 파일을 다운로"
-"드하여 수동으로 가져오세요."
+"프로젝트 다운로드됨 %d%%"
 
 msgid ""
 "Importing to Orca Slicer failed. Please download the file and manually "
@@ -6438,7 +6439,7 @@ msgid ""
 "This stops the transmission of data to Bambu's cloud services. Users who "
 "don't use BBL machines or use LAN mode only can safely turn on this function."
 msgstr ""
-"이 기능은 밤부의 클라우드 서비스로의 데이터 전송을 중지합니다. BBL 머신을 사"
+"이 기능은 뱀부의 클라우드 서비스로의 데이터 전송을 중지합니다. BBL 머신을 사"
 "용하지 않거나 LAN 모드만 사용하는 사용자는 이 기능을 안전하게 켤 수 있습니다."
 
 msgid "Enable network plugin"
@@ -6620,7 +6621,7 @@ msgid "Current association: "
 msgstr "현재 연결:"
 
 msgid "Associate prusaslicer://"
-msgstr "프루사슬라이서://"
+msgstr "prusaslicer:// 연결"
 
 msgid "Not associated to any application"
 msgstr "어떤 애플리케이션과도 연결되지 않음"
@@ -6633,7 +6634,7 @@ msgstr ""
 "와 연결합니다."
 
 msgid "Associate bambustudio://"
-msgstr "연결 bambustudio://"
+msgstr "bambustudio:// 연결"
 
 msgid ""
 "Associate OrcaSlicer with bambustudio:// links so that Orca can open models "
@@ -6643,7 +6644,7 @@ msgstr ""
 "크와 연결하세요."
 
 msgid "Associate cura://"
-msgstr "연결 cura://"
+msgstr "cura:// 연결"
 
 msgid ""
 "Associate OrcaSlicer with cura:// links so that Orca can open models from "
@@ -7743,10 +7744,10 @@ msgstr "출력 가능 공간"
 #. TRN: First argument is parameter name, the second one is the value.
 #, boost-format
 msgid "Invalid value provided for parameter %1%: %2%"
-msgstr ""
+msgstr "%1% 매개변수에 잘못된 값이 입력됨: %2%"
 
 msgid "G-code flavor is switched"
-msgstr ""
+msgstr "G코드 유형이 변경됨"
 
 msgid "Cooling Fan"
 msgstr "냉각 팬"
@@ -9073,8 +9074,8 @@ msgid ""
 "The prime tower is currently only supported for the Marlin, RepRap/Sprinter, "
 "RepRapFirmware and Repetier G-code flavors."
 msgstr ""
-"프라임 타워는 현재 Marlin, RepRap/Sprinter에만 지원됩니다.RepRapFirmware 및 "
-"Repetier G코드 유형."
+"프라임 타워는 현재 Marlin, RepRap/Sprinter, RepRapFirmware 및 "
+"Repetier G코드 유형에서만 지원됩니다."
 
 msgid "The prime tower is not supported in \"By object\" print."
 msgstr "프라임 타워는 \"개체별\" 출력에서 지원되지 않습니다."
@@ -9813,7 +9814,7 @@ msgstr ""
 "하세요"
 
 msgid "mm/s or %"
-msgstr "mm/s or %"
+msgstr "mm/s 또는 %"
 
 msgid "External"
 msgstr "외부"
@@ -10916,7 +10917,7 @@ msgstr ""
 "니다."
 
 msgid "mm/s² or %"
-msgstr "mm/s² or %"
+msgstr "mm/s² 또는 %"
 
 msgid ""
 "Acceleration of sparse infill. If the value is expressed as a percentage (e."
@@ -11034,7 +11035,7 @@ msgstr ""
 "\"close_fan_the_first_x_layers\" + 1 에서 최대 허용 속도로 가도됩니다."
 
 msgid "layer"
-msgstr ""
+msgstr "레이어"
 
 msgid "Support interface fan speed"
 msgstr "지지대 접점 팬 속도"
@@ -13366,7 +13367,7 @@ msgstr ""
 "기"
 
 msgid "Format of G-code thumbnails"
-msgstr "G코드 미리보기 포맷"
+msgstr "G코드 미리보기 형식"
 
 msgid ""
 "Format of G-code thumbnails: PNG for best quality, JPG for smallest size, "
@@ -14302,8 +14303,8 @@ msgid ""
 "Only one of the results with the same name will be saved. Are you sure you "
 "want to override the other results?"
 msgstr ""
-"Only one of the results with the same name will be saved. Are you sure you "
-"want to replace the other results?"
+"단 하나의 결과만을 같은 이름으로 저장할 수 있습니다. 다른 결과들을"
+"덮어쓸까요?"
 
 msgid "Please find the best line on your plate"
 msgstr "당신의 플레이트에서 가장 좋은 선을 찾아보세요"
@@ -15095,7 +15096,7 @@ msgid ""
 msgstr ""
 "\n"
 "\n"
-"Studio에서는 사용자 사전 설정 동기화 기능이 활성화되어 있지 않아 장치 페이지"
+"Orca에서는 사용자 사전 설정 동기화 기능이 활성화되어 있지 않아 장치 페이지"
 "에서 필라멘트 설정이 실패할 수 있음을 감지했습니다.\n"
 "동기화 기능을 활성화하려면 \"사용자 사전 설정 동기화\"를 클릭하세요."
 
@@ -15156,7 +15157,7 @@ msgid ""
 "User's fillment preset set. \n"
 "Can be shared with others."
 msgstr ""
-"사용자 채우기 사전 설정입니다.\n"
+"사용자의 필라멘트 사전 설정입니다.\n"
 "다른 사람과 공유할 수 있습니다."
 
 msgid ""
@@ -15397,7 +15398,7 @@ msgid ""
 "Note: FlashAir with firmware 2.00.02 or newer and activated upload function "
 "is required."
 msgstr ""
-"참고: 펌웨어 2.00.02 이상이 있고 업로드 기능이 활성화된 FlashAir필수입니다."
+"참고: 펌웨어 2.00.02 또는 이후 버전을 사용중이며 업로드 기능이 활성화된 FlashAir가 필요합니다."
 
 msgid "Connection to MKS works correctly."
 msgstr "MKS에 대한 연결이 올바르게 작동합니다."
