@@ -115,11 +115,9 @@
     "extruder_clearance_height_to_rod": "14",
     "extruder_clearance_radius": "70",
     "z_hop": [
-        "0.2",
         "0.2"
     ],
     "z_hop_types": [
-        "Auto Lift",
         "Auto Lift"
     ],
     "wipe_distance": [
