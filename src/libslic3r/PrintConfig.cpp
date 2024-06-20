@@ -1701,16 +1701,16 @@ void PrintConfigDef::init_fff_params()
     // Orca: Adaptive pressure advance option and calibration values
     def = this->add("adaptive_pressure_advance_model", coStrings);
     def->label = L("Adaptive pressure advance measurements (beta)");
-    def->tooltip = L("Add pairs of pressure advance values, the volumetric flow speed and acceleration they were measured at, separated by a coma. "
+    def->tooltip = L("Add sets of pressure advance (PA) values, the volumetric flow speeds and accelerations they were measured at, separated by a coma. "
                      "One set of values per line. For example\n"
                      "0.04,3.96,3000\n0.033,3.96,10000\n0.029,7.91,3000\n0.026,7.91,10000\n\n"
                      "How to calibrate:\n"
-                     "1. Run the pressure advance test for at least 3 speeds per filament. It is recommended that the test is run"
+                     "1. Run the pressure advance test for at least 3 speeds per filament. It is recommended that the test is run "
                      "for at least the speed of the external perimeters, the speed of the internal perimeters and the fastest feature "
-                     "print speed in your profile (usually its the sparse or solid infill. Then run them for the same speeds for the fastest printing acceleration you are using\n"
-                     "2. Take note of the optimal Pressure advance value for each volumetric flow speed and acceleration. You can find flow number if you select "
+                     "print speed in your profile (usually its the sparse or solid infill. Then run them for the same speeds for the fastest printing acceleration you are using.\n"
+                     "2. Take note of the optimal PA value for each volumetric flow speed and acceleration. You can find flow number if you select "
                      "flow from the color scheme drop down and move the horizontal slider over the PA pattern lines. The number should be visible "
-                     "at the bottom of the page. The PA ideal PA value should be decreasing the higher the volumetric flow is. If it is not, confirm that your extruder is functioning correctly"
+                     "at the bottom of the page. The ideal PA value should be decreasing the higher the volumetric flow is. If it is not, confirm that your extruder is functioning correctly"
                      "3. Enter the triplets of PA values, Flow and Accelerations in the text box here and save your filament profile\n\n");
     def->mode = comAdvanced;
     //def->gui_flags = "serialized";
