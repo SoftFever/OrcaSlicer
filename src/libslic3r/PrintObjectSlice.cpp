@@ -447,19 +447,32 @@ static std::vector<std::vector<ExPolygons>> slices_to_regions(
                 }
             });
     }
+    
+    bool mmu_painted = false;
+    
+    // Is any ModelVolume MMU painted?
+    if (const auto& volumes = model_volumes;
+        print_config.filament_diameter.size() > 1 && // BBS
+        std::find_if(volumes.begin(), volumes.end(), [](const ModelVolume* v) { return !v->mmu_segmentation_facets.empty(); }) != volumes.end()) {
+        mmu_painted = true;
+    }
 
     // SoftFever: ported from SuperSlicer
     // filament shrink
-    for (const std::unique_ptr<PrintRegion>& pr : print_object_regions.all_regions) {
-        if (pr.get()) {
-            std::vector<ExPolygons>& region_polys = slices_by_region[pr->print_object_region_id()];
-            const size_t extruder_id = pr->extruder(FlowRole::frPerimeter) - 1;
-            double scale = print_config.filament_shrink.values[extruder_id] * 0.01;
-            if (scale != 1) {
-                scale = 1 / scale;
-                for (ExPolygons& polys : region_polys)
-                    for (ExPolygon& poly : polys)
-                        poly.scale(scale);
+    // Orca: only run filament shrink compensation when we do not have an MM painted print.
+    // Algorithm fails with MM painted models.
+    if(!mmu_painted){
+        for (const std::unique_ptr<PrintRegion>& pr : print_object_regions.all_regions) {
+            if (pr.get()) {
+                std::vector<ExPolygons>& region_polys = slices_by_region[pr->print_object_region_id()];
+                const size_t extruder_id = pr->extruder(FlowRole::frPerimeter) - 1;
+                double scale = print_config.filament_shrink.values[extruder_id] * 0.01;
+                if (scale != 1) {
+                    scale = 1 / scale;
+                    for (ExPolygons& polys : region_polys)
+                        for (ExPolygon& poly : polys)
+                            poly.scale(scale);
+                }
             }
         }
     }
