@@ -448,9 +448,15 @@ static std::vector<std::vector<ExPolygons>> slices_to_regions(
             });
     }
     
+    // Orca:
+    // mmu_painted flag used to skip shrinkage compensation for MM prints
+    // display_shrinkage_comp_error flag used to display warning to the user
     bool mmu_painted = false;
+    bool display_shrinkage_comp_error = false;
     
+    // Orca:
     // Is any ModelVolume MMU painted?
+    // used to skip shrinkage compensation
     if (const auto& volumes = model_volumes;
         print_config.filament_diameter.size() > 1 && // BBS
         std::find_if(volumes.begin(), volumes.end(), [](const ModelVolume* v) { return !v->mmu_segmentation_facets.empty(); }) != volumes.end()) {
@@ -460,21 +466,27 @@ static std::vector<std::vector<ExPolygons>> slices_to_regions(
     // SoftFever: ported from SuperSlicer
     // filament shrink
     // Orca: only run filament shrink compensation when we do not have an MM painted print.
-    // Algorithm fails with MM painted models.
-    if(!mmu_painted){
-        for (const std::unique_ptr<PrintRegion>& pr : print_object_regions.all_regions) {
-            if (pr.get()) {
-                std::vector<ExPolygons>& region_polys = slices_by_region[pr->print_object_region_id()];
-                const size_t extruder_id = pr->extruder(FlowRole::frPerimeter) - 1;
-                double scale = print_config.filament_shrink.values[extruder_id] * 0.01;
-                if (scale != 1) {
-                    scale = 1 / scale;
-                    for (ExPolygons& polys : region_polys)
-                        for (ExPolygon& poly : polys)
-                            poly.scale(scale);
-                }
+    // Algorithm fails with MM painted models. Display warning message to the user if an MM painted print and shrinkage compensation is found.
+    for (const std::unique_ptr<PrintRegion>& pr : print_object_regions.all_regions) {
+        if (pr.get()) {
+            std::vector<ExPolygons>& region_polys = slices_by_region[pr->print_object_region_id()];
+            const size_t extruder_id = pr->extruder(FlowRole::frPerimeter) - 1;
+            double scale = print_config.filament_shrink.values[extruder_id] * 0.01;
+            
+            if(scale != 1 && mmu_painted){
+                display_shrinkage_comp_error = true;
+            } else if (scale != 1) {
+                scale = 1 / scale;
+                for (ExPolygons& polys : region_polys)
+                    for (ExPolygon& poly : polys)
+                        poly.scale(scale);
             }
+            
         }
+    }
+    if(display_shrinkage_comp_error){
+        const_cast<PrintObject&>(print_object).active_step_add_warning( PrintStateBase::WarningLevel::CRITICAL,
+            L("Filament shrinkage compensation is incompatible with multi color and multi material prints. It will be ignored when printing this model."));
     }
 
     return slices_by_region;

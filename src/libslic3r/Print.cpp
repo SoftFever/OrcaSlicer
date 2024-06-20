@@ -1556,6 +1556,22 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
             BOOST_LOG_TRIVIAL(warning) << "Orca: validate motion ability failed: " << e.what() << std::endl;
         }
     }
+    
+    // Orca: Check shrinkage compensation is disabled when using multiple colors (extruders).
+    if (warning && extruders.size() > 1){
+        bool filament_shrinkage_found = false;
+        for(int extruder : extruders){
+            if(m_config.filament_shrink.values[extruder] != 100){
+                filament_shrinkage_found = true;
+                break;
+            }
+        }
+        if (filament_shrinkage_found){
+            warning->string = L("Filament shrinkage compensation is incompatible with multi color and multi material prints. It will be ignored when printing this model.");
+            warning->opt_key = "";
+        }
+    }
+    
     return {};
 }
 
