@@ -2906,7 +2906,7 @@ msgstr "Por favor, introduzca un valor válido (K en %.1f~%.1f)"
 
 #, c-format, boost-format
 msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
-msgstr "Introduzca un valor válido (K en %.1f~%.1f, N en %.1f~%.1f)"
+msgstr ""
 
 msgid "Other Color"
 msgstr "Otro color"
