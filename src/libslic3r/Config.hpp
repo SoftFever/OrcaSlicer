@@ -344,6 +344,9 @@ public:
     // Set a single vector item from either a scalar option or the first value of a vector option.vector of ConfigOptions.
     // This function is useful to split values from multiple extrder / filament settings into separate configurations.
     virtual void set_at(const ConfigOption *rhs, size_t i, size_t j) = 0;
+    //BBS
+    virtual void append(const ConfigOption *rhs) = 0;
+    virtual void set(const ConfigOption* rhs, size_t start, size_t len) = 0;
     // Resize the vector of values, copy the newly added values from opt_default if provided.
     virtual void resize(size_t n, const ConfigOption *opt_default = nullptr) = 0;
     // Clear the values vector.
@@ -429,6 +432,41 @@ public:
             this->values[i] = static_cast<const ConfigOptionSingle<T>*>(rhs)->value;
         else
             throw ConfigurationError("ConfigOptionVector::set_at(): Assigning an incompatible type");
+    }
+
+    //BBS
+    void append(const ConfigOption *rhs) override
+    {
+        if (rhs->type() == this->type()) {
+            // Assign the first value of the rhs vector.
+            auto other = static_cast<const ConfigOptionVector<T>*>(rhs);
+            if (other->values.empty())
+                throw ConfigurationError("ConfigOptionVector::append(): append an empty vector");
+            this->values.insert(this->values.end(), other->values.begin(), other->values.end());
+        } else if (rhs->type() == this->scalar_type())
+            this->values.push_back(static_cast<const ConfigOptionSingle<T>*>(rhs)->value);
+        else
+            throw ConfigurationError("ConfigOptionVector::append(): append an incompatible type");
+    }
+
+    // Set a single vector item from a range of another vector option
+    // This function is useful to split values from multiple extrder / filament settings into separate configurations.
+    void set(const ConfigOption* rhs, size_t start, size_t len) override
+    {
+        // It is expected that the vector value has at least one value, which is the default, if not overwritten.
+        assert(!this->values.empty());
+        T v = this->values.front();
+        this->values.resize(len, v);
+        if (rhs->type() == this->type()) {
+            // Assign the first value of the rhs vector.
+            auto other = static_cast<const ConfigOptionVector<T>*>(rhs);
+            if (other->values.size() < (start+len))
+                throw ConfigurationError("ConfigOptionVector::set_with(): Assigning from an vector with invalid size");
+            for (size_t i = 0; i < len; i++)
+                this->values[i] = other->get_at(start+i);
+        }
+        else
+            throw ConfigurationError("ConfigOptionVector::set_with(): Assigning an incompatible type");
     }
 
     const T& get_at(size_t i) const

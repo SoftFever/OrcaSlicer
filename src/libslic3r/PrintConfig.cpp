@@ -472,7 +472,7 @@ static const t_config_enum_values s_keys_map_WipeTowerWallType{
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(WipeTowerWallType)
 
 static const t_config_enum_values s_keys_map_ExtruderType = {
-    { "Direct drive",   etDirectDrive },
+    { "Direct Drive",   etDirectDrive },
     { "Bowden",        etBowden }
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(ExtruderType)
@@ -482,6 +482,13 @@ static const t_config_enum_values s_keys_map_NozzleVolumeType = {
     { "Big Traffic", nvtBigTraffic }
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(NozzleVolumeType)
+
+static const t_config_enum_values s_keys_map_FilamentMapMode = {
+    { "Auto",   fmmAuto },
+    { "Manual", fmmManual }
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(FilamentMapMode)
+
 
 //BBS
 std::string get_extruder_variant_string(ExtruderType extruder_type, NozzleVolumeType nozzle_volume_type)
@@ -2064,6 +2071,17 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Filament map to extruder");
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionInts{1});
+
+    def                = this->add("filament_map_mode", coEnum);
+    def->label         = L("filament mapping mode");
+    def->tooltip = ("filament mapping mode used as plate param");
+    def->enum_keys_map = &ConfigOptionEnum<FilamentMapMode>::get_enum_values();
+    def->enum_values.push_back("Auto");
+    def->enum_values.push_back("Manual");
+    def->enum_labels.push_back(L("Auto"));
+    def->enum_labels.push_back(L("Manual"));
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionEnum<FilamentMapMode>(fmmAuto));
 
     def = this->add("filament_max_volumetric_speed", coFloats);
     def->label = L("Max volumetric speed");
@@ -4364,13 +4382,24 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnumsGeneric{RetractLiftEnforceType ::rletAllSurfaces});
 
+    def = this->add("extruder_type", coEnums);
+    def->label = L("Type");
+    def->tooltip = ("This setting is only used for initial value of manual calibration of pressure advance. Bowden extruder usually has larger pa value. This setting doesn't influence normal slicing");
+    def->enum_keys_map = &ConfigOptionEnum<ExtruderType>::get_enum_values();
+    def->enum_values.push_back("Direct Drive");
+    def->enum_values.push_back("Bowden");
+    def->enum_labels.push_back(L("Direct Drive"));
+    def->enum_labels.push_back(L("Bowden"));
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionEnumsGeneric{ ExtruderType::etDirectDrive });
+
     //BBS
     def = this->add("nozzle_volume_type", coEnums);
     def->label = L("Nozzle Volume Type");
     def->tooltip = ("Nozzle volume type");
     def->enum_keys_map = &ConfigOptionEnum<NozzleVolumeType>::get_enum_values();
     def->enum_values.push_back("Normal");
-    def->enum_values.push_back("BigTraffic");
+    def->enum_values.push_back("Big Traffic");
     def->enum_labels.push_back(L("Normal"));
     def->enum_labels.push_back(L("Big Traffic"));
     def->mode = comAdvanced;
@@ -4379,7 +4408,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("extruder_variant_list", coStrings);
     def->label = "Extruder variant list";
     def->tooltip = "Extruder variant list";
-    def->set_default_value(new ConfigOptionStrings { "Direct drive Normal" });
+    def->set_default_value(new ConfigOptionStrings { "Direct Drive Normal" });
     def->cli = ConfigOptionDef::nocli;
 
     def = this->add("printer_extruder_id", coInts);
@@ -4391,7 +4420,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("printer_extruder_variant", coStrings);
     def->label = "Printer's extruder variant";
     def->tooltip = "Printer's extruder variant";
-    def->set_default_value(new ConfigOptionStrings { "Direct drive Normal" });
+    def->set_default_value(new ConfigOptionStrings { "Direct Drive Normal" });
     def->cli = ConfigOptionDef::nocli;
 
     def = this->add("print_extruder_id", coInts);
@@ -4403,7 +4432,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("print_extruder_variant", coStrings);
     def->label = "Print's extruder variant";
     def->tooltip = "Print's extruder variant";
-    def->set_default_value(new ConfigOptionStrings { "Direct drive Normal" });
+    def->set_default_value(new ConfigOptionStrings { "Direct Drive Normal" });
     def->cli = ConfigOptionDef::nocli;
 
     def = this->add("filament_extruder_id", coInts);
@@ -4415,7 +4444,13 @@ void PrintConfigDef::init_fff_params()
     def = this->add("filament_extruder_variant", coStrings);
     def->label = "Filament's extruder variant";
     def->tooltip = "Filament's extruder variant";
-    def->set_default_value(new ConfigOptionStrings { "Direct drive Normal" });
+    def->set_default_value(new ConfigOptionStrings { "Direct Drive Normal" });
+    def->cli = ConfigOptionDef::nocli;
+
+    def = this->add("filament_self_index", coInts);
+    def->label = "Filament self index";
+    def->tooltip = "Filament self index";
+    def->set_default_value(new ConfigOptionInts { 1 });
     def->cli = ConfigOptionDef::nocli;
 
     def = this->add("retract_restart_extra", coFloats);
@@ -6163,7 +6198,7 @@ void PrintConfigDef::init_extruder_option_keys()
 {
     // ConfigOptionFloats, ConfigOptionPercents, ConfigOptionBools, ConfigOptionStrings
     m_extruder_option_keys = {
-        "nozzle_diameter", "min_layer_height", "max_layer_height", "extruder_offset",
+        "extruder_type", "nozzle_diameter", "nozzle_volume_type", "min_layer_height", "max_layer_height", "extruder_offset",
         "retraction_length", "z_hop", "z_hop_types", "travel_slope", "retract_lift_above", "retract_lift_below", "retract_lift_enforce", "retraction_speed", "deretraction_speed",
         "retract_before_wipe", "retract_restart_extra", "retraction_minimum_travel", "wipe", "wipe_distance",
         "retract_when_changing_layer", "retract_length_toolchange", "retract_restart_extra_toolchange", "extruder_colour",
@@ -7082,21 +7117,84 @@ void PrintConfigDef::handle_legacy_composite(DynamicPrintConfig &config)
 const PrintConfigDef print_config_def;
 
 //todo
-std::vector<std::string> print_options_with_variant = {
-    "outer_wall_speed"
+std::set<std::string> print_options_with_variant = {
+    "outer_wall_speed",
+    "inner_wall_speed",
+    "small_perimeter_speed",
+    "small_perimeter_threshold",
+    "sparse_infill_speed",
+    "internal_solid_infill_speed",
+    "top_surface_speed",
+    "enable_overhang_speed",
+    "overhang_1_4_speed",
+    "overhang_2_4_speed",
+    "overhang_3_4_speed",
+    "overhang_4_4_speed",
+    "bridge_speed",
+    "gap_infill_speed",
+    "initial_layer_speed",
+    "initial_layer_infill_speed",
+    "travel_speed",
+    "travel_speed_z",
+    "default_acceleration",
+    "initial_layer_acceleration",
+    "outer_wall_acceleration",
+    "inner_wall_acceleration",
+    "sparse_infill_acceleration",
+    "top_surface_acceleration",
+    "support_interface_speed",
+    "support_speed",
+    "print_extruder_id",
+    "print_extruder_variant"
 };
 
-std::vector<std::string> filament_options_with_variant = {
-    "filament_max_volumetric_speed"
+std::set<std::string> filament_options_with_variant = {
+    "filament_max_volumetric_speed",
+    "filament_extruder_id",
+    "filament_extruder_variant"
 };
 
-std::vector<std::string> printer_options_with_variant_1 = {
-    "retraction_length"
+std::set<std::string> printer_options_with_variant_1 = {
+    /*"extruder_type",
+    "nozzle_diameter",
+    "nozzle_volume_type".
+    "min_layer_height",
+    "max_layer_height",*/
+    //"retraction_length",
+    "z_hop",
+    //"retract_lift_above",
+    "retract_lift_below",
+    "z_hop_types",
+    "retraction_speed",
+    "deretraction_speed",
+    "retraction_minimum_travel",
+    "retract_when_changing_layer",
+    "wipe",
+    //"wipe_distance",
+    "retract_before_wipe",
+    "retract_length_toolchange",
+    //"retraction_distances_when_cut",
+    "printer_extruder_id",
+    "printer_extruder_variant"
 };
 
 //options with silient mode
-std::vector<std::string> printer_options_with_variant_2 = {
-    "machine_max_acceleration_x"
+std::set<std::string> printer_options_with_variant_2 = {
+    /*"machine_max_acceleration_x",
+    "machine_max_acceleration_y",
+    "machine_max_acceleration_z",
+    "machine_max_acceleration_e",
+    "machine_max_acceleration_extruding",
+    "machine_max_acceleration_retracting",
+    "machine_max_acceleration_travel",
+    "machine_max_speed_x",
+    "machine_max_speed_y",
+    "machine_max_speed_z",
+    "machine_max_speed_e",
+    "machine_max_jerk_x",
+    "machine_max_jerk_y",
+    "machine_max_jerk_z",
+    "machine_max_jerk_e",*/
 };
 
 DynamicPrintConfig DynamicPrintConfig::full_print_config()
@@ -7530,27 +7628,33 @@ int DynamicPrintConfig::get_index_for_extruder(int extruder_id, std::string id_n
     return ret;
 }
 
-void DynamicPrintConfig::update_values_to_printer_extruders(std::vector<std::string>& key_list, std::string id_name, std::string variant_name, unsigned int stride, unsigned int extruder_id)
+void DynamicPrintConfig::update_values_to_printer_extruders(DynamicPrintConfig& printer_config, std::set<std::string>& key_set, std::string id_name, std::string variant_name, unsigned int stride, unsigned int extruder_id)
 {
     int extruder_count;
-    bool different_extruder = support_different_extruders(extruder_count);
+    bool different_extruder = printer_config.support_different_extruders(extruder_count);
     if ((extruder_count > 1) || different_extruder)
     {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", Line %1%: different extruders processing")%__LINE__;
         //apply process settings
         //auto opt_nozzle_diameters = this->option<ConfigOptionFloats>("nozzle_diameter");
         //int extruder_count = opt_nozzle_diameters->size();
-        //auto opt_extruder_type = dynamic_cast<const ConfigOptionEnumsGeneric*>(this->option("extruder_type"));
-        //auto opt_nozzle_volume_type = dynamic_cast<const ConfigOptionEnumsGeneric*>(this->option("nozzle_volume_type"));
+        //auto opt_extruder_type = dynamic_cast<const ConfigOptionEnumsGeneric*>(printer_config.option("extruder_type"));
+        //auto opt_nozzle_volume_type = dynamic_cast<const ConfigOptionEnumsGeneric*>(printer_config.option("nozzle_volume_type"));
         std::vector<int> variant_index;
 
-        if (extruder_id > 0 && extruder_id < extruder_count) {
+        if (extruder_id > 0 && extruder_id <= extruder_count) {
             variant_index.resize(1);
             ExtruderType extruder_type = ExtruderType::etDirectDrive; // TODO:Orca hack (ExtruderType)(opt_extruder_type->get_at(extruder_id - 1));
             NozzleVolumeType nozzle_volume_type = NozzleVolumeType::nvtNormal; // TODO:Orca hack (NozzleVolumeType)(opt_nozzle_volume_type->get_at(extruder_id - 1));
 
             //variant index
             variant_index[0] = get_index_for_extruder(extruder_id, id_name, extruder_type, nozzle_volume_type, variant_name);
+
+            if (variant_index[0] < 0) {
+                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", Line %1%: could not found extruder_type %2%, nozzle_volume_type %3%, for filament")
+                    % __LINE__ % s_keys_names_ExtruderType[extruder_type] % s_keys_names_NozzleVolumeType[nozzle_volume_type];
+                assert(false);
+            }
 
             extruder_count = 1;
         }
@@ -7564,6 +7668,11 @@ void DynamicPrintConfig::update_values_to_printer_extruders(std::vector<std::str
 
                 //variant index
                 variant_index[e_index] = get_index_for_extruder(e_index+1, id_name, extruder_type, nozzle_volume_type, variant_name);
+                if (variant_index[e_index] < 0) {
+                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", Line %1%: could not found extruder_type %2%, nozzle_volume_type %3%, extruder_index %4%")
+                        %__LINE__ %s_keys_names_ExtruderType[extruder_type] % s_keys_names_NozzleVolumeType[nozzle_volume_type] % (e_index+1);
+                    assert(false);
+                }
             }
         }
 
@@ -7572,7 +7681,7 @@ void DynamicPrintConfig::update_values_to_printer_extruders(std::vector<std::str
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", Line %1%: can not find config define")%__LINE__;
             return;
         }
-        for (auto& key: key_list)
+        for (auto& key: key_set)
         {
             const ConfigOptionDef *optdef  = config_def->get(key);
             if (!optdef) {

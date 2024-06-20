@@ -481,6 +481,16 @@ public:
 
     void print() const;
 
+    FilamentMapMode get_filament_map_mode();
+    void set_filament_map_mode(FilamentMapMode& mode);
+
+    std::vector<int> get_filament_maps();
+    void set_filament_maps(std::vector<int>& f_maps);
+
+    void set_filament_count(int filament_count);
+    void on_filament_added();
+    void on_filament_deleted(int filament_count, int filament_id);
+
     friend class cereal::access;
     friend class UndoRedo::StackImpl;
 
@@ -572,6 +582,8 @@ class PartPlateList : public ObjectBase
     bool render_cali_logo = true;
 
     bool m_is_dark = false;
+
+    int m_filament_count = 1;
 
     void init();
     //compute the origin for printable plate with index i
@@ -839,7 +851,7 @@ public:
     * if with_gcode = true and specify plate_idx, export plate_idx gcode only
     */
     int store_to_3mf_structure(PlateDataPtrs& plate_data_list, bool with_slice_info = true, int plate_idx = -1);
-    int load_from_3mf_structure(PlateDataPtrs& plate_data_list);
+    int load_from_3mf_structure(PlateDataPtrs& plate_data_list, int filament_count = 1);
     //load gcode files
     int load_gcode_files();
 
@@ -859,6 +871,10 @@ public:
     void show_cali_texture(bool show = true);
     void init_cali_texture_info();
     void load_cali_textures();
+
+    void set_filament_count(int filament_count);
+    void on_filament_deleted(int filament_count, int filament_id);
+    void on_filament_added(int filament_count);
 
     BedTextureInfo bed_texture_info[btCount];
     BedTextureInfo cali_texture_info;

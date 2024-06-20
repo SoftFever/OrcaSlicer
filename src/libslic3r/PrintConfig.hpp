@@ -378,6 +378,11 @@ enum NozzleVolumeType {
     nvtMaxNozzleVolumeType = nvtBigTraffic
 };
 
+enum FilamentMapMode {
+    fmmAuto,
+    fmmManual
+};
+
 extern std::string get_extruder_variant_string(ExtruderType extruder_type, NozzleVolumeType nozzle_volume_type);
 
 static std::string bed_type_to_gcode_string(const BedType type)
@@ -600,14 +605,14 @@ public:
     bool is_using_different_extruders();
     bool support_different_extruders(int& extruder_count);
     int get_index_for_extruder(int extruder_id, std::string id_name, ExtruderType extruder_type, NozzleVolumeType nozzle_volume_type, std::string variant_name);
-    void update_values_to_printer_extruders(std::vector<std::string>& key_list, std::string id_name, std::string variant_name, unsigned int stride = 1, unsigned int extruder_id = 0);
+    void update_values_to_printer_extruders(DynamicPrintConfig& printer_config, std::set<std::string>& key_set, std::string id_name, std::string variant_name, unsigned int stride = 1, unsigned int extruder_id = 0);
 
     bool is_custom_defined();
 };
-extern std::vector<std::string> print_options_with_variant;
-extern std::vector<std::string> filament_options_with_variant;
-extern std::vector<std::string> printer_options_with_variant_1;
-extern std::vector<std::string> printer_options_with_variant_2;
+extern std::set<std::string> print_options_with_variant;
+extern std::set<std::string> filament_options_with_variant;
+extern std::set<std::string> printer_options_with_variant_1;
+extern std::set<std::string> printer_options_with_variant_2;
 
 void handle_legacy_sla(DynamicPrintConfig &config);
 

@@ -183,9 +183,13 @@ public:
     bool                        has_defauls_only() const
         { return prints.has_defaults_only() && filaments.has_defaults_only() && printers.has_defaults_only(); }
 
-    DynamicPrintConfig          full_config() const;
+    DynamicPrintConfig          full_config(std::vector<int> filament_maps = std::vector<int>()) const;
     // full_config() with the some "useless" config removed.
-    DynamicPrintConfig          full_config_secure() const;
+    DynamicPrintConfig          full_config_secure(std::vector<int> filament_maps = std::vector<int>()) const;
+
+    //BBS: add some functions for multiple extruders
+    int get_printer_extruder_count();
+    bool support_different_extruders();
 
     // Load user configuration and store it into the user profiles.
     // This method is called by the configuration wizard.
@@ -310,7 +314,7 @@ private:
     /*ConfigSubstitutions         load_config_file_config_bundle(
         const std::string &path, const boost::property_tree::ptree &tree, ForwardCompatibilitySubstitutionRule compatibility_rule);*/
 
-    DynamicPrintConfig          full_fff_config() const;
+    DynamicPrintConfig          full_fff_config(bool apply_extruder, std::vector<int> filament_maps) const;
     DynamicPrintConfig          full_sla_config() const;
 
     // Orca: used for validation only

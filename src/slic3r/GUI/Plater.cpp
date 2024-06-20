@@ -1063,7 +1063,7 @@ Sidebar::Sidebar(Plater *parent)
             auto& project_config = wxGetApp().preset_bundle->project_config;
             const std::vector<double>& init_matrix = (project_config.option<ConfigOptionFloats>("flush_volumes_matrix"))->values;
             const std::vector<double>& init_extruders = (project_config.option<ConfigOptionFloats>("flush_volumes_vector"))->values;
-            
+
             const std::vector<std::string> extruder_colours = wxGetApp().plater()->get_extruder_colors_from_plater_config();
             const auto& full_config = wxGetApp().preset_bundle->full_config();
             const auto& extra_flush_volumes = get_min_flush_volumes(full_config, 0); // todo multi_extruder: always display nozzle 1
@@ -1076,7 +1076,7 @@ Sidebar::Sidebar(Plater *parent)
                 flush_multiplier = cast<float>(flush_multi_opt->values);
             else {
                 for (size_t nozzle_id = 0; nozzle_id < nozzle_nums; ++nozzle_id) {
-                    flush_multiplier.push_back(1.f); 
+                    flush_multiplier.push_back(1.f);
                 }
             }
             WipingDialog dlg(parent, cast<float>(init_matrix), cast<float>(init_extruders), extruder_colours, extra_flush_volumes, flush_multiplier, nozzle_nums);
@@ -1930,6 +1930,7 @@ void Sidebar::delete_filament(size_t filament_id) {
     }
 
     wxGetApp().preset_bundle->update_num_filaments(filament_id);
+    wxGetApp().plater()->get_partplate_list().on_filament_deleted(filament_count, filament_id);
     wxGetApp().plater()->on_filaments_delete(filament_count, filament_id);
     wxGetApp().get_tab(Preset::TYPE_PRINT)->update();
     wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
@@ -1941,6 +1942,7 @@ void Sidebar::add_custom_filament(wxColour new_col) {
     int         filament_count = p->combos_filament.size() + 1;
     std::string new_color      = new_col.GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
     wxGetApp().preset_bundle->set_num_filaments(filament_count, new_color);
+    wxGetApp().plater()->get_partplate_list().on_filament_added(filament_count);
     wxGetApp().plater()->on_filaments_change(filament_count);
     wxGetApp().get_tab(Preset::TYPE_PRINT)->update();
     wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
@@ -2306,22 +2308,22 @@ void Sidebar::auto_calc_flushing_volumes(const int modify_id)
     const auto& full_config = wxGetApp().preset_bundle->full_config();
     auto& ams_multi_color_filament = preset_bundle->ams_multi_color_filment;
 
-    size_t nozzle_nums = preset_bundle->full_config().option<ConfigOptionFloats>("nozzle_diameter")->values.size();
+    size_t nozzle_nums = preset_bundle->get_printer_extruder_count();
     for (size_t nozzle_id = 0; nozzle_id < nozzle_nums; ++nozzle_id)
     {
         std::vector<double> init_matrix = get_flush_volumes_matrix((project_config.option<ConfigOptionFloats>("flush_volumes_matrix"))->values, nozzle_id, nozzle_nums);
 
         const std::vector<int>&   min_flush_volumes= get_min_flush_volumes(full_config, nozzle_id);
-        
+
         ConfigOptionFloat* flush_multi_opt = project_config.option<ConfigOptionFloat>("flush_multiplier");
         float flush_multiplier = flush_multi_opt ? flush_multi_opt->getFloat() : 1.f;
         std::vector<double> matrix = init_matrix;
         int m_max_flush_volume = Slic3r::g_max_flush_volume;
         unsigned int m_number_of_extruders = (int)(sqrt(init_matrix.size()) + 0.001);
-        
+
         const std::vector<std::string> extruder_colours = wxGetApp().plater()->get_extruder_colors_from_plater_config();
         std::vector<std::vector<wxColour>> multi_colours;
-        
+
         // Support for multi-color filament
         for (int i = 0; i < extruder_colours.size(); ++i) {
             std::vector<wxColour> single_filament;
@@ -2335,11 +2337,11 @@ void Sidebar::auto_calc_flushing_volumes(const int modify_id)
                     continue;
                 }
             }
-        
+
             single_filament.push_back(wxColour(extruder_colours[i]));
             multi_colours.push_back(single_filament);
         }
-        
+
         if (modify_id >= 0 && modify_id < multi_colours.size()) {
             for (int i = 0; i < multi_colours.size(); ++i) {
                 // from to modify
@@ -2366,7 +2368,7 @@ void Sidebar::auto_calc_flushing_volumes(const int modify_id)
                     }
                     matrix[m_number_of_extruders * from_idx + modify_id] = flushing_volume;
                 }
-        
+
                 // modify to to
                 int to_idx = i;
                 if (to_idx != modify_id) {
@@ -2388,7 +2390,7 @@ void Sidebar::auto_calc_flushing_volumes(const int modify_id)
                         }
                         if (is_from_support)
                             flushing_volume = std::max(flushing_volume, Slic3r::g_min_flush_volume_from_support);
-        
+
                         matrix[m_number_of_extruders * modify_id + to_idx] = flushing_volume;
                     }
                 }
@@ -3896,7 +3898,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
     bool dlg_cont = true;
     bool is_user_cancel = false;
     bool translate_old = false;
-    int current_width = 0, current_depth = 0, current_height = 0;
+    int current_width = 0, current_depth = 0, current_height = 0, project_filament_count = 1;
 
     if (input_files.empty()) { return std::vector<size_t>(); }
     
@@ -4177,7 +4179,8 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                                 //set the size back
                                 partplate_list.reset_size(current_width + Bed3D::Axes::DefaultTipRadius, current_depth + Bed3D::Axes::DefaultTipRadius, current_height, false);
                             }
-                            partplate_list.load_from_3mf_structure(plate_data);
+                            project_filament_count = config_loaded.option<ConfigOptionStrings>("filament_colour")->size();
+                            partplate_list.load_from_3mf_structure(plate_data, project_filament_count);
                             partplate_list.update_slice_context_to_current_plate(background_process);
                             this->preview->update_gcode_result(partplate_list.get_current_slice_result());
                             release_PlateData_list(plate_data);
@@ -4392,7 +4395,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                 std::vector<Preset *> project_presets;
                 bool                  is_xxx;
                 Semver                file_version;
-                
+
                 //ObjImportColorFn obj_color_fun=nullptr;
                 auto obj_color_fun = [this, &path](std::vector<RGBA> &input_colors, bool is_single_color, std::vector<unsigned char> &filament_ids,
                                                    unsigned char &first_extruder_id) {
@@ -4486,7 +4489,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                 }
 
                 if (plate_data.size() > 0) {
-                    partplate_list.load_from_3mf_structure(plate_data);
+                    partplate_list.load_from_3mf_structure(plate_data, project_filament_count);
                     partplate_list.update_slice_context_to_current_plate(background_process);
                     this->preview->update_gcode_result(partplate_list.get_current_slice_result());
                     release_PlateData_list(plate_data);
@@ -5536,7 +5539,15 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
         this->partplate_list.update_slice_context_to_current_plate(background_process);
         this->preview->update_gcode_result(partplate_list.get_current_slice_result());
     }
-    Print::ApplyStatus invalidated = background_process.apply(this->model, wxGetApp().preset_bundle->full_config());
+
+    Print::ApplyStatus invalidated;
+    if (wxGetApp().preset_bundle->get_printer_extruder_count() > 1) {
+        PartPlate* cur_plate = background_process.get_current_plate();
+        std::vector<int> f_maps = cur_plate->get_filament_maps();
+        invalidated = background_process.apply(this->model, wxGetApp().preset_bundle->full_config(f_maps));
+    }
+    else
+        invalidated = background_process.apply(this->model, wxGetApp().preset_bundle->full_config());
 
     if ((invalidated == Print::APPLY_STATUS_CHANGED) || (invalidated == Print::APPLY_STATUS_INVALIDATED))
         // BBS: add only gcode mode
@@ -13365,11 +13376,12 @@ void Plater::on_filaments_delete(size_t num_filaments, size_t filament_id)
     update_filament_colors_in_full_config();
 
     // update fisrt print sequence and other layer sequence
-    Slic3r::GUI::PartPlateList &plate_list = get_partplate_list();
+    //move to partplate->on_filament_deleted
+    /*Slic3r::GUI::PartPlateList &plate_list = get_partplate_list();
     for (int i = 0; i < plate_list.get_plate_count(); ++i) {
         PartPlate *part_plate = plate_list.get_plate(i);
         part_plate->update_first_layer_print_sequence_when_delete_filament(filament_id);
-    }
+    }*/
 
     // update mmu info
     for (ModelObject *mo : wxGetApp().model().objects) {
@@ -13386,7 +13398,7 @@ void Plater::on_filaments_delete(size_t num_filaments, size_t filament_id)
     for (auto key : keys)
         if (p->config->has(key) && p->config->opt_int(key) == filament_id + 1)
             (*(p->config)).erase(key);
-    
+
     // update object/volume/support(object and volume) filament id
     sidebar().obj_list()->update_objects_list_filament_column_when_delete_filament(filament_id, num_filaments);
 
@@ -13543,7 +13555,7 @@ void Plater::update_flush_volume_matrix(const Slic3r::DynamicPrintConfig& config
 
     auto *printer_model = config.opt<ConfigOptionString>("printer_model");
     if (printer_model != nullptr && !printer_model->value.empty()) {
-        size_t nozzle_nums = wxGetApp().preset_bundle->full_config().option<ConfigOptionFloats>("nozzle_diameter")->values.size();
+        size_t nozzle_nums = wxGetApp().preset_bundle->get_printer_extruder_count();
         if (!is_multi_extruder_printer(old_model_id) && is_multi_extruder_printer(printer_model->value)) {
             Slic3r::DynamicPrintConfig *project_config   = &wxGetApp().preset_bundle->project_config;
             std::vector<double>         flush_volume_mtx = get_flush_volumes_matrix(project_config->option<ConfigOptionFloats>("flush_volumes_matrix")->values, -1, nozzle_nums);
@@ -14120,7 +14132,13 @@ void Plater::apply_background_progress()
     int plate_index = p->partplate_list.get_curr_plate_index();
     bool result_valid = part_plate->is_slice_result_valid();
     //always apply the current plate's print
-    Print::ApplyStatus invalidated = p->background_process.apply(this->model(), wxGetApp().preset_bundle->full_config());
+    Print::ApplyStatus invalidated;
+    if (wxGetApp().preset_bundle->get_printer_extruder_count() > 1) {
+        std::vector<int> f_maps = part_plate->get_filament_maps();
+        invalidated = p->background_process.apply(this->model(), wxGetApp().preset_bundle->full_config(f_maps));
+    }
+    else
+        invalidated = p->background_process.apply(this->model(), wxGetApp().preset_bundle->full_config());
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: plate %2%, after apply, invalidated= %3%, previous result_valid %4% ") % __LINE__ % plate_index % invalidated % result_valid;
     if (invalidated & PrintBase::APPLY_STATUS_INVALIDATED)
@@ -14159,7 +14177,12 @@ int Plater::select_plate(int plate_index, bool need_slice)
         part_plate->get_print(&print, &gcode_result, NULL);
 
         //always apply the current plate's print
-        invalidated = p->background_process.apply(this->model(), wxGetApp().preset_bundle->full_config());
+        if (wxGetApp().preset_bundle->get_printer_extruder_count() > 1) {
+            std::vector<int> f_maps = part_plate->get_filament_maps();
+            invalidated = p->background_process.apply(this->model(), wxGetApp().preset_bundle->full_config(f_maps));
+        }
+        else
+            invalidated = p->background_process.apply(this->model(), wxGetApp().preset_bundle->full_config());
         bool model_fits, validate_err;
 
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: plate %2%, after apply, invalidated= %3%, previous result_valid %4% ")%__LINE__ %plate_index  %invalidated %result_valid;
@@ -14465,7 +14488,12 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click, bool isModi
 
             part_plate->get_print(&print, &gcode_result, NULL);
             //always apply the current plate's print
-            invalidated = p->background_process.apply(this->model(), wxGetApp().preset_bundle->full_config());
+            if (wxGetApp().preset_bundle->get_printer_extruder_count() > 1) {
+                std::vector<int> f_maps = part_plate->get_filament_maps();
+                invalidated = p->background_process.apply(this->model(), wxGetApp().preset_bundle->full_config(f_maps));
+            }
+            else
+                invalidated = p->background_process.apply(this->model(), wxGetApp().preset_bundle->full_config());
             bool model_fits, validate_err;
             validate_current_plate(model_fits, validate_err);
 

@@ -4129,6 +4129,16 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         std::string key = bbs_get_attribute_value_string(attributes, num_attributes, KEY_ATTR);
         std::string value = bbs_get_attribute_value_string(attributes, num_attributes, VALUE_ATTR);
 
+        auto get_vector_from_string = [](const std::string& str) -> std::vector<int> {
+            std::stringstream stream(str);
+            int value;
+            std::vector<int>  results;
+            while (stream >> value) {
+                results.push_back(value);
+            }
+            return results;
+        };
+
         if ((m_curr_plater == nullptr)&&!m_parsing_slice_info)
         {
             IdToMetadataMap::iterator object = m_objects_metadata.find(m_curr_config.object_id);
@@ -4170,25 +4180,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 m_curr_plater->config.set_key_value("print_sequence", new ConfigOptionEnum<PrintSequence>(print_sequence));
             }
             else if (key == FIRST_LAYER_PRINT_SEQUENCE_ATTR) {
-                auto get_vector_from_string = [](const std::string &str) -> std::vector<int> {
-                    std::stringstream stream(str);
-                    int value;
-                    std::vector<int>  results;
-                    while (stream >> value) {
-                        results.push_back(value);
-                    }
-                    return results;
-                };
                 m_curr_plater->config.set_key_value("first_layer_print_sequence", new ConfigOptionInts(get_vector_from_string(value)));
             }
             else if (key == OTHER_LAYERS_PRINT_SEQUENCE_ATTR) {
-                auto get_vector_from_string = [](const std::string &str) -> std::vector<int> {
-                    std::stringstream stream(str);
-                    int               value;
-                    std::vector<int>  results;
-                    while (stream >> value) { results.push_back(value); }
-                    return results;
-                };
                 m_curr_plater->config.set_key_value("other_layers_print_sequence", new ConfigOptionInts(get_vector_from_string(value)));
             }
             else if (key == OTHER_LAYERS_PRINT_SEQUENCE_NUMS_ATTR) {
@@ -4198,6 +4192,16 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 bool spiral_mode = false;
                 std::istringstream(value) >> std::boolalpha >> spiral_mode;
                 m_curr_plater->config.set_key_value("spiral_mode", new ConfigOptionBool(spiral_mode));
+            }
+            else if (key == FILAMENT_MAP_MODE_ATTR)
+            {
+                FilamentMapMode map_mode = FilamentMapMode::fmmAuto;
+                ConfigOptionEnum<FilamentMapMode>::from_string(value, map_mode);
+                m_curr_plater->config.set_key_value("filament_map_mode", new ConfigOptionEnum<FilamentMapMode>(map_mode));
+            }
+            else if (key == FILAMENT_MAP_ATTR) {
+
+                m_curr_plater->config.set_key_value("filament_map", new ConfigOptionInts(get_vector_from_string(value)));
             }
             else if (key == GCODE_FILE_ATTR)
             {
@@ -7624,7 +7628,6 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                     stream << "\"/>\n";
                 }
 
-
                 ConfigOptionInts *other_layers_print_sequence_opt = plate_data->config.option<ConfigOptionInts>("other_layers_print_sequence");
                 if (other_layers_print_sequence_opt != nullptr) {
                     stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << OTHER_LAYERS_PRINT_SEQUENCE_ATTR << "\" " << VALUE_ATTR << "=\"";
@@ -7646,19 +7649,23 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 if (spiral_mode_opt)
                     stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << SPIRAL_VASE_MODE << "\" " << VALUE_ATTR << "=\"" << spiral_mode_opt->getBool() << "\"/>\n";
 
-                // TODO: Orca: hack
                 //filament map related
-                stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << FILAMENT_MAP_MODE_ATTR << "\" " << VALUE_ATTR << "=\"" << "Auto For Flush" << "\"/>\n";
+                ConfigOption* filament_map_mode_opt = plate_data->config.option("filament_map_mode");
+                t_config_enum_names filament_map_mode_names = ConfigOptionEnum<FilamentMapMode>::get_enum_names();
+                if (filament_map_mode_opt != nullptr && filament_map_mode_names.size() > filament_map_mode_opt->getInt())
+                    stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << FILAMENT_MAP_MODE_ATTR << "\" " << VALUE_ATTR << "=\"" << filament_map_mode_names[filament_map_mode_opt->getInt()] << "\"/>\n";
 
-                // filament map override global settings only when group mode overrides the global settings
-                stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << FILAMENT_MAP_ATTR << "\" " << VALUE_ATTR << "=\"";
-                const size_t filaments_count = dynamic_cast<const ConfigOptionStrings*>(config.option("filament_colour"))->values.size();
-                for (int i = 0; i < filaments_count; ++i) {
-                    stream << "1"; // Orca hack: for now, all filaments are mapped to extruder 1
-                    if (i != (filaments_count - 1))
-                        stream << " ";
+                ConfigOptionInts* filament_maps_opt = plate_data->config.option<ConfigOptionInts>("filament_map");
+                if (filament_maps_opt != nullptr) {
+                    stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << FILAMENT_MAP_ATTR << "\" " << VALUE_ATTR << "=\"";
+                    const std::vector<int>& values = filament_maps_opt->values;
+                    for (int i = 0; i < values.size(); ++i) {
+                        stream << values[i];
+                        if (i != (values.size() - 1))
+                            stream << " ";
+                    }
+                    stream << "\"/>\n";
                 }
-                stream << "\"/>\n";
 
                 if (save_gcode)
                     stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << GCODE_FILE_ATTR << "\" " << VALUE_ATTR << "=\"" << std::boolalpha << xml_escape(plate_data->gcode_file) << "\"/>\n";

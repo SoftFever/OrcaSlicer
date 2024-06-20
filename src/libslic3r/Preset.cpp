@@ -342,6 +342,8 @@ void Preset::normalize(DynamicPrintConfig &config)
         for (const std::string &key : Preset::filament_options()) {
             if (key == "compatible_prints" || key == "compatible_printers")
                 continue;
+            if (filament_options_with_variant.find(key) != filament_options_with_variant.end())
+                continue;
             auto *opt = config.option(key, false);
             /*assert(opt != nullptr);
             assert(opt->is_vector());*/
@@ -808,6 +810,8 @@ static std::vector<std::string> s_Preset_print_options {
     "brim_width", "brim_object_gap", "brim_type", "brim_ears_max_angle", "brim_ears_detection_length", "enable_support", "support_type", "support_threshold_angle", "support_threshold_overlap","enforce_support_layers",
     "raft_layers", "raft_first_layer_density", "raft_first_layer_expansion", "raft_contact_distance", "raft_expansion",
     "support_base_pattern", "support_base_pattern_spacing", "support_expansion", "support_style",
+    // BBS
+    "print_extruder_id", "print_extruder_variant",
     "independent_support_layer_height",
     "support_angle", "support_interface_top_layers", "support_interface_bottom_layers",
     "support_interface_pattern", "support_interface_spacing", "support_interface_loop_pattern",
@@ -872,6 +876,7 @@ static std::vector<std::string> s_Preset_filament_options {
     //BBS
     "filament_wipe_distance", "additional_cooling_fan_speed",
     "nozzle_temperature_range_low", "nozzle_temperature_range_high",
+    "filament_extruder_id", "filament_extruder_variant",
     //SoftFever
     "enable_pressure_advance", "pressure_advance","adaptive_pressure_advance","adaptive_pressure_advance_model","adaptive_pressure_advance_overhangs", "adaptive_pressure_advance_bridges","chamber_temperature", "filament_shrink","filament_shrinkage_compensation_z", "support_material_interface_fan_speed","internal_bridge_fan_speed", "filament_notes" /*,"filament_seam_gap"*/,
     "ironing_fan_speed",
@@ -898,7 +903,8 @@ static std::vector<std::string> s_Preset_printer_options {
     "printable_area", "bed_exclude_area","bed_custom_texture", "bed_custom_model", "gcode_flavor",
     "fan_kickstart", "fan_speedup_time", "fan_speedup_overhangs",
     "single_extruder_multi_material", "manual_filament_change", "machine_start_gcode", "machine_end_gcode", "before_layer_change_gcode", "printing_by_object_gcode", "layer_change_gcode", "time_lapse_gcode", "change_filament_gcode", "change_extrusion_role_gcode",
-    "printer_model", "printer_variant", "printable_height", "extruder_clearance_radius", "extruder_clearance_height_to_lid", "extruder_clearance_height_to_rod",
+    "printer_model", "printer_variant", "printer_extruder_id", "printer_extruder_variant", "extruder_variant_list", "nozzle_volume_type",
+    "printable_height", "extruder_clearance_radius", "extruder_clearance_height_to_lid", "extruder_clearance_height_to_rod",
     "nozzle_height",
     "default_print_profile", "inherits",
     "silent_mode",

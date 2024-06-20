@@ -2661,6 +2661,7 @@ bool GUI_App::on_init_inner()
     if (plater_ != nullptr) {
         plater_->reset_project_dirty_initial_presets();
         plater_->update_project_dirty_from_presets();
+        plater_->get_partplate_list().set_filament_count(preset_bundle->filament_presets.size());
     }
 
     // BBS:
