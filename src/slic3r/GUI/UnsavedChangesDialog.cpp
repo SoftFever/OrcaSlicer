@@ -1,9 +1,3 @@
-///|/ Copyright (c) Prusa Research 2020 - 2023 Oleksandra Iushchenko @YuSanka, Lukáš Matěna @lukasmatena, Vojtěch Bubník @bubnikv, Enrico Turri @enricoturri1966, David Kocík @kocikdav
-///|/ Copyright (c) 2021 Pascal de Bruijn @pmjdebruijn
-///|/ Copyright (c) 2021 Sebastian Hammerl
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 #include "UnsavedChangesDialog.hpp"
 
 #include <cstddef>

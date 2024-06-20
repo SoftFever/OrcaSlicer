@@ -1,7 +1,3 @@
-///|/ Copyright (c) Prusa Research 2022 - 2023 Tomáš Mészáros @tamasmeszaros, David Kocík @kocikdav
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 #include "ZipperArchiveImport.hpp"
 
 #include "libslic3r/miniz_extension.hpp"

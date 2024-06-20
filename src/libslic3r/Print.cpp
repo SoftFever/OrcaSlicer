@@ -1,25 +1,3 @@
-///|/ Copyright (c) Prusa Research 2016 - 2023 Lukáš Matěna @lukasmatena, Tomáš Mészáros @tamasmeszaros, Enrico Turri @enricoturri1966, Vojtěch Bubník @bubnikv, Pavel Mikuš @Godrak, Oleksandra Iushchenko @YuSanka, Lukáš Hejl @hejllukas, Filip Sykala @Jony01, Roman Beránek @zavorka, David Kocík @kocikdav
-///|/ Copyright (c) BambuStudio 2023 manch1n @manch1n
-///|/ Copyright (c) SuperSlicer 2023 Remi Durand @supermerill
-///|/ Copyright (c) 2021 Martin Budden
-///|/ Copyright (c) 2020 Paul Arden @ardenpm
-///|/ Copyright (c) 2019 Thomas Moore
-///|/ Copyright (c) 2019 Bryan Smith
-///|/ Copyright (c) Slic3r 2013 - 2016 Alessandro Ranellucci @alranel
-///|/ Copyright (c) 2014 Petr Ledvina @ledvinap
-///|/
-///|/ ported from lib/Slic3r/Print.pm:
-///|/ Copyright (c) Prusa Research 2016 - 2018 Vojtěch Bubník @bubnikv, Tomáš Mészáros @tamasmeszaros
-///|/ Copyright (c) Slic3r 2011 - 2016 Alessandro Ranellucci @alranel
-///|/ Copyright (c) 2012 - 2013 Mark Hindess
-///|/ Copyright (c) 2013 Devin Grady
-///|/ Copyright (c) 2012 - 2013 Mike Sheldrake @mesheldrake
-///|/ Copyright (c) 2012 Henrik Brix Andersen @henrikbrixandersen
-///|/ Copyright (c) 2012 Michael Moon
-///|/ Copyright (c) 2011 Richard Goodwin
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 #include "Config.hpp"
 #include "Exception.hpp"
 #include "Print.hpp"
@@ -131,6 +109,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "extruder_offset",
         "filament_flow_ratio",
         "reduce_fan_stop_start_freq",
+        "dont_slow_down_outer_wall",
         "fan_cooling_layer_time",
         "full_fan_speed_layer",
         "fan_kickstart",
