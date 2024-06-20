@@ -1072,6 +1072,9 @@ void PrintObject::slice_volumes()
     this->apply_conical_overhang();
     m_print->throw_if_canceled();
 
+    this->generate_interlocking_structure();
+    m_print->throw_if_canceled();
+
     BOOST_LOG_TRIVIAL(debug) << "Slicing volumes - make_slices in parallel - begin";
     {
         // Compensation value, scaled. Only applying the negative scaling here, as the positive scaling has already been applied during slicing.

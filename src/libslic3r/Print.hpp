@@ -550,6 +550,10 @@ private:
     size_t               m_id;
     void apply_conical_overhang();
 
+    // Generate an interlocking structure between each two adjacent meshes.
+    friend class InterlockingGenerator;
+    void generate_interlocking_structure();
+
  public:
     //BBS: When printing multi-material objects, this settings will make slicer to clip the overlapping object parts one by the other.
     //(2nd part will be clipped by the 1st, 3rd part will be clipped by the 1st and 2nd etc).
