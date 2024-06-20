@@ -1693,7 +1693,7 @@ void PrintConfigDef::init_fff_params()
                      "This feature aims to address this limitation by modeling the response of your printer's extrusion system depending "
                      "on the volumetric flow speed and acceleration it is printing at. Internally it generates a fitted model that can extrapolate the needed pressure "
                      "advance for any given volumetric flow speed and acceleration, which is then emmited to the printer depending on the current volumetric flow speed.\n\n"
-                     "When enabled the pressure advance value above is overriden. However, a reasonable default value above is"
+                     "When enabled the pressure advance value above is overriden. However, a reasonable default value above is "
                      "strongly recomended to act as a fallback in case the model calculations fail.\n\n");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBools{ false });
