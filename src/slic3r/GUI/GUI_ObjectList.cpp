@@ -719,6 +719,58 @@ void ObjectList::update_filament_values_for_items(const size_t filaments_count)
     wxGetApp().plater()->update();
 }
 
+void ObjectList::update_filament_values_for_items_when_delete_filament(const size_t filament_id)
+{
+    for (size_t i = 0; i < m_objects->size(); ++i) {
+        wxDataViewItem item = m_objects_model->GetItemById(i);
+        if (!item)
+            continue;
+
+        auto     object = (*m_objects)[i];
+        wxString extruder;
+        if (!object->config.has("extruder") || size_t(object->config.extruder()) == filament_id + 1) {
+            extruder = "1";
+            object->config.set_key_value("extruder", new ConfigOptionInt(1));
+        } else {
+            int new_extruder = object->config.extruder() > filament_id ? object->config.extruder() - 1 : object->config.extruder();
+            extruder = wxString::Format("%d", new_extruder);
+            object->config.set_key_value("extruder", new ConfigOptionInt(new_extruder));
+        }
+        m_objects_model->SetExtruder(extruder, item);
+
+        static const char *keys[] = {"support_filament", "support_interface_filament"};
+        for (auto key : keys)
+            if (object->config.has(key) && object->config.opt_int(key) == filament_id + 1)
+                object->config.erase(key);
+
+        if (object->volumes.size() > 1) {
+            for (size_t id = 0; id < object->volumes.size(); id++) {
+                item = m_objects_model->GetItemByVolumeId(i, id);
+                if (!item) continue;
+                if (!object->volumes[id]->config.has("extruder") || size_t(object->volumes[id]->config.extruder()) == filament_id + 1) {
+                    int new_extruder = object->config.extruder() > filament_id ? object->config.extruder() - 1 : object->config.extruder();
+                    extruder = wxString::Format("%d", new_extruder);
+                    object->config.set_key_value("extruder", new ConfigOptionInt(new_extruder));
+                } else {
+                    int new_extruder = object->volumes[id]->config.extruder() > filament_id ? object->volumes[id]->config.extruder() - 1 : object->volumes[id]->config.extruder();
+                    extruder = wxString::Format("%d", new_extruder);
+                    object->volumes[id]->config.set_key_value("extruder", new ConfigOptionInt(new_extruder));
+                }
+
+                m_objects_model->SetExtruder(extruder, item);
+
+                for (auto key : keys)
+                    if (object->volumes[id]->config.has(key) && object->volumes[id]->config.opt_int(key) == filament_id + 1)
+                        object->volumes[id]->config.erase(key);
+            }
+        }
+    }
+
+    // BBS
+    wxGetApp().plater()->update();
+}
+
+
 void ObjectList::update_plate_values_for_items()
 {
 #ifdef __WXOSX__
@@ -861,6 +913,24 @@ void ObjectList::update_objects_list_filament_column(size_t filaments_count)
     //a workaround for a wrong last column width updating under OSX
     auto em = em_unit(this);
     GetColumn(colEditing)->SetWidth(m_columns_width[colEditing]*em);
+
+    m_prevent_update_filament_in_config = false;
+}
+
+void ObjectList::update_objects_list_filament_column_when_delete_filament(size_t filament_id, size_t filaments_count)
+{
+    m_prevent_update_filament_in_config = true;
+
+    // BBS: update extruder values even when filaments_count is 1, because it may be reduced from value greater than 1
+    if (m_objects)
+        update_filament_values_for_items_when_delete_filament(filament_id);
+
+    update_filament_colors();
+
+    // set show/hide for this column
+    set_filament_column_hidden(filaments_count == 1);
+    // a workaround for a wrong last column width updating under OSX
+    GetColumn(colEditing)->SetWidth(25);
 
     m_prevent_update_filament_in_config = false;
 }

@@ -1881,6 +1881,30 @@ void PresetBundle::set_num_filaments(unsigned int n, std::string new_color)
     update_multi_material_filament_presets();
 }
 
+void PresetBundle::update_num_filaments(unsigned int to_del_flament_id)
+{
+    int old_filament_count = this->filament_presets.size();
+    assert(to_del_flament_id < old_filament_count);
+    filament_presets.erase(filament_presets.begin() + to_del_flament_id);
+
+    ConfigOptionStrings *filament_color = project_config.option<ConfigOptionStrings>("filament_colour");
+    if (filament_color->values.size() > to_del_flament_id) {
+        filament_color->values.erase(filament_color->values.begin() + to_del_flament_id);
+    }
+    else {
+        filament_color->values.resize(to_del_flament_id);
+    }
+
+    if (ams_multi_color_filment.size() > to_del_flament_id){
+        ams_multi_color_filment.erase(ams_multi_color_filment.begin() + to_del_flament_id);
+    }
+    else {
+        ams_multi_color_filment.resize(to_del_flament_id);
+    }
+
+    update_multi_material_filament_presets(to_del_flament_id);
+}
+
 unsigned int PresetBundle::sync_ams_list(unsigned int &unknowns)
 {
     std::vector<std::string> filament_presets;
@@ -3182,7 +3206,7 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
     return std::make_pair(std::move(substitutions), presets_loaded);
 }
 
-void PresetBundle::update_multi_material_filament_presets()
+void PresetBundle::update_multi_material_filament_presets(size_t to_delete_filament_id)
 {
     if (printers.get_edited_preset().printer_technology() != ptFFF)
         return;
@@ -3200,6 +3224,8 @@ void PresetBundle::update_multi_material_filament_presets()
 #else
     size_t num_filaments = this->filament_presets.size();
 #endif
+    if (to_delete_filament_id == -1)
+        to_delete_filament_id = num_filaments;
 
     // Now verify if flush_volumes_matrix has proper size (it is used to deduce number of extruders in wipe tower generator):
     std::vector<double> old_matrix = this->project_config.option<ConfigOptionFloats>("flush_volumes_matrix")->values;
@@ -3218,38 +3244,24 @@ void PresetBundle::update_multi_material_filament_presets()
             filaments.pop_back();
         }
 
-        if (nozzle_nums > 1) {
-            size_t old_matrix_size = old_number_of_filaments * old_number_of_filaments;
-            size_t new_matrix_size = num_filaments * num_filaments;
-            std::vector<double> new_matrix(new_matrix_size * nozzle_nums, 0);
-            for (unsigned int i = 0; i < num_filaments; ++i)
-                for (unsigned int j = 0; j < num_filaments; ++j) {
-                    if (i < old_number_of_filaments && j < old_number_of_filaments) {
-                        for (size_t nozzle_id = 0; nozzle_id < nozzle_nums; ++nozzle_id) {
-                            new_matrix[i * num_filaments + j + new_matrix_size * nozzle_id] = old_matrix[i * old_number_of_filaments + j + old_matrix_size * nozzle_id];
-                        }
+        size_t old_matrix_size = old_number_of_filaments * old_number_of_filaments;
+        size_t new_matrix_size = num_filaments * num_filaments;
+        std::vector<double> new_matrix(new_matrix_size * nozzle_nums, 0);
+        for (unsigned int i = 0; i < num_filaments; ++i)
+            for (unsigned int j = 0; j < num_filaments; ++j) {
+                if (i < old_number_of_filaments && j < old_number_of_filaments) {
+                    unsigned int old_i = i >= to_delete_filament_id ? i + 1 : i;
+                    unsigned int old_j = j >= to_delete_filament_id ? j + 1 : j;
+                    for (size_t nozzle_id = 0; nozzle_id < nozzle_nums; ++nozzle_id) {
+                        new_matrix[i * num_filaments + j + new_matrix_size * nozzle_id] = old_matrix[old_i * old_number_of_filaments + old_j + old_matrix_size * nozzle_id];
                     }
-                    else {
-                        for (size_t nozzle_id = 0; nozzle_id < nozzle_nums; ++nozzle_id) {
-                            new_matrix[i * num_filaments + j + new_matrix_size * nozzle_id] = (i == j ? 0. : filaments[2 * i] + filaments[2 * j + 1]);
-                        }
+                } else {
+                    for (size_t nozzle_id = 0; nozzle_id < nozzle_nums; ++nozzle_id) {
+                        new_matrix[i * num_filaments + j + new_matrix_size * nozzle_id] = (i == j ? 0. : filaments[2 * i] + filaments[2 * j + 1]);
                     }
                 }
-            this->project_config.option<ConfigOptionFloats>("flush_volumes_matrix")->values = new_matrix;
-        }
-        else {
-            std::vector<double> new_matrix;
-            for (unsigned int i = 0; i < num_filaments; ++i)
-                for (unsigned int j = 0; j < num_filaments; ++j) {
-                    // append the value for this pair from the old matrix (if it's there):
-                    if (i < old_number_of_filaments && j < old_number_of_filaments)
-                        new_matrix.push_back(old_matrix[i * old_number_of_filaments + j]);
-                    else
-                        new_matrix.push_back(i == j ? 0. : filaments[2 * i] + filaments[2 * j + 1]); // so it matches new extruder volumes
-                }
-            this->project_config.option<ConfigOptionFloats>("flush_volumes_matrix")->values = new_matrix;
-        }
-        
+            }
+        this->project_config.option<ConfigOptionFloats>("flush_volumes_matrix")->values = new_matrix;
     }
 }
 

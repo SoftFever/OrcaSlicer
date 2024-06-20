@@ -38,7 +38,7 @@ namespace Slic3r {
 // Forward declarations.
 class GCode;
 
-namespace { struct Item; }
+namespace CustomGCode{ struct Item; }
 struct PrintInstance;
 class ConstPrintObjectPtrsAdaptor;
 

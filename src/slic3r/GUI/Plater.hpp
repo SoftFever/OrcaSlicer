@@ -149,8 +149,10 @@ public:
     void jump_to_option(const std::string& opt_key, Preset::Type type, const std::wstring& category);
     // BBS. Add on_filaments_change() method.
     void on_filaments_change(size_t num_filaments);
+    void on_filaments_delete(size_t filament_id);
+
     void add_filament();
-    void delete_filament();
+    void delete_filament(size_t filament_id = size_t(-1));
     void add_custom_filament(wxColour new_col);
     // BBS
     void on_bed_type_change(BedType bed_type);
@@ -478,6 +480,7 @@ public:
     bool leave_gizmos_stack();
 
     void on_filaments_change(size_t extruders_count);
+    void on_filaments_delete(size_t extruders_count, size_t filament_id);
     // BBS
     void on_bed_type_change(BedType bed_type);
     bool update_filament_colors_in_full_config();

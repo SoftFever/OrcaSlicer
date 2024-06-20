@@ -1849,26 +1849,88 @@ void Sidebar::on_filaments_change(size_t num_filaments)
     update_dynamic_filament_list();
 }
 
+void Sidebar::on_filaments_delete(size_t filament_id)
+{
+    auto &choices = combos_filament();
+
+    if (filament_id >= choices.size())
+        return;
+
+    if (choices.size() == 1)
+        choices[0]->GetDropDown().Invalidate();
+
+    wxWindowUpdateLocker noUpdates_scrolled_panel(this);
+
+    // delete UI item
+    if (filament_id < p->combos_filament.size()) {
+        const int last            = p->combos_filament.size() - 1;
+        auto      sizer_filaments = this->p->sizer_filaments->GetItem(last % 2)->GetSizer();
+        sizer_filaments->Remove(last / 2);
+
+        PlaterPresetComboBox* to_delete_combox = p->combos_filament[filament_id];
+        (*p->combos_filament[last]).Destroy();
+        p->combos_filament.pop_back();
+
+        // BBS:  filament double columns
+        auto sizer_filaments0 = this->p->sizer_filaments->GetItem((size_t) 0)->GetSizer();
+        auto sizer_filaments1 = this->p->sizer_filaments->GetItem(1)->GetSizer();
+        if (p->combos_filament.size() < 2) {
+            sizer_filaments1->Clear();
+        } else {
+            size_t c0 = sizer_filaments0->GetChildren().GetCount();
+            size_t c1 = sizer_filaments1->GetChildren().GetCount();
+            if (c0 < c1)
+                sizer_filaments1->Remove(c1 - 1);
+            else if (c0 > c1)
+                sizer_filaments1->AddStretchSpacer(1);
+        }
+    }
+
+    auto sizer = p->m_panel_filament_title->GetSizer();
+    if (p->m_flushing_volume_btn != nullptr && sizer != nullptr) {
+        if (p->combos_filament.size() > 1)
+            sizer->Show(p->m_flushing_volume_btn);
+        else
+            sizer->Hide(p->m_flushing_volume_btn);
+    }
+
+    for (PlaterPresetComboBox *filament_combo : p->combos_filament) {
+        filament_combo->update();
+    }
+
+    Layout();
+    p->m_panel_filament_title->Refresh();
+    update_ui_from_settings();
+    dynamic_filament_list.update();
+}
+
 void Sidebar::add_filament() {
     if (p->combos_filament.size() >= MAXIMUM_EXTRUDER_NUMBER) return;
     wxColour    new_col        = Plater::get_next_color_for_filament();
     add_custom_filament(new_col);
 }
 
-void Sidebar::delete_filament() {
+void Sidebar::delete_filament(size_t filament_id) {
     if (p->combos_filament.size() <= 1) return;
 
     size_t filament_count = p->combos_filament.size() - 1;
-    if (wxGetApp().preset_bundle->is_the_only_edited_filament(filament_count) || (filament_count == 1)) {
+    if (filament_id == size_t(-1)) {
+        filament_id = filament_count;
+    }
+
+    if (filament_id > filament_count)
+        return;
+
+    if (wxGetApp().preset_bundle->is_the_only_edited_filament(filament_id) || (filament_id == 1)) {
         wxGetApp().get_tab(Preset::TYPE_FILAMENT)->select_preset(wxGetApp().preset_bundle->filament_presets[0], false, "", true);
     }
 
-    if (p->editing_filament >= filament_count) {
+    if (p->editing_filament == filament_id || p->editing_filament >= filament_count) {
         p->editing_filament = -1;
     }
 
-    wxGetApp().preset_bundle->set_num_filaments(filament_count);
-    wxGetApp().plater()->on_filaments_change(filament_count);
+    wxGetApp().preset_bundle->update_num_filaments(filament_id);
+    wxGetApp().plater()->on_filaments_delete(filament_count, filament_id);
     wxGetApp().get_tab(Preset::TYPE_PRINT)->update();
     wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
 }
@@ -13293,6 +13355,51 @@ void Plater::on_filaments_change(size_t num_filaments)
     for (ModelObject* mo : wxGetApp().model().objects) {
         for (ModelVolume* mv : mo->volumes) {
             mv->update_extruder_count(num_filaments);
+        }
+    }
+}
+
+void Plater::on_filaments_delete(size_t num_filaments, size_t filament_id)
+{
+    // only update elements in plater
+    update_filament_colors_in_full_config();
+
+    // update fisrt print sequence and other layer sequence
+    Slic3r::GUI::PartPlateList &plate_list = get_partplate_list();
+    for (int i = 0; i < plate_list.get_plate_count(); ++i) {
+        PartPlate *part_plate = plate_list.get_plate(i);
+        part_plate->update_first_layer_print_sequence_when_delete_filament(filament_id);
+    }
+
+    // update mmu info
+    for (ModelObject *mo : wxGetApp().model().objects) {
+        for (ModelVolume *mv : mo->volumes) {
+            mv->update_extruder_count_when_delete_filament(num_filaments, filament_id);
+        }
+    }
+
+    // update UI
+    sidebar().on_filaments_delete(filament_id);
+
+    // update global support filament
+    static const char *keys[] = {"support_filament", "support_interface_filament"};
+    for (auto key : keys)
+        if (p->config->has(key) && p->config->opt_int(key) == filament_id + 1)
+            (*(p->config)).erase(key);
+    
+    // update object/volume/support(object and volume) filament id
+    sidebar().obj_list()->update_objects_list_filament_column_when_delete_filament(filament_id, num_filaments);
+
+    // update customize gcode
+    for (auto& item = p->model.plates_custom_gcodes.begin(); item != p->model.plates_custom_gcodes.end(); ++item) {
+        auto iter = std::remove_if(item->second.gcodes.begin(), item->second.gcodes.end(), [filament_id](const Item& gcode_item) {
+            return (gcode_item.type == CustomGCode::Type::ToolChange && gcode_item.extruder == filament_id + 1);
+        });
+        item->second.gcodes.erase(iter, item->second.gcodes.end());
+
+        for (auto& item : item->second.gcodes) {
+            if (item.type == CustomGCode::Type::ToolChange && item.extruder > filament_id)
+                item.extruder--;
         }
     }
 }

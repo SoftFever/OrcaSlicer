@@ -1720,7 +1720,7 @@ TriangleSelector::TriangleSplittingData TriangleSelector::serialize() const {
     return out.data;
 }
 
-void TriangleSelector::deserialize(const TriangleSplittingData& data, bool needs_reset, EnforcerBlockerType max_ebt)
+void TriangleSelector::deserialize(const TriangleSplittingData& data, bool needs_reset, EnforcerBlockerType max_ebt, EnforcerBlockerType to_delete_filament)
 {
     if (needs_reset)
         reset(); // dump any current state
@@ -1771,6 +1771,10 @@ void TriangleSelector::deserialize(const TriangleSplittingData& data, bool needs
             // BBS
             if (state > max_ebt)
                 state = EnforcerBlockerType::NONE;
+
+            if (to_delete_filament != EnforcerBlockerType::NONE && state != EnforcerBlockerType::NONE) {
+                state = state > to_delete_filament ? EnforcerBlockerType((int)state - 1) : state;
+            }
 
             // Only valid if is_split.
             int special_side = code >> 2;

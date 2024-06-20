@@ -3116,6 +3116,37 @@ void PartPlate::update_first_layer_print_sequence(size_t filament_nums)
     }
 }
 
+void PartPlate::update_first_layer_print_sequence_when_delete_filament(size_t filament_id)
+{
+    auto other_layers_seqs = get_other_layers_print_sequence();
+    if (!other_layers_seqs.empty()) {
+        bool need_update_data = false;
+        for (auto &other_layers_seq : other_layers_seqs) {
+            std::vector<int> &orders = other_layers_seq.second;
+            orders.erase(std::remove_if(orders.begin(), orders.end(), [filament_id](int n) { return n == filament_id +1; }), orders.end());
+            for (auto &order : orders) {
+                order = order > filament_id ? order - 1 : order;
+            }
+            need_update_data = true;
+        }
+        if (need_update_data)
+            set_other_layers_print_sequence(other_layers_seqs);
+    }
+
+    ConfigOptionInts *op_print_sequence_1st = m_config.option<ConfigOptionInts>("first_layer_print_sequence");
+    if (!op_print_sequence_1st)
+        return;
+
+    std::vector<int> &print_sequence_1st = op_print_sequence_1st->values;
+    if (print_sequence_1st.size() == 0 || print_sequence_1st[0] == 0)
+        return;
+
+    print_sequence_1st.erase(std::remove_if(print_sequence_1st.begin(), print_sequence_1st.end(), [filament_id](int n) { return n == filament_id + 1; }), print_sequence_1st.end());
+    for (auto &order : print_sequence_1st) {
+        order = order > filament_id ? order - 1 : order;
+    }
+}
+
 void PartPlate::print() const
 {
 	unsigned int count=0;

@@ -115,6 +115,7 @@ public:
     // BBS
     void            set_num_filaments(unsigned int n, std::vector<std::string> new_colors);
     void            set_num_filaments(unsigned int n, std::string new_col = "");
+    void         update_num_filaments(unsigned int to_del_flament_id);
     unsigned int sync_ams_list(unsigned int & unknowns);
     //BBS: check whether this is the only edited filament
     bool is_the_only_edited_filament(unsigned int filament_index);
@@ -244,7 +245,7 @@ public:
 
     // Read out the number of extruders from an active printer preset,
     // update size and content of filament_presets.
-    void                        update_multi_material_filament_presets();
+    void                        update_multi_material_filament_presets(size_t to_delete_filament_id = size_t(-1));
 
     // Update the is_compatible flag of all print and filament presets depending on whether they are marked
     // as compatible with the currently selected printer (and print in case of filament presets).
