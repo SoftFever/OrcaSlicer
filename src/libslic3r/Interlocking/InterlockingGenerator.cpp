@@ -23,11 +23,16 @@ namespace Slic3r {
 
 void InterlockingGenerator::generate_interlocking_structure(PrintObject* print_object)
 {
-    const float    rotation           = Geometry::deg2rad(22.5); //(global_settings.get<AngleDegrees>("interlocking_orientation"));
-    const coord_t  beam_layer_count   = 2;    // global_settings.get<int>("interlocking_beam_layer_count");
-    const int      interface_depth    = 2;    // global_settings.get<int>("interlocking_depth");
-    const int      boundary_avoidance = 2;    // global_settings.get<int>("interlocking_boundary_avoidance");
-    const coord_t  beam_width         = scaled(0.8);
+    const auto& config = print_object->config();
+    if (!config.interlocking_beam) {
+        return;
+    }
+
+    const float    rotation           = Geometry::deg2rad(config.interlocking_orientation.value);
+    const coord_t  beam_layer_count   = config.interlocking_beam_layer_count;
+    const int      interface_depth    = config.interlocking_depth;
+    const int      boundary_avoidance = config.interlocking_boundary_avoidance;
+    const coord_t  beam_width         = scaled(config.interlocking_beam_width.value);
 
     const DilationKernel interface_dilation(GridPoint3(interface_depth, interface_depth, interface_depth), DilationKernel::Type::PRISM);
 

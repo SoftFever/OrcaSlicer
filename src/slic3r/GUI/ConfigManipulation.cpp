@@ -762,6 +762,14 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     toggle_field("seam_slope_min_length", !config->opt_bool("seam_slope_entire_loop"));
     toggle_line("scarf_angle_threshold", has_seam_slope && config->opt_bool("seam_slope_conditional"));
     toggle_line("scarf_overhang_threshold", has_seam_slope && config->opt_bool("seam_slope_conditional"));
+
+    bool use_beam_interlocking = config->opt_bool("interlocking_beam");
+    toggle_line("mmu_segmented_region_interlocking_depth", !use_beam_interlocking);
+    toggle_line("interlocking_beam_width", use_beam_interlocking);
+    toggle_line("interlocking_orientation", use_beam_interlocking);
+    toggle_line("interlocking_beam_layer_count", use_beam_interlocking);
+    toggle_line("interlocking_depth", use_beam_interlocking);
+    toggle_line("interlocking_boundary_avoidance", use_beam_interlocking);
 }
 
 void ConfigManipulation::update_print_sla_config(DynamicPrintConfig* config, const bool is_global_config/* = false*/)
