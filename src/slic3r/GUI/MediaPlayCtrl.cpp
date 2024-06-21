@@ -259,7 +259,6 @@ void MediaPlayCtrl::Play()
         return;
     }
 
-    m_button_play->SetIcon("media_stop");
     NetworkAgent *agent = wxGetApp().getAgent();
     std::string  agent_version = agent ? agent->get_version() : "";
     if (m_lan_proto > MachineObject::LVL_Disable && (m_lan_mode || !m_remote_support) && !m_disable_lan && !m_lan_ip.empty()) {
@@ -279,6 +278,7 @@ void MediaPlayCtrl::Play()
         BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl: " << hide_passwd(hide_id_middle_string(url, url.find(m_lan_ip), m_lan_ip.length()), {m_lan_passwd});
         m_url = url;
         load();
+        m_button_play->SetIcon("media_stop");
         return;
     }
 
