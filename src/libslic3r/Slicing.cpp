@@ -314,6 +314,8 @@ std::vector<double> layer_height_profile_adaptive(const SlicingParameters& slici
         else if (layer_height_profile.back() > height && layer_height_profile.back() - height > LAYER_HEIGHT_CHANGE_STEP)
             height = layer_height_profile.back() - LAYER_HEIGHT_CHANGE_STEP;
 
+        height = std::round(height * 1000) / 1000.f;
+
         layer_height_profile.push_back(print_z);
         layer_height_profile.push_back(height);
         print_z += height;
