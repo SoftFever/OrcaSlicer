@@ -1,16 +1,3 @@
-///|/ Copyright (c) Prusa Research 2016 - 2023 Tomáš Mészáros @tamasmeszaros, Oleksandra Iushchenko @YuSanka, David Kocík @kocikdav, Enrico Turri @enricoturri1966, Lukáš Matěna @lukasmatena, Vojtěch Bubník @bubnikv, Lukáš Hejl @hejllukas, Filip Sykala @Jony01, Vojtěch Král @vojtechkral
-///|/ Copyright (c) 2021 Boleslaw Ciesielski
-///|/ Copyright (c) 2019 John Drake @foxox
-///|/ Copyright (c) 2019 Sijmen Schoon
-///|/ Copyright (c) Slic3r 2014 - 2016 Alessandro Ranellucci @alranel
-///|/ Copyright (c) 2015 Maksim Derbasov @ntfshard
-///|/
-///|/ ported from lib/Slic3r/Model.pm:
-///|/ Copyright (c) Prusa Research 2016 - 2022 Vojtěch Bubník @bubnikv, Enrico Turri @enricoturri1966
-///|/ Copyright (c) Slic3r 2012 - 2016 Alessandro Ranellucci @alranel
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 #include "Model.hpp"
 #include "libslic3r.h"
 #include "BuildVolume.hpp"
@@ -238,16 +225,6 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
                     if (vertex_filament_ids.size() > 0) {
                         result = obj_import_vertex_color_deal(vertex_filament_ids, first_extruder_id, & model);
                     }
-                } else { // test //todo delete
-                    vertex_filament_ids.push_back(2);
-                    vertex_filament_ids.push_back(3);
-                    vertex_filament_ids.push_back(4);
-                    vertex_filament_ids.push_back(1); // 4
-                    vertex_filament_ids.push_back(1);
-                    vertex_filament_ids.push_back(1);
-                    vertex_filament_ids.push_back(1);
-                    vertex_filament_ids.push_back(1); // 8
-                    result = obj_import_vertex_color_deal(vertex_filament_ids, first_extruder_id, &model);
                 }
             } else if (obj_info.face_colors.size() > 0 && obj_info.has_uv_png == false) { // mtl file
                 std::vector<unsigned char> face_filament_ids;

@@ -1,22 +1,3 @@
-///|/ Copyright (c) Prusa Research 2017 - 2023 Oleksandra Iushchenko @YuSanka, Lukáš Matěna @lukasmatena, Lukáš Hejl @hejllukas, Vojtěch Bubník @bubnikv, Pavel Mikuš @Godrak, Tomáš Mészáros @tamasmeszaros, David Kocík @kocikdav, Enrico Turri @enricoturri1966, Vojtěch Král @vojtechkral
-///|/ Copyright (c) 2021 Martin Budden
-///|/ Copyright (c) 2021 Ilya @xorza
-///|/ Copyright (c) 2019 John Drake @foxox
-///|/ Copyright (c) 2019 Matthias Urlichs @smurfix
-///|/ Copyright (c) 2019 Thomas Moore
-///|/ Copyright (c) 2019 Sijmen Schoon
-///|/ Copyright (c) 2018 Martin Loidl @LoidlM
-///|/
-///|/ ported from lib/Slic3r/GUI/Tab.pm:
-///|/ Copyright (c) Prusa Research 2016 - 2018 Vojtěch Bubník @bubnikv, Lukáš Matěna @lukasmatena
-///|/ Copyright (c) 2015 - 2017 Joseph Lenox @lordofhyphens
-///|/ Copyright (c) Slic3r 2012 - 2016 Alessandro Ranellucci @alranel
-///|/ Copyright (c) 2016 Chow Loong Jin @hyperair
-///|/ Copyright (c) 2012 QuantumConcepts
-///|/ Copyright (c) 2012 Henrik Brix Andersen @henrikbrixandersen
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 // #include "libslic3r/GCodeSender.hpp"
 //#include "slic3r/Utils/Serial.hpp"
 #include "Tab.hpp"
@@ -66,6 +47,7 @@
 #include "MarkdownTip.hpp"
 #include "Search.hpp"
 #include "BedShapeDialog.hpp"
+#include "libslic3r/GCode/Thumbnails.hpp"
 
 #include "BedShapeDialog.hpp"
 // #include "BonjourDialog.hpp"
@@ -1999,7 +1981,7 @@ void TabPrint::build()
         m_presets = &m_preset_bundle->prints;
     load_initial_data();
 
-    auto page = add_options_page(L("Quality"), "empty");
+    auto page = add_options_page(L("Quality"), "custom-gcode_quality"); // ORCA: icon only visible on placeholders
         auto optgroup = page->new_optgroup(L("Layer height"), L"param_layer_height");
         optgroup->append_single_option_line("layer_height");
         optgroup->append_single_option_line("initial_layer_print_height");
@@ -2057,7 +2039,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("ironing_spacing");
         optgroup->append_single_option_line("ironing_angle");
 
-        optgroup = page->new_optgroup(L("Wall generator"), L"param_wall");
+        optgroup = page->new_optgroup(L("Wall generator"), L"param_wall_generator");
         optgroup->append_single_option_line("wall_generator", "wall-generator");
         optgroup->append_single_option_line("wall_transition_angle");
         optgroup->append_single_option_line("wall_transition_filter_deviation");
@@ -2068,7 +2050,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("min_feature_size");
         optgroup->append_single_option_line("min_length_factor");
 
-        optgroup = page->new_optgroup(L("Walls and surfaces"), L"param_advanced");
+        optgroup = page->new_optgroup(L("Walls and surfaces"), L"param_wall_surface");
         optgroup->append_single_option_line("wall_sequence");
         optgroup->append_single_option_line("is_infill_first");
         optgroup->append_single_option_line("wall_direction");
@@ -2088,7 +2070,7 @@ void TabPrint::build()
         option.opt.height = 15;
         optgroup->append_single_option_line(option, "small-area-infill-flow-compensation");
         
-        optgroup = page->new_optgroup(L("Bridging"), L"param_advanced");
+        optgroup = page->new_optgroup(L("Bridging"), L"param_bridge");
         optgroup->append_single_option_line("bridge_flow");
 	    optgroup->append_single_option_line("internal_bridge_flow");
         optgroup->append_single_option_line("bridge_density");
@@ -2097,7 +2079,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("dont_filter_internal_bridges");
         optgroup->append_single_option_line("counterbore_hole_bridging","counterbore-hole-bridging");
     
-        optgroup = page->new_optgroup(L("Overhangs"), L"param_advanced");
+        optgroup = page->new_optgroup(L("Overhangs"), L"param_overhang");
         optgroup->append_single_option_line("detect_overhang_wall");
         optgroup->append_single_option_line("make_overhang_printable");
         optgroup->append_single_option_line("make_overhang_printable_angle");
@@ -2107,7 +2089,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("overhang_reverse_internal_only");
         optgroup->append_single_option_line("overhang_reverse_threshold");
 
-    page = add_options_page(L("Strength"), "empty");
+    page = add_options_page(L("Strength"), "custom-gcode_strength"); // ORCA: icon only visible on placeholders
         optgroup = page->new_optgroup(L("Walls"), L"param_wall");
         optgroup->append_single_option_line("wall_loops");
         optgroup->append_single_option_line("alternate_extra_wall");
@@ -2142,7 +2124,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("detect_narrow_internal_solid_infill");
         optgroup->append_single_option_line("ensure_vertical_shell_thickness");
 
-    page = add_options_page(L("Speed"), "empty");
+    page = add_options_page(L("Speed"), "custom-gcode_speed"); // ORCA: icon only visible on placeholders
         optgroup = page->new_optgroup(L("Initial layer speed"), L"param_speed_first", 15);
         optgroup->append_single_option_line("initial_layer_speed");
         optgroup->append_single_option_line("initial_layer_infill_speed");
@@ -2159,7 +2141,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("gap_infill_speed");
         optgroup->append_single_option_line("support_speed");
         optgroup->append_single_option_line("support_interface_speed");
-        optgroup = page->new_optgroup(L("Overhang speed"), L"param_speed", 15);
+        optgroup = page->new_optgroup(L("Overhang speed"), L"param_overhang_speed", 15);
         optgroup->append_single_option_line("enable_overhang_speed", "slow-down-for-overhang");
         optgroup->append_single_option_line("overhang_speed_classic", "slow-down-for-overhang");
         optgroup->append_single_option_line("slowdown_for_curled_perimeters");
@@ -2192,7 +2174,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("accel_to_decel_enable");
         optgroup->append_single_option_line("accel_to_decel_factor");
 
-        optgroup = page->new_optgroup(L("Jerk(XY)"), L"param_speed", 15);
+        optgroup = page->new_optgroup(L("Jerk(XY)"), L"param_jerk", 15);
         optgroup->append_single_option_line("default_jerk");
         optgroup->append_single_option_line("outer_wall_jerk");
         optgroup->append_single_option_line("inner_wall_jerk");
@@ -2205,7 +2187,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("max_volumetric_extrusion_rate_slope", "extrusion-rate-smoothing");
         optgroup->append_single_option_line("max_volumetric_extrusion_rate_slope_segment_length", "extrusion-rate-smoothing");
 
-    page = add_options_page(L("Support"), "support");
+    page = add_options_page(L("Support"), "custom-gcode_support"); // ORCA: icon only visible on placeholders
         optgroup = page->new_optgroup(L("Support"), L"param_support");
     optgroup->append_single_option_line("enable_support", "support");
         optgroup->append_single_option_line("support_type", "support#support-types");
@@ -2249,7 +2231,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("max_bridge_length", "support#base-pattern");
         optgroup->append_single_option_line("independent_support_layer_height", "support");
 
-        optgroup = page->new_optgroup(L("Tree supports"), L"param_advanced");
+        optgroup = page->new_optgroup(L("Tree supports"), L"param_support_tree");
         optgroup->append_single_option_line("tree_support_tip_diameter");
         optgroup->append_single_option_line("tree_support_branch_distance", "support#tree-support-only-options");
         optgroup->append_single_option_line("tree_support_branch_distance_organic", "support#tree-support-only-options");
@@ -2266,13 +2248,16 @@ void TabPrint::build()
         optgroup->append_single_option_line("tree_support_auto_brim");
         optgroup->append_single_option_line("tree_support_brim_width");
         
-    page = add_options_page(L("Others"), "advanced");
-        optgroup = page->new_optgroup(L("Bed adhension"), L"param_adhension");
+    page = add_options_page(L("Others"), "custom-gcode_other"); // ORCA: icon only visible on placeholders
+        optgroup = page->new_optgroup(L("Skirt"), L"param_skirt");
         optgroup->append_single_option_line("skirt_loops");
+        optgroup->append_single_option_line("min_skirt_length");
         optgroup->append_single_option_line("skirt_distance");
         optgroup->append_single_option_line("skirt_height");
         optgroup->append_single_option_line("skirt_speed");
-        //optgroup->append_single_option_line("draft_shield");
+        optgroup->append_single_option_line("draft_shield");
+        
+        optgroup = page->new_optgroup(L("Brim"), L"param_adhension");
         optgroup->append_single_option_line("brim_type", "auto-brim");
         optgroup->append_single_option_line("brim_width", "auto-brim#manual");
         optgroup->append_single_option_line("brim_object_gap", "auto-brim#brim-object-gap");
@@ -2335,7 +2320,7 @@ void TabPrint::build()
         option.opt.is_code = true;
         option.opt.height = 15;
         optgroup->append_single_option_line(option);
-    page = add_options_page(L("Notes"), "note");
+    page = add_options_page(L("Notes"), "custom-gcode_note"); // ORCA: icon only visible on placeholders
         optgroup = page->new_optgroup(L("Notes"), "note", 0);
         option = optgroup->get_option("notes");
         option.opt.full_width = true;
@@ -3071,7 +3056,7 @@ void TabFilament::set_custom_gcode(const t_config_option_key& opt_key, const std
 void TabFilament::add_filament_overrides_page()
 {
     //BBS
-    PageShp page = add_options_page(L("Setting Overrides"), "empty");
+    PageShp page = add_options_page(L("Setting Overrides"), "custom-gcode_setting_override"); // ORCA: icon only visible on placeholders
     ConfigOptionsGroupShp optgroup = page->new_optgroup(L("Retraction"), L"param_retraction");
 
     auto append_single_option_line = [optgroup, this](const std::string& opt_key, int opt_index)
@@ -3204,7 +3189,7 @@ void TabFilament::build()
     m_presets = &m_preset_bundle->filaments;
     load_initial_data();
 
-    auto page = add_options_page(L("Filament"), "spool");
+    auto page = add_options_page(L("Filament"), "custom-gcode_filament"); // ORCA: icon only visible on placeholders
         //BBS
         auto optgroup = page->new_optgroup(L("Basic information"), L"param_information");
         // Set size as all another fields for a better alignment
@@ -3252,13 +3237,13 @@ void TabFilament::build()
         optgroup->append_separator();
 
 
-        optgroup = page->new_optgroup(L("Print temperature"), L"param_temperature");
+        optgroup = page->new_optgroup(L("Print temperature"), L"param_extruder_temp");
         line = { L("Nozzle"), L("Nozzle temperature when printing") };
         line.append_option(optgroup->get_option("nozzle_temperature_initial_layer"));
         line.append_option(optgroup->get_option("nozzle_temperature"));
         optgroup->append_line(line);
 
-        optgroup = page->new_optgroup(L("Bed temperature"), L"param_temperature");
+        optgroup = page->new_optgroup(L("Bed temperature"), L"param_bed_temp");
         line = { L("Cool plate"), L("Bed temperature when cool plate is installed. Value 0 means the filament does not support to print on the Cool Plate") };
         line.append_option(optgroup->get_option("cool_plate_temp_initial_layer"));
         line.append_option(optgroup->get_option("cool_plate_temp"));
@@ -3320,7 +3305,7 @@ void TabFilament::build()
         //};
         //optgroup->append_line(line);
 
-    page = add_options_page(L("Cooling"), "empty");
+    page = add_options_page(L("Cooling"), "custom-gcode_cooling_fan"); // ORCA: icon only visible on placeholders
 
         //line = { "", "" };
         //line.full_width = 1;
@@ -3328,11 +3313,11 @@ void TabFilament::build()
         //    return description_line_widget(parent, &m_cooling_description_line);
         //};
         //optgroup->append_line(line);
-        optgroup = page->new_optgroup(L("Cooling for specific layer"), L"param_cooling");
+        optgroup = page->new_optgroup(L("Cooling for specific layer"), L"param_cooling_specific_layer");
         optgroup->append_single_option_line("close_fan_the_first_x_layers", "auto-cooling");
         optgroup->append_single_option_line("full_fan_speed_layer");
 
-        optgroup = page->new_optgroup(L("Part cooling fan"), L"param_cooling_fan");
+        optgroup = page->new_optgroup(L("Part cooling fan"), L"param_cooling_part_fan");
         line = { L("Min fan speed threshold"), L("Part cooling fan speed will start to run at min speed when the estimated layer time is no longer than the layer time in setting. When layer time is shorter than threshold, fan speed is interpolated between the minimum and maximum fan speed according to layer printing time") };
         line.label_path = "auto-cooling";
         line.append_option(optgroup->get_option("fan_min_speed"));
@@ -3345,6 +3330,7 @@ void TabFilament::build()
         optgroup->append_line(line);
         optgroup->append_single_option_line("reduce_fan_stop_start_freq");
         optgroup->append_single_option_line("slow_down_for_layer_cooling", "auto-cooling");
+        optgroup->append_single_option_line("dont_slow_down_outer_wall");
         optgroup->append_single_option_line("slow_down_min_speed");
 
         optgroup->append_single_option_line("enable_overhang_bridge_fan", "auto-cooling");
@@ -3352,10 +3338,10 @@ void TabFilament::build()
         optgroup->append_single_option_line("overhang_fan_speed", "auto-cooling");
         optgroup->append_single_option_line("support_material_interface_fan_speed");
 
-        optgroup = page->new_optgroup(L("Auxiliary part cooling fan"), L"param_cooling_fan");
+        optgroup = page->new_optgroup(L("Auxiliary part cooling fan"), L"param_cooling_aux_fan");
         optgroup->append_single_option_line("additional_cooling_fan_speed", "auxiliary-fan");
 
-        optgroup = page->new_optgroup(L("Exhaust fan"),L"param_cooling_fan");
+        optgroup = page->new_optgroup(L("Exhaust fan"),L"param_cooling_exhaust");
 
         optgroup->append_single_option_line("activate_air_filtration", "air-filtration");
 
@@ -3374,7 +3360,7 @@ void TabFilament::build()
 
         auto edit_custom_gcode_fn = [this](const t_config_option_key& opt_key) { edit_custom_gcode(opt_key); };
 
-    page = add_options_page(L("Advanced"), "advanced");
+    page = add_options_page(L("Advanced"), "custom-gcode_advanced"); // ORCA: icon only visible on placeholders
         optgroup = page->new_optgroup(L("Filament start G-code"), L"param_gcode", 0);
         optgroup->m_on_change = [this, &optgroup_title = optgroup->title](const t_config_option_key& opt_key, const boost::any& value) {
             validate_custom_gcode_cb(this, optgroup_title, opt_key, value);
@@ -3397,11 +3383,11 @@ void TabFilament::build()
         option.opt.height = gcode_field_height;// 150;
         optgroup->append_single_option_line(option);
 
-    page = add_options_page(L("Multimaterial"), "advanced");
-        optgroup = page->new_optgroup(L("Wipe tower parameters"));
+    page = add_options_page(L("Multimaterial"), "custom-gcode_multi_material"); // ORCA: icon only visible on placeholders
+        optgroup = page->new_optgroup(L("Wipe tower parameters"), "param_tower");
         optgroup->append_single_option_line("filament_minimal_purge_on_wipe_tower");
 
-        optgroup = page->new_optgroup(L("Toolchange parameters with single extruder MM printers"));
+        optgroup = page->new_optgroup(L("Toolchange parameters with single extruder MM printers"), "param_toolchange");
         optgroup->append_single_option_line("filament_loading_speed_start", "semm");
         optgroup->append_single_option_line("filament_loading_speed", "semm");
         optgroup->append_single_option_line("filament_unloading_speed_start", "semm");
@@ -3439,7 +3425,7 @@ void TabFilament::build()
         optgroup->append_single_option_line("filament_multitool_ramming_flow");
 #endif
 
-        page                  = add_options_page(L("Notes"), "note");
+        page     = add_options_page(L("Notes"), "custom-gcode_note"); // ORCA: icon only visible on placeholders
         optgroup = page->new_optgroup(L("Notes"),"note", 0);
         optgroup->label_width = 0;
         option = optgroup->get_option("filament_notes");
@@ -3519,6 +3505,10 @@ void TabFilament::toggle_options()
             toggle_option(el, has_enable_overhang_bridge_fan);
 
       toggle_option("additional_cooling_fan_speed", cfg.opt_bool("auxiliary_fan"));
+        
+      // Orca: toggle dont slow down for external perimeters if
+      bool has_slow_down_for_layer_cooling = m_config->opt_bool("slow_down_for_layer_cooling", 0);
+      toggle_option("dont_slow_down_outer_wall", has_slow_down_for_layer_cooling);
     }
     if (m_active_page->title() == L("Filament"))
     {
@@ -3629,8 +3619,8 @@ void TabPrinter::build_fff()
     m_sys_extruders_count = parent_preset == nullptr ? 0 :
             static_cast<const ConfigOptionFloats*>(parent_preset->config.option("nozzle_diameter"))->values.size();
 
-    auto page = add_options_page(L("Basic information"), "printer");
-        auto optgroup = page->new_optgroup(L("Printable space")/*, L"param_printable_space"*/);
+    auto page = add_options_page(L("Basic information"), "custom-gcode_object-info"); // ORCA: icon only visible on placeholders
+    auto optgroup = page->new_optgroup(L("Printable space"), "param_printable_space");
 
         create_line_with_widget(optgroup.get(), "printable_area", "custom-svg-and-png-bed-textures_124612", [this](wxWindow* parent) {
            return 	create_bed_shape_widget(parent);
@@ -3666,7 +3656,43 @@ void TabPrinter::build_fff()
         option = optgroup->get_option("thumbnails");
         option.opt.full_width = true;
         optgroup->append_single_option_line(option, "thumbnails");
-        optgroup->append_single_option_line("thumbnails_format", "thumbnails");
+        // optgroup->append_single_option_line("thumbnails_format", "thumbnails");
+        optgroup->m_on_change = [this](t_config_option_key opt_key, boost::any value) {
+            wxTheApp->CallAfter([this, opt_key, value]() {
+                if (opt_key == "thumbnails" && m_config->has("thumbnails_format")) {
+                    // to backward compatibility we need to update "thumbnails_format" from new "thumbnails"
+                    const std::string val = boost::any_cast<std::string>(value);
+                    if (!value.empty()) {
+                        auto [thumbnails_list, errors] = GCodeThumbnails::make_and_check_thumbnail_list(val);
+
+                        if (errors != enum_bitmask<ThumbnailError>()) {
+                            // TRN: First argument is parameter name, the second one is the value.
+                            std::string error_str = format(_u8L("Invalid value provided for parameter %1%: %2%"), "thumbnails", val);
+                            error_str += GCodeThumbnails::get_error_string(errors);
+                            InfoDialog(parent(), _L("G-code flavor is switched"), from_u8(error_str)).ShowModal();
+                        }
+
+                        if (!thumbnails_list.empty()) {
+                            GCodeThumbnailsFormat old_format = GCodeThumbnailsFormat(m_config->option("thumbnails_format")->getInt());
+                            GCodeThumbnailsFormat new_format = thumbnails_list.begin()->first;
+                            if (old_format != new_format) {
+                                DynamicPrintConfig new_conf = *m_config;
+
+                                auto* opt = m_config->option("thumbnails_format")->clone();
+                                opt->setInt(int(new_format));
+                                new_conf.set_key_value("thumbnails_format", opt);
+
+                                load_config(new_conf);
+                            }
+                        }
+                    }
+                }
+
+                update_dirty();
+                on_value_change(opt_key, value);
+            });
+        };
+
         optgroup->append_single_option_line("use_relative_e_distances");
         optgroup->append_single_option_line("use_firmware_retraction");
         // optgroup->append_single_option_line("spaghetti_detector");
@@ -3674,25 +3700,25 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line("machine_unload_filament_time");
         optgroup->append_single_option_line("time_cost");
         
-        optgroup = page->new_optgroup(L("Cooling Fan"));
+        optgroup  = page->new_optgroup(L("Cooling Fan"), "param_cooling_fan");
         Line line = Line{ L("Fan speed-up time"), optgroup->get_option("fan_speedup_time").opt.tooltip };
         line.append_option(optgroup->get_option("fan_speedup_time"));
         line.append_option(optgroup->get_option("fan_speedup_overhangs"));
         optgroup->append_line(line);
         optgroup->append_single_option_line("fan_kickstart");
 
-        optgroup = page->new_optgroup(L("Extruder Clearance"));
+        optgroup = page->new_optgroup(L("Extruder Clearance"), "param_extruder_clearence");
         optgroup->append_single_option_line("extruder_clearance_radius");
         optgroup->append_single_option_line("extruder_clearance_height_to_rod");
         optgroup->append_single_option_line("extruder_clearance_height_to_lid");
 
-        optgroup = page->new_optgroup(L("Adaptive bed mesh"));
+        optgroup = page->new_optgroup(L("Adaptive bed mesh"), "param_adaptive_mesh");
         optgroup->append_single_option_line("bed_mesh_min", "adaptive-bed-mesh");
         optgroup->append_single_option_line("bed_mesh_max", "adaptive-bed-mesh");
         optgroup->append_single_option_line("bed_mesh_probe_distance", "adaptive-bed-mesh");
         optgroup->append_single_option_line("adaptive_bed_mesh_margin", "adaptive-bed-mesh");
 
-        optgroup = page->new_optgroup(L("Accessory") /*, L"param_accessory"*/);
+        optgroup = page->new_optgroup(L("Accessory"), "param_accessory");
         optgroup->append_single_option_line("nozzle_type");
         optgroup->append_single_option_line("nozzle_hrc");
         optgroup->append_single_option_line("auxiliary_fan", "auxiliary-fan");
@@ -3703,7 +3729,7 @@ void TabPrinter::build_fff()
 
     const int gcode_field_height = 15; // 150
     const int notes_field_height = 25; // 250
-    page = add_options_page(L("Machine gcode"), "cog");
+    page = add_options_page(L("Machine gcode"), "custom-gcode_gcode"); // ORCA: icon only visible on placeholders
         optgroup = page->new_optgroup(L("Machine start G-code"), L"param_gcode", 0);
         optgroup->m_on_change = [this, &optgroup_title = optgroup->title](const t_config_option_key& opt_key, const boost::any& value) {
             validate_custom_gcode_cb(this, optgroup_title, opt_key, value);
@@ -3813,7 +3839,7 @@ void TabPrinter::build_fff()
         option.opt.height = gcode_field_height;//150;
         optgroup->append_single_option_line(option);
 
-    page = add_options_page(L("Notes"), "note");
+    page = add_options_page(L("Notes"), "custom-gcode_note"); // ORCA: icon only visible on placeholders
         optgroup = page->new_optgroup(L("Notes"), "note", 0);
         option = optgroup->get_option("printer_notes");
         option.opt.full_width = true;
@@ -3929,7 +3955,7 @@ void TabPrinter::append_option_line(ConfigOptionsGroupShp optgroup, const std::s
 
 PageShp TabPrinter::build_kinematics_page()
 {
-    auto page = add_options_page(L("Motion ability"), "cog", true);
+    auto page = add_options_page(L("Motion ability"), "custom-gcode_motion", true); // ORCA: icon only visible on placeholders
 
     if (m_use_silent_mode) {
         // Legend for OptionsGroups
@@ -3977,7 +4003,7 @@ PageShp TabPrinter::build_kinematics_page()
         append_option_line(optgroup, "machine_max_acceleration_retracting");
         append_option_line(optgroup, "machine_max_acceleration_travel");
 
-        optgroup = page->new_optgroup(L("Jerk limitation"));
+        optgroup = page->new_optgroup(L("Jerk limitation"), "param_jerk");
         for (const std::string &axis : axes)	{
             append_option_line(optgroup, "machine_max_jerk_" + axis);
         }
@@ -4032,8 +4058,8 @@ if (is_marlin_flavor)
 
     if (from_initial_build) {
         // create a page, but pretend it's an extruder page, so we can add it to m_pages ourselves
-        auto page     = add_options_page(L("Multimaterial"), "printer", true);
-        auto optgroup = page->new_optgroup(L("Single extruder multimaterial setup"));
+        auto page     = add_options_page(L("Multimaterial"), "custom-gcode_multi_material", true); // ORCA: icon only visible on placeholders
+        auto optgroup = page->new_optgroup(L("Single extruder multimaterial setup"), "param_multi_material");
         optgroup->append_single_option_line("single_extruder_multi_material", "semm");
         // Orca: we only support Single Extruder Multi Material, so it's always enabled
         // optgroup->m_on_change = [this](const t_config_option_key &opt_key, const boost::any &value) {
@@ -4045,12 +4071,12 @@ if (is_marlin_flavor)
         // };
         optgroup->append_single_option_line("manual_filament_change", "semm#manual-filament-change");
 
-        optgroup = page->new_optgroup(L("Wipe tower"));
+        optgroup = page->new_optgroup(L("Wipe tower"), "param_tower");
         optgroup->append_single_option_line("purge_in_prime_tower", "semm");
         optgroup->append_single_option_line("enable_filament_ramming", "semm");
 
 
-        optgroup = page->new_optgroup(L("Single extruder multimaterial parameters"));
+        optgroup = page->new_optgroup(L("Single extruder multimaterial parameters"), "param_settings");
         optgroup->append_single_option_line("cooling_tube_retraction", "semm");
         optgroup->append_single_option_line("cooling_tube_length", "semm");
         optgroup->append_single_option_line("parking_pos_retraction", "semm");
@@ -4076,10 +4102,10 @@ if (is_marlin_flavor)
     {
         //# build page
         //const wxString& page_name = wxString::Format("Extruder %d", int(extruder_idx + 1));
-        auto page = add_options_page(page_name, "empty", true);
+        auto page = add_options_page(page_name, "custom-gcode_extruder", true); // ORCA: icon only visible on placeholders
         m_pages.insert(m_pages.begin() + n_before_extruders + extruder_idx, page);
 
-            auto optgroup = page->new_optgroup(L("Size"), L"param_diameter", -1, true);
+            auto optgroup = page->new_optgroup(L("Size"), L"param_extruder_size", -1, true);
             optgroup->append_single_option_line("nozzle_diameter", "", extruder_idx);
 
             optgroup->m_on_change = [this, extruder_idx](const t_config_option_key& opt_key, boost::any value)
@@ -4122,7 +4148,7 @@ if (is_marlin_flavor)
             optgroup->append_single_option_line("min_layer_height", "", extruder_idx);
             optgroup->append_single_option_line("max_layer_height", "", extruder_idx);
 
-            optgroup = page->new_optgroup(L("Position"), L"param_retraction", -1, true);
+            optgroup = page->new_optgroup(L("Position"), L"param_position", -1, true);
             optgroup->append_single_option_line("extruder_offset", "", extruder_idx);
 
             //BBS: don't show retract related config menu in machine page
@@ -4139,12 +4165,12 @@ if (is_marlin_flavor)
             optgroup->append_single_option_line("wipe_distance", "", extruder_idx);
             optgroup->append_single_option_line("retract_before_wipe", "", extruder_idx);
 
-            optgroup = page->new_optgroup(L("Lift Z Enforcement"), L"param_retraction", -1, true);
+            optgroup = page->new_optgroup(L("Lift Z Enforcement"), L"param_extruder_lift_enforcement", -1, true);
             optgroup->append_single_option_line("retract_lift_above", "", extruder_idx);
             optgroup->append_single_option_line("retract_lift_below", "", extruder_idx);
             optgroup->append_single_option_line("retract_lift_enforce", "", extruder_idx);
 
-            optgroup = page->new_optgroup(L("Retraction when switching material"), L"param_retraction", -1, true);
+            optgroup = page->new_optgroup(L("Retraction when switching material"), L"param_retraction_material_change", -1, true);
             optgroup->append_single_option_line("retract_length_toolchange", "", extruder_idx);
             optgroup->append_single_option_line("retract_restart_extra_toolchange", "", extruder_idx);
             // do not display this params now
@@ -5002,12 +5028,12 @@ void Tab::clear_pages()
 {
     // invalidated highlighter, if any exists
     m_highlighter.invalidate();
-    //BBS: clear page in Parent
-    //m_page_sizer->Clear(true);
-    m_parent->clear_page();
     // clear pages from the controlls
     for (auto p : m_pages)
         p->clear();
+    //BBS: clear page in Parent
+    //m_page_sizer->Clear(true);
+    m_parent->clear_page();
 
     // nulling pointers
     m_parent_preset_description_line = nullptr;
@@ -5979,7 +6005,7 @@ bool Page::set_value(const t_config_option_key &opt_key, const boost::any &value
 ConfigOptionsGroupShp Page::new_optgroup(const wxString &title, const wxString &icon, int noncommon_label_width /*= -1*/, bool is_extruder_og /* false */)
 {
     //! config_ have to be "right"
-    ConfigOptionsGroupShp optgroup = is_extruder_og ? std::make_shared<ExtruderOptionsGroup>(m_parent, title, m_config, true)
+    ConfigOptionsGroupShp optgroup  = is_extruder_og ? std::make_shared<ExtruderOptionsGroup>(m_parent, title, icon, m_config, true) // ORCA: add support for icons
         : std::make_shared<ConfigOptionsGroup>(m_parent, title, icon, m_config, true);
     optgroup->split_multi_line     = this->m_split_multi_line;
     optgroup->option_label_at_right = this->m_option_label_at_right;

@@ -776,7 +776,7 @@ void LocalTaskManagerPage::refresh_user_device(bool clear)
             MultiTaskItem* mtitem = new MultiTaskItem(m_task_list, nullptr, 0);
             mtitem->task_obj = task_state_info;
             mtitem->m_project_name = wxString::FromUTF8(task_state_info->get_task_name());
-            mtitem->m_dev_name = task_state_info->get_device_name();
+            mtitem->m_dev_name = wxString::FromUTF8(task_state_info->get_device_name());
             mtitem->m_dev_id = task_state_info->params().dev_id;
             mtitem->m_send_time = task_state_info->get_sent_time();
             mtitem->state_local_task = task_state_info->state();
@@ -853,6 +853,41 @@ void LocalTaskManagerPage::cancel_all(wxCommandEvent& evt)
             it->second->onCancel();
         }
     }
+}
+
+void LocalTaskManagerPage::msw_rescale()
+{
+    m_select_checkbox->Rescale();
+    m_select_checkbox->SetMinSize(wxSize(FromDIP(TASK_LEFT_PRINTABLE), FromDIP(DEVICE_ITEM_MAX_HEIGHT)));
+    m_select_checkbox->SetMaxSize(wxSize(FromDIP(TASK_LEFT_PRINTABLE), FromDIP(DEVICE_ITEM_MAX_HEIGHT)));
+    m_task_name->Rescale();
+    m_task_name->SetMinSize(wxSize(FromDIP(TASK_LEFT_PRO_NAME), FromDIP(DEVICE_ITEM_MAX_HEIGHT)));
+    m_task_name->SetMaxSize(wxSize(FromDIP(TASK_LEFT_PRO_NAME), FromDIP(DEVICE_ITEM_MAX_HEIGHT)));
+    m_printer_name->Rescale();
+    m_printer_name->SetMinSize(wxSize(FromDIP(TASK_LEFT_DEV_NAME), FromDIP(DEVICE_ITEM_MAX_HEIGHT)));
+    m_printer_name->SetMaxSize(wxSize(FromDIP(TASK_LEFT_DEV_NAME), FromDIP(DEVICE_ITEM_MAX_HEIGHT)));
+    m_status->Rescale();
+    m_status->SetMinSize(wxSize(FromDIP(TASK_LEFT_PRO_STATE), FromDIP(DEVICE_ITEM_MAX_HEIGHT)));
+    m_status->SetMaxSize(wxSize(FromDIP(TASK_LEFT_PRO_STATE), FromDIP(DEVICE_ITEM_MAX_HEIGHT)));
+    m_info->Rescale();
+    m_info->SetMinSize(wxSize(FromDIP(TASK_LEFT_PRO_INFO), FromDIP(DEVICE_ITEM_MAX_HEIGHT)));
+    m_info->SetMaxSize(wxSize(FromDIP(TASK_LEFT_PRO_INFO), FromDIP(DEVICE_ITEM_MAX_HEIGHT)));
+    m_send_time->Rescale();
+    m_send_time->SetMinSize(wxSize(FromDIP(TASK_LEFT_SEND_TIME), FromDIP(DEVICE_ITEM_MAX_HEIGHT)));
+    m_send_time->SetMaxSize(wxSize(FromDIP(TASK_LEFT_SEND_TIME), FromDIP(DEVICE_ITEM_MAX_HEIGHT)));
+    m_action->Rescale();
+    m_action->SetMinSize(wxSize(FromDIP(TASK_LEFT_PRO_INFO), FromDIP(DEVICE_ITEM_MAX_HEIGHT)));
+    m_action->SetMaxSize(wxSize(FromDIP(TASK_LEFT_PRO_INFO), FromDIP(DEVICE_ITEM_MAX_HEIGHT)));
+
+    btn_stop_all->Rescale();
+
+    for (auto it = m_task_items.begin(); it != m_task_items.end(); ++it) {
+        it->second->Refresh();
+    }
+
+    Fit();
+    Layout();
+    Refresh();
 }
 
 CloudTaskManagerPage::CloudTaskManagerPage(wxWindow* parent)
@@ -1214,7 +1249,7 @@ void CloudTaskManagerPage::refresh_user_device(bool clear)
             //mtitem->task_obj = task_state_info;
             mtitem->m_job_id = task_state_info.get_job_id();
             mtitem->m_project_name = wxString::FromUTF8(task_state_info.get_task_name());
-            mtitem->m_dev_name = task_state_info.get_device_name();
+            mtitem->m_dev_name = wxString::FromUTF8(task_state_info.get_device_name());
             mtitem->m_dev_id = task_state_info.params().dev_id;
 
             mtitem->m_send_time = utc_time_to_date(task_state_info.start_time);
@@ -1430,6 +1465,53 @@ void CloudTaskManagerPage::page_num_enter_evt()
     /*m_sizer_task_list->Clear(false);
     m_loading_text->Show(true);
     Layout();*/
+}
+
+void CloudTaskManagerPage::msw_rescale()
+{
+    btn_last_page->Rescale();
+    btn_last_page->SetMinSize(wxSize(FromDIP(20), FromDIP(20)));
+    btn_last_page->SetMaxSize(wxSize(FromDIP(20), FromDIP(20)));
+    btn_next_page->Rescale();
+    btn_next_page->SetMinSize(wxSize(FromDIP(20), FromDIP(20)));
+    btn_next_page->SetMaxSize(wxSize(FromDIP(20), FromDIP(20)));
+    m_page_num_enter->Rescale();
+    m_page_num_enter->SetMinSize(wxSize(FromDIP(25), FromDIP(25)));
+    m_page_num_enter->SetMaxSize(wxSize(FromDIP(25), FromDIP(25)));
+
+    m_select_checkbox->Rescale();
+    m_select_checkbox->SetMinSize(wxSize(FromDIP(TASK_LEFT_PRINTABLE), FromDIP(DEVICE_ITEM_MAX_HEIGHT)));
+    m_select_checkbox->SetMaxSize(wxSize(FromDIP(TASK_LEFT_PRINTABLE), FromDIP(DEVICE_ITEM_MAX_HEIGHT)));
+    m_task_name->Rescale();
+    m_task_name->SetMinSize(wxSize(FromDIP(TASK_LEFT_PRO_NAME), FromDIP(DEVICE_ITEM_MAX_HEIGHT)));
+    m_task_name->SetMaxSize(wxSize(FromDIP(TASK_LEFT_PRO_NAME), FromDIP(DEVICE_ITEM_MAX_HEIGHT)));
+    m_printer_name->Rescale();
+    m_printer_name->SetMinSize(wxSize(FromDIP(TASK_LEFT_DEV_NAME), FromDIP(DEVICE_ITEM_MAX_HEIGHT)));
+    m_printer_name->SetMaxSize(wxSize(FromDIP(TASK_LEFT_DEV_NAME), FromDIP(DEVICE_ITEM_MAX_HEIGHT)));
+    m_status->Rescale();
+    m_status->SetMinSize(wxSize(FromDIP(TASK_LEFT_PRO_STATE), FromDIP(DEVICE_ITEM_MAX_HEIGHT)));
+    m_status->SetMaxSize(wxSize(FromDIP(TASK_LEFT_PRO_STATE), FromDIP(DEVICE_ITEM_MAX_HEIGHT)));
+    m_info->Rescale();
+    m_info->SetMinSize(wxSize(FromDIP(TASK_LEFT_PRO_INFO), FromDIP(DEVICE_ITEM_MAX_HEIGHT)));
+    m_info->SetMaxSize(wxSize(FromDIP(TASK_LEFT_PRO_INFO), FromDIP(DEVICE_ITEM_MAX_HEIGHT)));
+    m_send_time->Rescale();
+    m_send_time->SetMinSize(wxSize(FromDIP(TASK_LEFT_SEND_TIME), FromDIP(DEVICE_ITEM_MAX_HEIGHT)));
+    m_send_time->SetMaxSize(wxSize(FromDIP(TASK_LEFT_SEND_TIME), FromDIP(DEVICE_ITEM_MAX_HEIGHT)));
+    m_action->Rescale();
+    m_action->SetMinSize(wxSize(FromDIP(TASK_LEFT_PRO_INFO), FromDIP(DEVICE_ITEM_MAX_HEIGHT)));
+    m_action->SetMaxSize(wxSize(FromDIP(TASK_LEFT_PRO_INFO), FromDIP(DEVICE_ITEM_MAX_HEIGHT)));
+
+    btn_pause_all->Rescale();
+    btn_continue_all->Rescale();
+    btn_stop_all->Rescale();
+
+    for (auto it = m_task_items.begin(); it != m_task_items.end(); ++it) {
+        it->second->Refresh();
+    }
+
+    Fit();
+    Layout();
+    Refresh();
 }
 
 } // namespace GUI

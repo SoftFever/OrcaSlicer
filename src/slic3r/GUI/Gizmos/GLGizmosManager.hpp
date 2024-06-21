@@ -1,7 +1,3 @@
-///|/ Copyright (c) Prusa Research 2019 - 2022 Enrico Turri @enricoturri1966, Lukáš Matěna @lukasmatena, Oleksandra Iushchenko @YuSanka, Filip Sykala @Jony01, David Kocík @kocikdav, Lukáš Hejl @hejllukas, Vojtěch Bubník @bubnikv
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 #ifndef slic3r_GUI_GLGizmosManager_hpp_
 #define slic3r_GUI_GLGizmosManager_hpp_
 
@@ -14,6 +10,7 @@
 
 #include "libslic3r/ObjectID.hpp"
 
+#include <wx/timer.h>
 #include <map>
 
 //BBS: GUI refactor: to support top layout
@@ -102,10 +99,10 @@ private:
     {
         float scale{ 1.0f };
         float icons_size{ Default_Icons_Size };
-        float border{ 5.0f };
-        float gap_y{ 5.0f };
+        float border{ 4.0f };
+        float gap_y{ 4.0f };
         //BBS: GUI refactor: to support top layout
-        float gap_x{ 5.0f };
+        float gap_x{ 4.0f };
         float stride_x() const { return icons_size + gap_x;}
         float scaled_gap_x() const { return scale * gap_x; }
         float scaled_stride_x() const { return scale * stride_x(); }

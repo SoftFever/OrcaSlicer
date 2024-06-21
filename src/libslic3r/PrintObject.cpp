@@ -1,12 +1,3 @@
-///|/ Copyright (c) Prusa Research 2016 - 2023 Lukáš Hejl @hejllukas, Pavel Mikuš @Godrak, Lukáš Matěna @lukasmatena, Vojtěch Bubník @bubnikv, Enrico Turri @enricoturri1966, Oleksandra Iushchenko @YuSanka, David Kocík @kocikdav, Roman Beránek @zavorka
-///|/ Copyright (c) 2021 Justin Schuh @jschuh
-///|/ Copyright (c) 2021 Ilya @xorza
-///|/ Copyright (c) 2016 Joseph Lenox @lordofhyphens
-///|/ Copyright (c) Slic3r 2014 - 2016 Alessandro Ranellucci @alranel
-///|/ Copyright (c) 2015 Maksim Derbasov @ntfshard
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 #include "Exception.hpp"
 #include "Print.hpp"
 #include "BoundingBox.hpp"
@@ -1046,8 +1037,8 @@ bool PrintObject::invalidate_state_by_config_options(
                opt_key == "bottom_shell_layers"
             || opt_key == "top_shell_layers") {
 
-            steps.emplace_back(posPrepareInfill);
-
+            steps.emplace_back(posSlice);
+#if (0)
             const auto *old_shell_layers = old_config.option<ConfigOptionInt>(opt_key);
             const auto *new_shell_layers = new_config.option<ConfigOptionInt>(opt_key);
             assert(old_shell_layers && new_shell_layers);
@@ -1063,6 +1054,7 @@ bool PrintObject::invalidate_state_by_config_options(
                 // Otherwise, holes in the bottom layers could be filled, as is reported in GH #5528.
                 steps.emplace_back(posSlice);
             }
+#endif
         } else if (
                opt_key == "interface_shells"
             || opt_key == "infill_combination"
@@ -2920,14 +2912,14 @@ PrintRegionConfig region_config_from_model_volume(const PrintRegionConfig &defau
     } else {
         // default_or_parent_region_config contains parent PrintRegion config, which already contains ModelVolume's config.
     }
+    apply_to_print_region_config(config, volume.config.get());
+    if (! volume.material_id().empty())
+        apply_to_print_region_config(config, volume.material()->config.get());
     if (layer_range_config != nullptr) {
         // Not applicable to modifiers.
         assert(volume.is_model_part());
     	apply_to_print_region_config(config, *layer_range_config);
     }
-    apply_to_print_region_config(config, volume.config.get());
-    if (! volume.material_id().empty())
-        apply_to_print_region_config(config, volume.material()->config.get());
     // Clamp invalid extruders to the default extruder (with index 1).
     clamp_exturder_to_default(config.sparse_infill_filament,       num_extruders);
     clamp_exturder_to_default(config.wall_filament,    num_extruders);
@@ -3151,7 +3143,7 @@ void PrintObject::clip_fill_surfaces()
         }
         // Merge the new overhangs, find new internal infill.
         polygons_append(upper_internal, std::move(overhangs));
-        static constexpr const auto closing_radius = scaled<float>(2.f);
+        const auto closing_radius = scaled<float>(2.f);
         upper_internal = intersection(
             // Regularize the overhang regions, so that the infill areas will not become excessively jagged.
             smooth_outward(

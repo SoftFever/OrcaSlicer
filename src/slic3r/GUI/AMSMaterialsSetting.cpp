@@ -581,8 +581,8 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
     wxString n_text = m_input_n_val->GetTextCtrl()->GetValue();
 
     if (obj->cali_version <= -1 && (obj->get_printer_series() != PrinterSeries::SERIES_X1) && !ExtrusionCalibration::check_k_validation(k_text)) {
-        wxString k_tips = _L("Please input a valid value (K in 0~0.3)");
-        wxString kn_tips = _L("Please input a valid value (K in 0~0.3, N in 0.6~2.0)");
+        wxString k_tips = wxString::Format(_L("Please input a valid value (K in %.1f~%.1f)"), MIN_PA_K_VALUE, MAX_PA_K_VALUE);
+        wxString kn_tips = wxString::Format(_L("Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"), MIN_PA_K_VALUE, MAX_PA_K_VALUE, 0.6, 2.0);
         MessageDialog msg_dlg(nullptr, k_tips, wxEmptyString, wxICON_WARNING | wxOK);
         msg_dlg.ShowModal();
         return;
@@ -800,7 +800,7 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
 
     int selection_idx = -1, idx = 0;
     wxArrayString filament_items;
-    
+    wxString bambu_filament_name;
 
     std::set<std::string> filament_id_set;
     PresetBundle *        preset_bundle = wxGetApp().preset_bundle;
@@ -854,6 +854,8 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
 
                         if (filament_it->filament_id == ams_filament_id) {
                             selection_idx = idx;
+                            bambu_filament_name = filament_it->alias;
+                            
 
                             // update if nozzle_temperature_range is found
                             ConfigOption *opt_min = filament_it->config.option("nozzle_temperature_range_low");
@@ -893,7 +895,13 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
         if (!m_is_third) {
             m_comboBox_filament->Hide();
             m_readonly_filament->Show();
-            m_readonly_filament->SetLabel("Bambu " + filament);
+            if (bambu_filament_name.empty()) {
+                m_readonly_filament->SetLabel("Bambu " + filament);
+            }
+            else {
+                m_readonly_filament->SetLabel(bambu_filament_name);
+            }
+            
             m_input_nozzle_min->GetTextCtrl()->SetValue(temp_min);
             m_input_nozzle_max->GetTextCtrl()->SetValue(temp_max);
         }

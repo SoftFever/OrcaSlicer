@@ -386,7 +386,7 @@ bool GLGizmoText::gizmo_event(SLAGizmoEventType action, const Vec2d &mouse_posit
             return false;
 
         Plater *plater = wxGetApp().plater();
-        if (!plater)
+        if (!plater || m_thickness <= 0)
             return true;
 
         ModelObject *model_object = selection.get_model()->objects[m_object_idx];
@@ -447,7 +447,7 @@ bool GLGizmoText::gizmo_event(SLAGizmoEventType action, const Vec2d &mouse_posit
 bool GLGizmoText::on_mouse(const wxMouseEvent &mouse_event)
 {
     // wxCoord == int --> wx/types.h
-    Vec2i mouse_coord(mouse_event.GetX(), mouse_event.GetY());
+    Vec2i32 mouse_coord(mouse_event.GetX(), mouse_event.GetY());
     Vec2d mouse_pos = mouse_coord.cast<double>();
     bool control_down           = mouse_event.CmdDown();
 
