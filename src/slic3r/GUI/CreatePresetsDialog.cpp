@@ -4732,7 +4732,7 @@ void CreatePresetForPrinterDialog::get_visible_printer_and_compatible_filament_p
                 m_preset_bundle->update_compatible(PresetSelectCompatibleType::Always);
                 const std::deque<Preset> &filament_presets = m_preset_bundle->filaments.get_presets();
                 for (const Preset &filament_preset : filament_presets) {
-                    if (filament_preset.is_default || !filament_preset.is_compatible) continue;
+                    if (filament_preset.is_default || !filament_preset.is_compatible || filament_preset.is_project_embedded) continue;
                     ConfigOptionStrings *filament_types;
                     const Preset *       filament_preset_base = m_preset_bundle->filaments.get_preset_base(filament_preset);
                     if (filament_preset_base == &filament_preset) {
