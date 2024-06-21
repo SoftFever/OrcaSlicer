@@ -1203,6 +1203,15 @@ int CLI::run(int argc, char **argv)
     DynamicPrintConfig load_process_config, load_machine_config;
     bool new_process_config_is_system = true, new_printer_config_is_system = true;
     std::string pipe_name, makerlab_name, makerlab_version, different_process_setting;
+    const std::vector<std::string>              &metadata_name               = m_config.option<ConfigOptionStrings>("metadata_name", true)->values;
+    const std::vector<std::string>              &metadata_value              = m_config.option<ConfigOptionStrings>("metadata_value", true)->values;
+
+    if (metadata_name.size() != metadata_value.size())
+    {
+        BOOST_LOG_TRIVIAL(error) << boost::format("metadata_name should be the same size with metadata_value");
+        record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, 0, cli_errors[CLI_INVALID_PARAMS], sliced_info);
+        flush_and_exit(CLI_INVALID_PARAMS);
+    }
 
     // Read input file(s) if any.
     BOOST_LOG_TRIVIAL(info) << "Will start to read model file now, file count :" << m_input_files.size() << "\n";
@@ -5852,6 +5861,18 @@ int CLI::run(int argc, char **argv)
             model.mk_version = makerlab_version;
             BOOST_LOG_TRIVIAL(info) << boost::format("mk_name %1%, mk_version %2%")%makerlab_name %makerlab_version;
         }
+
+        if (!metadata_name.empty()) {
+            Model &model = m_models[0];
+
+            model.md_value = metadata_value;
+            model.md_name = metadata_name;
+            for (unsigned int i = 0; i < metadata_name.size(); i++)
+            {
+                BOOST_LOG_TRIVIAL(info) << boost::format("index %1% metadata_name %2%, metadata_value %3%")%i %metadata_name[i] %metadata_value[i];
+            }
+        }
+
         if (!this->export_project(&m_models[0], export_3mf_file, plate_data_list, project_presets, thumbnails, no_light_thumbnails, top_thumbnails, pick_thumbnails,
                                 calibration_thumbnails, plate_bboxes, &m_print_config, minimum_save, plate_to_slice - 1))
         {
