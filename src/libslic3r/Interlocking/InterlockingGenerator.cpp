@@ -193,6 +193,9 @@ void InterlockingGenerator::addBoundaryCells(const std::vector<ExPolygons>&  lay
                                              std::unordered_set<GridPoint3>& cells) const
 {
     auto voxel_emplacer = [&cells](GridPoint3 p) {
+        if (p.z() < 0) {
+            return true;
+        }
         cells.emplace(p);
         return true;
     };
