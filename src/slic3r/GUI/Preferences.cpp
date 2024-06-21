@@ -865,8 +865,8 @@ wxWindow *PreferencesDialog ::create_item_radiobox(wxString title, wxWindow *par
 #ifdef WIN32
 wxBoxSizer* PreferencesDialog::create_item_link_association(wxWindow* parent, wxString url_prefix, wxString website_name)
 {
-    std::string title = (boost::format("Associate %1%://") % url_prefix).str();
-    std::string tooltip = (boost::format ("Associate %1%:// with OrcaSlicer so that Orca can open models from %2%") % url_prefix % website_name).str();
+    wxString title = _L("Associate") + (boost::format(" %1%://") % url_prefix.c_str()).str();
+    wxString tooltip = _L("Associate") + " " + url_prefix + ":// " + _L("with OrcaSlicer so that Orca can open models from") + " " + website_name;
 
     std::wstring registered_bin; // not used, just here to provide a ref to check fn
     bool reg_to_current_instance = wxGetApp().check_url_association(url_prefix.ToStdWstring(), registered_bin);
@@ -913,12 +913,12 @@ wxBoxSizer* PreferencesDialog::create_item_link_association(wxWindow* parent, wx
             // skip idx 0 because it is the first quotation mark
             registered_bin = registered_bin.substr(1, registered_bin.find(L'\"', 1) - 1);
 
-        wxString current_association_str = "Current Association: ";
+        wxString current_association_str = _L("Current Association: ");
         if (reg_to_current_instance) {
-            current_association_str += "Current Instance";
-            registered_instance_title->SetToolTip("Current Instance Path: " + registered_bin);
+            current_association_str += _L("Current Instance");
+            registered_instance_title->SetToolTip(_L("Current Instance Path: ") + registered_bin);
         } else if (registered_bin.empty())
-            current_association_str += "None";
+            current_association_str += _L("None");
         else
             current_association_str += registered_bin;
 
