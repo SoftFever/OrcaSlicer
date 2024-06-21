@@ -1,7 +1,7 @@
 {
     "name": "Bambulab",
     "url": "http://www.bambulab.com/Parameters/vendor/BBL.json",
-    "version": "01.09.00.12",
+    "version": "01.09.00.14",
     "force_update": "0",
     "description": "the initial version of BBL configurations",
     "machine_model_list": [
@@ -624,6 +624,10 @@
         {
             "name": "fdm_filament_pc",
             "sub_path": "filament/fdm_filament_pc.json"
+        },
+        {
+            "name": "fdm_filament_pctg",
+            "sub_path": "filament/fdm_filament_pctg.json"
         },
         {
             "name": "fdm_filament_asa",
