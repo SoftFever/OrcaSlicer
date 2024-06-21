@@ -3,7 +3,7 @@
 
 #include "VoxelUtils.hpp"
 #include "../Geometry.hpp"
-#include "../Fill/FillLine.hpp"
+#include "../Fill/FillRectilinear.hpp"
 
 namespace Slic3r
 {
@@ -141,13 +141,14 @@ bool VoxelUtils::walkAreas(const ExPolygon& polys, coord_t z, const std::functio
 
 static Points spreadDotsArea(const ExPolygon& polygons, Point grid_size)
 {
-    std::unique_ptr<Fill> filler(Fill::new_from_type(ipLine));
-    filler->angle        = Geometry::deg2rad(180.f);
-    filler->spacing      = grid_size.x();
+    std::unique_ptr<Fill> filler(Fill::new_from_type(ipAlignedRectilinear));
+    filler->angle        = Geometry::deg2rad(90.f);
+    filler->spacing      = unscaled(grid_size.x());
     filler->bounding_box = get_extents(polygons);
 
     FillParams params;
     params.density = 1.f;
+    params.anchor_length_max = 0;
 
     Surface surface(stInternal, polygons);
     auto    polylines = filler->fill_surface(&surface, params);
@@ -192,7 +193,7 @@ bool VoxelUtils::walkDilatedAreas(const ExPolygon& polys, coord_t z, const Dilat
     k.x() %= 2;
     k.y() %= 2;
     k.z() %= 2;
-    const Vec3crd translation = (Vec3crd(1, 1, 1) - k).array() * cell_size_.array() / 2 // offset half a cell when using a n even kernel
+    const Vec3crd translation = (Vec3crd(1, 1, 1) - k).array() * cell_size_.array() / 2 // offset half a cell when using an even kernel
                                - cell_size_.array() / 2; // offset half a cell so that the dots of spreadDotsArea are centered on the middle of the cell isntead of the lower corners.
     if (translation.x() && translation.y())
     {
