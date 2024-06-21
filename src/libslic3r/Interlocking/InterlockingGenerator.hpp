@@ -43,6 +43,12 @@ class InterlockingGenerator
 {
 public:
     /*!
+     * Generate an interlocking structure between each two adjacent meshes.
+     */
+    static void generate_interlocking_structure(PrintObject* print_object);
+
+private:
+    /*!
      * Generate an interlocking structure between two meshes
      */
     void generateInterlockingStructure() const;
@@ -83,8 +89,6 @@ public:
         , air_dilation(air_dilation)
         , air_filtering(air_filtering)
     {}
-
-private:
     
     /*! Given two polygons, return the parts that border on air, and grow 'perpendicular' up to 'detect' distance.
      *

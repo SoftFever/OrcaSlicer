@@ -21,7 +21,7 @@ template<> struct hash<Slic3r::GridPoint3>
 
 namespace Slic3r {
 
-void PrintObject::generate_interlocking_structure()
+void InterlockingGenerator::generate_interlocking_structure(PrintObject* print_object)
 {
     const float    rotation           = Geometry::deg2rad(22.5); //(global_settings.get<AngleDegrees>("interlocking_orientation"));
     const coord_t  beam_layer_count   = 2;    // global_settings.get<int>("interlocking_beam_layer_count");
@@ -37,18 +37,18 @@ void PrintObject::generate_interlocking_structure()
     const coord_t cell_width = beam_width + beam_width;
     const Vec3crd cell_size(cell_width, cell_width, 2 * beam_layer_count);
 
-    for (size_t region_a_index = 0; region_a_index < num_printing_regions(); region_a_index++) {
-        const PrintRegion& region_a = printing_region(region_a_index);
+    for (size_t region_a_index = 0; region_a_index < print_object->num_printing_regions(); region_a_index++) {
+        const PrintRegion& region_a      = print_object->printing_region(region_a_index);
         const auto         extruder_nr_a = region_a.extruder(FlowRole::frExternalPerimeter);
 
-        for (size_t region_b_index = region_a_index + 1; region_b_index < num_printing_regions(); region_b_index++) {
-            const PrintRegion& region_b      = printing_region(region_b_index);
+        for (size_t region_b_index = region_a_index + 1; region_b_index < print_object->num_printing_regions(); region_b_index++) {
+            const PrintRegion& region_b      = print_object->printing_region(region_b_index);
             const auto         extruder_nr_b = region_b.extruder(FlowRole::frExternalPerimeter);
             if (extruder_nr_a == extruder_nr_b) {
                 continue;
             }
 
-            InterlockingGenerator gen(*this, region_a_index, region_b_index, beam_width, boundary_avoidance, rotation, cell_size, beam_layer_count,
+            InterlockingGenerator gen(*print_object, region_a_index, region_b_index, beam_width, boundary_avoidance, rotation, cell_size, beam_layer_count,
                                       interface_dilation, air_dilation, air_filtering);
             gen.generateInterlockingStructure();
         }
