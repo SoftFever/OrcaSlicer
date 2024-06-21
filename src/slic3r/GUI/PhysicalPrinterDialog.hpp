@@ -63,6 +63,7 @@ public:
     void        update_printhost_buttons();
     void        update_printers();
     void        update_ports();
+    void        update_webui();
 
 protected:
     void on_dpi_changed(const wxRect& suggested_rect) override;

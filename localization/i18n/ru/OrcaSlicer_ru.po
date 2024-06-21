@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OrcaSlicer V2.0.0 Official Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-16 23:01+0800\n"
+"POT-Creation-Date: 2024-06-21 20:03+0800\n"
 "PO-Revision-Date: 2024-04-12 13:49+0700\n"
 "Last-Translator: \n"
 "Language-Team: andylg@yandex.ru\n"
@@ -15147,6 +15147,9 @@ msgstr "ABS/ASA"
 msgid "PETG"
 msgstr "PETG"
 
+msgid "PCTG"
+msgstr ""
+
 msgid "TPU"
 msgstr "TPU"
 
@@ -15242,6 +15245,9 @@ msgstr "В качестве разделителя каталогов испол
 
 msgid "Upload to storage"
 msgstr "Загрузить в хранилище"
+
+msgid "Switch to Device tab after upload."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
@@ -15918,6 +15924,12 @@ msgstr "Вы уверены, что хотите выйти из системы?
 msgid "Refresh Printers"
 msgstr "Обновить принтеры"
 
+msgid "View print host webui in Device tab"
+msgstr ""
+
+msgid "Replace the BambuLab's device tab with print host webui"
+msgstr ""
+
 msgid ""
 "HTTPS CA file is optional. It is only needed if you use HTTPS with a self-"
 "signed certificate."
@@ -16355,20 +16367,16 @@ msgstr "Соединение с SimplyPrint успешно установлен�
 msgid "Could not connect to SimplyPrint"
 msgstr "Не удалось подключиться к SimplyPrint"
 
+msgid "Internel error"
+msgstr ""
+
+msgid "Unknown error"
+msgstr "Неизвестная ошибка"
+
 msgid "SimplyPrint account not linked. Go to Connect options to set it up."
 msgstr ""
 "Учётная запись SimplyPrint не привязана. Перейдите в раздел подключения для "
 "настройки."
-
-msgid ""
-"File size exceeds the 100MB upload limit. Please upload your file through "
-"the panel."
-msgstr ""
-"Размер файла превышает лимит загрузки в 100 МБ. Пожалуйста, загрузите файл "
-"через панель."
-
-msgid "Unknown error"
-msgstr "Неизвестная ошибка"
 
 msgid "Connection to Flashforge works correctly."
 msgstr "Соединение с Flashforge успешно установлено."
@@ -16778,6 +16786,13 @@ msgstr ""
 "Знаете ли вы, что при печати материалами, склонными к короблению, таких как "
 "ABS, повышение температуры подогреваемого стола может снизить эту "
 "вероятность?"
+
+#~ msgid ""
+#~ "File size exceeds the 100MB upload limit. Please upload your file through "
+#~ "the panel."
+#~ msgstr ""
+#~ "Размер файла превышает лимит загрузки в 100 МБ. Пожалуйста, загрузите "
+#~ "файл через панель."
 
 #~ msgid "Please input a valid value (K in 0~0.3)"
 #~ msgstr "Пожалуйста, введите допустимое значение (K в диапазоне 0~0.3)"

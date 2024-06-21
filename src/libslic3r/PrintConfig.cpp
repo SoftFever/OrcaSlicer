@@ -549,7 +549,6 @@ void PrintConfigDef::init_common_params()
     def->cli = ConfigOptionDef::nocli;
     def->set_default_value(new ConfigOptionString(""));
 
-
     def = this->add("printhost_apikey", coString);
     def->label = L("API Key / Password");
     def->tooltip = L("Orca Slicer can upload G-code files to a printer host. This field should contain "
@@ -1945,6 +1944,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("ASA");
     def->enum_values.push_back("ASA-Aero");
     def->enum_values.push_back("BVOH");
+    def->enum_values.push_back("PCTG");
     def->enum_values.push_back("EVA");
     def->enum_values.push_back("HIPS");
     def->enum_values.push_back("PA");
@@ -7074,6 +7074,18 @@ CLIMiscConfigDef::CLIMiscConfigDef()
     def->tooltip = "MakerLab version to generate this 3mf";
     def->cli_params = "version";
     def->set_default_value(new ConfigOptionString());
+
+    def = this->add("metadata_name", coStrings);
+    def->label = "metadata name list";
+    def->tooltip = "matadata name list added into 3mf";
+    def->cli_params = "\"name1;name2;...\"";
+    def->set_default_value(new ConfigOptionStrings());
+
+    def = this->add("metadata_value", coStrings);
+    def->label = "metadata value list";
+    def->tooltip = "matadata value list added into 3mf";
+    def->cli_params = "\"value1;value2;...\"";
+    def->set_default_value(new ConfigOptionStrings());
 
     def = this->add("allow_newer_file", coBool);
     def->label = "Allow 3mf with newer version to be sliced";
