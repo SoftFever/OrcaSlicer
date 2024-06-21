@@ -1021,7 +1021,9 @@ void GizmoObjectManipulation::do_render_scale_input_window(ImGuiWrapper* imgui_w
     ImGui::BBLInputDouble(label_scale_values[0][2], &scale[2], 0.0f, 0.0f, "%.2f");
     ImGui::SameLine(caption_max + (++index_unit) *unit_size + (++index) * space_size);
     imgui_wrapper->text(_L("%"));
-    m_buffered_scale = scale;
+    if (scale.x() > 0 && scale.y() > 0 && scale.z() > 0) {
+        m_buffered_scale = scale;
+    }
 
     if (m_show_clear_scale) {
         ImGui::SameLine(caption_max + 3 * unit_size + 4 * space_size + end_text_size);
@@ -1060,7 +1062,10 @@ void GizmoObjectManipulation::do_render_scale_input_window(ImGuiWrapper* imgui_w
     {
         if (std::abs(display_size[i]) > MAX_NUM) display_size[i] = MAX_NUM;
     }
-    m_buffered_size = display_size;
+    if (display_size.x() > 0 && display_size.y() > 0 && display_size.z() > 0) {
+        m_buffered_size = display_size;
+    }
+
     int size_sel = update(current_active_id, "size", original_size, m_buffered_size);
     ImGui::PopStyleVar(1);
 
