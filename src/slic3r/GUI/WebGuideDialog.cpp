@@ -57,7 +57,7 @@ static wxString update_custom_filaments()
         bool not_need_show = false;
         std::string filament_name;
         for (const Preset *preset : filament_id_to_presets.second) {
-            if (preset->is_system) {
+            if (preset->is_system || preset->is_project_embedded) {
                 not_need_show = true;
                 break;
             }
