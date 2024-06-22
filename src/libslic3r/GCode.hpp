@@ -364,6 +364,7 @@ private:
     // Orca: Used for adaptive PA when extruding multipaths. This contains the sum of the mm3_per_mm values
     // weighted by the length of each path segment.
     double          m_last_multipath_average_mm3_per_mm = 0;
+    bool            m_is_multipath = false;
 
     // Extruding multiple objects with soluble / non-soluble / combined supports
     // on a multi-material printer, trying to minimize tool switches.

@@ -4560,6 +4560,7 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
 {
     // Orca: Reset average multipath flow
     m_last_multipath_average_mm3_per_mm = 0;
+    m_is_multipath = false;
     
     // get a copy; don't modify the orientation of the original loop object otherwise
     // next copies (if any) would not detect the correct orientation
@@ -4806,6 +4807,7 @@ std::string GCode::extrude_multi_path(ExtrusionMultiPath multipath, std::string 
     
     //Orca: calculate multipath average mm3_per_mm value over the length of the path.
     //This is used for adaptive PA
+    m_is_multipath = false; // always emit PA on the first path of the multi-path
     m_last_multipath_average_mm3_per_mm = 0;
     double weighted_sum_mm3_per_mm = 0.0;
     double total_multipath_length = 0.0;
@@ -4820,8 +4822,10 @@ std::string GCode::extrude_multi_path(ExtrusionMultiPath multipath, std::string 
         m_last_multipath_average_mm3_per_mm = weighted_sum_mm3_per_mm / total_multipath_length;
     // Orca: end of multipath average mm3_per_mm value calculation
     
-    for (ExtrusionPath path : multipath.paths)
+    for (ExtrusionPath path : multipath.paths){
         gcode += this->_extrude(path, description, speed);
+        m_is_multipath = true;
+    }
 
     // BBS
     if (m_wipe.enable) {
@@ -4856,6 +4860,7 @@ std::string GCode::extrude_entity(const ExtrusionEntity &entity, std::string des
 std::string GCode::extrude_path(ExtrusionPath path, std::string description, double speed)
 {
     // Orca: Reset average multipath flow
+    m_is_multipath = false;
     m_last_multipath_average_mm3_per_mm = 0;
     //    description += ExtrusionEntity::role_to_string(path.role());
     std::string gcode = this->_extrude(path, description, speed);
@@ -5324,10 +5329,17 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
 
     double F = speed * 60;  // convert mm/sec to mm/min
     // Orca: Dynamic PA
-    // If an extrusion role change is detected, trigger tagging to evaluate PA in the post processing script
-    bool evaluate_adaptive_pa = false;
-    if ( (path.role() != m_last_extrusion_role) && (EXTRUDER_CONFIG(adaptive_pressure_advance)) && (EXTRUDER_CONFIG(enable_pressure_advance)))
-        evaluate_adaptive_pa = true;
+    // If adaptive PA is enabled, by default evaluate PA on all extrusion moves
+    bool evaluate_adaptive_pa = EXTRUDER_CONFIG(adaptive_pressure_advance) && EXTRUDER_CONFIG(enable_pressure_advance);
+    // If the previous extrusion move was an external perimeter and the current extrusion move is also an external perimeter
+    // dont evaluate PA again to avoid artefacts when starting/stopping printing an external wall.
+    // PA changes will not be emmited by the post processor if the calculated PA is the same as the previous one,
+    // so there is no harm in emmitting more PA change requests here.
+    // TODO: need to check whether skipping re-evaluation of the PA change for external perimeters will result in any adverse effects when a seam
+    // TODO: is placed directly on an overhang that has been slowed down... This would result in the PA value being calculated and
+    // TODO: set based on the current overhang speed and will not change until the next extrusion role change.
+    if((path.role() == erExternalPerimeter) && (m_is_multipath == false) && (m_last_extrusion_role == erExternalPerimeter) && (evaluate_adaptive_pa == true))
+        evaluate_adaptive_pa = false;
     
     //Orca: process custom gcode for extrusion role change
     if (path.role() != m_last_extrusion_role && !m_config.change_extrusion_role_gcode.value.empty()) {
