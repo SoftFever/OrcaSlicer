@@ -11,8 +11,11 @@
         {
             "name": "FlyingBear S1",
             "sub_path": "machine/S1/FlyingBear S1.json"
+        },
+        {
+            "name": "FlyingBear Ghost 6",
+            "sub_path": "machine/FlyingBear Ghost 6.json"
         }
-
     ],
     "process_list": [
         {
@@ -40,8 +43,15 @@
             "sub_path": "process/0.24mm Draft @FlyingBear Reborn3.json"
         },
 
+        {
+            "name": "0.20mm Standard @FlyingBear Ghost 6",
+            "sub_path": "process/0.20mm Standard @FlyingBear Ghost 6 0.4 nozzle.json"
+        },
+        {
+            "name": "0.20mm Fast @FlyingBear Ghost 6",
+            "sub_path": "process/0.20mm Fast @FlyingBear Ghost 6 0.4 nozzle.json"
+        },
 
-        
         {
             "name": "fdm_process_common_S1",
             "sub_path": "process/S1/fdm_process_common_S1.json"
@@ -255,6 +265,10 @@
     ],
     "machine_list": [
 	    {
+            "name": "fdm_marlin_common",
+            "sub_path": "machine/fdm_marlin_common.json"
+        },
+	    {
             "name": "fdm_machine_common",
             "sub_path": "machine/fdm_machine_common.json"
         },
@@ -266,13 +280,13 @@
             "name": "FlyingBear Reborn3 0.4 nozzle",
             "sub_path": "machine/FlyingBear Reborn3 0.4 nozzle.json"
         },
-
-
         {
             "name": "FlyingBear S1 0.4 nozzle",
             "sub_path": "machine/S1/FlyingBear S1 0.4 nozzle.json"
+        },
+        {
+            "name": "FlyingBear Ghost 6 0.4 nozzle",
+            "sub_path": "machine/FlyingBear Ghost 6 0.4 nozzle.json"
         }
-
-
     ]
 }

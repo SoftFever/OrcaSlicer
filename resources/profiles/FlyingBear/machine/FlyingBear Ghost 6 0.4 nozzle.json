@@ -1,0 +1,134 @@
+{
+    "type": "machine",
+    "setting_id": "GM001",
+    "name": "FlyingBear Ghost 6 0.4 nozzle",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "fdm_marlin_common",
+    "printer_model": "FlyingBear Ghost 6",
+    "gcode_flavor": "marlin",
+    "default_print_profile": "0.20mm Standard @FlyingBear Ghost 6",
+    "nozzle_diameter": [
+        "0.4"
+    ],
+    "printer_variant": "0.4",
+    "printable_area": [
+        "0x0",
+        "255x0",
+        "255x210",
+        "0x210"
+    ],
+    "printable_height": "210",
+    "nozzle_type": "brass",
+    "auxiliary_fan": "1",
+    "support_air_filtration": "1",
+    "support_multi_bed_types": "1",
+    "machine_max_acceleration_e": [
+        "1000",
+        "1000"
+    ],
+    "machine_max_acceleration_extruding": [
+        "1500",
+        "1500"
+    ],
+    "machine_max_acceleration_retracting": [
+        "1500",
+        "1500"
+    ],
+    "machine_max_acceleration_travel": [
+        "3000",
+        "3000"
+    ],
+    "machine_max_acceleration_x": [
+        "1000",
+        "1000"
+    ],
+    "machine_max_acceleration_y": [
+        "1000",
+        "1000"
+    ],
+    "machine_max_acceleration_z": [
+        "200",
+        "200"
+    ],
+    "machine_max_speed_e": [
+        "70",
+        "70"
+    ],
+    "machine_max_speed_x": [
+        "200",
+        "200"
+    ],
+    "machine_max_speed_y": [
+        "200",
+        "200"
+    ],
+    "machine_max_speed_z": [
+        "20",
+        "20"
+    ],
+    "machine_max_jerk_e": [
+        "5.0",
+        "5.0"
+    ],
+    "machine_max_jerk_x": [
+        "15",
+        "15"
+    ],
+    "machine_max_jerk_y": [
+        "15",
+        "15"
+    ],
+    "machine_max_jerk_z": [
+        "0.4",
+        "0.4"
+    ],
+    "max_layer_height": [
+        "0.3"
+    ],
+    "min_layer_height": [
+        "0.05"
+    ],
+    "printer_settings_id": "",
+    "retraction_minimum_travel": [
+        "3"
+    ],
+    "retract_before_wipe": [
+        "0%"
+    ],
+    "retraction_length": [
+        "0.8"
+    ],
+    "retract_length_toolchange": [
+        "1"
+    ],
+    "retraction_speed": [
+        "35"
+    ],
+    "deretraction_speed": [
+        "35"
+    ],
+    "extruder_clearance_height_to_lid": "101",
+    "extruder_clearance_height_to_rod": "45",
+    "extruder_clearance_radius": "45",
+    "z_hop": [
+        "0.2"
+    ],
+    "wipe_distance": [
+        "2"
+    ],
+    "single_extruder_multi_material": "1",
+    "manual_filament_change": "1",
+    "change_filament_gcode": "M600",
+    "machine_pause_gcode": "M25",
+    "default_filament_profile": [
+       "FlyingBear Generic PLA"
+    ],
+    "machine_start_gcode": "G21\nG90\nM82\nM107\nG28 X0 Y0\nG28 Z0\nG1 Z3.0 F3000\nG92 E0\nG1 X20 Y20.0 Z0.28 F3000\nG92 E0\nG1 X20 Y20.0 Z0.28 F3000.0\nG1 X20 Y170.0 Z0.28 F1500.0 E12\nG1 X20.3 Y20.0 Z0.28 F1500.0 E18\nG92 E0\nG1 Z1.0 F3000\nM117 Printing\nG5\n",
+    "machine_end_gcode": "M104 S0\nM140 S0\nM84\nM107\nG91\nG1 E-1 F300\nG1 Z+0.5 E-5\nG28 X0 Y0\nM84\nG90\nM300 P300 S4000",
+    "scan_first_layer": "0",
+    "thumbnails": [
+        "100x100",
+        "320x320"
+    ]
+}
