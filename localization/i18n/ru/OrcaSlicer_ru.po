@@ -16110,8 +16110,7 @@ msgstr "Обновить принтеры"
 msgid "View print host webui in Device tab"
 msgstr "Веб-интерфейс хоста печати на вкладке «Принтер»"
 
-# ???
-Замените вкладку устройств в BambuLab на веб-интерфейс хоста печати
+# ??? 
 msgid "Replace the BambuLab's device tab with print host webui"
 msgstr "Заменить вкладку устройств BambuLab на веб-интерфейс хоста печати"
 
