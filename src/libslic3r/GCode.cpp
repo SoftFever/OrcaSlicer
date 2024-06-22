@@ -4814,19 +4814,14 @@ std::string GCode::extrude_multi_path(ExtrusionMultiPath multipath, std::string 
             double path_length = unscale<double>(path.length()); //path length in mm
             weighted_sum_mm3_per_mm += path.mm3_per_mm * path_length;
             total_multipath_length += path_length;
-            // TODO: remove before adaptive PA release.
-            gcode += "; ADP: Path length: " + std::to_string(path_length) + " Path mm3_mm: " +std::to_string(path.mm3_per_mm) +"\n";
         }
     }
     if (total_multipath_length != 0.0)
         m_last_multipath_average_mm3_per_mm = weighted_sum_mm3_per_mm / total_multipath_length;
     // Orca: end of multipath average mm3_per_mm value calculation
     
-    for (ExtrusionPath path : multipath.paths){
-        // TODO: remove comments before adaptive PA release.
-        gcode += "; Extrude multipath. Is multipath variable set to: " + std::to_string(m_is_multipath)+"\n";
+    for (ExtrusionPath path : multipath.paths)
         gcode += this->_extrude(path, description, speed);
-    }
 
     // BBS
     if (m_wipe.enable) {
@@ -5329,19 +5324,10 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
 
     double F = speed * 60;  // convert mm/sec to mm/min
     // Orca: Dynamic PA
-    // If adaptive PA is enabled, by default evaluate PA on all extrusion moves
-    bool evaluate_adaptive_pa = EXTRUDER_CONFIG(adaptive_pressure_advance) && EXTRUDER_CONFIG(enable_pressure_advance);
-    // If the previous extrusion move was an external perimeter and the current extrusion move is also an external perimeter
-    // dont evaluate PA again to avoid artefacts when starting/stopping printing an external wall.
-    // PA changes will not be emmited by the post processor if the calculated PA is the same as the previous one,
-    // so there is no harm in emmitting more PA change requests here.
-    // TODO: need to check whether skipping re-evaluation of the PA change for external perimeters will result in any adverse effects when a seam
-    // TODO: is placed directly on an overhang that has been slowed down... This would result in the PA value being calculated and
-    // TODO: set based on the current overhang speed and will not change until the next extrusion role change.
-    if((path.role() == erExternalPerimeter) && (m_last_extrusion_role == erExternalPerimeter) && (evaluate_adaptive_pa == true))
-        evaluate_adaptive_pa = false;
-    if(m_is_multipath == true && (evaluate_adaptive_pa == true))
-        evaluate_adaptive_pa = false;
+    // If an extrusion role change is detected, trigger tagging to evaluate PA in the post processing script
+    bool evaluate_adaptive_pa = false;
+    if ( (path.role() != m_last_extrusion_role) && (EXTRUDER_CONFIG(adaptive_pressure_advance)) && (EXTRUDER_CONFIG(enable_pressure_advance)))
+        evaluate_adaptive_pa = true;
     
     //Orca: process custom gcode for extrusion role change
     if (path.role() != m_last_extrusion_role && !m_config.change_extrusion_role_gcode.value.empty()) {
@@ -5415,9 +5401,6 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         // sprintf(buf, ";%sT%g MM3MM:%g %g %g\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::PA_Change).c_str(),m_writer.extruder()->id() ,_mm3_per_mm, path.mm3_per_mm, e_per_mm/m_writer.extruder()->e_per_mm3());
         // acceleration_i
         if( m_last_multipath_average_mm3_per_mm > 0){
-            //TODO: remove comment before release but retain tag below!
-            sprintf(buf,"; Multipath value used\n" );
-            gcode += buf;
             sprintf(buf, ";%sT%u MM3MM:%g ACCEL:%u\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::PA_Change).c_str(),m_writer.extruder()->id() ,m_last_multipath_average_mm3_per_mm,acceleration_i);
         }else{
             sprintf(buf, ";%sT%u MM3MM:%g ACCEL:%u\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::PA_Change).c_str(),m_writer.extruder()->id() ,_mm3_per_mm,acceleration_i);
