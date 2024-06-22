@@ -4816,6 +4816,8 @@ std::string GCode::extrude_multi_path(ExtrusionMultiPath multipath, std::string 
             double path_length = unscale<double>(path.length()); //path length in mm
             weighted_sum_mm3_per_mm += path.mm3_per_mm * path_length;
             total_multipath_length += path_length;
+            // TODO: remove before adaptive PA release.
+            gcode += "; ADP: Path length: " + std::to_string(path_length) + " Path mm3_mm: " +std::to_string(path.mm3_per_mm) +"\n";
         }
     }
     if (total_multipath_length != 0.0)
@@ -4823,6 +4825,8 @@ std::string GCode::extrude_multi_path(ExtrusionMultiPath multipath, std::string 
     // Orca: end of multipath average mm3_per_mm value calculation
     
     for (ExtrusionPath path : multipath.paths){
+        // TODO: remove comments before adaptive PA release.
+        gcode += "; Extrude multipath. Is multipath variable set to: " + std::to_string(m_is_multipath)+"\n";
         gcode += this->_extrude(path, description, speed);
         m_is_multipath = true;
     }
@@ -5338,7 +5342,9 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     // TODO: need to check whether skipping re-evaluation of the PA change for external perimeters will result in any adverse effects when a seam
     // TODO: is placed directly on an overhang that has been slowed down... This would result in the PA value being calculated and
     // TODO: set based on the current overhang speed and will not change until the next extrusion role change.
-    if((path.role() == erExternalPerimeter) && (m_is_multipath == false) && (m_last_extrusion_role == erExternalPerimeter) && (evaluate_adaptive_pa == true))
+    if((path.role() == erExternalPerimeter) && (m_last_extrusion_role == erExternalPerimeter) && (evaluate_adaptive_pa == true))
+        evaluate_adaptive_pa = false;
+    if(m_is_multipath == true && (evaluate_adaptive_pa == true))
         evaluate_adaptive_pa = false;
     
     //Orca: process custom gcode for extrusion role change
@@ -5413,6 +5419,9 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         // sprintf(buf, ";%sT%g MM3MM:%g %g %g\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::PA_Change).c_str(),m_writer.extruder()->id() ,_mm3_per_mm, path.mm3_per_mm, e_per_mm/m_writer.extruder()->e_per_mm3());
         // acceleration_i
         if( m_last_multipath_average_mm3_per_mm > 0){
+            //TODO: remove comment before release but retain tag below!
+            sprintf(buf,"; Multipath value used\n" );
+            gcode += buf;
             sprintf(buf, ";%sT%u MM3MM:%g ACCEL:%u\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::PA_Change).c_str(),m_writer.extruder()->id() ,m_last_multipath_average_mm3_per_mm,acceleration_i);
         }else{
             sprintf(buf, ";%sT%u MM3MM:%g ACCEL:%u\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::PA_Change).c_str(),m_writer.extruder()->id() ,_mm3_per_mm,acceleration_i);
