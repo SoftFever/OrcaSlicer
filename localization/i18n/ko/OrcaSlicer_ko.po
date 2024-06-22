@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-29 00:28+0800\n"
+"POT-Creation-Date: 2024-06-21 20:03+0800\n"
 "PO-Revision-Date: 2024-05-31 23:33+0900\n"
 "Last-Translator: Hotsolidinfill <138652683+Hotsolidinfill@users.noreply."
 "github.com>, crwusiz <crwusiz@gmail.com>\n"
@@ -2814,11 +2814,13 @@ msgstr "정말 필라멘트 정보를 삭제하시겠습니까?"
 msgid "You need to select the material type and color first."
 msgstr "재료 유형과 색상을 먼저 선택해야 합니다."
 
-msgid "Please input a valid value (K in 0~0.3)"
-msgstr "유효한 값을 입력하세요(K는 0~0.3)"
+#, c-format, boost-format
+msgid "Please input a valid value (K in %.1f~%.1f)"
+msgstr "유효한 값을 입력하세요 (%.1f~%.1f 사이의 K)"
 
-msgid "Please input a valid value (K in 0~0.3, N in 0.6~2.0)"
-msgstr "유효한 값을 입력하세요(K는 0~0.3, N은 0.6~2.0)"
+#, c-format, boost-format
+msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
+msgstr "유효한 값을 입력하세요 (%.1f~%.1f 사이의 K, %.1f~%.1f 사이의 N)"
 
 msgid "Other Color"
 msgstr "기타 색상"
@@ -3226,12 +3228,12 @@ msgstr "Task Sent"
 msgid "Edit multiple printers"
 msgstr "여러 프린터 편집"
 
-msgid "Select connected printetrs (0/6)"
-msgstr "연결된 프린터 선택(0/6)"
+msgid "Select connected printers (0/6)"
+msgstr "연결된 프린터 선택 (0/6)"
 
 #, c-format, boost-format
-msgid "Select Connected Printetrs (%d/6)"
-msgstr "연결된 프린터 (%d/6)를 선택합니다"
+msgid "Select Connected Printers (%d/6)"
+msgstr "연결된 프린터 선택 (%d/6)"
 
 #, c-format, boost-format
 msgid "The maximum number of printers that can be selected is %d"
@@ -3253,16 +3255,16 @@ msgid "Edit Printers"
 msgstr "프린터 편집"
 
 msgid "Device Name"
-msgstr "Device Name"
+msgstr "장치 이름"
 
 msgid "Task Name"
-msgstr "Task Name"
+msgstr "작업 이름"
 
 msgid "Device Status"
-msgstr "Device Status"
+msgstr "장치 상태"
 
 msgid "Actions"
-msgstr "Actions"
+msgstr "동작"
 
 msgid ""
 "Please select the devices you would like to manage here (up to 6 devices)"
@@ -3292,8 +3294,8 @@ msgstr "인쇄 완료"
 msgid "Printing Failed"
 msgstr "인쇄 실패"
 
-msgid "PrintingPause"
-msgstr "인쇄 일시 중지"
+msgid "Printing Pause"
+msgstr "인쇄 일시중지"
 
 msgid "Prepare"
 msgstr "준비 하기"
@@ -3332,22 +3334,22 @@ msgid "Stop"
 msgstr "정지"
 
 msgid "Task Status"
-msgstr "Task Status"
+msgstr "작업 상태"
 
 msgid "Sent Time"
-msgstr "Sent Time"
+msgstr "전송한 시간"
 
 msgid "There are no tasks to be sent!"
-msgstr "There are no tasks to be sent!"
+msgstr "전송할 작업이 없습니다!"
 
 msgid "No historical tasks!"
-msgstr "No historical tasks!"
+msgstr "작업 내역이 없습니다!"
 
 msgid "Loading..."
 msgstr "로딩 중..."
 
 msgid "No AMS"
-msgstr "No AMS"
+msgstr "AMS 없음"
 
 msgid "Send to Multi-device"
 msgstr "여러 장치로 보내기"
@@ -3365,19 +3367,19 @@ msgid "The number of printers in use simultaneously cannot be equal to 0."
 msgstr "동시에 사용 중인 프린터의 수는 0과 같을 수 없습니다."
 
 msgid "Use External Spool"
-msgstr "Use External Spool"
+msgstr "외부 스풀 사용"
 
 msgid "Use AMS"
-msgstr "Use AMS"
+msgstr "AMS 사용"
 
 msgid "Select Printers"
-msgstr "Select Printers"
+msgstr "프린터 선택"
 
 msgid "Ams Status"
-msgstr "AMS Status"
+msgstr "AMS 상태"
 
 msgid "Printing Options"
-msgstr "Printing Options"
+msgstr "인쇄 옵션"
 
 msgid "Bed Leveling"
 msgstr "베드 레벨링"
@@ -3389,10 +3391,10 @@ msgid "Flow Dynamic Calibration"
 msgstr "흐름 동적 보정"
 
 msgid "Send Options"
-msgstr "Send Options"
+msgstr "전송 옵션"
 
-msgid "Send"
-msgstr "전송"
+msgid "Send to"
+msgstr ""
 
 msgid ""
 "printers at the same time.(It depends on how many devices can undergo "
@@ -3408,6 +3410,9 @@ msgid ""
 "minute each batch.(It depends on how long it takes to complete the heating.)"
 msgstr ""
 "minute each batch. (It depends on how long it takes to complete heating.)"
+
+msgid "Send"
+msgstr "전송"
 
 msgid "Name is invalid;"
 msgstr "이름이 잘못되었습니다;"
@@ -3960,6 +3965,18 @@ msgstr ""
 "%s%% 또는 %s %s입니까?\n"
 "%s%%에 대해 예,\n"
 "%s %s에 대해 아니요."
+
+#, boost-format
+msgid ""
+"Invalid input format. Expected vector of dimensions in the following format: "
+"\"%1%\""
+msgstr "잘못된 입력 형식. 다음과 같은 벡터 형식의 치수를 입력하십시오: \"%1%\""
+
+msgid "Input value is out of range"
+msgstr "입력된 값이 범위를 벗어납니다"
+
+msgid "Some extension in the input is invalid"
+msgstr ""
 
 #, boost-format
 msgid "Invalid format. Expected vector format: \"%1%\""
@@ -6145,9 +6162,7 @@ msgstr "다운로드에 실패했습니다. 파일 크기 예외입니다."
 
 #, c-format, boost-format
 msgid "Project downloaded %d%%"
-msgstr ""
-"프로젝트 다운로드 %d%%Bambu Studio로 가져오는 데 실패했습니다. 파일을 다운로"
-"드하여 수동으로 가져오세요."
+msgstr "프로젝트 다운로드됨 %d%%"
 
 msgid ""
 "Importing to Orca Slicer failed. Please download the file and manually "
@@ -6421,7 +6436,7 @@ msgid ""
 "This stops the transmission of data to Bambu's cloud services. Users who "
 "don't use BBL machines or use LAN mode only can safely turn on this function."
 msgstr ""
-"이 기능은 밤부의 클라우드 서비스로의 데이터 전송을 중지합니다. BBL 머신을 사"
+"이 기능은 뱀부의 클라우드 서비스로의 데이터 전송을 중지합니다. BBL 머신을 사"
 "용하지 않거나 LAN 모드만 사용하는 사용자는 이 기능을 안전하게 켤 수 있습니다."
 
 msgid "Enable network plugin"
@@ -6603,7 +6618,7 @@ msgid "Current association: "
 msgstr "현재 연결:"
 
 msgid "Associate prusaslicer://"
-msgstr "프루사슬라이서://"
+msgstr "prusaslicer:// 연결"
 
 msgid "Not associated to any application"
 msgstr "어떤 애플리케이션과도 연결되지 않음"
@@ -6616,7 +6631,7 @@ msgstr ""
 "와 연결합니다."
 
 msgid "Associate bambustudio://"
-msgstr "연결 bambustudio://"
+msgstr "bambustudio:// 연결"
 
 msgid ""
 "Associate OrcaSlicer with bambustudio:// links so that Orca can open models "
@@ -6626,7 +6641,7 @@ msgstr ""
 "크와 연결하세요."
 
 msgid "Associate cura://"
-msgstr "연결 cura://"
+msgstr "cura:// 연결"
 
 msgid ""
 "Associate OrcaSlicer with cura:// links so that Orca can open models from "
@@ -7007,9 +7022,6 @@ msgstr "전송 완료"
 
 msgid "Error code"
 msgstr "오류 코드"
-
-msgid "Printer local connection failed, please try again."
-msgstr "프린터 로컬 연결에 실패했습니다. 다시 시도하세요."
 
 msgid "No login account, only printers in LAN mode are displayed"
 msgstr "로그인 계정이 없으며 LAN 모드의 프린터만 표시됩니다"
@@ -7474,8 +7486,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "툴헤드 없이 시간 경과를 기록할 경우 \"타임랩스 닦기 타워\"를 추가하는 것이 좋"
 "습니다\n"
@@ -7725,6 +7737,14 @@ msgstr "다중 재료 프린터의 다중 압출기 툴 교체 매개변수"
 
 msgid "Printable space"
 msgstr "출력 가능 공간"
+
+#. TRN: First argument is parameter name, the second one is the value.
+#, boost-format
+msgid "Invalid value provided for parameter %1%: %2%"
+msgstr "%1% 매개변수에 잘못된 값이 입력됨: %2%"
+
+msgid "G-code flavor is switched"
+msgstr "G코드 유형이 변경됨"
 
 msgid "Cooling Fan"
 msgstr "냉각 팬"
@@ -8099,6 +8119,60 @@ msgstr "사용 가능한 업데이트가 없습니다."
 msgid "The configuration is up to date."
 msgstr "구성이 최신 상태입니다."
 
+msgid "Obj file Import color"
+msgstr "Obj 파일 가져오기 색상"
+
+msgid "Specify number of colors:"
+msgstr "색상 수 지정:"
+
+#, c-format, boost-format
+msgid "The color count should be in range [%d, %d]."
+msgstr "색상 개수는 [%d, %d] 범위 내에 있어야 합니다."
+
+msgid "Recommended "
+msgstr "추천"
+
+msgid "Current filament colors:"
+msgstr "현재 필라멘트 색상:"
+
+msgid "Quick set:"
+msgstr "빠른 설정:"
+
+msgid "Color match"
+msgstr "색상 일치"
+
+msgid "Approximate color matching."
+msgstr "대략적인 색상 일치."
+
+msgid "Append"
+msgstr "추가"
+
+msgid "Add consumable extruder after existing extruders."
+msgstr "기존 압출기 뒤에 소모성 압출기를 추가합니다."
+
+msgid "Reset mapped extruders."
+msgstr "매핑된 압출기를 재설정합니다."
+
+msgid "Cluster colors"
+msgstr "클러스터 색상"
+
+msgid "Map Filament"
+msgstr "지도 필라멘트"
+
+msgid ""
+"Note:The color has been selected, you can choose OK \n"
+" to continue or manually adjust it."
+msgstr ""
+"참고: 색상이 선택되었습니다. 확인을 선택할 수 있습니다.\n"
+" 계속하거나 수동으로 조정하려면"
+
+msgid ""
+"Waring:The count of newly added and \n"
+" current extruders exceeds 16."
+msgstr ""
+"경고: 새로 추가된 개수와\n"
+" 현재 압출기는 16개를 초과합니다."
+
 msgid "Ramming customization"
 msgstr "래밍 사용자 정의"
 
@@ -8181,6 +8255,32 @@ msgstr "에서"
 
 msgid "To"
 msgstr "으로"
+
+msgid ""
+"Windows Media Player is required for this task! Do you want to enable "
+"'Windows Media Player' for your operation system?"
+msgstr ""
+
+msgid ""
+"BambuSource has not correctly been registered for media playing! Press Yes "
+"to re-register it. You will be promoted twice"
+msgstr ""
+
+msgid ""
+"Missing BambuSource component registered for media playing! Please re-"
+"install BambuStutio or seek after-sales help."
+msgstr ""
+
+msgid ""
+"Using a BambuSource from a different install, video play may not work "
+"correctly! Press Yes to fix it."
+msgstr ""
+
+msgid ""
+"Your system is missing H.264 codecs for GStreamer, which are required to "
+"play video.  (Try installing the gstreamer1.0-plugins-bad or gstreamer1.0-"
+"libav packages, then restart Orca Slicer?)"
+msgstr ""
 
 msgid "Bambu Network plug-in not detected."
 msgstr "뱀부 네트워크 플러그인이 감지되지 않습니다."
@@ -8971,8 +9071,8 @@ msgid ""
 "The prime tower is currently only supported for the Marlin, RepRap/Sprinter, "
 "RepRapFirmware and Repetier G-code flavors."
 msgstr ""
-"프라임 타워는 현재 Marlin, RepRap/Sprinter에만 지원됩니다.RepRapFirmware 및 "
-"Repetier G코드 유형."
+"프라임 타워는 현재 Marlin, RepRap/Sprinter, RepRapFirmware 및 Repetier G코드 "
+"유형에서만 지원됩니다."
 
 msgid "The prime tower is not supported in \"By object\" print."
 msgstr "프라임 타워는 \"개체별\" 출력에서 지원되지 않습니다."
@@ -9711,7 +9811,7 @@ msgstr ""
 "하세요"
 
 msgid "mm/s or %"
-msgstr "mm/s or %"
+msgstr "mm/s 또는 %"
 
 msgid "External"
 msgstr "외부"
@@ -10368,6 +10468,30 @@ msgstr ""
 "이 설정을 활성화하면 출력물 냉각 팬이 정지되지 않으며 팬을 최소 속도로 가동하"
 "여 시동 및 정지 빈도를 줄입니다"
 
+msgid "Don't slow down outer walls"
+msgstr "외벽 감속하지 않기"
+
+msgid ""
+"If enabled, this setting will ensure external perimeters are not slowed down "
+"to meet the minimum layer time. This is particularly helpful in the below "
+"scenarios:\n"
+"\n"
+" 1. To avoid changes in shine when printing glossy filaments \n"
+"2. To avoid changes in external wall speed which may create slight wall "
+"artefacts that appear like z banding \n"
+"3. To avoid printing at speeds which cause VFAs (fine artefacts) on the "
+"external walls\n"
+"\n"
+msgstr ""
+"활성화되면 최소 레이어 시간을 충족하기 위한 외벽의 출력 속도 감속을 적용하지 "
+"않습니다. 이 기능은 아래의 경우에 도움이 될 수 있습니다:\n"
+"\n"
+"1. 유광 필라멘트로 인쇄할 때 일정한 광택을 유지하기 위한 경우 \n"
+"2. 외벽 출력 속도의 변화로 인한 외벽의 Z밴딩처럼 보이는 형상이 생성되는 것을 "
+"방지하기 위한 경우 \n"
+"3. 외벽을 VFA를 발생시키는 속도로 출력하는 것을 방지하기 위한 경우\n"
+"\n"
+
 msgid "Layer time"
 msgstr "레이어 시간"
 
@@ -10791,7 +10915,7 @@ msgstr ""
 "니다."
 
 msgid "mm/s² or %"
-msgstr "mm/s² or %"
+msgstr "mm/s² 또는 %"
 
 msgid ""
 "Acceleration of sparse infill. If the value is expressed as a percentage (e."
@@ -10898,15 +11022,18 @@ msgstr "팬 최대 속도 레이어"
 
 msgid ""
 "Fan speed will be ramped up linearly from zero at layer "
-"\"close_fan_the_first_x_layers\" to maximum at layer "
-"\"full_fan_speed_layer\". \"full_fan_speed_layer\" will be ignored if lower "
-"than \"close_fan_the_first_x_layers\", in which case the fan will be running "
-"at maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
+"\"close_fan_the_first_x_layers\" to maximum at layer \"full_fan_speed_layer"
+"\". \"full_fan_speed_layer\" will be ignored if lower than "
+"\"close_fan_the_first_x_layers\", in which case the fan will be running at "
+"maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
 msgstr ""
 "팬 속도는 \"close_fan_the_first_x_layers\" 의 0에서 \"full_fan_speed_layer\" "
 "의 최고 속도까지 선형적으로 증가합니다. \"full_fan_speed_layer\"가 "
 "\"close_fan_the_first_x_layers\"보다 낮으면 무시되며, 이 경우 팬은 "
 "\"close_fan_the_first_x_layers\" + 1 에서 최대 허용 속도로 가도됩니다."
+
+msgid "layer"
+msgstr "레이어"
 
 msgid "Support interface fan speed"
 msgstr "지지대 접점 팬 속도"
@@ -13238,7 +13365,7 @@ msgstr ""
 "기"
 
 msgid "Format of G-code thumbnails"
-msgstr "G코드 미리보기 포맷"
+msgstr "G코드 미리보기 형식"
 
 msgid ""
 "Format of G-code thumbnails: PNG for best quality, JPG for smallest size, "
@@ -14042,31 +14169,15 @@ msgid ""
 "printer will use the default compensation parameter for the filament during "
 "every filament switch which will have a good result in most cases.\n"
 "\n"
-"Please note there are a few cases that will make the calibration result not "
-"reliable: using a texture plate to do the calibration; the build plate does "
-"not have good adhesion (please wash the build plate or apply gluestick!) ..."
-"You can find more from our wiki.\n"
+"Please note that there are a few cases that can make the calibration results "
+"unreliable, such as insufficient adhesion on the build plate. Improving "
+"adhesion can be achieved by washing the build plate or applying glue. For "
+"more information on this topic, please refer to our Wiki.\n"
 "\n"
 "The calibration results have about 10 percent jitter in our test, which may "
 "cause the result not exactly the same in each calibration. We are still "
 "investigating the root cause to do improvements with new updates."
 msgstr ""
-"우리 위키에서 동적 유량 교정에 대한 자세한 내용을 찾아보세요.\n"
-"\n"
-"일반적으로 교정은 필요하지 않습니다. 출력 시작 메뉴에서 \"동적 유량 교정\" 옵"
-"션을 선택한 상태에서 단일 색상/재료 출력을 시작하면 프린터는 이전 방식을 따르"
-"며 출력 전에 필라멘트를 교정합니다. 다중 색상/재료 출력을 시작하면 프린터는 "
-"모든 필라멘트 전환 중에 필라멘트에 대한 기본 보상 매개변수를 사용하므로 대부"
-"분의 경우 좋은 결과를 얻을 수 있습니다.\n"
-"\n"
-"교정 결과를 신뢰할 수 없게 만드는 몇 가지 경우가 있습니다. 텍스처 플레이트를 "
-"사용하여 보정을 수행합니다. 빌드 플레이트의 접착력이 좋지 않습니다. (빌드 플"
-"레이트를 세척하거나 풀을 바르십시오!) ...위키에서 자세한 내용을 확인할 수 있"
-"습니다.\n"
-"\n"
-"테스트에서 교정 결과에는 약 10%의 오차가 있으며, 이로 인해 각 교정에서 결과"
-"가 정확히 동일하지 않을 수 있습니다. 새로운 업데이트로 개선하기 위해 근본 원"
-"인을 계속 조사하고 있습니다."
 
 msgid "When to use Flow Rate Calibration"
 msgstr "유량 교정을 사용해야 하는 경우"
@@ -14188,24 +14299,15 @@ msgstr "이름은 40자를 초과할 수 없습니다."
 
 msgid ""
 "Only one of the results with the same name will be saved. Are you sure you "
-"want to overrides the other results?"
+"want to override the other results?"
 msgstr ""
-"동일한 이름을 가진 결과 중 하나만 저장됩니다. 다른 결과에 덮어쓰겠습니까?"
-
-#, c-format, boost-format
-msgid ""
-"There is already a historical calibration result with the same name: %s. "
-"Only one of the results with the same name is saved. Are you sure you want "
-"to overrides the historical result?"
-msgstr ""
-"동일한 이름을 가진 교정 기록 결과가 이미 있습니다: %s. 동일한 이름의 결과 중 "
-"하나만 저장됩니다. 과거 결과에 덮어쓰겠습니까?"
+"단 하나의 결과만을 같은 이름으로 저장할 수 있습니다. 다른 결과들을덮어쓸까요?"
 
 msgid "Please find the best line on your plate"
 msgstr "당신의 플레이트에서 가장 좋은 선을 찾아보세요"
 
-msgid "Please find the cornor with perfect degree of extrusion"
-msgstr "완벽한 압출각도를 가진 모서리를 찾아주세요"
+msgid "Please find the corner with perfect degree of extrusion"
+msgstr "Please find the corner with the perfect degree of extrusion"
 
 msgid "Input Value"
 msgstr "입력값"
@@ -14458,6 +14560,9 @@ msgstr "ABS/ASA"
 msgid "PETG"
 msgstr "PETG"
 
+msgid "PCTG"
+msgstr ""
+
 msgid "TPU"
 msgstr "TPU"
 
@@ -14553,6 +14658,9 @@ msgstr "필요한 경우 슬래시( / )를 디렉토리 구분 기호로 사용�
 
 msgid "Upload to storage"
 msgstr "저장소에 업로드"
+
+msgid "Switch to Device tab after upload."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
@@ -14780,8 +14888,8 @@ msgstr ""
 "다시 작성하시겠습니까?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you "
-"selected\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
 "To add preset for more printers, Please go to printer selection"
 msgstr ""
 "사전 설정의 이름을 \"선택한 공급업체 유형 직렬 @프린터\"로 변경합니다.\n"
@@ -14828,12 +14936,6 @@ msgstr "직사각형"
 
 msgid "Printable Space"
 msgstr "출력 가능 공간"
-
-msgid "X"
-msgstr "X"
-
-msgid "Y"
-msgstr "Y"
 
 msgid "Hot Bed STL"
 msgstr "베드 STL"
@@ -14997,8 +15099,8 @@ msgid ""
 msgstr ""
 "\n"
 "\n"
-"Studio에서는 사용자 사전 설정 동기화 기능이 활성화되어 있지 않아 장치 페이지"
-"에서 필라멘트 설정이 실패할 수 있음을 감지했습니다.\n"
+"Orca에서는 사용자 사전 설정 동기화 기능이 활성화되어 있지 않아 장치 페이지에"
+"서 필라멘트 설정이 실패할 수 있음을 감지했습니다.\n"
 "동기화 기능을 활성화하려면 \"사용자 사전 설정 동기화\"를 클릭하세요."
 
 msgid "Printer Setting"
@@ -15058,7 +15160,7 @@ msgid ""
 "User's fillment preset set. \n"
 "Can be shared with others."
 msgstr ""
-"사용자 채우기 사전 설정입니다.\n"
+"사용자의 필라멘트 사전 설정입니다.\n"
 "다른 사람과 공유할 수 있습니다."
 
 msgid ""
@@ -15225,6 +15327,12 @@ msgstr "정말 로그아웃하시겠습니까?"
 msgid "Refresh Printers"
 msgstr "프린터 새로 고침"
 
+msgid "View print host webui in Device tab"
+msgstr ""
+
+msgid "Replace the BambuLab's device tab with print host webui"
+msgstr ""
+
 msgid ""
 "HTTPS CA file is optional. It is only needed if you use HTTPS with a self-"
 "signed certificate."
@@ -15299,7 +15407,8 @@ msgid ""
 "Note: FlashAir with firmware 2.00.02 or newer and activated upload function "
 "is required."
 msgstr ""
-"참고: 펌웨어 2.00.02 이상이 있고 업로드 기능이 활성화된 FlashAir필수입니다."
+"참고: 펌웨어 2.00.02 또는 이후 버전을 사용중이며 업로드 기능이 활성화된 "
+"FlashAir가 필요합니다."
 
 msgid "Connection to MKS works correctly."
 msgstr "MKS에 대한 연결이 올바르게 작동합니다."
@@ -15638,19 +15747,15 @@ msgstr "SimplyPrint에 성공적으로 연결되었습니다!"
 msgid "Could not connect to SimplyPrint"
 msgstr "SimplyPrint에 연결할 수 없습니다"
 
-msgid "SimplyPrint account not linked. Go to Connect options to set it up."
+msgid "Internel error"
 msgstr ""
-"SimplyPrint 계정이 연결되지 않았습니다. 연결 옵션으로 이동하여 설정합니다."
-
-msgid ""
-"File size exceeds the 100MB upload limit. Please upload your file through "
-"the panel."
-msgstr ""
-"파일 크기가 업로드 제한인 100MB를 초과했습니다. 패널을 통해 파일을 업로드하세"
-"요."
 
 msgid "Unknown error"
 msgstr "알 수 없는 오류"
+
+msgid "SimplyPrint account not linked. Go to Connect options to set it up."
+msgstr ""
+"SimplyPrint 계정이 연결되지 않았습니다. 연결 옵션으로 이동하여 설정합니다."
 
 msgid "Connection to Flashforge works correctly."
 msgstr "플래시포지 연결이 정상적으로 작동합니다."
@@ -16050,6 +16155,93 @@ msgstr ""
 "면 뒤틀림 가능성을 줄일 수 있다는 사실을 알고 계셨나요?"
 
 #~ msgid ""
+#~ "File size exceeds the 100MB upload limit. Please upload your file through "
+#~ "the panel."
+#~ msgstr ""
+#~ "파일 크기가 업로드 제한인 100MB를 초과했습니다. 패널을 통해 파일을 업로드"
+#~ "하세요."
+
+#~ msgid "Please input a valid value (K in 0~0.3)"
+#~ msgstr "유효한 값을 입력하세요(K는 0~0.3)"
+
+#~ msgid "Please input a valid value (K in 0~0.3, N in 0.6~2.0)"
+#~ msgstr "유효한 값을 입력하세요(K는 0~0.3, N은 0.6~2.0)"
+
+#~ msgid "Select connected printetrs (0/6)"
+#~ msgstr "연결된 프린터 선택(0/6)"
+
+#, c-format, boost-format
+#~ msgid "Select Connected Printetrs (%d/6)"
+#~ msgstr "연결된 프린터 (%d/6)를 선택합니다"
+
+#~ msgid "PrintingPause"
+#~ msgstr "인쇄 일시 중지"
+
+#~ msgid "Printer local connection failed, please try again."
+#~ msgstr "프린터 로컬 연결에 실패했습니다. 다시 시도하세요."
+
+#~ msgid ""
+#~ "Please find the details of Flow Dynamics Calibration from our wiki.\n"
+#~ "\n"
+#~ "Usually the calibration is unnecessary. When you start a single color/"
+#~ "material print, with the \"flow dynamics calibration\" option checked in "
+#~ "the print start menu, the printer will follow the old way, calibrate the "
+#~ "filament before the print; When you start a multi color/material print, "
+#~ "the printer will use the default compensation parameter for the filament "
+#~ "during every filament switch which will have a good result in most "
+#~ "cases.\n"
+#~ "\n"
+#~ "Please note there are a few cases that will make the calibration result "
+#~ "not reliable: using a texture plate to do the calibration; the build "
+#~ "plate does not have good adhesion (please wash the build plate or apply "
+#~ "gluestick!) ...You can find more from our wiki.\n"
+#~ "\n"
+#~ "The calibration results have about 10 percent jitter in our test, which "
+#~ "may cause the result not exactly the same in each calibration. We are "
+#~ "still investigating the root cause to do improvements with new updates."
+#~ msgstr ""
+#~ "우리 위키에서 동적 유량 교정에 대한 자세한 내용을 찾아보세요.\n"
+#~ "\n"
+#~ "일반적으로 교정은 필요하지 않습니다. 출력 시작 메뉴에서 \"동적 유량 교정"
+#~ "\" 옵션을 선택한 상태에서 단일 색상/재료 출력을 시작하면 프린터는 이전 방"
+#~ "식을 따르며 출력 전에 필라멘트를 교정합니다. 다중 색상/재료 출력을 시작하"
+#~ "면 프린터는 모든 필라멘트 전환 중에 필라멘트에 대한 기본 보상 매개변수를 "
+#~ "사용하므로 대부분의 경우 좋은 결과를 얻을 수 있습니다.\n"
+#~ "\n"
+#~ "교정 결과를 신뢰할 수 없게 만드는 몇 가지 경우가 있습니다. 텍스처 플레이트"
+#~ "를 사용하여 보정을 수행합니다. 빌드 플레이트의 접착력이 좋지 않습니다. (빌"
+#~ "드 플레이트를 세척하거나 풀을 바르십시오!) ...위키에서 자세한 내용을 확인"
+#~ "할 수 있습니다.\n"
+#~ "\n"
+#~ "테스트에서 교정 결과에는 약 10%의 오차가 있으며, 이로 인해 각 교정에서 결"
+#~ "과가 정확히 동일하지 않을 수 있습니다. 새로운 업데이트로 개선하기 위해 근"
+#~ "본 원인을 계속 조사하고 있습니다."
+
+#~ msgid ""
+#~ "Only one of the results with the same name will be saved. Are you sure "
+#~ "you want to overrides the other results?"
+#~ msgstr ""
+#~ "동일한 이름을 가진 결과 중 하나만 저장됩니다. 다른 결과에 덮어쓰겠습니까?"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "There is already a historical calibration result with the same name: %s. "
+#~ "Only one of the results with the same name is saved. Are you sure you "
+#~ "want to overrides the historical result?"
+#~ msgstr ""
+#~ "동일한 이름을 가진 교정 기록 결과가 이미 있습니다: %s. 동일한 이름의 결과 "
+#~ "중 하나만 저장됩니다. 과거 결과에 덮어쓰겠습니까?"
+
+#~ msgid "Please find the cornor with perfect degree of extrusion"
+#~ msgstr "완벽한 압출각도를 가진 모서리를 찾아주세요"
+
+#~ msgid "X"
+#~ msgstr "X"
+
+#~ msgid "Y"
+#~ msgstr "Y"
+
+#~ msgid ""
 #~ "Order of wall/infill. When the tickbox is unchecked the walls are printed "
 #~ "first, which works best in most cases.\n"
 #~ "\n"
@@ -16386,8 +16578,8 @@ msgstr ""
 #~ msgstr "드문 레이어 없음(실험적)"
 
 #~ msgid ""
-#~ "We would rename the presets as \"Vendor Type Serial @printer you "
-#~ "selected\". \n"
+#~ "We would rename the presets as \"Vendor Type Serial @printer you selected"
+#~ "\". \n"
 #~ "To add preset for more prinetrs, Please go to printer selection"
 #~ msgstr ""
 #~ "사전 설정의 이름을 \"선택한 공급업체 유형 직렬 @프린터\"로 변경합니다.\n"

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OrcaSlicer V2.0.0 Official Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-29 00:28+0800\n"
+"POT-Creation-Date: 2024-06-21 20:03+0800\n"
 "PO-Revision-Date: 2024-04-12 13:49+0700\n"
 "Last-Translator: \n"
 "Language-Team: andylg@yandex.ru\n"
@@ -2878,13 +2878,13 @@ msgstr "Вы уверены, что хотите удалить информац
 msgid "You need to select the material type and color first."
 msgstr "Сначала необходимо выбрать тип материала и цвет."
 
-msgid "Please input a valid value (K in 0~0.3)"
-msgstr "Пожалуйста, введите допустимое значение (K в диапазоне 0~0.3)"
-
-msgid "Please input a valid value (K in 0~0.3, N in 0.6~2.0)"
+#, c-format, boost-format
+msgid "Please input a valid value (K in %.1f~%.1f)"
 msgstr ""
-"Пожалуйста, введите допустимое значение (K в диапазоне 0~0.3, N в диапазоне "
-"0.6~2.0)"
+
+#, c-format, boost-format
+msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
+msgstr ""
 
 msgid "Other Color"
 msgstr "Другой цвет"
@@ -3316,11 +3316,11 @@ msgstr ""
 msgid "Edit multiple printers"
 msgstr ""
 
-msgid "Select connected printetrs (0/6)"
+msgid "Select connected printers (0/6)"
 msgstr ""
 
 #, c-format, boost-format
-msgid "Select Connected Printetrs (%d/6)"
+msgid "Select Connected Printers (%d/6)"
 msgstr ""
 
 #, c-format, boost-format
@@ -3382,7 +3382,7 @@ msgstr ""
 msgid "Printing Failed"
 msgstr ""
 
-msgid "PrintingPause"
+msgid "Printing Pause"
 msgstr ""
 
 msgid "Prepare"
@@ -3483,8 +3483,8 @@ msgstr ""
 msgid "Send Options"
 msgstr ""
 
-msgid "Send"
-msgstr "Отправить G-код стола на SD-карту"
+msgid "Send to"
+msgstr ""
 
 msgid ""
 "printers at the same time.(It depends on how many devices can undergo "
@@ -3497,6 +3497,9 @@ msgstr "Подождите"
 msgid ""
 "minute each batch.(It depends on how long it takes to complete the heating.)"
 msgstr ""
+
+msgid "Send"
+msgstr "Отправить G-код стола на SD-карту"
 
 msgid "Name is invalid;"
 msgstr "Некорректное имя;"
@@ -4084,6 +4087,20 @@ msgstr ""
 "Это %s%% или %s %s?\n"
 "ДА для %s%%, \n"
 "НЕТ для %s %s."
+
+#, boost-format
+msgid ""
+"Invalid input format. Expected vector of dimensions in the following format: "
+"\"%1%\""
+msgstr ""
+"Неверный входной формат. Ожидаемый вектор размеров в следующем формате: \"%1%"
+"\""
+
+msgid "Input value is out of range"
+msgstr "Введённое значение вне диапазона"
+
+msgid "Some extension in the input is invalid"
+msgstr "Недопустимое расширение на входе"
 
 #, boost-format
 msgid "Invalid format. Expected vector format: \"%1%\""
@@ -7198,10 +7215,6 @@ msgstr "отправка завершена"
 msgid "Error code"
 msgstr "Код ошибки"
 
-msgid "Printer local connection failed, please try again."
-msgstr ""
-"Не удалось установить локальное соединение с принтером, попробуйте ещё раз."
-
 msgid "No login account, only printers in LAN mode are displayed"
 msgstr ""
 "Без входа в учётную запись, отображаются только \n"
@@ -7972,6 +7985,14 @@ msgstr ""
 msgid "Printable space"
 msgstr "Область печати"
 
+#. TRN: First argument is parameter name, the second one is the value.
+#, boost-format
+msgid "Invalid value provided for parameter %1%: %2%"
+msgstr "Указано недопустимое значение параметра %1%: %2%"
+
+msgid "G-code flavor is switched"
+msgstr "Тип G-кода переключён"
+
 msgid "Cooling Fan"
 msgstr "Вентилятор обдува модели"
 
@@ -8348,6 +8369,56 @@ msgstr "Обновления отсутствуют."
 msgid "The configuration is up to date."
 msgstr "Текущая конфигурация не требует обновления."
 
+msgid "Obj file Import color"
+msgstr ""
+
+msgid "Specify number of colors:"
+msgstr ""
+
+#, c-format, boost-format
+msgid "The color count should be in range [%d, %d]."
+msgstr ""
+
+msgid "Recommended "
+msgstr ""
+
+msgid "Current filament colors:"
+msgstr ""
+
+msgid "Quick set:"
+msgstr ""
+
+msgid "Color match"
+msgstr ""
+
+msgid "Approximate color matching."
+msgstr ""
+
+msgid "Append"
+msgstr ""
+
+msgid "Add consumable extruder after existing extruders."
+msgstr ""
+
+msgid "Reset mapped extruders."
+msgstr ""
+
+msgid "Cluster colors"
+msgstr ""
+
+msgid "Map Filament"
+msgstr ""
+
+msgid ""
+"Note:The color has been selected, you can choose OK \n"
+" to continue or manually adjust it."
+msgstr ""
+
+msgid ""
+"Waring:The count of newly added and \n"
+" current extruders exceeds 16."
+msgstr ""
+
 msgid "Ramming customization"
 msgstr "Настройки рэмминга"
 
@@ -8435,6 +8506,32 @@ msgstr "С"
 
 msgid "To"
 msgstr "На"
+
+msgid ""
+"Windows Media Player is required for this task! Do you want to enable "
+"'Windows Media Player' for your operation system?"
+msgstr ""
+
+msgid ""
+"BambuSource has not correctly been registered for media playing! Press Yes "
+"to re-register it. You will be promoted twice"
+msgstr ""
+
+msgid ""
+"Missing BambuSource component registered for media playing! Please re-"
+"install BambuStutio or seek after-sales help."
+msgstr ""
+
+msgid ""
+"Using a BambuSource from a different install, video play may not work "
+"correctly! Press Yes to fix it."
+msgstr ""
+
+msgid ""
+"Your system is missing H.264 codecs for GStreamer, which are required to "
+"play video.  (Try installing the gstreamer1.0-plugins-bad or gstreamer1.0-"
+"libav packages, then restart Orca Slicer?)"
+msgstr ""
 
 msgid "Bambu Network plug-in not detected."
 msgstr "Сетевой плагин Bambu не обнаружен."
@@ -10744,6 +10841,22 @@ msgstr ""
 "и будет работать на минимальной скорости, чтобы сократить частоту его "
 "запуска и остановки."
 
+msgid "Don't slow down outer walls"
+msgstr ""
+
+msgid ""
+"If enabled, this setting will ensure external perimeters are not slowed down "
+"to meet the minimum layer time. This is particularly helpful in the below "
+"scenarios:\n"
+"\n"
+" 1. To avoid changes in shine when printing glossy filaments \n"
+"2. To avoid changes in external wall speed which may create slight wall "
+"artefacts that appear like z banding \n"
+"3. To avoid printing at speeds which cause VFAs (fine artefacts) on the "
+"external walls\n"
+"\n"
+msgstr ""
+
 msgid "Layer time"
 msgstr "Время слоя"
 
@@ -11326,6 +11439,9 @@ msgstr ""
 "значения \"close_fan_the_first_x_layers\", в этом случае вентилятор будет "
 "работать на максимально допустимой скорости на слое "
 "\"close_fan_the_first_x_layers\" + 1."
+
+msgid "layer"
+msgstr ""
 
 msgid "Support interface fan speed"
 msgstr "Скорость вентилятора на связующем слое"
@@ -14623,34 +14739,15 @@ msgid ""
 "printer will use the default compensation parameter for the filament during "
 "every filament switch which will have a good result in most cases.\n"
 "\n"
-"Please note there are a few cases that will make the calibration result not "
-"reliable: using a texture plate to do the calibration; the build plate does "
-"not have good adhesion (please wash the build plate or apply gluestick!) ..."
-"You can find more from our wiki.\n"
+"Please note that there are a few cases that can make the calibration results "
+"unreliable, such as insufficient adhesion on the build plate. Improving "
+"adhesion can be achieved by washing the build plate or applying glue. For "
+"more information on this topic, please refer to our Wiki.\n"
 "\n"
 "The calibration results have about 10 percent jitter in our test, which may "
 "cause the result not exactly the same in each calibration. We are still "
 "investigating the root cause to do improvements with new updates."
 msgstr ""
-"Подробную информацию про калибровку динамики потока можно найти на нашем "
-"вики-сайте.\n"
-"\n"
-"При обычных обстоятельствах калибровка не требуется. \n"
-"Если при запуске печати одним цветом/материалом в меню запуска печати "
-"отмечена опция «Калибровка динамики потока», то калибровка пластиковой нити "
-"будет производится старым способом. \n"
-"При запуске печати несколькими цветами/материалами, принтер будет "
-"использовать параметр компенсации по умолчанию для материала при каждой его "
-"смене, что в большинстве случаев позволяет получить хороший результат.\n"
-"\n"
-"Обратите внимание, что есть несколько случаев, когда результат калибровки "
-"будет недостоверным. Это использование для калибровки текстурированной "
-"печатной пластины и когда у печатной пластины плохая адгезия с материалом. "
-"Более подробную информацию можно найти на нашем вики-сайте.\n"
-"\n"
-"По нашим тестам, результаты калибровки имеют погрешность примерно 10%, что "
-"может приводить к разным результатам при каждой калибровке. Мы продолжаем "
-"выяснять причину, чтобы улучшить ситуацию в новых обновлениях."
 
 msgid "When to use Flow Rate Calibration"
 msgstr "В каких случаях необходима калибровка скорости потока"
@@ -14786,26 +14883,16 @@ msgstr "Максимальная длина имени 40 символов."
 
 msgid ""
 "Only one of the results with the same name will be saved. Are you sure you "
-"want to overrides the other results?"
+"want to override the other results?"
 msgstr ""
-"Будет сохранен только один из результатов с таким же именем. Вы уверены, что "
+"Можно сохранить только один результат с одинаковым именем. Вы уверены, что "
 "хотите перезаписать другие результаты?"
-
-#, c-format, boost-format
-msgid ""
-"There is already a historical calibration result with the same name: %s. "
-"Only one of the results with the same name is saved. Are you sure you want "
-"to overrides the historical result?"
-msgstr ""
-"Результат калибровки с таким именем уже существует: %s. Будет сохранён "
-"только один результат с таким же именем. Вы уверены, что хотите перезаписать "
-"текущий результат?"
 
 msgid "Please find the best line on your plate"
 msgstr "Пожалуйста, найдите лучшую линию на столе"
 
-msgid "Please find the cornor with perfect degree of extrusion"
-msgstr "Пожалуйста, найдите угол с идеальной степенью экструзии"
+msgid "Please find the corner with perfect degree of extrusion"
+msgstr "Пожалуйста, найдите угол с идеальной экструзией"
 
 msgid "Input Value"
 msgstr "Входное значение"
@@ -15060,6 +15147,9 @@ msgstr "ABS/ASA"
 msgid "PETG"
 msgstr "PETG"
 
+msgid "PCTG"
+msgstr ""
+
 msgid "TPU"
 msgstr "TPU"
 
@@ -15155,6 +15245,9 @@ msgstr "В качестве разделителя каталогов испол
 
 msgid "Upload to storage"
 msgstr "Загрузить в хранилище"
+
+msgid "Switch to Device tab after upload."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
@@ -15432,12 +15525,6 @@ msgstr "Прямоугольник"
 
 msgid "Printable Space"
 msgstr "Область печати"
-
-msgid "X"
-msgstr "X"
-
-msgid "Y"
-msgstr "Y"
 
 msgid "Hot Bed STL"
 msgstr "Модель стола"
@@ -15792,7 +15879,7 @@ msgstr "Ежедневные советы "
 
 #, c-format, boost-format
 msgid "nozzle memorized: %.1f %s"
-msgstr ""
+msgstr "сопло сохранённое: %.1f %s"
 
 msgid ""
 "Your nozzle diameter in preset is not consistent with memorized nozzle "
@@ -15836,6 +15923,12 @@ msgstr "Вы уверены, что хотите выйти из системы?
 
 msgid "Refresh Printers"
 msgstr "Обновить принтеры"
+
+msgid "View print host webui in Device tab"
+msgstr ""
+
+msgid "Replace the BambuLab's device tab with print host webui"
+msgstr ""
 
 msgid ""
 "HTTPS CA file is optional. It is only needed if you use HTTPS with a self-"
@@ -16274,20 +16367,16 @@ msgstr "Соединение с SimplyPrint успешно установлен�
 msgid "Could not connect to SimplyPrint"
 msgstr "Не удалось подключиться к SimplyPrint"
 
+msgid "Internel error"
+msgstr ""
+
+msgid "Unknown error"
+msgstr "Неизвестная ошибка"
+
 msgid "SimplyPrint account not linked. Go to Connect options to set it up."
 msgstr ""
 "Учётная запись SimplyPrint не привязана. Перейдите в раздел подключения для "
 "настройки."
-
-msgid ""
-"File size exceeds the 100MB upload limit. Please upload your file through "
-"the panel."
-msgstr ""
-"Размер файла превышает лимит загрузки в 100 МБ. Пожалуйста, загрузите файл "
-"через панель."
-
-msgid "Unknown error"
-msgstr "Неизвестная ошибка"
 
 msgid "Connection to Flashforge works correctly."
 msgstr "Соединение с Flashforge успешно установлено."
@@ -16697,6 +16786,93 @@ msgstr ""
 "Знаете ли вы, что при печати материалами, склонными к короблению, таких как "
 "ABS, повышение температуры подогреваемого стола может снизить эту "
 "вероятность?"
+
+#~ msgid ""
+#~ "File size exceeds the 100MB upload limit. Please upload your file through "
+#~ "the panel."
+#~ msgstr ""
+#~ "Размер файла превышает лимит загрузки в 100 МБ. Пожалуйста, загрузите "
+#~ "файл через панель."
+
+#~ msgid "Please input a valid value (K in 0~0.3)"
+#~ msgstr "Пожалуйста, введите допустимое значение (K в диапазоне 0~0.3)"
+
+#~ msgid "Please input a valid value (K in 0~0.3, N in 0.6~2.0)"
+#~ msgstr ""
+#~ "Пожалуйста, введите допустимое значение (K в диапазоне 0~0.3, N в "
+#~ "диапазоне 0.6~2.0)"
+
+#~ msgid "Printer local connection failed, please try again."
+#~ msgstr ""
+#~ "Не удалось установить локальное соединение с принтером, попробуйте ещё "
+#~ "раз."
+
+#~ msgid ""
+#~ "Please find the details of Flow Dynamics Calibration from our wiki.\n"
+#~ "\n"
+#~ "Usually the calibration is unnecessary. When you start a single color/"
+#~ "material print, with the \"flow dynamics calibration\" option checked in "
+#~ "the print start menu, the printer will follow the old way, calibrate the "
+#~ "filament before the print; When you start a multi color/material print, "
+#~ "the printer will use the default compensation parameter for the filament "
+#~ "during every filament switch which will have a good result in most "
+#~ "cases.\n"
+#~ "\n"
+#~ "Please note there are a few cases that will make the calibration result "
+#~ "not reliable: using a texture plate to do the calibration; the build "
+#~ "plate does not have good adhesion (please wash the build plate or apply "
+#~ "gluestick!) ...You can find more from our wiki.\n"
+#~ "\n"
+#~ "The calibration results have about 10 percent jitter in our test, which "
+#~ "may cause the result not exactly the same in each calibration. We are "
+#~ "still investigating the root cause to do improvements with new updates."
+#~ msgstr ""
+#~ "Подробную информацию про калибровку динамики потока можно найти на нашем "
+#~ "вики-сайте.\n"
+#~ "\n"
+#~ "При обычных обстоятельствах калибровка не требуется. \n"
+#~ "Если при запуске печати одним цветом/материалом в меню запуска печати "
+#~ "отмечена опция «Калибровка динамики потока», то калибровка пластиковой "
+#~ "нити будет производится старым способом. \n"
+#~ "При запуске печати несколькими цветами/материалами, принтер будет "
+#~ "использовать параметр компенсации по умолчанию для материала при каждой "
+#~ "его смене, что в большинстве случаев позволяет получить хороший "
+#~ "результат.\n"
+#~ "\n"
+#~ "Обратите внимание, что есть несколько случаев, когда результат калибровки "
+#~ "будет недостоверным. Это использование для калибровки текстурированной "
+#~ "печатной пластины и когда у печатной пластины плохая адгезия с "
+#~ "материалом. Более подробную информацию можно найти на нашем вики-сайте.\n"
+#~ "\n"
+#~ "По нашим тестам, результаты калибровки имеют погрешность примерно 10%, "
+#~ "что может приводить к разным результатам при каждой калибровке. Мы "
+#~ "продолжаем выяснять причину, чтобы улучшить ситуацию в новых обновлениях."
+
+#~ msgid ""
+#~ "Only one of the results with the same name will be saved. Are you sure "
+#~ "you want to overrides the other results?"
+#~ msgstr ""
+#~ "Будет сохранен только один из результатов с таким же именем. Вы уверены, "
+#~ "что хотите перезаписать другие результаты?"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "There is already a historical calibration result with the same name: %s. "
+#~ "Only one of the results with the same name is saved. Are you sure you "
+#~ "want to overrides the historical result?"
+#~ msgstr ""
+#~ "Результат калибровки с таким именем уже существует: %s. Будет сохранён "
+#~ "только один результат с таким же именем. Вы уверены, что хотите "
+#~ "перезаписать текущий результат?"
+
+#~ msgid "Please find the cornor with perfect degree of extrusion"
+#~ msgstr "Пожалуйста, найдите угол с идеальной степенью экструзии"
+
+#~ msgid "X"
+#~ msgstr "X"
+
+#~ msgid "Y"
+#~ msgstr "Y"
 
 #~ msgid ""
 #~ "Order of wall/infill. When the tickbox is unchecked the walls are printed "

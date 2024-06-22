@@ -1,20 +1,3 @@
-///|/ Copyright (c) Prusa Research 2016 - 2023 Vojtěch Bubník @bubnikv, Lukáš Matěna @lukasmatena, Lukáš Hejl @hejllukas, Tomáš Mészáros @tamasmeszaros, Pavel Mikuš @Godrak, David Kocík @kocikdav, Oleksandra Iushchenko @YuSanka, Vojtěch Král @vojtechkral, Enrico Turri @enricoturri1966
-///|/ Copyright (c) 2023 Pedro Lamas @PedroLamas
-///|/ Copyright (c) 2020 Sergey Kovalev @RandoMan70
-///|/ Copyright (c) 2021 Martin Budden
-///|/ Copyright (c) 2021 Ilya @xorza
-///|/ Copyright (c) 2020 Paul Arden @ardenpm
-///|/ Copyright (c) 2019 Spencer Owen @spuder
-///|/ Copyright (c) 2019 Stephan Reichhelm @stephanr
-///|/ Copyright (c) 2018 Martin Loidl @LoidlM
-///|/ Copyright (c) SuperSlicer 2018 Remi Durand @supermerill
-///|/ Copyright (c) 2016 - 2017 Joseph Lenox @lordofhyphens
-///|/ Copyright (c) Slic3r 2013 - 2015 Alessandro Ranellucci @alranel
-///|/ Copyright (c) 2015 Maksim Derbasov @ntfshard
-///|/ Copyright (c) 2015 Alexander Rössler @machinekoder
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 // Configuration store of Slic3r.
 //
 // The configuration store is either static or dynamic.
@@ -1195,6 +1178,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionStrings,            extruder_colour))
     ((ConfigOptionPoints,             extruder_offset))
     ((ConfigOptionBools,              reduce_fan_stop_start_freq))
+    ((ConfigOptionBools,              dont_slow_down_outer_wall))
     ((ConfigOptionFloats,             fan_cooling_layer_time))
     ((ConfigOptionStrings,            filament_colour))
     ((ConfigOptionBools,              activate_air_filtration))

@@ -1,12 +1,3 @@
-#/|/ Copyright (c) Prusa Research 2018 - 2023 Tomáš Mészáros @tamasmeszaros, David Kocík @kocikdav, Lukáš Matěna @lukasmatena, Enrico Turri @enricoturri1966, Vojtěch Bubník @bubnikv, Pavel Mikuš @Godrak, Filip Sykala @Jony01, Oleksandra Iushchenko @YuSanka, Lukáš Hejl @hejllukas, Vojtěch Král @vojtechkral
-#/|/ Copyright (c) 2023 Pedro Lamas @PedroLamas
-#/|/ Copyright (c) 2020 Sergey Kovalev @RandoMan70
-#/|/ Copyright (c) 2021 Boleslaw Ciesielski
-#/|/ Copyright (c) 2019 Spencer Owen @spuder
-#/|/ Copyright (c) 2019 Stephan Reichhelm @stephanr
-#/|/
-#/|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-#/|/
 cmake_minimum_required(VERSION 3.13)
 project(libslic3r_gui)
 

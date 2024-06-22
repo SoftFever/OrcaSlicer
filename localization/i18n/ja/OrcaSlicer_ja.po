@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-29 00:28+0800\n"
+"POT-Creation-Date: 2024-06-21 20:03+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2795,11 +2795,13 @@ msgstr "Are you sure you want to clear the filament information?"
 msgid "You need to select the material type and color first."
 msgstr "You need to select the material type and color first."
 
-msgid "Please input a valid value (K in 0~0.3)"
-msgstr "Please input a valid value (K in 0~0.3)"
+#, c-format, boost-format
+msgid "Please input a valid value (K in %.1f~%.1f)"
+msgstr ""
 
-msgid "Please input a valid value (K in 0~0.3, N in 0.6~2.0)"
-msgstr "Please input a valid value (K in 0~0.3, N in 0.6~2.0)"
+#, c-format, boost-format
+msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
+msgstr ""
 
 msgid "Other Color"
 msgstr "Other Color"
@@ -3204,11 +3206,11 @@ msgstr "Task Sent"
 msgid "Edit multiple printers"
 msgstr ""
 
-msgid "Select connected printetrs (0/6)"
+msgid "Select connected printers (0/6)"
 msgstr ""
 
 #, c-format, boost-format
-msgid "Select Connected Printetrs (%d/6)"
+msgid "Select Connected Printers (%d/6)"
 msgstr ""
 
 #, c-format, boost-format
@@ -3270,7 +3272,7 @@ msgstr ""
 msgid "Printing Failed"
 msgstr ""
 
-msgid "PrintingPause"
+msgid "Printing Pause"
 msgstr ""
 
 msgid "Prepare"
@@ -3369,8 +3371,8 @@ msgstr ""
 msgid "Send Options"
 msgstr "Send Options"
 
-msgid "Send"
-msgstr "送信"
+msgid "Send to"
+msgstr ""
 
 msgid ""
 "printers at the same time.(It depends on how many devices can undergo "
@@ -3386,6 +3388,9 @@ msgid ""
 "minute each batch.(It depends on how long it takes to complete the heating.)"
 msgstr ""
 "minute each batch. (It depends on how long it takes to complete heating.)"
+
+msgid "Send"
+msgstr "送信"
 
 msgid "Name is invalid;"
 msgstr "名称が無効です"
@@ -3929,6 +3934,18 @@ msgid ""
 msgstr ""
 "%s%% か、それとも %s %sですか？\n"
 "%s%% の場合ははい、 %s %s はいいえ。"
+
+#, boost-format
+msgid ""
+"Invalid input format. Expected vector of dimensions in the following format: "
+"\"%1%\""
+msgstr "入力形式が無効です。 次の形式の次元の予想されるベクトル：\"%1%\""
+
+msgid "Input value is out of range"
+msgstr "入力値が範囲を超えています"
+
+msgid "Some extension in the input is invalid"
+msgstr "入力の一部の拡張子が無効"
 
 #, boost-format
 msgid "Invalid format. Expected vector format: \"%1%\""
@@ -6941,9 +6958,6 @@ msgstr "送信完了"
 msgid "Error code"
 msgstr "Error code"
 
-msgid "Printer local connection failed, please try again."
-msgstr "Printer local connection failed; please try again."
-
 msgid "No login account, only printers in LAN mode are displayed"
 msgstr "アカウント無し、ローカルモードのプリンターのみが表示されます"
 
@@ -7651,6 +7665,14 @@ msgstr "マルチエクストルーダーMMプリンターのツールチェン�
 msgid "Printable space"
 msgstr "造形可能領域"
 
+#. TRN: First argument is parameter name, the second one is the value.
+#, boost-format
+msgid "Invalid value provided for parameter %1%: %2%"
+msgstr "パラメータ %1% に無効な値が指定されました: %2%"
+
+msgid "G-code flavor is switched"
+msgstr "Gコードフレーバーが切り替わる"
+
 msgid "Cooling Fan"
 msgstr ""
 
@@ -8011,6 +8033,60 @@ msgstr "利用可能なアップデートはありません"
 msgid "The configuration is up to date."
 msgstr "構成データが最新です"
 
+msgid "Obj file Import color"
+msgstr "Obj file Import color"
+
+msgid "Specify number of colors:"
+msgstr "Specify number of colors:"
+
+#, c-format, boost-format
+msgid "The color count should be in range [%d, %d]."
+msgstr "The color count should be in range [%d, %d]."
+
+msgid "Recommended "
+msgstr "Recommended "
+
+msgid "Current filament colors:"
+msgstr "Current filament colors:"
+
+msgid "Quick set:"
+msgstr "Quick set:"
+
+msgid "Color match"
+msgstr "Color match"
+
+msgid "Approximate color matching."
+msgstr "Approximate color matching."
+
+msgid "Append"
+msgstr "Append"
+
+msgid "Add consumable extruder after existing extruders."
+msgstr "Add consumable extruder after existing extruders."
+
+msgid "Reset mapped extruders."
+msgstr "Reset mapped extruders."
+
+msgid "Cluster colors"
+msgstr "Cluster colors"
+
+msgid "Map Filament"
+msgstr "Map Filament"
+
+msgid ""
+"Note:The color has been selected, you can choose OK \n"
+" to continue or manually adjust it."
+msgstr ""
+"Note:The color has been selected, you can choose OK \n"
+" to continue or manually adjust it."
+
+msgid ""
+"Waring:The count of newly added and \n"
+" current extruders exceeds 16."
+msgstr ""
+"Warning: The count of newly added and \n"
+" current extruders exceeds 16."
+
 msgid "Ramming customization"
 msgstr "ラミングのカスタマイズ"
 
@@ -8092,6 +8168,32 @@ msgstr "From"
 
 msgid "To"
 msgstr "→"
+
+msgid ""
+"Windows Media Player is required for this task! Do you want to enable "
+"'Windows Media Player' for your operation system?"
+msgstr ""
+
+msgid ""
+"BambuSource has not correctly been registered for media playing! Press Yes "
+"to re-register it. You will be promoted twice"
+msgstr ""
+
+msgid ""
+"Missing BambuSource component registered for media playing! Please re-"
+"install BambuStutio or seek after-sales help."
+msgstr ""
+
+msgid ""
+"Using a BambuSource from a different install, video play may not work "
+"correctly! Press Yes to fix it."
+msgstr ""
+
+msgid ""
+"Your system is missing H.264 codecs for GStreamer, which are required to "
+"play video.  (Try installing the gstreamer1.0-plugins-bad or gstreamer1.0-"
+"libav packages, then restart Orca Slicer?)"
+msgstr ""
 
 msgid "Bambu Network plug-in not detected."
 msgstr "Bambu Network plug-in not detected."
@@ -10092,6 +10194,22 @@ msgstr ""
 "この設定により、パーツ冷却ファンを停止しなく、最低速度で回転します。頻繁に回"
 "転・停止の頻度を減らします。"
 
+msgid "Don't slow down outer walls"
+msgstr ""
+
+msgid ""
+"If enabled, this setting will ensure external perimeters are not slowed down "
+"to meet the minimum layer time. This is particularly helpful in the below "
+"scenarios:\n"
+"\n"
+" 1. To avoid changes in shine when printing glossy filaments \n"
+"2. To avoid changes in external wall speed which may create slight wall "
+"artefacts that appear like z banding \n"
+"3. To avoid printing at speeds which cause VFAs (fine artefacts) on the "
+"external walls\n"
+"\n"
+msgstr ""
+
 msgid "Layer time"
 msgstr "積層時間"
 
@@ -10594,6 +10712,9 @@ msgid ""
 "\". \"full_fan_speed_layer\" will be ignored if lower than "
 "\"close_fan_the_first_x_layers\", in which case the fan will be running at "
 "maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
+msgstr ""
+
+msgid "layer"
 msgstr ""
 
 msgid "Support interface fan speed"
@@ -13504,33 +13625,15 @@ msgid ""
 "printer will use the default compensation parameter for the filament during "
 "every filament switch which will have a good result in most cases.\n"
 "\n"
-"Please note there are a few cases that will make the calibration result not "
-"reliable: using a texture plate to do the calibration; the build plate does "
-"not have good adhesion (please wash the build plate or apply gluestick!) ..."
-"You can find more from our wiki.\n"
+"Please note that there are a few cases that can make the calibration results "
+"unreliable, such as insufficient adhesion on the build plate. Improving "
+"adhesion can be achieved by washing the build plate or applying glue. For "
+"more information on this topic, please refer to our Wiki.\n"
 "\n"
 "The calibration results have about 10 percent jitter in our test, which may "
 "cause the result not exactly the same in each calibration. We are still "
 "investigating the root cause to do improvements with new updates."
 msgstr ""
-"Please find the details of Flow Dynamics Calibration from our wiki.\n"
-"\n"
-"Usually the calibration is unnecessary. When you start a single color/"
-"material print, with the \"flow dynamics calibration\" option checked in the "
-"print start menu, the printer will calibrate the filament before the print; "
-"When you start a multi color/material print, the printer will use the "
-"default compensation parameter for the filament during every filament switch "
-"which will have a good result in most cases.\n"
-"\n"
-"Please note there are a few cases that may make the calibration result "
-"unreliable: using a texture plate to do the calibration; using a build plate "
-"with poor adhesion. (please wash the build plate or apply gluestick!) You "
-"can find more on our wiki.\n"
-"\n"
-"The calibration results have about 10 percent variation in our test, which "
-"may cause the results to not be identical for each calibration. We are still "
-"investigating the root cause to further improve this calibration in future "
-"updates."
 
 msgid "When to use Flow Rate Calibration"
 msgstr "When to use Flow Rate Calibration"
@@ -13658,25 +13761,15 @@ msgstr "The name cannot exceed 40 characters."
 
 msgid ""
 "Only one of the results with the same name will be saved. Are you sure you "
-"want to overrides the other results?"
+"want to override the other results?"
 msgstr ""
 "Only one of the results with the same name will be saved. Are you sure you "
-"want to override the other results?"
-
-#, c-format, boost-format
-msgid ""
-"There is already a historical calibration result with the same name: %s. "
-"Only one of the results with the same name is saved. Are you sure you want "
-"to overrides the historical result?"
-msgstr ""
-"There is already a historical calibration result with the same name: %s. "
-"Only one set of results with the same name is saved. Are you sure you want "
-"to override the previous results?"
+"want to replace the other results?"
 
 msgid "Please find the best line on your plate"
 msgstr "Please find the best line on your plate."
 
-msgid "Please find the cornor with perfect degree of extrusion"
+msgid "Please find the corner with perfect degree of extrusion"
 msgstr "Please find the corner with the perfect degree of extrusion"
 
 msgid "Input Value"
@@ -13931,6 +14024,9 @@ msgstr "ABS/ASA"
 msgid "PETG"
 msgstr "PETG"
 
+msgid "PCTG"
+msgstr ""
+
 msgid "TPU"
 msgstr "TPU"
 
@@ -14014,6 +14110,9 @@ msgstr "Use forward slashes ( / ) as a directory separator if needed."
 
 msgid "Upload to storage"
 msgstr "ストレージへのアップロード"
+
+msgid "Switch to Device tab after upload."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
@@ -14284,12 +14383,6 @@ msgstr "Rectangle"
 
 msgid "Printable Space"
 msgstr "Printable Space"
-
-msgid "X"
-msgstr ""
-
-msgid "Y"
-msgstr ""
 
 msgid "Hot Bed STL"
 msgstr "Hot Bed STL"
@@ -14635,7 +14728,7 @@ msgstr "Daily Tips"
 
 #, c-format, boost-format
 msgid "nozzle memorized: %.1f %s"
-msgstr ""
+msgstr "nozzle memorized: %.1f %s"
 
 msgid ""
 "Your nozzle diameter in preset is not consistent with memorized nozzle "
@@ -14678,6 +14771,12 @@ msgstr ""
 
 msgid "Refresh Printers"
 msgstr "Refresh Printers"
+
+msgid "View print host webui in Device tab"
+msgstr ""
+
+msgid "Replace the BambuLab's device tab with print host webui"
+msgstr ""
 
 msgid ""
 "HTTPS CA file is optional. It is only needed if you use HTTPS with a self-"
@@ -15109,15 +15208,13 @@ msgstr ""
 msgid "Could not connect to SimplyPrint"
 msgstr ""
 
-msgid "SimplyPrint account not linked. Go to Connect options to set it up."
-msgstr ""
-
-msgid ""
-"File size exceeds the 100MB upload limit. Please upload your file through "
-"the panel."
+msgid "Internel error"
 msgstr ""
 
 msgid "Unknown error"
+msgstr ""
+
+msgid "SimplyPrint account not linked. Go to Connect options to set it up."
 msgstr ""
 
 msgid "Connection to Flashforge works correctly."
@@ -15458,6 +15555,74 @@ msgstr ""
 "Did you know that when printing materials that are prone to warping such as "
 "ABS, appropriately increasing the heatbed temperature can reduce the "
 "probability of warping?"
+
+#~ msgid "Please input a valid value (K in 0~0.3)"
+#~ msgstr "Please input a valid value (K in 0~0.3)"
+
+#~ msgid "Please input a valid value (K in 0~0.3, N in 0.6~2.0)"
+#~ msgstr "Please input a valid value (K in 0~0.3, N in 0.6~2.0)"
+
+#~ msgid "Printer local connection failed, please try again."
+#~ msgstr "Printer local connection failed; please try again."
+
+#~ msgid ""
+#~ "Please find the details of Flow Dynamics Calibration from our wiki.\n"
+#~ "\n"
+#~ "Usually the calibration is unnecessary. When you start a single color/"
+#~ "material print, with the \"flow dynamics calibration\" option checked in "
+#~ "the print start menu, the printer will follow the old way, calibrate the "
+#~ "filament before the print; When you start a multi color/material print, "
+#~ "the printer will use the default compensation parameter for the filament "
+#~ "during every filament switch which will have a good result in most "
+#~ "cases.\n"
+#~ "\n"
+#~ "Please note there are a few cases that will make the calibration result "
+#~ "not reliable: using a texture plate to do the calibration; the build "
+#~ "plate does not have good adhesion (please wash the build plate or apply "
+#~ "gluestick!) ...You can find more from our wiki.\n"
+#~ "\n"
+#~ "The calibration results have about 10 percent jitter in our test, which "
+#~ "may cause the result not exactly the same in each calibration. We are "
+#~ "still investigating the root cause to do improvements with new updates."
+#~ msgstr ""
+#~ "Please find the details of Flow Dynamics Calibration from our wiki.\n"
+#~ "\n"
+#~ "Usually the calibration is unnecessary. When you start a single color/"
+#~ "material print, with the \"flow dynamics calibration\" option checked in "
+#~ "the print start menu, the printer will calibrate the filament before the "
+#~ "print; When you start a multi color/material print, the printer will use "
+#~ "the default compensation parameter for the filament during every filament "
+#~ "switch which will have a good result in most cases.\n"
+#~ "\n"
+#~ "Please note there are a few cases that may make the calibration result "
+#~ "unreliable: using a texture plate to do the calibration; using a build "
+#~ "plate with poor adhesion. (please wash the build plate or apply "
+#~ "gluestick!) You can find more on our wiki.\n"
+#~ "\n"
+#~ "The calibration results have about 10 percent variation in our test, "
+#~ "which may cause the results to not be identical for each calibration. We "
+#~ "are still investigating the root cause to further improve this "
+#~ "calibration in future updates."
+
+#~ msgid ""
+#~ "Only one of the results with the same name will be saved. Are you sure "
+#~ "you want to overrides the other results?"
+#~ msgstr ""
+#~ "Only one of the results with the same name will be saved. Are you sure "
+#~ "you want to override the other results?"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "There is already a historical calibration result with the same name: %s. "
+#~ "Only one of the results with the same name is saved. Are you sure you "
+#~ "want to overrides the historical result?"
+#~ msgstr ""
+#~ "There is already a historical calibration result with the same name: %s. "
+#~ "Only one set of results with the same name is saved. Are you sure you "
+#~ "want to override the previous results?"
+
+#~ msgid "Please find the cornor with perfect degree of extrusion"
+#~ msgstr "Please find the corner with the perfect degree of extrusion"
 
 #~ msgid "V"
 #~ msgstr "V"

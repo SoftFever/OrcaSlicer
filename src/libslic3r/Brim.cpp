@@ -1,8 +1,3 @@
-///|/ Copyright (c) Prusa Research 2021 - 2023 Vojtěch Bubník @bubnikv, Lukáš Matěna @lukasmatena, Lukáš Hejl @hejllukas
-///|/ Copyright (c) SuperSlicer 2023 Remi Durand @supermerill
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 #include "clipper/clipper_z.hpp"
 
 #include "ClipperUtils.hpp"
@@ -595,7 +590,8 @@ double getadhesionCoeff(const PrintObject* printObject)
         for (auto iter = extrudersFirstLayer.begin(); iter != extrudersFirstLayer.end(); iter++)
             if (modelVolume->extruder_id() == *iter) {
                 if (Model::extruderParamsMap.find(modelVolume->extruder_id()) != Model::extruderParamsMap.end())
-                    if (Model::extruderParamsMap.at(modelVolume->extruder_id()).materialName == "PETG") {
+                    if (Model::extruderParamsMap.at(modelVolume->extruder_id()).materialName == "PETG" ||
+                        Model::extruderParamsMap.at(modelVolume->extruder_id()).materialName == "PCTG") {
                         adhesionCoeff = 2;
                     }
                     else if (Model::extruderParamsMap.at(modelVolume->extruder_id()).materialName == "TPU") {

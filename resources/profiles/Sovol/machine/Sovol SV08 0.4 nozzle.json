@@ -7,6 +7,7 @@
 	"inherits": "fdm_machine_common",
 	"printer_model": "Sovol SV08",
 	"default_print_profile": "0.20mm Standard @Sovol SV08",
+    "printer_variant": "0.4",
 	"nozzle_diameter": [
 		"0.4"
 	],

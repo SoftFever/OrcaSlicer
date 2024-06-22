@@ -1,22 +1,3 @@
-///|/ Copyright (c) Prusa Research 2017 - 2023 Oleksandra Iushchenko @YuSanka, Lukáš Matěna @lukasmatena, Lukáš Hejl @hejllukas, Vojtěch Bubník @bubnikv, Pavel Mikuš @Godrak, Tomáš Mészáros @tamasmeszaros, David Kocík @kocikdav, Enrico Turri @enricoturri1966, Vojtěch Král @vojtechkral
-///|/ Copyright (c) 2021 Martin Budden
-///|/ Copyright (c) 2021 Ilya @xorza
-///|/ Copyright (c) 2019 John Drake @foxox
-///|/ Copyright (c) 2019 Matthias Urlichs @smurfix
-///|/ Copyright (c) 2019 Thomas Moore
-///|/ Copyright (c) 2019 Sijmen Schoon
-///|/ Copyright (c) 2018 Martin Loidl @LoidlM
-///|/
-///|/ ported from lib/Slic3r/GUI/Tab.pm:
-///|/ Copyright (c) Prusa Research 2016 - 2018 Vojtěch Bubník @bubnikv, Lukáš Matěna @lukasmatena
-///|/ Copyright (c) 2015 - 2017 Joseph Lenox @lordofhyphens
-///|/ Copyright (c) Slic3r 2012 - 2016 Alessandro Ranellucci @alranel
-///|/ Copyright (c) 2016 Chow Loong Jin @hyperair
-///|/ Copyright (c) 2012 QuantumConcepts
-///|/ Copyright (c) 2012 Henrik Brix Andersen @henrikbrixandersen
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 // #include "libslic3r/GCodeSender.hpp"
 //#include "slic3r/Utils/Serial.hpp"
 #include "Tab.hpp"
@@ -3362,6 +3343,7 @@ void TabFilament::build()
         optgroup->append_line(line);
         optgroup->append_single_option_line("reduce_fan_stop_start_freq");
         optgroup->append_single_option_line("slow_down_for_layer_cooling", "auto-cooling");
+        optgroup->append_single_option_line("dont_slow_down_outer_wall");
         optgroup->append_single_option_line("slow_down_min_speed");
 
         optgroup->append_single_option_line("enable_overhang_bridge_fan", "auto-cooling");
@@ -3603,6 +3585,10 @@ void TabFilament::toggle_options()
             toggle_option(el, has_enable_overhang_bridge_fan);
 
       toggle_option("additional_cooling_fan_speed", cfg.opt_bool("auxiliary_fan"));
+        
+      // Orca: toggle dont slow down for external perimeters if
+      bool has_slow_down_for_layer_cooling = m_config->opt_bool("slow_down_for_layer_cooling", 0);
+      toggle_option("dont_slow_down_outer_wall", has_slow_down_for_layer_cooling);
     }
     if (m_active_page->title() == L("Filament"))
     {
@@ -5127,12 +5113,12 @@ void Tab::clear_pages()
 {
     // invalidated highlighter, if any exists
     m_highlighter.invalidate();
-    //BBS: clear page in Parent
-    //m_page_sizer->Clear(true);
-    m_parent->clear_page();
     // clear pages from the controlls
     for (auto p : m_pages)
         p->clear();
+    //BBS: clear page in Parent
+    //m_page_sizer->Clear(true);
+    m_parent->clear_page();
 
     // nulling pointers
     m_parent_preset_description_line = nullptr;
