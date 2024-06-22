@@ -345,10 +345,16 @@ void GridCellFilamentsRenderer::Draw(wxGrid &grid, wxGridCellAttr &attr, wxDC &d
         dc.SetPen(*wxTRANSPARENT_PEN);
         dc.SetBrush(wxBrush(attr.GetBackgroundColour()));
         dc.DrawRectangle(rect);
-        if ( grid_row->model_volume_type != ModelVolumeType::NEGATIVE_VOLUME) {
+        if ((grid_row->model_volume_type != ModelVolumeType::NEGATIVE_VOLUME) && \
+            (grid_row->model_volume_type != ModelVolumeType::SUPPORT_BLOCKER) && \
+            (grid_row->model_volume_type != ModelVolumeType::SUPPORT_ENFORCER) && \
+            (grid_row->model_volume_type != ModelVolumeType::PARAMETER_MODIFIER)) {
             dc.DrawBitmap(*bitmap, wxPoint(rect.x + offset_x, rect.y + offset_y));
         }
-       
+        else if (grid_row->model_volume_type == ModelVolumeType::PARAMETER_MODIFIER){
+            dc.DrawText("Default", wxPoint(rect.x + offset_x, rect.y + offset_y));
+        }
+
         text_rect.x += bitmap_width + grid_cell_border_width * 2;
         text_rect.width -= (bitmap_width + grid_cell_border_width * 2);
     }
@@ -693,40 +699,44 @@ void GridCellSupportRenderer::Draw(wxGrid& grid,
     auto width  = grid.GetColSize(col);
 
     wxGridCellRenderer::Draw(grid, attr, dc, rect, row, col, isSelected);
-    if (cur_option.value) {
+    wxString value = table->GetValue(row, col);
+    if (grid_row->row_type != table->GridRowType::row_volume || col != table->GridColType::col_printable) {
+        if (cur_option.value) {
 
-        auto check_on = create_scaled_bitmap("check_on", nullptr, 18);
-        dc.SetPen(*wxTRANSPARENT_PEN);
+            auto check_on = create_scaled_bitmap("check_on", nullptr, 18);
+            dc.SetPen(*wxTRANSPARENT_PEN);
 
-        auto offsetx = 0;
-        auto offsety = 0;
+            auto offsetx = 0;
+            auto offsety = 0;
 
-        #ifdef  __WXOSX_MAC__
-        offsetx = (width - 18) / 2;
-        offsety = (height - 18) / 2;
-        #else
-        offsetx = (width - check_on.GetSize().x) / 2;
-        offsety = (height - check_on.GetSize().y) / 2;
-        #endif //  __WXOSX_MAC__
+            #ifdef  __WXOSX_MAC__
+            offsetx = (width - 18) / 2;
+            offsety = (height - 18) / 2;
+            #else
+            offsetx = (width - check_on.GetSize().x) / 2;
+            offsety = (height - check_on.GetSize().y) / 2;
+            #endif //  __WXOSX_MAC__
 
-        dc.DrawBitmap(check_on, rect.x + offsetx, rect.y + offsety);
+            dc.DrawBitmap(check_on, rect.x + offsetx, rect.y + offsety);
     } else {
-        auto check_off = create_scaled_bitmap("check_off_focused", nullptr, 18);
-        dc.SetPen(*wxTRANSPARENT_PEN);
+            auto check_off = create_scaled_bitmap("check_off_focused", nullptr, 18);
+            dc.SetPen(*wxTRANSPARENT_PEN);
 
-        auto offsetx = 0;
-        auto offsety = 0;
+            auto offsetx = 0;
+            auto offsety = 0;
 
-        #ifdef __WXOSX_MAC__
-        offsetx = (width - 18) / 2;
-        offsety = (height - 18) / 2;
-        #else
-        offsetx = (width - check_off.GetSize().x) / 2;
-        offsety = (height - check_off.GetSize().y) / 2;
-        #endif //  __WXOSX_MAC__
+            #ifdef __WXOSX_MAC__
+            offsetx = (width - 18) / 2;
+            offsety = (height - 18) / 2;
+            #else
+            offsetx = (width - check_off.GetSize().x) / 2;
+            offsety = (height - check_off.GetSize().y) / 2;
+            #endif //  __WXOSX_MAC__
 
-        dc.DrawBitmap(check_off, rect.x + offsetx, rect.y + offsety);
+            dc.DrawBitmap(check_off, rect.x + offsetx, rect.y + offsety);
+        }
     }
+    
 }
 
 wxSize GridCellSupportRenderer::GetBestSize(wxGrid& grid,
@@ -2764,6 +2774,10 @@ ObjectTablePanel::ObjectTablePanel( wxWindow* parent, wxWindowID id, const wxPoi
     m_object_settings->Hide();
     //m_page_sizer->Add(m_page_top_sizer, 0, wxALIGN_CENTER_HORIZONTAL, 0);
     m_page_sizer->Add(m_object_settings->get_sizer(), 1, wxEXPAND | wxALL, 2 );
+    m_side_window->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& evt) {
+        m_object_grid->SetFocus();
+        evt.Skip();
+        });
 
     auto m_line_left = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(2, -1), wxTAB_TRAVERSAL);
     m_line_left->SetBackgroundColour(wxColour(0xA6, 0xa9, 0xAA));
@@ -2962,7 +2976,9 @@ void ObjectTablePanel::load_data()
                         break;
                     case coEnum:
                         if (col == ObjectGridTable::col_filaments) {
-                            if (grid_row->model_volume_type != ModelVolumeType::NEGATIVE_VOLUME) {
+                            if ((grid_row->model_volume_type != ModelVolumeType::NEGATIVE_VOLUME) && \
+                                (grid_row->model_volume_type != ModelVolumeType::SUPPORT_BLOCKER) && \
+                                (grid_row->model_volume_type != ModelVolumeType::SUPPORT_ENFORCER)) {
                                 GridCellFilamentsEditor* filament_editor = new GridCellFilamentsEditor(grid_col->choices, false, &m_color_bitmaps);
                                 m_object_grid->SetCellEditor(row, col, filament_editor);
                                 m_object_grid->SetCellRenderer(row, col, new GridCellFilamentsRenderer());

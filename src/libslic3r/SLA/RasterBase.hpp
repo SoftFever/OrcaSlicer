@@ -1,8 +1,3 @@
-///|/ Copyright (c) Prusa Research 2020 - 2022 Tomáš Mészáros @tamasmeszaros, Vojtěch Bubník @bubnikv
-///|/ Copyright (c) 2022 ole00 @ole00
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 #ifndef SLA_RASTERBASE_HPP
 #define SLA_RASTERBASE_HPP
 

@@ -45,6 +45,7 @@ static const float DEFAULT_FILAMENT_DIAMETER = 1.75f;
 static const int   DEFAULT_FILAMENT_HRC = 0;
 static const float DEFAULT_FILAMENT_DENSITY = 1.245f;
 static const float DEFAULT_FILAMENT_COST = 29.99f;
+static const float DEFAULT_FILAMENT_FLOW_RATIOS = 1.0f;
 static const int   DEFAULT_FILAMENT_VITRIFICATION_TEMPERATURE = 0;
 static const Slic3r::Vec3f DEFAULT_EXTRUDER_OFFSET = Slic3r::Vec3f::Zero();
 
@@ -753,7 +754,7 @@ void GCodeProcessor::UsedFilaments::reset()
     volumes_per_color_change = std::vector<double>();
 
     model_extrude_cache = 0.0f;
-    volumes_per_extruder.clear();
+    model_volumes_per_extruder.clear();
 
     flush_per_filament.clear();
 
@@ -761,7 +762,20 @@ void GCodeProcessor::UsedFilaments::reset()
     filaments_per_role.clear();
 
     wipe_tower_cache = 0.0f;
-    wipe_tower_volume_per_extruder.clear();
+    wipe_tower_volumes_per_extruder.clear();
+
+    support_volume_cache = 0.0f;
+    support_volumes_per_extruder.clear();
+
+    total_volume_cache = 0.0f;
+    total_volumes_per_extruder.clear();
+}
+
+void GCodeProcessor::UsedFilaments::increase_support_caches(double extruded_volume)
+{
+    support_volume_cache += extruded_volume;
+    role_cache += extruded_volume;
+    total_volume_cache += extruded_volume;
 }
 
 void GCodeProcessor::UsedFilaments::increase_model_caches(double extruded_volume)
@@ -769,11 +783,14 @@ void GCodeProcessor::UsedFilaments::increase_model_caches(double extruded_volume
     color_change_cache += extruded_volume;
     model_extrude_cache += extruded_volume;
     role_cache += extruded_volume;
+    total_volume_cache += extruded_volume;
 }
 
 void GCodeProcessor::UsedFilaments::increase_wipe_tower_caches(double extruded_volume)
 {
     wipe_tower_cache += extruded_volume;
+    role_cache += extruded_volume;
+    total_volume_cache += extruded_volume;
 }
 
 void GCodeProcessor::UsedFilaments::process_color_change_cache()
@@ -784,14 +801,27 @@ void GCodeProcessor::UsedFilaments::process_color_change_cache()
     }
 }
 
+
+void GCodeProcessor::UsedFilaments::process_total_volume_cache(GCodeProcessor* processor)
+{
+    size_t active_extruder_id = processor->m_extruder_id;
+    if (total_volume_cache!= 0.0f) {
+        if (total_volumes_per_extruder.find(active_extruder_id) != total_volumes_per_extruder.end())
+            total_volumes_per_extruder[active_extruder_id] += total_volume_cache;
+        else
+            total_volumes_per_extruder[active_extruder_id] = total_volume_cache;
+        total_volume_cache = 0.0f;
+    }
+}
+
 void GCodeProcessor::UsedFilaments::process_model_cache(GCodeProcessor* processor)
 {
     size_t active_extruder_id = processor->m_extruder_id;
     if (model_extrude_cache != 0.0f) {
-        if (volumes_per_extruder.find(active_extruder_id) != volumes_per_extruder.end())
-            volumes_per_extruder[active_extruder_id] += model_extrude_cache;
+        if (model_volumes_per_extruder.find(active_extruder_id) != model_volumes_per_extruder.end())
+            model_volumes_per_extruder[active_extruder_id] += model_extrude_cache;
         else
-            volumes_per_extruder[active_extruder_id] = model_extrude_cache;
+            model_volumes_per_extruder[active_extruder_id] = model_extrude_cache;
         model_extrude_cache = 0.0f;
     }
 }
@@ -800,20 +830,39 @@ void GCodeProcessor::UsedFilaments::process_wipe_tower_cache(GCodeProcessor* pro
 {
     size_t active_extruder_id = processor->m_extruder_id;
     if (wipe_tower_cache != 0.0f) {
-        if (wipe_tower_volume_per_extruder.find(active_extruder_id) != wipe_tower_volume_per_extruder.end())
-            wipe_tower_volume_per_extruder[active_extruder_id] += wipe_tower_cache;
+        if (wipe_tower_volumes_per_extruder.find(active_extruder_id) != wipe_tower_volumes_per_extruder.end())
+            wipe_tower_volumes_per_extruder[active_extruder_id] += wipe_tower_cache;
         else
-            wipe_tower_volume_per_extruder[active_extruder_id] = wipe_tower_cache;
+            wipe_tower_volumes_per_extruder[active_extruder_id] = wipe_tower_cache;
         wipe_tower_cache = 0.0f;
+    }
+}
+
+void GCodeProcessor::UsedFilaments::process_support_cache(GCodeProcessor* processor)
+{
+    size_t active_extruder_id = processor->m_extruder_id;
+    if (support_volume_cache != 0.0f){
+        if (support_volumes_per_extruder.find(active_extruder_id) != support_volumes_per_extruder.end())
+            support_volumes_per_extruder[active_extruder_id] += support_volume_cache;
+        else
+            support_volumes_per_extruder[active_extruder_id] = support_volume_cache;
+        support_volume_cache = 0.0f;
     }
 }
 
 void GCodeProcessor::UsedFilaments::update_flush_per_filament(size_t extrude_id, float flush_volume)
 {
-    if (flush_per_filament.find(extrude_id) != flush_per_filament.end())
-        flush_per_filament[extrude_id] += flush_volume;
-    else
-        flush_per_filament[extrude_id] = flush_volume;
+    if (flush_volume != 0.f) {
+        if (flush_per_filament.find(extrude_id) != flush_per_filament.end())
+            flush_per_filament[extrude_id] += flush_volume;
+        else
+            flush_per_filament[extrude_id] = flush_volume;
+
+        if (total_volumes_per_extruder.find(extrude_id) != total_volumes_per_extruder.end())
+            total_volumes_per_extruder[extrude_id] += flush_volume;
+        else
+            total_volumes_per_extruder[extrude_id] = flush_volume;
+    }
 }
 
 void GCodeProcessor::UsedFilaments::process_role_cache(GCodeProcessor* processor)
@@ -842,6 +891,8 @@ void GCodeProcessor::UsedFilaments::process_caches(GCodeProcessor* processor)
     process_model_cache(processor);
     process_role_cache(processor);
     process_wipe_tower_cache(processor);
+    process_support_cache(processor);
+    process_total_volume_cache(processor);
 }
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
@@ -885,6 +936,7 @@ void GCodeProcessorResult::reset() {
     toolpath_outside = false;
     //BBS: add label_object_enabled
     label_object_enabled = false;
+    long_retraction_when_cut = false;
     timelapse_warning_code = 0;
     printable_height = 0.0f;
     settings_ids.reset();
@@ -894,6 +946,7 @@ void GCodeProcessorResult::reset() {
     required_nozzle_HRC = std::vector<int>(MIN_EXTRUDERS_COUNT, DEFAULT_FILAMENT_HRC);
     filament_densities = std::vector<float>(MIN_EXTRUDERS_COUNT, DEFAULT_FILAMENT_DENSITY);
     filament_costs = std::vector<float>(MIN_EXTRUDERS_COUNT, DEFAULT_FILAMENT_COST);
+    filament_flow_ratios = std::vector<float>(MIN_EXTRUDERS_COUNT, DEFAULT_FILAMENT_FLOW_RATIOS);
     custom_gcode_per_print_z = std::vector<CustomGCode::Item>();
     spiral_vase_layers = std::vector<std::pair<float, std::pair<size_t, size_t>>>();
     bed_match_result = BedMatchResult(true);
@@ -1006,6 +1059,7 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
     m_result.filament_densities.resize(extruders_count);
     m_result.filament_vitrification_temperature.resize(extruders_count);
     m_result.filament_costs.resize(extruders_count);
+    m_result.filament_flow_ratios.resize(extruders_count);
     m_extruder_temps.resize(extruders_count);
     m_result.nozzle_hrc = static_cast<int>(config.nozzle_hrc.getInt());
     m_result.nozzle_type = config.nozzle_type;
@@ -1017,6 +1071,7 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
         m_result.filament_densities[i]  = static_cast<float>(config.filament_density.get_at(i));
         m_result.filament_vitrification_temperature[i] = static_cast<float>(config.temperature_vitrification.get_at(i));
         m_result.filament_costs[i]      = static_cast<float>(config.filament_cost.get_at(i));
+        m_result.filament_flow_ratios[i]  = static_cast<float>(config.filament_flow_ratio.get_at(i));
     }
 
     if (m_flavor == gcfMarlinLegacy || m_flavor == gcfMarlinFirmware || m_flavor == gcfKlipper || m_flavor == gcfRepRapFirmware) {
@@ -1192,6 +1247,15 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
     }
     for (size_t i = m_result.filament_costs.size(); i < m_result.extruders_count; ++i) {
         m_result.filament_costs.emplace_back(DEFAULT_FILAMENT_COST);
+    }
+
+    // Orca: filament flow ratio
+    const ConfigOptionFloats* filament_flow_ratios = config.option<ConfigOptionFloats>("filament_flow_ratio");
+    if (filament_flow_ratios != nullptr) {
+        m_result.filament_flow_ratios.clear();
+        m_result.filament_flow_ratios.resize(filament_flow_ratios->values.size());
+        for (size_t i = 0; i < filament_flow_ratios->values.size(); ++i)
+            m_result.filament_flow_ratios[i]=static_cast<float>(filament_flow_ratios->values[i]);
     }
 
     //BBS
@@ -2866,6 +2930,7 @@ void GCodeProcessor::process_G0(const GCodeReader::GCodeLine& line)
 void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
 {
     float filament_diameter = (static_cast<size_t>(m_extruder_id) < m_result.filament_diameters.size()) ? m_result.filament_diameters[m_extruder_id] : m_result.filament_diameters.back();
+    float filament_flowratio = (static_cast<size_t>(m_extruder_id) < m_result.filament_flow_ratios.size()) ? m_result.filament_flow_ratios[m_extruder_id] : m_result.filament_flow_ratios.back();
     float filament_radius = 0.5f * filament_diameter;
     float area_filament_cross_section = static_cast<float>(M_PI) * sqr(filament_radius);
     auto absolute_position = [this, area_filament_cross_section](Axis axis, const GCodeReader::GCodeLine& lineG1) {
@@ -2932,7 +2997,10 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
         float delta_xyz = std::sqrt(sqr(delta_pos[X]) + sqr(delta_pos[Y]) + sqr(delta_pos[Z]));
         float volume_extruded_filament = area_filament_cross_section * delta_pos[E];
         float area_toolpath_cross_section = volume_extruded_filament / delta_xyz;
-        if (m_wipe_tower) {
+
+        if(m_extrusion_role == ExtrusionRole::erSupportMaterial || m_extrusion_role == ExtrusionRole::erSupportMaterialInterface || m_extrusion_role ==ExtrusionRole::erSupportTransition)
+            m_used_filaments.increase_support_caches(volume_extruded_filament);
+        else if (m_extrusion_role==ExtrusionRole::erWipeTower) {
             m_used_filaments.increase_wipe_tower_caches(volume_extruded_filament);
         }
         else {
@@ -2940,7 +3008,7 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
             m_used_filaments.increase_model_caches(volume_extruded_filament);
         }
         // volume extruded filament / tool displacement = area toolpath cross section
-        m_mm3_per_mm = area_toolpath_cross_section;
+        m_mm3_per_mm = area_toolpath_cross_section * filament_flowratio;
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
         m_mm3_per_mm_compare.update(area_toolpath_cross_section, m_extrusion_role);
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
@@ -3290,6 +3358,7 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
 void  GCodeProcessor::process_G2_G3(const GCodeReader::GCodeLine& line)
 {
     float filament_diameter = (static_cast<size_t>(m_extruder_id) < m_result.filament_diameters.size()) ? m_result.filament_diameters[m_extruder_id] : m_result.filament_diameters.back();
+    float filament_flowratio = (static_cast<size_t>(m_extruder_id) < m_result.filament_flow_ratios.size()) ? m_result.filament_flow_ratios[m_extruder_id] : m_result.filament_flow_ratios.back();
     float filament_radius = 0.5f * filament_diameter;
     float area_filament_cross_section = static_cast<float>(M_PI) * sqr(filament_radius);
     auto absolute_position = [this, area_filament_cross_section](Axis axis, const GCodeReader::GCodeLine& lineG2_3) {
@@ -3406,7 +3475,10 @@ void  GCodeProcessor::process_G2_G3(const GCodeReader::GCodeLine& line)
     if (type == EMoveType::Extrude) {
         float volume_extruded_filament = area_filament_cross_section * delta_pos[E];
         float area_toolpath_cross_section = volume_extruded_filament / delta_xyz;
-        if (m_wipe_tower) {
+
+        if(m_extrusion_role == ExtrusionRole::erSupportMaterial || m_extrusion_role == ExtrusionRole::erSupportMaterialInterface || m_extrusion_role ==ExtrusionRole::erSupportTransition)
+            m_used_filaments.increase_support_caches(volume_extruded_filament);
+        else if (m_extrusion_role == ExtrusionRole::erWipeTower) {
             //BBS: save wipe tower volume to the cache
             m_used_filaments.increase_wipe_tower_caches(volume_extruded_filament);
         }
@@ -3415,7 +3487,7 @@ void  GCodeProcessor::process_G2_G3(const GCodeReader::GCodeLine& line)
             m_used_filaments.increase_model_caches(volume_extruded_filament);
         }
         //BBS: volume extruded filament / tool displacement = area toolpath cross section
-        m_mm3_per_mm = area_toolpath_cross_section;
+        m_mm3_per_mm = area_toolpath_cross_section * filament_flowratio;
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
         m_mm3_per_mm_compare.update(area_toolpath_cross_section, m_extrusion_role);
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
@@ -3696,6 +3768,23 @@ void  GCodeProcessor::process_G2_G3(const GCodeReader::GCodeLine& line)
         m_seams_detector.activate(true);
         m_seams_detector.set_first_vertex(m_result.moves.back().position - m_extruder_offsets[m_extruder_id] - plate_offset);
     }
+
+    // Orca: we now use spiral_vase_layers for proper layer detect when scarf joint is enabled,
+    // and this is needed if the layer has only arc moves
+    if (m_detect_layer_based_on_tag && !m_result.spiral_vase_layers.empty()) {
+        if (delta_pos[Z] >= 0.0 && type == EMoveType::Extrude) {
+            const float current_z = static_cast<float>(m_end_position[Z]);
+            // replace layer height placeholder with correct value
+            if (m_result.spiral_vase_layers.back().first == FLT_MAX) {
+                m_result.spiral_vase_layers.back().first = current_z;
+            } else {
+                m_result.spiral_vase_layers.back().first = std::max(m_result.spiral_vase_layers.back().first, current_z);
+            }
+        }
+        if (!m_result.moves.empty())
+            m_result.spiral_vase_layers.back().second.second = m_result.moves.size() - 1 - m_seams_count;
+    }
+
     //BBS: store move
     store_move_vertex(type, m_move_path_type);
 }
@@ -4494,6 +4583,8 @@ void GCodeProcessor::process_filaments(CustomGCode::Type code)
 
     if (code == CustomGCode::ToolChange) {
         m_used_filaments.process_model_cache(this);
+        m_used_filaments.process_support_cache(this);
+        m_used_filaments.process_total_volume_cache(this);
         //BBS: reset remaining filament
         m_remaining_volume = m_nozzle_volume;
     }
@@ -4525,10 +4616,12 @@ void GCodeProcessor::update_estimated_times_stats()
         m_result.print_statistics.modes[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Stealth)].reset();
 
     m_result.print_statistics.volumes_per_color_change  = m_used_filaments.volumes_per_color_change;
-    m_result.print_statistics.volumes_per_extruder      = m_used_filaments.volumes_per_extruder;
-    m_result.print_statistics.wipe_tower_volumes_per_extruder = m_used_filaments.wipe_tower_volume_per_extruder;
+    m_result.print_statistics.model_volumes_per_extruder      = m_used_filaments.model_volumes_per_extruder;
+    m_result.print_statistics.wipe_tower_volumes_per_extruder = m_used_filaments.wipe_tower_volumes_per_extruder;
+    m_result.print_statistics.support_volumes_per_extruder = m_used_filaments.support_volumes_per_extruder;
     m_result.print_statistics.flush_per_filament      = m_used_filaments.flush_per_filament;
     m_result.print_statistics.used_filaments_per_role   = m_used_filaments.filaments_per_role;
+    m_result.print_statistics.total_volumes_per_extruder = m_used_filaments.total_volumes_per_extruder;
 }
 
 //BBS: ugly code...
@@ -4538,8 +4631,8 @@ void GCodeProcessor::update_slice_warnings()
 
     auto get_used_extruders = [this]() {
         std::vector<size_t> used_extruders;
-        used_extruders.reserve(m_used_filaments.volumes_per_extruder.size());
-        for (auto item : m_used_filaments.volumes_per_extruder) {
+        used_extruders.reserve(m_used_filaments.total_volumes_per_extruder.size());
+        for (auto item : m_used_filaments.total_volumes_per_extruder) {
             used_extruders.push_back(item.first);
         }
         return used_extruders;

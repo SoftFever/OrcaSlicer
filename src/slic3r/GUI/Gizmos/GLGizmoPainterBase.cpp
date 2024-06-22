@@ -1,7 +1,3 @@
-///|/ Copyright (c) Prusa Research 2019 - 2023 Oleksandra Iushchenko @YuSanka, Lukáš Matěna @lukasmatena, Enrico Turri @enricoturri1966, Vojtěch Bubník @bubnikv, Filip Sykala @Jony01, Lukáš Hejl @hejllukas
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 #include "GLGizmoPainterBase.hpp"
 #include "slic3r/GUI/GLCanvas3D.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmosCommon.hpp"
@@ -298,6 +294,12 @@ void GLGizmoPainterBase::render_cursor_height_range(const Transform3d& trafo) co
     const Selection& selection = m_parent.get_selection();
     const ModelObject* model_object = wxGetApp().model().objects[selection.get_object_idx()];
     const ModelInstance* mi = model_object->instances[selection.get_instance_idx()];
+
+    int volumes_count = model_object->volumes.size();
+    if (m_cut_contours.size() != volumes_count * 2) {
+        m_cut_contours.resize(volumes_count * 2);
+    }
+    m_volumes_index = 0;
     for (const ModelVolume* mv : model_object->volumes) {
         TriangleMesh vol_mesh = mv->mesh();
         if (m_parent.get_canvas_type() == GLCanvas3D::CanvasAssembleView) {
@@ -310,15 +312,16 @@ void GLGizmoPainterBase::render_cursor_height_range(const Transform3d& trafo) co
         }
 
         for (int i = 0; i < zs.size(); i++) {
-            update_contours(vol_mesh, zs[i], max_z, min_z);
+            update_contours(m_volumes_index, vol_mesh, zs[i], max_z, min_z);
 
             const Camera& camera = wxGetApp().plater()->get_camera();
-            Transform3d view_model_matrix = camera.get_view_matrix()  * Geometry::assemble_transform(m_cut_contours.shift);
+            Transform3d view_model_matrix = camera.get_view_matrix()  * Geometry::assemble_transform(m_cut_contours[m_volumes_index].shift);
 
             shader->set_uniform("view_model_matrix", view_model_matrix);
             shader->set_uniform("projection_matrix", camera.get_projection_matrix());
             glsafe(::glLineWidth(2.0f));
-            m_cut_contours.contours.render();
+            m_cut_contours[m_volumes_index].contours.render();
+            m_volumes_index++;
         }
 
     }
@@ -339,7 +342,7 @@ BoundingBoxf3 GLGizmoPainterBase::bounding_box() const
     return ret;
 }
 
-void GLGizmoPainterBase::update_contours(const TriangleMesh& vol_mesh, float cursor_z, float max_z, float min_z) const
+void GLGizmoPainterBase::update_contours(int i, const TriangleMesh& vol_mesh, float cursor_z, float max_z, float min_z) const
 {
     const Selection& selection = m_parent.get_selection();
     const GLVolume* first_glvolume = selection.get_first_volume();
@@ -349,31 +352,31 @@ void GLGizmoPainterBase::update_contours(const TriangleMesh& vol_mesh, float cur
     const int instance_idx = selection.get_instance_idx();
 
         if (min_z < cursor_z && cursor_z < max_z) {
-            if (m_cut_contours.cut_z != cursor_z || m_cut_contours.object_id != model_object->id() || m_cut_contours.instance_idx != instance_idx) {
-                m_cut_contours.cut_z = cursor_z;
+            if (m_cut_contours[i].cut_z != cursor_z || m_cut_contours[i].object_id != model_object->id() || m_cut_contours[i].instance_idx != instance_idx) {
+                m_cut_contours[i].cut_z = cursor_z;
 
-                m_cut_contours.mesh = vol_mesh;
+                m_cut_contours[i].mesh = vol_mesh;
 
-                m_cut_contours.position = box.center();
-                m_cut_contours.shift = Vec3d::Zero();
-                m_cut_contours.object_id = model_object->id();
-                m_cut_contours.instance_idx = instance_idx;
-                m_cut_contours.contours.reset();
+                m_cut_contours[i].position = box.center();
+                m_cut_contours[i].shift = Vec3d::Zero();
+                m_cut_contours[i].object_id = model_object->id();
+                m_cut_contours[i].instance_idx = instance_idx;
+                m_cut_contours[i].contours.reset();
 
                 MeshSlicingParams slicing_params;
                 slicing_params.trafo = Transform3d::Identity().matrix();
-                const Polygons polys = slice_mesh(m_cut_contours.mesh.its, cursor_z, slicing_params);
+                const Polygons polys = slice_mesh(m_cut_contours[i].mesh.its, cursor_z, slicing_params);
                 if (!polys.empty()) {
-                    m_cut_contours.contours.init_from(polys, static_cast<float>(cursor_z));
-                    m_cut_contours.contours.set_color({ 1.0f, 1.0f, 1.0f, 1.0f });
+                    m_cut_contours[i].contours.init_from(polys, static_cast<float>(cursor_z));
+                    m_cut_contours[i].contours.set_color({ 1.0f, 1.0f, 1.0f, 1.0f });
                 }
             }
-            else if (box.center() != m_cut_contours.position) {
-                m_cut_contours.shift = box.center() - m_cut_contours.position;
+            else if (box.center() != m_cut_contours[i].position) {
+                m_cut_contours[i].shift = box.center() - m_cut_contours[i].position;
             }
         }
         else
-            m_cut_contours.contours.reset();
+            m_cut_contours[i].contours.reset();
 }
 
 bool GLGizmoPainterBase::is_mesh_point_clipped(const Vec3d& point, const Transform3d& trafo) const
@@ -903,7 +906,7 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
 bool GLGizmoPainterBase::on_mouse(const wxMouseEvent &mouse_event)
 {
     // wxCoord == int --> wx/types.h
-    Vec2i mouse_coord(mouse_event.GetX(), mouse_event.GetY());
+    Vec2i32 mouse_coord(mouse_event.GetX(), mouse_event.GetY());
     Vec2d mouse_pos = mouse_coord.cast<double>();
 
     if (mouse_event.Moving()) {
@@ -1358,11 +1361,11 @@ void TriangleSelectorPatch::update_triangles_per_patch()
 
     bool using_wireframe = (m_need_wireframe && wxGetApp().plater()->is_wireframe_enabled() && wxGetApp().plater()->is_show_wireframe()) ? true : false; 
 
-    auto get_all_touching_triangles = [this](int facet_idx, const Vec3i& neighbors, const Vec3i& neighbors_propagated) -> std::vector<int> {
+    auto get_all_touching_triangles = [this](int facet_idx, const Vec3i32& neighbors, const Vec3i32& neighbors_propagated) -> std::vector<int> {
         assert(facet_idx != -1 && facet_idx < int(m_triangles.size()));
         assert(this->verify_triangle_neighbors(m_triangles[facet_idx], neighbors));
         std::vector<int> touching_triangles;
-        Vec3i            vertices = { m_triangles[facet_idx].verts_idxs[0], m_triangles[facet_idx].verts_idxs[1], m_triangles[facet_idx].verts_idxs[2] };
+        Vec3i32            vertices = { m_triangles[facet_idx].verts_idxs[0], m_triangles[facet_idx].verts_idxs[1], m_triangles[facet_idx].verts_idxs[2] };
         append_touching_subtriangles(neighbors(0), vertices(1), vertices(0), touching_triangles);
         append_touching_subtriangles(neighbors(1), vertices(2), vertices(1), touching_triangles);
         append_touching_subtriangles(neighbors(2), vertices(0), vertices(2), touching_triangles);
@@ -1738,14 +1741,14 @@ void TriangleSelectorGUI::update_paint_contour()
     m_paint_contour.reset();
 
     GLModel::Geometry init_data;
-    const std::vector<Vec2i> contour_edges = this->get_seed_fill_contour();
+    const std::vector<Vec2i32> contour_edges = this->get_seed_fill_contour();
     init_data.format = { GLModel::Geometry::EPrimitiveType::Lines, GLModel::Geometry::EVertexLayout::P3 };
     init_data.reserve_vertices(2 * contour_edges.size());
     init_data.reserve_indices(2 * contour_edges.size());
     init_data.color = ColorRGBA::WHITE();
     // vertices + indices
     unsigned int vertices_count = 0;
-    for (const Vec2i& edge : contour_edges) {
+    for (const Vec2i32& edge : contour_edges) {
         init_data.add_vertex(m_vertices[edge(0)].v);
         init_data.add_vertex(m_vertices[edge(1)].v);
         vertices_count += 2;

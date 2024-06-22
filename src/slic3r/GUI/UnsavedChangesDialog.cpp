@@ -1,9 +1,3 @@
-///|/ Copyright (c) Prusa Research 2020 - 2023 Oleksandra Iushchenko @YuSanka, Lukáš Matěna @lukasmatena, Vojtěch Bubník @bubnikv, Enrico Turri @enricoturri1966, David Kocík @kocikdav
-///|/ Copyright (c) 2021 Pascal de Bruijn @pmjdebruijn
-///|/ Copyright (c) 2021 Sebastian Hammerl
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 #include "UnsavedChangesDialog.hpp"
 
 #include <cstddef>
@@ -1367,9 +1361,6 @@ static wxString get_string_value(std::string opt_key, const DynamicPrintConfig& 
         else if (opt_key == "bed_exclude_area") {
             return get_thumbnails_string(config.option<ConfigOptionPoints>(opt_key)->values);
         }
-        else if (opt_key == "thumbnails") {
-            return get_thumbnails_string(config.option<ConfigOptionPoints>(opt_key)->values);
-        }
         else if (opt_key == "head_wrap_detect_zone") {
             return get_thumbnails_string(config.option<ConfigOptionPoints>(opt_key)->values);
         }
@@ -1426,11 +1417,21 @@ void UnsavedChangesDialog::update(Preset::Type type, PresetCollection* dependent
     }
 
     wxString action_msg;
-    if (dependent_presets)
-        action_msg = format_wxstr(_L("You have changed some settings of preset \"%1%\". \nWould you like to keep these changed settings (new value) after switching preset?"),
-                              dependent_presets->get_edited_preset().name);
-    else
-        action_msg = format_wxstr(_L("You have changed some preset settings. \nWould you like to keep these changed settings (new value) after switching preset?"));
+    if (dependent_presets) {
+        action_msg = format_wxstr(_L("You have changed some settings of preset \"%1%\". "), dependent_presets->get_edited_preset().name);
+        if (!m_transfer_btn) {
+            action_msg += _L("\nYou can save or discard the preset values you have modified.");
+        } else {
+            action_msg += _L("\nYou can save or discard the preset values you have modified, or choose to transfer the values you have modified to the new preset.");
+        }
+    } else {
+        action_msg = _L("You have previously modified your settings.");
+        if (m_transfer_btn)
+            action_msg += _L("\nYou can discard the preset values you have modified, or choose to transfer the modified values to the new project");
+        else
+            action_msg += _L("\nYou can save or discard the preset values you have modified.");
+    }
+
     m_action_line->SetLabel(action_msg);
 
     update_tree(type, presets);
@@ -1523,7 +1524,6 @@ void UnsavedChangesDialog::update_list()
                      text_left->SetFont(::Label::Head_13);
                      text_left->Wrap(-1);
                      text_left->SetForegroundColour(GREY700);
-                     text_left->SetForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_INFOTEXT));
 
                      sizer_left_v->Add(text_left, 0, wxLEFT, 37);
 
@@ -1552,7 +1552,6 @@ void UnsavedChangesDialog::update_list()
                 text_left->SetFont(::Label::Body_13);
                 text_left->Wrap(-1);
                 text_left->SetForegroundColour(GREY700);
-                text_left->SetForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_INFOTEXT));
 
                 sizer_left_v->Add(text_left, 0, wxLEFT, 51 );
 
@@ -1608,6 +1607,14 @@ void UnsavedChangesDialog::update_list()
 
        m_scrolledWindow->SetSizer(m_listsizer);
     // m_scrolledWindow->Layout();
+       wxSize text_size = m_action_line->GetTextExtent(m_action_line->GetLabel());
+       int    width     = UNSAVE_CHANGE_DIALOG_ACTION_LINE_SIZE.GetWidth();
+       // +2: Ensure that there is at least one line and that the content contains '\n'
+       int    rows      = int(text_size.GetWidth() / width) + 2; 
+       int    height    = rows * text_size.GetHeight();
+       m_action_line->SetMinSize(wxSize(width, height));
+       Layout();
+       Fit();
 }
 
 std::string UnsavedChangesDialog::subreplace(std::string resource_str, std::string sub_str, std::string new_str)
@@ -1700,7 +1707,7 @@ void UnsavedChangesDialog::on_dpi_changed(const wxRect& suggested_rect)
     int em = em_unit();
 
     msw_buttons_rescale(this, em, { wxID_CANCEL, m_move_btn_id, m_continue_btn_id });
-    for (auto btn : {m_transfer_btn, m_discard_btn, m_discard_btn})
+    for (auto btn : {m_transfer_btn, m_discard_btn, m_save_btn})
         if (btn) btn->SetMinSize(UNSAVE_CHANGE_DIALOG_BUTTON_SIZE);
 
     //m_cancel_btn->SetMinSize(UNSAVE_CHANGE_DIALOG_BUTTON_SIZE);
@@ -1997,7 +2004,7 @@ void DiffPresetDialog::create_edit_sizer()
 {
     // Add check box for the edit mode
     m_use_for_transfer = new wxCheckBox(this, wxID_ANY, _L("Transfer values from left to right"));
-    m_use_for_transfer->SetToolTip(_L("If enabled, this dialog can be used for transver selected values from left to right preset."));
+    m_use_for_transfer->SetToolTip(_L("If enabled, this dialog can be used for transfer selected values from left to right preset."));
     m_use_for_transfer->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent&) {
         bool use = m_use_for_transfer->GetValue();
         m_tree->GetColumn(DiffModel::colToggle)->SetHidden(!use);
@@ -2234,7 +2241,7 @@ void DiffPresetDialog::update_tree()
             Search::Option option = searcher.get_option(opt_key, get_full_label(opt_key, left_config), type);
             if (option.opt_key() != opt_key) {
                 // temporary solution, just for testing
-                m_tree->Append(opt_key, type, "Undef category", "Undef group", opt_key, left_val, right_val, "question");
+                m_tree->Append(opt_key, type, "Undef category", "Undef group", opt_key, left_val, right_val, "undefined"); // ORCA: use low resolution compatible icon
                 // When founded option isn't the correct one.
                 // It can be for dirty_options: "default_print_profile", "printer_model", "printer_settings_id",
                 // because of they don't exist in searcher

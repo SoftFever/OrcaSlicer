@@ -18,6 +18,27 @@
 
 namespace Slic3r { namespace GUI {
 
+class PrinterPartsDialog : public DPIDialog
+{
+protected:
+    MachineObject* obj{ nullptr };
+    ComboBox* nozzle_type_checkbox;
+    ComboBox* nozzle_diameter_checkbox;
+    std::string last_nozzle_type;
+    std::map<int, std::string> nozzle_type_map;
+    std::map<int, float> nozzle_stainless_diameter_map;
+    std::map<int, float> nozzle_hard_diameter_map;
+public:
+    PrinterPartsDialog(wxWindow* parent);
+    ~PrinterPartsDialog();
+    void set_nozzle_type(wxCommandEvent& evt);
+    void set_nozzle_diameter(wxCommandEvent& evt);
+    void on_dpi_changed(const wxRect& suggested_rect) override;
+    void update_machine_obj(MachineObject* obj_);
+    bool Show(bool show) override;
+};
+ 
+
 class PrintOptionsDialog : public DPIDialog
 {
 protected:
@@ -28,21 +49,25 @@ protected:
     CheckBox* m_cb_auto_recovery;
     CheckBox* m_cb_sup_sound;
     CheckBox* m_cb_filament_tangle;
-    wxStaticText* text_first_layer;
-    wxStaticText* text_ai_monitoring;
-    wxStaticText* text_ai_monitoring_caption;
+    CheckBox* m_cb_nozzle_blob;
+    Label* text_first_layer;
+    Label* text_ai_monitoring;
+    Label* text_ai_monitoring_caption;
     ComboBox* ai_monitoring_level_list;
-    wxStaticText* text_plate_mark;
-    wxStaticText* text_plate_mark_caption;
-    wxStaticText* text_auto_recovery;
-    wxStaticText* text_sup_sound;
-    wxStaticText* text_filament_tangle;
+    Label* text_plate_mark;
+    Label* text_plate_mark_caption;
+    Label* text_auto_recovery;
+    Label* text_sup_sound;
+    Label* text_filament_tangle;
+    Label* text_nozzle_blob;
+    Label* text_nozzle_blob_caption;
     StaticLine* line1;
     StaticLine* line2;
     StaticLine* line3;
     StaticLine* line4;
     StaticLine* line5;
     StaticLine* line6;
+    StaticLine* line7;
     wxBoxSizer* create_settings_group(wxWindow* parent);
 
     bool print_halt = false;

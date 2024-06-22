@@ -46,6 +46,8 @@ struct FilamentInfo
     float       used_g;
     int         tray_id;    // start with 0
     float       distance;
+    int         ctype = 0;
+    std::vector<std::string> colors = std::vector<std::string>();
     int         mapping_result = 0;
 };
 

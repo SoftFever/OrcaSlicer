@@ -1,6 +1,6 @@
 {
     "name": "Peopoly",
-    "version": "02.00.02.00",
+    "version": "02.01.00.01",
     "force_update": "0",
     "description": "Peopoly configurations",
     "machine_model_list": [
@@ -43,6 +43,10 @@
             "sub_path": "process/fdm_process_pply_0.28.json"
         },
         {
+            "name": "fdm_process_pply_0.30_nozzle_0.6",
+            "sub_path": "process/fdm_process_pply_0.30_nozzle_0.6.json"
+        },
+        {
             "name": "fdm_process_pply_0.40_nozzle_0.8",
             "sub_path": "process/fdm_process_pply_0.40_nozzle_0.8.json"
         },
@@ -55,6 +59,14 @@
             "sub_path": "process/0.20mm Standard @MagnetoX.json"
         },
         {
+            "name": "0.20mm ABS-GF 0.4 Nozzle Standard @MagnetoX",
+            "sub_path": "process/0.20mm ABS-GF 0.4 Nozzle Standard @MagnetoX.json"
+        },
+        {
+            "name": "0.20mm PET-CF 0.4 Nozzle Standard @MagnetoX",
+            "sub_path": "process/0.20mm PET-CF 0.4 Nozzle Standard @MagnetoX.json"
+        },
+        {
             "name": "0.20mm Strength @MagnetoX",
             "sub_path": "process/0.20mm Strength @MagnetoX.json"
         },
@@ -65,6 +77,10 @@
         {
             "name": "0.28mm Extra Draft @MagnetoX",
             "sub_path": "process/0.28mm Extra Draft @MagnetoX.json"
+        },
+        {
+            "name": "0.30mm Standard @Magneto X 0.6 nozzle",
+            "sub_path": "process/0.30mm Standard @Magneto X 0.6 nozzle.json"
         },
         {
             "name": "0.40mm Standard @Magneto X 0.8 nozzle",
@@ -94,10 +110,6 @@
             "sub_path": "filament/Peopoly Generic PLA.json"
         },
         {
-            "name": "Peopoly Generic PLA 0.8 nozzle",
-            "sub_path": "filament/Peopoly Generic PLA 0.8 nozzle.json"
-        },
-        {
             "name": "Peopoly Lancer PLA-C",
             "sub_path": "filament/Peopoly Lancer PLA-C.json"
         },
@@ -112,7 +124,16 @@
         {
             "name": "Peopoly Generic ABS",
             "sub_path": "filament/Peopoly Generic ABS.json"
+        },
+        {
+            "name": "Peopoly Lancer ABS-GF",
+            "sub_path": "filament/Peopoly Lancer ABS-GF.json"
+        },
+        {
+            "name": "Peopoly Lancer PET-CF",
+            "sub_path": "filament/Peopoly Lancer PET-CF.json"
         }
+        
 
     ],
     "machine_list": [
@@ -127,6 +148,10 @@
         {
             "name": "Peopoly Magneto X 0.4 nozzle",
             "sub_path": "machine/Peopoly Magneto X 0.4 nozzle.json"      
+        },
+        {
+            "name": "Peopoly Magneto X 0.6 nozzle",
+            "sub_path": "machine/Peopoly Magneto X 0.6 nozzle.json"      
         },
         {
             "name": "Peopoly Magneto X 0.8 nozzle",

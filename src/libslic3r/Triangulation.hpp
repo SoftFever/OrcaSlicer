@@ -1,7 +1,3 @@
-///|/ Copyright (c) Prusa Research 2021 - 2022 Vojtěch Bubník @bubnikv, Filip Sykala @Jony01
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 #ifndef libslic3r_Triangulation_hpp_
 #define libslic3r_Triangulation_hpp_
 
@@ -21,7 +17,7 @@ public:
     // define oriented connection of 2 vertices(defined by its index)
     using HalfEdge  = std::pair<uint32_t, uint32_t>;
     using HalfEdges = std::vector<HalfEdge>;
-    using Indices   = std::vector<Vec3i>;
+    using Indices   = std::vector<Vec3i32>;
 
     /// <summary>
     /// Connect points by triangulation to create filled surface by triangles

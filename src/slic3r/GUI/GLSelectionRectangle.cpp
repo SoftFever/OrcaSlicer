@@ -1,7 +1,3 @@
-///|/ Copyright (c) Prusa Research 2019 - 2022 Enrico Turri @enricoturri1966, Filip Sykala @Jony01, Lukáš Matěna @lukasmatena, Vojtěch Bubník @bubnikv
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 #include "GLSelectionRectangle.hpp"
 #include "Camera.hpp"
 #include "CameraUtils.hpp"
@@ -116,7 +112,7 @@ namespace GUI {
             shader->set_uniform("view_model_matrix", Transform3d::Identity());
             shader->set_uniform("projection_matrix", Transform3d::Identity());
 
-            m_rectangle.set_color({0.0f, 1.0f, 0.38f, 1.0f});
+            m_rectangle.set_color(ColorRGBA::ORCA()); // ORCA: use orca color for selection rectangle
             m_rectangle.render();
             shader->stop_using();
         }

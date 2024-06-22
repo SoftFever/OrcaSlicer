@@ -17,6 +17,7 @@
 #include "MediaPlayCtrl.h"
 #include "AMSSetting.hpp"
 #include "Calibration.hpp"
+#include "CalibrationWizardPage.hpp"
 #include "PrintOptionsDialog.hpp"
 #include "AMSMaterialsSetting.hpp"
 #include "ExtrusionCalibration.hpp"
@@ -58,6 +59,7 @@ enum CameraTimelapseStatus {
 enum PrintingTaskType {
     PRINGINT,
     CALIBRATION,
+    NOT_CLEAR
 };
 
 struct ScoreData
@@ -204,6 +206,7 @@ private:
     ProgressBar*    m_gauge_progress;
     Label* m_error_text;
     PrintingTaskType m_type;
+    int m_brightness_value{ -1 };
 
 public:
     void init_bitmaps();
@@ -212,7 +215,7 @@ public:
     void show_error_msg(wxString msg);
     void reset_printing_value();
     void msw_rescale();
-    
+
 public:
     void enable_pause_resume_button(bool enable, std::string type);
     void enable_abort_button(bool enable);
@@ -225,6 +228,7 @@ public:
     void show_priting_use_info(bool show, wxString time = wxEmptyString, wxString weight = wxEmptyString);
     void show_profile_info(bool show, wxString profile = wxEmptyString);
     void set_thumbnail_img(const wxBitmap& bmp);
+    void set_brightness_value(int value) { m_brightness_value = value; }
     void set_plate_index(int plate_idx = -1);
     void market_scoring_show();
     void market_scoring_hide();
@@ -244,7 +248,6 @@ public:
     void set_star_count_dirty(bool dirty) { m_star_count_dirty = dirty; }
     void                           set_has_reted_text(bool has_rated);
     void paint(wxPaintEvent&);
-
 };
 
 class StatusBasePanel : public wxScrolledWindow
@@ -390,6 +393,7 @@ protected:
     wxStaticText*   m_staticText_calibration_caption;
     wxStaticText*   m_staticText_calibration_caption_top;
     wxStaticText*   m_calibration_text;
+    Button*         m_parts_btn;
     Button*         m_options_btn;
     Button*         m_calibration_btn;
     StepIndicator*  m_calibration_flow;
@@ -449,6 +453,7 @@ public:
     wxBoxSizer *create_settings_group(wxWindow *parent);
 
     void show_ams_group(bool show = true);
+    MediaPlayCtrl* get_media_play_ctrl() {return m_media_play_ctrl;};
 };
 
 
@@ -463,11 +468,13 @@ protected:
     std::shared_ptr<CameraPopup> m_camera_popup;
     std::set<int> rated_model_id;
     AMSSetting *m_ams_setting_dlg{nullptr};
+    PrinterPartsDialog*  print_parts_dlg { nullptr };
     PrintOptionsDialog*  print_options_dlg { nullptr };
     CalibrationDialog*   calibration_dlg {nullptr};
     AMSMaterialsSetting *m_filament_setting_dlg{nullptr};
 
-    SecondaryCheckDialog* m_print_error_dlg = nullptr;
+    PrintErrorDialog* m_print_error_dlg = nullptr;
+    SecondaryCheckDialog* m_print_error_dlg_no_action = nullptr;
     SecondaryCheckDialog* abort_dlg = nullptr;
     SecondaryCheckDialog* con_load_dlg = nullptr;
     SecondaryCheckDialog* ctrl_e_hint_dlg = nullptr;
@@ -504,6 +511,11 @@ protected:
     std::vector<Button *>       m_buttons;
     int last_status;
     ScoreData *m_score_data;
+    wxBitmap* calib_bitmap = nullptr;
+    CalibMode m_calib_mode;
+    CalibrationMethod m_calib_method;
+    int cali_stage;
+    PrintingTaskType m_current_print_mode = PrintingTaskType::NOT_CLEAR;
 
     void init_scaled_buttons();
     void create_tasklist_info();
@@ -515,7 +527,7 @@ protected:
     void on_subtask_pause_resume(wxCommandEvent &event);
     void on_subtask_abort(wxCommandEvent &event);
     void on_print_error_clean(wxCommandEvent &event);
-    void show_error_message(MachineObject* obj, wxString msg, std::string print_error_str = "");
+    void show_error_message(MachineObject* obj, wxString msg, std::string print_error_str = "",wxString image_url="",std::vector<int> used_button=std::vector<int>());
     void error_info_reset();
     void show_recenter_dialog();
 
@@ -544,6 +556,7 @@ protected:
     void on_ams_load(SimpleEvent &event);
     void update_filament_step();
     void on_ams_load_curr();
+    void on_ams_load_vams(wxCommandEvent& event);
     void on_ams_unload(SimpleEvent &event);
     void on_ams_filament_backup(SimpleEvent& event);
     void on_ams_setting_click(SimpleEvent& event);
@@ -572,6 +585,7 @@ protected:
     void on_auto_leveling(wxCommandEvent &event);
     void on_xyz_abs(wxCommandEvent &event);
 
+    void on_show_parts_options(wxCommandEvent& event);
     /* print options */
     void on_show_print_options(wxCommandEvent &event);
 
@@ -591,9 +605,11 @@ protected:
     void update_temp_ctrl(MachineObject *obj);
     void update_misc_ctrl(MachineObject *obj);
     void update_ams(MachineObject* obj);
+    void update_ams_insert_material(MachineObject* obj);
     void update_extruder_status(MachineObject* obj);
     void update_ams_control_state(bool is_curr_tray_selected);
     void update_cali(MachineObject* obj);
+    void update_calib_bitmap();
 
     void reset_printing_values();
     void on_webrequest_state(wxWebRequestEvent &evt);
