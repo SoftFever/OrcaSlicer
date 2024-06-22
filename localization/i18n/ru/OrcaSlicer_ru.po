@@ -3338,7 +3338,7 @@ msgid "Offline"
 msgstr "Не в сети"
 
 msgid "No task"
-msgstr "Заданий нет"
+msgstr "Нет заданий"
 
 msgid "View"
 msgstr "Вид"
@@ -7062,7 +7062,7 @@ msgstr "Настроить"
 
 # ??? layer?
 msgid "Other layer filament sequence"
-msgstr "Последовательность прутков на остальных слоях"
+msgstr "Последовательность прутков на других слоях"
 
 msgid "Please input layer value (>= 2)."
 msgstr "Пожалуйста, введите значение слоя (>= 2)."
