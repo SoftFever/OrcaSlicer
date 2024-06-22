@@ -360,6 +360,10 @@ private:
     std::string     extrude_loop(ExtrusionLoop loop, std::string description, double speed = -1., const ExtrusionEntitiesPtr& region_perimeters = ExtrusionEntitiesPtr());
     std::string     extrude_multi_path(ExtrusionMultiPath multipath, std::string description = "", double speed = -1.);
     std::string     extrude_path(ExtrusionPath path, std::string description = "", double speed = -1.);
+    
+    // Orca: Used for adaptive PA when extruding multipaths. This contains the sum of the mm3_per_mm values
+    // weighted by the length of each path segment.
+    double          m_last_multipath_average_mm3_per_mm = 0;
 
     // Extruding multiple objects with soluble / non-soluble / combined supports
     // on a multi-material printer, trying to minimize tool switches.

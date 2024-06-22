@@ -4558,6 +4558,9 @@ static std::unique_ptr<EdgeGrid::Grid> calculate_layer_edge_grid(const Layer& la
 
 std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, double speed, const ExtrusionEntitiesPtr& region_perimeters)
 {
+    // Orca: Reset average multipath flow
+    m_last_multipath_average_mm3_per_mm = 0;
+    
     // get a copy; don't modify the orientation of the original loop object otherwise
     // next copies (if any) would not detect the correct orientation
 
@@ -4800,6 +4803,23 @@ std::string GCode::extrude_multi_path(ExtrusionMultiPath multipath, std::string 
 {
     // extrude along the path
     std::string gcode;
+    
+    //Orca: calculate multipath average mm3_per_mm value over the length of the path.
+    //This is used for adaptive PA
+    m_last_multipath_average_mm3_per_mm = 0;
+    double weighted_sum_mm3_per_mm = 0.0;
+    double total_multipath_length = 0.0;
+    for (const ExtrusionPath& path : multipath.paths) {
+        if(!path.is_force_no_extrusion()){
+            double path_length = unscale<double>(path.length()); //path length in mm
+            weighted_sum_mm3_per_mm += path.mm3_per_mm * path_length;
+            total_multipath_length += path_length;
+        }
+    }
+    if (total_multipath_length != 0.0)
+        m_last_multipath_average_mm3_per_mm = weighted_sum_mm3_per_mm / total_multipath_length;
+    // Orca: end of multipath average mm3_per_mm value calculation
+    
     for (ExtrusionPath path : multipath.paths)
         gcode += this->_extrude(path, description, speed);
 
@@ -4835,7 +4855,9 @@ std::string GCode::extrude_entity(const ExtrusionEntity &entity, std::string des
 
 std::string GCode::extrude_path(ExtrusionPath path, std::string description, double speed)
 {
-//    description += ExtrusionEntity::role_to_string(path.role());
+    // Orca: Reset average multipath flow
+    m_last_multipath_average_mm3_per_mm = 0;
+    //    description += ExtrusionEntity::role_to_string(path.role());
     std::string gcode = this->_extrude(path, description, speed);
     if (m_wipe.enable) {
         m_wipe.path = std::move(path.polyline);
@@ -5378,7 +5400,11 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         // Debug:
         // sprintf(buf, ";%sT%g MM3MM:%g %g %g\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::PA_Change).c_str(),m_writer.extruder()->id() ,_mm3_per_mm, path.mm3_per_mm, e_per_mm/m_writer.extruder()->e_per_mm3());
         // acceleration_i
-        sprintf(buf, ";%sT%u MM3MM:%g ACCEL:%u\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::PA_Change).c_str(),m_writer.extruder()->id() ,_mm3_per_mm,acceleration_i);
+        if( m_last_multipath_average_mm3_per_mm > 0){
+            sprintf(buf, ";%sT%u MM3MM:%g ACCEL:%u\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::PA_Change).c_str(),m_writer.extruder()->id() ,m_last_multipath_average_mm3_per_mm,acceleration_i);
+        }else{
+            sprintf(buf, ";%sT%u MM3MM:%g ACCEL:%u\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::PA_Change).c_str(),m_writer.extruder()->id() ,_mm3_per_mm,acceleration_i);
+        }
         gcode += buf;
     }
 
