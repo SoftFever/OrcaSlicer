@@ -19,7 +19,10 @@
         "0.036"
     ],
     "filament_max_volumetric_speed": [
-        "14"
+        "2"
+    ],
+    "nozzle_temperature": [
+        "210"
     ],
 	"compatible_printers": [
 		"Qidi Q1 Pro 0.2 nozzle"
