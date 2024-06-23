@@ -151,6 +151,7 @@ void ConfigManipulation::check_chamber_temperature(DynamicPrintConfig* config)
         {"PVA",45},
         {"TPU",50},
         {"PETG",55},
+        {"PCTG",55},
         {"PETG-CF",55}
     };
    bool support_chamber_temp_control=GUI::wxGetApp().preset_bundle->printers.get_selected_preset().config.opt_bool("support_chamber_temp_control");

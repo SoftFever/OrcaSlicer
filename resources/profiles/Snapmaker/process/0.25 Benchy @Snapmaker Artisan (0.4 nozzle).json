@@ -31,7 +31,7 @@
   "ensure_vertical_shell_thickness": "none",
   "filename_format": "ArtisanBenchy_{print_time}.gcode",
   "sparse_infill_density": "10%",
-  "sparse_infill_pattern": "crosshatch",
+  "sparse_infill_pattern": "alignedrectilinear",
   "wall_generator": "classic",
   "seam_position": "nearest",
   "wall_loops": "2",

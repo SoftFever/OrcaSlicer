@@ -6581,10 +6581,7 @@ bool GUI_App::check_url_association(std::wstring url_prefix, std::wstring& reg_b
     reg_bin = key_full.QueryDefaultValue().ToStdWstring();
 
     boost::filesystem::path binary_path(boost::filesystem::canonical(boost::dll::program_location()));
-    // wxString    wbinary       = wxString::FromUTF8(binary_path.string());
-    // std::string binary_string = (boost::format("%1%") % wbinary).str();
-    std::wstring key_string = L"\"" + binary_path.wstring() + L"\" L\"%1\"";
-    // return boost::iequals(key_string,(boost::format("%1%") % reg_bin).str());
+    std::wstring key_string = L"\"" + binary_path.wstring() + L"\" \"%1\"";
     return key_string == reg_bin;
 #else
     return false;
