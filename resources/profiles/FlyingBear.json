@@ -27,6 +27,10 @@
             "sub_path": "process/fdm_process_marlin_common.json"
         },
         {
+            "name": "fdm_process_ghost_6",
+            "sub_path": "process/fdm_process_ghost_6.json"
+        },
+        {
             "name": "0.08mm Extra Fine @FlyingBear Reborn3",
             "sub_path": "process/0.08mm Extra Fine @FlyingBear Reborn3.json"
         },
@@ -48,8 +52,20 @@
         },
 
         {
-            "name": "0.20mm Standard @FlyingBear Ghost 6",
+            "name": "0.12mm Fine @FlyingBear Ghost 6 0.4 nozzle",
+            "sub_path": "process/0.12mm Fine @FlyingBear Ghost 6 0.4 nozzle.json"
+        },
+        {
+            "name": "0.16mm Optimal @FlyingBear Ghost 6 0.4 nozzle",
+            "sub_path": "process/0.16mm Optimal @FlyingBear Ghost 6 0.4 nozzle.json"
+        },
+        {
+            "name": "0.20mm Standard @FlyingBear Ghost 6 0.4 nozzle",
             "sub_path": "process/0.20mm Standard @FlyingBear Ghost 6 0.4 nozzle.json"
+        },
+        {
+            "name": "0.24mm Draft @FlyingBear Ghost 6 0.4 nozzle",
+            "sub_path": "process/0.24mm Draft @FlyingBear Ghost 6 0.4 nozzle.json"
         },
 
         {
@@ -285,7 +301,7 @@
             "sub_path": "machine/S1/FlyingBear S1 0.4 nozzle.json"
         },
         {
-            "name": "FlyingBear Ghost 6 0.4 nozzle",
+            "name": "FlyingBear Ghost 6 0.4",
             "sub_path": "machine/FlyingBear Ghost 6 0.4 nozzle.json"
         }
     ]
