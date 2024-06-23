@@ -47,7 +47,7 @@ std::string AdaptivePAProcessor::process_layer(std::string &&gcode) {
     unsigned int accel_value = 0;
     std::string pa_change_line;
 
-    // Iterate through each line of the G-code
+    // Iterate through each line of the layer G-code
     while (std::getline(stream, line)) {
         // Check for PA_CHANGE pattern in the line
         // We will only find this pattern for extruders where adaptive PA is enabled.
