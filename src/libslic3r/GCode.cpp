@@ -4558,9 +4558,6 @@ static std::unique_ptr<EdgeGrid::Grid> calculate_layer_edge_grid(const Layer& la
 
 std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, double speed, const ExtrusionEntitiesPtr& region_perimeters)
 {
-    // Orca: Reset average multipath flow
-    m_last_multipath_average_mm3_per_mm = 0;
-    m_is_multipath = false;
     
     // get a copy; don't modify the orientation of the original loop object otherwise
     // next copies (if any) would not detect the correct orientation
@@ -4699,9 +4696,34 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
         return is_small_peri ? small_peri_speed : speed;
     };
 
+    
+    //Orca: Adaptive PA: calculate average mm3_per_mm value over the length of the loop.
+    //This is used for adaptive PA
+    m_multi_flow_segment_path_pa_set = false; // always emit PA on the first path of the loop
+    m_multi_flow_segment_path_average_mm3_per_mm = 0;
+    double weighted_sum_mm3_per_mm = 0.0;
+    double total_multipath_length = 0.0;
+    for (const ExtrusionPath& path : paths) {
+        if(!path.is_force_no_extrusion()){
+            double path_length = unscale<double>(path.length()); //path length in mm
+            weighted_sum_mm3_per_mm += path.mm3_per_mm * path_length;
+            total_multipath_length += path_length;
+            // TODO: remove before adaptive PA release.
+            gcode += "; ADP: Loop segment length: " + std::to_string(path_length) + " Loop segment mm3_mm: " +std::to_string(path.mm3_per_mm) +"\n";
+        }
+    }
+    if (total_multipath_length != 0.0)
+        m_multi_flow_segment_path_average_mm3_per_mm = weighted_sum_mm3_per_mm / total_multipath_length;
+    // Orca: end of multipath average mm3_per_mm value calculation
+    
     if (!enable_seam_slope) {
         for (ExtrusionPaths::iterator path = paths.begin(); path != paths.end(); ++path) {
             gcode += this->_extrude(*path, description, speed_for_path(*path));
+            // Orca: Adaptive PA - dont adapt PA after the first pultipath extrusion is completed
+            // as we have already set the PA value to the average flow over the totality of the path
+            // in the first extrude move
+            // TODO: testing is needed with slope seams and adaptive PA.
+            m_multi_flow_segment_path_pa_set = true;
         }
     } else {
         // Create seam slope
@@ -4733,6 +4755,10 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
         // Then extrude it
         for (const auto& p : new_loop.get_all_paths()) {
             gcode += this->_extrude(*p, description, speed_for_path(*p));
+            // Orca: Adaptive PA - dont adapt PA after the first pultipath extrusion is completed
+            // as we have already set the PA value to the average flow over the totality of the path
+            // in the first extrude move
+            m_multi_flow_segment_path_pa_set = true;
         }
 
         // Fix path for wipe
@@ -4807,8 +4833,8 @@ std::string GCode::extrude_multi_path(ExtrusionMultiPath multipath, std::string 
     
     //Orca: calculate multipath average mm3_per_mm value over the length of the path.
     //This is used for adaptive PA
-    m_is_multipath = false; // always emit PA on the first path of the multi-path
-    m_last_multipath_average_mm3_per_mm = 0;
+    m_multi_flow_segment_path_pa_set = false; // always emit PA on the first path of the multi-path
+    m_multi_flow_segment_path_average_mm3_per_mm = 0;
     double weighted_sum_mm3_per_mm = 0.0;
     double total_multipath_length = 0.0;
     for (const ExtrusionPath& path : multipath.paths) {
@@ -4821,14 +4847,15 @@ std::string GCode::extrude_multi_path(ExtrusionMultiPath multipath, std::string 
         }
     }
     if (total_multipath_length != 0.0)
-        m_last_multipath_average_mm3_per_mm = weighted_sum_mm3_per_mm / total_multipath_length;
+        m_multi_flow_segment_path_average_mm3_per_mm = weighted_sum_mm3_per_mm / total_multipath_length;
     // Orca: end of multipath average mm3_per_mm value calculation
     
     for (ExtrusionPath path : multipath.paths){
-        // TODO: remove comments before adaptive PA release.
-        gcode += "; Extrude multipath. Is multipath variable set to: " + std::to_string(m_is_multipath)+"\n";
         gcode += this->_extrude(path, description, speed);
-        m_is_multipath = true;
+        // Orca: Adaptive PA - dont adapt PA after the first pultipath extrusion is completed
+        // as we have already set the PA value to the average flow over the totality of the path
+        // in the first extrude move.
+        m_multi_flow_segment_path_pa_set = true;
     }
 
     // BBS
@@ -4864,8 +4891,8 @@ std::string GCode::extrude_entity(const ExtrusionEntity &entity, std::string des
 std::string GCode::extrude_path(ExtrusionPath path, std::string description, double speed)
 {
     // Orca: Reset average multipath flow
-    m_is_multipath = false;
-    m_last_multipath_average_mm3_per_mm = 0;
+    m_multi_flow_segment_path_pa_set = false;
+    m_multi_flow_segment_path_average_mm3_per_mm = 0;
     //    description += ExtrusionEntity::role_to_string(path.role());
     std::string gcode = this->_extrude(path, description, speed);
     if (m_wipe.enable) {
@@ -5342,9 +5369,9 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     // TODO: need to check whether skipping re-evaluation of the PA change for external perimeters will result in any adverse effects when a seam
     // TODO: is placed directly on an overhang that has been slowed down... This would result in the PA value being calculated and
     // TODO: set based on the current overhang speed and will not change until the next extrusion role change.
-    if((path.role() == erExternalPerimeter) && (m_last_extrusion_role == erExternalPerimeter) && (evaluate_adaptive_pa == true))
+    if (path.role() == erExternalPerimeter && m_last_extrusion_role == erExternalPerimeter && evaluate_adaptive_pa)
         evaluate_adaptive_pa = false;
-    if(m_is_multipath == true && (evaluate_adaptive_pa == true))
+    if (m_multi_flow_segment_path_pa_set && evaluate_adaptive_pa)
         evaluate_adaptive_pa = false;
     
     //Orca: process custom gcode for extrusion role change
@@ -5417,12 +5444,11 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     if (evaluate_adaptive_pa){
         // Debug:
         // sprintf(buf, ";%sT%g MM3MM:%g %g %g\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::PA_Change).c_str(),m_writer.extruder()->id() ,_mm3_per_mm, path.mm3_per_mm, e_per_mm/m_writer.extruder()->e_per_mm3());
-        // acceleration_i
-        if( m_last_multipath_average_mm3_per_mm > 0){
+        if( m_multi_flow_segment_path_average_mm3_per_mm > 0){
             //TODO: remove comment before release but retain tag below!
-            sprintf(buf,"; Multipath value used\n" );
+            sprintf(buf,"; Multi segment path value used\n" );
             gcode += buf;
-            sprintf(buf, ";%sT%u MM3MM:%g ACCEL:%u\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::PA_Change).c_str(),m_writer.extruder()->id() ,m_last_multipath_average_mm3_per_mm,acceleration_i);
+            sprintf(buf, ";%sT%u MM3MM:%g ACCEL:%u\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::PA_Change).c_str(),m_writer.extruder()->id() ,m_multi_flow_segment_path_average_mm3_per_mm,acceleration_i);
         }else{
             sprintf(buf, ";%sT%u MM3MM:%g ACCEL:%u\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::PA_Change).c_str(),m_writer.extruder()->id() ,_mm3_per_mm,acceleration_i);
         }
