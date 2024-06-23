@@ -3213,10 +3213,10 @@ void ModelInstance::get_arrange_polygon(void *ap, const Slic3r::DynamicPrintConf
 
     Vec3d rotation = get_rotation();
     rotation.z()   = 0.;
-    Transform3d trafo_instance =
-        Geometry::assemble_transform(get_offset().z() * Vec3d::UnitZ(), rotation, get_scaling_factor(), get_mirror());
-
-    Polygon p = get_object()->convex_hull_2d(trafo_instance);
+    Geometry::Transformation t(m_transformation);
+    t.set_offset(get_offset().z() * Vec3d::UnitZ());
+    t.set_rotation(rotation);
+    Polygon p = get_object()->convex_hull_2d(t.get_matrix());
 
 //    if (!p.points.empty()) {
 //        Polygons pp{p};
