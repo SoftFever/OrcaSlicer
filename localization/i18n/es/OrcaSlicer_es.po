@@ -9868,7 +9868,7 @@ msgid "This G-code is inserted at every layer change before lifting z"
 msgstr "Este G-Code se inserta en cada cambio de capa antes de levantar z"
 
 msgid "Bottom shell layers"
-msgstr "Cubiertas inferiores de cubierta"
+msgstr "Capas inferiores de cubierta"
 
 msgid ""
 "This is the number of solid layers of bottom shell, including the bottom "
