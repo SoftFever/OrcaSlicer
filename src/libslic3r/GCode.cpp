@@ -5441,19 +5441,29 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     // The print speed should be the first G1 F statement after this tag is found in the GCODE.
     // This tag simplifies the creation of the gcode post processor
     // while also keeping the feature decoupled from other tags.
-    if (evaluate_adaptive_pa){
+    if (evaluate_adaptive_pa) {
         // Debug:
-        // sprintf(buf, ";%sT%g MM3MM:%g %g %g\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::PA_Change).c_str(),m_writer.extruder()->id() ,_mm3_per_mm, path.mm3_per_mm, e_per_mm/m_writer.extruder()->e_per_mm3());
-        if( m_multi_flow_segment_path_average_mm3_per_mm > 0){
-            //TODO: remove comment before release but retain tag below!
-            sprintf(buf,"; Multi segment path value used\n" );
+        // sprintf(buf, ";%sT%g MM3MM:%g %g %g\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::PA_Change).c_str(), m_writer.extruder()->id(), _mm3_per_mm, path.mm3_per_mm, e_per_mm / m_writer.extruder()->e_per_mm3());
+        if (m_multi_flow_segment_path_average_mm3_per_mm > 0) {
+            // TODO: remove comment before release but retain tag below!
+            sprintf(buf, "; Multi segment path value used\n");
             gcode += buf;
-            sprintf(buf, ";%sT%u MM3MM:%g ACCEL:%u\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::PA_Change).c_str(),m_writer.extruder()->id() ,m_multi_flow_segment_path_average_mm3_per_mm,acceleration_i);
-        }else{
-            sprintf(buf, ";%sT%u MM3MM:%g ACCEL:%u\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::PA_Change).c_str(),m_writer.extruder()->id() ,_mm3_per_mm,acceleration_i);
+
+            sprintf(buf, ";%sT%u MM3MM:%g ACCEL:%u\n",
+                    GCodeProcessor::reserved_tag(GCodeProcessor::ETags::PA_Change).c_str(),
+                    m_writer.extruder()->id(),
+                    m_multi_flow_segment_path_average_mm3_per_mm,
+                    acceleration_i);
+        } else {
+            sprintf(buf, ";%sT%u MM3MM:%g ACCEL:%u\n",
+                    GCodeProcessor::reserved_tag(GCodeProcessor::ETags::PA_Change).c_str(),
+                    m_writer.extruder()->id(),
+                    _mm3_per_mm,
+                    acceleration_i);
         }
         gcode += buf;
     }
+
 
     auto overhang_fan_threshold = EXTRUDER_CONFIG(overhang_fan_threshold);
     auto enable_overhang_bridge_fan = EXTRUDER_CONFIG(enable_overhang_bridge_fan);
