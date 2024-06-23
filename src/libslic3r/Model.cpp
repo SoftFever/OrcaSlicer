@@ -2480,11 +2480,7 @@ void  ModelVolume::calculate_convex_hull_2d(const Geometry::Transformation &tran
         return;
 
     Points pts;
-    Vec3d rotation = transformation.get_rotation();
-    Vec3d mirror = transformation.get_mirror();
-    Vec3d scale = transformation.get_scaling_factor();
-    //rotation(2) = 0.f;
-    Transform3d new_matrix = Geometry::assemble_transform(Vec3d::Zero(), rotation, scale, mirror);
+    Transform3d new_matrix = transformation.get_matrix_no_offset();
 
     pts.reserve(its.vertices.size());
     // Using the shared vertices should be a bit quicker than using the STL faces.
