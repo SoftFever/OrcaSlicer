@@ -108,9 +108,9 @@
     "deretraction_speed": [
         "35"
     ],
-    "extruder_clearance_height_to_lid": "101",
-    "extruder_clearance_height_to_rod": "45",
-    "extruder_clearance_radius": "45",
+    "extruder_clearance_height_to_lid": "80",
+    "extruder_clearance_height_to_rod": "64",
+    "extruder_clearance_radius": "40",
     "z_hop": [
         "0.2"
     ],
