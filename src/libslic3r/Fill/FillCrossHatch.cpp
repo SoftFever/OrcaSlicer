@@ -148,7 +148,7 @@ static Polylines generate_infill_layers(coordf_t z_height, double repeat_ratio, 
     Polylines result;
     coordf_t  trans_layer_size  = grid_size * 0.4;          // upper.
     coordf_t  repeat_layer_size = grid_size * repeat_ratio; // lower.
-    z_height                    += repeat_layer_size / 2;   // offset to improve first few layer strength
+    z_height                    += repeat_layer_size / 2 + trans_layer_size;   // offset to improve first few layer strength and reduce the risk of warpping.
     coordf_t  period            = trans_layer_size + repeat_layer_size;
     coordf_t  remains           = z_height - std::floor(z_height / period) * period;
     coordf_t  trans_z           = remains - repeat_layer_size; // put repeat layer first.

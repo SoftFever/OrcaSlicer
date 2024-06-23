@@ -1,7 +1,3 @@
-///|/ Copyright (c) Prusa Research 2022 - 2023 Lukáš Matěna @lukasmatena, Enrico Turri @enricoturri1966, Vojtěch Bubník @bubnikv
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 #ifndef Slic3r_Measure_hpp_
 #define Slic3r_Measure_hpp_
 

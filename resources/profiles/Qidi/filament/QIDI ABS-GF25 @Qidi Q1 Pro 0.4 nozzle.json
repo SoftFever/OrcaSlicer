@@ -3,7 +3,7 @@
 "setting_id": "GFSA04",
 "instantiation": "true",
     "activate_chamber_temp_control": [
-        "1"
+        "0"
     ],
     "fan_max_speed": [
         "20"

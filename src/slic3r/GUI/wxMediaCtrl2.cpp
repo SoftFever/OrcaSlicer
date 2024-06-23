@@ -78,19 +78,20 @@ void wxMediaCtrl2::Load(wxURI url)
         return;
     }
     {
-        wxRegKey key1(wxRegKey::HKCR, L"CLSID\\" CLSID_BAMBU_SOURCE L"\\InProcServer32");
-        wxString path = key1.Exists() ? key1.QueryDefaultValue() : wxString{};
+        wxRegKey key11(wxRegKey::HKCU, L"SOFTWARE\\Classes\\CLSID\\" CLSID_BAMBU_SOURCE L"\\InProcServer32");
+        wxRegKey key12(wxRegKey::HKCR, L"CLSID\\" CLSID_BAMBU_SOURCE L"\\InProcServer32");
+        wxString path = key11.Exists() ? key11.QueryDefaultValue() 
+                                       : key12.Exists() ? key12.QueryDefaultValue() : wxString{};
         wxRegKey key2(wxRegKey::HKCR, "bambu");
         wxString clsid;
         if (key2.Exists())
             key2.QueryRawValue("Source Filter", clsid);
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": clsid %1% path %2%") % clsid % path;
 
+        std::string             data_dir_str = Slic3r::data_dir();
+        boost::filesystem::path data_dir_path(data_dir_str);
+        auto                    dll_path = data_dir_path / "plugins" / "BambuSource.dll";
         if (path.empty() || !wxFile::Exists(path) || clsid != CLSID_BAMBU_SOURCE) {
-            std::string             data_dir_str = Slic3r::data_dir();
-            boost::filesystem::path data_dir_path(data_dir_str);
-            auto                    dll_path = data_dir_path / "plugins" / "BambuSource.dll";
-
             if (boost::filesystem::exists(dll_path)) {
                 CallAfter(
                     [dll_path] {
@@ -131,6 +132,20 @@ void wxMediaCtrl2::Load(wxURI url)
             event.SetEventObject(this);
             wxPostEvent(this, event);
             return;
+        }
+        if (path != dll_path) {
+            static bool notified = false;
+            if (!notified) CallAfter([dll_path] {
+                int res = wxMessageBox(_L("Using a BambuSource from a different install, video play may not work correctly! Press Yes to fix it."), _L("Warning"), wxYES_NO | wxICON_WARNING);
+                if (res == wxYES) {
+                    auto path = dll_path.wstring();
+                    if (path.find(L' ') != std::wstring::npos)
+                        path = L"\"" + path + L"\"";
+                    SHELLEXECUTEINFO info{sizeof(info), 0, NULL, L"open", L"regsvr32", path.c_str(), SW_HIDE};
+                    ::ShellExecuteEx(&info);
+                }
+            });
+            notified = true;
         }
         wxRegKey keyWmp(wxRegKey::HKCU, "SOFTWARE\\Microsoft\\MediaPlayer\\Player\\Extensions\\.");
         keyWmp.Create();

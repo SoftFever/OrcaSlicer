@@ -1,12 +1,3 @@
-///|/ Copyright (c) Prusa Research 2016 - 2023 Lukáš Matěna @lukasmatena, Vojtěch Bubník @bubnikv, Pavel Mikuš @Godrak, Lukáš Hejl @hejllukas
-///|/ Copyright (c) SuperSlicer 2023 Remi Durand @supermerill
-///|/ Copyright (c) 2016 Sakari Kapanen @Flannelhead
-///|/ Copyright (c) Slic3r 2011 - 2015 Alessandro Ranellucci @alranel
-///|/ Copyright (c) 2013 Mark Hindess
-///|/ Copyright (c) 2011 Michael Moon
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 #include <assert.h>
 #include <stdio.h>
 #include <memory>
@@ -498,7 +489,7 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
                 params.bridge_angle = float(surface.bridge_angle);
                 if (params.extrusion_role == erInternalInfill) {
                     params.angle = float(Geometry::deg2rad(region_config.infill_direction.value));
-                    params.rotate_angle = (params.pattern == ipRectilinear);
+                    params.rotate_angle = (params.pattern == ipRectilinear || params.pattern == ipLine);
                 } else {
                     params.angle = float(Geometry::deg2rad(region_config.solid_infill_direction.value));
                     params.rotate_angle = region_config.rotate_solid_infill_direction;
