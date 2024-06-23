@@ -23,6 +23,10 @@
             "sub_path": "process/fdm_process_common.json"
         },
         {
+            "name": "fdm_process_marlin_common",
+            "sub_path": "process/fdm_process_marlin_common.json"
+        },
+        {
             "name": "0.08mm Extra Fine @FlyingBear Reborn3",
             "sub_path": "process/0.08mm Extra Fine @FlyingBear Reborn3.json"
         },
@@ -46,10 +50,6 @@
         {
             "name": "0.20mm Standard @FlyingBear Ghost 6",
             "sub_path": "process/0.20mm Standard @FlyingBear Ghost 6 0.4 nozzle.json"
-        },
-        {
-            "name": "0.20mm Fast @FlyingBear Ghost 6",
-            "sub_path": "process/0.20mm Fast @FlyingBear Ghost 6 0.4 nozzle.json"
         },
 
         {
