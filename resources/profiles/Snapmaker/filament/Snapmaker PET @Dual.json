@@ -5,5 +5,7 @@
   "name": "Snapmaker PET @Dual",
   "setting_id": "145337790",
   "inherits": "Snapmaker Dual PET @base",
-  "compatible_printers": ""
+  "compatible_printers": [
+    "Snapmaker A250 Dual (0.8 nozzle)"
+  ]
 }

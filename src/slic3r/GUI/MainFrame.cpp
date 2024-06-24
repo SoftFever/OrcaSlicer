@@ -1615,7 +1615,7 @@ wxBoxSizer* MainFrame::create_side_tools()
             SidePopup* p = new SidePopup(this);
 
             if (wxGetApp().preset_bundle
-                && !wxGetApp().preset_bundle->use_bbl_network()) {
+                && !wxGetApp().preset_bundle->is_bbl_vendor()) {
                 // ThirdParty Buttons
                 SideButton* export_gcode_btn = new SideButton(p, _L("Export G-code file"), "");
                 export_gcode_btn->SetCornerRadius(0);
@@ -1715,10 +1715,32 @@ wxBoxSizer* MainFrame::create_side_tools()
                     p->Dismiss();
                     });
 
+                bool support_send = true;
+                bool support_print_all = true;
+
+                const auto preset_bundle = wxGetApp().preset_bundle;
+                if (preset_bundle) {
+                    if (preset_bundle->use_bbl_network()) {
+                        // BBL network support everything
+                    } else {
+                        support_send = false; // All 3rd print hosts do not have the send options
+
+                        auto cfg = preset_bundle->printers.get_edited_preset().config;
+                        const auto host_type = cfg.option<ConfigOptionEnum<PrintHostType>>("host_type")->value;
+
+                        // Only simply print support uploading all plates
+                        support_print_all = host_type == PrintHostType::htSimplyPrint;
+                    }
+                }
+
                 p->append_button(print_plate_btn);
-                p->append_button(print_all_btn);
-                p->append_button(send_to_printer_btn);
-                p->append_button(send_to_printer_all_btn);
+                if (support_print_all) {
+                    p->append_button(print_all_btn);
+                }
+                if (support_send) {
+                    p->append_button(send_to_printer_btn);
+                    p->append_button(send_to_printer_all_btn);
+                }
                 if (enable_multi_machine) {
                     SideButton* print_multi_machine_btn = new SideButton(p, _L("Send to Multi-device"), "");
                     print_multi_machine_btn->SetCornerRadius(0);
@@ -3636,14 +3658,14 @@ void MainFrame::load_printer_url(wxString url, wxString apikey)
 void MainFrame::load_printer_url()
 {
     PresetBundle &preset_bundle = *wxGetApp().preset_bundle;
-    if (preset_bundle.use_bbl_network())
+    if (preset_bundle.use_bbl_device_tab())
         return;
 
     auto     cfg = preset_bundle.printers.get_edited_preset().config;
     wxString url = cfg.opt_string("print_host_webui").empty() ? cfg.opt_string("print_host") : cfg.opt_string("print_host_webui");
     wxString apikey;
-    if (cfg.has("printhost_apikey") && (cfg.option<ConfigOptionEnum<PrintHostType>>("host_type")->value == htPrusaLink ||
-                                        cfg.option<ConfigOptionEnum<PrintHostType>>("host_type")->value == htPrusaConnect))
+    const auto host_type = cfg.option<ConfigOptionEnum<PrintHostType>>("host_type")->value;
+    if (cfg.has("printhost_apikey") && (host_type == htPrusaLink || host_type == htPrusaConnect))
         apikey = cfg.opt_string("printhost_apikey");
     if (!url.empty()) {
         if (!url.Lower().starts_with("http"))
