@@ -339,8 +339,14 @@ struct Sidebar::priv
     wxPanel* m_panel_print_title;
     wxStaticText* m_staticText_print_title;
     wxPanel* m_panel_print_content;
-    wxComboBox* m_comboBox_print_preset;
-    wxStaticLine* m_staticline1;
+    //wxComboBox *                m_comboBox_print_preset;
+    ComboBox *                  m_bed_type_list = nullptr;
+    ComboBox *                  m_left_extruder_list  = nullptr;
+    wxStaticText *              m_left_ams_count = nullptr;
+    ComboBox *                  m_right_extruder_list = nullptr;
+    wxStaticText *              m_right_ams_count     = nullptr;
+    wxSizer *                   m_dual_extruder_sizer = nullptr;
+    wxStaticLine *              m_staticline1;
     StaticBox* m_panel_filament_title;
     wxStaticText* m_staticText_filament_settings;
     ScalableButton *  m_bpButton_add_filament;
@@ -361,7 +367,8 @@ struct Sidebar::priv
     StaticBox* m_panel_printer_title = nullptr;
     ScalableButton* m_printer_icon = nullptr;
     ScalableButton* m_printer_setting = nullptr;
-    wxStaticText* m_text_printer_settings = nullptr;
+    ScalableButton *m_extruder_sync = nullptr;
+    wxStaticText *  m_text_printer_settings = nullptr;
     wxPanel* m_panel_printer_content = nullptr;
 
     ObjectList          *m_object_list{ nullptr };
@@ -383,6 +390,8 @@ struct Sidebar::priv
     void show_preset_comboboxes();
     void jump_to_object(ObjectDataViewModelNode* item);
     void can_search();
+
+    void sync_extruder_list();
 
 #ifdef _WIN32
     wxString btn_reslice_tip;
@@ -643,6 +652,99 @@ struct DynamicFilamentList1Based : DynamicFilamentList
 static DynamicFilamentList dynamic_filament_list;
 static DynamicFilamentList1Based dynamic_filament_list_1_based;
 
+class AMSCountPopupWindow : public PopupWindow
+{
+public:
+    AMSCountPopupWindow(wxWindow * parent, wxStaticText *text, int index)
+        : PopupWindow(parent, wxBORDER_SIMPLE)
+    {
+        auto msg  = new wxStaticText(this, wxID_ANY, _L("Please set the number of ams installed on the this extrusion head."));
+        msg->SetFont(Label::Body_14);
+        msg->Wrap(FromDIP(240));
+        auto img4 = new ScalableButton(this, wxID_ANY, "ams_4_tray", {}, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, false, 44);
+        auto img1 = new ScalableButton(this, wxID_ANY, "ams_1_tray", {}, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, false, 44);
+        auto txt4 = new wxStaticText(this, wxID_ANY, _L("AMS(4 colors)"));
+        txt4->SetFont(Label::Body_14);
+        auto txt1 = new wxStaticText(this, wxID_ANY, _L("AMS(single color)"));
+        txt1->SetFont(Label::Body_14);
+        int ams4 = 0, ams1 = 0;
+        GetAMSCount(index, ams4, ams1);
+        auto val4 = new SpinInput(this, {}, {}, wxDefaultPosition, {FromDIP(60), -1}, 0, 0, 4, ams4);
+        auto val1 = new SpinInput(this, {}, {}, wxDefaultPosition, {FromDIP(60), -1}, 0, 0, 8, ams1);
+        auto event_handler = [index, val4, val1, text](auto &evt) {
+            SetAMSCount(index, val4->GetValue(), val1->GetValue());
+            UpdateAMSCount(index, text);
+        };
+        val4->Bind(wxEVT_SPINCTRL, event_handler);
+        val1->Bind(wxEVT_SPINCTRL, event_handler);
+
+        wxSizer * sizer = new wxBoxSizer(wxVERTICAL);
+        sizer->Add(msg, 0, wxTOP | wxLEFT | wxRIGHT, FromDIP(10));
+        wxSizer * sizer2 = new wxBoxSizer(wxHORIZONTAL);
+        wxSizer *sizer21 = new wxBoxSizer(wxVERTICAL);
+        sizer21->Add(img4, 0, wxALIGN_CENTRE_HORIZONTAL);
+        sizer21->Add(txt4, 0, wxTOP | wxALIGN_CENTRE_HORIZONTAL, FromDIP(10));
+        sizer21->Add(val4, 0, wxTOP | wxALIGN_CENTRE_HORIZONTAL, FromDIP(10));
+        sizer2->Add(sizer21, 1);
+        wxSizer *sizer22 = new wxBoxSizer(wxVERTICAL);
+        sizer22->Add(img1, 0, wxALIGN_CENTRE_HORIZONTAL);
+        sizer22->Add(txt1, 0, wxTOP | wxALIGN_CENTRE_HORIZONTAL, FromDIP(10));
+        sizer22->Add(val1, 0, wxTOP | wxALIGN_CENTRE_HORIZONTAL, FromDIP(10));
+        sizer2->Add(sizer22, 1);
+        sizer->Add(sizer2, 0, wxTOP | wxBOTTOM | wxLEFT | wxRIGHT | wxEXPAND, FromDIP(10));
+        SetSizer(sizer);
+
+        Layout();
+        Fit();
+
+        SetBackgroundColour(*wxWHITE);
+        wxGetApp().UpdateDarkUIWin(this);
+    }
+
+    static void SetAMSCount(int index, int ams4, int ams1)
+    {
+        auto count_str = wxGetApp().app_config->get("preset", "ams_count");
+        std::vector<std::string> counts;
+        boost::algorithm::split(counts, count_str, boost::algorithm::is_any_of("|"));
+        counts.resize(2);
+        counts[index] = (boost::format("%d/%d") % ams4 % ams1).str();
+        wxGetApp().app_config->set("preset", "ams_count", boost::algorithm::join(counts, "|"));
+    }
+
+    static void GetAMSCount(int index, int & ams4, int & ams1)
+    {
+        auto count_str = wxGetApp().app_config->get("preset", "ams_count");
+        std::vector<std::string> counts;
+        boost::algorithm::split(counts, count_str, boost::algorithm::is_any_of("|"));
+        counts.resize(2);
+        std::vector<std::string> counts2;
+        boost::algorithm::split(counts2, counts[index], boost::algorithm::is_any_of("/"));
+        counts2.resize(2);
+        ams4 = std::atoi(counts2[0].c_str());
+        ams1 = std::atoi(counts2[1].c_str());
+    }
+
+    static void UpdateAMSCount(int index, wxStaticText *text)
+    {
+        auto count_str = wxGetApp().app_config->get("preset", "ams_count");
+        std::vector<std::string> counts;
+        boost::algorithm::split(counts, count_str, boost::algorithm::is_any_of("|"));
+        counts.resize(2);
+        text->SetLabel(from_u8(counts[index]));
+    }
+};
+
+void Sidebar::priv::sync_extruder_list()
+{
+    auto printer_tab = dynamic_cast<TabPrinter *>(wxGetApp().get_tab(Preset::TYPE_PRINTER));
+    printer_tab->set_extruder_volume_type(0, NozzleVolumeType::nvtBigTraffic);
+    printer_tab->set_extruder_volume_type(1, NozzleVolumeType::nvtNormal);
+    AMSCountPopupWindow::SetAMSCount(0, 0, 0);
+    AMSCountPopupWindow::SetAMSCount(1, 1, 1);
+    AMSCountPopupWindow::UpdateAMSCount(0, m_left_ams_count);
+    AMSCountPopupWindow::UpdateAMSCount(1, m_right_ams_count);
+}
+
 Sidebar::Sidebar(Plater *parent)
     : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxSize(42 * wxGetApp().em_unit(), -1)), p(new priv(parent))
 {
@@ -711,12 +813,21 @@ Sidebar::Sidebar(Plater *parent)
             // wxGetApp().get_tab(Preset::TYPE_FILAMENT)->restore_last_select_item();
             wxGetApp().run_wizard(ConfigWizard::RR_USER, ConfigWizard::SP_PRINTERS);
             });
+        auto extruder_btn = new ScalableButton(p->m_panel_printer_title, wxID_ANY, "ams_fila_sync", wxEmptyString, wxDefaultSize, wxDefaultPosition,
+                                                     wxBU_EXACTFIT | wxNO_BORDER, false, 18);
+        extruder_btn->SetToolTip(_L("Synchronize nozzle information and the number of AMS"));
+        extruder_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
+            p->sync_extruder_list();
+        });
+        p->m_extruder_sync = extruder_btn;
 
         wxBoxSizer* h_sizer_title = new wxBoxSizer(wxHORIZONTAL);
         h_sizer_title->Add(p->m_printer_icon, 0, wxALIGN_CENTRE | wxLEFT, FromDIP(SidebarProps::TitlebarMargin()));
         h_sizer_title->AddSpacer(FromDIP(SidebarProps::ElementSpacing()));
         h_sizer_title->Add(p->m_text_printer_settings, 0, wxALIGN_CENTER);
         h_sizer_title->AddStretchSpacer();
+        h_sizer_title->Add(p->m_extruder_sync, 0, wxALIGN_CENTER);
+        h_sizer_title->AddSpacer(FromDIP(SidebarProps::TitlebarMargin()));
         h_sizer_title->Add(p->m_printer_setting, 0, wxALIGN_CENTER);
         h_sizer_title->AddSpacer(FromDIP(SidebarProps::TitlebarMargin()));
         h_sizer_title->SetMinSize(-1, 3 * em);
@@ -787,11 +898,11 @@ Sidebar::Sidebar(Plater *parent)
         //bed_type_title->SetBackgroundColour();
         bed_type_title->Wrap(-1);
         bed_type_title->SetFont(Label::Body_14);
-        m_bed_type_list = new ComboBox(p->m_panel_printer_content, wxID_ANY, wxString(""), wxDefaultPosition, {-1, FromDIP(30)}, 0, nullptr, wxCB_READONLY);
+        p->m_bed_type_list = new ComboBox(p->m_panel_printer_content, wxID_ANY, wxString(""), wxDefaultPosition, wxDefaultSize, 0, nullptr, wxCB_READONLY);
         const ConfigOptionDef* bed_type_def = print_config_def.get("curr_bed_type");
         if (bed_type_def && bed_type_def->enum_keys_map) {
             for (auto item : bed_type_def->enum_labels) {
-                m_bed_type_list->AppendString(_L(item));
+                p->m_bed_type_list->AppendString(_L(item));
             }
         }
 
@@ -823,12 +934,11 @@ Sidebar::Sidebar(Plater *parent)
         }
 
         int bed_type_idx = bed_type_value - 1;
-        m_bed_type_list->Select(bed_type_idx);
-        bed_type_sizer->Add(bed_type_title, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(SidebarProps::ContentMargin()));
-        bed_type_sizer->Add(m_bed_type_list, 1, wxLEFT | wxEXPAND, FromDIP(SidebarProps::ElementSpacing()));
+        p->m_bed_type_list->Select(bed_type_idx);
+        bed_type_sizer->Add(bed_type_title, 1, wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(SidebarProps::ContentMargin()));
+        bed_type_sizer->Add(p->m_bed_type_list, 4, wxLEFT | wxEXPAND, FromDIP(SidebarProps::ElementSpacing()));
         bed_type_sizer->AddSpacer(FromDIP(SidebarProps::ContentMargin()));
         vsizer_printer->Add(bed_type_sizer, 0, wxEXPAND | wxTOP, FromDIP(5));
-        vsizer_printer->AddSpacer(FromDIP(16));
 
         auto& project_config = wxGetApp().preset_bundle->project_config;
         /*const t_config_enum_values* keys_map = print_config_def.get("curr_bed_type")->enum_keys_map;
@@ -840,6 +950,67 @@ Sidebar::Sidebar(Plater *parent)
         BedType bed_type = (BedType)bed_type_value;
         project_config.set_key_value("curr_bed_type", new ConfigOptionEnum<BedType>(bed_type));
 
+        // Dual Extruder Types (Begin)
+        p->m_dual_extruder_sizer = new wxBoxSizer(wxHORIZONTAL);
+
+        auto add_extruder = [this](int index, wxString const & title) {
+            wxStaticBox * static_box = new wxStaticBox(p->m_panel_printer_content, wxID_ANY, title);
+            static_box->SetFont(Label::Body_10);
+            static_box->SetForegroundColour("#909090");
+            wxStaticBoxSizer *static_box_sizer = new wxStaticBoxSizer(static_box, wxVERTICAL);
+            // Nozzle
+            wxBoxSizer * nozzle_sizer = new wxBoxSizer(wxHORIZONTAL);
+            wxStaticText * nozzle_title = new wxStaticText(static_box, wxID_ANY, _L("Nozzle"));
+            nozzle_title->SetFont(Label::Body_14);
+            nozzle_title->SetForegroundColour("#262E30");
+            auto nozzle_type_list = new ComboBox(static_box, wxID_ANY, wxString(""), wxDefaultPosition, wxDefaultSize, 0, nullptr, wxCB_READONLY);
+            nozzle_type_list->Bind(wxEVT_COMBOBOX, [this, index, nozzle_type_list](wxCommandEvent &evt) {
+                auto printer_tab = dynamic_cast<TabPrinter*>(wxGetApp().get_tab(Preset::TYPE_PRINTER));
+                printer_tab->set_extruder_volume_type(index, NozzleVolumeType(intptr_t(nozzle_type_list->GetClientData(evt.GetInt()))));
+            });
+            nozzle_sizer->Add(nozzle_title, 2, wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(10));
+            nozzle_sizer->Add(nozzle_type_list, 3, wxLEFT | wxEXPAND, FromDIP(10));
+            static_box_sizer->Add(nozzle_sizer, 0, wxTOP | wxEXPAND, FromDIP(5));
+            // AMS count
+            wxBoxSizer * ams_count_sizer = new wxBoxSizer(wxHORIZONTAL);
+            wxStaticText *ams_count_title = new wxStaticText(static_box, wxID_ANY, _L("AMS"));
+            ams_count_title->SetFont(Label::Body_14);
+            ams_count_title->SetForegroundColour("#262E30");
+            auto ams_count_text = new wxStaticText(static_box, wxID_ANY, wxString("1/1"));
+            ams_count_text->SetFont(Label::Body_14);
+            ams_count_text->SetForegroundColour("#262E30");
+            AMSCountPopupWindow::UpdateAMSCount(index, ams_count_text);
+            auto ams_count_edit = new ScalableButton(static_box, wxID_ANY, "edit");
+            ams_count_edit->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this, index, ams_count_text](auto &evt) {
+                PopupWindow *window = new AMSCountPopupWindow(ams_count_text, ams_count_text, index);
+                auto pos = ams_count_text->ClientToScreen({0, 0});
+                auto size = ams_count_text->GetSize();
+                size.SetWidth(size.GetWidth() + FromDIP(10));
+                window->Position(pos, size);
+                window->Popup();
+            });
+            ams_count_edit->SetBackgroundColour(*wxWHITE);
+            ams_count_sizer->Add(ams_count_title, 2, wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(10));
+            ams_count_sizer->Add(ams_count_text, 1, wxLEFT | wxEXPAND, FromDIP(10));
+            ams_count_sizer->Add(ams_count_edit, 2, wxLEFT | wxEXPAND, FromDIP(10));
+            static_box_sizer->Add(ams_count_sizer, 0, wxTOP | wxBOTTOM | wxEXPAND, FromDIP(5));
+            p->m_dual_extruder_sizer->Add(static_box_sizer, 1, wxEXPAND);
+            return std::make_pair(nozzle_type_list, ams_count_text);
+        };
+        p->m_dual_extruder_sizer->Add(FromDIP(10), 0);
+        auto left_extruder = add_extruder(0, _L("Left Extruder"));
+        p->m_left_extruder_list = left_extruder.first;
+        p->m_left_ams_count = left_extruder.second;
+        p->m_dual_extruder_sizer->Add(FromDIP(2), 0);
+        auto right_extruder = add_extruder(1, _L("Right Extruder"));
+        p->m_right_extruder_list = right_extruder.first;
+        p->m_right_ams_count = right_extruder.second;
+        p->m_dual_extruder_sizer->Add(FromDIP(10), 0);
+
+        vsizer_printer->Add(p->m_dual_extruder_sizer, 0, wxEXPAND | wxTOP, FromDIP(5));
+        // Dual Extruder Types (End)
+
+        vsizer_printer->AddSpacer(FromDIP(16));
         p->m_panel_printer_content->SetSizer(vsizer_printer);
         p->m_panel_printer_content->Layout();
         scrolled_sizer->Add(p->m_panel_printer_content, 0, wxEXPAND, 0);
@@ -1297,7 +1468,7 @@ void Sidebar::update_all_preset_comboboxes()
     //p->m_staticText_filament_settings->Update();
 
     if (is_bbl_vendor || cfg.opt_bool("support_multi_bed_types")) {
-        m_bed_type_list->Enable();
+        p->m_bed_type_list->Enable();
         // Orca: don't update bed type if loading project
         if (!p->plater->is_loading_project()) {
             auto str_bed_type = wxGetApp().app_config->get_printer_setting(wxGetApp().preset_bundle->printers.get_selected_preset_name(),
@@ -1308,17 +1479,17 @@ void Sidebar::update_all_preset_comboboxes()
                     bed_type_value = preset_bundle.printers.get_edited_preset().get_default_bed_type(&preset_bundle);
                 }
 
-                m_bed_type_list->SelectAndNotify(bed_type_value - 1);
+                p->m_bed_type_list->SelectAndNotify(bed_type_value - 1);
             } else {
                 BedType bed_type = preset_bundle.printers.get_edited_preset().get_default_bed_type(&preset_bundle);
-                m_bed_type_list->SelectAndNotify((int) bed_type - 1);
+                p->m_bed_type_list->SelectAndNotify((int) bed_type - 1);
             }
         }
     } else {
         // m_bed_type_list->SelectAndNotify(btPEI - 1);
         BedType bed_type = preset_bundle.printers.get_edited_preset().get_default_bed_type(&preset_bundle);
-        m_bed_type_list->SelectAndNotify((int) bed_type - 1);
-        m_bed_type_list->Disable();
+        p->m_bed_type_list->SelectAndNotify((int) bed_type - 1);
+        p->m_bed_type_list->Disable();
     }
 
     // Update the print choosers to only contain the compatible presets, update the dirty flags.
@@ -1414,6 +1585,31 @@ void Sidebar::update_presets(Preset::Type preset_type)
         else
             wxGetApp().plater()->get_current_canvas3D()->get_arrange_settings().align_to_y_axis = false;
 
+        // Update dual extrudes
+        auto extruder_variants = printer_preset.config.option<ConfigOptionStrings>("extruder_variant_list");
+        p->m_dual_extruder_sizer->Show(extruder_variants->size() == 2);
+        if (extruder_variants->size() == 2) {
+            auto extruders_def = printer_preset.config.def()->get("extruder_type");
+            auto extruders = printer_preset.config.option<ConfigOptionEnumsGeneric>("extruder_type");
+            auto nozzle_volumes_def = printer_preset.config.def()->get("nozzle_volume_type");
+            auto nozzle_volumes = printer_preset.config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
+            auto update_extruder_variant = [extruders_def, extruders, nozzle_volumes_def, nozzle_volumes, extruder_variants](ComboBox &box, int index) {
+                box.Clear();
+                auto extruder = extruders_def->enum_labels[extruders->values[index]];
+                int select = -1;
+                for (size_t i = 0; i < nozzle_volumes_def->enum_labels.size(); ++i) {
+                    if (boost::algorithm::contains(extruder_variants->values[index], extruder + " " + nozzle_volumes_def->enum_labels[i])) {
+                        if (nozzle_volumes->values[index] == i)
+                            select = box.GetCount();
+                        box.Append(_L(nozzle_volumes_def->enum_labels[i], {}, (void*)i));
+                    }
+                }
+                box.SetSelection(select);
+            };
+            update_extruder_variant(*p->m_left_extruder_list, 0);
+            update_extruder_variant(*p->m_right_extruder_list, 1);
+        }
+
         break;
     }
 
@@ -1483,8 +1679,8 @@ void Sidebar::msw_rescale()
     p->m_bpButton_set_filament->msw_rescale();
     p->m_flushing_volume_btn->Rescale();
     //BBS
-    m_bed_type_list->Rescale();
-    m_bed_type_list->SetMinSize({-1, 3 * wxGetApp().em_unit()});
+    p->m_bed_type_list->Rescale();
+    p->m_bed_type_list->SetMinSize({-1, 3 * wxGetApp().em_unit()});
 #if 0
     if (p->mode_sizer)
         p->mode_sizer->msw_rescale();
@@ -1705,8 +1901,7 @@ void Sidebar::on_bed_type_change(BedType bed_type)
 {
     // btDefault option is not included in global bed type setting
     int sel_idx = (int)bed_type - 1;
-    if (m_bed_type_list != nullptr)
-        m_bed_type_list->SetSelection(sel_idx);
+    if (p->m_bed_type_list != nullptr) p->m_bed_type_list->SetSelection(sel_idx);
 }
 
 std::map<int, DynamicPrintConfig> Sidebar::build_filament_ams_list(MachineObject* obj)
