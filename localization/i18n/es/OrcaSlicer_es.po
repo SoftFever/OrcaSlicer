@@ -2901,8 +2901,7 @@ msgstr "Necesitas seleccionar el tipo y el color del material primero."
 
 #, c-format, boost-format
 msgid "Please input a valid value (K in %.1f~%.1f)"
-msgstr "Por favor, introduzca un valor válido (K en %.1f~%.1f)"
-msgstr "Por favor, introduzca un valor válido (K en %.1f~%.1f)"
+msgstr "Por favor, introduzca un valor válido (K in %.1f~%.1f)"
 
 #, c-format, boost-format
 msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
@@ -14165,9 +14164,10 @@ msgstr ""
 "NOTA: Las superficies inferior y superior no se verán afectadas por este "
 "valor para evitar huecos visuales en el exterior del modelo. Ajuste \"Umbral "
 "de perímetro\" en la configuración avanzada para ajustar la sensibilidad de "
-"lo que se considera una superficie superior. El \"Umbral de un solo perímetro"
-"\" sólo es visible si este valor es superior al valor predeterminado de 0,5, "
-"o si las superficies superiores de un solo perímetro están activados."
+"lo que se considera una superficie superior. El \"Umbral de un solo "
+"perímetro\" sólo es visible si este valor es superior al valor "
+"predeterminado de 0,5, o si las superficies superiores de un solo perímetro "
+"están activados."
 
 msgid "First layer minimum wall width"
 msgstr "Ancho mínimo del perímetro de la primera capa"
@@ -15425,7 +15425,7 @@ msgid "Upload to storage"
 msgstr "Subir a almacenamiento"
 
 msgid "Switch to Device tab after upload."
-msgstr ""
+msgstr "Cambie a la pestaña Dispositivo después de la carga."
 
 #, c-format, boost-format
 msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
@@ -16126,10 +16126,10 @@ msgid "Refresh Printers"
 msgstr "Refrescar Impresoras"
 
 msgid "View print host webui in Device tab"
-msgstr ""
+msgstr "Ver el host de impresión webui en la pestaña Dispositivo"
 
 msgid "Replace the BambuLab's device tab with print host webui"
-msgstr ""
+msgstr "Sustituir la pestaña de dispositivos de BambuLab por print host webui"
 
 msgid ""
 "HTTPS CA file is optional. It is only needed if you use HTTPS with a self-"
@@ -16587,7 +16587,7 @@ msgid "Could not connect to SimplyPrint"
 msgstr "No se ha podido conectar con SimplyPrint"
 
 msgid "Internel error"
-msgstr ""
+msgstr "Error interno"
 
 msgid "Unknown error"
 msgstr "Error desconocido"
