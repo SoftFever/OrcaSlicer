@@ -16630,8 +16630,6 @@ msgstr "No se ha podido conectar con SimplyPrint"
 
 msgid "Internel error"
 msgstr "Error interno"
-"El tamaño del archivo supera el límite de carga de 100 MB. Por favor, cargue "
-"su archivo a través del panel."
 
 msgid "Unknown error"
 msgstr "Error desconocido"
