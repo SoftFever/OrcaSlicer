@@ -74,6 +74,7 @@ std::string AdaptivePAProcessor::process_layer(std::string &&gcode) {
                 std::streampos current_pos = stream.tellg();
                 std::string next_line;
                 double temp_feed_rate = 0;
+                bool extrude_move_found = false;
                 
                 // Carry on searching on the layer gcode lines to find the print speed
                 // If a G1 Fxxxx pattern is found, the new speed is identified
@@ -88,25 +89,52 @@ std::string AdaptivePAProcessor::process_layer(std::string &&gcode) {
                                 temp_feed_rate = feedrate;
                             }
                         }
+                        continue;
                     }
-                    // Check for PA_CHANGE pattern and RC value
-                    // If RC = 1, it means we have a role change so stop trying to find the max speed for the feature.
-                    // Check for PA_CHANGE pattern and RC value
-                    if (next_line.find("; PA_CHANGE") == 0) { // prune lines quickly before running pattern matching
-                        std::size_t rc_pos = next_line.rfind("RC:");
-                        if (rc_pos != std::string::npos) {
-                            int rc_value = std::stoi(next_line.substr(rc_pos + 3));
-                            if (rc_value == 1) {
-                                break; // Stop searching if RC value is 1
-                            }
-                        }
+                    
+                    // Found an extrude move
+                    if ((!extrude_move_found) && next_line.find("G1 ") == 0 &&
+                        next_line.find('X') != std::string::npos &&
+                        next_line.find('Y') != std::string::npos &&
+                        next_line.find('E') != std::string::npos) {
+                        // Pattern matched, break the loop
+                        extrude_move_found = true;
+                        continue;
                     }
+                    
+                    // Search for a travel move after we've found at least one speed and at least one extrude move
+                    // Most likely we now need to stop searching for speeds as we're done with this island
+                    if (next_line.find("G1 ") == 0 &&
+                        next_line.find('X') != std::string::npos &&
+                        next_line.find('Y') != std::string::npos &&
+                        next_line.find('E') == std::string::npos &&
+                        (temp_feed_rate > 0) &&
+                        extrude_move_found) {
+                        // First travel move after extrude move found. Stop searching
+                        break;
+                    }
+                    
                     // Check for WIPE command
                     // If we have a wipe command, usually the wipe speed is different (larger) than the max print speed
                     // for that feature. So stop searching if a wipe command is found so as not to overwrite the
                     // speed used for PA calculation by the Wipe speed.
                     if (next_line.find("WIPE") != std::string::npos) {
                         break; // Stop searching if wipe command is found
+                    }
+                    
+                    // Check for PA_CHANGE pattern and RC value
+                    // If RC = 1, it means we have a role change so stop trying to find the max speed for the feature.
+                    // Check for PA_CHANGE pattern and RC value
+                    // This is possibly redundant as a new feature would always have a travel move preceding it
+                    // but check anyway. However check last so to not invoke it without reason...
+                    if (next_line.find("; PA_CHANGE") == 0) { // prune lines quickly before running pattern matching
+                        std::size_t rc_pos = next_line.rfind("RC:");
+                        if (rc_pos != std::string::npos) {
+                            int rc_value = std::stoi(next_line.substr(rc_pos + 3));
+                            if (rc_value == 1) {
+                                break; // Role change found, stop searching
+                            }
+                        }
                     }
                 }
                 
