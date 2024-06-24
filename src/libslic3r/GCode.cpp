@@ -5378,6 +5378,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     //    evaluate_adaptive_pa = false;
     if (m_multi_flow_segment_path_pa_set && evaluate_adaptive_pa)
         evaluate_adaptive_pa = false;
+    bool role_change = (m_last_extrusion_role != path.role());
     
     //Orca: process custom gcode for extrusion role change
     if (path.role() != m_last_extrusion_role && !m_config.change_extrusion_role_gcode.value.empty()) {
@@ -5449,22 +5450,28 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     if (evaluate_adaptive_pa) {
         // Debug:
         // sprintf(buf, ";%sT%g MM3MM:%g %g %g\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::PA_Change).c_str(), m_writer.extruder()->id(), _mm3_per_mm, path.mm3_per_mm, e_per_mm / m_writer.extruder()->e_per_mm3());
+        // gcode += buf;
+        bool is_external = (path.role() == erExternalPerimeter);
         if (m_multi_flow_segment_path_average_mm3_per_mm > 0) {
             // TODO: remove comment before release but retain tag below!
             sprintf(buf, "; Multi segment path value used\n");
             gcode += buf;
 
-            sprintf(buf, ";%sT%u MM3MM:%g ACCEL:%u\n",
+            sprintf(buf, ";%sT%u MM3MM:%g ACCEL:%u EXT:%d RC:%d\n",
                     GCodeProcessor::reserved_tag(GCodeProcessor::ETags::PA_Change).c_str(),
                     m_writer.extruder()->id(),
                     m_multi_flow_segment_path_average_mm3_per_mm,
-                    acceleration_i);
+                    acceleration_i,
+                    is_external,
+                    role_change);
         } else {
-            sprintf(buf, ";%sT%u MM3MM:%g ACCEL:%u\n",
+            sprintf(buf, ";%sT%u MM3MM:%g ACCEL:%u EXT:%d RC:%d\n",
                     GCodeProcessor::reserved_tag(GCodeProcessor::ETags::PA_Change).c_str(),
                     m_writer.extruder()->id(),
                     _mm3_per_mm,
-                    acceleration_i);
+                    acceleration_i,
+                    is_external,
+                    role_change);
         }
         gcode += buf;
     }

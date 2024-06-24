@@ -23,7 +23,7 @@ namespace Slic3r {
 AdaptivePAProcessor::AdaptivePAProcessor(GCode &gcodegen)
     : m_gcodegen(gcodegen), m_config(gcodegen.config()), m_last_predicted_pa(0.0), m_last_feedrate(0.0), m_last_extruder_id(-1),
       m_AdaptivePAInterpolator(std::make_unique<AdaptivePAInterpolator>()),
-      m_pa_change_pattern(R"(; PA_CHANGE:T(\d+) MM3MM:([0-9]*\.[0-9]+) ACCEL:(\d+))"),
+      m_pa_change_pattern(R"(; PA_CHANGE:T(\d+) MM3MM:([0-9]*\.[0-9]+) ACCEL:(\d+) EXT:(\d+) RC:(\d+))"),
       m_g1_f_pattern(R"(G1 F([0-9]+))")
 {
     // Constructor body can be used for further initialization if necessary
@@ -60,6 +60,8 @@ std::string AdaptivePAProcessor::process_layer(std::string &&gcode) {
             int extruder_id = std::stoi(m_match[1].str());
             mm3mm_value = std::stod(m_match[2].str());
             accel_value = std::stod(m_match[3].str());
+            int isExternal = std::stod(m_match[4].str());
+            int roleChange = std::stod(m_match[5].str());
 
             // Check if the extruder ID has changed
             bool extruder_changed = (extruder_id != m_last_extruder_id);
@@ -75,18 +77,38 @@ std::string AdaptivePAProcessor::process_layer(std::string &&gcode) {
 
             // Carry on searching on the layer gcode lines to find the print speed
             // If a G1 Fxxxx pattern is found, the new speed is identified
-            // If any other Gx [...] Ex pattern (print move) is found before finding the feedrate, this means that the old one should
-            // be used, so stop searching.
+            // Carry on searching for feedrates to find the maximum print speed
+            // until a feature change pattern or a wipe command is detected
+            double temp_feed_rate=0;
             while (std::getline(stream, next_line)) {
                 if (std::regex_search(next_line, m_match, m_g1_f_pattern)) {
-                    m_last_feedrate = std::stod(m_match[1].str()) / 60.0; // Convert from mm/min to mm/s
-                    feedrate_found = true;
-                    break;
+                    double feedrate = std::stod(m_match[1].str()) / 60.0; // Convert from mm/min to mm/s
+                    if(temp_feed_rate < feedrate){
+                        temp_feed_rate = feedrate;
+                    }
                 }
-                if (next_line.find("G") != std::string::npos && next_line.find("E") != std::string::npos) {
-                    break; // Stop searching if a line with both G and E is found
+                
+                // Check for PA_CHANGE pattern and RC value
+                // If RC = 1, it means we have a role change so stop trying to find the max speed for the feature.
+                std::smatch pa_change_match;
+                if (std::regex_search(next_line, pa_change_match, m_pa_change_pattern)) {
+                    int rc_value = std::stoi(pa_change_match[5].str());
+                    if (rc_value == 1) {
+                        break; // Stop searching if RC value is 1
+                    }
                 }
+                // Check for WIPE command
+                // If we have a wipe command, usually the wipe speed is different (larger) than the max print speed
+                // for that feature. So stop searching if a wipe command is found so as not to overwrite the
+                // speed used for PA calculation by the Wipe speed.
+                if (next_line.find("WIPE") != std::string::npos) {
+                    break; // Stop searching if wipe command is found
+                }
+            
             }
+            // Found new feedrate
+            if(temp_feed_rate > 0)
+                m_last_feedrate = temp_feed_rate;
 
             // Restore stream position
             stream.clear();
@@ -112,6 +134,7 @@ std::string AdaptivePAProcessor::process_layer(std::string &&gcode) {
 
             // Output the PA_CHANGE line and set the pressure advance immediately after
             output << pa_change_line << '\n';
+            output << "; PA Speed: " << std::to_string(m_last_feedrate) <<"\n";
             output << "; Prev PA: " << std::to_string(m_last_predicted_pa) << "New PA: " << std::to_string(predicted_pa)<<"\n";
             output << "; Model flow speed: " << std::to_string(mm3mm_value * m_last_feedrate) << "\n";
             if (extruder_changed || std::fabs(predicted_pa - m_last_predicted_pa) > EPSILON) {
