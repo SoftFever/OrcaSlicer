@@ -2153,7 +2153,7 @@ DynamicPrintConfig PresetBundle::full_fff_config() const
         compatible_prints_condition  .emplace_back(this->filaments.get_edited_preset().compatible_prints_condition());
         filament_spoolman_enabled.emplace_back(this->filaments.get_edited_preset().spoolman_enabled());
         filament_remaining_weight.emplace_back(this->filaments.get_edited_preset().spoolman_remaining_weight);
-        filament_remaining_length.emplace_back(this->filaments.get_edited_preset().spoolman_remaining_weight);
+        filament_remaining_length.emplace_back(this->filaments.get_edited_preset().spoolman_remaining_length);
         //BBS: add logic for settings check between different system presets
         //std::string filament_inherits = this->filaments.get_edited_preset().inherits();
         std::string current_preset_name = this->filament_presets[0];
@@ -2197,7 +2197,7 @@ DynamicPrintConfig PresetBundle::full_fff_config() const
             compatible_prints_condition  .emplace_back(Preset::compatible_prints_condition(cfg_rw));
             filament_spoolman_enabled.emplace_back(preset->spoolman_enabled());
             filament_remaining_weight.emplace_back(preset->spoolman_remaining_weight);
-            filament_remaining_length.emplace_back(preset->spoolman_remaining_weight);
+            filament_remaining_length.emplace_back(preset->spoolman_remaining_length);
 
             //BBS: add logic for settings check between different system presets
             std::string filament_inherits = Preset::inherits(cfg_rw);
@@ -4180,7 +4180,7 @@ void PresetBundle::update_spoolman_statistics(bool updating_printer) {
     // This is done, so it can be populated by the correct spoolman instance for the new printer profile
     if (updating_printer) Spoolman::get_instance()->clear();
     if (printers.get_edited_preset().spoolman_enabled() && Spoolman::is_server_valid()) {
-        for (auto& item : filaments.get_visible()) {
+        for (auto item : filaments.get_visible()) {
             if (item->is_user() && item->spoolman_enabled()) {
                 if (auto res = Spoolman::update_filament_preset_from_spool(item, true, true); res.has_failed())
                     BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": Failed to update spoolman statistics with the following error: "
