@@ -2152,8 +2152,8 @@ DynamicPrintConfig PresetBundle::full_fff_config() const
         compatible_printers_condition.emplace_back(this->filaments.get_edited_preset().compatible_printers_condition());
         compatible_prints_condition  .emplace_back(this->filaments.get_edited_preset().compatible_prints_condition());
         filament_spoolman_enabled.emplace_back(this->filaments.get_edited_preset().spoolman_enabled());
-        filament_remaining_weight.emplace_back(this->filaments.get_edited_preset().spoolman_remaining_weight);
-        filament_remaining_length.emplace_back(this->filaments.get_edited_preset().spoolman_remaining_length);
+        filament_remaining_weight.emplace_back(this->filaments.get_edited_preset().spoolman_statistics->remaining_weight);
+        filament_remaining_length.emplace_back(this->filaments.get_edited_preset().spoolman_statistics->remaining_length);
         //BBS: add logic for settings check between different system presets
         //std::string filament_inherits = this->filaments.get_edited_preset().inherits();
         std::string current_preset_name = this->filament_presets[0];
@@ -2196,8 +2196,8 @@ DynamicPrintConfig PresetBundle::full_fff_config() const
             compatible_printers_condition.emplace_back(Preset::compatible_printers_condition(cfg_rw));
             compatible_prints_condition  .emplace_back(Preset::compatible_prints_condition(cfg_rw));
             filament_spoolman_enabled.emplace_back(preset->spoolman_enabled());
-            filament_remaining_weight.emplace_back(preset->spoolman_remaining_weight);
-            filament_remaining_length.emplace_back(preset->spoolman_remaining_length);
+            filament_remaining_weight.emplace_back(preset->spoolman_statistics->remaining_weight);
+            filament_remaining_length.emplace_back(preset->spoolman_statistics->remaining_length);
 
             //BBS: add logic for settings check between different system presets
             std::string filament_inherits = Preset::inherits(cfg_rw);

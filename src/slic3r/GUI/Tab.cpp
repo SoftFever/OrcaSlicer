@@ -3190,11 +3190,13 @@ void TabFilament::update_spoolman_statistics() {
     if (!selected_preset->spoolman_enabled())
         return;
 
-    m_active_page->get_field("spoolman_remaining_weight")->set_value(double_to_string(selected_preset->spoolman_remaining_weight, 2), false);
-    m_active_page->get_field("spoolman_used_weight")->set_value(double_to_string(selected_preset->spoolman_used_weight, 2), false);
-    m_active_page->get_field("spoolman_remaining_length")->set_value(double_to_string(selected_preset->spoolman_remaining_length * 0.001, 2), false);
-    m_active_page->get_field("spoolman_used_length")->set_value(double_to_string(selected_preset->spoolman_used_length * 0.001, 2), false);
-    m_active_page->get_field("spoolman_archived")->set_value(selected_preset->spoolman_archived, false);
+    auto spoolman_stats = selected_preset->spoolman_statistics;
+
+    m_active_page->get_field("spoolman_remaining_weight")->set_value(double_to_string(spoolman_stats->remaining_weight, 2), false);
+    m_active_page->get_field("spoolman_used_weight")->set_value(double_to_string(spoolman_stats->used_weight, 2), false);
+    m_active_page->get_field("spoolman_remaining_length")->set_value(double_to_string(spoolman_stats->remaining_length * 0.001, 2), false);
+    m_active_page->get_field("spoolman_used_length")->set_value(double_to_string(spoolman_stats->used_length * 0.001, 2), false);
+    m_active_page->get_field("spoolman_archived")->set_value(spoolman_stats->archived, false);
 }
 
 void TabFilament::build()
@@ -3414,10 +3416,9 @@ void TabFilament::build()
                     show_error(this, "Failed to get data from the Spoolman server. Make sure that the port is correct and the server is running.");
                     return;
                 }
-                auto res1 = Spoolman::update_filament_preset_from_spool(&m_presets->get_edited_preset(), true, stats_only);
-                auto res2 = Spoolman::update_filament_preset_from_spool(&m_presets->get_selected_preset(), false, stats_only);
+                auto res = Spoolman::update_filament_preset_from_spool(&m_presets->get_selected_preset(), false, stats_only);
 
-                if (res1.has_failed() || res2.has_failed())
+                if (res.has_failed())
                     return;
 
                 update_spoolman_statistics();

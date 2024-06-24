@@ -255,12 +255,17 @@ public:
         return false;
     }
 
-    // Orca: spoolman statistics. these are not stored in the preset file
-    double spoolman_remaining_length = 0;
-    double spoolman_remaining_weight = 0;
-    double spoolman_used_length      = 0;
-    double spoolman_used_weight      = 0;
-    bool   spoolman_archived         = false;
+    struct SpoolmanStatistics {
+        // Orca: spoolman statistics. these are not stored in the preset file
+        double remaining_length = 0;
+        double remaining_weight = 0;
+        double used_length      = 0;
+        double used_weight      = 0;
+        bool   archived         = false;
+    };
+
+    // the statistics a ptr so that they are a shared value for both the saved and edited preset
+    std::shared_ptr<SpoolmanStatistics> spoolman_statistics = std::make_shared<SpoolmanStatistics>();
 
     static std::string  get_type_string(Preset::Type type);
     // get string type for iot

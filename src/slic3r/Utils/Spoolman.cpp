@@ -290,11 +290,12 @@ void SpoolmanSpool::apply_to_config(Slic3r::DynamicConfig& config) const
 
 void SpoolmanSpool::apply_to_preset(Preset* preset, bool only_update_statistics) const
 {
-    preset->spoolman_remaining_weight = remaining_weight;
-    preset->spoolman_used_weight = used_weight;
-    preset->spoolman_remaining_length = remaining_length;
-    preset->spoolman_used_length = used_length;
-    preset->spoolman_archived = archived;
+    auto spoolman_stats = preset->spoolman_statistics;
+    spoolman_stats->remaining_weight = remaining_weight;
+    spoolman_stats->used_weight = used_weight;
+    spoolman_stats->remaining_length = remaining_length;
+    spoolman_stats->used_length = used_length;
+    spoolman_stats->archived = archived;
     if (only_update_statistics)
         return;
     this->apply_to_config(preset->config);
