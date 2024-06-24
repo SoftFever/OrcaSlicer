@@ -112,6 +112,7 @@ public:
     void send_event(int fliament_id);
     void set_tray_index(wxString t_index) {m_tray_index = t_index;};
 
+    wxWindow*send_win{nullptr};
     wxString m_tray_index;
     wxColour m_coloul;
     wxString m_name;
@@ -144,8 +145,9 @@ class AmsMapingPopup : public PopupWindow
 {
 public:
     AmsMapingPopup(wxWindow *parent);
-    ~AmsMapingPopup(){};
+    ~AmsMapingPopup() {};
 
+    wxWindow*                send_win{nullptr};
     wxStaticText *           m_warning_text{nullptr}; 
     std::vector<std::string> m_materials_list;
     std::vector<wxBoxSizer*> m_amsmapping_container_sizer_list;
@@ -159,16 +161,27 @@ public:
     wxBoxSizer *m_sizer_ams{nullptr}; 
     wxBoxSizer *m_sizer_ams_left{nullptr}; 
     wxBoxSizer *m_sizer_ams_right{nullptr}; 
+    wxBoxSizer* m_sizer_ams_basket_left{ nullptr };
+    wxBoxSizer* m_sizer_ams_basket_right{ nullptr };
     wxBoxSizer *m_sizer_list{nullptr}; 
-    wxWindow   *m_parent_item{nullptr}; 
+    wxWindow   *m_parent_item{nullptr};
 
+    MappingItem* m_left_extra_slot{nullptr}; 
+    MappingItem* m_right_extra_slot{nullptr};
+
+    wxPanel*     m_left_marea_panel;
+    wxPanel*     m_right_marea_panel;
+
+    wxBoxSizer*  create_split_sizer(wxWindow* parent, wxString text);
     wxString     format_text(wxString &m_msg);
+    void         set_send_win(wxWindow* win) {send_win = win;};
     void         update_materials_list(std::vector<std::string> list);
     void         set_tag_texture(std::string texture);
-    void         update_ams_data(std::map<std::string, Ams *> amsList);
+    void         update(MachineObject* obj);
     void         update_ams_data_multi_machines();
     void         add_ams_mapping(std::vector<TrayData> tray_data, wxWindow* container, wxBoxSizer* sizer);
-    void         set_current_filament_id(int id){m_current_filament_id = id;};
+    void         add_ext_ams_mapping(TrayData tray_data, MappingItem* item);
+    void         set_current_filament_id(int id) { m_current_filament_id = id; };
     int          get_current_filament_id(){return m_current_filament_id;};
     bool         is_match_material(std::string material);
     void         on_left_down(wxMouseEvent &evt);

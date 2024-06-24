@@ -532,12 +532,8 @@ void AMSMaterialsSetting::on_select_reset(wxCommandEvent& event) {
             if (is_virtual_tray()) {
                 tray_id = ams_id;
                 if (!obj->is_enable_np) {
-                    tray_id = VIRTUAL_TRAY_ID;
+                    tray_id = VIRTUAL_TRAY_DEPUTY_ID;
                 }
-
-                // TODO: Orca hack
-                ams_id = 255;
-                slot_id = 0;
             }
             select_index_info.tray_id = tray_id;
             select_index_info.ams_id = ams_id;
@@ -658,13 +654,13 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
 
         auto vt_tray = ams_id;
         if (!obj->is_enable_np) {
-            vt_tray = VIRTUAL_TRAY_ID;
+            vt_tray = VIRTUAL_TRAY_DEPUTY_ID;
         }
 
         if (obj->cali_version >= 0) {
             PACalibIndexInfo select_index_info;
             select_index_info.tray_id = vt_tray;
-            select_index_info.ams_id = 255; // TODO: Orca hack
+            select_index_info.ams_id = ams_id;
             select_index_info.slot_id = 0;
             select_index_info.nozzle_diameter = obj->m_extder_data.extders[0].current_nozzle_diameter;
 
@@ -794,7 +790,7 @@ void AMSMaterialsSetting::on_clr_picker(wxMouseEvent &event)
 
 bool AMSMaterialsSetting::is_virtual_tray()
 {
-    if (ams_id == VIRTUAL_TRAY_ID)
+    if (ams_id == VIRTUAL_TRAY_MAIN_ID || ams_id == VIRTUAL_TRAY_DEPUTY_ID)
         return true;
     return false;
 }
@@ -1171,15 +1167,16 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
         }
 
         m_comboBox_cali_result->Set(items);
-        if (ams_id == VIRTUAL_TRAY_ID) {
-            AmsTray selected_tray = this->obj->vt_tray;
-            cali_select_idx = CalibUtils::get_selected_calib_idx(m_pa_profile_items,selected_tray.cali_idx);
-            if (cali_select_idx >= 0) {
+        if (ams_id == VIRTUAL_TRAY_MAIN_ID || ams_id == VIRTUAL_TRAY_DEPUTY_ID) {
+            for (auto slot : obj->vt_slot) {
+                if (slot.id == std::to_string(ams_id))
+                    cali_select_idx = CalibUtils::get_selected_calib_idx(m_pa_profile_items, slot.cali_idx);
+            }
+            
+            if (cali_select_idx >= 0)
                 m_comboBox_cali_result->SetSelection(cali_select_idx);
-            }
-            else {
+            else
                 m_comboBox_cali_result->SetSelection(0);
-            }
         }
         else {
             if (this->obj->amsList.find(std::to_string(ams_id)) != this->obj->amsList.end()) {

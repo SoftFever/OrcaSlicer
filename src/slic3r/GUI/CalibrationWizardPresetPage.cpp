@@ -1530,7 +1530,7 @@ void CalibrationPresetPage::init_with_machine(MachineObject* obj)
 
     // init default for filament source
     // TODO if user change ams/ext, need to update
-    if ( !obj->has_ams() || (obj->m_tray_now == std::to_string(VIRTUAL_TRAY_ID)) )
+    if ( !obj->has_ams() || (obj->m_tray_now == std::to_string(VIRTUAL_TRAY_MAIN_ID)) )
     {
         m_ext_spool_radiobox->SetValue(true);
         m_ams_radiobox->SetValue(false);
@@ -1583,8 +1583,8 @@ void CalibrationPresetPage::sync_ams_info(MachineObject* obj)
     }
 
     // init virtual tray info
-    if (full_filament_ams_list.find(VIRTUAL_TRAY_ID) != full_filament_ams_list.end()) {
-        filament_ams_list[VIRTUAL_TRAY_ID] = full_filament_ams_list[VIRTUAL_TRAY_ID];
+    if (full_filament_ams_list.find(VIRTUAL_TRAY_MAIN_ID) != full_filament_ams_list.end()) {
+        filament_ams_list[VIRTUAL_TRAY_MAIN_ID] = full_filament_ams_list[VIRTUAL_TRAY_MAIN_ID];
     }
 
 
@@ -1787,14 +1787,14 @@ void CalibrationPresetPage::update_filament_combobox(std::string ams_id)
     // update virtual tray combo box
     m_virtual_tray_comboBox->update_from_preset();
     auto it = std::find_if(filament_ams_list.begin(), filament_ams_list.end(), [](auto& entry) {
-        return entry.first == VIRTUAL_TRAY_ID;
+        return entry.first == VIRTUAL_TRAY_MAIN_ID;
         });
 
     if (it != filament_ams_list.end()) {
-        m_virtual_tray_comboBox->load_tray_from_ams(VIRTUAL_TRAY_ID, it->second);
+        m_virtual_tray_comboBox->load_tray_from_ams(VIRTUAL_TRAY_MAIN_ID, it->second);
     }
     else {
-        m_virtual_tray_comboBox->load_tray_from_ams(VIRTUAL_TRAY_ID, empty_config);
+        m_virtual_tray_comboBox->load_tray_from_ams(VIRTUAL_TRAY_MAIN_ID, empty_config);
     }
 
     if (filament_ams_list.empty())

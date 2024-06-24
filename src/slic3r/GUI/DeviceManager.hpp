@@ -39,8 +39,11 @@
 #define RETRY_INTERNAL          2000
 
 #define MAIN_NOZZLE_ID          0
+#define DEPUTY_NOZZLE_ID        1
 
-#define VIRTUAL_TRAY_ID         254
+#define VIRTUAL_TRAY_MAIN_ID    255
+#define VIRTUAL_TRAY_DEPUTY_ID  254
+
 #define START_SEQ_ID            20000
 #define END_SEQ_ID              30000
 
@@ -1078,8 +1081,7 @@ public:
     NozzleData                  m_nozzle_data;
 
     /*vi slot data*/
-    AmsTray vt_tray;                        // virtual tray
-    //std::vector<AmsTray> vt_trays;          // virtual tray for new
+    std::vector<AmsTray> vt_slot;
     AmsTray parse_vt_tray(json vtray);
     /*for parse new info*/
     bool check_enable_np(const json& print) const;

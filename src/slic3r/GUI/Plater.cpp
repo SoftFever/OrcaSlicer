@@ -1714,7 +1714,7 @@ std::map<int, DynamicPrintConfig> Sidebar::build_filament_ams_list(MachineObject
     std::map<int, DynamicPrintConfig> filament_ams_list;
     if (!obj) return filament_ams_list;
 
-    auto vt_tray = obj->vt_tray;
+    auto vt_tray = obj->vt_slot[0];
     if (obj->ams_support_virtual_tray) {
         DynamicPrintConfig vt_tray_config;
         vt_tray_config.set_key_value("filament_id", new ConfigOptionStrings{ vt_tray.setting_id });
@@ -1728,7 +1728,7 @@ std::map<int, DynamicPrintConfig> Sidebar::build_filament_ams_list(MachineObject
         for (int i = 0; i < vt_tray.cols.size(); ++i) {
             vt_tray_config.opt<ConfigOptionStrings>("filament_multi_colors")->values.push_back(into_u8(wxColour("#" + vt_tray.cols[i]).GetAsString(wxC2S_HTML_SYNTAX)));
         }
-        filament_ams_list.emplace(VIRTUAL_TRAY_ID, std::move(vt_tray_config));
+        filament_ams_list.emplace(VIRTUAL_TRAY_MAIN_ID, std::move(vt_tray_config));
     }
 
     auto list = obj->amsList;

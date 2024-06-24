@@ -260,13 +260,13 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_panel_virtual->SetMaxSize(wxSize(AMS_CAN_LIB_SIZE.x + FromDIP(16), AMS_CANS_SIZE.y));
 
     m_vams_info.material_state = AMSCanType::AMS_CAN_TYPE_VIRTUAL;
-    m_vams_info.can_id = wxString::Format("%d", VIRTUAL_TRAY_ID).ToStdString();
+    m_vams_info.can_id = wxString::Format("%d", VIRTUAL_TRAY_MAIN_ID).ToStdString();
 
     auto vams_panel = new wxWindow(m_panel_virtual, wxID_ANY);
     vams_panel->SetBackgroundColour(AMS_CONTROL_DEF_LIB_BK_COLOUR);
 
     m_vams_lib = new AMSLib(vams_panel, m_vams_info.can_id, m_vams_info);
-    m_vams_lib->m_slot_id = m_vams_info.can_id;
+    m_vams_lib->m_slot_id = "0"; // TODO: Orca hack
     m_vams_road = new AMSRoad(vams_panel, wxID_ANY, m_vams_info, -1, -1, wxDefaultPosition, AMS_CAN_ROAD_SIZE);
 
     m_vams_lib->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
@@ -1202,7 +1202,7 @@ void AMSControl::SwitchAms(std::string ams_id)
 {
     if(ams_id == m_current_show_ams){return;}
 
-    if (ams_id != std::to_string(VIRTUAL_TRAY_ID)) {
+    if (ams_id != std::to_string(VIRTUAL_TRAY_MAIN_ID)) {
         if (m_current_show_ams != ams_id) {
             m_current_show_ams = ams_id;
             m_extruder->OnAmsLoading(false);
@@ -1229,7 +1229,7 @@ void AMSControl::SwitchAms(std::string ams_id)
             }
 
             if (!ready_selected) {
-                m_current_ams = std::to_string(VIRTUAL_TRAY_ID);
+                m_current_ams = std::to_string(VIRTUAL_TRAY_MAIN_ID);
                 m_vams_lib->OnSelected();
             }
             else {

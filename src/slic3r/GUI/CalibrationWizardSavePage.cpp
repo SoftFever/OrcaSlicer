@@ -61,7 +61,7 @@ static wxString get_default_name(wxString filament_name, CalibMode mode){
 static wxString get_tray_name_by_tray_id(int tray_id)
 {
     wxString tray_name;
-    if (tray_id == VIRTUAL_TRAY_ID) {
+    if (tray_id == VIRTUAL_TRAY_MAIN_ID) {
         tray_name = "Ext";
     }
     else {

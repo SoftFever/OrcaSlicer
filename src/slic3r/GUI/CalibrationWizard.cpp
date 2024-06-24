@@ -108,12 +108,12 @@ void CalibrationWizard::get_tray_ams_and_slot_id(int in_tray_id, int &ams_id, in
     if (!curr_obj)
         return;
 
-    if (in_tray_id == VIRTUAL_TRAY_ID || in_tray_id == VIRTUAL_TRAY_ID) {
+    if (in_tray_id == VIRTUAL_TRAY_MAIN_ID || in_tray_id == VIRTUAL_TRAY_DEPUTY_ID) {
         ams_id = in_tray_id;
         slot_id = 0;
         tray_id = ams_id;
         if (!curr_obj->is_enable_np)
-            tray_id = VIRTUAL_TRAY_ID;
+            tray_id = VIRTUAL_TRAY_DEPUTY_ID;
     }
     else {
         ams_id  = in_tray_id / 4;

@@ -419,7 +419,9 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
 
 
-    m_statictext_ams_msg = new wxStaticText(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER_HORIZONTAL);
+    m_statictext_ams_msg = new wxStaticText(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
+    m_statictext_ams_msg->SetMinSize(wxSize(FromDIP(600), -1));
+    m_statictext_ams_msg->SetMaxSize(wxSize(FromDIP(600), -1));
     m_statictext_ams_msg->SetFont(::Label::Body_13);
     m_statictext_ams_msg->Hide();
 
@@ -616,7 +618,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_sizer_main->Add(m_filament_panel, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, FromDIP(15));
     m_sizer_main->Add(m_sizer_filament_2extruder, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, FromDIP(15));
     m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(6));
-    m_sizer_main->Add(m_statictext_ams_msg, 0, wxLEFT, 0);
+    m_sizer_main->Add(m_statictext_ams_msg, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, FromDIP(15));
     m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(16));
     m_sizer_main->Add(sizer_split_options, 1, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(15));
     m_sizer_main->Add(m_sizer_options, 0, wxLEFT|wxRIGHT, FromDIP(15));
@@ -1134,8 +1136,8 @@ bool SelectMachineDialog::get_ams_mapping_result(std::string &mapping_array_str,
                     try
                     {
                         if (m_ams_mapping_result[k].ams_id.empty() || m_ams_mapping_result[k].slot_id.empty()) {  // invalid case
-                            mapping_item_v1["ams_id"]  = 255; // TODO: Orca hack
-                            mapping_item_v1["slot_id"] = 255;
+                            mapping_item_v1["ams_id"]  = VIRTUAL_TRAY_MAIN_ID;
+                            mapping_item_v1["slot_id"] = VIRTUAL_TRAY_MAIN_ID;
                         }
                         else {
                             mapping_item_v1["ams_id"] = std::stoi(m_ams_mapping_result[k].ams_id);
@@ -1241,9 +1243,7 @@ void SelectMachineDialog::update_ams_status_msg(wxString msg, bool is_warning)
         if (str_new != str_old) {
             if (m_statictext_ams_msg->GetLabel() != msg) {
                 m_statictext_ams_msg->SetLabel(msg);
-                m_statictext_ams_msg->SetMinSize(wxSize(FromDIP(400), -1));
-                m_statictext_ams_msg->SetMaxSize(wxSize(FromDIP(400), -1));
-                m_statictext_ams_msg->Wrap(FromDIP(400));
+                m_statictext_ams_msg->Wrap(FromDIP(600));
                 m_statictext_ams_msg->Show();
                 Layout();
                 Fit();
@@ -3296,7 +3296,8 @@ void SelectMachineDialog::reset_and_sync_ams_list()
                     m_mapping_popup.set_parent_item(item);
                     m_mapping_popup.set_current_filament_id(extruder);
                     m_mapping_popup.set_tag_texture(materials[extruder]);
-                    m_mapping_popup.update_ams_data(obj_->amsList);
+                    m_mapping_popup.update(obj_);
+                    m_mapping_popup.set_send_win(this);
                     m_mapping_popup.Popup();
                 }
             }
@@ -3722,7 +3723,7 @@ void SelectMachineDialog::set_default_from_sdcard()
                     m_mapping_popup.set_parent_item(item);
                     m_mapping_popup.set_current_filament_id(fo.id);
                     m_mapping_popup.set_tag_texture(fo.type);
-                    m_mapping_popup.update_ams_data(obj_->amsList);
+                    m_mapping_popup.update(obj_);
                     m_mapping_popup.Popup();
                 }
             }

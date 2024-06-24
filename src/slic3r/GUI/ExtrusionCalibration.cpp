@@ -469,7 +469,7 @@ void ExtrusionCalibration::on_click_cali(wxCommandEvent& event)
                             max_volumetric_speed = speed_opt->get_at(0);
                             if (bed_temp >= 0 && nozzle_temp >= 0 && max_volumetric_speed >= 0) {
                                 int curr_tray_id = ams_id * 4 + tray_id;
-                                if (tray_id == VIRTUAL_TRAY_ID)
+                                if (tray_id == VIRTUAL_TRAY_MAIN_ID)
                                     curr_tray_id = tray_id;
                                 obj->command_start_extrusion_cali(curr_tray_id, nozzle_temp, bed_temp, max_volumetric_speed, it->setting_id);
                                 return;
@@ -597,7 +597,7 @@ void ExtrusionCalibration::on_click_save(wxCommandEvent &event)
 
     // send command
     int curr_tray_id = ams_id * 4 + tray_id;
-    if (tray_id == VIRTUAL_TRAY_ID)
+    if (tray_id == VIRTUAL_TRAY_MAIN_ID)
         curr_tray_id = tray_id;
     obj->command_extrusion_cali_set(curr_tray_id, setting_id, name, k, n, bed_temp, nozzle_temp, max_volumetric_speed);
     Close();
