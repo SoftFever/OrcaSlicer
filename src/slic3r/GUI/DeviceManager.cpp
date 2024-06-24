@@ -5177,6 +5177,12 @@ void DeviceManager::on_machine_alive(std::string json_str)
         std::string printer_signal  = j["dev_signal"].get<std::string>();
         std::string connect_type    = j["connect_type"].get<std::string>();
         std::string bind_state      = j["bind_state"].get<std::string>();
+
+        if (connect_type == "farm") {
+            connect_type ="lan";
+            bind_state   = "free";
+        }
+
         std::string sec_link = "";
         std::string ssdp_version = "";
         if (j.contains("sec_link")) {
