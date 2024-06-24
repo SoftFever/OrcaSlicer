@@ -42,7 +42,6 @@ std::string AdaptivePAProcessor::process_layer(std::string &&gcode) {
     std::istringstream stream(gcode);
     std::string line;
     std::ostringstream output;
-    int current_extruder_id = m_last_extruder_id; // Initialize with the last known extruder ID
     double mm3mm_value = 0.0;
     unsigned int accel_value = 0;
     std::string pa_change_line;
@@ -61,7 +60,7 @@ std::string AdaptivePAProcessor::process_layer(std::string &&gcode) {
                 int extruder_id = std::stoi(m_match[1].str());
                 mm3mm_value = std::stod(m_match[2].str());
                 accel_value = std::stod(m_match[3].str());
-                int isExternal = std::stoi(m_match[4].str());
+                //int isExternal = std::stoi(m_match[4].str());
                 int roleChange = std::stoi(m_match[5].str());
                 
                 // Check if the extruder ID has changed
@@ -81,9 +80,10 @@ std::string AdaptivePAProcessor::process_layer(std::string &&gcode) {
                 // Carry on searching for feedrates to find the maximum print speed
                 // until a feature change pattern or a wipe command is detected
                 while (std::getline(stream, next_line)) {
-                    if (line.find("G1 F") == 0) { // prune lines quickly before running regex check as regex is more expensive to run
-                        if (std::regex_search(next_line, m_match, m_g1_f_pattern)) {
-                            double feedrate = std::stod(m_match[1].str()) / 60.0; // Convert from mm/min to mm/s
+                    if (next_line.find("G1 F") == 0) { // prune lines quickly before running pattern matching
+                        std::size_t pos = next_line.find('F');
+                        if (pos != std::string::npos) {
+                            double feedrate = std::stod(next_line.substr(pos + 1)) / 60.0; // Convert from mm/min to mm/s
                             if (temp_feed_rate < feedrate) {
                                 temp_feed_rate = feedrate;
                             }
@@ -91,9 +91,11 @@ std::string AdaptivePAProcessor::process_layer(std::string &&gcode) {
                     }
                     // Check for PA_CHANGE pattern and RC value
                     // If RC = 1, it means we have a role change so stop trying to find the max speed for the feature.
-                    if (line.find("; PA_CHANGE") == 0) { // prune lines quickly before running regex check as regex is more expensive to run
-                        if (std::regex_search(next_line, m_match, m_pa_change_pattern)) {
-                            int rc_value = std::stoi(m_match[5].str());
+                    // Check for PA_CHANGE pattern and RC value
+                    if (next_line.find("; PA_CHANGE") == 0) { // prune lines quickly before running pattern matching
+                        std::size_t rc_pos = next_line.rfind("RC:");
+                        if (rc_pos != std::string::npos) {
+                            int rc_value = std::stoi(next_line.substr(rc_pos + 3));
                             if (rc_value == 1) {
                                 break; // Stop searching if RC value is 1
                             }
@@ -145,10 +147,10 @@ std::string AdaptivePAProcessor::process_layer(std::string &&gcode) {
                     m_last_predicted_pa = predicted_pa; // Update the last predicted PA value
                 }
                 
-            } else {
-                // Output the current line if it isn't part of PA_CHANGE or feedrate search process
-                output << line << '\n';
             }
+        }else {
+            // Output the current line if it isn't part of PA_CHANGE process
+            output << line << '\n';
         }
     }
 
