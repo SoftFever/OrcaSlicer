@@ -114,7 +114,7 @@
 	],
 	"single_extruder_multi_material": "1",
 	"manual_filament_change": "1",
-	"change_filament_gcode": "PAUSE",
+	"change_filament_gcode": "M600",
 	"machine_pause_gcode": "PAUSE",
 	"default_filament_profile": [
 		"Creality Generic PLA @Ender-3V3-all"

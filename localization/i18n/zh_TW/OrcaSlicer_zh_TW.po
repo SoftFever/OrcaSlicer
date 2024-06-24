@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-29 00:28+0800\n"
+"POT-Creation-Date: 2024-06-21 20:03+0800\n"
 "PO-Revision-Date: 2023-11-06 14:37+0800\n"
 "Last-Translator: ablegods <ablegods@gmail.com>\n"
 "Language-Team: \n"
@@ -2839,10 +2839,12 @@ msgstr "您確定要清除線材資訊嗎？"
 msgid "You need to select the material type and color first."
 msgstr "您需要先選擇線材類型和顏色。"
 
-msgid "Please input a valid value (K in 0~0.3)"
+#, c-format, boost-format
+msgid "Please input a valid value (K in %.1f~%.1f)"
 msgstr ""
 
-msgid "Please input a valid value (K in 0~0.3, N in 0.6~2.0)"
+#, c-format, boost-format
+msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
 msgstr ""
 
 msgid "Other Color"
@@ -3249,11 +3251,11 @@ msgstr ""
 msgid "Edit multiple printers"
 msgstr ""
 
-msgid "Select connected printetrs (0/6)"
+msgid "Select connected printers (0/6)"
 msgstr ""
 
 #, c-format, boost-format
-msgid "Select Connected Printetrs (%d/6)"
+msgid "Select Connected Printers (%d/6)"
 msgstr ""
 
 #, c-format, boost-format
@@ -3315,7 +3317,7 @@ msgstr ""
 msgid "Printing Failed"
 msgstr ""
 
-msgid "PrintingPause"
+msgid "Printing Pause"
 msgstr ""
 
 msgid "Prepare"
@@ -3416,8 +3418,8 @@ msgstr ""
 msgid "Send Options"
 msgstr ""
 
-msgid "Send"
-msgstr "傳送"
+msgid "Send to"
+msgstr ""
 
 msgid ""
 "printers at the same time.(It depends on how many devices can undergo "
@@ -3430,6 +3432,9 @@ msgstr "等待"
 msgid ""
 "minute each batch.(It depends on how long it takes to complete the heating.)"
 msgstr ""
+
+msgid "Send"
+msgstr "傳送"
 
 msgid "Name is invalid;"
 msgstr "無效名稱；"
@@ -3989,6 +3994,18 @@ msgstr ""
 "%s%% 還是 %s %s？\n"
 "是：%s%%\n"
 "否：%s %s"
+
+#, boost-format
+msgid ""
+"Invalid input format. Expected vector of dimensions in the following format: "
+"\"%1%\""
+msgstr "輸入格式無效。預期向量應使用以下格式：“%1%”"
+
+msgid "Input value is out of range"
+msgstr "輸入值超出範圍"
+
+msgid "Some extension in the input is invalid"
+msgstr ""
 
 #, fuzzy, boost-format
 msgid "Invalid format. Expected vector format: \"%1%\""
@@ -7072,10 +7089,6 @@ msgid "Error code"
 msgstr "錯誤代碼"
 
 #, fuzzy
-msgid "Printer local connection failed, please try again."
-msgstr "列印設備區域網路連接失敗，請重試。"
-
-#, fuzzy
 msgid "No login account, only printers in LAN mode are displayed"
 msgstr "未登入帳號，僅顯示區域網路模式的列印設備"
 
@@ -7809,6 +7822,14 @@ msgstr "多擠出機多線材列印設備換色參數"
 msgid "Printable space"
 msgstr "可列印區域"
 
+#. TRN: First argument is parameter name, the second one is the value.
+#, boost-format
+msgid "Invalid value provided for parameter %1%: %2%"
+msgstr ""
+
+msgid "G-code flavor is switched"
+msgstr ""
+
 msgid "Cooling Fan"
 msgstr "冷卻風扇"
 
@@ -8178,6 +8199,56 @@ msgstr "以更新到最新。"
 msgid "The configuration is up to date."
 msgstr "目前設定檔已經是最新版本。"
 
+msgid "Obj file Import color"
+msgstr ""
+
+msgid "Specify number of colors:"
+msgstr ""
+
+#, c-format, boost-format
+msgid "The color count should be in range [%d, %d]."
+msgstr ""
+
+msgid "Recommended "
+msgstr ""
+
+msgid "Current filament colors:"
+msgstr ""
+
+msgid "Quick set:"
+msgstr ""
+
+msgid "Color match"
+msgstr ""
+
+msgid "Approximate color matching."
+msgstr ""
+
+msgid "Append"
+msgstr ""
+
+msgid "Add consumable extruder after existing extruders."
+msgstr ""
+
+msgid "Reset mapped extruders."
+msgstr ""
+
+msgid "Cluster colors"
+msgstr ""
+
+msgid "Map Filament"
+msgstr ""
+
+msgid ""
+"Note:The color has been selected, you can choose OK \n"
+" to continue or manually adjust it."
+msgstr ""
+
+msgid ""
+"Waring:The count of newly added and \n"
+" current extruders exceeds 16."
+msgstr ""
+
 #, fuzzy
 msgid "Ramming customization"
 msgstr "自訂尖端成型"
@@ -8262,6 +8333,32 @@ msgid "From"
 msgstr "從"
 
 msgid "To"
+msgstr ""
+
+msgid ""
+"Windows Media Player is required for this task! Do you want to enable "
+"'Windows Media Player' for your operation system?"
+msgstr ""
+
+msgid ""
+"BambuSource has not correctly been registered for media playing! Press Yes "
+"to re-register it. You will be promoted twice"
+msgstr ""
+
+msgid ""
+"Missing BambuSource component registered for media playing! Please re-"
+"install BambuStutio or seek after-sales help."
+msgstr ""
+
+msgid ""
+"Using a BambuSource from a different install, video play may not work "
+"correctly! Press Yes to fix it."
+msgstr ""
+
+msgid ""
+"Your system is missing H.264 codecs for GStreamer, which are required to "
+"play video.  (Try installing the gstreamer1.0-plugins-bad or gstreamer1.0-"
+"libav packages, then restart Orca Slicer?)"
 msgstr ""
 
 msgid "Bambu Network plug-in not detected."
@@ -10327,6 +10424,22 @@ msgstr ""
 "如果勾選這個選項，部件冷卻風扇將永遠不會停止，並且會以最小風扇轉速設定值持運"
 "運轉以減少風扇的頻繁開關"
 
+msgid "Don't slow down outer walls"
+msgstr ""
+
+msgid ""
+"If enabled, this setting will ensure external perimeters are not slowed down "
+"to meet the minimum layer time. This is particularly helpful in the below "
+"scenarios:\n"
+"\n"
+" 1. To avoid changes in shine when printing glossy filaments \n"
+"2. To avoid changes in external wall speed which may create slight wall "
+"artefacts that appear like z banding \n"
+"3. To avoid printing at speeds which cause VFAs (fine artefacts) on the "
+"external walls\n"
+"\n"
+msgstr ""
+
 msgid "Layer time"
 msgstr "層時間"
 
@@ -10847,6 +10960,9 @@ msgstr ""
 "風扇速度將從“禁用第一層”的零線性上升到“全風扇速度層”的最大。如果低於“禁用風扇"
 "第一層”，則“全風扇速度第一層”將被忽略，在這種情況下，風扇將在“禁用風扇第一"
 "層”+1層以最大允許速度運行。"
+
+msgid "layer"
+msgstr ""
 
 #, fuzzy
 msgid "Support interface fan speed"
@@ -13752,7 +13868,6 @@ msgstr ""
 msgid "About this calibration"
 msgstr "關於此校準"
 
-#, fuzzy
 msgid ""
 "Please find the details of Flow Dynamics Calibration from our wiki.\n"
 "\n"
@@ -13763,27 +13878,15 @@ msgid ""
 "printer will use the default compensation parameter for the filament during "
 "every filament switch which will have a good result in most cases.\n"
 "\n"
-"Please note there are a few cases that will make the calibration result not "
-"reliable: using a texture plate to do the calibration; the build plate does "
-"not have good adhesion (please wash the build plate or apply gluestick!) ..."
-"You can find more from our wiki.\n"
+"Please note that there are a few cases that can make the calibration results "
+"unreliable, such as insufficient adhesion on the build plate. Improving "
+"adhesion can be achieved by washing the build plate or applying glue. For "
+"more information on this topic, please refer to our Wiki.\n"
 "\n"
 "The calibration results have about 10 percent jitter in our test, which may "
 "cause the result not exactly the same in each calibration. We are still "
 "investigating the root cause to do improvements with new updates."
 msgstr ""
-"請從我們的wiki中找到流量動態校準的詳細資訊。\n"
-"\n"
-"通常情況下，校準是不必要的。當您開始單色/單線材列印，並在列印開始選單中勾選"
-"了“流量動態校準”選項時，列印設備將按照舊的方式，在列印前校準絲料；當您開始多"
-"色/多線材列印時，列印設備將在每次換絲料時使用預設的補償參數，這在大多數情況下"
-"會產生良好的效果。\n"
-"\n"
-"請注意，有幾種情況會導致校準結果不可靠：使用紋理板進行校準；建模平台黏附效果"
-"不好（請清洗建模平台或塗抹膠棒）... 您可以在我們的wiki中找到更多資訊。\n"
-"\n"
-"在我們的測試中，校準結果有約 10% 的波動，這可能導致每次校準的結果略有不同。我"
-"們仍在調查根本原因，並通過新的更新進行改進。"
 
 msgid "When to use Flow Rate Calibration"
 msgstr "何時使用流量率校準"
@@ -13901,24 +14004,14 @@ msgstr "名稱不能超過40個字元。"
 
 msgid ""
 "Only one of the results with the same name will be saved. Are you sure you "
-"want to overrides the other results?"
-msgstr "相同名稱的結果只會儲存一個。確定要覆蓋其他結果嗎？"
-
-#, fuzzy, c-format, boost-format
-msgid ""
-"There is already a historical calibration result with the same name: %s. "
-"Only one of the results with the same name is saved. Are you sure you want "
-"to overrides the historical result?"
+"want to override the other results?"
 msgstr ""
-"已經存在一個具有相同名稱的校準結果：%s。相同名稱的結果只會儲存一個。確定要覆"
-"蓋嗎？"
 
 msgid "Please find the best line on your plate"
 msgstr "請在您的列印板上找到最佳線條"
 
-#, fuzzy
-msgid "Please find the cornor with perfect degree of extrusion"
-msgstr "請在您的列印板上找到最接近完美的直角"
+msgid "Please find the corner with perfect degree of extrusion"
+msgstr ""
 
 msgid "Input Value"
 msgstr "輸入值"
@@ -14174,6 +14267,9 @@ msgstr ""
 msgid "PETG"
 msgstr ""
 
+msgid "PCTG"
+msgstr ""
+
 msgid "TPU"
 msgstr ""
 
@@ -14273,6 +14369,9 @@ msgstr "如有需要，請使用正斜槓（ / ）作為目錄分隔符號。"
 
 msgid "Upload to storage"
 msgstr "上傳到儲存單位"
+
+msgid "Switch to Device tab after upload."
+msgstr ""
 
 #, fuzzy, c-format, boost-format
 msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
@@ -14536,12 +14635,6 @@ msgid "Rectangle"
 msgstr ""
 
 msgid "Printable Space"
-msgstr ""
-
-msgid "X"
-msgstr ""
-
-msgid "Y"
 msgstr ""
 
 msgid "Hot Bed STL"
@@ -14888,6 +14981,12 @@ msgstr ""
 msgid "Refresh Printers"
 msgstr "重新整理列印設備"
 
+msgid "View print host webui in Device tab"
+msgstr ""
+
+msgid "Replace the BambuLab's device tab with print host webui"
+msgstr ""
+
 #, fuzzy
 msgid ""
 "HTTPS CA file is optional. It is only needed if you use HTTPS with a self-"
@@ -15230,15 +15329,13 @@ msgstr ""
 msgid "Could not connect to SimplyPrint"
 msgstr ""
 
-msgid "SimplyPrint account not linked. Go to Connect options to set it up."
-msgstr ""
-
-msgid ""
-"File size exceeds the 100MB upload limit. Please upload your file through "
-"the panel."
+msgid "Internel error"
 msgstr ""
 
 msgid "Unknown error"
+msgstr ""
+
+msgid "SimplyPrint account not linked. Go to Connect options to set it up."
 msgstr ""
 
 msgid "Connection to Flashforge works correctly."
@@ -15588,6 +15685,62 @@ msgid ""
 "ABS, appropriately increasing the heatbed temperature can reduce the "
 "probability of warping."
 msgstr ""
+
+#, fuzzy
+#~ msgid "Printer local connection failed, please try again."
+#~ msgstr "列印設備區域網路連接失敗，請重試。"
+
+#, fuzzy
+#~ msgid ""
+#~ "Please find the details of Flow Dynamics Calibration from our wiki.\n"
+#~ "\n"
+#~ "Usually the calibration is unnecessary. When you start a single color/"
+#~ "material print, with the \"flow dynamics calibration\" option checked in "
+#~ "the print start menu, the printer will follow the old way, calibrate the "
+#~ "filament before the print; When you start a multi color/material print, "
+#~ "the printer will use the default compensation parameter for the filament "
+#~ "during every filament switch which will have a good result in most "
+#~ "cases.\n"
+#~ "\n"
+#~ "Please note there are a few cases that will make the calibration result "
+#~ "not reliable: using a texture plate to do the calibration; the build "
+#~ "plate does not have good adhesion (please wash the build plate or apply "
+#~ "gluestick!) ...You can find more from our wiki.\n"
+#~ "\n"
+#~ "The calibration results have about 10 percent jitter in our test, which "
+#~ "may cause the result not exactly the same in each calibration. We are "
+#~ "still investigating the root cause to do improvements with new updates."
+#~ msgstr ""
+#~ "請從我們的wiki中找到流量動態校準的詳細資訊。\n"
+#~ "\n"
+#~ "通常情況下，校準是不必要的。當您開始單色/單線材列印，並在列印開始選單中勾"
+#~ "選了“流量動態校準”選項時，列印設備將按照舊的方式，在列印前校準絲料；當您開"
+#~ "始多色/多線材列印時，列印設備將在每次換絲料時使用預設的補償參數，這在大多"
+#~ "數情況下會產生良好的效果。\n"
+#~ "\n"
+#~ "請注意，有幾種情況會導致校準結果不可靠：使用紋理板進行校準；建模平台黏附效"
+#~ "果不好（請清洗建模平台或塗抹膠棒）... 您可以在我們的wiki中找到更多資訊。\n"
+#~ "\n"
+#~ "在我們的測試中，校準結果有約 10% 的波動，這可能導致每次校準的結果略有不"
+#~ "同。我們仍在調查根本原因，並通過新的更新進行改進。"
+
+#~ msgid ""
+#~ "Only one of the results with the same name will be saved. Are you sure "
+#~ "you want to overrides the other results?"
+#~ msgstr "相同名稱的結果只會儲存一個。確定要覆蓋其他結果嗎？"
+
+#, fuzzy, c-format, boost-format
+#~ msgid ""
+#~ "There is already a historical calibration result with the same name: %s. "
+#~ "Only one of the results with the same name is saved. Are you sure you "
+#~ "want to overrides the historical result?"
+#~ msgstr ""
+#~ "已經存在一個具有相同名稱的校準結果：%s。相同名稱的結果只會儲存一個。確定要"
+#~ "覆蓋嗎？"
+
+#, fuzzy
+#~ msgid "Please find the cornor with perfect degree of extrusion"
+#~ msgstr "請在您的列印板上找到最接近完美的直角"
 
 #~ msgid "V"
 #~ msgstr "版本："

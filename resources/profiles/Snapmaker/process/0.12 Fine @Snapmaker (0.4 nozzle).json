@@ -30,7 +30,7 @@
   "top_shell_layers": "5",
   "top_shell_thickness": "0.6",
   "bridge_flow": "1",
-  "support_threshold_angle": "30",
+  "support_threshold_angle": "20",
   "initial_layer_infill_speed": "65",
   "outer_wall_speed": "75",
   "inner_wall_speed": "120",
