@@ -3,7 +3,7 @@
     "name": "Dremel 3D45",
     "nozzle_diameter": "0.4",
     "family": "Dremel",
-    "bed_model": "dremel_3d40_3d45_buildplate_model.stl",
+    "bed_model": "dremel_3d45.stl",
     "bed_texture": "",
     "hotend_model": "",
     "machine_tech": "FFF",

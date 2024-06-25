@@ -1,24 +1,3 @@
-///|/ Copyright (c) Prusa Research 2016 - 2023 Vojtěch Bubník @bubnikv, Lukáš Matěna @lukasmatena, Lukáš Hejl @hejllukas, Tomáš Mészáros @tamasmeszaros, Oleksandra Iushchenko @YuSanka, Pavel Mikuš @Godrak, David Kocík @kocikdav, Enrico Turri @enricoturri1966, Filip Sykala @Jony01, Vojtěch Král @vojtechkral
-///|/ Copyright (c) 2023 Pedro Lamas @PedroLamas
-///|/ Copyright (c) 2023 Mimoja @Mimoja
-///|/ Copyright (c) 2020 - 2021 Sergey Kovalev @RandoMan70
-///|/ Copyright (c) 2021 Niall Sheridan @nsheridan
-///|/ Copyright (c) 2021 Martin Budden
-///|/ Copyright (c) 2021 Ilya @xorza
-///|/ Copyright (c) 2020 Paul Arden @ardenpm
-///|/ Copyright (c) 2020 rongith
-///|/ Copyright (c) 2019 Spencer Owen @spuder
-///|/ Copyright (c) 2019 Stephan Reichhelm @stephanr
-///|/ Copyright (c) 2018 Martin Loidl @LoidlM
-///|/ Copyright (c) SuperSlicer 2018 Remi Durand @supermerill
-///|/ Copyright (c) 2016 - 2017 Joseph Lenox @lordofhyphens
-///|/ Copyright (c) Slic3r 2013 - 2016 Alessandro Ranellucci @alranel
-///|/ Copyright (c) 2016 Vanessa Ezekowitz @VanessaE
-///|/ Copyright (c) 2015 Alexander Rössler @machinekoder
-///|/ Copyright (c) 2014 Petr Ledvina @ledvinap
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 #include "PrintConfig.hpp"
 #include "ClipperUtils.hpp"
 #include "Config.hpp"
@@ -569,7 +548,6 @@ void PrintConfigDef::init_common_params()
     def->mode = comAdvanced;
     def->cli = ConfigOptionDef::nocli;
     def->set_default_value(new ConfigOptionString(""));
-
 
     def = this->add("printhost_apikey", coString);
     def->label = L("API Key / Password");
@@ -1721,6 +1699,15 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("If enable this setting, part cooling fan will never be stoped and will run at least "
                      "at minimum speed to reduce the frequency of starting and stoping");
     def->set_default_value(new ConfigOptionBools { false });
+    
+    def = this->add("dont_slow_down_outer_wall", coBools);
+    def->label = L("Don't slow down outer walls");
+    def->tooltip = L("If enabled, this setting will ensure external perimeters are not slowed down to meet the minimum layer time. "
+                     "This is particularly helpful in the below scenarios:\n\n "
+                     "1. To avoid changes in shine when printing glossy filaments \n"
+                     "2. To avoid changes in external wall speed which may create slight wall artefacts that appear like z banding \n"
+                     "3. To avoid printing at speeds which cause VFAs (fine artefacts) on the external walls\n\n");
+    def->set_default_value(new ConfigOptionBools { false });
 
     def = this->add("fan_cooling_layer_time", coFloats);
     def->label = L("Layer time");
@@ -1811,7 +1798,7 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionPercents{ 100 });
 
-def = this->add("filament_loading_speed", coFloats);
+    def = this->add("filament_loading_speed", coFloats);
     def->label = L("Loading speed");
     def->tooltip = L("Speed used for loading the filament on the wipe tower.");
     def->sidetext = L("mm/s");
@@ -1950,28 +1937,42 @@ def = this->add("filament_loading_speed", coFloats);
     def->tooltip = L("The material type of filament");
     def->gui_type = ConfigOptionDef::GUIType::f_enum_open;
     def->gui_flags = "show_value";
-    def->enum_values.push_back("PLA");
+
     def->enum_values.push_back("ABS");
+    def->enum_values.push_back("ABS-GF");
     def->enum_values.push_back("ASA");
-    def->enum_values.push_back("PETG");
-    def->enum_values.push_back("TPU");
-    def->enum_values.push_back("PC");
-    def->enum_values.push_back("PC-CF");
+    def->enum_values.push_back("ASA-Aero");
+    def->enum_values.push_back("BVOH");
+    def->enum_values.push_back("PCTG");
+    def->enum_values.push_back("EVA");
+    def->enum_values.push_back("HIPS");
     def->enum_values.push_back("PA");
     def->enum_values.push_back("PA-CF");
+    def->enum_values.push_back("PA-GF");
     def->enum_values.push_back("PA6-CF");
     def->enum_values.push_back("PA11-CF");
-    def->enum_values.push_back("PLA-CF");
+    def->enum_values.push_back("PC");
+    def->enum_values.push_back("PC-CF");
+    def->enum_values.push_back("PCTG");
+    def->enum_values.push_back("PE");
+    def->enum_values.push_back("PE-CF");
     def->enum_values.push_back("PET-CF");
+    def->enum_values.push_back("PETG");
     def->enum_values.push_back("PETG-CF");
-    def->enum_values.push_back("PVA");
-    def->enum_values.push_back("PVB");
-    def->enum_values.push_back("HIPS");
+    def->enum_values.push_back("PHA");
+    def->enum_values.push_back("PLA");
     def->enum_values.push_back("PLA-AERO");
-    def->enum_values.push_back("PPS");
-    def->enum_values.push_back("PPS-CF");
+    def->enum_values.push_back("PLA-CF");
+    def->enum_values.push_back("PP");
+    def->enum_values.push_back("PP-CF");
+    def->enum_values.push_back("PP-GF");
     def->enum_values.push_back("PPA-CF");
     def->enum_values.push_back("PPA-GF");
+    def->enum_values.push_back("PPS");
+    def->enum_values.push_back("PPS-CF");
+    def->enum_values.push_back("PVA");
+    def->enum_values.push_back("PVB");
+    def->enum_values.push_back("TPU");
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionStrings { "PLA" });
 
@@ -6665,8 +6666,13 @@ CLIActionsConfigDef::CLIActionsConfigDef()
 
     def = this->add("export_stl", coBool);
     def->label = "Export STL";
-    def->tooltip = "Export the objects as multiple STL.";
+    def->tooltip = "Export the objects as single STL.";
     def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("export_stls", coString);
+    def->label = "Export multiple stls";
+    def->tooltip = "Export the objects as multiple stls to directory";
+    def->set_default_value(new ConfigOptionString("stl_path"));
 
     /*def = this->add("export_gcode", coBool);
     def->label = L("Export G-code");
@@ -6699,6 +6705,12 @@ CLIActionsConfigDef::CLIActionsConfigDef()
     def->tooltip = "Update the configs values of 3mf to latest.";
     def->cli = "uptodate";
     def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("downward_check", coStrings);
+    def->label = "downward machines check";
+    def->tooltip = "check whether current machine downward compatible with the machines in the list";
+    def->cli_params = "\"machine1.json;machine2.json;...\"";
+    def->set_default_value(new ConfigOptionStrings());
 
     def = this->add("load_defaultfila", coBool);
     def->label = "Load default filaments";
@@ -6953,6 +6965,17 @@ CLIMiscConfigDef::CLIMiscConfigDef()
     def->cli_params = "\"filament1.json;filament2.json;...\"";
     def->set_default_value(new ConfigOptionStrings());
 
+    def = this->add("downward_check", coBool);
+    def->label = "downward machines check";
+    def->tooltip = "if enabled, check whether current machine downward compatible with the machines in the list";
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("downward_settings", coStrings);
+    def->label = "downward machines settings";
+    def->tooltip = "the machine settings list need to do downward checking";
+    def->cli_params = "\"machine1.json;machine2.json;...\"";
+    def->set_default_value(new ConfigOptionStrings());
+    
     def = this->add("load_assemble_list", coString);
     def->label = "Load assemble list";
     def->tooltip = "Load assemble object list from config file";
@@ -7050,6 +7073,18 @@ CLIMiscConfigDef::CLIMiscConfigDef()
     def->tooltip = "MakerLab version to generate this 3mf";
     def->cli_params = "version";
     def->set_default_value(new ConfigOptionString());
+
+    def = this->add("metadata_name", coStrings);
+    def->label = "metadata name list";
+    def->tooltip = "matadata name list added into 3mf";
+    def->cli_params = "\"name1;name2;...\"";
+    def->set_default_value(new ConfigOptionStrings());
+
+    def = this->add("metadata_value", coStrings);
+    def->label = "metadata value list";
+    def->tooltip = "matadata value list added into 3mf";
+    def->cli_params = "\"value1;value2;...\"";
+    def->set_default_value(new ConfigOptionStrings());
 
     def = this->add("allow_newer_file", coBool);
     def->label = "Allow 3mf with newer version to be sliced";

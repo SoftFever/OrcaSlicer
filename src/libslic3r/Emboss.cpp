@@ -1,7 +1,3 @@
-///|/ Copyright (c) Prusa Research 2021 - 2023 Lukáš Matěna @lukasmatena, Oleksandra Iushchenko @YuSanka, Filip Sykala @Jony01, Vojtěch Bubník @bubnikv
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 #include <numeric>
 #include "Emboss.hpp"
 #include <stdio.h>

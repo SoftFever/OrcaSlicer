@@ -1,8 +1,3 @@
-///|/ Copyright (c) Prusa Research 2018 - 2023 Oleksandra Iushchenko @YuSanka, Lukáš Matěna @lukasmatena, Vojtěch Bubník @bubnikv, Enrico Turri @enricoturri1966, Lukáš Hejl @hejllukas, David Kocík @kocikdav, Tomáš Mészáros @tamasmeszaros, Vojtěch Král @vojtechkral
-///|/ Copyright (c) 2020 Gianni Ceccarelli @dakkar
-///|/
-///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
-///|/
 #include "ObjectDataViewModel.hpp"
 #include "slic3r/GUI/wxExtensions.hpp"
 #include "wxExtensions.hpp"

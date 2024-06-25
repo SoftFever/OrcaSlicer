@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-05 22:05+0200\n"
+"POT-Creation-Date: 2024-06-21 20:03+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2730,10 +2730,12 @@ msgstr ""
 msgid "You need to select the material type and color first."
 msgstr ""
 
-msgid "Please input a valid value (K in 0~0.3)"
+#, possible-c-format, possible-boost-format
+msgid "Please input a valid value (K in %.1f~%.1f)"
 msgstr ""
 
-msgid "Please input a valid value (K in 0~0.3, N in 0.6~2.0)"
+#, possible-c-format, possible-boost-format
+msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
 msgstr ""
 
 msgid "Other Color"
@@ -3095,11 +3097,11 @@ msgstr ""
 msgid "Edit multiple printers"
 msgstr ""
 
-msgid "Select connected printetrs (0/6)"
+msgid "Select connected printers (0/6)"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
-msgid "Select Connected Printetrs (%d/6)"
+msgid "Select Connected Printers (%d/6)"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -3161,7 +3163,7 @@ msgstr ""
 msgid "Printing Failed"
 msgstr ""
 
-msgid "PrintingPause"
+msgid "Printing Pause"
 msgstr ""
 
 msgid "Prepare"
@@ -6686,9 +6688,6 @@ msgstr ""
 msgid "Error code"
 msgstr ""
 
-msgid "Printer local connection failed, please try again."
-msgstr ""
-
 msgid "No login account, only printers in LAN mode are displayed"
 msgstr ""
 
@@ -7664,6 +7663,56 @@ msgid "No updates available."
 msgstr ""
 
 msgid "The configuration is up to date."
+msgstr ""
+
+msgid "Obj file Import color"
+msgstr ""
+
+msgid "Specify number of colors:"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "The color count should be in range [%d, %d]."
+msgstr ""
+
+msgid "Recommended "
+msgstr ""
+
+msgid "Current filament colors:"
+msgstr ""
+
+msgid "Quick set:"
+msgstr ""
+
+msgid "Color match"
+msgstr ""
+
+msgid "Approximate color matching."
+msgstr ""
+
+msgid "Append"
+msgstr ""
+
+msgid "Add consumable extruder after existing extruders."
+msgstr ""
+
+msgid "Reset mapped extruders."
+msgstr ""
+
+msgid "Cluster colors"
+msgstr ""
+
+msgid "Map Filament"
+msgstr ""
+
+msgid ""
+"Note:The color has been selected, you can choose OK \n"
+" to continue or manually adjust it."
+msgstr ""
+
+msgid ""
+"Waring:The count of newly added and \n"
+" current extruders exceeds 16."
 msgstr ""
 
 msgid "Ramming customization"
@@ -9636,6 +9685,22 @@ msgstr ""
 msgid ""
 "If enable this setting, part cooling fan will never be stoped and will run "
 "at least at minimum speed to reduce the frequency of starting and stoping"
+msgstr ""
+
+msgid "Don't slow down outer walls"
+msgstr ""
+
+msgid ""
+"If enabled, this setting will ensure external perimeters are not slowed down "
+"to meet the minimum layer time. This is particularly helpful in the below "
+"scenarios:\n"
+"\n"
+" 1. To avoid changes in shine when printing glossy filaments \n"
+"2. To avoid changes in external wall speed which may create slight wall "
+"artefacts that appear like z banding \n"
+"3. To avoid printing at speeds which cause VFAs (fine artefacts) on the "
+"external walls\n"
+"\n"
 msgstr ""
 
 msgid "Layer time"
@@ -12752,10 +12817,10 @@ msgid ""
 "printer will use the default compensation parameter for the filament during "
 "every filament switch which will have a good result in most cases.\n"
 "\n"
-"Please note there are a few cases that will make the calibration result not "
-"reliable: using a texture plate to do the calibration; the build plate does "
-"not have good adhesion (please wash the build plate or apply gluestick!) ..."
-"You can find more from our wiki.\n"
+"Please note that there are a few cases that can make the calibration results "
+"unreliable, such as insufficient adhesion on the build plate. Improving "
+"adhesion can be achieved by washing the build plate or applying glue. For "
+"more information on this topic, please refer to our Wiki.\n"
 "\n"
 "The calibration results have about 10 percent jitter in our test, which may "
 "cause the result not exactly the same in each calibration. We are still "
@@ -12850,20 +12915,13 @@ msgstr ""
 
 msgid ""
 "Only one of the results with the same name will be saved. Are you sure you "
-"want to overrides the other results?"
-msgstr ""
-
-#, possible-c-format, possible-boost-format
-msgid ""
-"There is already a historical calibration result with the same name: %s. "
-"Only one of the results with the same name is saved. Are you sure you want "
-"to overrides the historical result?"
+"want to override the other results?"
 msgstr ""
 
 msgid "Please find the best line on your plate"
 msgstr ""
 
-msgid "Please find the cornor with perfect degree of extrusion"
+msgid "Please find the corner with perfect degree of extrusion"
 msgstr ""
 
 msgid "Input Value"
@@ -13106,6 +13164,9 @@ msgstr ""
 msgid "PETG"
 msgstr ""
 
+msgid "PCTG"
+msgstr ""
+
 msgid "TPU"
 msgstr ""
 
@@ -13188,6 +13249,9 @@ msgid "Use forward slashes ( / ) as a directory separator if needed."
 msgstr ""
 
 msgid "Upload to storage"
+msgstr ""
+
+msgid "Switch to Device tab after upload."
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -13793,6 +13857,12 @@ msgstr ""
 msgid "Refresh Printers"
 msgstr ""
 
+msgid "View print host webui in Device tab"
+msgstr ""
+
+msgid "Replace the BambuLab's device tab with print host webui"
+msgstr ""
+
 msgid ""
 "HTTPS CA file is optional. It is only needed if you use HTTPS with a self-"
 "signed certificate."
@@ -14124,15 +14194,13 @@ msgstr ""
 msgid "Could not connect to SimplyPrint"
 msgstr ""
 
-msgid "SimplyPrint account not linked. Go to Connect options to set it up."
-msgstr ""
-
-msgid ""
-"File size exceeds the 100MB upload limit. Please upload your file through "
-"the panel."
+msgid "Internel error"
 msgstr ""
 
 msgid "Unknown error"
+msgstr ""
+
+msgid "SimplyPrint account not linked. Go to Connect options to set it up."
 msgstr ""
 
 msgid "Connection to Flashforge works correctly."
