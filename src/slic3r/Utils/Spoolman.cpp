@@ -258,11 +258,6 @@ SpoolmanResult Spoolman::update_filament_preset_from_spool(Preset* filament_pres
     return result;
 }
 
-std::string Spoolman::get_name_from_spool(const SpoolmanSpoolShrPtr& spool)
-{
-    return remove_special_key(spool->getVendor()->name + " " + spool->m_filament_ptr->name + " " + spool->m_filament_ptr->material);
-}
-
 bool Spoolman::is_server_valid()
 {
     return !get_spoolman_json("info").empty();
@@ -342,6 +337,11 @@ void SpoolmanSpool::update_from_server(bool recursive)
         m_filament_ptr->update_from_json(json_data.get_child("filament"));
         getVendor()->update_from_json(json_data.get_child("filament.vendor"));
     }
+}
+
+std::string SpoolmanSpool::get_preset_name()
+{
+    return remove_special_key(getVendor()->name + " " + m_filament_ptr->name + " " + m_filament_ptr->material);
 }
 
 void SpoolmanSpool::apply_to_config(Slic3r::DynamicConfig& config) const

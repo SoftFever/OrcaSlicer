@@ -202,7 +202,7 @@ void SpoolmanImportDialog::on_import()
     }
 
     for (const auto& spool : spools)
-        if (Spoolman::get_name_from_spool(spool) == current_preset->name) {
+        if (spool->get_preset_name() == current_preset->name) {
             show_error(this, "One of the selected spools is the same as the current base preset.\n"
                              "Please deselect that spool or select a different base preset.");
             return;
@@ -243,7 +243,7 @@ void SpoolmanImportDialog::on_import()
         std::stringstream error_message;
         for (const auto& msg_pair : sorted_error_messages) {
             for (const auto& errored_spool : msg_pair.second)
-                error_message << Spoolman::get_name_from_spool(errored_spool) << ",\n";
+                error_message << errored_spool->get_preset_name() << ",\n";
             error_message.seekp(-2, ios_base::end);
             error_message << ":\n";
             error_message << "\t" << msg_pair.first << std::endl << std::endl;

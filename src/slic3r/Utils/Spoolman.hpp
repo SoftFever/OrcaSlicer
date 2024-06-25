@@ -43,12 +43,17 @@ class Spoolman
 
     /// gets the json response from the specified API endpoint
     static pt::ptree get_spoolman_json(const std::string& api_endpoint);
-    /// puts the provided data to the specified API endpoint and returns the response
+
+    /// puts the provided data to the specified API endpoint
+    /// \returns the json response
     static pt::ptree put_spoolman_json(const std::string& api_endpoint, const pt::ptree& data);
+
     /// get all the spools from the api and store them
+    /// \returns if succeeded
     bool pull_spoolman_spools();
 public:
-    /// uses/consumes filament from the specified spool
+    /// uses/consumes filament from the specified spool then updates the spool
+    /// \returns if succeeded
     bool use_spoolman_spool(const unsigned int& spool_id, const double& weight_used);
     static SpoolmanResult create_filament_preset_from_spool(const SpoolmanSpoolShrPtr& spool,
                                                             const Preset*              base_profile,
@@ -57,8 +62,6 @@ public:
     static SpoolmanResult update_filament_preset_from_spool(Preset* filament_preset,
                                                             bool    update_from_server     = true,
                                                             bool    only_update_statistics = false);
-
-    static std::string    get_name_from_spool(const SpoolmanSpoolShrPtr& spool);
 
     static bool is_server_valid();
 
@@ -171,6 +174,9 @@ public:
     SpoolmanVendorShrPtr& getVendor() { return m_filament_ptr->m_vendor_ptr; };
 
     void update_from_server(bool recursive = false);
+
+    /// builds a preset name based on spool data
+    std::string get_preset_name();
 
     void apply_to_config(DynamicConfig& config) const;
     void apply_to_preset(Preset* preset, bool only_update_statistics = false) const;
