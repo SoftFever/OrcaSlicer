@@ -7605,7 +7605,7 @@ bool DynamicPrintConfig::support_different_extruders(int& extruder_count)
     return (variant_set.size() > 1);
 }
 
-int DynamicPrintConfig::get_index_for_extruder(int extruder_id, std::string id_name, ExtruderType extruder_type, NozzleVolumeType nozzle_volume_type, std::string variant_name)
+int DynamicPrintConfig::get_index_for_extruder(int extruder_id, std::string id_name, ExtruderType extruder_type, NozzleVolumeType nozzle_volume_type, std::string variant_name) const
 {
     int ret = -1;
 

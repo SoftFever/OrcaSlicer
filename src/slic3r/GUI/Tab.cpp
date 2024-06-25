@@ -859,6 +859,35 @@ void Tab::decorate()
         m_active_page->refresh();
 }
 
+std::vector<std::string> Tab::filter_diff_option(const std::vector<std::string> &options)
+{
+    auto get_name_and_index = [](const std::string& value) -> std::pair<std::string, int>{
+        size_t pos = value.find("#");
+        if (pos != std::string::npos) {
+            std::string param_name = value.substr(0, pos);
+            std::string number_str = value.substr(pos + 1);
+            int         index      = 0;
+            if (!number_str.empty()) {
+                index = std::stoi(number_str);
+            }
+            return std::make_pair(param_name, index);
+        }
+        return std::make_pair(value, 0);
+    };
+
+    std::vector<std::string> diff_options;
+    for (std::string option : options) {
+        auto name_to_index = get_name_and_index(option);
+        int  active_index = get_extruder_idx(*m_config, name_to_index.first, m_active_page->m_extruder_idx);
+        if (active_index == name_to_index.second) {
+            std::string name_to_extruder_id = name_to_index.first + "#" + std::to_string(m_active_page->m_extruder_idx);
+            diff_options.emplace_back(name_to_extruder_id);
+        }   
+    }
+
+    return diff_options;
+}
+
 // Update UI according to changes
 void Tab::update_changed_ui()
 {
@@ -879,8 +908,14 @@ void Tab::update_changed_ui()
     for (auto& it : m_options_list)
         it.second = m_opt_status_value;
 
-    for (auto opt_key : dirty_options)	m_options_list[opt_key] &= ~osInitValue;
-    for (auto opt_key : nonsys_options)	m_options_list[opt_key] &= ~osSystemValue;
+    dirty_options = filter_diff_option(dirty_options);
+
+    for (auto opt_key : dirty_options) {
+        m_options_list[opt_key] &= ~osInitValue;
+    }
+    for (auto opt_key : nonsys_options) {
+        m_options_list[opt_key] &= ~osSystemValue;
+    }
 
     update_custom_dirty();
 
@@ -4429,6 +4464,7 @@ if (is_marlin_flavor)
             //# build page
             //const wxString& page_name = wxString::Format(_L("Extruder %d"), int(extruder_idx + 1));
             auto page = add_options_page(page_name, "custom-gcode_extruder", true); // ORCA: icon only visible on placeholders
+            page->m_extruder_idx = extruder_idx;
             m_pages.insert(m_pages.begin() + n_before_extruders + extruder_idx, page);
 
                 auto optgroup = page->new_optgroup(L("Size"), L"param_extruder_size");

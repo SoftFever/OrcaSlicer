@@ -24,6 +24,48 @@ namespace Slic3r { namespace GUI {
 
 	// BBS: new layout
 	constexpr int titleWidth = 20;
+int get_extruder_idx(const DynamicPrintConfig& config, const std::string &opt_key, int cur_extruder_id)
+{
+    int extruder_count = wxGetApp().preset_bundle->get_printer_extruder_count();
+    if (extruder_count == 1 || cur_extruder_id == -1)
+        return 0;
+
+    assert(cur_extruder_id < extruder_count);
+    auto opt_extruder_type      = dynamic_cast<const ConfigOptionEnumsGeneric *>(config.option("extruder_type"));
+    auto opt_nozzle_volume_type = dynamic_cast<const ConfigOptionEnumsGeneric *>(config.option("nozzle_volume_type"));
+
+    if (!opt_extruder_type || !opt_nozzle_volume_type)
+        return 0;
+
+    ExtruderType     extruder_type      = (ExtruderType) (opt_extruder_type->get_at(cur_extruder_id));
+    NozzleVolumeType nozzle_volume_type = (NozzleVolumeType) (opt_nozzle_volume_type->get_at(cur_extruder_id));
+
+    std::string id_name, variant_name;
+    if (printer_options_with_variant_1.count(opt_key) > 0) { // printer parameter
+        id_name      = "printer_extruder_id";
+        variant_name = "printer_extruder_variant";
+    } else if (printer_options_with_variant_2.count(opt_key) > 0) {
+        id_name      = "printer_extruder_id";
+        variant_name = "printer_extruder_variant";
+    } else if (filament_options_with_variant.count(opt_key) > 0) {
+        id_name      = "filament_extruder_id";
+        variant_name = "filament_extruder_variant";
+    } else if (print_options_with_variant.count(opt_key) > 0) {
+        id_name      = "print_extruder_id";
+        variant_name = "print_extruder_variant";
+    } else {
+        return 0;
+    }
+
+    // variant index
+    int variant_index = config.get_index_for_extruder(cur_extruder_id + 1, id_name, extruder_type, nozzle_volume_type, variant_name);
+    if (variant_index < 0) {
+        assert(false);
+        return 0;
+    }
+
+    return variant_index;
+}
 
 const t_field& OptionsGroup::build_field(const Option& opt) {
     return build_field(opt.opt_id, opt.opt);
@@ -643,8 +685,7 @@ void ConfigOptionsGroup::on_change_OG(const t_config_option_key& opt_id, const b
 
 		auto 				itOption  = it->second;
 		const std::string  &opt_key   = itOption.first;
-		int 			    opt_index = itOption.second;
-
+        int                 opt_index = get_extruder_idx(*m_config, itOption.first, itOption.second);
 		this->change_opt_value(opt_key, value, opt_index == -1 ? 0 : opt_index);
 	}
 
@@ -733,7 +774,7 @@ void ConfigOptionsGroup::reload_config()
 		// option key (may be scalar or vector)
 		const std::string &opt_key   = kvp.second.first;
 		// index in the vector option, zero for scalars
-		int 			   opt_index = kvp.second.second;
+        int 			   opt_index = get_extruder_idx(*m_config, kvp.second.first, kvp.second.second);
 		const ConfigOptionDef &option = m_options.at(opt_id).opt;
 		this->set_value(opt_id, config_value(opt_key, opt_index, option.gui_flags == "serialized"));
 	}

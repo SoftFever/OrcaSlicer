@@ -78,6 +78,7 @@ public:
 	// BBS
     bool            m_split_multi_line      = false;
     bool            m_option_label_at_right = false;
+    int             m_extruder_idx          = 0; // if is multi extruder, recorde the page is belong to which extruder
 
 public:
 	std::vector <ConfigOptionsGroupShp> m_optgroups;
@@ -434,6 +435,7 @@ protected:
 	void			update_preset_description_line();
 	void			update_frequently_changed_parameters();
 	void			set_tooltips_text();
+    std::vector<std::string> filter_diff_option(const std::vector<std::string> &options);
 
     ConfigManipulation m_config_manipulation;
     ConfigManipulation get_config_manipulation();
