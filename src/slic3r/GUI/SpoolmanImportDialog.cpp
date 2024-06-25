@@ -170,7 +170,11 @@ SpoolmanImportDialog::SpoolmanImportDialog(wxWindow* parent)
 
     int colWidth = 8 * EM; // 4 EM for checkbox (width isn't calculated right), 4 EM for border
     for (int i = COL_ID; i <= COL_MATERIAL; ++i) {
-        colWidth +=m_svc->GetColumnAt(i)->GetWidth();
+#ifdef _WIN32
+        colWidth += m_svc->GetColumnAt(i)->GetWidth();
+#else
+        colWidth += m_svc->GetColumn(i)->GetWidth();
+#endif // _WIN32
     }
     this->SetSize(wxDefaultCoord, wxDefaultCoord, colWidth, wxDefaultCoord, wxSIZE_SET_CURRENT);
 
