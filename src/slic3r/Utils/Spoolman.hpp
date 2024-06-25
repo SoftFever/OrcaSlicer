@@ -30,9 +30,9 @@ class Spoolman
 
     bool m_initialized{false};
 
-    std::map<int, SpoolmanVendorShrPtr>   m_vendors{};
-    std::map<int, SpoolmanFilamentShrPtr> m_filaments{};
-    std::map<int, SpoolmanSpoolShrPtr>    m_spools{};
+    std::map<unsigned int, SpoolmanVendorShrPtr>   m_vendors{};
+    std::map<unsigned int, SpoolmanFilamentShrPtr> m_filaments{};
+    std::map<unsigned int, SpoolmanSpoolShrPtr>    m_spools{};
 
     Spoolman()
     {
@@ -58,14 +58,14 @@ public:
 
     static bool is_server_valid();
 
-    const std::map<int, SpoolmanSpoolShrPtr>& get_spoolman_spools(bool update = false)
+    const std::map<unsigned int, SpoolmanSpoolShrPtr>& get_spoolman_spools(bool update = false)
     {
         if (update || !m_initialized)
             m_initialized = pull_spoolman_spools();
         return m_spools;
     };
 
-    SpoolmanSpoolShrPtr get_spoolman_spool_by_id(int spool_id, bool update = false)
+    SpoolmanSpoolShrPtr get_spoolman_spool_by_id(unsigned int spool_id, bool update = false)
     {
         if (update || !m_initialized)
             m_initialized = pull_spoolman_spools();
