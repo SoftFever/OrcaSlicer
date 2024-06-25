@@ -166,10 +166,11 @@ std::string AdaptivePAProcessor::process_layer(std::string &&gcode) {
                 }
                 
                 // Output the PA_CHANGE line and set the pressure advance immediately after
-                output << pa_change_line << '\n';
+                // TODO: reduce debug logging when prepping for release (remove the first three outputs)
                 output << "; PA Speed: " << std::to_string(m_last_feedrate) << "\n";
                 output << "; Prev PA: " << std::to_string(m_last_predicted_pa) << " New PA: " << std::to_string(predicted_pa) << "\n";
                 output << "; Model flow speed: " << std::to_string(mm3mm_value * m_last_feedrate) << "\n";
+                output << pa_change_line << '\n';
                 if (extruder_changed || std::fabs(predicted_pa - m_last_predicted_pa) > EPSILON) {
                     output << m_gcodegen.writer().set_pressure_advance(predicted_pa); // Use m_writer to set pressure advance
                     m_last_predicted_pa = predicted_pa; // Update the last predicted PA value

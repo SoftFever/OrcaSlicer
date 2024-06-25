@@ -4709,7 +4709,7 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
             weighted_sum_mm3_per_mm += path.mm3_per_mm * path_length;
             total_multipath_length += path_length;
             // TODO: remove before adaptive PA release.
-            gcode += "; APA: Loop len: " + std::to_string(path_length) + " Loop mm3_mm: " +std::to_string(path.mm3_per_mm) +"\n";
+            //gcode += "; APA: Loop len: " + std::to_string(path_length) + " Loop mm3_mm: " +std::to_string(path.mm3_per_mm) +"\n";
         }
     }
     if (total_multipath_length != 0.0)
@@ -4843,7 +4843,7 @@ std::string GCode::extrude_multi_path(ExtrusionMultiPath multipath, std::string 
             weighted_sum_mm3_per_mm += path.mm3_per_mm * path_length;
             total_multipath_length += path_length;
             // TODO: remove before adaptive PA release.
-            gcode += "; APA: Loop len: " + std::to_string(path_length) + " Loop mm3_mm: " +std::to_string(path.mm3_per_mm) +"\n";
+            //gcode += "; APA: Loop len: " + std::to_string(path_length) + " Loop mm3_mm: " +std::to_string(path.mm3_per_mm) +"\n";
         }
     }
     if (total_multipath_length != 0.0)
@@ -5454,8 +5454,8 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         bool is_external = (path.role() == erExternalPerimeter);
         if (m_multi_flow_segment_path_average_mm3_per_mm > 0) {
             // TODO: remove comment before release but retain tag below!
-            sprintf(buf, "; Multi segment path value used\n");
-            gcode += buf;
+            //sprintf(buf, "; Multi segment path value used\n");
+            //gcode += buf;
 
             sprintf(buf, ";%sT%u MM3MM:%g ACCEL:%u EXT:%d RC:%d\n",
                     GCodeProcessor::reserved_tag(GCodeProcessor::ETags::PA_Change).c_str(),
