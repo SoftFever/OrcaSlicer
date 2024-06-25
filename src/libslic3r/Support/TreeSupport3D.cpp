@@ -3447,7 +3447,7 @@ static void generate_support_areas(Print &print, const BuildVolume &build_volume
                     move_bounds, interface_placer, throw_on_cancel);
             auto t_gen = std::chrono::high_resolution_clock::now();
 
-    #ifdef TREESUPPORT_DEBUG_SVG
+#ifdef TREESUPPORT_DEBUG_SVG
             for (size_t layer_idx = 0; layer_idx < move_bounds.size(); ++layer_idx) {
                 Polygons polys;
                 for (auto& area : move_bounds[layer_idx])
