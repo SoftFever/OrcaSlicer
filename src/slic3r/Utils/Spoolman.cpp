@@ -16,7 +16,7 @@ template<class Type> Type get_opt(pt::ptree& data, string path) { return data.ge
 // Spoolman
 //---------------------------------
 
-pt::ptree Spoolman::get_spoolman_json(const string& api_endpoint)
+static std::string get_spoolman_server_url()
 {
     DynamicPrintConfig& config        = GUI::wxGetApp().preset_bundle->printers.get_edited_preset().config;
     string              host          = config.opt_string("print_host");
@@ -38,7 +38,12 @@ pt::ptree Spoolman::get_spoolman_json(const string& api_endpoint)
     if (spoolman_host.empty())
         spoolman_host = host;
 
-    auto url  = spoolman_host + ":" + spoolman_port + "/api/v1/" + api_endpoint;
+    return spoolman_host + ":" + spoolman_port;
+}
+
+pt::ptree Spoolman::get_spoolman_json(const string& api_endpoint)
+{
+    auto url  = get_spoolman_server_url() + "/api/v1/" + api_endpoint;
     auto http = Http::get(url);
 
     bool        res;
@@ -65,6 +70,49 @@ pt::ptree Spoolman::get_spoolman_json(const string& api_endpoint)
     pt::ptree tree;
     try {
         stringstream ss(res_body);
+        pt::read_json(ss, tree);
+    } catch (std::exception& exception) {
+        BOOST_LOG_TRIVIAL(error) << "Failed to read json into property tree. Exception: " << exception.what();
+        return {};
+    }
+
+    return tree;
+}
+
+pt::ptree Spoolman::put_spoolman_json(const string& api_endpoint, const pt::ptree& data)
+{
+    auto url  = get_spoolman_server_url() + "/api/v1/" + api_endpoint;
+    auto http = Http::put2(url);
+
+    bool        res;
+    std::string res_body;
+
+    stringstream ss;
+    pt::write_json(ss, data);
+
+    http.header("Content-Type", "application/json")
+        .set_post_body(ss.str())
+        .on_error([&](const std::string& body, std::string error, unsigned status) {
+            BOOST_LOG_TRIVIAL(error) << "Failed to put data to the Spoolman server. Make sure that the port is correct and the server is running." << boost::format(" HTTP Error: %1%, HTTP status code: %2%, Response body: %3%") % error % status % body;
+            res = false;
+        })
+        .on_complete([&](std::string body, unsigned) {
+            res_body = std::move(body);
+            res      = true;
+        })
+        .perform_sync();
+
+    if (!res)
+        return {};
+
+    if (res_body.empty()) {
+        BOOST_LOG_TRIVIAL(info) << "Spoolman request returned an empty string";
+        return {};
+    }
+
+    pt::ptree tree;
+    try {
+        ss = stringstream(res_body);
         pt::read_json(ss, tree);
     } catch (std::exception& exception) {
         BOOST_LOG_TRIVIAL(error) << "Failed to read json into property tree. Exception: " << exception.what();
@@ -101,6 +149,20 @@ bool Spoolman::pull_spoolman_spools()
     for (const auto& item : tree)
         m_spools.emplace(item.second.get<int>("id"), make_shared<SpoolmanSpool>(SpoolmanSpool(item.second)));
 
+    return true;
+}
+
+bool Spoolman::use_spoolman_spool(const unsigned int& spool_id, const double& weight_used)
+{
+    pt::ptree tree;
+    tree.put("use_weight", weight_used);
+
+    std::string endpoint = (boost::format("spool/%1%/use") % spool_id).str();
+    tree = put_spoolman_json(endpoint, tree);
+    if (tree.empty())
+        return false;
+
+    get_spoolman_spool_by_id(spool_id)->update_from_json(tree);
     return true;
 }
 
