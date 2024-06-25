@@ -4175,10 +4175,9 @@ void PresetBundle::set_default_suppressed(bool default_suppressed)
     printers.set_default_suppressed(default_suppressed);
 }
 
-void PresetBundle::update_spoolman_statistics(bool updating_printer) {
-    // If the printer profile is being switched, clear the spoolman instance.
-    // This is done, so it can be populated by the correct spoolman instance for the new printer profile
-    if (updating_printer) Spoolman::get_instance()->clear();
+void PresetBundle::update_spoolman_statistics(bool clear_cache) {
+    // Clear the cache so that it can be repopulated with the correct info
+    if (clear_cache) Spoolman::get_instance()->clear();
     if (printers.get_edited_preset().spoolman_enabled() && Spoolman::is_server_valid()) {
         for (auto item : filaments.get_visible()) {
             if (item->is_user() && item->spoolman_enabled()) {
