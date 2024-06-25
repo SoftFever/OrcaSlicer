@@ -18,6 +18,26 @@ struct SpoolmanResult
 {
     SpoolmanResult() = default;
     bool                     has_failed() { return !messages.empty(); }
+    std::string build_error_dialog_message() {
+        if (!has_failed()) return {};
+        std::string message = messages.size() > 1 ? "Multiple errors:\n" : "Error:\n";
+
+        for (const auto& error : messages) {
+            message += error + "\n";
+        }
+
+        return message;
+    }
+    std::string  build_single_line_message() {
+        if (!has_failed()) return {};
+        std::string message = messages.size() > 1 ? "Multiple errors: " : "Error: ";
+
+        for (const auto& error : messages) {
+            message += error + ". ";
+        }
+
+        return message;
+    }
     std::vector<std::string> messages{};
 };
 

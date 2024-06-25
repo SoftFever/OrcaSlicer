@@ -4184,7 +4184,7 @@ void PresetBundle::update_spoolman_statistics(bool updating_printer) {
             if (item->is_user() && item->spoolman_enabled()) {
                 if (auto res = Spoolman::update_filament_preset_from_spool(item, true, true); res.has_failed())
                     BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": Failed to update spoolman statistics with the following error: "
-                                             << res.messages[0] << ". Spool ID: " << item->config.opt_int("spoolman_spool_id");
+                                             << res.build_single_line_message() << "Spool ID: " << item->config.opt_int("spoolman_spool_id");
             }
         }
     }
