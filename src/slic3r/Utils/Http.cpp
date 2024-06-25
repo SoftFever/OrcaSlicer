@@ -116,7 +116,7 @@ struct Http::priv
     std::string headers;
 	size_t limit;
 	bool cancel;
-    std::unique_ptr<fs::ifstream> putFile;
+    std::unique_ptr<form_file> putFile;
 
 	std::thread io_thread;
 	Http::CompleteFn completefn;
@@ -381,7 +381,7 @@ void Http::priv::set_put_body(const fs::path &path)
 	boost::system::error_code ec;
 	boost::uintmax_t filesize = file_size(path, ec);
 	if (!ec) {
-		putFile = std::make_unique<fs::ifstream>(path, std::ios_base::binary |std::ios_base::in);
+        putFile = std::make_unique<form_file>(form_file{{path, std::ios_base::binary | std::ios_base::in}, 0, 0});
 		::curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
 		::curl_easy_setopt(curl, CURLOPT_READDATA, (void *) (putFile.get()));
 		::curl_easy_setopt(curl, CURLOPT_INFILESIZE, filesize);
