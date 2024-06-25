@@ -172,7 +172,7 @@ SpoolmanResult Spoolman::create_filament_preset_from_spool(const SpoolmanSpoolSh
                                                            bool                       force)
 {
     PresetCollection& filaments            = wxGetApp().preset_bundle->filaments;
-    string            filament_preset_name = get_name_from_spool(spool);
+    string            filament_preset_name = spool->get_preset_name();
     SpoolmanResult    result;
 
     // Check if the preset already exists
