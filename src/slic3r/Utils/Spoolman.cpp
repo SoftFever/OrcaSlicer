@@ -16,7 +16,7 @@ template<class Type> Type get_opt(pt::ptree& data, string path) { return data.ge
 // Spoolman
 //---------------------------------
 
-static std::string get_spoolman_server_url()
+static std::string get_spoolman_api_url()
 {
     DynamicPrintConfig& config        = GUI::wxGetApp().preset_bundle->printers.get_edited_preset().config;
     string              host          = config.opt_string("print_host");
@@ -38,12 +38,12 @@ static std::string get_spoolman_server_url()
     if (spoolman_host.empty())
         spoolman_host = host;
 
-    return spoolman_host + ":" + spoolman_port;
+    return spoolman_host + ":" + spoolman_port + "/api/v1/";
 }
 
 pt::ptree Spoolman::get_spoolman_json(const string& api_endpoint)
 {
-    auto url  = get_spoolman_server_url() + "/api/v1/" + api_endpoint;
+    auto url  = get_spoolman_api_url() + api_endpoint;
     auto http = Http::get(url);
 
     bool        res;
@@ -81,7 +81,7 @@ pt::ptree Spoolman::get_spoolman_json(const string& api_endpoint)
 
 pt::ptree Spoolman::put_spoolman_json(const string& api_endpoint, const pt::ptree& data)
 {
-    auto url  = get_spoolman_server_url() + "/api/v1/" + api_endpoint;
+    auto url  = get_spoolman_api_url() + api_endpoint;
     auto http = Http::put2(url);
 
     bool        res;
