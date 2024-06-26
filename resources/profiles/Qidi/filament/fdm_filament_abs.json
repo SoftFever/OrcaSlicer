@@ -82,6 +82,12 @@
     "nozzle_temperature_range_high": [
         "270"
     ],
+    "activate_air_filtration":[
+         "1"
+    ],
+    "during_print_exhaust_fan_speed":[
+         "40"
+    ],
     "slow_down_min_speed": [
         "10"
     ],
