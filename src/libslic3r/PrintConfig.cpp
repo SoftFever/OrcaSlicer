@@ -549,7 +549,6 @@ void PrintConfigDef::init_common_params()
     def->cli = ConfigOptionDef::nocli;
     def->set_default_value(new ConfigOptionString(""));
 
-
     def = this->add("printhost_apikey", coString);
     def->label = L("API Key / Password");
     def->tooltip = L("Orca Slicer can upload G-code files to a printer host. This field should contain "

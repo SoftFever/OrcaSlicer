@@ -3,8 +3,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-16 23:01+0800\n"
-"PO-Revision-Date: 2024-06-17 10:12+0300\n"
+"POT-Creation-Date: 2024-06-21 20:03+0800\n"
+"PO-Revision-Date: 2024-06-23 19:21+0300\n"
 "Last-Translator: Olcay ÖREN\n"
 "Language-Team: \n"
 "Language: tr\n"
@@ -15,7 +15,7 @@ msgstr ""
 "X-Generator: Poedit 3.4.4\n"
 
 msgid "Supports Painting"
-msgstr "Destek Boyama"
+msgstr "Destek boyama"
 
 msgid "Alt + Mouse wheel"
 msgstr "Alt + Fare tekerleği"
@@ -276,7 +276,7 @@ msgid "Planar"
 msgstr "Düzlemsel"
 
 msgid "Dovetail"
-msgstr "Kırlangıç Kuyruğu"
+msgstr "Kırlangıç kuyruğu"
 
 msgid "Auto"
 msgstr "Otomatik"
@@ -339,10 +339,10 @@ msgid "Width"
 msgstr "Genişlik"
 
 msgid "Flap Angle"
-msgstr "Kanat Açısı"
+msgstr "Kanat açısı"
 
 msgid "Groove Angle"
-msgstr "Oluk Açısı"
+msgstr "Oluk açısı"
 
 msgid "Part"
 msgstr "Parça"
@@ -436,7 +436,7 @@ msgid "Cancel"
 msgstr "İptal"
 
 msgid "Build Volume"
-msgstr "Birim Oluştur"
+msgstr "Birim oluştur"
 
 msgid "Flip cut plane"
 msgstr "Kesim düzlemini çevir"
@@ -1270,7 +1270,7 @@ msgid "Vertex"
 msgstr "Tepe noktası"
 
 msgid "Edge"
-msgstr "Edge"
+msgstr "Kenar"
 
 msgid "Plane"
 msgstr "Düzlem"
@@ -1749,7 +1749,7 @@ msgid "Text"
 msgstr "Metin"
 
 msgid "Height range Modifier"
-msgstr "Yükseklik aralığı Değiştirici"
+msgstr "Yükseklik aralığı değiştirici"
 
 msgid "Add settings"
 msgstr "Ayar ekle"
@@ -1828,7 +1828,7 @@ msgid "Flush into objects' support"
 msgstr "Nesnelerin desteğine hizalayın"
 
 msgid "Edit in Parameter Table"
-msgstr "Parametre Tablosunda Düzenle"
+msgstr "Parametre tablosunda düzenle"
 
 msgid "Convert from inch"
 msgstr "İnçten dönüştür"
@@ -1972,16 +1972,16 @@ msgid "Remove the selected plate"
 msgstr "Seçilen plakayı kaldır"
 
 msgid "Clone"
-msgstr "Klon"
+msgstr "Klon oluştur"
 
 msgid "Simplify Model"
-msgstr "Modeli Basitleştir"
+msgstr "Modeli basitleştir"
 
 msgid "Center"
 msgstr "Merkez"
 
 msgid "Edit Process Settings"
-msgstr "İşlem Ayarlarını Düzenle"
+msgstr "İşlem ayarlarını düzenle"
 
 msgid "Edit print parameters for a single object"
 msgstr "Tek bir nesne için yazdırma parametrelerini düzenleme"
@@ -4134,7 +4134,7 @@ msgid "Percent"
 msgstr "Yüzde"
 
 msgid "Used filament"
-msgstr "Kullanılan filament"
+msgstr "Kullanılan"
 
 msgid "Layer Height (mm)"
 msgstr "Katman Yüksekliği (mm)"
@@ -4209,7 +4209,7 @@ msgid "Normal mode"
 msgstr "Normal mod"
 
 msgid "Total Filament"
-msgstr "Total Filament"
+msgstr "Toplam filament"
 
 msgid "Model Filament"
 msgstr "Model Filament"
@@ -4341,7 +4341,7 @@ msgid "Split to parts"
 msgstr "Parçalara bölme"
 
 msgid "Assembly View"
-msgstr "Montaj Görünümü"
+msgstr "Montaj görünümü"
 
 msgid "Select Plate"
 msgstr "Plaka Seç"
@@ -7970,12 +7970,12 @@ msgid ""
 "\n"
 "Shall I disable it in order to enable Firmware Retraction?"
 msgstr ""
-"Firmware Geri Çekme modunu kullanırken Temizleme seçeneği kullanılamaz.\n"
+"Yazılımsal Geri Çekme modunu kullanırken Temizleme seçeneği kullanılamaz.\n"
 "\n"
-"Firmware Geri Çekmeyi etkinleştirmek için bunu devre dışı bırakmalı mıyım?"
+"Yazılımsal Geri Çekmeyi etkinleştirmek için bunu devre dışı bırakmalı mıyım?"
 
 msgid "Firmware Retraction"
-msgstr "Firmware Geri Çekme"
+msgstr "Yazılımsal Geri Çekme"
 
 msgid "Detached"
 msgstr "Söküldü"
@@ -10986,7 +10986,7 @@ msgid "Filament price. For statistics only"
 msgstr "Filament fiyatı. Yalnızca istatistikler için"
 
 msgid "money/kg"
-msgstr "para/kg"
+msgstr "ücret/kg"
 
 msgid "Vendor"
 msgstr "Satıcı"
@@ -11519,7 +11519,7 @@ msgid "The printer cost per hour"
 msgstr "Yazıcı saat başına maliyeti"
 
 msgid "money/h"
-msgstr "ücret/Sa"
+msgstr "ücret/sa"
 
 msgid "Support control chamber temperature"
 msgstr "Destek kontrol ortam sıcaklığı"
@@ -12458,7 +12458,7 @@ msgstr ""
 "anlamına gelir"
 
 msgid "Use firmware retraction"
-msgstr "Yazılımsal geri çekme (firmware retraction)"
+msgstr "Yazılımsal geri çekme"
 
 msgid ""
 "This experimental setting uses G10 and G11 commands to have the firmware "
@@ -14968,6 +14968,9 @@ msgstr "ABS/ASA"
 msgid "PETG"
 msgstr "PETG"
 
+msgid "PCTG"
+msgstr ""
+
 msgid "TPU"
 msgstr "TPU"
 
@@ -15063,6 +15066,9 @@ msgstr "Gerekirse dizin ayırıcısı olarak eğik çizgileri ( / ) kullanın."
 
 msgid "Upload to storage"
 msgstr "Depolama alanına yükle"
+
+msgid "Switch to Device tab after upload."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
@@ -15199,7 +15205,7 @@ msgid "Basic Information"
 msgstr "Temel Bilgiler"
 
 msgid "Add Filament Preset under this filament"
-msgstr "Bu filamanın altına Filament Ön Ayarını ekleyin"
+msgstr "Bu filamentin altına Filament Ön Ayarını ekleyin"
 
 msgid "We could create the filament presets for your following printer:"
 msgstr "Aşağıdaki yazıcınız için filament ön ayarlarını oluşturabiliriz:"
@@ -15738,6 +15744,12 @@ msgstr "Çıkış yaptığınızdan emin misiniz?"
 msgid "Refresh Printers"
 msgstr "Yazıcıları Yenile"
 
+msgid "View print host webui in Device tab"
+msgstr ""
+
+msgid "Replace the BambuLab's device tab with print host webui"
+msgstr ""
+
 msgid ""
 "HTTPS CA file is optional. It is only needed if you use HTTPS with a self-"
 "signed certificate."
@@ -16185,19 +16197,15 @@ msgstr "SimplyPrint'e başarıyla bağlanıldı!"
 msgid "Could not connect to SimplyPrint"
 msgstr "SimplyPrint'e bağlanılamadı"
 
-msgid "SimplyPrint account not linked. Go to Connect options to set it up."
+msgid "Internel error"
 msgstr ""
-"SimplyPrint hesabı bağlı değil. Ayarlamak için Bağlantı seçeneklerine gidin."
-
-msgid ""
-"File size exceeds the 100MB upload limit. Please upload your file through the "
-"panel."
-msgstr ""
-"Dosya boyutu 100 MB yükleme sınırını aşıyor. Lütfen dosyanızı panel üzerinden "
-"yükleyiniz."
 
 msgid "Unknown error"
 msgstr "Bilinmeyen hata"
+
+msgid "SimplyPrint account not linked. Go to Connect options to set it up."
+msgstr ""
+"SimplyPrint hesabı bağlı değil. Ayarlamak için Bağlantı seçeneklerine gidin."
 
 msgid "Connection to Flashforge works correctly."
 msgstr "Flashforge bağlantısı düzgün çalışıyor."
@@ -16604,6 +16612,13 @@ msgstr ""
 "ABS gibi bükülmeye yatkın malzemelere baskı yaparken, ısıtma yatağı "
 "sıcaklığının uygun şekilde arttırılmasının bükülme olasılığını "
 "azaltabileceğini biliyor muydunuz?"
+
+#~ msgid ""
+#~ "File size exceeds the 100MB upload limit. Please upload your file through "
+#~ "the panel."
+#~ msgstr ""
+#~ "Dosya boyutu 100 MB yükleme sınırını aşıyor. Lütfen dosyanızı panel "
+#~ "üzerinden yükleyiniz."
 
 #~ msgid "Please input a valid value (K in 0~0.3)"
 #~ msgstr "Lütfen geçerli bir değer girin (K in 0~0.3)"
