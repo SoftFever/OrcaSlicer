@@ -56,5 +56,5 @@
 	"before_layer_change_gcode": ";BEFORE_LAYER_CHANGE\n;[layer_z]",
 	"layer_change_gcode": ";AFTER_LAYER_CHANGE\n;[layer_z]",
 	"wipe_distance": "2",
-	"nozzle_type": "undefined"
+	"nozzle_type": "undefine"
 }
