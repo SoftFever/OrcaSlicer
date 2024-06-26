@@ -16756,7 +16756,7 @@ msgid "Could not connect to SimplyPrint"
 msgstr "Impossible de se connecter à SimplyPrint"
 
 msgid "Internel error"
-msgstr "Erreur interne"
+msgstr ""
 
 msgid "Unknown error"
 msgstr "Erreur inconnue"
