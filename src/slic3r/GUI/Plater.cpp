@@ -351,6 +351,7 @@ struct Sidebar::priv
     ScalableButton *  m_bpButton_del_filament;
     ScalableButton *  m_bpButton_ams_filament;
     ScalableButton *  m_bpButton_set_filament;
+    int m_menu_filament_id = -1;
     wxPanel* m_panel_filament_content;
     wxScrolledWindow* m_scrolledWindow_filament_content;
     wxStaticLine* m_staticline2;
@@ -1107,20 +1108,20 @@ Sidebar::Sidebar(Plater *parent)
 
     // ORCA Moved add button after delete button to prevent add button position change when remove icon automatically hidden
 
-    ScalableButton* del_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "delete_filament");
-    del_btn->SetToolTip(_L("Remove last filament"));
-    del_btn->Bind(wxEVT_BUTTON, [this, scrolled_sizer](wxCommandEvent &e) {
-        delete_filament();
-    });
-    p->m_bpButton_del_filament = del_btn;
+    //ScalableButton* del_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "delete_filament");
+    //del_btn->SetToolTip(_L("Remove last filament"));
+    //del_btn->Bind(wxEVT_BUTTON, [this, scrolled_sizer](wxCommandEvent &e) {
+    //    delete_filament();
+    //});
+    //p->m_bpButton_del_filament = del_btn;
 
-    bSizer39->Add(del_btn, 0, wxALIGN_CENTER | wxLEFT, FromDIP(SidebarProps::IconSpacing()));
+    //bSizer39->Add(del_btn, 0, wxALIGN_CENTER | wxLEFT, FromDIP(SidebarProps::IconSpacing()));
     bSizer39->Add(add_btn, 0, wxALIGN_CENTER | wxLEFT, FromDIP(SidebarProps::IconSpacing())); // ORCA Moved add button after delete button to prevent add button position change when remove icon automatically hidden
     bSizer39->AddSpacer(FromDIP(20));
 
     if (p->combos_filament.size() <= 1) { // ORCA Fix Flushing button and Delete filament button not hidden on launch while only 1 filament exist
         bSizer39->Hide(p->m_flushing_volume_btn);
-        bSizer39->Hide(p->m_bpButton_del_filament); // ORCA: Hide delete filament button if there is only one filament
+        //bSizer39->Hide(p->m_bpButton_del_filament); // ORCA: Hide delete filament button if there is only one filament
     }
 
     ams_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "ams_fila_sync", wxEmptyString, wxDefaultSize, wxDefaultPosition,
@@ -1318,16 +1319,18 @@ void Sidebar::init_filament_combo(PlaterPresetComboBox **combo, const int filame
     combo_and_btn_sizer->Add(32 * em / 10, 0, 0, 0, 0);
     combo_and_btn_sizer->Add(del_btn, 0, wxALIGN_CENTER_VERTICAL, 5 * em / 10);
     */
-    ScalableButton* edit_btn = new ScalableButton(p->m_panel_filament_content, wxID_ANY, "edit");
+    ScalableButton* edit_btn = new ScalableButton(p->m_panel_filament_content, wxID_ANY, "menu_filament");
     edit_btn->SetToolTip(_L("Click to edit preset"));
 
     PlaterPresetComboBox* combobox = (*combo);
-    edit_btn->Bind(wxEVT_BUTTON, [this, combobox, filament_idx](wxCommandEvent)
-        {
-            p->editing_filament = -1;
-            if (combobox->switch_to_tab())
-                p->editing_filament = filament_idx; // sync with TabPresetComboxBox's m_filament_idx
-        });
+    edit_btn->Bind(wxEVT_BUTTON, [this, edit_btn, filament_idx](wxCommandEvent) {
+        auto menu = p->plater->filament_action_menu();
+        wxPoint pt { 0, edit_btn->GetSize().GetHeight() + 10 };
+        pt = edit_btn->ClientToScreen(pt);
+        pt = wxGetApp().mainframe->ScreenToClient(pt);
+        p->m_menu_filament_id = filament_idx;
+        p->plater->PopupMenu(menu, (int) pt.x, pt.y);
+    });
     combobox->edit_btn = edit_btn;
 
     combo_and_btn_sizer->Add(edit_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(SidebarProps::ElementSpacing()) - FromDIP(2)); // ElementSpacing - 2 (from combo box))
@@ -1865,6 +1868,9 @@ void Sidebar::delete_filament(size_t filament_id) {
     if (p->combos_filament.size() <= 1) return;
 
     size_t filament_count = p->combos_filament.size() - 1;
+    if (filament_id == size_t(-2)) {
+        filament_id = p->m_menu_filament_id;
+    }
     if (filament_id == size_t(-1)) {
         filament_id = filament_count;
     }
@@ -1885,6 +1891,14 @@ void Sidebar::delete_filament(size_t filament_id) {
     wxGetApp().plater()->on_filaments_delete(filament_count, filament_id);
     wxGetApp().get_tab(Preset::TYPE_PRINT)->update();
     wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
+}
+
+void Sidebar::edit_filament()
+{
+    p->editing_filament = -1;
+    if (p->m_menu_filament_id >= 0 && p->m_menu_filament_id < p->combos_filament.size()
+            && p->combos_filament[p->m_menu_filament_id]->switch_to_tab())
+        p->editing_filament = p->m_menu_filament_id; // sync with TabPresetComboxBox's m_filament_idx
 }
 
 void Sidebar::add_custom_filament(wxColour new_col) {
@@ -1912,43 +1926,41 @@ std::map<int, DynamicPrintConfig> Sidebar::build_filament_ams_list(MachineObject
     std::map<int, DynamicPrintConfig> filament_ams_list;
     if (!obj) return filament_ams_list;
 
-    auto vt_tray = obj->vt_slot[0];
-    if (obj->ams_support_virtual_tray) {
-        DynamicPrintConfig vt_tray_config;
-        vt_tray_config.set_key_value("filament_id", new ConfigOptionStrings{ vt_tray.setting_id });
-        vt_tray_config.set_key_value("tag_uid", new ConfigOptionStrings{ vt_tray.tag_uid });
-        vt_tray_config.set_key_value("filament_type", new ConfigOptionStrings{ vt_tray.type });
-        vt_tray_config.set_key_value("tray_name", new ConfigOptionStrings{ std::string("Ext") });
-        vt_tray_config.set_key_value("filament_colour", new ConfigOptionStrings{ into_u8(wxColour("#" + vt_tray.color).GetAsString(wxC2S_HTML_SYNTAX)) });
-        vt_tray_config.set_key_value("filament_exist", new ConfigOptionBools{ true });
+    auto build_tray_config = [](AmsTray const & tray, std::string const & name) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": name %1% setting_id %2% color %3%") % name % tray.setting_id % tray.color;
+        DynamicPrintConfig tray_config;
+        tray_config.set_key_value("filament_id", new ConfigOptionStrings{tray.setting_id});
+        tray_config.set_key_value("tag_uid", new ConfigOptionStrings{tray.tag_uid});
+        tray_config.set_key_value("filament_type", new ConfigOptionStrings{tray.type});
+        tray_config.set_key_value("tray_name", new ConfigOptionStrings{ name });
+        tray_config.set_key_value("filament_colour", new ConfigOptionStrings{into_u8(wxColour("#" + tray.color).GetAsString(wxC2S_HTML_SYNTAX))});
+        tray_config.set_key_value("filament_exist", new ConfigOptionBools{tray.is_exists});
 
-        vt_tray_config.set_key_value("filament_multi_colors", new ConfigOptionStrings{});
-        for (int i = 0; i < vt_tray.cols.size(); ++i) {
-            vt_tray_config.opt<ConfigOptionStrings>("filament_multi_colors")->values.push_back(into_u8(wxColour("#" + vt_tray.cols[i]).GetAsString(wxC2S_HTML_SYNTAX)));
+        tray_config.set_key_value("filament_multi_colors", new ConfigOptionStrings{});
+        for (int i = 0; i < tray.cols.size(); ++i) {
+            tray_config.opt<ConfigOptionStrings>("filament_multi_colors")->values.push_back(into_u8(wxColour("#" + tray.cols[i]).GetAsString(wxC2S_HTML_SYNTAX)));
         }
-        filament_ams_list.emplace(VIRTUAL_TRAY_MAIN_ID, std::move(vt_tray_config));
+        return tray_config;
+    };
+
+    auto vt_tray = obj->vt_tray;
+    if (obj->ams_support_virtual_tray) {
+        int extruder = 0x10000;
+        //for (auto &vt_tray : obj->vt_slot) {
+        filament_ams_list.emplace(extruder + VIRTUAL_TRAY_ID, build_tray_config(vt_tray, "Ext"));
+        extruder = 0;
+        //}
     }
 
     auto list = obj->amsList;
     for (auto ams : list) {
         char n = ams.first.front() - '0' + 'A';
+        int extruder = /*ams.nozzle ? 0 :*/ 0x10000;
         for (auto tray : ams.second->trayList) {
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__
-                << boost::format(": ams %1% tray %2% id %3% color %4%") % ams.first % tray.first % tray.second->setting_id % tray.second->color;
             char t = tray.first.front() - '0' + '1';
-            DynamicPrintConfig tray_config;
-            tray_config.set_key_value("filament_id", new ConfigOptionStrings{ tray.second->setting_id });
-            tray_config.set_key_value("tag_uid", new ConfigOptionStrings{ tray.second->tag_uid });
-            tray_config.set_key_value("filament_type", new ConfigOptionStrings{ tray.second->type });
-            tray_config.set_key_value("tray_name", new ConfigOptionStrings{ std::string(1, n) + std::string(1, t) });
-            tray_config.set_key_value("filament_colour", new ConfigOptionStrings{ into_u8(wxColour("#" + tray.second->color).GetAsString(wxC2S_HTML_SYNTAX)) });
-            tray_config.set_key_value("filament_exist", new ConfigOptionBools{ tray.second->is_exists });
-
-            tray_config.set_key_value("filament_multi_colors", new ConfigOptionStrings{});
-            for (int i = 0; i < tray.second->cols.size(); ++i) {
-                tray_config.opt<ConfigOptionStrings>("filament_multi_colors")->values.push_back(into_u8(wxColour("#" + tray.second->cols[i]).GetAsString(wxC2S_HTML_SYNTAX)));
-            }
-            filament_ams_list.emplace(((n - 'A') * 4 + t - '1'), std::move(tray_config));
+            filament_ams_list.emplace(extruder + ((n - 'A') * 4 + t - '1'), 
+                build_tray_config(*tray.second, std::string(1, n) + std::string(1, t)));
+            extruder = 0;
         }
     }
     return filament_ams_list;
@@ -15077,6 +15089,7 @@ wxMenu* Plater::default_menu()          { return p->menus.default_menu();       
 wxMenu* Plater::instance_menu()         { return p->menus.instance_menu();          }
 wxMenu* Plater::layer_menu()            { return p->menus.layer_menu();             }
 wxMenu* Plater::multi_selection_menu()  { return p->menus.multi_selection_menu();   }
+wxMenu *Plater::filament_action_menu() { return p->menus.filament_action_menu(); }
 int     Plater::GetPlateIndexByRightMenuInLeftUI() { return p->m_is_RightClickInLeftUI; }
 void    Plater::SetPlateIndexByRightMenuInLeftUI(int index) { p->m_is_RightClickInLeftUI = index; }
 SuppressBackgroundProcessingUpdate::SuppressBackgroundProcessingUpdate() :

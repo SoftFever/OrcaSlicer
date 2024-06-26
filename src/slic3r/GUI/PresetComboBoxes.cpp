@@ -398,10 +398,15 @@ void PresetComboBox::add_ams_filaments(std::string selected, bool alias_name)
 {
     bool is_bbl_vendor_preset = m_preset_bundle->is_bbl_vendor();
     if (is_bbl_vendor_preset && !m_preset_bundle->filament_ams_list.empty()) {
-        set_label_marker(Append(separator(L("AMS filaments")), wxNullBitmap));
+        bool dual_extruder   = (--m_preset_bundle->filament_ams_list.end())->first & 0x10000;
+        set_label_marker(Append(separator(dual_extruder ? L("Left filaments") : L("AMS filaments")), wxNullBitmap));
         m_first_ams_filament = GetCount();
         auto &filaments      = m_collection->get_presets();
         for (auto &entry : m_preset_bundle->filament_ams_list) {
+            if (dual_extruder && (entry.first & 0x10000)) {
+                dual_extruder = false;
+                set_label_marker(Append(separator(L("Right filaments")), wxNullBitmap));
+            }
             auto &      tray        = entry.second;
             std::string filament_id = tray.opt_string("filament_id", 0u);
             if (filament_id.empty()) continue;
