@@ -16313,7 +16313,7 @@ msgstr "Успішне підключення до SimplyPrint!"
 msgid "Could not connect to SimplyPrint"
 msgstr "Не вдалося підключитися до SimplyPrint"
 
-msgid "Internel error"
+msgid "Internal error"
 msgstr ""
 
 msgid "Unknown error"
