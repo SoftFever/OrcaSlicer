@@ -924,8 +924,7 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "wipe_speed") {
             steps.emplace_back(posPerimeters);
         } else if (
-               opt_key == "small_area_infill_flow_compensation"
-            || opt_key == "small_area_infill_flow_compensation_model") {
+            opt_key == "small_area_infill_flow_compensation_model") {
             steps.emplace_back(posSlice);
         } else if (opt_key == "gap_infill_speed"
             || opt_key == "filter_out_gap_fill" ) {
@@ -1080,7 +1079,8 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "infill_anchor"
             || opt_key == "infill_anchor_max"
             || opt_key == "top_surface_line_width"
-            || opt_key == "initial_layer_line_width") {
+            || opt_key == "initial_layer_line_width"
+            || opt_key == "small_area_infill_flow_compensation") {
             steps.emplace_back(posInfill);
         } else if (opt_key == "sparse_infill_pattern") {
             steps.emplace_back(posPrepareInfill);
