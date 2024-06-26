@@ -2762,17 +2762,18 @@ void Print::_make_wipe_tower()
 
                     int          nozzle_id       = filament_maps[filament_id] - 1;
                     unsigned int pre_filament_id = nozzle_cur_filament_ids[nozzle_id];
-                    if (pre_filament_id == filament_id)
-                        continue;
 
-                    float volume_to_purge = multi_extruder_flush[nozzle_id][pre_filament_id][filament_id];
-                    volume_to_purge *= m_config.flush_multiplier.get_at(nozzle_id);
-                    volume_to_purge = pre_filament_id == -1 ? 0 :
+                    float volume_to_purge = 0;
+                    if (pre_filament_id != unsigned int(-1) && pre_filament_id != filament_id) {
+                        volume_to_purge = multi_extruder_flush[nozzle_id][pre_filament_id][filament_id];
+                        volume_to_purge *= m_config.flush_multiplier.get_at(nozzle_id);
+                        volume_to_purge = pre_filament_id == -1 ? 0 :
                                           layer_tools.wiping_extrusions().mark_wiping_extrusions(*this, current_filament_id, filament_id, volume_to_purge);
+                    }
+
                     wipe_tower.plan_toolchange((float) layer_tools.print_z, (float) layer_tools.wipe_tower_layer_height, current_filament_id, filament_id,
                                                m_config.prime_volume, volume_to_purge);
                     current_filament_id                = filament_id;
-                    nozzle_cur_filament_ids[nozzle_id] = filament_id;
                 }
                 layer_tools.wiping_extrusions().ensure_perimeters_infills_order(*this);
 

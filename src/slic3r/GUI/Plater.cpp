@@ -13418,10 +13418,12 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
     //bool print_sequence_changed = false;
     t_config_option_keys diff_keys = p->config->diff(config);
 
-    std::string old_model_id;
-    auto *  printer_model = p->config->opt<ConfigOptionString>("printer_model");
-    if (printer_model != nullptr && !printer_model->value.empty()) {
-        old_model_id = printer_model->value;
+    size_t old_nozzle_size = 1, new_nozzle_size = 1;
+    auto * opt_old = p->config->option<ConfigOptionFloatsNullable>("nozzle_diameter");
+    auto * opt_new = config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
+    if (opt_old && opt_new) {
+        old_nozzle_size = opt_old->values.size();
+        new_nozzle_size = opt_new->values.size();
     }
 
     for (auto opt_key : diff_keys) {
@@ -13483,7 +13485,9 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
         }
         else if (opt_key == "printer_model") {
             p->reset_gcode_toolpaths();
-            update_flush_volume_matrix(config, old_model_id);
+            if (old_nozzle_size != new_nozzle_size) {
+                update_flush_volume_matrix(old_nozzle_size, new_nozzle_size);
+            }
 
             // update to force bed selection(for texturing)
             bed_shape_changed = true;
@@ -13510,32 +13514,44 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
     }
 }
 
-void Plater::update_flush_volume_matrix(const Slic3r::DynamicPrintConfig& config, const std::string& old_model_id)
+void Plater::update_flush_volume_matrix(size_t old_nozzle_size, size_t new_nozzle_size)
 {
-    auto is_multi_extruder_printer = [](const std::string &model_id) {
-        return model_id == "Bambu Lab O1 Dual";
-    };
+    size_t nozzle_nums = wxGetApp().preset_bundle->get_printer_extruder_count();
+    Slic3r::DynamicPrintConfig *project_config = &wxGetApp().preset_bundle->project_config;
 
-    auto *printer_model = config.opt<ConfigOptionString>("printer_model");
-    if (printer_model != nullptr && !printer_model->value.empty()) {
-        size_t nozzle_nums = wxGetApp().preset_bundle->get_printer_extruder_count();
-        if (!is_multi_extruder_printer(old_model_id) && is_multi_extruder_printer(printer_model->value)) {
-            Slic3r::DynamicPrintConfig *project_config   = &wxGetApp().preset_bundle->project_config;
-            std::vector<double>         flush_volume_mtx = get_flush_volumes_matrix(project_config->option<ConfigOptionFloats>("flush_volumes_matrix")->values, -1, nozzle_nums);
-            flush_volume_mtx.insert(flush_volume_mtx.end(), flush_volume_mtx.begin(), flush_volume_mtx.end());
-            set_flush_volumes_matrix(project_config->option<ConfigOptionFloats>("flush_volumes_matrix")->values, flush_volume_mtx, -1, nozzle_nums);
+    // Verify whether it is the first time start Studio
+    size_t filament_nums = project_config->option<ConfigOptionStrings>("filament_colour")->values.size();
+    size_t flush_volume_size = project_config->option<ConfigOptionFloats>("flush_volumes_matrix")->values.size();
+    if (filament_nums * filament_nums * new_nozzle_size == flush_volume_size)
+        return;
 
-            double first_value = project_config->option<ConfigOptionFloats>("flush_multiplier")->values.at(0);
-            project_config->option<ConfigOptionFloats>("flush_multiplier")->values = std::vector<double>({first_value, 1.0});
+    assert(nozzle_nums == new_nozzle_size);
+    if (old_nozzle_size < new_nozzle_size) {
+        std::vector<double>        flush_volume_mtx = get_flush_volumes_matrix(project_config->option<ConfigOptionFloats>("flush_volumes_matrix")->values, -1, old_nozzle_size);
+        std::vector<double>  first_flush_volume_mtx = get_flush_volumes_matrix(project_config->option<ConfigOptionFloats>("flush_volumes_matrix")->values, 0, old_nozzle_size);
+
+        std::vector<double> flush_multipliers = project_config->option<ConfigOptionFloats>("flush_multiplier")->values;
+        double first_flush_multiplier = project_config->option<ConfigOptionFloats>("flush_multiplier")->values.at(0);
+
+        for (size_t i = old_nozzle_size; i < new_nozzle_size; ++i) {
+            flush_volume_mtx.insert(flush_volume_mtx.end(), first_flush_volume_mtx.begin(), first_flush_volume_mtx.end());
+            flush_multipliers.push_back(first_flush_multiplier);
         }
-        else if (is_multi_extruder_printer(old_model_id) && !is_multi_extruder_printer(printer_model->value)) {
-            Slic3r::DynamicPrintConfig *project_config   = &wxGetApp().preset_bundle->project_config;
-            std::vector<double>         flush_volume_mtx = get_flush_volumes_matrix(project_config->option<ConfigOptionFloats>("flush_volumes_matrix")->values, 0, nozzle_nums);
-            set_flush_volumes_matrix(project_config->option<ConfigOptionFloats>("flush_volumes_matrix")->values, flush_volume_mtx, -1, nozzle_nums);
+        set_flush_volumes_matrix(project_config->option<ConfigOptionFloats>("flush_volumes_matrix")->values, flush_volume_mtx, -1, new_nozzle_size);
+        project_config->option<ConfigOptionFloats>("flush_multiplier")->values = flush_multipliers;
+    }
+    else if (old_nozzle_size > new_nozzle_size) {
+        std::vector<double> new_flush_volume_mtx;
+        std::vector<double> flush_multipliers;
+        for (size_t i = 0; i < new_nozzle_size; ++i) {
+            std::vector<double> flush_volume_mtx = get_flush_volumes_matrix(project_config->option<ConfigOptionFloats>("flush_volumes_matrix")->values, i, old_nozzle_size);
+            new_flush_volume_mtx.insert(new_flush_volume_mtx.end(), flush_volume_mtx.begin(), flush_volume_mtx.end());
 
-            double first_value = project_config->option<ConfigOptionFloats>("flush_multiplier")->values.at(0);
-            project_config->option<ConfigOptionFloats>("flush_multiplier")->values = std::vector<double>({first_value});
+            double multiplier_val = project_config->option<ConfigOptionFloats>("flush_multiplier")->values.at(i);
+            flush_multipliers.push_back(multiplier_val);
         }
+        set_flush_volumes_matrix(project_config->option<ConfigOptionFloats>("flush_volumes_matrix")->values, new_flush_volume_mtx, -1, new_nozzle_size);
+        project_config->option<ConfigOptionFloats>("flush_multiplier")->values = flush_multipliers;
     }
 }
 

@@ -402,7 +402,6 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
     m_number_of_extruders = (unsigned int)extruder_colours.size();
 
     generate_display_matrix();
-    assert(m_display_matrix.size() == extruders.size() ^ 2);
 
     for (const std::string& color : extruder_colours) {
         Slic3r::ColorRGB rgb;
