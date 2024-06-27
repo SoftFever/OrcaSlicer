@@ -99,6 +99,7 @@
 #include "Notebook.hpp"
 #include "Widgets/Label.hpp"
 #include "Widgets/ProgressDialog.hpp"
+#include <Spoolman.hpp>
 
 //BBS: DailyTip and UserGuide Dialog
 #include "WebDownPluginDlg.hpp"
@@ -128,7 +129,6 @@
 #endif
 #ifdef _WIN32
 #include <boost/dll/runtime_symbol_info.hpp>
-#include <Spoolman.hpp>
 #endif
 
 #ifdef WIN32
