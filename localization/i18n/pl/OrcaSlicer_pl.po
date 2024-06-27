@@ -16453,7 +16453,7 @@ msgstr "Pomyślnie połączono z SimplyPrint!"
 msgid "Could not connect to SimplyPrint"
 msgstr "Nie można połączyć się z SimplyPrint"
 
-msgid "Internel error"
+msgid "Internal error"
 msgstr ""
 
 msgid "Unknown error"

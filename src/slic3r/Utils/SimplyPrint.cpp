@@ -284,7 +284,7 @@ bool SimplyPrint::do_temp_upload(const boost::filesystem::path& file_path,
 {
     if (file_path.empty() == chunk_id.empty()) {
         BOOST_LOG_TRIVIAL(error) << "SimplyPrint: Invalid arguments: both file_path and chunk_id are set or not provided";
-        error_fn(_L("Internel error"));
+        error_fn(_L("Internal error"));
         return false;
     }
 
