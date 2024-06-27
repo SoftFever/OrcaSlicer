@@ -258,6 +258,25 @@ SpoolmanResult Spoolman::update_filament_preset_from_spool(Preset* filament_pres
     return result;
 }
 
+void Spoolman::update_visible_spool_statistics(bool clear_cache)
+{
+    PresetBundle* preset_bundle = GUI::wxGetApp().preset_bundle;
+    PresetCollection& printers      = preset_bundle->printers;
+    PresetCollection& filaments    = preset_bundle->filaments;
+
+    // Clear the cache so that it can be repopulated with the correct info
+    if (clear_cache) Spoolman::get_instance()->clear();
+    if (printers.get_edited_preset().spoolman_enabled() && Spoolman::is_server_valid()) {
+        for (auto item : filaments.get_visible()) {
+            if (item->is_user() && item->spoolman_enabled()) {
+                if (auto res = Spoolman::update_filament_preset_from_spool(item, true, true); res.has_failed())
+                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": Failed to update spoolman statistics with the following error: "
+                                             << res.build_single_line_message() << "Spool ID: " << item->config.opt_int("spoolman_spool_id");
+            }
+        }
+    }
+}
+
 bool Spoolman::is_server_valid()
 {
     return !get_spoolman_json("info").empty();

@@ -75,6 +75,7 @@ public:
     /// uses/consumes filament from the specified spool then updates the spool
     /// \returns if succeeded
     bool use_spoolman_spool(const unsigned int& spool_id, const double& weight_used);
+
     static SpoolmanResult create_filament_preset_from_spool(const SpoolmanSpoolShrPtr& spool,
                                                             const Preset*              base_profile,
                                                             bool                       detach = false,
@@ -82,6 +83,10 @@ public:
     static SpoolmanResult update_filament_preset_from_spool(Preset* filament_preset,
                                                             bool    update_from_server     = true,
                                                             bool    only_update_statistics = false);
+
+    /// Update the statistics values for the visible filament profiles with spoolman enabled
+    /// clear_cache should be set true if the update is due to a change in printer profile or other change that requires it
+    static void update_visible_spool_statistics(bool clear_cache = false);
 
     static bool is_server_valid();
 

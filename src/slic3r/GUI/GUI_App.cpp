@@ -128,6 +128,7 @@
 #endif
 #ifdef _WIN32
 #include <boost/dll/runtime_symbol_info.hpp>
+#include <Spoolman.hpp>
 #endif
 
 #ifdef WIN32
@@ -2486,7 +2487,7 @@ bool GUI_App::on_init_inner()
         }
     //}
 
-    preset_bundle->update_spoolman_statistics();
+    Spoolman::update_visible_spool_statistics();
 
 #ifdef WIN32
 #if !wxVERSION_EQUAL_OR_GREATER_THAN(3,1,3)

@@ -14,6 +14,7 @@
 #include <wx/button.h>
 #include <wx/statbox.h>
 #include <wx/wupdlock.h>
+#include <Spoolman.hpp>
 
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/PrintConfig.hpp"
@@ -761,7 +762,7 @@ void PhysicalPrinterDialog::OnOK(wxEvent& event)
     }
     wxGetApp().get_tab(Preset::TYPE_PRINTER)->save_preset("", false, false, true, m_preset_name );
     if (update_spool_stats) // only update spoolman if spoolman related keys were changed
-        wxGetApp().preset_bundle->update_spoolman_statistics(true);
+        Spoolman::update_visible_spool_statistics(true);
     event.Skip();
 }
 
