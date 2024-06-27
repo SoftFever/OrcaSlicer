@@ -9264,7 +9264,7 @@ msgid ""
 "the next layers will be linearly shrunk less, up to the layer indicated by "
 "this value."
 msgstr ""
-"코끼리 발 보정울 적용할 레이어의 수입니다. 첫 번째 레이어는 코끼리 발 보정 값"
+"코끼리 발 보정을 적용할 레이어의 수입니다. 첫 번째 레이어는 코끼리 발 보정 값"
 "만큼 축소되고, 다음 레이어부터 이 값으로 표시된 레이어까지 선형적으로 덜 축소"
 "됩니다."
 
