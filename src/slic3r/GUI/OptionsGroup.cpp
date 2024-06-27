@@ -48,7 +48,8 @@ int get_extruder_idx(const DynamicPrintConfig& config, const std::string &opt_ke
         id_name      = "printer_extruder_id";
         variant_name = "printer_extruder_variant";
     } else if (filament_options_with_variant.count(opt_key) > 0) {
-        id_name      = "filament_extruder_id";
+        //filament don't use id anymore
+        //id_name      = "filament_extruder_id";
         variant_name = "filament_extruder_variant";
     } else if (print_options_with_variant.count(opt_key) > 0) {
         id_name      = "print_extruder_id";
@@ -1346,8 +1347,8 @@ void ogStaticText::SetPathEnd(const std::string& link)
     } );
     Bind(wxEVT_ENTER_WINDOW, [this, link](wxMouseEvent& event) {
         SetToolTip(OptionsGroup::get_url(std::string()));
-        FocusText(true); 
-        event.Skip(); 
+        FocusText(true);
+        event.Skip();
     });
     Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent& event) { FocusText(false); event.Skip(); });
 }

@@ -2208,7 +2208,7 @@ DynamicPrintConfig PresetBundle::full_fff_config(bool apply_extruder, std::vecto
         //BBS: update filament config related with variants
         DynamicPrintConfig filament_config = this->filaments.get_edited_preset().config;
         if (apply_extruder)
-            filament_config.update_values_to_printer_extruders(out, filament_options_with_variant, "filament_extruder_id", "filament_extruder_variant", 1, filament_maps[0]);
+            filament_config.update_values_to_printer_extruders(out, filament_options_with_variant, "", "filament_extruder_variant", 1, filament_maps[0]);
         out.apply(filament_config);
         compatible_printers_condition.emplace_back(this->filaments.get_edited_preset().compatible_printers_condition());
         compatible_prints_condition  .emplace_back(this->filaments.get_edited_preset().compatible_prints_condition());
@@ -2298,7 +2298,7 @@ DynamicPrintConfig PresetBundle::full_fff_config(bool apply_extruder, std::vecto
         for (size_t i = 0; i < num_filaments; ++i) {
             filament_temp_configs[i] = *(filament_configs[i]);
             if (apply_extruder)
-                filament_temp_configs[i].update_values_to_printer_extruders(out, filament_options_with_variant, "filament_extruder_id", "filament_extruder_variant", 1, filament_maps[i]);
+                filament_temp_configs[i].update_values_to_printer_extruders(out, filament_options_with_variant, "", "filament_extruder_variant", 1, filament_maps[i]);
         }
 
         // loop through options and apply them to the resulting config.
@@ -2564,11 +2564,11 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
     if (config.option("extruder_variant_list")) {
         //3mf support multiple extruder logic
         size_t extruder_count = config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
-        extruder_variant_count = config.option<ConfigOptionInts>("filament_extruder_id", true)->size();
+        extruder_variant_count = config.option<ConfigOptionStrings>("filament_extruder_variant", true)->size();
         if ((extruder_variant_count != filament_self_indice.size())
             || (extruder_variant_count < num_filaments)) {
             assert(false);
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": invalid config file %1%, can not find suitable filament_extruder_id or filament_self_index") % name_or_path;
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": invalid config file %1%, can not find suitable filament_extruder_variant or filament_self_index") % name_or_path;
             throw Slic3r::RuntimeError(std::string("invalid configuration file: ") + name_or_path);
         }
         if (extruder_count != extruder_variant_count) {

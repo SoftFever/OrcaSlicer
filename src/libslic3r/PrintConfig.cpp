@@ -4435,11 +4435,11 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionStrings { "Direct Drive Normal" });
     def->cli = ConfigOptionDef::nocli;
 
-    def = this->add("filament_extruder_id", coInts);
+    /*def = this->add("filament_extruder_id", coInts);
     def->label = "Filament extruder id";
     def->tooltip = "Filament extruder id";
     def->set_default_value(new ConfigOptionInts { 1 });
-    def->cli = ConfigOptionDef::nocli;
+    def->cli = ConfigOptionDef::nocli;*/
 
     def = this->add("filament_extruder_variant", coStrings);
     def->label = "Filament's extruder variant";
@@ -7150,7 +7150,7 @@ std::set<std::string> print_options_with_variant = {
 
 std::set<std::string> filament_options_with_variant = {
     "filament_max_volumetric_speed",
-    "filament_extruder_id",
+    //"filament_extruder_id",
     "filament_extruder_variant"
 };
 
@@ -7610,18 +7610,27 @@ int DynamicPrintConfig::get_index_for_extruder(int extruder_id, std::string id_n
     int ret = -1;
 
     auto variant_opt = dynamic_cast<const ConfigOptionStrings*>(this->option(variant_name));
-    auto id_opt = dynamic_cast<const ConfigOptionInts*>(this->option(id_name));
-    if ((variant_opt != nullptr)&&(id_opt != nullptr)) {
+    const ConfigOptionInts* id_opt = id_name.empty()?nullptr: dynamic_cast<const ConfigOptionInts*>(this->option(id_name));
+    if (variant_opt != nullptr) {
         int v_size = variant_opt->values.size();
-        int i_size = id_opt->values.size();
+        //int i_size = id_opt->values.size();
         std::string extruder_variant = get_extruder_variant_string(extruder_type, nozzle_volume_type);
         for (int index = 0; index < v_size; index++)
         {
             const std::string variant = variant_opt->get_at(index);
-            const int id = id_opt->get_at(index);
-            if ((extruder_variant == variant)&&(id == extruder_id)) {
-                ret = index;
-                break;
+            if (extruder_variant == variant) {
+                if (id_opt) {
+                    const int id = id_opt->get_at(index);
+                    if (id == extruder_id) {
+                        ret = index;
+                        break;
+                    }
+                }
+                else {
+                    ret = index;
+                    break;
+                }
+
             }
         }
     }
