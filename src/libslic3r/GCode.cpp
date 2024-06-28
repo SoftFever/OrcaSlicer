@@ -4686,6 +4686,7 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
             ExtrusionPath fake_path_wipe(Polyline{pt, current_point}, paths.front());
             fake_path_wipe.set_force_no_extrusion(true);
             fake_path_wipe.mm3_per_mm = 0;
+            //fake_path_wipe.set_extrusion_role(erExternalPerimeter);
             gcode += extrude_path(fake_path_wipe, "move inwards before retraction/seam", speed);
         }
     }
@@ -5371,7 +5372,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     // TODO: is issued before the overhang perimeter role change is triggered
     // TODO: because for some reason (maybe path segmentation upstream?) there is a short path extruded
     // TODO: with the overhang speed and flow before the role change is flagged in the path.role() function.
-    //if(role_change) evaluate_adaptive_pa = true;
+    if(role_change) evaluate_adaptive_pa = true;
     
     // Orca: End of dynamic PA trigger flag segment
     
@@ -5445,26 +5446,29 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     // This tag simplifies the creation of the gcode post processor while also keeping the feature decoupled from other tags.
     if (evaluate_adaptive_pa) {
         bool is_external = (path.role() == erExternalPerimeter);
+        bool isOverhangPerimeter = (path.role() == erOverhangPerimeter);
         if (m_multi_flow_segment_path_average_mm3_per_mm > 0) {
-            sprintf(buf, ";%sT%u MM3MM:%g ACCEL:%u EXT:%d RC:%d\n",
+            sprintf(buf, ";%sT%u MM3MM:%g ACCEL:%u EXT:%d RC:%d OV:%d\n",
                     GCodeProcessor::reserved_tag(GCodeProcessor::ETags::PA_Change).c_str(),
                     m_writer.extruder()->id(),
                     m_multi_flow_segment_path_average_mm3_per_mm,
                     acceleration_i,
                     is_external,
-                    role_change);
+                    role_change, 
+                    isOverhangPerimeter);
             gcode += buf;
         } else if(_mm3_per_mm >0 ){ // Triggered when extruding a single segment path (like a line).
                                     // Check if mm3_mm value is greater than zero as the wipe before external perimeter
                                     // is a zero mm3_mm path to force de-retraction to happen and we dont want
                                     // to issue a zero flow PA change command for this
-            sprintf(buf, ";%sT%u MM3MM:%g ACCEL:%u EXT:%d RC:%d\n",
+            sprintf(buf, ";%sT%u MM3MM:%g ACCEL:%u EXT:%d RC:%d OV:%d\n",
                     GCodeProcessor::reserved_tag(GCodeProcessor::ETags::PA_Change).c_str(),
                     m_writer.extruder()->id(),
                     _mm3_per_mm,
                     acceleration_i,
                     is_external,
-                    role_change);
+                    role_change,
+                    isOverhangPerimeter);
             gcode += buf;
         }
     }
