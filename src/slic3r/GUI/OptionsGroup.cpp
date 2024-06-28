@@ -22,17 +22,24 @@
 
 namespace Slic3r { namespace GUI {
 
-	// BBS: new layout
-	constexpr int titleWidth = 20;
+// BBS: new layout
+constexpr int titleWidth = 20;
+
+// get the param index of cur_exturder
 int get_extruder_idx(const DynamicPrintConfig& config, const std::string &opt_key, int cur_extruder_id)
 {
+    if (printer_extruder_options.find(opt_key) != printer_extruder_options.end()) {
+        return cur_extruder_id;
+    }
+
     int extruder_count = wxGetApp().preset_bundle->get_printer_extruder_count();
     if (extruder_count == 1 || cur_extruder_id == -1)
         return 0;
 
     assert(cur_extruder_id < extruder_count);
-    auto opt_extruder_type      = dynamic_cast<const ConfigOptionEnumsGeneric *>(config.option("extruder_type"));
-    auto opt_nozzle_volume_type = dynamic_cast<const ConfigOptionEnumsGeneric *>(config.option("nozzle_volume_type"));
+    const DynamicPrintConfig& cur_printer_config = wxGetApp().preset_bundle->printers.get_selected_preset().config;
+    auto opt_extruder_type      = dynamic_cast<const ConfigOptionEnumsGeneric *>(cur_printer_config.option("extruder_type"));
+    auto opt_nozzle_volume_type = dynamic_cast<const ConfigOptionEnumsGeneric *>(cur_printer_config.option("nozzle_volume_type"));
 
     if (!opt_extruder_type || !opt_nozzle_volume_type)
         return 0;
@@ -745,6 +752,7 @@ void ConfigOptionsGroup::back_to_config_value(const DynamicPrintConfig& config, 
         auto opt_id = m_opt_map.find(opt_key)->first;
         std::string opt_short_key = m_opt_map.at(opt_id).first;
         int opt_index = m_opt_map.at(opt_id).second;
+        opt_index = get_extruder_idx(*m_config, opt_short_key, opt_index);
         value = get_config_value(config, opt_short_key, opt_index);
         }
 
@@ -1270,17 +1278,11 @@ void ExtruderOptionsGroup::on_change_OG(const t_config_option_key& opt_id, const
         auto 				itOption = it->second;
         const std::string& opt_key = itOption.first;
 
-        auto opt = m_config->option(opt_key);
-        const ConfigOptionVectorBase* opt_vec = dynamic_cast<const ConfigOptionVectorBase*>(opt);
-        if (opt_vec != nullptr) {
-            for (int opt_index = 0; opt_index < opt_vec->size(); opt_index++) {
-                this->change_opt_value(opt_key, value, opt_index);
-            }
+        int opt_index = itOption.second;
+        if (printer_extruder_options.find(opt_key) == printer_extruder_options.end()) {
+            opt_index = get_extruder_idx(*m_config, itOption.first, itOption.second);
         }
-        else {
-            int opt_index = itOption.second;
-            this->change_opt_value(opt_key, value, opt_index == -1 ? 0 : opt_index);
-        }
+        this->change_opt_value(opt_key, value, opt_index == -1 ? 0 : opt_index);
     }
 
     OptionsGroup::on_change_OG(opt_id, value);

@@ -872,17 +872,28 @@ std::vector<std::string> Tab::filter_diff_option(const std::vector<std::string> 
             }
             return std::make_pair(param_name, index);
         }
-        return std::make_pair(value, 0);
+        return std::make_pair(value, -1);
     };
 
     std::vector<std::string> diff_options;
     for (std::string option : options) {
         auto name_to_index = get_name_and_index(option);
-        int  active_index = get_extruder_idx(*m_config, name_to_index.first, m_active_page->m_extruder_idx);
-        if (active_index == name_to_index.second) {
-            std::string name_to_extruder_id = name_to_index.first + "#" + std::to_string(m_active_page->m_extruder_idx);
+        if (name_to_index.second == -1) {
+            diff_options.emplace_back(option);
+            continue;
+        }
+
+        size_t nozzle_nums = wxGetApp().preset_bundle->get_printer_extruder_count();
+        std::vector<int> support_indexes;
+        for (size_t i = 0; i < nozzle_nums; ++i) {
+            support_indexes.push_back(get_extruder_idx(*m_config, name_to_index.first, i));
+        }
+        auto iter = std::find(support_indexes.begin(), support_indexes.end(), name_to_index.second);
+        if (iter != support_indexes.end()) {
+            int extruder_id = std::distance(support_indexes.begin(), iter);
+            std::string name_to_extruder_id = name_to_index.first + "#" + std::to_string(extruder_id);
             diff_options.emplace_back(name_to_extruder_id);
-        }   
+        }
     }
 
     return diff_options;
@@ -909,6 +920,7 @@ void Tab::update_changed_ui()
         it.second = m_opt_status_value;
 
     dirty_options = filter_diff_option(dirty_options);
+    nonsys_options = filter_diff_option(nonsys_options);
 
     for (auto opt_key : dirty_options) {
         m_options_list[opt_key] &= ~osInitValue;
@@ -4464,11 +4476,11 @@ if (is_marlin_flavor)
             //# build page
             //const wxString& page_name = wxString::Format(_L("Extruder %d"), int(extruder_idx + 1));
             auto page = add_options_page(page_name, "custom-gcode_extruder", true); // ORCA: icon only visible on placeholders
-            page->m_extruder_idx = extruder_idx;
             m_pages.insert(m_pages.begin() + n_before_extruders + extruder_idx, page);
 
                 auto optgroup = page->new_optgroup(L("Size"), L"param_extruder_size");
                 optgroup->append_single_option_line("nozzle_diameter", "", extruder_idx);
+                optgroup->append_single_option_line("nozzle_volume_type", "", extruder_idx);
 
                 optgroup->m_on_change = [this, extruder_idx](const t_config_option_key& opt_key, boost::any value)
                 {
@@ -4502,7 +4514,6 @@ if (is_marlin_flavor)
                             load_config(new_conf);
                         }
                     }
-
                     update_dirty();
                     on_value_change(opt_key, value);
                     update();
@@ -6148,7 +6159,12 @@ wxSizer* Tab::compatible_widget_create(wxWindow* parent, PresetDependencies &dep
     return sizer;
 }
 
-void TabPrinter::set_extruder_volume_type(int extruder_id, NozzleVolumeType type) {}
+void TabPrinter::set_extruder_volume_type(int extruder_id, NozzleVolumeType type)
+{
+    auto nozzle_volumes = m_config->option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
+    assert(nozzle_volumes->values.size() > (size_t)extruder_id);
+    nozzle_volumes->values[extruder_id] = type;
+}
 
 // Return a callback to create a TabPrinter widget to edit bed shape
 wxSizer* TabPrinter::create_bed_shape_widget(wxWindow* parent)

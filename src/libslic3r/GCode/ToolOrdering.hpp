@@ -157,7 +157,7 @@ public:
     ToolOrdering(const Print& print, unsigned int first_extruder, bool prime_multi_material = false);
 
     void 				clear() {
-        m_layer_tools.clear(); m_tool_order_cache.clear(); 
+        m_layer_tools.clear(); m_tool_order_cache.clear();
     }
 
     // Only valid for non-sequential print:

@@ -78,7 +78,6 @@ public:
 	// BBS
     bool            m_split_multi_line      = false;
     bool            m_option_label_at_right = false;
-    int             m_extruder_idx          = 0; // if is multi extruder, recorde the page is belong to which extruder
 
 public:
 	std::vector <ConfigOptionsGroupShp> m_optgroups;

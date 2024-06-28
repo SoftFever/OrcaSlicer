@@ -576,6 +576,7 @@ public:
     //return the changed param set
     t_config_option_keys normalize_fdm_2(int num_objects, int used_filaments = 0);
 
+    size_t              get_parameter_size(const std::string& param_name, size_t extruder_nums);
     void                set_num_extruders(unsigned int num_extruders);
 
     // BBS
@@ -609,6 +610,7 @@ public:
 
     bool is_custom_defined();
 };
+extern std::set<std::string> printer_extruder_options;
 extern std::set<std::string> print_options_with_variant;
 extern std::set<std::string> filament_options_with_variant;
 extern std::set<std::string> printer_options_with_variant_1;

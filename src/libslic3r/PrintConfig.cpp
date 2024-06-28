@@ -7160,11 +7160,15 @@ std::set<std::string> filament_options_with_variant = {
     "filament_extruder_variant"
 };
 
-std::set<std::string> printer_options_with_variant_1 = {
-    /*"extruder_type",
+// Parameters that are the same as the number of extruders
+std::set<std::string> printer_extruder_options = {
+    "extruder_type",
     "nozzle_diameter",
-    "nozzle_volume_type".
-    "min_layer_height",
+    "nozzle_volume_type"
+};
+
+std::set<std::string> printer_options_with_variant_1 = {
+    /*"min_layer_height",
     "max_layer_height",*/
     //"retraction_length",
     "z_hop",
@@ -7439,6 +7443,33 @@ void  handle_legacy_sla(DynamicPrintConfig &config)
     }
 }
 
+size_t DynamicPrintConfig::get_parameter_size(const std::string& param_name, size_t extruder_nums)
+{
+    if (extruder_nums > 1) {
+        size_t volume_type_size = 2;
+        auto   nozzle_volume_type_opt = dynamic_cast<const ConfigOptionEnumsGeneric *>(this->option("nozzle_volume_type"));
+        if (nozzle_volume_type_opt) {
+            volume_type_size = nozzle_volume_type_opt->values.size();
+        }
+        if (printer_options_with_variant_1.count(param_name) > 0) {
+            return extruder_nums * volume_type_size;
+        }
+        else if (printer_options_with_variant_2.count(param_name) > 0) {
+            return extruder_nums * volume_type_size * 2;
+        }
+        else if (filament_options_with_variant.count(param_name) > 0) {
+            return extruder_nums * volume_type_size;
+        }
+        else if (print_options_with_variant.count(param_name) > 0) {
+            return extruder_nums * volume_type_size;
+        }
+        else {
+            return extruder_nums;
+        }
+    }
+    return extruder_nums;
+}
+
 void DynamicPrintConfig::set_num_extruders(unsigned int num_extruders)
 {
     const auto &defaults = FullPrintConfig::defaults();
@@ -7450,8 +7481,9 @@ void DynamicPrintConfig::set_num_extruders(unsigned int num_extruders)
         auto *opt = this->option(key, false);
         assert(opt != nullptr);
         assert(opt->is_vector());
-        if (opt != nullptr && opt->is_vector())
-            static_cast<ConfigOptionVectorBase*>(opt)->resize(num_extruders, defaults.option(key));
+        if (opt != nullptr && opt->is_vector()) {
+            static_cast<ConfigOptionVectorBase*>(opt)->resize(get_parameter_size(key, num_extruders), defaults.option(key));
+        }
     }
 }
 

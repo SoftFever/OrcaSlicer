@@ -160,6 +160,7 @@ int ComboBox::Append(const wxString &item,
     icons.push_back(bitmap);
     datas.push_back(clientData);
     types.push_back(wxClientData_None);
+    SetClientDataType(wxClientData_Void);
     drop.Invalidate();
     return texts.size() - 1;
 }
