@@ -51,18 +51,30 @@ std::string AdaptivePAProcessor::process_layer(std::string &&gcode) {
     double mm3mm_value = 0.0;
     unsigned int accel_value = 0;
     std::string pa_change_line;
+    bool wipe_command = false;
 
     // Iterate through each line of the layer G-code
     while (std::getline(stream, line)) {
-        // Update current feed rate (this is preceding an extrude or wipe command only. Travel feedrate is
-        // output as part of a G1 X Y (Z) F command
-        if (line.find("G1 F") == 0) { // prune lines quickly before running pattern matching
+        
+        // If a wipe start command is found, ignore all speed changes till the wipe end part is found
+        if (line.find("WIPE_START") != std::string::npos) {
+            wipe_command = true;
+        }
+                
+        // Update current feed rate (this is preceding an extrude or wipe command only). Ignore any speed changes that are emitted during a wipe move.
+        // Travel feedrate is output as part of a G1 X Y (Z) F command
+        if ( (line.find("G1 F") == 0) && (!wipe_command) ) { // prune lines quickly before running pattern matching
             std::size_t pos = line.find('F');
             if (pos != std::string::npos){
                 m_current_feedrate = std::stod(line.substr(pos + 1)) / 60.0; // Convert from mm/min to mm/s
             }
-                
         }
+        
+        // Wipe end found, continue searching for current feed rate.
+        if (line.find("WIPE_END") != std::string::npos) {
+            wipe_command = false;
+        }
+        
         // Reset next feedrate to zero enable searching for the first encountered
         // feedrate change command after the PA change tag.
         m_next_feedrate = 0;
@@ -194,8 +206,8 @@ std::string AdaptivePAProcessor::process_layer(std::string &&gcode) {
                                                 std::max(m_current_feedrate, m_next_feedrate) :
                                                 std::min(m_current_feedrate, m_next_feedrate);
 
-                    }else                    // If this is not an overhang perimeter, use the maximum upcomming speed for the island.
-                        adaptive_PA_speed = m_max_next_feedrate;
+                    }else                    // If this is not an overhang perimeter, use the maximum speed from the current and upcomming speeds for the island.
+                        adaptive_PA_speed = std::max(m_max_next_feedrate,m_current_feedrate);
                     
                     // Calculate the adaptive PA value
                     predicted_pa = (*m_AdaptivePAInterpolator)(mm3mm_value * adaptive_PA_speed, accel_value);
