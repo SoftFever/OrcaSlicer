@@ -48,7 +48,9 @@ private:
     GCode &m_gcodegen; ///< Reference to the GCode object.
     const PrintConfig &m_config; ///< Reference to the print configuration.
     double m_last_predicted_pa; ///< Last predicted pressure advance value.
-    double m_last_feedrate; ///< Last known feed rate.
+    double m_max_next_feedrate; ///< Maximum feed rate (speed) for the upcomming island. If no speed is found, the previous island speed is used.
+    double m_next_feedrate; ///< First feed rate (speed) for the upcomming island.
+    double m_current_feedrate; ///< Current, latest feedrate.
     int m_last_extruder_id; ///< Last used extruder ID.
     std::unique_ptr<AdaptivePAInterpolator> m_AdaptivePAInterpolator; ///< Interpolator for pressure advance values.
 

@@ -21,7 +21,13 @@ namespace Slic3r {
  * @param gcodegen A reference to the GCode object that generates the G-code.
  */
 AdaptivePAProcessor::AdaptivePAProcessor(GCode &gcodegen)
-    : m_gcodegen(gcodegen), m_config(gcodegen.config()), m_last_predicted_pa(0.0), m_last_feedrate(0.0), m_last_extruder_id(-1),
+    : m_gcodegen(gcodegen), 
+      m_config(gcodegen.config()),
+      m_last_predicted_pa(0.0),
+      m_max_next_feedrate(0.0),
+      m_next_feedrate(0.0),
+      m_current_feedrate(0.0),
+      m_last_extruder_id(-1),
       m_AdaptivePAInterpolator(std::make_unique<AdaptivePAInterpolator>()),
       m_pa_change_pattern(R"(; PA_CHANGE:T(\d+) MM3MM:([0-9]*\.[0-9]+) ACCEL:(\d+) EXT:(\d+) RC:(\d+))"),
       m_g1_f_pattern(R"(G1 F([0-9]+))")
@@ -48,6 +54,19 @@ std::string AdaptivePAProcessor::process_layer(std::string &&gcode) {
 
     // Iterate through each line of the layer G-code
     while (std::getline(stream, line)) {
+        // Update current feed rate (this is preceding an extrude or wipe command only. Travel feedrate is
+        // output as part of a G1 X Y (Z) F command
+        if (line.find("G1 F") == 0) { // prune lines quickly before running pattern matching
+            std::size_t pos = line.find('F');
+            if (pos != std::string::npos){
+                m_current_feedrate = std::stod(line.substr(pos + 1)) / 60.0; // Convert from mm/min to mm/s
+            }
+                
+        }
+        // Reset next feedrate to zero enable searching for the first encountered
+        // feedrate change command after the PA change tag.
+        m_next_feedrate = 0;
+        
         // Check for PA_CHANGE pattern in the line
         // We will only find this pattern for extruders where adaptive PA is enabled.
         // If there is mixed extruders in the layer (i.e. with adaptive PA on and off
@@ -81,18 +100,7 @@ std::string AdaptivePAProcessor::process_layer(std::string &&gcode) {
                 // Carry on searching for feedrates to find the maximum print speed
                 // until a feature change pattern or a wipe command is detected
                 while (std::getline(stream, next_line)) {
-                    if (next_line.find("G1 F") == 0) { // prune lines quickly before running pattern matching
-                        std::size_t pos = next_line.find('F');
-                        if (pos != std::string::npos) {
-                            double feedrate = std::stod(next_line.substr(pos + 1)) / 60.0; // Convert from mm/min to mm/s
-                            if (temp_feed_rate < feedrate) {
-                                temp_feed_rate = feedrate;
-                            }
-                        }
-                        continue;
-                    }
-                    
-                    // Found an extrude move
+                    // Found an extrude move, set extrude move found flag and move to the next line
                     if ((!extrude_move_found) && next_line.find("G1 ") == 0 &&
                         next_line.find('X') != std::string::npos &&
                         next_line.find('Y') != std::string::npos &&
@@ -102,29 +110,27 @@ std::string AdaptivePAProcessor::process_layer(std::string &&gcode) {
                         continue;
                     }
                     
-                    // Search for a travel move after we've found at least one speed and at least one extrude move
-                    // Most likely we now need to stop searching for speeds as we're done with this island
+                    // Found a travel move after we've found at least one extrude move
+                    // We now need to stop searching for speeds as we're done printing this island
                     if (next_line.find("G1 ") == 0 &&
-                        next_line.find('X') != std::string::npos &&
-                        next_line.find('Y') != std::string::npos &&
-                        next_line.find('E') == std::string::npos &&
-                        (temp_feed_rate > 0) &&
-                        extrude_move_found) {
+                        next_line.find('X') != std::string::npos && // X is present
+                        next_line.find('Y') != std::string::npos && // Y is present
+                        next_line.find('E') == std::string::npos && // no "E" present
+                        extrude_move_found) {                       // An extrude move has happened already
                         // First travel move after extrude move found. Stop searching
                         break;
                     }
                     
-                    // Check for WIPE command
+                    // Found a WIPE command
                     // If we have a wipe command, usually the wipe speed is different (larger) than the max print speed
-                    // for that feature. So stop searching if a wipe command is found so as not to overwrite the
+                    // for that feature. So stop searching if a wipe command is found because we do not want to overwrite the
                     // speed used for PA calculation by the Wipe speed.
                     if (next_line.find("WIPE") != std::string::npos) {
                         break; // Stop searching if wipe command is found
                     }
                     
-                    // Check for PA_CHANGE pattern and RC value
-                    // If RC = 1, it means we have a role change so stop trying to find the max speed for the feature.
-                    // Check for PA_CHANGE pattern and RC value
+                    // Found another PA_CHANGE pattern
+                    // If RC = 1, it means we have a role change, so stop trying to find the max speed for the feature.
                     // This is possibly redundant as a new feature would always have a travel move preceding it
                     // but check anyway. However check last so to not invoke it without reason...
                     if (next_line.find("; PA_CHANGE") == 0) { // prune lines quickly before running pattern matching
@@ -136,41 +142,63 @@ std::string AdaptivePAProcessor::process_layer(std::string &&gcode) {
                             }
                         }
                     }
+                    
+                    // Found a Feedrate change command
+                    // If the new feedrate is greater than any feedrate encountered so far after the PA change command, use that to calculate the PA value
+                    // Also if this is the first feedrate we encounter, store it as the next feedrate.
+                    if (next_line.find("G1 F") == 0) { // prune lines quickly before running pattern matching
+                        std::size_t pos = next_line.find('F');
+                        if (pos != std::string::npos) {
+                            double feedrate = std::stod(next_line.substr(pos + 1)) / 60.0; // Convert from mm/min to mm/s
+                            if (temp_feed_rate < feedrate) {
+                                temp_feed_rate = feedrate;
+                            }
+                            if(m_next_feedrate < EPSILON){ // This the first feedrate after the PA Change command
+                                m_next_feedrate = feedrate;
+                            }
+                        }
+                        continue;
+                    }
                 }
                 
-                // Found new feedrate
+                // If we found a new maximum feedrate after the PA change command, use it
                 if (temp_feed_rate > 0) {
-                    m_last_feedrate = temp_feed_rate;
-                }
+                    m_max_next_feedrate = temp_feed_rate;
+                } else // If we didnt find a new feedrate at all after the PA change command, use the current feedrate.
+                    m_max_next_feedrate = m_current_feedrate;
                 
                 // Restore stream position
                 stream.clear();
                 stream.seekg(current_pos);
                 
-                // Calculate the predicted PA using the current or last known feedrate
+                // Calculate the predicted PA using the upcomming feature maximum feedrate
+                // Get calibration values from extruder
                 std::string pa_calibration_values = m_config.adaptive_pressure_advance_model.get_at(m_last_extruder_id);
+                // Setup the model
                 int pchip_return_flag = m_AdaptivePAInterpolator->parseAndSetData(pa_calibration_values);
                 
                 double predicted_pa;
                 if (pchip_return_flag == -1) {
                     // Model failed, use fallback value from m_config
                     predicted_pa = m_config.pressure_advance.get_at(m_last_extruder_id);
-                    output << "; PchipInterpolator setup failed, using fallback pressure advance value\n";
+                    output << "; APA: Interpolator setup failed, using fallback pressure advance value\n";
                 } else {
-                    // Model succeeded, calculate predicted pressure advance
-                    predicted_pa = (*m_AdaptivePAInterpolator)(mm3mm_value * m_last_feedrate, accel_value);
+                    // Model setup succeeded, calculate predicted pressure advance
+                    predicted_pa = (*m_AdaptivePAInterpolator)(mm3mm_value * m_max_next_feedrate, accel_value);
                     if (predicted_pa < 0) {
                         predicted_pa = m_config.pressure_advance.get_at(m_last_extruder_id);
-                        output << "; PchipInterpolator interpolation failed, using fallback pressure advance value\n";
+                        output << "; APA: Interpolation failed, using fallback pressure advance value\n";
                     }
                 }
                 
                 // Output the PA_CHANGE line and set the pressure advance immediately after
                 // TODO: reduce debug logging when prepping for release (remove the first three outputs)
-                output << "; APA Print Speed: " << std::to_string(m_last_feedrate) << "\n";
-                output << "; APA Model flow speed: " << std::to_string(mm3mm_value * m_last_feedrate) << "\n";
-                output << "; APA Prev PA: " << std::to_string(m_last_predicted_pa) << " New PA: " << std::to_string(predicted_pa) << "\n";
-                output << pa_change_line << '\n';
+                output << pa_change_line << '\n'; // Output PA change command tag TODO: remove before release
+                output << "; APA Current Speed: " << std::to_string(m_current_feedrate) << "\n"; // TODO: remove before release
+                output << "; APA Next Speed: " << std::to_string(m_next_feedrate) << "\n"; // TODO: remove before release
+                output << "; APA Max Next Speed (used): " << std::to_string(m_max_next_feedrate) << "\n"; // TODO: remove before release
+                output << "; APA Flow rate: " << std::to_string(mm3mm_value * m_max_next_feedrate) << "\n"; // TODO: remove before release
+                output << "; APA Prev PA: " << std::to_string(m_last_predicted_pa) << " New PA: " << std::to_string(predicted_pa) << "\n"; // TODO: remove before release
                 if (extruder_changed || std::fabs(predicted_pa - m_last_predicted_pa) > EPSILON) {
                     output << m_gcodegen.writer().set_pressure_advance(predicted_pa); // Use m_writer to set pressure advance
                     m_last_predicted_pa = predicted_pa; // Update the last predicted PA value
@@ -178,7 +206,7 @@ std::string AdaptivePAProcessor::process_layer(std::string &&gcode) {
                 
             }
         }else {
-            // Output the current line if it isn't part of PA_CHANGE process
+            // Output the current line as this isn't a PA change tag
             output << line << '\n';
         }
     }
