@@ -15745,7 +15745,7 @@ msgstr "SimplyPrint에 성공적으로 연결되었습니다!"
 msgid "Could not connect to SimplyPrint"
 msgstr "SimplyPrint에 연결할 수 없습니다"
 
-msgid "Internel error"
+msgid "Internal error"
 msgstr "내부 오류"
 
 msgid "Unknown error"
