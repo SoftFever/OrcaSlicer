@@ -230,10 +230,10 @@ public:
     {
         std::unordered_map<stl_normal, float, VecHash> alignments;
         // init to 0
-        for (size_t i = 0; i < areas_.size(); i++)
+        for (Eigen::Index i = 0; i < areas_.size(); i++)
             alignments.insert(std::pair(normals_.row(i), 0));
         // cumulate areas
-        for (size_t i = 0; i < areas_.size(); i++)
+        for (Eigen::Index i = 0; i < areas_.size(); i++)
         {
             alignments[normals_.row(i)] += areas_(i);
         }
@@ -257,11 +257,11 @@ public:
         Vec3f n1 = { 0, 0, 0 };
         std::vector<float> current_areas = {0, 0};
         // init to 0
-        for (size_t i = 0; i < areas_.size(); i++) {
+        for (Eigen::Index i = 0; i < areas_.size(); i++) {
             alignments_.insert(std::pair(quantize_normals_.row(i), std::pair(current_areas, n1)));
         }
         // cumulate areas
-        for (size_t i = 0; i < areas_.size(); i++)
+        for (Eigen::Index i = 0; i < areas_.size(); i++)
         {
             alignments_[quantize_normals_.row(i)].first[1] += areas_(i);
             if (areas_(i) > alignments_[quantize_normals_.row(i)].first[0]){
@@ -339,7 +339,7 @@ public:
 
         z_max_hull.resize(mesh_convex_hull.facets_count(), 1);
         its = mesh_convex_hull.its;
-        for (size_t i = 0; i < z_max_hull.rows(); i++)
+        for (Eigen::Index i = 0; i < z_max_hull.rows(); i++)
         {
             float z0 = its.get_vertex(i,0).dot(orientation);
             float z1 = its.get_vertex(i,1).dot(orientation);
@@ -393,7 +393,7 @@ public:
 
         // filter overhang
         Eigen::VectorXf normal_projection(normals.rows(), 1);// = this->normals.dot(orientation);
-        for (size_t i = 0; i < normals.rows(); i++)
+        for (Eigen::Index i = 0; i < normals.rows(); i++)
         {
             normal_projection(i) = normals.row(i).dot(orientation);
         }

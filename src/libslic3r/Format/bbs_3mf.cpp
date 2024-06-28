@@ -7537,7 +7537,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
                 if (!m_skip_model && instance_size > 0)
                 {
-                    for (unsigned int j = 0; j < instance_size; ++j)
+                    for (int j = 0; j < instance_size; ++j)
                     {
                         stream << "    <" << INSTANCE_TAG << ">\n";
                         int obj_id = plate_data->objects_and_instances[j].first;

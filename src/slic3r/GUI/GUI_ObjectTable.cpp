@@ -2826,7 +2826,7 @@ int ObjectTablePanel::init_filaments_and_colors()
         BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(", invalid color count:%1%, extruder count: %2%") %color_count %m_filaments_count;
     }
 
-    unsigned int i = 0;
+    int i = 0;
     ColorRGB rgb;
     while (i < m_filaments_count) {
         const std::string& txt_color = global_config->opt_string("filament_colour", i);

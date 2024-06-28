@@ -1546,7 +1546,7 @@ int CLI::run(int argc, char **argv)
                         {
                             ModelObject* object = model.objects[obj_index];
 
-                            for (unsigned int clone_index = 1; clone_index < clone_count; clone_index++)
+                            for (int clone_index = 1; clone_index < clone_count; clone_index++)
                             {
                                 ModelObject* newObj = model.add_object(*object);
                                 newObj->name = object->name +"_"+ std::to_string(clone_index+1);
@@ -2103,7 +2103,7 @@ int CLI::run(int argc, char **argv)
                     record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, 0, cli_errors[CLI_INVALID_PARAMS], sliced_info);
                     flush_and_exit(CLI_INVALID_PARAMS);
                 }
-                for (unsigned int index = 0; index < filament_count; index ++)
+                for (int index = 0; index < filament_count; index ++)
                 {
                     std::string file = uptodate_filaments[index];
                     DynamicPrintConfig  config;

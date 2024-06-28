@@ -1852,7 +1852,7 @@ void PresetBundle::export_selections(AppConfig &config)
 // BBS
 void PresetBundle::set_num_filaments(unsigned int n, std::string new_color)
 {
-    int old_filament_count = this->filament_presets.size();
+    size_t old_filament_count = this->filament_presets.size();
     if (n > old_filament_count && old_filament_count != 0)
         filament_presets.resize(n, filament_presets.back());
     else {
@@ -1866,7 +1866,7 @@ void PresetBundle::set_num_filaments(unsigned int n, std::string new_color)
     //BBS set new filament color to new_color
     if (old_filament_count < n) {
         if (!new_color.empty()) {
-            for (int i = old_filament_count; i < n; i++) {
+            for (size_t i = old_filament_count; i < n; i++) {
                 filament_color->values[i] = new_color;
             }
         }
@@ -2053,7 +2053,7 @@ bool PresetBundle::check_filament_temp_equation_by_printer_type_and_nozzle_for_m
 //BBS: check whether this is the only edited filament
 bool PresetBundle::is_the_only_edited_filament(unsigned int filament_index)
 {
-    int n = this->filament_presets.size();
+    size_t n = this->filament_presets.size();
     if (filament_index >= n)
         return false;
 
