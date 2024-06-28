@@ -152,7 +152,7 @@ public:
     std::vector<std::vector<std::string>> ams_multi_color_filment;
 
     // todo multi_extruders: delete mutable
-    mutable std::vector<int>    filament_maps;
+    mutable std::vector<int>    extruder_filament_counts;
     // Calibrate
     Preset const * calibrate_printer = nullptr;
     std::set<Preset const *> calibrate_filaments;

@@ -4411,6 +4411,12 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionStrings { "Direct Drive Normal" });
     def->cli = ConfigOptionDef::nocli;
 
+    def = this->add("extruder_filament_count", coInts);
+    def->label = "Extruder filament count";
+    def->tooltip = "Filament counts per extruder";
+    def->set_default_value(new ConfigOptionInts { 1 });
+    def->cli = ConfigOptionDef::nocli;
+
     def = this->add("printer_extruder_id", coInts);
     def->label = "Printer extruder id";
     def->tooltip = "Printer extruder id";

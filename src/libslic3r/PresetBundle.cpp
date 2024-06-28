@@ -2416,6 +2416,7 @@ DynamicPrintConfig PresetBundle::full_fff_config(bool apply_extruder, std::vecto
     //BBS: add logic for settings check between different system presets
     add_if_some_non_empty(std::move(different_settings),            "different_settings_to_system");
     add_if_some_non_empty(std::move(print_compatible_printers),     "print_compatible_printers");
+    out.option<ConfigOptionInts>("extruder_filament_count", true)->values = this->extruder_filament_counts;
 
 	out.option<ConfigOptionEnumGeneric>("printer_technology", true)->value = ptFFF;
     return out;
@@ -2586,6 +2587,11 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
             }
         }
     }
+    //no need to parse extruder_filament_count
+    std::vector<int> extruder_filament_count              = std::move(config.option<ConfigOptionInts>("extruder_filament_count", true)->values);
+    config.erase("extruder_filament_count");
+    if (this->extruder_filament_counts.empty())
+        this->extruder_filament_counts = extruder_filament_count;
 
     // 1) Create a name from the file name.
     // Keep the suffix (.ini, .gcode, .amf, .3mf etc) to differentiate it from the normal profiles.
