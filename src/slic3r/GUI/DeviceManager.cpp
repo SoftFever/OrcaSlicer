@@ -5662,9 +5662,7 @@ void DeviceManager::parse_user_print_info(std::string body)
             }
         }
     }
-    catch (std::exception& e) {
-        ;
-    }
+    catch (std::exception&) {}
 }
 
 void DeviceManager::update_user_machine_list_info()

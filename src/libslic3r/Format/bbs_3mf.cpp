@@ -878,7 +878,6 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             bool extract_object_model()
             {
                 mz_zip_archive archive;
-                mz_zip_archive_file_stat stat;
                 mz_zip_zero_struct(&archive);
 
                 if (!open_zip_reader(&archive, zip_path)) {

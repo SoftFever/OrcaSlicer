@@ -2006,7 +2006,7 @@ void ObjectList::load_modifier(const wxArrayString& input_files, ModelObject& mo
         try {
             model = Model::read_from_file(input_file, nullptr, nullptr, LoadStrategy::LoadModel);
         }
-        catch (std::exception& e) {
+        catch (std::exception&) {
             // auto msg = _L("Error!") + " " + input_file + " : " + e.what() + ".";
             auto msg = _L("Error!") + " " + _L("Failed to get the model data in the current file.");
             show_error(parent, msg);

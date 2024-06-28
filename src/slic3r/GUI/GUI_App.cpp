@@ -1026,8 +1026,7 @@ void GUI_App::post_init()
                try {
                    std::time_t lw_t = boost::filesystem::last_write_time(temp_path) ;
                    files_vec.push_back({ lw_t, temp_path.filename().string() });
-               } catch (const std::exception &ex) {
-               }
+               } catch (std::exception&) {}
            }
            std::sort(files_vec.begin(), files_vec.end(), [](
                std::pair<time_t, std::string> &a, std::pair<time_t, std::string> &b) {
@@ -3365,7 +3364,7 @@ if (res) {
             mainframe->refresh_plugin_tips();
             // BBS: remove SLA related message
         }
-    } catch (std::exception &e) {
+    } catch (std::exception&) {
         // wxMessageBox(e.what(), "", MB_OK);
     }
 }
@@ -3379,9 +3378,7 @@ void GUI_App::ShowDownNetPluginDlg() {
             return;
         DownloadProgressDialog dlg(_L("Downloading Bambu Network Plug-in"));
         dlg.ShowModal();
-    } catch (std::exception &e) {
-        ;
-    }
+    } catch (std::exception&) {}
 }
 
 void GUI_App::ShowUserLogin(bool show)
@@ -3396,9 +3393,7 @@ void GUI_App::ShowUserLogin(bool show)
                 login_dlg = new ZUserLogin();
             }
             login_dlg->ShowModal();
-        } catch (std::exception &e) {
-            ;
-        }
+        } catch (std::exception&) {}
     } else {
         if (login_dlg)
             login_dlg->EndModal(wxID_OK);
@@ -3418,7 +3413,7 @@ void GUI_App::ShowOnlyFilament() {
 
             // BBS: remove SLA related message
         }
-    } catch (std::exception &e) {
+    } catch (std::exception&) {
         // wxMessageBox(e.what(), "", MB_OK);
     }
 }
@@ -6500,8 +6495,6 @@ static bool del_win_registry(HKEY hkeyHive, const wchar_t *pszVar, const wchar_t
         return false;
 
     if (!bDidntExist) {
-        DWORD dwDisposition;
-        HKEY  hkey;
         iRC      = ::RegDeleteKeyExW(hkeyHive, pszVar, KEY_ALL_ACCESS, 0);
         if (iRC == ERROR_SUCCESS) {
             return true;
