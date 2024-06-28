@@ -137,7 +137,7 @@ void AMSrefresh::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, con
     wxWindow::Create(parent, id, pos, size, wxBORDER_NONE);
     SetBackgroundColour(AMS_CONTROL_DEF_BLOCK_BK_COLOUR);
    
-    Bind(wxEVT_TIMER, &AMSrefresh::on_timer, this);
+    Bind(wxEVT_TIMER, [this](wxTimerEvent&) { on_timer(); });
     Bind(wxEVT_PAINT, &AMSrefresh::paintEvent, this);
     Bind(wxEVT_ENTER_WINDOW, &AMSrefresh::OnEnterWindow, this);
     Bind(wxEVT_LEAVE_WINDOW, &AMSrefresh::OnLeaveWindow, this);
@@ -166,14 +166,14 @@ void AMSrefresh::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, con
 
     m_playing_timer = new wxTimer();
     m_playing_timer->SetOwner(this);
-    wxPostEvent(this, wxTimerEvent());
+    on_timer();
 
     SetSize(AMS_REFRESH_SIZE);
     SetMinSize(AMS_REFRESH_SIZE);
     SetMaxSize(AMS_REFRESH_SIZE);
 }
 
-void AMSrefresh::on_timer(wxTimerEvent &event) 
+void AMSrefresh::on_timer()
 {
     //if (m_rotation_angle >= m_rfid_bitmap_list.size()) {
     //    m_rotation_angle = 0;

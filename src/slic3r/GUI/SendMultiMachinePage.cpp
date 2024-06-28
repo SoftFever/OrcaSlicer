@@ -300,7 +300,7 @@ SendMultiMachinePage::SendMultiMachinePage(Plater* plater)
     m_main_scroll->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {check_fcous_state(this); e.Skip(); });
 
     init_timer();
-    Bind(wxEVT_TIMER, &SendMultiMachinePage::on_timer, this);
+    Bind(wxEVT_TIMER, [this](wxTimerEvent&) { on_timer(); });
     wxGetApp().UpdateDlgDarkUI(this);
 }
 
@@ -738,7 +738,7 @@ bool SendMultiMachinePage::Show(bool show)
         m_refresh_timer->Stop();
         m_refresh_timer->SetOwner(this);
         m_refresh_timer->Start(4000);
-        wxPostEvent(this, wxTimerEvent());
+        on_timer();
     }
     else {
         m_refresh_timer->Stop();
@@ -1656,7 +1656,7 @@ void SendMultiMachinePage::init_timer()
     m_refresh_timer = new wxTimer();
 }
 
-void SendMultiMachinePage::on_timer(wxTimerEvent& event)
+void SendMultiMachinePage::on_timer()
 {
     for (auto it = m_device_items.begin(); it != m_device_items.end(); it++) {
         it->second->sync_state();

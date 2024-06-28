@@ -1183,7 +1183,7 @@ CloudTaskManagerPage::CloudTaskManagerPage(wxWindow* parent)
 
     page_sizer = new wxBoxSizer(wxVERTICAL);
     page_sizer->Add(m_main_panel, 1, wxALL | wxEXPAND, FromDIP(25));
-    Bind(wxEVT_TIMER, &CloudTaskManagerPage::on_timer, this);
+    Bind(wxEVT_TIMER, [this](wxTimerEvent&) { on_timer(); });
 
     wxGetApp().UpdateDarkUIWin(this);
 
@@ -1400,10 +1400,10 @@ void CloudTaskManagerPage::start_timer()
 
     m_flipping_timer->SetOwner(this);
     m_flipping_timer->Start(1000);
-    wxPostEvent(this, wxTimerEvent());
+    on_timer();
 }
 
-void CloudTaskManagerPage::on_timer(wxTimerEvent& event)
+void CloudTaskManagerPage::on_timer()
 {
     m_flipping_timer->Stop();
     enable_buttons(true);

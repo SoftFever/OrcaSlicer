@@ -421,7 +421,7 @@ SelectMachinePopup::SelectMachinePopup(wxWindow *parent)
     m_refresh_timer = new wxTimer();
     m_refresh_timer->SetOwner(this);
     Bind(EVT_UPDATE_USER_MACHINE_LIST, &SelectMachinePopup::update_machine_list, this);
-    Bind(wxEVT_TIMER, &SelectMachinePopup::on_timer, this);
+    Bind(wxEVT_TIMER, [this](wxTimerEvent&) { on_timer(); });
     Bind(EVT_DISSMISS_MACHINE_LIST, &SelectMachinePopup::on_dissmiss_win, this);
 }
 
@@ -459,7 +459,7 @@ void SelectMachinePopup::Popup(wxWindow *WXUNUSED(focus))
         }
     }
 
-    wxPostEvent(this, wxTimerEvent());
+    on_timer();
     PopupWindow::Popup();
 }
 
@@ -529,7 +529,7 @@ wxWindow *SelectMachinePopup::create_title_panel(wxString text)
     return m_panel_title_own;
 }
 
-void SelectMachinePopup::on_timer(wxTimerEvent &event)
+void SelectMachinePopup::on_timer()
 {
     BOOST_LOG_TRIVIAL(trace) << "SelectMachinePopup on_timer";
     wxGetApp().reset_to_active();

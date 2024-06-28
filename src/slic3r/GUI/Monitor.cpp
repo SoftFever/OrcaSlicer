@@ -114,7 +114,7 @@ AddMachinePanel::~AddMachinePanel() {
 
     m_side_tools->get_panel()->Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(MonitorPanel::on_printer_clicked), NULL, this);
 
-    Bind(wxEVT_TIMER, &MonitorPanel::on_timer, this);
+    Bind(wxEVT_TIMER, [this](wxTimerEvent&) { on_timer(); });
     Bind(wxEVT_SIZE, &MonitorPanel::on_size, this);
     Bind(wxEVT_COMMAND_CHOICE_SELECTED, &MonitorPanel::on_select_printer, this);
 
@@ -160,7 +160,7 @@ MonitorPanel::~MonitorPanel()
     m_refresh_timer = new wxTimer();
     m_refresh_timer->SetOwner(this);
     m_refresh_timer->Start(REFRESH_INTERVAL);
-    wxPostEvent(this, wxTimerEvent());
+    on_timer();
 
     Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev) return;
@@ -272,7 +272,7 @@ void MonitorPanel::on_update_all(wxMouseEvent &event)
     }
 }
 
- void MonitorPanel::on_timer(wxTimerEvent& event)
+void MonitorPanel::on_timer()
 {
      if (update_flag) {
          update_all();
@@ -442,7 +442,7 @@ bool MonitorPanel::Show(bool show)
         m_refresh_timer->Stop();
         m_refresh_timer->SetOwner(this);
         m_refresh_timer->Start(REFRESH_INTERVAL);
-        wxPostEvent(this, wxTimerEvent());
+        on_timer();
 
         if (dev) {
             //set a default machine when obj is null

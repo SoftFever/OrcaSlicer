@@ -523,7 +523,7 @@ MultiMachineManagerPage::MultiMachineManagerPage(wxWindow* parent)
     Layout();
     Fit();
 
-    Bind(wxEVT_TIMER, &MultiMachineManagerPage::on_timer, this);
+    Bind(wxEVT_TIMER, [this](wxTimerEvent&) { on_timer(); });
 }
 
 void MultiMachineManagerPage::update_page()
@@ -676,7 +676,7 @@ void MultiMachineManagerPage::start_timer()
 
     m_flipping_timer->SetOwner(this);
     m_flipping_timer->Start(1000);
-    wxPostEvent(this, wxTimerEvent());
+    on_timer();
 }
 
 void MultiMachineManagerPage::update_page_number()
@@ -688,7 +688,7 @@ void MultiMachineManagerPage::update_page_number()
     st_page_number->SetLabel(number);
 }
 
-void MultiMachineManagerPage::on_timer(wxTimerEvent& event)
+void MultiMachineManagerPage::on_timer()
 {
     m_flipping_timer->Stop();
     if (btn_last_page)
