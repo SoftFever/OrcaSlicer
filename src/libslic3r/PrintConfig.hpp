@@ -604,7 +604,7 @@ public:
     //BBS
     bool is_using_different_extruders();
     bool support_different_extruders(int& extruder_count);
-    int get_index_for_extruder(int extruder_id, std::string id_name, ExtruderType extruder_type, NozzleVolumeType nozzle_volume_type, std::string variant_name) const;
+    int get_index_for_extruder(int extruder_id, std::string id_name, ExtruderType extruder_type, NozzleVolumeType nozzle_volume_type, std::string variant_name, unsigned int stride = 1) const;
     void update_values_to_printer_extruders(DynamicPrintConfig& printer_config, std::set<std::string>& key_set, std::string id_name, std::string variant_name, unsigned int stride = 1, unsigned int extruder_id = 0);
 
     bool is_custom_defined();
