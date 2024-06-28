@@ -4685,6 +4685,7 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
             // use extrude instead of travel_to_xy to trigger the unretract
             ExtrusionPath fake_path_wipe(Polyline{pt, current_point}, paths.front());
             fake_path_wipe.set_force_no_extrusion(true);
+            fake_path_wipe.mm3_per_mm = 0;
             gcode += extrude_path(fake_path_wipe, "move inwards before retraction/seam", speed);
         }
     }
@@ -4708,8 +4709,6 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
             double path_length = unscale<double>(path.length()); //path length in mm
             weighted_sum_mm3_per_mm += path.mm3_per_mm * path_length;
             total_multipath_length += path_length;
-            // TODO: remove before adaptive PA release.
-            //gcode += "; APA: Loop len: " + std::to_string(path_length) + " Loop mm3_mm: " +std::to_string(path.mm3_per_mm) +"\n";
         }
     }
     if (total_multipath_length != 0.0)
@@ -4842,8 +4841,6 @@ std::string GCode::extrude_multi_path(ExtrusionMultiPath multipath, std::string 
             double path_length = unscale<double>(path.length()); //path length in mm
             weighted_sum_mm3_per_mm += path.mm3_per_mm * path_length;
             total_multipath_length += path_length;
-            // TODO: remove before adaptive PA release.
-            //gcode += "; APA: Loop len: " + std::to_string(path_length) + " Loop mm3_mm: " +std::to_string(path.mm3_per_mm) +"\n";
         }
     }
     if (total_multipath_length != 0.0)
@@ -4890,7 +4887,7 @@ std::string GCode::extrude_entity(const ExtrusionEntity &entity, std::string des
 
 std::string GCode::extrude_path(ExtrusionPath path, std::string description, double speed)
 {
-    // Orca: Reset average multipath flow
+    // Orca: Reset average multipath flow as this is a single line, single extrude volumetric speed path
     m_multi_flow_segment_path_pa_set = false;
     m_multi_flow_segment_path_average_mm3_per_mm = 0;
     //    description += ExtrusionEntity::role_to_string(path.role());
@@ -5359,26 +5356,24 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     }
 
     double F = speed * 60;  // convert mm/sec to mm/min
+    
     // Orca: Dynamic PA
     // If adaptive PA is enabled, by default evaluate PA on all extrusion moves
     bool evaluate_adaptive_pa = EXTRUDER_CONFIG(adaptive_pressure_advance) && EXTRUDER_CONFIG(enable_pressure_advance);
-    // PA changes will not be emmited by the post processor if the calculated PA is the same as the previous one,
-    // so there is no harm in emmitting more PA change requests here.
-    // TODO: Explore whether allowing for external perimeter PA changes for each call of the extrude function
-    // TODO: can cause any adverse effects. Theoretically it shouldn't as each external perimeter loop/multipath/path
-    // TODO: should start at a seam, so the toolhead is already at a full stop, especially if de-retracting, so
-    // TODO: the slight stutter from changing PA value there should not cause an issue.
-    // TODO: This approach also does NOT change PA midway through a loop but allows for different PA values
-    // TODO: depending on whether the extrusion move has an adjusted flow due to arachne.
-    
-    // TO DELETE comments below once above hypothesis is proven.
-    // If the previous extrusion move was an external perimeter and the current extrusion move is also an external perimeter
-    // dont evaluate PA again to avoid artefacts when starting/stopping printing an external wall.
-    //if (path.role() == erExternalPerimeter && m_last_extrusion_role == erExternalPerimeter && evaluate_adaptive_pa)
-    //    evaluate_adaptive_pa = false;
+    // If we have already emmited a PA change because the m_multi_flow_segment_path_pa_set is set
+    // skip re-issuing the PA change tag.
     if (m_multi_flow_segment_path_pa_set && evaluate_adaptive_pa)
         evaluate_adaptive_pa = false;
     bool role_change = (m_last_extrusion_role != path.role());
+    // TODO: Explore forcing evaluation of PA if a role change is happening mid extrusion.
+    // TODO: This would enable adapting PA for overhang perimeters as they are part of the current loop
+    // TODO: The issue with simply enabling PA evaluation on a role change is that the speed change
+    // TODO: is issued before the overhang perimeter role change is triggered
+    // TODO: because for some reason (maybe path segmentation upstream?) there is a short path extruded
+    // TODO: with the overhang speed and flow before the role change is flagged in the path.role() function.
+    //if(role_change) evaluate_adaptive_pa = true;
+    
+    // Orca: End of dynamic PA trigger flag segment
     
     //Orca: process custom gcode for extrusion role change
     if (path.role() != m_last_extrusion_role && !m_config.change_extrusion_role_gcode.value.empty()) {
@@ -5437,26 +5432,20 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     }
     
     // Orca: Dynamic PA
+    // Post processor flag generation code segment.
     // If an extrusion role change is detected, place a gcode comment to let the post processor know that
-    // adaptive PA needs evaluation. Variables published to the post processor:
+    // adaptive PA needs evaluation.
+    // Variables published to the post processor:
     // 1) Tag to trigger a PA evaluation (because a role change was identified and the user has requested dynamic PA adjustments)
-    // 2) Current extruder ID
+    // 2) Current extruder ID (to identify the PA model for the currently used extruder)
     // 3) mm3_per_mm value (to then multiply by the final model print speed after slowdown for cooling is applied)
-    // 4) the current acceleration and
-    // calculate the final volumetric flow rate for the feature
-    // The print speed should be the first G1 F statement after this tag is found in the GCODE.
-    // This tag simplifies the creation of the gcode post processor
-    // while also keeping the feature decoupled from other tags.
+    // 4) the current acceleration (to pass to the model for evaluation)
+    // 5) whether this is an external perimeter (for future use)
+    // 6) whether this segment is triggered because of a role change (to aid in calculation of average speed for the role)
+    // This tag simplifies the creation of the gcode post processor while also keeping the feature decoupled from other tags.
     if (evaluate_adaptive_pa) {
-        // Debug:
-        // sprintf(buf, ";%sT%g MM3MM:%g %g %g\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::PA_Change).c_str(), m_writer.extruder()->id(), _mm3_per_mm, path.mm3_per_mm, e_per_mm / m_writer.extruder()->e_per_mm3());
-        // gcode += buf;
         bool is_external = (path.role() == erExternalPerimeter);
         if (m_multi_flow_segment_path_average_mm3_per_mm > 0) {
-            // TODO: remove comment before release but retain tag below!
-            //sprintf(buf, "; Multi segment path value used\n");
-            //gcode += buf;
-
             sprintf(buf, ";%sT%u MM3MM:%g ACCEL:%u EXT:%d RC:%d\n",
                     GCodeProcessor::reserved_tag(GCodeProcessor::ETags::PA_Change).c_str(),
                     m_writer.extruder()->id(),
@@ -5464,7 +5453,11 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                     acceleration_i,
                     is_external,
                     role_change);
-        } else {
+            gcode += buf;
+        } else if(_mm3_per_mm >0 ){ // Triggered when extruding a single segment path (like a line).
+                                    // Check if mm3_mm value is greater than zero as the wipe before external perimeter
+                                    // is a zero mm3_mm path to force de-retraction to happen and we dont want
+                                    // to issue a zero flow PA change command for this
             sprintf(buf, ";%sT%u MM3MM:%g ACCEL:%u EXT:%d RC:%d\n",
                     GCodeProcessor::reserved_tag(GCodeProcessor::ETags::PA_Change).c_str(),
                     m_writer.extruder()->id(),
@@ -5472,8 +5465,8 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                     acceleration_i,
                     is_external,
                     role_change);
+            gcode += buf;
         }
-        gcode += buf;
     }
 
 
