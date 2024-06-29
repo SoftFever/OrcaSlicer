@@ -3,8 +3,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-29 00:28+0800\n"
-"PO-Revision-Date: 2024-06-02 22:13+0300\n"
+"POT-Creation-Date: 2024-06-21 20:03+0800\n"
+"PO-Revision-Date: 2024-06-23 19:21+0300\n"
 "Last-Translator: Olcay ÖREN\n"
 "Language-Team: \n"
 "Language: tr\n"
@@ -15,7 +15,7 @@ msgstr ""
 "X-Generator: Poedit 3.4.4\n"
 
 msgid "Supports Painting"
-msgstr "Destek Boyama"
+msgstr "Destek boyama"
 
 msgid "Alt + Mouse wheel"
 msgstr "Alt + Fare tekerleği"
@@ -276,7 +276,7 @@ msgid "Planar"
 msgstr "Düzlemsel"
 
 msgid "Dovetail"
-msgstr "Kırlangıç Kuyruğu"
+msgstr "Kırlangıç kuyruğu"
 
 msgid "Auto"
 msgstr "Otomatik"
@@ -339,10 +339,10 @@ msgid "Width"
 msgstr "Genişlik"
 
 msgid "Flap Angle"
-msgstr "Kanat Açısı"
+msgstr "Kanat açısı"
 
 msgid "Groove Angle"
-msgstr "Oluk Açısı"
+msgstr "Oluk açısı"
 
 msgid "Part"
 msgstr "Parça"
@@ -436,7 +436,7 @@ msgid "Cancel"
 msgstr "İptal"
 
 msgid "Build Volume"
-msgstr "Birim Oluştur"
+msgstr "Birim oluştur"
 
 msgid "Flip cut plane"
 msgstr "Kesim düzlemini çevir"
@@ -1270,7 +1270,7 @@ msgid "Vertex"
 msgstr "Tepe noktası"
 
 msgid "Edge"
-msgstr "Edge"
+msgstr "Kenar"
 
 msgid "Plane"
 msgstr "Düzlem"
@@ -1749,7 +1749,7 @@ msgid "Text"
 msgstr "Metin"
 
 msgid "Height range Modifier"
-msgstr "Yükseklik aralığı Değiştirici"
+msgstr "Yükseklik aralığı değiştirici"
 
 msgid "Add settings"
 msgstr "Ayar ekle"
@@ -1828,7 +1828,7 @@ msgid "Flush into objects' support"
 msgstr "Nesnelerin desteğine hizalayın"
 
 msgid "Edit in Parameter Table"
-msgstr "Parametre Tablosunda Düzenle"
+msgstr "Parametre tablosunda düzenle"
 
 msgid "Convert from inch"
 msgstr "İnçten dönüştür"
@@ -1972,16 +1972,16 @@ msgid "Remove the selected plate"
 msgstr "Seçilen plakayı kaldır"
 
 msgid "Clone"
-msgstr "Klon"
+msgstr "Klon oluştur"
 
 msgid "Simplify Model"
-msgstr "Modeli Basitleştir"
+msgstr "Modeli basitleştir"
 
 msgid "Center"
 msgstr "Merkez"
 
 msgid "Edit Process Settings"
-msgstr "İşlem Ayarlarını Düzenle"
+msgstr "İşlem ayarlarını düzenle"
 
 msgid "Edit print parameters for a single object"
 msgstr "Tek bir nesne için yazdırma parametrelerini düzenleme"
@@ -2840,11 +2840,13 @@ msgstr "Filament bilgisini temizlemek istediğinizden emin misiniz?"
 msgid "You need to select the material type and color first."
 msgstr "Önce malzeme türünü ve rengini seçmeniz gerekir."
 
-msgid "Please input a valid value (K in 0~0.3)"
-msgstr "Lütfen geçerli bir değer girin (K in 0~0.3)"
+#, c-format, boost-format
+msgid "Please input a valid value (K in %.1f~%.1f)"
+msgstr "Lütfen geçerli bir değer girin (K %.1f~%.1f içinde)"
 
-msgid "Please input a valid value (K in 0~0.3, N in 0.6~2.0)"
-msgstr "Lütfen geçerli bir değer girin (K in 0~0.3, N in 0.6~2.0)"
+#, c-format, boost-format
+msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
+msgstr "Lütfen geçerli bir değer girin (K %.1f~%.1f içinde, N %.1f~%.1f içinde)"
 
 msgid "Other Color"
 msgstr "Diğer renk"
@@ -3265,11 +3267,11 @@ msgstr "Görev Gönderildi"
 msgid "Edit multiple printers"
 msgstr "Birden fazla yazıcıyı düzenleme"
 
-msgid "Select connected printetrs (0/6)"
+msgid "Select connected printers (0/6)"
 msgstr "Bağlı yazıcıları seçin (0/6)"
 
 #, c-format, boost-format
-msgid "Select Connected Printetrs (%d/6)"
+msgid "Select Connected Printers (%d/6)"
 msgstr "Bağlı Yazıcıları Seçin (%d/6)"
 
 #, c-format, boost-format
@@ -3331,7 +3333,7 @@ msgstr "Yazdırma Bitti"
 msgid "Printing Failed"
 msgstr "Yazdırma Başarısız"
 
-msgid "PrintingPause"
+msgid "Printing Pause"
 msgstr "Yazdırma Duraklatıldı"
 
 msgid "Prepare"
@@ -3430,8 +3432,8 @@ msgstr "Akış Dinamik Kalibrasyonu"
 msgid "Send Options"
 msgstr "Gönderme Seçenekleri"
 
-msgid "Send"
-msgstr "Gönder"
+msgid "Send to"
+msgstr "Gönderildi"
 
 msgid ""
 "printers at the same time.(It depends on how many devices can undergo heating "
@@ -3448,6 +3450,9 @@ msgid ""
 msgstr ""
 "her parti başına dakika. (Isıtmanın tamamlanması ne kadar sürerse buna "
 "bağlıdır.)"
+
+msgid "Send"
+msgstr "Gönder"
 
 msgid "Name is invalid;"
 msgstr "Geçersiz isim;"
@@ -4017,6 +4022,18 @@ msgstr ""
 "%s %s için HAYIR."
 
 #, boost-format
+msgid ""
+"Invalid input format. Expected vector of dimensions in the following format: "
+"\"%1%\""
+msgstr "Geçersiz giriş biçimi. Beklenen boyut vektörü biçimi: \"%1%\""
+
+msgid "Input value is out of range"
+msgstr "Girilen değer limit dışı"
+
+msgid "Some extension in the input is invalid"
+msgstr "Girilen bazı uzantılar geçersiz"
+
+#, boost-format
 msgid "Invalid format. Expected vector format: \"%1%\""
 msgstr "Geçersiz format. Beklenen vektör formatı: \"%1%\""
 
@@ -4117,7 +4134,7 @@ msgid "Percent"
 msgstr "Yüzde"
 
 msgid "Used filament"
-msgstr "Kullanılan filament"
+msgstr "Kullanılan"
 
 msgid "Layer Height (mm)"
 msgstr "Katman Yüksekliği (mm)"
@@ -4192,7 +4209,7 @@ msgid "Normal mode"
 msgstr "Normal mod"
 
 msgid "Total Filament"
-msgstr "Total Filament"
+msgstr "Toplam filament"
 
 msgid "Model Filament"
 msgstr "Model Filament"
@@ -4324,7 +4341,7 @@ msgid "Split to parts"
 msgstr "Parçalara bölme"
 
 msgid "Assembly View"
-msgstr "Montaj Görünümü"
+msgstr "Montaj görünümü"
 
 msgid "Select Plate"
 msgstr "Plaka Seç"
@@ -4811,7 +4828,7 @@ msgid "Retraction test"
 msgstr "Geri çekme testi"
 
 msgid "Orca Tolerance Test"
-msgstr "Orca Tolerans Testi"
+msgstr "Orca tolerans testi"
 
 msgid "Max flowrate"
 msgstr "Maksimum akış hızı"
@@ -6153,7 +6170,7 @@ msgid "Do you want to replace it"
 msgstr "Değiştirmek istiyor musun"
 
 msgid "Message"
-msgstr "Mesah"
+msgstr "Mesaj"
 
 msgid "Reload from:"
 msgstr "Yeniden yükle:"
@@ -6694,10 +6711,10 @@ msgstr ""
 "uygulama olarak ayarlar"
 
 msgid "Associate web links to OrcaSlicer"
-msgstr ""
+msgstr "Web bağlantılarını OrcaSlicer ile ilişkilendirin"
 
 msgid "Associate URLs to OrcaSlicer"
-msgstr ""
+msgstr "URL’leri OrcaSlicer ile ilişkilendirin"
 
 msgid "Current association: "
 msgstr "Mevcut dernek:"
@@ -6712,22 +6729,28 @@ msgid ""
 "Associate OrcaSlicer with prusaslicer:// links so that Orca can open models "
 "from Printable.com"
 msgstr ""
+"Orca’nın Printable.com’daki modelleri açabilmesi için OrcaSlicer’ı "
+"prusaslicer:// bağlantılarıyla ilişkilendirin"
 
 msgid "Associate bambustudio://"
-msgstr ""
+msgstr "Bambstudio’yu ilişkilendirin://"
 
 msgid ""
 "Associate OrcaSlicer with bambustudio:// links so that Orca can open models "
 "from makerworld.com"
 msgstr ""
+"Orca’nın makerworld.com’daki modelleri açabilmesi için OrcaSlicer’ı "
+"bambustudio:// bağlantılarıyla ilişkilendirin"
 
 msgid "Associate cura://"
-msgstr ""
+msgstr "Cura’yı ilişkilendirin://"
 
 msgid ""
 "Associate OrcaSlicer with cura:// links so that Orca can open models from "
 "thingiverse.com"
 msgstr ""
+"Orca’nın thingiverse.com’daki modelleri açabilmesi için OrcaSlicer’ı cura:// "
+"bağlantılarıyla ilişkilendirin"
 
 msgid "Maximum recent projects"
 msgstr "Maksimum yeni proje"
@@ -7103,9 +7126,6 @@ msgstr "gönderme tamamlandı"
 
 msgid "Error code"
 msgstr "Hata kodu"
-
-msgid "Printer local connection failed, please try again."
-msgstr "Yazıcının yerel bağlantısı başarısız oldu, lütfen tekrar deneyin."
 
 msgid "No login account, only printers in LAN mode are displayed"
 msgstr "Oturum açma hesabı yok, yalnızca LAN modundaki yazıcılar görüntüleniyor"
@@ -7856,6 +7876,14 @@ msgstr "Çoklu Ekstruder MM Yazıcılarda Araç Değiştirme Parametreleri"
 msgid "Printable space"
 msgstr "Tabla Ayarı"
 
+#. TRN: First argument is parameter name, the second one is the value.
+#, boost-format
+msgid "Invalid value provided for parameter %1%: %2%"
+msgstr "%1% parametresi için geçersiz değer sağlandı: %2%"
+
+msgid "G-code flavor is switched"
+msgstr "G-kod çeşidi değiştirildi"
+
 msgid "Cooling Fan"
 msgstr "Soğutucu Fan"
 
@@ -7942,12 +7970,12 @@ msgid ""
 "\n"
 "Shall I disable it in order to enable Firmware Retraction?"
 msgstr ""
-"Firmware Geri Çekme modunu kullanırken Temizleme seçeneği kullanılamaz.\n"
+"Yazılımsal Geri Çekme modunu kullanırken Temizleme seçeneği kullanılamaz.\n"
 "\n"
-"Firmware Geri Çekmeyi etkinleştirmek için bunu devre dışı bırakmalı mıyım?"
+"Yazılımsal Geri Çekmeyi etkinleştirmek için bunu devre dışı bırakmalı mıyım?"
 
 msgid "Firmware Retraction"
-msgstr "Firmware Geri Çekme"
+msgstr "Yazılımsal Geri Çekme"
 
 msgid "Detached"
 msgstr "Söküldü"
@@ -8233,6 +8261,60 @@ msgstr "Güncelleme mevcut değil."
 msgid "The configuration is up to date."
 msgstr "Yapılandırma güncel."
 
+msgid "Obj file Import color"
+msgstr "Obj dosyası renkli olarak içe aktar"
+
+msgid "Specify number of colors:"
+msgstr "Renk sayısını belirtin:"
+
+#, c-format, boost-format
+msgid "The color count should be in range [%d, %d]."
+msgstr "Renk sayısı aralıkta olmalıdır [%d, %d]."
+
+msgid "Recommended "
+msgstr "Tavsiye edilir "
+
+msgid "Current filament colors:"
+msgstr "Mevcut filament renkleri:"
+
+msgid "Quick set:"
+msgstr "Hızlı ayar:"
+
+msgid "Color match"
+msgstr "Renk uyumu"
+
+msgid "Approximate color matching."
+msgstr "Yaklaşık renk eşleşmesi."
+
+msgid "Append"
+msgstr "Ekle"
+
+msgid "Add consumable extruder after existing extruders."
+msgstr "Mevcut ekstrüderlerden sonra yeni sarf malzemesi ekstrüderi ekleyin."
+
+msgid "Reset mapped extruders."
+msgstr "Eşlenmiş ekstrüderleri sıfırlayın."
+
+msgid "Cluster colors"
+msgstr "Küme renkleri"
+
+msgid "Map Filament"
+msgstr "Filamenti Eşle"
+
+msgid ""
+"Note:The color has been selected, you can choose OK \n"
+" to continue or manually adjust it."
+msgstr ""
+"Not: Renk seçildi, devam etmek için Tamam'ı seçebilirsiniz\n"
+" veya manuel olarak ayarlayabilirsiniz."
+
+msgid ""
+"Waring:The count of newly added and \n"
+" current extruders exceeds 16."
+msgstr ""
+"Uyarı: Yeni eklenen ve\n"
+" mevcut ekstrüderlerin sayısı 16'yı aşıyor."
+
 msgid "Ramming customization"
 msgstr "Sıkıştırma özelleştirme"
 
@@ -8318,6 +8400,43 @@ msgstr "İtibaren"
 
 msgid "To"
 msgstr "İle"
+
+msgid ""
+"Windows Media Player is required for this task! Do you want to enable "
+"'Windows Media Player' for your operation system?"
+msgstr ""
+"Bu görev için Windows Media Player gereklidir! İşletim sisteminiz için "
+"‘Windows Media Player’ı etkinleştirmek istiyor musunuz?"
+
+msgid ""
+"BambuSource has not correctly been registered for media playing! Press Yes to "
+"re-register it. You will be promoted twice"
+msgstr ""
+"BambuSource medya oynatımı için doğru şekilde kaydedilmemiş! Yeniden "
+"kaydetmek için Evet’e basın."
+
+msgid ""
+"Missing BambuSource component registered for media playing! Please re-install "
+"BambuStutio or seek after-sales help."
+msgstr ""
+"Medya oynatma için kayıtlı BambuSource bileşeni eksik! Lütfen BambuStutio’yu "
+"yeniden yükleyin veya satış sonrası yardım isteyin."
+
+msgid ""
+"Using a BambuSource from a different install, video play may not work "
+"correctly! Press Yes to fix it."
+msgstr ""
+"Farklı bir kurulumdan bir BambuSource kullanıyorsunuz, video oynatma doğru "
+"çalışmayabilir! Düzeltmek için Evet’e basın."
+
+msgid ""
+"Your system is missing H.264 codecs for GStreamer, which are required to play "
+"video.  (Try installing the gstreamer1.0-plugins-bad or gstreamer1.0-libav "
+"packages, then restart Orca Slicer?)"
+msgstr ""
+"Sisteminizde video oynatmak için gerekli olan GStreamer H.264 codec "
+"bileşenleri eksik. (gstreamer1.0-plugins-bad veya gstreamer1.0-libav "
+"paketlerini kurmayı deneyin, ardından Orca Slicer’ı yeniden başlatın)"
 
 msgid "Bambu Network plug-in not detected."
 msgstr "Bambu Ağı eklentisi algılanmadı."
@@ -8616,7 +8735,7 @@ msgid "A new Network plug-in(%s) available, Do you want to install it?"
 msgstr "Yeni bir Ağ eklentisi(%s) mevcut, Yüklemek istiyor musunuz?"
 
 msgid "New version of Orca Slicer"
-msgstr "Orca Slicer'nun yeni versiyonu"
+msgstr "Orca Slicer’ın yeni versiyonu"
 
 msgid "Skip this Version"
 msgstr "Bu versiyonu atla"
@@ -9328,7 +9447,7 @@ msgstr ""
 "lineer olarak küçültülecek, bu değer tarafından belirtilen katmana kadar."
 
 msgid "layers"
-msgstr "katmanlar"
+msgstr "katman"
 
 msgid ""
 "Slicing height for each layer. Smaller layer height means more accurate and "
@@ -9779,7 +9898,7 @@ msgstr ""
 "yolları (perimeter) oluşturun. "
 
 msgid "Reverse on odd"
-msgstr "Tek sayıyı tersine çevir"
+msgstr "Tersine çevir"
 
 msgid "Overhang reversal"
 msgstr "Çıkıntıyı tersine çevir"
@@ -10218,13 +10337,13 @@ msgstr ""
 "dolgu ekleyin (üst + alt katı katmanlar)\n"
 "Yok: Hiçbir yere katı dolgu eklenmez. Dikkat: Modelinizin eğimli yüzeyleri "
 "varsa bu seçeneği dikkatli kullanın.\n"
-"Yalnızca Kritik: Duvarlar için katı dolgu eklemekten kaçının\n"
+"Yalnızca kritik: Duvarlar için katı dolgu eklemekten kaçının\n"
 "Orta: Yalnızca çok eğimli yüzeyler için katı dolgu ekleyin\n"
 "Hepsi: Tüm uygun eğimli yüzeyler için katı dolgu ekleyin\n"
 "Varsayılan değer Tümü'dür."
 
 msgid "Critical Only"
-msgstr "Yalnızca Kritik"
+msgstr "Yalnızca kritik"
 
 msgid "Moderate"
 msgstr "Orta"
@@ -10381,6 +10500,14 @@ msgid ""
 "surface finish. It can also cause the infill to shine through the external "
 "surfaces of the part."
 msgstr ""
+"Duvar/dolgu sırası. Onay kutusu işaretlenmediğinde duvarlar önce yazdırılır, "
+"bu çoğu durumda en iyi şekilde çalışır.\n"
+"\n"
+"Dolgunun önce yazdırılması, aşırı sarkmalarda yardımcı olabilir, çünkü "
+"duvarlar komşu dolgulara yapışır. Ancak, dolgu duvarlara bağlı olduğu "
+"yerlerde onları biraz dışarı iterek daha kötü bir dış yüzey bitişine neden "
+"olabilir. Ayrıca, dolgunun parçanın dış yüzeylerinden parlamasına da sebep "
+"olabilir."
 
 msgid "Wall loop direction"
 msgstr "Duvar döngüsü yönü"
@@ -10563,6 +10690,32 @@ msgstr ""
 "Bu ayarı etkinleştirirseniz, parça soğutma fanı hiçbir zaman durdurulmayacak "
 "ve başlatma ve durdurma sıklığını azaltmak için en azından minimum hızda "
 "çalışacaktır"
+
+msgid "Don't slow down outer walls"
+msgstr "Dış duvarları yavaşlatma"
+
+msgid ""
+"If enabled, this setting will ensure external perimeters are not slowed down "
+"to meet the minimum layer time. This is particularly helpful in the below "
+"scenarios:\n"
+"\n"
+" 1. To avoid changes in shine when printing glossy filaments \n"
+"2. To avoid changes in external wall speed which may create slight wall "
+"artefacts that appear like z banding \n"
+"3. To avoid printing at speeds which cause VFAs (fine artefacts) on the "
+"external walls\n"
+"\n"
+msgstr ""
+"Bu ayar etkinleştirildiğinde, dış çevrelerin minimum katman süresine uyması "
+"için yavaşlatılmamasını sağlar. Bu, özellikle aşağıdaki durumlarda yardımcı "
+"olur:\n"
+"\n"
+"1. Parlak filamentler yazdırırken parlaklıktaki değişikliklerden kaçınmak "
+"için\n"
+"2. Z bantlanması gibi görünen hafif duvar kusurları yaratabilecek dış duvar "
+"hızındaki değişikliklerden kaçınmak için\n"
+"3. Dış duvarlarda VFAs (ince kusurlar) oluşturan hızlarda yazdırmaktan "
+"kaçınmak için\n"
 
 msgid "Layer time"
 msgstr "Katman süresi"
@@ -10833,7 +10986,7 @@ msgid "Filament price. For statistics only"
 msgstr "Filament fiyatı. Yalnızca istatistikler için"
 
 msgid "money/kg"
-msgstr "para/kg"
+msgstr "ücret/kg"
 
 msgid "Vendor"
 msgstr "Satıcı"
@@ -11123,6 +11276,9 @@ msgstr ""
 "göz ardı edilecektir; bu durumda fan, \"close_fan_the_first_x_layers\" + 1 "
 "katmanında izin verilen maksimum hızda çalışacaktır."
 
+msgid "layer"
+msgstr "katman"
+
 msgid "Support interface fan speed"
 msgstr "Destekler için fan hızı"
 
@@ -11195,7 +11351,7 @@ msgstr ""
 "ve daha yavaş yazdırılmalıdır"
 
 msgid "Precise Z height"
-msgstr "Hassas Z yüksekliği"
+msgstr "Hassas z yüksekliği"
 
 msgid ""
 "Enable this to get precise z height of object after slicing. It will get the "
@@ -11363,7 +11519,7 @@ msgid "The printer cost per hour"
 msgstr "Yazıcı saat başına maliyeti"
 
 msgid "money/h"
-msgstr "para/h"
+msgstr "ücret/sa"
 
 msgid "Support control chamber temperature"
 msgstr "Destek kontrol ortam sıcaklığı"
@@ -11594,7 +11750,7 @@ msgstr ""
 "destekleyip desteklemediği"
 
 msgid "Emit limits to G-code"
-msgstr "G-code sınırları"
+msgstr "G-kod sınırları"
 
 msgid "Machine limits"
 msgstr "Yazıcı sınırları"
@@ -12302,7 +12458,7 @@ msgstr ""
 "anlamına gelir"
 
 msgid "Use firmware retraction"
-msgstr "Yazılımsal geri çekme (firmware retraction)"
+msgstr "Yazılımsal geri çekme"
 
 msgid ""
 "This experimental setting uses G10 and G11 commands to have the firmware "
@@ -14394,34 +14550,33 @@ msgid ""
 "will use the default compensation parameter for the filament during every "
 "filament switch which will have a good result in most cases.\n"
 "\n"
-"Please note there are a few cases that will make the calibration result not "
-"reliable: using a texture plate to do the calibration; the build plate does "
-"not have good adhesion (please wash the build plate or apply gluestick!) ..."
-"You can find more from our wiki.\n"
+"Please note that there are a few cases that can make the calibration results "
+"unreliable, such as insufficient adhesion on the build plate. Improving "
+"adhesion can be achieved by washing the build plate or applying glue. For "
+"more information on this topic, please refer to our Wiki.\n"
 "\n"
 "The calibration results have about 10 percent jitter in our test, which may "
 "cause the result not exactly the same in each calibration. We are still "
 "investigating the root cause to do improvements with new updates."
 msgstr ""
-"Lütfen Akış Dinamiği Kalibrasyonunun ayrıntılarını wiki'mizden "
-"bulabilirsiniz.\n"
+"Akış Dinamiği Kalibrasyonu ile ilgili detayları Wiki'mizden bulabilirsiniz.\n"
 "\n"
-"Genellikle kalibrasyon gereksizdir. Yazdırma başlat menüsündeki \"akış "
-"dinamiği kalibrasyonu\" seçeneği işaretliyken tek renkli/malzeme baskısını "
-"başlattığınızda, yazıcı eski yöntemi izleyecek, yazdırmadan önce filamenti "
-"kalibre edecektir; Çok renkli/malzeme baskısını başlattığınızda, yazıcı her "
-"filament değişiminde filament için varsayılan dengeleme parametresini "
-"kullanacaktır ve bu çoğu durumda iyi bir sonuç verecektir.\n"
+"Genellikle kalibrasyon gereksizdir. Baskı başlatma menüsünde \"akış "
+"dinamikleri kalibrasyonu\" seçeneği işaretliyken tek renkli/malzemeli bir "
+"baskı başlattığınızda, yazıcı eski yolu izleyecek, baskıdan önce filamenti "
+"kalibre edecektir; Çok renkli/malzemeli bir baskı başlattığınızda, yazıcı her "
+"filament değişimi sırasında filament için varsayılan telafi parametresini "
+"kullanacaktır ve bu da çoğu durumda iyi bir sonuç verecektir.\n"
 "\n"
-"Kalibrasyon sonucunun güvenilir olmamasına yol açacak birkaç durum olduğunu "
-"lütfen unutmayın: kalibrasyonu yapmak için doku plakası kullanmak; baskı "
-"plakasının yapışması iyi değil (lütfen baskı plakasını yıkayın veya "
-"yapıştırıcı uygulayın!) ...Daha fazlasını wiki'mizden bulabilirsiniz.\n"
+"Yapı plakası üzerinde yetersiz yapışma gibi kalibrasyon sonuçlarını "
+"güvenilmez hale getirebilecek birkaç durum olduğunu lütfen unutmayın. "
+"Yapıştırma plakası yıkanarak veya yapıştırıcı uygulanarak yapışmanın "
+"iyileştirilmesi sağlanabilir. Bu konu hakkında daha fazla bilgi için lütfen "
+"Wiki sayfamıza bakın.\n"
 "\n"
-"Testimizde kalibrasyon sonuçlarında yaklaşık yüzde 10'luk bir titreşim var ve "
-"bu da sonucun her kalibrasyonda tam olarak aynı olmamasına neden olabilir. "
-"Yeni güncellemelerle iyileştirmeler yapmak için hâlâ temel nedeni "
-"araştırıyoruz."
+"Kalibrasyon sonuçları testimizde yaklaşık yüzde 10 titremeye sahiptir, bu da "
+"sonucun her kalibrasyonda tam olarak aynı olmamasına neden olabilir. Yeni "
+"güncellemelerle iyileştirmeler yapmak için hala temel nedeni araştırıyoruz."
 
 msgid "When to use Flow Rate Calibration"
 msgstr "Akış Hızı Kalibrasyonu ne zaman kullanılmalı"
@@ -14550,25 +14705,15 @@ msgstr "Ad 40 karakteri aşamaz."
 
 msgid ""
 "Only one of the results with the same name will be saved. Are you sure you "
-"want to overrides the other results?"
+"want to override the other results?"
 msgstr ""
 "Aynı ada sahip sonuçlardan yalnızca biri kaydedilecektir. Diğer sonuçları "
 "geçersiz kılmak istediğinizden emin misiniz?"
 
-#, c-format, boost-format
-msgid ""
-"There is already a historical calibration result with the same name: %s. Only "
-"one of the results with the same name is saved. Are you sure you want to "
-"overrides the historical result?"
-msgstr ""
-"Aynı ada sahip geçmiş bir kalibrasyon sonucu zaten var: %s. Aynı ada sahip "
-"sonuçlardan yalnızca biri kaydedilir. Geçmiş sonucu geçersiz kılmak "
-"istediğinizden emin misiniz?"
-
 msgid "Please find the best line on your plate"
 msgstr "Lütfen plakadaki en iyi çizgiyi bulun"
 
-msgid "Please find the cornor with perfect degree of extrusion"
+msgid "Please find the corner with perfect degree of extrusion"
 msgstr "Lütfen mükemmel ekstrüzyon derecesine sahip köşeyi bulun"
 
 msgid "Input Value"
@@ -14823,6 +14968,9 @@ msgstr "ABS/ASA"
 msgid "PETG"
 msgstr "PETG"
 
+msgid "PCTG"
+msgstr ""
+
 msgid "TPU"
 msgstr "TPU"
 
@@ -14918,6 +15066,9 @@ msgstr "Gerekirse dizin ayırıcısı olarak eğik çizgileri ( / ) kullanın."
 
 msgid "Upload to storage"
 msgstr "Depolama alanına yükle"
+
+msgid "Switch to Device tab after upload."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
@@ -15054,7 +15205,7 @@ msgid "Basic Information"
 msgstr "Temel Bilgiler"
 
 msgid "Add Filament Preset under this filament"
-msgstr "Bu filamanın altına Filament Ön Ayarını ekleyin"
+msgstr "Bu filamentin altına Filament Ön Ayarını ekleyin"
 
 msgid "We could create the filament presets for your following printer:"
 msgstr "Aşağıdaki yazıcınız için filament ön ayarlarını oluşturabiliriz:"
@@ -15192,12 +15343,6 @@ msgstr "Dikdörtgen"
 
 msgid "Printable Space"
 msgstr "Yazdırılabilir Alan"
-
-msgid "X"
-msgstr "X"
-
-msgid "Y"
-msgstr "Y"
 
 msgid "Hot Bed STL"
 msgstr "Sıcak Yatak STL"
@@ -15555,7 +15700,7 @@ msgstr "Günlük İpuçları"
 
 #, c-format, boost-format
 msgid "nozzle memorized: %.1f %s"
-msgstr ""
+msgstr "hafızaya alınan nozul: %.1f %s"
 
 msgid ""
 "Your nozzle diameter in preset is not consistent with memorized nozzle "
@@ -15598,6 +15743,12 @@ msgstr "Çıkış yaptığınızdan emin misiniz?"
 
 msgid "Refresh Printers"
 msgstr "Yazıcıları Yenile"
+
+msgid "View print host webui in Device tab"
+msgstr ""
+
+msgid "Replace the BambuLab's device tab with print host webui"
+msgstr ""
 
 msgid ""
 "HTTPS CA file is optional. It is only needed if you use HTTPS with a self-"
@@ -16046,19 +16197,15 @@ msgstr "SimplyPrint'e başarıyla bağlanıldı!"
 msgid "Could not connect to SimplyPrint"
 msgstr "SimplyPrint'e bağlanılamadı"
 
-msgid "SimplyPrint account not linked. Go to Connect options to set it up."
+msgid "Internal error"
 msgstr ""
-"SimplyPrint hesabı bağlı değil. Ayarlamak için Bağlantı seçeneklerine gidin."
-
-msgid ""
-"File size exceeds the 100MB upload limit. Please upload your file through the "
-"panel."
-msgstr ""
-"Dosya boyutu 100 MB yükleme sınırını aşıyor. Lütfen dosyanızı panel üzerinden "
-"yükleyiniz."
 
 msgid "Unknown error"
 msgstr "Bilinmeyen hata"
+
+msgid "SimplyPrint account not linked. Go to Connect options to set it up."
+msgstr ""
+"SimplyPrint hesabı bağlı değil. Ayarlamak için Bağlantı seçeneklerine gidin."
 
 msgid "Connection to Flashforge works correctly."
 msgstr "Flashforge bağlantısı düzgün çalışıyor."
@@ -16169,9 +16316,9 @@ msgid ""
 "Did you know that <b>Reverse on odd</b> feature can significantly improve the "
 "surface quality of your overhangs?"
 msgstr ""
-"Tek sayıyı tersine çevir\n"
-"<b>Tek sayıyı ters çevir</b> özelliğinin çıkıntılarınızın yüzey kalitesini "
-"önemli ölçüde artırabileceğini biliyor muydunuz?"
+"Tersine çevir\n"
+"<b>Tersine çevir</b> özelliğinin çıkıntılarınızın yüzey kalitesini önemli "
+"ölçüde artırabileceğini biliyor muydunuz?"
 
 #: resources/data/hints.ini: [hint:Cut Tool]
 msgid ""
@@ -16465,6 +16612,98 @@ msgstr ""
 "ABS gibi bükülmeye yatkın malzemelere baskı yaparken, ısıtma yatağı "
 "sıcaklığının uygun şekilde arttırılmasının bükülme olasılığını "
 "azaltabileceğini biliyor muydunuz?"
+
+#~ msgid ""
+#~ "File size exceeds the 100MB upload limit. Please upload your file through "
+#~ "the panel."
+#~ msgstr ""
+#~ "Dosya boyutu 100 MB yükleme sınırını aşıyor. Lütfen dosyanızı panel "
+#~ "üzerinden yükleyiniz."
+
+#~ msgid "Please input a valid value (K in 0~0.3)"
+#~ msgstr "Lütfen geçerli bir değer girin (K in 0~0.3)"
+
+#~ msgid "Please input a valid value (K in 0~0.3, N in 0.6~2.0)"
+#~ msgstr "Lütfen geçerli bir değer girin (K in 0~0.3, N in 0.6~2.0)"
+
+#~ msgid "Select connected printetrs (0/6)"
+#~ msgstr "Bağlı yazıcıları seçin (0/6)"
+
+#, c-format, boost-format
+#~ msgid "Select Connected Printetrs (%d/6)"
+#~ msgstr "Bağlı Yazıcıları Seçin (%d/6)"
+
+#~ msgid "PrintingPause"
+#~ msgstr "Yazdırma Duraklatıldı"
+
+#~ msgid "Printer local connection failed, please try again."
+#~ msgstr "Yazıcının yerel bağlantısı başarısız oldu, lütfen tekrar deneyin."
+
+#~ msgid ""
+#~ "Please find the details of Flow Dynamics Calibration from our wiki.\n"
+#~ "\n"
+#~ "Usually the calibration is unnecessary. When you start a single color/"
+#~ "material print, with the \"flow dynamics calibration\" option checked in "
+#~ "the print start menu, the printer will follow the old way, calibrate the "
+#~ "filament before the print; When you start a multi color/material print, "
+#~ "the printer will use the default compensation parameter for the filament "
+#~ "during every filament switch which will have a good result in most cases.\n"
+#~ "\n"
+#~ "Please note there are a few cases that will make the calibration result "
+#~ "not reliable: using a texture plate to do the calibration; the build plate "
+#~ "does not have good adhesion (please wash the build plate or apply "
+#~ "gluestick!) ...You can find more from our wiki.\n"
+#~ "\n"
+#~ "The calibration results have about 10 percent jitter in our test, which "
+#~ "may cause the result not exactly the same in each calibration. We are "
+#~ "still investigating the root cause to do improvements with new updates."
+#~ msgstr ""
+#~ "Lütfen Akış Dinamiği Kalibrasyonunun ayrıntılarını wiki'mizden "
+#~ "bulabilirsiniz.\n"
+#~ "\n"
+#~ "Genellikle kalibrasyon gereksizdir. Yazdırma başlat menüsündeki \"akış "
+#~ "dinamiği kalibrasyonu\" seçeneği işaretliyken tek renkli/malzeme baskısını "
+#~ "başlattığınızda, yazıcı eski yöntemi izleyecek, yazdırmadan önce filamenti "
+#~ "kalibre edecektir; Çok renkli/malzeme baskısını başlattığınızda, yazıcı "
+#~ "her filament değişiminde filament için varsayılan dengeleme parametresini "
+#~ "kullanacaktır ve bu çoğu durumda iyi bir sonuç verecektir.\n"
+#~ "\n"
+#~ "Kalibrasyon sonucunun güvenilir olmamasına yol açacak birkaç durum "
+#~ "olduğunu lütfen unutmayın: kalibrasyonu yapmak için doku plakası "
+#~ "kullanmak; baskı plakasının yapışması iyi değil (lütfen baskı plakasını "
+#~ "yıkayın veya yapıştırıcı uygulayın!) ...Daha fazlasını wiki'mizden "
+#~ "bulabilirsiniz.\n"
+#~ "\n"
+#~ "Testimizde kalibrasyon sonuçlarında yaklaşık yüzde 10'luk bir titreşim var "
+#~ "ve bu da sonucun her kalibrasyonda tam olarak aynı olmamasına neden "
+#~ "olabilir. Yeni güncellemelerle iyileştirmeler yapmak için hâlâ temel "
+#~ "nedeni araştırıyoruz."
+
+#~ msgid ""
+#~ "Only one of the results with the same name will be saved. Are you sure you "
+#~ "want to overrides the other results?"
+#~ msgstr ""
+#~ "Aynı ada sahip sonuçlardan yalnızca biri kaydedilecektir. Diğer sonuçları "
+#~ "geçersiz kılmak istediğinizden emin misiniz?"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "There is already a historical calibration result with the same name: %s. "
+#~ "Only one of the results with the same name is saved. Are you sure you want "
+#~ "to overrides the historical result?"
+#~ msgstr ""
+#~ "Aynı ada sahip geçmiş bir kalibrasyon sonucu zaten var: %s. Aynı ada sahip "
+#~ "sonuçlardan yalnızca biri kaydedilir. Geçmiş sonucu geçersiz kılmak "
+#~ "istediğinizden emin misiniz?"
+
+#~ msgid "Please find the cornor with perfect degree of extrusion"
+#~ msgstr "Lütfen mükemmel ekstrüzyon derecesine sahip köşeyi bulun"
+
+#~ msgid "X"
+#~ msgstr "X"
+
+#~ msgid "Y"
+#~ msgstr "Y"
 
 #~ msgid ""
 #~ "Associate OrcaSlicer with prusaslicer:// links so that Orca can open "

@@ -241,6 +241,9 @@ static void MakeMesh(TopoDS_Shape& theSolid, TriangleMesh& theMesh)
 
 void load_text_shape(const char*text, const char* font, const float text_height, const float thickness, bool is_bold, bool is_italic, TextResult &text_result)
 {
+    if (thickness <= 0)
+        return;
+
     Handle(Font_FontMgr) aFontMgr = Font_FontMgr::GetInstance();
     if (aFontMgr->GetAvailableFonts().IsEmpty())
         aFontMgr->InitFontDataBase();

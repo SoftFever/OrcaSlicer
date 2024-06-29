@@ -561,11 +561,19 @@ void PrintingTaskPanel::create_panel(wxWindow* parent)
 void PrintingTaskPanel::paint(wxPaintEvent&)
 {
     wxPaintDC dc(m_bitmap_thumbnail);
-    if (wxGetApp().dark_mode())
-        dc.DrawBitmap(m_bitmap_background.bmp(), 0, 0);
+    if (wxGetApp().dark_mode()) {
+        if (m_brightness_value > 0 && m_brightness_value < SHOW_BACKGROUND_BITMAP_PIXEL_THRESHOLD) {
+            dc.DrawBitmap(m_bitmap_background.bmp(), 0, 0);
+            dc.SetTextForeground(*wxBLACK);
+        }
+        else
+            dc.SetTextForeground(*wxWHITE);
+    }
+    else
+        dc.SetTextForeground(*wxBLACK);
     dc.DrawBitmap(m_thumbnail_bmp_display, wxPoint(0, 0));
-    dc.SetTextForeground(*wxBLACK);
     dc.SetFont(Label::Body_12);
+    
     if (m_plate_index >= 0) {
         wxString plate_id_str = wxString::Format("%d", m_plate_index);
         dc.DrawText(plate_id_str, wxPoint(4, 4));
@@ -1990,6 +1998,7 @@ void StatusPanel::on_webrequest_state(wxWebRequestEvent &evt)
             img_list.insert(std::make_pair(m_request_url, img));
             wxImage resize_img = img.Scale(m_project_task_panel->get_bitmap_thumbnail()->GetSize().x, m_project_task_panel->get_bitmap_thumbnail()->GetSize().y, wxIMAGE_QUALITY_HIGH);
             m_project_task_panel->set_thumbnail_img(resize_img);
+            m_project_task_panel->set_brightness_value(get_brightness_value(resize_img));
         }
         if (obj) {
             m_project_task_panel->set_plate_index(obj->m_plate_index);
@@ -3229,6 +3238,7 @@ void StatusPanel::update_cloud_subtask(MachineObject *obj)
                         img = it->second;
                         wxImage resize_img = img.Scale(m_project_task_panel->get_bitmap_thumbnail()->GetSize().x, m_project_task_panel->get_bitmap_thumbnail()->GetSize().y);
                         m_project_task_panel->set_thumbnail_img(resize_img);
+                        m_project_task_panel->set_brightness_value(get_brightness_value(resize_img));
                     }
                     if (this->obj) {
                         m_project_task_panel->set_plate_index(obj->m_plate_index);

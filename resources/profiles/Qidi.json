@@ -1,6 +1,6 @@
 {
     "name": "Qidi",
-    "version": "02.01.00.00",
+    "version": "02.01.01.00",
     "force_update": "0",
     "description": "Qidi configurations",
     "machine_model_list": [
@@ -1039,6 +1039,10 @@
         {
             "name": "Qidi Generic PLA Silk",
             "sub_path": "filament/Qidi Generic PLA Silk.json"
+        },
+        {
+            "name": "Qidi Generic PLA Silk @Qidi Q1 Pro 0.4 nozzle",
+            "sub_path": "filament/Qidi Generic PLA Silk @Qidi Q1 Pro 0.4 nozzle.json"
         },
         {
             "name": "Qidi Generic PVA",

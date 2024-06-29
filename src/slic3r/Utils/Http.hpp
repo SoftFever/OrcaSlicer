@@ -121,15 +121,15 @@ public:
 	// Add a HTTP multipart form field
 	Http& form_add(const std::string &name, const std::string &contents);
 	// Add a HTTP multipart form file data contents, `name` is the name of the part
-	Http& form_add_file(const std::string &name, const boost::filesystem::path &path);
+	Http& form_add_file(const std::string &name, const boost::filesystem::path &path, boost::filesystem::ifstream::off_type offset = 0, size_t length = 0);
 	// Add a HTTP mime form field
 	Http& mime_form_add_text(std::string& name, std::string& value);
 	// Add a HTTP mime form file
 	Http& mime_form_add_file(std::string& name, const char* path);
 	// Same as above except also override the file's filename with a wstring type
-	Http& form_add_file(const std::wstring& name, const boost::filesystem::path& path);
+    Http& form_add_file(const std::wstring& name, const boost::filesystem::path& path, boost::filesystem::ifstream::off_type offset = 0, size_t length = 0);
 	// Same as above except also override the file's filename with a custom one
-	Http& form_add_file(const std::string &name, const boost::filesystem::path &path, const std::string &filename);
+	Http& form_add_file(const std::string &name, const boost::filesystem::path &path, const std::string &filename, boost::filesystem::ifstream::off_type offset = 0, size_t length = 0);
 
 #ifdef WIN32
 	// Tells libcurl to ignore certificate revocation checks in case of missing or offline distribution points for those SSL backends where such behavior is present.
